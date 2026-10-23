@@ -228,7 +228,7 @@ const LI = 'li.turma[data-turma="tu1"]';
     const r = await pg.evaluate((sel) => {
       const l = document.querySelector(sel);
       if (!l) return { existe: false };
-      const ms = [...l.querySelectorAll('.metrica')];
+      const ms = [...l.querySelectorAll('.trio-item')];
       const larg = ms.map((e) => Math.round(e.getBoundingClientRect().width));
       return {
         existe: true,
@@ -259,11 +259,11 @@ const LI = 'li.turma[data-turma="tu1"]';
     const l = document.querySelector(sel);
     if (!l) return null;
     return {
-      paineis: [...l.querySelectorAll('.painel')].map((p) => ({ qual: p.getAttribute('data-painel'), oculto: p.hidden })),
-      botoes: [...l.querySelectorAll('.metrica .q')].map((b) => ({
+      paineis: [...l.querySelectorAll('.trio-painel')].map((p) => ({ qual: p.getAttribute('data-painel'), oculto: p.hidden })),
+      botoes: [...l.querySelectorAll('.trio-item')].map((b) => ({
         qual: b.getAttribute('data-balao'),
         expandido: b.getAttribute('aria-expanded'),
-        celula: b.closest('.metrica').getAttribute('data-aberto'),
+        celula: b.getAttribute('aria-expanded'),
       })),
     };
   }, LI);
@@ -271,7 +271,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   // o controle negativo morria no clique em vez de reprovar. Aqui o clique que não encontra
   // o alvo não faz nada, e quem reprova é a asserção seguinte, que já sabe dizer por quê.
   const abrir = async (qual) => {
-    try { await pg.click(`${LI} .metrica .q[data-balao="${qual}"]`); } catch { /* sem botão */ }
+    try { await pg.click(`${LI} .trio-item[data-balao="${qual}"]`); } catch { /* sem botão */ }
   };
   const painel = (e, qual) => (e && e.paineis.find((p) => p.qual === qual)) || { oculto: null };
   const botao = (e, qual) => (e && e.botoes.find((b) => b.qual === qual)) || { expandido: null, celula: null };
@@ -289,13 +289,13 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('tocar no «?» da régua abre o painel da régua', painel(e, 'regua').oculto === false);
   provar('…e só ele', Boolean(e) && e.paineis.filter((p) => !p.oculto).length === 1);
   provar('…e a célula diz que está aberta',
-    botao(e, 'regua').expandido === 'true' && botao(e, 'regua').celula === 'sim');
+    botao(e, 'regua').expandido === 'true');
 
   await abrir('conteudos');
   e = await estado();
   provar('abrir o dos conteúdos FECHA o da régua', painel(e, 'regua').oculto === true);
   provar('…e o dos conteúdos abre', painel(e, 'conteudos').oculto === false);
-  provar('…e a célula anterior apaga', botao(e, 'regua').celula === null);
+  provar('…e a célula anterior apaga', botao(e, 'regua').expandido === 'false');
 
   await abrir('conteudos');
   e = await estado();
@@ -304,7 +304,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('tocar outra vez no mesmo «?» fecha',
     Boolean(e) && e.paineis.length === 3 && e.paineis.every((p) => p.oculto));
   provar('…e nenhuma célula fica acesa',
-    Boolean(e) && e.botoes.length === 3 && e.botoes.every((b) => b.celula === null && b.expandido === 'false'));
+    Boolean(e) && e.botoes.length === 3 && e.botoes.every((b) => b.expandido === 'false'));
 
   await abrir('ritmo');
   await pg.keyboard.press('Escape');
@@ -317,26 +317,26 @@ const LI = 'li.turma[data-turma="tu1"]';
   const escala = await pg.evaluate((sel) => {
     const l = document.querySelector(sel);
     if (!l) return null;
-    const sp = [...l.querySelectorAll('.painel[data-painel="regua"] .escala span')];
+    const sp = [...l.querySelectorAll('.trio-painel[data-painel="regua"] .trio-escala span')];
     return { textos: sp.map((s) => s.textContent.trim()), classes: sp.map((s) => s.className) };
   }, LI);
   provar('a escala tem um degrau por nível da régua', escala && escala.textos.length === 4, escala && escala.textos);
   provar('o primeiro degrau é «satisfatório» e está em verde pleno',
-    escala && /^satisf/i.test(escala.textos[0]) && escala.classes[0] === 'nivel-ok', escala && escala.classes);
+    escala && /^satisf/i.test(escala.textos[0]) && escala.classes[0] === 'trio-ok', escala && escala.classes);
   provar('«em desenvolvimento» está em âmbar, e «não se aplica» em neutro',
-    escala && escala.classes[2] === 'nivel-alerta' && escala.classes[3] === 'nivel-neutro', escala && escala.classes);
+    escala && escala.classes[2] === 'trio-alerta' && escala.classes[3] === 'trio-neutro', escala && escala.classes);
 
   // ---- 8: a turma incompleta diz o que falta ----------------------------------------
   const incompleta = await pg.evaluate(() => {
     const l = document.querySelector('li.turma[data-turma="tu2"]');
     if (!l) return null;
     const nota = l.querySelector('.nota-falta');
-    const lista = [...l.querySelectorAll('.painel[data-painel="ritmo"] .lista-falta li')];
+    const lista = [...l.querySelectorAll('.trio-painel[data-painel="ritmo"] .trio-falta li')];
     return {
       temNota: Boolean(nota),
       notaTexto: nota ? nota.textContent.replace(/\s+/g, ' ').trim() : '',
       itens: lista.map((x) => x.textContent.trim()),
-      metricaRitmo: (l.querySelector('.metrica .v') || {}).textContent || '',
+      metricaRitmo: (l.querySelector('.trio-item .trio-v') || {}).textContent || '',
     };
   });
   provar('a turma sem ritmo traz a nota de «falta»', incompleta && incompleta.temNota);
@@ -525,7 +525,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   const painelDeConteudos = await pg.evaluate((sel) => {
     const l = document.querySelector(sel);
     if (!l) return null;
-    const p = l.querySelector('.painel[data-painel="conteudos"]');
+    const p = l.querySelector('.trio-painel[data-painel="conteudos"]');
     if (!p) return { tem: false };
     return {
       tem: true,

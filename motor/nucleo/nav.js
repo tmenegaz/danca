@@ -74,15 +74,61 @@ function ehAtivo(item, pedido) {
 }
 
 /**
+ * O ÍNDICE DO GRUPO QUE ESTÁ A SER SERVIDO — e porque é que ele é preciso (23/10/2026).
+ *
+ * `ehAtivo()` marca o ITEM. Na barra de `details` isso chegava: o grupo abria-se e o item aceso
+ * via-se lá dentro. Na COLUNA COMPACTA não chega — os grupos nascem fechados, e um item aceso
+ * dentro de um grupo fechado não se vê. A marca passa a ser do GRUPO, e é ela a única coisa que
+ * responde a «onde estou» sem gastar altura.
+ *
+ * Devolve o próprio objecto do grupo (não o índice): o desenho do `details` e o da coluna
+ * precisam de o comparar por identidade, e um índice obrigaria a passar o array a quem desenha.
+ */
+function grupoAtual(menu, pedido) {
+  const grupos = (menu && Array.isArray(menu.grupos)) ? menu.grupos : [];
+  for (const grupo of grupos) {
+    if (!grupo || !Array.isArray(grupo.itens)) continue;
+    if (grupo.itens.some((i) => ehAtivo(i, pedido))) return grupo;
+  }
+  // Um grupo que é ELE PRÓPRIO um destino (o «Bastidores» da barra não é, mas um dia pode ser).
+  return grupos.find((g) => g && g.tipo !== 'menu' && ehAtivo(g, pedido)) || null;
+}
+
+/** O título do documento servido, lido do `<h1>` da própria página. Ver `tituloDaPagina`. */
+const TITULO_NA_BARRA = 'doc-atual';
+
+/**
  * O DESENHO. `menu` é o `nav.json`; `pedido` é o caminho que está a ser servido.
  *
  * A FORMA (marca, hamburger, contêiner) vem do `nav-html.js` — a mesma que o pacote e os
  * Bastidores já usam. O que muda aqui é só a LISTA, que passa a vir do dado.
+ *
+ * DUAS FORMAS, E O MESMO DADO (23/10/2026).
+ *
+ *   · o menu não tem `coluna` → desenha a BARRA de sempre, `details` e submenus. É o que as
+ *     escolas publicadas hoje têm, e continua a ser o que acontece a quem não pedir outra coisa.
+ *     Nada muda para elas;
+ *   · o menu TEM `coluna` → a lista de topo passa a ser só a `barra` (o Bastidores, na ponta
+ *     direita), e os destinos de trabalho vão para um `<aside class="coluna">`. A coluna é
+ *     compacta: só os títulos dos grupos, e o grupo do documento actual marcado.
+ *
+ * `extras` aceita as duas formas que já existiam: a string do bloco da página (a S5 da Produção)
+ * e, agora, `{ extras, titulo }` — o título é o do documento, e vai para a barra.
  */
 function desenhar(menu, pedido, extras) {
-  if (!menu || !Array.isArray(menu.grupos) || !menu.grupos.length) return null;
+  if (!menu) return null;
+  const bloco = (extras && typeof extras === 'object') ? (extras.extras || '') : (extras || '');
+  const titulo = (extras && typeof extras === 'object') ? (extras.titulo || '') : '';
+
+  const coluna = Array.isArray(menu.coluna) && menu.coluna.length ? menu.coluna : null;
+  // Sem `coluna`, o menu é o de sempre: `grupos`. Com `coluna`, a barra fica só com o que o
+  // autor pôs em `barra` — e o `grupos` deixa de ser lido, para não haver duas listas vivas.
+  const gruposDaBarra = coluna ? (Array.isArray(menu.barra) ? menu.barra : []) : menu.grupos;
+  if (!Array.isArray(gruposDaBarra) || (!gruposDaBarra.length && !coluna)) return null;
+
+  const atualDaBarra = grupoAtual({ grupos: gruposDaBarra }, pedido);
   const itens = [];
-  for (const grupo of menu.grupos) {
+  for (const grupo of gruposDaBarra) {
     if (!grupo) continue;
     if (grupo.tipo === 'menu' && Array.isArray(grupo.itens) && grupo.itens.length) {
       const links = grupo.itens.map((i) => {
@@ -90,7 +136,12 @@ function desenhar(menu, pedido, extras) {
         return '      <a' + (classe ? ' class="' + esc(classe) + '"' : '')
           + ' href="' + esc(absoluto(i.href)) + '">' + esc(i.rotulo) + '</a>';
       }).join('\n');
-      itens.push('  <details class="menu">\n    <summary>' + esc(grupo.rotulo) + '</summary>\n'
+      // O GRUPO DA PÁGINA MARCA-SE NO PRÓPRIO `<details>` (23/10/2026). Sem isto, numa página
+      // cuja lista vive dentro do grupo, o `summary` não diz nada: o `details` está fechado e o
+      // único sinal fica escondido lá dentro.
+      const marca = grupo === atualDaBarra ? 'atual ' : '';
+      const classeDetalhes = marca ? ' class="' + marca.trim() + ' menu"' : ' class="menu"';
+      itens.push('  <details' + classeDetalhes + '>\n    <summary>' + esc(grupo.rotulo) + '</summary>\n'
         + '    <div class="submenu">\n' + links + '\n    </div>\n  </details>');
       continue;
     }
@@ -114,10 +165,112 @@ function desenhar(menu, pedido, extras) {
    *
    * O `extras` entra no MESMO lugar em que o `navSistema` o punha — depois da marca, antes do
    * ☰ —, e é opcional: sem ele, o resultado é byte a byte o de antes. */
-  const abertura = extras
-    ? ABERTURA.replace('  <button class="hamburger"', extras + '\n  <button class="hamburger"')
+  /* O TÍTULO DO DOCUMENTO NA BARRA (23/10/2026). Ele entra no MESMO lugar do `extras` — depois
+   * da marca, antes do ☰ —, e é o que responde a «em que documento estou» sem uma segunda barra.
+   * Vem do `<h1>` da página (ver `tituloDaPagina`), e não do `nav.json`: o menu não sabe, nem tem
+   * de saber, que documentos existem em cada pacote. Só a página sabe.
+   *
+   * Só entra quando há COLUNA. Na barra de hoje o título não tem onde caber: ela já leva os
+   * grupos todos, e um título ao lado deles seria mais uma coisa a competir por largura. */
+  /* O CAMINHO, À MODA DA PRODUÇÃO: o grupo miúdo e a página. Um título sozinho diria «Planos do
+   * ciclo» sem dizer de que parte do sistema é; os dois juntos dizem «Ciclos · Planos do ciclo».
+   * O `·` é do desenho (`small::after`), e não do texto — para a leitura de ecrã não colar as
+   * duas palavras numa só. */
+  const grupoDoTitulo = (coluna && titulo) ? grupoAtual({ grupos: coluna }, pedido) : null;
+  const caminho = (coluna && titulo)
+    ? '<span class="' + TITULO_NA_BARRA + '">'
+      + (grupoDoTitulo ? '<small>' + esc(grupoDoTitulo.rotulo) + '</small>' : '')
+      + esc(titulo) + '</span>'
+    : '';
+  const antesDoBotao = [bloco, caminho].filter(Boolean).join('\n  ');
+  const abertura = antesDoBotao
+    ? ABERTURA.replace('  <button class="hamburger"', antesDoBotao + '\n  <button class="hamburger"')
     : ABERTURA;
-  return [abertura, itens.join('\n'), FECHAMENTO].join('\n');
+  const barra = [abertura, itens.join('\n'), FECHAMENTO].join('\n');
+  return coluna ? desenharColuna(coluna, pedido) + barra : barra;
+}
+
+/**
+ * A COLUNA — o menu de trabalho, à esquerda (23/10/2026).
+ *
+ * Ela é COMPACTA: mostra os títulos dos grupos e mais nada. O grupo abre no ponteiro, empurra os
+ * de baixo para baixo e fecha quando o ponteiro sai — o que se ganha não é só altura (217 px
+ * contra 485) é não ter de varrer onze destinos para achar um.
+ *
+ * O GRUPO DO DOCUMENTO ACTUAL NASCE MARCADO, e não aberto. É a decisão que faz a coluna ser
+ * curta e continuar a dizer onde se está: o item aceso dentro de um grupo fechado não se vê, e
+ * o `data-atual` no grupo vê-se sempre (o filete de ouro no título).
+ *
+ * `direto: true` é um grupo que é DESTINO e não pasta — «Aulas». Ele não tem itens: as aulas são
+ * o único acervo que cresce sem parar, e enumerá-las no menu voltaria a fazer do menu um índice.
+ *
+ * Sem `data-aberta="sim"` a folha do celular nasce fechada, que é o que se quer: o
+ * `nav.js` do cliente é quem a abre, e o CSS só a desloca.
+ */
+function desenharColuna(coluna, pedido) {
+  const atual = grupoAtual({ grupos: coluna }, pedido);
+  const partes = coluna.map((grupo) => {
+    if (!grupo) return '';
+    if (grupo.tipo !== 'menu') {
+      const ativo = ehAtivo(grupo, pedido) ? ' class="coluna-direto ativo"' : ' class="coluna-direto"';
+      return '    <a' + ativo + ' href="' + esc(absoluto(grupo.href)) + '">' + esc(grupo.rotulo) + '</a>';
+    }
+    if (!Array.isArray(grupo.itens) || !grupo.itens.length) return '';
+    const chave = chaveDoGrupo(grupo);
+    const marcado = grupo === atual ? ' data-atual="sim"' : '';
+    const links = grupo.itens.map((i) => {
+      const ativo = ehAtivo(i, pedido) ? ' aria-current="page"' : '';
+      return '        <a' + ativo + ' href="' + esc(absoluto(i.href)) + '">' + esc(i.rotulo) + '</a>';
+    }).join('\n');
+    return '    <div class="coluna-grupo"' + marcado + '>\n'
+      + '      <button type="button" class="coluna-titulo" aria-expanded="false"'
+      + ' aria-controls="g-' + esc(chave) + '"><span>' + esc(grupo.rotulo) + '</span>'
+      + '<span class="coluna-seta" aria-hidden="true">›</span></button>\n'
+      + '      <div class="coluna-itens" id="g-' + esc(chave) + '">\n' + links + '\n      </div>\n'
+      + '    </div>';
+  }).filter(Boolean);
+
+  return '<aside class="coluna" id="coluna-proposta" data-aberta="nao" aria-label="Navegação do sistema">\n'
+    + '  <span class="coluna-puxador" aria-hidden="true"></span>\n'
+    + '  <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
+    + '  <nav>\n' + partes.join('\n') + '\n  </nav>\n'
+    + '</aside>\n';
+}
+
+/**
+ * A CHAVE DE UM GRUPO, para o `aria-controls` do título apontar para a lista certa.
+ *
+ * Derivada do RÓTULO e não do índice: dois grupos com o mesmo nome na mesma coluna seriam um
+ * erro de dados, e é melhor que o `id` o denuncie do que o esconda. Sem acentos, sem espaços.
+ */
+function chaveDoGrupo(grupo) {
+  const base = String((grupo && grupo.rotulo) || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return base || 'grupo';
+}
+
+/**
+ * O TÍTULO DO DOCUMENTO, lido do `<h1>` da página que está a ser servida.
+ *
+ * É a resposta barata à pergunta «em que documento estou»: o `<h1>` já existe em todas as páginas
+ * do sistema, já é o título verdadeiro do documento, e não exige nem um campo novo no `nav.json`
+ * nem que a montagem conheça as páginas que o ciclo vier a gerar depois.
+ *
+ * Devolve `''` quando não há `<h1>` — e aí a barra fica exactamente como ficaria sem título.
+ */
+function tituloDaPagina(html) {
+  const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(String(html == null ? '' : html));
+  if (!m) return '';
+  const texto = m[1]
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // Um título longo rouba a barra toda e é cortado de qualquer forma pelo CSS: cortar aqui é
+  // dizer a verdade ao `title` do elemento, e não deixar 300 caracteres a caminho do servidor.
+  return texto.length > 90 ? texto.slice(0, 89).trimEnd() + '…' : texto;
 }
 
 /**
@@ -148,10 +301,23 @@ function aplicar(html, menu, pedido) {
   const texto = String(html == null ? '' : html);
   const original = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(texto);
   if (!original) return null;
+  /* A COLUNA JÁ DESENHADA SAI ANTES DE SE DESENHAR OUTRA (23/10/2026). O desenho devolve a
+   * coluna E a barra, mas o `<nav>` é o único que se substitui — sem esta linha, cada passagem
+   * deixaria a coluna antiga ao lado da nova. Acontece a sério: a montagem reescreve as páginas
+   * e a ponte volta a reescrevê-las ao servir. */
+  const limpo = texto.replace(/<aside class="coluna"[\s\S]*?<\/aside>\s*/, '');
+  const doLimpo = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(limpo);
+  if (!doLimpo) return null;
   /* O bloco da página é lido do `<nav>` que está lá antes de ser substituído. */
-  const nav = desenhar(menu, pedido, extrasDaBarra(original[0]));
+  const nav = desenhar(menu, pedido, {
+    extras: extrasDaBarra(doLimpo[0]),
+    titulo: tituloDaPagina(limpo),
+  });
   if (!nav) return null;
-  return texto.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, () => nav);
+  return limpo.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, () => nav);
 }
 
-module.exports = { desenhar, aplicar, absoluto, caminhoDe, ehAtivo, extrasDaBarra };
+module.exports = {
+  desenhar, aplicar, absoluto, caminhoDe, ehAtivo, extrasDaBarra,
+  grupoAtual, tituloDaPagina, desenharColuna, chaveDoGrupo,
+};

@@ -109,19 +109,24 @@ function pagina(css) {
       </span>
     </div>
     <div class="dono">RAD · Grade 1 · 2x/semana · seg, qua 19:00 · 60 min</div>
-    <div class="metricas">
-      <div class="metrica"><span class="k">Ritmo</span><span class="v">2x · 60 min</span>
-        <button class="q" data-balao="ritmo" aria-expanded="false">?</button></div>
-      <div class="metrica"><span class="k">Régua</span><span class="v">4 níveis</span>
-        <button class="q" data-balao="regua" aria-expanded="false">?</button></div>
-      <div class="metrica"><span class="k">Conteúdos</span><span class="v">3</span>
-        <button class="q" data-balao="conteudos" aria-expanded="false">?</button></div>
+    <!-- A PEÇA DO TRIO COMO A PÁGINA A EMITE (23/10/2026): a célula é um botão, e o «?»
+         é desenho dentro dela. O estado vive só no aria-expanded. -->
+    <div class="trio">
+      <button type="button" class="trio-item" data-balao="ritmo" aria-expanded="false">
+        <span class="trio-k">Ritmo</span><span class="trio-v">2x · 60 min</span>
+        <span class="trio-q" aria-hidden="true">?</span></button>
+      <button type="button" class="trio-item" data-balao="regua" aria-expanded="false">
+        <span class="trio-k">Régua</span><span class="trio-v">4 níveis</span>
+        <span class="trio-q" aria-hidden="true">?</span></button>
+      <button type="button" class="trio-item" data-balao="conteudos" aria-expanded="false">
+        <span class="trio-k">Conteúdos</span><span class="trio-v">3</span>
+        <span class="trio-q" aria-hidden="true">?</span></button>
     </div>
-    <div class="painel" data-painel="conteudos">
-      <div class="chips">
-        <span class="chip">equilíbrio</span><span class="chip">apoio</span><span class="chip">transferência de peso</span>
+    <div class="trio-painel" data-painel="conteudos">
+      <div class="trio-chips">
+        <span>equilíbrio</span><span>apoio</span><span>transferência de peso</span>
       </div>
-      <span class="par-associar">
+      <span class="trio-par">
         <select class="sel-termo"><option>— associar termo —</option><option>apoio</option></select>
         <button class="associar acao pequena">Associar</button>
       </span>
@@ -209,7 +214,7 @@ function medir(page, largura) {
     const linha = document.querySelector('.linha-turma');
     const nome = linha.querySelector('.nome');
     const acoes = linha.querySelector('.acoes');
-    const assoc = document.querySelector('.turma .painel[data-painel="conteudos"]');
+    const assoc = document.querySelector('.turma .trio-painel[data-painel="conteudos"]');
     const select = assoc.querySelector('.sel-termo');
     const botao = assoc.querySelector('.associar');
 

@@ -283,7 +283,7 @@ ${opcoes.map((o) => `      <li><button type="button" data-escolha="${o.id}" aria
     </ul>
     <div class="bancada-rodape">
       <button type="button" class="bancada-ver" id="bancada-ver">Ver a página →</button>
-      <a class="bancada-outra" href="index.html">‹ as duas propostas</a>
+      <a class="bancada-outra" href="index.html">‹ as propostas</a>
     </div>
   </div>
 </div>
@@ -757,6 +757,1216 @@ ${nota}`,
 
 // =============================================================================== PROPOSTA: ÍNDICE
 
+// ============================================================ PROPOSTAS 3 e 4: O MENU E A LISTA
+
+/*
+ * DUAS DECISÕES, E NÃO UMA (23/10/2026). O pedido chegou como um assunto só — «o menu vai
+ * ficar gigantesco» — mas são dois, e separá-los é o que evita escolher um pelo outro:
+ *
+ *   · a LISTAGEM resolve a CAPACIDADE. O menu deixa de enumerar documentos e passa a levar a
+ *     páginas que os enumeram. Sozinha, leva a barra de 24 entradas para 12 e desliga o
+ *     crescimento — que hoje é `6 + 8·T + A·T`, com `T` turmas e `A` aulas por turma;
+ *   · o DESENHO resolve outra coisa: ONDE se lê o menu.
+ *
+ * DECIDIDO EM 23/10/2026, e é isso que estas duas páginas passam a mostrar:
+ *
+ *   1. o desenho é a COLUNA À ESQUERDA com o documento no topo — e a coluna é COMPACTA: os
+ *      grupos abrem no ponteiro, empurram os de baixo para baixo, e fecham quando ele sai;
+ *   2. a listagem adota a identidade de «Turmas cadastradas», na Produção: a mesma linha de
+ *      nome com as ações, a mesma linha de complemento, e as MESMAS três caixinhas com o «?»
+ *      — só que agora a caixinha toda é clicável, e não só o «?».
+ *
+ * BASTIDORES SAI DA COLUNA. Ele vai para a barra de cima, na ponta oposta à marca, e leva
+ * consigo o Estúdio e a Produção. A coluna fica com o que é do trabalho de sala: Sistema
+ * Lastro, Ciclos, Aulas, Planejamento, Área do Professor.
+ *
+ * OS NÚMEROS DESTAS BANCADAS NÃO SÃO INVENTADOS. As entradas do menu são CONTADAS do
+ * `nav.json` real da escola de teste; a altura do painel e a largura da coluna são MEDIDAS no
+ * navegador; o ritmo, a régua e os conteúdos dos dois planos são lidos do `.conf` da turma e
+ * do `plano-01.json` do pacote. Um número estimado com ar de medido seria pior do que nenhum.
+ *
+ * A BARRA É DESENHADA PELO MÓDULO DE PRODUÇÃO. `motor/nucleo/nav.js` — o mesmo `desenhar()` que
+ * serve a escola publicada — produz o HTML das três opções. E é por isso que a mudança de
+ * Bastidores para a ponta direita NÃO precisa de tocar no módulo: o `desenhar()` já aceita um
+ * `extras` (o documento) e um menu de um grupo só (o Bastidores). O que muda é lugar em CSS.
+ */
+
+const navDoProjeto = require(path.join(RAIZ, 'motor', 'nucleo', 'nav.js'));
+
+/* OS DOCUMENTOS QUE HOJE SÃO O MENU — contados de `publicacao/calango/nav.json` em 23/10/2026,
+ * com duas turmas («Balé Nível 1 — Teste 1» e «Balé Nível 2 — Teste 1») e uma aula publicada
+ * por turma. Ficam escritos aqui, e não lidos do disco, de propósito: a escola de teste é
+ * descartável por desenho, e uma bancada que se desmonta quando a escola é expurgada não
+ * serve para decidir nada. Ver `../lib-pacote.js`, que resolve o mesmo problema para a aula. */
+const DOCUMENTOS_DE_HOJE = [
+  ['Ciclos', [
+    'Plano do Ciclo 01 — Balé Nível 1 — Teste 1',
+    'Referências Bibliográficas — Balé Nível 1 — Teste 1',
+    'PDF do ciclo — Balé Nível 1 — Teste 1',
+    'Plano do Ciclo 01 — Balé Nível 2 — Teste 1',
+    'Referências Bibliográficas — Balé Nível 2 — Teste 1',
+    'PDF do ciclo — Balé Nível 2 — Teste 1',
+  ]],
+  ['Aulas', [
+    'Aula 01 — reconhecer o apoio e alinhar o eixo vertical — Balé Nível 1 — Teste 1',
+    'Aula 01 — reconhecer o apoio e alinhar o eixo vertical — Balé Nível 2 — Teste 1',
+  ]],
+  ['Planejamento', [
+    'Glossário do código Benesh — Balé Nível 1 — Teste 1',
+    'Notação em Benesh — Balé Nível 1 — Teste 1',
+    'Glossário do código Benesh — Balé Nível 2 — Teste 1',
+    'Notação em Benesh — Balé Nível 2 — Teste 1',
+  ]],
+  ['Área do Professor', [
+    'Anamnese do aluno',
+    'Plano de ensino',
+    'Plano de Observação',
+    'Harmonização de linguagem — Balé Nível 1 — Teste 1',
+    'Harmonização de linguagem — Balé Nível 2 — Teste 1',
+    'Captura em aula — Aula 01 — para impressão — Balé Nível 1 — Teste 1',
+    'Captura em aula — Aula 01 — para impressão — Balé Nível 2 — Teste 1',
+    'Lançamento de aula — formulário electrónico — Balé Nível 1 — Teste 1',
+    'Lançamento de aula — formulário electrónico — Balé Nível 2 — Teste 1',
+  ]],
+  ['Bastidores', ['Estúdio', 'Produção']],
+];
+
+/** O menu de hoje, como `nav.json` — 24 entradas: «Sistema Lastro» e 23 documentos. */
+const MENU_DE_HOJE = {
+  versao: 1,
+  grupos: [{ tipo: 'link', rotulo: 'Sistema Lastro', href: '/index.html' }].concat(
+    DOCUMENTOS_DE_HOJE.map(([rotulo, itens]) => ({
+      tipo: 'menu',
+      rotulo,
+      itens: itens.map((r) => ({ rotulo: r, href: '/documentos/' })),
+    }))),
+};
+
+/**
+ * A COLUNA — quatro grupos, e o Bastidores NÃO está aqui.
+ *
+ * `Aulas` não tem itens: é `direto`, um destino só. É o que você pediu — e é também o que a
+ * conta de crescimento exige, porque as aulas são o único acervo que cresce sem parar.
+ *
+ * O item `atual` é o que a página está a servir. Ele faz duas coisas: acende na coluna, e faz o
+ * grupo dele nascer ABERTO — sem isso, na coluna compacta, a pessoa perde a única pista de onde
+ * está, porque o item fica escondido dentro de um grupo fechado.
+ */
+const GRUPOS_DA_COLUNA = [
+  { chave: 'ciclos', rotulo: 'Ciclos', itens: [
+    { rotulo: 'Planos', atual: true },
+    { rotulo: 'Referências' },
+  ] },
+  { chave: 'aulas', rotulo: 'Aulas', direto: true },
+  { chave: 'planejamento', rotulo: 'Planejamento', itens: [
+    { rotulo: 'Glossário' },
+    { rotulo: 'Notação' },
+  ] },
+  { chave: 'area', rotulo: 'Área do Professor', itens: [
+    { rotulo: 'Anamnese do aluno' },
+    { rotulo: 'Plano de ensino' },
+    { rotulo: 'Plano de Observação' },
+    { rotulo: 'Lançamento de aula' },
+  ] },
+];
+
+/** O que sobra para a barra de cima: o Bastidores e os dois destinos dele. */
+const MENU_DA_BARRA = {
+  versao: 1,
+  grupos: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
+    { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
+    { rotulo: 'Produção', href: '/bastidores/producao' },
+  ] }],
+};
+
+/* OS DOIS PLANOS QUE EXISTEM NA ESCOLA DE TESTE, com a forma real: `NOME`, `PROFESSOR`,
+ * `FREQUENCIA`, `DIAS`, `DURACAO_POR_DIA` e `TOTAL_AULAS` do `.conf` da turma; `reguaDaRubrica`
+ * e `repertorio` do `plano-01.json` do pacote; `hash`, `ancorado_em` e `po_state` do `.fipp`.
+ *
+ * São DUAS linhas e não uma dúzia porque são dois os planos — e são exactamente o par que
+ * motivou a mudança: mesma escola, mesmos dados de ritmo e régua, e **professores diferentes**.
+ * Um terceiro plano falso seria a única coisa falsa da página. */
+const PLANOS = [
+  {
+    nome: 'Ciclo 01 — Calango · Balé Nível 1 — Teste 1',
+    turma: 'Balé Nível 1 — Teste 1',
+    professor: 'Oculos Redondo',
+    ancorada: '23/10/2026',
+    po: 'PO aguardando',
+    poClasse: 'alerta',
+    aulas: '18',
+    hash: 'ca122b865128548b8544cb9197edc940ba9a842c1e481c2c31183240792004d8',
+    ritmo: '2x · 60 min',
+    ritmoCampos: [
+      ['Frequência', '2x por semana (ter, qui)'],
+      ['Dias e horário', 'ter e qui, 19:00'],
+      ['Duração da aula', '60 min'],
+      ['Período', '20/10/2026 a ?'],
+    ],
+    regua: ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não se aplica'],
+    reguaNota: 'Medida pela régua que o plano declara — a de omissão do motor, porque esta turma '
+      + 'ainda não tem rubrica própria.',
+    conteudos: ['Sequência de teste com plié, tendu e port de bras.'],
+  },
+  {
+    nome: 'Ciclo 01 — Calango · Balé Nível 2 — Teste 1',
+    turma: 'Balé Nível 2 — Teste 1',
+    professor: 'Perna Boa',
+    ancorada: '23/10/2026',
+    po: 'PO aguardando',
+    poClasse: 'alerta',
+    aulas: '18',
+    hash: '2540d67e7ebd1c4b6f997fd7b5f8b4f9110f49f1e700812122d71bc0d942561c',
+    ritmo: '2x · 60 min',
+    ritmoCampos: [
+      ['Frequência', '2x por semana (ter, qui)'],
+      ['Dias e horário', 'ter e qui, 19:00'],
+      ['Duração da aula', '60 min'],
+      ['Período', '20/10/2026 a ?'],
+    ],
+    regua: ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não se aplica'],
+    reguaNota: 'Medida pela régua que o plano declara — a de omissão do motor, porque esta turma '
+      + 'ainda não tem rubrica própria.',
+    conteudos: ['Sequência de teste com plié, tendu e port de bras.'],
+  },
+];
+
+/** O normalizador da busca: sem acento e em minúsculas — «oculos» acha «Oculos Redondo». */
+function chaveDeBusca(texto) {
+  return String(texto).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/** A cor de cada degrau da régua — a MESMA função da Produção, copiada na regra, não na cor. */
+function classeDoNivel(nome, indice, total) {
+  const n = chaveDeBusca(nome).trim();
+  if (/satisf/.test(n)) return 'nivel-ok';
+  if (/raz(o|ó)avel/.test(n)) return 'nivel-razoavel';
+  if (/desenvolv/.test(n)) return 'nivel-alerta';
+  if (/nao se aplica|n\/a|neutro/.test(n)) return 'nivel-neutro';
+  if (indice === total - 1) return 'nivel-neutro';
+  if (indice === 0) return 'nivel-ok';
+  if (indice === 1) return 'nivel-razoavel';
+  return 'nivel-alerta';
+}
+
+/** A barra desenhada pelo módulo de produção, com os endereços tornados inertes. */
+function barraDoMenu(menu, pedido, extras) {
+  const html = navDoProjeto.desenhar(menu, pedido, extras) || '';
+  return html.replace(/ href="[^"]*"/g, ' href="#"');
+}
+
+/**
+ * A COLUNA. Três arranjos, e o terceiro parâmetro é o que os separa:
+ *
+ *   · `compacta: false` — tudo à vista (a letra C de ontem);
+ *   · `compacta: true`  — acordeão, e o grupo do documento actual ABERTO. Sabe-se onde se está
+ *     porque se vê o item aceso; o preço é que a coluna nunca fica mais curta do que esse grupo;
+ *   · `compacta: true` + `marcar`: acordeão, TUDO FECHADO, e o grupo do documento actual
+ *     MARCADO no título (`data-atual`). É a leitura mais compacta, e continua a responder ao
+ *     «sei onde estou» — não pelo item, mas pelo grupo, em ouro.
+ */
+function colunaDoMenu(compacta, marcar) {
+  const partes = GRUPOS_DA_COLUNA.map((g) => {
+    if (g.direto) return `    <a class="direto" href="#">${g.rotulo}</a>`;
+    const temAtual = g.itens.some((i) => i.atual);
+    const aberto = temAtual && !marcar ? 'sim' : 'nao';
+    const atual = temAtual && marcar ? ' data-atual="sim"' : '';
+    const itens = g.itens.map((i) => (i.atual
+      ? `        <a href="#" aria-current="page">${i.rotulo}</a>`
+      : `        <a href="#">${i.rotulo}</a>`)).join('\n');
+    return `    <div class="grupo" data-aberto="${aberto}"${atual}>
+      <button type="button" class="grupo-titulo" aria-expanded="${aberto === 'sim'}"
+        aria-controls="g-${g.chave}"><span>${g.rotulo}</span><span class="seta" aria-hidden="true">›</span></button>
+      <div class="grupo-itens" id="g-${g.chave}">
+${itens}
+      </div>
+    </div>`;
+  }).join('\n');
+  return `<aside class="coluna" id="coluna-proposta" data-compacta="${compacta ? 'sim' : 'nao'}" data-aberta="nao"
+  aria-label="Navegação do sistema">
+  <span class="coluna-puxador" aria-hidden="true"></span>
+  <a class="coluna-marca" href="#">Sistema Lastro</a>
+  <nav>
+${partes}
+  </nav>
+</aside>`;
+}
+
+/**
+ * A BARRA DA PÁGINA — a `.lateral-barra` da Produção com outra roupa.
+ *
+ * ELA É SEPARADA DA COLUNA, e isso não é arrumação: é a mesma razão pela qual a Produção a tem
+ * fora da `.lateral`. A coluna é `position: fixed` no computador e uma folha `fixed` no celular;
+ * a barra tem de estar no FLUXO, acima do documento, a rolar com a página. Dentro da coluna, ela
+ * ou flutuava sobre o conteúdo ou rolava dentro da folha.
+ *
+ * O que ela diz é o caminho: o grupo de cima e o documento em que se está. O separador vem do
+ * desenho (`small::after`), para a leitura de ecrã não colar as duas palavras.
+ */
+function barraDeSecoes(grupo, documento) {
+  return `<div class="coluna-barra">
+  <span class="coluna-atual"><small>${grupo}</small>${documento}</span>
+  <button type="button" class="coluna-abrir" id="coluna-abrir" aria-expanded="false"
+    aria-controls="coluna-proposta">Seções <span aria-hidden="true">▾</span></button>
+</div>`;
+}
+
+/**
+ * AS TRÊS CAIXINHAS — e o «?» continua lá, mas quem recebe o toque é a caixinha.
+ *
+ * Na Produção a caixinha é um `<div>` com um `<button class="q">?</button>` dentro. Aqui a
+ * caixinha É o botão, e o «?» é só o desenho que diz «há mais dentro». É a diferença entre
+ * acertar num alvo de 20 px e acertar em 100% da caixinha — e resolve, de passagem, um
+ * aninhamento de controles que um leitor de ecrã anuncia duas vezes.
+ */
+function metrica(rotulo, valor, qual, dica) {
+  return `<button type="button" class="metrica" data-balao="${qual}" aria-expanded="false"
+          aria-controls="p-${qual}-__ID__" aria-label="${dica}">
+          <span class="k">${rotulo}</span>
+          <span class="v">${valor}</span>
+          <span class="q" aria-hidden="true">?</span>
+        </button>`;
+}
+
+/** O painel que cada caixinha abre. Só um por cartão está visível, e é o da caixinha tocada. */
+function painel(qual, conteudo, id) {
+  return `      <div class="painel" data-painel="${qual}" id="p-${qual}-${id}" hidden>${conteudo}</div>`;
+}
+
+function painelRitmo(p) {
+  return '<div class="grade">' + p.ritmoCampos.map(([k, v]) =>
+    '<div><span class="k">' + k + '</span><span class="v">' + v + '</span></div>').join('') + '</div>';
+}
+
+function painelRegua(p) {
+  return '<p class="nota">' + p.reguaNota + '</p>'
+    + '<div class="escala">' + p.regua.map((n, i) =>
+      '<span class="' + classeDoNivel(n, i, p.regua.length) + '">' + n + '</span>').join('') + '</div>';
+}
+
+function painelConteudos(p) {
+  return '<div class="chips">'
+    + (p.conteudos.length
+      ? p.conteudos.map((c) => '<span class="chip">' + c + '</span>').join(' ')
+      : '<span class="dono">(nenhum conteúdo associado)</span>')
+    + '</div>';
+}
+
+function painelTurma(p) {
+  return '<p class="nota">Turma do plano: <b>' + p.turma + '</b>.</p>' + painelRitmo(p);
+}
+
+function painelProfessor(p) {
+  return '<div class="grade"><div><span class="k">Professor curado</span>'
+    + '<span class="v">' + p.professor + '</span></div>'
+    + '<div><span class="k">Turma</span><span class="v">' + p.turma + '</span></div></div>'
+    + '<p class="nota">É a curadoria que liga professor e turma. Sem ela, este plano não existe.</p>';
+}
+
+function painelCadeia(p) {
+  return '<div class="grade">'
+    + '<div><span class="k">Ancorada em</span><span class="v">' + p.ancorada + '</span></div>'
+    + '<div><span class="k">Estado do PO</span><span class="v">' + p.po + '</span></div>'
+    + '<div><span class="k">Aulas previstas</span><span class="v">' + p.aulas + '</span></div>'
+    + '<div><span class="k">Hash</span><span class="v" style="font-size:.74rem;word-break:break-all">'
+    + p.hash.slice(0, 16) + '…</span></div></div>'
+    + '<p class="nota">A cadeia acrescenta, não edita: um ajuste é um elo novo.</p>';
+}
+
+/**
+ * UM CARTÃO DE PLANO. `modelo` escolhe o que vão ser as três caixinhas:
+ *
+ *   · `producao` — Ritmo · Régua · Conteúdos, que são as três de «Turmas cadastradas». É o
+ *     modelo adoptado: a lista de planos fica com a mesma cara da lista de turmas, e o
+ *     professor reconhece a peça. As quatro colunas que você pediu não se perdem: turma,
+ *     professor e data vão na linha de complemento, sempre à vista;
+ *   · `caixas` — Turma · Professor · Cadeia, as colunas que você pediu transformadas em
+ *     caixinhas. Fica na bancada porque é a alternativa honesta, não porque esteja em cima da
+ *     mesa: gasta as três caixinhas a repetir o que a linha de cima já diz.
+ */
+function cartaoDePlano(p, modelo, id) {
+  const busca = chaveDeBusca([p.nome, p.turma, p.professor].join(' '));
+  const dados = 'class="item" data-busca="' + busca + '" data-prof="' + p.professor
+    + '" data-turma="' + p.turma + '"';
+  const selo = '<span class="selo ' + p.poClasse + '">' + p.po + '</span>';
+  const acoes = '<a class="acao pequena" href="#">Abrir o plano</a>'
+    + '<a class="acao secundario pequena" href="#">Referências</a>'
+    + '<a class="acao secundario pequena" href="#">PDF do ciclo</a>';
+
+  const trio = modelo === 'producao'
+    ? [
+      ['Ritmo', p.ritmo, 'ritmo', 'ver o ritmo desta turma', painelRitmo(p)],
+      ['Régua', String(p.regua.length) + ' níveis', 'regua', 'ver a régua desta turma', painelRegua(p)],
+      ['Conteúdos', String(p.conteudos.length), 'conteudos', 'ver os conteúdos desta turma', painelConteudos(p)],
+    ]
+    : [
+      ['Turma', p.turma.replace(/ — Teste 1$/, ''), 'turma', 'ver os detalhes desta turma', painelTurma(p)],
+      ['Professor', p.professor, 'professor', 'ver o professor vinculado', painelProfessor(p)],
+      ['Cadeia', p.po, 'cadeia', 'ver a cadeia deste plano', painelCadeia(p)],
+    ];
+
+  // A LINHA DE COMPLEMENTO NÃO REPETE O QUE AS CAIXINHAS DIZEM. Se as caixas são Turma ·
+  // Professor · Cadeia, a linha passa a dizer o ciclo e o volume; se as caixas são o ritmo, a
+  // régua e os conteúdos, a linha diz de quem é o plano. Em nenhum dos dois casos a mesma
+  // informação aparece duas vezes — uma bancada que sabota uma das opções não serve para escolher.
+  const dono = modelo === 'producao'
+    ? [p.turma, p.professor, 'ancorada em ' + p.ancorada].join(' · ')
+    : ['Ciclo 01', p.aulas + ' aulas previstas'].join(' · ');
+
+  return `      <li ${dados}>
+        <div class="linha-turma">
+          <span class="nome"><b>${p.nome}</b> ${selo}</span>
+          <span class="acoes">${acoes}</span>
+        </div>
+        <div class="dono">${dono}</div>
+        <div class="metricas">
+        ${trio.map(([r, v, q, d]) => metrica(r, v, q, d).replace(/__ID__/g, id)).join('\n        ')}
+        </div>
+${trio.map(([, , q, , conteudo]) => painel(q, conteudo, id)).join('\n')}
+      </li>`;
+}
+
+const RODAPE_DE_PAGINACAO = `<div class="paginacao" hidden>
+  <button type="button" class="pag-ant acao secundario pequena" aria-label="Página anterior">‹</button>
+  <span class="pag-info"></span>
+  <button type="button" class="pag-prox acao secundario pequena" aria-label="Página seguinte">›</button>
+</div>`;
+
+/** O filtro — o mesmo em todas as opções, e todo no cliente: nenhuma chamada, nenhuma cota. */
+function filtroDePlanos() {
+  return `<form class="filtro" onsubmit="return false">
+  <div class="caixa filtrar">
+    <div class="campo-filtro busca">
+      <label class="campo-rotulo" for="f-busca">Procurar</label>
+      <input id="f-busca" type="search" placeholder="plano, turma ou professor">
+    </div>
+    <div class="campo-filtro">
+      <label class="campo-rotulo" for="f-prof">Professor</label>
+      <select id="f-prof">
+        <option value="">todos</option>
+        <option>Oculos Redondo</option>
+        <option>Perna Boa</option>
+      </select>
+    </div>
+    <div class="campo-filtro">
+      <label class="campo-rotulo" for="f-turma">Turma</label>
+      <select id="f-turma">
+        <option value="">todas</option>
+        <option>Balé Nível 1 — Teste 1</option>
+        <option>Balé Nível 2 — Teste 1</option>
+      </select>
+    </div>
+    <p class="filtro-conta" id="f-conta">${PLANOS.length} planos</p>
+  </div>
+</form>`;
+}
+
+/** A lista inteira, num dos dois modelos. */
+function listaDePlanos(modelo) {
+  const cartoes = PLANOS.map((p, i) => cartaoDePlano(p, modelo, String(i + 1))).join('\n');
+  return filtroDePlanos()
+    + '<ul class="lista">\n' + cartoes + '\n</ul>\n'
+    + RODAPE_DE_PAGINACAO;
+}
+
+/**
+ * O filtro e as caixinhas. TUDO DELEGADO NO DOCUMENTO, e ligado UMA VEZ SÓ.
+ *
+ * A primeira versão voltava a ligar-se a cada troca de opção — e o ouvinte empilhado desfazia o
+ * que o anterior tinha feito: a caixinha abria e fechava no mesmo toque. Delegar resolve as duas
+ * coisas de uma vez: o ouvinte é o mesmo para a lista velha e para a nova, e o `itens()` é lido
+ * na hora, não guardado numa variável que morre com o primeiro desenho.
+ */
+function scriptDaLista() {
+  return `(function () {
+  if (window.__listaDePlanosLigada) { window.aplicarFiltro(); return; }
+  window.__listaDePlanosLigada = true;
+
+  function itens() { return [].slice.call(document.querySelectorAll('li.item')); }
+
+  window.aplicarFiltro = function () {
+    var busca = document.getElementById('f-busca');
+    var prof = document.getElementById('f-prof');
+    var turma = document.getElementById('f-turma');
+    var conta = document.getElementById('f-conta');
+    if (!busca || !conta) return;
+    var q = (busca.value || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').trim();
+    var n = 0;
+    var todos = itens();
+    todos.forEach(function (l) {
+      var ok = (!q || l.getAttribute('data-busca').indexOf(q) !== -1)
+        && (!prof.value || l.getAttribute('data-prof') === prof.value)
+        && (!turma.value || l.getAttribute('data-turma') === turma.value);
+      l.hidden = !ok;
+      if (ok) n++;
+    });
+    conta.textContent = n + (n === 1 ? ' plano' : ' planos') + ' de ' + todos.length;
+  };
+
+  document.addEventListener('input', function (e) {
+    if (e.target.closest('.filtro')) window.aplicarFiltro();
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.closest('.filtro')) window.aplicarFiltro();
+  });
+
+  // A CAIXINHA INTEIRA É O CONTROLE. Uma aberta por cartão; a caixinha acesa diz qual.
+  function fechar(outro) {
+    [].slice.call(document.querySelectorAll('.metrica[aria-expanded="true"]')).forEach(function (b) {
+      if (b === outro) return;
+      b.setAttribute('aria-expanded', 'false');
+      var p = b.closest('li.item').querySelector('.painel:not([hidden])');
+      if (p) p.hidden = true;
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.metrica');
+    if (!b) {
+      if (!e.target.closest('.painel') && !e.target.closest('.filtro')) fechar(null);
+      return;
+    }
+    var abrir = b.getAttribute('aria-expanded') !== 'true';
+    fechar(b);
+    var painel = b.closest('li.item').querySelector('[data-painel="' + b.getAttribute('data-balao') + '"]');
+    if (painel) painel.hidden = !abrir;
+    b.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fechar(null); });
+
+  window.aplicarFiltro();
+})();`;
+}
+
+/**
+ * O comando do menu e dos grupos.
+ *
+ * TUDO DELEGADO NO DOCUMENTO, E LIGADO UMA VEZ SÓ. A versão anterior prendia ouvintes aos
+ * elementos e voltava a prendê-los a cada troca de opção — e como a coluna e a barra são
+ * RECONSTRUÍDAS a cada troca, o ouvinte antigo morria com o elemento e o novo empilhava sobre o
+ * que sobrava. O sintoma era o pior possível: o ☰ abria e fechava no mesmo toque.
+ *
+ * Com delegação, o ouvinte não conhece os elementos: pergunta ao documento, na hora do clique,
+ * onde é que ele caiu. Uma vez ligado, serve a coluna velha e a nova.
+ *
+ * OS TRÊS CAMINHOS DE ABERTURA DOS GRUPOS, e porque são três:
+ *   · PONTEIRO — `:hover`, e só em aparelho que tem ponteiro (@media (hover: hover)). Num
+ *     telemóvel o `:hover` fica «colado» depois do toque, e o grupo nunca mais fecharia;
+ *   · TOQUE — o clique no título fixa o grupo aberto (`data-aberto="sim"` e `data-pinado="sim"`);
+ *   · TECLADO — o foco dentro do grupo abre-o em `data-aberto="auto"`, e ao sair volta a fechar.
+ *     `auto` é um terceiro estado de propósito: sem ele, `focusout` não sabe se deve fechar (foi
+ *     o teclado que abriu) ou deixar (foi a pessoa que abriu).
+ */
+function scriptDoMenu() {
+  return `(function () {
+  if (window.__menuLigado) return;
+  window.__menuLigado = true;
+
+  var html = document.documentElement;
+  var veu = document.querySelector('.veu');
+
+  function coluna() { return document.getElementById('coluna-proposta'); }
+  function lateral() { return /^(aberta|acordeao|marcada)$/.test(html.getAttribute('data-nav') || ''); }
+  function barra() { return document.querySelector('.topnav'); }
+  function botao() { return document.querySelector('.topnav .hamburger'); }
+  function estreita() { return window.matchMedia('(max-width: 768px)').matches; }
+
+  /* A FOLHA DO CELULAR — a mecânica da Produção. data-aberta é o estado DELA; body.coluna-aberta
+     é o que acende o véu. Os dois porque são dois desenhos: a folha desliza por data-aberta, e o
+     véu por uma classe no body — um véu dentro de um overflow-y:auto rolaria com o conteúdo. */
+  function abrirFolha(sim) {
+    var c = coluna();
+    if (c) c.setAttribute('data-aberta', sim ? 'sim' : 'nao');
+    document.body.classList.toggle('coluna-aberta', !!sim);
+    var ab = document.getElementById('coluna-abrir');
+    if (ab) ab.setAttribute('aria-expanded', String(!!sim));
+    if (estreita() && botao()) botao().setAttribute('aria-expanded', String(!!sim));
+  }
+  function fechar() {
+    abrirFolha(false);
+    if (barra()) barra().classList.remove('aberto');
+    if (botao() && !estreita()) botao().setAttribute('aria-expanded', 'false');
+  }
+
+  // ---------------------------------------------------------------- os grupos da coluna
+  function por(g, estado) {
+    g.setAttribute('data-aberto', estado);
+    var b = g.querySelector('.grupo-titulo');
+    if (b) b.setAttribute('aria-expanded', String(estado !== 'nao'));
+  }
+  function recolher(excepto) {
+    [].slice.call(document.querySelectorAll('.coluna .grupo')).forEach(function (g) {
+      if (g === excepto) return;
+      if (g.getAttribute('data-pinado') === 'sim') return;
+      var b = g.querySelector('.grupo-titulo');
+      if (b && b.getAttribute('aria-expanded') === 'true') por(g, 'nao');
+    });
+  }
+
+  // ---------------------------------------------------------------- os cliques
+  document.addEventListener('click', function (e) {
+    // 1. o ☰ da barra do sistema
+    if (e.target.closest('.topnav .hamburger')) {
+      var b = botao();
+      if (!lateral()) { if (barra()) b.setAttribute('aria-expanded', String(barra().classList.toggle('aberto'))); return; }
+      // Na coluna, o ☰ abre a MESMA folha que o «Seções»: a lei das duas navegações manda o
+      // hambúrguer para a navegação global, e ele continua a abri-la — só mudou a apresentação.
+      var c0 = coluna();
+      abrirFolha(!c0 || c0.getAttribute('data-aberta') !== 'sim');
+      return;
+    }
+
+    // 2. o botão «Seções» da barra da página — o gatilho da Produção
+    if (e.target.closest('.coluna-abrir')) {
+      var c1 = coluna();
+      abrirFolha(!c1 || c1.getAttribute('data-aberta') !== 'sim');
+      return;
+    }
+
+    // 3. o véu
+    if (e.target.closest('.veu')) { fechar(); return; }
+
+    // 4. o título de um grupo (a coluna estática, no computador)
+    var titulo = e.target.closest('.coluna .grupo-titulo');
+    if (titulo) {
+      var g = titulo.closest('.grupo');
+      if (!g || !lateral() || estreita()) return; // no celular o grupo é só um título
+      var abrir = g.getAttribute('data-aberto') !== 'sim';
+      recolher(g);
+      g.setAttribute('data-pinado', abrir ? 'sim' : 'nao');
+      por(g, abrir ? 'sim' : 'nao');
+      return;
+    }
+
+    // 5. escolher um destino da folha fecha-a — como na Produção. Deixá-la aberta taparia
+    //    justamente a página que se acabou de pedir.
+    var alvo = e.target.closest('a[href]');
+    var c2 = coluna();
+    if (estreita() && alvo && c2 && c2.contains(alvo) && c2.getAttribute('data-aberta') === 'sim') {
+      fechar();
+      return;
+    }
+
+    // 6. um toque fora de um grupo aberto recolhe-o
+    if (!e.target.closest('.coluna .grupo')) recolher(null);
+  });
+
+  // ---------------------------------------------------------------- o teclado
+  document.addEventListener('focusin', function (e) {
+    var g = e.target.closest && e.target.closest('.coluna .grupo');
+    if (!g || !lateral() || estreita()) return;
+    if (g.getAttribute('data-aberto') === 'sim') return;
+    por(g, 'auto');
+    recolher(g);
+  });
+  document.addEventListener('focusout', function (e) {
+    var g = e.target.closest && e.target.closest('.coluna .grupo');
+    if (!g) return;
+    if (e.relatedTarget && g.contains(e.relatedTarget)) return;
+    if (g.getAttribute('data-pinado') === 'sim') return;
+    por(g, 'nao');
+  });
+  // O PONTEIRO SAI DO GRUPO — o :hover do CSS já o fecha; isto limpa o estado «auto» para ele não
+  // ficar pendurado e reabrir sozinho no próximo foco.
+  document.addEventListener('mouseleave', function (e) {
+    var g = e.target.closest && e.target.closest('.coluna .grupo');
+    if (!g) return;
+    if (g.getAttribute('data-pinado') === 'sim') return;
+    if (g.getAttribute('data-aberto') === 'auto' && !g.contains(document.activeElement)) por(g, 'nao');
+  }, true);
+
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fechar(); });
+  window.aoTrocarOpcao = function (opcao) { html.setAttribute('data-nav', opcao); fechar(); };
+})();`;
+}
+
+/*
+ * A FOLHA DESTA BANCADA. Duas partes, e a segunda é a que interessa:
+ *
+ *   · a COLUNA, que é a peça que se propõe. Todo o traço, cor e espaço vem dos papéis da folha
+ *     (`--marca-fundo`, `--ornamento-forte`, `--raio-2`, `--esp-*`), porque é isso que a deixa
+ *     nascer em `tools/templates/ciclo.css` sem inventar um valor — um tema troca o valor do
+ *     papel, e a coluna acompanha;
+ *   · a LISTA, que não é peça nova: são as regras de «Turmas cadastradas» da Produção, copiadas
+ *     com os valores intactos. Copiadas, e não reinventadas, é o ponto: o que se decide aqui é
+ *     ADOPTAR aquela identidade, e a única prova de que foi adoptada é não ter uma segunda.
+ */
+const CSS_NAV = `
+/* ---------- a bancada e a nota (comuns às duas propostas) ---------- */
+.nota-do-teste {
+  max-width: 900px; margin: 0 auto var(--esp-5); padding: var(--esp-4) var(--esp-5);
+  border: 1px solid var(--borda); border-left: 4px solid var(--marca);
+  border-radius: var(--raio-2); background: var(--fundo-suave);
+  font-size: 15px; color: var(--texto-suave);
+}
+.nota-do-teste p { margin: 0 0 var(--esp-2); }
+.nota-do-teste p:last-child { margin: 0; }
+.nota-do-teste strong { color: var(--texto); }
+
+/* ---------- A COLUNA: a peça que se propõe ---------- */
+.coluna { display: none; }
+[data-nav="aberta"] .coluna, [data-nav="acordeao"] .coluna, [data-nav="marcada"] .coluna { display: flex; }
+.coluna {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 248px; z-index: 21;
+  flex-direction: column; overflow-y: auto; overflow-x: hidden;
+  background: var(--marca-fundo); color: var(--sobre-marca);
+  border-right: 3px solid var(--ornamento-forte);
+  padding: var(--esp-4) var(--esp-3) var(--esp-5);
+  box-shadow: var(--sombra-menu);
+}
+.coluna-marca {
+  display: block; margin: 0 0 var(--esp-4); padding: 0 10px;
+  font: 700 12px/1.2 var(--ui); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ornamento-forte); text-decoration: none;
+}
+.coluna-marca:hover { color: var(--sobre-marca); }
+
+/* O grupo: um título que abre, e os itens por baixo. O título é um botão porque também
+   tem de funcionar sem ponteiro — no telemóvel e no teclado não há hover. */
+.coluna .grupo { display: block; }
+.coluna .grupo-titulo {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--esp-2);
+  width: 100%; margin: 0; padding: 9px 10px; border: 0; border-radius: var(--raio-2);
+  background: none; color: var(--sobre-marca); cursor: pointer;
+  font: 15px/1.25 var(--ui); text-align: left;
+}
+.coluna .grupo-titulo:hover { background: var(--marca-fundo-hover); }
+.coluna .grupo-titulo:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+.coluna .grupo[data-aberto="sim"] > .grupo-titulo,
+.coluna .grupo[data-aberto="auto"] > .grupo-titulo { background: var(--marca-fundo-hover); }
+.coluna .seta { flex: 0 0 auto; opacity: .75; transition: transform .16s ease; }
+.coluna .grupo[data-aberto="sim"] .seta,
+.coluna .grupo[data-aberto="auto"] .seta { transform: rotate(90deg); }
+
+/* O ACORDEÃO. max-height em vez de display:none porque é o que ANIMA e o que EMPURRA os
+   de baixo — que é exactamente o que se quer: quando abre, os outros descem, e quando fecha
+   voltam a subir. O filete à esquerda é o que diz que os itens pertencem ao grupo de cima. */
+.coluna .grupo-itens {
+  max-height: 0; overflow: hidden;
+  margin: 0 0 0 10px; padding-left: 9px;
+  border-left: 1px solid var(--ornamento);
+  transition: max-height .16s ease;
+}
+.coluna .grupo-itens a {
+  display: block; padding: 8px 10px; border-radius: var(--raio-2);
+  color: var(--sobre-marca); text-decoration: none; font: 14px/1.25 var(--ui);
+}
+.coluna .grupo-itens a:hover { background: var(--marca-fundo-hover); }
+.coluna .grupo-itens a:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+.coluna .grupo-itens a[aria-current="page"] { background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: 700; }
+.coluna .grupo[data-aberto="sim"] > .grupo-itens,
+.coluna .grupo[data-aberto="auto"] > .grupo-itens { max-height: 15rem; }
+
+/* SÓ ONDE HÁ PONTEIRO. Num telemóvel o :hover fica colado ao toque e o grupo não fecharia. */
+@media (hover: hover) {
+  .coluna[data-compacta="sim"] .grupo:hover > .grupo-itens { max-height: 15rem; }
+  .coluna[data-compacta="sim"] .grupo:hover > .grupo-titulo { background: var(--marca-fundo-hover); }
+  .coluna[data-compacta="sim"] .grupo:hover .seta { transform: rotate(90deg); }
+}
+/* A coluna sempre aberta não tem acordeão nenhum. */
+.coluna[data-compacta="nao"] .grupo-itens { max-height: none; }
+.coluna[data-compacta="nao"] .seta { display: none; }
+.coluna[data-compacta="nao"] .grupo-titulo { cursor: default; font-weight: 600; }
+
+/* O GRUPO DO DOCUMENTO ACTUAL, MARCADO SEM ABRIR — a leitura mais compacta. Um filete de ouro
+   à esquerda e o título na cor do ornamento: diz «estás aqui» sem gastar uma linha de altura, e
+   sem depender de o item estar à vista. */
+.coluna .grupo[data-atual="sim"] > .grupo-titulo {
+  color: var(--ornamento-forte); font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--ornamento-forte);
+}
+.coluna .grupo[data-atual="sim"] > .grupo-titulo .seta { opacity: 1; }
+
+/* «Aulas» é um destino, não uma pasta: sem seta, e com o peso de um título. */
+.coluna a.direto {
+  display: block; padding: 9px 10px; border-radius: var(--raio-2);
+  color: var(--sobre-marca); text-decoration: none; font: 700 15px/1.25 var(--ui);
+}
+.coluna a.direto:hover { background: var(--marca-fundo-hover); }
+
+/* ---------- a barra de cima, quando há coluna ----------
+   A BARRA FICA AO LADO DA COLUNA, e não por baixo dela: o body é quem cede a largura. */
+[data-nav="aberta"] body, [data-nav="acordeao"] body, [data-nav="marcada"] body { padding-left: 248px; }
+[data-nav="aberta"] .topnav, [data-nav="acordeao"] .topnav, [data-nav="marcada"] .topnav { left: 248px; }
+/* O documento actual, à esquerda da barra; o Bastidores, na ponta oposta. Os dois são
+   arranjos de CSS sobre a barra que o desenhar() já produz — nenhum HTML novo. */
+[data-nav="aberta"] .doc-atual, [data-nav="acordeao"] .doc-atual,
+[data-nav="marcada"] .doc-atual {
+  margin-left: var(--esp-3); padding-left: var(--esp-3);
+  border-left: 2px solid var(--ornamento-forte);
+  font: 600 14px/1.2 var(--ui); color: var(--sobre-marca);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto;
+}
+[data-nav="aberta"] .topnav .nav-links, [data-nav="acordeao"] .topnav .nav-links,
+[data-nav="marcada"] .topnav .nav-links {
+  flex: 0 0 auto; margin-left: auto;
+}
+.doc-atual { display: none; }
+[data-nav="aberta"] .doc-atual, [data-nav="acordeao"] .doc-atual,
+[data-nav="marcada"] .doc-atual { display: inline-block; }
+.veu { display: none; }
+
+/* ---------- A BARRA DA PÁGINA — só no celular ----------
+   É a .lateral-barra da Produção, com outra roupa. Ela nasce oculta fora da media query: em
+   tela larga a navegação é a coluna, e não há nada a subir. */
+.coluna-barra { display: none; }
+.coluna-puxador { display: none; }
+
+/* ---------- O CELULAR: A MESMA SOLUÇÃO DA PRODUÇÃO (23/10/2026) ----------
+   A coluna deixa de ser gaveta lateral e passa a ser FOLHA INFERIOR: sobe de baixo, com o
+   pegador, os cantos de cima arredondados, o véu atrás e o limite de 78vh. É a mecânica da
+   Produção, e é a mesma peça — não há uma segunda lista para envelhecer.
+
+   DUAS COISAS MUDAM EM RELAÇÃO À PRODUÇÃO, e as duas são declaradas:
+   · o FUNDO fica o da coluna (burgundy), e não o branco da folha da Produção. A lei das duas
+     navegações (IDENTIDADE-VISUAL.md) diz que a do SISTEMA e a da PÁGINA não são a mesma
+     coisa, e a cor é o que as distingue. A mecânica é emprestada; o papel, não;
+   · o GATILHO é duplo: o botão «Seções» desta barra — como na Produção — e o ☰ da barra do
+     sistema, que já existia. A lei manda o hambúrguer para a navegação global; ele continua a
+     abrir a mesma folha, em vez de ficar sem função. */
+@media (max-width: 768px) {
+  [data-nav="aberta"] body, [data-nav="acordeao"] body, [data-nav="marcada"] body { padding-left: 0; }
+  [data-nav="aberta"] .topnav, [data-nav="acordeao"] .topnav, [data-nav="marcada"] .topnav { left: 0; }
+  .doc-atual { display: none !important; }
+
+  .coluna-barra {
+    display: flex; align-items: center; gap: var(--esp-3);
+    padding: var(--esp-4) var(--esp-4) 0;
+  }
+  .coluna-atual {
+    min-width: 0; display: flex; align-items: baseline; gap: 6px;
+    font: 700 15px/1.25 var(--ui); color: var(--texto);
+  }
+  .coluna-atual small {
+    font: 700 10px/1.3 var(--ui); letter-spacing: .09em;
+    text-transform: uppercase; color: var(--texto-suave);
+  }
+  /* O separador é do desenho, não do conteúdo: sem ele os dois versos correm juntos na
+     leitura de ecrã («CiclosPlanos do ciclo»). */
+  .coluna-atual small::after { content: "·"; margin-left: 5px; }
+  .coluna-abrir {
+    margin-left: auto; flex: 0 0 auto; cursor: pointer;
+    border: 1px solid var(--borda-campo); border-radius: var(--raio-pilula);
+    background: var(--superficie); padding: .5rem .85rem;
+    font: 600 .82rem/1 var(--ui); color: var(--marca);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .coluna-abrir:hover { filter: brightness(.97); }
+  .coluna-abrir:active { transform: translateY(1px); }
+  .coluna-abrir:focus-visible { outline: 2px solid var(--marca); outline-offset: 2px; }
+
+  /* A COLUNA VIRA FOLHA. top:auto é o que desfaz o top:0; bottom:0 do desktop — sem ele a
+     folha continuaria a ocupar a altura toda e o translateY não teria para onde a esconder. */
+  .coluna {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto;
+    width: auto; max-width: none; z-index: 60;
+    border-right: 0; border-radius: var(--raio-3) var(--raio-3) 0 0;
+    box-shadow: 0 -12px 34px rgba(31, 28, 26, .20);
+    padding: 0 0 calc(var(--esp-4) + env(safe-area-inset-bottom, 0px));
+    max-height: 78vh; overflow-y: auto;
+    transform: translateY(101%); transition: transform .22s ease;
+  }
+  .coluna[data-aberta="sim"] { transform: translateY(0); }
+  .coluna-puxador {
+    display: block; width: 36px; height: 4px; border-radius: 2px;
+    background: var(--ornamento); opacity: .55; margin: 10px auto 2px;
+  }
+  .coluna .coluna-marca { padding: var(--esp-3) var(--esp-5) var(--esp-2); margin: 0; }
+
+  /* NA FOLHA NÃO HÁ ACORDEÃO: a altura é a da tela quase inteira, e um menu que abre e fecha
+     dentro de uma folha é um menu a esconder-se dentro de outro. Tudo à vista. */
+  .coluna[data-compacta="sim"] .grupo-itens { max-height: none; }
+  .coluna[data-compacta="sim"] .seta { display: none; }
+  .coluna[data-compacta="sim"] .grupo-titulo { cursor: default; }
+  /* Os grupos passam a <h2> no desenho — miúdos, em maiúsculas, como os da Produção — e os
+     destinos a uma linha alta de dedo.
+     SEM opacity NOS TEXTOS, e isto é medido: --gold-claro sobre o burgundy da folha dá
+     5,03:1, que é exactamente o mínimo AA. A .85 que aqui esteve baixava-o para 4,05:1 e
+     reprovava. A hierarquia faz-se pelo tamanho e pelo espaço, não por transparência. */
+  .coluna .grupo-titulo {
+    padding: var(--esp-3) var(--esp-5) var(--esp-1);
+    font: 700 10.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase;
+    color: var(--texto-destaque-marca); border-radius: 0;
+  }
+  .coluna .grupo-titulo:hover { background: none; }
+  .coluna .grupo-itens { margin: 0; padding-left: 0; border-left: 0; }
+  .coluna .grupo-itens a {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .8rem var(--esp-5); border-radius: 0; font-size: 1rem;
+  }
+  .coluna .grupo-itens a[aria-current="page"]::after { content: "✓"; margin-left: auto; }
+  .coluna a.direto { padding: .8rem var(--esp-5); border-radius: 0; font-size: 1rem; font-weight: 600; }
+  .coluna .grupo[data-atual="sim"] > .grupo-titulo { box-shadow: none; color: var(--ornamento-forte); }
+
+  /* O VÉU. Ele mora fora da coluna e é o body quem o mostra — na Produção é a .lateral que
+     o acende, mas lá a folha é a própria .lateral; aqui a coluna é overflow-y:auto e um véu
+     dentro dela rolaria junto. */
+  .veu {
+    display: block; position: fixed; inset: 0; z-index: 55;
+    background: rgba(31, 28, 26, .36); opacity: 0; pointer-events: none;
+    transition: opacity .2s ease;
+  }
+  body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
+}
+
+/* ---------- O FILTRO ---------- */
+.filtro { margin: 0 0 var(--esp-4); }
+.caixa.filtrar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--esp-4);
+  margin: 0; padding: var(--esp-4);
+}
+.campo-filtro { display: flex; flex-direction: column; gap: var(--esp-1); }
+.campo-filtro .campo-rotulo { margin: 0; }
+.campo-filtro.busca { flex: 1 1 260px; }
+.campo-filtro select { min-width: 190px; }
+.filtro-conta { margin: 0 0 4px auto; font: 13px/1 var(--ui); color: var(--texto-suave); }
+@media (max-width: 768px) {
+  .caixa.filtrar { padding: var(--esp-3); gap: var(--esp-3); }
+  .campo-filtro select { min-width: 0; }
+  .campo-filtro:not(.busca) { flex: 1 1 45%; }
+  .filtro-conta { margin: 0; flex-basis: 100%; }
+}
+
+/* ---------- A LISTA — as regras de «Turmas cadastradas», sem uma cor nova ----------
+   Copiadas de motor/servidor/bastidores.js (o bloco de .turma), com os valores intactos.
+   O que muda é o nome do invólucro (li.item em vez de li.turma), porque a peça passa a
+   servir duas listas — e é essa a promessa: uma peça, duas listas. */
+.lista { list-style: none; margin: 0; padding: 0; }
+li.item { display: block; margin-bottom: .6rem; }
+li.item .linha-turma { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+li.item .linha-turma .nome { flex: 1 1 14rem; min-width: 0; }
+li.item .linha-turma .acoes { margin-left: auto; display: inline-flex; gap: .3rem; flex-wrap: wrap; }
+li.item .dono { color: var(--texto-suave); font-size: .85rem; margin-top: .15rem; }
+
+li.item .metricas {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem; margin: .6rem 0 0;
+}
+@media (max-width: 360px) { li.item .metricas { grid-template-columns: minmax(0, 1fr); } }
+
+/* A CAIXINHA É O BOTÃO. O appearance/border/font de origem têm de sair, senão vem o
+   controle do navegador por cima do desenho — e o text-align: left é o que impede o rótulo
+   de ir para o centro, que é o que um <button> faz por omissão. */
+li.item .metrica {
+  position: relative; display: block; width: 100%; margin: 0; text-align: left;
+  appearance: none; -webkit-appearance: none;
+  background: var(--fundo-suave); border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-2); padding: .45rem 1.9rem .45rem .6rem; min-width: 0;
+  cursor: pointer; font: inherit; color: inherit;
+}
+li.item .metrica:hover { background: var(--fundo-hover); border-color: var(--borda-forte); }
+li.item .metrica:focus-visible { outline: 2px solid var(--marca); outline-offset: 1px; }
+li.item .metrica .k {
+  display: block; font: 700 .66rem/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--texto-suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+li.item .metrica .v {
+  display: block; font: 700 .95rem/1.25 var(--ui); color: var(--texto);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* A caixinha DIZ que está aberta. Sem isto o painel aparece abaixo da fila e não se sabe de
+   onde veio — e com três caixinhas iguais, é a única pista. */
+li.item .metrica[aria-expanded="true"] { background: var(--fundo-citacao); border-color: var(--borda-forte); }
+/* O «?» fica: é o que diz que há mais dentro. Deixa de ser controle e passa a ser desenho —
+   por isso aria-hidden na marcação, e nenhum cursor próprio. */
+li.item .metrica .q {
+  position: absolute; top: .28rem; right: .28rem; width: 1.25rem; height: 1.25rem;
+  border-radius: var(--raio-pilula); border: 1px solid var(--borda-campo);
+  background: var(--superficie); color: var(--texto-suave);
+  font: 700 .72rem/1 var(--ui); display: grid; place-items: center; pointer-events: none;
+}
+li.item .metrica[aria-expanded="true"] .q {
+  background: var(--marca-fundo); color: var(--sobre-marca); border-color: var(--marca-fundo);
+}
+
+li.item .painel {
+  margin: .55rem 0 0; padding: .7rem .8rem; background: var(--fundo-citacao);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-2);
+}
+li.item .painel[hidden] { display: none; }
+li.item .painel .grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem .9rem; }
+li.item .painel .grade .k {
+  display: block; font: 700 .66rem/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--texto-suave);
+}
+li.item .painel .grade .v { display: block; font: 700 .88rem/1.35 var(--ui); color: var(--texto); }
+li.item .painel .nota { margin: .6rem 0 0; font-size: .8rem; line-height: 1.4; color: var(--texto-suave); }
+li.item .painel .nota:first-child { margin-top: 0; }
+li.item .painel .chips { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
+li.item .painel .escala {
+  display: flex; min-width: 0; border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-2); overflow: hidden; margin-top: .5rem;
+}
+li.item .painel .escala span {
+  flex: 1 1 0; min-width: 0; text-align: center; padding: .3rem .2rem;
+  font: 700 .72rem/1.2 var(--ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nivel-ok { background: var(--ok); color: var(--superficie); }
+.nivel-razoavel { background: var(--ok-fundo); color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok); }
+.nivel-alerta { background: var(--alerta); color: var(--superficie); }
+.nivel-neutro { background: var(--fundo-faixa); color: var(--texto-suave); }
+.chip {
+  display: inline-block; margin: 0; padding: .1rem .45rem; background: var(--fundo-faixa);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-pilula);
+  font-size: .82rem; color: var(--texto);
+}
+.paginacao {
+  display: flex; align-items: center; justify-content: flex-end; gap: .5rem;
+  padding: .5rem 0 .1rem; font-size: .85rem; color: var(--texto-suave);
+}
+.selo { display: inline-block; }
+`;
+
+/** O esqueleto das duas páginas: coluna (quando há), barra, conteúdo, bancada. */
+function paginaDeNav({ titulo, opcaoInicial, nav, barra, secoes, corpo }) {
+  return `<!DOCTYPE html>
+<html lang="pt-BR" data-opcao="${opcaoInicial}" data-nav="${nav || opcaoInicial}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${titulo} · Sistema Lastro</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+<style>
+${CSS}
+</style>
+<style>
+${CSS_BANCADA}
+${CSS_NAV}
+</style>
+</head>
+<body>
+
+${barra}
+<div class="veu" aria-hidden="true"></div>
+${secoes || ''}
+
+${corpo}
+
+</body>
+</html>
+`;
+}
+
+const OPCOES_NAV = [
+  { id: 'hoje', n: '0', t: 'Hoje — a barra com 24 entradas', m: '1,6 tela',
+    d: 'controle: cada documento é uma entrada; no celular, com os grupos abertos, o painel mede 1298 px' },
+  { id: 'aberta', n: 'A', t: 'Coluna sempre aberta', m: '485 px',
+    d: 'os 11 destinos à vista de uma vez; o menu sai do caminho, e o olho tem de varrer a coluna toda' },
+  { id: 'acordeao', n: 'B', t: 'Compacta, o grupo actual aberto', m: '284 px',
+    d: 'quatro títulos, mais os itens do documento actual à vista: sabe-se onde se está sem procurar' },
+  { id: 'marcada', n: 'C', t: 'Compacta, só o grupo actual marcado', m: 'ESCOLHIDA · 217 px',
+    d: 'tudo fechado; o grupo do documento leva um filete de ouro. A mais curta, e ainda diz onde se está' },
+];
+
+function proporNavegacao() {
+  const corpo = `<header class="doc">
+  <h1>Planos do ciclo</h1>
+  <p class="subtitulo">Calango · 2 turmas · 2 planos</p>
+</header>
+
+<main>
+<div class="conteudo">
+
+<div class="nota-do-teste">
+  <p><strong>A coluna é a decidida — com uma correção.</strong> Na versão de ontem ela mostrava os
+  onze destinos de uma vez. Agora ela é <em>compacta</em>: mostra quatro títulos, e o grupo abre
+  quando o ponteiro entra, empurrando os de baixo para baixo. O grupo do documento actual já nasce
+  aberto — sem isso, na coluna recolhida, perde-se a única pista de onde se está.</p>
+  <p><strong>O Bastidores saiu da coluna.</strong> Ele está na barra de cima, na ponta oposta à
+  marca, com o Estúdio e a Produção. A coluna fica com o trabalho de sala: Sistema Lastro, Ciclos,
+  Aulas, Planejamento, Área do Professor.</p>
+  <p><strong>B e C são as duas leituras do mesmo acordeão</strong>, e a diferença é uma tensão que
+  vale a pena ver de perto: você pediu a coluna compacta <em>e</em> pediu para saber onde está.
+  Medido: <strong>A</strong> ocupa <strong>485 px</strong>, <strong>B</strong> ocupa
+  <strong>284 px</strong> e <strong>C</strong> ocupa <strong>217 px</strong>. Em <strong>B</strong>
+  o grupo do documento abre e vê-se o item aceso; em <strong>C</strong> fecha-se tudo e o grupo leva
+  um filete de ouro no título — o «onde estou» passa a ser do grupo, não do item.</p>
+  <p>Ponha o ponteiro em <em>Ciclos</em>, depois em <em>Área do Professor</em>: o grupo abre,
+  empurra os de baixo para baixo, e fecha quando o ponteiro sai. É o mesmo movimento nos dois.</p>
+  <p><strong>No celular, a coluna vira FOLHA INFERIOR</strong> — a mesma solução da Produção: uma
+  linha com o grupo e o documento em que se está, um botão <em>Seções</em>, e a navegação sobe de
+  baixo com o pegador, o véu atrás e o limite de 78vh. Escolher fecha a folha. Abra esta página no
+  telemóvel, ou estreite a janela abaixo de 768 px, para a ver.</p>
+</div>
+
+${listaDePlanos('producao')}
+
+</div>
+</main>`;
+
+  const barraDaColuna = [
+    colunaDoMenu(true, true),
+    barraDoMenu(MENU_DA_BARRA, '/ciclos/planos/', '<span class="doc-atual">Planos do ciclo</span>'),
+  ].join('\n');
+
+  const base = paginaDeNav({
+    titulo: 'O menu que deixa de contar documentos',
+    opcaoInicial: 'marcada',
+    barra: barraDaColuna,
+    secoes: barraDeSecoes('Ciclos', 'Planos do ciclo'),
+    corpo,
+  });
+
+  /* A COLUNA E A BARRA MUDAM COM A OPÇÃO. As três formas são montadas AQUI, no construtor, e o
+   * script só troca qual delas o `<html data-nav>` deixa aparecer — porque cada uma é um HTML
+   * diferente, e desenhá-las em tempo de execução seria reimplementar o `nav.desenhar()`. */
+  const barraDeHoje = barraDoMenu(MENU_DE_HOJE, '/documentos/');
+  const colunaAberta = colunaDoMenu(false);
+  const colunaCompacta = colunaDoMenu(true, false);
+  const colunaMarcada = colunaDoMenu(true, true);
+  const barraDasColunas = barraDoMenu(MENU_DA_BARRA, '/ciclos/planos/',
+    '<span class="doc-atual">Planos do ciclo</span>');
+
+  const troca = `(function () {
+  var BARRAS = {
+    hoje: ${JSON.stringify(barraDeHoje)},
+    aberta: ${JSON.stringify(barraDasColunas)},
+    acordeao: ${JSON.stringify(barraDasColunas)},
+    marcada: ${JSON.stringify(barraDasColunas)}
+  };
+  var COLUNAS = {
+    aberta: ${JSON.stringify(colunaAberta)},
+    acordeao: ${JSON.stringify(colunaCompacta)},
+    marcada: ${JSON.stringify(colunaMarcada)}
+  };
+  var html = document.documentElement;
+  var alvo = document.querySelector('.topnav');
+  var coluna = document.getElementById('coluna-proposta');
+  function por(opcao) {
+    if (BARRAS[opcao] && alvo) {
+      var molde = document.createElement('div');
+      molde.innerHTML = BARRAS[opcao];
+      var nova = molde.firstElementChild;
+      alvo.replaceWith(nova);
+      alvo = nova;
+    }
+    if (COLUNAS[opcao] && coluna) {
+      var m2 = document.createElement('div');
+      m2.innerHTML = COLUNAS[opcao];
+      var novaColuna = m2.firstElementChild;
+      coluna.replaceWith(novaColuna);
+      coluna = novaColuna;
+    }
+  }
+  por(html.getAttribute('data-nav'));
+  var anterior = window.aoTrocarOpcao;
+  window.aoTrocarOpcao = function (opcao) {
+    if (typeof anterior === 'function') anterior(opcao);
+    por(opcao);
+  };
+})();`;
+
+  return base
+    .replace('</body>', `${marcacaoDaBancada({
+      sobre: 'Proposta 3 de 4 · o menu',
+      titulo: 'Onde o menu se lê',
+      intro: 'Três desfechos sobre a mesma página. As entradas são contadas do menu real; a '
+        + 'altura do painel e a largura da coluna são medidas no navegador.',
+      opcoes: OPCOES_NAV,
+      inicio: 'marcada',
+    })}
+<script>${scriptDaBancada(OPCOES_NAV)}</script>
+<script>${scriptDoMenu()}</script>
+<script>${troca}</script>
+<script>${scriptDaLista()}</script>
+</body>`);
+}
+
+const OPCOES_LISTA = [
+  { id: 'producao', n: '1', t: 'Ritmo · Régua · Conteúdos', m: '141 px/plano',
+    d: 'a decoração da Produção com outra matéria: os dados de trabalho da turma atrás do «?»' },
+  { id: 'caixas', n: '2', t: 'Turma · Professor · Cadeia', m: 'ESCOLHIDA · 141 px',
+    d: 'as quatro colunas em três caixinhas; a linha de complemento fica com o ciclo e o volume' },
+];
+
+function proporListagem() {
+  const corpo = `<header class="doc">
+  <h1>Planos do ciclo</h1>
+  <p class="subtitulo">Calango · 2 turmas · 2 planos</p>
+</header>
+
+<main>
+<div class="conteudo">
+
+<div class="nota-do-teste">
+  <p><strong>A peça é a mesma da Produção, e é isso que se está a decidir.</strong> O cartão, a
+  linha do nome com as ações, a linha de complemento e as três caixinhas com o «?» são as regras de
+  <em>Turmas cadastradas</em>, copiadas com os valores intactos — nenhuma cor, raio ou espaço
+  novo. O que muda é o invólucro, porque a peça passa a servir duas listas.</p>
+  <p><strong>A caixinha toda é clicável.</strong> O «?» continua lá, mas deixou de ser o alvo: na
+  Produção ele é um botão de 20 px dentro da caixinha; aqui a caixinha <em>é</em> o botão, e o «?»
+  é o desenho que diz «há mais dentro». Toque em qualquer ponto de <em>Ritmo</em>, de
+  <em>Régua</em> ou de <em>Conteúdos</em> — no computador e no telemóvel.</p>
+  <p>Abre uma por cartão, fecha com o mesmo toque, com <em>Escape</em> ou tocando fora. A caixinha
+  acesa diz qual está aberta.</p>
+  <p><strong>Escolhida a opção 2</strong>, e ela fica ao lado da lista de turmas sem se confundir
+  com ela: as caixinhas são <em>Turma · Professor · Cadeia</em>, e o ritmo, a régua e os conteúdos
+  ficam a um toque, no cartão da turma. A linha de complemento fica com o ciclo e o volume, para
+  nenhum dado aparecer duas vezes.</p>
+  <p><strong>As duas ocupam o mesmo</strong> — 141 px por plano no computador, 178 px no celular —
+  porque o que muda é a matéria dentro das caixinhas, não a caixinha. Medir não serviu para
+  escolher entre elas: serviu para saber que a escolha não custa altura.</p>
+</div>
+
+<div id="lista-destino">
+${listaDePlanos('caixas')}
+</div>
+
+</div>
+</main>`;
+
+  const barra = [
+    colunaDoMenu(true, true),
+    barraDoMenu(MENU_DA_BARRA, '/ciclos/planos/', '<span class="doc-atual">Planos do ciclo</span>'),
+  ].join('\n');
+
+  /* `nav` e `opcao` são coisas diferentes nesta página: a opção é o que a BANCADA compara (o que
+   * vão ser as três caixinhas), e o `nav` é o menu — que aqui já é o decidido. Sem esta separação
+   * a página da listagem mostrava a barra de hoje, e não aquela em que a lista vai viver. */
+  const base = paginaDeNav({
+    titulo: 'A lista que substitui o menu',
+    opcaoInicial: 'caixas',
+    nav: 'marcada',
+    barra,
+    secoes: barraDeSecoes('Ciclos', 'Planos do ciclo'),
+    corpo,
+  });
+
+  /* A LISTA É RECONSTRUÍDA POR OPÇÃO, e não escondida por CSS: são duas marcações diferentes, e
+   * dois blocos no DOM seriam duas vezes o mesmo conteúdo para o leitor de ecrã. Cada troca volta
+   * a ligar o filtro e as caixinhas. */
+  const listas = {
+    producao: listaDePlanos('producao'),
+    caixas: listaDePlanos('caixas'),
+  };
+  const troca = `(function () {
+  var LISTAS = ${JSON.stringify(listas)};
+  var html = document.documentElement;
+  var destino = document.getElementById('lista-destino');
+  window.aoTrocarOpcao = function (opcao) {
+    if (!LISTAS[opcao] || !destino) return;
+    destino.innerHTML = LISTAS[opcao];
+    // Os ouvintes são delegados no documento, e por isso não morrem com a lista antiga: só é
+    // preciso recontar os itens visíveis, que mudaram com a marcação.
+    if (typeof window.aplicarFiltro === 'function') window.aplicarFiltro();
+  };
+})();`;
+
+  return base
+    .replace('</body>', `${marcacaoDaBancada({
+      sobre: 'Proposta 4 de 4 · a listagem',
+      titulo: 'A forma da lista',
+      intro: 'A mesma decoração da Produção, com a área de toque na caixinha toda. '
+        + 'Filtre e abra as caixinhas em qualquer das duas.',
+      opcoes: OPCOES_LISTA,
+      inicio: 'caixas',
+    })}
+<script>${scriptDaBancada(OPCOES_LISTA)}</script>
+<script>${scriptDoMenu()}</script>
+<script>${scriptDaLista()}</script>
+<script>${troca}</script>
+</body>`);
+}
+
 function indice() {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -794,7 +2004,7 @@ ${CSS_BANCADA}
 
 <header class="doc">
   <h1>Propostas de layout</h1>
-  <p class="subtitulo">Duas decisões que precisam da sua escolha — medidas, não estimadas</p>
+  <p class="subtitulo">Quatro decisões que precisam da sua escolha — contadas, não estimadas</p>
 </header>
 
 <main>
@@ -802,13 +2012,13 @@ ${CSS_BANCADA}
 
 <p class="aviso-proposta"><strong>Isto não é o produto.</strong> São bancadas de comparação: cada
 aba mostra a <em>mesma</em> página com as alternativas que estão em cima da mesa. O conteúdo é o
-real — a Aula 01 e o formulário de lançamento —, e o CSS é o do projeto, embutido. Nada aqui muda o
-que está publicado na escola; a escolha é que vira código.</p>
+real — a Aula 01, o formulário de lançamento e os dois planos da escola de teste —, e o CSS é o do
+projeto, embutido. Nada aqui muda o que está publicado na escola; a escolha é que vira código.</p>
 
 <div class="cartoes">
 
   <a class="cartao" href="proposta-titulo.html">
-    <p class="sobre">Proposta 1 de 2 · leitura</p>
+    <p class="sobre">Proposta 1 de 4 · leitura</p>
     <h2>O título que não se perde</h2>
     <p>Hoje o título sai da tela quando se rola, e a página da aula é longa: perde-se de que
     documento se trata. Quatro desfechos, um mecanismo.</p>
@@ -823,7 +2033,7 @@ que está publicado na escola; a escolha é que vira código.</p>
   </a>
 
   <a class="cartao" href="proposta-paginacao.html">
-    <p class="sobre">Proposta 2 de 2 · tela de trabalho</p>
+    <p class="sobre">Proposta 2 de 4 · tela de trabalho</p>
     <h2>A paginação no celular</h2>
     <p>O rodapé de paginação do lançamento é bom no computador e mau no celular. Ele não ocupa 52 px
     como parece: ocupa <strong>182 px</strong>, 21% da tela.</p>
@@ -836,10 +2046,41 @@ que está publicado na escola; a escolha é que vira código.</p>
     <span class="abrir">Abrir a proposta →</span>
   </a>
 
+  <a class="cartao" href="proposta-navegacao.html">
+    <p class="sobre">Proposta 3 de 4 · o menu <strong>decidido</strong></p>
+    <h2>A coluna que abre no ponteiro</h2>
+    <p>Coluna à esquerda, compacta: quatro títulos à vista, e o grupo abre quando o ponteiro entra —
+    empurrando os de baixo, e recompondo quando ele sai. O Bastidores saiu da coluna e foi para a
+    ponta direita da barra.</p>
+    <table>
+      <tr><th>Opção</th><th>Destinos</th><th>A coluna ocupa</th><th>Leitura a 1280</th></tr>
+      <tr><td>0 · hoje</td><td><strong>24</strong></td><td>1,6 tela no celular</td><td>1180 px</td></tr>
+      <tr><td>A · sempre aberta</td><td>11</td><td>485 px</td><td>1032 px</td></tr>
+      <tr><td>B · grupo actual aberto</td><td>11</td><td>284 px</td><td>1032 px</td></tr>
+      <tr><td>C · só o grupo marcado</td><td>11</td><td><strong>217 px</strong></td><td>1032 px</td></tr>
+    </table>
+    <span class="abrir">Abrir a proposta →</span>
+  </a>
+
+  <a class="cartao" href="proposta-listagem.html">
+    <p class="sobre">Proposta 4 de 4 · a listagem <strong>decidida</strong></p>
+    <h2>A lista com a cara da Produção</h2>
+    <p>As mesmas peças de «Turmas cadastradas»: a linha do nome com as ações, a linha de
+    complemento e as três caixinhas com o «?» — agora com <strong>a caixinha toda clicável</strong>,
+    no computador e no telemóvel.</p>
+    <table>
+      <tr><th>Caixinha</th><th>Abre</th></tr>
+      <tr><td>Ritmo</td><td>frequência, dias e horário, duração e período</td></tr>
+      <tr><td>Régua</td><td>a escala de níveis, com a cor de cada degrau</td></tr>
+      <tr><td>Conteúdos</td><td>os conteúdos em chips</td></tr>
+    </table>
+    <span class="abrir">Abrir a proposta →</span>
+  </a>
+
 </div>
 
 <p class="aviso-proposta" style="margin-top:24px">Para avaliar no telemóvel, abra esta página no
-telemóvel: as duas propostas mudam de comportamento conforme a largura, e é no telemóvel que a
+telemóvel: as quatro propostas mudam de comportamento conforme a largura, e é no telemóvel que a
 decisão é difícil. O painel de escolha abre sozinho e fecha em <strong>Ver a página</strong>; a aba
 <em>propostas</em>, na margem esquerda, chama-o de volta.</p>
 
@@ -857,6 +2098,8 @@ const arquivos = {
   'index.html': indice(),
   'proposta-titulo.html': proporTitulo(),
   'proposta-paginacao.html': proporPaginacao(),
+  'proposta-navegacao.html': proporNavegacao(),
+  'proposta-listagem.html': proporListagem(),
 };
 
 for (const [nome, texto] of Object.entries(arquivos)) {

@@ -29,6 +29,17 @@ Taylor (2003); Polanyi (1966); Clippinger (2024); RAD (2015); Wulff;
 Mirzabekiantz (2000); Parker (1990); Homans (2010); Paper FIPP
 (operacionalização dos protocolos).
 
+**Correção de 23/10/2026 (mesmo dia).** Ao reescrever a prova acima descobriu-se que
+`experimentos/provar-barra-unica.js` **nunca esteve no repositório**. Este `REGISTRO` cita-a desde
+19/10 — «`provar-barra-unica` → 53 asserções», depois 58 — e o `IDENTIDADE-VISUAL.md` remete para a
+secção D2 dela como a prova do bloco entre a marca e o ☰, mas
+`git log --all -- experimentos/provar-barra-unica.js` não devolve nada: o `experimentos/*` do
+`.gitignore` fechava a pasta e nenhum `!` a abria. O ficheiro vivia só na máquina onde foi escrito, e
+o rodapé `Auditoria:` de vários commits invocava uma prova que quem clonasse não tinha. Corrigido
+com o `!experimentos/provar-barra-unica.js` e o motivo escrito ao lado; a contagem no
+`IDENTIDADE-VISUAL.md` foi actualizada de 58 para 71. A versão anterior desta entrada não é
+apagada: fica como o elo que registou o marco antes de se saber disto.
+
 **O que ainda não está feito.**
 POs de Ritmos e Débora; primeiro relatório pós-aula; Ciclo 02.
 
@@ -23170,3 +23181,98 @@ cujo commit é **só** derivado — logo o único que pode ficar vazio ao ser re
   depende do `hash-ciclo.sh` e de fontes reais, que não cabem numa bancada de git.
 - Continua em aberto uma trava que impeça um QUARTO laço de repetir o padrão: hoje a regra é
   convenção e revisão, não validação automática.
+
+## 23/10/2026 — O menu deixa de contar documentos: doze destinos, e a lista passa a ser a lista
+
+**O que aconteceu.**
+A escola de teste chegou a **24 entradas** no menu com duas turmas: um item para o plano, um para
+as referências, um para o PDF, um por aula, um por glossário, um por captura, um por lançamento —
+vezes o número de turmas. O `.conf` de cada turma já declara 18 aulas, e uma terceira turma levaria
+o menu a **84**. Nenhuma dessas entradas é um destino: são todas documentos, e o menu crescia com o
+acervo.
+
+O que a medição desmentiu, e é o que abriu o caminho: **a barra nunca cresceu de altura**. Com os
+grupos fechados ela mede 60px, com 24 entradas ou com 12. O que cresce é o que cada grupo **abre**:
+no celular, com todos abertos, o painel media 1298px — 1,6 tela de menu. Nenhuma reorganização de
+barra resolveria isso. Só uma coisa resolve: deixar de pôr documentos no menu.
+
+**O que foi decidido.**
+- **O menu passa a ter destinos.** Ciclos → Planos · Referências; **Aulas** (link directo, sem
+  submenu); Planejamento → Glossário · Notação; Área do Professor → Anamnese · Plano de ensino ·
+  Plano de Observação · Lançamento de aula. Cada um leva a uma página que lista o que existe.
+- **O Bastidores sai da coluna** e vai para a barra de cima, na ponta oposta à marca. A coluna fica
+  com o trabalho de sala; o que é da escola ver-se fica na barra.
+- **A coluna é compacta**, e o **grupo do documento actual** leva um filete de ouro no título — não
+  o item aceso. Com a coluna fechada o item não se vê; a marca do grupo vê-se sempre. Medido: 485px
+  com tudo aberto, 284px com o grupo actual aberto, **217px** com tudo fechado.
+- **No celular a coluna é a folha inferior da Produção**: pegador, véu, 78vh, fecha ao escolher.
+  Empresta-se a mecânica; **o fundo é o da coluna** (burgundy), porque a lei das duas navegações diz
+  que a do sistema e a da página não são a mesma coisa, e a cor é o que as distingue.
+- **A listagem de planos é a peça da lista de turmas**, com a matéria desta lista: as três caixas
+  são **Turma · Professor · Cadeia**, e a linha de complemento fica com o ciclo e o volume — para
+  nenhum dado aparecer duas vezes.
+- **A caixa inteira é clicável**, no computador e no telemóvel. Era um `<div>` com um
+  `<button class="q">` de 20px dentro: o alvo medido era o do «?». Agora a caixa é o botão —
+  **48 × 221px** —, e o «?» fica como desenho (`aria-hidden`). De caminho sai um botão dentro de
+  outro, que o leitor de ecrã anunciava duas vezes.
+- **A peça da lista subiu para a folha.** As regras de `.metricas`, `.metrica`, `.painel`,
+  `.escala` e `.chip` viviam inline na página da Produção; enquanto estivessem lá, usá-las noutra
+  lista seria COPIÁ-LAS, e a segunda cópia divergiria na primeira correcção. Passaram a
+  `tools/templates/ciclo.css` com nomes `trio-*` — a checagem «Forma» dá cada nome de classe a um
+  dono só, e `.escala`, `.nota`, `.lista` e `.nivel-neutro` já tinham dono.
+
+**MOTIVO DECLARADO (`tools/` é congelado).**
+`tools/montar-publicacao.js`, `tools/templates/ciclo.css`, `tools/templates/nav.js` e
+`tools/check-identidade.js` mudaram nesta entrada. O motivo é o acima: sem mexer na montagem não há
+listas para onde o menu aponte; sem mexer na folha a coluna não tem desenho em página nenhuma; sem
+mexer no `nav.js` do cliente a folha do celular não abre; e sem mexer na checagem as páginas de
+lista não são medidas. **Nada disto toca na fórmula do hash, na cobertura da âncora, nos validadores
+ou nas regras e pétreas.** As cópias de `assets/style.css` e `assets/nav.js` dos três pacotes e da
+raiz foram regeradas (é o que a checagem «Circuito» exige).
+
+**Onde entrou.**
+- `motor/nucleo/nav.js` — desenha a coluna e o caminho na barra; `grupoAtual()` (a marca do GRUPO,
+  que a `ehAtivo()` não dava); `tituloDaPagina()` (o `<h1>` da própria página, e não um campo novo
+  no `nav.json`); `aplicar()` passa a tirar a coluna anterior antes de desenhar outra.
+- `motor/nucleo/lista-html.js` — **novo**: as páginas de lista. Não tem `fs`: recebe os dados e
+  devolve a página, e é isso que permite ao `check-identidade` medi-las com uma amostra.
+- `tools/montar-publicacao.js` — o menu novo (`coluna` + `barra`, `versao: 2`); `dadosDoPlano()`
+  lê `PROFESSOR`/`TOTAL_AULAS` do `.conf` e `ancorado_em`/`po_state`/`hash` do `.fipp`; escreve as
+  cinco listas; a varredura final usa `nav.aplicar` em vez de um `replace` à mão.
+- `tools/templates/ciclo.css` — a coluna, a folha, o caminho na barra, o trio, o filtro.
+- `tools/templates/nav.js` — o ☰ abre a folha onde há coluna; os grupos abrem no clique e no foco.
+- `tools/check-identidade.js` — as duas páginas de lista entram na medição da checagem «Peça».
+- `motor/servidor/bastidores.js` — o CSS migrado saiu daqui, o markup da caixa passou a `<button>`,
+  e o JS deixou de procurar `.q`.
+- `IDENTIDADE-VISUAL.md` — as duas peças novas nos Quadros 1 e 2.
+
+**Com o quê.**
+- `node experimentos/provar-navegacao.js` — **novo**, 35 asserções: a conta do menu (com 1 e com 6
+  aulas), todo destino existe (arquivo montado ou rota lida do roteador), o grupo marcado, a coluna
+  a 248px com os grupos fechados e o ponteiro a abrir e a **empurrar os de baixo**, a folha do
+  celular (fora da tela antes, dentro depois, fecha ao escolher e com Escape), as três caixas e o
+  filtro. Corre a montagem a sério e serve o que ela escreveu; nada toca no ar.
+- `node experimentos/provar-barra-unica.js` — **reescrita**: 71 asserções, 0 falhas. Ela media a
+  forma antiga do menu (`versao: 1`, `menu.grupos`, «Harmonização» e «Captura em aula» dentro da
+  Área do Professor) e dava 25 de 58 por falha. Duas dessas falhas denunciavam decisões desta
+  entrada — que a harmonização sai do menu e que a captura passa a ser acção da linha da aula — e
+  por isso as asserções foram **invertidas**, não apagadas: o que se mede continua a ser que o menu
+  não carregue documentos. Ficaram os leitores da coluna (`titulosDaColuna`, `destinosDaColuna`),
+  porque `<summary>` já não existe e `.every` sobre uma leitura vazia **passa** — uma prova que não
+  mede nada não falha, e foi preciso ensiná-la a ler a forma nova.
+- `node experimentos/provar-celular.js` — 15/15 (o fixture do cartão foi actualizado para a peça).
+- `node experimentos/provar-cartao-da-turma.js` — TUDO CERTO.
+- `node experimentos/provar-producao.js` — 135/135 · `provar-menu-da-producao.js` — 26/26 ·
+  `provar-linhas-da-lista.js` — TUDO CERTO.
+- `node tools/check-identidade.js` — 20 verificações, sem erro.
+
+**O que ainda não está feito.**
+- A **página de escolha de turma** para Anamnese, Plano de ensino e Plano de Observação é da
+  Etapa 2. Hoje os três apontam para a porta, que pergunta o professor e a turma na sua barra de
+  contexto: funciona, mas não é a lista que o plano desenha.
+- A **harmonização** continua publicada em `/<variante>/harmonizacao.html` e fora do menu. Sair da
+  publicação é da Etapa 2, e é remoção de URL — decisão já tomada, execução pendente.
+- A lista de aulas **não pagina**: 35 linhas hoje, e o filtro do cliente resolve. O rodapé de
+  paginação entra quando passar de ~200.
+- O filtro dos planos é por busca, professor e turma. «Os planos com PO pendente» seria uma linha
+  a mais no `.fipp` e não está pedido.

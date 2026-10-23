@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-21T14:37:03-0300`
-Commit atual: `3a47b25` — docs(registro): o expurgo da batata e a dívida das provas que nomeavam escola
+Gerado em: `2026-10-23T08:58:16-0300`
+Commit atual: `0bc9d34` — chore(tools): a coluna, a folha e o trio passam a ter desenho em comum
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -44,10 +44,18 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** sapo-bailarino
-tiago-menegaz (2)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+- **Professores:** acucar-branco
+cafe-no-bule
+meia-cortada
+murisoca-baiana
+oculos-redondo
+perna-boa
+sapo-bailarino
+teclado-abnt
+tela-de-celular
+tiago-menegaz
+vaso-bonito (11)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -64,33 +72,71 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
-3a47b25 docs(registro): o expurgo da batata e a dívida das provas que nomeavam escola
-dcd642f chore(estrutura): índices regerados após o expurgo da batata; provas sem dependência de pacote
-c692723 docs(experimentos): as provas descobrem o pacote, não escrevem o nome da escola
-e93915f chore(estrutura): expurgar a escola batata
-627850d fix(template): a página ia além da tela; reverto o que não consertava nada
-8cb1757 fix(template): no iPhone o menu não cabia e a rolagem tremia
-b40aa0a chore(ciclo-01): carimbo de geração do pacote do batata
-730d0ec fix(estrutura): a harmonização abria o front-matter sem `---`, e saía sem título
-93ee957 fix(tools): a página sem título passa a ser erro do validador
-4944aeb chore(ciclo-01): carimbo de geração do pacote do batata
-c9a1dfc chore(ciclo-01): regerar o pacote do batata após o commit anterior
-b851251 feat(estrutura): o título que fica e a barra do lançamento no celular
-3611930 docs(experimentos): as bancadas de layout, refeitas para serem operáveis
-b976c46 docs(experimentos): duas bancadas de layout, para escolher — e três intenções registadas
-cc5474f fix(tools): o lançamento pedia a senha num campo que o próprio formulário escondia
-39e24c5 fix(po): o alfabeto da notação não nomeia escola nenhuma — nem viva, nem expurgada
-5790d63 feat(po): o registro de notação compõe-se pelo alfabeto, e recusa quando não pode
-441c326 fix(tools): a exceção do hook não casava com o nome de nenhuma variante
-f5763c4 fix(estrutura): a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
-0d65a96 docs(registro): o HANDOFF cita a barra única por domínio
+0bc9d34 chore(tools): a coluna, a folha e o trio passam a ter desenho em comum
+db4b83f fix(estrutura): o job do índice não reescreve mais o commit do vizinho
+38f8dd6 chore(entrega): gerar o pacote de perna-boa/01/calango-bale-nivel-2-teste-1
+ec2355f chore(estrutura): reancorar a cadeia das fontes alteradas
+de9b9f3 feat(ciclo): o «Guardar» do PO grava as fontes de calango-bale-nivel-2-teste-1 num commit só
+a8164c0 feat(po): o PO elicitado vira a fonte do ciclo
+7b0b3b2 feat(acervo): envelope/po-20261022-2109.json
+34f4240 feat(acervo): envelope/.indice.json
+298e571 chore(entrega): gerar o pacote de oculos-redondo/01/calango-bale-nivel-1-teste-1
+72de2b6 chore(estrutura): reancorar a cadeia das fontes alteradas
+5f252de chore(estrutura): reancorar a cadeia das fontes alteradas
+1daae63 chore(estrutura): regerar os índices derivados
+5b839dd feat(ciclo): o «Guardar» do PO grava as fontes de calango-bale-nivel-1-teste-1 num commit só
+36a3214 feat(po): o PO elicitado vira a fonte do ciclo
+c84d701 feat(acervo): envelope/po-20261022-2105.json
+0888227 feat(acervo): envelope/.indice.json
+7bd8a9c chore(estrutura): reancorar a cadeia das fontes alteradas
+0087664 chore(estrutura): regerar os índices derivados
+eb86f4b feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+8c2fd14 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
 
+### acucar-branco — 0 ciclo(s)
+
+### cafe-no-bule — 0 ciclo(s)
+
+### meia-cortada — 0 ciclo(s)
+
+### murisoca-baiana — 0 ciclo(s)
+
+### oculos-redondo — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): calango, calango-bale-nivel-1-teste-1
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| calango | (sem PO) | — | — |
+| calango | ciclo-01-calango-bale-nivel-1-teste-1-po.md | Input_PO_Aguardando | 1 |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| calango | ciclo-01-calango.fipp | `d7e2070c8d45` | (vazio) | — |
+| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `ca122b865128` | (vazio) | Input_PO_Aguardando |
+
+### perna-boa — 0 ciclo(s)
+
 ### sapo-bailarino — 0 ciclo(s)
 
+### teclado-abnt — 0 ciclo(s)
+
+### tela-de-celular — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): 
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+
 ### tiago-menegaz — 0 ciclo(s)
+
+### vaso-bonito — 0 ciclo(s)
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -139,358 +185,428 @@ f5763c4 fix(estrutura): a barra de navegação deixa de ser escrita e passa a se
 
 ## Última entrada do REGISTRO
 
-## 21/10/2026 — o remoto primeiro: uma regra para não repetir o diagnóstico errado do expurgo
+## 23/10/2026 — O menu deixa de contar documentos: doze destinos, e a lista passa a ser a lista
 
-**O que aconteceu.** *«Fiz o expurgo da escola batata»*. O worktree local ainda tinha a escola
-inteira, e eu analisei o que estava à frente dos olhos: concluí que o expurgo não havia chegado ao
-repositório, comecei a preparar a limpeza, e só descobri o contrário quando o `push` foi recusado
-por *non-fast-forward*. O expurgo **estava feito** — `e93915f`, 76 arquivos, pela página «Sistema
-Lastro». A correção que eu ia aplicar teria apagado arquivos que já não existiam, sobre um índice
-que já estava a ser regerado do outro lado.
+**O que aconteceu.**
+A escola de teste chegou a **24 entradas** no menu com duas turmas: um item para o plano, um para
+as referências, um para o PDF, um por aula, um por glossário, um por captura, um por lançamento —
+vezes o número de turmas. O `.conf` de cada turma já declara 18 aulas, e uma terceira turma levaria
+o menu a **84**. Nenhuma dessas entradas é um destino: são todas documentos, e o menu crescia com o
+acervo.
 
-**A causa não é distração, é arquitetura.** O `main` tem **cinco caminhos de escrita** que não
-passam pelo worktree, e três deles são assíncronos:
+O que a medição desmentiu, e é o que abriu o caminho: **a barra nunca cresceu de altura**. Com os
+grupos fechados ela mede 60px, com 24 entradas ou com 12. O que cresce é o que cada grupo **abre**:
+no celular, com todos abertos, o painel media 1298px — 1,6 tela de menu. Nenhuma reorganização de
+barra resolveria isso. Só uma coisa resolve: deixar de pôr documentos no menu.
 
-| Quem escreve no `main` | Como |
-|:--|:--|
-| `.github/workflows/criar-escola.yml` | Action, depois de um `criar-escola` disparado pela página |
-| `.github/workflows/gerar-ciclo.yml` | Action, depois de gerar um ciclo |
-| `.github/workflows/reancorar.yml` | Action, a cada push de `professores/**` |
-| a página **Bastidores → Produção** | API do GitHub, direto (`motor/servidor/repo-escola.js`) |
-| a página **danca → expurgo** | API do GitHub, **70 a 80 arquivos num commit só** |
+**O que foi decidido.**
+- **O menu passa a ter destinos.** Ciclos → Planos · Referências; **Aulas** (link directo, sem
+  submenu); Planejamento → Glossário · Notação; Área do Professor → Anamnese · Plano de ensino ·
+  Plano de Observação · Lançamento de aula. Cada um leva a uma página que lista o que existe.
+- **O Bastidores sai da coluna** e vai para a barra de cima, na ponta oposta à marca. A coluna fica
+  com o trabalho de sala; o que é da escola ver-se fica na barra.
+- **A coluna é compacta**, e o **grupo do documento actual** leva um filete de ouro no título — não
+  o item aceso. Com a coluna fechada o item não se vê; a marca do grupo vê-se sempre. Medido: 485px
+  com tudo aberto, 284px com o grupo actual aberto, **217px** com tudo fechado.
+- **No celular a coluna é a folha inferior da Produção**: pegador, véu, 78vh, fecha ao escolher.
+  Empresta-se a mecânica; **o fundo é o da coluna** (burgundy), porque a lei das duas navegações diz
+  que a do sistema e a da página não são a mesma coisa, e a cor é o que as distingue.
+- **A listagem de planos é a peça da lista de turmas**, com a matéria desta lista: as três caixas
+  são **Turma · Professor · Cadeia**, e a linha de complemento fica com o ciclo e o volume — para
+  nenhum dado aparecer duas vezes.
+- **A caixa inteira é clicável**, no computador e no telemóvel. Era um `<div>` com um
+  `<button class="q">` de 20px dentro: o alvo medido era o do «?». Agora a caixa é o botão —
+  **48 × 221px** —, e o «?» fica como desenho (`aria-hidden`). De caminho sai um botão dentro de
+  outro, que o leitor de ecrã anunciava duas vezes.
+- **A peça da lista subiu para a folha.** As regras de `.metricas`, `.metrica`, `.painel`,
+  `.escala` e `.chip` viviam inline na página da Produção; enquanto estivessem lá, usá-las noutra
+  lista seria COPIÁ-LAS, e a segunda cópia divergiria na primeira correcção. Passaram a
+  `tools/templates/ciclo.css` com nomes `trio-*` — a checagem «Forma» dá cada nome de classe a um
+  dono só, e `.escala`, `.nota`, `.lista` e `.nivel-neutro` já tinham dono.
 
-Um `git status` limpo não quer dizer «nada aconteceu» — quer dizer «nada aconteceu **aqui**».
+**MOTIVO DECLARADO (`tools/` é congelado).**
+`tools/montar-publicacao.js`, `tools/templates/ciclo.css`, `tools/templates/nav.js` e
+`tools/check-identidade.js` mudaram nesta entrada. O motivo é o acima: sem mexer na montagem não há
+listas para onde o menu aponte; sem mexer na folha a coluna não tem desenho em página nenhuma; sem
+mexer no `nav.js` do cliente a folha do celular não abre; e sem mexer na checagem as páginas de
+lista não são medidas. **Nada disto toca na fórmula do hash, na cobertura da âncora, nos validadores
+ou nas regras e pétreas.** As cópias de `assets/style.css` e `assets/nav.js` dos três pacotes e da
+raiz foram regeradas (é o que a checagem «Circuito» exige).
 
-**O que foi decidido.** Uma secção nova em [AGENTS.md](AGENTS.md), «O remoto primeiro», antes de
-«Antes de editar»: `git fetch` + `git status -sb` + `git log origin/main` **antes** de analisar; se
-estiver atrás, rebase (não merge — a história é linear e é o que os hooks de proveniência esperam);
-e, antes de dizer que algo «não existe» ou «está quebrado», confirmar no remoto e não no worktree.
+**Onde entrou.**
+- `motor/nucleo/nav.js` — desenha a coluna e o caminho na barra; `grupoAtual()` (a marca do GRUPO,
+  que a `ehAtivo()` não dava); `tituloDaPagina()` (o `<h1>` da própria página, e não um campo novo
+  no `nav.json`); `aplicar()` passa a tirar a coluna anterior antes de desenhar outra.
+- `motor/nucleo/lista-html.js` — **novo**: as páginas de lista. Não tem `fs`: recebe os dados e
+  devolve a página, e é isso que permite ao `check-identidade` medi-las com uma amostra.
+- `tools/montar-publicacao.js` — o menu novo (`coluna` + `barra`, `versao: 2`); `dadosDoPlano()`
+  lê `PROFESSOR`/`TOTAL_AULAS` do `.conf` e `ancorado_em`/`po_state`/`hash` do `.fipp`; escreve as
+  cinco listas; a varredura final usa `nav.aplicar` em vez de um `replace` à mão.
+- `tools/templates/ciclo.css` — a coluna, a folha, o caminho na barra, o trio, o filtro.
+- `tools/templates/nav.js` — o ☰ abre a folha onde há coluna; os grupos abrem no clique e no foco.
+- `tools/check-identidade.js` — as duas páginas de lista entram na medição da checagem «Peça».
+- `motor/servidor/bastidores.js` — o CSS migrado saiu daqui, o markup da caixa passou a `<button>`,
+  e o JS deixou de procurar `.q`.
+- `IDENTIDADE-VISUAL.md` — as duas peças novas nos Quadros 1 e 2.
 
-A segunda metade é a que interessa, e não é sobre git: é a mesma família de erro do `if` que
-filtrava o título vazio no `check-pacote.js`. **A pergunta «está aqui?» e a pergunta «existe?» não
-são a mesma pergunta** — e um worktree desatualizado responde à primeira com a segunda.
-
-**Onde entrou.** `AGENTS.md` (não é congelado: nem `CONGELAMENTO.md`, nem `REGRAS.md`, nem
-`PROTOCOLO.md` o listam). Nada mais mudou: a regra é de processo, não de produto, e não tem prova
-executável — o que a verifica é o custo de a ignorar, que ficou escrito ao lado dela.
+**Com o quê.**
+- `node experimentos/provar-navegacao.js` — **novo**, 35 asserções: a conta do menu (com 1 e com 6
+  aulas), todo destino existe (arquivo montado ou rota lida do roteador), o grupo marcado, a coluna
+  a 248px com os grupos fechados e o ponteiro a abrir e a **empurrar os de baixo**, a folha do
+  celular (fora da tela antes, dentro depois, fecha ao escolher e com Escape), as três caixas e o
+  filtro. Corre a montagem a sério e serve o que ela escreveu; nada toca no ar.
+- `node experimentos/provar-barra-unica.js` — **reescrita**: 71 asserções, 0 falhas. Ela media a
+  forma antiga do menu (`versao: 1`, `menu.grupos`, «Harmonização» e «Captura em aula» dentro da
+  Área do Professor) e dava 25 de 58 por falha. Duas dessas falhas denunciavam decisões desta
+  entrada — que a harmonização sai do menu e que a captura passa a ser acção da linha da aula — e
+  por isso as asserções foram **invertidas**, não apagadas: o que se mede continua a ser que o menu
+  não carregue documentos. Ficaram os leitores da coluna (`titulosDaColuna`, `destinosDaColuna`),
+  porque `<summary>` já não existe e `.every` sobre uma leitura vazia **passa** — uma prova que não
+  mede nada não falha, e foi preciso ensiná-la a ler a forma nova.
+- `node experimentos/provar-celular.js` — 15/15 (o fixture do cartão foi actualizado para a peça).
+- `node experimentos/provar-cartao-da-turma.js` — TUDO CERTO.
+- `node experimentos/provar-producao.js` — 135/135 · `provar-menu-da-producao.js` — 26/26 ·
+  `provar-linhas-da-lista.js` — TUDO CERTO.
+- `node tools/check-identidade.js` — 20 verificações, sem erro.
 
 **O que ainda não está feito.**
-- **Não há guarda automática.** A regra depende de ser lida. Um `fetch` no `pre-commit` poria uma
-  chamada de rede em cada commit e falharia offline; a alternativa — comparar com um
-  `origin/main` velho — daria uma falsa sensação de sincronia, que é pior do que não ter guarda.
-- **O expurgo pela página não avisa quem está a trabalhar.** Ele é um commit na API; o worktree
-  local só o sabe no próximo `fetch`. Fica registado como o caso mais provável de repetir isto.
+- A **página de escolha de turma** para Anamnese, Plano de ensino e Plano de Observação é da
+  Etapa 2. Hoje os três apontam para a porta, que pergunta o professor e a turma na sua barra de
+  contexto: funciona, mas não é a lista que o plano desenha.
+- A **harmonização** continua publicada em `/<variante>/harmonizacao.html` e fora do menu. Sair da
+  publicação é da Etapa 2, e é remoção de URL — decisão já tomada, execução pendente.
+- A lista de aulas **não pagina**: 35 linhas hoje, e o filtro do cliente resolve. O rodapé de
+  paginação entra quando passar de ~200.
+- O filtro dos planos é por busca, professor e turma. «Os planos com PO pendente» seria uma linha
+  a mais no `.fipp` e não está pedido.
 
 ## O que está pendente
 
-## 21/10/2026 — a página de harmonização saía sem título: a fonte não abria o front-matter
+## 22/10/2026 — O terceiro laço de rebase, e os treze conflitos que eram só do índice
 
-- **A anamnese não foi medida.** A comparação dela com a harmonização é a da pesquisadora, a olho;
-  a anamnese é uma página da porta (outro template), e o que se conferiu aqui foi a harmonização
-  contra os documentos do MESMO template.
-- **O PDF foi regerado pela mudança da fonte.** Ele carrega a data de geração; o conteúdo textual
-  do documento é o mesmo, sem o `# ` duplicado.
-- **Outras fontes derivadas de ciclos antigos** que tenham o mesmo defeito não são alcançadas por
-  isto: os ciclos anteriores foram expurgados. Se algum reaparecer, a secção 2c do `check-pacote`
-  acusa.
+A regra «há **um** laço de rebase» continua a ser uma convenção
+sem trava: são três ficheiros com o mesmo bloco, e o quarto que aparecer pode repetir o erro. Uma
+trava possível — e não feita — é o `pre-commit` recusar um `git rebase` seguido de `exit 1` fora de
+`.github/scripts/`. Fica declarado.
 
-## 21/10/2026 — iPhone: o menu que não cabia e a rolagem que tremia
+## 22/10/2026 — O PO de um professor não vê o plano nem as alunas de outro
 
-- **Não foi testado num iPhone.** Não há iOS nesta máquina. O que se provou é o **mecanismo**: o
-  que o código faz quando o ambiente se comporta como o do iOS (alturas de viewport com as barras
-  à vista, `resize` em rajada, painel maior que a tela). Se no iPhone ainda tremer, o próximo passo
-  é instrumentar no aparelho — e aí a suspeita passa a ser outra, provavelmente o
-  `scroll-behavior: smooth` do `html`, que continua lá e que esta mudança não tocou.
-- **A largura como único gatilho** quer dizer que um teclado virtual que só mude a altura não
-  re-mede nada. É o que se quer (re-medir a rolar era o defeito), mas fica declarado.
-- O `-webkit-text-size-adjust` não foi posto: no iPhone, rodar para paisagem pode inflar o texto e
-  mudar as alturas medidas. Não se manifestou no relato, e mexer nisso muda a tipografia — fica
-  para quando houver um aparelho para conferir.
+- A escola `batata` foi **expurgada** no mesmo dia (`indices/escolas/batata.json` marca
+  `expurgada: true`, `habilitada: false`, contagens a zero; o `wrangler.batata.jsonc` saiu).
+  O `publicacao/batata/` local é saída e ficou órfã no disco — não é publicável, e o Worker ao
+  vivo já não tem config que a publique.
+- A curadoria da escola ao vivo não foi lida nesta sessão (o KV não está no repositório);
+  a prova usa curadorias equivalentes em memória. Se o dado ao vivo tiver uma curadoria
+  antiga com o professor em nome de exibição, o plano correspondente fica de fora — o recorte
+  é fechado de propósito, e a correção é refazer a curadoria com o slug.
+- A correção não foi exercitada numa escola ao vivo: a próxima que tiver dois professores na
+  mesma turma é a prova de campo.
 
-## 21/10/2026 — a correção do iPhone foi longe demais: revertida, e o defeito verdadeiro era outro
+## 22/10/2026 — A escola recriada pertence a quem a recriou
 
-- **Ainda não foi testado num iPhone.** O que se corrigiu agora é o que se podia medir: a largura e a
-  guarda do `resize`. Se a tremedeira voltar, o suspeito seguinte é o `scroll-behavior: smooth`.
-- **O `resize` só por largura** deixa de re-medir quando um teclado virtual muda apenas a altura. É
-  deliberado (re-medir a rolar era o defeito), mas fica declarado.
-- **A tabela em `display: block`** abaixo de 899px muda a semântica de layout em telas pequenas: as
-  colunas deixam de se alinhar com o cabeçalho quando a tabela rola. É o preço de não alargar a
-  página; a alternativa (esconder colunas) perderia conteúdo.
+- O `nome` da escola continua a ser o slug (`calango`), porque o elo não grava o
+  `--escola-nome` que a criação recebe. Fica declarado: é uma decisão de conteúdo do elo, não
+  um efeito desta correção.
+- O expurgo pela **página** (`repo-escola.js` → `expurgar-escola.js`) deriva o professor dos
+  caminhos e sempre acertou; quem errava era o elo e quem o lia. Os dois caminhos usam agora a
+  mesma verdade, mas só o local foi exercitado aqui.
 
-## 21/10/2026 — a batata foi expurgada; as provas deixaram de nomear escolas
+## 23/10/2026 — O job do índice reescrevia o commit do vizinho, e o push morria
 
-- **Quatro provas não correm agora**, e é honesto: `provar-iphone`, `provar-titulo-e-barra`,
-  `provar-cabecalho-do-documento` e `propostas/construir` medem um documento **real**, e neste
-  momento não há ciclo gerado nenhum no repositório. Voltam a correr no dia em que houver — é o
-  que a mensagem de erro diz, com o comando.
-- **A calango ainda não existe.** Os três bloqueios do `criar-escola.sh` estão livres (o `.conf`
-  variante, o pacote e o `wrangler`), o índice dela sobrevive com dois expurgos e uma recriação, e
-  a criação vai acrescentar um elo `recriacao` **posterior ao último expurgo** — que é o que a
-  distingue de «restos por limpar» (`foiRecriada`).
+- O defeito é do laço, não do dado: os índices já estavam corretos no `main` quando o job
+  falhou, e continuam corretos. O que estava errado era o PONTEIRO (`fonte.commit`), agora
+  atualizado.
+- A prova cobre o caminho do `regerar-indices` e o guardão; os laços do `reancorar` e do
+  `gerar-ciclo` são exercitados só pela parte C (o guardão), não de ponta a ponta — um deles
+  depende do `hash-ciclo.sh` e de fontes reais, que não cabem numa bancada de git.
+- Continua em aberto uma trava que impeça um QUARTO laço de repetir o padrão: hoje a regra é
+  convenção e revisão, não validação automática.
 
-## 21/10/2026 — o remoto primeiro: uma regra para não repetir o diagnóstico errado do expurgo
+## 23/10/2026 — O menu deixa de contar documentos: doze destinos, e a lista passa a ser a lista
 
-- **Não há guarda automática.** A regra depende de ser lida. Um `fetch` no `pre-commit` poria uma
-  chamada de rede em cada commit e falharia offline; a alternativa — comparar com um
-  `origin/main` velho — daria uma falsa sensação de sincronia, que é pior do que não ter guarda.
-- **O expurgo pela página não avisa quem está a trabalhar.** Ele é um commit na API; o worktree
-  local só o sabe no próximo `fetch`. Fica registado como o caso mais provável de repetir isto.
+- A **página de escolha de turma** para Anamnese, Plano de ensino e Plano de Observação é da
+  Etapa 2. Hoje os três apontam para a porta, que pergunta o professor e a turma na sua barra de
+  contexto: funciona, mas não é a lista que o plano desenha.
+- A **harmonização** continua publicada em `/<variante>/harmonizacao.html` e fora do menu. Sair da
+  publicação é da Etapa 2, e é remoção de URL — decisão já tomada, execução pendente.
+- A lista de aulas **não pagina**: 35 linhas hoje, e o filtro do cliente resolve. O rodapé de
+  paginação entra quando passar de ~200.
+- O filtro dos planos é por busca, professor e turma. «Os planos com PO pendente» seria uma linha
+  a mais no `.fipp` e não está pedido.
 
 ## Pendências anteriores (índice)
 
 - **18/09/2026** — PO do Ciclo 01 — Duo validado → `REGISTRO.md` L9
-- **18/09/2026** — Estrutura por professor (P-13, P-14) e migração do material → `REGISTRO.md` L35
-- **18/09/2026** — Publicação do repositório no GitHub (decisão da… → `REGISTRO.md` L72
-- **18/09/2026** — Pacotes de ciclo passam a ser versionados (deploy… → `REGISTRO.md` L101
-- **18/09/2026** — Ciclo próprio por escola: a Ritmos deixa de ser cópia da Duo → `REGISTRO.md` L134
-- **18/09/2026** — Ciclo do Ritmos completado (4 de 8 artefatos) + P-15 a P-19 → `REGISTRO.md` L190
-- **18/09/2026** — PO do Ritmos validado + P-22 → `REGISTRO.md` L253
-- **18/09/2026** — Publicação, primeira reancoragem da Duo e o caderno da Aula… → `REGISTRO.md` L302
-- **19/09/2026** — Congelamento da infraestrutura → `REGISTRO.md` L347
-- **19/09/2026** — Criptografia dos acompanhamentos (exceção pós-congelamento) → `REGISTRO.md` L396
-- **19/09/2026** — Política de segurança dos dados sensíveis → `REGISTRO.md` L470
-- **19/09/2026** — Caderno publicado e incluído no hash → `REGISTRO.md` L504
-- **19/09/2026** — Método, README-ciclos e campos de duração → `REGISTRO.md` L541
-- **19/09/2026** — README-ciclos: escopos e criação de ciclo → `REGISTRO.md` L583
-- **19/09/2026** — Correções cosméticas → `REGISTRO.md` L604
-- **19/09/2026** — Varredura de marcas de indecisão → `REGISTRO.md` L636
-- **19/09/2026** — METODO no pacote e reorganização do menu → `REGISTRO.md` L680
-- **20/09/2026** — O guia de observação passa a se chamar o que ele é → `REGISTRO.md` L737
-- **20/09/2026** — O contrato de extração passa a ler tabela → `REGISTRO.md` L779
-- **20/09/2026** — O índice da página sai do topo e vai para a direita, preso → `REGISTRO.md` L836
-- **20/09/2026** — O contrato de extração vira lib (definição única) → `REGISTRO.md` L879
-- **20/09/2026** — O contrato ganha as duas declarações (mapa de colunas e… → `REGISTRO.md` L921
-- **20/09/2026** — O extrator do plano (o irmão), e o diff classificado → `REGISTRO.md` L965
-- **20/09/2026** — O laço de validação vira lib (a segunda definição única) → `REGISTRO.md` L1028
-- **20/09/2026** — O pre-commit passa a validar o PLANO (schema + tipos) → `REGISTRO.md` L1070
-- **20/09/2026** — O experimento passa a consumir o extrator (o ciclo fecha) → `REGISTRO.md` L1116
-- **20/09/2026** — O fenômeno do PO é uma LISTA (o schema declarava string) → `REGISTRO.md` L1156
-- **20/09/2026** — O escopo `experimentos` entra na lista do commit-msg → `REGISTRO.md` L1197
-- **20/09/2026** — A tabela de escopos do REGRAS.md passa a listar os 27 do… → `REGISTRO.md` L1233
-- **20/09/2026** — Peça 1: o JSON de dados do Duo entra como fonte → `REGISTRO.md` L1264
-- **20/09/2026** — Peça 2: os builders das vistas saem para uma lib → `REGISTRO.md` L1309
-- **20/09/2026** — O gerador passa a GERAR a vista (peça 3 da migração) → `REGISTRO.md` L1359
-- **20/09/2026** — O guia gerado passa a emitir a data da aula → `REGISTRO.md` L1413
-- **20/09/2026** — A linha de base renderiza o texto como veio (nada de… → `REGISTRO.md` L1460
-- **20/09/2026** — O guia do Ritmos passa a ser gerado (peça 5) — e o render… → `REGISTRO.md` L1503
-- **20/09/2026** — O `pre-push` passa a existir — e a conferência do… → `REGISTRO.md` L1564
-- **20/09/2026** — O gerador grava os JSONs do formulário no pacote (Fase 2.1) → `REGISTRO.md` L1605
-- **20/09/2026** — O JSON de dados vai para o pacote cifrado (Fase 2.2) → `REGISTRO.md` L1686
-- **20/09/2026** — O formulário de lançamento vai para produção (Área do… → `REGISTRO.md` L1743
-- **20/09/2026** — A folha de captura vira config legível por máquina… → `REGISTRO.md` L1979
-- **22/09/2026** — Agentes de workspace: geração, auditoria e apresentação → `REGISTRO.md` L2292
-- **23/09/2026** — A identidade do projeto entra na documentação (e a ressalva… → `REGISTRO.md` L2344
-- **23/09/2026** — A varredura da deriva de identidade: o que ficou fora da… → `REGISTRO.md` L2425
-- **23/09/2026** — A seção que só tinha citação, e o ciclo simulado da… → `REGISTRO.md` L2506
-- **23/09/2026** — O gerador não herda mais o locale de quem o chama → `REGISTRO.md` L2597
-- **25/09/2026** — O HANDOFF truncado: o glob que abortava a geração em… → `REGISTRO.md` L2665
-- **25/09/2026** — "Não o que foi planejado": a memória da aula dada e o plano… → `REGISTRO.md` L2740
-- **25/09/2026** — O campo `norma`: o PO ganha o padrão de referência que era… → `REGISTRO.md` L2851
-- **25/09/2026** — A identidade visual passa a existir como contrato, e a… → `REGISTRO.md` L3051
-- **25/09/2026** — A hora da aula entra no `DIAS`, e o calendário passa a ter… → `REGISTRO.md` L3182
-- **26/09/2026** — O `DOCS` deixa de ser lista à mão: as famílias por aula… → `REGISTRO.md` L3356
-- **26/09/2026** — A P-13 deixa de sugerir que o dado é privado do professor:… → `REGISTRO.md` L3477
-- **26/09/2026** — O prazo do §3 dizia "menor entre" — e dois números do… → `REGISTRO.md` L3630
-- **26/09/2026** — O config da captura deixa de ser um por ciclo: um… → `REGISTRO.md` L3779
-- **26/09/2026** — O `check-identidade.js` entra no `pre-commit`: a identidade… → `REGISTRO.md` L3979
-- **26/09/2026** — O campo ganha a forma canônica da linha de base, a… → `REGISTRO.md` L4213
-- **26/09/2026** — A data da aula deixa de ser adivinhada: o `ciclos.json`… → `REGISTRO.md` L4406
-- **26/09/2026** — O JSON de dados ganha validador: o `-dados.json` deixa de… → `REGISTRO.md` L4673
-- **26/09/2026** — O prazo por aula deixa de ser 48 h fixas: `aulas[].prazo`… → `REGISTRO.md` L4875
-- **26/09/2026** — A âncora deixa de existir só por ciclo: um `.fipp` por aula… → `REGISTRO.md` L5156
-- **26/09/2026** — O config da captura por aula passa a ser conferido pelo… → `REGISTRO.md` L5316
-- **26/09/2026** — Os apelidos saem em claro: um ciclo sem lançamento passa a… → `REGISTRO.md` L5470
-- **26/09/2026** — O formulário lê o config pela AULA: as quatro aulas deixam… → `REGISTRO.md` L5659
-- **27/09/2026** — A nav sai uma vez: o formulário deixa de ser a única página… → `REGISTRO.md` L5861
-- **27/09/2026** — O estado da aula deixa de ser declarado: quatro estados… → `REGISTRO.md` L5974 *(superado)*
-- **27/09/2026** — A §5.1 para de dizer 48 h: o ajuste com prazo passa a… → `REGISTRO.md` L6166
-- **27/09/2026** — O ajuste no plano deixa de ser promessa: o elo do plano da… → `REGISTRO.md` L6324
-- **27/09/2026** — A Aula 05 declara o método RAD e o ciclo ganha notação… → `REGISTRO.md` L6488
-- **28/09/2026** — O índice do formulário saía sem a vírgula: a gravação passa… → `REGISTRO.md` L6623
-- **28/09/2026** — O formulário baixa **dois** arquivos, e o texto passa a… → `REGISTRO.md` L6743
-- **28/09/2026** — O botão passa a ser `Salvar`, e o arquivo vai para a pasta… → `REGISTRO.md` L6859
-- **28/09/2026** — A legenda ao lado do botão `Salvar` sai; o botão fica… → `REGISTRO.md` L7197
-- **28/09/2026** — O cabeçalho do formulário passa à voz de professor: só o… → `REGISTRO.md` L7298
-- **28/09/2026** — O botão `Exportar ajuste do plano` sai do formulário: era… → `REGISTRO.md` L7424 *(superado)*
-- **29/09/2026** — O botão `Salvar` deixa de abrir a pasta do computador: a… → `REGISTRO.md` L7545 *(superado)*
-- **29/09/2026** — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava… → `REGISTRO.md` L7670 *(superado)*
-- **29/09/2026** — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora… → `REGISTRO.md` L7818
-- **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7945
-- **29/09/2026** — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do… → `REGISTRO.md` L8015 *(superado)*
-- **30/09/2026** — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`… → `REGISTRO.md` L8093
-- **30/09/2026** — O segundo papel do agente: o servidor local **não existe**;… → `REGISTRO.md` L8182
-- **01/10/2026** — A grafia de "Elicitação" se propaga, e a pendência do… → `REGISTRO.md` L8269
-- **01/10/2026** — A view gerada e a regra de leitura cresciam com o arquivo:… → `REGISTRO.md` L8410
-- **02/10/2026** — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev… → `REGISTRO.md` L8531
-- **02/10/2026** — A escola passa a poder ser desabilitada, com motivo e data → `REGISTRO.md` L8645
-- **07/10/2026** — O cofre dos lançamentos sai do Netlify e entra no… → `REGISTRO.md` L8762
-- **07/10/2026** — O Netlify antigo é destruído, o mapa anda para o slide 83 e… → `REGISTRO.md` L8914
-- **07/10/2026** — O prompt de elicitação herda oito decisões do formulário do… → `REGISTRO.md` L9042
-- **09/10/2026** — A criação de escola vira um comando: o CLI de scaffolding,… → `REGISTRO.md` L9282
-- **09/10/2026** — A porta passa a elicitar o PLANO, e o ciclo do zero passa a… → `REGISTRO.md` L9334
-- **10/10/2026** — O menu separa a Anamnese do Plano de Observação, e a… → `REGISTRO.md` L9387
-- **11/10/2026** — «Nós, Por Exemplo» vira a página de entrada; o «Início» e a… → `REGISTRO.md` L9440
-- **11/10/2026** — Atalhos da porta na página de entrada e aprofundamento do… → `REGISTRO.md` L9509
-- **11/10/2026** — URLs próprias para a Anamnese e o Plano de Observação → `REGISTRO.md` L9563
-- **11/10/2026** — As sete mudanças de comportamento e a proveniência… → `REGISTRO.md` L9605
-- **11/10/2026** — Ordem alfabética nos menus e rótulo da harmonização → `REGISTRO.md` L9681
-- **12/10/2026** — O «Nós, Por Exemplo» passa a ter fonte única e a raiz fica… → `REGISTRO.md` L9730
-- **12/10/2026** — O plano de ensino vira rota própria e o PO passa a puxar os… → `REGISTRO.md` L9787
-- **12/10/2026** — O plano de ensino ganha estante, edição em sítio e… → `REGISTRO.md` L9846
-- **12/10/2026** — A arquitetura geral ganha documento próprio (arquivo, não… → `REGISTRO.md` L9889
-- **12/10/2026** — O botão «Criar nova escola» alinha o menu da Área do… → `REGISTRO.md` L9923
-- **12/10/2026** — O CLI «criar-escola» alinha o menu zero ao plano de ensino → `REGISTRO.md` L9955
-- **12/10/2026** — A página de entrada ganha o «Plano de ensino» → `REGISTRO.md` L9993
-- **12/10/2026** — A raiz nunca é desabilitada pelo freio de escola → `REGISTRO.md` L10047
-- **12/10/2026** — O rodapé do ciclo zero lista os três itens da Área do… → `REGISTRO.md` L10085
-- **12/10/2026** — A folha de captura ganha rótulo curto e transposição → `REGISTRO.md` L10122
-- **12/10/2026** — A senha de criptografia da Maria nasce mockada e chega ao CI → `REGISTRO.md` L10168
-- **12/10/2026** — O PO referencia o plano por id e para de duplicar o… → `REGISTRO.md` L10202
-- **12/10/2026** — O Diaghilev sai por expurgo DIRETO, e a trava de identidade… → `REGISTRO.md` L10251
-- **12/10/2026** — O hook de expurgo nasce e passa o teste no Diaghilev II → `REGISTRO.md` L10339
-- **12/10/2026** — O criar-escola.sh passa a gerar o índice da escola (fecha a… → `REGISTRO.md` L10404
-- **12/10/2026** — O expurgo ganha a reconciliação worker×slug e o hook… → `REGISTRO.md` L10453
-- **12/10/2026** — A senha de criptografia deixa de ser manual: nasce REAL no… → `REGISTRO.md` L10508
-- **12/10/2026** — A senha de criptografia nasce no Cloudflare (caminho a): o… → `REGISTRO.md` L10561
-- **12/10/2026** — A página «Criar nova escola» passa a subir o motor completo… → `REGISTRO.md` L10629
-- **12/10/2026** — O formulário vira mínimo e o Bastidores vira grupo (Estúdio… → `REGISTRO.md` L10692
-- **13/10/2026** — A contaminação entre escolas (o envelope sem escola) é… → `REGISTRO.md` L10756
-- **13/10/2026** — O hook deixa o ciclo-zero (scaffold de escola) passar → `REGISTRO.md` L10839
-- **13/10/2026** — A Produção exclui aluna e professor (o gabinete se mantém… → `REGISTRO.md` L10870
-- **13/10/2026** — O professor é o dono, a Produção pede senha e o professor… → `REGISTRO.md` L10894
-- **13/10/2026** — Bloco 2: o nó 50 não semeia, e «não foi medido» entra… → `REGISTRO.md` L10934
-- **13/10/2026** — «Não foi medido» chega aos basilares e às cinco posições;… → `REGISTRO.md` L10964
-- **13/10/2026** — A categoria etária é re-derivada da idade; a memória é por… → `REGISTRO.md` L10999
-- **13/10/2026** — A senha é por professor, e a categoria etária re-deriva ao… → `REGISTRO.md` L11027
-- **13/10/2026** — Cadastro de turmas e vocabulário técnico do balé (com… → `REGISTRO.md` L11066
-- **13/10/2026** — Norma revisada: o Bastidores cria e declara (caso a caso);… → `REGISTRO.md` L11114
-- **13/10/2026** — A base canónica do catálogo migra para… → `REGISTRO.md` L11152
-- **13/10/2026** — A curadoria nasce: a escola atribui a cada professor o que… → `REGISTRO.md` L11185
-- **13/10/2026** — Metodologia e notação chegam ao PO (ligar L5 — Bloco 8.2) → `REGISTRO.md` L11218
-- **13/10/2026** — A tela consome a curadoria: plano/PO travam sem curadoria e… → `REGISTRO.md` L11245
-- **13/10/2026** — Bastidores quebrou: a página da Produção referia `env` fora… → `REGISTRO.md` L11283
-- **13/10/2026** — A grelha das tabelas: a rubrica, as turmas em plural, o… → `REGISTRO.md` L11306
-- **13/10/2026** — A rubrica: o conteúdo alinha-se à decisão (Bloco 10,… → `REGISTRO.md` L11410
-- **13/10/2026** — A grelha não chegava à porta: duas listas brancas engoliam… → `REGISTRO.md` L11449
-- **14/10/2026** — A régua da turma mede o critério no LANÇAMENTO (frente B9) → `REGISTRO.md` L11489
-- **14/10/2026** — O PO completo chega inteiro aos derivados (frente B10) → `REGISTRO.md` L11578
-- **14/10/2026** — O plano completo chega inteiro aos derivados (frente B11) → `REGISTRO.md` L11679
-- **15/10/2026** — O Sistema Lastro: o nome comercial, e o mapa de evolução do… → `REGISTRO.md` L11818
-- **15/10/2026** — A dimensão observada deriva do PLANO (e o vocabulário do PO… → `REGISTRO.md` L12149
-- **15/10/2026** — A cifra do Worker respeita o teto do runtime, e a falha… → `REGISTRO.md` L12267
-- **15/10/2026** — A geração publica: o deploy entra na cadeia → `REGISTRO.md` L12367
-- **15/10/2026** — O guarda do pre-push passa a conferir a última linha do… → `REGISTRO.md` L12431
-- **15/10/2026** — A criação da escola diz onde guardar a senha de criptografia → `REGISTRO.md` L12491
-- **15/10/2026** — O prefixo do nome separa a chave da cifra da senha de acesso → `REGISTRO.md` L12560
-- **15/10/2026** — O arquivo de senhas vira um espelho por escola → `REGISTRO.md` L12633
-- **15/10/2026** — A chave de cifra vira interna do Worker: ninguém a vê,… → `REGISTRO.md` L12713
-- **15/10/2026** — O lançamento da aula confere a senha e grava cifrado no… → `REGISTRO.md` L12826
-- **15/10/2026** — O expurgo da escola sai do comando e vira botão, na raiz → `REGISTRO.md` L12908
-- **15/10/2026** — O expurgo apagava a escola e deixava o cadastro das alunas… → `REGISTRO.md` L13015
-- **15/10/2026** — `Buffer` não existe no runtime dos Workers: o expurgo não… → `REGISTRO.md` L13124
-- **15/10/2026** — O gerador do HANDOFF quebrava com o repositório sem escola → `REGISTRO.md` L13231
-- **15/10/2026** — O expurgo apagou o MODELO: a escola `ponta` não pôde nascer → `REGISTRO.md` L13267
-- **15/10/2026** — Criar escola para o professor do MODELO: o `cp` recusava o… → `REGISTRO.md` L13328
-- **15/10/2026** — Um conserto commitado e não publicado não conserta nada → `REGISTRO.md` L13381
-- **15/10/2026** — O professor homônimo: o identificador é o slug, e o… → `REGISTRO.md` L13424
-- **15/10/2026** — O molde sai de `professores/`: molde não é professor → `REGISTRO.md` L13506
-- **16/10/2026** — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome… → `REGISTRO.md` L13584
-- **16/10/2026** — A identidade visual tem seis famílias em estudo, e o… → `REGISTRO.md` L13654
-- **16/10/2026** — A tela diz de quem é a ficha, e o obrigatório se anuncia → `REGISTRO.md` L13757
-- **16/10/2026** — A senha autoriza o ATO, não a SESSÃO → `REGISTRO.md` L13862
-- **16/10/2026** — A data da ficha é a da última mudança — e a edição do plano… → `REGISTRO.md` L13985
-- **16/10/2026** — O carimbo é a hora da escola, não a do servidor → `REGISTRO.md` L14104
-- **16/10/2026** — A estante pagina de seis em seis, o roteiro é só da… → `REGISTRO.md` L14194
-- **16/10/2026** — A sequência de exercícios chega ao `plano-XX.json` (e o… → `REGISTRO.md` L14310
-- **16/10/2026** — O ciclo passa a ser DA TURMA (fase 1: a identidade da fonte) → `REGISTRO.md` L14434
-- **16/10/2026** — A hora de início é do DIA da semana (e a turma passa a… → `REGISTRO.md` L14496
-- **16/10/2026** — A turma deriva: o «editar» passa a ser um elo novo, com… → `REGISTRO.md` L14553
-- **16/10/2026** — A curadoria é de UMA turma (e edita-se ou deriva-se como a… → `REGISTRO.md` L14690
-- **16/10/2026** — A identidade visual fecha o circuito: raiz, porta,… → `REGISTRO.md` L14759
-- **16/10/2026** — A curadoria é de UMA turma — e o id passa a dizê-lo → `REGISTRO.md` L14852
-- **16/10/2026** — A camada de componentes: o desenho deixa de ser reescrito… → `REGISTRO.md` L14918
-- **17/10/2026** — Os papéis e a variante noturna: a identidade passa a ter… → `REGISTRO.md` L14988
-- **17/10/2026** — A aparência ganha prova própria — e o botão que sumiria no… → `REGISTRO.md` L15063
-- **17/10/2026** — A escola nasceu sem o botão da aparência: a barra tinha uma… → `REGISTRO.md` L15316
-- **17/10/2026** — A lista de turmas deixa de ficar acavalada no celular → `REGISTRO.md` L15384
-- **17/10/2026** — Os commits estavam certos e a produção estava velha: as… → `REGISTRO.md` L15689
-- **17/10/2026** — O botão que parecia quebrado, o campo colado no botão e o… → `REGISTRO.md` L15743
-- **17/10/2026** — As sete listas da Produção passam a folhear (o botão que… → `REGISTRO.md` L15839
-- **18/10/2026** — A escola não é campo: o cabeçalho do ato separa o que se… → `REGISTRO.md` L15925
-- **18/10/2026** — O nome da escola estava no JSON e vinha do cliente: o… → `REGISTRO.md` L15987
-- **18/10/2026** — a S5 entra em produção, e os três passos ganham os botões… → `REGISTRO.md` L16393
-- **18/10/2026** — o «Seções» vira botão, e a página começa na secção → `REGISTRO.md` L16454
-- **18/10/2026** — a proveniência sai da curadoria e vale para tudo; o menu… → `REGISTRO.md` L16494
-- **18/10/2026** — os três passos fecham as travas, e o «Editar» da turma abre… → `REGISTRO.md` L16545
-- **18/10/2026** — o vocabulário escolhe em lista, e cada nome diz as suas… → `REGISTRO.md` L16606
-- **18/10/2026** — o cancelar chega à curadoria, a turma perde dois campos, e… → `REGISTRO.md` L16661
-- **18/10/2026** — o formulário recolhe para uma faixa, e a listagem ocupa a… → `REGISTRO.md` L16716
-- **18/10/2026** — o nome do professor na curadoria abre o plano de ensino dele → `REGISTRO.md` L16763
-- **18/10/2026** — a faixa dos passos numa linha só, com a seta no fim → `REGISTRO.md` L16801
-- **18/10/2026** — a etiqueta é uma só, e o que está no ar é o motor → `REGISTRO.md` L16844
-- **18/10/2026** — a dobra do índice da página, no celular → `REGISTRO.md` L16921
-- **18/10/2026** — a C15 foi decidida: a preferência de aparência é da escola → `REGISTRO.md` L17074
-- **18/10/2026** — A aparência passou a ser da escola, e o servidor aplica-a → `REGISTRO.md` L17140
-- **18/10/2026** — O catálogo das peças: um nome antes do desenho → `REGISTRO.md` L17229
-- **18/10/2026** — A segunda família: a Cortina Turquesa, medida antes de… → `REGISTRO.md` L17319
-- **18/10/2026** — O cabeçalho do ato cresce, e o «Fechar» deixa de descontar → `REGISTRO.md` L17408
-- **18/10/2026** — O cabeçalho do ato cabe em 360px, e a barra de botões vira… → `REGISTRO.md` L17481
-- **18/10/2026** — Correção: o resumo da faixa desce, e a lista não mente… → `REGISTRO.md` L17576
-- **18/10/2026** — Regra: medir na bancada, e o ar só na conferência final → `REGISTRO.md` L17642
-- **18/10/2026** — O catálogo de paletas fecha em três: a Verde de Ensaio… → `REGISTRO.md` L17699
-- **18/10/2026** — A família da escola chega a tudo o que ela serve, e a lista… → `REGISTRO.md` L17782
-- **18/10/2026** — As outras quatro secções recolhem, e a listagem fica com a… → `REGISTRO.md` L17857
-- **18/10/2026** — A marca entra na barra e o favicon existe: a cor vem do… → `REGISTRO.md` L17937
-- **18/10/2026** — O gerador diz o que falta: a guarda do DOCS, o… → `REGISTRO.md` L18089
-- **18/10/2026** — Por que o CI não ficava verde: o plano nunca preenchia o… → `REGISTRO.md` L18158
-- **18/10/2026** — O token vive em quatro lugares, e só um foi trocado → `REGISTRO.md` L18228
-- **19/10/2026** — A turma manda no ritmo: o `.conf` da variante passa a ser… → `REGISTRO.md` L18274
-- **19/10/2026** — O expurgo não mente: «sobraram 1» era a listagem a chegar… → `REGISTRO.md` L18383
-- **19/10/2026** — A geração deixa de ser muda: a tela passa a dizer o que… → `REGISTRO.md` L18438
-- **19/10/2026** — As escolas de teste passam a ter nome de palavra: Calango,… → `REGISTRO.md` L18516
-- **19/10/2026** — O repertório é da turma: sai do formulário da curadoria → `REGISTRO.md` L18557
-- **19/10/2026** — O expurgo errou para os dois lados: a leitura passa a ser a… → `REGISTRO.md` L18611
-- **19/10/2026** — O disparo manda dois slugs: o conteúdo é da variante, o… → `REGISTRO.md` L18679
-- **19/10/2026** — O `.fipp` não se escolhe: em conflito, regera-se → `REGISTRO.md` L18747
-- **19/10/2026** — Sem escola no repositório, o `Reancorar` não falha → `REGISTRO.md` L18796
-- **19/10/2026** — O `criar-escola` também perde a corrida do `push` → `REGISTRO.md` L18833
-- **19/10/2026** — A correcção da âncora ficou num workflow só — e o commit… → `REGISTRO.md` L18884
-- **19/10/2026** — A lista que falhava sem dizer porquê: `kv.list` tem cota, e… → `REGISTRO.md` L18942
-- **19/10/2026** — Todo pacote gerado nascia divergente da porta: a barra e a… → `REGISTRO.md` L18994
-- **20/10/2026** — O PO abre sem plano e com o checklist em branco: a lista… → `REGISTRO.md` L19037
-- **20/10/2026** — O expurgo apagou a escola e deixou o dado: a limpeza do KV… → `REGISTRO.md` L19120
-- **20/10/2026** — A cota do KV: o que ia para lá sem precisar, medido → `REGISTRO.md` L19203
-- **20/10/2026** — A anamnese nunca ia para o Git: ela vivia só no KV → `REGISTRO.md` L19267
-- **20/10/2026** — a lista não paga o que não mostra (fase 2 da dependência do… → `REGISTRO.md` L19350
-- **20/10/2026** — o envelope sai do KV: o acervo passa a ser o armazenamento… → `REGISTRO.md` L19424
-- **20/10/2026** — o índice do acervo: cada pergunta deixa de ser uma… → `REGISTRO.md` L19512
-- **20/10/2026** — dois `list` a menos: o cartão da geração e o cadastro no… → `REGISTRO.md` L19594
-- **20/10/2026** — o índice diz o mesmo nos dois níveis, e a âncora tem três… → `REGISTRO.md` L19656
-- **20/10/2026** — a tela mostra o endereço que existe, e diz que o cofre é… → `REGISTRO.md` L19693
-- **20/10/2026** — as declarações do índice: o vocabulário deixa de estar… → `REGISTRO.md` L19732
-- **20/10/2026** — a anamnese sai do KV, e o cofre deixa de existir → `REGISTRO.md` L19792
-- **20/10/2026** — o plano de ensino de teste chega preenchido inteiro, não… → `REGISTRO.md` L19833
-- **20/10/2026** — o índice passa a ser gerado, e o «passou» passa a ser medido → `REGISTRO.md` L19885
-- **20/10/2026** — a âncora da aula deixa de ficar solta, e o rebase diz a… → `REGISTRO.md` L20016
-- **20/10/2026** — o Worker da escola passa a servir o pacote da TURMA, não o… → `REGISTRO.md` L20067
-- **20/10/2026** — o expurgo da `breu` foi completo, e o índice ficou a… → `REGISTRO.md` L20102
-- **20/10/2026** — o PO da `batata` não gerava o ciclo: a declaração da… → `REGISTRO.md` L20193
-- **20/10/2026** — a aula derivada volta a ser legível: o mapa de secções e a… → `REGISTRO.md` L20252
-- **20/10/2026** — o primeiro pacote no repositório expôs o vocabulário do… → `REGISTRO.md` L20308
-- **20/10/2026** — o Plano de Observação de uma turma oferecia as alunas das… → `REGISTRO.md` L20364
-- **20/10/2026** — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de… → `REGISTRO.md` L20434
-- **20/10/2026** — o hook recusava todo commit enquanto uma turma não tivesse… → `REGISTRO.md` L20510
-- **20/10/2026** — a escola não se criava: a publicação era montada só no ramo… → `REGISTRO.md` L20570
-- **20/10/2026** — o repositório sem ciclo expôs duas provas desactualizadas → `REGISTRO.md` L20630
-- **20/10/2026** — o filtro dos sujeitos continuava sem funcionar: a chave… → `REGISTRO.md` L20660
-- **20/10/2026** — clicar na logo leva à raiz do domínio → `REGISTRO.md` L20730
-- **20/10/2026** — o ciclo é gerado e o menu não o mostra: a barra passa a ser… → `REGISTRO.md` L20803
-- **20/10/2026** — a barra de navegação deixa de ser escrita e passa a ser… → `REGISTRO.md` L20872
-- **20/10/2026** — o registro de notação passa a compor-se: o alfabeto é dado,… → `REGISTRO.md` L20969
-- **20/10/2026** — o lançamento pedia uma senha cujo campo estava escondido → `REGISTRO.md` L21077
-- **20/10/2026** — duas bancadas para ESCOLHER o título e a paginação — e três… → `REGISTRO.md` L21145
-- **21/10/2026** — as propostas de layout foram refeitas: eram inoperáveis, e… → `REGISTRO.md` L21243
-- **21/10/2026** — o título que fica e a barra do lançamento no celular: as… → `REGISTRO.md` L21315
+- **18/09/2026** — Estrutura por professor (P-13, P-14) e migração do material → `REGISTRO.md` L46
+- **18/09/2026** — Publicação do repositório no GitHub (decisão da… → `REGISTRO.md` L83
+- **18/09/2026** — Pacotes de ciclo passam a ser versionados (deploy… → `REGISTRO.md` L112
+- **18/09/2026** — Ciclo próprio por escola: a Ritmos deixa de ser cópia da Duo → `REGISTRO.md` L145
+- **18/09/2026** — Ciclo do Ritmos completado (4 de 8 artefatos) + P-15 a P-19 → `REGISTRO.md` L201
+- **18/09/2026** — PO do Ritmos validado + P-22 → `REGISTRO.md` L264
+- **18/09/2026** — Publicação, primeira reancoragem da Duo e o caderno da Aula… → `REGISTRO.md` L313
+- **19/09/2026** — Congelamento da infraestrutura → `REGISTRO.md` L358
+- **19/09/2026** — Criptografia dos acompanhamentos (exceção pós-congelamento) → `REGISTRO.md` L407
+- **19/09/2026** — Política de segurança dos dados sensíveis → `REGISTRO.md` L481
+- **19/09/2026** — Caderno publicado e incluído no hash → `REGISTRO.md` L515
+- **19/09/2026** — Método, README-ciclos e campos de duração → `REGISTRO.md` L552
+- **19/09/2026** — README-ciclos: escopos e criação de ciclo → `REGISTRO.md` L594
+- **19/09/2026** — Correções cosméticas → `REGISTRO.md` L615
+- **19/09/2026** — Varredura de marcas de indecisão → `REGISTRO.md` L647
+- **19/09/2026** — METODO no pacote e reorganização do menu → `REGISTRO.md` L691
+- **20/09/2026** — O guia de observação passa a se chamar o que ele é → `REGISTRO.md` L748
+- **20/09/2026** — O contrato de extração passa a ler tabela → `REGISTRO.md` L790
+- **20/09/2026** — O índice da página sai do topo e vai para a direita, preso → `REGISTRO.md` L847
+- **20/09/2026** — O contrato de extração vira lib (definição única) → `REGISTRO.md` L890
+- **20/09/2026** — O contrato ganha as duas declarações (mapa de colunas e… → `REGISTRO.md` L932
+- **20/09/2026** — O extrator do plano (o irmão), e o diff classificado → `REGISTRO.md` L976
+- **20/09/2026** — O laço de validação vira lib (a segunda definição única) → `REGISTRO.md` L1039
+- **20/09/2026** — O pre-commit passa a validar o PLANO (schema + tipos) → `REGISTRO.md` L1081
+- **20/09/2026** — O experimento passa a consumir o extrator (o ciclo fecha) → `REGISTRO.md` L1127
+- **20/09/2026** — O fenômeno do PO é uma LISTA (o schema declarava string) → `REGISTRO.md` L1167
+- **20/09/2026** — O escopo `experimentos` entra na lista do commit-msg → `REGISTRO.md` L1208
+- **20/09/2026** — A tabela de escopos do REGRAS.md passa a listar os 27 do… → `REGISTRO.md` L1244
+- **20/09/2026** — Peça 1: o JSON de dados do Duo entra como fonte → `REGISTRO.md` L1275
+- **20/09/2026** — Peça 2: os builders das vistas saem para uma lib → `REGISTRO.md` L1320
+- **20/09/2026** — O gerador passa a GERAR a vista (peça 3 da migração) → `REGISTRO.md` L1370
+- **20/09/2026** — O guia gerado passa a emitir a data da aula → `REGISTRO.md` L1424
+- **20/09/2026** — A linha de base renderiza o texto como veio (nada de… → `REGISTRO.md` L1471
+- **20/09/2026** — O guia do Ritmos passa a ser gerado (peça 5) — e o render… → `REGISTRO.md` L1514
+- **20/09/2026** — O `pre-push` passa a existir — e a conferência do… → `REGISTRO.md` L1575
+- **20/09/2026** — O gerador grava os JSONs do formulário no pacote (Fase 2.1) → `REGISTRO.md` L1616
+- **20/09/2026** — O JSON de dados vai para o pacote cifrado (Fase 2.2) → `REGISTRO.md` L1697
+- **20/09/2026** — O formulário de lançamento vai para produção (Área do… → `REGISTRO.md` L1754
+- **20/09/2026** — A folha de captura vira config legível por máquina… → `REGISTRO.md` L1990
+- **22/09/2026** — Agentes de workspace: geração, auditoria e apresentação → `REGISTRO.md` L2303
+- **23/09/2026** — A identidade do projeto entra na documentação (e a ressalva… → `REGISTRO.md` L2355
+- **23/09/2026** — A varredura da deriva de identidade: o que ficou fora da… → `REGISTRO.md` L2436
+- **23/09/2026** — A seção que só tinha citação, e o ciclo simulado da… → `REGISTRO.md` L2517
+- **23/09/2026** — O gerador não herda mais o locale de quem o chama → `REGISTRO.md` L2608
+- **25/09/2026** — O HANDOFF truncado: o glob que abortava a geração em… → `REGISTRO.md` L2676
+- **25/09/2026** — "Não o que foi planejado": a memória da aula dada e o plano… → `REGISTRO.md` L2751
+- **25/09/2026** — O campo `norma`: o PO ganha o padrão de referência que era… → `REGISTRO.md` L2862
+- **25/09/2026** — A identidade visual passa a existir como contrato, e a… → `REGISTRO.md` L3062
+- **25/09/2026** — A hora da aula entra no `DIAS`, e o calendário passa a ter… → `REGISTRO.md` L3193
+- **26/09/2026** — O `DOCS` deixa de ser lista à mão: as famílias por aula… → `REGISTRO.md` L3367
+- **26/09/2026** — A P-13 deixa de sugerir que o dado é privado do professor:… → `REGISTRO.md` L3488
+- **26/09/2026** — O prazo do §3 dizia "menor entre" — e dois números do… → `REGISTRO.md` L3641
+- **26/09/2026** — O config da captura deixa de ser um por ciclo: um… → `REGISTRO.md` L3790
+- **26/09/2026** — O `check-identidade.js` entra no `pre-commit`: a identidade… → `REGISTRO.md` L3990
+- **26/09/2026** — O campo ganha a forma canônica da linha de base, a… → `REGISTRO.md` L4224
+- **26/09/2026** — A data da aula deixa de ser adivinhada: o `ciclos.json`… → `REGISTRO.md` L4417
+- **26/09/2026** — O JSON de dados ganha validador: o `-dados.json` deixa de… → `REGISTRO.md` L4684
+- **26/09/2026** — O prazo por aula deixa de ser 48 h fixas: `aulas[].prazo`… → `REGISTRO.md` L4886
+- **26/09/2026** — A âncora deixa de existir só por ciclo: um `.fipp` por aula… → `REGISTRO.md` L5167
+- **26/09/2026** — O config da captura por aula passa a ser conferido pelo… → `REGISTRO.md` L5327
+- **26/09/2026** — Os apelidos saem em claro: um ciclo sem lançamento passa a… → `REGISTRO.md` L5481
+- **26/09/2026** — O formulário lê o config pela AULA: as quatro aulas deixam… → `REGISTRO.md` L5670
+- **27/09/2026** — A nav sai uma vez: o formulário deixa de ser a única página… → `REGISTRO.md` L5872
+- **27/09/2026** — O estado da aula deixa de ser declarado: quatro estados… → `REGISTRO.md` L5985 *(superado)*
+- **27/09/2026** — A §5.1 para de dizer 48 h: o ajuste com prazo passa a… → `REGISTRO.md` L6177
+- **27/09/2026** — O ajuste no plano deixa de ser promessa: o elo do plano da… → `REGISTRO.md` L6335
+- **27/09/2026** — A Aula 05 declara o método RAD e o ciclo ganha notação… → `REGISTRO.md` L6499
+- **28/09/2026** — O índice do formulário saía sem a vírgula: a gravação passa… → `REGISTRO.md` L6634
+- **28/09/2026** — O formulário baixa **dois** arquivos, e o texto passa a… → `REGISTRO.md` L6754
+- **28/09/2026** — O botão passa a ser `Salvar`, e o arquivo vai para a pasta… → `REGISTRO.md` L6870
+- **28/09/2026** — A legenda ao lado do botão `Salvar` sai; o botão fica… → `REGISTRO.md` L7208
+- **28/09/2026** — O cabeçalho do formulário passa à voz de professor: só o… → `REGISTRO.md` L7309
+- **28/09/2026** — O botão `Exportar ajuste do plano` sai do formulário: era… → `REGISTRO.md` L7435 *(superado)*
+- **29/09/2026** — O botão `Salvar` deixa de abrir a pasta do computador: a… → `REGISTRO.md` L7556 *(superado)*
+- **29/09/2026** — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava… → `REGISTRO.md` L7681 *(superado)*
+- **29/09/2026** — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora… → `REGISTRO.md` L7829
+- **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7956
+- **29/09/2026** — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do… → `REGISTRO.md` L8026 *(superado)*
+- **30/09/2026** — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`… → `REGISTRO.md` L8104
+- **30/09/2026** — O segundo papel do agente: o servidor local **não existe**;… → `REGISTRO.md` L8193
+- **01/10/2026** — A grafia de "Elicitação" se propaga, e a pendência do… → `REGISTRO.md` L8280
+- **01/10/2026** — A view gerada e a regra de leitura cresciam com o arquivo:… → `REGISTRO.md` L8421
+- **02/10/2026** — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev… → `REGISTRO.md` L8542
+- **02/10/2026** — A escola passa a poder ser desabilitada, com motivo e data → `REGISTRO.md` L8656
+- **07/10/2026** — O cofre dos lançamentos sai do Netlify e entra no… → `REGISTRO.md` L8773
+- **07/10/2026** — O Netlify antigo é destruído, o mapa anda para o slide 83 e… → `REGISTRO.md` L8925
+- **07/10/2026** — O prompt de elicitação herda oito decisões do formulário do… → `REGISTRO.md` L9053
+- **09/10/2026** — A criação de escola vira um comando: o CLI de scaffolding,… → `REGISTRO.md` L9293
+- **09/10/2026** — A porta passa a elicitar o PLANO, e o ciclo do zero passa a… → `REGISTRO.md` L9345
+- **10/10/2026** — O menu separa a Anamnese do Plano de Observação, e a… → `REGISTRO.md` L9398
+- **11/10/2026** — «Nós, Por Exemplo» vira a página de entrada; o «Início» e a… → `REGISTRO.md` L9451
+- **11/10/2026** — Atalhos da porta na página de entrada e aprofundamento do… → `REGISTRO.md` L9520
+- **11/10/2026** — URLs próprias para a Anamnese e o Plano de Observação → `REGISTRO.md` L9574
+- **11/10/2026** — As sete mudanças de comportamento e a proveniência… → `REGISTRO.md` L9616
+- **11/10/2026** — Ordem alfabética nos menus e rótulo da harmonização → `REGISTRO.md` L9692
+- **12/10/2026** — O «Nós, Por Exemplo» passa a ter fonte única e a raiz fica… → `REGISTRO.md` L9741
+- **12/10/2026** — O plano de ensino vira rota própria e o PO passa a puxar os… → `REGISTRO.md` L9798
+- **12/10/2026** — O plano de ensino ganha estante, edição em sítio e… → `REGISTRO.md` L9857
+- **12/10/2026** — A arquitetura geral ganha documento próprio (arquivo, não… → `REGISTRO.md` L9900
+- **12/10/2026** — O botão «Criar nova escola» alinha o menu da Área do… → `REGISTRO.md` L9934
+- **12/10/2026** — O CLI «criar-escola» alinha o menu zero ao plano de ensino → `REGISTRO.md` L9966
+- **12/10/2026** — A página de entrada ganha o «Plano de ensino» → `REGISTRO.md` L10004
+- **12/10/2026** — A raiz nunca é desabilitada pelo freio de escola → `REGISTRO.md` L10058
+- **12/10/2026** — O rodapé do ciclo zero lista os três itens da Área do… → `REGISTRO.md` L10096
+- **12/10/2026** — A folha de captura ganha rótulo curto e transposição → `REGISTRO.md` L10133
+- **12/10/2026** — A senha de criptografia da Maria nasce mockada e chega ao CI → `REGISTRO.md` L10179
+- **12/10/2026** — O PO referencia o plano por id e para de duplicar o… → `REGISTRO.md` L10213
+- **12/10/2026** — O Diaghilev sai por expurgo DIRETO, e a trava de identidade… → `REGISTRO.md` L10262
+- **12/10/2026** — O hook de expurgo nasce e passa o teste no Diaghilev II → `REGISTRO.md` L10350
+- **12/10/2026** — O criar-escola.sh passa a gerar o índice da escola (fecha a… → `REGISTRO.md` L10415
+- **12/10/2026** — O expurgo ganha a reconciliação worker×slug e o hook… → `REGISTRO.md` L10464
+- **12/10/2026** — A senha de criptografia deixa de ser manual: nasce REAL no… → `REGISTRO.md` L10519
+- **12/10/2026** — A senha de criptografia nasce no Cloudflare (caminho a): o… → `REGISTRO.md` L10572
+- **12/10/2026** — A página «Criar nova escola» passa a subir o motor completo… → `REGISTRO.md` L10640
+- **12/10/2026** — O formulário vira mínimo e o Bastidores vira grupo (Estúdio… → `REGISTRO.md` L10703
+- **13/10/2026** — A contaminação entre escolas (o envelope sem escola) é… → `REGISTRO.md` L10767
+- **13/10/2026** — O hook deixa o ciclo-zero (scaffold de escola) passar → `REGISTRO.md` L10850
+- **13/10/2026** — A Produção exclui aluna e professor (o gabinete se mantém… → `REGISTRO.md` L10881
+- **13/10/2026** — O professor é o dono, a Produção pede senha e o professor… → `REGISTRO.md` L10905
+- **13/10/2026** — Bloco 2: o nó 50 não semeia, e «não foi medido» entra… → `REGISTRO.md` L10945
+- **13/10/2026** — «Não foi medido» chega aos basilares e às cinco posições;… → `REGISTRO.md` L10975
+- **13/10/2026** — A categoria etária é re-derivada da idade; a memória é por… → `REGISTRO.md` L11010
+- **13/10/2026** — A senha é por professor, e a categoria etária re-deriva ao… → `REGISTRO.md` L11038
+- **13/10/2026** — Cadastro de turmas e vocabulário técnico do balé (com… → `REGISTRO.md` L11077
+- **13/10/2026** — Norma revisada: o Bastidores cria e declara (caso a caso);… → `REGISTRO.md` L11125
+- **13/10/2026** — A base canónica do catálogo migra para… → `REGISTRO.md` L11163
+- **13/10/2026** — A curadoria nasce: a escola atribui a cada professor o que… → `REGISTRO.md` L11196
+- **13/10/2026** — Metodologia e notação chegam ao PO (ligar L5 — Bloco 8.2) → `REGISTRO.md` L11229
+- **13/10/2026** — A tela consome a curadoria: plano/PO travam sem curadoria e… → `REGISTRO.md` L11256
+- **13/10/2026** — Bastidores quebrou: a página da Produção referia `env` fora… → `REGISTRO.md` L11294
+- **13/10/2026** — A grelha das tabelas: a rubrica, as turmas em plural, o… → `REGISTRO.md` L11317
+- **13/10/2026** — A rubrica: o conteúdo alinha-se à decisão (Bloco 10,… → `REGISTRO.md` L11421
+- **13/10/2026** — A grelha não chegava à porta: duas listas brancas engoliam… → `REGISTRO.md` L11460
+- **14/10/2026** — A régua da turma mede o critério no LANÇAMENTO (frente B9) → `REGISTRO.md` L11500
+- **14/10/2026** — O PO completo chega inteiro aos derivados (frente B10) → `REGISTRO.md` L11589
+- **14/10/2026** — O plano completo chega inteiro aos derivados (frente B11) → `REGISTRO.md` L11690
+- **15/10/2026** — O Sistema Lastro: o nome comercial, e o mapa de evolução do… → `REGISTRO.md` L11829
+- **15/10/2026** — A dimensão observada deriva do PLANO (e o vocabulário do PO… → `REGISTRO.md` L12160
+- **15/10/2026** — A cifra do Worker respeita o teto do runtime, e a falha… → `REGISTRO.md` L12278
+- **15/10/2026** — A geração publica: o deploy entra na cadeia → `REGISTRO.md` L12378
+- **15/10/2026** — O guarda do pre-push passa a conferir a última linha do… → `REGISTRO.md` L12442
+- **15/10/2026** — A criação da escola diz onde guardar a senha de criptografia → `REGISTRO.md` L12502
+- **15/10/2026** — O prefixo do nome separa a chave da cifra da senha de acesso → `REGISTRO.md` L12571
+- **15/10/2026** — O arquivo de senhas vira um espelho por escola → `REGISTRO.md` L12644
+- **15/10/2026** — A chave de cifra vira interna do Worker: ninguém a vê,… → `REGISTRO.md` L12724
+- **15/10/2026** — O lançamento da aula confere a senha e grava cifrado no… → `REGISTRO.md` L12837
+- **15/10/2026** — O expurgo da escola sai do comando e vira botão, na raiz → `REGISTRO.md` L12919
+- **15/10/2026** — O expurgo apagava a escola e deixava o cadastro das alunas… → `REGISTRO.md` L13026
+- **15/10/2026** — `Buffer` não existe no runtime dos Workers: o expurgo não… → `REGISTRO.md` L13135
+- **15/10/2026** — O gerador do HANDOFF quebrava com o repositório sem escola → `REGISTRO.md` L13242
+- **15/10/2026** — O expurgo apagou o MODELO: a escola `ponta` não pôde nascer → `REGISTRO.md` L13278
+- **15/10/2026** — Criar escola para o professor do MODELO: o `cp` recusava o… → `REGISTRO.md` L13339
+- **15/10/2026** — Um conserto commitado e não publicado não conserta nada → `REGISTRO.md` L13392
+- **15/10/2026** — O professor homônimo: o identificador é o slug, e o… → `REGISTRO.md` L13435
+- **15/10/2026** — O molde sai de `professores/`: molde não é professor → `REGISTRO.md` L13517
+- **16/10/2026** — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome… → `REGISTRO.md` L13595
+- **16/10/2026** — A identidade visual tem seis famílias em estudo, e o… → `REGISTRO.md` L13665
+- **16/10/2026** — A tela diz de quem é a ficha, e o obrigatório se anuncia → `REGISTRO.md` L13768
+- **16/10/2026** — A senha autoriza o ATO, não a SESSÃO → `REGISTRO.md` L13873
+- **16/10/2026** — A data da ficha é a da última mudança — e a edição do plano… → `REGISTRO.md` L13996
+- **16/10/2026** — O carimbo é a hora da escola, não a do servidor → `REGISTRO.md` L14115
+- **16/10/2026** — A estante pagina de seis em seis, o roteiro é só da… → `REGISTRO.md` L14205
+- **16/10/2026** — A sequência de exercícios chega ao `plano-XX.json` (e o… → `REGISTRO.md` L14321
+- **16/10/2026** — O ciclo passa a ser DA TURMA (fase 1: a identidade da fonte) → `REGISTRO.md` L14445
+- **16/10/2026** — A hora de início é do DIA da semana (e a turma passa a… → `REGISTRO.md` L14507
+- **16/10/2026** — A turma deriva: o «editar» passa a ser um elo novo, com… → `REGISTRO.md` L14564
+- **16/10/2026** — A curadoria é de UMA turma (e edita-se ou deriva-se como a… → `REGISTRO.md` L14701
+- **16/10/2026** — A identidade visual fecha o circuito: raiz, porta,… → `REGISTRO.md` L14770
+- **16/10/2026** — A curadoria é de UMA turma — e o id passa a dizê-lo → `REGISTRO.md` L14863
+- **16/10/2026** — A camada de componentes: o desenho deixa de ser reescrito… → `REGISTRO.md` L14929
+- **17/10/2026** — Os papéis e a variante noturna: a identidade passa a ter… → `REGISTRO.md` L14999
+- **17/10/2026** — A aparência ganha prova própria — e o botão que sumiria no… → `REGISTRO.md` L15074
+- **17/10/2026** — A escola nasceu sem o botão da aparência: a barra tinha uma… → `REGISTRO.md` L15327
+- **17/10/2026** — A lista de turmas deixa de ficar acavalada no celular → `REGISTRO.md` L15395
+- **17/10/2026** — Os commits estavam certos e a produção estava velha: as… → `REGISTRO.md` L15700
+- **17/10/2026** — O botão que parecia quebrado, o campo colado no botão e o… → `REGISTRO.md` L15754
+- **17/10/2026** — As sete listas da Produção passam a folhear (o botão que… → `REGISTRO.md` L15850
+- **18/10/2026** — A escola não é campo: o cabeçalho do ato separa o que se… → `REGISTRO.md` L15936
+- **18/10/2026** — O nome da escola estava no JSON e vinha do cliente: o… → `REGISTRO.md` L15998
+- **18/10/2026** — a S5 entra em produção, e os três passos ganham os botões… → `REGISTRO.md` L16404
+- **18/10/2026** — o «Seções» vira botão, e a página começa na secção → `REGISTRO.md` L16465
+- **18/10/2026** — a proveniência sai da curadoria e vale para tudo; o menu… → `REGISTRO.md` L16505
+- **18/10/2026** — os três passos fecham as travas, e o «Editar» da turma abre… → `REGISTRO.md` L16556
+- **18/10/2026** — o vocabulário escolhe em lista, e cada nome diz as suas… → `REGISTRO.md` L16617
+- **18/10/2026** — o cancelar chega à curadoria, a turma perde dois campos, e… → `REGISTRO.md` L16672
+- **18/10/2026** — o formulário recolhe para uma faixa, e a listagem ocupa a… → `REGISTRO.md` L16727
+- **18/10/2026** — o nome do professor na curadoria abre o plano de ensino dele → `REGISTRO.md` L16774
+- **18/10/2026** — a faixa dos passos numa linha só, com a seta no fim → `REGISTRO.md` L16812
+- **18/10/2026** — a etiqueta é uma só, e o que está no ar é o motor → `REGISTRO.md` L16855
+- **18/10/2026** — a dobra do índice da página, no celular → `REGISTRO.md` L16932
+- **18/10/2026** — a C15 foi decidida: a preferência de aparência é da escola → `REGISTRO.md` L17085
+- **18/10/2026** — A aparência passou a ser da escola, e o servidor aplica-a → `REGISTRO.md` L17151
+- **18/10/2026** — O catálogo das peças: um nome antes do desenho → `REGISTRO.md` L17240
+- **18/10/2026** — A segunda família: a Cortina Turquesa, medida antes de… → `REGISTRO.md` L17330
+- **18/10/2026** — O cabeçalho do ato cresce, e o «Fechar» deixa de descontar → `REGISTRO.md` L17419
+- **18/10/2026** — O cabeçalho do ato cabe em 360px, e a barra de botões vira… → `REGISTRO.md` L17492
+- **18/10/2026** — Correção: o resumo da faixa desce, e a lista não mente… → `REGISTRO.md` L17587
+- **18/10/2026** — Regra: medir na bancada, e o ar só na conferência final → `REGISTRO.md` L17653
+- **18/10/2026** — O catálogo de paletas fecha em três: a Verde de Ensaio… → `REGISTRO.md` L17710
+- **18/10/2026** — A família da escola chega a tudo o que ela serve, e a lista… → `REGISTRO.md` L17793
+- **18/10/2026** — As outras quatro secções recolhem, e a listagem fica com a… → `REGISTRO.md` L17868
+- **18/10/2026** — A marca entra na barra e o favicon existe: a cor vem do… → `REGISTRO.md` L17948
+- **18/10/2026** — O gerador diz o que falta: a guarda do DOCS, o… → `REGISTRO.md` L18100
+- **18/10/2026** — Por que o CI não ficava verde: o plano nunca preenchia o… → `REGISTRO.md` L18169
+- **18/10/2026** — O token vive em quatro lugares, e só um foi trocado → `REGISTRO.md` L18239
+- **19/10/2026** — A turma manda no ritmo: o `.conf` da variante passa a ser… → `REGISTRO.md` L18285
+- **19/10/2026** — O expurgo não mente: «sobraram 1» era a listagem a chegar… → `REGISTRO.md` L18394
+- **19/10/2026** — A geração deixa de ser muda: a tela passa a dizer o que… → `REGISTRO.md` L18449
+- **19/10/2026** — As escolas de teste passam a ter nome de palavra: Calango,… → `REGISTRO.md` L18527
+- **19/10/2026** — O repertório é da turma: sai do formulário da curadoria → `REGISTRO.md` L18568
+- **19/10/2026** — O expurgo errou para os dois lados: a leitura passa a ser a… → `REGISTRO.md` L18622
+- **19/10/2026** — O disparo manda dois slugs: o conteúdo é da variante, o… → `REGISTRO.md` L18690
+- **19/10/2026** — O `.fipp` não se escolhe: em conflito, regera-se → `REGISTRO.md` L18758
+- **19/10/2026** — Sem escola no repositório, o `Reancorar` não falha → `REGISTRO.md` L18807
+- **19/10/2026** — O `criar-escola` também perde a corrida do `push` → `REGISTRO.md` L18844
+- **19/10/2026** — A correcção da âncora ficou num workflow só — e o commit… → `REGISTRO.md` L18895
+- **19/10/2026** — A lista que falhava sem dizer porquê: `kv.list` tem cota, e… → `REGISTRO.md` L18953
+- **19/10/2026** — Todo pacote gerado nascia divergente da porta: a barra e a… → `REGISTRO.md` L19005
+- **20/10/2026** — O PO abre sem plano e com o checklist em branco: a lista… → `REGISTRO.md` L19048
+- **20/10/2026** — O expurgo apagou a escola e deixou o dado: a limpeza do KV… → `REGISTRO.md` L19131
+- **20/10/2026** — A cota do KV: o que ia para lá sem precisar, medido → `REGISTRO.md` L19214
+- **20/10/2026** — A anamnese nunca ia para o Git: ela vivia só no KV → `REGISTRO.md` L19278
+- **20/10/2026** — a lista não paga o que não mostra (fase 2 da dependência do… → `REGISTRO.md` L19361
+- **20/10/2026** — o envelope sai do KV: o acervo passa a ser o armazenamento… → `REGISTRO.md` L19435
+- **20/10/2026** — o índice do acervo: cada pergunta deixa de ser uma… → `REGISTRO.md` L19523
+- **20/10/2026** — dois `list` a menos: o cartão da geração e o cadastro no… → `REGISTRO.md` L19605
+- **20/10/2026** — o índice diz o mesmo nos dois níveis, e a âncora tem três… → `REGISTRO.md` L19667
+- **20/10/2026** — a tela mostra o endereço que existe, e diz que o cofre é… → `REGISTRO.md` L19704
+- **20/10/2026** — as declarações do índice: o vocabulário deixa de estar… → `REGISTRO.md` L19743
+- **20/10/2026** — a anamnese sai do KV, e o cofre deixa de existir → `REGISTRO.md` L19803
+- **20/10/2026** — o plano de ensino de teste chega preenchido inteiro, não… → `REGISTRO.md` L19844
+- **20/10/2026** — o índice passa a ser gerado, e o «passou» passa a ser medido → `REGISTRO.md` L19896
+- **20/10/2026** — a âncora da aula deixa de ficar solta, e o rebase diz a… → `REGISTRO.md` L20027
+- **20/10/2026** — o Worker da escola passa a servir o pacote da TURMA, não o… → `REGISTRO.md` L20078
+- **20/10/2026** — o expurgo da `breu` foi completo, e o índice ficou a… → `REGISTRO.md` L20113
+- **20/10/2026** — o PO da `batata` não gerava o ciclo: a declaração da… → `REGISTRO.md` L20204
+- **20/10/2026** — a aula derivada volta a ser legível: o mapa de secções e a… → `REGISTRO.md` L20263
+- **20/10/2026** — o primeiro pacote no repositório expôs o vocabulário do… → `REGISTRO.md` L20319
+- **20/10/2026** — o Plano de Observação de uma turma oferecia as alunas das… → `REGISTRO.md` L20375
+- **20/10/2026** — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de… → `REGISTRO.md` L20445
+- **20/10/2026** — o hook recusava todo commit enquanto uma turma não tivesse… → `REGISTRO.md` L20521
+- **20/10/2026** — a escola não se criava: a publicação era montada só no ramo… → `REGISTRO.md` L20581
+- **20/10/2026** — o repositório sem ciclo expôs duas provas desactualizadas → `REGISTRO.md` L20641
+- **20/10/2026** — o filtro dos sujeitos continuava sem funcionar: a chave… → `REGISTRO.md` L20671
+- **20/10/2026** — clicar na logo leva à raiz do domínio → `REGISTRO.md` L20741
+- **20/10/2026** — o ciclo é gerado e o menu não o mostra: a barra passa a ser… → `REGISTRO.md` L20814
+- **20/10/2026** — a barra de navegação deixa de ser escrita e passa a ser… → `REGISTRO.md` L20883
+- **20/10/2026** — o registro de notação passa a compor-se: o alfabeto é dado,… → `REGISTRO.md` L20980
+- **20/10/2026** — o lançamento pedia uma senha cujo campo estava escondido → `REGISTRO.md` L21088
+- **20/10/2026** — duas bancadas para ESCOLHER o título e a paginação — e três… → `REGISTRO.md` L21156
+- **21/10/2026** — as propostas de layout foram refeitas: eram inoperáveis, e… → `REGISTRO.md` L21254
+- **21/10/2026** — o título que fica e a barra do lançamento no celular: as… → `REGISTRO.md` L21326
+- **21/10/2026** — a página de harmonização saía sem título: a fonte não abria… → `REGISTRO.md` L21407
+- **21/10/2026** — iPhone: o menu que não cabia e a rolagem que tremia → `REGISTRO.md` L21482
+- **21/10/2026** — a correção do iPhone foi longe demais: revertida, e o… → `REGISTRO.md` L21554
+- **21/10/2026** — a batata foi expurgada; as provas deixaram de nomear escolas → `REGISTRO.md` L21628
+- **21/10/2026** — o remoto primeiro: uma regra para não repetir o diagnóstico… → `REGISTRO.md` L21679
+- **22/10/2026** — O manifesto base deixa de ser obrigatório (ferramentas… → `REGISTRO.md` L21721
+- **22/10/2026** — A variante passa a ser um manifesto inteiro, e o `.conf` da… → `REGISTRO.md` L21760
+- **22/10/2026** — O professor que não criou a escola não fica sem validação → `REGISTRO.md` L21815
+- **22/10/2026** — A prova que nomeava a `valse` (a segunda vez) → `REGISTRO.md` L21866
+- **22/10/2026** — O expurgo pela página não regera os índices derivados → `REGISTRO.md` L21888
+- **22/10/2026** — A criação de escola passa a levar os índices derivados → `REGISTRO.md` L21916
+- **22/10/2026** — O cenário «a escola de um, a turma no plano de outro»,… → `REGISTRO.md` L21945
+- **22/10/2026** — O `deploy-escolas.yml` não publicava escola nenhuma, e nada… → `REGISTRO.md` L21989
+- **22/10/2026** — O TeX saía inteiro a cada execução, e o deploy subia por… → `REGISTRO.md` L22045
+- **22/10/2026** — Dois POs para um plano: a linha de base é uma só, e o… → `REGISTRO.md` L22850
+- PO de **oculos-redondo · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **oculos-redondo · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

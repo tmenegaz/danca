@@ -455,6 +455,8 @@ desenho.
 | **Uma janela por cima** | `.modal` | confirmar uma exclusão | `modal-fundo` + `modal-caixa` |
 | **A barra do sistema** | `.topnav` | — | gerada por `nav-html.js`; **não** se escreve à mão |
 | **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
+| **O menu de trabalho (a coluna)** | `.coluna` (+ `.coluna-grupo`, `.coluna-titulo`, `.coluna-itens`, `.coluna-seta`, `.coluna-direto`, `.coluna-puxador`) | o menu da escola: quatro destinos, e cada um leva a uma lista | gerado por `nav.js`; **não** se escreve à mão. Compacto: os grupos abrem no ponteiro; no celular é folha inferior |
+| **Três números e um painel** | `.trio` (+ `.trio-item`, `.trio-painel`, `.trio-escala`, `.trio-chips`) | três dados de um cartão, cada um a abrir o seu detalhe | `<div class="trio"><button class="trio-item" aria-expanded>` + `.trio-painel hidden`; **a caixa inteira é o alvo**, e o «?» é desenho (`aria-hidden`) |
 
 ### Quadro 2 — o inventário
 
@@ -474,6 +476,11 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.explica` | `porta/index.html` | `hidden` (fechada), `aberto` (à vista; folha fixa ≤768px), e o «Fechar» que só existe dentro da folha |
 | `[hidden]` | `ciclo.css`, na base | esconde **sempre** — é a única linha da folha com `!important`, e a razão está na proibição 4 |
 | `.topnav` / `.toc-local` / `.toc-dobra` | `ciclo.css` | aberto, recolhido, impressão |
+| `.coluna` | `ciclo.css` | coluna fixa ≥1141px (`data-aberta` irrelevante), folha ≤1140 (`data-aberta="sim"/"nao"`), impressão |
+| `.coluna-grupo` | `ciclo.css` | fechado (`data-aberto="nao"`), aberto (`"sim"`), e o grupo do documento actual (`data-atual="sim"` — o filete de ouro) |
+| `.coluna-titulo` | `ciclo.css` | base, `:hover`, `:focus-visible`; é um `<button>`, porque no telemóvel e no teclado não há ponteiro |
+| `.trio` / `.trio-item` / `.trio-painel` | `ciclo.css` | base, `:hover`, `:focus-visible`, `[aria-expanded="true"]`; uma coluna abaixo de 360px |
+| `.trio-escala` | `ciclo.css` | um degrau por nível, na cor do papel semântico (`trio-ok`, `trio-razoavel`, `trio-alerta`, `trio-neutro`) |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
 
@@ -969,7 +976,7 @@ substituir, e a repô-lo no mesmo lugar. O lugar é uma propriedade da **forma**
 nomes: a ponte serve quatro origens, e ensinar-lhe o caminho até cada construtor de barra repetiria
 o problema que a barra desenhada ao servir veio resolver.
 
-**Prova.** `experimentos/provar-barra-unica.js`, secção D2 — 58 asserções.
+**Prova.** [`experimentos/provar-barra-unica.js`](experimentos/provar-barra-unica.js), secção D2 — 71 asserções desde 23/10/2026 (eram 58 na forma antiga do menu; o ficheiro só entrou no repositório nesse dia — ver `REGISTRO.md`).
 
 ## Todo documento tem um `<h1>`, e um só *(21/10/2026)*
 

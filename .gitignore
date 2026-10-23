@@ -92,6 +92,7 @@ experimentos/*
 !experimentos/provar-ambiente.js
 !experimentos/provar-dobra-do-indice.js
 !experimentos/provar-titulo-e-barra.js
+!experimentos/provar-navegacao.js
 !experimentos/provar-cabecalho-do-documento.js
 !experimentos/provar-iphone.js
 !experimentos/lib-pacote.js
@@ -299,3 +300,12 @@ po_ref/
 # reescreveu o commit do `reancorar` — o job morreu nas oito tentativas. A prova reproduz a
 # corrida em repositórios git de verdade (controle negativo incluído) e exercita o guardão novo.
 !experimentos/provar-publicacao-do-derivado.sh
+
+# A PROVA DA BARRA ÚNICA NUNCA CHEGOU AO REPOSITÓRIO (23/10/2026). O `REGISTRO` cita-a desde
+# 19/10 — «`provar-barra-unica` → 53 asserções», depois 58 —, e o `IDENTIDADE-VISUAL.md` (§979)
+# remete para a secção D2 dela como a PROVA do bloco entre a marca e o ☰. Mas o ficheiro nunca
+# esteve versionado: `git log --all -- experimentos/provar-barra-unica.js` não devolve nada, e o
+# `experimentos/*` fechava a pasta sem nenhum `!` a abri-la. Quem clonasse o repositório não tinha
+# a prova que o rodapé `Auditoria:` de vários commits invoca. Encontrada ao reescrevê-la para a
+# forma nova do menu (coluna + barra, 23/10/2026) — 71 asserções agora.
+!experimentos/provar-barra-unica.js
