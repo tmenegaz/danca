@@ -3,7 +3,8 @@
   "nomes": [
     "anamnese-20261023-1111.json",
     "anamnese-20261023-1112-2.json",
-    "anamnese-20261023-1112.json"
+    "anamnese-20261023-1112.json",
+    "plano-20261023-1116.json"
   ],
   "resumos": {
     "anamnese-20261023-1111.json": {
@@ -32,6 +33,20 @@
       "ciclo": "01",
       "ajuste_de": null,
       "aluna": "Aluna A"
+    },
+    "plano-20261023-1116.json": {
+      "id": "plano-20261023-1116",
+      "fonte": "plano",
+      "escola": "batata",
+      "professor": "cafe-no-bule",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 2 — Teste 2",
+      "repertorio": [
+        "Sequência de teste com plié, tendu e port de bras."
+      ],
+      "professorNome": "Cafe No Bule"
     }
   }
 }
