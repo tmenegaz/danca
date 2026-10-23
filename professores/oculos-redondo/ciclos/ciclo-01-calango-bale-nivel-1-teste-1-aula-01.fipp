@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-calango-bale-nivel-1-teste-1: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-calango-bale-nivel-1-teste-1-aula-01
+type: Aula
+professor: Oculos Redondo
+ciclo: 01
+variante: calango-bale-nivel-1-teste-1
+aula: 01
+hash_conteudo: 18838fcaec2de23b2ce1a27592f1e6fb55ebff781e805f5f90212223388b3afc
+parentHash: 
+hash: 72d2343e6e3078363082fc6233423de2edcf9eb6593c32ead2603ac0ead9281b
+algoritmo: SHA-256
+ancorado_em: 2026-10-23
+cobertura:
+  - professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md
+  - professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md
