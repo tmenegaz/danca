@@ -126,9 +126,10 @@
     ],
     "professores": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261023-1111",
+          "anamnese:anamnese-20261023-1112-2",
           "ciclo:cafe-no-bule/01/batata"
         ],
         "rotulo": "cafe-no-bule",
@@ -141,14 +142,6 @@
         ],
         "rotulo": "manga-curta",
         "valor": "manga-curta"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "anamnese:anamnese-20261023-1112-2"
-        ],
-        "rotulo": "meia-cortada",
-        "valor": "meia-cortada"
       }
     ],
     "tipos": [
@@ -174,9 +167,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ee2b6ab"
+    "commit": "e0a7971"
   },
-  "gerado_em": "2026-10-23T14:12",
+  "gerado_em": "2026-10-23T14:14",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -227,7 +220,7 @@
       "ciclo": "01",
       "data": "2026-10-23T11:12",
       "id": "anamnese:anamnese-20261023-1112-2",
-      "professor": "meia-cortada",
+      "professor": "cafe-no-bule",
       "tipo": "anamnese"
     }
   ],
