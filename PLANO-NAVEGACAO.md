@@ -325,3 +325,68 @@ própria listagem, sem tocar na folha do sistema. É o que as bancadas fazem hoj
    do sistema (a peça S5). Aqui o caminho já está na barra, e por isso a S5 não é necessária — mas
    a barra «Seções» rola para fora como qualquer conteúdo. Se quiser que ela fique ao alcance,
    é uma decisão de desenho, não de código.
+
+## 9. Os documentos gerados dentro da Produção *(23/10/2026 — plano, não implementação)*
+
+A harmonização saiu do menu público nesta etapa e **não** entrou na Produção. Não entrou porque o
+sítio dela ainda não existe: a Produção vive do KV (professores, turmas, curadorias, vocabulário) e
+**não lê um único documento do ciclo**. Pôr lá um item seria um link para uma página que ninguém
+construiu.
+
+O que o dono da escola precisa, dito por ele: saber **em que ponto cada turma está** e **poder ir
+até ao documento**. As duas coisas juntas, e por esta ordem — o estado é o que se lê de relance; o
+documento é o que se abre quando o estado levanta uma pergunta.
+
+### 9.1 O estado de uma turma, derivado e não declarado
+
+O estado **não é um campo**. É derivado, como o estado da aula (§1 de `ARQUITETURA-AULA.md`): o que
+existe no pacote e no `.fipp` diz o que já aconteceu. Um campo «harmonização feita» seria mais um
+sítio para ficar dessincronizado — e o segundo a envelhecer.
+
+| Pergunta do diretor | De onde sai a resposta (sem campo novo) |
+|:--|:--|
+| a **curadoria** foi feita? | há par (professor, turma) na curadoria → há `ciclo-NN-<escola>-<turma>.conf` |
+| o **plano de observação** está completo? | `po_state` do `.fipp` |
+| o **ciclo foi gerado**? | existe o pacote e a âncora `ciclo-NN-<variante>.fipp` |
+| a **anamnese** foi feita? | há envelopes de anamnese da turma em `escola/<slug>/envelopes/` |
+| o **Benesh** foi feito? | `DOCS` do `.conf` declara `notacao` e/ou `glossario-benesh` |
+| a **aula foi elaborada**? | existe `aula-NN.html` (e o `-aula-NN.md`, que é a fonte) |
+| a **aula foi dada**? | existe `<variante>-dados.json` para aquela aula — o lançamento |
+| a **harmonização** foi produzida? | `DOCS` declara `harmonizacao`, e o `.fipp` a cobre |
+
+Nenhuma destas linhas inventa dado: todas leem o que já existe. É a mesma lei da lista de planos —
+*nenhuma coluna é inventada; o que não existir fica vazio, e a linha mostra menos*.
+
+### 9.2 O acesso: uma lista por família, e o documento atrás dela
+
+O que se propõe, e ainda **não** está feito:
+
+- **`/bastidores/documentos`** — uma lista, com a peça da lista (a mesma dos planos), uma linha por
+  **turma**, e o estado em selos: `curadoria` · `PO` · `ciclo` · `anamnese` · `Benesh` · `aula` ·
+  `harmonização`. Cada selo é **estado**, e o que está feito é o que ganha ação.
+- **O documento abre ao lado, não noutro sistema.** O Worker já serve `env.ASSETS`; a diferença é
+  que hoje o `producao.js` só o usa para o `nav.json`. Passaria a haver uma rota
+  `/bastidores/documento/<variante>/<nome>` que lê o HTML do ASSETS, **tira-lhe a barra pública** e
+  o serve dentro da moldura da Produção. É o mesmo movimento que a ponte já faz com a barra, ao
+  contrário: lá repõe-se a barra; aqui tira-se.
+- **A harmonização é o primeiro caso, e o motivo é o mesmo de todos os outros**: ela é um documento
+  gerado, e a Produção não tem hoje por onde os ler. Resolvida a rota, ela e a nota­ção e o glossário
+  e o PDF do ciclo entram todos pelo mesmo caminho — e não um de cada vez.
+
+### 9.3 O que isto obriga a decidir antes de escrever código
+
+1. **O estado é da turma ou do ciclo?** Uma turma pode ter dois ciclos. A lista por turma mostra o
+   ciclo corrente; o histórico fica no registo da escola.
+2. **Quem vê o quê.** A harmonização é da direção; o `producao.js` não tem autenticação de página —
+   tem a senha do lançamento. Servir documentos pelo Bastidores sem uma trava deixa-os ao alcance
+   de quem tenha o URL, que é a mesma exposição de hoje com outro nome. **Isto tem de ser decidido
+   antes**, e não depois.
+3. **A ponte turma do KV ↔ variante do pacote não existe.** A variante nasce na **escrita**
+   (`compor-conf.js`: `escola + '-' + turma.id`), não na leitura. Ou se guarda o id da variante na
+   turma, ou se recompõe na leitura com a mesma função — e a segunda opção é a que não duplica a
+   regra.
+
+**Enquanto isto não existir**, a harmonização fica no repositório (`professores/…/harmonizacao.html`,
+coberto pela âncora) e fora do site. O URL público `/ <variante>/harmonizacao.html` **deixou de
+existir** nesta etapa; os links que apontavam para ele foram podados do rodapé e do `README.md` do
+pacote publicado.

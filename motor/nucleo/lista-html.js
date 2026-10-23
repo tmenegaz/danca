@@ -21,6 +21,8 @@
  * resto do núcleo: quem sabe o que existe é quem tem `fs`; quem sabe desenhar é este.
  */
 
+const paginacao = require('./paginacao.js');
+
 const esc = (t) => String(t == null ? '' : t)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -97,26 +99,45 @@ ${trioDePlano(p, id)}
   </li>`;
 }
 
-/** O filtro — todo no cliente, sobre a marcação já montada: nem rede, nem KV, nem cota do ar. */
-function filtro(planos) {
-  const professores = [...new Set(planos.map((p) => p.professor).filter(Boolean))].sort();
-  const turmas = [...new Set(planos.map((p) => p.turma).filter(Boolean))].sort();
+/**
+ * O filtro — todo no cliente, sobre a marcação já montada: nem rede, nem KV, nem cota do ar.
+ *
+ * ELE SERVE AS DUAS LISTAS (23/10/2026). Nasceu com três controles para os planos (busca,
+ * professor, turma). A lista de aulas pediu o mesmo, e o professor não é um campo dela: uma aula
+ * não tem professor no cartão — o professor está na turma, e a turma já está no filtro. Um
+ * controle que só tem uma opção a repetir a mesma coisa é ruído, e ruído num filtro faz duvidar
+ * do que ele esconde.
+ *
+ * Por isso a forma do controle é a mesma e o que muda é o que existe para filtrar: `campos` diz
+ * quais dos três desenhar, e a contagem leva o rótulo do que se está a contar. `singular` e
+ * `plural` existem porque «1 aulas» é o género de erro que ninguém revê.
+ */
+function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'plano', plural = 'planos', dica } = {}) {
+  const valores = (chave) => [...new Set(itens.map((p) => p[chave]).filter(Boolean))].sort();
+  const professores = valores('professor');
+  const turmas = valores('turma');
   const opcoes = (lista) => lista.map((v) => `<option>${esc(v)}</option>`).join('');
-  return `<form class="filtro" onsubmit="return false">
-  <div class="caixa filtrar">
-    <div class="campo-filtro busca">
+  const busca = campos.indexOf('busca') !== -1
+    ? `<div class="campo-filtro busca">
       <label class="campo-rotulo" for="f-busca">Procurar</label>
-      <input id="f-busca" type="search" placeholder="plano, turma ou professor">
-    </div>
-    <div class="campo-filtro">
+      <input id="f-busca" type="search" placeholder="${esc(dica || 'pelo nome, pela turma ou pelo professor')}">
+    </div>` : '';
+  const doProfessor = campos.indexOf('professor') !== -1 && professores.length
+    ? `<div class="campo-filtro">
       <label class="campo-rotulo" for="f-prof">Professor</label>
       <select id="f-prof"><option value="">todos</option>${opcoes(professores)}</select>
-    </div>
-    <div class="campo-filtro">
+    </div>` : '';
+  const daTurma = campos.indexOf('turma') !== -1 && turmas.length
+    ? `<div class="campo-filtro">
       <label class="campo-rotulo" for="f-turma">Turma</label>
       <select id="f-turma"><option value="">todas</option>${opcoes(turmas)}</select>
-    </div>
-    <p class="filtro-conta" id="f-conta">${planos.length} ${planos.length === 1 ? 'plano' : 'planos'}</p>
+    </div>` : '';
+  return `<form class="filtro" onsubmit="return false" data-singular="${esc(singular)}" data-plural="${esc(plural)}">
+  <div class="caixa filtrar">
+    ${busca}
+    ${doProfessor}
+    ${daTurma}
+    <p class="filtro-conta" id="f-conta">${itens.length} ${itens.length === 1 ? esc(singular) : esc(plural)}</p>
   </div>
 </form>`;
 }
@@ -127,19 +148,31 @@ function filtro(planos) {
  * Nenhum `<style>` aqui: a folha do sistema vem em `/assets/style.css`, e uma página que
  * redeclare o desenho das peças é exactamente o que a checagem «Forma» reprova.
  */
-function paginaDeLista({ titulo, subtitulo, nav, planos = [], itens = null, vazio, aviso }) {
+function paginaDeLista({ titulo, subtitulo, nav, planos = [], itens = null, vazio, aviso,
+  campos, singular, plural, porPagina = 0, dica }) {
   const semNada = `<p class="aviso">${esc(vazio || 'Ainda não há nada para listar nesta escola.')}</p>`;
-  // DUAS FORMAS DE LISTA, e a diferença é só o que se lista: planos (com as três caixas e o
-  // filtro por professor e por turma) ou documentos de uma turma (referências, aulas, glossário),
-  // que já vêm como marcação pronta. O FILTRO É DOS PLANOS: numa lista de referências ele não
-  // teria por onde filtrar além da turma, e um filtro que só tem uma opção é ruído.
-  const lista = itens
-    ? (itens.length
-      ? '<ul class="trio-lista">\n' + itens.map((i) => (typeof i === 'string' ? i : cartaoDeDocumento(i))).join('\n') + '\n</ul>'
-      : semNada)
-    : (planos.length
-      ? filtro(planos) + '\n<ul class="trio-lista">\n' + planos.map(cartaoDoPlano).join('\n') + '\n</ul>'
-      : semNada);
+  // DUAS FORMAS DE LISTA, e a diferença é só o que se lista: planos (que trazem as três caixas
+  // de cada cartão) ou documentos de uma turma (referências, aulas, glossário), que já vêm como
+  // marcação pronta. O FILTRO é o mesmo nos dois casos desde 23/10/2026 — muda só o que há para
+  // filtrar, e quem diz isso é quem chama.
+  const linhas = itens || planos;
+  const cartoes = itens
+    ? itens.map((i) => (typeof i === 'string' ? i : cartaoDeDocumento(i)))
+    : planos.map(cartaoDoPlano);
+  const conta = { singular: singular || (itens ? 'documento' : 'plano'),
+    plural: plural || (itens ? 'documentos' : 'planos'), dica };
+  /* A PAGINAÇÃO SÓ EXISTE SE ALGUÉM A PEDIR (`porPagina`). Ela é a peça da Produção, e o
+     rodapé nasce `hidden`: com uma página só ele não aparece, e sem JavaScript a lista mostra
+     tudo. Não se pagina uma lista de dois planos para mostrar um botão desactivado. */
+  const corpo = cartoes.length
+    ? filtro(linhas, { campos, ...conta }) + '\n'
+      + (porPagina
+        ? `<div data-paginar data-por-pagina="${Number(porPagina)}">\n`
+          + '<ul class="trio-lista">\n' + cartoes.join('\n') + '\n</ul>\n'
+          + paginacao.marcacao() + '\n</div>'
+        : '<ul class="trio-lista">\n' + cartoes.join('\n') + '\n</ul>')
+    : semNada;
+  const lista = corpo;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -172,6 +205,7 @@ ${lista}
 
 <script src="/assets/nav.js"></script>
 <script>${SCRIPT_DA_LISTA}</script>
+${porPagina ? '<script>' + paginacao.script + '</script>' : ''}
 
 </body>
 </html>
@@ -191,21 +225,36 @@ const SCRIPT_DA_LISTA = `(function () {
   var turma = document.getElementById('f-turma');
   var conta = document.getElementById('f-conta');
   var itens = [].slice.call(document.querySelectorAll('li.trio-plano'));
-  if (!busca || !conta) return;
+  if (!conta) return;
 
+  /* O RÓTULO VEM DO FORMULÁRIO, e não de uma constante daqui: a mesma função conta planos numa
+     página e aulas na outra, e «1 aulas» é o género de erro que ninguém revê. */
+  var form = conta.closest('form');
+  var singular = (form && form.getAttribute('data-singular')) || 'item';
+  var plural = (form && form.getAttribute('data-plural')) || 'itens';
+
+  /* FORA DO FILTRO É \`data-fora\`, NÃO \`hidden\` (23/10/2026). Quem esconde uma linha é a
+     paginação, e ela conta as que ficaram; uma linha escondida pelo filtro mas contada pela
+     paginação ocuparia uma página — filtrar para duas turmas mostraria «1 / 3» e duas páginas
+     vazias. É o mesmo acordo que a Produção já usava. */
   function aplicar() {
-    var q = (busca.value || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').trim();
+    var q = busca ? (busca.value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : '';
     var n = 0;
     itens.forEach(function (l) {
-      var ok = (!q || l.getAttribute('data-busca').indexOf(q) !== -1)
-        && (!prof.value || l.getAttribute('data-prof') === prof.value)
-        && (!turma.value || l.getAttribute('data-turma') === turma.value);
-      l.hidden = !ok;
-      if (ok) n++;
+      var ok = (!q || (l.getAttribute('data-busca') || '').indexOf(q) !== -1)
+        && (!prof || !prof.value || l.getAttribute('data-prof') === prof.value)
+        && (!turma || !turma.value || l.getAttribute('data-turma') === turma.value);
+      if (ok) { l.removeAttribute('data-fora'); n++; }
+      else { l.setAttribute('data-fora', 'sim'); l.hidden = true; }
     });
-    conta.textContent = n + (n === 1 ? ' plano' : ' planos') + ' de ' + itens.length;
+    conta.textContent = n + ' ' + (n === 1 ? singular : plural) + ' de ' + itens.length;
+    /* A PÁGINA VOLTA À PRIMEIRA A CADA FILTRO: ficar na 3 depois de reduzir a lista a cinco
+       linhas daria uma página vazia — e uma página vazia lê-se como «não há nada». */
+    var painel = document.querySelector('[data-paginar]');
+    if (painel) painel.setAttribute('data-pagina', '1');
+    if (window.paginar) window.paginar();
   }
-  [busca, prof, turma].forEach(function (c) {
+  [busca, prof, turma].filter(Boolean).forEach(function (c) {
     c.addEventListener('input', aplicar);
     c.addEventListener('change', aplicar);
   });
@@ -216,13 +265,13 @@ const SCRIPT_DA_LISTA = `(function () {
     [].slice.call(document.querySelectorAll('.trio-item[aria-expanded="true"]')).forEach(function (b) {
       if (b === outro) return;
       b.setAttribute('aria-expanded', 'false');
-      var p = b.closest('li.trio-plano').querySelector('.trio-painel:not([hidden])');
-      if (p) p.hidden = true;
+      var painel = b.closest('li.trio-plano').querySelector('.trio-painel:not([hidden])');
+      if (painel) painel.hidden = true;
     });
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('.trio-item');
-    if (!b) { if (!e.target.closest('.trio-painel') && !e.target.closest('.filtro')) fechar(null); return; }
+    if (!b) { if (!e.target.closest('.trio-painel') && !e.target.closest('.filtro') && !e.target.closest('.paginacao')) fechar(null); return; }
     var abrir = b.getAttribute('aria-expanded') !== 'true';
     fechar(b);
     var painel = b.closest('li.trio-plano').querySelector('[data-painel="' + b.getAttribute('data-balao') + '"]');

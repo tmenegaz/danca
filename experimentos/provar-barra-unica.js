@@ -321,6 +321,9 @@ async function principal() {
       ['a apresentação', '/sistema.html'],
       ['o pacote da turma', '/nivel-1/plano.html'],
       ['a porta', '/plano-observacao/'],
+      // A PÁGINA DE ESCOLHA DE TURMA (23/10/2026): o menu passou a apontar para ela, e não para
+      // a porta. É onde «Área do Professor» se acende.
+      ['a escolha de turma do PO', '/area-do-professor/plano-de-observacao/'],
     ];
     const medidas = [];
     for (const [nome, caminho] of paginas) {
@@ -415,16 +418,22 @@ async function principal() {
       const acesos = [...(colunaDe(m.html) || '').matchAll(/aria-current="page"/g)];
       if (/^\/(sistema|$)/.test(m.caminho)) {
         checar(m.nome + ' não marca nenhum grupo (não é um destino do menu)', marcados.length === 0, marcados.length);
-      } else if (/^\/nivel-1/.test(m.caminho)) {
-        // A página do PACOTE não é um destino do menu novo: o plano de uma turma chega-se pela
-        // lista de planos, e não por um item escrito no menu. Nada se marca, e o caminho na
-        // barra diz em que documento se está.
-        checar(m.nome + ' não marca grupo (o documento chega-se pela lista)', marcados.length === 0, marcados.length);
+      } else if (/^\/nivel-1|^\/plano-observacao/.test(m.caminho)) {
+        /* A página do PACOTE e a PORTA não são destinos do menu: o plano de uma turma chega-se
+           pela lista de planos, e o formulário chega-se pela página de escolha de turma — que é
+           quem leva o contexto. Nada se marca, e o caminho na barra diz em que documento se
+           está. (Antes de 23/10/2026 a porta era o destino, e marcava; deixou de o ser.) */
+        checar(m.nome + ' não marca grupo (chega-se pela lista)', marcados.length === 0, marcados.length);
       } else {
         checar(m.nome + ' marca exactamente um grupo', marcados.length === 1, marcados.length);
       }
       checar(m.nome + ' não acende mais do que um item da coluna', acesos.length <= 1, acesos.length);
     }
+    const daEscolha = medidas.find((m) => /area-do-professor/.test(m.caminho));
+    checar('a escolha de turma acende «Área do Professor»',
+      /<div class="coluna-grupo" data-atual="sim">\s*<button[^>]*><span>Área do Professor<\/span>/
+        .test(colunaDe(daEscolha.html) || ''), colunaDe(daEscolha.html).slice(0, 200));
+
     const caminhoDaRaiz = (colunaDe(medidas[0].html) || '').length
       ? (barraDe(medidas[0].html).match(/class="doc-atual"[^>]*>([\s\S]*?)<\/span>/) || [])[1] : '';
     checar('a barra da raiz diz em que documento se está',

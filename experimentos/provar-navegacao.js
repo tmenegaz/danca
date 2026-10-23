@@ -341,6 +341,90 @@ function destinos(menu) {
   provar('«perna» deixa um plano', filtrado.visiveis === 1, filtrado.visiveis);
   provar('e a contagem diz «1 plano de 2»', /1 plano de 2/.test(filtrado.conta), filtrado.conta);
 
+  // ------------------------------------------------------------------ 8. a escolha de turma
+  /* AS TRÊS PÁGINAS DE ESCOLHA DE TURMA (23/10/2026). O menu deixou de apontar para a porta e
+     passou a apontar para uma lista de turmas — porque a porta abre com a barra de contexto
+     vazia, e quem chegava tinha de saber de cor qual era o professor e qual o ciclo.
+     A prova mede as duas coisas que podem falhar em silêncio: o link tem de levar o contexto
+     certo (o SLUG, não o nome), e a lista tem de ter uma linha por turma. */
+  console.log('\n8 · A escolha de turma leva o contexto no endereço');
+  const turmasMontadas = JSON.parse(fs.readFileSync(path.join(destino, 'nav.json'), 'utf8'));
+  for (const [pasta, rota] of [
+    ['anamnese', '/anamnese/'],
+    ['plano-de-ensino', '/plano-ensino/'],
+    ['plano-de-observacao', '/plano-observacao/'],
+  ]) {
+    await ir('/area-do-professor/' + pasta + '/', 1280, 900);
+    const d = await pagina.evaluate(() => ({
+      linhas: document.querySelectorAll('li.trio-plano').length,
+      acoes: [...document.querySelectorAll('.trio-acoes a')].map((a) => a.getAttribute('href')),
+      conta: (document.getElementById('f-conta') || {}).textContent || '',
+    }));
+    const daPorta = d.acoes.filter((h) => h && h.startsWith(rota));
+    provar('«' + pasta + '» tem uma linha por turma', d.linhas === 2, d.linhas);
+    provar('«' + pasta + '» aponta para ' + rota + ' com o contexto',
+      daPorta.length === 2 && daPorta.every((h) => /[?&]professor=/.test(h) && /[?&]ciclo=/.test(h)),
+      daPorta);
+    /* O SLUG, E NÃO O NOME. O `.conf` da turma diz `PROFESSOR="Oculos Redondo"`; o `?professor=`
+       da porta é `oculos-redondo`. Trocar os dois dava uma lista que não encontra ninguém, e o
+       sintoma no ecrã seria «o campo do professor ficou vazio» — sem erro nenhum. */
+    provar('«' + pasta + '» usa o slug do directorio, e não o nome do `.conf`',
+      daPorta.every((h) => !/professor=Oculos/.test(h) && !/Oculos%20/.test(h)), daPorta);
+  }
+
+  // ------------------------------------------------------------------ 9. a lista de aulas pagina
+  /* A PAGINAÇÃO DA LISTA DE AULAS (23/10/2026). O `.conf` de cada turma declara dezoito aulas;
+     a calango tem 35 linhas publicadas. A peça é a da Produção, e a prova mede o que ela promete:
+     o rodapé aparece, a primeira página mostra `porPagina` linhas, o botão seguinte avança, e o
+     FILTRO e a PAGINAÇÃO não se atropelam (o caso que faz uma lista filtrada mostrar páginas
+     vazias). */
+  console.log('\n9 · A lista de aulas pagina, e o filtro não a atropela');
+  await ir('/aulas/', 1280, 900);
+  const pag = await pagina.evaluate(() => ({
+    linhas: document.querySelectorAll('li.trio-plano').length,
+    porPagina: Number((document.querySelector('[data-paginar]') || {}).getAttribute
+      ? document.querySelector('[data-paginar]').getAttribute('data-por-pagina') : 0),
+    visiveis: [...document.querySelectorAll('li.trio-plano')].filter((l) => !l.hidden).length,
+    rodapeVisivel: !document.querySelector('.paginas').hidden,
+    info: (document.querySelector('.paginas-info') || {}).textContent || '',
+    temBusca: !!document.getElementById('f-busca'),
+    temTurma: !!document.getElementById('f-turma'),
+    temProf: !!document.getElementById('f-prof'),
+  }));
+  provar('a lista de aulas tem mais linhas do que uma página', pag.linhas > pag.porPagina,
+    { linhas: pag.linhas, porPagina: pag.porPagina });
+  provar('a primeira página mostra só as da página', pag.visiveis === pag.porPagina,
+    { visiveis: pag.visiveis, porPagina: pag.porPagina });
+  provar('o rodapé aparece e diz em que página se está', pag.rodapeVisivel && /^1 \/ \d+$/.test(pag.info), pag.info);
+  const avancou = await pagina.evaluate(() => {
+    document.querySelector('.paginas-prox').click();
+    return {
+      info: document.querySelector('.paginas-info').textContent,
+      visiveis: [...document.querySelectorAll('li.trio-plano')].filter((l) => !l.hidden).length,
+      primeiraEscondida: document.querySelector('li.trio-plano').hidden,
+    };
+  });
+  provar('o botão seguinte avança a página', avancou.info !== pag.info && avancou.primeiraEscondida, avancou);
+  /* O FILTRO E A PAGINAÇÃO. Depois de filtrar, a primeira página tem de mostrar o que passou no
+     filtro — e não linhas vazias herdadas da página 2. */
+  const filtradoPag = await pagina.evaluate(() => {
+    const sel = document.getElementById('f-turma');
+    sel.value = sel.options[1].value;
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    return {
+      turma: sel.value,
+      visiveis: [...document.querySelectorAll('li.trio-plano')].filter((l) => !l.hidden).length,
+      info: document.querySelector('.paginas-info').textContent,
+      conta: document.getElementById('f-conta').textContent,
+    };
+  });
+  provar('filtrar por turma volta à primeira página', /^1 \//.test(filtradoPag.info), filtradoPag.info);
+  provar('e mostra linhas — nenhuma página vazia herdada do filtro',
+    filtradoPag.visiveis > 0, filtradoPag);
+  provar('a contagem fala de aulas, e não de planos', /aula/.test(filtradoPag.conta), filtradoPag.conta);
+  provar('a lista de aulas filtra por turma e não por professor (a aula não tem professor)',
+    pag.temBusca && pag.temTurma && !pag.temProf, pag);
+
   await navegador.close();
   srv.close();
 

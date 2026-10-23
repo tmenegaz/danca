@@ -66,6 +66,7 @@ const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
 // agora lê o índice do acervo, que é uma leitura só e traz o que a regra compara.
 const acervo = require('./acervo-envelopes.js');
 const porta = require('../nucleo/porta.js');
+const paginacao = require('../nucleo/paginacao.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
 // `tools/gerar-ciclo.sh` consome. Uma definição, dois consumidores.
@@ -994,12 +995,12 @@ function tituloComAcordeao(idDaSecao, titulo, idDoMiolo) {
     'aria-label="Recolher o formulário" title="Recolher o formulário">▾</button></h2>';
 }
 
+/* O RODAPÉ DE PÁGINAS MUDOU-SE PARA O NÚCLEO (23/10/2026). Ele era uma função daqui, e a
+   lista de aulas da publicação passou a precisar do mesmo comportamento. Duas cópias divergem na
+   primeira correcção; uma só, em `motor/nucleo/paginacao.js`, serve as duas superfícies. A
+   Produção continua a chamar pelo mesmo nome — o que mudou foi o sítio onde ele mora. */
 function rodapePaginacao() {
-  return '<div class="paginacao" hidden>' +
-    '<button type="button" class="pag-ant acao secundario pequena" aria-label="Página anterior">‹</button>' +
-    '<span class="pag-info"></span>' +
-    '<button type="button" class="pag-prox acao secundario pequena" aria-label="Página seguinte">›</button>' +
-    '</div>';
+  return paginacao.marcacao();
 }
 
 /** As curadorias da escola: uma LISTA de `{id, professor, modalidade, tradicao, turmas,
@@ -2259,10 +2260,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'background:var(--alerta-fundo);border:1px solid var(--borda-campo);' +
     'font:400 .84rem/1.4 var(--ui);color:var(--texto);}' +
     // O PASSO TRAVADO NÃO PARECE MORTO: fica esbatido, e o `title` diz o que falta.
-    // A PAGINAÇÃO E O BOTÃO DE ASSOCIAR SÃO DESTA PÁGINA, e não da peça do trio: a primeira só
-    // existe onde há lista paginada (a Produção), e o segundo acompanha o seletor de termos.
-    '.paginacao{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;' +
-    'padding:.5rem 0 .1rem;font-size:.85rem;color:var(--texto-suave);}' +
+    // O BOTÃO DE ASSOCIAR É DESTA PÁGINA, e não da peça do trio: acompanha o seletor de termos.
+    // A PAGINAÇÃO SAIU DAQUI (23/10/2026): virou peça da folha, porque a lista de aulas da
+    // publicação também pagina — e a checagem «Forma» recusaria a segunda declaração.
     '.associar{flex:0 0 auto;}' +
     '.passo:disabled{opacity:.45;cursor:not-allowed;}' +
     '.passo:disabled:hover{background:transparent;color:var(--texto-suave);}' +
@@ -2951,59 +2951,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // rota nova, nem estado no servidor. O que se ganha é a vista: o formulário à esquerda,
     // a lista à direita, e nenhuma página comprida para rolar. Sem JavaScript, o rodapé nem
     // aparece e a lista mostra tudo.
-    'function paginar() {' +
-    '  var paineis = document.querySelectorAll("[data-paginar]");' +
-    '  for (var p = 0; p < paineis.length; p++) {' +
-    '    var painel = paineis[p];' +
-    '    var ul = painel.querySelector("ul");' +
-    '    var rodape = painel.querySelector(".paginacao");' +
-    '    if (!ul || !rodape) continue;' +
-    '    var porPagina = parseInt(painel.getAttribute("data-por-pagina") || "10", 10);' +
-    // OS ITENS FORA DO FILTRO NÃO CONTAM PARA A PAGINAÇÃO (18/10/2026). Eles continuam no
-    // DOM (o filtro é uma vista, não uma exclusão), mas não podem ocupar uma página: sem
-    // isto, filtrar para duas turmas mostraria «1 / 3» e duas páginas vazias.
-    '    var todos = Array.prototype.slice.call(ul.children);' +
-    '    var itens = todos.filter(function(x){ return x.getAttribute("data-fora") !== "sim"; });' +
-    '    for (var f = 0; f < todos.length; f++) {' +
-    '      if (todos[f].getAttribute("data-fora") === "sim") todos[f].hidden = true;' +
-    '    }' +
-    '    var paginas = Math.max(1, Math.ceil(itens.length / porPagina));' +
-    '    var atual = Math.min(Math.max(1, parseInt(painel.getAttribute("data-pagina") || "1", 10)), paginas);' +
-    '    painel.setAttribute("data-pagina", atual);' +
-    '    for (var i = 0; i < itens.length; i++) {' +
-    '      itens[i].hidden = (Math.floor(i / porPagina) + 1) !== atual;' +
-    '    }' +
-    '    var info = rodape.querySelector(".pag-info");' +
-    '    if (info) info.textContent = atual + " / " + paginas;' +
-    '    var ant = rodape.querySelector(".pag-ant");' +
-    '    var prox = rodape.querySelector(".pag-prox");' +
-    '    if (ant) ant.disabled = atual <= 1;' +
-    '    if (prox) prox.disabled = atual >= paginas;' +
-    '    rodape.hidden = paginas <= 1;' +
-    '  }' +
-    '}' +
-    'document.addEventListener("click", function(e){' +
-    '  var b = e.target.closest ? e.target.closest(".paginacao button") : null;' +
-    '  if (!b) return;' +
-    '  var painel = b.closest("[data-paginar]");' +
-    '  if (!painel) return;' +
-    // QUAL dos dois botões — por CLASSE, não pela string inteira do atributo.
     //
-    // Aqui estava `b.className === "pag-prox"`, e o `className` de um elemento é o atributo
-    // `class` INTEIRO: `"pag-prox acao secundario pequena"`. A comparação era sempre falsa,
-    // os dois botões valiam -1, e como o `paginar()` trava a página em `[1, N]` o resultado
-    // era a página 1 para sempre — o rodapé dizia «1 / 3» e nenhum clique o mudava. Era o
-    // defeito que o dono do produto viu nas Turmas e no Vocabulário, e que estava nas SETE
-    // listas ao mesmo tempo (é uma implementação só).
-    //
-    // `classList.contains` sobrevive a uma classe a mais no botão — que é exactamente o que
-    // a versão anterior não fazia, e o motivo de ter passado despercebido: o botão nasceu
-    // com as classes de estilo e a comparação nasceu a exigir que ele tivesse UMA.
-    '  var passos = b.classList && b.classList.contains("pag-prox") ? 1 : -1;' +
-    '  painel.setAttribute("data-pagina", parseInt(painel.getAttribute("data-pagina") || "1", 10) + passos);' +
-    '  paginar();' +
-    '});' +
-    'paginar();' +
+    // O COMPORTAMENTO MUDOU-SE PARA O NÚCLEO (23/10/2026), com o rodapé que ele faz andar: a
+    // lista de aulas da publicação passou a precisar do mesmo, e duas cópias divergem na
+    // primeira correcção. A peça mora em `motor/nucleo/paginacao.js`.
+    paginacao.script +
     // ================= O FILTRO «TURMAS» DAS LISTAS (18/10/2026) =================
     // O «turmas · …» da linha de um professor, de uma aluna ou de um termo NÃO é um ornamento:
     // clicado, ele leva à secção Turmas e reduz a listagem às turmas daquela linha. A fonte

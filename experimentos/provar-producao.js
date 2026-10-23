@@ -267,7 +267,7 @@ function consultar(raiz, sel) {
   return atuais;
 }
 
-/** Um seletor de duas partes («.paginacao button») vale para o ancestral que CONTÉM a
+/** Um seletor de duas partes («.paginas button») vale para o ancestral que CONTÉM a
  *  segunda — que é o que `closest` significa quando se lhe passa um descendente. */
 function casaComposto(el, sel) {
   const partes = String(sel).trim().split(/\s+/);
@@ -282,10 +282,15 @@ function criarPainel(nItens, porPagina) {
   painel.setAttribute('data-por-pagina', String(porPagina));
   const ul = criarElemento('ul');
   for (let i = 0; i < nItens; i++) ul.appendChild(criarElemento('li'));
-  const rodape = criarElemento('div', 'paginacao');
-  const info = criarElemento('span', 'pag-info');
-  const ant = criarElemento('button', 'pag-ant');
-  const prox = criarElemento('button', 'pag-prox');
+  /* O FORMATO DO RODAPÉ MUDOU DE NOME EM 23/10/2026 (era `.paginacao`/`.pag-*`, agora
+     `.paginas`/`.paginas-*`). O comportamento é o mesmo — a peça é que teve de mudar de nome
+     porque `paginacao` já era a classe da barra de controle do LANÇAMENTO, e a regra nova
+     passou a desenhar a barra dele. Uma prova com o formato de ontem mede uma página que já
+     não existe. */
+  const rodape = criarElemento('div', 'paginas');
+  const info = criarElemento('span', 'paginas-info');
+  const ant = criarElemento('button', 'paginas-ant');
+  const prox = criarElemento('button', 'paginas-prox');
   rodape.appendChild(info);
   rodape.appendChild(ant);
   rodape.appendChild(prox);
@@ -803,7 +808,7 @@ async function principal() {
     const fim = trecho.indexOf('</section>');
     const corpo = trecho.slice(0, fim === -1 ? trecho.length : fim);
     conferir('a lista de ' + s + ' fica na coluna da direita, paginada',
-      corpo.includes('class="col-lista"') && corpo.includes('data-paginar') && corpo.includes('class="paginacao"'), true);
+      corpo.includes('class="col-lista"') && corpo.includes('data-paginar') && corpo.includes('class="paginas"'), true);
   }
   // CINCO secções de formulário (professores, alunas, vocabulário, curadorias, aparência) mais
   // as três abas de Turmas. As listas ficam à direita; a Aparência não tem lista — são dois

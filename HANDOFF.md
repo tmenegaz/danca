@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T08:58:16-0300`
-Commit atual: `0bc9d34` — chore(tools): a coluna, a folha e o trio passam a ter desenho em comum
+Gerado em: `2026-10-23T09:36:34-0300`
+Commit atual: `8ddaa84` — chore(tools): a peça do rodapé de páginas, e a harmonização deixa de ser publicada
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -72,6 +72,8 @@ vaso-bonito (11)
 ## Últimos commits
 
 ```
+8ddaa84 chore(tools): a peça do rodapé de páginas, e a harmonização deixa de ser publicada
+6b004a4 feat(estrutura): o menu passa a levar a listas, e a lista passa a ser o sistema
 0bc9d34 chore(tools): a coluna, a folha e o trio passam a ter desenho em comum
 db4b83f fix(estrutura): o job do índice não reescreve mais o commit do vizinho
 38f8dd6 chore(entrega): gerar o pacote de perna-boa/01/calango-bale-nivel-2-teste-1
@@ -90,8 +92,6 @@ c84d701 feat(acervo): envelope/po-20261022-2105.json
 0888227 feat(acervo): envelope/.indice.json
 7bd8a9c chore(estrutura): reancorar a cadeia das fontes alteradas
 0087664 chore(estrutura): regerar os índices derivados
-eb86f4b feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-8c2fd14 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -185,109 +185,124 @@ eb86f4b feat(ciclo): o manifesto da variante passa a derivar do cadastro da turm
 
 ## Última entrada do REGISTRO
 
-## 23/10/2026 — O menu deixa de contar documentos: doze destinos, e a lista passa a ser a lista
+## 23/10/2026 — A escolha de turma antes do formulário, e a harmonização sai do site
 
-**O que aconteceu.**
-A escola de teste chegou a **24 entradas** no menu com duas turmas: um item para o plano, um para
-as referências, um para o PDF, um por aula, um por glossário, um por captura, um por lançamento —
-vezes o número de turmas. O `.conf` de cada turma já declara 18 aulas, e uma terceira turma levaria
-o menu a **84**. Nenhuma dessas entradas é um destino: são todas documentos, e o menu crescia com o
-acervo.
+**O que motivou.**
+Quatro coisas ficaram abertas na entrada anterior, e nenhuma era cosmética.
 
-O que a medição desmentiu, e é o que abriu o caminho: **a barra nunca cresceu de altura**. Com os
-grupos fechados ela mede 60px, com 24 entradas ou com 12. O que cresce é o que cada grupo **abre**:
-no celular, com todos abertos, o painel media 1298px — 1,6 tela de menu. Nenhuma reorganização de
-barra resolveria isso. Só uma coisa resolve: deixar de pôr documentos no menu.
+1. Os três formulários da Área do Professor apontavam para a **porta crua** (`/anamnese/`,
+   `/plano-ensino/`, `/plano-observacao/`). A porta abre com a barra de contexto **vazia**: quem
+   chegava tinha de saber de cor qual era o professor e qual o ciclo, e o que ele escolhesse ali
+   não tinha passado pela curadoria — que é quem liga professor e turma. O menu novo dizia «Área
+   do Professor» e entregava um formulário sem dono.
+2. A **harmonização** continuava publicada em `/<variante>/harmonizacao.html` e fora do menu, o
+   que é o pior dos dois estados: um URL que circula e já não se alcança por navegação nenhuma.
+3. A lista de **aulas** filtrava só por busca. Com 35 linhas e duas turmas, «quais são as aulas do
+   Balé Nível 2» era uma conta de cabeça.
+4. A lista de aulas **não paginava**. O `.conf` de cada turma declara dezoito aulas: três turmas
+   dão 54 linhas, e a lista cresce com o acervo — que é o crescimento que não tem fim.
 
 **O que foi decidido.**
-- **O menu passa a ter destinos.** Ciclos → Planos · Referências; **Aulas** (link directo, sem
-  submenu); Planejamento → Glossário · Notação; Área do Professor → Anamnese · Plano de ensino ·
-  Plano de Observação · Lançamento de aula. Cada um leva a uma página que lista o que existe.
-- **O Bastidores sai da coluna** e vai para a barra de cima, na ponta oposta à marca. A coluna fica
-  com o trabalho de sala; o que é da escola ver-se fica na barra.
-- **A coluna é compacta**, e o **grupo do documento actual** leva um filete de ouro no título — não
-  o item aceso. Com a coluna fechada o item não se vê; a marca do grupo vê-se sempre. Medido: 485px
-  com tudo aberto, 284px com o grupo actual aberto, **217px** com tudo fechado.
-- **No celular a coluna é a folha inferior da Produção**: pegador, véu, 78vh, fecha ao escolher.
-  Empresta-se a mecânica; **o fundo é o da coluna** (burgundy), porque a lei das duas navegações diz
-  que a do sistema e a da página não são a mesma coisa, e a cor é o que as distingue.
-- **A listagem de planos é a peça da lista de turmas**, com a matéria desta lista: as três caixas
-  são **Turma · Professor · Cadeia**, e a linha de complemento fica com o ciclo e o volume — para
-  nenhum dado aparecer duas vezes.
-- **A caixa inteira é clicável**, no computador e no telemóvel. Era um `<div>` com um
-  `<button class="q">` de 20px dentro: o alvo medido era o do «?». Agora a caixa é o botão —
-  **48 × 221px** —, e o «?» fica como desenho (`aria-hidden`). De caminho sai um botão dentro de
-  outro, que o leitor de ecrã anunciava duas vezes.
-- **A peça da lista subiu para a folha.** As regras de `.metricas`, `.metrica`, `.painel`,
-  `.escala` e `.chip` viviam inline na página da Produção; enquanto estivessem lá, usá-las noutra
-  lista seria COPIÁ-LAS, e a segunda cópia divergiria na primeira correcção. Passaram a
-  `tools/templates/ciclo.css` com nomes `trio-*` — a checagem «Forma» dá cada nome de classe a um
-  dono só, e `.escala`, `.nota`, `.lista` e `.nivel-neutro` já tinham dono.
+- **A escolha da turma vem antes do formulário.** Três páginas novas em
+  `/area-do-professor/{anamnese,plano-de-ensino,plano-de-observacao}/`, uma linha por turma curada,
+  e a linha leva o contexto no endereço: `?professor=<slug>&ciclo=NN`. O menu continua sem citar
+  turma nenhuma — quem a cita é a página.
+- **O slug vem do diretório** (`professores/<slug>/`), **e não do `.conf`**. O `PROFESSOR` do
+  `.conf` é o NOME de quem lê («Oculos Redondo»); o `?professor=` da porta é o slug. Trocar os dois
+  daria uma lista que não encontra ninguém, e o sintoma no ecrã seria «o campo do professor ficou
+  vazio» — sem erro nenhum, que é o pior modo de falhar.
+- **A harmonização sai da publicação.** Deixou de ser copiada, e os **links órfãos foram podados**:
+  o rodapé do pacote («Plano · Harmonização · Captura · …») e o `README.md` ficavam a apontar para
+  um documento que já não está ao lado. Deixar de publicar exige deixar de apontar — um link para
+  um 404 lê-se como «o sistema perdeu o documento».
+- **Ela não vai para a Produção ainda, e isso é uma decisão, não um esquecimento.** A Produção vive
+  do KV e **não lê um único documento do ciclo**; pôr lá um item seria um link para uma página que
+  ninguém construiu. O desenho do «status de uma turma + acesso ao documento» está escrito em
+  `PLANO-NAVEGACAO.md` §9, e começa por uma pergunta que tem de ser respondida antes do código:
+  *quem vê o quê*.
+- **O filtro passou a servir as duas listas.** Nasceu com três controles para os planos; a lista de
+  aulas pediu o mesmo, e uma aula não tem professor no cartão — o professor está na turma, e a
+  turma já está no filtro. Um controle com uma opção só é ruído, e ruído num filtro faz duvidar do
+  que ele esconde. O rótulo da contagem vem do formulário («18 aulas de 35»), porque «1 aulas» é o
+  género de erro que ninguém revê.
+- **A paginação saiu do `bastidores.js` e foi para o núcleo** (`motor/nucleo/paginacao.js`). Ela
+  era um bloco de `'…' + '…'` dentro da função que monta a página inteira da Produção. Enquanto
+  fosse o único consumidor, era só feio; quando a lista de aulas precisou do mesmo, passou a ser o
+  problema que a casa já resolveu uma vez — duas cópias divergem na primeira correcção.
+- **O filtro e a paginação têm um acordo explícito:** quem filtra marca `data-fora="sim"` em vez de
+  esconder com `hidden`, e chama `paginar()`. Sem isso, filtrar para duas turmas mostraria «1 / 3»
+  e duas páginas vazias — e uma página vazia lê-se como «não há nada».
+
+**O defeito que a renomeação causou, e quem o apanhou.**
+A peça do rodapé nasceu chamada `.paginacao`. Mas `paginacao` **já era** a classe do rodapé da
+barra de controle do lançamento (`tools/templates/lancamento.html`, declarada lá, com a barra
+compacta do celular a apertar-lhe o `gap`). A regra nova passou a desenhar a barra do lançamento:
+ela cresceu 5px, e o «voltar ao topo» — que é fixo e sobe pela `--barra-altura` publicada pelo
+script — ficou **por cima do «⋯»**, que é o único controle da barra compacta. Quem apanhou foi
+`provar-titulo-e-barra`, com os números: `fundoDoTopo: 793`, `topoDaBarra: 788`.
+
+A correcção foi renomear a peça para `.paginas` / `.paginas-ant` / `.paginas-info` /
+`.paginas-prox`. A lição fica escrita em `ciclo.css`: **uma classe é um contrato, e um nome já
+gasto noutra página não é um nome livre** — a checagem «Peça» não apanha isto porque as duas
+páginas usam o nome de boa-fé, e a «Forma» não olha a `display`/`gap`, que era o que o lançamento
+declarava.
 
 **MOTIVO DECLARADO (`tools/` é congelado).**
-`tools/montar-publicacao.js`, `tools/templates/ciclo.css`, `tools/templates/nav.js` e
-`tools/check-identidade.js` mudaram nesta entrada. O motivo é o acima: sem mexer na montagem não há
-listas para onde o menu aponte; sem mexer na folha a coluna não tem desenho em página nenhuma; sem
-mexer no `nav.js` do cliente a folha do celular não abre; e sem mexer na checagem as páginas de
-lista não são medidas. **Nada disto toca na fórmula do hash, na cobertura da âncora, nos validadores
-ou nas regras e pétreas.** As cópias de `assets/style.css` e `assets/nav.js` dos três pacotes e da
-raiz foram regeradas (é o que a checagem «Circuito» exige).
+`tools/montar-publicacao.js`, `tools/templates/ciclo.css`, `tools/check-identidade.js` e
+`tools/templates/` mudaram nesta entrada. O motivo é o acima: sem mexer na montagem não há páginas
+de escolha de turma nem exclusão da harmonização; sem mexer na folha a peça da paginação não tem
+desenho em página nenhuma; e sem mexer na checagem a lista paginada não é medida — a amostra da
+«Peça» não exercitava `porPagina`, e uma peça que ninguém mede passa por omissão. **Nada disto toca
+na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas pétreas.** As
+cópias de `assets/style.css` dos três pacotes e da raiz foram regeradas.
 
 **Onde entrou.**
-- `motor/nucleo/nav.js` — desenha a coluna e o caminho na barra; `grupoAtual()` (a marca do GRUPO,
-  que a `ehAtivo()` não dava); `tituloDaPagina()` (o `<h1>` da própria página, e não um campo novo
-  no `nav.json`); `aplicar()` passa a tirar a coluna anterior antes de desenhar outra.
-- `motor/nucleo/lista-html.js` — **novo**: as páginas de lista. Não tem `fs`: recebe os dados e
-  devolve a página, e é isso que permite ao `check-identidade` medi-las com uma amostra.
-- `tools/montar-publicacao.js` — o menu novo (`coluna` + `barra`, `versao: 2`); `dadosDoPlano()`
-  lê `PROFESSOR`/`TOTAL_AULAS` do `.conf` e `ancorado_em`/`po_state`/`hash` do `.fipp`; escreve as
-  cinco listas; a varredura final usa `nav.aplicar` em vez de um `replace` à mão.
-- `tools/templates/ciclo.css` — a coluna, a folha, o caminho na barra, o trio, o filtro.
-- `tools/templates/nav.js` — o ☰ abre a folha onde há coluna; os grupos abrem no clique e no foco.
-- `tools/check-identidade.js` — as duas páginas de lista entram na medição da checagem «Peça».
-- `motor/servidor/bastidores.js` — o CSS migrado saiu daqui, o markup da caixa passou a `<button>`,
-  e o JS deixou de procurar `.q`.
-- `IDENTIDADE-VISUAL.md` — as duas peças novas nos Quadros 1 e 2.
+- `motor/nucleo/paginacao.js` — **novo**: `marcacao()` e `script`. Sem `fs`, como o resto do núcleo.
+- `motor/nucleo/lista-html.js` — `filtro()` passa a receber `campos`/`singular`/`plural`/`dica`;
+  `paginaDeLista()` aceita `porPagina` e embrulha a `<ul>` num `[data-paginar]`; o script da lista
+  marca `data-fora` e chama `window.paginar()`.
+- `tools/montar-publicacao.js` — as três páginas de escolha de turma; o menu da Área do Professor a
+  apontar para elas; `copiar()` com exclusão por nome e poda dos links órfãos (HTML **e** Markdown);
+  a lista de aulas com `porPagina: 25`.
+- `tools/templates/ciclo.css` — a peça `.paginas*`, com o motivo do nome no comentário.
+- `tools/check-identidade.js` — a amostra da «Peça» ganha uma lista paginada; os três ganchos
+  `paginas-*` substituem `pag-*`.
+- `motor/servidor/bastidores.js` — `rodapePaginacao()` e o bloco de paginação passam a vir do
+  núcleo; o CSS de `.paginacao` saiu daqui (é peça da folha, e a segunda declaração reprovaria).
+- `IDENTIDADE-VISUAL.md` — a peça do rodapé de páginas nos Quadros 1 e 2.
+- `PLANO-NAVEGACAO.md` — §9, o desenho dos documentos gerados dentro da Produção.
 
 **Com o quê.**
-- `node experimentos/provar-navegacao.js` — **novo**, 35 asserções: a conta do menu (com 1 e com 6
-  aulas), todo destino existe (arquivo montado ou rota lida do roteador), o grupo marcado, a coluna
-  a 248px com os grupos fechados e o ponteiro a abrir e a **empurrar os de baixo**, a folha do
-  celular (fora da tela antes, dentro depois, fecha ao escolher e com Escape), as três caixas e o
-  filtro. Corre a montagem a sério e serve o que ela escreveu; nada toca no ar.
-- `node experimentos/provar-barra-unica.js` — **reescrita**: 71 asserções, 0 falhas. Ela media a
-  forma antiga do menu (`versao: 1`, `menu.grupos`, «Harmonização» e «Captura em aula» dentro da
-  Área do Professor) e dava 25 de 58 por falha. Duas dessas falhas denunciavam decisões desta
-  entrada — que a harmonização sai do menu e que a captura passa a ser acção da linha da aula — e
-  por isso as asserções foram **invertidas**, não apagadas: o que se mede continua a ser que o menu
-  não carregue documentos. Ficaram os leitores da coluna (`titulosDaColuna`, `destinosDaColuna`),
-  porque `<summary>` já não existe e `.every` sobre uma leitura vazia **passa** — uma prova que não
-  mede nada não falha, e foi preciso ensiná-la a ler a forma nova.
-- `node experimentos/provar-celular.js` — 15/15 (o fixture do cartão foi actualizado para a peça).
-- `node experimentos/provar-cartao-da-turma.js` — TUDO CERTO.
-- `node experimentos/provar-producao.js` — 135/135 · `provar-menu-da-producao.js` — 26/26 ·
-  `provar-linhas-da-lista.js` — TUDO CERTO.
-- `node tools/check-identidade.js` — 20 verificações, sem erro.
+- `node experimentos/provar-navegacao.js` — **52 asserções** (eram 35). Duas secções novas: a
+  escolha de turma leva o contexto certo e usa o **slug** (prova negativa contra `professor=Oculos`),
+  e a lista de aulas pagina — 35 linhas, 25 por página, «1 / 2», o botão avança, filtrar por turma
+  volta à página 1 e mostra 18 linhas, e o filtro dela **não** tem professor.
+- `node experimentos/provar-barra-unica.js` — **81 asserções** (eram 71). A porta deixou de ser
+  destino do menu (e por isso deixou de marcar grupo); a página de escolha é que acende «Área do
+  Professor».
+- `node experimentos/provar-producao.js` — **135/135**: a paginação da Produção continua a
+  funcionar servida pelo núcleo, com o formato novo (o DOM falso da prova foi actualizado).
+- `node experimentos/provar-titulo-e-barra.js` — TUDO OK. **Foi esta que apanhou a colisão de
+  nomes**, e é a razão de existir: a barra do lançamento não é do menu, e uma regra da folha
+  mexeu-lhe na altura.
+- `provar-menu-da-producao` 26/26 · `provar-celular` 15/15 · `provar-cartao-da-turma`,
+  `provar-linhas-da-lista`, `provar-sessao-na-barra` (28), todos certos.
+- `node tools/check-identidade.js` — 20 verificações, sem erro · `check-pacote` 0/0 ·
+  `gerar-indices --check` 13 em dia.
 
 **O que ainda não está feito.**
-- A **página de escolha de turma** para Anamnese, Plano de ensino e Plano de Observação é da
-  Etapa 2. Hoje os três apontam para a porta, que pergunta o professor e a turma na sua barra de
-  contexto: funciona, mas não é a lista que o plano desenha.
-- A **harmonização** continua publicada em `/<variante>/harmonizacao.html` e fora do menu. Sair da
-  publicação é da Etapa 2, e é remoção de URL — decisão já tomada, execução pendente.
-- A lista de aulas **não pagina**: 35 linhas hoje, e o filtro do cliente resolve. O rodapé de
-  paginação entra quando passar de ~200.
-- O filtro dos planos é por busca, professor e turma. «Os planos com PO pendente» seria uma linha
-  a mais no `.fipp` e não está pedido.
+- **A harmonização não está acessível em sítio nenhum da interface.** Está no repositório
+  (`professores/…/harmonizacao.html`, coberto pela âncora) e fora do site. O desenho para a levar à
+  Produção está em `PLANO-NAVEGACAO.md` §9, e tem três perguntas por responder — a primeira é
+  *quem vê o quê*, porque o `producao.js` não tem autenticação de página.
+- **A ponte turma do KV ↔ variante do pacote não existe.** A variante nasce na escrita
+  (`compor-conf.js`: `escola + '-' + turma.id`), não na leitura. É o que impede a Produção de ligar
+  a uma turma o pacote dela.
+- A paginação da lista de aulas **não é por turma**: ela pagina o conjunto já filtrado.
+- O estado de uma turma (curadoria · PO · ciclo · anamnese · Benesh · aula · harmonização) continua
+  a ser lido à mão; §9.1 do plano diz de onde cada um sairia sem campo novo.
 
 ## O que está pendente
-
-## 22/10/2026 — O terceiro laço de rebase, e os treze conflitos que eram só do índice
-
-A regra «há **um** laço de rebase» continua a ser uma convenção
-sem trava: são três ficheiros com o mesmo bloco, e o quarto que aparecer pode repetir o erro. Uma
-trava possível — e não feita — é o `pre-commit` recusar um `git rebase` seguido de `exit 1` fora de
-`.github/scripts/`. Fica declarado.
 
 ## 22/10/2026 — O PO de um professor não vê o plano nem as alunas de outro
 
@@ -333,6 +348,19 @@ trava possível — e não feita — é o `pre-commit` recusar um `git rebase` s
   paginação entra quando passar de ~200.
 - O filtro dos planos é por busca, professor e turma. «Os planos com PO pendente» seria uma linha
   a mais no `.fipp` e não está pedido.
+
+## 23/10/2026 — A escolha de turma antes do formulário, e a harmonização sai do site
+
+- **A harmonização não está acessível em sítio nenhum da interface.** Está no repositório
+  (`professores/…/harmonizacao.html`, coberto pela âncora) e fora do site. O desenho para a levar à
+  Produção está em `PLANO-NAVEGACAO.md` §9, e tem três perguntas por responder — a primeira é
+  *quem vê o quê*, porque o `producao.js` não tem autenticação de página.
+- **A ponte turma do KV ↔ variante do pacote não existe.** A variante nasce na escrita
+  (`compor-conf.js`: `escola + '-' + turma.id`), não na leitura. É o que impede a Produção de ligar
+  a uma turma o pacote dela.
+- A paginação da lista de aulas **não é por turma**: ela pagina o conjunto já filtrado.
+- O estado de uma turma (curadoria · PO · ciclo · anamnese · Benesh · aula · harmonização) continua
+  a ser lido à mão; §9.1 do plano diz de onde cada um sairia sem campo novo.
 
 ## Pendências anteriores (índice)
 
@@ -604,6 +632,7 @@ trava possível — e não feita — é o `pre-commit` recusar um `git rebase` s
 - **22/10/2026** — O `deploy-escolas.yml` não publicava escola nenhuma, e nada… → `REGISTRO.md` L21989
 - **22/10/2026** — O TeX saía inteiro a cada execução, e o deploy subia por… → `REGISTRO.md` L22045
 - **22/10/2026** — Dois POs para um plano: a linha de base é uma só, e o… → `REGISTRO.md` L22850
+- **22/10/2026** — O terceiro laço de rebase, e os treze conflitos que eram só… → `REGISTRO.md` L22973
 - PO de **oculos-redondo · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **oculos-redondo · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

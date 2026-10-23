@@ -457,6 +457,7 @@ desenho.
 | **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
 | **O menu de trabalho (a coluna)** | `.coluna` (+ `.coluna-grupo`, `.coluna-titulo`, `.coluna-itens`, `.coluna-seta`, `.coluna-direto`, `.coluna-puxador`) | o menu da escola: quatro destinos, e cada um leva a uma lista | gerado por `nav.js`; **não** se escreve à mão. Compacto: os grupos abrem no ponteiro; no celular é folha inferior |
 | **Três números e um painel** | `.trio` (+ `.trio-item`, `.trio-painel`, `.trio-escala`, `.trio-chips`) | três dados de um cartão, cada um a abrir o seu detalhe | `<div class="trio"><button class="trio-item" aria-expanded>` + `.trio-painel hidden`; **a caixa inteira é o alvo**, e o «?» é desenho (`aria-hidden`) |
+| **O rodapé de páginas** | `.paginas` (+ `.paginas-ant`, `.paginas-info`, `.paginas-prox`) | uma lista que não cabe numa tela | `<div data-paginar data-por-pagina="25">` a embrulhar a `<ul>`; nasce `hidden` — sem JavaScript a lista mostra tudo |
 
 ### Quadro 2 — o inventário
 
@@ -481,6 +482,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.coluna-titulo` | `ciclo.css` | base, `:hover`, `:focus-visible`; é um `<button>`, porque no telemóvel e no teclado não há ponteiro |
 | `.trio` / `.trio-item` / `.trio-painel` | `ciclo.css` | base, `:hover`, `:focus-visible`, `[aria-expanded="true"]`; uma coluna abaixo de 360px |
 | `.trio-escala` | `ciclo.css` | um degrau por nível, na cor do papel semântico (`trio-ok`, `trio-razoavel`, `trio-alerta`, `trio-neutro`) |
+| `.paginas` | `ciclo.css` | `hidden` (uma página só, e o estado sem JavaScript), à vista a partir de duas |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
 
