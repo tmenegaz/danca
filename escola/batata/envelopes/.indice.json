@@ -6,7 +6,8 @@
     "anamnese-20261023-1112.json",
     "plano-20261023-1116.json",
     "plano-20261023-1117.json",
-    "plano-20261023-1124.json"
+    "plano-20261023-1124.json",
+    "po-20261023-1128.json"
   ],
   "resumos": {
     "anamnese-20261023-1111.json": {
@@ -77,6 +78,20 @@
         "Sequência de teste com plié, tendu e port de bras."
       ],
       "professorNome": "Meia Cortada"
+    },
+    "po-20261023-1128.json": {
+      "id": "po-20261023-1128",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "cafe-no-bule",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "sujeitos": [
+        "Aluna B"
+      ],
+      "plano": [
+        "plano-20261023-1116"
+      ]
     }
   }
 }
