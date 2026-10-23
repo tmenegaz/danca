@@ -41,18 +41,52 @@
       ]
     },
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-23",
+        "caminho": "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+        "cobertura": [
+          "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+          "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+        ],
+        "hash": "1e0a1772e4c3b0c7c079e6ff96c45aff72977437bd7fb7d1e24dee841117595f",
+        "hash_conteudo": "716458a6372a1ada829a70ed92353d74f5c975cb6e1ac5ab1921f598d295590b",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
-        "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+        "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+        "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp"
       ],
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:manga-curta/01/batata",
       "numero": "01",
       "pacote": null,
       "professor": "manga-curta",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "plano"
+      ]
+    },
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md",
+        "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf"
+      ],
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:meia-cortada/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "meia-cortada",
       "sem_ancora": true,
       "tipos": [
         "manifesto",
@@ -80,6 +114,15 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "ciclo_id": "ciclo:manga-curta/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "professor": "manga-curta",
+      "tipo": "ancora"
+    },
+    {
       "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
@@ -98,12 +141,21 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "ciclo_id": "ciclo:manga-curta/01/batata",
       "escola": "batata",
       "id": "documento:manifesto:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "professor": "manga-curta",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf",
+      "ciclo_id": "ciclo:meia-cortada/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf",
+      "professor": "meia-cortada",
       "tipo": "manifesto"
     },
     {
@@ -116,12 +168,21 @@
       "tipo": "plano"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "ciclo_id": "ciclo:manga-curta/01/batata",
       "escola": "batata",
       "id": "documento:plano:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "professor": "manga-curta",
+      "tipo": "plano"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md",
+      "ciclo_id": "ciclo:meia-cortada/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md",
+      "professor": "meia-cortada",
       "tipo": "plano"
     },
     {
@@ -137,16 +198,17 @@
   "escola": {
     "ciclos": [
       "ciclo:cafe-no-bule/01/batata",
-      "ciclo:manga-curta/01/batata"
+      "ciclo:manga-curta/01/batata",
+      "ciclo:meia-cortada/01/batata"
     ],
     "contagens": {
       "anamneses": 3,
       "aulas": 0,
-      "ciclos": 2,
-      "ciclos_com_ancora": 1,
-      "planos": 2,
+      "ciclos": 3,
+      "ciclos_com_ancora": 2,
+      "planos": 3,
       "pos": 0,
-      "registros": 5
+      "registros": 6
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -169,20 +231,22 @@
       "anamnese:anamnese-20261023-1112",
       "anamnese:anamnese-20261023-1112-2",
       "plano:plano-20261023-1116",
-      "plano:plano-20261023-1117"
+      "plano:plano-20261023-1117",
+      "plano:plano-20261023-1124"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "ids": [
           "anamnese:anamnese-20261023-1111",
           "anamnese:anamnese-20261023-1112",
           "anamnese:anamnese-20261023-1112-2",
           "plano:plano-20261023-1116",
-          "plano:plano-20261023-1117"
+          "plano:plano-20261023-1117",
+          "plano:plano-20261023-1124"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -190,9 +254,10 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:cafe-no-bule/01/batata"
+          "ciclo:cafe-no-bule/01/batata",
+          "ciclo:manga-curta/01/batata"
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
@@ -200,7 +265,7 @@
       {
         "contagem": 1,
         "ids": [
-          "ciclo:manga-curta/01/batata"
+          "ciclo:meia-cortada/01/batata"
         ],
         "rotulo": "Sem âncora",
         "valor": "sem-ancora"
@@ -227,6 +292,15 @@
         ],
         "rotulo": "manga-curta",
         "valor": "manga-curta"
+      },
+      {
+        "contagem": 2,
+        "ids": [
+          "ciclo:meia-cortada/01/batata",
+          "plano:plano-20261023-1124"
+        ],
+        "rotulo": "meia-cortada",
+        "valor": "meia-cortada"
       }
     ],
     "tipos": [
@@ -241,19 +315,21 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "ciclo:cafe-no-bule/01/batata",
-          "ciclo:manga-curta/01/batata"
+          "ciclo:manga-curta/01/batata",
+          "ciclo:meia-cortada/01/batata"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "plano:plano-20261023-1116",
-          "plano:plano-20261023-1117"
+          "plano:plano-20261023-1117",
+          "plano:plano-20261023-1124"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
@@ -262,9 +338,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "92e4f54"
+    "commit": "3b29ec7"
   },
-  "gerado_em": "2026-10-23T14:18",
+  "gerado_em": "2026-10-23T14:24",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -341,6 +417,18 @@
       "professor": "manga-curta",
       "tipo": "plano",
       "turma": "Balé Nível 1 — Teste 2"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261023-1124",
+      "ciclo": "01",
+      "data": "2026-10-23T11:24",
+      "id": "plano:plano-20261023-1124",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "meia-cortada",
+      "tipo": "plano",
+      "turma": "Balé Nível 3 — Teste 2"
     }
   ],
   "versao": 6

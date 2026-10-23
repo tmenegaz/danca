@@ -17,14 +17,30 @@
       "sem_ancora": false
     },
     {
+      "ancora": {
+        "hash": "1e0a1772e4c3b0c7c079e6ff96c45aff72977437bd7fb7d1e24dee841117595f",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:manga-curta/01/batata",
+      "numero": "01",
+      "professor": "manga-curta",
+      "sem_ancora": false
+    },
+    {
       "ancora": null,
       "aulas": 0,
       "documentos": 2,
       "escola": "batata",
       "estado": "sem-ancora",
-      "id": "ciclo:manga-curta/01/batata",
+      "id": "ciclo:meia-cortada/01/batata",
       "numero": "01",
-      "professor": "manga-curta",
+      "professor": "meia-cortada",
       "sem_ancora": true
     }
   ],
@@ -57,16 +73,17 @@
     {
       "ciclos": [
         "ciclo:cafe-no-bule/01/batata",
-        "ciclo:manga-curta/01/batata"
+        "ciclo:manga-curta/01/batata",
+        "ciclo:meia-cortada/01/batata"
       ],
       "contagens": {
         "anamneses": 3,
         "aulas": 0,
-        "ciclos": 2,
-        "ciclos_com_ancora": 1,
-        "planos": 2,
+        "ciclos": 3,
+        "ciclos_com_ancora": 2,
+        "planos": 3,
         "pos": 0,
-        "registros": 5
+        "registros": 6
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
       "expurgada": false,
@@ -89,7 +106,8 @@
         "anamnese:anamnese-20261023-1112",
         "anamnese:anamnese-20261023-1112-2",
         "plano:plano-20261023-1116",
-        "plano:plano-20261023-1117"
+        "plano:plano-20261023-1117",
+        "plano:plano-20261023-1124"
       ],
       "slug": "batata"
     },
@@ -303,7 +321,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -362,7 +380,7 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       },
@@ -456,7 +474,7 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       }
@@ -464,9 +482,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "92e4f54"
+    "commit": "3b29ec7"
   },
-  "gerado_em": "2026-10-23T14:18",
+  "gerado_em": "2026-10-23T14:24",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -540,7 +558,9 @@
       "slug": "manga-curta"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:meia-cortada/01/batata"
+      ],
       "escolas": [
         "batata"
       ],

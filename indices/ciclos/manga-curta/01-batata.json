@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-10-23",
+    "caminho": "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+    "cobertura": [
+      "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+    ],
+    "hash": "1e0a1772e4c3b0c7c079e6ff96c45aff72977437bd7fb7d1e24dee841117595f",
+    "hash_conteudo": "716458a6372a1ada829a70ed92353d74f5c975cb6e1ac5ab1921f598d295590b",
+    "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "documento:manifesto:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
     "documento:plano:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md"
   ],
   "escola": "batata",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,9 +43,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "92e4f54"
+    "commit": "3b29ec7"
   },
-  "gerado_em": "2026-10-23T14:18",
+  "gerado_em": "2026-10-23T14:24",
   "id": "ciclo:manga-curta/01/batata",
   "professor": "manga-curta",
   "versao": 6
