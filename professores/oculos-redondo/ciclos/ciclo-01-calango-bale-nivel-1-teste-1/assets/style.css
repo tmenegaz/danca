@@ -1383,6 +1383,26 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   .filtro-conta { margin: 0; flex-basis: 100%; }
 }
 
+/* ---------- O RODAPÉ DE PÁGINAS (23/10/2026) ------------------------------------------------
+   A peça nasceu dentro do `bastidores.js`, para as sete listas do gabinete. Quando a lista de
+   aulas da publicação passou das 35 linhas e precisou do mesmo, ela veio para a folha — e a
+   Produção passou a consumi-la daqui. Duas declarações seriam a segunda cópia a divergir, e a
+   checagem «Forma» recusa exactamente isso.
+
+   `hidden` no `<div>` é o estado normal quando há uma página só: sem JavaScript o rodapé não
+   aparece, e a lista mostra tudo — degradar é melhor do que paginar sem quem vire a página. */
+/* O NOME É `paginas`, E NÃO `paginacao` (23/10/2026). `paginacao` já era a classe do rodapé
+   da barra de controle do LANÇAMENTO (`tools/templates/lancamento.html`, declarada lá, com a
+   barra compacta do celular a apertar-lhe o `gap`). A primeira versão desta peça usou esse nome,
+   e a regra nova passou a desenhar a barra do lançamento — que cresceu 5px e pôs o «voltar ao
+   topo» por cima do «⋯». Quem apanhou foi `provar-titulo-e-barra`; a lição é a de sempre: uma
+   classe é um contrato, e um nome já gasto noutra página não é um nome livre. */
+.paginas {
+  display: flex; align-items: center; justify-content: flex-end; gap: .5rem;
+  padding: .5rem 0 .1rem; font-size: .85rem; color: var(--texto-suave);
+}
+.paginas-info { font: 13px/1 var(--ui); letter-spacing: .04em; }
+
 .trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin: .6rem 0 0; }
 /* EM 320px TRÊS COLUNAS NÃO CABEM: cada uma fica com 78px, e «CONTEÚDOS» a .66rem com
    `letter-spacing` precisa de mais do que isso — medido, transbordava 7px. Abaixo de 360 a fila

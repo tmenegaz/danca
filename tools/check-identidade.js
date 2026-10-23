@@ -929,9 +929,14 @@ const GANCHOS = new Map(Object.entries({
   editar: 'o «Editar» de uma linha, que o script procura para abrir a edição',
   'cancelar-edicao': 'o «Cancelar» do modo de edição, que o script procura',
   opcoes: 'o `<select>` de opções do escolhedor, que o script lê',
-  'pag-ant': 'o «anterior» da paginação, que o script procura e desabilita',
-  'pag-prox': 'o «próximo» da paginação, idem',
-  'pag-info': 'o contador da paginação, que o script escreve',
+  /* A PEÇA DO RODAPÉ DE PÁGINAS (23/10/2026). O nome era `pag-*` até esta data; passou a
+     `paginas-*` porque `paginacao` já era a classe da barra de controle do lançamento, e a regra
+     nova passou a desenhar a barra dele — o «voltar ao topo» subiu 5px e caiu em cima do «⋯».
+     Os três continuam a ser GANCHOS e não desenho: quem os procura é o script, e quem os pinta é
+     `.acao`, que é a peça do botão. */
+  'paginas-ant': 'o «anterior» do rodapé de páginas, que o script procura e desabilita',
+  'paginas-prox': 'o «próximo» do rodapé de páginas, idem',
+  'paginas-info': 'o contador do rodapé de páginas, que o script escreve',
   menu: 'o `<details>` da barra, que `nav.js` abre e fecha (o desenho é de `summary`)',
   'ctx-turma': 'o bloco do contexto da turma na porta, que o script preenche',
   filtros: 'o grupo de filtros do lançamento, que o script lê',
@@ -1021,6 +1026,18 @@ function superficiesQueEmitem() {
         nome: 'Aula 01 — marco · Turma A', turma: 'Turma A', complemento: 'Ciclo 01',
         acoes: [['Abrir a aula', '/a/aula-01.html', '']],
       }],
+    })]);
+    /* A LISTA PAGINADA (23/10/2026). A paginação saiu do `bastidores.js` para a folha, e a
+     * amostra tem de a exercitar: sem uma lista com `porPagina`, o rodapé e os três botões dele
+     * não apareceriam em marcação nenhuma — e a checagem «Peça» estaria a aprovar por omissão,
+     * que é o modo mais silencioso de não verificar nada. */
+    lista.push(['lista-paginada', listas.paginaDeLista({
+      titulo: 'Aulas', subtitulo: 'A aula dada', nav: '<nav class="topnav"></nav>',
+      itens: [{
+        nome: 'Aula 01 — marco · Turma A', turma: 'Turma A', complemento: 'Ciclo 01',
+        acoes: [['Abrir a aula', '/a/aula-01.html', '']],
+      }],
+      porPagina: 25, singular: 'aula', plural: 'aulas', campos: ['busca', 'turma'],
     })]);
   } catch (e) {
     erros.push('Peça: não foi possível gerar as páginas de lista (' + (e && e.message) + ')');

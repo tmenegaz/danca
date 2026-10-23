@@ -363,17 +363,26 @@ function menuDaEscola({ turmas, blocos }) {
    *
    * Era aqui que o menu mais crescia: a harmonização, a captura e o lançamento entravam um por
    * turma. A harmonização saiu do menu (é assunto da direção, e vive na Produção); a captura
-   * passou a ser uma ação da lista de aulas; e os três formulários passaram a apontar para a
-   * porta, que já sabe perguntar de que professor e de que turma se trata (a barra de contexto
-   * dela). O endereço com parâmetros nasce ali, no clique — e não escrito à mão no menu.
+   * passou a ser uma ação da lista de aulas; e os três formulários passaram a apontar para uma
+   * LISTA DE TURMAS — a página que escolhe de quem é o ato antes de o formulário abrir.
+   *
+   * PORQUE UMA LISTA, E NÃO A PORTA DIRECTA (23/10/2026). O menu apontava para `/anamnese/`, e a
+   * porta abria com a barra de contexto vazia: quem chegava tinha de saber, de cor, qual era o
+   * professor e qual o ciclo — e o que ele escolhesse ali não tinha passado pela curadoria, que é
+   * quem liga professor e turma. A lista mostra as turmas que a curadoria já autorizou, e leva o
+   * contexto no endereço. O menu continua sem citar turma nenhuma: quem a cita é a página.
+   *
+   * Sem turma curada o grupo não entra: não há ato para preencher, e quatro itens a levar a três
+   * listas vazias seriam um menu a mentir com educação.
    */
-  const porta = '/plano-observacao/';
-  coluna.push({ tipo: 'menu', rotulo: 'Área do Professor', itens: [
-    { rotulo: 'Anamnese do aluno', href: '/anamnese/' },
-    { rotulo: 'Plano de ensino', href: '/plano-ensino/?fonte=plano' },
-    { rotulo: 'Plano de Observação', href: porta + '?fonte=po' },
-    { rotulo: 'Lançamento de aula', href: '/aulas/' },
-  ] });
+  if (turmas.length) {
+    coluna.push({ tipo: 'menu', rotulo: 'Área do Professor', itens: [
+      { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
+      { rotulo: 'Plano de ensino', href: '/area-do-professor/plano-de-ensino/' },
+      { rotulo: 'Plano de Observação', href: '/area-do-professor/plano-de-observacao/' },
+      { rotulo: 'Lançamento de aula', href: '/aulas/' },
+    ] });
+  }
 
   /* A BARRA. Os blocos do sistema vinham do pacote-zero, e o `Bastidores` vinha lá dentro com os
      dois destinos dele. O que se usa é só esse grupo: a Área do Professor deixou de vir de lá,
@@ -452,9 +461,73 @@ function absolutizar(href) {
   return h.startsWith('/') ? h : '/' + h;
 }
 
-function copiar(de, para) {
-  fs.cpSync(de, para, { recursive: true });
+/**
+ * A CÓPIA DO PACOTE PARA A PUBLICAÇÃO.
+ *
+ * `excluir` é uma lista de NOMES de ficheiro que ficam de fora. Ela existe por causa da
+ * harmonização (23/10/2026): o documento é gerado — e continua a ser, porque é ele que a
+ * direção lê — mas não se publica. Ele fala do linguajar dos professores, e isso é assunto da
+ * escola com a direção, não da página que qualquer visitante abre.
+ *
+ * O `cpSync` não tem filtro por nome, e copiar-e-apagar-depois deixaria o ficheiro publicado no
+ * disco entre os dois passos — e um Worker que sirva no meio do processo serviria o que não devia.
+ * Daí o filtro na origem, com a mesma recursão que o `cpSync` faz.
+ */
+function copiar(de, para, excluir = []) {
+  const fora = new Set(excluir);
+  fs.mkdirSync(para, { recursive: true });
+  for (const entrada of fs.readdirSync(de, { withFileTypes: true })) {
+    if (fora.has(entrada.name)) continue;
+    const origem = path.join(de, entrada.name);
+    const destino = path.join(para, entrada.name);
+    if (entrada.isDirectory()) { copiar(origem, destino, excluir); continue; }
+    if (fora.size && /\.(html|md)$/.test(entrada.name)) {
+      fs.writeFileSync(destino, podarLinks(fs.readFileSync(origem, 'utf8'), [...fora]), 'utf8');
+      continue;
+    }
+    fs.copyFileSync(origem, destino);
+  }
 }
+
+/**
+ * TIRAR DO HTML OS LINKS PARA O QUE NÃO SE PUBLICA — e o separador que ficaria órfão.
+ *
+ * Não basta não copiar o ficheiro. O rodapé do pacote lista os documentos do ciclo — «Plano ·
+ * Harmonização de linguagem · Captura em aula · …» —, e um link para um documento que já não
+ * está ao lado é um beco: quem o segue recebe 404, e o 404 lê-se como «o sistema perdeu o
+ * documento». Deixar de publicar exige deixar de apontar.
+ *
+ * O `&middot;` que separa as entradas sai com a entrada: sem ele, o rodapé ficaria com dois
+ * separadores encostados — «Plano · · Captura» —, que é a marca de uma remoção mal feita.
+ */
+function podarLinks(html, nomes) {
+  let saida = String(html);
+  const escapar = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  for (const nome of nomes) {
+    const href = 'href="' + escapar(nome) + '"';
+    const ancora = '<a[^>]*' + href + '[^>]*>[^<]*</a>';
+    // o separador ANTERIOR, se houver; senão o SEGUINTE; senão a âncora sozinha
+    saida = saida
+      .replace(new RegExp('\\s*&middot;\\s*' + ancora, 'g'), '')
+      .replace(new RegExp(ancora + '\\s*&middot;\\s*', 'g'), '')
+      .replace(new RegExp('\\s*' + ancora, 'g'), '');
+    /* O `README.md` DO PACOTE também lista os ficheiros, em Markdown. Ele é copiado para a
+       publicação, e uma lista que cita um ficheiro ausente é a mesma mentira em outra língua. */
+    saida = saida
+      .replace(new RegExp('\\s*`' + escapar(nome) + '`\\s*·\\s*', 'g'), ' ')
+      .replace(new RegExp('\\s*·\\s*`' + escapar(nome) + '`', 'g'), '');
+  }
+  return saida;
+}
+
+/**
+ * O QUE NÃO SE PUBLICA, e porquê — uma lista, e não uma condição espalhada.
+ *
+ * · `harmonizacao.html` — o relatório do linguajar. Decisão de 23/10/2026: ele passa a viver só
+ *   na Produção (`/bastidores/producao`), que é onde a direção o lê. Publicá-lo punha a análise
+ *   da fala dos professores numa página aberta.
+ */
+const FORA_DA_PUBLICACAO = ['harmonizacao.html'];
 
 function principal() {
   const escola = String(process.argv[2] || '').trim();
@@ -503,7 +576,7 @@ function principal() {
 
   // 2. AS TURMAS: cada pacote inteiro, no seu sítio. Copiado, não ligado — o que está no ar tem
   //    de ser o que o `check-pacote` aprovou, e um link simbólico não sobrevive a um upload.
-  for (const t of turmas) copiar(t.pasta, path.join(destino, t.variante));
+  for (const t of turmas) copiar(t.pasta, path.join(destino, t.variante), FORA_DA_PUBLICACAO);
 
   // 3. O MENU, COMO DADO. `nav.json` é o contrato entre a montagem (que lê o disco) e a ponte de
   //    produção (que não tem `fs`): a montagem diz o que existe, a ponte desenha em cada página
@@ -551,12 +624,55 @@ function principal() {
      propósito: o que têm para dizer é o nome, a turma e as ações que levam ao documento. */
   const varias = turmas.length > 1;
   const sufixo = (t) => (varias ? ' — ' + t.nome : '');
-  const escreverLista = (caminho, titulo, subtitulo, itens, vazio) => escrever(caminho,
-    listas.paginaDeLista({
+  const escreverLista = (caminho, titulo, subtitulo, itens, vazio, extras) => escrever(caminho,
+    listas.paginaDeLista(Object.assign({
       titulo, subtitulo, itens,
       nav: navDoMenu(menu, caminho.replace(/index\.html$/, ''), titulo),
       vazio,
-    }));
+    }, extras || {})));
+
+  /* AS TRÊS PÁGINAS DE ESCOLHA DE TURMA (23/10/2026). O menu aponta para elas, e não para a
+   * porta: a porta abre com a barra de contexto vazia, e quem chega tem de saber de cor qual é o
+   * professor e qual o ciclo. Aqui a turma já é uma linha, e a linha leva o contexto no endereço
+   * — `?professor=<slug>&ciclo=NN`, que é exactamente o que a porta lê.
+   *
+   * O SLUG VEM DO DIRECTORIO (`professores/<slug>/`), e não do `.conf`: o `PROFESSOR` do `.conf`
+   * é o NOME de quem lê («Oculos Redondo»), e o `?professor=` da porta é o slug — o mesmo que a
+   * curadoria e o `api/bastidores/professores` usam. Trocar os dois daria uma lista que não
+   * encontra ninguém, e o sintoma seria «o campo do professor ficou vazio».
+   */
+  const contextoDaTurma = (t, fonte) => {
+    const q = new URLSearchParams({ professor: t.professor, ciclo: t.ciclo });
+    if (fonte) q.set('fonte', fonte);
+    return '?' + q.toString();
+  };
+  for (const [pasta, titulo, subtitulo, rota, acao, fonte] of [
+    ['anamnese', 'Anamnese do aluno', 'A escuta inicial de cada aluna, antes do primeiro registro',
+      '/anamnese/', 'Abrir a anamnese desta turma', ''],
+    ['plano-de-ensino', 'Plano de ensino', 'O plano da turma, elicitado com o professor',
+      '/plano-ensino/', 'Preencher o plano de ensino', 'plano'],
+    ['plano-de-observacao', 'Plano de Observação', 'O que se vai observar na turma, e com que régua',
+      '/plano-observacao/', 'Preencher o Plano de Observação', 'po'],
+  ]) {
+    escreverLista('area-do-professor/' + pasta + '/index.html', titulo, subtitulo,
+      turmas.map((t) => {
+        const plano = dadosDoPlano(t);
+        const acoes = [[acao, rota + contextoDaTurma(t, fonte), '']];
+        if (plano.hrefPlano) acoes.push(['Ver o plano do ciclo', plano.hrefPlano, 'secundario']);
+        return {
+          nome: 'Turma ' + t.nome,
+          turma: t.nome,
+          professor: plano.professor,
+          complemento: [plano.professor, 'Ciclo ' + t.ciclo].filter(Boolean).join(' · '),
+          acoes,
+        };
+      }),
+      'Nenhuma turma curada nesta escola. A turma nasce na curadoria — é ela que liga o professor '
+        + 'à turma, e sem esse elo não há ato para preencher.',
+      { campos: ['busca', 'professor'], singular: 'turma', plural: 'turmas',
+        dica: 'pelo nome da turma ou pelo professor' });
+  }
+
 
   escreverLista('ciclos/referencias/index.html', 'Referências',
     'Cada turma tem a sua lista, na norma ABNT',
@@ -570,6 +686,10 @@ function principal() {
   /* A LISTA DE AULAS é a porta do lançamento — e é por isso que ela nasce mesmo com uma aula só:
      cada linha tem o lançamento e a captura para impressão. A aula sem página publicada não vira
      linha: uma linha sem ação nenhuma é um beco. */
+  /* A LISTA DE AULAS É A QUE PAGA (23/10/2026). O `.conf` de cada turma declara dezoito aulas, e
+     três turmas dão 54 linhas — a primeira lista do sistema a passar do que cabe numa tela. Ela
+     pagina pela peça da Produção, e o filtro dela não tem professor: uma aula não tem professor
+     no cartão, quem o tem é a turma, e a turma já está no filtro. */
   escreverLista('aulas/index.html', 'Aulas', 'A aula dada e a folha que a acompanha',
     turmas.flatMap((t) => (t.aulas || []).flatMap((a) => {
       const acoes = [];
@@ -589,7 +709,10 @@ function principal() {
         complemento: 'Ciclo ' + t.ciclo,
         acoes,
       }];
-    })), 'Ainda não há aula publicada nesta escola.');
+    })), 'Ainda não há aula publicada nesta escola.', {
+      campos: ['busca', 'turma'], singular: 'aula', plural: 'aulas', porPagina: 25,
+      dica: 'pelo número, pelo marco ou pela turma',
+    });
 
   for (const [pasta, titulo, chave, rotulo] of [
     ['planejamento/glossario', 'Glossário', 'glossario', 'Abrir o glossário'],
