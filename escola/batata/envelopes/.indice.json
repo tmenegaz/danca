@@ -5,7 +5,8 @@
     "anamnese-20261023-1112-2.json",
     "anamnese-20261023-1112.json",
     "plano-20261023-1116.json",
-    "plano-20261023-1117.json"
+    "plano-20261023-1117.json",
+    "plano-20261023-1124.json"
   ],
   "resumos": {
     "anamnese-20261023-1111.json": {
@@ -62,6 +63,20 @@
         "Sequência de teste com plié, tendu e port de bras."
       ],
       "professorNome": "Manga Curta"
+    },
+    "plano-20261023-1124.json": {
+      "id": "plano-20261023-1124",
+      "fonte": "plano",
+      "escola": "batata",
+      "professor": "meia-cortada",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 2, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 3 — Teste 2",
+      "repertorio": [
+        "Sequência de teste com plié, tendu e port de bras."
+      ],
+      "professorNome": "Meia Cortada"
     }
   }
 }
