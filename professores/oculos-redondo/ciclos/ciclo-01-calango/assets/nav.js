@@ -168,12 +168,67 @@
   }
 
   if (botao) {
+    /* A COLUNA MUDA O QUE O ☰ ABRE (23/10/2026).
+       Onde há coluna (`.coluna`), a navegação é a folha que sobe de baixo — a mesma mecânica da
+       Produção. O ☰ deixa de abrir o painel da barra (que nesse modo só tem o Bastidores) e passa
+       a abrir a FOLHA: a lei das duas navegações manda o hambúrguer para a navegação global, e a
+       global passou a ser a coluna. Onde não há coluna, nada disto corre — o ☰ é o de sempre. */
+    var coluna = document.querySelector('.coluna');
+    var estreita = window.matchMedia('(max-width: 1140px)');
+
+    function abrirFolha(sim) {
+      if (!coluna) return false;
+      coluna.setAttribute('data-aberta', sim ? 'sim' : 'nao');
+      document.body.classList.toggle('coluna-aberta', !!sim);
+      botao.setAttribute('aria-expanded', sim ? 'true' : 'false');
+      botao.setAttribute('aria-label', sim ? 'Fechar menu' : 'Abrir menu');
+      return true;
+    }
+
     botao.addEventListener('click', function () {
+      // A folha só existe quando a coluna não está à vista — acima de 1140 ela é a coluna fixa,
+      // e o ☰ não tem o que abrir. Abaixo, é a folha.
+      if (coluna && estreita.matches) {
+        var aberta = coluna.getAttribute('data-aberta') === 'sim';
+        abrirFolha(!aberta);
+        return;
+      }
       var aberto = navbar.classList.toggle('aberto');
       botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
       botao.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
       ajustarAlturaNavbar();
     });
+
+    /* ESCOLHER FECHA A FOLHA — deixá-la aberta taparia a página que se acabou de pedir. */
+    if (coluna) {
+      coluna.addEventListener('click', function (e) {
+        if (e.target.closest('a') && estreita.matches) abrirFolha(false);
+      });
+      var veu = document.querySelector('.veu');
+      if (veu) veu.addEventListener('click', function () { abrirFolha(false); });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') abrirFolha(false);
+      });
+      /* O TÍTULO DO GRUPO, ONDE HÁ PONTEIRO. No computador os grupos abrem no `:hover`, e o
+         `:hover` não chega a quem usa teclado nem a quem toca num ecrã grande. O clique fixa o
+         grupo aberto; o `data-aberto` é o estado, e o CSS do `[data-aberto="sim"]` é o desenho. */
+      coluna.addEventListener('click', function (e) {
+        var titulo = e.target.closest('.coluna-titulo');
+        if (!titulo) return;
+        var grupo = titulo.closest('.coluna-grupo');
+        if (!grupo) return;
+        var abrir = grupo.getAttribute('data-aberto') !== 'sim';
+        document.querySelectorAll('.coluna .coluna-grupo[data-aberto="sim"]').forEach(function (g) {
+          if (g !== grupo) g.setAttribute('data-aberto', 'nao');
+        });
+        grupo.setAttribute('data-aberto', abrir ? 'sim' : 'nao');
+        titulo.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+      });
+      coluna.addEventListener('focusin', function (e) {
+        var grupo = e.target.closest && e.target.closest('.coluna-grupo');
+        if (grupo && grupo.getAttribute('data-aberto') !== 'sim') grupo.setAttribute('data-aberto', 'sim');
+      });
+    }
 
     /* Ao escolher um item, o painel fecha — a navegação é do navegador, mas o
        estado não pode ficar para trás. */

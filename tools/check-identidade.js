@@ -996,6 +996,35 @@ function superficiesQueEmitem() {
   } catch (e) {
     erros.push('Peça: não foi possível gerar a página de estado (' + (e && e.message) + ')');
   }
+  /* AS PÁGINAS DE LISTA (23/10/2026). Elas são geradas na montagem, a partir do que existe no
+   * disco — e por isso não estão em arquivo nenhum, como a ficha e os estados. Mede-se uma
+   * amostra pequena: o que interessa é que a marcação use peças desenhadas (o trio, o selo, o
+   * botão), e não que os dados sejam os desta escola. */
+  try {
+    const listas = require(path.join(raiz, 'motor/nucleo/lista-html.js'));
+    lista.push(['lista-de-planos', listas.paginaDeLista({
+      titulo: 'Planos do ciclo',
+      subtitulo: 'Escola · 2 planos',
+      nav: '<nav class="topnav"></nav>',
+      planos: [
+        { nome: 'Ciclo 01 — Escola · Turma A', turma: 'Turma A', professor: 'Professor A',
+          ciclo: '01', aulas: '18', ancorada: '23/10/2026', po: 'PO aguardando', poClasse: 'alerta',
+          hash: 'ca122b865128548b', hrefPlano: '/a/plano.html' },
+        { nome: 'Ciclo 01 — Escola · Turma B', turma: 'Turma B', professor: 'Professor B',
+          ciclo: '01', aulas: '18', ancorada: '23/10/2026', po: '', poClasse: 'discreto',
+          hash: '', hrefPlano: '/b/plano.html' },
+      ],
+    })]);
+    lista.push(['lista-de-documentos', listas.paginaDeLista({
+      titulo: 'Aulas', subtitulo: 'A aula dada', nav: '<nav class="topnav"></nav>',
+      itens: [{
+        nome: 'Aula 01 — marco · Turma A', turma: 'Turma A', complemento: 'Ciclo 01',
+        acoes: [['Abrir a aula', '/a/aula-01.html', '']],
+      }],
+    })]);
+  } catch (e) {
+    erros.push('Peça: não foi possível gerar as páginas de lista (' + (e && e.message) + ')');
+  }
   // O PAINEL DA RAIZ (22/10/2026) — as duas páginas que o Worker serve, mais o BLOCO que entra
   // na página da raiz. O bloco entra na medição de propósito: ele não está em arquivo nenhum, é
   // gerado em tempo de resposta, e é o pedaço do painel que mais muda.
