@@ -34,14 +34,17 @@
     "documento:aula:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md",
     "documento:dados:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.cifrado.json",
     "documento:dados:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+    "documento:dados:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
     "documento:glossario:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md",
     "documento:harmonizacao:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md",
+    "documento:indice:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2/ciclos.json",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
     "documento:notacao:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md",
     "documento:plano:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
     "documento:po:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md",
     "documento:referencias:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md",
+    "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -59,7 +62,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -72,6 +75,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -99,7 +107,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -107,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "45f9dad"
+    "commit": "1c26fe8"
   },
-  "gerado_em": "2026-10-23T14:29",
+  "gerado_em": "2026-10-23T14:30",
   "id": "ciclo:cafe-no-bule/01/batata",
   "professor": "cafe-no-bule",
   "versao": 6

@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 16,
+      "documentos": 19,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:cafe-no-bule/01/batata",
@@ -488,9 +488,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "45f9dad"
+    "commit": "1c26fe8"
   },
-  "gerado_em": "2026-10-23T14:29",
+  "gerado_em": "2026-10-23T14:30",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -1,0 +1,305 @@
+{
+  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\". O `aulas[]` e o INDICE POR AULA: a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o instante-limite de lancamento da aula, calculado do calendario. `estado` (§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois re-deriva com o proprio relogio.",
+  "gerado_em": "2026-10-23T14:30",
+  "ciclos": [
+    {
+      "id": "01",
+      "professor": "cafe-no-bule",
+      "escola": "Batata",
+      "inicio": "2027-02-02",
+      "fim": "2027-04-29",
+      "total_aulas": 26,
+      "duracao_min": 60,
+      "arquivo": "ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+      "aulas": [
+        {
+          "n": "01",
+          "data": "2027-02-02",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": "reconhecer o apoio e alinhar o eixo vertical",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-02-03T18:00",
+          "config": "captura-aula-01.json"
+        },
+        {
+          "n": "02",
+          "data": "2027-02-04",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": "transferir o peso entre os pés sem perder o alinhamento",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-02-08T18:00"
+        },
+        {
+          "n": "03",
+          "data": "2027-02-09",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": "sustentar a transferência com musicalidade e controle do movimento",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-02-10T18:00"
+        },
+        {
+          "n": "04",
+          "data": "2027-02-11",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-02-15T18:00"
+        },
+        {
+          "n": "05",
+          "data": "2027-02-16",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-02-17T18:00"
+        },
+        {
+          "n": "06",
+          "data": "2027-02-18",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-02-22T18:00"
+        },
+        {
+          "n": "07",
+          "data": "2027-02-23",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-02-24T18:00"
+        },
+        {
+          "n": "08",
+          "data": "2027-02-25",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-01T18:00"
+        },
+        {
+          "n": "09",
+          "data": "2027-03-02",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-03T18:00"
+        },
+        {
+          "n": "10",
+          "data": "2027-03-04",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-08T18:00"
+        },
+        {
+          "n": "11",
+          "data": "2027-03-09",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-10T18:00"
+        },
+        {
+          "n": "12",
+          "data": "2027-03-11",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-15T18:00"
+        },
+        {
+          "n": "13",
+          "data": "2027-03-16",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-17T18:00"
+        },
+        {
+          "n": "14",
+          "data": "2027-03-18",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-22T18:00"
+        },
+        {
+          "n": "15",
+          "data": "2027-03-23",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-24T18:00"
+        },
+        {
+          "n": "16",
+          "data": "2027-03-25",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-29T18:00"
+        },
+        {
+          "n": "17",
+          "data": "2027-03-30",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-03-31T18:00"
+        },
+        {
+          "n": "18",
+          "data": "2027-04-01",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-05T18:00"
+        },
+        {
+          "n": "19",
+          "data": "2027-04-06",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-07T18:00"
+        },
+        {
+          "n": "20",
+          "data": "2027-04-08",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-12T18:00"
+        },
+        {
+          "n": "21",
+          "data": "2027-04-13",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-14T18:00"
+        },
+        {
+          "n": "22",
+          "data": "2027-04-15",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-19T18:00"
+        },
+        {
+          "n": "23",
+          "data": "2027-04-20",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-21T18:00"
+        },
+        {
+          "n": "24",
+          "data": "2027-04-22",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-26T18:00"
+        },
+        {
+          "n": "25",
+          "data": "2027-04-27",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-04-28T18:00"
+        },
+        {
+          "n": "26",
+          "data": "2027-04-29",
+          "inicio": "18:00",
+          "fim": "19:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2027-05-03T18:00"
+        }
+      ]
+    }
+  ]
+}
