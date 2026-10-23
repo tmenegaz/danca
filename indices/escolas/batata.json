@@ -70,13 +70,13 @@
       "ciclo:cafe-no-bule/01/batata"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -94,11 +94,22 @@
       "teclado-abnt",
       "tela-de-celular"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261023-1111"
+    ],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261023-1111"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -111,8 +122,9 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261023-1111",
           "ciclo:cafe-no-bule/01/batata"
         ],
         "rotulo": "cafe-no-bule",
@@ -120,6 +132,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261023-1111"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -132,9 +152,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8a0250e"
+    "commit": "e5342ad"
   },
-  "gerado_em": "2026-10-23T14:10",
+  "gerado_em": "2026-10-23T14:11",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -157,6 +177,17 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261023-1111",
+      "ciclo": "01",
+      "data": "2026-10-23T11:11",
+      "id": "anamnese:anamnese-20261023-1111",
+      "professor": "cafe-no-bule",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }
