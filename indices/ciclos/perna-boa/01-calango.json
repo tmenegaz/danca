@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-10-23",
+    "caminho": "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.fipp",
+    "cobertura": [
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf"
+    ],
+    "hash": "bdf4abfae17040e6dda21dc8dc2b8f182023174f83ed433d70807f7c01a2b861",
+    "hash_conteudo": "5729f1f735588f61ec8ef1977d8e2bb3fb697c9d2a7aecd2ca43ba59ae44c55b",
+    "id": "ciclo-01-calango-bale-nivel-2-teste-1",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.fipp",
     "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf",
     "documento:plano:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md"
   ],
   "escola": "calango",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,9 +43,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "eb86f4b"
+    "commit": "7c628ef"
   },
-  "gerado_em": "2026-10-23T00:01",
+  "gerado_em": "2026-10-23T00:05",
   "id": "ciclo:perna-boa/01/calango",
   "professor": "perna-boa",
   "versao": 6
