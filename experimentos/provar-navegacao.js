@@ -191,19 +191,25 @@ function destinos(menu) {
     marcas.grupos.filter((g) => g.atual).map((g) => g.rotulo).join(',') === 'Ciclos', marcas.grupos);
   provar('a barra diz o grupo e a página', /Ciclos/.test(marcas.caminho) && /Planos do ciclo/.test(marcas.caminho), marcas.caminho);
 
-  /* O DESTINO DIRECTO MANDA SOBRE O GRUPO (23/10/2026). «/aulas/» é o URL de «Aulas» — destino
-     próprio no topo da coluna — e também o de «Lançamento de aula», dentro de «Área do
-     Professor»: o lançamento é uma acção de cada linha da lista, e a lista é a página. Sem a
-     precedência, estar em `/aulas/` marcava «Área do Professor» como grupo actual, e a coluna
-     dizia que se estava num sítio onde não se está. Aqui medem-se as duas metades: o grupo NÃO
-     se marca, e o destino directo acende. */
+  /* A LISTA DE AULAS É DA ÁREA DO PROFESSOR (24/10/2026). Ela era um destino próprio no topo da
+     coluna — e o item de dentro da Área do Professor apontava para o MESMO URL. Dois itens para
+     a mesma página: a pesquisadora viu-os como o que eram, «as duas abrem a mesma coisa». O do
+     topo saiu, e a lista ficou onde o trabalho acontece.
+     O que se mede agora é o que isso muda no desenho: `/aulas/` está DENTRO de um grupo, e é
+     esse grupo que se marca. Sem esta asserção, tirar o destino do topo podia deixar a página
+     sem nenhum sinal de onde se está — e nada reprovaria. */
   await ir('/aulas/', 1280);
   const emAulas = await pagina.evaluate(() => ({
     atual: (document.querySelector('.coluna-grupo[data-atual="sim"] .coluna-titulo span') || {}).textContent || null,
-    directo: (document.querySelector('.coluna-direto.ativo') || {}).textContent || null,
+    directos: document.querySelectorAll('.coluna-direto').length,
+    rotulos: [...document.querySelectorAll('.coluna-grupo .coluna-itens a')].map((a) => a.textContent.trim()),
   }));
-  provar('em /aulas/ nenhum grupo se diz actual (o destino é directo)', emAulas.atual === null, emAulas);
-  provar('…e é o «Aulas» que acende', emAulas.directo === 'Aulas', emAulas.directo);
+  provar('em /aulas/ o grupo actual é «Área do Professor»', emAulas.atual === 'Área do Professor', emAulas.atual);
+  provar('…e não há nenhum destino directo no topo da coluna', emAulas.directos === 0, emAulas.directos);
+  provar('…porque a lista de aulas está DENTRO do grupo, com o rótulo «Aulas»',
+    emAulas.rotulos.indexOf('Aulas') !== -1, emAulas.rotulos);
+  provar('…e o rótulo antigo («Lançamento de aula») já não existe',
+    emAulas.rotulos.indexOf('Lançamento de aula') === -1, emAulas.rotulos);
 
   // ------------------------------------------------------------------ 4. a coluna, no computador
   console.log('\n4 · A coluna, no computador');

@@ -86,12 +86,14 @@ function ehAtivo(item, pedido) {
  */
 function grupoAtual(menu, pedido) {
   const grupos = (menu && Array.isArray(menu.grupos)) ? menu.grupos : [];
-  /* O DESTINO DIRECTO MANDA SOBRE O GRUPO (23/10/2026). «Aulas» está na coluna como destino
-     próprio — e «Lançamento de aula», dentro de «Área do Professor», aponta para o MESMO URL: o
-     lançamento é uma acção de cada linha da lista de aulas, e a lista é a página. Sem esta
-     precedência, estar em `/aulas/` marcava «Área do Professor» como grupo actual, e a coluna
-     dizia que se estava num sítio onde não se está. O destino directo é o mais próximo do que a
-     pessoa clicou, e é ele que responde. */
+  /* O DESTINO DIRECTO MANDA SOBRE O GRUPO. Um `tipo: 'link'` na coluna é um destino próprio, e
+     quando um grupo tem um item que aponta para o MESMO URL (o caso em que o item de dentro do
+     grupo é a acção, e a lista é a página), quem responde é o destino directo: é o mais próximo
+     do que a pessoa clicou.
+     Hoje não há nenhum `tipo: 'link'` na coluna — o «Aulas» do topo saiu (24/10/2026) —, e é por
+     isso que `/aulas/` passa a marcar «Área do Professor», onde a lista está. A regra fica: o
+     contrato do `nav.json` continua a admitir o destino directo, e sem ela o dia em que ele
+     voltar marcaria o grupo errado, em silêncio. */
   const directo = grupos.find((g) => g && g.tipo !== 'menu' && ehAtivo(g, pedido));
   if (directo) return null;
   for (const grupo of grupos) {
@@ -343,7 +345,11 @@ const TRILHA_DO_DOCUMENTO = [
   { re: /\/plano(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Planos', href: '/ciclos/planos/' },
   { re: /\/notacao(?:\.html)?$/, grupo: 'Planejamento', rotulo: 'Notação', href: '/planejamento/notacao/' },
   { re: /\/glossario[-a-z]*(?:\.html)?$/, grupo: 'Planejamento', rotulo: 'Glossário', href: '/planejamento/glossario/' },
-  { re: /\/(?:aula-[0-9]+|captura-aula-[0-9]+|lancamento)(?:\.html)?$/, grupo: 'Aulas', rotulo: 'Aulas', href: '/aulas/' },
+  /* O GRUPO DO DOCUMENTO É ONDE A LISTA MORA, e não o nome da lista. Com «Aulas» dentro da Área
+     do Professor (24/10/2026), o caminho de uma aula diz «Área do Professor · Aulas · Aula 01» —
+     três degraus que se leem de fora para dentro. Dizer «Aulas · Aulas · Aula 01» era o gaguejar
+     que a regra do `repete` já cortava; agora não há o que cortar, porque os degraus diferem. */
+  { re: /\/(?:aula-[0-9]+|captura-aula-[0-9]+|lancamento)(?:\.html)?$/, grupo: 'Área do Professor', rotulo: 'Aulas', href: '/aulas/' },
 ];
 
 /** O caminho sem barra final e sem `.html` — a forma em que as tabelas acima são escritas. */
@@ -377,8 +383,9 @@ function caminhoDaPagina(coluna, pedido, titulo) {
     ? '<a href="' + esc(absoluto(daTabela.href)) + '">' + esc(daTabela.rotulo) + '</a>'
     : '';
   /* «AULAS · AULAS · AULA 01» NÃO É UM CAMINHO, É UM GAGUEJAR. Quando o grupo E a lista têm o
-     mesmo nome — é o caso de «Aulas», que é grupo e destino ao mesmo tempo —, fica só um: o
-     ligado, que é o que serve para voltar. */
+     mesmo nome, fica só um: o ligado, que é o que serve para voltar. Nenhuma das trilhas de hoje
+     cai nisto (o «Aulas» passou para dentro da Área do Professor, 24/10/2026); a guarda fica
+     porque um grupo chamado como a sua lista é um erro de dados que o desenho não deve mostrar. */
   const repete = daTabela && nomeDoGrupo === daTabela.rotulo;
   const partes = [
     (nomeDoGrupo && !repete) ? '<small>' + esc(nomeDoGrupo) + '</small>' : '',

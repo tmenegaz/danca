@@ -280,22 +280,35 @@ async function principal() {
        item de lista: é a MARCA da coluna, que leva à raiz — e um menu que repete a marca na
        lista é um item a dizer o que o topo já diz. */
     const rotulos = [...(menu.coluna || []), ...(menu.barra || [])].map((g) => g.rotulo);
-    for (const grupo of ['Ciclos', 'Aulas', 'Planejamento', 'Área do Professor', 'Bastidores']) {
+    for (const grupo of ['Ciclos', 'Planejamento', 'Área do Professor', 'Bastidores']) {
       checar('o menu tem «' + grupo + '»', rotulos.indexOf(grupo) !== -1, rotulos);
     }
-    checar('«Aulas» é um DESTINO directo, e não um grupo com submenu',
-      (menu.coluna || []).some((g) => g.rotulo === 'Aulas' && g.tipo === 'link'),
+    /* «AULAS» DEIXOU DE SER UM DESTINO DO TOPO (24/10/2026). Ela era um `tipo: 'link'` na coluna
+       — e o mesmo URL aparecia outra vez dentro da Área do Professor. Dois itens para a mesma
+       página: a pesquisadora viu-os como aquilo que eram. A lista ficou dentro do grupo, e a
+       asserção passou a medir isso em vez de medir a existência do destino. */
+    checar('«Aulas» já NÃO é um destino directo no topo da coluna',
+      !(menu.coluna || []).some((g) => g.rotulo === 'Aulas'),
       (menu.coluna || []).filter((g) => g.rotulo === 'Aulas'));
+    checar('…e nenhum grupo da coluna é `tipo: link` (só há grupos a abrir)',
+      (menu.coluna || []).every((g) => g.tipo === 'menu'),
+      (menu.coluna || []).filter((g) => g.tipo !== 'menu').map((g) => g.rotulo));
     checar('«Bastidores» está na BARRA, e não na coluna',
       (menu.barra || []).some((g) => g.rotulo === 'Bastidores')
         && !(menu.coluna || []).some((g) => g.rotulo === 'Bastidores'));
 
     const area = (menu.coluna || []).find((g) => g.rotulo === 'Área do Professor') || { itens: [] };
     const areaRotulos = area.itens.map((i) => i.rotulo);
-    for (const item of ['Anamnese', 'Plano de ensino', 'Plano de Observação', 'Lançamento de aula']) {
+    for (const item of ['Anamnese', 'Plano de ensino', 'Plano de Observação', 'Aulas']) {
       checar('a Área do Professor inclui «' + item + '»',
         areaRotulos.some((r) => r.indexOf(item) === 0), areaRotulos);
     }
+    /* O RÓTULO ANTIGO NÃO VOLTA (24/10/2026). «Lançamento de aula» prometia um formulário e
+       entregava uma lista — as mesmas aulas que o lançamento e a captura servem, uma linha de
+       cada vez. O nome passou a ser o do acervo; o documento (`lancamento.html`) continua a
+       chamar-se «Lançamento de aula — formulário eletrônico», porque ele É o formulário. */
+    checar('…e já não diz «Lançamento de aula» (o item abre a LISTA, não um formulário)',
+      !areaRotulos.some((r) => r.indexOf('Lançamento') === 0), areaRotulos);
     /* E NÃO INCLUI O QUE SAIU — a asserção é INVERTIDA em vez de apagada, porque o que se mede
        continua a ser o mesmo: que o menu não carregue documentos. A harmonização passou a viver
        na Produção (é assunto da direção), e a captura para impressão é uma AÇÃO da linha da
@@ -342,9 +355,12 @@ async function principal() {
       checar(nome + ' tem UMA coluna, e não duas',
         (html.match(/<aside class="coluna"/g) || []).length === 1,
         (html.match(/<aside class="coluna"/g) || []).length);
-      checar(nome + ' tem os quatro destinos de trabalho na coluna',
-        ['Ciclos', 'Aulas', 'Planejamento', 'Área do Professor'].every((g) => titulos.indexOf(g) !== -1),
-        titulos);
+      /* TRÊS GRUPOS DE TRABALHO, e não quatro (24/10/2026): «Aulas» deixou de ser um destino do
+         topo da coluna — ela está DENTRO da Área do Professor, onde o trabalho acontece. O
+         número dos grupos é o do `nav.json`, e não uma lista escrita à mão. */
+      const gruposDeTrabalho = (menu.coluna || []).map((g) => g.rotulo);
+      checar(nome + ' tem os grupos de trabalho do menu na coluna',
+        gruposDeTrabalho.every((g) => titulos.indexOf(g) !== -1), { esperados: gruposDeTrabalho, titulos });
       /* O BASTIDORES ESTÁ NOS DOIS SÍTIOS, E ISSO É A REGRA (23/10/2026). Na BARRA ele é o
          único item do canto direito, e é o que o computador mostra. Na COLUNA ele entra como
          último bloco da FOLHA — sem ele, no telefone ficava inalcançável, porque a lista da
@@ -359,7 +375,7 @@ async function principal() {
         titulos.indexOf('Bastidores') === titulos.length - 1, { coluna: titulos });
       const area2 = destinosDaColuna(html).filter((d) => d.grupo === 'Área do Professor').map((d) => d.rotulo);
       checar(nome + ' tem a Área do Professor com quatro destinos',
-        ['Anamnese do aluno', 'Plano de ensino', 'Plano de Observação', 'Lançamento de aula']
+        ['Anamnese do aluno', 'Plano de ensino', 'Plano de Observação', 'Aulas']
           .every((x) => area2.indexOf(x) !== -1), area2);
     }
 

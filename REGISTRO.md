@@ -23829,3 +23829,57 @@ pétreas.** As cópias de `assets/style.css` da raiz e dos dois pacotes foram re
 **O que ainda não está feito.** O Estúdio de Dança não tem `lateral` — e por isso ganha a coluna do
 sistema também no computador. É o que se quer (era a única página com a barra a valer por menu
 inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
+
+## 24/10/2026 — «Aulas» estava duas vezes no menu, e as duas abriam a mesma página
+
+**O que estava a acontecer.** Abaixo de «Ciclos» havia um «Aulas» — um destino no topo da coluna — e
+dentro de «Área do Professor» havia «Lançamento de aula», a apontar **para o mesmo URL** (`/aulas/`).
+Dois itens, duas promessas diferentes, uma página só. A pesquisadora viu-o assim: «as duas abrem a
+mesma coisa». E o nome de dentro prometia o que não entregava — um formulário — quando o que abre é
+a **lista** das aulas, com o lançamento e a captura para impressão como acções de cada linha.
+
+**A decisão.** O «Aulas» do topo sai; a lista fica onde o trabalho acontece, dentro da Área do
+Professor, e o rótulo de lá passa a ser o do acervo: «Aulas». O formulário `lancamento.html`
+continua a chamar-se «Lançamento de aula — formulário eletrônico» — ele **é** o formulário, e o
+documento diz o que é; quem mudou de nome foi o item do menu, que leva à lista.
+
+**O que isso arrasta, e que não é cosmético.**
+
+- **A coluna perde os destinos directos.** Fica com três grupos que abrem (Ciclos, Planejamento,
+  Área do Professor) e mais o bloco do Bastidores na folha. O contrato do `nav.json` continua a
+  admitir `tipo: 'link'` — `desenharColuna` desenha-o e `grupoAtual` dá-lhe precedência —, e a
+  regra fica: sem ela, o dia em que um destino directo voltar marcaria o grupo errado, em silêncio.
+- **`/aulas/` passou a acender «Área do Professor».** Era o único sítio em que a precedência do
+  destino directo agia; sem o destino, quem responde é o grupo onde a lista mora. É a resposta
+  certa, e é o que a coluna passa a dizer.
+- **O caminho de uma aula ganhou um degrau.** Era «Aulas · Aula 01» — dois, porque o grupo e a lista
+  tinham o mesmo nome e o desenho cortava o repetido. Agora `TRILHA_DO_DOCUMENTO` diz que o grupo
+  da aula é a **Área do Professor**, e o caminho lê-se de fora para dentro: «Área do Professor ·
+  Aulas · Aula 01», com o degrau do meio ligado à lista.
+
+**Onde entrou.** `tools/montar-publicacao.js` (`menuDaEscola`: o `tipo: 'link'` «Aulas» sai, e
+«Lançamento de aula» passa a «Aulas»); `motor/nucleo/nav.js` (a trilha da aula, e os dois
+comentários que davam a precedência do destino directo como exemplo vivo — hoje ela é uma guarda).
+
+**Com o quê.**
+- `node experimentos/provar-navegacao.js` — **63 asserções** (eram 61). As duas que mediam a
+  precedência do destino directo passaram a medir o que a decisão mudou: em `/aulas/` o grupo
+  actual é «Área do Professor», não há destino directo nenhum no topo, a lista está DENTRO do grupo
+  com o rótulo «Aulas», e «Lançamento de aula» já não existe.
+- `node experimentos/provar-barra-unica.js` — **87 asserções** (eram 86). «Aulas é um destino
+  directo» passou a «Aulas já não é um destino directo, e nenhum grupo da coluna é `tipo: link`»;
+  o grupo de trabalho deixou de ser uma lista escrita à mão e passa a ser lida do `nav.json`; e
+  acrescentou-se a asserção invertida do rótulo antigo.
+- `node experimentos/provar-barra-e-caminho.js` — **43 asserções**. O MENU da prova passou a ter a
+  forma de hoje (com a Área do Professor e sem destino directo), e o caminho da aula mede-se nos
+  três degraus. A asserção da ordem dos blocos da folha comparava `lastIndexOf` de dois nomes de
+  classe que vivem no MESMO atributo do mesmo elemento — media a ordem em que estão escritos, não a
+  ordem dos blocos; e, sem destinos directos, teria passado a comparar `-1` com `-1`. Passou a
+  perguntar se há algum grupo de trabalho depois do bloco de fora.
+- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 38/38,
+  `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
+  `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,
+  `provar-contexto-do-ato` 37/37, `check-identidade` 20 sem erro.
+- Medido no browser, com a escola remontada, a 390 e a 1280px: três grupos, zero destinos directos,
+  a folha do celular com quatro blocos e o Bastidores no fim, e o caminho de `/aulas/` a dizer
+  «Área do Professor · Aulas».

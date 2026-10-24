@@ -343,8 +343,9 @@ function documentosDaTurma(pacote) {
  * `nav.json` antigo (só `grupos`) continua a desenhar a barra de sempre.
  */
 function menuDaEscola({ turmas, blocos }) {
-  /* A COLUNA. «Aulas» é `tipo: 'link'` — um destino, sem submenu: as aulas são o acervo que
-     cresce sem parar, e enumerá-las no menu era o que fazia o menu ser um índice. */
+  /* A COLUNA. Cada grupo é `tipo: 'menu'` (um título que abre) ou `tipo: 'link'` (um destino
+     sem submenu). Hoje só há grupos: a lista de aulas deixou de ser um destino próprio e passou
+     a viver dentro da Área do Professor — ver a nota em «Aulas», mais abaixo. */
   const coluna = [];
 
   const temCiclos = turmas.some((t) => t.documentos && (t.documentos.plano || t.documentos.referencias));
@@ -354,10 +355,14 @@ function menuDaEscola({ turmas, blocos }) {
       { rotulo: 'Referências', href: '/ciclos/referencias/' },
     ] });
   }
-  // A LISTA DE AULAS EXISTE SEMPRE que haja turma: ela é a porta do lançamento de aula, e é lá
-  // que a captura para impressão vive. Sem turma, não há aula nenhuma para listar — e o item
-  // apontaria para uma página vazia, que é a versão educada de um menu que mente.
-  if (turmas.length) coluna.push({ tipo: 'link', rotulo: 'Aulas', href: '/aulas/' });
+  /* «AULAS» SAIU DA RAIZ DO MENU (24/10/2026). Ela era um destino no topo da coluna — e havia
+     um segundo «Aulas», dentro da Área do Professor, a apontar para o MESMO endereço. Dois
+     itens para a mesma página não são um atalho: são uma ambiguidade, e a pesquisadora viu-a
+     como aquilo que ela é — «as duas abrem a mesma coisa».
+     A lista ficou no lugar em que o trabalho acontece (a área onde se lança e se imprime a
+     captura), e o rótulo de lá passou a ser «Aulas». O destino continua a existir sempre que
+     haja turma: sem turma não há aula nenhuma para listar, e o item apontaria para uma página
+     vazia, que é a versão educada de um menu que mente. */
 
   const temPlanejamento = turmas.some((t) => {
     const d = t.documentos || {};
@@ -391,7 +396,13 @@ function menuDaEscola({ turmas, blocos }) {
       { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
       { rotulo: 'Plano de ensino', href: '/area-do-professor/plano-de-ensino/' },
       { rotulo: 'Plano de Observação', href: '/area-do-professor/plano-de-observacao/' },
-      { rotulo: 'Lançamento de aula', href: '/aulas/' },
+      /* «AULAS», E NÃO «LANÇAMENTO DE AULA» (24/10/2026). O item abre a LISTA das aulas — as
+         mesmas que a captura para impressão e o lançamento servem, uma linha de cada vez. O
+         nome antigo prometia um formulário e entregava uma lista; e, com o destino do topo da
+         coluna removido, «Aulas» é também o nome que diz onde as aulas estão. O formulário
+         `lancamento.html` continua a chamar-se «Lançamento de aula — formulário eletrônico»:
+         ele é o documento, e o documento diz o que é. */
+      { rotulo: 'Aulas', href: '/aulas/' },
     ] });
   }
 

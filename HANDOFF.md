@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T21:58:25-0300`
-Commit atual: `22f6279` — fix(estrutura): o caminho do lançamento lia o `<h1>` que está dentro do `<style>`
+Gerado em: `2026-10-23T22:19:25-0300`
+Commit atual: `f876ee3` — fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteiro
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -73,6 +73,8 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+f876ee3 fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteiro
+19588a7 style(template): a coluna do sistema sai de cena onde a página tem a sua
 22f6279 fix(estrutura): o caminho do lançamento lia o `<h1>` que está dentro do `<style>`
 b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar entre 769 e 1140
 57d10e2 chore(template): o estado anterior do plano da aula 01, gerado com o pacote
@@ -91,8 +93,6 @@ e8fe27f chore(estrutura): regerar os índices derivados
 e7d9ef0 chore(estrutura): regerar os índices derivados
 3b29ec7 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 e960e48 feat(plano): o plano elicitado vira a fonte do ciclo
-a5388df feat(acervo): envelope/plano-20261023-1124.json
-5ba3a3f feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -188,69 +188,59 @@ a5388df feat(acervo): envelope/plano-20261023-1124.json
 
 ## Última entrada do REGISTRO
 
-## 23/10/2026 — O ☰ dentro da Produção abre o menu do sistema inteiro
+## 24/10/2026 — «Aulas» estava duas vezes no menu, e as duas abriam a mesma página
 
-**O que estava a acontecer.** No telemóvel, a pesquisadora entrou na Produção, e ao reabrir o
-hambúrguer encontrou só o Bastidores — «preciso de ter tudo o que tinha antes de entrar em
-produção». A causa é estreita e vale a pena escrevê-la: a coluna do sistema **já era desenhada em
-toda a parte menos ali**. Suprimi-la no desenho foi a resposta certa para o problema errado — o
-duplo de menus laterais no computador —, e o preço pagou-se abaixo dos 1140, que é exactamente
-onde a folha é a única navegação. Acima disso a Produção tem a sua `lateral`, e duas colunas lado
-a lado dizem duas coisas diferentes sobre onde se está.
+**O que estava a acontecer.** Abaixo de «Ciclos» havia um «Aulas» — um destino no topo da coluna — e
+dentro de «Área do Professor» havia «Lançamento de aula», a apontar **para o mesmo URL** (`/aulas/`).
+Dois itens, duas promessas diferentes, uma página só. A pesquisadora viu-o assim: «as duas abrem a
+mesma coisa». E o nome de dentro prometia o que não entregava — um formulário — quando o que abre é
+a **lista** das aulas, com o lançamento e a captura para impressão como acções de cada linha.
 
-**A divisão nova.** A coluna desenha-se sempre; o duplo resolve-o o CSS, e só onde ele existe: em
-`body:has(.lateral) > .coluna { display: none }` acima dos 1141, com o `padding-left` do `body` e o
-`left` da barra a saírem junto (senão ficava uma faixa de 248px vazia à esquerda, com a barra a
-começar no meio da tela).
+**A decisão.** O «Aulas» do topo sai; a lista fica onde o trabalho acontece, dentro da Área do
+Professor, e o rótulo de lá passa a ser o do acervo: «Aulas». O formulário `lancamento.html`
+continua a chamar-se «Lançamento de aula — formulário eletrônico» — ele **é** o formulário, e o
+documento diz o que é; quem mudou de nome foi o item do menu, que leva à lista.
 
-**E o seletor estava errado, em silêncio.** A primeira versão dizia `body:has(> .lateral)` — filho.
-A `lateral` vive dentro do `.corpo` da página, não pendurada no `body`, e por isso a regra **não
-pegava em nada**. O sintoma era o pior possível: nenhum erro, nenhuma página partida, só duas
-colunas à vista e 248px de margem. Foi encontrado por medição no browser, não por leitura. O
-seletor passou a descendente.
+**O que isso arrasta, e que não é cosmético.**
 
-**O caminho cedeu o lugar à S5.** Com a coluna nos Bastidores, o caminho (`doc-atual`) passaria a
-ser desenhado ao lado da peça que a Produção já tem — o `s5-sessao`, «Produção · Painel inicial»,
-que sobe para a barra quando a página rola. Seriam duas vozes a dizer onde se está. A regra é a
-mesma das duas navegações: quem já respondeu não recebe um segundo dizer. `desenhar()` não desenha
-o caminho quando o bloco da página traz a S5.
+- **A coluna perde os destinos directos.** Fica com três grupos que abrem (Ciclos, Planejamento,
+  Área do Professor) e mais o bloco do Bastidores na folha. O contrato do `nav.json` continua a
+  admitir `tipo: 'link'` — `desenharColuna` desenha-o e `grupoAtual` dá-lhe precedência —, e a
+  regra fica: sem ela, o dia em que um destino directo voltar marcaria o grupo errado, em silêncio.
+- **`/aulas/` passou a acender «Área do Professor».** Era o único sítio em que a precedência do
+  destino directo agia; sem o destino, quem responde é o grupo onde a lista mora. É a resposta
+  certa, e é o que a coluna passa a dizer.
+- **O caminho de uma aula ganhou um degrau.** Era «Aulas · Aula 01» — dois, porque o grupo e a lista
+  tinham o mesmo nome e o desenho cortava o repetido. Agora `TRILHA_DO_DOCUMENTO` diz que o grupo
+  da aula é a **Área do Professor**, e o caminho lê-se de fora para dentro: «Área do Professor ·
+  Aulas · Aula 01», com o degrau do meio ligado à lista.
 
-**Onde entrou.**
-- `motor/nucleo/nav.js` — `desenhar()` deixa de suprimir a coluna nos Bastidores; o caminho
-  cala-se onde a página tem S5; e os comentários que diziam o contrário foram corrigidos (um deles
-  afirmava que o Bastidores não tem coluna, e era a justificação do defeito).
-- `tools/templates/ciclo.css` — a regra do duplo, com o seletor descendente e o porquê escrito ao
-  lado; e a nota do «caminho na barra».
-- `motor/nucleo/lista-html.js` — o `<div class="veu">` duplicado saiu: o véu passou a nascer com a
-  coluna, num sítio só (`desenharColuna`).
-
-**MOTIVO DECLARADO (`tools/` é congelado).** `tools/templates/ciclo.css` mudou: sem a regra do
-duplo, os Bastidores ficariam com duas colunas no computador e com 248px de margem vazia; sem o
-véu a nascer com a coluna, a folha abria sem escurecimento e sem o toque-fora que a fecha. **Nada
-disto toca na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas
-pétreas.** As cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
+**Onde entrou.** `tools/montar-publicacao.js` (`menuDaEscola`: o `tipo: 'link'` «Aulas» sai, e
+«Lançamento de aula» passa a «Aulas»); `motor/nucleo/nav.js` (a trilha da aula, e os dois
+comentários que davam a precedência do destino directo como exemplo vivo — hoje ela é uma guarda).
 
 **Com o quê.**
-- `node experimentos/provar-menu-da-producao.js` — **38 asserções** (eram 26). A secção 3 é nova e
-  mede o pedido: a 390px a página dos Bastidores tem a coluna, o ☰ abre a folha com o menu do
-  sistema **inteiro** (a conta sai do menu, não de um número escrito à mão) e o Bastidores é o
-  último bloco, com um véu só e aceso; a 1280px a coluna não se mostra, o `body` não fica com
-  margem e a `lateral` da Produção continua a ser a navegação. O controle negativo passou a poder
-  apontar para um commit (`REF_NEGATIVO=HEAD~1`): extraído de `HEAD` depois da correção, ele
-  aprovar-se-ia a si próprio. Faltavam-lhe ainda `teste/` e `tools/lib-cifra.js` no `git archive`,
-  e ele morria no `require` antes de medir — um controle que não corre não diz nada.
-- `node experimentos/provar-barra-e-caminho.js` — **43 asserções** (eram 40). A secção 5 dizia «a
-  página dos Bastidores NÃO recebe a coluna»; passou a dizer o contrário, e acrescenta o véu único
-  e as três regras do CSS que hoje fazem o duplo desaparecer. A asserção antiga seria «corrigida»
-  de volta na sessão seguinte por quem não soubesse a razão — a razão está escrita ao lado.
-- Sem regressão: `provar-navegacao` 61/61, `provar-barra-unica` 86/0, `provar-producao` 151/151,
+- `node experimentos/provar-navegacao.js` — **63 asserções** (eram 61). As duas que mediam a
+  precedência do destino directo passaram a medir o que a decisão mudou: em `/aulas/` o grupo
+  actual é «Área do Professor», não há destino directo nenhum no topo, a lista está DENTRO do grupo
+  com o rótulo «Aulas», e «Lançamento de aula» já não existe.
+- `node experimentos/provar-barra-unica.js` — **87 asserções** (eram 86). «Aulas é um destino
+  directo» passou a «Aulas já não é um destino directo, e nenhum grupo da coluna é `tipo: link`»;
+  o grupo de trabalho deixou de ser uma lista escrita à mão e passa a ser lida do `nav.json`; e
+  acrescentou-se a asserção invertida do rótulo antigo.
+- `node experimentos/provar-barra-e-caminho.js` — **43 asserções**. O MENU da prova passou a ter a
+  forma de hoje (com a Área do Professor e sem destino directo), e o caminho da aula mede-se nos
+  três degraus. A asserção da ordem dos blocos da folha comparava `lastIndexOf` de dois nomes de
+  classe que vivem no MESMO atributo do mesmo elemento — media a ordem em que estão escritos, não a
+  ordem dos blocos; e, sem destinos directos, teria passado a comparar `-1` com `-1`. Passou a
+  perguntar se há algum grupo de trabalho depois do bloco de fora.
+- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 38/38,
   `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
   `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,
   `provar-contexto-do-ato` 37/37, `check-identidade` 20 sem erro.
-
-**O que ainda não está feito.** O Estúdio de Dança não tem `lateral` — e por isso ganha a coluna do
-sistema também no computador. É o que se quer (era a única página com a barra a valer por menu
-inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
+- Medido no browser, com a escola remontada, a 390 e a 1280px: três grupos, zero destinos directos,
+  a folha do celular com quatro blocos e o Bastidores no fim, e o caminho de `/aulas/` a dizer
+  «Área do Professor · Aulas».
 
 ## O que está pendente
 

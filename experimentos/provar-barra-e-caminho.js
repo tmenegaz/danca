@@ -45,9 +45,15 @@ function provar(titulo, condicao, detalhe) {
     (condicao ? '' : ' → ' + JSON.stringify(detalhe)));
 }
 
-/* O MENU DA FORMA NOVA, com os quatro destinos de trabalho e o Bastidores na barra. Não é o da
- * `batata` (que ainda não tem turmas, e por isso não tem coluna): é a forma que a escola tem no
- * dia em que ganha a primeira turma. */
+/* O MENU DA FORMA NOVA, grupo a grupo, e o Bastidores na barra. Não é o da `batata` (que ainda
+ * não tem turmas, e por isso não tem coluna): é a forma que a escola tem no dia em que ganha a
+ * primeira turma.
+ *
+ * SEM DESTINO DIRECTO (24/10/2026). A coluna tinha um `tipo: 'link'` «Aulas» no topo, e a mesma
+ * lista aparecia outra vez dentro da Área do Professor. A do topo saiu: dois itens para a mesma
+ * página não são um atalho, são uma ambiguidade. O contrato continua a admitir `tipo: 'link'`
+ * (`desenharColuna` desenha-o, e `grupoAtual` dá-lhe precedência) — mas a forma de hoje não o
+ * usa, e a prova passou a medir a forma de hoje. */
 const MENU = {
   versao: 2,
   coluna: [
@@ -55,10 +61,15 @@ const MENU = {
       { rotulo: 'Planos', href: '/ciclos/planos/' },
       { rotulo: 'Referências', href: '/ciclos/referencias/' },
     ] },
-    { tipo: 'link', rotulo: 'Aulas', href: '/aulas/' },
     { tipo: 'menu', rotulo: 'Planejamento', itens: [
       { rotulo: 'Glossário', href: '/planejamento/glossario/' },
       { rotulo: 'Notação', href: '/planejamento/notacao/' },
+    ] },
+    { tipo: 'menu', rotulo: 'Área do Professor', itens: [
+      { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
+      { rotulo: 'Plano de ensino', href: '/area-do-professor/plano-de-ensino/' },
+      { rotulo: 'Plano de Observação', href: '/area-do-professor/plano-de-observacao/' },
+      { rotulo: 'Aulas', href: '/aulas/' },
     ] },
   ],
   barra: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
@@ -152,12 +163,14 @@ console.log('\n3 · O caminho diz de onde se veio, e o degrau do meio leva de vo
   provar('…e em ambas o degrau do meio leva às referências',
     /href="\/ciclos\/referencias\/"/.test(comHtml), comHtml);
 
-  /* «AULAS · AULAS · AULA 01» NÃO É UM CAMINHO. O grupo e o destino têm o mesmo nome, e o
-     degrau repetido fica só uma vez — o ligado, que serve para voltar. */
+  /* O CAMINHO DE UMA AULA LEVA TRÊS DEGRAUS, E O DO MEIO É A LISTA DE AULAS (24/10/2026). Antes
+     dizia «Aulas · Aula 01» — dois, porque o grupo e a lista tinham o mesmo nome e o desenho
+     cortava o repetido. Com a lista dentro da Área do Professor, os degraus diferem e o caminho
+     passa a dizer de onde se veio: o grupo, a lista (ligada), o documento. */
   const aula = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/aula-01', 'Aula 01');
-  provar('o grupo e a lista com o mesmo nome não se repetem',
-    lerCaminho(aula) === '|Aulas|Aula 01|', lerCaminho(aula));
-  provar('…e o que fica é a ligação para a lista', /<a href="\/aulas\/">Aulas<\/a>/.test(aula), aula);
+  provar('o caminho de uma aula é «Área do Professor · Aulas · Aula 01»',
+    lerCaminho(aula) === '|Área do Professor|Aulas|Aula 01|', lerCaminho(aula));
+  provar('…e o degrau do meio é a ligação para a lista', /<a href="\/aulas\/">Aulas<\/a>/.test(aula), aula);
 
   /* O PLANO DO CICLO É O CASO MAIS DELICADO: o `<h1>` diz «Plano do Ciclo 01», e a lista é
      «Planos». Quem abre o plano pelo cartão da lista tem de poder voltar a ela. */
@@ -229,8 +242,18 @@ console.log('\n6 · A folha leva o Bastidores, e o computador não o duplica');
   const html = nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' });
   const folha = (html.match(/<aside class="coluna"[\s\S]*?<\/aside>/) || [''])[0];
   provar('o Bastidores está dentro da folha', /Bastidores/.test(folha), folha.length);
+  /* O ÚLTIMO BLOCO É O DE FORA. A comparação era com `coluna-direto`, e deixou de medir nada no
+     dia em que a coluna ficou sem destinos directos: `lastIndexOf` devolveria `-1` para os dois
+     lados e a asserção passava por omissão — a armadilha de sempre, uma prova que não mede nada
+     e por isso não falha. Compara-se com o último GRUPO, que existe sempre. */
+  /* A MEDIDA É «NÃO HÁ NENHUM GRUPO DE TRABALHO DEPOIS DELE», e não uma comparação de
+     `lastIndexOf` de nomes de classe: o bloco de fora traz DUAS (`coluna-fora coluna-grupo`), e
+     a segunda ocorrência de «coluna-grupo» está dentro do próprio bloco de fora — comparar as
+     posições dos dois nomes media a ordem em que eles estão escritos no atributo, não a ordem
+     dos blocos na página. O `class="coluna-grupo"` exacto só casa o grupo comum. */
   provar('…depois da coluna, no fim (é o último bloco)',
-    folha.lastIndexOf('coluna-fora') > folha.lastIndexOf('coluna-direto'), true);
+    folha.lastIndexOf('coluna-fora') > folha.lastIndexOf('class="coluna-grupo"'),
+    { fora: folha.lastIndexOf('coluna-fora'), ultimoGrupo: folha.lastIndexOf('class="coluna-grupo"') });
   provar('…e marcado como bloco de fora (é o que o CSS separa e esconde na coluna)',
     /class="coluna-fora coluna-grupo"/.test(folha), (folha.match(/class="coluna-[a-z-]+[^"]*"/g) || []).join(' '));
   provar('…com os dois destinos dele', (folha.match(/\/bastidores\//g) || []).length === 2,
