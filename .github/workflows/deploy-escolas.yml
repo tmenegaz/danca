@@ -170,6 +170,18 @@ jobs:
       # menu a anuncia. Ela vive em `/propostas/`, é autossuficiente (CSS embutido) e sai na
       # primeira montagem sem a opção. Nada disto toca em conteúdo de ciclo, na âncora, nas
       # regras ou nas pétreas.
+      # AS PÁGINAS DAS BANCADAS SÃO GERADAS — e não estão no Git (`experimentos/propostas/*`).
+      #
+      # Sem este passo, o `--com-propostas` abaixo avisa «pedido sem propostas montadas» e segue
+      # sem elas: num checkout limpo a pasta só tem o construtor. Aconteceu no primeiro deploy
+      # desta opção, e o aviso do próprio `montar-publicacao.js` disse qual era a linha que
+      # faltava — degradar com uma mensagem certa custou um deploy, em vez de uma sessão.
+      - name: Construir as bancadas de layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          node experimentos/propostas/construir.js
+
       - name: Montar o site de ${{ matrix.escola }}
         shell: bash
         run: |
