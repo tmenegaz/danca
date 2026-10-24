@@ -19,6 +19,10 @@
  *   4. **Dois menus laterais.** Os Bastidores passaram a ter a coluna do sistema E a sua
  *      (`<nav class="lateral">`), lado a lado.
  *
+ * E O QUE MUDOU DEPOIS (23/10/2026, o mesmo dia, mais tarde): a coluna deixou de ser suprimida
+ * no DESENHO e passou a ser suprimida no CSS, acima dos 1140. Suprimi-la no desenho custava a
+ * folha do telemóvel — dentro da Produção o ☰ abria só o Bastidores.
+ *
  * E O QUE MUDOU DE PROPÓSITO: o caminho passou a ter três degraus — `Ciclos · Referências ·
  * Referências Bibliográficas` —, com o degrau do meio LIGADO à lista de onde o documento veio.
  * É o lastro: quem entrou no documento por ela sabe por onde voltar.
@@ -184,17 +188,36 @@ console.log('\n4 · O Bastidores encosta à direita, e não anda com o texto');
     /<nav class="topnav" data-menu="coluna"/.test(barra), (barra || '').slice(0, 60));
 }
 
-console.log('\n5 · Os Bastidores não têm dois menus laterais');
+console.log('\n5 · Os Bastidores têm a coluna, e continuam a não ter dois menus laterais');
 {
+  /* A REGRA INVERTEU-SE DE PROPÓSITO (23/10/2026), e o porquê é o telemóvel: abaixo dos 1140 a
+     lista da barra não se mostra, e quem navega é a folha. Sem coluna, a folha não existia — e a
+     pesquisadora abria o ☰ dentro da Produção e só tinha o Bastidores. A coluna passa a ser
+     desenhada em TODO o lado; o duplo no computador resolve-se no CSS. */
   const nosBastidores = nav.desenhar(MENU, '/bastidores/producao', { extras: '', titulo: 'Produção' });
-  provar('a página dos Bastidores NÃO recebe a coluna do sistema',
-    !/class="coluna"/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
-  /* MAS A BARRA CONTINUA. A coluna saiu; o menu da barra (o Bastidores) não. Sem esta asserção,
-     tirar a coluna podia ter levado a barra consigo — e a página ficava sem navegação nenhuma. */
+  provar('a página dos Bastidores RECEBE a coluna do sistema — é ela que o ☰ abre no telemóvel',
+    /class="coluna"/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
   provar('…e a barra continua lá, com o Bastidores',
     /class="topnav"/.test(nosBastidores) && /Bastidores/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
+  /* UM VÉU, E NÃO DOIS. Ele nasce com a coluna; se nascesse também na página, ficavam dois
+     `pointer-events` sobrepostos e o toque-fora deixava de ser um só. */
+  provar('…com um véu só (o que nasce com a coluna)',
+    (nosBastidores.match(/class="veu"/g) || []).length === 1,
+    (nosBastidores.match(/class="veu"/g) || []).length);
   provar('a página de trabalho continua a ter a coluna',
     /class="coluna"/.test(nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' })), true);
+
+  /* O DUPLO NO COMPUTADOR É DO CSS, e a regra tem de existir: onde a página tem a sua própria
+     coluna, a do sistema sai de cena acima dos 1140 — com o afastamento do `body` e o `left` da
+     barra, senão ficava uma faixa de 248px vazia à esquerda.
+     O SELETOR É DESCENDENTE. Com `> .lateral` ele não pegava em nada (a `lateral` vive dentro do
+     `.corpo`), e o sintoma era silencioso: duas colunas e 248px de margem. */
+  const folhaCss = fs.readFileSync(path.join(raiz, 'tools/templates/ciclo.css'), 'utf8');
+  provar('o CSS esconde a coluna do sistema onde há `lateral`',
+    /body:has\(\.lateral\) > \.coluna \{ display: none; \}/.test(folhaCss), 'regra ausente');
+  provar('…e sem ela não fica a faixa de 248px',
+    /body:has\(\.lateral\) \{ padding-left: 0; \}/.test(folhaCss)
+    && /body:has\(\.lateral\) \.topnav \{ left: 0; \}/.test(folhaCss), 'regra ausente');
 
   const bastidores = fs.readFileSync(path.join(raiz, 'motor/servidor/bastidores.js'), 'utf8');
   provar('a lateral da Produção tem um caminho de volta ao sistema',

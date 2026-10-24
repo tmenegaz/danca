@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T21:41:22-0300`
-Commit atual: `57d10e2` — chore(template): o estado anterior do plano da aula 01, gerado com o pacote
+Gerado em: `2026-10-23T21:58:25-0300`
+Commit atual: `22f6279` — fix(estrutura): o caminho do lançamento lia o `<h1>` que está dentro do `<style>`
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -73,6 +73,8 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+22f6279 fix(estrutura): o caminho do lançamento lia o `<h1>` que está dentro do `<style>`
+b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar entre 769 e 1140
 57d10e2 chore(template): o estado anterior do plano da aula 01, gerado com o pacote
 1344402 fix(template): a folha do pacote novo, e a prova que contava duas turmas à mão
 95e4ecf fix(estrutura): o caminho diz de onde se veio, o «true» sai do endereço, e a barra fixa o Bastidores
@@ -91,8 +93,6 @@ e7d9ef0 chore(estrutura): regerar os índices derivados
 e960e48 feat(plano): o plano elicitado vira a fonte do ciclo
 a5388df feat(acervo): envelope/plano-20261023-1124.json
 5ba3a3f feat(acervo): envelope/.indice.json
-588a523 chore(estrutura): reancorar a cadeia das fontes alteradas
-abc9323 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -188,98 +188,71 @@ abc9323 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 23/10/2026 — O Bastidores chega à folha do celular, e o título deixa de ser lido no comentário do CSS
+## 23/10/2026 — O ☰ dentro da Produção abre o menu do sistema inteiro
 
-**O que motivou.** Duas coisas, as duas vistas no celular.
+**O que estava a acontecer.** No telemóvel, a pesquisadora entrou na Produção, e ao reabrir o
+hambúrguer encontrou só o Bastidores — «preciso de ter tudo o que tinha antes de entrar em
+produção». A causa é estreita e vale a pena escrevê-la: a coluna do sistema **já era desenhada em
+toda a parte menos ali**. Suprimi-la no desenho foi a resposta certa para o problema errado — o
+duplo de menus laterais no computador —, e o preço pagou-se abaixo dos 1140, que é exactamente
+onde a folha é a única navegação. Acima disso a Produção tem a sua `lateral`, e duas colunas lado
+a lado dizem duas coisas diferentes sobre onde se está.
 
-1. **O Bastidores era inalcançável no telefone.** No computador ele fica sozinho na ponta direita
-   da barra, e está certo. Mas abaixo dos 1140 a barra esconde a lista — quem navega é a folha —,
-   e a folha só tinha os quatro destinos de trabalho. Na página inicial, a pesquisadora não tinha
-   como chegar ao Estúdio nem à Produção.
-2. **O lançamento de aula saía com o caminho quebrado.** Debaixo da barra, em texto normal, lia-se
-   `DEBAIXO da barra fixa. */ padding: var(--header-height) 20px 40px; } h1 { color: var(--ma…`.
+**A divisão nova.** A coluna desenha-se sempre; o duplo resolve-o o CSS, e só onde ele existe: em
+`body:has(.lateral) > .coluna { display: none }` acima dos 1141, com o `padding-left` do `body` e o
+`left` da barra a saírem junto (senão ficava uma faixa de 248px vazia à esquerda, com a barra a
+começar no meio da tela).
 
-**O que era cada um.**
+**E o seletor estava errado, em silêncio.** A primeira versão dizia `body:has(> .lateral)` — filho.
+A `lateral` vive dentro do `.corpo` da página, não pendurada no `body`, e por isso a regra **não
+pegava em nada**. O sintoma era o pior possível: nenhum erro, nenhuma página partida, só duas
+colunas à vista e 248px de margem. Foi encontrado por medição no browser, não por leitura. O
+seletor passou a descendente.
 
-- **O Bastidores.** Ele passa a ser o ÚLTIMO bloco da folha, depois da Área do Professor, com um
-  filete acima que diz «daqui para baixo é outra natureza» — ele não é trabalho de sala, é a
-  escola a olhar-se. Na coluna do computador ele **não** aparece: lá está na barra, e o mesmo
-  destino em dois sítios a começar pelo errado é pior do que um só. Quem o esconde é o CSS
-  (`.coluna .coluna-fora { display: none }`) — é o **mesmo HTML** para as duas formas, e é a
-  largura que decide qual está em vigor.
-
-- **O `<h1>` no comentário.** O `lancamento.html` tem, dentro do `<style>`, um comentário que
-  explica o `--header-height` e que diz «punha o `<h1>` DEBAIXO da barra fixa». `tituloDaPagina()`
-  procurava `<h1>` com uma expressão regular sobre o documento **inteiro** — encontrava aquele, e
-  levava tudo até ao `</h1>` verdadeiro, 1400 caracteres abaixo. O `<style>` e o `<script>` passam
-  a sair antes da procura: um `<h1>` lá dentro não é um título, é texto de outro tipo.
-
-  E o título passou a ser o **NOME**, não o nome com a sua explicação. O `<h1>` de um documento do
-  pacote costuma trazer as duas separadas por travessão — «Lançamento de aula — formulário
-  eletrônico», «Plano do Ciclo 01 — batata», «Aula 01 — reconhecer o apoio e alinhar o eixo
-  vertical». A barra é um caminho, não uma ficha: nela cabe o nome. O que fica depois do travessão
-  não se perde — está no `<h1>` da página e no título da aba. «Lançamento de aula» é o que a
-  pesquisadora pediu, e sai dos quatro casos.
-
-**O buraco que apareceu ao medir, e que era pior do que os dois.**
-Entre **769 e 1140px** a navegação não existia. O `nav.js` do cliente usa o corte dos 1140 para
-dizer que o ☰ abre a FOLHA; o CSS só mostrava o ☰ abaixo dos 768, e só abaixo dos 768 escondia a
-lista da barra. Nessa faixa de 371px a página ficava com a barra a mostrar só o Bastidores, o ☰
-escondido, e a folha — os quatro destinos — inalcançável. Um tablet, ou uma janela de computador a
-meia largura, não saía da página em que estava. A condição é `body:has(> .coluna)` e não a forma da
-barra: nos Bastidores a barra é a mesma mas não há coluna, e lá o ☰ tem de continuar a abrir o
-painel de sempre.
+**O caminho cedeu o lugar à S5.** Com a coluna nos Bastidores, o caminho (`doc-atual`) passaria a
+ser desenhado ao lado da peça que a Produção já tem — o `s5-sessao`, «Produção · Painel inicial»,
+que sobe para a barra quando a página rola. Seriam duas vozes a dizer onde se está. A regra é a
+mesma das duas navegações: quem já respondeu não recebe um segundo dizer. `desenhar()` não desenha
+o caminho quando o bloco da página traz a S5.
 
 **Onde entrou.**
-- `motor/nucleo/nav.js` — `desenharColuna()` recebe a `barra` e desenha-a no fim da folha, marcada
-  com `coluna-fora`; `tituloDaPagina()` tira `<style>`/`<script>` antes de procurar o `<h1>`, e
-  corta no primeiro travessão; `paraTexto()` (novo) faz a limpeza de tags e entidades num sítio só.
-- `tools/templates/ciclo.css` — o bloco `coluna-fora` (filete, e escondido na coluna do
-  computador); e o ☰ visível em toda a largura em que a folha existe.
+- `motor/nucleo/nav.js` — `desenhar()` deixa de suprimir a coluna nos Bastidores; o caminho
+  cala-se onde a página tem S5; e os comentários que diziam o contrário foram corrigidos (um deles
+  afirmava que o Bastidores não tem coluna, e era a justificação do defeito).
+- `tools/templates/ciclo.css` — a regra do duplo, com o seletor descendente e o porquê escrito ao
+  lado; e a nota do «caminho na barra».
+- `motor/nucleo/lista-html.js` — o `<div class="veu">` duplicado saiu: o véu passou a nascer com a
+  coluna, num sítio só (`desenharColuna`).
 
-**MOTIVO DECLARADO (`tools/` é congelado).** `tools/templates/ciclo.css` mudou: sem ele o ☰ não
-existe entre 769 e 1140, e o Bastidores apareceria também na coluna do computador. **Nada disto
-toca na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas pétreas.** As
-cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
+**MOTIVO DECLARADO (`tools/` é congelado).** `tools/templates/ciclo.css` mudou: sem a regra do
+duplo, os Bastidores ficariam com duas colunas no computador e com 248px de margem vazia; sem o
+véu a nascer com a coluna, a folha abria sem escurecimento e sem o toque-fora que a fecha. **Nada
+disto toca na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas
+pétreas.** As cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
 
 **Com o quê.**
-- `node experimentos/provar-barra-e-caminho.js` — **40 asserções** (eram 26). Duas secções novas: o
-  Bastidores dentro da folha, no fim, com filete, e escondido na coluna do computador; e o título —
-  o `<h1>` do comentário recusado, o travessão cortado nos quatro casos, e o `lancamento.html` **de
-  verdade** medido (se ele não existir, a asserção reprova em vez de passar por omissão).
-- `node experimentos/provar-navegacao.js` — **61 asserções** (eram 53): o último item da folha é o
-  Bastidores; o filete; os dois destinos; e o ☰ a existir com a lista escondida a **820 e a 1100px**
-  — o buraco, medido nas duas pontas.
-- `provar-barra-unica` — **86 asserções**. A asserção «o Bastidores está na barra e NÃO na coluna»
-  passou a guardar o contrário, com a razão escrita ao lado: ele está nos dois sítios, e é o CSS
-  que decide qual se vê. Sem isso, a próxima sessão «corrigia-a» de volta.
-- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 26/26, `provar-celular`
-  15/15, `provar-titulo-e-barra` OK, `provar-sessao-na-barra` 28/28, `check-identidade` 20 sem erro.
-- Medido no browser: o caminho do lançamento fica «Aulas · Lançamento de aula» a **390 e a 1280px**,
-  sem estouro e sem corte.
+- `node experimentos/provar-menu-da-producao.js` — **38 asserções** (eram 26). A secção 3 é nova e
+  mede o pedido: a 390px a página dos Bastidores tem a coluna, o ☰ abre a folha com o menu do
+  sistema **inteiro** (a conta sai do menu, não de um número escrito à mão) e o Bastidores é o
+  último bloco, com um véu só e aceso; a 1280px a coluna não se mostra, o `body` não fica com
+  margem e a `lateral` da Produção continua a ser a navegação. O controle negativo passou a poder
+  apontar para um commit (`REF_NEGATIVO=HEAD~1`): extraído de `HEAD` depois da correção, ele
+  aprovar-se-ia a si próprio. Faltavam-lhe ainda `teste/` e `tools/lib-cifra.js` no `git archive`,
+  e ele morria no `require` antes de medir — um controle que não corre não diz nada.
+- `node experimentos/provar-barra-e-caminho.js` — **43 asserções** (eram 40). A secção 5 dizia «a
+  página dos Bastidores NÃO recebe a coluna»; passou a dizer o contrário, e acrescenta o véu único
+  e as três regras do CSS que hoje fazem o duplo desaparecer. A asserção antiga seria «corrigida»
+  de volta na sessão seguinte por quem não soubesse a razão — a razão está escrita ao lado.
+- Sem regressão: `provar-navegacao` 61/61, `provar-barra-unica` 86/0, `provar-producao` 151/151,
+  `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
+  `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,
+  `provar-contexto-do-ato` 37/37, `check-identidade` 20 sem erro.
 
-**O que ainda não está feito.**
-- O comentário do `<style>` que contém um `<h1>` literal **continua lá**. A correcção foi no
-  extractor, que é o sítio certo — mas o comentário é uma armadilha para a próxima ferramenta que
-  leia o documento inteiro. Fica anotado, não corrigido, para não mexer no template sem necessidade.
-- O mesmo vale para `provar-titulo-e-barra`: ela mede o `<h1>` da página por `MEDIR_TITULO`, que lê
-  o DOM (e não o HTML), por isso nunca apanhou este defeito. É a diferença entre medir a página
-  renderizada e medir o documento em bruto — e o defeito vivia no segundo.
+**O que ainda não está feito.** O Estúdio de Dança não tem `lateral` — e por isso ganha a coluna do
+sistema também no computador. É o que se quer (era a única página com a barra a valer por menu
+inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
 
 ## O que está pendente
-
-## 23/10/2026 — A escolha de turma antes do formulário, e a harmonização sai do site
-
-- **A harmonização não está acessível em sítio nenhum da interface.** Está no repositório
-  (`professores/…/harmonizacao.html`, coberto pela âncora) e fora do site. O desenho para a levar à
-  Produção está em `PLANO-NAVEGACAO.md` §9, e tem três perguntas por responder — a primeira é
-  *quem vê o quê*, porque o `producao.js` não tem autenticação de página.
-- **A ponte turma do KV ↔ variante do pacote não existe.** A variante nasce na escrita
-  (`compor-conf.js`: `escola + '-' + turma.id`), não na leitura. É o que impede a Produção de ligar
-  a uma turma o pacote dela.
-- A paginação da lista de aulas **não é por turma**: ela pagina o conjunto já filtrado.
-- O estado de uma turma (curadoria · PO · ciclo · anamnese · Benesh · aula · harmonização) continua
-  a ser lido à mão; §9.1 do plano diz de onde cada um sairia sem campo novo.
 
 ## 23/10/2026 — A curadoria não se atribui incompleta: cinco campos, e a regra é uma só
 
@@ -326,6 +299,12 @@ cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
 - O mesmo vale para `provar-titulo-e-barra`: ela mede o `<h1>` da página por `MEDIR_TITULO`, que lê
   o DOM (e não o HTML), por isso nunca apanhou este defeito. É a diferença entre medir a página
   renderizada e medir o documento em bruto — e o defeito vivia no segundo.
+
+## 23/10/2026 — O ☰ dentro da Produção abre o menu do sistema inteiro
+
+O Estúdio de Dança não tem `lateral` — e por isso ganha a coluna do
+sistema também no computador. É o que se quer (era a única página com a barra a valer por menu
+inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
 
 ## Pendências anteriores (índice)
 
@@ -602,6 +581,7 @@ cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
 - **22/10/2026** — A escola recriada pertence a quem a recriou → `REGISTRO.md` L23065
 - **23/10/2026** — O job do índice reescrevia o commit do vizinho, e o push… → `REGISTRO.md` L23127
 - **23/10/2026** — O menu deixa de contar documentos: doze destinos, e a lista… → `REGISTRO.md` L23185
+- **23/10/2026** — A escolha de turma antes do formulário, e a harmonização… → `REGISTRO.md` L23280
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

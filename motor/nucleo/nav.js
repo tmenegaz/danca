@@ -127,19 +127,27 @@ function desenhar(menu, pedido, extras) {
   const bloco = (extras && typeof extras === 'object') ? (extras.extras || '') : (extras || '');
   const titulo = (extras && typeof extras === 'object') ? (extras.titulo || '') : '';
 
-  /* OS BASTIDORES NÃO TÊM A COLUNA DO SISTEMA (23/10/2026). Eles têm a SUA — a lista de
-     secções da Produção (`<nav class="lateral">`, no `bastidores.js`), que é o menu daquela
-     página. Desenhar as duas dava dois menus laterais lado a lado, cada um a dizer uma coisa
-     diferente sobre onde se está. A regra é a mesma das duas navegações: o que muda é QUAL
-     delas está em vigor, e o Bastidores é o único sítio em que a da página toma o lugar da do
-     sistema. A volta é um «← Sistema Lastro» no alto da lista de secções. */
-  const nosBastidores = /^\/bastidores(?:\/|$)/.test(String(pedido || ''));
-  /* A FORMA DO MENU E O DESENHO DA COLUNA SÃO DUAS PERGUNTAS, e por isso são duas variáveis.
-     Juntá-las (era uma só) fazia o menu da forma nova cair no `menu.grupos` — que ele não tem —
-     no instante em que a coluna deixasse de se desenhar. O sintoma seria a barra a desaparecer
-     nos Bastidores, e não a coluna a sair. */
   const daFormaNova = Array.isArray(menu.coluna) && menu.coluna.length > 0;
-  const coluna = (!nosBastidores && daFormaNova) ? menu.coluna : null;
+  /* A COLUNA DESENHA-SE EM TODAS AS PÁGINAS — inclusive nos Bastidores (23/10/2026).
+   *
+   * Ela já foi suprimida aqui, e a razão era boa: a Produção tem a SUA coluna (a lista de
+   * secções), e duas colunas lado a lado diziam duas coisas diferentes sobre onde se está.
+   * Mas o remédio era pior do que o mal no TELEMONE: a lista da barra não se mostra abaixo dos
+   * 1140, e quem navega é a folha — que passou a abrir só com o Bastidores. A pesquisadora
+   * descreveu-o assim: «abro o hamburger de novo e só tenho bastidores; preciso de ter tudo o
+   * que tinha antes de entrar em produção».
+   *
+   * Agora a coluna é desenhada sempre, e quem resolve o duplo no COMPUTADOR é o CSS: onde a
+   * página tem a sua própria coluna (`body:has(.lateral)`), a do sistema não se mostra acima
+   * dos 1140. É o mesmo HTML para as duas formas — a largura decide —, que é a regra que a
+   * folha já segue desde o princípio.
+   *
+   * E A BARRA DOS BASTIDORES PASSA A SER A MESMA DE TODA A GENTE. Ela já vinha a ser desenhada
+   * daqui — mas sem coluna, a lista que sobrava era só o grupo do Bastidores, que abaixo dos
+   * 1140 se abria num acordeão. Era isso que faltava: com a coluna, o ☰ da Produção abre a
+   * folha inteira, e o grupo do Bastidores entra no fim dela como último bloco.
+   */
+  const coluna = daFormaNova ? menu.coluna : null;
   // Sem `coluna`, o menu é o de sempre: `grupos`. Com `coluna`, a barra fica só com o que o
   // autor pôs em `barra` — e o `grupos` deixa de ser lido, para não haver duas listas vivas.
   const gruposDaBarra = daFormaNova ? (Array.isArray(menu.barra) ? menu.barra : []) : menu.grupos;
@@ -195,7 +203,14 @@ function desenhar(menu, pedido, extras) {
    * ciclo» sem dizer de que parte do sistema é; os dois juntos dizem «Ciclos · Planos do ciclo».
    * O `·` é do desenho (`small::after`), e não do texto — para a leitura de ecrã não colar as
    * duas palavras numa só. */
-  const caminho = (coluna && titulo) ? caminhoDaPagina(coluna, pedido, titulo) : '';
+  /* A PÁGINA QUE JÁ DIZ ONDE ESTÁ NÃO GANHA UM SEGUNDO DIZER (23/10/2026). A Produção traz, na
+   * própria barra, a S5 — `Produção · Painel inicial` —, que sobe e se acende quando a página
+   * rola (`sessaoNaBarra()`, no `bastidores.js`). Com o caminho desenhado ao lado dela, o
+   * telemóvel passaria a dizer a mesma coisa duas vezes: «Produção» à esquerda e «Produção ·
+   * Painel inicial» ao centro, no instante em que se rola. O caminho é a resposta de quem NÃO
+   * tem essa peça; quem tem, já respondeu. */
+  const jaDizOndeEsta = /s5-sessao/.test(String(bloco));
+  const caminho = (coluna && titulo && !jaDizOndeEsta) ? caminhoDaPagina(coluna, pedido, titulo) : '';
   const antesDoBotao = [bloco, caminho].filter(Boolean).join('\n  ');
   const abertura = antesDoBotao
     ? ABERTURA.replace('  <button class="hamburger"', antesDoBotao + '\n  <button class="hamburger"')
@@ -204,9 +219,10 @@ function desenhar(menu, pedido, extras) {
   /* A BARRA DECLARA A SUA FORMA (23/10/2026). O CSS precisa de saber se está perante o menu de
      destinos — onde a lista é só o Bastidores e ele encosta à direita — ou a barra de sempre,
      onde a lista É o menu e alinhá-la à direita deixaria um vazio depois da marca.
-     A pergunta não pode ser feita com `body:has(> .coluna)`: nos Bastidores a coluna do sistema
-     NÃO se desenha, mas a barra é a mesma — e o Bastidores saltava para o lado da marca só
-     naquela página. A forma é do desenho, e é o desenho que a declara. */
+     A pergunta não pode ser feita com `body:has(> .coluna)`: na página onde a coluna existe mas
+     está escondida pelo CSS (os Bastidores, acima dos 1140) a lista continua a ser só o
+     Bastidores, e alinhá-la à direita ali é o certo. A forma é do desenho, e é o desenho que a
+     declara. */
   if (daFormaNova) barra = barra.replace('<nav class="topnav"', '<nav class="topnav" data-menu="coluna"');
   return coluna ? desenharColuna(coluna, pedido, menu.barra) + barra : barra;
 }
@@ -280,11 +296,19 @@ function desenharColuna(coluna, pedido, barra) {
   }).filter(Boolean);
 
   const corpo = partes.concat(daBarra).join('\n');
+  /* O VÉU NASCE COM A COLUNA (23/10/2026). Ele estava só nas páginas de lista, e por isso a
+     raiz da escola e os Bastidores abriam a folha SEM véu — sem o escurecimento e, pior, sem o
+     toque-fora que a fecha (quem fecha é o véu, no `nav.js` do cliente). Uma peça que a coluna
+     precisa para funcionar tem de nascer com ela: um sítio, e não uma linha a lembrar em cada
+     construtor de página.
+     Ele fica FORA do `<aside>`: a coluna é `overflow-y:auto`, e um véu lá dentro rolaria com o
+     conteúdo e ficaria recortado pelo canto arredondado da folha. */
   return '<aside class="coluna" id="coluna-proposta" data-aberta="nao" aria-label="Navegação do sistema">\n'
     + '  <span class="coluna-puxador" aria-hidden="true"></span>\n'
     + '  <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
     + '  <nav>\n' + corpo + '\n  </nav>\n'
-    + '</aside>\n';
+    + '</aside>\n'
+    + '<div class="veu" aria-hidden="true"></div>\n';
 }
 
 /**
@@ -483,7 +507,10 @@ function aplicar(html, menu, pedido) {
    * coluna E a barra, mas o `<nav>` é o único que se substitui — sem esta linha, cada passagem
    * deixaria a coluna antiga ao lado da nova. Acontece a sério: a montagem reescreve as páginas
    * e a ponte volta a reescrevê-las ao servir. */
-  const limpo = texto.replace(/<aside class="coluna"[\s\S]*?<\/aside>\s*/, '');
+  /* O VÉU VAI COM A COLUNA. Eles nascem juntos (ver `desenharColuna`) e saem juntos: sem isto,
+   * cada passagem deixaria um véu órfão a mais — e três véus empilhados não são três vezes mais
+   * escuros, são um `pointer-events:auto` a mais sobre a página inteira. */
+  const limpo = texto.replace(/<aside class="coluna"[\s\S]*?<\/aside>\s*(?:<div class="veu"[^>]*><\/div>\s*)?/, '');
   const doLimpo = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(limpo);
   if (!doLimpo) return null;
   /* O bloco da página é lido do `<nav>` que está lá antes de ser substituído. */

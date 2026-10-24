@@ -26,6 +26,9 @@
  *   5. `Escape` fecha; e a rolagem do fundo volta ao normal quando ela fecha (o
  *      `overflow:hidden` do `body` não pode ficar preso);
  *   6. a barra diz o GRUPO e a PÁGINA — «Curadorias» sozinho não diz que é de Pedagogia.
+ *   7. a coluna do SISTEMA também existe nos Bastidores, e o ☰ abre a folha com o menu
+ *      inteiro (e o Bastidores no fim); no computador ela não se mostra, e não fica a faixa de
+ *      248px — ver o pedido de 24/10/2026 no comentário da secção 3.
  *
  * CONTROLE NEGATIVO: `--controle-negativo` extrai o `motor/` de `HEAD` com `git archive` e
  * roda as MESMAS provas. A página de antes não tem o botão nem a folha: se passasse, não
@@ -58,7 +61,7 @@ function pagina(motor) {
   return b.paginaProducao('valse', CONTEXTO, [], [], 'Tiago Menegaz', 'tiago-menegaz', [], [], [], [], [], []);
 }
 
-function servir(html) {
+function servir(html, outras) {
   const srv = http.createServer((req, res) => {
     const caminho = decodeURIComponent(req.url).split('?')[0];
     const ok = (tipo, corpo) => {
@@ -70,6 +73,7 @@ function servir(html) {
     if (caminho.endsWith('/assets/style.css')) return ok('text/css; charset=utf-8', fs.readFileSync(path.join(raiz, 'tools/templates/ciclo.css')));
     if (caminho.endsWith('/assets/nav.js')) return ok('text/javascript', fs.readFileSync(path.join(raiz, 'tools/templates/nav.js')));
     if (caminho.indexOf('/api/') !== -1) return ok('application/json', '{"ok":true}');
+    if (outras && outras[caminho]) return ok('text/html; charset=utf-8', outras[caminho]);
     ok('text/html; charset=utf-8', html);
   });
   return new Promise((pronto) => srv.listen(0, '127.0.0.1', () => pronto({ srv, base: `http://127.0.0.1:${srv.address().port}` })));
@@ -132,10 +136,19 @@ function estado() {
     //   · `motor/`      — o que se está a provar;
     //   · `biblioteca/` — o `catalogo-seed.js` lê o vocabulário por caminho relativo;
     //   · `tools/templates/` — a barra do topo (`nav-html.js`) mora lá, e o motor a importa.
+    //   · `teste/`      — os fixtures das escolas de teste (`teste-fixtures.js` os exige no
+    //                     topo do módulo, e sem eles o `require` do motor estoura);
+    //   · `tools/lib-cifra.js` — a cifra dos envelopes, que `acervo-envelopes.js` importa.
     // Extrair só o motor parece suficiente e não é: o controle negativo morre no `require`,
     // antes de medir o que quer que seja.
     const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'motor-producao-'));
-    execSync('git archive HEAD motor biblioteca tools/templates | tar -x -C ' + destino, { cwd: raiz, stdio: 'pipe' });
+    /* A REFERÊNCIA É ESCOLHÍVEL, e tem de ser: o controle extrai o código do Git, e depois de a
+       correção entrar em `HEAD` o «negativo» passa a ser o código NOVO — o controle deixa de
+       provar o que quer que seja e passa a aprovar-se a si próprio. Com `REF_NEGATIVO=<commit>`
+       aponta-se para o commit anterior à mudança que se quer medir.
+         REF_NEGATIVO=HEAD~1 node experimentos/provar-menu-da-producao.js --controle-negativo */
+    const ref = process.env.REF_NEGATIVO || 'HEAD';
+    execSync('git archive ' + ref + ' motor biblioteca tools teste | tar -x -C ' + destino, { cwd: raiz, stdio: 'pipe' });
     motor = path.join(destino, 'motor');
     // E O MÓDULO DE ANTES NÃO EXPORTAVA a página — a exportação nasceu com esta prova.
     // Sem isto, o controle negativo não corre: ele estoura no `require`, e um controle que
@@ -143,11 +156,42 @@ function estado() {
     // é o que permite ao código velho chegar à mesma bancada.
     const fonte = path.join(motor, 'servidor/bastidores.js');
     fs.appendFileSync(fonte, '\nmodule.exports.paginaProducao = paginaProducao;\n');
-    console.log('CONTROLE NEGATIVO — o motor de HEAD (antes da folha inferior)\n');
+    console.log('CONTROLE NEGATIVO — o motor de ' + ref + ' (antes da folha inferior)\n');
   }
 
   const html = pagina(motor);
-  const { srv, base } = await servir(html);
+
+  /* A PÁGINA COMO O WORKER A SERVE, com o menu desenhado por cima (24/10/2026).
+   *
+   * A ponte (`producao.js`) faz isto a TODA página que serve: lê o `nav.json` do ASSETS e
+   * passa-o por `apply` do núcleo. Aqui a página é montada à mão, e por isso o passo tem de ser
+   * dado à mão também — sem ele não há coluna, e não há folha para abrir com o ☰.
+   *
+   * O MENU É UMA FORMA, e não o acervo de uma escola: três grupos de trabalho e o Bastidores na
+   * barra. É a forma que o `nav.json` publica, e é dela que sai a conta dos blocos — uma escola
+   * com quatro grupos dá quatro blocos a mais, sem a prova mudar de linha. */
+  const navModulo = require(path.join(motor, 'nucleo/nav.js'));
+  const MENU_DA_PROVA = {
+    versao: 2,
+    coluna: [
+      { tipo: 'menu', rotulo: 'Ciclos', itens: [
+        { rotulo: 'Planos', href: '/ciclos/planos/' },
+        { rotulo: 'Referências', href: '/ciclos/referencias/' },
+      ] },
+      { tipo: 'link', rotulo: 'Aulas', href: '/aulas/' },
+      { tipo: 'menu', rotulo: 'Área do Professor', itens: [
+        { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
+      ] },
+    ],
+    barra: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
+      { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
+      { rotulo: 'Produção', href: '/bastidores/producao' },
+    ] }],
+  };
+  const comMenu = navModulo.aplicar(html, MENU_DA_PROVA, '/bastidores/producao') || html;
+  const BLOCOS_ESPERADOS = MENU_DA_PROVA.coluna.length + MENU_DA_PROVA.barra.length;
+
+  const { srv, base } = await servir(html, { '/bastidores/producao-menu': comMenu });
   const navegador = await puppeteer.launch({ executablePath: executavel, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   let ok = 0;
   let ko = 0;
@@ -272,6 +316,94 @@ function estado() {
     r = await p.evaluate(estado);
     provar('`Escape` fecha a folha e libera a rolagem',
       r.aberta === 'nao' && r.overflowBody === '', { aberta: r.aberta, overflow: r.overflowBody });
+
+    await p.close();
+  }
+
+  // ------------------------------------------- 3) o ☰ dos Bastidores abre o sistema INTEIRO
+  /* O PEDIDO (24/10/2026), nas palavras de quem usa: «abro o hamburger de novo e só tenho
+   * bastidores; preciso de ter tudo o que tinha antes de entrar em produção». Dentro da
+   * Produção, a folha do ☰ passou a trazer o menu do sistema todo, e o Bastidores no fim.
+   *
+   * A COLUNA SAIU DO DESENHO E PASSOU A SAIR DO CSS (acima dos 1140). Por isso as duas
+   * larguras se medem: no telemóvel ela é a folha; no computador está no HTML (é a mesma página)
+   * mas fora da vista, e o afastamento de 248px não pode ficar. */
+  console.log('\nBastidores (390px) — o ☰ abre o menu do sistema inteiro, com o Bastidores no fim');
+  {
+    const p = await navegador.newPage();
+    await p.setViewport({ width: 390, height: 760 });
+    await p.goto(base + '/bastidores/producao-menu', { waitUntil: 'networkidle0', timeout: 60000 });
+    for (let i = 0; i < 6; i += 1) await new Promise((r) => setTimeout(r, 60));
+
+    const antes = await p.evaluate(() => {
+      const c = document.querySelector('.coluna');
+      const t = document.querySelector('.topnav');
+      return {
+        existe: Boolean(c),
+        hamburger: t ? getComputedStyle(t.querySelector('.hamburger')).display : null,
+        // A LISTA DA BARRA NÃO PODE VOLTAR A SER O MENU: se ela reaparecesse, haveria duas
+        // navegações a dizer coisas diferentes na mesma largura.
+        listaDaBarra: t ? getComputedStyle(t.querySelector('.nav-links')).display : null,
+        colunas: document.querySelectorAll('aside.coluna').length,
+      };
+    });
+    provar('a página dos Bastidores tem a coluna do sistema', antes.existe === true, antes.existe);
+    provar('…uma só', antes.colunas === 1, antes.colunas);
+    provar('…e o ☰ aparece no celular', antes.hamburger === 'block', antes.hamburger);
+    provar('…com a lista da barra fora da vista', antes.listaDaBarra === 'none', antes.listaDaBarra);
+
+    const abriu = await clicar(p, '.topnav .hamburger');
+    provar('o ☰ abre a folha', abriu === true, abriu);
+    const folha = await p.evaluate(() => {
+      const c = document.querySelector('.coluna');
+      /* SEM COLUNA NÃO HÁ O QUE MEDIR — e é exactamente o caso do controle negativo. Devolver
+         zeros, em vez de estourar, é o que faz a prova REPROVAR em vez de morrer: um controle
+         que não corre não diz nada. */
+      if (!c) return { aberta: null, blocos: 0, rotulos: [], ultimo: null, dentroDaTela: false, veu: null, veus: 0 };
+      const blocos = [...c.querySelectorAll('nav > *')]
+        .filter((e) => getComputedStyle(e).display !== 'none');
+      const veu = document.querySelector('.veu');
+      const r = c.getBoundingClientRect();
+      return {
+        aberta: c.getAttribute('data-aberta'),
+        blocos: blocos.length,
+        rotulos: blocos.map((b) => b.textContent.replace(/\s+/g, ' ').trim().slice(0, 18)),
+        ultimo: blocos.length ? blocos[blocos.length - 1].textContent.replace(/\s+/g, ' ').trim() : null,
+        dentroDaTela: r.top < window.innerHeight && r.bottom > 0,
+        veu: veu ? Number(getComputedStyle(veu).opacity) : null,
+        veus: document.querySelectorAll('.veu').length,
+      };
+    });
+    provar('o estado passa a «aberta» e a folha entra na tela',
+      folha.aberta === 'sim' && folha.dentroDaTela === true,
+      { aberta: folha.aberta, dentro: folha.dentroDaTela });
+    provar('a folha traz o menu do sistema INTEIRO, e mais o bloco do Bastidores',
+      folha.blocos === BLOCOS_ESPERADOS, { blocos: folha.blocos, esperados: BLOCOS_ESPERADOS, rotulos: folha.rotulos });
+    provar('…e o Bastidores é o ÚLTIMO bloco',
+      /^Bastidores/.test(String(folha.ultimo)), folha.ultimo);
+    provar('há um véu só, e ele acende',
+      folha.veus === 1 && Number(folha.veu) > 0.2, { veus: folha.veus, opacidade: folha.veu });
+
+    /* O COMPUTADOR: a coluna está no HTML e NÃO se vê. O `body` não pode ficar com 248px de
+       margem — a `lateral` da Produção já ocupa o lado esquerdo, e a faixa vazia seria o
+       sintoma de a regra do CSS não ter pegado. */
+    await p.setViewport({ width: 1280, height: 760 });
+    await new Promise((r) => setTimeout(r, 200));
+    const largo = await p.evaluate(() => {
+      const c = document.querySelector('.coluna');
+      const t = document.querySelector('.topnav');
+      if (!c) return { coluna: null, margem: null, barraLeft: null, lateralVisivel: true };
+      return {
+        coluna: getComputedStyle(c).display,
+        margem: getComputedStyle(document.body).paddingLeft,
+        barraLeft: getComputedStyle(t).left,
+        lateralVisivel: getComputedStyle(document.querySelector('.lateral-lista')).display !== 'none',
+      };
+    });
+    provar('no computador a coluna do sistema não se mostra', largo.coluna === 'none', largo.coluna);
+    provar('…e não deixa a faixa de 248px nem a barra deslocada',
+      largo.margem === '0px' && largo.barraLeft === '0px', largo);
+    provar('…mas a lateral da Produção continua a ser a navegação', largo.lateralVisivel === true, largo.lateralVisivel);
 
     await p.close();
   }

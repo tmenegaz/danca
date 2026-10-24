@@ -187,7 +187,6 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
 <body id="top">
 
 ${nav}
-<div class="veu" aria-hidden="true"></div>
 
 <header class="doc">
   <h1>${esc(titulo)}</h1>

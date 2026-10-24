@@ -23765,3 +23765,67 @@ cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
 - O mesmo vale para `provar-titulo-e-barra`: ela mede o `<h1>` da página por `MEDIR_TITULO`, que lê
   o DOM (e não o HTML), por isso nunca apanhou este defeito. É a diferença entre medir a página
   renderizada e medir o documento em bruto — e o defeito vivia no segundo.
+
+## 23/10/2026 — O ☰ dentro da Produção abre o menu do sistema inteiro
+
+**O que estava a acontecer.** No telemóvel, a pesquisadora entrou na Produção, e ao reabrir o
+hambúrguer encontrou só o Bastidores — «preciso de ter tudo o que tinha antes de entrar em
+produção». A causa é estreita e vale a pena escrevê-la: a coluna do sistema **já era desenhada em
+toda a parte menos ali**. Suprimi-la no desenho foi a resposta certa para o problema errado — o
+duplo de menus laterais no computador —, e o preço pagou-se abaixo dos 1140, que é exactamente
+onde a folha é a única navegação. Acima disso a Produção tem a sua `lateral`, e duas colunas lado
+a lado dizem duas coisas diferentes sobre onde se está.
+
+**A divisão nova.** A coluna desenha-se sempre; o duplo resolve-o o CSS, e só onde ele existe: em
+`body:has(.lateral) > .coluna { display: none }` acima dos 1141, com o `padding-left` do `body` e o
+`left` da barra a saírem junto (senão ficava uma faixa de 248px vazia à esquerda, com a barra a
+começar no meio da tela).
+
+**E o seletor estava errado, em silêncio.** A primeira versão dizia `body:has(> .lateral)` — filho.
+A `lateral` vive dentro do `.corpo` da página, não pendurada no `body`, e por isso a regra **não
+pegava em nada**. O sintoma era o pior possível: nenhum erro, nenhuma página partida, só duas
+colunas à vista e 248px de margem. Foi encontrado por medição no browser, não por leitura. O
+seletor passou a descendente.
+
+**O caminho cedeu o lugar à S5.** Com a coluna nos Bastidores, o caminho (`doc-atual`) passaria a
+ser desenhado ao lado da peça que a Produção já tem — o `s5-sessao`, «Produção · Painel inicial»,
+que sobe para a barra quando a página rola. Seriam duas vozes a dizer onde se está. A regra é a
+mesma das duas navegações: quem já respondeu não recebe um segundo dizer. `desenhar()` não desenha
+o caminho quando o bloco da página traz a S5.
+
+**Onde entrou.**
+- `motor/nucleo/nav.js` — `desenhar()` deixa de suprimir a coluna nos Bastidores; o caminho
+  cala-se onde a página tem S5; e os comentários que diziam o contrário foram corrigidos (um deles
+  afirmava que o Bastidores não tem coluna, e era a justificação do defeito).
+- `tools/templates/ciclo.css` — a regra do duplo, com o seletor descendente e o porquê escrito ao
+  lado; e a nota do «caminho na barra».
+- `motor/nucleo/lista-html.js` — o `<div class="veu">` duplicado saiu: o véu passou a nascer com a
+  coluna, num sítio só (`desenharColuna`).
+
+**MOTIVO DECLARADO (`tools/` é congelado).** `tools/templates/ciclo.css` mudou: sem a regra do
+duplo, os Bastidores ficariam com duas colunas no computador e com 248px de margem vazia; sem o
+véu a nascer com a coluna, a folha abria sem escurecimento e sem o toque-fora que a fecha. **Nada
+disto toca na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas
+pétreas.** As cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
+
+**Com o quê.**
+- `node experimentos/provar-menu-da-producao.js` — **38 asserções** (eram 26). A secção 3 é nova e
+  mede o pedido: a 390px a página dos Bastidores tem a coluna, o ☰ abre a folha com o menu do
+  sistema **inteiro** (a conta sai do menu, não de um número escrito à mão) e o Bastidores é o
+  último bloco, com um véu só e aceso; a 1280px a coluna não se mostra, o `body` não fica com
+  margem e a `lateral` da Produção continua a ser a navegação. O controle negativo passou a poder
+  apontar para um commit (`REF_NEGATIVO=HEAD~1`): extraído de `HEAD` depois da correção, ele
+  aprovar-se-ia a si próprio. Faltavam-lhe ainda `teste/` e `tools/lib-cifra.js` no `git archive`,
+  e ele morria no `require` antes de medir — um controle que não corre não diz nada.
+- `node experimentos/provar-barra-e-caminho.js` — **43 asserções** (eram 40). A secção 5 dizia «a
+  página dos Bastidores NÃO recebe a coluna»; passou a dizer o contrário, e acrescenta o véu único
+  e as três regras do CSS que hoje fazem o duplo desaparecer. A asserção antiga seria «corrigida»
+  de volta na sessão seguinte por quem não soubesse a razão — a razão está escrita ao lado.
+- Sem regressão: `provar-navegacao` 61/61, `provar-barra-unica` 86/0, `provar-producao` 151/151,
+  `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
+  `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,
+  `provar-contexto-do-ato` 37/37, `check-identidade` 20 sem erro.
+
+**O que ainda não está feito.** O Estúdio de Dança não tem `lateral` — e por isso ganha a coluna do
+sistema também no computador. É o que se quer (era a única página com a barra a valer por menu
+inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
