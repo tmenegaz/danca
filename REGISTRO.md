@@ -23687,3 +23687,81 @@ da raiz e do pacote-zero foram regeradas.
 - O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
   guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
   `href` ser montado por uma função que só aceite nome. Fica anotado.
+
+## 23/10/2026 — O Bastidores chega à folha do celular, e o título deixa de ser lido no comentário do CSS
+
+**O que motivou.** Duas coisas, as duas vistas no celular.
+
+1. **O Bastidores era inalcançável no telefone.** No computador ele fica sozinho na ponta direita
+   da barra, e está certo. Mas abaixo dos 1140 a barra esconde a lista — quem navega é a folha —,
+   e a folha só tinha os quatro destinos de trabalho. Na página inicial, a pesquisadora não tinha
+   como chegar ao Estúdio nem à Produção.
+2. **O lançamento de aula saía com o caminho quebrado.** Debaixo da barra, em texto normal, lia-se
+   `DEBAIXO da barra fixa. */ padding: var(--header-height) 20px 40px; } h1 { color: var(--ma…`.
+
+**O que era cada um.**
+
+- **O Bastidores.** Ele passa a ser o ÚLTIMO bloco da folha, depois da Área do Professor, com um
+  filete acima que diz «daqui para baixo é outra natureza» — ele não é trabalho de sala, é a
+  escola a olhar-se. Na coluna do computador ele **não** aparece: lá está na barra, e o mesmo
+  destino em dois sítios a começar pelo errado é pior do que um só. Quem o esconde é o CSS
+  (`.coluna .coluna-fora { display: none }`) — é o **mesmo HTML** para as duas formas, e é a
+  largura que decide qual está em vigor.
+
+- **O `<h1>` no comentário.** O `lancamento.html` tem, dentro do `<style>`, um comentário que
+  explica o `--header-height` e que diz «punha o `<h1>` DEBAIXO da barra fixa». `tituloDaPagina()`
+  procurava `<h1>` com uma expressão regular sobre o documento **inteiro** — encontrava aquele, e
+  levava tudo até ao `</h1>` verdadeiro, 1400 caracteres abaixo. O `<style>` e o `<script>` passam
+  a sair antes da procura: um `<h1>` lá dentro não é um título, é texto de outro tipo.
+
+  E o título passou a ser o **NOME**, não o nome com a sua explicação. O `<h1>` de um documento do
+  pacote costuma trazer as duas separadas por travessão — «Lançamento de aula — formulário
+  eletrônico», «Plano do Ciclo 01 — batata», «Aula 01 — reconhecer o apoio e alinhar o eixo
+  vertical». A barra é um caminho, não uma ficha: nela cabe o nome. O que fica depois do travessão
+  não se perde — está no `<h1>` da página e no título da aba. «Lançamento de aula» é o que a
+  pesquisadora pediu, e sai dos quatro casos.
+
+**O buraco que apareceu ao medir, e que era pior do que os dois.**
+Entre **769 e 1140px** a navegação não existia. O `nav.js` do cliente usa o corte dos 1140 para
+dizer que o ☰ abre a FOLHA; o CSS só mostrava o ☰ abaixo dos 768, e só abaixo dos 768 escondia a
+lista da barra. Nessa faixa de 371px a página ficava com a barra a mostrar só o Bastidores, o ☰
+escondido, e a folha — os quatro destinos — inalcançável. Um tablet, ou uma janela de computador a
+meia largura, não saía da página em que estava. A condição é `body:has(> .coluna)` e não a forma da
+barra: nos Bastidores a barra é a mesma mas não há coluna, e lá o ☰ tem de continuar a abrir o
+painel de sempre.
+
+**Onde entrou.**
+- `motor/nucleo/nav.js` — `desenharColuna()` recebe a `barra` e desenha-a no fim da folha, marcada
+  com `coluna-fora`; `tituloDaPagina()` tira `<style>`/`<script>` antes de procurar o `<h1>`, e
+  corta no primeiro travessão; `paraTexto()` (novo) faz a limpeza de tags e entidades num sítio só.
+- `tools/templates/ciclo.css` — o bloco `coluna-fora` (filete, e escondido na coluna do
+  computador); e o ☰ visível em toda a largura em que a folha existe.
+
+**MOTIVO DECLARADO (`tools/` é congelado).** `tools/templates/ciclo.css` mudou: sem ele o ☰ não
+existe entre 769 e 1140, e o Bastidores apareceria também na coluna do computador. **Nada disto
+toca na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas pétreas.** As
+cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
+
+**Com o quê.**
+- `node experimentos/provar-barra-e-caminho.js` — **40 asserções** (eram 26). Duas secções novas: o
+  Bastidores dentro da folha, no fim, com filete, e escondido na coluna do computador; e o título —
+  o `<h1>` do comentário recusado, o travessão cortado nos quatro casos, e o `lancamento.html` **de
+  verdade** medido (se ele não existir, a asserção reprova em vez de passar por omissão).
+- `node experimentos/provar-navegacao.js` — **61 asserções** (eram 53): o último item da folha é o
+  Bastidores; o filete; os dois destinos; e o ☰ a existir com a lista escondida a **820 e a 1100px**
+  — o buraco, medido nas duas pontas.
+- `provar-barra-unica` — **86 asserções**. A asserção «o Bastidores está na barra e NÃO na coluna»
+  passou a guardar o contrário, com a razão escrita ao lado: ele está nos dois sítios, e é o CSS
+  que decide qual se vê. Sem isso, a próxima sessão «corrigia-a» de volta.
+- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 26/26, `provar-celular`
+  15/15, `provar-titulo-e-barra` OK, `provar-sessao-na-barra` 28/28, `check-identidade` 20 sem erro.
+- Medido no browser: o caminho do lançamento fica «Aulas · Lançamento de aula» a **390 e a 1280px**,
+  sem estouro e sem corte.
+
+**O que ainda não está feito.**
+- O comentário do `<style>` que contém um `<h1>` literal **continua lá**. A correcção foi no
+  extractor, que é o sítio certo — mas o comentário é uma armadilha para a próxima ferramenta que
+  leia o documento inteiro. Fica anotado, não corrigido, para não mexer no template sem necessidade.
+- O mesmo vale para `provar-titulo-e-barra`: ela mede o `<h1>` da página por `MEDIR_TITULO`, que lê
+  o DOM (e não o HTML), por isso nunca apanhou este defeito. É a diferença entre medir a página
+  renderizada e medir o documento em bruto — e o defeito vivia no segundo.

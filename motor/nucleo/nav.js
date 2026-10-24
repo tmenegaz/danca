@@ -208,7 +208,7 @@ function desenhar(menu, pedido, extras) {
      NÃO se desenha, mas a barra é a mesma — e o Bastidores saltava para o lado da marca só
      naquela página. A forma é do desenho, e é o desenho que a declara. */
   if (daFormaNova) barra = barra.replace('<nav class="topnav"', '<nav class="topnav" data-menu="coluna"');
-  return coluna ? desenharColuna(coluna, pedido) + barra : barra;
+  return coluna ? desenharColuna(coluna, pedido, menu.barra) + barra : barra;
 }
 
 /**
@@ -228,15 +228,12 @@ function desenhar(menu, pedido, extras) {
  * Sem `data-aberta="sim"` a folha do celular nasce fechada, que é o que se quer: o
  * `nav.js` do cliente é quem a abre, e o CSS só a desloca.
  */
-function desenharColuna(coluna, pedido) {
+function desenharColuna(coluna, pedido, barra) {
   const atual = grupoAtual({ grupos: coluna }, pedido);
-  const partes = coluna.map((grupo) => {
-    if (!grupo) return '';
-    if (grupo.tipo !== 'menu') {
-      const ativo = ehAtivo(grupo, pedido) ? ' class="coluna-direto ativo"' : ' class="coluna-direto"';
-      return '    <a' + ativo + ' href="' + esc(absoluto(grupo.href)) + '">' + esc(grupo.rotulo) + '</a>';
-    }
-    if (!Array.isArray(grupo.itens) || !grupo.itens.length) return '';
+
+  /** Um grupo da coluna: o título-botão e os destinos por baixo. */
+  const grupoHtml = (grupo) => {
+    if (!grupo || !Array.isArray(grupo.itens) || !grupo.itens.length) return '';
     const chave = chaveDoGrupo(grupo);
     const marcado = grupo === atual ? ' data-atual="sim"' : '';
     const links = grupo.itens.map((i) => {
@@ -249,12 +246,44 @@ function desenharColuna(coluna, pedido) {
       + '<span class="coluna-seta" aria-hidden="true">›</span></button>\n'
       + '      <div class="coluna-itens" id="g-' + esc(chave) + '">\n' + links + '\n      </div>\n'
       + '    </div>';
+  };
+
+  const partes = coluna.map((grupo) => {
+    if (!grupo) return '';
+    if (grupo.tipo !== 'menu') {
+      const ativo = ehAtivo(grupo, pedido) ? ' class="coluna-direto ativo"' : ' class="coluna-direto"';
+      return '    <a' + ativo + ' href="' + esc(absoluto(grupo.href)) + '">' + esc(grupo.rotulo) + '</a>';
+    }
+    return grupoHtml(grupo);
   }).filter(Boolean);
 
+  /* A FOLHA CARREGA O QUE A BARRA TAMBÉM TEM (23/10/2026).
+   *
+   * No computador o Bastidores fica sozinho na ponta direita da barra, e está certo: a coluna é
+   * o trabalho de sala, e a barra é o pouco que fica sempre à mão. Mas no telefone a lista da
+   * barra NÃO SE MOSTRA — quem navega é esta folha —, e o Bastidores ficava inalcançável. A
+   * pesquisadora abriu a folha no celular e disse-o: «não tem bastidores aqui, então precisa
+   * ter».
+   *
+   * Ele entra no FIM, depois da Área do Professor, e com um filete acima: é o último item, e é
+   * o único que não é trabalho de sala — é a escola a olhar-se. A ordem é a da leitura, e o
+   * filete é o que diz que aquele bloco é de outra natureza sem precisar de o escrever. */
+  const daBarra = (Array.isArray(barra) ? barra : []).map((grupo) => {
+    if (!grupo) return '';
+    const feito = grupo.tipo === 'menu'
+      ? grupoHtml(grupo)
+      : (() => {
+        const ativo = ehAtivo(grupo, pedido) ? ' class="coluna-direto ativo"' : ' class="coluna-direto"';
+        return '    <a' + ativo + ' href="' + esc(absoluto(grupo.href)) + '">' + esc(grupo.rotulo) + '</a>';
+      })();
+    return feito ? feito.replace('class="coluna-', 'class="coluna-fora coluna-') : '';
+  }).filter(Boolean);
+
+  const corpo = partes.concat(daBarra).join('\n');
   return '<aside class="coluna" id="coluna-proposta" data-aberta="nao" aria-label="Navegação do sistema">\n'
     + '  <span class="coluna-puxador" aria-hidden="true"></span>\n'
     + '  <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
-    + '  <nav>\n' + partes.join('\n') + '\n  </nav>\n'
+    + '  <nav>\n' + corpo + '\n  </nav>\n'
     + '</aside>\n';
 }
 
@@ -358,17 +387,51 @@ function chaveDoGrupo(grupo) {
  * Devolve `''` quando não há `<h1>` — e aí a barra fica exactamente como ficaria sem título.
  */
 function tituloDaPagina(html) {
-  const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(String(html == null ? '' : html));
+  /* O `<h1>` PROCURADO É O DA PÁGINA, E NÃO O QUE ALGUÉM ESCREVEU NUM COMENTÁRIO (23/10/2026).
+   *
+   * O `lancamento.html` tem, dentro do `<style>`, um comentário que explica o
+   * `--header-height` — e o comentário diz «punha o `<h1>` DEBAIXO da barra fixa». A busca era
+   * uma expressão regular sobre o documento INTEIRO, sem distinguir marcação de estilo: ela
+   * encontrava esse `<h1>` de comentário e levava tudo até ao `</h1>` verdadeiro, 1400
+   * caracteres abaixo. O caminho da barra saía a dizer, em produção:
+   *
+   *   Aulas · DEBAIXO da barra fixa. *\/ padding: var(--header-height) 20px 40px; } h1 { color: var(--ma…
+   *
+   * — e foi assim que a pesquisadora o viu no celular, em texto normal, debaixo da barra.
+   *
+   * A correcção é o que devia ter sido desde o início: o `<style>` e o `<script>` saem antes de
+   * se procurar o título. Um `<h1>` dentro deles não é um título — é texto de outro tipo, e
+   * procurá-lo é o mesmo erro que ler a folha de estilo como se fosse conteúdo. */
+  const semEstilo = String(html == null ? '' : html)
+    .replace(/<(style|script)\b[\s\S]*?<\/\1>/gi, ' ');
+  const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(semEstilo);
   if (!m) return '';
-  const texto = m[1]
+  const texto = paraTexto(m[1]);
+  /* O NOME, E NÃO O NOME E A SUA EXPLICAÇÃO (23/10/2026). O `<h1>` de um documento do pacote
+   * costuma trazer as duas coisas separadas por travessão — «Lançamento de aula — formulário
+   * eletrônico», «Plano do Ciclo 01 — batata», «Aula 01 — reconhecer o apoio e alinhar o eixo
+   * vertical». A barra é um caminho, não uma ficha: nela cabe o nome, e o resto é o que a
+   * página diz por extenso dois centímetros abaixo. Cortar no primeiro travessão dá o nome nos
+   * quatro casos, e é a diferença entre «Lançamento de aula» e um título que não cabe no
+   * telefone.
+   *
+   * O que fica depois do travessão NÃO se perde: está no `<h1>` da página, no título da aba e
+   * no `title` do elemento na barra. */
+  const nome = texto.split(/\s+[—–]\s+/)[0].trim() || texto;
+  // Um título longo rouba a barra toda e é cortado de qualquer forma pelo CSS: cortar aqui é
+  // dizer a verdade ao `title` do elemento, e não deixar 300 caracteres a caminho do servidor.
+  return nome.length > 90 ? nome.slice(0, 89).trimEnd() + '…' : nome;
+}
+
+/** O texto de um fragmento de HTML — sem tags, com as entidades que a casa usa desfeitas. */
+function paraTexto(fragmento) {
+  return String(fragmento == null ? '' : fragmento)
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#\d+;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  // Um título longo rouba a barra toda e é cortado de qualquer forma pelo CSS: cortar aqui é
-  // dizer a verdade ao `title` do elemento, e não deixar 300 caracteres a caminho do servidor.
-  return texto.length > 90 ? texto.slice(0, 89).trimEnd() + '…' : texto;
 }
 
 /**

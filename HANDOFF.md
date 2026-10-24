@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T12:59:15-0300`
-Commit atual: `95e4ecf` — fix(estrutura): o caminho diz de onde se veio, o «true» sai do endereço, e a barra fixa o Bastidores
+Gerado em: `2026-10-23T21:41:22-0300`
+Commit atual: `57d10e2` — chore(template): o estado anterior do plano da aula 01, gerado com o pacote
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -73,6 +73,8 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+57d10e2 chore(template): o estado anterior do plano da aula 01, gerado com o pacote
+1344402 fix(template): a folha do pacote novo, e a prova que contava duas turmas à mão
 95e4ecf fix(estrutura): o caminho diz de onde se veio, o «true» sai do endereço, e a barra fixa o Bastidores
 822efcd chore(entrega): gerar o pacote de cafe-no-bule/01/batata-bale-nivel-2-teste-2
 30d7a65 chore(estrutura): regerar os índices derivados
@@ -91,8 +93,6 @@ a5388df feat(acervo): envelope/plano-20261023-1124.json
 5ba3a3f feat(acervo): envelope/.indice.json
 588a523 chore(estrutura): reancorar a cadeia das fontes alteradas
 abc9323 chore(estrutura): regerar os índices derivados
-92e4f54 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-5cb3f53 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -188,127 +188,85 @@ abc9323 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 23/10/2026 — A barra diz de onde se veio; o «true» sai do endereço; e os Bastidores ficam com um menu só
+## 23/10/2026 — O Bastidores chega à folha do celular, e o título deixa de ser lido no comentário do CSS
 
-**O que motivou.** Quatro coisas, todas encontradas pela pesquisadora a clicar no menu novo em
-produção, e todas visíveis do lado de lá:
+**O que motivou.** Duas coisas, as duas vistas no celular.
 
-1. **«Abrir a notação» dava 404** — e o endereço era `/bale-nivel-2-teste-2/true`.
-2. **O caminho na barra aparecia TRÊS vezes**: «Planejamento · Notação», e outra vez, e outra.
-3. **O Bastidores andava**: encostava a um sítio com «Notação» e a outro com «Referências
-   Bibliográficas», porque fica depois do caminho num contêiner que cresce com ele.
-4. **Dois menus laterais** nos Bastidores: a coluna do sistema e a `lateral` da Produção, lado a
-   lado, cada uma a dizer uma coisa diferente sobre onde se está.
+1. **O Bastidores era inalcançável no telefone.** No computador ele fica sozinho na ponta direita
+   da barra, e está certo. Mas abaixo dos 1140 a barra esconde a lista — quem navega é a folha —,
+   e a folha só tinha os quatro destinos de trabalho. Na página inicial, a pesquisadora não tinha
+   como chegar ao Estúdio nem à Produção.
+2. **O lançamento de aula saía com o caminho quebrado.** Debaixo da barra, em texto normal, lia-se
+   `DEBAIXO da barra fixa. */ padding: var(--header-height) 20px 40px; } h1 { color: var(--ma…`.
 
 **O que era cada um.**
 
-- **O `/true`.** `documentosDaTurma()` devolvia `true`/`false` para `plano`, `referencias` e
-  `notacao`. Isso bastava enquanto o consumidor era um `if`; quando as listas passaram a montar
-  `href` com esse valor, o booleano foi direto para o endereço. O `glossario` já devolvia o NOME
-  do ficheiro (o nome varia: `glossario-benesh.html`) — e era o único que funcionava. Agora todos
-  devolvem nome, ou a string vazia.
-- **As três cópias.** `<span class="doc-atual">` mora entre a marca e o ☰ — que é exactamente o
-  intervalo que `extrasDaBarra()` lê, e lê-lo assim foi uma decisão certa: é o que permite à
-  ponte não conhecer cada construtor de barra. Mas o caminho passou a viver lá dentro, e cada
-  passagem o lia como se fosse da página e voltava a escrevê-lo ao lado do novo: a montagem
-  escrevia um, a varredura final acrescentava outro, e a ponte, ao servir, um terceiro.
-  A correcção é estreita: o `extrasDaBarra` tira o caminho do bloco antes de o devolver.
-- **O Bastidores a andar.** A lista da barra tem `flex: 1 1 auto` e alinhava à esquerda: o destino
-  ficava a seguir ao caminho, e o caminho muda de comprimento com o título. Passa a
-  `justify-content: flex-end`, e o Bastidores encosta à direita — medido, **16px da borda em
-  quatro larguras** (390, 768, 1141, 1280) e em três títulos de comprimentos diferentes.
-- **Os dois menus.** A regra que ficou escrita: **o Bastidores é o único sítio em que a navegação
-  da PÁGINA toma o lugar da navegação do SISTEMA**. A coluna do sistema deixa de se desenhar em
-  `/bastidores/*`, e a `lateral` da Produção ganha, no alto, um `← Sistema Lastro` — que é o que
-  a pesquisadora pediu («uma seta pra eu voltar pro menu principal»). A alternativa — fundir as
-  secções da Produção dentro da coluna do sistema — fica para quando houver razão para uma
-  coluna só: hoje custaria trazer as secções (que são `#hash`, não URLs) para o `nav.json`.
+- **O Bastidores.** Ele passa a ser o ÚLTIMO bloco da folha, depois da Área do Professor, com um
+  filete acima que diz «daqui para baixo é outra natureza» — ele não é trabalho de sala, é a
+  escola a olhar-se. Na coluna do computador ele **não** aparece: lá está na barra, e o mesmo
+  destino em dois sítios a começar pelo errado é pior do que um só. Quem o esconde é o CSS
+  (`.coluna .coluna-fora { display: none }`) — é o **mesmo HTML** para as duas formas, e é a
+  largura que decide qual está em vigor.
 
-**E o que passou a existir por decisão, não por correcção: o LASTRO.**
+- **O `<h1>` no comentário.** O `lancamento.html` tem, dentro do `<style>`, um comentário que
+  explica o `--header-height` e que diz «punha o `<h1>` DEBAIXO da barra fixa». `tituloDaPagina()`
+  procurava `<h1>` com uma expressão regular sobre o documento **inteiro** — encontrava aquele, e
+  levava tudo até ao `</h1>` verdadeiro, 1400 caracteres abaixo. O `<style>` e o `<script>` passam
+  a sair antes da procura: um `<h1>` lá dentro não é um título, é texto de outro tipo.
 
-O caminho na barra deixou de ser «grupo · título» e passou a ser **«grupo · lista · documento»**,
-com o degrau do meio **ligado**:
+  E o título passou a ser o **NOME**, não o nome com a sua explicação. O `<h1>` de um documento do
+  pacote costuma trazer as duas separadas por travessão — «Lançamento de aula — formulário
+  eletrônico», «Plano do Ciclo 01 — batata», «Aula 01 — reconhecer o apoio e alinhar o eixo
+  vertical». A barra é um caminho, não uma ficha: nela cabe o nome. O que fica depois do travessão
+  não se perde — está no `<h1>` da página e no título da aba. «Lançamento de aula» é o que a
+  pesquisadora pediu, e sai dos quatro casos.
 
-| Onde se está | O que a barra diz |
-|:--|:--|
-| `/ciclos/referencias/` | **Ciclos** · Referências |
-| `/<variante>/referencias` | **Ciclos** · [Referências](/ciclos/referencias/) · Referências Bibliográficas |
-| `/<variante>/aula-01` | [Aulas](/aulas/) · Aula 01 |
-| `/aulas/` | Aulas |
-
-O degrau do meio é o caminho de volta; o último é onde se está, a negrito; o grupo não é ligação
-porque **um grupo não tem página** — tem itens, e escolher um deles por quem lê seria adivinhar.
-Quando o grupo e a lista têm o mesmo nome («Aulas» é grupo e destino ao mesmo tempo), fica só um:
-o ligado, que serve para voltar — «Aulas · Aulas · Aula 01» não é um caminho, é um gaguejar.
-
-A tabela que diz de que lista vem cada documento (`TRILHA_DO_DOCUMENTO`, em `nav.js`) é
-**declarada**, e não deduzida do `nav.json`, por uma razão de facto: o `nav.json` diz quais são os
-DESTINOS, não que documentos cada destino produz. Quem sabe que `referencias.html` sai da lista de
-referências é o pacote, e a tabela diz isso num lugar só — para as duas pontas lerem o mesmo.
-
-**MOTIVO DECLARADO (`tools/` é congelado).**
-`tools/montar-publicacao.js` e `tools/templates/ciclo.css` mudaram nesta entrada. O primeiro
-porque é ele que produz o valor que ia para o `href`; o segundo porque a barra passou a ter o
-Bastidores fixo à direita e o caminho com ligações. **Nada disto toca na fórmula do hash, na
-cobertura da âncora, nos validadores, nas regras nem nas pétreas.** As cópias de `assets/style.css`
-da raiz e do pacote-zero foram regeradas.
+**O buraco que apareceu ao medir, e que era pior do que os dois.**
+Entre **769 e 1140px** a navegação não existia. O `nav.js` do cliente usa o corte dos 1140 para
+dizer que o ☰ abre a FOLHA; o CSS só mostrava o ☰ abaixo dos 768, e só abaixo dos 768 escondia a
+lista da barra. Nessa faixa de 371px a página ficava com a barra a mostrar só o Bastidores, o ☰
+escondido, e a folha — os quatro destinos — inalcançável. Um tablet, ou uma janela de computador a
+meia largura, não saía da página em que estava. A condição é `body:has(> .coluna)` e não a forma da
+barra: nos Bastidores a barra é a mesma mas não há coluna, e lá o ☰ tem de continuar a abrir o
+painel de sempre.
 
 **Onde entrou.**
-- `tools/montar-publicacao.js` — `documentosDaTurma()` devolve nomes de ficheiro; e a montagem
-  passou a ser **importável** (`if (require.main === module) principal()`), sem a qual uma prova
-  não podia perguntar-lhe o que devolve sem publicar uma escola inteira.
-- `motor/nucleo/nav.js` — `SEM_O_CAMINHO` (o caminho sai do bloco antes de ser re-aproveitado);
-  `caminhoDaPagina()`, `TRILHA_DO_DOCUMENTO` e `LISTAS` (o lastro); a coluna não se desenha em
-  `/bastidores/*`; e a barra passou a **declarar a sua forma** (`data-menu="coluna"`), sem a qual a
-  regra do Bastidores à direita não pegava na página onde a coluna não existe.
-- `tools/templates/ciclo.css` — o caminho com três degraus e a ligação do meio; o Bastidores à
-  direita; e, no painel do celular, a lista volta a alinhar à esquerda (numa coluna, encostar à
-  direita desalinha-a dos títulos dos grupos).
-- `motor/servidor/bastidores.js` — o `← Sistema Lastro` no alto da `lateral`, com o desenho dele.
+- `motor/nucleo/nav.js` — `desenharColuna()` recebe a `barra` e desenha-a no fim da folha, marcada
+  com `coluna-fora`; `tituloDaPagina()` tira `<style>`/`<script>` antes de procurar o `<h1>`, e
+  corta no primeiro travessão; `paraTexto()` (novo) faz a limpeza de tags e entidades num sítio só.
+- `tools/templates/ciclo.css` — o bloco `coluna-fora` (filete, e escondido na coluna do
+  computador); e o ☰ visível em toda a largura em que a folha existe.
+
+**MOTIVO DECLARADO (`tools/` é congelado).** `tools/templates/ciclo.css` mudou: sem ele o ☰ não
+existe entre 769 e 1140, e o Bastidores apareceria também na coluna do computador. **Nada disto
+toca na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas pétreas.** As
+cópias de `assets/style.css` da raiz e dos dois pacotes foram regeradas.
 
 **Com o quê.**
-- `node experimentos/provar-barra-e-caminho.js` — **novo**, 26 asserções em cinco secções: o valor
-  por documento é nome e nunca booleano (com uma pasta temporária, sem tocar em escola nenhuma);
-  o caminho fica **um** depois de quatro passagens, e o bloco da página sobrevive; o lastro nos
-  quatro casos (lista, documento, grupo repetido, com e sem `.html`); a regra do Bastidores à
-  direita, e o `flex-start` no painel do celular; e os Bastidores sem a coluna do sistema, mas com
-  a barra.
-- Sem regressão: `provar-barra-unica` 81/81, `provar-producao` 151/151, `provar-menu-da-producao`
-  26/26, `provar-celular` 15/15, `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72,
-  `provar-ajustes-anamnese` 125/125, `provar-contexto-do-ato` 37/37, `provar-alunas-da-anamnese`
-  11/11, `check-identidade` 20 verificações sem erro.
-- Medido num browser, com a folha real: **Bastidores a 16px da borda direita** com «Notação»,
-  «Referências Bibliográficas» e «Aulas»; o caminho **não estoura** em 390, 768, 1141 nem 1280.
+- `node experimentos/provar-barra-e-caminho.js` — **40 asserções** (eram 26). Duas secções novas: o
+  Bastidores dentro da folha, no fim, com filete, e escondido na coluna do computador; e o título —
+  o `<h1>` do comentário recusado, o travessão cortado nos quatro casos, e o `lancamento.html` **de
+  verdade** medido (se ele não existir, a asserção reprova em vez de passar por omissão).
+- `node experimentos/provar-navegacao.js` — **61 asserções** (eram 53): o último item da folha é o
+  Bastidores; o filete; os dois destinos; e o ☰ a existir com a lista escondida a **820 e a 1100px**
+  — o buraco, medido nas duas pontas.
+- `provar-barra-unica` — **86 asserções**. A asserção «o Bastidores está na barra e NÃO na coluna»
+  passou a guardar o contrário, com a razão escrita ao lado: ele está nos dois sítios, e é o CSS
+  que decide qual se vê. Sem isso, a próxima sessão «corrigia-a» de volta.
+- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 26/26, `provar-celular`
+  15/15, `provar-titulo-e-barra` OK, `provar-sessao-na-barra` 28/28, `check-identidade` 20 sem erro.
+- Medido no browser: o caminho do lançamento fica «Aulas · Lançamento de aula» a **390 e a 1280px**,
+  sem estouro e sem corte.
 
 **O que ainda não está feito.**
-- **A coluna única** nos Bastidores — fundir as secções da Produção dentro da coluna do sistema —
-  não foi feita, e é a consolidação que fica em aberto. Hoje há **uma** coluna em cada sítio (a do
-  sistema no trabalho de sala, a da Produção nos Bastidores), e a volta é explícita.
-- **`provar-navegacao.js` e `provar-titulo-e-barra.js` voltaram a correr** — e o que as trouxe de
-  volta foi o PO da `batata`, que gerou o primeiro pacote real depois do expurgo da `calango`.
-  Ao correr, a `provar-navegacao` reprovou **nove** asserções por um motivo que não era defeito:
-  ela tinha «2» escrito à mão em cinco sítios (planos, cartões, linhas por turma, acções e a
-  contagem do filtro), porque a escola de teste de então tinha duas turmas. A `batata` tem uma.
-  As expectativas passaram a ser **lidas do acervo** (`N` = pastas de turma no destino), e a
-  busca do filtro passou a usar um pedaço do nome do professor do **próprio cartão** — uma prova
-  que escrevesse «perna» estaria a medir uma lista vazia e a chamar a isso sucesso. **53/53**.
-- O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
-  guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
-  `href` ser montado por uma função que só aceite nome. Fica anotado.
+- O comentário do `<style>` que contém um `<h1>` literal **continua lá**. A correcção foi no
+  extractor, que é o sítio certo — mas o comentário é uma armadilha para a próxima ferramenta que
+  leia o documento inteiro. Fica anotado, não corrigido, para não mexer no template sem necessidade.
+- O mesmo vale para `provar-titulo-e-barra`: ela mede o `<h1>` da página por `MEDIR_TITULO`, que lê
+  o DOM (e não o HTML), por isso nunca apanhou este defeito. É a diferença entre medir a página
+  renderizada e medir o documento em bruto — e o defeito vivia no segundo.
 
 ## O que está pendente
-
-## 23/10/2026 — O menu deixa de contar documentos: doze destinos, e a lista passa a ser a lista
-
-- A **página de escolha de turma** para Anamnese, Plano de ensino e Plano de Observação é da
-  Etapa 2. Hoje os três apontam para a porta, que pergunta o professor e a turma na sua barra de
-  contexto: funciona, mas não é a lista que o plano desenha.
-- A **harmonização** continua publicada em `/<variante>/harmonizacao.html` e fora do menu. Sair da
-  publicação é da Etapa 2, e é remoção de URL — decisão já tomada, execução pendente.
-- A lista de aulas **não pagina**: 35 linhas hoje, e o filtro do cliente resolve. O rodapé de
-  paginação entra quando passar de ~200.
-- O filtro dos planos é por busca, professor e turma. «Os planos com PO pendente» seria uma linha
-  a mais no `.fipp` e não está pedido.
 
 ## 23/10/2026 — A escolha de turma antes do formulário, e a harmonização sai do site
 
@@ -359,6 +317,15 @@ da raiz e do pacote-zero foram regeradas.
 - O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
   guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
   `href` ser montado por uma função que só aceite nome. Fica anotado.
+
+## 23/10/2026 — O Bastidores chega à folha do celular, e o título deixa de ser lido no comentário do CSS
+
+- O comentário do `<style>` que contém um `<h1>` literal **continua lá**. A correcção foi no
+  extractor, que é o sítio certo — mas o comentário é uma armadilha para a próxima ferramenta que
+  leia o documento inteiro. Fica anotado, não corrigido, para não mexer no template sem necessidade.
+- O mesmo vale para `provar-titulo-e-barra`: ela mede o `<h1>` da página por `MEDIR_TITULO`, que lê
+  o DOM (e não o HTML), por isso nunca apanhou este defeito. É a diferença entre medir a página
+  renderizada e medir o documento em bruto — e o defeito vivia no segundo.
 
 ## Pendências anteriores (índice)
 
@@ -634,6 +601,7 @@ da raiz e do pacote-zero foram regeradas.
 - **22/10/2026** — O PO de um professor não vê o plano nem as alunas de outro → `REGISTRO.md` L23001
 - **22/10/2026** — A escola recriada pertence a quem a recriou → `REGISTRO.md` L23065
 - **23/10/2026** — O job do índice reescrevia o commit do vizinho, e o push… → `REGISTRO.md` L23127
+- **23/10/2026** — O menu deixa de contar documentos: doze destinos, e a lista… → `REGISTRO.md` L23185
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

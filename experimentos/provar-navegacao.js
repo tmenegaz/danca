@@ -302,6 +302,34 @@ function destinos(menu) {
   provar('o ☰ sobe a folha para dentro da tela', aberta.aberta === 'sim' && aberta.dentro, { topo: aberta.topo, fundo: aberta.fundo });
   provar('e o véu acende', aberta.veu === '1', aberta.veu);
   provar('os destinos estão todos à vista (sem acordeão na folha)', aberta.itens >= 8, aberta.itens);
+
+  /* O BASTIDORES VAI NO FIM DA FOLHA (23/10/2026). No computador ele fica sozinho na ponta
+     direita da barra — e está certo. Mas no telefone a lista da barra não se mostra, e ele
+     ficava INALCANÇÁVEL: a pesquisadora abriu a folha e disse «não tem bastidores aqui». Ele
+     entra depois da Área do Professor, com um filete acima, porque não é trabalho de sala. */
+  const comBastidores = await pagina.evaluate(() => {
+    const blocos = [...document.querySelectorAll('.coluna nav > *')]
+      .filter((e) => getComputedStyle(e).display !== 'none');
+    const ultimo = blocos[blocos.length - 1] || null;
+    const fora = document.querySelector('.coluna .coluna-fora');
+    return {
+      ultimo: ultimo ? ultimo.textContent.replace(/\s+/g, ' ').trim().slice(0, 30) : '',
+      eFora: !!fora,
+      filete: fora ? getComputedStyle(fora).borderTopWidth : '',
+      destinos: fora ? [...fora.querySelectorAll('a')].map((a) => a.getAttribute('href')) : [],
+      blocos: blocos.length,
+    };
+  });
+  provar('o último item da folha é o Bastidores', /^Bastidores/.test(comBastidores.ultimo), comBastidores.ultimo);
+  provar('…e ele vem DEPOIS da Área do Professor (é o último, não um a mais no meio)',
+    comBastidores.blocos >= 4, comBastidores.blocos);
+  provar('…com um filete acima, que separa o que não é trabalho de sala',
+    comBastidores.filete !== '0px', comBastidores.filete);
+  provar('…e os dois destinos dele estão lá dentro',
+    comBastidores.destinos.length === 2
+    && comBastidores.destinos.some((h) => /bastidores\/producao/.test(h)),
+    comBastidores.destinos);
+
   provar('o item da página está marcado', /Planos/.test(aberta.marcado), aberta.marcado);
 
   await pagina.evaluate(() => {
@@ -319,6 +347,22 @@ function destinos(menu) {
   await new Promise((r) => setTimeout(r, 420));
   const aposEscape = await pagina.evaluate(() => document.getElementById('coluna-proposta').getAttribute('data-aberta'));
   provar('Escape fecha a folha', aposEscape === 'nao', aposEscape);
+
+  /* O BURACO DE 769 A 1140 (23/10/2026). O cliente usava o corte dos 1140 para dizer que o ☰
+     abre a folha; o CSS só mostrava o ☰ abaixo dos 768. Entre os dois, a página ficava com a
+     barra a mostrar só o Bastidores e SEM forma de chegar aos quatro destinos — um tablet não
+     saía da página em que estava. Fica no fim da secção porque cada medida recarrega a página. */
+  for (const largura of [820, 1100]) {
+    await ir('/ciclos/planos/', largura, 900);
+    const meio = await pagina.evaluate(() => ({
+      hamburger: getComputedStyle(document.querySelector('.topnav .hamburger')).display,
+      listaDaBarra: getComputedStyle(document.querySelector('.topnav .nav-links')).display,
+    }));
+    provar('a ' + largura + 'px o ☰ existe (é ele que abre a folha)',
+      meio.hamburger !== 'none', meio.hamburger);
+    provar('…e a lista da barra está escondida (a navegação é a folha)',
+      meio.listaDaBarra === 'none', meio.listaDaBarra);
+  }
 
   // ------------------------------------------------------------------ 6. as caixas da lista
   console.log('\n6 · A lista de planos: as três caixas');

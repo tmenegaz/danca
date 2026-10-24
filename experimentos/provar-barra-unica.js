@@ -345,8 +345,18 @@ async function principal() {
       checar(nome + ' tem os quatro destinos de trabalho na coluna',
         ['Ciclos', 'Aulas', 'Planejamento', 'Área do Professor'].every((g) => titulos.indexOf(g) !== -1),
         titulos);
-      checar(nome + ' tem os Bastidores na BARRA (e não na coluna)',
-        grupos.indexOf('Bastidores') !== -1 && titulos.indexOf('Bastidores') === -1, { barra: grupos, coluna: titulos });
+      /* O BASTIDORES ESTÁ NOS DOIS SÍTIOS, E ISSO É A REGRA (23/10/2026). Na BARRA ele é o
+         único item do canto direito, e é o que o computador mostra. Na COLUNA ele entra como
+         último bloco da FOLHA — sem ele, no telefone ficava inalcançável, porque a lista da
+         barra não se mostra e quem navega é a folha. Quem o esconde na coluna do computador é
+         o CSS (`.coluna-fora`), não o desenho: é o mesmo HTML para as duas formas, e é a
+         largura que decide qual delas está em vigor.
+         A asserção era «na barra E NÃO na coluna», e passou a guardar o contrário — com a
+         razão, para a próxima sessão não a «corrigir» de volta. */
+      checar(nome + ' tem os Bastidores na BARRA (o canto direito do computador)',
+        grupos.indexOf('Bastidores') !== -1, { barra: grupos });
+      checar(nome + ' …e também no FIM da folha (senão no telefone não há como chegar lá)',
+        titulos.indexOf('Bastidores') === titulos.length - 1, { coluna: titulos });
       const area2 = destinosDaColuna(html).filter((d) => d.grupo === 'Área do Professor').map((d) => d.rotulo);
       checar(nome + ' tem a Área do Professor com quatro destinos',
         ['Anamnese do aluno', 'Plano de ensino', 'Plano de Observação', 'Lançamento de aula']

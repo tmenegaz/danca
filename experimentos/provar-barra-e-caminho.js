@@ -201,6 +201,68 @@ console.log('\n5 · Os Bastidores não têm dois menus laterais');
     /class="lateral-voltar" href="\/">/.test(bastidores), true);
 }
 
+console.log('\n6 · A folha leva o Bastidores, e o computador não o duplica');
+{
+  const html = nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' });
+  const folha = (html.match(/<aside class="coluna"[\s\S]*?<\/aside>/) || [''])[0];
+  provar('o Bastidores está dentro da folha', /Bastidores/.test(folha), folha.length);
+  provar('…depois da coluna, no fim (é o último bloco)',
+    folha.lastIndexOf('coluna-fora') > folha.lastIndexOf('coluna-direto'), true);
+  provar('…e marcado como bloco de fora (é o que o CSS separa e esconde na coluna)',
+    /class="coluna-fora coluna-grupo"/.test(folha), (folha.match(/class="coluna-[a-z-]+[^"]*"/g) || []).join(' '));
+  provar('…com os dois destinos dele', (folha.match(/\/bastidores\//g) || []).length === 2,
+    (folha.match(/\/bastidores\//g) || []).length);
+
+  /* NA COLUNA DO COMPUTADOR ELE NÃO APARECE — lá está na barra. O CSS é que decide, e a regra
+     tem de existir: sem ela o mesmo destino ficaria em dois sítios, e o da coluna é o errado. */
+  const css = fs.readFileSync(path.join(raiz, 'tools/templates/ciclo.css'), 'utf8');
+  provar('na coluna do computador o bloco de fora está escondido',
+    /\.coluna \.coluna-fora \{ display: none; \}/.test(css), true);
+  provar('…e na folha ele tem o filete que o separa do trabalho de sala',
+    /\.coluna \.coluna-fora \{[^}]*border-top:/.test(css), true);
+}
+
+console.log('\n7 · O título é o do `<h1>` da PÁGINA, e não o que está num comentário');
+{
+  /* O DEFEITO, REPRODUZIDO. O `lancamento.html` tem, dentro do `<style>`, um comentário que
+     explica o `--header-height` — e o comentário diz «punha o `<h1>` DEBAIXO da barra fixa». A
+     busca era uma expressão regular sobre o documento inteiro: encontrava aquele `<h1>` e
+     levava tudo até ao `</h1>` verdadeiro. O caminho da barra saía a dizer «DEBAIXO da barra
+     fixa. *\/ padding: var(--header-height) 20px 40px; } h1 {» — em produção, no celular. */
+  const pagina = '<!DOCTYPE html><html><head><style>\n'
+    + '  main { padding: var(--header-height) 20px 40px; }\n'
+    + '  /* O `--header-height` é publicado pelo script; sem ele o <h1> ficava DEBAIXO da barra. */\n'
+    + '  h1 { color: red; }\n'
+    + '</style></head><body><h1>Lançamento de aula — formulário eletrônico</h1></body></html>';
+  const titulo = nav.tituloDaPagina(pagina);
+  provar('o `<h1>` dentro do `<style>` não é o título da página',
+    !/DEBAIXO|header-height|padding/.test(titulo), titulo);
+  provar('…e o título é o `<h1>` do corpo', titulo === 'Lançamento de aula', titulo);
+
+  /* O NOME, E NÃO O NOME E A SUA EXPLICAÇÃO. O `<h1>` de um documento do pacote costuma trazer
+     as duas separadas por travessão, e a barra é um caminho, não uma ficha. */
+  for (const [bruto, nome] of [
+    ['Lançamento de aula — formulário eletrônico', 'Lançamento de aula'],
+    ['Plano do Ciclo 01 — batata', 'Plano do Ciclo 01'],
+    ['Aula 01 — reconhecer o apoio e alinhar o eixo vertical', 'Aula 01'],
+    ['Referências Bibliográficas', 'Referências Bibliográficas'],
+    ['Notação em Benesh', 'Notação em Benesh'],
+  ]) {
+    const t = nav.tituloDaPagina('<h1>' + bruto + '</h1>');
+    provar('«' + bruto.slice(0, 34) + '…» fica «' + nome + '»', t === nome, t);
+  }
+  /* A PÁGINA REAL, e é a que estava quebrada: o pacote da `batata` em disco. Se ele não
+     existir, a asserção diz que não foi medida — e não passa por omissão. */
+  const real = path.join(raiz, 'professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2/lancamento.html');
+  if (fs.existsSync(real)) {
+    const t = nav.tituloDaPagina(fs.readFileSync(real, 'utf8'));
+    provar('no `lancamento.html` de verdade o título é «Lançamento de aula»',
+      t === 'Lançamento de aula', t);
+  } else {
+    provar('o `lancamento.html` do pacote existe para ser medido', false, 'ausente');
+  }
+}
+
 const falhou = provas.filter((p) => !p.ok).length;
 console.log('\nprovar-barra-e-caminho: ' + (provas.length - falhou) + ' de ' + provas.length + ' passaram');
 process.exit(falhou ? 1 : 0);
