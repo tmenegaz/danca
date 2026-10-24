@@ -689,6 +689,16 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 .coluna-marca:hover, .coluna-marca:focus-visible { color: var(--sobre-marca); }
 
 .coluna .coluna-grupo { display: block; }
+/* O BLOCO DE FORA — o Bastidores, no fim da FOLHA (23/10/2026). Ele não é trabalho de sala: é
+   a escola a olhar-se. Na folha do celular entra como último item e leva um filete acima, que é
+   o que diz «daqui para baixo é outra natureza» sem o escrever.
+   NO COMPUTADOR ELE NÃO EXISTE AQUI. Lá o Bastidores está na barra, sozinho à direita, e
+   desenhá-lo também na coluna seria o mesmo destino em dois sítios — a começar pelo sítio
+   errado: quem procura a escola a olhar-se não a procura entre o trabalho de sala. */
+.coluna .coluna-fora {
+  margin-top: var(--esp-3); padding-top: var(--esp-2);
+  border-top: 1px solid var(--ornamento);
+}
 /* O título é um BOTÃO: no telemóvel e no teclado não há ponteiro, e o grupo tem de abrir na
    mesma. `text-align:left` e `font:inherit` desfazem o que um `<button>` traz por omissão. */
 .coluna .coluna-titulo {
@@ -773,6 +783,26 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
    dentro do grupo fechado; a marca vai no `<summary>`, que está sempre à vista. */
 .topnav details.menu.atual > summary { color: var(--ornamento-forte); font-weight: 700; }
 
+/* O ☰ ABRE A FOLHA EM TODA A LARGURA EM QUE ELA EXISTE (23/10/2026).
+ *
+ * Havia aqui um BURACO, e ele media 371 px de largura. O `nav.js` do cliente usa o corte dos
+ * 1140 para decidir que o ☰ abre a FOLHA; mas o CSS só mostrava o ☰ abaixo dos 768, e só
+ * abaixo dos 768 escondia a lista da barra. Entre 769 e 1140 a página ficava assim: barra com
+ * a lista (que, com a coluna, é SÓ o Bastidores), ☰ escondido, e a folha — os quatro destinos,
+ * Ciclos, Aulas, Planejamento, Área do Professor — INALCANÇÁVEL. Um tablet, ou uma janela de
+ * computador a meia largura, não conseguia sair da página em que estava.
+ *
+ * A CONDIÇÃO É `body:has(> .coluna)`, e não o `data-menu` da barra: a barra é a mesma nos
+ * Bastidores, mas lá não há coluna — lá o ☰ tem de continuar a abrir o painel de sempre, senão
+ * ficava um botão a apontar para uma folha que não existe.
+ *
+ * A partir dos 1141 não há nada disto: a coluna é a coluna da esquerda, e a barra fica com a
+ * lista (o Bastidores) à direita. */
+@media (max-width: 1140px) {
+  body:has(> .coluna) .topnav .hamburger { display: block; }
+  body:has(> .coluna) .topnav .nav-links { display: none; }
+}
+
 /* A COLUNA, NO COMPUTADOR. O corte é o de 1140 — o mesmo em que o `.conteudo` deixa de ter as
    duas colunas —, e não um número novo: abaixo dele a página é estreita de mais para pagar
    248 px sem espremer o texto. */
@@ -785,6 +815,7 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
     background: var(--marca-fundo);
   }
   .coluna-puxador { display: none; }
+  .coluna .coluna-fora { display: none; }
   .veu { display: none; }
   .coluna-marca { padding: 0 10px; margin: 0 0 var(--esp-4); }
   .coluna .coluna-titulo {
