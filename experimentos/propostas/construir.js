@@ -1714,6 +1714,49 @@ li.item .painel .escala span {
   padding: .5rem 0 .1rem; font-size: .85rem; color: var(--texto-suave);
 }
 .selo { display: inline-block; }
+
+/* ---------- AS DUAS COLUNAS E A FICHA (24/10/2026) ----------
+   A bancada da proposta 5 compara três contagens de caixinha. As duas regras abaixo são as que
+   NÃO existem na folha do projeto — e é de propósito que vivem aqui: enquanto a escolha não
+   estiver feita, não há peça nova. Se a opção 2 for a escolhida, «duas» passa a ser um
+   modificador declarado em ciclo.css; se for a 3, é a .fatos que nasce lá. */
+/* O QUE A MEDIÇÃO OBRIGOU A CORRIGIR NA PRÓPRIA CAIXINHA (24/10/2026).
+ *
+ * A 390px, a caixa tem 111px e o valor lá dentro tem **67px** — porque o «?» reserva 30,4px de
+ * padding-right (1,9rem), 27% da caixa. Medido na lista de planos que já está publicada: três
+ * valores saem cortados com reticências — «Balé Nível 2» (precisa 89), «Cafe No Bule» (97) e
+ * «PO aguardando» (118). Não é um caso de bordo: é o nome da turma.
+ *
+ * Duas correções, e as duas medidas:
+ *   1. o «?» deixa de reservar a faixa inteira — fica sobre a linha do rótulo, que é pequena,
+ *      e a linha do valor passa a usar a caixa toda (67 → 97px);
+ *   2. o valor pode quebrar em DUAS linhas. Com 97px × 2, tudo o que a listagem escreve cabe:
+ *      o período completo (187px) numa linha, «Açúcar Branco» (109) numa linha, «PO aguardando»
+ *      (118) em duas.
+ *
+ * Isto NÃO é uma opção da bancada: é um defeito da peça de hoje, e a proposta parte dele
+ * corrigido. Na folha do projeto são duas regras — e uma delas mexe no congelado. */
+li.item .metrica { padding-right: .6rem; }
+li.item .metrica .k { padding-right: 1.25rem; }
+li.item .metrica .v {
+  white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+
+li.item .metricas.duas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 360px) { li.item .metricas.duas { grid-template-columns: minmax(0, 1fr); } }
+
+/* A linha de factos: o mesmo dado das caixinhas, sem a caixa. Os pontos são do desenho, e não do
+   texto — para a leitura de ecrã não colar as palavras umas nas outras. */
+li.item .fatos { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .4rem; margin-top: .2rem; }
+li.item .fatos .fato { font: 700 .88rem/1.35 var(--ui); color: var(--texto); }
+li.item .fatos .fato + .fato::before { content: "·"; margin-right: .4rem; color: var(--texto-suave); }
+
+/* O que a bancada mostra e não é peça: o título de cada lista e a sua dica. */
+.bloco-lista { margin: 0 0 2.2rem; }
+.bloco-lista h2 { margin: 0 0 .2rem; font-size: 1.15rem; color: var(--marca-texto); }
+.bloco-lista .dica { margin: 0 0 .6rem; font-size: .9rem; color: var(--texto-suave); }
+.bloco-lista .filtro { margin-bottom: .6rem; }
+.nota-do-teste .fina { font-size: .9rem; color: var(--texto-suave); }
 `;
 
 /** O esqueleto das duas páginas: coluna (quando há), barra, conteúdo, bancada. */
@@ -2077,6 +2120,24 @@ projeto, embutido. Nada aqui muda o que está publicado na escola; a escolha é 
     <span class="abrir">Abrir a proposta →</span>
   </a>
 
+  <a class="cartao" href="proposta-padrao-da-lista.html">
+    <p class="sobre">Proposta 5 · o padrão da lista</p>
+    <h2>As oito listas, com o mesmo gesto</h2>
+    <p>A forma da listagem passou a valer para todas: <strong>de quem é · quem fez ·
+    quando</strong>, sempre nessa ordem. Muda o rótulo, nunca o lugar. O que está em aberto são
+    as três listas de documento — referências, glossário e notação.</p>
+    <table>
+      <tr><th>Lista</th><th>De quem</th><th>Quem fez</th><th>Quando</th></tr>
+      <tr><td>Planos do ciclo</td><td>Turma</td><td>Professor</td><td>Período</td></tr>
+      <tr><td>Aulas</td><td>Turma</td><td>Professor</td><td>Horário</td></tr>
+      <tr><td>Anamnese</td><td>Turma</td><td>Quem fez</td><td>Data</td></tr>
+      <tr><td>Plano de ensino</td><td>Turma</td><td>Quem fez</td><td>Vigência</td></tr>
+      <tr><td>Plano de Observação</td><td>Turma</td><td>Quem fez</td><td>Período</td></tr>
+      <tr><td>Referências / Glossário / Notação</td><td>Turma</td><td>—</td><td>Ciclo / Norma</td></tr>
+    </table>
+    <span class="abrir">Abrir a proposta →</span>
+  </a>
+
 </div>
 
 <p class="aviso-proposta" style="margin-top:24px">Para avaliar no telemóvel, abra esta página no
@@ -2092,6 +2153,488 @@ decisão é difícil. O painel de escolha abre sozinho e fecha em <strong>Ver a 
 `;
 }
 
+// ============================================== PROPOSTA 5: O PADRÃO DA LISTA (24/10/2026)
+
+/*
+ * O PEDIDO. A listagem nasceu nos planos do ciclo, e a decisão foi: «essa forma de fazer a
+ * listagem a gente vai ter também que usar para todos os demais». E veio com uma segunda
+ * pergunta, que é a que manda: **o que é que se quer saber em cada lista?**
+ *
+ * A RESPOSTA QUE ESTA BANCADA PROPÕE tem duas partes, e só a segunda é uma escolha:
+ *
+ *   1. A ORDEM É FIXA, e é isso que faz a identidade: em toda a lista, a primeira caixinha
+ *      responde «de quem é isto», a segunda «quem fez», a terceira «quando». Muda o rótulo de
+ *      cada uma (Turma/Aluna, Professor/Quem fez, Período/Data), nunca o lugar. Quem varre
+ *      sete listas diferentes lê-as com o mesmo gesto do olho.
+ *
+ *   2. O QUE FAZER NAS LISTAS POBRES — as três que têm dois factos e não três: as referências,
+ *      o glossário e a notação. É a única coisa que está em aberto, e as três opções desta
+ *      página são as três respostas possíveis: encher a terceira caixinha, mostrar duas, ou
+ *      trocar as caixinhas por uma linha de factos.
+ *
+ * NAS CINCO LISTAS RICAS AS TRÊS OPÇÕES SÃO IGUAIS. Isso não é preguiça da bancada: é a
+ * informação que faz a escolha barata — o que se decide aqui não toca nos planos, nas aulas,
+ * nas anamneses, nos planos de ensino nem nos planos de observação. Toca em três listas.
+ *
+ * OS DADOS NÃO SÃO INVENTADOS. A turma «Balé Nível 2» vem do `plano-01.json` publicado
+ * (objetivo, calendário 02/02/2027 → 29/04/2027, 26 aulas); a «Balé Nível 1» vem do `.conf` do
+ * ciclo, e traz o que interessa medir: **o período em lacuna** (`DATA_INICIO="[Preencher: …]"`),
+ * que é o estado em que a caixa «Período» tem de dizer a verdade em vez de inventar uma data.
+ */
+
+/** As duas turmas de que a bancada precisa — uma com período, outra sem. */
+const TURMAS_DO_TESTE = {
+  n1: {
+    nome: 'Balé Nível 1', professor: 'Açúcar Branco', ciclo: '01', aulas: 5,
+    dias: 'ter e qui', hora: '19:00', duracao: 60, inicio: '', fim: '',
+  },
+  n2: {
+    nome: 'Balé Nível 2', professor: 'Cafe No Bule', ciclo: '01', aulas: 26,
+    dias: 'ter e qui', hora: '18:00', duracao: 60, inicio: '02/02/2027', fim: '29/04/2027',
+  },
+};
+
+/**
+ * O PERÍODO NO VALOR DA CAIXA — e porque é que o ano vai em dois dígitos (24/10/2026, medido).
+ *
+ * A caixa tem 87px de largura útil a 390px. O período completo («02/02/2027 → 29/04/2027») mede
+ * 187px, e em duas linhas de 87 não cabe — medido, pedia três (57px de texto contra 38px de
+ * caixa). Com dois dígitos no ano («02/02/27 → 29/04/27») mede 152px e cabe em duas linhas; e a
+ * 1280px cabe numa só, na caixa de 179px.
+ *
+ * O ANO NÃO SE PERDE: as datas inteiras ficam no painel, e quem abre o período lê-as por extenso.
+ * A listagem é para reconhecer a linha, não para citar a data.
+ */
+/** `02/02/2027` → `02/02/27`: o dia e o mês ficam, o século sai. */
+const anoCurto = (data) => String(data).replace(/^(\d{2}\/\d{2}\/)(\d{2})(\d{2})$/, '$1$3');
+const periodoDe = (t) => (t.inicio && t.fim
+  ? anoCurto(t.inicio) + ' → ' + anoCurto(t.fim)
+  : 'a preencher');
+
+/** Um painel: pares rótulo/valor, e uma nota opcional. */
+function painelDe(pares, nota) {
+  return '<div class="grade">' + pares.map(([k, v]) =>
+    '<div><span class="k">' + k + '</span><span class="v">' + (v || '—') + '</span></div>').join('')
+    + '</div>' + (nota ? '<p class="nota">' + nota + '</p>' : '');
+}
+
+/**
+ * AS OITO LISTAS, com o que cada uma quer dizer.
+ *
+ * `simples: true` são as três que têm dois factos e não três. São elas que a escolha muda.
+ * `caixas` tem SEMPRE três entradas, mesmo nas simples — a terceira é o que está em discussão,
+ * e escrevê-la aqui é o que permite mostrar as três opções a partir do mesmo dado.
+ */
+function listasDoPadrao() {
+  const n1 = TURMAS_DO_TESTE.n1;
+  const n2 = TURMAS_DO_TESTE.n2;
+
+  return [
+    {
+      id: 'planos', titulo: 'Ciclos · Planos',
+      dica: 'de quem é o ciclo, quem o conduz, e quando ele corre',
+      linhas: [
+        {
+          nome: 'Ciclo 01 — ' + n2.nome, selo: 'PO concluído', seloClasse: 'ok',
+          acoes: [['Abrir o plano'], ['Referências', 'secundario'], ['PDF do ciclo', 'secundario']],
+          contexto: 'Ciclo ' + n2.ciclo + ' · ' + n2.aulas + ' aulas previstas',
+          caixas: [
+            { k: 'Turma', v: n2.nome, painel: painelDe([
+              ['Turma', n2.nome], ['Ciclo', n2.ciclo], ['Aulas previstas', String(n2.aulas)]],
+              'Modalidade e tradição são decididas na curadoria, com o professor.') },
+            { k: 'Professor', v: n2.professor, painel: painelDe([
+              ['Professor curado', n2.professor], ['Turma', n2.nome]],
+              'É a curadoria que liga professor e turma. Sem ela, este plano não existe.') },
+            { k: 'Período', v: periodoDe(n2), painel: painelDe([
+              ['Começa', n2.inicio], ['Termina', n2.fim], ['Frequência', '2x por semana — ' + n2.dias],
+              ['Ancorada em', '23/10/2026']],
+              'A cadeia acrescenta, não edita: um ajuste é um elo novo.') },
+          ],
+          fatos: [n2.nome, n2.professor, periodoDe(n2)],
+        },
+        {
+          nome: 'Ciclo 01 — ' + n1.nome, selo: 'PO aguardando', seloClasse: 'alerta',
+          acoes: [['Abrir o plano'], ['Referências', 'secundario']],
+          contexto: 'Ciclo ' + n1.ciclo + ' · ' + n1.aulas + ' aulas previstas',
+          caixas: [
+            { k: 'Turma', v: n1.nome, painel: painelDe([
+              ['Turma', n1.nome], ['Ciclo', n1.ciclo], ['Aulas previstas', String(n1.aulas)]]) },
+            { k: 'Professor', v: n1.professor, painel: painelDe([
+              ['Professor curado', n1.professor], ['Turma', n1.nome]]) },
+            { k: 'Período', v: 'a preencher', painel: painelDe([
+              ['Começa', 'a preencher'], ['Termina', 'sai do início'],
+              ['Aulas previstas', String(n1.aulas)]],
+              'O plano elicitado estabelece a data de início. Sem ela, a listagem diz «a '
+              + 'preencher» — e não uma data inventada.') },
+          ],
+          fatos: [n1.nome, n1.professor, 'a preencher'],
+        },
+      ],
+    },
+    {
+      id: 'referencias', titulo: 'Ciclos · Referências', simples: true,
+      dica: 'de quem são as referências, e em que norma',
+      linhas: [
+        { nome: 'Referências Bibliográficas', selo: '', acoes: [['Abrir']],
+          contexto: 'Ciclo ' + n2.ciclo + ' · norma ABNT',
+          caixas: [
+            { k: 'Turma', v: n2.nome }, { k: 'Ciclo', v: n2.ciclo }, { k: 'Norma', v: 'ABNT' }],
+          fatos: [n2.nome, 'Ciclo ' + n2.ciclo, 'ABNT'] },
+        { nome: 'Referências Bibliográficas — ' + n1.nome, selo: '', acoes: [['Abrir']],
+          contexto: 'Ciclo ' + n1.ciclo + ' · norma ABNT',
+          caixas: [
+            { k: 'Turma', v: n1.nome }, { k: 'Ciclo', v: n1.ciclo }, { k: 'Norma', v: 'ABNT' }],
+          fatos: [n1.nome, 'Ciclo ' + n1.ciclo, 'ABNT'] },
+      ],
+    },
+    {
+      id: 'glossario', titulo: 'Código · Glossário', simples: true,
+      dica: 'de quem é o glossário, e em que código',
+      linhas: [
+        { nome: 'Glossário do código Benesh', selo: '', acoes: [['Abrir o glossário']],
+          contexto: 'Ciclo ' + n2.ciclo + ' · Benesh',
+          caixas: [
+            { k: 'Turma', v: n2.nome }, { k: 'Ciclo', v: n2.ciclo }, { k: 'Código', v: 'Benesh' }],
+          fatos: [n2.nome, 'Ciclo ' + n2.ciclo, 'Benesh'] },
+        { nome: 'Glossário do código Benesh — ' + n1.nome, selo: '', acoes: [['Abrir o glossário']],
+          contexto: 'Ciclo ' + n1.ciclo + ' · Benesh',
+          caixas: [
+            { k: 'Turma', v: n1.nome }, { k: 'Ciclo', v: n1.ciclo }, { k: 'Código', v: 'Benesh' }],
+          fatos: [n1.nome, 'Ciclo ' + n1.ciclo, 'Benesh'] },
+      ],
+    },
+    {
+      id: 'notacao', titulo: 'Código · Notação', simples: true,
+      dica: 'de quem é a notação, e em que código',
+      linhas: [
+        { nome: 'Notação em Benesh', selo: '', acoes: [['Abrir a notação']],
+          contexto: 'Ciclo ' + n2.ciclo + ' · Benesh',
+          caixas: [
+            { k: 'Turma', v: n2.nome }, { k: 'Ciclo', v: n2.ciclo }, { k: 'Código', v: 'Benesh' }],
+          fatos: [n2.nome, 'Ciclo ' + n2.ciclo, 'Benesh'] },
+        { nome: 'Notação em Benesh — ' + n1.nome, selo: '', acoes: [['Abrir a notação']],
+          contexto: 'Ciclo ' + n1.ciclo + ' · Benesh',
+          caixas: [
+            { k: 'Turma', v: n1.nome }, { k: 'Ciclo', v: n1.ciclo }, { k: 'Código', v: 'Benesh' }],
+          fatos: [n1.nome, 'Ciclo ' + n1.ciclo, 'Benesh'] },
+      ],
+    },
+    {
+      id: 'aulas', titulo: 'Aulas', 
+      dica: 'de que turma é a aula, quem a dá, e a que horas ela acontece',
+      linhas: [
+        { nome: 'Aula 03 — transferir o peso', selo: '', acoes: [['Abrir a aula'], ['Lançar', 'secundario'],
+          ['Captura para impressão', 'secundario']],
+          contexto: 'Ciclo ' + n2.ciclo + ' · aula 3 de ' + n2.aulas,
+          caixas: [
+            { k: 'Turma', v: n2.nome, painel: painelDe([
+              ['Turma', n2.nome], ['Ciclo', n2.ciclo], ['Aulas', '3 de ' + n2.aulas]]) },
+            { k: 'Professor', v: n2.professor, painel: painelDe([
+              ['Professor da turma', n2.professor]],
+              'A aula não tem professor próprio: quem o tem é a turma, e é a curadoria que o liga.') },
+            { k: 'Horário', v: n2.hora + ' · ' + n2.duracao + ' min', painel: painelDe([
+              ['Dias', n2.dias], ['Começa às', n2.hora], ['Duração', n2.duracao + ' min'],
+              ['Sala', 'não declarada']],
+              'A hora é do DIA da semana, não da turma: a direção pode ter a turma às 18h na '
+              + 'terça e às 19h na quinta.') },
+          ],
+          fatos: [n2.nome, n2.professor, n2.hora + ' · ' + n2.duracao + ' min'],
+        },
+        { nome: 'Aula 03 — transferir o peso', selo: '', acoes: [['Abrir a aula'], ['Lançar', 'secundario']],
+          contexto: 'Ciclo ' + n1.ciclo + ' · aula 3 de ' + n1.aulas,
+          caixas: [
+            { k: 'Turma', v: n1.nome, painel: painelDe([
+              ['Turma', n1.nome], ['Ciclo', n1.ciclo], ['Aulas', '3 de ' + n1.aulas]]) },
+            { k: 'Professor', v: n1.professor, painel: painelDe([
+              ['Professor da turma', n1.professor]]) },
+            { k: 'Horário', v: n1.hora + ' · ' + n1.duracao + ' min', painel: painelDe([
+              ['Dias', n1.dias], ['Começa às', n1.hora], ['Duração', n1.duracao + ' min'],
+              ['Sala', 'não declarada']]) },
+          ],
+          fatos: [n1.nome, n1.professor, n1.hora + ' · ' + n1.duracao + ' min'],
+        },
+      ],
+    },
+    {
+      id: 'anamnese', titulo: 'Área do Professor · Anamnese',
+      dica: 'de quem é a anamnese, quem a fez, e quando',
+      linhas: [
+        { nome: 'Aluna A', selo: 'vinculada', seloClasse: 'vinculada',
+          acoes: [['Abrir a anamnese']],
+          contexto: 'vinculada à turma ' + n2.nome,
+          caixas: [
+            { k: 'Turma', v: n2.nome, painel: painelDe([
+              ['Turma', n2.nome], ['Estado', 'vinculada — um PO já a usa']],
+              'A anamnese é da aluna, e a turma vem da curadoria que a matriculou.') },
+            { k: 'Quem fez', v: n2.professor, painel: painelDe([
+              ['Professor', n2.professor], ['Ciclo', n2.ciclo]]) },
+            { k: 'Quando', v: '20/10/2026', painel: painelDe([
+              ['Feita em', '20/10/2026'], ['Ajustes', '1 — o último em 22/10/2026']],
+              'A data vem do carimbo do registo: é a hora em que ele foi gravado.') },
+          ],
+          fatos: [n2.nome, n2.professor, '20/10/2026'],
+        },
+        { nome: 'Aluna B', selo: 'nova', seloClasse: 'livre',
+          acoes: [['Abrir a anamnese']],
+          contexto: 'aluna nova — sem turma',
+          caixas: [
+            { k: 'Turma', v: 'sem turma', painel: painelDe([
+              ['Turma', 'sem turma'], ['Matrícula', 'não está em nenhuma curadoria']],
+              'Aluna nova pode ser entrevistada por qualquer professor. O selo «nova» é '
+              + 'derivado: no dia em que entrar numa curadoria, deixa de o ser.') },
+            { k: 'Quem fez', v: n1.professor, painel: painelDe([
+              ['Professor', n1.professor], ['Ciclo', n1.ciclo]]) },
+            { k: 'Quando', v: '22/10/2026', painel: painelDe([['Feita em', '22/10/2026']]) },
+          ],
+          fatos: ['sem turma', n1.professor, '22/10/2026'],
+        },
+      ],
+    },
+    {
+      id: 'plano-de-ensino', titulo: 'Área do Professor · Plano de ensino',
+      dica: 'de que turma é o plano, quem o planejou, e para quando ele vale',
+      linhas: [
+        { nome: 'Plano de ensino — ' + n2.nome, selo: 'vinculado', seloClasse: 'vinculada',
+          acoes: [['Abrir o plano'], ['Derivar', 'secundario']],
+          contexto: 'consolidar o alinhamento e a transferência de peso, com musicalidade',
+          caixas: [
+            { k: 'Turma', v: n2.nome, painel: painelDe([
+              ['Turma', n2.nome], ['Ciclo', n2.ciclo], ['Volume', '3–6 séries']]) },
+            { k: 'Quem fez', v: n2.professor, painel: painelDe([
+              ['Professor responsável', n2.professor], ['Frequência', '2x semanal — ' + n2.dias],
+              ['Duração da aula', n2.duracao + ' min']]) },
+            { k: 'Vigência', v: periodoDe(n2), painel: painelDe([
+              ['Começa', n2.inicio], ['Termina', n2.fim],
+              ['Expira', 'não declarada — vale enquanto o ciclo correr']],
+              'O plano não expira por data própria: ele acompanha o período do ciclo.') },
+          ],
+          fatos: [n2.nome, n2.professor, periodoDe(n2)],
+        },
+        { nome: 'Plano de ensino — ' + n1.nome, selo: 'livre', seloClasse: 'livre',
+          acoes: [['Abrir o plano']],
+          contexto: 'plano da turma, à espera do Plano de Observação',
+          caixas: [
+            { k: 'Turma', v: n1.nome, painel: painelDe([
+              ['Turma', n1.nome], ['Ciclo', n1.ciclo]]) },
+            { k: 'Quem fez', v: n1.professor, painel: painelDe([
+              ['Professor responsável', n1.professor], ['Frequência', '2x semanal — ' + n1.dias]]) },
+            { k: 'Vigência', v: 'a preencher', painel: painelDe([
+              ['Começa', 'a preencher'], ['Termina', 'sai do início']],
+              'Sem período declarado, a listagem diz «a preencher».') },
+          ],
+          fatos: [n1.nome, n1.professor, 'a preencher'],
+        },
+      ],
+    },
+    {
+      id: 'plano-de-observacao', titulo: 'Área do Professor · Plano de Observação',
+      dica: 'de que turma é o PO, quem o fez, e que período ele cobre',
+      linhas: [
+        { nome: 'Plano de Observação — ' + n2.nome, selo: 'concluído', seloClasse: 'ok',
+          acoes: [['Abrir o PO'], ['Derivar o ciclo', 'secundario']],
+          contexto: 'observa o plano de ensino de 22/10/2026',
+          caixas: [
+            { k: 'Turma', v: n2.nome, painel: painelDe([
+              ['Turma', n2.nome], ['Sujeitos', 'a turma inteira'], ['Ciclo', n2.ciclo]]) },
+            { k: 'Quem fez', v: n2.professor, painel: painelDe([
+              ['Professor', n2.professor]],
+              'É o mesmo professor do plano de ensino: a observação é dele sobre a turma dele.') },
+            { k: 'Período', v: periodoDe(n2), painel: painelDe([
+              ['Cobre', n2.inicio + ' → ' + n2.fim], ['Aulas observadas', String(n2.aulas)]]) },
+          ],
+          fatos: [n2.nome, n2.professor, periodoDe(n2)],
+        },
+        { nome: 'Plano de Observação — ' + n1.nome, selo: 'aguardando', seloClasse: 'alerta',
+          acoes: [['Abrir o PO']],
+          contexto: 'observa o plano de ensino da ' + n1.nome,
+          caixas: [
+            { k: 'Turma', v: n1.nome, painel: painelDe([
+              ['Turma', n1.nome], ['Ciclo', n1.ciclo]]) },
+            { k: 'Quem fez', v: n1.professor, painel: painelDe([
+              ['Professor', n1.professor]]) },
+            { k: 'Período', v: 'a preencher', painel: painelDe([
+              ['Cobre', 'a preencher'], ['Aulas observadas', String(n1.aulas)]]) },
+          ],
+          fatos: [n1.nome, n1.professor, 'a preencher'],
+        },
+      ],
+    },
+  ];
+}
+
+/** Uma linha da lista, no modelo das caixinhas. `quantas` é 2 ou 3; nas ricas é sempre 3. */
+function linhaDaLista(linha, quantas, id) {
+  const acoes = (linha.acoes || []).map(([rotulo, classe]) =>
+    '<a class="acao ' + (classe || '') + ' pequena" href="#">' + rotulo + '</a>').join('');
+  const selo = linha.selo ? '<span class="selo ' + linha.seloClasse + '">' + linha.selo + '</span>' : '';
+  const caixas = linha.caixas.slice(0, quantas).map((c, i) => {
+    const chave = 'c' + i + '-' + id;
+    const aberta = c.painel
+      ? ' aria-expanded="false" aria-controls="' + chave + '"'
+      : ' data-sem-painel="sim"';
+    return '<button type="button" class="metrica" data-balao="' + chave + '"' + aberta + '>'
+      + '<span class="k">' + c.k + '</span><span class="v">' + c.v + '</span>'
+      + '<span class="q" aria-hidden="true">' + (c.painel ? '?' : '') + '</span></button>';
+  }).join('\n        ');
+  const paineis = linha.caixas.slice(0, quantas).map((c, i) => (c.painel
+    ? '<div class="painel" data-painel="c' + i + '-' + id + '" hidden>' + c.painel + '</div>' : ''))
+    .filter(Boolean).join('\n      ');
+  return '      <li class="item">\n'
+    + '        <div class="linha-turma">\n'
+    + '          <span class="nome"><b>' + linha.nome + '</b> ' + selo + '</span>\n'
+    + '          <span class="acoes">' + acoes + '</span>\n'
+    + '        </div>\n'
+    + '        <div class="dono">' + linha.contexto + '</div>\n'
+    + '        <div class="metricas' + (quantas === 2 ? ' duas' : '') + '">\n        '
+    + caixas + '\n        </div>\n'
+    + (paineis ? paineis + '\n' : '')
+    + '      </li>';
+}
+
+/** Uma linha no modelo da FICHA: os mesmos factos, em texto, sem caixinha nenhuma. */
+function linhaDaFicha(linha, id) {
+  const acoes = (linha.acoes || []).map(([rotulo, classe]) =>
+    '<a class="acao ' + (classe || '') + ' pequena" href="#">' + rotulo + '</a>').join('');
+  const selo = linha.selo ? '<span class="selo ' + linha.seloClasse + '">' + linha.selo + '</span>' : '';
+  const fatos = linha.fatos.map((f) => '<span class="fato">' + f + '</span>').join('');
+  /* A FICHA NÃO PERDE O DETALHE. As listas ricas mantêm as caixinhas — o que muda é que, nas
+   * pobres, o que não tem painel deixa de fingir que o tem. */
+  const comPainel = linha.caixas.filter((c, i) => c.painel && i < 3);
+  const caixas = comPainel.map((c) => {
+    const chave = 'f' + linha.caixas.indexOf(c) + '-' + id;
+    return '<button type="button" class="metrica" data-balao="' + chave + '" aria-expanded="false"'
+      + ' aria-controls="' + chave + '"><span class="k">' + c.k + '</span>'
+      + '<span class="v">' + c.v + '</span><span class="q" aria-hidden="true">?</span></button>';
+  }).join('\n        ');
+  const paineis = comPainel.map((c) =>
+    '<div class="painel" data-painel="f' + linha.caixas.indexOf(c) + '-' + id + '" hidden>'
+    + c.painel + '</div>').join('\n      ');
+  return '      <li class="item">\n'
+    + '        <div class="linha-turma">\n'
+    + '          <span class="nome"><b>' + linha.nome + '</b> ' + selo + '</span>\n'
+    + '          <span class="acoes">' + acoes + '</span>\n'
+    + '        </div>\n'
+    + '        <div class="fatos">' + fatos + '</div>\n'
+    + '        <div class="dono">' + linha.contexto + '</div>\n'
+    + (caixas ? '        <div class="metricas">\n        ' + caixas + '\n        </div>\n' : '')
+    + (paineis ? paineis + '\n' : '')
+    + '      </li>';
+}
+
+/** A lista inteira, numa das três opções. */
+function listaDoPadrao(opcao) {
+  const listas = listasDoPadrao();
+  return listas.map((lista) => {
+    const corpo = lista.linhas.map((linha, i) => {
+      const id = lista.id + '-' + (i + 1);
+      if (!lista.simples) return linhaDaLista(linha, 3, id);
+      if (opcao === 'ficha') return linhaDaFicha(linha, id);
+      return linhaDaLista(linha, opcao === 'duas' ? 2 : 3, id);
+    }).join('\n');
+    return '<section class="bloco-lista">\n'
+      + '  <h2>' + lista.titulo + '</h2>\n'
+      + '  <p class="dica">' + lista.dica + '</p>\n'
+      + '  <form class="filtro" onsubmit="return false"><div class="caixa filtrar">'
+      + '<div class="campo-filtro busca"><label class="campo-rotulo" for="f-' + lista.id + '">Procurar</label>'
+      + '<input id="f-' + lista.id + '" type="search" placeholder="pelo nome ou pela turma"></div></div></form>\n'
+      + '  <ul class="lista">\n' + corpo + '\n  </ul>\n'
+      + '</section>';
+  }).join('\n');
+}
+
+const OPCOES_PADRAO = [
+  { id: 'tres', n: '1', t: 'Três caixinhas, sempre', m: '5 ricas · 3 pobres',
+    d: 'a terceira caixinha existe em toda a lista; nas referências, no glossário e na notação '
+      + 'ela leva a norma ou o código, que é o terceiro facto que essas listas têm' },
+  { id: 'duas', n: '2', t: 'Duas ou três, conforme o que existe', m: '5 ricas · 2 nas pobres',
+    d: 'as três listas de documento ficam com Turma · Ciclo, e a norma (ou o código) desce para '
+      + 'a linha de contexto — nenhuma caixinha fica a dizer «—»' },
+  { id: 'ficha', n: '3', t: 'Caixinha só onde há o que abrir', m: '5 ricas · 0 nas pobres',
+    d: 'onde não há painel, os factos vão numa linha de texto; a caixinha fica reservada ao que '
+      + 'tem detalhe dentro — é a mais curta, e a que gasta menos altura por linha' },
+];
+
+function proporPadraoDaLista() {
+  const corpo = `<header class="doc">
+  <h1>O padrão da lista</h1>
+  <p class="subtitulo">Batata · as oito listas, com o que cada uma quer dizer</p>
+</header>
+
+<main>
+<div class="conteudo">
+
+<div class="nota-do-teste">
+  <p><strong>A ordem das caixinhas é fixa, e é isso que faz a identidade.</strong> Em toda a lista,
+  a primeira responde <em>de quem é isto</em>, a segunda <em>quem fez</em>, a terceira
+  <em>quando</em>. Muda o rótulo — Turma ou Aluna, Professor ou Quem fez, Período ou Data —, nunca
+  o lugar. Quem varre oito listas diferentes lê-as com o mesmo gesto do olho.</p>
+  <p><strong>A escolha só toca em três listas.</strong> As referências, o glossário e a notação têm
+  dois factos e não três: nas outras cinco, as três opções dão exactamente o mesmo. É por isso que
+  escolher aqui é barato.</p>
+  <p><strong>O que está em lacuna diz-se em lacuna.</strong> A «Balé Nível 1» não tem data de
+  início — o <code>.conf</code> do ciclo traz <code>[Preencher: …]</code> —, e a caixa escreve
+  <em>a preencher</em>. Uma data inventada numa listagem é pior do que um espaço em branco: ela
+  parece um facto.</p>
+  <p><strong>A cadeia não ganhou uma quarta caixa.</strong> O estado do PO fica no selo, ao lado do
+  nome, e a data de ancoragem vai para dentro do painel do Período. Cinco factos continuam a caber
+  em três caixas porque dois deles não competem pelo mesmo lugar.</p>
+  <p class="fina">Toque em qualquer caixinha com «?» para abrir o painel; a do canto sem «?» é
+  a que só tem um valor. No telemóvel as três caixinhas ficam lado a lado até aos 360 px, e aí
+  passam a uma coluna — a regra que já está na folha.</p>
+</div>
+
+<div id="lista-destino">
+${listaDoPadrao('tres')}
+</div>
+
+</div>
+</main>`;
+
+  const barra = [
+    colunaDoMenu(true, true),
+    barraDoMenu(MENU_DA_BARRA, '/ciclos/planos/', '<span class="doc-atual">Planos do ciclo</span>'),
+  ].join('\n');
+
+  const base = paginaDeNav({
+    titulo: 'O padrão da lista',
+    opcaoInicial: 'tres',
+    nav: 'marcada',
+    barra,
+    secoes: barraDeSecoes('Ciclos', 'Planos do ciclo'),
+    corpo,
+  });
+
+  const listas = {
+    tres: listaDoPadrao('tres'),
+    duas: listaDoPadrao('duas'),
+    ficha: listaDoPadrao('ficha'),
+  };
+  const troca = `(function () {
+  var LISTAS = ${JSON.stringify(listas)};
+  var destino = document.getElementById('lista-destino');
+  window.aoTrocarOpcao = function (opcao) {
+    if (!LISTAS[opcao] || !destino) return;
+    destino.innerHTML = LISTAS[opcao];
+    if (typeof window.aplicarFiltro === 'function') window.aplicarFiltro();
+  };
+})();`;
+
+  return base
+    .replace('</body>', `${marcacaoDaBancada({
+      sobre: 'Proposta 5 · o padrão da lista',
+      titulo: 'A forma de todas as listas',
+      intro: 'As oito listas com os factos que cada uma quer dizer. O que muda entre as opções '
+        + 'são só as três listas de documento.',
+      opcoes: OPCOES_PADRAO,
+      inicio: 'tres',
+    })}
+<script>${scriptDaBancada(OPCOES_PADRAO)}</script>
+<script>${scriptDoMenu()}</script>
+<script>${scriptDaLista()}</script>
+<script>${troca}</script>
+</body>`);
+}
+
 // ==================================================================================== escrever
 
 const arquivos = {
@@ -2100,6 +2643,7 @@ const arquivos = {
   'proposta-paginacao.html': proporPaginacao(),
   'proposta-navegacao.html': proporNavegacao(),
   'proposta-listagem.html': proporListagem(),
+  'proposta-padrao-da-lista.html': proporPadraoDaLista(),
 };
 
 for (const [nome, texto] of Object.entries(arquivos)) {

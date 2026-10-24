@@ -23883,3 +23883,71 @@ comentários que davam a precedência do destino directo como exemplo vivo — h
 - Medido no browser, com a escola remontada, a 390 e a 1280px: três grupos, zero destinos directos,
   a folha do celular com quatro blocos e o Bastidores no fim, e o caminho de `/aulas/` a dizer
   «Área do Professor · Aulas».
+
+## 24/10/2026 — O padrão da lista: as oito listas com o mesmo gesto, e o que cada uma quer dizer
+
+**O pedido.** «A gente adotou uma forma de listagem nos ciclos planos… e essa forma vai ter de ser
+usada para todos os demais.» E, junto, a pergunta que manda: **o que é que se quer saber em cada
+lista?** — porque uma listagem não é um índice, é a resposta a «quem olha isto e para quê».
+
+**A resposta tem duas partes, e só a segunda é escolha.**
+
+1. **A ordem é fixa, e é ela que faz a identidade.** Em toda a lista, a primeira caixinha responde
+   *de quem é isto*, a segunda *quem fez*, a terceira *quando*. Muda o rótulo — Turma ou Aluna,
+   Professor ou Quem fez, Período ou Data —, nunca o lugar. É o mesmo gesto do olho em sete listas
+   diferentes, e é o que a listagem de «Turmas cadastradas» já faz sem o declarar.
+2. **O que fazer nas três listas pobres** — referências, glossário e notação, que têm dois factos e
+   não três. Ficam três opções na bancada: encher a terceira caixinha (norma/código), mostrar duas,
+   ou trocar as caixinhas por uma linha de factos. **Nas outras cinco as três opções são iguais** —
+   é isso que faz escolher ser barato.
+
+**O que a medição obrigou a corrigir antes de propor — e é um defeito em produção.**
+A caixinha tem 111px a 390px, e o valor lá dentro tem **67px**: o «?» reserva 30,4px de
+`padding-right`, 27% da caixa. Medido na lista de planos **que já está publicada**, três valores
+saem cortados com reticências: «Balé Nível 2» (precisa 89px), «Cafe no Bule» (97) e «PO aguardando»
+(118). O nome da turma cortado numa lista de planos não é um caso de bordo: é a linha toda. Duas
+correções, as duas medidas — o «?» deixa de reservar a faixa (67 → 97px) e o valor quebra em duas
+linhas. E o período passa a `02/02/27 → 29/04/27`: o completo mede 187px e pedia três linhas de 87;
+com dois dígitos no ano mede 152 e cabe em duas. As datas inteiras ficam no painel.
+
+**A bancada.** `experimentos/propostas/proposta-padrao-da-lista.html` — as oito listas, as três
+opções, com dados da escola: a «Balé Nível 2» do `plano-01.json` publicado (objetivo, calendário
+02/02/2027 → 29/04/2027, 26 aulas) e a «Balé Nível 1» do `.conf` do ciclo, que traz o que interessa
+medir — **o período em lacuna**, e a caixa a dizer «a preencher» em vez de inventar uma data.
+
+**O que a listagem revelou sobre os dados, e que a escolha do desenho não resolve.**
+
+- **As três listas da Área do Professor listam TURMAS, não registos.** Uma linha por turma, três
+  páginas iguais: não há «a anamnese de quem, feita por quem, quando» porque o que está lá é a
+  turma. Para a anamnese ser uma linha por anamnese, a lista tem de ler o **acervo** (o índice de
+  envelopes) — e isso quer dizer que ela passa a ser **servida pelo Worker**, e não montada no
+  disco. É a consequência estrutural do modelo, e é a maior.
+- **`gerado_em` não está no resumo do índice.** A data de cada registo existe no envelope e não no
+  `resumoDoEnvelope`; para a coluna «quando», ela tem de entrar lá (e a `VERSAO_DO_RESUMO` sobe, o
+  que reconstrói o índice sozinho).
+- **Sala não existe em lado nenhum.** A turma tem dias, hora de início por dia e duração; não tem
+  sala. A caixa «Horário» diz «sala: não declarada» até o campo existir.
+- **Período e vigência não existem no plano de ensino nem no PO.** O período do **ciclo** existe —
+  e não no `.conf`, onde `DATA_INICIO` é lacuna: está em `plano-01.json` → `contexto.calendario`
+  (`2027-02-02 → 2027-04-29`). É de lá que a listagem o lê.
+
+**Motivo declarado — o CI.** `.github/workflows/deploy-escolas.yml` passa a montar com
+`--com-propostas`. A decisão de layout é tomada **no telemóvel**, e o telemóvel não lê o
+repositório: sem esta linha a bancada só abre no `file://` de quem a construiu, que é o que já foi
+recusado uma vez. **O que não muda:** a fórmula do hash, a cobertura da âncora, os validadores, as
+17 regras e as 22 pétreas. As bancadas vivem em `/propostas/`, **não entram no `nav.json`**, não são
+um documento da escola e saem na primeira montagem sem a opção.
+
+**Com o quê.** `node experimentos/propostas/medir.js` — **124 medidas, 0 falha** (eram 77). A secção
+E é nova e mede a proposta 5 em **seis larguras** (320, 360, 390, 414, 768, 1280) × três opções:
+nenhum valor cortado, nada a estourar, as três opções a darem a mesma linha nos planos, 3/2/0
+caixinhas nas referências, e a caixinha a abrir o painel. As seis larguras, e não as duas do resto
+do medidor, porque a listagem tem dois pontos de viragem e um vale entre eles — 390 a 414px, onde a
+caixa é estreita e a tela é larga.
+`node tools/check-identidade.js` — 20 ok, 0 erros.
+
+**O que ainda não está feito.** **A escolha.** A bancada não muda produção: escolhidas a opção e os
+nomes, o desenho vai para `tools/templates/ciclo.css` com motivo declarado e commit próprio, e ganha
+prova de produto. Ficam também por fazer os três campos que a listagem pede e o modelo não tem
+(sala na turma, período no plano de ensino e no PO) e a passagem das três listas da Área do
+Professor a servidas pelo acervo.

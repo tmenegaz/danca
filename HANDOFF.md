@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T22:19:25-0300`
-Commit atual: `f876ee3` — fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteiro
+Gerado em: `2026-10-24T10:58:05-0300`
+Commit atual: `3b77b94` — fix(menu): «Aulas» estava duas vezes, e as duas abriam a mesma página
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -73,6 +73,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+3b77b94 fix(menu): «Aulas» estava duas vezes, e as duas abriam a mesma página
 f876ee3 fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteiro
 19588a7 style(template): a coluna do sistema sai de cena onde a página tem a sua
 22f6279 fix(estrutura): o caminho do lançamento lia o `<h1>` que está dentro do `<style>`
@@ -92,7 +93,6 @@ e8fe27f chore(estrutura): regerar os índices derivados
 019a015 chore(estrutura): reancorar a cadeia das fontes alteradas
 e7d9ef0 chore(estrutura): regerar os índices derivados
 3b29ec7 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-e960e48 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -188,70 +188,75 @@ e960e48 feat(plano): o plano elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 24/10/2026 — «Aulas» estava duas vezes no menu, e as duas abriam a mesma página
+## 24/10/2026 — O padrão da lista: as oito listas com o mesmo gesto, e o que cada uma quer dizer
 
-**O que estava a acontecer.** Abaixo de «Ciclos» havia um «Aulas» — um destino no topo da coluna — e
-dentro de «Área do Professor» havia «Lançamento de aula», a apontar **para o mesmo URL** (`/aulas/`).
-Dois itens, duas promessas diferentes, uma página só. A pesquisadora viu-o assim: «as duas abrem a
-mesma coisa». E o nome de dentro prometia o que não entregava — um formulário — quando o que abre é
-a **lista** das aulas, com o lançamento e a captura para impressão como acções de cada linha.
+**O pedido.** «A gente adotou uma forma de listagem nos ciclos planos… e essa forma vai ter de ser
+usada para todos os demais.» E, junto, a pergunta que manda: **o que é que se quer saber em cada
+lista?** — porque uma listagem não é um índice, é a resposta a «quem olha isto e para quê».
 
-**A decisão.** O «Aulas» do topo sai; a lista fica onde o trabalho acontece, dentro da Área do
-Professor, e o rótulo de lá passa a ser o do acervo: «Aulas». O formulário `lancamento.html`
-continua a chamar-se «Lançamento de aula — formulário eletrônico» — ele **é** o formulário, e o
-documento diz o que é; quem mudou de nome foi o item do menu, que leva à lista.
+**A resposta tem duas partes, e só a segunda é escolha.**
 
-**O que isso arrasta, e que não é cosmético.**
+1. **A ordem é fixa, e é ela que faz a identidade.** Em toda a lista, a primeira caixinha responde
+   *de quem é isto*, a segunda *quem fez*, a terceira *quando*. Muda o rótulo — Turma ou Aluna,
+   Professor ou Quem fez, Período ou Data —, nunca o lugar. É o mesmo gesto do olho em sete listas
+   diferentes, e é o que a listagem de «Turmas cadastradas» já faz sem o declarar.
+2. **O que fazer nas três listas pobres** — referências, glossário e notação, que têm dois factos e
+   não três. Ficam três opções na bancada: encher a terceira caixinha (norma/código), mostrar duas,
+   ou trocar as caixinhas por uma linha de factos. **Nas outras cinco as três opções são iguais** —
+   é isso que faz escolher ser barato.
 
-- **A coluna perde os destinos directos.** Fica com três grupos que abrem (Ciclos, Planejamento,
-  Área do Professor) e mais o bloco do Bastidores na folha. O contrato do `nav.json` continua a
-  admitir `tipo: 'link'` — `desenharColuna` desenha-o e `grupoAtual` dá-lhe precedência —, e a
-  regra fica: sem ela, o dia em que um destino directo voltar marcaria o grupo errado, em silêncio.
-- **`/aulas/` passou a acender «Área do Professor».** Era o único sítio em que a precedência do
-  destino directo agia; sem o destino, quem responde é o grupo onde a lista mora. É a resposta
-  certa, e é o que a coluna passa a dizer.
-- **O caminho de uma aula ganhou um degrau.** Era «Aulas · Aula 01» — dois, porque o grupo e a lista
-  tinham o mesmo nome e o desenho cortava o repetido. Agora `TRILHA_DO_DOCUMENTO` diz que o grupo
-  da aula é a **Área do Professor**, e o caminho lê-se de fora para dentro: «Área do Professor ·
-  Aulas · Aula 01», com o degrau do meio ligado à lista.
+**O que a medição obrigou a corrigir antes de propor — e é um defeito em produção.**
+A caixinha tem 111px a 390px, e o valor lá dentro tem **67px**: o «?» reserva 30,4px de
+`padding-right`, 27% da caixa. Medido na lista de planos **que já está publicada**, três valores
+saem cortados com reticências: «Balé Nível 2» (precisa 89px), «Cafe no Bule» (97) e «PO aguardando»
+(118). O nome da turma cortado numa lista de planos não é um caso de bordo: é a linha toda. Duas
+correções, as duas medidas — o «?» deixa de reservar a faixa (67 → 97px) e o valor quebra em duas
+linhas. E o período passa a `02/02/27 → 29/04/27`: o completo mede 187px e pedia três linhas de 87;
+com dois dígitos no ano mede 152 e cabe em duas. As datas inteiras ficam no painel.
 
-**Onde entrou.** `tools/montar-publicacao.js` (`menuDaEscola`: o `tipo: 'link'` «Aulas» sai, e
-«Lançamento de aula» passa a «Aulas»); `motor/nucleo/nav.js` (a trilha da aula, e os dois
-comentários que davam a precedência do destino directo como exemplo vivo — hoje ela é uma guarda).
+**A bancada.** `experimentos/propostas/proposta-padrao-da-lista.html` — as oito listas, as três
+opções, com dados da escola: a «Balé Nível 2» do `plano-01.json` publicado (objetivo, calendário
+02/02/2027 → 29/04/2027, 26 aulas) e a «Balé Nível 1» do `.conf` do ciclo, que traz o que interessa
+medir — **o período em lacuna**, e a caixa a dizer «a preencher» em vez de inventar uma data.
 
-**Com o quê.**
-- `node experimentos/provar-navegacao.js` — **63 asserções** (eram 61). As duas que mediam a
-  precedência do destino directo passaram a medir o que a decisão mudou: em `/aulas/` o grupo
-  actual é «Área do Professor», não há destino directo nenhum no topo, a lista está DENTRO do grupo
-  com o rótulo «Aulas», e «Lançamento de aula» já não existe.
-- `node experimentos/provar-barra-unica.js` — **87 asserções** (eram 86). «Aulas é um destino
-  directo» passou a «Aulas já não é um destino directo, e nenhum grupo da coluna é `tipo: link`»;
-  o grupo de trabalho deixou de ser uma lista escrita à mão e passa a ser lida do `nav.json`; e
-  acrescentou-se a asserção invertida do rótulo antigo.
-- `node experimentos/provar-barra-e-caminho.js` — **43 asserções**. O MENU da prova passou a ter a
-  forma de hoje (com a Área do Professor e sem destino directo), e o caminho da aula mede-se nos
-  três degraus. A asserção da ordem dos blocos da folha comparava `lastIndexOf` de dois nomes de
-  classe que vivem no MESMO atributo do mesmo elemento — media a ordem em que estão escritos, não a
-  ordem dos blocos; e, sem destinos directos, teria passado a comparar `-1` com `-1`. Passou a
-  perguntar se há algum grupo de trabalho depois do bloco de fora.
-- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 38/38,
-  `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
-  `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,
-  `provar-contexto-do-ato` 37/37, `check-identidade` 20 sem erro.
-- Medido no browser, com a escola remontada, a 390 e a 1280px: três grupos, zero destinos directos,
-  a folha do celular com quatro blocos e o Bastidores no fim, e o caminho de `/aulas/` a dizer
-  «Área do Professor · Aulas».
+**O que a listagem revelou sobre os dados, e que a escolha do desenho não resolve.**
+
+- **As três listas da Área do Professor listam TURMAS, não registos.** Uma linha por turma, três
+  páginas iguais: não há «a anamnese de quem, feita por quem, quando» porque o que está lá é a
+  turma. Para a anamnese ser uma linha por anamnese, a lista tem de ler o **acervo** (o índice de
+  envelopes) — e isso quer dizer que ela passa a ser **servida pelo Worker**, e não montada no
+  disco. É a consequência estrutural do modelo, e é a maior.
+- **`gerado_em` não está no resumo do índice.** A data de cada registo existe no envelope e não no
+  `resumoDoEnvelope`; para a coluna «quando», ela tem de entrar lá (e a `VERSAO_DO_RESUMO` sobe, o
+  que reconstrói o índice sozinho).
+- **Sala não existe em lado nenhum.** A turma tem dias, hora de início por dia e duração; não tem
+  sala. A caixa «Horário» diz «sala: não declarada» até o campo existir.
+- **Período e vigência não existem no plano de ensino nem no PO.** O período do **ciclo** existe —
+  e não no `.conf`, onde `DATA_INICIO` é lacuna: está em `plano-01.json` → `contexto.calendario`
+  (`2027-02-02 → 2027-04-29`). É de lá que a listagem o lê.
+
+**Motivo declarado — o CI.** `.github/workflows/deploy-escolas.yml` passa a montar com
+`--com-propostas`. A decisão de layout é tomada **no telemóvel**, e o telemóvel não lê o
+repositório: sem esta linha a bancada só abre no `file://` de quem a construiu, que é o que já foi
+recusado uma vez. **O que não muda:** a fórmula do hash, a cobertura da âncora, os validadores, as
+17 regras e as 22 pétreas. As bancadas vivem em `/propostas/`, **não entram no `nav.json`**, não são
+um documento da escola e saem na primeira montagem sem a opção.
+
+**Com o quê.** `node experimentos/propostas/medir.js` — **124 medidas, 0 falha** (eram 77). A secção
+E é nova e mede a proposta 5 em **seis larguras** (320, 360, 390, 414, 768, 1280) × três opções:
+nenhum valor cortado, nada a estourar, as três opções a darem a mesma linha nos planos, 3/2/0
+caixinhas nas referências, e a caixinha a abrir o painel. As seis larguras, e não as duas do resto
+do medidor, porque a listagem tem dois pontos de viragem e um vale entre eles — 390 a 414px, onde a
+caixa é estreita e a tela é larga.
+`node tools/check-identidade.js` — 20 ok, 0 erros.
+
+**O que ainda não está feito.** **A escolha.** A bancada não muda produção: escolhidas a opção e os
+nomes, o desenho vai para `tools/templates/ciclo.css` com motivo declarado e commit próprio, e ganha
+prova de produto. Ficam também por fazer os três campos que a listagem pede e o modelo não tem
+(sala na turma, período no plano de ensino e no PO) e a passagem das três listas da Área do
+Professor a servidas pelo acervo.
 
 ## O que está pendente
-
-## 23/10/2026 — A curadoria não se atribui incompleta: cinco campos, e a regra é uma só
-
-- **Os registos antigos não são tocados.** Uma curadoria gravada antes desta regra sem tradição ou
-  sem turma continua como está — a proveniência não reescreve (P-03/P-04) —, mas **passa a não se
-  poder derivar sem corrigir**: a versão nova é conferida, e a falta tem de ser preenchida. É o
-  comportamento desejado: a dívida não cresce, e a que existe aparece quando alguém a toca.
-- Não há **migração nem laudo** de quantas curadorias existentes estão incompletas. Fica por
-  medir — e mede-se lendo `bastidores/<escola>/curadorias`, não com um campo novo.
 
 ## 23/10/2026 — A lista de alunas da anamnese não se contorna: a curadoria é a autorização
 
@@ -295,6 +300,14 @@ comentários que davam a precedência do destino directo como exemplo vivo — h
 O Estúdio de Dança não tem `lateral` — e por isso ganha a coluna do
 sistema também no computador. É o que se quer (era a única página com a barra a valer por menu
 inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
+
+## 24/10/2026 — O padrão da lista: as oito listas com o mesmo gesto, e o que cada uma quer dizer
+
+**A escolha.** A bancada não muda produção: escolhidas a opção e os
+nomes, o desenho vai para `tools/templates/ciclo.css` com motivo declarado e commit próprio, e ganha
+prova de produto. Ficam também por fazer os três campos que a listagem pede e o modelo não tem
+(sala na turma, período no plano de ensino e no PO) e a passagem das três listas da Área do
+Professor a servidas pelo acervo.
 
 ## Pendências anteriores (índice)
 
@@ -572,6 +585,7 @@ inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
 - **23/10/2026** — O job do índice reescrevia o commit do vizinho, e o push… → `REGISTRO.md` L23127
 - **23/10/2026** — O menu deixa de contar documentos: doze destinos, e a lista… → `REGISTRO.md` L23185
 - **23/10/2026** — A escolha de turma antes do formulário, e a harmonização… → `REGISTRO.md` L23280
+- **23/10/2026** — A curadoria não se atribui incompleta: cinco campos, e a… → `REGISTRO.md` L23397
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

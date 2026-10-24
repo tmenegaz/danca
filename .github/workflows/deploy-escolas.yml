@@ -159,11 +159,22 @@ jobs:
       # que é uma SAÍDA: não está no repositório e não existe num checkout limpo. Sem esta
       # linha o `wrangler deploy` não encontra a pasta — e, antes desta correção, nem chegava
       # a ser tentado, porque a descoberta já tinha descartado a escola.
+      # AS BANCADAS DE LAYOUT VÃO COM O SITE (24/10/2026) — `--com-propostas`.
+      #
+      # O motivo é o de sempre, e é o mesmo que pôs a opção no `montar-publicacao.js`: a decisão
+      # de layout é tomada NO TELEMONE, e o telemone não lê o repositório. Sem esta linha as
+      # bancadas só abrem no `file://` de quem as construiu — que é exactamente o que a
+      # pesquisadora recusou em 23/10/2026 («é pra estar tudo em produção»).
+      #
+      # O QUE ISTO **NÃO** FAZ: não entra no `nav.json`, não é um documento da escola e nenhum
+      # menu a anuncia. Ela vive em `/propostas/`, é autossuficiente (CSS embutido) e sai na
+      # primeira montagem sem a opção. Nada disto toca em conteúdo de ciclo, na âncora, nas
+      # regras ou nas pétreas.
       - name: Montar o site de ${{ matrix.escola }}
         shell: bash
         run: |
           set -euo pipefail
-          node tools/montar-publicacao.js ${{ matrix.escola }}
+          node tools/montar-publicacao.js ${{ matrix.escola }} --com-propostas
 
       - name: Subir ${{ matrix.escola }} no Cloudflare
         shell: bash

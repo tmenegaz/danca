@@ -430,6 +430,95 @@ async function principal() {
       }
     }
 
+    // ── E. PROPOSTA 5 — O PADRÃO DA LISTA ───────────────────────────────────────────
+    /* O QUE SE MEDE AQUI, e porque não é decoração: a caixinha do modelo tem 87px de largura
+     * útil a 390px, e o valor lá dentro é `nowrap` com reticências. Medido na lista de planos
+     * que já está publicada, três valores saíam cortados — «Balé Nível 2» (precisa 89),
+     * «Cafe No Bule» (97) e «PO aguardando» (118). O nome da turma cortado numa listagem de
+     * turmas não é um caso de bordo: é a linha toda.
+     *
+     * A bancada parte do defeito corrigido (o «?» deixa de reservar 30px, e o valor quebra em
+     * duas linhas). O que se prova é que, com a correção, NENHUM valor de NENHUMA das oito
+     * listas sai cortado em NENHUMA das seis larguras — nas três opções. */
+    console.log('\nE. Proposta 5 — o padrão da lista');
+    console.log('   largura      opção    plano   referências   cortados   estouro');
+    {
+      const medidas = {};
+      /* SEIS LARGURAS, e não as duas do resto do medidor. A listagem tem DOIS pontos de viragem
+       * (360 e 768) e um vale entre eles — 390 a 414px — em que a caixa é estreita e a tela é
+       * larga. Medir só a 390 e a 1280 deixaria o vale por medir. */
+      const LARGURAS_DA_LISTA = [320, 360, 390, 414, 768, 1280];
+      const lista = await abrir(pagina, 'proposta-padrao-da-lista.html', 'tres', LARGURAS[1]);
+      for (const largura of LARGURAS_DA_LISTA) {
+        await pagina.setViewport({ width: largura, height: 900 });
+        for (const opcao of ['tres', 'duas', 'ficha']) {
+          await pagina.evaluate((o) => window.aoTrocarOpcao(o), opcao);
+          await assentar(pagina);
+          const m = await pagina.evaluate(() => {
+            const blocos = [...document.querySelectorAll('.bloco-lista')];
+            const porTitulo = (t) => {
+              const b = blocos.find((x) => x.querySelector('h2').textContent.indexOf(t) !== -1);
+              const li = b.querySelector('li.item');
+              return { altura: Math.round(li.getBoundingClientRect().height),
+                caixas: li.querySelectorAll('.metrica').length };
+            };
+            const cortados = [...document.querySelectorAll('.metrica .v, .metrica .k')]
+              .filter((k) => k.scrollHeight > k.clientHeight + 1 || k.scrollWidth > k.clientWidth + 1)
+              .map((k) => k.textContent);
+            return {
+              plano: porTitulo('Planos'),
+              ref: porTitulo('Referências'),
+              cortados: [...new Set(cortados)],
+              estouro: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+            };
+          });
+          medidas[largura + '|' + opcao] = m;
+          console.log('   ' + String(largura + 'px').padEnd(13) + opcao.padEnd(9)
+            + String(m.plano.altura + 'px').padEnd(8) + String(m.ref.altura + 'px').padEnd(14)
+            + String(m.cortados.length).padEnd(11) + (m.estouro > 1 ? m.estouro + 'px' : 'não'));
+        }
+      }
+      const m = (largura, opcao) => medidas[largura + '|' + opcao];
+      for (const largura of LARGURAS_DA_LISTA) {
+        for (const opcao of ['tres', 'duas', 'ficha']) {
+          verificar(largura + ' · ' + opcao + ': nenhum valor cortado',
+            m(largura, opcao).cortados.length === 0, m(largura, opcao).cortados);
+          verificar(largura + ' · ' + opcao + ': nada estoura na horizontal',
+            m(largura, opcao).estouro <= 1, m(largura, opcao).estouro);
+        }
+      }
+      /* A ESCOLHA SÓ TOCA NAS TRÊS LISTAS DE DOCUMENTO — é o que faz escolher ser barato. Se
+       * uma opção mudasse a lista dos planos, mudava também as outras quatro ricas. */
+      for (const largura of LARGURAS_DA_LISTA) {
+        verificar(largura + 'px · as três opções dão a MESMA linha nos planos (3 caixinhas)',
+          ['tres', 'duas', 'ficha'].every((o) => m(largura, o).plano.caixas === 3),
+          ['tres', 'duas', 'ficha'].map((o) => m(largura, o).plano.caixas));
+      }
+      verificar('as referências levam 3 caixinhas na opção 1', m(390, 'tres').ref.caixas === 3,
+        m(390, 'tres').ref.caixas);
+      verificar('…2 na opção 2', m(390, 'duas').ref.caixas === 2, m(390, 'duas').ref.caixas);
+      verificar('…e nenhuma na opção 3 (os factos vão em linha)',
+        m(390, 'ficha').ref.caixas === 0, m(390, 'ficha').ref.caixas);
+      /* A OPÇÃO 3 É A MAIS CURTA NAS LISTAS POBRES — e é o único argumento que ela tem. */
+      verificar('a opção 3 é mais baixa do que a 1 nas referências',
+        m(390, 'ficha').ref.altura < m(390, 'tres').ref.altura,
+        { ficha: m(390, 'ficha').ref.altura, tres: m(390, 'tres').ref.altura });
+      /* A CAIXINHA ABRE. Sem isto a bancada é uma imagem de uma listagem. */
+      await pagina.setViewport({ width: 390, height: 900 });
+      await pagina.evaluate(() => window.aoTrocarOpcao('tres'));
+      await assentar(pagina);
+      const abre = await pagina.evaluate(async () => {
+        const b = document.querySelector('.metrica[aria-expanded="false"]');
+        if (!b) return { achou: false };
+        b.click();
+        await new Promise((r) => setTimeout(r, 120));
+        const painel = b.closest('li.item').querySelector('.painel:not([hidden])');
+        return { achou: true, expandiu: b.getAttribute('aria-expanded') === 'true', painel: !!painel };
+      });
+      verificar('a caixinha abre o painel', abre.achou && abre.expandiu && abre.painel, abre);
+      void lista;
+    }
+
     if (erros.length) {
       console.log('\n  FALHA erro de JavaScript: ' + erros.join(' · '));
       falhas += 1;
