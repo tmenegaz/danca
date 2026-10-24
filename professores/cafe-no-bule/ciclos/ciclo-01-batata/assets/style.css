@@ -792,9 +792,9 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
  * Ciclos, Aulas, Planejamento, Área do Professor — INALCANÇÁVEL. Um tablet, ou uma janela de
  * computador a meia largura, não conseguia sair da página em que estava.
  *
- * A CONDIÇÃO É `body:has(> .coluna)`, e não o `data-menu` da barra: a barra é a mesma nos
- * Bastidores, mas lá não há coluna — lá o ☰ tem de continuar a abrir o painel de sempre, senão
- * ficava um botão a apontar para uma folha que não existe.
+ * A CONDIÇÃO É `body:has(> .coluna)`, e não o `data-menu` da barra: a barra é a mesma em toda a
+ * parte onde há coluna, e o atributo diria «sim» também onde a coluna não se desenha. A pergunta
+ * certa é «esta página tem folha?», e quem responde é o `<aside>` existir.
  *
  * A partir dos 1141 não há nada disto: a coluna é a coluna da esquerda, e a barra fica com a
  * lista (o Bastidores) à direita. */
@@ -853,6 +853,28 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
      menu lateral (a ficha, um estado) ficaria com 248 px de margem vazia. */
   body:has(> .coluna) { padding-left: 248px; }
   body:has(> .coluna) .topnav { left: 248px; }
+
+  /* ONDE A PÁGINA TEM A SUA PRÓPRIA COLUNA, A DO SISTEMA NÃO SE MOSTRA (23/10/2026).
+   *
+   * É o caso dos Bastidores: a Produção tem a `lateral`, com as secções dela. Duas colunas lado
+   * a lado dizem duas coisas diferentes sobre onde se está — e foi por isso que a do sistema já
+   * foi suprimida no desenho. Mas suprimi-la no DESENHO custava a folha do telemóvel, que é a
+   * única navegação abaixo dos 1140: a pesquisadora abria o ☰ dentro da Produção e só tinha o
+   * Bastidores.
+   *
+   * A coluna passa a ser desenhada sempre, e é AQUI que o duplo se resolve: acima dos 1140, onde
+   * as duas caberiam à vista, a do sistema sai de cena. Abaixo, ela é a folha — e aí não há
+   * duplo nenhum, porque a `lateral` só se abre pelo botão «Seções».
+   *
+   * O `padding-left` e o `left` da barra saem com ela: sem isto ficaria uma faixa de 248px vazia
+   * à esquerda, com a barra a começar no meio da tela.
+   *
+   * O SELETOR É DESCENDENTE, e não filho: a `lateral` vive dentro do `.corpo` da página, não
+   * pendurada no `body`. Com `> .lateral` a regra não pegava em nada — e o sintoma era o pior
+   * possível, porque silencioso: duas colunas à vista e 248px de margem, sem erro nenhum. */
+  body:has(.lateral) > .coluna { display: none; }
+  body:has(.lateral) { padding-left: 0; }
+  body:has(.lateral) .topnav { left: 0; }
 }
 
 /* ---------- cabeçalho, conteúdo e títulos ---------- */
