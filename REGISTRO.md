@@ -24002,9 +24002,19 @@ linha errada para o segundo. Agora são duas perguntas separadas, e numa versão
 é descartado e refeito — que é exactamente o preço que a `VERSAO_DO_RESUMO` existe para cobrar uma
 vez. Custou **uma enumeração por escola** na primeira leitura após o deploy.
 
+**E o número da versão não chegava.** O primeiro remédio foi comparar `versao` — e o índice do
+repositório já dizia **4** com resumos da 3. A razão: `gravarIndice` grava sempre com
+`versao: VERSAO_DO_RESUMO`, portanto **qualquer escrita carimba a versão de hoje nos resumos que lá
+estão**. Bastou uma escrita depois de a versão 4 entrar. A pergunta certa não é «que versão diz», é
+«que campos tem»: um resumo sem `gerado_em` é um resumo de outra definição, diga o número o que
+disser. Ficou uma lista dos **campos que a definição de hoje escreve sempre** (`CAMPOS_DO_RESUMO`),
+e quem acrescentar um campo ao `resumoDoEnvelope` acrescenta-o lá — o índice refaz-se sozinho uma
+vez.
+
 Este é o segundo defeito desta série que só aparece **em produção, com dados a sério**: a prova do
 índice cobria a migração de um índice **sem** resumos, e não a de um índice **com** resumos de outra
-versão. A asserção nova monta exactamente esse caso.
+versão — nem a de um índice que diz a versão certa com a forma errada. As duas asserções novas
+montam exactamente esses casos.
 
 **Onde entrou.**
 - `tools/templates/ciclo.css` — o valor em duas linhas, o «?» sobre a linha do rótulo, e a peça
@@ -24041,9 +24051,9 @@ versão. A asserção nova monta exactamente esse caso.
 - `provar-barra-e-caminho` **43/43** — o caminho da notação é «Área do Professor · Notação · …».
 - `provar-listas-do-acervo` achou um erro meu à primeira: a prova semeava os envelopes num `env`
   **sem KV**, e media uma lista vazia a jurar que estava certa.
-- `provar-indice-de-envelopes` **43 asserções** (eram 41) — a secção 7 é nova e monta o caso que a
-  produção apanhou: um índice completo, com resumos, de uma versão anterior. Ele tem de ser REFEITO,
-  e não aproveitado.
+- `provar-indice-de-envelopes` **44 asserções** (eram 41) — a secção 7 é nova e monta os dois casos
+  que a produção apanhou: um índice completo com resumos de uma versão anterior, e um índice que
+  DIZ a versão de hoje com resumos da anterior. Os dois têm de ser REFEITOS, e não aproveitados.
 - Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 38/38,
   `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
   `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,

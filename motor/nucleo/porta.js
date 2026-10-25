@@ -439,6 +439,28 @@ async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
  */
 const VERSAO_DO_RESUMO = 4;
 
+/**
+ * OS CAMPOS QUE A DEFINIÇÃO DE HOJE ESCREVE SEMPRE — e a razão de eles existirem (24/10/2026).
+ *
+ * O NÚMERO DA VERSÃO NÃO CHEGA, e a produção provou-o. `gravarIndice` grava com
+ * `versao: VERSAO_DO_RESUMO` — ou seja, **qualquer escrita carimba a versão de hoje nos resumos
+ * que já lá estão**. Bastou uma escrita depois de a versão 4 entrar para o índice do repositório
+ * ficar a dizer «versão 4» com resumos feitos pela 3, sem `gerado_em`: a data continuou vazia, e
+ * o índice jurava estar na versão nova.
+ *
+ * A PERGUNTA CERTA NÃO É «QUE VERSÃO DIZ», É «QUE CAMPOS TEM». Um resumo sem um campo que a
+ * definição de hoje escreve sempre é um resumo de outra definição, diga o número o que disser.
+ * A lista acompanha o `resumoDoEnvelope`: quem acrescentar um campo lá acrescenta-o aqui, e o
+ * índice refaz-se sozinho uma vez.
+ */
+const CAMPOS_DO_RESUMO = ['id', 'fonte', 'gerado_em'];
+
+/** O resumo tem todos os campos que a definição de hoje escreve? */
+function resumoCompleto(resumo) {
+  if (!resumo || typeof resumo !== 'object') return false;
+  return CAMPOS_DO_RESUMO.every((c) => Object.prototype.hasOwnProperty.call(resumo, c));
+}
+
 function resumoDoEnvelope(envelope, nome) {
   const id = (envelope && envelope.id) || String(nome || '').replace(/\.json$/, '');
   const contexto = (envelope && envelope.contexto) || {};
@@ -576,7 +598,11 @@ function decodificarIndice(cru) {
      *
      * Numa versão nova, o resumo antigo é DESCARTADO e refaz-se de zero — que é exactamente o
      * preço que a `VERSAO_DO_RESUMO` existe para poder cobrar uma vez. */
-    const versaoVelha = Number(dados && dados.versao) !== VERSAO_DO_RESUMO;
+    /* A VERSÃO **E** A FORMA. O número sozinho não serve — ver `CAMPOS_DO_RESUMO`: uma escrita
+     * carimba a versão de hoje em resumos de ontem. Um resumo a que falte um campo da definição
+     * actual é um resumo velho, e é isso que se detecta. */
+    const semForma = Object.values(resumos).some((r) => !resumoCompleto(r));
+    const versaoVelha = Number(dados && dados.versao) !== VERSAO_DO_RESUMO || semForma;
     return {
       nomes: limparNomes((dados && dados.nomes) || []),
       resumos,

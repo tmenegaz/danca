@@ -319,6 +319,25 @@ async function main() {
       gravado.versao === porta.VERSAO_DO_RESUMO
         && Boolean(gravado.resumos['anamnese-20261019-1000.json'].gerado_em),
       { versao: gravado.versao, resumo: gravado.resumos['anamnese-20261019-1000.json'] });
+
+    /* O PIOR DOS CASOS: o NÚMERO DA VERSÃO É O DE HOJE, e os resumos são de ontem.
+     *
+     * Aconteceu em produção, e não por acidente: `gravarIndice` grava sempre com
+     * `versao: VERSAO_DO_RESUMO`, portanto QUALQUER escrita carimba a versão de hoje nos resumos
+     * que lá estão. Bastou uma escrita depois da subida para o índice do repositório dizer
+     * «versão 4» com resumos da 3 — e a reconversão, que só olhava o número, aprovava-o e
+     * deixava a data vazia. O que o denuncia é a FORMA: um resumo sem `gerado_em`. */
+    const { memoria: m2, caixa: c2 } = bancada();
+    await m2.guardar(porta.ARQUIVO_DE('anamnese-20261019-1000'),
+      JSON.stringify({ id: 'anamnese-20261019-1000', contexto: { escola: 'e', aluna: 'A' }, gerado_em: '2026-10-19T10:00' }));
+    await m2.guardar(porta.INDICE_DOS_ENVELOPES, JSON.stringify({
+      versao: porta.VERSAO_DO_RESUMO,
+      nomes: ['anamnese-20261019-1000.json'],
+      resumos: { 'anamnese-20261019-1000.json': { id: 'anamnese-20261019-1000', fonte: 'anamnese' } },
+    }));
+    const r2 = await porta.resumosDeEnvelopes(c2.armazenamento, /^anamnese-.*\.json$/);
+    checar('o resumo SEM a forma de hoje é refeito mesmo com a versão a bater certo',
+      ((r2[0] || {}).resumo || {}).gerado_em === '2026-10-19T10:00', (r2[0] || {}).resumo);
   }
 
   console.log('\n' + (falhas === 0
