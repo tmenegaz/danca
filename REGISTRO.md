@@ -24062,3 +24062,46 @@ montam exactamente esses casos.
 - Medido no browser, em cinco rotas e quatro larguras (360, 390, 414, 1280): **nenhum valor
   cortado**, nada a estourar. Altura por linha: planos 197px a 390 e 141 a 1280; aulas 194 e 111;
   as três de documento 52–88.
+
+## 25/10/2026 — A aula, o plano e a observação: o mapa, e o que está misturado
+
+**Análise, não implementação.** Nenhum ficheiro de produto foi alterado. O documento é
+[PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md), e nasce de três perguntas da
+pesquisadora: «o que eu lanço não é claro o suficiente», «o PO e o plano têm assuntos misturados» e
+«não tenho um ambiente onde não seja obrigado a preencher de novo todo o PO para fazer a aula 2».
+
+**As seis sobreposições, medidas.** O «Contexto» do plano tem 12 itens e **8 estão também no PO** —
+dois perguntados no Bloco 1 e cinco derivados no `field`/`context`. O schema do PO já diz «não
+duplica o contexto dele — lê-o na geração», mas o **documento** continua a escrever as três secções:
+a duplicação não está no dado, está na saída. Os outros cinco: «condições de contorno» com dois
+sentidos (declaradas no PO, medidas na aula), a sequência do ciclo impressa como se fosse a da aula
+(as 14 linhas), a distribuição de volume numa tabela de uma linha, as condições preliminares
+repetidas, e o guia de observação com quatro `[Preencher]` **onde o PO tem os itens**.
+
+**A aula 2 não existe, e o que acontece quando se lança.** O calendário dá 26 lugares; **3 têm
+marco**, 1 tem plano e 1 tem folha. As outras 23 não têm nada — e a lista mostra 26 linhas com
+«Lançar», todas para o mesmo formulário. Medido: sem `captura-aula-02.json`, o formulário cai no
+`captura-01.json`, e o campo `folha` desse ficheiro diz `…-captura-aula-01.md`. **A aula 02 é lançada
+com as colunas da 01.** O escritor do ciclo conhece `aula-01` e mais nenhuma.
+
+**O que a folha impressa pede e o formulário não grava:** início, fim, estrutura executada, o que foi
+abandonado e os materiais. Quem lança no papel regista mais do que quem lança no ecrã — e é o ecrã
+que guarda.
+
+**A linha de base não desliza.** O `ARQUITETURA-AULA.md` §2 declara que a linha de corte da aula N é
+o registo da última aula dada; o bloco `linha_de_base` do formulário lê a fotografia inicial do PO. A
+aula 26 compararia as alunas com Fevereiro.
+
+**A regra que separa, em três perguntas:** *muda de aula para aula?* (sim → aula, não → plano) ·
+*é sobre a aluna?* (sim → PO) · *é o que se pretendia ou o que aconteceu?* (aconteceu → lançamento).
+Aplicada, resolve as seis sobreposições sem inventar um campo. E **a aula passa a ser filha do plano
+do ciclo**, não do PO: herda turma, professor, blocos, volume, rubrica e os itens de observação, e o
+que é dela é o **delta** — o marco do dia, a seleção de exercícios, a música, o que quer ver hoje e o
+próximo passo.
+
+**A sala não é da aula, é do evento.** O `PLANO-TABELA-DE-ATIVIDADES.md` §3.1 cria os espaços e §3.3
+a relação turma ↔ espaço; a aula ganha uma **resolução** em três passos (evento → programação da
+turma → «não declarada»), e **zero campos novos**.
+
+**Seis peças, na ordem**, com o custo de cada uma; **seis decisões** que dependem da pesquisadora —
+a primeira é o que fazer com as 23 aulas que não têm marco.

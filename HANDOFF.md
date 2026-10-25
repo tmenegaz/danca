@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-24T23:57:14-0300`
-Commit atual: `f85b846` — fix(acervo): a versão do resumo não chega — o que denuncia um resumo velho é a FORMA
+Gerado em: `2026-10-25T11:22:27-0300`
+Commit atual: `6bdb06a` — fix(listas): a turma do PO vem do plano de ensino que ele observa
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -73,6 +73,8 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+6bdb06a fix(listas): a turma do PO vem do plano de ensino que ele observa
+06e7e6c feat(acervo): envelope/.indice.json
 f85b846 fix(acervo): a versão do resumo não chega — o que denuncia um resumo velho é a FORMA
 984cb55 fix(acervo): uma versão nova do resumo manda refazer os resumos, e não só preencher buracos
 3bad02d feat(acervo): envelope/.indice.json
@@ -91,8 +93,6 @@ b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar
 30d7a65 chore(estrutura): regerar os índices derivados
 45f9dad chore(estrutura): regerar os índices derivados
 b58d4d5 chore(estrutura): reancorar a cadeia das fontes alteradas
-8f0b62c feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-2-teste-2 num commit só
-d254ef7 feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -188,116 +188,48 @@ d254ef7 feat(po): o PO elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 24/10/2026 — O padrão da lista aplicado: «Consulta», três caixas por registo, e o valor que não se corta
+## 25/10/2026 — A aula, o plano e a observação: o mapa, e o que está misturado
 
-**A escolha, e ela foi feita depois de ver a bancada.** A caixinha passou a existir **só onde há o
-que abrir** (opção 3): as cinco listas ricas levam três caixas na ordem fixa — **de quem · quem fez
-· quando** —, e as três listas de documento (referências, glossário, notação) levam os mesmos factos
-numa **linha de texto**. Uma caixa que não abre nada é decoração, e decoração gasta altura sem dizer
-mais. E os nomes: **«Planejamento» deixou de existir**.
+**Análise, não implementação.** Nenhum ficheiro de produto foi alterado. O documento é
+[PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md), e nasce de três perguntas da
+pesquisadora: «o que eu lanço não é claro o suficiente», «o PO e o plano têm assuntos misturados» e
+«não tenho um ambiente onde não seja obrigado a preencher de novo todo o PO para fazer a aula 2».
 
-**A coluna nova.**
+**As seis sobreposições, medidas.** O «Contexto» do plano tem 12 itens e **8 estão também no PO** —
+dois perguntados no Bloco 1 e cinco derivados no `field`/`context`. O schema do PO já diz «não
+duplica o contexto dele — lê-o na geração», mas o **documento** continua a escrever as três secções:
+a duplicação não está no dado, está na saída. Os outros cinco: «condições de contorno» com dois
+sentidos (declaradas no PO, medidas na aula), a sequência do ciclo impressa como se fosse a da aula
+(as 14 linhas), a distribuição de volume numa tabela de uma linha, as condições preliminares
+repetidas, e o guia de observação com quatro `[Preencher]` **onde o PO tem os itens**.
 
-```
-Ciclos              Planos · Referências
-Área do Professor   Anamnese do aluno · Plano de ensino · Plano de Observação · Aulas · Notação
-Consulta            → Glossário
-```
+**A aula 2 não existe, e o que acontece quando se lança.** O calendário dá 26 lugares; **3 têm
+marco**, 1 tem plano e 1 tem folha. As outras 23 não têm nada — e a lista mostra 26 linhas com
+«Lançar», todas para o mesmo formulário. Medido: sem `captura-aula-02.json`, o formulário cai no
+`captura-01.json`, e o campo `folha` desse ficheiro diz `…-captura-aula-01.md`. **A aula 02 é lançada
+com as colunas da 01.** O escritor do ciclo conhece `aula-01` e mais nenhuma.
 
-O **glossário** é uma ferramenta de consulta e passou a ser um destino directo com esse nome — em
-`/consulta/`. A **notação** é a outra vista da mesma aula, e foi para dentro da Área do Professor,
-ao lado das Aulas: em `/area-do-professor/notacao/`. Com isso o `tipo: 'link'` do `nav.json` volta a
-ter uso, e a precedência do destino directo sobre o grupo deixa de ser uma guarda morta e passa a
-ser uma regra viva.
+**O que a folha impressa pede e o formulário não grava:** início, fim, estrutura executada, o que foi
+abandonado e os materiais. Quem lança no papel regista mais do que quem lança no ecrã — e é o ecrã
+que guarda.
 
-**O defeito que a listagem publicada tinha, e que foi corrigido antes de se propor.**
-A caixa tem 111px a 390px e o valor lá dentro tinha **67px** — o «?» reservava 30,4px, 27% da
-caixa. Medido na lista de planos que já estava no ar: «Balé Nível 2» (precisa 89), «Cafe No Bule»
-(97) e «PO aguardando» (118) saíam cortados. Duas correções: o «?» deixa de reservar a faixa (67 →
-97px) e o valor quebra em duas linhas. **Depois: zero valores cortados** em cinco rotas e quatro
-larguras.
+**A linha de base não desliza.** O `ARQUITETURA-AULA.md` §2 declara que a linha de corte da aula N é
+o registo da última aula dada; o bloco `linha_de_base` do formulário lê a fotografia inicial do PO. A
+aula 26 compararia as alunas com Fevereiro.
 
-**As três listas da Área do Professor deixaram de ser montadas.**
-Elas listavam **turmas** — uma linha por turma, e as três páginas iguais. Mas o que uma listagem tem
-de dizer («a anamnese de quem, feita por quem, quando; é aluno novo?») vive no **acervo**, e o
-acervo muda a cada ato registado. Passaram a ser **servidas pela ponte** (`motor/servidor/
-listas-do-acervo.js`), a ler o índice de envelopes — e o desenho é o mesmo das outras cinco, porque
-a listagem é o padrão de todas.
+**A regra que separa, em três perguntas:** *muda de aula para aula?* (sim → aula, não → plano) ·
+*é sobre a aluna?* (sim → PO) · *é o que se pretendia ou o que aconteceu?* (aconteceu → lançamento).
+Aplicada, resolve as seis sobreposições sem inventar um campo. E **a aula passa a ser filha do plano
+do ciclo**, não do PO: herda turma, professor, blocos, volume, rubrica e os itens de observação, e o
+que é dela é o **delta** — o marco do dia, a seleção de exercícios, a música, o que quer ver hoje e o
+próximo passo.
 
-**O que foi preciso acrescentar para a terceira caixa existir:** `gerado_em` no **resumo** do
-índice (`VERSAO_DO_RESUMO` 3 → **4**). Sem ele, a lista teria de abrir cada envelope para saber uma
-data — e a regra da estante é que a lista se faz com metadado.
+**A sala não é da aula, é do evento.** O `PLANO-TABELA-DE-ATIVIDADES.md` §3.1 cria os espaços e §3.3
+a relação turma ↔ espaço; a aula ganha uma **resolução** em três passos (evento → programação da
+turma → «não declarada»), e **zero campos novos**.
 
-**E a versão nova não se aplicava — a produção é que o mostrou.** Depois do deploy, as três
-anamneses da `batata` apareceram com **«—»** na coluna «Quando». A causa: a reconstrução do índice
-confundia **«incompleto»** (uma escrita não conseguiu enumerar — o que está lá serve, falta o resto)
-com **«versão antiga»** (os resumos foram feitos por outra definição de resumo). No segundo caso ela
-aproveitava os resumos que existiam, não lia envelope nenhum, e gravava o índice **a jurar a versão
-4 com o conteúdo da 3**. O `if (resumos[nome]) continue` era a linha certa para o primeiro caso e a
-linha errada para o segundo. Agora são duas perguntas separadas, e numa versão nova o resumo antigo
-é descartado e refeito — que é exactamente o preço que a `VERSAO_DO_RESUMO` existe para cobrar uma
-vez. Custou **uma enumeração por escola** na primeira leitura após o deploy.
-
-**E o número da versão não chegava.** O primeiro remédio foi comparar `versao` — e o índice do
-repositório já dizia **4** com resumos da 3. A razão: `gravarIndice` grava sempre com
-`versao: VERSAO_DO_RESUMO`, portanto **qualquer escrita carimba a versão de hoje nos resumos que lá
-estão**. Bastou uma escrita depois de a versão 4 entrar. A pergunta certa não é «que versão diz», é
-«que campos tem»: um resumo sem `gerado_em` é um resumo de outra definição, diga o número o que
-disser. Ficou uma lista dos **campos que a definição de hoje escreve sempre** (`CAMPOS_DO_RESUMO`),
-e quem acrescentar um campo ao `resumoDoEnvelope` acrescenta-o lá — o índice refaz-se sozinho uma
-vez.
-
-Este é o segundo defeito desta série que só aparece **em produção, com dados a sério**: a prova do
-índice cobria a migração de um índice **sem** resumos, e não a de um índice **com** resumos de outra
-versão — nem a de um índice que diz a versão certa com a forma errada. As duas asserções novas
-montam exactamente esses casos.
-
-**Onde entrou.**
-- `tools/templates/ciclo.css` — o valor em duas linhas, o «?» sobre a linha do rótulo, e a peça
-  nova **`.fatos`** (a linha de factos das listas sem painel).
-- `motor/nucleo/lista-html.js` — `cartaoDaLista`, `caixasDoCartao`, `painelDoCartao`. Saem
-  `cartaoDoPlano`, `cartaoDeDocumento` e `trioDePlano`: **um cartão para as oito listas**.
-- `tools/montar-publicacao.js` — `itemDoPlano`, `itemDaAula`, `itemDeDocumento`, `dataCurta`,
-  `periodoCurto`; o menu novo; as três listas do acervo saem da montagem; `listaDeAulas` passa a
-  trazer a hora e o dia de cada aula.
-- `motor/nucleo/nav.js` — `LISTAS` e `TRILHA_DO_DOCUMENTO` com os nomes novos.
-- `motor/servidor/listas-do-acervo.js` — **novo**: as três listas a partir do índice de envelopes.
-- `motor/servidor/producao.js` — o bloco 0.2 do `fetch`, antes do ASSETS; e o armazenamento
-  exportado para a prova semear com o mesmo adaptador da produção.
-- `motor/servidor/bastidores.js` — `curadorias` exportada (a anamnese precisa da turma da aluna).
-- `motor/nucleo/porta.js` — `gerado_em` no resumo; versão 4.
-
-**O que a decisão deixa em aberto, e é declarado.**
-- **Sala** não entra agora: fica para o **PLANO-TABELA-DE-ATIVIDADES**, e até lá a caixa «Horário»
-  diz «sala: não declarada». O modelo não tem o campo, e a listagem não o inventa.
-- **Período e vigência** do plano de ensino e do PO continuam a não existir como campo próprio: a
-  caixa «Quando» diz a data do registo, e o painel diz que o período vem do plano do ciclo.
-
-**Com o quê.**
-- `node experimentos/provar-listas-do-acervo.js` — **novo, 25 provas**: uma linha por **registo** e
-  não por turma; a ordem fixa das caixas; a data do carimbo; o selo «nova»/«vinculada»; a turma que
-  vem da curadoria; **a turma do PO, que vem do plano de ensino que ele referencia** (o registo do
-  PO não a tem, e em produção a caixa saía «—»); e as três páginas com a barra, o filtro e a coluna.
-- `provar-navegacao` **64/64** — a conta das turmas passou a ser «o directório que tem
-  `ciclos.json`» (a lista de nomes a excluir ficava errada a cada pasta nova); a secção 8 passou a
-  medir a fronteira (as três são rotas, não ficheiros); as caixas dos planos são
-  Turma · Professor · Período; e o acordeão abre em «Ciclos», que é o primeiro grupo.
-- `provar-barra-unica` **89/0** — «Planejamento» já não existe, «Consulta» é o único destino
-  directo, a Área do Professor tem cinco itens, e os links das três rotas deixam de contar como
-  ficheiros em falta.
-- `provar-barra-e-caminho` **43/43** — o caminho da notação é «Área do Professor · Notação · …».
-- `provar-listas-do-acervo` achou um erro meu à primeira: a prova semeava os envelopes num `env`
-  **sem KV**, e media uma lista vazia a jurar que estava certa.
-- `provar-indice-de-envelopes` **44 asserções** (eram 41) — a secção 7 é nova e monta os dois casos
-  que a produção apanhou: um índice completo com resumos de uma versão anterior, e um índice que
-  DIZ a versão de hoje com resumos da anterior. Os dois têm de ser REFEITOS, e não aproveitados.
-- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 38/38,
-  `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
-  `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,
-  `provar-contexto-do-ato` 37/37, `check-identidade` 20 sem erro.
-- Medido no browser, em cinco rotas e quatro larguras (360, 390, 414, 1280): **nenhum valor
-  cortado**, nada a estourar. Altura por linha: planos 197px a 390 e 141 a 1280; aulas 194 e 111;
-  as três de documento 52–88.
+**Seis peças, na ordem**, com o custo de cada uma; **seis decisões** que dependem da pesquisadora —
+a primeira é o que fazer com as 23 aulas que não têm marco.
 
 ## O que está pendente
 
