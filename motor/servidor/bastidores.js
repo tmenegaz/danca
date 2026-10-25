@@ -1147,6 +1147,98 @@ function slugDoDono(env) {
     || slugificar(String((env && env.PROFESSOR_NOME) || ''));
 }
 
+/**
+ * A SENHA DE UM PROFESSOR — a regra, num lugar só (25/10/2026).
+ *
+ * O professor criado pela página vive no secret `SENHA_PROFESSOR`. O SLUG dele é derivado do
+ * SECRET (não da sobreposição editável do nome), para a pasta ficar estável — e o seletor envia
+ * exactamente esse slug. Os adicionais vivem no KV, com hash e sal; o texto em claro é legado
+ * (pré-hash) e aceita-se para não quebrar escolas antigas.
+ *
+ * UMA SENHA DE UM PROFESSOR NUNCA VALE PARA OUTRO — era esse o vazamento, e é a razão de a
+ * função receber o slug: a resposta não é «esta senha existe», é «esta senha é DESTE».
+ *
+ * A rota `validar-senha` e o bilhete do ato (`/api/bastidores/ato`) perguntam os dois aqui. Duas
+ * cópias da regra divergiriam no dia em que uma delas mudasse — e o sintoma seria o pior: uma
+ * porta que aceita quem a lista recusou.
+ */
+async function senhaDoProfessorOk(env, kv, escola, professor, senha) {
+  if (!senha) return { ok: false, erro: 'informe a senha' };
+  if (!professor) return { ok: false, erro: 'escolha o professor' };
+
+  if (professor === slugDoDono(env)) {
+    if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
+      const nome = await nomeDoDono(env, kv, escola);
+      return { ok: true, nome: (nome || 'professor') };
+    }
+    return { ok: false, erro: 'senha do professor não reconhecida' };
+  }
+
+  const profs = await professores(kv, escola);
+  const alvo = profs.find((p) => slugDoProfessor(p) === professor);
+  if (!alvo) return { ok: false, erro: 'professor não reconhecido' };
+  const confere = alvo.hash
+    ? ((await hashSenha(senha, alvo.sal)) === alvo.hash)
+    : (alvo.senha === senha);
+  return confere
+    ? { ok: true, nome: alvo.nome }
+    : { ok: false, erro: 'senha do professor não reconhecida' };
+}
+
+/* O BILHETE DO ATO — a chave, o alfabeto e a validade. O prefixo é o dos Bastidores porque o KV
+ * da escola é um só, e uma chave sem raiz ficaria ao lado das curadorias sem se distinguir. */
+const PREFIXO_DO_BILHETE = RAIZ + '/ato/';
+const VALIDADE_DO_BILHETE = 10 * 60 * 1000;
+
+/** 32 hex de entropia do `crypto` da plataforma; sem ele, não se emite bilhete nenhum. */
+function bilheteAleatorio() {
+  const c = (typeof globalThis !== 'undefined' && globalThis.crypto) || null;
+  if (!c || typeof c.getRandomValues !== 'function') return null;
+  const b = new Uint8Array(16);
+  c.getRandomValues(b);
+  let t = '';
+  for (let i = 0; i < b.length; i += 1) t += b[i].toString(16).padStart(2, '0');
+  return t;
+}
+
+async function emitirBilheteDoAto(kv, escola, ato) {
+  if (!kv || !escola) return null;
+  const bilhete = bilheteAleatorio();
+  if (!bilhete) return null;
+  const registo = {
+    fonte: ato.fonte, professor: ato.professor, ciclo: ato.ciclo,
+    aluna: ato.aluna, plano: ato.plano,
+    expira: Date.now() + VALIDADE_DO_BILHETE,
+  };
+  try {
+    await kv.put(PREFIXO_DO_BILHETE + escola + '/' + bilhete, JSON.stringify(registo),
+      { expirationTtl: Math.ceil(VALIDADE_DO_BILHETE / 1000) + 60 });
+    return bilhete;
+  } catch (erro) { return null; }
+}
+
+/**
+ * CONSOME — e apaga antes de responder. A ORDEM É DELIBERADA: se o `delete` falhar, o bilhete
+ * não é dado por gasto. O contrário entregaria autorização sobre um bilhete que continua válido,
+ * e um erro de rede transformaria «uso único» em «uso quantas vezes conseguir».
+ */
+async function consumirBilheteDoAto(kv, escola, bilhete) {
+  if (!kv || !escola || !bilhete || !/^[0-9a-f]{32}$/.test(bilhete)) return null;
+  const chave = PREFIXO_DO_BILHETE + escola + '/' + bilhete;
+  let bruto = null;
+  try { bruto = await kv.get(chave); } catch (erro) { return null; }
+  if (!bruto) return null;
+  let registo = null;
+  try { registo = JSON.parse(bruto); } catch (erro) { registo = null; }
+  const expirado = !registo || !registo.expira || Number(registo.expira) < Date.now();
+  if (expirado) {
+    try { await kv.delete(chave); } catch (erro) { /* já não serve a ninguém */ }
+    return null;
+  }
+  try { await kv.delete(chave); } catch (erro) { return null; }
+  return registo;
+}
+
 async function nomeDoDono(env, kv, escola) {
   try {
     const t = await kv.get(RAIZ + '/' + escola + '/dono');
@@ -5282,28 +5374,60 @@ async function fetch(request, env) {
     const professor = String(corpo.professor || '').trim();
     if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
     if (!professor) return json(400, { ok: false, erro: 'escolha o professor' });
+    const veredicto = await senhaDoProfessorOk(env, kv, escola, professor, senha);
+    return json(200, veredicto.ok
+      ? { ok: true, professor: veredicto.nome }
+      : { ok: false, erro: veredicto.erro });
+  }
 
-    // O professor criado pela página vive no secret SENHA_PROFESSOR. O SLUG dele é derivado
-    // do SECRET (não da sobreposição editável do nome), para a pasta ficar estável — e o
-    // seletor envia exatamente esse slug.
-    const donoSlug = slugDoDono(env);
-    if (professor === donoSlug) {
-      if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
-        const nome = await nomeDoDono(env, kv, escola);
-        return json(200, { ok: true, professor: (nome || 'professor') });
-      }
-      return json(200, { ok: false, erro: 'senha do professor não reconhecida' });
-    }
+  /* POST /api/bastidores/ato — O BILHETE DO ATO, DE USO ÚNICO (25/10/2026).
+   *
+   * O PROBLEMA QUE ELE RESOLVE. A senha do professor autoriza o ATO, e a porta é explícita:
+   * «sair não leva a senha; ela autoriza um ATO, não uma sessão». Correcto — mas a Área do
+   * Professor passou a ter o contexto dentro da listagem, e a lista validava a senha para
+   * habilitar o botão. Ao navegar para o formulário, a porta não sabia de nada: pedia a senha
+   * outra vez, e o professor que acabou de a digitar via a página intermédia que se queria
+   * eliminar. O salto directo ao formulário ficava impossível exactamente por causa da regra
+   * que o torna seguro.
+   *
+   * O QUE ELE É: um bilhete opaco, aleatório, ligado a UM ato (fonte, professor, ciclo, aluna e
+   * plano), com validade de dez minutos, guardado no KV da escola e APAGADO no primeiro uso. Não
+   * transporta a senha, não autoriza outro ato, e não vale duas vezes. O que viaja no endereço é
+   * um valor que, sozinho, não abre nada além daquele ato — e que expira.
+   *
+   * PORQUE NÃO UMA ASSINATURA (HMAC) SEM ESTADO: porque «de uso único» é o pedido, e sem estado
+   * não há como gastar o bilhete. O custo é uma escrita no KV por ato criado — poucas por dia,
+   * e o KV já guarda o resto dos Bastidores.
+   */
+  if (path === '/api/bastidores/ato' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const senha = String(corpo.senha || '');
+    const professor = String(corpo.professor || '').trim();
+    if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
+    if (!professor) return json(400, { ok: false, erro: 'escolha o professor' });
+    const veredicto = await senhaDoProfessorOk(env, kv, escola, professor, senha);
+    if (!veredicto.ok) return json(200, { ok: false, erro: veredicto.erro });
 
-    const profs = await professores(kv, escola);
-    const alvo = profs.find((p) => slugDoProfessor(p) === professor);
-    if (!alvo) return json(200, { ok: false, erro: 'professor não reconhecido' });
-    const confere = alvo.hash
-      ? ((await hashSenha(senha, alvo.sal)) === alvo.hash)
-      : (alvo.senha === senha); // legado (pré-hash): aceita, sem quebrar escolas antigas.
-    return json(200, confere
-      ? { ok: true, professor: alvo.nome }
-      : { ok: false, erro: 'senha do professor não reconhecida' });
+    const bilhete = await emitirBilheteDoAto(kv, escola, {
+      fonte: String(corpo.fonte || '').trim(),
+      professor,
+      ciclo: String(corpo.ciclo || '').trim(),
+      aluna: String(corpo.aluna || '').trim(),
+      plano: String(corpo.plano || '').trim(),
+    });
+    if (!bilhete) return json(503, { ok: false, erro: 'o cofre da escola não está disponível' });
+    return json(200, { ok: true, ato: bilhete, professor: veredicto.nome });
+  }
+
+  /* POST /api/bastidores/ato/consumir — a porta troca o bilhete por autorização.
+   * O bilhete é APAGADO aqui: um segundo uso responde «não». */
+  if (path === '/api/bastidores/ato/consumir' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const consumido = await consumirBilheteDoAto(kv, escola, String(corpo.ato || '').trim());
+    if (!consumido) return json(200, { ok: false, erro: 'bilhete inválido ou já usado' });
+    return json(200, { ok: true, ato: consumido });
   }
 
   // POST /api/bastidores/validar-producao — a porta da Produção (só a direção).

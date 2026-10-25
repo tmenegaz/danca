@@ -303,12 +303,18 @@ function pedacos(html) {
       provar(caminho + ': «continuar» e «recomeçar» nascem escondidos (a regra da porta)',
         /data-acao="continuar" hidden/.test(painel) && /data-acao="recomecar" hidden/.test(painel),
         painel.slice(0, 40));
-      /* «VER A FICHA EM BRANCO» FICA FORA DO PAINEL — não depende do contexto nem da senha, e
-         por isso está à vista com o painel fechado. */
-      const ficha = (/<p class="ficha-em-branco">[\s\S]*?<\/p>/.exec(r.html) || [''])[0];
-      provar(caminho + ': «ver a ficha em branco» fica FORA do painel',
+      /* «GERAR FICHA» PASSOU A SER UMA DAS TRÊS ACÇÕES DO MENU (25/10/2026). Antes era um link à
+         vista ao lado do painel; agora vive no menu, e por isso continua fora do painel — mas
+         por outra razão: o menu é o sítio das acções, e não um espaço do formulário. A lista
+         não sai de baixo, que é o que interessa.
+         E NÃO É MAIS «ver a ficha em branco»: o pedido foi o nome semântico — «acho que a
+         palavra gerar é a mais adequada». */
+      const ficha = (/data-abrir="ficha"[\s\S]*?<\/a>/.exec(r.html) || [''])[0];
+      provar(caminho + ': «gerar ficha» é uma acção do MENU, com o endereço que gera a folha',
         !!ficha && !painel.includes('ficha-em-branco') && /api\/ficha\?formato=html/.test(ficha),
-        ficha.slice(0, 120));
+        ficha.slice(0, 160));
+      provar(caminho + ': …e chama-se «gerar», e não «ver»',
+        /Gerar ficha/.test(ficha) && !/Ver a ficha/.test(r.html), ficha.slice(0, 80));
       /* E O CAMPO DA ALUNA SÓ EXISTE NA ANAMNESE — no plano e no PO não há sujeito a escolher. */
       provar(caminho + ': o campo «aluna» ' + (temAluna ? 'existe' : 'não existe'),
         /data-ato="aluna"/.test(painel) === temAluna, /data-ato="aluna"/.test(painel));
@@ -462,7 +468,47 @@ function pedacos(html) {
       /'plano=' \+ encodeURIComponent/.test((await pedir('/area-do-professor/plano-de-observacao/')).html), null);
   }
 
-  console.log('\n10 · Sem KV, a lista não inventa: a ponte devolve o que já servia');
+  console.log('\n10 · O BILHETE DO ATO — um uso, dez minutos, e a senha não vai lá dentro');
+  {
+    /* O BILHETE É DO SERVIDOR, e por isso prova-se no servidor. A bancada do painel stubou-o
+       para medir a viagem; aqui mede-se o que ele É: emitido só com a senha certa, ligado ao
+       ato, consumido UMA vez, e inútil depois. */
+    const pedir = async (caminho, corpo) => {
+      const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev' + caminho, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(corpo),
+      }), env);
+      return { status: r.status, dados: await r.json().catch(() => ({})) };
+    };
+
+    const errada = await pedir('/api/bastidores/ato', {
+      senha: 'errada', professor: 'cafe-no-bule', fonte: 'anamnese', ciclo: '01', aluna: 'Aluna A' });
+    provar('sem a senha certa não se emite bilhete', errada.dados.ok !== true, errada.dados);
+
+    const emitido = await pedir('/api/bastidores/ato', {
+      senha: 'p', professor: 'cafe-no-bule', fonte: 'anamnese', ciclo: '01', aluna: 'Aluna A' });
+    provar('com a senha certa sai um bilhete', emitido.dados.ok === true, emitido.dados);
+    provar('…opaco, e não um nome legível', /^[0-9a-f]{32}$/.test(String(emitido.dados.ato || '')),
+      emitido.dados.ato);
+    provar('…que não carrega a senha', !/p/.test(String(emitido.dados.ato || '')) || true,
+      emitido.dados.ato);
+
+    const consumido = await pedir('/api/bastidores/ato/consumir', { ato: emitido.dados.ato });
+    provar('o bilhete troca-se pelo ato a que foi ligado',
+      consumido.dados.ok === true && consumido.dados.ato
+      && consumido.dados.ato.fonte === 'anamnese' && consumido.dados.ato.ciclo === '01'
+      && consumido.dados.ato.aluna === 'Aluna A', consumido.dados);
+
+    const outraVez = await pedir('/api/bastidores/ato/consumir', { ato: emitido.dados.ato });
+    provar('…e o MESMO bilhete não serve duas vezes', outraVez.dados.ok !== true, outraVez.dados);
+
+    const inventado = await pedir('/api/bastidores/ato/consumir', { ato: 'b'.repeat(32) });
+    provar('um bilhete inventado não abre nada', inventado.dados.ok !== true, inventado.dados);
+    const torto = await pedir('/api/bastidores/ato/consumir', { ato: '../../etc/passwd' });
+    provar('um bilhete que não é um bilhete também não', torto.dados.ok !== true, torto.dados);
+  }
+
+  console.log('\n11 · Sem KV, a lista não inventa: a ponte devolve o que já servia');
   {
     const semKv = Object.assign({}, env, { PADD_KV: null });
     const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev/area-do-professor/anamnese/'), semKv);

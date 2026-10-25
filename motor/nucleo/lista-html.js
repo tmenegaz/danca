@@ -178,7 +178,13 @@ function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'p
  * redeclare o desenho das peças é exactamente o que a checagem «Forma» reprova.
  */
 function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazio, aviso,
-  campos, singular, plural, porPagina = 0, dica, acao = null, painel = null, script = null }) {
+  campos, singular, plural, porPagina = 0, dica, acao = null, painel = null,
+  criar = '', ficha = '', script = null }) {
+  /* `acao` É O BOTÃO DO TOPO (as outras cinco listas usam-no). `criar` e `ficha` são as ACÇÕES
+   * DO MENU do painel: o rótulo que a fonte dá a «criar» e o endereço que gera a folha. São
+   * parâmetros diferentes porque são coisas diferentes — passar `acao` junto com `painel`
+   * desenharia o botão do topo AO LADO de um menu que já cria, que é exactamente a duplicação
+   * que o painel veio acabar. */
   const semNada = `<p class="aviso">${esc(vazio || 'Ainda não há nada para listar nesta escola.')}</p>`;
   /* UMA FORMA DE LISTA (24/10/2026). Havia duas — os planos, com as três caixas, e os documentos,
    * mais simples —, e a diferença era o desenho de cada cartão. Com a listagem a ser o padrão de
@@ -233,14 +239,44 @@ function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazi
      A alternativa (duas marcações, uma por largura) duplicaria o painel e os seus
      `id`, que é pior de todas as maneiras.
      ========================================================================== */
+  /* O MENU «AÇÕES» — TRÊS ACÇÕES, TRÊS ESPAÇOS (25/10/2026, segunda leitura).
+   *
+   * A primeira versão era um acordeão que continha o painel do ato e, dentro dele, mais um
+   * `details` com a caixinha do contexto: escolher «Criar» obrigava a um segundo clique, e o
+   * «procurar» ficava a ocupar espaço à vista. O pedido, revisto: «não é pra ser assim. É pra
+   * cada um ter o seu próprio espaço… o que vai acontecer é que sem eu precisar navegar entre
+   * páginas, mas sim abrir espaços da página que eu preciso que estejam abertos… com cara de
+   * menu».
+   *
+   * Então o botão «Ações» abre um MENU (como o «Sessões» da Produção) com três acções, e cada
+   * uma abre o SEU bloco na própria página — a listagem nunca sai de baixo:
+   *
+   *   · criar (o nome é o da fonte: «Criar anamnese», «Novo plano de ensino»…) → o contexto do
+   *     ato, já aberto;
+   *   · procurar → o filtro;
+   *   · gerar ficha → a folha em branco, para imprimir.
+   *
+   * NO COMPUTADOR O MENU NÃO EXISTE e os três blocos estão à vista, como sempre estiveram: um
+   * clique a mais onde há espaço é pior do que não o ter. Quem decide isso é o CSS
+   * (`@media (max-width: 560px)`), e o script só liga os botões.
+   *
+   * O `hidden` é a peça da folha com `!important`, e é ele que esconde os blocos no telemóvel —
+   * não uma classe nova. O que muda entre as larguras é o que está a vista, e não a marcação.
+   */
+  const nomeDeCriar = criar ? esc(criar) : 'Criar';
   const agrupado = painel
-    ? `<details class="acoes-da-lista" id="acoes">
-  <summary class="acao acoes-do-menu">Ações<span class="seta-do-ato" aria-hidden="true">\u25be</span></summary>
-  <div class="acoes-corpo">
-${painel}
-${blocoFiltro}
-  </div>
-</details>`
+    ? `<div class="acoes-da-lista" id="acoes">
+  <button type="button" class="acao acoes-do-menu" id="botao-acoes"
+    aria-expanded="false" aria-controls="menu-de-acoes">Ações<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>
+  <ul class="menu-de-acoes" id="menu-de-acoes" hidden>
+    <li><button type="button" class="menu-de-acoes-item" data-abrir="ato">${nomeDeCriar}</button></li>
+    <li><button type="button" class="menu-de-acoes-item" data-abrir="filtro">Procurar</button></li>
+    <li><a class="menu-de-acoes-item" data-abrir="ficha" href="${ficha ? esc(ficha) : '#'}"
+      target="_blank" rel="noopener">Gerar ficha</a></li>
+  </ul>
+  <div class="bloco-do-ato" id="bloco-ato">${painel}</div>
+  <div class="bloco-do-filtro" id="bloco-filtro">${blocoFiltro}</div>
+</div>`
     : (blocoFiltro ? blocoFiltro + '\n' : '');
   const lista = painel ? blocoLista : blocoFiltro + blocoLista;
   return `<!DOCTYPE html>

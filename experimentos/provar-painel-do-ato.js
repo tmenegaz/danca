@@ -58,6 +58,11 @@ const rel = (id) => ({ id, estado: 'x', contagem: { respondidos: 0, obrigatorios
 const DIR = path.join(raiz, 'publicacao', 'batata');
 const ALUNAS = ['Aluna A', 'Aluna B', 'Aluna C'];
 const PROFS = [{ nome: 'Cafe No Bule', slug: 'cafe-no-bule' }, { nome: 'Manga Curta', slug: 'manga-curta' }];
+/* O cofre dos bilhetes da bancada, e o registo do que o painel pediu ao emiti-los: é por este
+   último que se prova que a senha, a fonte, o ciclo e a aluna viajaram no PEDIDO — e não no
+   endereço, que é o que se quer evitar. */
+const BILHETES = new Map();
+const LASTRO_DO_ATO = [];
 
 const servidor = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://127.0.0.1');
@@ -117,6 +122,38 @@ const servidor = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, turmas: [{ nome: 'Balé Nível 1' }, { nome: 'Balé Nível 2' }] }));
   }
+  /* O BILHETE DO ATO — emitido e consumido, como na ponte. Um mapa de um uso só: o `consumir`
+     apaga, e um segundo pedido do mesmo bilhete responde «não». É a mesma regra do servidor
+     (`emitirBilheteDoAto` / `consumirBilheteDoAto`), e é o que a porta precisa de encontrar. */
+  if (u.pathname === '/api/bastidores/ato' && req.method === 'POST') {
+    let corpo = '';
+    req.on('data', (c) => { corpo += c; });
+    req.on('end', () => {
+      let d = {}; try { d = JSON.parse(corpo); } catch (e) {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      if (d.senha !== 'certa') {
+        return res.end(JSON.stringify({ ok: false, erro: 'senha do professor não reconhecida' }));
+      }
+      const bilhete = 'a'.repeat(32);
+      BILHETES.set(bilhete, { fonte: d.fonte, professor: d.professor, ciclo: d.ciclo,
+        aluna: d.aluna || '', plano: d.plano || '', expira: Date.now() + 600000 });
+      LASTRO_DO_ATO.push(d);
+      return res.end(JSON.stringify({ ok: true, ato: bilhete, professor: 'Cafe No Bule' }));
+    });
+    return;
+  }
+  if (u.pathname === '/api/bastidores/ato/consumir' && req.method === 'POST') {
+    let corpo = '';
+    req.on('data', (c) => { corpo += c; });
+    req.on('end', () => {
+      let d = {}; try { d = JSON.parse(corpo); } catch (e) {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      const ato = BILHETES.get(String(d.ato || ''));
+      BILHETES.delete(String(d.ato || ''));
+      return res.end(JSON.stringify(ato ? { ok: true, ato } : { ok: false, erro: 'bilhete inválido ou já usado' }));
+    });
+    return;
+  }
   if (u.pathname === '/api/bastidores/validar-senha') {
     let corpo = '';
     req.on('data', (c) => { corpo += c; });
@@ -166,15 +203,27 @@ const servidor = http.createServer(async (req, res) => {
   const ok = (t, c, d) => { if (c) console.log('  ok    ' + t);
     else { falhas += 1; console.log('  FALHOU ' + t + (d === undefined ? '' : ' → ' + JSON.stringify(d))); } };
 
-  const abrir = async (caminho, largura) => {
+  /* `limpar` É UM PARÂMETRO, e não um hábito. A prova grava um preenchimento interrompido no
+     `localStorage` e recarrega para o ver; um `clear()` escondido dentro do `abrir()` apagava-o
+     e a secção media a ausência do que ela própria tinha acabado de criar. */
+  const abrir = async (caminho, largura, opcoes) => {
+    const limpar = !opcoes || opcoes.limpar !== false;
     await p.setViewport({ width: largura, height: 900 });
     await p.goto(base + caminho, { waitUntil: 'load' });
-    await p.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
-    await p.reload({ waitUntil: 'load' });
-    /* O MENU «AÇÕES» (25/10/2026). No telemóvel ele agrupa o contexto, a ficha e o filtro: é a
-       única porta para eles, e sem o abrir a medição diria «não existe» sobre o que existe
-       fechado. No computador ele abre-se sozinho, e esta linha não faz nada. */
-    await p.evaluate(() => { const a = document.getElementById('acoes'); if (a) a.open = true; });
+    if (limpar) await p.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+    if (limpar) await p.reload({ waitUntil: 'load' });
+    /* O MENU «AÇÕES» (25/10/2026, segunda leitura). No telemóvel ele é a única porta para os
+       três espaços: escolher «criar» abre o bloco do ato com o contexto JÁ EXPANDIDO — e é isso
+       que se chama aqui, porque sem esse passo o painel está fechado e a medição diria «não
+       existe» sobre o que existe. No computador o botão não se vê e os blocos estão à vista; a
+       escolha não faz nada. */
+    await p.evaluate(() => {
+      const bloco = document.getElementById('bloco-ato');
+      const b = document.getElementById('botao-acoes');
+      const item = document.querySelector('[data-abrir="ato"]');
+      if (bloco && bloco.hidden && b && item) { b.click(); item.click(); }
+      else if (bloco && bloco.hidden) bloco.hidden = false;
+    });
     await p.evaluate(() => new Promise((r) => setTimeout(r, 350)));
   };
   const estado = () => p.evaluate(() => {
@@ -195,6 +244,12 @@ const servidor = http.createServer(async (req, res) => {
       resumo: (document.querySelector('[data-resumo]') || {}).textContent,
       estado: (document.querySelector('[data-estado]') || {}).textContent,
       painel: (document.getElementById('painel-ato') || {}).open,
+      blocoAberto: (() => { const b = document.getElementById('bloco-ato');
+        return !!b && !b.hidden && b.getClientRects().length > 0; })(),
+      camposVisiveis: (() => { const c = document.querySelector('.campos-do-ato');
+        return !!c && c.getClientRects().length > 0; })(),
+      itensDoMenu: [...document.querySelectorAll('#menu-de-acoes .menu-de-acoes-item')]
+        .map((x) => x.textContent.trim()),
       professores: (document.getElementById('ato-professor') || {}).length,
       alunas: (document.getElementById('ato-aluna') || {}).length,
     };
@@ -203,12 +258,19 @@ const servidor = http.createServer(async (req, res) => {
   console.log('\n1 · A anamnese: a caixinha, a seta, e a trava');
   await abrir('/area-do-professor/anamnese/', 390);
   let e = await estado();
-  ok('a caixinha do ato tem largura de faixa (não de um terço)', parseInt(e.caixinha, 10) >= 300, e.caixinha);
+  /* A CAIXINHA NÃO SE MEDE AQUI (25/10/2026, segunda leitura). No telemóvel ela está escondida
+     por desenho: quem abre o contexto é o menu «Ações», e ela seria o segundo clique que o
+     pedido recusa. Mede-se a 1280, na secção 9; aqui mede-se que o bloco abriu. */
+  ok('no telemóvel o bloco do ato está aberto e o contexto à vista',
+    e.blocoAberto === true && e.camposVisiveis === true, e);
   ok('os professores vieram da API', e.professores >= 3, e.professores);
   ok('sem contexto, «Nova» existe mas está desabilitado', e.novaDesab === true, e.novaDesab);
   ok('a caixinha diz o que falta', /escolher o professor/.test(e.resumo), e.resumo);
   ok('«continuar» e «recomeçar» não se vêem (não há memória)', e.continuar === false && e.recomecar === false);
-  ok('«ver a ficha em branco» está à vista com o painel fechado', e.ficha === true);
+  /* A FICHA DEIXOU DE SER UM LINK À VISTA: passou a ser a terceira acção do menu, e o nome
+     seguiu o pedido — «acho que a palavra gerar é a mais adequada». */
+  ok('«gerar ficha» está no menu, como as outras duas acções',
+    e.itensDoMenu.indexOf('Gerar ficha') !== -1, e.itensDoMenu);
 
   console.log('\n2 · Escolher professor, ciclo, aluna e a senha certa');
   await p.evaluate(() => {
@@ -248,8 +310,10 @@ const servidor = http.createServer(async (req, res) => {
       JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00.000Z', indice: 7,
         respostas: [], notas: [], sugeridas: [] }));
   });
-  await p.reload({ waitUntil: 'load' });
-  await p.evaluate(() => new Promise((r) => setTimeout(r, 500)));
+  /* O `abrir()` E NÃO O `reload()`: no telemóvel os blocos nascem fechados, e um recarregamento
+     puro deixaria a medição a olhar para uma página em que nada está à vista. É o mesmo caminho
+     de quem usa: recarregar e escolher «criar». */
+  await abrir('/area-do-professor/anamnese/', 390, { limpar: false });
   e = await estado();
   ok('com memória, «Nova» DESAPARECE', e.nova === false, e.nova);
   ok('«continuar de onde parei» aparece', e.continuar === true);
@@ -351,8 +415,10 @@ const servidor = http.createServer(async (req, res) => {
       localStorage.setItem('ato-batata-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
     });
-    await p.reload({ waitUntil: 'load' });
-    await p.evaluate(() => new Promise((r) => setTimeout(r, 600)));
+    /* AQUI A ORDEM IMPORTA: grava-se, RECARREGA-SE e é o `abrir()` que escolhe «criar». Um
+       `reload()` puro deixava o bloco fechado no telemóvel, e a fila de botões media zero. */
+    await abrir('/area-do-professor/anamnese/', 390, { limpar: false });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
     const m = await p.evaluate(() => {
       const c = document.querySelector('.acoes-do-ato');
       const bs = [...c.querySelectorAll('.acao')].filter((b) => b.getClientRects().length);
@@ -366,6 +432,10 @@ const servidor = http.createServer(async (req, res) => {
   }
 
   console.log('\n9 · Geometria e erros');
+  /* A CAIXINHA E A SETA SÓ EXISTEM NO COMPUTADOR (25/10/2026, segunda leitura). No telemóvel
+     quem abre o contexto é o menu «Ações», e a caixinha saiu de cena — o pedido foi explícito:
+     «que eu tenho que clicar de novo» era o defeito. O que se mede no telemóvel é que nada
+     estoura; a caixinha e a seta medem-se onde elas existem. */
   for (const largura of [320, 390, 1280]) {
     await abrir('/area-do-professor/anamnese/', largura);
     const m = await p.evaluate(() => {
@@ -383,11 +453,16 @@ const servidor = http.createServer(async (req, res) => {
       };
     });
     ok(largura + 'px: nada estoura na horizontal', m.estouro <= 1, m.estouro);
-    ok(largura + 'px: a caixinha tem altura de caixinha', m.caixinhaA >= 40 && m.caixinhaA <= 90, m.caixinhaA);
-    ok(largura + 'px: a seta está desenhada', m.setaVisivel && m.setaTexto.trim() === '\u25be', m);
+    if (largura > 560) {
+      ok(largura + 'px: a caixinha tem altura de caixinha', m.caixinhaA >= 40 && m.caixinhaA <= 90, m.caixinhaA);
+      ok(largura + 'px: a seta está desenhada', m.setaVisivel && m.setaTexto.trim() === '\u25be', m);
+    } else {
+      /* `0` é a RESPOSTA CERTA aqui: a caixinha está escondida, e o pedido é que esteja. */
+      ok(largura + 'px: a caixinha saiu de cena — quem abre o contexto é o menu', m.caixinhaA === 0, m.caixinhaA);
+    }
   }
   // a seta roda ao abrir
-  await abrir('/area-do-professor/anamnese/', 390);
+  await abrir('/area-do-professor/anamnese/', 1280);
   const rot = await p.evaluate(() => {
     const s = document.querySelector('.painel-ato .seta-do-ato');
     document.getElementById('painel-ato').open = false;
@@ -489,6 +564,65 @@ const servidor = http.createServer(async (req, res) => {
        página — e é isso que se prova: `abrir=1` não contorna a senha. */
     ok('sem a senha validada, «Nova anamnese» está travado e não leva a lado nenhum',
       /area-do-professor\/anamnese/.test(comTrava), comTrava);
+  }
+
+  console.log('\n11 · O BILHETE DO ATO — a senha não viaja, a autorização sim');
+  {
+    /* O PROBLEMA QUE ELE RESOLVE, e que a pesquisadora encontrou a testar: «fui em criar
+       anamnese… me levou pra página onde tá escrito anamnese do aluno e tem de novo o contexto
+       do ato… Tem que me levar direto pro formulário». A porta pede a senha para COMEÇAR (a
+       regra é dela, e está certa); a lista validou a senha e a autorização morria ali. O
+       bilhete de uso único atravessa — opaco, ligado a um ato, sem a senha lá dentro. */
+    await abrir('/area-do-professor/anamnese/', 1280);
+    await p.evaluate(() => {
+      const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
+      pr.dispatchEvent(new Event('change'));
+      const c = document.getElementById('ato-ciclo'); c.value = '01'; c.dispatchEvent(new Event('input'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
+    await p.evaluate(() => {
+      const a = document.getElementById('ato-aluna'); a.value = 'Aluna A';
+      a.dispatchEvent(new Event('change'));
+      const s = document.getElementById('ato-senha'); s.value = 'certa';
+      s.dispatchEvent(new Event('input'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 900)));
+    const desab = await p.evaluate(() => (document.querySelector('[data-acao="nova"]') || {}).disabled);
+    ok('com a senha certa o botão abre', desab === false, desab);
+
+    const destino = await Promise.all([
+      p.waitForNavigation({ waitUntil: 'load', timeout: 8000 }).catch(() => null),
+      p.evaluate(() => document.querySelector('[data-acao="nova"]').click()),
+    ]).then(() => p.url());
+    const pedido = LASTRO_DO_ATO[LASTRO_DO_ATO.length - 1] || {};
+    ok('o painel pediu o bilhete ao servidor, com a senha e o ato',
+      pedido.senha === 'certa' && pedido.professor === 'cafe-no-bule'
+      && pedido.fonte === 'anamnese' && pedido.ciclo === '01' && pedido.aluna === 'Aluna A', pedido);
+    ok('…e a senha NÃO vai no endereço', !/senha=/.test(destino || ''), destino);
+    ok('…o bilhete vai', /ato=a{32}/.test(destino || ''), destino);
+
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 700)));
+    const aterrou = await p.evaluate(() => {
+      const visivel = (e) => !!e && !e.classList.contains('oculto') && e.getClientRects().length > 0;
+      return { conducao: visivel(document.getElementById('conducao')),
+        abertura: visivel(document.getElementById('abertura')), url: location.search };
+    });
+    ok('a anamnese aterra no FORMULÁRIO — é o que faltava para «direto pro formulário»',
+      aterrou.conducao && !aterrou.abertura, aterrou);
+    ok('…e o bilhete sai do endereço depois de gasto', !/ato=a{32}/.test(aterrou.url || ''), aterrou.url);
+
+    /* E UM BILHETE GASTO NÃO ABRE OUTRA VEZ. É «de uso único» — sem isto, um valor que fica no
+       histórico voltaria a autorizar o mesmo ato, e a senha teria sido contornada por repetição. */
+    const mesma = destino;
+    await p.goto(mesma, { waitUntil: 'load' });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 700)));
+    const repetido = await p.evaluate(() => {
+      const visivel = (e) => !!e && !e.classList.contains('oculto') && e.getClientRects().length > 0;
+      return { conducao: visivel(document.getElementById('conducao')),
+        abertura: visivel(document.getElementById('abertura')) };
+    });
+    ok('um bilhete já usado NÃO abre o formulário — fica na abertura',
+      !repetido.conducao && repetido.abertura, repetido);
   }
 
   ok('nenhum erro de JavaScript', erros.length === 0, erros);

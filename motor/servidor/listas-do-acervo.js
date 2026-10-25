@@ -130,7 +130,14 @@ function consulta(params) {
 /** O botão do topo da página — a acção de CRIAR, que é a que faltava por inteiro. */
 function acaoDaPagina(chave) {
   const f = FAMILIAS[chave];
-  return { rotulo: f.acaoDeCriar, href: f.porta + consulta({ fonte: f.fonte }) };
+  /* `ficha` é o endereço que GERA a folha em branco. Ele viaja aqui (e não dentro do painel)
+   * porque passou a ser uma das três acções do menu: no telemóvel o painel só existe depois de
+   * se escolher «criar», e a ficha tem de estar acessível sem esse passo. */
+  return {
+    rotulo: f.acaoDeCriar,
+    href: f.porta + consulta({ fonte: f.fonte }),
+    ficha: f.porta + 'api/ficha?formato=html',
+  };
 }
 
 /**
@@ -244,9 +251,10 @@ function painelDoAto(chave, escola) {
     </div>
     <p class="estado-do-ato" data-estado hidden></p>
   </div>
-</details>
-<p class="ficha-em-branco"><a class="acao secundario pequena" href="${f.porta}api/ficha?formato=html"
-  target="_blank" rel="noopener">Ver a ficha em branco</a></p>`;
+</details>`;
+  /* A FICHA SAIU DAQUI (25/10/2026). Ela era um link à vista ao lado do painel; com o menu
+   * «Ações» passou a ser uma das três acções, e um segundo sítio para a mesma folha seria a
+   * duplicação que se está a evitar. O endereço vem em `acaoDaPagina` (`ficha`). */
 }
 
 /**
@@ -630,12 +638,37 @@ function scriptDoPainel(chave, escola) {
     return CFG.porta + (q.length ? '?' + q.join('&') : '');
   }
 
+  /* O BILHETE DO ATO. A senha autoriza o ATO e não viaja no endereço — mas o professor acabou
+   * de a digitar AQUI, e a porta voltava a pedi-la. O servidor emite um bilhete de uso único,
+   * ligado a este ato, que a porta troca por autorização; é o que faz «criar» aterrar no
+   * formulário em vez de na página intermédia.
+   *
+   * SÓ SE PEDE ONDE HÁ SENHA E ELA CONFERIU. No PO não há senha nenhuma (a porta é explícita
+   * nisso) e não há nada a transportar. Se o bilhete falhar — sem KV, rede fora —, navega-se
+   * sem ele: a porta pede a senha, que é o comportamento de antes, e não um beco sem saída. */
+  function irAoFormulario() {
+    var destino = endereco();
+    if (!CFG.temSenha || SENHA !== 'ok') { window.location.href = destino; return; }
+    pedir('/api/bastidores/ato', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        senha: valor('senha'), professor: valor('professor'), fonte: CFG.fonte,
+        ciclo: valor('ciclo'), aluna: valor('aluna'), plano: valor('plano'),
+      }),
+    }).then(function (r) {
+      var d = r.dados || {};
+      if (r.ok && d.ato) destino += '&ato=' + encodeURIComponent(d.ato);
+      window.location.href = destino;
+    });
+  }
+
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-acao]');
     if (!b || !b.closest('#painel-ato')) return;
     var acao = b.getAttribute('data-acao');
     if (acao === 'nova' || acao === 'continuar') {
-      window.location.href = endereco();
+      b.disabled = true;
+      irAoFormulario();
     } else if (acao === 'recomecar') {
       /* «Começar de novo» limpa e o painel FICA ABERTO. Fechá-lo esconderia justamente o botão
        * que volta — e o pedido é literal: «desaparece o continuar, desaparece o começar de novo, e
@@ -682,14 +715,82 @@ function scriptDoPainel(chave, escola) {
    * A JANELA PODE MUDAR DE LARGURA (girar o telemóvel, encolher a janela do computador), e
    * a regra é reavaliada. Ao ENCOLHER não se fecha o que o professor abriu — só se abre ao
    * crescer, porque fechar por baixo de quem está a usar é o defeito que se evita. */
-  var menuAcoes = document.getElementById('acoes');
-  if (menuAcoes) {
-    var largo = window.matchMedia('(min-width: 561px)');
-    function ajustarMenu() { if (largo.matches) menuAcoes.open = true; }
-    ajustarMenu();
-    if (largo.addEventListener) largo.addEventListener('change', ajustarMenu);
-    else if (largo.addListener) largo.addListener(ajustarMenu);
+  /* O MENU «AÇÕES» E OS SEUS TRÊS BLOCOS (25/10/2026, segunda leitura).
+   *
+   * O MENU abre e fecha, e fecha-se ao escolher — um menu que fica aberto sobre a página depois
+   * de cumprir a sua função é uma coisa a mais para fechar.
+   *
+   * OS BLOCOS SÃO ESPAÇOS DA PÁGINA, e não um acordeão: escolher «criar» abre o contexto do ato
+   * JÁ ABERTO (sem a caixinha a pedir um segundo clique), «procurar» abre o filtro, e a lista
+   * continua onde está. Os dois podem estar abertos ao mesmo tempo — quem está a trabalhar sabe
+   * o que quer ver, e fechar-lhe um bloco por baixo seria decidir em vez dele.
+   *
+   * NO COMPUTADOR o botão não existe: o CSS esconde-o e os dois blocos estão sempre à vista. O
+   * script não força nada — se o 'matchMedia' disser «largo», ele esconde o menu e mostra os
+   * blocos, porque um estado que depende da largura tem de ser reavaliado quando ela muda. */
+  var botaoAcoes = document.getElementById('botao-acoes');
+  var menuDeAcoes = document.getElementById('menu-de-acoes');
+  var blocoDoAto = document.getElementById('bloco-ato');
+  var blocoDoFiltro = document.getElementById('bloco-filtro');
+
+  function mostrarBloco(nome) {
+    if (nome === 'ato' && blocoDoAto) {
+      blocoDoAto.hidden = false;
+      /* O contexto abre EXPANDIDO — é o pedido, e é a diferença entre «escolher criar» e
+       * «escolher criar e depois clicar outra vez». */
+      if (painel) painel.open = true;
+    }
+    if (nome === 'filtro' && blocoDoFiltro) blocoDoFiltro.hidden = false;
+    if (nome === 'ato' && !blocoDoAto && blocoDoFiltro) blocoDoFiltro.hidden = false;
+    fecharMenu();
   }
+  function fecharMenu() {
+    if (!menuDeAcoes) return;
+    menuDeAcoes.hidden = true;
+    if (botaoAcoes) botaoAcoes.setAttribute('aria-expanded', 'false');
+  }
+  if (botaoAcoes && menuDeAcoes) {
+    botaoAcoes.addEventListener('click', function () {
+      var abrir = menuDeAcoes.hidden;
+      menuDeAcoes.hidden = !abrir;
+      botaoAcoes.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    });
+    menuDeAcoes.addEventListener('click', function (e) {
+      var alvo = e.target.closest && e.target.closest('[data-abrir]');
+      if (!alvo) return;
+      var nome = alvo.getAttribute('data-abrir');
+      /* «gerar ficha» é um link: abre noutra aba e não muda nada nesta página. O menu fecha-se
+       * na mesma, porque já cumpriu. */
+      if (nome === 'ficha') { fecharMenu(); return; }
+      e.preventDefault();
+      mostrarBloco(nome);
+    });
+    /* Um clique fora do menu fecha-o — o gesto que se espera de um menu. */
+    document.addEventListener('click', function (e) {
+      if (menuDeAcoes.hidden) return;
+      if (menuDeAcoes.contains(e.target) || (botaoAcoes && botaoAcoes.contains(e.target))) return;
+      fecharMenu();
+    });
+  }
+
+  /* A LARGURA MANDA. No computador os blocos estão à vista e o menu não existe; no telemóvel é
+   * o contrário, e ambos começam fechados (é o que ganha a tela). Ao MUDAR de largura os blocos
+   * são reavaliados — e no telemóvel, ao voltar do computador, começam fechados outra vez: o
+   * menu é a porta, e uma porta que nasce aberta não é uma porta. */
+  var largo = window.matchMedia('(min-width: 561px)');
+  function ajustarBlocos() {
+    if (largo.matches) {
+      if (blocoDoAto) blocoDoAto.hidden = false;
+      if (blocoDoFiltro) blocoDoFiltro.hidden = false;
+      fecharMenu();
+    } else {
+      if (blocoDoAto) blocoDoAto.hidden = true;
+      if (blocoDoFiltro) blocoDoFiltro.hidden = true;
+    }
+  }
+  ajustarBlocos();
+  if (largo.addEventListener) largo.addEventListener('change', ajustarBlocos);
+  else if (largo.addListener) largo.addListener(ajustarBlocos);
 
   restaurarContexto();
   carregarProfessores().then(function () { pintar(); return carregarCuradoria(); })
@@ -858,6 +959,11 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
        * agora tem contexto. Um botão «Nova anamnese» no topo, ao lado de um painel que também
        * cria, seriam duas portas para o mesmo ato, e a segunda a não levar o contexto. */
       painel: painelDoAto(chave, escola),
+      /* O RÓTULO DE CRIAR É O DA FONTE («Criar anamnese», «Novo plano de ensino»…), e o
+       * endereço da ficha vem do mesmo lugar. Sem `acao`: o botão do topo não existe nesta
+       * página — quem cria é o menu, com o contexto. */
+      criar: familia.acaoDeCriar,
+      ficha: familia.porta + 'api/ficha?formato=html',
       script: scriptDoPainel(chave, escola),
     }),
   };

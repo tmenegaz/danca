@@ -1074,6 +1074,10 @@ function senhaDaEscola() {
  * também a escola, o professor e o ciclo.
  */
 let SENHA_VALIDA = false;
+/* O ATO FOI AUTORIZADO POR BILHETE (25/10/2026). Não substitui `SENHA_VALIDA` — soma-se a ela
+ * onde a senha não é exigida (plano e PO), e é o que distingue «a pessoa não digitou a senha
+ * aqui» de «ninguém autorizou nada». */
+let ATO_AUTORIZADO = false;
 
 function atualizarComecar() {
   const comecar = document.getElementById('comecar');
@@ -6861,6 +6865,41 @@ async function iniciar() {
   // seletor quando a semeadura rodar.
   await carregarProfessores();
   await atualizarCuradoria();
+
+  // O BILHETE DO ATO — `?ato=<bilhete>`. A lista da Área do Professor validou a senha e o
+  // servidor emitiu um bilhete de USO ÚNICO, ligado a UM ato. A porta troca-o por autorização
+  // aqui: é o que faz o salto directo ao formulário ser possível sem que a senha viaje no
+  // endereço (a regra é da porta, e continua de pé — «sair não leva a senha»).
+  //
+  // O BILHETE É CONFERIDO CONTRA A BARRA, e não só gasto. Um bilhete da anamnese da Aluna A
+  // não pode autorizar o plano da turma 2: sem esta conferência, bastava editar o endereço
+  // depois de o bilhete ser aceite, e a autorização de um ato passaria a valer para outro.
+  const bilhete = new URLSearchParams(location.search).get('ato');
+  if (bilhete) {
+    const r = await fetch('/api/bastidores/ato/consumir', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ato: bilhete }),
+    }).then((x) => x.json()).catch(() => ({}));
+    const autorizado = r && r.ok && r.ato && String(r.ato.fonte || '') === FONTE
+      && String(r.ato.professor || '') === String(($('ctx-professor') || {}).value || '').trim()
+      && String(r.ato.ciclo || '') === String(($('ctx-ciclo') || {}).value || '').trim()
+      && (FONTE !== 'anamnese'
+        || String(r.ato.aluna || '') === String(($('ctx-aluna') || {}).value || '').trim());
+    if (autorizado) {
+      // A anamnese é a única das três que exige senha para COMEÇAR; no plano e no PO ela só
+      // autoriza a estante. O bilhete diz o mesmo que o campo diria.
+      SENHA_VALIDA = true;
+      ATO_AUTORIZADO = true;
+      // O bilhete sai do endereço: já foi gasto, e um valor de autorização no histórico é um
+      // valor a mais a limpar depois. O resto da query (o contexto e `abrir`) fica.
+      try {
+        const q = new URLSearchParams(location.search);
+        q.delete('ato');
+        history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : ''));
+      } catch (e) { /* sem histórico (modo local) — o bilhete já está gasto de qualquer forma */ }
+    }
+  }
+
   // O professor acabou de entrar no seletor: a barra repinta para o contexto que a
   // URL trouxe, e o «Começar» se reavalia com ela.
   marcarContextoFaltando();

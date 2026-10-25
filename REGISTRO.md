@@ -24637,3 +24637,72 @@ asserção passou a exigir `CFG.porta + 'api/planos'`. Com o stub fiel, o códig
 
 A lição, e vale para além deste caso: **a bancada replica o caminho, não a intenção.** O que ela
 precisa de copiar não é a resposta bonita — é a porta por onde a resposta entra.
+
+### 25/10/2026 — «Vamos com a opção 3»: o bilhete do ato, e o «Ações» como menu
+
+**Duas correções minhas, ditadas pela pesquisadora depois de testar ao vivo.**
+
+**1. O salto não chegava ao formulário, e a culpa era da regra que o torna seguro.** «Fui em criar
+anamnese… me levou pra página onde tá escrito anamnese do aluno e tem de novo o contexto do ato…
+Tem que me levar direto pro formulário.» A porta exige a senha para COMEÇAR — e a senha, por desenho,
+não viaja no endereço («sair não leva a senha; ela autoriza um ATO, não uma sessão»). A lista
+validava a senha para habilitar o botão, e a autorização morria ali: a porta pedia-a outra vez. O
+salto directo era **impossível** exactamente por causa da regra que o torna seguro.
+
+A escolha foi a opção 3 — **um bilhete de uso único**. `POST /api/bastidores/ato` recebe a senha e o
+ato, valida a senha **com a mesma função da rota `validar-senha`** (`senhaDoProfessorOk` — extraída
+para não haver duas cópias da regra) e grava `bastidores/ato/<escola>/<32 hex>` no KV com validade de
+dez minutos. `POST /api/bastidores/ato/consumir` **apaga antes de responder**: se o `delete` falhar, o
+bilhete não é dado por gasto — o contrário entregaria autorização sobre um bilhete que continua
+válido.
+
+O QUE ELE NÃO É: não é a senha disfarçada. São 32 hex aleatórios do `crypto`, ligados a `{fonte,
+professor, ciclo, aluna, plano}`. A porta **confere o bilhete contra a barra** antes de o aceitar —
+um bilhete da anamnese da Aluna A não autoriza o plano da turma 2. E o bilhete sai do endereço com
+`replaceState` depois de gasto: um valor de autorização no histórico é um valor a mais a limpar.
+
+Medido: com a senha certa, o clique pede o bilhete (`{senha, professor, fonte, ciclo, aluna}`), o
+endereço leva `?ato=` e **não** leva `senha=`, a porta aterra no formulário com a condução à vista, o
+bilhete desaparece do endereço, e **gastá-lo outra vez devolve a abertura** — uso único, medido.
+
+**2. O «Ações» não era um menu, era um acordeão.** «Eu acho que eu não consegui ser bem claro… quando
+eu clico em ações ele apenas expande e eu tenho ali a caixinha do contexto do ato que eu tenho que
+clicar de novo e que eu tenho o procurar que tá ocupando espaço na tela de forma desnecessária. Então
+não é pra ser assim. É pra cada um ter o seu próprio espaço… abrir espaços da página que eu preciso
+que estejam abertos… com cara de menu.»
+
+A primeira versão tinha três defeitos, e os três eram o mesmo: um `details` a conter os três blocos
+não é um menu. Agora o botão «Ações» abre uma **lista de três acções** — o mesmo desenho do menu da
+barra — e cada uma abre o **seu bloco** na própria página, com a listagem sempre em baixo:
+
+| Acção | O que abre |
+|---|---|
+| **Criar anamnese** / **Novo plano de ensino** / **Novo plano de observação** (o rótulo é o da fonte) | o contexto do ato, **já expandido** — sem o segundo clique |
+| **Procurar** | o filtro |
+| **Gerar ficha** | a folha em branco, para imprimir |
+
+**«Ver a ficha em branco» passou a «Gerar ficha»**, como pedido: «acho que a palavra gerar é a mais
+adequada». Ela saiu de dentro do painel — era um link à vista ao lado, e passou a ser a terceira
+acção do menu; um segundo sítio para a mesma folha seria a duplicação que se está a evitar.
+
+No telemóvel a **caixinha do contexto sai de cena** (`summary` escondido por CSS): quem abre o painel
+é o menu, e a caixinha seria exactamente o segundo clique que o pedido recusa. No computador o menu
+não existe e os dois blocos estão à vista, como sempre estiveram.
+
+**A prova voltou a mentir, e o remédio é o de sempre — medir o gesto de quem usa.** Ela abria o
+`details` por JavaScript; agora tem de **escolher «criar» no menu**, que é o caminho real. E o
+`abrir()` da bancada fazia `localStorage.clear()`: ao recarregar para ver o preenchimento
+interrompido, **apagava o preenchimento que a prova tinha acabado de gravar** e media a ausência do
+que ela própria criara. `limpar` passou a ser parâmetro.
+
+**Medido.** `provar-listas-do-acervo` 90 provas (o bilhete no servidor: emitido só com a senha certa,
+opaco, ligado ao ato, gasto uma vez, inútil depois, e um bilhete inventado ou com `../` não abre
+nada). `provar-painel-do-ato`: o menu com as três acções, o bloco aberto pelo menu, a caixinha
+ausente a 320/390 e presente a 1280, o salto da anamnese com bilhete até ao formulário, e o mesmo
+bilhete a devolver a abertura na segunda vez.
+
+**Ficheiros.** `motor/servidor/bastidores.js` (as duas rotas e os três helpers), `porta/index.html`
+(o consumo do bilhete e a conferência contra a barra — na cópia dos dois pacotes),
+`motor/servidor/listas-do-acervo.js` (o pedido do bilhete, o menu, `criar`/`ficha`),
+`motor/nucleo/lista-html.js` (o menu e os blocos), `tools/templates/ciclo.css` (**congelado**), e as
+provas.
