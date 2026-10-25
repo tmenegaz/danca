@@ -97,7 +97,7 @@ const FAMILIAS = {
  *   · plano de ensino — a TURMA está no próprio registo (`turmaDoEnvelope`);
  *   · PO — a turma vem do plano de ensino que ele observa.
  */
-function linhasDe(familia, registos, estados, turmasDaAluna) {
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano) {
   return registos.map((r) => {
     const estado = estados[r.id] || {};
     const quem = nomeDoProfessor(r);
@@ -130,7 +130,14 @@ function linhasDe(familia, registos, estados, turmasDaAluna) {
         ],
       };
     }
-    const turma = r.turma || '';
+    /* A TURMA DO PO VEM DO PLANO DE ENSINO QUE ELE OBSERVA (24/10/2026). O registo do PO não a
+     * tem: ele referencia o plano, e é o plano que diz de que turma é. Sem esta resolução a caixa
+     * «Turma» saía «—» — e um PO sem turma na listagem parece um PO solto, que é exactamente o
+     * que ele não é. Medido em produção: era o único «—» que sobrava. */
+    const doPlano = familia === 'plano-de-observacao'
+      ? ((r.plano || []).map((id) => (turmaDoPlano || new Map()).get(id)).filter(Boolean)[0] || '')
+      : '';
+    const turma = r.turma || doPlano || '';
     return {
       nome: (familia === 'plano-de-ensino' ? 'Plano de ensino — ' : 'Plano de Observação — ')
         + (turma || 'turma não declarada'),
@@ -200,7 +207,17 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
     .map(({ nome, resumo }) => Object.assign({}, resumo, { id: resumo.id || nome.replace(/\.json$/, '') }))
     .sort((a, b) => String(b.gerado_em || b.id).localeCompare(String(a.gerado_em || a.id)));
 
-  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias));
+  /* O MAPA plano → turma. O PO referencia o plano de ensino, e a turma do PO é a do plano. Sai do
+   * MESMO índice que já foi lido — não é uma segunda leitura. */
+  let turmaDoPlano = null;
+  if (chave === 'plano-de-observacao') {
+    turmaDoPlano = new Map();
+    for (const { resumo } of await porta.resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/)) {
+      if (resumo && resumo.id && resumo.turma) turmaDoPlano.set(resumo.id, resumo.turma);
+    }
+  }
+
+  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano);
   const titulo = familia.titulo;
   const pedido = caminho.endsWith('/') ? caminho : caminho + '/';
 

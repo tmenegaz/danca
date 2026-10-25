@@ -24038,9 +24038,10 @@ montam exactamente esses casos.
   caixa «Quando» diz a data do registo, e o painel diz que o período vem do plano do ciclo.
 
 **Com o quê.**
-- `node experimentos/provar-listas-do-acervo.js` — **novo, 24 provas**: uma linha por **registo** e
+- `node experimentos/provar-listas-do-acervo.js` — **novo, 25 provas**: uma linha por **registo** e
   não por turma; a ordem fixa das caixas; a data do carimbo; o selo «nova»/«vinculada»; a turma que
-  vem da curadoria; e as três páginas com a barra, o filtro e a coluna.
+  vem da curadoria; **a turma do PO, que vem do plano de ensino que ele referencia** (o registo do
+  PO não a tem, e em produção a caixa saía «—»); e as três páginas com a barra, o filtro e a coluna.
 - `provar-navegacao` **64/64** — a conta das turmas passou a ser «o directório que tem
   `ciclos.json`» (a lista de nomes a excluir ficava errada a cada pasta nova); a secção 8 passou a
   medir a fronteira (as três são rotas, não ficheiros); as caixas dos planos são

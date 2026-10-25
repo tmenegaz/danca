@@ -228,6 +228,11 @@ function pedacos(html) {
       { status: po.status, linhas: q.cartoes.length });
     provar('o PO diz que plano de ensino ele observa',
       /observa o plano de ensino/.test(q.cartoes[0]), q.cartoes[0].slice(0, 240));
+    /* A TURMA DO PO VEM DO PLANO (24/10/2026). O registo do PO não tem turma: ele referencia o
+     * plano de ensino, e é o plano que a diz. Em produção a caixa saía «—», e um PO sem turma na
+     * listagem parece o que ele não é. */
+    provar('…e a turma do PO é a do plano que ele referencia',
+      q.valores(q.cartoes[0])[0] === 'Balé Nível 1', q.valores(q.cartoes[0]));
   }
 
   console.log('\n6 · As três são páginas do SISTEMA — barra, filtro e a peça da listagem');
