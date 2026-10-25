@@ -6897,6 +6897,12 @@ async function iniciar() {
   // O BILHETE É CONFERIDO CONTRA A BARRA, e não só gasto. Um bilhete da anamnese da Aluna A
   // não pode autorizar o plano da turma 2: sem esta conferência, bastava editar o endereço
   // depois de o bilhete ser aceite, e a autorização de um ato passaria a valer para outro.
+  /* A ALUNA TEM DE ESTAR NO SELETOR ANTES DA CONFERÊNCIA. `carregarAlunas` é assíncrona, e a
+   * conferência abaixo compara o bilhete com o que está NOS CAMPOS: sem esta espera, o select da
+   * aluna ainda tinha só «— nenhuma —», a comparação falhava, e o bilhete era gasto sem
+   * autorizar nada. O sintoma foi o que a pesquisadora viu: «cliquei em continuar de onde parei
+   * e ele tá me levando de novo pra aquele lugar intermediário». */
+  if (FONTE === 'anamnese') await carregarAlunas();
   const bilhete = new URLSearchParams(location.search).get('ato');
   if (bilhete) {
     const r = await fetch('/api/bastidores/ato/consumir', {
@@ -7008,7 +7014,8 @@ async function iniciar() {
 
   // O MOCK dos Bastidores: o seletor de aluna (só a anamnese o tem) e o «×» de desmarcar.
   if (FONTE === 'anamnese') {
-    carregarAlunas();
+    // A lista JÁ foi carregada acima, antes do bilhete — carregá-la outra vez seria uma segunda
+    // resposta para a mesma pergunta, com a chance de discordarem.
     $('ctx-aluna').addEventListener('change', () => { marcarContextoFaltando(); atualizarComecar(); semearDoContexto(); });
     $('limpar-aluna').addEventListener('click', () => {
       $('ctx-aluna').value = '';

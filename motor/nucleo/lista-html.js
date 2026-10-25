@@ -141,7 +141,8 @@ function painelDoCartao(pares, nota) {
  * quais dos três desenhar, e a contagem leva o rótulo do que se está a contar. `singular` e
  * `plural` existem porque «1 aulas» é o género de erro que ninguém revê.
  */
-function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'plano', plural = 'planos', dica } = {}) {
+function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'plano', plural = 'planos',
+  dica, semCaixa = false } = {}) {
   const valores = (chave) => [...new Set(itens.map((p) => p[chave]).filter(Boolean))].sort();
   const professores = valores('professor');
   const turmas = valores('turma');
@@ -161,8 +162,12 @@ function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'p
       <label class="campo-rotulo" for="f-turma">Turma</label>
       <select id="f-turma"><option value="">todas</option>${opcoes(turmas)}</select>
     </div>` : '';
+  /* SEM CAIXA QUANDO VAI DENTRO DE UM BLOCO (25/10/2026). O bloco já é uma `.caixa`; uma segunda
+     moldura por dentro seria uma caixa dentro de uma caixa — e o desenho diria duas vezes a mesma
+     coisa. Fora do bloco (as outras cinco listas) a moldura continua a ser dele. */
+  const moldura = semCaixa ? 'filtrar' : 'caixa filtrar';
   return `<form class="filtro" onsubmit="return false" data-singular="${esc(singular)}" data-plural="${esc(plural)}">
-  <div class="caixa filtrar">
+  <div class="${moldura}">
     ${busca}
     ${doProfessor}
     ${daTurma}
@@ -205,7 +210,8 @@ function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazi
   /* A PAGINAÇÃO SÓ EXISTE SE ALGUÉM A PEDIR (`porPagina`). Ela é a peça da Produção, e o
      rodapé nasce `hidden`: com uma página só ele não aparece, e sem JavaScript a lista mostra
      tudo. Não se pagina uma lista de dois planos para mostrar um botão desactivado. */
-  const blocoFiltro = cartoes.length ? filtro(linhas, { campos, ...conta }) : '';
+  const blocoFiltro = cartoes.length
+    ? filtro(linhas, { campos, ...conta, semCaixa: !!painel }) : '';
   const blocoLista = cartoes.length
     ? (porPagina
       ? `<div data-paginar data-por-pagina="${Number(porPagina)}">\n`
@@ -239,43 +245,61 @@ function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazi
      A alternativa (duas marcações, uma por largura) duplicaria o painel e os seus
      `id`, que é pior de todas as maneiras.
      ========================================================================== */
-  /* O MENU «AÇÕES» — TRÊS ACÇÕES, TRÊS ESPAÇOS (25/10/2026, segunda leitura).
+  /* O MENU «AÇÕES» E OS DOIS BLOCOS (25/10/2026, terceira leitura).
    *
-   * A primeira versão era um acordeão que continha o painel do ato e, dentro dele, mais um
-   * `details` com a caixinha do contexto: escolher «Criar» obrigava a um segundo clique, e o
-   * «procurar» ficava a ocupar espaço à vista. O pedido, revisto: «não é pra ser assim. É pra
-   * cada um ter o seu próprio espaço… o que vai acontecer é que sem eu precisar navegar entre
-   * páginas, mas sim abrir espaços da página que eu preciso que estejam abertos… com cara de
-   * menu».
+   * A SEGUNDA VERSÃO AINDA ESTAVA ERRADA, e a pesquisadora disse-o com precisão: «eu tenho o
+   * botão ações, que ele não tá abrindo um menu igual o menu de opções… o botão de ações tá do
+   * lado esquerdo. Ele tem que ficar lá do lado direito, porque ele é igual ao opções que eu te
+   * mostrei que fica lá em produção».
    *
-   * Então o botão «Ações» abre um MENU (como o «Sessões» da Produção) com três acções, e cada
-   * uma abre o SEU bloco na própria página — a listagem nunca sai de baixo:
+   * Então: o «Ações» passa a ser o par do «Seções ▾» da Produção — à direita da página, em
+   * pílula, e a abrir uma FOLHA que sobe de baixo com véu. Dentro dela, as três acções.
    *
-   *   · criar (o nome é o da fonte: «Criar anamnese», «Novo plano de ensino»…) → o contexto do
-   *     ato, já aberto;
-   *   · procurar → o filtro;
-   *   · gerar ficha → a folha em branco, para imprimir.
+   * E OS DOIS ESPAÇOS SÃO MUTUAMENTE EXCLUSIVOS — nunca os dois abertos. «Ou eu tenho o
+   * procurar ou eu tenho a nova anamnese.» Quem garante isso é o script (`scriptDoPainel`), nos
+   * dois modos: no telemóvel escolher uma acção fecha a outra; no computador abrir um bloco
+   * fecha o outro. Um só de cada vez, e a listagem sempre por baixo.
    *
-   * NO COMPUTADOR O MENU NÃO EXISTE e os três blocos estão à vista, como sempre estiveram: um
-   * clique a mais onde há espaço é pior do que não o ter. Quem decide isso é o CSS
-   * (`@media (max-width: 560px)`), e o script só liga os botões.
+   * CADA BLOCO É UMA `.caixa` — o container com as bordas que o pedido quer — e o `summary`
+   * dele é o botão de colapsar: «quando eu clicar em colapsar, ele volta pra dentro do menu e
+   * sai completamente da tela».
    *
-   * O `hidden` é a peça da folha com `!important`, e é ele que esconde os blocos no telemóvel —
-   * não uma classe nova. O que muda entre as larguras é o que está a vista, e não a marcação.
+   * A CAIXINHA `trio-item` DO PAINEL SAIU. Ela era o cabeçalho do `details` do painel; agora o
+   * cabeçalho é o do bloco, e ter dois botões para a mesma coisa dentro do mesmo container seria
+   * o segundo clique que o pedido recusa — em qualquer largura. O que fica é o que ela dizia: o
+   * título («Contexto do ato») e o resumo do que já foi escolhido (`data-resumo`).
    */
   const nomeDeCriar = criar ? esc(criar) : 'Criar';
   const agrupado = painel
     ? `<div class="acoes-da-lista" id="acoes">
   <button type="button" class="acao acoes-do-menu" id="botao-acoes"
     aria-expanded="false" aria-controls="menu-de-acoes">Ações<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>
+  <div class="veu-do-menu" id="veu-acoes" hidden></div>
   <ul class="menu-de-acoes" id="menu-de-acoes" hidden>
     <li><button type="button" class="menu-de-acoes-item" data-abrir="ato">${nomeDeCriar}</button></li>
     <li><button type="button" class="menu-de-acoes-item" data-abrir="filtro">Procurar</button></li>
     <li><a class="menu-de-acoes-item" data-abrir="ficha" href="${ficha ? esc(ficha) : '#'}"
       target="_blank" rel="noopener">Gerar ficha</a></li>
   </ul>
-  <div class="bloco-do-ato" id="bloco-ato">${painel}</div>
-  <div class="bloco-do-filtro" id="bloco-filtro">${blocoFiltro}</div>
+  <details class="bloco-lista" id="bloco-ato" data-bloco="ato" open>
+    <summary class="bloco-cabeca">
+      <span class="bloco-titulo">Contexto do ato</span>
+      <span class="bloco-resumo" data-resumo></span>
+      <span class="seta-do-ato" aria-hidden="true">\u25be</span>
+    </summary>
+    <div class="bloco-corpo">
+${painel}
+    </div>
+  </details>
+  <details class="bloco-lista" id="bloco-filtro" data-bloco="filtro">
+    <summary class="bloco-cabeca">
+      <span class="bloco-titulo">Procurar</span>
+      <span class="seta-do-ato" aria-hidden="true">\u25be</span>
+    </summary>
+    <div class="bloco-corpo">
+${blocoFiltro}
+    </div>
+  </details>
 </div>`
     : (blocoFiltro ? blocoFiltro + '\n' : '');
   const lista = painel ? blocoLista : blocoFiltro + blocoLista;

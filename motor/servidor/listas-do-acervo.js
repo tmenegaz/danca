@@ -71,7 +71,11 @@ const FAMILIAS = {
     singular: 'anamnese', plural: 'anamneses',
     // A PORTA DE CADA FONTE — é lá que o formulário vive. Ver `acaoDaPagina` e `acoesDaLinha`.
     porta: '/anamnese/',
-    acaoDeCriar: 'Nova anamnese',
+    /* «FAZER», E NÃO «NOVA» (25/10/2026). «Esse nome de nova anamnese não é legal. Eu acho que
+     * tem que ser fazer anamnese. É um nome mais claro do que se trata.» O rótulo serve dois
+     * sítios — o item do menu e o botão do painel —, e diz o que a pessoa vai FAZER, não o
+     * estado do documento. Os outros dois seguem a mesma forma. */
+    acaoDeCriar: 'Fazer anamnese',
   },
   'plano-de-ensino': {
     titulo: 'Plano de ensino',
@@ -81,7 +85,7 @@ const FAMILIAS = {
       + 'plano de uma turma curada.',
     singular: 'plano', plural: 'planos',
     porta: '/plano-ensino/',
-    acaoDeCriar: 'Novo plano de ensino',
+    acaoDeCriar: 'Fazer plano de ensino',
     fonte: 'plano',
   },
   'plano-de-observacao': {
@@ -92,7 +96,7 @@ const FAMILIAS = {
       + 'que vai observar numa turma.',
     singular: 'plano', plural: 'planos',
     porta: '/plano-observacao/',
-    acaoDeCriar: 'Novo Plano de Observação',
+    acaoDeCriar: 'Fazer Plano de Observação',
     fonte: 'po',
   },
 };
@@ -217,14 +221,11 @@ function painelDoAto(chave, escola) {
   const f = FAMILIAS[chave];
   const ehAnamnese = chave === 'anamnese';
   const ehPlano = chave === 'plano-de-ensino';
+  /* SEM `details` E SEM CAIXINHA (25/10/2026, terceira leitura). O cabeçalho — o título, o resumo
+   * e a seta — é agora o do BLOCO que contém este painel (`details.bloco-lista`, em
+   * `lista-html.js`). Dois botões para abrir a mesma coisa dentro do mesmo container eram o
+   * segundo clique que o pedido recusa; e o resumo continua, no sítio onde se lê. */
   return `
-<details class="painel-ato" id="painel-ato">
-  <summary class="trio-item">
-    <span class="trio-k">Contexto do ato</span>
-    <span class="trio-v" data-resumo>escolher o professor, o ciclo${ehAnamnese ? ' e a aluna' : ''}</span>
-    <span class="seta-do-ato" aria-hidden="true">▾</span>
-  </summary>
-  <div class="corpo-do-ato">
     <div class="campos-do-ato">
       <span class="campo"><label class="campo-rotulo" for="ato-professor">professor</label>
         <select id="ato-professor" data-ato="professor"><option value="">— escolher —</option></select></span>
@@ -249,9 +250,7 @@ function painelDoAto(chave, escola) {
       <button class="acao secundario pequena" type="button" data-acao="recomecar" hidden>
         Começar de novo</button>
     </div>
-    <p class="estado-do-ato" data-estado hidden></p>
-  </div>
-</details>`;
+    <p class="estado-do-ato" data-estado hidden></p>`;
   /* A FICHA SAIU DAQUI (25/10/2026). Ela era um link à vista ao lado do painel; com o menu
    * «Ações» passou a ser uma das três acções, e um segundo sítio para a mesma folha seria a
    * duplicação que se está a evitar. O endereço vem em `acaoDaPagina` (`ficha`). */
@@ -287,7 +286,11 @@ function scriptDoPainel(chave, escola) {
   }));
   return `<script>(function () {
   var CFG = ${dados};
-  var painel = document.getElementById('painel-ato');
+  /* O PAINEL VIROU O BLOCO DO ATO (25/10/2026, terceira leitura): o que era um elemento
+   * dobrável com caixinha é agora o corpo de um 'bloco-lista', e o cabeçalho — título, resumo e
+   * seta — é o do bloco. O guarda é o mesmo (sem o bloco, não há painel a pôr a funcionar), e o que
+   * procura o «painel» passa a procurar o bloco. */
+  var painel = document.getElementById('bloco-ato');
   if (!painel) return;
 
   function $(seletor) { return document.querySelector(seletor); }
@@ -472,18 +475,10 @@ function scriptDoPainel(chave, escola) {
       painel.classList.toggle('falta', falta.length > 0 || semCuradoria());
     }
 
-    /* COM PREENCHIMENTO INTERROMPIDO O PAINEL ABRE. As acções vivem dentro dele; fechado, a
-     * notícia do preenchimento desaparecia — e é o que a porta faz, ao pôr a caixa de retomada
-     * no topo. */
-    if (mem) {
-      painel.open = true;
-      /* E O MENU QUE O CONTÉM TAMBÉM. No telemóvel o painel vive dentro do menu «Ações»: abrir
-       * o painel sem abrir o menu deixava a notícia escondida no único caso em que ela é urgente —
-       * «há um preenchimento interrompido» —, e o professor voltava à página sem saber que tinha
-       * onde continuar. Um estado que só se vê depois de um clique não é um aviso. */
-      var menuComPainel = document.getElementById('acoes');
-      if (menuComPainel) menuComPainel.open = true;
-    }
+    /* COM PREENCHIMENTO INTERROMPIDO O BLOCO DO ATO ABRE — e o do filtro fecha, porque nunca
+     * estão os dois. As acções vivem lá dentro; fechado, a notícia do preenchimento desaparecia,
+     * e é o que a porta faz ao pôr a caixa de retomada no topo. */
+    if (mem) abrirBloco('ato');
   }
 
   function encher(select, itens, rotulo, escolhido) {
@@ -664,7 +659,7 @@ function scriptDoPainel(chave, escola) {
 
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-acao]');
-    if (!b || !b.closest('#painel-ato')) return;
+    if (!b || !b.closest('#bloco-ato')) return;
     var acao = b.getAttribute('data-acao');
     if (acao === 'nova' || acao === 'continuar') {
       b.disabled = true;
@@ -715,82 +710,104 @@ function scriptDoPainel(chave, escola) {
    * A JANELA PODE MUDAR DE LARGURA (girar o telemóvel, encolher a janela do computador), e
    * a regra é reavaliada. Ao ENCOLHER não se fecha o que o professor abriu — só se abre ao
    * crescer, porque fechar por baixo de quem está a usar é o defeito que se evita. */
-  /* O MENU «AÇÕES» E OS SEUS TRÊS BLOCOS (25/10/2026, segunda leitura).
+  /* O MENU «AÇÕES» — A FOLHA QUE SOBE, COMO O «SEÇÕES» DA PRODUÇÃO (25/10/2026, terceira).
    *
-   * O MENU abre e fecha, e fecha-se ao escolher — um menu que fica aberto sobre a página depois
-   * de cumprir a sua função é uma coisa a mais para fechar.
+   * O desenho é o da Produção, e não um parente dele: botão em pílula à DIREITA da página, e —
+   * ao abrir — uma folha que sobe de baixo com véu por trás. A pesquisadora foi literal: «ele
+   * não tá abrindo um menu igual o menu de opções… o botão de ações tá do lado esquerdo. Ele tem
+   * que ficar lá do lado direito, porque ele é igual ao opções».
    *
-   * OS BLOCOS SÃO ESPAÇOS DA PÁGINA, e não um acordeão: escolher «criar» abre o contexto do ato
-   * JÁ ABERTO (sem a caixinha a pedir um segundo clique), «procurar» abre o filtro, e a lista
-   * continua onde está. Os dois podem estar abertos ao mesmo tempo — quem está a trabalhar sabe
-   * o que quer ver, e fechar-lhe um bloco por baixo seria decidir em vez dele.
+   * OS DOIS BLOCOS SÃO EXCLUSIVOS. «Ou eu tenho o procurar ou eu tenho a nova anamnese.» Nunca
+   * os dois — nem no telemóvel (escolher uma acção do menu fecha a outra) nem no computador
+   * (abrir um bloco fecha o outro). É uma regra só, e vive em 'abrirBloco'.
    *
-   * NO COMPUTADOR o botão não existe: o CSS esconde-o e os dois blocos estão sempre à vista. O
-   * script não força nada — se o 'matchMedia' disser «largo», ele esconde o menu e mostra os
-   * blocos, porque um estado que depende da largura tem de ser reavaliado quando ela muda. */
+   * COLAPSAR É FECHAR. O 'summary' de cada bloco é o botão: fechado, o bloco desaparece e fica
+   * só a listagem com o «Ações» à direita — que é o estado de repouso pedido, «a tela limpa».
+   */
   var botaoAcoes = document.getElementById('botao-acoes');
   var menuDeAcoes = document.getElementById('menu-de-acoes');
+  var veuDoMenu = document.getElementById('veu-acoes');
   var blocoDoAto = document.getElementById('bloco-ato');
   var blocoDoFiltro = document.getElementById('bloco-filtro');
 
-  function mostrarBloco(nome) {
-    if (nome === 'ato' && blocoDoAto) {
-      blocoDoAto.hidden = false;
-      /* O contexto abre EXPANDIDO — é o pedido, e é a diferença entre «escolher criar» e
-       * «escolher criar e depois clicar outra vez». */
-      if (painel) painel.open = true;
-    }
-    if (nome === 'filtro' && blocoDoFiltro) blocoDoFiltro.hidden = false;
-    if (nome === 'ato' && !blocoDoAto && blocoDoFiltro) blocoDoFiltro.hidden = false;
+  /* ABRIR UM É FECHAR O OUTRO, e é a única porta: quem quer abrir chama isto, e não mexe no
+   * 'open' à mão. Duas portas para a mesma regra divergiriam no dia em que uma mudasse — e o
+   * sintoma seria os dois blocos à vista, que é exactamente o que não pode acontecer. */
+  function abrirBloco(nome) {
+    var alvo = nome === 'ato' ? blocoDoAto : (nome === 'filtro' ? blocoDoFiltro : null);
+    var outro = nome === 'ato' ? blocoDoFiltro : blocoDoAto;
+    if (outro) outro.open = false;
+    if (alvo) alvo.open = true;
     fecharMenu();
   }
+
   function fecharMenu() {
-    if (!menuDeAcoes) return;
-    menuDeAcoes.hidden = true;
+    if (menuDeAcoes) menuDeAcoes.hidden = true;
+    if (veuDoMenu) veuDoMenu.hidden = true;
     if (botaoAcoes) botaoAcoes.setAttribute('aria-expanded', 'false');
   }
+  function abrirMenu() {
+    if (menuDeAcoes) menuDeAcoes.hidden = false;
+    if (veuDoMenu) veuDoMenu.hidden = false;
+    if (botaoAcoes) botaoAcoes.setAttribute('aria-expanded', 'true');
+  }
+
   if (botaoAcoes && menuDeAcoes) {
     botaoAcoes.addEventListener('click', function () {
-      var abrir = menuDeAcoes.hidden;
-      menuDeAcoes.hidden = !abrir;
-      botaoAcoes.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+      if (menuDeAcoes.hidden) abrirMenu(); else fecharMenu();
     });
     menuDeAcoes.addEventListener('click', function (e) {
       var alvo = e.target.closest && e.target.closest('[data-abrir]');
       if (!alvo) return;
       var nome = alvo.getAttribute('data-abrir');
-      /* «gerar ficha» é um link: abre noutra aba e não muda nada nesta página. O menu fecha-se
-       * na mesma, porque já cumpriu. */
+      /* «Gerar ficha» é um link: abre noutra aba. O menu fecha-se porque já cumpriu. */
       if (nome === 'ficha') { fecharMenu(); return; }
       e.preventDefault();
-      mostrarBloco(nome);
+      abrirBloco(nome);
     });
-    /* Um clique fora do menu fecha-o — o gesto que se espera de um menu. */
-    document.addEventListener('click', function (e) {
-      if (menuDeAcoes.hidden) return;
-      if (menuDeAcoes.contains(e.target) || (botaoAcoes && botaoAcoes.contains(e.target))) return;
-      fecharMenu();
+    /* O véu e o clique fora fecham — os dois gestos que se esperam de uma folha. */
+    if (veuDoMenu) veuDoMenu.addEventListener('click', fecharMenu);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menuDeAcoes && !menuDeAcoes.hidden) fecharMenu();
     });
   }
 
-  /* A LARGURA MANDA. No computador os blocos estão à vista e o menu não existe; no telemóvel é
-   * o contrário, e ambos começam fechados (é o que ganha a tela). Ao MUDAR de largura os blocos
-   * são reavaliados — e no telemóvel, ao voltar do computador, começam fechados outra vez: o
-   * menu é a porta, e uma porta que nasce aberta não é uma porta. */
+  /* O 'summary' TAMBÉM RESPEITA A EXCLUSIVIDADE. O navegador abre o 'details' sozinho ao clicar;
+   * o que se faz aqui é fechar o irmão no evento 'toggle', que corre DEPOIS de o estado mudar. Se
+   * o utilizador estiver a FECHAR, não se abre nada — só se fecha o outro quando este abriu. */
+  [blocoDoAto, blocoDoFiltro].forEach(function (bloco) {
+    if (!bloco) return;
+    bloco.addEventListener('toggle', function () {
+      if (!bloco.open) return;
+      var outro = bloco === blocoDoAto ? blocoDoFiltro : blocoDoAto;
+      if (outro) outro.open = false;
+    });
+  });
+
+  /* A LARGURA MANDA — e o estado de repouso é diferente nos dois modos.
+   *
+   * No computador o «Ações» não existe (o CSS esconde-o) e os blocos ficam à vista: o do ato
+   * ABERTO, porque é o que se usa para criar, e o do filtro fechado, porque nunca estão os dois.
+   * É o que o pedido diz: «quando eu colapsar o contexto do ato, eu tenho ali também a parte do
+   * procurar».
+   *
+   * No telemóvel ambos nascem FECHADOS: a tela é da listagem, e o «Ações» é a porta. Abrir por
+   * conta própria qualquer um deles seria o estado que ele descreveu como errado. */
   var largo = window.matchMedia('(min-width: 561px)');
-  function ajustarBlocos() {
+  function ajustarAoModo() {
     if (largo.matches) {
-      if (blocoDoAto) blocoDoAto.hidden = false;
-      if (blocoDoFiltro) blocoDoFiltro.hidden = false;
+      if (blocoDoFiltro) blocoDoFiltro.open = false;
+      if (blocoDoAto) blocoDoAto.open = true;
       fecharMenu();
     } else {
-      if (blocoDoAto) blocoDoAto.hidden = true;
-      if (blocoDoFiltro) blocoDoFiltro.hidden = true;
+      if (blocoDoAto) blocoDoAto.open = false;
+      if (blocoDoFiltro) blocoDoFiltro.open = false;
+      fecharMenu();
     }
   }
-  ajustarBlocos();
-  if (largo.addEventListener) largo.addEventListener('change', ajustarBlocos);
-  else if (largo.addListener) largo.addListener(ajustarBlocos);
+  ajustarAoModo();
+  if (largo.addEventListener) largo.addEventListener('change', ajustarAoModo);
+  else if (largo.addListener) largo.addListener(ajustarAoModo);
 
   restaurarContexto();
   carregarProfessores().then(function () { pintar(); return carregarCuradoria(); })

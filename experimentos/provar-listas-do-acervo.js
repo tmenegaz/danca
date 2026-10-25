@@ -274,27 +274,31 @@ function pedacos(html) {
        «Turma» (com a seta, e NÃO com o «?» das outras células) abre os campos e as acções, e é
        das acções que se vai ao formulário. O que se prova aqui é que a caixinha existe, que ela
        usa a peça certa, e que o ícone dela é o que o pedido exigiu. */
+    /* «FAZER», E NÃO «NOVA» (25/10/2026). «Esse nome de nova anamnese não é legal… tem que ser
+       fazer anamnese. É um nome mais claro do que se trata.» O rótulo é o mesmo no item do menu
+       e no botão do painel: diz o que a pessoa vai FAZER. */
     const esperado = [
-      ['/area-do-professor/anamnese/', 'Nova anamnese', true],
-      ['/area-do-professor/plano-de-ensino/', 'Novo plano de ensino', false],
-      ['/area-do-professor/plano-de-observacao/', 'Novo Plano de Observação', false],
+      ['/area-do-professor/anamnese/', 'Fazer anamnese', true],
+      ['/area-do-professor/plano-de-ensino/', 'Fazer plano de ensino', false],
+      ['/area-do-professor/plano-de-observacao/', 'Fazer Plano de Observação', false],
     ];
     for (const [caminho, rotulo, temAluna] of esperado) {
       const r = await pedir(caminho);
-      const painel = (/<details class="painel-ato" id="painel-ato">([\s\S]*?)<\/details>/.exec(r.html) || [])[1] || '';
-      provar(caminho + ': tem o painel do ato', !!painel, painel.slice(0, 60));
-      /* A CAIXINHA É A PEÇA DO «TURMA» — `summary.trio-item` com o rótulo em versalete. */
-      provar(caminho + ': a caixinha que o abre é a peça `trio-item`',
-        /<summary class="trio-item">/.test(painel), painel.slice(0, 120));
-      provar(caminho + ': o rótulo dela é «Contexto do ato»',
-        /<span class="trio-k">Contexto do ato<\/span>/.test(painel), painel.slice(0, 200));
-      /* O ÍCONE É A SETA, E NÃO O «?». O pedido de 25/10/2026 foi explícito: «nessa caixinha não
-         tem o ponto de interrogação… vai pôr o mesmo ícone que você estava usando no acordeão».
-         Uma seta para baixo (▾, U+25BE) que roda 180° ao abrir, no CSS. */
+      /* O PAINEL É O BLOCO DO ATO (25/10/2026, terceira leitura). O `details` deixou de ser do
+         painel e passou a ser do BLOCO — a `.caixa` que dá a moldura ao conjunto de campos, e
+         cujo `summary` é o botão de colapsar: «tem que ter um container dentro desse conjunto de
+         campos… que daí eu posso colapsar isso». */
+      const bloco = (/<details class="bloco-lista" id="bloco-ato"[\s\S]*?<\/details>/.exec(r.html) || [])[0] || '';
+      provar(caminho + ': o contexto do ato vive num bloco que é uma `.caixa`', !!bloco, bloco.slice(0, 80));
+      provar(caminho + ': …com o `summary` como botão de colapsar',
+        /<summary class="bloco-cabeca">/.test(bloco), bloco.slice(0, 160));
+      provar(caminho + ': …e o título do bloco é «Contexto do ato»',
+        /<span class="bloco-titulo">Contexto do ato<\/span>/.test(bloco), bloco.slice(0, 200));
+      /* O ÍCONE É A SETA, E NÃO O «?»: «nessa caixinha não tem o ponto de interrogação». A seta
+         (▾, U+25BE) roda 180° quando o bloco está aberto, no CSS. */
       provar(caminho + ': o ícone é a SETA, e não o «?»',
-        /<span class="seta-do-ato" aria-hidden="true">\u25BE<\/span>/.test(painel)
-        && !/<span class="trio-q"/.test(painel),
-        (painel.match(/<span class="[a-z-]*"(?: aria-hidden="true")?>[^<]{0,3}<\/span>/g) || []).slice(0, 4));
+        /<span class="seta-do-ato" aria-hidden="true">\u25BE<\/span>/.test(bloco), bloco.slice(0, 200));
+      const painel = bloco;
       /* AS ACÇÕES DE COMEÇAR, com a regra da porta: «Nova» visível, as outras duas `hidden` —
          só aparecem quando há preenchimento interrompido (é o JavaScript que as revela). */
       const botoes = /data-acao="nova"[^>]*>([^<]*)</.exec(painel);

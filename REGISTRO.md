@@ -24706,3 +24706,62 @@ bilhete a devolver a abertura na segunda vez.
 `motor/servidor/listas-do-acervo.js` (o pedido do bilhete, o menu, `criar`/`ficha`),
 `motor/nucleo/lista-html.js` (o menu e os blocos), `tools/templates/ciclo.css` (**congelado**), e as
 provas.
+
+### 25/10/2026 — A terceira leitura: o «Ações» como folha, e um menu com um espaço só
+
+**Três correções, todas minhas, todas ditadas pela pesquisadora a olhar para o telemóvel.**
+
+**1. «Ele não tá abrindo um menu igual o menu de opções.»** A segunda versão era uma lista
+`<ul>` que aparecia solta por baixo do botão. O pedido é o **`Seções ▾` da Produção**: a pílula à
+direita, e — ao abrir — uma **folha que sobe de baixo com véu**, o mesmo desenho de
+`.lateral-lista` (`motor/servidor/bastidores.js`). Passou a ser isso: `position: fixed` encostada
+em baixo, cantos de cima arredondados, sombra para cima, o puxador, e o véu a 36% por trás.
+
+**2. «O botão de ações tá do lado esquerdo. Ele tem que ficar lá do lado direito.»** Duas causas,
+e a segunda escondia a primeira:
+
+- `margin-left: auto` num `inline-block` dentro de um `div` de bloco **não alinha nada**. Passou a
+  `display: block; width: max-content; margin-left: auto`.
+- **A especificidade.** `button.acao` (0,1,1) vencia o `display: none` de `.acoes-do-menu` (0,1,0),
+  e por isso o botão **aparecia no computador** — «o botão Ações não pode aparecer na página
+  desktop». Medido a 1280: estava à vista. O seletor passou a `.acoes-da-lista .acoes-do-menu`.
+
+**3. «Ou eu tenho o procurar ou eu tenho a nova anamnese… nunca os dois vão estar na tela.»** A
+exclusividade é agora uma regra só, e num sítio só: `abrirBloco()` fecha o irmão antes de abrir o
+alvo. Serve os dois modos — no telemóvel escolher uma acção do menu fecha a outra; no computador, o
+evento `toggle` do `details` fecha o irmão que estava aberto. **O `summary` do próprio bloco também
+passa por lá**, senão dois caminhos para o mesmo estado divergiriam.
+
+**4. «Esses nomes de nova anamnese não são legais… é um nome mais claro do que se trata.»**
+`Nova anamnese` → **`Fazer anamnese`**; e, pela mesma forma, `Fazer plano de ensino` e `Fazer Plano
+de Observação`. O rótulo serve o item do menu e o botão do painel, e diz o que a pessoa vai FAZER.
+
+**5. «Tem que ter um container dentro desse conjunto de campos… que daí eu posso colapsar isso.»**
+Os dois espaços passaram a ser `details.bloco-lista` — cada um uma `.caixa` (a moldura do sistema,
+com os quatro lados), e o `summary` dela o botão de colapsar: título, resumo e a seta que roda.
+**A caixinha `trio-item` do painel saiu**: dois botões para abrir a mesma coisa dentro do mesmo
+container eram o segundo clique que o pedido recusa, e isso vale nas duas larguras. O que ela dizia
+— o título «Contexto do ato» e o resumo do que já foi escolhido — passou para o cabeçalho do bloco.
+
+O estado de repouso é diferente nos dois modos, e é o pedido: **no computador** o bloco do ato nasce
+aberto e o do procurar fechado (nunca os dois); **no telemóvel** ambos nascem fechados, e a tela é da
+listagem com o «Ações» à direita — «a tela limpa».
+
+**6. O SALTO NÃO CHEGAVA AO FORMULÁRIO, E A CAUSA ERA A ORDEM.** «Cliquei aqui em continuar de onde
+eu parei. Aí ele tá me levando de novo pra aquele lugar intermediário.» O bilhete do ato era
+**conferido contra a barra antes de a aluna estar no seletor**: `carregarAlunas()` é assíncrona e
+corria depois, o `<select>` tinha só «— nenhuma —», a comparação falhava — e o bilhete era **gasto
+sem autorizar nada**. O remédio: `await carregarAlunas()` antes da conferência, e a chamada de lá de
+baixo saiu (uma pergunta, uma resposta).
+
+**Medido** (`provar-painel-do-ato`, 73 verificações): a 390 o «Ações» está à vista e à direita, os
+dois blocos nascem fechados, a folha é `fixed` encostada em baixo com 171px e o véu a `rgba(31,28,26,.36)`;
+escolher «fazer anamnese» fecha o menu e abre o ato; escolher «procurar» **fecha o do ato**; colapsar
+os dois devolve a listagem. A 1280 o botão **não aparece**, o ato nasce aberto, e abrir o procurar
+fecha o ato (e vice-versa). E os dois caminhos — «fazer» e «continuar de onde parei» — aterram no
+formulário, não na abertura.
+
+**Nota de correção — mesma data.** A asserção da rotação da seta media as duas pontas **a meio da
+transição** e dizia «as duas iguais, logo não roda». Passou a fechar, esperar 300ms, medir, abrir,
+esperar, medir. É a mesma família do `<details>` fechado que não tira a caixa ao conteúdo: o valor
+interpolado responde ao que se perguntou, e não ao que se quis saber.

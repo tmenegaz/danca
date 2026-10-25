@@ -243,7 +243,7 @@ const servidor = http.createServer(async (req, res) => {
       novaDesab: (document.querySelector('[data-acao="nova"]') || {}).disabled,
       resumo: (document.querySelector('[data-resumo]') || {}).textContent,
       estado: (document.querySelector('[data-estado]') || {}).textContent,
-      painel: (document.getElementById('painel-ato') || {}).open,
+      painel: (document.getElementById('bloco-ato') || {}).open,
       blocoAberto: (() => { const b = document.getElementById('bloco-ato');
         return !!b && !b.hidden && b.getClientRects().length > 0; })(),
       camposVisiveis: (() => { const c = document.querySelector('.campos-do-ato');
@@ -318,7 +318,10 @@ const servidor = http.createServer(async (req, res) => {
   ok('com memória, «Nova» DESAPARECE', e.nova === false, e.nova);
   ok('«continuar de onde parei» aparece', e.continuar === true);
   ok('«começar de novo» aparece', e.recomecar === true);
-  ok('o painel abre sozinho para não esconder a notícia', e.painel === true);
+  /* O BLOCO ABRE SOZINHO para não esconder a notícia — e o do filtro fecha, porque nunca estão
+     os dois. É o mesmo `abrirBloco` que o menu usa. */
+  ok('o bloco do ato abre sozinho para não esconder a notícia',
+    e.blocoAberto === true && e.painel === true);
   ok('e o estado diz o preenchimento interrompido', /preenchimento interrompido/.test(e.estado || ''), e.estado);
 
   console.log('\n4 · «Começar de novo» limpa e devolve o «Nova»');
@@ -440,11 +443,14 @@ const servidor = http.createServer(async (req, res) => {
     await abrir('/area-do-professor/anamnese/', largura);
     const m = await p.evaluate(() => {
       const doc = document.documentElement;
-      const cx = document.querySelector('summary.trio-item');
+      /* A «CAIXINHA» DE AGORA É O CABEÇALHO DO BLOCO (25/10/2026, terceira leitura): o `summary`
+         com o título, o resumo e a seta. É ele que se mede — e ele existe nos dois modos, porque
+         é o botão de colapsar em ambos. */
+      const cx = document.querySelector('summary.bloco-cabeca');
       /* A SETA DO PAINEL, e não a do menu. As duas usam `.seta-do-ato` (é o mesmo desenho),
          e `querySelector` devolvia a do menu — que no computador está escondida. A prova
          passou a acusar de «não desenhada» uma seta que estava, e a medir a rotação da outra. */
-      const seta = document.querySelector('.painel-ato .seta-do-ato');
+      const seta = document.querySelector('.bloco-lista .bloco-cabeca .seta-do-ato');
       return {
         estouro: Math.max(0, Math.round(doc.scrollWidth - doc.clientWidth)),
         caixinhaA: cx ? Math.round(cx.getBoundingClientRect().height) : 0,
@@ -453,22 +459,28 @@ const servidor = http.createServer(async (req, res) => {
       };
     });
     ok(largura + 'px: nada estoura na horizontal', m.estouro <= 1, m.estouro);
-    if (largura > 560) {
-      ok(largura + 'px: a caixinha tem altura de caixinha', m.caixinhaA >= 40 && m.caixinhaA <= 90, m.caixinhaA);
-      ok(largura + 'px: a seta está desenhada', m.setaVisivel && m.setaTexto.trim() === '\u25be', m);
-    } else {
-      /* `0` é a RESPOSTA CERTA aqui: a caixinha está escondida, e o pedido é que esteja. */
-      ok(largura + 'px: a caixinha saiu de cena — quem abre o contexto é o menu', m.caixinhaA === 0, m.caixinhaA);
-    }
+    /* O CABEÇALHO DO BLOCO EXISTE NOS DOIS MODOS — é o botão de colapsar, e é o mesmo desenho.
+       No telemóvel ele só se vê depois de «Ações → Fazer anamnese», e é isso que o `abrir()` faz. */
+    ok(largura + 'px: o cabeçalho do bloco tem altura de alvo de toque',
+      m.caixinhaA >= 36 && m.caixinhaA <= 90, m.caixinhaA);
+    ok(largura + 'px: a seta está desenhada', m.setaVisivel && m.setaTexto.trim() === '\u25be', m);
   }
   // a seta roda ao abrir
   await abrir('/area-do-professor/anamnese/', 1280);
-  const rot = await p.evaluate(() => {
-    const s = document.querySelector('.painel-ato .seta-do-ato');
-    document.getElementById('painel-ato').open = false;
+  /* A MEDIÇÃO ESPERA A TRANSIÇÃO. `getComputedStyle` no meio de uma animação de 160ms devolve o
+     valor INTERPOLADO — e a leitura anterior dizia «roda» com as duas medidas iguais, porque
+     ambas foram tiradas com a seta já a caminho. Fecha-se, espera-se, mede-se; abre-se, espera-se,
+     mede-se. */
+  const rot = await p.evaluate(async () => {
+    const s = document.querySelector('.bloco-lista .bloco-cabeca .seta-do-ato');
+    const bloco = document.getElementById('bloco-ato');
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    bloco.open = false;
+    await espera(300);
     const fechada = getComputedStyle(s).transform;
-    document.getElementById('painel-ato').open = true;
-    return new Promise((r) => setTimeout(() => r({ fechada, aberta: getComputedStyle(s).transform }), 250));
+    bloco.open = true;
+    await espera(300);
+    return { fechada, aberta: getComputedStyle(s).transform };
   });
   ok('a seta roda 180° ao abrir', rot.fechada !== rot.aberta
     && /matrix\(-1/.test(rot.aberta), rot);
@@ -566,6 +578,107 @@ const servidor = http.createServer(async (req, res) => {
       /area-do-professor\/anamnese/.test(comTrava), comTrava);
   }
 
+  console.log('\n10b · O MENU É UMA FOLHA, E OS DOIS BLOCOS NUNCA ESTÃO ABERTOS');
+  {
+    /* O PEDIDO FOI LITERAL, e a primeira versão não o cumpria: «eu tenho o botão ações, que ele
+       não tá abrindo um menu igual o menu de opções… o botão de ações tá do lado esquerdo. Ele
+       tem que ficar lá do lado direito… E não pode acontecer de eu abrir no menu a nova anamnese
+       e aí em seguida eu quero agora ver o procurar e aí eu fico com os dois na tela. Não. Ou eu
+       tenho o procurar ou eu tenho a nova anamnese.»
+       O que se mede: o botão à direita no telemóvel, ausente no computador; a folha com véu que
+       sobe; e a exclusividade nos dois modos. */
+
+    /* --- TELEMÓVEL --- */
+    await abrir('/area-do-professor/anamnese/', 390);
+    const tl = await p.evaluate(() => {
+      const b = document.getElementById('botao-acoes');
+      const r = b ? b.getBoundingClientRect() : null;
+      return { visivel: !!b && b.getClientRects().length > 0,
+        /* à direita = o centro do botão passa de metade da janela */
+        aDireita: r ? (r.left + r.width / 2) > (window.innerWidth / 2) : false,
+        ato: (document.getElementById('bloco-ato') || {}).open,
+        filtro: (document.getElementById('bloco-filtro') || {}).open };
+    });
+    ok('telemóvel: o «Ações» está à vista e à DIREITA', tl.visivel && tl.aDireita, tl);
+    ok('telemóvel: em repouso os dois blocos estão fechados — a tela é da listagem',
+      tl.ato === false && tl.filtro === false, tl);
+
+    const folha = await p.evaluate(async () => {
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.getElementById('botao-acoes').click();
+      await espera(300);
+      const m = document.getElementById('menu-de-acoes');
+      const v = document.getElementById('veu-acoes');
+      const cs = getComputedStyle(m);
+      const r = m.getBoundingClientRect();
+      return { aberto: !m.hidden, veu: !!v && !v.hidden, fixo: cs.position === 'fixed',
+        embaixo: Math.round(window.innerHeight - r.bottom) <= 2 };
+    });
+    ok('telemóvel: «Ações» abre uma FOLHA (fixa, encostada em baixo), como o «Seções»',
+      folha.aberto && folha.fixo && folha.embaixo, folha);
+    ok('…com véu por trás', folha.veu === true, folha);
+
+    const exc = await p.evaluate(async () => {
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+      const st = () => ({ ato: document.getElementById('bloco-ato').open,
+        filtro: document.getElementById('bloco-filtro').open,
+        menu: !document.getElementById('menu-de-acoes').hidden });
+      document.querySelector('[data-abrir="ato"]').click();
+      await espera(250);
+      const comAto = st();
+      document.getElementById('botao-acoes').click();
+      await espera(150);
+      document.querySelector('[data-abrir="filtro"]').click();
+      await espera(250);
+      return { comAto, comFiltro: st() };
+    });
+    ok('telemóvel: escolher «fazer anamnese» fecha o menu e abre o bloco do ato',
+      exc.comAto.ato === true && exc.comAto.filtro === false && exc.comAto.menu === false, exc.comAto);
+    ok('telemóvel: escolher «procurar» FECHA o do ato — nunca os dois',
+      exc.comFiltro.filtro === true && exc.comFiltro.ato === false, exc.comFiltro);
+
+    /* E COLAPSAR DEVOLVE A TELA LIMPA: só a listagem e o «Ações» outra vez. */
+    const limpo = await p.evaluate(async () => {
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.getElementById('bloco-filtro').open = false;
+      await espera(250);
+      const ato = document.getElementById('bloco-ato');
+      const fil = document.getElementById('bloco-filtro');
+      return { ato: ato.getClientRects().length > 0 && ato.open,
+        filtro: fil.getClientRects().length > 0 && fil.open,
+        /* A LISTAGEM PODE ESTAR VAZIA (o fixture não semeia anamneses): o que se prova é que a
+           página continua a ter conteúdo abaixo, e não que há linhas. */
+        listagem: !!document.querySelector('.trio-lista, .aviso') };
+    });
+    ok('telemóvel: colapsar os dois devolve a tela limpa — só a listagem',
+      limpo.ato === false && limpo.filtro === false && limpo.listagem === true, limpo);
+
+    /* --- COMPUTADOR --- */
+    await abrir('/area-do-professor/anamnese/', 1280);
+    const pc = await p.evaluate(async () => {
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+      const b = document.getElementById('botao-acoes');
+      const st = () => ({ ato: document.getElementById('bloco-ato').open,
+        filtro: document.getElementById('bloco-filtro').open });
+      const inicial = st();
+      /* abrir o filtro pelo `summary`, como quem clica */
+      document.querySelector('#bloco-filtro > summary').click();
+      await espera(300);
+      const depoisDoFiltro = st();
+      document.querySelector('#bloco-ato > summary').click();
+      await espera(300);
+      return { botao: !!b && b.getClientRects().length > 0, inicial,
+        depoisDoFiltro, depoisDoAto: st() };
+    });
+    ok('computador: o «Ações» NÃO aparece — é botão de telemóvel', pc.botao === false, pc.botao);
+    ok('computador: em repouso o ato está aberto e o procurar fechado',
+      pc.inicial.ato === true && pc.inicial.filtro === false, pc.inicial);
+    ok('computador: abrir o procurar FECHA o contexto do ato',
+      pc.depoisDoFiltro.filtro === true && pc.depoisDoFiltro.ato === false, pc.depoisDoFiltro);
+    ok('computador: abrir o contexto do ato FECHA o procurar',
+      pc.depoisDoAto.ato === true && pc.depoisDoAto.filtro === false, pc.depoisDoAto);
+  }
+
   console.log('\n11 · O BILHETE DO ATO — a senha não viaja, a autorização sim');
   {
     /* O PROBLEMA QUE ELE RESOLVE, e que a pesquisadora encontrou a testar: «fui em criar
@@ -623,6 +736,46 @@ const servidor = http.createServer(async (req, res) => {
     });
     ok('um bilhete já usado NÃO abre o formulário — fica na abertura',
       !repetido.conducao && repetido.abertura, repetido);
+
+    /* «CONTINUAR DE ONDE PAREI» TAMBÉM TEM DE ATERRAR NO FORMULÁRIO. Foi este o caso que a
+       pesquisadora reportou: «eu vou clicar aqui em continuar de onde eu parei. Aí ele tá me
+       levando de novo pra aquele lugar intermediário». Com depósito, a porta salta pelo ramo do
+       «continuar» — e o que se mede é que ela entra na condução, e não na abertura. */
+    await abrir('/area-do-professor/anamnese/', 1280);
+    await p.evaluate(() => {
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+        JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z',
+          indice: 2, respostas: [], notas: [], sugeridas: [] }));
+      localStorage.setItem('ato-batata-anamnese-1',
+        JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
+    });
+    await abrir('/area-do-professor/anamnese/', 1280, { limpar: false });
+    await p.evaluate(() => {
+      const s = document.getElementById('ato-senha');
+      if (s) { s.value = 'certa'; s.dispatchEvent(new Event('input')); }
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 900)));
+    const temContinuar = await p.evaluate(() => {
+      const b = document.querySelector('[data-acao="continuar"]');
+      return !!b && b.getClientRects().length > 0;
+    });
+    ok('com preenchimento interrompido, «continuar» está à vista', temContinuar === true);
+
+    const destinoContinuar = await Promise.all([
+      p.waitForNavigation({ waitUntil: 'load', timeout: 8000 }).catch(() => null),
+      p.evaluate(() => document.querySelector('[data-acao="continuar"]').click()),
+    ]).then(() => p.url());
+    ok('«continuar» leva o plano/nó de onde parou e o salto directo',
+      /abrir=1/.test(destinoContinuar || ''), destinoContinuar);
+
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 900)));
+    const aterrouContinuar = await p.evaluate(() => {
+      const visivel = (e) => !!e && !e.classList.contains('oculto') && e.getClientRects().length > 0;
+      return { conducao: visivel(document.getElementById('conducao')),
+        abertura: visivel(document.getElementById('abertura')) };
+    });
+    ok('…e aterra no FORMULÁRIO, não na página intermédia',
+      aterrouContinuar.conducao && !aterrouContinuar.abertura, aterrouContinuar);
   }
 
   ok('nenhum erro de JavaScript', erros.length === 0, erros);
