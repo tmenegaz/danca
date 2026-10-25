@@ -24215,3 +24215,56 @@ remarcada **até ao prazo** daquela aula.
 **Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (nota de correção no topo, §2.1 emendada, tabela dos cinco
 em linguagem simples, §3.3 reescrita, §5.4 com as três decisões, peça 7 nova, §9 substituída pelas
 decisões e pelo que ficou aberto) e `ESTADO-ATUAL.md` (§4, §8, §9, §11 e §12 atualizados).
+
+## 25/10/2026 — «Proposto»: a terceira forma, que faltava no vocabulário
+
+**Segunda ronda de respostas.** Três decisões, e uma delas obrigou a criar uma palavra.
+
+**1. O marco.** «Não pode ficar sem marco, tá? Tem que dizer qual é o marco da aula. **Ele pode até
+usar o mesmo marco da aula anterior, mas precisa ser explícito isso.**» A decisão anterior («o plano
+passa a exigir um marco por aula») estava incompleta, e a incompletude era minha: eu tinha lido a
+pergunta como *26 marcos diferentes*. Não é. O que se proíbe é o **silêncio**, não a **repetição** — um
+ciclo pode ter três objetivos que se repetem por semanas. **Repetir é uma decisão; calar não é.** Sem
+essa distinção, o requisito leria como «invente 23 marcos para preencher a tabela», que é exatamente o
+que o P-15 proíbe.
+
+**2. Os três lugares da aula — e a palavra que faltava.** «Você vai apresentar exatamente como estão, e
+aí o professor vai olhar e decidir se mantém esse ou edita, ou cria novos, ou acrescenta novos.»
+
+Eu tinha oferecido duas formas, e as duas estavam erradas:
+
+| Forma | O que acontece | O que se perde |
+|:--|:--|:--|
+| perguntado em branco | a aula mostra `[Preencher]` e o professor escreve | **a origem** — de onde vinha o valor que já existia |
+| derivado | o sistema preenche e o campo deixa de existir | **a decisão** — o professor não revê nem confirma |
+
+A aprovada é a terceira: **proposto**. O sistema mostra o valor que já existe (a musicalidade do plano,
+os itens do PO, o próximo passo), com a origem declarada, e o professor **mantém, edita, cria outro ou
+acrescenta**. Os quatro verbos são a especificação.
+
+**Porque é que isto não é um detalhe de interface.** O valor proposto sai do PO ou do plano — é onde
+ele foi decidido por alguém, numa data, com um motivo. Se o professor o altera, a alteração é um
+**delta com origem**. E o delta é *o que a memória da aula registra* — é a razão de o projeto existir.
+A forma «em branco» destruía a origem; a forma «derivado» destruía a decisão. **Nenhuma das duas
+deixava um delta legível.** A palavra faltava porque a coisa não tinha nome no vocabulário do projeto, e
+sem nome a pergunta não se podia fazer — foi o que aconteceu: a pergunta 4, escrita com a palavra
+errada («derivados»), não se entendeu.
+
+**3. Os `materiais` entram no formulário.** «Entra no formulário.» A pergunta era uma alternativa —
+*entram no formulário, ou saem da folha?* —, e a resposta escolheu a entrada: a folha impressa
+**mantém** as caixas, e as duas superfícies passam a pedir o mesmo. Era exatamente o defeito medido
+(folha com `materiais`, formulário com zero ocorrências).
+
+**E a numeração, que atrapalhou duas vezes.** Ao responder, a pesquisadora notou que estava «contando
+errado»: a pergunta «a aula herda a sequência ou escolhe as linhas de hoje?» é a **#3**, não a #6, e já
+tinha sido respondida na primeira ronda. Não era erro de contagem dela — era o efeito de eu ter
+**substituído** a lista de seis perguntas por uma lista de sete, mantendo os números e mudando o
+conteúdo de alguns. Um número que muda de significado não é uma referência: é uma armadilha.
+
+Remédio: as perguntas passam a ser identificadas por **nome** — `marco`, `fonte`, `sequência`,
+`preencher`, `linha de base`, `materiais`, `aula-object`, `sala`, `alinhamento`. Um nome não deriva, e
+a §9 do `PLANO-AULA-E-OBSERVACAO.md` passa a ser uma tabela de decisões, não um questionário.
+
+**Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (§3.1 com as três formas e a de «proposto», §5.4 com a
+nuance do marco, a tabela da herança, as peças 3 e 4, §9 substituída por decisões nomeadas),
+`ESTADO-ATUAL.md` (§8 e o histórico) e `TRANSFERENCIA-IA.md` (2.ª versão, com `proposto` no glossário).

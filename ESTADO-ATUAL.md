@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/10/2026 (2.ª do dia, após as respostas da pesquisadora), sobre o commit `7728389`.
+> **Última fotografia:** 25/10/2026 (3.ª do dia, após a 2.ª ronda de respostas), sobre o commit `66e871b`.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -251,20 +251,30 @@ rotina já estão feitas (commits `607b96a` e `7728389`).
 
 ## 8. Pendências e dúvidas
 
-### As seis perguntas da análise da aula — atualizadas em 25/10/2026
+### As decisões sobre a aula — por nome, não por número
 
-De `PLANO-AULA-E-OBSERVACAO.md` §9. **A pesquisadora respondeu: três fecharam, duas continuam
-abertas por obscuridade da pergunta (não por indecisão), e a resposta 5 abriu uma sétima.**
+De `PLANO-AULA-E-OBSERVACAO.md` §9. **A numeração mudou duas vezes e já atrapalhou a própria leitura**
+(a pergunta «a aula herda a sequência ou escolhe?» era a #3, não a #6). Passam a ser identificadas por
+**nome** — um nome não deriva.
 
-| # | Pergunta | Estado |
-|:--|:--|:--|
-| 1 | Marco das 23 aulas sem marco | **DECIDIDO** — o plano passa a exigir **um marco por aula**. A aula nasce com marco. *(A resposta aproximou «marco» de «sala»; são campos distintos — o marco é o objetivo específico da aula, a sala vem do evento. A decisão vale para os dois.)* |
-| 2 | «Abrir a aula» cria a fonte `.md`? | **DECIDIDO** — sim, o sistema pode escrever fontes. *(A pergunta usava «fonte» no sentido de ficheiro-fonte da âncora; a resposta entendeu «fonte» como referência bibliográfica. As duas coisas existem e a segunda — referências por aula — **não existe como campo**, e não foi decidida.)* |
-| 3 | A aula herda a sequência ou escolhe? | **DECIDIDO** — misto: herda as 14 linhas, **editáveis**, e pode acrescentar |
-| 4 | Os três `[Preencher]` passam a derivados? | **PENDENTE** — a pergunta não se entendeu. O termo está agora definido na §9 do documento de análise: «derivado» = o sistema preenche a partir do plano e do PO, sem perguntar |
-| 5 | A aula N compara com a anterior ou com o PO? | **DECIDIDO** — com o **registo da aula anterior**, e **alinhada ao PO**. A resposta acrescentou um requisito novo: um passo onde o professor confirma o alinhamento antes de elaborar a aula |
-| 6 | `materiais` entram no formulário ou saem da folha? | **PENDENTE** — não se entendeu. São as caixas da folha impressa (☐ fotos ☐ vídeo ☐ áudio ☐ comentário), ausentes do formulário (`lancamento.js`: 0 ocorrências) |
-| 7 | **NOVA** — o passo de alinhamento com o PO | **PENDENTE** — a frequência (por aula ou por ciclo), o que acontece sem confirmação, e se o registo entra na âncora de proveniência |
+| Nome | Estado |
+|:--|:--|
+| **marco** | **DECIDIDO** — a aula **não nasce sem marco**, e o marco tem de ser **explícito**. Pode **repetir** o da aula anterior: repetir é decisão, calar não é. O plano passa a declarar um marco por lugar de aula |
+| **fonte** | **DECIDIDO** — «Abrir a aula» cria a fonte `.md` e a folha de captura; o sistema pode escrever fontes |
+| **sequência** | **DECIDIDO** — herança mista: herda as 14 linhas, **editáveis**, e pode acrescentar |
+| **preencher** | **DECIDIDO** — os três lugares da aula **não são derivados nem perguntados em branco: são PROPOSTOS**. O sistema mostra o valor que já existe e o professor **mantém, edita, cria outro ou acrescenta** |
+| **linha de base** | **DECIDIDO** — a aula N compara com o **registo da aula anterior**, alinhada ao PO |
+| **materiais** | **DECIDIDO** — **entram no formulário**; a folha impressa mantém as caixas, e as duas superfícies passam a pedir o mesmo |
+| **aula-object** | **DECIDIDO** — a aula nasce por um **botão**, e os documentos nascem **vazios**, «pra gente ter o objeto» |
+| **sala** | **DECIDIDO** — é do **evento**: não é opcional, mas é **flexível**, remarcável até ao prazo daquela aula |
+| **alinhamento** | **PENDENTE** — o passo de confirmação com o PO (peça 7) tem três perguntas próprias: a frequência (por aula ou por ciclo), a consequência de não confirmar, e se o registo entra na âncora de proveniência |
+| **referências por aula** | **PENDENTE** — levantada de passagem, **não é requisito**. As referências hoje são do ciclo, não da aula; não existe campo |
+
+**A palavra que faltava no vocabulário do projeto: «proposto».** Havia duas formas de tratar um campo
+que já tem valor noutro documento — *perguntar em branco* (perde a origem) e *derivar* (perde a
+decisão). A aprovada é a terceira: mostrar o que existe, com a origem declarada, e deixar o professor
+manter, editar, criar ou acrescentar. **É a única que torna o delta legível** — e o delta é o que a
+memória da aula registra.
 
 **E uma correção de diagnóstico:** a §2.1 do documento de análise — «8 dos 12 itens do contexto estão
 também no PO» — **não é defeito**. **DECIDIDO** que a repetição é proposital: o professor elabora o
@@ -316,6 +326,7 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 | `materiais` em `motor/nucleo/lancamento.js` | **0 ocorrências** — a folha impressa tem, o formulário não |
 | `[Preencher]` na `aula-01` da `batata` | 6 marcadores em 3 secções (musicalidade, guia ×4, próximo passo) |
 | as 8 secções da `aula-01` | 1 validação · 2 condições preliminares · 3 sequência · 4 musicalidade · 5 guia · 6 volume · 7 proveniência · 8 auditoria · 9 próximo passo |
+| `materiais` na `captura-aula-01.md` | linha 65 — «**Materiais** ☐ fotos ☐ vídeo ☐ áudio ☐ comentário» |
 
 **Um erro corrigido durante esta fotografia, e que fica registado de propósito:** a primeira versão
 desta tabela dizia `.github/prompts/` com 1 ficheiro. **Não existe `.github/prompts/`** — os prompts
@@ -344,6 +355,10 @@ Ações imediatas, sem transformar hipótese em compromisso:
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **25/10/2026** — segunda ronda de respostas: **o marco é obrigatório e explícito, mas pode repetir o
+  da aula anterior**; os três lugares da aula passam a **propostos** (o professor mantém, edita, cria ou
+  acrescenta); **os `materiais` entram no formulário**. As perguntas passam a ser identificadas por
+  **nome** — a numeração mudou duas vezes e já atrapalhou a leitura.
 - **25/10/2026** — a pesquisadora respondeu ao documento de análise: **uma correção de diagnóstico**
   (a repetição do contexto no PO é proposital, não é defeito), **três decisões** (marco por aula,
   herança mista da sequência, comparação com a aula anterior), **duas perguntas reabertas** por
@@ -367,10 +382,9 @@ O que **não** consigo confirmar, e o senhor tem de decidir ou informar:
 - **Não sei se o `TRANSFERENCIA-IA.md` serve o seu caso de uso.** Foi desenhado a partir de uma
   descrição, não de uma tentativa real de o anexar a outro assistente.
 - **Não sei se as perguntas abertas da §8 foram decididas fora do repositório.** A §8 regista o que
-  a pesquisadora respondeu em 25/10/2026, por escrito. O que não está é o resto: as perguntas 4 (os
-  `[Preencher]`), 6 (`materiais`) e 7 (a frequência do alinhamento) continuam **sem resposta**, e a
-  resposta 2 deixou uma dúvida lateral não resolvida (referências bibliográficas por aula — não
-  existem como campo).
+  a pesquisadora respondeu em 25/10/2026, em duas rondas. Continua **sem resposta** apenas
+  `alinhamento` (a frequência do passo de confirmação com o PO), e **sem decisão** a possibilidade de
+  referências bibliográficas por aula — levantada de passagem, não pedida.
 - **Não verifiquei as 11 provas não versionadas** — não sei se ainda são recuperáveis.
 - **Não sei o estado do KV em produção** — cota, ocupação e envelopes reais não foram medidos
   agora. Medir custa cota diária.

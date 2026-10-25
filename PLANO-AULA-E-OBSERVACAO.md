@@ -8,7 +8,7 @@
 >
 > **O que este documento é.** O mapa do que existe hoje (com a evidência medida), a regra que separa
 > os quatro documentos, e o plano por peças. **Não** é a implementação — as decisões que dependem de
-> si estão na §9, numeradas.
+> si estão na §9, **por nome** (a numeração mudou duas vezes e já atrapalhou a leitura).
 
 > ### Nota de correção — 25/10/2026, mesmo dia
 >
@@ -20,9 +20,11 @@
 > está errado. O que envelhece é a leitura, não a cópia: a cópia é a garantia de que o professor não
 > tem de abrir três documentos para saber de que turma se trata.
 >
-> **Cinco sobreposições continuam de pé** (§2.2 a §2.6). **Três perguntas da §9 foram respondidas**
-> e passam a decididas; duas não se entenderam (a redação era minha, e era obscura) e continuam
-> abertas, com os termos agora definidos. As emendas estão marcadas no corpo, com «EMENDA».
+> **Cinco sobreposições continuam de pé** (§2.2 a §2.6). Das perguntas da §9, **sete estão decididas**
+> — três na primeira ronda e quatro na segunda. **Uma continua aberta** (`alinhamento`, o passo de
+> confirmação com o PO), e uma possibilidade foi levantada de passagem sem ser decidida (referências
+> bibliográficas por aula). As perguntas passaram a ser identificadas **por nome**: a numeração mudou
+> duas vezes e já atrapalhou a leitura. As emendas estão marcadas no corpo, com «EMENDA».
 
 ---
 
@@ -176,7 +178,29 @@ O que existe numa aula, pelo desenho do plano, são **seis camadas**. O lançame
 - **`## 5. Guia de observação`** — quatro `[Preencher]` (§2.6).
 - **`## 9. Próximo passo`** — `[Preencher: o próximo passo da progressão do ciclo]`.
 
-Os três são **deriváveis** (do plano, do PO, do marco seguinte). Nenhum é uma pergunta ao professor.
+**EMENDA — 25/10/2026, decidido.** Estes três lugares **são propostos, e o professor decide**. A
+pesquisadora: «você vai apresentar exatamente como estão, e aí o professor vai olhar e decidir se
+mantém esse ou edita, ou cria novos, ou acrescenta novos.»
+
+Ou seja: **não é «derivado»** no sentido que eu tinha usado — o sistema não preenche em silêncio e
+retira a pergunta. E **não é «perguntado em branco»** — o professor não escreve do zero. É a terceira
+coisa, e não havia nome para ela neste documento:
+
+| Forma | O que acontece | Era o meu «derivado»? |
+|:--|:--|:--|
+| **perguntado em branco** | a aula mostra `[Preencher]` e o professor escreve | não |
+| **derivado** | o sistema preenche e o campo deixa de existir | não |
+| **proposto** ✋ | o sistema **mostra o valor que já existe** — do plano ou do PO — e o professor **mantém, edita, cria outro ou acrescenta** | **era isto que eu queria dizer, e disse mal** |
+
+Os quatro verbos são a especificação: **manter** (fica como está) · **editar** (reescreve o proposto) ·
+**criar** (substitui por um novo) · **acrescentar** (soma aos que existem). O `[Preencher]` deixa de
+ser uma lacuna que ninguém preenche e passa a ser um valor **com origem declarada** e um botão de
+confirmação.
+
+**Porque isto importa mais do que parece:** o valor proposto **sai do PO ou do plano**, que é onde ele
+foi decidido por alguém. Se o professor o altera, a alteração é um **delta com origem** — e o delta é
+exatamente o que a memória da aula registra. A forma «proposto» é a que torna o delta legível; a forma
+«em branco» perdia a origem, e a «derivado» perdia a decisão.
 
 ### 3.2 O registo da aula guarda seis coisas
 
@@ -306,12 +330,20 @@ fonte**, e não há sítio onde o professor a escreva.
 > o **objeto** nasce primeiro, com identidade, e o conteúdo entra depois. É a inversão do que o
 > código faz hoje, onde a aula só existe quando a fonte está escrita à mão.
 >
-> **(b) A aula nasce COM marco — o plano passa a exigi-lo.** «Nasce com o marco, tá? Não dá pra ter sem
-> sala.» **Atenção a uma confusão de vocabulário que é minha, não sua:** «marco» aqui **não é a sala**.
-> Marco é o **objetivo específico daquela aula** — o que o plano declara em `marcos-por-aula`, como
+> **(b) A aula nasce COM marco, e o marco tem de ser EXPLÍCITO.** Segunda resposta, 25/10/2026:
+> «Não pode ficar sem marco, tá? Tem que dizer qual é o marco da aula. **Ele pode até usar o mesmo
+> marco da aula anterior, mas precisa ser explícito isso.** Então não pode nascer sem marco.»
+>
+> **A distinção que a resposta acrescenta, e que eu não tinha:** o que se proíbe é o **silêncio**, não
+> a **repetição**. Um ciclo não precisa de 26 marcos diferentes — pode ter três objetivos que se
+> repetem por semanas. O que não pode é uma aula existir sem que alguém tenha dito **qual** é o marco
+> dela. Repetir é uma decisão; calar não é.
+>
+> **Atenção a uma confusão de vocabulário que é minha, não sua:** «marco» aqui **não é a sala**. Marco
+> é o **objetivo específico daquela aula** — o que o plano declara em `marcos-por-aula`, como
 > «transferir o peso entre os pés sem perder o alinhamento». A **sala** é outro campo, e o senhor tem
-> razão nos dois: a aula precisa dos dois. Mas a resposta resolve a pergunta 1: **o plano passa a
-> exigir um marco por aula** (opção *b* da §9), e a regra 3 abaixo **cai**.
+> razão nos dois: a aula precisa dos dois. A resposta resolve a questão do `marco` (opção *b* da §9, com a
+> nuance da repetição), e a regra 3 abaixo **cai**.
 >
 > **(c) A aula N tem de confirmar o alinhamento com o PO.** «Eu não posso fazer um PO de uma natureza e
 > elaborar uma aula que é completamente divergente daquele PO… o professor é lembrado de qual é o PO, e
@@ -319,7 +351,7 @@ fonte**, e não há sítio onde o professor a escreva.
 > acho que para cada aula ter isso como um protocolo.» **Requisito novo**, sem equivalente no código de
 > hoje: um passo de confirmação, antes de a aula ser editável.
 >
-> E a **herança da sequência** fica mista (pergunta 3): a aula herda as 14 linhas, **editáveis**, e o
+> E a **herança da sequência** fica mista (decisão `sequência`): a aula herda as 14 linhas, **editáveis**, e o
 > professor pode acrescentar outras — não é um selector que obriga a escolher, nem uma herança cega.
 
 > **A aula é filha do PLANO DO CICLO, e não do PO.** Ela não pode existir solta, porque o plano é
@@ -343,12 +375,13 @@ PO ──(1:1)──► Plano do ciclo ──(1:N)──► Aula NN ──(1:1)�
 |:--|:--|:--|
 | turma, professor, ciclo, duração | plano (`contexto`) | não — é o mesmo em todas |
 | blocos, volume, condições preliminares | plano | não |
-| **marco do dia** | plano (`marcosPorAula[n]`) — **agora obrigatório** | sim, enquanto `planejada` |
+| **marco do dia** | plano (`marcosPorAula[n]`) — **obrigatório e explícito; pode repetir o da aula anterior** | sim, enquanto `planejada` |
 | **sala** | o evento do calendário | sim, **até ao prazo** da aula |
 | **sequência de hoje** | plano (`sequenciaDeExercicios`) — herda as 14, **editáveis**, e pode acrescentar | sim |
-| **música de hoje** | plano (`musicasVideos`) — escolhe-se | sim |
-| **o que quero ver hoje** | PO (`itensPorDimensao`) — escolhe-se as dimensões | sim |
-| **próximo passo** | a aula anterior + o marco seguinte | sim |
+| **música de hoje** | plano (`musicasVideos`) — **proposto**, e o professor mantém, edita, cria ou acrescenta | sim |
+| **o que quero ver hoje** | PO (`itensPorDimensao`) — **proposto**, com os itens como estão | sim |
+| **próximo passo** | a aula anterior + o marco seguinte — **proposto** | sim |
+| **materiais** | vazio na criação; preenchido no **lançamento** (☐ fotos ☐ vídeo ☐ áudio ☐ comentário) | sim, no lançamento |
 | **linha de base** | PO (aula 1) · **o registo da última aula dada** (aula N) | não — é derivada |
 | **alinhamento com o PO** | confirmação explícita do professor | sim, uma vez, antes de editar ✋ |
 
@@ -359,10 +392,11 @@ PO ──(1:1)──► Plano do ciclo ──(1:N)──► Aula NN ──(1:1)�
 2. a **relação entre duas aulas** só existe dentro do mesmo ciclo (a mesma escola, o mesmo professor,
    o mesmo plano) — é a chave que impede a aula 3 de um ciclo herdar a linha de base de outro;
 3. ~~a aula que não tem marco não é uma aula: é um lugar do calendário~~ — **EMENDADA.** A aula nasce
-   com marco, e o plano tem de declarar um por aula. **Não há aula sem marco:** o que há é lugar de
-   calendário à espera de que o plano declare o marco. A distinção sobrevive, mas muda de lado: a
-   lista mostra os 26 lugares, e um lugar **sem marco** diz «falta o marco» em vez de oferecer
-   «Abrir» — porque abrir produziria uma aula vazia de sentido pedagógico.
+   com marco declarado. **O marco pode repetir o da aula anterior** — o que não pode é ser omitido.
+   Um lugar de calendário **sem marco** diz «falta o marco» em vez de oferecer «Abrir»: abrir
+   produziria uma aula vazia de sentido pedagógico, e o vazio não é neutro — lê-se como descuido.
+   Enquanto o plano declarar três marcos para 26 aulas, **23 lugares ficam neste estado**, e a lista
+   tem de o dizer sem os esconder atrás de um botão que promete uma aula que não existe.
 
 **O estado na lista** (derivado, sem campo novo — `ARQUITETURA-AULA.md` §1):
 
@@ -441,6 +475,13 @@ Ordenadas por dependência — cada uma destrava a seguinte. As que têm ✋ dep
 - O escritor do ciclo passa a conhecer a família (`aula-*`, `captura-aula-*`) e não só a `01`.
 - O fallback do formulário **deixa de usar a folha da aula 01** para outra aula: sem folha própria, a
   aula não abre para lançamento — diz porquê.
+- **O marco é obrigatório e explícito** (§5.4): a aula não nasce sem que alguém tenha dito qual é o
+  marco dela. Pode ser o da aula anterior — repetir é uma decisão —, mas tem de estar escrito. Um
+  lugar de calendário sem marco mostra «falta o marco», e não «Abrir».
+- **Os três lugares da aula são propostos, não pedidos em branco** (§3.1): musicalidade, guia de
+  observação e próximo passo aparecem **com o valor que já existe** no plano e no PO, e o professor
+  **mantém, edita, cria outro ou acrescenta**. É o que torna o delta legível — o proposto tem origem,
+  o que ele substitui é a decisão.
 
 **Destrava:** a aula 2 existe, e não é um clone da 1.
 
@@ -454,12 +495,17 @@ Campos novos, todos **aditivos** (o registo antigo continua legível):
 | `sequenciaExecutada[]` | `{ bloco, conteudo, objetivo, tempos }` | o que foi dado, na ordem |
 | `abandonado[]` | texto | a folha já pergunta; hoje só cabe em prosa |
 | `musica` | texto | a faixa que tocou |
-| `materiais[]` | `fotos · video · audio · comentario` | a folha tem as caixas; o formulário não |
+| `materiais[]` | `fotos · video · audio · comentario` | **decidido em 25/10/2026: entra no formulário.** A folha tem as caixas; o formulário não tinha |
 | `proximoPasso` | texto | fecha a aula e abre a seguinte |
 | `linhaDeBaseDe` | `aula-NN` | **qual** registo é a linha de corte (§3.3) |
 
 **Destrava:** a folha impressa e o formulário passam a pedir o mesmo, e o papel deixa de guardar mais
 do que o ecrã.
+
+**O que a decisão dos `materiais` fecha:** a pergunta era uma alternativa — «entram no formulário, ou
+saem da folha?» —, e a resposta escolheu a **entrada**. A folha impressa **mantém** as caixas: quem
+lança no papel continua a poder marcá-las. As duas superfícies passam a pedir a mesma coisa, que era
+exatamente o defeito.
 
 ### Peça 5 — A linha de base desliza ✋
 
@@ -476,7 +522,7 @@ do que o ecrã.
 
 ### Peça 7 — O passo de alinhamento com o PO ✋ *(nova, 25/10/2026)*
 
-Nasceu da resposta à pergunta 5, e não estava no plano original.
+Nasceu da decisão `linha de base`, e não estava no plano original.
 
 - Antes de a aula N ser editável, um passo que recorda **qual é o PO** daquele ciclo (a turma, o
   professor, as dimensões e os itens) e pede uma confirmação explícita: «esta aula está alinhada com
@@ -484,7 +530,7 @@ Nasceu da resposta à pergunta 5, e não estava no plano original.
 - **Porque não é burocracia:** o PO é o compromisso pedagógico do ciclo. Uma aula que divirja dele não
   é uma aula do ciclo — é outra coisa, e ninguém saberia. O passo torna a divergência impossível por
   omissão.
-- **O que ainda não está decidido** (pergunta 7, §9): a frequência da confirmação (por aula ou por
+- **O que ainda não está decidido** (a única pergunta aberta, `alinhamento`, §9): a frequência da confirmação (por aula ou por
   ciclo), o que acontece se não houver confirmação, e se o registo entra na âncora de proveniência ou
   fica só como estado de interface.
 - **Onde entra na ordem das peças:** depois da peça 3 (o ambiente da aula N) e antes da 4 (o
@@ -509,61 +555,51 @@ muda: a fórmula do hash, a cobertura, os validadores e as 17 regras.
 
 ---
 
-## 9. O que ficou decidido, e o que continua aberto
+## 9. As decisões — e o que continua aberto
 
-> **Emenda de 25/10/2026, mesmo dia.** As seis perguntas foram lidas e respondidas. Três fecharam,
-> uma fechou pela metade (por uma confusão de vocabulário que era minha), e duas não se entenderam.
-> Fica registado o que cada uma virou — e, nas que não se entenderam, o termo agora definido.
+> **Emenda de 25/10/2026 (segunda do dia).** As perguntas foram respondidas em duas rondas. **Passam a
+> ser identificadas por NOME, não por número** — os números mudaram duas vezes e a numeração já
+> atrapalhou a própria leitura (a pergunta «a aula herda a sequência ou escolhe as linhas de hoje?» é
+> a **#3**, não a #6; foi respondida na primeira ronda). Um nome não deriva.
 
 ### Fechadas
 
-**1. O marco das 23 aulas — DECIDIDA: o plano passa a exigir um marco por aula.**
-«Nasce com o marco, tá? Não dá pra ter sem sala.» É a opção *(b)*. **Com uma ressalva de leitura:** o
-senhor aproximou «marco» de «sala», e não são a mesma coisa — o marco é o *objetivo específico da
-aula* (`marcos-por-aula`, ex.: «transferir o peso entre os pés sem perder o alinhamento»); a sala é o
-*lugar*, que vem do evento. A decisão fecha para os dois: **cada aula precisa de marco e de sala**, e
-a diferença é que o marco vem do plano e a sala vem do calendário.
+| Nome | Decisão | Quem decidiu, quando |
+|:--|:--|:--|
+| **marco** | A aula **não nasce sem marco**, e o marco tem de ser **explícito**. Pode **repetir o da aula anterior** — repetir é decisão, calar não é. O plano passa a declarar um marco por lugar de aula | pesquisadora, 25/10/2026 (2.ª ronda) |
+| **fonte** | «Abrir a aula» **cria** a fonte `.md` e a folha de captura. O sistema pode escrever fontes | pesquisadora, 25/10/2026 (1.ª ronda) |
+| **sequência** | Herança **mista**: herda as 14 linhas do plano, **editáveis**, e pode acrescentar outras | pesquisadora, 25/10/2026 (1.ª ronda) |
+| **preencher** | Os três lugares **não são derivados em silêncio nem perguntados em branco: são PROPOSTOS**. O sistema mostra o valor que já existe (do plano e do PO) e o professor **mantém, edita, cria outro ou acrescenta** | pesquisadora, 25/10/2026 (2.ª ronda) |
+| **linha de base** | A aula N compara com o **registo da aula anterior**, e está alinhada ao PO. A regra escrita estava certa; o código é que não a segue | pesquisadora, 25/10/2026 (1.ª ronda) |
+| **materiais** | **Entram no formulário.** A folha impressa mantém as caixas — as duas superfícies passam a pedir o mesmo | pesquisadora, 25/10/2026 (2.ª ronda) |
+| **aula-object** | A aula nasce por um **botão**, e os documentos nascem **vazios** — «pra gente ter o objeto» | pesquisadora, 25/10/2026 (1.ª ronda) |
+| **sala** | A sala é do **evento**: não é opcional, mas é **flexível** — remarcável até ao prazo daquela aula | pesquisadora, 25/10/2026 (1.ª ronda) |
 
-**3. A herança da sequência — DECIDIDA: mista.** «Herdar a sequência inteira e ser editável é bom,
-torna prático o processo e a possibilidade de acrescentar outras.» Herda as 14 linhas, **editáveis**,
-e pode acrescentar. Não é selector obrigatório nem herança cega.
+**O que a decisão `preencher` acrescentou ao vocabulário deste projeto.** Faltava a palavra. Havia
+duas formas de tratar um campo que já tem valor noutro documento — *perguntar em branco* (perde a
+origem) e *derivar* (perde a decisão). A terceira, que é a aprovada, é **propor**: mostrar o que existe,
+com a origem declarada, e deixar o professor manter, editar, criar ou acrescentar. É a única que torna
+o **delta** legível — e o delta é o que a memória da aula registra.
 
-**5. Com o que a aula N compara — DECIDIDA: com o registo da aula anterior, e alinhada ao PO.**
-«A aula N ela vai comparar com o registro da aula anterior… e ela tem que estar alinhada com o PO,
-porque ela pertence ao mesmo PO.» **E acrescentou um requisito que não existia:** «o professor é
-lembrado de qual é o PO, e ele marca que concorda, que entendeu, que está alinhado com o PO, e aí sim
-ele elabora a aula N. Eu acho que para cada aula ter isso como um protocolo.» É a **peça 7** (§7).
+### Abertas
 
-### Abertas, porque a pergunta era obscura
+**`alinhamento` — a única pergunta aberta do assunto da aula.**
+Nasceu da decisão `linha de base`: «o professor é lembrado de qual é o PO, e ele marca que concorda,
+que entendeu, que está alinhado com o PO, e aí sim ele elabora a aula N. Eu acho que para cada aula ter
+isso como um protocolo.» É a **peça 7** (§7). Ficam por decidir:
 
-**4. Os três `[Preencher]` da aula — ABERTA, com o termo definido.**
-A pergunta era: na aula de hoje há três lugares que pedem para escrever à mão —
+1. **A frequência:** uma confirmação por aula (26 num ciclo) ou uma por ciclo, renovada quando o plano
+   muda?
+2. **A consequência:** sem confirmação, a aula não abre — ou abre com um aviso?
+3. **A natureza do registo:** é dado de proveniência (entra na âncora e a altera) ou é estado de
+   interface (não entra)?
 
-- `## 4. Bloco de musicalidade` → `[Preencher: trabalho de pulso da Aula 01]`
-- `## 5. Guia de observação` → **quatro** linhas `[Preencher]`, uma por dimensão
-- `## 9. Próximo passo` → `[Preencher: o próximo passo da progressão do ciclo]`
-
-— e os valores que os preencheriam **já estão escritos** no plano (a música) e no PO (os itens de
-observação). «Derivados», na pergunta, queria dizer: *o sistema preenche estes três lugares sozinho, a
-partir do plano e do PO, e o professor deixa de ser questionado sobre eles*. A pergunta é se concorda
-com isso, ou se algum deles deve continuar a ser perguntado.
-
-**6. `materiais` — ABERTA, com o termo definido.**
-«Materiais» são as caixas da folha de captura impressa, no fecho da aula:
-
-> **Materiais** ☐ fotos ☐ vídeo ☐ áudio ☐ comentário: `______`
-
-É a marcação do que se recolheu como evidência naquela aula. **A folha tem; o formulário electrónico
-não tem** (zero ocorrências em `motor/nucleo/lancamento.js`). A pergunta é se o campo entra no
-formulário, ou se sai da folha.
-
-### Uma pergunta nova, que a resposta 5 abriu
-
-**7. O passo de alinhamento com o PO.** Antes de a aula N ser editável, o professor confirma que
-lembra o PO e que a aula está alinhada com ele. **Perguntas que ficam:** é uma marcação por aula
-(26 confirmações num ciclo) ou uma por ciclo, com renovação quando o plano muda? O que acontece se ele
-não confirmar — a aula não abre, ou abre com um aviso? O registo da confirmação é dado de proveniência
-(entra na âncora) ou só de interface?
+**`referências por aula` — levantada de passagem, não decidida.**
+Ao responder sobre «fontes», a pesquisadora perguntou: «eu preparei a aula 1 e trabalhei com o livro X
+para falar sobre transferência de peso. Aí eu vou para a aula 2, aí eu vou trabalhar com o livro Y…
+Eu vou ter outra fonte, outras referências, é isso?» **Não existe esse campo** — as referências hoje são
+do ciclo, não da aula. Não foi decidido se deve existir; fica registado como possibilidade em aberto, e
+não como requisito.
 
 ---
 
