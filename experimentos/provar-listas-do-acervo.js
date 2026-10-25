@@ -379,7 +379,86 @@ function pedacos(html) {
     }
   }
 
-  console.log('\n8 · Sem KV, a lista não inventa: a ponte devolve o que já servia');
+  console.log('\n8 · AS TRÊS REGRAS — a lista não deixa criar o que o servidor recusaria');
+  {
+    /* A REGRA DA ANAMNESE É DO SERVIDOR (23/10/2026): a aluna curada a um professor só é
+       entrevistada por ele; a que não está em curadoria nenhuma é de quem chegar primeiro. A
+       lista não tem regra própria — pergunta ao mesmo endpoint com o mesmo recorte. O que se
+       prova aqui é que ela pergunta COM o recorte, porque sem o `?professor=` o servidor devolve
+       a escola inteira (é o que a Produção precisa) e a lista ofereceria a aluna de outro. */
+    const anamnese = await pedir('/area-do-professor/anamnese/');
+    provar('a anamnese pede as alunas RECORTADAS pelo professor',
+      /\/api\/bastidores\/alunas'\s*\+\s*\(slug/.test(anamnese.html), null);
+
+    /* O PLANO EXIGE CURADORIA, e a lista sabe dizê-lo. `semCuradoria()` é a mesma condição da
+       porta (`aplicarCuradoria`): sem curadoria atribuída, a direção ainda não curou. */
+    /* A FRASE ESTÁ NO SCRIPT DAS TRÊS — é o mesmo bloco de estado, emitido para todas as
+       famílias. O que distingue o plano é ele CONSULTAR a curadoria: a anamnese não a pede,
+       porque a regra dela é a aluna e não a turma. Medir a frase media a partilha do código, e
+       a asserção anterior acusava a anamnese de uma regra que ela não aplica. */
+    const planoHtml = (await pedir('/area-do-professor/plano-de-ensino/')).html;
+    provar('o plano consulta a curadoria, e trava sem ela',
+      /A direção ainda não atribuiu curadoria/.test(planoHtml)
+      && /curadoria-professor\?professor=/.test(planoHtml), null);
+    /* A ANAMNESE SAI DA CURADORIA PELA PORTA DA FRENTE: `carregarCuradoria` devolve vazio sem
+       pedir nada, e `semCuradoria()` é falso para ela por construção (`!CFG.ehAnamnese`). O
+       endereço da curadoria existe no script das três — é o mesmo ficheiro —, e por isso a
+       asserção mede o GUARDA, e não a string. */
+    provar('a anamnese NÃO consulta a curadoria — a regra dela é a aluna',
+      /!slug \|\| CFG\.ehAnamnese\) \{ CURADORIAS = \[\]/.test(anamnese.html), null);
+
+    /* O PO OBSERVA UM PLANO — e essa regra não tinha porta nenhuma: vivia só na mensagem de uma
+       lista vazia. Agora o PO escolhe o plano entre os DESTE professor, a turma observada vem do
+       plano escolhido, e sem plano o botão não abre. */
+    const po = await pedir('/area-do-professor/plano-de-observacao/');
+    provar('o PO tem o campo do PLANO, e não um campo de turma livre',
+      /data-ato="plano"/.test(po.html) && !/data-ato="turma"/.test(po.html), null);
+    provar('…e a estante que o alimenta é recortada pelo professor',
+      /\/api\/planos\?professor=/.test(po.html), null);
+    provar('…e a turma observada é LEITURA, porque quem a decide é o plano',
+      /data-turma-leitura/.test(po.html) && /plano de ensino/.test(po.html), null);
+    provar('…e sem plano a lista diz a regra por palavras, em vez de deixar o botão mudo',
+      /observa uma aula que tem plano/.test(po.html), null);
+
+    /* A SENHA NÃO EXISTE NO PO. Está escrito na porta («no PO, nunca»), e o painel punha-a nos
+       três. Sem o campo, uma trava que exigisse `SENHA === 'ok'` bloquearia para sempre — por
+       isso o `temSenha` também tem de vir a falso. */
+    provar('o PO não pede senha',
+      !/data-ato="senha"/.test(po.html) && /"temSenha":false/.test(po.html), null);
+    provar('a anamnese e o plano pedem',
+      /data-ato="senha"/.test(anamnese.html)
+      && /data-ato="senha"/.test((await pedir('/area-do-professor/plano-de-ensino/')).html), null);
+  }
+
+  console.log('\n9 · O SALTO DIRETO — a porta deixa de ser paragem');
+  {
+    /* A LISTA MANDA `abrir=1` (25/10/2026). A página da porta tinha cabeçalho, textos de
+       desenvolvimento, uma listagem de fichas e só então o formulário; tudo isso passou a morar
+       na lista. Quem vem da lista já decidiu o ato, e a porta tem de entrar no formulário.
+       E o salto NÃO PODE passar por cima da trava: `abrirFormulario` não pergunta nada. */
+    /* A PORTA É UMA SÓ. `/anamnese/`, `/plano-ensino/` e `/plano-observacao/` são a MESMA
+       página, servida com `?fonte=` — a fonte vive em `plano-observacao/`. Lê-se a página
+       publicada, e não a rota: a rota devolve o mesmo documento, e uma delas podia responder
+       200 por reescrita sem ser este ficheiro. */
+    const pagina = { html: fs.readFileSync(
+      path.join(raiz, 'publicacao/batata/plano-observacao/index.html'), 'utf8') };
+    provar('a porta lê o parâmetro do salto', /get\('abrir'\) === '1'/.test(pagina.html), null);
+    provar('…e o salto pergunta ao botão antes de saltar, em vez de o contornar',
+      /podeComecar/.test(pagina.html) && /comecar\.disabled/.test(pagina.html), null);
+
+    const lista = await pedir('/area-do-professor/anamnese/');
+    provar('a lista manda o salto no destino', /abrir=1/.test(lista.html), null);
+
+    /* O PLANO ESCOLHIDO VAI NO ENDEREÇO. Sem ele a porta escolhe o PRIMEIRO da estante — e a
+       escolha do professor perdia para uma suposição. */
+    provar('a porta aceita o plano pelo endereço',
+      /get\('plano'\)/.test(pagina.html) && /plano-de-ensino\)$/.test(pagina.html.replace(/[\s\S]*RESPOSTAS\.set\('plano-de-ensino', ([\s\S]{0,40})/, "$1")) === false
+      || /RESPOSTAS\.set\('plano-de-ensino', carimboPedido\)/.test(pagina.html), null);
+    provar('a lista do PO manda o plano escolhido',
+      /'plano=' \+ encodeURIComponent/.test((await pedir('/area-do-professor/plano-de-observacao/')).html), null);
+  }
+
+  console.log('\n10 · Sem KV, a lista não inventa: a ponte devolve o que já servia');
   {
     const semKv = Object.assign({}, env, { PADD_KV: null });
     const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev/area-do-professor/anamnese/'), semKv);

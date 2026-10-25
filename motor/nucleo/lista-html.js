@@ -199,15 +199,50 @@ function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazi
   /* A PAGINAÇÃO SÓ EXISTE SE ALGUÉM A PEDIR (`porPagina`). Ela é a peça da Produção, e o
      rodapé nasce `hidden`: com uma página só ele não aparece, e sem JavaScript a lista mostra
      tudo. Não se pagina uma lista de dois planos para mostrar um botão desactivado. */
-  const corpo = cartoes.length
-    ? filtro(linhas, { campos, ...conta }) + '\n'
-      + (porPagina
-        ? `<div data-paginar data-por-pagina="${Number(porPagina)}">\n`
-          + '<ul class="trio-lista">\n' + cartoes.join('\n') + '\n</ul>\n'
-          + paginacao.marcacao() + '\n</div>'
-        : '<ul class="trio-lista">\n' + cartoes.join('\n') + '\n</ul>')
+  const blocoFiltro = cartoes.length ? filtro(linhas, { campos, ...conta }) : '';
+  const blocoLista = cartoes.length
+    ? (porPagina
+      ? `<div data-paginar data-por-pagina="${Number(porPagina)}">\n`
+        + '<ul class="trio-lista">\n' + cartoes.join('\n') + '\n</ul>\n'
+        + paginacao.marcacao() + '\n</div>'
+      : '<ul class="trio-lista">\n' + cartoes.join('\n') + '\n</ul>')
     : semNada;
-  const lista = corpo;
+
+  /* ==========================================================================
+     O BOTÃO «AÇÕES» — A TELA GANHA-SE NO TELEMÓVEL (25/10/2026).
+     --------------------------------------------------------------------------
+     O pedido: «no celular… eu tenho também uma área que é de procurar, que ela não
+     tá programada pra poder colapsar ou expandir… a gente vai criar um botão que se
+     chama ações. E aí esse botão ações, ele vai abrir da mesma forma que abre lá em
+     sessões, um menuzinho de opção… E aí a pessoa vai escolher se ela quer o
+     contexto do ato… ou também se ela quer ver a ficha em branco… E também vai ter
+     o procurar… Então fica tudo escondido dentro de um botão de ações e a gente
+     ganha tela no modo celular.»
+
+     O QUE ELE AGRUPA: o painel do ato (com a caixinha dele, que continua a ser um
+     segundo `details`), a ficha em branco e o filtro. Três coisas que, empilhadas,
+     ocupavam meia tela de 844px antes de se ver um registo.
+
+     UM `details` NÃO É UM ACORDEÃO DE MENTIRA: é a peça que o sistema já usa para o
+     menu da barra (`.topnav details.menu`), e é a mesma gramática do `painel-ato` —
+     um botão que abre, e fecha. Nada de JavaScript para abrir e fechar.
+
+     NO COMPUTADOR O MENU NÃO EXISTE. O `summary` sai de cena por CSS e o `details`
+     é aberto pelo script do painel (`scriptDoPainel`); se o JavaScript falhar, o
+     pior caso é o botão «Ações» à vista no computador — **degrada, não quebra**.
+     A alternativa (duas marcações, uma por largura) duplicaria o painel e os seus
+     `id`, que é pior de todas as maneiras.
+     ========================================================================== */
+  const agrupado = painel
+    ? `<details class="acoes-da-lista" id="acoes">
+  <summary class="acao acoes-do-menu">Ações<span class="seta-do-ato" aria-hidden="true">\u25be</span></summary>
+  <div class="acoes-corpo">
+${painel}
+${blocoFiltro}
+  </div>
+</details>`
+    : (blocoFiltro ? blocoFiltro + '\n' : '');
+  const lista = painel ? blocoLista : blocoFiltro + blocoLista;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -232,7 +267,7 @@ ${nav}
 <main>
 <div class="conteudo">
 ${aviso ? `<div class="aviso">${aviso}</div>` : ''}
-${painel || ''}
+${agrupado}
 ${lista}
 </div>
 </main>
@@ -285,6 +320,11 @@ const SCRIPT_DA_LISTA = `(function () {
       else { l.setAttribute('data-fora', 'sim'); l.hidden = true; }
     });
     conta.textContent = n + ' ' + (n === 1 ? singular : plural) + ' de ' + itens.length;
+    /* FILTRAR MUDA A ALTURA DA PÁGINA — e por isso o «voltar ao topo» tem de ser
+       reavaliado. Filtrar de 26 aulas para 2 tira o scroll, e o botão passaria a tapar
+       a segunda linha. Quem sabe a regra é o nav.js (window.atualizarTopo); aqui so
+       se avisa que a altura mudou. */
+    if (window.atualizarTopo) window.atualizarTopo();
     /* A PÁGINA VOLTA À PRIMEIRA A CADA FILTRO: ficar na 3 depois de reduzir a lista a cinco
        linhas daria uma página vazia — e uma página vazia lê-se como «não há nada». */
     var painel = document.querySelector('[data-paginar]');

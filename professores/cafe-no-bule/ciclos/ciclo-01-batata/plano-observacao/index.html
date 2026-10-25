@@ -6834,7 +6834,12 @@ async function iniciar() {
   // No PO, a turma é a LEITURA do plano referenciado — o mesmo desenho, a mesma chamada.
   if (FONTE === 'plano' || FONTE === 'po') renderTurmaDoCabecalho();
 
-  let autoAbrir = false;
+  // O SALTO DIRETO AO FORMULÁRIO — `?abrir=1`. A lista da Área do Professor passou a ter o
+  // contexto do ato dentro dela (o painel), e com isso a porta deixou de ter o que só ela
+  // dava: o cabeçalho, os textos de desenvolvimento e a listagem de fichas. Quem chega da
+  // lista já decidiu o ato; parar aqui para pedir outra vez o que ele acabou de escolher
+  // seria a mesma pergunta duas vezes. O gancho existia — faltava ligá-lo.
+  let autoAbrir = new URLSearchParams(location.search).get('abrir') === '1';
   // A ESCOLA ANTES DA MEMÓRIA. O depósito local é chaveado por escola · professor · ciclo
   // (`chaveDaMemoria`), então a escola tem de ser a definitiva ANTES de se ler o rascunho —
   // senão um `?escola=` forjado leria uma chave que não é a do dado real. A promessa foi
@@ -6887,6 +6892,17 @@ async function iniciar() {
   // buscado a lista sem o slug (a URL nem sempre o traz) — agora que ele existe, a
   // leitura da turma é refeita com a chave certa (22/10/2026).
   if (FONTE === 'po') await renderTurmaDoCabecalho();
+  // O PLANO PODE VIR NO ENDEREÇO — `?plano=<carimbo>`. A lista da Área do Professor mostra a
+  // estante do professor e deixa escolher QUAL plano se observa; sem este transporte, a porta
+  // escolhia o primeiro da estante (`semearDoPlano`, sem escolha) e a escolha da tela perdia.
+  // Vem DEPOIS do depósito: o que o professor já tinha escolhido por si não é sobrescrito.
+  if (FONTE === 'po') {
+    const carimboPedido = new URLSearchParams(location.search).get('plano');
+    if (carimboPedido && !RESPOSTAS.has('plano-de-ensino')) {
+      RESPOSTAS.set('plano-de-ensino', carimboPedido);
+      SUGERIDAS.add('plano-de-ensino');
+    }
+  }
   semearDoContexto();
   // E a do PLANO vem depois da do contexto: o plano é a decisão do professor, e
   // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
@@ -6967,7 +6983,16 @@ async function iniciar() {
   // já com escola/professor/ciclo semeados, quando a fonte os declara. Sem
   // `pushState` — voltar/sair deve ir à página anterior, não a um portal que
   // nunca foi mostrado.
-  if (autoAbrir) abrirFormulario(INDICE, false);
+  // O SALTO NÃO PASSA POR CIMA DA TRAVA. `abrirFormulario` não pergunta nada — é o BOTÃO que
+  // responde pelas três travas (a senha, o contexto e a curadoria, em `atualizarComecar`). Um
+  // atalho que saltasse o botão saltaria as três, e a senha que autoriza o ato deixaria de
+  // autorizar coisa nenhuma. Com depósito, o salto é o «continuar»; sem ele, é o «começar».
+  if (autoAbrir) {
+    const comecar = $('comecar');
+    const podeComecar = comecar && !comecar.disabled && comecar.style.display !== 'none';
+    if (guardado) abrirFormulario(INDICE, false);
+    else if (podeComecar) abrirFormulario(0, false);
+  }
 
   // O ATALHO DE EDIÇÃO — `?editar=<carimbo>`. É o link «ajustar o plano» da lista de
   // turmas: abre a aba já dentro da edição daquele plano, sem o professor ter de o

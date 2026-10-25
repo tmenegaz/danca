@@ -196,8 +196,14 @@ function chaveDaMemoria(fonte, escola, professor, ciclo) {
  *
  * As diferenças entre as três não são de desenho: são de QUEM EXISTE no ato.
  *   · anamnese — professor, ciclo, ALUNA e senha (a escrita da anamnese é do professor);
- *   · plano de ensino — professor, ciclo, TURMA (escolhe-se) e senha (editar exige-a);
- *   · PO — professor, ciclo, TURMA (leitura, vem do plano) e senha.
+ *   · plano de ensino — professor, ciclo, TURMA (escolhe-se) e senha (a estante exige-a para
+ *     editar e derivar — `ajustarSenhaDoPlano`, na porta);
+ *   · PO — professor, ciclo, TURMA (leitura, vem do plano) e **senha NENHUMA**.
+ *
+ * A SENHA NO PO NÃO EXISTE, e está escrito na porta: «NÃO há senha a digitar nessa tela… Na
+ * anamnese, sempre visível; no PO, nunca» (`ajustarSenhaDoPlano`). O PO não tem escrita
+ * protegida por senha — o que ele tem é a correcção e a derivação, que partem da estante, e a
+ * estante do PO não pede senha. Eu tinha posto o campo nos três, e estava errado.
  * A escola não é campo: é inscrição, e o Worker de cada escola resolve-a por `ESCOLA_SLUG`.
  */
 function painelDoAto(chave, escola) {
@@ -221,11 +227,13 @@ function painelDoAto(chave, escola) {
         <select id="ato-aluna" data-ato="aluna"><option value="">— nenhuma —</option></select></span>` : ''}
       ${ehPlano ? `<span class="campo"><label class="campo-rotulo" for="ato-turma">turma</label>
         <select id="ato-turma" data-ato="turma"><option value="">— escolher —</option></select></span>` : ''}
-      ${chave === 'plano-de-observacao' ? `<span class="campo"><span class="campo-rotulo">turma observada</span>
+      ${chave === 'plano-de-observacao' ? `<span class="campo"><label class="campo-rotulo" for="ato-plano">plano de ensino observado</label>
+        <select id="ato-plano" data-ato="plano"><option value="">— escolher —</option></select></span>
+      <span class="campo"><span class="campo-rotulo">turma observada</span>
         <span class="leitura" data-turma-leitura>—</span></span>` : ''}
-      <span class="campo campo-senha"><label class="campo-rotulo" for="ato-senha">senha do professor</label>
+      ${chave === 'plano-de-observacao' ? '' : `<span class="campo campo-senha"><label class="campo-rotulo" for="ato-senha">senha do professor</label>
         <input type="password" id="ato-senha" data-ato="senha" autocomplete="off">
-        <span class="selo ok" data-senha-status hidden>confere</span></span>
+        <span class="selo ok" data-senha-status hidden>confere</span></span>`}
     </div>
     <div class="acoes-do-ato">
       <button class="acao" type="button" data-acao="nova" disabled>${f.acaoDeCriar}</button>
@@ -260,6 +268,14 @@ function scriptDoPainel(chave, escola) {
   const dados = eschave(JSON.stringify({
     fonte: chave === 'plano-de-ensino' ? 'plano' : (chave === 'plano-de-observacao' ? 'po' : 'anamnese'),
     porta: f.porta, escola: escola || '', ehAnamnese, ehPlano, criar: f.acaoDeCriar,
+    /* O PO NAO TEM CAMPO DE SENHA — e uma trava que exige `SENHA === 'ok'` num painel sem o
+     * campo bloquearia para sempre. A senha so trava onde ela existe. */
+    temSenha: chave !== 'plano-de-observacao',
+    /* O PO OBSERVA UM PLANO. A regra («o Plano de Observacao observa uma aula que tem plano»)
+     * vivia so na mensagem da lista vazia: quem entrava pelo painel nao a encontrava em lugar
+     * nenhum, e o botao ficava habilitado sobre um ato impossivel. Aqui a regra passa a ter
+     * porta: o plano escolhe-se, e sem plano nao ha o que observar. */
+    ehPo: chave === 'plano-de-observacao',
   }));
   return `<script>(function () {
   var CFG = ${dados};
@@ -305,7 +321,7 @@ function scriptDoPainel(chave, escola) {
     try {
       localStorage.setItem(chaveDoContexto(), JSON.stringify({
         professor: valor('professor'), ciclo: valor('ciclo'),
-        aluna: valor('aluna'), turma: valor('turma'),
+        aluna: valor('aluna'), turma: valor('turma'), plano: valor('plano'),
       }));
     } catch (e) {}
   }
@@ -321,6 +337,7 @@ function scriptDoPainel(chave, escola) {
     ATOS.professor = c.professor || '';
     ATOS.aluna = c.aluna || '';
     ATOS.turma = c.turma || '';
+    ATOS.plano = c.plano || '';
   }
 
   function memoria() {
@@ -341,7 +358,7 @@ function scriptDoPainel(chave, escola) {
   var SENHA = '';
   /* O que foi escolhido antes de esta página carregar — e que os 'select' só podem receber
    * depois de as opções chegarem. */
-  var ATOS = { professor: '', aluna: '', turma: '' };
+  var ATOS = { professor: '', aluna: '', turma: '', plano: '' };
 
   function faltam() {
     var falta = [];
@@ -349,6 +366,9 @@ function scriptDoPainel(chave, escola) {
     if (!valor('ciclo')) falta.push('ciclo');
     if (CFG.ehAnamnese && !valor('aluna')) falta.push('aluna');
     if (CFG.ehPlano && !valor('turma')) falta.push('turma');
+    /* O PO NAO PEDE TURMA: pede o PLANO. A turma observada e a do plano escolhido, e por isso
+     * e leitura — nao se escolhe duas vezes a mesma coisa. */
+    if (CFG.ehPo && !valor('plano')) falta.push('plano de ensino');
     return falta;
   }
   function semCuradoria() {
@@ -358,7 +378,10 @@ function scriptDoPainel(chave, escola) {
   function pintar() {
     var mem = memoria();
     var falta = faltam();
-    var trava = semCuradoria() || falta.length > 0 || SENHA !== 'ok';
+    /* A SENHA SÓ TRAVA ONDE ELA EXISTE. No PO o campo não está na página (a porta diz «no PO,
+     * nunca»), e 'valor('senha')' devolveria '' — a trava nunca sairia. */
+    var travaSenha = CFG.temSenha && SENHA !== 'ok';
+    var trava = semCuradoria() || falta.length > 0 || travaSenha;
 
     var nova = $('[data-acao="nova"]');
     var continuar = $('[data-acao="continuar"]');
@@ -389,11 +412,18 @@ function scriptDoPainel(chave, escola) {
         estado.setAttribute('data-falta', 'sim');
         estado.textContent = 'A direção ainda não atribuiu curadoria a este professor — sem '
           + 'curadoria não há turma, e sem turma não há o que planejar.';
+      } else if (CFG.ehPo && PLANOS.length === 0 && valor('professor')) {
+        /* A REGRA DO PO, DITA. «O Plano de Observacao observa uma aula que tem plano» — e uma
+         * regra que so se le numa lista vazia nao chega a quem esta a tentar criar. */
+        estado.hidden = false;
+        estado.setAttribute('data-falta', 'sim');
+        estado.textContent = 'Este professor ainda não tem plano de ensino nesta escola. O Plano '
+          + 'de Observação observa uma aula que tem plano — faça primeiro o plano de ensino.';
       } else if (falta.length) {
         estado.hidden = false;
         estado.setAttribute('data-falta', 'sim');
         estado.textContent = 'Falta o contexto do ato: ' + falta.join(', ') + '.';
-      } else if (SENHA === 'errada') {
+      } else if (CFG.temSenha && SENHA === 'errada') {
         /* O CONTEXTO ESTA INTEIRO E A SENHA NAO CONFERE — e e isso que tem de ser dito. Sem esta
          * linha o botao ficava desabilitado sem motivo aparente, e o professor tentava outra vez
          * sem saber o que corrigir. O texto e o da porta: senha nao reconhecida. */
@@ -406,7 +436,7 @@ function scriptDoPainel(chave, escola) {
       }
     }
     var status = $('[data-senha-status]');
-    if (status) status.hidden = SENHA !== 'ok';
+    if (status) status.hidden = !(CFG.temSenha && SENHA === 'ok');
 
     /* A CAIXINHA DIZ O CONTEXTO INTEIRO, ou o que falta. É o papel do title na porta. */
     var resumo = $('[data-resumo]');
@@ -421,6 +451,13 @@ function scriptDoPainel(chave, escola) {
       if (valor('ciclo')) partes.push('ciclo ' + valor('ciclo'));
       if (CFG.ehAnamnese && valor('aluna')) partes.push(valor('aluna'));
       if (CFG.ehPlano && valor('turma')) partes.push(valor('turma'));
+      /* No PO o resumo diz a TURMA, e não o carimbo do plano: o carimbo é um endereço, e o
+       * professor pensa em turmas. Quando o plano ainda não trouxe a turma, diz o que falta. */
+      if (CFG.ehPo) {
+        var t = $('[data-turma-leitura]');
+        var nomeDaTurma = t ? String(t.textContent || '').trim() : '';
+        if (nomeDaTurma && nomeDaTurma !== '\u2014') partes.push(nomeDaTurma);
+      }
       resumo.textContent = partes.length ? partes.join(' · ')
         : 'escolher o professor, o ciclo' + (CFG.ehAnamnese ? ' e a aluna' : '');
       resumo.style.color = (falta.length || semCuradoria()) ? 'var(--alerta)' : '';
@@ -430,7 +467,15 @@ function scriptDoPainel(chave, escola) {
     /* COM PREENCHIMENTO INTERROMPIDO O PAINEL ABRE. As acções vivem dentro dele; fechado, a
      * notícia do preenchimento desaparecia — e é o que a porta faz, ao pôr a caixa de retomada
      * no topo. */
-    if (mem) painel.open = true;
+    if (mem) {
+      painel.open = true;
+      /* E O MENU QUE O CONTÉM TAMBÉM. No telemóvel o painel vive dentro do menu «Ações»: abrir
+       * o painel sem abrir o menu deixava a notícia escondida no único caso em que ela é urgente —
+       * «há um preenchimento interrompido» —, e o professor voltava à página sem saber que tinha
+       * onde continuar. Um estado que só se vê depois de um clique não é um aviso. */
+      var menuComPainel = document.getElementById('acoes');
+      if (menuComPainel) menuComPainel.open = true;
+    }
   }
 
   function encher(select, itens, rotulo, escolhido) {
@@ -489,6 +534,46 @@ function scriptDoPainel(chave, escola) {
     });
   }
 
+  /* O PO ESCOLHE O PLANO — e a turma vem dele.
+   *
+   * A ESTANTE É RECORTADA PELO PROFESSOR ('?professor='), e o recorte é do SERVIDOR: foi assim
+   * que se fechou o defeito de o PO de um professor oferecer o plano de outro. Sem professor
+   * escolhido não se pede nada — a estante da escola inteira é exactamente o que não se quer.
+   *
+   * A TURMA OBSERVADA É O PLANO QUE A DIZ. Escolher o plano e voltar a escolher a turma seria
+   * pedir duas vezes a mesma coisa, e abrir a porta a duas respostas diferentes. */
+  var PLANOS = [];
+  function carregarPlanos() {
+    var slug = valor('professor');
+    if (!CFG.ehPo || !slug) {
+      PLANOS = [];
+      encher(campo('plano'), [], null, '');
+      pintarLeituraDaTurma();
+      return Promise.resolve();
+    }
+    return pedir('/api/planos?professor=' + encodeURIComponent(slug)).then(function (r) {
+      PLANOS = (r.dados && (r.dados.opcoes || r.dados.planos)) || [];
+      encher(campo('plano'), PLANOS.map(function (p) {
+        var turma = p.turma ? ' · ' + p.turma : '';
+        return { valor: p.carimbo || p.valor, rotulo: (p.rotulo || p.carimbo) + turma };
+      }), null, valor('plano') || ATOS.plano);
+      pintarLeituraDaTurma();
+    });
+  }
+
+  /* A LEITURA DIZ A TURMA DO PLANO ESCOLHIDO — e é o único lugar onde ela aparece, porque é o
+   * plano que a decide. Sem plano escolhido não há turma a mostrar, e o «—» é a verdade. */
+  function pintarLeituraDaTurma() {
+    var alvo = $('[data-turma-leitura]');
+    if (!alvo) return;
+    var escolhido = valor('plano');
+    var turma = '';
+    for (var i = 0; i < PLANOS.length; i += 1) {
+      if (String(PLANOS[i].carimbo || PLANOS[i].valor) === escolhido) { turma = PLANOS[i].turma || ''; break; }
+    }
+    alvo.textContent = turma || '—';
+  }
+
   function carregarCuradoria() {
     var slug = valor('professor');
     if (!slug || CFG.ehAnamnese) { CURADORIAS = []; CURADORIA_CARREGADA = CFG.ehAnamnese; return Promise.resolve(); }
@@ -528,6 +613,14 @@ function scriptDoPainel(chave, escola) {
     if (valor('ciclo')) q.push('ciclo=' + encodeURIComponent(valor('ciclo')));
     if (CFG.ehAnamnese && valor('aluna')) q.push('aluna=' + encodeURIComponent(valor('aluna')));
     if (CFG.fonte !== 'anamnese') q.push('fonte=' + CFG.fonte);
+    /* O PLANO VAI NO ENDEREÇO. Sem ele a porta escolhe o PRIMEIRO da estante — e o professor
+     * escolheu este. Duas escolhas para o mesmo ato e a da tela perdia. */
+    if (CFG.ehPo && valor('plano')) q.push('plano=' + encodeURIComponent(valor('plano')));
+    /* 'abrir=1' — O SALTO DIRETO AO FORMULÁRIO. A página da porta era uma paragem: cabeçalho,
+     * textos de desenvolvimento, uma listagem de fichas e só então o formulário. Tudo isso
+     * passou a morar na lista (o painel que aqui está), e quem vem daqui já decidiu o que quer.
+     * A porta lê o parâmetro e entra no nó 1 — o gancho 'autoAbrir' já existia lá, à espera. */
+    q.push('abrir=1');
     return CFG.porta + (q.length ? '?' + q.join('&') : '');
   }
 
@@ -546,7 +639,7 @@ function scriptDoPainel(chave, escola) {
     }
   });
 
-  ['professor', 'ciclo', 'aluna', 'turma'].forEach(function (nome) {
+  ['professor', 'ciclo', 'aluna', 'turma', 'plano'].forEach(function (nome) {
     var e = campo(nome);
     if (!e) return;
     e.addEventListener('change', function () {
@@ -555,12 +648,19 @@ function scriptDoPainel(chave, escola) {
       if (nome === 'professor') {
         carregarAlunas().then(pintar);
         carregarCuradoria().then(pintar);
+        /* Trocar de professor troca a estante, e a escolha anterior deixa de valer: o plano de
+         * um professor não é observável pelo outro. */
+        var sel = campo('plano');
+        if (sel) sel.value = '';
+        carregarPlanos().then(pintar);
       }
+      if (nome === 'plano') pintarLeituraDaTurma();
     });
     e.addEventListener('input', function () { gravarContexto(); pintar(); });
   });
   var senhaEl = campo('senha');
   if (senhaEl) {
+    /* sem campo não há nada a validar: o PO entra com 'SENHA = ''' e a trava não olha para ela */
     senhaEl.addEventListener('input', function () {
       clearTimeout(tempoDeSenha);
       tempoDeSenha = setTimeout(validarSenha, 450);
@@ -569,10 +669,27 @@ function scriptDoPainel(chave, escola) {
 
   /* A ORDEM IMPORTA: os professores primeiro (é o que dá nome ao resumo), a curadoria e as
    * alunas depois (dependem do professor escolhido), e o pinta no fim de cada uma. */
+  /* O MENU «AÇÕES» FICA ABERTO NO COMPUTADOR. No telemóvel ele é a única porta para o
+   * contexto, a ficha e o filtro; no computador não faz sentido — a tela tem espaço, e um
+   * clique a mais para ver o que estava à vista seria pior do que não o ter.
+   *
+   * A JANELA PODE MUDAR DE LARGURA (girar o telemóvel, encolher a janela do computador), e
+   * a regra é reavaliada. Ao ENCOLHER não se fecha o que o professor abriu — só se abre ao
+   * crescer, porque fechar por baixo de quem está a usar é o defeito que se evita. */
+  var menuAcoes = document.getElementById('acoes');
+  if (menuAcoes) {
+    var largo = window.matchMedia('(min-width: 561px)');
+    function ajustarMenu() { if (largo.matches) menuAcoes.open = true; }
+    ajustarMenu();
+    if (largo.addEventListener) largo.addEventListener('change', ajustarMenu);
+    else if (largo.addListener) largo.addListener(ajustarMenu);
+  }
+
   restaurarContexto();
   carregarProfessores().then(function () { pintar(); return carregarCuradoria(); })
     .then(function () { return carregarAlunas(); })
     .then(function () { return carregarTurmas(); })
+    .then(function () { return carregarPlanos(); })
     .then(pintar);
   pintar();
 })();</script>`;

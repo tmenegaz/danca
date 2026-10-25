@@ -76,8 +76,12 @@ const servidor = http.createServer(async (req, res) => {
     }
   }
   if (u.pathname === '/api/bastidores/professores') {
+    /* A ESCOLA VAI NA RESPOSTA, como na ponte (`{ ok, escola, professores }`). O stub não a
+       mandava, e a bancada ficava com o contexto incompleto — a porta dizia «falta escola» e o
+       salto direto, que respeita a trava, nunca acontecia. O defeito era da bancada, e ele
+       escondia exactamente o que a secção 10 queria medir. */
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, professores: PROFS }));
+    return res.end(JSON.stringify({ ok: true, escola: 'batata', professores: PROFS }));
   }
   if (u.pathname === '/api/bastidores/alunas') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -88,6 +92,21 @@ const servidor = http.createServer(async (req, res) => {
     const p = u.searchParams.get('professor');
     return res.end(JSON.stringify({ ok: true, curadorias: p === 'cafe-no-bule'
       ? [{ turmas: ['Balé Nível 1'], alunas: ['Aluna A'] }] : [] }));
+  }
+  if (u.pathname === '/api/planos') {
+    /* A ESTANTE RECORTADA — o mesmo contrato da ponte (`porta.planos`): um carimbo por plano,
+       com a turma que ele diz. Os do `manga-curta` são outros, e é isso que se mede: o PO de
+       um professor não oferece o plano do outro. */
+    const quem = u.searchParams.get('professor');
+    const todos = [{ valor: 'plano-20261020', carimbo: 'plano-20261020', rotulo: 'Balé Nível 1',
+      turma: 'Balé Nível 1', professor: 'cafe-no-bule' },
+    { valor: 'plano-20261022', carimbo: 'plano-20261022', rotulo: 'Balé Nível 2',
+      turma: 'Balé Nível 2', professor: 'cafe-no-bule' },
+    { valor: 'plano-20261024', carimbo: 'plano-20261024', rotulo: 'Contemporâneo',
+      turma: 'Contemporâneo', professor: 'manga-curta' }];
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: true,
+      opcoes: todos.filter((x) => !quem || x.professor === quem) }));
   }
   if (u.pathname === '/api/bastidores/turmas') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -147,13 +166,20 @@ const servidor = http.createServer(async (req, res) => {
     await p.goto(base + caminho, { waitUntil: 'load' });
     await p.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
     await p.reload({ waitUntil: 'load' });
+    /* O MENU «AÇÕES» (25/10/2026). No telemóvel ele agrupa o contexto, a ficha e o filtro: é a
+       única porta para eles, e sem o abrir a medição diria «não existe» sobre o que existe
+       fechado. No computador ele abre-se sozinho, e esta linha não faz nada. */
+    await p.evaluate(() => { const a = document.getElementById('acoes'); if (a) a.open = true; });
     await p.evaluate(() => new Promise((r) => setTimeout(r, 350)));
   };
   const estado = () => p.evaluate(() => {
+    /* UM `summary` É VISÍVEL COM O `details` FECHADO — é ele que o abre. A guarda do
+       `closest` escondia-o, e a medição acusava de ausente o botão que estava à vista. */
     const v = (sel) => { const e = document.querySelector(sel); if (!e) return false;
       if (!e.getClientRects().length) return false;
       if (getComputedStyle(e).display === 'none') return false;
-      if (e.closest('details:not([open])')) return false; return true; };
+      if (e.tagName !== 'SUMMARY' && e.closest('details:not([open])')) return false;
+      return true; };
     const cx = document.querySelector('summary.trio-item');
     return {
       caixinha: cx ? Math.round(cx.getBoundingClientRect().width) + '×'
@@ -340,7 +366,10 @@ const servidor = http.createServer(async (req, res) => {
     const m = await p.evaluate(() => {
       const doc = document.documentElement;
       const cx = document.querySelector('summary.trio-item');
-      const seta = document.querySelector('.seta-do-ato');
+      /* A SETA DO PAINEL, e não a do menu. As duas usam `.seta-do-ato` (é o mesmo desenho),
+         e `querySelector` devolvia a do menu — que no computador está escondida. A prova
+         passou a acusar de «não desenhada» uma seta que estava, e a medir a rotação da outra. */
+      const seta = document.querySelector('.painel-ato .seta-do-ato');
       return {
         estouro: Math.max(0, Math.round(doc.scrollWidth - doc.clientWidth)),
         caixinhaA: cx ? Math.round(cx.getBoundingClientRect().height) : 0,
@@ -355,7 +384,7 @@ const servidor = http.createServer(async (req, res) => {
   // a seta roda ao abrir
   await abrir('/area-do-professor/anamnese/', 390);
   const rot = await p.evaluate(() => {
-    const s = document.querySelector('.seta-do-ato');
+    const s = document.querySelector('.painel-ato .seta-do-ato');
     document.getElementById('painel-ato').open = false;
     const fechada = getComputedStyle(s).transform;
     document.getElementById('painel-ato').open = true;
@@ -363,6 +392,100 @@ const servidor = http.createServer(async (req, res) => {
   });
   ok('a seta roda 180° ao abrir', rot.fechada !== rot.aberta
     && /matrix\(-1/.test(rot.aberta), rot);
+  console.log('\n10 · O PO — observa um PLANO, e a turma vem dele');
+  {
+    /* A REGRA DO PO («observa uma aula que tem plano») não tinha porta: vivia só na mensagem de
+       uma lista vazia. Agora o PO escolhe o plano entre os DESTE professor, e a turma observada
+       é leitura — pedir duas vezes a mesma coisa abriria a porta a duas respostas diferentes. */
+    await abrir('/area-do-professor/plano-de-observacao/', 1280);
+    const doPo = () => p.evaluate(() => ({
+      temPlano: !!document.querySelector('[data-ato="plano"]'),
+      temTurma: !!document.querySelector('[data-ato="turma"]'),
+      opcoes: [...((document.getElementById('ato-plano') || { options: [] }).options)]
+        .map((o) => o.value).filter(Boolean),
+      leitura: (document.querySelector('[data-turma-leitura]') || {}).textContent,
+      estado: (document.querySelector('[data-estado]') || {}).textContent,
+      desab: (document.querySelector('[data-acao="nova"]') || {}).disabled,
+    }));
+    let po = await doPo();
+    ok('o PO pede o PLANO, e não uma turma livre', po.temPlano && !po.temTurma);
+    ok('sem professor a estante está vazia — não se oferece a escola inteira', po.opcoes.length === 0,
+      po.opcoes);
+
+    await p.evaluate(() => {
+      const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
+      pr.dispatchEvent(new Event('change'));
+      const c = document.getElementById('ato-ciclo'); c.value = '01'; c.dispatchEvent(new Event('input'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 500)));
+    po = await doPo();
+    ok('a estante vem recortada pelo professor — dois planos, e não os três',
+      po.opcoes.length === 2 && po.opcoes.indexOf('plano-20261024') === -1, po.opcoes);
+    ok('sem plano escolhido, «Novo Plano de Observação» está travado e diz porquê',
+      po.desab === true && /Falta o contexto do ato: plano de ensino/.test(po.estado || ''), po.estado);
+
+    await p.evaluate(() => {
+      const s = document.getElementById('ato-plano'); s.value = 'plano-20261022';
+      s.dispatchEvent(new Event('change'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 300)));
+    po = await doPo();
+    ok('a turma observada passa a ser a do PLANO escolhido', po.leitura === 'Balé Nível 2', po.leitura);
+    ok('e com o plano escolhido o botão abre', po.desab === false, po.desab);
+
+    /* O DESTINO MEDE-SE A NAVEGAR, e não a reconstruir a URL no teste: uma URL montada à mão
+       prova o que o teste sabe, não o que o código faz. Clica-se, espera-se a navegação, e lê-se
+       onde a página parou — que é também a única forma de provar que o salto direto acontece. */
+    const destino = await Promise.all([
+      p.waitForNavigation({ waitUntil: 'load', timeout: 8000 }).catch(() => null),
+      p.evaluate(() => document.querySelector('[data-acao="nova"]').click()),
+    ]).then(() => p.url());
+    ok('o destino leva o PLANO escolhido, e não «o primeiro da estante»',
+      /plano=plano-20261022/.test(destino || ''), destino);
+    ok('…e leva o salto direto ao formulário', /abrir=1/.test(destino || ''), destino);
+    ok('…e o PO não leva senha nenhuma', !/senha=/.test(destino || ''), destino);
+
+    /* E ATERRA NO FORMULÁRIO. É o pedido literal: «quando clicar em continuar de onde parei ou
+       quando clicar em fazer a anamnese ou o plano ou o PO, aí vai direto pro formulário». A
+       porta deixa de ser paragem — o cabeçalho, os textos e a listagem de fichas passaram a
+       morar na lista. Mede-se no que se VÊ: a abertura oculta, a condução à vista. */
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 900)));
+    const aterrou = await p.evaluate(() => {
+      const abertura = document.getElementById('abertura');
+      const conducao = document.getElementById('conducao');
+      const visivel = (e) => !!e && !e.classList.contains('oculto') && e.getClientRects().length > 0;
+      return { abertura: visivel(abertura), conducao: visivel(conducao),
+        temPergunta: !!(document.querySelector('#pergunta') || {}).textContent };
+    });
+    ok('o salto aterra no FORMULÁRIO, e não na abertura', aterrou.conducao && !aterrou.abertura, aterrou);
+    ok('…com a primeira pergunta à vista', !!aterrou.temPergunta, aterrou);
+
+    /* E O SALTO NÃO PASSA POR CIMA DA TRAVA. Na anamnese a senha autoriza o ATO, e ela não
+       viaja no endereço (a porta é explícita: «sair não leva a senha»). Sem ela, o salto pára
+       na abertura e o botão diz o que falta — um atalho que saltasse a senha saltava a única
+       coisa que autoriza a escrita. */
+    await abrir('/area-do-professor/anamnese/', 1280);
+    await p.evaluate(() => {
+      const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
+      pr.dispatchEvent(new Event('change'));
+      const c = document.getElementById('ato-ciclo'); c.value = '01'; c.dispatchEvent(new Event('input'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
+    await p.evaluate(() => {
+      const a = document.getElementById('ato-aluna'); a.value = 'Aluna A';
+      a.dispatchEvent(new Event('change'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
+    const comTrava = await Promise.all([
+      p.waitForNavigation({ waitUntil: 'load', timeout: 5000 }).catch(() => null),
+      p.evaluate(() => document.querySelector('[data-acao="nova"]').click()),
+    ]).then(() => p.url());
+    /* O botão está travado pela senha, e um botão travado não navega. O clique não sai da
+       página — e é isso que se prova: `abrir=1` não contorna a senha. */
+    ok('sem a senha validada, «Nova anamnese» está travado e não leva a lado nenhum',
+      /area-do-professor\/anamnese/.test(comTrava), comTrava);
+  }
+
   ok('nenhum erro de JavaScript', erros.length === 0, erros);
 
   await b.close(); servidor.close();
