@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/10/2026, sobre o commit `7182307`.
+> **Última fotografia:** 25/10/2026 (2.ª do dia, após as respostas da pesquisadora), sobre o commit `7728389`.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -145,9 +145,14 @@ Verificado nesta fotografia, com os comandos da §9.
   `PLANO-AULA-E-OBSERVACAO.md` §5.
 - **A sala da aula.** Não existe como campo. A decisão de arquitetura diz que a sala é do
   **evento**, não da aula (`PLANO-TABELA-DE-ATIVIDADES.md` §3.1/§3.3). **DECIDIDO**, não
-  implementado.
-- **Separação semântica plano × PO × aula.** Medida em `PLANO-AULA-E-OBSERVACAO.md` §3: 8 dos 12
-  itens do Contexto do plano estão também no PO. **CONFIRMADO**, não corrigido.
+  implementado. A pesquisadora acrescentou (25/10/2026): «não é opcional, mas é flexível» — a sala
+  pode ser remarcada até ao prazo daquela aula. **DECIDIDO**.
+- **Separação semântica plano × PO × aula.** Medida em `PLANO-AULA-E-OBSERVACAO.md` §2: **cinco**
+  sobreposições reais (§2.2 a §2.6). **CONFIRMADO**, não corrigido. A sexta que a primeira redação
+  listava — os 8 dos 12 itens do Contexto repetidos no PO — **não é defeito**: é repetição de
+  **saída**, proposital e só de leitura. **DECIDIDO** em 25/10/2026.
+- **A aula 2..N como objeto.** A pesquisadora decidiu que a aula nasce por um botão e que os
+  documentos nascem **mesmo vazios**, «pra gente ter o objeto». **DECIDIDO**, não implementado.
 
 ### Planejado, não implementado
 
@@ -228,8 +233,9 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
-**Objetivo:** estabelecer o protocolo de continuidade — a fotografia canónica, as etiquetas
-factuais, a rotina de atualização e o documento de transferência para outros assistentes.
+**Objetivo:** gerar a `TRANSFERENCIA-IA.md` sobre a **aula 2..N** — como ela nasce como objeto, com
+lugar, marco, herança do plano e alinhamento confirmado com o PO. A fotografia, as etiquetas e a
+rotina já estão feitas (commits `607b96a` e `7728389`).
 
 **Ficheiros envolvidos:**
 
@@ -245,18 +251,25 @@ factuais, a rotina de atualização e o documento de transferência para outros 
 
 ## 8. Pendências e dúvidas
 
-### As seis perguntas da análise da aula — abertas
+### As seis perguntas da análise da aula — atualizadas em 25/10/2026
 
-De `PLANO-AULA-E-OBSERVACAO.md` §9. **PENDENTE** — nenhuma tem resposta:
+De `PLANO-AULA-E-OBSERVACAO.md` §9. **A pesquisadora respondeu: três fecharam, duas continuam
+abertas por obscuridade da pergunta (não por indecisão), e a resposta 5 abriu uma sétima.**
 
-1. **As 23 aulas sem marco:** ficam lugares do calendário, o plano passa a exigir um marco por
-   aula, ou a aula nasce sem marco?
-2. **«Abrir a aula» cria a fonte `.md`**, ou só a abre?
-3. **A aula herda a sequência inteira do plano, ou escolhe as linhas do dia?**
-4. **Os três `[Preencher]` da aula** (musicalidade, guia, próximo passo) passam a derivados?
-5. **O lançamento da aula N compara com o registo da aula anterior** (a regra escrita) ou com o
-   PO (o que o código faz)? São diferentes.
-6. **`materiais`** entram no formulário eletrónico, ou saem da folha impressa?
+| # | Pergunta | Estado |
+|:--|:--|:--|
+| 1 | Marco das 23 aulas sem marco | **DECIDIDO** — o plano passa a exigir **um marco por aula**. A aula nasce com marco. *(A resposta aproximou «marco» de «sala»; são campos distintos — o marco é o objetivo específico da aula, a sala vem do evento. A decisão vale para os dois.)* |
+| 2 | «Abrir a aula» cria a fonte `.md`? | **DECIDIDO** — sim, o sistema pode escrever fontes. *(A pergunta usava «fonte» no sentido de ficheiro-fonte da âncora; a resposta entendeu «fonte» como referência bibliográfica. As duas coisas existem e a segunda — referências por aula — **não existe como campo**, e não foi decidida.)* |
+| 3 | A aula herda a sequência ou escolhe? | **DECIDIDO** — misto: herda as 14 linhas, **editáveis**, e pode acrescentar |
+| 4 | Os três `[Preencher]` passam a derivados? | **PENDENTE** — a pergunta não se entendeu. O termo está agora definido na §9 do documento de análise: «derivado» = o sistema preenche a partir do plano e do PO, sem perguntar |
+| 5 | A aula N compara com a anterior ou com o PO? | **DECIDIDO** — com o **registo da aula anterior**, e **alinhada ao PO**. A resposta acrescentou um requisito novo: um passo onde o professor confirma o alinhamento antes de elaborar a aula |
+| 6 | `materiais` entram no formulário ou saem da folha? | **PENDENTE** — não se entendeu. São as caixas da folha impressa (☐ fotos ☐ vídeo ☐ áudio ☐ comentário), ausentes do formulário (`lancamento.js`: 0 ocorrências) |
+| 7 | **NOVA** — o passo de alinhamento com o PO | **PENDENTE** — a frequência (por aula ou por ciclo), o que acontece sem confirmação, e se o registo entra na âncora de proveniência |
+
+**E uma correção de diagnóstico:** a §2.1 do documento de análise — «8 dos 12 itens do contexto estão
+também no PO» — **não é defeito**. **DECIDIDO** que a repetição é proposital: o professor elabora o
+plano de ensino e o PO em momentos diferentes e precisa dos valores à mão, **só de leitura**. A
+análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ### Pendências de infraestrutura — de datas anteriores
 
@@ -298,6 +311,11 @@ De `PLANO-AULA-E-OBSERVACAO.md` §9. **PENDENTE** — nenhuma tem resposta:
 | `bash tools/gerar-handoff.sh` | regenerado, com o apontamento novo no cabeçalho |
 | `node tools/check-identidade.js` | 20 ok, 0 erros |
 | links relativos `.md` dos três ficheiros novos | 5 verificados, 0 quebrados |
+| `marcos-por-aula` em `derivar-plano-ciclo.js` | é «objetivo específico (marco parcial)» — **conteúdo pedagógico**, não lugar |
+| marcos declarados no plano da `batata` | **3**, para um ciclo de **26** lugares de calendário |
+| `materiais` em `motor/nucleo/lancamento.js` | **0 ocorrências** — a folha impressa tem, o formulário não |
+| `[Preencher]` na `aula-01` da `batata` | 6 marcadores em 3 secções (musicalidade, guia ×4, próximo passo) |
+| as 8 secções da `aula-01` | 1 validação · 2 condições preliminares · 3 sequência · 4 musicalidade · 5 guia · 6 volume · 7 proveniência · 8 auditoria · 9 próximo passo |
 
 **Um erro corrigido durante esta fotografia, e que fica registado de propósito:** a primeira versão
 desta tabela dizia `.github/prompts/` com 1 ficheiro. **Não existe `.github/prompts/`** — os prompts
@@ -326,6 +344,11 @@ Ações imediatas, sem transformar hipótese em compromisso:
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **25/10/2026** — a pesquisadora respondeu ao documento de análise: **uma correção de diagnóstico**
+  (a repetição do contexto no PO é proposital, não é defeito), **três decisões** (marco por aula,
+  herança mista da sequência, comparação com a aula anterior), **duas perguntas reabertas** por
+  obscuridade da redação (`derivados`, `materiais`) e **uma pergunta nova** (o passo de alinhamento
+  com o PO). Termos verificados no código e no repositório.
 - **25/10/2026** — `7182307` a análise da aula, do plano e da observação.
 - **25/10/2026** — o padrão de listagem aplicado: «Consulta», três caixas por registo, as três
   listas da Área do Professor servidas pelo acervo.
@@ -343,8 +366,11 @@ O que **não** consigo confirmar, e o senhor tem de decidir ou informar:
   `curl` devolvem.
 - **Não sei se o `TRANSFERENCIA-IA.md` serve o seu caso de uso.** Foi desenhado a partir de uma
   descrição, não de uma tentativa real de o anexar a outro assistente.
-- **Não sei se as 6 perguntas da §8 continuam todas abertas** — algumas podem ter sido decididas
-  numa conversa que não está no repositório. **DECLARADO:** nenhuma resposta foi registada.
+- **Não sei se as perguntas abertas da §8 foram decididas fora do repositório.** A §8 regista o que
+  a pesquisadora respondeu em 25/10/2026, por escrito. O que não está é o resto: as perguntas 4 (os
+  `[Preencher]`), 6 (`materiais`) e 7 (a frequência do alinhamento) continuam **sem resposta**, e a
+  resposta 2 deixou uma dúvida lateral não resolvida (referências bibliográficas por aula — não
+  existem como campo).
 - **Não verifiquei as 11 provas não versionadas** — não sei se ainda são recuperáveis.
 - **Não sei o estado do KV em produção** — cota, ocupação e envelopes reais não foram medidos
   agora. Medir custa cota diária.

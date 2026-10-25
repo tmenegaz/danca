@@ -24163,3 +24163,55 @@ anexa-o à conversa que quiser.
 `.github/skills/fotografia-do-estado/SKILL.md`. Alterados: `tools/gerar-handoff.sh` (**congelado** —
 motivo declarado no corpo do script, acima), `.gitignore`, `HANDOFF.md` (regenerado por script),
 este registo.
+
+## 25/10/2026 — A análise da aula lida pela pesquisadora: um erro meu, três decisões, duas perguntas ilegíveis
+
+**O que aconteceu.** O [PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md) foi lido e respondido.
+O resultado não foi «concordo» nem «discordo»: foi uma divisão em três, e a divisão é o achado.
+
+**1. Um erro de diagnóstico meu, corrigido.** A §2.1 listava como defeito que «8 dos 12 itens do
+Contexto do plano estão também no PO». **Não é defeito — é desenho.** A pesquisadora: «É proposital
+porque o professor pode elaborar o plano de ensino num momento e o plano de observação em outro. Mas
+aí ele precisa dentro do documento ter os campos ali que já estão preenchidos… pra ele saber qual é a
+turma, qual é a escola.» E os campos são **só de leitura**, porque vêm da Produção.
+
+A distinção que eu não fiz, e que passa a valer: **duplicação de dado** é um segundo lugar onde o
+valor pode divergir — isso é defeito. **Duplicação de saída** é uma conveniência de leitura que se
+regenera — isso é desenho. O que existia aqui era a segunda, e eu diagnostiquei a primeira. A §2.1
+foi emendada e as sobreposições passam de seis a **cinco** (§2.2 a §2.6).
+
+**2. Três decisões.** O plano passa a exigir **um marco por aula** (a aula nasce com marco) · a
+sequência de exercícios é **herdada, editável, e acrescentável** · a aula N compara com o **registo da
+aula anterior** e tem de estar **alinhada ao PO**.
+
+**3. Duas perguntas ilegíveis, e a lição.** As perguntas 4 («os três `[Preencher]` passam a
+derivados?») e 6 («`materiais` entram no formulário ou saem da folha?») **não se entenderam** — e a 5
+só se entendeu em parte, por uma frase com referências não resolvidas («a regra escrita diz a
+primeira, o código faz a segunda»). A pergunta 2 também falhou por vocabulário: eu usava «fonte» para
+dizer *ficheiro-fonte da âncora*, e leu-se *referência bibliográfica*.
+
+**O padrão, e é o que importa para o futuro:** as perguntas que falharam não falharam por serem
+difíceis — falharam por usarem **vocabulário interno como se fosse evidente**. `marco` (é o objetivo
+específico da aula, não a sala) · `fonte` (o `.md` da âncora, não o livro) · `derivado` (o sistema
+preenche sem perguntar) · `materiais` (as caixas ☐ fotos ☐ vídeo ☐ áudio da folha). Quatro termos
+com um sentido preciso dentro do repositório e um sentido diferente fora dele. Uma pergunta escrita
+assim não é uma pergunta: é um teste de vocabulário, e quem responde perde.
+
+Por isso as emendas da §9 **definem o termo antes de repetir a pergunta**. E por isso a
+`TRANSFERENCIA-IA.md` — que sai deste mesmo acervo para um assistente que não tem o repositório para
+conferir — passa a levar um glossário. Sem ele, a transferência exporta o mesmo defeito.
+
+**4. Uma pergunta nova, que a resposta 5 abriu.** «O professor é lembrado de qual é o PO, e ele marca
+que concorda, que entendeu, que está alinhado com o PO, e aí sim ele elabora a aula N. Eu acho que
+para cada aula ter isso como um protocolo.» Virou a **peça 7** do plano — um passo de confirmação
+antes de a aula ser editável —, com três perguntas próprias ainda abertas: a frequência (26
+confirmações num ciclo?), o que acontece sem confirmação, e se o registo entra na âncora.
+
+**Uma confirmação e uma ampliação.** A regra «a linha de corte da aula N é o registo da última aula
+dada» está **certa** — o que não a segue é o código, e isso é a peça 5. E a sala: «é evento, não é
+opcional, mas é flexível, pode mudar, pode remanejar, porque é a fotografia daquele momento» — pode ser
+remarcada **até ao prazo** daquela aula.
+
+**Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (nota de correção no topo, §2.1 emendada, tabela dos cinco
+em linguagem simples, §3.3 reescrita, §5.4 com as três decisões, peça 7 nova, §9 substituída pelas
+decisões e pelo que ficou aberto) e `ESTADO-ATUAL.md` (§4, §8, §9, §11 e §12 atualizados).

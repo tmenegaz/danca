@@ -10,6 +10,20 @@
 > os quatro documentos, e o plano por peças. **Não** é a implementação — as decisões que dependem de
 > si estão na §9, numeradas.
 
+> ### Nota de correção — 25/10/2026, mesmo dia
+>
+> A pesquisadora leu este documento e respondeu. **A §2.1 estava errada como diagnóstico:** a
+> duplicação do «Contexto» na saída do PO **é proposital** — o professor elabora o plano de ensino
+> num momento e o plano de observação noutro, e precisa dos valores à mão no documento. Os campos
+> são **só de leitura** porque foram definidos na Produção. Não é sobreposição a corrigir; é desenho,
+> e está certo. A primeira redação desta secção dizia «a segunda cópia é a que vai envelhecer» —
+> está errado. O que envelhece é a leitura, não a cópia: a cópia é a garantia de que o professor não
+> tem de abrir três documentos para saber de que turma se trata.
+>
+> **Cinco sobreposições continuam de pé** (§2.2 a §2.6). **Três perguntas da §9 foram respondidas**
+> e passam a decididas; duas não se entenderam (a redação era minha, e era obscura) e continuam
+> abertas, com os termos agora definidos. As emendas estão marcadas no corpo, com «EMENDA».
+
 ---
 
 ## 1. Os quatro documentos, e a pergunta que cada um responde
@@ -31,11 +45,39 @@ disto se propõe mudar.
 
 ---
 
-## 2. O que está misturado — seis sobreposições medidas
+## 2. O que está misturado — cinco sobreposições medidas, e uma que é desenho
 
 Não é uma impressão. Cada linha tem o ficheiro e o número.
 
-### 2.1 O «Contexto» do plano é elicitado outra vez no PO
+**EMENDA — as cinco, em linguagem simples, porque a primeira redação não se entendeu.** A pergunta
+que cada uma responde é sempre a mesma: *este pedaço de informação está no documento certo?* Quando
+está em dois, um dos dois envelhece ou fica vazio.
+
+| § | O que se repete | O que isso custa, em uma frase |
+|:--|:--|:--|
+| 2.2 | o nome «condições de contorno» | São **duas coisas** com o mesmo nome: o que o PO **declara** (o professor diz como a turma está) e o que a aula **mede** (1–5, naquele dia). Quem procura o termo encontra os dois e não sabe qual é qual |
+| 2.3 | a sequência de exercícios do plano | O plano tem **14 linhas** — é o **acervo** do ciclo. A aula 01 imprime as 14. A aula 02, criada pelo mesmo caminho, imprime **as mesmas 14** — porque nada diz quais são as de hoje. O acervo é impresso como se fosse a escolha |
+| 2.4 | a distribuição do volume | O plano diz 30/30/30/10. A aula **repete a secção e imprime uma tabela de uma linha** — só o total, 90 tempos — porque o dado já foi escrito doze linhas acima. Repete o título e perde o conteúdo |
+| 2.5 | as condições preliminares | A mesma frase («sala com barra, espelho, som; piso adequado») aparece no plano e na aula. Duas cópias da mesma frase: quando a sala mudar, uma das duas fica errada |
+| 2.6 | o guia de observação | A aula pede **`[Preencher]`** nas quatro dimensões. Os itens **já existem**, escritos, no PO. A aula pede outra vez o que já foi respondido — e ninguém responde |
+
+A §2.1 é a sexta, e **não é defeito**: está emendada abaixo como desenho aprovado.
+
+### 2.1 O «Contexto» do plano é repetido no PO — **e é de propósito** (EMENDA)
+
+> **DECIDIDO pela pesquisadora, 25/10/2026.** «É proposital porque o professor pode elaborar o plano
+> de ensino num momento e o plano de observação em outro. Mas aí ele precisa dentro do documento ter
+> os campos ali que já estão preenchidos, o que é redundante de saída, né, pra ele saber qual é a
+> turma, qual é a escola, esses valores que já estão ali redundantes, duplicados de saída, é de
+> propósito.» E: «Esses campos não podem ser editáveis, porque a gente definiu eles lá na produção.
+> Então eles são somente leitura, isso está certo.»
+>
+> **Esta secção deixa de ser um defeito e passa a ser a especificação de uma garantia:** a saída do
+> PO **repete** o contexto, e a repetição é **só de leitura**. O que a torna correta é (a) o valor
+> vir da Produção, não ser perguntado outra vez, e (b) não ser editável no PO. As duas coisas já
+> valem. Não há trabalho a fazer aqui.
+
+Segue-se a medição, que fica como registo do que se viu — não como lista de correções.
 
 O plano tem uma tabela `## Contexto` com **12 itens**. O PO pergunta dois deles no Bloco 1
 (**Professor responsável**, **Escola / espaço**) e recebe outros cinco por derivação (`field` e
@@ -57,11 +99,12 @@ Plano · Contexto (12)                    PO (formulário + derivado)
   Notação dominada             (só do plano)
 ```
 
-**8 dos 12 (66%) estão nos dois.** E o próprio schema do PO já diz o que devia acontecer — «O PO não
-duplica o contexto dele — lê-o na geração» —, mas as secções `## Campo empírico`, `## Contexto` e
-`## Metodologia e notação` continuam a ser **escritas no documento do PO**. A duplicação não está no
-dado: está na **saída**. Quem lê o PO lê duas vezes o mesmo endereço, e a segunda cópia é a que vai
-envelhecer.
+**8 dos 12 (66%) estão nos dois** — e é assim que deve ser. O schema do PO diz «O PO não duplica o
+contexto dele — lê-o na geração», e essa frase continua válida para o **dado**: o PO não guarda uma
+segunda cópia. A saída é que escreve as secções `## Campo empírico`, `## Contexto` e
+`## Metodologia e notação`, e escreve-as com os valores da Produção, para leitura. **A distinção que
+importa:** duplicação de *dado* seria um segundo lugar onde o valor pode divergir; duplicação de
+*saída* é uma conveniência de leitura que se regenera. Só a primeira é defeito, e não existe aqui.
 
 ### 2.2 O quadro «Condições de contorno» existe com dois sentidos
 
@@ -161,14 +204,25 @@ diferentes. A folha pergunta **Início**, **Fim**, **Estrutura executada**, **Ab
 **Materiais**; o formulário não tem nenhum dos cinco. Quem lança no papel regista mais do que quem
 lança no ecrã — e é o ecrã que guarda.
 
-### 3.3 A linha de base não desliza
+### 3.3 A linha de base não desliza — **EMENDA: a regra está confirmada; o que falha é o código**
 
-`ARQUITETURA-AULA.md` §2 declara a regra: **a linha de corte da aula N é o registo da última aula que
-teve dado**, por ordem de lançamento. O documento diz, e é explícito: «A regra existe como leitura, e
-morre no documento… o que falta é ela alimentar o formulário da aula seguinte».
+> **DECIDIDO pela pesquisadora, 25/10/2026.** «O que eu entendi e que eu acho que está certo é que a
+> linha de corte da aula N é o registo da última aula dada. Isso está correto, tá? Isso tá bem
+> certo.»
 
-Medido: o bloco `linha_de_base` do lançamento lê a `linhaDeBase` do **PO** — a fotografia inicial,
-fixa. A aula 26 vai comparar as alunas com o estado de Fevereiro.
+**Em linguagem simples, porque a primeira redação não se entendeu.** Na aula 1, o professor mede as
+alunas e obtém uma fotografia — é a **linha de base**. Na aula 2, ele quer comparar com o que a
+**aula 1** registou, porque é isso que mostra progresso. Se o sistema comparar a aula 2 com a
+fotografia **original**, do início do ciclo, o professor vê sempre «igual a Fevereiro» e não vê o que
+a aula 1 mudou.
+
+O `ARQUITETURA-AULA.md` §2 **escreve a regra certa**: a linha de corte da aula N é o registo da
+última aula que teve dado. E o próprio documento admite que a regra «morre no documento».
+
+**O que o código faz, medido:** o bloco `linha_de_base` do formulário de lançamento lê a
+`linhaDeBase` do **PO** — a fotografia inicial, fixa. Ou seja, a aula 26 compara as alunas com o
+estado do início do ciclo. **A regra está certa; a implementação é que não a segue.** Isto é a
+peça 5 da §7.
 
 ---
 
@@ -244,6 +298,30 @@ fonte**, e não há sítio onde o professor a escreva.
 
 ### 5.4 O desenho
 
+> **EMENDA — 25/10/2026, o que a pesquisadora decidiu.** Três coisas mudam o desenho abaixo.
+>
+> **(a) A aula 2..N nasce por um botão, e os documentos nascem vazios.** «A gente tem que ter um botão
+> pra criar a aula 2 e aí tem que gerar esses documentos, mesmo que vazios num primeiro momento, né?
+> Pra gente ter o objeto.» Ou seja: não se espera que o professor preencha tudo para a aula existir —
+> o **objeto** nasce primeiro, com identidade, e o conteúdo entra depois. É a inversão do que o
+> código faz hoje, onde a aula só existe quando a fonte está escrita à mão.
+>
+> **(b) A aula nasce COM marco — o plano passa a exigi-lo.** «Nasce com o marco, tá? Não dá pra ter sem
+> sala.» **Atenção a uma confusão de vocabulário que é minha, não sua:** «marco» aqui **não é a sala**.
+> Marco é o **objetivo específico daquela aula** — o que o plano declara em `marcos-por-aula`, como
+> «transferir o peso entre os pés sem perder o alinhamento». A **sala** é outro campo, e o senhor tem
+> razão nos dois: a aula precisa dos dois. Mas a resposta resolve a pergunta 1: **o plano passa a
+> exigir um marco por aula** (opção *b* da §9), e a regra 3 abaixo **cai**.
+>
+> **(c) A aula N tem de confirmar o alinhamento com o PO.** «Eu não posso fazer um PO de uma natureza e
+> elaborar uma aula que é completamente divergente daquele PO… o professor é lembrado de qual é o PO, e
+> ele marca que concorda, que entendeu, que está alinhado com o PO, e aí sim ele elabora a aula N. Eu
+> acho que para cada aula ter isso como um protocolo.» **Requisito novo**, sem equivalente no código de
+> hoje: um passo de confirmação, antes de a aula ser editável.
+>
+> E a **herança da sequência** fica mista (pergunta 3): a aula herda as 14 linhas, **editáveis**, e o
+> professor pode acrescentar outras — não é um selector que obriga a escolher, nem uma herança cega.
+
 > **A aula é filha do PLANO DO CICLO, e não do PO.** Ela não pode existir solta, porque o plano é
 > quem tem o marco, a turma, o professor, a metodologia e os itens. E cada campo da aula é **o delta**
 > em relação ao que herda.
@@ -256,6 +334,7 @@ PO ──(1:1)──► Plano do ciclo ──(1:N)──► Aula NN ──(1:1)�
                     │  blocos, volume      │   · a música
                     │  rubrica             │   · o que quero ver hoje
                     │  itens (via PO)      │   · o próximo passo
+                    │  sala (do evento)    │   · o alinhamento com o PO ✋
 ```
 
 **A herança, campo a campo:**
@@ -264,12 +343,14 @@ PO ──(1:1)──► Plano do ciclo ──(1:N)──► Aula NN ──(1:1)�
 |:--|:--|:--|
 | turma, professor, ciclo, duração | plano (`contexto`) | não — é o mesmo em todas |
 | blocos, volume, condições preliminares | plano | não |
-| **marco do dia** | plano (`marcosPorAula[n]`) | sim, enquanto `planejada` |
-| **sequência de hoje** | plano (`sequenciaDeExercicios`) — **escolhe-se** quais linhas | sim |
+| **marco do dia** | plano (`marcosPorAula[n]`) — **agora obrigatório** | sim, enquanto `planejada` |
+| **sala** | o evento do calendário | sim, **até ao prazo** da aula |
+| **sequência de hoje** | plano (`sequenciaDeExercicios`) — herda as 14, **editáveis**, e pode acrescentar | sim |
 | **música de hoje** | plano (`musicasVideos`) — escolhe-se | sim |
 | **o que quero ver hoje** | PO (`itensPorDimensao`) — escolhe-se as dimensões | sim |
 | **próximo passo** | a aula anterior + o marco seguinte | sim |
 | **linha de base** | PO (aula 1) · **o registo da última aula dada** (aula N) | não — é derivada |
+| **alinhamento com o PO** | confirmação explícita do professor | sim, uma vez, antes de editar ✋ |
 
 **As três regras que fecham o «não pode ser órfão»:**
 
@@ -277,8 +358,11 @@ PO ──(1:1)──► Plano do ciclo ──(1:N)──► Aula NN ──(1:1)�
    plano;
 2. a **relação entre duas aulas** só existe dentro do mesmo ciclo (a mesma escola, o mesmo professor,
    o mesmo plano) — é a chave que impede a aula 3 de um ciclo herdar a linha de base de outro;
-3. a aula que **não tem marco** não é uma aula: é um **lugar do calendário**. A listagem tem de o
-   dizer, com o estado, em vez de mostrar 25 linhas iguais.
+3. ~~a aula que não tem marco não é uma aula: é um lugar do calendário~~ — **EMENDADA.** A aula nasce
+   com marco, e o plano tem de declarar um por aula. **Não há aula sem marco:** o que há é lugar de
+   calendário à espera de que o plano declare o marco. A distinção sobrevive, mas muda de lado: a
+   lista mostra os 26 lugares, e um lugar **sem marco** diz «falta o marco» em vez de oferecer
+   «Abrir» — porque abrir produziria uma aula vazia de sentido pedagógico.
 
 **O estado na lista** (derivado, sem campo novo — `ARQUITETURA-AULA.md` §1):
 
@@ -390,6 +474,22 @@ do que o ecrã.
 - A resolução da §6, na aula e na listagem.
 - Nenhum campo novo na aula.
 
+### Peça 7 — O passo de alinhamento com o PO ✋ *(nova, 25/10/2026)*
+
+Nasceu da resposta à pergunta 5, e não estava no plano original.
+
+- Antes de a aula N ser editável, um passo que recorda **qual é o PO** daquele ciclo (a turma, o
+  professor, as dimensões e os itens) e pede uma confirmação explícita: «esta aula está alinhada com
+  este plano de observação».
+- **Porque não é burocracia:** o PO é o compromisso pedagógico do ciclo. Uma aula que divirja dele não
+  é uma aula do ciclo — é outra coisa, e ninguém saberia. O passo torna a divergência impossível por
+  omissão.
+- **O que ainda não está decidido** (pergunta 7, §9): a frequência da confirmação (por aula ou por
+  ciclo), o que acontece se não houver confirmação, e se o registo entra na âncora de proveniência ou
+  fica só como estado de interface.
+- **Onde entra na ordem das peças:** depois da peça 3 (o ambiente da aula N) e antes da 4 (o
+  lançamento), porque sem o ambiente não há onde confirmar.
+
 ---
 
 ## 8. O que a mudança custa
@@ -409,24 +509,61 @@ muda: a fórmula do hash, a cobertura, os validadores e as 17 regras.
 
 ---
 
-## 9. O que preciso que você decida
+## 9. O que ficou decidido, e o que continua aberto
 
-1. **O marco das 23 aulas que não têm.** O plano declara 3 marcos para um ciclo de 26. O que fazer com
-   as outras 23: *(a)* continuam lugares do calendário até serem planejadas, e a lista diz «sem
-   marco»; *(b)* o plano passa a exigir **um marco por aula** antes de o ciclo gerar; *(c)* a aula
-   pode nascer sem marco, e o marco é escrito na aula.
-2. **«Abrir a aula» cria a fonte, ou só a abre?** Criar a fonte `.md` no repositório a partir da
-   Produção é o que dá autonomia ao professor — mas é o sistema a **escrever fontes**, que é o que
-   hoje só o «Guardar o PO» faz.
-3. **A aula herda a sequência inteira do plano, ou escolhe?** Se escolhe, é um selector de 14 linhas
-   por aula; se herda, a aula diz «a sequência do plano» e a diferença vai para o lançamento.
-4. **Os três `[Preencher]` da aula** (musicalidade, guia, próximo passo) passam a **derivados** — e
-   desaparecem como pergunta. Confirma que nenhum deles deve ser perguntado?
-5. **O lançamento da aula N compara com o registo da aula anterior** (a regra do
-   `ARQUITETURA-AULA.md` §2) ou com o PO (o que faz hoje)? A regra escrita diz a primeira; o código
-   faz a segunda. Qualquer das duas é defensável — mas são diferentes.
-6. **`materiais`** — a folha impressa tem as caixas e o formulário não. Entram no electrónico
-   (peça 4), ou saem da folha?
+> **Emenda de 25/10/2026, mesmo dia.** As seis perguntas foram lidas e respondidas. Três fecharam,
+> uma fechou pela metade (por uma confusão de vocabulário que era minha), e duas não se entenderam.
+> Fica registado o que cada uma virou — e, nas que não se entenderam, o termo agora definido.
+
+### Fechadas
+
+**1. O marco das 23 aulas — DECIDIDA: o plano passa a exigir um marco por aula.**
+«Nasce com o marco, tá? Não dá pra ter sem sala.» É a opção *(b)*. **Com uma ressalva de leitura:** o
+senhor aproximou «marco» de «sala», e não são a mesma coisa — o marco é o *objetivo específico da
+aula* (`marcos-por-aula`, ex.: «transferir o peso entre os pés sem perder o alinhamento»); a sala é o
+*lugar*, que vem do evento. A decisão fecha para os dois: **cada aula precisa de marco e de sala**, e
+a diferença é que o marco vem do plano e a sala vem do calendário.
+
+**3. A herança da sequência — DECIDIDA: mista.** «Herdar a sequência inteira e ser editável é bom,
+torna prático o processo e a possibilidade de acrescentar outras.» Herda as 14 linhas, **editáveis**,
+e pode acrescentar. Não é selector obrigatório nem herança cega.
+
+**5. Com o que a aula N compara — DECIDIDA: com o registo da aula anterior, e alinhada ao PO.**
+«A aula N ela vai comparar com o registro da aula anterior… e ela tem que estar alinhada com o PO,
+porque ela pertence ao mesmo PO.» **E acrescentou um requisito que não existia:** «o professor é
+lembrado de qual é o PO, e ele marca que concorda, que entendeu, que está alinhado com o PO, e aí sim
+ele elabora a aula N. Eu acho que para cada aula ter isso como um protocolo.» É a **peça 7** (§7).
+
+### Abertas, porque a pergunta era obscura
+
+**4. Os três `[Preencher]` da aula — ABERTA, com o termo definido.**
+A pergunta era: na aula de hoje há três lugares que pedem para escrever à mão —
+
+- `## 4. Bloco de musicalidade` → `[Preencher: trabalho de pulso da Aula 01]`
+- `## 5. Guia de observação` → **quatro** linhas `[Preencher]`, uma por dimensão
+- `## 9. Próximo passo` → `[Preencher: o próximo passo da progressão do ciclo]`
+
+— e os valores que os preencheriam **já estão escritos** no plano (a música) e no PO (os itens de
+observação). «Derivados», na pergunta, queria dizer: *o sistema preenche estes três lugares sozinho, a
+partir do plano e do PO, e o professor deixa de ser questionado sobre eles*. A pergunta é se concorda
+com isso, ou se algum deles deve continuar a ser perguntado.
+
+**6. `materiais` — ABERTA, com o termo definido.**
+«Materiais» são as caixas da folha de captura impressa, no fecho da aula:
+
+> **Materiais** ☐ fotos ☐ vídeo ☐ áudio ☐ comentário: `______`
+
+É a marcação do que se recolheu como evidência naquela aula. **A folha tem; o formulário electrónico
+não tem** (zero ocorrências em `motor/nucleo/lancamento.js`). A pergunta é se o campo entra no
+formulário, ou se sai da folha.
+
+### Uma pergunta nova, que a resposta 5 abriu
+
+**7. O passo de alinhamento com o PO.** Antes de a aula N ser editável, o professor confirma que
+lembra o PO e que a aula está alinhada com ele. **Perguntas que ficam:** é uma marcação por aula
+(26 confirmações num ciclo) ou uma por ciclo, com renovação quando o plano muda? O que acontece se ele
+não confirmar — a aula não abre, ou abre com um aviso? O registo da confirmação é dado de proveniência
+(entra na âncora) ou só de interface?
 
 ---
 
