@@ -24616,3 +24616,24 @@ aterra na porta com o contexto já semeado e a senha por digitar, e o salto só 
 conferir. É seguro e não mente, mas não é ainda «vai direto pro formulário». As saídas possíveis são
 guardar a senha validada em `sessionStorage` (a porta a reler e a revalidar no servidor) ou aceitar o
 clique a mais. Não se escolheu nenhuma.
+
+**Nota de correção — 25/10/2026, mesmo dia (a estante estava na raiz, e não está).** A verificação
+ao vivo, depois do primeiro push, mostrou o que nem a bancada nem a prova podiam ver: **o select do
+plano nascia vazio em produção e o «Novo Plano de Observação» ficava travado para sempre** — a trava
+do PO é «falta o plano», e sem estante não há plano nunca.
+
+A causa: o painel pedia `/api/planos` na **raiz**. O roteador das rotas de `rotas.js` só é alcançado
+sob os prefixos `/anamnese/`, `/plano-ensino/` e `/plano-observacao/` (o ramo 1 de `producao.js`,
+que retira o prefixo e chama a ponte); na raiz, `/api/planos` responde **404** e `/api/envelopes`
+também. As rotas dos Bastidores são a excepção — vivem mesmo na raiz, e por isso
+`/api/bastidores/professores` respondia 200 e dava a impressão de que tudo estava no mesmo sítio.
+Medido: na raiz `404`, sob o prefixo `200` com a estante recortada (577B para um professor, 1594B
+sem recorte — que é a escola inteira, e é o que não se quer).
+
+**A bancada escondeu o defeito por ser mais permissiva do que a produção:** o stub servia
+`/api/planos` na raiz. Um stub que aceita o que a produção recusa não é uma bancada — é uma segunda
+opinião, e mais optimista. O stub passou a servir só `/plano-observacao/api/planos`, como a ponte; a
+asserção passou a exigir `CFG.porta + 'api/planos'`. Com o stub fiel, o código errado **falha**.
+
+A lição, e vale para além deste caso: **a bancada replica o caminho, não a intenção.** O que ela
+precisa de copiar não é a resposta bonita — é a porta por onde a resposta entra.

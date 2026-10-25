@@ -413,8 +413,12 @@ function pedacos(html) {
     const po = await pedir('/area-do-professor/plano-de-observacao/');
     provar('o PO tem o campo do PLANO, e não um campo de turma livre',
       /data-ato="plano"/.test(po.html) && !/data-ato="turma"/.test(po.html), null);
-    provar('…e a estante que o alimenta é recortada pelo professor',
-      /\/api\/planos\?professor=/.test(po.html), null);
+    /* SOB O PREFIXO DA PORTA, e é isso que se mede. A estante mora no roteador das rotas, que
+       `producao.js` só alcança em `/anamnese/`, `/plano-ensino/` e `/plano-observacao/`; na raiz
+       o caminho dá 404 (confirmado em produção). Um `/api/planos` «limpo» aqui seria o defeito:
+       select vazio e PO travado para sempre, porque a trava dele é «falta o plano». */
+    provar('…e a estante que o alimenta é recortada pelo professor, sob o prefixo da porta',
+      /CFG\.porta \+ 'api\/planos\?professor='/.test(po.html), null);
     provar('…e a turma observada é LEITURA, porque quem a decide é o plano',
       /data-turma-leitura/.test(po.html) && /plano de ensino/.test(po.html), null);
     provar('…e sem plano a lista diz a regra por palavras, em vez de deixar o botão mudo',

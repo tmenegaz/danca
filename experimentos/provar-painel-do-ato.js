@@ -93,7 +93,12 @@ const servidor = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({ ok: true, curadorias: p === 'cafe-no-bule'
       ? [{ turmas: ['Balé Nível 1'], alunas: ['Aluna A'] }] : [] }));
   }
-  if (u.pathname === '/api/planos') {
+  /* A ESTANTE SOB O PREFIXO DA PORTA — e SÓ lá. O stub anterior servia `/api/planos` na raiz,
+     e a bancada ficava mais permissiva do que a ponte: em produção a raiz devolve 404 (o
+     roteador das rotas só é alcançado sob `/anamnese/`, `/plano-ensino/` e `/plano-observacao/`),
+     e o select do plano nascia vazio. Um stub que aceita o que a produção recusa esconde
+     exactamente o defeito que a prova devia encontrar. */
+  if (u.pathname === '/plano-observacao/api/planos') {
     /* A ESTANTE RECORTADA — o mesmo contrato da ponte (`porta.planos`): um carimbo por plano,
        com a turma que ele diz. Os do `manga-curta` são outros, e é isso que se mede: o PO de
        um professor não oferece o plano do outro. */

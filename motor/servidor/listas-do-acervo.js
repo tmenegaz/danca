@@ -551,7 +551,13 @@ function scriptDoPainel(chave, escola) {
       pintarLeituraDaTurma();
       return Promise.resolve();
     }
-    return pedir('/api/planos?professor=' + encodeURIComponent(slug)).then(function (r) {
+    /* A ESTANTE VIVE SOB O PREFIXO DA PORTA, e não na raiz. O roteador das rotas só é
+     * alcançado em '/anamnese/…', '/plano-ensino/…' e '/plano-observacao/…' ('producao.js',
+     * ramo 1): pedir '/api/planos' na raiz dá 404, o select ficava vazio e o botão travado —
+     * para sempre, porque a trava do PO é «falta o plano». Medido em produção: na raiz 404,
+     * sob o prefixo 200 com a estante recortada. As rotas dos Bastidores são a excepção: essas
+     * vivem mesmo na raiz. */
+    return pedir(CFG.porta + 'api/planos?professor=' + encodeURIComponent(slug)).then(function (r) {
       PLANOS = (r.dados && (r.dados.opcoes || r.dados.planos)) || [];
       encher(campo('plano'), PLANOS.map(function (p) {
         var turma = p.turma ? ' · ' + p.turma : '';
