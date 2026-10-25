@@ -128,7 +128,7 @@ Verificado nesta fotografia, com os comandos da §9.
 |:--|:--|:--|
 | Navegação: coluna + barra + caminho | **CONFIRMADO** | `motor/nucleo/nav.js` |
 | Listas no padrão novo (8 listas) | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
-| As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado; 30 verificações no browser | `motor/servidor/listas-do-acervo.js` |
+| As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado, o aviso da senha errada; 43 verificações no browser | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
 | Anamnese: formulário, vínculo, ajuste | **CONFIRMADO** | `rotas.js` (11 rotas `/api/anamnese*`) |
 | Plano de ensino: formulário e vínculo | **CONFIRMADO** | `rotas.js` (`/api/planos`, `/api/plano-*`) |
@@ -313,6 +313,8 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 - **O ícone é a seta `▾`, não o «?»** — rodada 180° no `[open]`. **DECIDIDO** em 25/10/2026.
 - **O contexto escolhido é guardado** (`ato-<escola>-<fonte>-1`), sem a senha. **DECIDIDO** — foi a
   correcção de um defeito que só a prova apanhou: sem ele o «continuar de onde parei» nunca aparecia.
+- **A senha tem três estados**, e não dois: vazia, errada, certa. **DECIDIDO** — a verificação em
+  produção mostrou que com a senha errada o botão ficava desabilitado sem uma palavra de explicação.
 
 ### Dúvidas sobre este próprio protocolo
 

@@ -334,7 +334,11 @@ function scriptDoPainel(chave, escola) {
   var PROFESSORES = [];
   var CURADORIA_CARREGADA = false;
   var CURADORIAS = [];
-  var SENHA_OK = false;
+  /* A SENHA TEM TRES ESTADOS, e nao dois: vazia (nada a dizer), ERRADA (tem de dizer porque) e
+   * certa. Um booleano colapsava os dois primeiros e deixava o professor com o botao desabilitado
+   * sem uma palavra de explicacao — o mesmo defeito que a porta evita com o «x senha nao
+   * reconhecida» (sinalDeSenha). Medido em producao: com a senha errada, o estado ficava VAZIO. */
+  var SENHA = '';
   /* O que foi escolhido antes de esta página carregar — e que os 'select' só podem receber
    * depois de as opções chegarem. */
   var ATOS = { professor: '', aluna: '', turma: '' };
@@ -354,7 +358,7 @@ function scriptDoPainel(chave, escola) {
   function pintar() {
     var mem = memoria();
     var falta = faltam();
-    var trava = semCuradoria() || falta.length > 0 || !SENHA_OK;
+    var trava = semCuradoria() || falta.length > 0 || SENHA !== 'ok';
 
     var nova = $('[data-acao="nova"]');
     var continuar = $('[data-acao="continuar"]');
@@ -389,13 +393,20 @@ function scriptDoPainel(chave, escola) {
         estado.hidden = false;
         estado.setAttribute('data-falta', 'sim');
         estado.textContent = 'Falta o contexto do ato: ' + falta.join(', ') + '.';
+      } else if (SENHA === 'errada') {
+        /* O CONTEXTO ESTA INTEIRO E A SENHA NAO CONFERE — e e isso que tem de ser dito. Sem esta
+         * linha o botao ficava desabilitado sem motivo aparente, e o professor tentava outra vez
+         * sem saber o que corrigir. O texto e o da porta: senha nao reconhecida. */
+        estado.hidden = false;
+        estado.setAttribute('data-falta', 'sim');
+        estado.textContent = 'A senha do professor não foi reconhecida.';
       } else {
         estado.hidden = true;
         estado.textContent = '';
       }
     }
     var status = $('[data-senha-status]');
-    if (status) status.hidden = !SENHA_OK;
+    if (status) status.hidden = SENHA !== 'ok';
 
     /* A CAIXINHA DIZ O CONTEXTO INTEIRO, ou o que falta. É o papel do title na porta. */
     var resumo = $('[data-resumo]');
@@ -490,15 +501,22 @@ function scriptDoPainel(chave, escola) {
 
   /* A SENHA É VALIDADA NO SERVIDOR, como na porta. Aqui só se guarda o veredicto. */
   var tempoDeSenha = null;
+  var pedidoDeSenha = 0;
   function validarSenha() {
     var senha = valor('senha');
     var professor = valor('professor');
-    if (!senha || !professor) { SENHA_OK = false; pintar(); return; }
+    if (!senha || !professor) { SENHA = ''; pintar(); return; }
+    /* A CORRIDA: cada tecla dispara um pedido depois de 450ms, e dois pedidos em voo podem
+     * responder fora de ordem — o antigo a chegar por ultimo diria «certa» sobre a senha errada.
+     * O contador descarta a resposta que ja nao e a ultima pedida. */
+    pedidoDeSenha += 1;
+    var meu = pedidoDeSenha;
     pedir('/api/bastidores/validar-senha', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ senha: senha, professor: professor }),
     }).then(function (r) {
-      SENHA_OK = !!r.ok;
+      if (meu !== pedidoDeSenha) return;
+      SENHA = r.ok ? 'ok' : 'errada';
       pintar();
     });
   }

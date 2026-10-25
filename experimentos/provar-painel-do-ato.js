@@ -264,7 +264,51 @@ const servidor = http.createServer(async (req, res) => {
   ok('há um select de turma', turmas.existe);
   ok('e as turmas vieram da API', turmas.n >= 3, turmas.n);
 
-  console.log('\n7 · As acções de começar cabem numa fila');
+  console.log('\n7 · A senha errada DIZ que é errada');
+  {
+    /* O DEFEITO MEDIDO EM PRODUÇÃO. Com a senha errada e o contexto inteiro, o botão ficava
+     * desabilitado e a linha de estado ficava VAZIA — o professor tentava outra vez sem saber o
+     * que corrigir. A porta diz «✗ senha não reconhecida»; aqui o estado passa a dizê-lo também. */
+    await abrir('/area-do-professor/anamnese/', 390);
+    await p.evaluate(() => {
+      localStorage.setItem('ato-batata-anamnese-1',
+        JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
+    });
+    await p.reload({ waitUntil: 'load' });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 800)));
+    await p.evaluate(() => {
+      const s = document.getElementById('ato-senha');
+      s.value = 'errada'; s.dispatchEvent(new Event('input'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 1200)));
+    const m = await p.evaluate(() => ({
+      desab: document.querySelector('[data-acao="nova"]').disabled,
+      estado: (document.querySelector('[data-estado]') || {}).textContent,
+      escondido: (document.querySelector('[data-estado]') || {}).hidden,
+      selo: (document.querySelector('[data-senha-status]') || {}).hidden,
+    }));
+    ok('com a senha errada, «Nova» fica desabilitado', m.desab === true, m.desab);
+    ok('…e o estado DIZ que a senha não foi reconhecida',
+      !m.escondido && /senha do professor não foi reconhecida/.test(m.estado || ''), m);
+    ok('…e o selo de «confere» não aparece', m.selo === true, m.selo);
+
+    /* E COM A SENHA CERTA TUDO SE SOLTA. */
+    await p.evaluate(() => {
+      const s = document.getElementById('ato-senha');
+      s.value = 'certa'; s.dispatchEvent(new Event('input'));
+    });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 1200)));
+    const m2 = await p.evaluate(() => ({
+      desab: document.querySelector('[data-acao="nova"]').disabled,
+      escondido: (document.querySelector('[data-estado]') || {}).hidden,
+      selo: (document.querySelector('[data-senha-status]') || {}).hidden,
+    }));
+    ok('com a senha certa, «Nova» fica habilitado', m2.desab === false, m2.desab);
+    ok('…o aviso desaparece e o selo de «confere» aparece',
+      m2.escondido === true && m2.selo === false, m2);
+  }
+
+  console.log('\n8 · As acções de começar cabem numa fila');
   {
     /* A 390px, com o preenchimento interrompido, sobram DOIS botões («Continuar» e «Começar de
      * novo»). Medido: 169+129+6,4 = 304 numa coluna de 339 — uma fila, 29px. É o que decidiu a
@@ -290,7 +334,7 @@ const servidor = http.createServer(async (req, res) => {
     ok('a fila tem menos de 40px de altura', m.altura < 40, m.altura);
   }
 
-  console.log('\n8 · Geometria e erros');
+  console.log('\n9 · Geometria e erros');
   for (const largura of [320, 390, 1280]) {
     await abrir('/area-do-professor/anamnese/', largura);
     const m = await p.evaluate(() => {

@@ -24506,3 +24506,22 @@ entrada neste registo e commit próprio), `IDENTIDADE-VISUAL.md` (a peça no Qua
 script e a chave do contexto), `experimentos/provar-listas-do-acervo.js` (a secção 7 reescrita: o
 painel passou a ser a porta), `experimentos/provar-painel-do-ato.js` (novo, 30 verificações), e as
 cópias da folha (`raiz/assets/`, dois pacotes — o «Circuito» da checagem 4 exige-as iguais).
+
+**Nota de correção — 25/10/2026, mesmo dia (o aviso da senha).** O painel foi ao ar e a verificação
+em produção, com a senha errada de propósito, mostrou o que a bateria local não media: **o botão ficava
+desabilitado e a linha de estado ficava VAZIA.** O professor não tinha como saber que o problema era a
+senha — tentava outra vez sem saber o que corrigir.
+
+A causa é de desenho, e é minha: a senha era um **booleano** (`SENHA_OK`), e um booleano colapsa dois
+estados que não são o mesmo — *vazia* (não há nada a dizer) e *errada* (há tudo a dizer). A porta não
+tem este defeito porque tem três: `sinalDeSenha(false, '')` para a vazia e
+`sinalDeSenha(false, '✗ senha não reconhecida')` para a errada.
+
+O remédio: a senha passou a ter três valores (`''`, `'errada'`, `'ok'`), e a linha de estado diz «A
+senha do professor não foi reconhecida» quando é isso que falta. **Aproveitou-se para corrigir uma
+corrida que a mesma leitura mostrou:** cada tecla dispara um pedido depois de 450ms, e dois pedidos em
+voo podem responder fora de ordem — o antigo a chegar por último diria «certa» sobre a senha errada.
+Um contador descarta a resposta que já não é a última pedida.
+
+`provar-painel-do-ato` ganhou a secção 7 com os cinco casos (senha errada: desabilitado + o aviso +
+sem selo; senha certa: habilitado + aviso fora + selo dentro).
