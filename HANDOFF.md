@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-25T12:06:56-0300`
-Commit atual: `66e871b` — docs(analise): a leitura da pesquisadora — um erro meu, três decisões, duas perguntas ilegíveis
+Gerado em: `2026-10-25T12:20:50-0300`
+Commit atual: `ffd4e36` — docs(aula): «proposto» — a terceira forma, que faltava no vocabulário
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,8 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+ffd4e36 docs(aula): «proposto» — a terceira forma, que faltava no vocabulário
+56f94f7 chore(handoff): regerar com a leitura da pesquisadora registada
 66e871b docs(analise): a leitura da pesquisadora — um erro meu, três decisões, duas perguntas ilegíveis
 7728389 docs(estado): a fotografia curada, as etiquetas factuais e a rotina de transferência
 607b96a chore(handoff): o HANDOFF passa a apontar para a fotografia do estado
@@ -96,8 +98,6 @@ f876ee3 fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteir
 22f6279 fix(estrutura): o caminho do lançamento lia o `<h1>` que está dentro do `<style>`
 b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar entre 769 e 1140
 57d10e2 chore(template): o estado anterior do plano da aula 01, gerado com o pacote
-1344402 fix(template): a folha do pacote novo, e a prova que contava duas turmas à mão
-95e4ecf fix(estrutura): o caminho diz de onde se veio, o «true» sai do endereço, e a barra fixa o Bastidores
 ```
 
 ## Por professor
@@ -193,57 +193,58 @@ b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar
 
 ## Última entrada do REGISTRO
 
-## 25/10/2026 — A análise da aula lida pela pesquisadora: um erro meu, três decisões, duas perguntas ilegíveis
+## 25/10/2026 — «Proposto»: a terceira forma, que faltava no vocabulário
 
-**O que aconteceu.** O [PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md) foi lido e respondido.
-O resultado não foi «concordo» nem «discordo»: foi uma divisão em três, e a divisão é o achado.
+**Segunda ronda de respostas.** Três decisões, e uma delas obrigou a criar uma palavra.
 
-**1. Um erro de diagnóstico meu, corrigido.** A §2.1 listava como defeito que «8 dos 12 itens do
-Contexto do plano estão também no PO». **Não é defeito — é desenho.** A pesquisadora: «É proposital
-porque o professor pode elaborar o plano de ensino num momento e o plano de observação em outro. Mas
-aí ele precisa dentro do documento ter os campos ali que já estão preenchidos… pra ele saber qual é a
-turma, qual é a escola.» E os campos são **só de leitura**, porque vêm da Produção.
+**1. O marco.** «Não pode ficar sem marco, tá? Tem que dizer qual é o marco da aula. **Ele pode até
+usar o mesmo marco da aula anterior, mas precisa ser explícito isso.**» A decisão anterior («o plano
+passa a exigir um marco por aula») estava incompleta, e a incompletude era minha: eu tinha lido a
+pergunta como *26 marcos diferentes*. Não é. O que se proíbe é o **silêncio**, não a **repetição** — um
+ciclo pode ter três objetivos que se repetem por semanas. **Repetir é uma decisão; calar não é.** Sem
+essa distinção, o requisito leria como «invente 23 marcos para preencher a tabela», que é exatamente o
+que o P-15 proíbe.
 
-A distinção que eu não fiz, e que passa a valer: **duplicação de dado** é um segundo lugar onde o
-valor pode divergir — isso é defeito. **Duplicação de saída** é uma conveniência de leitura que se
-regenera — isso é desenho. O que existia aqui era a segunda, e eu diagnostiquei a primeira. A §2.1
-foi emendada e as sobreposições passam de seis a **cinco** (§2.2 a §2.6).
+**2. Os três lugares da aula — e a palavra que faltava.** «Você vai apresentar exatamente como estão, e
+aí o professor vai olhar e decidir se mantém esse ou edita, ou cria novos, ou acrescenta novos.»
 
-**2. Três decisões.** O plano passa a exigir **um marco por aula** (a aula nasce com marco) · a
-sequência de exercícios é **herdada, editável, e acrescentável** · a aula N compara com o **registo da
-aula anterior** e tem de estar **alinhada ao PO**.
+Eu tinha oferecido duas formas, e as duas estavam erradas:
 
-**3. Duas perguntas ilegíveis, e a lição.** As perguntas 4 («os três `[Preencher]` passam a
-derivados?») e 6 («`materiais` entram no formulário ou saem da folha?») **não se entenderam** — e a 5
-só se entendeu em parte, por uma frase com referências não resolvidas («a regra escrita diz a
-primeira, o código faz a segunda»). A pergunta 2 também falhou por vocabulário: eu usava «fonte» para
-dizer *ficheiro-fonte da âncora*, e leu-se *referência bibliográfica*.
+| Forma | O que acontece | O que se perde |
+|:--|:--|:--|
+| perguntado em branco | a aula mostra `[Preencher]` e o professor escreve | **a origem** — de onde vinha o valor que já existia |
+| derivado | o sistema preenche e o campo deixa de existir | **a decisão** — o professor não revê nem confirma |
 
-**O padrão, e é o que importa para o futuro:** as perguntas que falharam não falharam por serem
-difíceis — falharam por usarem **vocabulário interno como se fosse evidente**. `marco` (é o objetivo
-específico da aula, não a sala) · `fonte` (o `.md` da âncora, não o livro) · `derivado` (o sistema
-preenche sem perguntar) · `materiais` (as caixas ☐ fotos ☐ vídeo ☐ áudio da folha). Quatro termos
-com um sentido preciso dentro do repositório e um sentido diferente fora dele. Uma pergunta escrita
-assim não é uma pergunta: é um teste de vocabulário, e quem responde perde.
+A aprovada é a terceira: **proposto**. O sistema mostra o valor que já existe (a musicalidade do plano,
+os itens do PO, o próximo passo), com a origem declarada, e o professor **mantém, edita, cria outro ou
+acrescenta**. Os quatro verbos são a especificação.
 
-Por isso as emendas da §9 **definem o termo antes de repetir a pergunta**. E por isso a
-`TRANSFERENCIA-IA.md` — que sai deste mesmo acervo para um assistente que não tem o repositório para
-conferir — passa a levar um glossário. Sem ele, a transferência exporta o mesmo defeito.
+**Porque é que isto não é um detalhe de interface.** O valor proposto sai do PO ou do plano — é onde
+ele foi decidido por alguém, numa data, com um motivo. Se o professor o altera, a alteração é um
+**delta com origem**. E o delta é *o que a memória da aula registra* — é a razão de o projeto existir.
+A forma «em branco» destruía a origem; a forma «derivado» destruía a decisão. **Nenhuma das duas
+deixava um delta legível.** A palavra faltava porque a coisa não tinha nome no vocabulário do projeto, e
+sem nome a pergunta não se podia fazer — foi o que aconteceu: a pergunta 4, escrita com a palavra
+errada («derivados»), não se entendeu.
 
-**4. Uma pergunta nova, que a resposta 5 abriu.** «O professor é lembrado de qual é o PO, e ele marca
-que concorda, que entendeu, que está alinhado com o PO, e aí sim ele elabora a aula N. Eu acho que
-para cada aula ter isso como um protocolo.» Virou a **peça 7** do plano — um passo de confirmação
-antes de a aula ser editável —, com três perguntas próprias ainda abertas: a frequência (26
-confirmações num ciclo?), o que acontece sem confirmação, e se o registo entra na âncora.
+**3. Os `materiais` entram no formulário.** «Entra no formulário.» A pergunta era uma alternativa —
+*entram no formulário, ou saem da folha?* —, e a resposta escolheu a entrada: a folha impressa
+**mantém** as caixas, e as duas superfícies passam a pedir o mesmo. Era exatamente o defeito medido
+(folha com `materiais`, formulário com zero ocorrências).
 
-**Uma confirmação e uma ampliação.** A regra «a linha de corte da aula N é o registo da última aula
-dada» está **certa** — o que não a segue é o código, e isso é a peça 5. E a sala: «é evento, não é
-opcional, mas é flexível, pode mudar, pode remanejar, porque é a fotografia daquele momento» — pode ser
-remarcada **até ao prazo** daquela aula.
+**E a numeração, que atrapalhou duas vezes.** Ao responder, a pesquisadora notou que estava «contando
+errado»: a pergunta «a aula herda a sequência ou escolhe as linhas de hoje?» é a **#3**, não a #6, e já
+tinha sido respondida na primeira ronda. Não era erro de contagem dela — era o efeito de eu ter
+**substituído** a lista de seis perguntas por uma lista de sete, mantendo os números e mudando o
+conteúdo de alguns. Um número que muda de significado não é uma referência: é uma armadilha.
 
-**Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (nota de correção no topo, §2.1 emendada, tabela dos cinco
-em linguagem simples, §3.3 reescrita, §5.4 com as três decisões, peça 7 nova, §9 substituída pelas
-decisões e pelo que ficou aberto) e `ESTADO-ATUAL.md` (§4, §8, §9, §11 e §12 atualizados).
+Remédio: as perguntas passam a ser identificadas por **nome** — `marco`, `fonte`, `sequência`,
+`preencher`, `linha de base`, `materiais`, `aula-object`, `sala`, `alinhamento`. Um nome não deriva, e
+a §9 do `PLANO-AULA-E-OBSERVACAO.md` passa a ser uma tabela de decisões, não um questionário.
+
+**Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (§3.1 com as três formas e a de «proposto», §5.4 com a
+nuance do marco, a tabela da herança, as peças 3 e 4, §9 substituída por decisões nomeadas),
+`ESTADO-ATUAL.md` (§8 e o histórico) e `TRANSFERENCIA-IA.md` (2.ª versão, com `proposto` no glossário).
 
 ## O que está pendente
 
