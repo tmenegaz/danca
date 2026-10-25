@@ -1639,67 +1639,105 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .estado-do-ato[data-falta="sim"] { color: var(--alerta); }
 
 /* ============================================================================
-   O MENU «AÇÕES» — O QUE O TELEMÓVEL ESCONDE PARA GANHAR TELA (25/10/2026)
+   O MENU «AÇÕES» E OS DOIS BLOCOS (25/10/2026, terceira leitura)
    ----------------------------------------------------------------------------
-   Três coisas empilhadas acima da lista — o contexto do ato, a ficha em branco e o
-   filtro — ocupavam mais de meia tela de 844px ANTES de se ver um registo.
+   A SEGUNDA VERSÃO ESTAVA ERRADA, e a pesquisadora disse-o com precisão: «ele não
+   tá abrindo um menu igual o menu de opções… o botão de ações tá do lado esquerdo.
+   Ele tem que ficar lá do lado direito, porque ele é igual ao opções que eu te
+   mostrei que fica lá em produção». E: «tem que ter um container dentro desse
+   conjunto de campos… que daí eu posso colapsar isso».
 
-   A PRIMEIRA VERSÃO ERA UM ACORDEÃO, e estava errada: continha o painel do ato e,
-   dentro dele, mais um `details` com a caixinha do contexto — escolher «criar»
-   obrigava a um segundo clique, e o «procurar» ficava a ocupar espaço à vista. O
-   pedido foi revisto: «não é pra ser assim. É pra cada um ter o seu próprio espaço…
-   abrir espaços da página que eu preciso que estejam abertos… com cara de menu».
-
-   Então é um MENU, e cada acção abre o SEU bloco na própria página. A listagem
-   nunca sai de baixo: não se navega entre páginas, abrem-se espaços.
-
-   NO COMPUTADOR O MENU NÃO EXISTE e os dois blocos estão à vista, como sempre
-   estiveram. O que muda entre as larguras é o que está à vista, e não a marcação:
-   o `hidden` — a única regra desta folha com `!important` — é quem esconde.
+   Então:
+   · o «Ações» é o par do «Seções ▾» da Produção — pílula à DIREITA, e uma FOLHA
+     que sobe de baixo com véu (o mesmo desenho de `.lateral-lista`);
+   · cada acção abre o SEU bloco, e os dois blocos são MUTUAMENTE EXCLUSIVOS;
+   · cada bloco é uma `.caixa` — o container com as bordas — e o `summary` dela é
+     o botão de colapsar.
    ========================================================================== */
 .acoes-da-lista { margin: 0 0 1rem; }
-.acoes-do-menu {
-  display: none; cursor: pointer; align-items: center; gap: .4rem;
-}
-.acoes-do-menu:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
-/* A SETA DO BOTÃO. É a mesma `.seta-do-ato` da caixinha, e aqui não fica no canto: é
-   uma seta de menu, ao lado do rótulo, e roda para cima quando o menu está aberto. */
-.acoes-do-menu .seta-do-ato { position: static; width: auto; height: auto; font-size: .8rem; }
-.acoes-do-menu[aria-expanded="true"] .seta-do-ato { transform: rotate(180deg); }
 
-/* O MENU ABERTO — uma lista de três acções, na largura do botão. É o mesmo desenho do
-   menu da barra (`.topnav details.menu`), e não um segundo: quem já abriu um menu
-   nesta casa reconhece este. */
-.menu-de-acoes {
-  position: absolute; z-index: 30; margin: .35rem 0 0; padding: .3rem;
-  min-width: 13rem; list-style: none;
-  background: var(--superficie); border: 1px solid var(--borda);
-  border-radius: var(--raio); box-shadow: var(--sombra-controle);
+/* A PÍLULA, À DIREITA. É a mesma do «Seções»: borda de campo, raio de pílula, e a
+   seta ao lado do rótulo.
+   O SELETOR LEVA O PAI (`.acoes-da-lista .acoes-do-menu`) porque `button.acao` tem
+   especificidade (0,1,1) e vencia o `display:none` daqui — o botão aparecia no
+   computador, que é exactamente o que não pode acontecer. Foi medido: a 1280 o botão
+   estava à vista.
+   `display:block` + `width:max-content` + `margin-left:auto` é o que o põe à
+   direita: `margin-left:auto` num `inline-block` dentro de um `div` de bloco não
+   alinha nada. */
+.acoes-da-lista .acoes-do-menu {
+  display: none; align-items: center; gap: .4rem;
+  width: max-content; margin-left: auto;
+  cursor: pointer; touch-action: manipulation;
 }
-.acoes-da-lista { position: relative; }
+.acoes-da-lista .acoes-do-menu .seta-do-ato { position: static; width: auto; height: auto; font-size: .8rem; }
+.acoes-da-lista .acoes-do-menu[aria-expanded="true"] .seta-do-ato { transform: rotate(180deg); }
+
+/* A FOLHA QUE SOBE. Mesmo desenho de `.lateral-lista` na Produção: fundo de
+   superfície, cantos de cima arredondados, sombra para cima, e a subir em vez de
+   aparecer. O `z-index` fica acima do véu. */
+.veu-do-menu {
+  position: fixed; inset: 0; z-index: 55;
+  background: rgba(31, 28, 26, .36);
+}
+.menu-de-acoes {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  margin: 0; padding: 0 0 calc(var(--esp-4) + env(safe-area-inset-bottom, 0px));
+  list-style: none; max-height: 78vh; overflow-y: auto;
+  background: var(--superficie); border-radius: 20px 20px 0 0;
+  box-shadow: 0 -12px 34px rgba(31, 28, 26, .20);
+}
 .menu-de-acoes li { margin: 0; }
+/* O PUXADOR — a peça que diz «isto desliza». É o mesmo da lista da Produção. */
+.menu-de-acoes::before {
+  content: ""; display: block; width: 36px; height: 4px; border-radius: 2px;
+  background: var(--borda-campo); margin: 10px auto 2px;
+}
 .menu-de-acoes-item {
-  display: block; width: 100%; padding: .55rem .6rem; text-align: left;
-  font: 500 .95rem/1.2 var(--ui); color: var(--texto); text-decoration: none;
-  background: none; border: 0; border-radius: calc(var(--raio) - 2px); cursor: pointer;
+  display: flex; align-items: center; width: 100%; box-sizing: border-box;
+  padding: .85rem var(--esp-5); text-align: left;
+  font: 600 1rem/1.2 var(--ui); color: var(--texto); text-decoration: none;
+  background: none; border: 0; border-radius: 0; cursor: pointer;
 }
 .menu-de-acoes-item:hover, .menu-de-acoes-item:focus-visible {
   background: var(--realce-suave); outline: none;
 }
-/* O ÚLTIMO ITEM É UM LINK («Gerar ficha»), e um link com `width: 100%` numa lista não
-   alinha com os botões: a caixa é a mesma, o `box-sizing` é que não é o mesmo. */
-.menu-de-acoes-item { box-sizing: border-box; }
-.bloco-do-ato > .painel-ato { margin-top: 0; }
-.bloco-do-filtro { margin: .5rem 0; }
-.acoes-da-lista > *:last-child { margin-bottom: 0; }
 
-/* NO TELEMÓVEL o botão aparece: é ele que manda. Fora dele, nada.
-   A CAIXINHA DO CONTEXTO SAI DE CENA AQUI. Ela existe para abrir e fechar o painel, e no
-   telemóvel quem faz isso é o menu — deixá-la seria o segundo clique que o pedido recusa. */
+/* OS BLOCOS — o container com as bordas, e o `summary` como botão de colapsar. */
+.bloco-lista {
+  margin: 0 0 var(--esp-3);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-3);
+  background: var(--superficie); box-shadow: var(--sombra-cartao);
+}
+.bloco-cabeca {
+  display: flex; align-items: baseline; gap: .5rem;
+  padding: var(--esp-3) var(--esp-4);
+  cursor: pointer; list-style: none;
+}
+.bloco-cabeca::-webkit-details-marker { display: none; }
+.bloco-cabeca:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+.bloco-titulo { font: 700 .95rem/1.3 var(--ui); color: var(--texto); }
+.bloco-resumo {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: .82rem; color: var(--texto-suave);
+}
+.bloco-cabeca .seta-do-ato {
+  position: static; width: auto; height: auto; margin-left: auto;
+  font-size: .8rem; transition: transform .16s ease;
+}
+.bloco-lista[open] > .bloco-cabeca .seta-do-ato { transform: rotate(180deg); }
+.bloco-corpo { padding: 0 var(--esp-4) var(--esp-4); }
+/* O FILTRO JÁ NÃO TRAZ MOLDURA PRÓPRIA quando vive dentro do bloco (`semCaixa`): a
+   caixa é a do bloco, e a margem dele é a do corpo. */
+.bloco-corpo .filtro { margin: 0; }
+.bloco-corpo .filtrar { padding: 0; }
+
+/* NO TELEMÓVEL o botão aparece, à direita: é ele que manda. E os blocos nascem
+   FECHADOS — a tela é da listagem, e o «Ações» é a porta. */
 @media (max-width: 560px) {
-  .acoes-do-menu { display: inline-flex; }
-  .bloco-do-ato .painel-ato > summary.trio-item { display: none; }
-  .bloco-do-ato .painel-ato > .corpo-do-ato { padding-top: 0; }
+  .acoes-da-lista .acoes-do-menu { display: block; }
+  .bloco-lista { margin-bottom: 0; }
+  .bloco-lista[open] { margin-bottom: var(--esp-3); }
 }
 
 /* «VER A FICHA EM BRANCO» FICA FORA DO PAINEL. É a única acção que não depende do contexto nem
