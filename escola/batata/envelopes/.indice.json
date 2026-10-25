@@ -17,6 +17,7 @@
       "professor": "cafe-no-bule",
       "ciclo": "01",
       "ajuste_de": null,
+      "gerado_em": "2026-10-23T11:11",
       "aluna": "Aluna B"
     },
     "anamnese-20261023-1112-2.json": {
@@ -26,6 +27,7 @@
       "professor": "cafe-no-bule",
       "ciclo": "01",
       "ajuste_de": null,
+      "gerado_em": "2026-10-23T14:14",
       "aluna": "Aluna C"
     },
     "anamnese-20261023-1112.json": {
@@ -35,6 +37,7 @@
       "professor": "manga-curta",
       "ciclo": "01",
       "ajuste_de": null,
+      "gerado_em": "2026-10-23T11:12",
       "aluna": "Aluna A"
     },
     "plano-20261023-1116.json": {
@@ -44,6 +47,7 @@
       "professor": "cafe-no-bule",
       "ciclo": "01",
       "ajuste_de": null,
+      "gerado_em": "2026-10-23T11:16",
       "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
       "turma": "Balé Nível 2 — Teste 2",
       "repertorio": [
@@ -58,6 +62,7 @@
       "professor": "manga-curta",
       "ciclo": "01",
       "ajuste_de": null,
+      "gerado_em": "2026-10-23T11:17",
       "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
       "turma": "Balé Nível 1 — Teste 2",
       "repertorio": [
@@ -72,6 +77,7 @@
       "professor": "meia-cortada",
       "ciclo": "01",
       "ajuste_de": null,
+      "gerado_em": "2026-10-23T11:24",
       "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 2, com musicalidade e controle do movimento.",
       "turma": "Balé Nível 3 — Teste 2",
       "repertorio": [
@@ -86,6 +92,7 @@
       "professor": "cafe-no-bule",
       "ciclo": "01",
       "ajuste_de": null,
+      "gerado_em": "2026-10-23T11:28",
       "sujeitos": [
         "Aluna B"
       ],
