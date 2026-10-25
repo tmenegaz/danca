@@ -24105,3 +24105,61 @@ turma → «não declarada»), e **zero campos novos**.
 
 **Seis peças, na ordem**, com o custo de cada uma; **seis decisões** que dependem da pesquisadora —
 a primeira é o que fazer com as 23 aulas que não têm marco.
+
+## 25/10/2026 — A fotografia do estado, e a fronteira com o HANDOFF
+
+**O problema.** Uma sessão nova relê o repositório para saber o que pode afirmar sobre ele. Reler é
+caro e não converge: o `HANDOFF.md` **extrai** (commit, professores, ciclos, âncoras, última entrada
+deste registo), mas não **julga** — não diz o que funciona, o que está só planeado, o que é hipótese.
+E o juízo vivia disperso por cinco documentos: `FRENTES.md` tem o panorama das frentes, o
+`PLANEJAMENTO-LASTRO.md` o mapa do produto, o `AGENTS.md` as instruções a agentes, e as análises
+(`PLANO-AULA-E-OBSERVACAO.md`, `PLANO-TABELA-DE-ATIVIDADES.md`, …) os recortes. Não havia um lugar
+onde se lesse, com etiqueta, **o que é facto verificado e o que é interpretação**.
+
+**A decisão: separar extração de juízo, não fundi-los.** A tentação era pôr a curadoria dentro do
+`HANDOFF.md`. Recusada por duas razões. A primeira é o P-06: o `HANDOFF` é descritivo e é **gerado**
+— meter-lhe análise dentro seria escrever juízo num ficheiro que uma máquina reescreve no commit
+seguinte, e o juízo desapareceria sem ninguém dar por isso. A segunda é o custo: o `gerar-handoff.sh`
+roda a cada sessão; a curadoria muda quando o estado muda.
+
+Fica então: **o `HANDOFF.md` extrai; o `ESTADO-ATUAL.md` julga.** E o `HANDOFF` passou a **dizer
+isso** no cabeçalho, logo abaixo do «Para: sessão nova» — porque dois documentos sobre o mesmo
+assunto, sem fronteira escrita, não são dois documentos: são uma divergência à espera de acontecer
+(o `HANDOFF` carrega a data de geração, a fotografia a data da curadoria, e uma sessão nova não tem
+como saber em qual crer).
+
+**Onde ficou, e por que não em `docs/`.** A sugestão inicial era `docs/ESTADO-ATUAL.md`. A auditoria
+mostrou que `docs/` **não existe** e que a raiz é a convenção: 27 `.md`, com prefixos estáveis
+(`ARQUITETURA-*`, `IDEIA-*`, `PLANO-*`) e os canónicos sem prefixo (`AGENTS`, `HANDOFF`, `FRENTES`,
+`REGISTRO`, `CONGELAMENTO`, `REGRAS`, `PROTOCOLO`, `METODO`). Criar uma pasta para um único ficheiro
+seria uma segunda convenção que o `gerar-handoff.sh`, o `check-identidade.js` e os quatro agentes de
+`.github/agents/` não conhecem.
+
+**As etiquetas.** CONFIRMADO (verificado agora) · DECLARADO (dito, não verificado) · DECIDIDO
+(vigente, com motivo neste registo) · HIPÓTESE (interpretação não confirmada) · PENDENTE. Sem
+etiqueta, é prosa — e prosa num documento de estado lê-se como facto. As três travas que já custaram
+caro aqui: não promover um ficheiro a funcionalidade (`avaliacao.js` não é uma avaliação a
+funcionar), não herdar a etiqueta de uma sessão anterior («passou ontem» não é CONFIRMADO hoje), e
+não inventar contagem, caminho, versão ou resultado.
+
+**O que a fotografia já revelou, ao ser escrita.** Duas coisas que ninguém tinha dito:
+
+- **O `HANDOFF.md` estava desatualizado** — dizia `6bdb06a` com o `HEAD` em `7182307`. Não é falha
+  do script: é que a regeneração não está em workflow nenhum, depende de alguém se lembrar.
+- **O resumo do terminal do `gerar-handoff.sh` mente.** A linha final imprime
+  `variantes: $(… "$variantes" …)`, e `variantes` é a variável do **último ciclo do último
+  professor** — não um total. Hoje imprime `variantes: 0` enquanto o documento diz, corretamente,
+  «4 variante(s)» (há 4 manifestos de variante, contados). Quem citar o terminal cita zero.
+  **Não corrigido:** o script é congelado e a correção não é do escopo desta entrada. Fica
+  registado como pendência na §8 da fotografia.
+
+**A transferência é manual, e está escrito que é.** `TRANSFERENCIA-IA.md` é gerado a pedido, com o
+recorte da dúvida daquele momento, e fica **fora do Git** — é contexto efémero de sessão, como as
+saídas de P-04; versioná-lo poria no histórico um retrato que envelhece no commit seguinte e criaria
+conflito a cada geração. Nenhum agente anexa nem envia o documento a serviço nenhum: o usuário
+anexa-o à conversa que quiser.
+
+**Ficheiros.** Novos: `ESTADO-ATUAL.md`, `.github/instructions/estado-atual.instructions.md`,
+`.github/skills/fotografia-do-estado/SKILL.md`. Alterados: `tools/gerar-handoff.sh` (**congelado** —
+motivo declarado no corpo do script, acima), `.gitignore`, `HANDOFF.md` (regenerado por script),
+este registo.

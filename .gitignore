@@ -329,3 +329,10 @@ po_ref/
 # Bastidores a andar com o texto, e os dois menus laterais nos Bastidores.
 !experimentos/provar-barra-e-caminho.js
 !experimentos/provar-listas-do-acervo.js
+
+# A TRANSFERÊNCIA PARA OUTRO ASSISTENTE NÃO É HISTÓRIA DO PROJETO (25/10/2026). O
+# `TRANSFERENCIA-IA.md` é gerado a pedido, com o recorte da dúvida daquele momento, e o usuário
+# anexa-o à conversa que quiser. Versioná-lo criaria conflito a cada geração e poria no histórico
+# um retrato que envelhece no commit seguinte. A fotografia curada — essa sim — é versionada, em
+# `ESTADO-ATUAL.md`: ela é a mesma para todos e não muda a cada pergunta.
+TRANSFERENCIA-IA.md
