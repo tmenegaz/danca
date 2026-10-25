@@ -61,16 +61,14 @@ const MENU = {
       { rotulo: 'Planos', href: '/ciclos/planos/' },
       { rotulo: 'Referências', href: '/ciclos/referencias/' },
     ] },
-    { tipo: 'menu', rotulo: 'Planejamento', itens: [
-      { rotulo: 'Glossário', href: '/planejamento/glossario/' },
-      { rotulo: 'Notação', href: '/planejamento/notacao/' },
-    ] },
     { tipo: 'menu', rotulo: 'Área do Professor', itens: [
       { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
       { rotulo: 'Plano de ensino', href: '/area-do-professor/plano-de-ensino/' },
       { rotulo: 'Plano de Observação', href: '/area-do-professor/plano-de-observacao/' },
       { rotulo: 'Aulas', href: '/aulas/' },
+      { rotulo: 'Notação', href: '/area-do-professor/notacao/' },
     ] },
+    { tipo: 'link', rotulo: 'Consulta', href: '/consulta/' },
   ],
   barra: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
     { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
@@ -116,23 +114,23 @@ console.log('\n2 · O caminho é escrito UMA vez, por muitas passagens que a pá
      a marca e o ☰ — é esse o estado em que cada passagem o lia e o repetia. */
   const pagina = '<html><body>'
     + '<nav class="topnav"><a class="marca" href="/"><svg></svg></a>'
-    + '<span class="doc-atual"><small>Planejamento</small>Notação</span>'
+    + '<span class="doc-atual"><small>Área do Professor</small>Notação</span>'
     + '<button class="hamburger"></button>'
     + '<details class="menu"><summary>Bastidores</summary></details></nav>'
     + '<main><h1>Notação</h1></main></body></html>';
 
-  const uma = nav.aplicar(pagina, MENU, '/planejamento/notacao/');
+  const uma = nav.aplicar(pagina, MENU, '/area-do-professor/notacao/');
   const quantos = (h) => (String(h).match(/class="doc-atual"/g) || []).length;
   provar('depois de UMA passagem há um caminho', quantos(uma) === 1, quantos(uma));
   let h = pagina;
-  for (let i = 0; i < 4; i++) h = nav.aplicar(h, MENU, '/planejamento/notacao/');
+  for (let i = 0; i < 4; i++) h = nav.aplicar(h, MENU, '/area-do-professor/notacao/');
   provar('depois de QUATRO passagens continua a haver um', quantos(h) === 1, quantos(h));
   provar('…e nenhuma delas deixou a coluna a dobrar',
     (String(h).match(/class="coluna"/g) || []).length === 1,
     (String(h).match(/class="coluna"/g) || []).length);
   /* O BLOCO DA PÁGINA NÃO SE PERDE ao retirar o caminho: é a razão de o `extrasDaBarra` existir,
      e o `s5-sessao` da Produção vive no mesmo intervalo. */
-  const comS5 = pagina.replace('<span class="doc-atual"><small>Planejamento</small>Notação</span>',
+  const comS5 = pagina.replace('<span class="doc-atual"><small>Área do Professor</small>Notação</span>',
     '<span class="s5-sessao">Produção · Alunas</span>');
   const depois = nav.aplicar(comS5, MENU, '/bastidores/producao');
   provar('o bloco da página (a S5 da Produção) sobrevive à passagem',
@@ -141,17 +139,20 @@ console.log('\n2 · O caminho é escrito UMA vez, por muitas passagens que a pá
 
 console.log('\n3 · O caminho diz de onde se veio, e o degrau do meio leva de volta');
 {
-  const naLista = nav.caminhoDaPagina(MENU.coluna, '/planejamento/notacao/', 'Notação');
-  provar('na lista: «Planejamento · Notação», dois degraus',
-    lerCaminho(naLista) === '|Planejamento|Notação|', lerCaminho(naLista));
+  const naLista = nav.caminhoDaPagina(MENU.coluna, '/area-do-professor/notacao/', 'Notação');
+  /* «ÁREA DO PROFESSOR · NOTAÇÃO», e não «Planejamento · Notação» (24/10/2026): o grupo
+     «Planejamento» deixou de existir, e a notação passou para a Área do Professor — é outra
+     vista da mesma aula, e é lá que as aulas estão. */
+  provar('na lista: «Área do Professor · Notação», dois degraus',
+    lerCaminho(naLista) === '|Área do Professor|Notação|', lerCaminho(naLista));
   provar('…e o degrau do meio não existe (não se liga a si própria)',
     !/<a /.test(naLista), naLista);
 
   const noDocumento = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/notacao', 'Notação em Benesh');
-  provar('no documento: «Planejamento · Notação · Notação em Benesh», três degraus',
-    lerCaminho(noDocumento) === '|Planejamento|Notação|Notação em Benesh|', lerCaminho(noDocumento));
+  provar('no documento: «Área do Professor · Notação · Notação em Benesh», três degraus',
+    lerCaminho(noDocumento) === '|Área do Professor|Notação|Notação em Benesh|', lerCaminho(noDocumento));
   provar('…e o degrau do meio é uma LIGAÇÃO para a lista',
-    /<a href="\/planejamento\/notacao\/">Notação<\/a>/.test(noDocumento), noDocumento);
+    /<a href="\/area-do-professor\/notacao\/">Notação<\/a>/.test(noDocumento), noDocumento);
   provar('…e o último degrau é o documento, a negrito',
     /<b>Notação em Benesh<\/b>/.test(noDocumento), noDocumento);
 

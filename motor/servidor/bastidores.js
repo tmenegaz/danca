@@ -6257,4 +6257,8 @@ module.exports = {
   PALETAS,
   IDS_DAS_PALETAS,
   PALETA_PADRAO,
+  // AS CURADORIAS (24/10/2026) — a listagem da anamnese precisa de saber a turma de cada aluna,
+  // e quem a declara é a curadoria. Exportada em vez de relida: uma segunda leitura da mesma
+  // chave do KV, com a sua própria forma de a interpretar, divergiria no dia em que uma mudasse.
+  curadorias,
 };

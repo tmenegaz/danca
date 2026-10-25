@@ -318,8 +318,8 @@ function desenharColuna(coluna, pedido, barra) {
  * degrau a apontar para si próprio, e para a trilha saber onde acaba.
  */
 const LISTAS = [
-  '/ciclos/planos', '/ciclos/referencias', '/aulas',
-  '/planejamento/glossario', '/planejamento/notacao',
+  '/ciclos/planos', '/ciclos/referencias', '/aulas', '/consulta',
+  '/area-do-professor/notacao',
   '/area-do-professor/anamnese', '/area-do-professor/plano-de-ensino',
   '/area-do-professor/plano-de-observacao',
 ];
@@ -343,8 +343,14 @@ const LISTAS = [
 const TRILHA_DO_DOCUMENTO = [
   { re: /\/referencias(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Referências', href: '/ciclos/referencias/' },
   { re: /\/plano(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Planos', href: '/ciclos/planos/' },
-  { re: /\/notacao(?:\.html)?$/, grupo: 'Planejamento', rotulo: 'Notação', href: '/planejamento/notacao/' },
-  { re: /\/glossario[-a-z]*(?:\.html)?$/, grupo: 'Planejamento', rotulo: 'Glossário', href: '/planejamento/glossario/' },
+  /* O GRUPO DE CADA DOCUMENTO MUDOU COM OS NOMES (24/10/2026): o «Planejamento» deixou de
+     existir, a notação passou para a Área do Professor (é outra vista da mesma aula) e o
+     glossário passou a «Consulta» (é a ferramenta de consulta). A tabela é a única coisa que liga
+     um documento do pacote à lista de onde ele veio — e é por isso que ela tem de acompanhar o
+     menu: sem isto, o caminho do documento dizia «Planejamento · Notação» numa coluna que já não
+     tem esse grupo. */
+  { re: /\/notacao(?:\.html)?$/, grupo: 'Área do Professor', rotulo: 'Notação', href: '/area-do-professor/notacao/' },
+  { re: /\/glossario[-a-z]*(?:\.html)?$/, grupo: 'Consulta', rotulo: 'Glossário', href: '/consulta/' },
   /* O GRUPO DO DOCUMENTO É ONDE A LISTA MORA, e não o nome da lista. Com «Aulas» dentro da Área
      do Professor (24/10/2026), o caminho de uma aula diz «Área do Professor · Aulas · Aula 01» —
      três degraus que se leem de fora para dentro. Dizer «Aulas · Aulas · Aula 01» era o gaguejar

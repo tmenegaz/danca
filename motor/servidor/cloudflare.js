@@ -320,4 +320,9 @@ async function fetch(request, env, opcoes) {
   return responder(request);
 }
 
-module.exports = { fetch, montarPorta, passosDeGeracao, carregarEstatico, servirEstatico };
+/* O ARMAZENAMENTO, exportado (24/10/2026). A listagem da anamnese, do plano de ensino e do PO
+ * lê os envelopes do acervo — e tem de os ler pelo MESMO caminho que a porta: estático primeiro,
+ * KV depois, e a combinação que o `acervo` monta. Uma segunda forma de ler o mesmo acervo
+ * divergiria no dia em que uma das duas mudasse, e o sintoma seria uma lista a mostrar registos
+ * que a porta já não encontra. */
+module.exports = { fetch, montarPorta, passosDeGeracao, carregarEstatico, servirEstatico, criarArmazenamento };

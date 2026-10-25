@@ -280,9 +280,13 @@ async function principal() {
        item de lista: é a MARCA da coluna, que leva à raiz — e um menu que repete a marca na
        lista é um item a dizer o que o topo já diz. */
     const rotulos = [...(menu.coluna || []), ...(menu.barra || [])].map((g) => g.rotulo);
-    for (const grupo of ['Ciclos', 'Planejamento', 'Área do Professor', 'Bastidores']) {
+    /* «PLANEJAMENTO» DEIXOU DE EXISTIR (24/10/2026), e o grupo deu dois destinos diferentes: a
+       notação foi para dentro da Área do Professor (é outra vista da mesma aula) e o glossário
+       passou a «Consulta» (é a ferramenta de consulta). O que se mede é o menu de HOJE. */
+    for (const grupo of ['Ciclos', 'Área do Professor', 'Consulta', 'Bastidores']) {
       checar('o menu tem «' + grupo + '»', rotulos.indexOf(grupo) !== -1, rotulos);
     }
+    checar('…e já não tem «Planejamento»', rotulos.indexOf('Planejamento') === -1, rotulos);
     /* «AULAS» DEIXOU DE SER UM DESTINO DO TOPO (24/10/2026). Ela era um `tipo: 'link'` na coluna
        — e o mesmo URL aparecia outra vez dentro da Área do Professor. Dois itens para a mesma
        página: a pesquisadora viu-os como aquilo que eram. A lista ficou dentro do grupo, e a
@@ -290,8 +294,15 @@ async function principal() {
     checar('«Aulas» já NÃO é um destino directo no topo da coluna',
       !(menu.coluna || []).some((g) => g.rotulo === 'Aulas'),
       (menu.coluna || []).filter((g) => g.rotulo === 'Aulas'));
-    checar('…e nenhum grupo da coluna é `tipo: link` (só há grupos a abrir)',
-      (menu.coluna || []).every((g) => g.tipo === 'menu'),
+    /* «CONSULTA» É UM DESTINO DIRECTO, e é o único (24/10/2026). Um grupo com um item só seria
+       um menu que abre para mostrar uma linha — o defeito que o `navDoPainel` já tinha
+       justificado. O `tipo: 'link'` do contrato volta a ter uso, e com ele a precedência do
+       destino directo sobre o grupo volta a ser uma regra viva, e não uma guarda. */
+    checar('«Consulta» é um destino directo (`tipo: link`)',
+      (menu.coluna || []).some((g) => g.rotulo === 'Consulta' && g.tipo === 'link'),
+      (menu.coluna || []).filter((g) => g.rotulo === 'Consulta'));
+    checar('…e é o ÚNICO destino directo da coluna',
+      (menu.coluna || []).filter((g) => g.tipo !== 'menu').length === 1,
       (menu.coluna || []).filter((g) => g.tipo !== 'menu').map((g) => g.rotulo));
     checar('«Bastidores» está na BARRA, e não na coluna',
       (menu.barra || []).some((g) => g.rotulo === 'Bastidores')
@@ -319,15 +330,29 @@ async function principal() {
     }
     checar('nenhum item do menu tem o nome de uma turma',
       !/Balé Nível|bale-nivel/.test(JSON.stringify(menu)), null);
-    checar('e a Área do Professor tem QUATRO itens, com duas turmas ou com três',
-      area.itens.length === 4, areaRotulos);
+    checar('e a Área do Professor tem CINCO itens — a Notação entrou ao lado das Aulas',
+      area.itens.length === 5, areaRotulos);
 
     // ── B. O DESENHO AO SERVIR ───────────────────────────────────────────────────────────
     console.log('\nB. A MESMA BARRA EM TODAS AS PÁGINAS (desenhada pela ponte)');
     const producao = require('../motor/servidor/producao.js');
     // A Área do Professor só abre com professor cadastrado — o freio é do produto, não do teste.
+    /* O KV ENTRA AQUI (24/10/2026). As três listas da Área do Professor passaram a ser servidas
+       pela ponte a partir do acervo, e sem `PADD_KV` a rota devolve `null` e a página cai no
+       ASSETS — onde já não existe. A prova mede a página como ela é servida: com um KV vazio, a
+       lista sai no seu estado «ainda não há», e a barra é a mesma. */
+    const dados = new Map();
+    const kv = {
+      async get(k) { return dados.has(k) ? dados.get(k) : null; },
+      async put(k, v) { dados.set(k, String(v)); },
+      async delete(k) { dados.delete(k); },
+      async list(op) {
+        const pref = (op && op.prefix) || '';
+        return { keys: [...dados.keys()].filter((k) => k.startsWith(pref)).map((name) => ({ name })), list_complete: true };
+      },
+    };
     const env = { ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', PROFESSOR_NOME: 'Sapo Bailarino',
-      ASSETS: assetsDe(pub) };
+      PADD_KV: kv, ASSETS: assetsDe(pub) };
 
     const paginas = [
       ['a raiz', '/'],
@@ -394,7 +419,12 @@ async function principal() {
     for (const href of hrefsDeTudo) {
       if (/^(https?:|mailto:|#)/.test(href)) continue;
       const limpo = href.split('#')[0].split('?')[0];
-      if (/^\/(anamnese|plano-ensino|plano-observacao|bastidores)/.test(limpo)) continue; // a porta
+      /* AS ROTAS DA PONTE, e não ficheiros. A porta tem os seus três prefixos; os Bastidores têm
+         os dois deles; e as TRÊS LISTAS DA ÁREA DO PROFESSOR passaram a ser servidas pela ponte
+         a partir do acervo (24/10/2026) — não há ficheiro nenhum em `publicacao/` para elas, e um
+         link vivo sem ficheiro é a coisa certa aqui. O que se confere é que a ROTA responde, e
+         isso é o que a secção B já fez: a página foi medida com 200. */
+      if (/^\/(anamnese|plano-ensino|plano-observacao|bastidores|area-do-professor\/(anamnese|plano-de-ensino|plano-de-observacao))/.test(limpo)) continue;
       let alvo = path.join(pub, decodeURIComponent(limpo));
       if (fs.existsSync(alvo) && fs.statSync(alvo).isDirectory()) alvo = path.join(alvo, 'index.html');
       if (!fs.existsSync(alvo)) mortos.push(href);

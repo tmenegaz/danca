@@ -105,10 +105,13 @@ function destinos(menu) {
      prova diziam «2» em cinco sítios, porque a escola de teste de então (`calango`) tinha duas.
      A `batata` tem uma, e a prova reprovava o comportamento certo por a expectativa estar
      fixa. Uma prova que depende do acervo da escola de teste tem de o perguntar ao acervo. */
+  /* UMA TURMA É O DIRECTÓRIO QUE TEM `ciclos.json` (24/10/2026). A regra era uma lista de nomes a
+     EXCLUIR — `assets`, `ciclos`, `aulas`, `area-do-professor`, `plano-observacao` —, e a cada
+     pasta nova da publicação (agora `consulta/`, e `propostas/` quando a montagem as leva) a
+     conta ficava errada e a prova media a coisa errada sem falhar no sítio. O que faz de um
+     directório uma turma é o manifesto do ciclo, e não o nome que ele não tem. */
   const TURMAS = fs.readdirSync(destino, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && d.name !== 'assets' && d.name !== 'planejamento'
-      && d.name !== 'ciclos' && d.name !== 'aulas' && d.name !== 'area-do-professor'
-      && d.name !== 'plano-observacao')
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(destino, d.name, 'ciclos.json')))
     .map((d) => d.name);
   const N = TURMAS.length;
 
@@ -144,7 +147,14 @@ function destinos(menu) {
    * vez de continuar a jurar que o menu está bom. */
   const fonteProducao = fs.readFileSync(path.join(raiz, 'motor/servidor/producao.js'), 'utf8');
   const prefixosDaPorta = [...fonteProducao.matchAll(/^const PREFIXO_[A-Z]+ = '([^']+)'/gm)].map((m) => m[1]);
-  const rotas = [...prefixosDaPorta, '/bastidores'];
+  /* AS TRÊS LISTAS DA ÁREA DO PROFESSOR SÃO ROTAS (24/10/2026). Elas listam registos do acervo, e
+     por isso passaram a ser servidas pela ponte — não há ficheiro em `publicacao/` para elas, e
+     um `fetch` local dá 404 sem que isso seja um defeito. A lista é lida do ROTEADOR, como os
+     prefixos da porta: se uma rota sair de lá, a prova reprova em vez de continuar a jurar que o
+     menu está bom. */
+  const rotasDoAcervo = ['/area-do-professor/anamnese', '/area-do-professor/plano-de-ensino',
+    '/area-do-professor/plano-de-observacao'];
+  const rotas = [...prefixosDaPorta, ...rotasDoAcervo, '/bastidores'];
   const faltando = [];
   for (const href of todos) {
     const caminho = href.split('?')[0];
@@ -205,7 +215,11 @@ function destinos(menu) {
     rotulos: [...document.querySelectorAll('.coluna-grupo .coluna-itens a')].map((a) => a.textContent.trim()),
   }));
   provar('em /aulas/ o grupo actual é «Área do Professor»', emAulas.atual === 'Área do Professor', emAulas.atual);
-  provar('…e não há nenhum destino directo no topo da coluna', emAulas.directos === 0, emAulas.directos);
+  /* O DESTINO DIRECTO EXISTE OUTRA VEZ (24/10/2026), e agora é «Consulta»: um glossário sozinho
+     num grupo seria um menu que abre para mostrar uma linha. O que se mede é que ele NÃO é a
+     «Aulas» — a lista de aulas vive dentro do grupo, e foi isso que a decisão de 24/10 fixou. */
+  provar('…e o único destino directo da coluna não é a «Aulas»', emAulas.directos === 1,
+    { directos: emAulas.directos, rotulos: emAulas.rotulos });
   provar('…porque a lista de aulas está DENTRO do grupo, com o rótulo «Aulas»',
     emAulas.rotulos.indexOf('Aulas') !== -1, emAulas.rotulos);
   provar('…e o rótulo antigo («Lançamento de aula») já não existe',
@@ -240,9 +254,13 @@ function destinos(menu) {
 
   // O ponteiro abre o grupo e EMPURRA os de baixo — a segunda metade é a que se esquece.
   const antes = col.topoDosGrupos;
+  /* O GRUPO QUE SE ABRE É O PRIMEIRO — «Ciclos» (24/10/2026). Era «Planejamento», e esse grupo
+     deixou de existir quando a notação passou para a Área do Professor e o glossário para
+     «Consulta». O que se mede é o acordeão: um grupo abre e EMPURRA os de baixo, e quem está
+     abaixo de «Ciclos» é a «Área do Professor». */
   const alvo = await pagina.evaluate(() => {
     const g = [...document.querySelectorAll('.coluna .coluna-grupo')]
-      .find((x) => /Planejamento/.test(x.textContent));
+      .find((x) => /Ciclos/.test(x.textContent));
     const t = g.querySelector('.coluna-titulo').getBoundingClientRect();
     return { x: Math.round(t.left + t.width / 2), y: Math.round(t.top + t.height / 2) };
   });
@@ -250,7 +268,7 @@ function destinos(menu) {
   await new Promise((r) => setTimeout(r, 420));
   const durante = await pagina.evaluate(() => {
     const g = [...document.querySelectorAll('.coluna .coluna-grupo')]
-      .find((x) => /Planejamento/.test(x.textContent));
+      .find((x) => /Ciclos/.test(x.textContent));
     const area = [...document.querySelectorAll('.coluna .coluna-grupo')]
       .find((x) => /Área/.test(x.textContent));
     return {
@@ -266,7 +284,7 @@ function destinos(menu) {
   await new Promise((r) => setTimeout(r, 420));
   const depois = await pagina.evaluate(() => {
     const g = [...document.querySelectorAll('.coluna .coluna-grupo')]
-      .find((x) => /Planejamento/.test(x.textContent));
+      .find((x) => /Ciclos/.test(x.textContent));
     return Math.round(g.querySelector('.coluna-itens').getBoundingClientRect().height);
   });
   provar('ao sair, o grupo fecha e os de baixo voltam', depois === 0, depois);
@@ -386,8 +404,12 @@ function destinos(menu) {
   }));
   provar('um plano por turma, três caixas cada',
     caixas.planos === N && caixas.quantas === N * 3, { turmas: N, planos: caixas.planos, caixas: caixas.quantas });
-  provar('as caixas são Turma · Professor · Cadeia',
-    caixas.rotulos.slice(0, 3).join(',') === 'Turma,Professor,Cadeia', caixas.rotulos.slice(0, 3));
+  /* «TURMA · PROFESSOR · PERÍODO» (24/10/2026). A terceira caixa era «Cadeia» — o estado do PO, que
+     passou a viver no SELO ao lado do nome. O que a pesquisadora pediu na listagem dos ciclos foi
+     o INÍCIO E O FIM, e é isso que a terceira caixa diz agora. As três continuam a responder, por
+     esta ordem, «de quem é · quem fez · quando». */
+  provar('as caixas são Turma · Professor · Período',
+    caixas.rotulos.slice(0, 3).join(',') === 'Turma,Professor,Período', caixas.rotulos.slice(0, 3));
   provar('nenhum botão DENTRO da caixa (o botão é a caixa)', caixas.botoesDentro === 0, caixas.botoesDentro);
   provar('o alvo de toque é a caixa inteira (>40px de altura)', caixas.alvo.altura > 40, caixas.alvo);
   provar('e é largo, não um «?» de 20px', caixas.alvo.largura > 100, caixas.alvo);
@@ -400,6 +422,11 @@ function destinos(menu) {
   await abrirCaixa('professor');
   let e = await estadoCaixas();
   provar('tocar na caixa abre o painel dela', e.abertas.join() === 'professor' && e.paineis.join() === 'professor', e);
+  /* A CAIXA DO PERÍODO ABRE E DIZ AS DATAS INTEIRAS — é lá que vive o que a forma curta poupa. */
+  await abrirCaixa('periodo');
+  e = await estadoCaixas();
+  provar('a caixa do período abre e diz o começa/termina',
+    e.abertas.join() === 'periodo' && e.paineis.join() === 'periodo', e);
   await abrirCaixa('turma');
   e = await estadoCaixas();
   provar('abrir outra fecha a primeira', e.abertas.join() === 'turma', e.abertas);
@@ -429,35 +456,30 @@ function destinos(menu) {
     provar('com uma turma só, a busca não esconde nada', filtrado.visiveis === N, filtrado.visiveis);
   }
 
-  // ------------------------------------------------------------------ 8. a escolha de turma
-  /* AS TRÊS PÁGINAS DE ESCOLHA DE TURMA (23/10/2026). O menu deixou de apontar para a porta e
-     passou a apontar para uma lista de turmas — porque a porta abre com a barra de contexto
-     vazia, e quem chegava tinha de saber de cor qual era o professor e qual o ciclo.
-     A prova mede as duas coisas que podem falhar em silêncio: o link tem de levar o contexto
-     certo (o SLUG, não o nome), e a lista tem de ter uma linha por turma. */
-  console.log('\n8 · A escolha de turma leva o contexto no endereço');
-  const turmasMontadas = JSON.parse(fs.readFileSync(path.join(destino, 'nav.json'), 'utf8'));
-  for (const [pasta, rota] of [
-    ['anamnese', '/anamnese/'],
-    ['plano-de-ensino', '/plano-ensino/'],
-    ['plano-de-observacao', '/plano-observacao/'],
-  ]) {
-    await ir('/area-do-professor/' + pasta + '/', 1280, 900);
-    const d = await pagina.evaluate(() => ({
-      linhas: document.querySelectorAll('li.trio-plano').length,
-      acoes: [...document.querySelectorAll('.trio-acoes a')].map((a) => a.getAttribute('href')),
-      conta: (document.getElementById('f-conta') || {}).textContent || '',
-    }));
-    const daPorta = d.acoes.filter((h) => h && h.startsWith(rota));
-    provar('«' + pasta + '» tem uma linha por turma', d.linhas === N, { linhas: d.linhas, turmas: N });
-    provar('«' + pasta + '» aponta para ' + rota + ' com o contexto',
-      daPorta.length === N && daPorta.every((h) => /[?&]professor=/.test(h) && /[?&]ciclo=/.test(h)),
-      daPorta);
-    /* O SLUG, E NÃO O NOME. O `.conf` da turma diz `PROFESSOR="Oculos Redondo"`; o `?professor=`
-       da porta é `oculos-redondo`. Trocar os dois dava uma lista que não encontra ninguém, e o
-       sintoma no ecrã seria «o campo do professor ficou vazio» — sem erro nenhum. */
-    provar('«' + pasta + '» usa o slug do directorio, e não o nome do `.conf`',
-      daPorta.every((h) => !/professor=Oculos/.test(h) && !/Oculos%20/.test(h)), daPorta);
+  // ------------------------------------------------- 8. as listas do acervo são ROTAS, não páginas
+  /* AS TRÊS LISTAS DA ÁREA DO PROFESSOR DEIXARAM DE SER PÁGINAS MONTADAS (24/10/2026).
+   *
+   * Elas listavam TURMAS — uma linha por turma, e as três páginas iguais. A pesquisadora pediu o
+   * que uma listagem tem de dizer («a anamnese de quem, feita por quem, quando»), e isso vive no
+   * ACERVO, que muda a cada ato registado. Uma página montada no deploy mostraria o acervo do
+   * dia do deploy.
+   *
+   * O que se mede AQUI é a fronteira: o menu aponta para elas, e elas já não existem como
+   * ficheiro — quem as serve é a ponte. O conteúdo (uma linha por registo, a ordem das caixas, a
+   * data, o selo) é medido no `provar-listas-do-acervo`, que tem KV para semear; nesta bancada
+   * não há acervo, e uma lista vazia a passar não provaria nada.
+   */
+  console.log('\n8 · As três listas da Área do Professor são servidas, e não montadas');
+  {
+    const fontes = fs.readFileSync(path.join(raiz, 'motor/servidor/producao.js'), 'utf8');
+    for (const pasta of ['anamnese', 'plano-de-ensino', 'plano-de-observacao']) {
+      const caminho = path.join(destino, 'area-do-professor', pasta, 'index.html');
+      provar('«' + pasta + '» já não é um ficheiro em publicacao/', !fs.existsSync(caminho), caminho);
+      provar('…e a ponte tem a rota', fontes.indexOf('/area-do-professor/' + pasta) !== -1, true);
+      const doMenu = (menu.coluna || []).some((g) => (g.itens || []).some(
+        (i) => i.href === '/area-do-professor/' + pasta + '/'));
+      provar('…e o menu aponta para ela', doMenu, (menu.coluna || []).map((g) => g.rotulo));
+    }
   }
 
   // ------------------------------------------------------------------ 9. a lista de aulas pagina

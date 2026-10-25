@@ -23951,3 +23951,87 @@ nomes, o desenho vai para `tools/templates/ciclo.css` com motivo declarado e com
 prova de produto. Ficam também por fazer os três campos que a listagem pede e o modelo não tem
 (sala na turma, período no plano de ensino e no PO) e a passagem das três listas da Área do
 Professor a servidas pelo acervo.
+
+## 24/10/2026 — O padrão da lista aplicado: «Consulta», três caixas por registo, e o valor que não se corta
+
+**A escolha, e ela foi feita depois de ver a bancada.** A caixinha passou a existir **só onde há o
+que abrir** (opção 3): as cinco listas ricas levam três caixas na ordem fixa — **de quem · quem fez
+· quando** —, e as três listas de documento (referências, glossário, notação) levam os mesmos factos
+numa **linha de texto**. Uma caixa que não abre nada é decoração, e decoração gasta altura sem dizer
+mais. E os nomes: **«Planejamento» deixou de existir**.
+
+**A coluna nova.**
+
+```
+Ciclos              Planos · Referências
+Área do Professor   Anamnese do aluno · Plano de ensino · Plano de Observação · Aulas · Notação
+Consulta            → Glossário
+```
+
+O **glossário** é uma ferramenta de consulta e passou a ser um destino directo com esse nome — em
+`/consulta/`. A **notação** é a outra vista da mesma aula, e foi para dentro da Área do Professor,
+ao lado das Aulas: em `/area-do-professor/notacao/`. Com isso o `tipo: 'link'` do `nav.json` volta a
+ter uso, e a precedência do destino directo sobre o grupo deixa de ser uma guarda morta e passa a
+ser uma regra viva.
+
+**O defeito que a listagem publicada tinha, e que foi corrigido antes de se propor.**
+A caixa tem 111px a 390px e o valor lá dentro tinha **67px** — o «?» reservava 30,4px, 27% da
+caixa. Medido na lista de planos que já estava no ar: «Balé Nível 2» (precisa 89), «Cafe No Bule»
+(97) e «PO aguardando» (118) saíam cortados. Duas correções: o «?» deixa de reservar a faixa (67 →
+97px) e o valor quebra em duas linhas. **Depois: zero valores cortados** em cinco rotas e quatro
+larguras.
+
+**As três listas da Área do Professor deixaram de ser montadas.**
+Elas listavam **turmas** — uma linha por turma, e as três páginas iguais. Mas o que uma listagem tem
+de dizer («a anamnese de quem, feita por quem, quando; é aluno novo?») vive no **acervo**, e o
+acervo muda a cada ato registado. Passaram a ser **servidas pela ponte** (`motor/servidor/
+listas-do-acervo.js`), a ler o índice de envelopes — e o desenho é o mesmo das outras cinco, porque
+a listagem é o padrão de todas.
+
+**O que foi preciso acrescentar para a terceira caixa existir:** `gerado_em` no **resumo** do
+índice (`VERSAO_DO_RESUMO` 3 → **4**), e o índice reconstrói-se sozinho na próxima escrita/leitura.
+Sem ele, a lista teria de abrir cada envelope para saber uma data — e a regra da estante é que a
+lista se faz com metadado.
+
+**Onde entrou.**
+- `tools/templates/ciclo.css` — o valor em duas linhas, o «?» sobre a linha do rótulo, e a peça
+  nova **`.fatos`** (a linha de factos das listas sem painel).
+- `motor/nucleo/lista-html.js` — `cartaoDaLista`, `caixasDoCartao`, `painelDoCartao`. Saem
+  `cartaoDoPlano`, `cartaoDeDocumento` e `trioDePlano`: **um cartão para as oito listas**.
+- `tools/montar-publicacao.js` — `itemDoPlano`, `itemDaAula`, `itemDeDocumento`, `dataCurta`,
+  `periodoCurto`; o menu novo; as três listas do acervo saem da montagem; `listaDeAulas` passa a
+  trazer a hora e o dia de cada aula.
+- `motor/nucleo/nav.js` — `LISTAS` e `TRILHA_DO_DOCUMENTO` com os nomes novos.
+- `motor/servidor/listas-do-acervo.js` — **novo**: as três listas a partir do índice de envelopes.
+- `motor/servidor/producao.js` — o bloco 0.2 do `fetch`, antes do ASSETS; e o armazenamento
+  exportado para a prova semear com o mesmo adaptador da produção.
+- `motor/servidor/bastidores.js` — `curadorias` exportada (a anamnese precisa da turma da aluna).
+- `motor/nucleo/porta.js` — `gerado_em` no resumo; versão 4.
+
+**O que a decisão deixa em aberto, e é declarado.**
+- **Sala** não entra agora: fica para o **PLANO-TABELA-DE-ATIVIDADES**, e até lá a caixa «Horário»
+  diz «sala: não declarada». O modelo não tem o campo, e a listagem não o inventa.
+- **Período e vigência** do plano de ensino e do PO continuam a não existir como campo próprio: a
+  caixa «Quando» diz a data do registo, e o painel diz que o período vem do plano do ciclo.
+
+**Com o quê.**
+- `node experimentos/provar-listas-do-acervo.js` — **novo, 24 provas**: uma linha por **registo** e
+  não por turma; a ordem fixa das caixas; a data do carimbo; o selo «nova»/«vinculada»; a turma que
+  vem da curadoria; e as três páginas com a barra, o filtro e a coluna.
+- `provar-navegacao` **64/64** — a conta das turmas passou a ser «o directório que tem
+  `ciclos.json`» (a lista de nomes a excluir ficava errada a cada pasta nova); a secção 8 passou a
+  medir a fronteira (as três são rotas, não ficheiros); as caixas dos planos são
+  Turma · Professor · Período; e o acordeão abre em «Ciclos», que é o primeiro grupo.
+- `provar-barra-unica` **89/0** — «Planejamento» já não existe, «Consulta» é o único destino
+  directo, a Área do Professor tem cinco itens, e os links das três rotas deixam de contar como
+  ficheiros em falta.
+- `provar-barra-e-caminho` **43/43** — o caminho da notação é «Área do Professor · Notação · …».
+- `provar-listas-do-acervo` achou um erro meu à primeira: a prova semeava os envelopes num `env`
+  **sem KV**, e media uma lista vazia a jurar que estava certa.
+- Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 38/38,
+  `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
+  `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,
+  `provar-contexto-do-ato` 37/37, `check-identidade` 20 sem erro.
+- Medido no browser, em cinco rotas e quatro larguras (360, 390, 414, 1280): **nenhum valor
+  cortado**, nada a estourar. Altura por linha: planos 197px a 390 e 141 a 1280; aulas 194 e 111;
+  as três de documento 52–88.

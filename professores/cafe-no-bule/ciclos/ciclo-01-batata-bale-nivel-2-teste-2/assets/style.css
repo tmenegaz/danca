@@ -1432,6 +1432,22 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .trio-acoes { margin-left: auto; display: inline-flex; gap: .3rem; flex-wrap: wrap; }
 .trio-dono { color: var(--texto-suave); font-size: .85rem; margin-top: .15rem; }
 
+/* A LINHA DE FACTOS — as listas que não têm nada para abrir (24/10/2026).
+ *
+ * As referências, o glossário e a notação têm dois ou três factos e nenhum painel: são documentos
+ * de uma turma, e o que há para saber antes de os abrir cabe numa linha. Três caixas aqui seriam
+ * três caixas a repetir «é da turma Balé Nível 1» — e uma caixa que não abre nada é decoração.
+ *
+ * A `.fatos` é a alternativa à `.trio`, e NÃO a substitui: onde há painel, há caixa. O desenho é o
+ * mesmo papel (`--texto` sobre `--fundo-suave` seria a caixa; aqui é texto solto), e é por isso
+ * que as duas se leem como a mesma família sem uma imitar a outra.
+ *
+ * Os `·` são do DESENHO, e não do texto: separados por CSS, a leitura de ecrã não cola as
+ * palavras umas nas outras — o mesmo cuidado que o caminho da barra tem. */
+.fatos { display: flex; flex-wrap: wrap; align-items: baseline; margin: .2rem 0 0; }
+.fatos span { font: 700 .88rem/1.4 var(--ui); color: var(--texto); }
+.fatos span + span::before { content: "·"; margin: 0 .4rem; color: var(--texto-suave); font-weight: 700; }
+
 /* ---------- O FILTRO da lista (23/10/2026) ------------------------------------------------
    Três controles e um contador. Ele é do CLIENTE — filtra a marcação já montada, sem uma
    chamada de rede: numa escola com três turmas e dezoito aulas a lista inteira cabe na página,
@@ -1488,28 +1504,48 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
    pede pontaria, e o dedo tapa o que se quer ler. Agora a caixa inteira é o botão — 48 × 221 px
    medidos — e o «?» passa a ser DESENHO (`aria-hidden`), não controle. De caminho sai um
    aninhamento de botões que o leitor de ecrã anunciava duas vezes. */
+/* O VALOR NÃO SE CORTA (24/10/2026) — e isto era um defeito, medido, na lista já publicada.
+ *
+ * A caixa tem 111px a 390px. O `padding-right` de 1,9rem reservava 30,4px para o «?» — 27% da
+ * caixa —, e o valor ficava com **67px**. Medido na lista de planos do `batata`: «Balé Nível 2»
+ * precisa de 89px, «Cafe No Bule» de 97, «PO aguardando» de 118. Os três saíam cortados com
+ * reticências. O nome da turma cortado numa lista de planos não é um caso de bordo: é a linha.
+ *
+ * Duas correções, e as duas medidas:
+ *
+ *   1. o «?» deixa de reservar a faixa — fica sobre a linha do RÓTULO, que é pequena e não chega
+ *      ao canto, e a linha do valor passa a usar a caixa toda (67 → 97px);
+ *   2. o valor pode ocupar DUAS linhas. Com 97px × 2, tudo o que a listagem escreve cabe: o
+ *      período `02/02/27 → 29/04/27` (152px) em duas, «Açúcar Branco» (109) numa. A forma curta
+ *      do período é de quem escreve o dado — a listagem não abrevia o que recebe.
+ *
+ * O `-webkit-line-clamp` é o que corta na segunda linha com reticências quando não cabe: sem ele
+ * o valor empurrava a caixa para três linhas e as três caixas da fila ficavam desiguais. */
 .trio-item {
   position: relative; display: block; width: 100%; margin: 0; min-width: 0;
   text-align: left; cursor: pointer;
   appearance: none; -webkit-appearance: none; font: inherit; color: inherit;
   background: var(--fundo-suave); border: 1px solid var(--borda-campo);
-  border-radius: var(--raio-2); padding: .45rem 1.9rem .45rem .6rem;
+  border-radius: var(--raio-2); padding: .45rem .6rem;
 }
 .trio-item:hover { background: var(--fundo-hover); border-color: var(--borda-forte); }
 .trio-item:focus-visible { outline: 2px solid var(--marca); outline-offset: 1px; }
 .trio-k {
   display: block; font: 700 .66rem/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase;
   color: var(--texto-suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* O «?» fica POR CIMA desta linha, do lado direito — é ela que lhe cede o canto. */
+  padding-right: 1.25rem;
 }
 .trio-v {
   display: block; font: 700 .95rem/1.25 var(--ui); color: var(--texto);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: normal; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 /* A CÉLULA DIZ QUE ESTÁ ABERTA. Sem isto o painel aparece abaixo da fila e não se sabe de onde
    veio — e com três células iguais, é a única pista. */
 .trio-item[aria-expanded="true"] { background: var(--fundo-citacao); border-color: var(--borda-forte); }
 .trio-item .trio-q {
-  position: absolute; top: .28rem; right: .28rem; width: 1.25rem; height: 1.25rem;
+  position: absolute; top: .2rem; right: .2rem; width: 1.25rem; height: 1.25rem;
   border-radius: var(--raio-pilula); border: 1px solid var(--borda-campo);
   background: var(--superficie); color: var(--texto-suave);
   font: 700 .72rem/1 var(--ui); display: grid; place-items: center;

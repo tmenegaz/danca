@@ -171,6 +171,13 @@ function resumoDaTurma(pastaDoPacote) {
       listaDeAulas: (Array.isArray(ciclo.aulas) ? ciclo.aulas : []).map((a) => ({
         n: String(a && a.n ? a.n : '').padStart(2, '0'),
         marco: String((a && a.marco) || '').trim(),
+        /* A HORA, O DIA E A DURAÇÃO DE CADA AULA (24/10/2026). O `ciclos.json` já os tinha, e a
+         * listagem de aulas passou a mostrá-los: «que horas começa, quanto dura, quem a dá».
+         * Sem eles aqui, a linha da aula só sabia o número e o marco — e o horário é a primeira
+         * coisa que se procura numa lista de aulas. */
+        data: String((a && a.data) || '').trim(),
+        inicio: String((a && a.inicio) || '').trim(),
+        fim: String((a && a.fim) || '').trim(),
       })).filter((a) => a.n),
       lancadas,
     };
@@ -364,16 +371,17 @@ function menuDaEscola({ turmas, blocos }) {
      haja turma: sem turma não há aula nenhuma para listar, e o item apontaria para uma página
      vazia, que é a versão educada de um menu que mente. */
 
-  const temPlanejamento = turmas.some((t) => {
-    const d = t.documentos || {};
-    return d.glossario || d.notacao;
-  });
-  if (temPlanejamento) {
-    coluna.push({ tipo: 'menu', rotulo: 'Planejamento', itens: [
-      { rotulo: 'Glossário', href: '/planejamento/glossario/' },
-      { rotulo: 'Notação', href: '/planejamento/notacao/' },
-    ] });
-  }
+  /* «PLANEJAMENTO» DEIXOU DE EXISTIR (24/10/2026) — e o nome era o menor dos problemas.
+   *
+   * Ele juntava o GLOSSÁRIO e a NOTAÇÃO, que não são a mesma coisa: o glossário é uma ferramenta
+   * de consulta («um helper», nas palavras da pesquisadora), e a notação em Benesh é OUTRA VISTA
+   * da mesma aula — a aula em prosa com tabelas é uma forma de a ler, a notação é a outra. Um
+   * grupo chamado «planejamento» a dizer as duas coisas não dizia nenhuma.
+   *
+   * A NOTAÇÃO VAI PARA A ÁREA DO PROFESSOR, ao lado das aulas (ver abaixo). O GLOSSÁRIO passa a
+   * «Consulta», e como é UM destino só não é um menu que abre para mostrar um item: é um
+   * `tipo: 'link'`, o destino directo que o `nav.json` sempre soube desenhar. */
+  const temConsulta = turmas.some((t) => t.documentos && t.documentos.glossario);
 
   /* A ÁREA DO PROFESSOR — quatro destinos, e nenhum leva a turma na URL.
    *
@@ -392,7 +400,7 @@ function menuDaEscola({ turmas, blocos }) {
    * listas vazias seriam um menu a mentir com educação.
    */
   if (turmas.length) {
-    coluna.push({ tipo: 'menu', rotulo: 'Área do Professor', itens: [
+    const itensDaArea = [
       { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
       { rotulo: 'Plano de ensino', href: '/area-do-professor/plano-de-ensino/' },
       { rotulo: 'Plano de Observação', href: '/area-do-professor/plano-de-observacao/' },
@@ -403,7 +411,21 @@ function menuDaEscola({ turmas, blocos }) {
          `lancamento.html` continua a chamar-se «Lançamento de aula — formulário eletrônico»:
          ele é o documento, e o documento diz o que é. */
       { rotulo: 'Aulas', href: '/aulas/' },
-    ] });
+    ];
+    // A NOTAÇÃO É A OUTRA VISTA DA AULA — fica ao lado dela, não num grupo à parte.
+    if (turmas.some((t) => t.documentos && t.documentos.notacao)) {
+      itensDaArea.push({ rotulo: 'Notação', href: '/area-do-professor/notacao/' });
+    }
+    coluna.push({ tipo: 'menu', rotulo: 'Área do Professor', itens: itensDaArea });
+  }
+
+  /* «CONSULTA» — o glossário, e é um destino directo.
+   *
+   * O nome diz o que ele é para quem o usa: uma ferramenta de consulta, que se abre de vez em
+   * quando e não é trabalho de sala. Vem DEPOIS da Área do Professor porque é auxiliar — a ordem
+   * da coluna é a ordem do uso, e a consulta é o último recurso, não o primeiro. */
+  if (temConsulta) {
+    coluna.push({ tipo: 'link', rotulo: 'Consulta', href: '/consulta/' });
   }
 
   /* A BARRA. Os blocos do sistema vinham do pacote-zero, e o `Bastidores` vinha lá dentro com os
@@ -465,6 +487,145 @@ function dadosDoPlano(t, i) {
   };
 }
 
+
+/** `2027-02-02` → `02/02/27`: o dia e o mês ficam, e o século sai.
+ *
+ * É a forma que cabe na caixa do cartão. A caixa tem 97px úteis a 390px, e `02/02/2027 →
+ * 29/04/2027` mede 187px — pedia três linhas. Com dois dígitos no ano mede 152 e cabe em duas.
+ * As datas inteiras continuam no painel do período, que é onde se vão ler por extenso. */
+function dataCurta(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return m ? m[3] + '/' + m[2] + '/' + m[1].slice(2) : '';
+}
+
+/** O período de um ciclo em duas palavras curtas — ou «a preencher», e nunca uma data inventada. */
+function periodoCurto(t) {
+  const r = t.resumo || {};
+  const de = dataCurta(r.inicio);
+  const a = dataCurta(r.fim);
+  return (de && a) ? de + ' → ' + a : 'a preencher';
+}
+
+/**
+ * O ITEM DA LISTA DE PLANOS — as três caixas na ordem fixa: de quem · quem · quando.
+ *
+ * O ESTADO DA CADEIA NÃO É UMA QUARTA CAIXA. Ele já vivia num SELO ao lado do nome, e é lá que
+ * fica: o selo é «estado», e a caixa é «facto». A data de ancoragem desce para o painel do
+ * período, junto das datas que ela acompanha. Cinco factos couberam em três caixas porque dois
+ * deles não competem pelo mesmo lugar — e a alternativa (quatro caixas) é a que a grelha não
+ * aguenta a 390px.
+ */
+function itemDoPlano(t) {
+  const p = dadosDoPlano(t);
+  const r = t.resumo || {};
+  const turmaCurta = p.turmaCurta;
+  return {
+    nome: p.nome,
+    selo: p.po || '',
+    seloClasse: p.poClasse,
+    acoes: [
+      ['Abrir o plano', p.hrefPlano, ''],
+      ['Referências', p.hrefReferencias, 'secundario'],
+      p.hrefPdf ? ['PDF do ciclo', p.hrefPdf, 'secundario'] : null,
+    ].filter(Boolean),
+    /* A LINHA DE CONTEXTO NÃO REPETE AS CAIXAS. A turma e o professor estão lá em cima; aqui
+     * ficam o ciclo e o volume, que é o que não cabe numa caixa. */
+    contexto: ['Ciclo ' + p.ciclo, p.aulas ? p.aulas + ' aulas previstas' : ''].filter(Boolean).join(' · '),
+    turma: p.turma,
+    professor: p.professor,
+    caixas: [
+      { rotulo: 'Turma', valor: turmaCurta,
+        painel: listas.painelDoCartao([
+          ['Turma', p.turma], ['Ciclo', p.ciclo], ['Aulas previstas', p.aulas]],
+          'Modalidade e tradição são decididas na curadoria, com o professor.') },
+      { rotulo: 'Professor', valor: p.professor,
+        painel: listas.painelDoCartao([
+          ['Professor curado', p.professor], ['Turma', p.turma]],
+          'É a curadoria que liga professor e turma. Sem ela, este plano não existe.') },
+      { rotulo: 'Período', valor: periodoCurto(t),
+        painel: listas.painelDoCartao([
+          ['Começa', data(r.inicio) || 'a preencher'],
+          ['Termina', data(r.fim) || 'sai do início'],
+          ['Frequência', chaveDoConf(confDaTurma(t), 'FREQUENCIA')],
+          ['Ancorada em', p.ancorada]],
+          'A cadeia acrescenta, não edita: um ajuste é um elo novo.') },
+    ],
+  };
+}
+
+/** O `.conf` da variante, ao lado do pacote — o mesmo que o `dadosDoPlano` lê. */
+function confDaTurma(t) {
+  const irmao = path.join(path.dirname(t.pasta), path.basename(t.pasta) + '.conf');
+  return fs.existsSync(irmao) ? fs.readFileSync(irmao, 'utf8') : '';
+}
+
+/**
+ * O ITEM DA LISTA DE AULAS — a turma, o professor, e a HORA.
+ *
+ * «Que turma é essa, que horas começa a aula, qual é a duração, quem é o professor» — é o que a
+ * pesquisadora pediu, e é o que três caixas dão. A SALA não existe no modelo: a turma tem dias,
+ * hora de início por dia e duração, e não tem sala. A caixa diz «não declarada» em vez de
+ * inventar um sítio — e o campo entra com o PLANO-TABELA-DE-ATIVIDADES, que é quando a sala passa
+ * a ser um dado e não uma suposição.
+ */
+function itemDaAula(t, a, indice, total) {
+  const p = dadosDoPlano(t);
+  const hora = a.inicio ? a.inicio + (a.fim ? '–' + a.fim : '') : '';
+  const duracao = (t.resumo && t.resumo.duracao) ? t.resumo.duracao + ' min' : '';
+  const quando = [hora || duracao, hora && duracao ? duracao : ''].filter(Boolean).join(' · ');
+  const acoes = [];
+  if (t.documentos && t.documentos.aulas && fs.existsSync(path.join(t.pasta, 'aula-' + a.n + '.html'))) {
+    acoes.push(['Abrir a aula', '/' + t.variante + '/aula-' + a.n + '.html', '']);
+  }
+  if (fs.existsSync(path.join(t.pasta, 'lancamento.html'))) {
+    acoes.push(['Lançar', '/' + t.variante + '/lancamento.html', 'secundario']);
+  }
+  if (fs.existsSync(path.join(t.pasta, 'captura-aula-' + a.n + '.html'))) {
+    acoes.push(['Captura para impressão', '/' + t.variante + '/captura-aula-' + a.n + '.html', 'secundario']);
+  }
+  return {
+    nome: 'Aula ' + a.n + (a.marco ? ' — ' + a.marco : ''),
+    acoes,
+    contexto: 'Ciclo ' + p.ciclo + ' · aula ' + Number(a.n) + ' de ' + total,
+    turma: p.turma,
+    professor: p.professor,
+    caixas: [
+      { rotulo: 'Turma', valor: p.turmaCurta,
+        painel: listas.painelDoCartao([
+          ['Turma', p.turma], ['Ciclo', p.ciclo], ['Aula', Number(a.n) + ' de ' + total]]) },
+      { rotulo: 'Professor', valor: p.professor,
+        painel: listas.painelDoCartao([['Professor da turma', p.professor]],
+          'A aula não tem professor próprio: quem o tem é a turma, e é a curadoria que a liga.') },
+      { rotulo: 'Horário', valor: quando || '—',
+        painel: listas.painelDoCartao([
+          ['Dia', data(a.data) || '—'],
+          ['Começa às', a.inicio || '—'],
+          ['Termina às', a.fim || '—'],
+          ['Duração', duracao || '—'],
+          ['Sala', 'não declarada']],
+          'A sala entra no modelo com o PLANO-TABELA-DE-ATIVIDADES. Até lá, a listagem diz que '
+          + 'não a tem — não inventa um sítio.') },
+    ],
+  };
+}
+
+/**
+ * O ITEM DE UM DOCUMENTO DE TURMA — referências, glossário, notação.
+ *
+ * SEM CAIXAS, e é a decisão de 24/10/2026: estas três listas têm dois factos (a turma e o ciclo)
+ * mais o código ou a norma, e nenhum painel para abrir. Três caixas seriam três caixas a repetir
+ * «é da turma Balé Nível 1», e uma caixa que não abre nada é decoração. Os mesmos factos vão numa
+ * linha de texto — a `.fatos` —, que é a peça irmã da `.trio`.
+ */
+function itemDeDocumento({ nome, turma, ciclo, terceiro, acoes, contexto }) {
+  return {
+    nome,
+    acoes,
+    contexto: contexto || '',
+    turma,
+    fatos: [turma, 'Ciclo ' + ciclo, terceiro].filter(Boolean),
+  };
+}
 
 /**
  * O DESENHO do menu, pelo módulo que a ponte de produção também usa (`motor/nucleo/nav.js`).
@@ -626,26 +787,11 @@ function principal() {
    * Cada uma é escrita uma vez, a partir do que existe no disco. Não há paginação: uma escola
    * com três turmas e dezoito aulas dá 54 linhas, e o filtro do cliente resolve isso. Quando
    * passar de ~200, a paginação da Produção entra — e não antes. */
-  const planos = turmas.map(dadosDoPlano);
   const escrever = (caminho, html) => {
     const alvo = path.join(destino, caminho);
     fs.mkdirSync(path.dirname(alvo), { recursive: true });
     fs.writeFileSync(alvo, html, 'utf8');
   };
-  escrever('ciclos/planos/index.html', listas.paginaDeLista({
-    titulo: 'Planos do ciclo',
-    subtitulo: nomeDaEscola(zero, escola) + ' · '
-      + (planos.length === 1 ? '1 plano' : planos.length + ' planos'),
-    nav: navDoMenu(menu, '/ciclos/planos/', 'Planos do ciclo'),
-    planos,
-    vazio: 'Ainda não há plano de ciclo nesta escola. Ele nasce quando o Plano de Observação de '
-      + 'uma turma é concluído.',
-  }));
-
-  /* AS OUTRAS QUATRO — listas de documentos, não de planos. O cartão é mais simples de
-     propósito: o que têm para dizer é o nome, a turma e as ações que levam ao documento. */
-  const varias = turmas.length > 1;
-  const sufixo = (t) => (varias ? ' — ' + t.nome : '');
   const escreverLista = (caminho, titulo, subtitulo, itens, vazio, extras) => escrever(caminho,
     listas.paginaDeLista(Object.assign({
       titulo, subtitulo, itens,
@@ -653,103 +799,82 @@ function principal() {
       vazio,
     }, extras || {})));
 
-  /* AS TRÊS PÁGINAS DE ESCOLHA DE TURMA (23/10/2026). O menu aponta para elas, e não para a
-   * porta: a porta abre com a barra de contexto vazia, e quem chega tem de saber de cor qual é o
-   * professor e qual o ciclo. Aqui a turma já é uma linha, e a linha leva o contexto no endereço
-   * — `?professor=<slug>&ciclo=NN`, que é exactamente o que a porta lê.
-   *
-   * O SLUG VEM DO DIRECTORIO (`professores/<slug>/`), e não do `.conf`: o `PROFESSOR` do `.conf`
-   * é o NOME de quem lê («Oculos Redondo»), e o `?professor=` da porta é o slug — o mesmo que a
-   * curadoria e o `api/bastidores/professores` usam. Trocar os dois daria uma lista que não
-   * encontra ninguém, e o sintoma seria «o campo do professor ficou vazio».
-   */
-  const contextoDaTurma = (t, fonte) => {
-    const q = new URLSearchParams({ professor: t.professor, ciclo: t.ciclo });
-    if (fonte) q.set('fonte', fonte);
-    return '?' + q.toString();
-  };
-  for (const [pasta, titulo, subtitulo, rota, acao, fonte] of [
-    ['anamnese', 'Anamnese do aluno', 'A escuta inicial de cada aluna, antes do primeiro registro',
-      '/anamnese/', 'Abrir a anamnese desta turma', ''],
-    ['plano-de-ensino', 'Plano de ensino', 'O plano da turma, elicitado com o professor',
-      '/plano-ensino/', 'Preencher o plano de ensino', 'plano'],
-    ['plano-de-observacao', 'Plano de Observação', 'O que se vai observar na turma, e com que régua',
-      '/plano-observacao/', 'Preencher o Plano de Observação', 'po'],
-  ]) {
-    escreverLista('area-do-professor/' + pasta + '/index.html', titulo, subtitulo,
-      turmas.map((t) => {
-        const plano = dadosDoPlano(t);
-        const acoes = [[acao, rota + contextoDaTurma(t, fonte), '']];
-        if (plano.hrefPlano) acoes.push(['Ver o plano do ciclo', plano.hrefPlano, 'secundario']);
-        return {
-          nome: 'Turma ' + t.nome,
-          turma: t.nome,
-          professor: plano.professor,
-          complemento: [plano.professor, 'Ciclo ' + t.ciclo].filter(Boolean).join(' · '),
-          acoes,
-        };
-      }),
-      'Nenhuma turma curada nesta escola. A turma nasce na curadoria — é ela que liga o professor '
-        + 'à turma, e sem esse elo não há ato para preencher.',
-      { campos: ['busca', 'professor'], singular: 'turma', plural: 'turmas',
-        dica: 'pelo nome da turma ou pelo professor' });
-  }
+  /* 4.2.1 — OS PLANOS DO CICLO. A lista que fixou o padrão, e a primeira a cumpri-lo. */
+  const planos = turmas.map((t) => itemDoPlano(t));
+  escreverLista('ciclos/planos/index.html', 'Planos do ciclo',
+    nomeDaEscola(zero, escola) + ' · '
+      + (planos.length === 1 ? '1 plano' : planos.length + ' planos'),
+    planos,
+    'Ainda não há plano de ciclo nesta escola. Ele nasce quando o Plano de Observação de '
+      + 'uma turma é concluído.',
+    { singular: 'plano', plural: 'planos' });
 
+  /* AS OUTRAS LISTAS DE DOCUMENTO — referências, glossário e notação.
+   *
+   * ELAS NÃO TÊM CAIXAS, e é a decisão de 24/10/2026: dois factos (a turma e o ciclo) mais o
+   * código ou a norma, e nenhum painel para abrir. Ver `itemDeDocumento`.
+   *
+   * E ELAS MUDARAM DE CASA com os nomes novos: o glossário passou a «Consulta» — é a ferramenta
+   * de consulta, e o nome diz isso — e a notação foi para dentro da Área do Professor, ao lado
+   * das aulas, porque a notação é OUTRA VISTA da mesma aula. O Planejamento deixou de existir
+   * como grupo: ele juntava duas coisas que não são a mesma. */
+  const varias = turmas.length > 1;
+  const sufixo = (t) => (varias ? ' — ' + t.nome : '');
 
   escreverLista('ciclos/referencias/index.html', 'Referências',
     'Cada turma tem a sua lista, na norma ABNT',
-    turmas.filter((t) => t.documentos && t.documentos.referencias).map((t) => ({
+    turmas.filter((t) => t.documentos && t.documentos.referencias).map((t) => itemDeDocumento({
       nome: 'Referências Bibliográficas' + sufixo(t),
       turma: t.nome,
-      complemento: 'Ciclo ' + t.ciclo,
+      ciclo: t.ciclo,
+      terceiro: 'ABNT',
       acoes: [['Abrir', '/' + t.variante + '/referencias.html', '']],
-    })), 'Ainda não há referências publicadas nesta escola.');
+    })), 'Ainda não há referências publicadas nesta escola.',
+    { singular: 'lista', plural: 'listas', campos: ['busca', 'turma'] });
+
+  for (const [pasta, titulo, chave, rotulo, terceiro] of [
+    ['consulta', 'Glossário', 'glossario', 'Abrir o glossário', 'Benesh'],
+    ['area-do-professor/notacao', 'Notação', 'notacao', 'Abrir a notação', 'Benesh'],
+  ]) {
+    escreverLista(pasta + '/index.html', titulo, 'O código em que a escola escreve o movimento',
+      turmas.filter((t) => t.documentos && t.documentos[chave]).map((t) => itemDeDocumento({
+        nome: titulo + (chave === 'glossario'
+          ? ' do código ' + (t.codigo || terceiro)
+          : ' em ' + (t.codigo || terceiro)) + sufixo(t),
+        turma: t.nome,
+        ciclo: t.ciclo,
+        terceiro: t.codigo || terceiro,
+        acoes: [[rotulo, '/' + t.variante + '/' + t.documentos[chave], '']],
+      })), 'Ainda não há ' + titulo.toLowerCase() + ' publicado nesta escola.',
+      { singular: 'lista', plural: 'listas', campos: ['busca', 'turma'] });
+  }
 
   /* A LISTA DE AULAS é a porta do lançamento — e é por isso que ela nasce mesmo com uma aula só:
      cada linha tem o lançamento e a captura para impressão. A aula sem página publicada não vira
-     linha: uma linha sem ação nenhuma é um beco. */
-  /* A LISTA DE AULAS É A QUE PAGA (23/10/2026). O `.conf` de cada turma declara dezoito aulas, e
-     três turmas dão 54 linhas — a primeira lista do sistema a passar do que cabe numa tela. Ela
-     pagina pela peça da Produção, e o filtro dela não tem professor: uma aula não tem professor
-     no cartão, quem o tem é a turma, e a turma já está no filtro. */
+     linha: uma linha sem ação nenhuma é um beco.
+     A LISTA DE AULAS É A QUE PAGA (23/10/2026): o `.conf` de cada turma declara dezoito aulas, e
+     três turmas dão 54 linhas — a primeira lista a passar do que cabe numa tela. Ela pagina pela
+     peça da Produção, e o filtro dela não tem professor: uma aula não tem professor no cartão,
+     quem o tem é a turma, e a turma já está no filtro. */
   escreverLista('aulas/index.html', 'Aulas', 'A aula dada e a folha que a acompanha',
-    turmas.flatMap((t) => (t.aulas || []).flatMap((a) => {
-      const acoes = [];
-      if (fs.existsSync(path.join(t.pasta, 'aula-' + a.n + '.html'))) {
-        acoes.push(['Abrir a aula', '/' + t.variante + '/aula-' + a.n + '.html', '']);
-      }
-      if (fs.existsSync(path.join(t.pasta, 'lancamento.html'))) {
-        acoes.push(['Lançar', '/' + t.variante + '/lancamento.html', 'secundario']);
-      }
-      if (fs.existsSync(path.join(t.pasta, 'captura-aula-' + a.n + '.html'))) {
-        acoes.push(['Captura para impressão', '/' + t.variante + '/captura-aula-' + a.n + '.html', 'secundario']);
-      }
-      if (!acoes.length) return [];
-      return [{
-        nome: 'Aula ' + a.n + (a.marco ? ' — ' + a.marco : '') + sufixo(t),
-        turma: t.nome,
-        complemento: 'Ciclo ' + t.ciclo,
-        acoes,
-      }];
-    })), 'Ainda não há aula publicada nesta escola.', {
+    turmas.flatMap((t) => (t.aulas || []).map((a) => itemDaAula(t, a, Number(a.n), t.aulas.length))
+      .filter((i) => i.acoes.length)),
+    'Ainda não há aula publicada nesta escola.', {
       campos: ['busca', 'turma'], singular: 'aula', plural: 'aulas', porPagina: 25,
       dica: 'pelo número, pelo marco ou pela turma',
     });
 
-  for (const [pasta, titulo, chave, rotulo] of [
-    ['planejamento/glossario', 'Glossário', 'glossario', 'Abrir o glossário'],
-    ['planejamento/notacao', 'Notação', 'notacao', 'Abrir a notação'],
-  ]) {
-    escreverLista(pasta + '/index.html', titulo, 'O código em que a escola escreve o movimento',
-      turmas.filter((t) => t.documentos && t.documentos[chave]).map((t) => ({
-        nome: titulo + (chave === 'glossario'
-          ? ' do código ' + (t.codigo || 'Benesh')
-          : ' em ' + (t.codigo || 'Benesh')) + sufixo(t),
-        turma: t.nome,
-        complemento: 'Ciclo ' + t.ciclo,
-        acoes: [[rotulo, '/' + t.variante + '/' + t.documentos[chave], '']],
-      })), 'Ainda não há ' + titulo.toLowerCase() + ' publicado nesta escola.');
-  }
+  /* AS TRÊS LISTAS DA ÁREA DO PROFESSOR NÃO SÃO MONTADAS AQUI (24/10/2026).
+   *
+   * Elas listavam TURMAS — uma linha por turma, e as três páginas iguais. Mas o que a listagem
+   * tem de dizer é «a anamnese de quem, feita por quem, quando», e isso não está no disco: está
+   * no ACERVO, no KV da escola, e muda a cada ato registado. Uma página montada no deploy
+   * mostraria o acervo do dia do deploy.
+   *
+   * Elas passaram a ser SERVIDAS PELA PONTE (`motor/servidor/producao.js`), que lê o índice de
+   * envelopes e desenha a mesma lista. O que fica aqui é só o que a montagem ainda pode dizer: o
+   * menu aponta para as três, e as três existem porque a ponte as serve.
+   */
 
   // A APRESENTAÇÃO TAMBÉM. Ela nasce do `index.html` do pacote-zero, com a barra de lá — a básica,
   // de antes de haver ciclo. Servida ao lado da raiz com outra barra, seria a segunda barra que

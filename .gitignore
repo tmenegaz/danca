@@ -328,3 +328,4 @@ po_ref/
 # defeitos medidos em produção — o `/variante/true` da notação, o caminho escrito três vezes, o
 # Bastidores a andar com o texto, e os dois menus laterais nos Bastidores.
 !experimentos/provar-barra-e-caminho.js
+!experimentos/provar-listas-do-acervo.js

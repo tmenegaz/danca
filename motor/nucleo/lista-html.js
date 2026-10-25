@@ -27,76 +27,105 @@ const esc = (t) => String(t == null ? '' : t)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /**
- * AS TRÊS CAIXINHAS DE UM PLANO — as mesmas da lista de turmas, com a matéria desta lista.
+ * AS CAIXAS DO CARTÃO — até três, e a que tiver painel abre-o.
  *
- * `Turma · Professor · Cadeia`, e não `Ritmo · Régua · Conteúdos` (decidido em 23/10/2026). O
- * ritmo e a régua continuam a um toque, no cartão da turma, na Produção — aqui o que se quer
- * saber antes de abrir o plano é de quem ele é e em que ponto está.
+ * A ORDEM É FIXA, E É ELA QUE FAZ A IDENTIDADE (24/10/2026). Em toda a lista, a primeira caixa
+ * responde «de quem é isto», a segunda «quem fez», a terceira «quando». Muda o RÓTULO — Turma ou
+ * Aluna, Professor ou Quem fez, Período ou Data —, nunca o LUGAR. Quem varre as listas do sistema
+ * lê-as com o mesmo gesto do olho, e é o que a listagem de «Turmas cadastradas» já fazia sem o
+ * declarar.
  *
- * Cada caixa é um `<button class="trio-item">`: a CAIXA INTEIRA é o alvo, e o «?» é desenho
+ * CADA CAIXA É UM `<button class="trio-item">`: a CAIXA INTEIRA é o alvo, e o «?» é desenho
  * (`aria-hidden`). É a peça de `tools/templates/ciclo.css`, a mesma que a Produção usa.
+ *
+ * UMA CAIXA SEM PAINEL NÃO LEVA «?». O «?» promete que há mais dentro; numa lista que só tem um
+ * valor para mostrar, ele seria uma promessa falsa — e um alvo que não faz nada.
  */
-function trioDePlano(p, id) {
-  const itens = [
-    ['Turma', p.turmaCurta || p.turma, 'turma',
-      `<p class="trio-nota">Turma do plano: <b>${esc(p.turma)}</b>.</p>`
-      + `<p class="trio-nota">Modalidade e tradição são decididas na curadoria, com o professor.</p>`],
-    ['Professor', p.professor || '—', 'professor',
-      `<div class="trio-grade"><div><span class="trio-k">Professor curado</span>`
-      + `<span class="trio-v">${esc(p.professor || '—')}</span></div>`
-      + `<div><span class="trio-k">Turma</span><span class="trio-v">${esc(p.turma)}</span></div></div>`
-      + `<p class="trio-nota">É a curadoria que liga professor e turma. Sem ela, este plano não existe.</p>`],
-    ['Cadeia', p.po || '—', 'cadeia',
-      `<div class="trio-grade">`
-      + `<div><span class="trio-k">Ancorada em</span><span class="trio-v">${esc(p.ancorada || '—')}</span></div>`
-      + `<div><span class="trio-k">Estado do PO</span><span class="trio-v">${esc(p.po || '—')}</span></div>`
-      + `<div><span class="trio-k">Aulas previstas</span><span class="trio-v">${esc(p.aulas || '—')}</span></div>`
-      + `<div><span class="trio-k">Elo</span><span class="trio-v">${esc((p.hash || '').slice(0, 12) || '—')}</span></div>`
-      + `</div><p class="trio-nota">A cadeia acrescenta, não edita: um ajuste é um elo novo.</p>`],
-  ];
-  const caixas = itens.map(([rotulo, valor, qual, painel]) =>
-    `        <button type="button" class="trio-item" data-balao="${qual}" aria-expanded="false"`
-    + ` aria-controls="p-${qual}-${id}" aria-label="ver ${esc(rotulo.toLowerCase())} deste plano">`
-    + `<span class="trio-k">${esc(rotulo)}</span>`
-    + `<span class="trio-v">${esc(valor)}</span>`
-    + `<span class="trio-q" aria-hidden="true">?</span></button>`).join('\n');
-  const paineis = itens.map(([, , qual, painel]) =>
-    `      <div class="trio-painel" data-painel="${qual}" id="p-${qual}-${id}" hidden>${painel}</div>`)
-    .join('\n');
-  return `      <div class="trio">\n${caixas}\n      </div>\n${paineis}`;
+function caixasDoCartao(caixas, id) {
+  const botoes = caixas.map((c) => {
+    const chave = 'p-' + escapavel(c.rotulo) + '-' + id;
+    const abre = c.painel
+      ? ' aria-expanded="false" aria-controls="' + chave + '"'
+      : ' data-sem-painel="sim"';
+    return '        <button type="button" class="trio-item" data-balao="' + esc(escapavel(c.rotulo))
+      + '"' + abre + ' aria-label="ver ' + esc(c.rotulo.toLowerCase()) + ' deste registo">'
+      + '<span class="trio-k">' + esc(c.rotulo) + '</span>'
+      + '<span class="trio-v">' + esc(c.valor || '—') + '</span>'
+      + '<span class="trio-q" aria-hidden="true">' + (c.painel ? '?' : '') + '</span></button>';
+  }).join('\n');
+  const paineis = caixas.filter((c) => c.painel).map((c) =>
+    '      <div class="trio-painel" data-painel="' + esc(escapavel(c.rotulo))
+    + '" id="p-' + escapavel(c.rotulo) + '-' + id + '" hidden>' + c.painel + '</div>').join('\n');
+  return '      <div class="trio">\n' + botoes + '\n      </div>'
+    + (paineis ? '\n' + paineis : '');
+}
+
+/** A chave de um `id`: sem acentos, sem espaços, sem maiúsculas. */
+function escapavel(texto) {
+  return String(texto || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 /**
- * UM CARTÃO DE PLANO — a linha do nome, o complemento, as ações e as três caixas.
+ * UM CARTÃO DA LISTA — a linha do nome, a linha de contexto, e o que houver para abrir.
  *
- * A linha de complemento diz o CICLO e o VOLUME, e não a turma nem o professor: esses dois estão
- * nas caixas, e repeti-los seria a mesma informação em dois sítios — e a primeira a envelhecer
- * seria a de baixo.
+ * UM SÓ CARTÃO PARA TODAS AS LISTAS (24/10/2026). Havia dois: o dos planos, com três caixas, e o
+ * dos documentos, mais simples. Diziam a mesma coisa com desenhos diferentes — e, com a listagem
+ * a passar a ser o padrão de TODAS as listas, dois desenhos seriam duas identidades. O que muda de
+ * uma lista para outra é o DADO de cada cartão, não a função que o desenha.
+ *
+ * TRÊS FORMAS, e o dado é que escolhe:
+ *
+ *   · `caixas` — o que tem detalhe dentro. Até três, na ordem fixa de `caixasDoCartao`;
+ *   · `fatos` — o que NÃO tem nada para abrir: as referências, o glossário e a notação. Os mesmos
+ *     factos numa linha de texto, sem caixa. Uma caixa que não abre nada é decoração, e decoração
+ *     gasta altura sem dizer mais;
+ *   · nenhum dos dois — o cartão fica na linha do nome, com as ações.
+ *
+ * A LINHA DE CONTEXTO É UMA SÓ, e não repete o que as caixas dizem: é a regra que a lista dos
+ * planos já seguia, e a primeira informação a envelhecer seria sempre a repetida.
  */
-function cartaoDoPlano(p, indice) {
+function cartaoDaLista(item, indice) {
   const id = String(indice + 1);
-  const busca = [p.nome, p.turma, p.professor].join(' ').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const selo = p.po ? `<span class="selo ${p.poClasse || 'alerta'}">${esc(p.po)}</span>` : '';
-  const acoes = [
-    p.hrefPlano ? `<a class="acao pequena" href="${esc(p.hrefPlano)}">Abrir o plano</a>` : '',
-    p.hrefReferencias ? `<a class="acao secundario pequena" href="${esc(p.hrefReferencias)}">Referências</a>` : '',
-    p.hrefPdf ? `<a class="acao secundario pequena" href="${esc(p.hrefPdf)}">PDF do ciclo</a>` : '',
-  ].filter(Boolean).join('');
-  const complemento = [
-    p.ciclo ? 'Ciclo ' + esc(p.ciclo) : '',
-    p.aulas ? esc(p.aulas) + ' aulas previstas' : '',
-  ].filter(Boolean).join(' · ');
+  const busca = [item.nome, item.turma, item.professor, item.contexto].filter(Boolean)
+    .join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const selo = item.selo
+    ? ' <span class="selo ' + esc(item.seloClasse || 'discreto') + '">' + esc(item.selo) + '</span>'
+    : '';
+  const acoes = (item.acoes || []).filter(([, href]) => href)
+    .map(([rotulo, href, classe]) =>
+      '<a class="acao ' + (classe || '') + ' pequena" href="' + esc(href) + '">' + esc(rotulo) + '</a>')
+    .join('');
+  const fatos = (item.fatos || []).filter(Boolean).length
+    ? '<div class="fatos">' + item.fatos.filter(Boolean)
+      .map((f) => '<span>' + esc(f) + '</span>').join('') + '</div>'
+    : '';
+  const caixas = (item.caixas || []).length ? caixasDoCartao(item.caixas, id) : '';
 
-  return `  <li class="trio-plano" data-busca="${esc(busca)}" data-prof="${esc(p.professor || '')}"`
-    + ` data-turma="${esc(p.turma || '')}">
-    <div class="trio-linha">
-      <span class="trio-nome"><b>${esc(p.nome)}</b> ${selo}</span>
-      <span class="trio-acoes">${acoes}</span>
-    </div>
-    ${complemento ? `<div class="trio-dono">${complemento}</div>` : ''}
-${trioDePlano(p, id)}
-  </li>`;
+  return '  <li class="trio-plano" data-busca="' + esc(busca) + '"'
+    + ' data-prof="' + esc(item.professor || '') + '" data-turma="' + esc(item.turma || '') + '">'
+    + '\n    <div class="trio-linha">'
+    + '\n      <span class="trio-nome"><b>' + esc(item.nome) + '</b>' + selo + '</span>'
+    + '\n      <span class="trio-acoes">' + acoes + '</span>'
+    + '\n    </div>'
+    + (fatos ? '\n    ' + fatos : '')
+    + (item.contexto ? '\n    <div class="trio-dono">' + esc(item.contexto) + '</div>' : '')
+    + (caixas ? '\n' + caixas : '')
+    + '\n  </li>';
+}
+
+/**
+ * UMA CAIXA DE TEXTO PARA O PAINEL — pares rótulo/valor, e uma nota opcional.
+ *
+ * É o corpo que os painéis partilham, e existe para a montagem não escrever marcação: quem sabe
+ * como se desenha um painel é este módulo, e a Produção tinha a própria cópia desta grelha.
+ */
+function painelDoCartao(pares, nota) {
+  const grade = '<div class="trio-grade">' + (pares || []).filter(([k]) => k)
+    .map(([k, v]) => '<div><span class="trio-k">' + esc(k) + '</span><span class="trio-v">'
+      + esc(v || '—') + '</span></div>').join('') + '</div>';
+  return grade + (nota ? '<p class="trio-nota">' + esc(nota) + '</p>' : '');
 }
 
 /**
@@ -148,19 +177,19 @@ function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'p
  * Nenhum `<style>` aqui: a folha do sistema vem em `/assets/style.css`, e uma página que
  * redeclare o desenho das peças é exactamente o que a checagem «Forma» reprova.
  */
-function paginaDeLista({ titulo, subtitulo, nav, planos = [], itens = null, vazio, aviso,
+function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazio, aviso,
   campos, singular, plural, porPagina = 0, dica }) {
   const semNada = `<p class="aviso">${esc(vazio || 'Ainda não há nada para listar nesta escola.')}</p>`;
-  // DUAS FORMAS DE LISTA, e a diferença é só o que se lista: planos (que trazem as três caixas
-  // de cada cartão) ou documentos de uma turma (referências, aulas, glossário), que já vêm como
-  // marcação pronta. O FILTRO é o mesmo nos dois casos desde 23/10/2026 — muda só o que há para
-  // filtrar, e quem diz isso é quem chama.
-  const linhas = itens || planos;
-  const cartoes = itens
-    ? itens.map((i) => (typeof i === 'string' ? i : cartaoDeDocumento(i)))
-    : planos.map(cartaoDoPlano);
-  const conta = { singular: singular || (itens ? 'documento' : 'plano'),
-    plural: plural || (itens ? 'documentos' : 'planos'), dica };
+  /* UMA FORMA DE LISTA (24/10/2026). Havia duas — os planos, com as três caixas, e os documentos,
+   * mais simples —, e a diferença era o desenho de cada cartão. Com a listagem a ser o padrão de
+   * TODAS as listas, dois desenhos seriam duas identidades: o que muda de uma lista para outra é
+   * o DADO de cada cartão (`caixas`, `fatos`, ou nenhum dos dois), não a função que o desenha.
+   *
+   * `planos` continua aceite como sinónimo de `itens`: a montagem chamava-o assim, e um nome
+   * antigo a funcionar é melhor do que uma lista a sair vazia por causa do nome. */
+  const linhas = (itens && itens.length) ? itens : (planos || []);
+  const cartoes = linhas.map((i, n) => (typeof i === 'string' ? i : cartaoDaLista(i, n)));
+  const conta = { singular: singular || 'documento', plural: plural || 'documentos', dica };
   /* A PAGINAÇÃO SÓ EXISTE SE ALGUÉM A PEDIR (`porPagina`). Ela é a peça da Produção, e o
      rodapé nasce `hidden`: com uma página só ele não aparece, e sem JavaScript a lista mostra
      tudo. Não se pagina uma lista de dois planos para mostrar um botão desactivado. */
@@ -280,31 +309,6 @@ const SCRIPT_DA_LISTA = `(function () {
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fechar(null); });
 })();`;
 
-/**
- * UM CARTÃO DE DOCUMENTO — para as listas que não são de planos (referências, aulas, glossário,
- * notação). Ele é MAIS SIMPLES de propósito: o que essas listas têm para dizer é o nome, a que
- * turma pertence, e as ações que levam ao documento. Três caixas num cartão de referências
- * seriam três caixas a repetir «é da turma Balé Nível 1».
- *
- * `acoes` é uma lista de `[rótulo, href, classe]` — e a classe é `''` para a ação principal.
- * Nenhum link é inventado aqui: quem não tem documento não recebe ação.
- */
-function cartaoDeDocumento({ nome, turma, complemento, acoes }) {
-  const busca = [nome, turma, complemento].filter(Boolean).join(' ').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const botoes = (acoes || []).filter(([, href]) => href)
-    .map(([rotulo, href, classe]) =>
-      `<a class="acao ${classe || ''} pequena" href="${esc(href)}">${esc(rotulo)}</a>`).join('');
-  const dono = [turma, complemento].filter(Boolean).join(' · ');
-  return `  <li class="trio-plano" data-busca="${esc(busca)}" data-turma="${esc(turma || '')}">
-    <div class="trio-linha">
-      <span class="trio-nome"><b>${esc(nome)}</b></span>
-      <span class="trio-acoes">${botoes}</span>
-    </div>
-    ${dono ? `<div class="trio-dono">${dono}</div>` : ''}
-  </li>`;
-}
-
 module.exports = {
-  paginaDeLista, cartaoDoPlano, cartaoDeDocumento, trioDePlano, filtro, SCRIPT_DA_LISTA,
+  paginaDeLista, cartaoDaLista, caixasDoCartao, painelDoCartao, filtro, SCRIPT_DA_LISTA,
 };

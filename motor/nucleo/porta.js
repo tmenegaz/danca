@@ -437,7 +437,7 @@ async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
  * aqui entra é o que um dia uma lista pediu — se uma lista nova precisar de outro campo, é
  * aqui que ele passa a existir, e o índice se reconstrói sozinho (a `versao` sobe).
  */
-const VERSAO_DO_RESUMO = 3;
+const VERSAO_DO_RESUMO = 4;
 
 function resumoDoEnvelope(envelope, nome) {
   const id = (envelope && envelope.id) || String(nome || '').replace(/\.json$/, '');
@@ -450,6 +450,15 @@ function resumoDoEnvelope(envelope, nome) {
     professor: contexto.professor || null,
     ciclo: contexto.ciclo || null,
     ajuste_de: (envelope && envelope.ajuste_de) || null,
+    /* A DATA DO REGISTO (24/10/2026) — a versão 4 do resumo.
+     *
+     * Ela existia só no envelope, e a listagem precisa dela para a terceira caixa de toda a
+     * gente: a anamnese «feita quando», o plano «registado quando», o PO «quando». Sem ela no
+     * índice, a lista teria de LER cada envelope para saber uma data — e a regra desta estante
+     * é que a lista se faz com METADADO, numa leitura só.
+     *
+     * O índice reconstrói-se sozinho: quem guarda compara a `versao` e, se for menor, refaz. */
+    gerado_em: (envelope && envelope.gerado_em) || null,
   };
   // O SUJEITO da anamnese é o apelido do CONTEXTO (não a resposta): é o que a lista mostra.
   if (fonte === 'anamnese') resumo.aluna = contexto.aluna || null;

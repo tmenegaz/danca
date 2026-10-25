@@ -27,6 +27,10 @@ const bastidores = require('./bastidores.js');
 const { MARCA, MARCA_NA_BARRA } = require('../../tools/templates/nav-html.js');
 // A BARRA DE NAVEGAÇÃO — o MESMO desenho que a montagem da publicação usa (20/10/2026).
 const navModulo = require('../nucleo/nav.js');
+const { criarArmazenamento } = require('./cloudflare.js');
+// AS TRÊS LISTAS DO ACERVO (24/10/2026) — a anamnese, o plano de ensino e o PO listam REGISTOS,
+// e os registos vivem no KV. Ver o bloco 0.2 do `fetch`.
+const listasDoAcervo = require('./listas-do-acervo.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
 // AS ESCOLAS DE TESTE — os três JSON e o preenchidor. Ver `teste-fixtures.js` e
@@ -360,6 +364,36 @@ async function fetch(request, env) {
       { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
   }
 
+  /* 0.2 AS TRÊS LISTAS DO ACERVO (24/10/2026) — servidas, não montadas.
+   *
+   * A anamnese, o plano de ensino e o Plano de Observação vivem no KV, e mudam a cada ato
+   * registado. Uma página montada no deploy mostraria o acervo do dia do deploy: a anamnese que
+   * o professor acabou de gravar não apareceria até ao deploy seguinte, e a lista mentiria por
+   * omissão — que é o pior modo de mentir.
+   *
+   * Elas são servidas aqui, antes da porta e do ASSETS, e a página é a MESMA das outras cinco:
+   * `lista-html.js`. Quem desenha a barra é o mesmo `nav.js`, e a aparência é a da escola — esta
+   * rota passa pelo `comAparencia` como todas as outras.
+   */
+  if (path === '/area-do-professor/anamnese' || path.startsWith('/area-do-professor/anamnese/')
+    || path === '/area-do-professor/plano-de-ensino' || path.startsWith('/area-do-professor/plano-de-ensino/')
+    || path === '/area-do-professor/plano-de-observacao' || path.startsWith('/area-do-professor/plano-de-observacao/')) {
+    const doAcervo = await listasDoAcervo.pagina(path, {
+      env,
+      menu,
+      escola: env.ESCOLA_SLUG,
+      curadorias: await bastidores.curadorias(env.PADD_KV, env.ESCOLA_SLUG),
+    });
+    if (doAcervo) {
+      const resposta = new Response(doAcervo.html, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'no-store, max-age=0' },
+      });
+      return comAparencia(resposta, await aparenciaDoEnv(env),
+        { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
+    }
+  }
+
   // 1. A porta de elicitação, sob os dois prefixos. Retira-se o prefixo do caminho
   //    (a rota vê `/`, `/api/…`, `/assets/…`) e a ponte lê o conteúdo do
   //    subdiretório do ASSETS.
@@ -416,4 +450,10 @@ async function fetch(request, env) {
   });
 }
 
-module.exports = { fetch, comAparencia, aparenciaDoEnv, menuDaEscola };
+/* O ARMAZENAMENTO DA PONTE, exportado para a prova (24/10/2026). A prova das listas do acervo
+ * semeia envelopes com o MESMO armazenamento que a ponte usa — e não com um KV de mentira com
+ * outra forma. Sem isto, ela provaria o adaptador da prova, e não o da produção. */
+module.exports = {
+  fetch, comAparencia, aparenciaDoEnv, menuDaEscola,
+  __armazenamento: (env) => criarArmazenamento(env),
+};
