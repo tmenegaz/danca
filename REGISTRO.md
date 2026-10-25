@@ -24765,3 +24765,72 @@ formulário, não na abertura.
 transição** e dizia «as duas iguais, logo não roda». Passou a fechar, esperar 300ms, medir, abrir,
 esperar, medir. É a mesma família do `<details>` fechado que não tira a caixa ao conteúdo: o valor
 interpolado responde ao que se perguntou, e não ao que se quis saber.
+
+### 25/10/2026 — A quarta leitura: dois blocos, dois nomes, e o salto sem paragem
+
+**Cinco correções, e a primeira é de desenho — a que eu tinha entendido ao contrário.**
+
+**1. No telemóvel não há acordeões nenhuns.** «Não faz sentido ter esses dois acordeões, contexto do
+ato e procurar, se eu já tenho o botão ações.» O menu **escolhe o espaço**: até ser escolhido, nenhum
+dos dois existe na tela — nem a barra. Depois de escolhido, o bloco aparece **já aberto**; o
+`summary` dele é o «colapsar», e colapsar **esconde-o de novo**, devolvendo a tela à listagem com o
+«Ações» à direita. Escolher o outro fecha este e traz aquele: nunca os dois, e nunca uma barra
+fechada a ocupar espaço.
+
+**2. No computador os dois nascem FECHADOS.** «Ao invés de aparecer o contexto do ato expandido, ele
+vai aparecer também colapsado, igual tá o procurar.» E o nome da barra fechada **não** é «Contexto
+do ato»: «isso é um nome técnico que nós temos aqui enquanto estamos programando». Fechada, a barra
+diz o nome da **acção** — «Fazer anamnese», «Fazer plano de ensino», «Fazer Plano de Observação»;
+aberta, passa a «Contexto do ato», que é o que faz sentido com os campos à vista. A troca é do CSS
+(`.bloco-nome-fechado` / `.bloco-nome-aberto`), sem uma linha de JavaScript — e o resumo do contexto
+só aparece aberto, para não competir com o nome da acção.
+
+**3. Os campos são obrigatórios, e isso diz-se.** Uma linha acima das acções: «Todos estes campos
+são obrigatórios: sem eles o ato não abre.» Um formulário que só diz o que falta *depois* de a
+pessoa tentar é um formulário que a mandou falhar primeiro.
+
+**4. O SALTO PASSAVA PELA PÁGINA INTERMÉDIA — por um instante.** «Quando eu clico em fazer anamnese,
+ele passa pela página intermediária e em seguida carrega a página certa.» Estava: o `?abrir=1` era
+lido no fim do arranque, e até lá a abertura já tinha sido pintada. Agora o `<head>` marca o
+documento (`data-abrir="sim"`) **antes de o corpo ser desenhado**, e uma linha de CSS esconde a
+abertura — quem vem da lista nunca a vê. E se o bilhete **não** autorizar (gasto, expirado, de outro
+ato), a marca é retirada: a abertura volta, a pedir a senha. Sem isso, um bilhete recusado deixaria
+uma página em branco.
+
+**5. «SAIR» VOLTA À LISTA, não à abertura.** «Se eu sair, ele tá voltando pra aquela página
+intermediária que não deveria existir mais.» Quem entrou pelo salto veio da lista: `history.back()`
+devolve-o lá, com a lista da fonte como destino declarado para quando não há histórico (aba nova,
+`target=_blank`). E o **voltar do navegador** também já não reabre a abertura nesse caminho — criar
+no regresso a página que se retirou da ida seria repor o defeito ao contrário.
+
+**6. A senha no formulário só se pede quando vai ser usada.** «Esse espaço de colocar a senha do
+professor, no caso da anamnese, ele só tem que aparecer se eu tiver no modo edição… caso contrário
+tem que ter um comportamento de sessão.» Passou a ser a regra do plano, aplicada à anamnese: dentro
+do formulário o campo só aparece em edição, ou quando não houve bilhete (é o único direito de
+escrita que há).
+
+**7. O RÓTULO QUE FALTAVA — um defeito que a pesquisadora leu como «está livre».** «As anamneses
+que eu já tenho prontas aqui estão livres, né? Não estão vinculadas, estão sem o rótulo indicando se
+ela é livre ou não.» Estavam **sem rótulo nenhum**: a expressão devolvia `''` sempre que a aluna
+tinha turma e a anamnese não estava vinculada — que é o caso mais comum de todos. Um rótulo que só
+aparece em dois dos três estados mente por omissão. Passou a haver sempre um: **vinculada** · **nova**
+· **livre**.
+
+E os botões, com a regra do servidor: a anamnese **solta** → «Editar» (abre o registo com
+`?editar=`, que a anamnese não tinha) e «Apagar»; a **vinculada** → «Ajustar», que acrescenta um elo
+e não apaga o anterior. O nome difere do «derivar» do plano e do PO de propósito: cada família diz o
+que faz no seu vocabulário, e um sinónimo inventado na tela prometeria uma coisa que o servidor não
+conhece. As acções ganharam `title` — a diferença entre editar e ajustar não cabe num rótulo.
+
+**A SALA DE ENSAIO.** «Acho que você pode usar o espaço do experimento pra fazer essa funcionalidade
+toda e eu poder testar isso antes de bater o martelo.» Nasceu `/propostas/proposta-estados.html`,
+no índice das bancadas: os cartões são os **do produto** (`lista-html.cartaoDaLista`, o mesmo módulo
+que serve as três listas, com os dados do fixture), e ao lado está o painel nos dois estados, a
+tabela do que cada família oferece, e a nota dos campos obrigatórios. Não é uma maqueta: é o
+desenhador a sério, com os dados de ensaio.
+
+**Nota de correção — mesma data.** A bancada das propostas partia com um erro de JavaScript em
+qualquer página sem opções (`#bancada` não existe), e a sala de ensaio é a primeira que não as tem.
+Passou a sair cedo quando não há painel. E, pela terceira vez nesta sessão, uma crase dentro de um
+comentário **fechou um template literal** e o erro só apareceu a correr — não a carregar.  Fica
+escrito: nos ficheiros que constroem HTML por template, um comentário com crases é código.

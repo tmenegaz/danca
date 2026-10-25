@@ -216,6 +216,11 @@ function scriptDaBancada(opcoes) {
   var abaRotulo = document.getElementById('bancada-aba-rotulo');
   var botoes = [].slice.call(document.querySelectorAll('.bancada-opcoes button'));
 
+  /* UMA BANCADA SEM OPÇÕES NÃO TEM PAINEL — e o script não pode partir por isso. A sala de ensaio
+     ('proposta-estados') mostra estados, e não escolhe entre opções: não tem '#bancada' nem aba.
+     Sem esta guarda o console acusava um erro de JavaScript numa página que está inteira. */
+  if (!painel || !aba) return;
+
   function opcaoAtual() { return html.getAttribute('data-opcao'); }
 
   function aplicar(opcao) {
@@ -792,6 +797,10 @@ ${nota}`,
  */
 
 const navDoProjeto = require(path.join(RAIZ, 'motor', 'nucleo', 'nav.js'));
+/* O DESENHADOR DOS CARTÕES É O DO PRODUTO, e não uma cópia (25/10/2026). Numa bancada que existe
+   para decidir, um cartão desenhado à mão mostra o cartão que o autor imaginou — e é assim que se
+   aprova uma coisa e se recebe outra. `cartaoDaLista` é o mesmo módulo que serve as três listas. */
+const listasDoNucleo = require(path.join(RAIZ, 'motor', 'nucleo', 'lista-html.js'));
 
 /* OS DOCUMENTOS QUE HOJE SÃO O MENU — contados de `publicacao/calango/nav.json` em 23/10/2026,
  * com duas turmas («Balé Nível 1 — Teste 1» e «Balé Nível 2 — Teste 1») e uma aula publicada
@@ -2138,6 +2147,17 @@ projeto, embutido. Nada aqui muda o que está publicado na escola; a escolha é 
     <span class="abrir">Abrir a proposta →</span>
   </a>
 
+  <a class="cartao" href="proposta-estados.html">
+    <p class="sobre">Sala de ensaio · os estados da lista</p>
+    <h2>O rótulo, o botão e o painel — tudo à vista</h2>
+    <p>Os cartões são os do <strong>produto</strong> (o mesmo módulo que serve as três listas), com
+    os dados do fixture. Junta o que estava provado em separado: os três estados da anamnese
+    (<em>livre</em>, <em>nova</em>, <em>vinculada</em>) com o botão que cada um oferece, os dois do
+    plano de ensino, e o painel do ato <strong>fechado e aberto</strong> — onde se vê o nome da
+    barra a trocar de «Fazer anamnese» para «Contexto do ato».</p>
+    <span class="abrir">Abrir a sala de ensaio →</span>
+  </a>
+
   <a class="cartao" href="proposta-acervo.html">
     <p class="sobre">Proposta 6 · o acervo com a porta</p>
     <h2>A Área do Professor numa página</h2>
@@ -3108,6 +3128,195 @@ ${fichas}
   });
 }
 
+/**
+ * OS ESTADOS DA LISTA — a sala de ensaio do acervo (25/10/2026).
+ *
+ * PORQUE EXISTE. A pesquisadora pediu para ver tudo junto antes de «bater o martelo»: «eu preciso
+ * ver isso tudo funcionando… tenho medo que você esqueça algumas coisas». Cada peça foi provada
+ * em separado (`provar-listas-do-acervo`, `provar-painel-do-ato`); o que faltava era o CONJUNTO
+ * numa página que se abre no telemóvel — os três estados de cada família, os botões que cada um
+ * oferece, e o painel do ato nos dois modos.
+ *
+ * OS CARTÕES SÃO OS DO PRODUTO (`lista-html.cartaoDaLista`), com os dados do fixture. O que é
+ * escrito à mão é só a moldura: os títulos de secção e as duas variantes do painel (fechado e
+ * aberto), porque um `details` só mostra um estado de cada vez e a bancada existe para os mostrar
+ * a par.
+ */
+function proporEstados() {
+  const cartao = (item) => listasDoNucleo.cartaoDaLista(item, 0);
+  const lista = (itens) => '<ul class="trio-lista">' + itens.map(cartao).join('\n') + '</ul>';
+
+  /* OS TRÊS ESTADOS DA ANAMNESE, com o que cada um oferece. É o caso que a pesquisadora abriu:
+     «as anamneses que eu já tenho prontas aqui estão livres… estão sem o rótulo». */
+  const anamneses = [
+    { nome: 'Aluna C', selo: 'livre', seloClasse: 'livre', turma: 'Balé Nível 1',
+      professor: 'Cafe No Bule', contexto: 'vinculada à turma Balé Nível 1',
+      acoes: [['Editar', '/anamnese/?editar=anamnese-c', ''],
+        ['Apagar', '/anamnese/?editar=anamnese-c', 'secundario',
+          'a anamnese solta pode ser apagada; a vinculada, não']] },
+    { nome: 'Aluna D', selo: 'nova', seloClasse: 'livre', turma: '',
+      professor: 'Cafe No Bule', contexto: 'aluna nova — sem turma',
+      acoes: [['Editar', '/anamnese/?editar=anamnese-d', ''],
+        ['Apagar', '/anamnese/?editar=anamnese-d', 'secundario',
+          'a anamnese solta pode ser apagada; a vinculada, não']] },
+    { nome: 'Aluna A', selo: 'vinculada', seloClasse: 'vinculada', turma: 'Balé Nível 1',
+      professor: 'Cafe No Bule', contexto: 'vinculada à turma Balé Nível 1',
+      acoes: [['Ajustar', '/anamnese/?professor=cafe-no-bule&ciclo=01&aluna=Aluna+A', 'secundario',
+        'acrescenta um elo novo; o registo anterior permanece']] },
+  ];
+
+  const planos = [
+    { nome: 'Plano de ensino — Balé Nível 1', selo: 'solta', seloClasse: 'livre',
+      turma: 'Balé Nível 1', professor: 'Cafe No Bule',
+      contexto: 'consolidar o alinhamento e a transferência de peso',
+      acoes: [['Editar', '/plano-ensino/?fonte=plano&editar=plano-a', '']] },
+    { nome: 'Plano de ensino — Balé Nível 2', selo: 'vinculada', seloClasse: 'vinculada',
+      turma: 'Balé Nível 2', professor: 'Cafe No Bule', contexto: 'observado por um PO',
+      acoes: [['Abrir no formulário', '/plano-ensino/?fonte=plano&professor=cafe-no-bule', 'secundario']] },
+  ];
+
+  const corpo = `<header class="doc">
+  <h1>Os estados da lista</h1>
+  <p class="subtitulo">Sala de ensaio · o rótulo, o botão e o painel do ato, tudo à vista</p>
+</header>
+<main>
+<div class="conteudo">
+
+  <div class="caixa nota">
+    <h3>O que esta página é</h3>
+    <p>Os cartões abaixo são desenhados pelo <b>mesmo módulo que serve as três listas</b>
+    (<code>lista-html.cartaoDaLista</code>), com os dados do fixture — não são uma maqueta. O que
+    esta página junta é o que estava provado em separado: os três estados de cada família, o botão
+    que cada um oferece, e o painel do ato nos dois estados.</p>
+  </div>
+
+  <h2>1 · Anamnese — o rótulo que faltava</h2>
+  <p class="subtitulo">Antes, a anamnese de uma aluna <b>com</b> turma não levava selo nenhum.
+  Quem lia não sabia se estava livre ou se o rótulo é que não viera.</p>
+  ${lista(anamneses)}
+  <p class="estado-do-ato"><b>livre</b> — a aluna tem turma e nenhum Plano de Observação a usa:
+  edita-se e apaga-se. <b>nova</b> — a aluna ainda não está em curadoria nenhuma; é a porta de
+  entrada, e qualquer professor a pode entrevistar. <b>vinculada</b> — um PO já a usa: não se
+  edita, acrescenta-se um elo («ajustar»), e o registo anterior permanece.</p>
+
+  <h2>2 · Plano de ensino — o mesmo rótulo, outro vocabulário</h2>
+  <p class="subtitulo">Aqui o gesto da ficha ligada chama-se <b>derivar</b>, e não «ajustar»: cada
+  família diz o que faz no seu próprio vocabulário, e um sinónimo inventado na tela prometeria uma
+  coisa que o servidor não conhece.</p>
+  ${lista(planos)}
+
+  <h2>3 · O painel do ato — fechado e aberto</h2>
+  <p class="subtitulo">Fechado, o nome da barra é o da <b>acção</b> («Fazer anamnese»): «contexto
+  do ato» é vocabulário de quem programa. Aberto, passa a «Contexto do ato», que é o que faz
+  sentido com os campos à vista.</p>
+
+  <div class="acoes-da-lista">
+    <details class="bloco-lista">
+      <summary class="bloco-cabeca">
+        <span class="bloco-titulo bloco-nome-fechado">Fazer anamnese</span>
+        <span class="bloco-titulo bloco-nome-aberto">Contexto do ato</span>
+        <span class="bloco-resumo">Cafe No Bule · ciclo 01 · Aluna A</span>
+        <span class="seta-do-ato" aria-hidden="true">▾</span>
+      </summary>
+      <div class="bloco-corpo">
+        <div class="campos-do-ato">
+          <span class="campo"><label class="campo-rotulo">professor</label>
+            <select><option>Cafe No Bule</option></select></span>
+          <span class="campo"><label class="campo-rotulo">ciclo</label>
+            <input type="text" value="01"></span>
+          <span class="campo"><label class="campo-rotulo">aluna</label>
+            <select><option>Aluna A</option></select></span>
+          <span class="campo campo-senha"><label class="campo-rotulo">senha do professor</label>
+            <input type="password" value="……"></span>
+        </div>
+        <p class="obrigatorios">Todos estes campos são obrigatórios: sem eles o ato não abre.</p>
+        <div class="acoes-do-ato">
+          <button type="button" class="acao">Fazer anamnese</button>
+        </div>
+      </div>
+    </details>
+    <p class="subtitulo">↑ fechado — o estado de repouso no computador</p>
+
+    <details class="bloco-lista" open>
+      <summary class="bloco-cabeca">
+        <span class="bloco-titulo bloco-nome-fechado">Fazer anamnese</span>
+        <span class="bloco-titulo bloco-nome-aberto">Contexto do ato</span>
+        <span class="bloco-resumo">Cafe No Bule · ciclo 01 · Aluna A</span>
+        <span class="seta-do-ato" aria-hidden="true">▾</span>
+      </summary>
+      <div class="bloco-corpo">
+        <div class="campos-do-ato">
+          <span class="campo"><label class="campo-rotulo">professor</label>
+            <select><option>Cafe No Bule</option></select></span>
+          <span class="campo"><label class="campo-rotulo">ciclo</label>
+            <input type="text" value="01"></span>
+          <span class="campo"><label class="campo-rotulo">aluna</label>
+            <select><option>Aluna A</option></select></span>
+          <span class="campo campo-senha"><label class="campo-rotulo">senha do professor</label>
+            <input type="password" value="……"></span>
+        </div>
+        <p class="obrigatorios">Todos estes campos são obrigatórios: sem eles o ato não abre.</p>
+        <div class="acoes-do-ato">
+          <button type="button" class="acao">Fazer anamnese</button>
+        </div>
+      </div>
+    </details>
+    <p class="subtitulo">↑ aberto — o nome troca, e os campos aparecem</p>
+
+    <details class="bloco-lista">
+      <summary class="bloco-cabeca">
+        <span class="bloco-titulo">Procurar</span>
+        <span class="seta-do-ato" aria-hidden="true">▾</span>
+      </summary>
+      <div class="bloco-corpo">
+        <form class="filtro" onsubmit="return false"><div class="filtrar">
+          <div class="campo-filtro busca"><label class="campo-rotulo" for="pe-busca">Procurar</label>
+            <input id="pe-busca" type="search" placeholder="pelo nome, pela turma ou pelo professor"></div>
+        </div></form>
+      </div>
+    </details>
+    <p class="subtitulo">↑ o outro bloco — <b>nunca os dois abertos</b></p>
+  </div>
+
+  <h2>4 · O menu «Ações» — só no telemóvel</h2>
+  <p class="subtitulo">No computador ele não aparece: as duas barras estão à vista e um clique a
+  mais seria pior do que não o ter. No telemóvel é ele que manda, e abre a folha que sobe de
+  baixo — o desenho do «Seções» da Produção.</p>
+  <div class="acoes-da-lista">
+    <button type="button" class="acao acoes-do-menu" aria-expanded="true">Ações<span
+      class="seta-do-ato" aria-hidden="true">▾</span></button>
+  </div>
+  <div class="caixa nota">
+    <p>A folha é <code>position:fixed</code> e cobre a página com um véu — numa bancada ela
+    taparia o resto do que há para ver, e por isso aqui está descrita e não aberta. No produto
+    ela abre com um toque, fecha com o véu, e cada acção abre o seu bloco.</p>
+  </div>
+
+  <h2>5 · O que cada família oferece</h2>
+  <div class="caixa">
+    <table class="tabela">
+      <thead><tr><th>Registo</th><th>Selo</th><th>O que se pode fazer</th></tr></thead>
+      <tbody>
+        <tr><td>Anamnese solta e não usada</td><td>livre</td><td>Editar · Apagar</td></tr>
+        <tr><td>Anamnese de aluna sem curadoria</td><td>nova</td><td>Editar · Apagar</td></tr>
+        <tr><td>Anamnese usada por um PO</td><td>vinculada</td><td>Ajustar (elo novo)</td></tr>
+        <tr><td>Plano de ensino não observado</td><td>solta</td><td>Editar</td></tr>
+        <tr><td>Plano de ensino observado por um PO</td><td>vinculada</td><td>Abrir no formulário</td></tr>
+        <tr><td>Plano de Observação</td><td>—</td><td>Corrigir · Derivar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</main>`;
+
+  return pagina({
+    titulo: 'Os estados da lista',
+    corpo,
+    opcoes: [],
+  });
+}
+
 // ==================================================================================== escrever
 
 const arquivos = {
@@ -3118,6 +3327,7 @@ const arquivos = {
   'proposta-listagem.html': proporListagem(),
   'proposta-padrao-da-lista.html': proporPadraoDaLista(),
   'proposta-acervo.html': proporAcervo(),
+  'proposta-estados.html': proporEstados(),
 };
 
 for (const [nome, texto] of Object.entries(arquivos)) {
