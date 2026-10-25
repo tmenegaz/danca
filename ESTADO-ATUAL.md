@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/10/2026 (6.ª do dia, após a escolha da opção A), sobre o commit `7dcaa0a`.
+> **Última fotografia:** 25/10/2026 (7.ª do dia, após a opção A implementada no produto), sobre o commit `d5f5290`.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -128,7 +128,7 @@ Verificado nesta fotografia, com os comandos da §9.
 |:--|:--|:--|
 | Navegação: coluna + barra + caminho | **CONFIRMADO** | `motor/nucleo/nav.js` |
 | Listas no padrão novo (8 listas) | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
-| As três listas da Área do Professor **com porta para o formulário** | **CONFIRMADO** 25/10/2026 — botão do topo + destino por linha; 41 provas | `motor/servidor/listas-do-acervo.js` |
+| As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado; 30 verificações no browser | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
 | Anamnese: formulário, vínculo, ajuste | **CONFIRMADO** | `rotas.js` (11 rotas `/api/anamnese*`) |
 | Plano de ensino: formulário e vínculo | **CONFIRMADO** | `rotas.js` (`/api/planos`, `/api/plano-*`) |
@@ -306,11 +306,13 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
   `mostrarRetomada()` e no «recomeçar» de `porta/index.html`: sem memória → «Nova»; com memória →
   «Continuar de onde parei» + «Começar de novo», e «Nova» **escondido**; «Começar de novo» limpa e
   devolve «Nova». A bancada executa-a com `localStorage`.
-- **Cinco regras a nascer na folha** quando isto se implementar: `details[open] > summary.trio-item`,
-  `.painel-ato`, `.campos-do-ato`, `.acoes-do-ato`, `.estado-do-ato`. **PENDENTE** — exigem entrada
-  no catálogo de `IDENTIDADE-VISUAL.md` e prova do `check-identidade`.
-- **A implementação no produto.** `motor/`, `porta/` e `tools/templates/` **não foram alterados**:
-  a proposta está na bancada. **PENDENTE** — é a próxima etapa, e não foi pedida ainda.
+- **A implementação no produto — FEITA em 25/10/2026.** Cinco regras novas na folha (congelada:
+  motivo declarado + registo + commit próprio), a peça no catálogo, `paginaDeLista` com `painel` e
+  `script`, e o painel a executar a regra da porta. **CONFIRMADO** por
+  `provar-painel-do-ato` no browser (30 verificações) e `provar-listas-do-acervo` (65).
+- **O ícone é a seta `▾`, não o «?»** — rodada 180° no `[open]`. **DECIDIDO** em 25/10/2026.
+- **O contexto escolhido é guardado** (`ato-<escola>-<fonte>-1`), sem a senha. **DECIDIDO** — foi a
+  correcção de um defeito que só a prova apanhou: sem ele o «continuar de onde parei» nunca aparecia.
 
 ### Dúvidas sobre este próprio protocolo
 
@@ -371,6 +373,11 @@ Ações imediatas, sem transformar hipótese em compromisso:
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **25/10/2026** — **a opção A implementada no produto**: o contexto do ato passa a ser um painel
+  dentro das três listas da Área do Professor, aberto pela caixinha do «Turma» na faixa inteira, com
+  a seta `▾` a rodar para cima ao abrir. O botão solto do topo saiu (duas portas, e a segunda sem o
+  contexto). A regra dos três botões da porta passa a ser executada, com a mesma chave de memória; o
+  contexto escolhido é guardado sem a senha. Duas armadilhas da bancada ficaram escritas na prova.
 - **25/10/2026** — **a opção A do «acervo com a porta», escolhida e corrigida**: a caixinha do
   «Turma» passa a abrir o painel, na faixa inteira (nove propriedades iguais às da caixa do cartão,
   provadas); «ver a ficha em branco» sai do painel e fica sempre à vista; com preenchimento

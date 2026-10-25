@@ -178,7 +178,7 @@ function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'p
  * redeclare o desenho das peças é exactamente o que a checagem «Forma» reprova.
  */
 function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazio, aviso,
-  campos, singular, plural, porPagina = 0, dica, acao = null }) {
+  campos, singular, plural, porPagina = 0, dica, acao = null, painel = null, script = null }) {
   const semNada = `<p class="aviso">${esc(vazio || 'Ainda não há nada para listar nesta escola.')}</p>`;
   /* UMA FORMA DE LISTA (24/10/2026). Havia duas — os planos, com as três caixas, e os documentos,
    * mais simples —, e a diferença era o desenho de cada cartão. Com a listagem a ser o padrão de
@@ -186,7 +186,13 @@ function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazi
    * o DADO de cada cartão (`caixas`, `fatos`, ou nenhum dos dois), não a função que o desenha.
    *
    * `planos` continua aceite como sinónimo de `itens`: a montagem chamava-o assim, e um nome
-   * antigo a funcionar é melhor do que uma lista a sair vazia por causa do nome. */
+   * antigo a funcionar é melhor do que uma lista a sair vazia por causa do nome.
+   *
+   * `painel` E `script` (25/10/2026) — o bloco que vai ACIMA da lista, e o JavaScript que o põe a
+   * funcionar. Existem porque a Área do Professor passou a ter o contexto do ato dentro da própria
+   * listagem: um `details` com os campos, as acções de começar e o estado do preenchimento. Ficam
+   * como parâmetros, e não como um segundo desenho de página, para a lista continuar a ser UMA —
+   * quem não os passa recebe exactamente a página de antes. */
   const linhas = (itens && itens.length) ? itens : (planos || []);
   const cartoes = linhas.map((i, n) => (typeof i === 'string' ? i : cartaoDaLista(i, n)));
   const conta = { singular: singular || 'documento', plural: plural || 'documentos', dica };
@@ -226,6 +232,7 @@ ${nav}
 <main>
 <div class="conteudo">
 ${aviso ? `<div class="aviso">${aviso}</div>` : ''}
+${painel || ''}
 ${lista}
 </div>
 </main>
@@ -235,6 +242,7 @@ ${lista}
 <script src="/assets/nav.js"></script>
 <script>${SCRIPT_DA_LISTA}</script>
 ${porPagina ? '<script>' + paginacao.script + '</script>' : ''}
+${script || ''}
 
 </body>
 </html>

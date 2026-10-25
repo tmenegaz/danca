@@ -342,3 +342,10 @@ po_ref/
 # um retrato que envelhece no commit seguinte. A fotografia curada — essa sim — é versionada, em
 # `ESTADO-ATUAL.md`: ela é a mesma para todos e não muda a cada pergunta.
 TRANSFERENCIA-IA.md
+# O PAINEL DO ATO, E AS DUAS ARMADILHAS DA BANCADA (25/10/2026). A prova mede a caixinha do
+# «Turma» a abrir o contexto, a seta a rodar 180°, e a regra dos três botões a ser executada.
+# Ela fica porque o que ela protege não se vê: um `summary` com `display: list-item` (o marcador
+# nativo do navegador) e uma folha servida com o `Content-Type` errado dão os DOIS o mesmo
+# sintoma — a página parece certa e todas as medidas valem zero. Foi assim que esta bancada
+# mentiu duas vezes antes de dizer a verdade.
+!experimentos/provar-painel-do-ato.js

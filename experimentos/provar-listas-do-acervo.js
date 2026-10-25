@@ -268,22 +268,53 @@ function pedacos(html) {
     }
   }
 
-  console.log('\n7 · A LISTA TEM PORTA — o botão de criar, e um destino por linha');
+  console.log('\n7 · A LISTA TEM PORTA — o painel do ato, e um destino por linha');
   {
-    /* O BOTÃO DA PÁGINA. O rótulo muda com a fonte; o destino é a porta que serve aquele
-       formulário. «/anamnese/» é a mesma página que o PO, com a fonte a decidir — por isso o
-       plano e o PO levam `?fonte=`, e a anamnese não (o caminho já a diz). */
+    /* O PAINEL DO ATO SUBSTITUIU O BOTÃO DO TOPO (25/10/2026). Ele é a porta: a caixinha do
+       «Turma» (com a seta, e NÃO com o «?» das outras células) abre os campos e as acções, e é
+       das acções que se vai ao formulário. O que se prova aqui é que a caixinha existe, que ela
+       usa a peça certa, e que o ícone dela é o que o pedido exigiu. */
     const esperado = [
-      ['/area-do-professor/anamnese/', '/anamnese/', 'Nova anamnese'],
-      ['/area-do-professor/plano-de-ensino/', '/plano-ensino/?fonte=plano', 'Novo plano de ensino'],
-      ['/area-do-professor/plano-de-observacao/', '/plano-observacao/?fonte=po', 'Novo Plano de Observação'],
+      ['/area-do-professor/anamnese/', 'Nova anamnese', true],
+      ['/area-do-professor/plano-de-ensino/', 'Novo plano de ensino', false],
+      ['/area-do-professor/plano-de-observacao/', 'Novo Plano de Observação', false],
     ];
-    for (const [caminho, href, rotulo] of esperado) {
+    for (const [caminho, rotulo, temAluna] of esperado) {
       const r = await pedir(caminho);
-      const noTopo = new RegExp('<a class="acao" href="' + href.replace(/[?]/g, '\\?')
-        + '">' + rotulo + '</a>').test(r.html);
-      provar(caminho + ': o botão «' + rotulo + '» leva a ' + href, noTopo,
-        (r.html.match(/<header class="doc">[\s\S]*?<\/header>/) || [''])[0].slice(0, 400));
+      const painel = (/<details class="painel-ato" id="painel-ato">([\s\S]*?)<\/details>/.exec(r.html) || [])[1] || '';
+      provar(caminho + ': tem o painel do ato', !!painel, painel.slice(0, 60));
+      /* A CAIXINHA É A PEÇA DO «TURMA» — `summary.trio-item` com o rótulo em versalete. */
+      provar(caminho + ': a caixinha que o abre é a peça `trio-item`',
+        /<summary class="trio-item">/.test(painel), painel.slice(0, 120));
+      provar(caminho + ': o rótulo dela é «Contexto do ato»',
+        /<span class="trio-k">Contexto do ato<\/span>/.test(painel), painel.slice(0, 200));
+      /* O ÍCONE É A SETA, E NÃO O «?». O pedido de 25/10/2026 foi explícito: «nessa caixinha não
+         tem o ponto de interrogação… vai pôr o mesmo ícone que você estava usando no acordeão».
+         Uma seta para baixo (▾, U+25BE) que roda 180° ao abrir, no CSS. */
+      provar(caminho + ': o ícone é a SETA, e não o «?»',
+        /<span class="seta-do-ato" aria-hidden="true">\u25BE<\/span>/.test(painel)
+        && !/<span class="trio-q"/.test(painel),
+        (painel.match(/<span class="[a-z-]*"(?: aria-hidden="true")?>[^<]{0,3}<\/span>/g) || []).slice(0, 4));
+      /* AS ACÇÕES DE COMEÇAR, com a regra da porta: «Nova» visível, as outras duas `hidden` —
+         só aparecem quando há preenchimento interrompido (é o JavaScript que as revela). */
+      const botoes = /data-acao="nova"[^>]*>([^<]*)</.exec(painel);
+      provar(caminho + ': a acção de criar é «' + rotulo + '»',
+        !!botoes && botoes[1].trim() === rotulo, botoes && botoes[1]);
+      provar(caminho + ': «continuar» e «recomeçar» nascem escondidos (a regra da porta)',
+        /data-acao="continuar" hidden/.test(painel) && /data-acao="recomecar" hidden/.test(painel),
+        painel.slice(0, 40));
+      /* «VER A FICHA EM BRANCO» FICA FORA DO PAINEL — não depende do contexto nem da senha, e
+         por isso está à vista com o painel fechado. */
+      const ficha = (/<p class="ficha-em-branco">[\s\S]*?<\/p>/.exec(r.html) || [''])[0];
+      provar(caminho + ': «ver a ficha em branco» fica FORA do painel',
+        !!ficha && !painel.includes('ficha-em-branco') && /api\/ficha\?formato=html/.test(ficha),
+        ficha.slice(0, 120));
+      /* E O CAMPO DA ALUNA SÓ EXISTE NA ANAMNESE — no plano e no PO não há sujeito a escolher. */
+      provar(caminho + ': o campo «aluna» ' + (temAluna ? 'existe' : 'não existe'),
+        /data-ato="aluna"/.test(painel) === temAluna, /data-ato="aluna"/.test(painel));
+      /* O BOTÃO DO TOPO SAIU: duas portas para o mesmo ato, e a segunda sem o contexto. */
+      provar(caminho + ': o botão solto do topo já não existe',
+        !/<header class="doc">[\s\S]*?<a class="acao"[\s\S]*?<\/header>/.test(r.html), true);
     }
 
     /* CADA LINHA TEM UM DESTINO. Antes eram zero acções em todas; agora nenhuma linha fica sem. */
@@ -342,7 +373,7 @@ function pedacos(html) {
 
     /* A PORTA TEM DE EXISTIR. Um botão que aponta para um 404 é um botão que mente — e a prova
        não pode confiar no que a ponte serve sem o pedir. */
-    for (const [, href] of esperado) {
+    for (const href of ['/anamnese/', '/plano-ensino/?fonte=plano', '/plano-observacao/?fonte=po']) {
       const r = await pedir(href);
       provar('a porta ' + href + ' responde 200', r.status === 200, r.status);
     }
