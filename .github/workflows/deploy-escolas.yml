@@ -53,6 +53,13 @@ on:
       # por acidente de outro arquivo.
       - 'tools/montar-publicacao.js'
       - 'tools/check-identidade.js'
+      # AS BANCADAS DE LAYOUT TAMBÉM SÃO PUBLICADAS (25/10/2026). O passo que as constrói está
+      # neste workflow desde 24/10 — mas o gatilho não as incluía, e por isso uma proposta nova
+      # só chegava ao ar por acidente de outro arquivo ter mudado junto. O sintoma é o pior
+      # possível numa bancada: o dono do produto abre `/propostas/`, vê a versão anterior, e
+      # conclui que a proposta que lhe foi descrita não existe. Quem edita a bancada quer vê-la
+      # publicada, e é isso que este filtro diz.
+      - 'experimentos/propostas/**'
       - '.github/workflows/deploy-escolas.yml'
       - '.github/actions/**'
   workflow_dispatch:

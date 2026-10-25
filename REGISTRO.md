@@ -24327,3 +24327,60 @@ porque a aula 2..N ainda não existe como objecto — é a frente da §5 do
 `experimentos/provar-listas-do-acervo.js` (+16 asserções e o segundo plano no fixture),
 `tools/check-identidade.js` (a amostra passa a emitir o botão — **congelado**: motivo declarado, ver o
 corpo da alteração).
+
+## 25/10/2026 — O acervo com a porta: a proposta, e as três medidas que a decidiram
+
+**O pedido.** As três listas da Área do Professor já têm o padrão da listagem e nada mais: para criar
+ou editar tem de se sair da página e ir à PORTA (`/anamnese/`, `/plano-ensino/`, `/plano-observacao/`),
+que é uma segunda página com o cabeçalho do ato, dois parágrafos que só servem ao desenvolvimento, e
+— embaixo — a estante «Fichas gravadas», que lista o mesmo que a listagem já lista. A pesquisadora:
+«eu quero uma proposta de levar isso aqui, essas ações e essa validação lá para a página que a gente
+tem a listagem… porque daí parece que fica um pouco mais sucinto, com uma página a menos.»
+
+**O que fica igual nas três opções** (é o pedido, e não está em discussão): o contexto do ato vira um
+painel que se abre, com a gramática do «?» que as caixas do cartão já usam; o nome de cada registo
+passa a ser o link para o `.html` pronto a imprimir; o selo livre/vinculada fica ao lado do nome; e os
+gestos `editar · apagar · ajustar` ficam na mesma linha do nome. O que muda é **onde** ficam o painel
+e as acções de começar — e é a única decisão que sobra.
+
+**As três medidas que decidiram a proposta**, todas a 390px (um telemóvel de 844):
+
+| O que se mediu | Antes | Depois | Porque importa |
+|:--|--:|--:|:--|
+| A barra de acções com `.acao` normal | **97px, 2 filas** | — | `.acao` tem `white-space: nowrap` e não encolhe: os quatro botões vão um por linha |
+| A mesma barra, secundários com `.acao.pequena` | — | **29px, 1 fila** | 68px que a lista deixa de descer. **Passou a ser a forma da proposta** |
+| Altura até ao 1.º cartão, painel fechado — opção A | 358px (42%) | — | mas o gesto de criar **não** está à vista |
+| …opção B | 411px (49%) | — | gesto à vista, uma fila, +53px sobre A |
+| …opção C | 466px (55%) | — | gesto à vista, **zero peça nova** na folha |
+
+**As três opções.** A — painel no topo, acções dentro (é o pedido ao pé da letra; 2 toques para criar).
+B — painel no topo, acções sempre à vista (1 toque; +53px). C — o contexto é o primeiro cartão, com o
+«?» a abrir os campos (2 toques; nenhuma peça nova, mas +108px e o risco de se ler como um registo).
+
+**Três defeitos apanhados pela própria medição, e todos eram meus:**
+
+1. **A troca de opção não aplicava o atributo.** A função `aoTrocarOpcao` só abria o painel; o
+   `data-opcao` era posto pela bancada, no clique. A primeira medição mediu **três vezes a opção A** a
+   jurar que eram A, B e C. Corrigido no gancho, não na medição.
+2. **Um `details` fechado não tira a caixa ao conteúdo.** O Chrome fecha-o com `content-visibility:
+   hidden`, e o `getBoundingClientRect` de um descendente continua a devolver 314×202. A medição dizia
+   «acções à vista» na opção A — que é exactamente o que ela não tem. A pergunta certa não é «tem
+   caixa?», é «é visível para quem olha?»: passou a `getClientRects().length` mais a guarda do
+   `details:not([open])`.
+3. **O link do nome media 60×20.** É o alvo que abre a ficha para imprimir, e 20px é metade do mínimo
+   de dedo. Ganhou `padding` vertical: 32px, sem mexer na altura da linha.
+
+**E um defeito que não era da proposta, mas a teria escondido.** A bancada é construída **dentro** do
+`deploy-escolas.yml` desde 24/10 — mas o filtro `paths` do gatilho **não incluía
+`experimentos/propostas/**`**. Uma proposta nova só chegava ao ar por acidente de outro arquivo ter
+mudado junto, e o sintoma, numa bancada, é o pior possível: o dono do produto abre `/propostas/`, vê a
+versão anterior, e conclui que a proposta que lhe foi descrita não existe. O caminho entrou no filtro.
+
+**Ficheiros.** `experimentos/propostas/construir.js` (a proposta 6, no cartão do índice e no mapa de
+saída), `experimentos/propostas/medir-acervo.js` (novo — 60 verificações em 12 combinações),
+`.gitignore` (abre o medidor), `.github/workflows/deploy-escolas.yml` (o caminho no gatilho).
+
+**Nada de produto foi alterado.** Esta entrada regista uma bancada de decisão, não uma implementação: o
+`motor/`, o `porta/` e o `tools/templates/` estão como estavam. As duas peças que a proposta mostra e
+a folha não tem — o painel do ato e o conjunto de acções da linha — **terão de nascer na folha, com
+entrada no catálogo e prova**, no dia em que isto se implementar.

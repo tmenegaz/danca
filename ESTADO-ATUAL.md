@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/10/2026 (4.ª do dia, após a porta da Área do Professor), sobre o commit `aec4a38`.
+> **Última fotografia:** 25/10/2026 (5.ª do dia, após a bancada do acervo com a porta), sobre o commit `3f696c5`.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -297,6 +297,15 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
   Foi por isso que ele ficou em `6bdb06a` com o `HEAD` em `7182307`. **CONFIRMADO**.
   **HIPÓTESE** de que valha automatizar no push — não avaliado.
 
+### Decisões à espera do utilizador — a proposta do acervo
+
+- **A opção do «acervo com a porta»** (`/propostas/proposta-acervo.html`). **PENDENTE.** A 390px,
+  com o painel fechado: A custa 358px e esconde o gesto de criar; B custa 411px e mostra-o; C custa
+  466px, mostra-o, e não precisa de peça nova na folha. Medido, não estimado.
+- **Duas peças novas na folha**, se a escolha for A ou B: o painel do ato e o conjunto de acções da
+  linha. **PENDENTE** — exigem entrada no catálogo de `IDENTIDADE-VISUAL.md` e prova do
+  `check-identidade`.
+
 ### Dúvidas sobre este próprio protocolo
 
 - **Quem atualiza a fotografia?** Hoje, o agente, quando a mudança é material. Não há automação e
@@ -356,6 +365,9 @@ Ações imediatas, sem transformar hipótese em compromisso:
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **25/10/2026** — **a proposta do «acervo com a porta»**: três opções medidas na bancada para levar o
+  contexto do ato e as acções de começar para dentro da listagem, e reduzir duas páginas a uma.
+  Nada de produto alterado. **PENDENTE**: a escolha da opção.
 - **25/10/2026** — **a Área do Professor ficou sem porta e voltou a tê-la.** As três listas servidas
   pelo acervo nasceram com `acoes: []`, e a linha deixou de levar ao formulário quando deixou de ser
   uma turma e passou a ser um registo. Medido em produção: `/aulas/` com 27 acções, as três da Área do

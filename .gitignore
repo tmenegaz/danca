@@ -128,6 +128,12 @@ experimentos/*
 experimentos/propostas/*
 !experimentos/propostas/construir.js
 !experimentos/propostas/medir.js
+# O MEDIDOR DA PROPOSTA 6 (25/10/2026). Ele não mede «cabe ou não cabe»: mede a única coisa que
+# separa as três opções — quantos pixels da tela o contexto do ato ocupa ANTES de se ver um
+# registo, e se o gesto de criar está à vista sem abrir nada. Foi ele que mostrou que a barra de
+# acções com botões normais ocupava 97px em duas filas a 390px, e 29px numa fila com os
+# secundários pequenos — 68px que decidiram a forma da proposta.
+!experimentos/propostas/medir-acervo.js
 # A prova do CAMPO DA SENHA no lançamento (20/10/2026): o campo existia onde a página o pedia?
 !experimentos/provar-senha-do-lancamento.js
 # A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
