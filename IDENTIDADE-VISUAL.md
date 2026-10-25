@@ -457,6 +457,7 @@ desenho.
 | **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
 | **O menu de trabalho (a coluna)** | `.coluna` (+ `.coluna-grupo`, `.coluna-titulo`, `.coluna-itens`, `.coluna-seta`, `.coluna-direto`, `.coluna-puxador`) | o menu da escola: quatro destinos, e cada um leva a uma lista | gerado por `nav.js`; **não** se escreve à mão. Compacto: os grupos abrem no ponteiro; no celular é folha inferior |
 | **Três números e um painel** | `.trio` (+ `.trio-item`, `.trio-painel`, `.trio-escala`, `.trio-chips`) | três dados de um cartão, cada um a abrir o seu detalhe | `<div class="trio"><button class="trio-item" aria-expanded>` + `.trio-painel hidden`; **a caixa inteira é o alvo**, e o «?» é desenho (`aria-hidden`) |
+| **O contexto de um ato, dentro da lista** | `.painel-ato` (a caixinha é a `.trio-item`, na faixa inteira; dentro, `.campos-do-ato`, `.acoes-do-ato`, `.estado-do-ato`, e `.seta-do-ato` como ícone) | o professor, o ciclo, a aluna e a senha, sem sair da listagem | `<details class="painel-ato"><summary class="trio-item"><span class="trio-k">…</span><span class="trio-v">…</span><span class="seta-do-ato" aria-hidden="true">▾</span></summary>` + o corpo. **A caixinha é a mesma peça do «?» — mas o ícone é uma seta**, para baixo fechada e para cima aberta: ela não explica um valor, abre um formulário |
 | **O rodapé de páginas** | `.paginas` (+ `.paginas-ant`, `.paginas-info`, `.paginas-prox`) | uma lista que não cabe numa tela | `<div data-paginar data-por-pagina="25">` a embrulhar a `<ul>`; nasce `hidden` — sem JavaScript a lista mostra tudo |
 
 ### Quadro 2 — o inventário
@@ -482,6 +483,9 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.coluna-titulo` | `ciclo.css` | base, `:hover`, `:focus-visible`; é um `<button>`, porque no telemóvel e no teclado não há ponteiro |
 | `.trio` / `.trio-item` / `.trio-painel` | `ciclo.css` | base, `:hover`, `:focus-visible`, `[aria-expanded="true"]`; uma coluna abaixo de 360px |
 | `.trio-escala` | `ciclo.css` | um degrau por nível, na cor do papel semântico (`trio-ok`, `trio-razoavel`, `trio-alerta`, `trio-neutro`) |
+| `.painel-ato` | `ciclo.css` | fechado, `[open]` (a caixinha muda de fundo e a `.seta-do-ato` roda 180°), e o `summary` sem o marcador nativo do navegador |
+| `.seta-do-ato` | `ciclo.css` | `▾` fechada, `▸` rodada 180° aberta. **Não se chama `.seta`**: esse nome já é a seta do bloco de sessão que o `bastidores.js` emite, e a checagem «Forma» reprova dois desenhos com o mesmo nome |
+| `.campos-do-ato` / `.acoes-do-ato` / `.estado-do-ato` | `ciclo.css` | os campos quebram em fileira; o estado tem `data-falta="sim"` para o que impede o avanço |
 | `.paginas` | `ciclo.css` | `hidden` (uma página só, e o estado sem JavaScript), à vista a partir de duas |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |

@@ -1555,6 +1555,94 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   background: var(--marca-fundo); color: var(--sobre-marca); border-color: var(--marca-fundo);
 }
 
+/* ============================================================================
+   O PAINEL DO ATO (25/10/2026) — a caixinha do «Turma» a abrir um formulário.
+   ----------------------------------------------------------------------------
+   PORQUE ESTA PEÇA EXISTE. A Área do Professor tinha duas páginas para o mesmo
+   assunto: a lista (que já tem o padrão das outras) e a porta, onde vive o
+   contexto do ato — professor, ciclo, aluna, senha. Criar exigia sair da lista,
+   e o mesmo registo aparecia em dois lugares. Decidido em 25/10/2026: o contexto
+   passa a ser um painel DENTRO da lista, e a caixinha que o abre é esta.
+
+   PORQUE É A MESMA PEÇA DO «TURMA». Não é um botão novo: é a `.trio-item` que a
+   listagem já usa, na faixa inteira em vez de um terço. A decisão foi de
+   vocabulário, não de gosto — «ele me parece mais orgânico pra entender do que se
+   trata». E foi verificada: as nove propriedades da caixinha (fundo, borda, raio,
+   espaçamento, família e as três do rótulo) são iguais às da caixa do cartão.
+
+   PORQUE A SETA E NÃO O «?». As outras células abrem um painel de DADOS sobre um
+   valor; o «?» promete uma explicação. Esta abre um formulário, e o que ela diz é
+   «há mais aqui dentro» — para baixo quando está fechada, para cima quando está
+   aberta. É a mesma gramática da `.coluna-seta`, que já roda 90° ao abrir o grupo.
+   ========================================================================== */
+
+/* O `summary` NÃO HERDA O DESENHO DA CAIXINHA. `display: list-item` é o que lhe desenha o
+   marcador nativo do navegador — um triângulo que não é peça desta folha, e que apareceria ao
+   lado do rótulo. `block` mais o marcador escondido deixam-no igual às outras células. */
+.painel-ato > summary.trio-item { display: block; list-style: none; }
+.painel-ato > summary.trio-item::-webkit-details-marker { display: none; }
+
+/* O ESTADO ABERTO. A folha conhece `[aria-expanded="true"]`, e um `summary` nunca o recebe:
+   quem está aberto é o `details`. Sem esta regra, abrir não muda nada no botão — e o professor
+   fica sem saber se o painel está aberto por ele ou por outra coisa. */
+.painel-ato[open] > summary.trio-item {
+  background: var(--fundo-citacao); border-color: var(--borda-forte);
+}
+
+/* A SETA. Ocupa o mesmo canto que o «?» das outras células, e o `.trio-k` já lhe cede a faixa
+   (`padding-right: 1.25rem`), por isso não há aqui nenhuma medida nova a acertar.
+   CHAMA-SE `.seta-do-ato` E NÃO `.seta` porque `.seta` JÁ É PEÇA — `.topnav .s5-secoes .seta`,
+   no bloco da sessão que o `bastidores.js` emite. A checagem «Forma» reprovou a primeira versão
+   por isso mesmo: dois desenhos com o mesmo nome, e o segundo a herdar o do primeiro. O sufixo
+   não é decoração — é o que mantém a peça identificável. */
+.painel-ato .seta-do-ato {
+  position: absolute; top: .2rem; right: .2rem; width: 1.25rem; height: 1.25rem;
+  display: grid; place-items: center; pointer-events: none;
+  color: var(--texto-suave); font: 700 .8rem/1 var(--ui);
+  transition: transform .16s ease;
+}
+/* PARA CIMA QUANDO ESTÁ ABERTA. Um só glifo, rodado — e não dois caracteres diferentes, que
+   mudariam de largura ao rodar e fariam o ícone saltar. */
+.painel-ato[open] .seta-do-ato { transform: rotate(180deg); color: var(--marca-texto); }
+
+.painel-ato { margin: 0 0 1rem; }
+.painel-ato .corpo-do-ato { padding: .65rem .1rem 0; }
+
+/* OS CAMPOS DO ATO. A fileira é a da barra da porta (`flex` com quebra), e os rótulos são os
+   `.campo-rotulo` que o formulário denso já usa — mas com a medida de uma faixa, não de uma
+   página: a margem grande do `.campo-rotulo` existe para separar campos de um formulário longo,
+   e aqui os campos são uma fileira. */
+.campos-do-ato { display: flex; gap: .5rem .9rem; align-items: flex-end; flex-wrap: wrap; }
+.campos-do-ato > .campo { display: grid; grid-template-columns: auto auto; gap: 2px 4px; align-items: center; }
+.campos-do-ato > .campo > .campo-rotulo {
+  grid-column: 1 / -1; margin: 0 0 2px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--texto-suave);
+}
+.campos-do-ato input[type="text"] { width: 4.5rem; }
+.campos-do-ato select { max-width: 13rem; }
+.campos-do-ato .campo-senha input { width: 9rem; }
+/* A turma observada é LEITURA no PO (vem do plano de ensino) — e uma leitura não se veste de
+   campo: não tem caixa, para não prometer que se escreve nela. */
+.campos-do-ato .leitura { font: 600 .95rem/1.9 var(--serif); color: var(--marca-texto); }
+
+/* AS ACÇÕES DE COMEÇAR — uma fileira só. Medido: com `.acao` em todas, a 390px elas pedem
+   97px e DUAS fileiras (o `.acao` tem `white-space: nowrap` e não encolhe); pequenas nos
+   secundários, 29px e uma. */
+.acoes-do-ato { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .7rem; }
+
+/* O QUE FALTA PARA SE PODER CRIAR. Na porta esta informação é o `title` do botão — e um
+   `title` não se lê no telemóvel, que é onde a Área do Professor mais se usa. */
+.estado-do-ato {
+  margin: .5rem 0 0; font-size: .8rem; line-height: 1.45; color: var(--texto-suave);
+}
+.estado-do-ato[data-falta="sim"] { color: var(--alerta); }
+
+/* «VER A FICHA EM BRANCO» FICA FORA DO PAINEL. É a única acção que não depende do contexto nem
+   da senha — abre uma folha vazia e imprime-se —, e por isso está à vista em todos os estados,
+   com o painel aberto ou fechado. */
+.ficha-em-branco { margin: .5rem 0 0; }
+
 .trio-painel {
   margin: .55rem 0 0; padding: .7rem .8rem;
   background: var(--fundo-citacao); border: 1px solid var(--borda-campo);
