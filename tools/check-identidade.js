@@ -1020,8 +1020,13 @@ function superficiesQueEmitem() {
           hash: '', hrefPlano: '/b/plano.html' },
       ],
     })]);
+    /* O BOTÃO DO TOPO DA LISTA (25/10/2026). A `acao` da página é a porta do formulário — o que
+     * a Área do Professor tinha perdido. A amostra passa a exercitá-la: uma peça que nenhuma
+     * amostra emite é uma peça que esta checagem aprova sem ver, e o modo de falhar mais silencioso
+     * deste repositório é aprovar por omissão. */
     lista.push(['lista-de-documentos', listas.paginaDeLista({
       titulo: 'Aulas', subtitulo: 'A aula dada', nav: '<nav class="topnav"></nav>',
+      acao: { rotulo: 'Novo plano de ensino', href: '/plano-ensino/?fonte=plano' },
       itens: [{
         nome: 'Aula 01 — marco · Turma A', turma: 'Turma A', complemento: 'Ciclo 01',
         acoes: [['Abrir a aula', '/a/aula-01.html', '']],
