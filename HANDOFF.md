@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-25T12:41:58-0300`
-Commit atual: `f22e390` — fix(area-do-professor): a lista voltou a ter porta para o formulário
+Gerado em: `2026-10-25T17:39:41-0300`
+Commit atual: `bf76f14` — feat(area-do-professor): o contexto do ato dentro da listagem — a opção A
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,11 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+bf76f14 feat(area-do-professor): o contexto do ato dentro da listagem — a opção A
+254e143 feat(folha): o painel do ato — a caixinha do «Turma» a abrir um formulário
+d5f5290 feat(propostas): a opção A, com a caixinha do «Turma» a abrir o painel
+7dcaa0a feat(propostas): o acervo com a porta — três opções, medidas
+3f696c5 chore(handoff): regerar com a porta da Área do Professor
 f22e390 fix(area-do-professor): a lista voltou a ter porta para o formulário
 6ac83a3 chore(identidade): a amostra da lista passa a emitir o botão do topo
 aec4a38 chore(handoff): regerar com as decisões da segunda ronda
@@ -93,11 +98,6 @@ f85b846 fix(acervo): a versão do resumo não chega — o que denuncia um resumo
 984cb55 fix(acervo): uma versão nova do resumo manda refazer os resumos, e não só preencher buracos
 3bad02d feat(acervo): envelope/.indice.json
 36bcd2c feat(listas): o padrão aplicado — «Consulta», três caixas por registo, e o valor que não se corta
-c7dc6a4 fix(infra): as bancadas têm de ser CONSTRUÍDAS antes de a escola ser montada
-c618069 docs(experimentos): o padrão da lista, e o defeito que a medição achou na lista publicada
-3b77b94 fix(menu): «Aulas» estava duas vezes, e as duas abriam a mesma página
-f876ee3 fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteiro
-19588a7 style(template): a coluna do sistema sai de cena onde a página tem a sua
 ```
 
 ## Por professor
@@ -193,64 +193,68 @@ f876ee3 fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteir
 
 ## Última entrada do REGISTRO
 
-## 25/10/2026 — A Área do Professor ficou sem porta, e a prova que faltava
+## 25/10/2026 — A opção A no produto: o contexto do ato dentro da listagem
 
-**O sintoma, dito pela pesquisadora.** «No ajuste desses documentos eu não tenho mais o botão que me dá
-acesso aos formulários. Eu só tenho a listagem. Eu não tenho mais como fazer formulário, editar
-formulário, derivar formulário, definir qual é o cabeçalho pra começar a fazer uma anamnese.»
+**A escolha.** «Pode implementar a opção A, painel com a caixinha e as ações dentro. A única coisa
+que vai mudar é que nessa caixinha não tem o ponto de interrogação, igual tem nas demais. Nessa
+caixinha você vai pôr o mesmo ícone que você estava usando no acordeão… ela vai apontar pra baixo
+quando eu quiser abrir e vai apontar pra cima quando eu quiser fechar.»
 
-**Era verdade, e era regressão minha.** Medido em produção na escola `batata`: `/aulas/` tinha **27**
-`class="acao"`; as três listas da Área do Professor — anamnese, plano de ensino, plano de observação —
-tinham **zero**. As três páginas liam-se bem e não levavam a lado nenhum.
+**O ícone.** `▾` (U+25BE) rodado 180° por CSS quando o `details` está `[open]` — um só glifo, e não
+dois caracteres diferentes: dois glifos mudariam de largura ao rodar e o ícone saltaria.
 
-**A causa.** Em 24/10/2026 as três listas passaram a ser servidas pela ponte, a ler o acervo, e a linha
-deixou de ser uma TURMA para ser um REGISTO. As listas antigas (montadas no deploy) davam a cada linha
-`['Abrir a anamnese desta turma', '/anamnese/?professor=<slug>&ciclo=NN']` — era **por ali** que se
-chegava ao formulário. Ao trocar a linha, o destino do formulário foi com ela, e ninguém deu por isso:
-o módulo novo nasceu com `acoes: []` escritos, e uma lista com `acoes: []` não falha — fica limpa. O
-defeito não estava em nenhuma linha de código errada; estava numa linha de código **ausente**, que é o
-modo de falhar que este repositório já pagou duas vezes (a `lateral` que não pegava, o `if` do título
-vazio).
+**Uma colisão que a checagem apanhou, e que teria passado em silêncio.** A primeira versão chamou à
+seta `.seta` — e `.seta` **já era peça**: `.topnav .s5-secoes .seta`, no bloco de sessão que o
+`bastidores.js` emite. A checagem **«Forma»** reprovou («redeclara o componente»), e o remédio foi o
+sufixo: `.seta-do-ato`. Dois desenhos com o mesmo nome, e o segundo a herdar o do primeiro, é o
+género de defeito que ninguém vê no ecrã.
 
-**O remédio.** Duas peças, ambas do catálogo, nenhuma classe nova:
-- **o botão do topo**, `a.acao` dentro de `header.doc` — «Nova anamnese», «Novo plano de ensino»,
-  «Novo Plano de Observação» —, que leva à **porta da fonte**. `paginaDeLista` ganhou um `acao`
-  opcional; as listas que não o passam ficam como estavam;
-- **o destino de cada linha**, `acoesDaLinha()`: o plano de ensino **livre** leva «Editar» com
-  `?editar=<carimbo>`; o **vinculado** não o promete (o servidor recusa a escrita, e um botão que não
-  edita é pior do que nenhum), leva ao formulário com o contexto; a anamnese leva o professor, o ciclo
-  e o sujeito; o PO leva a fonte e o contexto e **não** leva `editar` — a porta só o lê em
-  `fonte === 'plano'`.
+**O QUE MAIS MUDOU, e porquê:**
 
-**Porque é que o plano vinculado e o livre são casos diferentes, e isso é a prova.** A asserção
-apanhou-o: a primeira versão da prova exigia «Editar» na linha do plano e **falhou** — porque o fixture
-semeia um PO que observa aquele plano, e a regra do servidor é que um plano vinculado não se edita. O
-código estava certo e a asserção estava errada. O fixture passou a semear **dois** planos, um
-observado e um livre, e a prova mede os dois ramos. Sem isso, um dos ramos seria aprovado pelo fixture
-do outro.
+1. **O botão solto do topo saiu.** Ele nasceu ontem, quando a lista não tinha contexto — criava sem
+   levar professor, ciclo nem aluna. Com o painel, seriam duas portas para o mesmo ato, e a segunda
+   sem o contexto. `paginaDeLista` continua a aceitar `acao`; esta página é que já não o passa.
+2. **`paginaDeLista` ganhou `painel` e `script`.** Dois parâmetros opcionais, e quem não os passa
+   recebe exactamente a página de antes — a lista continua a ser UMA, e não um segundo desenho.
+3. **O painel executa a regra dos botões da porta**, com a MESMA chave de memória —
+   `porta-<fonte>-<escola>-<professor>-<ciclo>-1`. Ler a mesma chave é o que faz o painel dizer a
+   verdade: o que o professor começou a preencher na porta aparece aqui como «continuar».
+4. **O contexto escolhido passou a ser guardado** (`ato-<escola>-<fonte>-1`). **Este foi um defeito
+   encontrado pela prova, não previsto:** o professor escolhia professor, ciclo e aluna, a página
+   recarregava e o painel nascia vazio — e, pior, a chave da memória era calculada com o professor
+   vazio, por isso o «continuar de onde parei» **nunca** aparecia. A porta não tem este problema
+   porque o contexto lhe chega pelo endereço; aqui é escolhido dentro da página. **A senha não se
+   guarda** — é segredo, e o que se guarda é a escolha de quem e do quê.
+5. **A trava do contexto ficou visível.** Na porta, o que falta é o `title` do botão — e um `title`
+   não se lê no telemóvel. Agora a caixinha diz em vermelho «escolher o professor, o ciclo e a
+   aluna», e a linha de estado diz o mesmo por extenso.
+6. **A trava da curadoria vale no plano e no PO**, e o estado diz porquê («A direção ainda não
+   atribuiu curadoria a este professor»). O campo «aluna» só existe na anamnese; a turma é `select`
+   no plano e **leitura** no PO (vem do plano de ensino que ele observa).
 
-**A prova que faltava.** `provar-listas-do-acervo` ganhou a secção 7, com 16 asserções novas (41 no
-total, 0 falhas): o botão do topo nos três, o destino de cada linha, os dois ramos do plano, e — a que
-mais importa — **as três portas pedidas e a responder 200**. Um botão que aponta para um 404 é um botão
-que mente, e a prova não pode confiar no que a ponte serve sem o pedir.
+**A bancada mentiu duas vezes antes de dizer a verdade, e as duas armadilhas ficam escritas na
+prova:**
 
-**E a checagem de identidade passou a ver o botão.** A amostra de `paginaDeLista` que a checagem 8 usa
-não tinha `acao`: a peça nova seria aprovada sem ser olhada. A amostra passou a exercitá-la. É a mesma
-família de defeito — *aprovar por omissão* —, e é a terceira vez nesta semana.
+- **`summary` nasce `display: list-item`**, e o marcador nativo do navegador convive com a caixinha.
+  O `display: block` + o marcador escondido são a regra `.painel-ato > summary.trio-item`, e sem ela
+  a caixinha media 19px de altura em vez de 48 — e parecia só «um pouco baixa».
+- **A folha servida com `Content-Type: text/html` não é aplicada pelo browser.** A ponte devolve os
+  assets pelo `comAparencia`, que os serve como HTML; em produção não passa por ali — o asset-first
+  do Cloudflare serve `/assets/style.css` como `text/css` (confirmado por `curl -I` em produção). A
+  bancada passou a servir os assets **antes** do Worker, como produção. Enquanto não o fez, mediu uma
+  página sem desenho nenhum e **todas** as medidas davam zero a jurar que estavam certas.
 
-**Geometria medida na bancada** (porta efémera em 127.0.0.1, sem tocar no ar): o botão do topo fica
-**223×45** e o da linha **140×29**, em 390, 768 e 1280px; nada estoura, nada corta, e o botão fica
-abaixo do título nas três larguras.
+**Medido a 390px** (`provar-painel-do-ato`): caixinha de faixa inteira, **48px** de altura; a seta
+roda 180° ao abrir (matriz `-1`); com o preenchimento interrompido, as duas acções cabem numa fila de
+**29px** (169 + 129 + 6,4 numa coluna de 339); nenhum erro de JavaScript; nada estoura na horizontal
+em 320, 390 e 1280.
 
-**O que continua a faltar, e é de outro assunto:** uma **aula 2** não se cria a partir de `/aulas/`,
-porque a aula 2..N ainda não existe como objecto — é a frente da §5 do
-[PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md), e depende do desenho, não deste remédio.
-
-**Ficheiros.** `motor/nucleo/lista-html.js` (o `acao` opcional no cabeçalho),
-`motor/servidor/listas-do-acervo.js` (as portas, `consulta`, `acaoDaPagina`, `acoesDaLinha`),
-`experimentos/provar-listas-do-acervo.js` (+16 asserções e o segundo plano no fixture),
-`tools/check-identidade.js` (a amostra passa a emitir o botão — **congelado**: motivo declarado, ver o
-corpo da alteração).
+**Ficheiros.** `tools/templates/ciclo.css` (**congelado** — motivo declarado no corpo da regra,
+entrada neste registo e commit próprio), `IDENTIDADE-VISUAL.md` (a peça no Quadro 1 e no inventário),
+`motor/nucleo/lista-html.js` (`painel` e `script`), `motor/servidor/listas-do-acervo.js` (o painel, o
+script e a chave do contexto), `experimentos/provar-listas-do-acervo.js` (a secção 7 reescrita: o
+painel passou a ser a porta), `experimentos/provar-painel-do-ato.js` (novo, 30 verificações), e as
+cópias da folha (`raiz/assets/`, dois pacotes — o «Circuito» da checagem 4 exige-as iguais).
 
 ## O que está pendente
 
