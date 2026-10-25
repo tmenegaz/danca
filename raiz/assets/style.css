@@ -1455,6 +1455,34 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 
    No celular os três campos empilham de dois em dois: medido, o filtro empilhado custava 204 px
    de uma tela de 850 — um quarto da página para três campos que caem num só. */
+/* ============================================================================
+   O FILTRO DOBRA — E NASCE FECHADO NO TELEMÓVEL (26/10/2026)
+   ----------------------------------------------------------------------------
+   «O procurar tem que tá colapsado, porque nas telas do celular fica mais restrito
+   ainda.» Ele ocupava meia tela antes de se ver um registo.
+
+   A PEÇA É A QUE O SISTEMA JÁ USA PARA DOBRAR: `details`/`summary`. No computador
+   nasce aberto (há espaço) e o `summary` fica discreto; no telemóvel o script
+   fecha-o ao carregar, e o `summary` vira o botão «Procurar» que o abre.
+
+   O `<form>` continua lá dentro, com os mesmos `id` — quem o liga não sabe que há
+   uma dobra.
+   ========================================================================== */
+.filtro-dobra { margin: 0 0 var(--esp-4); }
+.filtro-dobra > .filtro-cabeca {
+  display: none; align-items: center; gap: .4rem;
+  cursor: pointer; list-style: none;
+  padding: var(--esp-2) 0; font: 700 .95rem/1.3 var(--ui); color: var(--texto);
+}
+.filtro-dobra > .filtro-cabeca::-webkit-details-marker { display: none; }
+.filtro-dobra > .filtro-cabeca:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.filtro-dobra > .filtro-cabeca .seta-do-ato {
+  position: static; width: auto; height: auto; margin-left: auto;
+  font-size: .8rem; transition: transform .16s ease;
+}
+.filtro-dobra[open] > .filtro-cabeca .seta-do-ato { transform: rotate(180deg); }
+.filtro-dobra > .filtro { margin: 0; }
+
 .filtro { margin: 0 0 var(--esp-4); }
 .caixa.filtrar {
   display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--esp-4);
@@ -1465,6 +1493,13 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .campo-filtro.busca { flex: 1 1 260px; }
 .campo-filtro select { min-width: 190px; }
 .filtro-conta { margin: 0 0 4px auto; font: 13px/1 var(--ui); color: var(--texto-suave); }
+/* NO TELEMÓVEL O «PROCURAR» É UM BOTÃO (26/10/2026): a dobra tem cabeça à vista, e o
+   formulário só quando se abre. */
+@media (max-width: 560px) {
+  .filtro-dobra > .filtro-cabeca { display: flex; }
+  .filtro-dobra { margin-bottom: var(--esp-3); }
+}
+
 @media (max-width: 768px) {
   .caixa.filtrar { padding: var(--esp-3); gap: var(--esp-3); }
   .campo-filtro select { min-width: 0; }

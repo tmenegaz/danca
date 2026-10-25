@@ -171,14 +171,35 @@ function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'p
      moldura por dentro seria uma caixa dentro de uma caixa — e o desenho diria duas vezes a mesma
      coisa. Fora do bloco (as outras cinco listas) a moldura continua a ser dele. */
   const moldura = semCaixa ? 'filtrar' : 'caixa filtrar';
-  return `<form class="filtro" onsubmit="return false" data-singular="${esc(singular)}" data-plural="${esc(plural)}">
+  /* O FILTRO DOBRA, E NASCE FECHADO NO TELEMÓVEL (26/10/2026).
+   *
+   * «O procurar tem que tá colapsado, porque nas telas do celular fica mais restrito ainda.»
+   * Ele ocupava meia tela antes de se ver um registo — o mesmo problema que o painel do ato já
+   * resolvia na Área do Professor. Aqui resolve-se para as OITO listas de uma vez, com a peça
+   * que o sistema já usa para dobrar (`details`/`summary`), e sem uma linha de marcação nova em
+   * cada página.
+   *
+   * NO COMPUTADOR NASCE ABERTO: há espaço, e um clique a mais onde há espaço é pior do que não o
+   * ter. Quem decide é o CSS (`@media`, aberto) e o `SCRIPT_DA_LISTA`, que o fecha no telemóvel
+   * ao carregar — uma vez, sem lutar com quem o abrir.
+   *
+   * O `<form>` continua a ser o de sempre DENTRO do `details`: o `#f-busca`, o `#f-prof` e o
+   * `#f-turma` não mudaram de sítio, e o script que os liga não sabe que há uma dobra. */
+  /* QUANDO JÁ HÁ UM BLOCO A DOBRAR, NÃO SE DOBRA OUTRA VEZ. Na Área do Professor o filtro vive
+     dentro do bloco «Procurar» (`semCaixa`), que já é um `details` com a sua cabeça. Uma segunda
+     dobra lá dentro daria duas cabeças iguais — «Procurar» dentro de «Procurar» — e a de dentro
+     fechada por padrão no telemóvel, a esconder os campos de quem acabou de abrir o bloco. */
+  const dobra = semCaixa ? ''
+    : '<details class="filtro-dobra" open>\n'
+      + '<summary class="filtro-cabeca">Procurar<span class="seta-do-ato" aria-hidden="true">&#9662;</span></summary>\n';
+  return `${dobra}<form class="filtro" onsubmit="return false" data-singular="${esc(singular)}" data-plural="${esc(plural)}">
   <div class="${moldura}">
     ${busca}
     ${doProfessor}
     ${daTurma}
     <p class="filtro-conta" id="f-conta">${itens.length} ${itens.length === 1 ? esc(singular) : esc(plural)}</p>
   </div>
-</form>`;
+</form>${semCaixa ? '' : '\n</details>'}`;
 }
 
 /**
@@ -308,7 +329,18 @@ ${blocoFiltro}
   </details>
 </div>`
     : (blocoFiltro ? blocoFiltro + '\n' : '');
-  const lista = painel ? blocoLista : blocoFiltro + blocoLista;
+  /* O FILTRO É EMITIDO UMA VEZ SÓ (26/10/2026).
+   *
+   * AQUI ESTAVA UM DEFEITO MEU, e a pesquisadora viu-o em três páginas que eu nem devia ter
+   * tocado: «em ciclos eu tenho dois procurar… em aulas também e em notação também». O `agrupado`
+   * já leva o `blocoFiltro` quando não há painel, e o `lista` levava-o OUTRA VEZ — duas cópias do
+   * mesmo `<form class="filtro">`, com os mesmos `id` (`f-busca`, `f-turma`), e o `SCRIPT_DA_LISTA`
+   * a ligar-se só à primeira. As listas que usam `painel` (as três da Área do Professor) nunca
+   * passaram por aqui; as outras cinco, todas.
+   *
+   * Quem não tem painel recebe o filtro no `agrupado` e a lista pura. Quem tem, recebe o painel e
+   * a lista — o filtro vai dentro do painel. Em nenhum dos casos o filtro se repete. */
+  const lista = blocoLista;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -358,6 +390,15 @@ ${script || ''}
  * empilhar-se sobre ouvinte e a caixa a abrir e fechar no mesmo toque.
  */
 const SCRIPT_DA_LISTA = `(function () {
+  /* O FILTRO NASCE FECHADO NO TELEMÓVEL (26/10/2026), e aberto no computador — o atributo 'open'
+     vem no HTML porque é o estado da esmagadora maioria das visitas. Aqui só se FECHA, uma vez,
+     quando a janela é estreita; nunca se abre por conta própria, para não contrariar quem o
+     abriu. A largura é lida num sítio só (o mesmo 560px do resto da folha). */
+  try {
+    var dobra = document.querySelector('.filtro-dobra');
+    if (dobra && window.matchMedia('(max-width: 560px)').matches) dobra.open = false;
+  } catch (e) {}
+
   var busca = document.getElementById('f-busca');
   var prof = document.getElementById('f-prof');
   var turma = document.getElementById('f-turma');
