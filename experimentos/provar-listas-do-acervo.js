@@ -20,7 +20,13 @@
  *      nenhuma; e «sem turma» na caixa quando não há curadoria;
  *   5. a **turma vem da curadoria** — é ela que matricula, e não o registo;
  *   6. a página leva a **barra do sistema** e as peças da listagem (o filtro, o cartão), como as
- *      outras cinco.
+ *      outras cinco;
+ *   7. **A LISTA TEM PORTA** (25/10/2026). Quando as três passaram a ser servidas pelo acervo, as
+ *      linhas ficaram com `acoes: []` e a Área do Professor ficou sem acesso aos formulários: as
+ *      três páginas publicadas tinham **zero** `class="acao"`. Uma lista que se lê bem parece uma
+ *      lista que funciona — e durante um dia esta pareceu. O que se prova agora é que cada página
+ *      tem o botão de criar, que aponta para a porta da sua fonte, e que cada linha tem um destino
+ *      que a porta cumpre (com os parâmetros que `porta/index.html` lê de facto).
  *
  * O QUE NÃO SE PROVA AQUI: o desenho. Ele é o mesmo das outras listas, e quem o mede é o
  * `provar-navegacao` (na página de planos) e o `medir.js` das bancadas. Aqui prova-se a DIFERENÇA:
@@ -106,6 +112,15 @@ async function preparar(env) {
     envelope({ id: 'po-20261023', professor: 'cafe-no-bule',
       respostas: { sujeitos: resposta(['Aluna A']), 'plano-de-ensino': resposta(['plano-20261022']) },
       geradoEm: '2026-10-23T09:15' }),
+    /* O SEGUNDO PLANO EXISTE PARA PROVAR O OUTRO RAMO. O de cima está VINCULADO (o PO o
+     * observa), e um plano vinculado tem a escrita recusada pelo servidor — por isso a linha não
+     * promete «Editar». Este não é observado por ninguém: é o caso «livre», e é o único em que o
+     * atalho de edição por endereço é verdade. Sem os dois, a prova de um dos ramos seria feita
+     * pelo fixture do outro. */
+    envelope({ id: 'plano-20261025', professor: 'manga-curta',
+      respostas: { 'objetivo-geral': resposta('introduzir o port de bras'),
+        'contexto-turma': resposta('Balé Nível 2') },
+      geradoEm: '2026-10-25T08:00' }),
   ];
   for (const d of docs) await porta.gravarEnvelope(arm, d, relatorioDe(d.id));
 }
@@ -215,12 +230,17 @@ function pedacos(html) {
   {
     const plano = await pedir('/area-do-professor/plano-de-ensino/');
     const p = pedacos(plano.html);
-    provar('o plano de ensino responde e tem uma linha', plano.status === 200 && p.cartoes.length === 1,
-      { status: plano.status, linhas: p.cartoes.length });
-    provar('a turma vem do próprio registo', p.valores(p.cartoes[0])[0] === 'Balé Nível 1',
-      p.valores(p.cartoes[0]));
+    /* DOIS planos, e por isso a leitura é POR TURMA e não por posicao: o fixture semeia um
+       vinculado (Bale Nivel 1) e um livre (Bale Nivel 2), e a ordem e a da data. Uma assercao
+       presa ao indice mediria o plano errado no dia em que se acrescentasse outro. */
+    const porTurma = (cartoes, turma) => cartoes.find((c) => new RegExp(turma).test(c)) || '';
+    const doNivel1 = porTurma(p.cartoes, 'Balé Nível 1');
+    provar('o plano de ensino responde e tem os dois planos semeados',
+      plano.status === 200 && p.cartoes.length === 2, { status: plano.status, linhas: p.cartoes.length });
+    provar('a turma vem do proprio registo', p.valores(doNivel1)[0] === 'Balé Nível 1',
+      p.valores(doNivel1));
     provar('o objetivo vai na linha de contexto',
-      /consolidar o alinhamento/.test(p.cartoes[0]), p.cartoes[0].slice(0, 200));
+      /consolidar o alinhamento/.test(doNivel1), doNivel1.slice(0, 200));
 
     const po = await pedir('/area-do-professor/plano-de-observacao/');
     const q = pedacos(po.html);
@@ -248,7 +268,87 @@ function pedacos(html) {
     }
   }
 
-  console.log('\n7 · Sem KV, a lista não inventa: a ponte devolve o que já servia');
+  console.log('\n7 · A LISTA TEM PORTA — o botão de criar, e um destino por linha');
+  {
+    /* O BOTÃO DA PÁGINA. O rótulo muda com a fonte; o destino é a porta que serve aquele
+       formulário. «/anamnese/» é a mesma página que o PO, com a fonte a decidir — por isso o
+       plano e o PO levam `?fonte=`, e a anamnese não (o caminho já a diz). */
+    const esperado = [
+      ['/area-do-professor/anamnese/', '/anamnese/', 'Nova anamnese'],
+      ['/area-do-professor/plano-de-ensino/', '/plano-ensino/?fonte=plano', 'Novo plano de ensino'],
+      ['/area-do-professor/plano-de-observacao/', '/plano-observacao/?fonte=po', 'Novo Plano de Observação'],
+    ];
+    for (const [caminho, href, rotulo] of esperado) {
+      const r = await pedir(caminho);
+      const noTopo = new RegExp('<a class="acao" href="' + href.replace(/[?]/g, '\\?')
+        + '">' + rotulo + '</a>').test(r.html);
+      provar(caminho + ': o botão «' + rotulo + '» leva a ' + href, noTopo,
+        (r.html.match(/<header class="doc">[\s\S]*?<\/header>/) || [''])[0].slice(0, 400));
+    }
+
+    /* CADA LINHA TEM UM DESTINO. Antes eram zero acções em todas; agora nenhuma linha fica sem. */
+    const anam = pedacos(anamnese.html);
+    const acoesDe = (c) => [...c.matchAll(/<a class="acao[^"]*" href="([^"]*)">([^<]*)<\/a>/g)]
+      .map((m) => [m[2], m[1]]);
+    provar('nenhuma linha da anamnese fica sem acção',
+      anam.cartoes.every((c) => acoesDe(c).length > 0), anam.cartoes.map(acoesDe));
+
+    /* A ANAMNESE NÃO TEM ATALHO POR ENDEREÇO para o registo — a edição dela vive dentro da porta,
+       na estante. O que se promete é o contexto e o sujeito, e a lista de alunas da porta filtra
+       o apelido pela curadoria: o link degrada, não mente. */
+    const daAlunaA = anam.cartoes.find((c) => /Aluna A/.test(c)) || '';
+    const linkA = (acoesDe(daAlunaA)[0] || [])[1] || '';
+    provar('a linha da Aluna A leva a porta da anamnese', linkA.indexOf('/anamnese/?') === 0, linkA);
+    provar('…com o professor e o ciclo daquele registo',
+      /professor=cafe-no-bule/.test(linkA) && /ciclo=01/.test(linkA), linkA);
+    provar('…e com a aluna, que a porta semeia (e filtra pela curadoria)',
+      /aluna=Aluna(\+|%20)A/.test(linkA), linkA);
+
+    /* O PLANO DE ENSINO TEM ATALHO DE EDIÇÃO — e ele só é prometido quando o servidor o aceita.
+       `?editar=` é lido apenas em `fonte === 'plano'`; um plano vinculado a um PO tem a escrita
+       recusada, e um botão «Editar» que não edita é pior do que nenhum. Os DOIS ramos são
+       provados: o fixture tem um plano observado por um PO e outro que ninguém observa. */
+    const planoR = await pedir('/area-do-professor/plano-de-ensino/');
+    const planoCartoes = pedacos(planoR.html).cartoes;
+    /* O `href` sai escapado na marcação (`&amp;`), como tem de sair. Compara-se o endereço
+       descodificado — o que o navegador vai pedir —, e não a forma como está escrita no HTML. */
+    const semAmp = (h) => String(h || '').replace(/&amp;/g, '&');
+    /* PELA TURMA, e nao pelo carimbo: o cartao da listagem nao emite o id do registo — o que ele
+       mostra e o nome, a turma e os factos. Procurar o carimbo na marcacao nao encontraria nada, e
+       a assercao passaria a medir uma string vazia (o modo de falhar que ja custou duas provas
+       neste repositorio). */
+    const acoesDaTurma = (turma) => {
+      const c = planoCartoes.find((x) => new RegExp(turma).test(x)) || '';
+      return acoesDe(c).map(([rot, href]) => [rot, semAmp(href)]);
+    };
+    const vinculado = acoesDaTurma('Balé Nível 1');
+    const livre = acoesDaTurma('Balé Nível 2');
+
+    provar('o plano LIVRE oferece «Editar»', (livre[0] || [])[0] === 'Editar', livre);
+    provar('…e o destino abre a edição do registo certo',
+      (livre[0] || [])[1] === '/plano-ensino/?fonte=plano&editar=plano-20261025', livre);
+    provar('o plano VINCULADO a um PO NÃO promete «Editar» — o servidor recusaria',
+      (vinculado[0] || [])[0] !== 'Editar', vinculado);
+    provar('…e leva ao formulário com o contexto, que é o que a porta cumpre',
+      (vinculado[0] || [])[0] === 'Abrir no formulário'
+      && /fonte=plano/.test((vinculado[0] || [])[1] || ''), vinculado);
+
+    /* O PO NÃO RECEBE `editar` — o atalho não existe para ele. O que a linha leva é o contexto. */
+    const poR = await pedir('/area-do-professor/plano-de-observacao/');
+    const acaoDoPo = acoesDe(pedacos(poR.html).cartoes[0] || '');
+    const linkPo = String((acaoDoPo[0] || [])[1] || '').replace(/&amp;/g, '&');
+    provar('o PO leva ao formulário com a fonte certa', /fonte=po/.test(linkPo), linkPo);
+    provar('…e NÃO promete uma edição que a porta não abre', !/editar=/.test(linkPo), linkPo);
+
+    /* A PORTA TEM DE EXISTIR. Um botão que aponta para um 404 é um botão que mente — e a prova
+       não pode confiar no que a ponte serve sem o pedir. */
+    for (const [, href] of esperado) {
+      const r = await pedir(href);
+      provar('a porta ' + href + ' responde 200', r.status === 200, r.status);
+    }
+  }
+
+  console.log('\n8 · Sem KV, a lista não inventa: a ponte devolve o que já servia');
   {
     const semKv = Object.assign({}, env, { PADD_KV: null });
     const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev/area-do-professor/anamnese/'), semKv);

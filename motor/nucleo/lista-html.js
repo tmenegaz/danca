@@ -178,7 +178,7 @@ function filtro(itens, { campos = ['busca', 'professor', 'turma'], singular = 'p
  * redeclare o desenho das peças é exactamente o que a checagem «Forma» reprova.
  */
 function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazio, aviso,
-  campos, singular, plural, porPagina = 0, dica }) {
+  campos, singular, plural, porPagina = 0, dica, acao = null }) {
   const semNada = `<p class="aviso">${esc(vazio || 'Ainda não há nada para listar nesta escola.')}</p>`;
   /* UMA FORMA DE LISTA (24/10/2026). Havia duas — os planos, com as três caixas, e os documentos,
    * mais simples —, e a diferença era o desenho de cada cartão. Com a listagem a ser o padrão de
@@ -220,6 +220,7 @@ ${nav}
 <header class="doc">
   <h1>${esc(titulo)}</h1>
   ${subtitulo ? `<p class="subtitulo">${esc(subtitulo)}</p>` : ''}
+  ${acao ? `<a class="acao" href="${esc(acao.href)}">${esc(acao.rotulo)}</a>` : ''}
 </header>
 
 <main>

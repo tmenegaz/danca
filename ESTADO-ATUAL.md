@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/10/2026 (3.ª do dia, após a 2.ª ronda de respostas), sobre o commit `66e871b`.
+> **Última fotografia:** 25/10/2026 (4.ª do dia, após a porta da Área do Professor), sobre o commit `aec4a38`.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -128,6 +128,7 @@ Verificado nesta fotografia, com os comandos da §9.
 |:--|:--|:--|
 | Navegação: coluna + barra + caminho | **CONFIRMADO** | `motor/nucleo/nav.js` |
 | Listas no padrão novo (8 listas) | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
+| As três listas da Área do Professor **com porta para o formulário** | **CONFIRMADO** 25/10/2026 — botão do topo + destino por linha; 41 provas | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
 | Anamnese: formulário, vínculo, ajuste | **CONFIRMADO** | `rotas.js` (11 rotas `/api/anamnese*`) |
 | Plano de ensino: formulário e vínculo | **CONFIRMADO** | `rotas.js` (`/api/planos`, `/api/plano-*`) |
@@ -355,6 +356,11 @@ Ações imediatas, sem transformar hipótese em compromisso:
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **25/10/2026** — **a Área do Professor ficou sem porta e voltou a tê-la.** As três listas servidas
+  pelo acervo nasceram com `acoes: []`, e a linha deixou de levar ao formulário quando deixou de ser
+  uma turma e passou a ser um registo. Medido em produção: `/aulas/` com 27 acções, as três da Área do
+  Professor com **zero**. Botão do topo (`a.acao` em `header.doc`) e destino por linha; 16 asserções
+  novas na prova, geometria medida em 390/768/1280px.
 - **25/10/2026** — segunda ronda de respostas: **o marco é obrigatório e explícito, mas pode repetir o
   da aula anterior**; os três lugares da aula passam a **propostos** (o professor mantém, edita, cria ou
   acrescenta); **os `materiais` entram no formulário**. As perguntas passam a ser identificadas por

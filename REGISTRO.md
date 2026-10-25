@@ -24268,3 +24268,62 @@ a §9 do `PLANO-AULA-E-OBSERVACAO.md` passa a ser uma tabela de decisões, não 
 **Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (§3.1 com as três formas e a de «proposto», §5.4 com a
 nuance do marco, a tabela da herança, as peças 3 e 4, §9 substituída por decisões nomeadas),
 `ESTADO-ATUAL.md` (§8 e o histórico) e `TRANSFERENCIA-IA.md` (2.ª versão, com `proposto` no glossário).
+
+## 25/10/2026 — A Área do Professor ficou sem porta, e a prova que faltava
+
+**O sintoma, dito pela pesquisadora.** «No ajuste desses documentos eu não tenho mais o botão que me dá
+acesso aos formulários. Eu só tenho a listagem. Eu não tenho mais como fazer formulário, editar
+formulário, derivar formulário, definir qual é o cabeçalho pra começar a fazer uma anamnese.»
+
+**Era verdade, e era regressão minha.** Medido em produção na escola `batata`: `/aulas/` tinha **27**
+`class="acao"`; as três listas da Área do Professor — anamnese, plano de ensino, plano de observação —
+tinham **zero**. As três páginas liam-se bem e não levavam a lado nenhum.
+
+**A causa.** Em 24/10/2026 as três listas passaram a ser servidas pela ponte, a ler o acervo, e a linha
+deixou de ser uma TURMA para ser um REGISTO. As listas antigas (montadas no deploy) davam a cada linha
+`['Abrir a anamnese desta turma', '/anamnese/?professor=<slug>&ciclo=NN']` — era **por ali** que se
+chegava ao formulário. Ao trocar a linha, o destino do formulário foi com ela, e ninguém deu por isso:
+o módulo novo nasceu com `acoes: []` escritos, e uma lista com `acoes: []` não falha — fica limpa. O
+defeito não estava em nenhuma linha de código errada; estava numa linha de código **ausente**, que é o
+modo de falhar que este repositório já pagou duas vezes (a `lateral` que não pegava, o `if` do título
+vazio).
+
+**O remédio.** Duas peças, ambas do catálogo, nenhuma classe nova:
+- **o botão do topo**, `a.acao` dentro de `header.doc` — «Nova anamnese», «Novo plano de ensino»,
+  «Novo Plano de Observação» —, que leva à **porta da fonte**. `paginaDeLista` ganhou um `acao`
+  opcional; as listas que não o passam ficam como estavam;
+- **o destino de cada linha**, `acoesDaLinha()`: o plano de ensino **livre** leva «Editar» com
+  `?editar=<carimbo>`; o **vinculado** não o promete (o servidor recusa a escrita, e um botão que não
+  edita é pior do que nenhum), leva ao formulário com o contexto; a anamnese leva o professor, o ciclo
+  e o sujeito; o PO leva a fonte e o contexto e **não** leva `editar` — a porta só o lê em
+  `fonte === 'plano'`.
+
+**Porque é que o plano vinculado e o livre são casos diferentes, e isso é a prova.** A asserção
+apanhou-o: a primeira versão da prova exigia «Editar» na linha do plano e **falhou** — porque o fixture
+semeia um PO que observa aquele plano, e a regra do servidor é que um plano vinculado não se edita. O
+código estava certo e a asserção estava errada. O fixture passou a semear **dois** planos, um
+observado e um livre, e a prova mede os dois ramos. Sem isso, um dos ramos seria aprovado pelo fixture
+do outro.
+
+**A prova que faltava.** `provar-listas-do-acervo` ganhou a secção 7, com 16 asserções novas (41 no
+total, 0 falhas): o botão do topo nos três, o destino de cada linha, os dois ramos do plano, e — a que
+mais importa — **as três portas pedidas e a responder 200**. Um botão que aponta para um 404 é um botão
+que mente, e a prova não pode confiar no que a ponte serve sem o pedir.
+
+**E a checagem de identidade passou a ver o botão.** A amostra de `paginaDeLista` que a checagem 8 usa
+não tinha `acao`: a peça nova seria aprovada sem ser olhada. A amostra passou a exercitá-la. É a mesma
+família de defeito — *aprovar por omissão* —, e é a terceira vez nesta semana.
+
+**Geometria medida na bancada** (porta efémera em 127.0.0.1, sem tocar no ar): o botão do topo fica
+**223×45** e o da linha **140×29**, em 390, 768 e 1280px; nada estoura, nada corta, e o botão fica
+abaixo do título nas três larguras.
+
+**O que continua a faltar, e é de outro assunto:** uma **aula 2** não se cria a partir de `/aulas/`,
+porque a aula 2..N ainda não existe como objecto — é a frente da §5 do
+[PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md), e depende do desenho, não deste remédio.
+
+**Ficheiros.** `motor/nucleo/lista-html.js` (o `acao` opcional no cabeçalho),
+`motor/servidor/listas-do-acervo.js` (as portas, `consulta`, `acaoDaPagina`, `acoesDaLinha`),
+`experimentos/provar-listas-do-acervo.js` (+16 asserções e o segundo plano no fixture),
+`tools/check-identidade.js` (a amostra passa a emitir o botão — **congelado**: motivo declarado, ver o
+corpo da alteração).

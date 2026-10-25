@@ -69,6 +69,9 @@ const FAMILIAS = {
     vazio: 'Ainda não há anamnese nesta escola. Ela nasce na Área do Professor, com o professor '
       + 'que a faz e a aluna que a responde.',
     singular: 'anamnese', plural: 'anamneses',
+    // A PORTA DE CADA FONTE — é lá que o formulário vive. Ver `acaoDaPagina` e `acoesDaLinha`.
+    porta: '/anamnese/',
+    acaoDeCriar: 'Nova anamnese',
   },
   'plano-de-ensino': {
     titulo: 'Plano de ensino',
@@ -77,6 +80,9 @@ const FAMILIAS = {
     vazio: 'Ainda não há plano de ensino nesta escola. Ele nasce quando o professor preenche o '
       + 'plano de uma turma curada.',
     singular: 'plano', plural: 'planos',
+    porta: '/plano-ensino/',
+    acaoDeCriar: 'Novo plano de ensino',
+    fonte: 'plano',
   },
   'plano-de-observacao': {
     titulo: 'Plano de Observação',
@@ -85,8 +91,69 @@ const FAMILIAS = {
     vazio: 'Ainda não há Plano de Observação nesta escola. Ele nasce quando o professor decide o '
       + 'que vai observar numa turma.',
     singular: 'plano', plural: 'planos',
+    porta: '/plano-observacao/',
+    acaoDeCriar: 'Novo Plano de Observação',
+    fonte: 'po',
   },
 };
+
+/*
+ * A PORTA DO FORMULÁRIO, A PARTIR DA LISTA (25/10/2026).
+ *
+ * O DEFEITO QUE ISTO CORRIGE, e que foi meu. Quando as três listas passaram a ser servidas pelo
+ * acervo (24/10/2026), cada linha ficou com `acoes: []` — e ninguém notou, porque uma lista que
+ * se lê bem parece uma lista que funciona. Só que as listas anteriores (montadas no deploy) eram
+ * `uma linha por TURMA`, e a linha levava `?professor=<slug>&ciclo=NN` para a porta: era por ali
+ * que se abria o formulário, se editava e se derivava. Ao trocar a linha de turma por linha de
+ * REGISTO, o destino do formulário desapareceu com ela. Resultado medido em produção: as três
+ * páginas da Área do Professor com **zero** `class="acao"`, e a única coisa que se podia fazer
+ * era ler. A Área do Professor ficou sem porta.
+ *
+ * O QUE OS PARÂMETROS SÃO — lidos de `porta/index.html`, não inventados:
+ *   · `professor` (slug) e `ciclo` — semeiam a barra de contexto;
+ *   · `aluna` — semeia o sujeito da anamnese (a lista da porta filtra-o pela curadoria, e um
+ *     apelido fora dela é simplesmente ignorado: degrada, não mente);
+ *   · `fonte=plano|po` — diz à MESMA página qual dos dois formulários abrir;
+ *   · `editar=<carimbo>` — abre a edição do registo. **É lido só em `fonte === 'plano'`**
+ *     (`porta/index.html`, «O ATALHO DE EDIÇÃO»), e por isso só o plano de ensino o recebe.
+ */
+function consulta(params) {
+  const q = new URLSearchParams();
+  for (const [chave, valor] of Object.entries(params || {})) {
+    const v = String(valor == null ? '' : valor).trim();
+    if (v) q.set(chave, v);
+  }
+  const s = q.toString();
+  return s ? '?' + s : '';
+}
+
+/** O botão do topo da página — a acção de CRIAR, que é a que faltava por inteiro. */
+function acaoDaPagina(chave) {
+  const f = FAMILIAS[chave];
+  return { rotulo: f.acaoDeCriar, href: f.porta + consulta({ fonte: f.fonte }) };
+}
+
+/**
+ * As acções de UMA linha. O que se promete é o que a porta cumpre:
+ *   · plano de ensino ainda livre (`solta`) — a edição abre no registo;
+ *   · plano de ensino já vinculado — o servidor recusa a escrita, e o atalho de edição abriria
+ *     uma tela que avisa em vez de editar. Leva-se ao formulário, com o contexto posto;
+ *   · anamnese e PO — não há atalho por endereço para o registo, e um botão «Editar» que não
+ *     edita é pior do que nenhum. Leva-se ao formulário com o contexto e o sujeito.
+ */
+function acoesDaLinha(chave, registo, estado) {
+  const f = FAMILIAS[chave];
+  if (chave === 'plano-de-ensino' && estado && estado.estado === 'solta') {
+    return [['Editar', f.porta + consulta({ fonte: f.fonte, editar: registo.id }), '']];
+  }
+  const contexto = consulta({
+    fonte: f.fonte,
+    professor: registo.professor,
+    ciclo: registo.ciclo,
+    aluna: chave === 'anamnese' ? registo.aluna : '',
+  });
+  return [['Abrir no formulário', f.porta + contexto, 'secundario']];
+}
 
 /**
  * AS LINHAS DE UMA FAMÍLIA, como o cartão da listagem as quer.
@@ -111,7 +178,7 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano) {
         turma: turma,
         professor: quem,
         contexto: turma ? 'vinculada à turma ' + turma : 'aluna nova — sem turma',
-        acoes: [],
+        acoes: acoesDaLinha('anamnese', r, estado),
         caixas: [
           { rotulo: 'Turma', valor: turma || 'sem turma',
             painel: listaDePares([
@@ -149,7 +216,7 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano) {
       contexto: familia === 'plano-de-ensino'
         ? String(r.objetivo || '').slice(0, 120)
         : (r.plano && r.plano.length ? 'observa o plano de ensino de ' + r.plano.join(', ') : ''),
-      acoes: [],
+      acoes: acoesDaLinha(familia, r, estado),
       caixas: [
         { rotulo: 'Turma', valor: turma || '—',
           painel: listaDePares([
@@ -234,6 +301,7 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
       singular: familia.singular,
       plural: familia.plural,
       dica: 'pelo nome, pela turma ou pelo professor',
+      acao: acaoDaPagina(chave),
     }),
   };
 }
