@@ -2662,28 +2662,33 @@ ${listaDoPadrao('tres')}
  * lugares, com duas gramáticas de botão — e o texto explicativo que abre a porta é de
  * desenvolvimento, não é para o professor.
  *
- * O QUE SE PROPÕE: uma página só. O cabeçalho vira um PAINEL que se abre — a mesma gramática do
- * «?» que as caixas do cartão já usam —, e a estante das fichas deixa de existir porque as fichas
- * são a listagem que já está lá.
+ * O QUE SE PROPÕE: uma página só. O contexto do ato vira um PAINEL que se abre — e o botão que o
+ * abre é a PEÇA DA CAIXINHA (`trio-item`), a mesma do «Turma · Quem fez · Quando», mas ocupando a
+ * faixa inteira em vez de um terço. Foi a decisão de 25/10/2026: «ele me parece mais orgânico pra
+ * entender do que se trata». E a estante das fichas deixa de existir, porque as fichas são a
+ * listagem que já está lá.
  *
- * AS TRÊS OPÇÕES não mudam o que existe: mudam ONDE ficam as duas coisas que o pedido põe nesta
- * página — os campos do ato, e as acções de começar. É a única decisão que sobra, e é a que decide
- * no telemóvel.
+ * A OPÇÃO ESCOLHIDA É A. As outras duas ficam na bancada como registo do que se comparou — B
+ * (acções fora do painel) e C (o contexto é o primeiro cartão) —, e continuam a poder ver-se.
  *
- * AS PEÇAS. Nada aqui é inventado no vocabulário do produto: o cartão, as três caixas, o selo e o
- * botão são peças da folha. DUAS peças NÃO existem na folha e terão de nascer lá (com entrada no
- * catálogo e prova) no dia em que isto se implementar: o painel do ato (`.painel-ato`, hoje um
- * `<details>` desenhado no `<style>` embutido da porta) e o conjunto de acções da linha
- * (`.acoes-ficha`, idem). A bancada usa-as já com esses nomes para que o custo se veja agora.
+ * AS PEÇAS. O cartão, as caixas, o selo e o botão são da folha. CINCO regras NÃO existem lá e
+ * terão de nascer no dia em que isto se implementar, com entrada no catálogo de
+ * `IDENTIDADE-VISUAL.md` e prova no `check-identidade`:
+ *   1. `details[open] > summary.trio-item` — o estado aberto da caixinha (a folha só conhece
+ *      `[aria-expanded="true"]`, e um `summary` não o recebe: quem o abre é o `details`);
+ *   2. `.painel-ato` — o agrupador que faz a caixinha ocupar a faixa inteira do `.trio`;
+ *   3. `.campos-do-ato` — a fila dos campos do ato (a porta tem uma cópia no `<style>` embutido);
+ *   4. `.acoes-do-ato` — a fila das acções de começar (idem);
+ *   5. `.estado-do-ato` — a linha que diz o que falta para se poder criar.
  */
 
 const OPCOES_ACERVO = [
-  { id: 'A', n: 'A', t: 'Painel no topo, acções dentro', m: '2 toques',
-    d: 'o contexto do ato é um painel fechado; abri-lo mostra os campos e as acções de começar. '
-      + 'A lista nunca é empurrada para baixo. É o pedido, ao pé da letra' },
-  { id: 'B', n: 'B', t: 'Painel no topo, acções sempre à vista', m: '1 toque',
-    d: 'as acções de começar ficam fora do painel e sempre visíveis — o painel guarda só os '
-      + 'campos. Criar é um toque; o custo é uma linha fixa de altura em toda a visita' },
+  { id: 'A', n: 'A', t: 'Painel com a caixinha, acções dentro', m: '2 toques · ESCOLHIDA',
+    d: 'o contexto do ato é uma caixinha da faixa inteira — a mesma peça do «Turma» —, e abri-la '
+      + 'mostra os campos e as acções de começar. A lista nunca é empurrada para baixo' },
+  { id: 'B', n: 'B', t: 'Painel com a caixinha, acções fora', m: '1 toque',
+    d: 'as acções de começar ficam fora do painel e sempre visíveis — a caixinha guarda só os '
+      + 'campos. Criar é um toque; o custo é uma fila fixa de altura em toda a visita' },
   { id: 'C', n: 'C', t: 'O contexto é o primeiro cartão', m: '2 toques · 0 peça nova',
     d: 'o contexto do ato é um cartão como os outros, no topo da lista, com o «?» a abrir os '
       + 'campos. Zero peça nova na folha; o risco é ler-se como um registo que não existe' },
@@ -2704,47 +2709,100 @@ const FICHAS_DA_ANAMNESE = [
     turma: 'sem turma', quem: 'Manga Curta', quando: '23/10/2026', acoes: ['editar', 'apagar'] },
 ];
 
-/** Os três campos do ato, com a forma que a porta lhes dá — rótulo em cima, controle embaixo. */
+/* OS CAMPOS DO ATO — os cinco da porta, na mesma ordem e com o mesmo rótulo. Os três selects
+ * nascem com as opções que a porta recebe de `/api/bastidores/dados`; aqui estão as da `batata`.
+ * A «turma observada» entra só no plano de ensino (onde se escolhe) e no PO (onde se lê). */
 function camposDoAto({ comAluna = true, comTurma = false } = {}) {
   return `
-      <span class="campo"><label>professor</label>
-        <select><option>Cafe No Bule</option><option>Manga Curta</option></select></span>
-      <span class="campo"><label>ciclo</label><input type="text" value="01"></span>
+      <span class="campo"><label for="ato-professor">professor</label>
+        <select id="ato-professor"><option value="">— escolher —</option>
+          <option selected>Cafe No Bule</option><option>Manga Curta</option>
+          <option>Meia Cortada</option></select></span>
+      <span class="campo"><label for="ato-ciclo">ciclo</label>
+        <input type="text" id="ato-ciclo" value="01"></span>
       ${comTurma ? '<span class="campo"><label>turma observada</label>'
-        + '<span class="leitura">Balé Nível 1</span></span>' : ''}
-      ${comAluna ? '<span class="campo"><label>aluna</label>'
-        + '<select><option>— nenhuma —</option><option>Aluna C — nova</option></select></span>' : ''}
-      <span class="campo campo-senha"><label>senha do professor</label>
-        <input type="password" value="••••••"><span class="ok">confere</span></span>`;
+        + '<span class="trio-v-turma">Balé Nível 1</span></span>' : ''}
+      ${comAluna ? '<span class="campo"><label for="ato-aluna">aluna</label>'
+        + '<select id="ato-aluna"><option value="">— nenhuma —</option>'
+        + '<option selected>Aluna C — nova</option></select></span>' : ''}
+      <span class="campo campo-senha"><label for="ato-senha">senha do professor</label>
+        <input type="password" id="ato-senha" value="••••••"><span class="ok">confere</span></span>`;
 }
 
-/* AS ACÇÕES DE COMEÇAR — e a ÚNICA medida que mudou o desenho desta proposta.
+/*
+ * AS ACÇÕES DE COMEÇAR — com a REGRA DA PORTA, que existe e é uma só.
  *
- * A primeira versão usava `.acao` em todas, como a porta usa hoje. Medido a 390px: **duas filas e
- * 97px de altura**, porque `.acao` tem `white-space: nowrap` e não encolhe — os botões vão um por
- * linha. Com `.acao.pequena` nos secundários: **uma fila e 29px**. São 68px, num telemóvel de
- * 844 — e são 68px que a lista deixa de descer.
+ * A regra está em três funções de `porta/index.html`, e não foi inventada aqui:
+ *   · `voltarAoPortal()` — sem preenchimento guardado, mostra «Começar» e esconde a retomada;
+ *     com preenchimento, faz o contrário;
+ *   · `mostrarRetomada()` — põe «Continuar de onde parei» + «Começar de novo» e faz
+ *     `$('comecar').style.display = 'none'`. O comentário da porta diz porquê: «um botão
+ *     desabilitado é ruído, um escondido não é nada»;
+ *   · `$('recomecar')` — limpa a memória e volta ao portal, e é isso que faz «Nova» reaparecer.
  *
- * A hierarquia é a mesma que a porta já declara: o botão que CRIA é um, e é o principal; os outros
- * são alternativas ao mesmo gesto. Pequenos não os esconde — distingue-os, que é o que o `.acao`
- * já faz com `secundario`. */
-function acoesDeComecar({ comContinuar = true } = {}) {
+ * Os três estados, então: sem memória → **Nova** · com memória → **Continuar + Começar de novo**
+ * (e Nova desaparece) · «Começar de novo» → limpa → **Nova** outra vez. «Ver a ficha em branco»
+ * fica sempre, porque não depende de haver o que retomar.
+ *
+ * E a memória é POR FONTE E POR CONTEXTO — `porta-<fonte>-<escola>-<professor>-<ciclo>-1`
+ * (`chaveDaMemoria`). Não inclui a aluna. Trocar de professor troca o estado dos botões, e é isso
+ * que a bancada reproduz. */
+function acoesDeComecar({ comEstado = true } = {}) {
   return `
-      <button class="acao" type="button" ${comContinuar ? '' : 'disabled'}>Nova anamnese</button>
-      ${comContinuar ? '<button class="acao secundario pequena" type="button">Continuar de onde parei</button>'
-        + '<button type="button" class="acao secundario pequena">Começar de novo</button>' : ''}
-      <a class="acao secundario pequena" href="#ficha-em-branco">Ver a ficha em branco</a>`;
+      <div class="acoes-do-ato">
+        <button class="acao" type="button" data-acao="nova">Nova anamnese</button>
+        <button class="acao secundario pequena" type="button" data-acao="continuar" hidden>
+          Continuar de onde parei</button>
+        <button class="acao secundario pequena" type="button" data-acao="recomecar" hidden>
+          Começar de novo</button>
+      </div>${comEstado ? '\n      <p class="estado-do-ato" data-estado hidden></p>' : ''}`;
 }
 
-/** Um cartão do acervo, com o padrão da listagem e as acções na linha do nome. */
-function cartaoDoAcervo(f, { ehPlano = false } = {}) {
-  const link = ehPlano ? 'plano-preenchido' : 'ficha-preenchida';
+/* «VER A FICHA EM BRANCO» FICA FORA DO PAINEL, e sempre à vista.
+ *
+ * O pedido foi explícito: «ver a ficha em branco ele tá sempre ali, acompanhando». A primeira
+ * versão desta proposta pôs-no dentro do painel, com as outras acções — e o teste mostrou o que
+ * isso queria dizer: em A, com o painel fechado, NADA estava à vista. Não é o que o professor
+ * pediu. A ficha em branco não depende do contexto nem da senha: ela abre uma folha vazia e
+ * imprime-se. Por isso é a única acção que fica fora, e está lá em todos os estados. */
+function ligacaoDaFichaEmBranco({ fora = false } = {}) {
+  return '<p class="ficha-em-branco' + (fora ? ' ficha-fora' : '') + '">'
+    + '<a class="acao secundario pequena" href="#ficha-em-branco">Ver a ficha em branco</a></p>';
+}
+
+/* A CAIXINHA QUE ABRE O PAINEL — a peça do «Turma», na faixa inteira.
+ *
+ * É a MESMA peça: `trio-item` com `trio-k` (o rótulo), `trio-v` (o valor) e `trio-q` (o «?» que
+ * diz que há mais dentro). O que muda é a LARGURA: `.painel-ato` faz o `details` ocupar
+ * `1 / -1` do `.trio`, em vez de um terço. Nada de peça nova para o botão — só onde ele se senta.
+ *
+ * O `trio-v` diz o CONTEXTO INTEIRO numa linha, e quando falta alguma coisa diz o que falta. É o
+ * papel que hoje é o `title` do botão da porta, e um `title` não se lê no telemóvel. */
+function caixinhaDoAto() {
+  return `
+    <div class="trio trio-do-ato">
+      <details class="painel-ato" id="painel-ato">
+        <summary class="trio-item" aria-label="abrir o contexto do ato">
+          <span class="trio-k">Contexto do ato</span>
+          <span class="trio-v" data-resumo>Cafe No Bule · ciclo 01 · Aluna C — nova</span>
+          <span class="trio-q" aria-hidden="true">?</span>
+        </summary>
+        <div class="corpo-do-ato">
+          <div class="campos-do-ato">${camposDoAto()}</div>
+          ${acoesDeComecar()}
+        </div>
+      </details>
+    </div>`;
+}
+
+/* Um cartão do acervo, com o padrão da listagem e as acções na linha do nome. */
+function cartaoDoAcervo(f) {
   return `
     <li class="trio-plano" data-nome="${f.nome}">
       <div class="trio-linha">
-        <span class="trio-nome"><b><a class="nome-do-registo" href="api/${link}.${f.id || 'carimbo'}?formato=html"
-          target="_blank" rel="noopener">${f.nome}</a></b>
-          <span class="selo ${f.classe}">${f.selo}</span></span>
+        <span class="trio-nome"><b><a class="nome-do-registo"
+          href="api/ficha-preenchida.${f.id}?formato=html" target="_blank" rel="noopener"
+          >${f.nome}</a></b> <span class="selo ${f.classe}">${f.selo}</span></span>
         <span class="trio-acoes">${f.acoes.map((a, i) => '<button type="button" class="acao '
           + 'pequena' + (i ? ' secundario' : '') + '">' + a + '</button>').join('')}</span>
       </div>
@@ -2769,37 +2827,30 @@ function caixaDoAcervo(rotulo, valor) {
     + '<span class="trio-q" aria-hidden="true">?</span></button>';
 }
 
-/* O CSS das duas peças que faltam na folha — e o resto é a folha do projeto, embutida. O que está
- * aqui é o que a proposta ACRESCENTA, e tem de acabar em `tools/templates/ciclo.css` (peça nova no
- * catálogo) se a opção escolhida for A ou B. */
+/* O CSS que a proposta acrescenta. As cinco primeiras regras são as que terão de nascer na folha;
+ * as últimas são só da bancada (a troca de opção). */
 const CSS_ACERVO = `
 /* ============================================================================
-   AS PEÇAS DESTA PROPOSTA. As duas primeiras NÃO existem na folha hoje: o
-   painel do ato e o conjunto de acções da linha vivem no <style> embutido da
-   porta, e uma proposta que os copiasse sem o dizer estaria a esconder o custo.
+   AS CINCO PEÇAS QUE A FOLHA NÃO TEM. A primeira é a que o pedido de 25/10/2026
+   tornou necessária: a caixinha do «Turma» a servir de botão que abre um painel.
    ========================================================================== */
 
-/* 1. O PAINEL DO ATO — o details que a porta já usa, com a mesma gramática do «?». */
-.painel-ato {
-  border: 1px solid var(--borda); border-radius: var(--raio-2);
-  background: var(--fundo-suave, #faf7f2); margin: 0 0 1rem;
-}
-.painel-ato > summary {
-  list-style: none; cursor: pointer; padding: .6rem .8rem;
-  display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap;
-  font: 600 14px/1.4 var(--ui);
-}
-.painel-ato > summary::-webkit-details-marker { display: none; }
-.painel-ato > summary .seta { color: var(--texto-suave); transition: transform .15s ease; }
-.painel-ato[open] > summary .seta { transform: rotate(90deg); }
-.painel-ato > summary .resumo {
-  color: var(--texto-suave); font-weight: 400; font-size: 13px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
-}
-.painel-ato .corpo { padding: 0 .8rem .8rem; }
-.campos-do-ato {
-  display: flex; gap: .5rem .9rem; align-items: flex-end; flex-wrap: wrap;
-}
+/* 1. O ESTADO ABERTO DA CAIXINHA. A folha conhece \`[aria-expanded="true"]\`; um \`summary\`
+      não o recebe — quem o abre é o \`details\`. Sem esta regra, abrir o painel não muda
+      nada no botão, e o professor não vê que ele está aberto. */
+details[open] > summary.trio-item { background: var(--fundo-citacao); border-color: var(--borda-forte); }
+details[open] > summary.trio-item .trio-q { background: var(--marca); color: var(--superficie); }
+summary.trio-item { list-style: none; cursor: pointer; }
+summary.trio-item::-webkit-details-marker { display: none; }
+/* o contorno de foco tem de ser o da caixinha, e o do summary não vem de graça */
+summary.trio-item:focus-visible { outline: 2px solid var(--marca); outline-offset: 1px; }
+
+/* 2. A FAIXA INTEIRA. O \`.trio\` é uma grelha de três colunas; o painel ocupa as três. */
+.painel-ato { grid-column: 1 / -1; min-width: 0; }
+.painel-ato .corpo-do-ato { padding: .6rem .1rem 0; }
+
+/* 3. OS CAMPOS DO ATO. A porta tem esta fila no \`<style>\` embutido dela; é a mesma forma. */
+.campos-do-ato { display: flex; gap: .5rem .9rem; align-items: flex-end; flex-wrap: wrap; }
 .campos-do-ato .campo { display: grid; grid-template-columns: auto auto; gap: 2px 4px; }
 .campos-do-ato .campo > label {
   grid-column: 1 / -1; font: 600 11px/1.4 var(--ui);
@@ -2807,16 +2858,26 @@ const CSS_ACERVO = `
 }
 .campos-do-ato input[type="text"] { width: 4.5rem; }
 .campos-do-ato select { max-width: 12rem; }
-.campos-do-ato .leitura { font: 600 14px/1.8 var(--serif); color: var(--marca-texto); }
 .campos-do-ato .campo-senha input { width: 9rem; }
 .campos-do-ato .ok { font-size: 11px; color: var(--ok); align-self: center; }
-.acoes-do-ato { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .7rem; }
+.campos-do-ato .trio-v-turma { font: 600 14px/1.8 var(--serif); color: var(--marca-texto); }
 
-/* 2. AS ACÇÕES DA LINHA — os botões «editar · apagar · ajustar» ao lado do nome. */
+/* 4. AS ACÇÕES DE COMEÇAR — uma fila, e os secundários pequenos: medido, com \`.acao\` em todas
+      elas pedem 97px e DUAS filas a 390px; pequenas, 29px e uma. */
+.acoes-do-ato { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .7rem; }
+
+/* 4.1 A FICHA EM BRANCO — fora do painel, sempre à vista. */
+.ficha-em-branco { margin: .5rem 0 0; }
+html[data-opcao="C"] .ficha-fora { display: none; }
+
+/* 5. O QUE FALTA PARA SE PODER CRIAR — a informação que hoje é só um \`title\`. */
+.estado-do-ato {
+  margin: .45rem 0 0; font-size: 12.5px; line-height: 1.45; color: var(--texto-suave);
+}
+.estado-do-ato[data-falta="sim"] { color: var(--alerta); }
+
+/* ---- as acções da linha ---- */
 .trio-acoes .acao { white-space: nowrap; }
-/* O ALVO DO NOME TEM DE SER DE DEDO. Sem padding, o link media 60×20 — abaixo dos 28px mínimos, e
-   é o alvo que leva ao .html que se abre para imprimir. O padding vertical dá-lhe 32px sem mexer
-   na altura da linha do cartão, porque a trio-linha já centra ao meio. */
 .nome-do-registo {
   color: inherit; text-decoration: none; display: inline-block; padding: .35rem 0;
   border-bottom: 1px dotted var(--borda);
@@ -2824,42 +2885,158 @@ const CSS_ACERVO = `
 .nome-do-registo:hover { border-bottom-color: var(--marca); }
 .dica-do-link { color: var(--texto-suave); font-size: 11.5px; margin-top: .3rem; }
 
-/* 3. O CARTÃO DO CONTEXTO (SÓ NA OPÇÃO C) — o ato com a linguagem dos cartões. */
+/* ---- o cartão do contexto (só na opção C) ---- */
 .contexto-cartao { border-left: 3px solid var(--marca); background: var(--fundo-suave, #faf7f2); }
-.contexto-cartao .trio-dono { margin-top: .1rem; }
-.contexto-cartao .acoes-do-ato { margin-top: .7rem; }
-
-/* ---- as três opções: o que fica de fora ---- */
-html[data-opcao="A"] .acoes-fora,
-html[data-opcao="A"] .contexto-cartao { display: none; }
-html[data-opcao="B"] .acoes-dentro,
-html[data-opcao="B"] .contexto-cartao { display: none; }
-html[data-opcao="B"] .painel-ato { background: none; border: 0; }
-html[data-opcao="B"] .painel-ato > summary { padding-left: 0; }
-html[data-opcao="B"] .painel-ato .corpo { padding-left: 0; }
-html[data-opcao="C"] .painel-ato { display: none; }
-/* Em C as acções vivem DENTRO do cartão; as duas barras de fora não têm lugar. Sem esta regra a
-   opção C mostrava as acções duas vezes — uma no cartão, outra solta acima da lista. */
-html[data-opcao="C"] .acoes-fora,
-html[data-opcao="C"] .acoes-dentro { display: none; }
-/* Na opção C o painel do ato é o próprio cartão: os campos vivem dentro dele, e nasce FECHADO —
-   um cartão que abre com cinco campos abertos ocupa meio telemóvel antes de se ver um registo. As
-   acções ficam à vista: são elas que se vêm buscar. */
-html[data-opcao="C"] .contexto-cartao .campos-do-ato { margin-top: .6rem; }
 .contexto-cartao.fechado .campos-do-ato { display: none; }
+
+/* ---- o que cada opção deixa de fora ---- */
+html[data-opcao="A"] .acoes-fora { display: none; }
+html[data-opcao="B"] .acoes-dentro { display: none; }
+html[data-opcao="B"] .painel-ato { background: none; }
+html[data-opcao="C"] .trio-do-ato { display: none; }
+html[data-opcao="A"] .contexto-cartao,
+html[data-opcao="B"] .contexto-cartao { display: none; }
+html[data-opcao="C"] .acoes-dentro,
+html[data-opcao="C"] .acoes-fora { display: none; }
 
 /* ---- o telemóvel ---- */
 @media (max-width: 560px) {
-  /* O NOME E OS BOTÕES NÃO CABEM NA MESMA LINHA a 390px: o nome de uma aluna com o selo ao lado
-     já pede ~180px, e três botões pedem ~200. Ou eles descem, ou o nome quebra a meio. Descem —
-     e o cartão cresce uma linha, que é o custo de ter o gesto à vista. */
+  /* O NOME E OS BOTÕES NÃO CABEM NA MESMA LINHA a 390px: o nome com o selo já pede ~180px, e os
+     gestos pedem ~200. Ou eles descem, ou o nome quebra a meio. Descem. */
   .trio-linha { align-items: flex-start; }
   .trio-nome { flex: 1 1 100%; }
   .trio-acoes { margin-left: 0; }
   .acoes-do-ato .acao { flex: 1 1 auto; text-align: center; }
   .campos-do-ato { gap: .4rem .7rem; }
-  .painel-ato > summary { padding: .6rem .7rem; }
 }
+`;
+
+/* O SCRIPT DA BANCADA: a troca de opção, a máquina de estados dos botões e a caixinha que abre
+ * o painel. A máquina usa `localStorage` de verdade, com a forma da memória da porta — assim o
+ * estado sobrevive a um recarregamento, que é o que se quer medir no telemóvel. */
+const SCRIPT_ACERVO = `
+window.aoTrocarOpcao = function (opcao) {
+  document.documentElement.setAttribute('data-opcao', opcao);
+  var painel = document.getElementById('painel-ato');
+  if (painel) painel.open = (opcao === 'A') && !!memoria();
+  pintar();
+};
+
+var CHAVE = 'proposta6:memoria';
+function memoria() {
+  try { var m = localStorage.getItem(CHAVE); return m ? JSON.parse(m) : null; } catch (e) { return null; }
+}
+function gravar(m) {
+  try { if (m) localStorage.setItem(CHAVE, JSON.stringify(m)); else localStorage.removeItem(CHAVE); }
+  catch (e) {}
+}
+
+/* O CONTEXTO ESTÁ COMPLETO? É a trava da porta (contextoFaltandoCompleto + a senha). Aqui
+   verificam-se os campos que existem na bancada: professor, ciclo e aluna. */
+function faltam() {
+  var f = [];
+  var p = document.getElementById('ato-professor');
+  var c = document.getElementById('ato-ciclo');
+  var a = document.getElementById('ato-aluna');
+  if (p && !p.value) f.push('professor');
+  if (c && !c.value.trim()) f.push('ciclo');
+  if (a && !a.value) f.push('aluna');
+  return f;
+}
+
+function pintar() {
+  var m = memoria();
+  var f = faltam();
+  var painel = document.getElementById('painel-ato');
+
+  /* OS TRÊS ESTADOS DA PORTA: sem memória mostra «Nova»; com memória mostra «Continuar» e
+     «Começar de novo» e ESCONDE «Nova» — escondido, não desabilitado. */
+  document.querySelectorAll('.acoes-do-ato').forEach(function (c) {
+    if (!c.getClientRects().length) return;
+    var nova = c.querySelector('[data-acao="nova"]');
+    var cont = c.querySelector('[data-acao="continuar"]');
+    var reco = c.querySelector('[data-acao="recomecar"]');
+    if (!nova) return;
+    nova.hidden = !!m;
+    cont.hidden = !m;
+    reco.hidden = !m;
+    /* A TRAVA: sem o contexto completo não se cria. Desabilitado (e não escondido), porque o
+       botão existe e o que falta está dito na linha de baixo. */
+    nova.disabled = f.length > 0;
+    nova.title = f.length ? 'Falta o contexto do ato: ' + f.join(', ') : '';
+    var estado = c.parentElement.querySelector('.estado-do-ato');
+    if (estado) {
+      estado.hidden = false;
+      if (m) {
+        estado.setAttribute('data-falta', 'nao');
+        estado.textContent = 'Há um preenchimento interrompido: ' + m.respondidos + ' de '
+          + m.total + ' respondidas, último lançamento em ' + m.quando + '.';
+      } else if (f.length) {
+        estado.setAttribute('data-falta', 'sim');
+        estado.textContent = 'Falta o contexto do ato: ' + f.join(', ') + '.';
+      } else {
+        estado.hidden = true;
+        estado.textContent = '';
+      }
+    }
+  });
+
+  /* A CAIXINHA DIZ O CONTEXTO INTEIRO, ou o que falta. É o papel do \`title\` da porta, que no
+     telemóvel não se lê. */
+  document.querySelectorAll('[data-resumo]').forEach(function (el) {
+    var p = document.getElementById('ato-professor');
+    var c = document.getElementById('ato-ciclo');
+    var a = document.getElementById('ato-aluna');
+    var partes = [];
+    if (p && p.value) partes.push(p.value);
+    if (c && c.value.trim()) partes.push('ciclo ' + c.value.trim());
+    if (a && a.value) partes.push(a.value);
+    el.textContent = partes.length ? partes.join(' · ') : 'escolher o professor, o ciclo e a aluna';
+    el.style.color = f.length ? 'var(--alerta)' : '';
+  });
+
+  /* A NOTÍCIA DO PREENCHIMENTO INTERROMPIDO NÃO PODE FICAR ESCONDIDA. Na opção A as acções vivem
+     dentro do painel; com ele fechado, o aviso desaparecia. Quando há memória, o painel abre — a
+     razão de o abrir é exactamente essa. */
+  if (painel && m && document.documentElement.getAttribute('data-opcao') === 'A') painel.open = true;
+}
+
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-acao]');
+  if (b) {
+    var acao = b.getAttribute('data-acao');
+    if (acao === 'nova') {
+      /* «Nova» começa a preencher: a memória nasce com uma resposta dada. É a simulação do que a
+         porta faz a cada resposta (salvar() em chaveDaMemoria). */
+      gravar({ respondidos: 1, total: 53, quando: '25/10/2026 13:05' });
+    } else if (acao === 'continuar') {
+      b.closest('details').open = false;
+    } else if (acao === 'recomecar') {
+      /* «Começar de novo» volta ao estado de repouso — é o que a porta faz (voltarAoPortal):
+         limpa, e a página reaparece como quem chega. O painel fecha porque já não há nada a
+         dizer dentro dele. */
+      gravar(null);
+      var d = b.closest('details');
+      if (d) d.open = false;
+    }
+    pintar();
+    return;
+  }
+  /* o «abrir os campos» do cartão da opção C */
+  var c = e.target.closest && e.target.closest('.contexto-cartao .acao');
+  if (c) {
+    var cartao = c.closest('.contexto-cartao');
+    var fechado = cartao.classList.toggle('fechado');
+    c.textContent = fechado ? 'abrir os campos' : 'fechar os campos';
+  }
+});
+
+['ato-professor', 'ato-ciclo', 'ato-aluna'].forEach(function (id) {
+  var el = document.getElementById(id);
+  if (el) { el.addEventListener('change', pintar); el.addEventListener('input', pintar); }
+});
+
+pintar();
 `;
 
 function proporAcervo() {
@@ -2872,18 +3049,13 @@ function proporAcervo() {
 <main>
 <div class="conteudo">
 
-  <!-- ═══ A e B: o painel do ato, acima da lista ═══ -->
-  <details class="painel-ato" id="painel-ato" open>
-    <summary><span class="seta" aria-hidden="true">▸</span>Contexto do ato
-      <span class="resumo">Batata · Cafe No Bule · ciclo 01</span></summary>
-    <div class="corpo">
-      <div class="campos-do-ato">${camposDoAto()}</div>
-      <div class="acoes-do-ato acoes-dentro">${acoesDeComecar()}</div>
-    </div>
-  </details>
+  <!-- ═══ A (escolhida) e B: a caixinha do ato, na faixa inteira ═══ -->
+  ${caixinhaDoAto()}
+  ${ligacaoDaFichaEmBranco({ fora: true })}
+
   <!-- B: as acções fora do painel. Repetidas de propósito — numa bancada, cada opção tem de
        existir na marcação para poder ser medida; no produto é um sítio só. -->
-  <div class="acoes-do-ato acoes-fora">${acoesDeComecar()}</div>
+  <div class="acoes-do-ato acoes-fora">${acoesDeComecar({ comEstado: false })}</div>
 
   <div class="filtro">
     <input type="text" placeholder="pelo nome, pela turma ou pelo professor" aria-label="filtrar">
@@ -2901,6 +3073,7 @@ function proporAcervo() {
       <div class="trio-dono">Escola Batata · quem preenche, para quem, e com que senha</div>
       <div class="campos-do-ato">${camposDoAto()}</div>
       <div class="acoes-do-ato">${acoesDeComecar()}</div>
+      ${ligacaoDaFichaEmBranco()}
     </li>
 ${fichas}
   </ul>
@@ -2908,9 +3081,9 @@ ${fichas}
   <p class="aviso-proposta" style="margin-top:20px">O que <b>sai</b> desta página quando isto se
   implementar: os dois parágrafos explicativos do topo da porta («Aqui você descreve o ponto de
   partida…» e a nota da observação inicial) e a caixa «Fichas gravadas», com o seu filtro e a sua
-  paginação — as fichas passam a ser esta lista. O que <b>fica</b>: o contexto do ato, a senha, o
-  «continuar de onde parei / começar de novo», o «ver a ficha em branco», o selo livre/vigente, o
-  link para o <b>.html</b> e os gestos editar · apagar · ajustar.</p>
+  paginação — as fichas passam a ser esta lista. O que <b>fica</b>, com a mesma regra: o contexto
+  do ato, a senha, o «continuar de onde parei / começar de novo», o «ver a ficha em branco», o selo
+  livre/vinculada, o link para o <b>.html</b> e os gestos editar · apagar · ajustar.</p>
 
 </div>
 </main>`;
@@ -2924,35 +3097,14 @@ ${fichas}
     bancada: marcacaoDaBancada({
       sobre: 'Proposta 6 · o acervo com a porta',
       titulo: 'Uma página em vez de duas',
-      intro: 'A listagem absorve o contexto do ato e as acções de começar. O que muda entre as '
-        + 'opções é só ONDE essas duas coisas ficam — o resto da página é igual nas três.',
+      intro: 'A listagem absorve o contexto do ato e as acções de começar. A <b>opção A está '
+        + 'escolhida</b>: a caixinha do «Turma», na faixa inteira, abre o painel. Clique em '
+        + '<b>Nova anamnese</b> para ver a regra dos botões em acção — e depois em '
+        + '<b>Começar de novo</b>.',
       opcoes: OPCOES_ACERVO,
       inicio: 'A',
     }),
-    scriptExtra: `
-/* A TROCA DE OPÇÃO — a bancada chama esta função quando se escolhe outra (é o gancho que as
- * outras propostas usam). Aqui ela não redesenha nada: o que muda entre A, B e C é CSS puro,
- * o atributo data-opcao do html. O que ela faz é o que o CSS não pode fazer — abrir o painel nas
- * opções em que ele é um painel, e fechá-lo onde ele é um cartão. */
-window.aoTrocarOpcao = function (opcao) {
-  /* O ATRIBUTO É A FONTE — o CSS lê-o e mais nada. A bancada já o põe antes de chamar este
-   * gancho, mas pô-lo aqui torna a função completa: quem a chamar (a medição, por exemplo) não
-   * fica à espera de um clique para ver a opção. A primeira versão só abria o painel, e a
-   * medição mediu três vezes a opção A a jurar que eram A, B e C. */
-  document.documentElement.setAttribute('data-opcao', opcao);
-  var painel = document.getElementById('painel-ato');
-  if (painel) painel.open = (opcao !== 'C');
-};
-/* O «abrir os campos» do cartão da opção C. No produto este botão é o PRÓPRIO cartão a abrir; na
- * bancada mostra que os campos existem dentro dele. */
-document.addEventListener('click', function (e) {
-  var b = e.target.closest && e.target.closest('.contexto-cartao .acao');
-  if (!b) return;
-  var cartao = b.closest('.contexto-cartao');
-  var fechado = cartao.classList.toggle('fechado');
-  b.textContent = fechado ? 'abrir os campos' : 'fechar os campos';
-});
-`,
+    scriptExtra: SCRIPT_ACERVO,
   });
 }
 

@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/10/2026 (5.ª do dia, após a bancada do acervo com a porta), sobre o commit `3f696c5`.
+> **Última fotografia:** 25/10/2026 (6.ª do dia, após a escolha da opção A), sobre o commit `7dcaa0a`.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -299,12 +299,18 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ### Decisões à espera do utilizador — a proposta do acervo
 
-- **A opção do «acervo com a porta»** (`/propostas/proposta-acervo.html`). **PENDENTE.** A 390px,
-  com o painel fechado: A custa 358px e esconde o gesto de criar; B custa 411px e mostra-o; C custa
-  466px, mostra-o, e não precisa de peça nova na folha. Medido, não estimado.
-- **Duas peças novas na folha**, se a escolha for A ou B: o painel do ato e o conjunto de acções da
-  linha. **PENDENTE** — exigem entrada no catálogo de `IDENTIDADE-VISUAL.md` e prova do
-  `check-identidade`.
+- **A opção do «acervo com a porta» — DECIDIDA: A.** «Eu tô inclinado a usar a opção A… o botão que
+  abre o acordeão pode ser do mesmo estilo do botão chamado Turma, só que ocupando a linha toda.»
+  **DECIDIDO** em 25/10/2026. A bancada já mostra A com a caixinha do «Turma» na faixa inteira.
+- **A regra dos botões — CONFIRMADA, não é preciso inventar.** Vive em `voltarAoPortal()`,
+  `mostrarRetomada()` e no «recomeçar» de `porta/index.html`: sem memória → «Nova»; com memória →
+  «Continuar de onde parei» + «Começar de novo», e «Nova» **escondido**; «Começar de novo» limpa e
+  devolve «Nova». A bancada executa-a com `localStorage`.
+- **Cinco regras a nascer na folha** quando isto se implementar: `details[open] > summary.trio-item`,
+  `.painel-ato`, `.campos-do-ato`, `.acoes-do-ato`, `.estado-do-ato`. **PENDENTE** — exigem entrada
+  no catálogo de `IDENTIDADE-VISUAL.md` e prova do `check-identidade`.
+- **A implementação no produto.** `motor/`, `porta/` e `tools/templates/` **não foram alterados**:
+  a proposta está na bancada. **PENDENTE** — é a próxima etapa, e não foi pedida ainda.
 
 ### Dúvidas sobre este próprio protocolo
 
@@ -365,9 +371,11 @@ Ações imediatas, sem transformar hipótese em compromisso:
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
-- **25/10/2026** — **a proposta do «acervo com a porta»**: três opções medidas na bancada para levar o
-  contexto do ato e as acções de começar para dentro da listagem, e reduzir duas páginas a uma.
-  Nada de produto alterado. **PENDENTE**: a escolha da opção.
+- **25/10/2026** — **a opção A do «acervo com a porta», escolhida e corrigida**: a caixinha do
+  «Turma» passa a abrir o painel, na faixa inteira (nove propriedades iguais às da caixa do cartão,
+  provadas); «ver a ficha em branco» sai do painel e fica sempre à vista; com preenchimento
+  interrompido o painel abre sozinho. A regra dos três botões foi confirmada em `porta/index.html` e
+  a bancada passa a executá-la. Nada de produto alterado.
 - **25/10/2026** — **a Área do Professor ficou sem porta e voltou a tê-la.** As três listas servidas
   pelo acervo nasceram com `acoes: []`, e a linha deixou de levar ao formulário quando deixou de ser
   uma turma e passou a ser um registo. Medido em produção: `/aulas/` com 27 acções, as três da Área do

@@ -24384,3 +24384,62 @@ saída), `experimentos/propostas/medir-acervo.js` (novo — 60 verificações em
 `motor/`, o `porta/` e o `tools/templates/` estão como estavam. As duas peças que a proposta mostra e
 a folha não tem — o painel do ato e o conjunto de acções da linha — **terão de nascer na folha, com
 entrada no catálogo e prova**, no dia em que isto se implementar.
+
+## 25/10/2026 — A opção A, com a caixinha do «Turma» a abrir o painel
+
+**A escolha.** «Eu tô inclinado a usar a opção A… só que o botão que abre o acordeão, que tá escrito
+contexto do ato, se ele puder ser do mesmo estilo, só que ele vai tomar a linha toda… o [botão] que a
+gente usa, né? A gente usa Turma, quem faz e quando. Ali tem um tipo próprio de botão. Ele me parece
+mais orgânico pra entender do que se trata.»
+
+**Não era preciso peça nova para o botão** — era preciso pôr a peça existente noutro sítio. O
+`summary` do painel passa a ter `class="trio-item"`, com o `trio-k` (o rótulo em versalete), o
+`trio-v` (o contexto inteiro numa linha) e o `trio-q` (o «?»). E o `details` passa a ocupar
+`grid-column: 1 / -1` dentro do `.trio`, em vez de um terço. **Provado, não afirmado:** a bancada
+compara nove propriedades — fundo, borda, raio, espaçamento, família e as três do rótulo — entre o
+`summary` do painel e a caixa «Turma» do cartão, e as nove são iguais.
+
+**A regra dos botões existe, e é uma só.** A pergunta era «confirma se essa regra tá validada, se
+existe mesmo». Existe, em três funções de `porta/index.html`, e não foi inventada:
+
+- `voltarAoPortal()` — com `lerMemoria()` devolve algo, chama `mostrarRetomada()`; sem memória,
+  mostra o «Começar» e esconde a retomada;
+- `mostrarRetomada()` — põe «Continuar de onde parei» + «Começar de novo» e faz
+  `$('comecar').style.display = 'none'`. O comentário da porta diz a razão: «um botão desabilitado é
+  ruído, um escondido não é nada»;
+- `$('recomecar')` — `limparMemoria()` e `voltarAoPortal()`, e é isso que faz o «Nova» reaparecer.
+
+Os três estados ficam então: **sem memória → Nova** · **com memória → Continuar + Começar de novo,
+e Nova desaparece** · **«Começar de novo» → limpa → Nova outra vez**. E a memória é por fonte e por
+contexto — `porta-<fonte>-<escola>-<professor>-<ciclo>-1` (`chaveDaMemoria`), sem a aluna: trocar de
+professor troca o estado dos botões.
+
+**A bancada passa a executar a regra, em vez de a desenhar.** Com `localStorage` a sério, com a mesma
+forma da memória da porta: clicar «Nova» cria o preenchimento, os botões trocam, e o estado sobrevive
+ao recarregamento — que é o que se avalia no telemóvel. Medido: cinco passos, todos com o resultado
+que a porta dá.
+
+**Duas decisões que a execução obrigou a tomar, e que o desenho estático não mostrava:**
+
+1. **«Ver a ficha em branco» sai do painel.** O pedido dizia «ele tá sempre ali, acompanhando», e a
+   primeira versão pôs-no lá dentro com as outras acções: com o painel fechado, em A, **nada** estava
+   à vista. A ficha não depende do contexto nem da senha — é a única acção que fica fora, e está lá
+   em todos os estados.
+2. **Com preenchimento interrompido, o painel abre sozinho.** Em A as acções vivem dentro dele; com
+   ele fechado, a notícia do preenchimento desaparecia. A razão de o abrir é exactamente essa — e é
+   o que a porta faz, ao mostrar a caixa de retomada no topo.
+
+**Medido a 390px** (o painel fechado, que é como a página é encontrada): a caixinha do ato ocupa
+**342×48** — a faixa inteira da coluna, e não um terço —, e a lista começa a 362px. Aberto, 620px.
+E a trava do contexto funciona: sem aluna escolhida, «Nova» fica desabilitado e a caixinha diz, em
+vermelho, «escolher o professor, o ciclo e a aluna» — a informação que na porta é só um `title`, e um
+`title` não se lê no telemóvel.
+
+**Cinco regras a nascer na folha** no dia em que isto se implementar, todas declaradas no corpo do
+construtor: `details[open] > summary.trio-item` (o estado aberto da caixinha — a folha só conhece
+`[aria-expanded="true"]`, e um `summary` não o recebe), `.painel-ato` (a faixa inteira), `.campos-do-ato`,
+`.acoes-do-ato` e `.estado-do-ato`.
+
+**Ficheiros.** `experimentos/propostas/construir.js` (a proposta 6 reescrita: a caixinha, a máquina
+de estados, a ficha fora do painel) e `experimentos/propostas/medir-acervo.js` (86 verificações, com
+a prova das nove propriedades e a recolha de erros de JavaScript).
