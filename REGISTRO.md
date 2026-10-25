@@ -24834,3 +24834,68 @@ qualquer página sem opções (`#bancada` não existe), e a sala de ensaio é a 
 Passou a sair cedo quando não há painel. E, pela terceira vez nesta sessão, uma crase dentro de um
 comentário **fechou um template literal** e o erro só apareceu a correr — não a carregar.  Fica
 escrito: nos ficheiros que constroem HTML por template, um comentário com crases é código.
+
+
+### 26/10/2026 — A abertura foi apagada, e o painel deixou de se abrir sozinho
+
+**Duas coisas, e a segunda é a que a pesquisadora já tinha pedido três vezes.**
+
+**1. O BLOCO NÃO SE ABRE SOZINHO.** «Quando eu entro em anamnese, o bloco contexto do ato não pode
+estar expandido… tem que estar fechado, igual o procurar.» Ele abria por minha causa: quando havia
+**preenchimento interrompido**, o `pintar()` chamava `abrirBloco('ato')` para a notícia não ficar
+escondida. A pesquisadora tem razão e a razão é de desenho: um painel que se abre ao entrar é a
+página a decidir por quem chegou, e o pedido é o contrário.
+
+A notícia não se perdeu — mudou de sítio. A barra **fechada** passa a dizer «há um preenchimento
+interrompido — 7 de 53 respondidas», em `--alerta`, com `data-pendente="sim"` a mostrar o resumo
+mesmo com o bloco fechado. Informação no sítio onde se lê **sem um clique**, e não um painel aberto
+por decreto. Medido a 1280: `ato:false, filtro:false, pendente:"sim", resumoVisivel:true`. A 390 o
+bloco inteiro está escondido — a notícia aparece quando se escolhe «fazer anamnese», que é quando
+ela serve.
+
+**2. A PÁGINA INTERMÉDIA FOI APAGADA.** «Essa página tem que ser completamente apagada… Tenho a
+impressão de que não tem rota separada, que tá tudo dentro da mesma rota, e isso pode ser o
+problema.» **A impressão estava certa:** `/anamnese/`, `/plano-ensino/` e `/plano-observacao/` são a
+**mesma** página (`porta/index.html`), com `?fonte=` a escolher o formulário. E a página intermédia
+não era outra rota — era a secção `#abertura` **dentro** do mesmo ficheiro, com o formulário ao lado
+(`#conducao`, `oculto`). Por isso «tirar a página» não era tirar uma rota: era tirar a secção e
+deixar de a esconder atrás de um «Começar».
+
+O QUE SAIU DO FICHEIRO, e não ficou escondido por CSS:
+
+| O que era | Para onde foi |
+|:--|:--|
+| `<section id="abertura">` inteira | apagada |
+| `#portal-po` — os dois parágrafos «aqui você descreve…» | apagados (com as três variantes por fonte) |
+| `#contexto` — `contexto(MAPA)`, a explicação dos nove blocos | apagado |
+| `#retomada` — «há um preenchimento interrompido» com os dois botões | o painel da lista, e a barra fechada |
+| `#comecar` — «Fazer a anamnese» | apagado; a pergunta virou `podePreencher()` |
+| `#fichas` — a estante «Fichas gravadas», com filtro, selos e botões | a lista da Área do Professor, que já a desenhava |
+| `#usar-ia` — a entrada da IA | apagada (ver a pendência) |
+| o rodapé «Experimento do Protocolo de Observação…» | apagado |
+| `#link-ficha-branco` | apagado (o «Gerar ficha» do menu da lista ficou) |
+
+**A PÁGINA É O FORMULÁRIO, E ENTRA-SE SEM PARAGEM.** O `?abrir=1` deixou de ser um «salto»
+condicionado: é o estado normal. Se o contexto estiver completo — e é a mesma regra de sempre, agora
+numa função só, `podePreencher()`, com as três travas (senha ou bilhete, contexto, curadoria) —
+entra-se no nó guardado ou no primeiro. Se **não** estiver, a página devolve a pessoa à lista: um
+formulário à vista sobre um ato que não existe é a versão educada de uma página em branco.
+
+Medido: `/anamnese/` sem contexto → `/area-do-professor/anamnese/`. Com `?…&ato=` → o formulário, sem
+`#abertura` e sem `#lista-fichas` no DOM, e sem um único erro de JavaScript.
+
+**«SAIR» E O VOLTAR DO NAVEGADOR VÃO PARA A LISTA.** O `history.back()` parecia o gesto certo e
+**estava errado**: numa aba nova, a entrada anterior do histórico é o `about:blank` do navegador, e o
+«Sair» levava a uma página em branco. Foi medido. Passou a `location.replace(lista)` — destino
+declarado, e sem deixar no histórico uma entrada para um formulário que já não tem contexto.
+
+**A ESTANTE DE FICHAS deixou de ser pedida.** `atualizarFichas()` fazia `api/anamnese-estados` nesta
+página para desenhar uma lista que a página da Área do Professor já desenha — a mesma leitura duas
+vezes. A função ficou com uma guarda (`if (!$('lista-fichas')) return;`) porque quatro sítios de
+gravação a chamam; sem a estante, não faz um único pedido.
+
+**PENDENTE, e é decisão da pesquisadora.** O botão «Usar IA para fazer o Plano de Observação» vivia
+na abertura. Saiu com ela, e o painel `#ia` (um stub) ficou sem entrada visível — o `abrirIA()`
+continua no ficheiro e não é chamado por ninguém. Não se inventou um sítio novo para ele: um botão de
+IA no meio do formulário seria desenho a mais, e a IA é stub. Quando houver decisão sobre onde ela
+vive, é uma linha.
