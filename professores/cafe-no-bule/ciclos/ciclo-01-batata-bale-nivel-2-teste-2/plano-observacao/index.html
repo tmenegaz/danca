@@ -751,10 +751,12 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
 
 <!-- O cabeçalho é `header.doc`, como no site: o título em burgundy sobre um filete de
      ouro e o subtítulo em itálico. A barra de cima é a do site (o marcador acima). -->
-<header class="doc">
-  <h1 id="titulo-pagina">Anamnese do aluno</h1>
-  <p class="subtitulo" id="subtitulo-pagina">O ponto de partida de cada aluna — escrito antes de começar o ciclo.</p>
-</header>
+<!-- O CABEÇALHO DA PÁGINA SAIU (26/10/2026). «O ponto de partida de cada aluna — escrito antes
+     de começar o ciclo» é a primeira coisa que se lia ao entrar, e a pesquisadora leu-a como a
+     página intermediária que ela mandou apagar: «não tem intermediário, não tem nada antes
+     disso». O nome do documento vive no `<title>` (a aba) e na barra do sistema; a página começa
+     no formulário. O `#titulo-pagina` e o `#subtitulo-pagina` eram escritos pelo `iniciar()` —
+     os `if` que os procuram continuam lá, e não encontram nada. -->
 
 <!-- A FAIXA dá ao cartão a MESMA caixa do texto da página. Sem ela o cartão tinha a
      largura do contêiner (1180px em tela cheia) enquanto os blocos de prosa viviam na
@@ -1140,7 +1142,12 @@ let ATO_AUTORIZADO = false;
 function podePreencher() {
   const faltam = contextoFaltandoCompleto();
   if (faltam.length) return false;
-  const senhaOk = FONTE === 'anamnese' ? (SENHA_VALIDA || ATO_AUTORIZADO) : true;
+  /* EM EDIÇÃO A SENHA NÃO É PRÉ-REQUISITO DE ENTRADA (26/10/2026). Ela é pré-requisito de
+   * GRAVAÇÃO — e o pedido é explícito: «quando eu vou pela edição, eu venho direto para dentro do
+   * formulário e aí eu tenho que digitar a senha obrigatoriamente para poder editar». Exigi-la à
+   * porta fazia o «Editar» da lista voltar para a lista, imediatamente, sem nunca abrir nada. */
+  const emEdicao = !!(EDITANDO || DERIVANDO);
+  const senhaOk = FONTE === 'anamnese' ? (SENHA_VALIDA || ATO_AUTORIZADO || emEdicao) : true;
   if (!senhaOk) return false;
   const semCuradoria =
     (FONTE === 'plano' || FONTE === 'po') && CURADORIA_CARREGADA && CURADORIAS.length === 0;
@@ -6011,11 +6018,11 @@ async function ajustarAnamnese(id) {
  * o professor responde de novo, e o envelope é regravado por baixo.
  */
 function editarAnamnese(id) {
-  // A edição em sítio carrega as respostas do envelope para a condução e marca o
-  // carimbo a regravar — o `#gravar` usa `PUT` em vez de `POST`. É lícito só
-  // porque a anamnese está SOLTA; o servidor recusa (409) se entretanto foi
-  // vinculada.
-  fetch('api/envelope/' + encodeURIComponent(id))
+  /* DEVOLVE A PROMESSA (26/10/2026). Quem a chama tem de ESPERAR por ela: é ela que carrega o
+   * contexto do envelope para a barra, e a trava que decide se se entra no formulário corre
+   * depois. Sem o `return`, a trava via `EDITANDO = null` e mandava a pessoa de volta à lista
+   * («ele vai até a página e volta imediatamente»). */
+  return fetch('api/envelope/' + encodeURIComponent(id))
     .then((r) => r.json())
     .then((envelope) => {
       RESPOSTAS.clear();
@@ -6039,10 +6046,17 @@ function editarAnamnese(id) {
       // no fim, depois de responder tudo.
       if (!SENHA_VALIDA) apontarSenhaFaltando();
     })
-    .catch((erro) => avisarNaFicha(id, erro.message, 'erro'));
+    .catch((erro) => {
+      /* O ERRO NÃO PODE SUBIR PELO `await`. Sem esta captura, um envelope inexistente rejeitava a
+       * promessa e o arranque da página parava a meio — sem formulário, sem aviso e sem lista. */
+      avisarNaFicha(id, erro.message, 'erro');
+    });
 }
 
-// O carimbo que está a ser editado em sítio (null quando é uma anamnese nova).
+/* O CARIMBO EM EDIÇÃO, DECLARADO ANTES DE QUEM O LÊ. Estava depois do `editarAnamnese`, que o
+ * escreve — e `let` não sobe: a escrita acontecia antes da declaração, e o `EDITANDO` do
+ * arranque era sempre `null` (que é o mesmo que dizer «não estou a editar»). A ordem de
+ * declaração é uma promessa do ficheiro, e esta estava quebrada. */
 let EDITANDO = null;
 
 /*
@@ -7103,12 +7117,6 @@ async function iniciar() {
    * existe é a versão educada de uma página em branco — trinta perguntas que não podem ser
    * respondidas, e nenhum sítio onde dizer o que falta. A lista diz.
    */
-  if (!podePreencher()) {
-    voltarParaALista();
-    return;
-  }
-  abrirFormulario(guardado ? INDICE : 0, false);
-
   // O ATALHO DE EDIÇÃO — `?editar=<carimbo>`. É o link «ajustar o plano» da lista de
   // turmas: abre a aba já dentro da edição daquele plano, sem o professor ter de o
   // procurar na estante. Vem DEPOIS de tudo (a curadoria, as turmas, o rascunho): a
@@ -7118,6 +7126,9 @@ async function iniciar() {
     const alvo = new URLSearchParams(location.search).get('editar');
     if (alvo) await editarPlano(alvo);
   }
+  /* O `await` da anamnese é o que faz a diferença: `editarAnamnese` devolve a promessa do
+   * `fetch` do envelope, e é ele que põe `EDITANDO` e o contexto na barra antes de a trava
+   * decidir. */
   /* `?editar=<carimbo>` NA ANAMNESE TAMBÉM (25/10/2026). O botão «Editar» da listagem precisa de
    * um atalho como o do plano — e não havia: a edição da anamnese só existia pelo botão da
    * estante, dentro desta mesma página. É o mesmo gesto e o mesmo `editarAnamnese`; o que faltava
@@ -7127,9 +7138,22 @@ async function iniciar() {
     if (alvo) await editarAnamnese(alvo);
   }
 
-  /* O «COMEÇAR» SAIU COM A ABERTURA. Ele era o botão que entrava no formulário; agora entrar é
-   * o que a página já fez. O que resta do seu papel é a pergunta «posso?», e essa vive em
-   * `podePreencher()`. */
+  /* A TRAVA, AGORA DEPOIS DO ATALHO DE EDIÇÃO (26/10/2026).
+   *
+   * Estava ANTES, e por isso o «Editar» da lista voltava imediatamente: o link traz
+   * `?editar=<carimbo>` e nada mais — o contexto vem do ENVELOPE, e quem o carrega é o
+   * `editarAnamnese`/`editarPlano` abaixo. A trava, a correr primeiro, via o contexto vazio e
+   * mandava a pessoa de volta à lista. «Ele vai até a página e volta imediatamente», exactamente
+   * como a pesquisadora descreveu.
+   *
+   * A ordem certa é: primeiro quem traz o contexto, depois quem o confere. E se a edição já
+   * abriu o formulário, não se abre outra vez — o `abrirFormulario` daqui reporia o nó 0 e
+   * perderia o registo que se estava a editar. */
+  if (!podePreencher()) {
+    voltarParaALista();
+    return;
+  }
+  if (!EDITANDO && !DERIVANDO) abrirFormulario(guardado ? INDICE : 0, false);
 
   // O voltar do navegador, dentro da condução, devolve ao PORTAL. O «Sair» usa o MESMO
   // caminho: `history.back()` desempilha a entrada que `abrirFormulario` criou, e este

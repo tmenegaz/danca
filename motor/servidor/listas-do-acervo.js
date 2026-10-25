@@ -154,8 +154,18 @@ function acaoDaPagina(chave) {
  */
 function acoesDaLinha(chave, registo, estado) {
   const f = FAMILIAS[chave];
+  /* O LINK DE EDIÇÃO LEVA O CONTEXTO (26/10/2026). Levava só `?editar=<carimbo>`, e por isso a
+   * página abria com a barra vazia — e a trava, que confere o contexto, devolvia a pessoa à lista
+   * («ele vai até a página e volta imediatamente»). O envelope tem o contexto, mas o atalho só o
+   * carrega DEPOIS de a página achar que pode entrar; levá-lo no endereço resolve a ordem em vez
+   * de a contornar. */
+  const comEdicao = (base) => ({
+    fonte: f.fonte, editar: base.id,
+    professor: base.professor, ciclo: base.ciclo,
+    aluna: chave === 'anamnese' ? base.aluna : '',
+  });
   if (chave === 'plano-de-ensino' && estado && estado.estado === 'solta') {
-    return [['Editar', f.porta + consulta({ fonte: f.fonte, editar: registo.id }), '']];
+    return [['Editar', f.porta + consulta(comEdicao(registo)), '']];
   }
   /* A ANAMNESE TINHA O MESMO DEFEITO DO PLANO, e a pesquisadora viu-o: «as anamneses que eu já
    * tenho prontas estão livres… então eu preciso que tenha esse indicativo para o professor saber
@@ -176,8 +186,8 @@ function acoesDaLinha(chave, registo, estado) {
         'acrescenta um elo novo; o registo anterior permanece']];
     }
     return [
-      ['Editar', f.porta + consulta({ fonte: f.fonte, editar: registo.id }), ''],
-      ['Apagar', f.porta + consulta({ fonte: f.fonte, editar: registo.id }), 'secundario',
+      ['Editar', f.porta + consulta(comEdicao(registo)), ''],
+      ['Apagar', f.porta + consulta(comEdicao(registo)), 'secundario',
         'a anamnese solta pode ser apagada; a vinculada, não'],
     ];
   }

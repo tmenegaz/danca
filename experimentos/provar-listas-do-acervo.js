@@ -355,6 +355,23 @@ function pedacos(html) {
        o apelido pela curadoria: o link degrada, não mente. */
     const daAlunaA = anam.cartoes.find((c) => /Aluna A/.test(c)) || '';
     const linkA = (acoesDe(daAlunaA)[0] || [])[1] || '';
+    /* O «EDITAR» DA ANAMNESE ATERRA NO FORMULÁRIO (26/10/2026).
+       Ele levava só `?editar=<carimbo>`; a página abria com a barra vazia, a trava via o contexto
+       a faltar e devolvia a pessoa à lista — «ele vai até a página e volta imediatamente». O
+       contexto vai agora no endereço, e o que se mede é isso: o link carrega professor, ciclo e
+       aluna, que é o que a barra precisa para deixar entrar. */
+    /* A ALUNA B É O CASO «NOVA» — sem curadoria, e por isso sem vínculo nenhum: é onde a edição
+       existe de certeza. A Aluna A tem turma e o PO do fixture observa o plano dessa turma, o que
+       a marca «vinculada»: o gesto dela é «Ajustar», e isso é outra prova (a do selo). */
+    const editavel = anam.cartoes.find((c) => /Aluna B/.test(c)) || '';
+    /* O HTML escapa o `&` como `&amp;`, e é o que o browser lê como `&` — a asserção olha para
+       os PARÂMETROS, e não para o separador, que não é decisão de ninguém. */
+    const linkEditar = (acoesDe(editavel).find((a) => a[0] === 'Editar') || [])[1] || '';
+    const params = new URLSearchParams(linkEditar.replace(/&amp;/g, '&').split('?')[1] || '');
+    provar('o «Editar» da anamnese leva o CONTEXTO, e não só o carimbo',
+      !!params.get('editar') && !!params.get('professor') && !!params.get('ciclo')
+      && !!params.get('aluna'), linkEditar);
+
     provar('a linha da Aluna A leva a porta da anamnese', linkA.indexOf('/anamnese/?') === 0, linkA);
     provar('…com o professor e o ciclo daquele registo',
       /professor=cafe-no-bule/.test(linkA) && /ciclo=01/.test(linkA), linkA);
@@ -382,8 +399,14 @@ function pedacos(html) {
     const livre = acoesDaTurma('Balé Nível 2');
 
     provar('o plano LIVRE oferece «Editar»', (livre[0] || [])[0] === 'Editar', livre);
-    provar('…e o destino abre a edição do registo certo',
-      (livre[0] || [])[1] === '/plano-ensino/?fonte=plano&editar=plano-20261025', livre);
+    /* O DESTINO LEVA O CONTEXTO (26/10/2026) — a comparação passou a ser por partes, e não a
+       string inteira: o que importa é o carimbo certo E o contexto que faz a página deixar entrar.
+       Uma comparação exacta mediria a ordem dos parâmetros, que é do `URLSearchParams` e não é
+       decisão de ninguém. */
+    provar('…e o destino abre a edição do registo certo, com o contexto',
+      /editar=plano-20261025/.test((livre[0] || [])[1] || '')
+      && /professor=manga-curta/.test((livre[0] || [])[1] || '')
+      && /ciclo=01/.test((livre[0] || [])[1] || ''), livre);
     provar('o plano VINCULADO a um PO NÃO promete «Editar» — o servidor recusaria',
       (vinculado[0] || [])[0] !== 'Editar', vinculado);
     provar('…e leva ao formulário com o contexto, que é o que a porta cumpre',

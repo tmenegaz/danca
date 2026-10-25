@@ -24899,3 +24899,56 @@ na abertura. Saiu com ela, e o painel `#ia` (um stub) ficou sem entrada visível
 continua no ficheiro e não é chamado por ninguém. Não se inventou um sítio novo para ele: um botão de
 IA no meio do formulário seria desenho a mais, e a IA é stub. Quando houver decisão sobre onde ela
 vive, é uma linha.
+
+
+### 26/10/2026 — O filtro duplicado, o «Editar» que voltava, e a paragem que sobrava
+
+**1. O «PROCURAR» APARECIA DUAS VEZES — E ERA MEU.** «Em ciclos eu tenho dois procurar… em aulas
+também e em notação também.» Era regressão minha, e o mecanismo é simples: quando o filtro passou a
+poder ir para dentro do painel do ato, o `agrupado` ficou a levá-lo quando não havia painel **e** o
+`lista` continuou a levá-lo também. Duas cópias do mesmo `<form class="filtro">`, com os mesmos
+`id` (`f-busca`, `f-turma`) — e o `SCRIPT_DA_LISTA`, que liga o filtro, ligava-se só à primeira. As
+três listas da Área do Professor nunca passaram por ali (têm painel); as outras cinco, todas:
+`/aulas/`, `/consulta/`, `/ciclos/`, `/referencias/`, `/notacao/`.
+
+O remédio é uma linha: o filtro é emitido **uma vez**, e é o `agrupado` que o leva. Medido em
+`/aulas/` e `/consulta/`: `filtros:1`.
+
+**O item «Consulta» do menu não é desta sessão.** Ele nasceu em `36bcd2c`, de 24/10. O que estava
+errado dentro dele era a duplicação do filtro — essa, sim, minha.
+
+**2. O «PROCURAR» DOBRA, E NASCE FECHADO NO TELEMÓVEL.** «O procurar tem que tá colapsado, porque
+nas telas do celular fica mais restrito ainda.» Passou a ser um `details` com a cabeça «Procurar»: no
+computador nasce aberto (há espaço) e a cabeça fica discreta; no telemóvel o `SCRIPT_DA_LISTA`
+fecha-o ao carregar, e a cabeça é o botão. Medido: a 1280 `dobra:true, cabecaVisivel:false`; a 390
+`dobra:false, cabecaVisivel:true`.
+
+Uma dobra só, e não duas: quando o filtro vive **dentro** do bloco «Procurar» da Área do Professor
+(`semCaixa`), não se dobra outra vez — duas cabeças iguais, «Procurar» dentro de «Procurar», e a de
+dentro fechada a esconder os campos de quem acabou de abrir o bloco.
+
+**3. O «EDITAR» IA ATÉ À PÁGINA E VOLTAVA — três causas, todas reais.**
+
+- **O link não levava contexto.** Era `/anamnese/?editar=<carimbo>`, e mais nada. A página abria com
+  a barra vazia, a trava via o contexto a faltar e devolvia à lista. O contexto passou a ir no
+  endereço (`professor`, `ciclo`, `aluna`).
+- **A trava corria antes do atalho de edição.** Quem traz o contexto é o `editarAnamnese`/`editarPlano`
+  — e eles corriam depois. A ordem certa é: primeiro quem traz o contexto, depois quem o confere.
+- **`editarAnamnese` não devolvia a promessa.** O `fetch(...).then(...)` não era `await`-ado, e a
+  trava corria com `EDITANDO = null`. Passou a devolver, e a chamada tem `await`. O `EDITANDO`
+  também estava **declarado depois** de quem o escreve: `let` não sobe, e a ordem do ficheiro é uma
+  promessa — estava quebrada.
+- E a senha deixou de ser pré-requisito de **entrada** em edição: é pré-requisito de **gravação**,
+  como o pedido descreve — «venho direto pra dentro do formulário e aí tenho que digitar a senha».
+
+Medido: `/anamnese/?editar=…&professor=…&ciclo=…&aluna=…` → o formulário, com a senha à vista e a
+primeira pergunta pintada. Um link antigo, sem contexto, continua a degradar para a lista.
+
+**4. O QUE ELE LÊ COMO «PÁGINA INTERMEDIÁRIA» ERA O CABEÇALHO.** «O ponto de partida de cada aluna —
+escrito antes de começar o ciclo» era o `<header class="doc">` da página, e vinha antes do
+formulário. Saiu. O nome do documento vive no `<title>` e na barra do sistema; a página começa no
+formulário. O rodapé «Experimento do Protocolo de Observação…» já tinha saído no commit anterior.
+
+**O QUE NÃO SE TOCOU, e porquê.** O menu dos Bastidores: não consegui reproduzir o defeito — a página
+exige a senha da direção — e a instrução foi explícita, «fazer os ajustes apenas naquilo que eu
+peço». Não se mexeu. Fica à espera de uma captura ou de uma descrição do que está mal.
