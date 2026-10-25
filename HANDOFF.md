@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-25T12:20:50-0300`
-Commit atual: `ffd4e36` — docs(aula): «proposto» — a terceira forma, que faltava no vocabulário
+Gerado em: `2026-10-25T12:41:58-0300`
+Commit atual: `f22e390` — fix(area-do-professor): a lista voltou a ter porta para o formulário
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,9 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+f22e390 fix(area-do-professor): a lista voltou a ter porta para o formulário
+6ac83a3 chore(identidade): a amostra da lista passa a emitir o botão do topo
+aec4a38 chore(handoff): regerar com as decisões da segunda ronda
 ffd4e36 docs(aula): «proposto» — a terceira forma, que faltava no vocabulário
 56f94f7 chore(handoff): regerar com a leitura da pesquisadora registada
 66e871b docs(analise): a leitura da pesquisadora — um erro meu, três decisões, duas perguntas ilegíveis
@@ -95,9 +98,6 @@ c618069 docs(experimentos): o padrão da lista, e o defeito que a medição acho
 3b77b94 fix(menu): «Aulas» estava duas vezes, e as duas abriam a mesma página
 f876ee3 fix(estrutura): o ☰ dentro da Produção abre o menu do sistema inteiro
 19588a7 style(template): a coluna do sistema sai de cena onde a página tem a sua
-22f6279 fix(estrutura): o caminho do lançamento lia o `<h1>` que está dentro do `<style>`
-b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar entre 769 e 1140
-57d10e2 chore(template): o estado anterior do plano da aula 01, gerado com o pacote
 ```
 
 ## Por professor
@@ -193,58 +193,64 @@ b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar
 
 ## Última entrada do REGISTRO
 
-## 25/10/2026 — «Proposto»: a terceira forma, que faltava no vocabulário
+## 25/10/2026 — A Área do Professor ficou sem porta, e a prova que faltava
 
-**Segunda ronda de respostas.** Três decisões, e uma delas obrigou a criar uma palavra.
+**O sintoma, dito pela pesquisadora.** «No ajuste desses documentos eu não tenho mais o botão que me dá
+acesso aos formulários. Eu só tenho a listagem. Eu não tenho mais como fazer formulário, editar
+formulário, derivar formulário, definir qual é o cabeçalho pra começar a fazer uma anamnese.»
 
-**1. O marco.** «Não pode ficar sem marco, tá? Tem que dizer qual é o marco da aula. **Ele pode até
-usar o mesmo marco da aula anterior, mas precisa ser explícito isso.**» A decisão anterior («o plano
-passa a exigir um marco por aula») estava incompleta, e a incompletude era minha: eu tinha lido a
-pergunta como *26 marcos diferentes*. Não é. O que se proíbe é o **silêncio**, não a **repetição** — um
-ciclo pode ter três objetivos que se repetem por semanas. **Repetir é uma decisão; calar não é.** Sem
-essa distinção, o requisito leria como «invente 23 marcos para preencher a tabela», que é exatamente o
-que o P-15 proíbe.
+**Era verdade, e era regressão minha.** Medido em produção na escola `batata`: `/aulas/` tinha **27**
+`class="acao"`; as três listas da Área do Professor — anamnese, plano de ensino, plano de observação —
+tinham **zero**. As três páginas liam-se bem e não levavam a lado nenhum.
 
-**2. Os três lugares da aula — e a palavra que faltava.** «Você vai apresentar exatamente como estão, e
-aí o professor vai olhar e decidir se mantém esse ou edita, ou cria novos, ou acrescenta novos.»
+**A causa.** Em 24/10/2026 as três listas passaram a ser servidas pela ponte, a ler o acervo, e a linha
+deixou de ser uma TURMA para ser um REGISTO. As listas antigas (montadas no deploy) davam a cada linha
+`['Abrir a anamnese desta turma', '/anamnese/?professor=<slug>&ciclo=NN']` — era **por ali** que se
+chegava ao formulário. Ao trocar a linha, o destino do formulário foi com ela, e ninguém deu por isso:
+o módulo novo nasceu com `acoes: []` escritos, e uma lista com `acoes: []` não falha — fica limpa. O
+defeito não estava em nenhuma linha de código errada; estava numa linha de código **ausente**, que é o
+modo de falhar que este repositório já pagou duas vezes (a `lateral` que não pegava, o `if` do título
+vazio).
 
-Eu tinha oferecido duas formas, e as duas estavam erradas:
+**O remédio.** Duas peças, ambas do catálogo, nenhuma classe nova:
+- **o botão do topo**, `a.acao` dentro de `header.doc` — «Nova anamnese», «Novo plano de ensino»,
+  «Novo Plano de Observação» —, que leva à **porta da fonte**. `paginaDeLista` ganhou um `acao`
+  opcional; as listas que não o passam ficam como estavam;
+- **o destino de cada linha**, `acoesDaLinha()`: o plano de ensino **livre** leva «Editar» com
+  `?editar=<carimbo>`; o **vinculado** não o promete (o servidor recusa a escrita, e um botão que não
+  edita é pior do que nenhum), leva ao formulário com o contexto; a anamnese leva o professor, o ciclo
+  e o sujeito; o PO leva a fonte e o contexto e **não** leva `editar` — a porta só o lê em
+  `fonte === 'plano'`.
 
-| Forma | O que acontece | O que se perde |
-|:--|:--|:--|
-| perguntado em branco | a aula mostra `[Preencher]` e o professor escreve | **a origem** — de onde vinha o valor que já existia |
-| derivado | o sistema preenche e o campo deixa de existir | **a decisão** — o professor não revê nem confirma |
+**Porque é que o plano vinculado e o livre são casos diferentes, e isso é a prova.** A asserção
+apanhou-o: a primeira versão da prova exigia «Editar» na linha do plano e **falhou** — porque o fixture
+semeia um PO que observa aquele plano, e a regra do servidor é que um plano vinculado não se edita. O
+código estava certo e a asserção estava errada. O fixture passou a semear **dois** planos, um
+observado e um livre, e a prova mede os dois ramos. Sem isso, um dos ramos seria aprovado pelo fixture
+do outro.
 
-A aprovada é a terceira: **proposto**. O sistema mostra o valor que já existe (a musicalidade do plano,
-os itens do PO, o próximo passo), com a origem declarada, e o professor **mantém, edita, cria outro ou
-acrescenta**. Os quatro verbos são a especificação.
+**A prova que faltava.** `provar-listas-do-acervo` ganhou a secção 7, com 16 asserções novas (41 no
+total, 0 falhas): o botão do topo nos três, o destino de cada linha, os dois ramos do plano, e — a que
+mais importa — **as três portas pedidas e a responder 200**. Um botão que aponta para um 404 é um botão
+que mente, e a prova não pode confiar no que a ponte serve sem o pedir.
 
-**Porque é que isto não é um detalhe de interface.** O valor proposto sai do PO ou do plano — é onde
-ele foi decidido por alguém, numa data, com um motivo. Se o professor o altera, a alteração é um
-**delta com origem**. E o delta é *o que a memória da aula registra* — é a razão de o projeto existir.
-A forma «em branco» destruía a origem; a forma «derivado» destruía a decisão. **Nenhuma das duas
-deixava um delta legível.** A palavra faltava porque a coisa não tinha nome no vocabulário do projeto, e
-sem nome a pergunta não se podia fazer — foi o que aconteceu: a pergunta 4, escrita com a palavra
-errada («derivados»), não se entendeu.
+**E a checagem de identidade passou a ver o botão.** A amostra de `paginaDeLista` que a checagem 8 usa
+não tinha `acao`: a peça nova seria aprovada sem ser olhada. A amostra passou a exercitá-la. É a mesma
+família de defeito — *aprovar por omissão* —, e é a terceira vez nesta semana.
 
-**3. Os `materiais` entram no formulário.** «Entra no formulário.» A pergunta era uma alternativa —
-*entram no formulário, ou saem da folha?* —, e a resposta escolheu a entrada: a folha impressa
-**mantém** as caixas, e as duas superfícies passam a pedir o mesmo. Era exatamente o defeito medido
-(folha com `materiais`, formulário com zero ocorrências).
+**Geometria medida na bancada** (porta efémera em 127.0.0.1, sem tocar no ar): o botão do topo fica
+**223×45** e o da linha **140×29**, em 390, 768 e 1280px; nada estoura, nada corta, e o botão fica
+abaixo do título nas três larguras.
 
-**E a numeração, que atrapalhou duas vezes.** Ao responder, a pesquisadora notou que estava «contando
-errado»: a pergunta «a aula herda a sequência ou escolhe as linhas de hoje?» é a **#3**, não a #6, e já
-tinha sido respondida na primeira ronda. Não era erro de contagem dela — era o efeito de eu ter
-**substituído** a lista de seis perguntas por uma lista de sete, mantendo os números e mudando o
-conteúdo de alguns. Um número que muda de significado não é uma referência: é uma armadilha.
+**O que continua a faltar, e é de outro assunto:** uma **aula 2** não se cria a partir de `/aulas/`,
+porque a aula 2..N ainda não existe como objecto — é a frente da §5 do
+[PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md), e depende do desenho, não deste remédio.
 
-Remédio: as perguntas passam a ser identificadas por **nome** — `marco`, `fonte`, `sequência`,
-`preencher`, `linha de base`, `materiais`, `aula-object`, `sala`, `alinhamento`. Um nome não deriva, e
-a §9 do `PLANO-AULA-E-OBSERVACAO.md` passa a ser uma tabela de decisões, não um questionário.
-
-**Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (§3.1 com as três formas e a de «proposto», §5.4 com a
-nuance do marco, a tabela da herança, as peças 3 e 4, §9 substituída por decisões nomeadas),
-`ESTADO-ATUAL.md` (§8 e o histórico) e `TRANSFERENCIA-IA.md` (2.ª versão, com `proposto` no glossário).
+**Ficheiros.** `motor/nucleo/lista-html.js` (o `acao` opcional no cabeçalho),
+`motor/servidor/listas-do-acervo.js` (as portas, `consulta`, `acaoDaPagina`, `acoesDaLinha`),
+`experimentos/provar-listas-do-acervo.js` (+16 asserções e o segundo plano no fixture),
+`tools/check-identidade.js` (a amostra passa a emitir o botão — **congelado**: motivo declarado, ver o
+corpo da alteração).
 
 ## O que está pendente
 
