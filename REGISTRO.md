@@ -23989,9 +23989,22 @@ listas-do-acervo.js`), a ler o índice de envelopes — e o desenho é o mesmo d
 a listagem é o padrão de todas.
 
 **O que foi preciso acrescentar para a terceira caixa existir:** `gerado_em` no **resumo** do
-índice (`VERSAO_DO_RESUMO` 3 → **4**), e o índice reconstrói-se sozinho na próxima escrita/leitura.
-Sem ele, a lista teria de abrir cada envelope para saber uma data — e a regra da estante é que a
-lista se faz com metadado.
+índice (`VERSAO_DO_RESUMO` 3 → **4**). Sem ele, a lista teria de abrir cada envelope para saber uma
+data — e a regra da estante é que a lista se faz com metadado.
+
+**E a versão nova não se aplicava — a produção é que o mostrou.** Depois do deploy, as três
+anamneses da `batata` apareceram com **«—»** na coluna «Quando». A causa: a reconstrução do índice
+confundia **«incompleto»** (uma escrita não conseguiu enumerar — o que está lá serve, falta o resto)
+com **«versão antiga»** (os resumos foram feitos por outra definição de resumo). No segundo caso ela
+aproveitava os resumos que existiam, não lia envelope nenhum, e gravava o índice **a jurar a versão
+4 com o conteúdo da 3**. O `if (resumos[nome]) continue` era a linha certa para o primeiro caso e a
+linha errada para o segundo. Agora são duas perguntas separadas, e numa versão nova o resumo antigo
+é descartado e refeito — que é exactamente o preço que a `VERSAO_DO_RESUMO` existe para cobrar uma
+vez. Custou **uma enumeração por escola** na primeira leitura após o deploy.
+
+Este é o segundo defeito desta série que só aparece **em produção, com dados a sério**: a prova do
+índice cobria a migração de um índice **sem** resumos, e não a de um índice **com** resumos de outra
+versão. A asserção nova monta exactamente esse caso.
 
 **Onde entrou.**
 - `tools/templates/ciclo.css` — o valor em duas linhas, o «?» sobre a linha do rótulo, e a peça
@@ -24028,6 +24041,9 @@ lista se faz com metadado.
 - `provar-barra-e-caminho` **43/43** — o caminho da notação é «Área do Professor · Notação · …».
 - `provar-listas-do-acervo` achou um erro meu à primeira: a prova semeava os envelopes num `env`
   **sem KV**, e media uma lista vazia a jurar que estava certa.
+- `provar-indice-de-envelopes` **43 asserções** (eram 41) — a secção 7 é nova e monta o caso que a
+  produção apanhou: um índice completo, com resumos, de uma versão anterior. Ele tem de ser REFEITO,
+  e não aproveitado.
 - Sem regressão: `provar-producao` 151/151, `provar-menu-da-producao` 38/38,
   `provar-alunas-da-anamnese` 11/11, `provar-celular` 15/15, `provar-titulo-e-barra` OK,
   `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72, `provar-ajustes-anamnese` 125/125,

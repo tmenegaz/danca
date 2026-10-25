@@ -517,7 +517,8 @@ async function lerIndice(armazenamento) {
   try {
     const listados = await enumerarEnvelopes(armazenamento);
     const nomes = unir(guardado.nomes, listados);
-    const resumos = Object.assign({}, guardado.resumos);
+    /* Numa versão nova, os resumos antigos NÃO servem — ver `decodificarIndice`. */
+    const resumos = guardado.versaoVelha ? {} : Object.assign({}, guardado.resumos);
     for (const nome of nomes) {
       if (resumos[nome]) continue;
       const envelope = await lerArquivo(armazenamento, nome);
@@ -560,11 +561,27 @@ function decodificarIndice(cru) {
     for (const [nome, resumo] of Object.entries(guardados)) {
       if (resumo && typeof resumo === 'object') resumos[nome] = resumo;
     }
+    /* A VERSÃO ANTIGA NÃO É O MESMO QUE «INCOMPLETO» (24/10/2026), e confundi-las deixava o
+     * índice a mentir para sempre.
+     *
+     * `incompleto` significa «uma escrita não conseguiu enumerar»: o que está lá é bom, e falta
+     * preencher o resto — por isso a reconstrução APROVEITA os resumos que existem.
+     *
+     * `versaoVelha` significa «os resumos que estão lá foram feitos por outra definição de
+     * resumo». Aproveitá-los é guardar o dado velho: quando a versão 4 acrescentou `gerado_em`,
+     * a reconstrução enumerou tudo, encontrou um resumo para cada nome, e não leu envelope
+     * nenhum — a data continuou vazia, e o índice passou a jurar a versão 4 com o conteúdo da 3.
+     * Quem apanhou isto foi a produção: as três anamneses da `batata` mostravam «—» na coluna
+     * «Quando» depois do deploy.
+     *
+     * Numa versão nova, o resumo antigo é DESCARTADO e refaz-se de zero — que é exactamente o
+     * preço que a `VERSAO_DO_RESUMO` existe para poder cobrar uma vez. */
+    const versaoVelha = Number(dados && dados.versao) !== VERSAO_DO_RESUMO;
     return {
       nomes: limparNomes((dados && dados.nomes) || []),
       resumos,
-      incompleto: Boolean(dados && dados.incompleto)
-        || Number(dados && dados.versao) !== VERSAO_DO_RESUMO,
+      versaoVelha,
+      incompleto: Boolean(dados && dados.incompleto) || versaoVelha,
     };
   } catch (erro) {
     return { nomes: [], resumos: {}, incompleto: true };

@@ -295,6 +295,32 @@ async function main() {
       JSON.stringify((r2.dados && r2.dados.estados) || {}) === JSON.stringify(estados), null);
   }
 
+  console.log('\n7. Uma VERSÃO NOVA do resumo manda refazer os resumos — e não só preencher buracos');
+  {
+    /* O DEFEITO QUE A PRODUÇÃO APANHOU (24/10/2026). A versão 4 do resumo acrescentou
+     * `gerado_em`. A reconstrução enumerava tudo, encontrava um resumo para cada nome — feito
+     * pela versão 3, sem a data — e passava ao lado (`if (resumos[nome]) continue`). Gravava o
+     * índice a jurar a versão 4 com o conteúdo da 3, e a coluna «Quando» ficava «—» para
+     * sempre. A prova monta o caso: um índice completo, com resumos, de uma versão anterior. */
+    const { memoria, caixa } = bancada();
+    await memoria.guardar(porta.ARQUIVO_DE('anamnese-20261019-1000'),
+      JSON.stringify({ id: 'anamnese-20261019-1000', contexto: { escola: 'e', aluna: 'A' }, gerado_em: '2026-10-19T10:00' }));
+    // O índice como a versão ANTERIOR o deixaria: com resumo, e sem o campo novo.
+    await memoria.guardar(porta.INDICE_DOS_ENVELOPES, JSON.stringify({
+      versao: Math.max(1, porta.VERSAO_DO_RESUMO - 1),
+      nomes: ['anamnese-20261019-1000.json'],
+      resumos: { 'anamnese-20261019-1000.json': { id: 'anamnese-20261019-1000', fonte: 'anamnese', aluna: 'A' } },
+    }));
+    const resumos = await porta.resumosDeEnvelopes(caixa.armazenamento, /^anamnese-.*\.json$/);
+    const um = (resumos[0] || {}).resumo || {};
+    checar('o resumo de versão antiga é REFEITO, e não aproveitado', um.gerado_em === '2026-10-19T10:00', um);
+    const gravado = JSON.parse(String(await memoria.ler(porta.INDICE_DOS_ENVELOPES)));
+    checar('…e o índice passa a estar na versão de hoje, com o campo novo',
+      gravado.versao === porta.VERSAO_DO_RESUMO
+        && Boolean(gravado.resumos['anamnese-20261019-1000.json'].gerado_em),
+      { versao: gravado.versao, resumo: gravado.resumos['anamnese-20261019-1000.json'] });
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));
