@@ -1631,6 +1631,11 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
    secundários, 29px e uma. */
 .acoes-do-ato { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .7rem; }
 
+/* OS CAMPOS NÃO SÃO OPCIONAIS, e isso diz-se: um formulário que só diz o que falta DEPOIS de a
+   pessoa tentar é um formulário que a mandou falhar primeiro. A linha fica acima das acções, em
+   corpo pequeno, e não é um aviso de erro (`--alerta`): é uma regra, e uma regra não pisca. */
+.obrigatorios { margin: .55rem 0 0; font: 400 .78rem/1.4 var(--ui); color: var(--texto-suave); }
+
 /* O QUE FALTA PARA SE PODER CRIAR. Na porta esta informação é o `title` do botão — e um
    `title` não se lê no telemóvel, que é onde a Área do Professor mais se usa. */
 .estado-do-ato {
@@ -1716,11 +1721,22 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 }
 .bloco-cabeca::-webkit-details-marker { display: none; }
 .bloco-cabeca:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+/* DOIS NOMES PARA O MESMO BLOCO, e o que muda é o estado. FECHADO, o nome é o da ACÇÃO («Fazer
+   anamnese») — porque «contexto do ato» é vocabulário de quem está a programar, e quem chega à
+   página precisa de saber o que o botão FAZ. ABERTO, passa a «Contexto do ato», que é o que faz
+   sentido quando o que está à vista são os campos a preencher. */
 .bloco-titulo { font: 700 .95rem/1.3 var(--ui); color: var(--texto); }
+.bloco-nome-aberto { display: none; }
+.bloco-lista[open] .bloco-nome-fechado { display: none; }
+.bloco-lista[open] .bloco-nome-aberto { display: inline; }
+/* O RESUMO DO QUE JÁ SE ESCOLHEU SÓ APARECE ABERTO: fechado, o nome da barra é a acção, e um
+   resumo ao lado de um botão de acção é informação a competir com ela. */
 .bloco-resumo {
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: none; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
   font-size: .82rem; color: var(--texto-suave);
 }
+.bloco-lista[open] .bloco-resumo { display: inline; }
 .bloco-cabeca .seta-do-ato {
   position: static; width: auto; height: auto; margin-left: auto;
   font-size: .8rem; transition: transform .16s ease;
