@@ -531,7 +531,9 @@
      script do `<head>`, antes de o corpo ser desenhado; o formulário entra a seguir. Sem esta
      regra, quem vem da lista via a página intermédia por um instante — e ela «não tem que
      existir mais». */
-  html[data-abrir="sim"] #abertura { display: none; }
+  /* (A regra que escondia `#abertura` no salto saiu com ela — 26/10/2026. O `data-abrir` do
+     `<html>` continua a ser posto, e continua a servir: é ele que diz a `veioDaLista()` que
+     esta visita começou na lista, e não numa aba aberta à mão.) */
   .grade { display: grid; gap: .1rem .8rem; }
 
   /* O roteiro acompanha a condução. O DOM mantém o índice ANTES do corpo; em
@@ -788,51 +790,40 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
 
 <div class="conteudo">
 
-<!-- ------------------------------------------------------------ abertura -->
-<section id="abertura">
-  <!-- A ABERTURA do Plano de Observação: o que é, as duas partes, e que se pode
-       começar por onde quiser. É texto de PORTAL (a porta da área), não de
-       formulário — a explicação de cada formulário (o que cada campo pede)
-       continua em `#contexto`, vinda do conteúdo. -->
-  <div class="caixa nota" id="portal-po">
-    <p><b>Aqui você descreve o ponto de partida de cada aluna</b> — o que ela já sabe
-       e o que precisa desenvolver. É assim que, daqui a alguns meses, você vai poder
-       comparar o antes e o depois.</p>
-    <p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no
-       navegador até gravar. Nada se perde no caminho.</p>
-  </div>
-  <div id="contexto" class="caixa nota oculto"></div>
-  <div id="retomada" class="caixa nota oculto"></div>
-  <div class="acoes">
-    <button class="acao" id="comecar" disabled>Começar pela anamnese</button>
-    <a id="link-ficha-branco" href="api/ficha?formato=html" target="_blank" rel="noopener"><button>Ver a ficha em branco</button></a>
-    <button id="usar-ia">Usar IA para fazer o Plano de Observação</button>
-  </div>
-  <p id="aviso-ia" class="sub oculto"></p>
-  <p id="aviso-curadoria" class="sub oculto"></p>
+<!-- ============================================================================
+     A ABERTURA NÃO EXISTE MAIS (26/10/2026)
+     ----------------------------------------------------------------------------
+     «Essa página tem que ser completamente apagada.» Era ela, e o que ela tinha:
 
-  <!-- O filtro fica FORA da `.acoes`: aquela barra é `display: flex`, e a
-       lista de fichas precisa de linha própria para respirar. -->
-  <div class="caixa nota" id="fichas">
-    <p class="toc-titulo" id="titulo-fichas">Fichas gravadas</p>
-    <input type="text" id="filtro-fichas" placeholder="filtrar por data, hora ou id" autocomplete="off">
-    <ul id="lista-fichas" class="lista"></ul>
-    <!-- O AVISO DE QUE A LISTA NÃO PÔDE SER LIDA (18/10/2026). Quando o pedido dos estados
-         falha, cada ficha ficava sem o nome («sem apelido») e sem os botões «editar» e
-         «apagar» — e isso se lê como «perdi as fichas». Não se perdeu nada: a lista é
-         desenhada da memória do navegador, e o que faltou foi a leitura do estado no
-         servidor. O que não se pode é ficar calado, a inventar um nome para quem tem um. -->
-    <p class="aviso oculto" id="fichas-erro"></p>
-    <p class="sub oculto" id="fichas-vazio">Nenhuma ficha gravada ainda.</p>
-    <!-- A PAGINAÇÃO nasce oculta: com até uma página de fichas ela não existe, e a
-         estante fica como sempre foi. -->
-    <nav id="paginacao" class="paginacao oculto" aria-label="Paginação das fichas"></nav>
-  </div>
-</section>
+       · o título e o subtítulo da fonte;
+       · o bloco «escola: batata» e o contexto do ato a abrir e fechar;
+       · os contadores «respondidos 53 de 53 · obrigatórios 49 de 49»;
+       · dois parágrafos a explicar o que é a anamnese;
+       · a caixa «há um preenchimento interrompido…» com os dois botões;
+       · a estante «Fichas gravadas», com o filtro, os links, os selos
+         «vigente / livre» e os botões editar e apagar;
+       · e o rodapé «Experimento do Protocolo de Observação…».
+
+     TUDO ISSO PASSOU A VIVER NA LISTA, e a lista é a única porta: o contexto do ato
+     é o painel de lá, o «há um preenchimento interrompido» é o estado dele, e a
+     estante de fichas é a própria listagem — a mesma coisa, sem a segunda cópia.
+
+     O QUE SOBRA AQUI É O FORMULÁRIO. Quem chega já decidiu o ato, e o contexto vem
+     no endereço (ou no bilhete, quando há senha). Sem contexto completo não há o que
+     preencher: a página devolve a pessoa à lista, que é onde se escolhe.
+
+     O `#abrir` do `<head>` (o script que marca o documento antes de pintar) deixa de
+     ter razão de ser: não há abertura para esconder. Fica o atributo — inofensivo — e
+     a regra de CSS que o lê, para o caso de um link antigo com `?abrir=1` chegar.
+     ========================================================================== -->
 
 <!-- ------------------------------------------------------------ condução -->
-<section id="conducao" class="oculto">
+<section id="conducao">
   <h2>Condução</h2>
+  <!-- O RECADO DO ATO — o único sítio de aviso que sobrou. Diz o que a abertura dizia e
+       não se pode perder: «este navegador não está guardando» e «retomou um preenchimento
+       de tal data». Nasce vazio e escondido: só aparece quando há o que dizer. -->
+  <div id="aviso-do-ato" class="caixa nota oculto"></div>
   <!-- O RITMO DA CONDUÇÃO, dito UMA vez (18/10/2026). Ele estava por cima de todas as
        perguntas, a repetir a mesma frase trinta vezes: a regra do ato não muda de cartão
        para cartão, e a repetição era só altura a rolar. Aparece na primeira, onde se
@@ -893,10 +884,10 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
 
 </main>
 
-<footer class="rodape">
-  <p>Experimento do Protocolo de Observação — a mesma identidade visual do site
-     (<code>tools/templates/ciclo.css</code>), servida do original.</p>
-</footer>
+<!-- O RODAPÉ DE DESENVOLVIMENTO SAIU (26/10/2026). «Experimento do Protocolo de
+     Observação — a mesma identidade visual do site, servida do original» era uma nota para
+     quem constrói, e lia-se como se fosse parte do produto. A identidade visual não precisa
+     de se anunciar: ela está na página. -->
 
 <!-- A CIFRA SAIU DO CLIENTE (20/10/2026). Ela existia para a cópia da anamnese no cofre do KV,
      que já não existe; quem cifra o envelope agora é o servidor, ao gravá-lo no acervo. O
@@ -1092,6 +1083,36 @@ let SENHA_VALIDA = false;
  * aqui» de «ninguém autorizou nada». */
 let ATO_AUTORIZADO = false;
 
+/**
+ * POSSO PREENCHER? — as três travas, numa pergunta que a página faz a si mesma (26/10/2026).
+ *
+ * Eram o estado de um botão (`#comecar`, na abertura). A abertura saiu, e com ela o botão: o
+ * que resta é a pergunta, e a resposta decide se se entra no formulário ou se se volta à lista.
+ *
+ * As travas são as de sempre, e a ordem é a da porta:
+ *   · a senha do professor (na anamnese; no plano quando se edita ou deriva; nunca no PO);
+ *   · o contexto do ato inteiro — professor, ciclo, e a aluna ou a turma conforme a fonte;
+ *   · a curadoria (plano e PO) — sem curadoria atribuída, a direção ainda não curou.
+ *
+ * O BILHETE CONTA COMO SENHA (25/10/2026): ele foi emitido pelo servidor depois de a senha
+ * conferir, e é o que faz o salto da lista funcionar sem que a senha viaje no endereço.
+ */
+function podePreencher() {
+  const faltam = contextoFaltandoCompleto();
+  if (faltam.length) return false;
+  const senhaOk = FONTE === 'anamnese' ? (SENHA_VALIDA || ATO_AUTORIZADO) : true;
+  if (!senhaOk) return false;
+  const semCuradoria =
+    (FONTE === 'plano' || FONTE === 'po') && CURADORIA_CARREGADA && CURADORIAS.length === 0;
+  return !semCuradoria;
+}
+
+/**
+ * O BOTÃO «COMEÇAR» NÃO EXISTE MAIS. Esta função ficou a guarda: ela é chamada de seis sítios
+ * (a barra muda, a senha muda, a curadoria chega), e sem o botão cada uma dessas chamadas
+ * partiria. Enquanto o elemento não existir, não faz nada — e o dia em que ele voltar, volta a
+ * fazer o que fazia.
+ */
 function atualizarComecar() {
   const comecar = document.getElementById('comecar');
   if (!comecar) return;
@@ -2134,7 +2155,7 @@ function abrirFormulario(indice, empilhar) {
   // devolverem à abertura sem saltar a página.
   EM_AUTOABERTURA = (empilhar === false);
   if (empilhar !== false) history.pushState({ portal: true }, '');
-  document.getElementById('abertura').classList.add('oculto');
+  { const ab = document.getElementById('abertura'); if (ab) ab.classList.add('oculto'); }
   const retomada = document.getElementById('retomada');
   if (retomada) retomada.classList.add('oculto');
   for (const id of ['fecho', 'ia']) {
@@ -2156,104 +2177,65 @@ function abrirFormulario(indice, empilhar) {
 }
 
 /*
- * Voltar ao PORTAL (a abertura): esconde a condução/fecho/IA, mantém a barra de
- * contexto, e reflete a memória — com depósito, os botões «continuar / começar de
- * novo»; sem, o «Começar» volta a valer. É o destino do «Sair» (via `popstate`),
- * do «Começar de novo» e do voltar do navegador dentro da condução.
+ * «VOLTAR AO PORTAL» DEIXOU DE EXISTIR — PORQUE O PORTAL DEIXOU DE EXISTIR (26/10/2026).
+ *
+ * Esta função reabria a abertura: a página com o título, os textos, a caixa de retomada e a
+ * estante de fichas. Essa página foi apagada, e o único «portal» que resta é a LISTA, que é
+ * onde se escolhe o ato. Voltar passou a ser voltar para lá.
+ *
+ * O nome fica porque quem o chama é o `popstate` (o voltar do navegador dentro da condução) e
+ * o «Sair» — e renomear tudo o que o usa não mudaria o que acontece. O que mudou é o destino.
  */
 function voltarAoPortal() {
   EM_AUTOABERTURA = false;
-  // De volta ao portal, o cabeçalho volta a ser editável: o professor ainda pode conferir
-  // e corrigir a identidade do ato antes de começar (16/10/2026).
-  CONDUCAO_ABERTA = false;
-  travarCabecalho(false);
-  ajustarSenhaDoPlano();
-  document.getElementById('abertura').classList.remove('oculto');
-  for (const id of ['conducao', 'fecho', 'ia']) {
-    const s = document.getElementById(id);
-    if (s) s.classList.add('oculto');
-  }
-  const rail = document.getElementById('rail');
-  if (rail) rail.classList.add('oculto');
-  // Sem roteiro não há segunda coluna: o portal ocupa a largura inteira.
-  const principal = document.getElementById('principal');
-  if (principal) principal.classList.add('sem-roteiro');
   IA_ATIVA = false;
   pararVoz();
-
-  const guardado = lerMemoria();
-  if (guardado) {
-    mostrarRetomada(restaurar(guardado));
-  } else {
-    const retomada = document.getElementById('retomada');
-    if (retomada) { retomada.classList.add('oculto'); retomada.innerHTML = ''; }
-    const comecar = document.getElementById('comecar');
-    if (comecar) {
-      if (FONTE === 'anamnese') { comecar.style.display = ''; atualizarComecar(); }
-      else if (FONTE === 'po' || FONTE === 'plano') { comecar.style.display = ''; atualizarComecar(); }
-      else { comecar.style.display = 'none'; }
-    }
-  }
+  voltarParaALista();
 }
 
 /*
- * Retomar não pode ser silencioso: quem volta precisa saber que voltou, quando
- * foi o último lançamento, e quanto já estava respondido. E precisa poder
- * recusar — daí o «começar de novo» ao lado do «continuar». Enquanto o depósito
- * estiver em mãos, «Começar» fica travado: começar do zero só pelo botão que
- * diz que vai começar do zero.
+ * RETOMAR NÃO PODE SER SILENCIOSO — mas o aviso mudou de casa (26/10/2026).
+ *
+ * Ele vivia numa caixa da abertura, com os botões «Continuar de onde parei» e «Começar de
+ * novo». A abertura foi apagada: os dois botões passaram a ser o painel da lista, que é onde
+ * se escolhe antes de entrar. Aqui dentro — já no formulário — o que falta dizer é só isto:
+ * que se retomou, quando, e quanto já estava respondido. Uma linha, no topo, e a pessoa
+ * continua a responder onde parou, que é o que ela pediu ao clicar em «Continuar».
  */
 function mostrarRetomada(t) {
-  const linhas = [];
-  linhas.push('<p><b>Há um preenchimento interrompido.</b> Último lançamento em ' +
-    (dataEmPortugues(t.quando) || 'data não registrada') + ' — ' + t.respondidos +
-    ' de ' + MAPA.total + ' respondidas, ' + contar().obrig + ' obrigatórias.</p>');
-  if (t.descartados.length) {
-    linhas.push('<p class="sub">' + t.descartados.length + ' pergunta' +
-      (t.descartados.length > 1 ? 's' : '') + ' do depósito não existe' +
-      (t.descartados.length > 1 ? 'm' : '') + ' mais no questionário e ' +
-      (t.descartados.length > 1 ? 'foram descartadas' : 'foi descartada') + '.</p>');
-  }
-  linhas.push('<div class="acoes">' +
-    '<button class="acao" id="continuar">Continuar de onde parei</button>' +
-    '<button id="recomecar">Começar de novo</button>' +
-    '</div>');
-  $('retomada').innerHTML = linhas.join('');
-  $('retomada').classList.remove('oculto');
-  // «Começar» é para começar do zero. Com um preenchimento em curso, o
-  // professor continua ou recomeça — nunca «começa» outra vez. Escondido, não
-  // desabilitado: um botão desabilitado é ruído, um escondido não é nada.
-  $('comecar').style.display = 'none';
-
-    $('continuar').addEventListener('click', () => {
-    abrirFormulario(INDICE);
-  });
-  $('recomecar').addEventListener('click', () => {
-    // «Começar de novo» limpa TUDO e volta ao PORTAL (o destino do menu) — não entra
-    // na condução: quem decide o que fazer é o professor, do zero.
-    limparMemoria();
-    RESPOSTAS.clear();
-    NOTAS.clear();
-    SUGERIDAS.clear();
-    SOCRATICA_VISTA.clear();
-    EDITANDO = null;
-    DERIVANDO = null;
-    MOTIVO_DERIVACAO = null;
-    INDICE = 0;
-    atualizarBarra();
-    voltarAoPortal();
-  });
+  const alvo = $('aviso-do-ato');
+  if (!alvo) return;
+  const quando = dataEmPortugues(t.quando) || 'data não registrada';
+  const descartadas = t.descartados.length
+    ? ' ' + t.descartados.length + ' pergunta' + (t.descartados.length > 1 ? 's' : '')
+      + ' do depósito já não existe' + (t.descartados.length > 1 ? 'm' : '')
+      + ' no questionário e ' + (t.descartados.length > 1 ? 'foram descartadas' : 'foi descartada')
+      + '.'
+    : '';
+  alvo.innerHTML = '<p class="sub">Retomando um preenchimento interrompido: último lançamento em '
+    + quando + ' — ' + t.respondidos + ' de ' + MAPA.total + ' respondidas. ' + descartadas + '</p>';
+  alvo.classList.remove('oculto');
 }
 
 /*
- * Sem memória, o preenchimento é volátil. Dizer isso na abertura é mais honesto
- * do que deixar a professora descobrir quando a página fechar.
+ * Sem memória, o preenchimento é volátil. Dizer isso é mais honesto do que deixar a professora
+ * descobrir quando a página fechar — e o aviso vive no mesmo sítio do de cima, porque é o mesmo
+ * género de recado: uma coisa que se está a passar com ESTE ato, agora.
  */
+function esconderAvisoDoAto() {
+  const alvo = $('aviso-do-ato');
+  if (!alvo) return;
+  alvo.classList.add('oculto');
+  alvo.innerHTML = '';
+}
+
 function mostrarSemMemoria() {
-  $('retomada').innerHTML = '<p class="sub">Este navegador não está guardando o ' +
-    'preenchimento (aba privada ou memória cheia). Se a página fechar, o que foi ' +
-    'respondido se perde — guarde antes de sair.</p>';
-  $('retomada').classList.remove('oculto');
+  const alvo = $('aviso-do-ato');
+  if (!alvo) return;
+  alvo.innerHTML = '<p class="sub">Este navegador não está guardando o preenchimento '
+    + '(aba privada ou memória cheia). Se a página fechar, o que foi respondido se perde — '
+    + 'guarde antes de sair.</p>';
+  alvo.classList.remove('oculto');
 }
 
 // -------------------------------------------------------------- utilidades
@@ -5754,6 +5736,7 @@ let PAGINA = 1;
 
 function pintarFichas() {
   const lista = $('lista-fichas');
+  if (!lista) return;
   const procurado = String($('filtro-fichas').value || '').trim().toLowerCase();
   const daFonte = FICHAS.filter((id) => id.indexOf(PREFIXO) === 0);
   const visiveis = procurado
@@ -6156,7 +6139,20 @@ async function apagarPlano(id) {
   }
 }
 
+/**
+ * A ESTANTE DE FICHAS NÃO EXISTE MAIS NESTA PÁGINA (26/10/2026) — e esta função é o que sobra
+ * dela, porque outras rotinas a chamam depois de gravar.
+ *
+ * O QUE ELA FAZIA: lia os estados do servidor (`api/anamnese-estados`) e desenhava a lista
+ * «Fichas gravadas», com filtro, selos e botões. Essa lista é hoje a página da Área do
+ * Professor — a mesma informação, uma vez só.
+ *
+ * PORQUE NÃO SE APAGA: quem grava chama-a para «actualizar a estante». Sem a estante, a chamada
+ * é inofensiva, e apagá-la obrigaria a mexer em quatro sítios de gravação para não fazer nada.
+ * Ela não faz um único pedido à rede quando o contentor não existe — que é o que interessa.
+ */
 async function atualizarFichas() {
+  if (!$('lista-fichas')) return;
   FICHAS = await carregarFichas();
   await carregarEstados();
   pintarFichas();
@@ -6472,8 +6468,11 @@ function fecharIA() {
   IA_ATIVA = false;
   const sec = document.getElementById('ia');
   if (sec) sec.classList.add('oculto');
-  const ab = document.getElementById('abertura');
-  if (ab) ab.classList.remove('oculto');
+  /* Fechar a IA devolvia à abertura, que já não existe: fica a condução, que é onde se estava
+   * antes de a abrir. Sem esta troca, fechar a IA deixava a pessoa numa página sem secção
+   * nenhuma à vista. */
+  const cond = document.getElementById('conducao');
+  if (cond) cond.classList.remove('oculto');
 }
 
 /*
@@ -6667,13 +6666,18 @@ function veioDaLista() {
 }
 function voltarParaALista() {
   const alvo = LISTA_DA_FONTE[FONTE] || '/area-do-professor/';
-  /* UM `history.back()` QUE NÃO ACONTECE DEIXA A PESSOA PRESA. Se a aba foi aberta de fresco (ou
-   * se o salto veio de um `target=_blank`), não há entrada anterior — e o `back()` não faz nada,
-   * sem avisar. O destino declarado fica como rede: dois segundos depois, quem ainda está nesta
-   * página vai para a lista. Se o `back()` funcionar, a página já mudou e o temporizador morre
-   * com ela. */
-  try { history.back(); } catch (e) { window.location.href = alvo; return; }
-  setTimeout(() => { window.location.href = alvo; }, 700);
+  /* `location.replace`, E NÃO `history.back()` (26/10/2026).
+   *
+   * O `back()` parecia o gesto certo — «volta de onde vieste» — e é o que se usava. Mas o
+   * histórico de uma aba NÃO começa nesta página: numa aba nova, a entrada anterior é o
+   * `about:blank` do próprio navegador, e o «Sair» levava a pessoa a uma página em branco. Foi
+   * medido: `history.back()` num separador aberto de fresco dá `about:blank`.
+   *
+   * O destino passa a ser declarado, e não deduzido. `replace` — e não `href` — porque sair da
+   * página não deve deixar no histórico uma entrada para um formulário que já não tem contexto:
+   * o voltar do navegador a partir da lista iria parar a uma página que imediatamente reenvia
+   * para a lista, e o botão pareceria avariado. */
+  window.location.replace(alvo);
 }
 
 function urlParaFonte(fonte) {
@@ -6723,22 +6727,16 @@ async function iniciar() {
       h1: 'Anamnese do aluno',
       subtitulo: 'O ponto de partida de cada aluna — escrito antes de começar o ciclo.',
       titulo: 'Anamnese do aluno · Projeto Ciclo',
-      abertura: '<p><b>Aqui você descreve o ponto de partida de cada aluna</b> — o que ela já sabe e o que precisa desenvolver. É assim que, daqui a alguns meses, você vai poder comparar o antes e o depois.</p>' +
-        '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
     },
     plano: {
       h1: 'Plano de ensino',
       subtitulo: 'O objetivo, os marcos de cada aula e a rubrica — escrito antes de dar a aula.',
       titulo: 'Plano de ensino · Projeto Ciclo',
-      abertura: '<p><b>Aqui você define o plano do ciclo</b> — o objetivo, os marcos de cada aula e a rubrica. É escrito <b>antes</b> de dar a primeira aula, para o depois poder ser comparado com o que aconteceu.</p>' +
-        '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
     },
     po: {
       h1: 'Plano de Observação',
       subtitulo: 'O que você vai observar durante o ciclo — escrito antes de olhar.',
       titulo: 'Plano de Observação · Projeto Ciclo',
-      abertura: '<p><b>Aqui você escreve o que vai olhar durante o ciclo</b> — escrito <b>antes</b> de olhar. Não é relatório nem avaliação: é o compromisso do que conta como observação, para o depois poder ser comparado com o antes.</p>' +
-        '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
     },
   }[FONTE];
 
@@ -6748,8 +6746,10 @@ async function iniciar() {
     if (h1) h1.textContent = PORTAL.h1;
     const sub = document.getElementById('subtitulo-pagina');
     if (sub) sub.textContent = PORTAL.subtitulo;
-    const portal = document.getElementById('portal-po');
-    if (portal) portal.innerHTML = PORTAL.abertura;
+    /* OS TEXTOS DE ABERTURA SAÍRAM (26/10/2026). Eram dois parágrafos «aqui você descreve o
+     * ponto de partida…» no alto da página, e a pesquisadora leu-os como parte da página
+     * intermediária a apagar. O título e o subtítulo ficam: são o nome do documento, e uma
+     * página sem nome é pior do que uma página com um. */
   }
 
   // A fonte ajusta o que é só da anamnese: o campo `aluna` (o PO e o plano são
@@ -6772,32 +6772,11 @@ async function iniciar() {
   // A senha do PLANO só aparece em EDIÇÃO/DERIVAÇÃO (16/10/2026): criar é pela curadoria.
   ajustarSenhaDoPlano();
 
-  // O botão «Usar IA para fazer o PO» é só do PO: na anamnese e no plano ele some.
-  if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
-
-  // O botão principal abre o formulário de cada fonte: «Fazer a anamnese» na
-  // anamnese, «Fazer o plano de ensino» no plano e «Fazer o Plano de Observação»
-  // no PO. Cada fonte tem o seu portal — o plano deixou de entrar direto.
-  const comecar = document.getElementById('comecar');
-  if (comecar) {
-    if (FONTE === 'anamnese') {
-      comecar.textContent = 'Fazer a anamnese';
-      comecar.style.display = '';
-    } else if (FONTE === 'po') {
-      comecar.textContent = 'Fazer o Plano de Observação';
-      comecar.style.display = '';
-    } else if (FONTE === 'plano') {
-      comecar.textContent = 'Fazer o plano de ensino';
-      comecar.style.display = '';
-    } else {
-      comecar.style.display = 'none';
-    }
-    // A habilitação NÃO é fixada aqui: quem decide é `atualizarComecar`, com a
-    // mesma regra do fecho — o contexto do ato tem de estar inteiro. Antes o PO e
-    // o plano nasciam destravados por decreto (`disabled = false`), e o professor
-    // só descobria o contexto vazio ao fechar.
-    atualizarComecar();
-  }
+  /* O BOTÃO «FAZER …» E O «USAR IA» SAÍRAM COM A ABERTURA (26/10/2026). O primeiro era a porta
+   * do formulário, e a página já é o formulário; o segundo era a entrada da IA, que fica sem
+   * entrada visível até se decidir onde ela vive — o painel `#ia` continua no ficheiro, e o
+   * `abrirIA` continua a existir (ver a nota no REGISTRO). Ajustar-se-à quando houver decisão.
+   */
 
   // O plano de ensino deixou de ser uma saída do PO: virou item de menu próprio
   // (`/plano-ensino/`). Não há mais o botão «Fazer o plano» cruzando as fontes —
@@ -6854,15 +6833,26 @@ async function iniciar() {
   try {
     MAPA = await carregarMapa();
   } catch (erro) {
-    $('contexto').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
-    $('contexto').classList.remove('oculto');
+    /* O MAPA NÃO VEIO. Antes escrevia-se o erro numa caixa da abertura; agora essa caixa não
+     * existe, e o sítio do recado é o do ato. */
+    const alvo = $('aviso-do-ato');
+    if (alvo) {
+      alvo.innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+      alvo.classList.remove('oculto');
+    }
     return;
   }
   // A lista de sujeitos NÃO é buscada aqui (Frente 5): só quando o nó que a
   // pede for aberto.
-  $('contexto').innerHTML = contexto(MAPA);
-  $('contexto').classList.remove('oculto');
-  atualizarFichas();
+  /* A EXPLICAÇÃO DO FORMULÁRIO SAIU (26/10/2026). `contexto(MAPA)` despejava, no topo da página,
+   * dois parágrafos sobre o que é a elicitação e como os nove blocos funcionam. É texto de quem
+   * constrói — a pesquisadora leu-o e chamou-lhe, com razão, parte da «página intermediária». O
+   * que a pessoa precisa de saber de cada pergunta está na própria pergunta.
+   *
+   * E A ESTANTE DE FICHAS TAMBÉM: `atualizarFichas()` pedia `api/anamnese-estados` para desenhar
+   * uma lista que a página da Área do Professor já desenha. Era a mesma leitura duas vezes, e uma
+   * cópia a envelhecer. */
+
   // O cabeçalho do plano ganha a TURMA (16/10/2026): a lista precisa do mapa já carregado.
   // No PO, a turma é a LEITURA do plano referenciado — o mesmo desenho, a mesma chamada.
   if (FONTE === 'plano' || FONTE === 'po') renderTurmaDoCabecalho();
@@ -6879,10 +6869,12 @@ async function iniciar() {
   // disparada junto com a semeadura da URL (uma requisição só, compartilhada com a lista de
   // professores) e aqui só se espera por ela.
   fixarEscola((await dadosDosBastidores()).escola);
+  /* O DEPÓSITO VOLTA, SE HOUVER — e é a única coisa que a abertura fazia de útil para quem
+   * entra no meio. Não há «Continuar de onde parei» aqui dentro: esse botão é o da lista, e foi
+   * ele que trouxe a pessoa até esta página. O que se faz é restaurar e dizer, em uma linha,
+   * que se está a retomar. */
   const guardado = lerMemoria();
   if (guardado) {
-    // A anamnese, o PO e o plano retomam a própria memória — cada um no seu
-    // portal, com «Continuar de onde parei» e «Começar de novo».
     const t = restaurar(guardado);
     // A categoria etária é DERIVADA da idade. Restaurar traz de volta uma categoria
     // que pode estar defasada da idade (a idade foi corrigida e a categoria ficou
@@ -6893,21 +6885,8 @@ async function iniciar() {
     pintarRoteiro();
     salvar(); // reancora o depósito já saneado — id órfão não volta a ser contado
     mostrarRetomada(t);
-  } else {
-    if (FONTE === 'anamnese') {
-      $('comecar').style.display = '';
-      // A habilitação não é mais automática: depende da aluna + senha validada
-      // (o MOC dos Bastidores). O estado inicial fica travado até os dois virem.
-      atualizarComecar();
-    } else if (FONTE === 'po') {
-      $('comecar').style.display = '';
-      $('comecar').disabled = false;
-    } else if (FONTE === 'plano') {
-      $('comecar').style.display = '';
-      $('comecar').disabled = false;
-    }
-    // A anamnese, o plano e o PO ficam no portal (a casa de cada fonte).
-    if (!memoriaLigada && FONTE === 'anamnese') mostrarSemMemoria();
+  } else if (!memoriaLigada && FONTE === 'anamnese') {
+    mostrarSemMemoria();
   }
 
   // A semeadura pelo contexto do ato vem DEPOIS do depósito: o que o professor
@@ -7070,16 +7049,25 @@ async function iniciar() {
   // já com escola/professor/ciclo semeados, quando a fonte os declara. Sem
   // `pushState` — voltar/sair deve ir à página anterior, não a um portal que
   // nunca foi mostrado.
-  // O SALTO NÃO PASSA POR CIMA DA TRAVA. `abrirFormulario` não pergunta nada — é o BOTÃO que
-  // responde pelas três travas (a senha, o contexto e a curadoria, em `atualizarComecar`). Um
-  // atalho que saltasse o botão saltaria as três, e a senha que autoriza o ato deixaria de
-  // autorizar coisa nenhuma. Com depósito, o salto é o «continuar»; sem ele, é o «começar».
-  if (autoAbrir) {
-    const comecar = $('comecar');
-    const podeComecar = comecar && !comecar.disabled && comecar.style.display !== 'none';
-    if (guardado) abrirFormulario(INDICE, false);
-    else if (podeComecar) abrirFormulario(0, false);
+  /* A PÁGINA É O FORMULÁRIO, E ENTRA-SE NELA SEM PARAGEM (26/10/2026).
+   *
+   * Havia aqui um «salto» condicionado ao `?abrir=1`, e antes dele a abertura. A abertura foi
+   * apagada; o salto deixou de ser um salto — é o estado normal da página.
+   *
+   * A TRAVA CONTINUA A VALER, e agora é a única coisa que decide. As três condições são as
+   * mesmas de `atualizarComecar` (a senha, o contexto e a curadoria), e estão reunidas em
+   * `podePreencher()`. Sem elas não há ato a preencher: a página devolve a pessoa à lista, que
+   * é onde se escolhe professor, ciclo, aluna e senha.
+   *
+   * PORQUE NÃO SE DEIXA A PÁGINA ABERTA E TRAVADA: um formulário à vista sobre um ato que não
+   * existe é a versão educada de uma página em branco — trinta perguntas que não podem ser
+   * respondidas, e nenhum sítio onde dizer o que falta. A lista diz.
+   */
+  if (!podePreencher()) {
+    voltarParaALista();
+    return;
   }
+  abrirFormulario(guardado ? INDICE : 0, false);
 
   // O ATALHO DE EDIÇÃO — `?editar=<carimbo>`. É o link «ajustar o plano» da lista de
   // turmas: abre a aba já dentro da edição daquele plano, sem o professor ter de o
@@ -7099,7 +7087,9 @@ async function iniciar() {
     if (alvo) await editarAnamnese(alvo);
   }
 
-  $('comecar').addEventListener('click', () => abrirFormulario(0));
+  /* O «COMEÇAR» SAIU COM A ABERTURA. Ele era o botão que entrava no formulário; agora entrar é
+   * o que a página já fez. O que resta do seu papel é a pergunta «posso?», e essa vive em
+   * `podePreencher()`. */
 
   // O voltar do navegador, dentro da condução, devolve ao PORTAL. O «Sair» usa o MESMO
   // caminho: `history.back()` desempilha a entrada que `abrirFormulario` criou, e este
@@ -7125,11 +7115,14 @@ async function iniciar() {
     if (e.key === 'Enter') enviarIA();
   });
 
-  $('filtro-fichas').addEventListener('input', filtrarFichas);
+  /* O FILTRO E O PAGINADOR DA ESTANTE NÃO EXISTEM MAIS (26/10/2026) — viviam na abertura. O
+   * `if` não é decoração: sem ele, a página parte com «Cannot read properties of null» a cada
+   * carregamento, e uma página que não arranca não mostra o formulário. */
+  if ($('filtro-fichas')) $('filtro-fichas').addEventListener('input', filtrarFichas);
 
   // Os botões do PAGINADOR são repintados a cada página — delegar o clique no
   // contêiner é o que os mantém vivos sem religar um a um.
-  $('paginacao').addEventListener('click', (evento) => {
+  if ($('paginacao')) $('paginacao').addEventListener('click', (evento) => {
     const botao = evento.target.closest ? evento.target.closest('button[data-pagina]') : null;
     if (!botao || botao.disabled) return;
     evento.preventDefault();
@@ -7137,8 +7130,10 @@ async function iniciar() {
   });
 
   // Os gestos da proveniência, na própria lista. A regra é do servidor; a tela
-  // só oferece o que ele permite.
-  $('lista-fichas').addEventListener('click', (evento) => {
+  // só oferece o que ele permite. Os MESMOS gestos chegaram à listagem da Área do
+  // Professor — é lá que se usam agora; aqui ficam ligados para o caso de a estante
+  // voltar, e não fazem nada quando ela não está.
+  if ($('lista-fichas')) $('lista-fichas').addEventListener('click', (evento) => {
     const b = evento.target.closest('button');
     if (!b) return;
     evento.preventDefault();
@@ -7331,8 +7326,11 @@ async function iniciar() {
         esquecerSenha();
         await atualizarFichas();
         acomodarRecarimbo(carimboAnterior, carimbo, apelido);
+        /* Editada em sítio e gravada: volta-se à LISTA, que é onde o registo se lê e os gestos
+         * se oferecem. Era à abertura, e a abertura saiu (26/10/2026). */
         $('fecho').classList.add('oculto');
-        $('abertura').classList.remove('oculto');
+        voltarParaALista();
+        return;
       } catch (erro) {
         $('gravacao').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
       }
@@ -7355,7 +7353,9 @@ async function iniciar() {
         carimboPendente = dados.id;
         // A folha preenchida é da anamnese E do plano (16/10/2026): quem acabou de
         // escrever quer ver o que escreveu. O PO não tem folha — segue no envelope.
-        if (FONTE === 'anamnese' || FONTE === 'plano') {
+        /* O «VER A FICHA PREENCHIDA» VIVE NO FECHO, e continua lá — o `#fecho` é a página do
+         * «Guardar», não a abertura. Guardado o `$('link-ficha')`, o resto é o mesmo. */
+        if ((FONTE === 'anamnese' || FONTE === 'plano') && $('link-ficha')) {
           $('link-ficha').href = (FONTE === 'anamnese'
             ? 'api/ficha-preenchida.'
             : 'api/plano-preenchido.') + encodeURIComponent(dados.id) + '?formato=html';
@@ -7381,7 +7381,7 @@ async function iniciar() {
           limparMemoria();
           // Gravou: a senha (do plano editado/derivado) cumpriu o seu papel. Não fica.
           esquecerSenha();
-          $('retomada').classList.add('oculto');
+          esconderAvisoDoAto();
           $('gravacao').innerHTML += '<p class="ok">' + (FONTE === 'po' ? 'Plano de Observação' : 'Plano') + ' gravado.</p>';
         } else {
           // A ANAMNESE TEM UM DESTINO SÓ (20/10/2026). Antes havia dois: o envelope no acervo
@@ -7399,7 +7399,7 @@ async function iniciar() {
             limparMemoria();
             // Gravou: a senha cumpriu o seu papel. Não fica guardada.
             esquecerSenha();
-            $('retomada').classList.add('oculto');
+            esconderAvisoDoAto();
             // O CAMINHO, NÃO O CARIMBO (20/10/2026). A mensagem mostrava o carimbo
             // (`anamnese-20261019-2053`) — um nome, não um endereço — e a única coisa parecida
             // com um caminho que aparecia nesta tela era o do cofre, que é uma chave do KV.

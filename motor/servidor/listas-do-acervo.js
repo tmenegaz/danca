@@ -494,16 +494,31 @@ function scriptDoPainel(chave, escola) {
         var nomeDaTurma = t ? String(t.textContent || '').trim() : '';
         if (nomeDaTurma && nomeDaTurma !== '\u2014') partes.push(nomeDaTurma);
       }
-      resumo.textContent = partes.length ? partes.join(' · ')
-        : 'escolher o professor, o ciclo' + (CFG.ehAnamnese ? ' e a aluna' : '');
+      /* A BARRA FECHADA TAMBÉM AVISA (26/10/2026). Fechado, o resumo do contexto não se vê — e é
+       * isso que se quer. Mas «há um preenchimento interrompido» é a única frase que precisa de
+       * aparecer sem um clique: é ela que diz que o trabalho de antes está à espera. Por isso ela
+       * entra no texto do resumo, e o CSS mostra o resumo mesmo fechado nesse caso. */
+      resumo.textContent = mem
+        ? 'há um preenchimento interrompido — ' + (mem.respondidos || 0) + ' de '
+          + (mem.total || '?') + ' respondidas'
+        : (partes.length ? partes.join(' · ')
+          : 'escolher o professor, o ciclo' + (CFG.ehAnamnese ? ' e a aluna' : ''));
       resumo.style.color = (falta.length || semCuradoria()) ? 'var(--alerta)' : '';
       painel.classList.toggle('falta', falta.length > 0 || semCuradoria());
     }
 
-    /* COM PREENCHIMENTO INTERROMPIDO O BLOCO DO ATO ABRE — e o do filtro fecha, porque nunca
-     * estão os dois. As acções vivem lá dentro; fechado, a notícia do preenchimento desaparecia,
-     * e é o que a porta faz ao pôr a caixa de retomada no topo. */
-    if (mem) abrirBloco('ato');
+    /* COM PREENCHIMENTO INTERROMPIDO, A BARRA DIZ QUE HÁ — E NÃO ABRE NADA (26/10/2026).
+     *
+     * Era o 'abrirBloco' do ato, para a notícia não ficar escondida. A pesquisadora viu o efeito e
+     * recusou-o: «quando eu entro em anamnese, o bloco contexto do ato não pode estar expandido…
+     * tem que estar fechado, igual o procurar». Ela tem razão, e a razão é de desenho: um painel
+     * que se abre sozinho ao entrar é a página a decidir por quem chegou, e o pedido é o
+     * contrário — a tela limpa, e o painel só quando se pede.
+     *
+     * A NOTÍCIA NÃO SE PERDE: a barra fechada passa a dizer «há um preenchimento interrompido»
+     * no lugar do resumo do contexto (o atributo "data-pendente", no CSS). É informação no sítio onde
+     * ela é lida sem um clique, e não um painel aberto por decreto. */
+    painel.setAttribute('data-pendente', mem ? 'sim' : 'nao');
   }
 
   function encher(select, itens, rotulo, escolhido) {

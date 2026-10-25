@@ -473,8 +473,16 @@ function pedacos(html) {
     const pagina = { html: fs.readFileSync(
       path.join(raiz, 'publicacao/batata/plano-observacao/index.html'), 'utf8') };
     provar('a porta lê o parâmetro do salto', /get\('abrir'\) === '1'/.test(pagina.html), null);
-    provar('…e o salto pergunta ao botão antes de saltar, em vez de o contornar',
-      /podeComecar/.test(pagina.html) && /comecar\.disabled/.test(pagina.html), null);
+    /* A TRAVA MUDOU DE FORMA, NÃO DE CONTEÚDO (26/10/2026). Era `podeComecar` — o estado do
+       botão «Começar» da abertura. O botão e a abertura saíram; a pergunta ficou, chamada pelo
+       nome do que ela responde (`podePreencher`), e as três travas continuam lá dentro. */
+    provar('…e o salto pergunta se pode preencher, em vez de contornar a trava',
+      /function podePreencher\(/.test(pagina.html)
+      && /SENHA_VALIDA \|\| ATO_AUTORIZADO/.test(pagina.html)
+      && /CURADORIA_CARREGADA/.test(pagina.html), null);
+    provar('…e sem poder, devolve à lista em vez de mostrar o formulário',
+      /if \(!podePreencher\(\)\)/.test(pagina.html) && /voltarParaALista\(\)/.test(pagina.html),
+      null);
 
     const lista = await pedir('/area-do-professor/anamnese/');
     provar('a lista manda o salto no destino', /abrir=1/.test(lista.html), null);

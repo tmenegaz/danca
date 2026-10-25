@@ -730,31 +730,39 @@ const servidor = http.createServer(async (req, res) => {
     ok('…e a senha NÃO vai no endereço', !/senha=/.test(destino || ''), destino);
     ok('…o bilhete vai', /ato=a{32}/.test(destino || ''), destino);
 
-    await p.evaluate(() => new Promise((r) => setTimeout(r, 700)));
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 800)));
     const aterrou = await p.evaluate(() => {
       const visivel = (e) => !!e && !e.classList.contains('oculto') && e.getClientRects().length > 0;
       return { conducao: visivel(document.getElementById('conducao')),
-        abertura: visivel(document.getElementById('abertura')), url: location.search };
+        /* A ABERTURA JÁ NÃO EXISTE no ficheiro (26/10/2026): a pergunta passou a ser «há uma
+           página intermediária à vista?», e a resposta certa é não haver sequer o elemento. */
+        temAbertura: !!document.getElementById('abertura'),
+        fichas: !!document.getElementById('lista-fichas'),
+        url: location.search };
     });
-    ok('a anamnese aterra no FORMULÁRIO — é o que faltava para «direto pro formulário»',
-      aterrou.conducao && !aterrou.abertura, aterrou);
+    ok('a anamnese aterra no FORMULÁRIO — sem página intermediária, nem no ficheiro',
+      aterrou.conducao && !aterrou.temAbertura && !aterrou.fichas, aterrou);
     ok('…e o bilhete sai do endereço depois de gasto', !/ato=a{32}/.test(aterrou.url || ''), aterrou.url);
 
     /* E UM BILHETE GASTO NÃO ABRE OUTRA VEZ. É «de uso único» — sem isto, um valor que fica no
-       histórico voltaria a autorizar o mesmo ato, e a senha teria sido contornada por repetição. */
-    const mesma = destino;
-    await p.goto(mesma, { waitUntil: 'load' });
-    await p.evaluate(() => new Promise((r) => setTimeout(r, 700)));
-    const repetido = await p.evaluate(() => {
-      const visivel = (e) => !!e && !e.classList.contains('oculto') && e.getClientRects().length > 0;
-      return { conducao: visivel(document.getElementById('conducao')),
-        abertura: visivel(document.getElementById('abertura')) };
-    });
-    /* UM BILHETE GASTO NÃO ABRE O FORMULÁRIO — e a abertura VOLTA. A marca `data-abrir` escondeu-a
-       antes de a página pintar; se o bilhete não autoriza, ela tem de reaparecer, senão a pessoa
-       fica numa página em branco sem campo de senha e sem saber porquê. */
-    ok('um bilhete já usado NÃO abre o formulário — e a abertura volta, a pedir a senha',
-      !repetido.conducao && repetido.abertura, repetido);
+       histórico voltaria a autorizar o mesmo ato, e a senha teria sido contornada por repetição.
+       A página leva a pessoa à LISTA: é lá que se pede a senha outra vez, e é o único destino
+       que sobrou quando a abertura deixou de existir. */
+    /* NUM NAVEGADOR LIMPO, que é o caso real: alguém reusa um link antigo, ou abre-o noutro
+       sítio. Aqui não há histórico para onde voltar — e é o DESTINO DECLARADO que tem de
+       funcionar. Numa aba com histórico, o `back()` resolve; sem ele, só a rede salva. */
+    /* O BILHETE DO STUB É CONHECIDO (`a` × 32), e é ele que se reusa. Montar o endereço a partir
+       de `p.url()` NÃO serve: quando o `p.url()` é lido, a porta já gastou o bilhete e o tirou do
+       endereço — o que se estava a reusar era um link SEM bilhete, e o teste passava a medir
+       outra coisa. */
+    const alvoGasto = destino + (destino.indexOf('?') === -1 ? '?' : '&') + 'ato=' + 'a'.repeat(32);
+    const p2 = await b.newPage();
+    await p2.goto(alvoGasto, { waitUntil: 'load' });
+    await new Promise((r) => setTimeout(r, 1600));
+    const repetido = { url: p2.url() };
+    await p2.close();
+    ok('um bilhete já usado NÃO abre o formulário — devolve à lista',
+      /\/area-do-professor\/anamnese/.test(repetido.url), repetido.url);
 
     /* «CONTINUAR DE ONDE PAREI» TAMBÉM TEM DE ATERRAR NO FORMULÁRIO. Foi este o caso que a
        pesquisadora reportou: «eu vou clicar aqui em continuar de onde eu parei. Aí ele tá me
