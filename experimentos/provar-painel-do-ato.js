@@ -307,8 +307,9 @@ const servidor = http.createServer(async (req, res) => {
   // simular um preenchimento interrompido: gravar na chave da PORTA
   await p.evaluate(() => {
     localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+      /* Com uma RESPOSTA da pessoa: «há o que continuar» é isso, e não o depósito (26/10/2026). */
       JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00.000Z', indice: 7,
-        respostas: [], notas: [], sugeridas: [] }));
+        respostas: [['idade', '32']], notas: [], sugeridas: [] }));
   });
   /* O `abrir()` E NÃO O `reload()`: no telemóvel os blocos nascem fechados, e um recarregamento
      puro deixaria a medição a olhar para uma página em que nada está à vista. É o mesmo caminho
@@ -414,7 +415,8 @@ const servidor = http.createServer(async (req, res) => {
     await abrir('/area-do-professor/anamnese/', 390);
     await p.evaluate(() => {
       localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
-        JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z' }));
+        JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z',
+          indice: 3, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
       localStorage.setItem('ato-batata-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
     });
@@ -756,11 +758,20 @@ const servidor = http.createServer(async (req, res) => {
        endereço — o que se estava a reusar era um link SEM bilhete, e o teste passava a medir
        outra coisa. */
     const alvoGasto = destino + (destino.indexOf('?') === -1 ? '?' : '&') + 'ato=' + 'a'.repeat(32);
-    const p2 = await b.newPage();
+    /* UM NAVEGADOR LIMPO, E NÃO UMA ABA LIMPA. Desde que a retomada deixou de pedir a senha
+       (26/10/2026), um depósito no `localStorage` abre o formulário por si — e a aba `p` está
+       aberta no formulário, a gravar o depósito enquanto isto corre. Limpar o `localStorage` de
+       uma aba e voltar a navegar nela media «o depósito que a outra aba reescreveu», não o
+       bilhete. O que se quer medir é o bilhete, e só ele: «um bilhete gasto, sozinho, autoriza?».
+       Um navegador novo é o único sítio onde a resposta é só essa. */
+    const b2 = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
+      args: ['--no-sandbox'] });
+    const p2 = await b2.newPage();
+    p2.on('console', (m) => { if (/DIAG/.test(m.text())) console.log('   ' + m.text()); });
     await p2.goto(alvoGasto, { waitUntil: 'load' });
     await new Promise((r) => setTimeout(r, 1600));
     const repetido = { url: p2.url() };
-    await p2.close();
+    await b2.close();
     ok('um bilhete já usado NÃO abre o formulário — devolve à lista',
       /\/area-do-professor\/anamnese/.test(repetido.url), repetido.url);
 
@@ -770,9 +781,12 @@ const servidor = http.createServer(async (req, res) => {
        «continuar» — e o que se mede é que ela entra na condução, e não na abertura. */
     await abrir('/area-do-professor/anamnese/', 1280);
     await p.evaluate(() => {
+      /* UMA RESPOSTA DA PESSOA, e não um depósito qualquer: «há o que continuar» é uma resposta
+         que ela deu à mão. As sugestões da semeadura viajam em `sugeridas` e não contam — é o que
+         impede o botão de aparecer a quem só abriu o formulário. */
       localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z',
-          indice: 2, respostas: [], notas: [], sugeridas: [] }));
+          indice: 2, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
       localStorage.setItem('ato-batata-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
     });
@@ -803,6 +817,99 @@ const servidor = http.createServer(async (req, res) => {
     });
     ok('…e aterra no FORMULÁRIO, não na página intermédia',
       aterrouContinuar.conducao && !aterrouContinuar.abertura, aterrouContinuar);
+  }
+
+  console.log('\n12 · O «CONTINUAR» NÃO PEDE A SENHA — ela é de GRAVAR, não de entrar');
+  {
+    /* O CASO QUE A PESQUISADORA REPORTOU, e que a secção 11 não apanhava porque lá se digitava a
+       senha: «o continuar de onde parei não tá resolvido». Com depósito e SEM senha, o botão está
+       à vista e habilitado (só o «Nova» é que fecha sem senha) — e o clique não aterrava em lado
+       nenhum: a porta arrancava sem bilhete, `podePreencher()` dava falso e devolvia à lista. O
+       vaivém é indistinguível de «o botão não faz nada».
+
+       A regra que se prova aqui é a que o pedido enuncia: a senha é pré-requisito de GRAVAÇÃO.
+       Quem tem um preenchimento interrompido entra e continua a responder; a senha é pedida onde
+       ela serve — no «Guardar». E o campo da senha aparece, porque é por ele que se grava. */
+    /* A REGRA DA PESQUISADORA, primeiro: «só vai aparecer o continuar de onde parei… se de fato
+       existir o que continuar. Se não tiver nada, não tem por quê». Um depósito com SÓ sugestões
+       — o que a semeadura deixa atrás de si a quem apenas abriu o formulário — não é trabalho
+       nenhum, e não pode produzir «continuar». */
+    await p.evaluate(() => {
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+        JSON.stringify({ respondidos: 3, total: 53, quando: '2026-10-26T09:00:00Z',
+          indice: 0, respostas: [['idade', '30'], ['formacao', 'ballet']],
+          notas: [], sugeridas: ['idade', 'formacao'] }));
+    });
+    await abrir('/area-do-professor/anamnese/', 1280, { limpar: false });
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 600)));
+    const soSugestoes = await p.evaluate(() => {
+      const c = document.querySelector('[data-acao="continuar"]');
+      const n = document.querySelector('[data-acao="nova"]');
+      const vis = (e) => !!e && !e.hidden && e.getClientRects().length > 0;
+      return { continuar: vis(c), nova: vis(n) };
+    });
+    ok('depósito com só sugestões NÃO produz «continuar»', soSugestoes.continuar === false, soSugestoes);
+    ok('…e o «fazer anamnese» está lá, que é o que há a fazer', soSugestoes.nova === true, soSugestoes);
+
+    /* E AGORA COM UMA RESPOSTA DA PESSOA, e SEM senha. */
+    await p.evaluate(() => {
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+        JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-26T09:05:00Z',
+          indice: 2, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
+    });
+    await abrir('/area-do-professor/anamnese/', 1280, { limpar: false });
+
+    const antes = await p.evaluate(() => {
+      const b = document.querySelector('[data-acao="continuar"]');
+      const senha = document.getElementById('ato-senha');
+      return { botao: !!b && b.getClientRects().length > 0,
+        desabilitado: !!(b && b.disabled),
+        senhaVazia: !senha || senha.value === '' };
+    });
+    ok('sem senha, «continuar» está à vista e habilitado', antes.botao && !antes.desabilitado, antes);
+    ok('…e a senha está de facto por preencher', antes.senhaVazia === true, antes);
+
+    const destinoSemSenha = await Promise.all([
+      p.waitForNavigation({ waitUntil: 'load', timeout: 8000 }).catch(() => null),
+      p.evaluate(() => document.querySelector('[data-acao="continuar"]').click()),
+    ]).then(() => p.url());
+    ok('o clique navega — não fica na lista',
+      /\/anamnese\//.test(destinoSemSenha || '') && !/area-do-professor/.test(destinoSemSenha || ''),
+      destinoSemSenha);
+    ok('…e o endereço não leva senha nenhuma', !/senha=/.test(destinoSemSenha || ''), destinoSemSenha);
+
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 900)));
+    const aterrou = await p.evaluate(() => {
+      const visivel = (e) => !!e && !e.classList.contains('oculto') && e.getClientRects().length > 0;
+      /* NA PORTA o campo chama-se `senha` (é o `<input id="senha">` do formulário). O
+         `ato-senha` é o do painel, que fica na lista. */
+      const senha = document.getElementById('senha');
+      return { url: location.pathname,
+        conducao: visivel(document.getElementById('conducao')),
+        abertura: !!document.getElementById('abertura'),
+        /* O campo da senha FICA à vista: sem bilhete, a gravação continua a exigi-la. É o
+           contrário de um furo — é onde a senha tem de estar. */
+        senha: visivel(senha) };
+    });
+    ok('…e aterra no FORMULÁRIO, com a condução à vista',
+      aterrou.conducao && !aterrou.abertura, aterrou);
+    ok('a porta não devolveu à lista', !/area-do-professor/.test(aterrou.url || ''), aterrou.url);
+    ok('…e a senha é pedida onde grava: no campo, não à entrada', aterrou.senha === true, aterrou);
+
+    /* O DEPÓSITO É LIDO ANTES DA SEMEADURA, e isto é o que prova que sim.
+     *
+     * A semeadura do contexto e da curadoria escreve em RESPOSTAS e chama `salvar()` — se ela
+     * corresse antes da leitura, o depósito do professor era substituído pela sugestão, e o que
+     * ele tinha respondido à mão desaparecia. O sinal, aqui, é o mais direto que há: a resposta
+     * dele continua no `localStorage` depois de a página arrancar. */
+    const sobreviveu = await p.evaluate(() => {
+      try {
+        const d = JSON.parse(localStorage.getItem('porta-anamnese-batata-cafe-no-bule-01-1') || 'null');
+        return d && Array.isArray(d.respostas)
+          ? d.respostas.some((par) => Array.isArray(par) && par[0] === 'idade') : false;
+      } catch (e) { return false; }
+    });
+    ok('…e a resposta que já estava guardada não foi apagada pela semeadura', sobreviveu === true);
   }
 
   ok('nenhum erro de JavaScript', erros.length === 0, erros);

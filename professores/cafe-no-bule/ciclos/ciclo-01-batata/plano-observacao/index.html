@@ -1027,8 +1027,15 @@ let EM_AUTOABERTURA = false;
 // A categoria etária, que era o sintoma do vazamento, é re-derivada da idade no load.
 function chaveDaMemoria() {
   const partes = ['porta', FONTE];
-  for (const c of ['ctx-escola', 'ctx-professor', 'ctx-ciclo']) {
-    const v = (($(c) || {}).value || '').trim();
+  /* A URL VALE ENQUANTO A BARRA NÃO VALE (26/10/2026). O `select` do professor só recebe o
+   * valor quando as opções chegam do servidor, e o depósito é lido ANTES disso — de propósito,
+   * porque a semeadura do contexto grava por cima dele. Sem este recurso, a chave lida era
+   * `porta-anamnese-<escola>-1`, que não existe: a porta não encontrava o preenchimento
+   * interrompido do próprio professor e nascia como rascunho novo. */
+  const daUrl = new URLSearchParams(location.search);
+  for (const nome of ['escola', 'professor', 'ciclo']) {
+    const doCampo = (($('ctx-' + nome) || {}).value || '').trim();
+    const v = doCampo || String(daUrl.get(nome) || '').trim();
     if (v) partes.push(v);
   }
   return partes.join('-') + '-1';
@@ -1122,15 +1129,25 @@ let ATO_AUTORIZADO = false;
  * O BILHETE CONTA COMO SENHA (25/10/2026): ele foi emitido pelo servidor depois de a senha
  * conferir, e é o que faz o salto da lista funcionar sem que a senha viaje no endereço.
  */
-function podePreencher() {
+function podePreencher(retomando) {
   const faltam = contextoFaltandoCompleto();
   if (faltam.length) return false;
   /* EM EDIÇÃO A SENHA NÃO É PRÉ-REQUISITO DE ENTRADA (26/10/2026). Ela é pré-requisito de
    * GRAVAÇÃO — e o pedido é explícito: «quando eu vou pela edição, eu venho direto para dentro do
    * formulário e aí eu tenho que digitar a senha obrigatoriamente para poder editar». Exigi-la à
    * porta fazia o «Editar» da lista voltar para a lista, imediatamente, sem nunca abrir nada. */
+  /* E RETOMAR UM PREENCHIMENTO TAMBÉM NÃO É PEDIR A SENHA (26/10/2026). «O continuar de onde parei
+   * não tá resolvido.» Estava: o botão «Continuar de onde parei» nunca é desabilitado (ao
+   * contrário do «Fazer anamnese»), e por isso podia ser clicado sem senha — e então a página,
+   * sem bilhete, encontrava a trava fechada e devolvia a pessoa à lista. O sintoma é o pior
+   * possível: o botão existe, clica-se, e volta-se ao mesmo sítio.
+   *
+   * A regra é a mesma da edição, e é a que o pedido descreve: a senha é pré-requisito de
+   * GRAVAÇÃO, não de entrada. Quem tem um depósito guardado entra e continua a responder; a
+   * senha é pedida onde ela serve — no «Guardar». */
   const emEdicao = !!(EDITANDO || DERIVANDO);
-  const senhaOk = FONTE === 'anamnese' ? (SENHA_VALIDA || ATO_AUTORIZADO || emEdicao) : true;
+  const senhaOk = FONTE === 'anamnese'
+    ? (SENHA_VALIDA || ATO_AUTORIZADO || emEdicao || retomando) : true;
   if (!senhaOk) return false;
   const semCuradoria =
     (FONTE === 'plano' || FONTE === 'po') && CURADORIA_CARREGADA && CURADORIAS.length === 0;
@@ -2142,11 +2159,30 @@ function anotarFicha(id) {
   guardarFichas(ids);
 }
 
+/* HÁ O QUE CONTINUAR? — só se a pessoa respondeu alguma coisa por sua mão.
+ *
+ * O depósito NÃO é prova disso: a semeadura do contexto e da curadoria escreve em RESPOSTAS e
+ * grava. Essas respostas viajam marcadas em `sugeridas`, e são sugestão, não trabalho. Contar o
+ * depósito inteiro daria «há um preenchimento interrompido» a quem só abriu o formulário — e é
+ * isso que a pesquisadora recusou: «só vai aparecer o continuar de onde parei… se de fato
+ * existir o que continuar. Se não tiver nada, não tem por quê».
+ *
+ * É também o que distingue uma RETOMADA de uma entrada nova na trava da porta: sem esta
+ * distinção, qualquer abertura com o contexto preenchido dispensava a senha, porque a semeadura
+ * deixa sempre um depósito atrás de si. */
+function respostaPropria(guardado) {
+  if (!guardado) return false;
+  const sugeridas = new Set(Array.isArray(guardado.sugeridas) ? guardado.sugeridas : []);
+  const pares = Array.isArray(guardado.respostas) ? guardado.respostas : [];
+  return pares.some((par) => Array.isArray(par) && !sugeridas.has(par[0]));
+}
+
 /*
  * O questionário muda entre uma sessão e outra: uma pergunta sai, outra entra.
  * Id que não existe mais no mapa é descartado — e o descarte é CONTADO, porque
  * ele é parte do que se perdeu. O que volta é a resposta, não o silêncio.
  */
+
 function restaurar(guardado) {
   const vivos = new Set(MAPA.nos.map((n) => n.id));
   const descartados = [];
@@ -6906,10 +6942,23 @@ async function iniciar() {
   // disparada junto com a semeadura da URL (uma requisição só, compartilhada com a lista de
   // professores) e aqui só se espera por ela.
   fixarEscola((await dadosDosBastidores()).escola);
-  /* O DEPÓSITO VOLTA, SE HOUVER — e é a única coisa que a abertura fazia de útil para quem
-   * entra no meio. Não há «Continuar de onde parei» aqui dentro: esse botão é o da lista, e foi
-   * ele que trouxe a pessoa até esta página. O que se faz é restaurar e dizer, em uma linha,
-   * que se está a retomar. */
+
+  /* O DEPÓSITO VEM ANTES DA SEMEADURA — e é ela que manda nisto (26/10/2026).
+   *
+   * A ORDEM NÃO É ESTILO, É O DADO. `semearDoContexto` e `semearDaCuradoria` escrevem em
+   * `RESPOSTAS` e chamam `salvar()`: ler o depósito depois delas é ler o que a semeadura acabou
+   * de gravar, e o preenchimento interrompido do professor — o dele, à mão — fica por baixo,
+   * perdido no `localStorage`. Quem volta ao meio do ato encontrava o formulário como se
+   * começasse de novo.
+   *
+   * O que impedia esta ordem era a CHAVE: `porta-<fonte>-<escola>-<professor>-<ciclo>-1` precisa
+   * do professor e do ciclo, e nesse instante eles ainda não estão na barra (o professor é um
+   * `select` que só ganha opções depois). A resolução foi em `chaveDaMemoria`: enquanto a barra
+   * não vale, vale a URL — que é de onde o contexto vem.
+   *
+   * A RESTAURAÇÃO VENCE A SUGESTÃO, e é o que a semeadura respeita: ela salta o nó que já tem
+   * resposta e não é sugestão.
+   */
   const guardado = lerMemoria();
   if (guardado) {
     const t = restaurar(guardado);
@@ -6925,7 +6974,6 @@ async function iniciar() {
   } else if (!memoriaLigada && FONTE === 'anamnese') {
     mostrarSemMemoria();
   }
-
   // A semeadura pelo contexto do ato vem DEPOIS do depósito: o que o professor
   // já respondeu por si vence a barra; o resto é sugerido. Semear antes faria a
   // sugestão passar por resposta dele. Os PROFESSORES viraram lista (como as
@@ -7132,7 +7180,7 @@ async function iniciar() {
    * A ordem certa é: primeiro quem traz o contexto, depois quem o confere. E se a edição já
    * abriu o formulário, não se abre outra vez — o `abrirFormulario` daqui reporia o nó 0 e
    * perderia o registo que se estava a editar. */
-  if (!podePreencher()) {
+  if (!podePreencher(respostaPropria(guardado))) {
     voltarParaALista();
     return;
   }

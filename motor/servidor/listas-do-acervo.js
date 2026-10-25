@@ -390,6 +390,27 @@ function scriptDoPainel(chave, escola) {
     try { var b = localStorage.getItem(chaveDaMemoria()); return b ? JSON.parse(b) : null; }
     catch (e) { return null; }
   }
+  /* «HÁ O QUE CONTINUAR» É UMA RESPOSTA DA PESSOA, E NÃO UM DEPÓSITO (26/10/2026).
+   *
+   * A porta grava o depósito também quando apenas semeia o contexto e a curadoria — essas
+   * respostas viajam marcadas em SUGERIDAS. Contar o depósito inteiro dava «Continuar de onde
+   * parei» a quem só abriu o formulário, e a regra que a pesquisadora ditou é a contrária: «só
+   * vai aparecer… se de fato existir o que continuar. Se não tiver nada, não tem por quê».
+   *
+   * A MESMA CONTA ESTÁ NA PORTA (respostaPropria), e tem de estar: é ela que decide se a
+   * retomada dispensa a senha. Duas contas diferentes dariam um botão que leva a uma página que
+   * recusa. */
+  function haOQueContinuar(m) {
+    if (!m) return false;
+    var sugeridas = {};
+    (Array.isArray(m.sugeridas) ? m.sugeridas : []).forEach(function (id) { sugeridas[id] = true; });
+    var pares = Array.isArray(m.respostas) ? m.respostas : [];
+    for (var i = 0; i < pares.length; i += 1) {
+      var par = pares[i];
+      if (Array.isArray(par) && !sugeridas[par[0]]) return true;
+    }
+    return false;
+  }
   function limparMemoria() {
     try { localStorage.removeItem(chaveDaMemoria()); } catch (e) {}
   }
@@ -422,7 +443,7 @@ function scriptDoPainel(chave, escola) {
   }
 
   function pintar() {
-    var mem = memoria();
+    var mem = haOQueContinuar(memoria()) ? memoria() : null;
     var falta = faltam();
     /* A SENHA SÓ TRAVA ONDE ELA EXISTE. No PO o campo não está na página (a porta diz «no PO,
      * nunca»), e 'valor('senha')' devolveria '' — a trava nunca sairia. */

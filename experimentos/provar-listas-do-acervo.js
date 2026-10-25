@@ -503,8 +503,11 @@ function pedacos(html) {
       /function podePreencher\(/.test(pagina.html)
       && /SENHA_VALIDA \|\| ATO_AUTORIZADO/.test(pagina.html)
       && /CURADORIA_CARREGADA/.test(pagina.html), null);
+    /* A trava recebe agora se há depósito (`podePreencher(!!guardado)`): retomar um
+       preenchimento não pede a senha — a senha é pré-requisito de GRAVAR, não de entrar. A
+       asserção aceita o argumento e continua a exigir a devolução à lista. */
     provar('…e sem poder, devolve à lista em vez de mostrar o formulário',
-      /if \(!podePreencher\(\)\)/.test(pagina.html) && /voltarParaALista\(\)/.test(pagina.html),
+      /if \(!podePreencher\([^)]*\)\)/.test(pagina.html) && /voltarParaALista\(\)/.test(pagina.html),
       null);
 
     const lista = await pedir('/area-do-professor/anamnese/');
