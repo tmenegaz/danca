@@ -94,8 +94,13 @@ function cartaoDaLista(item, indice) {
     ? ' <span class="selo ' + esc(item.seloClasse || 'discreto') + '">' + esc(item.selo) + '</span>'
     : '';
   const acoes = (item.acoes || []).filter(([, href]) => href)
-    .map(([rotulo, href, classe]) =>
-      '<a class="acao ' + (classe || '') + ' pequena" href="' + esc(href) + '">' + esc(rotulo) + '</a>')
+    /* O QUARTO ELEMENTO É A EXPLICAÇÃO (`title`). Ela não é decoração: «editar» e «ajustar» são
+       gestos diferentes, e a diferença — o que se apaga, o que permanece — não cabe no rótulo.
+       Quem não vê o `title` (o telemóvel) perde a frase, mas não perde o gesto: o rótulo diz o
+       que vai acontecer, e os dois nunca fazem a mesma coisa. */
+    .map(([rotulo, href, classe, dica]) =>
+      '<a class="acao ' + (classe || '') + ' pequena" href="' + esc(href) + '"'
+      + (dica ? ' title="' + esc(dica) + '"' : '') + '>' + esc(rotulo) + '</a>')
     .join('');
   const fatos = (item.fatos || []).filter(Boolean).length
     ? '<div class="fatos">' + item.fatos.filter(Boolean)
@@ -281,9 +286,10 @@ function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazi
     <li><a class="menu-de-acoes-item" data-abrir="ficha" href="${ficha ? esc(ficha) : '#'}"
       target="_blank" rel="noopener">Gerar ficha</a></li>
   </ul>
-  <details class="bloco-lista" id="bloco-ato" data-bloco="ato" open>
+  <details class="bloco-lista" id="bloco-ato" data-bloco="ato">
     <summary class="bloco-cabeca">
-      <span class="bloco-titulo">Contexto do ato</span>
+      <span class="bloco-titulo bloco-nome-fechado">${nomeDeCriar}</span>
+      <span class="bloco-titulo bloco-nome-aberto">Contexto do ato</span>
       <span class="bloco-resumo" data-resumo></span>
       <span class="seta-do-ato" aria-hidden="true">\u25be</span>
     </summary>

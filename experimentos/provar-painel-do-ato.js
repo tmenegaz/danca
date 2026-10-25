@@ -600,8 +600,21 @@ const servidor = http.createServer(async (req, res) => {
         filtro: (document.getElementById('bloco-filtro') || {}).open };
     });
     ok('telemóvel: o «Ações» está à vista e à DIREITA', tl.visivel && tl.aDireita, tl);
-    ok('telemóvel: em repouso os dois blocos estão fechados — a tela é da listagem',
-      tl.ato === false && tl.filtro === false, tl);
+    /* AQUI O `abrir()` DA BANCADA JÁ TINHA ESCOLHIDO «FAZER ANATOMNESE» — ele escolhe para poder
+       medir. O repouso mede-se num carregamento limpo, sem escolha nenhuma: é o estado em que a
+       pessoa chega. */
+    const repouso = await p.evaluate(async () => {
+      const r = await fetch(location.href).then((x) => x.text());
+      const d = new DOMParser().parseFromString(r, 'text/html');
+      const ato = d.getElementById('bloco-ato');
+      const fil = d.getElementById('bloco-filtro');
+      return { atoExiste: !!ato, filtroExiste: !!fil,
+        atoAberto: !!ato && ato.hasAttribute('open'),
+        filtroAberto: !!fil && fil.hasAttribute('open') };
+    });
+    ok('telemóvel: em repouso nenhum dos dois blocos está aberto no HTML — a tela é da listagem',
+      repouso.atoExiste && repouso.filtroExiste
+      && repouso.atoAberto === false && repouso.filtroAberto === false, repouso);
 
     const folha = await p.evaluate(async () => {
       const espera = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -671,8 +684,11 @@ const servidor = http.createServer(async (req, res) => {
         depoisDoFiltro, depoisDoAto: st() };
     });
     ok('computador: o «Ações» NÃO aparece — é botão de telemóvel', pc.botao === false, pc.botao);
-    ok('computador: em repouso o ato está aberto e o procurar fechado',
-      pc.inicial.ato === true && pc.inicial.filtro === false, pc.inicial);
+    /* NO COMPUTADOR OS DOIS NASCEM FECHADOS (25/10/2026, quarta leitura): «eu entrei em anamnese…
+       ao invés de aparecer o contexto do ato expandido, ele vai aparecer também colapsado, igual
+       tá o procurar». Duas barras com o nome da acção, e cada um abre a sua. */
+    ok('computador: em repouso OS DOIS blocos estão fechados, como o procurar',
+      pc.inicial.ato === false && pc.inicial.filtro === false, pc.inicial);
     ok('computador: abrir o procurar FECHA o contexto do ato',
       pc.depoisDoFiltro.filtro === true && pc.depoisDoFiltro.ato === false, pc.depoisDoFiltro);
     ok('computador: abrir o contexto do ato FECHA o procurar',
@@ -734,7 +750,10 @@ const servidor = http.createServer(async (req, res) => {
       return { conducao: visivel(document.getElementById('conducao')),
         abertura: visivel(document.getElementById('abertura')) };
     });
-    ok('um bilhete já usado NÃO abre o formulário — fica na abertura',
+    /* UM BILHETE GASTO NÃO ABRE O FORMULÁRIO — e a abertura VOLTA. A marca `data-abrir` escondeu-a
+       antes de a página pintar; se o bilhete não autoriza, ela tem de reaparecer, senão a pessoa
+       fica numa página em branco sem campo de senha e sem saber porquê. */
+    ok('um bilhete já usado NÃO abre o formulário — e a abertura volta, a pedir a senha',
       !repetido.conducao && repetido.abertura, repetido);
 
     /* «CONTINUAR DE ONDE PAREI» TAMBÉM TEM DE ATERRAR NO FORMULÁRIO. Foi este o caso que a

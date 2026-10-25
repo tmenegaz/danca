@@ -157,6 +157,30 @@ function acoesDaLinha(chave, registo, estado) {
   if (chave === 'plano-de-ensino' && estado && estado.estado === 'solta') {
     return [['Editar', f.porta + consulta({ fonte: f.fonte, editar: registo.id }), '']];
   }
+  /* A ANAMNESE TINHA O MESMO DEFEITO DO PLANO, e a pesquisadora viu-o: «as anamneses que eu já
+   * tenho prontas estão livres… então eu preciso que tenha esse indicativo para o professor saber
+   * do que se trata, se ele pode editar ou se ele precisa derivar. E o botão de editar e de
+   * derivar tem que estar aqui também».
+   *
+   * A REGRA É A DO SERVIDOR, não uma nova: a anamnese SOLTA edita-se (é o mesmo carimbo) e
+   * apaga-se; a VINCULADA não se toca — acrescenta-se um elo (`POST /api/anamnese-ajuste`), e é
+   * esse o gesto que a porta chama «ajustar». O nome difere do «derivar» do plano e do PO de
+   * propósito: cada família diz o que faz no seu próprio vocabulário, e inventar um sinónimo
+   * aqui faria a tela prometer uma coisa que o servidor não conhece. */
+  if (chave === 'anamnese') {
+    if (estado && estado.vinculada) {
+      /* sem atalho por endereço para «ajustar»: o elo novo nasce do registo, e o registo abre-se
+       * pelo formulário com o contexto. O botão diz o que vai acontecer. */
+      return [['Ajustar', f.porta + consulta({ fonte: f.fonte, professor: registo.professor,
+        ciclo: registo.ciclo, aluna: registo.aluna }), 'secundario',
+        'acrescenta um elo novo; o registo anterior permanece']];
+    }
+    return [
+      ['Editar', f.porta + consulta({ fonte: f.fonte, editar: registo.id }), ''],
+      ['Apagar', f.porta + consulta({ fonte: f.fonte, editar: registo.id }), 'secundario',
+        'a anamnese solta pode ser apagada; a vinculada, não'],
+    ];
+  }
   const contexto = consulta({
     fonte: f.fonte,
     professor: registo.professor,
@@ -243,6 +267,7 @@ function painelDoAto(chave, escola) {
         <input type="password" id="ato-senha" data-ato="senha" autocomplete="off">
         <span class="selo ok" data-senha-status hidden>confere</span></span>`}
     </div>
+    <p class="obrigatorios">Todos estes campos são obrigatórios: sem eles o ato não abre.</p>
     <div class="acoes-do-ato">
       <button class="acao" type="button" data-acao="nova" disabled>${f.acaoDeCriar}</button>
       <button class="acao secundario pequena" type="button" data-acao="continuar" hidden>
@@ -729,6 +754,12 @@ function scriptDoPainel(chave, escola) {
   var veuDoMenu = document.getElementById('veu-acoes');
   var blocoDoAto = document.getElementById('bloco-ato');
   var blocoDoFiltro = document.getElementById('bloco-filtro');
+  /* A LARGURA, NUM SÍTIO SÓ, e declarada ANTES de quem a usa: o 'matchMedia' é a mesma condição
+   * do CSS (560px), e ter duas cópias dela — uma no desenho, outra no script — é o género de
+   * divergência que só aparece no dia em que uma muda. E 'pintar()' já pode chamar 'abrirBloco'
+   * durante o arranque (quando há preenchimento interrompido): uma variável ainda vazia ali seria
+   * uma excepção a meio da página. */
+  var largo = window.matchMedia('(min-width: 561px)');
 
   /* ABRIR UM É FECHAR O OUTRO, e é a única porta: quem quer abrir chama isto, e não mexe no
    * 'open' à mão. Duas portas para a mesma regra divergiriam no dia em que uma mudasse — e o
@@ -736,10 +767,24 @@ function scriptDoPainel(chave, escola) {
   function abrirBloco(nome) {
     var alvo = nome === 'ato' ? blocoDoAto : (nome === 'filtro' ? blocoDoFiltro : null);
     var outro = nome === 'ato' ? blocoDoFiltro : blocoDoAto;
-    if (outro) outro.open = false;
-    if (alvo) alvo.open = true;
+    /* NO TELEMÓVEL O BLOCO SÓ EXISTE DEPOIS DE ESCOLHIDO. Ele nasce escondido (o atributo 'hidden'), e é o
+     * menu que o traz: «esse espaço contexto do ato e o procurar só vai ser acionado, aparecer
+     * para o usuário, quando clicar em ações». Sem isto os dois 'summary' ficavam à vista — dois
+     * acordeões por cima de um botão «Ações» que já faz esse trabalho. */
+    if (outro) {
+      outro.open = false;
+      if (ehTelefone()) outro.hidden = true;
+    }
+    if (alvo) {
+      alvo.hidden = false;
+      alvo.open = true;
+    }
     fecharMenu();
   }
+  /* A LARGURA, NUM SÍTIO SÓ. 'matchMedia' é a mesma condição do CSS ('560px'), e ter duas cópias
+   * dela — uma no desenho, outra no script — é o género de divergência que só aparece no dia em
+   * que uma muda. */
+  function ehTelefone() { return !largo.matches; }
 
   function fecharMenu() {
     if (menuDeAcoes) menuDeAcoes.hidden = true;
@@ -772,36 +817,49 @@ function scriptDoPainel(chave, escola) {
     });
   }
 
-  /* O 'summary' TAMBÉM RESPEITA A EXCLUSIVIDADE. O navegador abre o 'details' sozinho ao clicar;
-   * o que se faz aqui é fechar o irmão no evento 'toggle', que corre DEPOIS de o estado mudar. Se
-   * o utilizador estiver a FECHAR, não se abre nada — só se fecha o outro quando este abriu. */
+  /* COLAPSAR, NO TELEMÓVEL, É DESAPARECER. O 'summary' é o botão de colapsar («eu clico em
+   * colapsar e ele desaparece da tela»), e no telemóvel fechar não deixa uma barra fechada por
+   * cima da listagem: o bloco volta para dentro do menu e sai da tela. No computador fica a barra,
+   * porque é ela que se volta a clicar para abrir o outro.
+   *
+   * E ABRIR UM FECHA O OUTRO — a exclusividade, no evento 'toggle', que corre DEPOIS de o estado
+   * mudar. Se o utilizador estiver a FECHAR, não se abre nada. */
   [blocoDoAto, blocoDoFiltro].forEach(function (bloco) {
     if (!bloco) return;
     bloco.addEventListener('toggle', function () {
-      if (!bloco.open) return;
+      if (!bloco.open) {
+        if (ehTelefone()) bloco.hidden = true;
+        return;
+      }
       var outro = bloco === blocoDoAto ? blocoDoFiltro : blocoDoAto;
-      if (outro) outro.open = false;
+      if (outro) {
+        outro.open = false;
+        if (ehTelefone()) outro.hidden = true;
+      }
     });
   });
 
   /* A LARGURA MANDA — e o estado de repouso é diferente nos dois modos.
    *
-   * No computador o «Ações» não existe (o CSS esconde-o) e os blocos ficam à vista: o do ato
-   * ABERTO, porque é o que se usa para criar, e o do filtro fechado, porque nunca estão os dois.
-   * É o que o pedido diz: «quando eu colapsar o contexto do ato, eu tenho ali também a parte do
-   * procurar».
+   * NO COMPUTADOR OS DOIS BLOCOS FICAM À VISTA, E FECHADOS. «Eu tô na tela grande… ao invés de
+   * aparecer o contexto do ato expandido, ele vai aparecer também colapsado, igual tá o
+   * procurar.» Duas barras, quem quer criar abre a sua, quem quer procurar abre a outra — e nunca
+   * as duas abertas. O NOME DA BARRA FECHADA É O DA ACÇÃO («Fazer anamnese»), e não o nome
+   * técnico: «contexto do ato… isso é um nome técnico que nós temos aqui enquanto estamos
+   * programando». Aberta, ela passa a «Contexto do ato», que é o que faz sentido quando se está a
+   * preencher os campos. A troca é do CSS (.bloco-nome-fechado / .bloco-nome-aberto).
    *
-   * No telemóvel ambos nascem FECHADOS: a tela é da listagem, e o «Ações» é a porta. Abrir por
-   * conta própria qualquer um deles seria o estado que ele descreveu como errado. */
-  var largo = window.matchMedia('(min-width: 561px)');
+   * NO TELEMÓVEL NENHUM DOS DOIS EXISTE até ser escolhido: a tela é da listagem, e o «Ações» é a
+   * porta. Abrir por conta própria qualquer um deles seria o estado que ele descreveu como
+   * errado — «não faz sentido ter esses dois acordeões se eu já tenho o botão ações». */
   function ajustarAoModo() {
     if (largo.matches) {
-      if (blocoDoFiltro) blocoDoFiltro.open = false;
-      if (blocoDoAto) blocoDoAto.open = true;
+      if (blocoDoAto) { blocoDoAto.hidden = false; blocoDoAto.open = false; }
+      if (blocoDoFiltro) { blocoDoFiltro.hidden = false; blocoDoFiltro.open = false; }
       fecharMenu();
     } else {
-      if (blocoDoAto) blocoDoAto.open = false;
-      if (blocoDoFiltro) blocoDoFiltro.open = false;
+      if (blocoDoAto) { blocoDoAto.open = false; blocoDoAto.hidden = true; }
+      if (blocoDoFiltro) { blocoDoFiltro.open = false; blocoDoFiltro.hidden = true; }
       fecharMenu();
     }
   }
@@ -843,7 +901,22 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano) {
       const turma = turmasDaAluna.get(r.aluna) || '';
       return {
         nome: r.aluna || 'Anamnese sem sujeito',
-        selo: estado.vinculada ? 'vinculada' : (r.aluna && !turma ? 'nova' : ''),
+        /* O SELO NUNCA FICA VAZIO (25/10/2026). «As anamneses que eu já tenho prontas aqui estão
+         * livres, né? Não estão vinculadas, estão sem o rótulo indicando se ela é livre ou não.»
+         * Estavam mesmo: a expressão anterior devolvia `''` sempre que a aluna TINHA turma e a
+         * anamnese não estava vinculada — que é o caso mais comum de todos. Um rótulo que só
+         * aparece em dois dos três estados é um rótulo que mente por omissão: quem lê não sabe se
+         * a ficha está livre ou se o selo é que não veio.
+         *
+         * Os três estados, e o que cada um quer dizer para quem vai mexer:
+         *   · vinculada — um Plano de Observação já a usa; não se edita, acrescenta-se um elo;
+         *   · nova      — a aluna ainda não está em curadoria nenhuma; é a porta de entrada;
+         *   · livre     — a aluna tem turma e nenhum PO a usa; edita-se e apaga-se. */
+        selo: estado.vinculada ? 'vinculada' : (r.aluna && !turma ? 'nova' : 'livre'),
+        /* A CLASSE É A COR, e a cor não distingue «nova» de «livre» de propósito: as duas dizem
+         * a mesma coisa a quem vai mexer no registo — pode-se editar. O que distingue é o TEXTO,
+         * que é onde está o que a pessoa precisa de saber. Inventar um estado de selo novo na
+         * folha («nova») para uma diferença que não muda o gesto seria desenho a mais. */
         seloClasse: estado.vinculada ? 'vinculada' : 'livre',
         turma: turma,
         professor: quem,

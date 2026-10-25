@@ -527,6 +527,11 @@
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
   .citacao { font-style: italic; color: var(--texto-suave); }
   .oculto { display: none; }
+  /* O SALTO DIRETO NÃO PINTA A ABERTURA (25/10/2026). O `data-abrir` é posto no `<html>` pelo
+     script do `<head>`, antes de o corpo ser desenhado; o formulário entra a seguir. Sem esta
+     regra, quem vem da lista via a página intermédia por um instante — e ela «não tem que
+     existir mais». */
+  html[data-abrir="sim"] #abertura { display: none; }
   .grade { display: grid; gap: .1rem .8rem; }
 
   /* O roteiro acompanha a condução. O DOM mantém o índice ANTES do corpo; em
@@ -681,7 +686,15 @@
 </style>
 <script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
    completo (o botão) vive em assets/nav.js. */
-try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
+try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}
+/* O SALTO DIRETO NÃO PASSA PELA ABERTURA — NEM POR UM INSTANTE (25/10/2026).
+   «Quando eu clico em fazer anamnese, ele passa pela página intermediária e em seguida carrega
+   a página certa… isso tá errado.» Estava: o `?abrir=1` era lido lá em baixo, no fim do
+   arranque, e até lá a abertura já tinha sido pintada. Este script corre ANTES do corpo ser
+   desenhado, e marca o documento; o `display:none` da folha para `[data-abrir="sim"] #abertura`
+   faz o resto. A abertura continua no ficheiro (é o sítio da retomada e do «Sair»), mas quem
+   chega pela lista nunca a vê. */
+try{if(new URLSearchParams(location.search).get('abrir')==='1')document.documentElement.setAttribute('data-abrir','sim');}catch(e){}</script>
 </head>
 <body id="top" data-layout="documento" data-tela="porta">
 
@@ -1997,6 +2010,17 @@ function ajustarSenhaDoPlano() {
   let mostra = true;
   if (FONTE === 'po') mostra = false;
   else if (FONTE === 'plano') mostra = !!(EDITANDO || DERIVANDO) || !CONDUCAO_ABERTA;
+  /* NA ANAMNESE, A SENHA SÓ SE PEDE QUANDO ELA VAI SER USADA (25/10/2026). «Esse espaço de
+   * colocar a senha do professor, no caso da anamnese, ele só tem que aparecer se eu tiver no
+   * modo edição… caso contrário tem que ter um comportamento de sessão.»
+   *
+   * A distinção é a mesma do plano: no portal (antes de começar) a senha é o que AUTORIZA o ato;
+   * dentro do formulário, ela só volta a ser pedida quando a escrita exige — editar um registo
+   * que já existe. Quem entrou pelo bilhete já a provou na lista, e pedi-la outra vez seria pedir
+   * duas vezes a mesma coisa. Sem bilhete, o campo fica: é o único direito de escrita que há. */
+  else if (FONTE === 'anamnese') {
+    mostra = !!EDITANDO || !CONDUCAO_ABERTA || !ATO_AUTORIZADO;
+  }
   campo.parentElement.style.display = mostra ? '' : 'none';
 }
 
@@ -6624,6 +6648,34 @@ async function copiarPromptParaAgente() {
 //   · plano     → `/plano-ensino/` (`?fonte=plano`);
 //   · PO        → `/plano-observacao/` (`?fonte=po`).
 const CAMINHO_DA_FONTE = { anamnese: '/anamnese/', plano: '/plano-ensino/', po: '/plano-observacao/' };
+/*
+ * A LISTA DA FONTE — a página que se estava a trabalhar (25/10/2026).
+ *
+ * «Aquela página que eu tô chamando de intermediária não tem que existir mais.» Ela continua no
+ * ficheiro porque é o sítio da retomada e de quem chega sem `?abrir=`; mas quem vem da lista volta
+ * para a LISTA, e não para ela. O caminho é o mesmo que o menu do sistema usa
+ * (`/area-do-professor/<fonte>/`), e o `fonte` distingue o plano do PO, que partilham a página.
+ */
+const LISTA_DA_FONTE = {
+  anamnese: '/area-do-professor/anamnese/',
+  plano: '/area-do-professor/plano-de-ensino/',
+  po: '/area-do-professor/plano-de-observacao/',
+};
+function veioDaLista() {
+  return new URLSearchParams(location.search).get('abrir') === '1'
+    || document.documentElement.getAttribute('data-abrir') === 'sim';
+}
+function voltarParaALista() {
+  const alvo = LISTA_DA_FONTE[FONTE] || '/area-do-professor/';
+  /* UM `history.back()` QUE NÃO ACONTECE DEIXA A PESSOA PRESA. Se a aba foi aberta de fresco (ou
+   * se o salto veio de um `target=_blank`), não há entrada anterior — e o `back()` não faz nada,
+   * sem avisar. O destino declarado fica como rede: dois segundos depois, quem ainda está nesta
+   * página vai para a lista. Se o `back()` funcionar, a página já mudou e o temporizador morre
+   * com ela. */
+  try { history.back(); } catch (e) { window.location.href = alvo; return; }
+  setTimeout(() => { window.location.href = alvo; }, 700);
+}
+
 function urlParaFonte(fonte) {
   const campos = fonte === 'anamnese'
     ? ['escola', 'professor', 'ciclo', 'aluna']
@@ -6903,6 +6955,18 @@ async function iniciar() {
         q.delete('ato');
         history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : ''));
       } catch (e) { /* sem histórico (modo local) — o bilhete já está gasto de qualquer forma */ }
+    } else {
+      /* O BILHETE NÃO AUTORIZOU: A PÁGINA PRECISA DE DIZER O QUE FAZER. O `data-abrir` escondeu a
+       * abertura antes de a página pintar (é o que evita o instante de página intermédia); se o
+       * bilhete falhar — gasto, expirado, ou de outro ato —, manter a abertura escondida deixaria
+       * o professor numa página em branco, sem campo de senha e sem saber porquê. Retira-se a
+       * marca, e a abertura volta: é ela que pede o que falta. */
+      try { document.documentElement.removeAttribute('data-abrir'); } catch (e) {}
+      try {
+        const q = new URLSearchParams(location.search);
+        q.delete('ato'); q.delete('abrir');
+        history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : ''));
+      } catch (e) {}
     }
   }
 
@@ -7026,6 +7090,14 @@ async function iniciar() {
     const alvo = new URLSearchParams(location.search).get('editar');
     if (alvo) await editarPlano(alvo);
   }
+  /* `?editar=<carimbo>` NA ANAMNESE TAMBÉM (25/10/2026). O botão «Editar» da listagem precisa de
+   * um atalho como o do plano — e não havia: a edição da anamnese só existia pelo botão da
+   * estante, dentro desta mesma página. É o mesmo gesto e o mesmo `editarAnamnese`; o que faltava
+   * era a porta de entrada. A senha aparece (a edição escreve), e é isso que se espera. */
+  if (FONTE === 'anamnese') {
+    const alvo = new URLSearchParams(location.search).get('editar');
+    if (alvo) await editarAnamnese(alvo);
+  }
 
   $('comecar').addEventListener('click', () => abrirFormulario(0));
 
@@ -7034,7 +7106,14 @@ async function iniciar() {
   // handler reabre a abertura. Sem a entrada de histórico, o voltar saltava a abertura
   // e ia para a página do ciclo; com ela, a abertura é a parada natural — e um voltar
   // DEPOIS dela vai para a página anterior do ciclo, como se espera.
-  window.addEventListener('popstate', () => voltarAoPortal());
+  /* O VOLTAR DO NAVEGADOR, quando se entrou pelo salto, é o voltar À LISTA — e não a uma
+   * abertura que ninguém viu. Quem chegou da lista não tem uma paragem intermédia no histórico: a
+   * entrada anterior é a lista, e o `back()` leva-a. Reabrir a abertura ali seria criar, no
+   * caminho de volta, exactamente a página que se retirou do caminho de ida. */
+  window.addEventListener('popstate', () => {
+    if (veioDaLista()) return;
+    voltarAoPortal();
+  });
 
   // O caminho por prosa: compõe o prompt com o contexto e copia para colar.
   if ($('usar-ia')) $('usar-ia').addEventListener('click', abrirIA);
@@ -7115,7 +7194,17 @@ async function iniciar() {
     // SAIR não leva a senha: ela autoriza um ATO, não uma sessão. Quem entrar depois neste
     // navegador digita a sua — e a edição não reabre com o direito de outro.
     esquecerSenha();
-    if (EM_AUTOABERTURA) window.location.href = urlParaFonte('po');
+    /* SAIR VOLTA À LISTA, e não à abertura (25/10/2026). «Se eu sair, ele tá voltando pra aquela
+     * página intermediária que não deveria existir mais. E tem que voltar direto pra página que a
+     * gente tá trabalhando.»
+     *
+     * Quem entra pelo salto (`abrir=1`) veio da lista: o `history.back()` devolve-o lá, e é o
+     * caminho certo. Mas uma aba aberta de fresco não tem para onde voltar — e aí o `back()`
+     * silencioso deixaria a pessoa onde está. Por isso há um destino declarado, usado quando o
+     * histórico não tem para onde ir: a lista da MESMA fonte, que é a página que se estava a
+     * trabalhar. */
+    if (veioDaLista()) voltarParaALista();
+    else if (EM_AUTOABERTURA) window.location.href = urlParaFonte('po');
     else history.back();
   });
 

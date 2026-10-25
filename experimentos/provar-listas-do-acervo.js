@@ -218,6 +218,10 @@ function pedacos(html) {
   console.log('\n4 · O selo diz o estado, e a caixa diz a turma — ou «sem turma»');
   {
     const p = pedacos(anamnese.html);
+    /* O TEXTO MANDA, A COR NÃO. «Nova» e «livre» dizem a mesma coisa a quem vai mexer — pode-se
+       editar —, e por isso partilham a cor do selo; o que as distingue é a palavra. O que se
+       prova é que o selo EXISTE: antes, a anamnese de uma aluna com turma não levava selo nenhum,
+       e a pesquisadora leu isso como «está livre» quando era «não há rótulo». */
     provar('a Aluna B, sem curadoria, leva o selo «nova»', /selo livre">nova</.test(p.cartoes[0]),
       p.cartoes[0].slice(0, 300));
     provar('…e a caixa diz «sem turma»', p.valores(p.cartoes[0])[0] === 'sem turma',
@@ -292,8 +296,15 @@ function pedacos(html) {
       provar(caminho + ': o contexto do ato vive num bloco que é uma `.caixa`', !!bloco, bloco.slice(0, 80));
       provar(caminho + ': …com o `summary` como botão de colapsar',
         /<summary class="bloco-cabeca">/.test(bloco), bloco.slice(0, 160));
-      provar(caminho + ': …e o título do bloco é «Contexto do ato»',
-        /<span class="bloco-titulo">Contexto do ato<\/span>/.test(bloco), bloco.slice(0, 200));
+      /* DOIS NOMES, E O QUE MUDA É O ESTADO (25/10/2026). Fechado, o nome é o da ACÇÃO — «Fazer
+         anamnese» —, porque «contexto do ato» é vocabulário de quem programa. Aberto, passa a
+         «Contexto do ato», que é o que faz sentido com os campos à vista. */
+      provar(caminho + ': fechado, a barra diz o nome da ACÇÃO («' + rotulo + '»)',
+        new RegExp('<span class="bloco-titulo bloco-nome-fechado">' + rotulo + '<\\/span>').test(bloco),
+        bloco.slice(0, 200));
+      provar(caminho + ': …e aberto passa a «Contexto do ato»',
+        /<span class="bloco-titulo bloco-nome-aberto">Contexto do ato<\/span>/.test(bloco),
+        bloco.slice(0, 260));
       /* O ÍCONE É A SETA, E NÃO O «?»: «nessa caixinha não tem o ponto de interrogação». A seta
          (▾, U+25BE) roda 180° quando o bloco está aberto, no CSS. */
       provar(caminho + ': o ícone é a SETA, e não o «?»',
@@ -329,7 +340,12 @@ function pedacos(html) {
 
     /* CADA LINHA TEM UM DESTINO. Antes eram zero acções em todas; agora nenhuma linha fica sem. */
     const anam = pedacos(anamnese.html);
-    const acoesDe = (c) => [...c.matchAll(/<a class="acao[^"]*" href="([^"]*)">([^<]*)<\/a>/g)]
+    /* A LEITURA TOLERA ATRIBUTOS A MAIS, e tem de tolerar: as acções passaram a levar um `title`
+       com o que o gesto faz — «editar» e «ajustar» são coisas diferentes, e a diferença não cabe
+       no rótulo. Um regex que exigisse `>` logo a seguir ao `href` deixaria de ver exactamente as
+       acções que têm explicação, e uma lista que parece sem botões é o defeito que já se pagou
+       uma vez. */
+    const acoesDe = (c) => [...c.matchAll(/<a class="acao[^"]*"[^>]*?href="([^"]*)"[^>]*>([^<]*)<\/a>/g)]
       .map((m) => [m[2], m[1]]);
     provar('nenhuma linha da anamnese fica sem acção',
       anam.cartoes.every((c) => acoesDe(c).length > 0), anam.cartoes.map(acoesDe));
