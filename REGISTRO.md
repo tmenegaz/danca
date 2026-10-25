@@ -24525,3 +24525,94 @@ Um contador descarta a resposta que já não é a última pedida.
 
 `provar-painel-do-ato` ganhou a secção 7 com os cinco casos (senha errada: desabilitado + o aviso +
 sem selo; senha certa: habilitado + aviso fora + selo dentro).
+
+## 25/10/2026 — O botão «Ações», o topo que se esconde e o salto ao formulário
+
+**Três pedidos da mesma leitura de tela, e um que ela destapou.**
+
+1. **O PO não tem senha.** «A senha no plano de observação não existe. Não sei da onde você tirou
+   isso.» Está escrito na porta desde 20/10/2026: «Na anamnese, sempre visível; no PO, nunca». Eu
+   tinha posto o campo nos três, e o PO ainda levava uma trava que exigia `SENHA === 'ok'` num painel
+   sem campo — ou seja, um botão bloqueado para sempre. O campo saiu, e o `temSenha` foi junto.
+
+2. **No telemóvel, um botão «Ações».** «A gente vai criar um botão que se chama ações… de forma
+   similar ao que a gente tem com as sessões.» Três coisas empilhadas — o contexto do ato, a ficha em
+   branco e o filtro — ocupavam mais de meia tela de 844px antes de se ver um registo. Passaram a
+   viver dentro de um `details` no telemóvel (`≤ 560px`); no computador o `summary` não se vê e o
+   script abre o `details`, para que o clique a mais não exista onde há espaço. A gramática é a do
+   menu da barra: `details`/`summary`, sem JavaScript a abrir e fechar.
+
+3. **O «voltar ao topo» sem scroll.** «Ele não pode aparecer no modo celular se eu não tiver o
+   scroll ativo… senão ele fica por cima de algumas coisas e não dá pra ler.» O `.topo` é
+   `position: fixed`, e numa página curta pousava em cima do último cartão. `atualizarTopo()` esconde-o
+   com o `hidden` — que é a única regra da folha com `!important`, e por isso ganha de qualquer peça.
+   Chamado no `load`, no `resize`, num `ResizeObserver` no `body` e **por quem filtra** (o filtro muda
+   a altura sem `resize`). Não é regra de telemóvel: uma janela curta no computador tem o mesmo
+   defeito, e a regra é uma só.
+
+**O QUE A LEITURA DESTAPOU, e que ninguém tinha pedido.** «Confirmar as três regras» mostrou que a
+regra do PO **não tinha porta nenhuma**: «o Plano de Observação observa uma aula que tem plano» vivia
+só na mensagem de uma lista vazia, e o painel abria o ato com o botão habilitado sobre um ato
+impossível. Agora o PO escolhe **o plano de ensino** entre os daquele professor (a estante recortada
+pelo servidor, `/api/planos?professor=`), e a **turma observada é leitura** — pedir as duas coisas
+seria pedir duas vezes a mesma, com duas respostas possíveis. Sem plano, o botão fica travado e o
+estado diz a regra por palavras.
+
+As outras duas ficaram confirmadas, e são do **servidor**, não da tela:
+- **anamnese** — `porta.alunasDaAnamnese` (a aluna curada só é entrevistada pelo seu professor; a nova,
+  por qualquer um). O painel usa o mesmo endpoint com o mesmo recorte (`?professor=`), e a prova mede
+  que ele **pede** o recorte — sem isso o servidor devolve a escola inteira, que é o que a Produção
+  precisa e o que a anamnese não pode ter;
+- **plano de ensino** — exige curadoria; o painel consulta `/api/bastidores/curadoria-professor` e
+  trava sem ela. A anamnese **não** consulta a curadoria: a regra dela é a aluna.
+
+**A PÁGINA INTERMÉDIA DEIXA DE SER PARAGEM.** «Quando clicar em continuar da onde parei ou quando
+clicar em fazer a anamnese ou o plano ou o PO, aí vai direto pro formulário.» A lista passou a mandar
+`abrir=1`, e a porta — que já tinha o gancho `autoAbrir` declarado e **nunca ligado** — entra no nó 1.
+O plano escolhido vai em `?plano=`, porque sem ele a porta escolhia «o primeiro da estante» e a
+escolha do professor perdia para uma suposição.
+
+**E o salto NÃO passa por cima da trava.** `abrirFormulario` não pergunta nada; é o botão que responde
+pelas três travas em `atualizarComecar`. Um atalho que saltasse o botão saltaria a senha, o contexto e
+a curadoria de uma vez. O salto consulta o botão: com depósito é o «continuar», sem ele é o «começar»,
+e com a trava fechada a porta **fica na abertura e diz o que falta**. Fica por decidir se a senha
+digitada na lista deve atravessar para a porta — hoje não atravessa, e por isso a anamnese ainda pede
+a senha outra vez (ver a nota de pendência no fim desta entrada).
+
+**As bancadas mentiram, e as três armadilhas ficam escritas nas provas:**
+
+- **A prova media a seta errada.** O menu «Ações» e o painel usam a mesma peça `.seta-do-ato`;
+  `querySelector('.seta-do-ato')` apanhava a do menu — escondida no computador — e a prova acusava de
+  «não desenhada» uma seta que estava lá, e media a rotação da outra. Passou a `.painel-ato .seta-do-ato`.
+- **A prova escondia o `summary`.** A guarda `closest('details:not([open])')` dizia «invisível» sobre o
+  único elemento que abre o `details` fechado — o próprio `summary`. É a mesma família do `<details>`
+  fechado que não tira a caixa ao conteúdo: a pergunta certa é «é visível para quem olha?».
+- **O stub não devolvia a `escola`.** `/api/bastidores/professores` responde `{ ok, escola, professores }`,
+  e o stub só mandava os professores. A porta dizia «falta escola», a trava fechava — e o salto direto,
+  que a respeita, **nunca** acontecia. O defeito era da bancada, e escondia exactamente o que a secção
+  queria medir.
+
+**Um defeito do produto que só a prova apanhou.** Com preenchimento interrompido o painel abria sozinho
+para não esconder a notícia — mas no telemóvel o painel vive **dentro** do menu «Ações», fechado. O
+aviso mais urgente da página ficava a um clique de distância, e um estado que só se vê depois de um
+clique não é um aviso. O menu passou a abrir com a memória.
+
+**Medido** (`provar-listas-do-acervo`, 79 provas; `provar-painel-do-ato`): a 1280 o botão «Ações» não
+existe e o contexto, a ficha e o filtro estão à vista; a 390 o botão é a única porta, e abri-lo mostra
+os três; o `.topo` fica escondido enquanto a página cabe na janela e **reaparece** quando o filtro
+devolve altura (1021 > 844) — e esconde outra vez quando o filtro esvazia a lista (844 = 844). O salto
+aterra no formulário com a primeira pergunta à vista, e não navega quando a senha falta.
+
+**Ficheiros.** `tools/templates/ciclo.css` e `tools/templates/nav.js` (**congelados** — motivo
+declarado no corpo das regras, esta entrada e commit próprio), `motor/nucleo/lista-html.js` (o
+agrupamento `details.acoes-da-lista`), `motor/servidor/listas-do-acervo.js` (a senha fora do PO, o
+plano observado, o menu que abre com a memória), `porta/index.html` (o `abrir=1` e o `?plano=`, na
+cópia dos dois pacotes), e as provas. As cópias da folha (`raiz/assets/`, dois pacotes) e da porta
+seguem o «Circuito» da checagem 4.
+
+**PENDENTE, e é decisão da pesquisadora.** Na **anamnese** a senha autoriza o ato e **não viaja no
+endereço** — a porta é explícita: «sair não leva a senha». Consequência: «Nova anamnese» na lista
+aterra na porta com o contexto já semeado e a senha por digitar, e o salto só acontece depois de ela
+conferir. É seguro e não mente, mas não é ainda «vai direto pro formulário». As saídas possíveis são
+guardar a senha validada em `sessionStorage` (a porta a reler e a revalidar no servidor) ou aceitar o
+clique a mais. Não se escolheu nenhuma.

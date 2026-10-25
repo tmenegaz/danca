@@ -430,9 +430,57 @@
     if (comPintura) pintar();
   }
 
+  /* ==========================================================================
+     O «VOLTAR AO TOPO» SÓ EXISTE QUANDO HÁ PARA ONDE VOLTAR (25/10/2026).
+     --------------------------------------------------------------------------
+     O pedido: «esse botão de voltar ao topo não pode aparecer no modo celular se
+     eu não tiver o scroll de rolagem ativo… senão ele fica por cima de algumas
+     coisas e não dá pra ler».
+
+     O problema era real e é de sobreposição: o `.topo` é `position: fixed` no canto
+     inferior direito, e numa página curta ele pousa EM CIMA do último cartão da
+     lista. Uma página de três anamneses não tem nada para rolar, e o botão tapava
+     a terceira.
+
+     A REGRA É UMA SÓ, e não depende da largura: sem rolagem possível, sem botão. Não
+     é um caso de telemóvel — uma janela curta no computador tem o mesmo defeito.
+
+     USA-SE O `hidden`, e não uma classe nova: `[hidden]` é a única regra da folha com
+     `!important` (`ciclo.css`), precisamente para ganhar de qualquer peça. Um estado
+     do sistema que precisa de vencer o desenho já tem o seu atributo.
+
+     A MARGEM DE 2px não é folga: `scrollHeight` e `innerHeight` são inteiros
+     arredondados de medidas fraccionárias, e sem ela um conteúdo que cabe por 0,4px
+     faria o botão piscar.
+     ========================================================================== */
+  function atualizarTopo() {
+    var botao = document.querySelector('.topo');
+    if (!botao) return;
+    var doc = document.documentElement;
+    var altura = Math.max(doc.scrollHeight, document.body ? document.body.scrollHeight : 0);
+    var temParaOnde = altura > window.innerHeight + 2;
+    /* Escrever o mesmo valor outra vez é a operação que a função `pintar` evita e
+       explica: guarda-se o último estado para não tocar no DOM em cada quadro. */
+    if (botao.hidden === !temParaOnde) return;
+    botao.hidden = !temParaOnde;
+  }
+  /* Exposto porque quem muda a altura da página NÃO é só o carregamento: o filtro da
+     lista esconde linhas, a paginação troca de página, e o painel do ato abre e fecha.
+     Uma cópia da regra em cada um desses sítios divergiria daqui. */
+  window.atualizarTopo = atualizarTopo;
+
   remedeirSeALarguraMudou(false);
   pintar();
+  atualizarTopo();
   window.addEventListener('scroll', aoRolar, { passive: true });
+  window.addEventListener('load', atualizarTopo);
+  window.addEventListener('resize', atualizarTopo);
+  /* A altura MUDA SEM ROLAGEM e sem `resize`: um filtro que esconde linhas, uma
+     página de lista que troca de conteúdo. O `ResizeObserver` no `body` vê as duas
+     — e é a única forma de o botão não ficar a tapar o que acabou de aparecer. */
+  if (typeof ResizeObserver === 'function' && document.body) {
+    try { new ResizeObserver(atualizarTopo).observe(document.body); } catch (e) {}
+  }
   window.addEventListener('resize', function () { remedeirSeALarguraMudou(true); });
   window.addEventListener('load', function () { remedeirSeALarguraMudou(true); });
   /* Página restaurada do cache do navegador: volta já rolada, com o estado de antes. */

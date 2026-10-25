@@ -1638,6 +1638,39 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 }
 .estado-do-ato[data-falta="sim"] { color: var(--alerta); }
 
+/* ============================================================================
+   O BOTÃO «AÇÕES» — O QUE O TELEMÓVEL ESCONDE PARA GANHAR TELA (25/10/2026)
+   ----------------------------------------------------------------------------
+   Três coisas empilhadas acima da lista — o contexto do ato, a ficha em branco e o
+   filtro — ocupavam mais de meia tela de 844px ANTES de se ver um registo. No
+   telemóvel passam a viver dentro de um botão que abre e fecha; no computador o
+   botão não existe e tudo fica à vista, como estava.
+
+   A ABERTURA É DO `details`, e não há JavaScript a abrir e fechar: é a mesma
+   gramática do menu da barra (`.topnav details.menu`). O que o script faz é abri-lo
+   no computador, onde o botão não se vê.
+   ========================================================================== */
+.acoes-da-lista { margin: 0 0 1rem; }
+.acoes-do-menu {
+  /* É um `summary`, e um `summary` traz o marcador nativo do navegador — que aqui
+     apareceria ao lado do texto e não é peça desta folha. */
+  display: none; list-style: none; cursor: pointer;
+  align-items: center; gap: .4rem;
+}
+.acoes-do-menu::-webkit-details-marker { display: none; }
+.acoes-do-menu:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+/* A SETA DO BOTÃO. É a mesma `.seta-do-ato` da caixinha, e aqui não fica no canto: é
+   uma seta de menu, ao lado do rótulo, e roda para cima quando o menu está aberto. */
+.acoes-do-menu .seta-do-ato { position: static; width: auto; height: auto; font-size: .8rem; }
+.acoes-da-lista[open] > .acoes-do-menu .seta-do-ato { transform: rotate(180deg); }
+.acoes-corpo > *:last-child { margin-bottom: 0; }
+.acoes-corpo .painel-ato { margin-bottom: .5rem; }
+
+/* NO TELEMÓVEL o botão aparece: é ele que manda. Fora dele, nada. */
+@media (max-width: 560px) {
+  .acoes-do-menu { display: inline-flex; }
+}
+
 /* «VER A FICHA EM BRANCO» FICA FORA DO PAINEL. É a única acção que não depende do contexto nem
    da senha — abre uma folha vazia e imprime-se —, e por isso está à vista em todos os estados,
    com o painel aberto ou fechado. */
