@@ -15,6 +15,19 @@
 # Estrutura por professor: o projeto tem professores/ com uma pasta por professor.
 # O HANDOFF lista cada um com os seus ciclos, POs e âncoras — o material de
 # observação é do professor (P-13), não do projeto.
+#
+# MUDANÇA DE 25/10/2026 — O HANDOFF PASSA A APONTAR PARA A FOTOGRAFIA (declarado).
+# Motivo: nasceu ao lado dele o ESTADO-ATUAL.md, a fotografia CURADA do estado (o que
+# funciona, o que não, o que está decidido, o que é hipótese), com etiquetas factuais
+# — CONFIRMADO / DECLARADO / DECIDIDO / HIPÓTESE / PENDENTE. Os dois respondem a
+# perguntas diferentes e o risco real era ficarem dois donos do mesmo assunto: sem a
+# fronteira escrita, uma sessão nova lê os dois, encontra divergência (o HANDOFF tem
+# a data de geração, a fotografia tem a data da curadoria) e não sabe em qual crer.
+# A divisão que fica valendo: ESTE arquivo extrai (commit, professores, ciclos,
+# âncoras, última entrada do REGISTRO); a FOTOGRAFIA julga. Por isso o cabeçalho
+# ganhou uma linha apontando para ela, logo abaixo do «Para: sessão nova».
+# O script continua a NÃO escrever análise (P-06) — o que ele acrescenta é uma
+# referência, não um juízo. Motivo registado no REGISTRO.md, entrada de 25/10/2026.
 # ============================================================================
 
 set -euo pipefail
@@ -70,6 +83,11 @@ variantes_de() {
   echo "Gerado em: \`$data_iso\`"
   echo "Commit atual: \`$commit_curto\` — $commit_msg"
   echo "Para: sessão nova (retomar o diálogo)"
+  echo
+  echo "**Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que"
+  echo "funciona, o que não, o que está decidido, o que é ainda hipótese — está em"
+  echo "\`ESTADO-ATUAL.md\`, a fotografia curada, com etiquetas factuais. Leia-o depois deste:"
+  echo "aqui está onde o repositório está; lá está o que se pode dizer dele."
   echo
   echo "## O que é este projeto"
   echo

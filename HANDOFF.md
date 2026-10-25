@@ -1,8 +1,13 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-25T11:22:27-0300`
-Commit atual: `6bdb06a` — fix(listas): a turma do PO vem do plano de ensino que ele observa
+Gerado em: `2026-10-25T11:55:41-0300`
+Commit atual: `7182307` — docs(analise): o mapa da aula, do plano e da observação — e as seis sobreposições medidas
 Para: sessão nova (retomar o diálogo)
+
+**Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
+funciona, o que não, o que está decidido, o que é ainda hipótese — está em
+`ESTADO-ATUAL.md`, a fotografia curada, com etiquetas factuais. Leia-o depois deste:
+aqui está onde o repositório está; lá está o que se pode dizer dele.
 
 ## O que é este projeto
 
@@ -73,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+7182307 docs(analise): o mapa da aula, do plano e da observação — e as seis sobreposições medidas
 6bdb06a fix(listas): a turma do PO vem do plano de ensino que ele observa
 06e7e6c feat(acervo): envelope/.indice.json
 f85b846 fix(acervo): a versão do resumo não chega — o que denuncia um resumo velho é a FORMA
@@ -92,7 +98,6 @@ b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar
 822efcd chore(entrega): gerar o pacote de cafe-no-bule/01/batata-bale-nivel-2-teste-2
 30d7a65 chore(estrutura): regerar os índices derivados
 45f9dad chore(estrutura): regerar os índices derivados
-b58d4d5 chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
