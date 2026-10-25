@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-25T11:55:41-0300`
-Commit atual: `7182307` — docs(analise): o mapa da aula, do plano e da observação — e as seis sobreposições medidas
+Gerado em: `2026-10-25T12:06:56-0300`
+Commit atual: `66e871b` — docs(analise): a leitura da pesquisadora — um erro meu, três decisões, duas perguntas ilegíveis
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,9 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+66e871b docs(analise): a leitura da pesquisadora — um erro meu, três decisões, duas perguntas ilegíveis
+7728389 docs(estado): a fotografia curada, as etiquetas factuais e a rotina de transferência
+607b96a chore(handoff): o HANDOFF passa a apontar para a fotografia do estado
 7182307 docs(analise): o mapa da aula, do plano e da observação — e as seis sobreposições medidas
 6bdb06a fix(listas): a turma do PO vem do plano de ensino que ele observa
 06e7e6c feat(acervo): envelope/.indice.json
@@ -95,9 +98,6 @@ b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar
 57d10e2 chore(template): o estado anterior do plano da aula 01, gerado com o pacote
 1344402 fix(template): a folha do pacote novo, e a prova que contava duas turmas à mão
 95e4ecf fix(estrutura): o caminho diz de onde se veio, o «true» sai do endereço, e a barra fixa o Bastidores
-822efcd chore(entrega): gerar o pacote de cafe-no-bule/01/batata-bale-nivel-2-teste-2
-30d7a65 chore(estrutura): regerar os índices derivados
-45f9dad chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -193,48 +193,57 @@ b154360 fix(template): o Bastidores na folha do celular, e o ☰ deixa de faltar
 
 ## Última entrada do REGISTRO
 
-## 25/10/2026 — A aula, o plano e a observação: o mapa, e o que está misturado
+## 25/10/2026 — A análise da aula lida pela pesquisadora: um erro meu, três decisões, duas perguntas ilegíveis
 
-**Análise, não implementação.** Nenhum ficheiro de produto foi alterado. O documento é
-[PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md), e nasce de três perguntas da
-pesquisadora: «o que eu lanço não é claro o suficiente», «o PO e o plano têm assuntos misturados» e
-«não tenho um ambiente onde não seja obrigado a preencher de novo todo o PO para fazer a aula 2».
+**O que aconteceu.** O [PLANO-AULA-E-OBSERVACAO.md](PLANO-AULA-E-OBSERVACAO.md) foi lido e respondido.
+O resultado não foi «concordo» nem «discordo»: foi uma divisão em três, e a divisão é o achado.
 
-**As seis sobreposições, medidas.** O «Contexto» do plano tem 12 itens e **8 estão também no PO** —
-dois perguntados no Bloco 1 e cinco derivados no `field`/`context`. O schema do PO já diz «não
-duplica o contexto dele — lê-o na geração», mas o **documento** continua a escrever as três secções:
-a duplicação não está no dado, está na saída. Os outros cinco: «condições de contorno» com dois
-sentidos (declaradas no PO, medidas na aula), a sequência do ciclo impressa como se fosse a da aula
-(as 14 linhas), a distribuição de volume numa tabela de uma linha, as condições preliminares
-repetidas, e o guia de observação com quatro `[Preencher]` **onde o PO tem os itens**.
+**1. Um erro de diagnóstico meu, corrigido.** A §2.1 listava como defeito que «8 dos 12 itens do
+Contexto do plano estão também no PO». **Não é defeito — é desenho.** A pesquisadora: «É proposital
+porque o professor pode elaborar o plano de ensino num momento e o plano de observação em outro. Mas
+aí ele precisa dentro do documento ter os campos ali que já estão preenchidos… pra ele saber qual é a
+turma, qual é a escola.» E os campos são **só de leitura**, porque vêm da Produção.
 
-**A aula 2 não existe, e o que acontece quando se lança.** O calendário dá 26 lugares; **3 têm
-marco**, 1 tem plano e 1 tem folha. As outras 23 não têm nada — e a lista mostra 26 linhas com
-«Lançar», todas para o mesmo formulário. Medido: sem `captura-aula-02.json`, o formulário cai no
-`captura-01.json`, e o campo `folha` desse ficheiro diz `…-captura-aula-01.md`. **A aula 02 é lançada
-com as colunas da 01.** O escritor do ciclo conhece `aula-01` e mais nenhuma.
+A distinção que eu não fiz, e que passa a valer: **duplicação de dado** é um segundo lugar onde o
+valor pode divergir — isso é defeito. **Duplicação de saída** é uma conveniência de leitura que se
+regenera — isso é desenho. O que existia aqui era a segunda, e eu diagnostiquei a primeira. A §2.1
+foi emendada e as sobreposições passam de seis a **cinco** (§2.2 a §2.6).
 
-**O que a folha impressa pede e o formulário não grava:** início, fim, estrutura executada, o que foi
-abandonado e os materiais. Quem lança no papel regista mais do que quem lança no ecrã — e é o ecrã
-que guarda.
+**2. Três decisões.** O plano passa a exigir **um marco por aula** (a aula nasce com marco) · a
+sequência de exercícios é **herdada, editável, e acrescentável** · a aula N compara com o **registo da
+aula anterior** e tem de estar **alinhada ao PO**.
 
-**A linha de base não desliza.** O `ARQUITETURA-AULA.md` §2 declara que a linha de corte da aula N é
-o registo da última aula dada; o bloco `linha_de_base` do formulário lê a fotografia inicial do PO. A
-aula 26 compararia as alunas com Fevereiro.
+**3. Duas perguntas ilegíveis, e a lição.** As perguntas 4 («os três `[Preencher]` passam a
+derivados?») e 6 («`materiais` entram no formulário ou saem da folha?») **não se entenderam** — e a 5
+só se entendeu em parte, por uma frase com referências não resolvidas («a regra escrita diz a
+primeira, o código faz a segunda»). A pergunta 2 também falhou por vocabulário: eu usava «fonte» para
+dizer *ficheiro-fonte da âncora*, e leu-se *referência bibliográfica*.
 
-**A regra que separa, em três perguntas:** *muda de aula para aula?* (sim → aula, não → plano) ·
-*é sobre a aluna?* (sim → PO) · *é o que se pretendia ou o que aconteceu?* (aconteceu → lançamento).
-Aplicada, resolve as seis sobreposições sem inventar um campo. E **a aula passa a ser filha do plano
-do ciclo**, não do PO: herda turma, professor, blocos, volume, rubrica e os itens de observação, e o
-que é dela é o **delta** — o marco do dia, a seleção de exercícios, a música, o que quer ver hoje e o
-próximo passo.
+**O padrão, e é o que importa para o futuro:** as perguntas que falharam não falharam por serem
+difíceis — falharam por usarem **vocabulário interno como se fosse evidente**. `marco` (é o objetivo
+específico da aula, não a sala) · `fonte` (o `.md` da âncora, não o livro) · `derivado` (o sistema
+preenche sem perguntar) · `materiais` (as caixas ☐ fotos ☐ vídeo ☐ áudio da folha). Quatro termos
+com um sentido preciso dentro do repositório e um sentido diferente fora dele. Uma pergunta escrita
+assim não é uma pergunta: é um teste de vocabulário, e quem responde perde.
 
-**A sala não é da aula, é do evento.** O `PLANO-TABELA-DE-ATIVIDADES.md` §3.1 cria os espaços e §3.3
-a relação turma ↔ espaço; a aula ganha uma **resolução** em três passos (evento → programação da
-turma → «não declarada»), e **zero campos novos**.
+Por isso as emendas da §9 **definem o termo antes de repetir a pergunta**. E por isso a
+`TRANSFERENCIA-IA.md` — que sai deste mesmo acervo para um assistente que não tem o repositório para
+conferir — passa a levar um glossário. Sem ele, a transferência exporta o mesmo defeito.
 
-**Seis peças, na ordem**, com o custo de cada uma; **seis decisões** que dependem da pesquisadora —
-a primeira é o que fazer com as 23 aulas que não têm marco.
+**4. Uma pergunta nova, que a resposta 5 abriu.** «O professor é lembrado de qual é o PO, e ele marca
+que concorda, que entendeu, que está alinhado com o PO, e aí sim ele elabora a aula N. Eu acho que
+para cada aula ter isso como um protocolo.» Virou a **peça 7** do plano — um passo de confirmação
+antes de a aula ser editável —, com três perguntas próprias ainda abertas: a frequência (26
+confirmações num ciclo?), o que acontece sem confirmação, e se o registo entra na âncora.
+
+**Uma confirmação e uma ampliação.** A regra «a linha de corte da aula N é o registo da última aula
+dada» está **certa** — o que não a segue é o código, e isso é a peça 5. E a sala: «é evento, não é
+opcional, mas é flexível, pode mudar, pode remanejar, porque é a fotografia daquele momento» — pode ser
+remarcada **até ao prazo** daquela aula.
+
+**Ficheiros.** `PLANO-AULA-E-OBSERVACAO.md` (nota de correção no topo, §2.1 emendada, tabela dos cinco
+em linguagem simples, §3.3 reescrita, §5.4 com as três decisões, peça 7 nova, §9 substituída pelas
+decisões e pelo que ficou aberto) e `ESTADO-ATUAL.md` (§4, §8, §9, §11 e §12 atualizados).
 
 ## O que está pendente
 
