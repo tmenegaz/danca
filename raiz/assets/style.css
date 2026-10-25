@@ -1737,6 +1737,11 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   font-size: .82rem; color: var(--texto-suave);
 }
 .bloco-lista[open] .bloco-resumo { display: inline; }
+/* A EXCEPÇÃO: COM PREENCHIMENTO INTERROMPIDO, O RESUMO APARECE MESMO FECHADO (26/10/2026).
+   «há um preenchimento interrompido — 7 de 53 respondidas» é a única frase da barra que precisa
+   de ser lida sem um clique: é ela que diz que o trabalho de antes está à espera. O painel não se
+   abre sozinho por causa disso — a barra diz, e quem quer continuar abre. */
+.bloco-lista[data-pendente="sim"] > .bloco-cabeca .bloco-resumo { display: inline; color: var(--alerta); }
 .bloco-cabeca .seta-do-ato {
   position: static; width: auto; height: auto; margin-left: auto;
   font-size: .8rem; transition: transform .16s ease;
