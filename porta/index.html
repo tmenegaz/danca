@@ -983,10 +983,10 @@ function buscarJSON(url) {
   return promessa;
 }
 
-// Todas as fontes (anamnese, plano, PO) abrem pelo PORTAL e empilham histórico:
-// «Sair» volta à abertura da fonte atual. A flag fica por compatibilidade do
-// fluxo antigo em que o plano saltava direto para o formulário.
-let EM_AUTOABERTURA = false;
+/* A «AUTOABERTURA» SAIU COM O DESVIO QUE A USAVA (26/10/2026). Ela marcava o formulário aberto
+ * sem histórico — o caso do plano, que saltava direto —, e era lida só pelo «Sair», num ramo que
+ * levava ao PO. O «Sair» passou a ter um destino só (a lista da fonte), e a flag ficou a ser
+ * escrita e nunca lida: estado morto. */
 
 // ------------------------------------------------- a memória do navegador
 
@@ -2194,9 +2194,8 @@ function restaurar(guardado) {
  * desempilhar essa mesma entrada com `history.back()`.
  */
 function abrirFormulario(indice, empilhar) {
-  // «Começar» marca o portal no histórico, para o «Sair» e o voltar do navegador
-  // devolverem à abertura sem saltar a página.
-  EM_AUTOABERTURA = (empilhar === false);
+  // «Começar» marca o portal no histórico, para o voltar do navegador devolver
+  // à lista sem saltar a página.
   if (empilhar !== false) history.pushState({ portal: true }, '');
   { const ab = document.getElementById('abertura'); if (ab) ab.classList.add('oculto'); }
   const retomada = document.getElementById('retomada');
@@ -2230,7 +2229,6 @@ function abrirFormulario(indice, empilhar) {
  * o «Sair» — e renomear tudo o que o usa não mudaria o que acontece. O que mudou é o destino.
  */
 function voltarAoPortal() {
-  EM_AUTOABERTURA = false;
   IA_ATIVA = false;
   pararVoz();
   voltarParaALista();
@@ -3410,6 +3408,11 @@ async function renderTurmaDoCabecalho() {
     alvo.innerHTML = selectDaTurma(no);
     const sel = alvo.querySelector('#ctx-turma');
     if (sel) {
+      /* O CAMPO NOVO NASCE COM O ESTADO QUE O ANTIGO TINHA (26/10/2026). `travarCabecalho`
+       * desabilita os controles que EXISTEM no momento em que corre; um select redesenhado
+       * depois disso nascia destravado, e a turma do ato — que não se muda no meio do
+       * preenchimento — voltava a ser editável por acidente. */
+      sel.disabled = CABECALHO_TRAVADO;
       sel.addEventListener('change', () => {
         if (sel.value) RESPOSTAS.set(no.id, sel.value);
         else RESPOSTAS.delete(no.id);
@@ -6083,6 +6086,14 @@ function carregarPlanoNaConducao(envelope) {
   pintarRoteiro();
   salvar();
   abrirFormulario(0);
+  /* A TURMA DO CABEÇALHO REDESENHA-SE DEPOIS DO ENVELOPE (26/10/2026).
+   *
+   * O select da turma é desenhado ANTES de o registo ser lido — com o que houver na barra e nas
+   * sugestões da curadoria. Ao ajustar um plano, o registo diz outra turma, e o campo ficava a
+   * mostrar a primeira turma livre: «ele tá em escolher e é um campo bloqueado», que é como a
+   * pesquisadora viu um plano de Balé Nível 2 a dizer Balé Nível 1. Redesenhar aqui põe o valor
+   * do registo no campo — e é o mesmo caminho para editar e para derivar. */
+  if (FONTE !== 'anamnese') renderTurmaDoCabecalho();
 }
 
 async function editarPlano(id) {
@@ -6137,6 +6148,31 @@ async function derivarPlano(id) {
  * opcional no schema, e o `prompt()` do sistema é a janela que o professor já pediu para não
  * ver. Fica nulo, e o elo (`ajuste_de`) declara a origem mesmo assim.
  */
+/* O AJUSTE POR ENDEREÇO — um elo novo a partir de um registo que já existe.
+ *
+ * A REGRA É DO SERVIDOR e não muda: o registo nunca é reescrito, e o elo novo aponta-o por
+ * `ajuste_de`. O que muda aqui é a PORTA DE ENTRADA — até 26/10/2026 o «Ajustar» da lista
+ * abria a condução vazia, e o professor tinha de reproduzir de memória o que ia ajustar.
+ *
+ * Os três carregamentos fazem o mesmo, e por isso há uma função só: copiar as respostas e o
+ * contexto do envelope para a condução, e marcar o gesto. `EDITANDO` fica nulo de propósito —
+ * é ele que pede ao servidor para reescrever o mesmo carimbo, e é isso que não pode acontecer.
+ */
+async function ajustarRegisto(id) {
+  try {
+    const r = await fetch('api/envelope/' + encodeURIComponent(id));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const envelope = await r.json();
+    EDITANDO = null;
+    DERIVANDO = id;
+    MOTIVO_DERIVACAO = null;
+    carregarPlanoNaConducao(envelope);
+    ajustarSenhaDoPlano();   // ajustar escreve: a senha decide a gravação
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
 async function editarPO(id) {
   try {
     const r = await fetch('api/envelope/' + encodeURIComponent(id));
@@ -6696,6 +6732,9 @@ async function copiarPromptParaAgente() {
 //   · anamnese  → `/anamnese/`;
 //   · plano     → `/plano-ensino/` (`?fonte=plano`);
 //   · PO        → `/plano-observacao/` (`?fonte=po`).
+/* `urlParaFonte` SAIU (26/10/2026). O unico chamador era o ramo do «Sair» que levava ao PO —
+ * e esse ramo deixou de existir: sair vai a lista da propria fonte. A tabela fica, porque o
+ * atalho «criar o PO» ainda compoe o endereco a partir dela. */
 const CAMINHO_DA_FONTE = { anamnese: '/anamnese/', plano: '/plano-ensino/', po: '/plano-observacao/' };
 /*
  * A LISTA DA FONTE — a página que se estava a trabalhar (25/10/2026).
@@ -6710,6 +6749,86 @@ const LISTA_DA_FONTE = {
   plano: '/area-do-professor/plano-de-ensino/',
   po: '/area-do-professor/plano-de-observacao/',
 };
+
+/*
+ * O CAMINHO NA BARRA — «Área do Professor · Anamnese do aluno · Ajustar a anamnese».
+ *
+ * O DEFEITO (26/10/2026, medido na tela): «quando eu clico em editar, eu não tenho mais nada
+ * escrito em cima ali, do lado da logomarca, dizendo onde é que eu tô». Nas páginas de lista o
+ * caminho vem do `<h1>`, e a porta NÃO TEM `<h1>` — o cabeçalho da página saiu quando a página
+ * intermediária foi apagada. O que sobrou foi o vão: a barra dizia «Sistema Lastro» e mais nada,
+ * e a única forma de saber o que se estava a fazer era lembrar-se do botão que se tinha clicado.
+ *
+ * O CAMINHO DA PORTA NÃO PODE VIR DO SERVIDOR, e a razão é de facto: ele depende de o registo
+ * estar a ser criado, editado ou ajustado, e isso só se sabe AQUI — é o `?editar=`/`?ajustar=`,
+ * o bilhete, o depósito. Por isso é a página que o escreve, na mesma peça (`.doc-atual`) e com
+ * os mesmos degraus que a barra do sistema já usa: o grupo, a lista (o lastro, clicável) e o
+ * que se está a fazer.
+ *
+ * O ÚLTIMO DEGRAU DIZ O QUE SE FAZ, e não o nome do documento: «Fazer anamnese», «Editar a
+ * anamnese», «Ajustar a anamnese». Era o pedido, e é o que a barra tem de responder quando
+ * alguém levanta os olhos do formulário.
+ */
+const CAMINHO_NA_BARRA = {
+  anamnese: { lista: 'Anamnese do aluno', ato: 'a anamnese', criar: 'Fazer anamnese' },
+  plano: { lista: 'Plano de ensino', ato: 'o plano de ensino', criar: 'Fazer plano de ensino' },
+  po: { lista: 'Plano de Observação', ato: 'o Plano de Observação', criar: 'Fazer Plano de Observação' },
+};
+
+/** O que se está a fazer, em três palavras — o último degrau do caminho. */
+function oQueEstouAFazer() {
+  const c = CAMINHO_NA_BARRA[FONTE];
+  if (!c) return '';
+  /* AJUSTAR VENCE EDITAR, e a ordem importa: quem deriva um plano já vinculado não está a
+   * reescrevê-lo (o servidor recusaria), está a acrescentar um elo. O `DERIVANDO` é que o diz. */
+  if (DERIVANDO) return 'Ajustar ' + c.ato;
+  if (EDITANDO) return 'Editar ' + c.ato;
+  return c.criar;
+}
+
+/** Escreve o caminho na barra. Idempotente: reescreve o mesmo `<span>` se ele já existir. */
+function escreverOCaminhoDaBarra() {
+  const barra = document.querySelector('.topnav');
+  const marca = barra && barra.querySelector('.marca');
+  if (!barra || !marca) return;
+  let alvo = barra.querySelector('.doc-atual');
+  if (!alvo) {
+    alvo = document.createElement('span');
+    alvo.className = 'doc-atual';
+    marca.parentNode.insertBefore(alvo, marca.nextSibling);
+  }
+  const c = CAMINHO_NA_BARRA[FONTE];
+  if (!c) return;
+  while (alvo.firstChild) alvo.removeChild(alvo.firstChild);
+  /* NO TELEMONE FICA SÓ O QUE SE ESTÁ A FAZER. Os três degraus dão 441px, e a barra do telefone
+   * tem menos: medido a 390 e a 320, o caminho era cortado com reticências — e o que se perdia
+   * era justamente o fim da frase, o verbo. O grupo («Área do Professor») e a lista são caminho
+   * de volta, e no telefone a folha do ☰ já é esse caminho; o verbo não tem substituto. */
+  const largo = !window.matchMedia || window.matchMedia('(min-width: 768px)').matches;
+  if (largo) {
+    const grupo = document.createElement('small');
+    grupo.textContent = 'Área do Professor';
+    const volta = document.createElement('a');
+    volta.href = LISTA_DA_FONTE[FONTE] || '/area-do-professor/';
+    volta.textContent = c.lista;
+    alvo.appendChild(grupo);
+    alvo.appendChild(volta);
+  }
+  const agora = document.createElement('b');
+  agora.textContent = oQueEstouAFazer();
+  alvo.appendChild(agora);
+}
+
+/* O CAMINHO SEGUE A LARGURA DA JANELA (26/10/2026). Girar o telefone, ou encolher a janela do
+ * computador, muda quantos degraus cabem — e o caminho é reescrito. Registado uma vez: o
+ * `listener` do `matchMedia` só corre quando se cruza o corte, e não a cada pixel de arrasto. */
+(function seguirALarguraDoCaminho() {
+  if (!window.matchMedia) return;
+  const corte = window.matchMedia('(min-width: 768px)');
+  const aoMudar = () => { try { escreverOCaminhoDaBarra(); } catch (erro) { /* a barra fica */ } };
+  if (corte.addEventListener) corte.addEventListener('change', aoMudar);
+  else if (corte.addListener) corte.addListener(aoMudar);
+})();
 function veioDaLista() {
   return new URLSearchParams(location.search).get('abrir') === '1'
     || document.documentElement.getAttribute('data-abrir') === 'sim';
@@ -6728,20 +6847,6 @@ function voltarParaALista() {
    * o voltar do navegador a partir da lista iria parar a uma página que imediatamente reenvia
    * para a lista, e o botão pareceria avariado. */
   window.location.replace(alvo);
-}
-
-function urlParaFonte(fonte) {
-  const campos = fonte === 'anamnese'
-    ? ['escola', 'professor', 'ciclo', 'aluna']
-    : ['escola', 'professor', 'ciclo'];
-  const ctx = {};
-  for (const campo of campos) {
-    const v = (($('ctx-' + campo) || {}).value || '').trim();
-    if (v) ctx[campo] = v;
-  }
-  // Na anamnese o caminho já diz a fonte; no PO/plano o `fonte` distingue os dois.
-  if (fonte !== 'anamnese') ctx.fonte = fonte;
-  return (CAMINHO_DA_FONTE[fonte] || '/plano-observacao/') + '?' + new URLSearchParams(ctx).toString();
 }
 
 /*
@@ -7146,6 +7251,23 @@ async function iniciar() {
     if (alvo) await editarAnamnese(alvo);
   }
 
+  /* O ATALHO DE AJUSTE — `?ajustar=<carimbo>` (26/10/2026).
+   *
+   * «AJUSTAR» É ACRESCENTAR UM ELO, e não abrir um formulário em branco. O botão da lista
+   * levava à porta só com o contexto: quem clicava via um ato novo, e não o registo que tinha
+   * escolhido ajustar — nem a turma dele, nem as respostas. O endereço passou a levar o carimbo,
+   * e aqui ele é carregado como se carrega uma derivação: o envelope inteiro para a condução, e
+   * `DERIVANDO` a marcar o `ajuste_de` do elo novo.
+   *
+   * VALE PARA AS TRÊS FONTES. Na anamnese o servidor recusa a escrita em sítio quando ela está
+   * vinculada — o elo novo é o único gesto possível; no plano e no PO é o mesmo mecanismo que a
+   * estante já usava (`derivarPlano`/`derivarPO`), sem a janelinha do motivo.
+   */
+  {
+    const alvo = new URLSearchParams(location.search).get('ajustar');
+    if (alvo) await ajustarRegisto(alvo);
+  }
+
   /* A TRAVA, AGORA DEPOIS DO ATALHO DE EDIÇÃO (26/10/2026).
    *
    * Estava ANTES, e por isso o «Editar» da lista voltava imediatamente: o link traz
@@ -7161,6 +7283,10 @@ async function iniciar() {
     voltarParaALista();
     return;
   }
+  /* O CAMINHO DEPOIS DA TRAVA, e não antes: quem é devolvido à lista não chega a ver a barra
+   * desta página. Aqui o modo já está decidido (o `?editar=`/`?ajustar=` correu), e é agora que
+   * ele pode ser dito. */
+  escreverOCaminhoDaBarra();
   if (!EDITANDO && !DERIVANDO) abrirFormulario(guardado ? INDICE : 0, false);
 
   // O voltar do navegador, dentro da condução, devolve ao PORTAL. O «Sair» usa o MESMO
@@ -7270,9 +7396,19 @@ async function iniciar() {
      * silencioso deixaria a pessoa onde está. Por isso há um destino declarado, usado quando o
      * histórico não tem para onde ir: a lista da MESMA fonte, que é a página que se estava a
      * trabalhar. */
-    if (veioDaLista()) voltarParaALista();
-    else if (EM_AUTOABERTURA) window.location.href = urlParaFonte('po');
-    else history.back();
+    /* SAIR VAI À LISTA DA PRÓPRIA FONTE, SEMPRE (26/10/2026).
+     *
+     * Havia aqui dois desvios, e os dois estavam errados pelo mesmo motivo: a lista é o único
+     * «portal» que restou. O `urlParaFonte('po')` é fóssil da época em que o PO era a casa do
+     * plano — sair do plano de ensino ou da anamnese caía no PLANO DE OBSERVAÇÃO, que é outro
+     * ato e, sem contexto, devolvia à lista do PO. Era isto que a pesquisadora via como «ele vai
+     * pra uma página e volta», e como «no plano de observação ele também não sai» (do PO para o
+     * PO: uma recarga que não sai do sítio).
+     *
+     * O `history.back()` também saiu: numa aba aberta de fresco não há para onde voltar, e o
+     * «Sair» ficava onde estava. O destino é declarado — `voltarParaALista` já o faz, e com
+     * `replace`, para o voltar do navegador não cair outra vez no formulário. */
+    voltarParaALista();
   });
 
   $('roteiro').addEventListener('click', (evento) => {

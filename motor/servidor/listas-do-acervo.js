@@ -147,10 +147,15 @@ function acaoDaPagina(chave) {
 /**
  * As acções de UMA linha. O que se promete é o que a porta cumpre:
  *   · plano de ensino ainda livre (`solta`) — a edição abre no registo;
- *   · plano de ensino já vinculado — o servidor recusa a escrita, e o atalho de edição abriria
- *     uma tela que avisa em vez de editar. Leva-se ao formulário, com o contexto posto;
- *   · anamnese e PO — não há atalho por endereço para o registo, e um botão «Editar» que não
- *     edita é pior do que nenhum. Leva-se ao formulário com o contexto e o sujeito.
+ *   · plano de ensino já vinculado, PO, e anamnese vinculada — o registo JÁ EXISTE e o passado
+ *     não se reescreve: o gesto é ACRESCENTAR UM ELO (`ajuste_de`), e é a isso que o botão diz
+ *     «Ajustar»;
+ *   · anamnese solta — edita-se em sítio e apaga-se.
+ *
+ * «AJUSTAR», E NÃO «ABRIR NO FORMULÁRIO» (26/10/2026). O rótulo antigo dizia o mecanismo (a
+ * página que abre) e não o que acontece ao registo; pior, levava à porta sem nada do registo
+ * dentro — a pessoa chegava a um formulário em branco com o contexto, e não ao registo que
+ * tinha acabado de escolher. Passou a levar o CARIMBO (`ajustar=<id>`), e a porta carrega-o.
  */
 function acoesDaLinha(chave, registo, estado) {
   const f = FAMILIAS[chave];
@@ -179,10 +184,12 @@ function acoesDaLinha(chave, registo, estado) {
    * aqui faria a tela prometer uma coisa que o servidor não conhece. */
   if (chave === 'anamnese') {
     if (estado && estado.vinculada) {
-      /* sem atalho por endereço para «ajustar»: o elo novo nasce do registo, e o registo abre-se
-       * pelo formulário com o contexto. O botão diz o que vai acontecer. */
-      return [['Ajustar', f.porta + consulta({ fonte: f.fonte, professor: registo.professor,
-        ciclo: registo.ciclo, aluna: registo.aluna }), 'secundario',
+      /* O CARIMBO VAI NO ENDEREÇO (26/10/2026). Sem ele a porta abria um formulário vazio com o
+       * contexto: quem clicava «Ajustar» não via o registo que ia ajustar, e a barra não tinha
+       * como dizer o que se estava a fazer. Com `ajustar=<id>`, a porta carrega o envelope e
+       * marca o gesto (`DERIVANDO`), que é o `ajuste_de` do elo novo. */
+      return [['Ajustar', f.porta + consulta({ fonte: f.fonte, ajustar: registo.id,
+        professor: registo.professor, ciclo: registo.ciclo, aluna: registo.aluna }), 'secundario',
         'acrescenta um elo novo; o registo anterior permanece']];
     }
     return [
@@ -191,13 +198,26 @@ function acoesDaLinha(chave, registo, estado) {
         'a anamnese solta pode ser apagada; a vinculada, não'],
     ];
   }
+  /* O PLANO VINCULADO E O PO — «ajustar», com o carimbo.
+   *
+   * O PO leva também o `plano` que observa: é dele que sai a TURMA OBSERVADA que o cabeçalho
+   * mostra. Sem esse carimbo a leitura da turma ficava em «—», e a pessoa via um plano de
+   * observação sem saber de que turma era.
+   *
+   * O plano de ensino leva o próprio carimbo; a turma vem do envelope, que a porta carrega
+   * inteiro — e é isso que faz o campo chegar preenchido com a turma que se vai ajustar. */
+  const doPlano = chave === 'plano-de-observacao' && Array.isArray(registo.plano) && registo.plano.length
+    ? registo.plano[0] : '';
   const contexto = consulta({
     fonte: f.fonte,
+    ajustar: registo.id,
     professor: registo.professor,
     ciclo: registo.ciclo,
+    plano: doPlano,
     aluna: chave === 'anamnese' ? registo.aluna : '',
   });
-  return [['Abrir no formulário', f.porta + contexto, 'secundario']];
+  return [['Ajustar', f.porta + contexto, 'secundario',
+    'abre o registo para acrescentar um elo — o anterior permanece']];
 }
 
 
@@ -938,7 +958,7 @@ function eschave(texto) {
  *   · plano de ensino — a TURMA está no próprio registo (`turmaDoEnvelope`);
  *   · PO — a turma vem do plano de ensino que ele observa.
  */
-function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano) {
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerados) {
   return registos.map((r) => {
     const estado = estados[r.id] || {};
     const quem = nomeDoProfessor(r);
@@ -994,12 +1014,33 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano) {
       ? ((r.plano || []).map((id) => (turmaDoPlano || new Map()).get(id)).filter(Boolean)[0] || '')
       : '';
     const turma = r.turma || doPlano || '';
+    /* O PO QUE JÁ GEROU O CICLO DIZ-SE (26/10/2026). «Eu nao tenho aqui uma etiqueta dizendo que
+     * gerou o ciclo, que gerou os documentos... e dizer qual foi o ciclo que gerou. Eu acho que
+     * essa e uma informacao preciosa pro professor.»
+     *
+     * O REGISTO DA GERACAO JA EXISTE — e o que a tela do PO consulta enquanto o GitHub trabalha
+     * (geracao.js, chave por escola e turma). Ele nunca chegou a listagem, e por isso a linha do
+     * PO era a unica das tres sem etiqueta nenhuma: o plano de ensino diz «vinculada», a anamnese
+     * diz «livre», e o PO — o documento que fecha o ciclo — nao dizia nada.
+     *
+     * O QUE SE LE E O QUE ESTA GRAVADO: o ciclo, quantos documentos derivaram e quando. Nao e
+     * promessa nem deducao: sem registo, nao ha selo. */
+    const gerado = (familia === 'plano-de-observacao' && gerados) ? gerados.get(r.id) : null;
+    const fatos = gerado
+      ? [
+        'ciclo ' + (gerado.ciclo || r.ciclo || '—'),
+        (gerado.documentos ? gerado.documentos.length : 0) + ' documento(s) gerados',
+        gerado.em ? 'em ' + dia(gerado.em) : '',
+      ].filter(Boolean)
+      : [];
     return {
       nome: (familia === 'plano-de-ensino' ? 'Plano de ensino — ' : 'Plano de Observação — ')
         + (turma || 'turma não declarada'),
-      selo: estado.estado || '',
+      selo: estado.estado || (gerado ? 'gerado' : ''),
       seloClasse: estado.estado === 'vinculada' ? 'vinculada'
-        : estado.estado === 'legado' ? 'discreto' : 'livre',
+        : estado.estado === 'legado' ? 'discreto'
+          : gerado ? 'vigente' : 'livre',
+      fatos: fatos,
       turma: turma,
       professor: quem,
       contexto: familia === 'plano-de-ensino'
@@ -1011,7 +1052,10 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano) {
           painel: listaDePares([
             ['Turma', turma || '—'], ['Ciclo', r.ciclo || '—'],
             ...(familia === 'plano-de-observacao'
-              ? [['Sujeitos', (r.sujeitos || []).join(', ') || 'a turma inteira']] : [])]) },
+              ? [['Sujeitos', (r.sujeitos || []).join(', ') || 'a turma inteira']] : []),
+            ...(gerado ? [['Ciclo gerado', String(gerado.ciclo || r.ciclo || '—')
+              + (gerado.documentos && gerado.documentos.length
+                ? ' · ' + gerado.documentos.map((d) => (d && d.nome) || d).join(', ') : '')]] : [])]) },
         { rotulo: 'Quem fez', valor: quem || '—',
           painel: listaDePares([['Professor', quem || '—']],
             'É o professor da turma: o plano e a observação são dele sobre a turma dele.') },
@@ -1073,7 +1117,34 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
     }
   }
 
-  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano);
+  /* O QUE CADA PO JA GEROU — uma leitura por registo, e nao uma enumeracao.
+   *
+   * A chave do registo de geracao e `bastidores/<escola>/geracao/<variante>`, e a `variante` e a
+   * escola mais a TURMA — a mesma que a linha ja resolveu para o plano que o PO observa. Por
+   * isso o mapa se constroi DEPOIS de `turmaDoPlano`: e dele que sai a turma.
+   *
+   * E `get`, e nunca `list`: a cota diaria da escola ja foi gasta uma vez por uma pagina que
+   * enumerava, e a regra que ficou e a de nao voltar a po-la no caminho de uma pagina. */
+  let gerados = null;
+  if (chave === 'plano-de-observacao' && env.PADD_KV) {
+    gerados = new Map();
+    const { criarGeracao } = require('./geracao.js');
+    const registro = criarGeracao({ kv: env.PADD_KV, escola: env.ESCOLA_SLUG });
+    for (const r of registos) {
+      const turma = r.turma
+        || (turmaDoPlano ? ((r.plano || []).map((id) => turmaDoPlano.get(id)).filter(Boolean)[0] || '') : '');
+      if (!turma) continue;
+      /* A ESCOLA VAI NO CONTEXTO. A variante do registo e `escola-turma` (`varianteDoContexto`),
+       * e o `escola` que ele le e o do CONTEXTO, nao o do modulo: sem esta chave a variante saia
+       * `-bale-nivel-2-teste-2` e o registo nunca era encontrado. */
+      const g = await registro.lerRegistro({
+        escola: env.ESCOLA_SLUG, professor: r.professor || '', ciclo: r.ciclo || '', turma,
+      });
+      if (g) gerados.set(r.id, g);
+    }
+  }
+
+  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano, gerados);
   const titulo = familia.titulo;
   const pedido = caminho.endsWith('/') ? caminho : caminho + '/';
 

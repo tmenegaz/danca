@@ -96,7 +96,10 @@ const servidor = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     const p = u.searchParams.get('professor');
     return res.end(JSON.stringify({ ok: true, curadorias: p === 'cafe-no-bule'
-      ? [{ turmas: ['Balé Nível 1'], alunas: ['Aluna A'] }] : [] }));
+      /* DUAS TURMAS NA CURADORIA (26/10/2026). Com uma só, a sugestão da curadoria e a turma do
+         registo eram o mesmo valor, e a prova de «o campo mostra a turma do REGISTO» passaria
+         mesmo com o campo a mostrar a sugestão — que era exactamente o defeito. */
+      ? [{ turmas: ['Balé Nível 1', 'Balé Nível 2'], alunas: ['Aluna A'] }] : [] }));
   }
   /* A ESTANTE SOB O PREFIXO DA PORTA — e SÓ lá. O stub anterior servia `/api/planos` na raiz,
      e a bancada ficava mais permissiva do que a ponte: em produção a raiz devolve 404 (o
@@ -119,8 +122,32 @@ const servidor = http.createServer(async (req, res) => {
       opcoes: todos.filter((x) => !quem || x.professor === quem) }));
   }
   if (u.pathname === '/api/bastidores/turmas') {
+    /* AS DUAS LEITURAS DA MESMA RESPOSTA (20/10/2026): `turmas` é o cadastro (o ritmo) e
+       `opcoes` é o que o select marca. O stub devolvia só `turmas`, e o select da turma nascia
+       vazio — um stub que aceita menos do que a produção esconde o defeito que a prova procura. */
+    const nomes = ['Balé Nível 1', 'Balé Nível 2'];
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, turmas: [{ nome: 'Balé Nível 1' }, { nome: 'Balé Nível 2' }] }));
+    return res.end(JSON.stringify({ ok: true,
+      turmas: nomes.map((nome) => ({ nome })),
+      opcoes: nomes.map((nome) => ({ valor: nome, rotulo: nome })) }));
+  }
+  /* O ENVELOPE DE UM REGISTO — o que o «Ajustar» carrega para a condução. Sob o prefixo da
+     porta, como em produção (`/anamnese/api/envelope/<id>`). */
+  {
+    const m = /^\/(anamnese|plano-ensino|plano-observacao)\/api\/envelope\/(.+)$/.exec(u.pathname);
+    if (m) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        id: decodeURIComponent(m[2]),
+        contexto: { escola: 'batata', professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' },
+        respostas: {
+          idade: { valor: '32' },
+          'contexto-turma': { valor: 'Balé Nível 2' },
+          'plano-de-ensino': { valor: ['plano-20261022'] },
+        },
+        gerado_em: '2026-10-22T16:00',
+      }));
+    }
   }
   /* O BILHETE DO ATO — emitido e consumido, como na ponte. Um mapa de um uso só: o `consumir`
      apaga, e um segundo pedido do mesmo bilhete responde «não». É a mesma regra do servidor
@@ -910,6 +937,107 @@ const servidor = http.createServer(async (req, res) => {
       } catch (e) { return false; }
     });
     ok('…e a resposta que já estava guardada não foi apagada pela semeadura', sobreviveu === true);
+  }
+
+  console.log('\n13 · O CAMINHO NA BARRA, O «AJUSTAR» E O «SAIR» QUE SAI');
+  {
+    /* O QUE A PESQUISADORA VIU. «Quando eu clico em editar, eu não tenho mais nada escrito em
+       cima ali, do lado da logomarca, dizendo onde é que eu tô.» A porta não tem `<h1>`, e é do
+       `<h1>` que a barra tira o caminho nas outras páginas — a página intermediária levou o
+       cabeçalho consigo, e levou o caminho. O que se prova aqui é que a porta o escreve, e que o
+       ÚLTIMO DEGRAU diz o que se está a FAZER: fazer, editar, ajustar.
+
+       E O «SAIR» QUE NÃO SAÍA: «ele vai pra uma página e volta». Ele ia para o PO — fóssil da
+       época em que o PO era a casa do plano —, e do PO para o PO. O destino passou a ser a lista
+       da própria fonte, e é isso que se mede nas três. */
+    const caminho = () => p.evaluate(() => {
+      const d = document.querySelector('.topnav .doc-atual');
+      if (!d) return null;
+      const el = (sel) => d.querySelector(sel);
+      return { grupo: el('small') ? el('small').textContent : '',
+        lista: el('a') ? el('a').textContent : '',
+        volta: el('a') ? el('a').getAttribute('href') : '',
+        agora: el('b') ? el('b').textContent : '' };
+    });
+    const ctx = '?professor=cafe-no-bule&ciclo=01&aluna=Aluna+A';
+
+    await abrir('/anamnese/' + ctx + '&abrir=1', 1280);
+    const criar = await caminho();
+    ok('a anamnese nova diz «Fazer anamnese» na barra', criar && criar.agora === 'Fazer anamnese', criar);
+    ok('…e o degrau do meio é a lista de onde se veio, clicável',
+      criar && criar.lista === 'Anamnese do aluno'
+      && criar.volta === '/area-do-professor/anamnese/', criar);
+    ok('…e o grupo é a Área do Professor', criar && criar.grupo === 'Área do Professor', criar);
+
+    await abrir('/anamnese/' + ctx + '&editar=anamnese-20261020', 1280);
+    const editar = await caminho();
+    ok('editar a anamnese diz «Editar a anamnese»',
+      editar && editar.agora === 'Editar a anamnese', editar);
+
+    await abrir('/anamnese/' + ctx + '&ajustar=anamnese-20261020', 1280);
+    const ajustar = await caminho();
+    ok('ajustar a anamnese diz «Ajustar a anamnese»',
+      ajustar && ajustar.agora === 'Ajustar a anamnese', ajustar);
+    /* O CARIMBO LEVADO A SÉRIO: ajustar abre o REGISTO, e não um formulário vazio com contexto. */
+    const carregado = await p.evaluate(() => {
+      const visivel = (el) => !!el && !el.classList.contains('oculto') && el.getClientRects().length > 0;
+      return { conducao: visivel(document.getElementById('conducao')),
+        nRespostas: typeof RESPOSTAS !== 'undefined' ? RESPOSTAS.size : -1 };
+    });
+    ok('…e o registo vem carregado para a condução',
+      carregado.conducao && carregado.nRespostas > 0, carregado);
+
+    await abrir('/plano-ensino/?fonte=plano&professor=cafe-no-bule&ciclo=01&ajustar=plano-20261022', 1280);
+    const noPlano = await p.evaluate(() => {
+      const t = document.getElementById('ctx-turma');
+      return { agora: (document.querySelector('.doc-atual b') || {}).textContent || '',
+        turma: t ? t.value : 'sem campo' };
+    });
+    ok('o plano de ensino ajustado diz «Ajustar o plano de ensino»',
+      noPlano.agora === 'Ajustar o plano de ensino', noPlano);
+    /* A TURMA DO REGISTO, E NÃO A PRIMEIRA LIVRE. «Ele tá em escolher e é um campo bloqueado» era
+       o select desenhado ANTES de o envelope ser lido — com a sugestão da curadoria, que é a
+       primeira turma atribuída. O campo passou a ser redesenhado depois do registo. */
+    ok('…e a turma do cabeçalho é a do registo, e não uma sugestão',
+      noPlano.turma === 'Balé Nível 2', noPlano);
+
+    /* NO TELEMONE FICA O VERBO, E SÓ ELE. Medido a 390 e a 320 com os três degraus, o caminho
+       era cortado com reticências e o que se perdia era o FIM — «Área do Professor · Anamnese do
+       al…». O degrau que the resta é o único que não tem substituto: o grupo e a lista são o
+       caminho de volta, e no telefone a folha do ☰ já o é. */
+    await abrir('/anamnese/' + ctx + '&ajustar=anamnese-20261020', 390);
+    const noTelefone = await caminho();
+    ok('no telemóvel o caminho é só o que se está a fazer',
+      noTelefone && noTelefone.agora === 'Ajustar a anamnese'
+      && noTelefone.lista === '' && noTelefone.grupo === '', noTelefone);
+    const larguraDoCaminho = await p.evaluate(() => {
+      const d = document.querySelector('.doc-atual');
+      return { cortado: d.scrollWidth > d.clientWidth + 1,
+        sobra: document.documentElement.scrollWidth - window.innerWidth };
+    });
+    ok('…e cabe inteiro, sem cortar nem esticar a página',
+      larguraDoCaminho.cortado === false && larguraDoCaminho.sobra === 0, larguraDoCaminho);
+
+    /* O «SAIR» — nas três fontes, e sempre para a lista da própria família. */
+    /* COM `ajustar=`, e não com `abrir=1`: o `abrir` sozinho não autoriza nada, e a porta
+       devolveria à lista antes de haver um «Sair» para clicar. O `ajustar` carrega o registo, e o
+       registo é o que dispensa a senha. */
+    for (const [fonte, caminhoDaLista] of [
+      ['/anamnese/?professor=cafe-no-bule&ciclo=01&aluna=Aluna+A&ajustar=anamnese-20261020',
+        '/area-do-professor/anamnese/'],
+      ['/plano-ensino/?fonte=plano&professor=cafe-no-bule&ciclo=01&ajustar=plano-20261022',
+        '/area-do-professor/plano-de-ensino/'],
+      ['/plano-observacao/?fonte=po&professor=cafe-no-bule&ciclo=01&ajustar=po-20261023&plano=plano-20261022',
+        '/area-do-professor/plano-de-observacao/'],
+    ]) {
+      await abrir(fonte, 1280);
+      const saiu = await Promise.all([
+        p.waitForNavigation({ waitUntil: 'load', timeout: 8000 }).catch(() => null),
+        p.evaluate(() => document.getElementById('sair').click()),
+      ]).then(() => p.url());
+      ok('«Sair» de ' + caminhoDaLista + ' leva à própria lista',
+        String(saiu || '').indexOf(caminhoDaLista) !== -1, saiu);
+    }
   }
 
   ok('nenhum erro de JavaScript', erros.length === 0, erros);

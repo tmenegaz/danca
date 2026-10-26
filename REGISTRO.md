@@ -24952,3 +24952,54 @@ formulário. O rodapé «Experimento do Protocolo de Observação…» já tinha
 **O QUE NÃO SE TOCOU, e porquê.** O menu dos Bastidores: não consegui reproduzir o defeito — a página
 exige a senha da direção — e a instrução foi explícita, «fazer os ajustes apenas naquilo que eu
 peço». Não se mexeu. Fica à espera de uma captura ou de uma descrição do que está mal.
+
+## 26/10/2026 — O caminho na barra, o «Ajustar» que leva o registo, e o «Sair» que sai
+
+**Cinco pontos da mesma leitura de tela, e três deles eram meus.**
+
+**1. A PORTA NÃO DIZIA ONDE SE ESTAVA.** «Quando eu clico em editar, eu não tenho mais nada escrito em
+cima ali, do lado da logomarca, dizendo onde é que eu tô.» O caminho da barra (`Área do Professor ·
+Anamnese do aluno`) vem do `<h1>` da página — e a porta **não tem `<h1>`** desde que o cabeçalho saiu
+com a página intermediária. O vão era a consequência não vista daquele trabalho.
+
+O caminho da porta **não podia vir do servidor**: depende de o registo estar a ser criado, editado ou
+ajustado, e isso só se sabe no cliente (o `?editar=`/`?ajustar=`, o bilhete, o depósito). É a própria
+página que o escreve, na mesma peça (`.doc-atual`) e com os mesmos degraus da barra do sistema. O
+último degrau diz o que se **faz**: «Fazer anamnese», «Editar a anamnese», «Ajustar a anamnese».
+
+No telemóvel fica **só o verbo**. Com os três degraus o caminho media 441px e a barra do telefone tem
+menos: a 390 e a 320 era cortado com reticências, e o que se perdia era o **fim** — justamente o
+verbo. O grupo e a lista são caminho de volta, e no telefone a folha do ☰ já é esse caminho.
+
+**2. «ABRIR NO FORMULÁRIO» PASSOU A «AJUSTAR»** — e a levar o carimbo. O rótulo antigo dizia o
+mecanismo, não o que acontece ao registo; e o destino era só `?professor=&ciclo=`, por isso a porta
+abria a condução **vazia**, com o contexto e mais nada. Quem clicava «Ajustar» num plano vinculado não
+via o plano que ia ajustar. Passou a `?ajustar=<carimbo>`, lido nas três fontes: o envelope inteiro
+vai para a condução e o gesto é o de sempre — `ajuste_de`, um elo novo, o anterior intacto.
+
+**3. A TURMA DO CABEÇALHO MOSTRAVA OUTRA TURMA.** «Ele tá em escolher e é um campo bloqueado… ele
+deveria trazer o campo já preenchido de qual eu tô querendo ajustar.» O select da turma é desenhado
+**antes** de o registo ser lido, com a sugestão da curadoria (a primeira turma atribuída). Ao ajustar
+um plano de Balé Nível 2, o campo dizia Balé Nível 1 — e travado, porque o cabeçalho se tranca ao
+abrir o formulário. Passou a ser redesenhado depois do envelope. E o select novo nasce com o estado
+do antigo: `travarCabecalho` desabilita os controles que existem quando corre, e um select redesenhado
+depois disso nascia destravado.
+
+**4. O «SAIR» NÃO SAÍA.** «Ele vai pra uma página e volta… no plano de observação ele também não
+sai.» Havia dois desvios, e os dois pelo mesmo motivo — a lista é o único «portal» que restou. O
+`urlParaFonte('po')` é fóssil da época em que o PO era a casa do plano: sair do plano de ensino ou da
+anamnese caía **no PO**, que é outro ato e, sem contexto, devolvia à lista do PO. E o `history.back()`
+numa aba aberta de fresco não tem para onde voltar, e ficava onde estava. O destino é declarado:
+a lista da própria fonte, sempre, com `replace`.
+
+**5. O PO QUE JÁ GEROU O CICLO NÃO SE DIZIA.** «Eu não tenho aqui uma etiqueta dizendo que gerou o
+ciclo, que gerou os documentos… e dizer qual foi o ciclo que gerou.» O registo da geração já existia —
+é o que a tela do PO consulta enquanto o GitHub trabalha —, mas nunca chegou à listagem: a linha do
+PO era a única das três **sem etiqueta nenhuma**. Passou a levar o selo `gerado`, os factos («ciclo
+01 · 3 documentos gerados · em 24/10/2026») e, no painel da turma, os nomes dos documentos. Lê o que
+está gravado: sem registo, não há selo. Uma leitura `get` por linha — nunca `list`.
+
+Medido: as três fontes com o caminho certo (fazer / editar / ajustar), o «Sair» a aterrar na própria
+lista, a turma do registo no cabeçalho, e o selo do PO com o ciclo. `provar-listas-do-acervo` 101/101
+(secção 5b nova), `provar-painel-do-ato` tudo certo (secção 13 nova, 14 asserções em browser),
+`check-identidade` 0 erro, `check-pacote` 0 erro.

@@ -259,6 +259,43 @@ function pedacos(html) {
       q.valores(q.cartoes[0])[0] === 'Balé Nível 1', q.valores(q.cartoes[0]));
   }
 
+  console.log('\n5b · O PO QUE JÁ GEROU O CICLO DIZ-SE — o selo, o ciclo e os documentos');
+  {
+    /* O PEDIDO, textual: «eu não tenho aqui uma etiqueta dizendo que gerou o ciclo, que gerou os
+       documentos… e dizer qual foi o ciclo que gerou». O registo da geração já existia — é o que
+       a tela do PO consulta enquanto o GitHub trabalha —, mas nunca chegava à listagem: a linha
+       do PO era a única das três sem etiqueta nenhuma.
+       ANTES DE SEMEAR, não há registo e não há selo: o que se prova é que o selo NÃO se inventa. */
+    const antes = pedacos((await pedir('/area-do-professor/plano-de-observacao/')).html);
+    provar('sem registo de geração, a linha do PO não leva selo',
+      !/class="selo [a-z]*"/.test(antes.cartoes[0]), antes.cartoes[0].slice(0, 200));
+
+    /* A CHAVE É A DE `geracao.js`: `bastidores/<escola>/geracao/<escola>-<turma>`, com a turma
+       escagarada como a `varianteDoContexto` a faz. Semear aqui é escrever o que o Worker grava
+       quando o PO conclui. */
+    await kv.put('bastidores/batata/geracao/batata-bale-nivel-1', JSON.stringify({
+      em: '2026-10-24T18:20:00.000Z', professor: 'cafe-no-bule', ciclo: '01',
+      turma: 'bale-nivel-1', escola: 'batata', escritas: 3, puladas: 0,
+      documentos: [{ id: 'plano', nome: 'Plano de ensino' },
+        { id: 'harmonizacao', nome: 'Harmonização' }, { id: 'aula-01', nome: 'Aula 01' }],
+    }));
+    const depois = pedacos((await pedir('/area-do-professor/plano-de-observacao/')).html);
+    const cartao = depois.cartoes[0] || '';
+    provar('com registo, o PO leva o selo «gerado»',
+      /class="selo vigente">gerado</.test(cartao), cartao.slice(0, 240));
+    provar('…e diz QUAL ciclo foi gerado', /ciclo 01/.test(cartao), cartao.slice(0, 320));
+    provar('…e quantos documentos derivaram',
+      /3 documento\(s\) gerados/.test(cartao), cartao.slice(0, 320));
+    provar('…e o painel da turma nomeia os documentos gerados',
+      /Ciclo gerado[\s\S]{0,200}Aula 01/.test(cartao)
+      || /Aula 01/.test(cartao), cartao.slice(0, 600));
+    /* E O PLANO DE ENSINO NÃO HERDA O SELO: a geração é do PO, e uma etiqueta no plano diria que
+       o plano é que gerou o ciclo. */
+    const planos = pedacos((await pedir('/area-do-professor/plano-de-ensino/')).html);
+    provar('o plano de ensino não ganha o selo do PO',
+      !/class="selo vigente">gerado</.test((planos.cartoes || []).join('')), (planos.cartoes || []).length);
+  }
+
   console.log('\n6 · As três são páginas do SISTEMA — barra, filtro e a peça da listagem');
   {
     for (const [nome, r] of [['anamnese', anamnese]]) {
@@ -409,9 +446,13 @@ function pedacos(html) {
       && /ciclo=01/.test((livre[0] || [])[1] || ''), livre);
     provar('o plano VINCULADO a um PO NÃO promete «Editar» — o servidor recusaria',
       (vinculado[0] || [])[0] !== 'Editar', vinculado);
-    provar('…e leva ao formulário com o contexto, que é o que a porta cumpre',
-      (vinculado[0] || [])[0] === 'Abrir no formulário'
-      && /fonte=plano/.test((vinculado[0] || [])[1] || ''), vinculado);
+    /* «AJUSTAR», E COM O CARIMBO (26/10/2026). O rótulo antigo, «Abrir no formulário», dizia o
+       mecanismo em vez do que acontece ao registo — e o destino não levava o carimbo, por isso a
+       porta abria a condução vazia em vez do registo que se ia ajustar. */
+    provar('…e oferece «Ajustar», com o carimbo do registo no destino',
+      (vinculado[0] || [])[0] === 'Ajustar'
+      && /fonte=plano/.test((vinculado[0] || [])[1] || '')
+      && /ajustar=plano-20261022/.test((vinculado[0] || [])[1] || ''), vinculado);
 
     /* O PO NÃO RECEBE `editar` — o atalho não existe para ele. O que a linha leva é o contexto. */
     const poR = await pedir('/area-do-professor/plano-de-observacao/');
