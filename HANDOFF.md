@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T07:27:11-0300`
-Commit atual: `c129f48` — docs(estrutura): o HANDOFF regerado sobre a correção das rotas e do índice
+Gerado em: `2026-10-26T08:39:56-0300`
+Commit atual: `ab13264` — docs(registro): a correção das rotas publicada, e o que se mediu ao ar
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+ab13264 docs(registro): a correção das rotas publicada, e o que se mediu ao ar
 c129f48 docs(estrutura): o HANDOFF regerado sobre a correção das rotas e do índice
 abf8e9f fix(estrutura): a porta não se abre sem o ato, e o índice aponta para dentro da Área do Professor
 e06d905 docs(registro): a publicação conferida ao ar, e o HANDOFF sobre ela
@@ -97,7 +98,6 @@ abae841 fix(folha): o submenu do «Bastidores» cabe na janela
 c1f1ba3 fix(porta): o «Editar» aterra no formulário, e a página começa nele
 f48be8e fix(listas): o «Procurar» aparecia duas vezes — e agora dobra no telemóvel
 f41d78d docs(registro): a abertura apagada, e o painel que já não se abre sozinho
-f85478a refactor(porta): a página intermediária foi apagada — a porta é o formulário
 ```
 
 ## Por professor
@@ -116,7 +116,7 @@ f85478a refactor(porta): a página intermediária foi apagada — a porta é o f
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `8586d4bb0d3e` | (vazio) | — |
-| batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `fe94db1ee1e9` | (vazio) | Input_PO_Aguardando |
+| batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `b6ce1008d90e` | (vazio) | Input_PO_Aguardando |
 
 ### manga-curta — 0 ciclo(s)
 
@@ -193,159 +193,141 @@ f85478a refactor(porta): a página intermediária foi apagada — a porta é o f
 
 ## Última entrada do REGISTRO
 
-## 26/10/2026 — A porta não se abre por um endereço sem ato, e o índice deixa de mandar para fora da Área do Professor
+## 26/10/2026 — O plano publica o apanhado, e o detalhe fica na aula
 
-**O que motivou.** Três leituras da mesma tela, na mesma sessão:
+**O que motivou.** A pesquisadora abriu a página do plano do ciclo e perguntou o que cada seção
+faz ali: «eu tenho a impressão que algum deles não faz sentido mostrar aqui. Porque eu tenho
+coisas como, por exemplo, sequência de exercícios por bloco. Me parece que isso pertence à aula e
+não ao ciclo… eu não preciso desse detalhamento aqui. Eu preciso apenas de um apanhado geral.»
+Na sequência, o que o apanhado devia ser: «o bloco, o objetivo específico e de qual aula ele
+pertence, com um link» — e a decisão de que o detalhe (conteúdo do nível, tempos, compasso) fica
+na **aula**, sem que esse movimento se faça agora.
 
-1. «No anamnese, plano de ensino e plano de observação, mesmo que só por um breve momento, eu
-   consigo acessar a rota sem passar pela área do professor… Aí em seguida eu sou direcionado para
-   a área do professor anamnese… mas não pode existir esse caminho.»
-2. «Tem o link ciclo que está me levando para a apresentação do sistema. E não pode, tem que levar
-   para o ciclo, tem que levar para o lugar certo.»
-3. «Logo abaixo ali eu tenho o ciclo um. E aí tem os links para anamnese do aluno, plano de ensino
-   e plano de observação. Esses links me levam para essa URL que está fora da área do professor.»
+**O diagnóstico, medido.** Dois defeitos, e o segundo era invisível de tão óbvio:
 
-**O diagnóstico, medido.** Três defeitos, uma só raiz: **endereços escritos à mão em mais de um
-sítio**, e nenhum deles a dizer que a porta exige o ato.
-
-- **A rota nua da porta era SERVIDA.** `/anamnese/`, `/plano-ensino/` e `/plano-observacao/`
-  respondiam **200** com o formulário inteiro; sem professor, ciclo e (na anamnese) aluna, o
-  próprio JavaScript da página chama `voltarParaALista()` no arranque. Ou seja: a página era
-  servida para logo se descartar — a pálida de um formulário que nunca ia abrir. Um `curl` mostrava
-  `200` e uma página inteira; só a tela mostrava o pisca-pisca.
-- **O rodapé do índice da escola apontava para as ROTAS DA PORTA** (`anamnese/`,
-  `plano-ensino/?fonte=plano`, `plano-observacao/?fonte=po`), enquanto o **menu** — a outra
-  superfície com os mesmos três rótulos — já apontava para as **listas**. Dois consumidores, dois
-  endereços: quem clicava no rodapé caía fora da Área do Professor.
-- **O «Ciclo» do cartão da turma não abria o ciclo.** Ele apontava para `<variante>/index.html`,
-  que no pacote é a **apresentação do sistema** — a mesma página de `/sistema.html`. E o **nome da
-  turma** ia para o mesmo sítio. Não existe página própria do ciclo: o documento do ciclo é o
-  `plano.html` («Plano do Ciclo 01 — …»).
-- **A escola recém-criada saía SEM BARRA NENHUMA.** Uma escola sem turma publica `nav.json` com
-  `coluna: []`, e `nav.desenhar` perguntava «a coluna tem grupos?»; a resposta era não, a conta
-  caía na forma VELHA (`grupos`), que já não existe, e devolvia `null`. O índice ficava sem menu —
-  exactamente quando é por ele que se chega à Área do Professor para criar o primeiro ciclo.
+- **A tabela da sequência duplicava a aula, linha a linha.** As duas nascem da MESMA resposta da
+  elicitação (`aula-1-sequencia`): `derivar-plano-ciclo.js` a escrevia no plano e
+  `derivar-ciclo.js` a escrevia na `aula-01.md`. Medido na `batata`: **14 linhas**, com «Solo»
+  **4×**, «Barra» **4×** e «Centro» **4×** — o mesmo bloco uma vez por exercício, e o mesmo
+  objetivo repetido quando havia mais de um exercício para ele.
+- **A «ficha de identificação» repetia o Contexto e o Calendário.** Debaixo do «Objetivo geral»
+  saíam duração, duração de cada aula, data de início, encerramento, volume ativo e professor —
+  fatos que o `## Contexto` declara seis linhas acima e que o `## Calendário do Ciclo` calcula.
+  Era a doença que o `PLANO-CICLO-DA-TURMA.md` §2.1 mediu **entre** arquivos («quatro fontes,
+  quatro respostas») acontecendo **dentro de um documento só**.
 
 **O que foi decidido.**
 
-- **O endereço sem contexto nenhum não é a porta: é a lista.** A ponte responde **`302`** para
-  `/area-do-professor/<fonte>/` **no servidor**, antes de qualquer byte de formulário. Um `302` não
-  é uma página — não há nada para piscar. O endereço continua a existir para quem tem contexto: as
-  listas montam o link do ato com `?professor=…&ciclo=…&abrir=1`, e o «Editar»/«Ajustar» levam o
-  carimbo (o contexto vem do envelope).
-- **O que conta como contexto é uma lista de PERMISSÃO**, não de proibição:
-  `professor`, `ciclo`, `aluna`, `plano`, `editar`, `ajustar`, `ato`. Na dúvida, deixa passar —
-  servir a porta a mais é o que já acontecia; servir a menos quebraria o ato.
-- **Só a PÁGINA é redirecionada** (`/` e `/index.html` debaixo do prefixo). Os `api/…` e
-  `assets/…` da porta continuam a passar: não são a rota do formulário, e um `api/ficha` sem
-  `?professor=` é uma chamada legítima da página já aberta.
-- **A escola sem turma tem barra** — a BÁSICA, com os Bastidores e sem o grupo «Área do
-  Professor»: sem turma curada não há ato para preencher, e quatro itens a levar a três listas
-  vazias seriam um menu a mentir com educação. O caminho para as três listas fica no RODAPÉ, que é
-  a página onde se está.
-- **O freio da Área do Professor não muda.** Sem professor cadastrado, a resposta continua a ser a
-  página que diz o que falta e onde se resolve — não um `302` que esconde o motivo.
-- **Um endereço, uma definição.** Os três destinos da Área do Professor passam a sair de
-  `AREA_DO_PROFESSOR`, em `montar-publicacao.js`, e o **menu** e o **rodapé** do índice leem dela.
-  Duas listas da mesma coisa é uma lista a menos — foi assim que os dois divergiram.
-- **O documento do ciclo abre pelo NOME da turma**, e o item «Ciclo» sai do cartão. «Plano» sai com
-  ele: dois rótulos para o mesmo endereço é a ambiguidade que o menu já recusou. **Não nasceu
-  classe nova** — a folha (`ciclo.css`) está congelada, e o cartão usa o que ela já desenha (`li`,
-  o `<a>` do documento, `.subtitulo`).
-- **A forma do menu é decidida pela PRESENÇA do campo, não pelo seu conteúdo.** `Array.isArray(menu.coluna)`
-  — vazia ou não — diz «forma nova»; um `nav.json` antigo, sem o campo, continua a cair na forma
-  de sempre. A coluna vazia ainda é a forma nova.
+- **A seção passa a ser «Objetivos por bloco e por aula»**, e a tabela é o cruzamento:
+  **Bloco · Objetivo específico · Aula**. O nome foi escolhido pela pesquisadora entre quatro
+  opções; os outros três eram «Blocos, objetivos e aulas», «Onde cada objetivo é trabalhado» e
+  «Cruzamento: bloco × objetivo × aula». O nome evita «sequência», que remetia à aula, e evita
+  «bloco» sozinho, que se lia como ciclo.
+- **Uma linha por PAR bloco × objetivo** — 14 exercícios viram **7** linhas na `batata`. O
+  exercício escolhe-se na aula; o plano diz **onde aquele objetivo é trabalhado e em que aula**.
+- **A coluna «Aula» não é uma segunda declaração.** O objetivo `N` é a N-ésima linha de
+  `marcosPorAula`, e o número da aula é o campo `n` dessa linha — a mesma conta que
+  `linhasDaEstrutura` já fazia. É por isso que a tabela **cresce sozinha** quando o professor
+  acrescenta marcos, e não pode divergir do plano.
+- **Ela é DERIVADA no gerador, como o calendário.** Escrita na fonte, seria o retrato do dia da
+  elicitação. A fonte guarda o marcador `<!-- OBJETIVOS -->`, e `gerar-ciclo.sh` o troca pela
+  tabela de `tools/tabela-objetivos.js`, que lê `plano-XX.json` + a lista de aulas que o pacote
+  vai ter (`$DOCS`).
+- **O link só existe quando a página existe.** `aula-NN.html#sequencia-declarada` quando o
+  documento está no pacote; «Aula NN *(a criar)*» quando não está; `—` quando o objetivo não é
+  marco de aula nenhuma. Nada é adivinhado — link para página inexistente é âncora morta.
+- **O detalhe não se perdeu: ele já estava na aula.** `derivar-ciclo.js` escreve a
+  `aula-01.md` a partir da mesma resposta, com bloco, exercício, objetivo, tempos e compasso —
+  e o âncora `#sequencia-declarada` é o destino do link. O movimento que fica para depois é o
+  inverso: fazer a **aula** ser a dona da sequência, com o formulário a preenchê-la.
+- **A ficha de identificação sai do «Objetivo geral».** O `## Contexto` fica como está (é a
+  ficha do ciclo, e é de lá que a máquina lê a duração); o `## Calendário do Ciclo` idem. O que
+  sai é a terceira cópia.
+- **O que a máquina perde, e porquê não faz falta.** A chave `ciclo` do `plano-XX.json` deixa de
+  ser produzida, e `sequenciaDeExercicios` sai com ela. Nenhuma das duas tinha consumidor: a
+  única leitura da duração era a de `tools/lib-vistas.js`, e ela já tem a reserva em
+  `contexto.duracaoPorAula`, que é onde o dado nasce. O `required` do schema do plano perde
+  `ciclo` nas **12** cópias (`professores/*/ciclos/ciclo-01-plano-schema.json`). O alias do mapa
+  do extrator para «sequência de exercícios por bloco» **fica**: há documento no repositório que
+  ainda a escreve, e ele extraía antes desta mudança.
 
 **Onde entrou.**
 
-- `motor/servidor/producao.js` — o `302` da rota nua da porta (o bloco 2 do `fetch`), com a lista
-  de parâmetros do ato.
-- `motor/nucleo/nav.js` — a coluna vazia ainda é a forma nova.
-- `tools/montar-publicacao.js` — `AREA_DO_PROFESSOR` (uma definição, dois consumidores), o rodapé
-  do índice e o cartão da turma.
-- `experimentos/provar-porta-sem-contexto.js` — **novo**: a prova das duas metades (a rota nua não
-  abre; o ato continua a abrir).
-- `experimentos/provar-publicacao-da-escola.js` — as asserções do rodapé, do cartão e das barras;
-  e a correção das que descreviam a forma antiga do menu.
-- `experimentos/provar-barra-unica.js` e `experimentos/provar-listas-do-acervo.js` — a porta passa
-  a pedir-se com o contexto do ato (antes pediam-na nua e ela respondia 200).
+- `motor/nucleo/derivar-plano-ciclo.js` — o «Objetivo geral» só com a prosa; a seção nova com o
+  marcador; os dois construtores que ficaram sem uso (`tabelaDeIdentificacao`,
+  `tabelaDaSequencia`, com as `LACUNA_*` e `COLUNAS_DA_SEQUENCIA`) apagados em vez de deixados
+  mortos.
+- `tools/tabela-objetivos.js` — **novo**: o cruzamento, com as duas formas da estrutura (prosa
+  legada e a matriz de objetos que a porta grava) e a nota que acompanha a tabela.
+- `tools/gerar-ciclo.sh` — a injeção do marcador, com a mesma guarda do `<!-- CALENDARIO -->`
+  (falha alto se o marcador não aparecer exactamente uma vez).
+- `tools/validar-plano-ciclo.js` — o comentário do alias da sequência, que agora explica por que
+  ele fica.
+- `professores/*/ciclos/ciclo-01-plano-schema.json` — `ciclo` fora do `required`, nas 12 cópias.
+- `professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md` — a fonte
+  reestruturada (o detalhe sai, o marcador entra, a ficha duplicada sai).
 - `.gitignore` — o `!` que versiona a prova nova.
 
-**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e
-`tools/montar-publicacao.js` foi tocado. **Por quê:** o defeito era de ENDEREÇO, e o endereço do
-índice nasce ali; corrigi-lo em qualquer outro sítio seria corrigir a cópia. **O que não muda:**
-nenhuma fórmula de hash, nenhuma cobertura do `.fipp`, nenhum validador, nenhuma regra ou pétrea,
-nenhum esquema — só os `href` que o índice publica. `motor/` não está na lista do congelamento.
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e três
+ficheiros de lá mudaram. **Por quê:** o apanhado é DERIVADO e cresce com as aulas — escrito na
+fonte, seria um retrato do dia da elicitação —, e quem deriva no dia da geração é o gerador; o
+extrator e o schema precisam de acompanhar a seção que mudou de nome e de conteúdo. **O que não
+muda:** a fórmula de hash e a cobertura da âncora (`.fipp`), os validadores existentes (o do
+plano valida os mesmos quatro obrigatórios, agora sem `ciclo`), as 22 pétreas, as 17 regras, o
+`check-pacote` e o contrato do lançamento (que lê `marcosPorAula` e `reguaDaRubrica`, ambos
+intactos). **Reancoragem declarada:** a fonte do plano mudou; a âncora foi regerada
+(`tools/hash-ciclo.sh cafe-no-bule 01 batata-bale-nivel-2-teste-2` → `hash_conteudo b3e2dfc…`,
+hash `b6ce100…`; `--check` diz «cadeia intacta») e o pacote foi regerado na mesma passagem
+(`gerar-ciclo.sh cafe-no-bule 01 batata-bale-nivel-2-teste-2`).
 
-**Com o quê.** `motor/servidor/producao.js`, `motor/nucleo/nav.js`, `tools/montar-publicacao.js`,
-`experimentos/provar-porta-sem-contexto.js`, `experimentos/provar-publicacao-da-escola.js`,
-`experimentos/provar-barra-unica.js`, `experimentos/provar-listas-do-acervo.js`, `.gitignore`,
-`REGISTRO.md`, `HANDOFF.md`.
+**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js`, `tools/tabela-objetivos.js`,
+`tools/gerar-ciclo.sh`, `tools/validar-plano-ciclo.js`, as 12 cópias de
+`ciclo-01-plano-schema.json`, a fonte do plano da `batata` e os `.fipp` das duas cadeias,
+`experimentos/provar-objetivos-por-aula.js`, `.gitignore`, `REGISTRO.md`, `HANDOFF.md`.
 
-**Referências.** As decisões de 23/10/2026 («porque uma lista, e não a porta directa») e de
-25/10/2026 (o painel do ato dentro da listagem) — este marco não inventa caminho, aplica-o onde
-ele ainda não valia; `CONGELAMENTO.md`; a secção «O catálogo das peças» de `IDENTIDADE-VISUAL.md`.
+**Referências.** A regra que separa os quatro documentos (`PLANO-AULA-E-OBSERVACAO.md` §4, com a
+frase que decidiu tudo: «o plano é o acervo; a aula é a escolha»); a decisão `sequência` de
+25/10/2026 (herança mista, editável na aula); a Regra 3 (Solo → Barra → Centro) e a Regra 9,
+etapa 2 (distribuição por bloco); o `PLANO-CICLO-DA-TURMA.md` §2.1 (a mesma doença entre
+arquivos); `CONGELAMENTO.md`.
 
-**Medido.** `provar-porta-sem-contexto` **44/44** — as três rotas nuas (com e sem barra, e com
-`/index.html`) respondem `302` com corpo vazio e o `Location` da própria lista; `?fonte=plano`,
-`?abrir=1` e `?utm_source=email` também; com contexto, `200` e a porta; `api/` e `assets/` sem
-redirecionamento; sem professor, a página do freio. **Controle negativo** contra `HEAD`: **31
-falhas** de 44 — o código de antes serve as três rotas nuas com `200`, e a prova não estaria a
-provar nada se passasse lá. `provar-publicacao-da-escola` **55/55**;
-`provar-listas-do-acervo` **109/109**; `provar-barra-unica` **111/111**; `check-identidade`
-**20 ok, 0 erro**. **A barra da escola sem turma**, medida pelo controle negativo do `nav.js`:
-devolvido o `HEAD` de `motor/nucleo/nav.js` e corrida a `provar-publicacao-da-escola`, a prova
-**quebra** no ponto em que lê a barra do índice da escola vazia — `desenhar` devolve `null` e não há
-`<nav class="topnav">` nenhum para ler. Com a correção, a barra existe e traz os Bastidores, e não
-anuncia a Área do Professor. Conferido ainda **em processo, contra a publicação de verdade** de `batata`
-(`publicacao/batata`, ASSETS do disco e KV vazio): `/` **200** e sem nenhum link para rota nua;
-`/anamnese`, `/anamnese/`, `/anamnese/index.html`, `/plano-ensino/`, `/plano-observacao/`
-**302** para as três listas; as três listas **200**; `/bale-nivel-2-teste-2/plano.html` **200**.
-Nada disto foi ao ar.
-
-**Publicado, e conferido ao ar.** O commit da correção é `abf8e9f` (e o `HANDOFF` regerado veio
-em `c129f48`). O push disparou os dois workflows — «Publicar as escolas» e «Publicar a raiz» —, e
-**os dois fecharam em `success`** sobre `c129f48`: o job `publicar (batata)` de 10:25:54 a 10:26:17
-e o `publicar` da raiz de 10:25:47 a 10:26:09. Conferido ao ar, na `batata`, em **uma carga por
-endpoint**: `/anamnese/` → **302** para `/area-do-professor/anamnese/`; `/plano-ensino/` →
-**302** para a lista do plano; `/plano-observacao/` → **302** para a lista do PO; e o índice da
-escola serve o rodapé dentro de `/area-do-professor/` e o nome da turma a abrir
-`bale-nivel-2-teste-2/plano.html`, sem item «Ciclo» nem «Plano».
+**Medido.** `provar-objetivos-por-aula` **24/24** — 14 exercícios → 7 pares, «Solo» 1× por
+objetivo, a ordem dos blocos, as três colunas, nenhuma coluna de detalhe, o link vivo para
+`aula-01.html#sequencia-declarada`, «a criar» sem documento, `—` sem marco, a lacuna declarada
+sem estrutura, o marcador substituído na página, e nenhuma tabela sob o «Objetivo geral».
+**Controle negativo** contra `HEAD`: a fonte antiga tinha 14 linhas com «Solo» 4× e não tinha
+nem a seção nem o marcador — a prova descreve um defeito que existiu. `provar-aula-e-plano-legiveis`
+**12/12** (o documento que o gerador escreve continua legível pelo validador);
+`provar-publicacao-da-escola` **55/55**; `provar-listas-do-acervo` **109/109**;
+`provar-barra-unica` **111/111**; `provar-porta-sem-contexto` **44/44**;
+`check-identidade` **20 ok, 0 erro**; `check-pacote` da `batata` **0 erro, 0 aviso** (PDF
+regerado, 21 páginas, 90 links internos). `provar-producao` **150/151** — a mesma asserção
+conhecida («o item do menu fica marcado», o `classList` do DOM falso), que não é do produto.
 
 **O que ainda não está feito.**
 
-- **A apresentação (`sistema.html` e o `index.html` de cada pacote) continua a levar aos
-  formulários COM contexto** (`/anamnese/?professor=…&ciclo=…`). Fica assim de propósito: com
-  contexto o endereço é o ato, e é o mesmo que as listas montam — o que estava errado era o
-  endereço SEM contexto. Se a decisão mudar, os dois geradores (`criar-escola.sh` para o pacote
-  zero, `gerar-ciclo.sh` para os pacotes) mudam juntos, e os pacotes publicados têm de ser
-  regerados.
-- **O rodapé do pacote ZERO** (`RODAPE_ZERO`, em `criar-escola.sh`) repete os três rótulos com os
-  endereços da porta e contexto — herança do tempo em que a porta era a entrada. Não foi tocado
-  aqui; ele aparece no `sistema.html` de toda escola. Corrigi-lo é uma decisão de conteúdo da
-  apresentação, e passa por regerar o `index.html` de cada pacote zero com
-  `criar-escola.sh --somente-indice`.
-- **`ESTADO-ATUAL.md` não foi refotografado** nesta entrada.
-
-**Correção de 26/10/2026 (mesmo dia).** A primeira redação desta entrada abria a secção final com
-«**NÃO ESTÁ PUBLICADO.**» — era verdade quando foi escrita e deixou de ser minutos depois, com o
-push e os dois workflows. A redação não é apagada: fica aqui como o elo que registou o trabalho
-antes de ele sair de casa; o que foi publicado, e o que se mediu ao ar, está no parágrafo
-«Publicado, e conferido ao ar».
+- **Três fusões do plano ficaram por fazer, e elas precisam de uma decisão de mecanismo.** O
+  extrator mapeia **um título `##` → uma chave**; juntar «Régua da rubrica» + «Rubrica de
+  avaliação final» (ou «Músicas e vídeos» + «Repertório») numa seção só faria o dado da segunda
+  **desaparecer do `plano-XX.json` em silêncio** — o modo de falha que este repositório já
+  pagou caro. Para fundir é preciso ensinar o extrator a ler subseções (`###`) como campos
+  irmãos, e isso toca o contrato que o lançamento lê (`reguaDaRubrica`). Fica para a próxima
+  passagem, com decisão explícita.
+- **«Critério de extensão» não foi renomeado.** O texto vago que a pesquisadora leu («estender o
+  ciclo em duas aulas…») é **dado de teste** do fixture (`teste/batata.json`), não código — e
+  contradiz o `+4 aulas` que o calendário calcula. O conserto é de conteúdo (a resposta da
+  elicitação) e de redação do rótulo, não da derivação.
+- **A sequência ainda não é da aula.** O plano deixou de a publicar; a aula já a tem, mas quem a
+  escreve continua a ser a elicitação do plano (`aula-1-sequencia`). Tornar a **aula** a dona do
+  detalhe — com o formulário a preenchê-la — é o movimento que a pesquisadora adiou de propósito.
+- **Só a `batata` foi regerada.** Os outros pacotes (`calango`, e os que o `publicacao/` guarda)
+  mantêm a fonte antiga e a página antiga: o gerador só injeta o marcador em quem o tem, e é
+  migração por regeneração, não por reescrita.
+- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar. O
+  `deploy-escolas.yml` monta `publicacao/batata/` antes de subir, e é um push que toque
+  `tools/montar-publicacao.js`/`motor/**` que o dispara.
 
 ## O que está pendente
-
-## 26/10/2026 — Referências deixa de ser um item do menu, e passa a ser um documento de «Planos»
-
-- O trabalho está **no worktree, não commitado**.
-- A remoção só chega ao ar na próxima montagem de cada escola (`deploy-escolas.yml`); até lá
-  `/ciclos/referencias/` continua a responder no que já está publicado.
-- `provar-publicacao-da-escola` **já falhava antes** desta mudança (o mesmo erro, medido com o
-  `HEAD` limpo): ele espera a barra antiga, com «Ciclos / Aulas / Planejamento».
-
-Medido: `provar-barra-unica` **111/111**, `provar-painel-do-ato` **TUDO CERTO** (secção 17, 38
-asserções — as referências entram também na medição do telemóvel), `provar-barra-e-caminho` **47/47**, `provar-menu-da-producao` **38/38**,
-`provar-listas-do-acervo` **109/109**, `check-identidade` **0 erro**, `check-pacote` do ciclo
 
 ## 26/10/2026 — O menu da Produção não rola com a página: era o `sticky` anulado por uma linha ao lado
 
@@ -391,6 +373,30 @@ O push continua pendente: o `GITHUB_TOKEN` do `.dev.vars` responde
   apresentação, e passa por regerar o `index.html` de cada pacote zero com
   `criar-escola.sh --somente-indice`.
 - **`ESTADO-ATUAL.md` não foi refotografado** nesta entrada.
+
+## 26/10/2026 — O plano publica o apanhado, e o detalhe fica na aula
+
+
+- **Três fusões do plano ficaram por fazer, e elas precisam de uma decisão de mecanismo.** O
+  extrator mapeia **um título `##` → uma chave**; juntar «Régua da rubrica» + «Rubrica de
+  avaliação final» (ou «Músicas e vídeos» + «Repertório») numa seção só faria o dado da segunda
+  **desaparecer do `plano-XX.json` em silêncio** — o modo de falha que este repositório já
+  pagou caro. Para fundir é preciso ensinar o extrator a ler subseções (`###`) como campos
+  irmãos, e isso toca o contrato que o lançamento lê (`reguaDaRubrica`). Fica para a próxima
+  passagem, com decisão explícita.
+- **«Critério de extensão» não foi renomeado.** O texto vago que a pesquisadora leu («estender o
+  ciclo em duas aulas…») é **dado de teste** do fixture (`teste/batata.json`), não código — e
+  contradiz o `+4 aulas` que o calendário calcula. O conserto é de conteúdo (a resposta da
+  elicitação) e de redação do rótulo, não da derivação.
+- **A sequência ainda não é da aula.** O plano deixou de a publicar; a aula já a tem, mas quem a
+  escreve continua a ser a elicitação do plano (`aula-1-sequencia`). Tornar a **aula** a dona do
+  detalhe — com o formulário a preenchê-la — é o movimento que a pesquisadora adiou de propósito.
+- **Só a `batata` foi regerada.** Os outros pacotes (`calango`, e os que o `publicacao/` guarda)
+  mantêm a fonte antiga e a página antiga: o gerador só injeta o marcador em quem o tem, e é
+  migração por regeneração, não por reescrita.
+- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar. O
+  `deploy-escolas.yml` monta `publicacao/batata/` antes de subir, e é um push que toque
+  `tools/montar-publicacao.js`/`motor/**` que o dispara.
 
 ## Pendências anteriores (índice)
 
@@ -675,6 +681,7 @@ O push continua pendente: o `GITHUB_TOKEN` do `.dev.vars` responde
 - **23/10/2026** — O ☰ dentro da Produção abre o menu do sistema inteiro → `REGISTRO.md` L23769
 - **24/10/2026** — O padrão da lista: as oito listas com o mesmo gesto, e o… → `REGISTRO.md` L23887
 - **26/10/2026** — O documento acende a lista de onde veio, e a norma de «onde… → `REGISTRO.md` L25147
+- **26/10/2026** — Referências deixa de ser um item do menu, e passa a ser um… → `REGISTRO.md` L25246
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
