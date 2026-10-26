@@ -417,9 +417,20 @@ async function fetch(request, env) {
     }
     const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
+    /* O MENU MARCA A LISTA A QUE A PORTA PERTENCE (26/10/2026).
+     *
+     * O `pedido` é o caminho servido, e o menu marca o item por ele (`ehAtivo`). Aqui o caminho é
+     * `/anamnese/` — que não é nenhum item do menu, porque o item é a LISTA
+     * (`/area-do-professor/anamnese/`). O resultado era o menu a apagar a única marca que responde
+     * a «onde estou» precisamente quando se está mais fundo: a criar, a editar ou a ajustar.
+     *
+     * A tradução é do módulo que já sabe a relação (`FAMILIAS` tem a porta e a chave de cada
+     * família) — não uma segunda tabela. E o caminho da lista é o que se passa ao menu; o
+     * caminho verdadeiro continua a ser o que se serve. */
     return comAparencia(await portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS }),
       await aparenciaDoEnv(env),
-      { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
+      { teste: numeroDoTeste(env.ESCOLA_SLUG), menu,
+        pedido: listasDoAcervo.listaDaPorta(path) || path });
   }
 
   // 2. O lançamento do pacote (o `lancamento.html` POSTa em /api/receber), na

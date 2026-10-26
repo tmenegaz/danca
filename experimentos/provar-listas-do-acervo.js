@@ -125,7 +125,17 @@ async function preparar(env) {
   for (const d of docs) await porta.gravarEnvelope(arm, d, relatorioDe(d.id));
 }
 
-/** Os assets da escola publicada — só o que a ponte precisa de encontrar. */
+/** Os assets da escola publicada — só o que a ponte precisa de encontrar.
+ *
+ * O `Content-Type` NÃO É DECORAÇÃO (26/10/2026). O Cloudflare serve os assets com o tipo certo; um
+ * `Response` sem cabeçalho sai como `application/octet-stream`, e a ponte tem uma guarda que só
+ * aplica a moldura a `text/html` (`comAparencia`) — com o tipo errado, a porta era servida SEM
+ * barra, sem coluna e sem marca nenhuma. Foi assim que a secção 5c apareceu vermelha contra um
+ * produto que já estava certo: a bancada media uma página que a produção nunca serve. */
+const TIPOS = {
+  '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json',
+};
 function assets(dir) {
   return {
     async fetch(pedido) {
@@ -133,7 +143,8 @@ function assets(dir) {
       let p = path.join(dir, url.pathname);
       if (fs.existsSync(p) && fs.statSync(p).isDirectory()) p = path.join(p, 'index.html');
       if (!fs.existsSync(p)) return new Response('nao', { status: 404 });
-      return new Response(fs.readFileSync(p), { status: 200 });
+      return new Response(fs.readFileSync(p), { status: 200,
+        headers: { 'Content-Type': TIPOS[path.extname(p)] || 'application/octet-stream' } });
     },
   };
 }
@@ -294,6 +305,36 @@ function pedacos(html) {
     const planos = pedacos((await pedir('/area-do-professor/plano-de-ensino/')).html);
     provar('o plano de ensino não ganha o selo do PO',
       !/class="selo vigente">gerado</.test((planos.cartoes || []).join('')), (planos.cartoes || []).length);
+  }
+
+  console.log('\n5c · A PORTA MARCA, NO MENU, A LISTA A QUE PERTENCE');
+  {
+    /* O PEDIDO: «se eu tocar no menu de novo, eu não tenho mais a referência básica de onde eu
+       estava… isso está se perdendo e não é legal perder a referência de onde eu estou
+       navegando. Estou mais para dentro, mais profundo no plano de ensino, mas não saí dele.»
+       O menu marca o item pelo caminho servido, e a porta é servida em `/anamnese/` — que não é
+       item nenhum. Medido em produção antes da correção: zero `aria-current`, e o grupo sem
+       `data-atual`. É o mesmo defeito nas três portas. */
+    for (const [porta, lista] of [['/anamnese/', '/area-do-professor/anamnese/'],
+      ['/plano-ensino/', '/area-do-professor/plano-de-ensino/'],
+      ['/plano-observacao/', '/area-do-professor/plano-de-observacao/']]) {
+      const r = await pedir(porta);
+      provar('a porta ' + porta + ' acende o item ' + lista,
+        new RegExp('aria-current="page" href="' + lista.replace(/\//g, '\\/') + '"').test(r.html),
+        (r.html.match(/aria-current="page" href="[^"]+"/g) || []).slice(0, 2));
+      provar('…e o grupo «Área do Professor» fica marcado',
+        /data-atual="sim"/.test(r.html), /data-atual/.test(r.html));
+    }
+    /* A LISTA NÃO PODE TER PERDIDO O QUE JÁ TINHA — a correção é da porta, e o caminho da lista
+       continua a marcar-se por si. */
+    const l = await pedir('/area-do-professor/anamnese/');
+    provar('a lista da anamnese continua a acender o seu item',
+      /aria-current="page" href="\/area-do-professor\/anamnese\/"/.test(l.html), true);
+    /* E UMA PÁGINA QUE NÃO É DA ÁREA DO PROFESSOR NÃO HERDA MARCA NENHUMA DELAS. */
+    const aulas = await pedir('/aulas/');
+    provar('as aulas não acendem nenhuma das três portas',
+      !/aria-current="page" href="\/area-do-professor\/(anamnese|plano-de-ensino|plano-de-observacao)\//.test(aulas.html),
+      (aulas.html.match(/aria-current="page" href="[^"]+"/g) || []).slice(0, 2));
   }
 
   console.log('\n6 · As três são páginas do SISTEMA — barra, filtro e a peça da listagem');

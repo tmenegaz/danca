@@ -1040,6 +1040,73 @@ const servidor = http.createServer(async (req, res) => {
     }
   }
 
+  console.log('\n14 · NO TELEMÓVEL, O PREENCHIMENTO INTERROMPIDO ABRE O BLOCO');
+  {
+    /* O PEDIDO, textual: «no modo celular, o fazer anamnese, que tem o botão continuar de onde
+       parei, ele precisa estar expandido e não colapsado. Aí o próprio usuário escolhe se ele
+       quer colapsar ou não. Mas enquanto tiver os dados preenchidos para continuar depois, ele
+       vai abrir expandido sempre. Se tiver vazio, aí ele vai estar colapsado, mantém a regra que
+       a gente tem agora.»
+       Três coisas a medir, e cada uma é uma regra: vazio não abre; com depósito abre; e quem o
+       fecha não o vê reabrir por baixo. */
+    const bloco = () => p.evaluate(() => {
+      const bl = document.getElementById('bloco-ato');
+      const v = (e) => !!e && !e.hidden && e.getClientRects().length > 0;
+      const cont = document.querySelector('[data-acao="continuar"]');
+      return { aberto: bl ? bl.open : null, escondido: bl ? bl.hidden : null,
+        visivel: v(bl), continuar: v(cont) };
+    });
+    const semear = (comDeposito) => p.evaluate((com) => {
+      localStorage.clear();
+      if (!com) return;
+      localStorage.setItem('ato-batata-anamnese-1',
+        JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+        JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z', indice: 2,
+          respostas: [['idade', '32']], notas: [], sugeridas: [] }));
+    }, comDeposito);
+
+    await abrir('/area-do-professor/anamnese/', 390);
+    await semear(false);
+    await p.reload({ waitUntil: 'load' });
+    await new Promise((r) => setTimeout(r, 1200));
+    const vazio = await bloco();
+    ok('telemóvel, sem depósito: o bloco não existe à vista — a regra de antes',
+      vazio.escondido === true && vazio.visivel === false, vazio);
+
+    await semear(true);
+    await p.reload({ waitUntil: 'load' });
+    await new Promise((r) => setTimeout(r, 1200));
+    const comDep = await bloco();
+    ok('telemóvel, com depósito: o bloco abre EXPANDIDO, sem passar pelo menu',
+      comDep.aberto === true && comDep.visivel === true, comDep);
+    ok('…e é ali que está o «Continuar de onde parei»', comDep.continuar === true, comDep);
+
+    /* COLAPSAR É A ESCOLHA DE QUEM FECHOU, e ela vale. */
+    await p.evaluate(() => { const bl = document.getElementById('bloco-ato'); if (bl) bl.open = false; });
+    await new Promise((r) => setTimeout(r, 500));
+    const fechado = await bloco();
+    ok('fechá-lo esconde-o, e o menu volta a ser a porta',
+      fechado.aberto === false && fechado.visivel === false, fechado);
+    /* E NÃO REABRE POR BAIXO: mudar o contexto redesenha o painel, e um painel que se reabrisse
+       sozinho a cada mudança seria a página a lutar contra quem a está a usar. */
+    await p.evaluate(() => {
+      const c = document.getElementById('ato-ciclo');
+      if (c) { c.value = '02'; c.dispatchEvent(new Event('input')); }
+    });
+    await new Promise((r) => setTimeout(r, 700));
+    const depois = await bloco();
+    ok('…e mudar o contexto não o reabre por baixo', depois.visivel === false, depois);
+
+    /* NO COMPUTADOR NADA DISTO ACONTECE: os dois blocos ficam à vista e FECHADOS, com ou sem
+       depósito. É a regra do §9, e ela não pode ser estragada por esta. */
+    await abrir('/area-do-professor/anamnese/', 1280, { limpar: false });
+    await new Promise((r) => setTimeout(r, 800));
+    const noPc = await bloco();
+    ok('computador: com depósito, o bloco fica à vista e FECHADO',
+      noPc.escondido === false && noPc.aberto === false && noPc.visivel === true, noPc);
+  }
+
   ok('nenhum erro de JavaScript', erros.length === 0, erros);
 
   await b.close(); servidor.close();

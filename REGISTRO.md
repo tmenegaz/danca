@@ -25003,3 +25003,53 @@ Medido: as três fontes com o caminho certo (fazer / editar / ajustar), o «Sair
 lista, a turma do registo no cabeçalho, e o selo do PO com o ciclo. `provar-listas-do-acervo` 101/101
 (secção 5b nova), `provar-painel-do-ato` tudo certo (secção 13 nova, 14 asserções em browser),
 `check-identidade` 0 erro, `check-pacote` 0 erro.
+
+## 26/10/2026 — O menu que não se perde, e o bloco que se abre quando há trabalho à espera
+
+**Dois pedidos, e o primeiro era uma regressão que eu tinha introduzido na véspera.**
+
+**1. O ITEM DO MENU APAGAVA-SE AO ENTRAR NO FORMULÁRIO.** «Se eu tocar no menu de novo, eu não tenho
+mais a referência básica de onde eu estava… isso está se perdendo e não é legal perder a referência
+de onde eu estou navegando. Estou mais para dentro, mais profundo no plano de ensino, mas não saí do
+plano de ensino.»
+
+A causa é de facto e é simples: o menu marca o item pelo **caminho servido** (`ehAtivo`), e a porta
+é servida em `/anamnese/`, `/plano-ensino/` e `/plano-observacao/` — caminhos que **não são os das
+listas** (`/area-do-professor/anamnese/`). O menu olhava para a porta, não reconhecia nada, e apagava
+a única marca que responde a «onde estou». Medido em produção: zero `aria-current` nas três portas.
+
+A tradução porta → lista passou a ser declarada no módulo que já sabe a relação (`FAMILIAS` tem a
+porta e a chave de cada família): `listaDaPorta(path)`. Uma segunda tabela noutro ficheiro divergiria
+no dia em que uma família mudasse de porta. O caminho servido continua a ser o que se serve; o que
+muda é o que o menu lê.
+
+**2. NO TELEMÓVEL, O PREENCHIMENTO INTERROMPIDO ABRE O BLOCO.** «No modo celular, o fazer anamnese,
+que tem o botão continuar de onde parei, ele precisa estar expandido e não colapsado. Aí o próprio
+usuário escolhe se quer colapsar. Mas enquanto tiver os dados preenchidos para continuar depois, ele
+vai abrir expandido sempre. Se tiver vazio, aí fica colapsado, mantém a regra que a gente tem agora.»
+
+É a diferença entre uma página em repouso e uma página com trabalho por acabar: quem volta dias
+depois não tem de descobrir, no menu «Ações», que existe um preenchimento à espera. A regra que já
+existia para o resto continua igual, e é a mesma nos três atos:
+
+| | sem depósito | com depósito |
+|:--|:--|:--|
+| telemóvel | escondido (o «Ações» é a porta) | **aberto**, com o «Continuar de onde parei» |
+| computador | à vista e fechado | à vista e fechado |
+
+E quem o fecha fica servido: o `toggle` esconde-o, e a decisão não volta atrás — nem ao mudar o
+contexto, que redesenha o painel. A abertura é decidida **uma vez**, e depois das cargas: a chave do
+depósito leva escola, professor e ciclo, e sem eles apontaria para uma chave que não existe.
+
+**A BANCADA VOLTOU A MENTIR, E PELO MESMO MOTIVO DA VEZ ANTERIOR.** A secção nova apareceu vermelha
+contra um produto que já estava certo: o `assets()` falso das provas não define `Content-Type`, e a
+ponte só aplica a moldura a `text/html` (`comAparencia`). Com o tipo errado, a porta era servida
+**sem barra, sem coluna e sem marca** — e a prova media uma página que a produção nunca serve. O
+`assets()` das provas passou a levar o tipo, como o Cloudflare o leva.
+
+Medido: as três portas com `aria-current` no item certo e o grupo «Área do Professor» com
+`data-atual="sim"`; as aulas não herdam nenhuma das três; a 390 o bloco nasce aberto com depósito e
+escondido sem ele; a 1280 fica à vista e fechado nos dois casos; fechá-lo não o reabre.
+`provar-listas-do-acervo` 109/109 (secção 5c nova), `provar-painel-do-ato` tudo certo (secção 14
+nova, 6 asserções em browser), `provar-barra-e-caminho` 43/43, `check-identidade` 0 erro,
+`check-pacote` 0 erro.

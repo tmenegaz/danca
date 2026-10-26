@@ -221,6 +221,35 @@ function acoesDaLinha(chave, registo, estado) {
 }
 
 
+/**
+ * A LISTA A QUE UMA PÁGINA DA PORTA PERTENCE — para o menu saber onde se está (26/10/2026).
+ *
+ * O DEFEITO. Dentro do formulário — a criar, a editar ou a ajustar — o item do menu deixava de
+ * estar aceso. «Se eu toco no menu de novo, eu não tenho mais a referência básica de onde eu
+ * estava.» E a razão é de facto: o menu marca o item pelo CAMINHO servido (`ehAtivo`), e a porta
+ * é servida em /anamnese/, /plano-ensino/ e /plano-observacao/ — caminhos que não são os das
+ * listas (/area-do-professor/anamnese/). O menu olhava para a porta, não reconhecia nada, e
+ * apagava a única marca que responde a «onde estou».
+ *
+ * A RELAÇÃO É DECLARADA AQUI porque é aqui que ela existe: FAMILIAS já diz, para cada família, a
+ * porta (`porta`) e a chave que compõe o caminho da lista. Uma segunda tabela noutro ficheiro
+ * divergiria no dia em que uma família mudasse de porta.
+ *
+ * Entrar mais fundo num sítio não é sair dele: quem está a ajustar uma anamnese continua na
+ * Anamnese do aluno. É isso que o menu volta a dizer.
+ */
+function listaDaPorta(caminho) {
+  const p = String(caminho || '');
+  for (const chave of Object.keys(FAMILIAS)) {
+    const porta = FAMILIAS[chave].porta;
+    if (!porta) continue;
+    if (p === porta || p === porta.replace(/\/$/, '') || p.startsWith(porta)) {
+      return '/area-do-professor/' + chave + '/';
+    }
+  }
+  return null;
+}
+
 /* ============================================================================================
  * O PAINEL DO ATO — o contexto que estava na porta, dentro da listagem (25/10/2026)
  * ============================================================================================
@@ -917,7 +946,35 @@ function scriptDoPainel(chave, escola) {
    *
    * NO TELEMÓVEL NENHUM DOS DOIS EXISTE até ser escolhido: a tela é da listagem, e o «Ações» é a
    * porta. Abrir por conta própria qualquer um deles seria o estado que ele descreveu como
-   * errado — «não faz sentido ter esses dois acordeões se eu já tenho o botão ações». */
+   * errado — «não faz sentido ter esses dois acordeões se eu já tenho o botão ações».
+   *
+   * A EXCEPÇÃO É O PREENCHIMENTO INTERROMPIDO (26/10/2026). «Quando eu tiver lá no formulário e
+   * voltar para continuar mais tarde… no modo celular, o fazer anamnese, que tem o botão
+   * continuar de onde parei, ele precisa estar expandido e não colapsado. Aí o próprio usuário
+   * escolhe se quer colapsar. Mas enquanto tiver os dados preenchidos para continuar depois, ele
+   * vai abrir expandido sempre. Se tiver vazio, aí fica colapsado, mantém a regra que a gente
+   * tem agora.»
+   *
+   * É a diferença entre uma página em repouso e uma página com trabalho por acabar: quem volta
+   * dias depois não tem de descobrir, no menu «Ações», que existe um preenchimento à espera — ele
+   * está à vista, com o botão «Continuar de onde parei» dentro. O bloco continua a fechar-se, e a
+   * escolha de quem o fechou vale: não se reabre por baixo.
+   */
+  var jaDecidiuOPreenchimento = false;
+  function abrirSeHaOQueContinuar() {
+    if (jaDecidiuOPreenchimento) return;
+    if (!blocoDoAto || !ehTelefone()) return;
+    /* O CONTEXTO TEM DE ESTAR RESTAURADO: a chave do depósito leva a escola, o professor e o
+     * ciclo, e sem eles apontaria para uma chave que não existe. É por isso que esta função é
+     * chamada no fim das cargas — e uma primeira vez logo a seguir, para o caso de o contexto vir
+     * restaurado e o professor já estar na barra. */
+    if (!haOQueContinuar(memoria())) return;
+    jaDecidiuOPreenchimento = true;
+    blocoDoAto.hidden = false;
+    blocoDoAto.open = true;
+    fecharMenu();
+  }
+
   function ajustarAoModo() {
     if (largo.matches) {
       if (blocoDoAto) { blocoDoAto.hidden = false; blocoDoAto.open = false; }
@@ -938,8 +995,13 @@ function scriptDoPainel(chave, escola) {
     .then(function () { return carregarAlunas(); })
     .then(function () { return carregarTurmas(); })
     .then(function () { return carregarPlanos(); })
-    .then(pintar);
+    .then(function () { pintar(); abrirSeHaOQueContinuar(); });
   pintar();
+  /* A PRIMEIRA TENTATIVA, JÁ A SEGUIR. Quando o contexto vem restaurado e o professor já está na
+     barra — o caso normal de quem voltou à lista —, o depósito encontra-se sem esperar pelas
+     quatro cargas. Sem professor escolhido a chave não fecha, nada abre, e a flag continua por
+     pôr: a decisão passa para o fim da cadeia. */
+  abrirSeHaOQueContinuar();
 })();</script>`;
 }
 
@@ -1176,4 +1238,4 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
   };
 }
 
-module.exports = { pagina, FAMILIAS, turmaDaAluna, nomeDoProfessor, dia };
+module.exports = { pagina, FAMILIAS, listaDaPorta, turmaDaAluna, nomeDoProfessor, dia };
