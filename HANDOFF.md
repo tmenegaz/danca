@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T20:43:23-0300`
-Commit atual: `d635d98` — docs(estrutura): o HANDOFF regerado sobre a matriz por parâmetro
+Gerado em: `2026-10-26T20:46:52-0300`
+Commit atual: `df224d0` — fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no cabeçalho
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+df224d0 fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no cabeçalho
 d635d98 docs(estrutura): o HANDOFF regerado sobre a matriz por parâmetro
 2f1fd28 fix(ciclo-01): o parâmetro de medição manda na matriz, e o dado não muda
 a89a5c5 docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no formulário
@@ -97,7 +98,6 @@ e06d905 docs(registro): a publicação conferida ao ar, e o HANDOFF sobre ela
 fe71508 docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
 e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da correção
 8a7b4a5 fix(estrutura): a ação de cada formulário da Produção na fileira do professor
-a7f4490 docs(estrutura): o número medido da faixa do menu — 216px, e não 220
 ```
 
 ## Por professor
