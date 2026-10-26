@@ -380,12 +380,13 @@
           "porMarco": {
             "de": "marcos-por-aula",
             "opcoesDaTurma": true,
+            "disposicao": "parametros",
             "instrucao": "Marque, em cada objetivo, o que você vai observar para dizer «alcançado». Os parâmetros são o conteúdo do nível da sua turma."
           },
           "explicacao": {
             "oQueE": "O que você observa para saber se cada objetivo foi alcançado — escolhido do conteúdo do nível da turma, não escrito por cima.",
-            "preencher": "Uma linha por objetivo específico, com os passos e elementos do nível da sua turma para marcar. Marque o que serve de medida naquele objetivo. Se a sua turma ainda não tem conteúdo declarado, escreva no campo aberto.",
-            "porQue": "Sem o parâmetro, o objetivo vira intenção vaga — ele é o que torna o alcance verificável. E a lista ser a do nível da turma é o que faz a medição falar a mesma língua do que se ensina."
+            "preencher": "Uma linha por parâmetro, uma coluna por objetivo específico. Desça pelo parâmetro e marque as colunas em que ele serve de medida; o botão «todos» marca a linha inteira de uma vez, que é o caso comum. Se uma medida não estiver no nível da turma, abra «Acrescentar uma medida que não está no nível da turma», no fim.",
+            "porQue": "Sem o parâmetro, o objetivo vira intenção vaga — ele é o que torna o alcance verificável. E a lista ser a do nível da turma é o que faz a medição falar a mesma língua do que se ensina. O desenho é por parâmetro, e não por objetivo, porque o nome de cada um aparece UMA vez em vez de uma vez por objetivo: com três parâmetros dá igual, com vinte é a diferença entre ler e desistir."
           }
         },
         {

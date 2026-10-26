@@ -26066,3 +26066,77 @@ erro — «regenere o pacote» — não se resolve com o comando que ela sugere.
 - **`alinhamento` continua por confirmar com o PO** (por aula ou por ciclo; bloco que abre ou que
   avisa; se é proveniência que muda a âncora ou estado de tela). É a única pergunta da lista
   antiga que continua aberta.
+
+## 26/10/2026 — O parâmetro de medição passa a mandar na matriz, e o dado não muda
+
+**O que motivou.** «A gente precisa de um layout melhor. Vai que o professor queira usar uns 20.
+Fica bem complexo isso.» A matriz do parâmetro de medição tinha uma linha por **objetivo** e
+escrevia o nome de cada parâmetro em **todas** as linhas. Com os três parâmetros do teste lê-se;
+com vinte, são sessenta caixas e sessenta nomes, e para saber se o parâmetro 14 está marcado no
+objetivo 3 a pessoa desce e cruza duas direções. Medido no modelo, com navegador: a 390 px de
+largura a matriz de hoje mede **2631 px** de altura e a página desaba para uma coluna; a do
+parâmetro mede **1293 px** e não muda entre 1280 e 768.
+
+**O que foi decidido.**
+
+- **A disposição é do CONTEÚDO, não da tela.** `porMarco.disposicao: "parametros"` no conteúdo do
+  plano escolhe a tabela do avesso: uma linha por parâmetro, uma coluna curta por objetivo, e um
+  botão «todos» por linha. Sem a chave, a matriz de caixinhas fica como está — o PO não muda, e
+  nenhuma outra família precisa saber que esta disposição existe.
+- **O DADO NÃO MUDA, e é isto que torna a mudança pequena.** As caixas continuam a ser
+  `data-marco` com o valor do parâmetro; é o **mesmo** `lerPorMarco`, sem uma linha de alteração,
+  que lê a tabela. A resposta continua a sair `[{marco, marcados}]`. Mudou o desenho, não o
+  contrato.
+- **O «todos» é um interruptor da linha inteira**, não um «desfazer»: o primeiro clique marca
+  todos os objetivos daquele parâmetro, o segundo desmarca todos. Não redesenha a tela — mexe nas
+  caixas e grava —, porque redesenhar perderia a rolagem horizontal em que a pessoa está.
+- **O campo aberto não se perdeu**: desce para um resumo fechado, com uma linha por objetivo.
+- **Sem conteúdo no nível da turma**, a tela não devolve o aviso da outra disposição: desenha o
+  campo aberto de cada objetivo. A mensagem antiga dizia «escreva no campo aberto, abaixo» e não
+  o desenhava — agora desenha.
+
+**Onde entrou.**
+
+- `porta/plano/conteudo/plano.json` — `disposicao: "parametros"` no `porMarco` de
+  `aula-1-parametro`, e a explicação (`preencher`, `porQue`) reescrita para o desenho novo.
+- `porta/index.html` — `porParametrosDoNo` (a tabela) e as duas peças que as disposições agora
+  PARTILHAM: `linhasEOpcoesDoNo` (as linhas e as opções) e `estadoDoPorMarco` (o que está marcado
+  e o que foi escrito à mão). Duas disposições com duas cópias da regra divergiriam num dia. Mais
+  o ramo do clique para `[data-todos-parametro]`, e as peças `.matriz-parametros`,
+  `table.tabela-parametros` e `.legenda-objetivos` na folha da própria página.
+- `experimentos/provar-parametros-por-parametro.js` — **nova**, 14 asserções (ver abaixo).
+- `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`) — a porta
+  copiada para dentro dos pacotes foi atualizada.
+
+**Medido.** `provar-parametros-por-parametro` **14/14**; `provar-teste` 39 (as duas asserções da
+etapa 2 continuam verdes); `provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis`
+12/12; `provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
+`provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `check-identidade` **0 erro**;
+`check-pacote` da `batata` **0 erro e 0 aviso**; âncora `--check` íntegra (`068ab0b…`).
+
+**Duas lições de bancada, que custaram tempo e ficam registadas.**
+
+1. **Os endpoints do bastidor devolvem o corpo PLANO.** O `buscarJSON` põe o corpo inteiro em
+   `dados`, e os chamadores leem `dados.turmas` / `dados.termos` / `dados.relacoes`. Uma prova
+   que responda `{dados: {turmas: […]}}` a mais entrega uma lista VAZIA — e a tela cai no caminho
+   de «não há conteúdo» sem dizer nada. Foi assim que a primeira redação da prova não desenhou
+   tabela nenhuma, e o sintoma se lê como «a funcionalidade não existe».
+2. **A página devolve à lista antes de ligar os botões.** `podePreencher` recusa o formulário sem
+   `contexto-turma` e chama `voltarParaALista()`; os ouvintes de clique são registados **depois**
+   dessa trava. Uma prova que abra a página com o contexto incompleto mede uma página já
+   abandonada — e um clique não faz nada por uma razão que não é a que se quer medir. A prova
+   semeia a turma entre os `await` do arranque, e tem um **controlo**: um botão que já existia
+   (`data-lista-add`) tem de funcionar; se ele também não funcionar, o que falta é o ouvinte.
+
+**O que ainda não está feito.**
+
+- **O cabeçalho só de leitura não foi implementado.** É a outra metade do modelo: escola,
+  professor, turma, frequência, duração, calendário e nº de aulas saem do roteiro (7 dos 26 nós) e
+  passam para o acordeão do alto, com escola e professor lidos de quem abriu a página. A decisão
+  está tomada; a execução não começou, e é maior do que esta: mexe na derivação do `## Contexto` e
+  na contagem dos obrigatórios.
+- **A `batata` não foi re-elicitada** com a disposição nova — o que muda para ela é só o desenho,
+  e o desenho vem do conteúdo, que é o mesmo para todas as escolas.
+- **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
+  `check-identidade` acusa um pacote por regerar assim que a fonte muda.
+- **`provar-plano-matriz.js` continua morto** (aponta para a escola `barra`, expurgada).

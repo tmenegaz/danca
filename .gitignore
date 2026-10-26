@@ -370,3 +370,18 @@ TRANSFERENCIA-IA.md
 # identificação duplicada saiu. O controle negativo dela lê a fonte de `HEAD` e confirma a
 # duplicação que ela guarda — sem isso, «conferi» seria a minha palavra.
 !experimentos/provar-objetivos-por-aula.js
+
+# A MATRIZ DO PARÂMETRO (26/10/2026). A prova é citada pelo REGISTRO («14 de 14») e pelo rodapé
+# `Auditoria:` do commit — e uma prova citada que não existe no clone é uma afirmação que ninguém
+# confere. É a mesma regra das anteriores: entra uma por uma, quando alguém decide que é prova.
+!experimentos/provar-parametros-por-parametro.js
+
+# O MODELO DO FORMULÁRIO (26/10/2026). É o ENTREGÁVEL de um pedido de decisão — a pesquisadora lê o
+# modelo e escolhe —, e um entregável que desaparece no clone não é entregável. Entram a FONTE e o
+# GERADOR; o `modelo.html` é gerado por ele e é autossuficiente (o CSS do projeto entra embutido,
+# não há assets a faltar), e os PNG são retratos que envelhecem à primeira edição.
+!experimentos/modelo-formulario/
+experimentos/modelo-formulario/*
+!experimentos/modelo-formulario/fonte.html
+!experimentos/modelo-formulario/gerar.js
+!experimentos/modelo-formulario/estilo-da-porta.css

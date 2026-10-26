@@ -496,6 +496,41 @@
   .marco-aberto { margin: .35rem 0 0; font-size: .85rem; color: var(--suave); }
   .marco-aberto input { width: 100%; box-sizing: border-box; margin-top: .2rem; }
   table.grelha button { font: .8rem/1 var(--ui); padding: .25rem .45rem; cursor: pointer; }
+
+  /* A MATRIZ POR PARÂMETRO (26/10/2026) — a disposição do avesso.
+   *
+   * O que ela resolve, medido no modelo: com 20 parâmetros e 3 objetivos, a matriz de caixinhas
+   * escreve o nome de cada parâmetro 3 vezes (60 nomes) e mede 2631 px de altura a 390 px de
+   * largura. Aqui o nome é escrito UMA vez, e um parâmetro novo é uma linha a mais.
+   *
+   * O QUE ELA NÃO PODE FAZER: transbordar a página. Um plano pode ter 26 objetivos, e 27 colunas
+   * não cabem em largura nenhuma — por isso o contentor rola DENTRO DE SI, em qualquer largura
+   * (a regra do `ciclo.css` que dá `overflow-x` à tabela só vale abaixo de 900 px, e aqui não
+   * basta). Fora do contentor, nada muda de largura. */
+  .matriz-parametros { overflow-x: auto; margin: .6rem 0 .4rem; border: 1px solid var(--borda-campo);
+    border-radius: var(--raio-2); background: var(--fundo); }
+  table.tabela-parametros { border-collapse: collapse; font-size: .9rem; margin: 0; width: auto; }
+  table.tabela-parametros th, table.tabela-parametros td { padding: .3rem .45rem;
+    border-bottom: 1px solid var(--borda-campo); text-align: center; }
+  table.tabela-parametros thead th { font: 600 .72rem/1.2 var(--ui); letter-spacing: .05em;
+    text-transform: uppercase; color: var(--suave); }
+  table.tabela-parametros thead th.parametro { text-align: left; }
+  table.tabela-parametros tbody th { text-align: left; font-weight: 400; color: var(--texto);
+    min-width: 10rem; }
+  table.tabela-parametros tbody tr:last-child th, table.tabela-parametros tbody tr:last-child td {
+    border-bottom: 0; }
+  table.tabela-parametros tbody tr:hover { background: var(--fundo-suave); }
+  table.tabela-parametros td.marca { width: 2.6rem; }
+  table.tabela-parametros input[type="checkbox"] { width: 1.05rem; height: 1.05rem; cursor: pointer; }
+  table.tabela-parametros button { font: .72rem/1 var(--ui); padding: .22rem .4rem; cursor: pointer; }
+  /* A LEGENDA das colunas: o número do objetivo no cabeçalho, o texto na lista — aberta quando
+   * são poucos, recolhida quando são muitos (26 linhas de legenda seriam maiores do que a
+   * matriz). É a mesma peça nos dois sítios onde ela serve. */
+  .legenda-objetivos { margin: .3rem 0 .6rem; font-size: .85rem; color: var(--suave); }
+  .legenda-objetivos summary { cursor: pointer; color: var(--suave); font-size: .85rem; }
+  .legenda-objetivos ol { margin: .35rem 0 0; padding-left: 1.4rem; }
+  .legenda-objetivos li { margin: .12rem 0; }
+  .legenda-objetivos .marco-aberto { font-size: .85rem; }
   /* A LISTA NUMERADA (o marco parcial): o número é do sistema, o texto é do
      professor. Cada item é uma linha — a fronteira do dado, não da prosa. */
   ul.lista-numerada { list-style: none; padding: 0; margin: .4rem 0 0; }
@@ -4129,30 +4164,39 @@ function marcosDoNo(marcos) {
  * (`opcoesDaTurma`, a relação turma↔conteúdo). O objetivo sem nenhuma marcação
  * NÃO entra — não se guarda linha vazia.
  */
-function porMarcoDoNo(no) {
+/*
+ * A RESOLUÇÃO COMUM das matrizes por marco: as LINHAS (os marcos) e as OPÇÕES (os blocos, ou
+ * os parâmetros da turma). Existe porque há DUAS disposições para a mesma matriz, e as duas
+ * precisam do mesmo material — se cada uma resolvesse as opções por si, a segunda perderia a
+ * regra num dia e ninguém daria por isso.
+ *
+ * Devolve `{ erro }` quando não há o que desenhar (sem marcos, sem turma), e
+ * `{ cfg, marcos, opcoes }` quando há — com `opcoes` VAZIO a significar «a turma não declarou
+ * conteúdo», e aí cada disposição decide o que fazer, que é coisa diferente nos dois casos.
+ */
+function linhasEOpcoesDoNo(no) {
   const cfg = no.porMarco || {};
   const marcos = marcosDoNo(RESPOSTAS.get(cfg.de));
   if (!marcos.length) {
-    return { html: '<p class="aviso">Preencha primeiro os ' + citacao('Marcos parciais') +
-      ' — os objetivos específicos são as linhas desta matriz.</p>', opcoes: [] };
+    return { erro: '<p class="aviso">Preencha primeiro os ' + citacao('Marcos parciais') +
+      ' — os objetivos específicos são as linhas desta matriz.</p>' };
   }
   let opcoes = [];
   if (cfg.opcoesDaTurma) {
     const t = turmaDoPlano();
     if (!t) {
-      return { html: '<p class="aviso">Escolha a turma em ' + citacao('Turmas observadas') +
-        ' — os parâmetros são o conteúdo do nível dela.</p>', opcoes: [] };
+      return { erro: '<p class="aviso">Escolha a turma em ' + citacao('Turmas observadas') +
+        ' — os parâmetros são o conteúdo do nível dela.</p>' };
     }
     opcoes = termosDaTurma(t.id);
-    if (!opcoes.length) {
-      return { html: '<p class="aviso">A turma ' + citacao(t.nome) +
-        ' ainda não tem conteúdo declarado na Produção — os parâmetros de medição vêm do nível dela. ' +
-        'Escreva no campo aberto, abaixo.</p>', opcoes: [] };
-    }
   } else {
     opcoes = Array.isArray(cfg.opcoes) ? cfg.opcoes : [];
   }
+  return { cfg, marcos, opcoes };
+}
 
+/* O que já está marcado, e o que foi escrito à mão em cada linha. */
+function estadoDoPorMarco(no, opcoes) {
   const atual = RESPOSTAS.get(no.id);
   const porMarco = new Map();
   for (const linha of Array.isArray(atual) ? atual : []) {
@@ -4165,6 +4209,19 @@ function porMarcoDoNo(no) {
     const fora = v.filter((x) => !opcoes.includes(x));
     if (fora.length) aberto.set(n, fora.join(', '));
   }
+  return { porMarco, aberto };
+}
+
+function porMarcoDoNo(no) {
+  const resolvido = linhasEOpcoesDoNo(no);
+  if (resolvido.erro !== undefined) return { html: resolvido.erro, opcoes: [] };
+  const { cfg, marcos, opcoes } = resolvido;
+  if (!opcoes.length) {
+    return { html: '<p class="aviso">A turma do plano ainda não tem conteúdo declarado na ' +
+      'Produção — os parâmetros de medição vêm do nível dela. Escreva no campo aberto, ' +
+      'abaixo.</p>', opcoes: [] };
+  }
+  const { porMarco, aberto } = estadoDoPorMarco(no, opcoes);
 
   const linhas = marcos.map((texto, i) => {
     const n = i + 1;
@@ -4184,6 +4241,86 @@ function porMarcoDoNo(no) {
     ? '<p class="sub">' + md(cfg.instrucao) + '</p>'
     : '';
   return { html: instrucao + '<div class="matriz-marco">' + linhas.join('') + '</div>', opcoes };
+}
+
+/*
+ * A MESMA MATRIZ, DO AVESSO — O PARÂMETRO MANDA (26/10/2026, decidido pela pesquisadora).
+ *
+ * O que motivou. A matriz de caixinhas tem uma linha por objetivo e escreve o nome de cada
+ * parâmetro em TODAS as linhas. Com os 3 parâmetros do teste lê-se; com os 20 que o professor
+ * pode querer, são 60 caixas e 60 nomes, e a pessoa desce e cruza duas direções para saber se o
+ * parâmetro 14 está marcado no objetivo 3. Medido no modelo: a 390 px de largura a matriz de
+ * hoje mede 2631 px de altura e a página desaba para uma coluna no telefone.
+ *
+ * O que muda AQUI, e o que NÃO muda. Muda a disposição: uma linha por PARÂMETRO (o nome escrito
+ * uma vez), uma coluna curta por objetivo, e um «todos» que marca a linha inteira — que é o caso
+ * comum, em que o mesmo parâmetro serve a todos os objetivos. NÃO muda o dado: as caixas
+ * continuam a ser `data-marco` com o valor do parâmetro, e é o MESMO `lerPorMarco` que as lê. A
+ * disposição é escolha do CONTEÚDO (`porMarco.disposicao`), não desta função: o núcleo não tem
+ * opinião sobre como um domínio se desenha.
+ *
+ * O QUE ACONTECE SEM CONTEÚDO NO NÍVEL. Não há linha de parâmetro nenhuma para desenhar. A tela
+ * NÃO devolve o aviso da outra disposição: desenha a lista dos objetivos com o campo aberto em
+ * cada um, que é o único caminho que resta a quem ainda não preencheu o nível — e é o que a
+ * mensagem antiga prometia («escreva no campo aberto, abaixo») sem o desenhar.
+ */
+function porParametrosDoNo(no) {
+  const resolvido = linhasEOpcoesDoNo(no);
+  if (resolvido.erro !== undefined) return { html: resolvido.erro };
+  const { cfg, marcos, opcoes } = resolvido;
+  const { porMarco, aberto } = estadoDoPorMarco(no, opcoes);
+
+  const abertos = marcos.map((texto, i) => {
+    const n = i + 1;
+    return '<p class="marco-aberto"><label><span class="numero">' + n + '</span> ' + md(texto) +
+      ' — <input type="text" data-marco-aberto="' + n + '" value="' +
+      escapar(aberto.get(n) || '') + '" placeholder="outra medida"></label></p>';
+  }).join('');
+
+  if (!opcoes.length) {
+    return { html: '<p class="aviso">A turma do plano ainda não tem conteúdo declarado na ' +
+      'Produção — os parâmetros de medição vêm do nível dela. Escreva a medida de cada ' +
+      'objetivo abaixo.</p><div class="matriz-marco">' + abertos + '</div>' };
+  }
+
+  // O CABEÇALHO: o número do objetivo, e o texto dele no `title` — a coluna é estreita e o
+  // objetivo é uma frase. Com poucos objetivos a lista abre à vista; com muitos, fica em
+  // resumo, para a legenda não ocupar mais do que a matriz.
+  const cabecalhos = marcos.map((texto, i) =>
+    '<th class="objetivo" title="' + escapar(texto) + '" data-marco-col="' + (i + 1) + '">' +
+    (i + 1) + '</th>').join('');
+
+  const corpo = opcoes.map((o, i) => {
+    const celulas = marcos.map((_, j) => {
+      const n = j + 1;
+      const marcados = porMarco.get(n) || [];
+      return '<td class="marca"><input type="checkbox" data-marco="' + n + '" value="' +
+        escapar(o) + '" aria-label="' + escapar(o) + ' no objetivo ' + n + '"' +
+        (marcados.indexOf(o) !== -1 ? ' checked' : '') + '></td>';
+    }).join('');
+    return '<tr data-parametro-linha="' + i + '"><th scope="row">' + md(o) + '</th>' + celulas +
+      '<td class="marca"><button type="button" data-todos-parametro="' + i + '"' +
+      ' title="marcar ' + escapar(o) + ' em todos os objetivos">todos</button></td></tr>';
+  }).join('');
+
+  const legendaAberta = marcos.length <= 8 ? ' open' : '';
+  const legenda = '<details class="legenda-objetivos"' + legendaAberta + '><summary>' +
+    (marcos.length === 1 ? 'A coluna é o objetivo:' : 'As ' + marcos.length +
+    ' colunas são os objetivos, na ordem da lista:') + '</summary><ol>' +
+    marcos.map((t) => '<li>' + md(t) + '</li>').join('') + '</ol></details>';
+
+  const instrucao = cfg.instrucao ? '<p class="sub">' + md(cfg.instrucao) + '</p>' : '';
+  const tabela = '<div class="matriz-parametros"><table class="tabela-parametros"><thead><tr>' +
+    '<th class="parametro">Parâmetro</th>' + cabecalhos +
+    '<th class="marca"></th></tr></thead><tbody>' + corpo + '</tbody></table></div>';
+
+  // O CAMPO ABERTO não se perdeu: ele desce para um resumo fechado, com uma linha por objetivo.
+  // Quem não precisa dele nunca o abre; quem precisa (uma medida que não está no nível da turma)
+  // continua a ter onde a escrever.
+  const outros = '<details class="legenda-objetivos"><summary>Acrescentar uma medida que não ' +
+    'está no nível da turma</summary>' + abertos + '</details>';
+
+  return { html: instrucao + legenda + tabela + outros, opcoes };
 }
 
 /*
@@ -5126,7 +5263,11 @@ function renderPergunta() {
   if (no.registro) {
     blocos.push(registroDoNo(no));
   } else if (no.porMarco) {
-    blocos.push(porMarcoDoNo(no).html);
+    // A DISPOSIÇÃO é do CONTEÚDO (`porMarco.disposicao`): «parametros» desenha a matriz do
+    // avesso, com uma linha por parâmetro e uma coluna por objetivo. Sem a chave, é a matriz
+    // de caixinhas de sempre — e uma família que a declare não muda nada nas outras.
+    blocos.push((no.porMarco.disposicao === 'parametros'
+      ? porParametrosDoNo(no) : porMarcoDoNo(no)).html);
   } else if (no.aulasDoObjetivo) {
     blocos.push(aulasDoObjetivoDoNo(no).html);
   } else if (no.daTurma && daTurma !== undefined) {
@@ -7584,6 +7725,22 @@ async function iniciar() {
     const delItem = evento.target.closest('[data-lista-del]');
     if (delItem) {
       mudarItensDaLista('del', Number(delItem.dataset.listaDel));
+      return;
+    }
+    // O «TODOS» DA MATRIZ POR PARÂMETRO (26/10/2026). Marca — ou desmarca — a linha inteira
+    // daquele parâmetro. Não redesenha: mexe nas caixas e grava, e é o MESMO `lerPorMarco` que
+    // lê o resultado, porque as caixas continuam a ser `data-marco`. Redesenhar aqui perderia a
+    // rolagem horizontal em que a pessoa está — e é uma tabela que se rola.
+    const todos = evento.target.closest('[data-todos-parametro]');
+    if (todos) {
+      const linha = todos.closest('tr');
+      const caixas = linha ? Array.prototype.slice.call(linha.querySelectorAll('input[data-marco]')) : [];
+      if (caixas.length) {
+        const marcar = caixas.some((c) => !c.checked);
+        for (const c of caixas) c.checked = marcar;
+        todos.textContent = marcar ? 'nenhum' : 'todos';
+        gravarRespostaDoNo(MAPA.nos[INDICE]);
+      }
     }
   });
 

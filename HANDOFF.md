@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T13:27:22-0300`
-Commit atual: `743db9e` — fix(ciclo-01): o formulário pergunta em que aula cada objetivo é perseguido
+Gerado em: `2026-10-26T20:35:13-0300`
+Commit atual: `a89a5c5` — docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no formulário
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+a89a5c5 docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no formulário
 743db9e fix(ciclo-01): o formulário pergunta em que aula cada objetivo é perseguido
 ba871e8 docs(registro): o objetivo do ciclo e a régua única publicados, e o que se mediu ao ar
 e3d9297 chore(estrutura): regerar os índices derivados
@@ -97,7 +98,6 @@ e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da corre
 a7f4490 docs(estrutura): o número medido da faixa do menu — 216px, e não 220
 aa96a3c fix(estrutura): o menu da Produção fica congelado — `sticky` não serve nas telas de trabalho
 acfab1f fix(estrutura): o menu da Produção não rola com a página — o `sticky` estava anulado por uma linha
-d8f7137 refactor(estrutura): referências deixa de ser item do menu, e passa a ser documento de Planos
 ```
 
 ## Por professor
@@ -193,111 +193,81 @@ d8f7137 refactor(estrutura): referências deixa de ser item do menu, e passa a s
 
 ## Última entrada do REGISTRO
 
-## 26/10/2026 — O formulário passa a perguntar em que aula cada objetivo é perseguido
+## 26/10/2026 — O parâmetro de medição passa a mandar na matriz, e o dado não muda
 
-**O que motivou.** A etapa 1 pôs a página a dizer a verdade e deixou uma dívida escrita na
-entrada anterior: «o formulário de elicitação não pergunta o modelo novo». A forma do documento
-já aceitava vários objetivos por aula — a coluna «Objetivos» dos marcos parciais é uma lista de
-números —, mas não havia por onde entrar. O resultado era o pior possível numa elicitação: o
-professor via a lista dos objetivos, via os blocos de cada um, e não tinha onde dizer que o
-objetivo 02 atravessa a aula 01 e a 02, ou que a aula 01 persegue dois. A relação ficava 1:1 por
-construção, e a `batata` só teve o modelo novo porque foi migrada à mão.
+**O que motivou.** «A gente precisa de um layout melhor. Vai que o professor queira usar uns 20.
+Fica bem complexo isso.» A matriz do parâmetro de medição tinha uma linha por **objetivo** e
+escrevia o nome de cada parâmetro em **todas** as linhas. Com os três parâmetros do teste lê-se;
+com vinte, são sessenta caixas e sessenta nomes, e para saber se o parâmetro 14 está marcado no
+objetivo 3 a pessoa desce e cruza duas direções. Medido no modelo, com navegador: a 390 px de
+largura a matriz de hoje mede **2631 px** de altura e a página desaba para uma coluna; a do
+parâmetro mede **1293 px** e não muda entre 1280 e 768.
 
 **O que foi decidido.**
 
-- **O campo novo é do ciclo, e é uma linha por objetivo.** `aula-de-cada-objetivo` guarda
-  `{objetivo, aulas}` — o número do objetivo (que é o da lista, escrito pelo sistema) e o número
-  ou números de aula em que ele é perseguido.
-- **O padrão é proposto, não perguntado.** O objetivo N traz a aula N já escrita. Só há dois
-  casos em que se muda, e são os dois que a pesquisadora descreveu: dois objetivos na mesma aula
-  (repete-se o número) e um objetivo em duas aulas («01, 03»). Vinte e seis objetivos não podem
-  ser vinte e seis decisões.
-- **Número vazio cai no padrão.** Um objetivo sem aula é um objetivo que não se persegue, e isso
-  não se escreve: a leitura devolve sempre pelo menos a aula do próprio número.
-- **Os dois blocos antigos mudaram de nome, não de sítio.** «Marcos parciais por aula» passa a
-  «Objetivos específicos do ciclo» e «Estrutura de cada aula» a «Onde cada objetivo é
-  trabalhado». Os `id` ficam (`marcos-por-aula`, `estrutura-de-cada-aula`): renomeá-los mexeria
-  em sete ficheiros de derivação, no PO e nos experimentos, e o que estava errado era o rótulo,
-  não a chave.
-- **O bloco do volume passou a chamar-se «Blocos da aula e distribuição do volume»**, como na
-  página do plano desde a etapa 1. O formulário e a página passam a usar as mesmas palavras para
-  a mesma coisa.
+- **A disposição é do CONTEÚDO, não da tela.** `porMarco.disposicao: "parametros"` no conteúdo do
+  plano escolhe a tabela do avesso: uma linha por parâmetro, uma coluna curta por objetivo, e um
+  botão «todos» por linha. Sem a chave, a matriz de caixinhas fica como está — o PO não muda, e
+  nenhuma outra família precisa saber que esta disposição existe.
+- **O DADO NÃO MUDA, e é isto que torna a mudança pequena.** As caixas continuam a ser
+  `data-marco` com o valor do parâmetro; é o **mesmo** `lerPorMarco`, sem uma linha de alteração,
+  que lê a tabela. A resposta continua a sair `[{marco, marcados}]`. Mudou o desenho, não o
+  contrato.
+- **O «todos» é um interruptor da linha inteira**, não um «desfazer»: o primeiro clique marca
+  todos os objetivos daquele parâmetro, o segundo desmarca todos. Não redesenha a tela — mexe nas
+  caixas e grava —, porque redesenhar perderia a rolagem horizontal em que a pessoa está.
+- **O campo aberto não se perdeu**: desce para um resumo fechado, com uma linha por objetivo.
+- **Sem conteúdo no nível da turma**, a tela não devolve o aviso da outra disposição: desenha o
+  campo aberto de cada objetivo. A mensagem antiga dizia «escreva no campo aberto, abaixo» e não
+  o desenhava — agora desenha.
 
 **Onde entrou.**
 
-- `motor/nucleo/elicitar.js` — `aulasDoObjetivo` entra na lista fechada do `descritores()`. É a
-  lista que já engoliu campos em silêncio: o que não está nela chega ao navegador sem a marca, o
-  nó cai no texto livre e ninguém dá por isso.
-- `porta/index.html` — o desenho e a leitura do nó (`aulasDoObjetivoDoNo`, `lerAulasDoObjetivo`),
-  e os dois despachos (render e leitura). A lista numerada perde o «marco parcial» do rótulo e do
-  exemplo: agora ela numera objetivos, em qualquer bloco do plano.
-- `porta/plano/conteudo/plano.json` — o bloco 3 vira «Objetivos específicos do ciclo», com a lista
-  e o campo novo; o bloco 4, «Onde cada objetivo é trabalhado», com a explicação que separa o
-  destino do objetivo da estrutura da aula; o bloco 5, «Blocos da aula e distribuição do volume».
-- `motor/nucleo/derivar-plano-ciclo.js` — `objetivosDoEnvelope` lê a relação e cada objetivo passa
-  a ter `aulas`; `tabelaDeMarcos` monta as linhas **por aula** a partir dela (o marco da aula é o
-  texto dos objetivos que ela persegue). O caminho legado é preservado: prosa numerada («01:
-  marco») continua a mandar pela posição, e um envelope sem a resposta nova continua a sair 1:1.
-- `experimentos/provar-objetivos-por-aula.js` — secção 10: o mapa SERVIDO traz a chave nova e
-  aponta-a à lista; a derivação honra dois objetivos numa aula e um em duas; sem a resposta, o
-  padrão 1:1 mantém-se.
-- `experimentos/provar-teste.js` — o bloco abre com uma linha por objetivo e a aula proposta
-  escrita, e ler a tela guarda o que está lá («01, 02» são duas aulas).
+- `porta/plano/conteudo/plano.json` — `disposicao: "parametros"` no `porMarco` de
+  `aula-1-parametro`, e a explicação (`preencher`, `porQue`) reescrita para o desenho novo.
+- `porta/index.html` — `porParametrosDoNo` (a tabela) e as duas peças que as disposições agora
+  PARTILHAM: `linhasEOpcoesDoNo` (as linhas e as opções) e `estadoDoPorMarco` (o que está marcado
+  e o que foi escrito à mão). Duas disposições com duas cópias da regra divergiriam num dia. Mais
+  o ramo do clique para `[data-todos-parametro]`, e as peças `.matriz-parametros`,
+  `table.tabela-parametros` e `.legenda-objetivos` na folha da própria página.
+- `experimentos/provar-parametros-por-parametro.js` — **nova**, 14 asserções (ver abaixo).
 - `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`) — a porta
   copiada para dentro dos pacotes foi atualizada.
 
-**Medido.** `provar-objetivos-por-aula` **51/51** (eram 44). `provar-teste` **39 verificações**
-(eram 37). `provar-aula-e-plano-legiveis` 12/12; `provar-publicacao-da-escola` 55/55;
-`provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `provar-porta-sem-contexto`
-44/44; `check-identidade` **0 erro**; `check-pacote` da `batata` **0 erro e 0 aviso**; âncora
-`--check` íntegra (`068ab0b…`, «cadeia intacta»).
+**Medido.** `provar-parametros-por-parametro` **14/14**; `provar-teste` 39 (as duas asserções da
+etapa 2 continuam verdes); `provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis`
+12/12; `provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
+`provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `check-identidade` **0 erro**;
+`check-pacote` da `batata` **0 erro e 0 aviso**; âncora `--check` íntegra (`068ab0b…`).
 
-**A porta copiada é uma cópia, e o circuito sabe disso.** A `porta/index.html` vive também dentro
-de cada pacote (`plano-observacao/`), e a checagem de identidade compara-a byte a byte com a
-fonte. Mudar a porta, portanto, **quebra o circuito de todos os pacotes** até eles serem
-regerados — e o **pacote-zero** (o que `criar-escola.sh` deixa antes da elicitação) **não tem
-`DOCS`**, pelo que `gerar-ciclo.sh` recusa regerá-lo. Nesse caso o que o gerador faz é
-`cp -R porta/. <pacote>/plano-observacao/` e, no mesmo passo, injetar o nav da escola no marcador
-`<!-- NAV -->`; foi isso que se repetiu à mão, e é a razão pela qual o `index.html` do pacote-zero
-**não** é igual à fonte (tem o nav dentro, e não o marcador). Fica registado porque a mensagem de
-erro — «regenere o pacote» — não se resolve com o comando que ela sugere.
+**Duas lições de bancada, que custaram tempo e ficam registadas.**
+
+1. **Os endpoints do bastidor devolvem o corpo PLANO.** O `buscarJSON` põe o corpo inteiro em
+   `dados`, e os chamadores leem `dados.turmas` / `dados.termos` / `dados.relacoes`. Uma prova
+   que responda `{dados: {turmas: […]}}` a mais entrega uma lista VAZIA — e a tela cai no caminho
+   de «não há conteúdo» sem dizer nada. Foi assim que a primeira redação da prova não desenhou
+   tabela nenhuma, e o sintoma se lê como «a funcionalidade não existe».
+2. **A página devolve à lista antes de ligar os botões.** `podePreencher` recusa o formulário sem
+   `contexto-turma` e chama `voltarParaALista()`; os ouvintes de clique são registados **depois**
+   dessa trava. Uma prova que abra a página com o contexto incompleto mede uma página já
+   abandonada — e um clique não faz nada por uma razão que não é a que se quer medir. A prova
+   semeia a turma entre os `await` do arranque, e tem um **controlo**: um botão que já existia
+   (`data-lista-add`) tem de funcionar; se ele também não funcionar, o que falta é o ouvinte.
 
 **O que ainda não está feito.**
 
-- **A estrutura própria de cada aula continua sem onde ser declarada.** O ciclo declara o padrão
-  (o quadro do volume) e a aula declara a sua quando difere — é a decisão, e o formulário ainda
-  não pergunta. A `aula-NN.md` imprime hoje o volume do ciclo com uma linha de total. É a
-  etapa 3.
-- **A `batata` não foi re-elicitada.** O campo novo não está no envelope dela (foi migrada à mão
-  na etapa 1), pelo que a derivação continua a usar o padrão 1:1 sobre ela. Nada muda na página
-  publicada; o que muda é que a próxima elicitação já pode dizer outra coisa.
-- **`provar-plano-matriz.js` está morto** — é um ficheiro local (fora do Git, em `experimentos/`)
-  que aponta para `professores/leticia/ciclos/ciclo-01-barra`, escola expurgada em `67ddfa0`. A
-  guarda que ele fazia (a chave que morre no `descritores()`) foi trazida para a prova versionada,
-  na secção 10.
+- **O cabeçalho só de leitura não foi implementado.** É a outra metade do modelo: escola,
+  professor, turma, frequência, duração, calendário e nº de aulas saem do roteiro (7 dos 26 nós) e
+  passam para o acordeão do alto, com escola e professor lidos de quem abriu a página. A decisão
+  está tomada; a execução não começou, e é maior do que esta: mexe na derivação do `## Contexto` e
+  na contagem dos obrigatórios.
+- **A `batata` não foi re-elicitada** com a disposição nova — o que muda para ela é só o desenho,
+  e o desenho vem do conteúdo, que é o mesmo para todas as escolas.
 - **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
-  `check-identidade` acusa um pacote por regerar assim que a fonte muda. Cada escola se atualiza
-  quando for regerada.
-- **`alinhamento` continua por confirmar com o PO** (por aula ou por ciclo; bloco que abre ou que
-  avisa; se é proveniência que muda a âncora ou estado de tela). É a única pergunta da lista
-  antiga que continua aberta.
+  `check-identidade` acusa um pacote por regerar assim que a fonte muda.
+- **`provar-plano-matriz.js` continua morto** (aponta para a escola `barra`, expurgada).
 
 ## O que está pendente
-
-## 26/10/2026 — O botão que grava não encosta no campo: a fileira do professor, nos cinco formulários
-
-
-- **`provar-producao.js` reprova uma asserção, e ela não é do produto:** «o item do menu fica
-  marcado». A prova lê `className === "ativo"` no DOM falso da bancada, e o `mostrarSecao` passou a
-  usar `classList.add`. Na página real, medida no navegador, o item tem `class="ativo"` e
-  `aria-current="page"` quando o hash é `#professores`. A bancada precisa de ensinar `classList` ao
-  DOM falso — fica pendente, e não se cala o resultado.
-- **A regra `+` da folha continua frágil para o próximo que puser um bloco entre o campo e a ação.**
-  A fileira resolve os cinco formulários de hoje; um sexto tem de nascer com ela. Enquanto a folha
-  estiver congelada, a defesa é a prova e o catálogo, não uma regra de CSS mais generosa.
-- **O `.par-botoes` continua declarado na página, e não na folha.** Se ele se repetir fora da
-  Produção, sobe para `tools/templates/ciclo.css` — e aí o congelamento pede motivo declarado e
-  commit próprio.
 
 ## 26/10/2026 — A porta não se abre por um endereço sem ato, e o índice deixa de mandar para fora da Área do Professor
 
@@ -379,6 +349,20 @@ erro — «regenere o pacote» — não se resolve com o comando que ela sugere.
 - **`alinhamento` continua por confirmar com o PO** (por aula ou por ciclo; bloco que abre ou que
   avisa; se é proveniência que muda a âncora ou estado de tela). É a única pergunta da lista
   antiga que continua aberta.
+
+## 26/10/2026 — O parâmetro de medição passa a mandar na matriz, e o dado não muda
+
+
+- **O cabeçalho só de leitura não foi implementado.** É a outra metade do modelo: escola,
+  professor, turma, frequência, duração, calendário e nº de aulas saem do roteiro (7 dos 26 nós) e
+  passam para o acordeão do alto, com escola e professor lidos de quem abriu a página. A decisão
+  está tomada; a execução não começou, e é maior do que esta: mexe na derivação do `## Contexto` e
+  na contagem dos obrigatórios.
+- **A `batata` não foi re-elicitada** com a disposição nova — o que muda para ela é só o desenho,
+  e o desenho vem do conteúdo, que é o mesmo para todas as escolas.
+- **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
+  `check-identidade` acusa um pacote por regerar assim que a fonte muda.
+- **`provar-plano-matriz.js` continua morto** (aponta para a escola `barra`, expurgada).
 
 ## Pendências anteriores (índice)
 
@@ -666,6 +650,7 @@ erro — «regenere o pacote» — não se resolve com o comando que ela sugere.
 - **26/10/2026** — Referências deixa de ser um item do menu, e passa a ser um… → `REGISTRO.md` L25246
 - **26/10/2026** — O menu da Produção não rola com a página: era o `sticky`… → `REGISTRO.md` L25331
 - **26/10/2026** — O menu da Produção fica congelado: `sticky` não serve, e a… → `REGISTRO.md` L25384
+- **26/10/2026** — O botão que grava não encosta no campo: a fileira do… → `REGISTRO.md` L25437
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

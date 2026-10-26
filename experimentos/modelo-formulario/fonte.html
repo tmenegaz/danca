@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plano de ensino — modelo da etapa 3</title>
+<link rel="icon" href="../../tools/templates/marca/favicon.svg">
+<link rel="stylesheet" href="../../tools/templates/ciclo.css">
+<link rel="stylesheet" href="estilo-da-porta.css">
+<style>
+/* ---------------------------------------------------------------------------
+   SÓ DO MODELO. Não é peça do produto: existe para haver ESPAÇO para ler.
+   O formulário de verdade é denso porque é uma ferramenta de trabalho; um
+   modelo que se olha uma vez precisa do contrário — ar, e a explicação ao lado.
+   --------------------------------------------------------------------------- */
+body { background: var(--fundo); }
+/* O `ciclo.css` põe `main` numa GRELHA de duas colunas (conteúdo + barra lateral de 17rem).
+   O modelo não é um documento do ciclo: sem esta linha, uma secção caía na coluna de 512px e a
+   seguinte na de 272px, e a página lia-se como uma tira estreita. A especificidade de `.modelo`
+   vence a de `main`, e o modelo passa a ser uma coluna só. */
+.modelo { display: block; max-width: 54rem; margin: 0 auto; padding: 3rem 1.5rem 8rem;
+  font-size: 1.02rem; line-height: 1.62; }
+.modelo > header { margin: 0 0 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--borda-campo); }
+.modelo > header h1 { margin: 0 0 .6rem; font-size: 1.7rem; line-height: 1.25; }
+.modelo > header .linha-fina { margin: 0; color: var(--suave); max-width: 40rem; }
+.etiqueta-modelo { display: inline-block; font: .7rem/1 var(--ui); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--suave); border: 1px solid var(--borda-campo);
+  border-radius: 999px; padding: .3rem .6rem; vertical-align: middle; }
+.etiqueta-modelo.destaque { color: var(--fundo); background: var(--texto); border-color: var(--texto); }
+
+.bloco { margin: 0 0 4rem; }
+.bloco > h2 { font-size: 1.25rem; margin: 0 0 .5rem; display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+.bloco > h2 .num { color: var(--suave); font-size: 1rem; }
+.bloco > .porque { margin: 0 0 2rem; color: var(--suave); max-width: 40rem; }
+.bloco > .porque b { color: var(--texto); }
+
+.cartao { border: 1px solid var(--borda-campo); border-radius: var(--raio-2);
+  padding: 2rem; margin: 0 0 2.5rem; background: var(--fundo-suave); }
+.cartao > h3 { margin: 0 0 .1rem; font-size: 1.1rem; }
+.cartao > .o-que-e { margin: .5rem 0 1.5rem; color: var(--suave); max-width: 40rem; }
+.cartao > .o-que-e b { color: var(--texto); }
+.cartao > .amostra { margin: 0 0 1.75rem; padding: 1.25rem 1.5rem; background: var(--fundo);
+  border-left: 3px solid var(--borda-campo); border-radius: 0 var(--raio-1) var(--raio-1) 0; }
+.cartao > .amostra .rotulo { display: block; font: .7rem/1 var(--ui); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--suave); margin-bottom: .9rem; }
+.cartao > .balanco { margin: 1.75rem 0 0; display: grid; gap: .8rem; grid-template-columns: 1fr 1fr; }
+.cartao > .balanco > div { padding: 1rem 1.25rem; background: var(--fundo); border-radius: var(--raio-1); }
+.cartao > .balanco h4 { margin: 0 0 .35rem; font-size: .78rem; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--suave); font-family: var(--ui); }
+.cartao > .balanco p { margin: 0; font-size: .95rem; }
+.cartao > .medida { margin: 1.5rem 0 0; font-size: .95rem; color: var(--suave);
+  border-top: 1px dashed var(--borda-campo); padding-top: .9rem; }
+.cartao > .medida b { color: var(--texto); }
+.recomendada { border-color: var(--texto); background: var(--fundo); }
+
+.travado { color: var(--suave); }
+.travado b { color: var(--texto); font-weight: 600; }
+
+.legenda { margin: 0 0 1rem; font-size: .88rem; color: var(--suave); }
+
+/* O conteúdo dos três desenhos: os mesmos 20 parâmetros. */
+.matriz-a { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .2rem; }
+.tabela-b { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.tabela-b th { text-align: left; font: .72rem/1 var(--ui); letter-spacing: .07em;
+  text-transform: uppercase; color: var(--suave); padding: .5rem .4rem; border-bottom: 1px solid var(--borda-campo); }
+.tabela-b th.centro { text-align: center; width: 4.2rem; }
+.tabela-b td { padding: .34rem .4rem; border-bottom: 1px solid var(--borda-campo); }
+.tabela-b td.centro { text-align: center; }
+.tabela-b tbody tr:hover { background: var(--fundo-suave); }
+.tabela-b .marca { display: inline-block; width: 1.05rem; height: 1.05rem; border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-1); background: var(--fundo); vertical-align: middle; }
+.tabela-b .marca.on { background: var(--texto); border-color: var(--texto); position: relative; }
+.tabela-b .marca.on::after { content: ""; position: absolute; left: .28rem; top: .1rem; width: .3rem; height: .55rem;
+  border-right: 2px solid var(--fundo); border-bottom: 2px solid var(--fundo); transform: rotate(42deg); }
+.objetivo-c { margin: 0 0 1.5rem; }
+.objetivo-c:last-child { margin-bottom: 0; }
+.objetivo-c .titulo { margin: 0 0 .6rem; font-size: .95rem; }
+.objetivo-c .titulo .n { display: inline-block; min-width: 1.3rem; color: var(--suave); }
+.fichas { display: flex; flex-wrap: wrap; gap: .45rem; }
+.ficha { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid var(--borda-campo);
+  border-radius: 999px; padding: .25rem .35rem .25rem .7rem; background: var(--fundo); font-size: .88rem; }
+.ficha button { font: .95rem/1 var(--ui); border: 0; background: transparent; color: var(--suave);
+  cursor: pointer; padding: .1rem .3rem; border-radius: 999px; }
+.ficha button:hover { color: var(--falha); background: var(--fundo-suave); }
+
+@media (max-width: 640px) {
+  .modelo { padding: 2rem 1rem 6rem; }
+  .cartao { padding: 1.25rem; }
+  .cartao > .balanco { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="modelo">
+
+<header>
+  <h1>O formulário do plano de ensino<br>e a matriz dos parâmetros de medição</h1>
+  <p class="linha-fina">Modelo para você olhar antes de eu implementar. Três partes: o que sai do
+  roteiro (só leitura), como os objetivos se organizam, e — a decisão que preciso de você —
+  <b>três desenhos para os parâmetros de medição</b>, todos com os mesmos 20 parâmetros, para se
+  comparar.</p>
+</header>
+
+<!-- ================================================================ 1 ======== -->
+<section class="bloco" id="cabecalho">
+  <h2><span class="num">1</span> O que é do ciclo, e não se pergunta
+    <span class="etiqueta-modelo">decidido</span></h2>
+  <p class="porque">Escola, professor responsável, turma, frequência, duração, calendário e número de
+  aulas <b>não são perguntas</b> — vêm do cadastro da escola e do plano. Hoje são sete passos do
+  roteiro que o professor atravessa clicando em «próximo» sem responder nada. Passam a ser
+  <b>um acordeão fechado no alto</b>: quem quiser conferir abre; quem não quiser, nunca clica.</p>
+
+  <div class="cartao">
+    <div class="barra" style="border-radius: var(--raio-2); overflow: hidden; margin: 0 0 1.5rem;">
+      <details class="ctx-ato">
+        <summary><span class="ctx-seta">▸</span>Do que se trata este plano
+          <span class="ctx-resumo">Escola Batata · Cafe No Bule · Ciclo 01 · 26 aulas · 2×/semana</span></summary>
+        <div class="ctx-campos">
+          <span class="campo"><label>espaço · escola</label>
+            <span class="travado"><b>Escola Batata</b></span></span>
+          <span class="campo"><label>professor responsável</label>
+            <span class="travado"><b>Cafe No Bule</b></span></span>
+          <span class="campo ctx-turma"><label>turma observada</label>
+            <span class="travado"><b>Balé Nível 2 — Teste 2</b></span></span>
+          <span class="campo"><label>frequência semanal</label>
+            <span class="travado"><b>2×/semana</b> — terças e quintas</span></span>
+          <span class="campo"><label>duração por aula</label>
+            <span class="travado"><b>60 min</b> nas terças · <b>75 min</b> nas quintas</span></span>
+          <span class="campo"><label>número total de aulas</label>
+            <span class="travado"><b>26</b> — calculado do calendário</span></span>
+          <span class="campo"><label>calendário do ciclo</label>
+            <span class="travado"><b>02/02/2027 → 29/04/2027</b></span></span>
+          <span class="campo"><label>volume de trabalho</label>
+            <span class="travado"><b>3 a 6</b> séries por aula</span></span>
+        </div>
+      </details>
+    </div>
+    <p class="medida" style="margin-top:0; border-top:0; padding-top:0">O acordeão está
+    <b>fechado</b> — clique nele para ver o que há dentro. É assim que ele nasce.</p>
+  </div>
+
+  <p class="porque"><b>Medido no formulário de hoje:</b> o plano tem <b>26</b> nós, e <b>7</b> são só
+  leitura. Quatro já se leem do cadastro da turma; os outros três (escola, professor, turma) ainda se
+  escrevem à mão. Com os sete fora do roteiro, o plano passa de <b>26</b> a <b>19</b> passos.</p>
+</section>
+
+<!-- ================================================================ 2 ======== -->
+<section class="bloco" id="objetivos">
+  <h2><span class="num">2</span> O objetivo geral, e os específicos logo abaixo dele
+    <span class="etiqueta-modelo">decidido</span></h2>
+  <p class="porque">O objetivo geral é o único texto do ciclo que o professor escreve à mão. Os
+  objetivos específicos são as linhas numeradas. <b>O objetivo geral fica repetido em cima delas</b>,
+  para não haver ida e volta. Quantidade livre: o botão acrescenta, nada conta.</p>
+
+  <div class="cartao">
+    <div class="caixa" style="margin-bottom:1.5rem">
+      <div class="titulo-do-no"><span class="n">1</span> Objetivo geral do ciclo
+        <span class="selo obrig">obrigatório</span></div>
+      <p style="margin:.5rem 0 0">Consolidar o alinhamento e a transferência de peso na turma Balé
+      Nível 2 — Teste 2, com repertório de balé clássico e leitura de musicalidade.</p>
+    </div>
+
+    <div class="caixa">
+      <div class="titulo-do-no"><span class="n">2</span> Objetivos específicos do ciclo
+        <span class="selo obrig">obrigatório</span></div>
+
+      <p class="amostra" style="margin:1rem 0 1.25rem">
+        <span class="rotulo">O objetivo geral do ciclo, repetido aqui — para não voltar atrás</span>
+        «Consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com
+        repertório de balé clássico e leitura de musicalidade.»
+      </p>
+
+      <ul class="lista-numerada" style="list-style:none; padding:0; margin:0 0 .75rem">
+        <li class="item-numerado"><span class="numero">1</span>
+          <input type="text" value="Reconhecer o apoio e alinhar o eixo vertical"><button type="button">−</button></li>
+        <li class="item-numerado"><span class="numero">2</span>
+          <input type="text" value="Transferir o peso entre os pés sem perder o alinhamento"><button type="button">−</button></li>
+        <li class="item-numerado"><span class="numero">3</span>
+          <input type="text" value="Sustentar a linha do movimento com a respiração da frase musical"><button type="button">−</button></li>
+      </ul>
+      <p class="linha-acao" style="margin:0 0 1.5rem"><button type="button">+ Acrescentar objetivo</button></p>
+
+      <p class="legenda">E, para cada objetivo, em que aula ele é perseguido. O padrão vem escrito —
+      o objetivo 1 na aula 1 —, e só se muda quando for outra coisa:</p>
+      <div class="matriz-marco">
+        <div class="marco-linha"><div class="marco-texto"><span class="numero">1</span>
+          Reconhecer o apoio e alinhar o eixo vertical</div>
+          <p class="marco-aberto"><label>Aula(s): <input type="text" value="01" size="6"></label></p></div>
+        <div class="marco-linha"><div class="marco-texto"><span class="numero">2</span>
+          Transferir o peso entre os pés sem perder o alinhamento</div>
+          <p class="marco-aberto"><label>Aula(s): <input type="text" value="01, 02" size="6"></label></p></div>
+        <div class="marco-linha"><div class="marco-texto"><span class="numero">3</span>
+          Sustentar a linha do movimento com a respiração da frase musical</div>
+          <p class="marco-aberto"><label>Aula(s): <input type="text" value="03" size="6"></label></p></div>
+      </div>
+      <p class="legenda" style="margin:1rem 0 0">O objetivo <b>2</b> aparece como «01, 02» porque
+      atravessa duas aulas; o <b>1</b> e o <b>3</b> ficam na sua. Dois objetivos na mesma aula é só
+      repetir o número.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 3 ======== -->
+<section class="bloco" id="parametros">
+  <h2><span class="num">3</span> Os parâmetros de medição — <b>a decisão que preciso de você</b>
+    <span class="etiqueta-modelo destaque">escolher 1</span></h2>
+
+  <p class="porque">«Parâmetro de medição» é <b>o que se observa para dizer que o objetivo foi
+  alcançado</b> — «alinhamento do eixo vertical», «transferência de peso». No plano, cada objetivo
+  marca os parâmetros que servem para ele.</p>
+
+  <p class="porque">Hoje isso são <b>caixinhas</b>: uma linha por objetivo, um quadrado por
+  parâmetro. Com os <b>3</b> parâmetros do teste, lê-se bem. O problema é que o professor pode
+  querer <b>20</b> — e aí a mesma matriz vira uma parede. Os três desenhos abaixo mostram os
+  <b>mesmos 20 parâmetros nos mesmos 3 objetivos</b>, para você comparar só o desenho.</p>
+
+  <p class="porque" style="font-size:.95rem">Um aviso antes: <b>os três gravam o mesmo dado</b>.
+  «Este objetivo observa estes parâmetros» é a informação, e ela não muda de forma — muda só como se
+  pede. Escolher o desenho não custa nada em dado nenhum.</p>
+
+  <!-- ---------------------------------------------------------- A --------- -->
+  <div class="cartao" id="proposta-a">
+    <h3>A — a matriz de hoje, com 20</h3>
+    <p class="o-que-e"><b>O que é:</b> uma linha por objetivo; cada parâmetro é um quadrado para
+    marcar, e o nome do parâmetro aparece escrito em <b>todas</b> as linhas.</p>
+
+    <div class="amostra">
+      <span class="rotulo">Como se lê hoje, com 3 parâmetros — está bem</span>
+      <div class="matriz-marco">
+        <div class="marco-linha"><div class="marco-texto"><span class="numero">1</span> Reconhecer o apoio e alinhar o eixo vertical</div>
+          <div class="marco-opcoes">
+            <label class="opcao"><input type="checkbox" checked><span>Arabesque</span></label>
+            <label class="opcao"><input type="checkbox" checked><span>GT</span></label>
+            <label class="opcao"><input type="checkbox"><span>Rond de jambe</span></label>
+          </div></div>
+      </div>
+    </div>
+
+    <div class="amostra">
+      <span class="rotulo">O mesmo desenho, com os 20 — é aqui que deixa de servir</span>
+      <div id="a-linhas"></div>
+    </div>
+
+    <div class="balanco">
+      <div><h4>O que se ganha</h4><p>Nada muda no sistema — é o desenho que já existe.</p></div>
+      <div><h4>O que se perde</h4><p>Para saber se o parâmetro 14 está marcado no objetivo 3, a
+      pessoa desce e cruza duas direções. Com 20 × 3 são <b>60</b> quadrados.</p></div>
+    </div>
+    <p class="medida" id="medida-a"></p>
+  </div>
+
+  <!-- ---------------------------------------------------------- B --------- -->
+  <div class="cartao recomendada" id="proposta-b">
+    <h3>B — o parâmetro manda <span class="etiqueta-modelo destaque">a minha recomendação</span></h3>
+    <p class="o-que-e"><b>O que é:</b> a matriz vira do avesso. Uma linha por <b>parâmetro</b> — o
+    nome escrito <b>uma vez só</b> —, uma coluna curta por objetivo, e um botão «todos» que marca
+    aquele parâmetro nos três objetivos de uma vez.</p>
+
+    <div class="amostra">
+      <span class="rotulo">Como se lê: desça pelo parâmetro, e as colunas dizem em que objetivos ele vale</span>
+      <p class="legenda" style="margin:0 0 .75rem"><b>Ob. 1</b> = objetivo específico 1, e assim por diante.
+      O botão <b>todos</b> marca a linha inteira — é o caso comum, em que o parâmetro serve aos três.</p>
+      <div id="b-tabela"></div>
+    </div>
+
+    <div class="balanco">
+      <div><h4>O que se ganha</h4><p>O nome do parâmetro não se repete: lê-se <b>20</b> vezes, não
+      <b>60</b>. Um parâmetro novo é <b>uma linha a mais</b>, nunca uma coluna a mais. E marcar o
+      mesmo em todos é um clique.</p></div>
+      <div><h4>O que se perde</h4><p>Quando os objetivos têm conjuntos muito diferentes, lê-se na
+      vertical, coluna a coluna — em vez de numa frase por objetivo.</p></div>
+    </div>
+    <p class="medida" id="medida-b"></p>
+  </div>
+
+  <!-- ---------------------------------------------------------- C --------- -->
+  <div class="cartao" id="proposta-c">
+    <h3>C — por objetivo, com os parâmetros à vista</h3>
+    <p class="o-que-e"><b>O que é:</b> uma ficha por objetivo, com os parâmetros que ele usa
+    escritos por extenso e um <b>×</b> para tirar; um «+ parâmetro…» para acrescentar.</p>
+
+    <div class="amostra">
+      <span class="rotulo">Como se lê: como uma frase — «o objetivo 1 observa isto, isto e isto»</span>
+      <div id="c-fichas"></div>
+    </div>
+
+    <div class="balanco">
+      <div><h4>O que se ganha</h4><p>É o mais legível quando cada objetivo tem um conjunto
+      <b>próprio</b>, pequeno e diferente dos outros.</p></div>
+      <div><h4>O que se perde</h4><p>Quando os três usam os mesmos 20, o mesmo nome é lido
+      <b>três vezes</b> — 60 etiquetas, e a página fica comprida.</p></div>
+    </div>
+    <p class="medida" id="medida-c"></p>
+  </div>
+
+  <p class="porque" style="font-size:.95rem"><b>O que a medição diz.</b> Altura do miolo de cada
+  desenho, medida no navegador — os mesmos 20 parâmetros nos mesmos 3 objetivos:</p>
+
+  <table class="tabela-b" style="margin:0 0 1.5rem">
+    <thead><tr><th></th><th class="centro">1280 px</th><th class="centro">768 px</th><th class="centro">390 px</th>
+      <th>O que muda ao acrescentar parâmetro</th></tr></thead>
+    <tbody>
+      <tr><td><b>A</b> — a matriz de hoje</td><td class="centro">993 px</td><td class="centro">1311 px</td>
+        <td class="centro">2631 px</td><td>a linha alarga, e no telefone cai para <b>uma</b> coluna</td></tr>
+      <tr><td><b>B</b> — o parâmetro manda</td><td class="centro">851 px</td><td class="centro">851 px</td>
+        <td class="centro">1293 px</td><td><b>uma linha a mais</b> — e mais nada</td></tr>
+      <tr><td><b>C</b> — fichas por objetivo</td><td class="centro">849 px</td><td class="centro">1137 px</td>
+        <td class="centro">2938 px</td><td>mais uma etiqueta por objetivo: <b>×3</b></td></tr>
+    </tbody>
+  </table>
+
+  <p class="porque" style="font-size:.95rem">Em ecrã largo as três quase empatam — é por isso que a
+  escolha não se decide pela altura. Decidem-na duas coisas: <b>quantas vezes o nome do parâmetro se
+  lê</b> (A: 60 · B: 20 · C: 57) e <b>o que acontece quando o professor acrescenta o 21º</b>. A
+  <b>B</b> é a única que responde igual nas três larguras, e a única em que acrescentar parâmetro
+  não mexe no que já está na tela. A <b>C</b> é a mais legível quando cada objetivo tem um conjunto
+  pequeno e <b>próprio</b>; a <b>A</b> é a que já existe — e é a que desaba no telefone.</p>
+</section>
+
+<!-- ================================================================ 4 ======== -->
+<section class="bloco" id="resto">
+  <h2><span class="num">4</span> O que fica como está
+    <span class="etiqueta-modelo">decidido</span></h2>
+  <p class="porque">Você já olhou estes e disse que estão certos. Repito-os aqui só para o modelo
+  ficar inteiro.</p>
+
+  <div class="cartao">
+    <h3>Blocos da aula e distribuição do volume</h3>
+    <p class="o-que-e">O percentual de cada bloco e a justificativa de cada um, separados.</p>
+    <table class="tabela-b">
+      <thead><tr><th>Bloco</th><th>Proporção alvo</th><th>Justificativa</th></tr></thead>
+      <tbody>
+        <tr><td>Solo</td><td>30%</td><td>aquecimento e leitura do próprio eixo</td></tr>
+        <tr><td>Barra</td><td>30%</td><td>apoio e transferência com referência externa</td></tr>
+        <tr><td>Centro</td><td>30%</td><td>o mesmo sem referência, com deslocamento</td></tr>
+        <tr><td>Musicalidade</td><td>10%</td><td>frase e respiração, ao fim</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cartao">
+    <h3>Sequência de exercícios por bloco</h3>
+    <p class="o-que-e">Uma linha por exercício. Cresce e encolhe com o acervo do nível — e está
+    certo assim.</p>
+    <table class="tabela-b">
+      <thead><tr><th>Bloco</th><th>Objetivo específico</th><th>Conteúdo do nível</th><th>Tempo</th><th>Compasso</th></tr></thead>
+      <tbody>
+        <tr><td>Barra</td><td>1 — reconhecer o apoio</td><td>Plié · Battement tendu</td><td>12 min</td><td>4/4</td></tr>
+        <tr><td>Barra</td><td>2 — transferir o peso</td><td>Battement tendu · Port de bras</td><td>10 min</td><td>4/4</td></tr>
+        <tr><td>Centro</td><td>2 — transferir o peso</td><td>Port de bras</td><td>15 min</td><td>3/4</td></tr>
+        <tr><td>Musicalidade</td><td>3 — sustentar a linha</td><td>Port de bras</td><td>8 min</td><td>3/4</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cartao">
+    <h3>Fechamento</h3>
+    <p class="o-que-e">Condição do espaço (opcional, por agora) · régua da rubrica, só leitura
+    porque veio da Produção · horizonte do ciclo · referências de método · música e vídeo ·
+    repertório · registro de origem.</p>
+  </div>
+</section>
+
+<!-- ================================================================ 5 ======== -->
+<section class="bloco" id="depois">
+  <h2><span class="num">5</span> E a aula?</h2>
+  <p class="porque">Quando a aula nascer, o formulário dela começa <b>depois</b> deste ponto:
+  objetivos, blocos, volume e régua já vêm prontos e só se leem. A aula escolhe, dentro desse
+  acervo, o que acontece no dia. É a mesma dobra que separa <b>«o plano é o acervo»</b> de
+  <b>«a aula é a escolha»</b>.</p>
+</section>
+
+</main>
+
+<script>
+/* Os mesmos 20 parâmetros nos três desenhos. Nomes de teste, como no fixture da batata. */
+const PARAMETROS = [
+  'Alinhamento do eixo vertical', 'Apoio do pé no chão', 'Transferência de peso',
+  'Rotação externa', 'Elevação do arco do pé', 'Estabilidade do passe', 'Colocação do braço',
+  'Port de bras contínuo', 'Foco do olhar', 'Sustentação do demi-plié', 'Extensão do joelho',
+  'Ritmo da frase', 'Respiração', 'Acento do compasso', 'Entrada da música',
+  'Uso do espaço', 'Direção do movimento', 'Equilíbrio em meia-ponta', 'Controle do tronco',
+  'Qualidade do movimento'
+];
+const OBJETIVOS = [
+  'Reconhecer o apoio e alinhar o eixo vertical',
+  'Transferir o peso entre os pés sem perder o alinhamento',
+  'Sustentar a linha do movimento com a respiração da frase musical'
+];
+/* O caso do teste: os três objetivos observam os mesmos parâmetros. */
+const MARCADO = PARAMETROS.map(() => [true, true, true]);
+/* Três exceções, para não parecer que a coluna é decorativa. */
+MARCADO[4][1] = false;
+MARCADO[13][2] = false;
+MARCADO[18][0] = false;
+
+/* ---- A: as caixinhas de hoje, com 20 por linha ---------------------------- */
+document.getElementById('a-linhas').innerHTML = OBJETIVOS.map((o, i) =>
+  '<div class="marco-linha" style="margin-bottom:.75rem">' +
+  '<div class="marco-texto"><span class="numero">' + (i + 1) + '</span> ' + o + '</div>' +
+  '<div class="matriz-a" data-linha-a="' + i + '">' +
+  PARAMETROS.map((p, j) =>
+    '<label class="opcao"><input type="checkbox"' + (MARCADO[j][i] ? ' checked' : '') +
+    '><span>' + p + '</span></label>').join('') +
+  '</div></div>').join('');
+
+/* ---- B: o parâmetro manda ------------------------------------------------ */
+const linhasB = PARAMETROS.map((p, j) =>
+  '<tr data-linha-b="' + j + '"><td>' + p + '</td>' +
+  [0, 1, 2].map((i) =>
+    '<td class="centro"><span class="marca' + (MARCADO[j][i] ? ' on' : '') + '"></span></td>').join('') +
+  '<td class="centro"><button type="button" class="acao" data-todos="' + j + '" ' +
+  'style="font-size:.8rem; padding:.25rem .5rem">todos</button></td></tr>').join('');
+document.getElementById('b-tabela').innerHTML =
+  '<table class="tabela-b"><thead><tr><th>Parâmetro</th><th class="centro">Ob. 1</th>' +
+  '<th class="centro">Ob. 2</th><th class="centro">Ob. 3</th><th class="centro"></th></tr></thead>' +
+  '<tbody>' + linhasB + '</tbody></table>';
+
+/* ---- C: fichas por objetivo ---------------------------------------------- */
+document.getElementById('c-fichas').innerHTML = OBJETIVOS.map((o, i) =>
+  '<div class="objetivo-c"><p class="titulo"><span class="n">' + (i + 1) + '</span> ' + o + '</p>' +
+  '<div class="fichas">' +
+  PARAMETROS.filter((_, j) => MARCADO[j][i]).map((p) =>
+    '<span class="ficha">' + p + '<button type="button" aria-label="tirar ' + p + '">×</button></span>').join('') +
+  '<span class="ficha" style="border-style:dashed; color: var(--suave)">+ parâmetro…</span>' +
+  '</div></div>').join('');
+
+/* ---- A medição: o miolo de cada desenho, em altura, a esta largura -------- */
+function medir() {
+  const alt = (el) => (el ? Math.round(el.getBoundingClientRect().height) : 0);
+  const soma = (sel) => Array.from(document.querySelectorAll(sel)).reduce((t, el) => t + alt(el), 0);
+  const a = soma('[data-linha-a]');
+  const b = alt(document.getElementById('b-tabela'));
+  const c = alt(document.getElementById('c-fichas'));
+  const largura = Math.round(document.getElementById('proposta-a').getBoundingClientRect().width);
+  const estouro = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+  const marcas = document.querySelectorAll('#b-tabela .marca.on').length;
+  const etiquetas = document.querySelectorAll('#c-fichas .ficha').length;
+
+  document.getElementById('medida-a').innerHTML =
+    '<b>Medido:</b> o miolo ocupa <b>' + a + ' px</b> de altura — <b>60</b> quadrados, com o nome de' +
+    ' cada parâmetro escrito <b>3×</b>.';
+  document.getElementById('medida-b').innerHTML =
+    '<b>Medido:</b> o miolo ocupa <b>' + b + ' px</b> — <b>20</b> linhas de ' +
+    Math.round(b / 20) + ' px, cada nome escrito <b>1×</b>.';
+  document.getElementById('medida-c').innerHTML =
+    '<b>Medido:</b> o miolo ocupa <b>' + c + ' px</b> — <b>' + etiquetas + '</b> etiquetas, com o' +
+    ' mesmo nome escrito até <b>3×</b>.';
+  return { a, b, c, largura, estouro, marcas: marcas };
+}
+window.MEDIDAS = medir();
+</script>
+</body>
+</html>
