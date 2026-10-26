@@ -195,6 +195,28 @@ function data(iso) {
   return m ? m[3] + '/' + m[2] + '/' + m[1] : '';
 }
 
+/**
+ * OS TRÊS DESTINOS DA ÁREA DO PROFESSOR — uma definição, dois consumidores (26/10/2026).
+ *
+ * Eles aparecem no MENU (o grupo «Área do Professor», em `menuDaEscola`) e no RODAPÉ do índice da
+ * escola. Até hoje cada um escrevia o seu endereço, e os dois divergiram: o menu foi para as
+ * LISTAS (`/area-do-professor/<fonte>/`), e o rodapé ficou nas ROTAS DA PORTA (`/anamnese/`,
+ * `/plano-ensino/`, `/plano-observacao/`) — endereços que só fazem sentido COM o contexto do ato.
+ *
+ * O DEFEITO, medido na tela: quem clicava no rodapé caía em `/anamnese/` sem contexto, a porta
+ * abria e imediatamente se descartava, e a pessoa via a pálida de um formulário que nunca ia abrir
+ * antes de ser levada à lista. «Esses links me levam para essa URL que está fora da área do
+ * professor. E isso está errado.»
+ *
+ * Agora o endereço é UM, e é o da lista — que é onde se escolhe o ato (a decisão de 23/10/2026:
+ * «porque uma lista, e não a porta directa»).
+ */
+const AREA_DO_PROFESSOR = {
+  anamnese: '/area-do-professor/anamnese/',
+  plano: '/area-do-professor/plano-de-ensino/',
+  po: '/area-do-professor/plano-de-observacao/',
+};
+
 /** O bloco de uma turma no índice. */
 function cartaoDaTurma(t) {
   const r = t.resumo || {};
@@ -203,16 +225,27 @@ function cartaoDaTurma(t) {
   if (r.total) linhas.push(r.total + (r.total === 1 ? ' aula' : ' aulas'));
   if (r.duracao) linhas.push(r.duracao + ' min por encontro');
   if (r.lancadas) linhas.push(r.lancadas + ' já lançada' + (r.lancadas === 1 ? '' : 's'));
-  // SEM CLASSE INVENTADA. O CSS é o do ciclo (`tools/templates/ciclo.css`, congelado): usar uma
-  // classe que ele não conhece é pedir estilo que ninguém escreveu — e a página sai nua. O que
-  // existe é `li { margin }`, o `<a>` do documento e o `.subtitulo`. É o suficiente.
+  /* O «CICLO» SAIU DO CARTÃO, E O NOME PASSOU A ABRIR O DOCUMENTO (26/10/2026).
+   *
+   * O item dizia «Ciclo» e apontava para `<variante>/index.html` — que NÃO é o ciclo: é a
+   * APRESENTAÇÃO do sistema, copiada dentro de cada pacote (o `index` do gerador sai de
+   * `biblioteca/apresentacao.md`). Medido na escola: o link «Ciclo» abria «Sistema Lastro», a
+   * mesma página que `/sistema.html`. A pesquisadora: «tem o link ciclo que está me levando para
+   * a apresentação do sistema. E não pode, tem que levar para o lugar certo.»
+   *
+   * Não existe página própria do ciclo: o documento do ciclo é o `plano.html` («Plano do Ciclo
+   * 01 — …»). Então o NOME da turma — que ia para a mesma apresentação — passa a abrir esse
+   * documento, e o item «Ciclo» sai. «Plano» sai com ele: dois rótulos para o mesmo endereço é a
+   * ambiguidade que o menu já recusou («Dois itens para a mesma página não são um atalho»).
+   *
+   * SEM CLASSE INVENTADA. O CSS é o do ciclo (`tools/templates/ciclo.css`, congelado): usar uma
+   * classe que ele não conhece é pedir estilo que ninguém escreveu — e a página sai nua. O que
+   * existe é `li { margin }`, o `<a>` do documento e o `.subtitulo`. É o suficiente. */
   return [
     '<li>',
-    '<a href="' + esc(t.variante) + '/index.html"><strong>' + esc(t.nome) + '</strong></a>',
+    '<a href="' + esc(t.variante) + '/plano.html"><strong>' + esc(t.nome) + '</strong></a>',
     linhas.length ? '<br><span class="subtitulo">' + esc(linhas.join(' · ')) + '</span>' : '',
     '<br><span class="subtitulo">',
-    '<a href="' + esc(t.variante) + '/index.html">Ciclo</a> &middot; ',
-    '<a href="' + esc(t.variante) + '/plano.html">Plano</a> &middot; ',
     '<a href="' + esc(t.variante) + '/aula-01.html">Aulas</a> &middot; ',
     '<a href="' + esc(t.variante) + '/notacao.html">Notação</a> &middot; ',
     '<a href="' + esc(t.variante) + '/referencias.html">Referências</a>',
@@ -268,7 +301,7 @@ ${lista}
 
 <footer class="rodape">
   <p>Ciclo ${esc((turmas[0] || {}).ciclo || '01')} — ${esc(nome || escola)} &middot; <strong>${esc(nome || escola)}</strong></p>
-  <p><a href="anamnese/">Anamnese do aluno</a> &middot; <a href="plano-ensino/?fonte=plano">Plano de ensino</a> &middot; <a href="plano-observacao/?fonte=po">Plano de Observação</a></p>
+  <p><a href="${AREA_DO_PROFESSOR.anamnese}">Anamnese do aluno</a> &middot; <a href="${AREA_DO_PROFESSOR.plano}">Plano de ensino</a> &middot; <a href="${AREA_DO_PROFESSOR.po}">Plano de Observação</a></p>
 </footer>
 
 <script src="assets/nav.js"></script>
@@ -411,9 +444,9 @@ function menuDaEscola({ turmas, blocos }) {
    */
   if (turmas.length) {
     const itensDaArea = [
-      { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
-      { rotulo: 'Plano de ensino', href: '/area-do-professor/plano-de-ensino/' },
-      { rotulo: 'Plano de Observação', href: '/area-do-professor/plano-de-observacao/' },
+      { rotulo: 'Anamnese do aluno', href: AREA_DO_PROFESSOR.anamnese },
+      { rotulo: 'Plano de ensino', href: AREA_DO_PROFESSOR.plano },
+      { rotulo: 'Plano de Observação', href: AREA_DO_PROFESSOR.po },
       /* «AULAS», E NÃO «LANÇAMENTO DE AULA» (24/10/2026). O item abre a LISTA das aulas — as
          mesmas que a captura para impressão e o lançamento servem, uma linha de cada vez. O
          nome antigo prometia um formulário e entregava uma lista; e, com o destino do topo da

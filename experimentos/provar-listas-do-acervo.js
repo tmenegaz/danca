@@ -315,10 +315,16 @@ function pedacos(html) {
        O menu marca o item pelo caminho servido, e a porta é servida em `/anamnese/` — que não é
        item nenhum. Medido em produção antes da correção: zero `aria-current`, e o grupo sem
        `data-atual`. É o mesmo defeito nas três portas. */
+    /* A PORTA PEDE-SE COM O CONTEXTO DO ATO (26/10/2026). Ela era pedida nua — e nua deixou de
+       ser a porta: sem professor, ciclo e (na anamnese) aluna, a página era servida para logo se
+       descartar, e a ponte passou a responder `302` para a lista (ver `provar-porta-sem-
+       contexto`). O que esta secção mede é outra coisa, e continua a valer: COM o contexto, o
+       menu acende o item da lista a que a porta pertence. */
+    const CONTEXTO_DO_ATO = '?professor=cafe-no-bule&ciclo=01&abrir=1';
     for (const [porta, lista] of [['/anamnese/', '/area-do-professor/anamnese/'],
       ['/plano-ensino/', '/area-do-professor/plano-de-ensino/'],
       ['/plano-observacao/', '/area-do-professor/plano-de-observacao/']]) {
-      const r = await pedir(porta);
+      const r = await pedir(porta + CONTEXTO_DO_ATO);
       provar('a porta ' + porta + ' acende o item ' + lista,
         new RegExp('aria-current="page" href="' + lista.replace(/\//g, '\\/') + '"').test(r.html),
         (r.html.match(/aria-current="page" href="[^"]+"/g) || []).slice(0, 2));
@@ -507,9 +513,17 @@ function pedacos(html) {
     provar('…e NÃO promete uma edição que a porta não abre', !/editar=/.test(linkPo), linkPo);
 
     /* A PORTA TEM DE EXISTIR. Um botão que aponta para um 404 é um botão que mente — e a prova
-       não pode confiar no que a ponte serve sem o pedir. */
+       não pode confiar no que a ponte serve sem o pedir.
+     *
+     * ELA PEDE-SE COM O CONTEXTO (26/10/2026). Nua, a rota deixou de ser a porta: sem professor,
+     * ciclo e (na anamnese) aluna, o próprio JavaScript da página devolve a pessoa à lista, e a
+     * ponte passou a responder `302` antes de servir um byte de formulário (ver
+     * `provar-porta-sem-contexto`). O que esta secção guarda é o que sempre quis guardar — o
+     * destino que a lista oferece ABRE —, e é com o contexto que a lista o monta. */
+    const CONTEXTO_DA_PORTA = 'professor=cafe-no-bule&ciclo=01&abrir=1';
     for (const href of ['/anamnese/', '/plano-ensino/?fonte=plano', '/plano-observacao/?fonte=po']) {
-      const r = await pedir(href);
+      const comContexto = href + (href.indexOf('?') === -1 ? '?' : '&') + CONTEXTO_DA_PORTA;
+      const r = await pedir(comContexto);
       provar('a porta ' + href + ' responde 200', r.status === 200, r.status);
     }
   }

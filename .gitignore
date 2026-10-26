@@ -358,3 +358,9 @@ TRANSFERENCIA-IA.md
 # sem que nenhuma checagem de marcação o veja. O controle negativo dela reprova 16 asserções
 # no código de antes: sem isso, «conferi» seria a minha palavra.
 !experimentos/provar-vao-do-botao.js
+
+# A PORTA NÃO SE ABRE POR UM ENDEREÇO QUE NÃO TEM ATO (26/10/2026). A prova mede o `302` das três
+# rotas nuas, e — o lado que importa — que o ato continua a abrir com contexto. Ela fica porque o
+# defeito que guarda é invisível no HTML: a página chegava a ser SERVIDA, e só o JavaScript dela a
+# descartava. Um `curl` mostrava `200` e uma página inteira; só a tela mostrava a pálida.
+!experimentos/provar-porta-sem-contexto.js

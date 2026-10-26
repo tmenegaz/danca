@@ -358,7 +358,13 @@ async function principal() {
       ['a raiz', '/'],
       ['a apresentação', '/sistema.html'],
       ['o pacote da turma', '/nivel-1/plano.html'],
-      ['a porta', '/plano-observacao/'],
+      /* A PORTA LEVA O CONTEXTO DO ATO (26/10/2026). Ela era pedida nua (`/plano-observacao/`) e
+         respondia 200 — mas nua ela não é a porta: sem professor, ciclo e (na anamnese) aluna, o
+         próprio JavaScript dela chama `voltarParaALista()` no arranque, e o que a pessoa via era a
+         pálida de um formulário que nunca ia abrir. A ponte passou a responder `302` para a lista
+         (ver `provar-porta-sem-contexto`), e a barra da porta mede-se onde ela existe: com o
+         contexto que a lista da Área do Professor monta. */
+      ['a porta', '/plano-observacao/?professor=prova&ciclo=01&abrir=1'],
       // A PÁGINA DE ESCOLHA DE TURMA (23/10/2026): o menu passou a apontar para ela, e não para
       // a porta. É onde «Área do Professor» se acende.
       ['a escolha de turma do PO', '/area-do-professor/plano-de-observacao/'],

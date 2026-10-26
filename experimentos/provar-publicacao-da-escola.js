@@ -174,15 +174,57 @@ function principal() {
     // DESDE 20/10/2026 OS HREF DA BARRA SÃO ABSOLUTOS (`/turma/plano.html`): é o que faz a mesma
     // barra valer dentro do pacote e na porta. Aqui isso muda a MEDIÇÃO, não a exigência: o que
     // se confere é o caminho, com ou sem a barra inicial.
-    const ROTAS_DA_PORTA = /^\/?(anamnese|plano-ensino|plano-observacao|bastidores)\//;
+    /* `/area-do-professor/` ENTRA NA LISTA (26/10/2026). As três listas da Área do Professor são
+       SERVIDAS pela ponte (leem o acervo no KV), não são arquivos do pacote — como as rotas da
+       porta e os Bastidores. Desde 26/10 é para lá que o rodapé aponta, e uma asserção que as
+       tratasse como arquivo reprovaria a correção em nome do defeito. */
+    const ROTAS_DO_WORKER = /^\/?(anamnese|plano-ensino|plano-observacao|area-do-professor|bastidores)\//;
     const hrefs = [...indice.matchAll(/href="([^"#?]+)"/g)]
       .map((m) => m[1])
       .filter((h) => !/^(https?:|mailto:)/.test(h))
-      .filter((h) => !ROTAS_DA_PORTA.test(h));
+      .filter((h) => !ROTAS_DO_WORKER.test(h));
     const mortos = hrefs.filter((h) => !existe(pub, h));
     checar('nenhum link do índice aponta para o vazio', mortos.length === 0, mortos);
     checar('e o índice aponta à apresentação, que existe',
       hrefs.some((h) => /^\/?sistema\.html$/.test(h)), hrefs);
+
+    /* NENHUM CAMINHO FORA DA ÁREA DO PROFESSOR (26/10/2026).
+     *
+     * O rodapé do índice levava a `/anamnese/`, `/plano-ensino/` e `/plano-observacao/` — as
+     * ROTAS DA PORTA, que só fazem sentido COM o contexto do ato. Quem clicava caía numa página
+     * que abria e se descartava: «esses links me levam para essa URL que está fora da área do
+     * professor». O destino passa a ser a LISTA de cada fonte, que é onde se escolhe o ato.
+     *
+     * A asserção é sobre o ENDEREÇO, e não sobre o rótulo: é o `href` que a pessoa segue. */
+    /* SÓ O RODAPÉ. Os mesmos três rótulos estão no menu da coluna — e é justamente o fato de
+       estarem nos dois sítios que fez os endereços divergirem. Medir o documento inteiro contaria
+       seis, e não diria de onde vem cada um. */
+    const rodape = (/<footer class="rodape">[\s\S]*?<\/footer>/.exec(indice) || [''])[0];
+    const doRodape = [...rodape.matchAll(/<a href="([^"]+)">(Anamnese do aluno|Plano de ensino|Plano de Observação)<\/a>/g)]
+      .map((m) => ({ href: m[1], rotulo: m[2] }));
+    checar('o rodapé tem os três destinos da Área do Professor', doRodape.length === 3, doRodape);
+    checar('…e os três apontam para a LISTA, dentro de `/area-do-professor/`',
+      doRodape.every((d) => d.href.indexOf('/area-do-professor/') === 0), doRodape);
+    checar('…nenhum deles é uma rota da porta',
+      !/<a href="\/?(anamnese|plano-ensino|plano-observacao)\//.test(indice),
+      (indice.match(/<a href="\/?(anamnese|plano-ensino|plano-observacao)[^"]*"/g) || []));
+
+    /* O «CICLO» DO CARTÃO (26/10/2026). Ele apontava para `<variante>/index.html`, que no pacote
+     * é a APRESENTAÇÃO do sistema — a mesma página de `/sistema.html`. O nome da turma ia para o
+     * mesmo sítio. Os dois passam a abrir o documento do ciclo (`plano.html`), e o item «Ciclo»
+     * sai: não existe página própria do ciclo, e um link que promete o ciclo e entrega a
+     * apresentação é o defeito que a pesquisadora viu. */
+    checar('o nome da turma abre o documento do ciclo (`plano.html`)',
+      indice.indexOf('<a href="nivel-1/plano.html"><strong>Balé Nível 1</strong></a>') !== -1,
+      (indice.match(/<a href="[^"]+"><strong>[^<]+<\/strong><\/a>/g) || []));
+    checar('…e nenhum link do índice leva ao `index.html` de um pacote (a apresentação)',
+      !/href="[^"]*\/index\.html"/.test(indice),
+      (indice.match(/href="[^"]*\/index\.html"/g) || []));
+    checar('o item «Ciclo» saiu do cartão, e com ele o «Plano» que repetia o mesmo destino',
+      !/>Ciclo<\/a>/.test(indice) && !/>Plano<\/a>/.test(indice),
+      (indice.match(/>[^<]*Ciclo[^<]*<\/a>/g) || []));
+    checar('…e as três outras páginas do ciclo continuam à mão',
+      ['aula-01', 'notacao', 'referencias'].every((p) => indice.indexOf('nivel-1/' + p + '.html') !== -1));
   }
 
   // ------------------------------------------------------------------ B2
@@ -212,25 +254,42 @@ function principal() {
       indice.replace(/ class="ativo"/, '') === apresentacao.replace(/ class="ativo"/, ''),
       { indice: indice.length, apresentacao: apresentacao.length });
 
-    checar('com ciclo gerado, a barra traz «Ciclos»', indice.indexOf('<summary>Ciclos</summary>') !== -1);
-    checar('e «Aulas»', indice.indexOf('<summary>Aulas</summary>') !== -1);
-    checar('e «Planejamento»', indice.indexOf('<summary>Planejamento</summary>') !== -1);
-    checar('e a «Área do Professor» e os «Bastidores» continuam', 
-      indice.indexOf('<summary>Área do Professor</summary>') !== -1
-        && indice.indexOf('<summary>Bastidores</summary>') !== -1);
+    /* O MENU DE DESTINOS (24/10/2026). Estas quatro asserções procuravam `<summary>Ciclos</summary>`
+       e `<summary>Planejamento</summary>` — a forma da barra ANTERIOR. O menu passou a ser a COLUNA
+       (`coluna-grupo` com um `button` de título), «Planejamento» deixou de existir, e «Aulas» foi
+       para dentro da Área do Professor. A prova descrevia um menu que já não havia, e por isso
+       reprovava o presente em nome do passado. O que se guarda agora é a forma que existe. */
+    const coluna = (/<aside class="coluna[\s\S]*?<\/aside>/.exec(ler(pub, 'index.html')) || [''])[0];
+    checar('com ciclo gerado, a coluna tem o grupo «Ciclos»', coluna.indexOf('<span>Ciclos</span>') !== -1);
+    checar('…e o grupo «Área do Professor», com «Aulas» dentro', 
+      coluna.indexOf('<span>Área do Professor</span>') !== -1 && coluna.indexOf('href="/aulas/"') !== -1);
+    checar('…e os «Bastidores» continuam, no fim da coluna',
+      coluna.indexOf('<span>Bastidores</span>') !== -1);
+    checar('…e «Planejamento» NÃO voltou (o grupo foi extinto em 24/10/2026)',
+      coluna.indexOf('Planejamento') === -1);
+    checar('a coluna não enumera turma nenhuma — ela é de DESTINOS, não de documentos',
+      !/Balé Nível|nivel-1|nivel-2/.test(coluna), coluna.length);
 
     // TODOS os links da barra resolvem — nenhum aponta para o que não foi publicado. Os href da
     // barra são ABSOLUTOS (a mesma barra serve o pacote e a porta), e as rotas da porta não são
     // arquivos: confere-se o caminho, com ou sem a barra inicial.
     const externo = /^(https?:|mailto:|#)/;
-    const rota = /^\/?(anamnese|plano-ensino|plano-observacao|bastidores)\//;
-    const links = [...indice.matchAll(/<a[^>]+href="([^"#?]+)"/g)].map((m) => m[1])
+    const rota = /^\/?(anamnese|plano-ensino|plano-observacao|area-do-professor|bastidores)\//;
+    /* A PÁGINA INTEIRA, e não só a `<nav class="topnav">` (26/10/2026). A coluna é um `<aside>`
+       FORA da barra, e desde 24/10 é ela que carrega os destinos; medir só a barra deixava os
+       links da coluna de fora e a asserção «aponta às listas» perguntava a um elemento que já
+       não os tinha. */
+    const paginaDoIndice = ler(pub, 'index.html');
+    const links = [...paginaDoIndice.matchAll(/<a[^>]+href="([^"#?]+)"/g)].map((m) => m[1])
       .filter((h) => !externo.test(h) && !rota.test(h));
     const mortos = links.filter((h) => !existe(pub, h));
     checar('nenhum link da barra aponta para o vazio', mortos.length === 0, mortos);
-    checar('e ela aponta aos documentos da turma gerada',
-      links.some((h) => /^\/?nivel-1\/plano\.html$/.test(h))
-        && links.some((h) => /^\/?nivel-1\/aula-01\.html$/.test(h)), links);
+    /* O MENU NÃO APONTA DOCUMENTOS DESDE 24/10/2026 — aponta as LISTAS que os nomeiam. Era a
+       decisão que parou o crescimento: com três turmas e dezoito aulas por turma, o menu de
+       documentos dava 84 entradas. O que se exige agora é o destino, e que ele EXISTA. */
+    checar('e ela aponta às listas que nomeiam os documentos da turma',
+      links.some((h) => /^\/?ciclos\/planos\/$/.test(h))
+        && links.some((h) => /^\/?aulas\/$/.test(h)), links);
 
     // A MARCA É O CAMINHO DE VOLTA, e agora está na barra de todas as páginas do domínio.
     checar('a marca da barra é um link para a raiz do domínio',
@@ -255,8 +314,23 @@ function principal() {
       navVazia.indexOf('<summary>Ciclos</summary>') === -1
         && navVazia.indexOf('<summary>Aulas</summary>') === -1
         && navVazia.indexOf('<summary>Planejamento</summary>') === -1, navVazia.length);
-    checar('e continua a ter a Área do Professor e os Bastidores',
-      navVazia.indexOf('Área do Professor') !== -1 && navVazia.indexOf('Bastidores') !== -1);
+    /* A ESCOLA SEM CICLO TEM BARRA (26/10/2026). Ela não tinha NENHUMA: o `nav.json` saía com
+       `coluna: []` e a conta de `nav.desenhar` lia a coluna como «forma velha», devolvia `null`,
+       e o índice de uma escola recém-criada ficava sem menu — precisamente quando é por ele que
+       se chega à Área do Professor para criar o primeiro ciclo. O que se exige agora:
+         · a barra existe e traz os Bastidores (o destino que não depende de haver turma);
+         · o grupo «Área do Professor» NÃO entra — sem turma curada não há ato para preencher,
+           e quatro itens a levar a três listas vazias seriam um menu a mentir com educação;
+         · e o caminho para as três listas está no RODAPÉ, que é a página onde se está. */
+    checar('sem turma, a barra existe e traz os Bastidores',
+      /<nav class="topnav"/.test(navVazia) && navVazia.indexOf('Bastidores') !== -1, navVazia.length);
+    checar('…e não anuncia a Área do Professor, que ali não teria o que listar',
+      navVazia.indexOf('Área do Professor') === -1, navVazia.length);
+    const rodapeVazio = (/<footer class="rodape">[\s\S]*?<\/footer>/.exec(
+      ler(path.join(vazia, 'publicacao', ESCOLA), 'index.html')) || [''])[0];
+    checar('…mas o rodapé leva às três listas, que é por onde se começa',
+      ['anamnese', 'plano-de-ensino', 'plano-de-observacao']
+        .every((f) => rodapeVazio.indexOf('/area-do-professor/' + f + '/') !== -1), rodapeVazio);
     fs.rmSync(vazia, { recursive: true, force: true });
   }
 
@@ -345,9 +419,17 @@ function principal() {
     // O COMANDO, não a menção: o `wrangler deploy` aparece num comentário do cabeçalho, e um
     // `indexOf` da frase dava a posição do comentário — a asserção passava com o deploy a correr
     // ANTES da montagem. É a mesma armadilha que a secção D já tinha apanhado no outro workflow.
-    const iDW = criarWf.indexOf('npx wrangler deploy');
-    checar('o `criar-escola.yml` monta a publicação antes de subir o motor', iMW !== -1 && iMW < iDW,
-      { montar: iMW, deploy: iDW });
+    /* O COMANDO MUDOU DE FORMA (26/10/2026): o CI passou a chamar o binário local
+       (`./node_modules/.bin/wrangler deploy`), e a asserção procurava `npx wrangler deploy`.
+       Ela reprovava o workflow certo por causa da forma do comando. A leitura passa a ser por
+       LINHA de comando: a primeira que chama `wrangler deploy` e não é comentário. */
+    const linhaDoDeploy = (texto) => texto.split('\n')
+      .findIndex((l) => /\bwrangler deploy\b/.test(l) && !/^\s*#/.test(l));
+    const iDW = linhaDoDeploy(criarWf);
+    checar('o `criar-escola.yml` monta a publicação antes de subir o motor',
+      iMW !== -1 && iDW !== -1
+        && criarWf.split('\n').findIndex((l) => l.indexOf('montar-publicacao.js') !== -1) < iDW,
+      { montar: criarWf.split('\n').findIndex((l) => l.indexOf('montar-publicacao.js') !== -1), deploy: iDW });
     checar('e chama o script sem `--deploy` (o deploy é um passo separado — e é por isso que a'
       + ' montagem não pode viver no ramo dele)',
       criarWf.indexOf('--deploy') === -1, criarWf.indexOf('--deploy'));
@@ -371,8 +453,11 @@ function principal() {
       'o filtro pelo `assets.directory` voltou — é o que deixava `escolas` vazio em todos os runs');
     checar('e descobre pela pasta do pacote-zero, que é a FONTE do site',
       depWf.indexOf('professores/*/ciclos/ciclo-[0-9][0-9]-"$slug"') !== -1);
-    const iMD = depWf.indexOf('montar-publicacao.js');
-    const iDD = depWf.indexOf('npx wrangler deploy');
+    /* A MESMA CORREÇÃO DO `criar-escola.yml` (26/10/2026): o comando do deploy passou a ser o
+       binário local, e a asserção procurava `npx wrangler deploy`. Lê-se a LINHA de comando. */
+    const iMD = depWf.split('\n').findIndex((l) => l.indexOf('montar-publicacao.js') !== -1);
+    const iDD = depWf.split('\n')
+      .findIndex((l) => /\bwrangler deploy\b/.test(l) && !/^\s*#/.test(l));
     checar('e monta a publicação antes de subir (o `assets.directory` é uma SAÍDA, git-ignored)',
       iMD !== -1 && iDD !== -1 && iMD < iDD, { montar: iMD, deploy: iDD });
 

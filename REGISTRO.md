@@ -25526,3 +25526,132 @@ negativo** contra `HEAD` anterior à correção: **46/62**, com o vão do «Cada
 - **O `.par-botoes` continua declarado na página, e não na folha.** Se ele se repetir fora da
   Produção, sobe para `tools/templates/ciclo.css` — e aí o congelamento pede motivo declarado e
   commit próprio.
+
+## 26/10/2026 — A porta não se abre por um endereço sem ato, e o índice deixa de mandar para fora da Área do Professor
+
+**O que motivou.** Três leituras da mesma tela, na mesma sessão:
+
+1. «No anamnese, plano de ensino e plano de observação, mesmo que só por um breve momento, eu
+   consigo acessar a rota sem passar pela área do professor… Aí em seguida eu sou direcionado para
+   a área do professor anamnese… mas não pode existir esse caminho.»
+2. «Tem o link ciclo que está me levando para a apresentação do sistema. E não pode, tem que levar
+   para o ciclo, tem que levar para o lugar certo.»
+3. «Logo abaixo ali eu tenho o ciclo um. E aí tem os links para anamnese do aluno, plano de ensino
+   e plano de observação. Esses links me levam para essa URL que está fora da área do professor.»
+
+**O diagnóstico, medido.** Três defeitos, uma só raiz: **endereços escritos à mão em mais de um
+sítio**, e nenhum deles a dizer que a porta exige o ato.
+
+- **A rota nua da porta era SERVIDA.** `/anamnese/`, `/plano-ensino/` e `/plano-observacao/`
+  respondiam **200** com o formulário inteiro; sem professor, ciclo e (na anamnese) aluna, o
+  próprio JavaScript da página chama `voltarParaALista()` no arranque. Ou seja: a página era
+  servida para logo se descartar — a pálida de um formulário que nunca ia abrir. Um `curl` mostrava
+  `200` e uma página inteira; só a tela mostrava o pisca-pisca.
+- **O rodapé do índice da escola apontava para as ROTAS DA PORTA** (`anamnese/`,
+  `plano-ensino/?fonte=plano`, `plano-observacao/?fonte=po`), enquanto o **menu** — a outra
+  superfície com os mesmos três rótulos — já apontava para as **listas**. Dois consumidores, dois
+  endereços: quem clicava no rodapé caía fora da Área do Professor.
+- **O «Ciclo» do cartão da turma não abria o ciclo.** Ele apontava para `<variante>/index.html`,
+  que no pacote é a **apresentação do sistema** — a mesma página de `/sistema.html`. E o **nome da
+  turma** ia para o mesmo sítio. Não existe página própria do ciclo: o documento do ciclo é o
+  `plano.html` («Plano do Ciclo 01 — …»).
+- **A escola recém-criada saía SEM BARRA NENHUMA.** Uma escola sem turma publica `nav.json` com
+  `coluna: []`, e `nav.desenhar` perguntava «a coluna tem grupos?»; a resposta era não, a conta
+  caía na forma VELHA (`grupos`), que já não existe, e devolvia `null`. O índice ficava sem menu —
+  exactamente quando é por ele que se chega à Área do Professor para criar o primeiro ciclo.
+
+**O que foi decidido.**
+
+- **O endereço sem contexto nenhum não é a porta: é a lista.** A ponte responde **`302`** para
+  `/area-do-professor/<fonte>/` **no servidor**, antes de qualquer byte de formulário. Um `302` não
+  é uma página — não há nada para piscar. O endereço continua a existir para quem tem contexto: as
+  listas montam o link do ato com `?professor=…&ciclo=…&abrir=1`, e o «Editar»/«Ajustar» levam o
+  carimbo (o contexto vem do envelope).
+- **O que conta como contexto é uma lista de PERMISSÃO**, não de proibição:
+  `professor`, `ciclo`, `aluna`, `plano`, `editar`, `ajustar`, `ato`. Na dúvida, deixa passar —
+  servir a porta a mais é o que já acontecia; servir a menos quebraria o ato.
+- **Só a PÁGINA é redirecionada** (`/` e `/index.html` debaixo do prefixo). Os `api/…` e
+  `assets/…` da porta continuam a passar: não são a rota do formulário, e um `api/ficha` sem
+  `?professor=` é uma chamada legítima da página já aberta.
+- **A escola sem turma tem barra** — a BÁSICA, com os Bastidores e sem o grupo «Área do
+  Professor»: sem turma curada não há ato para preencher, e quatro itens a levar a três listas
+  vazias seriam um menu a mentir com educação. O caminho para as três listas fica no RODAPÉ, que é
+  a página onde se está.
+- **O freio da Área do Professor não muda.** Sem professor cadastrado, a resposta continua a ser a
+  página que diz o que falta e onde se resolve — não um `302` que esconde o motivo.
+- **Um endereço, uma definição.** Os três destinos da Área do Professor passam a sair de
+  `AREA_DO_PROFESSOR`, em `montar-publicacao.js`, e o **menu** e o **rodapé** do índice leem dela.
+  Duas listas da mesma coisa é uma lista a menos — foi assim que os dois divergiram.
+- **O documento do ciclo abre pelo NOME da turma**, e o item «Ciclo» sai do cartão. «Plano» sai com
+  ele: dois rótulos para o mesmo endereço é a ambiguidade que o menu já recusou. **Não nasceu
+  classe nova** — a folha (`ciclo.css`) está congelada, e o cartão usa o que ela já desenha (`li`,
+  o `<a>` do documento, `.subtitulo`).
+- **A forma do menu é decidida pela PRESENÇA do campo, não pelo seu conteúdo.** `Array.isArray(menu.coluna)`
+  — vazia ou não — diz «forma nova»; um `nav.json` antigo, sem o campo, continua a cair na forma
+  de sempre. A coluna vazia ainda é a forma nova.
+
+**Onde entrou.**
+
+- `motor/servidor/producao.js` — o `302` da rota nua da porta (o bloco 2 do `fetch`), com a lista
+  de parâmetros do ato.
+- `motor/nucleo/nav.js` — a coluna vazia ainda é a forma nova.
+- `tools/montar-publicacao.js` — `AREA_DO_PROFESSOR` (uma definição, dois consumidores), o rodapé
+  do índice e o cartão da turma.
+- `experimentos/provar-porta-sem-contexto.js` — **novo**: a prova das duas metades (a rota nua não
+  abre; o ato continua a abrir).
+- `experimentos/provar-publicacao-da-escola.js` — as asserções do rodapé, do cartão e das barras;
+  e a correção das que descreviam a forma antiga do menu.
+- `experimentos/provar-barra-unica.js` e `experimentos/provar-listas-do-acervo.js` — a porta passa
+  a pedir-se com o contexto do ato (antes pediam-na nua e ela respondia 200).
+- `.gitignore` — o `!` que versiona a prova nova.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e
+`tools/montar-publicacao.js` foi tocado. **Por quê:** o defeito era de ENDEREÇO, e o endereço do
+índice nasce ali; corrigi-lo em qualquer outro sítio seria corrigir a cópia. **O que não muda:**
+nenhuma fórmula de hash, nenhuma cobertura do `.fipp`, nenhum validador, nenhuma regra ou pétrea,
+nenhum esquema — só os `href` que o índice publica. `motor/` não está na lista do congelamento.
+
+**Com o quê.** `motor/servidor/producao.js`, `motor/nucleo/nav.js`, `tools/montar-publicacao.js`,
+`experimentos/provar-porta-sem-contexto.js`, `experimentos/provar-publicacao-da-escola.js`,
+`experimentos/provar-barra-unica.js`, `experimentos/provar-listas-do-acervo.js`, `.gitignore`,
+`REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** As decisões de 23/10/2026 («porque uma lista, e não a porta directa») e de
+25/10/2026 (o painel do ato dentro da listagem) — este marco não inventa caminho, aplica-o onde
+ele ainda não valia; `CONGELAMENTO.md`; a secção «O catálogo das peças» de `IDENTIDADE-VISUAL.md`.
+
+**Medido.** `provar-porta-sem-contexto` **44/44** — as três rotas nuas (com e sem barra, e com
+`/index.html`) respondem `302` com corpo vazio e o `Location` da própria lista; `?fonte=plano`,
+`?abrir=1` e `?utm_source=email` também; com contexto, `200` e a porta; `api/` e `assets/` sem
+redirecionamento; sem professor, a página do freio. **Controle negativo** contra `HEAD`: **31
+falhas** de 44 — o código de antes serve as três rotas nuas com `200`, e a prova não estaria a
+provar nada se passasse lá. `provar-publicacao-da-escola` **55/55**;
+`provar-listas-do-acervo` **109/109**; `provar-barra-unica` **111/111**; `check-identidade`
+**20 ok, 0 erro**. **A barra da escola sem turma**, medida pelo controle negativo do `nav.js`:
+devolvido o `HEAD` de `motor/nucleo/nav.js` e corrida a `provar-publicacao-da-escola`, a prova
+**quebra** no ponto em que lê a barra do índice da escola vazia — `desenhar` devolve `null` e não há
+`<nav class="topnav">` nenhum para ler. Com a correção, a barra existe e traz os Bastidores, e não
+anuncia a Área do Professor. Conferido ainda **em processo, contra a publicação de verdade** de `batata`
+(`publicacao/batata`, ASSETS do disco e KV vazio): `/` **200** e sem nenhum link para rota nua;
+`/anamnese`, `/anamnese/`, `/anamnese/index.html`, `/plano-ensino/`, `/plano-observacao/`
+**302** para as três listas; as três listas **200**; `/bale-nivel-2-teste-2/plano.html` **200**.
+Nada disto foi ao ar.
+
+**O que ainda não está feito.**
+
+- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar e por publicar. O
+  `deploy-escolas.yml` monta `publicacao/<escola>/` antes de subir, e é um push que toque
+  `tools/montar-publicacao.js` que o dispara — até lá, a `batata` no ar continua com o rodapé
+  antigo e com a rota nua a responder `200`.
+- **A apresentação (`sistema.html` e o `index.html` de cada pacote) continua a levar aos
+  formulários COM contexto** (`/anamnese/?professor=…&ciclo=…`). Fica assim de propósito: com
+  contexto o endereço é o ato, e é o mesmo que as listas montam — o que estava errado era o
+  endereço SEM contexto. Se a decisão mudar, os dois geradores (`criar-escola.sh` para o pacote
+  zero, `gerar-ciclo.sh` para os pacotes) mudam juntos, e os pacotes publicados têm de ser
+  regerados.
+- **O rodapé do pacote ZERO** (`RODAPE_ZERO`, em `criar-escola.sh`) repete os três rótulos com os
+  endereços da porta e contexto — herança do tempo em que a porta era a entrada. Não foi tocado
+  aqui; ele aparece no `sistema.html` de toda escola. Corrigi-lo é uma decisão de conteúdo da
+  apresentação, e passa por regerar o `index.html` de cada pacote zero com
+  `criar-escola.sh --somente-indice`.
+- **`ESTADO-ATUAL.md` não foi refotografado** nesta entrada.

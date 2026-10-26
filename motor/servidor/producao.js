@@ -416,6 +416,41 @@ async function fetch(request, env) {
         200);
     }
     const rel = caminhoDaPorta(path, prefixo);
+    /* A ROTA NUA DA PORTA NÃO SERVE A PORTA (26/10/2026).
+     *
+     * O DEFEITO, medido na tela pela pesquisadora: «eu consigo acessar a rota sem passar pela área
+     * do professor… por um breve momento, e em seguida eu sou direcionado para a área do
+     * professor». A porta (`/anamnese/`, `/plano-ensino/`, `/plano-observacao/`) exige o contexto
+     * do ato — professor, ciclo e, na anamnese, a aluna —, e sem ele o próprio JavaScript dela
+     * chama `voltarParaALista()` no arranque. Ou seja: a página era SERVIDA para logo se
+     * descartar. O que a pessoa via era a pálida de um formulário que nunca ia abrir.
+     *
+     * A DECISÃO: o endereço sem contexto nenhum não é a porta — é a lista, e é para lá que ele
+     * vai, no SERVIDOR, antes de qualquer byte de formulário. Um `302` não é uma página: não há
+     * nada para piscar. E o endereço continua a existir para quem tem contexto (as listas da Área
+     * do Professor montam o link do ato com `?professor=…&ciclo=…&abrir=1`, e o «Editar»/«Ajustar»
+     * levam o carimbo em vez do contexto, que vem do envelope) — a prova mede os dois lados.
+     *
+     * O QUE **NÃO** SE REDIRECIONA: só a PÁGINA (`/` e `/index.html` debaixo do prefixo). Os
+     * `api/…` e `assets/…` da porta continuam a passar — eles não são a rota do formulário, e um
+     * `ficha` sem `?professor=` é uma chamada legítima da página já aberta.
+     *
+     * O QUE CONTA COMO CONTEXTO: qualquer um dos parâmetros que a porta sabe ler para semear o ato.
+     * A lista é a de `porta/index.html` (ver `consulta()` em `listas-do-acervo.js`), e é uma lista
+     * de PERMISSÃO — na dúvida, deixa passar. Servir a porta a mais é o que já acontecia; servir
+     * a menos quebraria o ato. */
+    const PARAMS_DO_ATO = ['professor', 'ciclo', 'aluna', 'plano', 'editar', 'ajustar', 'ato'];
+    const ehAPaginaDaPorta = rel === '/' || rel === '/index.html';
+    const temContexto = PARAMS_DO_ATO.some((chave) => (url.searchParams.get(chave) || '').trim());
+    if (ehAPaginaDaPorta && !temContexto) {
+      const lista = listasDoAcervo.listaDaPorta(path);
+      if (lista) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: lista, 'Cache-Control': 'no-store, max-age=0' },
+        });
+      }
+    }
     const alvo = new Request(new URL(rel + url.search, request.url), request);
     /* O MENU MARCA A LISTA A QUE A PORTA PERTENCE (26/10/2026).
      *

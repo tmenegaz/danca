@@ -136,7 +136,18 @@ function desenhar(menu, pedido, extras) {
   const bloco = (extras && typeof extras === 'object') ? (extras.extras || '') : (extras || '');
   const titulo = (extras && typeof extras === 'object') ? (extras.titulo || '') : '';
 
-  const daFormaNova = Array.isArray(menu.coluna) && menu.coluna.length > 0;
+  /* A COLUNA VAZIA AINDA É A FORMA NOVA (26/10/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA, medido na montagem: uma escola que ainda não tem turma nenhuma
+   * publica um `nav.json` com `coluna: []` e a `barra` do Bastidores. A conta antiga perguntava
+   * «a coluna tem grupos?», e a resposta era não — então o menu caía na forma VELHA (`grupos`),
+   * que já não existe, e `desenhar` devolvia `null`. Resultado: o índice de uma escola recém-
+   * criada saía SEM BARRA NENHUMA. É exactamente o momento em que a navegação mais faz falta
+   * (é por ela que se chega à Área do Professor para criar o primeiro ciclo).
+   *
+   * A presença do CAMPO `coluna` é que diz a forma — vazia ou não. Um `nav.json` antigo não tem
+   * o campo, e continua a cair na forma de sempre. */
+  const daFormaNova = Array.isArray(menu.coluna);
   /* A COLUNA DESENHA-SE EM TODAS AS PÁGINAS — inclusive nos Bastidores (23/10/2026).
    *
    * Ela já foi suprimida aqui, e a razão era boa: a Produção tem a SUA coluna (a lista de
