@@ -349,3 +349,12 @@ TRANSFERENCIA-IA.md
 # sintoma — a página parece certa e todas as medidas valem zero. Foi assim que esta bancada
 # mentiu duas vezes antes de dizer a verdade.
 !experimentos/provar-painel-do-ato.js
+
+# A FILEIRA DO BOTÃO, E O VÃO QUE A PÁGINA DESFAZIA (26/10/2026). A prova mede, no navegador,
+# a ação de cada formulário da Produção contra o «Cadastrar professor»: a fileira `.par-botoes`,
+# a classe `.acao`, a cor e a altura computadas, e o vão até o campo. Ela fica versionada
+# porque o defeito que ela guarda é INVISÍVEL no HTML — um `<div class="res">` entre o último
+# controle e o botão parte a conta de vizinhança da folha, e o botão encosta no campo a 0px
+# sem que nenhuma checagem de marcação o veja. O controle negativo dela reprova 16 asserções
+# no código de antes: sem isso, «conferi» seria a minha palavra.
+!experimentos/provar-vao-do-botao.js

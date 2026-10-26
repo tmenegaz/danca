@@ -20,6 +20,7 @@ escrever o primeiro `<div>`.
 | escolha entre muitas, ou variável | **`escolhedor`** |
 | valor único de lista fechada, com rótulo próprio | `select` + `.campo-rotulo` |
 | uma **ordem** (acontece ao clicar) | `.acao` (`secundario`, `perigo`, `grande`, `pequena`) |
+| a ação que grava um formulário | `.acao` (e `grande` se é a principal) **dentro** de `.par-botoes` |
 | um **estado** ou atributo do dado | `.selo` |
 | bloco de leitura | `.caixa` (+ `nota`, `falta`) |
 | resultado de uma ação | `.res` (`ok`/`erro`) |
@@ -29,6 +30,13 @@ escrever o primeiro `<div>`.
 
 O quadro completo, com marcação e estados, é a secção **«O catálogo das peças»** de
 `IDENTIDADE-VISUAL.md`. Consulte-o antes de decidir; ele é curto.
+
+**A ação que grava não se põe solta no fim do formulário.** O vão que a folha dá ao botão
+(`input + button.acao` → 16px) é uma conta de **vizinhança**, e um `<div class="res">` no meio
+parte-a — mesmo sendo `display: none`. Foi assim que «Cadastrar aluna» e «Cadastrar termo»
+saíram **encostados** no campo, e que «Atribuir curadoria», sem `.acao`, saiu com outra cor na
+mesma página. O modelo é o «Cadastrar professor»: `.acao grande` dentro da fileira
+`.par-botoes`. Quem guarda isso é a `experimentos/provar-vao-do-botao.js`.
 
 ## As quatro regras que não se negociam
 
@@ -95,6 +103,7 @@ Enquanto faltar qualquer um dos quatro, a peça **não existe**.
 node tools/check-identidade.js      # 8 checagens: contraste, cópia, papel, forma, peça…
 node experimentos/provar-celular.js # geometria em 320/360/390/414/768/1024
 node experimentos/provar-producao.js
+node experimentos/provar-vao-do-botao.js   # o vão e a cor de cada ação de formulário
 ```
 
 E, se a mudança tocar a barra ou o tema: `provar-tema.js`, `provar-aparencia.js`,

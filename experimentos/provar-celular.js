@@ -77,7 +77,11 @@ const FOLHA = path.join(raiz, 'tools/templates/ciclo.css');
 // ---------------------------------------------------------------------------
 function cssDaProducao() {
   const src = fs.readFileSync(FONTE, 'utf8');
-  const i = src.indexOf("'.lateral{position:sticky");
+  /* O PONTO DE ENTRADA NÃO CARREGA O VALOR DA POSIÇÃO (26/10/2026). Era
+     `'.lateral{position:sticky'`, e o menu deixou de ser `sticky` para ser `fixed` — a âncora
+     partiu e esta prova passou a dizer «bloco de estilo não encontrado», ou seja, a medir
+     nada. Ancorar no NOME da regra e no começo da propriedade sobrevive à mudança do valor. */
+  const i = src.indexOf("'.lateral{position:");
   if (i < 0) throw new Error('bastidores.js: bloco de estilo da Produção não encontrado');
   const j = src.indexOf("'</style></head>", i);
   if (j < 0) throw new Error('bastidores.js: fim do bloco de estilo não encontrado');

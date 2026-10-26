@@ -447,6 +447,7 @@ desenho.
 | **Uma escolha entre MUITAS, ou variável** | `.escolhedor` | turmas, alunas, repertório, os 84 termos | menu + «Adicionar» + ficha com o «×» |
 | **Um valor único de uma lista fechada, com rótulo próprio** | `select` + `.campo-rotulo` | a turma da curadoria, a tradição | `<select>` (nunca `multiple`) |
 | **Uma ORDEM** — algo que acontece ao clicar | `.acao` | gravar, excluir, voltar, avançar | `<button class="acao">`; `secundario` para o que não é a ação principal, `perigo` para o que apaga |
+| **A ação de um formulário, na fileira** | `.par-botoes` + `.acao` | o botão que grava, e o «Cancelar» ao lado quando há edição | `<span class="par-botoes"><button class="acao grande">…</button></span>`. **A fileira é declarada na página da Produção** (`motor/servidor/bastidores.js`), e não na folha — mas é uma só para os cinco formulários de lá, e é ela que dá o vão |
 | **Um ESTADO ou atributo do dado** | `.selo` | «livre», «vinculada», «vigente» | `<span class="selo livre">` |
 | **Um bloco de leitura** | `.caixa` | texto que se lê, com título | `<div class="caixa">` (+ `nota`, `falta`) |
 | **O resultado de uma ação** | `.res` | «ok», «erro», «gravando…» | barra acima da lista |
@@ -495,6 +496,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.campos-do-ato` / `.acoes-do-ato` / `.estado-do-ato` | `ciclo.css` | os campos quebram em fileira; o estado tem `data-falta="sim"` para o que impede o avanço |
 | `.paginas` | `ciclo.css` | `hidden` (uma página só, e o estado sem JavaScript), à vista a partir de duas |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
+| `.par-botoes` | **a página da Produção** (`motor/servidor/bastidores.js`), no `<style>` dela — não na folha | fileira que quebra (`flex-wrap`), com o vão de `.55rem` acima. Carrega **sempre** uma `.acao` (e o `secundario` do cancelar, quando há). Medido: 9px entre o campo e o botão, o mesmo nos cinco formulários |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
 
 ### As três proibições, com o caso que as criou
@@ -526,6 +528,31 @@ Uma peça nova **nasce inteira**, no mesmo commit, e nesta ordem:
 
 Enquanto isso não acontecer, a peça **não existe** — e usá-la é o defeito que este catálogo
 existe para impedir.
+
+### O vão do botão não se dá por acidente *(26/10/2026)*
+
+A folha separa o campo da ação com uma conta de **vizinhança**:
+
+```css
+:where(form) > :where(input, select, textarea) + button.acao { margin-top: var(--esp-4); }
+```
+
+`+` quer dizer «o elemento imediatamente a seguir». Um `<div class="res">` no meio — e é onde
+ele nasce, entre o último campo e o botão — **parte a vizinhança**, mesmo sendo
+`display: none` até haver resposta. O botão fica com `margin: 0` (o `.acao` declara-o) e
+encosta no campo.
+
+Foi o que aconteceu aos dois formulários da Produção que **não** tinham fileira: o «Cadastrar
+aluna» e o «Cadastrar termo» saíram com **0px** entre o campo e o botão, e a tela mostrou o
+defeito antes de qualquer prova. O «Atribuir curadoria» tinha fileira e não tinha `.acao`: caía
+no botão **padrão** da folha — fundo de papel, filete na marca — e ao lado das ações cheias de
+bordô da mesma página parecia de outra família, quatro pixels mais baixo.
+
+**A regra, para não se repetir:** a ação que grava põe-se na fileira `.par-botoes`, com
+`.acao` (e `grande` quando é a principal do formulário). Quem confere é a
+`experimentos/provar-vao-do-botao.js`: ela mede a fileira, a classe, a cor computada, a altura
+e o vão de cada ação contra o «Cadastrar professor», que é o modelo. Com o código de antes,
+os três formulários reprovam.
 
 ## O catálogo das PALETAS — três famílias, três implementadas *(fechado em 18/10/2026)*
 

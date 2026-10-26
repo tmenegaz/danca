@@ -2857,7 +2857,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="anome">Apelido da aluna (estável, P-12)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
     '<div class="res" data-res="alunas"></div>' +
+    // A FILEIRA DO BOTÃO É A DO PROFESSOR (26/10/2026). O `.acao` sozinho depois do `.res`
+    // encostava no campo: a folha só dá vão ao botão que vem LOGO depois de um controle
+    // (`input + button.acao`), e o `.res` — que é `display:none` até haver resposta — quebra
+    // essa vizinhança. O `.par-botoes` é a peça que o professor e a turma já usam, e é ela
+    // que dá o vão. Não se inventou contentor novo.
+    '<span class="par-botoes">' +
     '<button type="submit" class="acao grande">Cadastrar aluna</button>' +
+    '</span>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -3108,7 +3115,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('') +
     '</select>' +
     '<div class="res" data-res="vocabulario"></div>' +
+    // Mesma fileira do professor e da aluna (26/10/2026): o `.res` entre o `select` e o botão
+    // anulava o vão da folha, e o «Cadastrar termo» encostava na tradição.
+    '<span class="par-botoes">' +
     '<button type="submit" class="acao grande">Cadastrar termo</button>' +
+    '</span>' +
     '</form>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
     '</div>' +
@@ -3159,7 +3170,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // há nada para cancelar.
     '<div class="res" data-res="curadorias"></div>' +
     '<span class="par-botoes">' +
-    '<button type="submit" id="cu-enviar">Atribuir curadoria</button>' +
+    // A AÇÃO PRINCIPAL É `.acao` (26/10/2026). O botão estava sem classe: caía no botão
+    // PADRÃO da folha — filete na marca, fundo de papel — e por isso tinha outra cor e outra
+    // altura que o «Cadastrar professor» ao lado, na mesma página. A ação que grava é a
+    // principal das três, e é a peça `.acao` que a desenha.
+    '<button type="submit" class="acao grande" id="cu-enviar">Atribuir curadoria</button>' +
     '<button type="button" class="acao secundario" id="cu-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
