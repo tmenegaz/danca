@@ -25316,3 +25316,56 @@ asserções — as referências entram também na medição do telemóvel), `pro
 `provar-listas-do-acervo` **109/109**, `check-identidade` **0 erro**, `check-pacote` do ciclo
 **0 erro, 0 aviso**. E, medido no `nav.json` remontado da bancada: o grupo «Ciclos» tem um item —
 «Planos» — e `publicacao/batata/ciclos/` já só contém `planos/`.
+
+## 26/10/2026 — O menu da Produção não rola com a página: era o `sticky` anulado por uma linha ao lado
+
+**O que motivou.** «Na área do sistema lastro… eu estou em aulas e, quando rolo essa página, o menu
+fica estático ali para mim… quando eu vou para produção, eu tenho um menu ali que tem um acesso de
+volta para o sistema lastro. Só que aí, quando eu estou, por exemplo, em Pedagogia, Turmas, e eu
+tenho aqui o scroll lateral ativo e eu rolo a página, o menu rola junto. Ele tem que ficar igual o
+outro menu do sistema lastro, que fica fixo enquanto eu rolo a página.»
+
+**A causa, e é de CSS.** A `.lateral` declarava `position: sticky` com `top: var(--header-height)`
+— e rolava na mesma. O culpado era a linha ao lado: `align-self: stretch`. Num `display: grid`, o
+`stretch` dá ao item a altura da **linha** — a altura de todo o conteúdo —, e um `sticky` cuja
+caixa é tão alta como o seu contentor **não tem para onde deslizar**. Medido no controle negativo:
+rolar 600px levava o menu de `60` para `−540`, e o `elementFromPoint` no centro de um destino
+deixava de devolver o menu.
+
+**O que foi decidido.**
+
+- `align-self: start` — o item volta a ter a altura própria, e o `sticky` passa a ter curso.
+- `height: calc(100vh - var(--header-height))` no lugar de `min-height`: o mínimo garantia que o
+  menu não ficasse curto, mas deixava-o passar da borda de baixo quando o conteúdo é mais alto do
+  que a tela (um portátil a meia altura). O `overflow-y: auto`, que já cá estava, passa a ser o que
+  rola o menu **dentro de si** — como a coluna do sistema, que é `fixed` e faz o mesmo.
+- No celular, `height: auto` na regra que já convertia a lateral em barra: abaixo de 768px a
+  navegação é a barra com o «Seções», e uma altura de janela ali seria um vazio de 100vh.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — a regra `.lateral` (o `align-self`/`height`) e o `height:auto`
+  da versão de celular; o comentário da regra diz o que o `stretch` fazia.
+- `experimentos/provar-menu-da-producao.js` — secção nova: a página rola 600px e o menu fica; o
+  ponteiro alcança um destino; com a janela a 300px e um grupo aberto, o menu cabe na tela e rola
+  dentro de si até ao último destino. A bancada ganha, **declarado**, um enchimento de altura — o
+  fixture da Produção mede 300px de conteúdo e não rolaria, e «o menu não se move» numa página que
+  não rola é o falso positivo do pior tipo.
+- `IDENTIDADE-VISUAL.md` — secção **«O menu de trabalho não rola com a página»**, com a tabela dos
+  dois menus e a lição (a propriedade certa estava lá; a companheira anulava-a).
+- `.github/instructions/identidade-visual.instructions.md` — o resumo curto.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-menu-da-producao.js`,
+`IDENTIDADE-VISUAL.md`, `.github/instructions/identidade-visual.instructions.md`, `REGISTRO.md`.
+
+**Referências.** Secção «O menu de trabalho não rola com a página» de `IDENTIDADE-VISUAL.md`.
+Nenhum arquivo de `CONGELAMENTO.md` foi tocado — a regra é do `bastidores.js`, e a folha
+(`tools/templates/ciclo.css`) não mudou.
+
+**O que ainda não está feito.** O trabalho está **no worktree**; o commit vem a seguir, e o push
+depende de um token válido (o do `.dev.vars` está a devolver 401).
+
+Medido: `provar-menu-da-producao` **51/51** (13 asserções novas); o **controle negativo**
+(`--controle-negativo`, o motor do `HEAD` anterior) **reprova 8** — as oito desta secção, com o menu
+a ir para `−540` e a base a `1916` numa janela de `300`. `provar-barra-e-caminho` 47/47,
+`check-identidade` 0 erro.

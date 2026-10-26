@@ -407,6 +407,179 @@ function estado() {
     await p.close();
   }
 
+  /* O MENU FICA, A PÁGINA ANDA (26/10/2026).
+   *
+   * «Quando eu vou para produção, eu tenho um menu ali… só que aí quando eu estou, por exemplo,
+   * em Pedagogia, Turmas, e eu tenho aqui o scroll lateral ativo e eu rolo a página, o menu rola
+   * junto. Ele tem que ficar igual o outro menu do sistema lastro, que ele fica fixo enquanto eu
+   * rolo a página.»
+   *
+   * A CAUSA, e é de CSS: a `lateral` declara `position: sticky` com `top: --header-height`, mas
+   * também `align-self: stretch`. Num `display: grid`, `stretch` faz o item ter a ALTURA DA LINHA
+   * — ou seja, a altura do conteúdo inteiro. Um sticky cuja caixa é tão alta como o seu contentor
+   * não tem para onde deslizar: fica parado em relação ao documento, e rola com ele. O `sticky`
+   * estava lá, e não fazia nada.
+   *
+   * MEDE-SE O QUE SE VÊ: a posição do menu antes e depois de rolar. Se ele ficar (top igual), é
+   * fixo; se subir, rola. E mede-se também o ponteiro: `elementFromPoint` no meio de um destino,
+   * porque um menu que está na tela mas coberto por outra coisa não serve a ninguém.
+   */
+  console.log('\nProdução (1280px) — rolar a página NÃO leva o menu');
+  {
+    const p = await navegador.newPage();
+    await p.setViewport({ width: 1280, height: 760 });
+    await p.goto(base + '/bastidores/producao-menu', { waitUntil: 'networkidle0', timeout: 60000 });
+    for (let i = 0; i < 6; i += 1) await new Promise((r) => setTimeout(r, 60));
+
+    const lerMenu = () => p.evaluate(() => {
+      const lat = document.querySelector('.lateral');
+      const topnav = document.querySelector('.topnav');
+      if (!lat) return null;
+      const r = lat.getBoundingClientRect();
+      const alvo = document.querySelector('.lateral .coluna-itens a, .lateral a.coluna-direto');
+      const ra = alvo ? alvo.getBoundingClientRect() : null;
+      const noMeio = (ra && ra.height > 0)
+        ? document.elementFromPoint(Math.round(ra.left + ra.width / 2), Math.round(ra.top + ra.height / 2))
+        : null;
+      return {
+        topoParado: Math.round(r.top),
+        altura: Math.round(r.height),
+        posicao: getComputedStyle(lat).position,
+        cabecalho: topnav ? Math.round(topnav.getBoundingClientRect().height) : 0,
+        rolado: Math.round(window.scrollY),
+        sobrepoe: r.bottom > 0 && r.top < window.innerHeight,
+        alvoNaTela: Boolean(ra) && ra.height > 0 && ra.top >= 0 && ra.bottom <= window.innerHeight,
+        // O QUE ESTÁ DEBAIXO DO PONTEIRO, no centro do primeiro destino do menu.
+        ponteiroNoMenu: Boolean(noMeio) && Boolean(noMeio.closest('.lateral')),
+      };
+    });
+
+    /* A PÁGINA DA BANCADA É CURTA, E A REAL NÃO É (26/10/2026). O fixture da Produção mostra uma
+       secção de cada vez e, sem turmas nem alunas, mede 300px de conteúdo — a página real, com a
+       lista de uma escola, tem metros. Aqui o que se mede é o COMPORTAMENTO DO CSS perante uma
+       página longa, e a altura é o que distingue os dois casos: a bancada põe-na, e diz que a
+       pôs. Sem isto a asserção «o menu não se move» passaria numa página que não rola — o falso
+       positivo do pior tipo.
+       O enchimento entra DENTRO da coluna de conteúdo, e não no `body`: é conteúdo a mais, e não
+       outra coisa qualquer. */
+    await p.evaluate(() => {
+      const corpo = document.querySelector('.corpo');
+      const alvo = corpo && (corpo.querySelector('.principal') || corpo.lastElementChild);
+      const enchimento = document.createElement('div');
+      enchimento.id = 'enchimento-da-bancada';
+      enchimento.style.height = '2400px';
+      if (alvo) alvo.appendChild(enchimento);
+    });
+    await new Promise((r) => setTimeout(r, 120));
+
+    const antes = await lerMenu();
+    provar('o menu da Produção existe na tela larga', Boolean(antes), antes);
+
+    /* A PÁGINA TEM DE ROLAR O SUFICIENTE PARA A PROVA VALER. Sem isto, «o menu não se move»
+       passaria numa página que não rola — que é o caso de um fixture curto, e seria um falso
+       positivo do pior tipo. */
+    const rolavel = await p.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
+    provar('a página tem rolagem bastante para a medida valer (≥ 400px)',
+      rolavel >= 400, rolavel);
+
+    await p.evaluate(() => window.scrollTo(0, 600));
+    await new Promise((r) => setTimeout(r, 220));
+    const depois = await lerMenu();
+
+    provar('a janela rolou mesmo (é a contraprova)',
+      depois.rolado >= 550, depois.rolado);
+    provar('o menu FICA: a mesma posição antes e depois de rolar',
+      depois.topoParado === antes.topoParado, { antes: antes.topoParado, depois: depois.topoParado });
+    provar('…e está encostado abaixo da barra do topo, como a coluna do sistema',
+      Math.abs(depois.topoParado - depois.cabecalho) <= 2,
+      { topo: depois.topoParado, cabecalho: depois.cabecalho });
+    provar('…e continua inteiro dentro da janela',
+      depois.sobrepoe === true && depois.altura >= 300, depois);
+    provar('…e o ponteiro alcança um destino do menu depois de rolar',
+      depois.alvoNaTela === true && depois.ponteiroNoMenu === true,
+      { alvoNaTela: depois.alvoNaTela, ponteiroNoMenu: depois.ponteiroNoMenu });
+
+    /* A VALIDADE DO FIXTURE: a página tem de ser mais alta do que a janela E o menu mais curto
+       do que o conteúdo — é isso que dá ao sticky o espaço onde ficar. Se o `.lateral` fosse
+       mais alto do que o `main`, nenhum CSS o faria ficar. */
+    const proporcao = await p.evaluate(() => {
+      const lat = document.querySelector('.lateral');
+      const principal = document.querySelector('.principal') || document.querySelector('.corpo > :last-child');
+      return {
+        menu: lat ? Math.round(lat.getBoundingClientRect().height) : 0,
+        conteudo: principal ? Math.round(principal.getBoundingClientRect().height) : 0,
+      };
+    });
+    provar('o conteúdo é mais alto do que o menu (é o que dá espaço ao menu para ficar)',
+      proporcao.conteudo > proporcao.menu, proporcao);
+
+    /* A JANELA BAIXA — É O QUE ACONTECE NUM PORTÁTIL DE 13" COM O NAVEGADOR A MEIA ALTURA. Com a
+       altura da lateral presa à janela, um menu mais alto do que ela passa a rolar DENTRO de si,
+       em vez de sair pela borda de baixo do ecrã. É o mesmo que a coluna do sistema faz (é
+       `fixed` com `overflow-y: auto`), e era o que o `min-height` não garantia: ele só punha um
+       mínimo, e o menu preso continuaria a passar da tela.
+       A ALTURA DA JANELA É ESCOLHIDA PARA FORÇAR O CASO: a 480 o conteúdo do menu (420px) ainda
+       cabe; a 300, não — e é aí que se vê se ele rola dentro de si ou sai pela borda de baixo. */
+    await p.setViewport({ width: 1280, height: 300 });
+    await new Promise((r) => setTimeout(r, 220));
+    await p.evaluate(() => window.scrollTo(0, 900));
+    await new Promise((r) => setTimeout(r, 220));
+    /* E COM UM GRUPO ABERTO, que é quando o menu cresce. Na coluna compacta os grupos nascem
+       fechados e abrem ao clique (o `data-aberto` do `assets/nav.js`); sem abrir um, o menu tem
+       quatro títulos e não chega a passar da janela — e o caso que se quer medir é o outro. */
+    /* O CLIQUE É DISPARADO NO DOM, e não pelo ponteiro do puppeteer: com o menu a rolar dentro de
+       si, o centro do botão pode cair debaixo da barra do topo, e o ponteiro acertaria na barra.
+       O que se quer medir aqui é o ESTADO (`data-aberto`), e não a hit-test — essa já está medida
+       acima, no `elementFromPoint` do primeiro destino. */
+    const abriuGrupo = await p.evaluate(() => {
+      const t = document.querySelector('.lateral .coluna-titulo');
+      if (!t) return false;
+      t.click();
+      return true;
+    });
+    provar('o grupo do menu abre ao clique (é o caso em que ele cresce)',
+      abriuGrupo === true, abriuGrupo);
+    const baixa = await p.evaluate(() => {
+      const lat = document.querySelector('.lateral');
+      const r = lat.getBoundingClientRect();
+      return {
+        rolado: Math.round(window.scrollY),
+        altura: Math.round(r.height),
+        conteudoDoMenu: lat.scrollHeight,
+        gruposAbertos: lat.querySelectorAll('.coluna-grupo[data-aberto="sim"]').length,
+        itensAbertos: lat.querySelectorAll('.coluna-grupo[data-aberto="sim"] a').length,
+        topo: Math.round(r.top),
+        base: Math.round(r.bottom),
+        janela: window.innerHeight,
+        cabecalho: Math.round(document.querySelector('.topnav').getBoundingClientRect().height),
+        rolaDentro: lat.scrollHeight > lat.clientHeight + 1,
+        overflow: getComputedStyle(lat).overflowY,
+        // O último destino tem de ser alcançável ROLANDO O MENU, e não a página.
+        ultimo: (() => {
+          const grupos = [...lat.querySelectorAll('.coluna-grupo[data-aberto="sim"]')];
+          const abertos = grupos.flatMap((g) => [...g.querySelectorAll('a')]);
+          const links = abertos.length ? abertos : [...lat.querySelectorAll('a[data-secao]')];
+          const u = links[links.length - 1];
+          if (!u) return null;
+          lat.scrollTop = lat.scrollHeight;
+          const ru = u.getBoundingClientRect();
+          return ru.height > 0 && ru.bottom <= window.innerHeight + 1 && ru.top >= 0;
+        })(),
+      };
+    });
+    provar('com a janela baixa, o menu continua preso abaixo da barra',
+      baixa.rolado >= 850 && Math.abs(baixa.topo - baixa.cabecalho) <= 2, baixa);
+    provar('…e o conteúdo do menu é mesmo maior do que a janela (é o caso que se quer medir)',
+      baixa.conteudoDoMenu > baixa.altura + 1, { menu: baixa.conteudoDoMenu, caixa: baixa.altura });
+    provar('…e cabe na janela: a base não passa do fundo da tela',
+      baixa.base <= baixa.janela + 1, { base: baixa.base, janela: baixa.janela });
+    provar('…e o menu rola DENTRO de si (é o que torna alcançável o último destino)',
+      baixa.rolaDentro === true && baixa.overflow === 'auto' && baixa.ultimo === true,
+      baixa);
+
+    await p.close();
+  }
+
   await navegador.close();
   srv.close();
   console.log('\n' + (negativo ? 'controle negativo: ' : '') +

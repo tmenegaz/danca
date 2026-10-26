@@ -1175,6 +1175,40 @@ aberta com ele à vista, o caminho reduzido ao nome do documento e **sem reticê
 e nada a estourar na horizontal). A secção 17 mede o que se **vê**: a cor e o filete, não a
 existência da classe — uma marca que ninguém pinta não é uma marca.
 
+## O menu de trabalho não rola com a página *(26/10/2026)*
+
+**O menu é o que fica.** Quem rola uma lista de trinta alunas, ou a página de uma aula de quinze
+ecrãs, continua a precisar de navegar — e um menu que sobe com o documento obriga a voltar ao topo
+para o alcançar. Os dois menus de trabalho do produto **ficam**: a coluna do sistema (`.coluna`) e a
+lateral da Produção (`.lateral`).
+
+| Menu | Como fica | Porquê assim |
+| --- | --- | --- |
+| `.coluna` (sistema) | `position: fixed`, de topo a fundo, acima dos 1141px | não depende de nada da página: é navegação global, e a página cede-lhe 248px de margem |
+| `.lateral` (Produção) | `position: sticky; top: var(--header-height); align-self: start; height: calc(100vh - var(--header-height))` | é um item da grade `.corpo`, ao lado do conteúdo: `sticky` mantém-no na coluna que lhe pertence, e o `height` da janela impede que ele passe da tela |
+
+**O defeito, e a lição.** A `.lateral` já declarava `position: sticky` — e rolava com a página na
+mesma. O culpado era uma linha ao lado: `align-self: stretch`. Numa grade, `stretch` dá ao item a
+altura da **linha**, ou seja, a altura de todo o conteúdo; e um `sticky` cuja caixa é tão alta como
+o seu contentor **não tem para onde deslizar**. Medido: rolar 600px levava o menu de 60 para −540, e
+o ponteiro passava a não alcançar nenhum destino. A propriedade certa estava lá, a companheira dela
+é que a anulava — é a mesma família de erro de um `if` de guarda que transforma um defeito em
+silêncio: o CSS dizia «sticky», e o resultado era «nada».
+
+| Regra | Como |
+| --- | --- |
+| **A altura é a da janela, não a do conteúdo** | `height: calc(100vh - var(--header-height))`, e não `min-height`: o mínimo deixa o menu preso passar da borda de baixo num portátil de 13" |
+| **Se o menu for mais alto do que a tela, ele rola DENTRO de si** | `overflow-y: auto` no próprio menu — nunca a página a empurrá-lo para fora |
+| **A barra do topo continua acima** | `top: var(--header-height)`: o menu encosta abaixo da barra fixa, e não debaixo dela |
+| **No celular nada disto vale** | abaixo de 768px a `.lateral` é uma **barra** com o botão «Seções» (`position: static; height: auto`), e a navegação é a folha |
+
+**Prova.** [`experimentos/provar-menu-da-producao.js`](experimentos/provar-menu-da-producao.js) —
+secção nova, em navegador: a página rola 600px, o menu fica **na mesma posição** (60px, encostado
+abaixo da barra), e o `elementFromPoint` no centro de um destino devolve o próprio menu. Com a
+janela a 300px de altura e um grupo aberto, o menu **cabe** na tela (a base não passa do fundo) e
+**rola dentro de si** até ao último destino. O controle negativo (`--controle-negativo`, contra o
+`HEAD` anterior) **reprova as oito asserções** desta secção, com o menu a ir para −540.
+
 ## A funcionalidade planejada — configuração de aparência *(o catálogo, **não** implementado)*
 
 **O que é.** Uma entrada no **painel administrativo privado**, na área de configuração do sistema,

@@ -62,6 +62,18 @@ A norma completa, com a tabela das famílias e o motivo de cada degrau, é a sec
 o caminho na barra e a marca no menu»** de `IDENTIDADE-VISUAL.md`. As provas que a guardam:
 `provar-barra-unica.js` (secção D1) e `provar-painel-do-ato.js` (secção 17, em navegador).
 
+## O menu de trabalho não rola com a página (norma, 26/10/2026)
+
+Os dois menus que servem para navegar **ficam** enquanto a página rola: a coluna do sistema
+(`.coluna`, `position: fixed`) e a lateral da Produção (`.lateral`, `position: sticky` com
+`align-self: start` e `height: calc(100vh - var(--header-height))`). Se o menu for mais alto do que
+a janela, ele rola **dentro de si** (`overflow-y: auto`) — nunca a página a empurrá-lo para fora, e
+nunca com a caixa a crescer até à altura do conteúdo (era isso que anulava o `sticky`).
+
+No celular nada disto vale: abaixo de 768px a `.lateral` é uma barra com o botão «Seções».
+A secção **«O menu de trabalho não rola com a página»** de `IDENTIDADE-VISUAL.md` tem o porquê e a
+medida; a prova é a `provar-menu-da-producao.js` (e ela tem controle negativo).
+
 ## Peça nova: nasce inteira, no mesmo commit
 
 1. o desenho em `tools/templates/ciclo.css`, com **todos** os estados (base, `:hover`,

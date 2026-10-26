@@ -2127,7 +2127,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //
     // A ALTURA É A DA JANELA porque a coluna do sistema também o é: um painel que acaba a meio
     // da página lê-se como um cartão, e não como o menu da casa.
-    '.lateral{position:sticky;top:var(--header-height);align-self:stretch;min-height:calc(100vh - var(--header-height));' +
+    //
+    // E O MENU FICA, A PÁGINA ANDA (26/10/2026). O `position: sticky` estava aqui desde sempre e
+    // não fazia nada: com `align-self: stretch`, o item da grade esticava até à altura da LINHA
+    // — a altura do conteúdo inteiro —, e um sticky tão alto como o seu contentor não tem para
+    // onde deslizar. O resultado medido: rolar 600px levava o menu 600px para cima, e o menu
+    // saía da tela. `align-self: start` devolve-lhe a altura própria, e o `height: 100vh -
+    // barra` é o que o mantém inteiro dentro da janela quando está preso (o `min-height` só
+    // garantia a altura mínima; com conteúdo mais alto do que a tela, o menu preso passaria
+    // dela). O `overflow-y: auto` já cá estava, e passa a ser ele que rola o menu quando o menu
+    // é mais alto do que a tela — como na coluna do sistema, que é `fixed` e rola dentro de si.
+    '.lateral{position:sticky;top:var(--header-height);align-self:start;' +
+    'height:calc(100vh - var(--header-height));' +
     'margin:calc(-1 * var(--esp-5)) 0 calc(-1 * var(--esp-6)) calc(-1 * var(--esp-4));' +
     'padding:var(--esp-4) var(--esp-3) var(--esp-5);' +
     'background:var(--marca-fundo);color:var(--sobre-marca);border-right:3px solid var(--ornamento-forte);' +
@@ -2581,7 +2592,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
       // NO CELULAR A COLUNA VIRA A BARRA + A FOLHA (não a coluna escura): a barra diz onde se
       // está e o «Seções» abre a folha. Sem fundo e sem filete — o fundo escuro é da coluna.
-      '.lateral{position:static;min-height:0;margin:0;border-right:none;background:none;' +
+      '.lateral{position:static;height:auto;min-height:0;margin:0;border-right:none;background:none;' +
         'color:inherit;overflow:visible;padding:0 0 var(--esp-3);}' +
       '.lateral-barra{display:flex;align-items:center;gap:var(--esp-3);}' +
       // A BARRA DA PÁGINA SAI DE QUADRO AO ROLAR (18/10/2026). Ela está no fluxo, logo
