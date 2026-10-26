@@ -1140,6 +1140,14 @@ tabela. O caminho servido continua a ser o que se serve; o que muda é o que o m
 | Área do Professor | as três **portas** | a lista da sua família |
 | Consulta | `/…/glossario-*` | «Consulta» (destino directo) |
 
+**Um grupo com um item só não é, por si, um defeito.** «Ciclos» tem hoje **um** item — «Planos» —
+e o grupo fica: ele é o nome da **área**, e o item é o nome da **lista** que tem de ficar aceso.
+(Por isso «Consulta», que é uma ferramenta e não uma área com listas, continua a ser destino
+directo.) O que se recusa é uma **listagem** que só existe para repetir uma linha por turma: foi o
+caso de «Ciclos · Referências», removido com a sua página em 26/10/2026. Foi uma **remoção
+deliberada de URL** — quem tiver `/ciclos/referencias/` guardado perde-o, e é o objectivo. Os
+documentos continuam a abrir-se pelo cartão do plano e pelo próprio plano.
+
 ### O que NÃO se marca
 
 **Um documento que não sai de lista nenhuma não inventa marca.** A harmonização, que saiu do menu

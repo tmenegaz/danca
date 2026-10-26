@@ -25201,6 +25201,13 @@ mesmo acontecia com as referências, as aulas (aula, captura e lançamento), a n
 - `.github/instructions/identidade-visual.instructions.md` — o resumo curto, para quem escreve
   marcação o ler antes do primeiro `<div>`.
 
+> **Correção de 26/10/2026 (mesmo dia).** A primeira redação desta entrada punha
+> `/…/referencias` a acender «Referências», e supunha que essa lista continuava a existir. **Está
+> errado**: a pesquisadora removeu o item «Ciclos · Referências» e a sua listagem, e o documento
+> das referências passa a acender «Planos» — ver a entrada seguinte, «Referências deixa de ser um
+> item do menu». A redação acima não é apagada: fica como o elo que registra o que se pensou antes
+> da correção.
+
 **Motivo declarado — os congelados.** `tools/templates/ciclo.css` é fonte de verdade congelada, e
 esta é a alteração que o toca: **no corte dos 768px o caminho da barra fica só com o último
 degrau**.
@@ -25235,3 +25242,77 @@ Medido: `provar-barra-unica` **111/111** (secção D1 nova), `provar-painel-do-a
 `check-pacote professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2` **0 erro,
 0 aviso**. (`provar-navegacao` não corre nesta árvore: falta o pacote-zero de «calango», que a
 bancada procura em `professores/` — já faltava antes desta entrada.)
+
+## 26/10/2026 — Referências deixa de ser um item do menu, e passa a ser um documento de «Planos»
+
+**O que motivou.** A pesquisadora corrigiu o que eu tinha entendido: «Quando eu vou em ciclos e
+clico em planos, no menu lateral está marcado que eu estou em planos e isso é muito bom. Agora,
+quando eu vou em abrir plano, eu tenho escrito no título que estou em ciclos, planos, plano do
+ciclo 01 — o que é muito bom também —, mas no menu eu perdi a marca de que eu estou em planos. Eu
+não posso perder essa referência: eu só estou mais verticalizado dentro de planos.»
+
+E, sobre o outro caminho: «Esse [documento] é o mesmo lugar que eu acesso pelo menu Ciclos →
+Referências → abrir. É o mesmo lugar. […] Eu não preciso ter aqui em ciclos, no menu, referências
+e a listagem das referências. Pode remover isso do menu e pode remover essa página que tem
+procurar e a listagem. […] quando eu for em referências também por esse caminho, que agora só vai
+existir esse caminho dentro do plano do ciclo, também tem que continuar selecionado planos do
+ciclo.»
+
+**O que foi decidido.**
+
+- **O item «Referências» sai do grupo «Ciclos»**, e com ele a **listagem** `/ciclos/referencias/`
+  (a página com «Procurar» e uma linha por turma). Havia dois caminhos para o mesmo documento, e
+  um deles era um índice a mais.
+- **O documento das referências passa a acender «Planos»**, e o caminho da barra passa a dizer
+  `Ciclos · Planos · Referências Bibliográficas`. É a regra da entrada anterior aplicada ao caso
+  novo: **o documento acende a lista de onde veio**, e agora ele vem do plano.
+- **O grupo «Ciclos» fica, com um item só.** O grupo é o nome da **área**; o item é o nome da
+  **lista**, e é o item que tem de ficar aceso — era isso que a pesquisadora pedia («marcado que
+  eu estou em planos»). A alternativa — um destino directo chamado «Ciclos» ou «Planos» — perdia
+  um dos dois nomes, e nenhum deles é descartável.
+- **É uma remoção deliberada de URL**: `/ciclos/referencias/` deixa de responder. Quem tiver o
+  endereço guardado perde-o, e é o objectivo. Os documentos (`<turma>/referencias.html`) continuam
+  a ser publicados e abrem-se pelo cartão do plano ou pelo próprio plano.
+
+**Onde entrou.**
+
+- `tools/montar-publicacao.js` — `menuDaEscola`: o grupo «Ciclos» fica com «Planos»; e sai o
+  `escreverLista('ciclos/referencias/index.html', …)` da montagem.
+- `motor/nucleo/nav.js` — `/ciclos/referencias` sai de `LISTAS` (já não é uma lista), e a entrada
+  de `TRILHA_DO_DOCUMENTO` passa a `{ grupo: 'Ciclos', rotulo: 'Planos', href: '/ciclos/planos/' }`,
+  agora casando `plano` e `referencias` na mesma linha — as duas são o mesmo degrau.
+- `experimentos/provar-barra-unica.js` (D1), `experimentos/provar-painel-do-ato.js` (secção 17),
+  `experimentos/provar-barra-e-caminho.js` (§3: o caminho das referências diz «Ciclos · Planos ·
+  Referências Bibliográficas» e já não há degrau a apontar para a lista) e
+  `experimentos/provar-menu-da-producao.js` (a forma do menu).
+- `IDENTIDADE-VISUAL.md` — a tabela das famílias: `/…/referencias` acende «Planos»; e o parágrafo
+  que fixa **porque é que um grupo com um item só não é, por si, um defeito** (e porque é que
+  «Consulta» continua a ser destino directo).
+- `PLANO-NAVEGACAO.md` — §3.2 marcada como removida, e a linha do menu na §2.
+
+**Motivo declarado — os congelados.** `tools/montar-publicacao.js` é congelado, e esta é a
+alteração: **a estrutura de menu muda** (um item a menos) e **uma página gerada deixa de nascer**.
+O motivo é o pedido, transcrito acima, e o critério que o sustenta — um documento que já se abre
+em dois sítios não precisa de uma terceira via, e um menu que repete o que o cartão já faz é um
+menu a mais. **O que não muda:** nenhum token, nenhuma paleta, nenhuma peça nova na folha, nenhuma
+lista de aulas nem de planos, e o documento das referências continua a ser gerado e publicado
+(com o mesmo `check-pacote` a aprová-lo). O `nav.json` é dado: as escolas já publicadas só perdem
+o item na próxima montagem, e não precisam de ser regeradas.
+
+**Com o quê.** `tools/montar-publicacao.js`, `motor/nucleo/nav.js`,
+`experimentos/provar-barra-unica.js`, `experimentos/provar-painel-do-ato.js`,
+`experimentos/provar-barra-e-caminho.js`, `experimentos/provar-menu-da-producao.js`,
+`IDENTIDADE-VISUAL.md`, `PLANO-NAVEGACAO.md`, `REGISTRO.md`.
+
+**O que ainda não está feito.**
+- O trabalho está **no worktree, não commitado**.
+- A remoção só chega ao ar na próxima montagem de cada escola (`deploy-escolas.yml`); até lá
+  `/ciclos/referencias/` continua a responder no que já está publicado.
+- `provar-publicacao-da-escola` **já falhava antes** desta mudança (o mesmo erro, medido com o
+  `HEAD` limpo): ele espera a barra antiga, com «Ciclos / Aulas / Planejamento».
+
+Medido: `provar-barra-unica` **111/111**, `provar-painel-do-ato` **TUDO CERTO** (secção 17, 38
+asserções — as referências entram também na medição do telemóvel), `provar-barra-e-caminho` **47/47**, `provar-menu-da-producao` **38/38**,
+`provar-listas-do-acervo` **109/109**, `check-identidade` **0 erro**, `check-pacote` do ciclo
+**0 erro, 0 aviso**. E, medido no `nav.json` remontado da bancada: o grupo «Ciclos» tem um item —
+«Planos» — e `publicacao/batata/ciclos/` já só contém `planos/`.

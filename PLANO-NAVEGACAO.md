@@ -84,7 +84,7 @@ ocupa **217 px** assim — contra **485 px** com tudo aberto.
 | Onde | O quê | Destino |
 |:--|:--|:--|
 | Coluna, topo | Sistema Lastro | `/index.html` |
-| Coluna | **Ciclos** → Planos · Referências | `/ciclos/planos/` · `/ciclos/referencias/` |
+| Coluna | **Ciclos** → Planos *(era Planos · Referências — ver §3.2)* | `/ciclos/planos/` |
 | Coluna | **Aulas** (sem submenu — é destino) | `/aulas/` |
 | Coluna | **Planejamento** → Glossário · Notação | `/planejamento/glossario/` · `/planejamento/notacao/` |
 | Coluna | **Área do Professor** → Anamnese · Plano de ensino · Plano de Observação · Lançamento de aula | `/area-do-professor/…/` |
@@ -183,10 +183,21 @@ sobre a marcação já montada: nenhuma chamada de rede, nenhum KV, nenhuma linh
 **A paginação vem com a peça** — o mesmo `.paginacao` de sete por página que «Turmas cadastradas»
 já usa. Nas listas curtas ele fica escondido, como lá.
 
-### 3.2 Referências — `/ciclos/referencias/`
+### 3.2 Referências — ~~`/ciclos/referencias/`~~ *(removida em 26/10/2026)*
 
-As tabelas ABNT de cada turma. Mesmas colunas de identificação da §3.1, mais o contador de
-referências (dá para ler do `referencias.html` publicado, ou de um manifesto, se existir).
+**Esta lista não chegou a existir como plano, e a que existia foi removida.** A primeira versão
+da coluna levava a «Ciclos → Planos · Referências», e a montagem chegou a gerar
+`/ciclos/referencias/index.html` — uma página com «Procurar» e uma linha por turma. A pesquisadora
+viu-a e disse o que ela era: «eu não preciso ter aqui em ciclos no menu referências e a listagem
+das referências… É a partir dali [do plano] que eu chego até referências.»
+
+O caminho até às referências é o plano do ciclo, em dois sítios que já dizem onde se está: o botão
+«Referências» do cartão, na lista de **Planos**, e o «Referências» do próprio documento do plano.
+O item do menu e a página saíram; o **documento** (`<turma>/referencias.html`) continua a existir e
+a ser publicado, e **acende «Planos»** — aprofundar dentro de Planos não é sair de Planos.
+
+~~As tabelas ABNT de cada turma. Mesmas colunas de identificação da §3.1, mais o contador de
+referências (dá para ler do `referencias.html` publicado, ou de um manifesto, se existir).~~
 
 ### 3.3 Aulas — `/aulas/`
 

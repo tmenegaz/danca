@@ -176,7 +176,6 @@ function estado() {
     coluna: [
       { tipo: 'menu', rotulo: 'Ciclos', itens: [
         { rotulo: 'Planos', href: '/ciclos/planos/' },
-        { rotulo: 'Referências', href: '/ciclos/referencias/' },
       ] },
       { tipo: 'link', rotulo: 'Aulas', href: '/aulas/' },
       { tipo: 'menu', rotulo: 'Área do Professor', itens: [

@@ -357,9 +357,19 @@ function menuDaEscola({ turmas, blocos }) {
 
   const temCiclos = turmas.some((t) => t.documentos && (t.documentos.plano || t.documentos.referencias));
   if (temCiclos) {
+    /* «REFERÊNCIAS» SAIU DO GRUPO (26/10/2026), e a razão é a mesma que tirou «Aulas» da raiz.
+     *
+     * Havia dois caminhos para o mesmo documento — «Ciclos · Referências» (uma listagem com
+     * «Procurar» e uma linha por turma) e o «Referências» que o cartão do plano já traz na
+     * lista de Planos. A pesquisadora disse-o por extenso: «eu não preciso ter aqui em ciclos no
+     * menu referências e a listagem das referências… É a partir dali que eu chego até
+     * referências.» A listagem foi removida com ele.
+     *
+     * O QUE NÃO SE PERDE: o grupo continua a ser um acordeão com um item — «Planos» —, e é ele
+     * que fica aceso quando se abre o plano OU as referências. Aprofundar dentro de Planos não é
+     * sair de Planos. */
     coluna.push({ tipo: 'menu', rotulo: 'Ciclos', itens: [
       { rotulo: 'Planos', href: '/ciclos/planos/' },
-      { rotulo: 'Referências', href: '/ciclos/referencias/' },
     ] });
   }
   /* «AULAS» SAIU DA RAIZ DO MENU (24/10/2026). Ela era um destino no topo da coluna — e havia
@@ -809,7 +819,7 @@ function principal() {
       + 'uma turma é concluído.',
     { singular: 'plano', plural: 'planos' });
 
-  /* AS OUTRAS LISTAS DE DOCUMENTO — referências, glossário e notação.
+  /* AS OUTRAS LISTAS DE DOCUMENTO — glossário e notação.
    *
    * ELAS NÃO TÊM CAIXAS, e é a decisão de 24/10/2026: dois factos (a turma e o ciclo) mais o
    * código ou a norma, e nenhum painel para abrir. Ver `itemDeDocumento`.
@@ -817,20 +827,15 @@ function principal() {
    * E ELAS MUDARAM DE CASA com os nomes novos: o glossário passou a «Consulta» — é a ferramenta
    * de consulta, e o nome diz isso — e a notação foi para dentro da Área do Professor, ao lado
    * das aulas, porque a notação é OUTRA VISTA da mesma aula. O Planejamento deixou de existir
-   * como grupo: ele juntava duas coisas que não são a mesma. */
+   * como grupo: ele juntava duas coisas que não são a mesma.
+   *
+   * A LISTA DE REFERÊNCIAS NÃO NASCE MAIS (26/10/2026). Ela era uma terceira via para um
+   * documento que já se abre em dois sítios que dizem onde se está: o «Referências» do cartão de
+   * cada plano, na lista de Planos, e o «Referências» do próprio documento do plano. Uma página
+   * com «Procurar» e uma linha por turma para chegar a um ficheiro por turma era um índice a
+   * mais — e um índice a mais é um menu que se repete. Ver `menuDaEscola`. */
   const varias = turmas.length > 1;
   const sufixo = (t) => (varias ? ' — ' + t.nome : '');
-
-  escreverLista('ciclos/referencias/index.html', 'Referências',
-    'Cada turma tem a sua lista, na norma ABNT',
-    turmas.filter((t) => t.documentos && t.documentos.referencias).map((t) => itemDeDocumento({
-      nome: 'Referências Bibliográficas' + sufixo(t),
-      turma: t.nome,
-      ciclo: t.ciclo,
-      terceiro: 'ABNT',
-      acoes: [['Abrir', '/' + t.variante + '/referencias.html', '']],
-    })), 'Ainda não há referências publicadas nesta escola.',
-    { singular: 'lista', plural: 'listas', campos: ['busca', 'turma'] });
 
   for (const [pasta, titulo, chave, rotulo, terceiro] of [
     ['consulta', 'Glossário', 'glossario', 'Abrir o glossário', 'Benesh'],
