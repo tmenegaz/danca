@@ -25433,3 +25433,88 @@ menu **não se move um pixel**; a longa rola 600px e ele fica; a janela a 300px 
 de si; a 390px a barra do celular fica `static`, com a largura da coluna e sem transbordo. O
 **controle negativo** contra o commit anterior **reprova 4** — as da página curta, com o menu de 60
 para 20 em 40px de rolagem. `provar-painel-do-ato` TUDO CERTO; `check-identidade` 0 erro.
+
+## 26/10/2026 — O botão que grava não encosta no campo: a fileira do professor, nos cinco formulários
+
+**O que motivou.** A pesquisadora leu a tela e disse o defeito pelo nome: «o botão de cadastrar a
+aluna e o botão de cadastrar termo está completamente colado no campo de cima. Tem uma identidade
+visual para isso e você precisa aplicar. Veja só como é que está sendo feito em curadoria. O botão
+professor, ele pode ser o exemplo que você precisa seguir.» E, na mesma leitura, o segundo sintoma:
+«o botão atribuir curadoria tem outra cor, tem outra identidade visual.»
+
+**O diagnóstico, medido.** Na página real do Produção, a **0px** entre o campo e o botão no
+«Cadastrar aluna» e no «Cadastrar termo»; **9px** no «Cadastrar professor» e no «Avançar» da turma;
+o «Atribuir curadoria» com **45px** de altura e fundo de papel (`rgb(255,255,255)`), ao lado de
+ações cheias de bordô (`rgb(107,31,46)`) de **49px**.
+
+A causa não era falta de desenho — era a folha a fazer uma conta que a página desfazia. O
+`tools/templates/ciclo.css` separa o campo da ação por **vizinhança**:
+
+```css
+:where(form) > :where(input, select, textarea) + button.acao { margin-top: var(--esp-4); }
+```
+
+`+` pede o elemento imediatamente a seguir, e nos dois formulários havia um `<div class="res">` no
+meio. O `.res` é `display: none` até haver resposta, mas continua a ser o elemento anterior na
+marcação: a vizinhança parte-se, o `.acao` fica com o `margin: 0` que ele próprio declara, e o
+botão encosta. E o «Atribuir curadoria» não tinha `.acao` nenhuma: caía no botão **padrão** da
+folha, que é o secundário.
+
+**O que foi decidido.**
+
+- **A fileira `.par-botoes` é a peça da ação de formulário da Produção**, e o modelo é o
+  «Cadastrar professor»: `.acao grande` **dentro** da fileira. Não nasceu classe nenhuma — o
+  contentor já existia no `<style>` da página, usado pelo professor, pela turma e pela curadoria.
+- **«Cadastrar aluna» e «Cadastrar termo» passam a ter a fileira**, como os outros três. O vão vai
+  a **9px** nos quatro, que é o do professor — e não os 16px da folha, porque a turma já estava
+  certa com 9 e o pedido foi aplicar o que existe, não mudar o que já estava aprovado.
+- **«Atribuir curadoria» passa a `.acao grande`**: é a ação que grava, e na mesma página não pode
+  ter a cor do secundário. O `textContent` que o script troca («Gravar curadoria», «Gravar ajuste»)
+  não depende da classe, e a prova confirma-o.
+- **Nada disto toca a folha.** `tools/templates/ciclo.css` está congelado, e o defeito não era
+  dela: era a página a quebrar a conta dela. Fica registado que a regra `+` é frágil por desenho —
+  um `.res` (ou qualquer bloco) entre o campo e o botão anula-a — e é isso que a fileira resolve.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (as três marcações e os comentários);
+`experimentos/provar-vao-do-botao.js` — **novo**, a prova da geometria; `IDENTIDADE-VISUAL.md`
+(duas linhas no catálogo — Quadro 1 e Quadro 2 — e a secção «O vão do botão não se dá por
+acidente»); `.github/instructions/identidade-visual.instructions.md` (a linha na tabela, o
+parágrafo da armadilha e a prova na lista do que correr); `experimentos/provar-celular.js` (a
+âncora do bloco de estilo, ver abaixo); `ESTADO-ATUAL.md`; `HANDOFF.md` (regerado por
+`tools/gerar-handoff.sh`).
+
+**Uma prova que estava a medir nada, e foi corrigida.** A `provar-celular.js` extrai o `<style>` da
+Produção ancorada na string `'.lateral{position:sticky'`. O commit `aa96a3c` mudou o `sticky` para
+`fixed`, a âncora partiu, e a prova passou a sair com «bloco de estilo da Produção não encontrado»
+— sem medir coisa alguma. A âncora passou a `'.lateral{position:` e a prova voltou a **15/15**. Não
+é o defeito pedido; é a ferramenta que o pedido precisa de usar.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-vao-do-botao.js`,
+`experimentos/provar-celular.js`, `IDENTIDADE-VISUAL.md`,
+`.github/instructions/identidade-visual.instructions.md`, `REGISTRO.md`, `ESTADO-ATUAL.md`,
+`HANDOFF.md`.
+
+**Referências.** Secção «O catálogo das peças» e «O vão do botão não se dá por acidente» de
+`IDENTIDADE-VISUAL.md`; regra 10 da §6 de `ESTADO-ATUAL.md` («qualquer coisa que apareça no ecrã
+nasce do catálogo»); a checagem 8 (Peça) de `tools/check-identidade.js`.
+
+**Medido, no navegador.** `provar-vao-do-botao` **62/62** em 1280px e 390px — os cinco formulários
+com a ação na fileira, `.acao`, a mesma cor de fundo e de texto, a mesma altura de 49px, e vão de
+9px (13 no da curadoria, que mede contra o `.escolhedor`, não contra um campo). **Controle
+negativo** contra `HEAD` anterior à correção: **46/62**, com o vão do «Cadastrar aluna» e do
+«Cadastrar termo» a **0px** e o «Atribuir curadoria» com fundo de papel e 45px.
+`provar-celular` 15/15; `check-identidade` **20 ok, 0 erro**; `provar-producao` 150/151.
+
+**O que ainda não está feito.**
+
+- **`provar-producao.js` reprova uma asserção, e ela não é do produto:** «o item do menu fica
+  marcado». A prova lê `className === "ativo"` no DOM falso da bancada, e o `mostrarSecao` passou a
+  usar `classList.add`. Na página real, medida no navegador, o item tem `class="ativo"` e
+  `aria-current="page"` quando o hash é `#professores`. A bancada precisa de ensinar `classList` ao
+  DOM falso — fica pendente, e não se cala o resultado.
+- **A regra `+` da folha continua frágil para o próximo que puser um bloco entre o campo e a ação.**
+  A fileira resolve os cinco formulários de hoje; um sexto tem de nascer com ela. Enquanto a folha
+  estiver congelada, a defesa é a prova e o catálogo, não uma regra de CSS mais generosa.
+- **O `.par-botoes` continua declarado na página, e não na folha.** Se ele se repetir fora da
+  Produção, sobe para `tools/templates/ciclo.css` — e aí o congelamento pede motivo declarado e
+  commit próprio.

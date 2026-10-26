@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/10/2026 (7.ª do dia, após a opção A implementada no produto), sobre o commit `d5f5290`.
+> **Última fotografia:** 26/10/2026 (depois do vão do botão nos formulários da Produção, commit `8a7b4a5`).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -231,6 +231,9 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
    deploy automático lê o repositório. **DECIDIDO**.
 10. **Qualquer coisa que apareça no ecrã nasce do catálogo de peças** de `IDENTIDADE-VISUAL.md`;
     a checagem 8 (`node tools/check-identidade.js`) reprova o que escapar. **DECIDIDO**.
+11. **A ação que grava um formulário vai dentro da fileira `.par-botoes`, e é `.acao`**
+    (`grande` quando é a principal). Um `.acao` solto depois do `<div class="res">` encosta no
+    campo, porque o vão da folha é uma conta de vizinhança. **DECIDIDO** 26/10/2026.
 
 ## 7. Trabalho em andamento
 
@@ -248,7 +251,10 @@ rotina já estão feitas (commits `607b96a` e `7728389`).
 | `tools/gerar-handoff.sh` | passa a apontar para a fotografia — **congelado**, motivo declarado |
 | `.gitignore` | passa a ignorar o `TRANSFERENCIA-IA.md` |
 
-**Último ponto confirmado:** o remoto está em `7182307` e o `HANDOFF.md` estava desatualizado.
+**Último ponto confirmado:** `26/10/2026` — a fotografia atualizada sobre o commit `8a7b4a5` (o
+vão do botão nos formulários da Produção), o `HANDOFF.md` regenerado e o `TRANSFERENCIA-IA.md`
+gerado. O remoto estava em `acfab1f` com **2 commits locais por enviar** (`aa96a3c`, `a7f4490`);
+o push desta sessão leva os três.
 
 ## 8. Pendências e dúvidas
 
@@ -323,6 +329,19 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ## 9. Validação
 
+### Executado nesta fotografia (26/10/2026)
+
+| Verificação | Resultado |
+|:--|:--|
+| `git fetch` + `git status -sb` | `main` **2 commits à frente** de `origin/main` (`acfab1f`) antes desta sessão; o push foi feito no fim — ver §11 |
+| geometria do botão, medida em navegador | `provar-vao-do-botao` **62/62** em 1280px e 390px. Antes da correção: vão de **0px** no «Cadastrar aluna» e no «Cadastrar termo»; «Atribuir curadoria» com fundo `rgb(255,255,255)` e **45px**, contra `rgb(107,31,46)` e **49px** do «Cadastrar professor» |
+| **controle negativo** da mesma prova (`git archive` do código de antes) | **46/62** — reprova 16, com o vão a 0px nos dois formulários e a curadoria no botão padrão da folha |
+| `node experimentos/provar-celular.js` | **15/15**. Antes desta sessão saía com «bloco de estilo da Produção não encontrado»: a âncora era `position:sticky` e o menu passou a `fixed` |
+| `node tools/check-identidade.js` | **20 ok, 0 erros** (é a checagem que roda também no `pre-commit`) |
+| `node experimentos/provar-producao.js` | **150/151** — reprova «o item do menu fica marcado», e **a falha não é do produto**: a prova lê `className === "ativo"` no DOM falso e o `mostrarSecao` passou a usar `classList.add`. Na página real, com `#professores`, o link tem `class="ativo"` e `aria-current="page"` (medido no navegador) |
+| `bash tools/gerar-handoff.sh` | regenerado |
+| vão medido nos cinco formulários da Produção | **9px** (professor, aluna, termo, turma) e **13px** na curadoria — o anterior dela é o `.escolhedor`, e não um campo |
+
 ### Executado nesta fotografia (25/10/2026)
 
 | Verificação | Resultado |
@@ -375,6 +394,16 @@ Ações imediatas, sem transformar hipótese em compromisso:
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **26/10/2026** — **a ação de cada formulário da Produção passou a ser uma só peça.** O
+  «Cadastrar aluna» e o «Cadastrar termo» estavam a **0px** do campo: o `<div class="res">` entre o
+  último controle e o botão parte a conta de vizinhança da folha (`input + button.acao` → 16px), e
+  o `.acao` declara `margin: 0`. O «Atribuir curadoria» estava sem `.acao` e saía no botão **padrão**
+  — fundo de papel, 45px — ao lado de ações cheias de bordô de 49px. Os três passaram à fileira
+  `.par-botoes` com `.acao grande`, o modelo do «Cadastrar professor»; medido **9px** nos quatro
+  (13 na curadoria). **Nada tocou a folha**, que está congelada — o defeito era a página a desfazer
+  a conta dela. Prova nova: `experimentos/provar-vao-do-botao.js` (62/62; 46/62 no controle
+  negativo). A `provar-celular.js`, que saía sem medir nada desde que o menu deixou de ser `sticky`,
+  voltou a **15/15**. **CONFIRMADO** no navegador.
 - **25/10/2026** — **a opção A implementada no produto**: o contexto do ato passa a ser um painel
   dentro das três listas da Área do Professor, aberto pela caixinha do «Turma» na faixa inteira, com
   a seta `▾` a rodar para cima ao abrir. O botão solto do topo saiu (duas portas, e a segunda sem o
