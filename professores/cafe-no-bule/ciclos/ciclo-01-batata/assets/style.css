@@ -2061,6 +2061,20 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
     border-left: 2px solid var(--ornamento-forte); border-radius: 0; padding: var(--esp-1) 0 var(--esp-1) var(--esp-3);
   }
   .topnav.aberto .pdf { margin-left: 0; }
+  /* O CAMINHO NO TELEMÓVEL FICA SÓ COM O ÚLTIMO DEGRAU (26/10/2026).
+   *
+   * Os três degraus dão «Ciclos · Referências · Referências Bibliográficas», e na barra do
+   * telefone isso não cabe: medido, a 390 o caminho era cortado com reticências em «Notação em
+   * Benesh» e no glossário, e a 320 em quatro dos seis documentos — e o que o corte come é o
+   * FIM, que é justamente o nome do documento. O grupo e a lista são o caminho de volta, e no
+   * telefone a folha do ☰ já É esse caminho; o documento não tem substituto.
+   *
+   * É a mesma medida que a porta já tomava por script (`escreverOCaminhoDaBarra`, em
+   * `porta/index.html`, com o mesmo corte). Aqui ela vale para TODOS os documentos, inclusive os
+   * já gerados e os que nunca serão regerados: é a folha que decide, e a folha sobe com os
+   * assets. O separador (`·`) é do desenho e sai com eles, senão sobrava um ponto solto. */
+  .topnav .doc-atual small, .topnav .doc-atual a { display: none; }
+  .topnav .doc-atual > * + *::before { content: none; }
 }
 
 /* ---------- a tabela larga não alarga a PÁGINA (21/10/2026) -------------------------

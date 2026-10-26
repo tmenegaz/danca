@@ -1072,6 +1072,101 @@ dois controles passaram a ficar **empilhados**: o círculo sobe para cima da bar
 altura, o que está debaixo do «⋯», o empilhamento com a barra aberta, o esconder e o voltar, o
 desktop intacto e o sem-JavaScript.
 
+## Onde estou — o caminho na barra e a marca no menu *(26/10/2026)*
+
+**Aprofundar não é sair.** Quem está a meio de um plano, a preencher uma anamnese ou a ler uma
+aula **não deixou** «Ciclos» nem «Área do Professor»: desceu um degrau dentro deles. O sistema diz
+onde a pessoa está em **dois lugares ao mesmo tempo**, e os dois têm de dizer a **mesma coisa** —
+senão a barra diz «Ciclos · Planos do ciclo» e o menu diz «não estás em lado nenhum», que é o
+defeito que esta norma fechou.
+
+| Onde | A pergunta que responde | Como |
+| --- | --- | --- |
+| **na barra**, ao lado da logomarca | «em que **documento** estou?» | `Grupo · Lista · Documento`, em `span.doc-atual` |
+| **no menu** | «de que **lista** eu vim?» | `aria-current="page"` no item, `data-atual="sim"` no grupo |
+
+### O caminho tem três degraus, e só o último é o documento
+
+| Degrau | Peça | Porquê |
+| --- | --- | --- |
+| o **grupo** | `<small>` — **não** é ligação | um grupo não tem página própria: escolher um item por quem lê seria adivinhar |
+| a **lista** | `<a>` — é o **lastro** | é o caminho de volta. Quem entrou no documento por ela não precisa do «atrás» do navegador |
+| o **documento** | `<b>` | é o `<h1>` da página, cortado no primeiro travessão («nome — explicação» fica «nome») e a 90 caracteres |
+
+- **Na própria lista** o degrau do meio não existe (seria uma ligação para si mesma): fica
+  `Ciclos · Planos do ciclo`.
+- **Só existe quando há coluna.** Na barra antiga, com os grupos todos à vista, um título ao lado
+  deles competia por largura sem responder a nada.
+- **No telemóvel (≤768px) fica só o último degrau.** Medido com os três: a 390 o caminho era
+  cortado em «Notação em Benesh» e no glossário, e a 320 em quatro dos seis documentos — e o
+  corte come o **fim**, que é justamente o nome do documento. O grupo e a lista são o caminho de
+  volta, e no telemóvel a folha do ☰ **já é** esse caminho; o documento não tem substituto. É a
+  mesma medida que o formulário já tomava por script — agora é a folha que a decide, para todos
+  os documentos, inclusive os já publicados.
+- **A página que já diz onde está não ganha um segundo dizer.** A Produção traz a sua S5 na barra
+  (`Produção · Painel inicial`, que sobe e se acende ao rolar); com o caminho ao lado, o telemóvel
+  dizia a mesma coisa duas vezes.
+
+### No menu, a marca é do ITEM e do GRUPO
+
+Na coluna **compacta** (≥1141px) os grupos nascem fechados, e um item aceso lá dentro não se vê:
+quem responde «onde estou» é o **título do grupo** — cor e filete de ouro (`data-atual="sim"`) —,
+e o item guarda o `aria-current` para quem lá chegar. Na **folha** do telemóvel os itens estão à
+vista, e o aceso é o que tem o fundo da marca. É o mesmo HTML nas duas: o que muda é a largura.
+
+**Um destino directo não é acordeão.** «Consulta» é `tipo: 'link'` e não tem grupo para acender —
+a marca é a do próprio link (`coluna-direto ativo`). Não se inventa um grupo só para ter onde
+pintar.
+
+### A conta é UMA, e é uma tabela
+
+`TRILHA_DO_DOCUMENTO` ([`motor/nucleo/nav.js`](motor/nucleo/nav.js)) declara, para cada documento
+do pacote, **de que lista ele sai**. A mesma tabela serve as duas marcas: o `caminhoDaPagina` lê-a
+para o caminho da barra, e o `ehAtivo`/`listaDoDocumento` lê-a para acender o menu. Duas contas
+para a mesma pergunta divergem no dia em que uma muda — e a divergência aparece como «a barra diz
+uma coisa e o menu diz outra».
+
+A **porta** (o formulário em `/anamnese/`, `/plano-ensino/`, `/plano-observacao/`) tem a sua
+tradução no módulo que já conhece a relação — `listaDaPorta`, sobre `FAMILIAS`
+([`motor/servidor/listas-do-acervo.js`](motor/servidor/listas-do-acervo.js)) —, e não numa segunda
+tabela. O caminho servido continua a ser o que se serve; o que muda é o que o menu lê.
+
+| Família | Documento (ou porta) | Acende |
+| --- | --- | --- |
+| Ciclos | `/…/plano` | «Planos» |
+| Ciclos | `/…/referencias` | «Planos» — **a lista de referências deixou de existir** (26/10/2026), e o caminho até ao documento é o plano |
+| Área do Professor | `/…/aula-NN`, `/…/captura-aula-NN`, `/…/lancamento` | «Aulas» |
+| Área do Professor | `/…/notacao` | «Notação» |
+| Área do Professor | as três **portas** | a lista da sua família |
+| Consulta | `/…/glossario-*` | «Consulta» (destino directo) |
+
+### O que NÃO se marca
+
+**Um documento que não sai de lista nenhuma não inventa marca.** A harmonização, que saiu do menu
+em 24/10/2026, e a apresentação (`sistema.html`) continuam sem nenhuma. Acender «para não ficar
+vazio» seria mentir sobre a proveniência — e é a contraprova que impede a regra de virar «acende
+sempre».
+
+### A regra para o que vier *(a tabela de atividade, e o resto)*
+
+Qualquer ecrã novo nasce já com as duas marcas, e o trabalho é declarativo:
+
+1. **É um destino do menu?** Nada a fazer: o item já é dele.
+2. **É um documento que nasce de uma lista?** Uma linha em `TRILHA_DO_DOCUMENTO` (a expressão do
+   caminho, o grupo, o rótulo da lista, o `href`). As duas marcas passam a existir, sem mais
+   código.
+3. **Nasce de um formulário/porta?** A tradução vai em `FAMILIAS`/`listaDaPorta`, e não numa
+   tabela nova.
+4. **Não nasce de lista nenhuma?** Não se marca nada.
+
+**Prova.** [`experimentos/provar-barra-unica.js`](experimentos/provar-barra-unica.js), secção **D1**
+(21 asserções: as seis famílias e a contraprova) e
+[`experimentos/provar-painel-do-ato.js`](experimentos/provar-painel-do-ato.js), secção **17**
+(38 asserções em navegador, a 1280 e a 390 — o item aceso **e pintado**, o grupo marcado, a folha
+aberta com ele à vista, o caminho reduzido ao nome do documento e **sem reticências** no telemóvel,
+e nada a estourar na horizontal). A secção 17 mede o que se **vê**: a cor e o filete, não a
+existência da classe — uma marca que ninguém pinta não é uma marca.
+
 ## A funcionalidade planejada — configuração de aparência *(o catálogo, **não** implementado)*
 
 **O que é.** Uma entrada no **painel administrativo privado**, na área de configuração do sistema,

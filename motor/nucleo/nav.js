@@ -70,7 +70,14 @@ function ehAtivo(item, pedido) {
   const alvo = hrefDoItem(item);
   const aqui = caminhoDe(pedido);
   if (alvo === '/') return aqui === '/';
-  return aqui === alvo || aqui.startsWith(alvo);
+  if (aqui === alvo || aqui.startsWith(alvo)) return true;
+  /* O DOCUMENTO ACENDE A SUA LISTA (26/10/2026). `/bale-nivel-2-teste-2/plano` não é filho de
+     `/ciclos/planos/` — é um ficheiro do PACOTE, e o URL não tem nada do menu. Comparando só o
+     caminho, o item ficava apagado em todos os documentos e a coluna dizia «não estás em lado
+     nenhum». A tabela da trilha é a única coisa que sabe de que lista cada documento sai, e é a
+     mesma que o caminho da barra já lê: uma tabela, as duas marcas. */
+  const lista = listaDoDocumento(pedido);
+  return !!lista && caminhoDe(lista) === alvo;
 }
 
 /**
@@ -318,7 +325,7 @@ function desenharColuna(coluna, pedido, barra) {
  * degrau a apontar para si próprio, e para a trilha saber onde acaba.
  */
 const LISTAS = [
-  '/ciclos/planos', '/ciclos/referencias', '/aulas', '/consulta',
+  '/ciclos/planos', '/aulas', '/consulta',
   '/area-do-professor/notacao',
   '/area-do-professor/anamnese', '/area-do-professor/plano-de-ensino',
   '/area-do-professor/plano-de-observacao',
@@ -328,21 +335,24 @@ const LISTAS = [
  * DE QUE LISTA VEM CADA DOCUMENTO — o «lastro» que a barra passou a mostrar (23/10/2026).
  *
  * O PROBLEMA. Na barra, o caminho dizia o grupo e o título do documento: `Ciclos ·
- * Referências Bibliográficas`. Quem abria o documento a partir da lista de referências não
- * tinha por onde voltar, e não sabia de onde tinha vindo — o `<h1>` de um documento do pacote
- * não diz a que lista pertence, e a página também não.
+ * Referências Bibliográficas`. Quem abria o documento a partir de uma lista não tinha por onde
+ * voltar, e não sabia de onde tinha vindo — o `<h1>` de um documento do pacote não diz a que
+ * lista pertence, e a página também não.
  *
  * A TABELA É DECLARADA, e não deduzida do `nav.json`, por uma razão de facto: o `nav.json` diz
- * quais são os DESTINOS, não que documentos cada destino produz. Quem sabe que
- * `referencias.html` sai da lista de referências é o pacote — e é esta tabela que o diz, num
+ * quais são os DESTINOS, não que documentos cada destino produz. Quem sabe que `plano.html` e
+ * `referencias.html` nascem do pacote de uma turma é o pacote — e é esta tabela que o diz, num
  * lugar só, para as duas pontas (a montagem e a ponte) lerem o mesmo.
  *
  * As expressões casam com e sem `.html`, porque o Worker responde a `/x/referencias.html` com
  * um 307 para `/x/referencias` — a ponte vê o caminho já sem extensão.
  */
 const TRILHA_DO_DOCUMENTO = [
-  { re: /\/referencias(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Referências', href: '/ciclos/referencias/' },
-  { re: /\/plano(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Planos', href: '/ciclos/planos/' },
+  /* AS REFERÊNCIAS SÃO UM DOCUMENTO DE «PLANOS» (26/10/2026). Elas deixaram de ter lista
+     própria — o item «Ciclos · Referências» e a sua página com «Procurar» saíram —, e o único
+     caminho até elas é o cartão do plano ou o próprio documento do plano. Aprofundar dentro de
+     Planos não é sair de Planos: o degrau do meio diz «Planos», e o grupo «Ciclos» fica aceso. */
+  { re: /\/(?:plano|referencias)(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Planos', href: '/ciclos/planos/' },
   /* O GRUPO DE CADA DOCUMENTO MUDOU COM OS NOMES (24/10/2026): o «Planejamento» deixou de
      existir, a notação passou para a Área do Professor (é outra vista da mesma aula) e o
      glossário passou a «Consulta» (é a ferramenta de consulta). A tabela é a única coisa que liga
@@ -357,6 +367,24 @@ const TRILHA_DO_DOCUMENTO = [
      que a regra do `repete` já cortava; agora não há o que cortar, porque os degraus diferem. */
   { re: /\/(?:aula-[0-9]+|captura-aula-[0-9]+|lancamento)(?:\.html)?$/, grupo: 'Área do Professor', rotulo: 'Aulas', href: '/aulas/' },
 ];
+
+/**
+ * DE QUE LISTA VEM ESTE DOCUMENTO — o endereço da lista, ou `null` (26/10/2026).
+ *
+ * A tabela da trilha já respondia a esta pergunta para o CAMINHO da barra. O menu faz a mesma
+ * pergunta e tem de dar a mesma resposta: quem abre o plano do ciclo a partir de «Ciclos ·
+ * Planos» continua em «Planos», e é isso que a marca do item diz. Duas contas para a mesma
+ * pergunta divergem no dia em que uma muda — por isso a conta é esta, e é uma.
+ *
+ * Não se aplica à própria página de lista: lá o caminho já é o do item, e a comparação directa
+ * do `ehAtivo` responde primeiro.
+ */
+function listaDoDocumento(pedido) {
+  const p = enxuto(pedido);
+  if (!p || p === '/' || LISTAS.indexOf(p) !== -1) return null;
+  const achado = TRILHA_DO_DOCUMENTO.find((t) => t.re.test(p));
+  return achado ? achado.href : null;
+}
 
 /** O caminho sem barra final e sem `.html` — a forma em que as tabelas acima são escritas. */
 function enxuto(pedido) {
@@ -543,4 +571,5 @@ function aplicar(html, menu, pedido) {
 module.exports = {
   desenhar, aplicar, absoluto, caminhoDe, ehAtivo, extrasDaBarra,
   grupoAtual, tituloDaPagina, desenharColuna, chaveDoGrupo, caminhoDaPagina, TRILHA_DO_DOCUMENTO,
+  listaDoDocumento,
 };

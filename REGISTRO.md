@@ -25143,3 +25143,95 @@ grupo da secção e não estoura na horizontal. `provar-painel-do-ato` com a sec
 asserções de geometria em browser), `provar-listas-do-acervo` 109/109, `provar-barra-e-caminho`
 45/45, `provar-barra-unica` 88/89 (a que falta já faltava antes), `check-identidade` 0 erro,
 `check-pacote` 0 erro.
+
+## 26/10/2026 — O documento acende a lista de onde veio, e a norma de «onde estou» fica escrita
+
+**O que motivou.** O pedido veio com o exemplo e com a palavra «norma»: «Quando eu estou em ciclos,
+vou em planos, abro o plano — precisa manter no menu marcado que eu estou em planos, e eu apenas
+aprofondei mais. Isso tem que acontecer também no modo de tela celular. […] As medidas que nós
+tomamos para a parte visual toda, você precisa documentar. E isso é a regra que a gente vai
+seguir.»
+
+O defeito era de facto e é simples: o item do menu marcava-se pelo **caminho servido** (`ehAtivo`),
+e o caminho de um documento do pacote (`/balé-nível-2/plano`) não tem nada do menu
+(`/ciclos/planos/`). Nas listas a marca acendia; no documento — que é onde se está mais fundo —
+apagava. A barra dizia «Ciclos · Planos do ciclo» e a coluna dizia «não estás em lado nenhum». O
+mesmo acontecia com as referências, as aulas (aula, captura e lançamento), a notação e o glossário.
+
+**O que foi decidido.**
+
+- **O documento acende a LISTA de onde veio**, e a conta é **uma**: `TRILHA_DO_DOCUMENTO`, a mesma
+  tabela que o caminho da barra já lia. Uma função nova — `listaDoDocumento` — responde à pergunta
+  do menu com a resposta do caminho. Duas contas para a mesma pergunta divergem no dia em que uma
+  muda, e a divergência aparece como «a barra diz uma coisa e o menu diz outra».
+- **A porta continua traduzida onde a relação existe** (`FAMILIAS`/`listaDaPorta`), e não numa
+  segunda tabela. Entrar num formulário é aprofundar, não sair.
+- **No telemóvel não há uma segunda regra.** É o mesmo HTML: em 390 a folha mostra os itens todos e
+  o aceso é o que tem o fundo da marca; acima de 1140 a coluna é compacta, o grupo nasce fechado e
+  quem responde é o título (cor e filete de ouro). Um destino directo («Consulta») acende o próprio
+  link — não se inventa um grupo só para ter onde pintar.
+- **E o caminho no telemóvel passa a ter um degrau só.** Medidos os três a 320/390/414, o caminho
+  era **cortado com reticências** em «Notação em Benesh» (a 390) e no glossário (a 390 e a 414), e
+  em quatro dos seis documentos a 320 — e o corte come o **fim**, que é o nome do documento.
+  No corte dos 768px (`max-width: 768px`) ele fica só com o último degrau, que é a medida que o
+  formulário já tomava por script; agora é a folha que a decide, e vale para os documentos já
+  publicados.
+- **Um documento que não sai de lista nenhuma não inventa marca** (a apresentação). «Acender para
+  não ficar vazio» seria mentir sobre a proveniência, e é a contraprova que impede a regra de virar
+  «acende sempre».
+
+**Onde entrou.**
+
+- `motor/nucleo/nav.js` — `listaDoDocumento`, lida pelo `ehAtivo`. A tabela da trilha passa a ter
+  dois leitores (o caminho e a marca), e continua a ser uma.
+- `experimentos/provar-barra-unica.js` — secção **D1** (21 asserções): as seis famílias, o destino
+  directo da Consulta e a contraprova.
+- `tools/templates/ciclo.css` — no bloco `@media (max-width: 768px)` que já colapsa a barra: o
+  caminho (`small` e `a`, e o separador `·`) sai, e fica o último degrau. É a mesma medida da
+  porta, agora na folha, para todos os documentos. As três cópias versionadas de
+  `assets/style.css` foram regeradas (`raiz/` e os dois pacotes de `professores/`).
+- `experimentos/provar-painel-do-ato.js` — secção **17** (34 asserções em navegador, 1280 e 390):
+  o item aceso **e pintado**, o grupo marcado, a folha aberta com ele à vista, o caminho reduzido
+  ao nome do documento e **sem reticências** a 390, e nada a estourar na horizontal. A asserção
+  antiga («a página do pacote e a porta não marcam grupo — chega-se pela lista») foi invertida com
+  o motivo escrito: o que estava «certo» pela regra antiga era o defeito.
+- `IDENTIDADE-VISUAL.md` — secção nova **«Onde estou — o caminho na barra e a marca no menu»** (era
+  metade do pedido): os dois lugares, os três degraus, a tabela das famílias, o que não se marca, e
+  a **regra para o que vier** — a tabela de atividade incluída.
+- `.github/instructions/identidade-visual.instructions.md` — o resumo curto, para quem escreve
+  marcação o ler antes do primeiro `<div>`.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` é fonte de verdade congelada, e
+esta é a alteração que o toca: **no corte dos 768px o caminho da barra fica só com o último
+degrau**.
+O motivo é medido, e não de gosto — a 390 e a 320 o caminho de três degraus era cortado com
+reticências, e o corte come o fim, que é o nome do documento; a marca do menu (a outra metade da
+norma) já responde «de que área eu vim». **O que não muda:** nenhum token, nenhuma paleta, nenhum
+contraste, nenhuma peça, e acima de 768px o caminho fica exactamente como estava. É a única
+alteração de comportamento nesta entrada, e foi confirmada com a pesquisadora antes de ser feita.
+
+**Com o quê.** `motor/nucleo/nav.js`, `tools/templates/ciclo.css` (+ as três cópias de
+`assets/style.css`), `experimentos/provar-barra-unica.js`, `experimentos/provar-painel-do-ato.js`,
+`IDENTIDADE-VISUAL.md`, `.github/instructions/identidade-visual.instructions.md`, `REGISTRO.md`.
+
+**Referências.** A norma completa está em `IDENTIDADE-VISUAL.md` (secção «Onde estou»); o plano da
+navegação, em `PLANO-NAVEGACAO.md`.
+
+**O que ainda não está feito.**
+- O trabalho está **no worktree, não commitado** (junto com o que já estava pendente das provas do
+  painel do ato).
+- A **tabela de atividade** ainda não existe; a norma fica escrita para ela — um ecrã que nasça de
+  uma lista declara-se com uma linha em `TRILHA_DO_DOCUMENTO`; um que não nasça de lista nenhuma
+  não se marca.
+- A **marca do menu** não exige regerar escola nenhuma: o menu é **desenhado ao servir**, e é a
+  ponte que o lê. A **regra do caminho no telemóvel** é da folha, e a folha viaja no
+  `assets/style.css` de cada pacote — as escolas já publicadas só a recebem na próxima montagem
+  (`deploy-escolas.yml` corre a montagem a cada mudança de pacote).
+
+Medido: `provar-barra-unica` **111/111** (secção D1 nova), `provar-painel-do-ato` **TUDO CERTO**
+(secção 17 nova, 34 asserções em browser), `provar-barra-e-caminho` **45/45**,
+`provar-titulo-e-barra` **TUDO OK**, `provar-celular` **15/15**,
+`provar-listas-do-acervo` **109/109**, `check-identidade` **0 erro**,
+`check-pacote professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2` **0 erro,
+0 aviso**. (`provar-navegacao` não corre nesta árvore: falta o pacote-zero de «calango», que a
+bancada procura em `professores/` — já faltava antes desta entrada.)

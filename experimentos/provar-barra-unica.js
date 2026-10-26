@@ -475,16 +475,77 @@ async function principal() {
       if (/^\/(sistema|$)/.test(m.caminho)) {
         checar(m.nome + ' não marca nenhum grupo (não é um destino do menu)', marcados.length === 0, marcados.length);
       } else if (/^\/nivel-1|^\/plano-observacao/.test(m.caminho)) {
-        /* A página do PACOTE e a PORTA não são destinos do menu: o plano de uma turma chega-se
-           pela lista de planos, e o formulário chega-se pela página de escolha de turma — que é
-           quem leva o contexto. Nada se marca, e o caminho na barra diz em que documento se
-           está. (Antes de 23/10/2026 a porta era o destino, e marcava; deixou de o ser.) */
-        checar(m.nome + ' não marca grupo (chega-se pela lista)', marcados.length === 0, marcados.length);
+        /* A REGRA INVERTEU-SE, E COM ELA A ASSERÇÃO (26/10/2026).
+           Ela dizia «a página do PACOTE e a PORTA não marcam grupo: chega-se pela lista». Era
+           verdade e era mau: quem estava a meio do formulário — a criar, a editar, a ajustar —
+           via o menu apagar a única marca que responde a «onde estou». A pesquisadora disse-o
+           duas vezes («se eu clico ali, ela sabe que ela está no plano de ensino… isso está se
+           perdendo e não é legal perder a referência»). O que estava «certo» pela regra antiga
+           era o defeito.
+           Agora o documento acede a LISTA de onde veio (`listaDoDocumento`, a mesma tabela que o
+           caminho da barra lê) e a porta é traduzida para a lista da sua família
+           (`listaDaPorta`). Um documento acende exactamente um grupo, como qualquer página. */
+        checar(m.nome + ' marca exactamente um grupo (o documento não perde a lista)',
+          marcados.length === 1, marcados.length);
       } else {
         checar(m.nome + ' marca exactamente um grupo', marcados.length === 1, marcados.length);
       }
       checar(m.nome + ' não acende mais do que um item da coluna', acesos.length <= 1, acesos.length);
     }
+    /* D1. O DOCUMENTO ACENDE A LISTA DE ONDE VEIO — AS CINCO FAMÍLIAS (26/10/2026).
+     *
+     * Esta é a norma que a pesquisadora pediu com todas as letras: «eu não posso perder essa
+     * referência visual». O que se mede não é uma impressão: é o `aria-current` do item e o
+     * `data-atual` do grupo, no HTML que a ponte serve. E mede-se nos DOCUMENTOS, não nas
+     * listas — nas listas o caminho já é o do item e isso nunca esteve em causa.
+     *
+     * A tabela abaixo é a das cinco famílias do menu, com o caminho de um documento real de cada
+     * uma no pacote da bancada. O «glossário» é o caso particular: «Consulta» é um destino
+     * DIRECTO (`tipo: link`), e um destino directo não tem acordeão para acender — a marca é a
+     * do próprio link, e mede-se à parte.
+     */
+    console.log('\nD1. O DOCUMENTO ACENDE A LISTA DE ONDE VEIO');
+    const DOCUMENTOS = [
+      ['plano.html', '/ciclos/planos/', 'Ciclos'],
+      /* AS REFERÊNCIAS ACENDEM «PLANOS» (26/10/2026). O item «Ciclos · Referências» saiu do
+         menu, e com ele a listagem; o caminho até às referências é o plano. Quem lá está
+         continua em Planos — aprofundar não é sair. */
+      ['referencias.html', '/ciclos/planos/', 'Ciclos'],
+      ['aula-01.html', '/aulas/', 'Área do Professor'],
+      ['captura-aula-01.html', '/aulas/', 'Área do Professor'],
+      ['lancamento.html', '/aulas/', 'Área do Professor'],
+      ['notacao.html', '/area-do-professor/notacao/', 'Área do Professor'],
+      ['glossario-benesh.html', '/consulta/', null],
+    ];
+    for (const [documento, lista, grupo] of DOCUMENTOS) {
+      const r = await producao.fetch(new Request(HOST + '/nivel-1/' + documento), env);
+      const coluna = colunaDe(await r.text()) || '';
+      const acesos = [...coluna.matchAll(/aria-current="page" href="([^"]+)"/g)].map((x) => x[1]);
+      const diretos = [...coluna.matchAll(/class="coluna-direto ativo" href="([^"]+)"/g)].map((x) => x[1]);
+      const atuais = [...coluna.matchAll(/<div class="coluna-grupo" data-atual="sim">\s*<button[^>]*><span>([^<]+)<\/span>/g)]
+        .map((x) => x[1]);
+      checar(documento + ' é servido (200)', r.status === 200, r.status);
+      if (grupo) {
+        checar(documento + ' acende «' + lista + '» na coluna',
+          acesos.length === 1 && acesos[0] === lista, acesos);
+        checar(documento + ' …e acende o grupo «' + grupo + '»',
+          atuais.length === 1 && atuais[0] === grupo, atuais);
+      } else {
+        checar(documento + ' acende «' + lista + '», que é destino directo',
+          diretos.length === 1 && diretos[0] === lista, diretos);
+        checar(documento + ' …e não acende grupo nenhum (a Consulta não é acordeão)',
+          atuais.length === 0, atuais);
+      }
+    }
+    /* A CONTRAPROVA. A norma não é «tudo se acende»: um documento que não sai de lista nenhuma —
+       a harmonização, que saiu do menu em 24/10/2026 — não pode inventar uma marca. Sem esta
+       linha, a tabela de cima passaria com uma regra larga demais. */
+    const semLista = colunaDe(await (await producao.fetch(
+      new Request(HOST + '/nivel-1/harmonizacao.html'), env)).text()) || '';
+    checar('um documento que não vem de lista nenhuma não inventa marca',
+      (semLista.match(/aria-current="page"|data-atual="sim"|coluna-direto ativo/g) || []).length === 0,
+      semLista.slice(0, 160));
+
     const daEscolha = medidas.find((m) => /area-do-professor/.test(m.caminho));
     checar('a escolha de turma acende «Área do Professor»',
       /<div class="coluna-grupo" data-atual="sim">\s*<button[^>]*><span>Área do Professor<\/span>/

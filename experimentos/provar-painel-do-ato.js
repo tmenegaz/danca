@@ -1297,6 +1297,185 @@ const servidor = http.createServer(async (req, res) => {
       && grupoAtual.barra === 'Pedagogia' && grupoAtual.nome === 'Turmas', grupoAtual);
   }
 
+  /* ── 17. A MARCA DE «ONDE ESTOU» NÃO SE PERDE AO APROFUNDAR ────────────────────────────
+   *
+   * «Quando eu estou em ciclos, vou em planos, abro o plano — precisa manter no menu marcado
+   * que eu estou em planos… isso tem que acontecer também no modo celular. Isso tem que ser
+   * uma norma.»
+   *
+   * O DEFEITO, e a razão de ele ser invisível nas provas anteriores: o item do menu marca-se
+   * pelo CAMINHO (`ehAtivo`), e o caminho de um documento do pacote (`/balé-nível-2/plano`) não
+   * tem nada do menu (`/ciclos/planos/`). Comparava-se o que não era comparável, e o resultado
+   * era o menu a apagar a marca exactamente quando se estava mais fundo — a criar, a editar, a
+   * ajustar. A norma daqui em diante: **o documento acende a lista de onde veio**, e a conta é
+   * a MESMA tabela que o caminho da barra já lia (`TRILHA_DO_DOCUMENTO`).
+   *
+   * MEDE-SE O QUE SE VÊ, e nos dois desenhos, que são diferentes de propósito:
+   *   · no COMPUTADOR (>1140) a coluna é compacta e os grupos nascem fechados — a marca do
+   *     grupo é a cor e o filete de ouro no TÍTULO, e o item aceso está lá dentro, escondido;
+   *   · no TELEMONE (≤1140) a folha mostra tudo à vista (não há acordeão dentro de uma folha),
+   *     e o item aceso vê-se com o fundo da marca e o ✓.
+   */
+  console.log('\n17 · O documento acende a lista de onde veio, no computador e no telemóvel');
+  const DOCUMENTOS = [
+    ['/bale-nivel-2-teste-2/plano.html', '/ciclos/planos/', 'Ciclos'],
+    /* AS REFERÊNCIAS ACENDEM «PLANOS» (26/10/2026): o item e a listagem «Referências» saíram do
+       menu, e o único caminho até ao documento é o plano do ciclo. */
+    ['/bale-nivel-2-teste-2/referencias.html', '/ciclos/planos/', 'Ciclos'],
+    ['/bale-nivel-2-teste-2/aula-01.html', '/aulas/', 'Área do Professor'],
+    ['/bale-nivel-2-teste-2/lancamento.html', '/aulas/', 'Área do Professor'],
+    ['/bale-nivel-2-teste-2/notacao.html', '/area-do-professor/notacao/', 'Área do Professor'],
+    ['/bale-nivel-2-teste-2/glossario-benesh.html', '/consulta/', 'Consulta'],
+  ];
+  const marcaDaColuna = () => p.evaluate(() => {
+    const c = document.querySelector('.coluna');
+    if (!c) return null;
+    const aceso = c.querySelector('.coluna-itens a[aria-current="page"]');
+    const direto = c.querySelector('a.coluna-direto.ativo');
+    const grupos = [...c.querySelectorAll('.coluna-grupo')];
+    const atual = grupos.find((g) => g.getAttribute('data-atual') === 'sim');
+    const outro = grupos.find((g) => g !== atual);
+    const titulo = atual && atual.querySelector('.coluna-titulo');
+    const cs = titulo ? getComputedStyle(titulo) : null;
+    const csOutro = (outro && outro.querySelector('.coluna-titulo'))
+      ? getComputedStyle(outro.querySelector('.coluna-titulo')) : null;
+    return {
+      acesos: [...c.querySelectorAll('a[aria-current="page"]')].map((a) => a.getAttribute('href')),
+      direto: direto ? direto.getAttribute('href') : null,
+      diretoFundo: direto ? getComputedStyle(direto).backgroundColor : null,
+      diretoDeOutro: (() => {
+        const o = [...c.querySelectorAll('a.coluna-direto')].find((a) => a !== direto);
+        return o ? getComputedStyle(o).backgroundColor : null;
+      })(),
+      /* O RÓTULO É O PRIMEIRO `<span>` DO BOTÃO. O `textContent` do botão inteiro inclui a SETA
+         (`›`), que é um segundo `<span>` e é desenho, não nome: lida assim, a asserção do grupo
+         comparava «Ciclos›» com «Ciclos» e reprovava uma coluna que estava certa. */
+      grupo: (titulo && titulo.querySelector('span')) ? titulo.querySelector('span').textContent.trim() : '',
+      tituloVisivel: !!titulo && titulo.getClientRects().length > 0,
+      corDoAtual: cs ? cs.color : null,
+      corDeOutro: csOutro ? csOutro.color : null,
+      filete: cs ? cs.boxShadow : null,
+      gruposMarcados: grupos.filter((g) => g.getAttribute('data-atual') === 'sim').length,
+    };
+  });
+
+  for (const [documento, lista, grupo] of DOCUMENTOS) {
+    await abrir(documento, 1280);
+    const m = await marcaDaColuna();
+    const nome = documento.replace('/bale-nivel-2-teste-2/', '');
+    if (!m) { ok(nome + ': a coluna existe no computador', false, null); continue; }
+    /* «Consulta» é um destino DIRECTO (`tipo: link`): não há grupo-acordeão para acender. A
+       marca é a do próprio link, e o contraste com o link que NÃO está aceso é o que prova que
+       ela é pintada — não a existência da classe. */
+    if (grupo === 'Consulta') {
+      ok(nome + ': o link directo «Consulta» fica aceso',
+        m.direto === lista, { direto: m.direto, esperado: lista });
+      ok(nome + ': …e pintado, e não só com a classe',
+        !!m.diretoFundo && m.diretoFundo !== m.diretoDeOutro,
+        { aceso: m.diretoFundo, apagado: m.diretoDeOutro });
+    } else {
+      ok(nome + ': o item da lista «' + lista + '» fica aceso no computador',
+        m.acesos.length === 1 && m.acesos[0] === lista, m.acesos);
+      ok(nome + ': …e um só grupo aceso, «' + grupo + '»',
+        m.gruposMarcados === 1 && m.grupo === grupo, { grupo: m.grupo, marcados: m.gruposMarcados });
+      ok(nome + ': …com o título À VISTA, mesmo com o grupo fechado',
+        m.tituloVisivel === true, m.tituloVisivel);
+      ok(nome + ': …e distinguido pela cor, não só pelo atributo',
+        !!m.corDoAtual && m.corDoAtual !== m.corDeOutro && /inset/.test(String(m.filete)),
+        { atual: m.corDoAtual, outro: m.corDeOutro, filete: m.filete });
+    }
+  }
+  /* A CONTRAPROVA: um documento que não sai de lista nenhuma não inventa marca. Sem esta linha,
+     «acender sempre» passaria por boa regra.
+     O documento é a APRESENTAÇÃO (`/sistema.html`), e não a harmonização: a bancada serve o
+     `publicacao/batata` que existe em disco, e o pacote dele não tem `harmonizacao.html` (quem a
+     gera é a montagem da prova da barra). A apresentação serve o mesmo propósito e é real — ela
+     está no sistema e não é destino de menu nenhum, como a secção D da `provar-barra-unica`
+     também fixa. */
+  await abrir('/sistema.html', 1280);
+  const semLista = await marcaDaColuna();
+  ok('um documento que não vem de lista nenhuma não inventa marca',
+    !!semLista && semLista.acesos.length === 0 && semLista.gruposMarcados === 0
+    && !semLista.direto, semLista && { acesos: semLista.acesos, grupos: semLista.gruposMarcados });
+
+  /* NO TELEMONE. A folha não tem acordeão: abrir o ☰ mostra os itens todos, e o aceso é o que
+     tem o fundo da marca. É a mesma marca do computador no mesmo HTML — o que muda é a largura. */
+  /* AS REFERÊNCIAS ENTRAM AQUI (26/10/2026): elas são o caso novo — documento de «Planos», sem
+     item próprio no menu —, e é no telemóvel que a marca e o caminho têm menos espaço. */
+  for (const [documento, lista, grupo] of [DOCUMENTOS[0], DOCUMENTOS[1], DOCUMENTOS[5]]) {
+    await abrir(documento, 390);
+    await p.evaluate(() => document.querySelector('.topnav .hamburger').click());
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 450)));
+    const naFolha = await p.evaluate(() => {
+      const c = document.querySelector('.coluna');
+      if (!c) return null;
+      const aceso = c.querySelector('a[aria-current="page"]') || c.querySelector('a.coluna-direto.ativo');
+      const outro = [...c.querySelectorAll('.coluna-itens a, a.coluna-direto')].find((a) => a !== aceso);
+      const grupoMarcado = c.querySelector('.coluna-grupo[data-atual="sim"] .coluna-titulo');
+      const r = aceso ? aceso.getBoundingClientRect() : null;
+      return {
+        folhaAberta: c.getAttribute('data-aberta'),
+        href: aceso ? aceso.getAttribute('href') : null,
+        fundo: aceso ? getComputedStyle(aceso).backgroundColor : null,
+        fundoDeOutro: outro ? getComputedStyle(outro).backgroundColor : null,
+        visivel: !!r && r.height > 0 && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight,
+        grupo: (grupoMarcado && grupoMarcado.querySelector('span'))
+          ? grupoMarcado.querySelector('span').textContent.trim() : '',
+        corDoGrupo: grupoMarcado ? getComputedStyle(grupoMarcado).color : null,
+        transbordo: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    });
+    const nome = documento.replace('/bale-nivel-2-teste-2/', '');
+    ok('no telemóvel, ' + nome + ': a folha abre com o item aceso «' + lista + '» à vista',
+      !!naFolha && naFolha.folhaAberta === 'sim' && naFolha.href === lista && naFolha.visivel === true,
+      naFolha && { aberta: naFolha.folhaAberta, href: naFolha.href, visivel: naFolha.visivel });
+    ok('…pintado com o fundo da marca, e não só com o atributo',
+      !!naFolha && !!naFolha.fundo && naFolha.fundo !== naFolha.fundoDeOutro,
+      naFolha && { aceso: naFolha.fundo, apagado: naFolha.fundoDeOutro });
+    if (grupo !== 'Consulta') {
+      ok('…e o grupo «' + grupo + '» diz onde se está pelo título',
+        !!naFolha && naFolha.grupo === grupo && !!naFolha.corDoGrupo,
+        naFolha && { grupo: naFolha.grupo, cor: naFolha.corDoGrupo });
+    }
+    ok('…e nada estoura na horizontal', !!naFolha && naFolha.transbordo === 0, naFolha && naFolha.transbordo);
+
+    /* E O CAMINHO DA BARRA CONTINUA A DIZER ONDE SE ESTÁ, NO TELEMÓVEL. A marca do menu é uma
+       das duas metades da norma; a outra é o caminho ao lado da logomarca.
+       MEDIDO ANTES DA DECISÃO (26/10/2026): com os três degraus, a 390 o caminho era CORTADO em
+       «Notação em Benesh» e no glossário, e a 320 em quatro dos seis documentos — e o corte come
+       o FIM, que é o nome do documento. A decisão foi a mesma que a porta já tomava: abaixo de
+       768 fica só o último degrau. Aqui mede-se que assim é, e que ele cabe. */
+    const caminhoNoTelefone = await p.evaluate(() => {
+      const d = document.querySelector('.topnav .doc-atual');
+      if (!d) return null;
+      const aVista = (el) => !!el && getComputedStyle(el).display !== 'none';
+      const b = d.querySelector('b');
+      const h1 = document.querySelector('h1');
+      return {
+        /* O TEXTO QUE SE VÊ, e não o `textContent`: os dois degraus escondidos continuam no DOM
+           (é a mesma marcação para todas as larguras) e o `textContent` lê-os à mesma. */
+        texto: [...d.children].filter((el) => el.getClientRects().length > 0)
+          .map((el) => el.textContent.replace(/\s+/g, ' ').trim()).join(''),
+        esperado: h1 ? h1.textContent.replace(/\s+/g, ' ').split(/\s+[—–]\s+/)[0].trim() : '',
+        grupo: aVista(d.querySelector('small')),
+        lista: aVista(d.querySelector('a')),
+        separador: b ? getComputedStyle(b, '::before').content : '',
+        cortado: d.scrollWidth > d.clientWidth + 1,
+        sobra: document.documentElement.scrollWidth - window.innerWidth,
+        visivel: d.getClientRects().length > 0,
+      };
+    });
+    ok('no telemóvel, ' + nome + ': o caminho fica SÓ com o nome do documento',
+      !!caminhoNoTelefone && caminhoNoTelefone.visivel === true
+      && caminhoNoTelefone.texto === caminhoNoTelefone.esperado
+      && caminhoNoTelefone.grupo === false && caminhoNoTelefone.lista === false
+      && caminhoNoTelefone.separador === 'none',
+      caminhoNoTelefone);
+    ok('…e cabe: sem reticências e sem empurrar a barra para fora da tela',
+      !!caminhoNoTelefone && caminhoNoTelefone.cortado === false
+      && caminhoNoTelefone.sobra === 0, caminhoNoTelefone);
+  }
+
   ok('nenhum erro de JavaScript', erros.length === 0, erros);
 
   await b.close(); servidor.close();

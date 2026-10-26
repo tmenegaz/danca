@@ -57,9 +57,11 @@ function provar(titulo, condicao, detalhe) {
 const MENU = {
   versao: 2,
   coluna: [
+    /* «REFERÊNCIAS» SAIU DO GRUPO (26/10/2026). O caminho até ao documento é o plano do ciclo,
+       e a marca é «Planos». A forma de hoje tem um item no grupo — e a prova mede a forma de
+       hoje, como já fazia com o `tipo: 'link'` que saiu em 24/10/2026. */
     { tipo: 'menu', rotulo: 'Ciclos', itens: [
       { rotulo: 'Planos', href: '/ciclos/planos/' },
-      { rotulo: 'Referências', href: '/ciclos/referencias/' },
     ] },
     { tipo: 'menu', rotulo: 'Área do Professor', itens: [
       { rotulo: 'Anamnese do aluno', href: '/area-do-professor/anamnese/' },
@@ -157,12 +159,18 @@ console.log('\n3 · O caminho diz de onde se veio, e o degrau do meio leva de vo
     /<b>Notação em Benesh<\/b>/.test(noDocumento), noDocumento);
 
   /* O WORKER RESPONDE A `/x/referencias.html` COM UM 307 PARA `/x/referencias`, e a ponte vê o
-     caminho já sem extensão. As duas formas têm de dar o mesmo caminho. */
+     caminho já sem extensão. As duas formas têm de dar o mesmo caminho.
+     E O DEGRAU DO MEIO É «PLANOS» (26/10/2026): a lista de referências deixou de existir, e o
+     caminho até ao documento é o plano do ciclo. Quem está nas referências não saiu de Planos. */
   const comHtml = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/referencias.html', 'Referências Bibliográficas');
   const semHtml = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/referencias', 'Referências Bibliográficas');
   provar('com e sem `.html` o caminho é o mesmo', comHtml === semHtml, { comHtml, semHtml });
-  provar('…e em ambas o degrau do meio leva às referências',
-    /href="\/ciclos\/referencias\/"/.test(comHtml), comHtml);
+  provar('…e em ambas o caminho diz «Ciclos · Planos · Referências Bibliográficas»',
+    lerCaminho(comHtml) === '|Ciclos|Planos|Referências Bibliográficas|', lerCaminho(comHtml));
+  provar('…e o degrau do meio leva à lista de PLANOS',
+    /href="\/ciclos\/planos\/">Planos<\/a>/.test(comHtml), comHtml);
+  provar('…e já não existe degrau nenhum a apontar para a lista de referências',
+    !/ciclos\/referencias/.test(comHtml), comHtml);
 
   /* O CAMINHO DE UMA AULA LEVA TRÊS DEGRAUS, E O DO MEIO É A LISTA DE AULAS (24/10/2026). Antes
      dizia «Aulas · Aula 01» — dois, porque o grupo e a lista tinham o mesmo nome e o desenho

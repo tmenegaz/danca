@@ -45,6 +45,23 @@ O quadro completo, com marcação e estados, é a secção **«O catálogo das p
 4. **Nada de `style=""` na marcação, e nenhum hex fora de `ciclo.css`.** Cor se usa por **papel**
    (`--fundo`, `--marca-texto`…), nunca por primitivo (`--cream`, `--burgundy`).
 
+## Onde estou — aprofundar não é sair (norma, 26/10/2026)
+
+Duas marcas, e as duas dizem a mesma coisa: o **caminho na barra** (`Grupo · Lista · Documento`,
+ao lado da logomarca) e o **item do menu** de onde o documento saiu (`aria-current` no item,
+`data-atual="sim"` no grupo). No telemóvel é o mesmo HTML e a mesma marca — muda a largura; e o
+caminho, no corte dos 768px, fica **só com o último degrau** (o nome do documento), porque o grupo
+e a lista são o caminho de volta e a folha do ☰ já é esse caminho.
+
+A conta é **uma só**: `TRILHA_DO_DOCUMENTO`, em `motor/nucleo/nav.js`. Um ecrã novo que nasça de
+uma lista declara-se lá (uma linha: expressão do caminho, grupo, rótulo, `href`); um que nasça de
+uma porta/formulário traduz-se em `FAMILIAS`/`listaDaPorta`; um que não nasça de lista nenhuma
+**não se marca**. Não se escreve uma segunda tabela, e não se acende «para não ficar vazio».
+
+A norma completa, com a tabela das famílias e o motivo de cada degrau, é a secção **«Onde estou —
+o caminho na barra e a marca no menu»** de `IDENTIDADE-VISUAL.md`. As provas que a guardam:
+`provar-barra-unica.js` (secção D1) e `provar-painel-do-ato.js` (secção 17, em navegador).
+
 ## Peça nova: nasce inteira, no mesmo commit
 
 1. o desenho em `tools/templates/ciclo.css`, com **todos** os estados (base, `:hover`,
