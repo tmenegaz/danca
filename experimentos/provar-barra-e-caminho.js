@@ -126,8 +126,8 @@ console.log('\n2 · O caminho é escrito UMA vez, por muitas passagens que a pá
   for (let i = 0; i < 4; i++) h = nav.aplicar(h, MENU, '/area-do-professor/notacao/');
   provar('depois de QUATRO passagens continua a haver um', quantos(h) === 1, quantos(h));
   provar('…e nenhuma delas deixou a coluna a dobrar',
-    (String(h).match(/class="coluna"/g) || []).length === 1,
-    (String(h).match(/class="coluna"/g) || []).length);
+    (String(h).match(/class="coluna[ "]/g) || []).length === 1,
+    (String(h).match(/class="coluna[ "]/g) || []).length);
   /* O BLOCO DA PÁGINA NÃO SE PERDE ao retirar o caminho: é a razão de o `extrasDaBarra` existir,
      e o `s5-sessao` da Produção vive no mesmo intervalo. */
   const comS5 = pagina.replace('<span class="doc-atual"><small>Área do Professor</small>Notação</span>',
@@ -222,7 +222,7 @@ console.log('\n5 · Os Bastidores têm a coluna, e continuam a não ter dois men
      desenhada em TODO o lado; o duplo no computador resolve-se no CSS. */
   const nosBastidores = nav.desenhar(MENU, '/bastidores/producao', { extras: '', titulo: 'Produção' });
   provar('a página dos Bastidores RECEBE a coluna do sistema — é ela que o ☰ abre no telemóvel',
-    /class="coluna"/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
+    /class="coluna[ "]/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
   provar('…e a barra continua lá, com o Bastidores',
     /class="topnav"/.test(nosBastidores) && /Bastidores/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
   /* UM VÉU, E NÃO DOIS. Ele nasce com a coluna; se nascesse também na página, ficavam dois
@@ -231,7 +231,7 @@ console.log('\n5 · Os Bastidores têm a coluna, e continuam a não ter dois men
     (nosBastidores.match(/class="veu"/g) || []).length === 1,
     (nosBastidores.match(/class="veu"/g) || []).length);
   provar('a página de trabalho continua a ter a coluna',
-    /class="coluna"/.test(nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' })), true);
+    /class="coluna[ "]/.test(nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' })), true);
 
   /* O DUPLO NO COMPUTADOR É DO CSS, e a regra tem de existir: onde a página tem a sua própria
      coluna, a do sistema sai de cena acima dos 1140 — com o afastamento do `body` e o `left` da
@@ -253,7 +253,7 @@ console.log('\n5 · Os Bastidores têm a coluna, e continuam a não ter dois men
 console.log('\n6 · A folha leva o Bastidores, e o computador não o duplica');
 {
   const html = nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' });
-  const folha = (html.match(/<aside class="coluna"[\s\S]*?<\/aside>/) || [''])[0];
+  const folha = (html.match(/<aside class="coluna[^"]*"[\s\S]*?<\/aside>/) || [''])[0];
   provar('o Bastidores está dentro da folha', /Bastidores/.test(folha), folha.length);
   /* O ÚLTIMO BLOCO É O DE FORA. A comparação era com `coluna-direto`, e deixou de medir nada no
      dia em que a coluna ficou sem destinos directos: `lastIndexOf` devolveria `-1` para os dois

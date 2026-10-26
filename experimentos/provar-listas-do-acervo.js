@@ -342,7 +342,11 @@ function pedacos(html) {
     for (const [nome, r] of [['anamnese', anamnese]]) {
       provar(nome + ': leva a barra do sistema', /<nav class="topnav"/.test(r.html), true);
       provar(nome + ': leva o filtro', /class="filtro"/.test(r.html), true);
-      provar(nome + ': leva a coluna da navegação', /class="coluna"/.test(r.html), true);
+      /* A COLUNA PASSOU A NOMEAR-SE TAMBÉM PELA PEÇA (26/10/2026): `class="coluna folha-do-menu"`.
+         A asserção deixou de exigir a classe sozinha, e passou a exigir o `<aside>` e a peça — que
+         é o que a torna a MESMA folha do «Seções» e do «Ações». */
+      provar(nome + ': leva a coluna da navegação, e ela é a folha da peça',
+        /<aside class="coluna folha-do-menu"/.test(r.html), true);
       provar(nome + ': a aparência da escola é aplicada no servidor',
         /data-modo-fonte="escola"/.test(r.html), true);
       provar(nome + ': não traz o caminho repetido', (r.html.match(/class="doc-atual"/g) || []).length <= 1,

@@ -298,15 +298,18 @@ function paginaDeLista({ titulo, subtitulo, nav, itens = [], planos = null, vazi
   const nomeDeCriar = criar ? esc(criar) : 'Criar';
   const agrupado = painel
     ? `<div class="acoes-da-lista" id="acoes">
-  <button type="button" class="acao acoes-do-menu" id="botao-acoes"
+  <button type="button" class="acoes-do-menu pilula-do-menu" id="botao-acoes"
     aria-expanded="false" aria-controls="menu-de-acoes">Ações<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>
   <div class="veu-do-menu" id="veu-acoes" hidden></div>
-  <ul class="menu-de-acoes" id="menu-de-acoes" hidden>
-    <li><button type="button" class="menu-de-acoes-item" data-abrir="ato">${nomeDeCriar}</button></li>
-    <li><button type="button" class="menu-de-acoes-item" data-abrir="filtro">Procurar</button></li>
-    <li><a class="menu-de-acoes-item" data-abrir="ficha" href="${ficha ? esc(ficha) : '#'}"
-      target="_blank" rel="noopener">Gerar ficha</a></li>
-  </ul>
+  <div class="menu-de-acoes folha-do-menu" id="menu-de-acoes" hidden>
+    <span class="folha-puxador" aria-hidden="true"></span>
+    <ul class="menu-de-acoes-lista">
+      <li><button type="button" class="menu-de-acoes-item" data-abrir="ato">${nomeDeCriar}</button></li>
+      <li><button type="button" class="menu-de-acoes-item" data-abrir="filtro">Procurar</button></li>
+      <li><a class="menu-de-acoes-item" data-abrir="ficha" href="${ficha ? esc(ficha) : '#'}"
+        target="_blank" rel="noopener">Gerar ficha</a></li>
+    </ul>
+  </div>
   <details class="bloco-lista" id="bloco-ato" data-bloco="ato">
     <summary class="bloco-cabeca">
       <span class="bloco-titulo bloco-nome-fechado">${nomeDeCriar}</span>

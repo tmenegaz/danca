@@ -1157,6 +1157,146 @@ const servidor = http.createServer(async (req, res) => {
     }
   }
 
+  console.log('\n16 · UMA SÓ IDENTIDADE: AS TRÊS FOLHAS, AS DUAS PÍLULAS, E A COLUNA DOS BASTIDORES');
+  {
+    /* O PEDIDO, em três frases da mesma leitura:
+       · «quando eu abro o menu… ela não é a mesma identidade visual de quando eu expando, por
+         exemplo, sessões»;
+       · «o botão de ações… tem ainda uma terceira identidade visual, que não pode»;
+       · «em bastidores, em produção, o menu lateral tem outra identidade visual e outro
+         comportamento… precisa ter o mesmo comportamento da página principal».
+       O QUE SE MEDE AQUI não é «está bonito»: é IGUALDADE. As três folhas têm de devolver os
+       mesmos valores para fundo, canto, sombra e pegador; as duas pílulas, os mesmos para borda,
+       canto, fundo, cor, medida e corpo; e a coluna dos Bastidores tem de abrir e empurrar como
+       a do sistema. Uma peça é uma coisa só, e a prova disso é o número. */
+    const vestes = (sel, props) => p.evaluate((s, ps) => {
+      const el = document.querySelector(s);
+      if (!el) return null;
+      const cs = getComputedStyle(el);
+      const o = {};
+      for (const k of ps) o[k] = cs.getPropertyValue(k);
+      return o;
+    }, sel, props);
+
+    const FOLHA = ['background-color', 'border-top-left-radius', 'border-top-right-radius',
+      'box-shadow', 'padding-bottom'];
+    const PEGADOR = ['display', 'width', 'height', 'background-color', 'border-radius'];
+
+    // 1) a folha do ☰
+    await abrir('/area-do-professor/anamnese/', 390);
+    await p.evaluate(() => document.querySelector('.topnav .hamburger').click());
+    await new Promise((r) => setTimeout(r, 400));
+    const daNavegacao = { folha: await vestes('.coluna', FOLHA), puxador: await vestes('.coluna .folha-puxador', PEGADOR) };
+
+    // 2) a folha do «Ações»
+    await p.evaluate(() => { const c = document.querySelector('.coluna'); if (c) c.setAttribute('data-aberta', 'nao'); });
+    await new Promise((r) => setTimeout(r, 300));
+    await p.evaluate(() => document.getElementById('botao-acoes').click());
+    await new Promise((r) => setTimeout(r, 400));
+    const doAcoes = { folha: await vestes('#menu-de-acoes', FOLHA), puxador: await vestes('#menu-de-acoes .folha-puxador', PEGADOR) };
+    const pilulaAcoes = await vestes('#botao-acoes',
+      ['border-top-color', 'border-top-width', 'border-top-left-radius', 'background-color',
+        'color', 'padding-top', 'padding-left', 'font-size', 'font-weight']);
+
+    // 3) a folha do «Seções» (Produção) e a sua pílula
+    await abrir('/bastidores/producao', 390);
+    await p.evaluate(() => { const b = document.getElementById('lateral-abrir'); if (b) b.click(); });
+    await new Promise((r) => setTimeout(r, 450));
+    const doSecoes = { folha: await vestes('#lateral-lista', FOLHA), puxador: await vestes('#lateral-lista .folha-puxador', PEGADOR) };
+    const pilulaSecoes = await vestes('#lateral-abrir',
+      ['border-top-color', 'border-top-width', 'border-top-left-radius', 'background-color',
+        'color', 'padding-top', 'padding-left', 'font-size', 'font-weight']);
+
+    ok('as três folhas têm o mesmo fundo, canto, sombra e medida',
+      !!daNavegacao.folha && JSON.stringify(daNavegacao.folha) === JSON.stringify(doAcoes.folha)
+      && JSON.stringify(doAcoes.folha) === JSON.stringify(doSecoes.folha),
+      { navegacao: daNavegacao.folha, acoes: doAcoes.folha, secoes: doSecoes.folha });
+    ok('…e o mesmo pegador — a linha que diz «isto desliza»',
+      !!daNavegacao.puxador && daNavegacao.puxador.display === 'block'
+      && JSON.stringify(daNavegacao.puxador) === JSON.stringify(doAcoes.puxador)
+      && JSON.stringify(doAcoes.puxador) === JSON.stringify(doSecoes.puxador),
+      { navegacao: daNavegacao.puxador, acoes: doAcoes.puxador, secoes: doSecoes.puxador });
+    ok('as duas pílulas são a mesma — o «Ações» adotou a do «Seções»',
+      !!pilulaAcoes && JSON.stringify(pilulaAcoes) === JSON.stringify(pilulaSecoes),
+      { acoes: pilulaAcoes, secoes: pilulaSecoes });
+    ok('…e é secundária: vazada, não cheia',
+      !!pilulaAcoes && pilulaAcoes['background-color'] !== pilulaAcoes['border-top-color'],
+      pilulaAcoes && { fundo: pilulaAcoes['background-color'], borda: pilulaAcoes['border-top-color'] });
+
+    /* A DISTÂNCIA ATÉ AO BLOCO. «Está completamente colado no contexto do ato… tá tocando as
+       bordas.» Medido antes: 1px. */
+    await abrir('/area-do-professor/anamnese/', 390);
+    await p.evaluate(() => {
+      document.getElementById('botao-acoes').click();
+      const it = document.querySelector('[data-abrir="ato"]');
+      if (it) it.click();
+    });
+    await new Promise((r) => setTimeout(r, 500));
+    const folga = await p.evaluate(() => {
+      const b = document.getElementById('botao-acoes');
+      const bl = document.getElementById('bloco-ato');
+      return (b && bl) ? Math.round(bl.getBoundingClientRect().top - b.getBoundingClientRect().bottom) : null;
+    });
+    ok('…e o botão não toca no bloco que abre (há folga, não 1px)', folga !== null && folga >= 12, folga);
+
+    /* A COLUNA DOS BASTIDORES — o mesmo comportamento da do sistema, no computador. */
+    await p.setViewport({ width: 1280, height: 900 });
+    await p.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await new Promise((r) => setTimeout(r, 900));
+    const lateral = await p.evaluate(() => {
+      const l = document.querySelector('.lateral');
+      if (!l) return null;
+      const cs = getComputedStyle(l);
+      const grupos = [...l.querySelectorAll('.coluna-grupo')];
+      const antes = grupos.map((g) => Math.round(g.getBoundingClientRect().height));
+      const topsAntes = grupos.map((g) => Math.round(g.getBoundingClientRect().top));
+      grupos[1].querySelector('.coluna-titulo').click();
+      return new Promise((r) => setTimeout(() => {
+        const depois = grupos.map((g) => Math.round(g.getBoundingClientRect().height));
+        const topsDepois = grupos.map((g) => Math.round(g.getBoundingClientRect().top));
+        grupos[2].querySelector('.coluna-titulo').click();
+        setTimeout(() => r({
+          fundo: cs.backgroundColor, borda: cs.borderRightWidth,
+          titulos: grupos.length,
+          itensRecolhidos: getComputedStyle(l.querySelector('.coluna-itens')).maxHeight,
+          setaVisivel: getComputedStyle(l.querySelector('.coluna-seta')).display,
+          antes, depois, topsAntes, topsDepois,
+          exclusivo: grupos.map((g) => g.getAttribute('data-aberto')),
+          transbordo: document.documentElement.scrollWidth - window.innerWidth,
+        }), 400);
+      }, 400));
+    });
+    ok('a coluna dos Bastidores é a mesma coluna: fundo bordô e filete de ouro',
+      !!lateral && lateral.fundo === 'rgb(107, 31, 46)' && lateral.borda === '3px',
+      lateral && { fundo: lateral.fundo, borda: lateral.borda });
+    ok('…com os quatro grupos da Produção, recolhidos, e a seta à vista',
+      !!lateral && lateral.titulos === 4 && lateral.itensRecolhidos === '0px'
+      && lateral.setaVisivel === 'block', lateral && { grupos: lateral.titulos, itens: lateral.itensRecolhidos });
+    ok('…e o acordeão abre, cresce e EMPURRA os de baixo',
+      !!lateral && lateral.depois[1] > lateral.antes[1]
+      && lateral.topsDepois[2] > lateral.topsAntes[2],
+      lateral && { antes: lateral.antes[1], depois: lateral.depois[1], topoAntes: lateral.topsAntes[2], topoDepois: lateral.topsDepois[2] });
+    ok('…um de cada vez, como na coluna do sistema',
+      !!lateral && lateral.exclusivo[1] === 'nao' && lateral.exclusivo[2] === 'sim', lateral && lateral.exclusivo);
+    ok('…e nada estoura na horizontal', !!lateral && lateral.transbordo === 0, lateral && lateral.transbordo);
+
+    /* O GRUPO DA PÁGINA ACTUAL ACENDE-SE, como na coluna do sistema. Sem isto, o menu dos
+       Bastidores era o mesmo desenho mas não dizia «estás neste grupo» — metade do que um menu de
+       secções tem de dizer. */
+    const grupoAtual = await p.evaluate(() => {
+      location.hash = '#turmas';
+      return new Promise((r) => setTimeout(() => r({
+        grupos: [...document.querySelectorAll('.lateral .coluna-grupo')]
+          .map((g) => g.getAttribute('data-atual')),
+        barra: (document.getElementById('lateral-grupo') || {}).textContent,
+        nome: (document.getElementById('lateral-nome') || {}).textContent,
+      }), 400));
+    });
+    ok('a coluna dos Bastidores acende o grupo da secção, e a barra diz onde se está',
+      grupoAtual.grupos.filter((x) => x === 'sim').length === 1
+      && grupoAtual.barra === 'Pedagogia' && grupoAtual.nome === 'Turmas', grupoAtual);
+  }
+
   ok('nenhum erro de JavaScript', erros.length === 0, erros);
 
   await b.close(); servidor.close();

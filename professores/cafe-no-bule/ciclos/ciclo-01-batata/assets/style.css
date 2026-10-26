@@ -666,24 +666,76 @@ body {
    SEM `opacity` NOS TEXTOS. `--gold-claro` sobre `--marca-fundo` dá 5,03:1, que é o mínimo AA:
    qualquer transparência por cima reprova. A hierarquia faz-se por corpo e por espaço. */
 
-/* A COLUNA NASCE FECHADA E FORA DA TELA. Ela é a folha do celular por omissão — e no
-   computador, a partir do corte de 1140, passa a ser a coluna da esquerda. Uma raiz, duas
-   formas: é o que impede haver uma lista para o computador e outra para o telefone. */
-.coluna {
-  display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden;
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+/* ============================================================================
+   A FOLHA QUE SOBE — UMA PEÇA, TRÊS USOS (26/10/2026)
+   ----------------------------------------------------------------------------
+   O DEFEITO, dito por quem usa: «no modo do celular, quando eu abro o menu, ele tem uma
+   identidade visual… e ela não é a mesma identidade visual de quando eu expando, por exemplo,
+   sessões… E o botão de ações… tem ainda uma terceira identidade visual, que não pode.»
+
+   E era literal. Medido a 390px, nos três lugares em que uma folha sobe:
+
+     · a navegação do ☰ (`.coluna`) — bordô, sombra de 50px, pegador em ouro-claro;
+     · o «Seções» da Produção (`.lateral-lista`) — branca, sombra de 34px, pegador em
+       `--borda-campo`;
+     · o «Ações» da Área do Professor (`.menu-de-acoes`) — branca, como a de cima.
+
+   Três desenhos para a mesma coisa, porque cada um nasceu no dia em que a sua página precisou
+   dele — e nenhum sabia dos outros. A regra do sistema é a contrária: o que se repete três
+   vezes é uma PEÇA, e mora na folha, não em três sítios a divergir.
+
+   A identidade escolhida é a do ☰ (é a da casa: o bordô da barra e o ouro dos ornamentos), e
+   as três passam a ser esta. O que cada uma guarda de seu é o que é dela: a posição, a
+   transição, e o estado de aberta.
+   ========================================================================== */
+.folha-do-menu {
   border-radius: var(--raio-3) var(--raio-3) 0 0;
   background: var(--marca-fundo); color: var(--sobre-marca);
   box-shadow: var(--sombra);
   padding: 0 0 calc(var(--esp-4) + env(safe-area-inset-bottom, 0px));
   max-height: 78vh;
+}
+/* O PEGADOR — a linha que diz «isto desliza». É a mesma nos três, e por isso é um elemento só
+   (`<span class="folha-puxador">`), e não três implementações: um `::before` aqui, um `<span>`
+   ali e outro acolá acabariam em três medidas no dia em que uma delas mudasse. */
+.folha-puxador {
+  display: block; flex: 0 0 auto;
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--ornamento-forte); margin: 10px auto 2px;
+}
+
+/* A PÍLULA SECUNDÁRIA — o botão que ABRE uma folha (26/10/2026).
+ *
+ * O «Seções» da Produção era uma pílula vazada; o «Ações» da Área do Professor era um botão
+ * cheio de bordô com 45px de altura. Dois pesos para o mesmo papel, e o papel é um só: um
+ * controle SECUNDÁRIO, ao lado do conteúdo, que abre um menu. O principal é o ☰ — esse é que
+ * carrega o peso da navegação.
+ *
+ * É a pílula do «Seções», como o pedido diz: «o que a gente vai usar é o de sessões… porque ele
+ * é um botão secundário, ele não é o principal igual o do menu». */
+.pilula-do-menu {
+  display: inline-flex; align-items: center; gap: .35rem;
+  cursor: pointer; touch-action: manipulation;
+  border: 1px solid var(--borda-campo); border-radius: 999px;
+  background: var(--superficie); color: var(--marca);
+  padding: .5rem .85rem; font: 600 .82rem/1 var(--ui);
+}
+.pilula-do-menu:hover { background: var(--realce-suave); }
+.pilula-do-menu:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.pilula-do-menu .seta-do-ato { position: static; width: auto; height: auto; font-size: .78rem; }
+.pilula-do-menu[aria-expanded="true"] .seta-do-ato { transform: rotate(180deg); }
+
+/* A COLUNA NASCE FECHADA E FORA DA TELA. Ela é a folha do celular por omissão — e no
+   computador, a partir do corte de 1140, passa a ser a coluna da esquerda. Uma raiz, duas
+   formas: é o que impede haver uma lista para o computador e outra para o telefone.
+   A identidade (fundo, canto, sombra, medida) é a de `.folha-do-menu`; aqui fica só o que é
+   desta peça: o lugar, a forma de coluna e a transição. */
+.coluna {
+  display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
   transform: translateY(101%); transition: transform .22s ease;
 }
 .coluna[data-aberta="sim"] { transform: translateY(0); }
-.coluna-puxador {
-  display: block; width: 36px; height: 4px; border-radius: 2px;
-  background: var(--ornamento-forte); margin: 10px auto 2px;
-}
 /* O véu mora FORA da coluna: ela é `overflow-y:auto`, e um véu dentro dela rolaria com o
    conteúdo. Quem o acende é o `body`, pela classe que o `nav.js` do cliente põe. */
 .veu {
@@ -700,7 +752,7 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 }
 .coluna-marca:hover, .coluna-marca:focus-visible { color: var(--sobre-marca); }
 
-.coluna .coluna-grupo { display: block; }
+.coluna .coluna-grupo, .lateral .coluna-grupo { display: block; }
 /* O BLOCO DE FORA — o Bastidores, no fim da FOLHA (23/10/2026). Ele não é trabalho de sala: é
    a escola a olhar-se. Na folha do celular entra como último item e leva um filete acima, que é
    o que diz «daqui para baixo é outra natureza» sem o escrever.
@@ -713,7 +765,7 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 }
 /* O título é um BOTÃO: no telemóvel e no teclado não há ponteiro, e o grupo tem de abrir na
    mesma. `text-align:left` e `font:inherit` desfazem o que um `<button>` traz por omissão. */
-.coluna .coluna-titulo {
+.coluna .coluna-titulo, .lateral .coluna-titulo {
   display: flex; align-items: center; justify-content: space-between; gap: var(--esp-2);
   width: 100%; margin: 0; padding: var(--esp-3) var(--esp-5) var(--esp-1);
   border: 0; background: none; border-radius: 0; cursor: pointer;
@@ -721,44 +773,57 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
   font: 700 10.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase;
   text-align: left;
 }
-.coluna .coluna-titulo:hover { background: var(--marca-fundo-hover); }
-.coluna .coluna-titulo:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+.coluna .coluna-titulo:hover, .lateral .coluna-titulo:hover { background: var(--marca-fundo-hover); }
+.coluna .coluna-titulo:focus-visible, .lateral .coluna-titulo:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
 /* O GRUPO DO DOCUMENTO ACTUAL — o filete de ouro. Na folha (que é alta) o filete não vale; a
    marca passa a ser a cor do título, e o item aceso leva o ✓, como na Produção. */
-.coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo { color: var(--ornamento-forte); }
-.coluna .coluna-seta { display: none; flex: 0 0 auto; }
+.coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo,
+.lateral .coluna-grupo[data-atual="sim"] > .coluna-titulo { color: var(--ornamento-forte); }
+.coluna .coluna-seta, .lateral .coluna-seta { display: none; flex: 0 0 auto; }
 
-.coluna .coluna-itens {
+/* O ACORDEÃO — a mesma peça nos dois menus: a coluna do sistema (`.coluna`) e a dos Bastidores
+   (`.lateral`), porque o pedido é que «o menu lateral… tenha o mesmo comportamento da página
+   principal, não pode ser diferente». Uma declaração, dois donos: os valores moram aqui, e o
+   seletor é que cresce. */
+.coluna .coluna-itens,
+.lateral .coluna-itens {
   max-height: 0; overflow: hidden;
   margin: 0; padding: 0;
   transition: max-height .16s ease;
 }
-.coluna .coluna-itens a {
+.coluna .coluna-itens a,
+.lateral .coluna-itens a {
   display: flex; align-items: center; gap: .6rem;
   padding: .8rem var(--esp-5); border-radius: 0;
   color: var(--sobre-marca); text-decoration: none; font: 15px/1.25 var(--ui);
 }
-.coluna .coluna-itens a:hover { background: var(--marca-fundo-hover); }
-.coluna .coluna-itens a:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
-.coluna .coluna-itens a[aria-current="page"] {
+.coluna .coluna-itens a:hover, .lateral .coluna-itens a:hover { background: var(--marca-fundo-hover); }
+.coluna .coluna-itens a:focus-visible,
+.lateral .coluna-itens a:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+.coluna .coluna-itens a[aria-current="page"],
+.lateral .coluna-itens a[aria-current="page"] {
   background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: 700;
 }
 /* O ✓ DA PÁGINA ACTUAL. Na folha não há filete nem cor de grupo que se distinga com o dedo
    em cima do item: o ✓ é o sinal que a Produção já usa, e é o mesmo vocabulário. */
-.coluna .coluna-itens a[aria-current="page"]::after { content: "✓"; margin-left: auto; }
+.coluna .coluna-itens a[aria-current="page"]::after,
+.lateral .coluna-itens a[aria-current="page"]::after { content: "✓"; margin-left: auto; }
 /* NA FOLHA NÃO HÁ ACORDEÃO. A altura é a da tela quase inteira, e um menu que abre e fecha
    dentro de uma folha é um menu a esconder-se dentro de outro. Tudo à vista. */
-.coluna .coluna-itens { max-height: none; }
+.coluna .coluna-itens, .lateral .coluna-itens { max-height: none; }
 
 /* «Aulas» é um DESTINO, não uma pasta: sem seta, e com o peso de um título. */
-.coluna a.coluna-direto {
+.coluna a.coluna-direto,
+.lateral a.coluna-direto {
   display: flex; align-items: center; gap: .6rem;
   padding: .8rem var(--esp-5); border-radius: 0;
   color: var(--sobre-marca); text-decoration: none; font: 600 15px/1.25 var(--ui);
 }
-.coluna a.coluna-direto:hover { background: var(--marca-fundo-hover); }
-.coluna a.coluna-direto:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
-.coluna a.coluna-direto.ativo { background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: 700; }
+.coluna a.coluna-direto:hover, .lateral a.coluna-direto:hover { background: var(--marca-fundo-hover); }
+.coluna a.coluna-direto:focus-visible,
+.lateral a.coluna-direto:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+.coluna a.coluna-direto.ativo,
+.lateral a.coluna-direto.ativo { background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: 700; }
 
 /* O DOCUMENTO NA BARRA — o caminho, à moda da Produção: o grupo miúdo e a página.
    Numa página longa o `<h1>` sai da tela ao rolar; aqui fica sempre. `flex:0 1 auto` com
@@ -826,38 +891,50 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
     transform: none; transition: none;
     background: var(--marca-fundo);
   }
-  .coluna-puxador { display: none; }
+  .coluna .folha-puxador, .lateral .folha-puxador { display: none; }
   .coluna .coluna-fora { display: none; }
   .veu { display: none; }
   .coluna-marca { padding: 0 10px; margin: 0 0 var(--esp-4); }
-  .coluna .coluna-titulo {
+  .coluna .coluna-titulo,
+  .lateral .coluna-titulo {
     padding: 9px 10px; border-radius: var(--raio-2);
     font: 15px/1.25 var(--ui); letter-spacing: 0; text-transform: none;
     color: var(--sobre-marca);
   }
-  .coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo {
+  .coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo,
+  .lateral .coluna-grupo[data-atual="sim"] > .coluna-titulo {
     color: var(--ornamento-forte); font-weight: 700;
     box-shadow: inset 3px 0 0 var(--ornamento-forte);
   }
-  .coluna .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
+  .coluna .coluna-seta,
+  .lateral .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
   /* O ACORDEÃO. `max-height` em vez de `display:none` porque é o que ANIMA e o que EMPURRA os
      de baixo — abrir desce os outros, fechar recompõe. O filete à esquerda diz que os itens
      pertencem ao título de cima. */
-  .coluna .coluna-itens {
+  .coluna .coluna-itens,
+  .lateral .coluna-itens {
     max-height: 0; margin: 0 0 0 10px; padding-left: 9px;
     border-left: 1px solid var(--ornamento);
   }
-  .coluna .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
-  .coluna .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
-  .coluna .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
-  .coluna .coluna-itens a[aria-current="page"]::after { content: none; }
-  .coluna a.coluna-direto { padding: 9px 10px; border-radius: var(--raio-2); font-weight: 700; }
+  .coluna .coluna-grupo[data-aberto="sim"] > .coluna-itens,
+  .lateral .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
+  .coluna .coluna-grupo[data-aberto="sim"] .coluna-seta,
+  .lateral .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
+  .coluna .coluna-itens a,
+  .lateral .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
+  .coluna .coluna-itens a[aria-current="page"]::after,
+  .lateral .coluna-itens a[aria-current="page"]::after { content: none; }
+  .coluna a.coluna-direto,
+  .lateral a.coluna-direto { padding: 9px 10px; border-radius: var(--raio-2); font-weight: 700; }
   /* SÓ ONDE HÁ PONTEIRO: num telemóvel o `:hover` fica colado ao toque e o grupo nunca mais
      fecharia. O `(hover: hover)` separa os dois mundos — e não a largura, que é outra coisa. */
   @media (hover: hover) {
-    .coluna .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
-    .coluna .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
-    .coluna .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
+    .coluna .coluna-grupo:hover > .coluna-itens,
+    .lateral .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
+    .coluna .coluna-grupo:hover > .coluna-titulo,
+    .lateral .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
+    .coluna .coluna-grupo:hover .coluna-seta,
+    .lateral .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
   }
   /* A BARRA FICA AO LADO DA COLUNA, e o `body` é quem cede a largura: a coluna é fixa, e sem
      este afastamento a coluna de leitura passaria por trás dela.
@@ -1718,41 +1795,37 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
    direita: `margin-left:auto` num `inline-block` dentro de um `div` de bloco não
    alinha nada. */
 .acoes-da-lista .acoes-do-menu {
-  display: none; align-items: center; gap: .4rem;
+  display: none;
   width: max-content; margin-left: auto;
-  cursor: pointer; touch-action: manipulation;
+  /* A DISTÂNCIA ATÉ AO BLOCO QUE VEM ABAIXO (26/10/2026). «O botão de ações está
+     completamente colado no contexto do ato… tá tocando as bordas.» Medido: 1px — a borda
+     de baixo do botão e a de cima do bloco encostadas. `.bloco-lista` tem `margin: 0 0 …`
+     (zero em cima), e o botão não tinha nada por baixo. */
+  margin-bottom: var(--esp-4);
 }
-.acoes-da-lista .acoes-do-menu .seta-do-ato { position: static; width: auto; height: auto; font-size: .8rem; }
-.acoes-da-lista .acoes-do-menu[aria-expanded="true"] .seta-do-ato { transform: rotate(180deg); }
 
-/* A FOLHA QUE SOBE. Mesmo desenho de `.lateral-lista` na Produção: fundo de
-   superfície, cantos de cima arredondados, sombra para cima, e a subir em vez de
-   aparecer. O `z-index` fica acima do véu. */
+/* A FOLHA DO «AÇÕES». A identidade vem de `.folha-do-menu` (a mesma das outras duas
+   folhas); aqui fica só o que é desta: o lugar, e ser uma lista. O `z-index` passa o véu. */
 .veu-do-menu {
   position: fixed; inset: 0; z-index: 55;
-  background: rgba(31, 28, 26, .36);
+  background: var(--veu);
 }
 .menu-de-acoes {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
-  margin: 0; padding: 0 0 calc(var(--esp-4) + env(safe-area-inset-bottom, 0px));
-  list-style: none; max-height: 78vh; overflow-y: auto;
-  background: var(--superficie); border-radius: 20px 20px 0 0;
-  box-shadow: 0 -12px 34px rgba(31, 28, 26, .20);
+  margin: 0; list-style: none; overflow-y: auto;
 }
+.menu-de-acoes-lista { margin: 0; padding: 0; list-style: none; }
 .menu-de-acoes li { margin: 0; }
-/* O PUXADOR — a peça que diz «isto desliza». É o mesmo da lista da Produção. */
-.menu-de-acoes::before {
-  content: ""; display: block; width: 36px; height: 4px; border-radius: 2px;
-  background: var(--borda-campo); margin: 10px auto 2px;
-}
+/* Os itens são os do menu da FOLHA — a mesma linha, o mesmo peso, os mesmos 15px das outras
+   duas. A cor vem de `.folha-do-menu` (`--sobre-marca` sobre `--marca-fundo`). */
 .menu-de-acoes-item {
   display: flex; align-items: center; width: 100%; box-sizing: border-box;
-  padding: .85rem var(--esp-5); text-align: left;
-  font: 600 1rem/1.2 var(--ui); color: var(--texto); text-decoration: none;
+  padding: .8rem var(--esp-5); text-align: left;
+  font: 600 1rem/1.25 var(--ui); color: var(--sobre-marca); text-decoration: none;
   background: none; border: 0; border-radius: 0; cursor: pointer;
 }
 .menu-de-acoes-item:hover, .menu-de-acoes-item:focus-visible {
-  background: var(--realce-suave); outline: none;
+  background: var(--marca-fundo-hover); outline: none;
 }
 
 /* OS BLOCOS — o container com as bordas, e o `summary` como botão de colapsar. */

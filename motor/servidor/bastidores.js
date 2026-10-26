@@ -1416,6 +1416,34 @@ function topnav(contexto, onde, extras) {
 }
 
 /**
+ * UM GRUPO DO MENU DOS BASTIDORES — a MESMA peça da coluna do sistema (26/10/2026).
+ *
+ * O menu da Produção era uma lista plana: `<h2>` e `<a>`, tudo à vista. O da Área do Professor
+ * é uma coluna com grupos que abrem no `:hover` e empurram os de baixo. A pesquisadora pediu que
+ * fossem o mesmo — «ele precisa ter o mesmo comportamento da página principal, não pode ser
+ * diferente» —, e a diferença não era de gosto: eram duas peças com dois desenhos.
+ *
+ * Aqui só se embrulha o dado na marcação que a folha já desenha (`coluna-grupo`, `coluna-titulo`,
+ * `coluna-itens`, `coluna-seta`). Quem abre e fecha é o `nav.js` do cliente, que é o mesmo das
+ * outras páginas; quem pinta é `tools/templates/ciclo.css`. Nenhum desenho mora nesta função.
+ *
+ * `data-secao` continua em cada `<a>` — é o que o script das secções lê para marcar a página
+ * atual e para dizer, na barra do celular, em que grupo ela está.
+ */
+function grupoDoMenu(rotulo, itens) {
+  const chave = String(rotulo).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return '<div class="coluna-grupo" data-grupo="' + chave + '">' +
+    '<button type="button" class="coluna-titulo" aria-expanded="false" ' +
+    'aria-controls="g-' + chave + '"><span>' + rotulo + '</span>' +
+    '<span class="coluna-seta" aria-hidden="true">\u203a</span></button>' +
+    '<div class="coluna-itens" id="g-' + chave + '">' +
+    itens.map(([href, secao, nome]) =>
+      '<a href="' + href + '" data-secao="' + secao + '">' + nome + '</a>').join('') +
+    '</div></div>';
+}
+
+/**
  * A SESSÃO NA BARRA DO SISTEMA — a S5 «sobe e encaixa, com o hambúrguer» (18/10/2026).
  *
  * O problema: no celular, a Produção diz onde se está numa barra própria («PRODUÇÃO ·
@@ -2091,16 +2119,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
     // se escreve aqui só as usa. O amarelo próprio (`#fdf6e3`) que existia só neste
     // formulário SAI: era um terceiro tom, e não o fundo dos formulários do sistema.
-    '.lateral{position:sticky;top:calc(var(--header-height) + 8px);border-right:1px solid var(--borda-campo);padding-right:.9rem;}' +
-    '.lateral h2{font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:var(--marca-texto);margin:1rem 0 .2rem;}' +
-    '.lateral h2:first-child{margin-top:0;}' +
-    '.lateral a{display:block;color:var(--marca);text-decoration:none;padding:.25rem .5rem;border-radius:var(--raio-1);font-size:.95rem;}' +
-    '.lateral a:hover{background:var(--fundo-hover);}' +
-    '.lateral a.ativo{background:var(--fundo-faixa);font-weight:700;}' +
+    // A MESMA COLUNA DO SISTEMA (26/10/2026). Aqui estavam cinco regras próprias — `h2` em
+    // versalete, links em bordô sobre o papel, hover cinza —, e o resultado era um menu que
+    // não se parecia com o do resto do produto. Saíram. O que fica é o que é do LUGAR (a
+    // posição, a largura, a altura), e o desenho vem de `.coluna-grupo`/`.coluna-titulo`/
+    // `.coluna-itens`, desenhados uma vez em `tools/templates/ciclo.css`.
+    //
+    // A ALTURA É A DA JANELA porque a coluna do sistema também o é: um painel que acaba a meio
+    // da página lê-se como um cartão, e não como o menu da casa.
+    '.lateral{position:sticky;top:var(--header-height);align-self:stretch;min-height:calc(100vh - var(--header-height));' +
+    'margin:calc(-1 * var(--esp-5)) 0 calc(-1 * var(--esp-6)) calc(-1 * var(--esp-4));' +
+    'padding:var(--esp-4) var(--esp-3) var(--esp-5);' +
+    'background:var(--marca-fundo);color:var(--sobre-marca);border-right:3px solid var(--ornamento-forte);' +
+    'overflow-y:auto;}' +
+    '.lateral .lateral-voltar{margin:0 0 var(--esp-3);}' +
     // A BARRA E A FOLHA DO CELULAR existem no HTML e ficam OCULTAS na tela larga: o menu
     // em coluna continua a ser o de sempre, e nada disto aparece. São o MESMO elemento que
     // vira folha no celular (`.lateral-lista`) — não há uma segunda lista para envelhecer.
-    '.lateral-barra,.lateral-puxador,.lateral-veu{display:none;}' +
+    '.lateral-barra,.lateral-veu{display:none;}' +
     // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
     // formulário no meio, a LISTA à direita. Antes a lista ficava EMBaixo do formulário, e
     // a vista ficava uma coluna comprida: quem cadastra olhava para baixo para conferir.
@@ -2404,10 +2440,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A VOLTA AO SISTEMA. Ela é o primeiro item da lista de secções, e não um botão à parte: é
     // navegação, e o desenho é o dos pares dela — o que muda é a cor, mais baça, porque não é
     // uma secção desta página.
-    '.lateral-voltar{display:block;padding:6px 0 10px;margin:0 0 6px;' +
-    'border-bottom:1px solid var(--borda);font-size:.85rem;color:var(--texto-suave);' +
-    'text-decoration:none;}' +
-    '.lateral-voltar:hover{color:var(--marca-texto);}' +
+    // A COR PASSOU A SER A DA COLUNA (26/10/2026): ouro-claro sobre o bordô, como a marca do
+    // sistema no alto da `.coluna`. O `--texto-suave` era legível no papel e desaparecia aqui.
+    '.lateral-voltar{display:block;padding:6px 10px 10px;margin:0;' +
+    'border-bottom:1px solid var(--ornamento);font:700 12px/1.2 var(--ui);letter-spacing:.06em;' +
+    'text-transform:uppercase;color:var(--ornamento-forte);text-decoration:none;}' +
+    '.lateral-voltar:hover,.lateral-voltar:focus-visible{color:var(--sobre-marca);}' +
     '.passo:disabled{opacity:.45;cursor:not-allowed;}' +
     '.passo:disabled:hover{background:transparent;color:var(--texto-suave);}' +
     'button:disabled.acao{cursor:not-allowed;}' +
@@ -2541,7 +2579,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.topnav .s5-sessao,.topnav .s5-secoes{display:none;}' +
     '@media (max-width:768px){' +
       '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
-      '.lateral{position:static;border-right:none;padding:0 0 var(--esp-3);}' +
+      // NO CELULAR A COLUNA VIRA A BARRA + A FOLHA (não a coluna escura): a barra diz onde se
+      // está e o «Seções» abre a folha. Sem fundo e sem filete — o fundo escuro é da coluna.
+      '.lateral{position:static;min-height:0;margin:0;border-right:none;background:none;' +
+        'color:inherit;overflow:visible;padding:0 0 var(--esp-3);}' +
       '.lateral-barra{display:flex;align-items:center;gap:var(--esp-3);}' +
       // A BARRA DA PÁGINA SAI DE QUADRO AO ROLAR (18/10/2026). Ela está no fluxo, logo
       // abaixo do menu fixo: sem isto, ela descia por baixo do menu e ficava MEIO visível —
@@ -2559,26 +2600,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       // O SEPARADOR é do desenho, não do conteúdo: sem ele o `textContent` dos dois versos
       // corre junto («ProduçãoPainel inicial») e a leitura de ecrã não tem onde respirar.
       '.lateral-atual small::after{content:"·";margin-left:5px;}' +
-      '.lateral-abrir{margin-left:auto;flex:0 0 auto;cursor:pointer;' +
-        'border:1px solid var(--borda-campo);border-radius:999px;background:var(--superficie);' +
-        'padding:.5rem .85rem;font:600 .82rem/1 var(--ui);color:var(--marca);}' +
-      '.lateral-abrir:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
-      '.lateral-lista{position:fixed;left:0;right:0;bottom:0;z-index:60;' +
-        'background:var(--superficie);border-radius:20px 20px 0 0;' +
-        'box-shadow:0 -12px 34px rgba(31,28,26,.20);' +
-        'padding:0 0 calc(var(--esp-4) + env(safe-area-inset-bottom,0px));' +
-        'max-height:78vh;overflow-y:auto;' +
+      // O BOTÃO É A PÍLULA DA FOLHA, e não uma segunda pílula igual a ela (26/10/2026): o
+      // desenho mora em `.pilula-do-menu`, em `tools/templates/ciclo.css`. Aqui fica só o
+      // lugar — à direita, na barra.
+      '.lateral-abrir{margin-left:auto;flex:0 0 auto;}' +
+      // A FOLHA: lugar e transição. A identidade (fundo bordô, canto, sombra, pegador) é a de
+      // `.folha-do-menu`/`.folha-puxador` — a mesma da navegação do ☰ e do menu «Ações».
+      // As regras dos grupos e dos itens que aqui estavam (h2, a, ✓) saíram: são as
+      // `.coluna-titulo`/`.coluna-itens` da folha, que é o que faz os três menus serem um.
+      '.lateral-lista{position:fixed;left:0;right:0;bottom:0;z-index:60;overflow-y:auto;' +
         'transform:translateY(101%);transition:transform .22s ease;}' +
       '.lateral[data-aberta="sim"] .lateral-lista{transform:translateY(0);}' +
-      '.lateral-puxador{display:block;width:36px;height:4px;border-radius:2px;' +
-        'background:var(--borda-campo);margin:10px auto 2px;}' +
-      '.lateral-lista h2{margin:0;padding:var(--esp-3) var(--esp-5) var(--esp-1);' +
-        'font:700 10.5px/1 var(--ui);letter-spacing:.1em;color:var(--texto-suave);}' +
-      '.lateral-lista a{display:flex;align-items:center;gap:.6rem;' +
-        'padding:.8rem var(--esp-5);font-size:1rem;border-radius:0;}' +
-      '.lateral-lista a.ativo::after{content:"✓";margin-left:auto;}' +
       '.lateral-veu{display:block;position:fixed;inset:0;z-index:55;' +
-        'background:rgba(31,28,26,.36);opacity:0;pointer-events:none;' +
+        'background:var(--veu);opacity:0;pointer-events:none;' +
         'transition:opacity .2s ease;}' +
       '.lateral[data-aberta="sim"] .lateral-veu{opacity:1;pointer-events:auto;}' +
       // ===== S5 · A SESSÃO SOBE PARA A BARRA DO SISTEMA (18/10/2026) ==================
@@ -2633,37 +2667,52 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `data-aberta` é o estado da FOLHA do celular. No HTML ele nasce «nao»: a folha está
     // fechada, e na tela larga o atributo não tem efeito nenhum (o CSS que o lê só existe
     // dentro da media query do celular).
+    /* O MENU DOS BASTIDORES É O MESMO DO SISTEMA (26/10/2026).
+     *
+     * «Quando eu vou em bastidores, em produção, o menu lateral tem uma outra identidade visual e
+     * um outro comportamento. Ele precisa ter o mesmo comportamento da página principal, não pode
+     * ser diferente.»
+     *
+     * E era outro, em tudo: a lista era plana (`<h2>` + `<a>`, sete destinos à vista), clara sobre
+     * o papel, sem grupos, sem seta, sem acordeão. A coluna do sistema — `.coluna`, em
+     * `motor/nucleo/nav.js` — é bordô, com grupos que abrem no `:hover` e empurram os de baixo.
+     *
+     * A ESTRUTURA PASSA A SER A MESMA, e as classes também: `coluna-grupo` / `coluna-titulo` /
+     * `coluna-itens` / `coluna-seta`. É o que faz a identidade ser uma só, e não duas parecidas —
+     * a folha (`tools/templates/ciclo.css`) desenha os dois com as mesmas regras.
+     *
+     * O `lateral` guarda o que continua a ser dele: a barra do celular (grupo · página · botão
+     * «Seções») e a folha onde a lista sobe. As funcionalidades não mudaram: os mesmos grupos, os
+     * mesmos destinos, e cada `<a>` continua a levar `data-secao`, que é o que o script lê.
+     */
     '<nav class="lateral" aria-label="Seções da Produção" data-aberta="nao">' +
     // A barra do celular: o grupo e a página em que se está, e o botão que abre a folha.
     // Em tela larga ela não aparece — quem navega é a coluna abaixo.
     '<div class="lateral-barra">' +
     '<span class="lateral-atual"><small id="lateral-grupo">Produção</small>' +
     '<span id="lateral-nome">Painel inicial</span></span>' +
-    '<button type="button" class="lateral-abrir" id="lateral-abrir" ' +
-    'aria-expanded="false" aria-controls="lateral-lista">Seções ▾</button>' +
+    '<button type="button" class="lateral-abrir pilula-do-menu" id="lateral-abrir" ' +
+    'aria-expanded="false" aria-controls="lateral-lista">Seções<span class="seta-do-ato" ' +
+    'aria-hidden="true">\u25be</span></button>' +
     '</div>' +
-    '<div class="lateral-lista" id="lateral-lista">' +
-    '<span class="lateral-puxador" aria-hidden="true"></span>' +
+    '<div class="lateral-lista folha-do-menu" id="lateral-lista">' +
+    '<span class="folha-puxador" aria-hidden="true"></span>' +
     /* A VOLTA AO SISTEMA (23/10/2026). Os Bastidores deixaram de desenhar a coluna do sistema:
        eles têm ESTA, e duas colunas lado a lado diziam duas coisas diferentes sobre onde se
        está. O preço é não haver menu do sistema nesta página — e o preço paga-se aqui, com um
        caminho de volta explícito no alto da lista, e não com a marca da barra (que também
        leva a `/`, mas ninguém a lê como «voltar»). */
     '<a class="lateral-voltar" href="/">&larr; Sistema Lastro</a>' +
-    '<h2>Produção</h2>' +
-    '<a href="#painel" data-secao="painel">Painel inicial</a>' +
+    grupoDoMenu('Produção', [['#painel', 'painel', 'Painel inicial']]) +
     // A APARÊNCIA ENTRA EM PRODUÇÃO (18/10/2026): a preferência é da escola (C15), e é aqui
     // que só a escola e o professor principal chegam. O grupo é «Configuração» porque não é
     // pedagogia nem pessoa — é a forma da casa.
-    '<h2>Configuração</h2>' +
-    '<a href="#aparencia" data-secao="aparencia">Aparência</a>' +
-    '<h2>Pessoas</h2>' +
-    '<a href="#professores" data-secao="professores">Professores</a>' +
-    '<a href="#alunas" data-secao="alunas">Alunas</a>' +
-    '<h2>Pedagogia</h2>' +
-    '<a href="#turmas" data-secao="turmas">Turmas</a>' +
-    '<a href="#vocabulario" data-secao="vocabulario">Vocabulário técnico</a>' +
-    '<a href="#curadorias" data-secao="curadorias">Curadorias</a>' +
+    grupoDoMenu('Configuração', [['#aparencia', 'aparencia', 'Aparência']]) +
+    grupoDoMenu('Pessoas', [['#professores', 'professores', 'Professores'],
+      ['#alunas', 'alunas', 'Alunas']]) +
+    grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Turmas'],
+      ['#vocabulario', 'vocabulario', 'Vocabulário técnico'],
+      ['#curadorias', 'curadorias', 'Curadorias']]) +
     '</div>' +
     '<div class="lateral-veu" id="lateral-veu"></div>' +
     '</nav>' +
@@ -3709,10 +3758,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O GRUPO de um destino: o `<h2>` que vem antes dele. Lido do próprio documento, e
     // não de uma segunda lista no JavaScript — a lista dos grupos já está no HTML, e uma
     // cópia aqui divergiria dela no dia em que um grupo mudasse.
+    // O GRUPO de um destino: o título do `coluna-grupo` que o contém (26/10/2026). Antes era o
+    // `<h2>` anterior — e o menu passou a ter grupos da MESMA peça da coluna do sistema, com o
+    // nome dentro de um `<span>` do botão. Lido do próprio documento, e não de uma segunda
+    // lista no JavaScript: a lista dos grupos já está no HTML.
     'function grupoDoLink(a) {' +
-    '  var n = a.previousElementSibling;' +
-    '  while (n) { if (n.tagName === "H2") return n.textContent; n = n.previousElementSibling; }' +
-    '  return "";' +
+    '  var g = a.closest && a.closest(".coluna-grupo");' +
+    '  var t = g && g.querySelector(".coluna-titulo");' +
+    '  var s = t && t.querySelector("span");' +
+    '  return s ? s.textContent : "";' +
     '}' +
     'function mostrarSecao() {' +
     '  var alvo = (location.hash || "#painel").replace("#", "");' +
@@ -3723,16 +3777,29 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var id = s.id.replace("sec-", "");' +
     '    if (id === alvo) { s.hidden = false; visivel = id; } else { s.hidden = true; }' +
     '  }' +
-    '  var links = document.querySelectorAll(".lateral a");' +
+    // SÓ OS DESTINOS DE SECÇÃO, e SEM LHER A CLASSE (26/10/2026). A leitura era
+    // `querySelectorAll(".lateral a")` e escrevia `className = "ativo"` / `className = ""` em
+    // TODOS os links do menu — o que apagava a classe do «← Sistema Lastro» (que é um `<a>`
+    // sem `data-secao`) e o deixava sem desenho. O `classList` mexe só na marca de atual.
+    '  var links = document.querySelectorAll(".lateral a[data-secao]");' +
     '  for (var j = 0; j < links.length; j++) {' +
     '    if (links[j].getAttribute("data-secao") === visivel) {' +
-    '      links[j].className = "ativo";' +
+    '      links[j].classList.add("ativo");' +
     // `aria-current` é o que diz ao leitor de ecrã qual é a secção ATUAL — a classe só
     // muda a cor. Sem isto, a folha anunciava sete destinos iguais.
     '      links[j].setAttribute("aria-current", "page");' +
     // A barra do celular diz onde se está — GRUPO e página, porque só o nome da página
     // deixa o professor sem saber a que grupo ela pertence («Curadorias» é de Pedagogia,
     // e isso não se adivinha).
+    // O GRUPO DA PAGINA ACTUAL ACENDE-SE, como na coluna do sistema (26/10/2026): la e o
+    // `data-atual` que poe o filete de ouro e a cor no titulo do grupo. Sem isto, o menu dos
+    // Bastidores era o mesmo desenho mas nunca dizia «estas neste grupo».
+    '      var todos = document.querySelectorAll(".lateral .coluna-grupo");' +
+    '      var dono = links[j].closest(".coluna-grupo");' +
+    '      for (var k = 0; k < todos.length; k++) {' +
+    '        if (todos[k] === dono) todos[k].setAttribute("data-atual", "sim");' +
+    '        else todos[k].removeAttribute("data-atual");' +
+    '      }' +
     '      var g = document.getElementById("lateral-grupo");' +
     '      var n = document.getElementById("lateral-nome");' +
     '      if (g) g.textContent = grupoDoLink(links[j]);' +
@@ -3744,7 +3811,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      var n5 = document.getElementById("s5-nome");' +
     '      if (g5) g5.textContent = grupoDoLink(links[j]);' +
     '      if (n5) n5.textContent = links[j].textContent;' +
-    '    } else { links[j].className = ""; links[j].removeAttribute("aria-current"); }' +
+    '    } else { links[j].classList.remove("ativo"); links[j].removeAttribute("aria-current"); }' +
     '  }' +
     '  fecharMenu();' +
     '}' +

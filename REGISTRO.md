@@ -25089,3 +25089,57 @@ uma segunda condição a divergir da primeira.
 destinos — «Estúdio de Dança» e «Produção» — por inteiro, sem corte no texto. O `provar-barra-e-caminho`
 passa a medir a regra (45/45) e o `provar-painel-do-ato` a medir a geometria em três larguras
 (secção 15 nova, 13 asserções em browser).
+
+## 26/10/2026 — Uma só identidade: as três folhas, as duas pílulas, e o menu dos Bastidores
+
+**Documento congelado alterado:** `tools/templates/ciclo.css` e `tools/templates/nav.js` (e as cópias
+verbatim: `raiz/assets/` e os dois pacotes de `professores/`). **Motivo declarado:** três desenhos
+para a mesma coisa foram substituídos por uma peça só, e o menu dos Bastidores passou a ser o do
+sistema. Um desenho a menos, não um a mais.
+
+**1. AS TRÊS FOLHAS ERAM TRÊS.** Medido a 390px, nos três sítios em que uma folha sobe:
+
+| | fundo | sombra | pegador |
+|:--|:--|:--|:--|
+| navegação do ☰ (`.coluna`) | bordô `107,31,46` | `0 18px 50px` | ouro-claro `201,168,120` |
+| «Seções» da Produção (`.lateral-lista`) | branco | `0 -12px 34px` | campo `160,138,88` |
+| «Ações» da Área do Professor (`.menu-de-acoes`) | branco | `0 -12px 34px` | campo `160,138,88` |
+
+Cada uma nasceu no dia em que a sua página precisou dela, e nenhuma sabia das outras. Passaram a ser
+**uma peça** — `.folha-do-menu` + `.folha-puxador` — com a identidade do ☰ (a escolha da
+pesquisadora: «todas escuras»), e o que cada uma guarda de seu é só o lugar e a transição.
+
+**2. O BOTÃO «AÇÕES» ERA UM TERCEIRO BOTÃO.** 82×45px, raio 12, cheio de bordô, 15px/500. O «Seções»
+é 83×31, raio 999, vazado, 13.12px/600. Dois pesos para o mesmo papel — e o papel é um só: um
+controle **secundário** que abre um menu; o principal é o ☰. Passou a haver `.pilula-do-menu`, usada
+pelos dois. E o botão deixou de **tocar** no bloco que abre: a folga era de **1px**, e é agora de 17.
+
+**3. O MENU DOS BASTIDORES ERA OUTRO MENU.** Lista plana (`<h2>` + `<a>`, sete destinos à vista),
+clara sobre o papel, sem grupos, sem seta, sem acordeão. A coluna do sistema é bordô, com grupos que
+abrem no ponteiro e empurram os de baixo. «Ele precisa ter o mesmo comportamento da página
+principal, não pode ser diferente.»
+
+A estrutura passou a ser a mesma, e **as classes também** (`coluna-grupo`/`coluna-titulo`/
+`coluna-itens`/`coluna-seta`), desenhadas uma vez na folha para os dois donos. As funcionalidades não
+mudaram: os mesmos grupos (Produção · Configuração · Pessoas · Pedagogia), os mesmos sete destinos, o
+mesmo `data-secao`, e o «← Sistema Lastro» no alto. O grupo da página atual acende-se, como na
+coluna do sistema.
+
+**O QUE ISTO DESTAPOU, e que era defeito meu.** O `nav.aplicar` removia a coluna antiga com uma
+expressão que exigia `class="coluna"` **à letra**. Ao dar à coluna a classe da peça
+(`class="coluna folha-do-menu"`), a expressão deixou de a reconhecer e cada passagem **acrescentava**
+uma coluna: medido, quatro `aplicar` davam quatro. Foi a prova `provar-barra-e-caminho` que o
+apanhou — «depois de QUATRO passagens… e nenhuma delas deixou a coluna a dobrar → 4». Corrigido com
+`[^"]*`, que aceita o resto da lista e mais nada.
+
+**E um segundo, mais antigo.** O script das secções dos Bastidores escrevia
+`links[j].className = "ativo"` em **todos** os `<a>` do menu — o que apagava a classe do «← Sistema
+Lastro» (que não tem `data-secao`) e o deixava sem desenho. Passou a `classList` e a
+`a[data-secao]`.
+
+Medido: as três folhas devolvem os mesmos valores computados (fundo, canto, sombra, medida, pegador);
+as duas pílulas, os mesmos; a coluna dos Bastidores abre, cresce, empurra, fecha a anterior, acende o
+grupo da secção e não estoura na horizontal. `provar-painel-do-ato` com a secção 16 nova (12
+asserções de geometria em browser), `provar-listas-do-acervo` 109/109, `provar-barra-e-caminho`
+45/45, `provar-barra-unica` 88/89 (a que falta já faltava antes), `check-identidade` 0 erro,
+`check-pacote` 0 erro.

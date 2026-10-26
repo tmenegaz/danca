@@ -185,7 +185,7 @@ function hrefsDa(html) {
  * prova se dava por certa sem ter medido nada).
  */
 function colunaDe(html) {
-  const m = /<aside class="coluna"[\s\S]*?<\/aside>/.exec(html || '');
+  const m = /<aside class="coluna[^"]*"[\s\S]*?<\/aside>/.exec(html || '');
   return m ? m[0] : null;
 }
 
@@ -378,8 +378,8 @@ async function principal() {
          desenhar a nova (`nav.aplicar`); sem isso, cada passagem — a montagem, e depois o Worker
          a servir — deixava uma ao lado da outra. */
       checar(nome + ' tem UMA coluna, e não duas',
-        (html.match(/<aside class="coluna"/g) || []).length === 1,
-        (html.match(/<aside class="coluna"/g) || []).length);
+        (html.match(/<aside class="coluna[ "]/g) || []).length === 1,
+        (html.match(/<aside class="coluna[ "]/g) || []).length);
       /* TRÊS GRUPOS DE TRABALHO, e não quatro (24/10/2026): «Aulas» deixou de ser um destino do
          topo da coluna — ela está DENTRO da Área do Professor, onde o trabalho acontece. O
          número dos grupos é o do `nav.json`, e não uma lista escrita à mão. */

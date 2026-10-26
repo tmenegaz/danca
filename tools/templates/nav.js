@@ -209,26 +209,37 @@
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') abrirFolha(false);
       });
-      /* O TÍTULO DO GRUPO, ONDE HÁ PONTEIRO. No computador os grupos abrem no `:hover`, e o
-         `:hover` não chega a quem usa teclado nem a quem toca num ecrã grande. O clique fixa o
-         grupo aberto; o `data-aberto` é o estado, e o CSS do `[data-aberto="sim"]` é o desenho. */
-      coluna.addEventListener('click', function (e) {
-        var titulo = e.target.closest('.coluna-titulo');
-        if (!titulo) return;
-        var grupo = titulo.closest('.coluna-grupo');
-        if (!grupo) return;
-        var abrir = grupo.getAttribute('data-aberto') !== 'sim';
-        document.querySelectorAll('.coluna .coluna-grupo[data-aberto="sim"]').forEach(function (g) {
-          if (g !== grupo) g.setAttribute('data-aberto', 'nao');
-        });
-        grupo.setAttribute('data-aberto', abrir ? 'sim' : 'nao');
-        titulo.setAttribute('aria-expanded', abrir ? 'true' : 'false');
-      });
-      coluna.addEventListener('focusin', function (e) {
-        var grupo = e.target.closest && e.target.closest('.coluna-grupo');
-        if (grupo && grupo.getAttribute('data-aberto') !== 'sim') grupo.setAttribute('data-aberto', 'sim');
-      });
     }
+    /* O ACORDEÃO É DA PEÇA, E NÃO DA COLUNA (26/10/2026).
+     *
+     * Estava preso ao `<aside class="coluna">` — e por isso os grupos do menu dos Bastidores
+     * (`.lateral`), que passaram a ser os MESMOS (`coluna-grupo`/`coluna-titulo`), abriam no
+     * `:hover` e não abriam ao clique nem ao teclado: o `data-aberto` nunca era escrito.
+     * Escutar no documento, e aceitar os dois donos, é o que faz a peça ser uma só — quem
+     * desenha é a folha, e quem abre é este ouvinte, seja qual for o menu.
+     *
+     * A guarda é o `closest('.coluna, .lateral')`: fora desses dois, um `.coluna-titulo` não
+     * existe — mas se um dia existir noutro sítio, não é este ouvinte que o governa. */
+    document.addEventListener('click', function (e) {
+      var titulo = e.target.closest && e.target.closest('.coluna-titulo');
+      if (!titulo) return;
+      var menu = titulo.closest('.coluna, .lateral');
+      if (!menu) return;
+      var grupo = titulo.closest('.coluna-grupo');
+      if (!grupo) return;
+      var abrir = grupo.getAttribute('data-aberto') !== 'sim';
+      menu.querySelectorAll('.coluna-grupo[data-aberto="sim"]').forEach(function (g) {
+        if (g !== grupo) g.setAttribute('data-aberto', 'nao');
+      });
+      grupo.setAttribute('data-aberto', abrir ? 'sim' : 'nao');
+      titulo.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    });
+    document.addEventListener('focusin', function (e) {
+      var grupo = e.target.closest && e.target.closest('.coluna-grupo');
+      if (!grupo) return;
+      if (!grupo.closest('.coluna, .lateral')) return;
+      if (grupo.getAttribute('data-aberto') !== 'sim') grupo.setAttribute('data-aberto', 'sim');
+    });
 
     /* Ao escolher um item, o painel fecha — a navegação é do navegador, mas o
        estado não pode ficar para trás. */

@@ -305,8 +305,8 @@ function desenharColuna(coluna, pedido, barra) {
      construtor de página.
      Ele fica FORA do `<aside>`: a coluna é `overflow-y:auto`, e um véu lá dentro rolaria com o
      conteúdo e ficaria recortado pelo canto arredondado da folha. */
-  return '<aside class="coluna" id="coluna-proposta" data-aberta="nao" aria-label="Navegação do sistema">\n'
-    + '  <span class="coluna-puxador" aria-hidden="true"></span>\n'
+  return '<aside class="coluna folha-do-menu" id="coluna-proposta" data-aberta="nao" aria-label="Navegação do sistema">\n'
+    + '  <span class="folha-puxador" aria-hidden="true"></span>\n'
     + '  <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
     + '  <nav>\n' + corpo + '\n  </nav>\n'
     + '</aside>\n'
@@ -523,7 +523,12 @@ function aplicar(html, menu, pedido) {
   /* O VÉU VAI COM A COLUNA. Eles nascem juntos (ver `desenharColuna`) e saem juntos: sem isto,
    * cada passagem deixaria um véu órfão a mais — e três véus empilhados não são três vezes mais
    * escuros, são um `pointer-events:auto` a mais sobre a página inteira. */
-  const limpo = texto.replace(/<aside class="coluna"[\s\S]*?<\/aside>\s*(?:<div class="veu"[^>]*><\/div>\s*)?/, '');
+  /* A CLASSE DA COLUNA PASSOU A TER COMPANHIA (26/10/2026). O `<aside>` é
+   * `class="coluna folha-do-menu"` — ele nomeia-se também pela peça da folha, para as três
+   * folhas do sistema serem uma só. Esta expressão exigia `class="coluna"` à letra, deixou de
+   * reconhecer a coluna que ela própria desenha, e cada passagem ACRESCENTAVA uma: medido, quatro
+   * `aplicar` davam quatro colunas. O `[^"]*` aceita o resto da lista e mais nada. */
+  const limpo = texto.replace(/<aside class="coluna[^"]*"[\s\S]*?<\/aside>\s*(?:<div class="veu"[^>]*><\/div>\s*)?/, '');
   const doLimpo = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(limpo);
   if (!doLimpo) return null;
   /* O bloco da página é lido do `<nav>` que está lá antes de ser substituído. */
