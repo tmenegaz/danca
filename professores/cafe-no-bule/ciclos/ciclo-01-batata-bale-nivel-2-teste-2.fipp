@@ -8,9 +8,9 @@ type: Ciclo
 professor: Cafe No Bule
 ciclo: 01
 variante: batata-bale-nivel-2-teste-2
-hash_conteudo: b3e2dfc8e76e62260ec195e8e7fc99367a268e086db4d17eed2d69b3e008bf4b
+hash_conteudo: c1201cfc965071302f22122fe0d6ab100db94f1fcda63ee317efd8a8bff86075
 parentHash: 
-hash: b6ce1008d90e9285be1b142d39d322089e2195800901e434ca3040ab44a158d4
+hash: 068ab0bee37ae6568a64af9ca187a82f4f4a3ce9f58a9cbad21466d637389809
 algoritmo: SHA-256
 po: professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md
 po_state: Input_PO_Aguardando

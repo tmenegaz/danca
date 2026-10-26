@@ -57,20 +57,25 @@ function tituloDoPlano(contexto) {
 // numerada aqui — 01, 02, 03… O prefixo «NN:» é o caminho LEGADO (a prosa antiga) e só
 // conta como número quando é mesmo um número: um marco que tenha dois-pontos no meio
 // («Solo: eixo vertical») não perde o começo para a coluna da aula.
-function tabelaDeMarcos(valor) {
+function tabelaDeMarcos(valor, objetivos) {
   const itens = emLista(valor);
-  const linhas = ['| Aula | Objetivo específico (marco parcial) |', '|:--|:--|'];
+  // O NÚMERO DO OBJETIVO de cada aula. Nesta etapa é o da posição (o formulário ainda emite
+  // uma linha por aula); quando a fonte declarar `objetivos` — a coluna é do documento, não
+  // do envelope —, é ela que manda, e é isso que permite 2 objetivos numa aula e 1 em duas.
+  const declarados = (Array.isArray(objetivos) ? objetivos : []).map((o) => o.n);
+  const linhas = ['| Aula | Objetivos | Marco |', '|:--|:--|:--|'];
   itens.forEach((linha, i) => {
     const idx = linha.indexOf(':');
     const prefixo = idx > 0 ? linha.slice(0, idx).trim() : '';
     const numerado = /^\d{1,3}$/.test(prefixo);
     const n = numerado ? prefixo.padStart(2, '0') : String(i + 1).padStart(2, '0');
     const marco = numerado ? linha.slice(idx + 1).trim() : linha.trim();
-    linhas.push('| **' + n + '** | ' + (marco || '[a decidir]') + ' |');
+    const objetivo = declarados[i] || n;
+    linhas.push('| **' + n + '** | ' + objetivo + ' | ' + (marco || '[a decidir]') + ' |');
   });
   return linhas.length > 2
     ? linhas
-    : ['| Aula | Objetivo específico (marco parcial) |', '|:--|:--|', '| **01** | [a decidir] |'];
+    : ['| Aula | Objetivos | Marco |', '|:--|:--|:--|', '| **01** | 01 | [a decidir] |'];
 }
 
 // Os MARCOS PARCIAIS como lista de textos — o que a matriz por marco (blocos,
@@ -111,8 +116,78 @@ function marcosEmTexto(valor) {
   }).filter(Boolean);
 }
 
-// Os BLOCOS usados, na ordem canónica — a união do que a matriz por marco marcou. É
-// o que lista as linhas da distribuição do volume.
+/* OS OBJETIVOS ESPECÍFICOS DO CICLO (26/10/2026) — a LISTA, e não o cruzamento.
+ *
+ * O QUE MUDOU, e por quê. Até aqui o objetivo existia apenas como a linha do marco de uma
+ * aula: `estrutura-de-cada-aula` guardava `{marco: N, marcados: [blocos]}`, com N sendo a
+ * POSIÇÃO do marco. Isso lia-se como «a aula 1 tem só os blocos Solo e Barra» — quando o que
+ * o professor marcou foi «este OBJETIVO trabalha-se em Solo e Barra» — e, na mesma página, a
+ * distribuição do volume dizia que toda aula tem os quatro blocos. Duas afirmações
+ * incompatíveis sobre a mesma aula. A pesquisadora: «a aula vai ter a estrutura que o
+ * professor quiser… o objetivo é onde ele quer relacionar com a estrutura, com o bloco da
+ * aula, e não que a estrutura da aula é somente aquele bloco».
+ *
+ * Agora o número é do OBJETIVO (1..N), e o bloco é uma propriedade dele. A estrutura da aula
+ * é outra coisa e vive no quadro do volume.
+ *
+ * O QUE AINDA NÃO É POSSÍVEL, e é honesto dizê-lo aqui: o formulário continua a emitir
+ * `marcos-por-aula` como UMA linha por aula, então a lista nasce 1:1 (objetivo N → aula N).
+ * Os dois casos que a pesquisadora descreveu — dois objetivos numa aula, um objetivo em duas
+ * aulas — já cabem na FORMA do documento (a coluna «Objetivo(s)» aceita vários números), mas
+ * ainda não têm por onde entrar. É a etapa do formulário.
+ */
+function objetivosDoEnvelope(envelope) {
+  const textos = marcosEmTexto(respostaDo(envelope, 'marcos-por-aula'));
+  const blocosPorObjetivo = new Map();
+  const cru = respostaDo(envelope, 'estrutura-de-cada-aula');
+  if (Array.isArray(cru) && cru.some((l) => l && typeof l === 'object')) {
+    for (const linha of cru) {
+      if (!linha || !Array.isArray(linha.marcados)) continue;
+      const n = Number(linha.marco);
+      if (!n) continue;
+      blocosPorObjetivo.set(n, linha.marcados.map(String).map((b) => b.trim()).filter(Boolean));
+    }
+  }
+  return textos.map((texto, i) => ({
+    n: String(i + 1).padStart(2, '0'),
+    objetivo: texto,
+    blocos: blocosPorObjetivo.get(i + 1) || [],
+  }));
+}
+
+/** A TABELA dos objetivos: o número, o que se pretende e onde é trabalhado. */
+function tabelaDeObjetivosEspecificos(objetivos) {
+  const linhas = [
+    '| N | Objetivo específico | Blocos onde é trabalhado |',
+    '|:--|:--|:--|',
+  ];
+  for (const o of objetivos || []) {
+    linhas.push('| **' + o.n + '** | ' + (o.objetivo || '[a decidir]') + ' | '
+      + (o.blocos && o.blocos.length ? o.blocos.join(' · ') : '[a decidir]') + ' |');
+  }
+  if (linhas.length === 2) {
+    return ['| N | Objetivo específico | Blocos onde é trabalhado |', '|:--|:--|:--|',
+      '| **01** | [a decidir] | [a decidir] |'];
+  }
+  return linhas;
+}
+
+// Os BLOCOS da ESTRUTURA DA AULA — a união do que a distribuição do volume declara.
+//
+// ANTES lia `estrutura-de-cada-aula` (a relação objetivo × bloco), e era de lá que saíam os
+// blocos da aula: a mesma confusão que a secção do plano fazia. A aula tem os blocos que a
+// estrutura declara; o objetivo diz onde é trabalhado, e não quais blocos a aula tem.
+function blocosDoVolume(valor) {
+  const linhas = Array.isArray(valor) ? valor
+    : valor && Array.isArray(valor.linhas) ? valor.linhas : [];
+  return linhas
+    .map((l) => String((l && (l.Bloco || l.bloco)) || '').trim())
+    .filter(Boolean);
+}
+
+// Os BLOCOS usados, na ordem canónica — a união do que a matriz por marco marcou. Continua a
+// ser a leitura do documento ANTIGO (e a do envelope, para a aula): um plano escrito antes de
+// 26/10/2026 declara a estrutura pela relação objetivo × bloco, e ela não deixa de ser lida.
 function blocosDaEstrutura(valor, ordem) {
   const vistos = [];
   for (const linha of Array.isArray(valor) ? valor : []) {
@@ -399,31 +474,38 @@ function derivarPlano(envelope) {
   // agnóstico à turma — o grupo fica em `contexto-turma`, e os apelidos e a
   // linha de base individuais vivem na anamnese e entram pelo PO (`sujeitos`).
 
-  // Marcos parciais: tabela, uma linha por aula.
-  secao('Marcos parciais por aula', tabelaDeMarcos(respostaDo(envelope, 'marcos-por-aula')));
+  /* OS OBJETIVOS ESPECÍFICOS — a LISTA do ciclo, antes dos marcos (26/10/2026).
+   *
+   * Ela é a primeira das duas tabelas que substituem a «Estrutura de cada aula». O número é do
+   * OBJETIVO, e o bloco é onde ELE é trabalhado — não uma declaração sobre a estrutura da aula.
+   * Ver `objetivosDoEnvelope` para o que ainda não é possível (o formulário emite 1:1). */
+  const objetivos = objetivosDoEnvelope(envelope);
+  secao('Objetivos específicos', tabelaDeObjetivosEspecificos(objetivos));
+
+  // Marcos parciais: a aula, o(s) objetivo(s) que ela persegue e o marco em texto.
+  secao('Marcos parciais por aula',
+    tabelaDeMarcos(respostaDo(envelope, 'marcos-por-aula'), objetivos));
 
   // O calendário entra pelo gerador (o marcador fica no lugar).
   saida.push('<!-- CALENDARIO -->');
   saida.push('');
 
-  // Estrutura de cada aula — a RELAÇÃO objetivo × bloco (Regra 3). A forma legada
-  // (lista de blocos em prosa) continua a sair como lista.
-  secao(
-    'Estrutura de cada aula',
-    linhasDaEstrutura(
-      respostaDo(envelope, 'estrutura-de-cada-aula'),
-      marcosEmTexto(respostaDo(envelope, 'marcos-por-aula')),
-      BLOCOS_DA_AULA,
-    ),
-  );
-
-  // Distribuição do volume pelos blocos (tabela) — Regra 9, etapa 2.
-  //
-  // A UNIDADE (minutos × percentual) viaja DENTRO da resposta (`{unidade, linhas}`, desde que o
-  // professor pode trocar a régua da coluna) e a tabela só carrega as linhas: sem a nota abaixo,
-  // o documento publicava «15» e «35» sem dizer 15 de quê. A nota sai como CITAÇÃO (`>`) de
-  // propósito — o contrato não a lê como conteúdo (blockquote é comentário), e é o que mantém as
-  // chaves da tabela como estão.
+  /* BLOCOS DA AULA E DISTRIBUIÇÃO DO VOLUME — a ESTRUTURA (26/10/2026).
+   *
+   * Aqui ficava a «Estrutura de cada aula», que era a relação objetivo × bloco e lia-se como se
+   * a aula tivesse só aqueles blocos. A estrutura é esta tabela: os blocos que a aula tem e a
+   * fatia de cada um. A relação objetivo × bloco passou a ser propriedade do objetivo (secção
+   * «Objetivos específicos»), e o cruzamento dos dois sai em «Objetivos por bloco e por aula».
+   *
+   * O PADRÃO É DO CICLO; A AULA PODE TER OUTRA ESTRUTURA (decisão de 26/10/2026). O plano
+   * declara o padrão — é o acervo de onde a aula parte —, e cada `aula-NN.md` declara a sua
+   * quando difere. Escrever aqui as 26 estruturas seriam 104 linhas num documento que se lê.
+   *
+   * A UNIDADE (minutos × percentual) viaja DENTRO da resposta (`{unidade, linhas}`, desde que o
+   * professor pode trocar a régua da coluna) e a tabela só carrega as linhas: sem a nota abaixo,
+   * o documento publicava «15» e «35» sem dizer 15 de quê. A nota sai como CITAÇÃO (`>`) de
+   * propósito — o contrato não a lê como conteúdo (blockquote é comentário), e é o que mantém as
+   * chaves da tabela como estão. */
   const volume = respostaDo(envelope, 'distribuicao-de-volume');
   const unidadeDoVolume = volume && !Array.isArray(volume) ? volume.unidade : null;
   const notarUnidade = unidadeDoVolume
@@ -433,13 +515,19 @@ function derivarPlano(envelope) {
         : 'A proporção alvo é o tempo de aula na unidade declarada — a soma fecha com a duração da aula.')]
     : [];
   secao(
-    'Distribuição do volume pelos blocos',
+    'Blocos da aula e distribuição do volume',
     tabelaDeLista(
       linhasDaTabela(volume),
       '| Bloco | Proporção alvo | Justificativa |',
       '|:--|:--|:--|',
-    ).concat(notarUnidade),
-  );
+    ).concat(notarUnidade).concat([
+      '',
+      '> **A estrutura da aula — e o padrão do ciclo.** Estes são os blocos que a AULA tem e a',
+      '> fatia de cada um. O plano declara o padrão de onde cada aula parte; a aula que tiver',
+      '> outra estrutura declara a sua no próprio documento (`aula-NN.md`), e não aqui. O que a',
+      '> aula persegue, e em que bloco, está em «Objetivos específicos» e «Marcos parciais por',
+      '> aula» — o objetivo não diz que a aula tem só o bloco em que ele é trabalhado.',
+    ]));
 
   /* «OBJETIVOS POR BLOCO E POR AULA» — o APANHADO, e não a sequência (26/10/2026).
    *
@@ -458,31 +546,50 @@ function derivarPlano(envelope) {
   // Condições preliminares (lista).
   lista('Condições preliminares', respostaDo(envelope, 'condicoes-preliminares'));
 
-  // A RÉGUA da rubrica, em LISTA — os níveis, verbatim. Ela sai numa seção própria porque é
-  // o que o LANÇAMENTO da aula lê para marcar: a tabela da rubrica guarda o critério de cada
-  // linha, e o cabeçalho dela (os níveis) o extrator normaliza em chave (e «Não se aplica»
-  // voltaria como «naoSeAplica»). Numa lista, o rótulo atravessa como a escola o escreveu.
+    /* A RÉGUA da rubrica, em LISTA — os níveis, verbatim. É a ÚNICA régua da página (26/10/2026).
+   *
+   * Aqui saíam DUAS: esta lista e, quatro linhas abaixo, a tabela «Rubrica de avaliação final»,
+   * cujo cabeçalho eram os mesmos níveis e cuja única linha era a lacuna «[Preencher: o critério
+   * de cada aula…]». A pesquisadora: «a régua da rubrica tem que ser uma só para tudo… não tem
+   * que ter uma segunda régua de rubrica». A tabela nunca teve conteúdo — o critério de cada
+   * aula declara-se no LANÇAMENTO —, e o seu único efeito era fazer a página parecer dizer duas
+   * coisas sobre a mesma rubrica.
+   *
+   * O que a lista guarda, e por que em LISTA: é o que o lançamento lê para marcar cada critério.
+   * No cabeçalho de uma tabela o extrator normaliza o rótulo em chave («Não se aplica» →
+   * `naoSeAplica`); numa lista, o rótulo atravessa como a escola o escreveu. É o campo
+   * `reguaDaRubrica` do `plano-XX.json`, e é o único consumidor.
+   */
   const niveis = niveisDaRubrica(respostaDo(envelope, 'rubrica'));
   secao('Régua da rubrica', niveis
     .map((n) => '- ' + n)
     .concat([
       '',
-      '> **A régua da turma.** Os níveis, como a escola os escreve, na ordem da escala — o primeiro',
-      '> é o mais baixo. É com ela que o LANÇAMENTO da aula mede cada critério: o professor diz o',
-      '> critério da aula e o nível alcançado. Quem declara a régua são os bastidores (Turmas) e quem',
-      '> a adota é o professor, no plano do ciclo.',
+      '> **A régua da turma — e só ela.** Os níveis, como a escola os escreve, na ordem da escala',
+      '> — o primeiro é o mais baixo. É com ela que o LANÇAMENTO da aula mede cada critério: o',
+      '> professor diz o critério da aula e o nível alcançado. Quem declara a régua são os',
+      '> bastidores (Turmas) e quem a adota é o professor, no plano do ciclo. **O critério de cada',
+      '> aula não se escreve aqui**: ele nasce no lançamento da aula dada, e é por isso que esta',
+      '> página não tem uma tabela de critérios.',
     ]));
 
-  // Rubrica: a RÉGUA com que o resultado é medido no fim — a da TURMA, adotada e
-  // registrada pelo professor (o envelope a carrega). O CRITÉRIO de cada aula é declarado
-  // no lançamento da aula dada (o professor diz o critério e o nível alcançado). Sem régua
-  // no envelope (plano antigo), vale o padrão declarado — nunca se inventa um nível.
-  {
-    secao('Rubrica de avaliação final', linhasDaRubrica(respostaDo(envelope, 'rubrica'), niveis));
-  }
-
-  // Critério de extensão (prosa) — se vazio, sai como lacuna (não é required).
-  prosa('Critério de extensão', respostaDo(envelope, 'criterio-de-extensao'));
+  /* O HORIZONTE DO CICLO (26/10/2026) — o rótulo deixou de prometer «critério».
+   *
+   * O campo chama-se `criterio-de-extensao` no envelope, e o título antigo — «Critério de
+   * extensão» — prometia uma régua de decisão. O que ele declara é outra coisa: **até onde os
+   * marcos estão decididos**, e o que decide estender. A pesquisadora: «é o rótulo que promete
+   * critério e o conteúdo é horizonte. Isso não é muito claro».
+   *
+   * A nota diz também o que o campo NÃO é: o «+4 aulas» que o calendário calcula é outro, e as
+   * duas coisas apareciam lado a lado sem se explicarem. O mecanismo não muda — o texto que o
+   * professor escreve é o mesmo, e a chave do envelope também. */
+  prosa('Horizonte do ciclo', respostaDo(envelope, 'criterio-de-extensao'));
+  saida.push('> **O horizonte, e não um critério de nota.** Este campo declara **até onde os marcos');
+  saida.push('> estão decididos** e o que faz o ciclo estender — é o limite do planeamento, não uma');
+  saida.push('> régua de avaliação (essa é a «Régua da rubrica», acima). O **+4 aulas** que aparece no');
+  saida.push('> Calendário é conta do gerador a partir das datas e da frequência; se o horizonte');
+  saida.push('> declarado aqui for outro, é este que vale.');
+  saida.push('');
 
   // MÚSICA e REPERTÓRIO (Bloco 10 do formulário, «Música e repertório»): dois nós respondíveis
   // que não tinham SEÇÃO nenhuma — e por isso não chegavam a documento algum, nem ao `.md`. A

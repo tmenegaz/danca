@@ -25824,3 +25824,129 @@ que se mediu ao ar, está no parágrafo acima.
 carimbo `gerado_em`) e o PDF modificados na árvore. A deriva foi descartada (`git checkout --`)
 porque o par commitado já estava coerente e validado; fica registado que o hook **escreve
 saída** e que um `git status` limpo depois de um commit com ciclo tocado não é garantido.
+
+## 26/10/2026 — O objetivo é do ciclo, a estrutura é da aula, e a régua é uma só
+
+**O que motivou.** Três leituras da mesma página, na mesma sessão. A primeira, sobre a régua: «a
+régua da rubrica tem que ser uma só para tudo… não tem que ter uma segunda régua de rubrica. Esse
+Excelente, Bom e Em construção, eu acho que sobrou.» A segunda, sobre a estrutura da aula: «tá
+dando a entender que a aula que tem o objetivo específico 1 só vai ter solo e barra… o professor
+está dizendo em que parte da estrutura da aula ele vai trabalhar isso, e não que cada aula tem
+somente esse bloco.» A terceira, sobre o que faltava: «em geral o objetivo específico é um por
+aula, mas pode ser que seja mais de um… eu posso também usar na aula 2 aquele objetivo específico
+1. E isso é o que a gente não está deixando claro.»
+
+**O diagnóstico, medido.** Duas afirmações incompatíveis na mesma página:
+
+- a secção «Estrutura de cada aula» dizia `Solo → objetivos 1 e 3 · Barra → 1 e 2 · Centro → 2 e 3
+  · Musicalidade → 3` — que se lê «a aula 1 tem só Solo e Barra», porque na `batata` o objetivo 1
+  é o marco da aula 1;
+- o quadro do volume dizia `Solo 30 · Barra 30 · Centro 30 · Musicalidade 10` — a aula tem os
+  quatro.
+
+As duas nasciam da MESMA resposta da elicitação, lida por dois caminhos. E o modelo não suportava
+o que a pesquisadora descreveu: `marcosPorAula` tem uma linha por aula (1 objetivo : 1 aula), e o
+índice dessa linha é o que a matriz de blocos usava — dois objetivos numa aula, ou um objetivo em
+duas aulas, eram irrepresentáveis.
+
+**O que foi decidido.**
+
+- **O objetivo é uma entidade do CICLO, não da aula.** Nova secção «Objetivos específicos»
+  (`| N | Objetivo específico | Blocos onde é trabalhado |`). O número é dele; o bloco é onde ELE é
+  trabalhado, e não uma declaração sobre a estrutura da aula.
+- **«Marcos parciais por aula» ganha a coluna «Objetivos»** — os números que aquela aula persegue.
+  O `marco` em texto fica, e é obrigatório no schema, porque três consumidores o leem (o
+  formulário de lançamento, o guia de observação e a musicalidade).
+- **A estrutura da aula é o quadro do volume**, e o título passa a dizê-lo: «Blocos da aula e
+  distribuição do volume». A secção «Estrutura de cada aula» **sai**.
+- **O ciclo declara o PADRÃO; a aula declara a sua estrutura quando difere.** Escrever as 26
+  estruturas no plano seriam 104 linhas num documento que se lê. É a mesma regra do resto («o plano
+  é o acervo; a aula é a escolha»).
+- **A régua é uma só.** A tabela «Rubrica de avaliação final» — cabeçalho com os níveis, uma linha
+  `[Preencher: …]` — sai. O critério de cada aula nasce no lançamento, e a lista da régua é o que
+  o lançamento lê (`reguaDaRubrica`). `rubrica` sai do `required` nas 12 cópias do schema e a
+  lacuna `rubrica.aplicadaEm` sai do mapa (apontava para a tabela que já não existe).
+- **«Critério de extensão» passa a «Horizonte do ciclo»**, com a nota que separa as duas coisas que
+  estavam lado a lado sem se explicarem: o horizonte declarado (até onde os marcos estão
+  decididos) e o **+4 aulas** que o calendário calcula das datas. O mecanismo não muda; a chave do
+  envelope também não.
+
+**O que o modelo já suporta, e o que ainda não.** A FORMA suporta o que faltava: a coluna
+`objetivos` aceita vários números, e o cruzamento concatena as aulas. Medido na prova: objetivo 01
+nas aulas 01 e 02, e a aula 01 a citar 01 e 03. O que **não** existe ainda é por onde entrar — o
+formulário de elicitação continua a emitir `marcos-por-aula` como uma linha por aula, e a derivação
+preenche a coluna com o número da posição. É a etapa 2, decidida e adiada nesta mesma data.
+
+**Onde entrou.**
+
+- `motor/nucleo/derivar-plano-ciclo.js` — `objetivosDoEnvelope`, `tabelaDeObjetivosEspecificos`,
+  a tabela dos marcos com três colunas, a saída da «Estrutura de cada aula», o título novo do
+  volume com a nota do padrão, a saída da tabela da rubrica, e o «Horizonte do ciclo».
+- `motor/nucleo/derivar-ciclo.js` — os BLOCOS DA AULA passam a vir do volume, e não da relação com
+  os objetivos (é a mesma contradição, no documento da aula).
+- `tools/lib-vistas.js` — `estruturaDaAula` lê os blocos do volume, com a reserva no documento
+  antigo.
+- `tools/tabela-objetivos.js` — reescrito para as duas tabelas novas, com a leitura do documento
+  anterior como reserva.
+- `tools/validar-plano-ciclo.js` — «objetivos específicos», «blocos da aula e distribuição do
+  volume», «horizonte do ciclo» (com os títulos antigos como alias), as colunas novas, e a saída da
+  lacuna da rubrica.
+- As **12 cópias** de `ciclo-01-plano-schema.json` — `objetivosEspecificos`, `marcosPorAula`
+  ganha `objetivos`, `estruturaDeCadaAula` fica marcado como leitura do passado, `rubrica` sai do
+  `required`.
+- `professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md` — a fonte
+  migrada.
+- `experimentos/provar-objetivos-por-aula.js` — estendida de 24 para **44** asserções.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e quatro
+ficheiros de lá mudaram. **Por quê:** o modelo do objetivo é do CONTRATO de leitura e de escrita —
+o extrator, o mapa das secções, o schema e o derivador têm de dizer a mesma coisa, e mudar um só
+deixaria os outros a ler o passado. **O que não muda:** a fórmula de hash e a cobertura da âncora
+(`.fipp`), as 22 pétreas, as 17 regras, o `check-pacote`, e o contrato do lançamento (que lê
+`marcosPorAula[].marco` e `reguaDaRubrica` — ambos intactos, e é o que a prova mede). **Reancoragem
+declarada:** a fonte do plano mudou; `hash_conteudo c1201cf…`, hash `068ab0b…`, e `--check` diz
+«cadeia intacta». O pacote e a publicação foram regerados na mesma passagem.
+
+**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js`, `motor/nucleo/derivar-ciclo.js`,
+`tools/lib-vistas.js`, `tools/tabela-objetivos.js`, `tools/validar-plano-ciclo.js`, as 12 cópias de
+`ciclo-01-plano-schema.json`, a fonte do plano da `batata` e os dois `.fipp` dela,
+`experimentos/provar-objetivos-por-aula.js`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** A decisão de 26/10/2026 sobre o apanhado (a entrada anterior); a frase que separa
+os quatro documentos («o plano é o acervo; a aula é a escolha», `PLANO-AULA-E-OBSERVACAO.md` §4); a
+Regra 3 (Solo → Barra → Centro) e a Regra 9, etapa 2; a decisão de 14/10/2026 sobre a régua da
+turma; `CONGELAMENTO.md`.
+
+**Medido.** `provar-objetivos-por-aula` **44/44**. **Controle negativo**: a fonte de
+`8040378~1` — o último estado em que as cinco asserções do controle eram verdade — tinha a tabela
+detalhada com 14 linhas, «Solo» 4×, a secção «Estrutura de cada aula» ao lado do volume (a
+contradição) e nenhuma lista de objetivos. `provar-aula-e-plano-legiveis` 12/12;
+`provar-publicacao-da-escola` 55/55; `provar-listas-do-acervo` 109/109; `provar-barra-unica`
+111/111; `provar-porta-sem-contexto` 44/44; `check-identidade` 20 ok / 0 erro; `check-pacote` da
+`batata` 0 erro e 0 aviso (PDF regerado). `provar-producao` **150/151** — a mesma asserção
+conhecida («o item do menu fica marcado», o `classList` do DOM falso), que não é do produto.
+
+**Uma prova que estava a medir o presente.** O controle negativo da `provar-objetivos-por-aula`
+apontava para `HEAD`. Enquanto a mudança estava por commitar isso era o passado; depois do commit
+passou a ser o presente, e o controle reprovava três asserções a descrever o que já não existia. O
+ref passou a ser DERIVADO — o commit que introduziu o marcador `<!-- OBJETIVOS -->`, menos um —, e
+é estável em qualquer clone. Fica registado porque o defeito é de família: **um controle ancorado
+em `HEAD` tem prazo de validade**.
+
+**O que ainda não está feito.**
+
+- **O formulário de elicitação não pergunta o modelo novo.** É a etapa 2, decidida nesta data: a
+  página já diz a verdade e a forma já aceita vários objetivos por aula, mas quem preenche ainda
+  não pode declará-los. A `batata` foi migrada à mão.
+- **O «Excelente · Bom · Em construção» continua a ser o dado da `batata`**, e vem do fixture da
+  escola de teste (`teste/batata.json`, «Régua A — Teste 2», ao lado das rivais B e C). O código já
+  não o duplica na página; o que ele É — uma régua declarada pela escola para teste, e não uma
+  segunda régua do sistema — depende de a escola de teste ser re-elicitada ou expurgada, e isso é
+  decisão de conteúdo, não de derivação.
+- **A estrutura própria de cada aula ainda não tem onde ser declarada.** A decisão é que a aula
+  declare a sua quando difere; o documento da aula já traz uma tabela de volume, mas ela sai hoje
+  do padrão do ciclo e o formulário não a pergunta. Etapa 2, com o resto.
+- **`Músicas e vídeos` e `Repertório` continuam separados** — decisão desta data: sem fusão.
+- **Os outros pacotes não foram regerados.** O gerador só emite as secções novas para quem tem a
+  fonte nova; a migração é por regeneração, e cada escola a faz quando for regerada.
+- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar.

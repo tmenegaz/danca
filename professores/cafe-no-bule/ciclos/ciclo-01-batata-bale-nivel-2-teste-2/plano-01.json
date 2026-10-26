@@ -14,25 +14,39 @@
     "notacaoDominada": "Benesh"
   },
   "objetivoGeral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
+  "objetivosEspecificos": [
+    {
+      "n": "01",
+      "objetivo": "reconhecer o apoio e alinhar o eixo vertical",
+      "blocos": "Solo · Barra"
+    },
+    {
+      "n": "02",
+      "objetivo": "transferir o peso entre os pés sem perder o alinhamento",
+      "blocos": "Barra · Centro"
+    },
+    {
+      "n": "03",
+      "objetivo": "sustentar a transferência com musicalidade e controle do movimento",
+      "blocos": "Solo · Centro · Musicalidade"
+    }
+  ],
   "marcosPorAula": [
     {
       "n": "01",
+      "objetivos": "01",
       "marco": "reconhecer o apoio e alinhar o eixo vertical"
     },
     {
       "n": "02",
+      "objetivos": "02",
       "marco": "transferir o peso entre os pés sem perder o alinhamento"
     },
     {
       "n": "03",
+      "objetivos": "03",
       "marco": "sustentar a transferência com musicalidade e controle do movimento"
     }
-  ],
-  "estruturaDeCadaAula": [
-    "**Solo** — objetivos específicos: **1** reconhecer o apoio e alinhar o eixo vertical; **3** sustentar a transferência com musicalidade e controle do movimento",
-    "**Barra** — objetivos específicos: **1** reconhecer o apoio e alinhar o eixo vertical; **2** transferir o peso entre os pés sem perder o alinhamento",
-    "**Centro** — objetivos específicos: **2** transferir o peso entre os pés sem perder o alinhamento; **3** sustentar a transferência com musicalidade e controle do movimento",
-    "**Musicalidade** — objetivos específicos: **3** sustentar a transferência com musicalidade e controle do movimento"
   ],
   "distribuicaoDeVolume": [
     {
@@ -64,14 +78,6 @@
     "Bom",
     "Em construção"
   ],
-  "rubrica": [
-    {
-      "criterio": "[Preencher: o critério de cada aula — declarado no lançamento da aula dada]",
-      "excelente": "",
-      "bom": "",
-      "emConstrucao": ""
-    }
-  ],
   "criterioDeExtensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
   "musicasVideos": [
     "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste."
@@ -80,11 +86,5 @@
     "Sequência de teste com plié, tendu e port de bras."
   ],
   "proveniencia": "Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado de literatura de apoio sobre corpo e aula",
-  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
-  "_lacunas": [
-    {
-      "campo": "rubrica.aplicadaEm",
-      "declara": "[Preencher: leitura de prosa não implementada — o documento diz \"Aplicada na Aula 11 (formativa) e na Aula 12 (somativa)\"]"
-    }
-  ]
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]"
 }

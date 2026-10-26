@@ -30,24 +30,25 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.
 
+## Objetivos específicos
+
+| N | Objetivo específico | Blocos onde é trabalhado |
+|:--|:--|:--|
+| **01** | reconhecer o apoio e alinhar o eixo vertical | Solo · Barra |
+| **02** | transferir o peso entre os pés sem perder o alinhamento | Barra · Centro |
+| **03** | sustentar a transferência com musicalidade e controle do movimento | Solo · Centro · Musicalidade |
+
 ## Marcos parciais por aula
 
-| Aula | Objetivo específico (marco parcial) |
-|:--|:--|
-| **01** | reconhecer o apoio e alinhar o eixo vertical |
-| **02** | transferir o peso entre os pés sem perder o alinhamento |
-| **03** | sustentar a transferência com musicalidade e controle do movimento |
+| Aula | Objetivos | Marco |
+|:--|:--|:--|
+| **01** | 01 | reconhecer o apoio e alinhar o eixo vertical |
+| **02** | 02 | transferir o peso entre os pés sem perder o alinhamento |
+| **03** | 03 | sustentar a transferência com musicalidade e controle do movimento |
 
 <!-- CALENDARIO -->
 
-## Estrutura de cada aula
-
-- **Solo** — objetivos específicos: **1** reconhecer o apoio e alinhar o eixo vertical; **3** sustentar a transferência com musicalidade e controle do movimento
-- **Barra** — objetivos específicos: **1** reconhecer o apoio e alinhar o eixo vertical; **2** transferir o peso entre os pés sem perder o alinhamento
-- **Centro** — objetivos específicos: **2** transferir o peso entre os pés sem perder o alinhamento; **3** sustentar a transferência com musicalidade e controle do movimento
-- **Musicalidade** — objetivos específicos: **3** sustentar a transferência com musicalidade e controle do movimento
-
-## Distribuição do volume pelos blocos
+## Blocos da aula e distribuição do volume
 
 | Bloco | Proporção alvo | Justificativa |
 |:--|:--|:--|
@@ -57,6 +58,12 @@ Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turm
 | **Musicalidade** | **10%** | **Pulso e frase.** |
 
 > **Unidade: percentual.** A proporção alvo é a fatia da aula — a soma fecha em 100%.
+
+> **A estrutura da aula — e o padrão do ciclo.** Estes são os blocos que a AULA tem e a
+> fatia de cada um. O plano declara o padrão de onde cada aula parte; a aula que tiver
+> outra estrutura declara a sua no próprio documento (`aula-NN.md`), e não aqui. O que a
+> aula persegue, e em que bloco, está em «Objetivos específicos» e «Marcos parciais por
+> aula» — o objetivo não diz que a aula tem só o bloco em que ele é trabalhado.
 
 ## Objetivos por bloco e por aula
 
@@ -72,20 +79,22 @@ Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turm
 - Bom
 - Em construção
 
-> **A régua da turma.** Os níveis, como a escola os escreve, na ordem da escala — o primeiro
-> é o mais baixo. É com ela que o LANÇAMENTO da aula mede cada critério: o professor diz o
-> critério da aula e o nível alcançado. Quem declara a régua são os bastidores (Turmas) e quem
-> a adota é o professor, no plano do ciclo.
+> **A régua da turma — e só ela.** Os níveis, como a escola os escreve, na ordem da escala
+> — o primeiro é o mais baixo. É com ela que o LANÇAMENTO da aula mede cada critério: o
+> professor diz o critério da aula e o nível alcançado. Quem declara a régua são os
+> bastidores (Turmas) e quem a adota é o professor, no plano do ciclo. **O critério de cada
+> aula não se escreve aqui**: ele nasce no lançamento da aula dada, e é por isso que esta
+> página não tem uma tabela de critérios.
 
-## Rubrica de avaliação final
-
-| Critério | Excelente | Bom | Em construção |
-|:--|:--|:--|:--|
-| [Preencher: o critério de cada aula — declarado no lançamento da aula dada] |  |  |  |
-
-## Critério de extensão
+## Horizonte do ciclo
 
 Estender o ciclo em duas aulas se o último marco não for alcançado.
+
+> **O horizonte, e não um critério de nota.** Este campo declara **até onde os marcos
+> estão decididos** e o que faz o ciclo estender — é o limite do planeamento, não uma
+> régua de avaliação (essa é a «Régua da rubrica», acima). O **+4 aulas** que aparece no
+> Calendário é conta do gerador a partir das datas e da frequência; se o horizonte
+> declarado aqui for outro, é este que vale.
 
 ## Músicas e vídeos
 

@@ -477,19 +477,29 @@ const juntarComSeparador = (itens) => {
   });
   return saida;
 };
-// a estrutura da aula: os BLOCOS, na ordem. A MESMA lista sai em três formas — a numerada
-// (`1. Solo — …`), a que a derivação escreve hoje (`- **Solo** — objetivos específicos: …`) e a
-// prosa antiga (`- Solo - exercícios…`) —, e o guia quer o BLOCO (o resumo do que a aula usa); o
-// resto da linha é a relação objetivo × bloco, que vive no plano. Sem esta leitura o guia
-// imprimia «[Preencher: a estrutura — vem do plano]» sobre um plano que a declarava.
-const estruturaDaAula = (plano) => juntarQuebras(plano && plano.estruturaDeCadaAula)
-  .map((s) => String(s)
-    .replace(/^\d+[.)]\s*/, '')            // o número do item
-    .replace(/^[-*]\s+/, '')               // o marcador da lista
-    .replace(/\*\*/g, '')                  // a ênfase
-    .split(/\s+[—–-]\s+|:\s*/)[0]          // o que vem antes do primeiro separador
-    .trim())
-  .filter(Boolean);
+// a estrutura da aula: os BLOCOS, na ordem — e a ORDEM DE LEITURA MUDOU (26/10/2026).
+//
+// ANTES lia `estruturaDeCadaAula`, a relação objetivo × bloco — e era daí que saíam os blocos
+// da aula. Isso lia-se como «a aula 1 tem só os blocos Solo e Barra» quando o professor tinha
+// marcado «este objetivo trabalha-se em Solo e Barra», e contradizia a distribuição do volume
+// (que declara os quatro blocos). A estrutura da aula é o quadro do volume; a relação com os
+// objetivos é do objetivo, não da aula.
+//
+// A reserva fica para o documento antigo, que só declara a estrutura pela relação — e para ele
+// a leitura anterior continua a valer.
+const estruturaDaAula = (plano) => {
+  const doVolume = (plano && plano.distribuicaoDeVolume ? volumeDosBlocos(plano) : [])
+    .map((x) => String(x.bloco || '').trim()).filter(Boolean);
+  if (doVolume.length) return doVolume;
+  return juntarQuebras(plano && plano.estruturaDeCadaAula)
+    .map((s) => String(s)
+      .replace(/^\d+[.)]\s*/, '')            // o número do item
+      .replace(/^[-*]\s+/, '')               // o marcador da lista
+      .replace(/\*\*/g, '')                  // a ênfase
+      .split(/\s+[—–-]\s+|:\s*/)[0]          // o que vem antes do primeiro separador
+      .trim())
+    .filter(Boolean);
+};
 // a distribuição do volume, nas DUAS formas: mapa bloco → proporção, ou lista de objetos
 const volumeDosBlocos = (plano) => {
   const d = plano && plano.distribuicaoDeVolume;

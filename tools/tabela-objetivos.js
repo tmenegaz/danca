@@ -6,29 +6,33 @@
  *
  * O QUE ELE SUBSTITUI (26/10/2026). O plano trazia a tabela INTEIRA da sequência — bloco,
  * objetivo, conteúdo do nível, tempos e compasso — e ela duplicava, linha a linha, o que já
- * está na `aula-01.md` (`## 3. A sequência conectada` → `### Sequência declarada`): as duas
- * nascem da MESMA resposta da elicitação (`aula-1-sequencia`, ver `derivar-ciclo.js`). Medido
- * na `batata`: «Solo» aparecia 4×, «Barra» 4×, «Centro» 4× — o mesmo bloco repetido uma vez
- * por exercício, e o mesmo objetivo repetido quando havia mais de um exercício para ele. A
- * pesquisadora: «eu não preciso desse detalhamento aqui. Eu preciso apenas de um apanhado
- * geral… faz com que eu duplique».
+ * está na `aula-01.md`: as duas nascem da MESMA resposta da elicitação (`aula-1-sequencia`).
+ * Medido na `batata`: «Solo» 4×, «Barra» 4×, «Centro» 4× — o bloco repetido uma vez por
+ * exercício. A pesquisadora: «eu não preciso desse detalhamento aqui. Eu preciso apenas de um
+ * apanhado geral… faz com que eu duplique».
  *
- * O QUE ELE FAZ. O cruzamento que o plano pode responder sem repetir nada:
+ * O MODELO (26/10/2026). O objetivo específico é uma entidade do CICLO — não a linha do marco
+ * de uma aula —, e é ele que declara em que blocos é trabalhado. Duas tabelas do plano dizem
+ * isso, e esta é o cruzamento delas:
  *
- *     bloco  ×  objetivo específico  →  a AULA em que aquele objetivo é o marco
+ *     `objetivosEspecificos`  N · objetivo · blocos      ← o objetivo e onde ele é trabalhado
+ *     `marcosPorAula`         aula · objetivo(s) · marco ← que aula persegue que objetivo
  *
- * As duas tabelas já estão no plano, e a numeração delas é a MESMA que `linhasDaEstrutura`
- * usa: o objetivo `N` é a N-ésima linha de `marcosPorAula`, e o número da aula é o campo `n`
- * dessa linha. É por isso que a tabela cresce sozinha quando o professor acrescenta marcos —
- * ela não é escrita à mão em sítio nenhum, e não pode divergir do que o plano declara.
+ *     bloco × objetivo → a(s) aula(s) que o perseguem
  *
- * O LINK. Quando a aula tem documento no pacote (`aula-NN`), a célula é um link para
- * `aula-NN.html#sequencia-declarada` — é lá que o detalhe (exercício, tempos, compasso) se lê.
- * Quando a aula ainda não tem documento, a célula diz o número e **não inventa link**: um
- * link para uma página que não existe é o defeito que a âncora morta já custou caro aqui.
+ * É por isso que a tabela cresce sozinha: não é escrita em sítio nenhum, e não pode divergir
+ * do que o plano declara. E é por isso que ela aceita o que a versão anterior não aceitava —
+ * um objetivo em mais de uma aula, e mais de um objetivo na mesma aula: a célula «Aula»
+ * concatena, e a coluna `objetivos` dos marcos aceita vários números.
  *
- * A CÉLULA VAZIA É DECLARADA. Um objetivo que não é marco de aula nenhuma sai como `—`, e não
- * como uma aula adivinhada: `marcosPorAula` é a única autoridade sobre «a que aula pertence».
+ * O QUE ELA **NÃO** DIZ. Que a aula tem só os blocos em que o objetivo é trabalhado. A
+ * estrutura da aula é o quadro «Blocos da aula e distribuição do volume» — esta tabela diz
+ * ONDE cada objetivo é trabalhado, e nada sobre quais blocos a aula tem. Era exactamente essa
+ * confusão que a secção «Estrutura de cada aula» fazia.
+ *
+ * O LINK só existe quando a página existe: `aula-NN.html#sequencia-declarada` quando o
+ * documento está no pacote, «Aula NN *(a criar)*» quando não está. Link para página
+ * inexistente é âncora morta.
  *
  *   uso: node tools/tabela-objetivos.js <plano-XX.json> [aula-01 aula-02 …]
  *
@@ -42,59 +46,79 @@ const ANCORA_DA_SEQUENCIA = 'sequencia-declarada';
 /** O número com dois dígitos — a forma do nome do arquivo (`aula-01`). */
 const dois = (n) => (Number(n) < 10 ? '0' : '') + String(Number(n));
 
-/** `**Solo** — objetivos específicos: **1** texto; **3** texto` → `{bloco, objetivos:[{n, texto}]}`. */
-function lerLinhaDaEstrutura(linha) {
-  const texto = String(linha == null ? '' : linha).replace(/^-\s*/, '').trim();
-  const m = /^\*\*(.+?)\*\*\s*—\s*objetivos específicos:\s*(.*)$/.exec(texto);
-  if (!m) return null;
-  const bloco = m[1].trim();
-  const resto = m[2].trim();
-  if (!resto || /^\[a decidir/.test(resto)) return { bloco: bloco, objetivos: [] };
-  const objetivos = [];
-  for (const pedaco of resto.split(';')) {
-    const o = /^\*\*(\d+)\*\*\s*(.*)$/.exec(pedaco.trim());
-    if (!o) continue;
-    objetivos.push({ n: Number(o[1]), texto: o[2].trim() });
-  }
-  return { bloco: bloco, objetivos: objetivos };
-}
+/** Os números que uma célula declara: «01» → [1]; «01, 03» → [1, 3]. */
+const numeros = (celula) => String(celula == null ? '' : celula)
+  .split(/[^0-9]+/).filter(Boolean).map(Number);
 
-/** A estrutura em OBJETOS (`{marco, marcados:[bloco…]}`) — a forma que a porta grava hoje. */
-function lerEstruturaEmObjetos(valor, marcos) {
-  const ordem = [];
+/** A lista de blocos de um objetivo: «Solo · Barra» → ['Solo', 'Barra']. */
+const blocos = (celula) => String(celula == null ? '' : celula)
+  .split(/[·;,]/).map((b) => b.trim()).filter(Boolean);
+
+/** A leitura do documento ANTERIOR: a relação objetivo × bloco escrita como linhas de prosa. */
+function objetivosDaEstruturaLegada(plano) {
+  const crus = Array.isArray(plano && plano.estruturaDeCadaAula) ? plano.estruturaDeCadaAula : [];
   const porObjetivo = new Map();
-  for (const linha of valor) {
-    if (!linha || typeof linha !== 'object' || Array.isArray(linha)) continue;
-    const n = Number(linha.marco);
-    const blocos = Array.isArray(linha.marcados) ? linha.marcados.map(String) : [];
-    for (const bloco of blocos) if (ordem.indexOf(bloco) === -1) ordem.push(bloco);
-    porObjetivo.set(n, blocos);
+  for (const linha of crus) {
+    const texto = String(linha == null ? '' : linha).replace(/^-\s*/, '').trim();
+    const m = /^\*\*(.+?)\*\*\s*—\s*objetivos específicos:\s*(.*)$/.exec(texto);
+    if (!m) continue;
+    const bloco = m[1].trim();
+    const resto = m[2].trim();
+    if (!resto || /^\[a decidir/.test(resto)) continue;
+    for (const pedaco of resto.split(';')) {
+      const o = /^\*\*(\d+)\*\*\s*(.*)$/.exec(pedaco.trim());
+      if (!o) continue;
+      const n = dois(o[1]);
+      if (!porObjetivo.has(n)) porObjetivo.set(n, { n: n, objetivo: '', blocos: [] });
+      const alvo = porObjetivo.get(n);
+      if (alvo.blocos.indexOf(bloco) === -1) alvo.blocos.push(bloco);
+      if (!alvo.objetivo) alvo.objetivo = o[2].trim();
+    }
   }
-  return ordem.map((bloco) => ({
-    bloco: bloco,
-    objetivos: [...porObjetivo.entries()]
-      .filter(([, blocos]) => blocos.indexOf(bloco) !== -1)
-      .map(([n]) => ({ n: n, texto: marcos.get(n) || '' }))
-      .sort((a, b) => a.n - b.n),
-  }));
+  return [...porObjetivo.values()].sort((a, b) => Number(a.n) - Number(b.n));
 }
 
-/** O número da AULA de cada objetivo — `marcosPorAula[N-1].n`, a mesma conta do derivador. */
+/**
+ * A LISTA DOS OBJETIVOS, das duas formas que o documento já teve.
+ *
+ * 1. `objetivosEspecificos` — a tabela nova (`| N | Objetivo específico | Bloco(s) |`), que é a
+ *    forma correcta e a única que suporta mais de um objetivo por aula;
+ * 2. `estruturaDeCadaAula` — as linhas `**Solo** — objetivos específicos: **1** texto; …` do
+ *    documento anterior. Continuam a ser lidas porque há plano no repositório escrito assim,
+ *    e um plano antigo não deixa de se ler só porque o formato mudou.
+ */
+function objetivosDoPlano(plano) {
+  const lista = Array.isArray(plano && plano.objetivosEspecificos) ? plano.objetivosEspecificos : [];
+  const objetos = lista.filter((o) => o && typeof o === 'object' && !Array.isArray(o));
+  if (objetos.length) {
+    return objetos.map((o) => ({
+      n: dois(String(o.n == null ? '' : o.n).replace(/\D/g, '')),
+      objetivo: String(o.objetivo == null ? '' : o.objetivo).trim(),
+      blocos: blocos(o.blocos),
+    })).filter((o) => o.n && o.n !== 'NaN');
+  }
+  return objetivosDaEstruturaLegada(plano);
+}
+
+/**
+ * AS AULAS DE CADA OBJETIVO. A coluna `objetivos` dos marcos é a autoridade; quando ela não
+ * existe (documento anterior), a reserva é a posição — que é a conta que o derivador fazia.
+ */
 function aulasPorObjetivo(plano) {
   const mapa = new Map();
   const linhas = Array.isArray(plano && plano.marcosPorAula) ? plano.marcosPorAula : [];
   linhas.forEach((m, i) => {
-    const aula = Number(String(m && m.n != null ? m.n : '').replace(/\D/g, ''));
-    if (aula) mapa.set(i + 1, aula);
+    if (!m || typeof m !== 'object') return;
+    const aula = String(m.n == null ? '' : m.n).replace(/\D/g, '');
+    if (!aula) return;
+    const citados = String(m.objetivos == null ? '' : m.objetivos).trim();
+    const alvos = citados ? numeros(citados) : [i + 1];
+    for (const n of alvos) {
+      if (!mapa.has(n)) mapa.set(n, []);
+      const lista = mapa.get(n);
+      if (lista.indexOf(Number(aula)) === -1) lista.push(Number(aula));
+    }
   });
-  return mapa;
-}
-
-/** O TEXTO do marco por número de objetivo — a legenda que a estrutura cita. */
-function textosPorObjetivo(plano) {
-  const mapa = new Map();
-  const linhas = Array.isArray(plano && plano.marcosPorAula) ? plano.marcosPorAula : [];
-  linhas.forEach((m, i) => mapa.set(i + 1, String((m && m.marco) || '').trim()));
   return mapa;
 }
 
@@ -108,28 +132,23 @@ function tabela(plano, aulasComDocumento) {
   const comDocumento = new Set((aulasComDocumento || [])
     .filter((a) => /^aula-\d+$/.test(String(a)))
     .map((a) => dois(String(a).replace(/\D/g, ''))));
-  const aulaDoObjetivo = aulasPorObjetivo(plano);
-  const textoDoObjetivo = textosPorObjetivo(plano);
+  const objetivos = objetivosDoPlano(plano);
+  const aulasDoObjetivo = aulasPorObjetivo(plano);
 
-  const cru = plano && plano.estruturaDeCadaAula;
-  const blocos = Array.isArray(cru) && cru.some((l) => l && typeof l === 'object')
-    ? lerEstruturaEmObjetos(cru.filter((l) => l && typeof l === 'object'), textoDoObjetivo)
-    : (Array.isArray(cru) ? cru : []).map(lerLinhaDaEstrutura).filter(Boolean);
+  const celulaDaAula = (aula) => (comDocumento.has(dois(aula))
+    ? '[Aula ' + dois(aula) + '](aula-' + dois(aula) + '.html#' + ANCORA_DA_SEQUENCIA + ')'
+    : 'Aula ' + dois(aula) + ' *(a criar)*');
 
   const linhas = ['| Bloco | Objetivo específico | Aula |', '|:--|:--|:--|'];
   const vistos = new Set();
-  for (const b of blocos) {
-    for (const o of b.objetivos) {
-      const chave = b.bloco + '\u0000' + o.n;
+  for (const o of objetivos) {
+    for (const bloco of o.blocos) {
+      const chave = bloco + '\u0000' + o.n;
       if (vistos.has(chave)) continue;   // o mesmo par bloco × objetivo, uma vez só
       vistos.add(chave);
-      const aula = aulaDoObjetivo.get(o.n);
-      const celula = !aula ? '—'
-        : comDocumento.has(dois(aula))
-          ? '[Aula ' + dois(aula) + '](aula-' + dois(aula) + '.html#' + ANCORA_DA_SEQUENCIA + ')'
-          : 'Aula ' + dois(aula) + ' *(a criar)*';
-      const legenda = o.texto || textoDoObjetivo.get(o.n) || '';
-      linhas.push('| **' + b.bloco + '** | **' + o.n + '**' + (legenda ? ' — ' + legenda : '')
+      const aulas = aulasDoObjetivo.get(Number(o.n)) || [];
+      const celula = aulas.length ? aulas.map(celulaDaAula).join(' · ') : '—';
+      linhas.push('| **' + bloco + '** | **' + o.n + '**' + (o.objetivo ? ' — ' + o.objetivo : '')
         + ' | ' + celula + ' |');
     }
   }
@@ -137,16 +156,17 @@ function tabela(plano, aulasComDocumento) {
   return linhas;
 }
 
-/* A LINHA DE NOTA — o que a tabela É, e de onde vem a coluna «Aula». Sai abaixo, como CITAÇÃO
- * (`>`), que é como o resto do documento escreve comentário de leitura: o contrato não a lê
- * como conteúdo, e ela não vira campo nenhum. */
+/* A LINHA DE NOTA — o que a tabela É, e o que ela NÃO diz. Sai abaixo, como CITAÇÃO (`>`), que
+ * é como o resto do documento escreve comentário de leitura: o contrato não a lê como conteúdo,
+ * e ela não vira campo nenhum. */
 const NOTA = [
   '',
   '> **O apanhado, e não a sequência.** Cada linha é o cruzamento entre o bloco e o objetivo '
     + 'específico que ele trabalha, e diz em que aula aquele objetivo é o marco. O **detalhe** '
     + '— exercício, conteúdo do nível, tempos e compasso — vive na **aula**: é ela que escolhe, '
-    + 'entre o acervo do ciclo, o que acontece no dia. A tabela cresce à medida que os marcos '
-    + 'das aulas entram no plano.',
+    + 'entre o acervo do ciclo, o que acontece no dia. O bloco aqui é ONDE O OBJETIVO É '
+    + 'TRABALHADO — não são os blocos que a aula tem, que estão no quadro «Blocos da aula e '
+    + 'distribuição do volume».',
 ];
 
 function principal() {
@@ -169,5 +189,5 @@ function principal() {
 if (require.main === module) process.exit(principal());
 
 module.exports = {
-  tabela, nota: NOTA, lerLinhaDaEstrutura, aulasPorObjetivo, ANCORA_DA_SEQUENCIA,
+  tabela, nota: NOTA, objetivosDoPlano, aulasPorObjetivo, ANCORA_DA_SEQUENCIA,
 };

@@ -39,7 +39,14 @@ const MAPA_SECOES = {
   // `PARES` que a manda para o objeto `contexto`.
   'contexto': 'contexto',
   'objetivo geral': 'objetivoGeral',
+  /* OS OBJETIVOS ESPECÍFICOS (26/10/2026) — a LISTA do ciclo, e a dona da relação com os
+     blocos. Ela ocupa o lugar da «Estrutura de cada aula», que confundia a relação
+     objetivo × bloco com a estrutura da própria aula. */
+  'objetivos específicos': 'objetivosEspecificos',
   'marcos parciais por aula': 'marcosPorAula',
+  // «ESTRUTURA DE CADA AULA» — o título de antes, e o ALIAS fica: há documento no repositório
+  // (e envelope antigo) que ainda o escreve, e ele extraía. O que a derivação já não emite é a
+  // secção — o campo continua a existir no schema, como leitura do passado.
   'estrutura de cada aula': 'estruturaDeCadaAula',
   // O TÍTULO DO DOCUMENTO, e o ALIAS do título antigo. O mapa pedia só «… pelos blocos (regra 9,
   // etapa 2)» — um sufixo com o número da regra que a derivação NÃO escreve: a distribuição do
@@ -47,6 +54,11 @@ const MAPA_SECOES = {
   // «Lacunas — distribuição do volume» sobre uma tabela preenchida. O alias fica porque há
   // documento no repositório que escreve o título longo (`experimentos/simulacao-marau`), e ele
   // extraía antes desta correção: preservar o que já funcionava é parte do contrato.
+  //
+  // «BLOCOS DA AULA E DISTRIBUIÇÃO DO VOLUME» (26/10/2026): o título passa a dizer que este
+  // quadro É a estrutura da aula — os blocos que ela tem e a fatia de cada um. Os dois títulos
+  // anteriores continuam a extrair, pelo mesmo motivo de sempre.
+  'blocos da aula e distribuição do volume': 'distribuicaoDeVolume',
   'distribuição do volume pelos blocos': 'distribuicaoDeVolume',
   'distribuição do volume pelos blocos (regra 9, etapa 2)': 'distribuicaoDeVolume',
   // A SEQUÊNCIA DE EXERCÍCIOS (16/10/2026): a seção nasceu na derivação e ficou FORA do mapa —
@@ -63,10 +75,17 @@ const MAPA_SECOES = {
   // aula lê para marcar. O cabeçalho da tabela da rubrica perde o rótulo no extrator (vira
   // chave), e é por isso que a régua viaja em lista.
   'régua da rubrica': 'reguaDaRubrica',
+  // «Rubrica de avaliação final» — a tabela de critérios × níveis. A derivação JÁ NÃO A EMITE
+  // (26/10/2026): a régua é uma só, e o critério de cada aula nasce no lançamento. O mapa fica
+  // para os planos antigos, que a têm escrita, continuarem a extrair.
   'rubrica de avaliação final': 'rubrica',
   // As duas condições e o critério de extensão: seções que o documento sempre teve e o mapa
   // não conhecia — e o mesmo silêncio.
   'condições preliminares': 'condicoesPreliminares',
+  // «HORIZONTE DO CICLO» (26/10/2026): o título antigo prometia «critério» e o conteúdo é
+  // horizonte — até onde os marcos estão decididos. O alias fica para os planos que ainda o
+  // escrevem assim (e para o documento de simulação, que o escreve desde antes).
+  'horizonte do ciclo': 'criterioDeExtensao',
   'critério de extensão': 'criterioDeExtensao',
   // A MÚSICA e o REPERTÓRIO: dois nós respondíveis que não tinham SEÇÃO (falha da derivação,
   // não do mapa) e que por isso não chegavam a documento nenhum.
@@ -87,6 +106,13 @@ const MAPA_COLUNAS = {
   // os marcos parciais
   aula: 'n',
   objetivoEspecificoMarcoParcial: 'marco',
+  // A LISTA DOS OBJETIVOS (26/10/2026) — a tabela `| N | Objetivo específico | Bloco(s) |`. A
+  // coluna «Objetivo específico» aqui é o TEXTO do objetivo; na tabela dos marcos, o cabeçalho
+  // com o sufixo `(marco parcial)` é o do marco. Duas chaves, dois destinos.
+  objetivoEspecifico: 'objetivo',
+  blocosOndeETrabalhado: 'blocos',
+  // A coluna «Objetivos» da tabela dos marcos — os NÚMEROS que aquela aula persegue.
+  objetivos: 'objetivos',
 };
 
 // Os blocos cuja tabela é ITEM/VALOR. No plano, a identificação do ciclo está sob "Objetivo
@@ -102,8 +128,10 @@ const DECLARACAO = { secoes: MAPA_SECOES, colunas: MAPA_COLUNAS, pares: PARES };
 const LACUNAS = {
   calendario: 'o calendário não está no .md — o gerador injeta o bloco calculado do .conf da '
     + 'variante (Regra 10, camada 2)',
-  'rubrica.aplicadaEm': 'leitura de prosa não implementada — o documento diz "Aplicada na Aula '
-    + '11 (formativa) e na Aula 12 (somativa)"',
+  // `rubrica.aplicadaEm` SAIU (26/10/2026). A lacuna apontava para a tabela de critérios que a
+  // derivação já não emite: num plano novo `rubrica` não existe, e a lacuna caía em `_lacunas`
+  // sem destino — ruído num campo que ninguém lê. O que a tabela diria, o professor declara no
+  // lançamento; o schema mantém `rubrica` para o documento antigo, e o mapa mantém o título.
 };
 
 /**

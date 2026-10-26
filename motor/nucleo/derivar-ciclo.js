@@ -192,10 +192,29 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     ? parametroLinhas.join(' · ')
     : '[Preencher: parâmetro de medição da Aula 01]';
   const sequencia = sequenciaEmLinhas(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
+  /* OS BLOCOS DA AULA VÊM DA ESTRUTURA, NÃO DOS OBJETIVOS (26/10/2026).
+   *
+   * Aqui lia-se `estrutura-de-cada-aula` — a relação objetivo × bloco —, e os blocos da aula
+   * eram a união dos blocos dos objetivos dela. Isso é a contradição que a pesquisadora viu na
+   * página do plano: um objetivo marcado «Solo e Barra» fazia a AULA ser «Solo e Barra», quando
+   * o que ele diz é onde aquele objetivo é trabalhado. A aula tem os blocos que a estrutura
+   * declara — e a estrutura é o quadro da distribuição do volume.
+   *
+   * A ORDEM É A CANÓNICA (Regra 3 — Solo → Barra → Centro, e Musicalidade ao fim), e não a
+   * ordem em que o volume os lista: o documento é o mesmo em todos os ciclos.
+   *
+   * A RESERVA fica para o envelope antigo, que não tem o volume: aí continua a valer a leitura
+   * anterior, que era a única que existia. */
   const estrutura = (() => {
+    const volume = resp(plano, 'distribuicao-de-volume');
+    const linhasDoVolume = Array.isArray(volume) ? volume
+      : (volume && Array.isArray(volume.linhas)) ? volume.linhas : [];
+    const doVolume = blocosDaEstrutura(
+      linhasDoVolume.map((l) => ({ marcados: [String((l && (l.Bloco || l.bloco)) || '').trim()] })),
+      BLOCOS_DA_AULA,
+    );
+    if (doVolume.length) return doVolume;
     const cru = resp(plano, 'estrutura-de-cada-aula');
-    // A forma NOVA (a matriz objetivo × bloco) guarda a relação: a estrutura da aula
-    // são os blocos usados, na ordem canónica. A forma LEGADA (lista em prosa) segue.
     if (Array.isArray(cru) && cru.some((l) => l && typeof l === 'object')) {
       return blocosDaEstrutura(cru, BLOCOS_DA_AULA);
     }
