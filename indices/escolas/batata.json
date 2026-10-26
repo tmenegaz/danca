@@ -3,7 +3,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-23",
+        "ancorado_em": "2026-10-26",
         "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
         "cobertura": [
           "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
@@ -25,7 +25,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-23",
+        "ancorado_em": "2026-10-26",
         "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
         "cobertura": [
           "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
@@ -40,8 +40,8 @@
           "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
           "professores/cafe-no-bule/ciclos/ciclo-01.conf"
         ],
-        "hash": "fe94db1ee1e9166806b151384c68df44a34992c98833238d7e66b7909aa1e191",
-        "hash_conteudo": "6041559c3edad100095a0be2b97ee3ac8af1f03b4c266f0e47ba1512d82d55ab",
+        "hash": "b6ce1008d90e9285be1b142d39d322089e2195800901e434ca3040ab44a158d4",
+        "hash_conteudo": "b3e2dfc8e76e62260ec195e8e7fc99367a268e086db4d17eed2d69b3e008bf4b",
         "id": "ciclo-01-batata-bale-nivel-2-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -50,7 +50,7 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-10-23",
+            "ancorado_em": "2026-10-26",
             "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
             "cobertura": [
               "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
@@ -553,9 +553,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1c26fe8"
+    "commit": "7c6858f"
   },
-  "gerado_em": "2026-10-23T14:30",
+  "gerado_em": "2026-10-26T12:05",
   "nao_indexado": [
     {
       "familia": "conteudo",
