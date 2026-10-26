@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-25T17:39:41-0300`
-Commit atual: `bf76f14` — feat(area-do-professor): o contexto do ato dentro da listagem — a opção A
+Gerado em: `2026-10-25T23:58:35-0300`
+Commit atual: `e7dc603` — docs(registro): o vão do botão, e a fotografia sobre o commit da correção
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,26 +78,26 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
-bf76f14 feat(area-do-professor): o contexto do ato dentro da listagem — a opção A
-254e143 feat(folha): o painel do ato — a caixinha do «Turma» a abrir um formulário
-d5f5290 feat(propostas): a opção A, com a caixinha do «Turma» a abrir o painel
-7dcaa0a feat(propostas): o acervo com a porta — três opções, medidas
-3f696c5 chore(handoff): regerar com a porta da Área do Professor
-f22e390 fix(area-do-professor): a lista voltou a ter porta para o formulário
-6ac83a3 chore(identidade): a amostra da lista passa a emitir o botão do topo
-aec4a38 chore(handoff): regerar com as decisões da segunda ronda
-ffd4e36 docs(aula): «proposto» — a terceira forma, que faltava no vocabulário
-56f94f7 chore(handoff): regerar com a leitura da pesquisadora registada
-66e871b docs(analise): a leitura da pesquisadora — um erro meu, três decisões, duas perguntas ilegíveis
-7728389 docs(estado): a fotografia curada, as etiquetas factuais e a rotina de transferência
-607b96a chore(handoff): o HANDOFF passa a apontar para a fotografia do estado
-7182307 docs(analise): o mapa da aula, do plano e da observação — e as seis sobreposições medidas
-6bdb06a fix(listas): a turma do PO vem do plano de ensino que ele observa
-06e7e6c feat(acervo): envelope/.indice.json
-f85b846 fix(acervo): a versão do resumo não chega — o que denuncia um resumo velho é a FORMA
-984cb55 fix(acervo): uma versão nova do resumo manda refazer os resumos, e não só preencher buracos
-3bad02d feat(acervo): envelope/.indice.json
-36bcd2c feat(listas): o padrão aplicado — «Consulta», três caixas por registo, e o valor que não se corta
+e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da correção
+8a7b4a5 fix(estrutura): a ação de cada formulário da Produção na fileira do professor
+a7f4490 docs(estrutura): o número medido da faixa do menu — 216px, e não 220
+aa96a3c fix(estrutura): o menu da Produção fica congelado — `sticky` não serve nas telas de trabalho
+acfab1f fix(estrutura): o menu da Produção não rola com a página — o `sticky` estava anulado por uma linha
+d8f7137 refactor(estrutura): referências deixa de ser item do menu, e passa a ser documento de Planos
+68b1a5b fix(estrutura): o documento acende a lista de onde veio, e a marca não se perde ao aprofundar
+e233713 fix(folha): uma só identidade — a folha que sobe, a pílula e o menu dos Bastidores
+abae841 fix(folha): o submenu do «Bastidores» cabe na janela
+9bda75f fix(area-do-professor): o menu não se perde no formulário, e o bloco abre com o trabalho à espera
+5650e69 feat(area-do-professor): o caminho na barra, o «Ajustar» com o registo, e o «Sair» que sai
+5c16baf fix(porta): o «Continuar de onde parei» aterra no formulário
+c1f1ba3 fix(porta): o «Editar» aterra no formulário, e a página começa nele
+f48be8e fix(listas): o «Procurar» aparecia duas vezes — e agora dobra no telemóvel
+f41d78d docs(registro): a abertura apagada, e o painel que já não se abre sozinho
+f85478a refactor(porta): a página intermediária foi apagada — a porta é o formulário
+d1a66f1 feat(folha): o painel do ato não se abre sozinho — a barra fechada é que avisa
+c4784af feat(propostas): a sala de ensaio do acervo — os estados todos numa página
+3d9f52f fix(area-do-professor): o salto sem paragem, o rótulo que faltava, e o Sair para a lista
+ef35cb4 feat(folha): dois nomes na barra do bloco, e o repouso dos dois modos
 ```
 
 ## Por professor
@@ -193,121 +193,153 @@ f85b846 fix(acervo): a versão do resumo não chega — o que denuncia um resumo
 
 ## Última entrada do REGISTRO
 
-## 25/10/2026 — A opção A no produto: o contexto do ato dentro da listagem
+## 26/10/2026 — O botão que grava não encosta no campo: a fileira do professor, nos cinco formulários
 
-**A escolha.** «Pode implementar a opção A, painel com a caixinha e as ações dentro. A única coisa
-que vai mudar é que nessa caixinha não tem o ponto de interrogação, igual tem nas demais. Nessa
-caixinha você vai pôr o mesmo ícone que você estava usando no acordeão… ela vai apontar pra baixo
-quando eu quiser abrir e vai apontar pra cima quando eu quiser fechar.»
+**O que motivou.** A pesquisadora leu a tela e disse o defeito pelo nome: «o botão de cadastrar a
+aluna e o botão de cadastrar termo está completamente colado no campo de cima. Tem uma identidade
+visual para isso e você precisa aplicar. Veja só como é que está sendo feito em curadoria. O botão
+professor, ele pode ser o exemplo que você precisa seguir.» E, na mesma leitura, o segundo sintoma:
+«o botão atribuir curadoria tem outra cor, tem outra identidade visual.»
 
-**O ícone.** `▾` (U+25BE) rodado 180° por CSS quando o `details` está `[open]` — um só glifo, e não
-dois caracteres diferentes: dois glifos mudariam de largura ao rodar e o ícone saltaria.
+**O diagnóstico, medido.** Na página real do Produção, a **0px** entre o campo e o botão no
+«Cadastrar aluna» e no «Cadastrar termo»; **9px** no «Cadastrar professor» e no «Avançar» da turma;
+o «Atribuir curadoria» com **45px** de altura e fundo de papel (`rgb(255,255,255)`), ao lado de
+ações cheias de bordô (`rgb(107,31,46)`) de **49px**.
 
-**Uma colisão que a checagem apanhou, e que teria passado em silêncio.** A primeira versão chamou à
-seta `.seta` — e `.seta` **já era peça**: `.topnav .s5-secoes .seta`, no bloco de sessão que o
-`bastidores.js` emite. A checagem **«Forma»** reprovou («redeclara o componente»), e o remédio foi o
-sufixo: `.seta-do-ato`. Dois desenhos com o mesmo nome, e o segundo a herdar o do primeiro, é o
-género de defeito que ninguém vê no ecrã.
+A causa não era falta de desenho — era a folha a fazer uma conta que a página desfazia. O
+`tools/templates/ciclo.css` separa o campo da ação por **vizinhança**:
 
-**O QUE MAIS MUDOU, e porquê:**
+```css
+:where(form) > :where(input, select, textarea) + button.acao { margin-top: var(--esp-4); }
+```
 
-1. **O botão solto do topo saiu.** Ele nasceu ontem, quando a lista não tinha contexto — criava sem
-   levar professor, ciclo nem aluna. Com o painel, seriam duas portas para o mesmo ato, e a segunda
-   sem o contexto. `paginaDeLista` continua a aceitar `acao`; esta página é que já não o passa.
-2. **`paginaDeLista` ganhou `painel` e `script`.** Dois parâmetros opcionais, e quem não os passa
-   recebe exactamente a página de antes — a lista continua a ser UMA, e não um segundo desenho.
-3. **O painel executa a regra dos botões da porta**, com a MESMA chave de memória —
-   `porta-<fonte>-<escola>-<professor>-<ciclo>-1`. Ler a mesma chave é o que faz o painel dizer a
-   verdade: o que o professor começou a preencher na porta aparece aqui como «continuar».
-4. **O contexto escolhido passou a ser guardado** (`ato-<escola>-<fonte>-1`). **Este foi um defeito
-   encontrado pela prova, não previsto:** o professor escolhia professor, ciclo e aluna, a página
-   recarregava e o painel nascia vazio — e, pior, a chave da memória era calculada com o professor
-   vazio, por isso o «continuar de onde parei» **nunca** aparecia. A porta não tem este problema
-   porque o contexto lhe chega pelo endereço; aqui é escolhido dentro da página. **A senha não se
-   guarda** — é segredo, e o que se guarda é a escolha de quem e do quê.
-5. **A trava do contexto ficou visível.** Na porta, o que falta é o `title` do botão — e um `title`
-   não se lê no telemóvel. Agora a caixinha diz em vermelho «escolher o professor, o ciclo e a
-   aluna», e a linha de estado diz o mesmo por extenso.
-6. **A trava da curadoria vale no plano e no PO**, e o estado diz porquê («A direção ainda não
-   atribuiu curadoria a este professor»). O campo «aluna» só existe na anamnese; a turma é `select`
-   no plano e **leitura** no PO (vem do plano de ensino que ele observa).
+`+` pede o elemento imediatamente a seguir, e nos dois formulários havia um `<div class="res">` no
+meio. O `.res` é `display: none` até haver resposta, mas continua a ser o elemento anterior na
+marcação: a vizinhança parte-se, o `.acao` fica com o `margin: 0` que ele próprio declara, e o
+botão encosta. E o «Atribuir curadoria» não tinha `.acao` nenhuma: caía no botão **padrão** da
+folha, que é o secundário.
 
-**A bancada mentiu duas vezes antes de dizer a verdade, e as duas armadilhas ficam escritas na
-prova:**
+**O que foi decidido.**
 
-- **`summary` nasce `display: list-item`**, e o marcador nativo do navegador convive com a caixinha.
-  O `display: block` + o marcador escondido são a regra `.painel-ato > summary.trio-item`, e sem ela
-  a caixinha media 19px de altura em vez de 48 — e parecia só «um pouco baixa».
-- **A folha servida com `Content-Type: text/html` não é aplicada pelo browser.** A ponte devolve os
-  assets pelo `comAparencia`, que os serve como HTML; em produção não passa por ali — o asset-first
-  do Cloudflare serve `/assets/style.css` como `text/css` (confirmado por `curl -I` em produção). A
-  bancada passou a servir os assets **antes** do Worker, como produção. Enquanto não o fez, mediu uma
-  página sem desenho nenhum e **todas** as medidas davam zero a jurar que estavam certas.
+- **A fileira `.par-botoes` é a peça da ação de formulário da Produção**, e o modelo é o
+  «Cadastrar professor»: `.acao grande` **dentro** da fileira. Não nasceu classe nenhuma — o
+  contentor já existia no `<style>` da página, usado pelo professor, pela turma e pela curadoria.
+- **«Cadastrar aluna» e «Cadastrar termo» passam a ter a fileira**, como os outros três. O vão vai
+  a **9px** nos quatro, que é o do professor — e não os 16px da folha, porque a turma já estava
+  certa com 9 e o pedido foi aplicar o que existe, não mudar o que já estava aprovado.
+- **«Atribuir curadoria» passa a `.acao grande`**: é a ação que grava, e na mesma página não pode
+  ter a cor do secundário. O `textContent` que o script troca («Gravar curadoria», «Gravar ajuste»)
+  não depende da classe, e a prova confirma-o.
+- **Nada disto toca a folha.** `tools/templates/ciclo.css` está congelado, e o defeito não era
+  dela: era a página a quebrar a conta dela. Fica registado que a regra `+` é frágil por desenho —
+  um `.res` (ou qualquer bloco) entre o campo e o botão anula-a — e é isso que a fileira resolve.
 
-**Medido a 390px** (`provar-painel-do-ato`): caixinha de faixa inteira, **48px** de altura; a seta
-roda 180° ao abrir (matriz `-1`); com o preenchimento interrompido, as duas acções cabem numa fila de
-**29px** (169 + 129 + 6,4 numa coluna de 339); nenhum erro de JavaScript; nada estoura na horizontal
-em 320, 390 e 1280.
+**Onde entrou.** `motor/servidor/bastidores.js` (as três marcações e os comentários);
+`experimentos/provar-vao-do-botao.js` — **novo**, a prova da geometria; `IDENTIDADE-VISUAL.md`
+(duas linhas no catálogo — Quadro 1 e Quadro 2 — e a secção «O vão do botão não se dá por
+acidente»); `.github/instructions/identidade-visual.instructions.md` (a linha na tabela, o
+parágrafo da armadilha e a prova na lista do que correr); `experimentos/provar-celular.js` (a
+âncora do bloco de estilo, ver abaixo); `ESTADO-ATUAL.md`; `HANDOFF.md` (regerado por
+`tools/gerar-handoff.sh`).
 
-**Ficheiros.** `tools/templates/ciclo.css` (**congelado** — motivo declarado no corpo da regra,
-entrada neste registo e commit próprio), `IDENTIDADE-VISUAL.md` (a peça no Quadro 1 e no inventário),
-`motor/nucleo/lista-html.js` (`painel` e `script`), `motor/servidor/listas-do-acervo.js` (o painel, o
-script e a chave do contexto), `experimentos/provar-listas-do-acervo.js` (a secção 7 reescrita: o
-painel passou a ser a porta), `experimentos/provar-painel-do-ato.js` (novo, 30 verificações), e as
-cópias da folha (`raiz/assets/`, dois pacotes — o «Circuito» da checagem 4 exige-as iguais).
+**Uma prova que estava a medir nada, e foi corrigida.** A `provar-celular.js` extrai o `<style>` da
+Produção ancorada na string `'.lateral{position:sticky'`. O commit `aa96a3c` mudou o `sticky` para
+`fixed`, a âncora partiu, e a prova passou a sair com «bloco de estilo da Produção não encontrado»
+— sem medir coisa alguma. A âncora passou a `'.lateral{position:` e a prova voltou a **15/15**. Não
+é o defeito pedido; é a ferramenta que o pedido precisa de usar.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-vao-do-botao.js`,
+`experimentos/provar-celular.js`, `IDENTIDADE-VISUAL.md`,
+`.github/instructions/identidade-visual.instructions.md`, `REGISTRO.md`, `ESTADO-ATUAL.md`,
+`HANDOFF.md`.
+
+**Referências.** Secção «O catálogo das peças» e «O vão do botão não se dá por acidente» de
+`IDENTIDADE-VISUAL.md`; regra 10 da §6 de `ESTADO-ATUAL.md` («qualquer coisa que apareça no ecrã
+nasce do catálogo»); a checagem 8 (Peça) de `tools/check-identidade.js`.
+
+**Medido, no navegador.** `provar-vao-do-botao` **62/62** em 1280px e 390px — os cinco formulários
+com a ação na fileira, `.acao`, a mesma cor de fundo e de texto, a mesma altura de 49px, e vão de
+9px (13 no da curadoria, que mede contra o `.escolhedor`, não contra um campo). **Controle
+negativo** contra `HEAD` anterior à correção: **46/62**, com o vão do «Cadastrar aluna» e do
+«Cadastrar termo» a **0px** e o «Atribuir curadoria» com fundo de papel e 45px.
+`provar-celular` 15/15; `check-identidade` **20 ok, 0 erro**; `provar-producao` 150/151.
+
+**O que ainda não está feito.**
+
+- **`provar-producao.js` reprova uma asserção, e ela não é do produto:** «o item do menu fica
+  marcado». A prova lê `className === "ativo"` no DOM falso da bancada, e o `mostrarSecao` passou a
+  usar `classList.add`. Na página real, medida no navegador, o item tem `class="ativo"` e
+  `aria-current="page"` quando o hash é `#professores`. A bancada precisa de ensinar `classList` ao
+  DOM falso — fica pendente, e não se cala o resultado.
+- **A regra `+` da folha continua frágil para o próximo que puser um bloco entre o campo e a ação.**
+  A fileira resolve os cinco formulários de hoje; um sexto tem de nascer com ela. Enquanto a folha
+  estiver congelada, a defesa é a prova e o catálogo, não uma regra de CSS mais generosa.
+- **O `.par-botoes` continua declarado na página, e não na folha.** Se ele se repetir fora da
+  Produção, sobe para `tools/templates/ciclo.css` — e aí o congelamento pede motivo declarado e
+  commit próprio.
 
 ## O que está pendente
 
-## 23/10/2026 — A lista de alunas da anamnese não se contorna: a curadoria é a autorização
+## 26/10/2026 — O documento acende a lista de onde veio, e a norma de «onde estou» fica escrita
 
-- `experimentos/provar-navegacao.js` **ficou sem fixture**: ela monta a escola `calango`, que foi
-  expurgada hoje, e a `batata` ainda não tem turmas. Não é regressão desta entrada — é a prova a
-  depender da escola de teste que existe. Passa a correr quando a escola nova tiver turmas.
-- A **mesma marca «nova»** não existe na lista de gestão da Produção (`/api/anamnese-estados`), que
-  continua a listar todas as anamneses da escola. Não foi pedida, e o lugar dela seria outro.
-- A anamnese de uma aluna **nova** continua a nascer sem turma, como deve — mas nada no sistema
-  sugere a turma a partir das respostas (B6, reescrita de conteúdo por modalidade) — segue aberto
-  desde 13/10.
+- O trabalho está **no worktree, não commitado** (junto com o que já estava pendente das provas do
+  painel do ato).
+- A **tabela de atividade** ainda não existe; a norma fica escrita para ela — um ecrã que nasça de
+  uma lista declara-se com uma linha em `TRILHA_DO_DOCUMENTO`; um que não nasça de lista nenhuma
+  não se marca.
+- A **marca do menu** não exige regerar escola nenhuma: o menu é **desenhado ao servir**, e é a
+  ponte que o lê. A **regra do caminho no telemóvel** é da folha, e a folha viaja no
+  `assets/style.css` de cada pacote — as escolas já publicadas só a recebem na próxima montagem
+  (`deploy-escolas.yml` corre a montagem a cada mudança de pacote).
 
-## 23/10/2026 — A barra diz de onde se veio; o «true» sai do endereço; e os Bastidores ficam com um menu só
+Medido: `provar-barra-unica` **111/111** (secção D1 nova), `provar-painel-do-ato` **TUDO CERTO**
+(secção 17 nova, 34 asserções em browser), `provar-barra-e-caminho` **45/45**,
+`provar-titulo-e-barra` **TUDO OK**, `provar-celular` **15/15**,
+`provar-listas-do-acervo` **109/109**, `check-identidade` **0 erro**,
+`check-pacote professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2` **0 erro,
+0 aviso**. (`provar-navegacao` não corre nesta árvore: falta o pacote-zero de «calango», que a
+bancada procura em `professores/` — já faltava antes desta entrada.)
 
-- **A coluna única** nos Bastidores — fundir as secções da Produção dentro da coluna do sistema —
-  não foi feita, e é a consolidação que fica em aberto. Hoje há **uma** coluna em cada sítio (a do
-  sistema no trabalho de sala, a da Produção nos Bastidores), e a volta é explícita.
-- **`provar-navegacao.js` e `provar-titulo-e-barra.js` voltaram a correr** — e o que as trouxe de
-  volta foi o PO da `batata`, que gerou o primeiro pacote real depois do expurgo da `calango`.
-  Ao correr, a `provar-navegacao` reprovou **nove** asserções por um motivo que não era defeito:
-  ela tinha «2» escrito à mão em cinco sítios (planos, cartões, linhas por turma, acções e a
-  contagem do filtro), porque a escola de teste de então tinha duas turmas. A `batata` tem uma.
-  As expectativas passaram a ser **lidas do acervo** (`N` = pastas de turma no destino), e a
-  busca do filtro passou a usar um pedaço do nome do professor do **próprio cartão** — uma prova
-  que escrevesse «perna» estaria a medir uma lista vazia e a chamar a isso sucesso. **53/53**.
-- O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
-  guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
-  `href` ser montado por uma função que só aceite nome. Fica anotado.
+## 26/10/2026 — Referências deixa de ser um item do menu, e passa a ser um documento de «Planos»
 
-## 23/10/2026 — O Bastidores chega à folha do celular, e o título deixa de ser lido no comentário do CSS
+- O trabalho está **no worktree, não commitado**.
+- A remoção só chega ao ar na próxima montagem de cada escola (`deploy-escolas.yml`); até lá
+  `/ciclos/referencias/` continua a responder no que já está publicado.
+- `provar-publicacao-da-escola` **já falhava antes** desta mudança (o mesmo erro, medido com o
+  `HEAD` limpo): ele espera a barra antiga, com «Ciclos / Aulas / Planejamento».
 
-- O comentário do `<style>` que contém um `<h1>` literal **continua lá**. A correcção foi no
-  extractor, que é o sítio certo — mas o comentário é uma armadilha para a próxima ferramenta que
-  leia o documento inteiro. Fica anotado, não corrigido, para não mexer no template sem necessidade.
-- O mesmo vale para `provar-titulo-e-barra`: ela mede o `<h1>` da página por `MEDIR_TITULO`, que lê
-  o DOM (e não o HTML), por isso nunca apanhou este defeito. É a diferença entre medir a página
-  renderizada e medir o documento em bruto — e o defeito vivia no segundo.
+Medido: `provar-barra-unica` **111/111**, `provar-painel-do-ato` **TUDO CERTO** (secção 17, 38
+asserções — as referências entram também na medição do telemóvel), `provar-barra-e-caminho` **47/47**, `provar-menu-da-producao` **38/38**,
+`provar-listas-do-acervo` **109/109**, `check-identidade` **0 erro**, `check-pacote` do ciclo
 
-## 23/10/2026 — O ☰ dentro da Produção abre o menu do sistema inteiro
+## 26/10/2026 — O menu da Produção não rola com a página: era o `sticky` anulado por uma linha ao lado
 
-O Estúdio de Dança não tem `lateral` — e por isso ganha a coluna do
-sistema também no computador. É o que se quer (era a única página com a barra a valer por menu
-inteiro), mas é uma mudança de aspecto que ninguém pediu e fica anotada.
+O trabalho está **no worktree**; o commit vem a seguir, e o push
+depende de um token válido (o do `.dev.vars` está a devolver 401).
 
-## 24/10/2026 — O padrão da lista: as oito listas com o mesmo gesto, e o que cada uma quer dizer
+Medido: `provar-menu-da-producao` **51/51** (13 asserções novas); o **controle negativo**
+(`--controle-negativo`, o motor do `HEAD` anterior) **reprova 8** — as oito desta secção, com o menu
+a ir para `−540` e a base a `1916` numa janela de `300`. `provar-barra-e-caminho` 47/47,
+`check-identidade` 0 erro.
 
-**A escolha.** A bancada não muda produção: escolhidas a opção e os
-nomes, o desenho vai para `tools/templates/ciclo.css` com motivo declarado e commit próprio, e ganha
-prova de produto. Ficam também por fazer os três campos que a listagem pede e o modelo não tem
-(sala na turma, período no plano de ensino e no PO) e a passagem das três listas da Área do
-Professor a servidas pelo acervo.
+## 26/10/2026 — O menu da Produção fica congelado: `sticky` não serve, e a prova anterior media o que ela criava
+
+O push continua pendente: o `GITHUB_TOKEN` do `.dev.vars` responde
+
+## 26/10/2026 — O botão que grava não encosta no campo: a fileira do professor, nos cinco formulários
+
+
+- **`provar-producao.js` reprova uma asserção, e ela não é do produto:** «o item do menu fica
+  marcado». A prova lê `className === "ativo"` no DOM falso da bancada, e o `mostrarSecao` passou a
+  usar `classList.add`. Na página real, medida no navegador, o item tem `class="ativo"` e
+  `aria-current="page"` quando o hash é `#professores`. A bancada precisa de ensinar `classList` ao
+  DOM falso — fica pendente, e não se cala o resultado.
+- **A regra `+` da folha continua frágil para o próximo que puser um bloco entre o campo e a ação.**
+  A fileira resolve os cinco formulários de hoje; um sexto tem de nascer com ela. Enquanto a folha
+  estiver congelada, a defesa é a prova e o catálogo, não uma regra de CSS mais generosa.
+- **O `.par-botoes` continua declarado na página, e não na folha.** Se ele se repetir fora da
+  Produção, sobe para `tools/templates/ciclo.css` — e aí o congelamento pede motivo declarado e
+  commit próprio.
 
 ## Pendências anteriores (índice)
 
@@ -586,6 +618,11 @@ Professor a servidas pelo acervo.
 - **23/10/2026** — O menu deixa de contar documentos: doze destinos, e a lista… → `REGISTRO.md` L23185
 - **23/10/2026** — A escolha de turma antes do formulário, e a harmonização… → `REGISTRO.md` L23280
 - **23/10/2026** — A curadoria não se atribui incompleta: cinco campos, e a… → `REGISTRO.md` L23397
+- **23/10/2026** — A lista de alunas da anamnese não se contorna: a curadoria… → `REGISTRO.md` L23459
+- **23/10/2026** — A barra diz de onde se veio; o «true» sai do endereço; e os… → `REGISTRO.md` L23583
+- **23/10/2026** — O Bastidores chega à folha do celular, e o título deixa de… → `REGISTRO.md` L23691
+- **23/10/2026** — O ☰ dentro da Produção abre o menu do sistema inteiro → `REGISTRO.md` L23769
+- **24/10/2026** — O padrão da lista: as oito listas com o mesmo gesto, e o… → `REGISTRO.md` L23887
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
