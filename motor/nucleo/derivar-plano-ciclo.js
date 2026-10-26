@@ -51,57 +51,6 @@ function tituloDoPlano(contexto) {
   return 'Plano do Ciclo ' + ciclo + ' — ' + escola;
 }
 
-// As lacunas que vêm do `.conf` da variante — o formulário não as pergunta, e o
-// derivador não adivinha (o gerador é quem tem o .conf e o calendário).
-const LACUNA_DURACAO = '[Preencher: N encontros — o .conf da variante declara]';
-const LACUNA_DURACAO_MINUTOS = '[Preencher: duração em minutos — o .conf declara (Pré-requisito 4)]';
-const LACUNA_INICIO = '[Preencher: dd/mm/aaaa — o .conf declara]';
-const LACUNA_VOLUME = '[Preencher: faixa de tempos — o sistema declara a partir da duração do ciclo]';
-
-// A tabela de identificação do ciclo (o bloco `| Item | Valor |` que o validador
-// manda para `ciclo`). Professor vem do contexto; o resto é lacuna do .conf.
-function tabelaDeIdentificacao(contexto, envelope) {
-  // A FICHA DO CICLO é COMPOSTA DO CONTEXTO (14/10/2026). Antes ela saía inteira em
-  // `[Preencher: …]` — «o .conf da variante declara» — enquanto o `## Contexto`, doze linhas
-  // acima, trazia os mesmos fatos já declarados pelo professor: a duração, a duração de cada
-  // aula, o número de encontros, o volume e o calendário. O `plano-XX.json` do pacote publicava
-  // a lacuna e escondia o valor. Agora o professor declara UMA vez (no contexto, alimentado
-  // pela turma) e a ficha lê de lá; o `[Preencher]` fica só para o que o contexto não tem —
-  // e continua com o motivo escrito, para quem lê saber de quem é a decisão.
-  const cru = (id) => {
-    const compor = COMPOR_DO_CONTEXTO[id];
-    return compor ? compor(respostaDo(envelope, id)) : respostaDo(envelope, id);
-  };
-  const celula = (v) => String(v === null || v === undefined ? '' : v).replace(/\|/g, '/');
-  const total = cru('contexto-total-aulas');
-  // O número de encontros vem da turma como NÚMERO (`totalAulas`). Sob o rótulo «Duração», um
-  // `7` solto não diz de quê — e o próprio schema descreve este campo com a unidade no valor
-  // (`"12 aulas (extensível a 16…)"`). A unidade entra só quando o valor é número puro: uma
-  // origem escrita à mão («12 aulas») passa como veio.
-  const duracaoAulas = typeof total === 'number' || /^\d+$/.test(String(total || '').trim())
-    ? String(total).trim() + ' aulas'
-    : total;
-  const duracao = cru('contexto-duracao');
-  const volume = cru('contexto-volume');
-  const calendario = respostaDo(envelope, 'contexto-calendario');
-  const inicio = calendario && calendario.inicio ? String(calendario.inicio) : null;
-  const fim = calendario && calendario.fim ? String(calendario.fim) : null;
-  const professor = (contexto && contexto.professor) || '[a decidir]';
-  return [
-    '| Item | Valor |',
-    '|:--|:--|',
-    '| **Duração** | ' + celula(duracaoAulas || LACUNA_DURACAO) + ' |',
-    '| **Duração de cada aula** | ' + celula(duracao || LACUNA_DURACAO_MINUTOS) + ' |',
-    '| **Data de início** | ' + celula(inicio || LACUNA_INICIO) + ' |',
-    // o encerramento É o fim do calendário declarado; sem ele, o documento manda ver o bloco
-    // do calendário — que o gerador injeta do `.conf` (Regra 10, camada 2)
-    '| **Encerramento previsto** | '
-      + (fim ? celula(fim) : 'ver o [Calendário do ciclo](#calendario-do-ciclo)') + ' |',
-    '| **Volume ativo por aula** | ' + celula(volume || LACUNA_VOLUME) + ' |',
-    '| **Professor** | ' + celula(professor) + ' |',
-  ];
-}
-
 // Os marcos parciais: lista "NN: marco" → tabela `| Aula | Objetivo específico |`.
 //
 // O número é do SISTEMA: a lista numerada da porta grava só o texto, e a linha sai
@@ -318,47 +267,6 @@ function sequenciaEmLinhas(valor) {
   return linhas;
 }
 
-/* AS COLUNAS DA SEQUÊNCIA DE EXERCÍCIOS — fixas, na ordem que o formulário declara
- * (`porta/plano/conteudo/plano.json`). O `tabelaDeLista` tira as colunas das CHAVES do
- * primeiro objeto, e aqui isso não serve: uma linha cujo exercício ainda não tem tempos sai
- * sem essa chave, e a coluna inteira desaparecia do documento. A sequência sai sempre com as
- * cinco, mesmo que alguma venha vazia. */
-const COLUNAS_DA_SEQUENCIA = [
-  'Bloco',
-  'Objetivo específico',
-  'Conteúdo do nível',
-  'Tempos',
-  'Compasso',
-];
-
-/* A SEQUÊNCIA DE EXERCÍCIOS POR BLOCO — a linha da aula posta em tabela: o que se faz, para
- * qual objetivo, com que conteúdo do nível, em quantos tempos e em que compasso. A forma nova
- * é a grelha (um objeto por linha); a LEGADA é a prosa de antes, que continua a sair como
- * lista. A célula vazia sai como `[a decidir]` — a mesma lacuna declarada do resto do
- * documento: o exercício que não tem tempos ditos não os tem inventados. */
-function tabelaDaSequencia(valor) {
-  const objetos = Array.isArray(valor)
-    ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
-    : [];
-  if (!objetos.length) {
-    const itens = emLista(valor);
-    return itens.length ? itens.map((v) => '- ' + v) : ['- [a decidir]'];
-  }
-  const celula = (v) => {
-    const t = v == null ? '' : String(v).trim();
-    // A barra é o separador da tabela: dentro da célula ela parte a linha em duas.
-    return t ? '**' + t.replace(/\|/g, '/') + '**' : '[a decidir]';
-  };
-  const linhas = [
-    '| ' + COLUNAS_DA_SEQUENCIA.join(' | ') + ' |',
-    '|' + COLUNAS_DA_SEQUENCIA.map(() => ':--').join('|') + '|',
-  ];
-  for (const objeto of objetos) {
-    linhas.push('| ' + COLUNAS_DA_SEQUENCIA.map((c) => celula(objeto[c])).join(' | ') + ' |');
-  }
-  return linhas;
-}
-
 /* AS LINHAS DE UMA TABELA — a forma nova é o OBJETO `{unidade, linhas}` (a grelha com a
  * unidade da proporção, que é da TABELA e não de cada linha), a antiga é o ARRAY de linhas.
  * Quem lê a tabela (a derivação do plano, a da aula) passa por aqui e não precisa saber. */
@@ -469,13 +377,22 @@ function derivarPlano(envelope) {
   // metodologia/notação declaradas (P-16).
   secao('Contexto', tabelaDeContexto(envelope));
 
-  // Objetivo geral (prosa) + a tabela de identificação do ciclo (item/valor).
+  /* OBJETIVO GERAL — a PROSA, e mais nada (26/10/2026).
+   *
+   * Aqui havia, debaixo da prosa, a «ficha de identificação» do ciclo: duração, duração de cada
+   * aula, data de início, encerramento previsto, volume ativo e professor. Os cinco primeiros
+   * fatos já estão no `## Contexto`, seis linhas acima, e as datas estão no `## Calendário do
+   * Ciclo`, que o gerador calcula do manifesto. Era o mesmo dado em três sítios da MESMA
+   * página — a doença que o `PLANO-CICLO-DA-TURMA.md` §2.1 mediu entre arquivos («quatro
+   * fontes, quatro respostas») e que aqui acontecia dentro de um documento só.
+   *
+   * O que se perde: a chave `ciclo` do `plano-XX.json`. Nada a lia — a única leitura era a da
+   * duração no `tools/lib-vistas.js`, e ela já tem a reserva no `contexto.duracaoPorAula`, que
+   * é onde o dado nasce. O `required` do schema correspondente sai com esta alteração. */
   secao('Objetivo geral', [
     respostaDo(envelope, 'objetivo-geral') === null
       ? '[Preencher: objetivo geral do ciclo — o PO elicitado o estabelece]'
       : String(respostaDo(envelope, 'objetivo-geral')),
-    '',
-    ...tabelaDeIdentificacao(contexto, envelope),
   ]);
 
   // As alunas (Bloco 3 do prompt) não vivem mais no plano: o plano de ensino é
@@ -524,12 +441,19 @@ function derivarPlano(envelope) {
     ).concat(notarUnidade),
   );
 
-  // A SEQUÊNCIA DE EXERCÍCIOS POR BLOCO (16/10/2026) — a linha da aula, bloco a bloco: o que
-  // se faz, para qual objetivo, com que conteúdo do nível, em quantos tempos e em que
-  // compasso. Ela existia no formulário e NÃO chegava ao documento: quem imprimia o plano
-  // para levar à sala levava o objetivo e a fatia de cada bloco, mas não a sequência —
-  // justamente a parte que o professor tem na mão quando está à frente da turma.
-  secao('Sequência de exercícios por bloco', tabelaDaSequencia(respostaDo(envelope, 'aula-1-sequencia')));
+  /* «OBJETIVOS POR BLOCO E POR AULA» — o APANHADO, e não a sequência (26/10/2026).
+   *
+   * Aqui saía a tabela INTEIRA da sequência (bloco · objetivo · conteúdo do nível · tempos ·
+   * compasso), e ela duplicava linha a linha o que já está na `aula-01.md`: as duas nascem da
+   * MESMA resposta (`aula-1-sequencia`, lida em `derivar-ciclo.js`). Medido na `batata`:
+   * «Solo» 4×, «Barra» 4×, «Centro» 4× — o bloco repetido uma vez por exercício.
+   *
+   * O que a página passa a mostrar é o cruzamento que o plano pode responder sem repetir
+   * nada — bloco × objetivo → a aula em que aquele objetivo é o marco — e o detalhe fica onde
+   * se decide: na aula. A tabela é DERIVADA no gerador (`tools/tabela-objetivos.js`), como o
+   * calendário, e por isso cresce quando o professor acrescenta marcos: escrita na fonte, ela
+   * seria um retrato do dia da elicitação. Aqui fica só o marcador. */
+  secao('Objetivos por bloco e por aula', ['<!-- OBJETIVOS -->']);
 
   // Condições preliminares (lista).
   lista('Condições preliminares', respostaDo(envelope, 'condicoes-preliminares'));
@@ -598,7 +522,6 @@ module.exports = {
   sequenciaEmLinhas,
   tabelaDeMarcos,
   tabelaDeLista,
-  tabelaDeIdentificacao,
   marcosEmTexto,
   parametroEmLinhas,
   blocosDaEstrutura,

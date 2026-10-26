@@ -25666,3 +25666,137 @@ escola serve o rodapé dentro de `/area-do-professor/` e o nome da turma a abrir
 push e os dois workflows. A redação não é apagada: fica aqui como o elo que registou o trabalho
 antes de ele sair de casa; o que foi publicado, e o que se mediu ao ar, está no parágrafo
 «Publicado, e conferido ao ar».
+
+## 26/10/2026 — O plano publica o apanhado, e o detalhe fica na aula
+
+**O que motivou.** A pesquisadora abriu a página do plano do ciclo e perguntou o que cada seção
+faz ali: «eu tenho a impressão que algum deles não faz sentido mostrar aqui. Porque eu tenho
+coisas como, por exemplo, sequência de exercícios por bloco. Me parece que isso pertence à aula e
+não ao ciclo… eu não preciso desse detalhamento aqui. Eu preciso apenas de um apanhado geral.»
+Na sequência, o que o apanhado devia ser: «o bloco, o objetivo específico e de qual aula ele
+pertence, com um link» — e a decisão de que o detalhe (conteúdo do nível, tempos, compasso) fica
+na **aula**, sem que esse movimento se faça agora.
+
+**O diagnóstico, medido.** Dois defeitos, e o segundo era invisível de tão óbvio:
+
+- **A tabela da sequência duplicava a aula, linha a linha.** As duas nascem da MESMA resposta da
+  elicitação (`aula-1-sequencia`): `derivar-plano-ciclo.js` a escrevia no plano e
+  `derivar-ciclo.js` a escrevia na `aula-01.md`. Medido na `batata`: **14 linhas**, com «Solo»
+  **4×**, «Barra» **4×** e «Centro» **4×** — o mesmo bloco uma vez por exercício, e o mesmo
+  objetivo repetido quando havia mais de um exercício para ele.
+- **A «ficha de identificação» repetia o Contexto e o Calendário.** Debaixo do «Objetivo geral»
+  saíam duração, duração de cada aula, data de início, encerramento, volume ativo e professor —
+  fatos que o `## Contexto` declara seis linhas acima e que o `## Calendário do Ciclo` calcula.
+  Era a doença que o `PLANO-CICLO-DA-TURMA.md` §2.1 mediu **entre** arquivos («quatro fontes,
+  quatro respostas») acontecendo **dentro de um documento só**.
+
+**O que foi decidido.**
+
+- **A seção passa a ser «Objetivos por bloco e por aula»**, e a tabela é o cruzamento:
+  **Bloco · Objetivo específico · Aula**. O nome foi escolhido pela pesquisadora entre quatro
+  opções; os outros três eram «Blocos, objetivos e aulas», «Onde cada objetivo é trabalhado» e
+  «Cruzamento: bloco × objetivo × aula». O nome evita «sequência», que remetia à aula, e evita
+  «bloco» sozinho, que se lia como ciclo.
+- **Uma linha por PAR bloco × objetivo** — 14 exercícios viram **7** linhas na `batata`. O
+  exercício escolhe-se na aula; o plano diz **onde aquele objetivo é trabalhado e em que aula**.
+- **A coluna «Aula» não é uma segunda declaração.** O objetivo `N` é a N-ésima linha de
+  `marcosPorAula`, e o número da aula é o campo `n` dessa linha — a mesma conta que
+  `linhasDaEstrutura` já fazia. É por isso que a tabela **cresce sozinha** quando o professor
+  acrescenta marcos, e não pode divergir do plano.
+- **Ela é DERIVADA no gerador, como o calendário.** Escrita na fonte, seria o retrato do dia da
+  elicitação. A fonte guarda o marcador `<!-- OBJETIVOS -->`, e `gerar-ciclo.sh` o troca pela
+  tabela de `tools/tabela-objetivos.js`, que lê `plano-XX.json` + a lista de aulas que o pacote
+  vai ter (`$DOCS`).
+- **O link só existe quando a página existe.** `aula-NN.html#sequencia-declarada` quando o
+  documento está no pacote; «Aula NN *(a criar)*» quando não está; `—` quando o objetivo não é
+  marco de aula nenhuma. Nada é adivinhado — link para página inexistente é âncora morta.
+- **O detalhe não se perdeu: ele já estava na aula.** `derivar-ciclo.js` escreve a
+  `aula-01.md` a partir da mesma resposta, com bloco, exercício, objetivo, tempos e compasso —
+  e o âncora `#sequencia-declarada` é o destino do link. O movimento que fica para depois é o
+  inverso: fazer a **aula** ser a dona da sequência, com o formulário a preenchê-la.
+- **A ficha de identificação sai do «Objetivo geral».** O `## Contexto` fica como está (é a
+  ficha do ciclo, e é de lá que a máquina lê a duração); o `## Calendário do Ciclo` idem. O que
+  sai é a terceira cópia.
+- **O que a máquina perde, e porquê não faz falta.** A chave `ciclo` do `plano-XX.json` deixa de
+  ser produzida, e `sequenciaDeExercicios` sai com ela. Nenhuma das duas tinha consumidor: a
+  única leitura da duração era a de `tools/lib-vistas.js`, e ela já tem a reserva em
+  `contexto.duracaoPorAula`, que é onde o dado nasce. O `required` do schema do plano perde
+  `ciclo` nas **12** cópias (`professores/*/ciclos/ciclo-01-plano-schema.json`). O alias do mapa
+  do extrator para «sequência de exercícios por bloco» **fica**: há documento no repositório que
+  ainda a escreve, e ele extraía antes desta mudança.
+
+**Onde entrou.**
+
+- `motor/nucleo/derivar-plano-ciclo.js` — o «Objetivo geral» só com a prosa; a seção nova com o
+  marcador; os dois construtores que ficaram sem uso (`tabelaDeIdentificacao`,
+  `tabelaDaSequencia`, com as `LACUNA_*` e `COLUNAS_DA_SEQUENCIA`) apagados em vez de deixados
+  mortos.
+- `tools/tabela-objetivos.js` — **novo**: o cruzamento, com as duas formas da estrutura (prosa
+  legada e a matriz de objetos que a porta grava) e a nota que acompanha a tabela.
+- `tools/gerar-ciclo.sh` — a injeção do marcador, com a mesma guarda do `<!-- CALENDARIO -->`
+  (falha alto se o marcador não aparecer exactamente uma vez).
+- `tools/validar-plano-ciclo.js` — o comentário do alias da sequência, que agora explica por que
+  ele fica.
+- `professores/*/ciclos/ciclo-01-plano-schema.json` — `ciclo` fora do `required`, nas 12 cópias.
+- `professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md` — a fonte
+  reestruturada (o detalhe sai, o marcador entra, a ficha duplicada sai).
+- `.gitignore` — o `!` que versiona a prova nova.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e três
+ficheiros de lá mudaram. **Por quê:** o apanhado é DERIVADO e cresce com as aulas — escrito na
+fonte, seria um retrato do dia da elicitação —, e quem deriva no dia da geração é o gerador; o
+extrator e o schema precisam de acompanhar a seção que mudou de nome e de conteúdo. **O que não
+muda:** a fórmula de hash e a cobertura da âncora (`.fipp`), os validadores existentes (o do
+plano valida os mesmos quatro obrigatórios, agora sem `ciclo`), as 22 pétreas, as 17 regras, o
+`check-pacote` e o contrato do lançamento (que lê `marcosPorAula` e `reguaDaRubrica`, ambos
+intactos). **Reancoragem declarada:** a fonte do plano mudou; a âncora foi regerada
+(`tools/hash-ciclo.sh cafe-no-bule 01 batata-bale-nivel-2-teste-2` → `hash_conteudo b3e2dfc…`,
+hash `b6ce100…`; `--check` diz «cadeia intacta») e o pacote foi regerado na mesma passagem
+(`gerar-ciclo.sh cafe-no-bule 01 batata-bale-nivel-2-teste-2`).
+
+**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js`, `tools/tabela-objetivos.js`,
+`tools/gerar-ciclo.sh`, `tools/validar-plano-ciclo.js`, as 12 cópias de
+`ciclo-01-plano-schema.json`, a fonte do plano da `batata` e os `.fipp` das duas cadeias,
+`experimentos/provar-objetivos-por-aula.js`, `.gitignore`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** A regra que separa os quatro documentos (`PLANO-AULA-E-OBSERVACAO.md` §4, com a
+frase que decidiu tudo: «o plano é o acervo; a aula é a escolha»); a decisão `sequência` de
+25/10/2026 (herança mista, editável na aula); a Regra 3 (Solo → Barra → Centro) e a Regra 9,
+etapa 2 (distribuição por bloco); o `PLANO-CICLO-DA-TURMA.md` §2.1 (a mesma doença entre
+arquivos); `CONGELAMENTO.md`.
+
+**Medido.** `provar-objetivos-por-aula` **24/24** — 14 exercícios → 7 pares, «Solo» 1× por
+objetivo, a ordem dos blocos, as três colunas, nenhuma coluna de detalhe, o link vivo para
+`aula-01.html#sequencia-declarada`, «a criar» sem documento, `—` sem marco, a lacuna declarada
+sem estrutura, o marcador substituído na página, e nenhuma tabela sob o «Objetivo geral».
+**Controle negativo** contra `HEAD`: a fonte antiga tinha 14 linhas com «Solo» 4× e não tinha
+nem a seção nem o marcador — a prova descreve um defeito que existiu. `provar-aula-e-plano-legiveis`
+**12/12** (o documento que o gerador escreve continua legível pelo validador);
+`provar-publicacao-da-escola` **55/55**; `provar-listas-do-acervo` **109/109**;
+`provar-barra-unica` **111/111**; `provar-porta-sem-contexto` **44/44**;
+`check-identidade` **20 ok, 0 erro**; `check-pacote` da `batata` **0 erro, 0 aviso** (PDF
+regerado, 21 páginas, 90 links internos). `provar-producao` **150/151** — a mesma asserção
+conhecida («o item do menu fica marcado», o `classList` do DOM falso), que não é do produto.
+
+**O que ainda não está feito.**
+
+- **Três fusões do plano ficaram por fazer, e elas precisam de uma decisão de mecanismo.** O
+  extrator mapeia **um título `##` → uma chave**; juntar «Régua da rubrica» + «Rubrica de
+  avaliação final» (ou «Músicas e vídeos» + «Repertório») numa seção só faria o dado da segunda
+  **desaparecer do `plano-XX.json` em silêncio** — o modo de falha que este repositório já
+  pagou caro. Para fundir é preciso ensinar o extrator a ler subseções (`###`) como campos
+  irmãos, e isso toca o contrato que o lançamento lê (`reguaDaRubrica`). Fica para a próxima
+  passagem, com decisão explícita.
+- **«Critério de extensão» não foi renomeado.** O texto vago que a pesquisadora leu («estender o
+  ciclo em duas aulas…») é **dado de teste** do fixture (`teste/batata.json`), não código — e
+  contradiz o `+4 aulas` que o calendário calcula. O conserto é de conteúdo (a resposta da
+  elicitação) e de redação do rótulo, não da derivação.
+- **A sequência ainda não é da aula.** O plano deixou de a publicar; a aula já a tem, mas quem a
+  escreve continua a ser a elicitação do plano (`aula-1-sequencia`). Tornar a **aula** a dona do
+  detalhe — com o formulário a preenchê-la — é o movimento que a pesquisadora adiou de propósito.
+- **Só a `batata` foi regerada.** Os outros pacotes (`calango`, e os que o `publicacao/` guarda)
+  mantêm a fonte antiga e a página antiga: o gerador só injeta o marcador em quem o tem, e é
+  migração por regeneração, não por reescrita.
+- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar. O
+  `deploy-escolas.yml` monta `publicacao/batata/` antes de subir, e é um push que toque
+  `tools/montar-publicacao.js`/`motor/**` que o dispara.

@@ -14,14 +14,6 @@
     "notacaoDominada": "Benesh"
   },
   "objetivoGeral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
-  "ciclo": {
-    "duracaoAulas": "26 aulas",
-    "duracaoMinutos": "1 hora",
-    "inicio": "2027-02-02",
-    "encerramento": "2027-04-29",
-    "volumeAtivoPorAula": "3–6 séries",
-    "professor": "cafe-no-bule"
-  },
   "marcosPorAula": [
     {
       "n": "01",
@@ -62,106 +54,6 @@
       "bloco": "Musicalidade",
       "proporcaoAlvo": "10%",
       "justificativa": "Pulso e frase."
-    }
-  ],
-  "sequenciaDeExercicios": [
-    {
-      "bloco": "Solo",
-      "objetivoEspecifico": "1 — reconhecer o apoio e alinhar o eixo vertical",
-      "conteudoDoNivel": "Plié",
-      "tempos": "8",
-      "compasso": "4/4"
-    },
-    {
-      "bloco": "Solo",
-      "objetivoEspecifico": "1 — reconhecer o apoio e alinhar o eixo vertical",
-      "conteudoDoNivel": "Battement tendu",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Solo",
-      "objetivoEspecifico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-      "conteudoDoNivel": "Rond de jambe",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Solo",
-      "objetivoEspecifico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-      "conteudoDoNivel": "Battement tendu",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Barra",
-      "objetivoEspecifico": "1 — reconhecer o apoio e alinhar o eixo vertical",
-      "conteudoDoNivel": "Plié",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Barra",
-      "objetivoEspecifico": "1 — reconhecer o apoio e alinhar o eixo vertical",
-      "conteudoDoNivel": "Battement tendu",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Barra",
-      "objetivoEspecifico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-      "conteudoDoNivel": "Plié",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Barra",
-      "objetivoEspecifico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-      "conteudoDoNivel": "Port de bras",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Centro",
-      "objetivoEspecifico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-      "conteudoDoNivel": "Plié",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Centro",
-      "objetivoEspecifico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-      "conteudoDoNivel": "Port de bras",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Centro",
-      "objetivoEspecifico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-      "conteudoDoNivel": "Rond de jambe",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Centro",
-      "objetivoEspecifico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-      "conteudoDoNivel": "Battement tendu",
-      "tempos": "[a decidir]",
-      "compasso": "[a decidir]"
-    },
-    {
-      "bloco": "Barra",
-      "objetivoEspecifico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-      "conteudoDoNivel": "Battement tendu",
-      "tempos": "8",
-      "compasso": "4/4"
-    },
-    {
-      "bloco": "Centro",
-      "objetivoEspecifico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-      "conteudoDoNivel": "Port de bras",
-      "tempos": "16",
-      "compasso": "3/4"
     }
   ],
   "condicoesPreliminares": [

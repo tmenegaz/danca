@@ -364,3 +364,9 @@ TRANSFERENCIA-IA.md
 # defeito que guarda é invisível no HTML: a página chegava a ser SERVIDA, e só o JavaScript dela a
 # descartava. Um `curl` mostrava `200` e uma página inteira; só a tela mostrava a pálida.
 !experimentos/provar-porta-sem-contexto.js
+
+# O PLANO PUBLICA O APANHADO, E O DETALHE FICA NA AULA (26/10/2026). A prova mede a tabela
+# derivada (14 exercícios → 7 pares), o link para a sequência dentro da aula, e que a ficha de
+# identificação duplicada saiu. O controle negativo dela lê a fonte de `HEAD` e confirma a
+# duplicação que ela guarda — sem isso, «conferi» seria a minha palavra.
+!experimentos/provar-objetivos-por-aula.js

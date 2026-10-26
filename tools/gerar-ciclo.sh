@@ -714,6 +714,35 @@ if marca != 1:
 alvo.write_text(texto.replace('<!-- CALENDARIO -->', cal), encoding='utf-8')
 PY
   fi
+  # «OBJETIVOS POR BLOCO E POR AULA» (26/10/2026) — a tabela-resumo do plano, e o MESMO
+  # mecanismo do calendário logo acima, pela mesma razão: ela é DERIVADA e CRESCE.
+  #
+  # O que ela substitui é a tabela inteira da sequência (bloco · objetivo · conteúdo do nível ·
+  # tempos · compasso), que duplicava linha a linha o que a `aula-NN.md` já tem — as duas vêm da
+  # MESMA resposta da elicitação. Aqui sai o cruzamento bloco × objetivo → a aula em que aquele
+  # objetivo é o marco, com link para a sequência detalhada dentro da aula.
+  #
+  # Escrita na FONTE, ela seria o retrato do dia da elicitação: o professor acrescenta marcos ao
+  # plano e a tabela não cresceria. Por isso é o gerador que a monta, de `plano-$CICLO.json`
+  # (já extraído acima) mais a lista de aulas que o pacote vai ter. O link só aparece quando a
+  # página da aula existe de facto — link para página inexistente é âncora morta.
+  if grep -q '<!-- OBJETIVOS -->' "$destino"; then
+    node "$RAIZ/tools/tabela-objetivos.js" "$PACOTE/plano-$CICLO.json" $DOCS > "$TMP/objetivos.md" \
+      || { echo "erro: não consegui montar «Objetivos por bloco e por aula» (plano-$CICLO.json)." >&2; exit 1; }
+    python3 - "$destino" "$TMP/objetivos.md" <<'PY'
+import sys, pathlib
+alvo = pathlib.Path(sys.argv[1])
+tabela = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8').strip()
+texto = alvo.read_text(encoding='utf-8')
+# A mesma armadilha do `<!-- CALENDARIO -->`: o `replace` sem limite injetaria a tabela em
+# TODAS as ocorrências, e a tabela repetida repetiria as linhas do cruzamento.
+marca = texto.count('<!-- OBJETIVOS -->')
+if marca != 1:
+    sys.exit('%s: marcador <!-- OBJETIVOS --> aparece %d vezes (esperado 1).'
+             % (alvo.name, marca))
+alvo.write_text(texto.replace('<!-- OBJETIVOS -->', tabela), encoding='utf-8')
+PY
+  fi
 done
 
 # Âncoras estáveis: são as mesmas no HTML (#id da página) e no PDF (#id da seção),

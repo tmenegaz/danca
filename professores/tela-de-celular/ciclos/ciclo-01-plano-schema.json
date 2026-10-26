@@ -91,6 +91,6 @@
       "description": "LACUNA DECLARADA: o calendário NÃO está no .md. A seção tem o marcador `<!-- CALENDARIO -->`, e quem o preenche é o gerador, com o bloco calculado do .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais). O extrator declara isso em vez de inventar uma data."
     }
   },
-  "required": ["objetivoGeral", "ciclo", "marcosPorAula", "rubrica", "proveniencia"],
+  "required": ["objetivoGeral", "marcosPorAula", "rubrica", "proveniencia"],
   "additionalProperties": true
 }

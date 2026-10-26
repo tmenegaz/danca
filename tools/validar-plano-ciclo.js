@@ -53,6 +53,11 @@ const MAPA_SECOES = {
   // a mesma armadilha da distribuição, uma data depois. O conteúdo chegava ao `.md` e não ao
   // `plano-XX.json` do pacote: quem lê o plano pela máquina (as vistas e o guia) não tinha a
   // linha da aula — os exercícios, os objetivos que cada um trabalha e os tempos.
+  //
+  // ELA SAIU DO PLANO EM 26/10/2026 — o alias fica, e não é preguiça: há documento no
+  // repositório que ainda escreve a seção (`experimentos/`, planos antigos), e ele extraía
+  // antes desta mudança. O que mudou é que a derivação já não a emite: o detalhe vive na
+  // `aula-NN.md`, e o plano publica o apanhado (`## Objetivos por bloco e por aula`).
   'sequência de exercícios por bloco': 'sequenciaDeExercicios',
   // A RÉGUA virou seção própria (14/10/2026): é uma LISTA de níveis — o que o lançamento da
   // aula lê para marcar. O cabeçalho da tabela da rubrica perde o rótulo no extrator (vira

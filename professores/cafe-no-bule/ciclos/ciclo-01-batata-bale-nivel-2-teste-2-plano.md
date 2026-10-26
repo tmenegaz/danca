@@ -30,15 +30,6 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.
 
-| Item | Valor |
-|:--|:--|
-| **Duração** | 26 aulas |
-| **Duração de cada aula** | 1 hora |
-| **Data de início** | 2027-02-02 |
-| **Encerramento previsto** | 2027-04-29 |
-| **Volume ativo por aula** | 3–6 séries |
-| **Professor** | cafe-no-bule |
-
 ## Marcos parciais por aula
 
 | Aula | Objetivo específico (marco parcial) |
@@ -67,24 +58,9 @@ Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turm
 
 > **Unidade: percentual.** A proporção alvo é a fatia da aula — a soma fecha em 100%.
 
-## Sequência de exercícios por bloco
+## Objetivos por bloco e por aula
 
-| Bloco | Objetivo específico | Conteúdo do nível | Tempos | Compasso |
-|:--|:--|:--|:--|:--|
-| **Solo** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Plié** | **8** | **4/4** |
-| **Solo** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Battement tendu** | [a decidir] | [a decidir] |
-| **Solo** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Rond de jambe** | [a decidir] | [a decidir] |
-| **Solo** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Battement tendu** | [a decidir] | [a decidir] |
-| **Barra** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Plié** | [a decidir] | [a decidir] |
-| **Barra** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Battement tendu** | [a decidir] | [a decidir] |
-| **Barra** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Plié** | [a decidir] | [a decidir] |
-| **Barra** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Port de bras** | [a decidir] | [a decidir] |
-| **Centro** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Plié** | [a decidir] | [a decidir] |
-| **Centro** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Port de bras** | [a decidir] | [a decidir] |
-| **Centro** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Rond de jambe** | [a decidir] | [a decidir] |
-| **Centro** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Battement tendu** | [a decidir] | [a decidir] |
-| **Barra** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Battement tendu** | **8** | **4/4** |
-| **Centro** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Port de bras** | **16** | **3/4** |
+<!-- OBJETIVOS -->
 
 ## Condições preliminares
 
