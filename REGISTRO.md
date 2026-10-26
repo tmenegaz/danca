@@ -25317,6 +25317,17 @@ asserções — as referências entram também na medição do telemóvel), `pro
 **0 erro, 0 aviso**. E, medido no `nav.json` remontado da bancada: o grupo «Ciclos» tem um item —
 «Planos» — e `publicacao/batata/ciclos/` já só contém `planos/`.
 
+> **Correção de 26/10/2026 (mais tarde, mesmo dia).** Esta entrada concluiu que a cura era
+> `align-self: start` + `height`. **A conclusão está errada, e o pedido não ficou atendido** — a
+> pesquisadora voltou a dizer, na tela: «ele continua rolando junto… tem que ficar completamente
+> congelado». O diagnóstico do `stretch` era verdadeiro e insuficiente: mesmo com `align-self:
+> start`, um `sticky` não tem percurso quando o contentor é tão alto como o elemento, e é esse o
+> caso das telas de trabalho (o `.corpo` da Produção mede 700px, a `lateral` mede 700px). A cura
+> é `position: fixed`, como a coluna do sistema — ver a entrada seguinte, «O menu da Produção fica
+> congelado — `sticky` não servia». A redação acima não é apagada: fica como o elo que registra o
+> que se pensou antes da correção.
+
+
 ## 26/10/2026 — O menu da Produção não rola com a página: era o `sticky` anulado por uma linha ao lado
 
 **O que motivou.** «Na área do sistema lastro… eu estou em aulas e, quando rolo essa página, o menu
@@ -25369,3 +25380,56 @@ Medido: `provar-menu-da-producao` **51/51** (13 asserções novas); o **controle
 (`--controle-negativo`, o motor do `HEAD` anterior) **reprova 8** — as oito desta secção, com o menu
 a ir para `−540` e a base a `1916` numa janela de `300`. `provar-barra-e-caminho` 47/47,
 `check-identidade` 0 erro.
+
+## 26/10/2026 — O menu da Produção fica congelado: `sticky` não serve, e a prova anterior media o que ela criava
+
+**O que motivou.** A correção anterior não atendeu o pedido, e a pesquisadora voltou a dizê-lo na
+tela: «a solução do menu lateral de quando eu estou nos bastidores em produção não deu certo. Quando
+eu rolo a página, ele continua rolando junto. Ele tem que ficar estático, completamente congelado.»
+E trouxe o sintoma ao lado: «eu não sei o que que está gerando o scroll vertical, porque eu estou
+numa página que não tem elemento suficiente para ter um scroll.»
+
+**O diagnóstico, medido na página real.** A página real do «Painel inicial» (paginada, 6 itens, 13
+páginas) mede: `.corpo` = **700px**, `.lateral` = **700px**. Um `sticky` só se desloca dentro da
+caixa do contentor — e aqui o contentor tem exactamente a altura do elemento. Zero de percurso. O
+`sticky` ficava parado em relação ao documento, e rolava com ele. Na página de Turmas acontece o
+mesmo por outra via: a listagem rola dentro de si (`.col-lista .rolagem`), a página quase não
+cresce, e a área da grade também não. **`sticky` funciona em páginas de documento; estas são telas
+de trabalho.**
+
+**O que foi decidido.**
+
+- **`position: fixed`** na `.lateral`, como a coluna do sistema: `left: 0; top:
+  var(--header-height); bottom: 0; width: 11rem; z-index: 15`. Não depende da altura de nada.
+- **A faixa é reservada no `.corpo`**: `grid-template-columns` passa a uma coluna e o
+  `padding-left: calc(11rem + var(--esp-4) + var(--esp-5))` paga a mesma geometria de antes (o
+  conteúdo começa a 220px — medido, antes e depois).
+- **A página que cabe na tela deixa de rolar**: `body:has(.corpo){padding-bottom:0}`. Os 40px que a
+  folha reserva em baixo para o texto de um documento viravam barra de rolagem numa tela que cabe
+  inteira — era essa a origem do «scroll vertical» que a pesquisadora não encontrava.
+- **No celular, nada disto vale**: a regra de ≤768px já punha `position: static`, e passa a repor
+  também `width: auto` e `z-index: auto` — sem isso a barra do celular herdaria os 11rem do menu
+  lateral e um `z-index` a competir com a folha.
+
+**A LIÇÃO É SOBRE PROVAS, E FICA ESCRITA.** A prova anterior desta secção enchia a página com
+2400px de conteúdo «para haver rolagem» — e com isso dava ao `sticky` o percurso que ele precisa. Ela
+passou, e o produto continuou quebrado: **media uma situação que ela própria criava**. A secção
+passou a medir **primeiro a página curta**, que é a real, e só depois a longa.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (as regras `.lateral`, `.corpo` e o `padding-bottom`
+do `body`), `experimentos/provar-menu-da-producao.js` (a secção reescrita e a do celular),
+`IDENTIDADE-VISUAL.md` (a secção «O menu de trabalho não rola com a página», reescrita),
+`.github/instructions/identidade-visual.instructions.md`, `REGISTRO.md` — com **nota de correção
+datada** dentro da entrada anterior, que não é apagada.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-menu-da-producao.js`,
+`IDENTIDADE-VISUAL.md`, `.github/instructions/identidade-visual.instructions.md`, `REGISTRO.md`.
+
+**O que ainda não está feito.** O push continua pendente: o `GITHUB_TOKEN` do `.dev.vars` responde
+**401**. O deploy foi feito localmente (é o mesmo caminho do workflow).
+
+Medido: `provar-menu-da-producao` **55/55** — a página curta não rola (`documento − janela ≤ 2`) e o
+menu **não se move um pixel**; a longa rola 600px e ele fica; a janela a 300px e o menu rola dentro
+de si; a 390px a barra do celular fica `static`, com a largura da coluna e sem transbordo. O
+**controle negativo** contra o commit anterior **reprova 4** — as da página curta, com o menu de 60
+para 20 em 40px de rolagem. `provar-painel-do-ato` TUDO CERTO; `check-identidade` 0 erro.

@@ -2128,18 +2128,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A ALTURA É A DA JANELA porque a coluna do sistema também o é: um painel que acaba a meio
     // da página lê-se como um cartão, e não como o menu da casa.
     //
-    // E O MENU FICA, A PÁGINA ANDA (26/10/2026). O `position: sticky` estava aqui desde sempre e
-    // não fazia nada: com `align-self: stretch`, o item da grade esticava até à altura da LINHA
-    // — a altura do conteúdo inteiro —, e um sticky tão alto como o seu contentor não tem para
-    // onde deslizar. O resultado medido: rolar 600px levava o menu 600px para cima, e o menu
-    // saía da tela. `align-self: start` devolve-lhe a altura própria, e o `height: 100vh -
-    // barra` é o que o mantém inteiro dentro da janela quando está preso (o `min-height` só
-    // garantia a altura mínima; com conteúdo mais alto do que a tela, o menu preso passaria
-    // dela). O `overflow-y: auto` já cá estava, e passa a ser ele que rola o menu quando o menu
-    // é mais alto do que a tela — como na coluna do sistema, que é `fixed` e rola dentro de si.
-    '.lateral{position:sticky;top:var(--header-height);align-self:start;' +
-    'height:calc(100vh - var(--header-height));' +
-    'margin:calc(-1 * var(--esp-5)) 0 calc(-1 * var(--esp-6)) calc(-1 * var(--esp-4));' +
+    // E O MENU FICA CONGELADO, A PÁGINA ANDA (26/10/2026, refeito no mesmo dia).
+    //
+    // A PRIMEIRA TENTATIVA FOI `sticky`, E NÃO PODIA FUNCIONAR — e a razão é de facto: um
+    // elemento `sticky` só se desloca DENTRO da caixa do seu contentor. Aqui o contentor é a
+    // área da grade (`.corpo`), e a altura dessa área é a do conteúdo. Medido na página real do
+    // «Painel inicial», que é paginada: `.corpo` = 700px, a `lateral` = 700px. Zero de percurso.
+    // O `sticky` ficava parado em relação ao documento, e rolava com ele — que é exactamente o
+    // que se via. Na página de Turmas acontece o mesmo por outra via: a listagem rola DENTRO de
+    // si (`.col-lista .rolagem`), a página quase não cresce, e a área da grade também não.
+    //
+    // A COLUNA DO SISTEMA ACERTA PORQUE É `fixed` — e é isso que se copia aqui. `fixed` não
+    // depende de altura nenhuma: encosta na janela e fica. O preço é que a `lateral` deixa de
+    // ocupar a célula da grade, e a coluna que ela ocupava passa a ser reservada no `padding` do
+    // `.corpo` — mesma geometria, outro mecanismo.
+    '.lateral{position:fixed;left:0;top:var(--header-height);bottom:0;width:11rem;z-index:15;' +
     'padding:var(--esp-4) var(--esp-3) var(--esp-5);' +
     'background:var(--marca-fundo);color:var(--sobre-marca);border-right:3px solid var(--ornamento-forte);' +
     'overflow-y:auto;}' +
@@ -2160,7 +2163,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // painel usa os MESMOS 14px e não tem teto de largura: o menu alinha com a barra, e a
     // listagem fica com toda a largura que sobra (era o pedido: «pode dobrar o tamanho»).
     // O formulário continua com o teto dele (34rem) — quem cresce é a coluna da lista.
-    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:var(--esp-5);align-items:start;padding:var(--esp-5) var(--esp-4) var(--esp-6);}' +
+    // A COLUNA DO MENU PASSA A SER RESERVADA AQUI (26/10/2026). Como a `lateral` é `fixed`, ela
+    // já não ocupa a célula da grade — a grade fica com UMA coluna, e a faixa do menu é paga no
+    // `padding-left`: 11rem (a largura do menu) + os dois espaçamentos que separavam as colunas
+    // (o `esp-4` de padding e o `esp-5` do `gap`). É a MESMA geometria de antes, medida: o
+    // conteúdo começava a 220px, e continua a começar.
+    '.corpo{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;' +
+    'padding:var(--esp-5) var(--esp-4) var(--esp-6) calc(11rem + var(--esp-4) + var(--esp-5));}' +
+    // A PÁGINA QUE CABE NA TELA NÃO ROLA (26/10/2026). «Eu não sei o que que está gerando o scroll
+    // vertical, porque eu estou numa página que não tem elemento suficiente para ter um scroll.»
+    // Era isto: o `body` da folha reserva 40px de padding em baixo, para o texto de um documento
+    // não encostar na borda. Numa página de trabalho, que já tem o seu próprio respiro (o
+    // `esp-6` do `.corpo`), esses 40px sobram e viram uma barra de rolagem de 40px numa página
+    // que cabe inteira — e um menu `sticky` andava esses 40px com ela.
+    'body:has(.corpo){padding-bottom:0;}' +
     '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     // O ACORDEÃO DAS SECÇÕES DE UMA COISA SÓ (18/10/2026). O título é o cabeçalho — não há
     // barra de passos para preservar, e inventar um segundo título seria duplicar o que já
@@ -2592,8 +2608,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
       // NO CELULAR A COLUNA VIRA A BARRA + A FOLHA (não a coluna escura): a barra diz onde se
       // está e o «Seções» abre a folha. Sem fundo e sem filete — o fundo escuro é da coluna.
-      '.lateral{position:static;height:auto;min-height:0;margin:0;border-right:none;background:none;' +
-        'color:inherit;overflow:visible;padding:0 0 var(--esp-3);}' +
+      // `width: auto` e `z-index: auto` desfazem o que a tela larga impôs (26/10/2026): sem eles
+      // a barra do celular continuaria com os 11rem do menu lateral, e um `z-index` a competir
+      // com a folha que sobe de baixo.
+      '.lateral{position:static;width:auto;height:auto;min-height:0;margin:0;z-index:auto;' +
+        'border-right:none;background:none;color:inherit;overflow:visible;padding:0 0 var(--esp-3);}' +
       '.lateral-barra{display:flex;align-items:center;gap:var(--esp-3);}' +
       // A BARRA DA PÁGINA SAI DE QUADRO AO ROLAR (18/10/2026). Ela está no fluxo, logo
       // abaixo do menu fixo: sem isto, ela descia por baixo do menu e ficava MEIO visível —

@@ -64,13 +64,17 @@ o caminho na barra e a marca no menu»** de `IDENTIDADE-VISUAL.md`. As provas qu
 
 ## O menu de trabalho não rola com a página (norma, 26/10/2026)
 
-Os dois menus que servem para navegar **ficam** enquanto a página rola: a coluna do sistema
-(`.coluna`, `position: fixed`) e a lateral da Produção (`.lateral`, `position: sticky` com
-`align-self: start` e `height: calc(100vh - var(--header-height))`). Se o menu for mais alto do que
-a janela, ele rola **dentro de si** (`overflow-y: auto`) — nunca a página a empurrá-lo para fora, e
-nunca com a caixa a crescer até à altura do conteúdo (era isso que anulava o `sticky`).
+Os dois menus que servem para navegar **ficam congelados** enquanto a página rola, e pelo mesmo
+mecanismo: `position: fixed`. A coluna do sistema (`.coluna`) e a lateral da Produção (`.lateral`,
+`fixed` com `top: var(--header-height)` e `bottom: 0`, e a faixa reservada no `padding` do `.corpo`).
 
-No celular nada disto vale: abaixo de 768px a `.lateral` é uma barra com o botão «Seções».
+**`sticky` não serve nestas telas**, e é uma armadilha que já custou uma tentativa: ele só se desloca
+dentro da caixa do contentor, e numa tela de trabalho o contentor é tão alto como o elemento (o
+`.corpo` da Produção mede o mesmo que a `lateral`). Se o menu for mais alto do que a janela, rola
+**dentro de si** (`overflow-y: auto`).
+
+No celular nada disto vale: abaixo de 768px a `.lateral` é uma barra com o botão «Seções»
+(`position: static; width: auto; z-index: auto`).
 A secção **«O menu de trabalho não rola com a página»** de `IDENTIDADE-VISUAL.md` tem o porquê e a
 medida; a prova é a `provar-menu-da-producao.js` (e ela tem controle negativo).
 
