@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T12:22:20-0300`
-Commit atual: `d67262d` — docs(registro): o apanhado do plano publicado, e o que se mediu ao ar
+Gerado em: `2026-10-26T13:01:43-0300`
+Commit atual: `e3d9297` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,9 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+e3d9297 chore(estrutura): regerar os índices derivados
+612679a docs(estrutura): o HANDOFF regerado sobre o objetivo do ciclo e a régua única
+1c8795c fix(ciclo-01): o objetivo é do ciclo, a estrutura é da aula, e a régua é uma só
 d67262d docs(registro): o apanhado do plano publicado, e o que se mediu ao ar
 6936b11 chore(estrutura): regerar os índices derivados
 7c6858f docs(estrutura): o HANDOFF regerado sobre o apanhado do plano
@@ -95,9 +98,6 @@ acfab1f fix(estrutura): o menu da Produção não rola com a página — o `stic
 d8f7137 refactor(estrutura): referências deixa de ser item do menu, e passa a ser documento de Planos
 68b1a5b fix(estrutura): o documento acende a lista de onde veio, e a marca não se perde ao aprofundar
 e233713 fix(folha): uma só identidade — a folha que sobe, a pílula e o menu dos Bastidores
-abae841 fix(folha): o submenu do «Bastidores» cabe na janela
-9bda75f fix(area-do-professor): o menu não se perde no formulário, e o bloco abre com o trabalho à espera
-5650e69 feat(area-do-professor): o caminho na barra, o «Ajustar» com o registo, e o «Sair» que sai
 ```
 
 ## Por professor
@@ -317,7 +317,34 @@ em `HEAD` tem prazo de validade**.
 - **`Músicas e vídeos` e `Repertório` continuam separados** — decisão desta data: sem fusão.
 - **Os outros pacotes não foram regerados.** O gerador só emite as secções novas para quem tem a
   fonte nova; a migração é por regeneração, e cada escola a faz quando for regerada.
-- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar.
+- **A estrutura própria de cada AULA não é lida pelo documento da aula.** A decisão é que o
+  ciclo declare o padrão e a aula a sua; hoje a `aula-NN.md` imprime o volume do ciclo e a sua
+  tabela sai com uma linha de total. Falta o formulário perguntá-la — etapa 2.
+
+**Publicado, e conferido ao ar.** O commit da correção é `1c8795c` (e o `HANDOFF` regerado veio em
+`612679a`). O push disparou **quatro** workflows, e os quatro fecharam em **`success`** sobre
+`612679a`: «Reancorar a cadeia», «Regerar os índices», «Publicar a raiz» e «Publicar as escolas».
+O «Regerar os índices» commitou `e3d9297` (`chore(estrutura): regerar os índices derivados`); o
+rebase sobre ele deixou a história linear, e a âncora continua íntegra (`--check`: `068ab0b…`,
+«cadeia intacta»), com o `check-pacote` em 0 erro e 0 aviso.
+
+Conferido ao ar na `batata`, em **uma carga** de `/bale-nivel-2-teste-2/plano`: http **200**,
+**13** secções, «Objetivos específicos» com **3** linhas, «Marcos parciais por aula» com a coluna
+«Objetivos», «Blocos da aula e distribuição do volume» com **4**, o apanhado com **7**, «Horizonte
+do ciclo» no lugar de «Critério de extensão», e **nem** a tabela de critérios **nem** «Estrutura de
+cada aula».
+
+**Correção de 26/10/2026 (mesmo dia).** A primeira redação desta entrada fechava com «**NÃO ESTÁ
+PUBLICADO**» — verdade quando foi escrita, e falsa minutos depois. A redação não é apagada: a nota
+fica como o elo que registou o trabalho antes de ele sair de casa; o que se publicou, e o que se
+mediu ao ar, está no parágrafo acima.
+
+**O mesmo hook, a mesma deriva.** O `pre-commit` regerou o pacote da `batata` depois do stage e
+deixou o `ciclos.json` (carimbo `gerado_em`, 12:21→12:59) e o PDF modificados. A deriva foi
+descartada — o par commitado já estava coerente e validado. Fica a segunda ocorrência no mesmo dia:
+o hook **escreve saída**, e um `git status` limpo depois de um commit com ciclo tocado não é
+garantido. Enquanto for assim, descartar a deriva e rebasar sobre o que o workflow commitou é o
+procedimento, não um acidente.
 
 ## O que está pendente
 
@@ -396,7 +423,9 @@ O push continua pendente: o `GITHUB_TOKEN` do `.dev.vars` responde
 - **`Músicas e vídeos` e `Repertório` continuam separados** — decisão desta data: sem fusão.
 - **Os outros pacotes não foram regerados.** O gerador só emite as secções novas para quem tem a
   fonte nova; a migração é por regeneração, e cada escola a faz quando for regerada.
-- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar.
+- **A estrutura própria de cada AULA não é lida pelo documento da aula.** A decisão é que o
+  ciclo declare o padrão e a aula a sua; hoje a `aula-NN.md` imprime o volume do ciclo e a sua
+  tabela sai com uma linha de total. Falta o formulário perguntá-la — etapa 2.
 
 ## Pendências anteriores (índice)
 
