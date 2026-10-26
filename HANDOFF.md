@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T20:56:26-0300`
-Commit atual: `41e5009` — docs(estrutura): o HANDOFF regerado sobre os nós que saíram do roteiro
+Gerado em: `2026-10-26T20:56:47-0300`
+Commit atual: `93aa16f` — fix(ciclo-01): o nó que só se lê mostra o valor, e não abre campo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+93aa16f fix(ciclo-01): o nó que só se lê mostra o valor, e não abre campo
 41e5009 docs(estrutura): o HANDOFF regerado sobre os nós que saíram do roteiro
 df224d0 fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no cabeçalho
 d635d98 docs(estrutura): o HANDOFF regerado sobre a matriz por parâmetro
@@ -97,7 +98,6 @@ c129f48 docs(estrutura): o HANDOFF regerado sobre a correção das rotas e do í
 abf8e9f fix(estrutura): a porta não se abre sem o ato, e o índice aponta para dentro da Área do Professor
 e06d905 docs(registro): a publicação conferida ao ar, e o HANDOFF sobre ela
 fe71508 docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
-e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da correção
 ```
 
 ## Por professor
