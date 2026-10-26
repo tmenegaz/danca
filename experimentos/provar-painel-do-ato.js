@@ -1107,6 +1107,56 @@ const servidor = http.createServer(async (req, res) => {
       noPc.escondido === false && noPc.aberto === false && noPc.visivel === true, noPc);
   }
 
+  console.log('\n15 · O SUBMENU «BASTIDORES» CABE NA JANELA');
+  {
+    /* O PEDIDO: «Quando ele expande, ele tá sendo engolido pela parte direita da página… aparece
+       escrito "Estúdio de Dan" e aí embaixo aparece "Produção". Não pode ser engolido pela margem
+       direita.»
+       E era: o submenu abria a partir da ESQUERDA do menu (`left: 0`) com 300px de largura fixa,
+       e o menu está na ponta direita da barra. Medido antes da correção, a 1280: o painel ia de
+       1165 a 1465 — 185px fora da janela. Como a barra é `position: fixed`, o que transborda não
+       gera rolagem: é cortado. Daí o «Estúdio de Dan…».
+       O que se mede aqui é a GEOMETRIA, em quatro larguras, nas duas páginas que importam: a
+       lista (a barra da escola) e a porta (o formulário, servido noutro caminho). */
+    const abrirOBastidores = () => p.evaluate(() => {
+      const soma = [...document.querySelectorAll('.nav-links details.menu > summary')]
+        .find((x) => /Bastidores/.test(x.textContent));
+      if (!soma) return null;
+      soma.click();
+      const det = soma.parentElement;
+      const sub = det.querySelector('.submenu');
+      const r = sub.getBoundingClientRect();
+      const itens = [...sub.querySelectorAll('a')].map((a) => {
+        const x = a.getBoundingClientRect();
+        return { texto: a.textContent.trim(), esquerda: Math.round(x.left),
+          direita: Math.round(x.right), cortado: a.scrollWidth > a.clientWidth + 1 };
+      });
+      return { esquerda: Math.round(r.left), direita: Math.round(r.right),
+        largura: Math.round(r.width), janela: window.innerWidth,
+        fora: Math.round(Math.max(0, r.right - window.innerWidth)),
+        foraEsquerda: Math.round(Math.max(0, -r.left)),
+        itens };
+    });
+    for (const largura of [1440, 1280, 1150]) {
+      /* A PORTA COM `ajustar=`: sem ele a trava devolve à lista, e a navegação a meio da medição
+         destruía o contexto de execução. O que se quer medir é a barra da PORTA — e a porta, para
+         ficar de pé, precisa de um registo. */
+      for (const caminho of ['/area-do-professor/anamnese/',
+        '/anamnese/?ajustar=anamnese-20261020&professor=cafe-no-bule&ciclo=01&aluna=Aluna+A']) {
+        await abrir(caminho, largura);
+        await new Promise((r) => setTimeout(r, 300));
+        const m = await abrirOBastidores();
+        ok('a ' + largura + ', em ' + caminho.split('?')[0] + ': o submenu cabe na janela',
+          !!m && m.fora === 0 && m.foraEsquerda === 0, m && { fora: m.fora, caixa: m.esquerda + '..' + m.direita, janela: m.janela });
+        /* E O TEXTO INTEIRO — era isto que se perdia: «Estúdio de Dan» sem o «ça». */
+        ok('…e os dois destinos aparecem por inteiro',
+          !!m && m.itens.length === 2 && m.itens.every((i) => !i.cortado)
+          && m.itens[0].texto === 'Estúdio de Dança' && m.itens[1].texto === 'Produção',
+          m && m.itens);
+      }
+    }
+  }
+
   ok('nenhum erro de JavaScript', erros.length === 0, erros);
 
   await b.close(); servidor.close();

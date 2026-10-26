@@ -25053,3 +25053,39 @@ escondido sem ele; a 1280 fica à vista e fechado nos dois casos; fechá-lo não
 `provar-listas-do-acervo` 109/109 (secção 5c nova), `provar-painel-do-ato` tudo certo (secção 14
 nova, 6 asserções em browser), `provar-barra-e-caminho` 43/43, `check-identidade` 0 erro,
 `check-pacote` 0 erro.
+
+## 26/10/2026 — O submenu do «Bastidores» foi cortado pela margem direita
+
+**Documento congelado alterado:** `tools/templates/ciclo.css` (e as suas cópias: `raiz/assets/`,
+os dois pacotes de `professores/`). **Motivo declarado:** defeito de desenho medido, com correção de
+uma linha de regra.
+
+**O DEFEITO.** «Quando ele expande, ele tá sendo engolido pela parte direita da página… aparece
+escrito "Estúdio de Dan" e aí embaixo aparece "Produção". Não pode ser engolido pela margem
+direita.» E era literal: o submenu abria a partir da **esquerda** do menu (`left: 0`) com `300px` de
+largura fixa, e na forma com coluna o «Bastidores» está na **ponta direita** da barra. Medido no
+browser a 1280, em cinco páginas: o painel ia de `1165` a `1465` — **185px fora** da janela. A 1440,
+outros 185px.
+
+**PORQUE É QUE CORTA EM VEZ DE ROLAR.** A `.topnav` é `position: fixed`, e o que transborda de um
+elemento fixo não contribui para o `scrollWidth` do documento. Não há rolagem horizontal que o
+alcance: o painel é simplesmente cortado pela viewport. É o modo de falha mais silencioso desta
+família — a página mede bem, o texto é que desaparece.
+
+**A CORREÇÃO — uma regra, e é de simetria.** Um submenu cresce para o lado onde há espaço:
+
+```css
+.topnav[data-menu="coluna"] .nav-links .submenu { left: auto; right: 0; }
+```
+
+Na forma com coluna a barra tem **um menu só**, encostado à direita (o `justify-content: flex-end`
+que já lá estava) — por isso ele passa a abrir para a esquerda, e a borda direita do painel fica
+alinhada com a do menu. Na forma de hoje (a lista **é** o menu inteiro, à esquerda), `data-menu` não
+existe e o `left: 0` fica como estava: lá o painel tem a página inteira para crescer. A regra é da
+**forma**, e não da coluna — a distinção já estava feita para o `justify-content`, e reusá-la evita
+uma segunda condição a divergir da primeira.
+
+**Medido depois:** a 1440, 1280 e 1150, na lista e na porta, `fora: 0` e `foraEsquerda: 0`; os dois
+destinos — «Estúdio de Dança» e «Produção» — por inteiro, sem corte no texto. O `provar-barra-e-caminho`
+passa a medir a regra (45/45) e o `provar-painel-do-ato` a medir a geometria em três larguras
+(secção 15 nova, 13 asserções em browser).

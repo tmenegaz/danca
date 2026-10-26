@@ -196,6 +196,18 @@ console.log('\n4 · O Bastidores encosta à direita, e não anda com o texto');
     !/^\.topnav \.nav-links\s*\{[^}]*justify-content:\s*flex-end/m.test(css), true);
   provar('…e no painel do celular a lista volta a alinhar à esquerda',
     /\.topnav\.aberto \.nav-links \{[^}]*justify-content:\s*flex-start/.test(css), true);
+  /* O SUBMENU DO «BASTIDORES» ERA ENGOLIDO PELA MARGEM DIREITA (26/10/2026). Ele abria a partir
+     da ESQUERDA do menu (`left: 0`) com 300px de largura fixa — e o menu está na ponta direita.
+     Medido no browser a 1280 e a 1440, em cinco páginas: o painel terminava 185px FORA da
+     janela. Como a barra é `position: fixed`, o que transborda não gera rolagem: é CORTADO.
+     «Estúdio de Dan…» e, por baixo, só «Produção».
+
+     A regra é de simetria — o submenu cresce para o lado onde há espaço. Aqui mede-se a REGRA
+     (sem browser); a geometria mede-se no `provar-painel-do-ato`, que abre o menu a sério. */
+  provar('o submenu encosta à direita quando o menu encosta à direita',
+    /\.topnav\[data-menu="coluna"\] \.nav-links \.submenu\s*\{\s*left:\s*auto;\s*right:\s*0;?\s*\}/.test(css), true);
+  provar('…e o `left: 0` do desenho base continua, para a barra que não declara a forma',
+    /\.topnav \.submenu \{[^}]*left: 0/.test(css), true);
   /* O ATRIBUTO É ESCRITO PELO DESENHO — sem ele a regra acima não pega em página nenhuma. */
   const barra = nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' });
   provar('o desenho declara a forma na barra',

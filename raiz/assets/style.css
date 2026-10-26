@@ -616,6 +616,18 @@ body {
    hoje (sem coluna) nada disto se aplica: lá a lista é o menu inteiro, e alinhá-la à direita
    deixaria um vazio depois da marca. */
 .topnav[data-menu="coluna"] .nav-links { justify-content: flex-end; }
+/* O SUBMENU ENCOSTA À DIREITA COMO O MENU ENCOSTA (26/10/2026).
+ *
+ * O «Bastidores» está na ponta direita da barra, e o submenu abria a partir da ESQUERDA dele
+ * (`left: 0`) com 300px de largura fixa. Medido a 1280 e a 1440, em quatro páginas: o painel
+ * terminava 185px FORA da janela. E como a barra é `position: fixed`, o que transborda não gera
+ * rolagem — é CORTADO. Era isso que se lia como «Estúdio de Dan…» e, por baixo, só «Produção».
+ *
+ * A regra é de simetria: um submenu cresce para o lado onde há espaço. Na forma da coluna a
+ * barra tem um menu só, encostado à direita — por isso ele abre para a esquerda. Na forma de
+ * hoje (a lista É o menu inteiro, à esquerda) nada disto se aplica, e o `left: 0` fica como
+ * está: lá o painel tem a página inteira para crescer. */
+.topnav[data-menu="coluna"] .nav-links .submenu { left: auto; right: 0; }
 
 /* Botão hamburger: invisível no desktop; aparece só na media query de celular.
  * `position: relative` + `z-index` EXPLÍCITOS: sem eles o botão herda a pilha do
