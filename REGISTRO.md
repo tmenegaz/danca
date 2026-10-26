@@ -25797,6 +25797,30 @@ conhecida («o item do menu fica marcado», o `classList` do DOM falso), que nã
 - **Só a `batata` foi regerada.** Os outros pacotes (`calango`, e os que o `publicacao/` guarda)
   mantêm a fonte antiga e a página antiga: o gerador só injeta o marcador em quem o tem, e é
   migração por regeneração, não por reescrita.
-- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar. O
-  `deploy-escolas.yml` monta `publicacao/batata/` antes de subir, e é um push que toque
-  `tools/montar-publicacao.js`/`motor/**` que o dispara.
+- **A sequência ainda não é da aula** — ver acima: o plano deixou de a publicar, mas quem a
+  escreve continua a ser a elicitação do plano.
+
+**Publicado, e conferido ao ar.** O commit da correção é `8040378` (e o `HANDOFF` regerado veio
+em `7c6858f`). O push disparou **quatro** workflows, e os quatro fecharam em **`success`** sobre
+`7c6858f`: «Reancorar a cadeia» (12:05:22→12:05:32), «Regerar os índices» (12:05:24→12:05:33),
+«Publicar a raiz» (12:05:22→12:05:41) e «Publicar as escolas» — o job `publicar (batata)`, de
+12:05:32 a 12:05:50. O «Regerar os índices» commitou `6936b11` (`chore(estrutura): regerar os
+índices derivados`); o rebase sobre ele deixou a cadeia linear, e a âncora continua íntegra
+(`--check`: `b6ce100…`, «cadeia intacta»).
+
+Conferido ao ar na `batata`, em **uma carga** de `/bale-nivel-2-teste-2/plano`: http **200**,
+**7** linhas de dados no apanhado (com «Solo» **2×**, uma por objetivo), a coluna «Aula»
+presente, o link `aula-01.html#sequencia-declarada` vivo, nenhum `<th>Tempos</th>` nem
+`<th>Compasso</th>` na página, nenhuma tabela sob o «Objetivo geral», e o marcador
+`<!-- OBJETIVOS -->` já substituído.
+
+**Correção de 26/10/2026 (mesmo dia).** A primeira redação desta entrada fechava com «**NÃO ESTÁ
+PUBLICADO**» — verdade quando foi escrita, e falsa minutos depois. A redação não é apagada: a
+nota fica como o elo que registou o trabalho antes de ele sair de casa; o que se publicou, e o
+que se mediu ao ar, está no parágrafo acima.
+
+**Uma nota de método, desta vez.** O hook do `pre-commit` roda o gerador para cada ciclo tocado
+— e por isso, depois do stage, ele regerou o pacote da `batata` e deixou o `ciclos.json` (o
+carimbo `gerado_em`) e o PDF modificados na árvore. A deriva foi descartada (`git checkout --`)
+porque o par commitado já estava coerente e validado; fica registado que o hook **escreve
+saída** e que um `git status` limpo depois de um commit com ciclo tocado não é garantido.
