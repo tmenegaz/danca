@@ -25637,12 +25637,17 @@ anuncia a Área do Professor. Conferido ainda **em processo, contra a publicaç�
 **302** para as três listas; as três listas **200**; `/bale-nivel-2-teste-2/plano.html` **200**.
 Nada disto foi ao ar.
 
+**Publicado, e conferido ao ar.** O commit da correção é `abf8e9f` (e o `HANDOFF` regerado veio
+em `c129f48`). O push disparou os dois workflows — «Publicar as escolas» e «Publicar a raiz» —, e
+**os dois fecharam em `success`** sobre `c129f48`: o job `publicar (batata)` de 10:25:54 a 10:26:17
+e o `publicar` da raiz de 10:25:47 a 10:26:09. Conferido ao ar, na `batata`, em **uma carga por
+endpoint**: `/anamnese/` → **302** para `/area-do-professor/anamnese/`; `/plano-ensino/` →
+**302** para a lista do plano; `/plano-observacao/` → **302** para a lista do PO; e o índice da
+escola serve o rodapé dentro de `/area-do-professor/` e o nome da turma a abrir
+`bale-nivel-2-teste-2/plano.html`, sem item «Ciclo» nem «Plano».
+
 **O que ainda não está feito.**
 
-- **NÃO ESTÁ PUBLICADO.** O trabalho está na árvore de trabalho, por commitar e por publicar. O
-  `deploy-escolas.yml` monta `publicacao/<escola>/` antes de subir, e é um push que toque
-  `tools/montar-publicacao.js` que o dispara — até lá, a `batata` no ar continua com o rodapé
-  antigo e com a rota nua a responder `200`.
 - **A apresentação (`sistema.html` e o `index.html` de cada pacote) continua a levar aos
   formulários COM contexto** (`/anamnese/?professor=…&ciclo=…`). Fica assim de propósito: com
   contexto o endereço é o ato, e é o mesmo que as listas montam — o que estava errado era o
@@ -25655,3 +25660,9 @@ Nada disto foi ao ar.
   apresentação, e passa por regerar o `index.html` de cada pacote zero com
   `criar-escola.sh --somente-indice`.
 - **`ESTADO-ATUAL.md` não foi refotografado** nesta entrada.
+
+**Correção de 26/10/2026 (mesmo dia).** A primeira redação desta entrada abria a secção final com
+«**NÃO ESTÁ PUBLICADO.**» — era verdade quando foi escrita e deixou de ser minutos depois, com o
+push e os dois workflows. A redação não é apagada: fica aqui como o elo que registou o trabalho
+antes de ele sair de casa; o que foi publicado, e o que se mediu ao ar, está no parágrafo
+«Publicado, e conferido ao ar».
