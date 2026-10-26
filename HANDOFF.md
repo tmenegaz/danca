@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T20:35:13-0300`
-Commit atual: `a89a5c5` — docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no formulário
+Gerado em: `2026-10-26T20:39:40-0300`
+Commit atual: `2f1fd28` — fix(ciclo-01): o parâmetro de medição manda na matriz, e o dado não muda
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+2f1fd28 fix(ciclo-01): o parâmetro de medição manda na matriz, e o dado não muda
 a89a5c5 docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no formulário
 743db9e fix(ciclo-01): o formulário pergunta em que aula cada objetivo é perseguido
 ba871e8 docs(registro): o objetivo do ciclo e a régua única publicados, e o que se mediu ao ar
@@ -97,7 +98,6 @@ e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da corre
 8a7b4a5 fix(estrutura): a ação de cada formulário da Produção na fileira do professor
 a7f4490 docs(estrutura): o número medido da faixa do menu — 216px, e não 220
 aa96a3c fix(estrutura): o menu da Produção fica congelado — `sticky` não serve nas telas de trabalho
-acfab1f fix(estrutura): o menu da Produção não rola com a página — o `sticky` estava anulado por uma linha
 ```
 
 ## Por professor
