@@ -595,6 +595,37 @@ async function porta() {
     JSON.stringify({ blocosDoVolume, blocosMarcados }));
   ok('a distribuição de volume só declara os blocos que os marcos marcam');
 
+  // EM QUE AULA CADA OBJETIVO (26/10/2026, etapa 2). O bloco novo tem de abrir com uma linha
+  // por objetivo, com o número do objetivo e a AULA PROPOSTA já escrita — o padrão 1:1 é o que
+  // faz 26 objetivos não serem 26 decisões. E a leitura tem de devolver o que está na tela.
+  const linhasDoObjetivo = JSON.parse(await plano.win.eval(`(function(){
+    var i = MAPA.nos.findIndex(function(n){return n.id === 'aula-de-cada-objetivo';});
+    INDICE = i; renderPergunta();
+    return JSON.stringify({
+      campos: Array.prototype.slice.call(document.querySelectorAll('#pergunta [data-aula-de-objetivo]'))
+        .map(function(el){ return el.value; }),
+      textos: document.querySelectorAll('#pergunta [data-aula-linha] .marco-texto').length
+    });
+  })()`));
+  assert.equal(linhasDoObjetivo.campos.length, marcos.length,
+    'o bloco «em que aula» não tem uma linha por objetivo: '
+    + JSON.stringify(linhasDoObjetivo.campos));
+  assert.deepEqual(linhasDoObjetivo.campos, marcos.map((_, i) => String(i + 1).padStart(2, '0')),
+    'a aula proposta não é a do número do objetivo: ' + JSON.stringify(linhasDoObjetivo.campos));
+  ok('o bloco «em que aula cada objetivo» abre com o padrão 1:1 já proposto');
+
+  const lido = JSON.parse(await plano.win.eval(`(function(){
+    var campos = document.querySelectorAll('#pergunta [data-aula-de-objetivo]');
+    campos[1].value = '01, 02';
+    return JSON.stringify(lerResposta(MAPA.nos[INDICE]).valor);
+  })()`));
+  assert.equal(lido.length, marcos.length, 'a leitura não devolveu uma entrada por objetivo');
+  assert.deepEqual(lido[1], { objetivo: 2, aulas: ['01', '02'] },
+    'a leitura não guardou as duas aulas do objetivo 2: ' + JSON.stringify(lido[1]));
+  assert.deepEqual(lido[0], { objetivo: 1, aulas: ['01'] },
+    'a leitura estragou o objetivo que não foi tocado: ' + JSON.stringify(lido[0]));
+  ok('…e ler a tela guarda as aulas do objetivo — «01, 02» são duas, e o resto fica como estava');
+
   // OS CAMPOS QUE VÊM DA TURMA resolvem-se do CADASTRO (frequência, duração, calendário).
   // Eles não estão no fixture porque não são do fixture: são da turma. O que se prova é que
   // eles RESOLVEM — e a frequência lia-se de um campo (`frequencia`) que a turma pode não

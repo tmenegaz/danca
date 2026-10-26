@@ -2611,6 +2611,9 @@ function lerResposta(no) {
   // A MATRIZ POR MARCO: um objeto por marco que tem marcação.
   if (no.porMarco) return { valor: lerPorMarco(no, raiz), nota: nota };
 
+  // EM QUE AULA CADA OBJETIVO: um objeto por objetivo — `{objetivo, aulas}`.
+  if (no.aulasDoObjetivo) return { valor: lerAulasDoObjetivo(no, raiz), nota: nota };
+
   // A FORMA DO VALOR vem antes das famílias: um nó que declara `medida`,
   // `periodicidade` ou `data` é lido pelo widget, não pelo campo de texto.
   // `undefined` = não é forma especial; `null` = é, e está vazia.
@@ -4143,6 +4146,65 @@ function porMarcoDoNo(no) {
   return { html: instrucao + '<div class="matriz-marco">' + linhas.join('') + '</div>', opcoes };
 }
 
+/*
+ * EM QUE AULA CADA OBJETIVO (26/10/2026). Uma linha por OBJETIVO ESPECÍFICO — as mesmas
+ * linhas da lista numerada do bloco anterior —, com o número da aula em que ele é
+ * perseguido. O número do objetivo é o da lista; o professor não o escreve.
+ *
+ * O PADRÃO É 1:1, e é proposto: o objetivo N traz a aula N já escrita. Só há dois casos em
+ * que se muda, e são os dois que a forma do documento já aceitava sem ter por onde entrar:
+ * DOIS OBJETIVOS NA MESMA AULA (repete-se o número) e UM OBJETIVO EM DUAS AULAS («01, 03»).
+ */
+function aulasDoObjetivoDoNo(no) {
+  const cfg = no.aulasDoObjetivo || {};
+  const objetivos = marcosDoNo(RESPOSTAS.get(cfg.de || 'marcos-por-aula'));
+  if (!objetivos.length) {
+    return { html: '<p class="aviso">Preencha primeiro ' + citacao('Objetivos específicos') +
+      ' — é uma linha por objetivo, e o número do objetivo é o da linha.</p>' };
+  }
+  const guardado = new Map();
+  const atual = RESPOSTAS.get(no.id);
+  for (const linha of Array.isArray(atual) ? atual : []) {
+    if (!linha || typeof linha !== 'object') continue;
+    const n = Number(linha.objetivo);
+    if (Number.isFinite(n) && Array.isArray(linha.aulas) && linha.aulas.length) {
+      guardado.set(n, linha.aulas.map(String));
+    }
+  }
+  const linhas = objetivos.map((texto, i) => {
+    const n = i + 1;
+    const padrao = String(n).padStart(2, '0');
+    const aulas = (guardado.get(n) || [padrao]).join(', ');
+    return '<div class="marco-linha" data-aula-linha="' + n + '">' +
+      '<div class="marco-texto"><span class="numero">' + n + '</span> ' + md(texto) + '</div>' +
+      '<p class="marco-aberto"><label>Aula(s): ' +
+      '<input type="text" data-aula-de-objetivo="' + n + '" value="' + escapar(aulas) +
+      '" size="6" placeholder="' + padrao + '" aria-label="aula ou aulas do objetivo ' + n +
+      '"></label></p>' +
+      '</div>';
+  });
+  const instrucao = cfg.instrucao ? '<p class="sub">' + md(cfg.instrucao) + '</p>' : '';
+  return { html: instrucao + '<div class="matriz-marco">' + linhas.join('') + '</div>' };
+}
+
+/* A leitura: um objeto por objetivo — `{objetivo, aulas}`. Número vazio cai no padrão
+ * (o objetivo fica na aula do seu próprio número), para a resposta nunca dizer «nenhuma
+ * aula»: um objetivo sem aula é um objetivo que não se persegue, e isso não se escreve. */
+function lerAulasDoObjetivo(no, raiz) {
+  const itens = [];
+  for (const el of raiz.querySelectorAll('[data-aula-de-objetivo]')) {
+    const n = Number(el.dataset.aulaDeObjetivo);
+    if (!Number.isFinite(n)) continue;
+    const aulas = el.value.split(/[^0-9]+/)
+      .map((x) => Number(x))
+      .filter((x) => Number.isFinite(x) && x >= 1 && x <= 999)
+      .map((x) => String(x).padStart(2, '0'))
+      .filter((x, i, arr) => arr.indexOf(x) === i);
+    itens.push({ objetivo: n, aulas: aulas.length ? aulas : [String(n).padStart(2, '0')] });
+  }
+  return itens.length ? itens : null;
+}
+
 /* A leitura da matriz: um objeto por marco COM marcação — `{marco, marcados}`. */
 function lerPorMarco(no, raiz) {
   const porMarco = new Map();
@@ -4190,13 +4252,13 @@ function listaNumerada(no) {
     '<li class="item-numerado">' +
       '<span class="numero">' + (i + 1) + '</span>' +
       '<input type="text" data-lista="' + i + '" value="' + escapar(texto) +
-      '" placeholder="o que fica pronto nesta aula">' +
+      '" placeholder="o que fica pronto">' +
       '<button type="button" data-lista-del="' + i + '"' + (itens.length <= minimo ? ' disabled' : '') +
-      ' title="Remover este marco">−</button>' +
+      ' title="Remover esta linha">−</button>' +
     '</li>').join('');
   return '<ul class="lista-numerada">' + corpo + '</ul>' +
     '<p class="linha-acao"><button type="button" data-lista-add="1">' +
-    '+ Acrescentar marco parcial</button></p>';
+    '+ Acrescentar objetivo</button></p>';
 }
 
 /* A leitura da lista: um texto por item, em ordem. Item vazio não entra — não se
@@ -5025,6 +5087,8 @@ function renderPergunta() {
     blocos.push(registroDoNo(no));
   } else if (no.porMarco) {
     blocos.push(porMarcoDoNo(no).html);
+  } else if (no.aulasDoObjetivo) {
+    blocos.push(aulasDoObjetivoDoNo(no).html);
   } else if (no.daTurma && daTurma !== undefined) {
     blocos.push(mostrarDaTurma(no, daTurma));
   } else if (no.doPlano) {

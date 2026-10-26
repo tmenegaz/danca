@@ -59,11 +59,40 @@ function tituloDoPlano(contexto) {
 // («Solo: eixo vertical») não perde o começo para a coluna da aula.
 function tabelaDeMarcos(valor, objetivos) {
   const itens = emLista(valor);
-  // O NÚMERO DO OBJETIVO de cada aula. Nesta etapa é o da posição (o formulário ainda emite
-  // uma linha por aula); quando a fonte declarar `objetivos` — a coluna é do documento, não
-  // do envelope —, é ela que manda, e é isso que permite 2 objetivos numa aula e 1 em duas.
-  const declarados = (Array.isArray(objetivos) ? objetivos : []).map((o) => o.n);
-  const linhas = ['| Aula | Objetivos | Marco |', '|:--|:--|:--|'];
+  const lista = Array.isArray(objetivos) ? objetivos : [];
+  // O CAMINHO LEGADO: na prosa numerada («01: marco») a aula está escrita no texto, e a
+  // posição é a aula. Se algum item traz número explícito, é ele que manda.
+  const numerada = itens.some((linha) => {
+    const idx = linha.indexOf(':');
+    return idx > 0 && /^\d{1,3}$/.test(linha.slice(0, idx).trim());
+  });
+  const cabecalho = ['| Aula | Objetivos | Marco |', '|:--|:--|:--|'];
+  const vazia = ['| Aula | Objetivos | Marco |', '|:--|:--|:--|', '| **01** | 01 | [a decidir] |'];
+  if (!numerada && lista.length) {
+    // A RELAÇÃO declarada no bloco «Em que aula cada objetivo»: uma aula pode perseguir mais
+    // de um objetivo, e um objetivo pode atravessar mais de uma aula. O marco da aula é o
+    // texto dos objetivos que ela persegue — o objetivo, não a atividade.
+    const porAula = new Map();
+    for (const o of lista) {
+      const aulas = Array.isArray(o.aulas) && o.aulas.length ? o.aulas : [o.n];
+      for (const bruto of aulas) {
+        const n = Number(bruto);
+        if (!Number.isFinite(n) || n < 1) continue;
+        if (!porAula.has(n)) porAula.set(n, []);
+        if (porAula.get(n).indexOf(o) === -1) porAula.get(n).push(o);
+      }
+    }
+    const linhas = cabecalho.slice();
+    for (const n of [...porAula.keys()].sort((a, b) => a - b)) {
+      const quais = porAula.get(n);
+      const texto = quais.map((o) => o.objetivo).filter(Boolean).join(' · ') || '[a decidir]';
+      linhas.push('| **' + String(n).padStart(2, '0') + '** | '
+        + quais.map((o) => o.n).join(', ') + ' | ' + texto + ' |');
+    }
+    return linhas.length > 2 ? linhas : vazia;
+  }
+  const declarados = lista.map((o) => o.n);
+  const linhas = cabecalho.slice();
   itens.forEach((linha, i) => {
     const idx = linha.indexOf(':');
     const prefixo = idx > 0 ? linha.slice(0, idx).trim() : '';
@@ -73,9 +102,7 @@ function tabelaDeMarcos(valor, objetivos) {
     const objetivo = declarados[i] || n;
     linhas.push('| **' + n + '** | ' + objetivo + ' | ' + (marco || '[a decidir]') + ' |');
   });
-  return linhas.length > 2
-    ? linhas
-    : ['| Aula | Objetivos | Marco |', '|:--|:--|:--|', '| **01** | 01 | [a decidir] |'];
+  return linhas.length > 2 ? linhas : vazia;
 }
 
 // Os MARCOS PARCIAIS como lista de textos — o que a matriz por marco (blocos,
@@ -130,14 +157,26 @@ function marcosEmTexto(valor) {
  * Agora o número é do OBJETIVO (1..N), e o bloco é uma propriedade dele. A estrutura da aula
  * é outra coisa e vive no quadro do volume.
  *
- * O QUE AINDA NÃO É POSSÍVEL, e é honesto dizê-lo aqui: o formulário continua a emitir
- * `marcos-por-aula` como UMA linha por aula, então a lista nasce 1:1 (objetivo N → aula N).
- * Os dois casos que a pesquisadora descreveu — dois objetivos numa aula, um objetivo em duas
- * aulas — já cabem na FORMA do documento (a coluna «Objetivo(s)» aceita vários números), mas
- * ainda não têm por onde entrar. É a etapa do formulário.
+ * O QUE MUDOU OUTRA VEZ (etapa 2, no mesmo dia). A lista nasce 1:1 e o professor CONFIRMA
+ * (objetivo N → aula N), mas a relação objetivo↔aula passou a ser declarada: o campo
+ * `aula-de-cada-objetivo` guarda `{objetivo, aulas}`. É por ele que dois objetivos na mesma
+ * aula e um objetivo em duas aulas deixam de ser forma aceita e passam a ser dado entrado.
+ * Sem essa resposta — envelopes antigos —, o padrão 1:1 continua a valer.
  */
 function objetivosDoEnvelope(envelope) {
   const textos = marcosEmTexto(respostaDo(envelope, 'marcos-por-aula'));
+  const aulasPorObjetivo = new Map();
+  const mapaDasAulas = respostaDo(envelope, 'aula-de-cada-objetivo');
+  if (Array.isArray(mapaDasAulas)) {
+    for (const linha of mapaDasAulas) {
+      if (!linha || typeof linha !== 'object' || Array.isArray(linha)) continue;
+      const n = Number(linha.objetivo);
+      if (!Number.isFinite(n) || n < 1) continue;
+      const aulas = (Array.isArray(linha.aulas) ? linha.aulas : [])
+        .map((a) => String(a).trim()).filter(Boolean);
+      if (aulas.length) aulasPorObjetivo.set(n, aulas);
+    }
+  }
   const blocosPorObjetivo = new Map();
   const cru = respostaDo(envelope, 'estrutura-de-cada-aula');
   if (Array.isArray(cru) && cru.some((l) => l && typeof l === 'object')) {
@@ -148,11 +187,15 @@ function objetivosDoEnvelope(envelope) {
       blocosPorObjetivo.set(n, linha.marcados.map(String).map((b) => b.trim()).filter(Boolean));
     }
   }
-  return textos.map((texto, i) => ({
-    n: String(i + 1).padStart(2, '0'),
-    objetivo: texto,
-    blocos: blocosPorObjetivo.get(i + 1) || [],
-  }));
+  return textos.map((texto, i) => {
+    const padrao = String(i + 1).padStart(2, '0');
+    return {
+      n: padrao,
+      objetivo: texto,
+      blocos: blocosPorObjetivo.get(i + 1) || [],
+      aulas: aulasPorObjetivo.get(i + 1) || [padrao],
+    };
+  });
 }
 
 /** A TABELA dos objetivos: o número, o que se pretende e onde é trabalhado. */

@@ -48,6 +48,10 @@ const { execSync } = require('child_process');
 
 const raiz = path.resolve(__dirname, '..');
 const { tabela, nota } = require(path.join(raiz, 'tools/tabela-objetivos.js'));
+const { derivarPlano } = require(path.join(raiz, 'motor/nucleo/derivar-plano-ciclo.js'));
+/* O MAPA SERVIDO, montado pela porta de verdade — não pelo conteúdo em bruto: é a porta que já
+ * engoliu uma chave em silêncio (o `recortePeloPlano`), e é ela que a tela lê. */
+const portaMapa = (conteudo) => require(path.join(raiz, 'motor/nucleo/porta.js')).mapa(conteudo);
 
 const PROF = 'cafe-no-bule';
 const VARIANTE = 'batata-bale-nivel-2-teste-2';
@@ -285,6 +289,61 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
     /O horizonte, e não um critério de nota/.test(htmlPlano.replace(/\s+/g, ' ')));
   provar('…e separa o horizonte declarado do «+4 aulas» que o calendário calcula',
     /é conta do gerador/.test(htmlPlano.replace(/\s+/g, ' ')));
+
+  // ------------------------------------------- 10) o formulário deixa entrar a relação
+  console.log('\n10. etapa 2: o professor declara em que aula cada objetivo é perseguido');
+  /* O DEFEITO QUE ESTA SECÇÃO TRAVA é o do `descritores()`: chaves que existem no conteúdo e
+     não na lista fechada do motor chegam ao navegador SEM a marca, o nó cai no texto livre e o
+     professor volta a escrever à mão — sem aviso nenhum. Por isso se mede o mapa SERVIDO. */
+  const mapaDoPlano = portaMapa(JSON.parse(ler(raiz, 'porta', 'plano', 'conteudo', 'plano.json')));
+  const noDosObjetivos = (mapaDoPlano.nos || []).find((n) => n.id === 'marcos-por-aula');
+  const noDasAulas = (mapaDoPlano.nos || []).find((n) => n.id === 'aula-de-cada-objetivo');
+  provar('o mapa servido traz a lista dos objetivos como lista numerada',
+    !!(noDosObjetivos && noDosObjetivos.lista), noDosObjetivos && Object.keys(noDosObjetivos));
+  provar('…e traz o campo novo «em que aula cada objetivo», apontado à lista',
+    !!(noDasAulas && noDasAulas.aulasDoObjetivo
+      && noDasAulas.aulasDoObjetivo.de === 'marcos-por-aula'),
+    noDasAulas && noDasAulas.aulasDoObjetivo);
+  provar('…e o bloco antigo já não se chama «Estrutura de cada aula»',
+    !(mapaDoPlano.nos || []).some((n) => n.blocoTitulo === 'Estrutura de cada aula'));
+
+  /* A DERIVAÇÃO. Dois objetivos na aula 01 e um objetivo que atravessa 01 e 02 — os dois casos
+     que a forma do documento aceitava desde a etapa 1 e que não tinham por onde entrar. */
+  const envelopeComMapa = (mapa) => ({
+    contexto: {},
+    respostas: {
+      'marcos-por-aula': { valor: ['Eixo vertical na barra', 'Port de bras no centro',
+        'Improvisar com a música'] },
+      'aula-de-cada-objetivo': { valor: mapa },
+      'estrutura-de-cada-aula': { valor: [
+        { marco: 1, marcados: ['Barra'] }, { marco: 2, marcados: ['Centro'] },
+        { marco: 3, marcados: ['Musicalidade'] }] },
+    },
+  });
+  const derivado = derivarPlano(envelopeComMapa([
+    { objetivo: 1, aulas: ['01'] },
+    { objetivo: 2, aulas: ['01', '02'] },
+    { objetivo: 3, aulas: ['03'] },
+  ])).markdown;
+  const marcosDerivados = linhasDeDados(
+    (/## Marcos parciais por aula[\s\S]*?(?=\n## )/.exec(derivado) || [''])[0].split('\n'));
+  provar('a aula 01 declara os DOIS objetivos que persegue',
+    /^\| \*\*01\*\* \| 01, 02 \|/.test(marcosDerivados[0] || ''), marcosDerivados[0]);
+  provar('…e a aula 02 volta a citar o objetivo 02 (ele atravessa duas aulas)',
+    /^\| \*\*02\*\* \| 02 \|/.test(marcosDerivados[1] || ''), marcosDerivados[1]);
+  provar('…e a aula 01 não ganha a linha da 02: são três aulas, não seis',
+    marcosDerivados.length === 3, marcosDerivados.length);
+
+  /* O PADRÃO NÃO MUDOU. Um envelope antigo, sem o campo novo, continua a sair 1:1 — é o que
+     garante que a etapa 2 não reescreve o passado dos planos já entregues. */
+  const semMapa = derivarPlano({ contexto: {}, respostas: {
+    'marcos-por-aula': { valor: ['um', 'dois', 'três'] },
+  } }).markdown;
+  const marcosSemMapa = linhasDeDados(
+    (/## Marcos parciais por aula[\s\S]*?(?=\n## )/.exec(semMapa) || [''])[0].split('\n'));
+  provar('sem a resposta nova, o padrão 1:1 continua (objetivo N na aula N)',
+    marcosSemMapa.length === 3 && /^\| \*\*02\*\* \| 02 \| dois \|$/.test(marcosSemMapa[1] || ''),
+    marcosSemMapa);
 
   console.log('\n' + (falhas ? 'FALHOU — ' : 'TUDO CERTO — ') + total + ' asserção(ões), '
     + falhas + ' falha(s).');

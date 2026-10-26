@@ -25977,3 +25977,92 @@ descartada — o par commitado já estava coerente e validado. Fica a segunda oc
 o hook **escreve saída**, e um `git status` limpo depois de um commit com ciclo tocado não é
 garantido. Enquanto for assim, descartar a deriva e rebasar sobre o que o workflow commitou é o
 procedimento, não um acidente.
+
+## 26/10/2026 — O formulário passa a perguntar em que aula cada objetivo é perseguido
+
+**O que motivou.** A etapa 1 pôs a página a dizer a verdade e deixou uma dívida escrita na
+entrada anterior: «o formulário de elicitação não pergunta o modelo novo». A forma do documento
+já aceitava vários objetivos por aula — a coluna «Objetivos» dos marcos parciais é uma lista de
+números —, mas não havia por onde entrar. O resultado era o pior possível numa elicitação: o
+professor via a lista dos objetivos, via os blocos de cada um, e não tinha onde dizer que o
+objetivo 02 atravessa a aula 01 e a 02, ou que a aula 01 persegue dois. A relação ficava 1:1 por
+construção, e a `batata` só teve o modelo novo porque foi migrada à mão.
+
+**O que foi decidido.**
+
+- **O campo novo é do ciclo, e é uma linha por objetivo.** `aula-de-cada-objetivo` guarda
+  `{objetivo, aulas}` — o número do objetivo (que é o da lista, escrito pelo sistema) e o número
+  ou números de aula em que ele é perseguido.
+- **O padrão é proposto, não perguntado.** O objetivo N traz a aula N já escrita. Só há dois
+  casos em que se muda, e são os dois que a pesquisadora descreveu: dois objetivos na mesma aula
+  (repete-se o número) e um objetivo em duas aulas («01, 03»). Vinte e seis objetivos não podem
+  ser vinte e seis decisões.
+- **Número vazio cai no padrão.** Um objetivo sem aula é um objetivo que não se persegue, e isso
+  não se escreve: a leitura devolve sempre pelo menos a aula do próprio número.
+- **Os dois blocos antigos mudaram de nome, não de sítio.** «Marcos parciais por aula» passa a
+  «Objetivos específicos do ciclo» e «Estrutura de cada aula» a «Onde cada objetivo é
+  trabalhado». Os `id` ficam (`marcos-por-aula`, `estrutura-de-cada-aula`): renomeá-los mexeria
+  em sete ficheiros de derivação, no PO e nos experimentos, e o que estava errado era o rótulo,
+  não a chave.
+- **O bloco do volume passou a chamar-se «Blocos da aula e distribuição do volume»**, como na
+  página do plano desde a etapa 1. O formulário e a página passam a usar as mesmas palavras para
+  a mesma coisa.
+
+**Onde entrou.**
+
+- `motor/nucleo/elicitar.js` — `aulasDoObjetivo` entra na lista fechada do `descritores()`. É a
+  lista que já engoliu campos em silêncio: o que não está nela chega ao navegador sem a marca, o
+  nó cai no texto livre e ninguém dá por isso.
+- `porta/index.html` — o desenho e a leitura do nó (`aulasDoObjetivoDoNo`, `lerAulasDoObjetivo`),
+  e os dois despachos (render e leitura). A lista numerada perde o «marco parcial» do rótulo e do
+  exemplo: agora ela numera objetivos, em qualquer bloco do plano.
+- `porta/plano/conteudo/plano.json` — o bloco 3 vira «Objetivos específicos do ciclo», com a lista
+  e o campo novo; o bloco 4, «Onde cada objetivo é trabalhado», com a explicação que separa o
+  destino do objetivo da estrutura da aula; o bloco 5, «Blocos da aula e distribuição do volume».
+- `motor/nucleo/derivar-plano-ciclo.js` — `objetivosDoEnvelope` lê a relação e cada objetivo passa
+  a ter `aulas`; `tabelaDeMarcos` monta as linhas **por aula** a partir dela (o marco da aula é o
+  texto dos objetivos que ela persegue). O caminho legado é preservado: prosa numerada («01:
+  marco») continua a mandar pela posição, e um envelope sem a resposta nova continua a sair 1:1.
+- `experimentos/provar-objetivos-por-aula.js` — secção 10: o mapa SERVIDO traz a chave nova e
+  aponta-a à lista; a derivação honra dois objetivos numa aula e um em duas; sem a resposta, o
+  padrão 1:1 mantém-se.
+- `experimentos/provar-teste.js` — o bloco abre com uma linha por objetivo e a aula proposta
+  escrita, e ler a tela guarda o que está lá («01, 02» são duas aulas).
+- `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`) — a porta
+  copiada para dentro dos pacotes foi atualizada.
+
+**Medido.** `provar-objetivos-por-aula` **51/51** (eram 44). `provar-teste` **39 verificações**
+(eram 37). `provar-aula-e-plano-legiveis` 12/12; `provar-publicacao-da-escola` 55/55;
+`provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `provar-porta-sem-contexto`
+44/44; `check-identidade` **0 erro**; `check-pacote` da `batata` **0 erro e 0 aviso**; âncora
+`--check` íntegra (`068ab0b…`, «cadeia intacta»).
+
+**A porta copiada é uma cópia, e o circuito sabe disso.** A `porta/index.html` vive também dentro
+de cada pacote (`plano-observacao/`), e a checagem de identidade compara-a byte a byte com a
+fonte. Mudar a porta, portanto, **quebra o circuito de todos os pacotes** até eles serem
+regerados — e o **pacote-zero** (o que `criar-escola.sh` deixa antes da elicitação) **não tem
+`DOCS`**, pelo que `gerar-ciclo.sh` recusa regerá-lo. Nesse caso o que o gerador faz é
+`cp -R porta/. <pacote>/plano-observacao/` e, no mesmo passo, injetar o nav da escola no marcador
+`<!-- NAV -->`; foi isso que se repetiu à mão, e é a razão pela qual o `index.html` do pacote-zero
+**não** é igual à fonte (tem o nav dentro, e não o marcador). Fica registado porque a mensagem de
+erro — «regenere o pacote» — não se resolve com o comando que ela sugere.
+
+**O que ainda não está feito.**
+
+- **A estrutura própria de cada aula continua sem onde ser declarada.** O ciclo declara o padrão
+  (o quadro do volume) e a aula declara a sua quando difere — é a decisão, e o formulário ainda
+  não pergunta. A `aula-NN.md` imprime hoje o volume do ciclo com uma linha de total. É a
+  etapa 3.
+- **A `batata` não foi re-elicitada.** O campo novo não está no envelope dela (foi migrada à mão
+  na etapa 1), pelo que a derivação continua a usar o padrão 1:1 sobre ela. Nada muda na página
+  publicada; o que muda é que a próxima elicitação já pode dizer outra coisa.
+- **`provar-plano-matriz.js` está morto** — é um ficheiro local (fora do Git, em `experimentos/`)
+  que aponta para `professores/leticia/ciclos/ciclo-01-barra`, escola expurgada em `67ddfa0`. A
+  guarda que ele fazia (a chave que morre no `descritores()`) foi trazida para a prova versionada,
+  na secção 10.
+- **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
+  `check-identidade` acusa um pacote por regerar assim que a fonte muda. Cada escola se atualiza
+  quando for regerada.
+- **`alinhamento` continua por confirmar com o PO** (por aula ou por ciclo; bloco que abre ou que
+  avisa; se é proveniência que muda a âncora ou estado de tela). É a única pergunta da lista
+  antiga que continua aberta.

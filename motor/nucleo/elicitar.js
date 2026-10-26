@@ -215,6 +215,13 @@ function descritores(campo) {
     // marco parcial, com as opções para marcar. `{de, opcoes: [...]}` ou
     // `{de, opcoesDaTurma: true}` — as colunas vêm do conteúdo ou do nível da turma.
     porMarco: campo.porMarco || null,
+    // EM QUE AULA CADA OBJETIVO (26/10/2026). Uma linha por OBJETIVO ESPECÍFICO — a mesma
+    // lista numerada de que `porMarco` tira as linhas —, com o número da aula (ou das aulas)
+    // em que ele é perseguido. `{de: 'marcos-por-aula'}`. O padrão é 1:1 (objetivo N na aula
+    // N); a professora só escreve quando quer dois objetivos na mesma aula ou um objetivo que
+    // atravessa duas. Sem esta chave o objetivo volta a ser o marco de UMA aula, e a coluna
+    // «Objetivos» do plano deixa de ter por onde ser preenchida.
+    aulasDoObjetivo: campo.aulasDoObjetivo || null,
     // A CONDIÇÃO DE REGISTRO (quem está na sala, quem observa): dois grupos de marcação
     // — um de caixas (o professor e as alunas já vêm marcados) e um de escolha única (o
     // observador). Sem esta chave o nó cai no texto livre, e a condição volta a ser prosa

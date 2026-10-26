@@ -251,32 +251,46 @@
     },
     {
       "bloco": 3,
-      "titulo": "Marcos parciais por aula",
-      "objetivo": "declarar o que fica pronto em cada aula, na ordem em que as aulas acontecem",
+      "titulo": "Objetivos específicos do ciclo",
+      "objetivo": "declarar o que fica pronto em cada objetivo, e em que aula ele é perseguido",
       "campos": [
         {
           "id": "marcos-por-aula",
-          "campo": "Marcos parciais",
+          "campo": "Objetivos específicos",
           "obrigatorio": true,
           "lista": {
             "minimo": 1
           },
           "explicacao": {
-            "oQueE": "O que fica pronto em cada aula, na ordem em que acontecem — o marco parcial de cada encontro.",
-            "preencher": "Um marco por linha: escreva o objetivo específico, e o sistema numera (1, 2, 3…). Use «Acrescentar marco parcial» para abrir a linha seguinte; o primeiro marco não se remove.",
-            "porQue": "É a tabela que o plano carrega e o que se consulta aula a aula. O marco parcial é o objetivo específico daquela aula — o marco 1 é o objetivo específico da Aula 1 (Regra 2), e é por isso que o plano não tem um campo próprio para ele: aqui é a fonte única. A lista numerada guarda a fronteira de cada marco, que a prosa não guardava."
+            "oQueE": "O que fica pronto em cada objetivo específico do ciclo — o que se quer alcançar, e não o que se faz na aula.",
+            "preencher": "Um objetivo por linha: escreva o que fica pronto, e o sistema numera (01, 02, 03…). Use «Acrescentar objetivo» para abrir a linha seguinte; o primeiro não se remove. Em geral é um objetivo por aula — mas não é uma regra: um objetivo pode atravessar duas aulas, e uma aula pode perseguir dois. Quem diz isso é o campo seguinte.",
+            "porQue": "O objetivo específico é do CICLO, não do bloco: o professor marca em que bloco ele é trabalhado (bloco seguinte), e a aula tem os blocos que tiver. Antes o objetivo era a posição do marco de uma aula, e isso lia-se como «esta aula só tem este bloco» — o que contradizia a distribuição do volume, logo abaixo. O número é do sistema porque é ele que a aula cita: a coluna «Objetivos» do plano aponta para estes números."
+          }
+        },
+        {
+          "id": "aula-de-cada-objetivo",
+          "campo": "Em que aula cada objetivo",
+          "obrigatorio": false,
+          "aulasDoObjetivo": {
+            "de": "marcos-por-aula",
+            "instrucao": "O padrão é um objetivo por aula: o objetivo 01 traz a aula 01 já escrita. Mude só quando for outra coisa — «01, 03» para um objetivo que atravessa duas aulas, ou o mesmo número em dois objetivos para uma aula com dois."
+          },
+          "explicacao": {
+            "oQueE": "Em que aula (ou aulas) cada objetivo específico é perseguido.",
+            "preencher": "Uma linha por objetivo, com o número da aula já preenchido. Não precisa mexer em nada se for um objetivo por aula, na ordem. Escreva os números separados por vírgula quando o objetivo atravessar mais de uma aula, e repita o mesmo número em dois objetivos quando a mesma aula perseguir dois.",
+            "porQue": "É o que permite ao plano dizer, aula a aula, quais objetivos aquele encontro persegue. Sem esta relação o objetivo volta a ser o marco de uma única aula, e dois casos legítimos — dois objetivos na mesma aula, um objetivo em duas aulas — ficariam sem por onde entrar."
           }
         }
       ]
     },
     {
       "bloco": 4,
-      "titulo": "Estrutura de cada aula",
-      "objetivo": "dizer em que bloco cada objetivo específico é trabalhado",
+      "titulo": "Onde cada objetivo é trabalhado",
+      "objetivo": "dizer em que bloco da aula cada objetivo específico é trabalhado",
       "campos": [
         {
           "id": "estrutura-de-cada-aula",
-          "campo": "Blocos da aula",
+          "campo": "Blocos de cada objetivo",
           "obrigatorio": false,
           "porMarco": {
             "de": "marcos-por-aula",
@@ -290,16 +304,16 @@
             "instrucao": "Marque em que bloco cada objetivo é trabalhado. O objetivo que não se trabalha em bloco nenhum fica sem marcação — e não entra."
           },
           "explicacao": {
-            "oQueE": "Os blocos de cada aula (a estrutura espacial: solo, barra, centro, musicalidade) mais a expressão, e ONDE cada objetivo específico é trabalhado.",
-            "preencher": "Uma linha por objetivo específico — os mesmos marcos parciais do bloco anterior. Marque os blocos em que aquele objetivo é trabalhado. Não precisa escrever nem numerar: o número vem do marco, e a ordem é a deles. A expressão é a parte artística — o professor marca quando ela é trabalhada naquele objetivo, se quiser.",
-            "porQue": "A ordem dos blocos é a forma da aula (Regra 3: solo → barra → centro), e é ela que organiza o volume e a captura. Escrever o bloco à mão perdia a relação com o objetivo — marcando, cada bloco guarda a que objetivo ele serve."
+            "oQueE": "Os blocos da aula (a estrutura espacial: solo, barra, centro, musicalidade) mais a expressão, e ONDE cada objetivo específico é trabalhado.",
+            "preencher": "Uma linha por objetivo específico — as mesmas linhas da lista do bloco anterior. Marque os blocos em que aquele objetivo é trabalhado. Não precisa escrever nem numerar: o número é o do objetivo. A expressão é a parte artística — o professor marca quando ela é trabalhada naquele objetivo, se quiser.",
+            "porQue": "A ordem dos blocos é a forma da aula (Regra 3: solo → barra → centro), e é ela que organiza o volume e a captura. O que se marca aqui é o DESTINO do objetivo, não a estrutura da aula: a aula tem os blocos que o professor quiser, e a distribuição do volume, abaixo, diz quanto de cada um. Marcar é o que guarda a relação — sem ela, o bloco seria prosa e não se cruzaria com o objetivo."
           }
         }
       ]
     },
     {
       "bloco": 5,
-      "titulo": "Distribuição do volume pelos blocos",
+      "titulo": "Blocos da aula e distribuição do volume",
       "objetivo": "calibrar o volume de trabalho ativo por bloco",
       "campos": [
         {
