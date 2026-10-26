@@ -26195,3 +26195,46 @@ o que não deviam ser: a escola é a escola em que a página está aberta, e o p
 - **A `batata` não foi re-elicitada**; o conteúdo do plano é o mesmo para todas as escolas, e a
   marca viaja com ele.
 - **Os outros pacotes não foram regerados.**
+
+## 26/10/2026 — A fronteira do cabeçalho fecha: o nó que só se lê mostra o valor
+
+**O que motivou.** Tirar os sete nós do roteiro foi metade. A outra metade apareceu ao medir: quem
+lá chegasse por um índice antigo via um **degrau completo** — título numerado, selo «obrigatório»,
+o «Faltam N» em cima de um dado já preenchido — e, pior, **escola e professor ainda tinham o campo
+de resposta aberto**, que é exactamente o que não podem ter: a escola é a escola em que a página
+está aberta, e o professor é quem a abriu. A correção no roteiro deixou o defeito vivo no único
+sítio onde ainda se podia tocar.
+
+**O que foi decidido.**
+
+- **O nó do cabeçalho desenha o VALOR, em leitura**, e uma frase que diz de onde ele vem («vem do
+  cadastro da turma, declarado pela direção na Produção» / «vem de quem abriu esta página»). O ramo
+  entra **primeiro** na fila do desenho: nenhum ramo por família lhe pode abrir um campo.
+- **A nota também não se desenha.** Ela grava-se no envelope por `id`, e `gravarRespostaDoNo` passou
+  a **recusar** estes nós — sem essa recusa, atravessá-los apagaria o valor semeado (`lerResposta`
+  devolve `null` quando não há campo, e `null` significa «apaga»). Uma nota ali seria um campo que
+  não guarda nada, e isso é pior do que um campo a menos.
+
+**Onde entrou.**
+
+- `porta/index.html` — `leituraDoNoDoCabecalho` (o valor em leitura), o primeiro ramo do desenho, a
+  guarda em `gravarRespostaDoNo`, a nota condicional, e a peça `.leitura-do-cabecalho` na folha da
+  própria página.
+- `experimentos/provar-teste.js` — a verificação da fronteira: os sete desenham a caixa, **zero**
+  campos, dizem «Não se preenche aqui», e cruzá-los **não apaga** o valor. Passou de 41 para **42**.
+- `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`).
+
+**Medido.** `provar-teste` **42**; `provar-parametros-por-parametro` 14/14;
+`provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis` 12/12;
+`provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
+`provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `check-identidade` **0 erro**;
+`check-pacote` **0 erro e 0 aviso**; âncora `--check` íntegra.
+
+**Uma armadilha de bancada, outra vez.** A primeira redação desta verificação punha o `eval` inteiro
+num template literal grande, e ele **não fechava**: o erro do Node apontava a linha de fecho e a
+causa estava no conteúdo. O sintoma foi agravado por eu ter validado um trecho extraído com
+`indexOf` — que encontrou a **primeira** ocorrência da mesma string, de outro bloco, e deu «válido»
+sobre o código errado. A verificação passou a medir em pedaços pequenos, um `eval` por nó.
+
+**O que ainda não está feito.** Nada nesta frente — os sete nós continuam no mapa (o envelope e o
+`## Contexto` intactos) e deixaram de ser um sítio onde se escreve.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T20:46:52-0300`
-Commit atual: `df224d0` — fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no cabeçalho
+Gerado em: `2026-10-26T20:56:26-0300`
+Commit atual: `41e5009` — docs(estrutura): o HANDOFF regerado sobre os nós que saíram do roteiro
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+41e5009 docs(estrutura): o HANDOFF regerado sobre os nós que saíram do roteiro
 df224d0 fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no cabeçalho
 d635d98 docs(estrutura): o HANDOFF regerado sobre a matriz por parâmetro
 2f1fd28 fix(ciclo-01): o parâmetro de medição manda na matriz, e o dado não muda
@@ -97,7 +98,6 @@ abf8e9f fix(estrutura): a porta não se abre sem o ato, e o índice aponta para 
 e06d905 docs(registro): a publicação conferida ao ar, e o HANDOFF sobre ela
 fe71508 docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
 e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da correção
-8a7b4a5 fix(estrutura): a ação de cada formulário da Produção na fileira do professor
 ```
 
 ## Por professor
@@ -193,85 +193,50 @@ e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da corre
 
 ## Última entrada do REGISTRO
 
-## 26/10/2026 — O que não se pergunta sai do roteiro, e aparece no cabeçalho
+## 26/10/2026 — A fronteira do cabeçalho fecha: o nó que só se lê mostra o valor
 
-**O que motivou.** «Os campos que já vêm preenchidos estão aqui apenas para que o professor saiba…
-precisa poupar o esforço do professor ficar dando tanto clique.» Sete dos vinte e seis nós do plano
-— escola, professor, turma, frequência, duração, calendário e número de aulas — não eram perguntas:
-o valor vem do cadastro da escola, do plano e de quem abriu a página. O professor atravessava-os
-clicando «próximo» sem responder nada, e dois deles (escola e professor) ainda eram **editáveis**,
-o que não deviam ser: a escola é a escola em que a página está aberta, e o professor é quem a abriu.
+**O que motivou.** Tirar os sete nós do roteiro foi metade. A outra metade apareceu ao medir: quem
+lá chegasse por um índice antigo via um **degrau completo** — título numerado, selo «obrigatório»,
+o «Faltam N» em cima de um dado já preenchido — e, pior, **escola e professor ainda tinham o campo
+de resposta aberto**, que é exactamente o que não podem ter: a escola é a escola em que a página
+está aberta, e o professor é quem a abriu. A correção no roteiro deixou o defeito vivo no único
+sítio onde ainda se podia tocar.
 
 **O que foi decidido.**
 
-- **O nó que não se pergunta continua a ser NÓ.** Sai do roteiro, não do mapa: o envelope e o
-  `## Contexto` do plano leem os mesmos sete valores, e a derivação não muda uma linha.
-- **A marca é do CONTEÚDO** (`"noCabecalho": true`), como todas as outras: quem decide o que se
-  pergunta é o plano, não o motor. O PO e a anamnese não mudam — nenhum conteúdo deles usa a chave.
-- **O valor é SEMEADO, e a semente é a mesma regra.** Um nó que não se visita nunca é respondido, e
-  um obrigatório vazio fecha o «Guardar» sobre um dado que a escola declarou. `semearNosDoCabecalho`
-  chama `valorDaTurma` (a regra que o nó desenharia) e lê escola e professor do cabeçalho. Corre no
-  desenho do roteiro, para acompanhar a troca de turma.
-- **A numeração é do que se pergunta.** O `data-i` continua a ser o índice real do mapa — é por ele
-  que `irPara` navega —, mas o número que se lê conta só os degraus: 26 nós viram **19 passos**
-  numerados de 1 a 19.
-- **«Próximo» e «anterior» saltam o que não se pergunta.** Um degrau que só se lê não é degrau.
+- **O nó do cabeçalho desenha o VALOR, em leitura**, e uma frase que diz de onde ele vem («vem do
+  cadastro da turma, declarado pela direção na Produção» / «vem de quem abriu esta página»). O ramo
+  entra **primeiro** na fila do desenho: nenhum ramo por família lhe pode abrir um campo.
+- **A nota também não se desenha.** Ela grava-se no envelope por `id`, e `gravarRespostaDoNo` passou
+  a **recusar** estes nós — sem essa recusa, atravessá-los apagaria o valor semeado (`lerResposta`
+  devolve `null` quando não há campo, e `null` significa «apaga»). Uma nota ali seria um campo que
+  não guarda nada, e isso é pior do que um campo a menos.
 
 **Onde entrou.**
 
-- `motor/nucleo/elicitar.js` — `noCabecalho` entra na lista fechada do `descritores()`. É a mesma
-  lista que já engoliu campos em silêncio: sem ela, a marca morria no caminho e o roteiro não
-  mudava.
-- `porta/plano/conteudo/plano.json` — os sete campos do bloco 1 marcados.
-- `porta/index.html` — `semearNosDoCabecalho`, o salto em `pintarRoteiro` com a numeração dos
-  degraus, e o salto em `irPara`.
-- `experimentos/provar-teste.js` — duas verificações novas (o roteiro salta os sete e numera só os
-  degraus; os sete valores são semeados sem ninguém os visitar). Passou de 39 para **41**.
+- `porta/index.html` — `leituraDoNoDoCabecalho` (o valor em leitura), o primeiro ramo do desenho, a
+  guarda em `gravarRespostaDoNo`, a nota condicional, e a peça `.leitura-do-cabecalho` na folha da
+  própria página.
+- `experimentos/provar-teste.js` — a verificação da fronteira: os sete desenham a caixa, **zero**
+  campos, dizem «Não se preenche aqui», e cruzá-los **não apaga** o valor. Passou de 41 para **42**.
 - `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`).
 
-**Medido.** `provar-teste` **41**; `provar-parametros-por-parametro` 14/14;
+**Medido.** `provar-teste` **42**; `provar-parametros-por-parametro` 14/14;
 `provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis` 12/12;
 `provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
 `provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `check-identidade` **0 erro**;
 `check-pacote` **0 erro e 0 aviso**; âncora `--check` íntegra.
 
-**O que ainda não está feito.**
+**Uma armadilha de bancada, outra vez.** A primeira redação desta verificação punha o `eval` inteiro
+num template literal grande, e ele **não fechava**: o erro do Node apontava a linha de fecho e a
+causa estava no conteúdo. O sintoma foi agravado por eu ter validado um trecho extraído com
+`indexOf` — que encontrou a **primeira** ocorrência da mesma string, de outro bloco, e deu «válido»
+sobre o código errado. A verificação passou a medir em pedaços pequenos, um `eval` por nó.
 
-- **O cabeçalho não ficou mais rico.** O acordeão do alto já mostra escola, professor, turma,
-  frequência e duração; o plano continua a publicá-los no `## Contexto`, que é onde se leem por
-  extenso. Não se acrescentou resumo novo ao acordeão — o que havia já cobria os sete.
-- **Os nós do cabeçalho continuam a existir como página.** `irPara` salta-os, mas eles ainda
-  desenham: quem chegar a um deles por um caminho que não o «próximo» (um índice antigo, um link
-  guardado) vê o nó. Fechar isso é apagar o desenho para quem tem `noCabecalho`, e fica para
-  quando houver um caso real.
-- **A `batata` não foi re-elicitada**; o conteúdo do plano é o mesmo para todas as escolas, e a
-  marca viaja com ele.
-- **Os outros pacotes não foram regerados.**
+**O que ainda não está feito.** Nada nesta frente — os sete nós continuam no mapa (o envelope e o
+`## Contexto` intactos) e deixaram de ser um sítio onde se escreve.
 
 ## O que está pendente
-
-## 26/10/2026 — O plano publica o apanhado, e o detalhe fica na aula
-
-
-- **Três fusões do plano ficaram por fazer, e elas precisam de uma decisão de mecanismo.** O
-  extrator mapeia **um título `##` → uma chave**; juntar «Régua da rubrica» + «Rubrica de
-  avaliação final» (ou «Músicas e vídeos» + «Repertório») numa seção só faria o dado da segunda
-  **desaparecer do `plano-XX.json` em silêncio** — o modo de falha que este repositório já
-  pagou caro. Para fundir é preciso ensinar o extrator a ler subseções (`###`) como campos
-  irmãos, e isso toca o contrato que o lançamento lê (`reguaDaRubrica`). Fica para a próxima
-  passagem, com decisão explícita.
-- **«Critério de extensão» não foi renomeado.** O texto vago que a pesquisadora leu («estender o
-  ciclo em duas aulas…») é **dado de teste** do fixture (`teste/batata.json`), não código — e
-  contradiz o `+4 aulas` que o calendário calcula. O conserto é de conteúdo (a resposta da
-  elicitação) e de redação do rótulo, não da derivação.
-- **A sequência ainda não é da aula.** O plano deixou de a publicar; a aula já a tem, mas quem a
-  escreve continua a ser a elicitação do plano (`aula-1-sequencia`). Tornar a **aula** a dona do
-  detalhe — com o formulário a preenchê-la — é o movimento que a pesquisadora adiou de propósito.
-- **Só a `batata` foi regerada.** Os outros pacotes (`calango`, e os que o `publicacao/` guarda)
-  mantêm a fonte antiga e a página antiga: o gerador só injeta o marcador em quem o tem, e é
-  migração por regeneração, não por reescrita.
-- **A sequência ainda não é da aula** — ver acima: o plano deixou de a publicar, mas quem a
-  escreve continua a ser a elicitação do plano.
 
 ## 26/10/2026 — O objetivo é do ciclo, a estrutura é da aula, e a régua é uma só
 
@@ -342,6 +307,11 @@ o que não deviam ser: a escola é a escola em que a página está aberta, e o p
 - **A `batata` não foi re-elicitada**; o conteúdo do plano é o mesmo para todas as escolas, e a
   marca viaja com ele.
 - **Os outros pacotes não foram regerados.**
+
+## 26/10/2026 — A fronteira do cabeçalho fecha: o nó que só se lê mostra o valor
+
+Nada nesta frente — os sete nós continuam no mapa (o envelope e o
+`## Contexto` intactos) e deixaram de ser um sítio onde se escreve.
 
 ## Pendências anteriores (índice)
 
@@ -631,6 +601,7 @@ o que não deviam ser: a escola é a escola em que a página está aberta, e o p
 - **26/10/2026** — O menu da Produção fica congelado: `sticky` não serve, e a… → `REGISTRO.md` L25384
 - **26/10/2026** — O botão que grava não encosta no campo: a fileira do… → `REGISTRO.md` L25437
 - **26/10/2026** — A porta não se abre por um endereço sem ato, e o índice… → `REGISTRO.md` L25530
+- **26/10/2026** — O plano publica o apanhado, e o detalhe fica na aula → `REGISTRO.md` L25670
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

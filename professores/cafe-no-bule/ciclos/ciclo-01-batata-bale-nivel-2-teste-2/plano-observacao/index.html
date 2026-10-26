@@ -558,6 +558,14 @@
   .grupo-registro > p { margin: 0 0 .25rem; }
   /* O que VEM DA TURMA (frequência, duração, período, nº de aulas): leitura, não campo. */
   p.da-turma { margin: .4rem 0 .1rem; font-size: 1rem; color: var(--texto); }
+  /* O NÓ QUE NÃO SE PERGUNTA (26/10/2026): o valor em leitura, e a frase que diz de onde vem.
+     Sem campo nenhum — é o que fecha a fronteira do roteiro para quem lá chegar por um índice
+     antigo. A caixa é a mesma dos dados da turma, para não haver duas linguagens. */
+  .leitura-do-cabecalho { margin: .3rem 0 .2rem; padding: .7rem .9rem;
+    border-left: 3px solid var(--borda-campo); background: var(--fundo-suave);
+    border-radius: 0 var(--raio-1) var(--raio-1) 0; }
+  .leitura-do-cabecalho p.da-turma { margin: 0; }
+  .leitura-do-cabecalho p.sub { margin: .35rem 0 0; }
   p.linha { color: var(--suave); margin: .35rem 0; white-space: pre-wrap; }
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
   .citacao { font-style: italic; color: var(--texto-suave); }
@@ -1749,6 +1757,31 @@ function textoDaTurma(no, valor) {
   return escapar(String(valor));
 }
 
+/* O NÓ DO CABEÇALHO NÃO SE PREENCHE AQUI (26/10/2026). Escola, professor, turma, frequência,
+ * duração, calendário e número de aulas saíram do roteiro — mas continuam no mapa, e quem lá
+ * chegar por um índice antigo via um degrau completo, com «Faltam N» em cima de um dado já
+ * preenchido. Pior: escola e professor ainda tinham o campo de resposta ABERTO, que é
+ * exactamente o que não podem ter — a escola é a escola em que a página está aberta, e o
+ * professor é quem a abriu.
+ *
+ * O que se desenha: o VALOR, em leitura, e a frase que diz de onde ele vem. Nenhum campo, nem
+ * de resposta nem de nota. */
+function leituraDoNoDoCabecalho(no) {
+  const daTurma = no.daTurma ? valorDaTurma(no) : undefined;
+  const valor = RESPOSTAS.get(no.id);
+  let corpo;
+  if (daTurma !== undefined) corpo = mostrarDaTurma(no, daTurma);
+  else if (no.id === 'contexto-turma') corpo = turmaNoCabecalho(no);
+  else corpo = '<p class="da-turma"><b>' + escapar(valor == null ? '—' : String(valor)) + '</b></p>';
+  const origem = no.daTurma
+    ? 'vem do cadastro da turma, declarado pela direção na Produção'
+    : (no.id === 'contexto-turma'
+      ? 'escolhe-se no cabeçalho do ato, aqui em cima'
+      : 'vem de quem abriu esta página — a barra já o disse');
+  return '<div class="leitura-do-cabecalho">' + corpo +
+    '<p class="sub">Não se preenche aqui: ' + md(origem) + '.</p></div>';
+}
+
 function mostrarDaTurma(no, valor) {
   return '<p class="da-turma"><b>' + textoDaTurma(no, valor) + '</b></p>';
 }
@@ -2751,6 +2784,11 @@ function lerResposta(no) {
 }
 
 function gravarRespostaDoNo(no) {
+  // O QUE VEM DO CABEÇALHO NÃO SE GRAVA DAQUI (26/10/2026). Se estes nós fossem lidos como
+  // qualquer outro, atravessá-los apagaria o valor semeado — `lerResposta` devolve `null` quando
+  // não há campo, e `null` significa «apaga». O valor é da fonte (o cadastro, a barra), não desta
+  // tela: quem o escreve é `semearNosDoCabecalho`.
+  if (no && no.noCabecalho) return;
   const { valor, nota } = lerResposta(no);
   if (valor === null || valor === '') {
     RESPOSTAS.delete(no.id);
@@ -5260,7 +5298,11 @@ function renderPergunta() {
   // um subitem que declara `medida`, `periodicidade` ou `data` é desenhado pelo
   // widget, e o widget substitui o CAMPO — não o que o nomeia.
   const especial = campoEspecial(no, RESPOSTAS.get(no.id));
-  if (no.registro) {
+  if (no.noCabecalho) {
+    // Um dado que não se pergunta mostra-se, e só. Primeiro da fila: nenhum ramo por família
+    // pode abrir-lhe um campo — é isso que fecha a fronteira que o roteiro deixou aberta.
+    blocos.push(leituraDoNoDoCabecalho(no));
+  } else if (no.registro) {
     blocos.push(registroDoNo(no));
   } else if (no.porMarco) {
     // A DISPOSIÇÃO é do CONTEÚDO (`porMarco.disposicao`): «parametros» desenha a matriz do
@@ -5395,10 +5437,15 @@ function renderPergunta() {
     if (no.derivarDe) blocos.push(botaoDaDerivacao(no));
   }
 
-  const notaAtual = NOTAS.get(no.id) || '';
-  blocos.push('<details' + (notaAtual ? ' open' : '') + '><summary>nota (opcional)</summary>' +
-    '<textarea data-campo-nota placeholder="o que a resposta não alcança">' +
-    escapar(notaAtual) + '</textarea></details>');
+  // A NOTA NÃO SE DESENHA NO NÓ DO CABEÇALHO (26/10/2026). Ela grava-se no envelope por id, e
+  // `gravarRespostaDoNo` recusa estes nós — a nota ficaria um campo que não guarda nada. Um
+  // campo que não faz nada é pior do que um campo a menos.
+  if (!no.noCabecalho) {
+    const notaAtual = NOTAS.get(no.id) || '';
+    blocos.push('<details' + (notaAtual ? ' open' : '') + '><summary>nota (opcional)</summary>' +
+      '<textarea data-campo-nota placeholder="o que a resposta não alcança">' +
+      escapar(notaAtual) + '</textarea></details>');
+  }
   blocos.push('</div>');
 
   $('pergunta').innerHTML = blocos.join('');

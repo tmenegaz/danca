@@ -716,6 +716,42 @@ async function porta() {
   }
   ok('…e os valores do cabeçalho são semeados sem ninguém os visitar');
 
+  /* A FRONTEIRA FECHADA (26/10/2026). Sair do roteiro nao bastava: quem la chegasse por um
+     indice antigo via um degrau completo — e escola e professor ainda tinham o campo de
+     resposta ABERTO, que e exactamente o que nao podem ter. Agora desenham o valor em leitura,
+     sem campo de resposta nem de nota; e atravessa-los NAO apaga o valor semeado.
+     Medido em pedacos pequenos: um `eval` com um template grande e uma armadilha (o meu nao
+     fechava, e o erro aparecia noutra linha). */
+  const indicesDoCabecalho = JSON.parse(await plano.win.eval(
+    'JSON.stringify(MAPA.nos.map(function(n, i){ return n.noCabecalho ? i : null; })'
+    + '.filter(function(i){ return i !== null; }))'));
+  assert.equal(indicesDoCabecalho.length, 7,
+    'os nos do cabecalho nao sao 7: ' + JSON.stringify(indicesDoCabecalho));
+  const leituras = [];
+  for (const indiceDoNo of indicesDoCabecalho) {
+    const r = JSON.parse(await plano.win.eval(
+      '(function(i){ INDICE = i; renderPergunta();'
+      + ' var caixa = document.querySelector("#pergunta .leitura-do-cabecalho");'
+      + ' var campos = document.querySelectorAll("#pergunta .caixa textarea,'
+      + ' #pergunta .caixa input, #pergunta .caixa select");'
+      + ' var antes = JSON.stringify(RESPOSTAS.get(MAPA.nos[i].id));'
+      + ' gravarRespostaDoNo(MAPA.nos[i]);'
+      + ' return JSON.stringify({ id: MAPA.nos[i].id, caixa: !caixa ? false : true,'
+      + ' campos: campos.length,'
+      + ' texto: caixa ? caixa.textContent.split(String.fromCharCode(10)).join(" ").slice(0, 120) : null,'
+      + ' sobreviveu: JSON.stringify(RESPOSTAS.get(MAPA.nos[i].id)) === antes });'
+      + '})(' + indiceDoNo + ')'));
+    leituras.push(r);
+  }
+  for (const l of leituras) {
+    assert.ok(l.caixa, 'o no ' + l.id + ' nao desenha o valor em leitura');
+    assert.equal(l.campos, 0, 'o no ' + l.id + ' ainda abre ' + l.campos + ' campo(s)');
+    assert.ok((l.texto || '').indexOf('Não se preenche aqui') !== -1,
+      'o no ' + l.id + ' nao diz que nao se preenche ali: ' + JSON.stringify(l.texto));
+    assert.ok(l.sobreviveu, 'atravessar o no ' + l.id + ' apagou o valor semeado');
+  }
+  ok('…e, se alguém cair num deles, vê o valor em leitura — sem campo, e sem perder o valor');
+
   plano.dom.window.close();
 
   // ---- 3c. PLANO DE OBSERVAÇÃO ----
