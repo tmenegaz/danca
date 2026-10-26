@@ -5397,10 +5397,50 @@ function grupoDoNo(no) {
   return null;
 }
 
+/*
+ * O QUE NÃO SE PERGUNTA (26/10/2026). Sete nós do plano — escola, professor, turma,
+ * frequência, duração, calendário e número de aulas — não são degraus do roteiro: o valor vem
+ * do cadastro da escola, do plano e de quem abriu a página, e o professor só precisa de o LER,
+ * no cabeçalho. Eles continuam no mapa (o envelope e o `## Contexto` leem-nos), mas ninguém
+ * clica «próximo» sobre um dado que já está decidido.
+ *
+ * A SEMENTE TEM DE EXISTIR ANTES DO FECHO. Um nó que não se visita nunca é respondido, e uma
+ * resposta ausente num obrigatório deixa o «Guardar» fechado sobre um dado que a escola
+ * declarou. Semeia-se o mesmo valor que o nó desenharia — a regra fica num sítio só
+ * (`valorDaTurma`) —, e a semente corre no desenho do roteiro para acompanhar a troca de turma.
+ */
+function semearNosDoCabecalho() {
+  if (!MAPA || !Array.isArray(MAPA.nos)) return;
+  const daPagina = {
+    'contexto-escola': ESCOLA_CANONICA || ($('ctx-escola') || {}).value || '',
+    'contexto-professor': ($('ctx-professor') || {}).value || '',
+  };
+  for (const no of MAPA.nos) {
+    if (!no.noCabecalho) continue;
+    // A TURMA é do cabeçalho e já vive em `RESPOSTAS` — quem a escreve é o próprio cabeçalho.
+    if (no.id === 'contexto-turma') continue;
+    const doNo = daPagina[no.id];
+    if (doNo) {
+      if (RESPOSTAS.get(no.id) !== doNo) RESPOSTAS.set(no.id, doNo);
+      continue;
+    }
+    const daTurma = no.daTurma ? valorDaTurma(no) : undefined;
+    if (daTurma === undefined) continue;
+    const atual = RESPOSTAS.get(no.id);
+    if (JSON.stringify(atual) !== JSON.stringify(daTurma)) RESPOSTAS.set(no.id, daTurma);
+  }
+}
+
 function pintarRoteiro() {
+  semearNosDoCabecalho();
   const partes = [];
   let grupoAtual = null;
+  // A NUMERAÇÃO é do que se PERGUNTA. O `data-i` continua a ser o índice real do mapa — é por
+  // ele que `irPara` navega —, mas o número que se lê conta só os degraus.
+  let degrau = 0;
   MAPA.nos.forEach((no, i) => {
+    if (no.noCabecalho) return;
+    degrau += 1;
     const grupo = grupoDoNo(no);
     if (grupo && grupo !== grupoAtual) {
       partes.push('<li class="grupo">' + md(grupo) + '</li>');
@@ -5409,7 +5449,7 @@ function pintarRoteiro() {
     const feito = perguntaRespondida(no) ? ' feito' : '';
     const aqui = i === INDICE ? ' aqui' : '';
     partes.push('<li class="' + (feito + aqui).trim() + '" data-i="' + i + '">' +
-      '<span class="n">' + (i + 1) + '</span>' +
+      '<span class="n">' + degrau + '</span>' +
       md(no.campo) +
       (no.derivado
         ? ' <span class="selo preenchido">pré-preenchido</span>'
@@ -5487,7 +5527,17 @@ function irPara(i, guardar) {
     gravarRespostaDoNo(atual);
   }
   ocultarSocratica();
-  INDICE = Math.max(0, Math.min(i, MAPA.nos.length - 1));
+  // «PRÓXIMO» E «ANTERIOR» SALTAM O QUE NÃO SE PERGUNTA (26/10/2026). Os sete nós do
+  // cabeçalho continuam no mapa — `irPara` pode ser chamado com o índice deles —, mas um
+  // degrau que só se lê não é um degrau: salta-se para o seguinte que se responde. Se não
+  // houver nenhum à frente, fica o último.
+  const passo = (de, para) => {
+    let n = de;
+    while (n >= 0 && n < MAPA.nos.length && MAPA.nos[n] && MAPA.nos[n].noCabecalho) n += para;
+    return (n >= 0 && n < MAPA.nos.length) ? n : de;
+  };
+  const alvo = passo(Math.max(0, Math.min(i, MAPA.nos.length - 1)), i >= INDICE ? 1 : -1);
+  INDICE = Math.max(0, Math.min(alvo, MAPA.nos.length - 1));
   renderPergunta();
   pintarRoteiro();
 }

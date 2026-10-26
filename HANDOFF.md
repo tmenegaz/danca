@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T20:39:40-0300`
-Commit atual: `2f1fd28` — fix(ciclo-01): o parâmetro de medição manda na matriz, e o dado não muda
+Gerado em: `2026-10-26T20:43:23-0300`
+Commit atual: `d635d98` — docs(estrutura): o HANDOFF regerado sobre a matriz por parâmetro
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+d635d98 docs(estrutura): o HANDOFF regerado sobre a matriz por parâmetro
 2f1fd28 fix(ciclo-01): o parâmetro de medição manda na matriz, e o dado não muda
 a89a5c5 docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no formulário
 743db9e fix(ciclo-01): o formulário pergunta em que aula cada objetivo é perseguido
@@ -97,7 +98,6 @@ fe71508 docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
 e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da correção
 8a7b4a5 fix(estrutura): a ação de cada formulário da Produção na fileira do professor
 a7f4490 docs(estrutura): o número medido da faixa do menu — 216px, e não 220
-aa96a3c fix(estrutura): o menu da Produção fica congelado — `sticky` não serve nas telas de trabalho
 ```
 
 ## Por professor
@@ -193,97 +193,62 @@ aa96a3c fix(estrutura): o menu da Produção fica congelado — `sticky` não se
 
 ## Última entrada do REGISTRO
 
-## 26/10/2026 — O parâmetro de medição passa a mandar na matriz, e o dado não muda
+## 26/10/2026 — O que não se pergunta sai do roteiro, e aparece no cabeçalho
 
-**O que motivou.** «A gente precisa de um layout melhor. Vai que o professor queira usar uns 20.
-Fica bem complexo isso.» A matriz do parâmetro de medição tinha uma linha por **objetivo** e
-escrevia o nome de cada parâmetro em **todas** as linhas. Com os três parâmetros do teste lê-se;
-com vinte, são sessenta caixas e sessenta nomes, e para saber se o parâmetro 14 está marcado no
-objetivo 3 a pessoa desce e cruza duas direções. Medido no modelo, com navegador: a 390 px de
-largura a matriz de hoje mede **2631 px** de altura e a página desaba para uma coluna; a do
-parâmetro mede **1293 px** e não muda entre 1280 e 768.
+**O que motivou.** «Os campos que já vêm preenchidos estão aqui apenas para que o professor saiba…
+precisa poupar o esforço do professor ficar dando tanto clique.» Sete dos vinte e seis nós do plano
+— escola, professor, turma, frequência, duração, calendário e número de aulas — não eram perguntas:
+o valor vem do cadastro da escola, do plano e de quem abriu a página. O professor atravessava-os
+clicando «próximo» sem responder nada, e dois deles (escola e professor) ainda eram **editáveis**,
+o que não deviam ser: a escola é a escola em que a página está aberta, e o professor é quem a abriu.
 
 **O que foi decidido.**
 
-- **A disposição é do CONTEÚDO, não da tela.** `porMarco.disposicao: "parametros"` no conteúdo do
-  plano escolhe a tabela do avesso: uma linha por parâmetro, uma coluna curta por objetivo, e um
-  botão «todos» por linha. Sem a chave, a matriz de caixinhas fica como está — o PO não muda, e
-  nenhuma outra família precisa saber que esta disposição existe.
-- **O DADO NÃO MUDA, e é isto que torna a mudança pequena.** As caixas continuam a ser
-  `data-marco` com o valor do parâmetro; é o **mesmo** `lerPorMarco`, sem uma linha de alteração,
-  que lê a tabela. A resposta continua a sair `[{marco, marcados}]`. Mudou o desenho, não o
-  contrato.
-- **O «todos» é um interruptor da linha inteira**, não um «desfazer»: o primeiro clique marca
-  todos os objetivos daquele parâmetro, o segundo desmarca todos. Não redesenha a tela — mexe nas
-  caixas e grava —, porque redesenhar perderia a rolagem horizontal em que a pessoa está.
-- **O campo aberto não se perdeu**: desce para um resumo fechado, com uma linha por objetivo.
-- **Sem conteúdo no nível da turma**, a tela não devolve o aviso da outra disposição: desenha o
-  campo aberto de cada objetivo. A mensagem antiga dizia «escreva no campo aberto, abaixo» e não
-  o desenhava — agora desenha.
+- **O nó que não se pergunta continua a ser NÓ.** Sai do roteiro, não do mapa: o envelope e o
+  `## Contexto` do plano leem os mesmos sete valores, e a derivação não muda uma linha.
+- **A marca é do CONTEÚDO** (`"noCabecalho": true`), como todas as outras: quem decide o que se
+  pergunta é o plano, não o motor. O PO e a anamnese não mudam — nenhum conteúdo deles usa a chave.
+- **O valor é SEMEADO, e a semente é a mesma regra.** Um nó que não se visita nunca é respondido, e
+  um obrigatório vazio fecha o «Guardar» sobre um dado que a escola declarou. `semearNosDoCabecalho`
+  chama `valorDaTurma` (a regra que o nó desenharia) e lê escola e professor do cabeçalho. Corre no
+  desenho do roteiro, para acompanhar a troca de turma.
+- **A numeração é do que se pergunta.** O `data-i` continua a ser o índice real do mapa — é por ele
+  que `irPara` navega —, mas o número que se lê conta só os degraus: 26 nós viram **19 passos**
+  numerados de 1 a 19.
+- **«Próximo» e «anterior» saltam o que não se pergunta.** Um degrau que só se lê não é degrau.
 
 **Onde entrou.**
 
-- `porta/plano/conteudo/plano.json` — `disposicao: "parametros"` no `porMarco` de
-  `aula-1-parametro`, e a explicação (`preencher`, `porQue`) reescrita para o desenho novo.
-- `porta/index.html` — `porParametrosDoNo` (a tabela) e as duas peças que as disposições agora
-  PARTILHAM: `linhasEOpcoesDoNo` (as linhas e as opções) e `estadoDoPorMarco` (o que está marcado
-  e o que foi escrito à mão). Duas disposições com duas cópias da regra divergiriam num dia. Mais
-  o ramo do clique para `[data-todos-parametro]`, e as peças `.matriz-parametros`,
-  `table.tabela-parametros` e `.legenda-objetivos` na folha da própria página.
-- `experimentos/provar-parametros-por-parametro.js` — **nova**, 14 asserções (ver abaixo).
-- `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`) — a porta
-  copiada para dentro dos pacotes foi atualizada.
+- `motor/nucleo/elicitar.js` — `noCabecalho` entra na lista fechada do `descritores()`. É a mesma
+  lista que já engoliu campos em silêncio: sem ela, a marca morria no caminho e o roteiro não
+  mudava.
+- `porta/plano/conteudo/plano.json` — os sete campos do bloco 1 marcados.
+- `porta/index.html` — `semearNosDoCabecalho`, o salto em `pintarRoteiro` com a numeração dos
+  degraus, e o salto em `irPara`.
+- `experimentos/provar-teste.js` — duas verificações novas (o roteiro salta os sete e numera só os
+  degraus; os sete valores são semeados sem ninguém os visitar). Passou de 39 para **41**.
+- `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`).
 
-**Medido.** `provar-parametros-por-parametro` **14/14**; `provar-teste` 39 (as duas asserções da
-etapa 2 continuam verdes); `provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis`
-12/12; `provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
+**Medido.** `provar-teste` **41**; `provar-parametros-por-parametro` 14/14;
+`provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis` 12/12;
+`provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
 `provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `check-identidade` **0 erro**;
-`check-pacote` da `batata` **0 erro e 0 aviso**; âncora `--check` íntegra (`068ab0b…`).
-
-**Duas lições de bancada, que custaram tempo e ficam registadas.**
-
-1. **Os endpoints do bastidor devolvem o corpo PLANO.** O `buscarJSON` põe o corpo inteiro em
-   `dados`, e os chamadores leem `dados.turmas` / `dados.termos` / `dados.relacoes`. Uma prova
-   que responda `{dados: {turmas: […]}}` a mais entrega uma lista VAZIA — e a tela cai no caminho
-   de «não há conteúdo» sem dizer nada. Foi assim que a primeira redação da prova não desenhou
-   tabela nenhuma, e o sintoma se lê como «a funcionalidade não existe».
-2. **A página devolve à lista antes de ligar os botões.** `podePreencher` recusa o formulário sem
-   `contexto-turma` e chama `voltarParaALista()`; os ouvintes de clique são registados **depois**
-   dessa trava. Uma prova que abra a página com o contexto incompleto mede uma página já
-   abandonada — e um clique não faz nada por uma razão que não é a que se quer medir. A prova
-   semeia a turma entre os `await` do arranque, e tem um **controlo**: um botão que já existia
-   (`data-lista-add`) tem de funcionar; se ele também não funcionar, o que falta é o ouvinte.
+`check-pacote` **0 erro e 0 aviso**; âncora `--check` íntegra.
 
 **O que ainda não está feito.**
 
-- **O cabeçalho só de leitura não foi implementado.** É a outra metade do modelo: escola,
-  professor, turma, frequência, duração, calendário e nº de aulas saem do roteiro (7 dos 26 nós) e
-  passam para o acordeão do alto, com escola e professor lidos de quem abriu a página. A decisão
-  está tomada; a execução não começou, e é maior do que esta: mexe na derivação do `## Contexto` e
-  na contagem dos obrigatórios.
-- **A `batata` não foi re-elicitada** com a disposição nova — o que muda para ela é só o desenho,
-  e o desenho vem do conteúdo, que é o mesmo para todas as escolas.
-- **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
-  `check-identidade` acusa um pacote por regerar assim que a fonte muda.
-- **`provar-plano-matriz.js` continua morto** (aponta para a escola `barra`, expurgada).
+- **O cabeçalho não ficou mais rico.** O acordeão do alto já mostra escola, professor, turma,
+  frequência e duração; o plano continua a publicá-los no `## Contexto`, que é onde se leem por
+  extenso. Não se acrescentou resumo novo ao acordeão — o que havia já cobria os sete.
+- **Os nós do cabeçalho continuam a existir como página.** `irPara` salta-os, mas eles ainda
+  desenham: quem chegar a um deles por um caminho que não o «próximo» (um índice antigo, um link
+  guardado) vê o nó. Fechar isso é apagar o desenho para quem tem `noCabecalho`, e fica para
+  quando houver um caso real.
+- **A `batata` não foi re-elicitada**; o conteúdo do plano é o mesmo para todas as escolas, e a
+  marca viaja com ele.
+- **Os outros pacotes não foram regerados.**
 
 ## O que está pendente
-
-## 26/10/2026 — A porta não se abre por um endereço sem ato, e o índice deixa de mandar para fora da Área do Professor
-
-
-- **A apresentação (`sistema.html` e o `index.html` de cada pacote) continua a levar aos
-  formulários COM contexto** (`/anamnese/?professor=…&ciclo=…`). Fica assim de propósito: com
-  contexto o endereço é o ato, e é o mesmo que as listas montam — o que estava errado era o
-  endereço SEM contexto. Se a decisão mudar, os dois geradores (`criar-escola.sh` para o pacote
-  zero, `gerar-ciclo.sh` para os pacotes) mudam juntos, e os pacotes publicados têm de ser
-  regerados.
-- **O rodapé do pacote ZERO** (`RODAPE_ZERO`, em `criar-escola.sh`) repete os três rótulos com os
-  endereços da porta e contexto — herança do tempo em que a porta era a entrada. Não foi tocado
-  aqui; ele aparece no `sistema.html` de toda escola. Corrigi-lo é uma decisão de conteúdo da
-  apresentação, e passa por regerar o `index.html` de cada pacote zero com
-  `criar-escola.sh --somente-indice`.
-- **`ESTADO-ATUAL.md` não foi refotografado** nesta entrada.
 
 ## 26/10/2026 — O plano publica o apanhado, e o detalhe fica na aula
 
@@ -363,6 +328,20 @@ etapa 2 continuam verdes); `provar-objetivos-por-aula` 51/51; `provar-aula-e-pla
 - **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
   `check-identidade` acusa um pacote por regerar assim que a fonte muda.
 - **`provar-plano-matriz.js` continua morto** (aponta para a escola `barra`, expurgada).
+
+## 26/10/2026 — O que não se pergunta sai do roteiro, e aparece no cabeçalho
+
+
+- **O cabeçalho não ficou mais rico.** O acordeão do alto já mostra escola, professor, turma,
+  frequência e duração; o plano continua a publicá-los no `## Contexto`, que é onde se leem por
+  extenso. Não se acrescentou resumo novo ao acordeão — o que havia já cobria os sete.
+- **Os nós do cabeçalho continuam a existir como página.** `irPara` salta-os, mas eles ainda
+  desenham: quem chegar a um deles por um caminho que não o «próximo» (um índice antigo, um link
+  guardado) vê o nó. Fechar isso é apagar o desenho para quem tem `noCabecalho`, e fica para
+  quando houver um caso real.
+- **A `batata` não foi re-elicitada**; o conteúdo do plano é o mesmo para todas as escolas, e a
+  marca viaja com ele.
+- **Os outros pacotes não foram regerados.**
 
 ## Pendências anteriores (índice)
 
@@ -651,6 +630,7 @@ etapa 2 continuam verdes); `provar-objetivos-por-aula` 51/51; `provar-aula-e-pla
 - **26/10/2026** — O menu da Produção não rola com a página: era o `sticky`… → `REGISTRO.md` L25331
 - **26/10/2026** — O menu da Produção fica congelado: `sticky` não serve, e a… → `REGISTRO.md` L25384
 - **26/10/2026** — O botão que grava não encosta no campo: a fileira do… → `REGISTRO.md` L25437
+- **26/10/2026** — A porta não se abre por um endereço sem ato, e o índice… → `REGISTRO.md` L25530
 - PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

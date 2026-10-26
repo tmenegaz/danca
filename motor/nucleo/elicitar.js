@@ -222,6 +222,13 @@ function descritores(campo) {
     // atravessa duas. Sem esta chave o objetivo volta a ser o marco de UMA aula, e a coluna
     // «Objetivos» do plano deixa de ter por onde ser preenchida.
     aulasDoObjetivo: campo.aulasDoObjetivo || null,
+    // O NÓ QUE NÃO É PASSO (26/10/2026). Escola, professor, turma, frequência, duração,
+    // calendário e número de aulas não se perguntam: vêm do cadastro da escola, do plano e de
+    // quem abriu a página. Continuam a ser nós — o envelope e o `## Contexto` leem-nos —, mas
+    // não são degraus do roteiro: a tela semeia o valor e mostra-o em leitura no cabeçalho.
+    // A CHAVE É DO CONTEÚDO, e não desta lista: quem decide o que se pergunta é o plano, não o
+    // motor.
+    noCabecalho: campo.noCabecalho === true,
     // A CONDIÇÃO DE REGISTRO (quem está na sala, quem observa): dois grupos de marcação
     // — um de caixas (o professor e as alunas já vêm marcados) e um de escolha única (o
     // observador). Sem esta chave o nó cai no texto livre, e a condição volta a ser prosa

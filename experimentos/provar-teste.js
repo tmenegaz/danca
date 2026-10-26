@@ -675,6 +675,47 @@ async function porta() {
   assert.equal(faltamNoPlano, '[]', 'o plano não ficou completo: faltam ' + faltamNoPlano);
   ok('o plano fica sem nenhum obrigatório em falta — nada por preencher');
 
+  /* O QUE NÃO SE PERGUNTA (26/10/2026). Escola, professor, turma, frequência, duração,
+     calendário e nº de aulas continuam no mapa — o envelope e o `## Contexto` leem-nos — mas
+     não são degraus: o roteiro salta-os, e o valor é SEMEADO do cabeçalho. A asserção que
+     interessa é a segunda: sem semente, sete obrigatórios ficariam em branco e o «Guardar»
+     fecharia sobre um dado que a escola já declarou. */
+  const semCabecalho = JSON.parse(await plano.win.eval(`JSON.stringify(
+    MAPA.nos.map(function(n, i){ return n.noCabecalho ? i : -1; }).filter(function(i){ return i >= 0; }))`));
+  const noRoteiro = JSON.parse(await plano.win.eval(`JSON.stringify(
+    Array.prototype.slice.call(document.querySelectorAll('#roteiro li[data-i]'))
+      .map(function(li){ return Number(li.dataset.i); }))`));
+  assert.equal(semCabecalho.length, 7,
+    'os nós do cabeçalho não são 7: ' + JSON.stringify(semCabecalho));
+  const totalDeNos = await plano.win.eval('MAPA.nos.length');
+  assert.equal(noRoteiro.length, totalDeNos - 7,
+    'o roteiro não perdeu os nós do cabeçalho: ' + JSON.stringify(noRoteiro));
+  assert.deepEqual(noRoteiro.filter((i) => semCabecalho.indexOf(i) !== -1), [],
+    'um nó do cabeçalho continua a ser um degrau do roteiro');
+  const numeros = JSON.parse(await plano.win.eval(`JSON.stringify(
+    Array.prototype.slice.call(document.querySelectorAll('#roteiro li[data-i] .n'))
+      .map(function(s){ return s.textContent; }))`));
+  assert.equal(numeros[0], '1', 'a numeração do roteiro não começa em 1: ' + numeros[0]);
+  assert.equal(numeros[numeros.length - 1], String(numeros.length),
+    'a numeração do roteiro não conta só os degraus: ' + numeros.join(','));
+  ok('o roteiro salta os 7 nós do cabeçalho, e a numeração conta só o que se pergunta');
+
+  const semeados = JSON.parse(await plano.win.eval(`(function(){
+    pintarRoteiro();
+    return JSON.stringify({
+      escola: RESPOSTAS.get('contexto-escola') || null,
+      professor: RESPOSTAS.get('contexto-professor') || null,
+      frequencia: RESPOSTAS.get('contexto-frequencia') || null,
+      duracao: RESPOSTAS.get('contexto-duracao') || null,
+      calendario: RESPOSTAS.get('contexto-calendario') || null,
+      total: RESPOSTAS.get('contexto-total-aulas') || null
+    });
+  })()`));
+  for (const [qual, valor] of Object.entries(semeados)) {
+    assert.ok(valor !== null && valor !== '', 'o nó do cabeçalho «' + qual + '» ficou vazio');
+  }
+  ok('…e os valores do cabeçalho são semeados sem ninguém os visitar');
+
   plano.dom.window.close();
 
   // ---- 3c. PLANO DE OBSERVAÇÃO ----

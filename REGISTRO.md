@@ -26140,3 +26140,58 @@ etapa 2 continuam verdes); `provar-objetivos-por-aula` 51/51; `provar-aula-e-pla
 - **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
   `check-identidade` acusa um pacote por regerar assim que a fonte muda.
 - **`provar-plano-matriz.js` continua morto** (aponta para a escola `barra`, expurgada).
+
+## 26/10/2026 — O que não se pergunta sai do roteiro, e aparece no cabeçalho
+
+**O que motivou.** «Os campos que já vêm preenchidos estão aqui apenas para que o professor saiba…
+precisa poupar o esforço do professor ficar dando tanto clique.» Sete dos vinte e seis nós do plano
+— escola, professor, turma, frequência, duração, calendário e número de aulas — não eram perguntas:
+o valor vem do cadastro da escola, do plano e de quem abriu a página. O professor atravessava-os
+clicando «próximo» sem responder nada, e dois deles (escola e professor) ainda eram **editáveis**,
+o que não deviam ser: a escola é a escola em que a página está aberta, e o professor é quem a abriu.
+
+**O que foi decidido.**
+
+- **O nó que não se pergunta continua a ser NÓ.** Sai do roteiro, não do mapa: o envelope e o
+  `## Contexto` do plano leem os mesmos sete valores, e a derivação não muda uma linha.
+- **A marca é do CONTEÚDO** (`"noCabecalho": true`), como todas as outras: quem decide o que se
+  pergunta é o plano, não o motor. O PO e a anamnese não mudam — nenhum conteúdo deles usa a chave.
+- **O valor é SEMEADO, e a semente é a mesma regra.** Um nó que não se visita nunca é respondido, e
+  um obrigatório vazio fecha o «Guardar» sobre um dado que a escola declarou. `semearNosDoCabecalho`
+  chama `valorDaTurma` (a regra que o nó desenharia) e lê escola e professor do cabeçalho. Corre no
+  desenho do roteiro, para acompanhar a troca de turma.
+- **A numeração é do que se pergunta.** O `data-i` continua a ser o índice real do mapa — é por ele
+  que `irPara` navega —, mas o número que se lê conta só os degraus: 26 nós viram **19 passos**
+  numerados de 1 a 19.
+- **«Próximo» e «anterior» saltam o que não se pergunta.** Um degrau que só se lê não é degrau.
+
+**Onde entrou.**
+
+- `motor/nucleo/elicitar.js` — `noCabecalho` entra na lista fechada do `descritores()`. É a mesma
+  lista que já engoliu campos em silêncio: sem ela, a marca morria no caminho e o roteiro não
+  mudava.
+- `porta/plano/conteudo/plano.json` — os sete campos do bloco 1 marcados.
+- `porta/index.html` — `semearNosDoCabecalho`, o salto em `pintarRoteiro` com a numeração dos
+  degraus, e o salto em `irPara`.
+- `experimentos/provar-teste.js` — duas verificações novas (o roteiro salta os sete e numera só os
+  degraus; os sete valores são semeados sem ninguém os visitar). Passou de 39 para **41**.
+- `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`).
+
+**Medido.** `provar-teste` **41**; `provar-parametros-por-parametro` 14/14;
+`provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis` 12/12;
+`provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
+`provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `check-identidade` **0 erro**;
+`check-pacote` **0 erro e 0 aviso**; âncora `--check` íntegra.
+
+**O que ainda não está feito.**
+
+- **O cabeçalho não ficou mais rico.** O acordeão do alto já mostra escola, professor, turma,
+  frequência e duração; o plano continua a publicá-los no `## Contexto`, que é onde se leem por
+  extenso. Não se acrescentou resumo novo ao acordeão — o que havia já cobria os sete.
+- **Os nós do cabeçalho continuam a existir como página.** `irPara` salta-os, mas eles ainda
+  desenham: quem chegar a um deles por um caminho que não o «próximo» (um índice antigo, um link
+  guardado) vê o nó. Fechar isso é apagar o desenho para quem tem `noCabecalho`, e fica para
+  quando houver um caso real.
+- **A `batata` não foi re-elicitada**; o conteúdo do plano é o mesmo para todas as escolas, e a
+  marca viaja com ele.
+- **Os outros pacotes não foram regerados.**
