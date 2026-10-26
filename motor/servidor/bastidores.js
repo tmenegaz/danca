@@ -2167,7 +2167,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // já não ocupa a célula da grade — a grade fica com UMA coluna, e a faixa do menu é paga no
     // `padding-left`: 11rem (a largura do menu) + os dois espaçamentos que separavam as colunas
     // (o `esp-4` de padding e o `esp-5` do `gap`). É a MESMA geometria de antes, medida: o
-    // conteúdo começava a 220px, e continua a começar.
+    // conteúdo começava a 216px, e continua a começar (medido na página real, antes e depois).
     '.corpo{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;' +
     'padding:var(--esp-5) var(--esp-4) var(--esp-6) calc(11rem + var(--esp-4) + var(--esp-5));}' +
     // A PÁGINA QUE CABE NA TELA NÃO ROLA (26/10/2026). «Eu não sei o que que está gerando o scroll

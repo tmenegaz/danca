@@ -1211,7 +1211,7 @@ primeiro.
 | Regra | Como |
 | --- | --- |
 | **`fixed`, e não `sticky`** | a posição não depende da altura do contentor. É o mesmo mecanismo da coluna do sistema |
-| **A faixa é reservada no `.corpo`** | `padding-left: calc(11rem + var(--esp-4) + var(--esp-5))` — a mesma geometria de antes (o conteúdo começa a 220px), com a `lateral` fora do fluxo |
+| **A faixa é reservada no `.corpo`** | `padding-left: calc(11rem + var(--esp-4) + var(--esp-5))` — a mesma geometria de antes (o conteúdo começa a **216px**, medido), com a `lateral` fora do fluxo |
 | **A página que cabe na tela não rola** | `body:has(.corpo){padding-bottom:0}`: os 40px que a folha reserva para o texto de um documento viravam barra de rolagem numa tela que cabe inteira — «não sei o que está gerando o scroll vertical» |
 | **Se o menu for mais alto do que a tela, ele rola DENTRO de si** | `bottom: 0` + `overflow-y: auto` — nunca a página a empurrá-lo para fora |
 | **A barra do topo continua acima** | `top: var(--header-height)`: o menu encosta abaixo da barra fixa. `z-index: 15`, abaixo da barra (20) e do submenu dela (21) |

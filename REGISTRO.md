@@ -25403,7 +25403,7 @@ de trabalho.**
   var(--header-height); bottom: 0; width: 11rem; z-index: 15`. Não depende da altura de nada.
 - **A faixa é reservada no `.corpo`**: `grid-template-columns` passa a uma coluna e o
   `padding-left: calc(11rem + var(--esp-4) + var(--esp-5))` paga a mesma geometria de antes (o
-  conteúdo começa a 220px — medido, antes e depois).
+  conteúdo começa a 216px — medido na página real, antes e depois).
 - **A página que cabe na tela deixa de rolar**: `body:has(.corpo){padding-bottom:0}`. Os 40px que a
   folha reserva em baixo para o texto de um documento viravam barra de rolagem numa tela que cabe
   inteira — era essa a origem do «scroll vertical» que a pesquisadora não encontrava.
