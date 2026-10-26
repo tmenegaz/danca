@@ -333,7 +333,9 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 | Verificação | Resultado |
 |:--|:--|
-| `git fetch` + `git status -sb` | `main` **2 commits à frente** de `origin/main` (`acfab1f`) antes desta sessão; o push foi feito no fim — ver §11 |
+| `git fetch` + `git status -sb` | `main` estava **2 commits à frente** de `origin/main` (`acfab1f`) ao abrir a sessão; push feito, `origin/main` em `fe71508` |
+| deploy automático (push → Actions) | «Publicar as escolas» e «Publicar a raiz» **success** sobre `fe71508` |
+| conferência ao ar, **uma carga** por destino | `/bastidores/producao` da `batata`: **200**, `par-botoes` **8×** (eram 6), e as três marcações novas no HTML servido. A raiz: **401** sem senha, como sempre |
 | geometria do botão, medida em navegador | `provar-vao-do-botao` **62/62** em 1280px e 390px. Antes da correção: vão de **0px** no «Cadastrar aluna» e no «Cadastrar termo»; «Atribuir curadoria» com fundo `rgb(255,255,255)` e **45px**, contra `rgb(107,31,46)` e **49px** do «Cadastrar professor» |
 | **controle negativo** da mesma prova (`git archive` do código de antes) | **46/62** — reprova 16, com o vão a 0px nos dois formulários e a curadoria no botão padrão da folha |
 | `node experimentos/provar-celular.js` | **15/15**. Antes desta sessão saía com «bloco de estilo da Produção não encontrado»: a âncora era `position:sticky` e o menu passou a `fixed` |
@@ -403,7 +405,9 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   (13 na curadoria). **Nada tocou a folha**, que está congelada — o defeito era a página a desfazer
   a conta dela. Prova nova: `experimentos/provar-vao-do-botao.js` (62/62; 46/62 no controle
   negativo). A `provar-celular.js`, que saía sem medir nada desde que o menu deixou de ser `sticky`,
-  voltou a **15/15**. **CONFIRMADO** no navegador.
+  voltou a **15/15**. **CONFIRMADO** no navegador, **DECIDIDO** 26/10/2026 e **publicado**: o push
+  levou também os dois commits do menu que estavam por enviar, os dois workflows de publicação
+  terminaram em `success` sobre `fe71508`, e a página ao ar serve as três marcações novas.
 - **25/10/2026** — **a opção A implementada no produto**: o contexto do ato passa a ser um painel
   dentro das três listas da Área do Professor, aberto pela caixinha do «Turma» na faixa inteira, com
   a seta `▾` a rodar para cima ao abrir. O botão solto do topo saiu (duas portas, e a segunda sem o

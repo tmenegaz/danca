@@ -25498,6 +25498,14 @@ Produção ancorada na string `'.lateral{position:sticky'`. O commit `aa96a3c` m
 `IDENTIDADE-VISUAL.md`; regra 10 da §6 de `ESTADO-ATUAL.md` («qualquer coisa que apareça no ecrã
 nasce do catálogo»); a checagem 8 (Peça) de `tools/check-identidade.js`.
 
+**Publicado, e conferido ao ar.** O commit da correção é `8a7b4a5`; o push levou também os dois
+commits do menu da Produção que estavam por enviar (`aa96a3c`, `a7f4490`), e os dois workflows de
+publicação — «Publicar as escolas» e «Publicar a raiz» — terminaram **success** sobre `fe71508`.
+Conferido em **uma carga** de `/bastidores/producao` da `batata`: http **200**, `<span
+class="par-botoes">` **8** vezes (eram 6), e as três marcações novas no HTML servido — «Cadastrar
+aluna» e «Cadastrar termo» dentro da fileira, «Atribuir curadoria» com `class="acao grande"`. A raiz
+responde **401** sem a senha, como sempre.
+
 **Medido, no navegador.** `provar-vao-do-botao` **62/62** em 1280px e 390px — os cinco formulários
 com a ação na fileira, `.acao`, a mesma cor de fundo e de texto, a mesma altura de 49px, e vão de
 9px (13 no da curadoria, que mede contra o `.escolhedor`, não contra um campo). **Controle

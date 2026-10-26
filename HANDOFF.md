@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-25T23:58:35-0300`
-Commit atual: `e7dc603` — docs(registro): o vão do botão, e a fotografia sobre o commit da correção
+Gerado em: `2026-10-26T00:01:34-0300`
+Commit atual: `fe71508` — docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -78,6 +78,7 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+fe71508 docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
 e7dc603 docs(registro): o vão do botão, e a fotografia sobre o commit da correção
 8a7b4a5 fix(estrutura): a ação de cada formulário da Produção na fileira do professor
 a7f4490 docs(estrutura): o número medido da faixa do menu — 216px, e não 220
@@ -97,7 +98,6 @@ f85478a refactor(porta): a página intermediária foi apagada — a porta é o f
 d1a66f1 feat(folha): o painel do ato não se abre sozinho — a barra fechada é que avisa
 c4784af feat(propostas): a sala de ensaio do acervo — os estados todos numa página
 3d9f52f fix(area-do-professor): o salto sem paragem, o rótulo que faltava, e o Sair para a lista
-ef35cb4 feat(folha): dois nomes na barra do bloco, e o repouso dos dois modos
 ```
 
 ## Por professor
@@ -256,6 +256,14 @@ Produção ancorada na string `'.lateral{position:sticky'`. O commit `aa96a3c` m
 **Referências.** Secção «O catálogo das peças» e «O vão do botão não se dá por acidente» de
 `IDENTIDADE-VISUAL.md`; regra 10 da §6 de `ESTADO-ATUAL.md` («qualquer coisa que apareça no ecrã
 nasce do catálogo»); a checagem 8 (Peça) de `tools/check-identidade.js`.
+
+**Publicado, e conferido ao ar.** O commit da correção é `8a7b4a5`; o push levou também os dois
+commits do menu da Produção que estavam por enviar (`aa96a3c`, `a7f4490`), e os dois workflows de
+publicação — «Publicar as escolas» e «Publicar a raiz» — terminaram **success** sobre `fe71508`.
+Conferido em **uma carga** de `/bastidores/producao` da `batata`: http **200**, `<span
+class="par-botoes">` **8** vezes (eram 6), e as três marcações novas no HTML servido — «Cadastrar
+aluna» e «Cadastrar termo» dentro da fileira, «Atribuir curadoria» com `class="acao grande"`. A raiz
+responde **401** sem a senha, como sempre.
 
 **Medido, no navegador.** `provar-vao-do-botao` **62/62** em 1280px e 390px — os cinco formulários
 com a ação na fileira, `.acao`, a mesma cor de fundo e de texto, a mesma altura de 49px, e vão de
