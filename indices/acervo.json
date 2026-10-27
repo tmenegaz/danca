@@ -60,7 +60,8 @@
       "nome": "batata",
       "professor": "perna-boa",
       "professores": [
-        "perna-boa"
+        "perna-boa",
+        "so-para-direita"
       ],
       "registros": [],
       "slug": "batata"
@@ -391,6 +392,11 @@
         "valor": "sapo-bailarino"
       },
       {
+        "contagem": 1,
+        "rotulo": "Só para Direita",
+        "valor": "so-para-direita"
+      },
+      {
         "contagem": 0,
         "rotulo": "teclado-abnt",
         "valor": "teclado-abnt"
@@ -420,9 +426,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "25c60f1"
+    "commit": "921ffb2"
   },
-  "gerado_em": "2026-10-27T12:11",
+  "gerado_em": "2026-10-27T12:31",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -541,6 +547,15 @@
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
       "slug": "sapo-bailarino"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:so-para-direita",
+      "nome": "Só para Direita",
+      "slug": "so-para-direita"
     },
     {
       "ciclos": [],

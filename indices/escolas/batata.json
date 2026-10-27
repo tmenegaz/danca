@@ -63,7 +63,8 @@
     "nome": "batata",
     "professor": "perna-boa",
     "professores": [
-      "perna-boa"
+      "perna-boa",
+      "so-para-direita"
     ],
     "registros": [],
     "slug": "batata"
@@ -103,9 +104,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "25c60f1"
+    "commit": "921ffb2"
   },
-  "gerado_em": "2026-10-27T12:11",
+  "gerado_em": "2026-10-27T12:31",
   "nao_indexado": [
     {
       "familia": "conteudo",
