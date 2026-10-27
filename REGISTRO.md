@@ -27233,7 +27233,11 @@ Pedido explícito da pesquisadora; `IDENTIDADE-VISUAL.md`; `PROTOCOLO.md` P-15/P
 Notação e Glossário); `REGRAS.md` 17 (versionamento).
 
 **O que ainda não está feito.**
-O pacote e a publicação foram validados apenas localmente: não houve commit, push, deploy nem
-conferência ao vivo. `git fetch origin` falhou e a atualidade do remoto não foi confirmada. A fonte
-mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
+A fonte mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
 mesmo destino às demais aulas.
+
+**Atualização de publicação (27/10/2026).**
+Após esta fotografia, os três commits foram enviados a `origin/main` (entrega em `d349ed0`). O workflow
+`Publicar as escolas` concluiu com sucesso, incluindo o job de Batata; uma única conferência ao vivo
+em `/aulas/` respondeu HTTP 200 e confirmou os links da leitura em prosa e da ação «Abrir notação».
+Não foi necessário `wrangler deploy` manual.

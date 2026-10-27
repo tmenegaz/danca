@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T16:31:22-0300`
-Commit atual: `f251f0e` — fix(experimentos): alinhar provas à variante gerada
+Gerado em: `2026-10-27T17:17:45-0300`
+Commit atual: `d349ed0` — chore(entrega): consolidar artefatos da Batata
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,9 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+d349ed0 chore(entrega): consolidar artefatos da Batata
+b9cb59f feat(aula-01): oferecer leitura em prosa e notacao
+a656507 feat(tools): ler aula em prosa e notacao
 f251f0e fix(experimentos): alinhar provas à variante gerada
 577ee59 chore(entrega): gerar o pacote de perna-boa/01/batata-bale-nivel-1-teste-2
 3c57dc0 chore(estrutura): regerar os índices derivados
@@ -97,9 +100,6 @@ ec1d874 feat(plano): o plano elicitado vira a fonte do ciclo
 11d4ea1 feat(acervo): envelope/plano-20261027-1131.json
 ef496e3 feat(acervo): envelope/.indice.json
 91211a6 chore(estrutura): regerar os índices derivados
-a8f774b fix(entrega): o plano de ensino preenchido, a turma do filtro e o contexto à vista
-bfceb68 chore(estrutura): reancorar a cadeia das fontes alteradas
-96a8d3d chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -280,10 +280,14 @@ Pedido explícito da pesquisadora; `IDENTIDADE-VISUAL.md`; `PROTOCOLO.md` P-15/P
 Notação e Glossário); `REGRAS.md` 17 (versionamento).
 
 **O que ainda não está feito.**
-O pacote e a publicação foram validados apenas localmente: não houve commit, push, deploy nem
-conferência ao vivo. `git fetch origin` falhou e a atualidade do remoto não foi confirmada. A fonte
-mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
+A fonte mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
 mesmo destino às demais aulas.
+
+**Atualização de publicação (27/10/2026).**
+Após esta fotografia, os três commits foram enviados a `origin/main` (entrega em `d349ed0`). O workflow
+`Publicar as escolas` concluiu com sucesso, incluindo o job de Batata; uma única conferência ao vivo
+em `/aulas/` respondeu HTTP 200 e confirmou os links da leitura em prosa e da ação «Abrir notação».
+Não foi necessário `wrangler deploy` manual.
 
 ## O que está pendente
 
@@ -349,9 +353,7 @@ leitura da curadoria no `POST` não foi alterada por esta entrega.
 
 ## 27/10/2026 — A aula passa a ter leitura em prosa e em Notação Benesh
 
-O pacote e a publicação foram validados apenas localmente: não houve commit, push, deploy nem
-conferência ao vivo. `git fetch origin` falhou e a atualidade do remoto não foi confirmada. A fonte
-mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
+A fonte mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
 mesmo destino às demais aulas.
 
 ## Pendências anteriores (índice)
