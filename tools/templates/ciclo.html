@@ -26,6 +26,9 @@ $endfor$
   $if(subtitle)$
   <p class="subtitulo">$subtitle$</p>
   $endif$
+  $if(glossario-href)$
+  <p><a class="acao secundario pequena" href="$glossario-href$" target="_blank" rel="noopener noreferrer">Abrir glossário (nova aba)</a></p>
+  $endif$
   $if(ficha)$
   <p class="ficha">
     $if(escola)$<span>Escola: $escola$$if(escola-responsavel)$ — $escola-responsavel$$endif$</span>$endif$

@@ -745,6 +745,16 @@ PY
   fi
 done
 
+# A aula em prosa combina a fonte da aula com os exercícios declarados na fonte de Notação.
+# É uma saída derivada: preserva compasso, contagem e descrição, mas omite a coluna de sinais.
+AULA_PROSA_SRC=""
+AULA_FONTE="$TMP/src/ciclo-$CICLO-aula-01.md"
+NOTACAO_FONTE="$TMP/src/ciclo-$CICLO-notacao.md"
+if [ -f "$AULA_FONTE" ] && [ -f "$NOTACAO_FONTE" ]; then
+  AULA_PROSA_SRC="$TMP/src/ciclo-$CICLO-aula-01-prosa.md"
+  node "$RAIZ/tools/gerar-aula-prosa.js" "$AULA_FONTE" "$NOTACAO_FONTE" "$AULA_PROSA_SRC" || exit 1
+fi
+
 # Âncoras estáveis: são as mesmas no HTML (#id da página) e no PDF (#id da seção),
 # e é isso que permite ligar de um arquivo a outro sem quebrar em nenhum formato.
 declare -A ANCORA=(
@@ -1046,6 +1056,9 @@ PY
 gerados=0
 for doc in $TODOS; do
   src="$TMP/src/ciclo-$CICLO-$doc.md"
+  if [ "$doc" = "aula-01" ] && [ -n "$AULA_PROSA_SRC" ]; then
+    src="$AULA_PROSA_SRC"
+  fi
   if [ ! -f "$src" ]; then
     echo "aviso: fonte ausente, pulando: $doc ($(fonte_md "$doc"))" >&2
     continue
@@ -1403,4 +1416,3 @@ fi
 # 4) Validação automática (links, navegação, índice, PDF)
 # ---------------------------------------------------------------------------
 node "$RAIZ/tools/check-pacote.js" "$PACOTE"
-
