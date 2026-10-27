@@ -2,20 +2,35 @@
   "aulas": [],
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-27",
+        "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
+        "cobertura": [
+          "professores/perna-boa/ciclos/ciclo-01-batata.conf",
+          "professores/perna-boa/ciclos/ciclo-01.conf"
+        ],
+        "hash": "1816e1eb7b3cc3fc1c8a736265a6d34ca1cc661612aec10096bd676e20294653",
+        "hash_conteudo": "5ed93e23b00fdd4c199f38dfc769d6d1b03e8e19da262f5394f0592c97282119",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/perna-boa/ciclos/ciclo-01-batata.conf",
+        "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
         "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:perna-boa/01/batata",
       "numero": "01",
       "pacote": null,
       "professor": "perna-boa",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "manifesto",
         "schema"
       ]
@@ -23,7 +38,16 @@
   ],
   "documentos": [
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/perna-boa/ciclos/ciclo-01-batata.fipp",
+      "professor": "perna-boa",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:perna-boa/01/batata",
       "escola": "batata",
@@ -32,7 +56,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:perna-boa/01/batata",
       "escola": "batata",
@@ -46,13 +70,13 @@
       "ciclo:perna-boa/01/batata"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
-      "ciclos_com_ancora": 0,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-10-27T12:11:05.731644+00:00",
     "expurgada": false,
@@ -66,25 +90,37 @@
       "perna-boa",
       "so-para-direita"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261027-0939"
+    ],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261027-0939"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
         "ids": [
           "ciclo:perna-boa/01/batata"
         ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261027-0939",
           "ciclo:perna-boa/01/batata"
         ],
         "rotulo": "perna-boa",
@@ -92,6 +128,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261027-0939"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -104,9 +148,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "921ffb2"
+    "commit": "2cd5c77"
   },
-  "gerado_em": "2026-10-27T12:31",
+  "gerado_em": "2026-10-27T12:39",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -129,6 +173,17 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261027-0939",
+      "ciclo": "01",
+      "data": "2026-10-27T09:39",
+      "id": "anamnese:anamnese-20261027-0939",
+      "professor": "perna-boa",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }
