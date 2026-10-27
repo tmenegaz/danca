@@ -75,13 +75,13 @@
         "ciclo:luz-azul/01/breu"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-10-19T23:41:57.342597+00:00",
       "expurgada": false,
@@ -94,7 +94,9 @@
       "professores": [
         "luz-azul"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261026-2154"
+      ],
       "slug": "breu"
     },
     {
@@ -278,7 +280,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -420,13 +428,19 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "0b6e908"
+    "commit": "e6e472b"
   },
-  "gerado_em": "2026-10-27T00:11",
+  "gerado_em": "2026-10-27T00:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
