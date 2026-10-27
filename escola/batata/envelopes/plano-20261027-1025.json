@@ -1,0 +1,474 @@
+{
+  "$comentario": "Elicitação DERIVADA — não escrita à mão. O documento é montado a partir do conteúdo (conteudo/anamnese.json) e das respostas declaradas, pelo runtime motor/elicitar.js. As respostas não passam por normalização: o valor que não casa com um ramo declarado produz uma parada, e a parada é fato, não juízo.",
+  "envelope": "1.3.0",
+  "id": "plano-20261027-1025",
+  "conteudo": {
+    "endereco": "../plano/conteudo/plano.json",
+    "norma": "REGRAS.md (Regra 10) + PROTOCOLO.md (P-01)",
+    "digest": null,
+    "digestAlgoritmo": "sha256"
+  },
+  "respostas": {
+    "contexto-turma": {
+      "valor": "Balé Nível 1 — Teste 2",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "objetivo-geral": {
+      "valor": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-metodologia": {
+      "valor": "RAD",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-metodologia-origem": {
+      "valor": "Eu escolho",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "marcos-por-aula": {
+      "valor": [
+        "reconhecer o apoio e alinhar o eixo vertical",
+        "transferir o peso entre os pés sem perder o alinhamento",
+        "sustentar a transferência com musicalidade e controle do movimento"
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "estrutura-de-cada-aula": {
+      "valor": [
+        {
+          "marco": 1,
+          "marcados": [
+            "Solo",
+            "Barra"
+          ]
+        },
+        {
+          "marco": 2,
+          "marcados": [
+            "Barra",
+            "Centro"
+          ]
+        },
+        {
+          "marco": 3,
+          "marcados": [
+            "Solo",
+            "Centro",
+            "Musicalidade"
+          ]
+        }
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "aula-1-parametro": {
+      "valor": [
+        {
+          "marco": 1,
+          "marcados": [
+            "Arabesque",
+            "Jeté",
+            "Rond de jambe",
+            "Plié",
+            "Battement tendu"
+          ]
+        },
+        {
+          "marco": 2,
+          "marcados": [
+            "Arabesque",
+            "Jeté",
+            "Rond de jambe",
+            "Plié",
+            "Port de bras"
+          ]
+        },
+        {
+          "marco": 3,
+          "marcados": [
+            "Arabesque",
+            "Jeté",
+            "Rond de jambe",
+            "Battement tendu"
+          ]
+        }
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "distribuicao-de-volume": {
+      "valor": {
+        "unidade": "percentual",
+        "linhas": [
+          {
+            "Bloco": "Solo",
+            "Proporção alvo": "30%",
+            "Justificativa": "Aquecimento e consciência corporal."
+          },
+          {
+            "Bloco": "Barra",
+            "Proporção alvo": "30%",
+            "Justificativa": "Apoio e alinhamento."
+          },
+          {
+            "Bloco": "Centro",
+            "Proporção alvo": "30%",
+            "Justificativa": "Transferência e sequência."
+          },
+          {
+            "Bloco": "Musicalidade",
+            "Proporção alvo": "10%",
+            "Justificativa": "Pulso e frase."
+          }
+        ]
+      },
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "aula-1-sequencia": {
+      "valor": [
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Arabesque"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Jeté"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Rond de jambe"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Plié",
+          "Tempos": "8",
+          "Compasso": "4/4"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Battement tendu"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Arabesque"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Jeté"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Rond de jambe"
+        },
+        {
+          "Bloco": "Solo",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Battement tendu"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Arabesque"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Jeté"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Rond de jambe"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Plié"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
+          "Conteúdo do nível": "Battement tendu"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Arabesque"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Jeté"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Rond de jambe"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Plié"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Port de bras"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Arabesque"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Jeté"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Rond de jambe"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Plié"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Port de bras"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Arabesque"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Jeté"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Rond de jambe"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Battement tendu"
+        },
+        {
+          "Bloco": "Barra",
+          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
+          "Conteúdo do nível": "Battement tendu",
+          "Tempos": "8",
+          "Compasso": "4/4"
+        },
+        {
+          "Bloco": "Centro",
+          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
+          "Conteúdo do nível": "Port de bras",
+          "Tempos": "16",
+          "Compasso": "3/4"
+        }
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "condicoes-preliminares": {
+      "valor": "Sala com barra, espelho e aparelho de som; piso adequado.",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "criterio-de-extensao": {
+      "valor": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "referencias": {
+      "valor": "RAD (2015) e material de teste do Projeto Ciclo.",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "musicas-videos": {
+      "valor": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "repertorio": {
+      "valor": "Sequência de teste com plié, tendu e port de bras.",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "proveniencia": {
+      "valor": [
+        "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
+        "Plano derivado de literatura de apoio sobre corpo e aula"
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-volume": {
+      "valor": {
+        "min": 3,
+        "max": 6,
+        "unidade": "séries"
+      },
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-registro": {
+      "valor": {
+        "presentes": [
+          "professor",
+          "alunas da turma"
+        ],
+        "observa": [
+          "o próprio professor"
+        ]
+      },
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-notacao": {
+      "valor": "Benesh",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-escola": {
+      "valor": "batata",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-professor": {
+      "valor": "perna-boa",
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-frequencia": {
+      "valor": {
+        "vezes": 2,
+        "por": "semanal",
+        "dias": [
+          "seg",
+          "qua"
+        ]
+      },
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-duracao": {
+      "valor": [
+        {
+          "numero": 50,
+          "unidade": "minuto"
+        }
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-calendario": {
+      "valor": {
+        "inicio": "2027-02-01",
+        "fim": "2027-04-30"
+      },
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "contexto-total-aulas": {
+      "valor": 26,
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "aula-de-cada-objetivo": {
+      "valor": [
+        {
+          "objetivo": 1,
+          "aulas": [
+            "01"
+          ]
+        },
+        {
+          "objetivo": 2,
+          "aulas": [
+            "02"
+          ]
+        },
+        {
+          "objetivo": 3,
+          "aulas": [
+            "03"
+          ]
+        }
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    },
+    "rubrica": {
+      "valor": [
+        "Excelente",
+        "Bom",
+        "Em construção"
+      ],
+      "origem": "perguntado",
+      "respondente": "professor",
+      "nota": null
+    }
+  },
+  "ramificacoes": [],
+  "ancora": null,
+  "gerado_em": "2026-10-27T10:25",
+  "contexto": {
+    "escola": "batata",
+    "professor": "perna-boa",
+    "ciclo": "01",
+    "turma": "Balé Nível 1 — Teste 2"
+  },
+  "validacao": {
+    "contrato": "envelope/elicitacao-schema.json",
+    "resultado": "passou",
+    "motivos": []
+  }
+}
