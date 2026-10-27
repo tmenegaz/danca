@@ -26441,3 +26441,58 @@ no mesmo parágrafo que o estava a explicar. É a mesma família do template lit
   foi tocado porque o caminho está certo e o deploy não estava em causa.
 - **A `breu` continua sem ciclo gerado**, e por isso as bancadas `/propostas/` não vão ao ar. É o
   estado da escola, não um defeito do código.
+
+## 27/10/2026 — O expurgo da `breu` aconteceu, e as duas metades conversaram
+
+**O que motivou.** A entrada anterior fechou a leitura do registro e verificou-a **por simulação**:
+acrescentei um expurgo ao índice da `breu`, corri tudo, e revertei. Simulação não é o feito. A
+pesquisadora expurgou a `breu` a sério às 11:21 de 27/10 (`f959218`, 18 arquivos; o registro
+passou a **3 expurgos** para a escola), e este é o resultado medido, não previsto.
+
+**O que aconteceu, elo por elo, sem nenhum passo meu entre eles:**
+
+| onde | o que disse |
+|:--|:--|
+| `escola/breu/indice.json` | terceiro `expurgo` — `2026-10-27T11:21:49`, 18 apagados, motivo declarado |
+| `Publicar as escolas` (run `40495582039`) | `descobertas: []` → o job `publicar` foi **skipped**. Nenhum Worker ressuscitado |
+| `wrangler.breu.jsonc` | apagado — e era o que fazia a descoberta considerar a escola |
+| ao vivo | `breu.tmenegaz77.workers.dev` → **404** em `/`, `/anamnese/`, `/area-do-professor/anamnese/` |
+| `Regerar os índices` (`0768454`) | `indices/escolas/breu.json` → `expurgada: true`, `ciclos: 0`, `habilitada: false` |
+| `Reancorar a cadeia` | «nenhuma escola no repositório — nada a reancorar», e sai a **zero** |
+| `Construir as bancadas` | sai a **zero**; «escolas vivas: (nenhuma)», e lista as **10** expurgadas com data |
+
+**A simulação estava certa, e é isso que a torna útil.** Ela previu exatamente duas coisas — «escolas
+vivas: (nenhuma)» e as 10 expurgadas com data — e foi isso que o CI imprimiu a sério. Uma simulação
+que acertasse por coincidência não valeria nada; esta acertou porque media a mesma regra com os
+mesmos sujeitos.
+
+**O portal da raiz não precisou de deploy.** O `motor/servidor/raiz.js` lê `indices/acervo.json` do
+GitHub **em tempo de execução** (`ref: REF`), e o `Regerar os índices` já o tinha commitado com a
+`breu` marcada. Verificado no ficheiro: as **10** escolas estão `expurgada: true`,
+`habilitada: false`. Se o portal lesse de um bundle, teria ficado a anunciar uma escola que já não
+existe até ao deploy seguinte — e o sintoma seria o pior: um link para um 404.
+
+**Medido.** `provar-bancadas-e-expurgo` **21/21** sobre o expurgo REAL (era 21/21 sobre o
+simulado); `provar-indices` **54/54**; `provar-recriacao-da-escola` OK; `provar-teste` 42;
+`provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14; `provar-painel-do-ato` OK;
+`provar-porta-sem-contexto` 44/44; `provar-barra-unica` 111/111; `provar-listas-do-acervo` 109/109;
+`check-identidade` 0 erro.
+
+**Uma nota de bancada que vale para a próxima sessão.** A primeira corrida de `provar-indices` deu
+**5 falhas**, e o diagnóstico óbvio era «o expurgo deixou o índice inconsistente». Não era: o
+worktree estava **um commit atrás**, e o `Regerar os índices` já tinha commitado a correção
+(`0768454`). Rebasear resolveu, e as 5 falhas eram o worktree a medir o passado. É a mesma família
+de erro da regra «o remoto primeiro» — e a lição é que ela também vale para os **workflows**, que
+escrevem no `main` em paralelo com quem está a medir.
+
+**O que ainda não está feito.** Nada nesta frente. Fica registado, para não se ler como avaria:
+
+- **Zero escolas vivas no repositório.** Só o `wrangler.danca.jsonc` (a raiz) resta. O próximo
+  ciclo de teste começa por `tools/criar-escola.sh` + `tools/gerar-ciclo.sh`.
+- **`publicacao/batata`, `publicacao/breu` e `publicacao/calango` continuam no disco local** — são
+  saída (git-ignored) de escolas que já não existem. Não podem ir ao ar: a descoberta exige o
+  `wrangler.<slug>.jsonc`, e ele não existe. Estão lá como fotografia, não como resto a limpar; se
+  incomodarem, apagam-se sem consequência.
+- **`provar-titulo-e-barra`, `provar-iphone`, `provar-cabecalho-do-documento` e
+  `provar-objetivos-por-aula`** seguem sem fixture. As três primeiras dizem «nenhum pacote de ciclo
+  gerado que se possa medir» com o estado das escolas em baixo; a última diz «NÃO FEITO».
