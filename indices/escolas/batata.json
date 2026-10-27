@@ -70,13 +70,13 @@
       "ciclo:perna-boa/01/batata"
     ],
     "contagens": {
-      "anamneses": 2,
+      "anamneses": 3,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-10-27T12:11:05.731644+00:00",
     "expurgada": false,
@@ -92,17 +92,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261027-0939",
-      "anamnese:anamnese-20261027-0943"
+      "anamnese:anamnese-20261027-0943",
+      "anamnese:anamnese-20261027-0946"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261027-0939",
-          "anamnese:anamnese-20261027-0943"
+          "anamnese:anamnese-20261027-0943",
+          "anamnese:anamnese-20261027-0946"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -129,9 +131,10 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261027-0943"
+          "anamnese:anamnese-20261027-0943",
+          "anamnese:anamnese-20261027-0946"
         ],
         "rotulo": "so-para-direita",
         "valor": "so-para-direita"
@@ -139,10 +142,11 @@
     ],
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261027-0939",
-          "anamnese:anamnese-20261027-0943"
+          "anamnese:anamnese-20261027-0943",
+          "anamnese:anamnese-20261027-0946"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -159,9 +163,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "50387da"
+    "commit": "c48c991"
   },
-  "gerado_em": "2026-10-27T12:43",
+  "gerado_em": "2026-10-27T12:46",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -202,6 +206,16 @@
       "ciclo": "01",
       "data": "2026-10-27T09:43",
       "id": "anamnese:anamnese-20261027-0943",
+      "professor": "so-para-direita",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261027-0946",
+      "ciclo": "01",
+      "data": "2026-10-27T09:46",
+      "id": "anamnese:anamnese-20261027-0946",
       "professor": "so-para-direita",
       "tipo": "anamnese"
     }
