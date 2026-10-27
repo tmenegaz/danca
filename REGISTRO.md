@@ -26661,3 +26661,59 @@ se disfarça de defeito — a regra «o remoto primeiro» também vale para os w
   esta sessão não viu. Criar, publicar, expurgar e recriar foram vistos três vezes; gerar, não.
 - **A `calango` não tem âncora** e o `check-pacote` do esqueleto reprova 16 erros, como qualquer
   escola recém-criada. Não se ancorou: o ciclo estava vazio, e a âncora sela.
+
+## 27/10/2026 — A correção passou pelo caminho real: a `batata` voltou pelo `criar-escola.sh`
+
+**O que motivou.** A pesquisadora recriou a **`batata`** às 12:11 (`5c2b3d3`, via «Criar a escola»
+do portal). Até aqui, as duas correções de hoje — a identidade do presente e a data da encarnação —
+tinham sido verificadas de três maneiras: numa prova com fixture, numa reparação à mão da `calango`,
+e no expurgo. **Faltava o caminho que as vai usar de agora em diante: a criação por
+`tools/criar-escola.sh`.** É a diferença entre «o código que escrevi faz o que eu digo» e «o
+sistema, a correr, faz o que eu digo».
+
+**O que a criação gravou, sem eu tocar em nada.** No `escola/batata/indice.json`, o elo novo de
+12:11:
+
+- `professor: {slug: perna-boa, nome: Perna Boa}` — o presente, e é o professor que a página
+  escolheu;
+- `professores[]: []` — sem o responsável repetido, como a regra manda;
+- `professor_anterior: {slug: tiago-menegaz, nome: Tela de PC}` — quem a criou da primeira vez,
+  19/10;
+- `professores_anteriores`: **cinco** vínculos, cada um com o `desde` que tinha (`teclado-abnt`
+  22/10, `meia-cortada` 22/10, `tela-de-celular` 22/10, `acucar-branco` 22/10, `manga-curta` 23/10).
+
+**A lista vazia não é perda — é a regra a funcionar.** Numa escola VIVA, a lista de professores é o
+que a derivação junta do ciclo e do vínculo declarado. Numa APAGADA, ela inclui todos os que o elo
+prova. A `batata` voltou como esqueleto (sem ciclo gerado), e por isso `professores: ['perna-boa']`
+— só o responsável. Os cinco anteriores estão no elo, e voltarão a aparecer se e quando a escola
+for expurgada de novo. Foi exactamente para isto que o elo guarda o `desde`.
+
+**A data, no portal, pela via derivada:** `criada_em: 2026-10-27T12:11:05` — e não
+`2026-10-19T16:48:13`, que é o `criado_em` do topo, preservado como história. Lido no acervo que o
+Worker lê ao vivo: «batata — Perna Boa — 27/10/2026 — viva». Ao lado, a `calango` apagada mostra
+cinco professores e a data da encarnação dela (11:35), que é a regra de 22/10 para escola apagada.
+
+**No ar.** `batata.tmenegaz77.workers.dev` → `/` **200**, `/anamnese/` **302** para a lista,
+`/area-do-professor/anamnese/` **200**. E — o que mais importa, porque foi o defeito que abriu esta
+sessão — o preenchedor servido em `/assets/teste-preenchimento.js` é **byte a byte igual** ao
+`motor/servidor/teste-cliente.js` de hoje (25 846 caracteres, `SCRIPT === vivo`), e a porta no ar
+carrega a chave do depósito com a aluna.
+
+**Medido.** `provar-identidade-da-escola-recriada` 23/23; `provar-indices` 60/60;
+`provar-recriacao-da-escola` todas; `provar-bancadas-e-expurgo` 21/21; `provar-teste` 42;
+`provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14;
+`provar-porta-sem-contexto` 44/44; `provar-barra-unica` 111/111;
+`provar-publicacao-da-escola` 55/55; `check-indices` 14 verificações, 0 falha.
+
+**O que ainda não está feito.**
+
+- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS**, e agora com a razão
+  certa: há **uma escola viva** (`batata`), e ela é esqueleto — `com ciclo gerado: (nenhum)`. O menu
+  «Área do Professor» só nasce com documentos e turmas. As duas dizem isso e saem a 2.
+- **O caminho `gerar-ciclo.sh` continua por medir.** É o **único** elo desta cadeia que esta sessão
+  nunca viu correr — criar, publicar, expurgar, recriar, reparar e reancorar foram vistos, alguns
+  três vezes. E é ele que produz o que as duas provas acima precisam. Fica dito como o próximo
+  passo que interessa, e não como pendência de arrumação.
+- **A `batata` não tem âncora** e o `check-pacote` do esqueleto reprova (falta PDF, `dados.json`,
+  aulas). Como qualquer escola recém-criada, e como a `calango` antes dela: ancorar sela, e não há
+  o que selar num ciclo vazio.
