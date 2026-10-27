@@ -43,7 +43,41 @@ const NAVJS = fs.readFileSync(path.join(RAIZ, 'tools', 'templates', 'nav.js'), '
  * escrita à mão — e as escolas deste protótipo são descartáveis por desenho: expurgada a
  * escola, as bancadas deixavam de se construir, embora o que elas mostrem (o cabeçalho e o
  * corpo de um documento longo) não dependa de qual escola é. Ver `../lib-pacote.js`. */
-const { umPacote, umaPagina } = require('../lib-pacote.js');
+const { pacotes, umPacote, umaPagina } = require('../lib-pacote.js');
+/* SEM PACOTE GERADO, NÃO HÁ BANCADA — e isso é uma AUSÊNCIA, não uma avaria (27/10/2026).
+ *
+ * O QUE ACONTECEU. O expurgo da `batata` levou o único pacote de ciclo gerado do repositório, e a
+ * `breu` nasceu como esqueleto (ciclo-zero, sem `DOCS`): não há `aula-NN.html` em sítio nenhum. O
+ * `umPacote()` do `lib-pacote` falha alto — e faz bem, porque as PROVAS que o usam medem um pacote
+ * real e medir o vazio seria pior. Mas este ficheiro não é uma prova: é o construtor das bancadas,
+ * e o que ele alimenta é o passo «Construir as bancadas de layout» do `deploy-escolas.yml`, que
+ * corre com `set -euo pipefail`. Resultado medido: a publicação das escolas passou a falhar em
+ * TODOS os deploys, por causa de uma página de bancada.
+ *
+ * O QUE SE FAZ: diz-se e segue-se. O `montar-publicacao.js --com-propostas` já trata este caso —
+ * avisa «pedido sem propostas montadas» e publica o resto, e é essa a degradação declarada que o
+ * projeto escolheu para esta opção. O que NÃO se faz é sair em silêncio: a mensagem diz o que
+ * falta e onde se gera.
+ *
+ * O `throw` seguinte FICA: um pacote que existe e não tem página de aula é uma anomalia a sério, e
+ * essa não se degrada. */
+if (!pacotes().length) {
+  console.error('construir: sem pacote de ciclo gerado no repositório — as bancadas de layout'
+    + '\n  não são construídas nesta publicação. Gere um ciclo (tools/gerar-ciclo.sh) e elas voltam.');
+  /* AS PÁGINAS DE ONTEM SAEM. Elas são saída (o `.gitignore` fecha `experimentos/propostas/*`), e
+     num checkout limpo não existem — o CI avisa «sem propostas montadas» e publica o resto. Aqui,
+     na bancada de quem já construiu, elas FICARIAM, e o `montar-publicacao` as levaria como se
+     fossem desta publicação: uma página que diz medir «a Aula 01 real» sobre um pacote que já não
+     existe. Apagar é o que faz o local e o CI concordarem. */
+  try {
+    for (const nome of fs.readdirSync(SAIDA)) {
+      if (/^proposta-.*\.html$/.test(nome) || nome === 'index.html') {
+        fs.unlinkSync(path.join(SAIDA, nome));
+      }
+    }
+  } catch (e) { /* sem pasta, não há o que apagar */ }
+  process.exit(0);
+}
 const PACOTE_DA_AULA = umPacote();
 const PAGINA_DA_AULA = umaPagina(PACOTE_DA_AULA, /^aula-\d{2}\.html$/);
 if (!PAGINA_DA_AULA) {
