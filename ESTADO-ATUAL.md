@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 26/10/2026 (depois do vão do botão nos formulários da Produção, commit `8a7b4a5`).
+> **Última fotografia:** 27/10/2026 (leitura em prosa e navegação Aula/Notação, implementação local sobre `f251f0e`; sem publicação).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -67,7 +67,9 @@ renomeação. **DECIDIDO**.
 
 Verificado nesta fotografia, com os comandos da §9.
 
-- **`main` em `7182307`**, sem divergência com `origin/main`. **CONFIRMADO**.
+- **`main` local em `f251f0e`; a referência `origin/main` em cache também está em `f251f0e`.**
+  **CONFIRMADO** pelo checkout. `git fetch origin` falhou por falta de credencial interativa;
+  portanto, a atualidade do remoto **não está confirmada**.
 - **12 professores** em `professores/`, **4 ciclos com manifesto**. **CONFIRMADO** (contagem do
   `gerar-handoff.sh`).
 - **17 regras** em `REGRAS.md` e **22 pétreas** em `PROTOCOLO.md`. **CONFIRMADO** (contagem).
@@ -127,7 +129,8 @@ Verificado nesta fotografia, com os comandos da §9.
 | Frente | Estado | Onde |
 |:--|:--|:--|
 | Navegação: coluna + barra + caminho | **CONFIRMADO** | `motor/nucleo/nav.js` |
-| Listas no padrão novo (8 listas) | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
+| Listas no padrão novo | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
+| Aulas: leitura em prosa e Notação Benesh | **CONFIRMADO** localmente em 27/10/2026 — o nome abre a prosa, «Abrir notação» fica ao lado da Aula 01, e o Glossário está no cabeçalho persistente da Notação, em nova aba. As listas independentes não são geradas na publicação local; produção não foi atualizada. | `tools/gerar-aula-prosa.js`, `tools/montar-publicacao.js`, `motor/nucleo/nav.js` |
 | As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado, o aviso da senha errada; 43 verificações no browser | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
 | Anamnese: formulário, vínculo, ajuste | **CONFIRMADO** | `rotas.js` (11 rotas `/api/anamnese*`) |
@@ -212,8 +215,9 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 1. **O módulo de listagem é um só, com ordem fixa: de quem · quem fez · quando.** Muda o rótulo,
    nunca o lugar. Caixinha só onde há painel; onde não há, linha de factos. **DECIDIDO**
    24/10/2026.
-2. **Os nomes: «Consulta» (glossário) e Notação dentro da «Área do Professor».** «Planejamento»
-   deixou de existir como grupo. **DECIDIDO** 24/10/2026.
+2. **A Aula é a entrada comum às duas leituras.** O nome abre a versão em prosa; havendo Notação
+   correspondente, «Abrir notação» fica ao lado; o Glossário abre pela Notação em nova aba. As
+   listas independentes de Notação e Consulta deixam de ser geradas. **DECIDIDO** 27/10/2026.
 3. **«Aulas» vive só dentro da Área do Professor.** Não há destino direto no topo.
    **DECIDIDO**.
 4. **A coluna do sistema desenha-se em todas as páginas**, e o duplo com as páginas que têm
@@ -237,24 +241,13 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
-**Objetivo:** gerar a `TRANSFERENCIA-IA.md` sobre a **aula 2..N** — como ela nasce como objeto, com
-lugar, marco, herança do plano e alinhamento confirmado com o PO. A fotografia, as etiquetas e a
-rotina já estão feitas (commits `607b96a` e `7728389`).
+**Objetivo:** fazer da listagem Aulas a entrada para a leitura em prosa e para a Notação Benesh,
+com o Glossário acessível dentro da Notação. **Implementado e validado localmente; ainda não
+publicado.**
 
-**Ficheiros envolvidos:**
-
-| Ficheiro | O que é |
-|:--|:--|
-| `ESTADO-ATUAL.md` | este documento — a fotografia curada, **novo** |
-| `.github/instructions/estado-atual.instructions.md` | as regras de manutenção, **novo** |
-| `.github/skills/fotografia-do-estado/SKILL.md` | a rotina de atualização e de transferência, **novo** |
-| `tools/gerar-handoff.sh` | passa a apontar para a fotografia — **congelado**, motivo declarado |
-| `.gitignore` | passa a ignorar o `TRANSFERENCIA-IA.md` |
-
-**Último ponto confirmado:** `26/10/2026` — a fotografia atualizada sobre o commit `8a7b4a5` (o
-vão do botão nos formulários da Produção), o `HANDOFF.md` regenerado e o `TRANSFERENCIA-IA.md`
-gerado. O remoto estava em `acfab1f` com **2 commits locais por enviar** (`aa96a3c`, `a7f4490`);
-o push desta sessão leva os três.
+**Último ponto confirmado:** 27/10/2026 — pacote Batata regenerado (9 páginas HTML e PDF de 26
+páginas), publicação local montada, provas focadas aprovadas e âncora `.fipp` íntegra. Não houve
+commit, push, deploy nem conferência ao vivo nesta alteração.
 
 ## 8. Pendências e dúvidas
 
@@ -329,6 +322,20 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ## 9. Validação
 
+### Executado nesta fotografia (27/10/2026)
+
+| Verificação | Resultado |
+|:--|:--|
+| `git fetch origin` + `git status -sb` | `fetch` falhou (`could not read Username`; prompts desativados). O checkout e a referência `origin/main` em cache estão em `f251f0e`; a atualidade do remoto não foi confirmada |
+| `tools/gerar-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2` + `node tools/check-pacote.js ...` | **9 páginas HTML**, PDF de **26 páginas**, 314 links internos; 0 erros e 0 avisos |
+| Validadores isolados do ciclo | schema, PO e plano passaram; captura passou com 2 avisos sobre cabeçalho como grão e cabeçalhos repetidos |
+| `tools/hash-ciclo.sh ... --check` | cadeia íntegra; hash `09ad8beef7d71a251cfc2163d7da086efc4c16bcc0004b6abdee02face8b5b15` |
+| `provar-aula-prosa.js` / `provar-publicacao-da-escola.js` | 10 verificações / 61 asserções, sem falhas |
+| `provar-barra-e-caminho.js` / `provar-barra-unica.js` | 48/48 / 109 asserções, sem falhas |
+| `provar-painel-do-ato.js` | **TUDO CERTO**; Glossário disponível e persistente após rolagem em 1280 px e 390 px |
+| `node tools/check-identidade.js` | 20 verificações, 0 erros |
+| `node tools/montar-publicacao.js batata` | concluído; atualizada apenas a saída local ignorada `publicacao/batata` |
+
 ### Executado nesta fotografia (26/10/2026)
 
 | Verificação | Resultado |
@@ -376,26 +383,32 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 
 ### Não executado
 
-- **As 68 provas não foram corridas nesta fotografia.** Os resultados da última bateria estão
-  registados na sessão de 25/10/2026 (todas verdes), mas **não foram reexecutadas agora**.
-  **PENDENTE** de reexecução antes de qualquer alteração ao motor.
-- **`node tools/check-identidade.js`** não foi corrido nesta fotografia.
-- **A produção não foi percorrida página a página** — só os 10 caminhos da §2.
+- **A bateria completa de 68 provas não foi corrida.** Foram executadas as provas focadas na
+  mudança, listadas acima.
+- **`provar-listas-do-acervo.js` não foi executada.** A prova da publicação confirma que as listas
+  independentes de Notação e Consulta deixaram de ser geradas.
+- **A produção não foi percorrida página a página nem atualizada** — os caminhos da §2 refletem a
+  conferência de 25/10/2026.
 
 ## 10. Próximos passos
 
 Ações imediatas, sem transformar hipótese em compromisso:
 
-1. **Correr a bateria de provas** antes de tocar no motor — a última execução é de ontem, não de
-   agora.
-2. **Obter as seis respostas da §8** para destravar a frente da aula 2..N.
-3. **Separar semanticamente plano × PO × aula** — a análise está feita; a implementação, não.
-4. **Automatizar a regeneração do `HANDOFF.md`** no push, se se confirmar que é útil.
+1. A alteração está implementada, gerada e validada localmente.
+2. **Publicação pendente:** commit, push e eventual deploy dependem de solicitação explícita; até
+   lá, a produção mantém o comportamento da última conferência registrada na §2.
+3. Após publicar, conferir os caminhos afetados com a carga final prevista para a escola — sem
+   fazer exploração repetida no ambiente ao vivo.
 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **27/10/2026** — **Aulas passou a oferecer as duas leituras.** O título da Aula 01 abre a versão
+  em prosa; «Abrir notação» fica ao lado; as listas independentes de Notação e Consulta deixam de
+  ser geradas; a Notação oferece um atalho persistente para o Glossário em nova aba. Pacote,
+  publicação local, provas focadas e âncora validados. **CONFIRMADO localmente; produção não
+  atualizada.**
 - **26/10/2026** — **a ação de cada formulário da Produção passou a ser uma só peça.** O
   «Cadastrar aluna» e o «Cadastrar termo» estavam a **0px** do campo: o `<div class="res">` entre o
   último controle e o botão parte a conta de vizinhança da folha (`input + button.acao` → 16px), e
@@ -445,6 +458,9 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
 
 O que **não** consigo confirmar, e o senhor tem de decidir ou informar:
 
+- **Não sei se a produção já contém a reorganização de Aula/Notação.** Esta alteração foi gerada e
+  testada apenas localmente, sem deploy nem carga ao vivo; o `git fetch` falhou, portanto o estado
+  remoto atual também não foi confirmado.
 - **Não sei a distribuição real de uso em produção.** Não há telemetria; o que sei é o que os
   `curl` devolvem.
 - **Não sei se o `TRANSFERENCIA-IA.md` serve o seu caso de uso.** Foi desenhado a partir de uma

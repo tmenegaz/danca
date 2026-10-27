@@ -1163,17 +1163,18 @@ tabela. O caminho servido continua a ser o que se serve; o que muda é o que o m
 | Ciclos | `/…/plano` | «Planos» |
 | Ciclos | `/…/referencias` | «Planos» — **a lista de referências deixou de existir** (26/10/2026), e o caminho até ao documento é o plano |
 | Área do Professor | `/…/aula-NN`, `/…/captura-aula-NN`, `/…/lancamento` | «Aulas» |
-| Área do Professor | `/…/notacao` | «Notação» |
+| Área do Professor | `/…/notacao`, `/…/glossario-*` | «Aulas» — as duas vistas e o glossário pertencem ao percurso da aula |
 | Área do Professor | as três **portas** | a lista da sua família |
-| Consulta | `/…/glossario-*` | «Consulta» (destino directo) |
 
 **Um grupo com um item só não é, por si, um defeito.** «Ciclos» tem hoje **um** item — «Planos» —
 e o grupo fica: ele é o nome da **área**, e o item é o nome da **lista** que tem de ficar aceso.
-(Por isso «Consulta», que é uma ferramenta e não uma área com listas, continua a ser destino
-directo.) O que se recusa é uma **listagem** que só existe para repetir uma linha por turma: foi o
-caso de «Ciclos · Referências», removido com a sua página em 26/10/2026. Foi uma **remoção
-deliberada de URL** — quem tiver `/ciclos/referencias/` guardado perde-o, e é o objectivo. Os
-documentos continuam a abrir-se pelo cartão do plano e pelo próprio plano.
+«Área do Professor» conserva as suas listas; a Notação abre-se pela ação ao lado da Aula 01, e o
+Glossário pelo cabeçalho persistente da Notação. As listagens independentes `/consulta/` e
+`/area-do-professor/notacao/` deixam de existir. O que se recusa é uma **listagem** que só existe
+para repetir uma linha por turma: foi o caso de «Ciclos · Referências», removido com a sua página
+em 26/10/2026. Foi uma **remoção deliberada de URL** — quem tiver `/ciclos/referencias/` guardado
+perde-o, e é o objectivo. As referências continuam a abrir-se pelo cartão do plano e pelo próprio
+plano.
 
 ### O que NÃO se marca
 

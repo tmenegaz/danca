@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T12:12:57-0300`
-Commit atual: `a8f774b` — fix(entrega): o plano de ensino preenchido, a turma do filtro e o contexto à vista
+Gerado em: `2026-10-27T16:31:22-0300`
+Commit atual: `f251f0e` — fix(experimentos): alinhar provas à variante gerada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -63,7 +63,7 @@ teclado-abnt
 tela-de-celular
 tiago-menegaz
 vaso-bonito (14)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -80,26 +80,26 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+f251f0e fix(experimentos): alinhar provas à variante gerada
+577ee59 chore(entrega): gerar o pacote de perna-boa/01/batata-bale-nivel-1-teste-2
+3c57dc0 chore(estrutura): regerar os índices derivados
+a76afd4 chore(estrutura): reancorar a cadeia das fontes alteradas
+750a9d5 chore(estrutura): regerar os índices derivados
+e248b26 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
+0c32c6d feat(po): o PO elicitado vira a fonte do ciclo
+2e390e2 feat(acervo): envelope/po-20261027-1353.json
+91a1131 feat(acervo): envelope/.indice.json
+55f3b17 fix(po): o cabeçalho do Plano de Observação lê o plano que ele referencia
+992de0c chore(estrutura): regerar os índices derivados
+409c24f chore(estrutura): reancorar a cadeia das fontes alteradas
+c278372 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+ec1d874 feat(plano): o plano elicitado vira a fonte do ciclo
+11d4ea1 feat(acervo): envelope/plano-20261027-1131.json
+ef496e3 feat(acervo): envelope/.indice.json
+91211a6 chore(estrutura): regerar os índices derivados
 a8f774b fix(entrega): o plano de ensino preenchido, a turma do filtro e o contexto à vista
 bfceb68 chore(estrutura): reancorar a cadeia das fontes alteradas
 96a8d3d chore(estrutura): regerar os índices derivados
-bf967be chore(estrutura): regerar os índices derivados
-d14a3d0 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-706fd0c feat(plano): o plano elicitado vira a fonte do ciclo
-a3249a4 feat(acervo): envelope/plano-20261027-1025.json
-89e8010 feat(acervo): envelope/.indice.json
-5c2bb4c fix(entrega): a listagem abre a ficha e a turma do plano respeita a curadoria
-474819c chore(estrutura): regerar os índices derivados
-c48c991 feat(acervo): envelope/anamnese-20261027-0946.json
-8c93cc1 feat(acervo): envelope/.indice.json
-0595bc1 chore(estrutura): regerar os índices derivados
-50387da feat(acervo): envelope/anamnese-20261027-0943.json
-1506fe7 feat(acervo): envelope/.indice.json
-4b393f7 chore(estrutura): regerar os índices derivados
-2cd5c77 feat(acervo): envelope/anamnese-20261027-0939.json
-d7ea6ec feat(acervo): envelope/.indice.json
-99c9b8c chore(estrutura): reancorar a cadeia das fontes alteradas
-28059b5 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -125,12 +125,12 @@ d7ea6ec feat(acervo): envelope/.indice.json
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | batata | (sem PO) | — | — |
-| batata-bale-nivel-1-teste-2 | (sem PO) | — | — |
+| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `1816e1eb7b3c` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `73eb6cfec398` | (vazio) | — |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `09ad8beef7d7` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 0 ciclo(s)
 
@@ -199,135 +199,143 @@ d7ea6ec feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 27/10/2026 — O cabeçalho do Plano de Observação lê o plano que ele referencia
+## 27/10/2026 — A aula passa a ter leitura em prosa e em Notação Benesh
 
-**O que motivou.** «No formulário do plano de ensino nós fizemos os ajustes para colocar em cima,
-no cabeçalho, junto de onde diz escola, professor, ciclo e turma observada, os campos que já vêm
-preenchidos dos bastidores produção. Acontece que essa solução não foi estendida até o plano de
-observação. Então eu tenho dados redundantes aqui no plano de observação e precisam ser
-posicionados no cabeçalho da mesma forma que fizemos no plano de ensino.»
-
-**Eram dois problemas, e a pesquisadora descreveu os dois numa frase.**
-
-1. **O PO PERGUNTAVA o que já sabia.** «Professor responsável» e «Escola / espaço» eram campos de
-   texto para dados que o cabeçalho do ato já tem — e «Escola / espaço» aparecia **duas vezes**:
-   na identificação e outra vez dentro de «Onde se observa» (o `campo-escola`, com
-   `deContexto: 'escola'`). Três degraus para dois dados, e nenhum deles devia ser digitado.
-2. **E NÃO MOSTRAVA o que vem do plano.** Frequência, duração, calendário, volume e condição de
-   registro são lidos do plano referenciado para escrever o documento — e não estavam em lado
-   nenhum do formulário. Quem preenchia o PO não via as condições da aula que ia observar.
+**O que motivou.**
+A lista independente de Notação e a de Consulta separavam partes da mesma experiência: o professor
+precisava de abrir a aula em prosa, ver a outra leitura em Benesh e consultar o significado dos
+sinais sem sair do contexto da aula. A versão em Notação já trazia compasso, contagem, sinais e
+descrições, mas faltava uma leitura que preservasse a estrutura e a descrição sem a coluna de sinais.
 
 **O que foi decidido.**
+- O nome da aula na lista «Aulas» abre a versão em prosa; a ação «Abrir notação» fica ao lado
+  quando existe Notação para aquela aula. No estado atual, essa ação é apenas da Aula 01.
+- A leitura em prosa combina a fonte da Aula com as tabelas de exercícios da fonte de Notação:
+  preserva compasso, contagem, descrição e lacunas declaradas, mas omite a coluna Benesh. Não se
+  inventam descrições em falta.
+- As listas independentes de Notação e Consulta deixam de ser geradas. A Notação e o Glossário
+  pertencem ao percurso de Aulas; a barra e o caminho dos dois documentos retornam à lista Aulas.
+- O cabeçalho persistente da Notação oferece «Abrir glossário (nova aba)»; o link no aviso de
+  proveniência também abre o Glossário em nova aba.
+- Nenhuma peça visual nova foi criada; as ações usam peças já declaradas no catálogo.
 
-- **Os três nós saem do ROTEIRO, não do mapa** (`noCabecalho: true`, a marca do conteúdo — a
-  mesma de 26/10 no plano). O dado continua a ser semeado (`deContexto`) e continua a ir para o
-  envelope: sai o degrau, não o dado. Medido no depósito: `professor` = «Perna Boa», `escola` =
-  `campo-escola` = «batata», e o fecho não acusa contexto em falta. O roteiro passou de **33 para
-  30 degraus**.
-- **As cinco leituras são declaradas pelo CONTEÚDO**, no nó `plano-de-ensino`:
-  `leituras: [{de, rotulo, forma}]`. É a lei de sempre — quem sabe de onde o dado vem é o
-  conteúdo, não a tela. A `forma` (`periodicidade`, `medida`, `data`, `registro`) é o que a tela
-  precisa para escrever o valor; o motor não a interpreta, só a repassa (entrou na lista fechada
-  de `descritores()`, onde as chaves morrem em silêncio quando faltam).
-- **A TURMA NÃO SE REPETE.** Ela já tem o seu lugar no cabeçalho do PO (`leituraDaTurmaDoPo`,
-  vinda da estante). Pô-la outra vez na lista seria criar a segunda resposta para o mesmo dado —
-  exactamente o que a mudança veio tirar.
-- **Sem plano escolhido, nenhuma leitura.** A lacuna não é um valor: as cinco só aparecem quando
-  há plano de onde as ler.
-
-**Duas coisas que a implementação revelou, e que ficam ditas.**
-
-- **A escolha do plano não era registada.** `semearDoPlano` lia o primeiro plano da estante e
-  preenchia `PLANO_RESPOSTAS` — mas deixava `RESPOSTAS['plano-de-ensino']` vazio. Consequência
-  visível até aqui: a **turma observada do cabeçalho ficava «—»** sobre um plano que a página já
-  tinha em mãos, até alguém passar pelo nó «Plano de ensino» e escolhê-lo. Agora a escolha é
-  registada em `SUGERIDAS` (a primeira escolha do professor aposenta a sugestão), e o cabeçalho
-  fica coerente no arranque.
-- **As palavras são as do DOCUMENTO.** A tela compõe os cinco valores com as mesmas palavras que
-  o `derivar-po.js` usa («2x semanal», «50 minutos», «3–6 séries», «Na sala: … · observa: …»). É
-  a mesma composição em dois sítios, e é de propósito: o documento e a tela dizem o mesmo do
-  mesmo dado. A prova confere duas das cinco contra o texto que o próprio servidor deriva.
+**Motivo declarado — os congelados.**
+O pedido explícito da pesquisadora exige alterar a geração do pacote e o cabeçalho dos documentos,
+que passam por `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` e `tools/templates/ciclo.html`,
+arquivos congelados em `CONGELAMENTO.md`. A mudança fica limitada ao fluxo e à navegação necessários
+para entregar as duas leituras. Não altera a fórmula nem a cobertura do hash, os validadores, as
+regras ou as pétreas.
 
 **Onde entrou.**
+- `.gitignore` — exceção explícita para versionar a prova da leitura em prosa.
+- `IDENTIDADE-VISUAL.md` — caminho da Notação e do Glossário alinhado com a lista Aulas.
+- `tools/gerar-aula-prosa.js` — derivação das tabelas sem a coluna Benesh, com lacunas explícitas.
+- `tools/gerar-ciclo.sh` — geração da página em prosa dentro do pacote.
+- `tools/templates/ciclo.html` — atalho persistente ao Glossário quando há Notação.
+- `tools/montar-publicacao.js` — link no nome da aula, ação de Notação e remoção das duas listas.
+- `motor/nucleo/derivar-ciclo.js` — destino do Glossário e link em nova aba.
+- `motor/nucleo/lista-html.js` — dica de leitura em prosa no nome da aula.
+- `motor/nucleo/nav.js` — retorno da Notação e do Glossário para Aulas.
+- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md` — metadado do
+  Glossário e link em nova aba.
+- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp` — âncora regerada após a
+  alteração da fonte; `--check` confirmou a cadeia íntegra.
+- Pacote gerado `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/`:
+  `aula-01.html`, `captura-aula-01.html`, `ciclo-01-batata-bale-nivel-1-teste-2.pdf`,
+  `ciclos.json`, `glossario-benesh.html`, `harmonizacao.html`, `index.html`, `notacao.html`,
+  `plano.html` e `referencias.html`.
+- Provas: `experimentos/provar-aula-prosa.js` (nova), `experimentos/provar-publicacao-da-escola.js`,
+  `experimentos/provar-barra-e-caminho.js`, `experimentos/provar-barra-unica.js` e
+  `experimentos/provar-painel-do-ato.js`.
+- `ESTADO-ATUAL.md` — fotografia local, validações e limite de publicação.
+- `REGISTRO.md` — esta entrada.
+- `HANDOFF.md` — regenerado após o registro desta entrada.
+- A montagem local de `publicacao/batata` foi regenerada; é saída ignorada, não versionada.
 
-- `porta/po/conteudo/po.json` — os três `noCabecalho`, e as cinco `leituras` no nó do plano.
-- `motor/nucleo/elicitar.js` — `leituras` na lista fechada dos descritores.
-- `porta/index.html` — `textoDoValor(valor, forma)` (composição por FORMA, não por campo),
-  `renderLeiturasDoCabecalho` com o ramo do PO, a chamada depois de `semearDoPlano`, o registo da
-  escolha semeada, e a frase da origem em `leituraDoNoDoCabecalho` a usar `deContexto`.
-- `professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/` — a porta recopiada (com a NAV
-  do ciclo) e o conteúdo sincronizado. O conteúdo vive em DOIS sítios, e é a cópia do pacote que o
-  Worker lê.
+**Com o quê.**
+`.gitignore`; `IDENTIDADE-VISUAL.md`; `experimentos/provar-aula-prosa.js`,
+`experimentos/provar-publicacao-da-escola.js`, `experimentos/provar-barra-e-caminho.js`,
+`experimentos/provar-barra-unica.js`, `experimentos/provar-painel-do-ato.js`;
+`motor/nucleo/derivar-ciclo.js`, `motor/nucleo/lista-html.js`, `motor/nucleo/nav.js`;
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`,
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp`;
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/` — `aula-01.html`,
+`captura-aula-01.html`, `ciclo-01-batata-bale-nivel-1-teste-2.pdf`, `ciclos.json`,
+`glossario-benesh.html`, `harmonizacao.html`, `index.html`, `notacao.html`, `plano.html` e
+`referencias.html`;
+`tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js`,
+`tools/templates/ciclo.html`; `publicacao/batata/` (saída local ignorada);
+`ESTADO-ATUAL.md`, `REGISTRO.md` e `HANDOFF.md`.
 
-**Medido.** `provar-leituras-do-po` **27/27** (nova): os três degraus fora do roteiro e os três
-valores no depósito, as cinco leituras com o valor do plano e a marca de «não se preenche aqui»,
-as palavras iguais às do documento, a 1280 e a 390 px sem transbordo, e **sem plano nenhuma
-leitura inventada**. O **controle negativo reprova 14 de 27**, com o `po.json` de antes.
+**Medido.**
+`check-pacote.js`: 0 erros, 0 avisos, 9 páginas, 314 links internos e PDF de 26 páginas.
+`provar-aula-prosa`: 10 verificações; `provar-publicacao-da-escola`: 61 asserções;
+`provar-barra-e-caminho`: 48/48; `provar-barra-unica`: 109; `provar-painel-do-ato`: TUDO CERTO,
+incluindo o atalho persistente em 1280 px e 390 px. `check-identidade.js`: 20 verificações, 0
+erros. Schema, PO e plano passaram; captura passou com dois avisos de cabeçalho. A âncora
+`09ad8beef7d71a251cfc2163d7da086efc4c16bcc0004b6abdee02face8b5b15` passou em `--check`.
 
-`provar-teste` 44; `provar-plano-preenchido` 21/21; `provar-ficha-na-listagem` 35/35 (controle 22 de
-27); `provar-turmas-do-professor` 17/17; `provar-porta-sem-contexto` 44; `provar-indices` 60;
-`provar-anamnese-por-aluna` 15; `provar-alunas-da-anamnese` 14; `provar-barra-unica` 111;
-`provar-publicacao-da-escola` 55; `provar-bancadas-e-expurgo` 21;
-`provar-identidade-da-escola-recriada` 23; `provar-recriacao-da-escola` todas;
-`provar-parametros-por-parametro` 14; `check-identidade` **0 erro**; `check-indices` 14
-verificações (os índices derivados foram regerados); âncora `--check` íntegra (`1816e1eb…`).
+**Referências.**
+Pedido explícito da pesquisadora; `IDENTIDADE-VISUAL.md`; `PROTOCOLO.md` P-15/P-16 (par entre
+Notação e Glossário); `REGRAS.md` 17 (versionamento).
 
 **O que ainda não está feito.**
-
-- **O documento do PO continua a ser a derivação** (`derivarPO`), e não o formulário preenchido
-  como a anamnese e o plano de ensino. A pergunta vale, e fica para quando ela a fizer.
-- **Os dois «outro» ficaram onde estavam** (`campo-outro` em «Onde se observa», `contexto-outro` em
-  «Contexto da observação»). Retirar o campo principal de cada secção deixa-as com um só campo
-  livre; a explicação de cada um já diz que o resto vem do plano, e reescrever a estrutura das
-  secções seria uma decisão de desenho que ninguém pediu.
+O pacote e a publicação foram validados apenas localmente: não houve commit, push, deploy nem
+conferência ao vivo. `git fetch origin` falhou e a atualidade do remoto não foi confirmada. A fonte
+mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
+mesmo destino às demais aulas.
 
 ## O que está pendente
-
-## 27/10/2026 — A `calango` saiu, e com ela saiu também um verde falso meu
-
-
-- **Zero escolas vivas, e portanto zero ciclos gerados.** `provar-painel-do-ato` e
-  `provar-listas-do-acervo` estão **NÃO FEITAS** e dizem-no com o estado («escolas vivas:
-  (nenhuma)»). É o estado do repositório, não avaria: voltam sozinhas quando houver ciclo.
-- **O caminho `gerar-ciclo.sh` continua por medir de ponta a ponta** — é o único troço da cadeia que
-  esta sessão não viu. Criar, publicar, expurgar e recriar foram vistos três vezes; gerar, não.
-- **A `calango` não tem âncora** e o `check-pacote` do esqueleto reprova 16 erros, como qualquer
-  escola recém-criada. Não se ancorou: o ciclo estava vazio, e a âncora sela.
 
 ## 27/10/2026 — A correção passou pelo caminho real: a `batata` voltou pelo `criar-escola.sh`
 
 
-- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS**, e agora com a razão
+- ~~**`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS**, e agora com a razão
   certa: há **uma escola viva** (`batata`), e ela é esqueleto — `com ciclo gerado: (nenhum)`. O menu
-  «Área do Professor» só nasce com documentos e turmas. As duas dizem isso e saem a 2.
-- **O caminho `gerar-ciclo.sh` continua por medir.** É o **único** elo desta cadeia que esta sessão
+  «Área do Professor» só nasce com documentos e turmas. As duas dizem isso e saem a 2.~~
+- ~~**O caminho `gerar-ciclo.sh` continua por medir.** É o **único** elo desta cadeia que esta sessão
   nunca viu correr — criar, publicar, expurgar, recriar, reparar e reancorar foram vistos, alguns
   três vezes. E é ele que produz o que as duas provas acima precisam. Fica dito como o próximo
-  passo que interessa, e não como pendência de arrumação.
-- **A `batata` não tem âncora** e o `check-pacote` do esqueleto reprova (falta PDF, `dados.json`,
+  passo que interessa, e não como pendência de arrumação.~~
+- ~~**A `batata` não tem âncora** e o `check-pacote` do esqueleto reprova (falta PDF, `dados.json`,
   aulas). Como qualquer escola recém-criada, e como a `calango` antes dela: ancorar sela, e não há
-  o que selar num ciclo vazio.
+  o que selar num ciclo vazio.~~
+
+Correção de 27/10/2026 (mesmo dia). A variante `batata-bale-nivel-1-teste-2` foi gerada localmente,
+ancorada e validada; `provar-painel-do-ato` passou. `provar-listas-do-acervo` continua sem execução,
+e o estado das outras variantes não muda. A afirmação acima descrevia o momento anterior à geração.
+~~A geração e a prova do painel estavam pendentes.~~
 
 ## 27/10/2026 — Ler não é editar: o nome do registo volta a abrir o documento
 
 
-- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
+- ~~**`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
   ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
-  quando `tools/gerar-ciclo.sh` correr.
+  quando `tools/gerar-ciclo.sh` correr.~~
 - **O nome do link não tem dica visual além do sublinhado.** A bancada tinha uma linha
   («o nome abre a ficha em .html, pronta a imprimir») com a classe `dica-do-link`, que também não
   é peça da folha. Se a pesquisadora quiser a frase à vista, é **peça nova** — nasce na folha, no
   catálogo e na prova, e não se improvisa aqui.
 
+Correção de 27/10/2026 (mesmo dia). A geração local da variante `batata-bale-nivel-1-teste-2`
+permitiu executar `provar-painel-do-ato`, que passou. `provar-listas-do-acervo` continua sem
+execução; a observação sobre a dica visual permanece pendente.
+~~A falta de ciclo que impedia a prova do painel foi superada para esta variante.~~
+
 ## 27/10/2026 — A turma do plano é de quem a direção curou: a regra sai da tela e vai para o servidor
 
 
-- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
+- ~~**`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
   ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
   quando `tools/gerar-ciclo.sh perna-boa 01 batata` correr. É o único elo desta cadeia que nunca foi
-  medido de ponta a ponta.
+  medido de ponta a ponta.~~
 - **A curadoria é lida do KV no caminho do `POST`.** Se a leitura falhar, a rota grava (degrada). A
   alternativa — recusar — poria a escola inteira sem planos por uma falha de leitura.
+
+Correção de 27/10/2026 (mesmo dia). A variante `batata-bale-nivel-1-teste-2` foi gerada e
+`provar-painel-do-ato` passou. `provar-listas-do-acervo` continua sem execução; a questão sobre a
+leitura da curadoria no `POST` não foi alterada por esta entrega.
+~~A ausência de pacote que impedia a prova do painel deixou de valer para esta variante.~~
 
 ## 27/10/2026 — O cabeçalho do Plano de Observação lê o plano que ele referencia
 
@@ -338,6 +346,13 @@ verificações (os índices derivados foram regerados); âncora `--check` ínteg
   «Contexto da observação»). Retirar o campo principal de cada secção deixa-as com um só campo
   livre; a explicação de cada um já diz que o resto vem do plano, e reescrever a estrutura das
   secções seria uma decisão de desenho que ninguém pediu.
+
+## 27/10/2026 — A aula passa a ter leitura em prosa e em Notação Benesh
+
+O pacote e a publicação foram validados apenas localmente: não houve commit, push, deploy nem
+conferência ao vivo. `git fetch origin` falhou e a atualidade do remoto não foi confirmada. A fonte
+mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
+mesmo destino às demais aulas.
 
 ## Pendências anteriores (índice)
 
@@ -637,7 +652,9 @@ verificações (os índices derivados foram regerados); âncora `--check` ínteg
 - **27/10/2026** — O expurgo é um estado, e o sistema passou a lê-lo → `REGISTRO.md` L26349
 - **27/10/2026** — O expurgo da `breu` aconteceu, e as duas metades conversaram → `REGISTRO.md` L26445
 - **27/10/2026** — A escola recriada diz o presente, e o passado passa a ter… → `REGISTRO.md` L26500
-- **perna-boa · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **27/10/2026** — A `calango` saiu, e com ela saiu também um verde falso meu → `REGISTRO.md` L26595
+- PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

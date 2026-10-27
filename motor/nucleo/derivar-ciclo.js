@@ -442,6 +442,7 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('ciclo: "' + ciclo + '"');
   saida.push('title: "Notação em ' + notacao + '"');
   saida.push('subtitle: "Registro dos exercícios da Aula 01 para repetição sem depender da memória"');
+  saida.push('glossario-href: "glossario-' + slugDe(notacao) + '.html"');
   saida.push('---');
   saida.push('');
   saida.push('## Aviso de proveniência (leia antes de usar)');
@@ -452,7 +453,8 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('');
   saida.push('> **Nota (P-15).** Um ciclo que registra exercícios em notação declara o código usado. Este');
   saida.push('> código é do ciclo — os sinais valem para os exercícios registrados aqui, e um sinal novo');
-  saida.push('> exige uma linha nova no [Glossário do código ' + notacao + '](glossario-' + slugDe(notacao) + '.html).');
+  saida.push('> exige uma linha nova no <a href="glossario-' + slugDe(notacao)
+    + '.html" target="_blank" rel="noopener noreferrer">Glossário do código ' + notacao + '</a>.');
   saida.push('');
 
   // O CÓDIGO DECLARADO — em números, e não em promessa. Quem lê o registro sabe qual alfabeto o

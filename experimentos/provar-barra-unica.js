@@ -21,7 +21,7 @@
  *
  * O QUE ESTA PROVA FIXA:
  *
- *   A. O DADO. `publicacao/<escola>/nav.json` existe, tem os cinco grupos e TODOS os href são
+ *   A. O DADO. `publicacao/<escola>/nav.json` existe, tem coluna e barra, e TODOS os href são
  *      absolutos — é o que faz a mesma barra valer dentro do pacote e na porta.
  *   B. O DESENHO AO SERVIR. A mesma página, servida pela ponte, sai com a barra inteira: cinco
  *      grupos, a Área do Professor completa e os Bastidores. Isto é medido em TRÊS páginas que
@@ -280,13 +280,13 @@ async function principal() {
        item de lista: é a MARCA da coluna, que leva à raiz — e um menu que repete a marca na
        lista é um item a dizer o que o topo já diz. */
     const rotulos = [...(menu.coluna || []), ...(menu.barra || [])].map((g) => g.rotulo);
-    /* «PLANEJAMENTO» DEIXOU DE EXISTIR (24/10/2026), e o grupo deu dois destinos diferentes: a
-       notação foi para dentro da Área do Professor (é outra vista da mesma aula) e o glossário
-       passou a «Consulta» (é a ferramenta de consulta). O que se mede é o menu de HOJE. */
-    for (const grupo of ['Ciclos', 'Área do Professor', 'Consulta', 'Bastidores']) {
+    /* «NOTAÇÃO» E «CONSULTA» DEIXAM DE SER DESTINOS LATERAIS (27/10/2026): as duas vistas da
+       aula ficam no percurso de Aulas, e o Glossário é aberto a partir da Notação. */
+    for (const grupo of ['Ciclos', 'Área do Professor', 'Bastidores']) {
       checar('o menu tem «' + grupo + '»', rotulos.indexOf(grupo) !== -1, rotulos);
     }
-    checar('…e já não tem «Planejamento»', rotulos.indexOf('Planejamento') === -1, rotulos);
+    checar('…e não anuncia «Planejamento», «Notação» ou «Consulta» como destinos',
+      !rotulos.some((r) => ['Planejamento', 'Notação', 'Consulta'].includes(r)), rotulos);
     /* «AULAS» DEIXOU DE SER UM DESTINO DO TOPO (24/10/2026). Ela era um `tipo: 'link'` na coluna
        — e o mesmo URL aparecia outra vez dentro da Área do Professor. Dois itens para a mesma
        página: a pesquisadora viu-os como aquilo que eram. A lista ficou dentro do grupo, e a
@@ -294,16 +294,9 @@ async function principal() {
     checar('«Aulas» já NÃO é um destino directo no topo da coluna',
       !(menu.coluna || []).some((g) => g.rotulo === 'Aulas'),
       (menu.coluna || []).filter((g) => g.rotulo === 'Aulas'));
-    /* «CONSULTA» É UM DESTINO DIRECTO, e é o único (24/10/2026). Um grupo com um item só seria
-       um menu que abre para mostrar uma linha — o defeito que o `navDoPainel` já tinha
-       justificado. O `tipo: 'link'` do contrato volta a ter uso, e com ele a precedência do
-       destino directo sobre o grupo volta a ser uma regra viva, e não uma guarda. */
-    checar('«Consulta» é um destino directo (`tipo: link`)',
-      (menu.coluna || []).some((g) => g.rotulo === 'Consulta' && g.tipo === 'link'),
-      (menu.coluna || []).filter((g) => g.rotulo === 'Consulta'));
-    checar('…e é o ÚNICO destino directo da coluna',
-      (menu.coluna || []).filter((g) => g.tipo !== 'menu').length === 1,
-      (menu.coluna || []).filter((g) => g.tipo !== 'menu').map((g) => g.rotulo));
+    checar('a coluna tem apenas grupos, sem destino direto de Notação ou Consulta',
+      (menu.coluna || []).every((g) => g.tipo === 'menu'),
+      (menu.coluna || []).filter((g) => g.tipo !== 'menu'));
     checar('«Bastidores» está na BARRA, e não na coluna',
       (menu.barra || []).some((g) => g.rotulo === 'Bastidores')
         && !(menu.coluna || []).some((g) => g.rotulo === 'Bastidores'));
@@ -330,8 +323,8 @@ async function principal() {
     }
     checar('nenhum item do menu tem o nome de uma turma',
       !/Balé Nível|bale-nivel/.test(JSON.stringify(menu)), null);
-    checar('e a Área do Professor tem CINCO itens — a Notação entrou ao lado das Aulas',
-      area.itens.length === 5, areaRotulos);
+    checar('e a Área do Professor tem QUATRO itens — Notação abre pela linha da aula',
+      area.itens.length === 4 && !areaRotulos.includes('Notação'), areaRotulos);
 
     // ── B. O DESENHO AO SERVIR ───────────────────────────────────────────────────────────
     console.log('\nB. A MESMA BARRA EM TODAS AS PÁGINAS (desenhada pela ponte)');
@@ -498,17 +491,15 @@ async function principal() {
       }
       checar(m.nome + ' não acende mais do que um item da coluna', acesos.length <= 1, acesos.length);
     }
-    /* D1. O DOCUMENTO ACENDE A LISTA DE ONDE VEIO — AS CINCO FAMÍLIAS (26/10/2026).
+    /* D1. O DOCUMENTO ACENDE A LISTA DE ONDE VEIO.
      *
      * Esta é a norma que a pesquisadora pediu com todas as letras: «eu não posso perder essa
      * referência visual». O que se mede não é uma impressão: é o `aria-current` do item e o
      * `data-atual` do grupo, no HTML que a ponte serve. E mede-se nos DOCUMENTOS, não nas
      * listas — nas listas o caminho já é o do item e isso nunca esteve em causa.
      *
-     * A tabela abaixo é a das cinco famílias do menu, com o caminho de um documento real de cada
-     * uma no pacote da bancada. O «glossário» é o caso particular: «Consulta» é um destino
-     * DIRECTO (`tipo: link`), e um destino directo não tem acordeão para acender — a marca é a
-     * do próprio link, e mede-se à parte.
+     * A tabela abaixo inclui as duas vistas da Aula 01: a Notação e o Glossário regressam pelo
+     * mesmo percurso de Aulas.
      */
     console.log('\nD1. O DOCUMENTO ACENDE A LISTA DE ONDE VEIO');
     const DOCUMENTOS = [
@@ -520,28 +511,20 @@ async function principal() {
       ['aula-01.html', '/aulas/', 'Área do Professor'],
       ['captura-aula-01.html', '/aulas/', 'Área do Professor'],
       ['lancamento.html', '/aulas/', 'Área do Professor'],
-      ['notacao.html', '/area-do-professor/notacao/', 'Área do Professor'],
-      ['glossario-benesh.html', '/consulta/', null],
+      ['notacao.html', '/aulas/', 'Área do Professor'],
+      ['glossario-benesh.html', '/aulas/', 'Área do Professor'],
     ];
     for (const [documento, lista, grupo] of DOCUMENTOS) {
       const r = await producao.fetch(new Request(HOST + '/nivel-1/' + documento), env);
       const coluna = colunaDe(await r.text()) || '';
       const acesos = [...coluna.matchAll(/aria-current="page" href="([^"]+)"/g)].map((x) => x[1]);
-      const diretos = [...coluna.matchAll(/class="coluna-direto ativo" href="([^"]+)"/g)].map((x) => x[1]);
       const atuais = [...coluna.matchAll(/<div class="coluna-grupo" data-atual="sim">\s*<button[^>]*><span>([^<]+)<\/span>/g)]
         .map((x) => x[1]);
       checar(documento + ' é servido (200)', r.status === 200, r.status);
-      if (grupo) {
-        checar(documento + ' acende «' + lista + '» na coluna',
-          acesos.length === 1 && acesos[0] === lista, acesos);
-        checar(documento + ' …e acende o grupo «' + grupo + '»',
-          atuais.length === 1 && atuais[0] === grupo, atuais);
-      } else {
-        checar(documento + ' acende «' + lista + '», que é destino directo',
-          diretos.length === 1 && diretos[0] === lista, diretos);
-        checar(documento + ' …e não acende grupo nenhum (a Consulta não é acordeão)',
-          atuais.length === 0, atuais);
-      }
+      checar(documento + ' acende «' + lista + '» na coluna',
+        acesos.length === 1 && acesos[0] === lista, acesos);
+      checar(documento + ' …e acende o grupo «' + grupo + '»',
+        atuais.length === 1 && atuais[0] === grupo, atuais);
     }
     /* A CONTRAPROVA. A norma não é «tudo se acende»: um documento que não sai de lista nenhuma —
        a harmonização, que saiu do menu em 24/10/2026 — não pode inventar uma marca. Sem esta

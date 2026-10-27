@@ -141,6 +141,8 @@ function principal() {
     checar('cada turma tem o seu subdirectório, inteiro',
       existe(pub, 'nivel-1/index.html') && existe(pub, 'nivel-1/aula-01.html')
         && existe(pub, 'nivel-2/index.html') && existe(pub, 'nivel-2/plano.html'));
+    checar('as listas independentes de Notação e Consulta não são publicadas',
+      !existe(pub, 'area-do-professor/notacao/index.html') && !existe(pub, 'consulta/index.html'));
     checar('e o `ciclos.json` de cada uma veio junto (é o que a página de lançamento lê)',
       existe(pub, 'nivel-1/ciclos.json') && existe(pub, 'nivel-2/ciclos.json'));
     // A apresentação NÃO pode continuar a ser o índice da raiz: quem abre `/` vê as turmas.
@@ -187,6 +189,9 @@ function principal() {
     checar('nenhum link do índice aponta para o vazio', mortos.length === 0, mortos);
     checar('e o índice aponta à apresentação, que existe',
       hrefs.some((h) => /^\/?sistema\.html$/.test(h)), hrefs);
+    checar('o menu não anuncia rotas independentes de Notação ou Consulta',
+      !/href="\/(?:area-do-professor\/notacao|consulta)\//.test(indice),
+      (indice.match(/href="\/(?:area-do-professor\/notacao|consulta)[^"]*"/g) || []));
 
     /* NENHUM CAMINHO FORA DA ÁREA DO PROFESSOR (26/10/2026).
      *
@@ -267,8 +272,20 @@ function principal() {
       coluna.indexOf('<span>Bastidores</span>') !== -1);
     checar('…e «Planejamento» NÃO voltou (o grupo foi extinto em 24/10/2026)',
       coluna.indexOf('Planejamento') === -1);
+    checar('…e Notação e Consulta não viraram destinos da coluna',
+      !/Notação|Consulta/.test(coluna), coluna);
     checar('a coluna não enumera turma nenhuma — ela é de DESTINOS, não de documentos',
       !/Balé Nível|nivel-1|nivel-2/.test(coluna), coluna.length);
+
+    const listaAulas = ler(pub, 'aulas/index.html');
+    checar('o nome da Aula 01 abre sua leitura em prosa numa nova aba',
+      /<a href="\/nivel-1\/aula-01\.html" target="_blank" rel="noopener" title="abrir a versão em prosa da aula">Aula 01<\/a>/.test(listaAulas),
+      (listaAulas.match(/<a[^>]+>Aula 01<\/a>/g) || []));
+    checar('«Abrir notação» fica como ação ao lado da Aula 01',
+      /Abrir notação/.test(listaAulas) && /href="\/nivel-1\/notacao\.html"/.test(listaAulas),
+      (listaAulas.match(/<a[^>]+>Abrir notação<\/a>/g) || []));
+    checar('não há botão de Notação nas aulas sem página publicada',
+      !/Aula 02[\s\S]{0,700}Abrir notação/.test(listaAulas), listaAulas.length);
 
     // TODOS os links da barra resolvem — nenhum aponta para o que não foi publicado. Os href da
     // barra são ABSOLUTOS (a mesma barra serve o pacote e a porta), e as rotas da porta não são

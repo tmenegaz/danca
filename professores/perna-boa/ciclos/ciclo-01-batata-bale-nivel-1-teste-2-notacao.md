@@ -4,6 +4,7 @@ frente: Documento de apoio
 ciclo: "01"
 title: "Notação em Benesh"
 subtitle: "Registro dos exercícios da Aula 01 para repetição sem depender da memória"
+glossario-href: "glossario-benesh.html"
 ---
 
 ## Aviso de proveniência (leia antes de usar)
@@ -14,7 +15,7 @@ exercícios deste ciclo podem ser lidos de volta sem depender da memória de que
 
 > **Nota (P-15).** Um ciclo que registra exercícios em notação declara o código usado. Este
 > código é do ciclo — os sinais valem para os exercícios registrados aqui, e um sinal novo
-> exige uma linha nova no [Glossário do código Benesh](glossario-benesh.html).
+> exige uma linha nova no <a href="glossario-benesh.html" target="_blank" rel="noopener noreferrer">Glossário do código Benesh</a>.
 
 ## O código declarado
 

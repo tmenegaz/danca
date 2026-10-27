@@ -68,9 +68,7 @@ const MENU = {
       { rotulo: 'Plano de ensino', href: '/area-do-professor/plano-de-ensino/' },
       { rotulo: 'Plano de Observação', href: '/area-do-professor/plano-de-observacao/' },
       { rotulo: 'Aulas', href: '/aulas/' },
-      { rotulo: 'Notação', href: '/area-do-professor/notacao/' },
     ] },
-    { tipo: 'link', rotulo: 'Consulta', href: '/consulta/' },
   ],
   barra: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
     { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
@@ -121,11 +119,11 @@ console.log('\n2 · O caminho é escrito UMA vez, por muitas passagens que a pá
     + '<details class="menu"><summary>Bastidores</summary></details></nav>'
     + '<main><h1>Notação</h1></main></body></html>';
 
-  const uma = nav.aplicar(pagina, MENU, '/area-do-professor/notacao/');
+  const uma = nav.aplicar(pagina, MENU, '/bale-nivel-2-teste-2/notacao');
   const quantos = (h) => (String(h).match(/class="doc-atual"/g) || []).length;
   provar('depois de UMA passagem há um caminho', quantos(uma) === 1, quantos(uma));
   let h = pagina;
-  for (let i = 0; i < 4; i++) h = nav.aplicar(h, MENU, '/area-do-professor/notacao/');
+  for (let i = 0; i < 4; i++) h = nav.aplicar(h, MENU, '/bale-nivel-2-teste-2/notacao');
   provar('depois de QUATRO passagens continua a haver um', quantos(h) === 1, quantos(h));
   provar('…e nenhuma delas deixou a coluna a dobrar',
     (String(h).match(/class="coluna[ "]/g) || []).length === 1,
@@ -141,23 +139,25 @@ console.log('\n2 · O caminho é escrito UMA vez, por muitas passagens que a pá
 
 console.log('\n3 · O caminho diz de onde se veio, e o degrau do meio leva de volta');
 {
-  const naLista = nav.caminhoDaPagina(MENU.coluna, '/area-do-professor/notacao/', 'Notação');
-  /* «ÁREA DO PROFESSOR · NOTAÇÃO», e não «Planejamento · Notação» (24/10/2026): o grupo
-     «Planejamento» deixou de existir, e a notação passou para a Área do Professor — é outra
-     vista da mesma aula, e é lá que as aulas estão. */
-  provar('na lista: «Área do Professor · Notação», dois degraus',
-    lerCaminho(naLista) === '|Área do Professor|Notação|', lerCaminho(naLista));
+  const naLista = nav.caminhoDaPagina(MENU.coluna, '/aulas/', 'Aulas');
+  provar('na lista: «Área do Professor · Aulas», dois degraus',
+    lerCaminho(naLista) === '|Área do Professor|Aulas|', lerCaminho(naLista));
   provar('…e o degrau do meio não existe (não se liga a si própria)',
     !/<a /.test(naLista), naLista);
 
   const noDocumento = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/notacao', 'Notação em Benesh');
-  provar('no documento: «Área do Professor · Notação · Notação em Benesh», três degraus',
-    lerCaminho(noDocumento) === '|Área do Professor|Notação|Notação em Benesh|', lerCaminho(noDocumento));
+  provar('no documento: «Área do Professor · Aulas · Notação em Benesh», três degraus',
+    lerCaminho(noDocumento) === '|Área do Professor|Aulas|Notação em Benesh|', lerCaminho(noDocumento));
   provar('…e o degrau do meio é uma LIGAÇÃO para a lista',
-    /<a href="\/area-do-professor\/notacao\/">Notação<\/a>/.test(noDocumento), noDocumento);
+    /<a href="\/aulas\/">Aulas<\/a>/.test(noDocumento), noDocumento);
   provar('…e o último degrau é o documento, a negrito',
     /<b>Notação em Benesh<\/b>/.test(noDocumento), noDocumento);
 
+  const noGlossario = nav.caminhoDaPagina(MENU.coluna,
+    '/bale-nivel-2-teste-2/glossario-benesh', 'Glossário do código Benesh');
+  provar('o Glossário também volta pelo percurso «Área do Professor · Aulas»',
+    lerCaminho(noGlossario) === '|Área do Professor|Aulas|Glossário do código Benesh|'
+      && /<a href="\/aulas\/">Aulas<\/a>/.test(noGlossario), noGlossario);
   /* O WORKER RESPONDE A `/x/referencias.html` COM UM 307 PARA `/x/referencias`, e a ponte vê o
      caminho já sem extensão. As duas formas têm de dar o mesmo caminho.
      E O DEGRAU DO MEIO É «PLANOS» (26/10/2026): a lista de referências deixou de existir, e o
@@ -318,9 +318,10 @@ console.log('\n7 · O título é o do `<h1>` da PÁGINA, e não o que está num 
     const t = nav.tituloDaPagina('<h1>' + bruto + '</h1>');
     provar('«' + bruto.slice(0, 34) + '…» fica «' + nome + '»', t === nome, t);
   }
-  /* A PÁGINA REAL, e é a que estava quebrada: o pacote da `batata` em disco. Se ele não
+  /* A PÁGINA REAL, e é a que estava quebrada: o pacote ativo da `batata` em disco. Se ele não
      existir, a asserção diz que não foi medida — e não passa por omissão. */
-  const real = path.join(raiz, 'professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2/lancamento.html');
+  const real = path.join(raiz,
+    'professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/lancamento.html');
   if (fs.existsSync(real)) {
     const t = nav.tituloDaPagina(fs.readFileSync(real, 'utf8'));
     provar('no `lancamento.html` de verdade o título é «Lançamento de aula»',

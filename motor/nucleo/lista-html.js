@@ -99,9 +99,8 @@ function escapavel(texto) {
  * um `<a>` em volta do `<b>` que já existia — nenhuma classe nova, nenhuma peça nova; a folha
  * já estiliza `a` dentro do cartão.
  *
- * O `title` diz o que o clique faz, e diz também o que ele NÃO faz: quem lê «abrir a ficha» sabe
- * que não está a entrar no formulário. É a mesma disciplina dos botões de acção, onde «Editar» e
- * «Ajustar» nunca se confundem.
+ * O `title` diz o que o clique faz, e diz também o que ele NÃO faz: na lista de Aulas, por
+ * exemplo, abre a leitura em prosa e não o formulário de lançamento.
  */
 function nomeDaLista(item) {
   if (!item.ler) return '<b>' + esc(item.nome) + '</b>';
@@ -118,8 +117,9 @@ function nomeDaLista(item) {
    * `target="_blank"` É O GESTO: ler não é sair. Quem abre a ficha quer consultá-la e imprimir, e
    * voltar à lista onde as outras estão. A convenção já era esta na bancada (`_blank` +
    * `noopener`). */
+  const dica = item.lerDica || 'abrir a ficha para ler e imprimir';
   return '<b><a href="' + esc(item.ler) + '" target="_blank" rel="noopener"'
-    + ' title="abrir a ficha para ler e imprimir">' + esc(item.nome) + '</a></b>';
+    + ' title="' + esc(dica) + '">' + esc(item.nome) + '</a></b>';
 }
 
 function cartaoDaLista(item, indice) {

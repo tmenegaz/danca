@@ -1371,8 +1371,8 @@ const servidor = http.createServer(async (req, res) => {
     ['/' + VAR + '/referencias.html', '/ciclos/planos/', 'Ciclos'],
     ['/' + VAR + '/aula-01.html', '/aulas/', 'Área do Professor'],
     ['/' + VAR + '/lancamento.html', '/aulas/', 'Área do Professor'],
-    ['/' + VAR + '/notacao.html', '/area-do-professor/notacao/', 'Área do Professor'],
-    ['/' + VAR + '/glossario-benesh.html', '/consulta/', 'Consulta'],
+    ['/' + VAR + '/notacao.html', '/aulas/', 'Área do Professor'],
+    ['/' + VAR + '/glossario-benesh.html', '/aulas/', 'Área do Professor'],
   ];
   const marcaDaColuna = () => p.evaluate(() => {
     const c = document.querySelector('.coluna');
@@ -1411,26 +1411,15 @@ const servidor = http.createServer(async (req, res) => {
     const m = await marcaDaColuna();
     const nome = documento.replace('/bale-nivel-2-teste-2/', '');
     if (!m) { ok(nome + ': a coluna existe no computador', false, null); continue; }
-    /* «Consulta» é um destino DIRECTO (`tipo: link`): não há grupo-acordeão para acender. A
-       marca é a do próprio link, e o contraste com o link que NÃO está aceso é o que prova que
-       ela é pintada — não a existência da classe. */
-    if (grupo === 'Consulta') {
-      ok(nome + ': o link directo «Consulta» fica aceso',
-        m.direto === lista, { direto: m.direto, esperado: lista });
-      ok(nome + ': …e pintado, e não só com a classe',
-        !!m.diretoFundo && m.diretoFundo !== m.diretoDeOutro,
-        { aceso: m.diretoFundo, apagado: m.diretoDeOutro });
-    } else {
-      ok(nome + ': o item da lista «' + lista + '» fica aceso no computador',
-        m.acesos.length === 1 && m.acesos[0] === lista, m.acesos);
-      ok(nome + ': …e um só grupo aceso, «' + grupo + '»',
-        m.gruposMarcados === 1 && m.grupo === grupo, { grupo: m.grupo, marcados: m.gruposMarcados });
-      ok(nome + ': …com o título À VISTA, mesmo com o grupo fechado',
-        m.tituloVisivel === true, m.tituloVisivel);
-      ok(nome + ': …e distinguido pela cor, não só pelo atributo',
-        !!m.corDoAtual && m.corDoAtual !== m.corDeOutro && /inset/.test(String(m.filete)),
-        { atual: m.corDoAtual, outro: m.corDeOutro, filete: m.filete });
-    }
+    ok(nome + ': o item da lista «' + lista + '» fica aceso no computador',
+      m.acesos.length === 1 && m.acesos[0] === lista, m.acesos);
+    ok(nome + ': …e um só grupo aceso, «' + grupo + '»',
+      m.gruposMarcados === 1 && m.grupo === grupo, { grupo: m.grupo, marcados: m.gruposMarcados });
+    ok(nome + ': …com o título À VISTA, mesmo com o grupo fechado',
+      m.tituloVisivel === true, m.tituloVisivel);
+    ok(nome + ': …e distinguido pela cor, não só pelo atributo',
+      !!m.corDoAtual && m.corDoAtual !== m.corDeOutro && /inset/.test(String(m.filete)),
+      { atual: m.corDoAtual, outro: m.corDeOutro, filete: m.filete });
   }
   /* A CONTRAPROVA: um documento que não sai de lista nenhuma não inventa marca. Sem esta linha,
      «acender sempre» passaria por boa regra.
@@ -1449,7 +1438,9 @@ const servidor = http.createServer(async (req, res) => {
      tem o fundo da marca. É a mesma marca do computador no mesmo HTML — o que muda é a largura. */
   /* AS REFERÊNCIAS ENTRAM AQUI (26/10/2026): elas são o caso novo — documento de «Planos», sem
      item próprio no menu —, e é no telemóvel que a marca e o caminho têm menos espaço. */
-  for (const [documento, lista, grupo] of [DOCUMENTOS[0], DOCUMENTOS[1], DOCUMENTOS[5]]) {
+  for (const [documento, lista, grupo] of [
+    DOCUMENTOS[0], DOCUMENTOS[1], DOCUMENTOS[4], DOCUMENTOS[5],
+  ]) {
     await abrir(documento, 390);
     await p.evaluate(() => document.querySelector('.topnav .hamburger').click());
     await p.evaluate(() => new Promise((r) => setTimeout(r, 450)));
@@ -1479,11 +1470,9 @@ const servidor = http.createServer(async (req, res) => {
     ok('…pintado com o fundo da marca, e não só com o atributo',
       !!naFolha && !!naFolha.fundo && naFolha.fundo !== naFolha.fundoDeOutro,
       naFolha && { aceso: naFolha.fundo, apagado: naFolha.fundoDeOutro });
-    if (grupo !== 'Consulta') {
-      ok('…e o grupo «' + grupo + '» diz onde se está pelo título',
-        !!naFolha && naFolha.grupo === grupo && !!naFolha.corDoGrupo,
-        naFolha && { grupo: naFolha.grupo, cor: naFolha.corDoGrupo });
-    }
+    ok('…e o grupo «' + grupo + '» diz onde se está pelo título',
+      !!naFolha && naFolha.grupo === grupo && !!naFolha.corDoGrupo,
+      naFolha && { grupo: naFolha.grupo, cor: naFolha.corDoGrupo });
     ok('…e nada estoura na horizontal', !!naFolha && naFolha.transbordo === 0, naFolha && naFolha.transbordo);
 
     /* E O CAMINHO DA BARRA CONTINUA A DIZER ONDE SE ESTÁ, NO TELEMÓVEL. A marca do menu é uma
@@ -1521,6 +1510,41 @@ const servidor = http.createServer(async (req, res) => {
     ok('…e cabe: sem reticências e sem empurrar a barra para fora da tela',
       !!caminhoNoTelefone && caminhoNoTelefone.cortado === false
       && caminhoNoTelefone.sobra === 0, caminhoNoTelefone);
+  }
+
+  console.log('\nD3. O glossário permanece acessível no cabeçalho da Notação');
+  for (const largura of [1280, 390]) {
+    await abrir('/' + VAR + '/notacao.html', largura);
+    const acesso = await p.evaluate(() => {
+      const cabecalho = document.querySelector('header.doc');
+      const link = cabecalho && cabecalho.querySelector('a[href="glossario-benesh.html"]');
+      return {
+        existe: !!link,
+        href: link ? link.getAttribute('href') : '',
+        target: link ? link.getAttribute('target') : '',
+        rel: link ? link.getAttribute('rel') : '',
+      };
+    });
+    ok(largura + 'px: o cabeçalho oferece o Glossário em nova aba',
+      acesso.existe && acesso.href === 'glossario-benesh.html'
+      && acesso.target === '_blank' && /noopener/.test(acesso.rel), acesso);
+
+    const visivelAoRolar = await p.evaluate(async () => {
+      window.scrollTo(0, document.documentElement.scrollHeight);
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      const cabecalho = document.querySelector('header.doc');
+      const link = cabecalho && cabecalho.querySelector('a[href="glossario-benesh.html"]');
+      const caixa = link && link.getBoundingClientRect();
+      return {
+        rolou: window.scrollY > 0,
+        posicao: cabecalho ? getComputedStyle(cabecalho).position : '',
+        visivel: !!caixa && caixa.width > 0 && caixa.height > 0
+          && caixa.top >= 0 && caixa.bottom <= window.innerHeight,
+      };
+    });
+    ok(largura + 'px: o atalho do Glossário continua visível após a rolagem',
+      visivelAoRolar.rolou && visivelAoRolar.posicao === 'sticky' && visivelAoRolar.visivel,
+      visivelAoRolar);
   }
 
   ok('nenhum erro de JavaScript', erros.length === 0, erros);

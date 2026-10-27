@@ -432,3 +432,7 @@ experimentos/modelo-formulario/*
 # negativo devolve o `po.json` de antes, com o ref derivado do commit que introduziu `leituras`.
 # É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
 !experimentos/provar-leituras-do-po.js
+
+# A AULA TEM DUAS LEITURAS (27/10/2026). A prova garante que a versão em prosa conserva compasso,
+# contagem e descrição, omite a coluna Benesh e não inventa descrições que faltam na fonte.
+!experimentos/provar-aula-prosa.js
