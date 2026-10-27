@@ -8,14 +8,22 @@ type: Ciclo
 professor: perna-boa
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: 792239e95b8b9c177946039b6bf3ee6a821bea1b13cc17e5188c372c9c05dc00
+hash_conteudo: 6a35c7bc52f10e0d1e9a7b42d044be7c04e6d0dae75e44d7b885c313b7d106f7
 parentHash: 
-hash: 73eb6cfec398bfbe2d6c15235e844fe2fd6dabc3e37cbc116df614570a445d3e
+hash: c4ab416d212e27f0115c71cd5ac2d48d777a2a7dddeb5dc0bf64779cbe607436
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-27
 cobertura:
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf
   - professores/perna-boa/ciclos/ciclo-01.conf
