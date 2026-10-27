@@ -391,3 +391,10 @@ experimentos/modelo-formulario/*
 # na outra. O controle negativo dela roda sobre `HEAD` e reprova 10 de 15: sem isso, «corrigi» seria
 # a minha palavra. A prova é citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
 !experimentos/provar-anamnese-por-aluna.js
+
+# O EXPURGO É UM ESTADO, E O SISTEMA TEM DE O LER (27/10/2026). A prova nasceu do deploy que
+# falhou em todas as escolas porque o expurgo da `batata` levou o único pacote de ciclo gerado, e
+# nada perguntou ao registro porquê. Ela mede o registro com os dados REAIS do repositório (a
+# `batata` expurgada, a `breu` viva) e o par diferencial que separa «excluído pelo registro» de
+# «excluído por outra coisa». É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-bancadas-e-expurgo.js

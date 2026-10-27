@@ -26345,3 +26345,89 @@ saltar em silêncio deixaria o rodapé do commit a citar «51 asserções» que 
   resumo do envelope passa a precisar da contagem, e o índice sobe de versão.
 - A escola **Breu** continua a ser escola de TESTE: o nome é que a marca. Quem quiser nela o
   comportamento de uma escola real troca o nome; quem a quiser como banco de ensaio sabe o que tem.
+
+## 27/10/2026 — O expurgo é um estado, e o sistema passou a lê-lo
+
+**O que motivou.** A publicação das escolas ficou vermelha em **todos** os deploys (run
+`40492356457`, passo «Construir as bancadas de layout»). A causa imediata: não havia pacote de
+ciclo gerado para as bancadas medirem. A pesquisadora recusou a leitura e recusou a correção:
+
+> «Se eu fiz o expurgo da Batata, não tem que estar registrado corretamente que foi feito o
+> expurgo? […] O que foi expurgado, o sistema tem que saber que foi expurgado e pular e
+> desconsiderar e buscar a solução correta. […] **isso parece que falta validação, falta os dois
+> ambientes conversarem.**»
+
+Ela tinha razão nas duas coisas. **A primeira correção foi minha, e era o defeito que ela apontou:**
+um `if (!pacotes().length) exit(0)` com uma frase fixa — «sem pacote de ciclo gerado». A frase
+*afirma* em vez de *consultar*, e «não há pacote» cobre três estados que pedem acções diferentes:
+
+- a escola foi **expurgada** (estado normal e registado — nada a fazer);
+- a escola é **nova** e ainda não tem ciclo gerado (nada a fazer até gerar);
+- a escola está **viva com ciclo** e os ficheiros desapareceram (**avaria** — a única que pede mão).
+
+**O que já existia, e ninguém lia.** O registro é completo e está versionado:
+`escola/<slug>/indice.json` guarda `expurgo[]` e `recriacao[]` com data, motivo e a lista dos
+ficheiros apagados — a `batata` com **5 expurgos e 4 recriações**, a `breu` com **2 e 2**. E a
+regra que diz qual dos dois é o presente é uma só, o `foiRecriada` do `escola/expurgar.js`, a
+mesma que o `post-merge` usa para não apagar uma escola recriada. O `expurgar.js` **escrevia**, a
+prova da recriação **verificava**, e nenhum consumidor **perguntava**. Era essa a metade que
+faltava: não faltava registro, faltava leitura.
+
+**O que foi decidido.**
+
+- **Um pacote de escola expurgada é desconsiderado** — não escolhido, não medido, não publicado. O
+  que resta em disco de uma escola expurgada é resto, e resto não é fixture.
+- **A ausência passa a ser explicada pelo registro**, e não afirmada por um `if`. O construtor das
+  bancadas imprime o ESTADO: quais escolas estão vivas, quais foram expurgadas e desde quando.
+- **O construtor das bancadas nunca derruba o deploy.** Uma página de bancada não é razão para
+  deixar uma escola sem publicar, e as bancadas já degradam sozinhas no
+  `montar-publicacao.js --com-propostas`.
+- **`umPacote()` continua a falhar alto, e agora diz o estado.** A distinção importa: uma PROVA
+  mede um documento real e tem de falhar sem ele; o DEPLOY não.
+- **O `indices/escolas/<slug>.json` NÃO é consultado por esta via.** Ele é derivado por um
+  workflow que corre **em paralelo** com o deploy (medido: em `7610a09` os dois arrancaram no
+  mesmo segundo), e lê-lo introduziria uma corrida. O registro do expurgo é a fonte; o índice é a
+  cópia.
+
+**Onde entrou.**
+
+- `experimentos/lib-pacote.js` — `estadoDasEscolas()` (lê `escola/<slug>/indice.json` com o
+  `foiRecriada`), `escolaDoPacote()` (usa o `escolaDoSufixo` do índice, e não uma segunda
+  opinião), `pacoteElegivel()`, `pastasComPagina()`, `pacotes()` a filtrar, e
+  `relatorioDePacotes()`; a mensagem do `umPacote()` passou a ser o estado.
+- `experimentos/propostas/construir.js` — o `if` com frase fixa saiu; entra o relatório. As
+  páginas de bancada de ontem são apagadas quando não há o que medir, para o local e o CI
+  concordarem.
+- `experimentos/provar-bancadas-e-expurgo.js` — **nova**, 21 asserções.
+
+**Medido.** `provar-bancadas-e-expurgo` **21/21** — e com os dados **reais** do repositório, não
+com fixture: a `batata` expurgada em 27/10 com 5 expurgos, a `breu` viva com 2. O controle da
+exclusão é **diferencial**: o mesmo caminho, no mesmo código, é elegível com um registro que o diz
+vivo e não é quando o registro o diz expurgado — se a exclusão viesse de outra coisa (o caminho, o
+nome, um `if`), os dois lados dariam o mesmo. Também: `provar-recriacao-da-escola` OK;
+`provar-indices` 60/60; `provar-teste` 42; `provar-anamnese-por-aluna` 15/15;
+`provar-alunas-da-anamnese` 14/14; `provar-painel-do-ato` OK; `provar-porta-sem-contexto` 44/44;
+`provar-barra-unica` 111/111; `provar-listas-do-acervo` 109/109; `provar-publicacao-da-escola`
+55/55; `check-identidade` 0 erro; `montar-publicacao breu --com-propostas` monta e avisa.
+`Construir as bancadas de layout` sai a **zero** (era 1).
+
+**Uma nota de bancada, e ela custou duas tentativas.** Escrevi o caminho de exemplo com um
+asterisco no meio, a fazer de curinga (a forma que casa com qualquer escola):
+as duas letras que **fecham** um comentário apareceram dentro do comentário, ele terminou a meio da
+linha, o resto virou código, e o erro do Node apontou **quatro linhas abaixo** do sítio. Ao
+corrigir, escrevi a explicação a **citar as tais duas letras — e fechei o comentário outra vez**,
+no mesmo parágrafo que o estava a explicar. É a mesma família do template literal que não fechava
+(26/10), com outro operador.
+
+**O que ainda não está feito.**
+
+- **`provar-cabecalho-do-documento`, `provar-iphone` e `provar-titulo-e-barra` continuam a falhar
+  sem pacote** — e agora falham com a mensagem certa («escolas vivas: breu; expurgadas: …»). Não
+  foi mudado nada nelas: uma prova que não tem o que medir não deve dizer «TUDO CERTO», e a
+  mensagem passou a explicar em vez de acusar. Voltam sozinhas quando houver ciclo gerado.
+- **O `descobrir` do `deploy-escolas.yml` decide por EXISTÊNCIA do pacote-zero, e não pelo
+  registro.** Funciona (o expurgo apaga a pasta, e ele diz «pulando — escola expurgada»), mas a
+  frase é uma inferência: quem apagasse a pasta à mão veria a mesma mensagem. Fica registado; não
+  foi tocado porque o caminho está certo e o deploy não estava em causa.
+- **A `breu` continua sem ciclo gerado**, e por isso as bancadas `/propostas/` não vão ao ar. É o
+  estado da escola, não um defeito do código.

@@ -37,13 +37,119 @@
 
 const fs = require('fs');
 const path = require('path');
-const { tipoDoDocumento } = require('../motor/nucleo/indices.js');
+const { tipoDoDocumento, escolaDoSufixo } = require('../motor/nucleo/indices.js');
+/* A REGRA DO EXPURGO É UMA SÓ, e é a do `expurgar.js`: a mesma que o `post-merge` usa para não
+ * apagar uma escola recriada. Importá-la é o que impede esta camada de ter uma segunda opinião
+ * sobre «esta escola existe» — a que apaga é a que importa, e as duas têm de concordar. */
+const { foiRecriada } = require('../escola/expurgar.js');
 
 const RAIZ = path.join(__dirname, '..');
 const CICLOS = path.join(RAIZ, 'professores');
 
-/** Todos os pacotes gerados, em ordem alfabética e como caminho RELATIVO à raiz. */
-function pacotes() {
+/* ------------------------------------------------------------------ o registro do expurgo
+ *
+ * O EXPURGO NÃO É UMA AUSÊNCIA ANÓNIMA (27/10/2026). As escolas deste protótipo nascem e são
+ * expurgadas em ciclo — a `batata` foi expurgada CINCO vezes e recriada quatro, a `breu` duas e
+ * duas. Quem pergunta «existe pacote?» e recebe «não» não sabe se o ciclo nunca foi gerado, se
+ * a escola foi expurgada, ou se alguém apagou ficheiros sem registo. As três respostas levam a
+ * acções diferentes, e o sistema JÁ SABE distingui-las: o elo do expurgo fica em
+ * `escola/<slug>/indice.json` (`expurgo[]`/`recriacao[]`), e a regra que diz qual dos dois é o
+ * presente é uma só — `foiRecriada` do `escola/expurgar.js`. Era a única coisa que faltava:
+ * alguém que a LÊSSE. O `expurgar.js` escrevia, a prova da recriação verificava, e nenhum
+ * consumidor perguntava.
+ *
+ * O QUE ISTO MUDA. Um pacote cuja escola está registada como expurgada é DESCONSIDERADO — não
+ * escolhido, não medido, não publicado. O que resta em disco de uma escola expurgada é resto,
+ * e resto não é fixture.
+ *
+ * O QUE ISTO NÃO FAZ. Não inventa estado para escola que o registro não conhece: sem
+ * `escola/<slug>/indice.json` a escola é tratada como VIVA (o lado permissivo — o pacote está
+ * em disco, e é isso que se procurou). Não consulta `indices/escolas/<slug>.json`: esses são
+ * DERIVADOS por um workflow que corre em paralelo com o deploy, e ler deles introduziria uma
+ * corrida. O registro do expurgo é a fonte; o índice é a cópia.
+ */
+const ESCOLA = path.join(RAIZ, 'escola');
+
+/** O instante mais recente de uma lista de elos (`expurgo[]`, `recriacao[]`), em ms. */
+function eloMaisRecente(lista) {
+  return (Array.isArray(lista) ? lista : [])
+    .map((e) => Date.parse((e && e.em) || ''))
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => b - a)[0];
+}
+
+/**
+ * O ESTADO DE CADA ESCOLA, lido do registro. `Map` slug → `{slug, viva, expurgos, ultimo_expurgo}`.
+ *
+ * `viva` usa a regra ÚNICA do projeto (`foiRecriada`): uma escola expurgada e depois recriada
+ * está viva, porque a recriação é posterior ao expurgo. Duas definições disso seriam duas
+ * respostas, e a que apaga é a que importa.
+ */
+function estadoDasEscolas() {
+  const mapa = new Map();
+  let slugs = [];
+  try {
+    slugs = fs.readdirSync(ESCOLA, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .sort();
+  } catch {
+    return mapa;
+  }
+  for (const slug of slugs) {
+    let indice = null;
+    try {
+      indice = JSON.parse(fs.readFileSync(path.join(ESCOLA, slug, 'indice.json'), 'utf8'));
+    } catch {
+      continue;                                   // pasta de escola sem indice.json: não é registro
+    }
+    if (!indice || typeof indice !== 'object') continue;
+    const expurgos = Array.isArray(indice.expurgo) ? indice.expurgo : [];
+    const quando = eloMaisRecente(expurgos);
+    mapa.set(slug, {
+      slug,
+      viva: expurgos.length === 0 || foiRecriada(indice),
+      expurgos: expurgos.length,
+      ultimo_expurgo: quando === undefined ? null : new Date(quando).toISOString().slice(0, 10),
+    });
+  }
+  return mapa;
+}
+
+/**
+ * A ESCOLA a que um pacote pertence. A pasta é `ciclo-NN-<variante>`, e a variante começa pelo
+ * slug da escola (`batata`, `batata-bale-nivel-2-teste-2`). O casamento é do `escolaDoSufixo` do
+ * ÍNDICE — a mesma função que o acervo usa —, e não de uma segunda opinião escrita aqui: é o
+ * mesmo `escolaDoSufixo` que já sabe que `x-teste-1` há-de casar com `x`, e não perder para `x`.
+ */
+function escolaDoPacote(pacote, slugs) {
+  const sufixo = path.basename(pacote).replace(/^ciclo-\d{2}-/, '');
+  const lista = slugs || [...estadoDasEscolas().keys()];
+  return escolaDoSufixo(sufixo, lista);
+}
+
+/**
+ * ESTE PACOTE PODE SER USADO? Devolve o veredicto E o motivo, porque o motivo é o que se diz a
+ * quem fica sem pacote. Sem veredicto escrito, a ausência volta a ser anónima.
+ */
+function pacoteElegivel(pacote, registro) {
+  const mapa = registro || estadoDasEscolas();
+  const escola = escolaDoPacote(pacote, [...mapa.keys()]);
+  if (!escola) return { elegivel: true, escola: null, motivo: 'escola fora do registro' };
+  const estado = mapa.get(escola);
+  if (!estado) return { elegivel: true, escola, motivo: 'escola fora do registro' };
+  return estado.viva
+    ? { elegivel: true, escola, motivo: 'viva' }
+    : {
+      elegivel: false,
+      escola,
+      motivo: 'expurgada em ' + (estado.ultimo_expurgo || 'data não registada')
+        + (estado.expurgos > 1 ? ' (' + estado.expurgos + ' expurgos)' : ''),
+    };
+}
+
+/** As pastas com FORMA de pacote, em ordem alfabética e como caminho relativo. Sem filtro. */
+function pastasComPagina() {
   const achados = [];
   let professores = [];
   try {
@@ -79,18 +185,71 @@ function pacotes() {
 }
 
 /**
+ * OS PACOTES USÁVEIS — as pastas com forma de pacote cuja escola o registro diz estar VIVA.
+ *
+ * O que resta em disco de uma escola expurgada é resto, e resto não é fixture. A pasta pode
+ * sobreviver a um expurgo parcial, a um `git stash`, a um checkout a meio: o registro é que
+ * decide, e o que ele diz é «esta escola já não existe». Daí o filtro, e não a confiança na
+ * ausência de ficheiros.
+ */
+function pacotes() {
+  const registro = estadoDasEscolas();
+  return pastasComPagina().filter((p) => pacoteElegivel(p, registro).elegivel);
+}
+
+/**
+ * PORQUE NÃO HÁ PACOTE — a ausência EXPLICADA, para quem tem de continuar sem ele.
+ *
+ * Devolve `{ usados, pulados, escolas }`. `pulados` são as pastas que existem em disco e foram
+ * desconsideradas, com o motivo; `escolas` é o estado de cada uma, lido do registro. É o que
+ * transforma «não há pacote» (que se lê como avaria) em «a `batata` foi expurgada em 27/10 e a
+ * `breu` ainda não tem ciclo gerado» (que se lê como estado).
+ */
+function relatorioDePacotes() {
+  const registro = estadoDasEscolas();
+  const emDisco = pastasComPagina();
+  const usados = [];
+  const pulados = [];
+  for (const pacote of emDisco) {
+    const veredicto = pacoteElegivel(pacote, registro);
+    if (veredicto.elegivel) usados.push(pacote);
+    else pulados.push({ pacote, escola: veredicto.escola, motivo: veredicto.motivo });
+  }
+  return { usados, pulados, escolas: [...registro.values()] };
+}
+
+/**
  * Um pacote gerado. Falha ALTO e com o remédio escrito quando não há nenhum — uma prova que
  * devolvesse `null` e medisse o vazio passaria sem provar nada, que é o pior desfecho possível
  * para uma prova.
+ *
+ * O `throw` FICA, e a distinção importa (27/10/2026): uma PROVA mede um documento real, e sem
+ * documento não há o que medir — falhar é a resposta honesta. Quem não pode falhar é o DEPLOY,
+ * porque uma página de bancada não é razão para deixar uma escola sem publicar; esse caminho é
+ * o `relatorioDePacotes`, e é o `construir.js` que o usa.
  */
 function umPacote() {
   const lista = pacotes();
-  if (!lista.length) {
-    throw new Error('lib-pacote: nenhum pacote de ciclo gerado no repositório. Gere um '
-      + '(tools/gerar-ciclo.sh) — as provas que usam este módulo medem um pacote REAL, e sem '
-      + 'um elas não teriam o que medir.');
+  if (lista.length) return lista[0];
+  /* A MENSAGEM DIZ O ESTADO, NÃO A MINHA SUPOSIÇÃO. «Nenhum pacote no repositório» era verdade
+     e não informava: quem a lia não sabia se faltava gerar, se a escola tinha sido expurgada, ou
+     se alguém apagou ficheiros. As três pedem coisas diferentes de quem está a ler. */
+  const { pulados, escolas } = relatorioDePacotes();
+  const vivas = escolas.filter((e) => e.viva).map((e) => e.slug);
+  const linhas = [
+    'lib-pacote: nenhum pacote de ciclo gerado que se possa medir.',
+    '  — as provas que usam este módulo medem um documento REAL; sem ele não há o que medir.',
+    '  escolas vivas: ' + (vivas.length ? vivas.join(', ') : '(nenhuma)'),
+  ];
+  for (const p of pulados) {
+    linhas.push('  desconsiderado: ' + p.pacote + ' — ' + p.escola + ' ' + p.motivo);
   }
-  return lista[0];
+  const expurgadas = escolas.filter((e) => !e.viva);
+  if (expurgadas.length) {
+    linhas.push('  expurgadas: ' + expurgadas.map((e) => e.slug + ' (' + (e.ultimo_expurgo || '?') + ')').join(', '));
+  }
+  linhas.push('  remédio: gere um ciclo com tools/gerar-ciclo.sh.');
+  throw new Error(linhas.join('\n'));
 }
 
 /** As páginas HTML do pacote, ordenadas. */
@@ -175,4 +334,5 @@ function umConfDeVariante() {
 module.exports = {
   RAIZ, pacotes, umPacote, caminhoDeExemplo, paginas, umaPagina, fontesDoPacote,
   umConfDeVariante,
+  estadoDasEscolas, escolaDoPacote, pacoteElegivel, relatorioDePacotes, pastasComPagina,
 };

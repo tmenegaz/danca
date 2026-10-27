@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T07:55:49-0300`
-Commit atual: `cd0304d` — chore(estrutura): regerar os índices derivados
+Gerado em: `2026-10-27T08:13:25-0300`
+Commit atual: `3403ddd` — fix(estrutura): o deploy das escolas não morre por falta de bancada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -79,6 +79,9 @@ vaso-bonito (13)
 ## Últimos commits
 
 ```
+3403ddd fix(estrutura): o deploy das escolas não morre por falta de bancada
+f6299aa chore(estrutura): regerar os índices derivados
+7610a09 fix(ciclo-01): a anamnese é da aluna, e o formulário não volta sozinho
 cd0304d chore(estrutura): regerar os índices derivados
 e6e472b feat(acervo): envelope/anamnese-20261026-2154.json
 006fb49 feat(acervo): envelope/.indice.json
@@ -96,9 +99,6 @@ a89a5c5 docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no f
 743db9e fix(ciclo-01): o formulário pergunta em que aula cada objetivo é perseguido
 ba871e8 docs(registro): o objetivo do ciclo e a régua única publicados, e o que se mediu ao ar
 e3d9297 chore(estrutura): regerar os índices derivados
-612679a docs(estrutura): o HANDOFF regerado sobre o objetivo do ciclo e a régua única
-1c8795c fix(ciclo-01): o objetivo é do ciclo, a estrutura é da aula, e a régua é uma só
-d67262d docs(registro): o apanhado do plano publicado, e o que se mediu ao ar
 ```
 
 ## Por professor
@@ -117,7 +117,7 @@ d67262d docs(registro): o apanhado do plano publicado, e o que se mediu ao ar
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| breu | (sem âncora) | — | — | — |
+| breu | ciclo-01-breu.fipp | `b4895345af89` | (vazio) | — |
 
 ### manga-curta — 0 ciclo(s)
 
@@ -194,135 +194,93 @@ d67262d docs(registro): o apanhado do plano publicado, e o que se mediu ao ar
 
 ## Última entrada do REGISTRO
 
-## 26/10/2026 — A anamnese é da aluna, e a marca «nova» sai quando ela já foi entrevistada
+## 27/10/2026 — O expurgo é um estado, e o sistema passou a lê-lo
 
-**O que motivou.** Dois relatos da pesquisadora sobre a escola de teste **Breu**, mais um terceiro
-defeito que apareceu ao medir:
+**O que motivou.** A publicação das escolas ficou vermelha em **todos** os deploys (run
+`40492356457`, passo «Construir as bancadas de layout»). A causa imediata: não havia pacote de
+ciclo gerado para as bancadas medirem. A pesquisadora recusou a leitura e recusou a correção:
 
-1. «Eu faço a anamnese da aluna A, e ela não deveria estar mais na lista aqui.»
-2. «Eu clico em fazer anamnese da aluna B, ele vai para o formulário e **imediatamente volta** para
-   a anamnese, e aí ficam habilitados os dois botões — continuar de onde parei e começar de novo.»
+> «Se eu fiz o expurgo da Batata, não tem que estar registrado corretamente que foi feito o
+> expurgo? […] O que foi expurgado, o sistema tem que saber que foi expurgado e pular e
+> desconsiderar e buscar a solução correta. […] **isso parece que falta validação, falta os dois
+> ambientes conversarem.**»
 
-O segundo foi reproduzido na bancada com o motor a sério, e a causa **não era a rota**: o nome
-**«Breu» é uma das três palavras que marcam a escola como escola de TESTE** (`calango`→1,
-`batata`→2, `breu`→3), e o preenchedor do fixture corria quando o MAPA ficava pronto — **antes** de
-`carregarAlunas` pôr o `?aluna=` no seletor. Sem aluna escolhida caía no primeiro registo do
-fixture («Aluna A») e **escrevia-a no campo**. O ato dizia B, o campo dizia A, a porta compara os
-dois para autorizar o bilhete, não batiam, e a página devolvia a pessoa à lista — que então oferecia
-«continuar» sobre um depósito que ela nunca escreveu. Com um nome neutro, o mesmo gesto funciona: a
-diferença é o nome.
+Ela tinha razão nas duas coisas. **A primeira correção foi minha, e era o defeito que ela apontou:**
+um `if (!pacotes().length) exit(0)` com uma frase fixa — «sem pacote de ciclo gerado». A frase
+*afirma* em vez de *consultar*, e «não há pacote» cobre três estados que pedem acções diferentes:
 
-O terceiro: a chave do depósito local era `porta-anamnese-<escola>-<professor>-<ciclo>-1`, **sem a
-aluna**. Abrir o ato da Aluna B restaurava o rascunho da Aluna A — e as respostas de uma entravam no
-documento da outra. Num artefacto que existe para ser evidência, um documento com o nome de uma
-aluna e o corpo de outra é o pior defeito possível.
+- a escola foi **expurgada** (estado normal e registado — nada a fazer);
+- a escola é **nova** e ainda não tem ciclo gerado (nada a fazer até gerar);
+- a escola está **viva com ciclo** e os ficheiros desapareceram (**avaria** — a única que pede mão).
+
+**O que já existia, e ninguém lia.** O registro é completo e está versionado:
+`escola/<slug>/indice.json` guarda `expurgo[]` e `recriacao[]` com data, motivo e a lista dos
+ficheiros apagados — a `batata` com **5 expurgos e 4 recriações**, a `breu` com **2 e 2**. E a
+regra que diz qual dos dois é o presente é uma só, o `foiRecriada` do `escola/expurgar.js`, a
+mesma que o `post-merge` usa para não apagar uma escola recriada. O `expurgar.js` **escrevia**, a
+prova da recriação **verificava**, e nenhum consumidor **perguntava**. Era essa a metade que
+faltava: não faltava registro, faltava leitura.
 
 **O que foi decidido.**
 
-- **O preenchimento automático NUNCA troca a aluna.** Com `?aluna=` no endereço, ele espera que ela
-  chegue ao seletor e não a substitui; se aquela aluna não tiver registo no fixture, não preenche
-  nada e di-lo. Trocar a aluna é gesto de quem **escolhe um registo no painel**, e só esse caminho
-  força a opção. Sem `?aluna=`, o primeiro registo do fixture continua a ser o que se mostra — é a
-  demonstração, e a demonstração é legítima.
-- **A aluna entra na chave do depósito, e na anamnese só.** O custo declarado: um rascunho começado
-  antes de a aluna ser conhecida fica sob uma chave sem ela e não é encontrado depois. Perde-se um
-  rascunho; não se contamina um documento.
-- **A marca «— nova» sai quando a aluna já tem anamnese, e a lista NÃO encolhe.** A pesquisadora
-  esperava que a aluna desaparecesse do seletor. Sai só o aviso: a aluna tem de continuar
-  alcançável, senão voltar a mexer no que já foi respondido passaria a depender de outro ecrã. O
-  aviso passa a querer dizer «ainda falta entrevistar».
-- **O critério é «tem anamnese registada», e não «está completa»** — por uma razão medida: o resumo
-  do envelope no índice não guarda a contagem de obrigatórios nem o estado derivado, e saber se está
-  completa exige **ler cada envelope**, contra a regra de que uma lista se faz com metadado, numa
-  leitura só. Um envelope só nasce quando o professor grava.
+- **Um pacote de escola expurgada é desconsiderado** — não escolhido, não medido, não publicado. O
+  que resta em disco de uma escola expurgada é resto, e resto não é fixture.
+- **A ausência passa a ser explicada pelo registro**, e não afirmada por um `if`. O construtor das
+  bancadas imprime o ESTADO: quais escolas estão vivas, quais foram expurgadas e desde quando.
+- **O construtor das bancadas nunca derruba o deploy.** Uma página de bancada não é razão para
+  deixar uma escola sem publicar, e as bancadas já degradam sozinhas no
+  `montar-publicacao.js --com-propostas`.
+- **`umPacote()` continua a falhar alto, e agora diz o estado.** A distinção importa: uma PROVA
+  mede um documento real e tem de falhar sem ele; o DEPLOY não.
+- **O `indices/escolas/<slug>.json` NÃO é consultado por esta via.** Ele é derivado por um
+  workflow que corre **em paralelo** com o deploy (medido: em `7610a09` os dois arrancaram no
+  mesmo segundo), e lê-lo introduziria uma corrida. O registro do expurgo é a fonte; o índice é a
+  cópia.
 
 **Onde entrou.**
 
-- `motor/servidor/teste-cliente.js` — `preencherAnamnese(registro, forcar)` (só força a opção quando
-  `forcar`), `alunaDoAto()`, `quandoAluna()` (espera até ~4,8 s), e `autoAnamnese()` a separar a
-  demonstração do ato. O `semearDoContexto()` depois do `clear()` devolve à barra o que o `clear`
-  levou.
-- `porta/index.html` — `chaveDaMemoria()` acrescenta a aluna na anamnese, e lê o **valor cru** do
-  campo (o `valorDoContexto` devolvia o rótulo «Cafe No Bule» e desincronizava da lista).
-- `motor/servidor/listas-do-acervo.js` — a cópia de `chaveDaMemoria()` do painel, byte a byte igual.
-- `motor/nucleo/porta.js` — `alunasDaAnamnese(curadorias, professor, todas, pedida, comAnamnese)`: o
-  quinto parâmetro tira de `novas` quem já foi entrevistada. Sem ele, a marca fica como estava — a
-  função é pura e não vai ao acervo.
-- `motor/servidor/bastidores.js` — `alunasComAnamnese(env, escola)`, uma leitura do índice; falha de
-  leitura não derruba o seletor (perder o aviso é melhor do que perder a lista).
-- `professores/luz-azul/ciclos/ciclo-01-breu/plano-observacao/index.html` — a página da porta
-  recopiada, com a barra da escola reintroduzida. **A `batata` foi expurgada do repositório no
-  mesmo dia** (`b6519ef`), e com ela as duas pastas que aqui estavam: quando este trabalho foi
-  rebasado sobre o `origin/main`, já só havia uma escola para publicar.
+- `experimentos/lib-pacote.js` — `estadoDasEscolas()` (lê `escola/<slug>/indice.json` com o
+  `foiRecriada`), `escolaDoPacote()` (usa o `escolaDoSufixo` do índice, e não uma segunda
+  opinião), `pacoteElegivel()`, `pastasComPagina()`, `pacotes()` a filtrar, e
+  `relatorioDePacotes()`; a mensagem do `umPacote()` passou a ser o estado.
+- `experimentos/propostas/construir.js` — o `if` com frase fixa saiu; entra o relatório. As
+  páginas de bancada de ontem são apagadas quando não há o que medir, para o local e o CI
+  concordarem.
+- `experimentos/provar-bancadas-e-expurgo.js` — **nova**, 21 asserções.
 
-**Medido**, já sobre o `origin/main` rebasado (`cd0304d`, escola `breu`): `provar-anamnese-por-aluna`
-**15/15** (nova), com **controle negativo a reprovar 10 de 15** sobre o código de antes;
-`provar-alunas-da-anamnese` **14/14** (era 12, e as duas novas medem o antes e o depois do mesmo
-registo); `provar-teste` 42; `provar-painel-do-ato` OK; `provar-parametros-por-parametro` 14/14;
-`provar-aula-e-plano-legiveis` 12/12; `provar-porta-sem-contexto` 44/44;
-`provar-publicacao-da-escola` 55/55; `provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111;
-`check-identidade` **0 erro**. `check-pacote` no pacote `ciclo-01-breu` reprova 16 erros **desde
-antes de este trabalho** — é o esqueleto da escola recém-criada: falta-lhe o PDF, o `dados.json`,
-as aulas, e os 30 links internos que ele confere existem. A âncora da `breu` **não existe** também
-desde antes (`hash-ciclo.sh --check` diz «ancore com: tools/hash-ciclo.sh luz-azul 01 breu»).
+**Medido.** `provar-bancadas-e-expurgo` **21/21** — e com os dados **reais** do repositório, não
+com fixture: a `batata` expurgada em 27/10 com 5 expurgos, a `breu` viva com 2. O controle da
+exclusão é **diferencial**: o mesmo caminho, no mesmo código, é elegível com um registro que o diz
+vivo e não é quando o registro o diz expurgado — se a exclusão viesse de outra coisa (o caminho, o
+nome, um `if`), os dois lados dariam o mesmo. Também: `provar-recriacao-da-escola` OK;
+`provar-indices` 60/60; `provar-teste` 42; `provar-anamnese-por-aluna` 15/15;
+`provar-alunas-da-anamnese` 14/14; `provar-painel-do-ato` OK; `provar-porta-sem-contexto` 44/44;
+`provar-barra-unica` 111/111; `provar-listas-do-acervo` 109/109; `provar-publicacao-da-escola`
+55/55; `check-identidade` 0 erro; `montar-publicacao breu --com-propostas` monta e avisa.
+`Construir as bancadas de layout` sai a **zero** (era 1).
 
-**Uma prova deixou de poder medir.** `provar-objetivos-por-aula` media o pacote
-`ciclo-01-batata-bale-nivel-2-teste-2`, e o expurgo levou o objeto de medição com ele: a prova
-morria com um `ENOENT` no `plano-01.json`, que se lê como «a prova está avariada». Passou a dizer
-que **não foi feita** e porquê. Substituí-la por um fixture de fabrico seria medir a fábrica, e
-saltar em silêncio deixaria o rodapé do commit a citar «51 asserções» que ninguém correu.
-
-**Duas notas de bancada.**
-
-- `provar-alunas-da-anamnese` estava a medir uma página que já não estava aberta: desde que a porta
-  passou a exigir o ato inteiro, ela aterrava em `/area-do-professor/anamnese/` e expirava num
-  `waitForFunction`. Passou a entrar como se entra na vida real — **bilhete de verdade**, emitido
-  pelo motor com a senha do professor — e a seção do `?aluna=` mudou de sítio: a regra mede-se no
-  servidor, e a consequência (a porta devolve a pessoa à lista) mede-se na página.
-- A chave do envelope no KV leva o **prefixo da escola** (`breu/envelope/…`). Semear em
-  `envelope/…` fica ao lado da família, invisível para o motor — a prova media a ausência do dado em
-  vez da regra, e dava «a marca não sai» com a regra a funcionar.
+**Uma nota de bancada, e ela custou duas tentativas.** Escrevi o caminho de exemplo com um
+asterisco no meio, a fazer de curinga (a forma que casa com qualquer escola):
+as duas letras que **fecham** um comentário apareceram dentro do comentário, ele terminou a meio da
+linha, o resto virou código, e o erro do Node apontou **quatro linhas abaixo** do sítio. Ao
+corrigir, escrevi a explicação a **citar as tais duas letras — e fechei o comentário outra vez**,
+no mesmo parágrafo que o estava a explicar. É a mesma família do template literal que não fechava
+(26/10), com outro operador.
 
 **O que ainda não está feito.**
 
-- **`provar-ato-e-barra` e `provar-selo` estão quebrados, e já estavam** — falham em `origin/main`
-  com «execution context was destroyed», a mesma causa: entram na porta sem o ato completo e são
-  atirados para a lista a meio da medição. Não foram tocados aqui; precisam do mesmo tratamento por
-  bilhete que a prova das alunas recebeu, e são trabalho de bancada próprio.
-- **`provar-objetivos-por-aula` está sem fixture** — media o pacote da `batata`, e o expurgo levou-o.
-  Para a recuperar: gerar um ciclo com `tools/gerar-ciclo.sh` e apontar `PROF`/`VARIANTE` (duas
-  linhas, no topo da prova).
-- **A `breu` não tem âncora de proveniência** — `ciclo-01-breu.fipp` não existe, e o `--check` manda
-  ancorar. Não foi ancorada aqui porque a âncora fecha o ciclo inteiro, e o ciclo ainda não tem
-  PO declarado: ancorar agora selaria um ciclo pela metade. É gesto de quem termina a escola.
-- **O critério da marca é uma decisão minha, não dela**, e está escrito acima para poder ser trocado
-  numa linha: hoje basta ter anamnese registada; se o critério deve ser «anamnese completa», o
-  resumo do envelope passa a precisar da contagem, e o índice sobe de versão.
-- A escola **Breu** continua a ser escola de TESTE: o nome é que a marca. Quem quiser nela o
-  comportamento de uma escola real troca o nome; quem a quiser como banco de ensaio sabe o que tem.
+- **`provar-cabecalho-do-documento`, `provar-iphone` e `provar-titulo-e-barra` continuam a falhar
+  sem pacote** — e agora falham com a mensagem certa («escolas vivas: breu; expurgadas: …»). Não
+  foi mudado nada nelas: uma prova que não tem o que medir não deve dizer «TUDO CERTO», e a
+  mensagem passou a explicar em vez de acusar. Voltam sozinhas quando houver ciclo gerado.
+- **O `descobrir` do `deploy-escolas.yml` decide por EXISTÊNCIA do pacote-zero, e não pelo
+  registro.** Funciona (o expurgo apaga a pasta, e ele diz «pulando — escola expurgada»), mas a
+  frase é uma inferência: quem apagasse a pasta à mão veria a mesma mensagem. Fica registado; não
+  foi tocado porque o caminho está certo e o deploy não estava em causa.
+- **A `breu` continua sem ciclo gerado**, e por isso as bancadas `/propostas/` não vão ao ar. É o
+  estado da escola, não um defeito do código.
 
 ## O que está pendente
-
-## 26/10/2026 — O formulário passa a perguntar em que aula cada objetivo é perseguido
-
-
-- **A estrutura própria de cada aula continua sem onde ser declarada.** O ciclo declara o padrão
-  (o quadro do volume) e a aula declara a sua quando difere — é a decisão, e o formulário ainda
-  não pergunta. A `aula-NN.md` imprime hoje o volume do ciclo com uma linha de total. É a
-  etapa 3.
-- **A `batata` não foi re-elicitada.** O campo novo não está no envelope dela (foi migrada à mão
-  na etapa 1), pelo que a derivação continua a usar o padrão 1:1 sobre ela. Nada muda na página
-  publicada; o que muda é que a próxima elicitação já pode dizer outra coisa.
-- **`provar-plano-matriz.js` está morto** — é um ficheiro local (fora do Git, em `experimentos/`)
-  que aponta para `professores/leticia/ciclos/ciclo-01-barra`, escola expurgada em `67ddfa0`. A
-  guarda que ele fazia (a chave que morre no `descritores()`) foi trazida para a prova versionada,
-  na secção 10.
-- **Os outros pacotes não foram regerados** — a porta dentro deles está a mais velha, e o
-  `check-identidade` acusa um pacote por regerar assim que a fonte muda. Cada escola se atualiza
-  quando for regerada.
-- **`alinhamento` continua por confirmar com o PO** (por aula ou por ciclo; bloco que abre ou que
-  avisa; se é proveniência que muda a âncora ou estado de tela). É a única pergunta da lista
-  antiga que continua aberta.
 
 ## 26/10/2026 — O parâmetro de medição passa a mandar na matriz, e o dado não muda
 
@@ -375,6 +333,20 @@ Nada nesta frente — os sete nós continuam no mapa (o envelope e o
   resumo do envelope passa a precisar da contagem, e o índice sobe de versão.
 - A escola **Breu** continua a ser escola de TESTE: o nome é que a marca. Quem quiser nela o
   comportamento de uma escola real troca o nome; quem a quiser como banco de ensaio sabe o que tem.
+
+## 27/10/2026 — O expurgo é um estado, e o sistema passou a lê-lo
+
+
+- **`provar-cabecalho-do-documento`, `provar-iphone` e `provar-titulo-e-barra` continuam a falhar
+  sem pacote** — e agora falham com a mensagem certa («escolas vivas: breu; expurgadas: …»). Não
+  foi mudado nada nelas: uma prova que não tem o que medir não deve dizer «TUDO CERTO», e a
+  mensagem passou a explicar em vez de acusar. Voltam sozinhas quando houver ciclo gerado.
+- **O `descobrir` do `deploy-escolas.yml` decide por EXISTÊNCIA do pacote-zero, e não pelo
+  registro.** Funciona (o expurgo apaga a pasta, e ele diz «pulando — escola expurgada»), mas a
+  frase é uma inferência: quem apagasse a pasta à mão veria a mesma mensagem. Fica registado; não
+  foi tocado porque o caminho está certo e o deploy não estava em causa.
+- **A `breu` continua sem ciclo gerado**, e por isso as bancadas `/propostas/` não vão ao ar. É o
+  estado da escola, não um defeito do código.
 
 ## Pendências anteriores (índice)
 
@@ -666,6 +638,7 @@ Nada nesta frente — os sete nós continuam no mapa (o envelope e o
 - **26/10/2026** — A porta não se abre por um endereço sem ato, e o índice… → `REGISTRO.md` L25530
 - **26/10/2026** — O plano publica o apanhado, e o detalhe fica na aula → `REGISTRO.md` L25670
 - **26/10/2026** — O objetivo é do ciclo, a estrutura é da aula, e a régua é… → `REGISTRO.md` L25828
+- **26/10/2026** — O formulário passa a perguntar em que aula cada objetivo é… → `REGISTRO.md` L25981
 - **luz-azul · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 

@@ -43,7 +43,7 @@ const NAVJS = fs.readFileSync(path.join(RAIZ, 'tools', 'templates', 'nav.js'), '
  * escrita à mão — e as escolas deste protótipo são descartáveis por desenho: expurgada a
  * escola, as bancadas deixavam de se construir, embora o que elas mostrem (o cabeçalho e o
  * corpo de um documento longo) não dependa de qual escola é. Ver `../lib-pacote.js`. */
-const { pacotes, umPacote, umaPagina } = require('../lib-pacote.js');
+const { relatorioDePacotes, umPacote, umaPagina } = require('../lib-pacote.js');
 /* SEM PACOTE GERADO, NÃO HÁ BANCADA — e isso é uma AUSÊNCIA, não uma avaria (27/10/2026).
  *
  * O QUE ACONTECEU. O expurgo da `batata` levou o único pacote de ciclo gerado do repositório, e a
@@ -61,22 +61,57 @@ const { pacotes, umPacote, umaPagina } = require('../lib-pacote.js');
  *
  * O `throw` seguinte FICA: um pacote que existe e não tem página de aula é uma anomalia a sério, e
  * essa não se degrada. */
-if (!pacotes().length) {
-  console.error('construir: sem pacote de ciclo gerado no repositório — as bancadas de layout'
-    + '\n  não são construídas nesta publicação. Gere um ciclo (tools/gerar-ciclo.sh) e elas voltam.');
-  /* AS PÁGINAS DE ONTEM SAEM. Elas são saída (o `.gitignore` fecha `experimentos/propostas/*`), e
-     num checkout limpo não existem — o CI avisa «sem propostas montadas» e publica o resto. Aqui,
-     na bancada de quem já construiu, elas FICARIAM, e o `montar-publicacao` as levaria como se
-     fossem desta publicação: uma página que diz medir «a Aula 01 real» sobre um pacote que já não
-     existe. Apagar é o que faz o local e o CI concordarem. */
-  try {
-    for (const nome of fs.readdirSync(SAIDA)) {
-      if (/^proposta-.*\.html$/.test(nome) || nome === 'index.html') {
-        fs.unlinkSync(path.join(SAIDA, nome));
-      }
+/* A AUSÊNCIA É EXPLICADA PELO REGISTRO, E NÃO AFIRMADA AQUI (27/10/2026).
+ *
+ * O QUE ISTO SUBSTITUI, e porquê. A primeira correção foi um `if (!pacotes().length) exit(0)`
+ * com uma frase fixa — «sem pacote de ciclo gerado». A pesquisadora recusou-a, e tinha razão: a
+ * frase afirma sem consultar, e não distingue o que o sistema já sabe distinguir. «Não há
+ * pacote» cobre três estados diferentes, e cada um pede uma acção:
+ *
+ *   · a escola foi EXPURGADA (estado normal e registado — nada a fazer);
+ *   · a escola é NOVA e ainda não tem ciclo gerado (nada a fazer até gerar);
+ *   · a escola está viva com ciclo e os ficheiros desapareceram (AVARIA — a única que pede mão).
+ *
+ * `relatorioDePacotes()` lê `escola/<slug>/indice.json` com a regra única do `foiRecriada`, e o
+ * que se imprime passa a ser o ESTADO, não a minha suposição. É o que faz «não existe» deixar de
+ * ser uma frase e passar a ser um facto com data.
+ *
+ * PORQUE NÃO SE FALHA. Uma página de bancada não é razão para deixar uma escola sem publicar — e
+ * era isso que acontecia: o passo do `deploy-escolas.yml` corre com `set -euo pipefail`, e as
+ * bancadas já degradam sozinhas no `montar-publicacao.js --com-propostas` («pedido sem propostas
+ * montadas»). O `umPacote()` do `lib-pacote` continua a falhar alto, e deve: uma PROVA mede o
+ * real. Este ficheiro não é uma prova.
+ */
+{
+  const relatorio = relatorioDePacotes();
+  if (!relatorio.usados.length) {
+    console.error('construir: nenhuma escola tem ciclo gerado — as bancadas de layout medem a');
+    console.error('  Aula 01 de um pacote REAL, e não há nenhum para medir. Não se constroem.');
+    for (const p of relatorio.pulados) {
+      console.error('  desconsiderado: ' + p.pacote + ' — ' + p.escola + ' ' + p.motivo);
     }
-  } catch (e) { /* sem pasta, não há o que apagar */ }
-  process.exit(0);
+    const vivas = relatorio.escolas.filter((e) => e.viva).map((e) => e.slug);
+    console.error('  escolas vivas: ' + (vivas.length ? vivas.join(', ') : '(nenhuma)'));
+    const expurgadas = relatorio.escolas.filter((e) => !e.viva);
+    if (expurgadas.length) {
+      console.error('  fora do registro, por expurgo: ' + expurgadas.length + ' escola(s) — '
+        + expurgadas.map((e) => e.slug + ' (' + (e.ultimo_expurgo || '?') + ')').join(', '));
+        console.error('  para as bancadas voltarem: gere um ciclo (tools/gerar-ciclo.sh).');
+    }
+    /* AS PÁGINAS DE ONTEM SAEM. São saída (o `.gitignore` fecha `experimentos/propostas/*`), e
+       num checkout limpo não existem — o CI avisa «sem propostas montadas» e publica o resto.
+       Aqui, na bancada de quem já construiu, elas FICARIAM, e o `montar-publicacao` as levaria
+       como se fossem desta publicação: uma página a dizer que mede «a Aula 01 real» sobre um
+       pacote que já não existe. Apagar é o que faz o local e o CI concordarem. */
+    try {
+      for (const nome of fs.readdirSync(SAIDA)) {
+        if (/^proposta-.*\.html$/.test(nome) || nome === 'index.html') {
+          fs.unlinkSync(path.join(SAIDA, nome));
+        }
+      }
+    } catch (e) { /* sem pasta, não há o que apagar */ }
+    process.exit(0);
+  }
 }
 const PACOTE_DA_AULA = umPacote();
 const PAGINA_DA_AULA = umaPagina(PACOTE_DA_AULA, /^aula-\d{2}\.html$/);
