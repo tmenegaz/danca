@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 6,
+      "documentos": 15,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:perna-boa/01/batata",
@@ -70,8 +70,8 @@
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 2,
-        "pos": 0,
-        "registros": 5
+        "pos": 1,
+        "registros": 6
       },
       "criada_em": "2026-10-27T12:11:05.731644+00:00",
       "expurgada": false,
@@ -90,7 +90,8 @@
         "anamnese:anamnese-20261027-0943",
         "anamnese:anamnese-20261027-0946",
         "plano:plano-20261027-1025",
-        "plano:plano-20261027-1131"
+        "plano:plano-20261027-1131",
+        "po:po-20261027-1353"
       ],
       "slug": "batata"
     },
@@ -305,7 +306,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -466,14 +467,19 @@
         "contagem": 2,
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "992de0c"
+    "commit": "e248b26"
   },
-  "gerado_em": "2026-10-27T15:14",
+  "gerado_em": "2026-10-27T16:54",
   "nao_indexado": [
     {
       "familia": "conteudo",
