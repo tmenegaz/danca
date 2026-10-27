@@ -229,6 +229,12 @@ function descritores(campo) {
     // A CHAVE É DO CONTEÚDO, e não desta lista: quem decide o que se pergunta é o plano, não o
     // motor.
     noCabecalho: campo.noCabecalho === true,
+    // A LEMBRANÇA (27/10/2026). O nó mostra, ANTES do seu campo, a resposta de OUTRO nó —
+    // `{de: 'objetivo-geral', rotulo: '...'}`. Nasceu de um pedido concreto: ao chegar aos
+    // «Objetivos específicos», o professor tinha de voltar ao primeiro degrau para reler o
+    // objetivo do ciclo, e o objetivo é precisamente o que dá sentido a cada objetivo
+    // específico. A chave é do CONTEÚDO, como todas: o motor só a repassa.
+    lembra: campo.lembra || null,
     // A CONDIÇÃO DE REGISTRO (quem está na sala, quem observa): dois grupos de marcação
     // — um de caixas (o professor e as alunas já vêm marcados) e um de escolha única (o
     // observador). Sem esta chave o nó cai no texto livre, e a condição volta a ser prosa

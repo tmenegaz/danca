@@ -691,14 +691,84 @@ function scriptDoPainel(chave, escola) {
     });
   }
 
+  /* AS TURMAS DO FILTRO SÃO AS DO PROFESSOR — E A AUSÊNCIA NÃO É PERMISSÃO (27/10/2026).
+   *
+   * O DEFEITO, relatado pela pesquisadora e medido na bancada: «quando eu vou fazer o plano de
+   * ensino e escolho o professor, a turma não está funcionando o filtro». Esta lista oferecia
+   * TODAS as turmas da escola — com o professor escolhido, sem professor, e antes de a curadoria
+   * chegar. As três turmas da escola de teste apareciam para qualquer um.
+   *
+   * É a MESMA regra que a porta já aplica no cabeçalho do ato (listaDeTurmasDoProfessor), e é
+   * a que a pesquisadora ditou: «o professor é o caminho da verdade… não vai existir aqui nesse
+   * filtro turma, possibilidade de escolher uma turma se não tiver o nome do professor». Ela
+   * dizia «nesse filtro turma» — e era literalmente neste.
+   *
+   * Os quatro estados são os mesmos, e cada um tem resposta:
+   *   1. sem professor ............ nenhuma turma, e o campo desabilitado;
+   *   2. curadoria a caminho ...... nenhuma turma, e o campo desabilitado;
+   *   3. curadoria sem turma ...... nenhuma turma, com o motivo escrito;
+   *   4. com turmas ............... só as dele, e a escolha anterior que deixou de valer sai.
+   *
+   * O CRUZAMENTO É PELO NOME, como na porta: opcoesDeTurmas publica valor: t.nome e a
+   * curadoria guarda o nome em turmas — é o mesmo vocabulário dos dois lados. */
+  function turmasDaCuradoria() {
+    var vistas = {};
+    for (var i = 0; i < CURADORIAS.length; i += 1) {
+      var lista = CURADORIAS[i] && CURADORIAS[i].turmas;
+      for (var j = 0; lista && j < lista.length; j += 1) {
+        if (lista[j]) vistas[String(lista[j])] = true;
+      }
+    }
+    return vistas;
+  }
+
   function carregarTurmas() {
     if (!CFG.ehPlano) return Promise.resolve();
+    var sel = campo('turma');
+    var slug = valor('professor');
+    /* A ESCOLHA QUE JÁ NÃO É DO PROFESSOR SAI. Trocar de professor deixa no campo a turma do
+     * anterior, e uma escolha que deixou de valer não se guarda — a mesma regra da porta. */
+    function limparPorque(motivo) {
+      if (sel) {
+        sel.value = '';
+        sel.disabled = true;
+        sel.title = motivo;
+      }
+      encher(sel, [], null, '');
+      ATOS.turma = '';
+      return Promise.resolve();
+    }
+    if (!slug) {
+      return limparPorque('Escolha primeiro o professor: as turmas são as que a direção atribuiu '
+        + 'a ele.');
+    }
+    if (!CURADORIA_CARREGADA) {
+      return limparPorque('A carregar a curadoria deste professor…');
+    }
+    var autorizadas = turmasDaCuradoria();
+    if (!autorizadas || !Object.keys(autorizadas).length) {
+      return limparPorque('A direção ainda não atribuiu nenhuma turma a este professor — é a '
+        + 'curadoria que autoriza o plano de ensino.');
+    }
     return pedir('/api/bastidores/turmas').then(function (r) {
       var lista = (r.dados && (r.dados.turmas || r.dados.lista)) || [];
-      encher(campo('turma'), lista.map(function (t) {
+      var doProfessor = lista.map(function (t) {
         var nome = typeof t === 'string' ? t : (t.nome || t.turma || '');
+        return nome;
+      }).filter(function (nome) { return nome && autorizadas[String(nome)]; });
+      var escolhida = valor('turma') || ATOS.turma;
+      if (escolhida && doProfessor.indexOf(String(escolhida)) === -1) {
+        if (sel) sel.value = '';
+        ATOS.turma = '';
+        escolhida = '';
+      }
+      if (sel) {
+        sel.disabled = false;
+        sel.title = '';
+      }
+      encher(sel, doProfessor.map(function (nome) {
         return { valor: nome, rotulo: nome };
-      }).filter(function (t) { return t.valor; }), null, valor('turma') || ATOS.turma);
+      }), null, escolhida);
     });
   }
 
@@ -846,7 +916,9 @@ function scriptDoPainel(chave, escola) {
       gravarContexto();
       if (nome === 'professor') {
         carregarAlunas().then(pintar);
-        carregarCuradoria().then(pintar);
+        /* A TURMA DO FILTRO DEPENDE DA CURADORIA DO PROFESSOR: recarrega-se DEPOIS dela, e não
+         * em paralelo — correr as duas ao mesmo tempo leria a curadoria do professor anterior. */
+        carregarCuradoria().then(carregarTurmas).then(pintar);
         /* Trocar de professor troca a estante, e a escolha anterior deixa de valer: o plano de
          * um professor não é observável pelo outro. */
         var sel = campo('plano');

@@ -32,7 +32,7 @@ const { rotulosDoChecklist, derivadosDoChecklist, derivarPO } = require('../nucl
 // O PLANO inteiro em Markdown, para a folha que o professor lê e imprime. É a MESMA
 // derivação que escreve a fonte do ciclo (`servidor/escrever-plano.js`): uma definição só,
 // para o documento impresso e o documento publicado não poderem divergir.
-const { derivarPlano } = require('../nucleo/derivar-plano-ciclo.js');
+const fichaDoPlano = require('../nucleo/ficha-do-plano.js');
 
 const REGISTRO_DE_CUSTO = 'ia-registro/registro.jsonl';
 
@@ -66,24 +66,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-/*
- * O MARCADOR DO GERADOR NÃO É DO PROFESSOR. A fonte do plano carrega o frontmatter YAML
- * (metadados para o repositório) e o `<!-- CALENDARIO -->` — o lugar onde o gerador escreve
- * o calendário do ciclo. Numa folha que se lê e se imprime, os dois seriam lixo à vista: o
- * renderizador de markdown não conhece nenhum deles e os MOSTRA como texto.
- *
- * Saem aqui, e só aqui: a FONTE no repositório fica intacta — quem perde as marcas é a
- * folha, não o documento.
- */
-function semMarcasDoGerador(markdown) {
-  return String(markdown == null ? '' : markdown)
-    .replace(/^---\n[\s\S]*?\n---\n/, '')
-    .replace(/^[ \t]*<!--[\s\S]*?-->[ \t]*\n?/gm, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trimStart();
-}
-
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, geracao, indice }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
   const roteador = criarRoteador();
 
   /*
@@ -885,11 +868,41 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       return recusar('não é um plano de ensino: ' + idAlvo);
     }
 
-    const { markdown, meta } = derivarPlano(envelope);
-    const corpo = semMarcasDoGerador(markdown);
+    /* O DOCUMENTO É O FORMULÁRIO PREENCHIDO, E NÃO A FONTE DO CICLO (27/10/2026).
+     *
+     * O QUE ESTAVA ERRADO, e a pesquisadora viu-o em produção: «ele vem com vários campos
+     * preenchidos, mas o objetivo por bloco por aula tá vazio». Estava — e não era um campo em
+     * falta. O documento era o Markdown de `derivar-plano-ciclo.js`, que é a FONTE do ciclo: ele
+     * deixa dois marcadores (`<!-- CALENDARIO -->`, `<!-- OBJETIVOS -->`) para o gerador do
+     * ciclo resolver, e aqui eles eram APAGADOS. A secção ficava com o título e nada debaixo.
+     * E o título dizia «Plano do Ciclo 01 — batata», que é o nome do documento do CICLO — esse só
+     * nasce depois do Plano de Observação, como ela disse —, não o do plano de ensino que ela
+     * acabou de preencher.
+     *
+     * O PEDIDO: «é só o que tá preenchido, o nome dos campos, todos eles listados, com seus
+     * títulos, tudo certinho, bonitinho, mas marcado ali o que foi escolhido». É o que a ficha
+     * da anamnese já faz — o conteúdo manda na ordem e nos títulos, o envelope nos valores —, e
+     * é o que `ficha-do-plano.js` passa a fazer aqui.
+     *
+     * O QUE NÃO SE PERDE: a fonte do ciclo continua a ser derivada por `escrever-plano.js`, no
+     * caminho da geração. Este endereço é o documento para LER e IMPRIMIR, e é outro. */
+    /* SEM O CONTEÚDO NÃO HÁ FORMULÁRIO — e é isso que se diz. Uma bancada (ou um adaptador)
+     * que não passe o `plano/conteudo/plano.json` recebia antes uma derivação; hoje receberia
+     * uma excepção. A recusa é declarada, com o motivo, e não um 500 mudo. */
+    if (!conteudoPlano || !Array.isArray(conteudoPlano.blocos)) {
+      return recusar('o conteúdo do plano não chegou a esta instância — o formulário preenchido '
+        + 'precisa dele', 500);
+    }
+    let turmas = [];
+    if (typeof lerTurmas === 'function') {
+      try { turmas = await lerTurmas(escolaDoWorker || identidade.escola); } catch (erro) { turmas = []; }
+    }
+    const { markdown: corpo, relatorio } = fichaDoPlano.renderizar(conteudoPlano,
+      Object.assign({}, envelope, { _turmas: turmas }));
 
     if (url.searchParams.get('formato') === 'html') {
-      return resposta(200, MIME['.html'], fichaHtml.paginaDoPlano(corpo, idAlvo, meta));
+      return resposta(200, MIME['.html'], fichaHtml.paginaDoPlano(corpo, idAlvo,
+        { lacunas: relatorio.lacunas, respondidos: relatorio.respondidos }));
     }
     return resposta(200, MIME['.md'], corpo);
   };

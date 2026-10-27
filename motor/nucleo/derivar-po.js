@@ -63,9 +63,13 @@ function comporPeriodicidade(v) {
 function comporMedida(v) {
   if (!v) return null;
   if (Array.isArray(v)) {
+    /* A UNIDADE É UM IDENTIFICADOR, E AO LADO DE UM NÚMERO ELA CONCORDA COM ELE.
+     * O conteúdo declara `hora` e `minuto` (os valores do widget), e o documento escrevia
+     * «50 minuto». Pluraliza-se ao escrever, que é onde a palavra vira português. */
+    const palavra = (n, u) => (Number(n) === 1 ? u : u + 's');
     const partes = v.map((p) => {
       const n = p && p.numero !== null && p.numero !== undefined ? String(p.numero) : '';
-      return n + (p && p.unidade ? ' ' + p.unidade : '');
+      return n + (p && p.unidade ? ' ' + palavra(n, p.unidade) : '');
     });
     return partes.length ? partes.join(' ') : null;
   }

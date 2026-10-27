@@ -418,3 +418,10 @@ experimentos/modelo-formulario/*
 # SERVIDOR (o 403), e o controle negativo devolve a tela E o `rotas.js` de antes — os dois lados,
 # cada um contra o seu marcador. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
 !experimentos/provar-turmas-do-professor.js
+
+# O PLANO DE ENSINO É O FORMULÁRIO PREENCHIDO (27/10/2026). A prova nasceu do relato: «o
+# objetivo por bloco por aula tá vazio» e «ele tem que ser o plano de ensino». Mede os três
+# defeitos de uma vez — o nome, a secção que saía vazia e o documento ser a derivação em vez do
+# formulário —, e o controle negativo devolve o `rotas.js` E a `ficha-html.js` de antes, do
+# mesmo ref derivado. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-plano-preenchido.js

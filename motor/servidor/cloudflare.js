@@ -82,7 +82,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, geracao, indice }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -116,6 +116,11 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     // pior possível — a rota respondia «turma X» e a lista vinha vazia, porque sem leitura de
     // curadoria a regra conclui, correctamente, que ninguém está atribuído.
     lerCuradorias,
+    // AS TURMAS DO CADASTRO (27/10/2026). O plano de ensino preenchido mostra, no contexto, a
+    // frequência, a duração, o calendário e o número de aulas — que não são respostas do
+    // envelope, são o cadastro da turma. Sem esta leitura o documento declará-los-ia em lacuna
+    // sobre um dado que a escola declarou.
+    lerTurmas,
   });
   return (request) => roteador.responder(request);
 }
@@ -198,6 +203,29 @@ function criarLancamento(env) {
 }
 
 /** Os passos de geração, a partir do token (null = não existe). */
+/**
+ * AS TURMAS DO CADASTRO DA ESCOLA, lidas do KV (19/10/2026; única desde 27/10/2026).
+ *
+ * A chave é a mesma do `bastidores.js` — `bastidores/<escola>/turmas` —, e a tolerância é a
+ * mesma da curadoria: sem o binding, ou com texto inválido, devolve lista vazia, e quem chama
+ * declara a lacuna em vez de inventar a turma. Duas leituras da mesma chave seriam duas
+ * respostas à espera de divergir.
+ */
+function lerTurmasDoEnv(env) {
+  return async (escola) => {
+    const kv = env && env.PADD_KV;
+    const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
+    if (!kv || !slug) return [];
+    try {
+      const bruto = await kv.get('bastidores/' + slug + '/turmas');
+      const lista = bruto ? JSON.parse(bruto) : [];
+      return Array.isArray(lista) ? lista : [];
+    } catch (erro) {
+      return [];
+    }
+  };
+}
+
 function passosDeGeracao(env) {
   const token = (env && env.GITHUB_TOKEN) || null;
   const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
@@ -207,22 +235,11 @@ function passosDeGeracao(env) {
     dono: 'tmenegaz',
     repo: 'danca',
     ref: 'main',
-    // O CADASTRO DA TURMA — a leitura que só esta ponte sabe fazer, e sem a qual o manifesto da
-    // variante não pode ser derivado (19/10/2026). A chave é a mesma do `bastidores.js`
-    // (`bastidores/<escola>/turmas`): uma segunda chave para a mesma lista divergiria no dia em
-    // que uma das duas mudasse, e o sintoma seria uma turma que a Produção mostra e o gerador
-    // não vê. Ausente o binding, devolve lista vazia — e o escritor cai na metade antiga.
-    lerTurmas: async (escola) => {
-      const kv = env && env.PADD_KV;
-      if (!kv || !escola) return [];
-      try {
-        const bruto = await kv.get('bastidores/' + escola + '/turmas');
-        const lista = bruto ? JSON.parse(bruto) : [];
-        return Array.isArray(lista) ? lista : [];
-      } catch (erro) {
-        return [];
-      }
-    },
+    // O CADASTRO DA TURMA — sem ele o manifesto da variante não pode ser derivado
+    // (19/10/2026). Lê-se pela MESMA função que a rota do plano preenchido usa: uma segunda
+    // leitura da mesma chave divergiria no dia em que uma das duas mudasse, e o sintoma seria
+    // uma turma que a Produção mostra e o documento não vê.
+    lerTurmas: lerTurmasDoEnv(env),
   });
   const escreverCiclo = criarEscritorDeCiclo({
     token,
@@ -312,6 +329,7 @@ async function fetch(request, env, opcoes) {
     // a mesma lista divergiria no dia em que uma das duas mudasse, e o sintoma seria uma aluna
     // que a Produção atribui e o PO não mostra — ou o contrário, que é o vazamento de hoje.
     lerCuradorias: lerCuradoriasDoEnv(env),
+    lerTurmas: lerTurmasDoEnv(env),
     // O ÍNDICE (fase 4). O cache vive no KV da escola — é derivado, e a perda dele não perde
     // dado nenhum. `comApelido` é verdadeiro aqui porque quem serve é o Worker da ESCOLA.
     indice: criarIndice(env, { kv: criarCloudflare(env), escola: (env && env.ESCOLA_SLUG) || '' }),

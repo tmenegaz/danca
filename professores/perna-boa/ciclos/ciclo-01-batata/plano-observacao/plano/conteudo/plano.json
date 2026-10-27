@@ -268,6 +268,10 @@
           "lista": {
             "minimo": 1
           },
+          "lembra": {
+            "de": "objetivo-geral",
+            "rotulo": "O objetivo geral do ciclo"
+          },
           "explicacao": {
             "oQueE": "O que fica pronto em cada objetivo específico do ciclo — o que se quer alcançar, e não o que se faz na aula.",
             "preencher": "Um objetivo por linha: escreva o que fica pronto, e o sistema numera (01, 02, 03…). Use «Acrescentar objetivo» para abrir a linha seguinte; o primeiro não se remove. Em geral é um objetivo por aula — mas não é uma regra: um objetivo pode atravessar duas aulas, e uma aula pode perseguir dois. Quem diz isso é o campo seguinte.",

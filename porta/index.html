@@ -509,7 +509,14 @@
    * basta). Fora do contentor, nada muda de largura. */
   .matriz-parametros { overflow-x: auto; margin: .6rem 0 .4rem; border: 1px solid var(--borda-campo);
     border-radius: var(--raio-2); background: var(--fundo); }
-  table.tabela-parametros { border-collapse: collapse; font-size: .9rem; margin: 0; width: auto; }
+  /* A TABELA OCUPA O ESPAÇO QUE TEM (27/10/2026).
+   *
+   * Era `width: auto`, e com poucos parâmetros e três objetivos a tabela encolhia até ao
+   * conteúdo: um bloco com filete de 630 px por fora e 260 px de tabela por dentro — metade da
+   * caixa vazia, e a pesquisadora leu isso como defeito, porque é. `width: 100%` enche a caixa
+   * quando o conteúdo cabe; quando não cabe (26 objetivos são 27 colunas), o `min-width` das
+   * células impede o esmagamento e o contentor rola — que é o que ele já fazia. */
+  table.tabela-parametros { border-collapse: collapse; font-size: .9rem; margin: 0; width: 100%; }
   table.tabela-parametros th, table.tabela-parametros td { padding: .3rem .45rem;
     border-bottom: 1px solid var(--borda-campo); text-align: center; }
   table.tabela-parametros thead th { font: 600 .72rem/1.2 var(--ui); letter-spacing: .05em;
@@ -1735,13 +1742,40 @@ function textoDaTurma(no, valor) {
     return escapar(valor.vezes + 'x ' + (valor.por || 'semanal') + (dias ? ' (' + dias + ')' : ''));
   }
   if (no.daTurma === 'duracao') {
+    /* «50 minuto» — a unidade do conteúdo é um IDENTIFICADOR (`hora`, `minuto`), e como
+     * identificador ela não tem número. Ao lado de um número, tem: 1 hora, 50 minutos, 1 hora
+     * 30 minutos. Pluraliza-se aqui, no momento de escrever para alguém. */
+    const palavra = (n, s) => (Number(n) === 1 ? s : s + 's');
     return escapar((Array.isArray(valor) ? valor : [valor])
-      .map((p) => p.numero + (p.unidade ? ' ' + p.unidade : '')).join(' '));
+      .map((p) => p.numero + (p.unidade ? ' ' + palavra(p.numero, p.unidade) : '')).join(' '));
   }
   if (no.daTurma === 'calendario') {
     return escapar(dataCurta(valor.inicio) + ' a ' + dataCurta(valor.fim));
   }
   return escapar(String(valor));
+}
+
+/* A LEMBRANÇA DO NÓ (27/10/2026): o valor de outro campo, mostrado antes deste.
+ *
+ * O DEFEITO, dito pela pesquisadora: «quando eu chego nos objetivos específicos, eu também não
+ * tenho aqui o objetivo do ciclo escrito pra mim, pra eu poder saber o que era o objetivo. Agora
+ * eu tenho que voltar lá no objetivo.» Ela está a escrever objetivos específicos sem ver o
+ * objetivo geral — e é o geral que diz se o específico serve.
+ *
+ * A PEÇA É A DA LEITURA (`leitura-do-cabecalho`), a mesma do nó que só se lê: um bloco com o
+ * valor em voz de título e uma frase que diz que ele vem de outro campo. Não é campo, não é
+ * dica de ferramenta: é o dado de que quem escreve precisa, ao lado de onde ele é usado.
+ */
+function lembrancaDoNo(no) {
+  const de = no.lembra || {};
+  const alvo = de.de || '';
+  if (!alvo) return '';
+  const cru = RESPOSTAS.get(alvo);
+  const texto = Array.isArray(cru) ? cru.join('; ') : (cru == null ? '' : String(cru));
+  return '<div class="leitura-do-cabecalho">'
+    + '<p class="da-turma"><b>' + escapar(texto || '—') + '</b></p>'
+    + '<p class="sub">' + md(de.rotulo || 'Vem de outro campo') + ', respondido atrás neste mesmo '
+    + 'plano — aqui à vista para não ter de voltar.</p></div>';
 }
 
 /* O NÓ DO CABEÇALHO NÃO SE PREENCHE AQUI (26/10/2026). Escola, professor, turma, frequência,
@@ -3574,6 +3608,49 @@ function leituraDaTurmaDoPo() {
   return '<span class="ctx-inscricao">' + escapar(nome || '—') + '</span>';
 }
 
+/* O QUE A ESCOLA E A TURMA JÁ DECLARAM FICA À VISTA (27/10/2026).
+ *
+ * A pesquisadora, a preencher o plano: «na área de contexto só aparece professor, ciclo e turma
+ * observada. Eu não tenho aqueles campos que a gente combinou de remover, ali listados […], que
+ * eu vou precisar ter como atenção, né? Referência.»
+ *
+ * E ela tem razão: em 26/10/2026 sete nós saíram do roteiro — escola, professor, turma,
+ * frequência, duração, calendário e número de aulas —, e o acordo era que continuassem a ser
+ * LIDOS. Três deles ficaram no cabeçalho (professor, ciclo, turma) e a escola está no cartão.
+ * Os quatro restantes não apareciam em lado nenhum: eram semeados, viajavam para o envelope e
+ * para o documento, e a tela não os dizia. Quem preenche não tinha como conferir o ritmo que o
+ * plano ia herdar.
+ *
+ * A PEÇA é a da inscrição, e não a do campo — é o que o sistema declara, não uma escolha de
+ * alguém. Rótulo e valor, sem filete e sem cursor: um `<label>` e um `.ctx-inscricao`, as
+ * duas peças que a folha e o catálogo já têm.
+ *
+ * NÃO SE REPETE O QUE JÁ ESTÁ NO ALTO: professor, ciclo e turma são controles (mais abaixo), e a
+ * escola é o cartão à esquerda. Aqui entram só os quatro que lêem a turma. */
+function renderLeiturasDoCabecalho() {
+  const caixa = document.querySelector('.barra details.ctx-ato .ctx-campos');
+  if (!caixa || !MAPA || FONTE === 'anamnese') return;
+  for (const velho of [...caixa.querySelectorAll('[data-leitura]')]) velho.remove();
+  /* A ORDEM É A DO MAPA — e insere-se sempre ANTES da mesma âncora. Inserir DEPOIS de uma âncora
+   * que não se move inverte a lista: cada item novo empurra o anterior para o fim, e a leitura
+   * saía «nº de aulas, calendário, duração, frequência» — o mapa ao contrário. */
+  const ancoras = [...caixa.querySelectorAll('.campo:not([data-leitura])')];
+  const ancora = ancoras.length ? ancoras[ancoras.length - 1] : null;
+  const nos = (MAPA.nos || []).filter((n) => n.noCabecalho && n.daTurma);
+  for (const no of nos) {
+    const cru = valorDaTurma(no);
+    if (cru === undefined || cru === null) continue;
+    const item = document.createElement('span');
+    item.className = 'campo';
+    item.setAttribute('data-leitura', no.id);
+    item.title = 'Não se preenche aqui: vem do cadastro da turma, declarado pela direção.';
+    item.innerHTML = '<span class="ctx-rotulo">' + escapar(no.campo) + '</span>'
+      + '<span class="ctx-inscricao">' + textoDaTurma(no, cru) + '</span>';
+    if (ancora && ancora.parentNode === caixa) caixa.insertBefore(item, ancora);
+    else caixa.appendChild(item);
+  }
+}
+
 async function renderTurmaDoCabecalho() {
   const caixa = document.getElementById('ctx-turma-campo');
   const alvo = document.getElementById('ctx-turma-conteudo');
@@ -3609,6 +3686,7 @@ async function renderTurmaDoCabecalho() {
     // A repintura criou controles NOVOS: reaplica a trava, se o formulário está aberto.
     if (CABECALHO_TRAVADO) travarCabecalho(true);
     marcarContextoFaltando();
+    renderLeiturasDoCabecalho();
     return;
   }
 
@@ -3624,11 +3702,13 @@ async function renderTurmaDoCabecalho() {
     alvo.innerHTML = leituraDaTurmaDoPo();
     if (CABECALHO_TRAVADO) travarCabecalho(true);
     marcarContextoFaltando();
+    renderLeiturasDoCabecalho();
     return;
   }
 
   // ANAMNESE (e qualquer outra fonte) — a turma não existe.
   caixa.hidden = true;
+  renderLeiturasDoCabecalho();
 }
 
 /* AS LINHAS DE UMA TABELA — a forma nova é o OBJETO `{unidade, linhas}` (a grelha com a
@@ -5358,6 +5438,7 @@ function renderPergunta() {
   blocos.push(cabecalhoDoNo(no));
   blocos.push(avisoDoFecho());
   blocos.push(caixaDaExplicacao(no));
+  if (no.lembra) blocos.push(lembrancaDoNo(no));
 
   // O nó repetido e o nó com opções dinâmicas são GENÉRICOS: a forma deles vem
   // do conteúdo (o `repetirPor` e o `opcoesDe`), não da família. Por isso são

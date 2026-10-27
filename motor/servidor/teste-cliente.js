@@ -344,7 +344,27 @@ const SCRIPT = String.raw`(function () {
       dizer('Crie a turma «' + registro.turma + '» na Produção antes de preencher o plano.');
       return;
     }
-    garantirOpcao(sel, registro.turma);
+    /* A TURMA DO FIXTURE SÓ SE USA SE ELA JÁ ESTIVER NA LISTA (27/10/2026).
+     *
+     * garantirOpcao ACRESCENTAVA a turma do fixture ao seletor quando ela não estava lá — e
+     * o seletor, desde a correção da curadoria, só tem as turmas do professor. O efeito era o
+     * preenchimento de teste a desfazer a regra: o campo dizia uma turma que a direção não
+     * atribuiu àquele professor, e o SERVIDOR passou a recusar a gravação dessa turma (403).
+     * O sintoma que a pesquisadora descreveu — «a ferramenta de teste está interferindo»,
+     * «impedindo de avançar» — era exactamente este.
+     *
+     * A regra é a mesma da aluna (26/10/2026): o preenchimento automático não inventa o que o
+     * ato decidiu. Se a turma do fixture não está entre as autorizadas, não se preenche nada e
+     * diz-se porquê. */
+    var autorizada = false;
+    for (var k = 0; k < sel.options.length; k++) {
+      if (sel.options[k].value === registro.turma) { autorizada = true; break; }
+    }
+    if (!autorizada) {
+      dizer('A turma «' + registro.turma + '» do fixture não está atribuída a este professor — '
+        + 'o plano não se preenche por cima da curadoria. Escolha a turma dele no cabeçalho.');
+      return;
+    }
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
@@ -372,17 +392,38 @@ const SCRIPT = String.raw`(function () {
     return null;
   }
 
-  function autoPlano() {
+  /* A TURMA DO PREENCHIMENTO SAI DO SELETOR, e não do fixture (27/10/2026).
+   *
+   * Antes: escolhia-se o primeiro plano do fixture cuja turma existisse na ESCOLA. Com a
+   * curadoria a mandar no seletor, «existir na escola» deixou de ser a pergunta certa — a
+   * turma do fixture pode não ser a deste professor. A pergunta passa a ser a do seletor:
+   * quais turmas estão oferecidas? O fixture só preenche dentro delas.
+   *
+   * E ESPERA PELAS OPÇÕES: o seletor nasce antes de a curadoria chegar. Sem esta espera, a
+   * lista estava vazia no primeiro instante, nenhuma turma casava, e o painel dizia «nenhuma
+   * turma do fixture é deste professor» sobre um seletor que ainda ia encher. */
+  function autoPlano(tentativas) {
     var sel = porId('ctx-turma');
-    var escolhida = sel ? sel.value : '';
-    var registro = planoDaTurma(escolhida);
-    if (!registro) {
-      var lista = fixture.plano || [];
+    var lista = fixture.plano || [];
+    var opcoes = [];
+    if (sel) for (var k = 0; k < sel.options.length; k++) opcoes.push(sel.options[k].value);
+    var restantes = typeof tentativas === 'number' ? tentativas : 12;
+    if (sel && !opcoes.filter(Boolean).length && restantes > 0) {
+      setTimeout(function () { autoPlano(restantes - 1); }, 150);
+      return;
+    }
+    var registro = planoDaTurma(sel ? sel.value : '');
+    if (!registro || opcoes.indexOf(registro.turma) === -1) {
+      registro = null;
       for (var i = 0; i < lista.length; i++) {
-        if (turmaExisteNoPlano(lista[i].turma)) { registro = lista[i]; break; }
+        if (opcoes.indexOf(lista[i].turma) !== -1) { registro = lista[i]; break; }
       }
     }
     if (registro) preencherPlano(registro);
+    else if (opcoes.filter(Boolean).length) {
+      dizer('O fixture não tem plano para as turmas deste professor ('
+        + opcoes.filter(Boolean).join(', ') + '). Nada foi preenchido.');
+    }
   }
 
   function painelPlano() {

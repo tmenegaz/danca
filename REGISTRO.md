@@ -26906,3 +26906,151 @@ importante sem prova.
   medido de ponta a ponta.
 - **A curadoria é lida do KV no caminho do `POST`.** Se a leitura falhar, a rota grava (degrada). A
   alternativa — recusar — poria a escola inteira sem planos por uma falha de leitura.
+
+## 27/10/2026 — O plano de ensino é o plano de ensino: o documento, a turma do filtro e o contexto à vista
+
+**O que motivou.** Cinco observações da pesquisadora numa só ronda, todas com o mesmo fundo: o
+sistema mostrava outra coisa do que ela tinha pedido.
+
+> «A solução que você fez para imprimir […] vem com vários campos preenchidos, mas o objetivo por
+> bloco por aula tá vazio. Esse aqui você chamou de plano do ciclo, né? E a gente tem que colocar
+> o nome certo ali, que é o plano de ensino. […] O plano do ciclo, ele só nasce depois que eu faço
+> o plano de observação. […] quando eu vou fazer o plano de ensino e escolho o professor, a turma
+> não tá funcionando o filtro. […] na área de contexto só aparece professor, ciclo e turma
+> observada. […] quando eu chego nos objetivos específicos, eu também não tenho aqui o objetivo do
+> ciclo escrito pra mim. […] O parâmetro de medição: a tabela tá ocupando só metade do espaço.»
+
+### 1. O documento era a FONTE DO CICLO, e não o formulário preenchido
+
+O link abria o Markdown de `derivar-plano-ciclo.js` — a fonte que vira `plano-XX-<escola>.md`. Ela
+deixa dois marcadores para o **gerador do ciclo** resolver (`<!-- CALENDARIO -->` e
+`<!-- OBJETIVOS -->`), e a folha os **apagava**: a secção «Objetivos por bloco e por aula» saía com
+o título e nada debaixo. Não era um campo em falta — era o documento errado.
+
+**Decidido.** O documento passa a ser o **formulário com as respostas**, por um módulo novo,
+`motor/nucleo/ficha-do-plano.js`: a **ordem e os títulos vêm do conteúdo**
+(`porta/plano/conteudo/plano.json`), os **valores vêm do envelope**, e o que não foi respondido
+aparece como `[a decidir]`. É a mesma natureza da ficha da anamnese. Nada de derivação, nada de
+renomear, nada de comentário — o pedido foi literal: «só o que tá preenchido, o nome dos campos,
+todos eles listados».
+
+- **O nome**: a folha dizia «Plano do Ciclo 01 — batata», que é o título da fonte do ciclo. Agora
+  diz **«Plano de ensino»**. A fonte do ciclo continua a chamar-se o que se chama — ela é outro
+  documento, e é o gerador que a produz.
+- **A forma de cada campo vem do próprio campo**: lista numerada, grelha, escala, matriz por
+  objetivo, medida, periodicidade, data, escolha múltipla (com `☑` no que foi escolhido). Sem um
+  renderizador por família, o documento seria uma segunda interpretação do conteúdo.
+- **O que vem da turma não é lacuna.** Frequência, duração, calendário e a **régua da rubrica** são
+  cadastro da escola, não resposta do professor: chegam por `lerTurmas` (a **mesma** leitura que o
+  escritor do plano já usava — uma segunda leitura da mesma chave divergiria um dia) e são
+  compostas com as funções que o resto do sistema usa.
+- **`[object Object]` e «50 minuto».** A duração é uma lista de partes e saía como
+  `[object Object]`; e a unidade do conteúdo é um identificador (`hora`, `minuto`) que aparecia ao
+  lado de um número sem concordar com ele. Pluraliza-se ao escrever, nos dois renderizadores
+  (`textoDaTurma` na porta, `comporMedida` na derivação) — é a mesma frase nos dois sítios.
+- **A tabela rola dentro de si.** A folha ganhou tabelas de verdade (volume, sequência) e a de
+  cinco colunas não cabia a 390 px: `display: block` + `overflow-x: auto` deixa-a ocupar a largura
+  toda e rolar o que não cabe. Medido: 342 px de tabela numa folha de 342 de conteúdo, sem
+  transbordo de página.
+- **A hierarquia não salta um degrau.** `folha()` renderiza o corpo um nível abaixo do `<h1>`, de
+  modo que `##` saía `<h3>` — logo abaixo de um `<h1>`. As secções passaram a `#` (→ `<h2>`), e os
+  campos são texto em negrito, não títulos.
+
+### 2. O filtro da turma que não obedecia era o da LISTA, não o do formulário
+
+A pesquisadora foi precisa e eu tinha corrigido o sítio errado na véspera: «não vai existir **aqui
+nesse filtro turma**, possibilidade de escolher uma turma se não tiver o nome do professor». *Aqui*
+era o filtro da página **Área do Professor → Plano de ensino**. Medido: `#ato-turma` oferecia as
+**três** turmas da escola — com o professor escolhido, sem professor, e antes de a curadoria
+chegar.
+
+Agora os **quatro estados** são os mesmos do cabeçalho do ato, e cada um tem resposta: sem
+professor → nenhuma turma e o campo desabilitado com o motivo; curadoria a caminho → idem;
+curadoria sem turma → idem, com a frase que diz que a direção não atribuiu; com turmas → só as
+dele, e a escolha anterior que deixou de valer sai. Recarrega-se **depois** da curadoria, e não em
+paralelo — em paralelo leria a do professor anterior.
+
+### 3. A ferramenta de teste passava por cima da curadoria — e o servidor recusava a gravação
+
+A suspeita estava certa: «o que preenche campos […] está interferindo ali». `garantirOpcao`
+**acrescentava** ao seletor a turma do fixture quando ela não estava na lista autorizada, e o
+preenchimento automático escolhia pelo cadastro da **escola**, não pelo que o seletor oferece.
+Depois do 403 da véspera, o resultado era o pior: a ferramenta preparava um plano que o servidor
+recusava guardar.
+
+A regra passa a ser a da aluna (26/10): **o preenchimento automático não inventa o que o ato
+decidiu**. Ele escolhe dentro das opções do seletor, espera por elas (nascem antes da curadoria), e
+quando não há plano de fixture para as turmas do professor **não preenche nada e diz porquê**.
+
+### 4. O contexto mostra o que a escola e a turma já declaram
+
+Sete nós saíram do roteiro em 26/10 com o acordo de continuarem a ser lidos. Três ficaram no
+cabeçalho e a escola está no cartão; os outros quatro — frequência, duração, calendário e número de
+aulas — **não apareciam em lado nenhum**. Quem preenchia não tinha como conferir o ritmo que o
+plano ia herdar. Entram no contexto do ato como **inscrição** (rótulo + valor, sem filete e sem
+cursor: é o que o sistema declara), com a mesma peça da escola.
+
+### 5. O objetivo do ciclo à vista onde ele é usado
+
+«Tenho que voltar lá no objetivo.» O nó «Objetivos específicos» passa a mostrar, antes do seu
+campo, o **objetivo geral** respondido — com a marca do **conteúdo** (`lembra: {de, rotulo}`, como
+todas: o motor só a repassa), e a peça de leitura que o nó do cabeçalho já usa. Sem classe nova.
+
+### 6. A tabela do parâmetro ocupa o espaço que tem
+
+Era `width: auto`: com poucos parâmetros e três objetivos a tabela encolhia até ao conteúdo, e a
+caixa com filete ficava meio vazia. `width: 100%` enche quando cabe; quando não cabe (26 objetivos
+são 27 colunas), o `min-width` das células impede o esmagamento e o contentor rola — como já fazia.
+Medido: 628 px de tabela num contentor de 630, e 290 num de 292 a 390 px, sem transbordo.
+
+**Onde entrou.**
+
+- `motor/nucleo/ficha-do-plano.js` (novo) — o documento do formulário preenchido.
+- `motor/servidor/rotas.js` — `plano-preenchido` passa a usar a ficha; guarda declarada quando o
+  conteúdo não chega; `semMarcasDoGerador` removida (ficou sem uso).
+- `motor/servidor/cloudflare.js` — `lerTurmasDoEnv`, **uma** leitura do cadastro (a que o escritor
+  já tinha passou a usá-la também) e a ponte a passá-la ao roteador.
+- `motor/nucleo/ficha-html.js` — `paginaDoPlano` diz «Plano de ensino», o balanço de lacunas, e a
+  tabela que rola dentro de si.
+- `motor/nucleo/derivar-po.js` — `comporMedida` pluraliza a unidade.
+- `motor/servidor/listas-do-acervo.js` — o filtro da turma na lista, com os quatro estados.
+- `motor/servidor/teste-cliente.js` — o preenchimento de teste dentro da autorização.
+- `motor/nucleo/elicitar.js` + `porta/plano/conteudo/plano.json` — a chave `lembra`, e o nó dos
+  objetivos específicos a declará-la.
+- `porta/index.html` — `renderLeiturasDoCabecalho`, `lembrancaDoNo`, e a tabela do parâmetro.
+- `professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/` — a porta recopiada (com a NAV
+  do ciclo) e o conteúdo sincronizado. O conteúdo da porta vive em DOIS sítios: a fonte em
+  `porta/plano/conteudo/` e a cópia do pacote, que é a que o Worker lê.
+
+**Medido.** `provar-plano-preenchido` **21/21** (nova) — nome, 26 títulos presentes, nenhuma secção
+só com o título, o que vem da turma a aparecer, a lacuna declarada, e a hierarquia de títulos —, com
+o **controle negativo a reprovar 12 de 21**. O controle troca **dois** módulos (`rotas.js` **e**
+`ficha-html.js`) do mesmo ref derivado: a primeira versão trocava só o `rotas.js` e a asserção do
+nome passava no controle, porque o título vem da folha — um controle a medir metade do que mudou é
+o verde falso de 26/10 noutra roupa.
+
+`provar-teste` **44** (de 42 — as duas do preenchimento de teste dentro da autorização);
+`provar-turmas-do-professor` 17/17; `provar-ficha-na-listagem` 35/35 (controle 22 de 27);
+`provar-porta-sem-contexto` 44; `provar-indices` 60; `provar-anamnese-por-aluna` 15;
+`provar-alunas-da-anamnese` 14; `provar-barra-unica` 111; `provar-publicacao-da-escola` 55;
+`provar-bancadas-e-expurgo` 21; `provar-identidade-da-escola-recriada` 23;
+`provar-recriacao-da-escola` todas; `provar-parametros-por-parametro` 14;
+`check-identidade` **0 erro**; `check-indices` 14 verificações; âncora `--check` íntegra
+(`1816e1eb…`).
+
+**Duas provas que NÃO medem, e são anteriores a esta entrada.**
+
+- **`provar-objetivos-por-aula`** — o fixture que ela mede (`batata-bale-nivel-2-teste-2`) foi
+  expurgado do repositório. A prova diz o que aconteceu e sai com 1. Ela não pode medir um objeto
+  que já não existe, e inventá-lo seria pior do que não medir.
+- **`provar-escola-fixa`** — `Navigation timeout` com `waitUntil: 'networkidle0'` nesta bancada.
+  Conferido com a porta de `HEAD`, que também expira: é do ambiente, não desta alteração.
+
+**O que fica dito, e não feito.**
+
+- **O documento do Plano de Observação continua a ser a derivação** (`derivarPO`), e não o
+  formulário preenchido como a anamnese e o plano. Ele não tem secções vazias — a derivação do PO
+  não usa marcadores —, mas a mesma pergunta vale para ele. Fica para quando a pesquisadora o
+  pedir.
+- **A numeração dos blocos no documento segue o conteúdo** (1, 3, 4…): o bloco 2 não existe no
+  formulário, e a folha diz o mesmo que a tela.

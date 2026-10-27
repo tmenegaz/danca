@@ -85,7 +85,13 @@ const ESTILO = `
     font-size: .9rem;
     line-height: 1.5;
   }
-  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .75rem 0; }
+  /* A TABELA ROLA DENTRO DE SI. Uma tabela de cinco colunas («Sequência de exercícios por
+   * bloco») não cabe na largura de um telemóvel, e a folha não pode empurrar a página para o
+   * lado nem cortar colunas em silêncio: bloco com rolo horizontal deixa a tabela ocupar a
+   * largura toda e rolar o que não cabe. No papel não há rolo — e aí a tabela já cabe, porque
+   * a impressão não tem a medida de um telemóvel. */
+  table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%;
+    width: 100%; font-size: .9rem; margin: .75rem 0; }
   th, td { text-align: left; border-bottom: 1px solid var(--gold-borda); padding: .35rem .5rem; vertical-align: top; }
   ul { margin: .5rem 0; padding-left: 1.25rem; }
   li { margin: .15rem 0; }
@@ -218,13 +224,26 @@ function paginaDaFichaEmBranco(markdown) {
  */
 function paginaDoPlano(markdown, id, meta) {
   const m = meta || {};
+  /* «PLANO DE ENSINO» É O NOME (27/10/2026). A folha herdava o `title` da FONTE DO CICLO —
+   * «Plano do Ciclo 01 — batata» —, e esse documento é outro: é o do ciclo, e só nasce depois
+   * do Plano de Observação. O que este link abre é o plano de ensino que a pessoa acabou de
+   * preencher, e é esse o nome que ele tem de dizer. */
+  const lacunas = Array.isArray(m.lacunas) ? m.lacunas : null;
+  const respondidos = Array.isArray(m.respondidos) ? m.respondidos.length : null;
+  const balanco = respondidos === null
+    ? ''
+    : ' ' + respondidos + ' campo' + (respondidos === 1 ? '' : 's') + ' preenchido'
+      + (respondidos === 1 ? '' : 's')
+      + (lacunas && lacunas.length
+        ? ', e ' + lacunas.length + ' ainda em lacuna — ' + lacunas.join(', ') + '.'
+        : ', nenhum em lacuna.');
   return folha(markdown, {
-    aba: (m.title || 'Plano de ensino') + ' — ' + String(id),
-    titulo: m.title || 'Plano de ensino',
-    sub: '<p class="sub">O plano inteiro, como ficou gravado — registro <strong>' +
+    aba: 'Plano de ensino — ' + String(id),
+    titulo: 'Plano de ensino',
+    sub: '<p class="sub">O plano que você preencheu, campo por campo — registro <strong>' +
       escapar(String(id)) + '</strong>.</p>',
-    aviso: 'O plano que você preencheu, inteiro, para ler e imprimir. ' +
-      'A lacuna que restar fica declarada — nenhum campo é preenchido por adivinhação.',
+    aviso: 'Cada campo como o formulário o pede, com o que ficou respondido.'
+      + balanco + ' A lacuna que restar fica declarada: nenhum campo é preenchido por adivinhação.',
   });
 }
 

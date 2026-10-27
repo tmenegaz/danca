@@ -318,6 +318,10 @@ const ANAMNESES_DA_ESTANTE = (FIXTURE.anamnese || []).map((a, i) => ({
 }));
 // Um interruptor para a prova poder fingir a estante VAZIA (o «ainda não há plano»).
 let ESTANTE_VAZIA = false;
+/* A CURADORIA DO DOCENTE, quando a prova quer recortá-la (27/10/2026). `null` = as três turmas
+ * da fixture. Uma lista = só aquelas — é como se mede o preenchimento de teste a respeitar a
+ * autorização, que é a regra nova. */
+let CURADORIA_RECORTADA = null;
 
 const PEDIDOS = [];
 
@@ -365,10 +369,21 @@ function apiDe(rota, fonte) {
     return { ok: true, alunas: FIXTURE.producao.alunas };
   }
   if (rota.startsWith('api/bastidores/turmas')) {
+    /* AS TURMAS DO CADASTRO — mais as que a prova recorta na curadoria sem elas existirem no
+     * fixture (ver `CURADORIA_RECORTADA`). Sem isto, o recorte para uma turma desconhecida
+     * esvaziava o seletor pelo motivo errado: não é «a curadoria aponta para fora do cadastro»,
+     * é «esta turma não tem plano de fixture». São coisas diferentes, e a prova mede a segunda. */
+    const turmas = FIXTURE.producao.turmas.map((t) => Object.assign({}, t, { id: t.nome }));
+    for (const nome of CURADORIA_RECORTADA || []) {
+      if (!turmas.some((t) => t.nome === nome)) {
+        turmas.push({ id: nome, nome: nome, ativo: true, frequencia: 2, dias: ['seg'],
+          duracaoMin: 50, periodoInicio: '2027-02-01', periodoFim: '2027-04-30' });
+      }
+    }
     return {
       ok: true,
-      turmas: FIXTURE.producao.turmas.map((t) => Object.assign({}, t, { id: t.nome })),
-      opcoes: FIXTURE.producao.turmas.map((t) => ({ valor: t.nome, rotulo: t.nome })),
+      turmas: turmas,
+      opcoes: turmas.map((t) => ({ valor: t.nome, rotulo: t.nome })),
     };
   }
   if (rota.startsWith('api/bastidores/turma-conteudos')) return { ok: true, relacoes: {} };
@@ -389,7 +404,7 @@ function apiDe(rota, fonte) {
       professor: 'docente',
       curadorias: [{
         id: 'c-docente', professor: 'docente', escola: 'batata',
-        turmas: FIXTURE.plano.map((pl) => pl.turma),
+        turmas: CURADORIA_RECORTADA || FIXTURE.plano.map((pl) => pl.turma),
         alunas: (FIXTURE.anamnese || []).map((a) => a.aluna),
       }],
     };
@@ -538,6 +553,43 @@ async function porta() {
   const metodosPlano = [...new Set(PEDIDOS.map((p) => p.metodo))];
   assert.deepEqual(metodosPlano, ['GET']);
   ok('o plano só fez GET — nenhum envio, nenhuma gravação');
+
+  /* O PREENCHIMENTO DE TESTE NÃO PASSA POR CIMA DA CURADORIA (27/10/2026).
+   *
+   * A pesquisadora desconfiou da ferramenta: «o que preenche campos […] está interferindo ali».
+   * Interferia: `garantirOpcao` ACRESCENTAVA ao seletor a turma do fixture quando ela não estava
+   * na lista autorizada — e o servidor passou a recusar gravar essa turma. O sintoma era o
+   * preenchimento de teste a preparar um plano que não podia ser guardado.
+   *
+   * Duas metades, e as duas se medem aqui: (a) com a curadoria recortada para uma turma que TEM
+   * plano no fixture, preenche-se com essa; (b) com uma turma que NÃO tem, nada se preenche e a
+   * ferramenta diz porquê — em vez de inventar a turma no seletor. */
+  console.log('\n14. O preenchimento de teste respeita a curadoria');
+  CURADORIA_RECORTADA = [FIXTURE.plano[1].turma];
+  const recortado = await abrir('plano-ensino/?professor=docente&ciclo=01&fonte=plano');
+  await espera(700);
+  const selRecortado = recortado.doc.getElementById('ctx-turma');
+  const opcoesRecortadas = [...selRecortado.options].map((o) => o.value).filter(Boolean);
+  assert.deepEqual(opcoesRecortadas, [FIXTURE.plano[1].turma]);
+  assert.equal(selRecortado.value, FIXTURE.plano[1].turma);
+  const preencheuRecortado = await recortado.win.eval('RESPOSTAS.get("objetivo-geral")');
+  assert.equal(preencheuRecortado, FIXTURE.plano[1].respostas['objetivo-geral']);
+  ok('com uma turma autorizada, o fixture preenche com o plano DESSA turma');
+
+  CURADORIA_RECORTADA = ['Balé Nível 9 — Turma sem fixture'];
+  recortado.dom.window.close();
+  const semFixture = await abrir('plano-ensino/?professor=docente&ciclo=01&fonte=plano');
+  await espera(700);
+  const selSem = semFixture.doc.getElementById('ctx-turma');
+  assert.deepEqual([...selSem.options].map((o) => o.value).filter(Boolean), CURADORIA_RECORTADA);
+  const naoPreencheu = await semFixture.win.eval('RESPOSTAS.get("objetivo-geral") || null');
+  assert.equal(naoPreencheu, null);
+  const dito = String((semFixture.doc.querySelector('.teste-status') || {}).textContent || '');
+  assert.match(dito, /fixture|Nada foi preenchido/i);
+  ok('sem plano no fixture para a turma dele, nada se preenche — e a ferramenta diz porquê');
+  semFixture.dom.window.close();
+  CURADORIA_RECORTADA = null;
+
 
   // ---- 3b-bis. O PLANO CHEGA PREENCHIDO INTEIRO, NÃO MEIO (20/10/2026) ----
   //
