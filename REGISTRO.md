@@ -27054,3 +27054,85 @@ o verde falso de 26/10 noutra roupa.
   pedir.
 - **A numeração dos blocos no documento segue o conteúdo** (1, 3, 4…): o bloco 2 não existe no
   formulário, e a folha diz o mesmo que a tela.
+
+## 27/10/2026 — O cabeçalho do Plano de Observação lê o plano que ele referencia
+
+**O que motivou.** «No formulário do plano de ensino nós fizemos os ajustes para colocar em cima,
+no cabeçalho, junto de onde diz escola, professor, ciclo e turma observada, os campos que já vêm
+preenchidos dos bastidores produção. Acontece que essa solução não foi estendida até o plano de
+observação. Então eu tenho dados redundantes aqui no plano de observação e precisam ser
+posicionados no cabeçalho da mesma forma que fizemos no plano de ensino.»
+
+**Eram dois problemas, e a pesquisadora descreveu os dois numa frase.**
+
+1. **O PO PERGUNTAVA o que já sabia.** «Professor responsável» e «Escola / espaço» eram campos de
+   texto para dados que o cabeçalho do ato já tem — e «Escola / espaço» aparecia **duas vezes**:
+   na identificação e outra vez dentro de «Onde se observa» (o `campo-escola`, com
+   `deContexto: 'escola'`). Três degraus para dois dados, e nenhum deles devia ser digitado.
+2. **E NÃO MOSTRAVA o que vem do plano.** Frequência, duração, calendário, volume e condição de
+   registro são lidos do plano referenciado para escrever o documento — e não estavam em lado
+   nenhum do formulário. Quem preenchia o PO não via as condições da aula que ia observar.
+
+**O que foi decidido.**
+
+- **Os três nós saem do ROTEIRO, não do mapa** (`noCabecalho: true`, a marca do conteúdo — a
+  mesma de 26/10 no plano). O dado continua a ser semeado (`deContexto`) e continua a ir para o
+  envelope: sai o degrau, não o dado. Medido no depósito: `professor` = «Perna Boa», `escola` =
+  `campo-escola` = «batata», e o fecho não acusa contexto em falta. O roteiro passou de **33 para
+  30 degraus**.
+- **As cinco leituras são declaradas pelo CONTEÚDO**, no nó `plano-de-ensino`:
+  `leituras: [{de, rotulo, forma}]`. É a lei de sempre — quem sabe de onde o dado vem é o
+  conteúdo, não a tela. A `forma` (`periodicidade`, `medida`, `data`, `registro`) é o que a tela
+  precisa para escrever o valor; o motor não a interpreta, só a repassa (entrou na lista fechada
+  de `descritores()`, onde as chaves morrem em silêncio quando faltam).
+- **A TURMA NÃO SE REPETE.** Ela já tem o seu lugar no cabeçalho do PO (`leituraDaTurmaDoPo`,
+  vinda da estante). Pô-la outra vez na lista seria criar a segunda resposta para o mesmo dado —
+  exactamente o que a mudança veio tirar.
+- **Sem plano escolhido, nenhuma leitura.** A lacuna não é um valor: as cinco só aparecem quando
+  há plano de onde as ler.
+
+**Duas coisas que a implementação revelou, e que ficam ditas.**
+
+- **A escolha do plano não era registada.** `semearDoPlano` lia o primeiro plano da estante e
+  preenchia `PLANO_RESPOSTAS` — mas deixava `RESPOSTAS['plano-de-ensino']` vazio. Consequência
+  visível até aqui: a **turma observada do cabeçalho ficava «—»** sobre um plano que a página já
+  tinha em mãos, até alguém passar pelo nó «Plano de ensino» e escolhê-lo. Agora a escolha é
+  registada em `SUGERIDAS` (a primeira escolha do professor aposenta a sugestão), e o cabeçalho
+  fica coerente no arranque.
+- **As palavras são as do DOCUMENTO.** A tela compõe os cinco valores com as mesmas palavras que
+  o `derivar-po.js` usa («2x semanal», «50 minutos», «3–6 séries», «Na sala: … · observa: …»). É
+  a mesma composição em dois sítios, e é de propósito: o documento e a tela dizem o mesmo do
+  mesmo dado. A prova confere duas das cinco contra o texto que o próprio servidor deriva.
+
+**Onde entrou.**
+
+- `porta/po/conteudo/po.json` — os três `noCabecalho`, e as cinco `leituras` no nó do plano.
+- `motor/nucleo/elicitar.js` — `leituras` na lista fechada dos descritores.
+- `porta/index.html` — `textoDoValor(valor, forma)` (composição por FORMA, não por campo),
+  `renderLeiturasDoCabecalho` com o ramo do PO, a chamada depois de `semearDoPlano`, o registo da
+  escolha semeada, e a frase da origem em `leituraDoNoDoCabecalho` a usar `deContexto`.
+- `professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/` — a porta recopiada (com a NAV
+  do ciclo) e o conteúdo sincronizado. O conteúdo vive em DOIS sítios, e é a cópia do pacote que o
+  Worker lê.
+
+**Medido.** `provar-leituras-do-po` **27/27** (nova): os três degraus fora do roteiro e os três
+valores no depósito, as cinco leituras com o valor do plano e a marca de «não se preenche aqui»,
+as palavras iguais às do documento, a 1280 e a 390 px sem transbordo, e **sem plano nenhuma
+leitura inventada**. O **controle negativo reprova 14 de 27**, com o `po.json` de antes.
+
+`provar-teste` 44; `provar-plano-preenchido` 21/21; `provar-ficha-na-listagem` 35/35 (controle 22 de
+27); `provar-turmas-do-professor` 17/17; `provar-porta-sem-contexto` 44; `provar-indices` 60;
+`provar-anamnese-por-aluna` 15; `provar-alunas-da-anamnese` 14; `provar-barra-unica` 111;
+`provar-publicacao-da-escola` 55; `provar-bancadas-e-expurgo` 21;
+`provar-identidade-da-escola-recriada` 23; `provar-recriacao-da-escola` todas;
+`provar-parametros-por-parametro` 14; `check-identidade` **0 erro**; `check-indices` 14
+verificações (os índices derivados foram regerados); âncora `--check` íntegra (`1816e1eb…`).
+
+**O que ainda não está feito.**
+
+- **O documento do PO continua a ser a derivação** (`derivarPO`), e não o formulário preenchido
+  como a anamnese e o plano de ensino. A pergunta vale, e fica para quando ela a fizer.
+- **Os dois «outro» ficaram onde estavam** (`campo-outro` em «Onde se observa», `contexto-outro` em
+  «Contexto da observação»). Retirar o campo principal de cada secção deixa-as com um só campo
+  livre; a explicação de cada um já diz que o resto vem do plano, e reescrever a estrutura das
+  secções seria uma decisão de desenho que ninguém pediu.

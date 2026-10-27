@@ -425,3 +425,10 @@ experimentos/modelo-formulario/*
 # formulário —, e o controle negativo devolve o `rotas.js` E a `ficha-html.js` de antes, do
 # mesmo ref derivado. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
 !experimentos/provar-plano-preenchido.js
+
+# O CABEÇALHO DO PO LÊ O PLANO QUE ELE REFERENCIA (27/10/2026). A prova nasceu do relato: «essa
+# solução não foi estendida até o plano de observação». Mede as duas metades — o que o PO deixou
+# de perguntar e continua a gravar, e as cinco condições que passou a ler do plano — e o controle
+# negativo devolve o `po.json` de antes, com o ref derivado do commit que introduziu `leituras`.
+# É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-leituras-do-po.js

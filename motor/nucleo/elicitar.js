@@ -235,6 +235,13 @@ function descritores(campo) {
     // objetivo do ciclo, e o objetivo é precisamente o que dá sentido a cada objetivo
     // específico. A chave é do CONTEÚDO, como todas: o motor só a repassa.
     lembra: campo.lembra || null,
+    // AS LEITURAS DO CABEÇALHO (27/10/2026). O nó declara de que OUTROS campos do documento
+    // referenciado se lê — `[{de, rotulo, forma}]` —, e a tela as mostra como inscrição no
+    // cabeçalho do ato. É o PO a dizê-lo: o `plano-de-ensino` declara que a frequência, a
+    // duração, o calendário, o volume e a condição de registro vêm do plano escolhido. Sem
+    // esta linha a chave morre na lista fechada, e o cabeçalho fica sem as cinco — o sintoma
+    // mudo de sempre. O motor não interpreta `forma`: só a repassa para a tela compor.
+    leituras: campo.leituras || null,
     // A CONDIÇÃO DE REGISTRO (quem está na sala, quem observa): dois grupos de marcação
     // — um de caixas (o professor e as alunas já vêm marcados) e um de escolha única (o
     // observador). Sem esta chave o nó cai no texto livre, e a condição volta a ser prosa

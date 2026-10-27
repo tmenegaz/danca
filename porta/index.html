@@ -1755,6 +1755,71 @@ function textoDaTurma(no, valor) {
   return escapar(String(valor));
 }
 
+/* O TEXTO DE UM VALOR ESTRUTURADO — pela FORMA, e não pelo campo (27/10/2026).
+ *
+ * O conteúdo declara valores com forma (`medida`, `periodicidade`, `data`, `registro`), e quem
+ * lê um deles precisa de o ver escrito: `{vezes:2, dias:['seg','qua']}` é «2x semanal (seg,
+ * qua)», `[{numero:1,unidade:'hora'}]` é «1 hora», `{inicio,fim}` é uma data, e
+ * `{min,max,unidade}` é uma faixa.
+ *
+ * FICA AQUI, e não no servidor, porque é a TELA a escrever para alguém: o documento tem a sua
+ * própria composição (`derivar-po.js`), com as mesmas palavras — e é de propósito que as duas
+ * digam o mesmo. O que NÃO se faz é mandar o texto pronto no dado: quem grava é o objeto.
+ */
+function textoDoValor(valor, forma) {
+  if (valor === null || valor === undefined || valor === '') return '';
+  if (forma === 'periodicidade' && valor && typeof valor === 'object') {
+    const dias = Array.isArray(valor.dias) ? valor.dias.filter(Boolean) : [];
+    const vezes = valor.vezes === undefined || valor.vezes === null ? '' : String(valor.vezes) + 'x';
+    const partes = [vezes, valor.por || ''].filter(Boolean).join(' ');
+    return (partes + (dias.length ? ' — ' + dias.join(' e ') : '')).trim();
+  }
+  if (forma === 'medida') {
+    const palavra = (n, u) => (Number(n) === 1 ? u : u + 's');
+    const partes = (Array.isArray(valor) ? valor : [valor])
+      .filter((p) => p !== null && p !== undefined)
+      .map((p) => {
+        if (p && typeof p === 'object' && 'numero' in p) {
+          return String(p.numero) + (p.unidade ? ' ' + palavra(p.numero, p.unidade) : '');
+        }
+        return String(p);
+      });
+    const unico = !Array.isArray(valor) && valor && typeof valor === 'object' ? valor : null;
+    if (unico && unico.min !== undefined && unico.max !== undefined) {
+      return String(unico.min) + '–' + String(unico.max)
+        + (unico.unidade ? ' ' + unico.unidade : '');
+    }
+    if (unico && unico.min !== undefined) {
+      return String(unico.min) + (unico.unidade ? ' ' + unico.unidade : '');
+    }
+    return partes.join(' ');
+  }
+  if (forma === 'data' && valor && typeof valor === 'object') {
+    const partes = [valor.inicio, valor.fim].filter(Boolean).map((d) => dataCurta(d));
+    return partes.join(' a ');
+  }
+  if (forma === 'registro' && valor && typeof valor === 'object' && !Array.isArray(valor)) {
+    const lista = (v) => (Array.isArray(v) ? v.map((x) => String(x == null ? '' : x).trim())
+      .filter(Boolean) : []);
+    const partes = [];
+    const presentes = lista(valor.presentes);
+    const observa = lista(valor.observa);
+    if (presentes.length) partes.push('na sala: ' + presentes.join(', '));
+    if (observa.length) partes.push('observa: ' + observa.join(', '));
+    const outro = String(valor.outro == null ? '' : valor.outro).trim();
+    if (outro) partes.push('outra condição: ' + outro);
+    if (!partes.length) return '';
+    const frase = partes.join(' · ');
+    return frase.charAt(0).toUpperCase() + frase.slice(1);
+  }
+  if (Array.isArray(valor)) return valor.map((v) => String(v)).filter(Boolean).join('; ');
+  if (typeof valor === 'object') {
+    const composto = textoDoValor(valor, 'medida') || textoDoValor(valor, 'data');
+    return composto || '';
+  }
+  return String(valor);
+}
+
 /* A LEMBRANÇA DO NÓ (27/10/2026): o valor de outro campo, mostrado antes deste.
  *
  * O DEFEITO, dito pela pesquisadora: «quando eu chego nos objetivos específicos, eu também não
@@ -1794,11 +1859,17 @@ function leituraDoNoDoCabecalho(no) {
   if (daTurma !== undefined) corpo = mostrarDaTurma(no, daTurma);
   else if (no.id === 'contexto-turma') corpo = turmaNoCabecalho(no);
   else corpo = '<p class="da-turma"><b>' + escapar(valor == null ? '—' : String(valor)) + '</b></p>';
+  /* A ORIGEM É A DO CAMPO (27/10/2026). Antes eram três casos fixos, e um nó que declara
+   * `deContexto` — como o `professor`, a `escola` e o `campo-escola` do PO — caía no genérico
+   * «vem de quem abriu esta página», que é verdade e não é a resposta: o dado vem do contexto
+   * do ato, e é ele que a barra diz. */
   const origem = no.daTurma
     ? 'vem do cadastro da turma, declarado pela direção na Produção'
     : (no.id === 'contexto-turma'
       ? 'escolhe-se no cabeçalho do ato, aqui em cima'
-      : 'vem de quem abriu esta página — a barra já o disse');
+      : (no.deContexto
+        ? 'vem do contexto do ato, na barra do alto — aqui é leitura'
+        : 'vem de quem abriu esta página — a barra já o disse'));
   return '<div class="leitura-do-cabecalho">' + corpo +
     '<p class="sub">Não se preenche aqui: ' + md(origem) + '.</p></div>';
 }
@@ -2852,7 +2923,10 @@ function gravarRespostaDoNo(no) {
   salvar();
   // No PO a turma do cabeçalho é a do plano REFERENCIADO: quando o professor escolhe outro
   // plano, a leitura se atualiza (16/10/2026).
-  if (FONTE === 'po') renderTurmaDoCabecalho();
+  if (FONTE === 'po') {
+    renderTurmaDoCabecalho();
+    renderLeiturasDoCabecalho();
+  }
 }
 
 // -------------------------------------------------------------- a pergunta
@@ -3631,6 +3705,40 @@ function renderLeiturasDoCabecalho() {
   const caixa = document.querySelector('.barra details.ctx-ato .ctx-campos');
   if (!caixa || !MAPA || FONTE === 'anamnese') return;
   for (const velho of [...caixa.querySelectorAll('[data-leitura]')]) velho.remove();
+
+  /* NO PLANO DE OBSERVAÇÃO as leituras vêm do PLANO REFERENCIADO (27/10/2026).
+   *
+   * A MESMA SOLUÇÃO DO PLANO DE ENSINO, e o mesmo motivo: a pesquisadora viu o cabeçalho do
+   * plano mostrar frequência, duração, calendário e nº de aulas, e perguntou por que o PO não
+   * fazia o mesmo — «eu tenho dados redundantes aqui no plano de observação e precisam ser
+   * posicionados no cabeçalho da mesma forma».
+   *
+   * O QUE MUDA É A FONTE. No plano os quatro vêm do cadastro da turma (`daTurma`); no PO vêm do
+   * plano que ele referencia — e o conteúdo é que o declara (`leituras` no nó `plano-de-ensino`),
+   * com a mesma lei de sempre: quem sabe de onde o dado vem é o conteúdo, não a tela. Sem plano
+   * escolhido não há o que ler, e nada se desenha: a lacuna não é um valor.
+   *
+   * A TURMA NÃO ENTRA AQUI: ela já tem o seu lugar no cabeçalho (`leituraDaTurmaDoPo`), e
+   * repeti-la seria criar a segunda resposta para o mesmo dado que a mudança veio tirar. */
+  if (FONTE === 'po') {
+    const declara = (MAPA.nos || []).find((n) => Array.isArray(n.leituras) && n.leituras.length);
+    if (!declara) return;
+    const ancoras = [...caixa.querySelectorAll('.campo:not([data-leitura])')];
+    const ancora = ancoras.length ? ancoras[ancoras.length - 1] : null;
+    for (const leitura of declara.leituras) {
+      const texto = textoDoValor(PLANO_RESPOSTAS.get(leitura.de), leitura.forma);
+      if (!texto) continue;
+      const item = document.createElement('span');
+      item.className = 'campo';
+      item.setAttribute('data-leitura', leitura.de);
+      item.title = 'Não se preenche aqui: vem do plano de ensino referenciado.';
+      item.innerHTML = '<span class="ctx-rotulo">' + escapar(leitura.rotulo) + '</span>'
+        + '<span class="ctx-inscricao">' + escapar(texto) + '</span>';
+      if (ancora && ancora.parentNode === caixa) caixa.insertBefore(item, ancora);
+      else caixa.appendChild(item);
+    }
+    return;
+  }
   /* A ORDEM É A DO MAPA — e insere-se sempre ANTES da mesma âncora. Inserir DEPOIS de uma âncora
    * que não se move inverte a lista: cada item novo empurra o anterior para o fim, e a leitura
    * saía «nº de aulas, calendário, duração, frequência» — o mapa ao contrário. */
@@ -4965,6 +5073,17 @@ async function semearDoPlano() {
     const estante = OPCOES.get(estanteDoProfessor) || [];
     if (!estante.length) return;
     carimbo = estante[0].carimbo || estante[0].valor;
+    /* A ESCOLHA FICA REGISTADA, e não só usada (27/10/2026).
+     *
+     * O plano que a página lê já era o primeiro da estante — e o `plano-de-ensino` ficava VAZIO
+     * em `RESPOSTAS`. Duas coisas dependiam dele: a TURMA do cabeçalho (que é lida do plano, e
+     * por isso mostrava «—» sobre um plano que a página tinha em mãos) e o próprio registo, que
+     * é uma resposta obrigatória. Marca-se em `SUGERIDAS`, como todas as sementes: a primeira
+     * escolha do professor aposenta a sugestão, e o que ele respondeu não se reescreve. */
+    if (!RESPOSTAS.has('plano-de-ensino')) {
+      RESPOSTAS.set('plano-de-ensino', carimbo);
+      SUGERIDAS.add('plano-de-ensino');
+    }
   }
   if (!carimbo) return;
 
@@ -5170,6 +5289,10 @@ async function carregarPlanoReferenciado() {
   }
   atualizarBarra();
   pintarRoteiro();
+  /* O CABEÇALHO LÊ O PLANO — e é agora que ele chegou (27/10/2026). A leitura mora no
+   * cabeçalho do ato, mas o dado vem do plano referenciado: sem esta chamada as cinco
+   * inscrições ficavam por desenhar até alguém passar por um nó que repintasse. */
+  renderLeiturasDoCabecalho();
 }
 
 /*
@@ -7636,6 +7759,20 @@ async function iniciar() {
   // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
   // É assíncrona: lê o plano salvo no servidor, não o rascunho local.
   await semearDoPlano();
+  /* O PLANO CHEGOU: O CABEÇALHO PASSA A LÊ-LO (27/10/2026).
+   *
+   * No PO, a turma observada e as cinco condições (frequência, duração, calendário, volume,
+   * condição de registro) são LIDAS do plano referenciado — e o plano chega agora, aqui. Até
+   * esta chamada, o cabeçalho ficava com o «—» de antes: a leitura só aparecia quando alguém
+   * passava pelo nó «Plano de ensino» e respondia. Quem abria um PO já gravado via um cabeçalho
+   * vazio sobre um dado que a página já tinha em mãos.
+   *
+   * A ordem importa: a turma primeiro (o seu lugar é fixo), e as leituras depois — que também
+   * sabem repintar-se sozinhas, mas repintam em cima do que já está. */
+  if (FONTE === 'po') {
+    renderTurmaDoCabecalho();
+    renderLeiturasDoCabecalho();
+  }
 
   // E a barra volta a semear quando muda: é ela que carrega a identidade do ato.
   // Não se re-renderiza a pergunta — a edição do professor não pode perder o foco.

@@ -69,6 +69,7 @@
             "id": "campo-escola",
             "elemento": "Escola / espaço",
             "obrigatorio": true,
+            "noCabecalho": true,
             "deContexto": "escola",
             "explicacao": {
               "oQueE": "Em que escola ou espaço as aulas acontecem.",
@@ -124,6 +125,7 @@
         "id": "professor",
         "campo": "Professor responsável",
         "obrigatorio": true,
+        "noCabecalho": true,
         "deContexto": "professor",
         "explicacao": {
           "oQueE": "QUEM está observando. É o seu nome — o Plano de Observação é seu, não da escola.",
@@ -135,6 +137,7 @@
         "id": "escola",
         "campo": "Escola / espaço",
         "obrigatorio": true,
+        "noCabecalho": true,
         "deContexto": "escola",
         "explicacao": {
           "oQueE": "ONDE o ciclo acontece.",
@@ -158,6 +161,13 @@
         "obrigatorio": true,
         "opcoesDe": "api/planos",
         "recortePeloProfessor": true,
+        "leituras": [
+          { "de": "contexto-frequencia", "rotulo": "Frequência semanal", "forma": "periodicidade" },
+          { "de": "contexto-duracao", "rotulo": "Duração por aula", "forma": "medida" },
+          { "de": "contexto-calendario", "rotulo": "Calendário", "forma": "data" },
+          { "de": "contexto-volume", "rotulo": "Volume de trabalho", "forma": "medida" },
+          { "de": "contexto-registro", "rotulo": "Condição de registro", "forma": "registro" }
+        ],
         "explicacao": {
           "oQueE": "QUAL plano de ensino esta aula observa — o que você vai ensinar neste ciclo.",
           "preencher": "Escolha na estante o plano de ensino já elaborado. Se ainda não existe, crie-o primeiro e volte aqui.",
