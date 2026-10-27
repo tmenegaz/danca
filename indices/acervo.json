@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "1816e1eb7b3cc3fc1c8a736265a6d34ca1cc661612aec10096bd676e20294653",
-        "id": "ciclo-01-batata",
+        "hash": "73eb6cfec398bfbe2d6c15235e844fe2fd6dabc3e37cbc116df614570a445d3e",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 5,
+      "documentos": 6,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:perna-boa/01/batata",
@@ -453,9 +453,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bf967be"
+    "commit": "a8f774b"
   },
-  "gerado_em": "2026-10-27T13:25",
+  "gerado_em": "2026-10-27T14:02",
   "nao_indexado": [
     {
       "familia": "conteudo",
