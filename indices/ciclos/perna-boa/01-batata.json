@@ -2,20 +2,22 @@
   "ancora": {
     "algoritmo": "SHA-256",
     "ancorado_em": "2026-10-27",
-    "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
+    "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "cobertura": [
-      "professores/perna-boa/ciclos/ciclo-01-batata.conf",
+      "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "professores/perna-boa/ciclos/ciclo-01.conf"
     ],
-    "hash": "1816e1eb7b3cc3fc1c8a736265a6d34ca1cc661612aec10096bd676e20294653",
-    "hash_conteudo": "5ed93e23b00fdd4c199f38dfc769d6d1b03e8e19da262f5394f0592c97282119",
-    "id": "ciclo-01-batata",
+    "hash": "73eb6cfec398bfbe2d6c15235e844fe2fd6dabc3e37cbc116df614570a445d3e",
+    "hash_conteudo": "792239e95b8b9c177946039b6bf3ee6a821bea1b13cc17e5188c372c9c05dc00",
+    "id": "ciclo-01-batata-bale-nivel-1-teste-2",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "documento:ancora:professores/perna-boa/ciclos/ciclo-01-batata.fipp",
     "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
     "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-batata.conf",
@@ -27,7 +29,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },

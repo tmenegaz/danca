@@ -1,0 +1,21 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-batata-bale-nivel-1-teste-2
+type: Ciclo
+professor: perna-boa
+ciclo: 01
+variante: batata-bale-nivel-1-teste-2
+hash_conteudo: 792239e95b8b9c177946039b6bf3ee6a821bea1b13cc17e5188c372c9c05dc00
+parentHash: 
+hash: 73eb6cfec398bfbe2d6c15235e844fe2fd6dabc3e37cbc116df614570a445d3e
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-10-27
+cobertura:
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md
+  - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf
+  - professores/perna-boa/ciclos/ciclo-01.conf
