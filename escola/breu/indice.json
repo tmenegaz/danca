@@ -176,6 +176,16 @@
     {
       "em": "2026-10-21T19:11:57.313517+00:00",
       "motivo": "recriada por tools/criar-escola.sh"
+    },
+    {
+      "em": "2026-10-27T00:11:25.382309+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "luz-azul",
+        "nome": "Luz Azul"
+      },
+      "responsavel": "Luz Azul",
+      "ciclo": "01"
     }
   ]
 }

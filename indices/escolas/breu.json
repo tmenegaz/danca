@@ -1,45 +1,111 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/luz-azul/ciclos/ciclo-01-breu.conf",
+        "professores/luz-azul/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:luz-azul/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "luz-azul",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/luz-azul/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:luz-azul/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/luz-azul/ciclos/ciclo-01-breu.conf",
+      "professor": "luz-azul",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/luz-azul/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:luz-azul/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/luz-azul/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "luz-azul",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:luz-azul/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-10-19T23:41:57.342597+00:00",
-    "expurgada": true,
+    "expurgada": false,
     "expurgada_em": "2026-10-21T21:06:01.896Z",
     "expurgos": 2,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
-    "professor": "sapo-bailarino",
+    "professor": "luz-azul",
     "professores": [
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "luz-azul"
     ],
     "registros": [],
     "slug": "breu"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:luz-azul/01/breu"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:luz-azul/01/breu"
+        ],
+        "rotulo": "luz-azul",
+        "valor": "luz-azul"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:luz-azul/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "b6519ef"
+    "commit": "0b6e908"
   },
-  "gerado_em": "2026-10-27T00:04",
+  "gerado_em": "2026-10-27T00:11",
   "nao_indexado": [
     {
       "familia": "conteudo",

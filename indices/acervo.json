@@ -1,5 +1,17 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:luz-azul/01/breu",
+      "numero": "01",
+      "professor": "luz-azul",
+      "sem_ancora": true
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -59,28 +71,28 @@
       "slug": "batata"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:luz-azul/01/breu"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
+        "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-10-19T23:41:57.342597+00:00",
-      "expurgada": true,
+      "expurgada": false,
       "expurgada_em": "2026-10-21T21:06:01.896Z",
       "expurgos": 2,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:breu",
       "nome": "breu",
-      "professor": "sapo-bailarino",
+      "professor": "luz-azul",
       "professores": [
-        "sapo-bailarino",
-        "tiago-menegaz",
-        "vaso-bonito"
+        "luz-azul"
       ],
       "registros": [],
       "slug": "breu"
@@ -319,7 +331,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -340,6 +358,11 @@
         "contagem": 1,
         "rotulo": "Letícia",
         "valor": "leticia"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Luz Azul",
+        "valor": "luz-azul"
       },
       {
         "contagem": 1,
@@ -367,7 +390,7 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -387,12 +410,12 @@
         "valor": "tiago"
       },
       {
-        "contagem": 5,
+        "contagem": 4,
         "rotulo": "Tela de PC",
         "valor": "tiago-menegaz"
       },
       {
-        "contagem": 1,
+        "contagem": 0,
         "rotulo": "vaso-bonito",
         "valor": "vaso-bonito"
       }
@@ -401,9 +424,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b6519ef"
+    "commit": "0b6e908"
   },
-  "gerado_em": "2026-10-27T00:04",
+  "gerado_em": "2026-10-27T00:11",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -464,6 +487,17 @@
       "slug": "leticia"
     },
     {
+      "ciclos": [
+        "ciclo:luz-azul/01/breu"
+      ],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:luz-azul",
+      "nome": "Luz Azul",
+      "slug": "luz-azul"
+    },
+    {
       "ciclos": [],
       "escolas": [
         "batata"
@@ -512,7 +546,6 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "calando-teste-1",
         "calango"
       ],
@@ -552,7 +585,6 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "calango",
         "fita",
         "valse"
@@ -563,9 +595,7 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:vaso-bonito",
       "nome": null,
       "slug": "vaso-bonito"
