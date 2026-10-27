@@ -18,6 +18,8 @@
       },
       "aulas": [],
       "documentos": [
+        "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+        "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
         "professores/perna-boa/ciclos/ciclo-01-batata.conf",
         "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
         "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
@@ -32,6 +34,7 @@
       "tipos": [
         "ancora",
         "manifesto",
+        "plano",
         "schema"
       ]
     }
@@ -48,12 +51,30 @@
     },
     {
       "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "professor": "perna-boa",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:perna-boa/01/batata",
       "escola": "batata",
       "id": "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-batata.conf",
       "professor": "perna-boa",
       "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professor": "perna-boa",
+      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-batata",
@@ -74,9 +95,9 @@
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
-      "registros": 3
+      "registros": 4
     },
     "criada_em": "2026-10-27T12:11:05.731644+00:00",
     "expurgada": false,
@@ -93,18 +114,20 @@
     "registros": [
       "anamnese:anamnese-20261027-0939",
       "anamnese:anamnese-20261027-0943",
-      "anamnese:anamnese-20261027-0946"
+      "anamnese:anamnese-20261027-0946",
+      "plano:plano-20261027-1025"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261027-0939",
           "anamnese:anamnese-20261027-0943",
-          "anamnese:anamnese-20261027-0946"
+          "anamnese:anamnese-20261027-0946",
+          "plano:plano-20261027-1025"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -122,10 +145,11 @@
     ],
     "professores": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261027-0939",
-          "ciclo:perna-boa/01/batata"
+          "ciclo:perna-boa/01/batata",
+          "plano:plano-20261027-1025"
         ],
         "rotulo": "perna-boa",
         "valor": "perna-boa"
@@ -158,14 +182,22 @@
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261027-1025"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "c48c991"
+    "commit": "d14a3d0"
   },
-  "gerado_em": "2026-10-27T12:46",
+  "gerado_em": "2026-10-27T13:25",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -218,6 +250,18 @@
       "id": "anamnese:anamnese-20261027-0946",
       "professor": "so-para-direita",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261027-1025",
+      "ciclo": "01",
+      "data": "2026-10-27T10:25",
+      "id": "plano:plano-20261027-1025",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "perna-boa",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 2"
     }
   ],
   "versao": 6
