@@ -81,6 +81,9 @@
         "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
         "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
         "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+        "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+        "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+        "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
         "professores/perna-boa/ciclos/ciclo-01-batata.conf",
         "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
         "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
@@ -98,6 +101,7 @@
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -216,6 +220,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "professor": "perna-boa",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
       "ciclo_id": "ciclo:perna-boa/01/batata",
       "escola": "batata",
@@ -231,6 +244,15 @@
       "id": "documento:harmonizacao:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
       "professor": "perna-boa",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:indice:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+      "professor": "perna-boa",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
@@ -303,6 +325,15 @@
       "id": "documento:referencias:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
       "professor": "perna-boa",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "perna-boa",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
@@ -442,9 +473,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a76afd4"
+    "commit": "b22efe8"
   },
-  "gerado_em": "2026-10-27T16:54",
+  "gerado_em": "2026-10-27T16:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
