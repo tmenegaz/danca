@@ -161,7 +161,19 @@ function pedacos(html) {
     .map((b) => (/<span class="trio-k">([^<]*)<\/span>/.exec(b) || [])[1]).filter(Boolean);
   const valores = (c) => dasCaixas(c)
     .map((b) => (/<span class="trio-v">([^<]*)<\/span>/.exec(b) || [])[1]).filter((v) => v !== undefined);
-  const nomes = (c) => (( /<b>([\s\S]*?)<\/b>/.exec(c) || [])[1] || '').trim();
+  /* O NOME É O TEXTO DA LINHA, e não a marcação dela (27/10/2026).
+   *
+   * Até aqui o `<b>` era texto puro, e a leitura crua servia. Hoje o nome é um LINK para a
+   * ficha preenchida (`<b><a …>Aluna A</a></b>`) — «editar é um lugar de atenção», e ler tem de
+   * ter o seu próprio caminho. A asserção que compara nomes não mudou de sentido: continua a
+   * perguntar se cada linha é uma aluna. O que muda é que o texto se lê do texto, e não do HTML.
+   *
+   * A prova nasceu antes de existir um ciclo gerado e nunca tinha podido correr; este é o
+   * primeiro dia em que mede. A asserção é antiga, o dado é que mudou de forma. */
+  const nomes = (c) => (( /<b>([\s\S]*?)<\/b>/.exec(c) || [])[1] || '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .trim();
   return { cartoes, rotulos, valores, nomes };
 }
 

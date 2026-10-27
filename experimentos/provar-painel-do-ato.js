@@ -1337,15 +1337,42 @@ const servidor = http.createServer(async (req, res) => {
    *     e o item aceso vê-se com o fundo da marca e o ✓.
    */
   console.log('\n17 · O documento acende a lista de onde veio, no computador e no telemóvel');
+  /* A PASTA DA VARIANTE É LIDA DA MONTAGEM, e não escrita à mão (27/10/2026).
+   *
+   * Aqui esteve `bale-nivel-2-teste-2` — o nome da turma quando a prova foi escrita. A turma da
+   * escola passou a ser a «Balé Nível 1 — Teste 2», a pasta mudou, e a prova continuou a pedir a
+   * antiga: recebia a página de 404 em todas as aberturas, e a primeira asserção que dependia de
+   * um elemento real rebentava num `null`. Não era o desenho que estava errado — era o endereço.
+   *
+   * A pasta da variante é a que a MONTAGEM criou (tem `plano.html` e `aula-01.html`). Derivá-la
+   * é a mesma disciplina do resto desta prova: a escola já era descoberta, e o nome da turma não
+   * é fixture — é dado.
+   *
+   * Sem variante na montagem, a prova diz NÃO FEITO: medir uma pasta que não existe dá «falhou»
+   * sobre uma ausência de fixture, e isso lê-se como defeito. */
+  const VAR = (() => {
+    const achadas = fs.readdirSync(dir, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .filter((nome) => fs.existsSync(path.join(dir, nome, 'plano.html'))
+        && fs.existsSync(path.join(dir, nome, 'aula-01.html')));
+    return achadas.length ? achadas[0] : '';
+  })();
+  if (!VAR) {
+    console.error('provar-painel-do-ato: a montagem de ' + ESCOLA + ' não tem pasta de variante '
+      + '(plano.html + aula-01.html) — NÃO FEITO.');
+    process.exit(2);
+  }
+  console.log('  (variante: ' + VAR + ')');
   const DOCUMENTOS = [
-    ['/bale-nivel-2-teste-2/plano.html', '/ciclos/planos/', 'Ciclos'],
+    ['/' + VAR + '/plano.html', '/ciclos/planos/', 'Ciclos'],
     /* AS REFERÊNCIAS ACENDEM «PLANOS» (26/10/2026): o item e a listagem «Referências» saíram do
-       menu, e o único caminho até ao documento é o plano do ciclo. */
-    ['/bale-nivel-2-teste-2/referencias.html', '/ciclos/planos/', 'Ciclos'],
-    ['/bale-nivel-2-teste-2/aula-01.html', '/aulas/', 'Área do Professor'],
-    ['/bale-nivel-2-teste-2/lancamento.html', '/aulas/', 'Área do Professor'],
-    ['/bale-nivel-2-teste-2/notacao.html', '/area-do-professor/notacao/', 'Área do Professor'],
-    ['/bale-nivel-2-teste-2/glossario-benesh.html', '/consulta/', 'Consulta'],
+       menu, e o único caminho até o documento é o plano do ciclo. */
+    ['/' + VAR + '/referencias.html', '/ciclos/planos/', 'Ciclos'],
+    ['/' + VAR + '/aula-01.html', '/aulas/', 'Área do Professor'],
+    ['/' + VAR + '/lancamento.html', '/aulas/', 'Área do Professor'],
+    ['/' + VAR + '/notacao.html', '/area-do-professor/notacao/', 'Área do Professor'],
+    ['/' + VAR + '/glossario-benesh.html', '/consulta/', 'Consulta'],
   ];
   const marcaDaColuna = () => p.evaluate(() => {
     const c = document.querySelector('.coluna');
