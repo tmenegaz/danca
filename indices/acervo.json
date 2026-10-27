@@ -1,15 +1,20 @@
 {
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "b4895345af8925a1e7cdb005da6fd97e1f97d7fe063a349379bf9a2bdc88cf94",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 3,
       "escola": "breu",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:luz-azul/01/breu",
       "numero": "01",
       "professor": "luz-azul",
-      "sem_ancora": true
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -78,7 +83,7 @@
         "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
-        "ciclos_com_ancora": 0,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "registros": 1
@@ -342,8 +347,8 @@
     "estados": [
       {
         "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -438,9 +443,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e6e472b"
+    "commit": "7610a09"
   },
-  "gerado_em": "2026-10-27T00:55",
+  "gerado_em": "2026-10-27T10:56",
   "nao_indexado": [
     {
       "familia": "conteudo",
