@@ -198,6 +198,23 @@ function responsavelDoInventario(inv) {
 }
 
 /**
+ * QUANDO A ENCARNAÇÃO ATUAL COMEÇOU — a última recriação, ou a criação original.
+ *
+ * O elo `recriacao[]` é append-only: cada recriação acrescenta a sua data, e a última é a que
+ * descreve a escola que existe agora. Devolve a data em texto, como o `criado_em` a guarda —
+ * o índice não converte formatos, e quem lê já sabe lidar com as duas formas.
+ */
+function quandoDaEncarnacao(inv) {
+  if (!inv) return null;
+  const recriacoes = Array.isArray(inv.recriacao) ? inv.recriacao : [];
+  for (let i = recriacoes.length - 1; i >= 0; i -= 1) {
+    const em = recriacoes[i] && recriacoes[i].em;
+    if (em) return String(em);
+  }
+  return inv.criado_em || null;
+}
+
+/**
  * O NOME DE UM PROFESSOR, no inventário da escola — do vínculo declarado (`professores[]`) ou,
  * como antes, do responsável (`professor`). Uma função só porque as duas formas descrevem a
  * mesma pessoa e o painel precisa do mesmo rótulo para as duas.
@@ -535,7 +552,22 @@ function construir(entrada) {
       // Não há escola habilitada sem Worker: a habilitação é a de um sítio que existe.
       habilitada: !expurgada && !(inv && inv.estado && inv.estado.habilitada === false),
       expurgada,
-      criada_em: (inv && inv.criado_em) || null,
+      /* A DATA DE CRIAÇÃO É A DA ENCARNAÇÃO QUE EXISTE (27/10/2026).
+       *
+       * O DEFEITO, medido no painel: a `calango` foi criada em 27/10 às 11:35 e a coluna
+       * «Criada» dizia 19/10 — a primeira encarnação. O `criado_em` do inventário é o da
+       * criação ORIGINAL e o elo da recriação não o reescreve (a proveniência acrescenta).
+       * O `responsavelDoInventario` já lia o elo para o professor; a DATA não tinha o mesmo
+       * tratamento, e a coluna mostrava o passado com o rótulo do presente.
+       *
+       * A REGRA É A MESMA, aplicada ao campo que faltava: o elo mais recente de `recriacao[]`
+       * diz quando a escola voltou, e é isso que a escola é. A primeira criação continua no
+       * elo — é lá que a história mora —, e `criado_em` do inventário não se toca.
+       *
+       * SEM RECRIAÇÃO, É O `criado_em` DE SEMPRE. Nada muda para as escolas que nunca foram
+       * expurgadas, que são a maioria.
+       */
+      criada_em: quandoDaEncarnacao(inv),
       // QUANDO ELA SAIU (22/10/2026). `expurgada` era só um booleano, e o painel operacional
       // precisa da data — quem lê «esta escola existiu» quer saber de quando a quando. A data
       // está no ELO que o expurgo grava (`escola/<slug>/indice.json` → `expurgo[]`), e o
@@ -926,5 +958,6 @@ module.exports = {
   filtrar,
   responder,
   responsavelDoInventario,
+  quandoDaEncarnacao,
   nomeDoProfessorNoInventario,
 };

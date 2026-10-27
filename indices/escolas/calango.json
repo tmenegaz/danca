@@ -54,7 +54,7 @@
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-10-19T18:18:57.289485+00:00",
+    "criada_em": "2026-10-27T11:35:27.333757+00:00",
     "expurgada": false,
     "expurgada_em": "2026-10-23T12:54:21.068Z",
     "expurgos": 7,
@@ -63,8 +63,7 @@
     "nome": "calango",
     "professor": "murisoca-baiana",
     "professores": [
-      "murisoca-baiana",
-      "perna-boa"
+      "murisoca-baiana"
     ],
     "registros": [],
     "slug": "calango"
@@ -104,9 +103,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ff26866"
+    "commit": "bfe5ce6"
   },
-  "gerado_em": "2026-10-27T11:35",
+  "gerado_em": "2026-10-27T11:49",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -201,13 +201,30 @@ const servidor = http.createServer(async (req, res) => {
 });
 
 (async () => {
-  const dir = path.join(raiz, 'publicacao', 'batata');
+  /* A ESCOLA DA BANCADA É DESCOBERTA, NÃO NOMEADA (27/10/2026). Aqui esteve
+     `publicacao/batata` — e a prova passava só enquanto aquele resto de montagem existisse em
+     disco. Expurgada a `batata`, ficou a rebentar num `null` de `scrollWidth`, que se lê como
+     avaria e é apenas ausência de fixture. O que ela mede — a caixinha do ato, a barra, a
+     marca do menu — não depende de qual escola é. */
+  const lib = require(path.join(raiz, 'experimentos/lib-pacote.js'));
+  const montada = lib.publicacaoDeUmaEscolaComCiclo();
+  if (!montada) {
+    const r = lib.relatorioDePacotes();
+    const vivas = r.escolas.filter((e) => e.viva).map((e) => e.slug);
+    console.error('provar-painel-do-ato: nenhuma publicação para servir — NÃO FEITO.');
+    console.error('  escolas vivas: ' + (vivas.length ? vivas.join(', ') : '(nenhuma)'));
+    console.error('  com ciclo gerado: ' + (r.usados.length ? r.usados.join(', ') : '(nenhum)'));
+    console.error('  a publicação vem de um ciclo: gere um com tools/gerar-ciclo.sh.');
+    process.exit(2);
+  }
+  const dir = montada.dir;
+  const ESCOLA = montada.escola;
   const kv = kvDeMentira({
-    'bastidores/batata/curadorias': JSON.stringify([{ id: 'c', professor: 'cafe-no-bule',
+    ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([{ id: 'c', professor: 'cafe-no-bule',
       modalidade: 'balé', tradicao: 'clássico', turmas: ['Balé Nível 1'], alunas: ['Aluna A'] }]),
   });
   global.ENV = {
-    ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', SENHA_PROFESSOR: 'certa',
+    ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', SENHA_PROFESSOR: 'certa',
     PROFESSOR_NOME: 'Cafe No Bule', PADD_KV: kv,
     ASSETS: { async fetch(pedido) { const url = pedido instanceof URL ? pedido : new URL(pedido.url);
       let p = path.join(dir, url.pathname);

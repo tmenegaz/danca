@@ -177,8 +177,25 @@ conferir('o elo de recriação declara o professor que recriou',
 conferir('…com o NOME de exibição (o diretório só tem o slug)',
   eloNovo.professor && eloNovo.professor.nome === 'Oculos Redondo', eloNovo.professor);
 conferir('…e o ciclo', eloNovo.ciclo === '01', eloNovo.ciclo);
-conferir('o `professor` do topo NÃO é reescrito (é a memória de quem criou)',
-  comAutor.professor.slug === 'sapo-bailarino', comAutor.professor);
+/* A REGRA MUDOU EM 27/10/2026, POR DECISÃO DA PESQUISADORA — e esta asserção dizia o contrário.
+ *
+ * Até aqui, o `professor` do topo era intocável («a memória de quem criou») e o elo carregava o
+ * presente. Foi o suficiente para a COLUNA do painel, que lê o elo. Não foi suficiente para a
+ * LISTA `professores[]`, que continuava append-only: medido no portal, a `calango` recriada em
+ * 27/10 com o `murisoca-baiana` mostrou «Perna Boa → calango», um professor que só tinha os
+ * schemas compartilhados na pasta.
+ *
+ * A decisão: a identidade do PRESENTE (o responsável e a lista) passa a ser corrigida na origem,
+ * e o passado vai para o elo — `professor_anterior` e `professores_anteriores`. Assim o topo lê
+ * como «quem é hoje» e nada se perde: a memória mudou de sítio, não desapareceu.
+ *
+ * `criado_em` continua intocável — a criação original é história, e a data que o painel mostra é
+ * derivada (`quandoDaEncarnacao`, em `motor/nucleo/indices.js`). */
+conferir('o `professor` do topo passa a ser quem recriou (o presente)',
+  comAutor.professor.slug === 'oculos-redondo', comAutor.professor);
+conferir('…e quem criou a escola fica no elo, em `professor_anterior`',
+  eloNovo.professor_anterior && eloNovo.professor_anterior.slug === 'sapo-bailarino',
+  eloNovo.professor_anterior);
 
 conferir('o responsável de hoje é o do elo mais recente',
   responsavelDoInventario(comAutor).slug === 'oculos-redondo', responsavelDoInventario(comAutor));

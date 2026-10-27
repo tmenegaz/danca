@@ -25,6 +25,23 @@ Bailarino» como professor principal, e o `escola/expurgar.js` procurava os arqu
 do `sapo-bailarino`. O elo novo carrega `professor` (slug e nome), `responsavel` e `ciclo`; o
 `professor` do topo fica intacto, como memória de quem criou.
 
+O PRESENTE É CORRIGIDO, E O PASSADO GUARDA-SE NO ELO (27/10/2026). A metade que faltava. Com o
+elo a dizer quem recriou, `indices.js` passou a LER o elo para o responsável — mas a lista
+`professores[]` continuou a ser lida tal e qual, e ela é append-only: em 27/10 a `calango` foi
+recriada com o `murisoca-baiana` e o painel continuou a mostrar «Perna Boa → calango», um
+professor que só tinha os schemas compartilhados na pasta. Medido no portal, coluna
+«Professores»: `perna-boa` ligado à `calango`, ao lado do professor real.
+
+A REGRA, e a diferença que a torna certa: numa recriação, o vínculo dos professores anteriores
+é da encarnação que saiu — não da que nasce. Por isso `professores[]` passa a ser o do professor
+que recria (mais o que já tenha ciclo na escola, que a derivação junta por si), e os vínculos
+anteriores NÃO se perdem: vão para o elo, em `professores_anteriores`, com o slug, o nome e o
+`desde` que tinham. É a lei da proveniência aplicada ao presente: o que muda deixa elo, e o que
+fica é o que é verdade agora.
+
+O QUE NÃO SE TOCA: `criado_em` (a criação original — a data que o painel mostra é a da última
+recriação, derivada em `indices.js`, e a primeira continua no elo) e o `expurgo[]`.
+
     uso: python3 tools/registrar-recriacao.py escola/<slug>/indice.json \
            [--professor <slug>] [--professor-nome "<nome>"] [--responsavel "<nome>"] \
            [--ciclo <NN>] [--motivo "<texto>"]
@@ -85,8 +102,39 @@ def main():
     if ciclo:
         elo['ciclo'] = ciclo
 
+    # O PASSADO VAI PARA O ELO ANTES DE O PRESENTE SER CORRIGIDO (27/10/2026). A ordem importa:
+    # depois de reescrever `professores[]` já não haveria de onde copiar, e o vínculo anterior
+    # desaparecia sem elo — que é exactamente o que a proveniência não permite.
+    anteriores = [p for p in (indice.get('professores') or [])
+                  if isinstance(p, dict) and p.get('slug') and p['slug'] != professor]
+    if anteriores:
+        elo['professores_anteriores'] = anteriores
+    professor_anterior = indice.get('professor')
+    if isinstance(professor_anterior, dict) and professor_anterior.get('slug') \
+            and professor_anterior.get('slug') != professor:
+        elo['professor_anterior'] = professor_anterior
+
     indice['recriacao'] = indice.get('recriacao', [])
     indice['recriacao'].append(elo)
+
+    # O PRESENTE: a escola que nasce agora é desta pessoa. Sem `professor` (o chamador não o
+    # passou), não se mexe — não se inventa identidade a partir do nada.
+    if professor:
+        indice['professor'] = {'slug': professor}
+        if professor_nome:
+            indice['professor']['nome'] = professor_nome
+        if responsavel:
+            indice['responsavel'] = responsavel
+        # A LISTA FICA VAZIA, E NÃO GANHA O NOVO — a regra é a do `repo-escola.js`, que é quem
+        # escreve `professores[]` no dia a dia: «o responsável já está no singular (`professor`)
+        # e não se repete na lista». Pô-lo aqui seria a mesma pessoa em dois sítios, e a
+        # derivação contaria duas vezes o que é uma.
+        #
+        # Os vínculos da encarnação anterior SAÍRAM da lista e estão no elo
+        # (`professores_anteriores`). O que tiver ciclo na escola volta pela derivação, que lê os
+        # caminhos — e é essa a prova de que trabalha ali hoje.
+        indice['professores'] = []
+
     # A escola volta a estar habilitada — é o que a recriação significa.
     indice['estado'] = dict(indice.get('estado') or {}, habilitada=True)
 

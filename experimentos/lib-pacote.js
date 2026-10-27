@@ -336,3 +336,56 @@ module.exports = {
   umConfDeVariante,
   estadoDasEscolas, escolaDoPacote, pacoteElegivel, relatorioDePacotes, pastasComPagina,
 };
+
+/* ------------------------------------------------------- a publicação montada, sem nomear escola
+ *
+ * AS PROVAS QUE SERVEM PÁGINAS DE UM SÍTIO MONTADO TINHAM O NOME DA ESCOLA ESCRITO À MÃO
+ * (27/10/2026). `provar-painel-do-ato` e `provar-listas-do-acervo` liam `publicacao/batata` — e
+ * passavam só enquanto aquele resto de montagem existisse em disco. O dia em que a `batata` foi
+ * expurgada e a pasta saiu, as duas ficaram vermelhas por um motivo que não tem nada a ver com o
+ * que medem: uma página de lista e uma barra de menu não dependem de qual escola é.
+ *
+ * É a MESMA LIÇÃO do `umPacote()`, aplicada à SAÍDA em vez da fonte: procura-se uma FORMA (uma
+ * publicação de escola viva), não um nome. E, como lá, o registo decide o que está vivo — o que
+ * está em disco de uma escola expurgada é resto, e resto não é fixture.
+ */
+
+/**
+ * Monta, num diretório temporário, a publicação de UMA escola VIVA, e devolve
+ * `{ dir, escola }`. Devolve `null` quando não há escola viva com pacote-zero — e aí quem chama
+ * diz isso em vez de morrer num `ENOENT` que se lê como avaria.
+ *
+ * A montagem é a de verdade (`tools/montar-publicacao.js --raiz <tmp>`), e o destino é temporário:
+ * a bancada não escreve em `publicacao/`, que é saída e é de quem publica.
+ */
+function publicacaoDeUmaEscolaComCiclo() {
+  const { execFileSync } = require('child_process');
+  /* NÃO BASTA A ESCOLA ESTAR VIVA: tem de ter CICLO GERADO. O menu «Área do Professor» só nasce
+     com documentos e turmas, e um esqueleto recém-criado (antes de `gerar-ciclo.sh`) traz uma
+     barra sem esse grupo. Foi o que se mediu em 27/10: a prova das listas procurava o item do
+     menu na publicação da `calango` — viva, mas esqueleto — e não o encontrava, porque ele não
+     existe. A fonte certa é `pacotes()`, que já filtra as duas coisas: escola viva E páginas de
+     verdade. */
+  const comCiclo = pacotes()
+    .map((p) => escolaDoPacote(p))
+    .filter((e) => e);
+  const viva = [...new Set(comCiclo)].sort();
+  for (const escola of viva) {
+    /* A MONTAGEM É NO LUGAR (`publicacao/<escola>`), e não num destino à parte: o `--raiz` do
+       `montar-publicacao` muda a raiz das FONTES, não só a saída — apontá-lo para um temporário
+       fazia-o procurar `professores/` lá dentro e morrer num `scandir`. Montar é idempotente (o
+       destino é apagado e refeito), custa pouco, e `publicacao/` é saída: não vai para o Git. */
+    try {
+      execFileSync(process.execPath, [path.join(RAIZ, 'tools/montar-publicacao.js'), escola],
+        { cwd: RAIZ, encoding: 'utf8', stdio: 'pipe' });
+      const dir = path.join(RAIZ, 'publicacao', escola);
+      if (fs.existsSync(dir)) return { dir, escola };
+    } catch (e) {
+      /* A escola viva não tem pacote-zero (recém-criada, antes de `gerar-ciclo.sh`): tenta a
+         seguinte. Não é erro — é o estado da escola. */
+    }
+  }
+  return null;
+}
+
+module.exports.publicacaoDeUmaEscolaComCiclo = publicacaoDeUmaEscolaComCiclo;

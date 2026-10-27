@@ -89,7 +89,7 @@ function relatorioDe(id) {
 function envelope({ id, professor, aluna, respostas, geradoEm }) {
   return {
     id,
-    contexto: { escola: 'batata', professor: professor || null, ciclo: '01', ...(aluna ? { aluna } : {}) },
+    contexto: { escola: ESCOLA, professor: professor || null, ciclo: '01', ...(aluna ? { aluna } : {}) },
     respostas: respostas || {},
     gerado_em: geradoEm || '2026-10-20T10:00',
   };
@@ -165,28 +165,47 @@ function pedacos(html) {
   return { cartoes, rotulos, valores, nomes };
 }
 
+/* A ESCOLA DA BANCADA É DESCOBERTA, e `envelope()` precisa dela antes de a IIFE correr: por isso
+   é de módulo, e não uma `const` lá dentro. O valor é posto no arranque, antes de `preparar`. */
+let ESCOLA = 'escola';
+
 (async () => {
-  const dir = path.join(raiz, 'publicacao', 'batata');
-  if (!fs.existsSync(dir)) {
-    console.error('provar-listas-do-acervo: falta publicacao/batata — corra `node tools/montar-publicacao.js batata` — NÃO FEITO.');
+  /* A PUBLICAÇÃO NÃO SE NOMEIA (27/10/2026). Aqui esteve `publicacao/batata` escrito à mão, com
+     um remédio que já não se pode seguir («corra montar-publicacao batata») — a `batata` foi
+     expurgada, e a prova ficou vermelha por uma razão que não tem nada a ver com o que mede: uma
+     página de lista não depende de qual escola é. Procura-se a publicação de uma escola VIVA, e é
+     ela que serve. Sem nenhuma, diz-se — e o `NÃO FEITO` fica honesto em vez de virar excepção. */
+  const lib = require(path.join(raiz, 'experimentos/lib-pacote.js'));
+  const montada = lib.publicacaoDeUmaEscolaComCiclo();
+  if (!montada) {
+    /* O ESTADO, E NÃO UMA FRASE. «Nenhuma escola viva» e «nenhuma com ciclo gerado» levam a
+       acções diferentes — a mesma distinção que o construtor das bancadas aprendeu a fazer. */
+    const r = lib.relatorioDePacotes();
+    const vivas = r.escolas.filter((e) => e.viva).map((e) => e.slug);
+    console.error('provar-listas-do-acervo: nenhuma publicação para servir — NÃO FEITO.');
+    console.error('  escolas vivas: ' + (vivas.length ? vivas.join(', ') : '(nenhuma)'));
+    console.error('  com ciclo gerado: ' + (r.usados.length ? r.usados.join(', ') : '(nenhum)'));
+    console.error('  o menu «Área do Professor» só existe com ciclo: gere um com tools/gerar-ciclo.sh.');
     process.exit(2);
   }
+  const dir = montada.dir;
+  ESCOLA = montada.escola;
   /* O KV VEM PRIMEIRO, e o `env` que semeia é o MESMO que serve. Semear num `env` sem KV dava
    * um armazenamento sem destino: os envelopes não eram gravados em lado nenhum, e a prova
    * media uma lista vazia a jurar que a lista estava certa. (Aconteceu à primeira tentativa.) */
   const kv = kvDeMentira({
-    'bastidores/batata/curadorias': JSON.stringify([{
+    ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([{
       id: 'cafe-no-bule-classico', professor: 'cafe-no-bule', modalidade: 'balé',
       tradicao: 'clássico', turmas: ['Balé Nível 1'], alunas: ['Aluna A'],
     }]),
   });
   const env = {
-    ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', SENHA_PROFESSOR: 'p',
+    ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', SENHA_PROFESSOR: 'p',
     PROFESSOR_NOME: 'Cafe No Bule', PADD_KV: kv, ASSETS: assets(dir),
   };
   await preparar(env);
   const pedir = async (caminho) => {
-    const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev' + caminho), env);
+    const r = await producao.fetch(new Request('https://' + ESCOLA + '.tmenegaz77.workers.dev' + caminho), env);
     return { status: r.status, html: await r.text() };
   };
 
@@ -284,9 +303,9 @@ function pedacos(html) {
     /* A CHAVE É A DE `geracao.js`: `bastidores/<escola>/geracao/<escola>-<turma>`, com a turma
        escagarada como a `varianteDoContexto` a faz. Semear aqui é escrever o que o Worker grava
        quando o PO conclui. */
-    await kv.put('bastidores/batata/geracao/batata-bale-nivel-1', JSON.stringify({
+    await kv.put('bastidores/' + ESCOLA + '/geracao/' + ESCOLA + '-bale-nivel-1', JSON.stringify({
       em: '2026-10-24T18:20:00.000Z', professor: 'cafe-no-bule', ciclo: '01',
-      turma: 'bale-nivel-1', escola: 'batata', escritas: 3, puladas: 0,
+      turma: 'bale-nivel-1', escola: ESCOLA, escritas: 3, puladas: 0,
       documentos: [{ id: 'plano', nome: 'Plano de ensino' },
         { id: 'harmonizacao', nome: 'Harmonização' }, { id: 'aula-01', nome: 'Aula 01' }],
     }));
@@ -594,7 +613,7 @@ function pedacos(html) {
        publicada, e não a rota: a rota devolve o mesmo documento, e uma delas podia responder
        200 por reescrita sem ser este ficheiro. */
     const pagina = { html: fs.readFileSync(
-      path.join(raiz, 'publicacao/batata/plano-observacao/index.html'), 'utf8') };
+      path.join(dir, 'plano-observacao/index.html'), 'utf8') };
     provar('a porta lê o parâmetro do salto', /get\('abrir'\) === '1'/.test(pagina.html), null);
     /* A TRAVA MUDOU DE FORMA, NÃO DE CONTEÚDO (26/10/2026). Era `podeComecar` — o estado do
        botão «Começar» da abertura. O botão e a abertura saíram; a pergunta ficou, chamada pelo
@@ -628,7 +647,7 @@ function pedacos(html) {
        para medir a viagem; aqui mede-se o que ele É: emitido só com a senha certa, ligado ao
        ato, consumido UMA vez, e inútil depois. */
     const pedir = async (caminho, corpo) => {
-      const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev' + caminho, {
+      const r = await producao.fetch(new Request('https://' + ESCOLA + '.tmenegaz77.workers.dev' + caminho, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(corpo),
       }), env);
@@ -665,7 +684,7 @@ function pedacos(html) {
   console.log('\n11 · Sem KV, a lista não inventa: a ponte devolve o que já servia');
   {
     const semKv = Object.assign({}, env, { PADD_KV: null });
-    const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev/area-do-professor/anamnese/'), semKv);
+    const r = await producao.fetch(new Request('https://' + ESCOLA + '.tmenegaz77.workers.dev/area-do-professor/anamnese/'), semKv);
     provar('sem KV a rota não rebenta (cai no 404 das páginas que não existem)',
       r.status === 404 || r.status === 200, r.status);
   }

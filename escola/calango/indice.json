@@ -3,10 +3,10 @@
   "worker": "calango",
   "criado_em": "2026-10-19T18:18:57.289485+00:00",
   "professor": {
-    "slug": "sapo-bailarino",
-    "nome": "Sapo Bailarino"
+    "slug": "murisoca-baiana",
+    "nome": "Murisoca Baiana"
   },
-  "responsavel": "Sapo Bailarino",
+  "responsavel": "Murisoca Baiana",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -532,14 +532,20 @@
         "nome": "Murisoca Baiana"
       },
       "responsavel": "Murisoca Baiana",
-      "ciclo": "01"
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "perna-boa",
+          "nome": "Perna Boa",
+          "desde": "2026-10-22T20:15:54.754Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "sapo-bailarino",
+        "nome": "Sapo Bailarino"
+      },
+      "nota": "campos professores_anteriores/professor_anterior completados em 27/10/2026 pela normalização do presente — a recriação não os gravava"
     }
   ],
-  "professores": [
-    {
-      "slug": "perna-boa",
-      "nome": "Perna Boa",
-      "desde": "2026-10-22T20:15:54.754Z"
-    }
-  ]
+  "professores": []
 }

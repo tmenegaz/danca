@@ -13,7 +13,7 @@
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-10-19T16:48:13.723848+00:00",
+    "criada_em": "2026-10-23T12:56:28.588332+00:00",
     "expurgada": true,
     "expurgada_em": "2026-10-27T00:04:38.481Z",
     "expurgos": 5,
@@ -42,9 +42,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ff26866"
+    "commit": "bfe5ce6"
   },
-  "gerado_em": "2026-10-27T11:35",
+  "gerado_em": "2026-10-27T11:49",
   "nao_indexado": [
     {
       "familia": "conteudo",
