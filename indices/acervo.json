@@ -1,54 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "068ab0bee37ae6568a64af9ca187a82f4f4a3ce9f58a9cbad21466d637389809",
-        "id": "ciclo-01-batata-bale-nivel-2-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 1,
-      "documentos": 19,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:cafe-no-bule/01/batata",
-      "numero": "01",
-      "professor": "cafe-no-bule",
-      "sem_ancora": false
-    },
-    {
-      "ancora": {
-        "hash": "1e0a1772e4c3b0c7c079e6ff96c45aff72977437bd7fb7d1e24dee841117595f",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 3,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:manga-curta/01/batata",
-      "numero": "01",
-      "professor": "manga-curta",
-      "sem_ancora": false
-    },
-    {
-      "ancora": {
-        "hash": "54f4a7d16006216a06b147f1fc1e9a2cf51d0ca56fca3c4a863e3bdc9da5aa4b",
-        "id": "ciclo-01-batata-bale-nivel-3-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 3,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:meia-cortada/01/batata",
-      "numero": "01",
-      "professor": "meia-cortada",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -76,25 +27,21 @@
       "slug": "barra"
     },
     {
-      "ciclos": [
-        "ciclo:cafe-no-bule/01/batata",
-        "ciclo:manga-curta/01/batata",
-        "ciclo:meia-cortada/01/batata"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 3,
-        "aulas": 1,
-        "ciclos": 3,
-        "ciclos_com_ancora": 3,
-        "planos": 3,
-        "pos": 1,
-        "registros": 7
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-10-22T19:32:56.536Z",
-      "expurgos": 4,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-10-27T00:04:38.481Z",
+      "expurgos": 5,
+      "habilitada": false,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "cafe-no-bule",
@@ -103,18 +50,12 @@
         "cafe-no-bule",
         "manga-curta",
         "meia-cortada",
+        "sapo-bailarino",
         "teclado-abnt",
-        "tela-de-celular"
+        "tela-de-celular",
+        "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261023-1111",
-        "anamnese:anamnese-20261023-1112",
-        "anamnese:anamnese-20261023-1112-2",
-        "plano:plano-20261023-1116",
-        "plano:plano-20261023-1117",
-        "plano:plano-20261023-1124",
-        "po:po-20261023-1128"
-      ],
+      "registros": [],
       "slug": "batata"
     },
     {
@@ -325,13 +266,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 7,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -384,13 +319,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 3,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -438,7 +367,7 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -458,8 +387,8 @@
         "valor": "tiago"
       },
       {
-        "contagem": 4,
-        "rotulo": "Tiago",
+        "contagem": 5,
+        "rotulo": "Tela de PC",
         "valor": "tiago-menegaz"
       },
       {
@@ -468,29 +397,13 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 3,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 3,
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "612679a"
+    "commit": "b6519ef"
   },
-  "gerado_em": "2026-10-26T16:00",
+  "gerado_em": "2026-10-27T00:04",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -524,9 +437,7 @@
       "slug": "acucar-branco"
     },
     {
-      "ciclos": [
-        "ciclo:cafe-no-bule/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata"
       ],
@@ -553,9 +464,7 @@
       "slug": "leticia"
     },
     {
-      "ciclos": [
-        "ciclo:manga-curta/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata"
       ],
@@ -564,9 +473,7 @@
       "slug": "manga-curta"
     },
     {
-      "ciclos": [
-        "ciclo:meia-cortada/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata"
       ],
@@ -604,6 +511,7 @@
     {
       "ciclos": [],
       "escolas": [
+        "batata",
         "breu",
         "calando-teste-1",
         "calango"
@@ -643,13 +551,14 @@
     {
       "ciclos": [],
       "escolas": [
+        "batata",
         "breu",
         "calango",
         "fita",
         "valse"
       ],
       "id": "professor:tiago-menegaz",
-      "nome": "Tiago",
+      "nome": "Tela de PC",
       "slug": "tiago-menegaz"
     },
     {
