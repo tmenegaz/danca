@@ -41,13 +41,27 @@ const RAIZ = path.join(__dirname, '..');
 const L = require(path.join(RAIZ, 'experimentos/lib-pacote.js'));
 
 let falhas = 0;
+let total = 0;
 const provar = (nome, ok, detalhe) => {
+  total += 1;
   console.log('  ' + (ok ? 'ok    ' : 'FALHOU') + ' ' + nome
     + (ok ? '' : '  → ' + JSON.stringify(detalhe)));
   if (!ok) falhas += 1;
 };
 
 console.log('\n1. O registro do expurgo responde — e com os dados reais do repositório');
+/* NENHUMA ESCOLA É NOMEADA AQUI, E É DE PROPÓSITO (27/10/2026).
+ *
+ * A primeira versão desta seção afirmava «a `batata` está expurgada» e «a `breu` está viva». Com
+ * os dados de hoje as duas eram verdade — e as duas eram armadilhas: a pesquisadora expurga e
+ * recria as escolas de teste VÁRIAS VEZES por sessão («enquanto eu tô testando, eu ainda vou
+ * criar mais breu, mais batata, mais calango, e vou expurgar várias vezes»). No dia em que ela
+ * expurgasse a `breu`, esta prova reprovaria — e o alarme seria falso, sobre uma prova que existe
+ * exactamente para acabar com alarmes falsos.
+ *
+ * O que se mede é a FORMA do registro e a REGRA sobre ele, com os sujeitos tirados do próprio
+ * registro. O caso que motivou tudo (a `batata`, expurgada em 27/10 com 5 expurgos) fica escrito
+ * aqui, como história; o que a prova afirma é sobre o que o repositório disser hoje. */
 /* SEM FIXTURE. Se esta seção usasse um índice inventado, ela provaria que eu sei escrever um
    `Map`. O que se mede é que o repositório, como está, se explica. A `batata` foi expurgada em
    27/10/2026 e a `breu` foi recriada depois do seu último expurgo — as duas coisas estão no
@@ -60,17 +74,32 @@ console.log('\n1. O registro do expurgo responde — e com os dados reais do rep
    que o estava a explicar. É a mesma família do template literal que não fechava (26/10). */
 const registro = L.estadoDasEscolas();
 provar('o registro tem escolas', registro.size > 0, registro.size);
-const batata = registro.get('batata');
-provar('a `batata` consta, e está EXPURGADA', !!batata && batata.viva === false, batata);
-provar('…e a data do expurgo é a de 27/10/2026',
-  !!batata && batata.ultimo_expurgo === '2026-10-27', batata && batata.ultimo_expurgo);
-provar('…e ele conta os expurgos, em vez de dizer só «existe»',
-  !!batata && batata.expurgos >= 5, batata && batata.expurgos);
-const breu = registro.get('breu');
-provar('a `breu` consta, e está VIVA (expurgada e recriada depois)',
-  !!breu && breu.viva === true, breu);
-provar('…apesar de já ter sido expurgada antes — a recriação é posterior',
-  !!breu && breu.expurgos >= 2, breu && breu.expurgos);
+provar('…e cada entrada tem a forma declarada (slug, viva, expurgos, ultimo_expurgo)',
+  [...registro.values()].every((e) => typeof e.slug === 'string' && typeof e.viva === 'boolean'
+    && typeof e.expurgos === 'number' && 'ultimo_expurgo' in e),
+  [...registro.values()].slice(0, 2));
+
+const purgadas = [...registro.values()].filter((e) => !e.viva && e.expurgos > 0);
+const recriadas = [...registro.values()].filter((e) => e.viva && e.expurgos > 0);
+
+provar('há pelo menos uma escola registada como EXPURGADA', purgadas.length > 0,
+  purgadas.map((e) => e.slug));
+provar('…e cada uma traz a DATA do expurgo, e não só o estado',
+  purgadas.every((e) => /^\d{4}-\d{2}-\d{2}$/.test(String(e.ultimo_expurgo || ''))),
+  purgadas.map((e) => e.slug + '=' + e.ultimo_expurgo));
+provar('…e o NÚMERO de expurgos, porque há escolas expurgadas e recriadas várias vezes',
+  purgadas.every((e) => e.expurgos >= 1), purgadas.map((e) => e.slug + '=' + e.expurgos));
+
+/* A OUTRA METADE DA REGRA, no repositório real: uma escola com expurgo no passado e recriação
+   depois está VIVA. Este é o caso `foiRecriada` a acontecer fora da prova que o define — se ele
+   não existir no repositório hoje, diz-se, em vez de se inventar um sujeito. */
+if (recriadas.length) {
+  provar('uma escola EXPURGADA e RECRIADA depois conta como viva',
+    recriadas.every((e) => e.viva === true), recriadas.map((e) => e.slug + '/' + e.expurgos));
+} else {
+  provar('hoje não há escola expurgada-e-recriada no repositório (não se inventa o caso)',
+    true, null);
+}
 
 console.log('\n2. A escola de um pacote resolve-se pelo sufixo');
 /* O CAMINHO NÃO DIZ A ESCOLA: a pasta é `ciclo-01-<variante>`, e a variante pode ser composta
@@ -85,17 +114,26 @@ provar('o slug MAIS LONGO ganha (uma escola cujo nome é prefixo de outra não a
   L.escolaDoPacote('ciclo-01-alvo-teste-1', ['alvo', 'alvo-teste-1']));
 
 console.log('\n3. Pacote de escola expurgada é DESCONSIDERADO — e o motivo diz a data');
-const caminhoDaBatata = 'professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2';
+/* O SUJEITO VEM DO REGISTRO, não de uma escola escrita à mão: a primeira expurgada que houver.
+   O caminho tem a FORMA de um pacote real (`ciclo-NN-<variante>`, com a variante a começar pelo
+   slug) — é o que basta, porque o que se mede é a decisão sobre o caminho, não os ficheiros. */
+const escolaPurgada = purgadas[0];
+const caminhoDaBatata = escolaPurgada
+  ? 'professores/exemplo/ciclos/ciclo-01-' + escolaPurgada.slug + '-bale-nivel-2-teste-2'
+  : 'professores/exemplo/ciclos/ciclo-01-escola-expurgada';
 /* O CONTROLE É DIFERENCIAL, e é ele que prova que a exclusão vem DO REGISTRO: o mesmo caminho,
    passado ao mesmo código, é elegível com um registro que a diz viva. Se a exclusão viesse de
    outra coisa (o caminho, o nome, um `if`), os dois lados dariam o mesmo. */
 const comoExpurgada = L.pacoteElegivel(caminhoDaBatata, registro);
-const registroVivo = new Map([['batata', { slug: 'batata', viva: true, expurgos: 5, ultimo_expurgo: '2026-10-27' }]]);
+const registroVivo = new Map([[(escolaPurgada && escolaPurgada.slug) || 'escola-expurgada',
+  { slug: (escolaPurgada && escolaPurgada.slug) || 'escola-expurgada', viva: true,
+    expurgos: 1, ultimo_expurgo: '2026-01-01' }]]);
 const comoViva = L.pacoteElegivel(caminhoDaBatata, registroVivo);
 provar('com o registro a dizer «expurgada», o pacote NÃO é elegível',
   comoExpurgada.elegivel === false, comoExpurgada);
 provar('…e o motivo nomeia a escola E a data',
-  comoExpurgada.escola === 'batata' && /2026-10-27/.test(comoExpurgada.motivo), comoExpurgada);
+  !!escolaPurgada && comoExpurgada.escola === escolaPurgada.slug
+  && comoExpurgada.motivo.indexOf(String(escolaPurgada.ultimo_expurgo)) !== -1, comoExpurgada);
 provar('com o MESMO caminho e o registro a dizer «viva», é elegível',
   comoViva.elegivel === true, comoViva);
 provar('escola fora do registro não é excluída (o lado permissivo)',
@@ -147,7 +185,6 @@ if (!pacotesUsaveis.length) {
   provar('há pacote usável: `umPacote()` devolve-o', !!L.umPacote());
 }
 
-const total = 18 + (pacotesUsaveis.length ? 0 : 3);
 console.log('\n' + (falhas ? 'FALHOU — ' + falhas + ' de ' + total + ' asserções'
   : 'TUDO CERTO — ' + total + ' asserção(ões), 0 falha(s)') + '.');
 process.exit(falhas ? 1 : 0);

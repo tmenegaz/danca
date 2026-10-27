@@ -26411,6 +26411,16 @@ nome, um `if`), os dois lados dariam o mesmo. Também: `provar-recriacao-da-esco
 55/55; `check-identidade` 0 erro; `montar-publicacao breu --com-propostas` monta e avisa.
 `Construir as bancadas de layout` sai a **zero** (era 1).
 
+**A prova não nomeia escola nenhuma, e é de propósito.** A primeira versão afirmava «a `batata`
+está expurgada» e «a `breu` está viva» — verdade com os dados de hoje, e duas armadilhas: a
+pesquisadora expurga e recria as escolas de teste várias vezes por sessão («enquanto eu tô
+testando, eu ainda vou criar mais breu, mais batata, mais calango, e vou expurgar várias vezes»).
+No dia em que expurgasse a `breu`, a prova reprovaria — alarme falso, numa prova que existe para
+acabar com alarmes falsos. Passou a tirar os sujeitos **do próprio registro** e a medir a forma e a
+regra. Verificado por simulação: com um expurgo da `breu` acrescentado ao índice, a prova continua
+**21/21**, e o construtor passa a dizer «escolas vivas: (nenhuma)» e a listar as **10** expurgadas
+com data — e sai a zero. O índice foi revertido a seguir (`git checkout -- escola/breu/indice.json`).
+
 **Uma nota de bancada, e ela custou duas tentativas.** Escrevi o caminho de exemplo com um
 asterisco no meio, a fazer de curinga (a forma que casa com qualquer escola):
 as duas letras que **fecham** um comentário apareceram dentro do comentário, ele terminou a meio da

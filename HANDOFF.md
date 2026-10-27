@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T08:13:25-0300`
-Commit atual: `3403ddd` — fix(estrutura): o deploy das escolas não morre por falta de bancada
+Gerado em: `2026-10-27T08:16:21-0300`
+Commit atual: `4f5a8c5` — fix(estrutura): o expurgo é um estado, e o sistema passou a lê-lo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -79,6 +79,7 @@ vaso-bonito (13)
 ## Últimos commits
 
 ```
+4f5a8c5 fix(estrutura): o expurgo é um estado, e o sistema passou a lê-lo
 3403ddd fix(estrutura): o deploy das escolas não morre por falta de bancada
 f6299aa chore(estrutura): regerar os índices derivados
 7610a09 fix(ciclo-01): a anamnese é da aluna, e o formulário não volta sozinho
@@ -98,7 +99,6 @@ d635d98 docs(estrutura): o HANDOFF regerado sobre a matriz por parâmetro
 a89a5c5 docs(estrutura): o HANDOFF regerado sobre a relação objetivo-aula no formulário
 743db9e fix(ciclo-01): o formulário pergunta em que aula cada objetivo é perseguido
 ba871e8 docs(registro): o objetivo do ciclo e a régua única publicados, e o que se mediu ao ar
-e3d9297 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -258,6 +258,16 @@ nome, um `if`), os dois lados dariam o mesmo. Também: `provar-recriacao-da-esco
 `provar-barra-unica` 111/111; `provar-listas-do-acervo` 109/109; `provar-publicacao-da-escola`
 55/55; `check-identidade` 0 erro; `montar-publicacao breu --com-propostas` monta e avisa.
 `Construir as bancadas de layout` sai a **zero** (era 1).
+
+**A prova não nomeia escola nenhuma, e é de propósito.** A primeira versão afirmava «a `batata`
+está expurgada» e «a `breu` está viva» — verdade com os dados de hoje, e duas armadilhas: a
+pesquisadora expurga e recria as escolas de teste várias vezes por sessão («enquanto eu tô
+testando, eu ainda vou criar mais breu, mais batata, mais calango, e vou expurgar várias vezes»).
+No dia em que expurgasse a `breu`, a prova reprovaria — alarme falso, numa prova que existe para
+acabar com alarmes falsos. Passou a tirar os sujeitos **do próprio registro** e a medir a forma e a
+regra. Verificado por simulação: com um expurgo da `breu` acrescentado ao índice, a prova continua
+**21/21**, e o construtor passa a dizer «escolas vivas: (nenhuma)» e a listar as **10** expurgadas
+com data — e sai a zero. O índice foi revertido a seguir (`git checkout -- escola/breu/indice.json`).
 
 **Uma nota de bancada, e ela custou duas tentativas.** Escrevi o caminho de exemplo com um
 asterisco no meio, a fazer de curinga (a forma que casa com qualquer escola):
