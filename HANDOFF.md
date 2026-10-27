@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T08:56:44-0300`
-Commit atual: `bfe5ce6` — feat(estrutura): criar a escola calango (motor completo)
+Gerado em: `2026-10-27T09:04:00-0300`
+Commit atual: `382d122` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -62,7 +62,8 @@ teclado-abnt
 tela-de-celular
 tiago-menegaz
 vaso-bonito (13)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -79,6 +80,10 @@ vaso-bonito (13)
 ## Últimos commits
 
 ```
+382d122 chore(estrutura): regerar os índices derivados
+1f56d19 chore(estrutura): expurgar a escola calango
+7b56783 fix(estrutura): a escola recriada diz o presente, e o passado ganha sítio
+89bf863 feat(acervo): envelope/.indice.json
 bfe5ce6 feat(estrutura): criar a escola calango (motor completo)
 ff26866 docs(registro): o expurgo da breu medido a sério, e não simulado
 0768454 chore(estrutura): regerar os índices derivados
@@ -95,10 +100,6 @@ b78f0dc feat(acervo): envelope/.indice.json
 6d8025b feat(estrutura): criar a escola breu (motor completo)
 0b6e908 chore(estrutura): regerar os índices derivados
 b6519ef chore(estrutura): expurgar a escola batata
-205e3af docs(estrutura): o HANDOFF regerado sobre a fronteira do cabeçalho
-93aa16f fix(ciclo-01): o nó que só se lê mostra o valor, e não abre campo
-41e5009 docs(estrutura): o HANDOFF regerado sobre os nós que saíram do roteiro
-df224d0 fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no cabeçalho
 ```
 
 ## Por professor
@@ -113,17 +114,7 @@ df224d0 fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no
 
 ### meia-cortada — 0 ciclo(s)
 
-### murisoca-baiana — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): calango
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| calango | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| calango | (sem âncora) | — | — | — |
+### murisoca-baiana — 0 ciclo(s)
 
 ### oculos-redondo — 0 ciclo(s)
 
@@ -194,107 +185,77 @@ df224d0 fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no
 
 ## Última entrada do REGISTRO
 
-## 27/10/2026 — A escola recriada diz o presente, e o passado passa a ter sítio
+## 27/10/2026 — A `calango` saiu, e com ela saiu também um verde falso meu
 
-**O que motivou.** A pesquisadora criou a escola **`calango`** pelo portal, às 11:35 de 27/10, com o
-professor **Murisoca Baiana** (`bfe5ce6`). O portal respondeu:
+**O que motivou.** A pesquisadora expurgou a `calango` às 12:01 de 27/10 (`1f56d19`, 16 arquivos; a
+escola ficou com **8 expurgos e 8 recriações**). O ciclo criado horas antes
+(`criar-escola` → `bfe5ce6` → portal) fechou-se. O que se mediu aqui é a **segunda metade** — a
+que só aparece quando o expurgo encontra um índice que foi reparado à mão.
 
-- **Escolas → «Criada»: `19/10/2026`** — a **primeira** encarnação, oito dias antes de a escola
-  existir;
-- **Professores → «Perna Boa → calango»** — apresentado como professor da escola, ao lado do
-  Murisoca. O Perna Boa não tem nada na `calango`: a pasta dele só tem os schemas compartilhados
-  (os moldes que toda escola recebe). Foi professor de uma encarnação **anterior**.
+**O expurgo preservou o que devia, e nada do que se limpou se perdeu.** No índice da escola, depois
+do elo novo:
 
-É a mesma família que esta semana vem sendo corrigida, na sua forma mais difícil de ver: **a
-memória a ser lida como presente**. E aqui ela é mais incómoda porque o mecanismo certo **já
-existia** — o elo `recriacao[]` foi criado em 22/10 exactamente para isto («o índice continuava a
-dizer que o responsável era o professor da PRIMEIRA criação, para sempre»). Só metade da leitura
-foi feita:
+- `professor: murisoca-baiana` — a identidade que eu tinha corrigido, intacta;
+- `professores[]: []` — sem o responsável repetido, como a regra manda;
+- o elo de recriação de 11:35 **com a `nota` datada** e com `professores_anteriores` (o
+  `perna-boa`, com o `desde` de 22/10) — o passado no sítio do passado.
 
-| campo | o que a derivação fazia | resultado |
-|:--|:--|:--|
-| responsável | lia o elo mais recente (`responsavelDoInventario`) | **certo** — «Murisoca Baiana» |
-| data de criação | lia `criado_em` do topo | **errado** — 19/10 |
-| lista `professores[]` | lia tal e qual (append-only) | **errado** — `perna-boa` fica |
+E na derivação, `expurgada: true`, `expurgada_em: 2026-10-27T12:01:30` (este expurgo),
+`criada_em: 11:35:27` (a encarnação). A lista de professores da escola **cresceu** para cinco —
+`murisoca-baiana, oculos-redondo, perna-boa, sapo-bailarino, tiago-menegaz` — e está certo: é a
+regra de 22/10, «o elo do expurgo só prova quem trabalha numa escola apagada». Numa escola viva o
+fantasma é fantasma; numa apagada, é memória.
 
-**O que foi decidido** — as duas perguntas foram à pesquisadora, e as respostas são dela:
+Ao vivo: `calango`, `breu` e `batata` respondem **404**. O `Publicar as escolas` do commit do
+expurgo fez `descobertas: []` e **skipped**. O `Reancorar` e o `Regerar os índices` passaram.
 
-- **A data é a da encarnação que existe**: a última recriação; sem recriação, o `criado_em` de
-  sempre. É o que `quandoDaEncarnacao` passa a devolver.
-- **A identidade do presente corrige-se na ORIGEM**, e não só na leitura: o registador passa a
-  reescrever o responsável e a lista, e o passado vai para o elo — `professor_anterior` e
-  `professores_anteriores`, com o `desde` que tinham. A memória muda de sítio; não desaparece.
-- **O responsável não se repete na lista** — a regra do `repo-escola.js`, que é quem escreve
-  `professores[]` no dia a dia: «o responsável já está no singular e não se repete na lista».
-- **`criado_em` e `expurgo[]` não se tocam.** A criação original é história; quem a quer ver lê o
-  elo.
+**O verde falso, e é o achado desta entrada.** O controle negativo da prova nova **passou** —
+«TUDO CERTO — 20 asserções, 0 falha(s)» — no dia em que a `calango` foi expurgada, e isso não era a
+prova a melhorar: era o controle a deixar de existir. Ele dizia `git show HEAD:tools/registrar-
+recriacao.py`, e apontava, sem eu dar por isso, para o registador **de hoje** (o meu), porque o
+commit `7b56783` já estava no histórico. Um controle negativo que passa não é um controle: é uma
+asserção a fingir de juiz.
 
-**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e esta entrada
-existe por causa disso: `tools/registrar-recriacao.py` foi alterado. O motivo é o defeito medido
-acima — o registador gravava o elo e deixava o presente intacto, e o resultado era um professor
-fantasma numa escola viva. A alternativa seria derivar a lista filtrada por `desde`, e a
-pesquisadora recusou-a: a origem deve dizer a verdade, e não caber à leitura corrigir o que foi mal
-escrito. Nada mais em `tools/` foi tocado, e a fórmula do hash, a cobertura da âncora, os
-validadores, as regras e as pétreas não mudam.
+**É a armadilha que este projeto já tinha documentado em 26/10**, no `provar-objetivos-por-aula`:
+«O REF NÃO SE FIXA EM `HEAD` — depois do commit, `HEAD` é o estado NOVO». Eu li essa nota ao
+escrever a prova e não a apliquei. A correção é a receita que já existia: o ref passa a ser
+**derivado** — o commit que introduziu a marca (`professores_anteriores`) neste ficheiro, menos um,
+com `REF_NEGATIVO` a sobrepor-se para quem quiser medir outro ponto. Sem referência no histórico, a
+prova diz «NÃO FEITO» e sai a 2, em vez de correr o registador de hoje a fingir de controle.
 
-**Onde entrou.**
+**Uma segunda correção, e é da prova e não do código.** A asserção «nenhum professor de encarnação
+anterior fica ligado a ela» passou a reprovar — porque numa escola **apagada** a lista inclui, de
+propósito, todos os que o elo prova. A asserção estava certa na regra e errada no alcance: passou a
+valer **só numa escola viva**, e para a apagada mede-se o contrário (a lista cresce, e isso é
+história). Uma prova que exige o comportamento de uma escola viva sobre uma escola morta está a
+medir o tempo, não o código.
 
-- `motor/nucleo/indices.js` — `quandoDaEncarnacao(inv)` e `criada_em` a usá-la; exportada.
-- `tools/registrar-recriacao.py` — o elo guarda `professor_anterior` e `professores_anteriores`; o
-  topo (`professor`, `responsavel`) e a lista (`professores[]`, vazia) passam a descrever o
-  presente. Sem `--professor`, não se inventa identidade.
-- `escola/calango/indice.json` — o presente corrigido, e o elo de 11:35 **completado** com o que
-  não gravava, com uma `nota` datada. **Não se acrescentou um elo novo**: a normalização não é uma
-  recriação, e registá-la como tal seria inventar um evento. A primeira tentativa fez exactamente
-  isso — e a data do portal passou a ser a da normalização, não a da recriação. Desfeito.
-- `experimentos/provar-identidade-da-escola-recriada.js` — **nova**, 23 asserções.
-- `experimentos/provar-recriacao-da-escola.js` — a asserção de 22/10 dizia «o `professor` do topo
-  NÃO é reescrito (é a memória de quem criou)», e passou a dizer o contrário, com o motivo escrito
-  ao lado. Uma regra que muda não se apaga da prova: muda-se e diz-se porquê.
-- `experimentos/lib-pacote.js` — `publicacaoDeUmaEscolaComCiclo()`, e a razão de exigir **ciclo** e
-  não apenas escola viva (ver a nota de bancada).
+**Medido, já sobre o `origin/main` rebasado (`382d122`).**
+`provar-identidade-da-escola-recriada` **23/23**, e o controle **5 de 20** reprovadas sobre
+`7b56783~1` (o ref derivado, impresso no output); `provar-indices` 54/54;
+`provar-recriacao-da-escola` todas; `provar-bancadas-e-expurgo` 21/21; `provar-teste` 42;
+`provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14;
+`provar-porta-sem-contexto` 44/44; `provar-barra-unica` 111/111;
+`provar-publicacao-da-escola` 53/53 (são dinâmicas — caem para 53 com menos escolas);
+`check-identidade` 0 erro; `check-indices` 14 verificações, 0 falha.
 
-**Medido.** `provar-identidade-da-escola-recriada` **23/23**, com controle negativo a reprovar
-**5 de 20** sobre o registador de `HEAD`; `provar-indices` 60/60; `provar-recriacao-da-escola`
-todas; `provar-bancadas-e-expurgo` 21/21; `provar-teste` 42; `provar-anamnese-por-aluna` 15/15;
-`provar-alunas-da-anamnese` 14/14; `provar-porta-sem-contexto` 44/44; `provar-barra-unica` 111/111;
-`provar-publicacao-da-escola` 55/55; `check-identidade` 0 erro; `check-indices` **14 verificações,
-0 falha**. No portal, depois: «calango — Murisoca Baiana — 27/10/2026 — viva», e «perna-boa — sem
-escola viva».
-
-**Uma nota de bancada, e ela vale mais do que o defeito.** Ao limpar `publicacao/` — que estava com
-três escolas expurgadas em disco, uma delas com o **mesmo slug** da escola nova, de 23/10 — duas
-provas ficaram vermelhas: `provar-painel-do-ato` rebentava num `null` de `scrollWidth` e
-`provar-listas-do-acervo` pedia «corra `montar-publicacao batata`», um remédio **impossível**, porque
-a `batata` já não existe. As duas liam `publicacao/batata` **escrito à mão**, e passavam só porque
-aquele resto de montagem estava em disco: **num clone limpo teriam falhado sempre.** É a mesma lição
-do `lib-pacote` de 21/10, aplicada à SAÍDA em vez da fonte — procura-se uma forma, não um nome.
-Agora as duas descobrem a publicação de uma escola viva **com ciclo gerado**, e, sem nenhuma,
-dizem-no com o estado (`escolas vivas: calango; com ciclo gerado: (nenhum)`) em vez de rebentar.
-Exigir ciclo, e não só «viva», é medição: o menu «Área do Professor» só nasce com documentos e
-turmas, e o esqueleto da `calango` traz uma barra sem esse grupo — a primeira versão do auxiliar
-escolheu a `calango`, viva e vazia, e as sete asserções do menu reprovaram por ausência de fixture.
+**Uma nota de bancada, outra vez a mesma.** A primeira leitura do índice derivado disse
+`habilitada: true, expurgada: false` para uma escola acabada de expurgar, e o diagnóstico óbvio era
+«o expurgo deixou o índice inconsistente». Não era: o `Regerar os índices` ainda **não tinha
+commitado** (`382d122` chegou segundos depois). É a terceira vez nesta sessão que o worktree atrasado
+se disfarça de defeito — a regra «o remoto primeiro» também vale para os workflows.
 
 **O que ainda não está feito.**
 
-- **`provar-painel-do-ato` e `provar-listas-do-acervo` estão NÃO FEITAS**, e ficarão até haver ciclo
-  gerado. Não é avaria: é o estado do repositório — zero escolas com ciclo. Voltam sozinhas no dia
-  em que `tools/gerar-ciclo.sh` correr para a `calango`.
-- **A `calango` continua esqueleto**: sem âncora (`hash-ciclo --check` manda ancorar), e o
-  `check-pacote` reprova 16 erros, como qualquer escola recém-criada. Ancorar agora selaria um ciclo
-  vazio.
-- **`publicacao/batata`, `publicacao/breu` e o `publicacao/calango` de 23/10 foram apagados** do
-  disco local. Eram saída de escolas que já não existem, e o de 23/10 tinha o **mesmo slug** da
-  escola nova: um `wrangler deploy` local sem montagem teria publicado, por cima da `calango` de
-  hoje, a de quatro dias antes — com a porta sem a correção da anamnese. O `montar-publicacao` apaga
-  e refaz o destino, e os dois workflows montam antes de subir; o perigo era só o gesto manual.
+- **Zero escolas vivas, e portanto zero ciclos gerados.** `provar-painel-do-ato` e
+  `provar-listas-do-acervo` estão **NÃO FEITAS** e dizem-no com o estado («escolas vivas:
+  (nenhuma)»). É o estado do repositório, não avaria: voltam sozinhas quando houver ciclo.
+- **O caminho `gerar-ciclo.sh` continua por medir de ponta a ponta** — é o único troço da cadeia que
+  esta sessão não viu. Criar, publicar, expurgar e recriar foram vistos três vezes; gerar, não.
+- **A `calango` não tem âncora** e o `check-pacote` do esqueleto reprova 16 erros, como qualquer
+  escola recém-criada. Não se ancorou: o ciclo estava vazio, e a âncora sela.
 
 ## O que está pendente
-
-## 26/10/2026 — A fronteira do cabeçalho fecha: o nó que só se lê mostra o valor
-
-Nada nesta frente — os sete nós continuam no mapa (o envelope e o
-`## Contexto` intactos) e deixaram de ser um sítio onde se escreve.
 
 ## 26/10/2026 — A anamnese é da aluna, e a marca «nova» sai quando ela já foi entrevistada
 
@@ -357,6 +318,17 @@ Nada nesta frente. Fica registado, para não se ler como avaria:
   escola nova: um `wrangler deploy` local sem montagem teria publicado, por cima da `calango` de
   hoje, a de quatro dias antes — com a porta sem a correção da anamnese. O `montar-publicacao` apaga
   e refaz o destino, e os dois workflows montam antes de subir; o perigo era só o gesto manual.
+
+## 27/10/2026 — A `calango` saiu, e com ela saiu também um verde falso meu
+
+
+- **Zero escolas vivas, e portanto zero ciclos gerados.** `provar-painel-do-ato` e
+  `provar-listas-do-acervo` estão **NÃO FEITAS** e dizem-no com o estado («escolas vivas:
+  (nenhuma)»). É o estado do repositório, não avaria: voltam sozinhas quando houver ciclo.
+- **O caminho `gerar-ciclo.sh` continua por medir de ponta a ponta** — é o único troço da cadeia que
+  esta sessão não viu. Criar, publicar, expurgar e recriar foram vistos três vezes; gerar, não.
+- **A `calango` não tem âncora** e o `check-pacote` do esqueleto reprova 16 erros, como qualquer
+  escola recém-criada. Não se ancorou: o ciclo estava vazio, e a âncora sela.
 
 ## Pendências anteriores (índice)
 
@@ -651,7 +623,7 @@ Nada nesta frente. Fica registado, para não se ler como avaria:
 - **26/10/2026** — O formulário passa a perguntar em que aula cada objetivo é… → `REGISTRO.md` L25981
 - **26/10/2026** — O parâmetro de medição passa a mandar na matriz, e o dado… → `REGISTRO.md` L26070
 - **26/10/2026** — O que não se pergunta sai do roteiro, e aparece no cabeçalho → `REGISTRO.md` L26144
-- **murisoca-baiana · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **26/10/2026** — A fronteira do cabeçalho fecha: o nó que só se lê mostra o… → `REGISTRO.md` L26199
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

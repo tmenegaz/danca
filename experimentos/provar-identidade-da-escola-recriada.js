@@ -66,8 +66,9 @@ if (negativo) {
      nelas seria medir o passado com a régua do passado. O que se espera é que as asserções do
      REGISTRADOR reprovem — «o presente é corrigido» e «o passado fica no elo». As outras passam,
      e é isso que se lê em baixo. */
-  console.log('CONTROLE NEGATIVO: o registrador é o de `HEAD`. A seção 1 e a 4 medem o código e'
-    + '\n  os dados de HOJE de propósito — o controle é do registrador, e só dele.');
+  console.log('CONTROLE NEGATIVO: o registrador é o de ANTES da correção (o ref derivado, impresso'
+    + '\n  em baixo). A seção 1 e a 4 medem o código e os dados de HOJE de propósito — o controle'
+    + ' é do registrador, e só dele.');
 }
 
 console.log('\n1. A data da encarnação que existe');
@@ -107,12 +108,53 @@ const arq = path.join(dir, 'indice.json');
 const escreverCaso = () => fs.writeFileSync(arq, JSON.stringify(CASO, null, 2) + '\n', 'utf8');
 const lerCaso = () => JSON.parse(fs.readFileSync(arq, 'utf8'));
 
-/** O registrador a exercer. No controle negativo, o de `HEAD` — a versão de antes desta correção. */
+/** O registrador a exercer. No controle negativo, o de ANTES da correção.
+ *
+ *  O REF NÃO SE FIXA EM `HEAD` (27/10/2026) — e esta prova cometeu o mesmo erro que o
+ *  `provar-objetivos-por-aula` já tinha documentado em 26/10. A primeira redação dizia
+ *  `git show HEAD:tools/registrar-recriacao.py`, e funcionava enquanto a mudança estava por
+ *  commitar. Depois do commit, `HEAD` passou a ser o estado NOVO, o controle deixou de reprovar
+ *  nada, e o output passou a dizer «TUDO CERTO — 20 asserções, 0 falha(s)»: um controle negativo
+ *  que passa é pior do que não ter controle, porque parece que se mediu.
+ *
+ *  O ref passa a ser DERIVADO, pela mesma receita do 26/10: o commit que introduziu a marca
+ *  (`professores_anteriores`) neste ficheiro, menos um. É o último estado em que o defeito
+ *  existia, e continua certo em qualquer clone. `REF_NEGATIVO` sobrepõe-se, para quem quiser
+ *  medir outro ponto do histórico. */
+const MARCA = 'professores_anteriores';
 const registrador = (() => {
   if (!negativo) return path.join(RAIZ, 'tools/registrar-recriacao.py');
-  const antigo = path.join(dir, 'registrar-recriacao-antigo.py');
-  const texto = execFileSync('git', ['show', 'HEAD:tools/registrar-recriacao.py'],
-    { cwd: RAIZ, encoding: 'utf8' });
+  const em = (ref) => {
+    try {
+      return execFileSync('git', ['show', ref + ':tools/registrar-recriacao.py'],
+        { cwd: RAIZ, encoding: 'utf8' });
+    } catch (e) { return null; }
+  };
+  let ref = process.env.REF_NEGATIVO || '';
+  if (!ref) {
+    // 1. a mudança ainda está por commitar: HEAD é o estado de antes.
+    if (em('HEAD') !== null && em('HEAD').indexOf(MARCA) === -1) {
+      ref = 'HEAD';
+    } else {
+      // 2. já está no histórico: o commit que a introduziu, menos um.
+      let sha = '';
+      try {
+        sha = execFileSync('git', ['log', '-1', '--format=%H', '-S' + MARCA,
+          '--', 'tools/registrar-recriacao.py'], { cwd: RAIZ, encoding: 'utf8' }).trim();
+      } catch (e) { sha = ''; }
+      ref = sha ? sha + '~1' : 'HEAD';
+    }
+  }
+  const texto = em(ref);
+  if (texto === null) {
+    /* SEM REF, O CONTROLE NÃO SE FAZ — e diz-se. Correr o registrador de hoje a fingir de
+       controle é o que produzia um verde falso. */
+    console.error('provar-identidade-da-escola-recriada: controle negativo sem referência'
+      + ' (' + ref + ') — o registrador de antes não está no histórico. NÃO FEITO.');
+    process.exit(2);
+  }
+  console.log('  (controle sobre ' + ref + ')');
+  const antigo = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'registrador-')), 'antigo.py');
   fs.writeFileSync(antigo, texto, 'utf8');
   return antigo;
 })();
@@ -183,10 +225,21 @@ if (!negativo) {
   provar('o acervo põe a data da última recriação na `calango`',
     !!calango && calango.criada_em === quandoDaEncarnacao(inventario),
     calango && calango.criada_em);
+  /* A REGRA VALE NUMA ESCOLA VIVA, E SÓ NELA (27/10/2026). A primeira redação exigia «nenhum
+     professor de encarnação anterior ligado» sempre — e passou a reprovar no dia em que a
+     pesquisadora expurgou a `calango`, porque numa escola APAGADA a lista inclui, de propósito,
+     todos os que o elo prova: é a história de quem passou por ali (`indices.js`, regra de 22/10 —
+     «o elo do expurgo só prova quem trabalha numa escola apagada»). O fantasma só é fantasma
+     enquanto a escola está viva; depois de apagada, ele é memória, e a memória é para ficar. */
   const fantasmas = new Set((ultimoElo.professores_anteriores || []).map((p) => p.slug));
-  provar('e nenhum professor de encarnação anterior fica ligado a ela',
-    !!calango && !(calango.professores || []).some((p) => fantasmas.has(p)),
-    calango && calango.professores);
+  if (calango && calango.expurgada) {
+    provar('apagada: a lista inclui quem o elo prova — história, não fantasma',
+      (calango.professores || []).length > 1, calango.professores);
+  } else {
+    provar('viva: nenhum professor de encarnação anterior fica ligado a ela',
+      !!calango && !(calango.professores || []).some((p) => fantasmas.has(p)),
+      calango && calango.professores);
+  }
   /* A REGRESSÃO QUE IMPORTA: o par (criada, apagada) de uma escola expurgada é da MESMA
      encarnação. Antes, a `breu` dizia «criada 19/10, apagada 27/10» — duas encarnações
      misturadas numa linha só. */

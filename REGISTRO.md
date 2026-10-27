@@ -26591,3 +26591,73 @@ escolheu a `calango`, viva e vazia, e as sete asserções do menu reprovaram por
   escola nova: um `wrangler deploy` local sem montagem teria publicado, por cima da `calango` de
   hoje, a de quatro dias antes — com a porta sem a correção da anamnese. O `montar-publicacao` apaga
   e refaz o destino, e os dois workflows montam antes de subir; o perigo era só o gesto manual.
+
+## 27/10/2026 — A `calango` saiu, e com ela saiu também um verde falso meu
+
+**O que motivou.** A pesquisadora expurgou a `calango` às 12:01 de 27/10 (`1f56d19`, 16 arquivos; a
+escola ficou com **8 expurgos e 8 recriações**). O ciclo criado horas antes
+(`criar-escola` → `bfe5ce6` → portal) fechou-se. O que se mediu aqui é a **segunda metade** — a
+que só aparece quando o expurgo encontra um índice que foi reparado à mão.
+
+**O expurgo preservou o que devia, e nada do que se limpou se perdeu.** No índice da escola, depois
+do elo novo:
+
+- `professor: murisoca-baiana` — a identidade que eu tinha corrigido, intacta;
+- `professores[]: []` — sem o responsável repetido, como a regra manda;
+- o elo de recriação de 11:35 **com a `nota` datada** e com `professores_anteriores` (o
+  `perna-boa`, com o `desde` de 22/10) — o passado no sítio do passado.
+
+E na derivação, `expurgada: true`, `expurgada_em: 2026-10-27T12:01:30` (este expurgo),
+`criada_em: 11:35:27` (a encarnação). A lista de professores da escola **cresceu** para cinco —
+`murisoca-baiana, oculos-redondo, perna-boa, sapo-bailarino, tiago-menegaz` — e está certo: é a
+regra de 22/10, «o elo do expurgo só prova quem trabalha numa escola apagada». Numa escola viva o
+fantasma é fantasma; numa apagada, é memória.
+
+Ao vivo: `calango`, `breu` e `batata` respondem **404**. O `Publicar as escolas` do commit do
+expurgo fez `descobertas: []` e **skipped**. O `Reancorar` e o `Regerar os índices` passaram.
+
+**O verde falso, e é o achado desta entrada.** O controle negativo da prova nova **passou** —
+«TUDO CERTO — 20 asserções, 0 falha(s)» — no dia em que a `calango` foi expurgada, e isso não era a
+prova a melhorar: era o controle a deixar de existir. Ele dizia `git show HEAD:tools/registrar-
+recriacao.py`, e apontava, sem eu dar por isso, para o registador **de hoje** (o meu), porque o
+commit `7b56783` já estava no histórico. Um controle negativo que passa não é um controle: é uma
+asserção a fingir de juiz.
+
+**É a armadilha que este projeto já tinha documentado em 26/10**, no `provar-objetivos-por-aula`:
+«O REF NÃO SE FIXA EM `HEAD` — depois do commit, `HEAD` é o estado NOVO». Eu li essa nota ao
+escrever a prova e não a apliquei. A correção é a receita que já existia: o ref passa a ser
+**derivado** — o commit que introduziu a marca (`professores_anteriores`) neste ficheiro, menos um,
+com `REF_NEGATIVO` a sobrepor-se para quem quiser medir outro ponto. Sem referência no histórico, a
+prova diz «NÃO FEITO» e sai a 2, em vez de correr o registador de hoje a fingir de controle.
+
+**Uma segunda correção, e é da prova e não do código.** A asserção «nenhum professor de encarnação
+anterior fica ligado a ela» passou a reprovar — porque numa escola **apagada** a lista inclui, de
+propósito, todos os que o elo prova. A asserção estava certa na regra e errada no alcance: passou a
+valer **só numa escola viva**, e para a apagada mede-se o contrário (a lista cresce, e isso é
+história). Uma prova que exige o comportamento de uma escola viva sobre uma escola morta está a
+medir o tempo, não o código.
+
+**Medido, já sobre o `origin/main` rebasado (`382d122`).**
+`provar-identidade-da-escola-recriada` **23/23**, e o controle **5 de 20** reprovadas sobre
+`7b56783~1` (o ref derivado, impresso no output); `provar-indices` 54/54;
+`provar-recriacao-da-escola` todas; `provar-bancadas-e-expurgo` 21/21; `provar-teste` 42;
+`provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14;
+`provar-porta-sem-contexto` 44/44; `provar-barra-unica` 111/111;
+`provar-publicacao-da-escola` 53/53 (são dinâmicas — caem para 53 com menos escolas);
+`check-identidade` 0 erro; `check-indices` 14 verificações, 0 falha.
+
+**Uma nota de bancada, outra vez a mesma.** A primeira leitura do índice derivado disse
+`habilitada: true, expurgada: false` para uma escola acabada de expurgar, e o diagnóstico óbvio era
+«o expurgo deixou o índice inconsistente». Não era: o `Regerar os índices` ainda **não tinha
+commitado** (`382d122` chegou segundos depois). É a terceira vez nesta sessão que o worktree atrasado
+se disfarça de defeito — a regra «o remoto primeiro» também vale para os workflows.
+
+**O que ainda não está feito.**
+
+- **Zero escolas vivas, e portanto zero ciclos gerados.** `provar-painel-do-ato` e
+  `provar-listas-do-acervo` estão **NÃO FEITAS** e dizem-no com o estado («escolas vivas:
+  (nenhuma)»). É o estado do repositório, não avaria: voltam sozinhas quando houver ciclo.
+- **O caminho `gerar-ciclo.sh` continua por medir de ponta a ponta** — é o único troço da cadeia que
+  esta sessão não viu. Criar, publicar, expurgar e recriar foram vistos três vezes; gerar, não.
+- **A `calango` não tem âncora** e o `check-pacote` do esqueleto reprova 16 erros, como qualquer
+  escola recém-criada. Não se ancorou: o ciclo estava vazio, e a âncora sela.
