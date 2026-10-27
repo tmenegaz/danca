@@ -58,6 +58,24 @@ const VARIANTE = 'batata-bale-nivel-2-teste-2';
 const PACOTE = path.join(raiz, 'professores', PROF, 'ciclos', 'ciclo-01-' + VARIANTE);
 const PLANO_MD = path.join(raiz, 'professores', PROF, 'ciclos', 'ciclo-01-' + VARIANTE + '-plano.md');
 
+/* O FIXTURE FOI EXPURGADO, E ISSO NÃO SE DISFARÇA (27/10/2026).
+ *
+ * O PACOTE E O PLANO QUE ESTA PROVA MEDE são os da escola `batata`, e a `batata` foi expurgada do
+ * repositório (`b6519ef`, «expurgar a escola batata») — as fontes do ciclo saíram com ela. A prova
+ * morria com um `ENOENT` no `plano-01.json`, que se lê como «a prova está avariada» quando o que
+ * aconteceu foi o objeto de medição deixar de existir.
+ *
+ * O QUE SE FAZ: diz-se, e não se inventa. Substituir por um fixture de fabrico seria medir a
+ * fábrica; saltar em silêncio seria pior, porque o rodapé do commit continuaria a citar «51
+ * asserções». Quem quiser esta prova de volta gera o pacote de novo (`tools/gerar-ciclo.sh`) e
+ * aponta `PROF`/`VARIANTE` — é uma linha, e está registado no REGISTRO.
+ */
+if (!fs.existsSync(PLANO_MD) || !fs.existsSync(path.join(PACOTE, 'plano-01.json'))) {
+  console.error('provar-objetivos-por-aula: NÃO FEITO — o fixture (' + VARIANTE + ') foi expurgado'
+    + '\n  do repositório. A prova não mede: o objeto que ela media já não existe.');
+  process.exit(1);
+}
+
 let total = 0;
 let falhas = 0;
 function provar(rotulo, condicao, detalhe) {

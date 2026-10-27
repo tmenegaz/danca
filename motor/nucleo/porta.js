@@ -896,13 +896,17 @@ function alunasDoProfessor(curadorias, professor) {
  * «NOVA» É DERIVADO, E NÃO UM CAMPO. Uma aluna é nova enquanto não estiver em curadoria
  * vigente nenhuma; no dia em que a direção a cura, deixa de o ser — e nada mudou no cadastro
  * dela. É a mesma lei do estado da aula: o que se pode derivar não se declara, senão há dois
- * sítios a discordar.
+ * sítios a discordar. E, desde 26/10/2026, também deixa de ser nova quando já tem anamnese
+ * registada: a marca é o aviso de quem ainda falta entrevistar.
  *
  * O que a função devolve são as duas coisas que a tela precisa: a lista recortada (`alunas`) e
  * as que levam a marca (`novas`). A marca é da TELA, não do registo: o apelido que entra no
  * envelope é o nome limpo.
+ *
+ * `comAnamnese` — os apelidos que já têm anamnese, lidos pelo servidor. Sem o conjunto, a marca
+ * fica como estava; a função é pura e não vai ao acervo.
  */
-function alunasDaAnamnese(curadorias, professor, todas, pedida) {
+function alunasDaAnamnese(curadorias, professor, todas, pedida, comAnamnese) {
   const alvo = String(professor || '').trim();
   const cadastro = (Array.isArray(todas) ? todas : [])
     .map((a) => String(a == null ? '' : a).trim()).filter(Boolean);
@@ -928,6 +932,22 @@ function alunasDaAnamnese(curadorias, professor, todas, pedida) {
   if (doEndereco && cadastro.indexOf(doEndereco) === -1 && alunas.indexOf(doEndereco) === -1) {
     alunas = alunas.concat([doEndereco]);
     novas = novas.concat([doEndereco]);
+  }
+  /* A MARCA «NOVA» SAI QUANDO A ANAMNESE JÁ EXISTE (26/10/2026) — e a LISTA não.
+   *
+   * A pesquisadora viu a Aluna A continuar marcada «— nova» depois de a anamnese dela ficar
+   * pronta, e esperava que ela saísse da lista. Sai só a marca: a aluna tem de continuar
+   * alcançável, senão voltar a mexer no que já foi respondido passaria a depender de outro ecrã.
+   * O aviso quer dizer «ainda não foi entrevistada», e deixa de ser verdade no instante em que há
+   * registo. Fica DEPOIS do `doEndereco` de propósito: a aluna que veio no endereço e já tem
+   * anamnese também não leva a marca.
+   */
+  const entrevistadas = new Set((comAnamnese instanceof Set
+    ? [...comAnamnese]
+    : (Array.isArray(comAnamnese) ? comAnamnese : []))
+    .map((a) => String(a == null ? '' : a).trim()).filter(Boolean));
+  if (entrevistadas.size) {
+    novas = novas.filter((a) => !entrevistadas.has(a));
   }
   return { alunas, novas };
 }

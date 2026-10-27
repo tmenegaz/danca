@@ -385,3 +385,9 @@ experimentos/modelo-formulario/*
 !experimentos/modelo-formulario/fonte.html
 !experimentos/modelo-formulario/gerar.js
 !experimentos/modelo-formulario/estilo-da-porta.css
+
+# A ANAMNESE É DA ALUNA, NÃO DO FORMULÁRIO (26/10/2026). A prova nasceu de dois defeitos que a
+# pesquisadora viu na escola Breu — o formulário voltava sozinho e o rascunho de uma aluna aparecia
+# na outra. O controle negativo dela roda sobre `HEAD` e reprova 10 de 15: sem isso, «corrigi» seria
+# a minha palavra. A prova é citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-anamnese-por-aluna.js

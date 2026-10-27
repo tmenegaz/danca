@@ -331,9 +331,12 @@ const servidor = http.createServer(async (req, res) => {
     /professor=cafe-no-bule/.test(destino) && /ciclo=01/.test(destino) && /aluna=Aluna(\+|%20)A/.test(destino),
     destino);
 
-  // simular um preenchimento interrompido: gravar na chave da PORTA
+  /* Simular um preenchimento interrompido: gravar na chave da PORTA. A CHAVE LEVA A ALUNA
+     (26/10/2026) — sem ela, o depósito de uma aluna era restaurado no ato de outra, e as
+     respostas de uma iam para o documento da outra. Esta prova escreve a chave à mão, e por
+     isso tem de a escrever como a porta a escreve: `…-<ciclo>-<aluna>-1`. */
   await p.evaluate(() => {
-    localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+    localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
       /* Com uma RESPOSTA da pessoa: «há o que continuar» é isso, e não o depósito (26/10/2026). */
       JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00.000Z', indice: 7,
         respostas: [['idade', '32']], notas: [], sugeridas: [] }));
@@ -359,7 +362,7 @@ const servidor = http.createServer(async (req, res) => {
   ok('«Nova» volta', e.nova === true, e.nova);
   ok('«continuar» desaparece', e.continuar === false);
   ok('«recomeçar» desaparece', e.recomecar === false);
-  const mem = await p.evaluate(() => localStorage.getItem('porta-anamnese-batata-cafe-no-bule-01-1'));
+  const mem = await p.evaluate(() => localStorage.getItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1'));
   ok('a memória foi mesmo apagada', mem === null, mem);
 
   console.log('\n5 · O PO: sem curadoria, a trava da direção');
@@ -441,7 +444,7 @@ const servidor = http.createServer(async (req, res) => {
      * forma das acções: com `.acao` em todas, as mesmas duas pediam 97px e duas filas. */
     await abrir('/area-do-professor/anamnese/', 390);
     await p.evaluate(() => {
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z',
           indice: 3, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
       localStorage.setItem('ato-batata-anamnese-1',
@@ -811,7 +814,7 @@ const servidor = http.createServer(async (req, res) => {
       /* UMA RESPOSTA DA PESSOA, e não um depósito qualquer: «há o que continuar» é uma resposta
          que ela deu à mão. As sugestões da semeadura viajam em `sugeridas` e não contam — é o que
          impede o botão de aparecer a quem só abriu o formulário. */
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z',
           indice: 2, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
       localStorage.setItem('ato-batata-anamnese-1',
@@ -862,7 +865,7 @@ const servidor = http.createServer(async (req, res) => {
        — o que a semeadura deixa atrás de si a quem apenas abriu o formulário — não é trabalho
        nenhum, e não pode produzir «continuar». */
     await p.evaluate(() => {
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
         JSON.stringify({ respondidos: 3, total: 53, quando: '2026-10-26T09:00:00Z',
           indice: 0, respostas: [['idade', '30'], ['formacao', 'ballet']],
           notas: [], sugeridas: ['idade', 'formacao'] }));
@@ -880,7 +883,7 @@ const servidor = http.createServer(async (req, res) => {
 
     /* E AGORA COM UMA RESPOSTA DA PESSOA, e SEM senha. */
     await p.evaluate(() => {
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-26T09:05:00Z',
           indice: 2, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
     });
@@ -931,7 +934,7 @@ const servidor = http.createServer(async (req, res) => {
      * dele continua no `localStorage` depois de a página arrancar. */
     const sobreviveu = await p.evaluate(() => {
       try {
-        const d = JSON.parse(localStorage.getItem('porta-anamnese-batata-cafe-no-bule-01-1') || 'null');
+        const d = JSON.parse(localStorage.getItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1') || 'null');
         return d && Array.isArray(d.respostas)
           ? d.respostas.some((par) => Array.isArray(par) && par[0] === 'idade') : false;
       } catch (e) { return false; }
@@ -1061,7 +1064,7 @@ const servidor = http.createServer(async (req, res) => {
       if (!com) return;
       localStorage.setItem('ato-batata-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-1',
+      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z', indice: 2,
           respostas: [['idade', '32']], notas: [], sugeridas: [] }));
     }, comDeposito);

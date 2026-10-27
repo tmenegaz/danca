@@ -383,10 +383,17 @@ function scriptDoPainel(chave, escola) {
 
   /* A CHAVE DA MEMÓRIA É A DA PORTA — cópia exacta de chaveDaMemoria() em porta/index.html.
    * Lê-la do mesmo sítio é o que faz este painel dizer a verdade: o que o professor começou a
-   * preencher na porta aparece aqui como «continuar», e não como «nada». */
+   * preencher na porta aparece aqui como «continuar», e não como «nada».
+   *
+   * A ALUNA ENTRA NA CHAVE, E NA ANAMNESE SÓ (26/10/2026). Sem ela, o depósito de uma aluna era
+   * restaurado ao abrir o ato de outra — e as respostas de uma iam para o documento da outra.
+   * Aqui a aluna é a do painel; na porta é a do seletor (ou a do endereço). As duas cópias têm de
+   * concordar, senão «continuar de onde parei» deixa de encontrar o que existe. */
   function chaveDaMemoria() {
     var partes = ['porta', CFG.fonte];
-    ['escola', 'professor', 'ciclo'].forEach(function (c) {
+    var nomes = ['escola', 'professor', 'ciclo'];
+    if (CFG.ehAnamnese) nomes.push('aluna');
+    nomes.forEach(function (c) {
       var v = c === 'escola' ? CFG.escola : valor(c);
       if (v) partes.push(v);
     });

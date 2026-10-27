@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-26T20:56:47-0300`
-Commit atual: `93aa16f` — fix(ciclo-01): o nó que só se lê mostra o valor, e não abre campo
+Gerado em: `2026-10-27T07:55:49-0300`
+Commit atual: `cd0304d` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -51,6 +51,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** acucar-branco
 cafe-no-bule
+luz-azul
 manga-curta
 meia-cortada
 murisoca-baiana
@@ -60,8 +61,8 @@ sapo-bailarino
 teclado-abnt
 tela-de-celular
 tiago-menegaz
-vaso-bonito (12)
-- **Ciclos com manifesto:** 4 variante(s)
+vaso-bonito (13)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -78,6 +79,14 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
+cd0304d chore(estrutura): regerar os índices derivados
+e6e472b feat(acervo): envelope/anamnese-20261026-2154.json
+006fb49 feat(acervo): envelope/.indice.json
+b78f0dc feat(acervo): envelope/.indice.json
+6d8025b feat(estrutura): criar a escola breu (motor completo)
+0b6e908 chore(estrutura): regerar os índices derivados
+b6519ef chore(estrutura): expurgar a escola batata
+205e3af docs(estrutura): o HANDOFF regerado sobre a fronteira do cabeçalho
 93aa16f fix(ciclo-01): o nó que só se lê mostra o valor, e não abre campo
 41e5009 docs(estrutura): o HANDOFF regerado sobre os nós que saíram do roteiro
 df224d0 fix(ciclo-01): o que não se pergunta sai do roteiro e passa a ler-se no cabeçalho
@@ -90,33 +99,25 @@ e3d9297 chore(estrutura): regerar os índices derivados
 612679a docs(estrutura): o HANDOFF regerado sobre o objetivo do ciclo e a régua única
 1c8795c fix(ciclo-01): o objetivo é do ciclo, a estrutura é da aula, e a régua é uma só
 d67262d docs(registro): o apanhado do plano publicado, e o que se mediu ao ar
-6936b11 chore(estrutura): regerar os índices derivados
-7c6858f docs(estrutura): o HANDOFF regerado sobre o apanhado do plano
-8040378 fix(ciclo-01): o plano publica o apanhado, e o detalhe fica na aula
-ab13264 docs(registro): a correção das rotas publicada, e o que se mediu ao ar
-c129f48 docs(estrutura): o HANDOFF regerado sobre a correção das rotas e do índice
-abf8e9f fix(estrutura): a porta não se abre sem o ato, e o índice aponta para dentro da Área do Professor
-e06d905 docs(registro): a publicação conferida ao ar, e o HANDOFF sobre ela
-fe71508 docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
 ```
 
 ## Por professor
 
 ### acucar-branco — 0 ciclo(s)
 
-### cafe-no-bule — 1 ciclo(s)
+### cafe-no-bule — 0 ciclo(s)
 
-**Ciclo 01** — variante(s): batata, batata-bale-nivel-2-teste-2
+### luz-azul — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| batata | (sem PO) | — | — |
-| batata | ciclo-01-batata-bale-nivel-2-teste-2-po.md | Input_PO_Aguardando | 1 |
+| breu | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `8586d4bb0d3e` | (vazio) | — |
-| batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `068ab0bee37a` | (vazio) | Input_PO_Aguardando |
+| breu | (sem âncora) | — | — | — |
 
 ### manga-curta — 0 ciclo(s)
 
@@ -193,71 +194,114 @@ fe71508 docs(estrutura): o HANDOFF regerado sobre a correção do vão do botão
 
 ## Última entrada do REGISTRO
 
-## 26/10/2026 — A fronteira do cabeçalho fecha: o nó que só se lê mostra o valor
+## 26/10/2026 — A anamnese é da aluna, e a marca «nova» sai quando ela já foi entrevistada
 
-**O que motivou.** Tirar os sete nós do roteiro foi metade. A outra metade apareceu ao medir: quem
-lá chegasse por um índice antigo via um **degrau completo** — título numerado, selo «obrigatório»,
-o «Faltam N» em cima de um dado já preenchido — e, pior, **escola e professor ainda tinham o campo
-de resposta aberto**, que é exactamente o que não podem ter: a escola é a escola em que a página
-está aberta, e o professor é quem a abriu. A correção no roteiro deixou o defeito vivo no único
-sítio onde ainda se podia tocar.
+**O que motivou.** Dois relatos da pesquisadora sobre a escola de teste **Breu**, mais um terceiro
+defeito que apareceu ao medir:
+
+1. «Eu faço a anamnese da aluna A, e ela não deveria estar mais na lista aqui.»
+2. «Eu clico em fazer anamnese da aluna B, ele vai para o formulário e **imediatamente volta** para
+   a anamnese, e aí ficam habilitados os dois botões — continuar de onde parei e começar de novo.»
+
+O segundo foi reproduzido na bancada com o motor a sério, e a causa **não era a rota**: o nome
+**«Breu» é uma das três palavras que marcam a escola como escola de TESTE** (`calango`→1,
+`batata`→2, `breu`→3), e o preenchedor do fixture corria quando o MAPA ficava pronto — **antes** de
+`carregarAlunas` pôr o `?aluna=` no seletor. Sem aluna escolhida caía no primeiro registo do
+fixture («Aluna A») e **escrevia-a no campo**. O ato dizia B, o campo dizia A, a porta compara os
+dois para autorizar o bilhete, não batiam, e a página devolvia a pessoa à lista — que então oferecia
+«continuar» sobre um depósito que ela nunca escreveu. Com um nome neutro, o mesmo gesto funciona: a
+diferença é o nome.
+
+O terceiro: a chave do depósito local era `porta-anamnese-<escola>-<professor>-<ciclo>-1`, **sem a
+aluna**. Abrir o ato da Aluna B restaurava o rascunho da Aluna A — e as respostas de uma entravam no
+documento da outra. Num artefacto que existe para ser evidência, um documento com o nome de uma
+aluna e o corpo de outra é o pior defeito possível.
 
 **O que foi decidido.**
 
-- **O nó do cabeçalho desenha o VALOR, em leitura**, e uma frase que diz de onde ele vem («vem do
-  cadastro da turma, declarado pela direção na Produção» / «vem de quem abriu esta página»). O ramo
-  entra **primeiro** na fila do desenho: nenhum ramo por família lhe pode abrir um campo.
-- **A nota também não se desenha.** Ela grava-se no envelope por `id`, e `gravarRespostaDoNo` passou
-  a **recusar** estes nós — sem essa recusa, atravessá-los apagaria o valor semeado (`lerResposta`
-  devolve `null` quando não há campo, e `null` significa «apaga»). Uma nota ali seria um campo que
-  não guarda nada, e isso é pior do que um campo a menos.
+- **O preenchimento automático NUNCA troca a aluna.** Com `?aluna=` no endereço, ele espera que ela
+  chegue ao seletor e não a substitui; se aquela aluna não tiver registo no fixture, não preenche
+  nada e di-lo. Trocar a aluna é gesto de quem **escolhe um registo no painel**, e só esse caminho
+  força a opção. Sem `?aluna=`, o primeiro registo do fixture continua a ser o que se mostra — é a
+  demonstração, e a demonstração é legítima.
+- **A aluna entra na chave do depósito, e na anamnese só.** O custo declarado: um rascunho começado
+  antes de a aluna ser conhecida fica sob uma chave sem ela e não é encontrado depois. Perde-se um
+  rascunho; não se contamina um documento.
+- **A marca «— nova» sai quando a aluna já tem anamnese, e a lista NÃO encolhe.** A pesquisadora
+  esperava que a aluna desaparecesse do seletor. Sai só o aviso: a aluna tem de continuar
+  alcançável, senão voltar a mexer no que já foi respondido passaria a depender de outro ecrã. O
+  aviso passa a querer dizer «ainda falta entrevistar».
+- **O critério é «tem anamnese registada», e não «está completa»** — por uma razão medida: o resumo
+  do envelope no índice não guarda a contagem de obrigatórios nem o estado derivado, e saber se está
+  completa exige **ler cada envelope**, contra a regra de que uma lista se faz com metadado, numa
+  leitura só. Um envelope só nasce quando o professor grava.
 
 **Onde entrou.**
 
-- `porta/index.html` — `leituraDoNoDoCabecalho` (o valor em leitura), o primeiro ramo do desenho, a
-  guarda em `gravarRespostaDoNo`, a nota condicional, e a peça `.leitura-do-cabecalho` na folha da
-  própria página.
-- `experimentos/provar-teste.js` — a verificação da fronteira: os sete desenham a caixa, **zero**
-  campos, dizem «Não se preenche aqui», e cruzá-los **não apaga** o valor. Passou de 41 para **42**.
-- `professores/cafe-no-bule/ciclos/…/plano-observacao/` (as duas pastas da `batata`).
+- `motor/servidor/teste-cliente.js` — `preencherAnamnese(registro, forcar)` (só força a opção quando
+  `forcar`), `alunaDoAto()`, `quandoAluna()` (espera até ~4,8 s), e `autoAnamnese()` a separar a
+  demonstração do ato. O `semearDoContexto()` depois do `clear()` devolve à barra o que o `clear`
+  levou.
+- `porta/index.html` — `chaveDaMemoria()` acrescenta a aluna na anamnese, e lê o **valor cru** do
+  campo (o `valorDoContexto` devolvia o rótulo «Cafe No Bule» e desincronizava da lista).
+- `motor/servidor/listas-do-acervo.js` — a cópia de `chaveDaMemoria()` do painel, byte a byte igual.
+- `motor/nucleo/porta.js` — `alunasDaAnamnese(curadorias, professor, todas, pedida, comAnamnese)`: o
+  quinto parâmetro tira de `novas` quem já foi entrevistada. Sem ele, a marca fica como estava — a
+  função é pura e não vai ao acervo.
+- `motor/servidor/bastidores.js` — `alunasComAnamnese(env, escola)`, uma leitura do índice; falha de
+  leitura não derruba o seletor (perder o aviso é melhor do que perder a lista).
+- `professores/luz-azul/ciclos/ciclo-01-breu/plano-observacao/index.html` — a página da porta
+  recopiada, com a barra da escola reintroduzida. **A `batata` foi expurgada do repositório no
+  mesmo dia** (`b6519ef`), e com ela as duas pastas que aqui estavam: quando este trabalho foi
+  rebasado sobre o `origin/main`, já só havia uma escola para publicar.
 
-**Medido.** `provar-teste` **42**; `provar-parametros-por-parametro` 14/14;
-`provar-objetivos-por-aula` 51/51; `provar-aula-e-plano-legiveis` 12/12;
-`provar-porta-sem-contexto` 44/44; `provar-publicacao-da-escola` 55/55;
-`provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111; `check-identidade` **0 erro**;
-`check-pacote` **0 erro e 0 aviso**; âncora `--check` íntegra.
+**Medido**, já sobre o `origin/main` rebasado (`cd0304d`, escola `breu`): `provar-anamnese-por-aluna`
+**15/15** (nova), com **controle negativo a reprovar 10 de 15** sobre o código de antes;
+`provar-alunas-da-anamnese` **14/14** (era 12, e as duas novas medem o antes e o depois do mesmo
+registo); `provar-teste` 42; `provar-painel-do-ato` OK; `provar-parametros-por-parametro` 14/14;
+`provar-aula-e-plano-legiveis` 12/12; `provar-porta-sem-contexto` 44/44;
+`provar-publicacao-da-escola` 55/55; `provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111;
+`check-identidade` **0 erro**. `check-pacote` no pacote `ciclo-01-breu` reprova 16 erros **desde
+antes de este trabalho** — é o esqueleto da escola recém-criada: falta-lhe o PDF, o `dados.json`,
+as aulas, e os 30 links internos que ele confere existem. A âncora da `breu` **não existe** também
+desde antes (`hash-ciclo.sh --check` diz «ancore com: tools/hash-ciclo.sh luz-azul 01 breu»).
 
-**Uma armadilha de bancada, outra vez.** A primeira redação desta verificação punha o `eval` inteiro
-num template literal grande, e ele **não fechava**: o erro do Node apontava a linha de fecho e a
-causa estava no conteúdo. O sintoma foi agravado por eu ter validado um trecho extraído com
-`indexOf` — que encontrou a **primeira** ocorrência da mesma string, de outro bloco, e deu «válido»
-sobre o código errado. A verificação passou a medir em pedaços pequenos, um `eval` por nó.
+**Uma prova deixou de poder medir.** `provar-objetivos-por-aula` media o pacote
+`ciclo-01-batata-bale-nivel-2-teste-2`, e o expurgo levou o objeto de medição com ele: a prova
+morria com um `ENOENT` no `plano-01.json`, que se lê como «a prova está avariada». Passou a dizer
+que **não foi feita** e porquê. Substituí-la por um fixture de fabrico seria medir a fábrica, e
+saltar em silêncio deixaria o rodapé do commit a citar «51 asserções» que ninguém correu.
 
-**O que ainda não está feito.** Nada nesta frente — os sete nós continuam no mapa (o envelope e o
-`## Contexto` intactos) e deixaram de ser um sítio onde se escreve.
+**Duas notas de bancada.**
+
+- `provar-alunas-da-anamnese` estava a medir uma página que já não estava aberta: desde que a porta
+  passou a exigir o ato inteiro, ela aterrava em `/area-do-professor/anamnese/` e expirava num
+  `waitForFunction`. Passou a entrar como se entra na vida real — **bilhete de verdade**, emitido
+  pelo motor com a senha do professor — e a seção do `?aluna=` mudou de sítio: a regra mede-se no
+  servidor, e a consequência (a porta devolve a pessoa à lista) mede-se na página.
+- A chave do envelope no KV leva o **prefixo da escola** (`breu/envelope/…`). Semear em
+  `envelope/…` fica ao lado da família, invisível para o motor — a prova media a ausência do dado em
+  vez da regra, e dava «a marca não sai» com a regra a funcionar.
+
+**O que ainda não está feito.**
+
+- **`provar-ato-e-barra` e `provar-selo` estão quebrados, e já estavam** — falham em `origin/main`
+  com «execution context was destroyed», a mesma causa: entram na porta sem o ato completo e são
+  atirados para a lista a meio da medição. Não foram tocados aqui; precisam do mesmo tratamento por
+  bilhete que a prova das alunas recebeu, e são trabalho de bancada próprio.
+- **`provar-objetivos-por-aula` está sem fixture** — media o pacote da `batata`, e o expurgo levou-o.
+  Para a recuperar: gerar um ciclo com `tools/gerar-ciclo.sh` e apontar `PROF`/`VARIANTE` (duas
+  linhas, no topo da prova).
+- **A `breu` não tem âncora de proveniência** — `ciclo-01-breu.fipp` não existe, e o `--check` manda
+  ancorar. Não foi ancorada aqui porque a âncora fecha o ciclo inteiro, e o ciclo ainda não tem
+  PO declarado: ancorar agora selaria um ciclo pela metade. É gesto de quem termina a escola.
+- **O critério da marca é uma decisão minha, não dela**, e está escrito acima para poder ser trocado
+  numa linha: hoje basta ter anamnese registada; se o critério deve ser «anamnese completa», o
+  resumo do envelope passa a precisar da contagem, e o índice sobe de versão.
+- A escola **Breu** continua a ser escola de TESTE: o nome é que a marca. Quem quiser nela o
+  comportamento de uma escola real troca o nome; quem a quiser como banco de ensaio sabe o que tem.
 
 ## O que está pendente
-
-## 26/10/2026 — O objetivo é do ciclo, a estrutura é da aula, e a régua é uma só
-
-
-- **O formulário de elicitação não pergunta o modelo novo.** É a etapa 2, decidida nesta data: a
-  página já diz a verdade e a forma já aceita vários objetivos por aula, mas quem preenche ainda
-  não pode declará-los. A `batata` foi migrada à mão.
-- **O «Excelente · Bom · Em construção» continua a ser o dado da `batata`**, e vem do fixture da
-  escola de teste (`teste/batata.json`, «Régua A — Teste 2», ao lado das rivais B e C). O código já
-  não o duplica na página; o que ele É — uma régua declarada pela escola para teste, e não uma
-  segunda régua do sistema — depende de a escola de teste ser re-elicitada ou expurgada, e isso é
-  decisão de conteúdo, não de derivação.
-- **A estrutura própria de cada aula ainda não tem onde ser declarada.** A decisão é que a aula
-  declare a sua quando difere; o documento da aula já traz uma tabela de volume, mas ela sai hoje
-  do padrão do ciclo e o formulário não a pergunta. Etapa 2, com o resto.
-- **`Músicas e vídeos` e `Repertório` continuam separados** — decisão desta data: sem fusão.
-- **Os outros pacotes não foram regerados.** O gerador só emite as secções novas para quem tem a
-  fonte nova; a migração é por regeneração, e cada escola a faz quando for regerada.
-- **A estrutura própria de cada AULA não é lida pelo documento da aula.** A decisão é que o
-  ciclo declare o padrão e a aula a sua; hoje a `aula-NN.md` imprime o volume do ciclo e a sua
-  tabela sai com uma linha de total. Falta o formulário perguntá-la — etapa 2.
 
 ## 26/10/2026 — O formulário passa a perguntar em que aula cada objetivo é perseguido
 
@@ -312,6 +356,25 @@ sobre o código errado. A verificação passou a medir em pedaços pequenos, um 
 
 Nada nesta frente — os sete nós continuam no mapa (o envelope e o
 `## Contexto` intactos) e deixaram de ser um sítio onde se escreve.
+
+## 26/10/2026 — A anamnese é da aluna, e a marca «nova» sai quando ela já foi entrevistada
+
+
+- **`provar-ato-e-barra` e `provar-selo` estão quebrados, e já estavam** — falham em `origin/main`
+  com «execution context was destroyed», a mesma causa: entram na porta sem o ato completo e são
+  atirados para a lista a meio da medição. Não foram tocados aqui; precisam do mesmo tratamento por
+  bilhete que a prova das alunas recebeu, e são trabalho de bancada próprio.
+- **`provar-objetivos-por-aula` está sem fixture** — media o pacote da `batata`, e o expurgo levou-o.
+  Para a recuperar: gerar um ciclo com `tools/gerar-ciclo.sh` e apontar `PROF`/`VARIANTE` (duas
+  linhas, no topo da prova).
+- **A `breu` não tem âncora de proveniência** — `ciclo-01-breu.fipp` não existe, e o `--check` manda
+  ancorar. Não foi ancorada aqui porque a âncora fecha o ciclo inteiro, e o ciclo ainda não tem
+  PO declarado: ancorar agora selaria um ciclo pela metade. É gesto de quem termina a escola.
+- **O critério da marca é uma decisão minha, não dela**, e está escrito acima para poder ser trocado
+  numa linha: hoje basta ter anamnese registada; se o critério deve ser «anamnese completa», o
+  resumo do envelope passa a precisar da contagem, e o índice sobe de versão.
+- A escola **Breu** continua a ser escola de TESTE: o nome é que a marca. Quem quiser nela o
+  comportamento de uma escola real troca o nome; quem a quiser como banco de ensaio sabe o que tem.
 
 ## Pendências anteriores (índice)
 
@@ -602,8 +665,8 @@ Nada nesta frente — os sete nós continuam no mapa (o envelope e o
 - **26/10/2026** — O botão que grava não encosta no campo: a fileira do… → `REGISTRO.md` L25437
 - **26/10/2026** — A porta não se abre por um endereço sem ato, e o índice… → `REGISTRO.md` L25530
 - **26/10/2026** — O plano publica o apanhado, e o detalhe fica na aula → `REGISTRO.md` L25670
-- PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **26/10/2026** — O objetivo é do ciclo, a estrutura é da aula, e a régua é… → `REGISTRO.md` L25828
+- **luz-azul · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

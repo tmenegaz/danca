@@ -26238,3 +26238,110 @@ sobre o código errado. A verificação passou a medir em pedaços pequenos, um 
 
 **O que ainda não está feito.** Nada nesta frente — os sete nós continuam no mapa (o envelope e o
 `## Contexto` intactos) e deixaram de ser um sítio onde se escreve.
+
+## 26/10/2026 — A anamnese é da aluna, e a marca «nova» sai quando ela já foi entrevistada
+
+**O que motivou.** Dois relatos da pesquisadora sobre a escola de teste **Breu**, mais um terceiro
+defeito que apareceu ao medir:
+
+1. «Eu faço a anamnese da aluna A, e ela não deveria estar mais na lista aqui.»
+2. «Eu clico em fazer anamnese da aluna B, ele vai para o formulário e **imediatamente volta** para
+   a anamnese, e aí ficam habilitados os dois botões — continuar de onde parei e começar de novo.»
+
+O segundo foi reproduzido na bancada com o motor a sério, e a causa **não era a rota**: o nome
+**«Breu» é uma das três palavras que marcam a escola como escola de TESTE** (`calango`→1,
+`batata`→2, `breu`→3), e o preenchedor do fixture corria quando o MAPA ficava pronto — **antes** de
+`carregarAlunas` pôr o `?aluna=` no seletor. Sem aluna escolhida caía no primeiro registo do
+fixture («Aluna A») e **escrevia-a no campo**. O ato dizia B, o campo dizia A, a porta compara os
+dois para autorizar o bilhete, não batiam, e a página devolvia a pessoa à lista — que então oferecia
+«continuar» sobre um depósito que ela nunca escreveu. Com um nome neutro, o mesmo gesto funciona: a
+diferença é o nome.
+
+O terceiro: a chave do depósito local era `porta-anamnese-<escola>-<professor>-<ciclo>-1`, **sem a
+aluna**. Abrir o ato da Aluna B restaurava o rascunho da Aluna A — e as respostas de uma entravam no
+documento da outra. Num artefacto que existe para ser evidência, um documento com o nome de uma
+aluna e o corpo de outra é o pior defeito possível.
+
+**O que foi decidido.**
+
+- **O preenchimento automático NUNCA troca a aluna.** Com `?aluna=` no endereço, ele espera que ela
+  chegue ao seletor e não a substitui; se aquela aluna não tiver registo no fixture, não preenche
+  nada e di-lo. Trocar a aluna é gesto de quem **escolhe um registo no painel**, e só esse caminho
+  força a opção. Sem `?aluna=`, o primeiro registo do fixture continua a ser o que se mostra — é a
+  demonstração, e a demonstração é legítima.
+- **A aluna entra na chave do depósito, e na anamnese só.** O custo declarado: um rascunho começado
+  antes de a aluna ser conhecida fica sob uma chave sem ela e não é encontrado depois. Perde-se um
+  rascunho; não se contamina um documento.
+- **A marca «— nova» sai quando a aluna já tem anamnese, e a lista NÃO encolhe.** A pesquisadora
+  esperava que a aluna desaparecesse do seletor. Sai só o aviso: a aluna tem de continuar
+  alcançável, senão voltar a mexer no que já foi respondido passaria a depender de outro ecrã. O
+  aviso passa a querer dizer «ainda falta entrevistar».
+- **O critério é «tem anamnese registada», e não «está completa»** — por uma razão medida: o resumo
+  do envelope no índice não guarda a contagem de obrigatórios nem o estado derivado, e saber se está
+  completa exige **ler cada envelope**, contra a regra de que uma lista se faz com metadado, numa
+  leitura só. Um envelope só nasce quando o professor grava.
+
+**Onde entrou.**
+
+- `motor/servidor/teste-cliente.js` — `preencherAnamnese(registro, forcar)` (só força a opção quando
+  `forcar`), `alunaDoAto()`, `quandoAluna()` (espera até ~4,8 s), e `autoAnamnese()` a separar a
+  demonstração do ato. O `semearDoContexto()` depois do `clear()` devolve à barra o que o `clear`
+  levou.
+- `porta/index.html` — `chaveDaMemoria()` acrescenta a aluna na anamnese, e lê o **valor cru** do
+  campo (o `valorDoContexto` devolvia o rótulo «Cafe No Bule» e desincronizava da lista).
+- `motor/servidor/listas-do-acervo.js` — a cópia de `chaveDaMemoria()` do painel, byte a byte igual.
+- `motor/nucleo/porta.js` — `alunasDaAnamnese(curadorias, professor, todas, pedida, comAnamnese)`: o
+  quinto parâmetro tira de `novas` quem já foi entrevistada. Sem ele, a marca fica como estava — a
+  função é pura e não vai ao acervo.
+- `motor/servidor/bastidores.js` — `alunasComAnamnese(env, escola)`, uma leitura do índice; falha de
+  leitura não derruba o seletor (perder o aviso é melhor do que perder a lista).
+- `professores/luz-azul/ciclos/ciclo-01-breu/plano-observacao/index.html` — a página da porta
+  recopiada, com a barra da escola reintroduzida. **A `batata` foi expurgada do repositório no
+  mesmo dia** (`b6519ef`), e com ela as duas pastas que aqui estavam: quando este trabalho foi
+  rebasado sobre o `origin/main`, já só havia uma escola para publicar.
+
+**Medido**, já sobre o `origin/main` rebasado (`cd0304d`, escola `breu`): `provar-anamnese-por-aluna`
+**15/15** (nova), com **controle negativo a reprovar 10 de 15** sobre o código de antes;
+`provar-alunas-da-anamnese` **14/14** (era 12, e as duas novas medem o antes e o depois do mesmo
+registo); `provar-teste` 42; `provar-painel-do-ato` OK; `provar-parametros-por-parametro` 14/14;
+`provar-aula-e-plano-legiveis` 12/12; `provar-porta-sem-contexto` 44/44;
+`provar-publicacao-da-escola` 55/55; `provar-listas-do-acervo` 109/109; `provar-barra-unica` 111/111;
+`check-identidade` **0 erro**. `check-pacote` no pacote `ciclo-01-breu` reprova 16 erros **desde
+antes de este trabalho** — é o esqueleto da escola recém-criada: falta-lhe o PDF, o `dados.json`,
+as aulas, e os 30 links internos que ele confere existem. A âncora da `breu` **não existe** também
+desde antes (`hash-ciclo.sh --check` diz «ancore com: tools/hash-ciclo.sh luz-azul 01 breu»).
+
+**Uma prova deixou de poder medir.** `provar-objetivos-por-aula` media o pacote
+`ciclo-01-batata-bale-nivel-2-teste-2`, e o expurgo levou o objeto de medição com ele: a prova
+morria com um `ENOENT` no `plano-01.json`, que se lê como «a prova está avariada». Passou a dizer
+que **não foi feita** e porquê. Substituí-la por um fixture de fabrico seria medir a fábrica, e
+saltar em silêncio deixaria o rodapé do commit a citar «51 asserções» que ninguém correu.
+
+**Duas notas de bancada.**
+
+- `provar-alunas-da-anamnese` estava a medir uma página que já não estava aberta: desde que a porta
+  passou a exigir o ato inteiro, ela aterrava em `/area-do-professor/anamnese/` e expirava num
+  `waitForFunction`. Passou a entrar como se entra na vida real — **bilhete de verdade**, emitido
+  pelo motor com a senha do professor — e a seção do `?aluna=` mudou de sítio: a regra mede-se no
+  servidor, e a consequência (a porta devolve a pessoa à lista) mede-se na página.
+- A chave do envelope no KV leva o **prefixo da escola** (`breu/envelope/…`). Semear em
+  `envelope/…` fica ao lado da família, invisível para o motor — a prova media a ausência do dado em
+  vez da regra, e dava «a marca não sai» com a regra a funcionar.
+
+**O que ainda não está feito.**
+
+- **`provar-ato-e-barra` e `provar-selo` estão quebrados, e já estavam** — falham em `origin/main`
+  com «execution context was destroyed», a mesma causa: entram na porta sem o ato completo e são
+  atirados para a lista a meio da medição. Não foram tocados aqui; precisam do mesmo tratamento por
+  bilhete que a prova das alunas recebeu, e são trabalho de bancada próprio.
+- **`provar-objetivos-por-aula` está sem fixture** — media o pacote da `batata`, e o expurgo levou-o.
+  Para a recuperar: gerar um ciclo com `tools/gerar-ciclo.sh` e apontar `PROF`/`VARIANTE` (duas
+  linhas, no topo da prova).
+- **A `breu` não tem âncora de proveniência** — `ciclo-01-breu.fipp` não existe, e o `--check` manda
+  ancorar. Não foi ancorada aqui porque a âncora fecha o ciclo inteiro, e o ciclo ainda não tem
+  PO declarado: ancorar agora selaria um ciclo pela metade. É gesto de quem termina a escola.
+- **O critério da marca é uma decisão minha, não dela**, e está escrito acima para poder ser trocado
+  numa linha: hoje basta ter anamnese registada; se o critério deve ser «anamnese completa», o
+  resumo do envelope passa a precisar da contagem, e o índice sobe de versão.
+- A escola **Breu** continua a ser escola de TESTE: o nome é que a marca. Quem quiser nela o
+  comportamento de uma escola real troca o nome; quem a quiser como banco de ensaio sabe o que tem.

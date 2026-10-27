@@ -225,15 +225,32 @@ const SCRIPT = String.raw`(function () {
     sel.value = valor;
   }
 
-  function preencherAnamnese(registro) {
+  /* A ALUNA DO FIXTURE SÓ SE FORÇA QUANDO ALGUÉM A ESCOLHE (26/10/2026).
+   *
+   * O DEFEITO, medido na tela e reproduzido na bancada. Este preenchimento automático corria
+   * quando o MAPA ficava pronto — que é ANTES de 'carregarAlunas' pôr o '?aluna=' do ato no
+   * seletor. Sem aluna escolhida, caía no primeiro registo do fixture («Aluna A») e
+   * 'garantirOpcao' ESCREVIA essa aluna no seletor. O ato dizia B, o campo dizia A, a porta
+   * comparava os dois para autorizar o bilhete, não batiam — e a página devolvia a pessoa à
+   * lista, que então oferecia «continuar» sobre um depósito que ela nunca escreveu.
+   *
+   * A regra que fica: o preenchimento automático NUNCA troca a aluna. Se a aluna do ato não tem
+   * registo no fixture, não se preenche nada e diz-se porquê. Trocar a aluna é gesto de quem
+   * ESCOLHE um registo no painel, e só esse caminho passa 'forcar'.
+   */
+  function preencherAnamnese(registro, forcar) {
     if (!registro) return;
     var sel = porId('ctx-aluna');
-    if (sel) garantirOpcao(sel, registro.aluna);
+    if (sel && forcar) garantirOpcao(sel, registro.aluna);
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
     Object.keys(registro.respostas || {}).forEach(function (k) { RESPOSTAS.set(k, registro.respostas[k]); });
     Object.keys(registro.notas || {}).forEach(function (k) { NOTAS.set(k, registro.notas[k]); });
+    /* O CONTEXTO VOLTA A SER SEMEADO DA BARRA. O 'clear()' acima levou também as respostas que
+       vêm do cabeçalho ('contexto-aluna' & cia), e sem esta linha a barra e o mapa divergiam —
+       o documento continua a ler o contexto dos campos, mas o roteiro dava-os por vazios. */
+    if (typeof semearDoContexto === 'function') semearDoContexto();
     if (typeof atualizarBarra === 'function') atualizarBarra();
     if (typeof pintarRoteiro === 'function') pintarRoteiro();
     if (typeof marcarContextoFaltando === 'function') marcarContextoFaltando();
@@ -254,11 +271,47 @@ const SCRIPT = String.raw`(function () {
     return null;
   }
 
-  function autoAnamnese() {
+  /* O PREENCHIMENTO AUTOMÁTICO E A ALUNA DO ATO (26/10/2026).
+   *
+   * A REGRA, e a diferença que a torna certa: o preenchedor só ESCOLHE a aluna quando ninguém a
+   * escolheu antes dele. Com aluna declarada no ato ('?aluna='), ela é do ato — o preenchedor
+   * espera que chegue ao seletor (a lista é assíncrona) e nunca a troca; se a aluna do ato não
+   * tiver registo no fixture, não preenche nada e di-lo.
+   *
+   * O caso da demonstração — sem aluna no endereço — continua a ser o de sempre: o primeiro
+   * registo do fixture é o que se mostra, e é o preenchedor que o escolhe.
+   */
+  function alunaDoAto() {
+    try { return String(new URLSearchParams(location.search).get('aluna') || '').trim(); }
+    catch (e) { return ''; }
+  }
+
+  function quandoAluna(pronto, tentativas) {
     var sel = porId('ctx-aluna');
-    var escolhida = sel ? sel.value : '';
-    var registro = anamneseDaAluna(escolhida) || (fixture.anamnese || [])[0];
-    if (registro) preencherAnamnese(registro);
+    var n = tentativas || 0;
+    if (sel && sel.value) return pronto();
+    if (n >= 40) {
+      dizer('A aluna do ato não chegou ao seletor — nada foi preenchido.');
+      return;
+    }
+    setTimeout(function () { quandoAluna(pronto, n + 1); }, 120);
+  }
+
+  function autoAnamnese() {
+    var pedida = alunaDoAto();
+    if (!pedida) {
+      var primeiro = (fixture.anamnese || [])[0];
+      if (primeiro) preencherAnamnese(primeiro, true);
+      return;
+    }
+    quandoAluna(function () {
+      var registro = anamneseDaAluna(pedida);
+      if (!registro) {
+        dizer('Sem anamnese de teste para ' + pedida + ' — o formulário fica como está.');
+        return;
+      }
+      preencherAnamnese(registro, false);
+    });
   }
 
   function painelAnamnese() {
@@ -266,7 +319,9 @@ const SCRIPT = String.raw`(function () {
     var nomes = (fixture.anamnese || []).map(function (a) { return a.aluna; });
     corpo.appendChild(seletorDeRegistros('Aluna', nomes, function (i) {
       var registro = (fixture.anamnese || [])[i];
-      if (registro) preencherAnamnese(registro);
+      /* AQUI O 'forcar' É VERDADEIRO, e só aqui: escolher um registo NO PAINEL é um gesto
+         explícito de quem quer aquele registo. O preenchimento automático não tem esse direito. */
+      if (registro) preencherAnamnese(registro, true);
     }));
     return corpo;
   }
@@ -566,7 +621,7 @@ const SCRIPT = String.raw`(function () {
       window.__testeUltimoChange = { id: e.target.id, valor: e.target.value, fonte: FONTE };
       if (FONTE === 'anamnese' && e.target.id === 'ctx-aluna') {
         var registro = anamneseDaAluna(e.target.value);
-        if (registro) preencherAnamnese(registro);
+        if (registro) preencherAnamnese(registro, false);
       }
       if (FONTE === 'plano' && e.target.id === 'ctx-turma') {
         var plano = planoDaTurma(e.target.value);

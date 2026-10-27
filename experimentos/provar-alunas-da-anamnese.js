@@ -120,16 +120,50 @@ const ENV = {
   ESCOLA_HABILITADA: 'sim',
   PROFESSOR_NOME: 'Café no Bulé',
   SENHA_ADMIN: 'senha-da-direcao',
+  /* A SENHA DO PROFESSOR (26/10/2026). A porta devolve à lista quem chega sem o ato autorizado, e
+     autorizar é o que a senha faz — na vida real a lista valida a senha e emite um BILHETE de uso
+     único, que a porta troca por autorização. A bancada faz o mesmo, com o motor a sério: sem
+     isto, cada `goto` desta prova aterrava em `/area-do-professor/anamnese/` e a prova media uma
+     página que já não estava aberta. */
+  SENHA_PROFESSOR: 'senha-do-professor',
   PADD_KV: criarKv({
     'bastidores/batata/alunas': JSON.stringify(ALUNAS),
     'bastidores/batata/curadorias': JSON.stringify(
       Object.values(CURADORIAS).flat().filter(Boolean)),
+    /* Os professores que NÃO são o dono precisam da senha no registo: a do dono vem do `env`. */
+    'bastidores/batata/professores': JSON.stringify(
+      ['manga-curta', 'meia-cortada', 'sem-curadoria'].map((slug) => ({
+        nome: slug, slug, senha: 'senha-do-professor',
+      }))),
   }),
 };
 async function motor(caminhoComQuery) {
   const r = await bastidores.fetch(new Request('https://x' + caminhoComQuery), ENV);
   if (!r) throw new Error('os Bastidores não trataram ' + caminhoComQuery);
   return { status: r.status, corpo: await r.text() };
+}
+
+/** O mesmo motor, com o método e o corpo do pedido — os bilhetes são POST. */
+async function motorCom(caminhoComQuery, metodo, corpo) {
+  const r = await bastidores.fetch(new Request('https://x' + caminhoComQuery, {
+    method: metodo,
+    headers: corpo ? { 'Content-Type': 'application/json' } : undefined,
+    body: corpo || undefined,
+  }), ENV);
+  if (!r) throw new Error('os Bastidores não trataram ' + caminhoComQuery);
+  return { status: r.status, corpo: await r.text() };
+}
+
+/** O BILHETE DO ATO — o mesmo gesto da lista: a senha confere, o servidor emite o bilhete. */
+async function bilhete(slug, aluna) {
+  const r = await bastidores.fetch(new Request('https://x/api/bastidores/ato', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ senha: 'senha-do-professor', professor: slug, fonte: 'anamnese',
+      ciclo: '01', aluna }),
+  }), ENV);
+  const d = await r.json();
+  if (!d || !d.ato) throw new Error('sem bilhete para ' + slug + '/ ' + aluna + ': ' + JSON.stringify(d));
+  return d.ato;
 }
 
 function servir() {
@@ -177,11 +211,18 @@ function servir() {
        de produção. O que a prova mede é a lista que o servidor devolve E a que o browser
        desenha: duas metades, e a primeira não pode ser um stub. */
     if (caminho.endsWith('/api/bastidores/alunas')
-      || caminho.indexOf('/api/bastidores/curadoria-professor') !== -1) {
-      return motor(url.pathname + url.search).then((r) => {
-        res.writeHead(r.status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-        res.end(r.corpo);
-      }).catch((e) => { res.writeHead(500); res.end(String(e)); });
+      || caminho.indexOf('/api/bastidores/curadoria-professor') !== -1
+      || caminho.indexOf('/api/bastidores/ato') !== -1) {
+      const pedacos = [];
+      req.on('data', (p) => pedacos.push(p));
+      req.on('end', () => {
+        const corpo = Buffer.concat(pedacos).toString('utf8');
+        motorCom(url.pathname + url.search, req.method, corpo).then((r) => {
+          res.writeHead(r.status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+          res.end(r.corpo);
+        }).catch((e) => { res.writeHead(500); res.end(String(e)); });
+      });
+      return undefined;
     }
     if (caminho.endsWith('/api/envelopes')) return json({ ok: true, envelopes: [] });
     if (caminho.endsWith('/api/anamnese-estados')) return json({ ok: true, estados: {} });
@@ -224,9 +265,19 @@ function servir() {
     return [...sel.querySelectorAll('option')].map((o) => o.value).filter(Boolean);
   });
 
-  /** Abre a anamnese já com um professor escolhido, e espera a curadoria chegar. */
-  const abrir = async (slug, extra) => {
-    await pagina.goto(base + '/anamnese/?escola=batata&professor=' + slug + (extra || ''),
+  /* Abre a anamnese já com um professor escolhido, e espera a curadoria chegar.
+   *
+   * O `&ciclo=01` E O `&aluna=` NÃO SÃO DECORAÇÃO (26/10/2026). A porta devolve à lista quem chega
+   * sem o contexto do ato — professor, ciclo e, na anamnese, aluna (`CAMPOS_DO_CONTEXTO`) —, e a
+   * trava corre depois de `carregarAlunas`. Sem estes dois parâmetros o browser navegava para
+   * `/area-do-professor/anamnese/` antes de o seletor encher, e esta prova media uma página que
+   * já não estava aberta: ficou a arder desde o dia em que a trava passou a valer, e o sintoma era
+   * um `waitForFunction` a expirar. A aluna passa a vir no endereço como vem na vida real: a lista
+   * da Área do Professor monta o link do ato com ela. */
+  const abrir = async (slug, aluna) => {
+    const t = await bilhete(slug, aluna);
+    await pagina.goto(base + '/anamnese/?escola=batata&ciclo=01&professor=' + slug
+      + '&aluna=' + encodeURIComponent(aluna) + '&abrir=1&ato=' + encodeURIComponent(t),
       { waitUntil: 'load' });
     await pagina.waitForFunction(() => {
       const sel = document.getElementById('ctx-aluna');
@@ -248,7 +299,7 @@ function servir() {
     ['manga-curta', 'Aluna A', 'Manga Curta'],
     ['meia-cortada', 'Aluna C', 'Meia Cortada'],
   ]) {
-    await abrir(slug);
+    await abrir(slug, propria);
     const vistas = await alunasVisiveis();
     provar(nome + ' vê a sua aluna e a nova, e mais nenhuma',
       JSON.stringify(vistas) === JSON.stringify([propria, 'Aluna D']), vistas);
@@ -264,7 +315,7 @@ function servir() {
   console.log('\n2 · Trocar de professor não arrasta a aluna do anterior');
   /* A SEQUÊNCIA DO DEFEITO. Escolhe-se a aluna do Manga (A), troca-se para o Café (que tem a
      B) — e a A não pode continuar na lista. Era assim que ela viajava entre as três. */
-  await abrir('manga-curta');
+  await abrir('manga-curta', 'Aluna A');
   await pagina.evaluate(() => {
     document.getElementById('ctx-aluna').value = 'Aluna A';
     const sel = document.getElementById('ctx-professor');
@@ -278,17 +329,30 @@ function servir() {
 
   console.log('\n3 · O `?aluna=` da URL não autoriza ninguém');
   /* O ATALHO DO PO existe para não obrigar a escolher de novo — mas uma aluna curada a OUTRA
-     professora não entra só porque veio no endereço. */
-  await abrir('cafe-no-bule', '&aluna=Aluna%20C');
-  const comAtalho = await alunasVisiveis();
-  provar('com `?aluna=Aluna C`, o Café não passa a ver a aluna da Meia Cortada',
-    JSON.stringify(comAtalho) === JSON.stringify(['Aluna B', 'Aluna D']), comAtalho);
+     professora não entra só porque veio no endereço.
+     A MEDIÇÃO MUDOU DE SÍTIO (26/10/2026), e a consequência ficou mais forte. Antes media-se na
+     lista desenhada: pedia-se a porta com `?aluna=Aluna C` e via-se que a C não entrava no
+     seletor. Hoje a porta não abre sem o ato inteiro, e a aluna não autorizada deixa o campo
+     vazio — a trava devolve a pessoa à lista em vez de lhe mostrar um seletor sem ela. O sítio da
+     decisão sempre foi o servidor; é lá que a regra se mede, e a consequência mede-se na página. */
+  const comAtalho = JSON.parse((await motor('/api/bastidores/alunas?professor=cafe-no-bule&aluna='
+    + encodeURIComponent('Aluna C'))).corpo);
+  provar('o servidor não acrescenta a Aluna C (curada a outra professora) por ela vir no endereço',
+    JSON.stringify(comAtalho.alunas) === JSON.stringify(['Aluna B', 'Aluna D'])
+    && JSON.stringify(comAtalho.novas) === JSON.stringify(['Aluna D']), comAtalho);
+
+  const t3 = await bilhete('cafe-no-bule', 'Aluna C');
+  await pagina.goto(base + '/anamnese/?escola=batata&ciclo=01&professor=cafe-no-bule'
+    + '&aluna=Aluna%20C&abrir=1&ato=' + encodeURIComponent(t3), { waitUntil: 'load' });
+  await new Promise((r) => setTimeout(r, 700));
+  provar('e a porta, com ela no endereço, devolve a pessoa à lista em vez de abrir o ato',
+    pagina.url().indexOf('/area-do-professor/anamnese/') !== -1, pagina.url());
 
   console.log('\n4 · O caso legítimo continua: aluna fora do cadastro entra assim mesmo');
   /* O comentário do código diz por que a re-inclusão existe: «aluna ainda não cadastrada na
      Produção». Se o atalho traz um apelido que NÃO está no cadastro, descartá-lo deixaria o
      professor sem a aluna que o sistema lhe mandou observar. Esse caso fica. */
-  await abrir('cafe-no-bule', '&aluna=Aluna%20Nova');
+  await abrir('cafe-no-bule', 'Aluna Nova');
   const foraDoCadastro = await alunasVisiveis();
   provar('a aluna que não está no cadastro entra na lista (o atalho não é descartado)',
     foraDoCadastro.indexOf('Aluna Nova') !== -1 && foraDoCadastro.indexOf('Aluna B') !== -1,
@@ -298,7 +362,7 @@ function servir() {
   /* Sem curadoria, a professora não autoriza aluna matriculada nenhuma — mas a porta de entrada
      continua aberta para quem ainda não tem turma. É a metade que a dona do produto lembrou,
      agora com o recorte certo: as matriculadas são de quem as curou, as novas são de todos. */
-  await abrir('sem-curadoria');
+  await abrir('sem-curadoria', 'Aluna D');
   const semCuradoria = await alunasVisiveis();
   provar('sem curadoria, a lista é só a das alunas novas',
     JSON.stringify(semCuradoria) === JSON.stringify(NOVAS), semCuradoria);
@@ -307,7 +371,7 @@ function servir() {
   /* «Aluna D — nova» é o TEXTO da opção; o valor é «Aluna D». O contexto do ato lê o rótulo da
      opção escolhida (`valorDoContexto`), e sem o `data-nome` a palavra «nova» iria para dentro
      do envelope — um apelido que não existe, e num campo que a proveniência não reescreve. */
-  await abrir('cafe-no-bule');
+  await abrir('cafe-no-bule', 'Aluna B');
   const valorNoDocumento = await pagina.evaluate(() => {
     const sel = document.getElementById('ctx-aluna');
     sel.value = 'Aluna D';
@@ -318,6 +382,45 @@ function servir() {
   provar('a opção diz «Aluna D — nova», mas o valor e o `data-nome` são o apelido',
     valorNoDocumento.texto === 'Aluna D — nova' && valorNoDocumento.valor === 'Aluna D'
     && valorNoDocumento.nome === 'Aluna D', valorNoDocumento);
+
+  console.log('\n7 · A marca «nova» sai quando a anamnese já existe (e a lista fica)');
+  /* O DEFEITO QUE A PESQUISADORA VIU (26/10/2026). «Eu fiz a anamnese da aluna A. Ela tá pronta
+     a anamnese. […] ela não deveria estar mais na lista aqui.» A decisão dela: a aluna FICA (é
+     preciso poder voltar a mexer no que foi respondido), mas perde a marca — o aviso é «ainda
+     falta entrevistar», e deixa de ser verdade no instante em que há registo.
+     O QUE SE MEDE É O ANTES E O DEPOIS DO MESMO REGISTO: a seção 6 acabou de ler «Aluna D —
+     nova» com o acervo vazio. Grava-se a anamnese dela e volta-se a abrir: a mesma aluna, o
+     mesmo seletor, sem a marca. Se alguém apagar a regra do `alunasDaAnamnese`, a segunda metade
+     reprova — é o controle negativo feito com o dado, e não com o código. */
+  const CARIMBO = 'anamnese-20261026090000';
+  /* A CHAVE LEVA O PREFIXO DA ESCOLA — `batata/envelope/…`, e não `envelope/…`. O adaptador
+     (`armazenamento`) põe o slug da escola à frente de tudo o que lê e escreve; sem ele o
+     envelope ficava ao lado da família, invisível para o motor, e esta seção media a ausência do
+     dado em vez da regra. Custou uma corrida: o índice gravado apareceu em
+     `batata/envelope/.indice.json` e o semeado em `envelope/`. */
+  const PREFIXO = 'batata/envelope/';
+  ENV.PADD_KV.store.set(PREFIXO + CARIMBO + '.json', JSON.stringify({
+    id: CARIMBO,
+    $comentario: 'envelope de prova — a Aluna D já foi entrevistada',
+    envelope: 1,
+    conteudo: { endereco: 'x', norma: 'y', digest: null, digestAlgoritmo: 'sha256' },
+    respostas: { 'contexto-aluna': { valor: 'Aluna D' } },
+    contexto: { escola: 'batata', professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna D' },
+    gerado_em: '2026-10-26T09:00:00Z',
+    validacao: { contrato: 'x', resultado: 'passou', motivos: [] },
+  }));
+  /* O ÍNDICE JÁ GRAVADO NÃO SABE DESTE ENVELOPE. A primeira leitura da seção 1 construiu-o e
+     guardou-o no KV; `lerIndice` devolve-o tal e qual enquanto ele lá estiver. Apagá-lo é o que
+     obriga a enumeração a ver o registo novo — e é o que a produção faz sozinha, porque
+     `gravarEnvelope` reescreve o índice na mesma escrita. */
+  ENV.PADD_KV.store.delete(PREFIXO + '.indice.json');
+
+  await abrir('cafe-no-bule', 'Aluna B');
+  const depoisDaAnamnese = await opcoes();
+  provar('a Aluna D continua na lista depois de ter anamnese',
+    depoisDaAnamnese.some((o) => o.valor === 'Aluna D'), depoisDaAnamnese);
+  const rotuloDaD = (depoisDaAnamnese.find((o) => o.valor === 'Aluna D') || {}).texto || '';
+  provar('e deixa de levar a marca «nova»', rotuloDaD === 'Aluna D', rotuloDaD);
 
   await navegador.close();
   srv.close();

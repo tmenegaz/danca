@@ -420,6 +420,40 @@ async function resumosDosPlanos(env, escola) {
   return lista.map((x) => x.resumo);
 }
 
+/**
+ * AS ALUNAS QUE JÁ TÊM ANAMNESE (26/10/2026) — o conjunto que apaga a marca «nova».
+ *
+ * O que a marca dizia e o que passou a dizer. Ela nasceu para avisar «esta aluna ainda não tem
+ * professor nem turma» (não está em curadoria nenhuma, a porta de entrada da escola). A
+ * pesquisadora leu-a como «esta aluna ainda não foi entrevistada» e pediu que ela saísse quando
+ * a anamnese ficasse feita — a lista NÃO encolhe (a aluna continua alcançável, e voltar a mexer
+ * no que já foi respondido não pode depender de outro ecrã), mas o aviso desaparece.
+ *
+ * O CRITÉRIO É «TEM ANAMNESE REGISTADA», e não «está completa», por uma razão medida: o resumo
+ * do envelope no índice não guarda a contagem de obrigatórios nem o estado derivado — saber se
+ * está «completa» exige LER cada envelope, e a regra desta estante é que uma lista se faz com
+ * metadado, numa leitura só. Um envelope só nasce quando o professor grava, e gravar é o gesto
+ * de quem já entrevistou.
+ *
+ * FALHA DE LEITURA NÃO DERRUBA O SELETOR: sem o conjunto, a marca fica como estava (o
+ * comportamento de antes desta regra). Perder o aviso é melhor do que perder a lista.
+ */
+async function alunasComAnamnese(env, escola) {
+  const legado = criarCloudflare(env);
+  const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+  try {
+    const estados = await porta.estadosDasAnamneses(armazenamento);
+    const nomes = new Set();
+    for (const e of Object.values(estados)) {
+      const apelido = String((e && e.apelido) || '').trim();
+      if (apelido) nomes.add(apelido);
+    }
+    return nomes;
+  } catch (e) {
+    return new Set();
+  }
+}
+
 /** As TURMAS que já têm plano — o conjunto que o cartão da turma consulta. */
 async function turmasComPlano(env, escola) {
   const pares = await paresComPlano(env, escola);
@@ -4983,6 +5017,10 @@ async function fetch(request, env) {
    * O RECORTE É DO SERVIDOR. Antes, a tela pedia a escola inteira e filtrava no browser, e a
    * autorização era só uma linha de JavaScript — contornável por qualquer valor que o campo já
    * tivesse. Quem lê o acervo é o servidor; a tela desenha o que ele devolve.
+   *
+   * E A MARCA «NOVA» TAMBÉM (26/10/2026): a aluna que já tem anamnese registada continua na
+   * lista — voltar a mexer no que foi respondido não pode depender de outro ecrã —, mas deixa de
+   * levar o aviso de quem ainda falta entrevistar.
    */
   if (path === '/api/bastidores/alunas') {
     const todas = await alunas(kv, escola);
@@ -4999,7 +5037,7 @@ async function fetch(request, env) {
       return json(200, { ok: true, escola, alunas: lista });
     }
     const recorte = porta.alunasDaAnamnese(await curadorias(kv, escola), professorDoRecorte, todas,
-      url.searchParams.get('aluna'));
+      url.searchParams.get('aluna'), await alunasComAnamnese(env, escola));
     return json(200, {
       ok: true, escola, alunas: recorte.alunas, novas: recorte.novas,
       recorte: { professor: professorDoRecorte },

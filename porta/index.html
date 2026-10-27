@@ -1040,11 +1040,18 @@ function buscarJSON(url) {
  * `memoriaLigada` desligado significa que o navegador recusou guardar (aba
  * privada, cota cheia): a tela avisa, e nada mais quebra por causa disso.
  */
-// A chave do depósito é POR ESCOLA · PROFESSOR · CICLO (as três vêm da URL, estáveis),
-// não global. Sem isto, o rascunho de uma escola/professor vazava para outro. A aluna
-// NÃO entra na chave: ela é escolhida no seletor DEPOIS da carga (não está na URL), então
-// uma chave com aluna seria instável — o load leria um nome e o save gravaria outro.
-// A categoria etária, que era o sintoma do vazamento, é re-derivada da idade no load.
+// A chave do depósito é POR ESCOLA · PROFESSOR · CICLO — e, na anamnese, TAMBÉM PELA ALUNA.
+//
+// A ALUNA ENTROU NA CHAVE EM 26/10/2026, e o comentário anterior dizia o contrário («ela é
+// escolhida no seletor DEPOIS da carga, não está na URL»). Isso deixou de ser verdade quando a
+// Área do Professor passou a montar o ato com `?aluna=` — ela vem no endereço, como o professor
+// e o ciclo. E a consequência de a deixar de fora foi medida: o depósito da Aluna A era
+// restaurado ao abrir o ato da Aluna B, e as respostas de uma entravam no documento da outra. Um
+// documento com o nome de uma aluna e o corpo de outra é o pior defeito possível num artefacto
+// que existe para ser evidência.
+//
+// O CUSTO: um depósito começado antes de a aluna ser conhecida fica sob uma chave sem ela, e não
+// é encontrado depois. Perde-se um rascunho; não se contamina um documento. A troca é essa.
 function chaveDaMemoria() {
   const partes = ['porta', FONTE];
   /* A URL VALE ENQUANTO A BARRA NÃO VALE (26/10/2026). O `select` do professor só recebe o
@@ -1053,7 +1060,14 @@ function chaveDaMemoria() {
    * `porta-anamnese-<escola>-1`, que não existe: a porta não encontrava o preenchimento
    * interrompido do próprio professor e nascia como rascunho novo. */
   const daUrl = new URLSearchParams(location.search);
-  for (const nome of ['escola', 'professor', 'ciclo']) {
+  const nomes = ['escola', 'professor', 'ciclo'];
+  if (FONTE === 'anamnese') nomes.push('aluna');
+  for (const nome of nomes) {
+    /* O VALOR CRU DO CAMPO, e não o rótulo: o `value` do professor é o slug («cafe-no-bule») e
+     * o do `select` da aluna já é o apelido limpo (a marca «— nova» vive no texto da opção).
+     * A cópia desta função em `listas-do-acervo.js` lê `valor()` — que também é o `value` —, e as
+     * duas TÊM de produzir a mesma string: se divergirem, «continuar de onde parei» não acha o
+     * depósito que a porta gravou. */
     const doCampo = (($('ctx-' + nome) || {}).value || '').trim();
     const v = doCampo || String(daUrl.get(nome) || '').trim();
     if (v) partes.push(v);
