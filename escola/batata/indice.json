@@ -515,5 +515,11 @@
       }
     }
   ],
-  "professores": []
+  "professores": [
+    {
+      "slug": "so-para-direita",
+      "nome": "Só para Direita",
+      "desde": "2026-10-27T12:31:22.565Z"
+    }
+  ]
 }
