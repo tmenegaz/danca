@@ -3,10 +3,10 @@
   "worker": "batata",
   "criado_em": "2026-10-19T16:48:13.723848+00:00",
   "professor": {
-    "slug": "tiago-menegaz",
-    "nome": "Tela de PC"
+    "slug": "perna-boa",
+    "nome": "Perna Boa"
   },
-  "responsavel": "Tiago Menegaz",
+  "responsavel": "Perna Boa",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -472,33 +472,48 @@
       },
       "responsavel": "Cafe No Bule",
       "ciclo": "01"
+    },
+    {
+      "em": "2026-10-27T12:11:05.731644+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "perna-boa",
+        "nome": "Perna Boa"
+      },
+      "responsavel": "Perna Boa",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "teclado-abnt",
+          "nome": "Teclado ABNT",
+          "desde": "2026-10-22T12:15:34.474Z"
+        },
+        {
+          "slug": "meia-cortada",
+          "nome": "Meia Cortada",
+          "desde": "2026-10-22T12:42:38.394Z"
+        },
+        {
+          "slug": "tela-de-celular",
+          "nome": "Tela de TV",
+          "desde": "2026-10-22T13:17:31.646Z"
+        },
+        {
+          "slug": "acucar-branco",
+          "nome": "Açucar Branco",
+          "desde": "2026-10-22T13:29:56.286Z"
+        },
+        {
+          "slug": "manga-curta",
+          "nome": "Manga Curta",
+          "desde": "2026-10-23T13:14:52.504Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "tiago-menegaz",
+        "nome": "Tela de PC"
+      }
     }
   ],
-  "professores": [
-    {
-      "slug": "teclado-abnt",
-      "nome": "Teclado ABNT",
-      "desde": "2026-10-22T12:15:34.474Z"
-    },
-    {
-      "slug": "meia-cortada",
-      "nome": "Meia Cortada",
-      "desde": "2026-10-22T12:42:38.394Z"
-    },
-    {
-      "slug": "tela-de-celular",
-      "nome": "Tela de TV",
-      "desde": "2026-10-22T13:17:31.646Z"
-    },
-    {
-      "slug": "acucar-branco",
-      "nome": "Açucar Branco",
-      "desde": "2026-10-22T13:29:56.286Z"
-    },
-    {
-      "slug": "manga-curta",
-      "nome": "Manga Curta",
-      "desde": "2026-10-23T13:14:52.504Z"
-    }
-  ]
+  "professores": []
 }

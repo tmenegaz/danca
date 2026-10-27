@@ -1,50 +1,111 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/perna-boa/ciclos/ciclo-01-batata.conf",
+        "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:perna-boa/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "perna-boa",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.conf",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-batata.conf",
+      "professor": "perna-boa",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:perna-boa/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "perna-boa",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:perna-boa/01/batata"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-10-23T12:56:28.588332+00:00",
-    "expurgada": true,
+    "criada_em": "2026-10-27T12:11:05.731644+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-10-27T00:04:38.481Z",
     "expurgos": 5,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:batata",
     "nome": "batata",
-    "professor": "cafe-no-bule",
+    "professor": "perna-boa",
     "professores": [
-      "acucar-branco",
-      "cafe-no-bule",
-      "manga-curta",
-      "meia-cortada",
-      "sapo-bailarino",
-      "teclado-abnt",
-      "tela-de-celular",
-      "tiago-menegaz"
+      "perna-boa"
     ],
     "registros": [],
     "slug": "batata"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:perna-boa/01/batata"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:perna-boa/01/batata"
+        ],
+        "rotulo": "perna-boa",
+        "valor": "perna-boa"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:perna-boa/01/batata"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "1f56d19"
+    "commit": "25c60f1"
   },
-  "gerado_em": "2026-10-27T12:01",
+  "gerado_em": "2026-10-27T12:11",
   "nao_indexado": [
     {
       "familia": "conteudo",
