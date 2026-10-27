@@ -86,6 +86,42 @@ function escapavel(texto) {
  * A LINHA DE CONTEXTO É UMA SÓ, e não repete o que as caixas dizem: é a regra que a lista dos
  * planos já seguia, e a primeira informação a envelhecer seria sempre a repetida.
  */
+/*
+ * O NOME QUE ABRE O DOCUMENTO (27/10/2026).
+ *
+ * A pesquisadora: «eu clicava em nome da aluna e eu ia até a anamnese da aluna no formato de ficha
+ * preenchida, inclusive se eu quisesse imprimir isso. […] editar é um lugar de atenção.» O layout
+ * novo perdeu esse gesto — o nome passou a ser texto morto, e o único caminho para o documento
+ * passou a ser o botão «Editar», que é exactamente o sítio de onde ela queria manter distância.
+ *
+ * `item.ler` é o endereço da ficha (ver `fichaDeLeitura` em `listas-do-acervo.js`). Sem ele, o
+ * nome fica como estava: um `<b>`, e não um link para lado nenhum. A marcação que se acrescenta é
+ * um `<a>` em volta do `<b>` que já existia — nenhuma classe nova, nenhuma peça nova; a folha
+ * já estiliza `a` dentro do cartão.
+ *
+ * O `title` diz o que o clique faz, e diz também o que ele NÃO faz: quem lê «abrir a ficha» sabe
+ * que não está a entrar no formulário. É a mesma disciplina dos botões de acção, onde «Editar» e
+ * «Ajustar» nunca se confundem.
+ */
+function nomeDaLista(item) {
+  if (!item.ler) return '<b>' + esc(item.nome) + '</b>';
+  /* O LINK FICA DENTRO DO `<b>` — é como a bancada o desenhou (`nome-do-registo`, em
+     `experimentos/propostas/construir.js`), e é o que mantém o nome com o peso que a linha já
+     tinha: um link que emagrece o nome muda a hierarquia da lista.
+   *
+   * SEM CLASSE NOVA. A bancada usou `nome-do-registo`, que nunca entrou na folha nem no catálogo —
+   * e é por isso, e não por esquecimento, que o desenho não chegou à produção: uma classe que não
+   * é peça nem gancho declarado reprova na checagem 8. O que se usa aqui é o `main a` que a folha
+   * já tem (cor da marca e sublinhado pontilhado), e que o `@media print` já neutraliza — no papel
+   * o nome sai texto, como deve.
+   *
+   * `target="_blank"` É O GESTO: ler não é sair. Quem abre a ficha quer consultá-la e imprimir, e
+   * voltar à lista onde as outras estão. A convenção já era esta na bancada (`_blank` +
+   * `noopener`). */
+  return '<b><a href="' + esc(item.ler) + '" target="_blank" rel="noopener"'
+    + ' title="abrir a ficha para ler e imprimir">' + esc(item.nome) + '</a></b>';
+}
+
 function cartaoDaLista(item, indice) {
   const id = String(indice + 1);
   const busca = [item.nome, item.turma, item.professor, item.contexto].filter(Boolean)
@@ -111,7 +147,7 @@ function cartaoDaLista(item, indice) {
   return '  <li class="trio-plano" data-busca="' + esc(busca) + '"'
     + ' data-prof="' + esc(item.professor || '') + '" data-turma="' + esc(item.turma || '') + '">'
     + '\n    <div class="trio-linha">'
-    + '\n      <span class="trio-nome"><b>' + esc(item.nome) + '</b>' + selo + '</span>'
+    + '\n      <span class="trio-nome">' + nomeDaLista(item) + selo + '</span>'
     + '\n      <span class="trio-acoes">' + acoes + '</span>'
     + '\n    </div>'
     + (fatos ? '\n    ' + fatos : '')

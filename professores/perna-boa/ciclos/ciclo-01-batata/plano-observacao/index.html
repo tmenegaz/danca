@@ -1187,7 +1187,20 @@ let ATO_AUTORIZADO = false;
  * conferir, e é o que faz o salto da lista funcionar sem que a senha viaje no endereço.
  */
 function podePreencher(retomando) {
-  const faltam = contextoFaltandoCompleto();
+  /* A TURMA NÃO É PRÉ-REQUISITO DE ENTRADA (27/10/2026) — é de GRAVAÇÃO.
+   *
+   * DEFEITO MEDIDO: professor com curadoria mas sem turma atribuída entrava na porta e era
+   * devolvido à lista em silêncio, sem uma palavra. `contextoFaltandoCompleto()` soma a turma, e
+   * o teste de entrada usava a lista completa — de modo que a página que existe para ANUNCIAR o
+   * que falta (`marcarContextoFaltando`, o `falta` no campo) nunca chegava a ser vista.
+   *
+   * A regra é a que a própria página já pratica em dois outros sítios: o «Começar» desabilita
+   * (`atualizarComecar`, com a lista completa) e o servidor recusa a gravação (403 em
+   * `POST /api/elicitar`). Entrar não escreve nada — e entrar é o que permite LER o motivo.
+   *
+   * O que continua a barrar a entrada é a identidade do ato (professor, ciclo, aluna): sem ela
+   * não há formulário a abrir, só um endereço sem contexto. */
+  const faltam = contextoFaltando();
   if (faltam.length) return false;
   /* EM EDIÇÃO A SENHA NÃO É PRÉ-REQUISITO DE ENTRADA (26/10/2026). Ela é pré-requisito de
    * GRAVAÇÃO — e o pedido é explícito: «quando eu vou pela edição, eu venho direto para dentro do
@@ -3279,7 +3292,14 @@ function turmasJaUsadas() {
 
 /** O endereço do plano para OUTRA aba: a edição (o que está livre), ou a leitura do que ficou. */
 function urlDoPlano(carimbo, ajustar) {
-  if (!ajustar) return 'api/envelope/' + encodeURIComponent(carimbo);
+  /* «VER O PLANO» ABRE O PLANO (27/10/2026). O rótulo do atalho já dizia «ver o plano», e o
+   * `title` prometia «ver o que ficou gravado» — e o endereço levava ao ENVELOPE CRU. Um plano
+   * vinculado não se edita, e é por isso que este ramo existe; mas leitura de documento é a folha,
+   * não o JSON. Era o mesmo defeito da listagem, num segundo sítio: o documento existia e o link
+   * não ia lá. */
+  if (!ajustar) {
+    return 'api/plano-preenchido.' + encodeURIComponent(carimbo) + '?formato=html';
+  }
   const q = new URLSearchParams(location.search);
   q.set('fonte', 'plano');
   q.set('editar', carimbo);
@@ -3333,16 +3353,18 @@ function gradeDeOpcoesDinamicas(no) {
   let lista = OPCOES.get(ep) || [];
   const erro = OPCOES_ERRO.get(ep);
 
-  // O QUE A ESCOLA DECLARA DESCE PARA O CAMPO. Um nó que declara `daCuradoria` lê a
-  // atribuição da direção: a lista FILTRA para o que é do professor — ele não escolhe
-  // entre as turmas da escola, só confirma a dele. E nasce MARCADO: o que já foi
-  // designado não se marca de novo. Sem curadoria (ou sem atribuição no campo), a
-  // lista segue inteira — a tela nunca inventa nem esvazia.
-  const atribuido = no.daCuradoria ? daCuradoria(no.daCuradoria) : [];
-  if (no.daCuradoria && CURADORIA_CARREGADA && atribuido.length) {
-    const vistas = new Set(atribuido);
-    lista = lista.filter((o) => vistas.has(String(o.valor)));
-  }
+  /* O QUE A ESCOLA DECLARA DESCE PARA O CAMPO. Um nó que declara `daCuradoria` lê a atribuição
+   * da direção: a lista FILTRA para o que é do professor — ele não escolhe entre as turmas da
+   * escola, só confirma a dele. E nasce MARCADO: o que já foi designado não se marca de novo.
+   *
+   * A MESMA REGRA DO CABEÇALHO, e não uma segunda (27/10/2026). Aqui estava a cópia exacta do
+   * filtro com a mesma porta aberta (`&& atribuido.length` → sem atribuição, lista inteira), e
+   * duas cópias da mesma regra divergem no dia em que uma muda — foi por isso que o defeito
+   * sobreviveu à correção de um dos lados em 20/10. Agora chama-se a função, e há uma só. */
+  const atribuido = no.daCuradoria
+    ? listaDeTurmasDoProfessor(no).map((o) => String(o.valor))
+    : [];
+  if (no.daCuradoria) lista = listaDeTurmasDoProfessor(no);
 
   // O caminho para CRIAR o que ainda não existe — declarado pelo conteúdo, o PE
   // só o segue. É o «o PO oferece o caminho para criar a anamnese, sem sair do
@@ -3356,8 +3378,12 @@ function gradeDeOpcoesDinamicas(no) {
       escapar(erro) + '</p>' + atalho;
   }
   if (!lista.length) {
+    /* A TURMA VAZIA DIZ PORQUÊ (27/10/2026). Para os `opcoesDe` que têm explicação própria, é a
+       dela; para a turma, é o estado da curadoria — «escolha o professor» e «a direção não
+       atribuiu turma» são coisas diferentes, e quem lê precisa de saber qual é. */
+    const vazio = no.id === 'contexto-turma' ? avisoDaTurma() : LISTA_VAZIA[no.opcoesDe];
     return '<p class="aviso">' +
-      (LISTA_VAZIA[no.opcoesDe]
+      (vazio
         || 'A lista está vazia — não há registro de onde escolher. ' +
            'Escreva o apelido no campo abaixo e crie a fonte pelo atalho.') +
       '</p>' + atalho;
@@ -3443,30 +3469,97 @@ function enderecoDosPlanos() {
 }
 
 /** As turmas que o professor pode planejar — a curadoria filtra; sem ela, a lista inteira. */
+/*
+ * AS TURMAS DE UM PROFESSOR — E A AUSÊNCIA NÃO É PERMISSÃO (27/10/2026).
+ *
+ * O DEFEITO, medido na tela e reproduzido na bancada. A regra existia — «a lista FILTRA para o
+ * que é do professor» —, e tinha uma porta aberta no sítio exacto onde a pergunta não tem
+ * resposta: `if (... && atribuido.length)`. Quando a direção não atribuiu turma nenhuma (ou
+ * quando o professor ainda não foi escolhido), `atribuido` ficava VAZIO e o `if` não corria —
+ * e a lista saía INTEIRA, com as turmas de todos os professores da escola. Medido: com o
+ * professor em branco, o select oferecia as três turmas e uma delas já vinha escolhida.
+ * É a mesma família de erro que esta sessão vem corrigindo: a ausência de dado a ser lida
+ * como autorização.
+ *
+ * A REGRA DA PESQUISADORA, e é ela que manda: «o professor é o caminho da verdade. Quando eu
+ * seleciono um dos professores, a lista de turmas já se carrega […] E o contrário não. Não vai
+ * existir a possibilidade de escolher uma turma se não tiver o nome do professor.» E: «Não pode
+ * ser algo que um professor pode fazer o plano de ensino de qualquer turma, porque ele não está
+ * curado para isso.»
+ *
+ * OS QUATRO ESTADOS, e cada um tem uma resposta:
+ *
+ *   1. sem professor escolhido ............ nenhuma turma;
+ *   2. curadoria ainda a caminho .......... nenhuma turma (não se mostra o que ainda não se sabe);
+ *   3. professor com curadoria sem turma .. nenhuma turma (a direção não o autorizou a nenhuma);
+ *   4. professor com turma atribuída ...... SÓ as dele.
+ *
+ * «Nenhuma» é uma resposta, e a tela sabe dizê-la — não é o mesmo que «não sei», e por isso o
+ * texto do vazio é diferente em cada caso (ver `avisoDaTurma`).
+ *
+ * O CRUZAMENTO É PELO NOME. `opcoesDeTurmas` (servidor) publica `valor: t.nome`, e a curadoria
+ * guarda o nome em `turmas` — é o mesmo vocabulário dos dois lados, e é a razão pela qual este
+ * filtro funciona quando o professor está escolhido.
+ */
 function listaDeTurmasDoProfessor(no) {
-  let lista = OPCOES.get(enderecoDeOpcoes(no)) || [];
-  const atribuido = no.daCuradoria ? daCuradoria(no.daCuradoria) : [];
-  if (no.daCuradoria && CURADORIA_CARREGADA && atribuido.length) {
-    const vistas = new Set(atribuido);
-    lista = lista.filter((o) => vistas.has(String(o.valor)));
+  if (!no || !no.daCuradoria) return OPCOES.get(enderecoDeOpcoes(no)) || [];
+  const professor = (($('ctx-professor') || {}).value || '').trim();
+  if (!professor) return [];
+  if (!CURADORIA_CARREGADA) return [];
+  const vistas = new Set(daCuradoria(no.daCuradoria));
+  if (!vistas.size) return [];
+  return (OPCOES.get(enderecoDeOpcoes(no)) || []).filter((o) => vistas.has(String(o.valor)));
+}
+
+/** Porque é que a lista da turma está vazia — dito, e não deixado a adivinhar. */
+function avisoDaTurma() {
+  const professor = (($('ctx-professor') || {}).value || '').trim();
+  if (!professor) {
+    return 'Escolha primeiro o professor: as turmas que aparecem aqui são as que a direção '
+      + 'atribuiu a ele.';
   }
-  return lista;
+  if (!CURADORIA_CARREGADA) return 'A carregar a curadoria deste professor…';
+  const vistas = daCuradoria('turmas');
+  if (!vistas.length) {
+    return 'A direção ainda não atribuiu nenhuma turma a este professor — é a curadoria que '
+      + 'autoriza o plano de ensino, e sem ela não há turma a planear.';
+  }
+  return 'As turmas atribuídas a este professor não estão no cadastro de turmas da escola — '
+    + 'confira o nome na Produção (aba Turmas).';
 }
 
 /** O SELECT da turma do plano: as já planejadas desabilitadas, com o estado no rótulo. */
 function selectDaTurma(no) {
   const lista = listaDeTurmasDoProfessor(no);
-  const usadas = turmasJaUsadas();
+  /* A ESCOLHA QUE JÁ NÃO É DO PROFESSOR SAI (27/10/2026). Trocar de professor deixa no
+   * `RESPOSTAS` a turma do anterior — e `semearDoContexto` volta a escrevê-la no campo. Sem esta
+   * limpeza, a mistura acontece ao contrário do que a tela mostra: a lista passa a ser a do
+   * professor certo e o VALOR continua a ser a turma do outro. Medido: depois de trocar para o
+   * `perna-boa`, o campo ainda dizia «Balé Nível 1» de um estado anterior sem professor.
+   * A regra é a mesma dos dois lados: se a turma não está na lista autorizada, não é uma
+   * escolha — e uma escolha que deixou de valer não se guarda. */
   const cru = RESPOSTAS.get(no.id);
   const escolhida = Array.isArray(cru) ? cru[0] : cru;
+  if (escolhida && !lista.some((o) => String(o.valor) === String(escolhida))) {
+    RESPOSTAS.delete(no.id);
+    SUGERIDAS.delete(no.id);
+  }
+  const escolhidaAgora = RESPOSTAS.get(no.id);
+  const usadas = turmasJaUsadas();
+  if (!lista.length) {
+    return '<select id="ctx-turma" aria-label="turma observada" disabled>'
+      + '<option value="">— nenhuma turma —</option></select>'
+      + '<p class="aviso">' + escapar(avisoDaTurma()) + '</p>';
+  }
+  const escolhidaFinal = Array.isArray(escolhidaAgora) ? escolhidaAgora[0] : escolhidaAgora;
   const opcoes = ['<option value="">— escolher —</option>'];
   for (const o of lista) {
     const usada = usadas.get(String(o.valor));
     const estado = usada ? (ROTULO_ESTADO_PLANO[usada.estado] || usada.estado) : '';
     const rotulo = (o.rotulo || o.valor) + (usada ? ' · já tem plano (' + estado + ')' : '');
-    const sel = String(escolhida) === String(o.valor) ? ' selected' : '';
+    const sel = String(escolhidaFinal) === String(o.valor) ? ' selected' : '';
     // A turma que se está a EDITAR/DERIVAR fica selecionável (a exceção de `turmasJaUsadas`).
-    const dis = usada && String(escolhida) !== String(o.valor) ? ' disabled' : '';
+    const dis = usada && String(escolhidaFinal) !== String(o.valor) ? ' disabled' : '';
     opcoes.push('<option value="' + escapar(o.valor) + '"' + sel + dis + '>' + escapar(rotulo) + '</option>');
   }
   // Os ATALHOS dos planos que já existem saíram do cabeçalho (16/10/2026): a estante
@@ -6141,12 +6234,18 @@ function pintarFichas() {
     const o = ESTADOS.get(id);
     // O PLANO abre o plano, como a anamnese abre a ficha (16/10/2026). Antes, os dois
     // caíam no envelope cru; o JSON não é do professor — ele quer o documento na mão, para
-    // ler e imprimir. O PO ainda abre o envelope: não tem folha própria.
+    // ler e imprimir.
+    //
+    // O PO TAMBÉM TEM FOLHA AGORA (27/10/2026). Era o único dos três que ainda abria o
+    // envelope — «não tem folha própria», e era verdade. A pesquisadora pediu os três para ler
+    // e imprimir; a folha passou a existir (`po-preenchido`, a partir da mesma `derivarPO` que
+    // gera a fonte do ciclo), e mandá-la para o JSON seria deixá-la fora do alcance de quem dá
+    // a aula. Três famílias, três folhas, e nenhuma abre dados crus.
     const alvo = eAnam
       ? 'api/ficha-preenchida.' + encodeURIComponent(id) + '?formato=html'
       : (ePlano
         ? 'api/plano-preenchido.' + encodeURIComponent(id) + '?formato=html'
-        : 'api/envelope/' + encodeURIComponent(id));
+        : 'api/po-preenchido.' + encodeURIComponent(id) + '?formato=html');
     // O plano mostra o OBJETIVO (o resumo da estante) no lugar da data; a
     // anamnese mostra a data, e o PO só o carimbo.
     const quando = ePlano && o && o.objetivo ? o.objetivo : rotuloDoEnvelope(id);

@@ -405,3 +405,16 @@ experimentos/modelo-formulario/*
 # presente sem perder o passado, com os dados reais do repositório e um controle negativo sobre o
 # código de `HEAD`. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
 !experimentos/provar-identidade-da-escola-recriada.js
+
+# LER NÃO É EDITAR (27/10/2026). A prova nasceu do relato da pesquisadora: o nome da aluna na
+# listagem deixou de abrir a ficha, e o único caminho para o documento passou a ser o «Editar» —
+# «editar é um lugar de atenção». Mede as três famílias pela rota a sério, e o controle negativo
+# troca o renderizador pelo de antes (o ref derivado do commit que introduziu `nomeDaLista`). É
+# citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-ficha-na-listagem.js
+
+# A TURMA DO PLANO É DE QUEM A DIREÇÃO CUROU (27/10/2026). A prova nasceu do relato: «eu consigo
+# misturar os professores e as turmas». Mede os quatro estados da lista no browser e a barreira do
+# SERVIDOR (o 403), e o controle negativo devolve a tela E o `rotas.js` de antes — os dois lados,
+# cada um contra o seu marcador. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-turmas-do-professor.js

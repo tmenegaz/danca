@@ -26717,3 +26717,192 @@ carrega a chave do depósito com a aluna.
 - **A `batata` não tem âncora** e o `check-pacote` do esqueleto reprova (falta PDF, `dados.json`,
   aulas). Como qualquer escola recém-criada, e como a `calango` antes dela: ancorar sela, e não há
   o que selar num ciclo vazio.
+
+## 27/10/2026 — Ler não é editar: o nome do registo volta a abrir o documento
+
+**O que motivou.** A pesquisadora, com a `batata` e duas anamneses feitas:
+
+> «A gente tinha combinado que quando elas estão na listagem, quando eu coloco o mouse ou clico
+> sobre o nome da aluna, eu consigo ir até a anamnese dela, **sem eu ter que clicar em editar,
+> porque editar é um lugar de atenção**. […] no formato de ficha preenchida, inclusive se eu
+> quisesse imprimir. […] A mesma coisa para o plano de ensino e para o plano de observação. […]
+> Quando a gente mudou aqui pro layout novo, isso não tá disponível.»
+
+**O que se perdeu — e o que NÃO se perdeu.** As folhas continuam a ser servidas: medido no ar,
+`/anamnese/api/ficha-preenchida.<carimbo>?formato=html` responde **200** com o documento inteiro.
+O que o layout novo não trouxe foi o **link**: a linha da listagem passou a oferecer só
+«Editar»/«Ajustar»/«Apagar», e o nome virou texto morto. O documento existia e não havia como
+chegar a ele a partir do sítio onde se procura por ele.
+
+**O desenho já estava decidido — e é isso que faz isto uma restauração.** Em
+`experimentos/propostas/construir.js` (a bancada de 24/10) o cartão tem, literalmente:
+
+```html
+<b><a class="nome-do-registo" href="api/ficha-preenchida.<id>?formato=html"
+      target="_blank" rel="noopener">nome</a></b>
+```
+
+e a linha «o nome abre a ficha em **.html**, pronta a imprimir». A bancada usou a classe
+`nome-do-registo`, que **nunca entrou na folha nem no catálogo** — e é por isso que o desenho não
+passou à produção: a checagem 8 reprova classe que não é peça nem gancho declarado. Aqui usa-se o
+`<a>` dentro do `<b>`, **sem classe nova**, com o `main a` que a folha já tem (cor da marca e
+sublinhado pontilhado) e que o `@media print` já neutraliza.
+
+**O que foi decidido.**
+
+- **O nome é o link**, nas três famílias, com `target="_blank" rel="noopener"`: ler não é sair da
+  lista, e a convenção já era a da bancada.
+- **O PO ganhou folha** (`/api/po-preenchido[.<id>]`). Era o único dos três sem documento próprio —
+  «não tem folha própria», e era verdade: abria o JSON. O texto é o da **mesma** `derivarPO` que
+  gera a fonte do ciclo, com os rótulos do conteúdo: o documento não é uma segunda versão do que
+  está na tela.
+- **«Editar» não desaparece**: ler é acrescentar, não substituir.
+- **Sem endereço de ficha, o nome fica `<b>`** — não um `<a href="">`, que recarrega a página e
+  parece avariado.
+
+**Dois sítios, não um.** O mesmo defeito estava na lista de dentro da porta: `urlDoPlano(carimbo,
+false)` devolvia `api/envelope/…` para o atalho cujo rótulo é «ver o plano» e cujo `title` promete
+«ver o que ficou gravado». Corrigido para a folha.
+
+**Onde entrou.**
+
+- `motor/nucleo/lista-html.js` — `nomeDaLista(item)`: o `<b>` vira `<b><a>` quando há `item.ler`.
+- `motor/servidor/listas-do-acervo.js` — `ROTA_DA_FICHA`, `fichaDeLeitura(chave, registo)`, e as
+  três linhas a receberem `ler`.
+- `motor/servidor/rotas.js` — a rota `po-preenchido` e o resolvedor `planoDoPO` (o mesmo do
+  `elicitar`: o nó `plano-de-ensino`, e na falta dele o plano mais recente do mesmo contexto).
+- `motor/nucleo/ficha-html.js` — `paginaDoPO`.
+- `porta/index.html` — a lista da estante manda o PO para a folha, e `urlDoPlano` idem.
+- `professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/index.html` — a porta recopiada.
+
+**Medido.** `provar-ficha-na-listagem` **35/35** (nova), com as **três** famílias medidas pela rota
+a sério — a ficha que cada link aponta responde 200, é HTML, tem `<h1>` e nomeia o registo — e o
+**controle negativo a reprovar 22 de 27** (o renderizador é trocado pelo de antes, na cache do
+`require`). `provar-porta-sem-contexto` 44/44; `provar-teste` 42; `provar-indices` 60/60;
+`provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14; `provar-barra-unica` 111/111;
+`provar-publicacao-da-escola` 55/55; `provar-bancadas-e-expurgo` 21/21;
+`provar-identidade-da-escola-recriada` 23/23; `provar-recriacao-da-escola` todas;
+`check-identidade` **0 erro** (a checagem 8 passou — nenhuma classe nova).
+
+**Medido na tela, com o browser a sério.** A 1280 px e a 390 px o nome do registo é um `<a>` com a
+cor da marca (`rgb(107,31,46)`) e sublinhado **pontilhado**, `title="abrir a ficha para ler e
+imprimir"`, `target="_blank"`; a 390 px **não transborda** (o link mede 60×20 dentro de uma linha de
+68 px). No papel sai texto: o `@media print` já anula cor e moldura dos `<a>`.
+
+**Duas notas de bancada.**
+
+- O controle negativo da primeira versão reprovava **1 em 35** — porque o `producao` já estava
+  carregado com o renderizador **novo** em cache, e o controle trocava apenas um objeto que ninguém
+  usava. Passou a pôr o antigo na **cache do `require`**, no caminho real, **antes** de carregar o
+  servidor: 22 reprovações. Um controle que mede o objeto errado é a mesma armadilha de hoje de
+  manhã, noutra roupa.
+- O total de asserções **difere** entre o controlo (27) e o positivo (35), e não é erro: as
+  asserções que dependem de existir link não correm quando não há link. Está escrito para não se
+  ler como prova fraca.
+
+**O que ainda não está feito.**
+
+- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
+  ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
+  quando `tools/gerar-ciclo.sh` correr.
+- **O nome do link não tem dica visual além do sublinhado.** A bancada tinha uma linha
+  («o nome abre a ficha em .html, pronta a imprimir») com a classe `dica-do-link`, que também não
+  é peça da folha. Se a pesquisadora quiser a frase à vista, é **peça nova** — nasce na folha, no
+  catálogo e na prova, e não se improvisa aqui.
+
+## 27/10/2026 — A turma do plano é de quem a direção curou: a regra sai da tela e vai para o servidor
+
+**O que motivou.** A pesquisadora, com a `batata` em produção e três professores curados:
+
+> «Tem uma regra no sistema Lastro para poder fazer o plano de ensino. E não está acontecendo essa
+> validação […] Eu consigo misturar aqui os professores e as turmas. **O professor, ele é o caminho
+> da verdade.** Quando eu seleciono um dos professores, a lista de turmas já se carrega
+> automaticamente […] E o contrário não. […] Não pode ser algo que um professor pode fazer o plano
+> de ensino de qualquer turma, porque ele não está curado para isso.»
+
+**O que estava a acontecer — medido, não deduzido.** A bancada mostrou que o cruzamento
+**funcionava** quando o professor estava escolhido: o `perna-boa` via uma turma, o `so-para-direita`
+via as duas dele. O furo era o estado anterior a isso: **sem professor escolhido, a lista era a
+escola inteira** — as três turmas, com uma já selecionada. A causa era uma linha:
+
+```js
+if (no.daCuradoria && CURADORIA_CARREGADA && atribuido.length) { /* filtra */ }
+```
+
+Sem atribuição, `atribuido` fica vazio, o `if` não corre, e a lista sai inteira. **A ausência de
+dado lida como permissão** — a mesma família de erro que esta sessão já corrigiu no `pacotes()`, no
+controlo negativo e na regra do «não implementado». A segunda cópia do filtro, dentro da grade de
+opções, tinha o mesmo buraco: **duas cópias de uma regra divergem** no dia em que uma muda, e foi
+por isso que o defeito sobreviveu à correção de um dos lados.
+
+**A decisão, em quatro estados — e cada um tem uma resposta.**
+
+| estado | lista | o que a tela diz |
+|:--|:--|:--|
+| sem professor escolhido | nenhuma turma | «escolha primeiro o professor» |
+| curadoria ainda a caminho | nenhuma turma | «a carregar a curadoria» |
+| professor com curadoria sem turma | nenhuma turma | «a direção ainda não atribuiu turma» |
+| professor com turmas atribuídas | só as dele | — |
+
+«Nenhuma» é uma resposta, e **não é o mesmo que «não sei»** — por isso o texto do vazio é diferente
+em cada caso (`avisoDaTurma`). E o filtro passou a ter **um sítio só**: `gradeDeOpcoesDinamicas`
+chama a mesma função em vez de guardar a sua cópia.
+
+**A escolha que deixou de valer não se guarda.** Trocar de professor deixava no `RESPOSTAS` a turma
+do anterior, e a semeadura voltava a escrevê-la no campo. O resultado era o contrário do que a tela
+mostrava: a lista passava a ser a do professor certo e o **valor** continuava a ser a turma do
+outro. Se a turma não está na lista autorizada, não é uma escolha — e sai.
+
+**A tela não é a regra.** Um filtro de `JavaScript` contorna-se com um `POST` à mão. O `POST
+/api/elicitar` de um `plano` passou a **recusar com 403** a turma que não está na curadoria do
+professor, nomeando a turma e as que são dele. Quando não há leitor de curadorias (bancada sem o
+recurso), a rota **segue** em vez de recusar: transformar uma limitação de bancada numa proibição de
+gravar seria pior do que o defeito.
+
+**A turma deixou de ser pré-requisito de ENTRADA — é de GRAVAÇÃO.** Este achado só apareceu porque
+a prova pediu o quarto estado. Um professor com curadoria e sem turma batia à porta e era devolvido
+à lista **em silêncio**: `podePreencher` usava `contextoFaltandoCompleto()`, que soma a turma — e a
+página que existe para **anunciar o que falta** (o `falta` no campo, o resumo da barra) nunca
+chegava a ser vista. É o mesmo sintoma que a pesquisadora descreveu noutra ocasião: «clico, vai para
+o formulário e imediatamente volta». A entrada passa a exigir a **identidade do ato** (professor,
+ciclo, aluna); a turma continua a travar o «Começar» (`atualizarComecar`, com a lista completa) e a
+gravação (o 403). Entrar não escreve nada — e é entrar que permite **ler o motivo**.
+
+**Onde entrou.**
+
+- `porta/index.html` — `listaDeTurmasDoProfessor` (quatro estados), `avisoDaTurma` (novo),
+  `gradeDeOpcoesDinamicas` (delega, não copia), `selectDaTurma` (limpa a escolha inválida; select
+  desabilitado com o motivo quando não há turma), `podePreencher` (entrada sem a turma).
+- `motor/servidor/rotas.js` — a barreira em `POST /api/elicitar` (403), que degrada em vez de
+  recusar quando não há leitor de curadorias.
+- `professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/index.html` — a porta recopiada,
+  com a NAV do ciclo preservada.
+- `experimentos/provar-teste.js` — **a bancada passou a declarar a curadoria do `Docente`**. Sem
+  isso ficava no `{ok:true}` genérico, e a lista de turmas vinha inteira porque a ausência era
+  permissão: corrigida a regra, a bancada passou a ter zero turmas — e falhava pelo motivo errado.
+  Não se afrouxou a regra para o teste passar; deu-se ao teste a curadoria que a regra pressupõe.
+
+**Medido.** `provar-turmas-do-professor` **17/17** (nova): os quatro estados no browser a sério, a
+troca de professor, e a barreira do servidor exercida por **pedido** — o plano com a turma alheia é
+recusado, o do professor sem turma nenhuma também, e o da turma dele **passa** (não se proíbe o que é
+autorizado). Sem erro de JavaScript na página. O **controle negativo reprova 6 de 17** — e reprova
+**dos dois lados**, porque devolve a `porta/index.html` **e** o `rotas.js` de antes, cada um contra o
+seu próprio marcador, instalado na cache do `require` antes de carregar o servidor: com o código de
+antes, o mesmo `POST` devolve **200**. Um controle que medisse só a tela deixaria a metade mais
+importante sem prova.
+
+`provar-teste` 42/42; `provar-ficha-na-listagem` 35/35; `provar-porta-sem-contexto` 44/44;
+`provar-indices` 60/60; `provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14;
+`provar-barra-unica` 111/111; `provar-publicacao-da-escola` 55/55; `provar-bancadas-e-expurgo`
+21/21; `provar-identidade-da-escola-recriada` 23/23; `provar-recriacao-da-escola` todas;
+`check-identidade` **0 erro**; `check-indices` 14 verificações, 0 falha;
+`hash-ciclo.sh perna-boa 01 batata --check` **íntegro** (`1816e1eb…`).
+
+**O que ainda não está feito.**
+
+- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
+  ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
+  quando `tools/gerar-ciclo.sh perna-boa 01 batata` correr. É o único elo desta cadeia que nunca foi
+  medido de ponta a ponta.
+- **A curadoria é lida do KV no caminho do `POST`.** Se a leitura falhar, a rota grava (degrada). A
+  alternativa — recusar — poria a escola inteira sem planos por uma falha de leitura.

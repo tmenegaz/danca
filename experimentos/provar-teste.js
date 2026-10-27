@@ -373,6 +373,27 @@ function apiDe(rota, fonte) {
   }
   if (rota.startsWith('api/bastidores/turma-conteudos')) return { ok: true, relacoes: {} };
   if (rota.startsWith('api/bastidores/termos')) return { ok: true, termos: [], opcoes: [] };
+  /* A BANCADA DECLARA A CURADORIA (27/10/2026).
+   *
+   * Ficava no `{ok: true}` genérico — sem `curadorias` —, e a lista de turmas do plano vinha
+   * INTEIRA: a regra tratava «a direção não atribuiu nada» como «pode tudo». Corrigida a regra
+   * (a ausência deixou de ser permissão), esta bancada passou a ter ZERO turmas — e com razão,
+   * porque não dizia nada sobre quem é curado para o quê.
+   *
+   * O `Docente` é curado para as turmas da fixture, e é isso que a prova mede: trocar a turma no
+   * cabeçalho repreenche o plano com os valores daquela turma. Sem esta linha a prova continua a
+   * falhar, e passaria a falhar pelo motivo errado. */
+  if (rota.startsWith('api/bastidores/curadoria-professor')) {
+    return {
+      ok: true,
+      professor: 'docente',
+      curadorias: [{
+        id: 'c-docente', professor: 'docente', escola: 'batata',
+        turmas: FIXTURE.plano.map((pl) => pl.turma),
+        alunas: (FIXTURE.anamnese || []).map((a) => a.aluna),
+      }],
+    };
+  }
   if (rota.startsWith('api/bastidores/')) return { ok: true };
   if (rota.startsWith('api/')) return { ok: true, opcoes: [], estados: [] };
   return null;

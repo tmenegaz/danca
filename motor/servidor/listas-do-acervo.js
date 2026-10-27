@@ -121,6 +121,44 @@ const FAMILIAS = {
  *   · `editar=<carimbo>` — abre a edição do registo. **É lido só em `fonte === 'plano'`**
  *     (`porta/index.html`, «O ATALHO DE EDIÇÃO»), e por isso só o plano de ensino o recebe.
  */
+/* ------------------------------------------------------------------ a ficha para LER
+ *
+ * LER NÃO É EDITAR (27/10/2026). A pesquisadora: «eu clicava em nome da aluna e eu ia até a
+ * anamnese da aluna no formato de ficha preenchida, inclusive se eu quisesse imprimir isso. […]
+ * editar é um lugar de atenção, né? […] Eu preciso ter essa possibilidade.»
+ *
+ * O QUE SE PERDEU. As três fichas continuam a SER SERVIDAS — medido no ar, a anamnese responde
+ * 200 com a folha inteira —, mas o layout novo da listagem não trouxe o link: a linha passou a
+ * oferecer só «Editar»/«Ajustar»/«Apagar». O documento existia e não havia como lá chegar a partir
+ * do sítio onde se procura por ele.
+ *
+ * A ROTA DE CADA FONTE NÃO SE INVENTA AQUI. É a mesma que a estante da porta usa para o mesmo
+ * gesto (`porta/index.html`, `linkDaFicha`): `ficha-preenchida` para a anamnese,
+ * `plano-preenchido` para o plano, `po-preenchido` para o PO. A porta serve as três sob o seu
+ * prefixo, e é por isso que o endereço começa por `familia.porta`.
+ *
+ * O `formato=html` É O PONTO: o endereço sem ele devolve MARKDOWN, que o navegador mostra como
+ * texto corrido. A folha é o que se lê e se imprime.
+ */
+const ROTA_DA_FICHA = {
+  anamnese: 'api/ficha-preenchida.',
+  'plano-de-ensino': 'api/plano-preenchido.',
+  'plano-de-observacao': 'api/po-preenchido.',
+};
+
+/**
+ * O ENDEREÇO DA FICHA DE UM REGISTO, ou `null` quando a família não tem folha.
+ *
+ * Devolve `null` em vez de um endereço aproximado: um link que abre JSON é pior do que não ter
+ * link, porque promete um documento e entrega um despejo de dados.
+ */
+function fichaDeLeitura(chave, registo) {
+  const f = FAMILIAS[chave];
+  const rota = ROTA_DA_FICHA[chave];
+  if (!f || !rota || !registo || !registo.id) return null;
+  return f.porta + rota + encodeURIComponent(registo.id) + '?formato=html';
+}
+
 function consulta(params) {
   const q = new URLSearchParams();
   for (const [chave, valor] of Object.entries(params || {})) {
@@ -1036,6 +1074,10 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerad
       const turma = turmasDaAluna.get(r.aluna) || '';
       return {
         nome: r.aluna || 'Anamnese sem sujeito',
+        /* O NOME É O LINK (27/10/2026). É o gesto que a pesquisadora descreveu: passar o mouse
+         * sobre a aluna e ir para a ficha dela — sem passar pelo «Editar», que é «um lugar de
+         * atenção». A ficha é a mesma folha que se imprime. */
+        ler: fichaDeLeitura('anamnese', r),
         /* O SELO NUNCA FICA VAZIO (25/10/2026). «As anamneses que eu já tenho prontas aqui estão
          * livres, né? Não estão vinculadas, estão sem o rótulo indicando se ela é livre ou não.»
          * Estavam mesmo: a expressão anterior devolvia `''` sempre que a aluna TINHA turma e a
@@ -1105,6 +1147,9 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerad
     return {
       nome: (familia === 'plano-de-ensino' ? 'Plano de ensino — ' : 'Plano de Observação — ')
         + (turma || 'turma não declarada'),
+      /* A MESMA PORTA PARA LER, nas três famílias (27/10/2026). O PO passou a ter folha hoje —
+       * até aqui não tinha nenhuma, e a estante abria o JSON. */
+      ler: fichaDeLeitura(familia, r),
       selo: estado.estado || (gerado ? 'gerado' : ''),
       seloClasse: estado.estado === 'vinculada' ? 'vinculada'
         : estado.estado === 'legado' ? 'discreto'

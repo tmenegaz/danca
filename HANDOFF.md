@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T09:13:34-0300`
-Commit atual: `e7b3e78` — feat(acervo): envelope/.indice.json
+Gerado em: `2026-10-27T10:11:26-0300`
+Commit atual: `474819c` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -58,10 +58,11 @@ murisoca-baiana
 oculos-redondo
 perna-boa
 sapo-bailarino
+so-para-direita
 teclado-abnt
 tela-de-celular
 tiago-menegaz
-vaso-bonito (13)
+vaso-bonito (14)
 - **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
@@ -79,26 +80,26 @@ vaso-bonito (13)
 ## Últimos commits
 
 ```
+474819c chore(estrutura): regerar os índices derivados
+c48c991 feat(acervo): envelope/anamnese-20261027-0946.json
+8c93cc1 feat(acervo): envelope/.indice.json
+0595bc1 chore(estrutura): regerar os índices derivados
+50387da feat(acervo): envelope/anamnese-20261027-0943.json
+1506fe7 feat(acervo): envelope/.indice.json
+4b393f7 chore(estrutura): regerar os índices derivados
+2cd5c77 feat(acervo): envelope/anamnese-20261027-0939.json
+d7ea6ec feat(acervo): envelope/.indice.json
+99c9b8c chore(estrutura): reancorar a cadeia das fontes alteradas
+28059b5 chore(estrutura): regerar os índices derivados
+921ffb2 feat(escola): a escola batata declara o professor so-para-direita
+461831b feat(schema): os schemas do ciclo na pasta de so-para-direita
+8f65a72 feat(schema): os schemas do ciclo na pasta de so-para-direita
+7e798a8 feat(schema): os schemas do ciclo na pasta de so-para-direita
+9aca758 feat(schema): os schemas do ciclo na pasta de so-para-direita
+e656503 feat(schema): os schemas do ciclo na pasta de so-para-direita
+59e77b9 docs(registro): a correção passou pelo caminho real — a batata voltou pelo criar-escola
 e7b3e78 feat(acervo): envelope/.indice.json
 5c2b3d3 feat(estrutura): criar a escola batata (motor completo)
-25c60f1 fix(estrutura): o controle negativo não se fixa em HEAD — deriva o ref
-382d122 chore(estrutura): regerar os índices derivados
-1f56d19 chore(estrutura): expurgar a escola calango
-7b56783 fix(estrutura): a escola recriada diz o presente, e o passado ganha sítio
-89bf863 feat(acervo): envelope/.indice.json
-bfe5ce6 feat(estrutura): criar a escola calango (motor completo)
-ff26866 docs(registro): o expurgo da breu medido a sério, e não simulado
-0768454 chore(estrutura): regerar os índices derivados
-f959218 chore(estrutura): expurgar a escola breu
-e453f68 fix(estrutura): a prova do expurgo não fixa o nome de escola nenhuma
-4f5a8c5 fix(estrutura): o expurgo é um estado, e o sistema passou a lê-lo
-3403ddd fix(estrutura): o deploy das escolas não morre por falta de bancada
-f6299aa chore(estrutura): regerar os índices derivados
-7610a09 fix(ciclo-01): a anamnese é da aluna, e o formulário não volta sozinho
-cd0304d chore(estrutura): regerar os índices derivados
-e6e472b feat(acervo): envelope/anamnese-20261026-2154.json
-006fb49 feat(acervo): envelope/.indice.json
-b78f0dc feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -127,9 +128,11 @@ b78f0dc feat(acervo): envelope/.indice.json
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| batata | (sem âncora) | — | — | — |
+| batata | ciclo-01-batata.fipp | `1816e1eb7b3c` | (vazio) | — |
 
 ### sapo-bailarino — 0 ciclo(s)
+
+### so-para-direita — 0 ciclo(s)
 
 ### teclado-abnt — 0 ciclo(s)
 
@@ -194,91 +197,104 @@ b78f0dc feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 27/10/2026 — A correção passou pelo caminho real: a `batata` voltou pelo `criar-escola.sh`
+## 27/10/2026 — A turma do plano é de quem a direção curou: a regra sai da tela e vai para o servidor
 
-**O que motivou.** A pesquisadora recriou a **`batata`** às 12:11 (`5c2b3d3`, via «Criar a escola»
-do portal). Até aqui, as duas correções de hoje — a identidade do presente e a data da encarnação —
-tinham sido verificadas de três maneiras: numa prova com fixture, numa reparação à mão da `calango`,
-e no expurgo. **Faltava o caminho que as vai usar de agora em diante: a criação por
-`tools/criar-escola.sh`.** É a diferença entre «o código que escrevi faz o que eu digo» e «o
-sistema, a correr, faz o que eu digo».
+**O que motivou.** A pesquisadora, com a `batata` em produção e três professores curados:
 
-**O que a criação gravou, sem eu tocar em nada.** No `escola/batata/indice.json`, o elo novo de
-12:11:
+> «Tem uma regra no sistema Lastro para poder fazer o plano de ensino. E não está acontecendo essa
+> validação […] Eu consigo misturar aqui os professores e as turmas. **O professor, ele é o caminho
+> da verdade.** Quando eu seleciono um dos professores, a lista de turmas já se carrega
+> automaticamente […] E o contrário não. […] Não pode ser algo que um professor pode fazer o plano
+> de ensino de qualquer turma, porque ele não está curado para isso.»
 
-- `professor: {slug: perna-boa, nome: Perna Boa}` — o presente, e é o professor que a página
-  escolheu;
-- `professores[]: []` — sem o responsável repetido, como a regra manda;
-- `professor_anterior: {slug: tiago-menegaz, nome: Tela de PC}` — quem a criou da primeira vez,
-  19/10;
-- `professores_anteriores`: **cinco** vínculos, cada um com o `desde` que tinha (`teclado-abnt`
-  22/10, `meia-cortada` 22/10, `tela-de-celular` 22/10, `acucar-branco` 22/10, `manga-curta` 23/10).
+**O que estava a acontecer — medido, não deduzido.** A bancada mostrou que o cruzamento
+**funcionava** quando o professor estava escolhido: o `perna-boa` via uma turma, o `so-para-direita`
+via as duas dele. O furo era o estado anterior a isso: **sem professor escolhido, a lista era a
+escola inteira** — as três turmas, com uma já selecionada. A causa era uma linha:
 
-**A lista vazia não é perda — é a regra a funcionar.** Numa escola VIVA, a lista de professores é o
-que a derivação junta do ciclo e do vínculo declarado. Numa APAGADA, ela inclui todos os que o elo
-prova. A `batata` voltou como esqueleto (sem ciclo gerado), e por isso `professores: ['perna-boa']`
-— só o responsável. Os cinco anteriores estão no elo, e voltarão a aparecer se e quando a escola
-for expurgada de novo. Foi exactamente para isto que o elo guarda o `desde`.
+```js
+if (no.daCuradoria && CURADORIA_CARREGADA && atribuido.length) { /* filtra */ }
+```
 
-**A data, no portal, pela via derivada:** `criada_em: 2026-10-27T12:11:05` — e não
-`2026-10-19T16:48:13`, que é o `criado_em` do topo, preservado como história. Lido no acervo que o
-Worker lê ao vivo: «batata — Perna Boa — 27/10/2026 — viva». Ao lado, a `calango` apagada mostra
-cinco professores e a data da encarnação dela (11:35), que é a regra de 22/10 para escola apagada.
+Sem atribuição, `atribuido` fica vazio, o `if` não corre, e a lista sai inteira. **A ausência de
+dado lida como permissão** — a mesma família de erro que esta sessão já corrigiu no `pacotes()`, no
+controlo negativo e na regra do «não implementado». A segunda cópia do filtro, dentro da grade de
+opções, tinha o mesmo buraco: **duas cópias de uma regra divergem** no dia em que uma muda, e foi
+por isso que o defeito sobreviveu à correção de um dos lados.
 
-**No ar.** `batata.tmenegaz77.workers.dev` → `/` **200**, `/anamnese/` **302** para a lista,
-`/area-do-professor/anamnese/` **200**. E — o que mais importa, porque foi o defeito que abriu esta
-sessão — o preenchedor servido em `/assets/teste-preenchimento.js` é **byte a byte igual** ao
-`motor/servidor/teste-cliente.js` de hoje (25 846 caracteres, `SCRIPT === vivo`), e a porta no ar
-carrega a chave do depósito com a aluna.
+**A decisão, em quatro estados — e cada um tem uma resposta.**
 
-**Medido.** `provar-identidade-da-escola-recriada` 23/23; `provar-indices` 60/60;
-`provar-recriacao-da-escola` todas; `provar-bancadas-e-expurgo` 21/21; `provar-teste` 42;
-`provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14;
-`provar-porta-sem-contexto` 44/44; `provar-barra-unica` 111/111;
-`provar-publicacao-da-escola` 55/55; `check-indices` 14 verificações, 0 falha.
+| estado | lista | o que a tela diz |
+|:--|:--|:--|
+| sem professor escolhido | nenhuma turma | «escolha primeiro o professor» |
+| curadoria ainda a caminho | nenhuma turma | «a carregar a curadoria» |
+| professor com curadoria sem turma | nenhuma turma | «a direção ainda não atribuiu turma» |
+| professor com turmas atribuídas | só as dele | — |
+
+«Nenhuma» é uma resposta, e **não é o mesmo que «não sei»** — por isso o texto do vazio é diferente
+em cada caso (`avisoDaTurma`). E o filtro passou a ter **um sítio só**: `gradeDeOpcoesDinamicas`
+chama a mesma função em vez de guardar a sua cópia.
+
+**A escolha que deixou de valer não se guarda.** Trocar de professor deixava no `RESPOSTAS` a turma
+do anterior, e a semeadura voltava a escrevê-la no campo. O resultado era o contrário do que a tela
+mostrava: a lista passava a ser a do professor certo e o **valor** continuava a ser a turma do
+outro. Se a turma não está na lista autorizada, não é uma escolha — e sai.
+
+**A tela não é a regra.** Um filtro de `JavaScript` contorna-se com um `POST` à mão. O `POST
+/api/elicitar` de um `plano` passou a **recusar com 403** a turma que não está na curadoria do
+professor, nomeando a turma e as que são dele. Quando não há leitor de curadorias (bancada sem o
+recurso), a rota **segue** em vez de recusar: transformar uma limitação de bancada numa proibição de
+gravar seria pior do que o defeito.
+
+**A turma deixou de ser pré-requisito de ENTRADA — é de GRAVAÇÃO.** Este achado só apareceu porque
+a prova pediu o quarto estado. Um professor com curadoria e sem turma batia à porta e era devolvido
+à lista **em silêncio**: `podePreencher` usava `contextoFaltandoCompleto()`, que soma a turma — e a
+página que existe para **anunciar o que falta** (o `falta` no campo, o resumo da barra) nunca
+chegava a ser vista. É o mesmo sintoma que a pesquisadora descreveu noutra ocasião: «clico, vai para
+o formulário e imediatamente volta». A entrada passa a exigir a **identidade do ato** (professor,
+ciclo, aluna); a turma continua a travar o «Começar» (`atualizarComecar`, com a lista completa) e a
+gravação (o 403). Entrar não escreve nada — e é entrar que permite **ler o motivo**.
+
+**Onde entrou.**
+
+- `porta/index.html` — `listaDeTurmasDoProfessor` (quatro estados), `avisoDaTurma` (novo),
+  `gradeDeOpcoesDinamicas` (delega, não copia), `selectDaTurma` (limpa a escolha inválida; select
+  desabilitado com o motivo quando não há turma), `podePreencher` (entrada sem a turma).
+- `motor/servidor/rotas.js` — a barreira em `POST /api/elicitar` (403), que degrada em vez de
+  recusar quando não há leitor de curadorias.
+- `professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/index.html` — a porta recopiada,
+  com a NAV do ciclo preservada.
+- `experimentos/provar-teste.js` — **a bancada passou a declarar a curadoria do `Docente`**. Sem
+  isso ficava no `{ok:true}` genérico, e a lista de turmas vinha inteira porque a ausência era
+  permissão: corrigida a regra, a bancada passou a ter zero turmas — e falhava pelo motivo errado.
+  Não se afrouxou a regra para o teste passar; deu-se ao teste a curadoria que a regra pressupõe.
+
+**Medido.** `provar-turmas-do-professor` **17/17** (nova): os quatro estados no browser a sério, a
+troca de professor, e a barreira do servidor exercida por **pedido** — o plano com a turma alheia é
+recusado, o do professor sem turma nenhuma também, e o da turma dele **passa** (não se proíbe o que é
+autorizado). Sem erro de JavaScript na página. O **controle negativo reprova 6 de 17** — e reprova
+**dos dois lados**, porque devolve a `porta/index.html` **e** o `rotas.js` de antes, cada um contra o
+seu próprio marcador, instalado na cache do `require` antes de carregar o servidor: com o código de
+antes, o mesmo `POST` devolve **200**. Um controle que medisse só a tela deixaria a metade mais
+importante sem prova.
+
+`provar-teste` 42/42; `provar-ficha-na-listagem` 35/35; `provar-porta-sem-contexto` 44/44;
+`provar-indices` 60/60; `provar-anamnese-por-aluna` 15/15; `provar-alunas-da-anamnese` 14/14;
+`provar-barra-unica` 111/111; `provar-publicacao-da-escola` 55/55; `provar-bancadas-e-expurgo`
+21/21; `provar-identidade-da-escola-recriada` 23/23; `provar-recriacao-da-escola` todas;
+`check-identidade` **0 erro**; `check-indices` 14 verificações, 0 falha;
+`hash-ciclo.sh perna-boa 01 batata --check` **íntegro** (`1816e1eb…`).
 
 **O que ainda não está feito.**
 
-- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS**, e agora com a razão
-  certa: há **uma escola viva** (`batata`), e ela é esqueleto — `com ciclo gerado: (nenhum)`. O menu
-  «Área do Professor» só nasce com documentos e turmas. As duas dizem isso e saem a 2.
-- **O caminho `gerar-ciclo.sh` continua por medir.** É o **único** elo desta cadeia que esta sessão
-  nunca viu correr — criar, publicar, expurgar, recriar, reparar e reancorar foram vistos, alguns
-  três vezes. E é ele que produz o que as duas provas acima precisam. Fica dito como o próximo
-  passo que interessa, e não como pendência de arrumação.
-- **A `batata` não tem âncora** e o `check-pacote` do esqueleto reprova (falta PDF, `dados.json`,
-  aulas). Como qualquer escola recém-criada, e como a `calango` antes dela: ancorar sela, e não há
-  o que selar num ciclo vazio.
+- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
+  ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
+  quando `tools/gerar-ciclo.sh perna-boa 01 batata` correr. É o único elo desta cadeia que nunca foi
+  medido de ponta a ponta.
+- **A curadoria é lida do KV no caminho do `POST`.** Se a leitura falhar, a rota grava (degrada). A
+  alternativa — recusar — poria a escola inteira sem planos por uma falha de leitura.
 
 ## O que está pendente
-
-## 27/10/2026 — O expurgo é um estado, e o sistema passou a lê-lo
-
-
-- **`provar-cabecalho-do-documento`, `provar-iphone` e `provar-titulo-e-barra` continuam a falhar
-  sem pacote** — e agora falham com a mensagem certa («escolas vivas: breu; expurgadas: …»). Não
-  foi mudado nada nelas: uma prova que não tem o que medir não deve dizer «TUDO CERTO», e a
-  mensagem passou a explicar em vez de acusar. Voltam sozinhas quando houver ciclo gerado.
-- **O `descobrir` do `deploy-escolas.yml` decide por EXISTÊNCIA do pacote-zero, e não pelo
-  registro.** Funciona (o expurgo apaga a pasta, e ele diz «pulando — escola expurgada»), mas a
-  frase é uma inferência: quem apagasse a pasta à mão veria a mesma mensagem. Fica registado; não
-  foi tocado porque o caminho está certo e o deploy não estava em causa.
-- **A `breu` continua sem ciclo gerado**, e por isso as bancadas `/propostas/` não vão ao ar. É o
-  estado da escola, não um defeito do código.
-
-## 27/10/2026 — O expurgo da `breu` aconteceu, e as duas metades conversaram
-
-Nada nesta frente. Fica registado, para não se ler como avaria:
-
-- **Zero escolas vivas no repositório.** Só o `wrangler.danca.jsonc` (a raiz) resta. O próximo
-  ciclo de teste começa por `tools/criar-escola.sh` + `tools/gerar-ciclo.sh`.
-- **`publicacao/batata`, `publicacao/breu` e `publicacao/calango` continuam no disco local** — são
-  saída (git-ignored) de escolas que já não existem. Não podem ir ao ar: a descoberta exige o
-  `wrangler.<slug>.jsonc`, e ele não existe. Estão lá como fotografia, não como resto a limpar; se
-  incomodarem, apagam-se sem consequência.
-- **`provar-titulo-e-barra`, `provar-iphone`, `provar-cabecalho-do-documento` e
-  `provar-objetivos-por-aula`** seguem sem fixture. As três primeiras dizem «nenhum pacote de ciclo
-  gerado que se possa medir» com o estado das escolas em baixo; a última diz «NÃO FEITO».
 
 ## 27/10/2026 — A escola recriada diz o presente, e o passado passa a ter sítio
 
@@ -319,6 +335,27 @@ Nada nesta frente. Fica registado, para não se ler como avaria:
 - **A `batata` não tem âncora** e o `check-pacote` do esqueleto reprova (falta PDF, `dados.json`,
   aulas). Como qualquer escola recém-criada, e como a `calango` antes dela: ancorar sela, e não há
   o que selar num ciclo vazio.
+
+## 27/10/2026 — Ler não é editar: o nome do registo volta a abrir o documento
+
+
+- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
+  ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
+  quando `tools/gerar-ciclo.sh` correr.
+- **O nome do link não tem dica visual além do sublinhado.** A bancada tinha uma linha
+  («o nome abre a ficha em .html, pronta a imprimir») com a classe `dica-do-link`, que também não
+  é peça da folha. Se a pesquisadora quiser a frase à vista, é **peça nova** — nasce na folha, no
+  catálogo e na prova, e não se improvisa aqui.
+
+## 27/10/2026 — A turma do plano é de quem a direção curou: a regra sai da tela e vai para o servidor
+
+
+- **`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
+  ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
+  quando `tools/gerar-ciclo.sh perna-boa 01 batata` correr. É o único elo desta cadeia que nunca foi
+  medido de ponta a ponta.
+- **A curadoria é lida do KV no caminho do `POST`.** Se a leitura falhar, a rota grava (degrada). A
+  alternativa — recusar — poria a escola inteira sem planos por uma falha de leitura.
 
 ## Pendências anteriores (índice)
 
@@ -615,6 +652,8 @@ Nada nesta frente. Fica registado, para não se ler como avaria:
 - **26/10/2026** — O que não se pergunta sai do roteiro, e aparece no cabeçalho → `REGISTRO.md` L26144
 - **26/10/2026** — A fronteira do cabeçalho fecha: o nó que só se lê mostra o… → `REGISTRO.md` L26199
 - **26/10/2026** — A anamnese é da aluna, e a marca «nova» sai quando ela já… → `REGISTRO.md` L26242
+- **27/10/2026** — O expurgo é um estado, e o sistema passou a lê-lo → `REGISTRO.md` L26349
+- **27/10/2026** — O expurgo da `breu` aconteceu, e as duas metades conversaram → `REGISTRO.md` L26445
 - **perna-boa · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 

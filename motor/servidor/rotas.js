@@ -28,7 +28,7 @@ const ficha = require('../nucleo/ficha.js');
 const porta = require('../nucleo/porta.js');
 const lancamento = require('../nucleo/lancamento.js');
 // Os rótulos do checklist do PO — a fonte é o CONTEÚDO, não a derivação.
-const { rotulosDoChecklist, derivadosDoChecklist } = require('../nucleo/derivar-po.js');
+const { rotulosDoChecklist, derivadosDoChecklist, derivarPO } = require('../nucleo/derivar-po.js');
 // O PLANO inteiro em Markdown, para a folha que o professor lê e imprime. É a MESMA
 // derivação que escreve a fonte do ciclo (`servidor/escrever-plano.js`): uma definição só,
 // para o documento impresso e o documento publicado não poderem divergir.
@@ -601,6 +601,59 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     // (patológico) de um pedido SEM contexto: ele continua sem contexto, e não ganha um
     // `{escola}` sozinho — meia identidade é pior que identidade nenhuma.
     if (corpo.contexto) corpo.contexto = comAEscolaDoWorker(corpo.contexto);
+
+    /* A TURMA DO PLANO TEM DE SER A DO PROFESSOR — E A REGRA É AQUI (27/10/2026).
+     *
+     * O QUE ACONTECEU. A tela filtrava as turmas pela curadoria, e a pesquisadora viu que dava
+     * para misturar: escolher um professor e a turma de outro. O filtro do cliente tinha uma
+     * porta aberta (a ausência de curadoria devolvia a lista inteira — corrigido em
+     * `porta/index.html`), mas o problema de fundo é outro e maior: **um filtro de tela não é uma
+     * regra**. Quem manda um `POST` à mão escreve o plano da turma que quiser, e o servidor
+     * aceitava.
+     *
+     * A AUTORIZAÇÃO É A CURADORIA, e ela é declarada, não deduzida (P-16). A direção atribui a
+     * turma ao professor; sem essa atribuição não há plano de ensino daquela turma. É a MESMA
+     * regra que já trava o formulário quando o professor não tem curadoria nenhuma
+     * (`podePreencher`), aplicada ao caso que faltava: curadoria existente, mas de OUTRA turma.
+     *
+     * NÃO SE APLICA AO PO. O Plano de Observação observa o plano; a turma dele vem do plano, e a
+     * autorização já foi dada quando o plano foi aceite. A anamnese também não: a dela é a aluna,
+     * e é outra regra (a curadoria filtra as alunas, `alunasDaAnamnese`).
+     *
+     * DEGRADA, NÃO REBENTA: sem `lerCuradorias` (uma bancada, um adaptador sem KV) não há como
+     * conferir, e a rota segue como sempre foi. O que não se faz é RECUSAR por falta de leitor —
+     * isso transformaria uma limitação de bancada numa proibição de gravar.
+     */
+    if (corpo.fonte === 'plano' && typeof lerCuradorias === 'function') {
+      const respostas = corpo.respostas && typeof corpo.respostas === 'object' ? corpo.respostas : {};
+      const cru = respostas['contexto-turma'];
+      const turmaPedida = String(
+        cru && typeof cru === 'object' && cru.valor !== undefined ? cru.valor : (cru || '')).trim();
+      const professor = String((corpo.contexto && corpo.contexto.professor) || '').trim();
+      if (turmaPedida && professor) {
+        try {
+          const curadorias = await lerCuradorias(escolaDoWorker || identidade.escola);
+          const doProfessor = (Array.isArray(curadorias) ? curadorias : [])
+            .filter((c) => c && !c.substituidaPor && String(c.professor || '').trim() === professor);
+          const autorizadas = new Set();
+          for (const c of doProfessor) {
+            for (const t of (Array.isArray(c.turmas) ? c.turmas : [])) {
+              const nome = String(t == null ? '' : t).trim();
+              if (nome) autorizadas.add(nome);
+            }
+          }
+          if (!autorizadas.has(turmaPedida)) {
+            return recusar('a turma «' + turmaPedida + '» não está atribuída a este professor: o '
+              + 'plano de ensino de uma turma é de quem a direção curou para ela. '
+              + (autorizadas.size
+                ? 'As turmas deste professor são: ' + [...autorizadas].join(', ') + '.'
+                : 'Este professor não tem turma atribuída — é a curadoria que autoriza o plano.'),
+              403);
+          }
+        } catch (erro) { /* sem leitor de curadorias, a rota segue: ver o comentário acima */ }
+      }
+    }
+
     try {
       const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
 
@@ -842,6 +895,77 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   };
   roteador.rota('GET', '/api/plano-preenchido', planoPreenchido);
   roteador.rota('GET', '/api/plano-preenchido.*', planoPreenchido);
+
+  /* 15.2 /api/po-preenchido[.<id>] — o PLANO DE OBSERVAÇÃO inteiro, na folha que se lê e se
+   *      imprime (27/10/2026).
+   *
+   * O DEFEITO. O PO não tinha folha nenhuma: na estante abria o ENVELOPE CRU (`/api/envelope/<id>`,
+   * JSON), e a listagem da Área do Professor não abria nada — só oferecia «Ajustar». A
+   * pesquisadora pediu os três documentos: «ler e, se quiser, até imprimir». O PO é o que se lê
+   * ANTES de entrar em sala: é onde está o que se decidiu observar, com que régua e em que
+   * condições. Deixá-lo em JSON era deixá-lo fora do alcance de quem dá a aula.
+   *
+   * O TEXTO É O MESMO QUE VIRA A FONTE DO CICLO (`escrever-po.js` chama a mesma `derivarPO`), e
+   * com os MESMOS rótulos do conteúdo: o documento não é uma segunda versão do que está na tela,
+   * é o que ficou gravado.
+   *
+   * O PLANO REFERENCIADO é resolvido aqui como é resolvido no `elicitar` — pelo nó
+   * `plano-de-ensino`, e na falta dele pelo plano mais recente do mesmo contexto. Sem ele, a
+   * tabela da linha de base sai com lacuna declarada (o PO não duplica a dose, o calendário nem o
+   * volume: ele os lê do plano), e uma lacuna que o documento podia preencher é uma lacuna a
+   * mentir.
+   */
+  const planoDoPO = async (envelope) => {
+    try {
+      const ref = envelope && envelope.respostas && envelope.respostas['plano-de-ensino'];
+      const planoId = ref && ref.valor !== undefined ? ref.valor : ref;
+      if (planoId) {
+        const achado = await porta.lerEnvelope(armazenamento, String(planoId));
+        if (achado) return achado;
+      }
+      const contexto = (envelope && envelope.contexto) || {};
+      const nomes = await porta.nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+      for (let i = nomes.length - 1; i >= 0; i -= 1) {
+        const env = await porta.lerArquivo(armazenamento, nomes[i]);
+        const c = env && env.contexto;
+        if (c && c.escola === contexto.escola && c.professor === contexto.professor
+            && String(c.ciclo) === String(contexto.ciclo)) return env;
+      }
+    } catch (erro) { /* sem plano: o documento sai com a lacuna declarada, e é o honesto */ }
+    return null;
+  };
+
+  const poPreenchido = async ({ url, params }) => {
+    const sufixo = (params && params.resto) || '';
+    const id = decodeURIComponent(sufixo.replace(/^\./, ''));
+    if (id && !/^[a-z0-9][a-z0-9-]*$/.test(id)) return recusar('id inválido: ' + id);
+    // Sem id, o PO mais recente — e SÓ entre os POs (o `ultimoEnvelope` devolveria a anamnese
+    // mais nova, que não é PO nenhum). A mesma disciplina do `plano-preenchido`.
+    let idAlvo = id;
+    if (!idAlvo) {
+      const nomes = await porta.nomesDeEnvelopes(armazenamento, /^po-.*\.json$/);
+      idAlvo = nomes.length ? nomes[nomes.length - 1].replace(/\.json$/, '') : '';
+    }
+    const envelope = idAlvo ? await porta.lerEnvelope(armazenamento, idAlvo) : null;
+    if (!envelope) return recusar('Plano de Observação não encontrado: ' + (idAlvo || '(nenhum gravado)'), 404);
+    // A trava de FAMÍLIA: um id de anamnese ou de plano aqui derivaria um «PO» que não existe.
+    if (!/^po-/.test(idAlvo)) {
+      return recusar('não é um Plano de Observação: ' + idAlvo);
+    }
+
+    const plano = await planoDoPO(envelope);
+    const { markdown, meta } = derivarPO(envelope, plano, {
+      rotulos: rotulosDoChecklist(conteudoPO),
+      derivados: derivadosDoChecklist(conteudoPO),
+    });
+
+    if (url.searchParams.get('formato') === 'html') {
+      return resposta(200, MIME['.html'], fichaHtml.paginaDoPO(markdown, idAlvo, meta));
+    }
+    return resposta(200, MIME['.md'], markdown);
+  };
+  roteador.rota('GET', '/api/po-preenchido', poPreenchido);
+  roteador.rota('GET', '/api/po-preenchido.*', poPreenchido);
 
   // 16. O fallback ESTÁTICO (index.html e os assets) — GET/HEAD, em último.
   roteador.rota('GET', '*', async ({ url }) => {

@@ -228,10 +228,32 @@ function paginaDoPlano(markdown, id, meta) {
   });
 }
 
+/*
+ * A FOLHA DO PLANO DE OBSERVAÇÃO (27/10/2026). Até aqui o PO não tinha folha: na estante abria
+ * o envelope CRU, e a listagem não abria nada. A pesquisadora pediu os três — «ler e, se quiser,
+ * até imprimir» —, e o PO é o documento em que o professor decide o que vai observar: é
+ * exactamente o que se lê antes de entrar em sala.
+ *
+ * O texto é o do `derivarPO`, que é o MESMO que vira a fonte do ciclo (`escrever-po.js`). Não é
+ * uma segunda versão do documento: é o documento, na folha.
+ */
+function paginaDoPO(markdown, id, meta) {
+  const m = meta || {};
+  return folha(markdown, {
+    aba: (m.title || 'Plano de Observação') + ' — ' + String(id),
+    titulo: m.title || 'Plano de Observação',
+    sub: '<p class="sub">O Plano de Observação inteiro, como ficou gravado — registro <strong>' +
+      escapar(String(id)) + '</strong>.</p>',
+    aviso: 'O que você decidiu observar, com que régua e em que condições — para ler e imprimir. '
+      + 'A lacuna que restar fica declarada: nenhum campo é preenchido por adivinhação.',
+  });
+}
+
 module.exports = {
   markdownParaHtml,
   paginaDaFicha,
   paginaDaFichaEmBranco,
   paginaDoPlano,
+  paginaDoPO,
   corpoDaFicha,
 };
