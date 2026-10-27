@@ -15,6 +15,22 @@
       "numero": "01",
       "professor": "perna-boa",
       "sem_ancora": false
+    },
+    {
+      "ancora": {
+        "hash": "dd67fde99f565c9806ea3f62ceffdc5d376a975d88b378ff890d4f78b7c5224a",
+        "id": "ciclo-01-batata-bale-nivel-2-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:so-para-direita/01/batata",
+      "numero": "01",
+      "professor": "so-para-direita",
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -45,16 +61,17 @@
     },
     {
       "ciclos": [
-        "ciclo:perna-boa/01/batata"
+        "ciclo:perna-boa/01/batata",
+        "ciclo:so-para-direita/01/batata"
       ],
       "contagens": {
         "anamneses": 3,
         "aulas": 0,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
-        "planos": 1,
+        "ciclos": 2,
+        "ciclos_com_ancora": 2,
+        "planos": 2,
         "pos": 0,
-        "registros": 4
+        "registros": 5
       },
       "criada_em": "2026-10-27T12:11:05.731644+00:00",
       "expurgada": false,
@@ -72,7 +89,8 @@
         "anamnese:anamnese-20261027-0939",
         "anamnese:anamnese-20261027-0943",
         "anamnese:anamnese-20261027-0946",
-        "plano:plano-20261027-1025"
+        "plano:plano-20261027-1025",
+        "plano:plano-20261027-1131"
       ],
       "slug": "batata"
     },
@@ -287,7 +305,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -346,7 +364,7 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
@@ -445,7 +463,7 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       }
@@ -453,9 +471,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a8f774b"
+    "commit": "c278372"
   },
-  "gerado_em": "2026-10-27T14:02",
+  "gerado_em": "2026-10-27T14:32",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -576,7 +594,9 @@
       "slug": "sapo-bailarino"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:so-para-direita/01/batata"
+      ],
       "escolas": [
         "batata"
       ],

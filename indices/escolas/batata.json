@@ -39,6 +39,40 @@
         "plano",
         "schema"
       ]
+    },
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-27",
+        "caminho": "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
+        "cobertura": [
+          "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+          "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf"
+        ],
+        "hash": "dd67fde99f565c9806ea3f62ceffdc5d376a975d88b378ff890d4f78b7c5224a",
+        "hash_conteudo": "0898f1f122caa8eea879f02f839f9610cf170a17782c2c931a186757ff09fe57",
+        "id": "ciclo-01-batata-bale-nivel-2-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+        "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
+        "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp"
+      ],
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:so-para-direita/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "so-para-direita",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "plano"
+      ]
     }
   ],
   "documentos": [
@@ -61,6 +95,15 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
+      "ciclo_id": "ciclo:so-para-direita/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
+      "professor": "so-para-direita",
+      "tipo": "ancora"
+    },
+    {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "ciclo_id": "ciclo:perna-boa/01/batata",
@@ -79,12 +122,30 @@
       "tipo": "manifesto"
     },
     {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
+      "ciclo_id": "ciclo:so-para-direita/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
+      "professor": "so-para-direita",
+      "tipo": "manifesto"
+    },
+    {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "ciclo_id": "ciclo:perna-boa/01/batata",
       "escola": "batata",
       "id": "documento:plano:professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "professor": "perna-boa",
+      "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+      "ciclo_id": "ciclo:so-para-direita/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+      "professor": "so-para-direita",
       "tipo": "plano"
     },
     {
@@ -99,16 +160,17 @@
   ],
   "escola": {
     "ciclos": [
-      "ciclo:perna-boa/01/batata"
+      "ciclo:perna-boa/01/batata",
+      "ciclo:so-para-direita/01/batata"
     ],
     "contagens": {
       "anamneses": 3,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
-      "planos": 1,
+      "ciclos": 2,
+      "ciclos_com_ancora": 2,
+      "planos": 2,
       "pos": 0,
-      "registros": 4
+      "registros": 5
     },
     "criada_em": "2026-10-27T12:11:05.731644+00:00",
     "expurgada": false,
@@ -126,19 +188,21 @@
       "anamnese:anamnese-20261027-0939",
       "anamnese:anamnese-20261027-0943",
       "anamnese:anamnese-20261027-0946",
-      "plano:plano-20261027-1025"
+      "plano:plano-20261027-1025",
+      "plano:plano-20261027-1131"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261027-0939",
           "anamnese:anamnese-20261027-0943",
           "anamnese:anamnese-20261027-0946",
-          "plano:plano-20261027-1025"
+          "plano:plano-20261027-1025",
+          "plano:plano-20261027-1131"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -146,9 +210,10 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:perna-boa/01/batata"
+          "ciclo:perna-boa/01/batata",
+          "ciclo:so-para-direita/01/batata"
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
@@ -166,10 +231,12 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 2,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261027-0943",
-          "anamnese:anamnese-20261027-0946"
+          "anamnese:anamnese-20261027-0946",
+          "ciclo:so-para-direita/01/batata",
+          "plano:plano-20261027-1131"
         ],
         "rotulo": "so-para-direita",
         "valor": "so-para-direita"
@@ -187,17 +254,19 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:perna-boa/01/batata"
+          "ciclo:perna-boa/01/batata",
+          "ciclo:so-para-direita/01/batata"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "plano:plano-20261027-1025"
+          "plano:plano-20261027-1025",
+          "plano:plano-20261027-1131"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
@@ -206,9 +275,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a8f774b"
+    "commit": "c278372"
   },
-  "gerado_em": "2026-10-27T14:02",
+  "gerado_em": "2026-10-27T14:32",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -273,6 +342,18 @@
       "professor": "perna-boa",
       "tipo": "plano",
       "turma": "Balé Nível 1 — Teste 2"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261027-1131",
+      "ciclo": "01",
+      "data": "2026-10-27T11:31",
+      "id": "plano:plano-20261027-1131",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "so-para-direita",
+      "tipo": "plano",
+      "turma": "Balé Nível 2 — Teste 2"
     }
   ],
   "versao": 6
