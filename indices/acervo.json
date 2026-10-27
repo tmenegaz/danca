@@ -48,13 +48,13 @@
         "ciclo:perna-boa/01/batata"
       ],
       "contagens": {
-        "anamneses": 1,
+        "anamneses": 2,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 1
+        "registros": 2
       },
       "criada_em": "2026-10-27T12:11:05.731644+00:00",
       "expurgada": false,
@@ -69,7 +69,8 @@
         "so-para-direita"
       ],
       "registros": [
-        "anamnese:anamnese-20261027-0939"
+        "anamnese:anamnese-20261027-0939",
+        "anamnese:anamnese-20261027-0943"
       ],
       "slug": "batata"
     },
@@ -284,7 +285,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -437,7 +438,7 @@
     ],
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       }
@@ -445,9 +446,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2cd5c77"
+    "commit": "50387da"
   },
-  "gerado_em": "2026-10-27T12:39",
+  "gerado_em": "2026-10-27T12:43",
   "nao_indexado": [
     {
       "familia": "conteudo",
