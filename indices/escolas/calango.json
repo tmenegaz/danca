@@ -1,47 +1,112 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/murisoca-baiana/ciclos/ciclo-01-calango.conf",
+        "professores/murisoca-baiana/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "calango",
+      "estado": "sem-ancora",
+      "id": "ciclo:murisoca-baiana/01/calango",
+      "numero": "01",
+      "pacote": null,
+      "professor": "murisoca-baiana",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/murisoca-baiana/ciclos/ciclo-01-calango.conf",
+      "ciclo_id": "ciclo:murisoca-baiana/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/murisoca-baiana/ciclos/ciclo-01-calango.conf",
+      "professor": "murisoca-baiana",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/murisoca-baiana/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:murisoca-baiana/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/murisoca-baiana/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "murisoca-baiana",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:murisoca-baiana/01/calango"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
-    "expurgada": true,
+    "expurgada": false,
     "expurgada_em": "2026-10-23T12:54:21.068Z",
     "expurgos": 7,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:calango",
     "nome": "calango",
-    "professor": "oculos-redondo",
+    "professor": "murisoca-baiana",
     "professores": [
       "murisoca-baiana",
-      "oculos-redondo",
-      "perna-boa",
-      "sapo-bailarino",
-      "tiago-menegaz"
+      "perna-boa"
     ],
     "registros": [],
     "slug": "calango"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:murisoca-baiana/01/calango"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:murisoca-baiana/01/calango"
+        ],
+        "rotulo": "murisoca-baiana",
+        "valor": "murisoca-baiana"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:murisoca-baiana/01/calango"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "f959218"
+    "commit": "ff26866"
   },
-  "gerado_em": "2026-10-27T11:22",
+  "gerado_em": "2026-10-27T11:35",
   "nao_indexado": [
     {
       "familia": "conteudo",
