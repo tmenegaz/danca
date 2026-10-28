@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 27/10/2026 (base local `6029676`; Aula 01 publicada no commit `8b939d0`, workflow da Batata concluído e raiz com HTTP 200; a rota `/aulas/` não foi recarregada após este deploy).
+> **Última fotografia:** 28/10/2026 (base local `d9f085f`; leitura dos documentos e saída dos códigos da tela publicadas nos commits `973358b`, `dc8faec` e `d9f085f`; workflows #205, #288 e #403 concluídos; o plano da Batata conferido ao ar).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -104,6 +104,12 @@ Verificado nesta fotografia, com os comandos da §9.
   #287 de `Publicar as escolas` e o job `publicar (batata)` concluíram com sucesso. Uma única
   requisição final à raiz respondeu HTTP 200 e o HTML contém o link para `/aulas/`. A rota não foi
   recarregada após este deploy. **CONFIRMADO**.
+
+- **Publicação de 28/10/2026:** os três commits foram enviados a `origin/main`; `Regerar os
+  índices` #205, `Publicar as escolas` #288 e `Reancorar a cadeia` #403 concluíram com sucesso no
+  commit `d9f085f`. A conferência ao ar foi à escola `batata`, que é a única com pacote. O plano
+  publicado não tem subtítulo nem ficha, mostra os dois grupos do contexto, o calendário em duas
+  partes e o rodapé do próprio documento. **CONFIRMADO**.
 
 - **O `HANDOFF.md` estava desatualizado** — dizia `6bdb06a` com o `HEAD` em `7182307`.
   **CONFIRMADO** e corrigido nesta sessão por regeneração.
@@ -333,7 +339,24 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ## 9. Validação
 
-### Executado nesta fotografia (27/10/2026 — entrega local da Aula)
+### Executado nesta fotografia (28/10/2026 — leitura dos documentos)
+
+| Verificação | Resultado |
+|:--|:--|
+| `git fetch origin` + `git status -sb` | `main` alinhada com `origin/main` antes de editar; depois do push, `d9f085f` enviado sem divergência |
+| `tools/gerar-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2` | pacote regerado; **9 páginas**, **292 links internos**, PDF consolidado de **34 páginas**, **0 erros e 0 avisos** |
+| `node tools/validar-plano-ciclo.js` | satisfaz o schema; o `contexto` extrai as **11 chaves** com as duas tabelas somadas |
+| `node tools/validar-po-ciclo.js` | satisfaz o schema, **13 campos de topo**; o aviso de secção fora do mapa desapareceu com o par corrigido |
+| `node tools/validar-captura-ciclo.js` | **0 erros**, 2 avisos de mapeamento que já existiam |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram; o `pre-commit` repetiu-as |
+| `node tools/check-indices.js` | **14 verificações, 0 falhas** após regenerar os índices |
+| `node experimentos/provar-ficha-visual.js` | **19 provas**, sem falhas |
+| `tools/hash-ciclo.sh ... ` + `--check` | âncoras regeradas; cadeia íntegra. Ciclo `f934a3e8…`, Aula 01 `831ae856…` |
+| `git push origin main` | três commits enviados; verificações do `pre-push` passaram |
+| workflows `Regerar os índices` #205, `Publicar as escolas` #288, `Reancorar a cadeia` #403 | todos `completed / success` no commit `d9f085f` |
+| conferência ao ar (Batata) | `/` → 200; `/aulas/` listou «Abrir notação · Lançar · Captura para impressão · PDF da aula»; o plano publicado **não** tem subtítulo nem ficha, traz os dois grupos do contexto e as âncoras `#aulas-01-13` e `#aulas-14-26`, e o rodapé «Referências Bibliográficas · PDF do ciclo» |
+
+### Publicação anterior (27/10/2026 — entrega local da Aula)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -429,6 +452,14 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **28/10/2026** — **O documento abre pela leitura, e o código interno saiu da tela.** O plano do
+  ciclo deixa de ter resumo e etiquetas debaixo do título; o `## Contexto` passa a declarar dois
+  grupos («Escola e espaço», «Professor, turma e método»); o calendário parte-se pelo marco; o
+  rodapé passa a ser o de cada documento; e os códigos de pétrea (`P-06`, `P-10`, `P-11`, `P-15`,
+  `P-16`, `P-21`, `P-22`) saem de tudo o que o professor lê. Publicado nos commits `973358b`
+  (ferramentas, com motivo declarado), `dc8faec` (fontes e pacote da Batata) e `d9f085f`
+  (registo); workflows #205, #288 e #403 **success**; o plano foi conferido ao ar. **CONFIRMADO**.
 
 - **27/10/2026** — **A Aula 01 foi publicada na Batata.** O commit `8b939d0` foi enviado a
   `origin/main`; o run #287 de `Publicar as escolas` e o job Batata passaram. A única conferência
