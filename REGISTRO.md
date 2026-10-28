@@ -27554,3 +27554,105 @@ As entradas de 28/10/2026 deste mesmo dia («O documento abre pela leitura…»)
 > alfabeto dá as categorias, os sinais e os verbetes, e a Nota declara o par glossário ↔ registro.
 > Saiu do derivador (`derivar-ciclo.js`) e da fonte, e o pacote foi regerado com a âncora. Ficam
 > com subtítulo **só** a captura e a harmonização, pelos motivos acima.
+
+## 28/10/2026 — A Sequência declarada sai, e a métrica ganha legenda
+
+**O que motivou.** A pesquisadora abriu a Aula 01 e não conseguiu ler a grade: «no compasso 1 eu vou
+de 1 a 3… então eu vou fazer o quê?». Três perguntas concretas, todas no mesmo lugar: (a) por que o
+Battement tendu repete «compasso 1» em duas linhas e o Plié não; (b) **qual braço** fecha o arco em
+cada compasso do Port de bras — «começo com os dois braços abertos, fecho o direito, depois fecho o
+esquerdo?»; e (c) **onde** é que ela definiu que o tendu vai à frente e depois atrás, e não ao lado.
+E, ao lado disso, uma constatação: a **Sequência declarada** repete o que a grade mostra.
+
+**O que foi decidido.**
+- A **«Sequência declarada» saiu**, da aula e da notação — **69 linhas a menos em cada página
+  gerada** (33 na fonte da aula). Ela listava bloco, exercício, objetivo, tempos e compasso: era a
+  grade, em resumo, sem a notação e sem a descrição. O link **«Aula 01»** do plano apontava para a
+  âncora dela; passa a apontar para a grade (`#exercicios-da-aula-01`), que é o destino útil.
+- A **«Descrição» fica.** Perguntada («a notação sozinha não basta?»), a resposta é que `[Plié: 1ª ↓]`
+  só quer dizer «cede» para quem já sabe: a descrição é a tradução. O que pode sumir é a coluna da
+  notação, nunca a da descrição.
+- O **compasso repetido fica.** Um 4/4 com duas células no mesmo compasso (1–2 e depois 3–4) é a
+  forma correta de escrever «o exercício ocupa dois compassos, com duas ações em cada».
+- O **Port de bras passa a 18 tempos** (era 16), nas **duas** versões guardadas do plano. O efeito é
+  uma lacuna que já existia e estava escondida: o verbete cobre **12 dos 18 tempos** — 4 compassos
+  de 3/4 —, e os **2 últimos compassos** saem em `conferir`, com `compassoDoResto = 5`.
+
+**O que o rastreio apurou.** Nenhum destes valores vem do plano, do PO ou da Produção: **compasso,
+contagem, notação e descrição vêm do verbete** do exercício em `biblioteca/notacao/ballet-classico.json`,
+indexado por `<tempos>|<compasso>`. O plano só contribui com `Tempos` e `Compasso` de cada linha — e
+declarou-os em **3 de 30**. Daí a resposta às três perguntas: o Battement tendu não tem tendu ao lado
+porque o verbete não o tem (a ordem é `1ª → +` e depois `1ª → ×`); e o braço do Port de bras não está
+dito porque nos compassos **1 a 3 são os dois braços juntos** — o compasso **4** é que separa a
+condução (D → E). O raciocínio «fecho o direito, depois o esquerdo» **não** é o que o verbete diz.
+
+**O bloco de musicalidade não tem dado nenhum.** A linha que aparece — `| Pulso | [Preencher: trabalho
+de pulso da Aula 01] |` — está **escrita à mão** no derivador (`derivar-ciclo.js`). «Pulso» não é uma
+escolha do professor e «Trabalho» nunca foi perguntado: **não há nó no formulário do plano que peça a
+musicalidade**, embora a ajuda do formulário prometa o contrário («A musicalidade não entra aqui: ela
+tem o bloco dela»), e a vista que a derivaria (`Vistas.musicalidade`, em `tools/lib-vistas.js`) nunca
+foi ligada a esta variante — não existe `-musicalidade.md` para a Batata.
+
+**O envelope.** O `plano-20261027-1131.json` é o mais recente, mas **não é o mesmo plano em tamanho
+menor**: não tem Arabesque nem Jeté (14 linhas contra 30). Regerar a partir dele apagaria esses
+exercícios de uma página publicada e deixaria o «Parâmetro de medição» a citar exercícios que o
+documento já não mostra. Decisão da pesquisadora: **refazer o plano no formulário**; até lá, os
+documentos ficam sobre o `plano-20261027-1025.json`.
+
+**Onde entrou.**
+- `motor/nucleo/derivar-ciclo.js` — sai a emissão da «Sequência declarada» e a variável órfã `sequencia`.
+- `tools/tabela-objetivos.js` — `ANCORA_DA_SEQUENCIA` (constante) passa a `ancoraDaSequencia(aula)`,
+  para o destino poder mudar por aula. Export atualizado.
+- `experimentos/provar-objetivos-por-aula.js` — as asserções acompanham a âncora nova. **A prova não
+  corre**: o fixture `batata-bale-nivel-2-teste-2` foi expurgado do repositório.
+- Fontes do ciclo Batata: `aula-01.md` (secção removida) e `notacao.md` (Port de bras em 18 tempos).
+- `escola/batata/envelopes/plano-20261027-1025.json` e `-1131.json` — `"Tempos": "16"` → `"18"` na
+  linha do Port de bras, por substituição na linha exata. *(A primeira tentativa reescreveu o
+  ficheiro inteiro com `JSON.stringify` e foi revertida: o envelope é o registo do que foi respondido,
+  não uma serialização nossa.)*
+- Pacote, âncoras `.fipp` e `indices/` regerados.
+
+**Motivo declarado — os congelados.**
+Toca `motor/` e `tools/` (`tabela-objetivos.js`), ambos em `CONGELAMENTO.md`. O motivo é o pedido da
+dona do produto: retirar uma secção derivada que duplicava a grade, e corrigir a âncora que dependia
+dela. **Não muda** a fórmula de hash, a cobertura da âncora, as 17 regras, as 22 pétreas, nem o que os
+validadores exigem.
+
+**Com o quê.**
+`motor/nucleo/derivar-ciclo.js`, `tools/tabela-objetivos.js`,
+`experimentos/provar-objetivos-por-aula.js`, as duas fontes do ciclo Batata, os dois envelopes do
+plano, as âncoras `.fipp`, `indices/` e o pacote da Batata.
+
+**Validação.**
+`tools/gerar-ciclo.sh` → **0 erros, 0 avisos**; `check-pacote` → **0 erro(s), 0 aviso(s)** (26
+verificações); `check-identidade` → **20/20**; `check-indices` → **14/14**; `validar-aula-ciclo` ok;
+âncora regerada e `--check` íntegro (`1816e1eb…`). Conferido no pacote publicado localmente: **zero**
+ocorrências de «Sequência declarada» nas três páginas geradas; o link do plano resolve para
+`aula-01.html#exercicios-da-aula-01`; o Port de bras mostra «18 tempos, 3/4» e a linha «2 compassos sem
+verbete». A única ocorrência que resta de «Sequência declarada» em todo o repositório está no
+`plano-aula-01-anterior.json` — e é o lugar certo: é o **instantâneo histórico**, o passado que se
+incorpora em vez de se reescrever.
+
+**Referências.**
+`REGRAS.md` (Regra 6 — Métrica; Regra 15 — Musicalidade); `biblioteca/notacao/ballet-classico.json`
+(os verbetes, e o vocabulário de lados `D`/`E` que **existe e não é usado**); `porta/plano/conteudo/plano.json`
+(os dez blocos do formulário, onde a musicalidade não está); a bancada
+`experimentos/propostas/proposta-musicalidade.html` (local, **não versionada**: `experimentos/propostas/*`
+está no `.gitignore`), com a legenda de compasso e contagem, a grade com os tempos à vista, o Port de
+bras com a coluna de lado e o bloco de musicalidade em três colunas.
+
+**O que ainda não está feito.**
+- **O bloco de musicalidade continua sem pergunta.** Enquanto não houver nó no formulário do plano, o
+  documento não pode afirmar «Pulso»: a bancada propõe três itens (Pulso, Acento, Frase) com uma
+  coluna que os liga ao compasso declarado, e uma pergunta por item. Aprovar a bancada **não** resolve
+  isto — resolve só a legenda e as três colunas.
+- **29 dos 30 exercícios continuam sem tempos e compasso**, porque o plano não os declarou. É a maior
+  lacuna da aula, e é do lado do preenchimento, não do gerador.
+- O **envelope** só fica resolvido quando a pesquisadora refizer o plano no formulário.
+- A **sobrescrita do `plano-aula-01-anterior.json`** por cada regeneração continua a acontecer no
+  gerador (o instantâneo foi restaurado à mão outra vez, e as páginas de PDF e o `ciclos.json` também,
+  porque o `pre-commit` regera e reescreve os carimbos de tempo — o texto dos PDFs é idêntico,
+  confirmado por `pdftotext | md5sum`).
+- `tools/check-glossario.js` continua a falhar: aponta para
+  `professores/tiago/ciclos/ciclo-01-maria-notacao.md`, que já não existe neste worktree. É
+  pré-existente.
