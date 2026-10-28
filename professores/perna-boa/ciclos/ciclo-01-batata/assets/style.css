@@ -1351,6 +1351,21 @@ select:not([multiple]):not([size]):not([hidden]) {
 .caixa input, .caixa select, .caixa textarea,
 .modal-caixa input, .modal-caixa select, .modal-caixa textarea,
 form input, form select, form textarea { background-color: var(--campo-fundo-cartao); }
+/* O CAMPO BLOQUEADO (28/10/2026). A folha desenhava o BOTÃO bloqueado e não desenhava o
+   CAMPO bloqueado: um `<select disabled>` ficava a opacidade 1, idêntico a um activo, e o
+   bloqueio só se descobria ao clicar. Medido no navegador antes desta regra: opacidade 1
+   nos dois. Um bloqueio que não se vê é um controle que não responde sem dizer por quê.
+
+   O número é o MESMO do botão (`.4`, em `:where(button:disabled)` e em `.acao:disabled`),
+   e é de propósito: «bloqueado» tem de ter um significado só no sistema, e não um por
+   família de controle. O fundo desce para o papel recuado — o mesmo `--fundo-suave` que o
+   botão usa —, e o cursor diz o resto a quem aponta.
+
+   A especificidade é `:where(…)` mais um `:disabled`, que dá (0,1,1): empata com
+   `.caixa select` e vence por vir depois. Um `!important` faria o mesmo e não diria por quê. */
+:where(select, input, textarea):disabled {
+  opacity: .4; cursor: not-allowed; background-color: var(--fundo-suave);
+}
 /* Na noturna a seta clareia: `#7a5c31` sobre o campo escuro some. */
 [data-modo="noturna"] select:not([multiple]):not([size]):not([hidden]) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23bfb2a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
