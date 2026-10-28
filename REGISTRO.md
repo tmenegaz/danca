@@ -27877,3 +27877,73 @@ uma string de aspas simples, `\"` produz `"` e o HTML saía com `value=""`).
   à mão. Está dito ao utilizador na própria mensagem, em vez de falhar em silêncio.
 - **As seleções no plano (§1.6)** — o plano ainda não escolhe a posição nem as direções.
 - **A falha antiga do «item do menu»** na prova da Produção continua por investigar.
+
+## 28/10/2026 — O verbete em Produção: três defeitos meus, e a pergunta que faltava
+
+**O que motivou.** A pesquisadora abriu a página dos verbetes em Produção, no primeiro dia. Encontrou
+o campo **HTTP 500** ao carregar a lista, a frase **«Unexpected token <»** no lugar dela, a lista de
+**posições vazia**, o campo da **música colado** ao de baixo, e um parágrafo **técnico** («a gravação
+vai para o repositório, num commit») que não tem o que fazer numa tela de trabalho. E perguntou o que
+nenhuma prova minha tinha perguntado: *«o verbete precisa ser uma lista de nomes já preenchidos. Não dá
+pra deixar qualquer pessoa escrever.»*
+
+**Os três defeitos, e a causa de cada um.**
+1. **HTTP 500.** Dentro de `motor/servidor/bastidores.js`, `fetch` é o **handler dos Bastidores**. A
+   rota do verbete chamava `fetch(u, o)` para ir ao GitHub — e chamava-se **a si mesma**, com uma
+   string. Passa a `globalThis.fetch`.
+2. **«Unexpected token <».** O 500 devolve uma página de erro em HTML, e a tela fazia `.json()` sobre
+   ela. A mensagem que o utilizador via era a do `<`. A tela passa a ler o **texto** primeiro e só
+   depois a tentar o JSON.
+3. **«Não existe no repositório» com o ficheiro lá.** `lerDoRepo` desestruturava `cabecalhos` e as
+   chamadas passavam `h`: os cabeçalhos chegavam **`undefined`**, sem `User-Agent`, e o GitHub
+   responde **403**. O código traduzia isso para «não existe». **Uma credencial recusada não é um
+   ficheiro ausente** — é a mesma família do `if` que filtrava o título vazio: «está aqui?» e
+   «existe?» não são a mesma pergunta. Agora o 403 diz que foi recusado, com o `status` e o motivo.
+
+**O que mudou na tela.**
+- **O exercício é escolhido, não escrito.** A lista vem do **vocabulário técnico da modalidade** — a
+  mesma de onde sai o «conteúdo do nível» do plano. Mostra só o que **pode ser exercício**: passos,
+  saltos, ligações e giros. Uma posição (`première position`) e uma direção (`croisé`) não são
+  exercícios, e oferecê-las na mesma lista seria oferecer a resposta errada com a mesma cara da certa.
+  Agrupada por categoria, na ordem do dia de aula.
+- **A música ganhou um rótulo por campo** — era isto que estava «colado»: dois controlos seguidos, sem
+  rótulo entre eles.
+- **A nota técnica saiu.** Quem usa a tela precisa de saber que gravou, não onde o dado mora.
+- Um exercício que já tem verbete mas **não** está no vocabulário (escrito à mão numa versão anterior)
+  entra na lista como opção própria — escondê-lo faria o formulário abrir em branco sobre um verbete
+  que existe.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — as duas chamadas passam a `globalThis.fetch`; a rota devolve
+  `exerciciosDoVocabulario`; o formulário e o script da secção refeitos; a nota técnica removida.
+- `motor/servidor/verbete.js` — a chave dos cabeçalhos corrigida (`h`), e a leitura passa a distinguir
+  **404** (não existe) de **o resto** (recusado, com o motivo escrito).
+- `experimentos/provar-verbete.js` — secção **E** nova, com 10 asserções. O `fetch` global é
+  substituído por um GitHub de mentira que **exige `User-Agent`**; se a rota se chamar a si mesma, a
+  prova rebenta como rebentou ao vivo.
+- `experimentos/propostas/proposta-verbete.html` — a bancada do layout e da pergunta em aberto
+  (local, não versionada).
+
+**Motivo declarado — os congelados.** Nenhum. Toca `motor/servidor/`, que é livre.
+
+**Validação.**
+`provar-verbete.js` → **34 asserções, 0 falhas** (eram 24; as 10 novas são a secção E).
+`provar-producao.js` → **151 de 152** — a única falha, «o item do menu fica marcado», é pré-existente
+e não é desta alteração. `check-identidade` → **20/20**. A página servida passa no `node --check`.
+
+**O que a bancada propõe, e fica à espera de decisão.**
+O **«+»** para acrescentar um exercício, com a distinção que faltava: **um exercício** é um termo do
+vocabulário; **um verbete** é a decomposição desse exercício em compassos. Um exercício pode existir
+sem verbete; um verbete não pode existir sem exercício. A recomendação é a opção **A na aparência,
+B na substância**: um diálogo que chama o cadastro de termos que já existe, em vez de um segundo
+formulário.
+
+E a consequência que a pergunta dela destranca: **se o nome do verbete tem de ser o nome do termo, o
+vocabulário tem de ser um só.** Hoje não é — há o ficheiro da modalidade no repositório **e** uma cópia
+por escola no KV, semeada pelo botão «Carregar catálogo inicial». A proposta é o vocabulário passar a
+ser lido **do repositório** em toda a parte e o cadastro de termo **gravar no repositório**; o KV fica
+com o que é mesmo da escola (turma↔conteúdos, professores, turmas). É menos KV e uma verdade só.
+
+**O que ainda não está feito.**
+- O **editor de célula** e o **«+» do exercício**, que dependem da decisão acima.
+- As **seleções no plano** (§1.6).

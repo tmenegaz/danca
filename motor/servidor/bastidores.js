@@ -3174,17 +3174,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="col-form" id="verbetes-miolo">' +
     '<form id="form-verbete">' +
     '<input type="hidden" id="vbacao" value="criar">' +
-    '<label class="campo-rotulo" for="vbnome">Exercício (o nome tem de ser o do conteúdo do nível)</label>' +
-    '<input id="vbnome" name="nome" autocomplete="off" placeholder="ex.: Battement tendu">' +
-    '<label class="campo-rotulo" for="vbmusica">Música — quantos tempos e em que compasso</label>' +
-    '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="tempos (ex.: 8)">' +
+    // O EXERCÍCIO É ESCOLHIDO, NÃO ESCRITO (28/10/2026). A lista vem do vocabulário técnico da
+    // modalidade — a mesma de onde sai o «conteúdo do nível» do plano. Escrever à mão daria
+    // verbetes que quase casam com o exercício, e «quase» aqui quer dizer uma página em lacuna.
+    '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
+    '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
+    '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
+    '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="ex.: 8">' +
+    '<label class="campo-rotulo" for="vbcompasso">Em que compasso</label>' +
     '<select id="vbcompasso">' +
     ['2/4', '2/2', '3/4', '3/8', '4/4', '6/8', '9/8', '12/8']
       .map((c) => '<option value="' + c + '">' + c + '</option>').join('') +
     '</select>' +
     '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
-    '<select id="vbposicao"><option value="">— escolha —</option></select>' +
-    '<label class="campo-rotulo" for="vbdirecoes">Direções que o exercício percorre (na ordem)</label>' +
+    '<select id="vbposicao"><option value="">— escolha a posição —</option></select>' +
+    '<label class="campo-rotulo" for="vbdirecoes">Direções que o exercício percorre</label>' +
     '<div id="vbdirecoes"></div>' +
     '<div class="res" data-res="verbetes"></div>' +
     '<span class="par-botoes">' +
@@ -3192,9 +3196,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" id="vbnovo">Limpar</button>' +
     '</span>' +
     '</form>' +
-    '<p>A gravação vai para o repositório, num commit — e a versão do ' +
-    'alfabeto sobe, que é o que a âncora de proveniência sela. Um verbete que já compôs um ' +
-    'documento publicado não se apaga: descontinua-se.</p>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Exercícios com verbete</h3>' +
@@ -4744,18 +4745,50 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     // ================= OS VERBETES DA NOTAÇÃO (28/10/2026) ==================
     // A tela CARREGA o alfabeto do servidor (que o lê do repositório) e monta as listas de
-    // posições e de direções a partir dele — não de uma cópia escrita aqui, que divergiria do
-    // dado no primeiro termo novo.
+    // exercícios, posições e direções a partir dele — não de cópias escritas aqui, que
+    // divergiriam do dado no primeiro termo novo.
     'var VERBETES = null;' +
+    // A RESPOSTA NEM SEMPRE É JSON. Quando a rota falha, chega uma página de erro — e o
+    // `.json()` rebenta com «Unexpected token <», que não diz nada a quem está a usar a tela.
+    // Aqui lê-se o TEXTO primeiro e só depois se tenta o JSON, para o recado poder ser o certo.
+    'function lerResposta(r){' +
+    '  return r.text().then(function(t){' +
+    '    try { return JSON.parse(t); }' +
+    '    catch (e) { return {ok: false, erro: "a resposta não veio em condições (HTTP " + r.status + ")"}; }' +
+    '  });' +
+    '}' +
     'function carregarVerbetes(){' +
     '  var lista = document.getElementById("lista-verbetes");' +
     '  if (!lista) return;' +
-    '  fetch("/api/bastidores/verbete").then(function(r){ return r.json(); }).then(function(d){' +
+    '  fetch("/api/bastidores/verbete").then(lerResposta).then(function(d){' +
     '    if (!d.ok) { lista.innerHTML = "<li>Erro: " + (d.erro || "desconhecido") + "</li>"; return; }' +
     '    VERBETES = d;' +
+    // O EXERCÍCIO: um `select` agrupado por categoria. A ordem das categorias é a do dia de
+    // aula — barra e centro saem do mesmo vocabulário, a categoria é que os separa.
+    '    var nomes = document.getElementById("vbnome");' +
+    '    if (nomes) {' +
+    '      var antes = nomes.value;' +
+    '      var grupos = {};' +
+    '      (d.exerciciosDoVocabulario || []).forEach(function(t){' +
+    '        grupos[t.categoria] = grupos[t.categoria] || [];' +
+    '        grupos[t.categoria].push(t);' +
+    '      });' +
+    '      var ROTULO = {passo: "Passos", salto: "Saltos", ligacao: "Ligações", giro: "Giros"};' +
+    '      var html = "<option value=\'\'>— escolha o exercício —</option>";' +
+    '      ["passo", "salto", "ligacao", "giro"].forEach(function(c){' +
+    '        if (!grupos[c]) return;' +
+    '        html += "<optgroup label=\'" + (ROTULO[c] || c) + "\'>";' +
+    '        grupos[c].forEach(function(t){' +
+    '          html += "<option value=\'" + t.termo + "\'>" + t.termo + "</option>";' +
+    '        });' +
+    '        html += "</optgroup>";' +
+    '      });' +
+    '      nomes.innerHTML = html;' +
+    '      if (antes) nomes.value = antes;' +
+    '    }' +
     '    var pos = document.getElementById("vbposicao");' +
     '    if (pos) {' +
-    '      var opcoes = ["<option value=\'\'>— escolha —</option>"];' +
+    '      var opcoes = ["<option value=\'\'>— escolha a posição —</option>"];' +
     '      (d.posicoes || []).forEach(function(p){' +
     '        opcoes.push("<option value=\'" + p.id + "\' data-membro=\'" + (p.membro || "") + "\'>" +' +
     '          p.termo + (p.membro ? " (" + p.membro + ")" : "") + "</option>");' +
@@ -4782,7 +4815,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var musicas = VERBETES.verbetes[nome];' +
     '  var chave = Object.keys(musicas)[0];' +
     '  var v = musicas[chave];' +
-    '  document.getElementById("vbnome").value = nome;' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  if (nomes) {' +
+    // Um exercício que já tem verbete mas não está no vocabulário (foi escrito à mão numa
+    // versão anterior) entra na lista como opção própria: escondê-lo faria o formulário
+    // abrir em branco sobre um verbete que existe.
+    '    var existe = false;' +
+    '    for (var i = 0; i < nomes.options.length; i++) if (nomes.options[i].value === nome) existe = true;' +
+    '    if (!existe) {' +
+    '      var o = document.createElement("option");' +
+    '      o.value = nome; o.text = nome + " (fora do vocabulário)";' +
+    '      nomes.add(o);' +
+    '    }' +
+    '    nomes.value = nome;' +
+    '  }' +
     '  var partes = chave.split("|");' +
     '  document.getElementById("vbtempos").value = partes[0];' +
     '  document.getElementById("vbcompasso").value = partes[1];' +
@@ -4790,10 +4836,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var pos = document.getElementById("vbposicao");' +
     '  if (pos && v.posicao) pos.value = v.posicao.termo;' +
     '  var caixas = document.querySelectorAll("#vbdirecoes input[type=checkbox]");' +
-    '  for (var i = 0; i < caixas.length; i++) {' +
-    '    caixas[i].checked = (v.direcoes || []).indexOf(caixas[i].value) !== -1;' +
+    '  for (var j = 0; j < caixas.length; j++) {' +
+    '    caixas[j].checked = (v.direcoes || []).indexOf(caixas[j].value) !== -1;' +
     '  }' +
-    '  recado("", "a editar «" + nome + "» (" + chave + ") — a descrição de cada célula é a que a página em prosa mostra");' +
+    '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
     'function temposDaContagem(c){' +
     '  var n = String(c || "").match(/\\d+/g);' +
@@ -4813,10 +4859,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var formVerbete = document.getElementById("form-verbete");' +
     'if (formVerbete) formVerbete.addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  var nome = document.getElementById("vbnome").value.trim();' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  var nome = nomes ? nomes.value.trim() : "";' +
     '  var tempos = document.getElementById("vbtempos").value.trim();' +
     '  var compasso = document.getElementById("vbcompasso").value;' +
-    '  if (!nome || !tempos) { alert("Informe o exercício e os tempos."); return; }' +
+    '  if (!nome) { alert("Escolha o exercício."); return; }' +
+    '  if (!tempos) { alert("Informe os tempos."); return; }' +
     // AS CÉLULAS SÃO AS QUE JÁ EXISTEM, e não escritas em branco: quem edita um verbete não
     // reescreve as descrições, e o que está no alfabeto é o que foi conferido.
     '  var atual = (VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome]) || {};' +
@@ -4831,13 +4879,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var c = (origem && origem.celulas && origem.celulas[d]) || null;' +
     '    if (c) celulas[d] = c; else faltam.push(d);' +
     '  });' +
-    // A CÉLULA NOVA NÃO SE INVENTA NA TELA. Ela declara contagem, bloco e descrição — três coisas
-    // que ninguém escreve num campo só, e que o servidor valida contra o alfabeto. Enquanto não
-    // houver um editor de célula, a direção sem célula é uma lacuna DITA, não um erro silencioso.
+    // A CÉLULA NOVA NÃO SE INVENTA NA TELA. Ela declara contagem, bloco e descrição — três
+    // coisas que ninguém escreve num campo só, e que o servidor valida contra o alfabeto.
     '  if (faltam.length) {' +
-    '    alert("A direção «" + faltam.join(", ") + "» ainda não tem células neste exercício. " +' +
-    '      "A célula declara a contagem, o bloco e a descrição, e é o servidor que a valida. " +' +
-    '      "Acrescente-a ao alfabeto com o conteúdo à mão.");' +
+    '    alert("Este exercício ainda não tem células para: " + faltam.join(", ") + ". ' +
+    'As células descrevem o que acontece em cada tempo — sem elas o documento não se escreve.");' +
     '    return;' +
     '  }' +
     '  var sel = document.getElementById("vbposicao");' +
@@ -4856,8 +4902,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      celulas: celulas' +
     '    }' +
     '  };' +
-    '  enviar("/api/bastidores/verbete", corpo, "gravando o verbete no repositório...", false, function(d){' +
-    '    recado("ok", "gravado — versão " + d.versao + (d.commit ? " · commit " + d.commit.slice(0, 7) : ""));' +
+    '  enviar("/api/bastidores/verbete", corpo, "gravando...", false, function(d){' +
+    '    recado("ok", "gravado — versão " + d.versao);' +
     '    carregarVerbetes();' +
     '  });' +
     '});' +
@@ -6168,14 +6214,27 @@ async function fetch(request, env) {
     const modalidade = String(url.searchParams.get('modalidade') || 'bale-classico');
     const { lerModalidade, listarVerbetes } = require('./verbete.js');
     const lido = await lerModalidade({
-      f: (u, o) => fetch(u, o), token: env && env.GITHUB_TOKEN,
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
       dono: 'tmenegaz', repo: 'danca', ref: 'main', modalidade,
     });
     if (!lido.ok) return json(404, { ok: false, erro: lido.erro });
+    // AS CATEGORIAS QUE PODEM SER EXERCÍCIO (28/10/2026). Um exercício de aula é um passo, um
+    // salto, uma ligação ou um giro. Uma POSIÇÃO (`première position`) e uma DIREÇÃO (`croisé`)
+    // não são exercícios — oferecê-las na mesma lista seria oferecer a resposta errada com a
+    // mesma cara da certa.
+    const CATEGORIAS_DE_EXERCICIO = ['passo', 'salto', 'ligacao', 'giro'];
+    const vocabulario = lido.vocabulario || [];
+    const podeSerExercicio = vocabulario
+      .filter((t) => t && CATEGORIAS_DE_EXERCICIO.indexOf(t.categoria) !== -1)
+      .map((t) => ({ id: t.id, termo: t.termo, categoria: t.categoria }));
     return json(200, {
       ok: true,
       modalidade,
       versao: lido.dados.versao,
+      // O NOME DO EXERCÍCIO É ESCOLHIDO, NÃO ESCRITO. A lista vem do vocabulário da modalidade,
+      // que é o mesmo de onde sai o «conteúdo do nível» do plano — e é isso que faz o verbete
+      // casar com o exercício em vez de quase casar.
+      exerciciosDoVocabulario: podeSerExercicio,
       exercicios: listarVerbetes(lido.dados),
       verbetes: Object.fromEntries(Object.entries(lido.dados.verbetes || {})
         .filter(([k]) => !k.startsWith('_'))),
@@ -6200,7 +6259,7 @@ async function fetch(request, env) {
     }
     const { gravarVerbete } = require('./verbete.js');
     const r = await gravarVerbete({
-      f: (u, o) => fetch(u, o), token: env && env.GITHUB_TOKEN,
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
       dono: 'tmenegaz', repo: 'danca', ref: 'main',
       modalidade: String(corpo.modalidade || 'bale-classico'),
       nome: corpo.nome,

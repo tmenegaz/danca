@@ -63,13 +63,16 @@ function codificarBase64(texto) {
 }
 
 /** Um GET no Contents API. 404 é um estado (`existe: false`), não um erro. */
-async function lerDoRepo({ f, url, cabecalhos: h }) {
+async function lerDoRepo({ f, url, h }) {
   const resposta = await f(url, { method: 'GET', headers: h });
+  // 404 É UM ESTADO; O RESTO É UMA FALHA, E DIZ-SE. «Não existe» e «não me deixaram ver» levam a
+  // correções diferentes — e durante um dia inteiro de trabalho a segunda apareceu escrita como a
+  // primeira, porque o token não passava e o GitHub respondia 403.
   if (resposta.status === 404) return { existe: false, sha: null, texto: '' };
   if (resposta.status !== 200) {
     let corpo = '';
     try { corpo = await resposta.text(); } catch { corpo = ''; }
-    const erro = new Error('HTTP ' + resposta.status + ' — ' + corpo.slice(0, 300));
+    const erro = new Error('o repositório recusou a leitura (HTTP ' + resposta.status + '): ' + corpo.slice(0, 200));
     erro.status = resposta.status;
     throw erro;
   }
@@ -235,9 +238,18 @@ function lerBloco(bloco, conhecidos, categorias) {
 async function lerModalidade({ f, token, dono, repo, ref, modalidade }) {
   const h = cabecalhos(token);
   const raiz = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/';
-  const alfabeto = await lerDoRepo({ f, url: raiz + caminhoDoAlfabeto(modalidade), h });
-  if (!alfabeto.existe) return { ok: false, erro: 'o alfabeto da modalidade «' + modalidade + '» não existe no repositório' };
-  const vocabulario = await lerDoRepo({ f, url: raiz + caminhoDoVocabulario(modalidade), h });
+  let alfabeto;
+  let vocabulario;
+  try {
+    alfabeto = await lerDoRepo({ f, url: raiz + caminhoDoAlfabeto(modalidade), h });
+    vocabulario = await lerDoRepo({ f, url: raiz + caminhoDoVocabulario(modalidade), h });
+  } catch (erro) {
+    return { ok: false, status: erro.status || 502, erro: erro.message };
+  }
+  if (!alfabeto.existe) {
+    return { ok: false, status: 404, erro: 'o alfabeto da modalidade «' + modalidade + '» não existe em '
+      + caminhoDoAlfabeto(modalidade) };
+  }
 
   let dados = null;
   let voc = [];

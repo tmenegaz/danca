@@ -228,8 +228,111 @@ async function aRota() {
     && corpo.como === 'PUT com { acao: "descontinuar" }', corpo);
 }
 
+/**
+ * E. A PÁGINA SERVIDA — os defeitos que o primeiro deploy mostrou (28/10/2026).
+ *
+ * Três, e os três eram invisíveis nas provas anteriores porque nenhuma delas exercitava o
+ * caminho real:
+ *
+ *   1. `fetch` DENTRO DO MÓDULO é o HANDLER dos Bastidores. A rota do verbete chamava
+ *      `fetch(u, o)` para ir ao GitHub — e chamava-se a si mesma, com uma string. Resultado:
+ *      500 ao vivo.
+ *   2. `lerDoRepo` desestruturava `cabecalhos` e as chamadas passavam `h` — os cabeçalhos
+ *      chegavam `undefined`, sem `User-Agent`, e o GitHub respondia 403. O código dizia «não
+ *      existe no repositório», que é a resposta errada para uma credencial recusada.
+ *   3. A tela chamava `.json()` sobre a página de erro do 500 e mostrava «Unexpected token <».
+ */
+async function aPagina() {
+  console.log('\nE. A PÁGINA SERVIDA — o 500 do primeiro deploy, e o que o causou');
+
+  const bastidores = require(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'));
+  const env = {
+    ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'senha-da-direcao',
+    GITHUB_TOKEN: 'token-de-prova',
+    PADD_KV: { async get() { return null; }, async put() {}, async delete() {}, async list() { return { keys: [], list_complete: true }; } },
+  };
+
+  // O `fetch` GLOBAL é substituído por um GitHub de mentira. Se a rota se chamar a si mesma,
+  // este nunca é usado — e a chamada rebenta, como rebentou ao vivo.
+  const original = globalThis.fetch;
+  const chamadas = [];
+  globalThis.fetch = async (url, opcoes) => {
+    const u = String(url);
+    chamadas.push(u);
+    if (!u.startsWith('https://api.github.com/')) {
+      throw new TypeError('a rota não devia pedir «' + u + '» — chamou-se a si mesma?');
+    }
+    const h = (opcoes && opcoes.headers) || {};
+    if (!h['User-Agent']) {
+      // É o que o GitHub faz: 403 sem User-Agent. O projeto já o tinha medido em 22/10/2026.
+      return new Response('{"message":"User agent required"}', { status: 403 });
+    }
+    if (u.indexOf('notacao.json') !== -1) {
+      return new Response(JSON.stringify({
+        sha: 'sha-alfa',
+        content: Buffer.from(JSON.stringify(ALFABETO, null, 2), 'utf8').toString('base64'),
+      }), { status: 200 });
+    }
+    if (u.indexOf('vocabulario.json') !== -1) {
+      return new Response(JSON.stringify({
+        sha: 'sha-voc',
+        content: Buffer.from(JSON.stringify(VOCABULARIO, null, 2), 'utf8').toString('base64'),
+      }), { status: 200 });
+    }
+    return new Response('{}', { status: 404 });
+  };
+
+  let resposta;
+  let corpo = null;
+  try {
+    resposta = await bastidores.fetch(new Request('https://e.workers.dev/api/bastidores/verbete'), env);
+    corpo = await resposta.json();
+  } finally {
+    globalThis.fetch = original;
+  }
+
+  checar('o GET do verbete responde 200 (era 500: a rota chamava-se a si mesma)',
+    resposta.status === 200, resposta.status);
+  checar('e pede ao GitHub com User-Agent (sem ele o GitHub responde 403)',
+    chamadas.length > 0 && chamadas.every((u) => u.startsWith('https://api.github.com/')), chamadas);
+  checar('a lista de exercícios vem do alfabeto', Boolean(corpo && corpo.ok
+    && corpo.exercicios.some((x) => x.nome === 'Battement tendu')), corpo && corpo.exercicios);
+  checar('e o vocabulário de exercícios vem sem as posições nem as direções',
+    Boolean(corpo && corpo.exerciciosDoVocabulario
+      && corpo.exerciciosDoVocabulario.every((t) => ['passo', 'salto', 'ligacao', 'giro'].indexOf(t.categoria) !== -1)
+      && !corpo.exerciciosDoVocabulario.some((t) => /position|devant|croise/.test(t.id))),
+    corpo && (corpo.exerciciosDoVocabulario || []).length);
+
+  // UMA CREDENCIAL RECUSADA NÃO É UM FICHEIRO AUSENTE.
+  const v = require(path.join(RAIZ, 'motor', 'servidor', 'verbete.js'));
+  const recusado = await v.lerModalidade({
+    f: async () => new Response('{"message":"Bad credentials"}', { status: 401 }),
+    token: 'errado', dono: 'd', repo: 'r', ref: 'main', modalidade: 'bale-classico',
+  });
+  checar('uma credencial recusada diz que foi recusada, e não que o ficheiro não existe',
+    !recusado.ok && /recusou a leitura/.test(recusado.erro) && !/não existe/.test(recusado.erro), recusado.erro);
+
+  // A PÁGINA: a nota técnica saiu, o exercício é escolha, e a música tem dois rótulos.
+  const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/producao'), env);
+  const html = await pagina.text();
+  checar('a nota técnica sobre commit e proveniência saiu da tela',
+    !/vai para o repositório, num commit/.test(html));
+  checar('o exercício é um `select`, não um campo de escrita',
+    /<select id="vbnome"/.test(html) && !/<input id="vbnome"/.test(html));
+  checar('e os tempos e o compasso têm um rótulo cada (não ficam colados)',
+    (html.match(/for="vbtempos"/g) || []).length === 1 && (html.match(/for="vbcompasso"/g) || []).length === 1);
+
+  const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .map((m) => m[1]).sort((a, b) => b.length - a.length)[0] || '';
+  let erroDeSintaxe = null;
+  try { new Function(script); } catch (e) { erroDeSintaxe = e.message; }
+  checar('o script da página compila', erroDeSintaxe === null, erroDeSintaxe);
+  checar('e não lê a resposta como JSON sem a testar (a lição do «Unexpected token»',
+    /function lerResposta/.test(script));
+}
+
 aValidacao();
-aEscrita().then(aRota).then(() => {
+aEscrita().then(aRota).then(aPagina).then(() => {
   console.log('');
   if (falhas) { console.log('FALHOU — ' + falhas + ' asserção(ões).'); process.exit(1); }
   console.log('TUDO CERTO — o CRUD do verbete valida, grava no repositório e recusa apagar.');
