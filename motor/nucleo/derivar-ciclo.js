@@ -191,7 +191,6 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   const parametro = parametroLinhas.length
     ? parametroLinhas.join(' · ')
     : '[Preencher: parâmetro de medição da Aula 01]';
-  const sequencia = sequenciaEmLinhas(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
   /* OS BLOCOS DA AULA VÊM DA ESTRUTURA, NÃO DOS OBJETIVOS (26/10/2026).
    *
    * Aqui lia-se `estrutura-de-cada-aula` — a relação objetivo × bloco —, e os blocos da aula
@@ -288,13 +287,14 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
       corpo.push('| **Total** | **' + (volumeTotal || '[Preencher]') + '** | **100%** |');
       corpo.push('');
     }
-    corpo.push('### Sequência declarada');
-    corpo.push('');
-    if (sequencia.length) {
-      for (const s of sequencia) corpo.push('- ' + s);
-    } else {
-      corpo.push('- [Preencher: a sequência conectada da Aula 01]');
-    }
+    /* A «SEQUÊNCIA DECLARADA» SAIU (28/10/2026). Ela era a lista dos exercícios com bloco e
+     * objetivo — e é exactamente o que «Exercícios da Aula 01» já diz, mais abaixo e com o
+     * compasso, a contagem, a notação e a descrição. A pesquisadora: «eu não preciso dessa
+     * sequência declarada aqui, eu já tenho tudo organizado mais abaixo». Duas listas do mesmo
+     * dado, uma delas mais pobre, no mesmo documento — e o documento tem 15 ecrãs.
+     *
+     * A SECÇÃO FICA, com a tabela do tempo: ela é a distribuição da aula pelos blocos (Regra 9),
+     * e isso não se repete em nenhum outro lugar. */
     secao('3. A sequência conectada (fio condutor)', corpo);
   }
 

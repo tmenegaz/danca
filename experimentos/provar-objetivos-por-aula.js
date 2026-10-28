@@ -15,7 +15,7 @@
  *
  *   1. a seção do plano é o CRUZAMENTO (bloco × objetivo → aula), com uma linha por par, e não
  *      uma linha por exercício: 14 exercícios viram 7 pares na `batata`;
- *   2. o DETALHE NÃO SE PERDEU: o link aponta para `aula-NN.html#sequencia-declarada`, que é
+ *   2. o DETALHE NÃO SE PERDEU: o link aponta para `aula-NN.html#exercicios-da-aula-NN`, que é
  *      onde o exercício, os tempos e o compasso se leem — e a página existe;
  *   3. o link só existe quando a página existe; uma aula ainda sem documento sai «a criar», e
  *      um objetivo sem marco sai `—` (nada é adivinhado);
@@ -180,9 +180,9 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
   console.log('\n2. o detalhe não se perdeu: o link leva à sequência dentro da aula');
   const htmlAula = ler(PACOTE, 'aula-01.html');
   provar('a aula 01 publica o âncora da sequência detalhada',
-    htmlAula.indexOf('id="sequencia-declarada"') !== -1);
+    htmlAula.indexOf('id="exercicios-da-aula-01"') !== -1);
   provar('…e o apanhado liga a ela, na linha do objetivo 1',
-    linhas.some((l) => /\]\(aula-01\.html#sequencia-declarada\)/.test(l)), linhas);
+    linhas.some((l) => /\]\(aula-01\.html#exercicios-da-aula-01\)/.test(l)), linhas);
   provar('a aula 01 tem o detalhe que saiu do plano (tempos e compasso)',
     /8, 4\/4/.test(htmlAula) && /16, 3\/4/.test(htmlAula));
 

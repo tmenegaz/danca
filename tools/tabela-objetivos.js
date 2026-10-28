@@ -30,7 +30,7 @@
  * ONDE cada objetivo é trabalhado, e nada sobre quais blocos a aula tem. Era exactamente essa
  * confusão que a secção «Estrutura de cada aula» fazia.
  *
- * O LINK só existe quando a página existe: `aula-NN.html#sequencia-declarada` quando o
+ * O LINK só existe quando a página existe: `aula-NN.html#exercicios-da-aula-NN` quando o
  * documento está no pacote, «Aula NN *(a criar)*» quando não está. Link para página
  * inexistente é âncora morta.
  *
@@ -40,8 +40,16 @@
  * `.html` que já estão no disco, que depende da ordem em que o laço de geração os escreve.
  */
 
-/** O âncora da sequência detalhada dentro da aula (medido em `aula-01.html`). */
-const ANCORA_DA_SEQUENCIA = 'sequencia-declarada';
+/**
+ * O âncora do DETALHE dentro da aula (medido em `aula-01.html`).
+ *
+ * Era `#sequencia-declarada`, a lista de exercícios por bloco e objetivo. Essa lista saiu em
+ * 28/10/2026 — repetia, mais pobre, o que «Exercícios da Aula NN» diz com compasso, contagem,
+ * notação e descrição. O link que «Aula NN» abre passa a apontar para a secção dos exercícios,
+ * que é hoje o detalhe da aula. O âncora leva o número porque a secção nasce numerada
+ * (`exercicios-da-aula-01`).
+ */
+const ancoraDaSequencia = (aula) => 'exercicios-da-aula-' + dois(aula);
 
 /** O número com dois dígitos — a forma do nome do arquivo (`aula-01`). */
 const dois = (n) => (Number(n) < 10 ? '0' : '') + String(Number(n));
@@ -136,7 +144,7 @@ function tabela(plano, aulasComDocumento) {
   const aulasDoObjetivo = aulasPorObjetivo(plano);
 
   const celulaDaAula = (aula) => (comDocumento.has(dois(aula))
-    ? '[Aula ' + dois(aula) + '](aula-' + dois(aula) + '.html#' + ANCORA_DA_SEQUENCIA + ')'
+    ? '[Aula ' + dois(aula) + '](aula-' + dois(aula) + '.html#' + ancoraDaSequencia(aula) + ')'
     : 'Aula ' + dois(aula) + ' *(a criar)*');
 
   const linhas = ['| Bloco | Objetivo específico | Aula |', '|:--|:--|:--|'];
@@ -189,5 +197,5 @@ function principal() {
 if (require.main === module) process.exit(principal());
 
 module.exports = {
-  tabela, nota: NOTA, objetivosDoPlano, aulasPorObjetivo, ANCORA_DA_SEQUENCIA,
+  tabela, nota: NOTA, objetivosDoPlano, aulasPorObjetivo, ancoraDaSequencia,
 };
