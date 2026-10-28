@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `3dcc344`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`) e passou a ser **administrável na Produção** (`3dcc344`), depois de o alfabeto mudar de casa e a âncora passar a selá-lo (`5020b89`) — a Fase 1 do plano aprovado, menos as seleções no plano. Os quatro workflows de `3dcc344` concluídos com **sucesso**.
+> **Última fotografia:** 28/10/2026 (base local `94ee06a`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`) e passou a ser **administrável na Produção** (`3dcc344`), depois de o alfabeto mudar de casa e a âncora passar a selá-lo (`5020b89`); os três defeitos do primeiro dia em Produção foram corrigidos (`6318ded`); e o **vocabulário passou a viver no repositório**, numa verdade só, com o **«+» do exercício** (`4e09bc9`). É a Fase 1 do plano aprovado, menos o **editor de célula** e as **seleções no plano**.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -223,6 +223,8 @@ Verificado nesta fotografia, com os comandos da §9.
 | `motor/nucleo/` | derivação e HTML, sem I/O de servidor |
 | `motor/servidor/` | rotas, KV, cifra, GitHub, montagem |
 | `motor/servidor/rotas.js` | as 31 rotas do Worker |
+| `motor/servidor/verbete.js` | o alfabeto da notação no **repositório** (CRUD, com proveniência) |
+| `motor/servidor/termo-repo.js` | o vocabulário técnico no **repositório** — a única lista de termos |
 | `porta/`, `tools/templates/` | a folha e o desenho (peças do catálogo) |
 | `experimentos/provar-*.js` | 68 provas executáveis |
 | `tools/` | infraestrutura — **congelado** |
@@ -260,22 +262,34 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 12. **A Notação reproduz a estrutura da Aula em prosa e acrescenta os sinais Benesh.** O Guia de
     observação usa os itens do PO e explica o registro na Captura; o título do ciclo abre o Plano e
     a lista de Aulas oferece o PDF individual. **DECIDIDO** 27/10/2026.
+13. **O vocabulário técnico vive no REPOSITÓRIO, numa lista só** — `biblioteca/modalidades/<m>/vocabulario.json`.
+    A tela lê o bundle que o deploy traz; o cadastro grava no repositório, pela API do GitHub. **Não
+    há cópia por escola no KV**, e o botão «Carregar as turmas iniciais» já não semeia termos. A razão
+    é dupla: o gerador lê o ficheiro do **disco**, no GitHub Actions (uma escrita em KV nunca chegaria
+    ao documento), e duas listas divergem ao primeiro termo novo, em silêncio. **DECIDIDO** 28/10/2026.
+14. **O KV é o último recurso, porque tem custo.** Só guarda o que é da ESCOLA (turmas, professores,
+    alunas, a relação turma↔conteúdo, envelopes). Catálogo, alfabeto e vocabulário vão para o
+    repositório. **DECIDIDO** 28/10/2026.
 
 ## 7. Trabalho em andamento
 
-Há **dois** trabalhos em andamento. O primeiro é de código e é a Fase 1 do plano aprovado:
-falta o **editor de célula** no CRUD (a tela grava posição e direções, mas as células vêm do que
-já está no alfabeto) e as **seleções no plano** (§1.6). O segundo **não é de código**: **o plano da Batata vai ser refeito no
-formulário pela pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu
-os exercícios de **Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos
-publicados ficam sobre o `plano-20261027-1025.json` até essa reposição; regerar a partir do 1131
-apagaria exercícios de uma página publicada e deixaria o «Parâmetro de medição» a citá-los.
+Há **dois** trabalhos em andamento. O primeiro é de código e é a **Fase 1** do plano
+(`PLANO-VERBETE-E-MUSICALIDADE.md`): o alfabeto mudou de casa e a âncora sela com que código
+escreveu; o verbete ganhou posição, direção e lado; o CRUD está na Produção; o exercício é escolhido
+de uma lista e o «+» cria-o no vocabulário do repositório. Falta o **editor de célula** — a tela
+grava posição e direções, mas as células vêm do que já está no alfabeto — e as **seleções no plano**
+(§1.6). O segundo **não é de código**: **o plano da Batata vai ser refeito no formulário pela
+pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu os exercícios de
+**Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos publicados ficam
+sobre o `plano-20261027-1025.json` até essa reposição; regerar a partir do 1131 apagaria exercícios
+de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. Ela anunciou também que vai
+**expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
+vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 28/10/2026 — commit `f4cc715` enviado; os quatro workflows (Reancorar,
-Regerar os índices, Publicar as escolas, Publicar a raiz) concluídos com **sucesso**. Conferido ao ar
-numa única carga por página: a Aula 01 responde **HTTP 200** e não tem nenhuma ocorrência de
-«Sequência declarada»; o Port de bras mostra «18 tempos, 3/4»; e o link «Aula 01» do plano resolve
-para `aula-01.html#exercicios-da-aula-01`.
+**Último ponto confirmado:** 28/10/2026 — `4e09bc9` (o vocabulário no repositório e o «+» do
+exercício) e `94ee06a` (o registo) no `main` local. A base anterior (`6318ded`) está em
+`origin/main`, com os workflows concluídos; o `GET /api/bastidores/verbete` ao ar responde **200**
+depois da correção do 500.
 
 ## 8. Pendências e dúvidas
 
@@ -381,7 +395,24 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (28/10/2026 — a Sequência declarada e a métrica)
+### Executado nesta fotografia (28/10/2026 — o vocabulário no repositório)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-verbete.js` | **50 asserções, 0 falhas** (eram 36; a secção F, nova, tem 14) |
+| `node experimentos/provar-producao.js` | **151 de 152** — a única falha, «o item do menu fica marcado», é **pré-existente** (medida por stash) |
+| `node experimentos/provar-notacao.js` | **74 asserções, 0 falhas** |
+| `node experimentos/provar-teste.js` | **44 verificações** |
+| `node experimentos/provar-leituras-do-po.js` | **27 asserções, 0 falhas** |
+| `node experimentos/provar-menu-da-producao.js` | **55 de 55** |
+| `node experimentos/provar-celular.js` | **15 de 15** (320, 360, 390, 414, 768 e 1024px) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram (a checagem 8 aceita o par do «+») |
+| `node tools/check-glossario.js` | consistente — 18 símbolos, 18 verbetes, **0 avisos** |
+| `node tools/check-pacote.js professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`** |
+| geometria do «+» (bancada local, sem tocar no ar) | select e botão na mesma linha (topo 217 e 216; vão de 5px); caixa **0px** fechada e **296px** aberta; foco no primeiro campo; o termo criado entra no grupo certo; sem transbordo |
+
+### Executado na fotografia anterior (28/10/2026 — a Sequência declarada e a métrica)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -527,6 +558,17 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **28/10/2026** — **O vocabulário passou a viver no repositório, numa verdade só, e o «+» cria o
+  exercício.** Havia **duas** listas de termos — o ficheiro da modalidade e uma cópia por escola no
+  KV, semeada pelo botão «Carregar catálogo inicial». A tela do verbete lia a do repositório; a do
+  vocabulário escrevia na do KV; e o gerador lê o ficheiro do **disco**, no GitHub Actions, pelo que
+  uma escrita em KV nunca chegaria ao documento. `termos()` passa a devolver o bundle;
+  `motor/servidor/termo-repo.js` (novo) grava no repositório; o `PUT` do termo edita o nome (e o
+  `id`, que deriva dele); e o semear passou a semear **só as turmas** — o botão diz «Carregar as
+  turmas iniciais». O **«+»** ao lado do exercício (opção A) abre um cadastro breve que chama o
+  mesmo cadastro de termos, e o exercício novo entra na lista local no grupo da categoria. Publicado
+  em `4e09bc9`. **CONFIRMADO** localmente; a conferência ao ar fica para o deploy.
 
 - **28/10/2026** — **O verbete ganhou posição, direção e lado — e passou a ser administrável na
   Produção.** O alfabeto mudou de casa (`biblioteca/modalidades/bale-classico/notacao.json`) e a
