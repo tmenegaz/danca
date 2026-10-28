@@ -2776,6 +2776,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       ['#alunas', 'alunas', 'Alunas']]) +
     grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Turmas'],
       ['#vocabulario', 'vocabulario', 'Vocabulário técnico'],
+      ['#verbetes', 'verbetes', 'Verbetes da notação'],
       ['#curadorias', 'curadorias', 'Curadorias']]) +
     '</div>' +
     '<div class="lateral-veu" id="lateral-veu"></div>' +
@@ -3163,6 +3164,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     rodapePaginacao() +
     '</div>' +
     '</section>' +
+    // ---------------------------------------------------------------------------
+    // OS VERBETES DA NOTAÇÃO (28/10/2026). A secção é da MODALIDADE, não da escola — o alfabeto
+    // não pertence a nenhuma —, e grava no REPOSITÓRIO, porque é de lá que o gerador o lê. A tela
+    // é conveniência; a guarda é o servidor (`motor/servidor/verbete.js`).
+    // ---------------------------------------------------------------------------
+    '<section class="secao" id="sec-verbetes" hidden>' +
+    tituloComAcordeao('sec-verbetes', 'Verbetes da Notação', 'verbetes-miolo') +
+    '<div class="col-form" id="verbetes-miolo">' +
+    '<form id="form-verbete">' +
+    '<input type="hidden" id="vbacao" value="criar">' +
+    '<label class="campo-rotulo" for="vbnome">Exercício (o nome tem de ser o do conteúdo do nível)</label>' +
+    '<input id="vbnome" name="nome" autocomplete="off" placeholder="ex.: Battement tendu">' +
+    '<label class="campo-rotulo" for="vbmusica">Música — quantos tempos e em que compasso</label>' +
+    '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="tempos (ex.: 8)">' +
+    '<select id="vbcompasso">' +
+    ['2/4', '2/2', '3/4', '3/8', '4/4', '6/8', '9/8', '12/8']
+      .map((c) => '<option value="' + c + '">' + c + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
+    '<select id="vbposicao"><option value="">— escolha —</option></select>' +
+    '<label class="campo-rotulo" for="vbdirecoes">Direções que o exercício percorre (na ordem)</label>' +
+    '<div id="vbdirecoes"></div>' +
+    '<div class="res" data-res="verbetes"></div>' +
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao grande">Gravar verbete</button>' +
+    '<button type="button" id="vbnovo">Limpar</button>' +
+    '</span>' +
+    '</form>' +
+    '<p>A gravação vai para o repositório, num commit — e a versão do ' +
+    'alfabeto sobe, que é o que a âncora de proveniência sela. Um verbete que já compôs um ' +
+    'documento publicado não se apaga: descontinua-se.</p>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
+    '<h3>Exercícios com verbete</h3>' +
+    '<div class="rolagem"><ul class="lista" id="lista-verbetes"></ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
+    '</section>' +
     '<section class="secao" id="sec-curadorias" hidden>' +
     tituloComAcordeao('sec-curadorias', 'Curadorias', 'curadorias-miolo') +
     '<div class="col-form" id="curadorias-miolo">' +
@@ -3383,7 +3422,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // decisão da página inteira. `sessionStorage` pela razão de sempre: a página recarrega a
     // cada operação, e um formulário que se reabre sozinho desfaria o que a pessoa acabou de
     // pedir — sem ser preferência para amanhã.
-    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-vocabulario","sec-curadorias"];' +
+    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-vocabulario","sec-verbetes","sec-curadorias"];' +
     'function chaveDaSecao(id){ return "producao:recolhido:" + id; }' +
     'function secaoRecolhida(id){' +
     '  try { return sessionStorage.getItem(chaveDaSecao(id)) === "sim"; } catch (err) { return false; }' +
@@ -4703,6 +4742,131 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  enviar("/api/bastidores/turma-rubrica", {turma: turma, rubricaId: rubricaId, concluir: true},' +
     '    "gravando a turma...", true, concluirTurma);' +
     '});' +
+    // ================= OS VERBETES DA NOTAÇÃO (28/10/2026) ==================
+    // A tela CARREGA o alfabeto do servidor (que o lê do repositório) e monta as listas de
+    // posições e de direções a partir dele — não de uma cópia escrita aqui, que divergiria do
+    // dado no primeiro termo novo.
+    'var VERBETES = null;' +
+    'function carregarVerbetes(){' +
+    '  var lista = document.getElementById("lista-verbetes");' +
+    '  if (!lista) return;' +
+    '  fetch("/api/bastidores/verbete").then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (!d.ok) { lista.innerHTML = "<li>Erro: " + (d.erro || "desconhecido") + "</li>"; return; }' +
+    '    VERBETES = d;' +
+    '    var pos = document.getElementById("vbposicao");' +
+    '    if (pos) {' +
+    '      var opcoes = ["<option value=\'\'>— escolha —</option>"];' +
+    '      (d.posicoes || []).forEach(function(p){' +
+    '        opcoes.push("<option value=\'" + p.id + "\' data-membro=\'" + (p.membro || "") + "\'>" +' +
+    '          p.termo + (p.membro ? " (" + p.membro + ")" : "") + "</option>");' +
+    '      });' +
+    '      pos.innerHTML = opcoes.join("");' +
+    '    }' +
+    '    var dirs = document.getElementById("vbdirecoes");' +
+    '    if (dirs) {' +
+    '      dirs.innerHTML = (d.direcoes || []).map(function(x){' +
+    '        return "<label class=\'marca\'><input type=\'checkbox\' value=\'" + x.termo + "\'> " + x.nome + "</label>";' +
+    '      }).join("");' +
+    '    }' +
+    '    lista.innerHTML = (d.exercicios || []).map(function(x){' +
+    '      return "<li><button type=\'button\' class=\'verbetes-editar\' data-nome=\'" + x.nome + "\'>" +' +
+    '        x.nome + "</button> <span class=\'miudo\'>" + x.musicas.join(" · ") +' +
+    '        (x.descontinuado ? " · descontinuado" : "") + "</span></li>";' +
+    '    }).join("") || "<li>Nenhum exercício com verbete.</li>";' +
+    '  }).catch(function(e){ lista.innerHTML = "<li>Erro: " + e.message + "</li>"; });' +
+    '}' +
+    // O «editar» preenche o formulário a partir do que já está no alfabeto: quem edita não
+    // reescreve o verbete todo à mão, e o que não mudou não se perde.
+    'function editarVerbete(nome){' +
+    '  if (!VERBETES || !VERBETES.verbetes || !VERBETES.verbetes[nome]) return;' +
+    '  var musicas = VERBETES.verbetes[nome];' +
+    '  var chave = Object.keys(musicas)[0];' +
+    '  var v = musicas[chave];' +
+    '  document.getElementById("vbnome").value = nome;' +
+    '  var partes = chave.split("|");' +
+    '  document.getElementById("vbtempos").value = partes[0];' +
+    '  document.getElementById("vbcompasso").value = partes[1];' +
+    '  document.getElementById("vbacao").value = "atualizar";' +
+    '  var pos = document.getElementById("vbposicao");' +
+    '  if (pos && v.posicao) pos.value = v.posicao.termo;' +
+    '  var caixas = document.querySelectorAll("#vbdirecoes input[type=checkbox]");' +
+    '  for (var i = 0; i < caixas.length; i++) {' +
+    '    caixas[i].checked = (v.direcoes || []).indexOf(caixas[i].value) !== -1;' +
+    '  }' +
+    '  recado("", "a editar «" + nome + "» (" + chave + ") — a descrição de cada célula é a que a página em prosa mostra");' +
+    '}' +
+    'function temposDaContagem(c){' +
+    '  var n = String(c || "").match(/\\d+/g);' +
+    '  if (!n) return 0;' +
+    '  if (n.length === 1) return 1;' +
+    '  var a = Number(n[0]), b = Number(n[n.length - 1]);' +
+    '  return b >= a ? b - a + 1 : 0;' +
+    '}' +
+    'var listaVerbetes = document.getElementById("lista-verbetes");' +
+    'if (listaVerbetes) {' +
+    '  carregarVerbetes();' +
+    '  listaVerbetes.addEventListener("click", function(e){' +
+    '    var b = e.target.closest ? e.target.closest("button.verbetes-editar") : null;' +
+    '    if (b) editarVerbete(b.getAttribute("data-nome"));' +
+    '  });' +
+    '}' +
+    'var formVerbete = document.getElementById("form-verbete");' +
+    'if (formVerbete) formVerbete.addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var nome = document.getElementById("vbnome").value.trim();' +
+    '  var tempos = document.getElementById("vbtempos").value.trim();' +
+    '  var compasso = document.getElementById("vbcompasso").value;' +
+    '  if (!nome || !tempos) { alert("Informe o exercício e os tempos."); return; }' +
+    // AS CÉLULAS SÃO AS QUE JÁ EXISTEM, e não escritas em branco: quem edita um verbete não
+    // reescreve as descrições, e o que está no alfabeto é o que foi conferido.
+    '  var atual = (VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome]) || {};' +
+    '  var origem = atual[tempos + "|" + compasso] || null;' +
+    '  var marcadas = [];' +
+    '  var caixas = document.querySelectorAll("#vbdirecoes input[type=checkbox]");' +
+    '  for (var i = 0; i < caixas.length; i++) if (caixas[i].checked) marcadas.push(caixas[i].value);' +
+    '  if (!marcadas.length) { alert("Marque ao menos uma direção."); return; }' +
+    '  var celulas = {};' +
+    '  var faltam = [];' +
+    '  marcadas.forEach(function(d){' +
+    '    var c = (origem && origem.celulas && origem.celulas[d]) || null;' +
+    '    if (c) celulas[d] = c; else faltam.push(d);' +
+    '  });' +
+    // A CÉLULA NOVA NÃO SE INVENTA NA TELA. Ela declara contagem, bloco e descrição — três coisas
+    // que ninguém escreve num campo só, e que o servidor valida contra o alfabeto. Enquanto não
+    // houver um editor de célula, a direção sem célula é uma lacuna DITA, não um erro silencioso.
+    '  if (faltam.length) {' +
+    '    alert("A direção «" + faltam.join(", ") + "» ainda não tem células neste exercício. " +' +
+    '      "A célula declara a contagem, o bloco e a descrição, e é o servidor que a valida. " +' +
+    '      "Acrescente-a ao alfabeto com o conteúdo à mão.");' +
+    '    return;' +
+    '  }' +
+    '  var sel = document.getElementById("vbposicao");' +
+    '  var opcao = sel.options[sel.selectedIndex];' +
+    '  var corpo = {' +
+    '    acao: document.getElementById("vbacao").value,' +
+    '    modalidade: "bale-classico",' +
+    '    nome: nome,' +
+    '    musica: tempos + "|" + compasso,' +
+    '    verbete: {' +
+    '      cobre: Object.keys(celulas).reduce(function(t, d){' +
+    '        return t + celulas[d].reduce(function(s, c){ return s + temposDaContagem(c.contagem); }, 0);' +
+    '      }, 0),' +
+    '      posicao: sel.value ? {membro: opcao.getAttribute("data-membro"), termo: sel.value} : null,' +
+    '      direcoes: marcadas,' +
+    '      celulas: celulas' +
+    '    }' +
+    '  };' +
+    '  enviar("/api/bastidores/verbete", corpo, "gravando o verbete no repositório...", false, function(d){' +
+    '    recado("ok", "gravado — versão " + d.versao + (d.commit ? " · commit " + d.commit.slice(0, 7) : ""));' +
+    '    carregarVerbetes();' +
+    '  });' +
+    '});' +
+    'var novoVerbete = document.getElementById("vbnovo");' +
+    'if (novoVerbete) novoVerbete.addEventListener("click", function(){' +
+    '  var f = document.getElementById("form-verbete");' +
+    '  if (f) f.reset();' +
+    '  document.getElementById("vbacao").value = "criar";' +
+    '});' +
     // --- associar o CONTEÚDO à turma escolhida ---------------------------------------
     // O MESMO endpoint e o mesmo botão de antes; o que mudou é de ONDE vem a turma: era um
     // `data-turma` no próprio botão (o cartão da listagem), agora é a turma em foco.
@@ -5990,6 +6154,78 @@ async function fetch(request, env) {
     }
     if (desvinculadas) await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(listaTurmas));
     return json(200, { ok: true, rubrica: removida.nome, turmasDesvinculadas: desvinculadas });
+  }
+
+  // ---------------------------------------------------------------- o VERBETE (28/10/2026)
+  //
+  // O alfabeto da notação é da MODALIDADE, não da escola — e a escrita é no REPOSITÓRIO, não no
+  // KV. A razão está escrita por inteiro em `verbete.js`: o gerador lê o alfabeto do DISCO, e um
+  // CRUD em KV daria uma tela que mostra uma coisa e um documento que sai com outra, sem falhar.
+  //
+  // A guarda é a MESMA das outras rotas de administração (senha ou bilhete da direção), e a
+  // validação é a do servidor — a tela é conveniência.
+  if (path === '/api/bastidores/verbete' && request.method === 'GET') {
+    const modalidade = String(url.searchParams.get('modalidade') || 'bale-classico');
+    const { lerModalidade, listarVerbetes } = require('./verbete.js');
+    const lido = await lerModalidade({
+      f: (u, o) => fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main', modalidade,
+    });
+    if (!lido.ok) return json(404, { ok: false, erro: lido.erro });
+    return json(200, {
+      ok: true,
+      modalidade,
+      versao: lido.dados.versao,
+      exercicios: listarVerbetes(lido.dados),
+      verbetes: Object.fromEntries(Object.entries(lido.dados.verbetes || {})
+        .filter(([k]) => !k.startsWith('_'))),
+      posicoes: (lido.vocabulario || [])
+        .filter((t) => t && t.categoria === 'posicao')
+        .map((t) => ({ id: t.id, termo: t.termo, membro: t.membro || null })),
+      direcoes: Object.values((lido.dados.gramatica || {}).direcoesDoMembro || {})
+        .concat(Object.values((lido.dados.gramatica || {}).orientacoesDoCorpo || {})),
+      sinais: [...(function () {
+        const conjunto = new Set();
+        for (const g of (lido.dados.grupos || [])) for (const k of Object.keys(g.itens || {})) conjunto.add(k);
+        return conjunto;
+      })()],
+    });
+  }
+
+  if (path === '/api/bastidores/verbete' && (request.method === 'POST' || request.method === 'PUT')) {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const { gravarVerbete } = require('./verbete.js');
+    const r = await gravarVerbete({
+      f: (u, o) => fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main',
+      modalidade: String(corpo.modalidade || 'bale-classico'),
+      nome: corpo.nome,
+      musica: corpo.musica,
+      verbete: corpo.verbete,
+      acao: corpo.acao || (request.method === 'POST' ? 'criar' : 'atualizar'),
+    });
+    return json(r.ok ? 200 : (r.status || 400), r);
+  }
+
+  // NÃO HÁ DELETE. A proveniência acrescenta, não edita (P-03/P-04): um verbete que já compôs um
+  // documento publicado é parte do passado desse documento, e apagá-lo faria o registro deixar de
+  // se poder ler de volta. A rota existe para o dizer, e não para 404 em silêncio.
+  if (path === '/api/bastidores/verbete' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    return json(409, {
+      ok: false,
+      erro: 'o verbete não se apaga: descontinua-se. Um verbete que já compôs um documento publicado '
+        + 'é parte do passado desse documento (P-03/P-04).',
+      como: 'PUT com { acao: "descontinuar" }',
+    });
   }
 
   // POST /api/bastidores/termo — incluir termo do vocabulário.

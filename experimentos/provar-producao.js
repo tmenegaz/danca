@@ -454,7 +454,8 @@ async function principal() {
   // C15 deu a preferência à ESCOLA — e o controlo tem de viver onde só a escola e o professor
   // principal entram. Não é pedagogia nem pessoa: é a forma da casa, e por isso ganhou grupo
   // próprio no menu.
-  conferir('as sete secções estão na página', dom.secoes.length, 7);
+  // OITO desde 28/10/2026: a sétima era a última antes de «Verbetes da notação» entrar.
+  conferir('as oito secções estão na página', dom.secoes.length, 8);
   conferir('só o Painel inicial nasce visível', visiveis(dom.secoes), ['sec-painel']);
 
   // A APARÊNCIA É UMA ESCOLHA, E A ESCOLHA TEM PEÇA (18/10/2026).
@@ -506,7 +507,7 @@ async function principal() {
     new Function('document', 'window', 'location', 'fetch', 'sessionStorage', 'alert', 'confirm', script)(
       dom.documento, janela, local, buscar, sessao, () => {}, () => true
     );
-    for (const alvo of ['painel', 'professores', 'alunas', 'turmas', 'vocabulario', 'curadorias']) {
+    for (const alvo of ['painel', 'professores', 'alunas', 'turmas', 'vocabulario', 'verbetes', 'curadorias']) {
       local.hash = '#' + alvo;
       for (const ouvir of janela.ouvintes.hashchange || []) ouvir();
       conferir('o menu mostra só "' + alvo + '"', visiveis(dom.secoes), ['sec-' + alvo]);
@@ -810,11 +811,11 @@ async function principal() {
     conferir('a lista de ' + s + ' fica na coluna da direita, paginada',
       corpo.includes('class="col-lista"') && corpo.includes('data-paginar') && corpo.includes('class="paginas"'), true);
   }
-  // CINCO secções de formulário (professores, alunas, vocabulário, curadorias, aparência) mais
-  // as três abas de Turmas. As listas ficam à direita; a Aparência não tem lista — são dois
-  // botões e o que está em vigor.
-  conferir('o formulário fica na coluna da esquerda (5 secções + as 3 abas de Turmas)',
-    (html.match(/class="col-form"/g) || []).length, 8);
+  // SEIS secções de formulário (professores, alunas, vocabulário, verbetes, curadorias,
+  // aparência) mais as três abas de Turmas. As listas ficam à direita; a Aparência não tem
+  // lista — são dois botões e o que está em vigor.
+  conferir('o formulário fica na coluna da esquerda (6 secções + as 3 abas de Turmas)',
+    (html.match(/class="col-form"/g) || []).length, 9);
   conferir('o script pagina as listas', script.includes('function paginar()') && script.includes('data-paginar'), true);
 
   // 8. AS ESCOLHAS: SETE dias em pílulas (lista curta, fechada, fixa — tudo à vista), e o
@@ -931,8 +932,8 @@ async function principal() {
     /max-width/.test(corpo), false);
   conferir('o formulário ficou uniforme nas cinco secções (34rem, intacto)',
     /grid-template-columns:minmax\(0,34rem\)/.test(casa(/\.secao\{[^}]*\}/)), true);
-  conferir('as listas mostram 7 linhas por página (4 secções + Turmas, que agora é uma só)',
-    (html.match(/data-por-pagina="7"/g) || []).length, 5);
+  conferir('as listas mostram 7 linhas por página (5 secções + Turmas, que agora é uma só)',
+    (html.match(/data-por-pagina="7"/g) || []).length, 6);
 
   // 11. AS PEÇAS INTERATIVAS, EXECUTADAS. Medir o HTML não basta: o escolhedor e a paginação
   //     são código que roda no navegador, e foi código assim que já deixou botões mortos

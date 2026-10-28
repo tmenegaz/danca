@@ -27831,3 +27831,49 @@ nomenclatura); o plano da Fase 1 em `PLANO-VERBETE-E-MUSICALIDADE.md` (§1.2, §
   direções continuam a ser declaradas pelo verbete, não escolhidas por quem planeia.
 - **As posições de braços marcadas «por conferir»** — quatro linhas à espera da fonte.
 - A Fase 1.1 continua válida: o selo do alfabeto no `.fipp` já apanha a mudança de sha.
+
+## 28/10/2026 — O verbete passa a ser administrável na Produção
+
+**O que motivou.** A pesquisadora: *«a gente precisa, então, colocar esse verbete de uma forma que a
+produção possa administrá-lo. Então, lá em produção, a gente vai ter que fazer um CRUD para o
+verbete.»* E disse porquê: é lá que se definem as direções (devant, à la seconde, derrière, en face,
+croisé, effacé, écarté), as posições de pés, de pernas e de braços, e a numeração de cada posição
+**por método** — porque a 3ª francesa é a 5ª da RAD.
+
+**O que foi decidido.**
+- **A escrita é no REPOSITÓRIO, e não no KV.** O gerador lê o alfabeto do **disco** e corre no
+  GitHub Actions; o Worker não tem `fs`. Um CRUD em KV daria uma tela que mostra o verbete novo e um
+  documento que sai com o velho — **sem nada falhar**. O KV é rascunho; a verdade é o commit.
+- **Não há DELETE.** A proveniência acrescenta, não edita (P-03/P-04): um verbete que já compôs um
+  documento publicado é parte do passado desse documento. A rota existe para **dizer não** (409) e
+  indicar o caminho: `descontinuar`.
+- **A validação é a do servidor**, com a mesma régua do motor de composição: `cobre` que não soma,
+  direção declarada sem célula, célula fora das direções, sinal que o alfabeto não declara, célula
+  sem descrição, posição fora do vocabulário, membro trocado, direção fora da gramática. Se a régua
+  fosse mais frouxa na tela, o erro só apareceria no documento — longe de quem o escreveu.
+- **A versão do alfabeto sobe a cada gravação** — é ela que o selo da âncora regista no `.fipp`.
+
+**Onde entrou.**
+- `motor/servidor/verbete.js` (novo) — a validação, a leitura e a escrita no Contents API, a
+  descontinuação e a listagem.
+- `motor/servidor/bastidores.js` — quatro rotas (`GET`, `POST`/`PUT`, `DELETE` que recusa) e a
+  secção **«Verbetes da notação»** em Pedagogia, com o formulário e a lista. As listas de posições e
+  de direções são montadas **a partir do alfabeto que o servidor devolve** — não de uma cópia
+  escrita na tela, que divergiria do dado no primeiro termo novo.
+- `.gitignore` + `experimentos/provar-verbete.js` (novo, versionado) — 24 asserções.
+
+**Motivo declarado — os congelados.** Nenhum. Toca `motor/servidor/`, que é livre.
+
+**Validação.**
+`provar-verbete.js` → **24 asserções, 0 falhas** (validação, escrita com `sha`, recusa de criar o
+que existe, descontinuar/retomar, guarda da direção, DELETE a 409). `provar-producao.js` → **151 de
+152**; a única falha — «o item do menu fica marcado» — **já existia antes desta alteração** e não é
+dela. O script servido passa no `node --check` (foi preciso corrigir o escape das aspas: dentro de
+uma string de aspas simples, `\"` produz `"` e o HTML saía com `value=""`).
+
+**O que ainda não está feito.**
+- **O editor de CÉLULA.** A tela grava posição e direções, mas as células (contagem · bloco ·
+  descrição) vêm do que já está no alfabeto; uma direção nova tem de ser acrescentada com o conteúdo
+  à mão. Está dito ao utilizador na própria mensagem, em vez de falhar em silêncio.
+- **As seleções no plano (§1.6)** — o plano ainda não escolhe a posição nem as direções.
+- **A falha antiga do «item do menu»** na prova da Produção continua por investigar.

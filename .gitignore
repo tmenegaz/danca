@@ -78,6 +78,9 @@ experimentos/*
 !experimentos/provar-tema.js
 !experimentos/provar-celular.js
 !experimentos/provar-producao.js
+# O CRUD do verbete (28/10/2026): mede a validação, a escrita no repositório, a recusa
+# do DELETE e a guarda da direção. É prova, não bancada.
+!experimentos/provar-verbete.js
 !experimentos/provar-derivacao-da-turma.js
 !experimentos/provar-plano-da-turma.js
 !experimentos/provar-escola-fixa.js
