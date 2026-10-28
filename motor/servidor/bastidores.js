@@ -3204,19 +3204,97 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O EXERCÍCIO É ESCOLHIDO, NÃO ESCRITO (28/10/2026). A lista vem do vocabulário técnico da
     // modalidade — a mesma de onde sai o «conteúdo do nível» do plano. Escrever à mão daria
     // verbetes que quase casam com o exercício, e «quase» aqui quer dizer uma página em lacuna.
-    // O «+» AO LADO DO EXERCÍCIO (28/10/2026), a opção A escolhida pela pesquisadora. O botão
-    // fica colado ao campo que ele alimenta e abre um cadastro CURTO — nome, categoria,
-    // tradição —, que é o que um termo exige e nada mais. Não é um segundo cadastro de termos:
-    // é o mesmo, numa forma breve, e grava no mesmo sítio (o vocabulário do repositório). O que
-    // se cria é um EXERCÍCIO (um termo), não um verbete: um verbete sem exercício seria a
-    // decomposição de nada, e a ordem é a inversa — primeiro o exercício, depois o verbete.
+    // DOIS MODOS, UM DE CADA VEZ (28/10/2026). A regra é da pesquisadora: ou se escolhe um
+    // exercício que existe, ou se cria um — nunca as duas. Antes, o «+» abria uma caixa a MEIO do
+    // formulário do verbete e o que vinha depois continuava a ser do verbete: dois botões
+    // primários à vista, os campos do verbete ABAIXO do botão que grava o exercício, e «informe o
+    // nome do exercício» com um exercício já escolhido.
+    //
+    // O que fica FORA dos dois blocos é o par do exercício — o `select` e o «+» —, porque é ele
+    // que o modo B bloqueia. Bloqueado, o `select` é a memória do que estava escolhido; o «+»
+    // fica bloqueado porque o modo já está aberto. Os dois continuam à vista: um campo que
+    // desaparece não se distingue de um campo que nunca existiu.
+    //
+    // O «+» colado ao campo que ele alimenta é a opção A, decidida pela pesquisadora. Ele abre um
+    // cadastro CURTO — nome, categoria, tradição —, que é o que um termo exige e nada mais. Não é
+    // um segundo cadastro de termos: é o mesmo, numa forma breve, e grava no mesmo sítio (o
+    // vocabulário do repositório). O que se cria é um EXERCÍCIO (um termo), não um verbete: um
+    // verbete sem exercício seria a decomposição de nada, e a ordem é a inversa.
     '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
     '<span class="par-associar">' +
     '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
     '<button type="button" class="acao secundario" id="vb-novo-exercicio"' +
     ' title="Criar um exercício novo no vocabulário da modalidade">+</button>' +
     '</span>' +
-    '<div id="vb-novo" hidden>' +
+
+    // ---- MODO A: o verbete ---------------------------------------------------------------
+    '<div id="vb-modo-verbete">' +
+    '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
+    '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="ex.: 8">' +
+    '<label class="campo-rotulo" for="vbcompasso">Em que compasso</label>' +
+    '<select id="vbcompasso">' +
+    ['2/4', '2/2', '3/4', '3/8', '4/4', '6/8', '9/8', '12/8']
+      .map((c) => '<option value="' + c + '">' + c + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
+    '<select id="vbposicao"><option value="">— escolha a posição —</option></select>' +
+    // A DIREÇÃO NÃO SE PERGUNTA (28/10/2026). Eram três caixas de marcar, e marcavam-se as três
+    // para qualquer exercício — foi assim que a pesquisadora reparou que o fouetté não vai às
+    // três e a tela deixava afirmá-lo. Nas seis entradas do alfabeto, o campo `direcoes` era
+    // exactamente a lista das chaves de `celulas`: a direção de um verbete não é uma escolha, é
+    // uma consequência do que o exercício sabe fazer. Aqui fica o que a sua pergunta pedia: uma
+    // tabela que diz, para cada direção, se este verbete a cobre e o que nela acontece.
+    '<label class="campo-rotulo" for="vb-direcoes">Direções que este verbete cobre</label>' +
+    // Sem `.rolagem` em volta: essa peça só é desenhada dentro de `.col-lista`, e aqui a
+    // tabela é curta — três linhas, o número de direções da gramática. Uma caixa com barra
+    // para três linhas é moldura a mais.
+    '<table id="vb-direcoes">' +
+    '<thead><tr><th scope="col">Direção</th><th scope="col">O que acontece</th></tr></thead>' +
+    '<tbody><tr><td colspan="2">Escolha o exercício e a música.</td></tr></tbody>' +
+    '</table>' +
+    // ---- O EDITOR DE CÉLULA (28/10/2026) -----------------------------------------------
+    // Sem ele, «criar verbete» não existia. O formulário lia as células do que já estava no
+    // alfabeto e, quando não havia nenhuma, mandava as direções para uma lista de «faltam» e
+    // recusava: o CRUD só sabia editar os quatro verbetes que existiam, para cinquenta e cinco
+    // exercícios possíveis. Aqui as células passam a poder escrever-se.
+    //
+    // A CÉLULA É O QUE ACONTECE NUM TRECHO DE TEMPO, numa direção: a contagem, o bloco (a
+    // notação) e a descrição em português. É a descrição que a página em prosa da aula mostra —
+    // por isso ela é obrigatória, e o servidor recusa a célula que não a tenha.
+    '<label class="campo-rotulo" for="vb-cel-dir">Células deste verbete</label>' +
+    '<table id="vb-celulas">' +
+    '<thead><tr><th scope="col">Direção</th><th scope="col">Contagem</th>' +
+    '<th scope="col">Bloco</th><th scope="col">O que acontece</th><th scope="col"></th></tr></thead>' +
+    '<tbody><tr><td colspan="5">Escolha o exercício e a música.</td></tr></tbody>' +
+    '</table>' +
+    '<div id="vb-cel-nova">' +
+    '<span class="par-associar">' +
+    '<select id="vb-cel-dir" aria-label="direção da célula nova">' +
+    '<option value="">— direção —</option></select>' +
+    '<input id="vb-cel-contagem" placeholder="contagem, ex.: 1–2" size="10" autocomplete="off">' +
+    '<input id="vb-cel-bloco" placeholder="bloco, ex.: [Pé: 1ª → +]" autocomplete="off">' +
+    '</span>' +
+    '<input id="vb-cel-desc" placeholder="o que acontece neste trecho" autocomplete="off">' +
+    '<span class="par-botoes">' +
+    '<button type="button" class="acao secundario" id="vb-cel-acrescentar">Acrescentar célula</button>' +
+    '</span>' +
+    // OS SINAIS DO ALFABETO, À VISTA UMA VEZ SÓ. Escrever a notação de cabeça é o que torna um
+    // editor de célula inútil: o bloco é `[Categoria: sinais]`, e tanto a categoria como os
+    // sinais existem no alfabeto. Mostrá-los aqui é o que faz «acrescentar» ser uma escolha e
+    // não uma adivinha. A lista é longa de propósito — é uma legenda, não um campo.
+    '<p class="nota" id="vb-sinais"></p>' +
+    '</div>' +
+    '<div class="res" data-res="verbetes"></div>' +
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao grande">Gravar verbete</button>' +
+    '<button type="button" id="vbnovo">Limpar</button>' +
+    '</span>' +
+    '</div>' +
+
+    // ---- MODO B: o exercício ------------------------------------------------------------
+    // Os campos do verbete NÃO ESTÃO enquanto este modo está aberto — não ficam esbatidos, não
+    // ficam abaixo: saem. É a diferença entre «misturado» e «um de cada vez», que é o pedido.
+    '<div id="vb-modo-exercicio" hidden>' +
     '<label class="campo-rotulo" for="vnnome">Exercício novo (grafia francesa, com acentos)</label>' +
     '<input id="vnnome" autocomplete="off" placeholder="ex.: Battement fondu">' +
     '<label class="campo-rotulo" for="vncategoria">Categoria</label>' +
@@ -3231,26 +3309,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</select>' +
     '<div class="res" data-res="vb-novo"></div>' +
     '<span class="par-botoes">' +
-    '<button type="button" class="acao" id="vb-criar-exercicio">Criar exercício</button>' +
+    '<button type="button" class="acao grande" id="vb-criar-exercicio">Gravar exercício</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-exercicio">Cancelar</button>' +
     '</span>' +
     '</div>' +
-    '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
-    '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="ex.: 8">' +
-    '<label class="campo-rotulo" for="vbcompasso">Em que compasso</label>' +
-    '<select id="vbcompasso">' +
-    ['2/4', '2/2', '3/4', '3/8', '4/4', '6/8', '9/8', '12/8']
-      .map((c) => '<option value="' + c + '">' + c + '</option>').join('') +
-    '</select>' +
-    '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
-    '<select id="vbposicao"><option value="">— escolha a posição —</option></select>' +
-    '<label class="campo-rotulo" for="vbdirecoes">Direções que o exercício percorre</label>' +
-    '<div id="vbdirecoes"></div>' +
-    '<div class="res" data-res="verbetes"></div>' +
-    '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande">Gravar verbete</button>' +
-    '<button type="button" id="vbnovo">Limpar</button>' +
-    '</span>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -4817,6 +4879,151 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    catch (e) { return {ok: false, erro: "a resposta não veio em condições (HTTP " + r.status + ")"}; }' +
     '  });' +
     '}' +
+    // ================= AS DIREÇÕES, LIDAS DO DADO (28/10/2026) =====================
+    // A pergunta «a que direções este exercício vai?» não se faz: responde-se. Cada direção da
+    // gramática cai num de três estados, e os três são FACTOS do alfabeto — a tela só os lê.
+    //
+    //   coberta          o verbete desta música tem células para ela → mostra o que acontece
+    //   sem celula       o exercício tem esta direção noutra música      → diz o que falta
+    //   fora             o exercício não a tem em música nenhuma        → «não vai ao lado»
+    //
+    // É a terceira que responde ao fouetté e ao changement: não é o sistema a proibir, é o
+    // alfabeto a dizer o que o exercício é. E a diferença entre «não vai» e «ainda não escrevi»
+    // fica visível — era isso que um `alert` só confundia.
+    'function direcoesDaGramatica(){' +
+    '  return (VERBETES && VERBETES.direcoes) || [];' +
+    '}' +
+    'function celulasDe(nome, chave){' +
+    '  var v = VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome];' +
+    '  var m = v && v[chave];' +
+    '  return (m && m.celulas && typeof m.celulas === "object") ? m.celulas : null;' +
+    '}' +
+    // Uma direção que o exercício tem em QUALQUER música, e em qual.
+    'function ondeOExercicioTem(nome, termo){' +
+    '  var v = VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome];' +
+    '  if (!v) return "";' +
+    '  var chaves = Object.keys(v);' +
+    '  for (var i = 0; i < chaves.length; i++) {' +
+    '    var c = v[chaves[i]] && v[chaves[i]].celulas;' +
+    '    if (c && Array.isArray(c[termo]) && c[termo].length) return chaves[i];' +
+    '  }' +
+    '  return "";' +
+    '}' +
+    // A CÉLULA EM PALAVRAS. A tabela mostra a contagem e a descrição — a mesma prosa que a
+    // página em prosa da aula escreve. O bloco (o sinal Benesh) fica de fora: quem administra o
+    // verbete lê a descrição, e o sinal é a notação — que já tem o seu lugar no documento.
+    'function celulasEmPalavras(lista){' +
+    '  return (lista || []).map(function(c){' +
+    '    return "<strong>" + c.contagem + "</strong> — " + c.descricao;' +
+    '  }).join("<br>");' +
+    '}' +
+    // ================= O RASCUNHO DAS CÉLULAS (28/10/2026) ==========================
+    // O que se grava é o que está no rascunho, e o rascunho nasce do que o alfabeto já tem para
+    // a música em foco. Sem isto, o formulário não conseguia criar um verbete: as células vinham
+    // do que existia, e quando não existia nada, não havia o que enviar.
+    //
+    // O RASCUNHO TAMBÉM É O QUE A TABELA DAS DIREÇÕES LÊ. É por isso que acrescentar uma célula
+    // de «ao lado» faz a linha «ao lado» passar de «não vai» a mostrar o que nela acontece, no
+    // mesmo gesto: a tela diz o que vai ser gravado, e não o que estava gravado antes.
+    'var CELULAS = {};' +
+    'var MUSICA_EM_FOCO = "";' +
+    'function carregarRascunho(){' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  var nome = nomes ? nomes.value : "";' +
+    '  var tempos = (document.getElementById("vbtempos") || {}).value || "";' +
+    '  var compasso = (document.getElementById("vbcompasso") || {}).value || "";' +
+    '  MUSICA_EM_FOCO = (nome && tempos && compasso) ? tempos + "|" + compasso : "";' +
+    '  var base = MUSICA_EM_FOCO ? celulasDe(nome, MUSICA_EM_FOCO) : null;' +
+    // CÓPIA, e não a referência: o que se edita na tela não pode alterar o que o alfabeto diz
+    // até a gravação ser aceite. Sem a cópia, cancelar deixaria a tela a mentir sobre o dado.
+    '  CELULAS = base ? JSON.parse(JSON.stringify(base)) : {};' +
+    '  pintarCelulas();' +
+    '  pintarDirecoes();' +
+    '}' +
+    // A TABELA DAS CÉLULAS: o que vai ser gravado, linha a linha. O «×» tira a célula do
+    // rascunho — não do alfabeto: nada é apagado do repositório até «Gravar verbete», e o que
+    // não for gravado não existiu.
+    'function pintarCelulas(){' +
+    '  var tabela = document.getElementById("vb-celulas");' +
+    '  if (!tabela) return;' +
+    '  var corpo = tabela.tBodies[0];' +
+    '  var linhas = [];' +
+    '  Object.keys(CELULAS).forEach(function(dir){' +
+    '    (CELULAS[dir] || []).forEach(function(c, i){' +
+    '      linhas.push("<tr><td>" + dir + "</td><td>" + c.contagem + "</td><td><code>" +' +
+    '        c.bloco + "</code></td><td>" + c.descricao + "</td>" +' +
+    '        "<td><button type=\'button\' class=\'vb-cel-tirar\' data-dir=\'" + dir +' +
+    '        "\' data-i=\'" + i + "\' title=\'tirar esta célula\'>×</button></td></tr>");' +
+    '    });' +
+    '  });' +
+    '  if (!linhas.length) {' +
+    '    corpo.innerHTML = "<tr><td colspan=\'5\'>" + (MUSICA_EM_FOCO' +
+    '      ? "Nenhuma célula para esta música — o documento não se escreve enquanto não houver ao menos uma."' +
+    '      : "Escolha o exercício e a música.") + "</td></tr>";' +
+    '    return;' +
+    '  }' +
+    '  corpo.innerHTML = linhas.join("");' +
+    '}' +
+    'function pintarDirecoes(){' +
+    '  var tabela = document.getElementById("vb-direcoes");' +
+    '  if (!tabela) return;' +
+    '  var corpo = tabela.tBodies[0];' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  var nome = nomes ? nomes.value : "";' +
+    '  var tempos = (document.getElementById("vbtempos") || {}).value || "";' +
+    '  var compasso = (document.getElementById("vbcompasso") || {}).value || "";' +
+    '  if (!nome) {' +
+    '    corpo.innerHTML = "<tr><td colspan=\'2\'>Escolha o exercício para ver as direções dele.</td></tr>";' +
+    '    return;' +
+    '  }' +
+    '  var chave = tempos && compasso ? tempos + "|" + compasso : "";' +
+    // O QUE SE LÊ É O RASCUNHO, e não o que está gravado: acrescentar uma célula tem de mudar
+    // esta tabela no mesmo gesto, senão a tela diz uma coisa e grava outra.
+    '  var celulas = chave && chave === MUSICA_EM_FOCO ? CELULAS : (chave ? celulasDe(nome, chave) : null);' +
+    '  var linhas = direcoesDaGramatica().map(function(x){' +
+    '    var lista = celulas ? celulas[x.termo] : null;' +
+    '    if (Array.isArray(lista) && lista.length) {' +
+    '      return "<tr><td>" + x.nome + " (" + x.termo + ")</td><td>" +' +
+    '        celulasEmPalavras(lista) + "</td></tr>";' +
+    '    }' +
+    '    var noutra = ondeOExercicioTem(nome, x.termo);' +
+    '    if (!chave) {' +
+    '      return "<tr><td>" + x.nome + " (" + x.termo + ")</td><td>" +' +
+    '        (noutra ? "o exercício vai " + x.nome + " em " + noutra + " — diga os tempos e o compasso" :' +
+    '          "este exercício não vai " + x.nome) + "</td></tr>";' +
+    '    }' +
+    '    if (noutra) {' +
+    '      return "<tr><td>" + x.nome + " (" + x.termo + ")</td><td>" +' +
+    '        "sem célula para " + tempos + " tempos em " + compasso + " (o exercício vai " + x.nome +' +
+    '        " em " + noutra + ")</td></tr>";' +
+    '    }' +
+    '    return "<tr><td>" + x.nome + " (" + x.termo + ")</td><td>" +' +
+    '      "este exercício não vai " + x.nome + "</td></tr>";' +
+    '  });' +
+    '  corpo.innerHTML = linhas.join("");' +
+    '}' +
+    // ================= OS DOIS MODOS (28/10/2026) ===================================
+    // «Ou se escolhe um exercício que existe, ou se cria um — nunca as duas.» O modo B esconde
+    // os campos do verbete e bloqueia o par do exercício; o modo A esconde os do exercício.
+    // Um campo que desaparece por completo é diferente de um campo esbatido: o esbatido continua
+    // a competir por atenção, e é isso que a tela de hoje fazia.
+    'function modoExercicio(aberto){' +
+    '  var caixaVerbete = document.getElementById("vb-modo-verbete");' +
+    '  var caixaExercicio = document.getElementById("vb-modo-exercicio");' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  var mais = document.getElementById("vb-novo-exercicio");' +
+    '  if (!caixaVerbete || !caixaExercicio) return;' +
+    '  caixaVerbete.hidden = Boolean(aberto);' +
+    '  caixaExercicio.hidden = !aberto;' +
+    // O `select` e o «+» ficam à vista e bloqueados: um campo que desaparece não se distingue
+    // de um campo que nunca existiu, e o exercício escolhido é a memória de onde se estava.
+    '  if (nomes) nomes.disabled = Boolean(aberto);' +
+    '  if (mais) mais.disabled = Boolean(aberto);' +
+    '  if (aberto) {' +
+    '    var campo = document.getElementById("vnnome");' +
+    '    if (campo) campo.focus();' +
+    '  }' +
+    '}' +
     'function carregarVerbetes(){' +
     '  var lista = document.getElementById("lista-verbetes");' +
     '  if (!lista) return;' +
@@ -4858,12 +5065,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      });' +
     '      pos.innerHTML = opcoes.join("");' +
     '    }' +
-    '    var dirs = document.getElementById("vbdirecoes");' +
-    '    if (dirs) {' +
-    '      dirs.innerHTML = (d.direcoes || []).map(function(x){' +
-    '        return "<label class=\'marca\'><input type=\'checkbox\' value=\'" + x.termo + "\'> " + x.nome + "</label>";' +
-    '      }).join("");' +
+    // A TABELA DAS DIREÇÕES substitui as três caixas de marcar (28/10/2026). Ela não pergunta
+    // nada: mostra, para cada direção da gramática, se ESTE verbete a cobre e o que nela acontece.
+    // A regra que a governa é a do dado: uma direção existe num verbete se — e só se — esse
+    // verbete tem células para ela. Um exercício que não a tem em música nenhuma diz «este
+    // exercício não vai ao lado»; um que a tem noutra música diz o que falta escrever.
+    // AS DIREÇÕES DO EDITOR DE CÉLULA e a legenda dos sinais. Os sinais vêm do alfabeto — a
+    // tela não os escreve de memória, senão a legenda envelhecia sozinha no dia em que a
+    // gramática mudasse.
+    '    var selDir = document.getElementById("vb-cel-dir");' +
+    '    if (selDir) {' +
+    '      var opDir = ["<option value=\'\'>— direção —</option>"];' +
+    '      (d.direcoes || []).forEach(function(x){' +
+    '        opDir.push("<option value=\'" + x.termo + "\'>" + x.nome + " (" + x.termo + ")</option>");' +
+    '      });' +
+    '      selDir.innerHTML = opDir.join("");' +
     '    }' +
+    '    var legenda = document.getElementById("vb-sinais");' +
+    '    if (legenda) {' +
+    '      var cats = (d.categoriasDeBloco || []).join(" · ");' +
+    '      var sins = (d.sinais || []).join("  ");' +
+    '      legenda.textContent = "O bloco escreve-se [Categoria: sinais]. Categorias: " + cats +' +
+    '        ". Sinais: " + sins;' +
+    '    }' +
+    '    carregarRascunho();' +
     '    lista.innerHTML = (d.exercicios || []).map(function(x){' +
     '      return "<li><button type=\'button\' class=\'verbetes-editar\' data-nome=\'" + x.nome + "\'>" +' +
     '        x.nome + "</button> <span class=\'miudo\'>" + x.musicas.join(" · ") +' +
@@ -4898,10 +5123,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("vbacao").value = "atualizar";' +
     '  var pos = document.getElementById("vbposicao");' +
     '  if (pos && v.posicao) pos.value = v.posicao.termo;' +
-    '  var caixas = document.querySelectorAll("#vbdirecoes input[type=checkbox]");' +
-    '  for (var j = 0; j < caixas.length; j++) {' +
-    '    caixas[j].checked = (v.direcoes || []).indexOf(caixas[j].value) !== -1;' +
-    '  }' +
+    '  carregarRascunho();' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
     'function temposDaContagem(c){' +
@@ -4922,6 +5144,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var formVerbete = document.getElementById("form-verbete");' +
     'if (formVerbete) formVerbete.addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
+    // A GUARDA DO MODO. No modo do exercício as teclas de atalho e o Enter ainda podem
+    // submeter este formulário — e submeter aqui com os campos do verbete escondidos seria
+    // gravar um verbete que ninguém preencheu. O modo manda sobre o `submit`.
+    '  var caixaExercicio = document.getElementById("vb-modo-exercicio");' +
+    '  if (caixaExercicio && !caixaExercicio.hidden) return;' +
     '  var nomes = document.getElementById("vbnome");' +
     '  var nome = nomes ? nomes.value.trim() : "";' +
     '  var tempos = document.getElementById("vbtempos").value.trim();' +
@@ -4930,23 +5157,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!tempos) { alert("Informe os tempos."); return; }' +
     // AS CÉLULAS SÃO AS QUE JÁ EXISTEM, e não escritas em branco: quem edita um verbete não
     // reescreve as descrições, e o que está no alfabeto é o que foi conferido.
-    '  var atual = (VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome]) || {};' +
-    '  var origem = atual[tempos + "|" + compasso] || null;' +
-    '  var marcadas = [];' +
-    '  var caixas = document.querySelectorAll("#vbdirecoes input[type=checkbox]");' +
-    '  for (var i = 0; i < caixas.length; i++) if (caixas[i].checked) marcadas.push(caixas[i].value);' +
-    '  if (!marcadas.length) { alert("Marque ao menos uma direção."); return; }' +
-    '  var celulas = {};' +
-    '  var faltam = [];' +
-    '  marcadas.forEach(function(d){' +
-    '    var c = (origem && origem.celulas && origem.celulas[d]) || null;' +
-    '    if (c) celulas[d] = c; else faltam.push(d);' +
-    '  });' +
-    // A CÉLULA NOVA NÃO SE INVENTA NA TELA. Ela declara contagem, bloco e descrição — três
-    // coisas que ninguém escreve num campo só, e que o servidor valida contra o alfabeto.
-    '  if (faltam.length) {' +
-    '    alert("Este exercício ainda não tem células para: " + faltam.join(", ") + ". ' +
-    'As células descrevem o que acontece em cada tempo — sem elas o documento não se escreve.");' +
+    //
+    // E ELAS SÃO TODAS (28/10/2026). Havia aqui uma caixa de marcar por direção, e o que se
+    // marcava era o que se gravava: dava para gravar um verbete a que faltava a direção que o
+    // exercício faz. A direção agora é a chave da célula, e as células desta música são as que
+    // o alfabeto tem — a tela não escolhe, mostra.
+    // O QUE SE GRAVA É O RASCUNHO (28/10/2026) — com as células que o editor acrescentou e sem
+    // as que ele tirou. Era aqui que o formulário só sabia repetir o que já existia.
+    '  if (MUSICA_EM_FOCO !== tempos + "|" + compasso) carregarRascunho();' +
+    '  var celulas = CELULAS;' +
+    '  var dirs = Object.keys(celulas);' +
+    '  if (!dirs.length) {' +
+    '    recado("erro", "Este verbete ainda não tem nenhuma célula. Escreva ao menos uma em «Células deste verbete» — é a descrição dela que a página da aula mostra.");' +
     '    return;' +
     '  }' +
     '  var sel = document.getElementById("vbposicao");' +
@@ -4957,11 +5179,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    nome: nome,' +
     '    musica: tempos + "|" + compasso,' +
     '    verbete: {' +
-    '      cobre: Object.keys(celulas).reduce(function(t, d){' +
+    '      cobre: dirs.reduce(function(t, d){' +
     '        return t + celulas[d].reduce(function(s, c){ return s + temposDaContagem(c.contagem); }, 0);' +
     '      }, 0),' +
     '      posicao: sel.value ? {membro: opcao.getAttribute("data-membro"), termo: sel.value} : null,' +
-    '      direcoes: marcadas,' +
     '      celulas: celulas' +
     '    }' +
     '  };' +
@@ -4983,17 +5204,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o commit dispara. Sem esta linha, o exercício novo só apareceria minutos depois.
     // ---------------------------------------------------------------------------
     'var bNovoExercicio = document.getElementById("vb-novo-exercicio");' +
-    'var caixaNovoExercicio = document.getElementById("vb-novo");' +
+    'var caixaNovoExercicio = document.getElementById("vb-modo-exercicio");' +
     'if (bNovoExercicio && caixaNovoExercicio) {' +
-    '  bNovoExercicio.addEventListener("click", function(){' +
-    '    caixaNovoExercicio.hidden = !caixaNovoExercicio.hidden;' +
-    '    if (!caixaNovoExercicio.hidden) document.getElementById("vnnome").focus();' +
-    '  });' +
+    // O «+» ABRE O MODO, não uma caixa dentro do outro modo (28/10/2026). Enquanto ele está
+    // aberto, os campos do verbete não estão no documento e o `select` fica bloqueado.
+    '  bNovoExercicio.addEventListener("click", function(){ modoExercicio(true); });' +
     '  document.getElementById("vb-cancelar-exercicio").addEventListener("click", function(){' +
-    '    caixaNovoExercicio.hidden = true;' +
-    '    document.getElementById("vnnome").value = "";' +
+    '    var nomes = document.getElementById("vbnome");' +
     '    var r = caixaNovoExercicio.querySelector("[data-res=vb-novo]");' +
     '    if (r) { r.className = "res"; r.textContent = ""; }' +
+    '    document.getElementById("vnnome").value = "";' +
+    '    modoExercicio(false);' +
+    '    if (nomes) nomes.focus();' +
     '  });' +
     '  document.getElementById("vb-criar-exercicio").addEventListener("click", function(){' +
     '    var nome = document.getElementById("vnnome").value.trim();' +
@@ -5022,20 +5244,83 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        }' +
     '        nomes.value = d.termo;' +
     '      }' +
-    '      caixaNovoExercicio.hidden = true;' +
+    // AO GRAVAR, O MODO VOLTA — e volta com o exercício novo JÁ ESCOLHIDO. Quem acabou de o
+    // criar quer escrever o verbete dele agora; pedir-lhe que o procure na lista seria devolvê-lo
+    // ao princípio do gesto que ele acabou de fazer.
     '      document.getElementById("vnnome").value = "";' +
-    '      recado("ok", "exercício criado: " + d.termo + " — escolha-o e grave o verbete dele.");' +
+    '      caixaNovoExercicio.querySelector("[data-res=vb-novo]").className = "res";' +
+    '      caixaNovoExercicio.querySelector("[data-res=vb-novo]").textContent = "";' +
+    '      modoExercicio(false);' +
+    '      recado("ok", "exercício gravado: " + d.termo + " — agora o verbete dele.");' +
+    '      pintarDirecoes();' +
     '    }).catch(function(e){' +
     '      res.className = "res erro"; res.textContent = "Erro: " + e.message;' +
     '    });' +
     '  });' +
     '}' +
+    // «LIMPAR» ESVAZIA O MODO A, E NÃO MUDA DE MODO (28/10/2026). Ele não é «Cancelar»: é
+    // começar outro verbete do zero, e o modo continua a ser o do verbete.
     'var novoVerbete = document.getElementById("vbnovo");' +
     'if (novoVerbete) novoVerbete.addEventListener("click", function(){' +
     '  var f = document.getElementById("form-verbete");' +
     '  if (f) f.reset();' +
     '  document.getElementById("vbacao").value = "criar";' +
+    '  pintarDirecoes();' +
     '});' +
+    // A TABELA DAS DIREÇÕES ACOMPANHA A ESCOLHA. Ela depende de três campos — exercício,
+    // tempos e compasso —, e nenhum deles avisa quando muda por código (o «editar» põe os
+    // valores por `value =`). Por isso ela é repintada nos três eventos, e não só quando a
+    // lista chega.
+    '["vbnome", "vbcompasso"].forEach(function(id){' +
+    '  var el = document.getElementById(id);' +
+    '  if (el) el.addEventListener("change", carregarRascunho);' +
+    '});' +
+    // O `input` dos tempos recarrega também: mudar de 8 para 12 tempos muda a MÚSICA, e com ela
+    // o verbete — não é uma repintura da mesma coisa.
+    '(function(){' +
+    '  var t = document.getElementById("vbtempos");' +
+    '  if (t) t.addEventListener("input", carregarRascunho);' +
+    '})();' +
+    // ---- o editor de célula, os dois gestos -------------------------------------------
+    'var bCelAcrescentar = document.getElementById("vb-cel-acrescentar");' +
+    'if (bCelAcrescentar) {' +
+    '  bCelAcrescentar.addEventListener("click", function(){' +
+    '    var dir = document.getElementById("vb-cel-dir").value;' +
+    '    var contagem = document.getElementById("vb-cel-contagem").value.trim();' +
+    '    var bloco = document.getElementById("vb-cel-bloco").value.trim();' +
+    '    var desc = document.getElementById("vb-cel-desc").value.trim();' +
+    '    var res = document.querySelector("[data-res=verbetes]");' +
+    '    var faltando = [];' +
+    '    if (!MUSICA_EM_FOCO) faltando.push("o exercício, os tempos e o compasso");' +
+    '    if (!dir) faltando.push("a direção");' +
+    '    if (!contagem) faltando.push("a contagem");' +
+    '    if (!bloco) faltando.push("o bloco");' +
+    '    if (!desc) faltando.push("a descrição");' +
+    '    if (faltando.length) {' +
+    '      recado("erro", "Falta " + faltando.join(", ") + ".");' +
+    '      return;' +
+    '    }' +
+    '    CELULAS[dir] = CELULAS[dir] || [];' +
+    '    CELULAS[dir].push({contagem: contagem, bloco: bloco, descricao: desc});' +
+    '    ["vb-cel-contagem", "vb-cel-bloco", "vb-cel-desc"].forEach(function(id){' +
+    '      document.getElementById(id).value = "";' +
+    '    });' +
+    '    pintarCelulas();' +
+    '    pintarDirecoes();' +
+    '    if (res) { res.className = "res ok"; res.textContent = "célula acrescentada — grave o verbete para a guardar."; }' +
+    '  });' +
+    '  document.getElementById("vb-celulas").addEventListener("click", function(e){' +
+    '    var b = e.target.closest ? e.target.closest("button.vb-cel-tirar") : null;' +
+    '    if (!b) return;' +
+    '    var dir = b.getAttribute("data-dir");' +
+    '    var i = Number(b.getAttribute("data-i"));' +
+    '    if (!CELULAS[dir]) return;' +
+    '    CELULAS[dir].splice(i, 1);' +
+    '    if (!CELULAS[dir].length) delete CELULAS[dir];' +
+    '    pintarCelulas();' +
+    '    pintarDirecoes();' +
+    '  });' +
+    '}' +
     // --- associar o CONTEÚDO à turma escolhida ---------------------------------------
     // O MESMO endpoint e o mesmo botão de antes; o que mudou é de ONDE vem a turma: era um
     // `data-turma` no próprio botão (o cartão da listagem), agora é a turma em foco.
@@ -6366,11 +6651,16 @@ async function fetch(request, env) {
         .map((t) => ({ id: t.id, termo: t.termo, membro: t.membro || null })),
       direcoes: Object.values((lido.dados.gramatica || {}).direcoesDoMembro || {})
         .concat(Object.values((lido.dados.gramatica || {}).orientacoesDoCorpo || {})),
+      // O QUE O EDITOR DE CÉLULA PRECISA PARA NÃO INVENTAR (28/10/2026). O bloco de uma célula é
+      // `[Categoria: sinais]`, e tanto a categoria como os sinais já estão no alfabeto. A tela
+      // recebe-os e mostra-os: quem escreve a célula escolhe de uma lista, em vez de adivinhar a
+      // notação — e o que é recusado na gravação deixa de ser surpresa.
       sinais: [...(function () {
         const conjunto = new Set();
         for (const g of (lido.dados.grupos || [])) for (const k of Object.keys(g.itens || {})) conjunto.add(k);
         return conjunto;
       })()],
+      categoriasDeBloco: Array.isArray(lido.dados.categorias) ? lido.dados.categorias : [],
     });
   }
 

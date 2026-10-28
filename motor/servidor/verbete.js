@@ -116,19 +116,19 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
   const erros = [];
   if (!verbete || typeof verbete !== 'object') return { ok: false, erros: ['o verbete não é um objeto'] };
 
-  if (!Array.isArray(verbete.direcoes) || !verbete.direcoes.length) {
-    erros.push('o verbete tem de declarar ao menos uma direção');
-  }
+  // A DIREÇÃO É A CHAVE DA CÉLULA (28/10/2026). Havia um campo `direcoes` ao lado de `celulas`, e
+  // nas seis entradas do alfabeto ele era exactamente a lista das chaves — duas listas da mesma
+  // coisa, que divergem ao primeiro caso que só uma conhece. A validação deixou de perguntar se
+  // as duas concordam (não há duas) e passa a perguntar o que só a célula pode responder: uma
+  // célula vazia é um verbete pela metade, e é recusado.
   const celulas = verbete.celulas;
   if (!celulas || typeof celulas !== 'object') {
     erros.push('o verbete tem de ter `celulas`');
   } else {
-    const dirs = Array.isArray(verbete.direcoes) ? verbete.direcoes : [];
+    const dirs = Object.keys(celulas);
+    if (!dirs.length) erros.push('o verbete tem de ter ao menos uma direção (uma célula)');
     for (const d of dirs) {
       if (!Array.isArray(celulas[d]) || !celulas[d].length) erros.push('a direção «' + d + '» não tem célula');
-    }
-    for (const d of Object.keys(celulas)) {
-      if (dirs.indexOf(d) === -1) erros.push('há célula de «' + d + '», que não está nas direções declaradas');
     }
     const conhecidos = sinaisDo(alfabeto);
     const categorias = (alfabeto && alfabeto.categorias) || [];
@@ -167,9 +167,9 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
     }
   }
 
-  // As direções declaradas têm de existir na gramática — senão o documento não as sabe dizer.
+  // As direções ESCRITAS têm de existir na gramática — senão o documento não as sabe dizer.
   const conhecidas = direcoesConhecidas(alfabeto);
-  for (const d of (Array.isArray(verbete.direcoes) ? verbete.direcoes : [])) {
+  for (const d of Object.keys((celulas && typeof celulas === 'object') ? celulas : {})) {
     if (!conhecidas.has(d)) erros.push('a direção «' + d + '» não existe na gramática da modalidade');
   }
 
@@ -328,8 +328,14 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     const conferido = validarVerbete(verbete, dados, lido.vocabulario);
     if (!conferido.ok) return { ok: false, status: 400, erro: 'verbete inválido', erros: conferido.erros };
 
+    // O QUE SE GRAVA NÃO LEVA `direcoes` (28/10/2026). Se um pedido antigo — ou uma página em
+    // cache — o enviar, ele não entra no ficheiro: o campo deixou de existir no dado, e o que o
+    // alimentava era a mesma lista das chaves de `celulas`. Uma gravação não pode ressuscitá-lo,
+    // senão a segunda lista volta pela porta de trás.
+    const limpo = Object.assign({}, verbete);
+    delete limpo.direcoes;
     dados.verbetes[nomeLimpo] = dados.verbetes[nomeLimpo] || {};
-    dados.verbetes[nomeLimpo][chaveMusica] = verbete;
+    dados.verbetes[nomeLimpo][chaveMusica] = limpo;
     mensagem = (acaoLimpa === 'criar' ? 'feat(notacao): declarar «' : 'docs(notacao): editar «')
       + nomeLimpo + '» (' + chaveMusica + ') no alfabeto ' + modalidade;
   }

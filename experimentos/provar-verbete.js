@@ -62,14 +62,24 @@ function aValidacao() {
   checar('e um `cobre` que não soma é recusado', !cobreErrado.ok && /somam/.test(cobreErrado.erros.join(' ')),
     cobreErrado.erros);
 
-  const semCelula = verbeteBom({ direcoes: ['devant', 'derriere'] });
+  // A DIREÇÃO É A CHAVE DA CÉLULA (28/10/2026). Estas duas asserções guardavam a comparação entre
+  // o campo `direcoes` e as chaves de `celulas` — e o campo deixou de existir. O que resta a poder
+  // estar mal é a célula vazia, e é isso que passa a ser medido.
+  const semCelula = verbeteBom();
+  semCelula.celulas.derriere = [];
   const r1 = verbete.validarVerbete(semCelula, ALFABETO, VOCABULARIO);
-  checar('uma direção declarada sem célula é recusada', !r1.ok && /derriere/.test(r1.erros.join(' ')), r1.erros);
+  checar('uma direção sem célula é recusada', !r1.ok && /derriere/.test(r1.erros.join(' ')), r1.erros);
 
-  const orfa = verbeteBom();
-  orfa.celulas.derriere = [{ contagem: '1–2', bloco: '[Pé: 1ª → ×]', descricao: 'x' }];
-  const r2 = verbete.validarVerbete(orfa, ALFABETO, VOCABULARIO);
-  checar('e uma célula fora das direções declaradas também', !r2.ok, r2.erros);
+  const semNada = verbeteBom({ celulas: {} });
+  const r2 = verbete.validarVerbete(semNada, ALFABETO, VOCABULARIO);
+  checar('e um verbete sem célula nenhuma também', !r2.ok && /ao menos uma direção/.test(r2.erros.join(' ')), r2.erros);
+
+  // O CAMPO `direcoes` NÃO VOLTA A ENTRAR. Se um pedido antigo o enviar, ele é ignorado — e o
+  // verbete que daí sai é válido, porque o que manda são as células.
+  const comCampoVelho = verbeteBom({ direcoes: ['devant', 'sur-la-tete'] });
+  const r2b = verbete.validarVerbete(comCampoVelho, ALFABETO, VOCABULARIO);
+  checar('o campo `direcoes`, se vier de uma página antiga, é ignorado e não invalida',
+    r2b.ok, r2b.erros);
 
   const sinal = verbeteBom();
   sinal.celulas.devant[0].bloco = '[Pé: 1ª → §]';
@@ -90,7 +100,8 @@ function aValidacao() {
   const r6 = verbete.validarVerbete(membroErrado, ALFABETO, VOCABULARIO);
   checar('e uma posição de pés declarada como de braços também', !r6.ok, r6.erros);
 
-  const direcaoFantasma = verbeteBom({ direcoes: ['sur-la-tete'] });
+  const direcaoFantasma = verbeteBom();
+  direcaoFantasma.celulas['sur-la-tete'] = [{ contagem: '1–2', bloco: '[Pé: 1ª → +]', descricao: 'x' }];
   const r7 = verbete.validarVerbete(direcaoFantasma, ALFABETO, VOCABULARIO);
   checar('uma direção fora da gramática é recusada', !r7.ok && /gramática/.test(r7.erros.join(' ')), r7.erros);
 }
@@ -160,6 +171,14 @@ async function aEscrita() {
     Boolean(gravado.verbetes['Battement fondu'] && gravado.verbetes['Battement fondu']['8|4/4'].celulas));
   checar('e o commit leva mensagem do projeto', /^feat\(notacao\): declarar/.test(
     String(repo.arquivos.get(CAlfabeto).mensagem || '').split('\n')[0]), repo.arquivos.get(CAlfabeto).mensagem);
+
+  // O QUE SE GRAVA NÃO LEVA `direcoes` (28/10/2026). O campo deixou de existir no dado — era,
+  // nas seis entradas, exactamente a lista das chaves de `celulas`. Uma página antiga em cache
+  // ainda o pode enviar; ele não pode ressuscitar no ficheiro, senão a segunda lista volta pela
+  // porta de trás e a tela volta a poder declarar uma direção que não sabe descrever.
+  checar('o verbete gravado NÃO tem o campo `direcoes`',
+    !('direcoes' in gravado.verbetes['Battement fondu']['8|4/4']),
+    Object.keys(gravado.verbetes['Battement fondu']['8|4/4']));
 
   const deNovo = await verbete.gravarVerbete(Object.assign({}, base, {
     nome: 'Battement fondu', musica: '4|4/4', verbete: verbeteBom(), acao: 'criar',
@@ -415,7 +434,23 @@ async function aOrigemDoVocabulario() {
   const html = await pagina.text();
   checar('o «+» fica ao lado do exercício, e não noutra secção',
     /<span class="par-associar"><select id="vbnome"/.test(html), /par-associar/.test(html));
-  checar('e a caixa do exercício novo nasce fechada', /<div id="vb-novo" hidden>/.test(html));
+  // O MODO DO EXERCÍCIO NASCE FECHADO, e o do verbete aberto (28/10/2026). A caixa antiga
+  // (`#vb-novo`) era uma caixa a meio do formulário; agora é um modo, com os seus campos, o seu
+  // botão e o seu recado — e o modo do verbete não está no documento enquanto ele está aberto.
+  checar('o modo do exercício nasce fechado, e o do verbete aberto',
+    /<div id="vb-modo-verbete">/.test(html) && /<div id="vb-modo-exercicio" hidden>/.test(html),
+    /vb-modo-exercicio/.test(html));
+
+  // OS DOIS BOTÕES PRIMÁRIOS NÃO COEXISTEM. «Gravar verbete» e «Gravar exercício» têm de viver
+  // em blocos diferentes, senão a tela volta a ter dois botões com o mesmo peso à vista.
+  const blocoA = (html.match(/<div id="vb-modo-verbete">([\s\S]*?)<\/div>\s*<div id="vb-modo-exercicio"/) || [])[1] || '';
+  const blocoB = (html.match(/<div id="vb-modo-exercicio" hidden>([\s\S]*?)<\/form>/) || [])[1] || '';
+  checar('«Gravar verbete» está só no modo do verbete',
+    /Gravar verbete/.test(blocoA) && !/Gravar verbete/.test(blocoB), [blocoA.length, blocoB.length]);
+  checar('e «Gravar exercício» só no modo do exercício',
+    /Gravar exercício/.test(blocoB) && !/Gravar exercício/.test(blocoA), null);
+  checar('e os campos do verbete não estão no modo do exercício',
+    !/id="vbtempos"/.test(blocoB) && !/id="vbposicao"/.test(blocoB), null);
   checar('e o botão de semear deixou de prometer o vocabulário',
     /Carregar as turmas iniciais/.test(html) && !/turmas \+ vocabulário/.test(html));
 
@@ -423,6 +458,31 @@ async function aOrigemDoVocabulario() {
     .map((m) => m[1]).sort((a, b) => b.length - a.length)[0] || '';
   checar('e o «+» grava pelo cadastro que já existe (o mesmo, não um segundo)',
     /fetch\("\/api\/bastidores\/termo"/.test(script) && /vb-criar-exercicio/.test(script));
+
+  // ---- O EDITOR DE CÉLULA E OS DOIS MODOS (28/10/2026) -----------------------------
+  // O gargalo que o editor destapa: o formulário lia as células do que já existia e, quando não
+  // havia nenhuma, recusava — criar um verbete era impossível, para 55 exercícios possíveis e 4
+  // verbetes. Estas asserções medem a MARCAÇÃO e o SCRIPT: a prova de comportamento é a bancada
+  // no navegador (`experimentos/provar-celula.js`), que não vai ao ar.
+  checar('o editor de célula existe, com os quatro campos e o gesto de acrescentar',
+    /id="vb-cel-dir"/.test(html) && /id="vb-cel-contagem"/.test(html)
+    && /id="vb-cel-bloco"/.test(html) && /id="vb-cel-desc"/.test(html)
+    && /id="vb-cel-acrescentar"/.test(html) && /id="vb-celulas"/.test(html));
+  checar('a legenda dos sinais vem do alfabeto, e não escrita na tela',
+    /categoriasDeBloco/.test(script) && /d\.sinais/.test(script)
+    && !/1ª 2ª 3ª 4ª 5ª/.test(html));
+
+  // AS REGRAS DO PAR, medidas no texto do script: o modo B esconde o A, bloqueia o `select` e o
+  // «+», e o `submit` do verbete não passa enquanto o modo do exercício está aberto.
+  checar('o modo do exercício esconde os campos do verbete e bloqueia o par do exercício',
+    /caixaVerbete\.hidden = Boolean\(aberto\)/.test(script)
+    && /caixaExercicio\.hidden = !aberto/.test(script)
+    && /nomes\.disabled = Boolean\(aberto\)/.test(script)
+    && /mais\.disabled = Boolean\(aberto\)/.test(script));
+  checar('e o Enter no modo do exercício não grava um verbete',
+    /if \(caixaExercicio && !caixaExercicio\.hidden\) return;/.test(script));
+  checar('e ao gravar o exercício, o modo volta com ele escolhido',
+    /modoExercicio\(false\);/.test(script) && /agora o verbete dele/.test(script));
 }
 
 aValidacao();

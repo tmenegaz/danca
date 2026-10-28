@@ -300,9 +300,13 @@ function verbetePara(alfabeto, exercicio, musica) {
 function segmentosDe(verbete, numerador) {
   if (!verbete) return [];
   if (verbete.celulas && typeof verbete.celulas === 'object') {
-    const ordem = Array.isArray(verbete.direcoes) && verbete.direcoes.length
-      ? verbete.direcoes
-      : Object.keys(verbete.celulas);
+    // A ORDEM É A DAS CÉLULAS, e é a única lista que existe (28/10/2026). Havia um campo
+    // `direcoes` ao lado, e nas seis entradas do alfabeto ele era — verificado, seis de seis —
+    // exactamente a lista das chaves de `celulas`. Duas listas da mesma coisa divergem ao
+    // primeiro caso que só uma conhece; aqui, o dia em que divergissem, o documento escreveria
+    // uma direção para a qual não tem descrição. O `Object.keys` preserva a ordem de inserção,
+    // que é a ordem em que as células foram escritas — a mesma que `direcoes` declarava.
+    const ordem = Object.keys(verbete.celulas);
     const saida = [];
     let corridos = 0;
     for (const direcao of ordem) {
@@ -368,22 +372,19 @@ function compor(linha, alfabeto) {
 
   const segmentos = segmentosDe(escolhido.verbete, musica.numerador);
 
-  // A DIREÇÃO DECLARADA E A DIREÇÃO ESCRITA TÊM DE SER A MESMA COISA. Um verbete que declara três
-  // direções e só tem célula para duas é um verbete pela metade: a grade sairia com dois terços do
-  // exercício e nada o diria. É recusado, e não completado — a regra é a mesma de sempre: o motor
-  // nunca estica um verbete para caber.
+  // A DIREÇÃO DECLARADA E A DIREÇÃO ESCRITA NÃO SÃO DUAS COISAS (28/10/2026). Aqui havia uma
+  // conferência entre `direcoes` e as chaves de `celulas` — e ela existia porque havia duas listas.
+  // Deixou de haver: a direção é a chave da célula. O que ainda pode estar mal é uma célula VAZIA,
+  // e isso continua a ser recusado: um verbete que declara uma direção e não diz o que nela
+  // acontece é um verbete pela metade, e o motor nunca estica um verbete para caber.
   {
-    const dirs = Array.isArray(escolhido.verbete.direcoes) ? escolhido.verbete.direcoes : null;
     const celulas = escolhido.verbete.celulas;
-    if (dirs && celulas && typeof celulas === 'object') {
-      const semCelula = dirs.filter((d) => !Array.isArray(celulas[d]) || !celulas[d].length);
-      const orfas = Object.keys(celulas).filter((d) => dirs.indexOf(d) === -1);
-      if (semCelula.length || orfas.length) {
-        const partes = [];
-        if (semCelula.length) partes.push('declara ' + semCelula.join(', ') + ' sem célula');
-        if (orfas.length) partes.push('tem célula de ' + orfas.join(', ') + ' fora das direções declaradas');
+    if (celulas && typeof celulas === 'object') {
+      const vazias = Object.keys(celulas).filter((d) => !Array.isArray(celulas[d]) || !celulas[d].length);
+      if (vazias.length) {
         return Object.assign(base, { estado: 'lacuna', motivo: 'verbete-incompleto', segmentos: [], restoTempos: 0,
-          detalhe: 'o verbete de «' + exercicio + '» (' + escolhido.musica + ') ' + partes.join(' e ') });
+          detalhe: 'o verbete de «' + exercicio + '» (' + escolhido.musica + ') não tem célula em: '
+            + vazias.join(', ') });
       }
     }
   }
@@ -437,8 +438,14 @@ function compor(linha, alfabeto) {
     // A POSIÇÃO e as DIREÇÕES vêm do verbete, e é o documento que as escreve em palavras. Sem
     // elas, a página em prosa não diz em que posição o exercício acontece — que é a primeira
     // coisa que se pergunta, e a única que a notação sabia e a prosa não.
+    //
+    // AS DIREÇÕES SÃO AS QUE TÊM CÉLULA (28/10/2026). O campo `direcoes` deixou de existir no
+    // dado — ele era a mesma lista das chaves de `celulas`, e agora é derivado. O que sai daqui
+    // é o que o documento escreve: cada direção que o exercício percorre, na ordem em que as
+    // células foram escritas.
     posicao: escolhido.verbete.posicao || null,
-    direcoes: Array.isArray(escolhido.verbete.direcoes) ? escolhido.verbete.direcoes.slice() : [],
+    direcoes: Object.keys((escolhido.verbete.celulas && typeof escolhido.verbete.celulas === 'object')
+      ? escolhido.verbete.celulas : {}),
     lados: Array.isArray(escolhido.verbete.lado) ? escolhido.verbete.lado.slice() : [],
     detalhe,
   });

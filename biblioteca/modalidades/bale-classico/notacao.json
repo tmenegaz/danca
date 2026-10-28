@@ -46,7 +46,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 2,
+  "versao": 3,
   "aplicaseA": [
     "benesh"
   ],
@@ -392,9 +392,6 @@
           "membro": "pes",
           "termo": "premiere-position"
         },
-        "direcoes": [
-          "devant"
-        ],
         "celulas": {
           "devant": [
             {
@@ -418,9 +415,6 @@
           "membro": "pes",
           "termo": "premiere-position"
         },
-        "direcoes": [
-          "devant"
-        ],
         "celulas": {
           "devant": [
             {
@@ -442,10 +436,6 @@
           "membro": "pes",
           "termo": "premiere-position"
         },
-        "direcoes": [
-          "devant",
-          "derriere"
-        ],
         "celulas": {
           "devant": [
             {
@@ -479,11 +469,6 @@
           "membro": "pes",
           "termo": "premiere-position"
         },
-        "direcoes": [
-          "devant",
-          "a-la-seconde",
-          "derriere"
-        ],
         "celulas": {
           "devant": [
             {
@@ -531,10 +516,6 @@
           "membro": "pes",
           "termo": "premiere-position"
         },
-        "direcoes": [
-          "devant",
-          "derriere"
-        ],
         "celulas": {
           "devant": [
             {
@@ -570,9 +551,6 @@
           "membro": "bracos",
           "termo": "premiere-position-bracos"
         },
-        "direcoes": [
-          "devant"
-        ],
         "lado": [
           "D",
           "E"
