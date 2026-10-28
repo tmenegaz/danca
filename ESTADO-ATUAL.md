@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 27/10/2026 (base local `a7da29d`; Aula 01 e Notação alinhadas, pacote real gerado e validado; publicação remota pendente).
+> **Última fotografia:** 27/10/2026 (base local `6029676`; Aula 01 publicada no commit `8b939d0`, workflow da Batata concluído e raiz com HTTP 200; a rota `/aulas/` não foi recarregada após este deploy).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -100,6 +100,11 @@ Verificado nesta fotografia, com os comandos da §9.
   incluindo o job de Batata; a única conferência final em `/aulas/` respondeu HTTP 200 e confirmou
   os links da prosa e da ação «Abrir notação». **CONFIRMADO**.
 
+- **Publicação da Aula 01 em 27/10/2026:** o commit `8b939d0` foi enviado a `origin/main`; o run
+  #287 de `Publicar as escolas` e o job `publicar (batata)` concluíram com sucesso. Uma única
+  requisição final à raiz respondeu HTTP 200 e o HTML contém o link para `/aulas/`. A rota não foi
+  recarregada após este deploy. **CONFIRMADO**.
+
 - **O `HANDOFF.md` estava desatualizado** — dizia `6bdb06a` com o `HEAD` em `7182307`.
   **CONFIRMADO** e corrigido nesta sessão por regeneração.
 
@@ -133,7 +138,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | Navegação: coluna + barra + caminho | **CONFIRMADO** | `motor/nucleo/nav.js` |
 | Listas no padrão novo | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
 | Aulas: leitura em prosa e Notação Benesh | **CONFIRMADO em produção** em 27/10/2026 — o nome abre a prosa, «Abrir notação» fica ao lado da Aula 01, e o Glossário está no cabeçalho persistente da Notação, em nova aba. A rota `/aulas/` respondeu 200 e continha os dois destinos; as provas locais confirmaram a montagem e a remoção das listas independentes. | `tools/gerar-aula-prosa.js`, `tools/montar-publicacao.js`, `motor/nucleo/nav.js` |
-| Aula 01: Guia preenchido com os itens do PO, Notação com a estrutura da Aula e PDF individual | **CONFIRMADO localmente**: fontes, HTMLs, PDFs, pacote, montagem da publicação e provas passaram; âncoras do ciclo e da Aula 01 íntegras. **PENDENTE**: push, deploy e conferência ao vivo. | `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`, `tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` |
+| Aula 01: Guia preenchido com os itens do PO, Notação com a estrutura da Aula e PDF individual | **CONFIRMADO no pacote e implantado**: commit `8b939d0` em `origin/main`; run #287 e job Batata com sucesso. A conferência ao vivo limitou-se à raiz (HTTP 200, com link para `/aulas/`); a rota específica não foi carregada após este deploy. | `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`, `tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` |
 | As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado, o aviso da senha errada; 43 verificações no browser | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
 | Anamnese: formulário, vínculo, ajuste | **CONFIRMADO** | `rotas.js` (11 rotas `/api/anamnese*`) |
@@ -247,13 +252,13 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
-**Objetivo:** completar o conteúdo da Aula 01 em prosa e na leitura Benesh, e oferecer o Plano e o
-PDF individual pelos nomes das listas. **Implementado, gerado, validado e montado localmente; push,
-deploy e conferência ao vivo pendentes.**
+Não há trabalho em andamento nesta entrega. A Aula 01 em prosa e em Notação Benesh foi implementada,
+gerada, validada, publicada e implantada.
 
-**Último ponto confirmado:** 27/10/2026 — pacote com 9 páginas HTML e 325 links, PDF consolidado de
-34 páginas e PDF individual da Aula de 10 páginas; pacote, validadores, publicação local, provas e
-âncoras aprovados. Não houve commit, push, deploy nem conferência ao vivo desta alteração.
+**Último ponto confirmado:** 27/10/2026 — commit `8b939d0` enviado; workflow #287 e job Batata
+concluídos com sucesso. O pacote com 9 páginas HTML e 325 links, PDF consolidado de 34 páginas e
+PDF individual da Aula de 10 páginas passou nos validadores, provas locais e conferência das
+âncoras. A única requisição ao vivo após o deploy foi à raiz e respondeu HTTP 200.
 
 ## 8. Pendências e dúvidas
 
@@ -332,7 +337,7 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 | Verificação | Resultado |
 |:--|:--|
-| `git fetch origin` + `git status -sb` | fetch autenticado com o token local concluído; `main` alinhado com `origin/main` em `a7da29d` |
+| `git fetch origin` + `git status -sb` | após o push, o workflow de índices gerou `6029676`; fetch e rebase concluídos, `main` alinhada com `origin/main` |
 | `provar-aula-prosa.js` | **19 verificações**, sem falhas |
 | `provar-publicacao-da-escola.js` | **64 asserções**, sem falhas; prova de montagem em árvore temporária |
 | `node tools/check-identidade.js` | **20 verificações**, todas passaram |
@@ -342,7 +347,9 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 | Validadores isolados do ciclo | schema, PO, plano, Aula e captura passaram; Captura com 2 avisos de mapeamento |
 | `node experimentos/propostas/construir.js` + `node tools/montar-publicacao.js batata --com-propostas` | publicação local montada em `publicacao/batata`; lista de Planos e Aulas gerada |
 | conferência de HTML e PDFs | Notação gerada com a estrutura da Aula e as tabelas Benesh; PDFs individuais e consolidado gerados; conferidos pelo agente de entrega |
-| deploy e conferência ao vivo | pendentes; não houve requisição à produção |
+| `git push origin main` | commit `8b939d0` enviado; verificações do pre-push passaram |
+| workflow `Publicar as escolas`, run #287 | jobs `descobrir` e `publicar (batata)` concluídos com sucesso |
+| conferência ao vivo, requisição única à raiz | `https://batata.tmenegaz77.workers.dev/` respondeu HTTP 200; HTML contém link para `/aulas/`. A rota específica não foi carregada após este deploy |
 
 ### Publicação anterior (27/10/2026 — entrega `d349ed0`)
 
@@ -416,16 +423,17 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 
 ## 10. Próximos passos
 
-Ações imediatas, sem transformar hipótese em compromisso:
-
-1. Fazer commit e push dos arquivos validados; o remoto foi confirmado em `a7da29d`.
-2. Acompanhar o workflow automático `Publicar as escolas` e confirmar o job Batata.
-3. Fazer uma única conferência ao vivo da rota Aulas após o deploy; evitar cargas extras.
+Nenhuma ação de publicação desta entrega está pendente. A rota `/aulas/` não foi carregada após o
+deploy; não foi feita outra requisição à produção para respeitar o limite de uma conferência.
 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **27/10/2026** — **A Aula 01 foi publicada na Batata.** O commit `8b939d0` foi enviado a
+  `origin/main`; o run #287 de `Publicar as escolas` e o job Batata passaram. A única conferência
+  ao vivo após o deploy foi à raiz: HTTP 200 e link de navegação para `/aulas/`. A rota específica
+  não foi recarregada. **CONFIRMADO**.
 - **27/10/2026** — **A Aula 01 e a Notação ficaram alinhadas.** O Guia usa os itens declarados no PO
   e esclarece o registro na Captura; a Notação compõe a estrutura completa da Aula com os sinais
   Benesh; o Plano abre pelo título e a lista de Aulas oferece PDF individual. Pacote real, publicação
@@ -487,10 +495,8 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
 O que **não** consigo confirmar, e o senhor tem de decidir ou informar:
 
 - **A produção não foi percorrida página a página após a reorganização de Aula/Notação.** O deploy
-  foi confirmado no workflow e uma carga de `/aulas/` respondeu 200 com os links da prosa e da
-  Notação; as demais páginas não foram verificadas ao vivo.
-- **Esta alteração ainda não chegou à produção.** O pacote e a publicação local foram validados,
-  mas commit, push, deploy e conferência ao vivo continuam pendentes.
+  da Aula 01 foi confirmado no workflow e a raiz respondeu HTTP 200, mas a rota `/aulas/` não foi
+  carregada após este deploy; as demais páginas também não foram verificadas ao vivo.
 - **Não sei a distribuição real de uso em produção.** Não há telemetria; o que sei é o que os
   `curl` devolvem.
 - **Não sei se o `TRANSFERENCIA-IA.md` serve o seu caso de uso.** Foi desenhado a partir de uma

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T22:44:58-0300`
-Commit atual: `a7da29d` — docs(registro): registrar publicação da aula em prosa
+Gerado em: `2026-10-27T22:54:41-0300`
+Commit atual: `6029676` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,8 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+6029676 chore(estrutura): regerar os índices derivados
+8b939d0 feat(aula-01): alinhar leituras e gerar PDF individual
 a7da29d docs(registro): registrar publicação da aula em prosa
 d349ed0 chore(entrega): consolidar artefatos da Batata
 b9cb59f feat(aula-01): oferecer leitura em prosa e notacao
@@ -98,8 +100,6 @@ e248b26 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-
 409c24f chore(estrutura): reancorar a cadeia das fontes alteradas
 c278372 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 ec1d874 feat(plano): o plano elicitado vira a fonte do ciclo
-11d4ea1 feat(acervo): envelope/plano-20261027-1131.json
-ef496e3 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -199,91 +199,41 @@ ef496e3 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 27/10/2026 — A Notação herda a Aula; o Plano e a aula ganham o seu caminho
+## 27/10/2026 — A Aula 01 chegou à produção da Batata
 
 **O que motivou.**
-O Guia de observação da Aula 01 mostrava `[Preencher]` apesar de o Plano de Observação já declarar
-os itens de cada dimensão. A coluna «marca por aluno» não explicava a legenda nem onde o professor
-registra. A leitura Benesh também precisava conservar as informações da Aula em prosa e acrescentar
-os sinais; além disso, o título do ciclo deveria abrir o Plano e a lista de Aulas precisava oferecer
-o PDF individual.
+A pesquisadora pediu a publicação da entrega da Aula 01. O pacote e as provas locais já estavam
+validados; faltavam commit, push, deploy e a conferência final.
 
 **O que foi decidido.**
-- O Guia usa os itens declarados no Plano de Observação e identifica a Captura para impressão como
-  lugar de registro, explicando a legenda que ela já declara.
-- A leitura de Notação parte da estrutura completa da Aula em prosa e acrescenta o material Benesh;
-  a leitura em prosa continua sem a coluna de sinais.
-- Na lista de Planos, o título do ciclo abre o Plano e permanecem as ações «Referências» e «PDF do
-  ciclo». A lista de Aulas oferece «PDF da aula» quando o PDF individual está presente.
-- O PDF individual da Aula é gerado da mesma fonte em prosa usada pela página HTML.
-
-**Motivo declarado — os congelados.**
-O pedido explícito da pesquisadora exige mudar a geração e a montagem em `tools/gerar-aula-prosa.js`,
-`tools/gerar-ciclo.sh` e `tools/montar-publicacao.js`, que pertencem à infraestrutura congelada.
-O motivo é manter as duas leituras coerentes e oferecer os documentos nos percursos de Planos e
-Aulas. Não se alteram a fórmula nem a cobertura do hash, os validadores, as regras ou as pétreas.
+- Publicar o commit `8b939d0` na `main` e deixar o workflow `Publicar as escolas` fazer o deploy
+  automático da Batata; não executar deploy manual após o job concluir com sucesso.
+- Limitar a conferência ao vivo a uma única requisição. A raiz respondeu HTTP 200 e mostrou o link
+  para `/aulas/`; a rota específica não foi carregada após este deploy.
+- Preservar o snapshot histórico `plano-aula-01-anterior.json`. A regeneração repetida do pacote
+  substituiu-o pela cópia do plano atual, sem uma nova transição do plano; o snapshot do commit foi
+  restaurado. A lógica da ferramenta congelada não foi alterada nesta publicação.
 
 **Onde entrou.**
-- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md` — itens do PO e
-  explicação do registro na Captura.
-- `tools/gerar-aula-prosa.js` — composição da leitura de Notação a partir da Aula e da fonte Benesh.
-- `tools/gerar-ciclo.sh` — seleção dessa leitura para Notação e geração do PDF individual em prosa.
-- `tools/montar-publicacao.js` — título do Plano como link e ação condicional «PDF da aula».
-- `README-ciclos.md` — documentação do PDF individual.
-- `experimentos/provar-aula-prosa.js` e `experimentos/provar-publicacao-da-escola.js` — provas das
-  informações, da composição e dos links.
-- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp` e
-  `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp` — âncoras do
-  ciclo e da Aula 01 reancoradas.
-- `ESTADO-ATUAL.md` — fotografia desta alteração e dos limites de validação.
+- `8b939d0` — alterações da Aula 01 enviadas a `origin/main`.
+- `Publicar as escolas`, run #287, job `publicar (batata)` — deploy concluído com sucesso.
+- `ESTADO-ATUAL.md` — resultado confirmado, validações e limite da conferência ao vivo.
 - `HANDOFF.md` — regenerado a partir da fotografia e deste registro.
 
 **Com o quê.**
-`README-ciclos.md`; `experimentos/provar-aula-prosa.js`,
-`experimentos/provar-publicacao-da-escola.js`;
-`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`,
-`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp`,
-`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp`;
-`tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js`;
-`REGISTRO.md`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+`ESTADO-ATUAL.md`, `REGISTRO.md` e `HANDOFF.md` — atualização do registro de publicação. Os arquivos
+da implementação estão enumerados na entrada imediatamente anterior.
 
-**Validações.**
-`provar-aula-prosa.js`: 19 verificações; `provar-publicacao-da-escola.js`: 64 asserções;
-`check-identidade.js`: 20 verificações; `node --check`, `bash -n` e `git diff --check` passaram.
-`hash-ciclo.sh` reancorou o ciclo e a Aula 01; `--check` confirmou a cadeia íntegra, com hashes
-`297d7e77c8831c04d7d49c59544090e06a409f7148df2d69f6522e5fe54c07f7` e
-`9f72cebc97ee4157cf8c42b3f3b1d5a942e0550bfa7a1badb8a6f551269e3b21`.
+**Referências.**
+Entrada imediatamente anterior, «A Notação herda a Aula; o Plano e a aula ganham o seu caminho»;
+workflow `Publicar as escolas`, run #287 (`40617351640`); `AGENTS.md`, regra de uma única carga ao ar.
 
 **O que ainda não está feito.**
-O pacote foi gerado e validado localmente, mas ainda não houve commit, push, deploy ou conferência ao vivo.
-
-**Correção de 27/10/2026 (mesmo dia).** A primeira leitura interrompeu a geração ao encontrar
-`${!campo:-}`. A inspeção mostrou que `campo` percorre uma lista fixa de nomes de configuração e
-que a expansão só lê os valores carregados dos manifestos; não constrói nem executa comandos.
-Portanto, o bloqueio não se aplicava a este uso. O gerador foi executado e o pacote real validado:
-9 páginas HTML, 325 links internos, PDF consolidado de 34 páginas e `aula-01.pdf` de 10 páginas.
-Os validadores de schema, PO, plano, Aula e captura passaram; a Captura manteve dois avisos de
-mapeamento. `check-identidade.js` passou com 20 verificações; as provas focadas passaram com 19
-verificações e 64 asserções. A publicação local da Batata também foi montada. Permanecem pendentes
-commit, push, deploy e conferência ao vivo.
+A rota `/aulas/` não foi carregada após este deploy, por respeito ao limite de uma conferência.
+A substituição indevida do snapshot em uma regeneração repetida não foi corrigida na ferramenta
+congelada; o snapshot histórico correto foi preservado neste pacote.
 
 ## O que está pendente
-
-## 27/10/2026 — Ler não é editar: o nome do registo volta a abrir o documento
-
-
-- ~~**`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS** — não há escola com
-  ciclo gerado, e o menu «Área do Professor» só nasce com documentos e turmas. Voltam sozinhas
-  quando `tools/gerar-ciclo.sh` correr.~~
-- **O nome do link não tem dica visual além do sublinhado.** A bancada tinha uma linha
-  («o nome abre a ficha em .html, pronta a imprimir») com a classe `dica-do-link`, que também não
-  é peça da folha. Se a pesquisadora quiser a frase à vista, é **peça nova** — nasce na folha, no
-  catálogo e na prova, e não se improvisa aqui.
-
-Correção de 27/10/2026 (mesmo dia). A geração local da variante `batata-bale-nivel-1-teste-2`
-permitiu executar `provar-painel-do-ato`, que passou. `provar-listas-do-acervo` continua sem
-execução; a observação sobre a dica visual permanece pendente.
-~~A falta de ciclo que impedia a prova do painel foi superada para esta variante.~~
 
 ## 27/10/2026 — A turma do plano é de quem a direção curou: a regra sai da tela e vai para o servidor
 
@@ -318,6 +268,12 @@ mesmo destino às demais aulas.
 ## 27/10/2026 — A Notação herda a Aula; o Plano e a aula ganham o seu caminho
 
 O pacote foi gerado e validado localmente, mas ainda não houve commit, push, deploy ou conferência ao vivo.
+
+## 27/10/2026 — A Aula 01 chegou à produção da Batata
+
+A rota `/aulas/` não foi carregada após este deploy, por respeito ao limite de uma conferência.
+A substituição indevida do snapshot em uma regeneração repetida não foi corrigida na ferramenta
+congelada; o snapshot histórico correto foi preservado neste pacote.
 
 ## Pendências anteriores (índice)
 
@@ -619,6 +575,7 @@ O pacote foi gerado e validado localmente, mas ainda não houve commit, push, de
 - **27/10/2026** — A escola recriada diz o presente, e o passado passa a ter… → `REGISTRO.md` L26500
 - **27/10/2026** — A `calango` saiu, e com ela saiu também um verde falso meu → `REGISTRO.md` L26595
 - **27/10/2026** — A correção passou pelo caminho real: a `batata` voltou pelo… → `REGISTRO.md` L26665 *(superado)*
+- **27/10/2026** — Ler não é editar: o nome do registo volta a abrir o… → `REGISTRO.md` L26726 *(superado)*
 - PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

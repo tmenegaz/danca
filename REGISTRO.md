@@ -27309,3 +27309,37 @@ Os validadores de schema, PO, plano, Aula e captura passaram; a Captura manteve 
 mapeamento. `check-identidade.js` passou com 20 verificações; as provas focadas passaram com 19
 verificações e 64 asserções. A publicação local da Batata também foi montada. Permanecem pendentes
 commit, push, deploy e conferência ao vivo.
+
+## 27/10/2026 — A Aula 01 chegou à produção da Batata
+
+**O que motivou.**
+A pesquisadora pediu a publicação da entrega da Aula 01. O pacote e as provas locais já estavam
+validados; faltavam commit, push, deploy e a conferência final.
+
+**O que foi decidido.**
+- Publicar o commit `8b939d0` na `main` e deixar o workflow `Publicar as escolas` fazer o deploy
+  automático da Batata; não executar deploy manual após o job concluir com sucesso.
+- Limitar a conferência ao vivo a uma única requisição. A raiz respondeu HTTP 200 e mostrou o link
+  para `/aulas/`; a rota específica não foi carregada após este deploy.
+- Preservar o snapshot histórico `plano-aula-01-anterior.json`. A regeneração repetida do pacote
+  substituiu-o pela cópia do plano atual, sem uma nova transição do plano; o snapshot do commit foi
+  restaurado. A lógica da ferramenta congelada não foi alterada nesta publicação.
+
+**Onde entrou.**
+- `8b939d0` — alterações da Aula 01 enviadas a `origin/main`.
+- `Publicar as escolas`, run #287, job `publicar (batata)` — deploy concluído com sucesso.
+- `ESTADO-ATUAL.md` — resultado confirmado, validações e limite da conferência ao vivo.
+- `HANDOFF.md` — regenerado a partir da fotografia e deste registro.
+
+**Com o quê.**
+`ESTADO-ATUAL.md`, `REGISTRO.md` e `HANDOFF.md` — atualização do registro de publicação. Os arquivos
+da implementação estão enumerados na entrada imediatamente anterior.
+
+**Referências.**
+Entrada imediatamente anterior, «A Notação herda a Aula; o Plano e a aula ganham o seu caminho»;
+workflow `Publicar as escolas`, run #287 (`40617351640`); `AGENTS.md`, regra de uma única carga ao ar.
+
+**O que ainda não está feito.**
+A rota `/aulas/` não foi carregada após este deploy, por respeito ao limite de uma conferência.
+A substituição indevida do snapshot em uma regeneração repetida não foi corrigida na ferramenta
+congelada; o snapshot histórico correto foi preservado neste pacote.
