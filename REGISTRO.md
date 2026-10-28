@@ -27667,3 +27667,85 @@ bras com a coluna de lado e o bloco de musicalidade em três colunas.
 - `tools/check-glossario.js` continua a falhar: aponta para
   `professores/tiago/ciclos/ciclo-01-maria-notacao.md`, que já não existe neste worktree. É
   pré-existente.
+
+## 28/10/2026 — O alfabeto muda de casa, e a âncora passa a selar com que código escreveu
+
+**O que motivou.** Depois de aprovar o plano da Fase 1 (o verbete administrável na Produção), a
+pesquisadora decidiu os dois primeiros pontos: o alfabeto **muda de casa** e a âncora **começa pelo
+selo (B)**, com a ancoragem (A) encaminhada depois. A razão de fundo é que o alfabeto vai passar a
+ser **editável** — e um dado editável que não está na âncora é um passado que se pode reescrever sem
+que ninguém veja.
+
+**O que foi decidido.**
+- **O alfabeto é da MODALIDADE, não da notação.** Sai de `biblioteca/notacao/ballet-classico.json` e
+  passa a `biblioteca/modalidades/bale-classico/notacao.json`, ao lado do `vocabulario.json`, do
+  `progressao.json` e do `tradicoes.json`. O argumento é o que o próprio arquivo já dizia — ele não
+  pertence a escola nenhuma —, mas o endereço estava errado: a **notação** é o sistema em que se
+  escreve (Benesh, Laban), e a **modalidade** é o que cada sinal significa dentro dele. Um mesmo
+  sinal não significa o mesmo em balé clássico e em dança contemporânea.
+- **O `id` NÃO mudou** (`ballet-classico`). Ele é o nome do código que já aparece nos documentos
+  publicados («O alfabeto deste código é `ballet-classico` versão 1»), e renomeá-lo reescreveria o
+  passado. Mudou o **endereço**, e um campo novo — `modalidade` — declara onde ele está.
+- **A âncora ganha o SELO do alfabeto (opção B).** O `.fipp` passa a registar `notacao`,
+  `notacao_modalidade`, `notacao_alfabeto`, `notacao_versao` e `notacao_sha`. São cinco linhas
+  **fora da fórmula**, como o `po_state` e o `ancorado_em`.
+- **`--check` recusa quando o alfabeto mudou.** A comparação é a do **sha**, não a da versão: a
+  versão é declarada por quem edita, o sha é medido. É **erro** e não aviso — reancorar para renovar
+  o selo **não muda o hash** (o alfabeto está fora da fórmula), portanto o custo de resolver é um
+  comando.
+- **A opção (A) fica encaminhada, e não foi feita.** Ancorar o alfabeto é acrescentá-lo ao `FONTES`,
+  e isso muda a **fórmula**: todos os hashes da cadeia de todos os ciclos seriam outros, e o passado
+  deixaria de fechar. Fica para quando houver mais de uma modalidade e o alfabeto deixar de ser
+  praticamente imutável.
+
+**Onde entrou.**
+- `biblioteca/notacao/ballet-classico.json` → `biblioteca/modalidades/bale-classico/notacao.json`
+  (movido; o conteúdo só ganhou o campo `modalidade` e o parágrafo do comentário que declara a
+  casa nova). A pasta `biblioteca/notacao/` deixou de existir.
+- `motor/nucleo/notacao.js` — o `require` passa a apontar para o caminho da modalidade; `ALFABETOS`
+  é indexado por **modalidade** e não por id; `paraNotacao(declarada, modalidade)` aceita a
+  modalidade; e um par **ambíguo devolve `null`** em vez de «a primeira que aparecer». `alfabetos()`
+  e `MODALIDADE_PADRAO` são novos e exportados (a Produção vai listar o que existe).
+- `tools/hash-ciclo.sh` — secção **5a** nova (o selo), as cinco linhas na emissão do `.fipp`, e a
+  verificação **c2** no `--check`. O `_plano_fonte` sai de `fonte_md plano`; a notação declarada é
+  lida da linha `| **Notação dominada** | Benesh |` do plano.
+- `experimentos/provar-notacao.js` — a varredura de nomes de escola passa a correr sobre
+  `biblioteca/modalidades/` inteira. Antes media só a pasta do alfabeto, e o alfabeto mudou de pasta.
+  *(A prova é **local, não versionada**: `experimentos/*` está no `.gitignore`. A alteração existe
+  neste worktree e não entra no commit — como as outras bancadas.)*
+
+**Motivo declarado — os congelados.**
+Toca `tools/hash-ciclo.sh`, que está em `CONGELAMENTO.md`. O motivo está acima: acrescentar o selo ao
+`.fipp` e a verificação correspondente ao `--check`. **Não muda** a fórmula de hash
+(`id:type:parentHash:conteudo`), a cobertura das fontes, as 17 regras, as 22 pétreas, nem o que os
+validadores exigem — e isso foi **medido**, não afirmado: o hash do ciclo Batata ficou
+`ec1dad9d…`, exatamente o mesmo de antes da alteração.
+
+**Com o quê.**
+`biblioteca/modalidades/bale-classico/notacao.json`, `motor/nucleo/notacao.js`,
+`tools/hash-ciclo.sh`, e o `.fipp` do ciclo Batata regerado — só o selo é novo, e o `hash` continua
+`ec1dad9d…`. A âncora da aula `01` foi regerada e saiu **idêntica** (o selo é do ciclo, que é quem
+cobre o documento de notação). A prova `experimentos/provar-notacao.js` foi alterada no worktree
+local, e não é versionada.
+
+**Validação.**
+`experimentos/provar-notacao.js` → **66 asserções, 0 falhas**. `hash-ciclo … --check` → cadeia
+íntegra, `ec1dad9d…`, e o selo lá. `tools/gerar-ciclo.sh` → **0 erros, 0 avisos**, e o pacote da
+Batata **sem uma única linha de diferença** — que é o critério de que a mudança de casa não mexeu no
+que está publicado. O controlo negativo foi feito à mão: mudar a `versao` do alfabeto faz o
+`--check` **recusar** com a mensagem certa («o alfabeto da notação mudou desde a última
+ancoragem»), e repor o ficheiro faz voltar a passar.
+
+**Referências.**
+`CONGELAMENTO.md`; `motor/nucleo/notacao.js` (o comentário do alfabeto, que já dizia «não pertence a
+nenhuma escola»); `biblioteca/modalidades/bale-classico/` (`vocabulario.json`, `tradicoes.json`);
+o plano da Fase 1 em `PLANO-VERBETE-E-MUSICALIDADE.md` (§0.2, §0.3).
+
+**O que ainda não está feito.**
+- **A opção (A)** — o alfabeto ainda não entra na cobertura da âncora. Fica para quando houver mais
+  de uma modalidade.
+- **O selo não está em todas as âncoras do repositório**: as outras variantes ficam com o aviso
+  «esta âncora não tem o selo do alfabeto» até serem reancoradas. O aviso é a peça que garante que
+  «sem selo» é um estado **declarado** e não um silêncio.
+- **A Fase 1 continua**: a forma nova do verbete (posição, direções, lado), a ligação sinal↔termo, as
+  posições por método, o CRUD na Produção, as seleções no plano e o motor a ler a forma nova.

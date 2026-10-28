@@ -229,6 +229,53 @@ fi
 # --- 5) hash da âncora ------------------------------------------------------
 HASH_FIPP="$(printf '%s' "$ID:$TIPO:$PARENT_HASH:$HASH_CONTEUDO" | sha)"
 
+# --- 5a) o SELO do alfabeto da notação (28/10/2026, opção B) ----------------
+#
+# O PROBLEMA. O alfabeto é FONTE do documento de notação, e não estava na âncora: alguém podia
+# corrigir um verbete, a página publicada mudar de sentido, e o `.fipp` continuar a dizer
+# «íntegro». A âncora media o que o professor escreveu e não o que o motor leu para o escrever.
+#
+# PORQUE A OPÇÃO B, E NÃO A A. Ancorar o alfabeto (opção A) é acrescentá-lo ao `FONTES`, e isso
+# muda a FÓRMULA — todos os hashes da cadeia de todos os ciclos passariam a ser outros, e o
+# passado deixaria de fechar. O selo responde à pergunta que a proveniência tem de responder
+# («com que alfabeto, em que versão?») sem tocar na fórmula. A opção A fica para quando houver
+# mais de uma modalidade e o alfabeto deixar de ser praticamente imutável.
+#
+# AS CINCO LINHAS FICAM FORA DA FÓRMULA, como o `po_state` e o `ancorado_em`: o `--check`
+# recalcula o hash sobre as fontes vivas, e um campo que muda sem o conteúdo mudar não pode
+# entrar nele.
+SELO_ALFABETO=""
+NOTACAO_DECLARADA=""
+_plano_fonte="$(fonte_md plano 2>/dev/null || true)"
+if [ -n "$_plano_fonte" ] && [ -f "$_plano_fonte" ]; then
+  NOTACAO_DECLARADA="$(sed -n 's/^| *\*\*Notação dominada\*\* *| *\([^|]*[^| ]\) *|.*$/\1/p' "$_plano_fonte" | head -1)"
+fi
+if [ -n "$NOTACAO_DECLARADA" ]; then
+  SELO_ALFABETO="$(node -e '
+    const path = require("path"), fs = require("fs"), crypto = require("crypto");
+    const raiz = process.argv[1], declarada = process.argv[2];
+    let alfabeto = null;
+    try { alfabeto = require(path.join(raiz, "motor", "nucleo", "notacao.js")).paraNotacao(declarada); }
+    catch (e) { process.exit(0); }
+    if (!alfabeto) {
+      console.log("notacao: " + declarada);
+      console.log("notacao_alfabeto: (sem alfabeto publicado para esta notacao)");
+      process.exit(0);
+    }
+    const arquivo = path.join(raiz, "biblioteca", "modalidades", alfabeto.modalidade, "notacao.json");
+    let sha = "(arquivo nao encontrado)";
+    try { sha = crypto.createHash("sha256").update(fs.readFileSync(arquivo)).digest("hex"); } catch (e) {}
+    console.log("notacao: " + declarada);
+    console.log("notacao_modalidade: " + alfabeto.modalidade);
+    console.log("notacao_alfabeto: " + alfabeto.id);
+    console.log("notacao_versao: " + alfabeto.versao);
+    console.log("notacao_sha: " + sha);
+  ' "$RAIZ" "$NOTACAO_DECLARADA" 2>/dev/null || true)"
+fi
+# A consulta que o `--check` faz, e o `--check` a repete: uma função, para o selo gravado e o
+# selo recalculado não poderem divergir na forma.
+selo_agora() { printf '%s' "$SELO_ALFABETO"; }
+
 # --- 5b) as aulas que têm fonte própria (§5.2) ------------------------------
 # O conjunto de aulas não é declarado: é o que existe no disco, via a MESMA
 # função que o gerador usa para montar o pacote (familias_por_aula). Assim o
@@ -316,6 +363,33 @@ if [ "$MODO" = "--check" ]; then
     FALHOU=1
   fi
 
+  # (c2) o ALFABETO mudou desde a ancoragem? (selo da opção B, 28/10/2026)
+  #
+  # Sem isto o selo seria decorativo — e o defeito que ele combate é o silêncio: o verbete muda, o
+  # documento publicado muda de sentido, e a âncora continua a dizer «íntegro». A comparação é a do
+  # `notacao_sha`, e não a da versão: a versão é declarada por quem edita, o sha é medido.
+  #
+  # É ERRO, e não aviso, de propósito. Reancorar para incorporar o selo novo NÃO muda o hash — o
+  # alfabeto continua fora da fórmula —, portanto o custo de resolver isto é um comando.
+  if [ -n "$SELO_ALFABETO" ]; then
+    SHA_AGORA="$(printf '%s\n' "$SELO_ALFABETO" | sed -n 's/^notacao_sha:[[:space:]]*//p' | head -1)"
+    if grep -q '^notacao_sha:' "$ARQUIVO_FIPP"; then
+      SHA_ARMAZENADO="$(sed -n 's/^notacao_sha:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
+      if [ "$SHA_ARMAZENADO" != "$SHA_AGORA" ]; then
+        echo "erro: o alfabeto da notação mudou desde a última ancoragem — o documento publicado" >&2
+        echo "      de $ID muda de sentido, e o hash das fontes do professor não o vê." >&2
+        echo "  no .fipp:  $SHA_ARMAZENADO" >&2
+        echo "  agora:     $SHA_AGORA" >&2
+        echo "  regere a âncora com: tools/hash-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
+        echo "  (o hash NÃO muda: o alfabeto está fora da fórmula — só o selo é renovado)" >&2
+        FALHOU=1
+      fi
+    else
+      echo "aviso: esta âncora não tem o selo do alfabeto (anterior a 28/10/2026)." >&2
+      echo "       reancore para o gravar: tools/hash-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
+    fi
+  fi
+
   # a cobertura declarada precisa corresponder aos fontes de hoje
   COBERTURA_ATUAL="$(printf '%s\n' $FONTES | LC_ALL=C sort -u)"
   COBERTURA_FIPP="$(grep '^  - ' "$ARQUIVO_FIPP" | sed 's/^  - //' | LC_ALL=C sort -u || true)"
@@ -382,6 +456,8 @@ fi
   echo "# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04)."
   echo "# Fontes cobertas: $CONF_VARIANTE e os .md deste ciclo${CONF_BASE:+, mais a base $(basename "$CONF_BASE") quando existe}."
   echo "# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)"
+  echo "# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi"
+  echo "# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio."
   echo ""
   echo "id: $ID"
   echo "type: $TIPO"
@@ -395,6 +471,8 @@ fi
   echo "po: $PO_INFO"
   echo "po_state: $PO_STATE"
   echo "ancorado_em: $ANCORADO_EM"
+  # O selo do alfabeto: fora da fórmula, e é ele que diz COM QUE CÓDIGO o documento foi escrito.
+  [ -n "$SELO_ALFABETO" ] && printf '%s\n' "$SELO_ALFABETO"
   echo "cobertura:"
   for f in $FONTES; do echo "  - $f"; done
 } > "$ARQUIVO_FIPP"

@@ -31,12 +31,17 @@
  * é o que a âncora de proveniência exige para poder ser reproduzida.
  */
 
-// O `require` é LITERAL: este módulo é empacotado para o Worker, e o empacotador não segue um
-// caminho montado em tempo de execução.
-const BALLET_CLASSICO = require('../../biblioteca/notacao/ballet-classico.json');
+// Os alfabetos, por MODALIDADE. O `require` é LITERAL — este módulo é empacotado para o Worker,
+// e o empacotador não segue um caminho montado em tempo de execução. Uma modalidade nova é uma
+// linha aqui e um arquivo em `biblioteca/modalidades/<modalidade>/notacao.json` (28/10/2026: o
+// alfabeto saiu de `biblioteca/notacao/`, que era o endereço errado — ele é da modalidade, e a
+// notação é só o sistema em que ele se escreve).
+const ALFABETOS = {
+  'bale-classico': require('../../biblioteca/modalidades/bale-classico/notacao.json'),
+};
 
-/** Os alfabetos conhecidos, por id. Um alfabeto novo é uma entrada nova aqui. */
-const ALFABETOS = { 'ballet-classico': BALLET_CLASSICO };
+/** A modalidade quando o chamador não a declara. Só há uma publicada — e é declarada, não suposta. */
+const MODALIDADE_PADRAO = 'bale-classico';
 
 function slug(texto) {
   return String(texto || '')
@@ -47,19 +52,43 @@ function slug(texto) {
     .replace(/^-+|-+$/g, '');
 }
 
+/** Todos os alfabetos publicados, por modalidade — para a Produção listar o que existe. */
+function alfabetos() {
+  return Object.keys(ALFABETOS).map((modalidade) => ({
+    modalidade: modalidade,
+    alfabeto: ALFABETOS[modalidade],
+  }));
+}
+
 /**
- * O alfabeto da notação DECLARADA pelo plano (P-15/P-16). `null` quando a notação declarada não
- * tem alfabeto publicado — e então o derivador escreve o documento como antes, com as convenções
- * e a lacuna. Degradar é melhor do que inventar um código que ninguém declarou.
+ * O alfabeto da NOTAÇÃO DECLARADA pelo plano (P-15/P-16), dentro de uma MODALIDADE.
+ *
+ * `null` quando não há alfabeto publicado para esse par — e então o derivador escreve o documento
+ * como antes, com as convenções e a lacuna. Degradar é melhor do que inventar um código que
+ * ninguém declarou.
+ *
+ * PORQUE A MODALIDADE ENTRA (28/10/2026): o mesmo sinal não significa o mesmo em balé clássico e
+ * em dança contemporânea. Enquanto só houver uma modalidade, omiti-la resolve para a padrão — e
+ * isso está DECLARADO aqui, não é acidente. No dia em que houver duas, omitir deixa de resolver:
+ * um par ambíguo devolve `null`, nunca «a primeira que aparecer».
  */
-function paraNotacao(declarada) {
+function paraNotacao(declarada, modalidade) {
   const alvo = slug(declarada);
   if (!alvo) return null;
-  for (const alfabeto of Object.values(ALFABETOS)) {
+  const candidatas = modalidade
+    ? [slug(modalidade)]
+    : Object.keys(ALFABETOS);
+
+  const casam = [];
+  for (const m of candidatas) {
+    const alfabeto = ALFABETOS[m];
+    if (!alfabeto) continue;
     const aceita = (alfabeto.aplicaseA || []).map(slug);
-    if (aceita.indexOf(alvo) !== -1) return alfabeto;
+    if (aceita.indexOf(alvo) !== -1) casam.push(alfabeto);
   }
-  return null;
+  // Ambíguo não se resolve por sorteio: uma notação que casa com dois alfabetos e chega sem
+  // modalidade é uma pergunta sem resposta, e a resposta certa é dizer isso.
+  return casam.length === 1 ? casam[0] : null;
 }
 
 /** Todos os sinais de um alfabeto, num mapa sinal → verbete (para validar e para glossariar). */
@@ -309,6 +338,8 @@ function declaracao(alfabeto) {
 
 module.exports = {
   ALFABETOS,
+  MODALIDADE_PADRAO,
+  alfabetos,
   paraNotacao,
   sinaisDo,
   lerMusica,

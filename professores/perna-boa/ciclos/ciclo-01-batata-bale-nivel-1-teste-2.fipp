@@ -2,6 +2,8 @@
 # Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
 # Fontes cobertas: professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
 # Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
 
 id: ciclo-01-batata-bale-nivel-1-teste-2
 type: Ciclo
@@ -15,6 +17,11 @@ algoritmo: SHA-256
 po: professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-28
+notacao: Benesh
+notacao_modalidade: bale-classico
+notacao_alfabeto: ballet-classico
+notacao_versao: 1
+notacao_sha: 430e6557c4d8425b34c2fcb4f71273e246916dbae74d023209b87fff082f0223
 cobertura:
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
