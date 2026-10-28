@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `94ee06a`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`) e passou a ser **administrável na Produção** (`3dcc344`), depois de o alfabeto mudar de casa e a âncora passar a selá-lo (`5020b89`); os três defeitos do primeiro dia em Produção foram corrigidos (`6318ded`); e o **vocabulário passou a viver no repositório**, numa verdade só, com o **«+» do exercício** (`4e09bc9`). É a Fase 1 do plano aprovado, menos o **editor de célula** e as **seleções no plano**.
+> **Última fotografia:** 28/10/2026 (base local `7a931da`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); e o formulário do verbete passou a ter **dois modos** que não coexistem, com a **direção lida do dado** (o campo `direcoes` saiu do alfabeto, versão 3) e o **editor de célula** que faltava (`4f4795a`, com a folha em `9fb09dc`). Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -262,12 +262,20 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 12. **A Notação reproduz a estrutura da Aula em prosa e acrescenta os sinais Benesh.** O Guia de
     observação usa os itens do PO e explica o registro na Captura; o título do ciclo abre o Plano e
     a lista de Aulas oferece o PDF individual. **DECIDIDO** 27/10/2026.
-13. **O vocabulário técnico vive no REPOSITÓRIO, numa lista só** — `biblioteca/modalidades/<m>/vocabulario.json`.
+13. **A DIREÇÃO DE UM VERBETE NÃO SE PERGUNTA: É A CHAVE DA CÉLULA.** Nas seis entradas do
+    alfabeto, o campo `direcoes` era exactamente a lista das chaves de `celulas`; ele saiu do dado
+    (alfabeto **versão 3**) e a direção passa a ser derivada. Uma direção existe num verbete se — e
+    só se — esse verbete tem células para ela. É o dado a dizer o que o exercício é, e não o sistema
+    a proibir. **DECIDIDO** 28/10/2026.
+14. **O formulário do verbete tem dois modos que não coexistem** — ou se escolhe um exercício que
+    existe, ou se cria um. No modo do exercício, os campos do verbete **não estão** no documento e o
+    `select` e o «+» ficam bloqueados. **DECIDIDO** 28/10/2026.
+15. **O vocabulário técnico vive no REPOSITÓRIO, numa lista só** — `biblioteca/modalidades/<m>/vocabulario.json`.
     A tela lê o bundle que o deploy traz; o cadastro grava no repositório, pela API do GitHub. **Não
     há cópia por escola no KV**, e o botão «Carregar as turmas iniciais» já não semeia termos. A razão
     é dupla: o gerador lê o ficheiro do **disco**, no GitHub Actions (uma escrita em KV nunca chegaria
     ao documento), e duas listas divergem ao primeiro termo novo, em silêncio. **DECIDIDO** 28/10/2026.
-14. **O KV é o último recurso, porque tem custo.** Só guarda o que é da ESCOLA (turmas, professores,
+16. **O KV é o último recurso, porque tem custo.** Só guarda o que é da ESCOLA (turmas, professores,
     alunas, a relação turma↔conteúdo, envelopes). Catálogo, alfabeto e vocabulário vão para o
     repositório. **DECIDIDO** 28/10/2026.
 
@@ -276,9 +284,12 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 Há **dois** trabalhos em andamento. O primeiro é de código e é a **Fase 1** do plano
 (`PLANO-VERBETE-E-MUSICALIDADE.md`): o alfabeto mudou de casa e a âncora sela com que código
 escreveu; o verbete ganhou posição, direção e lado; o CRUD está na Produção; o exercício é escolhido
-de uma lista e o «+» cria-o no vocabulário do repositório. Falta o **editor de célula** — a tela
-grava posição e direções, mas as células vêm do que já está no alfabeto — e as **seleções no plano**
-(§1.6). O segundo **não é de código**: **o plano da Batata vai ser refeito no formulário pela
+de uma lista e o «+» cria-o no vocabulário do repositório; o formulário tem **dois modos** e a
+**direção é derivada** da célula; e o **editor de célula** já cria a decomposição que faltava — sem
+ele, «Gravar verbete» recusava criar o que não existisse (eram 55 exercícios para 4 verbetes). Falta
+as **seleções no plano** (§1.6), e falta o **bloco por pílulas**: hoje a legenda mostra os sinais do
+alfabeto, mas o bloco (`[Pé: 1ª → +]`) ainda se escreve à mão. O segundo **não é de código**: **o
+plano da Batata vai ser refeito no formulário pela
 pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu os exercícios de
 **Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos publicados ficam
 sobre o `plano-20261027-1025.json` até essa reposição; regerar a partir do 1131 apagaria exercícios
@@ -286,10 +297,11 @@ de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. E
 **expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
 vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 28/10/2026 — `4e09bc9` (o vocabulário no repositório e o «+» do
-exercício) e `94ee06a` (o registo) no `main` local. A base anterior (`6318ded`) está em
-`origin/main`, com os workflows concluídos; o `GET /api/bastidores/verbete` ao ar responde **200**
-depois da correção do 500.
+**Último ponto confirmado:** 28/10/2026 — `9fb09dc` (a folha, com motivo declarado), `4f4795a`
+(os dois modos, a direção derivada e o editor de célula) e `7a931da` (o registo) no `main` local. A
+base em `origin/main` é `52a05d6`, com os workflows concluídos; o `GET /api/bastidores/termos` ao ar
+responde **200** com **87 termos**, 12 deles com `membro` — campos que só existem no bundle atual, e
+que provam que o vocabulário servido é o do repositório.
 
 ## 8. Pendências e dúvidas
 
@@ -395,7 +407,25 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (28/10/2026 — o vocabulário no repositório)
+### Executado nesta fotografia (28/10/2026 — os dois modos e o editor de célula)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **38 asserções, 0 falhas** — novo; num navegador de verdade, sobre bancada local |
+| `node experimentos/provar-verbete.js` | **60 asserções, 0 falhas** (eram 50) |
+| `node experimentos/provar-notacao.js` | **74 asserções, 0 falhas** |
+| `node experimentos/provar-producao.js` | **151 de 152** — a falha «o item do menu fica marcado» é **pré-existente** |
+| `node experimentos/provar-teste.js` | **44 verificações** |
+| `node experimentos/provar-leituras-do-po.js` | **27 asserções, 0 falhas** |
+| `node experimentos/provar-menu-da-producao.js` | **55 de 55** |
+| `node experimentos/provar-celular.js` | **15 de 15** (320, 360, 390, 414, 768 e 1024px) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-glossario.js` | consistente — 18 símbolos, 18 verbetes, **0 avisos** |
+| `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`** (não mudou: o alfabeto está fora da fórmula; só o selo foi renovado) |
+| geometria dos modos (bancada local) | modo B: select e «+» bloqueados com opacidade **0.4**, foco no nome, sem transbordo em 320/390/768/1280; a tabela das direções muda de «não vai» para a descrição no gesto de acrescentar a célula |
+
+### Executado na fotografia anterior (28/10/2026 — o vocabulário no repositório)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -558,6 +588,19 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **28/10/2026** — **Dois modos no verbete, a direção lida do dado, e o editor de célula.** O «+»
+  abria uma caixa a meio do formulário, e o que vinha depois continuava a ser do verbete: dois botões
+  primários à vista, os campos do verbete abaixo do botão que grava o exercício, e «informe o nome do
+  exercício» com um exercício escolhido. O formulário passou a ter **dois modos que não coexistem**, e
+  a **direção deixou de ser pergunta**: o campo `direcoes` era, seis de seis, a lista das chaves de
+  `celulas` — saiu do dado (alfabeto versão 3) e a direção é derivada. A tela mostra uma tabela com
+  três estados (coberta, sem célula nesta música, fora do exercício) e o «fouetté não vai às três»
+  passa a ser um facto do alfabeto, não uma proibição do sistema. O **editor de célula** fecha o
+  gargalo dos **55 exercícios para 4 verbetes**: «Gravar verbete» recusava criar o que não existisse
+  porque as células vinham do que já estava gravado. Publicado em `4f4795a`, com a folha em `9fb09dc`
+  (o campo bloqueado passa a ver-se — motivo declarado, commit próprio). **CONFIRMADO** localmente;
+  a conferência ao ar fica para o deploy.
 
 - **28/10/2026** — **O vocabulário passou a viver no repositório, numa verdade só, e o «+» cria o
   exercício.** Havia **duas** listas de termos — o ficheiro da modalidade e uma cópia por escola no
