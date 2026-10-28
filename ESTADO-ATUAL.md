@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `f4cc715`; saída da **«Sequência declarada»** e o Port de bras em **18 tempos**, publicados nos commits `6e248ac` (ferramentas), `ee99969` (fontes e pacote) e `f4cc715` (registo); os quatro workflows de `f4cc715` concluídos com sucesso; a aula e o plano conferidos ao ar).
+> **Última fotografia:** 28/10/2026 (base local `6cb7ea3` — a fotografia é deste commit; o que mudou ao ar é `f4cc715`, com a saída da **«Sequência declarada»** e o Port de bras em **18 tempos**, publicado nos commits `6e248ac` (ferramentas), `ee99969` (fontes e pacote) e `f4cc715` (registo); os quatro workflows de `f4cc715` concluídos com sucesso; a aula e o plano conferidos ao ar).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê

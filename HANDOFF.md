@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-28T12:17:33-0300`
-Commit atual: `f4cc715` — docs(registro): registar a saída da Sequência declarada e a métrica em 18 tempos
+Gerado em: `2026-10-28T12:20:14-0300`
+Commit atual: `6cb7ea3` — docs(registro): atualizar a fotografia após a Sequência declarada e a métrica
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,7 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+6cb7ea3 docs(registro): atualizar a fotografia após a Sequência declarada e a métrica
 f4cc715 docs(registro): registar a saída da Sequência declarada e a métrica em 18 tempos
 ee99969 docs(ciclo-01): regerar a Batata sem a Sequência declarada
 6e248ac refactor(tools): tirar a Sequência declarada e apontar o plano à grade
@@ -99,7 +100,6 @@ d349ed0 chore(entrega): consolidar artefatos da Batata
 b9cb59f feat(aula-01): oferecer leitura em prosa e notacao
 a656507 feat(tools): ler aula em prosa e notacao
 f251f0e fix(experimentos): alinhar provas à variante gerada
-577ee59 chore(entrega): gerar o pacote de perna-boa/01/batata-bale-nivel-1-teste-2
 ```
 
 ## Por professor
