@@ -27749,3 +27749,85 @@ o plano da Fase 1 em `PLANO-VERBETE-E-MUSICALIDADE.md` (§0.2, §0.3).
   «sem selo» é um estado **declarado** e não um silêncio.
 - **A Fase 1 continua**: a forma nova do verbete (posição, direções, lado), a ligação sinal↔termo, as
   posições por método, o CRUD na Produção, as seleções no plano e o motor a ler a forma nova.
+
+## 28/10/2026 — O verbete ganha posição, direção e lado — e a prosa passa a saber dizê-las
+
+**O que motivou.** Na bancada da musicalidade, a pesquisadora levantou a pergunta que faltava: *«a
+posição a gente também não definiu, né? Em lugar nenhum. A gente não disse quando é que o exercício
+acontece em primeira posição, em segunda, terceira, quarta e quinta.»* E, sobre o Port de bras:
+*«essa terceira que você está trazendo são os braços acima da cabeça? Porque daí é no método francês.
+Se for no Royal ou Vaganova, isso é quinta posição.»* Aprovou a abertura das lacunas com o conteúdo
+corrente para conferência («4. Abre»).
+
+**O que foi decidido.**
+- **O alfabeto muda de casa e de forma.** A Fase 1 do plano aprovado: o verbete passa a declarar
+  **posição** (`{membro, termo}`), **direções** (a ordem em que o exercício as percorre) e **lado**;
+  e as ações deixam de ser uma lista plana (`segmentos`) para serem **células por direção**.
+- **O compasso deixa de ser declarado e passa a ser CALCULADO.** Cada célula declara a contagem; o
+  número do compasso sai da soma dos tempos. Antes era escrito à mão em cada linha, e podia
+  contradizer a aritmética — que é o único número que uma grade não pode ter errado.
+- **A 4ª posição dos pés FALTAVA** no alfabeto, e foi acrescentada. É uma posição do sistema, usada
+  em todo o lado, e o código simplesmente não a tinha.
+- **A ligação sinal ↔ termo passa a ser explícita** (`gramatica.direcoesDoMembro`,
+  `gramatica.orientacoesDoCorpo`), com os `id` do vocabulário. Direção do membro (devant · à la
+  seconde · derrière) e orientação do corpo (en face · croisé · effacé · écarté · épaulement) são
+  **duas coisas diferentes**, e «croisé devant» precisa das duas.
+- **As posições de braços passam a ser declaradas por método** — a divergência que originou a
+  pergunta. Os dois braços acima da cabeça são **3ª** na francesa, **5ª** na RAD e **3ª** em
+  Vaganova. As linhas que eu não podia afirmar ficaram como **«por conferir»**, à espera da fonte.
+- **O vocabulário ganha o campo `membro`** nas posições, e três termos de posições de braços. Sem
+  ele, «première position» não dizia se é de pés, de pernas ou de braços.
+- **A página em prosa passa a dizer a posição** no cabeçalho do exercício, a partir do verbete —
+  nunca escrita à mão no documento.
+
+**Onde entrou.**
+- `biblioteca/modalidades/bale-classico/notacao.json` — `gramatica` nova; 4ª posição dos pés; os
+  quatro verbetes migrados para a forma nova; `versao` 1 → 2. O ficheiro passou a ser **escrito por
+  máquina** (JSON serializado): vai ser editado pelo CRUD, e um gravador que reformata produz um
+  diff ilegível.
+- `biblioteca/modalidades/bale-classico/vocabulario.json` — `membro` em 9 posições; 3 termos de
+  posições de braços.
+- `motor/nucleo/notacao.js` — `segmentosDe()` (compasso calculado), `termoPorId()`,
+  `posicaoEmPalavras()`, `direcaoEmPalavras()`, `posicoesDeBracosDoMetodo()`, `normalizarMetodo()`,
+  `VOCABULARIOS` por modalidade. A recusa nova: **`verbete-incompleto`** — um verbete que declara
+  uma direção sem célula é recusado, não completado.
+- `motor/nucleo/derivar-ciclo.js` — o cabeçalho do exercício acrescenta a posição em palavras.
+- `tools/check-glossario.js` — o caminho padrão era `professores/tiago/ciclos/ciclo-01-maria-notacao.md`,
+  que já não existe. **O validador falhava sempre**, e um validador que falha sempre não valida
+  nada. Passa a procurar o par no disco e a dizer a verdade quando não encontra nenhum.
+- Fontes derivadas regeradas (`-notacao.md`, `-glossario-benesh.md`), pacote, âncoras e índices.
+
+**Motivo declarado — os congelados.**
+Toca `tools/check-glossario.js`, em `CONGELAMENTO.md`. O motivo está acima: um validador que falha
+por um caminho inexistente não valida, e este é o que garante o par P-15/P-16. **Não muda** a
+fórmula de hash, a cobertura da âncora, as 17 regras nem as 22 pétreas.
+
+**Com o quê.**
+O alfabeto e o vocabulário da modalidade, `motor/nucleo/notacao.js`,
+`motor/nucleo/derivar-ciclo.js`, `tools/check-glossario.js`, as duas fontes derivadas do ciclo
+Batata, o pacote, as âncoras e os índices.
+
+**Validação.**
+`provar-notacao.js` → **74 asserções, 0 falhas** (eram 66; as oito novas cobrem o compasso
+calculado, a recusa do verbete pela metade, a posição em palavras, as direções na ordem e o lado).
+`gerar-ciclo` → **0 erros, 0 avisos**; `check-pacote` → **0/0**; `check-identidade` → **20/20**;
+`check-indices` → **14/14**; `check-glossario` → **consistente, 0 avisos** (o primeiro resultado
+verdadeiro em muito tempo); âncora regerada e `--check` íntegro.
+
+**O que o documento passou a dizer.** O exercício da Batata agora abre com
+`8 tempos, 4/4 · Première position (pés) · objetivo 1 — …`, e as descrições dizem em que posição a
+ação começa. O glossário passou a declarar `22 sinais` e a listar a `4ª` entre os sinais que este
+registro ainda não usa.
+
+**Referências.**
+A bancada `experimentos/propostas/proposta-musicalidade.html` (local, não versionada) — §«O verbete:
+onde é que eu defino isto»; `biblioteca/modalidades/bale-classico/tradicoes.json` (as diferenças de
+nomenclatura); o plano da Fase 1 em `PLANO-VERBETE-E-MUSICALIDADE.md` (§1.2, §1.3, §1.4, §1.7).
+
+**O que ainda não está feito.**
+- **O CRUD na Produção (§1.5)** — o lugar onde a pesquisadora administra o verbete. É a peça
+  central da fase e a que falta.
+- **As seleções no plano (§1.6)** — o plano ainda não tem as colunas de posição e direção; as
+  direções continuam a ser declaradas pelo verbete, não escolhidas por quem planeia.
+- **As posições de braços marcadas «por conferir»** — quatro linhas à espera da fonte.
+- A Fase 1.1 continua válida: o selo do alfabeto no `.fipp` já apanha a mudança de sha.

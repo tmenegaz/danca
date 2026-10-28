@@ -35,114 +35,576 @@
     "de casa: ele é o nome do código que já aparece nos documentos publicados, e renomeá-lo",
     "reescreveria o passado. O que mudou foi o ENDEREÇO, e o campo `modalidade` declara onde ele",
     "está. Um alfabeto novo — de outra modalidade, ou da mesma em outro sistema — é um arquivo",
-    "novo nesta mesma pasta-irmã, e nada no motor precisa de ser tocado."
+    "novo nesta mesma pasta-irmã, e nada no motor precisa de ser tocado.",
+    "",
+    "O ARQUIVO PASSOU A SER ESCRITO POR MÁQUINA (28/10/2026). A formatação é a de um JSON",
+    "serializado — dois espaços, uma chave por linha —, e não a mão de quem o escreveu. A razão é",
+    "que ele vai passar a ser editado pela Produção (o CRUD do verbete grava no repositório), e um",
+    "gravador que reformata é um gravador que produz um diff ilegível. Quem lê a diferença continua",
+    "a lê-la: o que muda é o que mudou, e não o espaçamento todo."
   ],
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 1,
-  "aplicaseA": ["benesh"],
-
+  "versao": 2,
+  "aplicaseA": [
+    "benesh"
+  ],
   "convencoes": {
-    "abre": { "sinal": "[", "nome": "abre bloco", "significado": "início de um bloco de notação. Tudo o que vem até o `]` correspondente descreve um mesmo gesto, no tempo do compasso indicado." },
-    "fecha": { "sinal": "]", "nome": "fecha bloco", "significado": "fim de um bloco de notação." },
-    "separa": { "sinal": ":", "nome": "dois-pontos", "significado": "separa a categoria do conteúdo dentro do bloco." }
+    "abre": {
+      "sinal": "[",
+      "nome": "abre bloco",
+      "significado": "início de um bloco de notação. Tudo o que vem até o `]` correspondente descreve um mesmo gesto, no tempo do compasso indicado."
+    },
+    "fecha": {
+      "sinal": "]",
+      "nome": "fecha bloco",
+      "significado": "fim de um bloco de notação."
+    },
+    "separa": {
+      "sinal": ":",
+      "nome": "dois-pontos",
+      "significado": "separa a categoria do conteúdo dentro do bloco."
+    }
   },
-
-  "categorias": ["Pé", "Peso", "Plié", "Braço"],
-
+  "categorias": [
+    "Pé",
+    "Peso",
+    "Plié",
+    "Braço"
+  ],
   "grupos": [
     {
       "titulo": "Categorias",
       "itens": {
-        "Pé": { "nome": "categoria pé", "significado": "o apoio ou a perna livre: a posição de partida, a direção e o retorno.", "origem": "sistema" },
-        "Peso": { "nome": "categoria peso", "significado": "a distribuição do peso entre os dois pés, ou a sua passagem de um lado ao outro.", "origem": "sistema" },
-        "Plié": { "nome": "categoria plié", "significado": "a flexão e a subida dos apoios — o eixo sobe e desce pelo chão.", "origem": "sistema" },
-        "Braço": { "nome": "categoria braço", "significado": "o caminho do braço: a posição de partida, o arco e a condução.", "origem": "sistema" }
+        "Pé": {
+          "nome": "categoria pé",
+          "significado": "o apoio ou a perna livre: a posição de partida, a direção e o retorno.",
+          "origem": "sistema"
+        },
+        "Peso": {
+          "nome": "categoria peso",
+          "significado": "a distribuição do peso entre os dois pés, ou a sua passagem de um lado ao outro.",
+          "origem": "sistema"
+        },
+        "Plié": {
+          "nome": "categoria plié",
+          "significado": "a flexão e a subida dos apoios — o eixo sobe e desce pelo chão.",
+          "origem": "sistema"
+        },
+        "Braço": {
+          "nome": "categoria braço",
+          "significado": "o caminho do braço: a posição de partida, o arco e a condução.",
+          "origem": "sistema"
+        }
       }
     },
     {
       "titulo": "Movimento",
       "itens": {
-        "→": { "nome": "conduz a", "significado": "transição — sai do estado declarado à esquerda e chega ao estado à direita.", "origem": "convenção do ciclo" },
-        "●": { "nome": "fecha", "significado": "retorno ou permanência — volta ao estado declarado à esquerda, ou sustenta o estado em que está.", "origem": "convenção do ciclo" },
-        "⌒": { "nome": "arco", "significado": "o caminho entre os dois estados é curvo, e não reto.", "origem": "convenção do ciclo" },
-        "↺": { "nome": "rotação para fora", "significado": "o segmento roda sobre o próprio eixo, para fora.", "origem": "convenção do ciclo" },
-        "+": { "nome": "à frente", "significado": "a direção à frente do corpo (devant).", "origem": "convenção do ciclo" },
-        "-": { "nome": "ao lado", "significado": "a direção ao lado do corpo (à la seconde).", "origem": "convenção do ciclo" },
-        "×": { "nome": "atrás", "significado": "a direção atrás do corpo (derrière).", "origem": "convenção do ciclo" },
-        "↓": { "nome": "cede", "significado": "o apoio cede — a descida, sem sair do lugar.", "origem": "convenção do ciclo" },
-        "↑": { "nome": "sobe", "significado": "o apoio sobe — o retorno ao eixo.", "origem": "convenção do ciclo" },
-        "ED": { "nome": "en dehors", "significado": "a varredura da perna para fora, no sentido do en dehors.", "origem": "convenção do ciclo" },
-        "EI": { "nome": "en dedans", "significado": "a varredura da perna para dentro, no sentido do en dedans.", "origem": "convenção do ciclo" }
+        "→": {
+          "nome": "conduz a",
+          "significado": "transição — sai do estado declarado à esquerda e chega ao estado à direita.",
+          "origem": "convenção do ciclo"
+        },
+        "●": {
+          "nome": "fecha",
+          "significado": "retorno ou permanência — volta ao estado declarado à esquerda, ou sustenta o estado em que está.",
+          "origem": "convenção do ciclo"
+        },
+        "⌒": {
+          "nome": "arco",
+          "significado": "o caminho entre os dois estados é curvo, e não reto.",
+          "origem": "convenção do ciclo"
+        },
+        "↺": {
+          "nome": "rotação para fora",
+          "significado": "o segmento roda sobre o próprio eixo, para fora.",
+          "origem": "convenção do ciclo"
+        },
+        "+": {
+          "nome": "à frente",
+          "significado": "a direção à frente do corpo (devant).",
+          "origem": "convenção do ciclo"
+        },
+        "-": {
+          "nome": "ao lado",
+          "significado": "a direção ao lado do corpo (à la seconde).",
+          "origem": "convenção do ciclo"
+        },
+        "×": {
+          "nome": "atrás",
+          "significado": "a direção atrás do corpo (derrière).",
+          "origem": "convenção do ciclo"
+        },
+        "↓": {
+          "nome": "cede",
+          "significado": "o apoio cede — a descida, sem sair do lugar.",
+          "origem": "convenção do ciclo"
+        },
+        "↑": {
+          "nome": "sobe",
+          "significado": "o apoio sobe — o retorno ao eixo.",
+          "origem": "convenção do ciclo"
+        },
+        "ED": {
+          "nome": "en dehors",
+          "significado": "a varredura da perna para fora, no sentido do en dehors.",
+          "origem": "convenção do ciclo"
+        },
+        "EI": {
+          "nome": "en dedans",
+          "significado": "a varredura da perna para dentro, no sentido do en dedans.",
+          "origem": "convenção do ciclo"
+        }
       }
     },
     {
       "titulo": "Posições dos pés",
       "itens": {
-        "1ª": { "nome": "primeira posição", "significado": "as pernas em 1ª, os calcanhares juntos e os pés em linha.", "origem": "sistema" },
-        "2ª": { "nome": "segunda posição", "significado": "as pernas em 2ª, a uma distância de um pé uma da outra.", "origem": "sistema" },
-        "3ª": { "nome": "terceira posição", "significado": "as pernas em 3ª, o calcanhar à frente do arco do pé.", "origem": "sistema" },
-        "5ª": { "nome": "quinta posição", "significado": "as pernas em 5ª, um pé colado ao outro.", "origem": "sistema" }
+        "1ª": {
+          "nome": "primeira posição",
+          "significado": "as pernas em 1ª, os calcanhares juntos e os pés em linha.",
+          "origem": "sistema"
+        },
+        "2ª": {
+          "nome": "segunda posição",
+          "significado": "as pernas em 2ª, a uma distância de um pé uma da outra.",
+          "origem": "sistema"
+        },
+        "3ª": {
+          "nome": "terceira posição",
+          "significado": "as pernas em 3ª, o calcanhar à frente do arco do pé.",
+          "origem": "sistema"
+        },
+        "4ª": {
+          "nome": "quarta posição",
+          "significado": "as pernas em 4ª, uma à frente da outra a um pé de distância, em dehors.",
+          "origem": "sistema"
+        },
+        "5ª": {
+          "nome": "quinta posição",
+          "significado": "as pernas em 5ª, um pé colado ao outro.",
+          "origem": "sistema"
+        }
       }
     },
     {
       "titulo": "Lados",
       "itens": {
-        "D": { "nome": "lado direito", "significado": "o lado direito do corpo.", "origem": "convenção do ciclo" },
-        "E": { "nome": "lado esquerdo", "significado": "o lado esquerdo do corpo.", "origem": "convenção do ciclo" }
+        "D": {
+          "nome": "lado direito",
+          "significado": "o lado direito do corpo.",
+          "origem": "convenção do ciclo"
+        },
+        "E": {
+          "nome": "lado esquerdo",
+          "significado": "o lado esquerdo do corpo.",
+          "origem": "convenção do ciclo"
+        }
       }
     }
   ],
-
+  "gramatica": {
+    "_comentario": [
+      "A GRAMÁTICA — o que cada sinal SIGNIFICA, e não só que existe (28/10/2026).",
+      "",
+      "Os `grupos` dizem que um sinal existe. Este bloco diz o que ele quer dizer, e a distinção",
+      "importa porque o MESMO glifo não significa o mesmo em todo o lado: um numeric ordinal dentro",
+      "de um bloco de PÉ é uma posição de pés, e dentro de um bloco de BRAÇO é uma posição de braços.",
+      "E a posição de braços que a escola francesa chama terceira é a que a RAD chama quinta. Sem",
+      "este bloco, a página em prosa não pode dizer em palavras o que a notação diz em sinais — e é",
+      "isso que faz o documento depender de saber ler notação.",
+      "",
+      "A LIGAÇÃO AO VOCABULÁRIO É POR `id`. Cada direção e cada posição daqui remete a um termo de",
+      "`vocabulario.json`, que é onde o nome, a descrição e a tradição vivem. Duas listas de termos",
+      "divergiriam ao primeiro termo novo; uma lista e uma ligação, não.",
+      "",
+      "O QUE ESTÁ MARCADO COMO POR CONFERIR NÃO É PALPITE ESCRITO COMO FACTO: é uma lacuna",
+      "declarada, e o documento diz que a posição ainda não foi confirmada. Quem preenche é a",
+      "pesquisadora, com a fonte na mão."
+    ],
+    "membros": [
+      "pes",
+      "pernas",
+      "bracos"
+    ],
+    "direcoesDoMembro": {
+      "+": {
+        "termo": "devant",
+        "nome": "à frente",
+        "significado": "o membro estende-se à frente do corpo."
+      },
+      "-": {
+        "termo": "a-la-seconde",
+        "nome": "ao lado",
+        "significado": "o membro estende-se ao lado do corpo."
+      },
+      "×": {
+        "termo": "derriere",
+        "nome": "atrás",
+        "significado": "o membro estende-se atrás do corpo."
+      }
+    },
+    "orientacoesDoCorpo": {
+      "en-face": {
+        "termo": "en-face",
+        "nome": "en face",
+        "significado": "o corpo voltado de frente para quem olha."
+      },
+      "croise": {
+        "termo": "croise",
+        "nome": "croisé",
+        "significado": "o corpo ligeiramente voltado, as pernas em relação cruzada."
+      },
+      "efface": {
+        "termo": "efface",
+        "nome": "effacé",
+        "significado": "o corpo ligeiramente aberto, as pernas em relação aberta."
+      },
+      "ecarte": {
+        "termo": "ecarte",
+        "nome": "écarté",
+        "significado": "o corpo voltado na diagonal, o membro estendido nessa diagonal."
+      },
+      "epaulement": {
+        "termo": "epaulement",
+        "nome": "épaulement",
+        "significado": "os ombros ligeiramente rodados, um à frente do outro."
+      }
+    },
+    "lados": {
+      "D": {
+        "nome": "lado direito",
+        "comoBraco": "o braço direito",
+        "comoPerna": "a perna direita"
+      },
+      "E": {
+        "nome": "lado esquerdo",
+        "comoBraco": "o braço esquerdo",
+        "comoPerna": "a perna esquerda"
+      }
+    },
+    "posicoesDeBracos": {
+      "_comentario": [
+        "A NUMERAÇÃO DAS POSIÇÕES DE BRAÇOS NÃO É A MESMA EM TODOS OS MÉTODOS, e é a razão de este",
+        "bloco existir. Os dois braços acima da cabeça são a quinta posição na RAD, a terceira em",
+        "Vaganova e a terceira na escola francesa. Escrever só um dos números é escolher um método",
+        "sem o dizer.",
+        "",
+        "A coluna `conceito` descreve o que os braços FAZEM — não muda com o método, e é por ela que",
+        "a equivalência se estabelece. O número que o documento escreve vem do método que o ciclo",
+        "declara em «Metodologia de referência»; os outros dois aparecem entre parênteses."
+      ],
+      "nota": "Três métodos: francesa, RAD (Royal Academy of Dance) e Vaganova. Um ciclo declara o seu em «Metodologia de referência».",
+      "posicoes": [
+        {
+          "sinal": "prep",
+          "conceito": "os braços baixos e arredondados, à frente do corpo, abaixo da cintura",
+          "francesa": "preparação",
+          "RAD": "bras bas",
+          "Vaganova": "preparação",
+          "estado": "documentado"
+        },
+        {
+          "sinal": "1ª",
+          "conceito": "os braços arredondados à frente do corpo, à altura da cintura",
+          "francesa": "1ª",
+          "RAD": "1ª",
+          "Vaganova": "1ª",
+          "estado": "documentado"
+        },
+        {
+          "sinal": "2ª",
+          "conceito": "os braços abertos ao lado do corpo, um pouco abaixo da linha do ombro",
+          "francesa": "2ª",
+          "RAD": "2ª",
+          "Vaganova": "2ª",
+          "estado": "documentado"
+        },
+        {
+          "sinal": "3ª",
+          "conceito": "os dois braços acima da cabeça, arredondados",
+          "francesa": "3ª",
+          "RAD": "5ª",
+          "Vaganova": "3ª",
+          "estado": "documentado",
+          "aviso": "É a divergência que originou este bloco: 3ª na francesa e em Vaganova, 5ª na RAD."
+        },
+        {
+          "sinal": "RAD-3ª",
+          "conceito": "um braço acima da cabeça e o outro aberto ao lado",
+          "francesa": "por conferir — a escola francesa numera esta posição?",
+          "RAD": "3ª",
+          "Vaganova": "por conferir",
+          "estado": "a-conferir"
+        },
+        {
+          "sinal": "RAD-4ª",
+          "conceito": "um braço acima da cabeça e o outro à frente, à altura da cintura",
+          "francesa": "por conferir — a escola francesa numera esta posição?",
+          "RAD": "4ª",
+          "Vaganova": "por conferir",
+          "estado": "a-conferir"
+        },
+        {
+          "sinal": "4ª-fr",
+          "conceito": "por conferir — qual é a quarta posição de braços da escola francesa",
+          "francesa": "4ª",
+          "RAD": "por conferir",
+          "Vaganova": "por conferir",
+          "estado": "a-conferir"
+        },
+        {
+          "sinal": "5ª-fr",
+          "conceito": "por conferir — qual é a quinta posição de braços da escola francesa",
+          "francesa": "5ª",
+          "RAD": "por conferir",
+          "Vaganova": "por conferir",
+          "estado": "a-conferir"
+        }
+      ],
+      "avisoDeAbertura": "As linhas com estado a-conferir estão ABERTAS para a pesquisadora preencher com a fonte na mão. Não são afirmação: são a lacuna, escrita onde se vê."
+    }
+  },
   "verbetes": {
+    "_comentario": [
+      "A FORMA NOVA (28/10/2026). Cada verbete declara a POSIÇÃO em que acontece, as DIREÇÕES que",
+      "admite, e uma célula por direção. O motor não adivinha a posição nem a direção: lê-as.",
+      "",
+      "· posicao   — {membro, termo}. O termo é um id de vocabulario.json, que é onde o nome e a",
+      "  tradição vivem. membro é pes, pernas ou bracos.",
+      "· direcoes  — a ORDEM em que o exercício percorre as direções. É ela que decide qual célula",
+      "  cai em qual compasso.",
+      "· lado      — quando o exercício distingue os lados. O Port de bras distingue no compasso 4.",
+      "· celulas   — por direção, as ações. Cada célula declara a CONTAGEM e o que acontece; o número",
+      "  do COMPASSO não é declarado, é calculado. Antes era escrito à mão e podia contradizer a soma",
+      "  dos tempos — a aritmética é onde um documento não pode ser plausível.",
+      "",
+      "A FORMA ANTIGA (segmentos, com o compasso escrito à mão) deixou de existir: os quatro verbetes",
+      "foram migrados na mesma alteração. Manter as duas seria manter duas verdades sobre o mesmo",
+      "exercício."
+    ],
     "Plié": {
       "8|4/4": {
         "cobre": 8,
-        "segmentos": [
-          { "compasso": 1, "contagem": "1–4", "bloco": "[Plié: 1ª ↓]", "descricao": "os dois apoios cedem em 1ª posição" },
-          { "compasso": 2, "contagem": "1–4", "bloco": "[Plié: ↓ ↑]", "descricao": "os apoios sobem, o eixo retorna" }
-        ]
+        "posicao": {
+          "membro": "pes",
+          "termo": "premiere-position"
+        },
+        "direcoes": [
+          "devant"
+        ],
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–4",
+              "bloco": "[Plié: 1ª ↓]",
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce"
+            },
+            {
+              "contagem": "1–4",
+              "bloco": "[Plié: ↓ ↑]",
+              "descricao": "os apoios sobem e o eixo retorna"
+            }
+          ]
+        }
       }
     },
     "Battement tendu": {
       "4|4/4": {
         "cobre": 4,
-        "segmentos": [
-          { "compasso": 1, "contagem": "1–2", "bloco": "[Pé: 1ª → +]", "descricao": "extensão à frente, a ponta no chão" },
-          { "compasso": 1, "contagem": "3–4", "bloco": "[Pé: + ● 1ª]", "descricao": "retorno à 1ª posição" }
-        ]
+        "posicao": {
+          "membro": "pes",
+          "termo": "premiere-position"
+        },
+        "direcoes": [
+          "devant"
+        ],
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 1ª → +]",
+              "descricao": "extensão à frente a partir da 1ª posição, a ponta no chão"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: + ● 1ª]",
+              "descricao": "retorno à 1ª posição"
+            }
+          ]
+        }
       },
       "8|4/4": {
         "cobre": 8,
-        "segmentos": [
-          { "compasso": 1, "contagem": "1–2", "bloco": "[Pé: 1ª → +]", "descricao": "extensão à frente, a ponta no chão" },
-          { "compasso": 1, "contagem": "3–4", "bloco": "[Pé: + ● 1ª]", "descricao": "retorno à 1ª posição" },
-          { "compasso": 2, "contagem": "1–2", "bloco": "[Pé: 1ª → ×]", "descricao": "extensão atrás, a ponta no chão" },
-          { "compasso": 2, "contagem": "3–4", "bloco": "[Pé: × ● 1ª]", "descricao": "retorno à 1ª posição" }
-        ]
+        "posicao": {
+          "membro": "pes",
+          "termo": "premiere-position"
+        },
+        "direcoes": [
+          "devant",
+          "derriere"
+        ],
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 1ª → +]",
+              "descricao": "extensão à frente a partir da 1ª posição, a ponta no chão"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: + ● 1ª]",
+              "descricao": "retorno à 1ª posição"
+            }
+          ],
+          "derriere": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 1ª → ×]",
+              "descricao": "extensão atrás a partir da 1ª posição, a ponta no chão"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: × ● 1ª]",
+              "descricao": "retorno à 1ª posição"
+            }
+          ]
+        }
+      },
+      "12|4/4": {
+        "cobre": 12,
+        "posicao": {
+          "membro": "pes",
+          "termo": "premiere-position"
+        },
+        "direcoes": [
+          "devant",
+          "a-la-seconde",
+          "derriere"
+        ],
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 1ª → +]",
+              "descricao": "extensão à frente a partir da 1ª posição, a ponta no chão"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: + ● 1ª]",
+              "descricao": "retorno à 1ª posição"
+            }
+          ],
+          "a-la-seconde": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 1ª → -]",
+              "descricao": "extensão ao lado a partir da 1ª posição, a ponta no chão"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: - ● 1ª]",
+              "descricao": "retorno à 1ª posição"
+            }
+          ],
+          "derriere": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 1ª → ×]",
+              "descricao": "extensão atrás a partir da 1ª posição, a ponta no chão"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: × ● 1ª]",
+              "descricao": "retorno à 1ª posição"
+            }
+          ]
+        }
       }
     },
     "Rond de jambe": {
       "8|4/4": {
         "cobre": 8,
-        "segmentos": [
-          { "compasso": 1, "contagem": "1–2", "bloco": "[Pé: 1ª → +]", "descricao": "saída à frente, a ponta no chão" },
-          { "compasso": 1, "contagem": "3–4", "bloco": "[Pé: + ⌒ ED]", "descricao": "varre em arco até atrás, en dehors" },
-          { "compasso": 2, "contagem": "1–2", "bloco": "[Pé: × ⌒ 1ª]", "descricao": "continua o arco e recolhe à 1ª" },
-          { "compasso": 2, "contagem": "3–4", "bloco": "[Peso: 1ª ●]", "descricao": "o peso se redistribui, sem descolar" }
-        ]
+        "posicao": {
+          "membro": "pes",
+          "termo": "premiere-position"
+        },
+        "direcoes": [
+          "devant",
+          "derriere"
+        ],
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 1ª → + ED]",
+              "descricao": "a perna varre à frente a partir da 1ª posição"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: + ↺ 2ª]",
+              "descricao": "a varredura abre para a 2ª posição, en dehors"
+            }
+          ],
+          "derriere": [
+            {
+              "contagem": "1–2",
+              "bloco": "[Pé: 2ª → × EI]",
+              "descricao": "a perna continua atrás, en dedans"
+            },
+            {
+              "contagem": "3–4",
+              "bloco": "[Pé: × ● 1ª]",
+              "descricao": "retorno à 1ª posição"
+            }
+          ]
+        }
       }
     },
     "Port de bras": {
       "12|3/4": {
         "cobre": 12,
-        "segmentos": [
-          { "compasso": 1, "contagem": "1–3", "bloco": "[Braço: 1ª → 2ª ⌒]", "descricao": "os braços abrem em arco até a 2ª" },
-          { "compasso": 2, "contagem": "1–3", "bloco": "[Braço: 2ª → 3ª ⌒]", "descricao": "fecham em arco até a 3ª" },
-          { "compasso": 3, "contagem": "1–3", "bloco": "[Braço: 3ª → 1ª ⌒]", "descricao": "retornam em arco à 1ª" },
-          { "compasso": 4, "contagem": "1–3", "bloco": "[Braço: D → E]", "descricao": "a condução passa do braço D ao braço E" }
-        ]
+        "posicao": {
+          "membro": "bracos",
+          "termo": "premiere-position-bracos"
+        },
+        "direcoes": [
+          "devant"
+        ],
+        "lado": [
+          "D",
+          "E"
+        ],
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–3",
+              "lado": "D+E",
+              "bloco": "[Braço: 1ª → 2ª ⌒]",
+              "descricao": "os dois braços abrem em arco até a 2ª posição"
+            },
+            {
+              "contagem": "1–3",
+              "lado": "D+E",
+              "bloco": "[Braço: 2ª → 3ª ⌒]",
+              "descricao": "os dois braços fecham em arco até a 3ª posição, acima da cabeça (5ª em RAD e Vaganova)"
+            },
+            {
+              "contagem": "1–3",
+              "lado": "D+E",
+              "bloco": "[Braço: 3ª → 1ª ⌒]",
+              "descricao": "os dois braços retornam em arco à 1ª posição"
+            },
+            {
+              "contagem": "1–3",
+              "lado": "D→E",
+              "bloco": "[Braço: D → E]",
+              "descricao": "a condução passa do braço direito ao braço esquerdo"
+            }
+          ]
+        }
       }
     }
   }

@@ -21,9 +21,9 @@ exercícios deste ciclo podem ser lidos de volta sem depender da memória de que
 | Item | Valor |
 |:--|:--|
 | Código | `ballet-classico` — Código do ciclo — base Benesh (ballet clássico) |
-| Versão | 1 |
+| Versão | 2 |
 | Categorias | 4 |
-| Sinais | 21 |
+| Sinais | 22 |
 | Verbetes (exercícios) | 4 |
 
 ## Como ler o registro
@@ -67,12 +67,12 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 ### 4. Solo — Plié
 
-*8 tempos, 4/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
+*8 tempos, 4/4 · Première position (pés) · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
 | Compasso | Contagem | Notação | Descrição |
 |:--:|:--:|:--|:--|
-| 1 | 1–4 | `[Plié: 1ª ↓]` | os dois apoios cedem em 1ª posição |
-| 2 | 1–4 | `[Plié: ↓ ↑]` | os apoios sobem, o eixo retorna |
+| 1 | 1–4 | `[Plié: 1ª ↓]` | os dois apoios cedem em 1ª posição e o eixo desce |
+| 2 | 1–4 | `[Plié: ↓ ↑]` | os apoios sobem e o eixo retorna |
 
 ### 5. Solo — Battement tendu
 
@@ -268,25 +268,25 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 ### 29. Barra — Battement tendu
 
-*8 tempos, 4/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
+*8 tempos, 4/4 · Première position (pés) · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
 | Compasso | Contagem | Notação | Descrição |
 |:--:|:--:|:--|:--|
-| 1 | 1–2 | `[Pé: 1ª → +]` | extensão à frente, a ponta no chão |
+| 1 | 1–2 | `[Pé: 1ª → +]` | extensão à frente a partir da 1ª posição, a ponta no chão |
 | 1 | 3–4 | `[Pé: + ● 1ª]` | retorno à 1ª posição |
-| 2 | 1–2 | `[Pé: 1ª → ×]` | extensão atrás, a ponta no chão |
+| 2 | 1–2 | `[Pé: 1ª → ×]` | extensão atrás a partir da 1ª posição, a ponta no chão |
 | 2 | 3–4 | `[Pé: × ● 1ª]` | retorno à 1ª posição |
 
 ### 30. Centro — Port de bras
 
-*18 tempos, 3/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
+*18 tempos, 3/4 · Première position (bras) · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
 
 | Compasso | Contagem | Notação | Descrição |
 |:--:|:--:|:--|:--|
-| 1 | 1–3 | `[Braço: 1ª → 2ª ⌒]` | os braços abrem em arco até a 2ª |
-| 2 | 1–3 | `[Braço: 2ª → 3ª ⌒]` | fecham em arco até a 3ª |
-| 3 | 1–3 | `[Braço: 3ª → 1ª ⌒]` | retornam em arco à 1ª |
-| 4 | 1–3 | `[Braço: D → E]` | a condução passa do braço D ao braço E |
+| 1 | 1–3 | `[Braço: 1ª → 2ª ⌒]` | os dois braços abrem em arco até a 2ª posição |
+| 2 | 1–3 | `[Braço: 2ª → 3ª ⌒]` | os dois braços fecham em arco até a 3ª posição, acima da cabeça (5ª em RAD e Vaganova) |
+| 3 | 1–3 | `[Braço: 3ª → 1ª ⌒]` | os dois braços retornam em arco à 1ª posição |
+| 4 | 1–3 | `[Braço: D → E]` | a condução passa do braço direito ao braço esquerdo |
 | 5 | — | **conferir** | o verbete cobre 12 dos 18 tempos (4 compassos de 3/4); restam 6 tempos — 2 compassos sem verbete |
 
 ## O que ficou em lacuna

@@ -41,12 +41,52 @@
 const fs = require('fs');
 const path = require('path');
 
-const PADRAO = ['professores/tiago/ciclos/ciclo-01-maria-notacao.md',
-                'professores/tiago/ciclos/ciclo-01-maria-glossario-benesh.md'];
 const rel = (p) => path.relative(process.cwd(), p) || p;
 
-const registroPath = path.resolve(process.argv[2] || PADRAO[0]);
-const glossarioPath = path.resolve(process.argv[3] || PADRAO[1]);
+/**
+ * O PAR PADRÃO, PROCURADO NO DISCO (28/10/2026). Antes aqui estava escrito, à mão, o caminho do
+ * ciclo da Maria — e esse ciclo foi expurgado do repositório. O resultado era um validador que
+ * falhava SEMPRE, e um validador que falha sempre não valida nada: quem o vê vermelho todos os dias
+ * deixa de o ler, e é exactamente no dia em que ele tem razão que ninguém olha.
+ *
+ * A procura é pelo par que existe: qualquer `*-notacao.md` com o `*-glossario-*.md` ao lado, no
+ * mesmo ciclo. Os dois chamadores (`check-pacote.js` e o `pre-commit`) passam sempre os caminhos
+ * explícitos — isto governa só o uso manual sem argumentos, e o que ele faz é dizer a verdade.
+ */
+function parPadrao() {
+  const raiz = path.resolve(__dirname, '..');
+  const ciclos = [];
+  for (const professor of fs.readdirSync(path.join(raiz, 'professores'))) {
+    const pasta = path.join(raiz, 'professores', professor, 'ciclos');
+    if (!fs.existsSync(pasta)) continue;
+    for (const arquivo of fs.readdirSync(pasta)) {
+      if (/-notacao\.md$/.test(arquivo)) ciclos.push(path.join(pasta, arquivo));
+    }
+  }
+  const pares = ciclos
+    .map((registro) => {
+      const prefixo = registro.replace(/-notacao\.md$/, '');
+      const candidatos = fs.readdirSync(path.dirname(registro))
+        .filter((f) => f.startsWith(path.basename(prefixo) + '-glossario-') && /\.md$/.test(f))
+        .sort();
+      return candidatos.length ? [registro, path.join(path.dirname(registro), candidatos[0])] : null;
+    })
+    .filter(Boolean);
+  if (!pares.length) return null;
+  // O mais recente é o que está a ser trabalhado; empate resolve-se pelo nome, para ser estável.
+  pares.sort((a, b) => fs.statSync(b[0]).mtimeMs - fs.statSync(a[0]).mtimeMs || a[0].localeCompare(b[0]));
+  return pares[0];
+}
+
+const padrao = (process.argv[2] && process.argv[3]) ? null : parPadrao();
+if (!process.argv[2] && !padrao) {
+  console.error('erro: nenhum par registro × glossário encontrado em professores/*/ciclos/.');
+  console.error('  uso: node tools/check-glossario.js <registro.md> <glossario.md>');
+  process.exit(1);
+}
+
+const registroPath = path.resolve(process.argv[2] || padrao[0]);
+const glossarioPath = path.resolve(process.argv[3] || padrao[1]);
 
 for (const p of [registroPath, glossarioPath]) {
   if (!fs.existsSync(p)) {

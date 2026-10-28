@@ -10,9 +10,9 @@ type: Ciclo
 professor: perna-boa
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: 1c9cca47f8b192872601038ddee25452d40d78d918516dd7b27d3ea9c60a638b
+hash_conteudo: 4c34dac0f495c84b0f37f5be3b05a956d360e397c09b0277e471ef83b6c27fcb
 parentHash: 
-hash: ec1dad9d1b74ea095b26caddec16a9a077a465a11fc112e5ff90c4961c5922ee
+hash: 36010816720e8d4b2e88d6a4d52c6e13f68c98e2662badc6d5d32082bf570962
 algoritmo: SHA-256
 po: professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Aguardando
@@ -20,8 +20,8 @@ ancorado_em: 2026-10-28
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 1
-notacao_sha: 430e6557c4d8425b34c2fcb4f71273e246916dbae74d023209b87fff082f0223
+notacao_versao: 2
+notacao_sha: 6d912076c41f2bf8b1abc84f51c279fc3f5e16ef69a5c6eb64c0fe27b3e34c2e
 cobertura:
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md

@@ -7,7 +7,7 @@
     "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
   },
   "condicoesPreliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
-  "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Solo · 27 · 30% Barra · 27 · 30% Centro · 27 · 30% Musicalidade · 9 · 10% **Total** · **90** · **100%** ### Sequência declarada **Solo** — Arabesque · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Solo** — Jeté · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Solo** — Rond de jambe · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Solo** — Plié · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical · 8, 4/4 **Solo** — Battement tendu · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Solo** — Arabesque · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Solo** — Jeté · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Solo** — Rond de jambe · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Solo** — Battement tendu · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Barra** — Arabesque · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Barra** — Jeté · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Barra** — Rond de jambe · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Barra** — Plié · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Barra** — Battement tendu · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical **Barra** — Arabesque · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Barra** — Jeté · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Barra** — Rond de jambe · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Barra** — Plié · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Barra** — Port de bras · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Centro** — Arabesque · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Centro** — Jeté · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Centro** — Rond de jambe · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Centro** — Plié · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Centro** — Port de bras · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento **Centro** — Arabesque · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Centro** — Jeté · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Centro** — Rond de jambe · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Centro** — Battement tendu · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento **Barra** — Battement tendu · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento · 8, 4/4 **Centro** — Port de bras · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento · 16, 3/4",
+  "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Solo · 27 · 30% Barra · 27 · 30% Centro · 27 · 30% Musicalidade · 9 · 10% **Total** · **90** · **100%**",
   "blocoDeMusicalidade": [
     {
       "item": "Pulso",
@@ -15,25 +15,24 @@
     }
   ],
   "guiaDeObservacao": [
+    "Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor registra cada",
+    "item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·",
+    "vazio = não observei.",
     {
       "dimensao": "Técnica — Solo",
-      "oQueSeObserva": "[Preencher]",
-      "comoSeRegistra": "marca por aluno"
+      "oQueSeObserva": "alinhamento do pé de apoio; eixo do corpo na preparação"
     },
     {
       "dimensao": "Técnica — Barra",
-      "oQueSeObserva": "[Preencher]",
-      "comoSeRegistra": "marca por aluno"
+      "oQueSeObserva": "saída do calcanhar no tendu; quadril sem subir no en dehors"
     },
     {
       "dimensao": "Técnica — Centro",
-      "oQueSeObserva": "[Preencher]",
-      "comoSeRegistra": "marca por aluno"
+      "oQueSeObserva": "transferência de peso sem perder a verticalidade; braço junto do movimento"
     },
     {
       "dimensao": "Técnica — Musicalidade",
-      "oQueSeObserva": "[Preencher]",
-      "comoSeRegistra": "marca por aluno"
+      "oQueSeObserva": "resposta ao pulso na marcação; frase até o fim da música"
     }
   ],
   "distribuicaoDoVolume": [

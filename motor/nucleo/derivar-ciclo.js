@@ -518,7 +518,13 @@ function derivarNotacao({ plano, contexto }) {
       saida.push('### ' + (i + 1) + '. ' + rotuloDoExercicio(c));
       saida.push('');
       const objetivo = objetivoDaSequencia(linhas[i]);
-      const legenda = [musica ? musica : 'música ainda não declarada', objetivo ? 'objetivo ' + objetivo : '']
+      // A POSIÇÃO EM PALAVRAS (28/10/2026). O cabeçalho do exercício passa a dizer em que posição
+      // ele acontece — é a informação que a notação dava e a prosa não, e a primeira coisa que se
+      // pergunta ao ler «extensão à frente, a ponta no chão». Vem do verbete, não é escrita aqui.
+      const posicao = moduloNotacao.posicaoEmPalavras(alfabetoDoCiclo, c.posicao);
+      const legenda = [musica ? musica : 'música ainda não declarada',
+        posicao ? posicao.emPalavras : '',
+        objetivo ? 'objetivo ' + objetivo : '']
         .filter(Boolean).join(' · ');
       saida.push('*' + legenda + '*');
       saida.push('');

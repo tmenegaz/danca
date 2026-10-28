@@ -40,6 +40,13 @@ const ALFABETOS = {
   'bale-classico': require('../../biblioteca/modalidades/bale-classico/notacao.json'),
 };
 
+// O VOCABULÁRIO da modalidade, por modalidade. O alfabeto diz que um SINAL existe; o vocabulário
+// diz o NOME dele em palavras, e é do vocabulário que o alfabeto tira os `id` que referencia
+// (`premiere-position`, `devant`). Duas cópias dos nomes divergiriam ao primeiro termo novo.
+const VOCABULARIOS = {
+  'bale-classico': require('../../biblioteca/modalidades/bale-classico/vocabulario.json'),
+};
+
 /** A modalidade quando o chamador não a declara. Só há uma publicada — e é declarada, não suposta. */
 const MODALIDADE_PADRAO = 'bale-classico';
 
@@ -89,6 +96,100 @@ function paraNotacao(declarada, modalidade) {
   // Ambíguo não se resolve por sorteio: uma notação que casa com dois alfabetos e chega sem
   // modalidade é uma pergunta sem resposta, e a resposta certa é dizer isso.
   return casam.length === 1 ? casam[0] : null;
+}
+
+/**
+ * O TERMO DO VOCABULÁRIO, por id, dentro de uma modalidade. `null` quando não existe — e quem
+ * chama decide o que fazer com a ausência, em vez de receber um nome inventado.
+ */
+function termoPorId(alfabeto, id, modalidade) {
+  const m = (alfabeto && alfabeto.modalidade) || modalidade || MODALIDADE_PADRAO;
+  const vocabulario = VOCABULARIOS[m];
+  if (!vocabulario || !id) return null;
+  return vocabulario.find((t) => t && t.id === id) || null;
+}
+
+/**
+ * A POSIÇÃO EM PALAVRAS. `{membro, termo}` → «1ª posição de pés», «3ª posição de braços».
+ *
+ * EXISTE PORQUE A PROSA NÃO SABIA DIZER A POSIÇÃO (28/10/2026). A página sem notação mostrava
+ * «extensão à frente, a ponta no chão» e não dizia em que posição — que é a primeira coisa que se
+ * pergunta. O número vem do alfabeto (o glifo), o nome vem do vocabulário, e o membro desempata:
+ * «1ª posição» de pés e «1ª posição» de braços não são a mesma coisa.
+ */
+const MEMBRO_EM_PALAVRAS = { pes: 'pés', pernas: 'pernas', bracos: 'braços' };
+// Como o nome de um termo pode já dizer de que membro fala. Inclui o francês porque é nele que os
+// termos do balé clássico estão escritos: «bras» é braço, «pied» é pé, «jambe» é perna.
+const ALUSOES_AO_MEMBRO = {
+  pes: '\\b(p[eé]s?|pieds?|feet)\\b',
+  pernas: '\\b(pernas?|jambes?|legs?)\\b',
+  bracos: '\\b(bra[cç]os?|bras|arms?)\\b',
+};
+function posicaoEmPalavras(alfabeto, posicao) {
+  if (!posicao || !posicao.termo) return null;
+  const termo = termoPorId(alfabeto, posicao.termo);
+  if (!termo) return null;
+  // O nome do vocabulário já traz o ordinal («Première position»); o membro acrescenta o resto.
+  const chave = posicao.membro || termo.membro;
+  const membro = MEMBRO_EM_PALAVRAS[chave] || null;
+  // O nome já pode dizer o membro («Troisième position (bras)»); repeti-lo ao lado daria
+  // «Troisième position (bras) (braços)». Quando já diz — em português ou no francês do termo —,
+  // não se acrescenta.
+  const limpo = String(termo.termo).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const jaDiz = Boolean(ALUSOES_AO_MEMBRO[chave]
+    && new RegExp(ALUSOES_AO_MEMBRO[chave], 'i').test(limpo));
+  return {
+    nome: termo.termo,
+    membro: membro,
+    emPalavras: membro && !jaDiz ? termo.termo + ' (' + membro + ')' : termo.termo,
+    tradicao: termo.tradicao || null,
+  };
+}
+
+/**
+ * A DIREÇÃO EM PALAVRAS, pelo id do termo. As direções do membro e as orientações do corpo vivem
+ * em blocos diferentes da gramática porque são coisas diferentes: «devant» é para onde o membro
+ * vai, «en face» é como o corpo está. «Croisé devant» precisa das duas.
+ */
+function direcaoEmPalavras(alfabeto, id) {
+  const g = (alfabeto && alfabeto.gramatica) || {};
+  for (const grupo of ['direcoesDoMembro', 'orientacoesDoCorpo']) {
+    for (const item of Object.values(g[grupo] || {})) {
+      if (item && item.termo === id) return { nome: item.nome, significado: item.significado || null };
+    }
+  }
+  return null;
+}
+
+/**
+ * AS POSIÇÕES QUE O MÉTODO DECLARADO USA, e como se chamam nos outros.
+ *
+ * É esta a tabela que responde à pergunta que originou o bloco: «os dois braços acima da cabeça são
+ * a 3ª ou a 5ª?». A resposta é «depende do método» — e agora o método é um dado do plano, e os
+ * outros números aparecem ao lado em vez de serem calados.
+ */
+function posicoesDeBracosDoMetodo(alfabeto, metodo) {
+  const tabela = ((alfabeto && alfabeto.gramatica) || {}).posicoesDeBracos;
+  if (!tabela || !Array.isArray(tabela.posicoes)) return [];
+  const alvo = normalizarMetodo(metodo);
+  return tabela.posicoes.map((p) => ({
+    conceito: p.conceito,
+    estado: p.estado || 'documentado',
+    noMetodo: p[alvo] || null,
+    porMetodo: {
+      francesa: p.francesa, RAD: p.RAD, Vaganova: p.Vaganova,
+    },
+  }));
+}
+
+/** O nome do método como as chaves da gramática o escrevem. Desconhecido → «compartilhada». */
+function normalizarMetodo(metodo) {
+  const t = String(metodo == null ? '' : metodo).trim().toLowerCase();
+  if (!t) return 'compartilhada';
+  if (/^rad/.test(t) || /royal/.test(t)) return 'RAD';
+  if (/vaganova|rus/.test(t)) return 'Vaganova';
+  if (/franc|cecchetti/.test(t)) return 'francesa';
+  return 'compartilhada';
 }
 
 /** Todos os sinais de um alfabeto, num mapa sinal → verbete (para validar e para glossariar). */
@@ -186,6 +287,41 @@ function verbetePara(alfabeto, exercicio, musica) {
 }
 
 /**
+ * OS SEGMENTOS DE UM VERBETE, na forma nova (28/10/2026).
+ *
+ * A célula declara a CONTAGEM e o que acontece; o número do COMPASSO é CALCULADO, percorrendo as
+ * direções na ordem declarada e somando os tempos. Antes ele era escrito à mão em cada segmento, e
+ * podia contradizer a soma — que é o único número que a grade não pode ter errado.
+ *
+ * A forma antiga (`segmentos`) ainda é lida, e só por isso: uma modalidade nova que ainda não foi
+ * migrada continua a compor em vez de desaparecer. Degradar é melhor do que inventar; e o
+ * `provar-notacao` mede as duas.
+ */
+function segmentosDe(verbete, numerador) {
+  if (!verbete) return [];
+  if (verbete.celulas && typeof verbete.celulas === 'object') {
+    const ordem = Array.isArray(verbete.direcoes) && verbete.direcoes.length
+      ? verbete.direcoes
+      : Object.keys(verbete.celulas);
+    const saida = [];
+    let corridos = 0;
+    for (const direcao of ordem) {
+      const celulas = Array.isArray(verbete.celulas[direcao]) ? verbete.celulas[direcao] : [];
+      for (const c of celulas) {
+        saida.push(Object.assign({}, c, {
+          direcao: direcao,
+          // O compasso começa em 1 e cada `numerador` tempos vira a página.
+          compasso: Math.floor(corridos / numerador) + 1,
+        }));
+        corridos += temposDaContagem(c.contagem);
+      }
+    }
+    return saida;
+  }
+  return (Array.isArray(verbete.segmentos) ? verbete.segmentos : []).map((s) => Object.assign({}, s));
+}
+
+/**
  * A COMPOSIÇÃO DE UMA LINHA DA SEQUÊNCIA.
  *
  * `linha` é um objeto do envelope (`{Bloco, «Objetivo específico», «Conteúdo do nível», Tempos,
@@ -230,7 +366,28 @@ function compor(linha, alfabeto) {
         + '; esta linha pede ' + plural(musica.tempos, 'tempo') + ' em ' + musica.compasso });
   }
 
-  const segmentos = (escolhido.verbete.segmentos || []).map((s) => Object.assign({}, s));
+  const segmentos = segmentosDe(escolhido.verbete, musica.numerador);
+
+  // A DIREÇÃO DECLARADA E A DIREÇÃO ESCRITA TÊM DE SER A MESMA COISA. Um verbete que declara três
+  // direções e só tem célula para duas é um verbete pela metade: a grade sairia com dois terços do
+  // exercício e nada o diria. É recusado, e não completado — a regra é a mesma de sempre: o motor
+  // nunca estica um verbete para caber.
+  {
+    const dirs = Array.isArray(escolhido.verbete.direcoes) ? escolhido.verbete.direcoes : null;
+    const celulas = escolhido.verbete.celulas;
+    if (dirs && celulas && typeof celulas === 'object') {
+      const semCelula = dirs.filter((d) => !Array.isArray(celulas[d]) || !celulas[d].length);
+      const orfas = Object.keys(celulas).filter((d) => dirs.indexOf(d) === -1);
+      if (semCelula.length || orfas.length) {
+        const partes = [];
+        if (semCelula.length) partes.push('declara ' + semCelula.join(', ') + ' sem célula');
+        if (orfas.length) partes.push('tem célula de ' + orfas.join(', ') + ' fora das direções declaradas');
+        return Object.assign(base, { estado: 'lacuna', motivo: 'verbete-incompleto', segmentos: [], restoTempos: 0,
+          detalhe: 'o verbete de «' + exercicio + '» (' + escolhido.musica + ') ' + partes.join(' e ') });
+      }
+    }
+  }
+
   const soma = segmentos.reduce((t, s) => t + temposDaContagem(s.contagem), 0);
   const declarado = escolhido.verbete.cobre == null ? soma : Number(escolhido.verbete.cobre);
   if (declarado !== soma) {
@@ -277,6 +434,12 @@ function compor(linha, alfabeto) {
     restoTempos: restoTempos > 0 ? restoTempos : 0,
     // O compasso em que a lacuna começa: é a linha que o documento escreve com `[conferir]`.
     compassoDoResto: restoTempos > 0 ? Math.floor(compassosCobertos) + 1 : null,
+    // A POSIÇÃO e as DIREÇÕES vêm do verbete, e é o documento que as escreve em palavras. Sem
+    // elas, a página em prosa não diz em que posição o exercício acontece — que é a primeira
+    // coisa que se pergunta, e a única que a notação sabia e a prosa não.
+    posicao: escolhido.verbete.posicao || null,
+    direcoes: Array.isArray(escolhido.verbete.direcoes) ? escolhido.verbete.direcoes.slice() : [],
+    lados: Array.isArray(escolhido.verbete.lado) ? escolhido.verbete.lado.slice() : [],
     detalhe,
   });
 }
@@ -332,7 +495,9 @@ function declaracao(alfabeto) {
     versao: alfabeto.versao,
     categorias: (alfabeto.categorias || []).length,
     sinais: sinais.size,
-    verbetes: Object.keys(alfabeto.verbetes || {}).length,
+    // A chave `_comentario` é a explicação do dado, não um exercício: contá-la daria «5 verbetes»
+    // num alfabeto com quatro.
+    verbetes: Object.keys(alfabeto.verbetes || {}).filter((k) => !k.startsWith('_')).length,
   };
 }
 
@@ -342,6 +507,11 @@ module.exports = {
   alfabetos,
   paraNotacao,
   sinaisDo,
+  termoPorId,
+  posicaoEmPalavras,
+  direcaoEmPalavras,
+  posicoesDeBracosDoMetodo,
+  normalizarMetodo,
   lerMusica,
   lerBloco,
   temposDaContagem,

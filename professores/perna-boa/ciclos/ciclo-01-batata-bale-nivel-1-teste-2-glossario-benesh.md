@@ -13,7 +13,7 @@ title: "Glossário do código Benesh do ciclo"
 > **Nota.** O glossário e o registro são um par: um símbolo só existe no registro
 > se tiver verbete aqui, e todo verbete aqui aponta para onde aparece.
 
-O alfabeto deste código é `ballet-classico` versão 1 — 4 categorias, 21 sinais e 4 verbetes de exercício. Um exercício novo entra no registro
+O alfabeto deste código é `ballet-classico` versão 2 — 4 categorias, 22 sinais e 4 verbetes de exercício. Um exercício novo entra no registro
 depois de o seu verbete existir; um sinal novo, depois de ganhar linha neste glossário.
 
 ## Índice de símbolos
@@ -192,6 +192,6 @@ depois de o seu verbete existir; um sinal novo, depois de ganhar linha neste glo
 | 29 | Barra — Battement tendu | 4 | composto |
 | 30 | Centro — Port de bras | 4 | parcial |
 
-> **Declarados e não usados.** O alfabeto tem sinais que este registro não usa: `Peso` (categoria peso), `↺` (rotação para fora), `-` (ao lado), `ED` (en dehors), `EI` (en dedans), `5ª` (quinta posição). Eles só entram no glossário quando um exercício os usar — um
+> **Declarados e não usados.** O alfabeto tem sinais que este registro não usa: `Peso` (categoria peso), `↺` (rotação para fora), `-` (ao lado), `ED` (en dehors), `EI` (en dedans), `4ª` (quarta posição), `5ª` (quinta posição). Eles só entram no glossário quando um exercício os usar — um
 > glossário maior do que o registro é um glossário a mais.
 
