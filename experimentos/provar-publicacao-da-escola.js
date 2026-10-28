@@ -104,6 +104,8 @@ function arvore() {
     for (const pagina of ['plano', 'aula-01', 'notacao', 'referencias']) {
       escrever(raiz, path.join(pacote, pagina + '.html'), '<!DOCTYPE html><html></html>\n');
     }
+    escrever(raiz, path.join(pacote, 'ciclo-01-' + ESCOLA + '-' + variante + '.pdf'), '%PDF ciclo\n');
+    escrever(raiz, path.join(pacote, 'aula-01.pdf'), '%PDF aula\n');
     escrever(raiz, path.join(pacote, 'ciclos.json'), JSON.stringify({
       ciclos: [{
         id: '01', escola: 'Prova Escola', inicio, fim: '2026-12-17',
@@ -286,6 +288,18 @@ function principal() {
       (listaAulas.match(/<a[^>]+>Abrir notação<\/a>/g) || []));
     checar('não há botão de Notação nas aulas sem página publicada',
       !/Aula 02[\s\S]{0,700}Abrir notação/.test(listaAulas), listaAulas.length);
+    checar('a Aula 01 oferece o PDF individual da aula',
+      /href="\/nivel-1\/aula-01\.pdf"[^>]*>PDF da aula<\/a>/.test(listaAulas),
+      (listaAulas.match(/<a[^>]+>PDF da aula<\/a>/g) || []));
+
+    const listaPlanos = ler(pub, 'ciclos/planos/index.html');
+    checar('o nome do ciclo abre o plano em vez de um botão separado',
+      /<a href="\/nivel-1\/plano\.html" target="_blank" rel="noopener" title="abrir o plano do ciclo">Ciclo 01 — Prova Escola · Balé Nível 1<\/a>/.test(listaPlanos)
+        && !/Abrir o plano/.test(listaPlanos), listaPlanos);
+    checar('a lista de Planos mantém Referências e o PDF do ciclo',
+      /Referências/.test(listaPlanos)
+        && /href="\/nivel-1\/ciclo-01-prova-escola-nivel-1\.pdf"[^>]*>PDF do ciclo<\/a>/.test(listaPlanos),
+      (listaPlanos.match(/<a[^>]+>(?:Referências|PDF do ciclo)<\/a>/g) || []));
 
     // TODOS os links da barra resolvem — nenhum aponta para o que não foi publicado. Os href da
     // barra são ABSOLUTOS (a mesma barra serve o pacote e a porta), e as rotas da porta não são

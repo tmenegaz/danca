@@ -748,11 +748,14 @@ done
 # A aula em prosa combina a fonte da aula com os exercícios declarados na fonte de Notação.
 # É uma saída derivada: preserva compasso, contagem e descrição, mas omite a coluna de sinais.
 AULA_PROSA_SRC=""
+AULA_NOTACAO_SRC=""
 AULA_FONTE="$TMP/src/ciclo-$CICLO-aula-01.md"
 NOTACAO_FONTE="$TMP/src/ciclo-$CICLO-notacao.md"
 if [ -f "$AULA_FONTE" ] && [ -f "$NOTACAO_FONTE" ]; then
   AULA_PROSA_SRC="$TMP/src/ciclo-$CICLO-aula-01-prosa.md"
   node "$RAIZ/tools/gerar-aula-prosa.js" "$AULA_FONTE" "$NOTACAO_FONTE" "$AULA_PROSA_SRC" || exit 1
+  AULA_NOTACAO_SRC="$TMP/src/ciclo-$CICLO-notacao-com-aula.md"
+  node "$RAIZ/tools/gerar-aula-prosa.js" --notacao "$AULA_FONTE" "$NOTACAO_FONTE" "$AULA_NOTACAO_SRC" || exit 1
 fi
 
 # Âncoras estáveis: são as mesmas no HTML (#id da página) e no PDF (#id da seção),
@@ -1058,6 +1061,8 @@ for doc in $TODOS; do
   src="$TMP/src/ciclo-$CICLO-$doc.md"
   if [ "$doc" = "aula-01" ] && [ -n "$AULA_PROSA_SRC" ]; then
     src="$AULA_PROSA_SRC"
+  elif [ "$doc" = "notacao" ] && [ -n "$AULA_NOTACAO_SRC" ]; then
+    src="$AULA_NOTACAO_SRC"
   fi
   if [ ! -f "$src" ]; then
     echo "aviso: fonte ausente, pulando: $doc ($(fonte_md "$doc"))" >&2
@@ -1195,10 +1200,12 @@ fi
 # Os ACOMPANHAMENTOS NÃO entram no PDF. Ele é publicado no site e ficaria em
 # claro: a política de segurança dos dados sensíveis protege por camadas, e esta
 # é uma delas (ver CONGELAMENTO.md). Eles existem no site, cifrados.
-python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS" "$ESCOLA" > "$TMP/mapa-ancoras.txt" <<'PY'
+python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS" "$ESCOLA" \
+  "$AULA_PROSA_SRC" "$AULA_NOTACAO_SRC" > "$TMP/mapa-ancoras.txt" <<'PY'
 import re, sys, pathlib
 ciclos, ciclo, destino, docs, escola = \
     sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split(), sys.argv[5]
+aula_prosa, aula_notacao = sys.argv[6:8]
 ancoras = {
     'index': 'indice-geral', 'plano': 'plano-do-ciclo', 'notacao': 'notacao-em-benesh',
     'pre-requisitos': 'condicoes-pre-existentes', 'musicalidade': 'musicalidade',
@@ -1235,6 +1242,10 @@ def prefixar_ids(corpo, prefixo):
 partes = []
 for doc in docs:
     arq = pathlib.Path(ciclos) / ('ciclo-%s-%s.md' % (ciclo, doc))
+    if doc == 'aula-01' and aula_prosa:
+        arq = pathlib.Path(aula_prosa)
+    elif doc == 'notacao' and aula_notacao:
+        arq = pathlib.Path(aula_notacao)
     if not arq.exists():
         continue
     bruto = arq.read_text(encoding='utf-8')
@@ -1344,6 +1355,29 @@ SOURCE_DATE_EPOCH="$(git -C "$RAIZ" log -1 --format=%ct -- "professores/$PROFESS
 [ -n "$SOURCE_DATE_EPOCH" ] || SOURCE_DATE_EPOCH="$(date +%s)"
 export SOURCE_DATE_EPOCH
 export FORCE_SOURCE_DATE=1
+
+for doc in $DOCS; do
+  case "$doc" in
+    aula-*)
+      src="$TMP/src/ciclo-$CICLO-$doc.md"
+      if [ "$doc" = "aula-01" ] && [ -n "$AULA_PROSA_SRC" ]; then
+        src="$AULA_PROSA_SRC"
+      fi
+      [ -f "$src" ] || continue
+      pandoc "$src" \
+        -o "$PACOTE/$doc.pdf" \
+        --toc --toc-depth=3 \
+        --from=markdown+raw_tex+header_attributes \
+        --pdf-engine="$PDF_ENGINE" \
+        -V geometry:margin=2cm \
+        -V colorlinks=true \
+        -V lang=pt-BR \
+        -V toc-title="Índice" \
+        --include-in-header="$TMP/cabecalho.tex"
+      echo "pdf:  $doc.pdf · engine $PDF_ENGINE · $(pdfinfo "$PACOTE/$doc.pdf" | awk '/^Pages/{print $2}') páginas"
+      ;;
+  esac
+done
 
 pandoc "$TMP/consolidado-final.md" \
   -o "$PACOTE/$ID.pdf" \

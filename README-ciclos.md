@@ -36,6 +36,7 @@ HTML), as regras de navegação e como validar tudo antes de entregar ao profess
 | **Markdown-fonte** | `professores/<professor>/ciclos/ciclo-XX-*.md` | o que o professor edita no VS Code |
 | **Manifesto do ciclo** | `professores/<professor>/ciclos/ciclo-XX.conf` | nome, objetivo geral, **duração da aula**, período, faixa de volume e ordem dos documentos |
 | **PDF único consolidado** | `professores/<professor>/ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (**52 páginas** no Diaghilev) |
+| **PDF individual da aula** | `professores/<professor>/ciclos/ciclo-XX/aula-NN.pdf` | leitura da aula em prosa, com a mesma informação da página HTML |
 | **Pacote HTML** | `professores/<professor>/ciclos/ciclo-XX/*.html` | **21 páginas** interligadas no Diaghilev, com barra de navegação fixa |
 | **Folha de estilo única** | `professores/<professor>/ciclos/ciclo-XX/assets/style.css` | gerada de `tools/templates/ciclo.css` |
 | **Mapas do rizoma** | `professores/<professor>/ciclos/ciclo-XX/assets/rizoma-*.svg` | copiados do projeto para o Apanhado Histórico |
@@ -95,7 +96,7 @@ O script, em ordem:
    `<!-- CALENDARIO -->` das fontes;
 5. **normaliza os ids** de todos os títulos (`tools/normalizar-ids.py`);
 6. converte cada documento em HTML com o template `tools/templates/ciclo.html`;
-7. monta o **PDF consolidado** com pandoc + cabeçalho LaTeX próprio;
+7. monta o **PDF individual de cada aula** e o **PDF consolidado** com pandoc + cabeçalho LaTeX próprio;
 8. copia a folha de estilo e os mapas; escreve o `README.md` do pacote (se não existir);
 9. roda a validação final e falha se algo estiver quebrado.
 
@@ -375,4 +376,3 @@ ciclo com volume fora da faixa (140 tempos) . recusada ✓ (Regra 9)
 > As ferramentas do material do rizoma (`gerar-animacao.js`, `check-mapa.js`,
 > `medir-rotulos.js`, `sincronizar-slide.js`) são do **deck** e estão descritas no
 > `README.md` da raiz.
-

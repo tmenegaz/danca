@@ -27241,3 +27241,71 @@ Após esta fotografia, os três commits foram enviados a `origin/main` (entrega 
 `Publicar as escolas` concluiu com sucesso, incluindo o job de Batata; uma única conferência ao vivo
 em `/aulas/` respondeu HTTP 200 e confirmou os links da leitura em prosa e da ação «Abrir notação».
 Não foi necessário `wrangler deploy` manual.
+
+## 27/10/2026 — A Notação herda a Aula; o Plano e a aula ganham o seu caminho
+
+**O que motivou.**
+O Guia de observação da Aula 01 mostrava `[Preencher]` apesar de o Plano de Observação já declarar
+os itens de cada dimensão. A coluna «marca por aluno» não explicava a legenda nem onde o professor
+registra. A leitura Benesh também precisava conservar as informações da Aula em prosa e acrescentar
+os sinais; além disso, o título do ciclo deveria abrir o Plano e a lista de Aulas precisava oferecer
+o PDF individual.
+
+**O que foi decidido.**
+- O Guia usa os itens declarados no Plano de Observação e identifica a Captura para impressão como
+  lugar de registro, explicando a legenda que ela já declara.
+- A leitura de Notação parte da estrutura completa da Aula em prosa e acrescenta o material Benesh;
+  a leitura em prosa continua sem a coluna de sinais.
+- Na lista de Planos, o título do ciclo abre o Plano e permanecem as ações «Referências» e «PDF do
+  ciclo». A lista de Aulas oferece «PDF da aula» quando o PDF individual está presente.
+- O PDF individual da Aula é gerado da mesma fonte em prosa usada pela página HTML.
+
+**Motivo declarado — os congelados.**
+O pedido explícito da pesquisadora exige mudar a geração e a montagem em `tools/gerar-aula-prosa.js`,
+`tools/gerar-ciclo.sh` e `tools/montar-publicacao.js`, que pertencem à infraestrutura congelada.
+O motivo é manter as duas leituras coerentes e oferecer os documentos nos percursos de Planos e
+Aulas. Não se alteram a fórmula nem a cobertura do hash, os validadores, as regras ou as pétreas.
+
+**Onde entrou.**
+- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md` — itens do PO e
+  explicação do registro na Captura.
+- `tools/gerar-aula-prosa.js` — composição da leitura de Notação a partir da Aula e da fonte Benesh.
+- `tools/gerar-ciclo.sh` — seleção dessa leitura para Notação e geração do PDF individual em prosa.
+- `tools/montar-publicacao.js` — título do Plano como link e ação condicional «PDF da aula».
+- `README-ciclos.md` — documentação do PDF individual.
+- `experimentos/provar-aula-prosa.js` e `experimentos/provar-publicacao-da-escola.js` — provas das
+  informações, da composição e dos links.
+- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp` e
+  `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp` — âncoras do
+  ciclo e da Aula 01 reancoradas.
+- `ESTADO-ATUAL.md` — fotografia desta alteração e dos limites de validação.
+- `HANDOFF.md` — regenerado a partir da fotografia e deste registro.
+
+**Com o quê.**
+`README-ciclos.md`; `experimentos/provar-aula-prosa.js`,
+`experimentos/provar-publicacao-da-escola.js`;
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`,
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp`,
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp`;
+`tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js`;
+`REGISTRO.md`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**Validações.**
+`provar-aula-prosa.js`: 19 verificações; `provar-publicacao-da-escola.js`: 64 asserções;
+`check-identidade.js`: 20 verificações; `node --check`, `bash -n` e `git diff --check` passaram.
+`hash-ciclo.sh` reancorou o ciclo e a Aula 01; `--check` confirmou a cadeia íntegra, com hashes
+`297d7e77c8831c04d7d49c59544090e06a409f7148df2d69f6522e5fe54c07f7` e
+`9f72cebc97ee4157cf8c42b3f3b1d5a942e0550bfa7a1badb8a6f551269e3b21`.
+
+**O que ainda não está feito.**
+O pacote foi gerado e validado localmente, mas ainda não houve commit, push, deploy ou conferência ao vivo.
+
+**Correção de 27/10/2026 (mesmo dia).** A primeira leitura interrompeu a geração ao encontrar
+`${!campo:-}`. A inspeção mostrou que `campo` percorre uma lista fixa de nomes de configuração e
+que a expansão só lê os valores carregados dos manifestos; não constrói nem executa comandos.
+Portanto, o bloqueio não se aplicava a este uso. O gerador foi executado e o pacote real validado:
+9 páginas HTML, 325 links internos, PDF consolidado de 34 páginas e `aula-01.pdf` de 10 páginas.
+Os validadores de schema, PO, plano, Aula e captura passaram; a Captura manteve dois avisos de
+mapeamento. `check-identidade.js` passou com 20 verificações; as provas focadas passaram com 19
+verificações e 64 asserções. A publicação local da Batata também foi montada. Permanecem pendentes
+commit, push, deploy e conferência ao vivo.

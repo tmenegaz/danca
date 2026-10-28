@@ -32,6 +32,17 @@ function linhaDeTabela(celulas) {
   return '| ' + celulas.join(' | ') + ' |';
 }
 
+function partesDoMarkdown(markdown, nome) {
+  const cabecalho = /^(---\r?\n[\s\S]*?\r?\n---)(?:\r?\n|$)/.exec(markdown);
+  if (!cabecalho) {
+    throw new Error('A fonte de ' + nome + ' precisa declarar front matter.');
+  }
+  return {
+    cabecalho: cabecalho[1],
+    corpo: markdown.slice(cabecalho[0].length).trim(),
+  };
+}
+
 function transformarExercicios(markdown) {
   const linhas = markdown.split(/\r?\n/);
   const inicio = linhas.findIndex((linha) => /^## Exercícios da Aula \d+\b/.test(linha));
@@ -124,21 +135,33 @@ function gerarAulaProsa(aula, notacao) {
   return aula.trimEnd() + '\n\n' + transformarExercicios(notacao) + '\n';
 }
 
+function gerarAulaNotacao(aula, notacao) {
+  const aulaPartes = partesDoMarkdown(aula, 'Aula');
+  const notacaoPartes = partesDoMarkdown(notacao, 'Notação');
+  return notacaoPartes.cabecalho + '\n\n'
+    + aulaPartes.corpo + '\n\n'
+    + notacaoPartes.corpo + '\n';
+}
+
 if (require.main === module) {
-  const [, , arquivoAula, arquivoNotacao, arquivoSaida] = process.argv;
+  const modoNotacao = process.argv[2] === '--notacao';
+  const inicioArgumentos = modoNotacao ? 3 : 2;
+  const [arquivoAula, arquivoNotacao, arquivoSaida] =
+    process.argv.slice(inicioArgumentos, inicioArgumentos + 3);
   if (!arquivoAula || !arquivoNotacao || !arquivoSaida) {
-    console.error('Uso: node tools/gerar-aula-prosa.js <aula.md> <notacao.md> <saida.md>');
+    console.error('Uso: node tools/gerar-aula-prosa.js [--notacao] <aula.md> <notacao.md> <saida.md>');
     process.exitCode = 2;
   } else {
     try {
       const aula = fs.readFileSync(arquivoAula, 'utf8');
       const notacao = fs.readFileSync(arquivoNotacao, 'utf8');
-      fs.writeFileSync(arquivoSaida, gerarAulaProsa(aula, notacao), 'utf8');
+      const gerar = modoNotacao ? gerarAulaNotacao : gerarAulaProsa;
+      fs.writeFileSync(arquivoSaida, gerar(aula, notacao), 'utf8');
     } catch (erro) {
-      console.error('Não foi possível gerar a aula em prosa: ' + erro.message);
+      console.error('Não foi possível gerar a leitura da aula: ' + erro.message);
       process.exitCode = 1;
     }
   }
 }
 
-module.exports = { gerarAulaProsa, transformarExercicios };
+module.exports = { gerarAulaNotacao, gerarAulaProsa, transformarExercicios };

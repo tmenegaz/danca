@@ -354,7 +354,7 @@ function documentosDaTurma(pacote) {
     referencias: primeiro(/^referencias\.html$/),
     notacao: primeiro(/^notacao\.html$/),
     glossario: primeiro(/^glossario[-a-z]*\.html$/),
-    pdf: primeiro(/\.pdf$/),
+    pdf: primeiro(/^ciclo-.*\.pdf$/),
   };
 }
 
@@ -539,10 +539,11 @@ function itemDoPlano(t) {
   const turmaCurta = p.turmaCurta;
   return {
     nome: p.nome,
+    ler: t.documentos && t.documentos.plano ? p.hrefPlano : '',
+    lerDica: 'abrir o plano do ciclo',
     selo: p.po || '',
     seloClasse: p.poClasse,
     acoes: [
-      ['Abrir o plano', p.hrefPlano, ''],
       ['Referências', p.hrefReferencias, 'secundario'],
       p.hrefPdf ? ['PDF do ciclo', p.hrefPdf, 'secundario'] : null,
     ].filter(Boolean),
@@ -604,6 +605,10 @@ function itemDaAula(t, a, indice, total) {
   }
   if (fs.existsSync(path.join(t.pasta, 'captura-aula-' + a.n + '.html'))) {
     acoes.push(['Captura para impressão', '/' + t.variante + '/captura-aula-' + a.n + '.html', 'secundario']);
+  }
+  const pdfAula = paginaAula.replace(/\.html$/, '.pdf');
+  if (fs.existsSync(path.join(t.pasta, pdfAula))) {
+    acoes.push(['PDF da aula', '/' + t.variante + '/' + pdfAula, 'secundario']);
   }
   return {
     nome: 'Aula ' + a.n + (a.marco ? ' — ' + a.marco : ''),

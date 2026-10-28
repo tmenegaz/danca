@@ -77,12 +77,16 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 ## 5. Guia de observação do professor
 
-| Dimensão | O que se observa | Como se registra |
-|:--|:--|:--|
-| Técnica — Solo | [Preencher] | marca por aluno |
-| Técnica — Barra | [Preencher] | marca por aluno |
-| Técnica — Centro | [Preencher] | marca por aluno |
-| Técnica — Musicalidade | [Preencher] | marca por aluno |
+Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor registra cada
+item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
+vazio = não observei.
+
+| Dimensão | O que se observa |
+|:--|:--|
+| Técnica — Solo | alinhamento do pé de apoio; eixo do corpo na preparação |
+| Técnica — Barra | saída do calcanhar no tendu; quadril sem subir no en dehors |
+| Técnica — Centro | transferência de peso sem perder a verticalidade; braço junto do movimento |
+| Técnica — Musicalidade | resposta ao pulso na marcação; frase até o fim da música |
 
 ## 6. Distribuição do volume físico
 
@@ -106,4 +110,3 @@ gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).
 ## 9. Próximo passo
 
 [Preencher: o próximo passo da progressão do ciclo]
-

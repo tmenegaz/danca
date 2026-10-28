@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 27/10/2026 (leitura em prosa e Notação da Batata publicada; entrega em `d349ed0`, workflow e rota `/aulas/` confirmados).
+> **Última fotografia:** 27/10/2026 (base local `a7da29d`; Aula 01 e Notação alinhadas, pacote real gerado e validado; publicação remota pendente).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -133,6 +133,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | Navegação: coluna + barra + caminho | **CONFIRMADO** | `motor/nucleo/nav.js` |
 | Listas no padrão novo | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
 | Aulas: leitura em prosa e Notação Benesh | **CONFIRMADO em produção** em 27/10/2026 — o nome abre a prosa, «Abrir notação» fica ao lado da Aula 01, e o Glossário está no cabeçalho persistente da Notação, em nova aba. A rota `/aulas/` respondeu 200 e continha os dois destinos; as provas locais confirmaram a montagem e a remoção das listas independentes. | `tools/gerar-aula-prosa.js`, `tools/montar-publicacao.js`, `motor/nucleo/nav.js` |
+| Aula 01: Guia preenchido com os itens do PO, Notação com a estrutura da Aula e PDF individual | **CONFIRMADO localmente**: fontes, HTMLs, PDFs, pacote, montagem da publicação e provas passaram; âncoras do ciclo e da Aula 01 íntegras. **PENDENTE**: push, deploy e conferência ao vivo. | `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`, `tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` |
 | As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado, o aviso da senha errada; 43 verificações no browser | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
 | Anamnese: formulário, vínculo, ajuste | **CONFIRMADO** | `rotas.js` (11 rotas `/api/anamnese*`) |
@@ -240,16 +241,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 11. **A ação que grava um formulário vai dentro da fileira `.par-botoes`, e é `.acao`**
     (`grande` quando é a principal). Um `.acao` solto depois do `<div class="res">` encosta no
     campo, porque o vão da folha é uma conta de vizinhança. **DECIDIDO** 26/10/2026.
+12. **A Notação reproduz a estrutura da Aula em prosa e acrescenta os sinais Benesh.** O Guia de
+    observação usa os itens do PO e explica o registro na Captura; o título do ciclo abre o Plano e
+    a lista de Aulas oferece o PDF individual. **DECIDIDO** 27/10/2026.
 
 ## 7. Trabalho em andamento
 
-**Objetivo:** fazer da listagem Aulas a entrada para a leitura em prosa e para a Notação Benesh,
-com o Glossário acessível dentro da Notação. **Implementado e validado localmente; ainda não
-publicado.**
+**Objetivo:** completar o conteúdo da Aula 01 em prosa e na leitura Benesh, e oferecer o Plano e o
+PDF individual pelos nomes das listas. **Implementado, gerado, validado e montado localmente; push,
+deploy e conferência ao vivo pendentes.**
 
-**Último ponto confirmado:** 27/10/2026 — pacote Batata regenerado (9 páginas HTML e PDF de 26
-páginas), publicação local montada, provas focadas aprovadas e âncora `.fipp` íntegra. Não houve
-commit, push, deploy nem conferência ao vivo nesta alteração.
+**Último ponto confirmado:** 27/10/2026 — pacote com 9 páginas HTML e 325 links, PDF consolidado de
+34 páginas e PDF individual da Aula de 10 páginas; pacote, validadores, publicação local, provas e
+âncoras aprovados. Não houve commit, push, deploy nem conferência ao vivo desta alteração.
 
 ## 8. Pendências e dúvidas
 
@@ -324,7 +328,23 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ## 9. Validação
 
-### Executado nesta fotografia (27/10/2026)
+### Executado nesta fotografia (27/10/2026 — entrega local da Aula)
+
+| Verificação | Resultado |
+|:--|:--|
+| `git fetch origin` + `git status -sb` | fetch autenticado com o token local concluído; `main` alinhado com `origin/main` em `a7da29d` |
+| `provar-aula-prosa.js` | **19 verificações**, sem falhas |
+| `provar-publicacao-da-escola.js` | **64 asserções**, sem falhas; prova de montagem em árvore temporária |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node --check` nos JavaScript alterados; `bash -n tools/gerar-ciclo.sh`; `git diff --check` | passaram |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2` + `--check` | âncoras do ciclo e da Aula 01 regeneradas; cadeia íntegra. Hashes: `297d7e77c8831c04d7d49c59544090e06a409f7148df2d69f6522e5fe54c07f7` e `9f72cebc97ee4157cf8c42b3f3b1d5a942e0550bfa7a1badb8a6f551269e3b21` |
+| `tools/gerar-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2` + `node tools/check-pacote.js ...` | pacote gerado; **9 páginas HTML**, **325 links internos**, PDF consolidado de **34 páginas**, **0 erros e 0 avisos**; PDF individual `aula-01.pdf` com **10 páginas** |
+| Validadores isolados do ciclo | schema, PO, plano, Aula e captura passaram; Captura com 2 avisos de mapeamento |
+| `node experimentos/propostas/construir.js` + `node tools/montar-publicacao.js batata --com-propostas` | publicação local montada em `publicacao/batata`; lista de Planos e Aulas gerada |
+| conferência de HTML e PDFs | Notação gerada com a estrutura da Aula e as tabelas Benesh; PDFs individuais e consolidado gerados; conferidos pelo agente de entrega |
+| deploy e conferência ao vivo | pendentes; não houve requisição à produção |
+
+### Publicação anterior (27/10/2026 — entrega `d349ed0`)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -398,16 +418,19 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 
 Ações imediatas, sem transformar hipótese em compromisso:
 
-1. A alteração está implementada, gerada, validada e publicada em `d349ed0`.
-2. Os três commits foram enviados a `origin/main`; o workflow automático e o job de Batata concluíram
-   com sucesso. Não foi necessário deploy manual.
-3. A conferência final de `/aulas/` retornou HTTP 200 e confirmou os links da prosa e da Notação.
-   A navegação página a página não foi feita, em respeito ao limite de uma carga final por escola.
+1. Fazer commit e push dos arquivos validados; o remoto foi confirmado em `a7da29d`.
+2. Acompanhar o workflow automático `Publicar as escolas` e confirmar o job Batata.
+3. Fazer uma única conferência ao vivo da rota Aulas após o deploy; evitar cargas extras.
 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **27/10/2026** — **A Aula 01 e a Notação ficaram alinhadas.** O Guia usa os itens declarados no PO
+  e esclarece o registro na Captura; a Notação compõe a estrutura completa da Aula com os sinais
+  Benesh; o Plano abre pelo título e a lista de Aulas oferece PDF individual. Pacote real, publicação
+  local, validadores, provas focadas e âncoras passaram. **PENDENTE** push, deploy e conferência ao
+  vivo.
 - **27/10/2026** — **Aulas passou a oferecer as duas leituras.** O título da Aula 01 abre a versão
   em prosa; «Abrir notação» fica ao lado; as listas independentes de Notação e Consulta deixam de
   ser geradas; a Notação oferece um atalho persistente para o Glossário em nova aba. Pacote,
@@ -466,6 +489,8 @@ O que **não** consigo confirmar, e o senhor tem de decidir ou informar:
 - **A produção não foi percorrida página a página após a reorganização de Aula/Notação.** O deploy
   foi confirmado no workflow e uma carga de `/aulas/` respondeu 200 com os links da prosa e da
   Notação; as demais páginas não foram verificadas ao vivo.
+- **Esta alteração ainda não chegou à produção.** O pacote e a publicação local foram validados,
+  mas commit, push, deploy e conferência ao vivo continuam pendentes.
 - **Não sei a distribuição real de uso em produção.** Não há telemetria; o que sei é o que os
   `curl` devolvem.
 - **Não sei se o `TRANSFERENCIA-IA.md` serve o seu caso de uso.** Foi desenhado a partir de uma

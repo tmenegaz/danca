@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-27T17:17:45-0300`
-Commit atual: `d349ed0` — chore(entrega): consolidar artefatos da Batata
+Gerado em: `2026-10-27T22:44:58-0300`
+Commit atual: `a7da29d` — docs(registro): registrar publicação da aula em prosa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,7 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+a7da29d docs(registro): registrar publicação da aula em prosa
 d349ed0 chore(entrega): consolidar artefatos da Batata
 b9cb59f feat(aula-01): oferecer leitura em prosa e notacao
 a656507 feat(tools): ler aula em prosa e notacao
@@ -99,7 +100,6 @@ c278372 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turm
 ec1d874 feat(plano): o plano elicitado vira a fonte do ciclo
 11d4ea1 feat(acervo): envelope/plano-20261027-1131.json
 ef496e3 feat(acervo): envelope/.indice.json
-91211a6 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -130,7 +130,7 @@ ef496e3 feat(acervo): envelope/.indice.json
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `1816e1eb7b3c` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `09ad8beef7d7` | (vazio) | Input_PO_Aguardando |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `297d7e77c883` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 0 ciclo(s)
 
@@ -199,116 +199,75 @@ ef496e3 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 27/10/2026 — A aula passa a ter leitura em prosa e em Notação Benesh
+## 27/10/2026 — A Notação herda a Aula; o Plano e a aula ganham o seu caminho
 
 **O que motivou.**
-A lista independente de Notação e a de Consulta separavam partes da mesma experiência: o professor
-precisava de abrir a aula em prosa, ver a outra leitura em Benesh e consultar o significado dos
-sinais sem sair do contexto da aula. A versão em Notação já trazia compasso, contagem, sinais e
-descrições, mas faltava uma leitura que preservasse a estrutura e a descrição sem a coluna de sinais.
+O Guia de observação da Aula 01 mostrava `[Preencher]` apesar de o Plano de Observação já declarar
+os itens de cada dimensão. A coluna «marca por aluno» não explicava a legenda nem onde o professor
+registra. A leitura Benesh também precisava conservar as informações da Aula em prosa e acrescentar
+os sinais; além disso, o título do ciclo deveria abrir o Plano e a lista de Aulas precisava oferecer
+o PDF individual.
 
 **O que foi decidido.**
-- O nome da aula na lista «Aulas» abre a versão em prosa; a ação «Abrir notação» fica ao lado
-  quando existe Notação para aquela aula. No estado atual, essa ação é apenas da Aula 01.
-- A leitura em prosa combina a fonte da Aula com as tabelas de exercícios da fonte de Notação:
-  preserva compasso, contagem, descrição e lacunas declaradas, mas omite a coluna Benesh. Não se
-  inventam descrições em falta.
-- As listas independentes de Notação e Consulta deixam de ser geradas. A Notação e o Glossário
-  pertencem ao percurso de Aulas; a barra e o caminho dos dois documentos retornam à lista Aulas.
-- O cabeçalho persistente da Notação oferece «Abrir glossário (nova aba)»; o link no aviso de
-  proveniência também abre o Glossário em nova aba.
-- Nenhuma peça visual nova foi criada; as ações usam peças já declaradas no catálogo.
+- O Guia usa os itens declarados no Plano de Observação e identifica a Captura para impressão como
+  lugar de registro, explicando a legenda que ela já declara.
+- A leitura de Notação parte da estrutura completa da Aula em prosa e acrescenta o material Benesh;
+  a leitura em prosa continua sem a coluna de sinais.
+- Na lista de Planos, o título do ciclo abre o Plano e permanecem as ações «Referências» e «PDF do
+  ciclo». A lista de Aulas oferece «PDF da aula» quando o PDF individual está presente.
+- O PDF individual da Aula é gerado da mesma fonte em prosa usada pela página HTML.
 
 **Motivo declarado — os congelados.**
-O pedido explícito da pesquisadora exige alterar a geração do pacote e o cabeçalho dos documentos,
-que passam por `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` e `tools/templates/ciclo.html`,
-arquivos congelados em `CONGELAMENTO.md`. A mudança fica limitada ao fluxo e à navegação necessários
-para entregar as duas leituras. Não altera a fórmula nem a cobertura do hash, os validadores, as
-regras ou as pétreas.
+O pedido explícito da pesquisadora exige mudar a geração e a montagem em `tools/gerar-aula-prosa.js`,
+`tools/gerar-ciclo.sh` e `tools/montar-publicacao.js`, que pertencem à infraestrutura congelada.
+O motivo é manter as duas leituras coerentes e oferecer os documentos nos percursos de Planos e
+Aulas. Não se alteram a fórmula nem a cobertura do hash, os validadores, as regras ou as pétreas.
 
 **Onde entrou.**
-- `.gitignore` — exceção explícita para versionar a prova da leitura em prosa.
-- `IDENTIDADE-VISUAL.md` — caminho da Notação e do Glossário alinhado com a lista Aulas.
-- `tools/gerar-aula-prosa.js` — derivação das tabelas sem a coluna Benesh, com lacunas explícitas.
-- `tools/gerar-ciclo.sh` — geração da página em prosa dentro do pacote.
-- `tools/templates/ciclo.html` — atalho persistente ao Glossário quando há Notação.
-- `tools/montar-publicacao.js` — link no nome da aula, ação de Notação e remoção das duas listas.
-- `motor/nucleo/derivar-ciclo.js` — destino do Glossário e link em nova aba.
-- `motor/nucleo/lista-html.js` — dica de leitura em prosa no nome da aula.
-- `motor/nucleo/nav.js` — retorno da Notação e do Glossário para Aulas.
-- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md` — metadado do
-  Glossário e link em nova aba.
-- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp` — âncora regerada após a
-  alteração da fonte; `--check` confirmou a cadeia íntegra.
-- Pacote gerado `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/`:
-  `aula-01.html`, `captura-aula-01.html`, `ciclo-01-batata-bale-nivel-1-teste-2.pdf`,
-  `ciclos.json`, `glossario-benesh.html`, `harmonizacao.html`, `index.html`, `notacao.html`,
-  `plano.html` e `referencias.html`.
-- Provas: `experimentos/provar-aula-prosa.js` (nova), `experimentos/provar-publicacao-da-escola.js`,
-  `experimentos/provar-barra-e-caminho.js`, `experimentos/provar-barra-unica.js` e
-  `experimentos/provar-painel-do-ato.js`.
-- `ESTADO-ATUAL.md` — fotografia local, validações e limite de publicação.
-- `REGISTRO.md` — esta entrada.
-- `HANDOFF.md` — regenerado após o registro desta entrada.
-- A montagem local de `publicacao/batata` foi regenerada; é saída ignorada, não versionada.
+- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md` — itens do PO e
+  explicação do registro na Captura.
+- `tools/gerar-aula-prosa.js` — composição da leitura de Notação a partir da Aula e da fonte Benesh.
+- `tools/gerar-ciclo.sh` — seleção dessa leitura para Notação e geração do PDF individual em prosa.
+- `tools/montar-publicacao.js` — título do Plano como link e ação condicional «PDF da aula».
+- `README-ciclos.md` — documentação do PDF individual.
+- `experimentos/provar-aula-prosa.js` e `experimentos/provar-publicacao-da-escola.js` — provas das
+  informações, da composição e dos links.
+- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp` e
+  `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp` — âncoras do
+  ciclo e da Aula 01 reancoradas.
+- `ESTADO-ATUAL.md` — fotografia desta alteração e dos limites de validação.
+- `HANDOFF.md` — regenerado a partir da fotografia e deste registro.
 
 **Com o quê.**
-`.gitignore`; `IDENTIDADE-VISUAL.md`; `experimentos/provar-aula-prosa.js`,
-`experimentos/provar-publicacao-da-escola.js`, `experimentos/provar-barra-e-caminho.js`,
-`experimentos/provar-barra-unica.js`, `experimentos/provar-painel-do-ato.js`;
-`motor/nucleo/derivar-ciclo.js`, `motor/nucleo/lista-html.js`, `motor/nucleo/nav.js`;
-`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`,
-`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp`;
-`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/` — `aula-01.html`,
-`captura-aula-01.html`, `ciclo-01-batata-bale-nivel-1-teste-2.pdf`, `ciclos.json`,
-`glossario-benesh.html`, `harmonizacao.html`, `index.html`, `notacao.html`, `plano.html` e
-`referencias.html`;
-`tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js`,
-`tools/templates/ciclo.html`; `publicacao/batata/` (saída local ignorada);
-`ESTADO-ATUAL.md`, `REGISTRO.md` e `HANDOFF.md`.
+`README-ciclos.md`; `experimentos/provar-aula-prosa.js`,
+`experimentos/provar-publicacao-da-escola.js`;
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`,
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp`,
+`professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp`;
+`tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js`;
+`REGISTRO.md`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
-**Medido.**
-`check-pacote.js`: 0 erros, 0 avisos, 9 páginas, 314 links internos e PDF de 26 páginas.
-`provar-aula-prosa`: 10 verificações; `provar-publicacao-da-escola`: 61 asserções;
-`provar-barra-e-caminho`: 48/48; `provar-barra-unica`: 109; `provar-painel-do-ato`: TUDO CERTO,
-incluindo o atalho persistente em 1280 px e 390 px. `check-identidade.js`: 20 verificações, 0
-erros. Schema, PO e plano passaram; captura passou com dois avisos de cabeçalho. A âncora
-`09ad8beef7d71a251cfc2163d7da086efc4c16bcc0004b6abdee02face8b5b15` passou em `--check`.
-
-**Referências.**
-Pedido explícito da pesquisadora; `IDENTIDADE-VISUAL.md`; `PROTOCOLO.md` P-15/P-16 (par entre
-Notação e Glossário); `REGRAS.md` 17 (versionamento).
+**Validações.**
+`provar-aula-prosa.js`: 19 verificações; `provar-publicacao-da-escola.js`: 64 asserções;
+`check-identidade.js`: 20 verificações; `node --check`, `bash -n` e `git diff --check` passaram.
+`hash-ciclo.sh` reancorou o ciclo e a Aula 01; `--check` confirmou a cadeia íntegra, com hashes
+`297d7e77c8831c04d7d49c59544090e06a409f7148df2d69f6522e5fe54c07f7` e
+`9f72cebc97ee4157cf8c42b3f3b1d5a942e0550bfa7a1badb8a6f551269e3b21`.
 
 **O que ainda não está feito.**
-A fonte mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
-mesmo destino às demais aulas.
+O pacote foi gerado e validado localmente, mas ainda não houve commit, push, deploy ou conferência ao vivo.
 
-**Atualização de publicação (27/10/2026).**
-Após esta fotografia, os três commits foram enviados a `origin/main` (entrega em `d349ed0`). O workflow
-`Publicar as escolas` concluiu com sucesso, incluindo o job de Batata; uma única conferência ao vivo
-em `/aulas/` respondeu HTTP 200 e confirmou os links da leitura em prosa e da ação «Abrir notação».
-Não foi necessário `wrangler deploy` manual.
+**Correção de 27/10/2026 (mesmo dia).** A primeira leitura interrompeu a geração ao encontrar
+`${!campo:-}`. A inspeção mostrou que `campo` percorre uma lista fixa de nomes de configuração e
+que a expansão só lê os valores carregados dos manifestos; não constrói nem executa comandos.
+Portanto, o bloqueio não se aplicava a este uso. O gerador foi executado e o pacote real validado:
+9 páginas HTML, 325 links internos, PDF consolidado de 34 páginas e `aula-01.pdf` de 10 páginas.
+Os validadores de schema, PO, plano, Aula e captura passaram; a Captura manteve dois avisos de
+mapeamento. `check-identidade.js` passou com 20 verificações; as provas focadas passaram com 19
+verificações e 64 asserções. A publicação local da Batata também foi montada. Permanecem pendentes
+commit, push, deploy e conferência ao vivo.
 
 ## O que está pendente
-
-## 27/10/2026 — A correção passou pelo caminho real: a `batata` voltou pelo `criar-escola.sh`
-
-
-- ~~**`provar-painel-do-ato` e `provar-listas-do-acervo` continuam NÃO FEITAS**, e agora com a razão
-  certa: há **uma escola viva** (`batata`), e ela é esqueleto — `com ciclo gerado: (nenhum)`. O menu
-  «Área do Professor» só nasce com documentos e turmas. As duas dizem isso e saem a 2.~~
-- ~~**O caminho `gerar-ciclo.sh` continua por medir.** É o **único** elo desta cadeia que esta sessão
-  nunca viu correr — criar, publicar, expurgar, recriar, reparar e reancorar foram vistos, alguns
-  três vezes. E é ele que produz o que as duas provas acima precisam. Fica dito como o próximo
-  passo que interessa, e não como pendência de arrumação.~~
-- ~~**A `batata` não tem âncora** e o `check-pacote` do esqueleto reprova (falta PDF, `dados.json`,
-  aulas). Como qualquer escola recém-criada, e como a `calango` antes dela: ancorar sela, e não há
-  o que selar num ciclo vazio.~~
-
-Correção de 27/10/2026 (mesmo dia). A variante `batata-bale-nivel-1-teste-2` foi gerada localmente,
-ancorada e validada; `provar-painel-do-ato` passou. `provar-listas-do-acervo` continua sem execução,
-e o estado das outras variantes não muda. A afirmação acima descrevia o momento anterior à geração.
-~~A geração e a prova do painel estavam pendentes.~~
 
 ## 27/10/2026 — Ler não é editar: o nome do registo volta a abrir o documento
 
@@ -355,6 +314,10 @@ leitura da curadoria no `POST` não foi alterada por esta entrega.
 
 A fonte mantém lacunas declaradas; a Notação disponível corresponde à Aula 01, portanto não se oferece o
 mesmo destino às demais aulas.
+
+## 27/10/2026 — A Notação herda a Aula; o Plano e a aula ganham o seu caminho
+
+O pacote foi gerado e validado localmente, mas ainda não houve commit, push, deploy ou conferência ao vivo.
 
 ## Pendências anteriores (índice)
 
@@ -655,6 +618,7 @@ mesmo destino às demais aulas.
 - **27/10/2026** — O expurgo da `breu` aconteceu, e as duas metades conversaram → `REGISTRO.md` L26445
 - **27/10/2026** — A escola recriada diz o presente, e o passado passa a ter… → `REGISTRO.md` L26500
 - **27/10/2026** — A `calango` saiu, e com ela saiu também um verde falso meu → `REGISTRO.md` L26595
+- **27/10/2026** — A correção passou pelo caminho real: a `batata` voltou pelo… → `REGISTRO.md` L26665 *(superado)*
 - PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
