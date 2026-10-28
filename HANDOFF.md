@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-28T09:14:31-0300`
-Commit atual: `d9f085f` — docs(registro): registar a leitura dos documentos e a saída dos códigos da tela
+Gerado em: `2026-10-28T11:00:55-0300`
+Commit atual: `3c3a29d` — docs(registro): registar o cabeçalho sem etiquetas e o cartão da ficha sem moldura
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,10 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+3c3a29d docs(registro): registar o cabeçalho sem etiquetas e o cartão da ficha sem moldura
+29a95e5 feat(ciclo-01): as páginas da Batata abrem pelo título, e a aula leva à notação
+a2bbdfa feat(tools): o cabeçalho perde as etiquetas, e o cartão da ficha perde a moldura
+71c7f5d docs(registro): atualizar a fotografia do estado após a publicação da leitura
 d9f085f docs(registro): registar a leitura dos documentos e a saída dos códigos da tela
 dc8faec feat(ciclo-01): o plano da Batata abre pelo contexto, e o calendário parte-se pelo marco
 973358b feat(tools): o plano abre pela leitura, e o rodapé passa a ser o do documento
@@ -96,10 +100,6 @@ f251f0e fix(experimentos): alinhar provas à variante gerada
 a76afd4 chore(estrutura): reancorar a cadeia das fontes alteradas
 750a9d5 chore(estrutura): regerar os índices derivados
 e248b26 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
-0c32c6d feat(po): o PO elicitado vira a fonte do ciclo
-2e390e2 feat(acervo): envelope/po-20261027-1353.json
-91a1131 feat(acervo): envelope/.indice.json
-55f3b17 fix(po): o cabeçalho do Plano de Observação lê o plano que ele referencia
 ```
 
 ## Por professor
@@ -130,7 +130,7 @@ e248b26 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `1816e1eb7b3c` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `f934a3e8b636` | (vazio) | Input_PO_Aguardando |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `7a0befc4e192` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 0 ciclo(s)
 
@@ -199,133 +199,102 @@ e248b26 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-
 
 ## Última entrada do REGISTRO
 
-## 28/10/2026 — O documento abre pela leitura, e o código interno sai da tela
+## 28/10/2026 — O cabeçalho deixa de ter etiquetas, e o cartão da ficha perde a moldura
 
-**O que motivou.** A pesquisadora leu o plano do ciclo e a Aula 01 lado a lado e apontou três
-defeitos de leitura no primeiro: o resumo e as etiquetas debaixo do título repetiam o próprio
-documento; o `## Contexto` era uma tabela de doze linhas que misturava a escola, o calendário e a
-metodologia; e o calendário eram 26 linhas seguidas, com os dois marcos do ciclo perdidos no meio.
-Pediu também que os documentos fossem «mais fáceis de ler», mantendo o índice lateral congelado —
-e que **nenhum código de regra chegasse ao professor**: «o professor não sabe o que é P16».
+**O que motivou.** A pesquisadora pediu a mesma leitura que aprovou no plano para as
+**referências**, a **aula** e a **notação**: «a mesma solução de layout». E apontou dois defeitos
+que sobraram da alteração anterior: o botão **«Abrir notação»** tinha de estar **dentro** da aula,
+e não como ação da listagem; e o **cartão da anamnese** continuava circulado por uma moldura
+— «em cima sólida, à direita e à esquerda tracejada, em baixo sólida. Tira essas bordas» — com os
+campos em duas colunas e o «Outro» encostado ao método.
 
 **O que foi decidido.**
-- O plano abre pelo título e pelo contexto: saem o `subtitle` («Objetivo geral, marcos parciais,
-  rubrica e calibração de volume») e a fileira de etiquetas da `.ficha`. A ficha fica nas páginas
-  que identificam um ATO — a aula do dia.
-- O `## Contexto` passa a declarar **dois grupos**, «Escola e espaço» e «Professor, turma e
-  método». A linha «Escola / espaço» sai: o nome já está no título e no `escola:` do cabeçalho.
-- A tabela do calendário passa a ser **duas**, partidas pelo marco (a formativa e a somativa),
-  cada uma com o seu cabeçalho.
-- O **rodapé passa a ser o do documento**: no plano, referências e o PDF do ciclo; na aula, o
-  plano, a notação, a captura e o PDF da aula; na notação, o plano e o glossário. Sai o link da
-  própria página, e o rótulo «Plano» vira «Plano do Ciclo NN».
-- Os **códigos de regra saem de tudo o que o professor lê** — `(P-16)`, `(P-12)`, `(P-15)`,
-  `(P-10)`, `(P-11)`, `(P-06)`, `(P-21)`, `(P-22)` — nas fichas, nas páginas do ciclo, no guia
-  partilhado e nos textos do formulário. Os códigos **ficam** onde são a norma: `REGRAS.md`,
-  `PROTOCOLO.md`, `METODO.md`, os comentários do código e as mensagens dos validadores.
-- O cartão da ficha ganha vão vertical (`line-height: 1.55`, `padding-block`), sem alargar: a
-  moldura é monoespaçada e a folha só comporta um número de colunas.
+- A **ficha** (a fileira de etiquetas «Escola · 2x/semana · 50 min · Plano · Ciclo 01 · Volume
+  semanal») **saiu de todas as páginas do pacote**, e o template deixou de a desenhar. Ela repetia
+  em cada documento o contexto que o plano declara por inteiro.
+- O **subtítulo** saiu das três páginas pedidas. Em referências e notação ele repetia o corpo —
+  o «O que é este arquivo» e o «Aviso de proveniência» dizem o mesmo. Na **aula** ele trazia um
+  facto único («Sem deslocamento, sem giro, sem mudança de direção»), e por isso **desceu para o
+  corpo** como prosa: a informação não se deita fora para ganhar um cabeçalho limpo.
+- **«Abrir notação» passou a ser botão do cabeçalho da aula**, ao lado do título e preso com ele
+  ao rolar — o mesmo lugar do «Abrir glossário» na notação. Saiu da listagem de Aulas, que agora
+  só abre o documento.
+- O **cartão da ficha perdeu a moldura de carateres** (`┌─┐ │ └─┘`). O que resta é o bloco
+  monoespaçado, que já tem moldura de quatro lados na folha, e cada campo passou a ter o **traço
+  até ao fim da linha**, para se escrever sem parar no meio do vazio.
+- A **ordem dos campos** passou a ser a do preenchimento: `Data`, `Ciclo` e `Aula` em linhas
+  próprias (eram dois campos a dividir uma), `Escola`, `Professor(a)`, **`Aluna`** (subiu para
+  debaixo do professor), `Método declarado`, e **`☐ Outro`** na sua própria linha. `Tipo de ficha`
+  fica onde estava, depois de um espaço.
 
 **Onde entrou.**
-- `motor/nucleo/derivar-plano-ciclo.js` — sai o `subtitle`; `GRUPOS_DO_CONTEXTO` emite as duas
-  tabelas item/valor; a régua é longa de propósito (30/70) para as duas saírem com a mesma
-  largura de coluna.
-- `tools/lib-extracao-md.js` — **um bloco item/valor pode ter mais de uma tabela**, e elas somam
-  no mesmo objeto. Era a única forma de partir o `## Contexto` sem partir o campo: antes, a
-  segunda tabela caía no aviso «as N linha(s) ficaram de fora» e o contexto chegava ao validador
-  pela metade.
-- `tools/calendario.py` — a tabela em duas partes, com âncoras ASCII escritas
-  (`{#aulas-01-13}`, `{#aulas-14-26}`): o título tem acentos e o `id` derivado dele os levaria.
-- `tools/gerar-ciclo.sh` — o plano deixa de receber `ficha=1`; `rodape_docs` passa a receber o
-  documento atual e devolve a lista dele.
-- `motor/nucleo/ficha.js` — «Método declarado:» sem o código.
-- `motor/nucleo/ficha-html.js` — o vão da moldura da ficha.
-- `motor/nucleo/derivar-ciclo.js`, `motor/nucleo/derivar-po.js` — as notas e os títulos que os
-  documentos derivados emitem (notação, glossário, captura, harmonização, PO) deixam de citar as
-  pétreas. **Sem isto a limpeza voltava na geração seguinte**: o texto que o professor lê nasce
-  aqui, e as fontes escritas à mão são só a cópia que já está no repositório.
-- `tools/validar-po-ciclo.js` — o mapa das secções acompanha o título «Restrições físicas
-  declaradas», agora sem o código. Sem o par, o bloco deixava de ter destino e **o conteúdo
-  perdia-se em silêncio** — o validador avisou, e foi o aviso que o apanhou.
-- `motor/servidor/bastidores.js`, `tools/lib-vistas.js`, `tools/templates/lancamento.html` — os
-  rótulos e a frase que o professor lê.
-- `porta/conteudo/anamnese.json`, `porta/po/conteudo/po.json` — `apelidoObrigatorio` deixa de ser
-  «P-12» e passa a dizer «nunca o nome completo»; o campo «Restrições físicas» perde o código.
-- `porta/plano/conteudo/plano.json` — a explicação do método deixa de citar a pétrea.
-- `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-{plano,captura-aula-01,harmonizacao,notacao,po,glossario-benesh}.md`
-  e o plano da `so-para-direita` — a redação publicada.
-- `professores/perna-boa/ciclos/ciclo-01-captura-schema.json` — a chave do bloco «Linha de base
-  revisitada (P-10)» vira «Linha de base revisitada», **só na variante Batata**: o schema declara
-  o par rótulo ↔ chave por variante, e as outras variantes continuam com o título antigo.
-- Pacote da Batata regerado (9 páginas + PDF de 34 páginas), âncoras do ciclo e da Aula 01
-  regeradas (`f934a3e8…`, `831ae856…`), `indices/` regenerado.
+- `motor/nucleo/ficha.js` — `cabecalhoDaFicha` reescrito: sem moldura, campos reordenados, traço
+  até `LARGURA_MAXIMA_DA_MOLDURA`, e o bloco emitido **cercado** (```` ``` ````) em vez de
+  desenhado.
+- `porta/assets/markdown.js` — passa a reconhecer o **bloco cercado** e a desenhá-lo como o
+  `pre.moldura`. Era a marca que dizia «monoespaçado» quando havia `┌`; sem o desenho, é a cerca.
+- `motor/nucleo/ficha-html.js` — `pre.moldura` passa a `width: fit-content; max-width: 100%`: a
+  caixa abraça o conteúdo, e é isso que faz o traço chegar à **borda** (antes o `pre` tinha a
+  largura toda e o traço acabava ~100px antes dela).
+- `tools/gerar-ciclo.sh` — sai o `ficha=1`; entra `notacao-href` para os documentos `aula-*`,
+  só quando o ciclo TEM fonte de notação (sem ela o botão apontaria para um 404).
+- `tools/templates/ciclo.html` — sai o bloco `<p class="ficha">` (e as suas dez variáveis); entra
+  o botão «Abrir notação».
+- `motor/nucleo/derivar-ciclo.js` — três subtítulos retirados; a condição da aula passa a prosa.
+- `tools/montar-publicacao.js` — a ação «Abrir notação» sai da linha da aula.
+- Fontes do ciclo Batata: `aula-01.md`, `notacao.md`, `referencias.md` alinhadas com o derivador.
+- `INDICES`/âncoras regerados; `publicacao/batata` remontada.
 
 **Motivo declarado — os congelados.**
-Toca `tools/` (`gerar-ciclo.sh`, `calendario.py`, `lib-extracao-md.js`, `lib-vistas.js`),
-`tools/templates/` (`lancamento.html`) e `biblioteca/guia-do-professor.md`. O motivo é a leitura do
-professor, declarado pela dona do produto; **não muda** a fórmula de hash, a cobertura da âncora,
-as 17 regras, as 22 pétreas, nem o que os validadores exigem. Duas mudanças de **comportamento**
-foram conferidas antes de escrever esta entrada: (a) o extrator soma tabelas item/valor do mesmo
-bloco — o `## Contexto` continua a ser um campo só, com as 11 chaves; (b) o rodapé deixou de ser
-uma lista única do ciclo e passou a ser derivado do documento atual. O congelamento pede commit
-próprio: as alterações de `tools/`/`motor/` e as de conteúdo devem sair em **commits separados**.
+Toca `tools/` (`gerar-ciclo.sh`, `montar-publicacao.js`), `tools/templates/` (`ciclo.html`) e o
+`motor/`. O motivo é o pedido da dona do produto, registado acima. **Não muda** a fórmula de hash,
+a cobertura da âncora, as 17 regras, as 22 pétreas, nem o que os validadores exigem. Duas mudanças
+de **comportamento**, medidas antes de escrever: (a) o template deixa de ter o bloco da ficha — a
+variável `ficha` fica sem uso, e é isso que a torna inofensiva; (b) a listagem de Aulas deixa de
+oferecer «Abrir notação»; a prova da publicação passou a exigir o contrário do que exigia.
 
 **Com o quê.**
-`motor/nucleo/derivar-plano-ciclo.js`, `motor/nucleo/derivar-ciclo.js`,
-`motor/nucleo/derivar-po.js`, `motor/nucleo/ficha.js`, `motor/nucleo/ficha-html.js`,
-`motor/servidor/bastidores.js`, `tools/lib-extracao-md.js`, `tools/lib-vistas.js`,
-`tools/validar-po-ciclo.js`, `tools/calendario.py`, `tools/gerar-ciclo.sh`,
-`tools/templates/lancamento.html`, `biblioteca/guia-do-professor.md`,
-`porta/conteudo/anamnese.json`, `porta/po/conteudo/po.json`,
-`porta/plano/conteudo/plano.json`, as seis fontes do ciclo Batata, o plano da `so-para-direita`,
-`ciclo-01-captura-schema.json`, as âncoras `.fipp`, `indices/` e o pacote regerado.
+`motor/nucleo/ficha.js`, `motor/nucleo/ficha-html.js`, `motor/nucleo/derivar-ciclo.js`,
+`porta/assets/markdown.js`, `tools/gerar-ciclo.sh`, `tools/templates/ciclo.html`,
+`tools/montar-publicacao.js`, as três fontes do ciclo Batata, as âncoras `.fipp`, `indices/`,
+`publicacao/batata`, e as provas `provar-ficha-visual.js`, `provar-titulo-e-barra.js` e
+`provar-publicacao-da-escola.js`.
 
 **Validação.**
-`tools/gerar-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2` → **0 erro(s), 0 aviso(s)**;
-`validar-plano-ciclo.js` → satisfaz o schema, **11 chaves** no `contexto`;
-`validar-captura-ciclo.js` → 0 erros (2 avisos que já existiam);
-`tools/check-identidade.js` → todas as checagens ok; `tools/check-indices.js` → 14/14;
-`experimentos/provar-ficha-visual.js` → 19/19; `hash-ciclo.sh --check` → cadeia intacta.
-No navegador: o plano não tem subtítulo nem ficha, as duas tabelas do contexto medem **258/593**
-nas duas, o índice lista `#aulas-01-13` e `#aulas-14-26`, e em 390px não há estouro horizontal.
+`tools/gerar-ciclo.sh` → **0 erros, 0 avisos**; plano, PO, aula e captura satisfazem os schemas;
+`check-identidade` 20/20; `check-indices` 14/14; `provar-ficha-visual` **21/21** (ganhou as
+asserções «as linhas de escrita vão até ao fim do bloco», «a aluna vem depois do professor» e «o
+`Outro` tem linha própria»); `provar-titulo-e-barra` **tudo ok** (o teto do cabeçalho preso subiu
+de 60 para 80px porque ele passou a carregar o botão do documento — medido: 63px); 
+`provar-publicacao-da-escola` **63/63**; `provar-cabecalho-do-documento` e `provar-celular` ok;
+âncora regerada e `--check` íntegro. No navegador: a caixa da ficha mede 755px e as linhas
+terminam na borda; o cabeçalho da aula fica preso a 63px com o botão à vista.
 
 **Referências.**
-`IDENTIDADE-VISUAL.md` («O catálogo das peças», «O arranjo do cabeçalho é o MESMO nos três
-documentos»); `experimentos/propostas/proposta-documentos.html`, a proposta aprovada pela
-pesquisadora; `CONGELAMENTO.md` (motivo declarado); as entradas de 27/10/2026 sobre a leitura em
-prosa e a herança da Notação.
+As entradas de 28/10/2026 deste mesmo dia («O documento abre pela leitura…»); `IDENTIDADE-VISUAL.md`
+(«O catálogo das peças» — `.acao`, `.pre`, o preço de uma peça que nasce fora do catálogo);
+`CONGELAMENTO.md`; a proposta aprovada em `experimentos/propostas/proposta-documentos.html`.
 
 **O que ainda não está feito.**
-- A tabela «Objetivos específicos» **não** foi partida como na proposta: o extrator lê as colunas
-  «N» e «Objetivo específico», e juntar o número ao texto mudaria o dado, não a leitura.
-- O pacote da `so-para-direita` **não** foi regerado (não existe pacote dessa escola neste
-  worktree); só a fonte e a âncora foram tratadas.
-- A sobrescrita do `plano-aula-01-anterior.json` numa regeneração repetida **continua** a
-  acontecer no gerador; o snapshot histórico foi restaurado à mão, como na entrada de 27/10.
-- `publicacao/` e as cópias `plano-observacao/` das escolas foram atualizados por substituição
-  de texto, não pelo construtor — o que a escola serve já está limpo, mas a próxima construção
-  dessas cópias não tem esta alteração na origem.
-- `tools/check-glossario.js` **continua a falhar**, e a falha é anterior a esta alteração: procura
-  `professores/tiago/ciclos/ciclo-01-maria-notacao.md`, que não existe neste worktree.
+- **A captura e a harmonização ainda têm subtítulo.** A captura porque **vai ser refeita por
+  inteiro**, e o subtítulo dela («Folha de marcação para uso durante a aula») sai com o resto. A
+  harmonização porque o documento **deixa de existir no lugar onde está**: a instrução é que ela
+  passe para dentro de **Planejamento › Produção**, e essa mudança ainda não foi feita. Mexer no
+  cabeçalho de um documento que vai mudar de casa é trabalho que se deita fora duas vezes.
+- O `data-titulo-fixo` e o encolhimento do cabeçalho continuam a esconder `.subtitulo` e `.ficha`
+  quando existem; as regras ficaram, e hoje não têm onde atuar.
+- A **sobrescrita do `plano-aula-01-anterior.json`** por cada regeneração continua a acontecer no
+  gerador (o snapshot foi restaurado à mão outra vez).
 - **Nada foi commitado nem publicado**: as alterações estão no worktree.
 
-> **Correção de 28/10/2026 (mesmo dia).** A primeira redação desta entrada dizia que «os outros
-> pacotes (diaghilev, calango, maria…) continuam com o guia antigo». **Está errado**: essas
-> escolas foram expurgadas e **não têm pacote neste worktree** — a única escola com pacote é a
-> `batata`. O guia partilhado só se propaga quando um pacote é regerado, e não há nenhum outro
-> para propagar. A frase foi retirada; o resto da entrada fica como estava.
+> **Acréscimo de 28/10/2026 (mesmo dia).** O **subtítulo do glossário** foi retirado — a
+> pesquisadora: «não tem sentido nenhum». Ele dizia «Todo símbolo, termo e categoria que aparece
+> no registro da Aula 01», e é exatamente o que o corpo declara três linhas abaixo: o parágrafo do
+> alfabeto dá as categorias, os sinais e os verbetes, e a Nota declara o par glossário ↔ registro.
+> Saiu do derivador (`derivar-ciclo.js`) e da fonte, e o pacote foi regerado com a âncora. Ficam
+> com subtítulo **só** a captura e a harmonização, pelos motivos acima.
 
 ## O que está pendente
-
-## 27/10/2026 — O cabeçalho do Plano de Observação lê o plano que ele referencia
-
-
-- **O documento do PO continua a ser a derivação** (`derivarPO`), e não o formulário preenchido
-  como a anamnese e o plano de ensino. A pergunta vale, e fica para quando ela a fizer.
-- **Os dois «outro» ficaram onde estavam** (`campo-outro` em «Onde se observa», `contexto-outro` em
-  «Contexto da observação»). Retirar o campo principal de cada secção deixa-as com um só campo
-  livre; a explicação de cada um já diz que o resto vem do plano, e reescrever a estrutura das
-  secções seria uma decisão de desenho que ninguém pediu.
 
 ## 27/10/2026 — A aula passa a ter leitura em prosa e em Notação Benesh
 
@@ -362,6 +331,26 @@ congelada; o snapshot histórico correto foi preservado neste pacote.
 > escolas foram expurgadas e **não têm pacote neste worktree** — a única escola com pacote é a
 > `batata`. O guia partilhado só se propaga quando um pacote é regerado, e não há nenhum outro
 > para propagar. A frase foi retirada; o resto da entrada fica como estava.
+
+## 28/10/2026 — O cabeçalho deixa de ter etiquetas, e o cartão da ficha perde a moldura
+
+- **A captura e a harmonização ainda têm subtítulo.** A captura porque **vai ser refeita por
+  inteiro**, e o subtítulo dela («Folha de marcação para uso durante a aula») sai com o resto. A
+  harmonização porque o documento **deixa de existir no lugar onde está**: a instrução é que ela
+  passe para dentro de **Planejamento › Produção**, e essa mudança ainda não foi feita. Mexer no
+  cabeçalho de um documento que vai mudar de casa é trabalho que se deita fora duas vezes.
+- O `data-titulo-fixo` e o encolhimento do cabeçalho continuam a esconder `.subtitulo` e `.ficha`
+  quando existem; as regras ficaram, e hoje não têm onde atuar.
+- A **sobrescrita do `plano-aula-01-anterior.json`** por cada regeneração continua a acontecer no
+  gerador (o snapshot foi restaurado à mão outra vez).
+- **Nada foi commitado nem publicado**: as alterações estão no worktree.
+
+> **Acréscimo de 28/10/2026 (mesmo dia).** O **subtítulo do glossário** foi retirado — a
+> pesquisadora: «não tem sentido nenhum». Ele dizia «Todo símbolo, termo e categoria que aparece
+> no registro da Aula 01», e é exatamente o que o corpo declara três linhas abaixo: o parágrafo do
+> alfabeto dá as categorias, os sinais e os verbetes, e a Nota declara o par glossário ↔ registro.
+> Saiu do derivador (`derivar-ciclo.js`) e da fonte, e o pacote foi regerado com a âncora. Ficam
+> com subtítulo **só** a captura e a harmonização, pelos motivos acima.
 
 ## Pendências anteriores (índice)
 
@@ -665,6 +654,7 @@ congelada; o snapshot histórico correto foi preservado neste pacote.
 - **27/10/2026** — A correção passou pelo caminho real: a `batata` voltou pelo… → `REGISTRO.md` L26665 *(superado)*
 - **27/10/2026** — Ler não é editar: o nome do registo volta a abrir o… → `REGISTRO.md` L26726 *(superado)*
 - **27/10/2026** — A turma do plano é de quem a direção curou: a regra sai da… → `REGISTRO.md` L26823 *(superado)*
+- **27/10/2026** — O cabeçalho do Plano de Observação lê o plano que ele… → `REGISTRO.md` L27073
 - PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

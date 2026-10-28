@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `d9f085f`; leitura dos documentos e saída dos códigos da tela publicadas nos commits `973358b`, `dc8faec` e `d9f085f`; workflows #205, #288 e #403 concluídos; o plano da Batata conferido ao ar).
+> **Última fotografia:** 28/10/2026 (base local `3c3a29d`; cabeçalho sem etiquetas, cartão da ficha sem moldura e «Abrir notação» dentro da Aula, publicados nos commits `a2bbdfa`, `29a95e5` e `3c3a29d`; workflows #105, #206, #289 e #404 concluídos; a aula e o glossário conferidos ao ar).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -105,7 +105,12 @@ Verificado nesta fotografia, com os comandos da §9.
   requisição final à raiz respondeu HTTP 200 e o HTML contém o link para `/aulas/`. A rota não foi
   recarregada após este deploy. **CONFIRMADO**.
 
-- **Publicação de 28/10/2026:** os três commits foram enviados a `origin/main`; `Regerar os
+- **Publicação de 28/10/2026 (cabeçalho e cartão):** `a2bbdfa`, `29a95e5` e `3c3a29d` enviados a
+  `origin/main`; `Publicar as escolas` #289, `Reancorar a cadeia` #404, `Regerar os índices` #206 e
+  `Publicar a raiz` #105 concluídos com sucesso. A conferência ao ar foi à aula e ao glossário da
+  Batata. **CONFIRMADO**.
+
+- **Publicação de 28/10/2026 (leitura dos documentos):** os três commits foram enviados a `origin/main`; `Regerar os
   índices` #205, `Publicar as escolas` #288 e `Reancorar a cadeia` #403 concluíram com sucesso no
   commit `d9f085f`. A conferência ao ar foi à escola `batata`, que é a única com pacote. O plano
   publicado não tem subtítulo nem ficha, mostra os dois grupos do contexto, o calendário em duas
@@ -339,7 +344,25 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ## 9. Validação
 
-### Executado nesta fotografia (28/10/2026 — leitura dos documentos)
+### Executado nesta fotografia (28/10/2026 — cabeçalho e cartão da ficha)
+
+| Verificação | Resultado |
+|:--|:--|
+| `tools/gerar-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2` | pacote regerado; **0 erros e 0 avisos** |
+| `node tools/check-pacote.js …` | **0 erros, 0 avisos**; 9 páginas |
+| validadores isolados | plano, PO, aula e captura satisfazem os schemas (captura com 2 avisos de mapeamento que já existiam) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-indices.js` | **14 verificações, 0 falhas** |
+| `experimentos/provar-ficha-visual.js` | **21 provas**, sem falhas (o bloco cercado, o traço até à borda, a ordem dos campos) |
+| `experimentos/provar-titulo-e-barra.js` | tudo ok; o cabeçalho preso da aula mede **63px** e carrega o botão do documento |
+| `experimentos/provar-publicacao-da-escola.js` | **63 asserções**, sem falhas |
+| `experimentos/provar-cabecalho-do-documento.js` · `provar-celular.js` | ok · **15/15** em 320–1024px |
+| `tools/hash-ciclo.sh …` + `--check` | âncoras regeradas; cadeia íntegra. Ciclo `7a0befc4…`, Aula 01 `f7effac1…` |
+| `git push origin main` | três commits enviados; `pre-push` passou |
+| workflows #105, #206, #289, #404 | todos `completed / success` no commit `3c3a29d` |
+| conferência ao ar (Batata) | `/bale-nivel-1-teste-2/aula-01.html` responde 200 e traz «Abrir notação» no cabeçalho e «Condição desta aula» no corpo; `/glossario-benesh.html` responde 200 **sem** subtítulo. Nas duas, a fileira de etiquetas desapareceu e o menu é o atual |
+
+### Publicação anterior (28/10/2026 — leitura dos documentos)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -452,6 +475,15 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **28/10/2026** — **O cabeçalho perdeu as etiquetas, e o cartão da ficha perdeu a moldura.** A
+  fileira «Escola · 2x/semana · 50 min · Plano · Ciclo 01 · Volume semanal» saiu de todas as páginas
+  do pacote; o subtítulo saiu de referências, aula, notação e glossário (na aula desceu ao corpo,
+  como «Condição desta aula»); «Abrir notação» passou a botão do cabeçalho da Aula, preso com o
+  título, e saiu da listagem; e o cartão da anamnese ficou sem a moldura `┌─┐`, com os campos
+  reordenados e o traço até ao fim da linha. Publicado nos commits `a2bbdfa` (ferramentas, com
+  motivo declarado), `29a95e5` (fontes e pacote) e `3c3a29d` (registo); workflows #105, #206, #289
+  e #404 **success**. **CONFIRMADO**.
 
 - **28/10/2026** — **O documento abre pela leitura, e o código interno saiu da tela.** O plano do
   ciclo deixa de ter resumo e etiquetas debaixo do título; o `## Contexto` passa a declarar dois
