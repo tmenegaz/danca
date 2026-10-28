@@ -2,7 +2,7 @@
   "$comentario": "Conteúdo PO (Protocolo de Observação). Este arquivo é DADO, não norma: a norma do conteúdo é PROTOCOLO.md (as pétreas P-01/P-05/P-06/P-10/P-11/P-12/P-13/P-14/P-15/P-18/P-22), e o elo textual congelado é prompts/elicitar-ciclo.md (Blocos 1, 5, 6, 7, 8 e 9). Se divergirem, a norma prevalece e a divergência é o achado. NENHUM CAMPO NOVO É PERGUNTADO — todo nó respondível deste conteúdo tem chave própria no `po-01.json` (14/10/2026: o schema ganhou as chaves dos nós que não tinham destino — dimensões observadas, itens de cada dimensão, horizonte, plano de ensino, flutuantes, restrições físicas e os dois módulos condicionais).",
   "documento": "po",
   "norma": "PROTOCOLO.md",
-  "apelidoObrigatorio": "P-12",
+  "apelidoObrigatorio": "nunca o nome completo",
   "explicacao": {
     "oQueE": "Aqui você escreve o que vai olhar durante o ciclo — antes de olhar. Não é um relatório nem uma avaliação: é o compromisso do que conta como observação.",
     "preencher": "Você preenche campo a campo. Cada campo tem uma explicação curta ao lado; você não precisa ler mais nada.",
@@ -279,7 +279,7 @@
         },
         {
           "id": "restricoes",
-          "campo": "Restrições físicas (P-22)",
+          "campo": "Restrições físicas",
           "obrigatorio": false,
           "explicacao": {
             "oQueE": "Lesão, dor, limitação médica ou restrição que afeta o movimento de alguma aluna — declarada, nunca avaliada.",

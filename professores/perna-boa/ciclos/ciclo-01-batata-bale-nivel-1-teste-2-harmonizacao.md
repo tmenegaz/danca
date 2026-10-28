@@ -3,14 +3,14 @@ projeto: Formação em Balé Clássico
 frente: Documento de apoio
 ciclo: "01"
 title: "Harmonização de linguagem"
-subtitle: "O varrimento de juízo de valor (P-21) — a proposta, não o filtro"
+subtitle: "O varrimento de juízo de valor — a proposta, não o filtro"
 ---
 
 > Esta tabela é **visível ao professor**. Se ele discordar de alguma harmonização, ele
 > reescreve a coluna "Publicado" com as próprias palavras. O harmonizador é uma
 > **proposta**, não um filtro.
 
-## Varrimento automático (P-21)
+## Varrimento automático
 
 | Onde | Formulação evitada (juízo / essência) | Publicado (fato, sem juízo) |
 |:--|:--|:--|
@@ -19,7 +19,7 @@ subtitle: "O varrimento de juízo de valor (P-21) — a proposta, não o filtro"
 ## Nota sobre o vocabulário
 
 - **Não se avalia o bailarino.** O que entra no registro é o que **aconteceu**: "não executou
-  a série de pés", não "é frágil" (P-06/P-22).
+  a série de pés", não "é frágil".
 - **"Precisa desenvolver"** é a forma do projeto para o que falta — nunca "insuficiente",
   "fraco" ou "ruim".
 - Nenhum adjetivo essencializante sobre pessoas: nem "preguiçoso", nem "talentoso".

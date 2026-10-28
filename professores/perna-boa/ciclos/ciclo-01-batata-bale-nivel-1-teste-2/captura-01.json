@@ -18,7 +18,7 @@
       ]
     },
     {
-      "titulo": "Condições de contorno (P-11)",
+      "titulo": "Condições de contorno",
       "tipo": "texto",
       "rotulos": [
         "Plano seguido",
@@ -97,7 +97,7 @@
       ]
     },
     {
-      "titulo": "Linha de base revisitada (P-10)",
+      "titulo": "Linha de base revisitada",
       "tipo": "tabela",
       "chave": "linha_de_base",
       "rotulo": "Linha de base",

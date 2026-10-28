@@ -13,7 +13,7 @@ Este documento **não é uma transcrição do sistema Benesh**. É um **código 
 ciclo**: um conjunto pequeno de sinais, **baseado em conceitos do sistema**, com o qual os
 exercícios deste ciclo podem ser lidos de volta sem depender da memória de quem deu a aula.
 
-> **Nota (P-15).** Um ciclo que registra exercícios em notação declara o código usado. Este
+> **Nota.** Um ciclo que registra exercícios em notação declara o código usado. Este
 > código é do ciclo — os sinais valem para os exercícios registrados aqui, e um sinal novo
 > exige uma linha nova no <a href="glossario-benesh.html" target="_blank" rel="noopener noreferrer">Glossário do código Benesh</a>.
 

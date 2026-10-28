@@ -11,7 +11,7 @@ subtitle: "Todo símbolo, termo e categoria que aparece no registro da Aula 01"
 > corresponde a um conceito do sistema de notação, e pode ser conferido na fonte;
 > *convenção do ciclo* — quando foi escolhido para este código, e só vale aqui.
 
-> **Nota (P-15/P-16).** O glossário e o registro são um par: um símbolo só existe no registro
+> **Nota.** O glossário e o registro são um par: um símbolo só existe no registro
 > se tiver verbete aqui, e todo verbete aqui aponta para onde aparece.
 
 O alfabeto deste código é `ballet-classico` versão 1 — 4 categorias, 21 sinais e 4 verbetes de exercício. Um exercício novo entra no registro

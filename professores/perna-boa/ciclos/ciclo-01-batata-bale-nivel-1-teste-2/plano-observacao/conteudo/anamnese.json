@@ -2,7 +2,7 @@
   "$comentario": "Conteúdo PO da anamnese de balé clássico. Este arquivo é DADO, não norma: a norma é ARQUITETURA-ANAMNESE.md (§3). Se os dois divergirem, a norma prevalece e a divergência é o achado. Nenhum campo aqui é novo — tudo cai dentro da `linhaDeBase` que já existe (P-08).",
   "documento": "anamnese",
   "norma": "ARQUITETURA-ANAMNESE.md#3",
-  "apelidoObrigatorio": "P-12",
+  "apelidoObrigatorio": "nunca o nome completo",
 
   "obrigatoriedade": {
     "declaracao": "O PO declara; o PE verifica. Um nó é obrigatório quando traz `obrigatorio: true`, e SÓ nós respondíveis o trazem — é contra eles que o envelope casa a contagem de respostas que decide o corte para `completa` (envelope/README.md §4).",

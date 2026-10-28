@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-10-27",
+    "ancorado_em": "2026-10-28",
     "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "cobertura": [
       "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
@@ -16,8 +16,8 @@
       "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "professores/perna-boa/ciclos/ciclo-01.conf"
     ],
-    "hash": "297d7e77c8831c04d7d49c59544090e06a409f7148df2d69f6522e5fe54c07f7",
-    "hash_conteudo": "5e1296cd3d1b51f30463577f914b71dba719a64f2502a2f58d615fc7b2990e6a",
+    "hash": "f934a3e8b6366fd7585219401ac787f9ff3ffedfed720a049f64b64e536962f6",
+    "hash_conteudo": "7bf4fd12a1fc5fdde3cf4719dd55674f918d7cdc1ef8fe0827a513e0eb4fd1f6",
     "id": "ciclo-01-batata-bale-nivel-1-teste-2",
     "lida": true,
     "parent_hash": ""
@@ -115,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8b939d0"
+    "commit": "d4e5473"
   },
-  "gerado_em": "2026-10-28T01:49",
+  "gerado_em": "2026-10-28T12:11",
   "id": "ciclo:perna-boa/01/batata",
   "professor": "perna-boa",
   "versao": 6

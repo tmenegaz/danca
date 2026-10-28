@@ -9,13 +9,13 @@ subtitle: "Folha de marcação para uso durante a aula"
 ---
 
 > **Durante a aula, marque; depois, escreva** — as marcas são âncoras de memória, não
-> classificação (P-06). Os CRITÉRIOS medem-se pela **régua da turma** (anote o nível —
+> classificação. Os CRITÉRIOS medem-se pela **régua da turma** (anote o nível —
 > ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA
 > (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
 
 **Data:** `___/___/____` · **Presentes:** ☐ Aluna A · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
 
-## Condições de contorno (P-11)
+## Condições de contorno
 
 **Plano seguido?** ☐ sim ☐ parcial ☐ não · **Ânimo** 1 2 3 4 5 · **Interesse** 1 2 3 4 5 · **Harmonia da turma** 1 2 3 4 5
 
@@ -45,7 +45,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 |:--|:--:|
 | Aluna A |   |
 
-## Linha de base revisitada (P-10)
+## Linha de base revisitada
 
 ### Aluna A
 

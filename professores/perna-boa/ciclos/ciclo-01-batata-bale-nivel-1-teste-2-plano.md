@@ -5,21 +5,26 @@ ciclo: "01"
 escola: batata
 professor: perna-boa
 title: "Plano do Ciclo 01 — batata"
-subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
 ## Contexto
 
+**Escola e espaço**
+
 | Item | Valor |
-|:--|:--|
-| **Escola / espaço** | batata |
-| **Professor responsável** | perna-boa |
-| **Turmas observadas** | Balé Nível 1 — Teste 2 |
+|:------------------------|:--------------------------------------------------------|
 | **Frequência semanal** | 2x semanal — seg e qua |
 | **Duração por aula** | 50 minuto |
 | **Calendário** | 2027-02-01 → 2027-04-30 |
 | **Número total de aulas** | 26 |
+
+**Professor, turma e método**
+
+| Item | Valor |
+|:------------------------|:--------------------------------------------------------|
+| **Professor responsável** | perna-boa |
+| **Turmas observadas** | Balé Nível 1 — Teste 2 |
 | **Volume de trabalho** | 3–6 séries |
 | **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
 | **Metodologia de referência** | RAD |

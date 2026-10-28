@@ -74,7 +74,7 @@ Metodologia de referência: RAD · Quem escolhe a metodologia: Eu escolho · Not
 | **Aluna B** | prática anterior: mais de 5 anos | saída do calcanhar no tendu; passé sem perder o eixo |
 | **Aluna C** | isquiotibiais flexíveis; cambré amplo | rotação externa sustentada do quadril; saída do calcanhar no tendu; meia ponta com o pé alinhado |
 
-## Restrições físicas declaradas (P-22)
+## Restrições físicas declaradas
 
 - [a decidir]
 

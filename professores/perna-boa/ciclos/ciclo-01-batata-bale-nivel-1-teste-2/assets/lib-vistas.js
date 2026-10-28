@@ -627,7 +627,7 @@ function mdGuia(m, po, plano, aula, data, prov) {
   const sujeitos = juntarQuebras(po && po.subjects);
   const flutuantes = juntarQuebras(po && po.flutuantes);
   if (sujeitos.length) {
-    l.push(`- ${b.de('PO', 'quem é observado', juntarComSeparador(sujeitos))} (apelidos do PO, P-12)`);
+    l.push(`- ${b.de('PO', 'quem é observado', juntarComSeparador(sujeitos))} (apelidos do PO)`);
   } else {
     l.push(`- ${b.falta('quem é observado', 'os sujeitos — vêm do PO')}`);
   }

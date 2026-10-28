@@ -1,12 +1,11 @@
 {
   "contexto": {
-    "escolaEspaco": "batata",
-    "professorResponsavel": "perna-boa",
-    "turmasObservadas": "Balé Nível 1 — Teste 2",
     "frequenciaSemanal": "2x semanal — seg e qua",
     "duracaoPorAula": "50 minuto",
     "calendario": "2027-02-01 → 2027-04-30",
     "numeroTotalDeAulas": "26",
+    "professorResponsavel": "perna-boa",
+    "turmasObservadas": "Balé Nível 1 — Teste 2",
     "volumeDeTrabalho": "3–6 séries",
     "condicaoDeRegistro": "Na sala: professor, alunas da turma · observa: o próprio professor.",
     "metodologiaDeReferencia": "RAD",
