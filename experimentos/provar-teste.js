@@ -129,7 +129,9 @@ async function producaoNoNavegador() {
   const termos = FIXTURE.producao.vocabulario.map((v, i) => Object.assign({}, v, { id: 'termo-' + i }));
   await kv.put('bastidores/' + escola + '/turmas', JSON.stringify(turmas));
   await kv.put('bastidores/' + escola + '/rubricas', JSON.stringify(rubricas));
-  await kv.put('bastidores/' + escola + '/vocabulario', JSON.stringify(termos));
+  // O VOCABULÁRIO JÁ NÃO SE PÕE NO KV (28/10/2026). Ele vive no repositório, e a tela lê-o do
+  // bundle — pô-lo aqui seria criar o fixture de uma cópia que já não existe, e a prova passaria
+  // a medir uma página que nenhum Worker serve.
   await kv.put('bastidores/' + escola + '/alunas', JSON.stringify(FIXTURE.producao.alunas));
 
   const env = { ESCOLA_SLUG: escola, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x',

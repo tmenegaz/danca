@@ -343,8 +343,26 @@ function normalizarRubrica(corpo) {
   const id = String(corpo.id || '').trim() || idDe(nome);
   return { id: id, nome: nome, niveis: niveisLimpos(corpo.niveis) };
 }
+/**
+ * O VOCABULÁRIO TÉCNICO (28/10/2026) — e ele JÁ NÃO VIVE NO KV.
+ *
+ * Antes esta função lia `<escola>/vocabulario` do KV, semeado pelo botão «Carregar catálogo
+ * inicial». Isso dava DUAS listas de termos: a cópia por escola, e o ficheiro da modalidade no
+ * repositório — que é o que o gerador lê do disco e o que a tela do verbete consulta. Duas listas
+ * de termos divergem ao primeiro termo novo, e o sintoma é silencioso: um verbete que existe e não
+ * casa com exercício nenhum.
+ *
+ * Agora há uma só. `CATALOGO.TERMOS` é o ficheiro `biblioteca/modalidades/bale-classico/vocabulario.json`
+ * **embutido no bundle do Worker** pelo esbuild (o Worker não tem `fs`): é o mesmo ficheiro, com o
+ * mesmo conteúdo, e é atualizado no deploy que o commit do cadastro dispara. Zero KV, e zero
+ * chamada à API por request.
+ *
+ * A assinatura fica `(kv, escola)` — sem uso nos dois argumentos, e de propósito: há oito
+ * chamadores, e mudá-la obrigaria a tocar em todos para não mudar nada. Quem lê esta função sabe
+ * onde o dado está pelo comentário; um comentário a mentir é pior do que um argumento a sobrar.
+ */
 async function termos(kv, escola) {
-  return lerLista(kv, RAIZ + '/' + escola + '/vocabulario');
+  return CATALOGO.TERMOS.map((t) => Object.assign({}, t));
 }
 
 /** A relação turma↔termo: um MAPA `{ turmaId: [termoId, ...] }`. Um termo pode estar em
@@ -2485,9 +2503,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.chip{display:inline-block;margin:0;padding:.1rem .45rem;background:var(--fundo-faixa);' +
     'border:1px solid var(--borda-campo);border-radius:var(--raio-pilula);font-size:.82rem;color:var(--texto);}' +
     '.bloco-assoc .chips{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;min-height:1.7rem;margin:.1rem 0 .55rem;}' +
-    '.bloco-assoc .par-associar{display:flex;align-items:center;gap:.35rem;min-width:0;}' +
-    '.bloco-assoc .par-associar select{flex:1 1 auto;min-width:0;max-width:none;}' +
-    '.bloco-assoc .par-associar button{flex:0 0 auto;}' +
+    // A PEÇA É UMA SÓ (28/10/2026). Ela estava escopada a `.bloco-assoc`, e por isso o «+» do
+    // exercício — que precisa do mesmo arranjo, seletor largo e botão colado — teria de
+    // inventar uma segunda. `par-associar` já é o nome dela na folha (o `> button` com
+    // `margin-top: 0` está lá desde 18/10/2026); o que faltava aqui era a colocação, e agora
+    // é a mesma para os dois sítios.
+    '.par-associar{display:flex;align-items:center;gap:.35rem;min-width:0;}' +
+    '.par-associar select{flex:1 1 auto;min-width:0;max-width:none;}' +
+    '.par-associar button{flex:0 0 auto;}' +
     '.par-botoes{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.55rem 0 0;}' +
     // O QUE FALTA, DITO: uma nota âmbar discreta, ao lado do botão que está travado.
     '.nota-pendencia{margin:.5rem 0 0;padding:.4rem .6rem;border-radius:var(--raio-1);' +
@@ -3156,7 +3179,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="submit" class="acao grande">Cadastrar termo</button>' +
     '</span>' +
     '</form>' +
-    '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
+    // O BOTÃO PASSOU A DIZER SÓ O QUE FAZ (28/10/2026). Ele semeava as turmas E o vocabulário;
+    // o vocabulário deixou de precisar de semente, porque passou a viver no repositório numa
+    // verdade só. Um rótulo que promete duas coisas e entrega uma é a mesma família de erro do
+    // `if` que filtrava o título vazio: diz uma coisa, faz outra, e ninguém dá por isso.
+    '<p><button id="semear" type="button">Carregar as turmas iniciais</button></p>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Termos cadastrados</h3>' +
@@ -3177,8 +3204,37 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O EXERCÍCIO É ESCOLHIDO, NÃO ESCRITO (28/10/2026). A lista vem do vocabulário técnico da
     // modalidade — a mesma de onde sai o «conteúdo do nível» do plano. Escrever à mão daria
     // verbetes que quase casam com o exercício, e «quase» aqui quer dizer uma página em lacuna.
+    // O «+» AO LADO DO EXERCÍCIO (28/10/2026), a opção A escolhida pela pesquisadora. O botão
+    // fica colado ao campo que ele alimenta e abre um cadastro CURTO — nome, categoria,
+    // tradição —, que é o que um termo exige e nada mais. Não é um segundo cadastro de termos:
+    // é o mesmo, numa forma breve, e grava no mesmo sítio (o vocabulário do repositório). O que
+    // se cria é um EXERCÍCIO (um termo), não um verbete: um verbete sem exercício seria a
+    // decomposição de nada, e a ordem é a inversa — primeiro o exercício, depois o verbete.
     '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
+    '<span class="par-associar">' +
     '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
+    '<button type="button" class="acao secundario" id="vb-novo-exercicio"' +
+    ' title="Criar um exercício novo no vocabulário da modalidade">+</button>' +
+    '</span>' +
+    '<div id="vb-novo" hidden>' +
+    '<label class="campo-rotulo" for="vnnome">Exercício novo (grafia francesa, com acentos)</label>' +
+    '<input id="vnnome" autocomplete="off" placeholder="ex.: Battement fondu">' +
+    '<label class="campo-rotulo" for="vncategoria">Categoria</label>' +
+    '<select id="vncategoria">' +
+    ['passo', 'salto', 'ligacao', 'giro']
+      .map((c) => '<option value="' + c + '">' + esc(rotuloDaCategoria(c)) + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="vntradicao">Tradição de referência</label>' +
+    '<select id="vntradicao">' +
+    TRADICOES_DO_VOCABULARIO.map((t) =>
+      '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('') +
+    '</select>' +
+    '<div class="res" data-res="vb-novo"></div>' +
+    '<span class="par-botoes">' +
+    '<button type="button" class="acao" id="vb-criar-exercicio">Criar exercício</button>' +
+    '<button type="button" class="acao secundario" id="vb-cancelar-exercicio">Cancelar</button>' +
+    '</span>' +
+    '</div>' +
     '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
     '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="ex.: 8">' +
     '<label class="campo-rotulo" for="vbcompasso">Em que compasso</label>' +
@@ -4748,6 +4804,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // exercícios, posições e direções a partir dele — não de cópias escritas aqui, que
     // divergiriam do dado no primeiro termo novo.
     'var VERBETES = null;' +
+    // O RÓTULO DA CATEGORIA PASSOU A SER DO SCRIPT (28/10/2026). Ele era uma `var` local dentro
+    // de `carregarVerbetes`, e o «+» precisa dele para nomear o grupo do exercício que acabou de
+    // criar — antes de o deploy trazer a lista do repositório. Um mapa só, dois leitores.
+    'var ROTULO_DE_CATEGORIA = {passo: "Passos", salto: "Saltos", ligacao: "Ligações", giro: "Giros"};' +
     // A RESPOSTA NEM SEMPRE É JSON. Quando a rota falha, chega uma página de erro — e o
     // `.json()` rebenta com «Unexpected token <», que não diz nada a quem está a usar a tela.
     // Aqui lê-se o TEXTO primeiro e só depois se tenta o JSON, para o recado poder ser o certo.
@@ -4773,11 +4833,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        grupos[t.categoria] = grupos[t.categoria] || [];' +
     '        grupos[t.categoria].push(t);' +
     '      });' +
-    '      var ROTULO = {passo: "Passos", salto: "Saltos", ligacao: "Ligações", giro: "Giros"};' +
+    '      var ROTULO = ROTULO_DE_CATEGORIA;' +
     '      var html = "<option value=\'\'>— escolha o exercício —</option>";' +
     '      ["passo", "salto", "ligacao", "giro"].forEach(function(c){' +
     '        if (!grupos[c]) return;' +
-    '        html += "<optgroup label=\'" + (ROTULO[c] || c) + "\'>";' +
+    // O `data-cat` existe para o «+»: o termo recém-criado entra no grupo certo da lista, sem
+    // esperar que o deploy o traga do repositório. Sem ele, o exercício novo apareceria só no
+    // grupo do rótulo que se adivinhasse do texto.
+    '        html += "<optgroup label=\'" + (ROTULO[c] || c) + "\' data-cat=\'" + c + "\'>";' +
     '        grupos[c].forEach(function(t){' +
     '          html += "<option value=\'" + t.termo + "\'>" + t.termo + "</option>";' +
     '        });' +
@@ -4907,6 +4970,66 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    carregarVerbetes();' +
     '  });' +
     '});' +
+    // ---------------------------------------------------------------------------
+    // O «+» DO EXERCÍCIO (28/10/2026) — a opção A, decidida pela pesquisadora.
+    //
+    // O botão abre um cadastro breve, colado ao campo que ele alimenta. Ele NÃO cria um
+    // verbete: cria o EXERCÍCIO — um termo do vocabulário da modalidade —, que é a condição
+    // para o verbete existir. Um verbete sem exercício seria a decomposição de nada, e a
+    // ordem é essa e não a inversa.
+    //
+    // O termo novo entra na lista LOCAL em seguida, no grupo da categoria: quem acabou de o
+    // criar quer escrever o verbete dele AGORA, e o Worker só vê o vocabulário no deploy que
+    // o commit dispara. Sem esta linha, o exercício novo só apareceria minutos depois.
+    // ---------------------------------------------------------------------------
+    'var bNovoExercicio = document.getElementById("vb-novo-exercicio");' +
+    'var caixaNovoExercicio = document.getElementById("vb-novo");' +
+    'if (bNovoExercicio && caixaNovoExercicio) {' +
+    '  bNovoExercicio.addEventListener("click", function(){' +
+    '    caixaNovoExercicio.hidden = !caixaNovoExercicio.hidden;' +
+    '    if (!caixaNovoExercicio.hidden) document.getElementById("vnnome").focus();' +
+    '  });' +
+    '  document.getElementById("vb-cancelar-exercicio").addEventListener("click", function(){' +
+    '    caixaNovoExercicio.hidden = true;' +
+    '    document.getElementById("vnnome").value = "";' +
+    '    var r = caixaNovoExercicio.querySelector("[data-res=vb-novo]");' +
+    '    if (r) { r.className = "res"; r.textContent = ""; }' +
+    '  });' +
+    '  document.getElementById("vb-criar-exercicio").addEventListener("click", function(){' +
+    '    var nome = document.getElementById("vnnome").value.trim();' +
+    '    var cat = document.getElementById("vncategoria").value;' +
+    '    var tra = document.getElementById("vntradicao").value;' +
+    '    var res = caixaNovoExercicio.querySelector("[data-res=vb-novo]");' +
+    '    if (!nome) { res.className = "res erro"; res.textContent = "Informe o nome do exercício."; return; }' +
+    '    res.className = "res"; res.textContent = "gravando...";' +
+    '    fetch("/api/bastidores/termo", {' +
+    '      method: "POST", headers: {"Content-Type": "application/json"},' +
+    '      body: JSON.stringify({token: TOKEN, termo: nome, categoria: cat, tradicao: tra})' +
+    '    }).then(lerResposta).then(function(d){' +
+    '      if (!d.ok) { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); return; }' +
+    '      var nomes = document.getElementById("vbnome");' +
+    '      var grupo = nomes ? nomes.querySelector("optgroup[data-cat=\'" + cat + "\']") : null;' +
+    '      var o = document.createElement("option");' +
+    '      o.value = d.termo; o.textContent = d.termo;' +
+    '      if (nomes) {' +
+    '        if (grupo) { grupo.appendChild(o); }' +
+    '        else {' +
+    '          var g = document.createElement("optgroup");' +
+    '          g.setAttribute("data-cat", cat);' +
+    '          g.label = ROTULO_DE_CATEGORIA[cat] || cat;' +
+    '          g.appendChild(o);' +
+    '          nomes.appendChild(g);' +
+    '        }' +
+    '        nomes.value = d.termo;' +
+    '      }' +
+    '      caixaNovoExercicio.hidden = true;' +
+    '      document.getElementById("vnnome").value = "";' +
+    '      recado("ok", "exercício criado: " + d.termo + " — escolha-o e grave o verbete dele.");' +
+    '    }).catch(function(e){' +
+    '      res.className = "res erro"; res.textContent = "Erro: " + e.message;' +
+    '    });' +
+    '  });' +
+    '}' +
     'var novoVerbete = document.getElementById("vbnovo");' +
     'if (novoVerbete) novoVerbete.addEventListener("click", function(){' +
     '  var f = document.getElementById("form-verbete");' +
@@ -4968,7 +5091,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  gravarEstado();' +
     '});' +
     'document.getElementById("semear").addEventListener("click", function(e){' +
-    '  if (!confirm("Carregar o catálogo inicial (turmas + vocabulário)? Registros já existentes não são duplicados.")) return;' +
+    '  if (!confirm("Carregar as turmas iniciais? Turmas já existentes não são duplicadas.")) return;' +
     '  enviar("/api/bastidores/semear-catalogo", {}, "carregando catálogo inicial...", false);' +
     '});' +
     'document.getElementById("form-curadoria").addEventListener("submit", function(e){' +
@@ -6312,11 +6435,54 @@ async function fetch(request, env) {
         erro: 'escolha a tradição: ' + TRADICOES_DO_VOCABULARIO.join(' · '),
       });
     }
-    const lista = await termos(kv, escola);
-    if (lista.some((t) => t && t.id === novo.id)) return json(409, { ok: false, erro: 'este termo já existe — selecione o registro existente' });
-    lista.push(novo);
-    await kv.put(RAIZ + '/' + escola + '/vocabulario', JSON.stringify(lista));
-    return json(201, { ok: true, termo: novo.termo });
+    // A GRAVAÇÃO É NO REPOSITÓRIO (28/10/2026). O vocabulário passou a ter uma verdade só — o
+    // ficheiro da modalidade —, e é dele que saem o plano, o verbete e a notação. Gravar no KV
+    // criaria a segunda lista que esta alteração veio eliminar. Ver `termo-repo.js`.
+    //
+    // O `membro` entra: uma POSIÇÃO tem de dizer de que membro é, senão «première position» não
+    // se distingue da homónima de braços — e o verbete passaria a apontar para a posição errada.
+    const { criarTermo } = require('./termo-repo.js');
+    const r = await criarTermo({
+      f: (u, o) => globalThis.fetch(u, o),
+      token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main',
+      corpo: {
+        termo: novo.termo, categoria: novo.categoria, tradicao: novo.tradicao,
+        membro: String(corpo.membro || '').trim(),
+        alternativos: novo.alternativos, descricao: novo.descricao,
+        fonte: novo.fonte, observacoes: novo.observacoes,
+      },
+      tradicoes: TRADICOES_DO_VOCABULARIO,
+    });
+    if (!r.ok) {
+      return json(r.status || 400, { ok: false, erro: r.erro, erros: r.erros, termo: r.termo });
+    }
+    return json(201, { ok: true, termo: r.termo.termo, id: r.termo.id, commit: r.commit });
+  }
+
+  // PUT /api/bastidores/termo — editar o NOME de um termo (28/10/2026).
+  //
+  // O nome é a chave do termo, e o `id` deriva dele. Editar o nome muda o `id` — e um `id` pode
+  // estar referido num verbete, numa posição ou numa relação turma↔conteúdo. Por isso a edição é
+  // recusada quando o termo está em uso: quem edita tem de saber que mexe numa referência.
+  if (path === '/api/bastidores/termo' && request.method === 'PUT') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const idAntigo = idDe(String(corpo.id || corpo.termo || '').trim());
+    const novoNome = String(corpo.novoNome || '').trim();
+    if (!idAntigo) return json(400, { ok: false, erro: 'informe o termo a editar' });
+    if (!novoNome) return json(400, { ok: false, erro: 'informe o novo nome' });
+    const { editarNomeDoTermo } = require('./termo-repo.js');
+    const r = await editarNomeDoTermo({
+      f: (u, o) => globalThis.fetch(u, o),
+      token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main',
+      idAntigo, novoNome,
+    });
+    return json(r.ok ? 200 : (r.status || 400), r);
   }
 
   // DELETE /api/bastidores/termo — excluir termo (e limpar a relação).
@@ -6349,8 +6515,28 @@ async function fetch(request, env) {
         });
       }
     }
-    lista.splice(idx, 1);
-    await kv.put(RAIZ + '/' + escola + '/vocabulario', JSON.stringify(lista));
+    // O TERMO É COMPARTILHADO, E APAGÁ-LO É APAGAR PARA TODAS AS ESCOLAS (28/10/2026). O
+    // vocabulário deixou de ser uma cópia por escola, por isso esta rota deixou de ser «tirar da
+    // minha lista» e passou a ser «tirar da lista de todos». A recusa por uso, acima, é a primeira
+    // guarda; esta nota é a segunda: quem apaga tem de o saber antes de o fazer.
+    const { ler: lerVocabulario, escrever: escreverVocabulario } = require('./termo-repo.js');
+    const lido = await lerVocabulario({
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main',
+    });
+    if (!lido.ok) return json(lido.status || 502, { ok: false, erro: lido.erro });
+    const idxNoRepo = lido.termos.findIndex((t) => t && t.id === id);
+    if (idxNoRepo === -1) return json(404, { ok: false, erro: 'termo não encontrado no vocabulário' });
+    lido.termos.splice(idxNoRepo, 1);
+    const escrito = await escreverVocabulario({
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main', termos: lido.termos, sha: lido.sha,
+      mensagem: 'chore(biblioteca): remover «' + lista[idx].termo
+        + '» do vocabulário do balé clássico\n\nRemovido pela Produção (Sistema Lastro).\n',
+    });
+    if (!escrito.ok) {
+      return json(escrito.status || 400, { ok: false, erro: 'o repositório recusou a gravação (HTTP ' + escrito.status + ')' });
+    }
     const rel = await relacoes(kv, escola);
     let mudou = false;
     for (const k of Object.keys(rel)) {
@@ -6427,16 +6613,13 @@ async function fetch(request, env) {
       turmasNovas += 1;
     }
 
-    let termosNovos = 0;
-    for (const s of CATALOGO.TERMOS) {
-      const novo = normalizarTermo(s);
-      if (!novo.termo || temTermo(novo.id)) continue;
-      listaTermos.push(novo);
-      termosNovos += 1;
-    }
+    // O VOCABULÁRIO JÁ NÃO SE SEMEIA (28/10/2026). Ele vive no repositório, numa verdade só, e
+    // `termos()` lê-o do bundle — copiá-lo para o KV seria recriar a segunda lista que esta
+    // alteração eliminou. O botão passa a semear só o que é da ESCOLA: as turmas e a relação
+    // inicial entre turma e conteúdo. O nome que ele mostra deixa de prometer as duas coisas.
+    const termosNovos = 0;
 
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(listaTurmas));
-    await kv.put(RAIZ + '/' + escola + '/vocabulario', JSON.stringify(listaTermos));
 
     // A relação inicial: só pares em que a turma e o termo existem (após a carga).
     const rel = await relacoes(kv, escola);

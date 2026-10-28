@@ -855,16 +855,13 @@ async function principal() {
     script.includes('fichasDe("esc-repertorio")'), false);
   conferir('…e não sobrou nenhum lookup no formulário',
     html.includes('<datalist'), false);
-  // Os termos de verdade, no próprio menu: é o que dá a busca por digitação do navegador.
-  // A prova cadastra dois termos e confere que eles aparecem como OPÇÕES do menu.
-  await pedir(env, '/api/bastidores/termo', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ senhaDirecao: SENHA_DA_DIRECAO, termo: 'Arabesque', categoria: 'passo' }),
-  });
-  await pedir(env, '/api/bastidores/termo', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ senhaDirecao: SENHA_DA_DIRECAO, termo: 'Plié', categoria: 'passo' }),
-  });
+  // OS TERMOS DE VERDADE, NO PRÓPRIO MENU — e agora vêm do REPOSITÓRIO (28/10/2026).
+  // Antes esta secção cadastrava dois termos no KV e conferia que eles apareciam no menu. Isso
+  // deixou de poder acontecer: `termos()` lê o vocabulário do bundle (o ficheiro da
+  // modalidade), e o cadastro grava no REPOSITÓRIO, pela API do GitHub — que esta prova não
+  // tem, e não deve ter: uma prova que escreve no repositório de verdade não é uma prova.
+  // O que se confere passou a ser o CONTRATO: o menu traz o vocabulário da modalidade inteiro,
+  // uma opção por termo, mais o «— associar termo —».
   // O SERVIDOR GARANTE O QUE A TELA JÁ NÃO DEIXA ESCREVER (18/10/2026). A tela é a
   // comodidade; a regra é esta — e uma categoria inventada não entra no vocabulário.
   const categoriaInventada = await pedir(env, '/api/bastidores/termo', {
@@ -881,8 +878,9 @@ async function principal() {
   // O MENU DOS TERMOS vive agora num lugar só: o passo «Associar» da TURMA (`#vinc-termo`),
   // que é quem alimenta o plano.
   const menuDosTermos = (comTermos.match(/id="vinc-termo"[\s\S]*?<\/select>/) || [''])[0];
+  const vocabularioDaModalidade = require('../motor/servidor/catalogo-seed.js').TERMOS;
   conferir('…e os termos do vocabulário entram como OPÇÕES do menu da turma',
-    (menuDosTermos.match(/<option /g) || []).length, 3); // «— associar termo —» + os dois
+    (menuDosTermos.match(/<option /g) || []).length, vocabularioDaModalidade.length + 1);
   conferir('…e o formulário entrega as fichas que o servidor espera',
     script.includes('fichasDe("esc-alunas")'), true);
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',

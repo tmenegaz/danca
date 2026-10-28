@@ -31,15 +31,29 @@ function slugificar(nome) {
     .replace(/-{2,}/g, '-');
 }
 
-/** Os termos, na forma que `bastidores.js` consome (`normalizarTermo`). */
+/**
+ * OS TERMOS, COM `id` (28/10/2026). O `id` é o que liga um termo ao resto — ao verbete da notação,
+ * à posição de um exercício, à relação turma↔conteúdo —, e ele vinha a ser derivado do nome em
+ * cada sítio. Passa a vir do dado, que é onde ele está escrito.
+ *
+ * O `membro` é a marca que desempata «première position»: de pés, de pernas ou de braços. Sem ela a
+ * posição não se distingue da homónima de outro membro.
+ *
+ * E ESTA É A ÚNICA LISTA DE TERMOS. O ficheiro que o esbuild embute aqui é o mesmo que o gerador lê
+ * do disco quando compõe um documento — a cópia por escola no KV deixou de existir em 28/10/2026.
+ * Um termo novo chega ao Worker no deploy que o commit do cadastro dispara.
+ */
 const TERMOS = vocabulario.map((t) => ({
+  id: t.id,
   termo: t.termo,
   categoria: t.categoria,
+  membro: t.membro || '',
   tradicao: t.tradicao,
   alternativos: t.alternativos || [],
   descricao: t.descricao || '',
   fonte: t.fonte || '',
   observacoes: t.observacoes || '',
+  estado: t.estado || 'documentado',
 }));
 
 /** As turmas, na forma que `bastidores.js` consome (`normalizarTurma`). */

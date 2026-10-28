@@ -129,7 +129,6 @@ function envDaBancada(comPlano) {
     ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify(TURMAS),
     ['bastidores/' + ESCOLA + '/professores']: JSON.stringify([
       { nome: 'Perna Boa', slug: 'perna-boa', senha: 'p' }]),
-    ['bastidores/' + ESCOLA + '/vocabulario']: JSON.stringify(TERMOS),
     ['bastidores/' + ESCOLA + '/turma-conteudos']: JSON.stringify({
       'bale-nivel-1-teste-2': TERMOS.map((t) => t.id) }),
   };

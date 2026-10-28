@@ -101,7 +101,11 @@ function githubFalso(inicial) {
   const arquivos = new Map(Object.entries(inicial));
   const pedidos = [];
   const f = async (url, opcoes) => {
-    const caminho = url.split('/contents/')[1];
+    // O `?ref=` FAZ PARTE DA CONSULTA, e não do caminho: um GitHub de mentira que o deixasse
+    // colado ao nome do ficheiro responderia 404 a tudo o que pedisse por ramo — e o 404 dele
+    // seria lido como «o ficheiro não existe», que é exactamente a confusão que a secção E
+    // existe para travar.
+    const caminho = String(url).split('/contents/')[1].split('?')[0];
     pedidos.push({ metodo: (opcoes && opcoes.method) || 'GET', caminho });
     if ((opcoes && opcoes.method) === 'PUT') {
       const corpo = JSON.parse(opcoes.body);
@@ -331,11 +335,102 @@ async function aPagina() {
     /function lerResposta/.test(script));
 }
 
+/**
+ * F. O VOCABULÁRIO NUMA VERDADE SÓ (28/10/2026) — e o «+» que cria o exercício.
+ *
+ * Até esta data havia DUAS listas de termos: o ficheiro da modalidade no repositório e uma cópia
+ * por escola no KV, semeada pelo botão «Carregar catálogo inicial». Duas listas divergem ao
+ * primeiro termo novo, e o sintoma é silencioso — um exercício que existe na tela e não no
+ * gerador, ou o contrário. A decisão foi: o vocabulário vive no REPOSITÓRIO, e só lá; a tela lê
+ * o bundle que o deploy traz, e o cadastro grava no repositório.
+ *
+ * O que esta secção trava:
+ *   - `termos()` devolve o vocabulário da modalidade MESMO com o KV vazio (não há cópia);
+ *   - o cadastro de termo grava no ficheiro do vocabulário, e recusa o nome que já existe;
+ *   - editar o nome muda o `id` (o `id` deriva do nome);
+ *   - a posição sem `membro` é recusada — «première position» de pés não é a de braços;
+ *   - a tela tem o «+» ao lado do exercício, e a caixa nasce fechada.
+ */
+async function aOrigemDoVocabulario() {
+  console.log('\nF. O VOCABULÁRIO NUMA VERDADE SÓ — e o «+» do exercício');
+
+  const termoRepo = require(path.join(RAIZ, 'motor', 'servidor', 'termo-repo.js'));
+  const Caminho = termoRepo.CAMINHO;
+  const repo = githubFalso({
+    [Caminho]: { sha: 'sha-voc', conteudo: JSON.stringify(VOCABULARIO, null, 2) + '\n' },
+  });
+  const base = { f: repo.f, token: 'token-de-prova', dono: 'dono', repo: 'repo', ref: 'main' };
+  const TRADICOES = ['compartilhada', 'RAD', 'francesa', 'Vaganova'];
+
+  const criado = await termoRepo.criarTermo(Object.assign({}, base, {
+    // Um nome que NÃO existe no vocabulário de verdade — a prova cria sobre o ficheiro real, e
+    // «Battement fondu» já lá está (a primeira versão desta asserção bateu nisso).
+    corpo: { termo: 'Sissonne ouverte', categoria: 'salto', tradicao: 'compartilhada' },
+    tradicoes: TRADICOES,
+  }));
+  checar('o termo novo é criado', criado.ok, criado);
+  checar('e a gravação vai para o vocabulário da modalidade',
+    repo.pedidos.some((p) => p.metodo === 'PUT' && p.caminho === Caminho), repo.pedidos);
+  checar('com mensagem do projeto', /^feat\(biblioteca\): acrescentar/.test(
+    String(repo.arquivos.get(Caminho).mensagem || '').split('\n')[0]), repo.arquivos.get(Caminho).mensagem);
+  // O FICHEIRO É UM ARRAY DE TERMOS, e não um objecto com a chave `termos` — o `catalogo-seed.js`
+  // é que o embrulha para o Worker. Ler `.termos` aqui dava `undefined`, e um `.some` sobre
+  // `undefined` rebenta em vez de reprovar: a asserção parecia medir e não media nada.
+  const depois = JSON.parse(repo.arquivos.get(Caminho).conteudo);
+  checar('e o ficheiro gravado continua a ser um array de termos', Array.isArray(depois), typeof depois);
+  checar('e o termo está lá, com o `id` derivado do nome',
+    depois.some((t) => t.id === 'sissonne-ouverte'), depois.map((t) => t.id).slice(-2));
+
+  const duplicado = await termoRepo.criarTermo(Object.assign({}, base, {
+    corpo: { termo: 'Sissonne ouverte', categoria: 'salto' }, tradicoes: TRADICOES,
+  }));
+  checar('criar o que já existe é recusado com 409', !duplicado.ok && duplicado.status === 409, duplicado);
+
+  const editado = await termoRepo.editarNomeDoTermo(Object.assign({}, base, {
+    idAntigo: 'sissonne-ouverte', novoNome: 'Sissonne ouverte simple',
+  }));
+  checar('editar o nome é aceito', editado.ok, editado);
+  checar('e o `id` acompanha o nome (o `id` deriva dele)',
+    editado.ok && editado.de === 'sissonne-ouverte' && editado.para === 'sissonne-ouverte-simple', editado);
+
+  const semMembro = termoRepo.validarTermo({ termo: 'Première position', categoria: 'posicao' }, TRADICOES);
+  checar('uma posição sem `membro` é recusada — pés e braços não partilham o nome',
+    !semMembro.ok && /membro/.test(semMembro.erros.join(' ')), semMembro.erros);
+
+  // A ORIGEM: o KV está vazio, e o vocabulário aparece assim mesmo. É o que prova que a cópia
+  // por escola deixou de existir — e que o botão de semear já não tem o que semear.
+  const bastidores = require(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'));
+  const env = {
+    ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'senha-da-direcao',
+    GITHUB_TOKEN: 'token-de-prova',
+    PADD_KV: { async get() { return null; }, async put() {}, async delete() {}, async list() { return { keys: [], list_complete: true }; } },
+  };
+  const servido = await bastidores.fetch(new Request('https://e.workers.dev/api/bastidores/termos'), env);
+  const lista = await servido.json();
+  const doBundle = require(path.join(RAIZ, 'motor', 'servidor', 'catalogo-seed.js')).TERMOS;
+  checar('o vocabulário é servido do bundle, com o KV vazio', servido.status === 200
+    && lista.termos.length === doBundle.length, [servido.status, lista.termos && lista.termos.length]);
+
+  const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/producao'), env);
+  const html = await pagina.text();
+  checar('o «+» fica ao lado do exercício, e não noutra secção',
+    /<span class="par-associar"><select id="vbnome"/.test(html), /par-associar/.test(html));
+  checar('e a caixa do exercício novo nasce fechada', /<div id="vb-novo" hidden>/.test(html));
+  checar('e o botão de semear deixou de prometer o vocabulário',
+    /Carregar as turmas iniciais/.test(html) && !/turmas \+ vocabulário/.test(html));
+
+  const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .map((m) => m[1]).sort((a, b) => b.length - a.length)[0] || '';
+  checar('e o «+» grava pelo cadastro que já existe (o mesmo, não um segundo)',
+    /fetch\("\/api\/bastidores\/termo"/.test(script) && /vb-criar-exercicio/.test(script));
+}
+
 aValidacao();
-aEscrita().then(aRota).then(aPagina).then(() => {
+aEscrita().then(aRota).then(aPagina).then(aOrigemDoVocabulario).then(() => {
   console.log('');
   if (falhas) { console.log('FALHOU — ' + falhas + ' asserção(ões).'); process.exit(1); }
-  console.log('TUDO CERTO — o CRUD do verbete valida, grava no repositório e recusa apagar.');
+  console.log('TUDO CERTO — o CRUD do verbete valida, grava no repositório e recusa apagar;'
+    + ' e o vocabulário vive numa verdade só.');
 }).catch((erro) => {
   console.error('erro na prova:', erro);
   process.exit(1);
