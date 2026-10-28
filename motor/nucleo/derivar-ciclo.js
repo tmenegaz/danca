@@ -236,7 +236,6 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   // atravessa o pandoc→LaTeX como um único caractere (quebrava a conferência).
   const tituloDaAula = objetivo && !objetivo.startsWith('[Preencher') ? objetivo : 'Aula 01';
   saida.push('title: "Aula 01 — ' + tituloDaAula + '"');
-  saida.push('subtitle: "Sem deslocamento, sem giro, sem mudança de direção"');
   saida.push('objetivo-especifico: "' + (objetivoDaAula1(plano) || '[Preencher]') + '"');
   saida.push('duracao: "' + duracaoMin + ' minutos"');
   if (volumeTotal) saida.push('volume-total: "' + volumeTotal + ' tempos"');
@@ -250,6 +249,13 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     for (const linha of corpo) saida.push(linha);
     saida.push('');
   };
+
+  /* A CONDIÇÃO DA AULA DESCEU PARA O CORPO (28/10/2026). Ela era o `subtitle:` do
+   * documento — «Sem deslocamento, sem giro, sem mudança de direção» —, e essa é a única
+   * coisa que o subtítulo dizia que o corpo não dissesse: por isso sai do cabeçalho como
+   * PROSA, e não como decoração. As outras páginas perderam o subtítulo por repetição
+   * (referências, notação); esta perdê-lo-ia com informação dentro. */
+  saida.push('**Condição desta aula.** Sem deslocamento, sem giro, sem mudança de direção.', '');
 
   // §1 — Validação dos objetivos, métricas e duração (item/valor → `identificacao`).
   {
@@ -381,7 +387,6 @@ function derivarReferencias({ plano, contexto }) {
   saida.push('frente: Referências');
   saida.push('ciclo: "' + ciclo + '"');
   saida.push('title: "Referências Bibliográficas"');
-  saida.push('subtitle: "Fontes que sustentam o recorte e a progressão do Ciclo ' + ciclo + '"');
   saida.push('---');
   saida.push('');
   saida.push('> **O que é este arquivo.** A bibliografia que aparece **dentro** do pacote do ciclo — uma');
@@ -441,7 +446,6 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('frente: Documento de apoio');
   saida.push('ciclo: "' + ciclo + '"');
   saida.push('title: "Notação em ' + notacao + '"');
-  saida.push('subtitle: "Registro dos exercícios da Aula 01 para repetição sem depender da memória"');
   saida.push('glossario-href: "glossario-' + slugDe(notacao) + '.html"');
   saida.push('---');
   saida.push('');
@@ -615,8 +619,11 @@ function derivarGlossario({ plano, contexto }) {
   saida.push('projeto: Formação em Balé Clássico');
   saida.push('frente: Documento de apoio');
   saida.push('ciclo: "' + ciclo + '"');
+  // SEM SUBTÍTULO (28/10/2026). «Todo símbolo, termo e categoria que aparece no registro da
+  // Aula 01» é o que o próprio corpo já diz, três linhas abaixo: o parágrafo do alfabeto declara
+  // as categorias, os sinais e os verbetes, e a Nota declara o par glossário ↔ registro. O
+  // subtítulo repetia-o em corpo menor, debaixo do título.
   saida.push('title: "Glossário do código ' + notacao + ' do ciclo"');
-  saida.push('subtitle: "Todo símbolo, termo e categoria que aparece no registro da Aula 01"');
   saida.push('---');
   saida.push('');
   saida.push('> **Aviso de proveniência (Regra 8).** Este glossário explica um **código do ciclo**, não o');

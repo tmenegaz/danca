@@ -26,23 +26,11 @@ $endfor$
   $if(subtitle)$
   <p class="subtitulo">$subtitle$</p>
   $endif$
+  $if(notacao-href)$
+  <p><a class="acao secundario pequena" href="$notacao-href$">Abrir notação</a></p>
+  $endif$
   $if(glossario-href)$
   <p><a class="acao secundario pequena" href="$glossario-href$" target="_blank" rel="noopener noreferrer">Abrir glossário (nova aba)</a></p>
-  $endif$
-  $if(ficha)$
-  <p class="ficha">
-    $if(escola)$<span>Escola: $escola$$if(escola-responsavel)$ — $escola-responsavel$$endif$</span>$endif$
-    $if(frequencia)$<span>$frequencia$</span>$endif$
-    $if(duracao-por-dia)$<span>$duracao-por-dia$</span>$endif$
-    $if(frente)$<span>$frente$</span>$endif$
-    $if(ciclo)$<span>Ciclo $ciclo$$if(ciclo-semanas)$ ($ciclo-semanas$ semanas)$endif$</span>$endif$
-    $if(aula)$<span>Aula $aula$</span>$endif$
-    $if(data)$<span>$data$</span>$endif$
-    $if(duracao)$<span>Duração: $duracao$</span>$endif$
-    $if(volume-semanal)$<span>Volume semanal: $volume-semanal$</span>$endif$
-    $if(volume-total)$<span>Volume ativo: $volume-total$</span>$endif$
-    $if(objetivo-especifico)$<span>Objetivo: $objetivo-especifico$</span>$endif$
-  </p>
   $endif$
 </header>
 

@@ -227,6 +227,19 @@ function embrulhar(linha, maximo) {
 /**
  * A caixa do topo: a identificação da ficha e o tipo.
  *
+ * SEM MOLDURA, E COM A LINHA ATÉ AO FIM (28/10/2026). A pesquisadora: «ele tá circulado
+ * com uma borda — em cima sólida, à direita e à esquerda tracejada, embaixo sólida. Tira
+ * essas bordas». A moldura era `┌─┐ │ └─┘` em monoespaçado: de cima e de baixo lê-se um
+ * traço sólido, dos lados os `│` descontínuos. Saiu. Ficou o bloco monoespaçado — o
+ * `pre` da folha, com a moldura de quatro lados que ele já tem — e cada campo passou a
+ * ter o TRAÇO até ao fim da linha, para o professor escrever sem parar no meio do vazio.
+ *
+ * A ORDEM É A DO PREENCHIMENTO, e não a do cartão antigo (28/10/2026). O ciclo e a aula
+ * desceram cada um para a sua linha (eram dois campos a dividir uma), e a aluna subiu
+ * para debaixo do professor: é ali que se procura por ela enquanto se preenche a folha.
+ * O «Outro» do método desceu para a sua própria linha — na mesma linha dos métodos ele
+ * ficava encostado à última caixa, e não havia espaço para escrever.
+ *
  * Só o campo «Método declarado» recebe marca: os demais são linha de
  * identificação, e o apelido não é elicitado — é o professor que o escreve.
  * O `Data:` também fica em branco, porque a data da ficha é a da observação,
@@ -239,13 +252,18 @@ function embrulhar(linha, maximo) {
 function cabecalhoDaFicha(conteudo, respostaDoMetodo, preenchida) {
   const metodos = metodosDeOrigem(conteudo);
   const marcados = respostaDoMetodo ? respostaDoMetodo.respondido : null;
+  /** O rótulo e o traço que o completa até à largura da linha. */
+  const campo = (rotulo) =>
+    rotulo + '_'.repeat(Math.max(3, LARGURA_MAXIMA_DA_MOLDURA - rotulo.length));
   const declaradas = [
     'Data: ____/____/______',
-    'Ciclo: ______        Aula: ______',
-    'Escola: ______________________________',
-    'Professor(a): ______________________________',
-    'Método declarado: ' + caixas(metodos, marcados, preenchida) + '  ☐ Outro: __________',
-    'Aluna (apelido — ' + conteudo.apelidoObrigatorio + '): ______________________________',
+    campo('Ciclo: '),
+    campo('Aula: '),
+    campo('Escola: '),
+    campo('Professor(a): '),
+    campo('Aluna (apelido — ' + conteudo.apelidoObrigatorio + '): '),
+    'Método declarado: ' + caixas(metodos, marcados, preenchida),
+    campo('☐ Outro: '),
     '',
     'Tipo de ficha:',
     '☐ Linha de base zero (entrada — antes do ciclo)',
@@ -253,13 +271,11 @@ function cabecalhoDaFicha(conteudo, respostaDoMetodo, preenchida) {
   ];
 
   const linhas = declaradas.flatMap((l) => embrulhar(l, LARGURA_MAXIMA_DA_MOLDURA));
-  const largura = Math.max(...linhas.map((l) => l.length)) + 2;
-  const caixa = ['┌' + '─'.repeat(largura) + '┐'];
-  for (const linha of linhas) {
-    caixa.push('│ ' + linha.padEnd(largura - 1) + '│');
-  }
-  caixa.push('└' + '─'.repeat(largura) + '┘');
-  return caixa;
+  // O BLOCO É CERCADO, e não desenhado a carateres (28/10/2026): sem a moldura `┌─┐`, o
+  // que dizia ao renderizador «isto é monoespaçado» era o próprio desenho. A cerca é a
+  // marca de código do Markdown — o renderizador da ficha a desenha como `pre`, e o
+  // pandoc a desenha como código em qualquer documento que a receba.
+  return ['```', ...linhas, '```'];
 }
 
 /**

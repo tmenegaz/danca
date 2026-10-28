@@ -116,6 +116,7 @@ const MEDIR_TITULO = () => {
   const cab = document.querySelector('header.doc') || document.querySelector('.titulo-fixo');
   if (!cab) return { temCabecalho: false };
   const h1 = cab.querySelector('h1');
+  const botao = cab.querySelector('a.acao');
   const caixa = cab.getBoundingClientRect();
   const barra = document.querySelector('.topnav');
   const barraAltura = barra ? barra.offsetHeight : 0;
@@ -133,6 +134,8 @@ const MEDIR_TITULO = () => {
     barraAltura,
     tituloPreso: cs.getPropertyValue('--titulo-preso').trim(),
     scrollPadding: parseFloat(cs.scrollPaddingTop),
+    temSubtitulo: Boolean(cab.querySelector('.subtitulo')),
+    temFicha: Boolean(cab.querySelector('.ficha')),
     subtituloVisivel: (() => {
       const s = cab.querySelector('.subtitulo');
       return Boolean(s) && getComputedStyle(s).display !== 'none';
@@ -140,6 +143,12 @@ const MEDIR_TITULO = () => {
     fichaVisivel: (() => {
       const f = cab.querySelector('.ficha');
       return Boolean(f) && getComputedStyle(f).display !== 'none';
+    })(),
+    // O botão do documento, quando o documento tem um (a aula tem «Abrir notação»).
+    botaoVisivel: Boolean(botao) && getComputedStyle(botao).display !== 'none',
+    botaoVisivelNoTopo: Boolean(botao) && (() => {
+      const b = botao.getBoundingClientRect();
+      return b.top >= 0 && b.bottom <= window.innerHeight;
     })(),
     posicao: getComputedStyle(cab).position,
     alturaDaTela: window.innerHeight,
@@ -229,8 +238,12 @@ const MEDIR_BARRA = () => {
     topo1280.fixo === 'sim' && topo1280.encolhido === 'nao', topo1280);
   provar('…e no topo o cabeçalho ainda não está preso (é o começo de sempre)',
     topo1280.posicao === 'sticky' && topo1280.topoCabecalho > topo1280.barraAltura + 4, topo1280);
-  provar('no topo o subtítulo e a ficha estão à vista — nada foi escondido sem rolar',
-    topo1280.subtituloVisivel === true && topo1280.fichaVisivel === true, topo1280);
+  /* O SUBTÍTULO E A FICHA SAÍRAM DOS DOCUMENTOS (28/10/2026), e a asserção acompanha: o que se
+   * prova é que, QUANDO existem, estão à vista no topo — nada é escondido sem rolar. Na aula de
+   * hoje já não existem; a proposição fica verdadeira, e volta a medir no dia em que voltarem. */
+  provar('no topo o subtítulo e a ficha estão à vista — quando o documento os tem',
+    (!topo1280.temSubtitulo || topo1280.subtituloVisivel === true)
+    && (!topo1280.temFicha || topo1280.fichaVisivel === true), topo1280);
 
   await rolarPara(1400);
   const preso1280 = await pg.evaluate(MEDIR_TITULO);
@@ -243,9 +256,15 @@ const MEDIR_BARRA = () => {
     preso1280.corpoDoTitulo < topo1280.corpoDoTitulo
     && preso1280.subtituloVisivel === false && preso1280.fichaVisivel === false,
     { antes: topo1280.corpoDoTitulo, depois: preso1280.corpoDoTitulo });
-  provar('…e a altura que ele ocupa no desktop fica abaixo de 60px',
-    preso1280.alturaCabecalho > 0 && preso1280.alturaCabecalho < 60,
+  /* O CABEÇALHO PRESO CARREGA O BOTÃO DO DOCUMENTO (28/10/2026). «Abrir notação», na aula, e
+   * «Abrir glossário», na notação: o botão fica preso com o título, e é isso que o mantém
+   * alcançável em 15 ecrãs de documento. O teto sobe de 60px para 80px por causa dele —
+   * medido, o cabeçalho preso da aula ocupava 63px (7,5% de uma tela de 844). */
+  provar('…e a altura que ele ocupa no desktop fica abaixo de 80px',
+    preso1280.alturaCabecalho > 0 && preso1280.alturaCabecalho < 80,
     { encolhido: preso1280.alturaCabecalho, inteiro: topo1280.alturaCabecalho });
+  provar('…e o botão do documento continua à vista, preso com o título',
+    preso1280.botaoVisivel === true && preso1280.botaoVisivelNoTopo === true, preso1280);
   provar('`--titulo-preso` é a altura MEDIDA, e não um número escrito à mão',
     preso1280.tituloPreso === `${preso1280.alturaCabecalho}px`
     || Math.abs(parseFloat(preso1280.tituloPreso) - preso1280.alturaCabecalho) <= 1,
@@ -326,7 +345,8 @@ const MEDIR_BARRA = () => {
   const papel = await pg.evaluate(MEDIR_TITULO);
   provar('no papel o cabeçalho sai INTEIRO e no lugar: papel não tem estado de rolagem',
     papel.posicao === 'static' && papel.corpoDoTitulo === 31
-    && papel.subtituloVisivel === true && papel.fichaVisivel === true, papel);
+    && (!papel.temSubtitulo || papel.subtituloVisivel === true)
+    && (!papel.temFicha || papel.fichaVisivel === true), papel);
   await pg.emulateMediaType(null);
 
   // ====================================================== B. a barra do lançamento

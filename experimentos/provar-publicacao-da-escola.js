@@ -283,11 +283,12 @@ function principal() {
     checar('o nome da Aula 01 abre sua leitura em prosa numa nova aba',
       /<a href="\/nivel-1\/aula-01\.html" target="_blank" rel="noopener" title="abrir a versão em prosa da aula">Aula 01<\/a>/.test(listaAulas),
       (listaAulas.match(/<a[^>]+>Aula 01<\/a>/g) || []));
-    checar('«Abrir notação» fica como ação ao lado da Aula 01',
-      /Abrir notação/.test(listaAulas) && /href="\/nivel-1\/notacao\.html"/.test(listaAulas),
+    /* «ABRIR NOTAÇÃO» SAIU DA LISTA (28/10/2026): é botão do cabeçalho da AULA. A lista abre o
+     * documento; a leitura em notação procura-se lá dentro, onde o professor já sabe o que está
+     * a ler. A prova passou a exigir o contrário do que exigia: o rótulo NÃO aparece aqui. */
+    checar('«Abrir notação» não é ação da lista de aulas',
+      !/Abrir notação/.test(listaAulas),
       (listaAulas.match(/<a[^>]+>Abrir notação<\/a>/g) || []));
-    checar('não há botão de Notação nas aulas sem página publicada',
-      !/Aula 02[\s\S]{0,700}Abrir notação/.test(listaAulas), listaAulas.length);
     checar('a Aula 01 oferece o PDF individual da aula',
       /href="\/nivel-1\/aula-01\.pdf"[^>]*>PDF da aula<\/a>/.test(listaAulas),
       (listaAulas.match(/<a[^>]+>PDF da aula<\/a>/g) || []));

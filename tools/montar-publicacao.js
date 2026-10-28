@@ -596,10 +596,11 @@ function itemDaAula(t, a, indice, total) {
   const ler = fs.existsSync(path.join(t.pasta, paginaAula))
     ? '/' + t.variante + '/' + paginaAula
     : '';
+  // «Abrir notação» NÃO É AÇÃO DA LISTA (28/10/2026). Era a primeira ação da linha da aula:
+  // o professor escolhia o documento antes de saber o que ia ler, e o botão ficava fora do
+  // documento a que pertence. Passou para o cabeçalho da própria Aula — a listagem abre a
+  // aula, e a leitura em notação é um botão lá dentro.
   const acoes = [];
-  if (Number(a.n) === 1 && t.documentos && t.documentos.notacao) {
-    acoes.push(['Abrir notação', '/' + t.variante + '/' + t.documentos.notacao, '']);
-  }
   if (fs.existsSync(path.join(t.pasta, 'lancamento.html'))) {
     acoes.push(['Lançar', '/' + t.variante + '/lancamento.html', 'secundario']);
   }
@@ -821,8 +822,8 @@ function principal() {
     { singular: 'plano', plural: 'planos' });
 
   /* A LISTA DE AULAS reúne a leitura em prosa e a outra vista da Aula 01. O título abre a aula;
-     «Abrir notação» fica como ação ao lado, quando há notação publicada. Lançamento e captura
-     continuam na mesma linha.
+     a leitura em notação é um botão do CABEÇALHO da aula (28/10/2026), não uma ação desta lista.
+     Lançamento, captura e PDF continuam na mesma linha.
    *
    * As antigas listas independentes de Notação e Consulta deixam de ser geradas: a notação é
    * acessada pela aula correspondente, e o glossário pelo cabeçalho persistente da Notação.

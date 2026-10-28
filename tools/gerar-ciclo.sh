@@ -1130,18 +1130,24 @@ for doc in $TODOS; do
     guia-de-observacao-*)
       METADADOS=(--metadata "title=Guia de observação — Aula ${doc#guia-de-observacao-}") ;;
   esac
-  # A ficha (Escola · frequência · duração · Ciclo · data · volume) NÃO aparece na
-  # apresentação («Sistema Lastro», o `index`): ela é material do sistema, não
-  # do ciclo. As demais páginas mantêm a ficha. O template `ciclo.html` mostra a ficha
-  # só quando `ficha` está declarado.
+  # A FICHA SAIU DE TODAS AS PÁGINAS (28/10/2026), e o template deixou de a desenhar.
   #
-  # O PLANO TAMBÉM NÃO A TEM (28/10/2026). Debaixo do título do plano havia o resumo
-  # («Objetivo geral, marcos parciais, rubrica e calibração de volume») e uma fileira de
-  # etiquetas — «Plano», «Ciclo 01 (13 semanas)», «Volume semanal: 180» — que repetiam o
-  # próprio documento e o `## Contexto`, duas telas abaixo. O plano abre agora pelo título e
-  # pelo contexto; a ficha fica nas páginas onde identifica um ATO (a aula do dia).
-  FICHA_VAR=()
-  case "$doc" in index|plano) ;; *) FICHA_VAR=(-V "ficha=1") ;; esac
+  # A fileira de etiquetas — «Escola: Batata», «2x/semana», «50 min por encontro», «Plano»,
+  # «Ciclo 01 (13 semanas)», «Volume semanal: 180» — repetia em cada documento o contexto
+  # que o plano já declara por inteiro, e no plano repetia o próprio título. A pesquisadora
+  # pediu a mesma leitura para o plano, as referências, a aula e a notação: o documento abre
+  # pelo título e vai direto ao conteúdo. As variáveis `-V escola=…` continuam a ser
+  # passadas porque o RODAPÉ as usa; o que deixou de existir é o bloco `<p class="ficha">`.
+  #
+  # A LEITURA EM NOTAÇÃO É UM BOTÃO DA AULA (28/10/2026). Antes, «Abrir notação» era uma ação
+  # da LISTAGEM de Aulas: o professor escolhia o documento antes de saber o que ia ler, e a
+  # ação ficava fora do documento a que pertence. Agora o botão vive no cabeçalho da aula, ao
+  # lado do título, e a listagem só abre a aula. Só entra quando o ciclo TEM notação — sem
+  # fonte, o botão apontaria para um 404.
+  BOTAO_VAR=()
+  case "$doc" in
+    aula-*) [ -f "$(src_do_doc notacao)" ] && BOTAO_VAR=(-V "notacao-href=notacao.html") ;;
+  esac
   pandoc "$src" \
     -o "$PACOTE/$doc.html" \
     --standalone --toc --toc-depth=3 \
@@ -1165,7 +1171,7 @@ for doc in $TODOS; do
     -V "duracao-por-dia=$DURACAO_POR_DIA" \
     -V "volume-semanal=$VOLUME_SEMANAL tempos/semana" \
     -V "ciclo-semanas=$SEMANAS" \
-    "${FICHA_VAR[@]}"
+    "${BOTAO_VAR[@]}"
   # A apresentação («Sistema Lastro», o `index`) traz três atalhos para a porta —
   # a anamnese, o plano de ensino e o PO — cujas URLs carregam os slugs do ciclo (professor,
   # escola, ciclo). O pandoc não interpola variáveis no CORPO do documento; os marcadores

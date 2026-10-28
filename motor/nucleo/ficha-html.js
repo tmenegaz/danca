@@ -127,7 +127,15 @@ const ESTILO = `
      com as linhas encostadas (1.3). O vão vertical cresce e a largura NÃO: a moldura é
      monoespaçada e a folha só comporta um número de colunas — alargar de dentro quebraria
      o alinhamento que a prova mede. */
-  pre.moldura { font-size: .72rem; line-height: 1.55; padding-block: 1.15rem; }
+  /* A CAIXA ABRAÇA O CONTEÚDO (28/10/2026). Era um bloco de largura inteira com uma moldura de
+     carateres dentro; sem a moldura, o traço dos campos terminava ~100px antes da borda — e o
+     que se via era uma caixa larga com linhas curtas. O fit-content põe a borda exatamente onde
+     o traço acaba; no telemóvel o max-width mantém a caixa na folha, e o rolo horizontal do
+     pre faz o resto. */
+  pre.moldura {
+    font-size: .72rem; line-height: 1.55; padding-block: 1.15rem;
+    width: fit-content; max-width: 100%;
+  }
   /*
    * A folha é de VISUALIZAÇÃO e de IMPRESSÃO (16/10/2026). Na tela, o rolo
    * horizontal do PRE é a saída para uma moldura larga numa janela estreita;
