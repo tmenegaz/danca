@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `6cb7ea3` — a fotografia é deste commit; o que mudou ao ar é `f4cc715`, com a saída da **«Sequência declarada»** e o Port de bras em **18 tempos**, publicado nos commits `6e248ac` (ferramentas), `ee99969` (fontes e pacote) e `f4cc715` (registo); os quatro workflows de `f4cc715` concluídos com sucesso; a aula e o plano conferidos ao ar).
+> **Última fotografia:** 28/10/2026 (base local `3dcc344`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`) e passou a ser **administrável na Produção** (`3dcc344`), depois de o alfabeto mudar de casa e a âncora passar a selá-lo (`5020b89`) — a Fase 1 do plano aprovado, menos as seleções no plano. Os quatro workflows de `3dcc344` concluídos com **sucesso**.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -263,7 +263,9 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
-Há **um** trabalho em andamento, e ele não é de código: **o plano da Batata vai ser refeito no
+Há **dois** trabalhos em andamento. O primeiro é de código e é a Fase 1 do plano aprovado:
+falta o **editor de célula** no CRUD (a tela grava posição e direções, mas as células vêm do que
+já está no alfabeto) e as **seleções no plano** (§1.6). O segundo **não é de código**: **o plano da Batata vai ser refeito no
 formulário pela pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu
 os exercícios de **Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos
 publicados ficam sobre o `plano-20261027-1025.json` até essa reposição; regerar a partir do 1131
@@ -525,6 +527,17 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **28/10/2026** — **O verbete ganhou posição, direção e lado — e passou a ser administrável na
+  Produção.** O alfabeto mudou de casa (`biblioteca/modalidades/bale-classico/notacao.json`) e a
+  âncora passou a **selar** o alfabeto no `.fipp` (opção B); o verbete passou a declarar `posicao`,
+  `direcoes` e `lado`, o compasso deixou de ser escrito à mão e passou a ser calculado, a 4ª posição
+  dos pés entrou, e as posições de braços passaram a ser declaradas **por método** (a 3ª francesa é
+  a 5ª da RAD). A página em prosa passou a dizer a posição no cabeçalho do exercício. E uma secção
+  nova em Produção › Pedagogia, **«Verbetes da notação»**, cria, edita e descontinua verbetes —
+  gravando no **repositório**, porque é de lá que o gerador lê. Publicado em `5020b89` (alfabeto e
+  selo), `8df6c0c` (forma nova, motor e fontes) e `3dcc344` (o CRUD); os quatro workflows de
+  `3dcc344` **success**. **CONFIRMADO**.
 
 - **28/10/2026** — **A «Sequência declarada» saiu, e a métrica ganhou a primeira explicação.** A
   secção era a grade em resumo, sem a notação e sem a descrição: saiu da aula e da notação (−69
