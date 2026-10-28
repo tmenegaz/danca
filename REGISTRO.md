@@ -27618,6 +27618,17 @@ dona do produto: retirar uma secção derivada que duplicava a grade, e corrigir
 dela. **Não muda** a fórmula de hash, a cobertura da âncora, as 17 regras, as 22 pétreas, nem o que os
 validadores exigem.
 
+> **Correção de 28/10/2026 (mesmo dia).** A primeira redação desta entrada dizia que `motor/` e
+> `tools/tabela-objetivos.js` *«ambos em `CONGELAMENTO.md`»*. **Está errado**, e é um erro de facto
+> que vale a pena deixar escrito: a lista de congelados de `CONGELAMENTO.md` é `PROTOCOLO.md`,
+> `REGRAS.md`, `tools/`, `tools/templates/`, `prompts/`, `biblioteca/guia-do-professor.md` e
+> `METODO.md`. **`motor/` não está lá** — é livre, e o próprio `REGISTRO.md` já o dissera a
+> 12/10/2026 («`CONGELAMENTO.md` (`motor/` é livre)»). O que exigia motivo declarado era só o
+> `tools/tabela-objetivos.js`; o `motor/nucleo/derivar-ciclo.js` mudou por ser conteúdo derivado, e a
+> sua alteração é legítima de qualquer forma. **Os commits `6e248ac` e `f4cc715` ficam como estão** —
+> a mensagem de commit não se reescreve —, e a redação acima não é apagada: fica como o elo que
+> registra o que se pensou antes da correção.
+
 **Com o quê.**
 `motor/nucleo/derivar-ciclo.js`, `tools/tabela-objetivos.js`,
 `experimentos/provar-objetivos-por-aula.js`, as duas fontes do ciclo Batata, os dois envelopes do
