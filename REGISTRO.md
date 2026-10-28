@@ -27459,3 +27459,98 @@ prosa e a herança da Notação.
 > escolas foram expurgadas e **não têm pacote neste worktree** — a única escola com pacote é a
 > `batata`. O guia partilhado só se propaga quando um pacote é regerado, e não há nenhum outro
 > para propagar. A frase foi retirada; o resto da entrada fica como estava.
+
+## 28/10/2026 — O cabeçalho deixa de ter etiquetas, e o cartão da ficha perde a moldura
+
+**O que motivou.** A pesquisadora pediu a mesma leitura que aprovou no plano para as
+**referências**, a **aula** e a **notação**: «a mesma solução de layout». E apontou dois defeitos
+que sobraram da alteração anterior: o botão **«Abrir notação»** tinha de estar **dentro** da aula,
+e não como ação da listagem; e o **cartão da anamnese** continuava circulado por uma moldura
+— «em cima sólida, à direita e à esquerda tracejada, em baixo sólida. Tira essas bordas» — com os
+campos em duas colunas e o «Outro» encostado ao método.
+
+**O que foi decidido.**
+- A **ficha** (a fileira de etiquetas «Escola · 2x/semana · 50 min · Plano · Ciclo 01 · Volume
+  semanal») **saiu de todas as páginas do pacote**, e o template deixou de a desenhar. Ela repetia
+  em cada documento o contexto que o plano declara por inteiro.
+- O **subtítulo** saiu das três páginas pedidas. Em referências e notação ele repetia o corpo —
+  o «O que é este arquivo» e o «Aviso de proveniência» dizem o mesmo. Na **aula** ele trazia um
+  facto único («Sem deslocamento, sem giro, sem mudança de direção»), e por isso **desceu para o
+  corpo** como prosa: a informação não se deita fora para ganhar um cabeçalho limpo.
+- **«Abrir notação» passou a ser botão do cabeçalho da aula**, ao lado do título e preso com ele
+  ao rolar — o mesmo lugar do «Abrir glossário» na notação. Saiu da listagem de Aulas, que agora
+  só abre o documento.
+- O **cartão da ficha perdeu a moldura de carateres** (`┌─┐ │ └─┘`). O que resta é o bloco
+  monoespaçado, que já tem moldura de quatro lados na folha, e cada campo passou a ter o **traço
+  até ao fim da linha**, para se escrever sem parar no meio do vazio.
+- A **ordem dos campos** passou a ser a do preenchimento: `Data`, `Ciclo` e `Aula` em linhas
+  próprias (eram dois campos a dividir uma), `Escola`, `Professor(a)`, **`Aluna`** (subiu para
+  debaixo do professor), `Método declarado`, e **`☐ Outro`** na sua própria linha. `Tipo de ficha`
+  fica onde estava, depois de um espaço.
+
+**Onde entrou.**
+- `motor/nucleo/ficha.js` — `cabecalhoDaFicha` reescrito: sem moldura, campos reordenados, traço
+  até `LARGURA_MAXIMA_DA_MOLDURA`, e o bloco emitido **cercado** (```` ``` ````) em vez de
+  desenhado.
+- `porta/assets/markdown.js` — passa a reconhecer o **bloco cercado** e a desenhá-lo como o
+  `pre.moldura`. Era a marca que dizia «monoespaçado» quando havia `┌`; sem o desenho, é a cerca.
+- `motor/nucleo/ficha-html.js` — `pre.moldura` passa a `width: fit-content; max-width: 100%`: a
+  caixa abraça o conteúdo, e é isso que faz o traço chegar à **borda** (antes o `pre` tinha a
+  largura toda e o traço acabava ~100px antes dela).
+- `tools/gerar-ciclo.sh` — sai o `ficha=1`; entra `notacao-href` para os documentos `aula-*`,
+  só quando o ciclo TEM fonte de notação (sem ela o botão apontaria para um 404).
+- `tools/templates/ciclo.html` — sai o bloco `<p class="ficha">` (e as suas dez variáveis); entra
+  o botão «Abrir notação».
+- `motor/nucleo/derivar-ciclo.js` — três subtítulos retirados; a condição da aula passa a prosa.
+- `tools/montar-publicacao.js` — a ação «Abrir notação» sai da linha da aula.
+- Fontes do ciclo Batata: `aula-01.md`, `notacao.md`, `referencias.md` alinhadas com o derivador.
+- `INDICES`/âncoras regerados; `publicacao/batata` remontada.
+
+**Motivo declarado — os congelados.**
+Toca `tools/` (`gerar-ciclo.sh`, `montar-publicacao.js`), `tools/templates/` (`ciclo.html`) e o
+`motor/`. O motivo é o pedido da dona do produto, registado acima. **Não muda** a fórmula de hash,
+a cobertura da âncora, as 17 regras, as 22 pétreas, nem o que os validadores exigem. Duas mudanças
+de **comportamento**, medidas antes de escrever: (a) o template deixa de ter o bloco da ficha — a
+variável `ficha` fica sem uso, e é isso que a torna inofensiva; (b) a listagem de Aulas deixa de
+oferecer «Abrir notação»; a prova da publicação passou a exigir o contrário do que exigia.
+
+**Com o quê.**
+`motor/nucleo/ficha.js`, `motor/nucleo/ficha-html.js`, `motor/nucleo/derivar-ciclo.js`,
+`porta/assets/markdown.js`, `tools/gerar-ciclo.sh`, `tools/templates/ciclo.html`,
+`tools/montar-publicacao.js`, as três fontes do ciclo Batata, as âncoras `.fipp`, `indices/`,
+`publicacao/batata`, e as provas `provar-ficha-visual.js`, `provar-titulo-e-barra.js` e
+`provar-publicacao-da-escola.js`.
+
+**Validação.**
+`tools/gerar-ciclo.sh` → **0 erros, 0 avisos**; plano, PO, aula e captura satisfazem os schemas;
+`check-identidade` 20/20; `check-indices` 14/14; `provar-ficha-visual` **21/21** (ganhou as
+asserções «as linhas de escrita vão até ao fim do bloco», «a aluna vem depois do professor» e «o
+`Outro` tem linha própria»); `provar-titulo-e-barra` **tudo ok** (o teto do cabeçalho preso subiu
+de 60 para 80px porque ele passou a carregar o botão do documento — medido: 63px); 
+`provar-publicacao-da-escola` **63/63**; `provar-cabecalho-do-documento` e `provar-celular` ok;
+âncora regerada e `--check` íntegro. No navegador: a caixa da ficha mede 755px e as linhas
+terminam na borda; o cabeçalho da aula fica preso a 63px com o botão à vista.
+
+**Referências.**
+As entradas de 28/10/2026 deste mesmo dia («O documento abre pela leitura…»); `IDENTIDADE-VISUAL.md`
+(«O catálogo das peças» — `.acao`, `.pre`, o preço de uma peça que nasce fora do catálogo);
+`CONGELAMENTO.md`; a proposta aprovada em `experimentos/propostas/proposta-documentos.html`.
+
+**O que ainda não está feito.**
+- **A captura e a harmonização ainda têm subtítulo.** A captura porque **vai ser refeita por
+  inteiro**, e o subtítulo dela («Folha de marcação para uso durante a aula») sai com o resto. A
+  harmonização porque o documento **deixa de existir no lugar onde está**: a instrução é que ela
+  passe para dentro de **Planejamento › Produção**, e essa mudança ainda não foi feita. Mexer no
+  cabeçalho de um documento que vai mudar de casa é trabalho que se deita fora duas vezes.
+- O `data-titulo-fixo` e o encolhimento do cabeçalho continuam a esconder `.subtitulo` e `.ficha`
+  quando existem; as regras ficaram, e hoje não têm onde atuar.
+- A **sobrescrita do `plano-aula-01-anterior.json`** por cada regeneração continua a acontecer no
+  gerador (o snapshot foi restaurado à mão outra vez).
+- **Nada foi commitado nem publicado**: as alterações estão no worktree.
+
+> **Acréscimo de 28/10/2026 (mesmo dia).** O **subtítulo do glossário** foi retirado — a
+> pesquisadora: «não tem sentido nenhum». Ele dizia «Todo símbolo, termo e categoria que aparece
+> no registro da Aula 01», e é exatamente o que o corpo declara três linhas abaixo: o parágrafo do
+> alfabeto dá as categorias, os sinais e os verbetes, e a Nota declara o par glossário ↔ registro.
+> Saiu do derivador (`derivar-ciclo.js`) e da fonte, e o pacote foi regerado com a âncora. Ficam
+> com subtítulo **só** a captura e a harmonização, pelos motivos acima.
