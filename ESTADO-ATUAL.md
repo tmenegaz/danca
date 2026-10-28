@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `3c3a29d`; cabeçalho sem etiquetas, cartão da ficha sem moldura e «Abrir notação» dentro da Aula, publicados nos commits `a2bbdfa`, `29a95e5` e `3c3a29d`; workflows #105, #206, #289 e #404 concluídos; a aula e o glossário conferidos ao ar).
+> **Última fotografia:** 28/10/2026 (base local `f4cc715`; saída da **«Sequência declarada»** e o Port de bras em **18 tempos**, publicados nos commits `6e248ac` (ferramentas), `ee99969` (fontes e pacote) e `f4cc715` (registo); os quatro workflows de `f4cc715` concluídos com sucesso; a aula e o plano conferidos ao ar).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -263,13 +263,17 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
-Não há trabalho em andamento nesta entrega. A Aula 01 em prosa e em Notação Benesh foi implementada,
-gerada, validada, publicada e implantada.
+Há **um** trabalho em andamento, e ele não é de código: **o plano da Batata vai ser refeito no
+formulário pela pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu
+os exercícios de **Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos
+publicados ficam sobre o `plano-20261027-1025.json` até essa reposição; regerar a partir do 1131
+apagaria exercícios de uma página publicada e deixaria o «Parâmetro de medição» a citá-los.
 
-**Último ponto confirmado:** 27/10/2026 — commit `8b939d0` enviado; workflow #287 e job Batata
-concluídos com sucesso. O pacote com 9 páginas HTML e 325 links, PDF consolidado de 34 páginas e
-PDF individual da Aula de 10 páginas passou nos validadores, provas locais e conferência das
-âncoras. A única requisição ao vivo após o deploy foi à raiz e respondeu HTTP 200.
+**Último ponto confirmado:** 28/10/2026 — commit `f4cc715` enviado; os quatro workflows (Reancorar,
+Regerar os índices, Publicar as escolas, Publicar a raiz) concluídos com **sucesso**. Conferido ao ar
+numa única carga por página: a Aula 01 responde **HTTP 200** e não tem nenhuma ocorrência de
+«Sequência declarada»; o Port de bras mostra «18 tempos, 3/4»; e o link «Aula 01» do plano resolve
+para `aula-01.html#exercicios-da-aula-01`.
 
 ## 8. Pendências e dúvidas
 
@@ -302,6 +306,37 @@ memória da aula registra.
 também no PO» — **não é defeito**. **DECIDIDO** que a repetição é proposital: o professor elabora o
 plano de ensino e o PO em momentos diferentes e precisa dos valores à mão, **só de leitura**. A
 análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
+
+### A métrica da aula — o que falta declarar
+
+A grade de exercícios mostra compasso e contagem, mas **só 1 dos 30 exercícios** os tem (o Plié do
+solo), porque o plano os declarou em apenas **3 linhas**. As outras 27 saem em lacuna declarada. Não
+é defeito do gerador: o plano só contribui com `Tempos` e `Compasso`, e o resto vem do verbete.
+
+| Nome | Estado |
+|:--|:--|
+| **port de bras** | **DECIDIDO** — são **18 tempos, 3/4**. O verbete cobre **12** (4 compassos); os **2 últimos** saem em `conferir`. **PENDENTE** de verbete |
+| **braço do port de bras** | **HIPÓTESE** — nos compassos 1 a 3 são **os dois braços juntos** («os braços abrem», plural); o compasso 4 é que separa a condução (D → E). O vocabulário de lados `D`/`E` **existe** em `ballet-classico.json` e não é usado. Acrescentar a coluna de lado resolve a pergunta «qual braço?». **PENDENTE de decisão** |
+| **tendu ao lado** | **CONFIRMADO** — o Battement tendu vai à frente e depois atrás porque **o verbete é assim**: `1ª → +` e `1ª → ×`. Não há `→ lado` no verbete. Pedir o tendu ao lado é pedir verbete novo, não mudar o plano |
+| **tempos e compasso dos 27** | **PENDENTE** — é preenchimento, do lado do plano. É a maior lacuna da aula |
+| **bloco de musicalidade** | **PENDENTE** — ver abaixo |
+
+### O bloco de musicalidade não tem pergunta
+
+A linha que a Aula 01 mostra — `| Pulso | [Preencher: trabalho de pulso da Aula 01] |` — está
+**escrita à mão** em `motor/nucleo/derivar-ciclo.js`. «Pulso» não é escolha do professor e «Trabalho»
+nunca foi perguntado. **CONFIRMADO** por leitura: não há nó no formulário do plano que peça a
+musicalidade, embora a ajuda do formulário prometa o contrário («A musicalidade não entra aqui: ela
+tem o bloco dela»); e `Vistas.musicalidade` (em `tools/lib-vistas.js`), que a derivaria do PO e do
+volume do plano, **nunca foi ligada a esta variante** — não existe `-musicalidade.md` para a Batata.
+
+**DECIDIDO** que a solução se decide numa bancada antes de tocar em fonte. A bancada existe —
+`experimentos/propostas/proposta-musicalidade.html`, **local e não versionada** (`experimentos/propostas/*`
+está no `.gitignore`) — e propõe: a legenda de **compasso e contagem** dita uma vez no topo da grade;
+os tempos por exercício à vista, para a aritmética ficar legível (8 tempos em 4/4 = 2 compassos);
+a coluna de **lado** no port de bras; e o bloco de musicalidade em **três colunas** (Item · Trabalho ·
+onde se ouve na métrica declarada), com uma pergunta por item no plano. **PENDENTE de aprovação** — e
+metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulário do plano** (`porta/`).
 
 ### Pendências de infraestrutura — de datas anteriores
 
@@ -344,7 +379,22 @@ análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
 ## 9. Validação
 
-### Executado nesta fotografia (28/10/2026 — cabeçalho e cartão da ficha)
+### Executado nesta fotografia (28/10/2026 — a Sequência declarada e a métrica)
+
+| Verificação | Resultado |
+|:--|:--|
+| `tools/gerar-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2` | pacote regerado; **0 erros e 0 avisos** |
+| `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)**; 26 verificações |
+| validadores isolados | plano, PO, aula e captura satisfazem os schemas (o `pre-commit` reporta 10 lacunas declaradas no `-dados.json` e 1 provisório `[Preencher]` no plano — já existiam) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-indices.js` | **14 verificações, 0 falhas** |
+| `tools/hash-ciclo.sh perna-boa 01 batata --check` | cadeia íntegra; hash **`1816e1eb…`** |
+| `experimentos/provar-objetivos-por-aula.js` | **NÃO EXECUTADO** — o fixture `batata-bale-nivel-2-teste-2` foi expurgado; as asserções foram atualizadas por leitura, não por execução |
+| conferência ao ar | Aula 01: **HTTP 200**, zero «Sequência declarada», «18 tempos, 3/4» presente; plano: link `aula-01.html#exercicios-da-aula-01` |
+| workflows de `f4cc715` | Reancorar, Regerar os índices, Publicar as escolas, Publicar a raiz — **todos `success`** |
+| bancada da musicalidade | sem transbordo em 420px, 760px e 1280px; a maior tabela mede 828px (a largura do conteúdo); 9 âncoras e 9 cabeçalhos, nenhum quebrado |
+
+### Executado na fotografia anterior (28/10/2026 — cabeçalho e cartão da ficha)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -475,6 +525,16 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **28/10/2026** — **A «Sequência declarada» saiu, e a métrica ganhou a primeira explicação.** A
+  secção era a grade em resumo, sem a notação e sem a descrição: saiu da aula e da notação (−69
+  linhas em cada página gerada), e o link «Aula 01» do plano passou a apontar para a grade
+  (`#exercicios-da-aula-01`). O Port de bras foi corrigido de 16 para **18 tempos** nas duas versões
+  do envelope, o que expôs uma lacuna escondida: o verbete cobre 12 dos 18 tempos. O rastreio pedido
+  apurou que compasso, contagem, notação e descrição vêm **do verbete**, não do plano — e que o bloco
+  de musicalidade é uma linha **escrita à mão** no derivador, sem pergunta que a preencha. Publicado
+  nos commits `6e248ac` (ferramentas, com motivo declarado), `ee99969` (fontes e pacote) e `f4cc715`
+  (registo); os quatro workflows **success**. **CONFIRMADO** ao ar.
 
 - **28/10/2026** — **O cabeçalho perdeu as etiquetas, e o cartão da ficha perdeu a moldura.** A
   fileira «Escola · 2x/semana · 50 min · Plano · Ciclo 01 · Volume semanal» saiu de todas as páginas
