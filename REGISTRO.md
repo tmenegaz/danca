@@ -27947,3 +27947,81 @@ com o que é mesmo da escola (turma↔conteúdos, professores, turmas). É menos
 **O que ainda não está feito.**
 - O **editor de célula** e o **«+» do exercício**, que dependem da decisão acima.
 - As **seleções no plano** (§1.6).
+
+## 28/10/2026 — O vocabulário passa a viver no repositório, e o «+» cria o exercício
+
+**O que motivou.** A pesquisadora respondeu à pergunta em aberto da entrada anterior, e decidiu três
+coisas de uma vez: **a opção A** do «+» (o botão colado ao campo que ele alimenta), **o vocabulário só
+no repositório**, e **o cadastro de termo a gravar no repositório**. Autorizou ainda apagar os termos
+que estejam no KV: *«as escolas já não existem também… eu vou expurgar a batata daqui a pouco»*. E
+deixou a regra que atravessa tudo: **o mínimo possível de KV, porque tem custo**.
+
+**A pergunta que isto fecha.** Havia **duas listas de termos**: o ficheiro da modalidade no repositório
+e uma cópia por escola no KV, semeada pelo botão «Carregar catálogo inicial (turmas + vocabulário)». A
+tela do verbete lia a do repositório; a tela do vocabulário escrevia na do KV. Duas listas divergem ao
+primeiro termo novo, e o sintoma é silencioso: um exercício que existe na tela e não no gerador, ou o
+contrário. O gerador lê o alfabeto do **disco**, no GitHub Actions — uma escrita em KV nunca chegaria
+ao documento.
+
+**O que mudou.**
+- **`termos()` deixou de ler o KV.** Devolve `CATALOGO.TERMOS`, que é o ficheiro da modalidade embutido
+  pelo esbuild. A assinatura ficou com os dois argumentos e um comentário a dizer por que sobram: os
+  oito chamadores não mudam, e um deles recebe `kv`/`escola` de um contexto onde os tirar seria pior.
+- **`motor/servidor/termo-repo.js`** (novo) — o cadastro de termo no repositório: `ler`, `escrever`,
+  `criarTermo`, `editarNomeDoTermo`, `validarTermo`. É o irmão de `verbete.js`, com a mesma higiene de
+  cabeçalhos (o `User-Agent` que o Worker não põe sozinho) e a mesma distinção entre **404** e
+  **recusado**.
+- **`POST /api/bastidores/termo`** grava no repositório. **`PUT`** novo — edita o nome, e com ele o
+  `id`, que deriva do nome. O `DELETE` continua a guardar a proveniência e a limpar a relação no KV.
+- **`POST /api/bastidores/semear-catalogo`** passou a semear **só as turmas**. Semear o vocabulário
+  seria recriar a cópia que esta alteração elimina. O rótulo do botão e o `confirm` passam a dizer o
+  que ele faz — **«Carregar as turmas iniciais»** —, porque um rótulo que promete duas coisas e
+  entrega uma é a mesma família de erro do `if` que filtrava o título vazio.
+- **O «+» do exercício.** Ao lado do `<select>` do exercício, no par que a folha já conhece
+  (`par-associar`). Abre um cadastro breve — nome, categoria, tradição —, que **grava no mesmo sítio
+  que o cadastro grande**, e o exercício novo entra na lista local no grupo da sua categoria: quem o
+  acabou de criar quer escrever o verbete dele **agora**, e o Worker só vê o vocabulário no deploy que
+  o commit dispara. Não há um segundo formulário de termos; há um segundo caminho até ele.
+- **`par-associar` subiu ao escopo da página.** Estava presa a `.bloco-assoc`, e por isso o «+» teria
+  de inventar uma segunda peça para o mesmo arranjo. A peça é uma só, e o nome já era dela na folha.
+
+**O que NÃO se fez, e por quê.** Não se apaga nada do KV. A chave `<escola>/vocabulario` fica órfã —
+já não é lida por ninguém —, e desaparece com o expurgo da escola que a pesquisadora vai fazer. Um
+`delete` em código para uma chave que ninguém escreve seria uma operação a mais para o mesmo efeito.
+
+**Onde entrou.**
+- `motor/servidor/termo-repo.js` — novo.
+- `motor/servidor/catalogo-seed.js` — `TERMOS` leva `id`, `membro` e `estado`, que é o que o dado já
+  diz e o que o `id` derivado do nome não podia adivinhar.
+- `motor/servidor/bastidores.js` — `termos()` do bundle; o semear só com turmas; o par do «+» e o seu
+  handler; o mapa de categorias promovido a variável do script (`ROTULO_DE_CATEGORIA`), porque agora
+  tem dois leitores.
+- `experimentos/provar-verbete.js` — secção **F**, 14 asserções. O `githubFalso` deixou de colar o
+  `?ref=` ao nome do ficheiro (respondia 404 a tudo o que pedisse por ramo, e o 404 dele lia-se como
+  «não existe» — a confusão que a secção E trava).
+- `experimentos/provar-producao.js` — a asserção do menu dos termos passou a medir o **contrato** (uma
+  opção por termo do vocabulário, mais o «— associar termo —»), e não um número que dependia de a prova
+  semear o KV.
+- `experimentos/provar-teste.js` e `experimentos/provar-leituras-do-po.js` — deixam de pôr o
+  vocabulário no KV. Pô-lo seria criar o fixture de uma cópia que já não existe.
+
+**Motivo declarado — os congelados.** Nenhum. Toca `motor/servidor/` e `experimentos/`, que são livres.
+
+**Validação.**
+`provar-verbete.js` → **50 asserções, 0 falhas** (eram 36; as 14 novas são a secção F).
+`provar-producao.js` → **151 de 152**; a única falha, «o item do menu fica marcado», é pré-existente.
+`provar-notacao.js` → **74 asserções, 0 falhas**. `provar-teste.js` → **44, 0 falhas**.
+`provar-leituras-do-po.js` → **27, 0 falhas**. `provar-menu-da-producao.js` → **55, 0 falhas**.
+`provar-celular.js` → **15 de 15**, medindo em 320, 360, 390, 414, 768 e 1024px.
+`check-identidade` → **20/20** (a checagem 8 «Peça» aceita o par do «+» como peça da folha).
+`check-glossario` → consistente. `check-pacote` → **0 erro, 0 aviso**. `hash-ciclo --check` → íntegro.
+
+**Geometria medida na bancada local** (`/tmp/bancada-verbete.js`, sem tocar no ar): o `select` e o «+»
+na mesma linha — topo 217 e 216, alturas 43 e 45, vão de 5px entre eles —, a caixa do exercício novo
+com **0px** fechada e **296px** aberta, o foco no primeiro campo ao abrir, e o termo criado a entrar no
+grupo certo (o grupo `passo` passou de 2 para 3 opções). Sem transbordo horizontal.
+
+**O que continua em aberto.**
+- O **editor de célula** (a tela grava posição e direções, mas as células vêm do alfabeto).
+- As **seleções no plano** (§1.6).
+- As **4 linhas «a conferir»** das posições de braços, que são do método e não do código.
