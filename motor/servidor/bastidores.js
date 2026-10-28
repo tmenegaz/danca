@@ -2888,7 +2888,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     tituloComAcordeao('sec-alunas', 'Alunas', 'alunas-miolo') +
     '<div class="col-form" id="alunas-miolo">' +
     '<form id="form-aluna">' +
-    '<label class="campo-rotulo" for="anome">Apelido da aluna (estável, P-12)</label>' +
+    '<label class="campo-rotulo" for="anome">Apelido da aluna (estável)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
     '<div class="res" data-res="alunas"></div>' +
     // A FILEIRA DO BOTÃO É A DO PROFESSOR (26/10/2026). O `.acao` sozinho depois do `.res`

@@ -512,7 +512,7 @@ function derivarPO(envelope, plano, opcoes) {
   // (`linhaDeBase: [ {…}, "### Restrições físicas declaradas (P-22)", "Nenhuma" ]`), e a leitura
   // as imprimia como se fossem dimensões da linha de base.
   secao('Linha de base', tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')));
-  lista('Restrições físicas declaradas (P-22)', respostaDo(envelope, 'restricoes'));
+  lista('Restrições físicas declaradas', respostaDo(envelope, 'restricoes'));
 
   lista('Critérios de inclusão', respostaDo(envelope, 'inclusao'));
   lista('Critérios de exclusão', respostaDo(envelope, 'exclusao'));

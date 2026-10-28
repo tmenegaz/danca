@@ -122,7 +122,12 @@ const ESTILO = `
     font-size: .82rem;
     line-height: 1.5;
   }
-  pre.moldura { font-size: .72rem; line-height: 1.3; }
+  /* A MOLDURA DA FICHA RESPIRA (28/10/2026). O bloco de identificação — data, ciclo,
+     altura, escola, professor, método declarado — é o que a pessoa preenche à mão, e saía
+     com as linhas encostadas (1.3). O vão vertical cresce e a largura NÃO: a moldura é
+     monoespaçada e a folha só comporta um número de colunas — alargar de dentro quebraria
+     o alinhamento que a prova mede. */
+  pre.moldura { font-size: .72rem; line-height: 1.55; padding-block: 1.15rem; }
   /*
    * A folha é de VISUALIZAÇÃO e de IMPRESSÃO (16/10/2026). Na tela, o rolo
    * horizontal do PRE é a saída para uma moldura larga numa janela estreita;

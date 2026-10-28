@@ -832,17 +832,62 @@ rotulo_no_menu() {
 # que não tem esses documentos (pas de deux) o rodapé saía com links mortos, o
 # que o validador reprovava. Agora o rodapé mostra o que o ciclo realmente tem.
 # ---------------------------------------------------------------------------
-rodape_docs() {
+rodape_docs() {   # $1 = documento atual (o rodapé é o DELE, não a lista do ciclo)
   # O «Índice do ciclo» (index.html) saiu do rodapé junto com o «Início» do menu: repetia
   # o Plano. O rodapé começa no Plano, que é a porta de entrada do conteúdo do ciclo.
-  local doc r saida='<a href="plano.html">Plano</a>'
-  for doc in $DOCS; do
-    case "$doc" in aula-*|plano) continue ;; esac
+  #
+  # O RODAPÉ É CONTEXTUAL (28/10/2026). Antes, todas as páginas levavam os sete links do
+  # ciclo — inclusive o da própria página, e atalhos de tarefas que nada têm a ver com o
+  # documento aberto. Na aula, o professor via «Plano» (rótulo que não diz de que plano se
+  # trata) e não via a captura daquela aula nem o PDF dela; no plano, via «Notação» e
+  # «Glossário», que ele abre a partir da aula. Agora cada documento declara a sua lista
+  # curta, e o plano leva o nome do ciclo para não se confundir com o plano de ensino.
+  local atual="${1:-}" doc r saida='' itens=() pdf=''
+  case "$atual" in
+    plano)
+      # A página do plano é a porta do conteúdo: o que se procura a partir dela é a fonte
+      # (referências) e a entrega inteira (o PDF do ciclo).
+      itens=(referencias) ;;
+    aula-*)
+      # A ordem é a do trabalho na aula: o que ela segue (plano), a leitura em notação, a
+      # folha para levar para a sala e a entrega impressa daquela aula.
+      itens=(plano notacao "captura-$atual")
+      [ -f "$PACOTE/$atual.pdf" ] && pdf="<a href=\"$atual.pdf\">PDF da aula</a>" ;;
+    captura-aula-*)
+      # A folha de captura é a da aula: volta para a leitura em prosa e para o PDF dela.
+      itens=(plano "aula-${atual#captura-aula-}")
+      [ -f "$PACOTE/aula-${atual#captura-aula-}.pdf" ] \
+        && pdf="<a href=\"aula-${atual#captura-aula-}.pdf\">PDF da aula</a>" ;;
+    notacao)
+      itens=(plano glossario-benesh) ;;
+    glossario-benesh)
+      itens=(plano notacao) ;;
+    referencias|harmonizacao)
+      itens=(plano) ;;
+    *)
+      itens=(plano) ;;
+  esac
+  for doc in "${itens[@]}"; do
+    case "$doc" in
+      plano)
+        # O rótulo diz QUAL plano: o do ciclo, e não o plano de ensino da turma.
+        saida="${saida:+$saida &middot; }<a href=\"plano.html\">Plano do Ciclo $CICLO</a>"
+        continue ;;
+      aula-*)   # a página da aula, com o número — e não o título inteiro, que é longo
+        [ -f "$(src_do_doc "$doc")" ] || continue
+        saida="${saida:+$saida &middot; }<a href=\"$doc.html\">Aula ${doc#aula-}</a>"
+        continue ;;
+      captura-aula-*)   # a folha de captura daquela aula
+        [ -f "$(src_do_doc "$doc")" ] || continue
+        saida="${saida:+$saida &middot; }<a href=\"$doc.html\">Captura para impressão</a>"
+        continue ;;
+    esac
     [ -f "$(src_do_doc "$doc")" ] || continue
     r="$(rotulo "$doc")"
-    saida="$saida &middot; <a href=\"$doc.html\">$r</a>"
+    saida="${saida:+$saida &middot; }<a href=\"$doc.html\">$r</a>"
   done
-  printf '%s &middot; <a href="%s.pdf">PDF do ciclo</a>' "$saida" "$ID"
+  [ -n "$pdf" ] || pdf="<a href=\"$ID.pdf\">PDF do ciclo</a>"
+  printf '%s &middot; %s' "$saida" "$pdf"
 }
 
 # ---------------------------------------------------------------------------
@@ -1089,8 +1134,14 @@ for doc in $TODOS; do
   # apresentação («Sistema Lastro», o `index`): ela é material do sistema, não
   # do ciclo. As demais páginas mantêm a ficha. O template `ciclo.html` mostra a ficha
   # só quando `ficha` está declarado.
+  #
+  # O PLANO TAMBÉM NÃO A TEM (28/10/2026). Debaixo do título do plano havia o resumo
+  # («Objetivo geral, marcos parciais, rubrica e calibração de volume») e uma fileira de
+  # etiquetas — «Plano», «Ciclo 01 (13 semanas)», «Volume semanal: 180» — que repetiam o
+  # próprio documento e o `## Contexto`, duas telas abaixo. O plano abre agora pelo título e
+  # pelo contexto; a ficha fica nas páginas onde identifica um ATO (a aula do dia).
   FICHA_VAR=()
-  [ "$doc" = index ] || FICHA_VAR=(-V "ficha=1")
+  case "$doc" in index|plano) ;; *) FICHA_VAR=(-V "ficha=1") ;; esac
   pandoc "$src" \
     -o "$PACOTE/$doc.html" \
     --standalone --toc --toc-depth=3 \
@@ -1107,7 +1158,7 @@ for doc in $TODOS; do
     -V "ciclo-nome=$NOME" \
     -V "ciclo-periodo=$PERIODO" \
     -V "ciclo-professor=$PROFESSOR" \
-  -V "rodape-docs=$(rodape_docs)" \
+  -V "rodape-docs=$(rodape_docs "$doc")" \
     -V "escola=$ESCOLA" \
     -V "escola-responsavel=${RESPONSAVEL:-}" \
     -V "frequencia=$FREQUENCIA" \

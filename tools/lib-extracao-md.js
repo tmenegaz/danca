@@ -91,9 +91,11 @@ function lerYamlCabecalho(linhas) {
  *   · a ênfase sai também do VALOR: o JSON não carrega marcação de markdown;
  *   · a célula vazia mantém a POSIÇÃO (não desloca coluna) — o filtro de células vazias
  *     do caminho antigo alinhava mal as linhas com buraco no meio;
- *   · só a PRIMEIRA tabela do bloco entra no campo: uma segunda tabela no mesmo bloco gera
- *     AVISO e fica de fora — o contrato não escolhe qual das duas é o campo, o documento
- *     precisa dar a cada tabela o seu bloco.
+ *   · só a PRIMEIRA tabela do bloco ARRAY entra no campo: uma segunda tabela no mesmo bloco
+ *     gera AVISO e fica de fora — o contrato não escolhe qual das duas é o campo, o documento
+ *     precisa dar a cada tabela o seu bloco. **A exceção é o bloco ITEM/VALOR**, onde as
+ *     tabelas se SOMAM no mesmo objeto (é assim que o `## Contexto` do plano declara os seus
+ *     dois grupos sem deixar de ser um campo só).
  */
 const celulasDaLinha = (linha) => {
   const partes = [];
@@ -210,15 +212,12 @@ function extrair(linhas, schema, declaracao) {
     tabela = null;
     if (!t.cabecalho.some(Boolean)) return;          // tabela sem cabeçalho: não há chave
     const chave = t.subcampo ? `${t.secao}.${t.subcampo}` : t.secao;
-    if (blocosComTabela.has(chave)) {
-      avisos.push(`bloco '${chave}': as ${t.linhas.length} linha(s) de uma SEGUNDA tabela`
-        + ' ficaram de fora — o contrato lê uma tabela por bloco (dê à tabela o seu bloco)');
-      return;
-    }
-    blocosComTabela.add(chave);
-    // ITEM/VALOR → OBJETO: o rótulo da linha (passado pela declaração) é a chave, a segunda
-    // célula é o valor. O bloco vira UM objeto — e não um array de objetos. O DESTINO é o que
-    // a declaração diz: um bloco pode ter prosa num campo e tabela noutro.
+    // ITEM/VALOR → OBJETO, E AS TABELAS SOMAM (28/10/2026). Um bloco declarado item/valor
+    // pode trazer mais de uma tabela, e cada uma acrescenta pares ao MESMO objeto: foi o
+    // que permitiu partir o `## Contexto` do plano em «Escola e espaço» e «Professor,
+    // turma e método» sem partir o campo. Antes daqui, a segunda tabela caía no aviso
+    // abaixo e as linhas dela ficavam de fora — o `contexto` chegava ao validador pela
+    // metade, e o documento parecia válido.
     if (!t.subcampo && pares[t.secao]) {
       const destino = pares[t.secao] === true ? t.secao : pares[t.secao];
       if (!campos[destino] || typeof campos[destino] !== 'object' || Array.isArray(campos[destino])) {
@@ -230,6 +229,12 @@ function extrair(linhas, schema, declaracao) {
       });
       return;
     }
+    if (blocosComTabela.has(chave)) {
+      avisos.push(`bloco '${chave}': as ${t.linhas.length} linha(s) de uma SEGUNDA tabela`
+        + ' ficaram de fora — o contrato lê uma tabela por bloco (dê à tabela o seu bloco)');
+      return;
+    }
+    blocosComTabela.add(chave);
     const objetos = t.linhas.map((linha) => {
       const o = {};
       t.cabecalho.forEach((k, i) => { if (k) o[k] = textoDaCelula(linha[i] || ''); });

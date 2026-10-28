@@ -244,7 +244,7 @@ function cabecalhoDaFicha(conteudo, respostaDoMetodo, preenchida) {
     'Ciclo: ______        Aula: ______',
     'Escola: ______________________________',
     'Professor(a): ______________________________',
-    'Método declarado (P-16): ' + caixas(metodos, marcados, preenchida) + '  ☐ Outro: __________',
+    'Método declarado: ' + caixas(metodos, marcados, preenchida) + '  ☐ Outro: __________',
     'Aluna (apelido — ' + conteudo.apelidoObrigatorio + '): ______________________________',
     '',
     'Tipo de ficha:',

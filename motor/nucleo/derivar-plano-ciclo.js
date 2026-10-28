@@ -435,8 +435,28 @@ function tabelaDeLista(valor, cabecalho, alinhamento) {
 
 // O contexto do plano (Bloco 1 do prompt): o campo empírico, o contexto da
 // observação e a metodologia/notação — declaradas, nunca deduzidas.
+//
+// DOIS GRUPOS, E NÃO UMA TABELA DE DOZE LINHAS (28/10/2026). A pesquisadora: «uma parte
+// que diz respeito ao espaço, à escola… e outra parte que diz respeito à pedagogia».
+// A ordem é a do formulário dentro de cada grupo — o que muda é o agrupamento, e é ele
+// que deixa o professor ver de imediato «onde» e «para quem/como» o ciclo acontece.
+// O contrato de extração passou a somar as duas tabelas item/valor do MESMO bloco
+// (`tools/lib-extracao-md.js`): o `## Contexto` continua a ser um campo só.
+const GRUPOS_DO_CONTEXTO = [
+  // A ESCOLA NÃO SE REPETE AQUI (28/10/2026). Ela já está no título da página e no `escola:`
+  // do cabeçalho do documento — a linha «Escola / espaço: batata» era o dado escrito uma
+  // terceira vez. Quem precisa do nome continua a tê-lo: o PO o declara no seu próprio
+  // `campo-escola` (e o derivador do PO lê esta tabela como reserva).
+  ['Escola e espaço',
+    ['contexto-frequencia', 'contexto-duracao', 'contexto-calendario',
+      'contexto-total-aulas']],
+  ['Professor, turma e método',
+    ['contexto-professor', 'contexto-turma', 'contexto-volume', 'contexto-registro',
+      'contexto-metodologia', 'contexto-metodologia-origem', 'contexto-notacao']],
+];
+
 function tabelaDeContexto(envelope) {
-  const linhas = ['| Item | Valor |', '|:--|:--|'];
+  const linhas = [];
   // O RÓTULO e a COMPOSIÇÃO de cada par vêm da fonte única de `derivar-po.js`
   // (`ROTULOS_DO_CONTEXTO` + `COMPOR_DO_CONTEXTO`): o plano e o PO leem O MESMO plano
   // referenciado e escrevem os mesmos nomes, e três deles já tinham derivado aqui
@@ -447,10 +467,20 @@ function tabelaDeContexto(envelope) {
     linhas.push('| **' + (ROTULOS_DO_CONTEXTO[id] || id) + '** | '
       + (valor || '[a decidir]') + ' |');
   };
-  for (const id of ['contexto-escola', 'contexto-professor', 'contexto-turma', 'contexto-frequencia',
-    'contexto-duracao', 'contexto-calendario', 'contexto-total-aulas', 'contexto-volume',
-    'contexto-registro', 'contexto-metodologia', 'contexto-metodologia-origem', 'contexto-notacao']) {
-    par(id);
+  for (const [titulo, ids] of GRUPOS_DO_CONTEXTO) {
+    // A linha em negrito entre as duas tabelas é o que as nomeia. Ela é prosa, não uma
+    // secção: `### ` criaria um SUBCAMPO no contrato de extração e o `contexto` deixaria
+    // de ser o objeto plano que o validador e o lançamento leem.
+    if (linhas.length) linhas.push('');
+    linhas.push('**' + titulo + '**');
+    linhas.push('');
+    // A RÉGUA É LONGA DE PROPÓSITO (28/10/2026). O pandoc só calcula larguras relativas
+    // quando a linha de separação passa da coluna dele (72); com `|:--|:--|` a tabela
+    // curta saía auto-dimensionada e a longa a 50/50 — as duas tabelas da MESMA secção
+    // com a coluna «Valor» em lugares diferentes. Com esta régua as duas saem 30/70.
+    linhas.push('| Item | Valor |');
+    linhas.push('|:------------------------|:--------------------------------------------------------|');
+    for (const id of ids) par(id);
   }
   return linhas;
 }
@@ -472,7 +502,6 @@ function derivarPlano(envelope) {
   saida.push('escola: ' + (contexto.escola || 'Escola'));
   saida.push('professor: ' + (contexto.professor || 'Professor'));
   saida.push('title: "' + tituloDoPlano(contexto) + '"');
-  saida.push('subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"');
   if (referencias) saida.push('referencias: "' + referencias + '"');
   saida.push('---');
   saida.push('');

@@ -71,7 +71,7 @@ Veja o material do seu ciclo: o PO é seu, ou veio de um departamento?
 
 ## Por que isso importa
 
-Independente da forma, o PO do professor **é dele** (P-13). Mesmo na Forma 1, o recorte
+Independente da forma, o PO do professor **é dele**. Mesmo na Forma 1, o recorte
 observacional é decisão do professor: a norma do departamento define **o que** se observa
 (o padrão); o professor define **como** observa, na turma dele.
 
@@ -90,13 +90,13 @@ maioria das escolas pequenas e médias.
 
 A estrutura está pronta (a pasta `departamentos/`, na raiz do projeto), aguardando uma
 escola que a declare. Se a sua escola adota metodologia comum **sem** estrutura formal, o
-seu PO é **raiz** (a P-14 não se aplica) — mas a base teórica pode citar a metodologia,
+seu PO é **raiz** (a metodologia do departamento não se aplica) — mas a base teórica pode citar a metodologia,
 como o Ciclo 01 do Duo faz com RAD.
 
 ## Sobre a linguagem dos documentos
 
 Os documentos publicados (o material que vai para alunas e famílias) usam
-**linguagem harmonizada** (P-21): o que você observa permanece, mas os
+**linguagem harmonizada**: o que você observa permanece, mas os
 julgamentos são reescritos.
 
 Por quê:

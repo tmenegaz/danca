@@ -451,7 +451,7 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('ciclo**: um conjunto pequeno de sinais, **baseado em conceitos do sistema**, com o qual os');
   saida.push('exercícios deste ciclo podem ser lidos de volta sem depender da memória de quem deu a aula.');
   saida.push('');
-  saida.push('> **Nota (P-15).** Um ciclo que registra exercícios em notação declara o código usado. Este');
+  saida.push('> **Nota.** Um ciclo que registra exercícios em notação declara o código usado. Este');
   saida.push('> código é do ciclo — os sinais valem para os exercícios registrados aqui, e um sinal novo');
   saida.push('> exige uma linha nova no <a href="glossario-' + slugDe(notacao)
     + '.html" target="_blank" rel="noopener noreferrer">Glossário do código ' + notacao + '</a>.');
@@ -624,7 +624,7 @@ function derivarGlossario({ plano, contexto }) {
   saida.push('> corresponde a um conceito do sistema de notação, e pode ser conferido na fonte;');
   saida.push('> *convenção do ciclo* — quando foi escolhido para este código, e só vale aqui.');
   saida.push('');
-  saida.push('> **Nota (P-15/P-16).** O glossário e o registro são um par: um símbolo só existe no registro');
+  saida.push('> **Nota.** O glossário e o registro são um par: um símbolo só existe no registro');
   saida.push('> se tiver verbete aqui, e todo verbete aqui aponta para onde aparece.');
   saida.push('');
 
@@ -653,8 +653,7 @@ function derivarGlossario({ plano, contexto }) {
       saida.push('');
     }
     saida.push('> **[Preencher: verbetes dos sinais do ciclo]** — cada exercício registrado na');
-    saida.push('> [Notação em ' + notacao + '](notacao.html) que introduza um sinal novo ganha aqui o seu verbete');
-    saida.push('> (P-16).');
+    saida.push('> [Notação em ' + notacao + '](notacao.html) que introduza um sinal novo ganha aqui o seu verbete.');
     return saida.join('\n') + '\n';
   }
 
@@ -909,7 +908,7 @@ function derivarCaptura({ po, contexto }) {
   saida.push('---');
   saida.push('');
   saida.push('> **Durante a aula, marque; depois, escreva** — as marcas são âncoras de memória, não');
-  saida.push('> classificação (P-06). Os CRITÉRIOS medem-se pela **régua da turma** (anote o nível —');
+  saida.push('> classificação. Os CRITÉRIOS medem-se pela **régua da turma** (anote o nível —');
   saida.push('> ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA');
   saida.push('> (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.');
   saida.push('');
@@ -920,7 +919,7 @@ function derivarCaptura({ po, contexto }) {
     ' · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`');
   saida.push('');
 
-  saida.push('## Condições de contorno (P-11)');
+  saida.push('## Condições de contorno');
   saida.push('');
   saida.push('**Plano seguido?** ☐ sim ☐ parcial ☐ não · **Ânimo** 1 2 3 4 5 · **Interesse** 1 2 3 4 5 · **Harmonia da turma** 1 2 3 4 5');
   saida.push('');
@@ -955,7 +954,7 @@ function derivarCaptura({ po, contexto }) {
     saida.push('');
   });
 
-  saida.push('## Linha de base revisitada (P-10)');
+  saida.push('## Linha de base revisitada');
   saida.push('');
   const linhasDeBase = linhaDeBase.filter((i) => i && typeof i === 'object');
   if (linhasDeBase.length) {
@@ -1073,7 +1072,7 @@ function derivarHarmonizacao({ plano, po, contexto }) {
   saida.push('frente: Documento de apoio');
   saida.push('ciclo: "' + ciclo + '"');
   saida.push('title: "Harmonização de linguagem"');
-  saida.push('subtitle: "O varrimento de juízo de valor (P-21) — a proposta, não o filtro"');
+  saida.push('subtitle: "O varrimento de juízo de valor — a proposta, não o filtro"');
   saida.push('---');
   saida.push('');
   /*
@@ -1089,7 +1088,7 @@ function derivarHarmonizacao({ plano, po, contexto }) {
   saida.push('> reescreve a coluna "Publicado" com as próprias palavras. O harmonizador é uma');
   saida.push('> **proposta**, não um filtro.');
   saida.push('');
-  saida.push('## Varrimento automático (P-21)');
+  saida.push('## Varrimento automático');
   saida.push('');
   saida.push('| Onde | Formulação evitada (juízo / essência) | Publicado (fato, sem juízo) |');
   saida.push('|:--|:--|:--|');
@@ -1104,7 +1103,7 @@ function derivarHarmonizacao({ plano, po, contexto }) {
   saida.push('## Nota sobre o vocabulário');
   saida.push('');
   saida.push('- **Não se avalia o bailarino.** O que entra no registro é o que **aconteceu**: "não executou');
-  saida.push('  a série de pés", não "é frágil" (P-06/P-22).');
+  saida.push('  a série de pés", não "é frágil".');
   saida.push('- **"Precisa desenvolver"** é a forma do projeto para o que falta — nunca "insuficiente",');
   saida.push('  "fraco" ou "ruim".');
   saida.push('- Nenhum adjetivo essencializante sobre pessoas: nem "preguiçoso", nem "talentoso".');

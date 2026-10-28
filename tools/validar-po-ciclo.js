@@ -47,7 +47,7 @@ const MAPA_SECOES = {
   // dentro de `Sujeitos` e como um `###` dentro de `Linha de base` — e o extrator, que lê linha
   // a linha, as recebia como itens daqueles campos (`subjects: ["Vavá", "**Flutuantes:** …"]`).
   'flutuantes': 'flutuantes',
-  'restrições físicas declaradas (p-22)': 'restricoes',
+  'restrições físicas declaradas': 'restricoes',
   'norma estabelecida': 'norma',
   'linha de base': 'linhaDeBase',
   'critérios de inclusão': 'inclusionCriteria',

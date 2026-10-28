@@ -254,8 +254,22 @@ def main() -> int:
     L.append(f'- **Critério de extensão:** +4 aulas = +{extensao_semanas} semana(s), '
              f'encerrando em {br(datas_das_aulas(inicio, dias, a.total + 4)[-1])}')
     L.append('')
-    L.append('| Aula | Data | Dia | Duração |')
-    L.append('|:---:|:---|:---|:---:|')
+    # A TABELA EM DUAS PARTES, PELO MARCO (28/10/2026). Antes eram 26 linhas seguidas: o
+    # professor que procurava «a aula de março» percorria a lista inteira, e os dois marcos
+    # do ciclo (a formativa e a somativa) eram só uma etiqueta no meio das linhas. Cada
+    # parte agora começa pelo seu marco, e a segunda retoma o cabeçalho — sem ele, no
+    # telefone a tabela de baixo chega sem dizer de que coluna é cada número.
+    cabecalho_da_tabela = ['| Aula | Data | Dia | Duração |', '|:---:|:---|:---|:---:|']
+
+    def inicio_de_tabela(titulo, id_ascii):
+        # A ÂNCORA VAI ESCRITA (28/10/2026). O título tem acentos («avaliação»), e o `id`
+        # que o pandoc derivaria dele carregaria os acentos — contra a regra das âncoras
+        # ASCII estáveis do projeto. Os dois leitores do gerador (HTML e PDF) leem
+        # `header_attributes`, então a marca `{#…}` não aparece em nenhum dos dois.
+        L.append(f'### {titulo} {{#{id_ascii}}}')
+        L.append('')
+        L.extend(cabecalho_da_tabela)
+
     # Posição da aula dentro do próprio dia: quando o dia tem mais de uma aula
     # (sábado 1ª, sábado 2ª), o rótulo diz qual é — sem isso, duas linhas com a
     # mesma data ficariam indistinguíveis.
@@ -268,7 +282,19 @@ def main() -> int:
             return f'{nome} ({vistos_no_dia[d]}ª)'
         return nome
 
+    # Um ciclo de uma aula só não se divide: a segunda parte nasceria vazia, e um
+    # título de secção sem linha nenhuma é pior do que a tabela inteira.
+    if formativa < a.total:
+        inicio_de_tabela(f'Aulas 01–{formativa:02d} · até a avaliação formativa',
+                         f'aulas-01-{formativa:02d}')
+    else:
+        inicio_de_tabela('Aula 01' if a.total == 1 else 'Aulas', 'aulas')
+
     for i, (d, _, dur) in enumerate(por_aula, 1):
+        if formativa < a.total and i == formativa + 1:
+            L.append('')
+            inicio_de_tabela(f'Aulas {formativa + 1:02d}–{a.total:02d} · até a avaliação somativa',
+                             f'aulas-{formativa + 1:02d}-{a.total:02d}')
         marco = ' *(formativa)*' if i == formativa else (' *(somativa)*' if i == a.total else '')
         L.append(f'| {i:02d}{marco} | {br(d)} | {rotulo_do_dia(d)} | {dur} min |')
     L.append('')
