@@ -4,12 +4,13 @@ frente: Aula
 ciclo: "01"
 aula: "01"
 title: "Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
-subtitle: "Sem deslocamento, sem giro, sem mudança de direção"
 objetivo-especifico: "reconhecer o apoio e alinhar o eixo vertical"
 duracao: "50 minutos"
 volume-total: "90 tempos"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
+
+**Condição desta aula.** Sem deslocamento, sem giro, sem mudança de direção.
 
 ## 1. Validação dos objetivos, métricas e duração
 

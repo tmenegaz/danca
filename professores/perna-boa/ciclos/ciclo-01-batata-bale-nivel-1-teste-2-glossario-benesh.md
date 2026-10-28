@@ -3,7 +3,6 @@ projeto: Formação em Balé Clássico
 frente: Documento de apoio
 ciclo: "01"
 title: "Glossário do código Benesh do ciclo"
-subtitle: "Todo símbolo, termo e categoria que aparece no registro da Aula 01"
 ---
 
 > **Aviso de proveniência (Regra 8).** Este glossário explica um **código do ciclo**, não o

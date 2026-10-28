@@ -3,7 +3,6 @@ projeto: Formação em Balé Clássico
 frente: Referências
 ciclo: "01"
 title: "Referências Bibliográficas"
-subtitle: "Fontes que sustentam o recorte e a progressão do Ciclo 01"
 ---
 
 > **O que é este arquivo.** A bibliografia que aparece **dentro** do pacote do ciclo — uma

@@ -3,7 +3,6 @@ projeto: Formação em Balé Clássico
 frente: Documento de apoio
 ciclo: "01"
 title: "Notação em Benesh"
-subtitle: "Registro dos exercícios da Aula 01 para repetição sem depender da memória"
 glossario-href: "glossario-benesh.html"
 ---
 
