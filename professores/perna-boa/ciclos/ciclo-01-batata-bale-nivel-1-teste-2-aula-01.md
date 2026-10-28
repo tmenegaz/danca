@@ -37,39 +37,6 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Musicalidade | 9 | 10% |
 | **Total** | **90** | **100%** |
 
-### Sequência declarada
-
-- **Solo** — Arabesque · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Solo** — Jeté · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Solo** — Rond de jambe · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Solo** — Plié · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical · 8, 4/4
-- **Solo** — Battement tendu · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Solo** — Arabesque · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Solo** — Jeté · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Solo** — Rond de jambe · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Solo** — Battement tendu · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Barra** — Arabesque · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Barra** — Jeté · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Barra** — Rond de jambe · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Barra** — Plié · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Barra** — Battement tendu · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical
-- **Barra** — Arabesque · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Barra** — Jeté · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Barra** — Rond de jambe · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Barra** — Plié · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Barra** — Port de bras · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Centro** — Arabesque · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Centro** — Jeté · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Centro** — Rond de jambe · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Centro** — Plié · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Centro** — Port de bras · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento
-- **Centro** — Arabesque · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Centro** — Jeté · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Centro** — Rond de jambe · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Centro** — Battement tendu · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento
-- **Barra** — Battement tendu · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento · 8, 4/4
-- **Centro** — Port de bras · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento · 16, 3/4
-
 ## 4. Bloco de musicalidade
 
 | Item | Trabalho |

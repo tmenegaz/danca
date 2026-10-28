@@ -10,9 +10,9 @@ professor: perna-boa
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
 aula: 01
-hash_conteudo: 33848bb236e58f803bfc7d16d6b0a554a5058386f98a15c2fc64d2dda8018a84
+hash_conteudo: 87d2d56986e371a8913d6c18bdda31a31d7baf29afcefded53e14f419cbe5ca4
 parentHash: 
-hash: f7effac1940ebf6f1308c1018c935a858abea24fa1200593d79182b8a4e2dfde
+hash: 7db9bfd7ca07be298a78fca182f953fcc019a114157b5d263fbf3797ee5d8e63
 algoritmo: SHA-256
 ancorado_em: 2026-10-28
 cobertura:

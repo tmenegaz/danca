@@ -9,8 +9,8 @@
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
         ],
-        "hash": "f7effac1940ebf6f1308c1018c935a858abea24fa1200593d79182b8a4e2dfde",
-        "hash_conteudo": "33848bb236e58f803bfc7d16d6b0a554a5058386f98a15c2fc64d2dda8018a84",
+        "hash": "7db9bfd7ca07be298a78fca182f953fcc019a114157b5d263fbf3797ee5d8e63",
+        "hash_conteudo": "87d2d56986e371a8913d6c18bdda31a31d7baf29afcefded53e14f419cbe5ca4",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -40,8 +40,8 @@
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
           "professores/perna-boa/ciclos/ciclo-01.conf"
         ],
-        "hash": "7a0befc4e192bcde0a390c92a928d26a45c54132c94da58d3e73ea7c2ef3c46f",
-        "hash_conteudo": "0fffe59cb0b03189b290bb5bb5e04966785d5f7a7248d2703914223adcc4222d",
+        "hash": "ec1dad9d1b74ea095b26caddec16a9a077a465a11fc112e5ff90c4961c5922ee",
+        "hash_conteudo": "1c9cca47f8b192872601038ddee25452d40d78d918516dd7b27d3ea9c60a638b",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -56,8 +56,8 @@
               "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
               "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
             ],
-            "hash": "f7effac1940ebf6f1308c1018c935a858abea24fa1200593d79182b8a4e2dfde",
-            "hash_conteudo": "33848bb236e58f803bfc7d16d6b0a554a5058386f98a15c2fc64d2dda8018a84",
+            "hash": "7db9bfd7ca07be298a78fca182f953fcc019a114157b5d263fbf3797ee5d8e63",
+            "hash_conteudo": "87d2d56986e371a8913d6c18bdda31a31d7baf29afcefded53e14f419cbe5ca4",
             "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -473,9 +473,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "71c7f5d"
+    "commit": "5708c88"
   },
-  "gerado_em": "2026-10-28T13:57",
+  "gerado_em": "2026-10-28T15:02",
   "nao_indexado": [
     {
       "familia": "conteudo",

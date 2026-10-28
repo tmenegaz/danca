@@ -8,9 +8,9 @@ type: Ciclo
 professor: perna-boa
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: 0fffe59cb0b03189b290bb5bb5e04966785d5f7a7248d2703914223adcc4222d
+hash_conteudo: 1c9cca47f8b192872601038ddee25452d40d78d918516dd7b27d3ea9c60a638b
 parentHash: 
-hash: 7a0befc4e192bcde0a390c92a928d26a45c54132c94da58d3e73ea7c2ef3c46f
+hash: ec1dad9d1b74ea095b26caddec16a9a077a465a11fc112e5ff90c4961c5922ee
 algoritmo: SHA-256
 po: professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Aguardando

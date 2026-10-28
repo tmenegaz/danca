@@ -279,7 +279,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 ### 30. Centro — Port de bras
 
-*16 tempos, 3/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
+*18 tempos, 3/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
 
 | Compasso | Contagem | Notação | Descrição |
 |:--:|:--:|:--|:--|
@@ -287,7 +287,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 2 | 1–3 | `[Braço: 2ª → 3ª ⌒]` | fecham em arco até a 3ª |
 | 3 | 1–3 | `[Braço: 3ª → 1ª ⌒]` | retornam em arco à 1ª |
 | 4 | 1–3 | `[Braço: D → E]` | a condução passa do braço D ao braço E |
-| 5 | — | **conferir** | o verbete cobre 12 dos 16 tempos (4 compassos de 3/4); restam 4 tempos, que não fecham em compasso inteiro |
+| 5 | — | **conferir** | o verbete cobre 12 dos 18 tempos (4 compassos de 3/4); restam 6 tempos — 2 compassos sem verbete |
 
 ## O que ficou em lacuna
 
