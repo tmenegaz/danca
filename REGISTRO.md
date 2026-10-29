@@ -28283,3 +28283,65 @@ JavaScript.
   posições de braços ficam respondidas por ele. Falta a proveniência (`fonte`), que o vocabulário tem
   e o ficheiro dela não traz.
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
+
+## 29/10/2026 — A direção é escolha única, «en face» marca, e a contagem continua o compasso
+
+**O que motivou.** A pesquisadora foi escrever o **Battement frappé** — 16 tempos, 2/4, *sur le
+cou-de-pied* — e relatou três coisas de uma vez: **«en face» não marcava**; não conseguia marcar «ao
+lado» e «atrás» **em simultaneidade** com «à frente»; e o trecho que ela escreveu **à frente**
+apareceu como se fosse **atrás**. As três tinham a mesma raiz, e a raiz era minha.
+
+**As pílulas nasceram todas `checkbox`, e a direção não é uma lista.** Reproduzido na bancada, com o
+alfabeto real: depois de clicar em à frente, ao lado e atrás, as três liam
+`devant:true, a-la-seconde:true, derriere:true` e `DIRECAO` dizia `derriere`. O navegador marcava a
+nova e **deixava a anterior** — e como o handler da direção não repintava, a tela dizia uma coisa e o
+estado dizia outra. É a família de defeito que este projeto já pagou duas vezes: **dois sítios a
+dizer o mesmo, e um deles a mentir**. Passa a `radio`, com `name` por grupo: o próprio navegador
+desmarca os outros.
+
+**«En face» era a única pílula que nunca marcava.** Ela é a **omissão** — o campo `orientacao` só
+existe quando não é en face —, e eu tinha traduzido «é a omissão» por «não se vê». Ela leu isso como
+«não habilita», e com razão: era um clique que não dizia nada, num campo onde todos os outros diziam.
+Passa a aparecer **marcada** quando nenhuma outra está; o estado continua a guardar vazio, e **o que
+se grava não muda**.
+
+**A contagem recomeçava por direção, e o compasso é corrido.** `opcoesDeContagem` somava só as
+células da **própria** direção e voltava a 1 quando ela não tinha nenhuma; `compassosDosTrechos`
+somava **tudo**. Com 16 tempos em 2/4, «à frente» e «ao lado» ficavam **ambos** com «compasso 1,
+contagem 1» — dois trechos no mesmo tempo, e a página da aula a dizer duas coisas para o mesmo
+instante. Este **não foi relatado**: apareceu ao medir o resultado da correcção. A conta certa soma,
+na ordem da gramática, tudo o que vem antes — as direções anteriores inteiras e as células que esta
+direção já tem, porque a nova entra no fim dela —, e o início da contagem e a coluna do compasso saem
+da **mesma soma**, e por isso não podem divergir. Medido depois: à frente `compasso 1 | 1`, ao lado
+`compasso 1 | 2`, atrás `compasso 2 | 1`.
+
+**O que não muda.** As **22 células** do alfabeto continuam válidas com a regra nova: o Battement
+tendu grava `1–2, 3–4` em devant e `1–2, 3–4` em derrière, e é isso que a soma corrida produz (4
+tempos por direção num 4/4 = um compasso por direção). A âncora continua íntegra, `3601081…`, e não
+foi preciso regerar nada.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — `pilulas()` ganha o parâmetro `unico` (`radio` com `name` por
+  grupo); `pintarDirecao` repinta e não aceita duas; `pintarOrientacao` marca `en-face` quando o
+  estado está vazio; e `opcoesDeContagem` passa a somar por `temposAntesDe(dir)`.
+- `experimentos/provar-celula.js` — **61 → 75 asserções**.
+- `experimentos/propostas/proposta-verbete-pilulas.html` — a bancada com o mesmo critério, para não
+  mostrar um comportamento que o sistema já não tem.
+
+**Motivo declarado — os congelados.** Nenhum nesta entrega.
+
+**Validação.**
+`provar-celula.js` → **75 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha do menu é pré-existente).
+`check-identidade.js` → **20/20**. `hash-ciclo.sh --check` → íntegro, `3601081…`.
+
+**Medido no navegador, na bancada local, com o alfabeto real.** Battement frappé, 16 tempos, 2/4,
+*sur le cou-de-pied*: a direção oferece três, a orientação cinco com «en face» marcada, e as caixas
+são todas `radio`. Três cliques deixam **uma** marcada, e é a última. Depois de clicar «en face» o
+estado volta a vazio. Três trechos, um por direção, ficam **cada um no seu bloco**: à frente
+`compasso 1 | 1`, ao lado `compasso 1 | 2`, atrás `compasso 2 | 1` — sem sobreposição. Nenhum erro de
+JavaScript.
+
+**O que continua em aberto.**
+- O **dicionário dela** — falta a proveniência (`fonte`), que é decisão da pesquisadora.
+- As **seleções no plano** (§1.6) — o último item da Fase 1.
