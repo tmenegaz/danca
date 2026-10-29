@@ -28118,3 +28118,90 @@ lado/atrás» — que é a verdade sobre um exercício sem decomposição. Duas 
 - As **seleções no plano** (§1.6), que eram o outro item da Fase 1.
 - As **4 linhas «a conferir»** das posições de braços (são do método, não do código).
 - **«tradução» era erro de digitação**: o campo é **tradição**, e não se mexeu nele.
+
+## 28/10/2026 — A célula explicada: contagem, sinais e o dicionário do que acontece
+
+**O que motivou.** A pesquisadora abriu o editor e não entendeu quatro campos — contagem, bloco, «o
+que acontece neste trecho», e a legenda «[Categoria: sinais]». Escreveu o que via, e no meio da
+pergunta estavam **três defeitos meus** e **uma ideia melhor do que a minha**.
+
+**A contagem não se escreve.** Verificado nos quatro verbetes antes de decidir: a contagem vai de 1
+até o **numerador do compasso** e **recomeça** no seguinte, e o **número do compasso é calculado**
+(o Plié grava `1–4`, `1–4` — um compasso cada; o Port de bras `1–3` quatro vezes; o Battement tendu
+`1–2`, `3–4` por direção). Era exactamente a confusão antiga do «eu não tô contando que vou de 1 até
+o 3 no compasso». Passa a ser uma **lista que só oferece o que cabe**: a célula começa onde a
+anterior da mesma direção acabou, ou recomeça em 1 quando o compasso fechou. O compasso nunca fica
+com buraco, e a coluna do compasso na tabela é derivada.
+
+**«Bloco» queria dizer duas coisas — e o instinto dela estava certo.** Escreveu: *«acho que o bloco é
+se vai ser solo, barra centro»*. É: no plano, `Bloco` **é** Solo · Barra · Centro. Eu tinha usado a
+mesma palavra para a notação da célula, no mesmo módulo (`notacao.js`, linhas 344 e 405). O campo
+passa a chamar-se **Sinais Benesh** e passa a **compor-se**: categoria (Pé · Peso · Plié · Braço) e
+os sinais pela ordem, cada um com o nome («→ conduz a»), em fichas com «×». Escrever `[Pé: 1ª → +]`
+de cabeça era pedir Benesh em texto livre.
+
+**O dado acompanhou, e os documentos não mudaram.** A célula declarava `bloco` como texto; passa a
+declarar `categoria` e `sinais`, e a notação é **derivada** (`blocoDe` em `notacao.js`) — uma
+representação só, e é a que o documento lê. As 22 células foram migradas, e o `lado` foi preservado:
+a **primeira migração largou-o**, e foi uma asserção do `provar-notacao` («e cada célula diz o lado em
+que acontece») que o apanhou — não a leitura do diff. Medido depois: o **texto dos dois PDFs tem o
+mesmo md5** que antes. O alfabeto passa a **versão 4**, e a âncora foi regerada (o selo recusou até
+lá; o hash das fontes não muda, porque o alfabeto está fora da fórmula).
+
+**A legenda repetia as categorias.** A rota recolhia as chaves de `itens` de **todos** os grupos do
+alfabeto, e o grupo «Categorias» também tem `itens`: «pé, peso, plié, braço» aparecia **duas vezes**,
+uma em «Categorias» e outra em «Sinais». Medido: 22 sinais, **4 deles eram as categorias**. Agora as
+categorias saem da lista, e cada sinal leva `nome`, `grupo` e `significado`.
+
+**As duas tabelas viraram uma.** «Direções que este verbete cobre» e «Células deste verbete» diziam a
+mesma coisa — e **sem células, as duas diziam «não há nada»**. É o defeito das duas listas de
+direções, corrigido no dado e repetido na tela; ela viu-o de imediato. Passa a haver **uma tabela**:
+um bloco por direção, as células dentro, e a linha de acrescentar no fim de cada bloco. A direção que
+não é coberta continua a aparecer — é ela que responde ao fouetté — e a tela distingue **«este
+exercício não vai»** de **«vai noutra música, falta escrever»**.
+
+**A frase passa a ter dicionário — e é sugestão, não fonte.** Ideia dela: *«podemos ter um arquivo
+chave-valor para “o que acontece”? … passa a funcionar como um dicionário de ballet»*. Existe:
+`biblioteca/modalidades/bale-classico/descricoes.json`, **indexado pela notação** e não pelo nome do
+exercício — e a diferença importa, porque **o Plié tem duas coisas** (desce, sobe) e por isso duas
+frases; o que determina o que acontece é o bloco, não o nome de quem o faz. Semeado com as **15
+frases distintas** que os verbetes já tinham (24 células; `retorno à 1ª posição` repete-se em três
+blocos). O campo **preenche-se com a sugestão e é editável**; o que fica **gravado é a frase da
+célula**, porque a proveniência acrescenta e não edita (P-03/P-04) — assim o dicionário pode melhorar
+sem reescrever o passado, e a frase ajustada **não se perde** ao acrescentar mais um sinal (medido).
+
+**Onde entrou.**
+- `biblioteca/modalidades/bale-classico/descricoes.json` — **novo**: o dicionário, chave = notação.
+- `biblioteca/modalidades/bale-classico/notacao.json` — as células na forma nova, versão **4**.
+- `motor/nucleo/notacao.js` — `blocoDe()` exportado; o **segmento** passa a levar `bloco` derivado,
+  para todos os leitores a jusante continuarem a ler o mesmo.
+- `motor/servidor/verbete.js` — a validação compõe a notação dos dois campos e confere-a como antes.
+- `motor/servidor/catalogo-seed.js` — `DESCRICOES` (o esbuild embute-o; no Worker não há `fs`).
+- `motor/servidor/bastidores.js` — a tabela única, a contagem calculada, os sinais compostos, a
+  sugestão da frase, a frase editável na linha, e a rota com os sinais nomeados e sem as categorias.
+- `experimentos/provar-celula.js` — reescrita para a tela nova: 41 asserções.
+- `experimentos/provar-verbete.js` e `provar-notacao.js` — as asserções que mediam a forma antiga
+  foram **reconvertidas**, não apagadas; e `provar-producao.js` passou a contar 16 pílulas, com o
+  critério escrito ao lado (as quatro categorias são lista curta, fechada e fixa).
+
+**Motivo declarado — os congelados.** Nenhum nesta entrega (a folha foi no commit anterior).
+
+**Validação.**
+`provar-celula.js` → **41 asserções, 0 falhas**. `provar-verbete.js` → **66, 0 falhas**.
+`provar-notacao.js` → **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha «o item do menu
+fica marcado» é pré-existente). `provar-teste.js` → **44**. `provar-leituras-do-po.js` → **27**.
+`provar-menu-da-producao.js` → **55/55**. `provar-celular.js` → **15/15**, em 320, 360, 390, 414,
+768 e 1024px. `check-identidade` → **20/20**. `check-glossario` → consistente. `check-pacote` → **0
+erro, 0 aviso**. `hash-ciclo --check` → íntegro, `3601081…`. E o **texto dos dois PDFs** gerados tem o
+mesmo md5 que antes da migração: a mudança de forma da célula não mudou um documento.
+
+**Medido no navegador, na bancada local.** Em 2/4 a contagem oferece `1` e `1–2`; em 4/4 vai até
+`1–4`. Composto `1ª → +`, o dicionário devolve «extensão à frente a partir da 1ª posição, a ponta no
+chão» e a nota diz que é sugestão. Frase ajustada à mão sobrevive ao sinal seguinte. Acrescentar sem
+frase é recusado com o campo nomeado. Nada transborda em 320, 390, 768 e 1280px. Nenhum erro de
+JavaScript.
+
+**O que continua em aberto.**
+- As **seleções no plano** (§1.6) — o último item da Fase 1.
+- As **4 linhas «a conferir»** das posições de braços (são do método, não do código).
+- O dicionário tem **15 frases para 15 blocos**; os 51 exercícios sem verbete ainda não têm nenhuma.
