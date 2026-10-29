@@ -3261,26 +3261,37 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Três coisas dizem o mesmo trecho em três línguas: a CONTAGEM (a do compasso), os SINAIS
     // BENESH (a da notação) e O QUE ACONTECE (a do português). As duas primeiras compõem-se; a
     // terceira escreve-se — e vem sugerida do dicionário da modalidade.
+    // TUDO EM PÍLULAS (28/10/2026). O `<select>` dos sinais tinha um defeito que só se vê a
+    // usar: escolher um sinal SUBSTITUÍA o anterior em vez de o acrescentar à sequência — e uma
+    // sequência de vários não se escreve com uma escolha única. O `+` ao lado piorava-o, porque
+    // obrigava a mirar num botão depois de já ter escolhido. Com pílulas, o clique ACRESCENTA ao
+    // fim e o segundo clique TIRA: não há estado escondido, e o que está escrito vê-se.
+    '<fieldset class="escolhas" id="vb-dir">' +
+    '<legend class="campo-rotulo">Direção do membro — para onde o membro vai</legend>' +
+    '</fieldset>' +
+    // A ORIENTAÇÃO É O OUTRO EIXO, e é opcional: sem escolha, o trecho é `en face`. Ela existe
+    // porque «battement tendu à frente» não diz se o corpo está de frente ou em croisé — e são
+    // dois trechos diferentes, não um.
+    '<fieldset class="escolhas" id="vb-orient">' +
+    '<legend class="campo-rotulo">Orientação do corpo <span class="nota">— opcional; sem escolha, en face</span></legend>' +
+    '</fieldset>' +
     '<fieldset class="escolhas" id="vb-categoria">' +
-    '<legend class="campo-rotulo">Trecho novo — categoria: que parte do corpo se move</legend>' +
+    '<legend class="campo-rotulo">Categoria — que parte do corpo se move</legend>' +
     ['Pé', 'Peso', 'Plié', 'Braço'].map((c, i) =>
       '<label class="escolha"><input type="radio" name="vb-cat" value="' + c + '"' +
       (i === 0 ? ' checked' : '') + '><span>' + c + '</span></label>').join('') +
     '</fieldset>' +
-    '<label class="campo-rotulo" for="vb-cel-dir">Direção</label>' +
-    '<select id="vb-cel-dir"><option value="">— direção —</option></select>' +
-    '<label class="campo-rotulo" for="vb-cel-contagem">Contagem — em que tempos do compasso</label>' +
-    // AS OPÇÕES SÃO CALCULADAS. A contagem não se escreve: ela vai de 1 até o numerador do
-    // compasso e recomeça no seguinte, e a célula começa onde a anterior da MESMA direção
-    // acabou. O que a lista oferece é o que cabe — e por isso o compasso nunca fica com buraco.
-    '<select id="vb-cel-contagem"><option value="">— escolha a direção —</option></select>' +
-    '<label class="campo-rotulo" for="vb-sinal">Sinais, pela ordem em que acontecem</label>' +
-    '<span class="par-associar">' +
-    '<select id="vb-sinal"><option value="">— acrescentar um sinal —</option></select>' +
-    '<button type="button" class="acao secundario" id="vb-add-sinal" aria-label="acrescentar o sinal">+</button>' +
-    '</span>' +
+    // AS CONTAGENS SÃO CALCULADAS. A contagem não se escreve: ela vai de 1 até o numerador do
+    // compasso e recomeça no seguinte, e o trecho começa onde o anterior da MESMA direção
+    // acabou. O que se oferece é o que cabe — e por isso o compasso nunca fica com buraco.
+    '<fieldset class="escolhas" id="vb-contagem">' +
+    '<legend class="campo-rotulo">Contagem — em que tempos do compasso</legend>' +
+    '</fieldset>' +
+    '<fieldset class="escolhas" id="vb-sinais">' +
+    '<legend class="campo-rotulo">Sinais, pela ordem em que acontecem <span class="nota">— clique para acrescentar ao fim; clique outra vez para tirar</span></legend>' +
+    '</fieldset>' +
     '<p class="campo-rotulo">Sinais Benesh deste trecho</p>' +
-    '<p id="vb-chips" class="par-associar"><span class="nota">Escolha a categoria e acrescente sinais.</span></p>' +
+    '<p id="vb-chips" class="par-associar"><span class="nota">Escolha a categoria e os sinais.</span></p>' +
     '<p class="nota" id="vb-lido"></p>' +
     '<label class="campo-rotulo" for="vb-cel-desc">O que acontece neste trecho</label>' +
     // A FRASE VEM SUGERIDA DO DICIONÁRIO (28/10/2026) e é editável. Ela é o que a página em
@@ -4903,9 +4914,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //   · havia duas tabelas a dizer a mesma coisa. Passa a haver uma.
     'var CELULAS = {};' +
     'var SINAIS = [];' +
+    // O TRECHO EM COMPOSIÇÃO TEM ESTADO PRÓPRIO (28/10/2026). A direção e a orientação ficam
+    // depois de acrescentar — é o que permite emendar o en croix sem reescolher a direção a cada
+    // trecho —, e só os sinais, a contagem e a frase se limpam.
+    'var DIRECAO = "";' +
+    'var ORIENTACAO = "";' +
+    'var CONTAGEM = "";' +
     'var MUSICA_EM_FOCO = "";' +
     'var SUGESTAO_ANTERIOR = "";' +
     'function direcoesDaGramatica(){ return (VERBETES && VERBETES.direcoes) || []; }' +
+    'function orientacoesDaGramatica(){ return (VERBETES && VERBETES.orientacoes) || []; }' +
     'function nomeDaDirecao(termo){' +
     '  var achado = null;' +
     '  direcoesDaGramatica().forEach(function(x){ if (x.termo === termo) achado = x; });' +
@@ -4975,18 +4993,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var html = "";' +
     '  direcoesDaGramatica().forEach(function(d){' +
     '    var lista = CELULAS[d.termo] || [];' +
-    '    html += "<table><thead><tr><th scope=\\"col\\" colspan=\\"4\\">" + d.nome +' +
+    '    html += "<table><thead><tr><th scope=\\"col\\" colspan=\\"5\\">" + d.nome +' +
     '      "</th></tr></thead><tbody>";' +
     '    if (!lista.length) {' +
     '      var noutra = ondeOExercicioTem(nome, d.termo);' +
-    '      html += "<tr><td colspan=\\"4\\" class=\\"nota\\">" + (noutra' +
+    '      html += "<tr><td colspan=\\"5\\" class=\\"nota\\">" + (noutra' +
     '        ? "O exercício vai " + d.nome + " noutra música (" + noutra + "), mas não nesta."' +
     '        : "Este exercício não vai " + d.nome + ".") +' +
     '        " Se for engano, acrescente o trecho abaixo." + "</td></tr>";' +
     '    }' +
+    // A ORIENTAÇÃO DO CORPO NA SUA PRÓPRIA COLUNA. Vazia quer dizer `en face` — e é o que se
+    // escreve, porque uma coluna em branco lê-se como esquecimento e «en face» lê-se como facto.
     '    lista.forEach(function(c, k){' +
+    '      var orient = "";' +
+    '      orientacoesDaGramatica().forEach(function(o){' +
+    '        if (o.termo === (c.orientacao || "")) orient = o.nome;' +
+    '      });' +
     '      html += "<tr><td>compasso <strong>" + mapa[d.termo + ":" + k] + "</strong></td><td>" +' +
-    '        c.contagem + "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
+    '        c.contagem + "</td><td>" + (orient || "<span class=\\"nota\\">en face</span>") +' +
+    '        "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
     '        "]</code></td><td><input data-desc=\\"" + d.termo + ":" + k + "\\" value=\\"" +' +
     '        String(c.descricao || "").replace(/"/g, "&quot;") + "\\" aria-label=\\"o que acontece\\">" +' +
     '        " <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + d.termo + ":" + k +' +
@@ -5015,19 +5040,73 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  return "";' +
     '}' +
+    // ================= AS PÍLULAS (28/10/2026) ======================================
+    // Uma pílula é um `<label class="escolha">` com uma caixa dentro — a peça que a folha já
+    // tem. Não fica nenhuma lista suspensa no trecho: o que se escolhe vê-se, e o que está
+    // escolhido vê-se marcado. O `<select>` de antes tinha um defeito que só aparece a usar:
+    // escolher o segundo sinal APAGAVA o primeiro, porque uma escolha única não escreve uma
+    // sequência. Com pílulas, cada clique ACRESCENTA ao fim.
+    'function pilulas(alvo, itens, escolhido, aoClicar, textoVazio){' +
+    '  var caixa = document.getElementById(alvo);' +
+    '  if (!caixa) return;' +
+    '  var legenda = caixa.querySelector("legend");' +
+    '  var partes = itens.map(function(it){' +
+    '    var v = it.valor;' +
+    '    var dentro = Array.isArray(escolhido) ? escolhido.indexOf(v) !== -1' +
+    '                                           : (escolhido || "") === v;' +
+    '    return "<label class=\\"escolha\\"><input type=\\"checkbox\\"" + (dentro ? " checked" : "") +' +
+    '      " data-valor=\\"" + String(v).replace(/"/g, "&quot;") + "\\"><span>" +' +
+    '      (it.glifo ? "<strong>" + it.glifo + "</strong> " : "") + it.nome + "</span></label>";' +
+    '  }).join("");' +
+    '  if (!itens.length) partes = "<span class=\\"nota\\">" + (textoVazio || "nada a escolher") + "</span>";' +
+    '  caixa.innerHTML = (legenda ? legenda.outerHTML : "") + partes;' +
+    '  Array.prototype.slice.call(caixa.querySelectorAll("input")).forEach(function(x){' +
+    '    x.addEventListener("change", function(){ aoClicar(x.getAttribute("data-valor")); });' +
+    '  });' +
+    '}' +
+    // A DIREÇÃO DO MEMBRO — três, e não oito. As outras cinco que aqui apareciam são ORIENTAÇÃO
+    // DO CORPO, e estavam misturadas por causa da lista única do alfabeto.
+    'function pintarDirecao(){' +
+    '  pilulas("vb-dir", direcoesDaGramatica().map(function(d){' +
+    '    return { valor: d.termo, glifo: d.glifo, nome: d.nome };' +
+    '  }), DIRECAO, function(v){' +
+    '    DIRECAO = (DIRECAO === v ? "" : v);' +
+    '    CONTAGEM = "";' +
+    '    pintarContagens();' +
+    '  }, "A gramática da modalidade não declara direções.");' +
+    '}' +
+    // A ORIENTAÇÃO DO CORPO — cinco, e nenhuma obrigatória: sem escolha, o trecho é `en face`.
+    // Clicar na que está escolhida desmarca-a, e é assim que se volta a `en face`.
+    'function pintarOrientacao(){' +
+    '  pilulas("vb-orient", orientacoesDaGramatica().map(function(o){' +
+    '    return { valor: o.termo, nome: o.nome };' +
+    '  }), ORIENTACAO, function(v){' +
+    '    ORIENTACAO = (ORIENTACAO === v || v === "en-face") ? "" : v;' +
+    '    pintarOrientacao();' +
+    '  }, "A gramática da modalidade não declara orientações.");' +
+    '}' +
     // A CONTAGEM EM OFERTA, recalculada quando a direção muda. Só as que cabem.
     'function pintarContagens(){' +
-    '  var sel = document.getElementById("vb-cel-contagem");' +
-    '  if (!sel) return;' +
-    '  var dir = (document.getElementById("vb-cel-dir") || {}).value || "";' +
-    '  if (!dir) { sel.innerHTML = "<option value=\\"\\">— escolha a direção —</option>"; return; }' +
-    '  var antes = sel.value;' +
-    '  sel.innerHTML = ["<option value=\\"\\">— contagem —</option>"].concat(' +
-    '    opcoesDeContagem(dir).map(function(o){ return "<option value=\\"" + o + "\\">" + o + "</option>"; })' +
-    '  ).join("");' +
-    '  if (antes) sel.value = antes;' +
+    '  if (!DIRECAO) {' +
+    '    pilulas("vb-contagem", [], "", function(){}, "escolha a direção primeiro");' +
+    '    return;' +
+    '  }' +
+    '  var possiveis = opcoesDeContagem(DIRECAO);' +
+    '  if (possiveis.indexOf(CONTAGEM) === -1) CONTAGEM = possiveis[0] || "";' +
+    '  pilulas("vb-contagem", possiveis.map(function(o){ return { valor: o, nome: o }; }), CONTAGEM,' +
+    '    function(v){ CONTAGEM = v; pintarContagens(); },' +
+    '    "esta direção já tem os tempos todos preenchidos");' +
     '}' +
-    // A NOTAÇÃO EM COMPOSIÇÃO. A categoria vem das pílulas; os sinais, do select agrupado, e
+    // REPINTA O TRECHO INTEIRO. É uma função só porque há mais de um sítio a mexer nele — o
+    // «editar» e o «limpar» —, e cada um tem de deixar a tela coerente com o estado.
+    'function pintarTrecho(){' +
+    '  pintarDirecao();' +
+    '  pintarOrientacao();' +
+    '  pintarContagens();' +
+    '  pintarSinais();' +
+    '  pintarChips();' +
+    '}' +
+    // A NOTAÇÃO EM COMPOSIÇÃO. A categoria vem das pílulas; os sinais, das pílulas agrupadas, e
     // cada um entra numa ficha com o «×». É o que evita escrever Benesh de cabeça.
     'function categoriaEscolhida(){' +
     '  var marcado = document.querySelector("input[name=vb-cat]:checked");' +
@@ -5036,14 +5115,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function blocoEmComposicao(){' +
     '  return "[" + categoriaEscolhida() + ": " + SINAIS.join(" ") + "]";' +
     '}' +
+    // OS SINAIS EM PÍLULAS, AGRUPADOS PELO GRUPO DO ALFABETO. Cada pílula diz o glifo e o nome
+    // — «→ conduz a» e não um «→» sozinho —, porque quem está a compor não tem de saber Benesh
+    // de cor. Um sinal pode repetir-se no mesmo bloco (`[Pé: 1ª → + ● 1ª]`), e é por isso que o
+    // clique ACRESCENTA SEMPRE ao fim e a remoção é só pelos «×» das fichas.
+    'function pintarSinais(){' +
+    '  var caixa = document.getElementById("vb-sinais");' +
+    '  if (!caixa) return;' +
+    // UMA VEZ BASTA. Os sinais vêm do alfabeto, não mudam com a música nem com a direção — e
+    // repintá-los a cada tecla dos tempos perdia o foco de quem estava a compor.
+    '  if (caixa.querySelector("input[data-sinal]")) return;' +
+    '  var legenda = caixa.querySelector("legend");' +
+    '  var grupos = {}, ordem = [];' +
+    '  (VERBETES && VERBETES.sinais || []).forEach(function(s){' +
+    '    if (!grupos[s.grupo]) { grupos[s.grupo] = []; ordem.push(s.grupo); }' +
+    '    grupos[s.grupo].push(s);' +
+    '  });' +
+    '  var html = ordem.map(function(g){' +
+    '    return "<p class=\\"campo-rotulo\\">" + g + "</p>" + grupos[g].map(function(s){' +
+    '      return "<label class=\\"escolha\\"><input type=\\"checkbox\\" data-sinal=\\"" +' +
+    '        String(s.sinal).replace(/"/g, "&quot;") + "\\"><span><strong>" + s.sinal +' +
+    '        "</strong> " + s.nome + "</span></label>";' +
+    '    }).join("");' +
+    '  }).join("");' +
+    '  caixa.innerHTML = (legenda ? legenda.outerHTML : "") + html;' +
+    '  Array.prototype.slice.call(caixa.querySelectorAll("input")).forEach(function(x){' +
+    '    x.addEventListener("change", function(){' +
+    '      SINAIS.push(x.getAttribute("data-sinal"));' +
+    '      x.checked = false;' +
+    '      pintarChips();' +
+    '    });' +
+    '  });' +
+    '}' +
+    // AS FICHAS NUMERADAS: a ordem em que os sinais acontecem é o que a notação diz, e um número
+    // na frente é a única coisa que a torna legível de relance.
     'function pintarChips(){' +
     '  var alvo = document.getElementById("vb-chips");' +
     '  if (!alvo) return;' +
     '  if (!SINAIS.length) {' +
-    '    alvo.innerHTML = "<span class=\\"nota\\">Escolha a categoria e acrescente sinais.</span>";' +
+    '    alvo.innerHTML = "<span class=\\"nota\\">Escolha a categoria e os sinais.</span>";' +
     '  } else {' +
     '    alvo.innerHTML = SINAIS.map(function(s, i){' +
-    '      return "<span class=\\"chip\\">" + s +' +
+    '      return "<span class=\\"chip\\">" + (i + 1) + ". " + s +' +
     '        "<button type=\\"button\\" data-sinal=\\"" + i + "\\" aria-label=\\"tirar " + s + "\\">×</button></span>";' +
     '    }).join(" ");' +
     '  }' +
@@ -5115,12 +5228,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var base = (MUSICA_EM_FOCO && v && v[MUSICA_EM_FOCO] && v[MUSICA_EM_FOCO].celulas) || {};' +
     '  CELULAS = JSON.parse(JSON.stringify(base));' +
     '  SINAIS = [];' +
+    // A DIREÇÃO, A ORIENTAÇÃO E A CONTAGEM SOBREVIVEM TROCA DE MÚSICA: quem mudou os tempos
+    // continua a escrever o mesmo exercício, e apagar-lhe a direção seria recomeçar o gesto.
     '  SUGESTAO_ANTERIOR = "";' +
     '  var campo = document.getElementById("vb-cel-desc");' +
     '  if (campo) campo.value = "";' +
-    '  pintarChips();' +
+    '  pintarTrecho();' +
     '  pintarTabela();' +
-    '  pintarContagens();' +
     '}' +
     'function carregarVerbetes(){' +
     '  var lista = document.getElementById("lista-verbetes");' +
@@ -5403,22 +5517,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (t) t.addEventListener("input", carregarRascunho);' +
     '})();' +
     // ---- o formulário de um trecho -----------------------------------------------------
-    // A DIREÇÃO MANDA NA CONTAGEM. Quem escolhe a direção vê as contagens que cabem naquela
-    // direção — e não uma lista fixa de «1–2, 3–4», que só serviria para um 4/4 vazio.
+    // AS PÍLULAS LIGAM-SE A SI MESMAS. A direção manda na contagem — quem escolhe a direção vê
+    // as contagens que cabem naquela direção, e não uma lista fixa de «1–2, 3–4», que só serviria
+    // para um 4/4 vazio. Os sinais compõem a sequência, e a categoria muda o nome do bloco.
     '(function(){' +
-    '  var sel = document.getElementById("vb-cel-dir");' +
-    '  if (sel) sel.addEventListener("change", pintarContagens);' +
-    '})();' +
-    // OS SINAIS ENTRAM UM A UM, na ordem em que acontecem, e saem pelo «×» de cada ficha.
-    '(function(){' +
-    '  var add = document.getElementById("vb-add-sinal");' +
-    '  if (add) add.addEventListener("click", function(){' +
-    '    var sel = document.getElementById("vb-sinal");' +
-    '    if (!sel || !sel.value) return;' +
-    '    SINAIS.push(sel.value);' +
-    '    sel.value = "";' +
-    '    pintarChips();' +
-    '  });' +
     '  var alvo = document.getElementById("vb-chips");' +
     '  if (alvo) alvo.addEventListener("click", function(e){' +
     '    var b = e.target.closest ? e.target.closest("button[data-sinal]") : null;' +
@@ -5431,27 +5533,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '})();' +
     // ACRESCENTAR O TRECHO. A recusa diz O QUE FALTA, campo a campo — e nunca «faltam campos».
+    // A DIREÇÃO E A ORIENTAÇÃO FICAM depois de acrescentar, e só os sinais, a contagem e a frase
+    // se limpam: é o que permite emendar o en croix sem reescolher a direção a cada trecho.
     'var bCelAcrescentar = document.getElementById("vb-cel-acrescentar");' +
     'if (bCelAcrescentar) {' +
     '  bCelAcrescentar.addEventListener("click", function(){' +
-    '    var dir = document.getElementById("vb-cel-dir").value;' +
-    '    var contagem = document.getElementById("vb-cel-contagem").value;' +
     '    var desc = document.getElementById("vb-cel-desc").value.trim();' +
     '    var faltando = [];' +
     '    if (!MUSICA_EM_FOCO) faltando.push("o exercício, os tempos e o compasso");' +
-    '    if (!dir) faltando.push("a direção");' +
-    '    if (!contagem) faltando.push("a contagem");' +
+    '    if (!DIRECAO) faltando.push("a direção");' +
+    '    if (!CONTAGEM) faltando.push("a contagem");' +
     '    if (!SINAIS.length) faltando.push("ao menos um sinal");' +
     '    if (!desc) faltando.push("o que acontece (a frase em português)");' +
     '    if (faltando.length) { recado("erro", "Falta " + faltando.join(", ") + "."); return; }' +
-    '    CELULAS[dir] = CELULAS[dir] || [];' +
-    '    CELULAS[dir].push({contagem: contagem, categoria: categoriaEscolhida(),' +
-    '      sinais: SINAIS.slice(), descricao: desc});' +
+    '    CELULAS[DIRECAO] = CELULAS[DIRECAO] || [];' +
+    '    var celula = {contagem: CONTAGEM, categoria: categoriaEscolhida(),' +
+    '      sinais: SINAIS.slice(), descricao: desc};' +
+    // A ORIENTAÇÃO SÓ SE GRAVA QUANDO NÃO É `en face`: a omissão já quer dizer isso, e escrevê-la
+    // em todas as células encheria o alfabeto de ruído que não diz nada de novo.
+    '    if (ORIENTACAO) celula.orientacao = ORIENTACAO;' +
+    '    CELULAS[DIRECAO].push(celula);' +
     '    SINAIS = [];' +
+    '    CONTAGEM = "";' +
     '    SUGESTAO_ANTERIOR = "";' +
     '    document.getElementById("vb-cel-desc").value = "";' +
-    '    document.getElementById("vb-cel-contagem").innerHTML = "<option value=\\"\\">— contagem —</option>";' +
-    '    document.getElementById("vb-cel-dir").value = dir;' +
     '    pintarContagens();' +
     '    pintarChips();' +
     '    pintarTabela();' +
@@ -6807,8 +6912,17 @@ async function fetch(request, env) {
       posicoes: (lido.vocabulario || [])
         .filter((t) => t && t.categoria === 'posicao')
         .map((t) => ({ id: t.id, termo: t.termo, membro: t.membro || null })),
-      direcoes: Object.values((lido.dados.gramatica || {}).direcoesDoMembro || {})
-        .concat(Object.values((lido.dados.gramatica || {}).orientacoesDoCorpo || {})),
+      // DOIS EIXOS, DUAS LISTAS (versão 5 do alfabeto, 28/10/2026). Até aqui as duas listas iam
+      // concatenadas num só campo, e era por isso que o formulário oferecia OITO blocos onde há
+      // três mais cinco — «à frente», «ao lado», «atrás» são DIREÇÕES do membro; «en face»,
+      // «croisé», «effacé», «écarté», «épaulement» são ORIENTAÇÕES do corpo. Misturadas, a tela
+      // pedia ao professor que escolhesse entre coisas que não competem.
+      // O glifo vai junto porque é ele que a pílula mostra: «+ à frente» diz mais do que «à
+      // frente» sozinho, e é o mesmo sinal que o documento escreve.
+      direcoes: Object.entries((lido.dados.gramatica || {}).direcoesDoMembro || {})
+        .map(([glifo, d]) => Object.assign({}, d, { glifo })),
+      orientacoes: Object.entries((lido.dados.gramatica || {}).orientacoesDoCorpo || {})
+        .map(([glifo, d]) => Object.assign({}, d, { glifo })),
       // OS SINAIS DO ALFABETO, COM NOME E GRUPO (28/10/2026). Antes era uma lista de símbolos
       // soltos — e trazia dentro as PRÓPRIAS CATEGORIAS, porque o grupo «Categorias» também tem
       // `itens`. Era por isso que a legenda dizia «pé, peso, plié, braço» duas vezes, uma em

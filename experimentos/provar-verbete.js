@@ -483,10 +483,20 @@ async function aOrigemDoVocabulario() {
   // havia nenhuma, recusava — criar um verbete era impossível, para 55 exercícios possíveis e 4
   // verbetes. Estas asserções medem a MARCAÇÃO e o SCRIPT: a prova de comportamento é a bancada
   // no navegador (`experimentos/provar-celula.js`), que não vai ao ar.
-  checar('o editor do trecho existe, com os campos e o gesto de acrescentar',
-    /id="vb-cel-dir"/.test(html) && /id="vb-cel-contagem"/.test(html)
-    && /id="vb-cel-desc"/.test(html)
+  checar('o editor do trecho existe, com as pílulas e o gesto de acrescentar',
+    /id="vb-dir"/.test(html) && /id="vb-orient"/.test(html) && /id="vb-contagem"/.test(html)
+    && /id="vb-sinais"/.test(html) && /id="vb-cel-desc"/.test(html)
     && /id="vb-cel-acrescentar"/.test(html) && /id="vb-tabela"/.test(html));
+  // OS DOIS EIXOS NA MARCAÇÃO (versão 5, 28/10/2026): a direção do membro e a orientação do
+  // corpo são campos distintos porque são coisas distintas.
+  checar('a direção do membro e a orientação do corpo são dois campos, e não um',
+    /Direção do membro/.test(html) && /Orientação do corpo/.test(html));
+  // A ROTA também tem de as separar — e ela não está no HTML, está no módulo. Uma asserção que
+  // olhasse para o HTML passaria sem medir nada.
+  const fonte = fs.readFileSync(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'), 'utf8');
+  checar('e a rota serve as duas listas separadas, e não oito numa só',
+    /orientacoes: Object\.entries/.test(fonte) && /direcoes: Object\.entries/.test(fonte)
+    && !/direcoesDoMembro \|\| \{\}\)\s*\.concat/.test(fonte));
 
   // «BLOCO» QUERIA DIZER DUAS COISAS (28/10/2026). No plano, `Bloco` é Solo · Barra · Centro; na
   // célula, era a notação. A pesquisadora leu «bloco» e entendeu — com razão — o sentido do
@@ -497,9 +507,14 @@ async function aOrigemDoVocabulario() {
     && !/bloco, ex\.:/.test(html));
 
   // A CONTAGEM E OS SINAIS COMPÕEM-SE, NÃO SE ESCREVEM. Não há campo de texto livre para a
-  // notação, e a contagem é um `select` que o script preenche com o que cabe no compasso.
-  checar('a contagem é uma lista — não um campo de escrita',
-    /<select id="vb-cel-contagem">/.test(html) && !/<input id="vb-cel-contagem"/.test(html));
+  // notação, e a contagem é uma lista de pílulas que o script preenche com o que cabe no
+  // compasso. O `<select>` dos sinais saiu (28/10/2026) porque escolha única não escreve
+  // sequência: escolher o segundo sinal apagava o primeiro.
+  checar('a contagem é uma lista de pílulas — não um campo de escrita nem uma lista suspensa',
+    /id="vb-contagem"/.test(html) && !/<input id="vb-cel-contagem"/.test(html)
+    && !/<select id="vb-cel-contagem"/.test(html));
+  checar('e não ficou nenhuma lista suspensa no editor do trecho',
+    !/<select id="vb-(cel-)?(dir|contagem|sinal|sinais)"/.test(html));
   checar('e a lista da contagem é calculada, não fixa',
     /function opcoesDeContagem\(dir\)/.test(script) && /function pintarContagens\(\)/.test(script)
     && /numeradorDoCompasso/.test(script));
