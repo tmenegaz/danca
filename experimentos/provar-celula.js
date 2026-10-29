@@ -203,6 +203,16 @@ function estado() {
     suspensasNoTrecho: [...document.querySelectorAll(
       '#vb-dir select, #vb-orient select, #vb-contagem select, #vb-sinais select')].length,
     sinaisMarcados: [...document.querySelectorAll('#vb-sinais input:checked')].length,
+    // ESCOLHA ÚNICA *vs* MÚLTIPLA (29/10/2026). A direção e a orientação são UMA escolha, e o
+    // `radio` é o que garante que a tela e o estado não divergem: com `checkbox` e sem repintura,
+    // o navegador marcava a nova e deixava a anterior — a tela mostrava «à frente» e gravava
+    // «atrás». É esta a asserção que impede o regresso.
+    tipos: [...new Set([...document.querySelectorAll('#vb-dir input, #vb-orient input')]
+      .map((x) => x.type))],
+    direcoesMarcadas: [...document.querySelectorAll('#vb-dir input:checked')]
+      .map((x) => x.getAttribute('data-valor')),
+    orientacoesMarcadas: [...document.querySelectorAll('#vb-orient input:checked')]
+      .map((x) => x.getAttribute('data-valor')),
     chips: (q('vb-chips') || {}).textContent.trim(),
     lido: (q('vb-lido') || {}).textContent.trim(),
     frase: (q('vb-cel-desc') || {}).value || '',
@@ -358,8 +368,17 @@ function estado() {
       valores(eixos.orientacoes).length === 5, valores(eixos.orientacoes));
     conferir('nenhuma direção está escolhida antes de o professor escolher',
       marcada(eixos.direcoes) === undefined, marcada(eixos.direcoes));
-    conferir('e nenhuma orientação também — a omissão é en face',
-      marcada(eixos.orientacoes) === undefined, marcada(eixos.orientacoes));
+    // «EN FACE» APARECE MARCADA DESDE O INÍCIO (29/10/2026). Ela é a omissão — o campo
+    // `orientacao` só existe quando não é en face —, mas a pílula tem de o DIZER: antes era a
+    // única que nunca marcava, e a pesquisadora leu isso como «não habilita»: um clique que não
+    // dizia nada, num campo onde todos os outros diziam.
+    conferir('a orientação já vem em «en face», que é a omissão — e vê-se',
+      marcada(eixos.orientacoes) === 'en-face', marcada(eixos.orientacoes));
+    conferir('direção e orientação são ESCOLHA ÚNICA (radio), e não lista de caixas',
+      JSON.stringify(eixos.tipos) === JSON.stringify(['radio']), eixos.tipos);
+    conferir('«en face» aparece marcada quando nenhuma outra está — é a omissão, e vê-se',
+      JSON.stringify(eixos.orientacoesMarcadas) === JSON.stringify(['en-face']),
+      eixos.orientacoesMarcadas);
     conferir('sem direção, a contagem diz que se escolha a direção primeiro',
       eixos.contagens.length === 0, eixos.contagens);
 
@@ -379,7 +398,21 @@ function estado() {
     await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 300));
 
-    console.log('\n7. OS SINAIS COMPÕEM-SE POR CLIQUE — NÃO SE SUBSTITUEM');
+    console.log('\n7. TRÊS CLIQUES EM TRÊS DIREÇÕES DEIXAM UMA SÓ — E É A ÚLTIMA');
+    for (const d of ['devant', 'a-la-seconde', 'derriere']) {
+      await clicar('#vb-dir input[data-valor="' + d + '"]');
+    }
+    const tres = await page.evaluate(estado);
+    conferir('só uma direção fica marcada', tres.direcoesMarcadas.length === 1, tres.direcoesMarcadas);
+    conferir('e é a última clicada — a tela não diz uma coisa e o estado outra',
+      tres.direcoesMarcadas[0] === 'derriere' && tres.dir === 'derriere',
+      { marcada: tres.direcoesMarcadas, estado: tres.dir });
+    await clicar('#vb-dir input[data-valor="devant"]');
+    conferir('e clicar noutra troca-a, sem deixar rasto da anterior',
+      (await page.evaluate(estado)).direcoesMarcadas.length === 1,
+      (await page.evaluate(estado)).direcoesMarcadas);
+
+    console.log('\n8. OS SINAIS COMPÕEM-SE POR CLIQUE — NÃO SE SUBSTITUEM');
     await clicar('#vb-contagem input[data-valor="1–2"]');
     for (const s of ['1ª', '→', '+']) await clicar('#vb-sinais input[data-sinal="' + s + '"]');
     const composto = await page.evaluate(estado);
@@ -397,7 +430,7 @@ function estado() {
     conferir('nenhuma pílula de sinal fica marcada — o estado está nas fichas, não na caixa',
       (await page.evaluate(estado)).sinaisMarcados === 0, (await page.evaluate(estado)).sinaisMarcados);
 
-    console.log('\n8. A FRASE AJUSTADA NÃO SE PERDE AO ACRESCENTAR UM SINAL');
+    console.log('\n9. A FRASE AJUSTADA NÃO SE PERDE AO ACRESCENTAR UM SINAL');
     await page.evaluate(() => {
       const d = document.getElementById('vb-cel-desc');
       d.value = 'a minha própria frase';
@@ -408,22 +441,25 @@ function estado() {
       (await page.evaluate(estado)).frase === 'a minha própria frase',
       (await page.evaluate(estado)).frase);
 
-    console.log('\n9. A ORIENTAÇÃO DO CORPO ENTRA NO TRECHO — E É O OUTRO EIXO');
+    console.log('\n10. A ORIENTAÇÃO DO CORPO ENTRA NO TRECHO — E É O OUTRO EIXO');
     await clicar('#vb-orient input[data-valor="croise"]');
     conferir('a orientação escolhida vê-se marcada',
       marcada((await page.evaluate(estado)).orientacoes) === 'croise',
       marcada((await page.evaluate(estado)).orientacoes));
-    await clicar('#vb-orient input[data-valor="croise"]');
-    conferir('clicar na mesma desmarca — é assim que se volta a en face',
-      marcada((await page.evaluate(estado)).orientacoes) === undefined,
-      marcada((await page.evaluate(estado)).orientacoes));
+    await clicar('#vb-orient input[data-valor="ecarte"]');
+    conferir('e clicar noutra troca-a: uma só fica marcada',
+      JSON.stringify((await page.evaluate(estado)).orientacoesMarcadas) === JSON.stringify(['ecarte']),
+      (await page.evaluate(estado)).orientacoesMarcadas);
     await clicar('#vb-orient input[data-valor="en-face"]');
-    conferir('«en face» não fica marcado como os outros: é a ausência de escolha',
-      marcada((await page.evaluate(estado)).orientacoes) === undefined,
+    conferir('clicar em «en face» volta à omissão, e a pílula fica marcada',
+      marcada((await page.evaluate(estado)).orientacoes) === 'en-face',
       marcada((await page.evaluate(estado)).orientacoes));
+    conferir('e o estado volta a vazio — é vazio que se grava',
+      (await page.evaluate(estado)).orient === '',
+      (await page.evaluate(estado)).orient);
     await clicar('#vb-orient input[data-valor="croise"]');
 
-    console.log('\n10. ACRESCENTAR RECUSA O QUE FALTA, CAMPO A CAMPO');
+    console.log('\n11. ACRESCENTAR RECUSA O QUE FALTA, CAMPO A CAMPO');
     await page.evaluate(() => { document.getElementById('vb-cel-desc').value = ''; });
     await page.click('#vb-cel-acrescentar');
     await new Promise((r) => setTimeout(r, 250));
@@ -448,7 +484,7 @@ function estado() {
     conferir('e a cobertura passa a contar os tempos dele',
       /Cobre 2 de 4 tempos/.test(acrescentado.cobertura), acrescentado.cobertura);
 
-    console.log('\n11. A DIREÇÃO E A ORIENTAÇÃO FICAM — SÓ OS SINAIS E A FRASE SE LIMPAM');
+    console.log('\n12. A DIREÇÃO E A ORIENTAÇÃO FICAM — SÓ OS SINAIS E A FRASE SE LIMPAM');
     conferir('a direção continua marcada', marcada(acrescentado.direcoes) === 'devant',
       marcada(acrescentado.direcoes));
     conferir('a orientação continua marcada', marcada(acrescentado.orientacoes) === 'croise',
@@ -457,7 +493,7 @@ function estado() {
       acrescentado.chips);
     conferir('e a frase também', acrescentado.frase === '', acrescentado.frase);
 
-    console.log('\n12. A FRASE EDITA-SE NA PRÓPRIA LINHA');
+    console.log('\n13. A FRASE EDITA-SE NA PRÓPRIA LINHA');
     await page.evaluate(() => {
       const campo = document.querySelector('input[data-desc]');
       campo.value = 'frase corrigida na tabela';
@@ -468,7 +504,7 @@ function estado() {
       /frase corrigida na tabela/.test((await page.evaluate(estado)).tabela[0].linhas.join(' ')),
       (await page.evaluate(estado)).tabela[0].linhas);
 
-    console.log('\n13. O QUE SE GRAVA LEVA A ORIENTAÇÃO — E NÃO A LEVA QUANDO É EN FACE');
+    console.log('\n14. O QUE SE GRAVA LEVA A ORIENTAÇÃO — E NÃO A LEVA QUANDO É EN FACE');
     ULTIMO_CORPO = null;
     await page.evaluate(() => {
       const f = document.getElementById('form-verbete');
@@ -490,7 +526,7 @@ function estado() {
       Boolean(gravadas) && gravadas.devant.every((c, i) => i === gravadas.devant.length - 1
         || !('orientacao' in c)), gravadas && gravadas.devant);
 
-    console.log('\n14. O «×» TIRA O TRECHO — E O QUE FICA É O QUE SE GRAVA');
+    console.log('\n15. O «×» TIRA O TRECHO — E O QUE FICA É O QUE SE GRAVA');
     // Volta a 8/4/4, que tem células no alfabeto: é onde o «×» se pode medir sem deixar a
     // direção vazia. Depois do submit a lista é recarregada, e é isso que se quer ver.
     await page.evaluate(() => {
@@ -516,7 +552,63 @@ function estado() {
     conferir('e a cobertura diminui os tempos dela', depoisDeTirar.cobertura !== antesDeTirar.cobertura,
       { antes: antesDeTirar.cobertura, depois: depoisDeTirar.cobertura });
 
-    console.log('\n15. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
+    console.log('\n16. UM EN CROIX INTEIRO: CADA TRECHO NO SEU BLOCO, E O COMPASSO CORRIDO');
+    // O EXERCÍCIO SEM VERBETE é o caso de quem está a escrever de raiz — e era o caso dela:
+    // battement frappé, 16 tempos, 2/4, três direções. O `Changement` do fixture não tem verbete
+    // nenhum, e é por isso que a decomposição começa vazia.
+    await page.select('#vbnome', 'Changement');
+    await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '16';
+      t.dispatchEvent(new Event('input'));
+    });
+    await page.select('#vbcompasso', '2/4');
+    await new Promise((r) => setTimeout(r, 500));
+    const vazio = await page.evaluate(estado);
+    conferir('sem verbete, a decomposição está vazia nas três direções',
+      vazio.tabela.length === 3 && vazio.tabela.every((t) => /não vai/.test(t.linhas.join(' '))),
+      vazio.tabela.map((t) => t.direcao));
+    conferir('e a mesma direção oferece 1 e 1–2 em 2/4',
+      JSON.stringify(valores(vazio.contagens)) === JSON.stringify(['1', '1–2']), valores(vazio.contagens));
+
+    /** Acrescenta um trecho na direção dada, com a PRIMEIRA contagem que a tela oferecer. */
+    const acrescentar = async (dir, frase) => {
+      await clicar('#vb-dir input[data-valor="' + dir + '"]');
+      const oferecidas = valores((await page.evaluate(estado)).contagens);
+      await clicar('#vb-contagem input[data-valor="' + oferecidas[0] + '"]');
+      for (const sg of ['1ª', '→', '+']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
+      await page.evaluate((f) => {
+        const d = document.getElementById('vb-cel-desc');
+        d.value = f;
+        d.dispatchEvent(new Event('input'));
+      }, frase);
+      await page.click('#vb-cel-acrescentar');
+      await new Promise((r) => setTimeout(r, 400));
+      return oferecidas;
+    };
+
+    const offDevant = await acrescentar('devant', 'o pé bate à frente, a ponta no chão');
+    await acrescentar('a-la-seconde', 'o pé bate ao lado');
+    await acrescentar('derriere', 'o pé bate atrás');
+    const croix = await page.evaluate(estado);
+    conferir('o trecho de «à frente» está no bloco de «à frente», e não noutro',
+      croix.tabela[0].linhas.length === 1 && /compasso 1 \| 1 \|/.test(croix.tabela[0].linhas[0]),
+      croix.tabela.map((t) => ({ d: t.direcao, l: t.linhas })));
+    conferir('e o de «atrás» está no bloco de «atrás»',
+      /compasso 2 \|/.test((croix.tabela[2].linhas[0] || '')), croix.tabela[2].linhas);
+    // A CONTAGEM CONTINUA ONDE O COMPASSO ESTÁ (29/10/2026) — em 2/4, «à frente» ocupa o tempo 1
+    // e «ao lado» tem de ocupar o 2, senão dois trechos caem no mesmo tempo.
+    conferir('a contagem de «ao lado» é 2, e não 1 — o compasso é corrido',
+      /\| 2 \|/.test(croix.tabela[1].linhas[0] || ''), croix.tabela[1].linhas);
+    conferir('e a de «atrás» recomeça em 1, no compasso 2',
+      /compasso 2 \| 1 \|/.test(croix.tabela[2].linhas[0] || ''), croix.tabela[2].linhas);
+    conferir('a cobertura soma os três tempos', /Cobre 3 de 16 tempos/.test(croix.cobertura),
+      croix.cobertura);
+    conferir('a segunda direção já não ofereceu o tempo 1',
+      JSON.stringify(offDevant) === JSON.stringify(['1', '1–2']) && !croix.tabela[1].linhas.length === false,
+      offDevant);
+
+    console.log('\n17. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {
       await page.setViewport({ width: largura, height: 900 });
       await new Promise((r) => setTimeout(r, 250));

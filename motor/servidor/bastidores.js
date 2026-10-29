@@ -4944,14 +4944,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // seguintes continuam de onde a anterior acabou, ou recomeçam em 1 quando o compasso fechou.
     // É a convenção que os quatro verbetes já seguem — verificada, não inventada: o Plié grava
     // «1–4, 1–4» (um compasso cada) e o Port de bras «1–3» quatro vezes (quatro compassos de 3/4).
+    // A CONTAGEM CONTINUA ONDE O COMPASSO ESTÁ, E NÃO ONDE A DIREÇÃO ESTÁ (29/10/2026). Esta
+    // função contava só as células da PRÓPRIA direção e recomeçava em 1 quando ela não tinha
+    // nenhuma — mas o compasso é corrido, soma-se por todas as direções. Com um battement frappé
+    // de 16 tempos em 2/4, «à frente» e «ao lado» ficavam AMBOS com «compasso 1, contagem 1»:
+    // dois trechos no mesmo tempo, e a página da aula a dizer duas coisas diferentes para o mesmo
+    // instante. A conta certa soma, na ordem da gramática, tudo o que vem antes — as direções
+    // anteriores inteiras e as células que esta direção já tem, porque a nova entra no fim dela.
+    // Assim o início da contagem e a coluna do compasso saem da MESMA soma, e não podem divergir.
+    'function temposAntesDe(dir){' +
+    '  var t = 0;' +
+    '  direcoesDaGramatica().forEach(function(d){' +
+    '    if (d.termo === dir) { (CELULAS[d.termo] || []).forEach(function(c){ t += temposDaContagem(c.contagem); }); return; }' +
+    '    (CELULAS[d.termo] || []).forEach(function(c){ t += temposDaContagem(c.contagem); });' +
+    '  });' +
+    '  return t;' +
+    '}' +
     'function opcoesDeContagem(dir){' +
     '  var n = numeradorDoCompasso();' +
-    '  var lista = CELULAS[dir] || [];' +
-    '  var inicio = 1;' +
-    '  if (lista.length) {' +
-    '    var fim = Number(String(lista[lista.length - 1].contagem).split("–").pop());' +
-    '    inicio = fim >= n ? 1 : fim + 1;' +
-    '  }' +
+    '  var inicio = (temposAntesDe(dir) % n) + 1;' +
     '  var out = [];' +
     '  for (var f = inicio; f <= n; f++) out.push(f === inicio ? String(inicio) : inicio + "–" + f);' +
     '  return out;' +
@@ -5046,15 +5057,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // escolhido vê-se marcado. O `<select>` de antes tinha um defeito que só aparece a usar:
     // escolher o segundo sinal APAGAVA o primeiro, porque uma escolha única não escreve uma
     // sequência. Com pílulas, cada clique ACRESCENTA ao fim.
-    'function pilulas(alvo, itens, escolhido, aoClicar, textoVazio){' +
+    //
+    // ESCOLHA ÚNICA E ESCOLHA MÚLTIPLA SÃO COISAS DIFERENTES, E A CAIXA DIZ QUAL É (29/10/2026).
+    // Todas nasceram `checkbox`, e a direção e a orientação não são listas: são uma escolha. Com
+    // `checkbox` e sem repintura, o navegador marcava a nova e DEIXAVA a anterior marcada — e a
+    // tela passava a mostrar «à frente» marcada enquanto o estado dizia «atrás», que era a última
+    // clicada. Foi exactamente o que a pesquisadora viu: «fiz à frente e apareceu como se eu
+    // tivesse feito atrás». `unico` usa `radio`: o próprio navegador desmarca os outros, e o que
+    // a tela mostra e o que se grava não podem divergir.
+    'function pilulas(alvo, itens, escolhido, aoClicar, textoVazio, unico){' +
     '  var caixa = document.getElementById(alvo);' +
     '  if (!caixa) return;' +
     '  var legenda = caixa.querySelector("legend");' +
+    '  var tipo = unico ? "radio" : "checkbox";' +
+    // O `name` é o do GRUPO, e é o `id` da caixa: é ele que faz o `radio` ser exclusivo sem uma
+    // linha de script, e é ele que dá ao leitor de tela a noção de «um entre estes».
+    '  var nome = alvo;' +
     '  var partes = itens.map(function(it){' +
     '    var v = it.valor;' +
     '    var dentro = Array.isArray(escolhido) ? escolhido.indexOf(v) !== -1' +
     '                                           : (escolhido || "") === v;' +
-    '    return "<label class=\\"escolha\\"><input type=\\"checkbox\\"" + (dentro ? " checked" : "") +' +
+    '    return "<label class=\\"escolha\\"><input type=\\"" + tipo + "\\"" +' +
+    '      (unico ? " name=\\"" + nome + "\\"" : "") + (dentro ? " checked" : "") +' +
     '      " data-valor=\\"" + String(v).replace(/"/g, "&quot;") + "\\"><span>" +' +
     '      (it.glifo ? "<strong>" + it.glifo + "</strong> " : "") + it.nome + "</span></label>";' +
     '  }).join("");' +
@@ -5066,36 +5090,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // A DIREÇÃO DO MEMBRO — três, e não oito. As outras cinco que aqui apareciam são ORIENTAÇÃO
     // DO CORPO, e estavam misturadas por causa da lista única do alfabeto.
+    //
+    // ESCOLHA ÚNICA: um trecho vai PARA UM lado. O glifo não aparece aqui (`+` à frente é o que a
+    // NOTAÇÃO escreve, e a notação compõe-se nos sinais) — aqui escreve-se em português.
     'function pintarDirecao(){' +
     '  pilulas("vb-dir", direcoesDaGramatica().map(function(d){' +
-    '    return { valor: d.termo, glifo: d.glifo, nome: d.nome };' +
+    '    return { valor: d.termo, nome: d.nome };' +
     '  }), DIRECAO, function(v){' +
-    '    DIRECAO = (DIRECAO === v ? "" : v);' +
+    '    DIRECAO = v;' +
     '    CONTAGEM = "";' +
+    '    pintarDirecao();' +
     '    pintarContagens();' +
-    '  }, "A gramática da modalidade não declara direções.");' +
+    '  }, "A gramática da modalidade não declara direções.", true);' +
     '}' +
-    // A ORIENTAÇÃO DO CORPO — cinco, e nenhuma obrigatória: sem escolha, o trecho é `en face`.
-    // Clicar na que está escolhida desmarca-a, e é assim que se volta a `en face`.
+    // A ORIENTAÇÃO DO CORPO — cinco, e a escolha única também. Mas aqui há uma diferença que a
+    // tela tem de dizer: `en face` é a OMSIÃO. O estado guarda `""` para ela, porque é isso que
+    // se grava (o campo `orientacao` só existe quando não é en face) — e por isso a pílula de
+    // `en face` **aparece marcada** quando nenhuma outra está. Antes ela era a única que não
+    // marcava nunca, e a pesquisadora leu isso como «não habilita»: era um clique que não dizia
+    // nada, num campo onde todos os outros diziam.
     'function pintarOrientacao(){' +
     '  pilulas("vb-orient", orientacoesDaGramatica().map(function(o){' +
     '    return { valor: o.termo, nome: o.nome };' +
-    '  }), ORIENTACAO, function(v){' +
-    '    ORIENTACAO = (ORIENTACAO === v || v === "en-face") ? "" : v;' +
+    '  }), ORIENTACAO || "en-face", function(v){' +
+    '    ORIENTACAO = (v === "en-face") ? "" : v;' +
     '    pintarOrientacao();' +
-    '  }, "A gramática da modalidade não declara orientações.");' +
+    '  }, "A gramática da modalidade não declara orientações.", true);' +
     '}' +
     // A CONTAGEM EM OFERTA, recalculada quando a direção muda. Só as que cabem.
     'function pintarContagens(){' +
     '  if (!DIRECAO) {' +
-    '    pilulas("vb-contagem", [], "", function(){}, "escolha a direção primeiro");' +
+    '    pilulas("vb-contagem", [], "", function(){}, "escolha a direção primeiro", true);' +
     '    return;' +
     '  }' +
     '  var possiveis = opcoesDeContagem(DIRECAO);' +
     '  if (possiveis.indexOf(CONTAGEM) === -1) CONTAGEM = possiveis[0] || "";' +
     '  pilulas("vb-contagem", possiveis.map(function(o){ return { valor: o, nome: o }; }), CONTAGEM,' +
     '    function(v){ CONTAGEM = v; pintarContagens(); },' +
-    '    "esta direção já tem os tempos todos preenchidos");' +
+    '    "esta direção já tem os tempos todos preenchidos", true);' +
     '}' +
     // REPINTA O TRECHO INTEIRO. É uma função só porque há mais de um sítio a mexer nele — o
     // «editar» e o «limpar» —, e cada um tem de deixar a tela coerente com o estado.
