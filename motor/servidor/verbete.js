@@ -141,7 +141,17 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
         } else {
           soma += temposDaContagem(c.contagem);
         }
-        const lido = lerBloco(c.bloco, conhecidos, categorias);
+        // A NOTAÇÃO VEM DE DOIS CAMPOS (28/10/2026): `categoria` e `sinais`. O `bloco` de texto
+        // deixou de existir no dado — «bloco» já queria dizer Solo · Barra · Centro, e pedir a
+        // notação escrita à mão era pedir Benesh de cabeça. A validação compõe-na e confere-a
+        // como antes; o que muda é que agora se pode compor na tela.
+        const categoria = String(c.categoria || '').trim();
+        const sinais = Array.isArray(c.sinais) ? c.sinais.map((x) => String(x).trim()).filter(Boolean) : [];
+        if (!categoria) erros.push('em «' + d + '»: a célula não diz a categoria («'
+          + (categorias || []).join(' · ') + '»)');
+        if (!sinais.length) erros.push('em «' + d + '»: a célula não tem sinais');
+        const bloco = '[' + categoria + ': ' + sinais.join(' ') + ']';
+        const lido = lerBloco(bloco, conhecidos, categorias);
         if (!lido.ok) {
           erros.push('em «' + d + '»: ' + lido.detalhe);
         }

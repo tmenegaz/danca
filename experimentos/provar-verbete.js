@@ -42,10 +42,12 @@ function verbeteBom(extra) {
     cobre: 4,
     posicao: { membro: 'pes', termo: 'premiere-position' },
     direcoes: ['devant'],
+    // A FORMA NOVA DA CÉLULA (28/10/2026): `categoria` + `sinais`, e não o texto do bloco. A
+    // notação é derivada — uma representação só.
     celulas: {
       devant: [
-        { contagem: '1–2', bloco: '[Pé: 1ª → +]', descricao: 'extensão à frente a partir da 1ª posição' },
-        { contagem: '3–4', bloco: '[Pé: + ● 1ª]', descricao: 'retorno à 1ª posição' },
+        { contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→', '+'], descricao: 'extensão à frente a partir da 1ª posição' },
+        { contagem: '3–4', categoria: 'Pé', sinais: ['+', '●', '1ª'], descricao: 'retorno à 1ª posição' },
       ],
     },
   }, extra || {});
@@ -82,7 +84,7 @@ function aValidacao() {
     r2b.ok, r2b.erros);
 
   const sinal = verbeteBom();
-  sinal.celulas.devant[0].bloco = '[Pé: 1ª → §]';
+  sinal.celulas.devant[0].sinais = ['1ª', '→', '§'];
   const r3 = verbete.validarVerbete(sinal, ALFABETO, VOCABULARIO);
   checar('um sinal que o alfabeto não declara é recusado', !r3.ok && /§/.test(r3.erros.join(' ')), r3.erros);
 
@@ -101,7 +103,7 @@ function aValidacao() {
   checar('e uma posição de pés declarada como de braços também', !r6.ok, r6.erros);
 
   const direcaoFantasma = verbeteBom();
-  direcaoFantasma.celulas['sur-la-tete'] = [{ contagem: '1–2', bloco: '[Pé: 1ª → +]', descricao: 'x' }];
+  direcaoFantasma.celulas['sur-la-tete'] = [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→', '+'], descricao: 'x' }];
   const r7 = verbete.validarVerbete(direcaoFantasma, ALFABETO, VOCABULARIO);
   checar('uma direção fora da gramática é recusada', !r7.ok && /gramática/.test(r7.erros.join(' ')), r7.erros);
 }
@@ -326,6 +328,23 @@ async function aPagina() {
       && !corpo.exerciciosDoVocabulario.some((t) => /position|devant|croise/.test(t.id))),
     corpo && (corpo.exerciciosDoVocabulario || []).length);
 
+  // AS CATEGORIAS NÃO SE REPETEM DENTRO DOS SINAIS (28/10/2026). O grupo «Categorias» do
+  // alfabeto também tem `itens`, e o código recolhia as chaves de todos: a legenda dizia «pé,
+  // peso, plié, braço» duas vezes. A pesquisadora viu-o na tela e o código não via.
+  checar('a rota não mete as categorias dentro dos sinais',
+    Boolean(corpo && Array.isArray(corpo.sinais)
+      && !corpo.sinais.some((x) => ['Pé', 'Peso', 'Plié', 'Braço'].indexOf(x.sinal) !== -1)),
+    corpo && (corpo.sinais || []).map((x) => x.sinal));
+  checar('e cada sinal leva o nome e o grupo, para a tela poder dizer «→ conduz a»',
+    Boolean(corpo && corpo.sinais && corpo.sinais.every((x) => x.nome && x.grupo)),
+    corpo && (corpo.sinais || []).slice(0, 2));
+
+  // O DICIONÁRIO DO QUE ACONTECE chega pela mesma rota. A frase que a aula mostra vem dele; o
+  // que fica gravado é a frase da célula, porque a proveniência acrescenta e não edita.
+  checar('a rota serve o dicionário do que acontece',
+    Boolean(corpo && corpo.descricoes && corpo.descricoes['[Pé: 1ª → +]']),
+    corpo && Object.keys(corpo.descricoes || {}).length);
+
   // UMA CREDENCIAL RECUSADA NÃO É UM FICHEIRO AUSENTE.
   const v = require(path.join(RAIZ, 'motor', 'servidor', 'verbete.js'));
   const recusado = await v.lerModalidade({
@@ -464,13 +483,44 @@ async function aOrigemDoVocabulario() {
   // havia nenhuma, recusava — criar um verbete era impossível, para 55 exercícios possíveis e 4
   // verbetes. Estas asserções medem a MARCAÇÃO e o SCRIPT: a prova de comportamento é a bancada
   // no navegador (`experimentos/provar-celula.js`), que não vai ao ar.
-  checar('o editor de célula existe, com os quatro campos e o gesto de acrescentar',
+  checar('o editor do trecho existe, com os campos e o gesto de acrescentar',
     /id="vb-cel-dir"/.test(html) && /id="vb-cel-contagem"/.test(html)
-    && /id="vb-cel-bloco"/.test(html) && /id="vb-cel-desc"/.test(html)
-    && /id="vb-cel-acrescentar"/.test(html) && /id="vb-celulas"/.test(html));
-  checar('a legenda dos sinais vem do alfabeto, e não escrita na tela',
-    /categoriasDeBloco/.test(script) && /d\.sinais/.test(script)
-    && !/1ª 2ª 3ª 4ª 5ª/.test(html));
+    && /id="vb-cel-desc"/.test(html)
+    && /id="vb-cel-acrescentar"/.test(html) && /id="vb-tabela"/.test(html));
+
+  // «BLOCO» QUERIA DIZER DUAS COISAS (28/10/2026). No plano, `Bloco` é Solo · Barra · Centro; na
+  // célula, era a notação. A pesquisadora leu «bloco» e entendeu — com razão — o sentido do
+  // plano. O campo passou a chamar-se Sinais Benesh, e a palavra «bloco» não pode voltar ao
+  // formulário com o outro sentido.
+  checar('o campo da notação chama-se «Sinais Benesh», e não «bloco»',
+    /Sinais Benesh/.test(html) && !/for="vb-cel-bloco"/.test(html)
+    && !/bloco, ex\.:/.test(html));
+
+  // A CONTAGEM E OS SINAIS COMPÕEM-SE, NÃO SE ESCREVEM. Não há campo de texto livre para a
+  // notação, e a contagem é um `select` que o script preenche com o que cabe no compasso.
+  checar('a contagem é uma lista — não um campo de escrita',
+    /<select id="vb-cel-contagem">/.test(html) && !/<input id="vb-cel-contagem"/.test(html));
+  checar('e a lista da contagem é calculada, não fixa',
+    /function opcoesDeContagem\(dir\)/.test(script) && /function pintarContagens\(\)/.test(script)
+    && /numeradorDoCompasso/.test(script));
+
+  // OS SINAIS VÊM AGRUPADOS E COM NOME, e as CATEGORIAS não estão na lista deles. Era o defeito
+  // que a pesquisadora viu: «pé, peso, plié, braço» aparecia duas vezes, porque o grupo
+  // «Categorias» do alfabeto também tem `itens` e o código recolhia as chaves de todos.
+  checar('a lista dos sinais leva o nome e o grupo, e não as categorias',
+    /x\.grupo/.test(script) && /x\.sinal/.test(script) && /x\.nome/.test(script));
+  // UMA TABELA, E NÃO DUAS. «Direções que cobre» e «Células» diziam a mesma coisa — e sem
+  // células, as duas diziam «não há nada».
+  checar('a decomposição é uma tabela só', !/id="vb-direcoes"/.test(html) && !/id="vb-celulas"/.test(html));
+
+  // A FRASE VEM DO DICIONÁRIO. O ficheiro existe, é chave-valor por NOTAÇÃO (e não por nome de
+  // exercício: o Plié tem duas coisas, desce e sobe), e a rota serve-o.
+  const dicionario = require(path.join(RAIZ, 'motor', 'servidor', 'catalogo-seed.js')).DESCRICOES;
+  checar('o dicionário do que acontece existe e tem entradas', Object.keys(dicionario).length >= 10,
+    Object.keys(dicionario).length);
+  checar('e é indexado pela notação, não pelo nome do exercício',
+    Boolean(dicionario['[Pé: 1ª → +]']) && !dicionario['Plié'], Object.keys(dicionario).slice(0, 2));
+
 
   // AS REGRAS DO PAR, medidas no texto do script: o modo B esconde o A, bloqueia o `select` e o
   // «+», e o `submit` do verbete não passa enquanto o modo do exercício está aberto.

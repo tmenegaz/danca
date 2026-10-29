@@ -890,8 +890,11 @@ async function principal() {
   // (18/10/2026). O que esta asserção guarda não é o número — é o CRITÉRIO: a pílula existe
   // só para lista curta, fechada e fixa. Um tapete de pílulas longas (o de 84 termos, que o
   // dono do produto recusou) voltaria como um número grande aqui, e é por isso que é contado.
-  conferir('as pílulas continuam a ser só as listas curtas: 7 dias + 2 variantes + 3 famílias',
-    (html.match(/class="escolha"/g) || []).length, 12);
+  // DEZASSEIS desde 28/10/2026, e o acrescento é legítimo pelo CRITÉRIO: as quatro CATEGORIAS do
+  // bloco de notação (Pé · Peso · Plié · Braço) são uma lista curta, fechada e fixa — a mesma
+  // razão que autoriza os sete dias. O que este número guarda não é a contagem: é o critério.
+  conferir('as pílulas continuam a ser só as listas curtas: 7 dias + 2 variantes + 3 famílias + 4 categorias',
+    (html.match(/class="escolha"/g) || []).length, 16);
 
   // 9. A PÁGINA INTERMEDIÁRIA SAIU — e o caminho antigo continua respondendo.
   conferir('o Estúdio também carrega o menu do ciclo',

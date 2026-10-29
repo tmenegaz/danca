@@ -1,0 +1,22 @@
+{
+  "_comentario": "O DICIONÁRIO DO QUE ACONTECE — bloco de notação → frase em português.\n\nPara que serve: quando o professor compõe a notação de um trecho ([Pé: 1ª → +]), a frase\nem português aparece já escrita, e ele ajusta se não servir. É o que a página em prosa da\naula mostra; sem isto, a mesma frase era digitada outra vez em cada verbete.\n\nA CHAVE É A NOTAÇÃO, e não o nome do exercício. Não é um capricho: o Plié tem duas coisas\ndiferentes (desce, sobe) e por isso duas frases. O que determina o que acontece é o bloco,\nnão o nome de quem o faz.\n\nESTE FICHEIRO NÃO É A FONTE DO QUE ESTÁ PUBLICADO. A frase que um verbete declara fica\ngravada na célula, e é ela que o documento escreve — a proveniência acrescenta e não edita\n(P-03/P-04). Aqui é a versão de partida: um dicionário de balé, que cresce, e cujas frases\npodem ser melhoradas sem reescrever o passado.",
+  "versao": 1,
+  "modalidade": "bale-classico",
+  "descricoes": {
+    "[Plié: 1ª ↓]": "os dois apoios cedem em 1ª posição e o eixo desce",
+    "[Plié: ↓ ↑]": "os apoios sobem e o eixo retorna",
+    "[Pé: 1ª → +]": "extensão à frente a partir da 1ª posição, a ponta no chão",
+    "[Pé: + ● 1ª]": "retorno à 1ª posição",
+    "[Pé: 1ª → ×]": "extensão atrás a partir da 1ª posição, a ponta no chão",
+    "[Pé: × ● 1ª]": "retorno à 1ª posição",
+    "[Pé: 1ª → -]": "extensão ao lado a partir da 1ª posição, a ponta no chão",
+    "[Pé: - ● 1ª]": "retorno à 1ª posição",
+    "[Pé: 1ª → + ED]": "a perna varre à frente a partir da 1ª posição",
+    "[Pé: + ↺ 2ª]": "a varredura abre para a 2ª posição, en dehors",
+    "[Pé: 2ª → × EI]": "a perna continua atrás, en dedans",
+    "[Braço: 1ª → 2ª ⌒]": "os dois braços abrem em arco até a 2ª posição",
+    "[Braço: 2ª → 3ª ⌒]": "os dois braços fecham em arco até a 3ª posição, acima da cabeça (5ª em RAD e Vaganova)",
+    "[Braço: 3ª → 1ª ⌒]": "os dois braços retornam em arco à 1ª posição",
+    "[Braço: D → E]": "a condução passa do braço direito ao braço esquerdo"
+  }
+}

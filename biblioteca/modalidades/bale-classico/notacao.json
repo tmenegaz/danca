@@ -46,7 +46,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 3,
+  "versao": 4,
   "aplicaseA": [
     "benesh"
   ],
@@ -396,12 +396,20 @@
           "devant": [
             {
               "contagem": "1–4",
-              "bloco": "[Plié: 1ª ↓]",
+              "categoria": "Plié",
+              "sinais": [
+                "1ª",
+                "↓"
+              ],
               "descricao": "os dois apoios cedem em 1ª posição e o eixo desce"
             },
             {
               "contagem": "1–4",
-              "bloco": "[Plié: ↓ ↑]",
+              "categoria": "Plié",
+              "sinais": [
+                "↓",
+                "↑"
+              ],
               "descricao": "os apoios sobem e o eixo retorna"
             }
           ]
@@ -419,12 +427,22 @@
           "devant": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 1ª → +]",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "+"
+              ],
               "descricao": "extensão à frente a partir da 1ª posição, a ponta no chão"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: + ● 1ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "+",
+                "●",
+                "1ª"
+              ],
               "descricao": "retorno à 1ª posição"
             }
           ]
@@ -440,24 +458,44 @@
           "devant": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 1ª → +]",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "+"
+              ],
               "descricao": "extensão à frente a partir da 1ª posição, a ponta no chão"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: + ● 1ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "+",
+                "●",
+                "1ª"
+              ],
               "descricao": "retorno à 1ª posição"
             }
           ],
           "derriere": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 1ª → ×]",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "×"
+              ],
               "descricao": "extensão atrás a partir da 1ª posição, a ponta no chão"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: × ● 1ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "×",
+                "●",
+                "1ª"
+              ],
               "descricao": "retorno à 1ª posição"
             }
           ]
@@ -473,36 +511,66 @@
           "devant": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 1ª → +]",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "+"
+              ],
               "descricao": "extensão à frente a partir da 1ª posição, a ponta no chão"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: + ● 1ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "+",
+                "●",
+                "1ª"
+              ],
               "descricao": "retorno à 1ª posição"
             }
           ],
           "a-la-seconde": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 1ª → -]",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "-"
+              ],
               "descricao": "extensão ao lado a partir da 1ª posição, a ponta no chão"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: - ● 1ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "-",
+                "●",
+                "1ª"
+              ],
               "descricao": "retorno à 1ª posição"
             }
           ],
           "derriere": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 1ª → ×]",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "×"
+              ],
               "descricao": "extensão atrás a partir da 1ª posição, a ponta no chão"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: × ● 1ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "×",
+                "●",
+                "1ª"
+              ],
               "descricao": "retorno à 1ª posição"
             }
           ]
@@ -520,24 +588,46 @@
           "devant": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 1ª → + ED]",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "+",
+                "ED"
+              ],
               "descricao": "a perna varre à frente a partir da 1ª posição"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: + ↺ 2ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "+",
+                "↺",
+                "2ª"
+              ],
               "descricao": "a varredura abre para a 2ª posição, en dehors"
             }
           ],
           "derriere": [
             {
               "contagem": "1–2",
-              "bloco": "[Pé: 2ª → × EI]",
+              "categoria": "Pé",
+              "sinais": [
+                "2ª",
+                "→",
+                "×",
+                "EI"
+              ],
               "descricao": "a perna continua atrás, en dedans"
             },
             {
               "contagem": "3–4",
-              "bloco": "[Pé: × ● 1ª]",
+              "categoria": "Pé",
+              "sinais": [
+                "×",
+                "●",
+                "1ª"
+              ],
               "descricao": "retorno à 1ª posição"
             }
           ]
@@ -559,26 +649,49 @@
           "devant": [
             {
               "contagem": "1–3",
+              "categoria": "Braço",
+              "sinais": [
+                "1ª",
+                "→",
+                "2ª",
+                "⌒"
+              ],
               "lado": "D+E",
-              "bloco": "[Braço: 1ª → 2ª ⌒]",
               "descricao": "os dois braços abrem em arco até a 2ª posição"
             },
             {
               "contagem": "1–3",
+              "categoria": "Braço",
+              "sinais": [
+                "2ª",
+                "→",
+                "3ª",
+                "⌒"
+              ],
               "lado": "D+E",
-              "bloco": "[Braço: 2ª → 3ª ⌒]",
               "descricao": "os dois braços fecham em arco até a 3ª posição, acima da cabeça (5ª em RAD e Vaganova)"
             },
             {
               "contagem": "1–3",
+              "categoria": "Braço",
+              "sinais": [
+                "3ª",
+                "→",
+                "1ª",
+                "⌒"
+              ],
               "lado": "D+E",
-              "bloco": "[Braço: 3ª → 1ª ⌒]",
               "descricao": "os dois braços retornam em arco à 1ª posição"
             },
             {
               "contagem": "1–3",
+              "categoria": "Braço",
+              "sinais": [
+                "D",
+                "→",
+                "E"
+              ],
               "lado": "D→E",
-              "bloco": "[Braço: D → E]",
               "descricao": "a condução passa do braço direito ao braço esquerdo"
             }
           ]

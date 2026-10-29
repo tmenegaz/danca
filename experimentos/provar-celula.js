@@ -63,13 +63,15 @@ const ALFABETO = {
         posicao: { membro: 'pes', termo: 'premiere-position' },
         cobre: 8,
         celulas: {
+          // A FORMA NOVA DA CÉLULA (28/10/2026): a direção é a chave, e o campo `bloco` deixou de
+          // ser texto — a notação passou a ser `categoria` + `sinais`, que se compõem na tela.
           devant: [
-            { contagem: '1–2', bloco: '[Pé: 1ª → +]', descricao: 'extensão à frente, a ponta no chão' },
-            { contagem: '3–4', bloco: '[Pé: + ● 1ª]', descricao: 'retorno à 1ª posição' },
+            { contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→', '+'], descricao: 'extensão à frente a partir da 1ª posição, a ponta no chão' },
+            { contagem: '3–4', categoria: 'Pé', sinais: ['+', '●', '1ª'], descricao: 'retorno à 1ª posição' },
           ],
           derriere: [
-            { contagem: '5–6', bloco: '[Pé: 1ª → ×]', descricao: 'extensão atrás, a ponta no chão' },
-            { contagem: '7–8', bloco: '[Pé: × ● 1ª]', descricao: 'retorno à 1ª posição' },
+            { contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→', '×'], descricao: 'extensão atrás, a ponta no chão' },
+            { contagem: '3–4', categoria: 'Pé', sinais: ['×', '●', '1ª'], descricao: 'retorno à 1ª posição' },
           ],
         },
       },
@@ -87,7 +89,26 @@ const ALFABETO = {
     { termo: 'derriere', nome: 'atrás' },
   ],
   categoriasDeBloco: ['Pé', 'Peso', 'Plié', 'Braço'],
-  sinais: ['→', '●', '⌒', '↺', '+', '-', '×', '↓', '↑', 'ED', 'EI', '1ª', '2ª', '3ª', '4ª', '5ª', 'D', 'E'],
+  // O DICIONÁRIO DO QUE ACONTECE, como a rota o serve — indexado pela NOTAÇÃO, e não pelo nome
+  // do exercício: o Plié tem duas coisas (desce, sobe) e por isso duas frases.
+  descricoes: {
+    '[Pé: 1ª → +]': 'extensão à frente a partir da 1ª posição, a ponta no chão',
+    '[Pé: + ● 1ª]': 'retorno à 1ª posição',
+  },
+  // OS SINAIS VÊM COM NOME E GRUPO (28/10/2026) — a rota deixou de mandar símbolos soltos, e
+  // deixou de meter as categorias dentro deles. O fixture tem de ter a forma que a rota serve,
+  // senão a prova mede uma tela que não existe (foi o que aconteceu: `x.grupo` de uma string).
+  sinais: [
+    { sinal: '→', nome: 'conduz a', grupo: 'Movimento' },
+    { sinal: '●', nome: 'fecha', grupo: 'Movimento' },
+    { sinal: '↓', nome: 'cede', grupo: 'Movimento' },
+    { sinal: '↑', nome: 'sobe', grupo: 'Movimento' },
+    { sinal: '+', nome: 'à frente', grupo: 'Destino do membro' },
+    { sinal: '-', nome: 'ao lado', grupo: 'Destino do membro' },
+    { sinal: '×', nome: 'atrás', grupo: 'Destino do membro' },
+    { sinal: '1ª', nome: 'primeira posição', grupo: 'Posições dos pés' },
+    { sinal: '2ª', nome: 'segunda posição', grupo: 'Posições dos pés' },
+  ],
 };
 
 function servir(html) {
@@ -134,9 +155,21 @@ function estado() {
     maisBloqueado: Boolean(mais && mais.disabled),
     opacidadeBloqueado: sel ? getComputedStyle(sel).opacity : null,
     foco: document.activeElement ? document.activeElement.id : '',
-    direcoes: linhasDe('vb-direcoes'),
-    celulas: linhasDe('vb-celulas'),
-    legenda: (q('vb-sinais') || {}).textContent || '',
+    // UMA TABELA SÓ (28/10/2026): um bloco por direção, com as células dentro. As duas tabelas
+    // antigas diziam a mesma coisa — e sem células, as duas diziam «não há nada».
+    tabela: [...document.querySelectorAll('#vb-tabela table')].map((t) => ({
+      direcao: t.tHead.rows[0].cells[0].textContent.trim(),
+      linhas: [...t.tBodies[0].rows].map((l) => [...l.cells].map((c) => {
+        const campo = c.querySelector('input');
+        return campo ? campo.value : c.textContent.trim();
+      }).join(' | ')),
+    })),
+    cobertura: (q('vb-cobertura') || {}).textContent || '',
+    contagens: [...((q('vb-cel-contagem') || {}).options || [])].map((o) => o.value).filter(Boolean),
+    chips: (q('vb-chips') || {}).textContent.trim(),
+    lido: (q('vb-lido') || {}).textContent.trim(),
+    frase: (q('vb-cel-desc') || {}).value || '',
+    notaDaFrase: (q('vb-desc-nota') || {}).textContent || '',
     recado: (document.querySelector('[data-res=verbetes]') || {}).textContent || '',
     botaoVerboNoModoB: (() => {
       const b = q('vb-modo-exercicio');
@@ -188,10 +221,11 @@ function estado() {
     conferir('o modo do verbete está à vista', inicial.modoVerbete, inicial.modoVerbete);
     conferir('e o modo do exercício não está', inicial.modoExercicio === false, inicial.modoExercicio);
     conferir('o seletor e o «+» estão activos', !inicial.selBloqueado && !inicial.maisBloqueado, inicial);
-    conferir('a tabela das direções pede o exercício',
-      /Escolha o exercício/.test(inicial.direcoes.join(' ')), inicial.direcoes);
+    conferir('a decomposição pede o exercício antes de o haver',
+      /Escolha o exercício/.test(await page.evaluate(
+        () => document.getElementById('vb-tabela').textContent)));
 
-    console.log('\n2. A DIREÇÃO NÃO SE PERGUNTA — MOSTRA-SE');
+    console.log('\n2. A DIREÇÃO NÃO SE PERGUNTA — MOSTRA-SE, NUMA TABELA SÓ');
     await page.select('#vbnome', 'Battement tendu');
     await page.evaluate(() => {
       const t = document.getElementById('vbtempos');
@@ -199,16 +233,19 @@ function estado() {
       t.dispatchEvent(new Event('input'));
     });
     await page.select('#vbcompasso', '4/4');
-    await new Promise((r) => setTimeout(r, 350));
+    await new Promise((r) => setTimeout(r, 400));
     const comExercicio = await page.evaluate(estado);
-    conferir('a tabela dá uma linha por direção da gramática', comExercicio.direcoes.length === 3,
-      comExercicio.direcoes.length);
-    conferir('a direção coberta mostra o que acontece',
-      /1–2 — extensão à frente/.test(comExercicio.direcoes[0]), comExercicio.direcoes[0]);
-    conferir('a que o exercício não faz diz que não vai',
-      /este exercício não vai ao lado/.test(comExercicio.direcoes[1]), comExercicio.direcoes[1]);
+    conferir('há um bloco por direção da gramática, e são três',
+      comExercicio.tabela.length === 3, comExercicio.tabela.map((x) => x.direcao));
+    conferir('a direção coberta mostra os trechos, com o compasso CALCULADO',
+      /compasso 1 \| 1–2 \| \[Pé: 1ª → \+\]/.test(comExercicio.tabela[0].linhas[0]),
+      comExercicio.tabela[0].linhas[0]);
+    conferir('e a que o exercício não faz diz que não vai',
+      /não vai ao lado/.test(comExercicio.tabela[1].linhas.join(' ')), comExercicio.tabela[1].linhas);
+    conferir('a cobertura é dita em tempos e compassos',
+      /Cobre os 8 tempos/.test(comExercicio.cobertura), comExercicio.cobertura);
     conferir('não há caixa de marcar nenhuma na tela',
-      await page.evaluate(() => document.querySelectorAll('#vbdirecoes input[type=checkbox]').length) === 0);
+      await page.evaluate(() => document.querySelectorAll('#form-verbete input[type=checkbox]').length) === 0);
 
     console.log('\n3. O «+» ABRE O MODO DO EXERCÍCIO — E O OUTRO SAI');
     await page.click('#vb-novo-exercicio');
@@ -243,76 +280,94 @@ function estado() {
     conferir('e o exercício novo está escolhido',
       await page.evaluate(() => document.getElementById('vbnome').value) === 'Sissonne ouverte');
 
-    console.log('\n6. O EDITOR DE CÉLULA CRIA O QUE NÃO EXISTIA');
+    console.log('\n6. A CONTAGEM É CALCULADA — NÃO SE ESCREVE');
     await page.evaluate(() => {
       const t = document.getElementById('vbtempos');
-      t.value = '8';
+      t.value = '4';
       t.dispatchEvent(new Event('input'));
     });
-    await page.select('#vbcompasso', '4/4');
-    await new Promise((r) => setTimeout(r, 350));
-    const semCelulas = await page.evaluate(estado);
-    conferir('sem decomposição, a lista de células diz o que falta',
-      /Nenhuma célula para esta música/.test(semCelulas.celulas.join(' ')), semCelulas.celulas);
-    conferir('e as três direções dizem que o exercício não vai',
-      semCelulas.direcoes.every((l) => /não vai/.test(l)), semCelulas.direcoes);
-    conferir('a legenda dos sinais vem do alfabeto',
-      /Categorias: Pé/.test(semCelulas.legenda) && /Sinais: →/.test(semCelulas.legenda), semCelulas.legenda);
-
-    console.log('\n7. GRAVAR SEM CÉLULA É RECUSADO — E A RECUSA DIZ ONDE RESOLVER');
-    await page.click('#form-verbete button[type=submit]');
+    await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 400));
-    const recusado = await page.evaluate(estado);
-    conferir('a recusa fala em «Células deste verbete»',
-      /Células deste verbete/.test(recusado.recado), recusado.recado);
-    conferir('e nada foi gravado', recusado.celulas.length === 1, recusado.celulas.length);
-
-    console.log('\n8. O EDITOR ACRESCENTA, MOSTRA NAS DUAS TABELAS E TIRA');
-    const acrescentar = async (dir, contagem, bloco, desc) => {
-      await page.select('#vb-cel-dir', dir);
-      await page.type('#vb-cel-contagem', contagem);
-      await page.type('#vb-cel-bloco', bloco);
-      await page.type('#vb-cel-desc', desc);
-      await page.click('#vb-cel-acrescentar');
-      await new Promise((r) => setTimeout(r, 250));
-    };
-    await acrescentar('devant', '1–2', '[Pé: 1ª → +]', 'abre à frente, a ponta no chão');
-    await acrescentar('devant', '3–4', '[Pé: + ● 1ª]', 'fecha na 1ª posição');
-    const comCelulas = await page.evaluate(estado);
-    conferir('as duas células entram na tabela do rascunho', comCelulas.celulas.length === 2,
-      comCelulas.celulas.length);
-    conferir('e a linha «à frente» passa a mostrá-las',
-      /abre à frente/.test(comCelulas.direcoes[0]), comCelulas.direcoes[0]);
-    conferir('os campos ficam limpos para a célula seguinte',
-      await page.evaluate(() => ['vb-cel-contagem', 'vb-cel-bloco', 'vb-cel-desc']
-        .every((i) => document.getElementById(i).value === '')));
-    // A RECUSA NOMEIA O QUE FALTA, e não «faltam campos». A direção fica escolhida entre
-    // células (é o gesto de quem escreve três seguidas na mesma direção), e o que falta a
-    // seguir são a contagem e o bloco — a recusa tem de dizer isso, e não o campo que já está.
-    conferir('acrescentar com os campos vazios é recusado, e a recusa nomeia o que falta',
-      await (async () => {
-        await page.type('#vb-cel-desc', 'x');
-        await page.click('#vb-cel-acrescentar');
-        await new Promise((r) => setTimeout(r, 250));
-        const d = await page.evaluate(estado);
-        return /Falta a contagem, o bloco/.test(d.recado) && d.celulas.length === 2;
-      })());
-    conferir('e sem direção escolhida a recusa começa por ela', await (async () => {
-      await page.select('#vb-cel-dir', '');
-      await page.type('#vb-cel-contagem', '5–6');
-      await page.type('#vb-cel-bloco', '[Pé: 1ª → ×]');
-      await page.click('#vb-cel-acrescentar');
-      await new Promise((r) => setTimeout(r, 250));
-      const d = await page.evaluate(estado);
-      return /Falta a direção/.test(d.recado) && d.celulas.length === 2;
-    })());
-
-    await page.evaluate(() => { document.querySelectorAll('button.vb-cel-tirar')[1].click(); });
+    const semCelulas = await page.evaluate(estado);
+    conferir('sem exercício escolhido a decomposição diz o que falta',
+      /não vai à frente/.test(semCelulas.tabela[0].linhas.join(' ')), semCelulas.tabela[0].linhas);
+    conferir('sem direção escolhida, a lista da contagem está vazia',
+      semCelulas.contagens.length === 0, semCelulas.contagens);
+    await page.select('#vb-cel-dir', 'devant');
     await new Promise((r) => setTimeout(r, 250));
-    const tirada = await page.evaluate(estado);
-    conferir('o «×» tira a célula do rascunho', tirada.celulas.length === 1, tirada.celulas.length);
-    conferir('e ela sai também da tabela das direções',
-      !/fecha na 1ª posição/.test(tirada.direcoes[0]), tirada.direcoes[0]);
+    const comDirecao = await page.evaluate(estado);
+    conferir('em 2/4 a contagem só oferece o que cabe: 1 e 1–2',
+      JSON.stringify(comDirecao.contagens) === JSON.stringify(['1', '1–2']), comDirecao.contagens);
+    await page.select('#vbcompasso', '4/4');
+    await new Promise((r) => setTimeout(r, 250));
+    conferir('em 4/4 oferece até 4',
+      JSON.stringify((await page.evaluate(estado)).contagens) === JSON.stringify(['1', '1–2', '1–3', '1–4']),
+      (await page.evaluate(estado)).contagens);
+
+    console.log('\n7. A NOTAÇÃO COMPÕE-SE, E O DICIONÁRIO DÁ A FRASE');
+    await page.select('#vb-cel-contagem', '1–2');
+    for (const s of ['1ª', '→', '+']) {
+      await page.select('#vb-sinal', s);
+      await page.click('#vb-add-sinal');
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    const composto = await page.evaluate(estado);
+    conferir('as fichas mostram os sinais escolhidos', /1ª/.test(composto.chips) && /→/.test(composto.chips),
+      composto.chips);
+    conferir('e a leitura em palavras vem do nome de cada sinal',
+      /primeira posição/.test(composto.lido) && /conduz a/.test(composto.lido), composto.lido);
+    conferir('a frase é SUGERIDA pelo dicionário, não escrita do zero',
+      composto.frase === 'extensão à frente a partir da 1ª posição, a ponta no chão', composto.frase);
+    conferir('e a tela diz que é sugestão', /dicionário/.test(composto.notaDaFrase), composto.notaDaFrase);
+
+    console.log('\n8. A FRASE AJUSTADA NÃO SE PERDE AO ACRESCENTAR UM SINAL');
+    await page.evaluate(() => {
+      const d = document.getElementById('vb-cel-desc');
+      d.value = 'a minha própria frase';
+      d.dispatchEvent(new Event('input'));
+    });
+    await page.select('#vb-sinal', '●');
+    await page.click('#vb-add-sinal');
+    await new Promise((r) => setTimeout(r, 300));
+    conferir('o que a professora escreveu fica',
+      (await page.evaluate(estado)).frase === 'a minha própria frase',
+      (await page.evaluate(estado)).frase);
+
+    console.log('\n9. ACRESCENTAR RECUSA O QUE FALTA, CAMPO A CAMPO');
+    await page.evaluate(() => { document.getElementById('vb-cel-desc').value = ''; });
+    await page.click('#vb-cel-acrescentar');
+    await new Promise((r) => setTimeout(r, 250));
+    conferir('a recusa nomeia a frase que falta',
+      /Falta o que acontece/.test((await page.evaluate(estado)).recado),
+      (await page.evaluate(estado)).recado);
+    await page.evaluate(() => {
+      const d = document.getElementById('vb-cel-desc');
+      d.value = 'a ponta sobe e o apoio estende';
+      d.dispatchEvent(new Event('input'));
+    });
+    await page.click('#vb-cel-acrescentar');
+    await new Promise((r) => setTimeout(r, 350));
+    const acrescentado = await page.evaluate(estado);
+    conferir('acrescentado, o trecho entra na tabela com a notação composta',
+      /\[Pé: 1ª → \+ ●\]/.test(acrescentado.tabela[0].linhas.join(' ')), acrescentado.tabela[0].linhas);
+    conferir('e a cobertura passa a contar os tempos dele',
+      /Cobre 2 de 4 tempos/.test(acrescentado.cobertura), acrescentado.cobertura);
+
+    console.log('\n10. A FRASE EDITA-SE NA PRÓPRIA LINHA, E O «×» TIRA O TRECHO');
+    await page.evaluate(() => {
+      const campo = document.querySelector('input[data-desc]');
+      campo.value = 'frase corrigida na tabela';
+      campo.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    conferir('a frase nova está na tabela',
+      /frase corrigida na tabela/.test((await page.evaluate(estado)).tabela[0].linhas.join(' ')),
+      (await page.evaluate(estado)).tabela[0].linhas);
+    await page.evaluate(() => { document.querySelector('button[data-tirar]').click(); });
+    await new Promise((r) => setTimeout(r, 300));
+    const tirado = await page.evaluate(estado);
+    conferir('o «×» tira o trecho', /não vai|Cobre 0 de/.test(tirado.tabela[0].linhas.join(' ') + tirado.cobertura),
+      tirado.cobertura);
 
     console.log('\n9. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {
@@ -333,7 +388,8 @@ function estado() {
     process.exit(1);
   }
   console.log('TUDO CERTO — ' + total + ' asserções: os modos não coexistem, a direção é lida do');
-  console.log('alfabeto, e o editor de célula cria a decomposição que faltava.');
+  console.log('alfabeto, a contagem só oferece o que cabe, os sinais compõem-se, e a frase vem');
+  console.log('do dicionário — ajustável, e o ajuste não se perde.');
 })().catch((erro) => {
   console.error('erro na prova:', erro);
   process.exit(1);

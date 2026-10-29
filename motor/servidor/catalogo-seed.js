@@ -19,6 +19,10 @@
 const vocabulario = require('../../biblioteca/modalidades/bale-classico/vocabulario.json');
 const progressao = require('../../biblioteca/modalidades/bale-classico/progressao.json');
 const tradicoes = require('../../biblioteca/modalidades/bale-classico/tradicoes.json');
+// O DICIONÁRIO DO QUE ACONTECE (28/10/2026) — bloco de notação → frase em português. Vem por
+// `require` como os outros, para o esbuild o embutir: no Worker não há `fs`. Ele NÃO alimenta
+// documento nenhum; é a versão de partida da frase que o editor de célula preenche.
+const descricoes = require('../../biblioteca/modalidades/bale-classico/descricoes.json');
 
 /** O slug de um nome (a MESMA derivação de provisionar-escola.js e de bastidores.js). */
 function slugificar(nome) {
@@ -78,5 +82,7 @@ const RELACOES = (progressao.relacoes || []).map((r) => {
 
 const CATEGORIAS = tradicoes.categorias || {};
 const TRADICOES = tradicoes.tradicoes || [];
+/** As frases do dicionário, por bloco de notação: `{"[Pé: 1ª → +]": "extensão à frente…"}`. */
+const DESCRICOES = descricoes.descricoes || {};
 
-module.exports = { TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES };
+module.exports = { TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES, DESCRICOES };

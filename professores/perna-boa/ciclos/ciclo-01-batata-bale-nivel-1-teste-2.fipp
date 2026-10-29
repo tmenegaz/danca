@@ -20,8 +20,8 @@ ancorado_em: 2026-10-28
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 3
-notacao_sha: fee2a32d8665481f4675f0fe7f76d43fa617aae658d671218c7e4ab91b21ca13
+notacao_versao: 4
+notacao_sha: 66430e0fba9ed19d089aee9c8a679c5639ef637ccfd9be93c507a8e3aa436784
 cobertura:
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md

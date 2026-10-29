@@ -218,6 +218,23 @@ function lerMusica(tempos, compasso) {
 }
 
 /**
+ * A NOTAÇÃO DE UMA CÉLULA, composta dos dois campos que a declaram (28/10/2026).
+ *
+ * O dado guardava o bloco como TEXTO — `"[Pé: 1ª → +]"` —, e a tela pedia que se escrevesse.
+ * Mas «bloco» já queria dizer Solo · Barra · Centro na linha do plano, e pedir a notação de
+ * cabeça a quem administra o verbete é pedir que se escreva Benesh em texto livre. A célula
+ * passou a declarar `categoria` e `sinais` — as duas coisas que a tela sabe oferecer — e a
+ * notação é DERIVADA aqui. Uma representação só, e é a que se lê no documento.
+ */
+function blocoDe(celula) {
+  if (!celula) return '';
+  const categoria = String(celula.categoria || '').trim();
+  const sinais = Array.isArray(celula.sinais) ? celula.sinais.map((x) => String(x).trim()).filter(Boolean) : [];
+  if (!categoria && !sinais.length) return '';
+  return '[' + categoria + ': ' + sinais.join(' ') + ']';
+}
+
+/**
  * A VALIDAÇÃO DE UM BLOCO contra o alfabeto. Devolve os sinais que o bloco usa e o alfabeto não
  * conhece. É a regra da P-16 ao contrário: um símbolo só existe no registro se tiver verbete.
  */
@@ -313,6 +330,10 @@ function segmentosDe(verbete, numerador) {
       const celulas = Array.isArray(verbete.celulas[direcao]) ? verbete.celulas[direcao] : [];
       for (const c of celulas) {
         saida.push(Object.assign({}, c, {
+          // A NOTAÇÃO DERIVADA. Os leitores a jusante — a tabela do documento, o glossário, a
+          // validação dos sinais — sempre leram `bloco`; ele continua a existir no SEGMENTO,
+          // composto dos dois campos da célula. O que mudou foi onde a verdade mora.
+          bloco: blocoDe(c),
           direcao: direcao,
           // O compasso começa em 1 e cada `numerador` tempos vira a página.
           compasso: Math.floor(corridos / numerador) + 1,
@@ -520,6 +541,7 @@ module.exports = {
   posicoesDeBracosDoMetodo,
   normalizarMetodo,
   lerMusica,
+  blocoDe,
   lerBloco,
   temposDaContagem,
   maiorContagem,
