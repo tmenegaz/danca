@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `6c6ce28`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); e o formulário do verbete passou a ter **dois modos** que não coexistem, com a **direção lida do dado** (o campo `direcoes` saiu do alfabeto, versão 3) e o **editor de célula** que faltava (`4f4795a`, com a folha em `9fb09dc`). E o editor do trecho foi refeito depois de a pesquisadora o abrir: a **contagem** deixou de se escrever (é uma lista que só oferece o que cabe no compasso), o campo **«bloco»** passou a chamar-se **Sinais Benesh** e compõe-se (categoria + sinais, com o nome de cada um), as duas tabelas viraram **uma**, e a frase em português passou a vir de um **dicionário do balé** (`descricoes.json`, chave = notação), editável (`4342f16`). Da Fase 1 falta só as **seleções no plano** (§1.6).
+> **Última fotografia:** 29/10/2026 (base local `567d52c`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); o formulário ganhou **dois modos** que não coexistem, com a **direção lida do dado** e o **editor de célula** que faltava (`4f4795a`, folha em `9fb09dc`); a **célula foi explicada** — contagem calculada, «Sinais Benesh» compostos, uma tabela só e o **dicionário do que acontece** (`4342f16`); e, por fim, a célula passou a ter **dois eixos** — direção do membro (3) e orientação do corpo (5), alfabeto **versão 5** — com o trecho **todo em pílulas** (`4994b34`, `9b318fe`). Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -287,6 +287,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 18. **O KV é o último recurso, porque tem custo.** Só guarda o que é da ESCOLA (turmas, professores,
     alunas, a relação turma↔conteúdo, envelopes). Catálogo, alfabeto e vocabulário vão para o
     repositório. **DECIDIDO** 28/10/2026.
+19. **A CÉLULA TEM DOIS EIXOS: DIREÇÃO DO MEMBRO E ORIENTAÇÃO DO CORPO.** A direção diz para onde o
+    membro vai (à frente, ao lado, atrás — três) e dá a chave do trecho; a orientação diz como o corpo
+    está voltado (en face, croisé, effacé, écarté, épaulement — cinco) e é um **campo opcional** da
+    célula. «À frente en croisé» é **um** trecho, não dois. Omitir a orientação quer dizer `en face`, e
+    é omitindo que se grava: escrevê-la em todas as células seria ruído. Até a versão 4 os dois eixos
+    estavam numa lista só, e era por isso que a tabela mostrava oito blocos onde há três mais cinco.
+    **DECIDIDO** 28/10/2026 (alfabeto **versão 5**).
+20. **TUDO O QUE O PROFESSOR ESCOLHE NO TRECHO ESCOLHE-SE POR CLIQUE, NUNCA POR LISTA SUSPENSA.** Uma
+    escolha única não escreve uma sequência: com o `<select>` dos sinais, escolher o segundo apagava o
+    primeiro. Cada clique **acrescenta ao fim**, porque um bloco pode repetir um sinal
+    (`[Pé: 1ª → + ● 1ª]`), e a remoção é só pelos «×» das fichas — numeradas, porque a ordem é o que a
+    notação diz. A direção e a orientação **ficam** depois de acrescentar um trecho: é o que permite
+    emendar o en croix sem reescolher tudo. **DECIDIDO** 28/10/2026.
 
 ## 7. Trabalho em andamento
 
@@ -296,9 +309,9 @@ escreveu; o verbete ganhou posição, direção e lado; o CRUD está na Produç�
 de uma lista e o «+» cria-o no vocabulário do repositório; o formulário tem **dois modos** e a
 **direção é derivada** da célula; e o **editor de célula** já cria a decomposição que faltava — sem
 ele, «Gravar verbete» recusava criar o que não existisse (eram 55 exercícios para 4 verbetes). Falta
-as **seleções no plano** (§1.6), e falta o **bloco por pílulas**: hoje a legenda mostra os sinais do
-alfabeto, mas o bloco (`[Pé: 1ª → +]`) ainda se escreve à mão. O segundo **não é de código**: **o
-plano da Batata vai ser refeito no formulário pela
+as **seleções no plano** (§1.6). O **bloco por pílulas** deixou de faltar: desde `9b318fe` não há
+nenhuma lista suspensa no trecho, e a notação compõe-se de cliques. O segundo trabalho **não é de
+código**: **o plano da Batata vai ser refeito no formulário pela
 pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu os exercícios de
 **Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos publicados ficam
 sobre o `plano-20261027-1025.json` até essa reposição; regerar a partir do 1131 apagaria exercícios
@@ -433,8 +446,9 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 | `node tools/check-identidade.js` | **20 verificações**, todas passaram |
 | `node tools/check-glossario.js` | consistente — 18 símbolos, 18 verbetes, **0 avisos** |
 | `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
-| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`**; o alfabeto subiu a **versão 4** e o selo foi renovado |
-| o texto dos PDFs gerados | **mesmo md5** que antes da migração das células — a mudança de forma não mudou um documento |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`**; o alfabeto subiu a **versão 5** e o selo foi renovado |
+| o texto dos PDFs gerados | **mesmo md5** que antes dos dois eixos — nenhuma célula declara orientação, e o documento não muda |
+| `node experimentos/provar-celula.js` | **61 asserções**, 0 falhas — 3 direções e 5 orientações, nenhuma lista suspensa, três cliques = três sinais, sinal repetido, direção e orientação persistentes, `orientacao` no corpo gravado |
 | geometria no navegador | contagem: `1`,`1–2` em 2/4 e até `1–4` em 4/4; frase sugerida pelo dicionário e preservada quando ajustada; sem transbordo em 320/390/768/1280; nenhum erro de JS |
 
 ### Executado na fotografia anterior (28/10/2026 — os dois modos e o editor de célula)
@@ -618,6 +632,23 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **29/10/2026** — **Os dois eixos da célula, e o trecho todo em pílulas.** A pesquisadora testou o
+  formulário com **Battement fondu, 4 tempos, 2/4, quinta posição** e pediu «flexibilizar ainda mais»:
+  não conseguia escolher mais de uma direção, e a mesma explicação repetia-se para oito coisas. Ao
+  reproduzir o gesto num navegador, o defeito apareceu por baixo — **escolher o segundo sinal apagava o
+  primeiro**, porque uma escolha única não escreve uma sequência. E o defeito de fundo era do **dado**:
+  a tabela tinha **oito blocos** porque o alfabeto juntava a **direção do membro** (3) e a **orientação
+  do corpo** (5) numa lista só. A célula ganhou o campo **opcional `orientacao`** — omitido vale
+  `en-face`, e é omitido que se grava —, o motor leva-a ao segmento e à declaração e a prosa diz-a na
+  legenda quando não é `en face`, e o servidor recusa uma orientação que não esteja na gramática
+  (alfabeto **versão 5**). Na tela não há **nenhuma lista suspensa** no trecho: direção, orientação,
+  contagem, categoria e sinais são pílulas; cada clique **acrescenta ao fim**, e a remoção é pelos «×»
+  das fichas numeradas. A **direção e a orientação ficam** depois de acrescentar um trecho, e só os
+  sinais, a contagem e a frase se limpam — é o que permite emendar o en croix. A tabela ganha a coluna
+  da orientação, e a célula sem ela diz «en face» em palavras. Publicado em `4994b34` e `9b318fe`.
+  **CONFIRMADO** localmente — 61 asserções em navegador, e o **texto dos PDFs com o mesmo md5** de
+  antes; a conferência ao ar fica para o deploy (os 22 verbetes ainda não declaram orientação).
 
 - **28/10/2026** — **A célula explicada: a contagem escolhe-se, os sinais compõem-se, a frase vem do
   dicionário.** A pesquisadora abriu o editor e não entendeu quatro campos — e no meio da pergunta
