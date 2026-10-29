@@ -217,6 +217,16 @@ function lerMusica(tempos, compasso) {
   return { tempos: nTempos, compasso: m[1] + '/' + m[2], numerador: Number(m[1]) };
 }
 
+/** A orientação do corpo em palavras — «croisé», e não `croise`. Vazia quando é `en face`. */
+function orientacaoEmPalavras(alfabeto, orientacao) {
+  const termo = String(orientacao || '').trim();
+  if (!termo || termo === 'en-face') return '';
+  const g = (alfabeto && alfabeto.gramatica) || {};
+  const achado = Object.values(g.orientacoesDoCorpo || {})
+    .find((o) => o && (o.termo === termo || o.nome === termo));
+  return achado ? achado.nome : termo;
+}
+
 /**
  * A NOTAÇÃO DE UMA CÉLULA, composta dos dois campos que a declaram (28/10/2026).
  *
@@ -335,6 +345,10 @@ function segmentosDe(verbete, numerador) {
           // composto dos dois campos da célula. O que mudou foi onde a verdade mora.
           bloco: blocoDe(c),
           direcao: direcao,
+          // A ORIENTAÇÃO DO CORPO é outro eixo (28/10/2026): a direção diz para onde a perna vai,
+          // a orientação diz como o corpo está voltado. Ficam separadas porque são coisas
+          // diferentes — «à frente en croisé» é um trecho, não dois. Omitida, é `en-face`.
+          orientacao: c.orientacao || 'en-face',
           // O compasso começa em 1 e cada `numerador` tempos vira a página.
           compasso: Math.floor(corridos / numerador) + 1,
         }));
@@ -467,6 +481,13 @@ function compor(linha, alfabeto) {
     posicao: escolhido.verbete.posicao || null,
     direcoes: Object.keys((escolhido.verbete.celulas && typeof escolhido.verbete.celulas === 'object')
       ? escolhido.verbete.celulas : {}),
+    // AS ORIENTAÇÕES DO CORPO que este verbete usa, em palavras e sem repetir. `en face` sai:
+    // é a omissão, e escrevê-la em cada linha seria dizer duas vezes a mesma coisa.
+    orientacoes: [...new Set(Object.values(
+      (escolhido.verbete.celulas && typeof escolhido.verbete.celulas === 'object')
+        ? escolhido.verbete.celulas : {})
+      .flat().map((c) => (c && c.orientacao) || '').filter((o) => o && o !== 'en-face'))]
+      .map((o) => orientacaoEmPalavras(alfabeto, o)),
     lados: Array.isArray(escolhido.verbete.lado) ? escolhido.verbete.lado.slice() : [],
     detalhe,
   });
@@ -542,6 +563,7 @@ module.exports = {
   normalizarMetodo,
   lerMusica,
   blocoDe,
+  orientacaoEmPalavras,
   lerBloco,
   temposDaContagem,
   maiorContagem,

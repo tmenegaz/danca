@@ -522,8 +522,13 @@ function derivarNotacao({ plano, contexto }) {
       // ele acontece — é a informação que a notação dava e a prosa não, e a primeira coisa que se
       // pergunta ao ler «extensão à frente, a ponta no chão». Vem do verbete, não é escrita aqui.
       const posicao = moduloNotacao.posicaoEmPalavras(alfabetoDoCiclo, c.posicao);
+      // AS ORIENTAÇÕES DO CORPO, quando não são `en face`. É o outro eixo (28/10/2026): a
+      // direção diz para onde a perna vai, a orientação diz como o corpo está voltado — e um
+      // exercício de centro sem «en croisé» na legenda fica com metade da informação.
+      const orientacoes = (c.orientacoes || []).filter(Boolean);
       const legenda = [musica ? musica : 'música ainda não declarada',
         posicao ? posicao.emPalavras : '',
+        orientacoes.length ? orientacoes.join(' · ') : '',
         objetivo ? 'objetivo ' + objetivo : '']
         .filter(Boolean).join(' · ');
       saida.push('*' + legenda + '*');

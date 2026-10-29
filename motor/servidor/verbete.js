@@ -183,6 +183,22 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
     if (!conhecidas.has(d)) erros.push('a direção «' + d + '» não existe na gramática da modalidade');
   }
 
+  // A ORIENTAÇÃO DO CORPO É OUTRO EIXO (28/10/2026). A direção diz para onde a perna vai; a
+  // orientação diz como o corpo está voltado — «à frente en croisé» é UM trecho, não dois. Ela é
+  // opcional (a omissão é `en-face`), mas quando vem tem de existir na gramática.
+  const orientacoes = new Set(Object.values(
+    ((alfabeto && alfabeto.gramatica) || {}).orientacoesDoCorpo || {})
+    .map((o) => o && o.termo).filter(Boolean));
+  for (const d of Object.keys(celulas || {})) {
+    for (const c of (celulas[d] || [])) {
+      const o = String((c && c.orientacao) || '').trim();
+      if (o && !orientacoes.has(o)) {
+        erros.push('em «' + d + '»: a orientação «' + o + '» não está na gramática ('
+          + [...orientacoes].join(' · ') + ')');
+      }
+    }
+  }
+
   return { ok: erros.length === 0, erros, soma: somaTempos(verbete) };
 }
 

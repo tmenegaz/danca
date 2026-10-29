@@ -46,7 +46,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 4,
+  "versao": 5,
   "aplicaseA": [
     "benesh"
   ],
@@ -222,7 +222,14 @@
       "",
       "O QUE ESTÁ MARCADO COMO POR CONFERIR NÃO É PALPITE ESCRITO COMO FACTO: é uma lacuna",
       "declarada, e o documento diz que a posição ainda não foi confirmada. Quem preenche é a",
-      "pesquisadora, com a fonte na mão."
+      "pesquisadora, com a fonte na mão.",
+      "",
+      "DOIS EIXOS, E NÃO UM (versão 5, 28/10/2026). A DIREÇÃO diz para onde o membro vai — à frente,",
+      "atrás, ao lado — e é ela que dá a chave do trecho. A ORIENTAÇÃO diz como o CORPO está",
+      "voltado — en face, croisé, effacé, écarté, épaulement — e é outro eixo: um battement tendu à",
+      "frente pode ser en face ou en croisé, e são dois trechos diferentes. Até a versão 4 os dois",
+      "eixos estavam numa lista só, e por isso o formulário oferecia oito blocos onde há três mais",
+      "cinco. A célula passou a ter o campo opcional `orientacao`; omitido, vale `en-face`."
     ],
     "membros": [
       "pes",
