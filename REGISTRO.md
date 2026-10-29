@@ -28205,3 +28205,81 @@ JavaScript.
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
 - As **4 linhas «a conferir»** das posições de braços (são do método, não do código).
 - O dicionário tem **15 frases para 15 blocos**; os 51 exercícios sem verbete ainda não têm nenhuma.
+
+## 29/10/2026 — Os dois eixos da célula: direção do membro e orientação do corpo
+
+**O que motivou.** A pesquisadora testou o formulário com **Battement fondu, 4 tempos, 2/4, quinta
+posição** e escreveu o que via: a mesma explicação repetida para «à frente, ao lado, atrás, en face,
+croisé, effacé, écarté e épaulement», e — a frase que decidiu o desenho — *«quanto à direção, eu
+escolhi à frente, e não consigo escolher outra»*. O pedido foi um: **«falta flexibilizar ainda mais»**.
+Ao reproduzir o gesto num navegador, o defeito apareceu por baixo: escolher o segundo sinal no
+`<select>` **apagava o primeiro**. Uma escolha única não escreve uma sequência.
+
+**O defeito de fundo não era do formulário — era do dado.** A tabela mostrava **oito blocos** porque
+o alfabeto juntava duas coisas que não competem: a **direção do membro** (à frente, ao lado, atrás —
+três) e a **orientação do corpo** (en face, croisé, effacé, écarté, épaulement — cinco). «À frente en
+croisé» é **um** trecho, não dois, e um battement fondu en croix não tem oito coisas: tem quatro. A
+lista era uma; os eixos eram dois.
+
+**Como se resolveu, e donde veio a decisão.** Levou-se à bancada local
+(`experimentos/propostas/proposta-verbete-pilulas.html`) um editor com **tudo em pílulas** e os dois
+eixos separados; mediu-se que o en croix se monta em quatro trechos e que a cobertura fecha nos oito
+tempos. As decisões que ela deu depois de ver: **eixos = sim**, **pílulas = sim**, **emendar = sim**
+(a direção e a orientação ficam depois de acrescentar um trecho), **dicionário = as duas coisas**,
+**publicar = sim**.
+
+**O que mudou no dado (alfabeto, versão 5).** A célula ganha o campo **opcional** `orientacao`;
+omitido, vale `en-face`. **Omitir é o que se grava** quando a orientação é `en face` — escrevê-la em
+todas as células encheria o alfabeto de ruído que não diz nada de novo, e a omissão já quer dizer
+isso. Nenhuma das 22 células a declara ainda: é por isso que **os documentos não mudam** — o texto do
+PDF do ciclo da Batata tem o **mesmo md5** antes e depois (`7dcd4817…`). A âncora foi regerada,
+porque o alfabeto é selado fora da fórmula e a versão entra no selo.
+
+**O que mudou no motor.** `notacao.js` põe a orientação no **segmento**, leva as orientações usadas
+para a **declaração** (em palavras, sem repetir, e sem `en face`) e exporta `orientacaoEmPalavras()`.
+`verbete.js` valida a orientação contra `orientacoesDoCorpo` — uma inventada é recusada com a lista do
+que existe: *«em «devant»: a orientação «en-diagonale» não está na gramática (en-face · croise ·
+efface · ecarte · epaulement)»*. `derivar-ciclo.js` passa a dizê-las na **legenda da aula** quando
+não são `en face`: um exercício de centro sem «en croix» na legenda fica com metade da informação.
+
+**O que mudou na tela.** Não há **uma única lista suspensa** no trecho: direção, orientação, contagem,
+categoria e sinais são pílulas — a peça `.escolha` que a folha já tinha, e a folha **não foi tocada**.
+Cada clique **acrescenta ao fim**, porque um bloco pode repetir um sinal (`[Pé: 1ª → + ● 1ª]`); a
+remoção é só pelos «×» das fichas, que passaram a ser **numeradas** — a ordem é o que a notação diz, e
+o número é o que a torna legível de relance. A tabela ganha a coluna da **orientação**, e a célula sem
+ela diz **«en face» em palavras**: uma coluna em branco lê-se como esquecimento, «en face» lê-se como
+facto.
+
+**Onde entrou.**
+- `biblioteca/modalidades/bale-classico/notacao.json` — versão **5**, a nota de forma na gramática.
+- `motor/nucleo/notacao.js` — a orientação no segmento, na declaração, e `orientacaoEmPalavras()`.
+- `motor/servidor/verbete.js` — a validação da orientação.
+- `motor/nucleo/derivar-ciclo.js` — as orientações na legenda.
+- `motor/servidor/bastidores.js` — as pílulas, os dois eixos na rota (duas listas, e não oito coisas
+  numa), a coluna da orientação, e a orientação no corpo gravado.
+- `experimentos/provar-celula.js` — reescrita: **41 → 61 asserções**.
+- `experimentos/provar-verbete.js` — as asserções da forma antiga foram **reconvertidas**, não
+  apagadas; e a que mede a rota lê o **módulo**, não o HTML (no HTML ela passaria sem medir nada).
+
+**Motivo declarado — os congelados.** Nenhum nesta entrega.
+
+**Validação.**
+`provar-celula.js` → **61 asserções, 0 falhas**. `provar-verbete.js` → tudo certo.
+`provar-notacao.js` → **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha «o item do menu
+fica marcado» é pré-existente). `check-identidade.js` → **20/20**, peça incluída. `check-pacote.js` →
+**0 erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro, `3601081…`. **O texto dos dois PDFs** tem o
+mesmo md5 de antes.
+
+**Medido no navegador, na bancada local.** Três pílulas de direção, cinco de orientação, e nenhuma
+lista suspensa. Três cliques puseram três sinais, e o quarto repetiu um deles ao fim. Clicar na
+orientação escolhida desmarca-a. Acrescentado o trecho, a direção e a orientação **continuam**
+marcadas e só os sinais e a frase se limpam. O corpo gravado leva `orientacao: croise`, e **não**
+inventa o campo nas células antigas. Nada transborda em 320, 390, 768 e 1280px. Nenhum erro de
+JavaScript.
+
+**O que continua em aberto.**
+- O **dicionário dela** — 30 termos, dos quais **24 casam por conceito** com o vocabulário (14
+  preenchem `descricao` que estava vazia) e **6 são novos**; e as **4 linhas «a conferir»** das
+  posições de braços ficam respondidas por ele. Falta a proveniência (`fonte`), que o vocabulário tem
+  e o ficheiro dela não traz.
+- As **seleções no plano** (§1.6) — o último item da Fase 1.
