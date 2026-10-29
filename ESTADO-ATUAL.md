@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 28/10/2026 (base local `7a931da`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); e o formulário do verbete passou a ter **dois modos** que não coexistem, com a **direção lida do dado** (o campo `direcoes` saiu do alfabeto, versão 3) e o **editor de célula** que faltava (`4f4795a`, com a folha em `9fb09dc`). Da Fase 1 falta só as **seleções no plano** (§1.6).
+> **Última fotografia:** 28/10/2026 (base local `6c6ce28`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); e o formulário do verbete passou a ter **dois modos** que não coexistem, com a **direção lida do dado** (o campo `direcoes` saiu do alfabeto, versão 3) e o **editor de célula** que faltava (`4f4795a`, com a folha em `9fb09dc`). E o editor do trecho foi refeito depois de a pesquisadora o abrir: a **contagem** deixou de se escrever (é uma lista que só oferece o que cabe no compasso), o campo **«bloco»** passou a chamar-se **Sinais Benesh** e compõe-se (categoria + sinais, com o nome de cada um), as duas tabelas viraram **uma**, e a frase em português passou a vir de um **dicionário do balé** (`descricoes.json`, chave = notação), editável (`4342f16`). Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -270,12 +270,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 14. **O formulário do verbete tem dois modos que não coexistem** — ou se escolhe um exercício que
     existe, ou se cria um. No modo do exercício, os campos do verbete **não estão** no documento e o
     `select` e o «+» ficam bloqueados. **DECIDIDO** 28/10/2026.
-15. **O vocabulário técnico vive no REPOSITÓRIO, numa lista só** — `biblioteca/modalidades/<m>/vocabulario.json`.
+15. **A NOTAÇÃO DE UM TRECHO COMPÕE-SE, E A CONTAGEM ESCOLHE-SE.** A célula declara `categoria` e
+    `sinais`; a notação (`[Pé: 1ª → +]`) é **derivada**. A palavra «bloco» volta a significar só
+    Solo · Barra · Centro, que é o que ela quer dizer no plano. A contagem é uma lista das que cabem
+    no compasso — ela vai de 1 até o numerador e recomeça no seguinte, e o número do compasso é
+    calculado. **DECIDIDO** 28/10/2026.
+16. **A frase «o que acontece» vem de um dicionário, e é sugestão — não fonte.** O dicionário
+    (`biblioteca/modalidades/<m>/descricoes.json`) é indexado pela **notação**, e o que fica gravado é
+    a frase da célula: o dicionário pode melhorar sem reescrever o passado (P-03/P-04). **DECIDIDO**
+    28/10/2026.
+17. **O vocabulário técnico vive no REPOSITÓRIO, numa lista só** — `biblioteca/modalidades/<m>/vocabulario.json`.
     A tela lê o bundle que o deploy traz; o cadastro grava no repositório, pela API do GitHub. **Não
     há cópia por escola no KV**, e o botão «Carregar as turmas iniciais» já não semeia termos. A razão
     é dupla: o gerador lê o ficheiro do **disco**, no GitHub Actions (uma escrita em KV nunca chegaria
     ao documento), e duas listas divergem ao primeiro termo novo, em silêncio. **DECIDIDO** 28/10/2026.
-16. **O KV é o último recurso, porque tem custo.** Só guarda o que é da ESCOLA (turmas, professores,
+18. **O KV é o último recurso, porque tem custo.** Só guarda o que é da ESCOLA (turmas, professores,
     alunas, a relação turma↔conteúdo, envelopes). Catálogo, alfabeto e vocabulário vão para o
     repositório. **DECIDIDO** 28/10/2026.
 
@@ -297,7 +306,9 @@ de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. E
 **expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
 vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 28/10/2026 — `9fb09dc` (a folha, com motivo declarado), `4f4795a`
+**Último ponto confirmado:** 28/10/2026 — `4342f16` (a célula explicada: contagem calculada, sinais
+compostos, dicionário do que acontece) e `6c6ce28` (o registo) no `main` local. A base anterior:
+`9fb09dc` (a folha, com motivo declarado), `4f4795a`
 (os dois modos, a direção derivada e o editor de célula) e `7a931da` (o registo) no `main` local. A
 base em `origin/main` é `52a05d6`, com os workflows concluídos; o `GET /api/bastidores/termos` ao ar
 responde **200** com **87 termos**, 12 deles com `membro` — campos que só existem no bundle atual, e
@@ -407,7 +418,26 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (28/10/2026 — os dois modos e o editor de célula)
+### Executado nesta fotografia (28/10/2026 — a célula explicada)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **41 asserções, 0 falhas** — no navegador, sobre bancada local |
+| `node experimentos/provar-verbete.js` | **66 asserções, 0 falhas** |
+| `node experimentos/provar-notacao.js` | **74 asserções, 0 falhas** |
+| `node experimentos/provar-producao.js` | **151 de 152** — a falha «o item do menu fica marcado» é **pré-existente** |
+| `node experimentos/provar-teste.js` | **44 verificações** |
+| `node experimentos/provar-leituras-do-po.js` | **27 asserções, 0 falhas** |
+| `node experimentos/provar-menu-da-producao.js` | **55 de 55** |
+| `node experimentos/provar-celular.js` | **15 de 15** (320, 360, 390, 414, 768 e 1024px) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-glossario.js` | consistente — 18 símbolos, 18 verbetes, **0 avisos** |
+| `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`**; o alfabeto subiu a **versão 4** e o selo foi renovado |
+| o texto dos PDFs gerados | **mesmo md5** que antes da migração das células — a mudança de forma não mudou um documento |
+| geometria no navegador | contagem: `1`,`1–2` em 2/4 e até `1–4` em 4/4; frase sugerida pelo dicionário e preservada quando ajustada; sem transbordo em 320/390/768/1280; nenhum erro de JS |
+
+### Executado na fotografia anterior (28/10/2026 — os dois modos e o editor de célula)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -588,6 +618,19 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **28/10/2026** — **A célula explicada: a contagem escolhe-se, os sinais compõem-se, a frase vem do
+  dicionário.** A pesquisadora abriu o editor e não entendeu quatro campos — e no meio da pergunta
+  estavam três defeitos meus: **«bloco» queria dizer duas coisas** (Solo · Barra no plano, e a
+  notação na célula), a **legenda repetia as categorias** dentro da lista de sinais (22 sinais, 4
+  deles eram as categorias), e as **duas tabelas diziam a mesma coisa**. A **contagem** deixou de ser
+  campo de escrita: é uma lista das que cabem no compasso (vai de 1 até o numerador e recomeça no
+  seguinte; o número do compasso é calculado). A notação passou a compor-se — categoria + sinais,
+  cada um com o nome — e o dado acompanha (célula declara `categoria` e `sinais`, notação derivada,
+  alfabeto **versão 4**), com os documentos publicados **idênticos** (mesmo md5 no texto dos PDFs). E
+  a frase em português passou a vir de um **dicionário do balé** (`descricoes.json`, chave = a
+  notação), que **sugere** — o que fica gravado é a frase da célula. Publicado em `4342f16`.
+  **CONFIRMADO** localmente; a conferência ao ar fica para o deploy.
 
 - **28/10/2026** — **Dois modos no verbete, a direção lida do dado, e o editor de célula.** O «+»
   abria uma caixa a meio do formulário, e o que vinha depois continuava a ser do verbete: dois botões

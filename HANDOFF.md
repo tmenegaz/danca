@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-28T16:56:23-0300`
-Commit atual: `7a931da` — docs(registro): os dois modos do verbete, a direção derivada e o editor de célula
+Gerado em: `2026-10-28T22:25:01-0300`
+Commit atual: `6c6ce28` — docs(registro): a célula explicada, a contagem calculada e o dicionário do que acontece
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,9 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+6c6ce28 docs(registro): a célula explicada, a contagem calculada e o dicionário do que acontece
+4342f16 feat(notacao): a célula explicada — contagem que se escolhe, sinais que se compõem, frase do dicionário
+6900363 docs(registro): atualizar a fotografia após os dois modos e o editor de célula
 7a931da docs(registro): os dois modos do verbete, a direção derivada e o editor de célula
 4f4795a feat(notacao): dois modos no verbete, a direção lida do dado, e o editor de célula
 9fb09dc fix(tools): o campo bloqueado passa a ver-se na folha
@@ -97,9 +100,6 @@ efb49e6 docs(registro): corrigir a afirmação de que motor/ está congelado
 6cb7ea3 docs(registro): atualizar a fotografia após a Sequência declarada e a métrica
 f4cc715 docs(registro): registar a saída da Sequência declarada e a métrica em 18 tempos
 ee99969 docs(ciclo-01): regerar a Batata sem a Sequência declarada
-6e248ac refactor(tools): tirar a Sequência declarada e apontar o plano à grade
-5708c88 docs(registro): atualizar a fotografia após o cabeçalho e o cartão da ficha
-3c3a29d docs(registro): registar o cabeçalho sem etiquetas e o cartão da ficha sem moldura
 ```
 
 ## Por professor
@@ -199,98 +199,92 @@ ee99969 docs(ciclo-01): regerar a Batata sem a Sequência declarada
 
 ## Última entrada do REGISTRO
 
-## 28/10/2026 — Dois modos no verbete, a direção lida do dado, e o editor de célula
+## 28/10/2026 — A célula explicada: contagem, sinais e o dicionário do que acontece
 
-**O que motivou.** A pesquisadora foi ao formulário e viu o que nenhuma prova minha media: o «+»
-abria uma caixa **a meio** do formulário do verbete, e o que vinha depois dela continuava a ser do
-verbete. Os campos do verbete ficavam **abaixo** do botão que grava o exercício; dois botões
-primários ao mesmo tempo, com o mesmo peso; e «informe o nome do exercício» aparecia com um exercício
-já escolhido — porque o nome que a gravação do exercício pede está **noutra** caixa, vazia. As duas
-coisas partilhavam o formulário e não se falavam.
+**O que motivou.** A pesquisadora abriu o editor e não entendeu quatro campos — contagem, bloco, «o
+que acontece neste trecho», e a legenda «[Categoria: sinais]». Escreveu o que via, e no meio da
+pergunta estavam **três defeitos meus** e **uma ideia melhor do que a minha**.
 
-E, na mesma visita, a pergunta que mudou o resto: *«como eu vou criar um por vez, eu não posso ter ao
-mesmo tempo à frente, ao lado e atrás? O fouetté é fouetté.»*
+**A contagem não se escreve.** Verificado nos quatro verbetes antes de decidir: a contagem vai de 1
+até o **numerador do compasso** e **recomeça** no seguinte, e o **número do compasso é calculado**
+(o Plié grava `1–4`, `1–4` — um compasso cada; o Port de bras `1–3` quatro vezes; o Battement tendu
+`1–2`, `3–4` por direção). Era exactamente a confusão antiga do «eu não tô contando que vou de 1 até
+o 3 no compasso». Passa a ser uma **lista que só oferece o que cabe**: a célula começa onde a
+anterior da mesma direção acabou, ou recomeça em 1 quando o compasso fechou. O compasso nunca fica
+com buraco, e a coluna do compasso na tabela é derivada.
 
-**A direção deixa de ser pergunta.** Fui ver o dado antes de propor. Nas **seis** entradas do
-alfabeto, o campo `direcoes` era — verificado, seis de seis, e na mesma ordem — **exactamente a lista
-das chaves de `celulas`**. Duas listas da mesma coisa, e é a mesma família de defeito do vocabulário
-no KV que se juntou horas antes: divergem ao primeiro caso que só uma conhece, e aqui o documento
-escreveria uma direção para a qual não tem descrição.
+**«Bloco» queria dizer duas coisas — e o instinto dela estava certo.** Escreveu: *«acho que o bloco é
+se vai ser solo, barra centro»*. É: no plano, `Bloco` **é** Solo · Barra · Centro. Eu tinha usado a
+mesma palavra para a notação da célula, no mesmo módulo (`notacao.js`, linhas 344 e 405). O campo
+passa a chamar-se **Sinais Benesh** e passa a **compor-se**: categoria (Pé · Peso · Plié · Braço) e
+os sinais pela ordem, cada um com o nome («→ conduz a»), em fichas com «×». Escrever `[Pé: 1ª → +]`
+de cabeça era pedir Benesh em texto livre.
 
-O critério não é meu, é do dado: **uma direção existe num verbete se — e só se — esse verbete tem
-células para ela**. É por isso que o fouetté não pode ir às três: não é uma regra que eu escreva
-sobre o fouetté, é o fouetté a ter a decomposição que tem. O campo saiu do dado (alfabeto versão 3),
-o motor e a validação derivam a direção da célula, e a tela mostra uma tabela de três estados —
-**coberta** (com a descrição do que acontece), **sem célula nesta música** (com o que falta escrever)
-e **fora do exercício** («este exercício não vai ao lado»). A diferença entre «não vai» e «ainda não
-escrevi» era o que um `alert` só confundia.
+**O dado acompanhou, e os documentos não mudaram.** A célula declarava `bloco` como texto; passa a
+declarar `categoria` e `sinais`, e a notação é **derivada** (`blocoDe` em `notacao.js`) — uma
+representação só, e é a que o documento lê. As 22 células foram migradas, e o `lado` foi preservado:
+a **primeira migração largou-o**, e foi uma asserção do `provar-notacao` («e cada célula diz o lado em
+que acontece») que o apanhou — não a leitura do diff. Medido depois: o **texto dos dois PDFs tem o
+mesmo md5** que antes. O alfabeto passa a **versão 4**, e a âncora foi regerada (o selo recusou até
+lá; o hash das fontes não muda, porque o alfabeto está fora da fórmula).
 
-**Os dois modos.** O formulário passou a ter dois, e não coexistem: no **modo do exercício** os
-campos do verbete **saem do documento** (não ficam esbatidos — o esbatido continua a competir por
-atenção), o `select` e o «+» ficam **bloqueados** (é a memória de onde se estava, e um campo que
-desaparece não se distingue de um que nunca existiu), e o `submit` do verbete tem guarda: o Enter no
-nome do exercício **não** grava um verbete. Ao gravar, o modo do verbete volta **com o exercício novo
-já escolhido**.
+**A legenda repetia as categorias.** A rota recolhia as chaves de `itens` de **todos** os grupos do
+alfabeto, e o grupo «Categorias» também tem `itens`: «pé, peso, plié, braço» aparecia **duas vezes**,
+uma em «Categorias» e outra em «Sinais». Medido: 22 sinais, **4 deles eram as categorias**. Agora as
+categorias saem da lista, e cada sinal leva `nome`, `grupo` e `significado`.
 
-**O gargalo que isto destapou, e o editor que o fecha.** Ao contar para a proposta: **55 exercícios
-possíveis** (passos, saltos, ligações, giros) e **4 verbetes**. E o «Gravar verbete» de então **não
-conseguia criar um verbete que não existisse** — lia as células de `VERBETES` e, sem elas, mandava as
-direções para «faltam» e recusava. O CRUD que entreguei antes **só sabia editar**; o «criar» estava
-construído e não tinha por onde passar. O **editor de célula** é o que abre a passagem: um rascunho
-que nasce do que o alfabeto tem e aceita **acrescentar** e **tirar** células (contagem, bloco,
-descrição), com a **legenda dos sinais vinda do alfabeto** — o bloco é `[Categoria: sinais]`, e
-mostrá-los é o que faz «acrescentar» ser uma escolha e não uma adivinha. O rascunho é o que as duas
-tabelas leem: acrescentar uma célula de «ao lado» muda a linha «ao lado» de «não vai» para o que nela
-acontece, no mesmo gesto.
+**As duas tabelas viraram uma.** «Direções que este verbete cobre» e «Células deste verbete» diziam a
+mesma coisa — e **sem células, as duas diziam «não há nada»**. É o defeito das duas listas de
+direções, corrigido no dado e repetido na tela; ela viu-o de imediato. Passa a haver **uma tabela**:
+um bloco por direção, as células dentro, e a linha de acrescentar no fim de cada bloco. A direção que
+não é coberta continua a aparecer — é ela que responde ao fouetté — e a tela distingue **«este
+exercício não vai»** de **«vai noutra música, falta escrever»**.
 
-**Um bloqueio que não se via — e o commit congelado.** A folha desenhava o **botão** bloqueado e não
-desenhava o **campo** bloqueado: medido no navegador, um `<select disabled>` tinha opacidade **1**,
-igual a um activo, e o bloqueio só se descobria ao clicar. A regra entrou na folha (`9fb09dc`), com
-**motivo declarado**, commit próprio, e o mesmo `0.4` do botão — «bloqueado» tem um significado só no
-sistema. Três cópias da folha foram regeradas; uma delas (`ciclo-01-batata`) não pode sê-lo — o `.conf`
-está com `DOCS` vazio e o gerador recusa —, e a cópia foi feita à mão, como o gerador a faria.
+**A frase passa a ter dicionário — e é sugestão, não fonte.** Ideia dela: *«podemos ter um arquivo
+chave-valor para “o que acontece”? … passa a funcionar como um dicionário de ballet»*. Existe:
+`biblioteca/modalidades/bale-classico/descricoes.json`, **indexado pela notação** e não pelo nome do
+exercício — e a diferença importa, porque **o Plié tem duas coisas** (desce, sobe) e por isso duas
+frases; o que determina o que acontece é o bloco, não o nome de quem o faz. Semeado com as **15
+frases distintas** que os verbetes já tinham (24 células; `retorno à 1ª posição` repete-se em três
+blocos). O campo **preenche-se com a sugestão e é editável**; o que fica **gravado é a frase da
+célula**, porque a proveniência acrescenta e não edita (P-03/P-04) — assim o dicionário pode melhorar
+sem reescrever o passado, e a frase ajustada **não se perde** ao acrescentar mais um sinal (medido).
 
 **Onde entrou.**
-- `motor/nucleo/notacao.js` — `segmentosDe` ordena pelas células; a saída `direcoes` passa a ser
-  derivada; a conferência entre as duas listas deu lugar à da célula **vazia**.
-- `motor/servidor/verbete.js` — a validação pergunta o que só a célula responde; a gravação **tira**
-  `direcoes` do corpo (uma página em cache não ressuscita a segunda lista).
-- `motor/servidor/bastidores.js` — os dois modos, a tabela das direções, o editor de célula e o
-  rascunho; a resposta do GET leva `categoriasDeBloco`.
-- `biblioteca/modalidades/bale-classico/notacao.json` — `direcoes` sai dos 4 verbetes (6 entradas);
-  versão **2 → 3**. A âncora foi regerada: o selo **recusou** enquanto não foi.
-- `experimentos/provar-celula.js` — **novo**, versionado (acrescentado ao `.gitignore` com `!`): 38
-  asserções num navegador de verdade, sobre bancada local, sem tocar no ar.
-- `experimentos/provar-verbete.js` e `experimentos/provar-notacao.js` — as asserções que guardavam a
-  comparação entre `direcoes` e as células foram **reconvertidas** para a célula vazia. Elas mediam
-  uma invariante que deixou de existir; deixá-las passar em silêncio seria pior do que mudá-las.
+- `biblioteca/modalidades/bale-classico/descricoes.json` — **novo**: o dicionário, chave = notação.
+- `biblioteca/modalidades/bale-classico/notacao.json` — as células na forma nova, versão **4**.
+- `motor/nucleo/notacao.js` — `blocoDe()` exportado; o **segmento** passa a levar `bloco` derivado,
+  para todos os leitores a jusante continuarem a ler o mesmo.
+- `motor/servidor/verbete.js` — a validação compõe a notação dos dois campos e confere-a como antes.
+- `motor/servidor/catalogo-seed.js` — `DESCRICOES` (o esbuild embute-o; no Worker não há `fs`).
+- `motor/servidor/bastidores.js` — a tabela única, a contagem calculada, os sinais compostos, a
+  sugestão da frase, a frase editável na linha, e a rota com os sinais nomeados e sem as categorias.
+- `experimentos/provar-celula.js` — reescrita para a tela nova: 41 asserções.
+- `experimentos/provar-verbete.js` e `provar-notacao.js` — as asserções que mediam a forma antiga
+  foram **reconvertidas**, não apagadas; e `provar-producao.js` passou a contar 16 pílulas, com o
+  critério escrito ao lado (as quatro categorias são lista curta, fechada e fixa).
 
-**Motivo declarado — os congelados.** `tools/templates/ciclo.css`, no commit `9fb09dc`, separado:
-o campo bloqueado passa a ver-se (opacidade .4 e fundo recuado, o mesmo número do botão).
+**Motivo declarado — os congelados.** Nenhum nesta entrega (a folha foi no commit anterior).
 
 **Validação.**
-`provar-celula.js` → **38 asserções, 0 falhas** (novo). `provar-verbete.js` → **60, 0 falhas**.
+`provar-celula.js` → **41 asserções, 0 falhas**. `provar-verbete.js` → **66, 0 falhas**.
 `provar-notacao.js` → **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha «o item do menu
 fica marcado» é pré-existente). `provar-teste.js` → **44**. `provar-leituras-do-po.js` → **27**.
-`provar-menu-da-producao.js` → **55/55**. `provar-celular.js` → **15/15**, em 320, 360, 390, 414, 768
-e 1024px. `check-identidade` → **20/20**. `check-glossario` → consistente. `check-pacote` → **0 erro,
-0 aviso**. `hash-ciclo --check` → íntegro, `3601081…` (o hash não muda: o alfabeto está fora da
-fórmula, só o selo foi renovado).
+`provar-menu-da-producao.js` → **55/55**. `provar-celular.js` → **15/15**, em 320, 360, 390, 414,
+768 e 1024px. `check-identidade` → **20/20**. `check-glossario` → consistente. `check-pacote` → **0
+erro, 0 aviso**. `hash-ciclo --check` → íntegro, `3601081…`. E o **texto dos dois PDFs** gerados tem o
+mesmo md5 que antes da migração: a mudança de forma da célula não mudou um documento.
 
-**Medido no navegador, na bancada local.** Modo A → modo B: os campos do verbete saem, `select` e «+»
-bloqueados com opacidade **0.4**, foco no nome do exercício novo, e o Enter não grava. Gravar devolve
-ao modo A com o exercício escolhido: a tabela passa a dizer «este exercício não vai à frente/ao
-lado/atrás» — que é a verdade sobre um exercício sem decomposição. Duas células acrescentadas em
-«à frente» aparecem nas duas tabelas; o «×» tira-as das duas. Sem transbordo em 320, 390, 768 e
-1280px. Nenhum erro de JavaScript.
+**Medido no navegador, na bancada local.** Em 2/4 a contagem oferece `1` e `1–2`; em 4/4 vai até
+`1–4`. Composto `1ª → +`, o dicionário devolve «extensão à frente a partir da 1ª posição, a ponta no
+chão» e a nota diz que é sugestão. Frase ajustada à mão sobrevive ao sinal seguinte. Acrescentar sem
+frase é recusado com o campo nomeado. Nada transborda em 320, 390, 768 e 1280px. Nenhum erro de
+JavaScript.
 
 **O que continua em aberto.**
-- **Escrever o bloco ainda é escrever notação.** A legenda mostra os sinais, mas a pessoa compõe-nos à
-  mão (`[Pé: 1ª → +]`). O passo seguinte é o bloco por pílulas — escolher categoria, posição e seta em
-  vez de os digitar.
-- As **seleções no plano** (§1.6), que eram o outro item da Fase 1.
+- As **seleções no plano** (§1.6) — o último item da Fase 1.
 - As **4 linhas «a conferir»** das posições de braços (são do método, não do código).
-- **«tradução» era erro de digitação**: o campo é **tradição**, e não se mexeu nele.
+- O dicionário tem **15 frases para 15 blocos**; os 51 exercícios sem verbete ainda não têm nenhuma.
 
 ## O que está pendente
 
