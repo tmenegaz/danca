@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-29T07:24:25-0300`
-Commit atual: `eb72950` — docs(registro): actualizar a fotografia após os dois eixos da célula
+Gerado em: `2026-10-29T11:50:16-0300`
+Commit atual: `20b4767` — docs(registro): actualizar a fotografia após a correcção das pílulas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,10 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+20b4767 docs(registro): actualizar a fotografia após a correcção das pílulas
+f1f5a7a docs(registro): a direção de escolha única, o «en face» que marca e o compasso corrido
+5af8aff fix(estrutura): a direção é escolha única, «en face» marca, e a contagem continua o compasso
+3d4777b docs(registro): regenerar o HANDOFF após a fotografia de 29/10/2026
 eb72950 docs(registro): actualizar a fotografia após os dois eixos da célula
 567d52c docs(registro): os dois eixos da célula, e o trecho em pílulas
 9b318fe feat(estrutura): o trecho em pílulas, e os dois eixos separados na tela
@@ -96,10 +100,6 @@ d7ab51a docs(registro): atualizar a fotografia após a célula explicada
 4e09bc9 feat(biblioteca): o vocabulário vive no repositório, e o «+» cria o exercício
 6318ded fix(notacao): o verbete em Produção — 500, 403 e «não existe»
 b0b3946 docs(registro): atualizar a fotografia após o verbete administrável
-5336b3e chore(estrutura): regerar os índices derivados
-3dcc344 feat(notacao): o verbete passa a ser administrável na Produção
-8df6c0c feat(notacao): o verbete declara posição, direção e lado
-5020b89 refactor(tools): o alfabeto vai para a modalidade, e a âncora sela com que código escreveu
 ```
 
 ## Por professor
@@ -199,82 +199,66 @@ b0b3946 docs(registro): atualizar a fotografia após o verbete administrável
 
 ## Última entrada do REGISTRO
 
-## 29/10/2026 — Os dois eixos da célula: direção do membro e orientação do corpo
+## 29/10/2026 — A direção é escolha única, «en face» marca, e a contagem continua o compasso
 
-**O que motivou.** A pesquisadora testou o formulário com **Battement fondu, 4 tempos, 2/4, quinta
-posição** e escreveu o que via: a mesma explicação repetida para «à frente, ao lado, atrás, en face,
-croisé, effacé, écarté e épaulement», e — a frase que decidiu o desenho — *«quanto à direção, eu
-escolhi à frente, e não consigo escolher outra»*. O pedido foi um: **«falta flexibilizar ainda mais»**.
-Ao reproduzir o gesto num navegador, o defeito apareceu por baixo: escolher o segundo sinal no
-`<select>` **apagava o primeiro**. Uma escolha única não escreve uma sequência.
+**O que motivou.** A pesquisadora foi escrever o **Battement frappé** — 16 tempos, 2/4, *sur le
+cou-de-pied* — e relatou três coisas de uma vez: **«en face» não marcava**; não conseguia marcar «ao
+lado» e «atrás» **em simultaneidade** com «à frente»; e o trecho que ela escreveu **à frente**
+apareceu como se fosse **atrás**. As três tinham a mesma raiz, e a raiz era minha.
 
-**O defeito de fundo não era do formulário — era do dado.** A tabela mostrava **oito blocos** porque
-o alfabeto juntava duas coisas que não competem: a **direção do membro** (à frente, ao lado, atrás —
-três) e a **orientação do corpo** (en face, croisé, effacé, écarté, épaulement — cinco). «À frente en
-croisé» é **um** trecho, não dois, e um battement fondu en croix não tem oito coisas: tem quatro. A
-lista era uma; os eixos eram dois.
+**As pílulas nasceram todas `checkbox`, e a direção não é uma lista.** Reproduzido na bancada, com o
+alfabeto real: depois de clicar em à frente, ao lado e atrás, as três liam
+`devant:true, a-la-seconde:true, derriere:true` e `DIRECAO` dizia `derriere`. O navegador marcava a
+nova e **deixava a anterior** — e como o handler da direção não repintava, a tela dizia uma coisa e o
+estado dizia outra. É a família de defeito que este projeto já pagou duas vezes: **dois sítios a
+dizer o mesmo, e um deles a mentir**. Passa a `radio`, com `name` por grupo: o próprio navegador
+desmarca os outros.
 
-**Como se resolveu, e donde veio a decisão.** Levou-se à bancada local
-(`experimentos/propostas/proposta-verbete-pilulas.html`) um editor com **tudo em pílulas** e os dois
-eixos separados; mediu-se que o en croix se monta em quatro trechos e que a cobertura fecha nos oito
-tempos. As decisões que ela deu depois de ver: **eixos = sim**, **pílulas = sim**, **emendar = sim**
-(a direção e a orientação ficam depois de acrescentar um trecho), **dicionário = as duas coisas**,
-**publicar = sim**.
+**«En face» era a única pílula que nunca marcava.** Ela é a **omissão** — o campo `orientacao` só
+existe quando não é en face —, e eu tinha traduzido «é a omissão» por «não se vê». Ela leu isso como
+«não habilita», e com razão: era um clique que não dizia nada, num campo onde todos os outros diziam.
+Passa a aparecer **marcada** quando nenhuma outra está; o estado continua a guardar vazio, e **o que
+se grava não muda**.
 
-**O que mudou no dado (alfabeto, versão 5).** A célula ganha o campo **opcional** `orientacao`;
-omitido, vale `en-face`. **Omitir é o que se grava** quando a orientação é `en face` — escrevê-la em
-todas as células encheria o alfabeto de ruído que não diz nada de novo, e a omissão já quer dizer
-isso. Nenhuma das 22 células a declara ainda: é por isso que **os documentos não mudam** — o texto do
-PDF do ciclo da Batata tem o **mesmo md5** antes e depois (`7dcd4817…`). A âncora foi regerada,
-porque o alfabeto é selado fora da fórmula e a versão entra no selo.
+**A contagem recomeçava por direção, e o compasso é corrido.** `opcoesDeContagem` somava só as
+células da **própria** direção e voltava a 1 quando ela não tinha nenhuma; `compassosDosTrechos`
+somava **tudo**. Com 16 tempos em 2/4, «à frente» e «ao lado» ficavam **ambos** com «compasso 1,
+contagem 1» — dois trechos no mesmo tempo, e a página da aula a dizer duas coisas para o mesmo
+instante. Este **não foi relatado**: apareceu ao medir o resultado da correcção. A conta certa soma,
+na ordem da gramática, tudo o que vem antes — as direções anteriores inteiras e as células que esta
+direção já tem, porque a nova entra no fim dela —, e o início da contagem e a coluna do compasso saem
+da **mesma soma**, e por isso não podem divergir. Medido depois: à frente `compasso 1 | 1`, ao lado
+`compasso 1 | 2`, atrás `compasso 2 | 1`.
 
-**O que mudou no motor.** `notacao.js` põe a orientação no **segmento**, leva as orientações usadas
-para a **declaração** (em palavras, sem repetir, e sem `en face`) e exporta `orientacaoEmPalavras()`.
-`verbete.js` valida a orientação contra `orientacoesDoCorpo` — uma inventada é recusada com a lista do
-que existe: *«em «devant»: a orientação «en-diagonale» não está na gramática (en-face · croise ·
-efface · ecarte · epaulement)»*. `derivar-ciclo.js` passa a dizê-las na **legenda da aula** quando
-não são `en face`: um exercício de centro sem «en croix» na legenda fica com metade da informação.
-
-**O que mudou na tela.** Não há **uma única lista suspensa** no trecho: direção, orientação, contagem,
-categoria e sinais são pílulas — a peça `.escolha` que a folha já tinha, e a folha **não foi tocada**.
-Cada clique **acrescenta ao fim**, porque um bloco pode repetir um sinal (`[Pé: 1ª → + ● 1ª]`); a
-remoção é só pelos «×» das fichas, que passaram a ser **numeradas** — a ordem é o que a notação diz, e
-o número é o que a torna legível de relance. A tabela ganha a coluna da **orientação**, e a célula sem
-ela diz **«en face» em palavras**: uma coluna em branco lê-se como esquecimento, «en face» lê-se como
-facto.
+**O que não muda.** As **22 células** do alfabeto continuam válidas com a regra nova: o Battement
+tendu grava `1–2, 3–4` em devant e `1–2, 3–4` em derrière, e é isso que a soma corrida produz (4
+tempos por direção num 4/4 = um compasso por direção). A âncora continua íntegra, `3601081…`, e não
+foi preciso regerar nada.
 
 **Onde entrou.**
-- `biblioteca/modalidades/bale-classico/notacao.json` — versão **5**, a nota de forma na gramática.
-- `motor/nucleo/notacao.js` — a orientação no segmento, na declaração, e `orientacaoEmPalavras()`.
-- `motor/servidor/verbete.js` — a validação da orientação.
-- `motor/nucleo/derivar-ciclo.js` — as orientações na legenda.
-- `motor/servidor/bastidores.js` — as pílulas, os dois eixos na rota (duas listas, e não oito coisas
-  numa), a coluna da orientação, e a orientação no corpo gravado.
-- `experimentos/provar-celula.js` — reescrita: **41 → 61 asserções**.
-- `experimentos/provar-verbete.js` — as asserções da forma antiga foram **reconvertidas**, não
-  apagadas; e a que mede a rota lê o **módulo**, não o HTML (no HTML ela passaria sem medir nada).
+- `motor/servidor/bastidores.js` — `pilulas()` ganha o parâmetro `unico` (`radio` com `name` por
+  grupo); `pintarDirecao` repinta e não aceita duas; `pintarOrientacao` marca `en-face` quando o
+  estado está vazio; e `opcoesDeContagem` passa a somar por `temposAntesDe(dir)`.
+- `experimentos/provar-celula.js` — **61 → 75 asserções**.
+- `experimentos/propostas/proposta-verbete-pilulas.html` — a bancada com o mesmo critério, para não
+  mostrar um comportamento que o sistema já não tem.
 
 **Motivo declarado — os congelados.** Nenhum nesta entrega.
 
 **Validação.**
-`provar-celula.js` → **61 asserções, 0 falhas**. `provar-verbete.js` → tudo certo.
-`provar-notacao.js` → **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha «o item do menu
-fica marcado» é pré-existente). `check-identidade.js` → **20/20**, peça incluída. `check-pacote.js` →
-**0 erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro, `3601081…`. **O texto dos dois PDFs** tem o
-mesmo md5 de antes.
+`provar-celula.js` → **75 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha do menu é pré-existente).
+`check-identidade.js` → **20/20**. `hash-ciclo.sh --check` → íntegro, `3601081…`.
 
-**Medido no navegador, na bancada local.** Três pílulas de direção, cinco de orientação, e nenhuma
-lista suspensa. Três cliques puseram três sinais, e o quarto repetiu um deles ao fim. Clicar na
-orientação escolhida desmarca-a. Acrescentado o trecho, a direção e a orientação **continuam**
-marcadas e só os sinais e a frase se limpam. O corpo gravado leva `orientacao: croise`, e **não**
-inventa o campo nas células antigas. Nada transborda em 320, 390, 768 e 1280px. Nenhum erro de
+**Medido no navegador, na bancada local, com o alfabeto real.** Battement frappé, 16 tempos, 2/4,
+*sur le cou-de-pied*: a direção oferece três, a orientação cinco com «en face» marcada, e as caixas
+são todas `radio`. Três cliques deixam **uma** marcada, e é a última. Depois de clicar «en face» o
+estado volta a vazio. Três trechos, um por direção, ficam **cada um no seu bloco**: à frente
+`compasso 1 | 1`, ao lado `compasso 1 | 2`, atrás `compasso 2 | 1` — sem sobreposição. Nenhum erro de
 JavaScript.
 
 **O que continua em aberto.**
-- O **dicionário dela** — 30 termos, dos quais **24 casam por conceito** com o vocabulário (14
-  preenchem `descricao` que estava vazia) e **6 são novos**; e as **4 linhas «a conferir»** das
-  posições de braços ficam respondidas por ele. Falta a proveniência (`fonte`), que o vocabulário tem
-  e o ficheiro dela não traz.
+- O **dicionário dela** — falta a proveniência (`fonte`), que é decisão da pesquisadora.
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
 
 ## O que está pendente
