@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 29/10/2026 (base local `567d52c`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); o formulário ganhou **dois modos** que não coexistem, com a **direção lida do dado** e o **editor de célula** que faltava (`4f4795a`, folha em `9fb09dc`); a **célula foi explicada** — contagem calculada, «Sinais Benesh» compostos, uma tabela só e o **dicionário do que acontece** (`4342f16`); e, por fim, a célula passou a ter **dois eixos** — direção do membro (3) e orientação do corpo (5), alfabeto **versão 5** — com o trecho **todo em pílulas** (`4994b34`, `9b318fe`). Da Fase 1 falta só as **seleções no plano** (§1.6).
+> **Última fotografia:** 29/10/2026 (base local `f1f5a7a`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); o formulário ganhou **dois modos** que não coexistem, com a **direção lida do dado** e o **editor de célula** que faltava (`4f4795a`, folha em `9fb09dc`); a **célula foi explicada** — contagem calculada, «Sinais Benesh» compostos, uma tabela só e o **dicionário do que acontece** (`4342f16`); a célula passou a ter **dois eixos** — direção do membro (3) e orientação do corpo (5), alfabeto **versão 5** — com o trecho **todo em pílulas** (`4994b34`, `9b318fe`); e as pílulas foram corrigidas a partir do primeiro uso a sério: **escolha única** onde é uma escolha, **«en face» marcada**, e a **contagem a continuar o compasso** em vez de recomeçar por direção (`5af8aff`). Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -300,6 +300,20 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     (`[Pé: 1ª → + ● 1ª]`), e a remoção é só pelos «×» das fichas — numeradas, porque a ordem é o que a
     notação diz. A direção e a orientação **ficam** depois de acrescentar um trecho: é o que permite
     emendar o en croix sem reescolher tudo. **DECIDIDO** 28/10/2026.
+21. **ESCOLHA ÚNICA E ESCOLHA MÚLTIPLA TÊM CAIXAS DIFERENTES: `radio` e `checkbox`.** A direção, a
+    orientação e a contagem são **uma** escolha; os sinais são **lista**. Com `checkbox` na direção, o
+    navegador marcava a nova e deixava a anterior, e a tela passava a dizer «à frente» enquanto o
+    estado dizia «atrás» — foi o que a pesquisadora viu como «fiz à frente e apareceu atrás».
+    **DECIDIDO** 29/10/2026.
+22. **«EN FACE» É A OMSIÃO, E A OMSIÃO MOSTRA-SE.** O campo `orientacao` só existe quando não é
+    `en face`; mas a pílula de `en face` aparece **marcada** quando nenhuma outra está. Uma omissão
+    que não se vê é indistinguível de um campo que não funciona — e foi assim que ela o leu.
+    **DECIDIDO** 29/10/2026.
+23. **A CONTAGEM CONTINUA ONDE O COMPASSO ESTÁ, E O COMPASSO É CORRIDO.** O início da contagem de um
+    trecho soma, na ordem da gramática, tudo o que vem antes — as direções anteriores inteiras e as
+    células que a sua própria direção já tem, porque a nova entra no fim dela. A coluna do compasso
+    sai da **mesma** soma. Duas contas diferentes para a mesma coisa põem dois trechos no mesmo
+    tempo, e a página da aula passa a dizer duas coisas para o mesmo instante. **DECIDIDO** 29/10/2026.
 
 ## 7. Trabalho em andamento
 
@@ -448,7 +462,7 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 | `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
 | `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`**; o alfabeto subiu a **versão 5** e o selo foi renovado |
 | o texto dos PDFs gerados | **mesmo md5** que antes dos dois eixos — nenhuma célula declara orientação, e o documento não muda |
-| `node experimentos/provar-celula.js` | **61 asserções**, 0 falhas — 3 direções e 5 orientações, nenhuma lista suspensa, três cliques = três sinais, sinal repetido, direção e orientação persistentes, `orientacao` no corpo gravado |
+| `node experimentos/provar-celula.js` | **75 asserções**, 0 falhas — 3 direções e 5 orientações, caixas `radio`, três cliques em três direções deixam **uma** marcada, «en face» marca, nenhuma lista suspensa, três cliques = três sinais, sinal repetido, direção e orientação persistentes, `orientacao` no corpo gravado, e um en croix inteiro com o compasso corrido (`1\|1`, `1\|2`, `2\|1`) |
 | geometria no navegador | contagem: `1`,`1–2` em 2/4 e até `1–4` em 4/4; frase sugerida pelo dicionário e preservada quando ajustada; sem transbordo em 320/390/768/1280; nenhum erro de JS |
 
 ### Executado na fotografia anterior (28/10/2026 — os dois modos e o editor de célula)
@@ -632,6 +646,22 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **29/10/2026** — **A direção é escolha única, «en face» marca, e a contagem continua o compasso.** A
+  pesquisadora foi escrever o **Battement frappé** (16 tempos, 2/4, *sur le cou-de-pied*) e relatou
+  três coisas: «en face» não marcava, não conseguia marcar duas direções sem perder a primeira, e o
+  trecho escrito **à frente** apareceu como se fosse **atrás**. As três tinham a mesma raiz: as
+  pílulas nasceram **todas `checkbox`**, e a direção não é uma lista — com `checkbox` e sem
+  repintura, o navegador marcava a nova e **deixava a anterior**, e o estado ficava com a última.
+  Reproduzido na bancada com o alfabeto real (as três liam `true` e `DIRECAO` dizia `derriere`).
+  Passa a **`radio`** com `name` por grupo. «**En face**» era a única que nunca marcava; passa a
+  aparecer marcada quando nenhuma outra está, e o estado continua vazio para ela — **o que se grava
+  não muda**. E, **não relatado, encontrado ao medir**: a **contagem recomeçava por direção** e o
+  compasso é corrido, o que punha «à frente» e «ao lado» no mesmo «compasso 1, contagem 1»; agora o
+  início soma, na ordem da gramática, tudo o que vem antes, e sai da **mesma soma** que a coluna do
+  compasso. Medido: `compasso 1 | 1`, `compasso 1 | 2`, `compasso 2 | 1`. As **22 células** do
+  alfabeto continuam válidas e a âncora não mudou. Publicado em `5af8aff`. **CONFIRMADO** localmente
+  (75 asserções em navegador); a conferência ao ar fica para o deploy.
 
 - **29/10/2026** — **Os dois eixos da célula, e o trecho todo em pílulas.** A pesquisadora testou o
   formulário com **Battement fondu, 4 tempos, 2/4, quinta posição** e pediu «flexibilizar ainda mais»:
