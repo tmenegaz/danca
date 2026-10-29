@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-10-28",
+    "ancorado_em": "2026-10-29",
     "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "cobertura": [
       "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
@@ -115,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3dcc344"
+    "commit": "3d4777b"
   },
-  "gerado_em": "2026-10-28T18:41",
+  "gerado_em": "2026-10-29T10:24",
   "id": "ciclo:perna-boa/01/batata",
   "professor": "perna-boa",
   "versao": 6
