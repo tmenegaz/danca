@@ -247,10 +247,16 @@ function descendentes(el) {
 }
 
 function casaSimples(el, sel) {
-  const m = String(sel).match(/^([a-z]*)(?:\.([\w-]+))?$/i);
+  // O `#id` CHEGOU AQUI EM 31/10/2026, com a segunda tira de passos: o script da página
+  // deixou de escrever `button.passo` e passou a escrever `#turmas-form button.passo` —
+  // porque a página tem agora duas tiras, e «o passo» deixou de ser um só. Um DOM falso que
+  // não soubesse ler `#id` devolvia zero botões, e a prova dizia «ok» sem ter clicado em
+  // nada.
+  const m = String(sel).match(/^([a-z]*)(?:#([\w-]+))?(?:\.([\w-]+))?$/i);
   if (!m) return false;
   if (m[1] && el.tagName !== m[1]) return false;
-  if (m[2] && String(el.className).split(/\s+/).indexOf(m[2]) === -1) return false;
+  if (m[2] && String(el.id || '') !== m[2]) return false;
+  if (m[3] && String(el.className).split(/\s+/).indexOf(m[3]) === -1) return false;
   return true;
 }
 
@@ -267,12 +273,21 @@ function consultar(raiz, sel) {
   return atuais;
 }
 
-/** Um seletor de duas partes («.paginas button») vale para o ancestral que CONTÉM a
- *  segunda — que é o que `closest` significa quando se lhe passa um descendente. */
+/** Um seletor de vários compostos vale para o elemento que casa com o ÚLTIMO e tem um
+ *  ancestral que casa com os anteriores — é o que `closest` faz num navegador. A versão
+ *  anterior olhava só para o primeiro composto, e por isso um `closest("#turmas-form
+ *  button.passo")` feito a partir do BOTÃO devolvia o próprio formulário: o botão deixou de
+ *  ser achado, e o clique nos passos media o vazio (31/10/2026). */
 function casaComposto(el, sel) {
   const partes = String(sel).trim().split(/\s+/);
   if (partes.length === 1) return casaSimples(el, partes[0]);
-  return casaSimples(el, partes[0]) && consultar(el, partes[partes.length - 1]).length > 0;
+  if (!casaSimples(el, partes[partes.length - 1])) return false;
+  let no = el.pai;
+  while (no) {
+    if (casaComposto(no, partes.slice(0, -1).join(' '))) return true;
+    no = no.pai;
+  }
+  return false;
 }
 
 /** Uma lista paginada de mentira, com o mesmo formato que a página serve. */
@@ -401,8 +416,17 @@ function executarComponentes(script) {
  */
 function criarSecaoDePassos(documento) {
   const nomes = ['turma', 'rubrica', 'vincular'];
-  const secao = criarElemento('section');
+  // A ÁRVORE É A DA PÁGINA, e não uma secção solta (31/10/2026): o formulário da turma vive
+  // dentro de `#turmas-form` e os painéis dentro de `#turmas-paineis`, porque a página passou
+  // a ter DUAS tiras de passos — a da turma e a do verbete — e o script que as acciona tem de
+  // saber qual é qual. Uma secção de mentira pendurada no `body` deixou de ser o que o script
+  // procura: a prova mediria uma página que já não existe.
+  const form = criarElemento('div', 'turmas-form');
+  form.id = 'turmas-form';
+  const faixa = criarElemento('div', 'turmas-faixa');
+  form.appendChild(faixa);
   const lista = criarElemento('ol', 'passos');
+  faixa.appendChild(lista);
   const botoes = nomes.map((n) => {
     const b = criarElemento('button', n === 'turma' ? 'passo ativo' : 'passo');
     b.setAttribute('data-passo', n);
@@ -410,19 +434,21 @@ function criarSecaoDePassos(documento) {
     lista.appendChild(b);
     return b;
   });
-  secao.appendChild(lista);
+  const miolo = criarElemento('div');
+  miolo.id = 'turmas-paineis';
+  form.appendChild(miolo);
   const paineis = nomes.map((n, i) => {
     const p = criarElemento('div', 'passo-painel');
     p.id = 'passo-' + n;
     p.hidden = i !== 0;
-    secao.appendChild(p);
+    miolo.appendChild(p);
     return p;
   });
   // A secção tem de estar LIGADA ao documento, como estaria num navegador: o
   // `document.querySelectorAll` do script procura a partir do `body`, e um ramo solto não
   // é achado por ninguém — nem aqui, nem lá.
-  documento.body.appendChild(secao);
-  return { secao, lista, botoes, paineis };
+  documento.body.appendChild(form);
+  return { secao: form, lista, botoes, paineis };
 }
 
 async function principal() {
@@ -543,7 +569,8 @@ async function principal() {
   // reticências quando a faixa não cabe no telefone, e por isso a asserção lê o span e não
   // «o texto a seguir ao número» — que agora é uma tag.
   conferir('…e os títulos são os que a direção lê',
-    (html.match(/class="passo-t">([^<]+)</g) || [])
+    (html.slice(html.indexOf('id="turmas-form"'), html.indexOf('id="turmas-paineis"'))
+      .match(/class="passo-t">([^<]+)</g) || [])
       .map((s) => s.replace(/^[\s\S]*?>/, '').replace(/<$/, '').trim()),
     ['Turma', 'Rubricas', 'Associar']);
   // «SÓ A PRIMEIRA NASCE VISÍVEL» lê o `hidden` de cada painel, e não o texto à volta do

@@ -242,6 +242,23 @@ function estado() {
     // toda com um `colspan`, e contá-la daria 1.
     colunasDaTabela: [...document.querySelectorAll('#vb-tabela table')]
       .map((t) => t.tHead.rows[0].cells[0].colSpan),
+    // OS SEIS PASSOS E O MODO DE EDIÇÃO (31/10/2026).
+    passo: window.PASSO,
+    avisoDeEdicao: (() => {
+      const a = q('vb-edicao');
+      return a && !a.hidden ? a.textContent.replace(/\s+/g, ' ').trim() : null;
+    })(),
+    tiraEditando: (q('vb-tira') || {}).dataset
+      ? q('vb-tira').getAttribute('data-editando') : null,
+    alertasVisiveis: [...document.querySelectorAll('#vb-tira .passo-alerta')]
+      .filter((a) => getComputedStyle(a).display !== 'none').length,
+    contagensMarcadas: [...document.querySelectorAll('#vb-contagem input:checked')]
+      .map((x) => x.getAttribute('data-valor')),
+    rotuloDoBotao: (q('vb-cel-acrescentar') || {}).textContent || '',
+    linhaEmEdicao: Boolean(document.querySelector('#vb-tabela tr.em-edicao')),
+    temBotaoTirar: Boolean(document.querySelector('#vb-tabela button[data-tirar]')),
+    linhasDaTabela: [...document.querySelectorAll('#vb-tabela tr:not(.em-edicao)')]
+      .map((r) => r.textContent.replace(/\s+/g, ' ').trim()).join(' | '),
     recado: (document.querySelector('[data-res=verbetes]') || {}).textContent || '',
     botaoVerboNoModoB: (() => {
       const b = q('vb-modo-exercicio');
@@ -287,7 +304,33 @@ function estado() {
    * faz (a caixa é parte da peça, não um alvo separado), e é o que funciona mesmo quando a
    * folha desenha a caixa com `appearance:none` e a esconde por baixo da peça.
    */
+  // ================= OS SEIS PASSOS (31/10/2026) ===================================
+  // Só o painel do passo actual está no ecrã — e um controlo num painel escondido não se pode
+  // clicar. A prova leva-se ao passo onde o controlo vive, em vez de fingir que os seis estão
+  // todos à vista: é isso que a tela faz, e é isso que a prova deve fazer.
+  const PASSO_DE = [
+    [/^#vbnome|^#vb-novo-exercicio/, 1],
+    [/^#vbtempos|^#vbcompasso/, 2],
+    [/^#vbposicao/, 3],
+    [/^#vb-dir|^#vb-orient|^#vb-categoria|^#vb-contagem/, 4],
+    [/^#vb-sinais|^#vb-chips/, 5],
+    [/^#vb-tabela|^#vb-cel-desc|^#vb-cel-acrescentar|^input\[name=vb-cat\]/, 6],
+  ];
+  const passoDe = (seletor) => {
+    for (const [re, n] of PASSO_DE) if (re.test(seletor)) return n;
+    return null;
+  };
+  const irA = async (n) => {
+    await page.evaluate((k) => { if (typeof irParaPasso === 'function') irParaPasso(k); }, n);
+    await new Promise((r) => setTimeout(r, 150));
+  };
+  const noPassoDe = async (seletor) => {
+    const n = passoDe(seletor);
+    if (n) await irA(n);
+  };
+  /** Clicar numa pílula — o gesto que a tela pede, e não uma escrita de valor. */
   const clicar = async (seletor) => {
+    await noPassoDe(seletor);
     await page.evaluate((s) => {
       const alvo = document.querySelector(s);
       if (!alvo) throw new Error('pílula não encontrada: ' + s);
@@ -321,13 +364,13 @@ function estado() {
         () => document.getElementById('vb-tabela').textContent)));
 
     console.log('\n2. A TABELA MOSTRA O QUE O ALFABETO COBRE, SEM PERGUNTAR');
-    await page.select('#vbnome', 'Battement tendu');
+    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Battement tendu');
     await page.evaluate(() => {
       const t = document.getElementById('vbtempos');
       t.value = '8';
       t.dispatchEvent(new Event('input'));
     });
-    await page.select('#vbcompasso', '4/4');
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '4/4');
     await new Promise((r) => setTimeout(r, 400));
     const comExercicio = await page.evaluate(estado);
     conferir('há um bloco por DIREÇÃO do membro, e são três', comExercicio.tabela.length === 3,
@@ -343,6 +386,7 @@ function estado() {
       /en face/.test(comExercicio.tabela[0].linhas[0]), comExercicio.tabela[0].linhas[0]);
 
     console.log('\n3. O «+» ABRE O MODO DO EXERCÍCIO — E O OUTRO SAI');
+    await noPassoDe('#vb-novo-exercicio');
     await page.click('#vb-novo-exercicio');
     await new Promise((r) => setTimeout(r, 300));
     const noModoB = await page.evaluate(estado);
@@ -376,13 +420,13 @@ function estado() {
       await page.evaluate(() => document.getElementById('vbnome').value) === 'Sissonne ouverte');
 
     console.log('\n6. O EDITOR DE TRECHO É DE PÍLULAS, E OS DOIS EIXOS ESTÃO SEPARADOS');
-    await page.select('#vbnome', 'Battement tendu');
+    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Battement tendu');
     await page.evaluate(() => {
       const t = document.getElementById('vbtempos');
       t.value = '4';
       t.dispatchEvent(new Event('input'));
     });
-    await page.select('#vbcompasso', '2/4');
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 400));
     const eixos = await page.evaluate(estado);
     conferir('não há uma única lista suspensa no trecho', eixos.suspensasNoTrecho === 0, eixos.suspensasNoTrecho);
@@ -414,13 +458,13 @@ function estado() {
     conferir('em 2/4 a contagem só oferece o que cabe: 1 e 1–2',
       JSON.stringify(valores(comDirecao.contagens)) === JSON.stringify(['1', '1–2']),
       { contagens: valores(comDirecao.contagens), estado: comDirecao.dir });
-    await page.select('#vbcompasso', '4/4');
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '4/4');
     await new Promise((r) => setTimeout(r, 300));
     conferir('em 4/4 oferece até 4',
       JSON.stringify(valores((await page.evaluate(estado)).contagens))
         === JSON.stringify(['1', '1–2', '1–3', '1–4']),
       valores((await page.evaluate(estado)).contagens));
-    await page.select('#vbcompasso', '2/4');
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 300));
 
     console.log('\n7. TRÊS CLIQUES EM TRÊS DIREÇÕES DEIXAM UMA SÓ — E É A ÚLTIMA');
@@ -500,7 +544,7 @@ function estado() {
 
     console.log('\n11. ACRESCENTAR RECUSA O QUE FALTA, CAMPO A CAMPO');
     await page.evaluate(() => { document.getElementById('vb-cel-desc').value = ''; });
-    await page.click('#vb-cel-acrescentar');
+    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
     await new Promise((r) => setTimeout(r, 250));
     conferir('a recusa nomeia a frase que falta',
       /Falta o que acontece/.test((await page.evaluate(estado)).recado),
@@ -511,7 +555,7 @@ function estado() {
       d.dispatchEvent(new Event('input'));
     });
     ULTIMO_CORPO = null;
-    await page.click('#vb-cel-acrescentar');
+    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
     await new Promise((r) => setTimeout(r, 350));
     const acrescentado = await page.evaluate(estado);
     conferir('acrescentado, o trecho entra na tabela com a notação composta',
@@ -574,7 +618,7 @@ function estado() {
       t.value = '8';
       t.dispatchEvent(new Event('input'));
     });
-    await page.select('#vbcompasso', '4/4');
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '4/4');
     await new Promise((r) => setTimeout(r, 500));
     const antesDeTirar = await page.evaluate(estado);
     const linhasAntes = antesDeTirar.tabela[0].linhas.length;
@@ -596,13 +640,13 @@ function estado() {
     // O EXERCÍCIO SEM VERBETE é o caso de quem está a escrever de raiz — e era o caso dela:
     // battement frappé, 16 tempos, 2/4, três direções. O `Changement` do fixture não tem verbete
     // nenhum, e é por isso que a decomposição começa vazia.
-    await page.select('#vbnome', 'Changement');
+    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Changement');
     await page.evaluate(() => {
       const t = document.getElementById('vbtempos');
       t.value = '16';
       t.dispatchEvent(new Event('input'));
     });
-    await page.select('#vbcompasso', '2/4');
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 500));
     const vazio = await page.evaluate(estado);
     conferir('sem verbete, a decomposição está vazia nas três direções',
@@ -622,7 +666,7 @@ function estado() {
         d.value = f;
         d.dispatchEvent(new Event('input'));
       }, frase);
-      await page.click('#vb-cel-acrescentar');
+      await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
       await new Promise((r) => setTimeout(r, 400));
       return oferecidas;
     };
@@ -653,13 +697,13 @@ function estado() {
     // de Rond de jambe en l'air, e em cada um dos três trechos o campo — vazio, e sem nada que
     // dissesse o que ele quer — recebeu o NOME do exercício. A definição do vocabulário passa a
     // ser a versão de partida.
-    await page.select('#vbnome', 'Rond de jambe en l’air');
+    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Rond de jambe en l’air');
     await page.evaluate(() => {
       const t = document.getElementById('vbtempos');
       t.value = '8';
       t.dispatchEvent(new Event('input'));
     });
-    await page.select('#vbcompasso', '4/4');
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '4/4');
     await new Promise((r) => setTimeout(r, 500));
     const comDefinicao = await page.evaluate(estado);
     conferir('escolhido o exercício, o campo já traz a definição do vocabulário',
@@ -687,7 +731,69 @@ function estado() {
       /primeira posição/.test(ajustada.lido) && ajustada.linhasDoCampo === 2,
       { lido: ajustada.lido, linhas: ajustada.linhasDoCampo });
 
-    console.log('\n18. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
+    console.log('\n18. UM TRECHO ACRESCENTADO PODE SER CORRIGIDO — E É O PEDIDO DELA');
+    // «quando eu acrescento um trecho, seria bom que eu pudesse editar esse trecho». A correcção
+    // atravessa os passos 4 e 5, e é por isso que ela é um ESTADO: o aviso, o «!» nos dois
+    // números da tira, o rótulo do botão do 6 e a linha da tabela têm todos de saber.
+    // Um trecho novo, num exercício sem verbete: é o caso de quem está a escrever de raiz, e é
+    // onde a edição se mede sem depender do alfabeto de exemplo.
+    await noPassoDe('#vbnome');
+    await page.select('#vbnome', 'Changement');
+    await noPassoDe('#vbtempos');
+    await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '8';
+      t.dispatchEvent(new Event('input'));
+    });
+    await noPassoDe('#vbcompasso');
+    await page.select('#vbcompasso', '2/4');
+    await new Promise((r) => setTimeout(r, 500));
+    const oferecidas = await acrescentar('devant', 'o pé bate à frente, a ponta no chão');
+    await irA(6);
+    const comTrecho = await page.evaluate(estado);
+    const botoesDaLinha = await page.evaluate(
+      () => [...document.querySelectorAll('#vb-tabela button')].map((b) => b.textContent.trim()));
+    conferir('a linha do trecho tem «Editar» e «×»',
+      botoesDaLinha.indexOf('Editar') !== -1 && botoesDaLinha.indexOf('×') !== -1, botoesDaLinha);
+
+    await page.evaluate(() => { document.querySelector('#vb-tabela button[data-editar]').click(); });
+    await new Promise((r) => setTimeout(r, 400));
+    const emEdicao = await page.evaluate(estado);
+    conferir('«Editar» leva ao passo 4, que é onde a correcção começa', emEdicao.passo === 4, emEdicao.passo);
+    conferir('o aviso de edição está à vista e diz qual é o trecho',
+      emEdicao.avisoDeEdicao !== null && /trecho 1/.test(emEdicao.avisoDeEdicao), emEdicao.avisoDeEdicao);
+    conferir('a tira acende o «!» — e só nos passos 4 e 5',
+      emEdicao.tiraEditando === 'sim' && emEdicao.alertasVisiveis === 2,
+      { tira: emEdicao.tiraEditando, alertas: emEdicao.alertasVisiveis });
+    conferir('os valores do trecho estão carregados nas pílulas',
+      emEdicao.direcoesMarcadas.length === 1 && emEdicao.contagensMarcadas.length === 1,
+      { dir: emEdicao.direcoesMarcadas, cont: emEdicao.contagensMarcadas });
+    conferir('e a contagem carregada é a DELE — a edição não desloca o trecho',
+      emEdicao.contagensMarcadas[0] === oferecidas[0],
+      { carregada: emEdicao.contagensMarcadas, era: oferecidas });
+    conferir('o botão do passo 6 passa a «Guardar a alteração»',
+      emEdicao.rotuloDoBotao === 'Guardar a alteração', emEdicao.rotuloDoBotao);
+
+    // A LINHA EM EDIÇÃO, VISTA DO PASSO 6: marcada, sem «×» e com «Cancelar».
+    await irA(6);
+    const linhaEmEdicao = await page.evaluate(estado);
+    conferir('a linha em edição está marcada e não tem «×»',
+      linhaEmEdicao.linhaEmEdicao === true && linhaEmEdicao.temBotaoTirar === false,
+      { marcada: linhaEmEdicao.linhaEmEdicao, tirar: linhaEmEdicao.temBotaoTirar });
+
+    // CANCELAR: nada muda, e volta-se à decomposição.
+    await page.evaluate(() => { document.getElementById('vb-cancelar-edicao').click(); });
+    await new Promise((r) => setTimeout(r, 400));
+    const cancelado = await page.evaluate(estado);
+    conferir('«Cancelar a edição» volta ao passo 6', cancelado.passo === 6, cancelado.passo);
+    conferir('e apaga o modo: o aviso e o «!» desaparecem',
+      cancelado.avisoDeEdicao === null && cancelado.tiraEditando === 'nao',
+      { aviso: cancelado.avisoDeEdicao, tira: cancelado.tiraEditando });
+    conferir('o trecho continua na tabela, intacto',
+      cancelado.linhasDaTabela === comTrecho.linhasDaTabela,
+      { antes: comTrecho.linhasDaTabela, depois: cancelado.linhasDaTabela });
+
+    console.log('\n19. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {
       await page.setViewport({ width: largura, height: 900 });
       await new Promise((r) => setTimeout(r, 250));
