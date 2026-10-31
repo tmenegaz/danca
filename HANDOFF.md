@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-31T16:46:11-0300`
-Commit atual: `db811d5` — docs(registro): actualizar a fotografia após a definição no campo
+Gerado em: `2026-10-31T18:36:13-0300`
+Commit atual: `b20242e` — docs(registro): actualizar a fotografia após as definições e as duas arrumações
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,12 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+b20242e docs(registro): actualizar a fotografia após as definições e as duas arrumações
+2ff8ed4 docs(registro): as definições no vocabulário, o lê-se no campo, e as duas arrumações
+b641acc feat(estrutura): o «lê-se» dentro do campo, e a quarta coluna fora da tabela
+48f43e2 feat(biblioteca): as definições do dicionário dela entram no vocabulário, com a fonte
+09eaf2b chore(estrutura): regerar os índices derivados
+fd6f67c docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 db811d5 docs(registro): actualizar a fotografia após a definição no campo
 612c49b docs(registro): a definição do exercício no campo, e o «lê-se» abaixo
 7be42cb feat(estrutura): «o que acontece» recebe a definição do exercício, e o «lê-se» desce
@@ -94,12 +100,6 @@ eb72950 docs(registro): actualizar a fotografia após os dois eixos da célula
 567d52c docs(registro): os dois eixos da célula, e o trecho em pílulas
 9b318fe feat(estrutura): o trecho em pílulas, e os dois eixos separados na tela
 4994b34 feat(notacao): os dois eixos da célula — direção do membro e orientação do corpo
-d7ab51a docs(registro): atualizar a fotografia após a célula explicada
-6c6ce28 docs(registro): a célula explicada, a contagem calculada e o dicionário do que acontece
-4342f16 feat(notacao): a célula explicada — contagem que se escolhe, sinais que se compõem, frase do dicionário
-6900363 docs(registro): atualizar a fotografia após os dois modos e o editor de célula
-7a931da docs(registro): os dois modos do verbete, a direção derivada e o editor de célula
-4f4795a feat(notacao): dois modos no verbete, a direção lida do dado, e o editor de célula
 ```
 
 ## Por professor
@@ -199,76 +199,76 @@ d7ab51a docs(registro): atualizar a fotografia após a célula explicada
 
 ## Última entrada do REGISTRO
 
-## 31/10/2026 — «O que acontece» recebe a definição do exercício, e o «lê-se» desce
+## 31/10/2026 — O «lê-se» dentro do campo, a quarta coluna fora, e as definições no vocabulário
 
-**O que motivou.** A pesquisadora escreveu o **primeiro verbete a sério** — *Rond de jambe en l'air*,
-com trechos à frente, ao lado e atrás — e o resultado mostrou, no dado, porque é que o campo estava
-errado: em cada um dos três trechos, a `descricao` gravada é **«rondejambe en l'eir»**. Ela escreveu
-o **nome do exercício** no campo, porque o campo — vazio, com o rótulo «o que acontece neste trecho»
-— não dizia o que queria. Foi ela quem leu o dado e propôs a regra: *«o que acontece nesse trecho é a
-definição dada pelo dicionário ao nome que a gente escolheu no exercício, e abaixo vai ficar como se
-lê»*.
+**O que motivou.** A pesquisadora achou o ajuste anterior **incompleto**, e com razão em duas
+frentes. Primeira: escolheu o **Grand battement** e a definição que apareceu foi «Grande batimento da
+perna de trabalho.» — enquanto a que ela tem, e leu em voz alta, é «Lançamento amplo e vigoroso da
+perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até
+fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante
+o lançamento.» Segunda: o «lê-se» tinha ficado num parágrafo à parte, e o pedido dela é que ele esteja
+**dentro** do campo — «isso tem que estar escrito aqui também dentro do que acontece nesse trecho».
 
-**A definição passa a vir do VOCABULÁRIO**, que é a verdade única dos termos — a mesma lista de onde
-sai o exercício que se escolhe. A rota leva `descricao` e `fonte` em cada termo, e não há uma segunda
-lista de definições a divergir: o que a pesquisadora der para um termo vale no formulário, na aula e
-no glossário, com a proveniência ao lado.
+**As definições entraram no VOCABULÁRIO, que é a verdade única dos termos.** O dicionário que ela
+forneceu tem 30 termos; fundido, o resultado medido: **14 termos que estavam sem descrição passam a
+tê-la** (incluindo as cinco posições de pés, todas em branco), **10 que tinham uma descrição curta
+passam a ter a do dicionário**, e **6 são criados** — Aplomb, Bras bas, Adagio, Allegro, Ballon,
+Legato. O vocabulário vai de **87 para 93** termos, de **35 para 55** com descrição, e os exercícios
+de **12 para 19** com definição, em 55. A proveniência está declarada em todos (`fonte` =
+«Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)»).
 
-**A ordem de preferência é três, e não uma.** Definição do exercício → dicionário **do trecho**
-(indexado pela notação, o que já existia) → vazio. O dicionário do trecho continua a ser o segundo
-porque é mais específico, e porque sem esta ordem **43 dos 55 exercícios** passariam a ficar sem
-sugestão nenhuma: o vocabulário tem definição em **12 de 55**.
+**Duas decisões dentro da fusão.** O **detalhe técnico entra na mesma frase**, como ela o leu («…
+Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco…»). E `variacao_nome` **não** é
+detalhe técnico — é o nome da mesma posição noutro método, e sai em frase própria («Variação de nome —
+Vaganova: Preparatória | RAD: Bras bas | Francesa: En bas»), com o valor **verbatim**: a primeira
+versão baixava a inicial e escrevia «vaganova», que é o nome de uma escola com maiúscula.
 
-**A definição aparece assim que o exercício é escolhido** — e não só quando há sinais. Ela não
-depende do trecho, e é ela que diz o que o campo quer. A nota debaixo do campo passa a dizer **de
-onde veio** o texto («Definição do dicionário para «Rond de jambe en l'air»», ou «a frase vem do
-dicionário deste trecho»), e continua ajustável: o que fica gravado é a frase da célula (P-03/P-04), e
-o ajuste não se perde.
+**O «lê-se» passou a ser a segunda linha do campo.** A definição em cima, o «Lê-se: Pé, quinta posição,
+à frente, quinta posição» em baixo — exactamente a forma que ela descreveu. O parágrafo separado saiu
+(dizia o mesmo) e o campo ganhou altura (rows 2 → 4). E a frase **gravada** é composta ao acrescentar,
+para o «como se lê» entrar no texto da célula **mesmo quando ela reescreveu o campo de ponta a
+ponta** — foi um defeito que a prova apanhou: quem ajustasse a definição deixava de receber o «lê-se».
 
-**E o «como se lê» desceu.** A ordem passa a ser a da leitura — primeiro o que acontece, em
-português; depois, abaixo, como isso se escreve em Benesh. Era ao contrário.
+**A quarta coluna saiu da tabela.** Havia cinco: compasso · contagem · orientação · notação · «o que
+acontece», esta com um campo editável por linha. Ela viu o que era: **com a frase a vir da definição
+do exercício, todas as linhas diziam o mesmo**; e a parte que muda por trecho (o «lê-se») é função da
+notação, que já tem coluna. Ficam quatro, e o handler do campo por linha saiu com a coluna — um
+handler sem markup a que responder parece que a tela ainda tem um campo.
 
-**Sobre o dicionário que ela enviou, e que ela acha menor.** Medido: o ficheiro guardado tem **30
-termos** e o JSON está **completo** — fecha bem e não foi cortado. **Rond de jambe não está lá**, em
-nenhuma das formas (nem *à terre*, nem *en l'air*). O que existe com esse nome, no vocabulário do
-projecto, é `Rond de jambe à terre` (sem definição) e `Rond de jambe en l’air` («Círculo da perna no
-ar.», sem fonte). Não é um dicionário que encolheu: é um ficheiro a que faltam termos.
+**Sobre o dicionário que ela achou menor.** Medido: o ficheiro guardado tem **30 termos** e o JSON
+está **completo** (fecha, não foi cortado). **Rond de jambe não está lá** em nenhuma forma; o que
+existe com esse nome é do vocabulário do projecto, e agora ambos têm definição.
+
+**Duas bancadas novas** para a arrumação do formulário, que ela pediu para escolher:
+`experimentos/propostas/proposta-verbete-acordeao.html` (Proposta 13 — quatro painéis, as secções
+fechadas a dizer o que têm dentro) e `proposta-verbete-passos.html` (Proposta 14 — quatro passos, uma
+tira de resumo que também é a navegação). Ambas com o editor a funcionar sobre o dado real, testadas
+em 320/390/768/1280 sem transbordo e sem erro de JavaScript. **A tira de passos é peça nova** e a
+folha está congelada: implementá-la exige motivo declarado e commit próprio.
 
 **Onde entrou.**
-- `motor/servidor/bastidores.js` — a rota com `descricao`/`fonte`; `definicaoDoExercicio()`;
-  `sugerirDescricao()` com as três origens; o «lê-se» abaixo do campo.
-- `experimentos/provar-celula.js` — **75 → 82 asserções**.
-- `experimentos/provar-verbete.js` — a definição na rota, e a fonte declarada.
-- as duas `.fipp` do ciclo da Batata — **regeradas**: o verbete que ela gravou pela Produção
-  (`73f5330`) levou o alfabeto à **versão 6** e deixou o selo desatualizado. O `hash` do ciclo não
-  muda (o alfabeto está fora da fórmula); o `notacao_versao`/`notacao_sha` do selo, sim.
+- `biblioteca/modalidades/bale-classico/vocabulario.json` — a fusão, 93 termos, com `fonte`.
+- `motor/servidor/bastidores.js` — `comoSeLe()`, `partirFrase()`, a frase composta; a tabela de quatro
+  colunas; o handler do campo por linha removido; o «lê-se» fora do parágrafo.
+- `experimentos/provar-celula.js` — **82 → 85 asserções**.
+- `experimentos/propostas/` — as duas bancadas e os cartões no índice.
 
-**Motivo declarado — os congelados.** Nenhum nesta entrega.
+**Motivo declarado — os congelados.** Nenhum nesta entrega (nenhuma regra nova na folha; a tira de
+passos está **só** na bancada).
 
 **Validação.**
-`provar-celula.js` → **82 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
-→ **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha do menu é pré-existente).
-`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
-íntegro, `3601081…`.
+`provar-celula.js` → **85 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**.
+`hash-ciclo.sh --check` → íntegro, `3601081…`. **O texto do PDF** tem o **mesmo md5** que antes da
+fusão (`7dcd4817…`): 93 termos em vez de 87 não mudaram um documento.
 
-**Uma asserção frágil, reconvertida e não apagada.** O `provar-notacao.js` exigia **«exactamente
-quatro exercícios»** e passou a reprovar o quinto — que é o objectivo do CRUD. Passa a exigir que os
-quatro do ciclo continuem declarados. **Nota:** esse ficheiro está no `.gitignore` e **não é
-versionado**, portanto a correcção ficou local; um documento que o cita como validação não pode ser
-corrido por quem clona o repositório.
-
-**Medido no navegador, na bancada local, com o alfabeto e o vocabulário reais.** Abrindo o verbete
-dela: o campo traz **«Círculo da perna no ar.»** e a nota diz «Definição do dicionário para «Rond de
-jambe en l'air»»; o «lê-se» está **abaixo** do campo; nenhum erro de JavaScript. **12 de 55**
-exercícios têm definição no vocabulário.
-
-**Dois defeitos no dado que ela gravou, e que não corrigi** (é dela a decisão): os três trechos levam
-o sinal **`-`**, que o alfabeto lê como **«ao lado»** — em «à frente» e em «atrás» deveria ser `+` e
-`×`; e o verbete declara **`cobre: 3`** para uma música de **4 tempos** em 2/4, portanto a página da
-aula dirá que falta escrever um tempo.
+**Medido no navegador, na bancada local, com o dado real.** Grand battement, 8 tempos, 2/4, quinta
+posição: o campo traz a definição completa com o detalhe técnico, e depois de «5ª + 5ª» a segunda
+linha é **«Lê-se: Pé, quinta posição, à frente, quinta posição.»** — a forma que ela descreveu. A
+tabela tem quatro colunas e nenhum campo dentro. As duas bancadas percorrem-se do princípio ao fim.
 
 **O que continua em aberto.**
-- O **dicionário dela** — falta a proveniência (`fonte`), e faltam termos (Rond de jambe entre eles).
+- **Escolher a arrumação**: acordeão, passos, ou nenhuma das duas.
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
 
 ## O que está pendente
