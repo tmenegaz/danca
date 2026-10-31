@@ -1332,6 +1332,34 @@ function senhaDaDirecaoOk(env, senha) {
  */
 const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
 
+/* OS SETE PASSOS DO VERBETE (31/10/2026).
+ *
+ * A lista vive AQUI, e não dentro do `map` que desenha a tira, porque três coisas dependem
+ * dela e não podem discordar: os painéis (`data-passo`), a contagem que `pintarPassos` esconde,
+ * e o texto do aviso de edição — que diz em que passo a correcção começa e em que passo
+ * continua. Escrito à mão em três lugares, o primeiro a mudar deixaria os outros dois a mentir.
+ *
+ * O SÉTIMO PASSO NASCEU DE UMA REDUNDÂNCIA (31/10/2026). «O que acontece» era escrito a cada
+ * trecho, e a frase é do EXERCÍCIO, não do trecho: quem acrescentava três trechos escrevia três
+ * vezes a mesma definição. O texto passa a ser escrito uma vez — no passo 2 —, e cada trecho
+ * acrescenta-lhe, abaixo, o «lê-se» da sua própria notação. O antigo sexto passo ficou só com a
+ * decomposição: a tabela, o que fica escrito em cada trecho, e o botão de acrescentar.
+ */
+const PASSOS_DO_VERBETE = [
+  ['1', 'O exercício'],
+  ['2', 'A frase'],
+  ['3', 'A música'],
+  ['4', 'A posição'],
+  ['5', 'Para onde'],
+  ['6', 'Os sinais'],
+  ['7', 'A decomposição'],
+];
+
+/* OS DOIS PASSOS POR ONDE A CORRECÇÃO DE UM TRECHO PASSA. É neles que o «!» de edição acende —
+ * e são eles, e não outros, porque um trecho se corrige na direção, na contagem, na orientação e
+ * nos sinais. */
+const PASSOS_DO_TRECHO = [5, 6];
+
 function b64url(bytes) {
   const a = new Uint8Array(bytes);
   let s = '';
@@ -2333,7 +2361,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O PAINEL DO PASSO já não tem grade própria: quem alinha formulário e lista é o
     // `.turmas-corpo`. Ele agora só existe/desaparece — o conteúdo é o formulário do passo.
     '.passo-painel{grid-column:1/-1;min-width:0;}' +
-    // A TIRA DO VERBETE CABE EM 320px (31/10/2026). São seis passos, e cada um diz o rótulo E o
+    // A TIRA DO VERBETE CABE EM 320px (31/10/2026). São sete passos, e cada um diz o rótulo E o
     // valor — o dobro do que a faixa da turma carrega. As travas são as MESMAS que a faixa da
     // turma já usa (`min-width:0` em cada elo da cadeia, e reticências no rótulo): sem elas o
     // botão não encolhe, e a tira empurra a página 30px para lá do ecrã.
@@ -2342,6 +2370,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '#vb-tira .passo{min-width:0;max-width:100%;}' +
     '#vb-tira .passo-t{max-width:7.5rem;}' +
     '#vb-tira .passo-alerta{flex:0 0 auto;}' +
+    // A SECÇÃO DOS VERBETES PASSOU A UMA COLUNA (31/10/2026). Com sete passos, o formulário
+    // precisa da largura toda: na coluna de 34rem a tira dos passos partia-se em três linhas e
+    // cada painel ficava espremido. O formulário ocupa a largura, e a listagem desce para baixo
+    // dele — que é a leitura certa nesta secção: primeiro o que se escreve, depois o que existe.
+    // A listagem deixa de ser uma coluna presa: presa, ela ficaria ao lado de um formulário que
+    // já não tem coluna, e `sticky` com `max-height` num bloco de largura inteira é uma caixa
+    // que rola dentro de si mesma sem motivo.
+    '#sec-verbetes{grid-template-columns:minmax(0,1fr);}' +
+    '#sec-verbetes>.col-lista{position:static;max-height:none;}' +
+    // AS ETIQUETAS DA LISTAGEM PODEM OCUPAR DUAS LINHAS. A regra das duas linhas trava o
+    // complemento numa só, com reticências (`nowrap`), porque nas outras listas ele é uma
+    // palavra ou duas. Aqui ele é a POSIÇÃO, as DIREÇÕES, o COMPASSO e a contagem de trechos —
+    // e truncá-lo esconderia exactamente o que ela pediu para ver.
+    '#lista-verbetes .nome .dono{white-space:normal;overflow:visible;}' +
+    // O NOME DA LISTAGEM É UM BOTÃO, E VESTE-SE DE NOME (31/10/2026). Ele abre o verbete no
+    // formulário — é uma ação, e por isso é `<button>` e não link. Sem desenho, saía com a
+    // pastilha cinzenta do navegador, ao lado de selos de 12px: parecia um controle de formulário
+    // perdido numa lista. O desenho é o do `.nome-link` (o nome sublinhado, a cor do texto, o
+    // sublinhado da marca ao passar) — a mesma peça, aplicada ao botão.
+    '#lista-verbetes .nome .linha1 > button{flex:0 1 auto;min-width:0;margin:0;padding:0;' +
+    'background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;' +
+    'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:underline;' +
+    'text-decoration-color:var(--borda-campo);text-underline-offset:.15em;}' +
+    '#lista-verbetes .nome .linha1 > button:hover{color:var(--marca);' +
+    'text-decoration-color:currentColor;}' +
+    '#lista-verbetes .nome .linha1 > button:focus-visible{outline:2px solid var(--foco);' +
+    'outline-offset:2px;border-radius:2px;}' +
     // A COLUNA DA LISTA: começa no topo e vai até o fim do que se vê, sem rolar a página.
     // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
     '.col-lista{display:flex;flex-direction:column;position:sticky;top:calc(var(--header-height) + 8px);' +
@@ -3243,44 +3298,67 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
     // ---- MODO A: o verbete ---------------------------------------------------------------
     '<div id="vb-modo-verbete">' +
-    // ================= OS SEIS PASSOS (31/10/2026) =================================
+    // ================= OS SETE PASSOS (31/10/2026) =================================
     // Decidido pela pesquisadora depois de ver as duas bancadas: «o Step, apesar de ter mais
     // cliques, ele é mais fácil de entender». O formulário era uma coluna comprida em que a
     // maior parte dos campos não se podia preencher a maior parte do tempo — a posição depende
-    // do exercício, a contagem depende da direção, a frase depende da música. Passa a seis
+    // do exercício, a contagem depende da direção, a frase depende da música. Passa a sete
     // passos, um de cada vez, com a tira em cima: ela diz o que já está decidido E é a navegação.
     //
-    // OS TRÊS PASSOS DO TRECHO separam o que o trecho É (4: para onde e quando), como ele SE
-    // ESCREVE (5: os sinais) e o que a decomposição MOSTRA (6: a tabela e o texto). Era o
-    // emaranhado do quarto passo que estava confuso — e a tabela, que aparecia ao lado das
-    // escolhas que a alimentam, respondia antes de haver pergunta.
+    // O SÉTIMO NASCEU DE UMA REDUNDÂNCIA (31/10/2026). «O que acontece» era pedido a cada trecho,
+    // e a frase é do exercício: quem acrescentava três trechos escrevia três vezes a definição. A
+    // frase passou a ser escrita uma vez no passo 2, e o último passo mostra o texto composto de
+    // cada trecho — frase + «lê-se» — que é exactamente o que se grava.
+    //
+    // OS DOIS PASSOS DO TRECHO separam o que ele É (5: para onde e quando) de como ele SE ESCREVE
+    // (6: os sinais) — e o último passo é o que a decomposição MOSTRA. Era o emaranhado do quarto
+    // passo que estava confuso — e a tabela, que aparecia ao lado das escolhas que a alimentam,
+    // respondia antes de haver pergunta.
     //
     // A PEÇA NÃO É NOVA. `.passos`, `.passo`, `.passo-n`, `.passo-t` e `.passo-alerta` já são o
     // desenho da faixa do formulário da turma, nesta mesma página — e o `!` de edição já existe
     // para dizer «está-se a editar». Reusam-se, em vez de inventar uma segunda tira que diria o
-    // mesmo com outro nome. O que muda é o alcance: aqui o `!` só aparece nos passos 4 e 5,
+    // mesmo com outro nome. O que muda é o alcance: aqui o `!` só aparece nos passos do trecho,
     // porque é por eles que a correcção de um trecho passa.
     '<ol class="passos" id="vb-tira" data-editando="nao" aria-label="Passos do verbete">' +
-    [['1', 'O exercício', false], ['2', 'A música', false], ['3', 'A posição', false],
-      ['4', 'Para onde', true], ['5', 'Os sinais', true], ['6', 'A decomposição', false]]
-      .map(([n, t, alerta]) => '<li><button type="button" class="passo" data-passo="' + n + '">' +
+    PASSOS_DO_VERBETE.map(([n, t]) =>
+      '<li><button type="button" class="passo" data-passo="' + n + '">' +
         '<span class="passo-n">' + n + '</span> ' +
         '<span class="passo-t">' + t + '</span>' +
         // O VALOR VAI NUM SEGUNDO `.passo-t`, e não numa classe nova: o que se quer dele é o
         // mesmo que a folha já dá ao rótulo — encurtar com reticências quando a tira não cabe.
         ' <span class="passo-t" id="vb-v' + n + '">—</span>' +
-        (alerta ? ' <span class="passo-alerta" aria-hidden="true">!</span>' : '') +
+        (PASSOS_DO_TRECHO.indexOf(Number(n)) !== -1
+          ? ' <span class="passo-alerta" aria-hidden="true">!</span>' : '') +
         '</button></li>').join('') +
     '</ol>' +
     // O AVISO DE EDIÇÃO. Um trecho acrescentado pode ser corrigido, e a correcção atravessa os
-    // passos 4 e 5 — o aviso diz onde ela começa, e o `!` nos dois números impede que se perca
-    // o rasto a meio. É `.nota` com um botão: nenhuma peça nova.
+    // dois passos do trecho — o aviso diz onde ela começa, e o `!` nos dois números impede que se
+    // perca o rasto a meio. É `.nota` com um botão: nenhuma peça nova. Os números vêm da lista
+    // dos passos, para o texto não envelhecer sozinho numa renumeração.
     '<p class="nota" id="vb-edicao" hidden>' +
     '<strong>Em edição</strong> — trecho <span id="vb-edicao-n">1</span>. ' +
-    'A edição começa no <strong>passo 4</strong> e continua no 5. ' +
+    'A edição começa no <strong>passo ' + PASSOS_DO_TRECHO[0] + '</strong> e continua no ' +
+    PASSOS_DO_TRECHO[1] + '. ' +
     '<button type="button" class="acao secundario pequena" id="vb-cancelar-edicao">Cancelar a edição</button>' +
     '</p>' +
-    '<div class="passo-painel" data-passo="2">' +
+    // ---- PASSO 2: A FRASE (31/10/2026) -------------------------------------------------
+    // A FRASE É DO EXERCÍCIO, E ESCREVE-SE UMA VEZ. Era o campo do último passo, e o defeito só
+    // apareceu a usar: quem acrescentava três trechos escrevia três vezes a mesma definição —
+    // a redundância que ela mandou tirar da tabela continuava viva no preenchimento. Aqui o
+    // texto é escrito uma vez e vale para todos os trechos; o que muda por trecho («lê-se: pé,
+    // quinta posição, à frente…») é derivado da notação e nasce no passo 7.
+    //
+    // A DEFINIÇÃO DO DICIONÁRIO PRÉ-ENCHE O CAMPO, e não o substitui: o que a professora ajusta
+    // é o que fica gravado nas células (P-03/P-04). Quando o exercício já tem verbete, o texto
+    // que volta é o que está GRAVADO, não o do dicionário — o dicionário pode melhorar sem
+    // reescrever o passado.
+    '<div class="passo-painel" data-passo="2" hidden>' +
+    '<label class="campo-rotulo" for="vb-frase">O que acontece — a frase deste exercício</label>' +
+    '<textarea id="vb-frase" rows="4" placeholder="a definição do exercício; cada trecho acrescenta, abaixo, o «lê-se» da sua notação"></textarea>' +
+    '<p class="nota" id="vb-frase-nota"></p>' +
+    '</div>' +
+    '<div class="passo-painel" data-passo="3" hidden>' +
     '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
     '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="ex.: 8">' +
     '<label class="campo-rotulo" for="vbcompasso">Em que compasso</label>' +
@@ -3290,7 +3368,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</select>' +
     '<p class="nota" id="vb-musica-nota"></p>' +
     '</div>' +
-    '<div class="passo-painel" data-passo="3" hidden>' +
+    '<div class="passo-painel" data-passo="4" hidden>' +
     '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
     '<select id="vbposicao"><option value="">— escolha a posição —</option></select>' +
     '</div>' +
@@ -3304,11 +3382,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // sequência de vários não se escreve com uma escolha única. O `+` ao lado piorava-o, porque
     // obrigava a mirar num botão depois de já ter escolhido. Com pílulas, o clique ACRESCENTA ao
     // fim e o segundo clique TIRA: não há estado escondido, e o que está escrito vê-se.
-    // ---- PASSO 4: PARA ONDE O TRECHO VAI, E QUANDO (31/10/2026) -----------------------
+    // ---- PASSO 5: PARA ONDE O TRECHO VAI, E QUANDO (31/10/2026) -----------------------
     // Quatro escolhas que respondem à mesma pergunta: a direção do membro, a orientação do
     // corpo, a categoria e a contagem. Estavam misturadas com os sinais e com a tabela, e era
     // esse emaranhado que a pesquisadora achou confuso.
-    '<div class="passo-painel" data-passo="4" hidden>' +
+    '<div class="passo-painel" data-passo="5" hidden>' +
     '<fieldset class="escolhas" id="vb-dir">' +
     '<legend class="campo-rotulo">Direção do membro — para onde o membro vai</legend>' +
     '</fieldset>' +
@@ -3331,20 +3409,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<legend class="campo-rotulo">Contagem — em que tempos do compasso</legend>' +
     '</fieldset>' +
     '</div>' +
-    // ---- PASSO 5: COMO O TRECHO SE ESCREVE (31/10/2026) -------------------------------
-    '<div class="passo-painel" data-passo="5" hidden>' +
+    // ---- PASSO 6: COMO O TRECHO SE ESCREVE (31/10/2026) -------------------------------
+    '<div class="passo-painel" data-passo="6" hidden>' +
     '<fieldset class="escolhas" id="vb-sinais">' +
     '<legend class="campo-rotulo">Sinais, pela ordem em que acontecem <span class="nota">— clique para acrescentar ao fim; clique outra vez para tirar</span></legend>' +
     '</fieldset>' +
     '<p class="campo-rotulo">Sinais Benesh deste trecho</p>' +
     '<p id="vb-chips" class="par-associar"><span class="nota">Escolha a categoria e os sinais.</span></p>' +
     '</div>' +
-    // ---- PASSO 6: A DECOMPOSIÇÃO (31/10/2026) -----------------------------------------
+    // ---- PASSO 7: A DECOMPOSIÇÃO (31/10/2026) -----------------------------------------
     // A tabela deixou de estar ao lado das escolhas que a alimentam — ela respondia «não vai à
-    // frente» antes de haver trecho nenhum. Aqui mostra o que foi acrescentado, e o campo da
-    // frase.
-    '<div class="passo-painel" data-passo="6" hidden>' +
-    // ---- A DECOMPOSIÇÃO, NUMA TABELA SÓ (28/10/2026) -------------------------------------
+    // frente» antes de haver trecho nenhum. Aqui mostra o que foi acrescentado.
+    //
+    // E NÃO TEM CAMPO DE TEXTO (31/10/2026). Havia um — «o que acontece neste trecho» —, e o
+    // defeito era o pior dos dois mundos: a coluna da tabela tinha saído por ser redundante, mas
+    // o campo continuava a pedir a MESMA frase a cada trecho. A frase é do exercício e passou
+    // para o passo 2; o que este passo mostra é o que fica ESCRITO em cada trecho, já composto
+    // (frase + «lê-se»), sem nada para reescrever.
+    '<div class="passo-painel" data-passo="7" hidden>' +
     // Havia DUAS tabelas — «direções que este verbete cobre» e «células deste verbete» —, e elas
     // diziam a mesma coisa: a primeira era a segunda agrupada. Sem células, as duas diziam «não
     // há nada». É o mesmo defeito das duas listas de direções no dado, repetido na tela; a
@@ -3361,14 +3443,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo">A decomposição — o que acontece em cada trecho</label>' +
     '<div id="vb-tabela"></div>' +
     '<p class="nota" id="vb-cobertura"></p>' +
-    '<label class="campo-rotulo" for="vb-cel-desc">O que acontece neste trecho</label>' +
-    // O CAMPO PASSA A RECEBER A DEFINIÇÃO DO EXERCÍCIO (31/10/2026), e é editável. A razão é o
-    // que a pesquisadora viu no primeiro verbete escrito a sério: com o campo vazio, ela escreveu
-    // ali o NOME do exercício — «rondejambe en l'eir» em três trechos —, porque não havia nada a
-    // dizer-lhe o que o campo quer. A definição do dicionário é o princípio certo: diz o que o
-    // exercício É, e a professora ajusta o que acontece NESTE trecho.
-    '<textarea id="vb-cel-desc" rows="4" placeholder="a definição do exercício e, abaixo, como se lê este trecho"></textarea>' +
-    '<p class="nota" id="vb-desc-nota"></p>' +
+    // O QUE FICA ESCRITO — derivado, não escrito (31/10/2026). Cada trecho grava DUAS linhas: a
+    // frase do exercício (passo 2) e o «lê-se» da sua notação. Aqui elas aparecem compostas, do
+    // lado da tabela que mostra a notação que as gera: é a última leitura antes de gravar, e é
+    // onde se vê que os trechos partilham a mesma frase e diferem no «lê-se».
+    '<p class="campo-rotulo">O que fica escrito em cada trecho</p>' +
+    '<div id="vb-fica"></div>' +
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vb-cel-acrescentar">Acrescentar trecho</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-edicao-2" hidden>Cancelar a edição</button>' +
@@ -5004,11 +5084,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var ORIENTACAO = "";' +
     'var CONTAGEM = "";' +
     'var MUSICA_EM_FOCO = "";' +
-    'var SUGESTAO_ANTERIOR = "";' +
-    // OS SEIS PASSOS, E O MODO DE EDIÇÃO (31/10/2026). `PASSO` diz onde se está; `EM_EDICAO` é
+    'var EXERCICIO_EM_FOCO = "";' +
+    // A FRASE DO VERBETE (31/10/2026). É uma só por exercício, e não uma por trecho: era o campo
+    // que obrigava a reescrever a definição a cada trecho. `FRASE_ANTERIOR` guarda o que o
+    // sistema escreveu no campo, para a sugestão não voltar por cima do que a professora ajustou.
+    'var FRASE = "";' +
+    'var FRASE_ANTERIOR = "";' +
+    // OS SETE PASSOS, E O MODO DE EDIÇÃO (31/10/2026). `PASSO` diz onde se está; `EM_EDICAO` é
     // `null` quando se está a compor um trecho NOVO e o número do trecho quando se está a
-    // corrigir um que já lá está. A edição atravessa os passos 4 e 5 — é por isso que ela é um
-    // estado, e não um botão.
+    // corrigir um que já lá está. A edição atravessa os passos 5 e 6 — é por isso que ela é um
+    // estado, e não um botão. `ULTIMO_PASSO` vem da lista do servidor, para o limite não ser um
+    // número escrito à mão num sítio onde ele já não vale.
+    'var PASSOS = ' + JSON.stringify(PASSOS_DO_VERBETE.map(([n]) => Number(n))) + ';' +
+    // OS PASSOS DO TRECHO TAMBÉM VÊM DO SERVIDOR: a edição de um trecho leva ao primeiro deles, e
+    // uma lista escrita à mão no script divergiria da que desenha a tira.
+    'var PASSOS_DO_TRECHO = ' + JSON.stringify(PASSOS_DO_TRECHO) + ';' +
+    'var ULTIMO_PASSO = PASSOS[PASSOS.length - 1];' +
     'var PASSO = 1;' +
     'var EM_EDICAO = null;' +
     'function direcoesDaGramatica(){ return (VERBETES && VERBETES.direcoes) || []; }' +
@@ -5096,6 +5187,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!nome) {' +
     '    alvo.innerHTML = "<p class=\\"nota\\">Escolha o exercício para ver e escrever a decomposição dele.</p>";' +
     '    document.getElementById("vb-cobertura").textContent = "";' +
+    '    pintarFica();' +
     '    return;' +
     '  }' +
     '  var mapa = compassosDosTrechos();' +
@@ -5148,6 +5240,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        ? "Cobre os " + t + " tempos, em " + Math.ceil(t / numeradorDoCompasso()) + " compasso(s) de " + numeradorDoCompasso() + "."' +
     '        : (c < t ? "Cobre " + c + " de " + t + " tempos — falta escrever " + (t - c) + "."' +
     '                 : "Cobre " + c + " de " + t + " tempos — passa " + (c - t) + "."));' +
+    // A PRÉVIA DO QUE FICA ESCRITO ACOMPANHA A TABELA: as duas leem as mesmas células, e uma
+    // tabela que muda sem a prévia mudar seria a tela a dizer duas coisas do mesmo trecho.
+    '  pintarFica();' +
     '}' +
     // Onde o exercício tem uma direção, noutra música — é o que separa «não vai» de «falta
     // escrever». Lido do alfabeto, não perguntado.
@@ -5254,9 +5349,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var marcado = document.querySelector("input[name=vb-cat]:checked");' +
     '  return marcado ? marcado.value : "Pé";' +
     '}' +
-    'function blocoEmComposicao(){' +
-    '  return "[" + categoriaEscolhida() + ": " + SINAIS.join(" ") + "]";' +
-    '}' +
     // OS SINAIS EM PÍLULAS, AGRUPADOS PELO GRUPO DO ALFABETO. Cada pílula diz o glifo e o nome
     // — «→ conduz a» e não um «→» sozinho —, porque quem está a compor não tem de saber Benesh
     // de cor. Um sinal pode repetir-se no mesmo bloco (`[Pé: 1ª → + ● 1ª]`), e é por isso que o
@@ -5302,10 +5394,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        "<button type=\\"button\\" data-sinal=\\"" + i + "\\" aria-label=\\"tirar " + s + "\\">×</button></span>";' +
     '    }).join(" ");' +
     '  }' +
-    // O «LÊ-SE» NÃO TEM MAIS UM PARÁGRAFO PRÓPRIO (31/10/2026): ele passou a ser a SEGUNDA LINHA do
-    // campo «o que acontece», como a pesquisadora pediu duas vezes. Um parágrafo a repetir o que o
-    // campo já diz seria a redundância que ela acabou de mandar tirar da tabela.
-    '  sugerirDescricao();' +
+    // O QUE FICA ESCRITO É REFEITO A CADA SINAL (31/10/2026): o «lê-se» deriva dos sinais, e a
+    // prévia do último passo tem de acompanhar. O campo da frase NÃO é tocado — ele é do
+    // exercício, e os sinais não o mudam.
+    '  pintarFica();' +
+    '  pintarTira();' +
     '}' +
     // A FRASE VEM DO DICIONÁRIO — E NÃO POR CIMA DO QUE FOI ESCRITO. Só substitui quando o campo
     // está vazio ou ainda tem a sugestão anterior: quem ajustou a frase não a vê desaparecer ao
@@ -5325,71 +5418,86 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '  return achado ? { texto: String(achado.descricao).trim(), fonte: achado.fonte || "" } : null;' +
     '}' +
-    // A FRASE DO TRECHO: PRIMEIRO O QUE O EXERCÍCIO É, DEPOIS O QUE ESTE BLOCO FAZ.
+    // A FRASE DO VERBETE: O QUE O EXERCÍCIO É, ESCRITO UMA VEZ.
     //
     // A ordem é a que a pesquisadora fixou: «o que acontece neste trecho é a definição dada pelo
-    // dicionário ao nome que a gente escolheu no exercício». A definição do exercício é a versão
-    // de partida — foi o que faltou no primeiro verbete escrito a sério, em que o campo, vazio,
-    // recebeu o NOME do exercício. Quando o exercício ainda não tem definição, cai para o
-    // dicionário **do trecho** (indexado pela notação), que é mais específico e já existia.
-    // Em ambos os casos o que fica gravado é o texto da célula: o dicionário pode melhorar sem
-    // reescrever o passado (P-03/P-04), e o que a professora ajustou não se perde.
-    // O «COMO SE LÊ» DENTRO DO CAMPO (31/10/2026). Era um parágrafo à parte, abaixo, e a
-    // pesquisadora pediu-o DUAS VEZES — «o lê-se vai ter que aparecer logo abaixo, também no campo
-    // de texto». A razão não é estética: o que a célula grava é o texto que a página da aula
-    // mostra, e sem o «lê-se» dentro dele o documento gerado perde a única linha que diz, em
-    // português, o que a notação escreve em sinais. Fica em DUAS LINHAS: a definição do exercício
-    // e, abaixo, como se lê este trecho.
-    'function comoSeLe(chips){' +
+    // dicionário ao nome que a gente escolheu no exercício». Essa definição é do EXERCÍCIO — não
+    // do trecho —, e por isso passou a ser escrita uma vez, no passo 2, e partilhada por todos os
+    // trechos. O que muda de trecho para trecho é o «lê-se», que é derivado da notação.
+    // O «COMO SE LÊ» É A SEGUNDA LINHA DA CÉLULA (31/10/2026). O que a célula grava é o texto que
+    // a página da aula mostra, e sem o «lê-se» dentro dele o documento gerado perde a única linha
+    // que diz, em português, o que a notação escreve em sinais. A categoria vai por parâmetro
+    // porque a célula já gravada tem a DELA — a tela mostra a escolhida no momento, a célula
+    // mostra a que está escrita.
+    'function comoSeLe(chips, categoria){' +
     '  if (!chips || !chips.length) return "";' +
     '  var nomes = chips.map(function(s){' +
     '    var d = (VERBETES && VERBETES.sinais || []).filter(function(x){ return x.sinal === s; })[0];' +
     '    return d ? d.nome : s;' +
     '  });' +
-    '  return "Lê-se: " + [categoriaEscolhida()].concat(nomes).join(", ") + ".";' +
+    '  return "Lê-se: " + [categoria || categoriaEscolhida()].concat(nomes).join(", ") + ".";' +
     '}' +
-    // O «LÊ-SE» É REFEITO, A DEFINIÇÃO É PRESERVADA (31/10/2026). A primeira versão trocava o
-    // campo inteiro pela sugestão, e tinha um defeito que só aparece a usar: quem AJUSTASSE a
-    // definição — e ajustar é para isso que o campo é editável — deixava de receber o «lê-se»,
-    // porque a sugestão deixava de bater com o texto e nada mais era escrito. Agora as duas
-    // partes são tratadas por si: a de cima (a definição) é da professora e não se toca depois de
-    // escrita à mão; a de baixo (o «lê-se») é DERIVADA da notação e refaz-se sempre.
+    // A FRASE COMPOSTA — o que fica GRAVADO na célula: a frase do verbete e, abaixo, o «lê-se».
+    'function comporDescricao(){' +
+    '  var cima = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
+    '  return [cima, comoSeLe(SINAIS)].filter(Boolean).join("\\n");' +
+    '}' +
     'function partirFrase(texto){' +
     '  var linhas = String(texto || "").split("\\n");' +
     '  var cima = [];' +
     '  linhas.forEach(function(l){ if (l.indexOf("Lê-se:") !== 0) cima.push(l); });' +
     '  return cima.join("\\n").trim();' +
     '}' +
-    'function sugerirDescricao(){' +
-    '  var campo = document.getElementById("vb-cel-desc");' +
-    '  var nota = document.getElementById("vb-desc-nota");' +
-    '  if (!campo) return;' +
-    '  var exercicio = definicaoDoExercicio();' +
-    '  var bloco = SINAIS.length ? blocoEmComposicao() : "";' +
-    '  var dicionario = (VERBETES && VERBETES.descricoes) || {};' +
-    '  var doTrecho = bloco ? (dicionario[bloco] || "") : "";' +
-    '  var base = exercicio ? exercicio.texto : doTrecho;' +
-    '  var leitura = comoSeLe(SINAIS);' +
-    '  var cima = partirFrase(campo.value);' +
-    // A definição só é substituída quando o campo está vazio ou ainda tem a sugestão anterior:
-    // quem ajustou não a vê voltar sozinha.
-    '  if (!cima || cima === partirFrase(SUGESTAO_ANTERIOR)) cima = base;' +
-    '  SUGESTAO_ANTERIOR = [base, leitura].filter(Boolean).join("\\n");' +
-    '  campo.value = [cima, leitura].filter(Boolean).join("\\n");' +
+    // A NOTA DO PASSO 2. Diz de onde veio a frase e para que serve — e o que fazer quando o
+    // exercício ainda não tem definição. Nenhuma nota é escrita quando o campo está vazio e nada
+    // foi escolhido: uma nota a explicar o vazio que se vê é ruído.
+    'function pintarNotaDaFrase(){' +
+    '  var nota = document.getElementById("vb-frase-nota");' +
     '  if (!nota) return;' +
-    '  if (exercicio) {' +
+    '  var exercicio = definicaoDoExercicio();' +
+    '  var escrito = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
+    '  if (!nomeDoExercicio()) {' +
+    '    nota.textContent = "Escolha o exercício no passo 1: a frase dele vem do dicionário.";' +
+    '  } else if (exercicio && escrito === exercicio.texto) {' +
     '    var fonte = exercicio.fonte ? " (" + exercicio.fonte + ")" : "";' +
     '    nota.textContent = "Definição do dicionário para «" + nomeDoExercicio() + "»" + fonte +' +
-    '      ". Ajuste para o que acontece NESTE trecho — é a sua frase que fica gravada.";' +
-    '  } else if (doTrecho) {' +
-    '    nota.textContent = "O exercício ainda não tem definição no vocabulário; a frase vem do ' +
-    'dicionário deste trecho («" + bloco + "»). Pode ajustar — é a sua frase que fica gravada.";' +
-    '  } else if (SINAIS.length || nomeDoExercicio()) {' +
-    '    nota.textContent = "Este exercício ainda não tem definição. Escreva a frase: é ela que a ' +
-    'página da aula mostra.";' +
+    '      ". Ela vale para todos os trechos deste verbete — cada trecho acrescenta, abaixo, o «lê-se» da sua notação. Ajuste à vontade: é a sua frase que fica gravada.";' +
+    '  } else if (escrito) {' +
+    '    nota.textContent = "A sua frase — vale para todos os trechos deste verbete, e cada trecho acrescenta, abaixo, o «lê-se» da sua notação.";' +
     '  } else {' +
-    '    nota.textContent = "";' +
+    '    nota.textContent = "Este exercício ainda não tem definição no dicionário. Escreva a frase: é ela que a página da aula mostra, em todos os trechos.";' +
     '  }' +
+    '}' +
+    'function pintarFica(){' +
+    '  var alvo = document.getElementById("vb-fica");' +
+    '  if (!alvo) return;' +
+    '  var frase = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
+    '  var linhas = [];' +
+    // O TEXTO MOSTRADO É O DO TRECHO, NÃO O DA FRASE DO MOMENTO (31/10/2026). Cada célula guarda
+    // o seu `descricao` — e é ele que vai para a página da aula. Compor aqui a partir da frase do
+    // passo 2 faria a prévia mentir sobre os trechos já escritos, que conservam a frase com que
+    // nasceram (P-03/P-04: o que está escrito não se reescreve). Quando a frase gravada é outra,
+    // a linha di-lo — senão a diferença parece um defeito.
+    '  direcoesDaGramatica().forEach(function(d){' +
+    '    (CELULAS[d.termo] || []).forEach(function(c, k){' +
+    '      var orient = "";' +
+    '      orientacoesDaGramatica().forEach(function(o){' +
+    '        if (o.termo === (c.orientacao || "")) orient = o.nome;' +
+    '      });' +
+    '      var gravada = partirFrase(c.descricao);' +
+    '      var texto = c.descricao || [frase, comoSeLe(c.sinais || [], c.categoria)].filter(Boolean).join("\\n");' +
+    '      var antiga = gravada && frase && gravada !== frase;' +
+    '      var onde = d.nome + (orient ? " · " + orient : "");' +
+    '      linhas.push("<p class=\\"nota\\">" + onde + " — compasso " +' +
+    '        (compassosDosTrechos()[d.termo + ":" + k] || "—") + ", contagem " + c.contagem + "</p>" +' +
+    '        "<p>" + (texto ? String(texto).split("\\n").join("<br>") :' +
+    '          "<span class=\\"nota\\">(sem frase — passo 2)</span>") +' +
+    '        (antiga ? "<br><span class=\\"nota\\">guardado com a frase com que foi escrito</span>" : "") +' +
+    '        "</p>");' +
+    '    });' +
+    '  });' +
+    '  alvo.innerHTML = linhas.length ? linhas.join("") :' +
+    '    "<p class=\\\"nota\\\">Ainda não há trechos. Escolha a direção e os sinais, e acrescente o primeiro.</p>";' +
     '}' +
     'function nomeDoExercicio(){' +
     '  var n = document.getElementById("vbnome");' +
@@ -5400,7 +5508,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // os campos do verbete e bloqueia o par do exercício; o modo A esconde os do exercício.
     // Um campo que desaparece por completo é diferente de um campo esbatido: o esbatido continua
     // a competir por atenção, e é isso que a tela de antes fazia.
-    // ================= OS SEIS PASSOS (31/10/2026) =================================
+    // ================= OS SETE PASSOS (31/10/2026) =================================
     // Um passo de cada vez, a sério: só o painel do passo actual fica no ecrã. A tira em cima é
     // a memória do que já está decidido E a navegação — voltar a um passo anterior não perde nada,
     // porque tudo vive no DOM e o rascunho (`CELULAS`) não é tocado ao andar.
@@ -5422,12 +5530,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    b.className = activo ? "passo ativo" : "passo";' +
     '    if (activo) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");' +
     // O «!» DE EDIÇÃO é da peça que já existe: `data-editando` no `ol` faz aparecer os
-    // `.passo-alerta`, e o markup só os tem nos passos 4 e 5 — os dois por onde a correcção
+    // `.passo-alerta`, e o markup só os tem nos passos do trecho — os dois por onde a correcção
     // de um trecho passa.
     '  });' +
     '  var tira = document.getElementById("vb-tira");' +
     '  if (tira) tira.setAttribute("data-editando", EM_EDICAO === null ? "nao" : "sim");' +
-    // O AVISO, OS BOTÕES DE CANCELAR E O RÓTULO DO BOTÃO DO PASSO 6.
+    // O AVISO, OS BOTÕES DE CANCELAR E O RÓTULO DO BOTÃO DO ÚLTIMO PASSO.
     '  var aviso = document.getElementById("vb-edicao");' +
     '  if (aviso) {' +
     '    aviso.hidden = EM_EDICAO === null;' +
@@ -5441,20 +5549,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var voltar = document.getElementById("vb-voltar");' +
     '  if (voltar) voltar.disabled = (PASSO === 1);' +
     '  var seguir = document.getElementById("vb-seguir");' +
-    '  if (seguir) seguir.hidden = (PASSO === 6);' +
+    '  if (seguir) seguir.hidden = (PASSO === ULTIMO_PASSO);' +
     '  var bGravar = document.getElementById("vb-gravar");' +
-    '  if (bGravar) bGravar.hidden = (PASSO !== 6);' +
+    '  if (bGravar) bGravar.hidden = (PASSO !== ULTIMO_PASSO);' +
     '  var bLimpar = document.getElementById("vbnovo");' +
-    '  if (bLimpar) bLimpar.hidden = (PASSO !== 6);' +
+    '  if (bLimpar) bLimpar.hidden = (PASSO !== ULTIMO_PASSO);' +
     '}' +
     'function irParaPasso(n){' +
-    '  PASSO = Math.max(1, Math.min(6, Number(n) || 1));' +
+    '  PASSO = Math.max(1, Math.min(ULTIMO_PASSO, Number(n) || 1));' +
     '  pintarPassos();' +
     '}' +
     // O RESUMO DA TIRA. Cada passo diz o que já está decidido — sem isso, a tira só diria onde se
     // está, e quem está no passo 5 não saberia para onde o trecho vai.
     'function pintarTira(){' +
     '  var nome = (document.getElementById("vbnome") || {}).value || "";' +
+    '  var frase = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
     '  var tempos = (document.getElementById("vbtempos") || {}).value || "";' +
     '  var compasso = (document.getElementById("vbcompasso") || {}).value || "";' +
     '  var sel = document.getElementById("vbposicao");' +
@@ -5467,11 +5576,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (CONTAGEM) onde.push("tempo " + CONTAGEM);' +
     '  var valores = {' +
     '    1: nome || "a escolher",' +
-    '    2: (tempos || "—") + " tempos · " + (compasso || "—"),' +
-    '    3: posicao,' +
-    '    4: onde.length ? onde.join(" · ") : "a escolher",' +
-    '    5: SINAIS.length ? SINAIS.length + (SINAIS.length === 1 ? " sinal" : " sinais") : "a escolher",' +
-    '    6: (function(){ var t = 0; Object.keys(CELULAS).forEach(function(d){ (CELULAS[d] || []).forEach(function(c){ t += 1; }); }); return t ? t + (t === 1 ? " trecho" : " trechos") : "nenhum trecho"; })()' +
+    '    2: frase ? "escrita" : "a escrever",' +
+    '    3: (tempos || "—") + " tempos · " + (compasso || "—"),' +
+    '    4: posicao,' +
+    '    5: onde.length ? onde.join(" · ") : "a escolher",' +
+    '    6: SINAIS.length ? SINAIS.length + (SINAIS.length === 1 ? " sinal" : " sinais") : "a escolher",' +
+    '    7: (function(){ var t = 0; Object.keys(CELULAS).forEach(function(d){ (CELULAS[d] || []).forEach(function(c){ t += 1; }); }); return t ? t + (t === 1 ? " trecho" : " trechos") : "nenhum trecho"; })()' +
     '  };' +
     '  Object.keys(valores).forEach(function(n){' +
     '    var el = document.getElementById("vb-v" + n);' +
@@ -5484,9 +5594,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '}' +
     // ================= O MODO DE EDIÇÃO (31/10/2026) ================================
-    // Um trecho acrescentado pode ser corrigido. A correcção atravessa os passos 4 e 5, e termina
-    // no 6 — por isso é um ESTADO e não um botão: o aviso, o «!» nos dois números, o rótulo do
-    // botão do 6 e a linha da tabela têm todos de saber que se está a corrigir.
+    // Um trecho acrescentado pode ser corrigido. A correcção atravessa os dois passos do trecho
+    // (`PASSOS_DO_TRECHO`) e termina no último — por isso é um ESTADO e não um botão: o aviso, o
+    // «!» nos dois números, o rótulo do botão do último passo e a linha da tabela têm todos de
+    // saber que se está a corrigir.
     'function editarTrecho(dir, k){' +
     '  var lista = CELULAS[dir] || [];' +
     '  var c = lista[Number(k)];' +
@@ -5496,14 +5607,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  ORIENTACAO = c.orientacao || "";' +
     '  CONTAGEM = c.contagem || "";' +
     '  SINAIS = (c.sinais || []).slice();' +
-    // A FRASE VOLTA PARA O CAMPO, e não é substituída pela sugestão: põe-se o valor e a
-    // sugestão-anterior fica igual ao que já lá está, para a comparação não a tratar como nova.
-    '  var campo = document.getElementById("vb-cel-desc");' +
-    '  if (campo) campo.value = c.descricao || "";' +
-    '  SUGESTAO_ANTERIOR = c.descricao || "";' +
+    // A FRASE NÃO SE TOCA AQUI (31/10/2026). Ela é do verbete, escrita uma vez no passo 2; o que
+    // este trecho tem de próprio é o «lê-se», que se refaz dos sinais. Carregar a frase do trecho
+    // para o campo faria com que corrigir o trecho 2 reescrevesse a frase dos outros dois.
     '  var radios = document.querySelectorAll("input[name=vb-cat]");' +
     '  Array.prototype.slice.call(radios).forEach(function(r){ r.checked = (r.value === (c.categoria || "Pé")); });' +
-    '  irParaPasso(4);' +
+    '  irParaPasso(PASSOS_DO_TRECHO[0]);' +
     '  pintarTrecho();' +
     // A TABELA TAMBÉM, e não só o trecho: é ela que marca a linha em edição e troca os botões
     // dela. Sem esta chamada, entrar na edição mudava o aviso e o «!» e deixava a linha igual.
@@ -5512,10 +5621,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function cancelarEdicao(){' +
     '  EM_EDICAO = null;' +
     '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = [];' +
-    '  SUGESTAO_ANTERIOR = "";' +
-    '  var campo = document.getElementById("vb-cel-desc");' +
-    '  if (campo) campo.value = "";' +
-    '  irParaPasso(6);' +
+    '  irParaPasso(ULTIMO_PASSO);' +
     '  pintarTrecho();' +
     '  pintarTabela();' +
     '}' +
@@ -5531,9 +5637,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // de um campo que nunca existiu, e o exercício escolhido é a memória de onde se estava.
     '  if (nomes) nomes.disabled = Boolean(aberto);' +
     '  if (mais) mais.disabled = Boolean(aberto);' +
-    // OS SEIS PASSOS SAEM INTEIROS NO MODO DO EXERCÍCIO (31/10/2026), menos o passo 1 — que é o
-    // par do exercício, e que o modo bloqueia em vez de esconder. `pintarPassos` é quem sabe
-    // disso, e por isso é ela que se chama em vez de esconder meia dúzia de divs aqui.
+    // OS PASSOS SAEM INTEIROS NO MODO DO EXERCÍCIO (31/10/2026), menos o passo 1 — que é o par
+    // do exercício, e que o modo bloqueia em vez de esconder. `pintarPassos` é quem sabe disso, e
+    // por isso é ela que se chama em vez de esconder meia dúzia de divs aqui.
     '  pintarPassos();' +
     '  if (aberto) {' +
     '    var campo = document.getElementById("vnnome");' +
@@ -5554,13 +5660,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  SINAIS = [];' +
     // A DIREÇÃO, A ORIENTAÇÃO E A CONTAGEM SOBREVIVEM TROCA DE MÚSICA: quem mudou os tempos
     // continua a escrever o mesmo exercício, e apagar-lhe a direção seria recomeçar o gesto.
-    '  SUGESTAO_ANTERIOR = "";' +
-    '  var campo = document.getElementById("vb-cel-desc");' +
-    '  if (campo) campo.value = "";' +
+    // A FRASE DO VERBETE, CARREGADA UMA VEZ (31/10/2026). A ordem de preferência é a de sempre
+    // neste projeto: o que está GRAVADO vence o dicionário (P-03/P-04 — o dicionário pode
+    // melhorar sem reescrever o passado). Só quando a música em foco não tem células é que a
+    // definição do vocabulário pré-enche o campo; e quando não há nem uma coisa nem outra, o
+    // campo fica vazio e a nota pede a frase.
+    '  var gravada = fraseGravada(base);' +
+    '  var definicao = definicaoDoExercicio();' +
+    '  var campoFrase = document.getElementById("vb-frase");' +
+    '  var actual = partirFrase((campoFrase || {}).value || "");' +
+    // TROCAR A MÚSICA DO MESMO EXERCÍCIO NÃO REESCREVE A FRASE. Ela é do exercício: quem mudou os
+    // tempos continua a escrever o mesmo exercício, e devolver-lhe a definição do dicionário por
+    // cima do que ele ajustou seria perder o trabalho. Só quando o EXERCÍCIO muda — ou quando o
+    // campo está vazio, ou ainda tem exactamente a última sugestão — é que a frase é recarregada.
+    '  var trocouExercicio = (nome !== EXERCICIO_EM_FOCO);' +
+    '  EXERCICIO_EM_FOCO = nome;' +
+    '  if (trocouExercicio || !actual || actual === partirFrase(FRASE_ANTERIOR)) {' +
+    '    FRASE = gravada || (definicao ? definicao.texto : "");' +
+    '  } else {' +
+    '    FRASE = actual;' +
+    '  }' +
+    '  FRASE_ANTERIOR = FRASE;' +
+    '  if (campoFrase) campoFrase.value = FRASE;' +
+    '  pintarNotaDaFrase();' +
     '  pintarTrecho();' +
     '  pintarTabela();' +
     '  pintarTira();' +
     '  pintarPassos();' +
+    '}' +
+    // A FRASE QUE JÁ ESTÁ GRAVADA NO ALFABETO. As células de uma música partilham a frase; quando
+    // não partilham (verbete antigo, escrito quando a frase era por trecho), vale a do PRIMEIRO
+    // trecho que tenha texto — e as outras continuam como estão, porque a proveniência acrescenta
+    // e não edita: só o trecho que ela corrigir recebe a frase nova.
+    'function fraseGravada(celulas){' +
+    '  var chaves = Object.keys(celulas || {});' +
+    '  for (var i = 0; i < chaves.length; i++) {' +
+    '    var lista = celulas[chaves[i]] || [];' +
+    '    for (var k = 0; k < lista.length; k++) {' +
+    '      var cima = partirFrase(lista[k] && lista[k].descricao);' +
+    '      if (cima) return cima;' +
+    '    }' +
+    '  }' +
+    '  return "";' +
     '}' +
     'function carregarVerbetes(){' +
     '  var lista = document.getElementById("lista-verbetes");' +
@@ -5639,10 +5780,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      selSinal.innerHTML = opSinal.join("");' +
     '    }' +
     '    carregarRascunho();' +
+    // A LISTAGEM DIZ DO QUE SE TRATA (31/10/2026). Era o nome e a chave crua da música —
+    // «Battement tendu 4 | 4/4 · 8 | 4/4 · 12 | 4/4» —, e o `|` da chave vazava para a tela. Ela
+    // pediu etiquetas que digam, de relance, o que o verbete é: a POSIÇÃO em que acontece (selo,
+    // ao lado do nome, como nas outras listas), e por baixo as direções que cobre, o compasso, em
+    // quantas músicas está escrito e quantos trechos tem. Tudo derivado do alfabeto.
     '    lista.innerHTML = (d.exercicios || []).map(function(x){' +
-    '      return "<li><button type=\'button\' class=\'verbetes-editar\' data-nome=\'" + x.nome + "\'>" +' +
-    '        x.nome + "</button> <span class=\'miudo\'>" + x.musicas.join(" · ") +' +
-    '        (x.descontinuado ? " · descontinuado" : "") + "</span></li>";' +
+    '      var posicao = "";' +
+    '      (d.posicoes || []).forEach(function(p){' +
+    '        if (x.posicao && p.id === x.posicao.termo) posicao = p.termo;' +
+    '      });' +
+    '      var selos = posicao ? "<span class=\\"selo discreto\\">" + posicao + "</span>" : "";' +
+    '      if (x.descontinuado) selos += " <span class=\\"selo alerta\\">descontinuado</span>";' +
+    '      var onde = (x.direcoes || []).map(nomeDaDirecao);' +
+    '      var partes = [];' +
+    '      if (onde.length) partes.push(onde.join(" · "));' +
+    '      if ((x.compassos || []).length) partes.push(x.compassos.join(" · "));' +
+    '      if ((x.musicas || []).length) partes.push(x.musicas.length +' +
+    '        (x.musicas.length === 1 ? " música" : " músicas"));' +
+    '      var t = Number(x.trechos) || 0;' +
+    '      partes.push(t + (t === 1 ? " trecho" : " trechos"));' +
+    '      return "<li><span class=\\"nome\\"><span class=\\"linha1\\">" +' +
+    '        "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" + x.nome +' +
+    '        "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button> " + selos +' +
+    '        "</span><span class=\\"dono\\">" + partes.join(" · ") + "</span></span></li>";' +
     '    }).join("") || "<li>Nenhum exercício com verbete.</li>";' +
     '  }).catch(function(e){ lista.innerHTML = "<li>Erro: " + e.message + "</li>"; });' +
     '}' +
@@ -5852,6 +6013,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var t = document.getElementById("vbtempos");' +
     '  if (t) t.addEventListener("input", carregarRascunho);' +
     '})();' +
+    // A FRASE DO VERBETE (31/10/2026). O campo é do exercício e não do trecho: escrevê-lo não
+    // repinta a decomposição que já está gravada (o que está escrito não se reescreve) — só a
+    // tira e a prévia do último passo, que dizem o que VAI ser escrito a partir daqui.
+    '(function(){' +
+    '  var f = document.getElementById("vb-frase");' +
+    '  if (!f) return;' +
+    '  f.addEventListener("input", function(){' +
+    '    FRASE = partirFrase(f.value);' +
+    '    pintarNotaDaFrase();' +
+    '    pintarTira();' +
+    '    pintarFica();' +
+    '  });' +
+    '})();' +
     // ---- o formulário de um trecho -----------------------------------------------------
     // AS PÍLULAS LIGAM-SE A SI MESMAS. A direção manda na contagem — quem escolhe a direção vê
     // as contagens que cabem naquela direção, e não uma lista fixa de «1–2, 3–4», que só serviria
@@ -5869,7 +6043,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '})();' +
     // ---- a tira e a navegação (31/10/2026) -------------------------------------------
-    // A TIRA É A NAVEGAÇÃO: clicar num passo leva lá. Não bloqueia — quem quer espiar o passo 6
+    // A TIRA É A NAVEGAÇÃO: clicar num passo leva lá. Não bloqueia — quem quer espiar o último passo
     // antes de escrever os sinais pode, e a tabela diz o que falta. É a diferença entre conduzir
     // e impedir.
     'Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
@@ -5883,7 +6057,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var b = document.getElementById(id);' +
     '  if (b) b.addEventListener("click", cancelarEdicao);' +
     '});' +
-    // O «EDITAR» E O «×» DA TABELA. O «Editar» carrega o trecho nos passos 4 e 5 e abre o modo de
+    // O «EDITAR» E O «×» DA TABELA. O «Editar» carrega o trecho nos passos do trecho e abre o modo de
     // edição; o «×» tira-o. Em edição, o «×» **não** aparece: apagar o trecho que se está a
     // corrigir é a única coisa que não pode acontecer por engano.
     'var bTabelaVerbetes = document.getElementById("vb-tabela");' +
@@ -5905,21 +6079,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var bCelAcrescentar = document.getElementById("vb-cel-acrescentar");' +
     'if (bCelAcrescentar) {' +
     '  bCelAcrescentar.addEventListener("click", function(){' +
-    // A FRASE GRAVADA É COMPOSTA AQUI (31/10/2026): o que a professora escreveu em cima + o
-    // «lê-se» derivado dos sinais. Assim o «como se lê» entra no texto da célula MESMO quando ela
-    // reescreveu o campo de ponta a ponta — é ele que a página da aula mostra, e sem ele o
-    // documento gerado perde a única linha que diz em português o que a notação escreve.
-    '    var escrito = partirFrase(document.getElementById("vb-cel-desc").value);' +
+    // A FRASE GRAVADA É COMPOSTA AQUI (31/10/2026): a frase do VERBETE (passo 2, escrita uma vez)
+    // + o «lê-se» derivado dos sinais DESTE trecho. É a mesma composição para todos os trechos —
+    // o que muda é o «lê-se» —, e é ela que a página da aula mostra.
+    '    var escrito = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
     '    var desc = [escrito, comoSeLe(SINAIS)].filter(Boolean).join("\\n");' +
     '    var faltando = [];' +
     '    if (!MUSICA_EM_FOCO) faltando.push("o exercício, os tempos e o compasso");' +
     '    if (!DIRECAO) faltando.push("a direção");' +
     '    if (!CONTAGEM) faltando.push("a contagem");' +
     '    if (!SINAIS.length) faltando.push("ao menos um sinal");' +
-    // A RECUSA OLHA PARA O QUE FOI ESCRITO (31/10/2026), e não para a frase composta: com os
-    // sinais escolhidos, o «lê-se» sozinho já daria texto, e o campo podia ficar vazio sem que
-    // ninguém notasse — que é o estado em que a célula não diz nada em português.
-    '    if (!escrito) faltando.push("o que acontece (a frase em português)");' +
+    // A RECUSA OLHA PARA A FRASE DO VERBETE, e aponta o passo onde ela se escreve: sem ela, o
+    // «lê-se» sozinho daria texto e a célula não diria em português o que o exercício é.
+    '    if (!escrito) faltando.push("a frase do verbete (no passo 2)");' +
     '    if (faltando.length) { recado("erro", "Falta " + faltando.join(", ") + "."); return; }' +
     '    var celula = {contagem: CONTAGEM, categoria: categoriaEscolhida(),' +
     '      sinais: SINAIS.slice(), descricao: desc};' +
@@ -5943,15 +6115,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    SINAIS = [];' +
     '    CONTAGEM = "";' +
-    '    SUGESTAO_ANTERIOR = "";' +
-    '    document.getElementById("vb-cel-desc").value = "";' +
+    // A FRASE NÃO SE LIMPA (31/10/2026): ela é do VERBETE, e é precisamente isso que impede a
+    // professora de a reescrever a cada trecho. O que se limpa é o que é do trecho.
     '    pintarContagens();' +
     '    pintarChips();' +
     '    pintarTabela();' +
+    '    pintarTira();' +
     // ACRESCENTADO OU ALTERADO, VOLTA-SE AO PRINCÍPIO DO TRECHO (31/10/2026): os sinais e a
-    // contagem limpam-se e quem quer acrescentar outro começa no passo 4, sem procurar onde
-    // estava. O passo 6 continua a mostrar o que já está escrito.
-    '    irParaPasso(4);' +
+    // contagem limpam-se e quem quer acrescentar outro começa no passo 5, sem procurar onde
+    // estava. O último passo continua a mostrar o que já está escrito.
+    '    irParaPasso(PASSOS_DO_TRECHO[0]);' +
     '    recado("ok", (eraEdicao ? "trecho alterado" : "trecho acrescentado") + " — grave o verbete para o guardar.");' +
     '  });' +
     '}' +
@@ -7347,6 +7520,11 @@ async function fetch(request, env) {
       // preenche a descrição com ele quando o professor compõe o bloco, e ele ajusta se não
       // servir. Não é a fonte do que está publicado — a frase fica gravada na célula, porque a
       // proveniência acrescenta e não edita (P-03/P-04). É a versão de partida.
+      //
+      // DESDE 31/10/2026 A TELA NÃO O USA PARA SUGERIR: a frase passou a ser do EXERCÍCIO, escrita
+      // uma vez, e uma sugestão por trecho contradizia-a. O dicionário continua a ir na rota — é
+      // dado da modalidade, não da tela —, mas quem o lê hoje é só quem consulta a rota; os
+      // campos da célula nascem da frase do verbete, e é isso que se mede em `provar-celula.js`.
       descricoes: require('./catalogo-seed.js').DESCRICOES || {},
     });
   }

@@ -284,7 +284,15 @@ async function lerModalidade({ f, token, dono, repo, ref, modalidade }) {
   return { ok: true, sha: alfabeto.sha, dados, vocabulario: voc, ref };
 }
 
-/** A lista dos verbetes, sem o `_comentario` — que é a explicação do dado, não um exercício. */
+/** A lista dos verbetes, sem o `_comentario` — que é a explicação do dado, não um exercício.
+ *
+ *  A LISTAGEM PASSOU A DIZER O QUE O VERBETE É (31/10/2026). Antes trazia só o nome e as
+ *  músicas («4 | 4/4 · 8 | 4/4 · 12 | 4/4»), e a pesquisadora leu-a como ilegível: o `|` da
+ *  chave vazava para a tela, e nada dizia a posição, as direções nem quantos trechos o exercício
+ *  tem. Os quatro campos novos são DERIVADOS do alfabeto — não há um segundo dado a manter:
+ *  `trechos` conta as células, `direcoes` diz por onde o exercício passa, e `compassos` resume as
+ *  músicas num só «4/4». É o que responde, de relance, «do que se trata».
+ */
 function listarVerbetes(dados) {
   const verbetes = (dados && dados.verbetes) || {};
   return Object.keys(verbetes)
@@ -293,9 +301,51 @@ function listarVerbetes(dados) {
     .map((nome) => ({
       nome: nome,
       musicas: Object.keys(verbetes[nome] || {}),
-      descontinuado: Boolean(verbetes[nome] && verbetes[nome].descontinuado),
+      // A MARCA DE DESCONTINUADO VIVE EM CADA MÚSICA (31/10/2026). Ela era lida no topo do
+      // verbete, onde nunca está — e por isso um verbete descontinuado nunca aparecia como tal.
+      descontinuado: musicasDoVerbete(verbetes[nome])
+        .some((k) => Boolean(verbetes[nome] && verbetes[nome][k] && verbetes[nome][k].descontinuado)),
       posicao: primeiraPosicao(verbetes[nome]),
+      trechos: contarTrechos(verbetes[nome]),
+      direcoes: direcoesDoVerbete(verbetes[nome]),
+      compassos: compassosDoVerbete(verbetes[nome]),
     }));
+}
+
+/** As chaves de música de um verbete — o que tem a forma «<tempos>|<compasso>». */
+function musicasDoVerbete(musicas) {
+  return Object.keys(musicas || {}).filter((k) => /^\d+\|/.test(k));
+}
+
+function contarTrechos(musicas) {
+  let total = 0;
+  for (const chave of musicasDoVerbete(musicas)) {
+    const celulas = (musicas[chave] && musicas[chave].celulas) || {};
+    for (const dir of Object.keys(celulas)) {
+      if (Array.isArray(celulas[dir])) total += celulas[dir].length;
+    }
+  }
+  return total;
+}
+
+function direcoesDoVerbete(musicas) {
+  const ordem = [];
+  for (const chave of musicasDoVerbete(musicas)) {
+    const celulas = (musicas[chave] && musicas[chave].celulas) || {};
+    for (const dir of Object.keys(celulas)) {
+      if (Array.isArray(celulas[dir]) && celulas[dir].length && ordem.indexOf(dir) === -1) ordem.push(dir);
+    }
+  }
+  return ordem;
+}
+
+function compassosDoVerbete(musicas) {
+  const vistos = [];
+  for (const chave of musicasDoVerbete(musicas)) {
+    const compasso = String(chave).split('|')[1] || '';
+    if (compasso && vistos.indexOf(compasso) === -1) vistos.push(compasso);
+  }
+  return vistos;
 }
 
 function primeiraPosicao(musicas) {

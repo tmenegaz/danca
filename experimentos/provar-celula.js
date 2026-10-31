@@ -17,12 +17,15 @@
  *      separados: três direções do membro, cinco orientações do corpo;
  *   7. os sinais compõem-se por CLIQUE e não se substituem uns aos outros — o defeito de origem,
  *      em que escolher o segundo sinal apagava o primeiro;
- *   8. a direção e a orientação FICAM depois de acrescentar um trecho, e só os sinais, a
- *      contagem e a frase se limpam;
- *   9. a frase vem do dicionário, e o ajuste da professora não se perde;
+ *   8. a direção e a orientação FICAM depois de acrescentar um trecho, e a FRASE TAMBÉM — só os
+ *      sinais e a contagem se limpam (31/10/2026: era ela que se reescrevia a cada trecho);
+ *   9. a frase vem do dicionário, escreve-se UMA vez para o exercício, e o ajuste da professora
+ *      não se perde;
  *  10. o trecho acrescentado leva a `orientacao` ao repositório — e não a leva quando é en face;
- *  11. a frase edita-se na tabela, e o «×» tira o trecho;
- *  12. nada transborda em 320, 390, 768 e 1280px, e nenhum erro de JavaScript aparece.
+ *  11. o último passo mostra o texto composto de cada trecho, e o «×» tira o trecho;
+ *  12. os SETE passos estão na tira, o formulário ocupa a largura toda, e a listagem desce para
+ *      baixo dele com as etiquetas de cada verbete (posição, direções, compasso, trechos);
+ *  13. nada transborda em 320, 390, 768 e 1280px, e nenhum erro de JavaScript aparece.
  *
  * A bancada é LOCAL: um `http.createServer` em porta efémera serve a página que o módulo monta,
  * a folha, a barra e as respostas de `/api` stubadas. **Nada aqui toca no ar** — a regra do
@@ -57,9 +60,20 @@ function conferir(rotulo, condicao, detalhe) {
 const ALFABETO = {
   ok: true,
   versao: 5,
+  // A LISTAGEM PASSOU A DIZER O QUE O VERBETE É (31/10/2026): o servidor manda a posição, os
+  // trechos, as direções e os compassos, e a tela veste-os de etiqueta. O fixture tem de os
+  // trazer — sem eles a prova mediria uma linha que já não existe.
   exercicios: [
-    { nome: 'Battement tendu', musicas: ['4|4/4', '8|4/4'], descontinuado: false },
-    { nome: 'Plié', musicas: ['8|4/4'], descontinuado: false },
+    {
+      nome: 'Battement tendu', musicas: ['4|4/4', '8|4/4'], descontinuado: false,
+      posicao: { membro: 'pes', termo: 'premiere-position' },
+      trechos: 4, direcoes: ['devant', 'derriere', 'a-la-seconde'], compassos: ['4/4'],
+    },
+    {
+      nome: 'Plié', musicas: ['8|4/4'], descontinuado: false,
+      posicao: { membro: 'pes', termo: 'premiere-position' },
+      trechos: 2, direcoes: ['devant'], compassos: ['4/4'],
+    },
   ],
   verbetes: {
     'Battement tendu': {
@@ -221,23 +235,14 @@ function estado() {
     orientacoesMarcadas: [...document.querySelectorAll('#vb-orient input:checked')]
       .map((x) => x.getAttribute('data-valor')),
     chips: (q('vb-chips') || {}).textContent.trim(),
-    // O «LÊ-SE» PASSOU A SER A SEGUNDA LINHA DO CAMPO (31/10/2026). Não há mais parágrafo
-    // próprio: mede-se no texto do campo, que é o que a célula grava.
-    lido: (() => {
-      const v = String((q('vb-cel-desc') || {}).value || '');
-      const i = v.indexOf('Lê-se:');
-      return i === -1 ? '' : v.slice(i).trim();
-    })(),
-    linhasDoCampo: String((q('vb-cel-desc') || {}).value || '').split('\n').length,
-    frase: (q('vb-cel-desc') || {}).value || '',
-    notaDaFrase: (q('vb-desc-nota') || {}).textContent || '',
-    // A ORDEM DENTRO DO CAMPO (31/10/2026): a definição na primeira linha, o «lê-se» na segunda.
-    // Mede-se o texto, não a intenção.
-    definicaoAntesDaLicao: (() => {
-      const v = String((q('vb-cel-desc') || {}).value || '');
-      const i = v.indexOf('Lê-se:');
-      return i === -1 ? null : i > 0 && i > v.lastIndexOf('.', i) - 1;
-    })(),
+    // A FRASE É DO VERBETE, E O QUE FICA ESCRITO É DERIVADO (31/10/2026). O campo «o que
+    // acontece neste trecho» deixou de existir: a frase escreve-se uma vez, no passo 2, e o
+    // último passo mostra o texto composto de cada trecho (frase + «lê-se») — que é o que se
+    // grava. É este par que se mede, e não um campo que já não há.
+    frase: (q('vb-frase') || {}).value || '',
+    notaDaFrase: (q('vb-frase-nota') || {}).textContent || '',
+    fica: (q('vb-fica') || {}).textContent.replace(/\s+/g, ' ').trim(),
+    blocosDaFica: document.querySelectorAll('#vb-fica p').length,
     // As colunas contam-se pelo CABEÇALHO: a linha de «este exercício não vai…» ocupa a tabela
     // toda com um `colspan`, e contá-la daria 1.
     colunasDaTabela: [...document.querySelectorAll('#vb-tabela table')]
@@ -310,11 +315,12 @@ function estado() {
   // todos à vista: é isso que a tela faz, e é isso que a prova deve fazer.
   const PASSO_DE = [
     [/^#vbnome|^#vb-novo-exercicio/, 1],
-    [/^#vbtempos|^#vbcompasso/, 2],
-    [/^#vbposicao/, 3],
-    [/^#vb-dir|^#vb-orient|^#vb-categoria|^#vb-contagem/, 4],
-    [/^#vb-sinais|^#vb-chips/, 5],
-    [/^#vb-tabela|^#vb-cel-desc|^#vb-cel-acrescentar|^input\[name=vb-cat\]/, 6],
+    [/^#vb-frase|^#vb-frase-nota/, 2],
+    [/^#vbtempos|^#vbcompasso/, 3],
+    [/^#vbposicao/, 4],
+    [/^#vb-dir|^#vb-orient|^#vb-categoria|^#vb-contagem/, 5],
+    [/^#vb-sinais|^#vb-chips/, 6],
+    [/^#vb-tabela|^#vb-fica|^#vb-cel-acrescentar|^input\[name=vb-cat\]/, 7],
   ];
   const passoDe = (seletor) => {
     for (const [re, n] of PASSO_DE) if (re.test(seletor)) return n;
@@ -487,24 +493,19 @@ function estado() {
     const composto = await page.evaluate(estado);
     conferir('três cliques puseram TRÊS sinais na ficha', /1\. 1ª/.test(composto.chips)
       && /2\. →/.test(composto.chips) && /3\. \+/.test(composto.chips), composto.chips);
-    conferir('e a leitura em palavras vem do nome de cada sinal',
-      /primeira posição/.test(composto.lido) && /conduz a/.test(composto.lido), composto.lido);
-    // O `Battement tendu` do fixture NÃO tem definição no vocabulário: a frase cai para o
-    // dicionário do TRECHO, indexado pela notação. É o segundo na ordem, e é o que se mede aqui.
-    conferir('sem definição no vocabulário, a frase vem do dicionário do trecho',
-      composto.frase.split('\n')[0] === 'extensão à frente a partir da 1ª posição, a ponta no chão',
-      composto.frase);
-    conferir('e a nota diz que a origem é o trecho, não o exercício',
-      /dicionário deste trecho/.test(composto.notaDaFrase), composto.notaDaFrase);
-    // O «LÊ-SE» VIVE DENTRO DO CAMPO, NA SEGUNDA LINHA (31/10/2026). Era um parágrafo à parte;
-    // a pesquisadora pediu-o dentro do texto porque é ele que a célula grava e o documento mostra.
-    conferir('o campo tem DUAS linhas: a definição e o «lê-se»', composto.linhasDoCampo === 2,
-      composto.frase);
-    conferir('e o «lê-se» está na SEGUNDA linha, depois da definição',
-      composto.frase.split('\n')[1].indexOf('Lê-se:') === 0, composto.frase.split('\n'));
-    conferir('o «lê-se» nomeia a categoria e cada sinal em palavras',
-      /Pé/.test(composto.lido) && /primeira posição/.test(composto.lido) && /à frente/.test(composto.lido),
-      composto.lido);
+    // A LEITURA EM PALAVRAS DEIXOU DE SER ESCRITA (31/10/2026): ela é DERIVADA da notação e só
+    // aparece quando há trecho — antes disso não há nada para ler, e inventar um texto seria a
+    // sugestão a competir com a frase do verbete.
+    conferir('a leitura em palavras não é escrita antes de haver trecho',
+      !/Lê-se:/.test(composto.fica), composto.fica);
+    // OS SINAIS NÃO TOCAM NA FRASE DO VERBETE (31/10/2026). Era o defeito que a pesquisadora
+    // descreveu como «toda vez que eu vou acrescentar um trecho, eu preciso digitar novamente o
+    // que acontece»: o campo vivia no passo do trecho e era reescrito a cada acrescento. Agora a
+    // frase é do exercício, e escolher sinais não a muda — muda o «lê-se» que se lhe acrescenta.
+    conferir('escolher sinais não reescreve a frase do verbete',
+      composto.frase === '', composto.frase);
+    conferir('e o último passo ainda não tem trechos para mostrar',
+      /Ainda não há trechos/.test(composto.fica), composto.fica);
     await clicar('#vb-sinais input[data-sinal="1ª"]');
     conferir('um sinal pode repetir-se no mesmo trecho — clicar outra vez acrescenta ao fim',
       /4\. 1ª/.test((await page.evaluate(estado)).chips), (await page.evaluate(estado)).chips);
@@ -512,17 +513,21 @@ function estado() {
     conferir('nenhuma pílula de sinal fica marcada — o estado está nas fichas, não na caixa',
       (await page.evaluate(estado)).sinaisMarcados === 0, (await page.evaluate(estado)).sinaisMarcados);
 
-    console.log('\n9. A FRASE AJUSTADA NÃO SE PERDE AO ACRESCENTAR UM SINAL');
+    console.log('\n9. A FRASE ESCRITA À MÃO NÃO SE PERDE AO ESCOLHER UM SINAL');
+    await noPassoDe('#vb-frase');
     await page.evaluate(() => {
-      const d = document.getElementById('vb-cel-desc');
+      const d = document.getElementById('vb-frase');
       d.value = 'a minha própria frase';
       d.dispatchEvent(new Event('input'));
     });
+    await noPassoDe('#vb-sinais');
     await clicar('#vb-sinais input[data-sinal="●"]');
-    // A DEFINIÇÃO ESCRITA À MÃO FICA, E O «LÊ-SE» É ACRESCENTADO POR BAIXO (31/10/2026).
     conferir('o que a professora escreveu fica',
-      (await page.evaluate(estado)).frase.split('\n')[0] === 'a minha própria frase',
+      (await page.evaluate(estado)).frase === 'a minha própria frase',
       (await page.evaluate(estado)).frase);
+    conferir('e a nota passa a dizer que a frase é dela',
+      /A sua frase/.test((await page.evaluate(estado)).notaDaFrase),
+      (await page.evaluate(estado)).notaDaFrase);
 
     console.log('\n10. A ORIENTAÇÃO DO CORPO ENTRA NO TRECHO — E É O OUTRO EIXO');
     await clicar('#vb-orient input[data-valor="croise"]');
@@ -543,14 +548,20 @@ function estado() {
     await clicar('#vb-orient input[data-valor="croise"]');
 
     console.log('\n11. ACRESCENTAR RECUSA O QUE FALTA, CAMPO A CAMPO');
-    await page.evaluate(() => { document.getElementById('vb-cel-desc').value = ''; });
+    await noPassoDe('#vb-frase');
+    await page.evaluate(() => {
+      const d = document.getElementById('vb-frase');
+      d.value = '';
+      d.dispatchEvent(new Event('input'));
+    });
     await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
     await new Promise((r) => setTimeout(r, 250));
-    conferir('a recusa nomeia a frase que falta',
-      /Falta o que acontece/.test((await page.evaluate(estado)).recado),
+    conferir('a recusa nomeia a frase que falta, e o passo onde se escreve',
+      /Falta a frase do verbete \(no passo 2\)/.test((await page.evaluate(estado)).recado),
       (await page.evaluate(estado)).recado);
+    await noPassoDe('#vb-frase');
     await page.evaluate(() => {
-      const d = document.getElementById('vb-cel-desc');
+      const d = document.getElementById('vb-frase');
       d.value = 'a perna sai em croisé e conduz à frente';
       d.dispatchEvent(new Event('input'));
     });
@@ -567,14 +578,21 @@ function estado() {
     conferir('e a cobertura passa a contar os tempos dele',
       /Cobre 2 de 4 tempos/.test(acrescentado.cobertura), acrescentado.cobertura);
 
-    console.log('\n12. A DIREÇÃO E A ORIENTAÇÃO FICAM — SÓ OS SINAIS E A FRASE SE LIMPAM');
+    console.log('\n12. A DIREÇÃO, A ORIENTAÇÃO E A FRASE FICAM — SÓ OS SINAIS SE LIMPAM');
     conferir('a direção continua marcada', marcada(acrescentado.direcoes) === 'devant',
       marcada(acrescentado.direcoes));
     conferir('a orientação continua marcada', marcada(acrescentado.orientacoes) === 'croise',
       marcada(acrescentado.orientacoes));
     conferir('as fichas é que se limpam', /Escolha a categoria/.test(acrescentado.chips),
       acrescentado.chips);
-    conferir('e a frase também', acrescentado.frase === '', acrescentado.frase);
+    // A FRASE NÃO SE LIMPA: era ela que obrigava a escrever a mesma coisa por cada trecho.
+    conferir('a frase do verbete NÃO se limpa — é o que impede escrevê-la outra vez',
+      acrescentado.frase === 'a perna sai em croisé e conduz à frente', acrescentado.frase);
+    // O QUE FICA ESCRITO VÊ-SE NO ÚLTIMO PASSO: frase do verbete + «lê-se» do trecho.
+    conferir('o último passo mostra o trecho composto — a frase e o «lê-se»',
+      /a perna sai em croisé e conduz à frente/.test(acrescentado.fica)
+        && /Lê-se: Pé, primeira posição, conduz a, à frente, primeira posição, fecha\./.test(acrescentado.fica),
+      acrescentado.fica);
 
     console.log('\n13. A TABELA TEM QUATRO COLUNAS — A DA FRASE SAIU');
     // A QUINTA COLUNA ERA REDUNDANTE (31/10/2026). Com a frase a vir da definição do exercício,
@@ -656,24 +674,32 @@ function estado() {
       JSON.stringify(valores(vazio.contagens)) === JSON.stringify(['1', '1–2']), valores(vazio.contagens));
 
     /** Acrescenta um trecho na direção dada, com a PRIMEIRA contagem que a tela oferecer. */
-    const acrescentar = async (dir, frase) => {
+    // A FRASE É ESCRITA UMA VEZ PARA O EXERCÍCIO (31/10/2026). Era o parâmetro que obrigava a
+    // repeti-la em cada trecho — e é isso que a prova agora impede: quem acrescenta três trechos
+    // não volta a escrever a mesma frase.
+    const escreverFrase = async (texto) => {
+      await noPassoDe('#vb-frase');
+      await page.evaluate((f) => {
+        const d = document.getElementById('vb-frase');
+        d.value = f;
+        d.dispatchEvent(new Event('input'));
+      }, texto);
+    };
+    const acrescentar = async (dir) => {
+      await noPassoDe('#vb-dir');
       await clicar('#vb-dir input[data-valor="' + dir + '"]');
       const oferecidas = valores((await page.evaluate(estado)).contagens);
       await clicar('#vb-contagem input[data-valor="' + oferecidas[0] + '"]');
       for (const sg of ['1ª', '→', '+']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
-      await page.evaluate((f) => {
-        const d = document.getElementById('vb-cel-desc');
-        d.value = f;
-        d.dispatchEvent(new Event('input'));
-      }, frase);
       await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
       await new Promise((r) => setTimeout(r, 400));
       return oferecidas;
     };
 
-    const offDevant = await acrescentar('devant', 'o pé bate à frente, a ponta no chão');
-    await acrescentar('a-la-seconde', 'o pé bate ao lado');
-    await acrescentar('derriere', 'o pé bate atrás');
+    await escreverFrase('o pé bate e volta');
+    const offDevant = await acrescentar('devant');
+    await acrescentar('a-la-seconde');
+    await acrescentar('derriere');
     const croix = await page.evaluate(estado);
     conferir('o trecho de «à frente» está no bloco de «à frente», e não noutro',
       croix.tabela[0].linhas.length === 1 && /compasso 1 \| 1 \|/.test(croix.tabela[0].linhas[0]),
@@ -688,6 +714,11 @@ function estado() {
       /compasso 2 \| 1 \|/.test(croix.tabela[2].linhas[0] || ''), croix.tabela[2].linhas);
     conferir('a cobertura soma os três tempos', /Cobre 3 de 16 tempos/.test(croix.cobertura),
       croix.cobertura);
+    // A FRASE FOI ESCRITA UMA VEZ E ESTÁ NOS TRÊS (31/10/2026). É a asserção que fecha o defeito
+    // que ela descreveu: antes, cada trecho obrigava a escrever outra vez «o que acontece».
+    conferir('a frase do verbete entra nos três trechos, sem se escrever três vezes',
+      (croix.fica.match(/o pé bate e volta/g) || []).length === 3,
+      { vezes: (croix.fica.match(/o pé bate e volta/g) || []).length, fica: croix.fica });
     conferir('a segunda direção já não ofereceu o tempo 1',
       JSON.stringify(offDevant) === JSON.stringify(['1', '1–2']) && !croix.tabela[1].linhas.length === false,
       offDevant);
@@ -712,29 +743,30 @@ function estado() {
       /Rond de jambe en l’air/.test(comDefinicao.notaDaFrase), comDefinicao.notaDaFrase);
     conferir('a definição aparece SEM sinal nenhum escolhido — ela não depende do trecho',
       comDefinicao.chips.length > 0 && !/1\./.test(comDefinicao.chips), comDefinicao.chips);
-    conferir('e o «como se lê» continua vazio enquanto não há sinais',
-      comDefinicao.lido === '', comDefinicao.lido);
+    conferir('e nada ainda foi acrescentado, por isso não há «lê-se» a mostrar',
+      /Ainda não há trechos/.test(comDefinicao.fica), comDefinicao.fica);
     // A DEFINIÇÃO NÃO É TEXTO A REESCREVER: quem ajustou não a vê voltar sozinha.
-    await page.evaluate(() => {
-      const d = document.getElementById('vb-cel-desc');
-      d.value = 'o círculo da perna no ar, a partir do retiré';
-      d.dispatchEvent(new Event('input'));
-    });
+    await escreverFrase('o círculo da perna no ar, a partir do retiré');
+    await noPassoDe('#vb-dir');
     await clicar('#vb-dir input[data-valor="devant"]');
     await clicar('#vb-contagem input[data-valor="1"]');
     // Os sinais do fixture (a lista real tem 18; aqui bastam dois para compor a leitura).
     for (const sg of ['-', '1ª']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
+    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    await new Promise((r) => setTimeout(r, 400));
     const ajustada = await page.evaluate(estado);
     conferir('a frase ajustada sobrevive a escolher a direção e os sinais',
-      ajustada.frase.split('\n')[0] === 'o círculo da perna no ar, a partir do retiré', ajustada.frase);
-    conferir('e o «lê-se» aparece na segunda linha, em palavras',
-      /primeira posição/.test(ajustada.lido) && ajustada.linhasDoCampo === 2,
-      { lido: ajustada.lido, linhas: ajustada.linhasDoCampo });
+      ajustada.frase === 'o círculo da perna no ar, a partir do retiré', ajustada.frase);
+    conferir('e o «lê-se» aparece no trecho, em palavras, por baixo da frase',
+      /primeira posição/.test(ajustada.fica)
+        && /Lê-se: Pé, ao lado, primeira posição\./.test(ajustada.fica),
+      ajustada.fica);
 
     console.log('\n18. UM TRECHO ACRESCENTADO PODE SER CORRIGIDO — E É O PEDIDO DELA');
     // «quando eu acrescento um trecho, seria bom que eu pudesse editar esse trecho». A correcção
-    // atravessa os passos 4 e 5, e é por isso que ela é um ESTADO: o aviso, o «!» nos dois
-    // números da tira, o rótulo do botão do 6 e a linha da tabela têm todos de saber.
+    // atravessa os dois passos do trecho, e é por isso que ela é um ESTADO: o aviso, o «!» nos
+    // dois números da tira, o rótulo do botão do último passo e a linha da tabela têm todos de
+    // saber.
     // Um trecho novo, num exercício sem verbete: é o caso de quem está a escrever de raiz, e é
     // onde a edição se mede sem depender do alfabeto de exemplo.
     await noPassoDe('#vbnome');
@@ -748,8 +780,9 @@ function estado() {
     await noPassoDe('#vbcompasso');
     await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 500));
-    const oferecidas = await acrescentar('devant', 'o pé bate à frente, a ponta no chão');
-    await irA(6);
+    await escreverFrase('o pé bate e troca');
+    const oferecidas = await acrescentar('devant');
+    await irA(7);
     const comTrecho = await page.evaluate(estado);
     const botoesDaLinha = await page.evaluate(
       () => [...document.querySelectorAll('#vb-tabela button')].map((b) => b.textContent.trim()));
@@ -759,10 +792,10 @@ function estado() {
     await page.evaluate(() => { document.querySelector('#vb-tabela button[data-editar]').click(); });
     await new Promise((r) => setTimeout(r, 400));
     const emEdicao = await page.evaluate(estado);
-    conferir('«Editar» leva ao passo 4, que é onde a correcção começa', emEdicao.passo === 4, emEdicao.passo);
+    conferir('«Editar» leva ao passo 5, que é onde a correcção começa', emEdicao.passo === 5, emEdicao.passo);
     conferir('o aviso de edição está à vista e diz qual é o trecho',
       emEdicao.avisoDeEdicao !== null && /trecho 1/.test(emEdicao.avisoDeEdicao), emEdicao.avisoDeEdicao);
-    conferir('a tira acende o «!» — e só nos passos 4 e 5',
+    conferir('a tira acende o «!» — e só nos passos do trecho',
       emEdicao.tiraEditando === 'sim' && emEdicao.alertasVisiveis === 2,
       { tira: emEdicao.tiraEditando, alertas: emEdicao.alertasVisiveis });
     conferir('os valores do trecho estão carregados nas pílulas',
@@ -771,11 +804,11 @@ function estado() {
     conferir('e a contagem carregada é a DELE — a edição não desloca o trecho',
       emEdicao.contagensMarcadas[0] === oferecidas[0],
       { carregada: emEdicao.contagensMarcadas, era: oferecidas });
-    conferir('o botão do passo 6 passa a «Guardar a alteração»',
+    conferir('o botão do último passo passa a «Guardar a alteração»',
       emEdicao.rotuloDoBotao === 'Guardar a alteração', emEdicao.rotuloDoBotao);
 
-    // A LINHA EM EDIÇÃO, VISTA DO PASSO 6: marcada, sem «×» e com «Cancelar».
-    await irA(6);
+    // A LINHA EM EDIÇÃO, VISTA DO ÚLTIMO PASSO: marcada, sem «×» e com «Cancelar».
+    await irA(7);
     const linhaEmEdicao = await page.evaluate(estado);
     conferir('a linha em edição está marcada e não tem «×»',
       linhaEmEdicao.linhaEmEdicao === true && linhaEmEdicao.temBotaoTirar === false,
@@ -785,7 +818,7 @@ function estado() {
     await page.evaluate(() => { document.getElementById('vb-cancelar-edicao').click(); });
     await new Promise((r) => setTimeout(r, 400));
     const cancelado = await page.evaluate(estado);
-    conferir('«Cancelar a edição» volta ao passo 6', cancelado.passo === 6, cancelado.passo);
+    conferir('«Cancelar a edição» volta ao último passo', cancelado.passo === 7, cancelado.passo);
     conferir('e apaga o modo: o aviso e o «!» desaparecem',
       cancelado.avisoDeEdicao === null && cancelado.tiraEditando === 'nao',
       { aviso: cancelado.avisoDeEdicao, tira: cancelado.tiraEditando });
@@ -793,7 +826,69 @@ function estado() {
       cancelado.linhasDaTabela === comTrecho.linhasDaTabela,
       { antes: comTrecho.linhasDaTabela, depois: cancelado.linhasDaTabela });
 
-    console.log('\n19. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
+    console.log('\n19. OS SETE PASSOS, A LISTAGEM POR BAIXO E AS ETIQUETAS DE CADA VERBETE');
+    // OS SETE PASSOS (31/10/2026). A tira é a navegação e o resumo; se um passo desaparecer dela,
+    // o painel dele fica inalcançável. O sétimo nasceu da redundância da frase — e é o que a
+    // prova tem de guardar, senão volta a ser seis por inércia.
+    const tira = await page.evaluate(() => ({
+      numeros: [...document.querySelectorAll('#vb-tira button.passo')]
+        .map((b) => b.getAttribute('data-passo')),
+      rotulos: [...document.querySelectorAll('#vb-tira button.passo')]
+        .map((b) => (b.querySelectorAll('.passo-t')[0] || {}).textContent.trim()),
+      paineis: [...document.querySelectorAll('#form-verbete .passo-painel')].length,
+    }));
+    conferir('a tira tem sete passos, numerados de 1 a 7',
+      JSON.stringify(tira.numeros) === JSON.stringify(['1', '2', '3', '4', '5', '6', '7']),
+      tira.numeros);
+    conferir('e o segundo é a frase — o que se escreve uma vez para o exercício',
+      tira.rotulos[1] === 'A frase', tira.rotulos);
+    conferir('há um painel por passo', tira.paineis === 7, tira.paineis);
+
+    // O FORMULÁRIO OCUPA A LARGURA, E A LISTAGEM DESCE PARA BAIXO DELE (31/10/2026). Com sete
+    // passos, a coluna de 34rem partia a tira em três linhas. O que se mede é a GEOMETRIA: uma
+    // coluna só, o formulário com a largura dela, e a listagem abaixo — não presa ao lado.
+    const layout = await page.evaluate(() => {
+      const sec = document.getElementById('sec-verbetes');
+      const form = sec.querySelector('.col-form');
+      const lista = sec.querySelector('.col-lista');
+      const r = (e) => e.getBoundingClientRect();
+      return {
+        colunas: getComputedStyle(sec).gridTemplateColumns.split(' ').length,
+        larguraSec: Math.round(r(sec).width),
+        larguraForm: Math.round(r(form).width),
+        baseForm: Math.round(r(form).bottom),
+        topoLista: Math.round(r(lista).top),
+        presa: getComputedStyle(lista).position,
+      };
+    });
+    conferir('a secção dos verbetes passou a ter UMA coluna', layout.colunas === 1, layout.colunas);
+    conferir('e o formulário ocupa a largura dela',
+      layout.larguraForm >= layout.larguraSec - 4, layout);
+    conferir('a listagem fica ABAIXO do formulário, e não ao lado',
+      layout.topoLista >= layout.baseForm, layout);
+    conferir('e deixou de ser uma coluna presa', layout.presa !== 'sticky', layout.presa);
+
+    // AS ETIQUETAS DA LISTAGEM. Antes era o nome e a chave crua da música — «4 | 4/4 · 8 | 4/4»,
+    // com o `|` a vazar para a tela. Agora a posição vai em selo e o complemento diz as direções,
+    // o compasso, em quantas músicas está escrito e quantos trechos tem.
+    const linha = await page.evaluate(() => {
+      const li = [...document.querySelectorAll('#lista-verbetes li')]
+        .find((x) => /Battement tendu/.test(x.textContent)) || {};
+      return {
+        selos: [...(li.querySelectorAll ? li.querySelectorAll('.selo') : [])]
+          .map((x) => x.textContent.trim()),
+        dono: ((li.querySelector ? li.querySelector('.dono') : null) || {}).textContent || '',
+        botao: Boolean(li.querySelector && li.querySelector('button.verbetes-editar')),
+      };
+    });
+    conferir('a posição do exercício vai num selo', linha.selos.indexOf('Première position') !== -1,
+      linha.selos);
+    conferir('e o complemento diz as direções, o compasso e os trechos',
+      /à frente · atrás · ao lado/.test(linha.dono) && /4\/4/.test(linha.dono)
+        && /2 músicas/.test(linha.dono) && /4 trechos/.test(linha.dono), linha.dono);
+    conferir('o nome continua a ser o botão que abre o verbete', linha.botao, linha.botao);
+
+    console.log('\n20. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {
       await page.setViewport({ width: largura, height: 900 });
       await new Promise((r) => setTimeout(r, 250));

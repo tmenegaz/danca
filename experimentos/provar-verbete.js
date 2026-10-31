@@ -345,9 +345,9 @@ async function aPagina() {
     Boolean(corpo && corpo.descricoes && corpo.descricoes['[Pé: 1ª → +]']),
     corpo && Object.keys(corpo.descricoes || {}).length);
 
-  // A DEFINIÇÃO DO EXERCÍCIO TAMBÉM (31/10/2026). É ela que pré-enche «o que acontece» no
-  // formulário do trecho — primeiro o que o exercício É, depois o que este bloco faz. Sem ela na
-  // rota, o campo volta a ficar vazio e volta a receber o nome do exercício.
+  // A DEFINIÇÃO DO EXERCÍCIO TAMBÉM (31/10/2026). É ela que pré-enche a FRASE DO VERBETE (passo 2)
+  // — o que o exercício É, escrito uma vez. Sem ela na rota, o campo volta a ficar vazio e volta
+  // a receber o nome do exercício, que foi o defeito do primeiro verbete escrito a sério.
   checar('e a lista de exercícios leva a definição e a sua fonte',
     Boolean(corpo && Array.isArray(corpo.exerciciosDoVocabulario)
       && corpo.exerciciosDoVocabulario.every((t) => 'descricao' in t && 'fonte' in t)),
@@ -495,10 +495,18 @@ async function aOrigemDoVocabulario() {
   // havia nenhuma, recusava — criar um verbete era impossível, para 55 exercícios possíveis e 4
   // verbetes. Estas asserções medem a MARCAÇÃO e o SCRIPT: a prova de comportamento é a bancada
   // no navegador (`experimentos/provar-celula.js`), que não vai ao ar.
+  // A FRASE SAIU DAQUI E FOI PARA O PASSO 2 (31/10/2026). Havia um campo de texto por trecho
+  // («o que acontece neste trecho»), e ele obrigava a reescrever a mesma definição a cada
+  // acrescento. O que se mede agora é o campo do VERBETE e a prévia do que fica escrito.
   checar('o editor do trecho existe, com as pílulas e o gesto de acrescentar',
     /id="vb-dir"/.test(html) && /id="vb-orient"/.test(html) && /id="vb-contagem"/.test(html)
-    && /id="vb-sinais"/.test(html) && /id="vb-cel-desc"/.test(html)
-    && /id="vb-cel-acrescentar"/.test(html) && /id="vb-tabela"/.test(html));
+    && /id="vb-sinais"/.test(html) && /id="vb-frase"/.test(html)
+    && /id="vb-cel-acrescentar"/.test(html) && /id="vb-tabela"/.test(html)
+    && /id="vb-fica"/.test(html));
+  // E O CAMPO POR TRECHO NÃO VOLTA. Ele é a redundância que a pesquisadora descreveu: «toda vez
+  // que eu vou acrescentar um trecho, eu preciso digitar novamente o que acontece».
+  checar('e não há nenhum campo de frase por trecho',
+    !/id="vb-cel-desc"/.test(html) && !/id="vb-desc-nota"/.test(html));
   // OS DOIS EIXOS NA MARCAÇÃO (versão 5, 28/10/2026): a direção do membro e a orientação do
   // corpo são campos distintos porque são coisas distintas.
   checar('a direção do membro e a orientação do corpo são dois campos, e não um',
