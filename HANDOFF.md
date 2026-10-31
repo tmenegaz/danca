@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-31T20:29:25-0300`
-Commit atual: `3b0175a` — feat(notacao): a frase é do exercício, e o verbete ganha o sétimo passo
+Gerado em: `2026-10-31T20:52:22-0300`
+Commit atual: `c3f0fb1` — fix(estrutura): o plano diz por que um termo da turma não aparece
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,7 +80,12 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
-3b0175a feat(notacao): a frase é do exercício, e o verbete ganha o sétimo passo
+c3f0fb1 fix(estrutura): o plano diz por que um termo da turma não aparece
+e12ad94 feat(notacao): declarar «Battement fondu» (2|4/4) no alfabeto bale-classico
+56470a8 chore(notacao): renovar o selo da âncora para a versão 7 do alfabeto
+2908822 docs(registro): a fotografia do sétimo passo, e as três decisões que ele fixou
+bf439f1 feat(notacao): a frase é do exercício, e o verbete ganha o sétimo passo
+1531eaa feat(notacao): declarar «Battement dégagé» (4|2/4) no alfabeto bale-classico
 c5d7359 docs(registro): a fotografia dos seis passos, e a decisão que os escolheu
 d7e71ff feat(notacao): o verbete em seis passos, com o modo de edição
 ccbc8d0 docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
@@ -95,11 +100,6 @@ db811d5 docs(registro): actualizar a fotografia após a definição no campo
 7be42cb feat(estrutura): «o que acontece» recebe a definição do exercício, e o «lê-se» desce
 73f5330 feat(notacao): declarar «Rond de jambe en l’air» (4|2/4) no alfabeto bale-classico
 32ab5d1 docs(registro): regenerar o HANDOFF após a fotografia de 29/10/2026
-08ceac1 docs(registro): actualizar a fotografia após a correcção das pílulas
-47a9415 docs(registro): a direção de escolha única, o «en face» que marca e o compasso corrido
-26967a8 fix(estrutura): a direção é escolha única, «en face» marca, e a contagem continua o compasso
-b0cfa43 chore(estrutura): regerar os índices derivados
-3d4777b docs(registro): regenerar o HANDOFF após a fotografia de 29/10/2026
 ```
 
 ## Por professor
@@ -199,99 +199,73 @@ b0cfa43 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 31/10/2026 — A frase é do exercício, e a listagem diz o que o verbete é
+## 31/10/2026 — O plano diz por que um termo da turma não aparece
 
-**O que motivou — três coisas, ditas na mesma sessão de uso.**
+**O que motivou.** Ela criou exercícios no verbete (dégagé, fondu, tendu, plié, port de bras, rond de
+jambe, rond de jambe en l'air), associou quatro à turma **Balé Nível 3 — Teste 2** e foi ao plano de
+ensino: «só está aparecendo o Jeté e o Arabesque… eu criei vários outros e eles não aparecem aqui. E
+precisa aparecer.» O dado estava certo e a tela estava calada — havia **duas** causas, e nenhuma delas
+era visível.
 
-1. **Battement dégagé não tinha descrição.** Ela testou o formulário com ele e leu a nota que já lá
-   estava: «Dégagé, battement glissé e battement tendu jeté nomeiam ações semelhantes em tradições
-   distintas; não tratar como sinônimos perfeitos.» A nota diz o que os três **não** são; não diz o
-   que o dégagé **é**, nem em que tradição o nome se usa.
-2. **A redundância que a tabela perdeu voltou pelo preenchimento.** Ela mandou tirar a quarta coluna
-   — e foi bom, porque repetia. Mas «o que acontece neste trecho» continuou a ser um campo por
-   trecho: «toda vez que eu vou acrescentar um trecho, eu preciso digitar novamente o que acontece
-   nesse trecho». A coluna saiu; o trabalho de escrever a mesma frase três vezes ficou.
-3. **Sete passos numa coluna de 34rem.** O formulário estava em duas colunas, com a listagem ao lado;
-   com sete passos a tira partia-se e cada painel ficava espremido. E a listagem mostrava a chave
-   crua da música — «Battement tendu 4 | 4/4 · 8 | 4/4 · 12 | 4/4» —, com o `|` a vazar para a tela.
+**Causa 1 — os parâmetros são o conteúdo da turma DO PLANO, não o vocabulário.** O «Parâmetro de
+medição» lê a relação turma↔conteúdo da turma escolhida em «Turmas observadas». Os planos que existem
+são do **Nível 1** e do **Nível 2**; o que ela associou foi ao **Nível 3**. Um termo criado no verbete
+entra no vocabulário, mas só chega ao plano depois de **associado a uma turma** — e o plano tem de
+apontar para essa turma. Não é um defeito: é o que faz a medição falar a mesma língua do que se ensina
+(decisão 17). O que faltava era a tela dizê-lo: agora diz de que turma vêm os parâmetros e **quantos
+termos estão associados** — «3 termos associados» ao lado de duas linhas explica o número.
 
-**A frase passou a ser do EXERCÍCIO, e escreve-se uma vez (passo 2).** É a decisão que resolve a
-redundância sem inventar um campo novo por trecho: a definição descreve o exercício, não o trecho, e
-o que muda de trecho para trecho é o «**lê-se**» — que é derivado da notação e sempre foi. Nasce daí
-o **sétimo passo**, que ela própria entreviu: 1 O exercício · 2 A frase · 3 A música · 4 A posição ·
-5 Para onde · 6 Os sinais · 7 A decomposição. O último passo deixou de ter campo de texto: mostra o
-que **fica escrito** em cada trecho, já composto (frase + «lê-se»), e o botão de acrescentar.
+**Causa 2 — um id que não resolve era descartado em silêncio.** A relação é chaveada por id, e o
+vocabulário mudou de casa a 28/10/2026: as associações antigas apontam para a lista que vivia no KV da
+escola. A relação das três turmas da `batata` guarda **`rond-de-jambe`**, que nunca existiu no ficheiro
+— o termo é «Rond de jambe à terre», id `rond-de-jambe-a-terre`. Um `filter(Boolean)` escondia-o, e os
+dois que sobravam **pareciam a lista inteira**. É a mesma família do `if` que filtrava o título vazio:
+«está aqui?» não é «existe?».
 
-**A proveniência foi respeitada na mudança.** A ordem de preferência do campo é: o que está
-**gravado** na célula → a definição do dicionário → vazio. Quem abre um verbete antigo vê a frase com
-que ele foi escrito (medido: «rondejambe en l'eir» volta, e não a definição de hoje); quem escolhe um
-exercício novo recebe a do vocabulário. Trocar a música do mesmo exercício não reescreve a frase. E a
-prévia mostra o texto **de cada célula**, não o da frase do momento: um trecho gravado com outra frase
-di-lo na linha («guardado com a frase com que foi escrito»), em vez de a diferença parecer defeito.
+**O que mudou.**
+- `conteudoDaTurma(turmaId)` devolve `{termos, orfaos, turma}` em vez de uma lista já filtrada. Os
+  órfãos levam os **candidatos** — os ids do vocabulário que começam pelo id perdido —, para a tela
+  poder nomear o termo que mudou de nome sem o escolher por ninguém.
+- As duas disposições da matriz (`porMarcoDoNo`, `porParametrosDoNo`) mostram um **aviso de alerta**
+  com quantos são, quais são, os candidatos, a turma, e onde se corrige (Produção → Turmas → passo
+  Associar).
+- A **origem** fica à vista: «Os parâmetros vêm do conteúdo do nível de «Balé Nível 2 — Teste 2» — 3
+  termos associados.»
+- Sem conteúdo nenhum, a mensagem distingue os dois casos — «a turma ainda não tem conteúdo
+  declarado» e «há conteúdo associado que já não existe». Antes, o segundo caía no primeiro e mentia.
 
-**O que se perdeu, e é honesto dizê-lo:** a sugestão pelo **dicionário do trecho** (indexado pela
-notação) deixou de alimentar o formulário — uma frase por trecho contradiz a frase do exercício. O
-`descricoes.json` continua a ir na rota e continua a ser dado da modalidade; quem o lê hoje é quem
-consulta a rota. Para os **32 exercícios ainda sem definição** (55 no total, 23 com definição), o
-passo 2 pede a frase uma vez, e é isso que se escreve — em vez de fragmentos por notação.
-
-**A listagem desceu, e passou a dizer do que se trata.** A secção dos verbetes tem agora **uma
-coluna**: o formulário ocupa a largura toda (medido: 1048px de 1048 na tela larga, 288 de 288 em
-320px) e a listagem vem **abaixo** dele; recolhido o formulário, fica só a listagem — que já era o
-comportamento certo e continua. Cada linha ganhou **etiquetas derivadas do alfabeto**, não de um
-segundo dado: a **posição** em selo (ao lado do nome), e por baixo as **direções**, o **compasso**, em
-quantas **músicas** está escrito e quantos **trechos** tem. O nome deixou de ser um `<button>` com a
-pastilha do navegador e veste o desenho do `.nome-link` — é uma ação, e agora lê-se como nome.
-
-**Um defeito de leitura que veio com isso:** `descontinuado` era lido no topo do verbete, onde nunca
-está (a marca vive em cada música) — um verbete descontinuado nunca aparecia como tal. Corrigido na
-mesma função que passou a derivar as etiquetas.
-
-**O que o dicionário ganhou.** Quatro termos da família do tendu passam a ter descrição, com a
-tradição declarada em cada um: **Battement dégagé** (nome geral, francês e RAD), **Battement glissé**
-(francês, com o acento no deslizar), **Battement tendu jeté** (Vaganova, com o acento no lançamento) e
-**Battement jeté** (RAD). O vocabulário vai de **55 para 59** termos com descrição e de **19 para 23**
-exercícios com definição. A `fonte` diz o que é verdade: «Redigida no projeto (31/10/2026), a partir
-da distinção entre as três tradições registada nas observações — a conferir pela pesquisadora». Não é
-do dicionário dela, e não se apresenta como se fosse.
+**O que NÃO se fez, de propósito.** O id órfão **não** é corrigido automaticamente. Havia dois
+candidatos (`à terre` e `en l'air`), e escolher um seria decidir o que se mede. A tela mostra os dois;
+quem escolhe é quem ensina.
 
 **Onde entrou.**
-- `motor/servidor/bastidores.js` — os sete passos (`PASSOS_DO_VERBETE`, `PASSOS_DO_TRECHO`, um só
-  sítio para os números); o painel 2 com a frase; o passo 7 sem campo de texto e com `pintarFica`;
-  `fraseGravada`, `comporDescricao`, `pintarNotaDaFrase`; a secção numa coluna e a listagem por baixo;
-  a linha da listagem com selos e complemento.
-- `motor/servidor/verbete.js` — `listarVerbetes` deriva `trechos`, `direcoes` e `compassos`, e lê o
-  `descontinuado` onde ele está.
-- `biblioteca/modalidades/bale-classico/vocabulario.json` — quatro descrições novas, com `fonte`.
-- `experimentos/provar-celula.js` — **85 → 106 asserções**: os sete passos, a frase que não se
-  reescreve, a frase que entra nos três trechos, a prévia composta, a geometria da secção (uma coluna,
-  formulário com a largura, listagem abaixo, sem `sticky`) e as etiquetas da listagem.
-- `experimentos/provar-verbete.js` — o editor passou a medir `vb-frase`, e mede que o campo por trecho
-  **não** volta.
+- `porta/index.html` — `conteudoDaTurma`, `avisoDeConteudoOrfao`, a origem na matriz, e as duas
+  mensagens de «sem conteúdo» separadas.
+- `experimentos/provar-parametros-por-parametro.js` — **14 → 21 asserções**: a secção 7 mede o órfão
+  (aviso, candidato, destino, turma, contagem) e tem **controle negativo** (sem órfãos, sem aviso).
+- Os dois pacotes regenerados (a porta é copiada para `plano-observacao/`), e o selo da âncora
+  renovado para a **versão 8** do alfabeto.
 
-**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. As regras novas
-de CSS vivem no bloco de estilo da própria página, e a checagem **8 (Peça)** passa com as 16
-superfícies e os 13 ganchos.
+**Medido com o dado real, na bancada local.** Com a relação que está ao vivo na `batata`: o Nível 1 e o
+Nível 2 mostram **Arabesque e Jeté** e acusam «`rond-de-jambe`»; o Nível 3 mostra **Arabesque, Jeté e
+Battement fondu** e acusa o mesmo. É exactamente o que ela vê, com a razão escrita ao lado.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. O pacote
+`ciclo-01-batata` é scaffold (DOCS vazio) e o gerador recusa corrê-lo: a cópia da porta lá dentro foi
+actualizada pelo mesmo processo do `gerar-ciclo.sh` — corpo novo, barra daquele pacote preservada.
 
 **Validação.**
-`provar-celula.js` → **106 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
-→ **74, 0 falhas**. `check-identidade.js` → **20/20**. `provar-producao.js` → **151/152** (a falha
-pré-existente do menu). `provar-celular.js` → **15/15** (320 a 1024px). `provar-vao-do-botao.js` →
-**62/62**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro, `3601081…`
-(o alfabeto não mudou; o vocabulário alimenta a frase do formulário, não o documento).
+`provar-parametros-por-parametro.js` → **21, 0 falhas**. `provar-plano-da-turma.js` → **46/0**.
+`provar-porta-sem-contexto.js` → **44/0**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0
+erro**. `hash-ciclo.sh --check` → íntegro, `3601081…`. **Não executado**: `provar-plano-completo.js`
+e `provar-plano-matriz.js` — falham **antes desta entrega** (o nó `aula-de-cada-objetivo` sem destino
+declarado na prova, e `/api/mapa`), confirmado por `git stash` sobre `porta/index.html`.
 
-**Medido no navegador, com o dado real.** Battement dégagé: o passo 2 abre com a definição completa. A
-tira tem sete passos; em 1280px ocupa 2 linhas (89px), em 768px 3 (136px), em 390 e 320px 7 (322px) —
-sem transbordo em nenhuma. Rond de jambe en l'air: a frase que volta é a **gravada**, e os três trechos
-mostram o texto deles.
-
-**O que continua em aberto.**
-- **A tira em sete linhas no telefone.** Não transborda, mas ocupa meia tela; se ela quiser, a
-  alternativa é esconder o valor dos passos abaixo de 700px.
-- As **4 linhas «a conferir»** das posições de braços no alfabeto.
-- As frases que eu redigi para os **32 exercícios sem definição** — agora são escritas uma vez, no
-  passo 2, mas continuam a ser minhas e a precisar do olho dela.
-- As **seleções no plano** (§1.6) — o último item da Fase 1.
+**O que fica em aberto, e é dela.**
+- **Corrigir a associação**: a relação das três turmas guarda um id que não existe. Em Produção →
+  Turmas → Associar, remover «rond-de-jambe» e associar «Rond de jambe à terre».
+- **Escolher a turma certa no plano**: os planos existentes são do Nível 1 e do Nível 2; o Nível 3 não
+  tem plano. Ou se planeia o Nível 3, ou se associam os termos que ela quer ao nível do plano que usa.
 
 ## O que está pendente
 

@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 31/10/2026 (base local `d7e71ff` + a entrega da frase do verbete). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. Da Fase 1 falta só as **seleções no plano** (§1.6).
+> **Última fotografia:** 31/10/2026 (base local `c3f0fb1`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -473,7 +473,21 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (31/10/2026 — a frase no passo 2, e a listagem por baixo)
+### Executado nesta fotografia (31/10/2026 — o plano acusa o termo que não existe)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-parametros-por-parametro.js` | **21 asserções, 0 falhas** (eram 14) — a secção 7 é o conteúdo órfão, com **controle negativo** |
+| …o que ela mede no órfão | o aviso aparece, nomeia o id («rond-de-jambe»), nomeia o candidato («Rond de jambe à terre»), diz onde se corrige (Produção, Turmas) e nomeia a turma; a origem conta os **3 associados** e a matriz desenha os **2** que resolvem |
+| `node experimentos/provar-plano-da-turma.js` | **46 provas, 0 falhas** |
+| `node experimentos/provar-porta-sem-contexto.js` | **44 asserções, 0 falhas** |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`**; selo renovado para a **versão 8** |
+| reprodução com o **dado ao vivo** da `batata` | Nível 1 e Nível 2 → **Arabesque, Jeté** + aviso de «rond-de-jambe»; Nível 3 → **Arabesque, Jeté, Battement fondu** + o mesmo aviso |
+| **não executado** | `provar-plano-completo.js` e `provar-plano-matriz.js` falham **antes desta entrega** (o nó `aula-de-cada-objetivo` sem destino na prova, e `/api/mapa`) — confirmado por `git stash` sobre `porta/index.html` |
+
+### Executado na fotografia anterior (31/10/2026 — a frase no passo 2, e a listagem por baixo)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -708,6 +722,11 @@ verbete administrável, os dois eixos, o dicionário, o «lê-se», os sete pass
 a frase escrita **uma vez** por exercício.
 
 **Pendente dela** (nada disto é código à espera de autorização, é olho dela):
+- **Corrigir a associação** das turmas da `batata`: a relação guarda `rond-de-jambe`, que não existe no
+  vocabulário. Em Produção → Turmas → Associar, remover e associar «Rond de jambe à terre».
+- **Escolher a turma do plano**: os planos existentes são do Nível 1 e do Nível 2, e os termos que ela
+  quer estão associados ao Nível 3 — ou se planeia o Nível 3, ou se associam os termos ao nível do
+  plano em uso.
 - **Usar o sétimo passo a sério** — acrescentar vários trechos e ver que a frase não se pede outra vez.
 - **As 4 linhas «a conferir»** das posições de braços no alfabeto — o dicionário dela só as responde em
   parte.
@@ -723,6 +742,20 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **31/10/2026** — **O plano diz por que um termo da turma não aparece.** Ela criou sete verbetes,
+  associou quatro à turma **Balé Nível 3 — Teste 2** e no plano só viu **Jeté e Arabesque**. Duas
+  causas, nenhuma visível: (1) os parâmetros de medição são o **conteúdo da turma do plano**, não o
+  vocabulário — os planos existentes são do Nível 1 e do Nível 2, e o que ela associou foi ao 3; (2) a
+  relação turma↔conteúdo guarda **`rond-de-jambe`**, um id que **nunca existiu** no ficheiro (o termo é
+  «Rond de jambe à terre»), e um `filter(Boolean)` **escondia-o em silêncio** — os dois que sobravam
+  pareciam a lista inteira. Agora a matriz diz de que turma vêm os parâmetros e quantos estão
+  associados, e **acusa os órfãos** com os candidatos, a turma e onde se corrige; sem conteúdo nenhum,
+  distingue «a turma não declarou» de «há conteúdo que já não existe». O id **não** se corrige sozinho:
+  havia dois candidatos, e escolher seria decidir o que se mede. **CONFIRMADO** localmente: **21
+  asserções** (eram 14) com controle negativo, `provar-plano-da-turma` 46/0, `provar-porta-sem-contexto`
+  44/0, `check-identidade` 20/20, `check-pacote` 0 erro, âncora íntegra com o **selo na versão 8**, e a
+  reprodução com o **dado ao vivo** a dar exactamente o que ela vê. Publicado em `c3f0fb1`.
 
 - **31/10/2026** — **A frase é do exercício, e a listagem diz o que o verbete é.** Três coisas ditas na
   mesma sessão de uso. **Battement dégagé não tinha descrição** — a nota dizia o que os três termos

@@ -28669,3 +28669,71 @@ mostram o texto deles.
 - As frases que eu redigi para os **32 exercícios sem definição** — agora são escritas uma vez, no
   passo 2, mas continuam a ser minhas e a precisar do olho dela.
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
+
+## 31/10/2026 — O plano diz por que um termo da turma não aparece
+
+**O que motivou.** Ela criou exercícios no verbete (dégagé, fondu, tendu, plié, port de bras, rond de
+jambe, rond de jambe en l'air), associou quatro à turma **Balé Nível 3 — Teste 2** e foi ao plano de
+ensino: «só está aparecendo o Jeté e o Arabesque… eu criei vários outros e eles não aparecem aqui. E
+precisa aparecer.» O dado estava certo e a tela estava calada — havia **duas** causas, e nenhuma delas
+era visível.
+
+**Causa 1 — os parâmetros são o conteúdo da turma DO PLANO, não o vocabulário.** O «Parâmetro de
+medição» lê a relação turma↔conteúdo da turma escolhida em «Turmas observadas». Os planos que existem
+são do **Nível 1** e do **Nível 2**; o que ela associou foi ao **Nível 3**. Um termo criado no verbete
+entra no vocabulário, mas só chega ao plano depois de **associado a uma turma** — e o plano tem de
+apontar para essa turma. Não é um defeito: é o que faz a medição falar a mesma língua do que se ensina
+(decisão 17). O que faltava era a tela dizê-lo: agora diz de que turma vêm os parâmetros e **quantos
+termos estão associados** — «3 termos associados» ao lado de duas linhas explica o número.
+
+**Causa 2 — um id que não resolve era descartado em silêncio.** A relação é chaveada por id, e o
+vocabulário mudou de casa a 28/10/2026: as associações antigas apontam para a lista que vivia no KV da
+escola. A relação das três turmas da `batata` guarda **`rond-de-jambe`**, que nunca existiu no ficheiro
+— o termo é «Rond de jambe à terre», id `rond-de-jambe-a-terre`. Um `filter(Boolean)` escondia-o, e os
+dois que sobravam **pareciam a lista inteira**. É a mesma família do `if` que filtrava o título vazio:
+«está aqui?» não é «existe?».
+
+**O que mudou.**
+- `conteudoDaTurma(turmaId)` devolve `{termos, orfaos, turma}` em vez de uma lista já filtrada. Os
+  órfãos levam os **candidatos** — os ids do vocabulário que começam pelo id perdido —, para a tela
+  poder nomear o termo que mudou de nome sem o escolher por ninguém.
+- As duas disposições da matriz (`porMarcoDoNo`, `porParametrosDoNo`) mostram um **aviso de alerta**
+  com quantos são, quais são, os candidatos, a turma, e onde se corrige (Produção → Turmas → passo
+  Associar).
+- A **origem** fica à vista: «Os parâmetros vêm do conteúdo do nível de «Balé Nível 2 — Teste 2» — 3
+  termos associados.»
+- Sem conteúdo nenhum, a mensagem distingue os dois casos — «a turma ainda não tem conteúdo
+  declarado» e «há conteúdo associado que já não existe». Antes, o segundo caía no primeiro e mentia.
+
+**O que NÃO se fez, de propósito.** O id órfão **não** é corrigido automaticamente. Havia dois
+candidatos (`à terre` e `en l'air`), e escolher um seria decidir o que se mede. A tela mostra os dois;
+quem escolhe é quem ensina.
+
+**Onde entrou.**
+- `porta/index.html` — `conteudoDaTurma`, `avisoDeConteudoOrfao`, a origem na matriz, e as duas
+  mensagens de «sem conteúdo» separadas.
+- `experimentos/provar-parametros-por-parametro.js` — **14 → 21 asserções**: a secção 7 mede o órfão
+  (aviso, candidato, destino, turma, contagem) e tem **controle negativo** (sem órfãos, sem aviso).
+- Os dois pacotes regenerados (a porta é copiada para `plano-observacao/`), e o selo da âncora
+  renovado para a **versão 8** do alfabeto.
+
+**Medido com o dado real, na bancada local.** Com a relação que está ao vivo na `batata`: o Nível 1 e o
+Nível 2 mostram **Arabesque e Jeté** e acusam «`rond-de-jambe`»; o Nível 3 mostra **Arabesque, Jeté e
+Battement fondu** e acusa o mesmo. É exactamente o que ela vê, com a razão escrita ao lado.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. O pacote
+`ciclo-01-batata` é scaffold (DOCS vazio) e o gerador recusa corrê-lo: a cópia da porta lá dentro foi
+actualizada pelo mesmo processo do `gerar-ciclo.sh` — corpo novo, barra daquele pacote preservada.
+
+**Validação.**
+`provar-parametros-por-parametro.js` → **21, 0 falhas**. `provar-plano-da-turma.js` → **46/0**.
+`provar-porta-sem-contexto.js` → **44/0**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0
+erro**. `hash-ciclo.sh --check` → íntegro, `3601081…`. **Não executado**: `provar-plano-completo.js`
+e `provar-plano-matriz.js` — falham **antes desta entrega** (o nó `aula-de-cada-objetivo` sem destino
+declarado na prova, e `/api/mapa`), confirmado por `git stash` sobre `porta/index.html`.
+
+**O que fica em aberto, e é dela.**
+- **Corrigir a associação**: a relação das três turmas guarda um id que não existe. Em Produção →
+  Turmas → Associar, remover «rond-de-jambe» e associar «Rond de jambe à terre».
+- **Escolher a turma certa no plano**: os planos existentes são do Nível 1 e do Nível 2; o Nível 3 não
+  tem plano. Ou se planeia o Nível 3, ou se associam os termos que ela quer ao nível do plano que usa.
