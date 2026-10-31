@@ -3298,11 +3298,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ali o NOME do exercício — «rondejambe en l'eir» em três trechos —, porque não havia nada a
     // dizer-lhe o que o campo quer. A definição do dicionário é o princípio certo: diz o que o
     // exercício É, e a professora ajusta o que acontece NESTE trecho.
-    '<textarea id="vb-cel-desc" rows="2" placeholder="a frase que a página da aula vai mostrar"></textarea>' +
+    '<textarea id="vb-cel-desc" rows="4" placeholder="a definição do exercício e, abaixo, como se lê este trecho"></textarea>' +
     '<p class="nota" id="vb-desc-nota"></p>' +
-    // O «COMO SE LÊ» FICA ABAIXO DO CAMPO (31/10/2026), e não acima: a ordem passa a ser a da
-    // leitura — primeiro o que acontece, em português; depois como isso se escreve em Benesh.
-    '<p class="nota" id="vb-lido"></p>' +
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vb-cel-acrescentar">Acrescentar trecho</button>' +
     '</span>' +
@@ -5005,13 +5002,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var mapa = compassosDosTrechos();' +
     '  var html = "";' +
+    // QUATRO COLUNAS, E NÃO CINCO (31/10/2026). Havia uma quinta — «o que acontece neste trecho»,
+    // com um campo editável por linha —, e a pesquisadora viu o que ela era: **redundante**. Com a
+    // frase a vir da definição do exercício, todas as linhas diziam o mesmo; e a parte que muda por
+    // trecho (o «lê-se») é função da notação, que já tem a sua coluna. A frase passou para o campo
+    // único acima da tabela, e a tabela ficou com o que varia: compasso · contagem · orientação ·
+    // notação.
     '  direcoesDaGramatica().forEach(function(d){' +
     '    var lista = CELULAS[d.termo] || [];' +
-    '    html += "<table><thead><tr><th scope=\\"col\\" colspan=\\"5\\">" + d.nome +' +
+    '    html += "<table><thead><tr><th scope=\\"col\\" colspan=\\"4\\">" + d.nome +' +
     '      "</th></tr></thead><tbody>";' +
     '    if (!lista.length) {' +
     '      var noutra = ondeOExercicioTem(nome, d.termo);' +
-    '      html += "<tr><td colspan=\\"5\\" class=\\"nota\\">" + (noutra' +
+    '      html += "<tr><td colspan=\\"4\\" class=\\"nota\\">" + (noutra' +
     '        ? "O exercício vai " + d.nome + " noutra música (" + noutra + "), mas não nesta."' +
     '        : "Este exercício não vai " + d.nome + ".") +' +
     '        " Se for engano, acrescente o trecho abaixo." + "</td></tr>";' +
@@ -5026,9 +5029,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      html += "<tr><td>compasso <strong>" + mapa[d.termo + ":" + k] + "</strong></td><td>" +' +
     '        c.contagem + "</td><td>" + (orient || "<span class=\\"nota\\">en face</span>") +' +
     '        "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
-    '        "]</code></td><td><input data-desc=\\"" + d.termo + ":" + k + "\\" value=\\"" +' +
-    '        String(c.descricao || "").replace(/"/g, "&quot;") + "\\" aria-label=\\"o que acontece\\">" +' +
-    '        " <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + d.termo + ":" + k +' +
+    '        "]</code> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + d.termo + ":" + k +' +
     '        "\\" title=\\"tirar este trecho\\">×</button></td></tr>";' +
     '    });' +
     '    html += "</tbody></table>";' +
@@ -5195,15 +5196,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        "<button type=\\"button\\" data-sinal=\\"" + i + "\\" aria-label=\\"tirar " + s + "\\">×</button></span>";' +
     '    }).join(" ");' +
     '  }' +
-    '  var lido = document.getElementById("vb-lido");' +
-    '  if (lido) {' +
-    '    lido.textContent = SINAIS.length' +
-    '      ? "Lê-se «" + categoriaEscolhida() + ": " + SINAIS.join(" ") + "» — " + SINAIS.map(function(s){' +
-    '          var d = (VERBETES && VERBETES.sinais || []).filter(function(x){ return x.sinal === s; })[0];' +
-    '          return d ? d.nome : s;' +
-    '        }).join(", ") + "."' +
-    '      : "";' +
-    '  }' +
+    // O «LÊ-SE» NÃO TEM MAIS UM PARÁGRAFO PRÓPRIO (31/10/2026): ele passou a ser a SEGUNDA LINHA do
+    // campo «o que acontece», como a pesquisadora pediu duas vezes. Um parágrafo a repetir o que o
+    // campo já diz seria a redundância que ela acabou de mandar tirar da tabela.
     '  sugerirDescricao();' +
     '}' +
     // A FRASE VEM DO DICIONÁRIO — E NÃO POR CIMA DO QUE FOI ESCRITO. Só substitui quando o campo
@@ -5233,6 +5228,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // dicionário **do trecho** (indexado pela notação), que é mais específico e já existia.
     // Em ambos os casos o que fica gravado é o texto da célula: o dicionário pode melhorar sem
     // reescrever o passado (P-03/P-04), e o que a professora ajustou não se perde.
+    // O «COMO SE LÊ» DENTRO DO CAMPO (31/10/2026). Era um parágrafo à parte, abaixo, e a
+    // pesquisadora pediu-o DUAS VEZES — «o lê-se vai ter que aparecer logo abaixo, também no campo
+    // de texto». A razão não é estética: o que a célula grava é o texto que a página da aula
+    // mostra, e sem o «lê-se» dentro dele o documento gerado perde a única linha que diz, em
+    // português, o que a notação escreve em sinais. Fica em DUAS LINHAS: a definição do exercício
+    // e, abaixo, como se lê este trecho.
+    'function comoSeLe(chips){' +
+    '  if (!chips || !chips.length) return "";' +
+    '  var nomes = chips.map(function(s){' +
+    '    var d = (VERBETES && VERBETES.sinais || []).filter(function(x){ return x.sinal === s; })[0];' +
+    '    return d ? d.nome : s;' +
+    '  });' +
+    '  return "Lê-se: " + [categoriaEscolhida()].concat(nomes).join(", ") + ".";' +
+    '}' +
+    // O «LÊ-SE» É REFEITO, A DEFINIÇÃO É PRESERVADA (31/10/2026). A primeira versão trocava o
+    // campo inteiro pela sugestão, e tinha um defeito que só aparece a usar: quem AJUSTASSE a
+    // definição — e ajustar é para isso que o campo é editável — deixava de receber o «lê-se»,
+    // porque a sugestão deixava de bater com o texto e nada mais era escrito. Agora as duas
+    // partes são tratadas por si: a de cima (a definição) é da professora e não se toca depois de
+    // escrita à mão; a de baixo (o «lê-se») é DERIVADA da notação e refaz-se sempre.
+    'function partirFrase(texto){' +
+    '  var linhas = String(texto || "").split("\\n");' +
+    '  var cima = [];' +
+    '  linhas.forEach(function(l){ if (l.indexOf("Lê-se:") !== 0) cima.push(l); });' +
+    '  return cima.join("\\n").trim();' +
+    '}' +
     'function sugerirDescricao(){' +
     '  var campo = document.getElementById("vb-cel-desc");' +
     '  var nota = document.getElementById("vb-desc-nota");' +
@@ -5241,10 +5262,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var bloco = SINAIS.length ? blocoEmComposicao() : "";' +
     '  var dicionario = (VERBETES && VERBETES.descricoes) || {};' +
     '  var doTrecho = bloco ? (dicionario[bloco] || "") : "";' +
-    '  var sugestao = exercicio ? exercicio.texto : doTrecho;' +
-    '  var atual = String(campo.value || "").trim();' +
-    '  if (!atual || atual === SUGESTAO_ANTERIOR) campo.value = sugestao;' +
-    '  SUGESTAO_ANTERIOR = sugestao;' +
+    '  var base = exercicio ? exercicio.texto : doTrecho;' +
+    '  var leitura = comoSeLe(SINAIS);' +
+    '  var cima = partirFrase(campo.value);' +
+    // A definição só é substituída quando o campo está vazio ou ainda tem a sugestão anterior:
+    // quem ajustou não a vê voltar sozinha.
+    '  if (!cima || cima === partirFrase(SUGESTAO_ANTERIOR)) cima = base;' +
+    '  SUGESTAO_ANTERIOR = [base, leitura].filter(Boolean).join("\\n");' +
+    '  campo.value = [cima, leitura].filter(Boolean).join("\\n");' +
     '  if (!nota) return;' +
     '  if (exercicio) {' +
     '    var fonte = exercicio.fonte ? " (" + exercicio.fonte + ")" : "";' +
@@ -5608,13 +5633,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var bCelAcrescentar = document.getElementById("vb-cel-acrescentar");' +
     'if (bCelAcrescentar) {' +
     '  bCelAcrescentar.addEventListener("click", function(){' +
-    '    var desc = document.getElementById("vb-cel-desc").value.trim();' +
+    // A FRASE GRAVADA É COMPOSTA AQUI (31/10/2026): o que a professora escreveu em cima + o
+    // «lê-se» derivado dos sinais. Assim o «como se lê» entra no texto da célula MESMO quando ela
+    // reescreveu o campo de ponta a ponta — é ele que a página da aula mostra, e sem ele o
+    // documento gerado perde a única linha que diz em português o que a notação escreve.
+    '    var escrito = partirFrase(document.getElementById("vb-cel-desc").value);' +
+    '    var desc = [escrito, comoSeLe(SINAIS)].filter(Boolean).join("\\n");' +
     '    var faltando = [];' +
     '    if (!MUSICA_EM_FOCO) faltando.push("o exercício, os tempos e o compasso");' +
     '    if (!DIRECAO) faltando.push("a direção");' +
     '    if (!CONTAGEM) faltando.push("a contagem");' +
     '    if (!SINAIS.length) faltando.push("ao menos um sinal");' +
-    '    if (!desc) faltando.push("o que acontece (a frase em português)");' +
+    // A RECUSA OLHA PARA O QUE FOI ESCRITO (31/10/2026), e não para a frase composta: com os
+    // sinais escolhidos, o «lê-se» sozinho já daria texto, e o campo podia ficar vazio sem que
+    // ninguém notasse — que é o estado em que a célula não diz nada em português.
+    '    if (!escrito) faltando.push("o que acontece (a frase em português)");' +
     '    if (faltando.length) { recado("erro", "Falta " + faltando.join(", ") + "."); return; }' +
     '    CELULAS[DIRECAO] = CELULAS[DIRECAO] || [];' +
     '    var celula = {contagem: CONTAGEM, categoria: categoriaEscolhida(),' +
@@ -5633,8 +5666,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    recado("ok", "trecho acrescentado — grave o verbete para o guardar.");' +
     '  });' +
     '}' +
-    // O «×» DE CADA TRECHO, e a FRASE EDITÁVEL na própria linha. A frase é o único campo de
-    // escrita livre: edita-se onde se lê, sem tirar e voltar a pôr o trecho.
+    // O «×» DE CADA TRECHO — e só ele (31/10/2026). Havia aqui um segundo handler, para o campo
+    // da frase na própria linha; a coluna saiu (a frase passou para o campo único acima da
+    // tabela), e o handler saiu com ela. Um handler que fica sem markup a que responder é pior do
+    // que não existir: parece que a tela ainda tem um campo.
     'var bTabela = document.getElementById("vb-tabela");' +
     'if (bTabela) {' +
     '  bTabela.addEventListener("click", function(e){' +
@@ -5645,13 +5680,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    CELULAS[p[0]].splice(Number(p[1]), 1);' +
     '    pintarTabela();' +
     '    pintarContagens();' +
-    '  });' +
-    '  bTabela.addEventListener("input", function(e){' +
-    '    var campo = e.target.closest ? e.target.closest("input[data-desc]") : null;' +
-    '    if (!campo) return;' +
-    '    var p = campo.getAttribute("data-desc").split(":");' +
-    '    var c = CELULAS[p[0]] && CELULAS[p[0]][Number(p[1])];' +
-    '    if (c) c.descricao = campo.value;' +
     '  });' +
     '}' +
     // --- associar o CONTEÚDO à turma escolhida ---------------------------------------

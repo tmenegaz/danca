@@ -221,17 +221,27 @@ function estado() {
     orientacoesMarcadas: [...document.querySelectorAll('#vb-orient input:checked')]
       .map((x) => x.getAttribute('data-valor')),
     chips: (q('vb-chips') || {}).textContent.trim(),
-    lido: (q('vb-lido') || {}).textContent.trim(),
+    // O «LÊ-SE» PASSOU A SER A SEGUNDA LINHA DO CAMPO (31/10/2026). Não há mais parágrafo
+    // próprio: mede-se no texto do campo, que é o que a célula grava.
+    lido: (() => {
+      const v = String((q('vb-cel-desc') || {}).value || '');
+      const i = v.indexOf('Lê-se:');
+      return i === -1 ? '' : v.slice(i).trim();
+    })(),
+    linhasDoCampo: String((q('vb-cel-desc') || {}).value || '').split('\n').length,
     frase: (q('vb-cel-desc') || {}).value || '',
     notaDaFrase: (q('vb-desc-nota') || {}).textContent || '',
-    // A ORDEM NA PÁGINA (31/10/2026): o «como se lê» passa a vir ABAIXO do campo, e não acima.
-    // Mede-se a posição, não a intenção — `compareDocumentPosition` é o que a folha faz.
-    lidoDepoisDoCampo: (() => {
-      const campo = q('vb-cel-desc');
-      const lido = q('vb-lido');
-      if (!campo || !lido) return null;
-      return Boolean(campo.compareDocumentPosition(lido) & Node.DOCUMENT_POSITION_FOLLOWING);
+    // A ORDEM DENTRO DO CAMPO (31/10/2026): a definição na primeira linha, o «lê-se» na segunda.
+    // Mede-se o texto, não a intenção.
+    definicaoAntesDaLicao: (() => {
+      const v = String((q('vb-cel-desc') || {}).value || '');
+      const i = v.indexOf('Lê-se:');
+      return i === -1 ? null : i > 0 && i > v.lastIndexOf('.', i) - 1;
     })(),
+    // As colunas contam-se pelo CABEÇALHO: a linha de «este exercício não vai…» ocupa a tabela
+    // toda com um `colspan`, e contá-la daria 1.
+    colunasDaTabela: [...document.querySelectorAll('#vb-tabela table')]
+      .map((t) => t.tHead.rows[0].cells[0].colSpan),
     recado: (document.querySelector('[data-res=verbetes]') || {}).textContent || '',
     botaoVerboNoModoB: (() => {
       const b = q('vb-modo-exercicio');
@@ -438,13 +448,19 @@ function estado() {
     // O `Battement tendu` do fixture NÃO tem definição no vocabulário: a frase cai para o
     // dicionário do TRECHO, indexado pela notação. É o segundo na ordem, e é o que se mede aqui.
     conferir('sem definição no vocabulário, a frase vem do dicionário do trecho',
-      composto.frase === 'extensão à frente a partir da 1ª posição, a ponta no chão', composto.frase);
+      composto.frase.split('\n')[0] === 'extensão à frente a partir da 1ª posição, a ponta no chão',
+      composto.frase);
     conferir('e a nota diz que a origem é o trecho, não o exercício',
       /dicionário deste trecho/.test(composto.notaDaFrase), composto.notaDaFrase);
-    // A ORDEM DA LEITURA (31/10/2026): o que acontece primeiro, em português; o «como se lê»
-    // abaixo. Era ao contrário, e a pesquisadora pediu a ordem da leitura.
-    conferir('o «como se lê» está ABAIXO do campo, e não acima',
-      composto.lidoDepoisDoCampo === true, composto.lidoDepoisDoCampo);
+    // O «LÊ-SE» VIVE DENTRO DO CAMPO, NA SEGUNDA LINHA (31/10/2026). Era um parágrafo à parte;
+    // a pesquisadora pediu-o dentro do texto porque é ele que a célula grava e o documento mostra.
+    conferir('o campo tem DUAS linhas: a definição e o «lê-se»', composto.linhasDoCampo === 2,
+      composto.frase);
+    conferir('e o «lê-se» está na SEGUNDA linha, depois da definição',
+      composto.frase.split('\n')[1].indexOf('Lê-se:') === 0, composto.frase.split('\n'));
+    conferir('o «lê-se» nomeia a categoria e cada sinal em palavras',
+      /Pé/.test(composto.lido) && /primeira posição/.test(composto.lido) && /à frente/.test(composto.lido),
+      composto.lido);
     await clicar('#vb-sinais input[data-sinal="1ª"]');
     conferir('um sinal pode repetir-se no mesmo trecho — clicar outra vez acrescenta ao fim',
       /4\. 1ª/.test((await page.evaluate(estado)).chips), (await page.evaluate(estado)).chips);
@@ -459,8 +475,9 @@ function estado() {
       d.dispatchEvent(new Event('input'));
     });
     await clicar('#vb-sinais input[data-sinal="●"]');
+    // A DEFINIÇÃO ESCRITA À MÃO FICA, E O «LÊ-SE» É ACRESCENTADO POR BAIXO (31/10/2026).
     conferir('o que a professora escreveu fica',
-      (await page.evaluate(estado)).frase === 'a minha própria frase',
+      (await page.evaluate(estado)).frase.split('\n')[0] === 'a minha própria frase',
       (await page.evaluate(estado)).frase);
 
     console.log('\n10. A ORIENTAÇÃO DO CORPO ENTRA NO TRECHO — E É O OUTRO EIXO');
@@ -515,16 +532,15 @@ function estado() {
       acrescentado.chips);
     conferir('e a frase também', acrescentado.frase === '', acrescentado.frase);
 
-    console.log('\n13. A FRASE EDITA-SE NA PRÓPRIA LINHA');
-    await page.evaluate(() => {
-      const campo = document.querySelector('input[data-desc]');
-      campo.value = 'frase corrigida na tabela';
-      campo.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    await new Promise((r) => setTimeout(r, 200));
-    conferir('a frase nova está na tabela',
-      /frase corrigida na tabela/.test((await page.evaluate(estado)).tabela[0].linhas.join(' ')),
-      (await page.evaluate(estado)).tabela[0].linhas);
+    console.log('\n13. A TABELA TEM QUATRO COLUNAS — A DA FRASE SAIU');
+    // A QUINTA COLUNA ERA REDUNDANTE (31/10/2026). Com a frase a vir da definição do exercício,
+    // todas as linhas diziam o mesmo; e a parte que muda por trecho (o «lê-se») é função da
+    // notação, que já tem coluna. A pesquisadora viu-o e mandou tirá-la.
+    const quatroColunas = await page.evaluate(estado);
+    conferir('as tabelas têm quatro colunas, e não cinco',
+      quatroColunas.colunasDaTabela.every((n) => n === 4), quatroColunas.colunasDaTabela);
+    conferir('não há nenhum campo de frase dentro da tabela',
+      (await page.evaluate(() => document.querySelectorAll('#vb-tabela input').length)) === 0);
 
     console.log('\n14. O QUE SE GRAVA LEVA A ORIENTAÇÃO — E NÃO A LEVA QUANDO É EN FACE');
     ULTIMO_CORPO = null;
@@ -542,8 +558,10 @@ function estado() {
     const nova = gravadas && gravadas.devant ? gravadas.devant[gravadas.devant.length - 1] : null;
     conferir('e ela leva `orientacao: croise`', Boolean(nova) && nova.orientacao === 'croise',
       nova || diagnostico);
-    conferir('a frase que a tabela mostrou é a que se grava',
-      Boolean(nova) && nova.descricao === 'frase corrigida na tabela', nova || diagnostico);
+    // A FRASE GRAVADA É A DO CAMPO (31/10/2026) — definição + «lê-se», em duas linhas. A tabela
+    // deixou de a mostrar, e por isso é aqui que se mede que ela não se perdeu.
+    conferir('a frase gravada é a do campo, com as duas linhas',
+      Boolean(nova) && /Lê-se:/.test(nova.descricao || ''), nova || diagnostico);
     conferir('o botão de gravar não inventa o campo nas células antigas',
       Boolean(gravadas) && gravadas.devant.every((c, i) => i === gravadas.devant.length - 1
         || !('orientacao' in c)), gravadas && gravadas.devant);
@@ -664,10 +682,10 @@ function estado() {
     for (const sg of ['-', '1ª']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
     const ajustada = await page.evaluate(estado);
     conferir('a frase ajustada sobrevive a escolher a direção e os sinais',
-      ajustada.frase === 'o círculo da perna no ar, a partir do retiré', ajustada.frase);
-    conferir('e o «como se lê» aparece abaixo, em palavras',
-      /primeira posição/.test(ajustada.lido) && ajustada.lidoDepoisDoCampo === true,
-      { lido: ajustada.lido, ordem: ajustada.lidoDepoisDoCampo });
+      ajustada.frase.split('\n')[0] === 'o círculo da perna no ar, a partir do retiré', ajustada.frase);
+    conferir('e o «lê-se» aparece na segunda linha, em palavras',
+      /primeira posição/.test(ajustada.lido) && ajustada.linhasDoCampo === 2,
+      { lido: ajustada.lido, linhas: ajustada.linhasDoCampo });
 
     console.log('\n18. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {
