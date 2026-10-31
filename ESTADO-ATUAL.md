@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 29/10/2026 (base local `f1f5a7a`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório**, numa verdade só (`4e09bc9`); o formulário ganhou **dois modos** que não coexistem, com a **direção lida do dado** e o **editor de célula** que faltava (`4f4795a`, folha em `9fb09dc`); a **célula foi explicada** — contagem calculada, «Sinais Benesh» compostos, uma tabela só e o **dicionário do que acontece** (`4342f16`); a célula passou a ter **dois eixos** — direção do membro (3) e orientação do corpo (5), alfabeto **versão 5** — com o trecho **todo em pílulas** (`4994b34`, `9b318fe`); e as pílulas foram corrigidas a partir do primeiro uso a sério: **escolha única** onde é uma escolha, **«en face» marcada**, e a **contagem a continuar o compasso** em vez de recomeçar por direção (`5af8aff`). Da Fase 1 falta só as **seleções no plano** (§1.6).
+> **Última fotografia:** 31/10/2026 (base local `612c49b`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), passou a ser **administrável na Produção** (`3dcc344`) e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário passou a viver no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula passou a ter **dois eixos** — direção (3) e orientação (5), alfabeto **versão 5** — com o trecho **em pílulas** (`4994b34`, `9b318fe`); as pílulas foram corrigidas ao primeiro uso a sério (**escolha única**, **«en face» marcada**, **contagem corrida**, `5af8aff`); e «**o que acontece**» passou a receber a **definição do exercício** do vocabulário, com o «**lê-se**» abaixo do campo (`7be42cb`) — depois de a pesquisadora ter gravado o primeiro verbete real e o campo, vazio, ter recebido o nome do exercício (`73f5330`, alfabeto **versão 6**). Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -462,7 +462,7 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 | `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
 | `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`**; o alfabeto subiu a **versão 5** e o selo foi renovado |
 | o texto dos PDFs gerados | **mesmo md5** que antes dos dois eixos — nenhuma célula declara orientação, e o documento não muda |
-| `node experimentos/provar-celula.js` | **75 asserções**, 0 falhas — 3 direções e 5 orientações, caixas `radio`, três cliques em três direções deixam **uma** marcada, «en face» marca, nenhuma lista suspensa, três cliques = três sinais, sinal repetido, direção e orientação persistentes, `orientacao` no corpo gravado, e um en croix inteiro com o compasso corrido (`1\|1`, `1\|2`, `2\|1`) |
+| `node experimentos/provar-celula.js` | **82 asserções**, 0 falhas — 3 direções e 5 orientações, caixas `radio`, três cliques em três direções deixam **uma** marcada, «en face» marca, nenhuma lista suspensa, três cliques = três sinais, sinal repetido, direção e orientação persistentes, `orientacao` no corpo gravado, e um en croix inteiro com o compasso corrido (`1\|1`, `1\|2`, `2\|1`) |
 | geometria no navegador | contagem: `1`,`1–2` em 2/4 e até `1–4` em 4/4; frase sugerida pelo dicionário e preservada quando ajustada; sem transbordo em 320/390/768/1280; nenhum erro de JS |
 
 ### Executado na fotografia anterior (28/10/2026 — os dois modos e o editor de célula)
@@ -646,6 +646,19 @@ deploy; não foi feita outra requisição à produção para respeitar o limite 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **31/10/2026** — **«O que acontece» recebe a definição do exercício, e o «lê-se» desce.** A
+  pesquisadora gravou o **primeiro verbete a sério** — *Rond de jambe en l'air* (`73f5330`, alfabeto
+  **versão 6**) — e o dado mostrou o defeito: nos três trechos a `descricao` é «rondejambe en l'eir»,
+  isto é, o **nome do exercício** escrito num campo que, vazio, não dizia o que queria. O campo passa a
+  pré-encher com a **definição do exercício lida do vocabulário** (a rota leva `descricao` e `fonte` em
+  cada termo), e a ordem de preferência é **três**: definição do exercício → dicionário **do trecho**
+  (indexado pela notação) → vazio; sem o segundo, **43 dos 55** exercícios ficariam sem sugestão (o
+  vocabulário tem definição em **12 de 55**). A definição aparece **assim que o exercício é escolhido**,
+  a nota diz **de onde veio**, e o que se grava continua a ser a frase da célula (P-03/P-04). O
+  «**como se lê**» passou para **abaixo** do campo: a ordem é a da leitura. As duas `.fipp` foram
+  **regeradas** (selo desatualizado pela versão 6). Publicado em `7be42cb`. **CONFIRMADO** localmente
+  (82 asserções em navegador); a conferência ao ar fica para o deploy.
 
 - **29/10/2026** — **A direção é escolha única, «en face» marca, e a contagem continua o compasso.** A
   pesquisadora foi escrever o **Battement frappé** (16 tempos, 2/4, *sur le cou-de-pied*) e relatou
