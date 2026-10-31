@@ -28345,3 +28345,75 @@ JavaScript.
 **O que continua em aberto.**
 - O **dicionário dela** — falta a proveniência (`fonte`), que é decisão da pesquisadora.
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
+
+## 31/10/2026 — «O que acontece» recebe a definição do exercício, e o «lê-se» desce
+
+**O que motivou.** A pesquisadora escreveu o **primeiro verbete a sério** — *Rond de jambe en l'air*,
+com trechos à frente, ao lado e atrás — e o resultado mostrou, no dado, porque é que o campo estava
+errado: em cada um dos três trechos, a `descricao` gravada é **«rondejambe en l'eir»**. Ela escreveu
+o **nome do exercício** no campo, porque o campo — vazio, com o rótulo «o que acontece neste trecho»
+— não dizia o que queria. Foi ela quem leu o dado e propôs a regra: *«o que acontece nesse trecho é a
+definição dada pelo dicionário ao nome que a gente escolheu no exercício, e abaixo vai ficar como se
+lê»*.
+
+**A definição passa a vir do VOCABULÁRIO**, que é a verdade única dos termos — a mesma lista de onde
+sai o exercício que se escolhe. A rota leva `descricao` e `fonte` em cada termo, e não há uma segunda
+lista de definições a divergir: o que a pesquisadora der para um termo vale no formulário, na aula e
+no glossário, com a proveniência ao lado.
+
+**A ordem de preferência é três, e não uma.** Definição do exercício → dicionário **do trecho**
+(indexado pela notação, o que já existia) → vazio. O dicionário do trecho continua a ser o segundo
+porque é mais específico, e porque sem esta ordem **43 dos 55 exercícios** passariam a ficar sem
+sugestão nenhuma: o vocabulário tem definição em **12 de 55**.
+
+**A definição aparece assim que o exercício é escolhido** — e não só quando há sinais. Ela não
+depende do trecho, e é ela que diz o que o campo quer. A nota debaixo do campo passa a dizer **de
+onde veio** o texto («Definição do dicionário para «Rond de jambe en l'air»», ou «a frase vem do
+dicionário deste trecho»), e continua ajustável: o que fica gravado é a frase da célula (P-03/P-04), e
+o ajuste não se perde.
+
+**E o «como se lê» desceu.** A ordem passa a ser a da leitura — primeiro o que acontece, em
+português; depois, abaixo, como isso se escreve em Benesh. Era ao contrário.
+
+**Sobre o dicionário que ela enviou, e que ela acha menor.** Medido: o ficheiro guardado tem **30
+termos** e o JSON está **completo** — fecha bem e não foi cortado. **Rond de jambe não está lá**, em
+nenhuma das formas (nem *à terre*, nem *en l'air*). O que existe com esse nome, no vocabulário do
+projecto, é `Rond de jambe à terre` (sem definição) e `Rond de jambe en l’air` («Círculo da perna no
+ar.», sem fonte). Não é um dicionário que encolheu: é um ficheiro a que faltam termos.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — a rota com `descricao`/`fonte`; `definicaoDoExercicio()`;
+  `sugerirDescricao()` com as três origens; o «lê-se» abaixo do campo.
+- `experimentos/provar-celula.js` — **75 → 82 asserções**.
+- `experimentos/provar-verbete.js` — a definição na rota, e a fonte declarada.
+- as duas `.fipp` do ciclo da Batata — **regeradas**: o verbete que ela gravou pela Produção
+  (`73f5330`) levou o alfabeto à **versão 6** e deixou o selo desatualizado. O `hash` do ciclo não
+  muda (o alfabeto está fora da fórmula); o `notacao_versao`/`notacao_sha` do selo, sim.
+
+**Motivo declarado — os congelados.** Nenhum nesta entrega.
+
+**Validação.**
+`provar-celula.js` → **82 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha do menu é pré-existente).
+`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
+íntegro, `3601081…`.
+
+**Uma asserção frágil, reconvertida e não apagada.** O `provar-notacao.js` exigia **«exactamente
+quatro exercícios»** e passou a reprovar o quinto — que é o objectivo do CRUD. Passa a exigir que os
+quatro do ciclo continuem declarados. **Nota:** esse ficheiro está no `.gitignore` e **não é
+versionado**, portanto a correcção ficou local; um documento que o cita como validação não pode ser
+corrido por quem clona o repositório.
+
+**Medido no navegador, na bancada local, com o alfabeto e o vocabulário reais.** Abrindo o verbete
+dela: o campo traz **«Círculo da perna no ar.»** e a nota diz «Definição do dicionário para «Rond de
+jambe en l'air»»; o «lê-se» está **abaixo** do campo; nenhum erro de JavaScript. **12 de 55**
+exercícios têm definição no vocabulário.
+
+**Dois defeitos no dado que ela gravou, e que não corrigi** (é dela a decisão): os três trechos levam
+o sinal **`-`**, que o alfabeto lê como **«ao lado»** — em «à frente» e em «atrás» deveria ser `+` e
+`×`; e o verbete declara **`cobre: 3`** para uma música de **4 tempos** em 2/4, portanto a página da
+aula dirá que falta escrever um tempo.
+
+**O que continua em aberto.**
+- O **dicionário dela** — falta a proveniência (`fonte`), e faltam termos (Rond de jambe entre eles).
+- As **seleções no plano** (§1.6) — o último item da Fase 1.
