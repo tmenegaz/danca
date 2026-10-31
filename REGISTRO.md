@@ -28575,3 +28575,97 @@ pré-existente do menu). `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.
 - As **4 linhas «a conferir»** das posições de braços no alfabeto.
 - A revisão das frases que eu redigi para os **43 exercícios sem definição** (19 de 55 têm).
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
+
+## 31/10/2026 — A frase é do exercício, e a listagem diz o que o verbete é
+
+**O que motivou — três coisas, ditas na mesma sessão de uso.**
+
+1. **Battement dégagé não tinha descrição.** Ela testou o formulário com ele e leu a nota que já lá
+   estava: «Dégagé, battement glissé e battement tendu jeté nomeiam ações semelhantes em tradições
+   distintas; não tratar como sinônimos perfeitos.» A nota diz o que os três **não** são; não diz o
+   que o dégagé **é**, nem em que tradição o nome se usa.
+2. **A redundância que a tabela perdeu voltou pelo preenchimento.** Ela mandou tirar a quarta coluna
+   — e foi bom, porque repetia. Mas «o que acontece neste trecho» continuou a ser um campo por
+   trecho: «toda vez que eu vou acrescentar um trecho, eu preciso digitar novamente o que acontece
+   nesse trecho». A coluna saiu; o trabalho de escrever a mesma frase três vezes ficou.
+3. **Sete passos numa coluna de 34rem.** O formulário estava em duas colunas, com a listagem ao lado;
+   com sete passos a tira partia-se e cada painel ficava espremido. E a listagem mostrava a chave
+   crua da música — «Battement tendu 4 | 4/4 · 8 | 4/4 · 12 | 4/4» —, com o `|` a vazar para a tela.
+
+**A frase passou a ser do EXERCÍCIO, e escreve-se uma vez (passo 2).** É a decisão que resolve a
+redundância sem inventar um campo novo por trecho: a definição descreve o exercício, não o trecho, e
+o que muda de trecho para trecho é o «**lê-se**» — que é derivado da notação e sempre foi. Nasce daí
+o **sétimo passo**, que ela própria entreviu: 1 O exercício · 2 A frase · 3 A música · 4 A posição ·
+5 Para onde · 6 Os sinais · 7 A decomposição. O último passo deixou de ter campo de texto: mostra o
+que **fica escrito** em cada trecho, já composto (frase + «lê-se»), e o botão de acrescentar.
+
+**A proveniência foi respeitada na mudança.** A ordem de preferência do campo é: o que está
+**gravado** na célula → a definição do dicionário → vazio. Quem abre um verbete antigo vê a frase com
+que ele foi escrito (medido: «rondejambe en l'eir» volta, e não a definição de hoje); quem escolhe um
+exercício novo recebe a do vocabulário. Trocar a música do mesmo exercício não reescreve a frase. E a
+prévia mostra o texto **de cada célula**, não o da frase do momento: um trecho gravado com outra frase
+di-lo na linha («guardado com a frase com que foi escrito»), em vez de a diferença parecer defeito.
+
+**O que se perdeu, e é honesto dizê-lo:** a sugestão pelo **dicionário do trecho** (indexado pela
+notação) deixou de alimentar o formulário — uma frase por trecho contradiz a frase do exercício. O
+`descricoes.json` continua a ir na rota e continua a ser dado da modalidade; quem o lê hoje é quem
+consulta a rota. Para os **32 exercícios ainda sem definição** (55 no total, 23 com definição), o
+passo 2 pede a frase uma vez, e é isso que se escreve — em vez de fragmentos por notação.
+
+**A listagem desceu, e passou a dizer do que se trata.** A secção dos verbetes tem agora **uma
+coluna**: o formulário ocupa a largura toda (medido: 1048px de 1048 na tela larga, 288 de 288 em
+320px) e a listagem vem **abaixo** dele; recolhido o formulário, fica só a listagem — que já era o
+comportamento certo e continua. Cada linha ganhou **etiquetas derivadas do alfabeto**, não de um
+segundo dado: a **posição** em selo (ao lado do nome), e por baixo as **direções**, o **compasso**, em
+quantas **músicas** está escrito e quantos **trechos** tem. O nome deixou de ser um `<button>` com a
+pastilha do navegador e veste o desenho do `.nome-link` — é uma ação, e agora lê-se como nome.
+
+**Um defeito de leitura que veio com isso:** `descontinuado` era lido no topo do verbete, onde nunca
+está (a marca vive em cada música) — um verbete descontinuado nunca aparecia como tal. Corrigido na
+mesma função que passou a derivar as etiquetas.
+
+**O que o dicionário ganhou.** Quatro termos da família do tendu passam a ter descrição, com a
+tradição declarada em cada um: **Battement dégagé** (nome geral, francês e RAD), **Battement glissé**
+(francês, com o acento no deslizar), **Battement tendu jeté** (Vaganova, com o acento no lançamento) e
+**Battement jeté** (RAD). O vocabulário vai de **55 para 59** termos com descrição e de **19 para 23**
+exercícios com definição. A `fonte` diz o que é verdade: «Redigida no projeto (31/10/2026), a partir
+da distinção entre as três tradições registada nas observações — a conferir pela pesquisadora». Não é
+do dicionário dela, e não se apresenta como se fosse.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — os sete passos (`PASSOS_DO_VERBETE`, `PASSOS_DO_TRECHO`, um só
+  sítio para os números); o painel 2 com a frase; o passo 7 sem campo de texto e com `pintarFica`;
+  `fraseGravada`, `comporDescricao`, `pintarNotaDaFrase`; a secção numa coluna e a listagem por baixo;
+  a linha da listagem com selos e complemento.
+- `motor/servidor/verbete.js` — `listarVerbetes` deriva `trechos`, `direcoes` e `compassos`, e lê o
+  `descontinuado` onde ele está.
+- `biblioteca/modalidades/bale-classico/vocabulario.json` — quatro descrições novas, com `fonte`.
+- `experimentos/provar-celula.js` — **85 → 106 asserções**: os sete passos, a frase que não se
+  reescreve, a frase que entra nos três trechos, a prévia composta, a geometria da secção (uma coluna,
+  formulário com a largura, listagem abaixo, sem `sticky`) e as etiquetas da listagem.
+- `experimentos/provar-verbete.js` — o editor passou a medir `vb-frase`, e mede que o campo por trecho
+  **não** volta.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. As regras novas
+de CSS vivem no bloco de estilo da própria página, e a checagem **8 (Peça)** passa com as 16
+superfícies e os 13 ganchos.
+
+**Validação.**
+`provar-celula.js` → **106 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `check-identidade.js` → **20/20**. `provar-producao.js` → **151/152** (a falha
+pré-existente do menu). `provar-celular.js` → **15/15** (320 a 1024px). `provar-vao-do-botao.js` →
+**62/62**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro, `3601081…`
+(o alfabeto não mudou; o vocabulário alimenta a frase do formulário, não o documento).
+
+**Medido no navegador, com o dado real.** Battement dégagé: o passo 2 abre com a definição completa. A
+tira tem sete passos; em 1280px ocupa 2 linhas (89px), em 768px 3 (136px), em 390 e 320px 7 (322px) —
+sem transbordo em nenhuma. Rond de jambe en l'air: a frase que volta é a **gravada**, e os três trechos
+mostram o texto deles.
+
+**O que continua em aberto.**
+- **A tira em sete linhas no telefone.** Não transborda, mas ocupa meia tela; se ela quiser, a
+  alternativa é esconder o valor dos passos abaixo de 700px.
+- As **4 linhas «a conferir»** das posições de braços no alfabeto.
+- As frases que eu redigi para os **32 exercícios sem definição** — agora são escritas uma vez, no
+  passo 2, mas continuam a ser minhas e a precisar do olho dela.
+- As **seleções no plano** (§1.6) — o último item da Fase 1.

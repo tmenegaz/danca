@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 31/10/2026 (base local `d7e71ff`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Da Fase 1 falta só as **seleções no plano** (§1.6).
+> **Última fotografia:** 31/10/2026 (base local `d7e71ff` + a entrega da frase do verbete). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -157,7 +157,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | PO: derivação e documento | **CONFIRMADO** | `motor/nucleo/derivar-po.js` |
 | Lançamento da aula | **CONFIRMADO** | `motor/nucleo/lancamento.js` |
 | Bastidores (Produção) com menu próprio | **CONFIRMADO** | `motor/servidor/{producao,bastidores}.js` |
-| O alfabeto da notação na Produção — seis passos, trecho editável | **CONFIRMADO** 31/10/2026 na bancada local (96 asserções): o formulário percorre-se do passo 1 ao 6, um painel visível de cada vez, e um trecho gravado abre em edição no passo 4 com os valores dele. **A conferência na página publicada fica para o deploy.** | `motor/servidor/bastidores.js`, `motor/servidor/verbete.js` |
+| O alfabeto da notação na Produção — sete passos, frase por exercício, trecho editável | **CONFIRMADO** 31/10/2026 na bancada local (106 asserções): o formulário percorre-se do passo 1 ao 7, um painel visível de cada vez, a frase escreve-se uma vez e entra em todos os trechos, e um trecho gravado abre em edição no passo 5 com os valores dele. **A conferência na página publicada fica para o deploy.** | `motor/servidor/bastidores.js`, `motor/servidor/verbete.js` |
 | Criar escola / expurgar escola | **CONFIRMADO** | `provisionar-escola.js`, `expurgar-escola.js` |
 | Índice de envelopes com resumo invalidável | **CONFIRMADO** | `motor/nucleo/porta.js` (`VERSAO_DO_RESUMO = 4`) |
 | Âncora e cadeia de proveniência | **CONFIRMADO** | `tools/hash-ciclo.sh` |
@@ -315,15 +315,30 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     células que a sua própria direção já tem, porque a nova entra no fim dela. A coluna do compasso
     sai da **mesma** soma. Duas contas diferentes para a mesma coisa põem dois trechos no mesmo
     tempo, e a página da aula passa a dizer duas coisas para o mesmo instante. **DECIDIDO** 29/10/2026.
-24. **O FORMULÁRIO DO VERBETE ESCREVE-SE EM SEIS PASSOS, E UM TRECHO GRAVADO PODE SER CORRIGIDO.** Ela
+24. **O FORMULÁRIO DO VERBETE ESCREVE-SE EM SETE PASSOS, E UM TRECHO GRAVADO PODE SER CORRIGIDO.** Ela
     comparou as duas arrumações e escolheu os passos («o Step, apesar de ter mais cliques, ele é mais
-    fácil de entender»). Os seis: **1 O exercício · 2 A música · 3 A posição · 4 Para onde · 5 Os
-    sinais · 6 A decomposição** — e os três do trecho separam o que ele **é**, como **se escreve** e o
-    que a decomposição **mostra**. A tira em cima diz o que já está decidido e é a navegação; o passo 1
-    fica **fora** do bloco do verbo, porque o modo do exercício o bloqueia em vez de o esconder. Corrigir
-    um trecho é um **estado** (`EM_EDICAO`), não um botão: acende o «!» nos passos 4 e 5, leva ao 4,
-    muda o rótulo do 6 para «Guardar a alteração», e a linha em edição **perde o «×»**. A peça reusa-se
-    da faixa da turma (`.passos`/`.passo`/`.passo-alerta`); nenhuma classe nova. **DECIDIDO** 31/10/2026.
+    fácil de entender»). Os sete: **1 O exercício · 2 A frase · 3 A música · 4 A posição · 5 Para onde ·
+    6 Os sinais · 7 A decomposição**. A tira em cima diz o que já está decidido e é a navegação; o passo
+    1 fica **fora** do bloco do verbo, porque o modo do exercício o bloqueia em vez de o esconder.
+    Corrigir um trecho é um **estado** (`EM_EDICAO`), não um botão: acende o «!» nos dois passos do
+    trecho (5 e 6), leva ao 5, muda o rótulo do 7 para «Guardar a alteração», e a linha em edição
+    **perde o «×»**. A peça reusa-se da faixa da turma (`.passos`/`.passo`/`.passo-alerta`); nenhuma
+    classe nova. **DECIDIDO** 31/10/2026.
+25. **«O QUE ACONTECE» É DO EXERCÍCIO, NÃO DO TRECHO — E ESCREVE-SE UMA VEZ.** A frase descreve o
+    exercício; o que muda de trecho para trecho é o **«lê-se»**, que é derivado da notação. Escrevê-la
+    por trecho era a redundância que sobrou depois de a quarta coluna sair da tabela («toda vez que eu
+    vou acrescentar um trecho, eu preciso digitar novamente o que acontece»). O campo é **um**, no
+    passo 2; o que fica **gravado** em cada célula é a frase seguida do «lê-se». A ordem de preferência
+    do campo é do projeto, não do momento: **o que está gravado vence o dicionário** (P-03/P-04), e
+    trocar a música do mesmo exercício não reescreve a frase. **DECIDIDO** 31/10/2026.
+26. **O QUE ESTÁ ESCRITO NÃO SE REESCREVE — E A TELA DI-LO.** Ao abrir um verbete antigo, a frase que
+    volta é a que está nas células; se um trecho guarda uma frase diferente da que está no passo 2, a
+    prévia marca-o («guardado com a frase com que foi escrito») em vez de o reescrever em silêncio.
+    **DECIDIDO** 31/10/2026.
+27. **A LISTAGEM DIZ O QUE O VERBETE É, E AS ETIQUETAS SÃO DERIVADAS.** A posição em selo, e por baixo
+    as direções, o compasso, em quantas músicas está escrito e quantos trechos tem — tudo lido do
+    alfabeto, sem um segundo dado a manter. A chave crua da música («4|4/4») deixa de se mostrar.
+    **DECIDIDO** 31/10/2026.
 
 ## 7. Trabalho em andamento
 
@@ -458,7 +473,27 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (31/10/2026 — os seis passos e a edição do trecho)
+### Executado nesta fotografia (31/10/2026 — a frase no passo 2, e a listagem por baixo)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **106 asserções, 0 falhas** (eram 96) — no navegador, sobre bancada local |
+| …o que ela mede na frase | a frase é escrita **uma vez** e entra nos **três** trechos (medido: três ocorrências no texto composto), acrescentar um trecho **não a limpa**, e a prévia mostra o texto **de cada célula** |
+| …o que ela mede no sétimo passo | a tira tem os sete números e os sete rótulos, o segundo é «A frase», há um painel por passo, o último passo mostra a frase e o «lê-se» compostos |
+| …o que ela mede na arrumação | a secção tem **uma coluna**, o formulário ocupa a largura dela (1048/1048 e 288/288), a listagem fica **abaixo** e já não é `sticky` |
+| …o que ela mede na listagem | a posição vai em selo («Première position»), o complemento diz as direções, o compasso, as músicas e os trechos, e o nome continua a abrir o verbete |
+| `node experimentos/provar-verbete.js` | tudo certo — e mede que o campo de frase **por trecho** não volta (`vb-cel-desc` ausente) |
+| `node experimentos/provar-notacao.js` | **74 asserções, 0 falhas** |
+| `node experimentos/provar-celular.js` | **15 de 15** (320, 360, 390, 414, 768, 1024px) |
+| `node experimentos/provar-vao-do-botao.js` | **62 de 62** |
+| `node experimentos/provar-producao.js` | **151 de 152** — a falha «o item do menu fica marcado» é **pré-existente** |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram — incluindo a **8 (Peça)**: 16 superfícies, 13 ganchos |
+| `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`** (o alfabeto não mudou) |
+| geometria no navegador | a tira de **sete** passos: 2 linhas em 1280px (89px), 3 em 768px (136px), 7 em 390 e 320px (322px) — **sem transbordo** em nenhuma, e sem erro de JS |
+| o dado real | Battement dégagé abre o passo 2 com a definição nova; Rond de jambe en l'air devolve a frase **gravada** («rondejambe en l'eir»), não a do dicionário |
+
+### Executado na fotografia anterior (31/10/2026 — os seis passos e a edição do trecho)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -669,22 +704,43 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 ## 10. Próximos passos
 
 **Da Fase 1 falta um item:** as **seleções no plano** (§1.6). Todo o resto do alfabeto está feito — o
-verbete administrável, os dois eixos, o dicionário, o «lê-se», e agora os seis passos com o trecho
-editável.
+verbete administrável, os dois eixos, o dicionário, o «lê-se», os sete passos com o trecho editável, e
+a frase escrita **uma vez** por exercício.
 
 **Pendente dela** (nada disto é código à espera de autorização, é olho dela):
-- **Rever o modo de edição na página ao vivo.** O comportamento foi medido na bancada local; ela ainda
-  não o viu no sistema.
+- **Usar o sétimo passo a sério** — acrescentar vários trechos e ver que a frase não se pede outra vez.
 - **As 4 linhas «a conferir»** das posições de braços no alfabeto — o dicionário dela só as responde em
   parte.
-- **Revisão das frases que eu redigi** para os **43 exercícios sem definição** (19 de 55 têm).
+- **Revisão das quatro descrições que eu redigi agora** (dégagé, glissé, tendu jeté, jeté): a `fonte`
+  diz que são minhas, a partir da distinção que ela própria registou, e que estão a conferir.
+- **Revisão das frases que eu redigi** para os **32 exercícios sem definição** (23 de 55 têm).
+- **A tira em sete linhas no telefone** (322px de altura em 320px de largura): não transborda, mas
+  ocupa meia tela. Se incomodar, esconde-se o valor dos passos abaixo de 700px.
 
-**Publicação:** depois do push, uma única carga ao ar para confirmar os seis passos na página
-publicada — é a conferência final, não a exploração (ver §12 e a regra da cota do ar).
+**Publicação:** depois do push, uma única carga ao ar para confirmar os sete passos e a listagem na
+página publicada — é a conferência final, não a exploração (ver §12 e a regra da cota do ar).
 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **31/10/2026** — **A frase é do exercício, e a listagem diz o que o verbete é.** Três coisas ditas na
+  mesma sessão de uso. **Battement dégagé não tinha descrição** — a nota dizia o que os três termos
+  *não* são («não tratar como sinônimos perfeitos») e não dizia o que ele é; agora a família do tendu
+  tem quatro descrições com a tradição declarada (**59 termos com descrição**, e **23 de 55**
+  exercícios com definição), com a `fonte` a dizer que são minhas e a conferir. **A redundância voltou
+  pelo preenchimento**: a quarta coluna saíra da tabela, mas «o que acontece» continuava a ser pedido
+  a **cada trecho**. A frase passou a ser do **exercício**, escrita uma vez no **passo 2** — nasce daí
+  o **sétimo passo**, e o último deixou de ter campo de texto para mostrar o que **fica escrito** em
+  cada trecho (frase + «lê-se»). A proveniência foi respeitada: o que está **gravado** vence o
+  dicionário, e trocar a música não reescreve a frase. **A secção ficou numa coluna**, com o
+  formulário na largura toda e a **listagem abaixo** (recolhido, fica só a listagem), e cada linha
+  ganhou **etiquetas derivadas do alfabeto** — posição em selo, e por baixo direções, compasso,
+  músicas e trechos. Ficou também corrigido um defeito de leitura: `descontinuado` era lido no topo do
+  verbete, onde nunca está. **CONFIRMADO** localmente: **106 asserções** em navegador, `provar-verbete`
+  e `provar-notacao` (74) verdes, `provar-celular` **15/15**, `provar-vao-do-botao` **62/62**,
+  `check-identidade` **20/20**, `check-pacote` **0 erro**, âncora íntegra (`3601081…`). A conferência ao
+  ar fica para depois do push.
 
 - **31/10/2026** — **O verbete em seis passos, e o trecho que se pode corrigir.** Ela viu as duas
   bancadas e escolheu os **passos** («o Step, apesar de ter mais cliques, ele é mais fácil de
