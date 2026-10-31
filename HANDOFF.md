@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-29T11:50:16-0300`
-Commit atual: `20b4767` — docs(registro): actualizar a fotografia após a correcção das pílulas
+Gerado em: `2026-10-31T16:46:11-0300`
+Commit atual: `db811d5` — docs(registro): actualizar a fotografia após a definição no campo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,9 +80,15 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
-20b4767 docs(registro): actualizar a fotografia após a correcção das pílulas
-f1f5a7a docs(registro): a direção de escolha única, o «en face» que marca e o compasso corrido
-5af8aff fix(estrutura): a direção é escolha única, «en face» marca, e a contagem continua o compasso
+db811d5 docs(registro): actualizar a fotografia após a definição no campo
+612c49b docs(registro): a definição do exercício no campo, e o «lê-se» abaixo
+7be42cb feat(estrutura): «o que acontece» recebe a definição do exercício, e o «lê-se» desce
+73f5330 feat(notacao): declarar «Rond de jambe en l’air» (4|2/4) no alfabeto bale-classico
+32ab5d1 docs(registro): regenerar o HANDOFF após a fotografia de 29/10/2026
+08ceac1 docs(registro): actualizar a fotografia após a correcção das pílulas
+47a9415 docs(registro): a direção de escolha única, o «en face» que marca e o compasso corrido
+26967a8 fix(estrutura): a direção é escolha única, «en face» marca, e a contagem continua o compasso
+b0cfa43 chore(estrutura): regerar os índices derivados
 3d4777b docs(registro): regenerar o HANDOFF após a fotografia de 29/10/2026
 eb72950 docs(registro): actualizar a fotografia após os dois eixos da célula
 567d52c docs(registro): os dois eixos da célula, e o trecho em pílulas
@@ -94,12 +100,6 @@ d7ab51a docs(registro): atualizar a fotografia após a célula explicada
 6900363 docs(registro): atualizar a fotografia após os dois modos e o editor de célula
 7a931da docs(registro): os dois modos do verbete, a direção derivada e o editor de célula
 4f4795a feat(notacao): dois modos no verbete, a direção lida do dado, e o editor de célula
-9fb09dc fix(tools): o campo bloqueado passa a ver-se na folha
-52a05d6 docs(registro): atualizar a fotografia após o vocabulário no repositório
-94ee06a docs(registro): o vocabulário no repositório e o «+» do exercício
-4e09bc9 feat(biblioteca): o vocabulário vive no repositório, e o «+» cria o exercício
-6318ded fix(notacao): o verbete em Produção — 500, 403 e «não existe»
-b0b3946 docs(registro): atualizar a fotografia após o verbete administrável
 ```
 
 ## Por professor
@@ -199,66 +199,76 @@ b0b3946 docs(registro): atualizar a fotografia após o verbete administrável
 
 ## Última entrada do REGISTRO
 
-## 29/10/2026 — A direção é escolha única, «en face» marca, e a contagem continua o compasso
+## 31/10/2026 — «O que acontece» recebe a definição do exercício, e o «lê-se» desce
 
-**O que motivou.** A pesquisadora foi escrever o **Battement frappé** — 16 tempos, 2/4, *sur le
-cou-de-pied* — e relatou três coisas de uma vez: **«en face» não marcava**; não conseguia marcar «ao
-lado» e «atrás» **em simultaneidade** com «à frente»; e o trecho que ela escreveu **à frente**
-apareceu como se fosse **atrás**. As três tinham a mesma raiz, e a raiz era minha.
+**O que motivou.** A pesquisadora escreveu o **primeiro verbete a sério** — *Rond de jambe en l'air*,
+com trechos à frente, ao lado e atrás — e o resultado mostrou, no dado, porque é que o campo estava
+errado: em cada um dos três trechos, a `descricao` gravada é **«rondejambe en l'eir»**. Ela escreveu
+o **nome do exercício** no campo, porque o campo — vazio, com o rótulo «o que acontece neste trecho»
+— não dizia o que queria. Foi ela quem leu o dado e propôs a regra: *«o que acontece nesse trecho é a
+definição dada pelo dicionário ao nome que a gente escolheu no exercício, e abaixo vai ficar como se
+lê»*.
 
-**As pílulas nasceram todas `checkbox`, e a direção não é uma lista.** Reproduzido na bancada, com o
-alfabeto real: depois de clicar em à frente, ao lado e atrás, as três liam
-`devant:true, a-la-seconde:true, derriere:true` e `DIRECAO` dizia `derriere`. O navegador marcava a
-nova e **deixava a anterior** — e como o handler da direção não repintava, a tela dizia uma coisa e o
-estado dizia outra. É a família de defeito que este projeto já pagou duas vezes: **dois sítios a
-dizer o mesmo, e um deles a mentir**. Passa a `radio`, com `name` por grupo: o próprio navegador
-desmarca os outros.
+**A definição passa a vir do VOCABULÁRIO**, que é a verdade única dos termos — a mesma lista de onde
+sai o exercício que se escolhe. A rota leva `descricao` e `fonte` em cada termo, e não há uma segunda
+lista de definições a divergir: o que a pesquisadora der para um termo vale no formulário, na aula e
+no glossário, com a proveniência ao lado.
 
-**«En face» era a única pílula que nunca marcava.** Ela é a **omissão** — o campo `orientacao` só
-existe quando não é en face —, e eu tinha traduzido «é a omissão» por «não se vê». Ela leu isso como
-«não habilita», e com razão: era um clique que não dizia nada, num campo onde todos os outros diziam.
-Passa a aparecer **marcada** quando nenhuma outra está; o estado continua a guardar vazio, e **o que
-se grava não muda**.
+**A ordem de preferência é três, e não uma.** Definição do exercício → dicionário **do trecho**
+(indexado pela notação, o que já existia) → vazio. O dicionário do trecho continua a ser o segundo
+porque é mais específico, e porque sem esta ordem **43 dos 55 exercícios** passariam a ficar sem
+sugestão nenhuma: o vocabulário tem definição em **12 de 55**.
 
-**A contagem recomeçava por direção, e o compasso é corrido.** `opcoesDeContagem` somava só as
-células da **própria** direção e voltava a 1 quando ela não tinha nenhuma; `compassosDosTrechos`
-somava **tudo**. Com 16 tempos em 2/4, «à frente» e «ao lado» ficavam **ambos** com «compasso 1,
-contagem 1» — dois trechos no mesmo tempo, e a página da aula a dizer duas coisas para o mesmo
-instante. Este **não foi relatado**: apareceu ao medir o resultado da correcção. A conta certa soma,
-na ordem da gramática, tudo o que vem antes — as direções anteriores inteiras e as células que esta
-direção já tem, porque a nova entra no fim dela —, e o início da contagem e a coluna do compasso saem
-da **mesma soma**, e por isso não podem divergir. Medido depois: à frente `compasso 1 | 1`, ao lado
-`compasso 1 | 2`, atrás `compasso 2 | 1`.
+**A definição aparece assim que o exercício é escolhido** — e não só quando há sinais. Ela não
+depende do trecho, e é ela que diz o que o campo quer. A nota debaixo do campo passa a dizer **de
+onde veio** o texto («Definição do dicionário para «Rond de jambe en l'air»», ou «a frase vem do
+dicionário deste trecho»), e continua ajustável: o que fica gravado é a frase da célula (P-03/P-04), e
+o ajuste não se perde.
 
-**O que não muda.** As **22 células** do alfabeto continuam válidas com a regra nova: o Battement
-tendu grava `1–2, 3–4` em devant e `1–2, 3–4` em derrière, e é isso que a soma corrida produz (4
-tempos por direção num 4/4 = um compasso por direção). A âncora continua íntegra, `3601081…`, e não
-foi preciso regerar nada.
+**E o «como se lê» desceu.** A ordem passa a ser a da leitura — primeiro o que acontece, em
+português; depois, abaixo, como isso se escreve em Benesh. Era ao contrário.
+
+**Sobre o dicionário que ela enviou, e que ela acha menor.** Medido: o ficheiro guardado tem **30
+termos** e o JSON está **completo** — fecha bem e não foi cortado. **Rond de jambe não está lá**, em
+nenhuma das formas (nem *à terre*, nem *en l'air*). O que existe com esse nome, no vocabulário do
+projecto, é `Rond de jambe à terre` (sem definição) e `Rond de jambe en l’air` («Círculo da perna no
+ar.», sem fonte). Não é um dicionário que encolheu: é um ficheiro a que faltam termos.
 
 **Onde entrou.**
-- `motor/servidor/bastidores.js` — `pilulas()` ganha o parâmetro `unico` (`radio` com `name` por
-  grupo); `pintarDirecao` repinta e não aceita duas; `pintarOrientacao` marca `en-face` quando o
-  estado está vazio; e `opcoesDeContagem` passa a somar por `temposAntesDe(dir)`.
-- `experimentos/provar-celula.js` — **61 → 75 asserções**.
-- `experimentos/propostas/proposta-verbete-pilulas.html` — a bancada com o mesmo critério, para não
-  mostrar um comportamento que o sistema já não tem.
+- `motor/servidor/bastidores.js` — a rota com `descricao`/`fonte`; `definicaoDoExercicio()`;
+  `sugerirDescricao()` com as três origens; o «lê-se» abaixo do campo.
+- `experimentos/provar-celula.js` — **75 → 82 asserções**.
+- `experimentos/provar-verbete.js` — a definição na rota, e a fonte declarada.
+- as duas `.fipp` do ciclo da Batata — **regeradas**: o verbete que ela gravou pela Produção
+  (`73f5330`) levou o alfabeto à **versão 6** e deixou o selo desatualizado. O `hash` do ciclo não
+  muda (o alfabeto está fora da fórmula); o `notacao_versao`/`notacao_sha` do selo, sim.
 
 **Motivo declarado — os congelados.** Nenhum nesta entrega.
 
 **Validação.**
-`provar-celula.js` → **75 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+`provar-celula.js` → **82 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
 → **74, 0 falhas**. `provar-producao.js` → **151 de 152** (a falha do menu é pré-existente).
-`check-identidade.js` → **20/20**. `hash-ciclo.sh --check` → íntegro, `3601081…`.
+`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
+íntegro, `3601081…`.
 
-**Medido no navegador, na bancada local, com o alfabeto real.** Battement frappé, 16 tempos, 2/4,
-*sur le cou-de-pied*: a direção oferece três, a orientação cinco com «en face» marcada, e as caixas
-são todas `radio`. Três cliques deixam **uma** marcada, e é a última. Depois de clicar «en face» o
-estado volta a vazio. Três trechos, um por direção, ficam **cada um no seu bloco**: à frente
-`compasso 1 | 1`, ao lado `compasso 1 | 2`, atrás `compasso 2 | 1` — sem sobreposição. Nenhum erro de
-JavaScript.
+**Uma asserção frágil, reconvertida e não apagada.** O `provar-notacao.js` exigia **«exactamente
+quatro exercícios»** e passou a reprovar o quinto — que é o objectivo do CRUD. Passa a exigir que os
+quatro do ciclo continuem declarados. **Nota:** esse ficheiro está no `.gitignore` e **não é
+versionado**, portanto a correcção ficou local; um documento que o cita como validação não pode ser
+corrido por quem clona o repositório.
+
+**Medido no navegador, na bancada local, com o alfabeto e o vocabulário reais.** Abrindo o verbete
+dela: o campo traz **«Círculo da perna no ar.»** e a nota diz «Definição do dicionário para «Rond de
+jambe en l'air»»; o «lê-se» está **abaixo** do campo; nenhum erro de JavaScript. **12 de 55**
+exercícios têm definição no vocabulário.
+
+**Dois defeitos no dado que ela gravou, e que não corrigi** (é dela a decisão): os três trechos levam
+o sinal **`-`**, que o alfabeto lê como **«ao lado»** — em «à frente» e em «atrás» deveria ser `+` e
+`×`; e o verbete declara **`cobre: 3`** para uma música de **4 tempos** em 2/4, portanto a página da
+aula dirá que falta escrever um tempo.
 
 **O que continua em aberto.**
-- O **dicionário dela** — falta a proveniência (`fonte`), que é decisão da pesquisadora.
+- O **dicionário dela** — falta a proveniência (`fonte`), e faltam termos (Rond de jambe entre eles).
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
 
 ## O que está pendente
