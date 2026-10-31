@@ -3292,14 +3292,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</fieldset>' +
     '<p class="campo-rotulo">Sinais Benesh deste trecho</p>' +
     '<p id="vb-chips" class="par-associar"><span class="nota">Escolha a categoria e os sinais.</span></p>' +
-    '<p class="nota" id="vb-lido"></p>' +
     '<label class="campo-rotulo" for="vb-cel-desc">O que acontece neste trecho</label>' +
-    // A FRASE VEM SUGERIDA DO DICIONÁRIO (28/10/2026) e é editável. Ela é o que a página em
-    // prosa da aula mostra — nenhuma lista de sinais produz «os dois apoios cedem em 1ª posição»,
-    // e é por isso que continua a ser escrita. O dicionário poupa a repetição; o texto gravado
-    // é o que o documento escreve, para a proveniência não depender de um ficheiro que muda.
+    // O CAMPO PASSA A RECEBER A DEFINIÇÃO DO EXERCÍCIO (31/10/2026), e é editável. A razão é o
+    // que a pesquisadora viu no primeiro verbete escrito a sério: com o campo vazio, ela escreveu
+    // ali o NOME do exercício — «rondejambe en l'eir» em três trechos —, porque não havia nada a
+    // dizer-lhe o que o campo quer. A definição do dicionário é o princípio certo: diz o que o
+    // exercício É, e a professora ajusta o que acontece NESTE trecho.
     '<textarea id="vb-cel-desc" rows="2" placeholder="a frase que a página da aula vai mostrar"></textarea>' +
     '<p class="nota" id="vb-desc-nota"></p>' +
+    // O «COMO SE LÊ» FICA ABAIXO DO CAMPO (31/10/2026), e não acima: a ordem passa a ser a da
+    // leitura — primeiro o que acontece, em português; depois como isso se escreve em Benesh.
+    '<p class="nota" id="vb-lido"></p>' +
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vb-cel-acrescentar">Acrescentar trecho</button>' +
     '</span>' +
@@ -5206,25 +5209,60 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A FRASE VEM DO DICIONÁRIO — E NÃO POR CIMA DO QUE FOI ESCRITO. Só substitui quando o campo
     // está vazio ou ainda tem a sugestão anterior: quem ajustou a frase não a vê desaparecer ao
     // acrescentar mais um sinal.
+    // A DEFINIÇÃO DO EXERCÍCIO, LIDA DO VOCABULÁRIO (31/10/2026). O vocabulário é a verdade única
+    // dos termos — é de lá que sai a lista de exercícios que se escolhe —, e a definição de cada
+    // um vive no mesmo sítio, com o campo `fonte` ao lado. Não há uma segunda lista de definições
+    // a divergir: o que a pesquisadora der para um termo vale no formulário, na aula e no glossário.
+    'function definicaoDoExercicio(){' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  var nome = nomes ? nomes.value : "";' +
+    '  if (!nome) return null;' +
+    '  var lista = (VERBETES && VERBETES.exerciciosDoVocabulario) || [];' +
+    '  var achado = null;' +
+    '  lista.forEach(function(t){' +
+    '    if (t && t.termo === nome && String(t.descricao || "").trim()) achado = t;' +
+    '  });' +
+    '  return achado ? { texto: String(achado.descricao).trim(), fonte: achado.fonte || "" } : null;' +
+    '}' +
+    // A FRASE DO TRECHO: PRIMEIRO O QUE O EXERCÍCIO É, DEPOIS O QUE ESTE BLOCO FAZ.
+    //
+    // A ordem é a que a pesquisadora fixou: «o que acontece neste trecho é a definição dada pelo
+    // dicionário ao nome que a gente escolheu no exercício». A definição do exercício é a versão
+    // de partida — foi o que faltou no primeiro verbete escrito a sério, em que o campo, vazio,
+    // recebeu o NOME do exercício. Quando o exercício ainda não tem definição, cai para o
+    // dicionário **do trecho** (indexado pela notação), que é mais específico e já existia.
+    // Em ambos os casos o que fica gravado é o texto da célula: o dicionário pode melhorar sem
+    // reescrever o passado (P-03/P-04), e o que a professora ajustou não se perde.
     'function sugerirDescricao(){' +
     '  var campo = document.getElementById("vb-cel-desc");' +
     '  var nota = document.getElementById("vb-desc-nota");' +
     '  if (!campo) return;' +
-    '  if (!SINAIS.length) {' +
-    '    if (nota) nota.textContent = "";' +
-    '    return;' +
-    '  }' +
-    '  var bloco = blocoEmComposicao();' +
+    '  var exercicio = definicaoDoExercicio();' +
+    '  var bloco = SINAIS.length ? blocoEmComposicao() : "";' +
     '  var dicionario = (VERBETES && VERBETES.descricoes) || {};' +
-    '  var sugestao = dicionario[bloco] || "";' +
+    '  var doTrecho = bloco ? (dicionario[bloco] || "") : "";' +
+    '  var sugestao = exercicio ? exercicio.texto : doTrecho;' +
     '  var atual = String(campo.value || "").trim();' +
     '  if (!atual || atual === SUGESTAO_ANTERIOR) campo.value = sugestao;' +
     '  SUGESTAO_ANTERIOR = sugestao;' +
-    '  if (nota) {' +
-    '    nota.textContent = sugestao' +
-    '      ? "Sugerida pelo dicionário do balé para «" + bloco + "». Pode ajustar — é a sua frase que fica gravada."' +
-    '      : "Este bloco ainda não está no dicionário. Escreva a frase: é ela que a página da aula mostra.";' +
+    '  if (!nota) return;' +
+    '  if (exercicio) {' +
+    '    var fonte = exercicio.fonte ? " (" + exercicio.fonte + ")" : "";' +
+    '    nota.textContent = "Definição do dicionário para «" + nomeDoExercicio() + "»" + fonte +' +
+    '      ". Ajuste para o que acontece NESTE trecho — é a sua frase que fica gravada.";' +
+    '  } else if (doTrecho) {' +
+    '    nota.textContent = "O exercício ainda não tem definição no vocabulário; a frase vem do ' +
+    'dicionário deste trecho («" + bloco + "»). Pode ajustar — é a sua frase que fica gravada.";' +
+    '  } else if (SINAIS.length || nomeDoExercicio()) {' +
+    '    nota.textContent = "Este exercício ainda não tem definição. Escreva a frase: é ela que a ' +
+    'página da aula mostra.";' +
+    '  } else {' +
+    '    nota.textContent = "";' +
     '  }' +
+    '}' +
+    'function nomeDoExercicio(){' +
+    '  var n = document.getElementById("vbnome");' +
+    '  return n ? String(n.value || "") : "";' +
     '}' +
     // ================= OS DOIS MODOS (28/10/2026) ===================================
     // «Ou se escolhe um exercício que existe, ou se cria um — nunca as duas.» O modo B esconde
@@ -6927,9 +6965,19 @@ async function fetch(request, env) {
     // mesma cara da certa.
     const CATEGORIAS_DE_EXERCICIO = ['passo', 'salto', 'ligacao', 'giro'];
     const vocabulario = lido.vocabulario || [];
+    // A DEFINIÇÃO VAI JUNTO (31/10/2026). O formulário do trecho pré-enche «o que acontece» com
+    // ela — foi o que faltou no primeiro verbete escrito a sério, em que o campo vazio recebeu o
+    // nome do exercício. O `fonte` vai também, porque é ele que diz de onde a definição veio, e
+    // uma definição sem procedência é o que este projecto não aceita (P-03).
     const podeSerExercicio = vocabulario
       .filter((t) => t && CATEGORIAS_DE_EXERCICIO.indexOf(t.categoria) !== -1)
-      .map((t) => ({ id: t.id, termo: t.termo, categoria: t.categoria }));
+      .map((t) => ({
+        id: t.id,
+        termo: t.termo,
+        categoria: t.categoria,
+        descricao: String(t.descricao || '').trim(),
+        fonte: String(t.fonte || '').trim(),
+      }));
     return json(200, {
       ok: true,
       modalidade,

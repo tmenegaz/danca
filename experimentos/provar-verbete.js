@@ -345,6 +345,18 @@ async function aPagina() {
     Boolean(corpo && corpo.descricoes && corpo.descricoes['[Pé: 1ª → +]']),
     corpo && Object.keys(corpo.descricoes || {}).length);
 
+  // A DEFINIÇÃO DO EXERCÍCIO TAMBÉM (31/10/2026). É ela que pré-enche «o que acontece» no
+  // formulário do trecho — primeiro o que o exercício É, depois o que este bloco faz. Sem ela na
+  // rota, o campo volta a ficar vazio e volta a receber o nome do exercício.
+  checar('e a lista de exercícios leva a definição e a sua fonte',
+    Boolean(corpo && Array.isArray(corpo.exerciciosDoVocabulario)
+      && corpo.exerciciosDoVocabulario.every((t) => 'descricao' in t && 'fonte' in t)),
+    corpo && (corpo.exerciciosDoVocabulario || [])[0]);
+  const comDefinicao = ((corpo && corpo.exerciciosDoVocabulario) || [])
+    .filter((t) => t.descricao);
+  checar('e há exercícios com definição — o vocabulário é a fonte única dela',
+    comDefinicao.length > 0, comDefinicao.length);
+
   // UMA CREDENCIAL RECUSADA NÃO É UM FICHEIRO AUSENTE.
   const v = require(path.join(RAIZ, 'motor', 'servidor', 'verbete.js'));
   const recusado = await v.lerModalidade({

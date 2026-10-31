@@ -81,10 +81,17 @@ const ALFABETO = {
       },
     },
   },
+  // A DEFINIÇÃO VAI JUNTO (31/10/2026) — o formulário pré-enche «o que acontece» com ela. O
+  // `Changement` fica SEM definição de propósito: é o caso que cai para o dicionário do trecho,
+  // e é o que a prova mede na secção da sugestão.
   exerciciosDoVocabulario: [
-    { id: 'plie', termo: 'Plié', categoria: 'passo' },
-    { id: 'battement-tendu', termo: 'Battement tendu', categoria: 'passo' },
-    { id: 'changement', termo: 'Changement', categoria: 'salto' },
+    { id: 'plie', termo: 'Plié', categoria: 'passo', descricao: '', fonte: '' },
+    { id: 'battement-tendu', termo: 'Battement tendu', categoria: 'passo', descricao: '', fonte: '' },
+    { id: 'changement', termo: 'Changement', categoria: 'salto', descricao: '', fonte: '' },
+    {
+      id: 'rond-de-jambe-en-l-air', termo: 'Rond de jambe en l’air', categoria: 'passo',
+      descricao: 'Círculo da perna no ar.', fonte: '',
+    },
   ],
   posicoes: [{ id: 'premiere-position', termo: 'Première position', membro: 'pes' }],
   // DOIS EIXOS (versão 5, 28/10/2026). A rota deixou de os mandar concatenados: a direção diz
@@ -217,6 +224,14 @@ function estado() {
     lido: (q('vb-lido') || {}).textContent.trim(),
     frase: (q('vb-cel-desc') || {}).value || '',
     notaDaFrase: (q('vb-desc-nota') || {}).textContent || '',
+    // A ORDEM NA PÁGINA (31/10/2026): o «como se lê» passa a vir ABAIXO do campo, e não acima.
+    // Mede-se a posição, não a intenção — `compareDocumentPosition` é o que a folha faz.
+    lidoDepoisDoCampo: (() => {
+      const campo = q('vb-cel-desc');
+      const lido = q('vb-lido');
+      if (!campo || !lido) return null;
+      return Boolean(campo.compareDocumentPosition(lido) & Node.DOCUMENT_POSITION_FOLLOWING);
+    })(),
     recado: (document.querySelector('[data-res=verbetes]') || {}).textContent || '',
     botaoVerboNoModoB: (() => {
       const b = q('vb-modo-exercicio');
@@ -420,9 +435,16 @@ function estado() {
       && /2\. →/.test(composto.chips) && /3\. \+/.test(composto.chips), composto.chips);
     conferir('e a leitura em palavras vem do nome de cada sinal',
       /primeira posição/.test(composto.lido) && /conduz a/.test(composto.lido), composto.lido);
-    conferir('a frase é SUGERIDA pelo dicionário, não escrita do zero',
+    // O `Battement tendu` do fixture NÃO tem definição no vocabulário: a frase cai para o
+    // dicionário do TRECHO, indexado pela notação. É o segundo na ordem, e é o que se mede aqui.
+    conferir('sem definição no vocabulário, a frase vem do dicionário do trecho',
       composto.frase === 'extensão à frente a partir da 1ª posição, a ponta no chão', composto.frase);
-    conferir('e a tela diz que é sugestão', /dicionário/.test(composto.notaDaFrase), composto.notaDaFrase);
+    conferir('e a nota diz que a origem é o trecho, não o exercício',
+      /dicionário deste trecho/.test(composto.notaDaFrase), composto.notaDaFrase);
+    // A ORDEM DA LEITURA (31/10/2026): o que acontece primeiro, em português; o «como se lê»
+    // abaixo. Era ao contrário, e a pesquisadora pediu a ordem da leitura.
+    conferir('o «como se lê» está ABAIXO do campo, e não acima',
+      composto.lidoDepoisDoCampo === true, composto.lidoDepoisDoCampo);
     await clicar('#vb-sinais input[data-sinal="1ª"]');
     conferir('um sinal pode repetir-se no mesmo trecho — clicar outra vez acrescenta ao fim',
       /4\. 1ª/.test((await page.evaluate(estado)).chips), (await page.evaluate(estado)).chips);
@@ -608,7 +630,46 @@ function estado() {
       JSON.stringify(offDevant) === JSON.stringify(['1', '1–2']) && !croix.tabela[1].linhas.length === false,
       offDevant);
 
-    console.log('\n17. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
+    console.log('\n17. A DEFINIÇÃO DO EXERCÍCIO PRÉ-ENCHE «O QUE ACONTECE»');
+    // O CASO QUE ORIGINOU ISTO (31/10/2026): a pesquisadora escreveu o primeiro verbete a sério,
+    // de Rond de jambe en l'air, e em cada um dos três trechos o campo — vazio, e sem nada que
+    // dissesse o que ele quer — recebeu o NOME do exercício. A definição do vocabulário passa a
+    // ser a versão de partida.
+    await page.select('#vbnome', 'Rond de jambe en l’air');
+    await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '8';
+      t.dispatchEvent(new Event('input'));
+    });
+    await page.select('#vbcompasso', '4/4');
+    await new Promise((r) => setTimeout(r, 500));
+    const comDefinicao = await page.evaluate(estado);
+    conferir('escolhido o exercício, o campo já traz a definição do vocabulário',
+      comDefinicao.frase === 'Círculo da perna no ar.', comDefinicao.frase);
+    conferir('e a nota diz de QUE exercício é a definição',
+      /Rond de jambe en l’air/.test(comDefinicao.notaDaFrase), comDefinicao.notaDaFrase);
+    conferir('a definição aparece SEM sinal nenhum escolhido — ela não depende do trecho',
+      comDefinicao.chips.length > 0 && !/1\./.test(comDefinicao.chips), comDefinicao.chips);
+    conferir('e o «como se lê» continua vazio enquanto não há sinais',
+      comDefinicao.lido === '', comDefinicao.lido);
+    // A DEFINIÇÃO NÃO É TEXTO A REESCREVER: quem ajustou não a vê voltar sozinha.
+    await page.evaluate(() => {
+      const d = document.getElementById('vb-cel-desc');
+      d.value = 'o círculo da perna no ar, a partir do retiré';
+      d.dispatchEvent(new Event('input'));
+    });
+    await clicar('#vb-dir input[data-valor="devant"]');
+    await clicar('#vb-contagem input[data-valor="1"]');
+    // Os sinais do fixture (a lista real tem 18; aqui bastam dois para compor a leitura).
+    for (const sg of ['-', '1ª']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
+    const ajustada = await page.evaluate(estado);
+    conferir('a frase ajustada sobrevive a escolher a direção e os sinais',
+      ajustada.frase === 'o círculo da perna no ar, a partir do retiré', ajustada.frase);
+    conferir('e o «como se lê» aparece abaixo, em palavras',
+      /primeira posição/.test(ajustada.lido) && ajustada.lidoDepoisDoCampo === true,
+      { lido: ajustada.lido, ordem: ajustada.lidoDepoisDoCampo });
+
+    console.log('\n18. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {
       await page.setViewport({ width: largura, height: 900 });
       await new Promise((r) => setTimeout(r, 250));

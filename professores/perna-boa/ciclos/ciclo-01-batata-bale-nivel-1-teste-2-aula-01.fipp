@@ -14,7 +14,7 @@ hash_conteudo: 87d2d56986e371a8913d6c18bdda31a31d7baf29afcefded53e14f419cbe5ca4
 parentHash: 
 hash: 7db9bfd7ca07be298a78fca182f953fcc019a114157b5d263fbf3797ee5d8e63
 algoritmo: SHA-256
-ancorado_em: 2026-10-29
+ancorado_em: 2026-10-31
 cobertura:
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
