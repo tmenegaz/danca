@@ -46,7 +46,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 7,
+  "versao": 8,
   "aplicaseA": [
     "benesh"
   ],
@@ -799,6 +799,53 @@
                 "1ª"
               ],
               "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo\nLê-se: Pé, primeira posição, conduz a, atrás, fecha, primeira posição."
+            }
+          ]
+        }
+      }
+    },
+    "Battement fondu": {
+      "2|4/4": {
+        "cobre": 6,
+        "posicao": {
+          "membro": "pes",
+          "termo": "cinquieme-position"
+        },
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "+"
+              ],
+              "descricao": "Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.\nLê-se: Pé, quinta posição, conduz a, à frente."
+            }
+          ],
+          "a-la-seconde": [
+            {
+              "contagem": "3–4",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "-"
+              ],
+              "descricao": "Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.\nLê-se: Pé, quinta posição, conduz a, ao lado."
+            }
+          ],
+          "derriere": [
+            {
+              "contagem": "1–2",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "×"
+              ],
+              "descricao": "Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.\nLê-se: Pé, quinta posição, conduz a, atrás."
             }
           ]
         }
