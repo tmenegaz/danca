@@ -26,7 +26,13 @@
  *   5. sem conteúdo no nível da turma, a tela NÃO devolve o aviso da outra disposição: desenha o
  *      campo aberto de cada objetivo — que é o único caminho que resta;
  *   6. o contentor declara `overflow-x: auto` na folha da página: com 26 objetivos são 27
- *      colunas, e uma tabela que não rola dentro de si empurra a página.
+ *      colunas, e uma tabela que não rola dentro de si empurra a página;
+ *   7. UM CONTEÚDO ASSOCIADO QUE JÁ NÃO EXISTE NÃO DESAPARECE EM SILÊNCIO (31/10/2026). A
+ *      relação turma↔conteúdo é chaveada por id, e o vocabulário mudou de casa a 28/10/2026: as
+ *      associações antigas apontam para ids que já não estão lá, e um `filter(Boolean)` os
+ *      escondia. A pesquisadora viu o sintoma — «pus quatro exercícios na turma e no plano só
+ *      aparecem dois» — e a tela não dizia nada. Agora diz o que falta, o termo que o id quer
+ *      dizer quando há um só candidato, e onde se corrige.
  *
  * COMO É MEDIDA. JSDOM — o mesmo harness de `provar-teste.js`, que abre esta página com o
  * conteúdo de verdade. Sem navegador, porque o que se prova aqui é a marcação e a leitura.
@@ -240,6 +246,54 @@ function servir() {
       return { declara: /\\.matriz-parametros\\s*\\{[^}]*overflow-x:\\s*auto/.test(estilos) };
     })()`);
     provar('a folha da página declara `overflow-x: auto` para `.matriz-parametros`', folha.declara);
+
+    // ---------------------------------------------------------------- 7) o conteúdo órfão
+    console.log('\n7. um conteúdo associado que já não existe no vocabulário não desaparece em silêncio');
+    /* `rond-de-jambe` é o caso REAL: o termo passou a chamar-se «Rond de jambe à terre» e o id
+     * ficou `rond-de-jambe-a-terre`. A associação antiga guardou o id velho, e a matriz perdia-o
+     * sem uma palavra. */
+    const orfao = await w.eval(`(async function(){
+      RESPOSTAS.set('contexto-turma', 'Turma da prova');
+      RESPOSTAS.set('marcos-por-aula', ${JSON.stringify(OBJETIVOS)}.slice(0, 2));
+      RESPOSTAS.set('aula-1-parametro', null);
+      await carregarTurmasDaEscola();
+      var guardadoT = TURMA_CONTEUDOS, guardadoL = TERMOS_DA_ESCOLA;
+      TERMOS_DA_ESCOLA = TERMOS_DA_ESCOLA.concat([
+        { id: 'rond-de-jambe-a-terre', termo: 'Rond de jambe à terre' }]);
+      TURMA_CONTEUDOS = { t1: ['p0', 'p1', 'rond-de-jambe'] };
+      INDICE = MAPA.nos.findIndex(function(n){ return n.id === 'aula-1-parametro'; });
+      renderPergunta();
+      var html = document.getElementById('pergunta').innerHTML;
+      var resultado = {
+        linhas: document.querySelectorAll('#pergunta tbody tr').length,
+        aviso: (document.querySelector('#pergunta .aviso.alerta') || {}).textContent || '',
+        origem: Array.prototype.slice.call(document.querySelectorAll('#pergunta .sub'))
+          .map(function(x){ return x.textContent; }).filter(function(t){ return /associado/.test(t); })
+          .join(' '),
+        html: html,
+      };
+      TURMA_CONTEUDOS = guardadoT; TERMOS_DA_ESCOLA = guardadoL;
+      return resultado;
+    })()`);
+    provar('a matriz desenha os parâmetros que resolvem — dois', orfao.linhas === 2, orfao.linhas);
+    provar('…e um aviso de alerta diz que um conteúdo já não existe',
+      /já não existe/.test(orfao.aviso) && /rond-de-jambe/.test(orfao.aviso), orfao.aviso);
+    /* O CANDIDATO É UM SÓ NESTE CASO: `rond-de-jambe-a-terre` começa por `rond-de-jambe-` e
+     * não há outro termo com esse prefixo no fixture. Com dois, a mensagem mostraria os dois — e
+     * é isso que impede a tela de escolher por quem ensina. */
+    provar('…nomeia o termo que o id quer dizer, quando o prefixo é dele',
+      /Rond de jambe à terre/.test(orfao.aviso), orfao.aviso);
+    provar('…e diz onde se corrige (Produção, Turmas)',
+      /Produção/.test(orfao.aviso) && /Turmas/.test(orfao.aviso), orfao.aviso);
+    provar('…e nomeia a turma, que é o que explica o número',
+      /Turma da prova/.test(orfao.aviso), orfao.aviso);
+    provar('a origem conta os TRÊS associados, e não só os dois que aparecem',
+      /3 termos associados/.test(orfao.origem), orfao.origem);
+
+    /* O CONTROLE: sem órfãos, não há aviso. Uma tela que avisa sempre não avisa nada. */
+    const semOrfao = await preparar(true);
+    provar('sem conteúdo órfão, nenhum aviso de alerta',
+      semOrfao.indexOf('já não existe') === -1);
 
     provar('nenhum erro de JavaScript na página', problemas.length === 0, problemas.slice(0, 3));
   } finally {

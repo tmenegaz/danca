@@ -4498,17 +4498,22 @@ function linhasEOpcoesDoNo(no) {
       ' — os objetivos específicos são as linhas desta matriz.</p>' };
   }
   let opcoes = [];
+  let orfaos = [];
+  let turmaDoNo = null;
   if (cfg.opcoesDaTurma) {
     const t = turmaDoPlano();
     if (!t) {
       return { erro: '<p class="aviso">Escolha a turma em ' + citacao('Turmas observadas') +
         ' — os parâmetros são o conteúdo do nível dela.</p>' };
     }
-    opcoes = termosDaTurma(t.id);
+    const conteudo = conteudoDaTurma(t.id);
+    opcoes = conteudo.termos;
+    orfaos = conteudo.orfaos;
+    turmaDoNo = conteudo.turma || String(t.nome || '');
   } else {
     opcoes = Array.isArray(cfg.opcoes) ? cfg.opcoes : [];
   }
-  return { cfg, marcos, opcoes };
+  return { cfg, marcos, opcoes, orfaos, turma: turmaDoNo };
 }
 
 /* O que já está marcado, e o que foi escrito à mão em cada linha. */
@@ -4531,11 +4536,16 @@ function estadoDoPorMarco(no, opcoes) {
 function porMarcoDoNo(no) {
   const resolvido = linhasEOpcoesDoNo(no);
   if (resolvido.erro !== undefined) return { html: resolvido.erro, opcoes: [] };
-  const { cfg, marcos, opcoes } = resolvido;
+  const { cfg, marcos, opcoes, orfaos, turma } = resolvido;
+  const avisoOrfao = avisoDeConteudoOrfao(orfaos, turma);
   if (!opcoes.length) {
-    return { html: '<p class="aviso">A turma do plano ainda não tem conteúdo declarado na ' +
-      'Produção — os parâmetros de medição vêm do nível dela. Escreva no campo aberto, ' +
-      'abaixo.</p>', opcoes: [] };
+    const semNada = orfaos.length
+      ? '<p class="aviso">Corrija a associação em Produção e os parâmetros aparecem aqui. Até lá, ' +
+        'a medida de cada objetivo escreve-se no campo aberto.</p>'
+      : '<p class="aviso">A turma do plano ainda não tem conteúdo declarado na ' +
+        'Produção — os parâmetros de medição vêm do nível dela. Escreva no campo aberto, ' +
+        'abaixo.</p>';
+    return { html: avisoOrfao + semNada, opcoes: [] };
   }
   const { porMarco, aberto } = estadoDoPorMarco(no, opcoes);
 
@@ -4556,7 +4566,7 @@ function porMarcoDoNo(no) {
   const instrucao = cfg.instrucao
     ? '<p class="sub">' + md(cfg.instrucao) + '</p>'
     : '';
-  return { html: instrucao + '<div class="matriz-marco">' + linhas.join('') + '</div>', opcoes };
+  return { html: avisoOrfao + instrucao + '<div class="matriz-marco">' + linhas.join('') + '</div>', opcoes };
 }
 
 /*
@@ -4583,7 +4593,8 @@ function porMarcoDoNo(no) {
 function porParametrosDoNo(no) {
   const resolvido = linhasEOpcoesDoNo(no);
   if (resolvido.erro !== undefined) return { html: resolvido.erro };
-  const { cfg, marcos, opcoes } = resolvido;
+  const { cfg, marcos, opcoes, orfaos, turma } = resolvido;
+  const avisoOrfao = avisoDeConteudoOrfao(orfaos, turma);
   const { porMarco, aberto } = estadoDoPorMarco(no, opcoes);
 
   const abertos = marcos.map((texto, i) => {
@@ -4594,9 +4605,13 @@ function porParametrosDoNo(no) {
   }).join('');
 
   if (!opcoes.length) {
-    return { html: '<p class="aviso">A turma do plano ainda não tem conteúdo declarado na ' +
-      'Produção — os parâmetros de medição vêm do nível dela. Escreva a medida de cada ' +
-      'objetivo abaixo.</p><div class="matriz-marco">' + abertos + '</div>' };
+    const semNada = orfaos.length
+      ? '<p class="aviso">Corrija a associação em Produção e os parâmetros aparecem aqui. Até ' +
+        'lá, a medida de cada objetivo escreve-se abaixo.</p>'
+      : '<p class="aviso">A turma do plano ainda não tem conteúdo declarado na ' +
+        'Produção — os parâmetros de medição vêm do nível dela. Escreva a medida de cada ' +
+        'objetivo abaixo.</p>';
+    return { html: avisoOrfao + semNada + '<div class="matriz-marco">' + abertos + '</div>' };
   }
 
   // O CABEÇALHO: o número do objetivo, e o texto dele no `title` — a coluna é estreita e o
@@ -4626,6 +4641,15 @@ function porParametrosDoNo(no) {
     marcos.map((t) => '<li>' + md(t) + '</li>').join('') + '</ol></details>';
 
   const instrucao = cfg.instrucao ? '<p class="sub">' + md(cfg.instrucao) + '</p>' : '';
+  /* A ORIGEM À VISTA (31/10/2026). A instrução do conteúdo diz «os parâmetros são o conteúdo do
+   * nível da sua turma» — e a pergunta que se segue, a fazer a tela, é «qual turma?». O nome dela
+   * e quantos termos estão associados respondem, e é o que explica um número menor do que o
+   * esperado sem obrigar a adivinhar. */
+  const origem = turma
+    ? '<p class="sub">Os parâmetros vêm do conteúdo do nível de «' + escapar(turma) + '» — ' +
+      (opcoes.length + orfaos.length) + (opcoes.length + orfaos.length === 1
+        ? ' termo associado' : ' termos associados') + '.</p>'
+    : '';
   const tabela = '<div class="matriz-parametros"><table class="tabela-parametros"><thead><tr>' +
     '<th class="parametro">Parâmetro</th>' + cabecalhos +
     '<th class="marca"></th></tr></thead><tbody>' + corpo + '</tbody></table></div>';
@@ -4636,7 +4660,7 @@ function porParametrosDoNo(no) {
   const outros = '<details class="legenda-objetivos"><summary>Acrescentar uma medida que não ' +
     'está no nível da turma</summary>' + abertos + '</details>';
 
-  return { html: instrucao + legenda + tabela + outros, opcoes };
+  return { html: avisoOrfao + instrucao + origem + legenda + tabela + outros, opcoes };
 }
 
 /*
@@ -4721,12 +4745,69 @@ function lerPorMarco(no, raiz) {
   return numeros.length ? numeros.map((n) => ({ marco: n, marcados: porMarco.get(n) })) : null;
 }
 
-/* Os termos do nível de uma turma (a relação turma↔conteúdo já carregada). */
-function termosDaTurma(turmaId) {
-  if (!TURMA_CONTEUDOS || typeof TURMA_CONTEUDOS !== 'object' || !Array.isArray(TERMOS_DA_ESCOLA)) return [];
+/* O CONTEÚDO DO NÍVEL DE UMA TURMA — os nomes E o que já não existe (31/10/2026).
+ *
+ * A RELAÇÃO é chaveada por ID, e o vocabulário MUDOU DE CASA em 28/10/2026: as associações
+ * antigas apontam para ids da lista que então vivia no KV da escola. Um id que não resolve era
+ * **descartado em silêncio** por um `filter(Boolean)` — e o sintoma chegou pela voz da
+ * pesquisadora: «pus quatro exercícios na turma e no plano só aparecem dois». É a mesma família
+ * do `if` que filtrava o título vazio: a pergunta «está aqui?» não é a pergunta «existe?».
+ *
+ * Devolve `{termos, orfaos, turma}`, e é `orfaos` que a tela passa a dizer em voz alta — com o
+ * termo que o id quer dizer, quando há um só candidato. */
+function conteudoDaTurma(turmaId) {
+  const vazio = { termos: [], orfaos: [], turma: null };
+  if (!TURMA_CONTEUDOS || typeof TURMA_CONTEUDOS !== 'object' || !Array.isArray(TERMOS_DA_ESCOLA)) return vazio;
   const ids = Array.isArray(TURMA_CONTEUDOS[turmaId]) ? TURMA_CONTEUDOS[turmaId] : [];
   const porId = new Map(TERMOS_DA_ESCOLA.map((t) => [t.id, t]));
-  return ids.map((id) => (porId.get(id) || {}).termo).filter(Boolean);
+  const termos = [];
+  const orfaos = [];
+  for (const id of ids) {
+    const t = porId.get(id);
+    if (t && t.termo) { termos.push(t.termo); continue; }
+    /* O CANDIDATO, quando é UM SÓ. `rond-de-jambe` deixou de existir quando o termo passou a
+     * chamar-se «Rond de jambe à terre» (`rond-de-jambe-a-terre`) — e um id que é o começo de
+     * outro id, com um só resultado, é quase sempre o mesmo termo que mudou de nome. Não se
+     * resolve sozinho — isso seria decidir por quem ensina —, mas diz-se qual é. */
+    const chave = String(id);
+    // Os candidatos são os ids que COMEÇAM pelo id órfão — o termo que ganhou um qualificador
+    // («Rond de jambe» → «Rond de jambe à terre»). Podem ser dois: aí não se escolhe, mostram-se.
+    const candidatos = TERMOS_DA_ESCOLA
+      .filter((x) => x && typeof x.id === 'string' && x.id.indexOf(chave + '-') === 0)
+      .map((x) => String(x.termo));
+    orfaos.push({ id: chave, candidatos: candidatos.slice(0, 3) });
+  }
+  const turma = Array.isArray(TURMAS_DA_ESCOLA)
+    ? TURMAS_DA_ESCOLA.find((t) => t && t.id === turmaId) : null;
+  return { termos, orfaos, turma: turma && turma.nome ? String(turma.nome) : null };
+}
+
+/** Os nomes do nível de uma turma — o atalho que a coluna derivada usa. */
+function termosDaTurma(turmaId) {
+  return conteudoDaTurma(turmaId).termos;
+}
+
+/* O AVISO DE CONTEÚDO ÓRFÃO. Sem isto, um termo que a direção associou e que o vocabulário já
+ * não tem desaparece da matriz sem uma palavra — e o professor conclui que o plano «não pega» o
+ * que ele criou. Diz o que falta, o que o id quer dizer quando há um só candidato, e ONDE se
+ * corrige. */
+function avisoDeConteudoOrfao(orfaos, turma) {
+  if (!Array.isArray(orfaos) || !orfaos.length) return '';
+  const um = orfaos.length === 1;
+  const palpite = (o) => {
+    const c = Array.isArray(o.candidatos) ? o.candidatos : [];
+    if (!c.length) return '';
+    if (c.length === 1) return ' (no vocabulário existe «' + escapar(c[0]) + '»)';
+    return ' (no vocabulário há ' + c.map((t) => '«' + escapar(t) + '»').join(' ou ') + ')';
+  };
+  const lista = orfaos.map((o) => '«' + escapar(o.id) + '»' + palpite(o)).join(', ');
+  return '<p class="aviso alerta">' +
+    (um ? 'Um conteúdo associado a esta turma' : orfaos.length + ' conteúdos associados a esta turma') +
+    ' já não existe' + (um ? '' : 'm') + ' no vocabulário: ' + lista + '. ' +
+    (um ? 'Ele não aparece' : 'Eles não aparecem') + ' nos parâmetros de medição. ' +
+    'Em Produção, na secção Turmas (passo Associar), remova ' +
+    (um ? 'a associação' : 'as associações') + ' e associe o termo certo' +
+    (turma ? ' — a turma é «' + escapar(turma) + '»' : '') + '.</p>';
 }
 
 /* O CAMPO LIDO DE UM MARCO (o objetivo específico da Aula 1 = marco 1) saiu com o
