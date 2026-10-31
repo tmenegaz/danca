@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-31T18:36:13-0300`
-Commit atual: `b20242e` — docs(registro): actualizar a fotografia após as definições e as duas arrumações
+Gerado em: `2026-10-31T19:44:30-0300`
+Commit atual: `d7e71ff` — feat(notacao): o verbete em seis passos, com o modo de edição
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,8 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+d7e71ff feat(notacao): o verbete em seis passos, com o modo de edição
+ccbc8d0 docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 b20242e docs(registro): actualizar a fotografia após as definições e as duas arrumações
 2ff8ed4 docs(registro): as definições no vocabulário, o lê-se no campo, e as duas arrumações
 b641acc feat(estrutura): o «lê-se» dentro do campo, e a quarta coluna fora da tabela
@@ -98,8 +100,6 @@ b0cfa43 chore(estrutura): regerar os índices derivados
 3d4777b docs(registro): regenerar o HANDOFF após a fotografia de 29/10/2026
 eb72950 docs(registro): actualizar a fotografia após os dois eixos da célula
 567d52c docs(registro): os dois eixos da célula, e o trecho em pílulas
-9b318fe feat(estrutura): o trecho em pílulas, e os dois eixos separados na tela
-4994b34 feat(notacao): os dois eixos da célula — direção do membro e orientação do corpo
 ```
 
 ## Por professor
@@ -199,76 +199,90 @@ eb72950 docs(registro): actualizar a fotografia após os dois eixos da célula
 
 ## Última entrada do REGISTRO
 
-## 31/10/2026 — O «lê-se» dentro do campo, a quarta coluna fora, e as definições no vocabulário
+## 31/10/2026 — O verbete em seis passos, e o trecho que se pode corrigir
 
-**O que motivou.** A pesquisadora achou o ajuste anterior **incompleto**, e com razão em duas
-frentes. Primeira: escolheu o **Grand battement** e a definição que apareceu foi «Grande batimento da
-perna de trabalho.» — enquanto a que ela tem, e leu em voz alta, é «Lançamento amplo e vigoroso da
-perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até
-fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante
-o lançamento.» Segunda: o «lê-se» tinha ficado num parágrafo à parte, e o pedido dela é que ele esteja
-**dentro** do campo — «isso tem que estar escrito aqui também dentro do que acontece nesse trecho».
+**O que motivou.** A pesquisadora viu as duas bancadas e escolheu, com o critério dito por ela: «O
+Step, apesar de ter mais cliques, ele é mais fácil de entender.» E acrescentou o que faltava na
+bancada: **poder corrigir um trecho já acrescentado** — «quando acrescento um trecho, seria bom que eu
+pudesse editar esse trecho», com um sinal, alguma flag, de que se está em edição nos passos por onde a
+correcção passa, e um «cancelar» para desistir. A proposta escolhida é a **14** (os passos).
 
-**As definições entraram no VOCABULÁRIO, que é a verdade única dos termos.** O dicionário que ela
-forneceu tem 30 termos; fundido, o resultado medido: **14 termos que estavam sem descrição passam a
-tê-la** (incluindo as cinco posições de pés, todas em branco), **10 que tinham uma descrição curta
-passam a ter a do dicionário**, e **6 são criados** — Aplomb, Bras bas, Adagio, Allegro, Ballon,
-Legato. O vocabulário vai de **87 para 93** termos, de **35 para 55** com descrição, e os exercícios
-de **12 para 19** com definição, em 55. A proveniência está declarada em todos (`fonte` =
-«Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)»).
+**O formulário passa a ter seis passos, um de cada vez.** Antes era uma coluna comprida em que a maior
+parte dos campos não se podia preencher na maior parte do tempo — a posição depende do exercício, a
+contagem depende da direção, a frase depende da música. Os seis: **1 O exercício · 2 A música · 3 A
+posição · 4 Para onde · 5 Os sinais · 6 A decomposição**. A tira em cima não é só navegação: cada passo
+mostra o valor já decidido («4 tempos · 2/4», «Devant · En face · tempo 1», «3 sinais», «2 trechos»),
+para quem está no passo 5 não ter de voltar atrás para saber para onde o trecho vai.
 
-**Duas decisões dentro da fusão.** O **detalhe técnico entra na mesma frase**, como ela o leu («…
-Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco…»). E `variacao_nome` **não** é
-detalhe técnico — é o nome da mesma posição noutro método, e sai em frase própria («Variação de nome —
-Vaganova: Preparatória | RAD: Bras bas | Francesa: En bas»), com o valor **verbatim**: a primeira
-versão baixava a inicial e escrevia «vaganova», que é o nome de uma escola com maiúscula.
+**Os três passos do trecho separam três perguntas** que estavam emaranhadas no quarto: o que o trecho
+**é** (4: direção do membro, orientação do corpo, categoria, contagem), como ele **se escreve** (5: os
+sinais, pela ordem em que acontecem) e o que a decomposição **mostra** (6: a tabela e a frase). A
+tabela deixou de estar ao lado das escolhas que a alimentam — ela respondia «este exercício não vai à
+frente» antes de haver trecho nenhum.
 
-**O «lê-se» passou a ser a segunda linha do campo.** A definição em cima, o «Lê-se: Pé, quinta posição,
-à frente, quinta posição» em baixo — exactamente a forma que ela descreveu. O parágrafo separado saiu
-(dizia o mesmo) e o campo ganhou altura (rows 2 → 4). E a frase **gravada** é composta ao acrescentar,
-para o «como se lê» entrar no texto da célula **mesmo quando ela reescreveu o campo de ponta a
-ponta** — foi um defeito que a prova apanhou: quem ajustasse a definição deixava de receber o «lê-se».
+**O passo 1 fica FORA do bloco do verbo, e isso é funcional.** Quando o modo do exercício abre (o
+«+»), o bloco do verbo sai inteiro — e o par do exercício (nome e «+») tem de continuar à vista e
+bloqueado, porque é ele a memória do que está escolhido. Dentro do bloco, esconder o bloco esconderia
+também a memória.
 
-**A quarta coluna saiu da tabela.** Havia cinco: compasso · contagem · orientação · notação · «o que
-acontece», esta com um campo editável por linha. Ela viu o que era: **com a frase a vir da definição
-do exercício, todas as linhas diziam o mesmo**; e a parte que muda por trecho (o «lê-se») é função da
-notação, que já tem coluna. Ficam quatro, e o handler do campo por linha saiu com a coluna — um
-handler sem markup a que responder parece que a tela ainda tem um campo.
+**A peça não é nova.** `.passos`, `.passo`, `.passo-n`, `.passo-t` e `.passo-alerta` já são o desenho
+da faixa do formulário da turma, nesta mesma página, e o `!` (`data-editando` no `<ol>`) já é o sinal
+de edição. Reusam-se, em vez de inventar uma segunda tira que diria o mesmo com outro nome; o que muda
+é o alcance — aqui o `!` só aparece nos passos 4 e 5, porque é por eles que a correcção de um trecho
+passa. Só as **travas de largura** da tira são novas (`#vb-tira …`), e são as mesmas da faixa da turma:
+sem elas o botão não encolhe e, com seis rótulos e seis valores, a tira empurrava a página 30px para
+lá do ecrã em 320px.
 
-**Sobre o dicionário que ela achou menor.** Medido: o ficheiro guardado tem **30 termos** e o JSON
-está **completo** (fecha, não foi cortado). **Rond de jambe não está lá** em nenhuma forma; o que
-existe com esse nome é do vocabulário do projecto, e agora ambos têm definição.
+**O modo de edição.** Cada linha da decomposição ganha **«Editar»** e **«×»**. Ao editar: o trecho
+carrega-se nos passos 4 e 5, a página vai para o **passo 4** (é ali que a correcção começa), o «!»
+acende nos passos **4 e 5**, o aviso diz **«Em edição — trecho N»**, o botão do passo 6 passa a dizer
+**«Guardar a alteração»** em vez de «Acrescentar trecho», e a linha fica marcada, **perde o «×»** — o
+que se está a corrigir é a única coisa que não pode desaparecer por engano — e mostra **«Cancelar»**.
+Há um segundo «Cancelar» junto ao aviso. Cancelar volta ao passo 6 com o trecho intacto.
 
-**Duas bancadas novas** para a arrumação do formulário, que ela pediu para escolher:
-`experimentos/propostas/proposta-verbete-acordeao.html` (Proposta 13 — quatro painéis, as secções
-fechadas a dizer o que têm dentro) e `proposta-verbete-passos.html` (Proposta 14 — quatro passos, uma
-tira de resumo que também é a navegação). Ambas com o editor a funcionar sobre o dado real, testadas
-em 320/390/768/1280 sem transbordo e sem erro de JavaScript. **A tira de passos é peça nova** e a
-folha está congelada: implementá-la exige motivo declarado e commit próprio.
+**Duas decisões dentro do mesmo botão.** Guardar a alteração é a mesma validação e a mesma composição
+do acrescentar; muda o destino. E **mudar a direção numa edição move o trecho de bloco**: a direção é
+a chave da célula, e deixá-lo no bloco antigo gravaria uma célula que diz uma coisa e está noutra.
+Trocar de **exercício** ou de **música** cancela a edição — as células são outras e o trecho que se
+estava a corrigir deixou de existir neste verbete.
+
+**Um defeito que a edição revelou.** A contagem recomeçava a contar a **célula que se está a
+corrigir**: um trecho em «1» de 2/4 abria a edição a oferecer «2». A célula em correcção deixa de
+somar-se aos tempos que vêm antes dela.
+
+**E um âmbito que teve de ser fechado.** O `mostrarPasso` da turma e o `aplicarEditando` procuravam na
+**página toda**; com a tira do verbete no documento, cada clique na turma apagava os seis passos dele e
+lhe desligava o `!`. Passaram a dizer qual é a sua tira (`#turmas-form`, `#turmas-paineis`).
+
+**A prova da Produção estava a medir o vazio, e calou-se.** Com duas tiras na página, três coisas do
+DOM falso deixaram de servir: ele não sabia ler `#id` num seletor, o `closest` dele devolvia o
+primeiro composto em vez do último (um `closest("#turmas-form button.passo")` a partir do botão
+devolvia o **formulário**), e a secção dos passos era fabricada ao lado da árvore da página. As três
+foram corrigidas na bancada — e não no motor —, e a prova voltou a **151 de 152**: a única falha é a
+que já existia antes (o item do menu que não fica marcado).
 
 **Onde entrou.**
-- `biblioteca/modalidades/bale-classico/vocabulario.json` — a fusão, 93 termos, com `fonte`.
-- `motor/servidor/bastidores.js` — `comoSeLe()`, `partirFrase()`, a frase composta; a tabela de quatro
-  colunas; o handler do campo por linha removido; o «lê-se» fora do parágrafo.
-- `experimentos/provar-celula.js` — **82 → 85 asserções**.
-- `experimentos/propostas/` — as duas bancadas e os cartões no índice.
+- `motor/servidor/bastidores.js` — os seis painéis e a tira; `PASSO`/`EM_EDICAO`; `pintarPassos`,
+  `irParaPasso`, `pintarTira`, `editarTrecho`, `cancelarEdicao`; a linha da tabela com «Editar»/«×»/
+  «Cancelar»; o botão do passo 6 que também guarda; o âmbito da turma fechado.
+- `experimentos/provar-celula.js` — **85 → 96 asserções**, com a secção 18 (o modo de edição).
+- `experimentos/provar-producao.js` — a árvore real da secção da turma, o `#id` e o `closest`.
 
-**Motivo declarado — os congelados.** Nenhum nesta entrega (nenhuma regra nova na folha; a tira de
-passos está **só** na bancada).
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado: a folha
+(`tools/templates/ciclo.css`) está como estava, e as regras novas vivem no bloco de estilo **da
+própria página** (`motor/servidor/bastidores.js`), que não está na lista. A checagem 8 (**Peça**) passa
+com as 16 superfícies e os 13 ganchos declarados: nenhuma classe foi inventada.
 
 **Validação.**
-`provar-celula.js` → **85 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
-→ **74, 0 falhas**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**.
-`hash-ciclo.sh --check` → íntegro, `3601081…`. **O texto do PDF** tem o **mesmo md5** que antes da
-fusão (`7dcd4817…`): 93 termos em vez de 87 não mudaram um documento.
-
-**Medido no navegador, na bancada local, com o dado real.** Grand battement, 8 tempos, 2/4, quinta
-posição: o campo traz a definição completa com o detalhe técnico, e depois de «5ª + 5ª» a segunda
-linha é **«Lê-se: Pé, quinta posição, à frente, quinta posição.»** — a forma que ela descreveu. A
-tabela tem quatro colunas e nenhum campo dentro. As duas bancadas percorrem-se do princípio ao fim.
+`provar-celula.js` → **96 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `check-identidade.js` → **20/20**. `provar-producao.js` → **151/152** (a falha
+pré-existente do menu). `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro,
+`3601081…`. Bancada medida em **320/390/768/1280**: sem transbordo e sem erro de JavaScript.
 
 **O que continua em aberto.**
-- **Escolher a arrumação**: acordeão, passos, ou nenhuma das duas.
+- **Rever o modo de edição na página ao vivo** — ela ainda não o viu a funcionar no sistema.
+- As **4 linhas «a conferir»** das posições de braços no alfabeto.
+- A revisão das frases que eu redigi para os **43 exercícios sem definição** (19 de 55 têm).
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
 
 ## O que está pendente

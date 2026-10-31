@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 31/10/2026 (base local `2ff8ed4`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`). Da Fase 1 falta só as **seleções no plano** (§1.6) — e ela tem de **escolher a arrumação do formulário** (acordeão, passos, ou nenhuma).
+> **Última fotografia:** 31/10/2026 (base local `d7e71ff`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Da Fase 1 falta só as **seleções no plano** (§1.6).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -157,6 +157,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | PO: derivação e documento | **CONFIRMADO** | `motor/nucleo/derivar-po.js` |
 | Lançamento da aula | **CONFIRMADO** | `motor/nucleo/lancamento.js` |
 | Bastidores (Produção) com menu próprio | **CONFIRMADO** | `motor/servidor/{producao,bastidores}.js` |
+| O alfabeto da notação na Produção — seis passos, trecho editável | **CONFIRMADO** 31/10/2026 na bancada local (96 asserções): o formulário percorre-se do passo 1 ao 6, um painel visível de cada vez, e um trecho gravado abre em edição no passo 4 com os valores dele. **A conferência na página publicada fica para o deploy.** | `motor/servidor/bastidores.js`, `motor/servidor/verbete.js` |
 | Criar escola / expurgar escola | **CONFIRMADO** | `provisionar-escola.js`, `expurgar-escola.js` |
 | Índice de envelopes com resumo invalidável | **CONFIRMADO** | `motor/nucleo/porta.js` (`VERSAO_DO_RESUMO = 4`) |
 | Âncora e cadeia de proveniência | **CONFIRMADO** | `tools/hash-ciclo.sh` |
@@ -314,6 +315,15 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     células que a sua própria direção já tem, porque a nova entra no fim dela. A coluna do compasso
     sai da **mesma** soma. Duas contas diferentes para a mesma coisa põem dois trechos no mesmo
     tempo, e a página da aula passa a dizer duas coisas para o mesmo instante. **DECIDIDO** 29/10/2026.
+24. **O FORMULÁRIO DO VERBETE ESCREVE-SE EM SEIS PASSOS, E UM TRECHO GRAVADO PODE SER CORRIGIDO.** Ela
+    comparou as duas arrumações e escolheu os passos («o Step, apesar de ter mais cliques, ele é mais
+    fácil de entender»). Os seis: **1 O exercício · 2 A música · 3 A posição · 4 Para onde · 5 Os
+    sinais · 6 A decomposição** — e os três do trecho separam o que ele **é**, como **se escreve** e o
+    que a decomposição **mostra**. A tira em cima diz o que já está decidido e é a navegação; o passo 1
+    fica **fora** do bloco do verbo, porque o modo do exercício o bloqueia em vez de o esconder. Corrigir
+    um trecho é um **estado** (`EM_EDICAO`), não um botão: acende o «!» nos passos 4 e 5, leva ao 4,
+    muda o rótulo do 6 para «Guardar a alteração», e a linha em edição **perde o «×»**. A peça reusa-se
+    da faixa da turma (`.passos`/`.passo`/`.passo-alerta`); nenhuma classe nova. **DECIDIDO** 31/10/2026.
 
 ## 7. Trabalho em andamento
 
@@ -324,7 +334,10 @@ de uma lista e o «+» cria-o no vocabulário do repositório; o formulário tem
 **direção é derivada** da célula; e o **editor de célula** já cria a decomposição que faltava — sem
 ele, «Gravar verbete» recusava criar o que não existisse (eram 55 exercícios para 4 verbetes). Falta
 as **seleções no plano** (§1.6). O **bloco por pílulas** deixou de faltar: desde `9b318fe` não há
-nenhuma lista suspensa no trecho, e a notação compõe-se de cliques. O segundo trabalho **não é de
+nenhuma lista suspensa no trecho, e a notação compõe-se de cliques. E a **arrumação do formulário**
+deixou de estar em aberto: ela viu as duas bancadas e escolheu **os passos** — «o Step, apesar de ter
+mais cliques, ele é mais fácil de entender» —, e o formulário passou a **seis passos, um de cada vez**,
+com o trecho **editável** (`d7e71ff`). O segundo trabalho **não é de
 código**: **o plano da Batata vai ser refeito no formulário pela
 pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu os exercícios de
 **Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos publicados ficam
@@ -333,13 +346,13 @@ de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. E
 **expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
 vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 28/10/2026 — `4342f16` (a célula explicada: contagem calculada, sinais
-compostos, dicionário do que acontece) e `6c6ce28` (o registo) no `main` local. A base anterior:
-`9fb09dc` (a folha, com motivo declarado), `4f4795a`
-(os dois modos, a direção derivada e o editor de célula) e `7a931da` (o registo) no `main` local. A
-base em `origin/main` é `52a05d6`, com os workflows concluídos; o `GET /api/bastidores/termos` ao ar
-responde **200** com **87 termos**, 12 deles com `membro` — campos que só existem no bundle atual, e
-que provam que o vocabulário servido é o do repositório.
+**Último ponto confirmado:** 31/10/2026 — `d7e71ff` (o verbete em seis passos, com o modo de edição)
+no `main` local, com `ccbc8d0` (o registo anterior) por trás. A base anterior: `b641acc` (o «lê-se»
+dentro do campo e a quarta coluna fora), `48f43e2` (as definições no vocabulário), `9fb09dc` (a folha,
+com motivo declarado), `4f4795a` (os dois modos, a direção derivada e o editor de célula). O
+`GET /api/bastidores/termos` ao ar respondeu **200** com **87 termos** em 28/10/2026, 12 deles com
+`membro` — campos que só existem no bundle atual, e que provam que o vocabulário servido é o do
+repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só se confirma no deploy.
 
 ## 8. Pendências e dúvidas
 
@@ -445,7 +458,22 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (28/10/2026 — a célula explicada)
+### Executado nesta fotografia (31/10/2026 — os seis passos e a edição do trecho)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **96 asserções, 0 falhas** (eram 85) — no navegador, sobre bancada local; a secção 18 é o modo de edição |
+| …o que ela mede no modo de edição | «Editar» leva ao passo 4 com os valores do trecho, a contagem carregada é a dele (`1`, não `2`), o aviso diz o número, o «!» acende **só** nos passos 4 e 5, a linha perde o «×», «Cancelar» volta ao 6 e o trecho fica intacto |
+| …e o que ela mede nos seis passos | um painel visível de cada vez, a tira diz o valor decidido, o passo 1 sobrevive ao modo do exercício (bloqueado, não escondido) |
+| `node experimentos/provar-verbete.js` | tudo certo — o CRUD valida, grava no repositório e recusa apagar |
+| `node experimentos/provar-notacao.js` | **74 asserções, 0 falhas** |
+| `node experimentos/provar-producao.js` | **151 de 152** — a falha «o item do menu fica marcado» é **pré-existente**; as cinco que eu tinha aberto eram da bancada (o `#id`, o `closest` e a árvore da secção), não do motor |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram — incluindo a **8 (Peça)**: 16 superfícies, 13 ganchos, nenhuma classe inventada |
+| `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; hash **`3601081…`** |
+| geometria no navegador | a tira de seis passos cabe em **320/390/768/1280** sem transbordo, e a página não tem erro de JS |
+
+### Executado na fotografia anterior (28/10/2026 — a célula explicada)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -640,12 +668,41 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 
 ## 10. Próximos passos
 
-Nenhuma ação de publicação desta entrega está pendente. A rota `/aulas/` não foi carregada após o
-deploy; não foi feita outra requisição à produção para respeitar o limite de uma conferência.
+**Da Fase 1 falta um item:** as **seleções no plano** (§1.6). Todo o resto do alfabeto está feito — o
+verbete administrável, os dois eixos, o dicionário, o «lê-se», e agora os seis passos com o trecho
+editável.
+
+**Pendente dela** (nada disto é código à espera de autorização, é olho dela):
+- **Rever o modo de edição na página ao vivo.** O comportamento foi medido na bancada local; ela ainda
+  não o viu no sistema.
+- **As 4 linhas «a conferir»** das posições de braços no alfabeto — o dicionário dela só as responde em
+  parte.
+- **Revisão das frases que eu redigi** para os **43 exercícios sem definição** (19 de 55 têm).
+
+**Publicação:** depois do push, uma única carga ao ar para confirmar os seis passos na página
+publicada — é a conferência final, não a exploração (ver §12 e a regra da cota do ar).
 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **31/10/2026** — **O verbete em seis passos, e o trecho que se pode corrigir.** Ela viu as duas
+  bancadas e escolheu os **passos** («o Step, apesar de ter mais cliques, ele é mais fácil de
+  entender»), e pediu o que faltava nelas: **editar um trecho já acrescentado**, com um sinal de que se
+  está em edição. O formulário passa a **seis passos** — 1 O exercício · 2 A música · 3 A posição · 4
+  Para onde · 5 Os sinais · 6 A decomposição —, um de cada vez, e a tira em cima mostra o que já está
+  decidido e serve de navegação. Os três passos do trecho separam **o que o trecho é**, **como se
+  escreve** e **o que a decomposição mostra**; a tabela deixou de estar ao lado das escolhas que a
+  alimentam. **A peça não é nova**: `.passos`/`.passo`/`.passo-alerta` e o `!` já são a faixa da turma,
+  nesta mesma página — só a largura da tira ganhou travas próprias. No **modo de edição**, a linha
+  ganha «Editar» e «×»; ao editar, a página vai ao **passo 4** com os valores do trecho, o «!» acende
+  nos passos **4 e 5**, o aviso diz **«Em edição — trecho N»**, o botão do 6 passa a **«Guardar a
+  alteração»**, a linha perde o «×» e mostra «Cancelar». Defeito encontrado ao medir: a contagem
+  recomeçava a contar a **célula em correcção** (um trecho em «1» de 2/4 abria a edição a oferecer
+  «2»). **CONFIRMADO** localmente: **96 asserções** em navegador, `provar-producao` **151/152** (a
+  falha pré-existente do menu), `check-identidade` **20/20** e a checagem **8 (Peça)** verde,
+  `check-pacote` **0 erro**, âncora íntegra (`3601081…`). Publicado em `d7e71ff`; a conferência ao ar
+  fica para depois do push.
 
 - **31/10/2026** — **As definições do dicionário no vocabulário, o «lê-se» no campo, e a quarta coluna
   fora.** Ela achou o ajuste anterior incompleto: escolheu o **Grand battement** e a definição que
@@ -663,9 +720,9 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
 - **31/10/2026** — **Duas arrumações do formulário, para escolher.** `experimentos/propostas/
   proposta-verbete-acordeao.html` (Proposta 13: quatro painéis, as secções fechadas a dizer o que têm
   dentro) e `proposta-verbete-passos.html` (Proposta 14: quatro passos com uma tira de resumo que é
-  também a navegação). Ambas funcionam sobre o dado real. **A tira de passos é peça nova** e a folha
-  está congelada — implementá-la exige motivo declarado e commit próprio. **HIPÓTESE**: qual delas
-  ela quer, não está decidido.
+  também a navegação). Ambas funcionam sobre o dado real. A tira de passos passou a ser peça existente
+  quando se viu que `.passos`/`.passo`/`.passo-alerta` já são a faixa da turma na mesma página.
+  **DECIDIDO** no mesmo dia: ela escolheu os **passos** (ver a entrada acima, `d7e71ff`).
 
 - **31/10/2026** — **«O que acontece» recebe a definição do exercício, e o «lê-se» desce.** A
   pesquisadora gravou o **primeiro verbete a sério** — *Rond de jambe en l'air* (`73f5330`, alfabeto

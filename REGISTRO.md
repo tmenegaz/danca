@@ -28489,3 +28489,89 @@ tabela tem quatro colunas e nenhum campo dentro. As duas bancadas percorrem-se d
 **O que continua em aberto.**
 - **Escolher a arrumação**: acordeão, passos, ou nenhuma das duas.
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
+
+## 31/10/2026 — O verbete em seis passos, e o trecho que se pode corrigir
+
+**O que motivou.** A pesquisadora viu as duas bancadas e escolheu, com o critério dito por ela: «O
+Step, apesar de ter mais cliques, ele é mais fácil de entender.» E acrescentou o que faltava na
+bancada: **poder corrigir um trecho já acrescentado** — «quando acrescento um trecho, seria bom que eu
+pudesse editar esse trecho», com um sinal, alguma flag, de que se está em edição nos passos por onde a
+correcção passa, e um «cancelar» para desistir. A proposta escolhida é a **14** (os passos).
+
+**O formulário passa a ter seis passos, um de cada vez.** Antes era uma coluna comprida em que a maior
+parte dos campos não se podia preencher na maior parte do tempo — a posição depende do exercício, a
+contagem depende da direção, a frase depende da música. Os seis: **1 O exercício · 2 A música · 3 A
+posição · 4 Para onde · 5 Os sinais · 6 A decomposição**. A tira em cima não é só navegação: cada passo
+mostra o valor já decidido («4 tempos · 2/4», «Devant · En face · tempo 1», «3 sinais», «2 trechos»),
+para quem está no passo 5 não ter de voltar atrás para saber para onde o trecho vai.
+
+**Os três passos do trecho separam três perguntas** que estavam emaranhadas no quarto: o que o trecho
+**é** (4: direção do membro, orientação do corpo, categoria, contagem), como ele **se escreve** (5: os
+sinais, pela ordem em que acontecem) e o que a decomposição **mostra** (6: a tabela e a frase). A
+tabela deixou de estar ao lado das escolhas que a alimentam — ela respondia «este exercício não vai à
+frente» antes de haver trecho nenhum.
+
+**O passo 1 fica FORA do bloco do verbo, e isso é funcional.** Quando o modo do exercício abre (o
+«+»), o bloco do verbo sai inteiro — e o par do exercício (nome e «+») tem de continuar à vista e
+bloqueado, porque é ele a memória do que está escolhido. Dentro do bloco, esconder o bloco esconderia
+também a memória.
+
+**A peça não é nova.** `.passos`, `.passo`, `.passo-n`, `.passo-t` e `.passo-alerta` já são o desenho
+da faixa do formulário da turma, nesta mesma página, e o `!` (`data-editando` no `<ol>`) já é o sinal
+de edição. Reusam-se, em vez de inventar uma segunda tira que diria o mesmo com outro nome; o que muda
+é o alcance — aqui o `!` só aparece nos passos 4 e 5, porque é por eles que a correcção de um trecho
+passa. Só as **travas de largura** da tira são novas (`#vb-tira …`), e são as mesmas da faixa da turma:
+sem elas o botão não encolhe e, com seis rótulos e seis valores, a tira empurrava a página 30px para
+lá do ecrã em 320px.
+
+**O modo de edição.** Cada linha da decomposição ganha **«Editar»** e **«×»**. Ao editar: o trecho
+carrega-se nos passos 4 e 5, a página vai para o **passo 4** (é ali que a correcção começa), o «!»
+acende nos passos **4 e 5**, o aviso diz **«Em edição — trecho N»**, o botão do passo 6 passa a dizer
+**«Guardar a alteração»** em vez de «Acrescentar trecho», e a linha fica marcada, **perde o «×»** — o
+que se está a corrigir é a única coisa que não pode desaparecer por engano — e mostra **«Cancelar»**.
+Há um segundo «Cancelar» junto ao aviso. Cancelar volta ao passo 6 com o trecho intacto.
+
+**Duas decisões dentro do mesmo botão.** Guardar a alteração é a mesma validação e a mesma composição
+do acrescentar; muda o destino. E **mudar a direção numa edição move o trecho de bloco**: a direção é
+a chave da célula, e deixá-lo no bloco antigo gravaria uma célula que diz uma coisa e está noutra.
+Trocar de **exercício** ou de **música** cancela a edição — as células são outras e o trecho que se
+estava a corrigir deixou de existir neste verbete.
+
+**Um defeito que a edição revelou.** A contagem recomeçava a contar a **célula que se está a
+corrigir**: um trecho em «1» de 2/4 abria a edição a oferecer «2». A célula em correcção deixa de
+somar-se aos tempos que vêm antes dela.
+
+**E um âmbito que teve de ser fechado.** O `mostrarPasso` da turma e o `aplicarEditando` procuravam na
+**página toda**; com a tira do verbete no documento, cada clique na turma apagava os seis passos dele e
+lhe desligava o `!`. Passaram a dizer qual é a sua tira (`#turmas-form`, `#turmas-paineis`).
+
+**A prova da Produção estava a medir o vazio, e calou-se.** Com duas tiras na página, três coisas do
+DOM falso deixaram de servir: ele não sabia ler `#id` num seletor, o `closest` dele devolvia o
+primeiro composto em vez do último (um `closest("#turmas-form button.passo")` a partir do botão
+devolvia o **formulário**), e a secção dos passos era fabricada ao lado da árvore da página. As três
+foram corrigidas na bancada — e não no motor —, e a prova voltou a **151 de 152**: a única falha é a
+que já existia antes (o item do menu que não fica marcado).
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — os seis painéis e a tira; `PASSO`/`EM_EDICAO`; `pintarPassos`,
+  `irParaPasso`, `pintarTira`, `editarTrecho`, `cancelarEdicao`; a linha da tabela com «Editar»/«×»/
+  «Cancelar»; o botão do passo 6 que também guarda; o âmbito da turma fechado.
+- `experimentos/provar-celula.js` — **85 → 96 asserções**, com a secção 18 (o modo de edição).
+- `experimentos/provar-producao.js` — a árvore real da secção da turma, o `#id` e o `closest`.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado: a folha
+(`tools/templates/ciclo.css`) está como estava, e as regras novas vivem no bloco de estilo **da
+própria página** (`motor/servidor/bastidores.js`), que não está na lista. A checagem 8 (**Peça**) passa
+com as 16 superfícies e os 13 ganchos declarados: nenhuma classe foi inventada.
+
+**Validação.**
+`provar-celula.js` → **96 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `check-identidade.js` → **20/20**. `provar-producao.js` → **151/152** (a falha
+pré-existente do menu). `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro,
+`3601081…`. Bancada medida em **320/390/768/1280**: sem transbordo e sem erro de JavaScript.
+
+**O que continua em aberto.**
+- **Rever o modo de edição na página ao vivo** — ela ainda não o viu a funcionar no sistema.
+- As **4 linhas «a conferir»** das posições de braços no alfabeto.
+- A revisão das frases que eu redigi para os **43 exercícios sem definição** (19 de 55 têm).
+- As **seleções no plano** (§1.6) — o último item da Fase 1.
