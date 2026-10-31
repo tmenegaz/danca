@@ -28417,3 +28417,75 @@ aula dirá que falta escrever um tempo.
 **O que continua em aberto.**
 - O **dicionário dela** — falta a proveniência (`fonte`), e faltam termos (Rond de jambe entre eles).
 - As **seleções no plano** (§1.6) — o último item da Fase 1.
+
+## 31/10/2026 — O «lê-se» dentro do campo, a quarta coluna fora, e as definições no vocabulário
+
+**O que motivou.** A pesquisadora achou o ajuste anterior **incompleto**, e com razão em duas
+frentes. Primeira: escolheu o **Grand battement** e a definição que apareceu foi «Grande batimento da
+perna de trabalho.» — enquanto a que ela tem, e leu em voz alta, é «Lançamento amplo e vigoroso da
+perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até
+fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante
+o lançamento.» Segunda: o «lê-se» tinha ficado num parágrafo à parte, e o pedido dela é que ele esteja
+**dentro** do campo — «isso tem que estar escrito aqui também dentro do que acontece nesse trecho».
+
+**As definições entraram no VOCABULÁRIO, que é a verdade única dos termos.** O dicionário que ela
+forneceu tem 30 termos; fundido, o resultado medido: **14 termos que estavam sem descrição passam a
+tê-la** (incluindo as cinco posições de pés, todas em branco), **10 que tinham uma descrição curta
+passam a ter a do dicionário**, e **6 são criados** — Aplomb, Bras bas, Adagio, Allegro, Ballon,
+Legato. O vocabulário vai de **87 para 93** termos, de **35 para 55** com descrição, e os exercícios
+de **12 para 19** com definição, em 55. A proveniência está declarada em todos (`fonte` =
+«Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)»).
+
+**Duas decisões dentro da fusão.** O **detalhe técnico entra na mesma frase**, como ela o leu («…
+Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco…»). E `variacao_nome` **não** é
+detalhe técnico — é o nome da mesma posição noutro método, e sai em frase própria («Variação de nome —
+Vaganova: Preparatória | RAD: Bras bas | Francesa: En bas»), com o valor **verbatim**: a primeira
+versão baixava a inicial e escrevia «vaganova», que é o nome de uma escola com maiúscula.
+
+**O «lê-se» passou a ser a segunda linha do campo.** A definição em cima, o «Lê-se: Pé, quinta posição,
+à frente, quinta posição» em baixo — exactamente a forma que ela descreveu. O parágrafo separado saiu
+(dizia o mesmo) e o campo ganhou altura (rows 2 → 4). E a frase **gravada** é composta ao acrescentar,
+para o «como se lê» entrar no texto da célula **mesmo quando ela reescreveu o campo de ponta a
+ponta** — foi um defeito que a prova apanhou: quem ajustasse a definição deixava de receber o «lê-se».
+
+**A quarta coluna saiu da tabela.** Havia cinco: compasso · contagem · orientação · notação · «o que
+acontece», esta com um campo editável por linha. Ela viu o que era: **com a frase a vir da definição
+do exercício, todas as linhas diziam o mesmo**; e a parte que muda por trecho (o «lê-se») é função da
+notação, que já tem coluna. Ficam quatro, e o handler do campo por linha saiu com a coluna — um
+handler sem markup a que responder parece que a tela ainda tem um campo.
+
+**Sobre o dicionário que ela achou menor.** Medido: o ficheiro guardado tem **30 termos** e o JSON
+está **completo** (fecha, não foi cortado). **Rond de jambe não está lá** em nenhuma forma; o que
+existe com esse nome é do vocabulário do projecto, e agora ambos têm definição.
+
+**Duas bancadas novas** para a arrumação do formulário, que ela pediu para escolher:
+`experimentos/propostas/proposta-verbete-acordeao.html` (Proposta 13 — quatro painéis, as secções
+fechadas a dizer o que têm dentro) e `proposta-verbete-passos.html` (Proposta 14 — quatro passos, uma
+tira de resumo que também é a navegação). Ambas com o editor a funcionar sobre o dado real, testadas
+em 320/390/768/1280 sem transbordo e sem erro de JavaScript. **A tira de passos é peça nova** e a
+folha está congelada: implementá-la exige motivo declarado e commit próprio.
+
+**Onde entrou.**
+- `biblioteca/modalidades/bale-classico/vocabulario.json` — a fusão, 93 termos, com `fonte`.
+- `motor/servidor/bastidores.js` — `comoSeLe()`, `partirFrase()`, a frase composta; a tabela de quatro
+  colunas; o handler do campo por linha removido; o «lê-se» fora do parágrafo.
+- `experimentos/provar-celula.js` — **82 → 85 asserções**.
+- `experimentos/propostas/` — as duas bancadas e os cartões no índice.
+
+**Motivo declarado — os congelados.** Nenhum nesta entrega (nenhuma regra nova na folha; a tira de
+passos está **só** na bancada).
+
+**Validação.**
+`provar-celula.js` → **85 asserções, 0 falhas**. `provar-verbete.js` → tudo certo. `provar-notacao.js`
+→ **74, 0 falhas**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**.
+`hash-ciclo.sh --check` → íntegro, `3601081…`. **O texto do PDF** tem o **mesmo md5** que antes da
+fusão (`7dcd4817…`): 93 termos em vez de 87 não mudaram um documento.
+
+**Medido no navegador, na bancada local, com o dado real.** Grand battement, 8 tempos, 2/4, quinta
+posição: o campo traz a definição completa com o detalhe técnico, e depois de «5ª + 5ª» a segunda
+linha é **«Lê-se: Pé, quinta posição, à frente, quinta posição.»** — a forma que ela descreveu. A
+tabela tem quatro colunas e nenhum campo dentro. As duas bancadas percorrem-se do princípio ao fim.
+
+**O que continua em aberto.**
+- **Escolher a arrumação**: acordeão, passos, ou nenhuma das duas.
+- As **seleções no plano** (§1.6) — o último item da Fase 1.
