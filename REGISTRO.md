@@ -29279,3 +29279,11 @@ aula e da captura, a declaração no `ciclo-01-captura-schema.json`, o pacote e 
   no código** (`derivar-ciclo.js`), e sai igual em qualquer aula. Não foi decidido de onde vem.
 - **A §6 «Distribuição do volume físico»** é uma tabela com uma linha («Total») que **duplica a §3**,
   que já traz bloco × tempos × fatia. Não foi tocada.
+
+**Conferência ao ar (01/11/2026, depois do push — uma carga, e só uma).** Os quatro workflows de
+`35aad32` em `success`. Uma requisição a
+`https://batata.tmenegaz77.workers.dev/bale-nivel-1-teste-2/captura-aula-01.json` (**200**): os quatro
+blocos de dimensão declaram **2 colunas cada** — os 8 critérios, um por um — e a linha de base continua
+com 1. É o artefato que o formulário publicado lê, e é o que prova que o conserto saiu do código e
+chegou à escola. **A cota do KV não foi tocada**: `captura-aula-01.json` é asset estático, não endpoint
+de estado.
