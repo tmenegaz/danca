@@ -82,13 +82,13 @@
         "ciclo:sapo-bailarino/01/breu"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-11-01T20:15:06.701086+00:00",
       "expurgada": false,
@@ -102,7 +102,9 @@
         "pe-torto",
         "sapo-bailarino"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261101-1726"
+      ],
       "slug": "breu"
     },
     {
@@ -287,7 +289,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -449,13 +457,19 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "523754d"
+    "commit": "f62d8c0"
   },
-  "gerado_em": "2026-11-01T20:25",
+  "gerado_em": "2026-11-01T20:26",
   "nao_indexado": [
     {
       "familia": "conteudo",

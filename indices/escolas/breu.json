@@ -70,13 +70,13 @@
       "ciclo:sapo-bailarino/01/breu"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-01T20:15:06.701086+00:00",
     "expurgada": false,
@@ -90,11 +90,22 @@
       "pe-torto",
       "sapo-bailarino"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261101-1726"
+    ],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261101-1726"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -109,6 +120,14 @@
       {
         "contagem": 1,
         "ids": [
+          "anamnese:anamnese-20261101-1726"
+        ],
+        "rotulo": "pe-torto",
+        "valor": "pe-torto"
+      },
+      {
+        "contagem": 1,
+        "ids": [
           "ciclo:sapo-bailarino/01/breu"
         ],
         "rotulo": "sapo-bailarino",
@@ -116,6 +135,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261101-1726"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -128,9 +155,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "523754d"
+    "commit": "f62d8c0"
   },
-  "gerado_em": "2026-11-01T20:25",
+  "gerado_em": "2026-11-01T20:26",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -153,6 +180,17 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261101-1726",
+      "ciclo": "01",
+      "data": "2026-11-01T17:26",
+      "id": "anamnese:anamnese-20261101-1726",
+      "professor": "pe-torto",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }
