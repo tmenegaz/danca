@@ -606,13 +606,24 @@
         "slug": "tiago-menegaz",
         "nome": "Tela de PC"
       }
+    },
+    {
+      "em": "2026-11-01T19:05:50.836170+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "perna-boa",
+        "nome": "Perna Boa"
+      },
+      "responsavel": "Perna Boa",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "so-para-direita",
+          "nome": "Só para Direita",
+          "desde": "2026-10-27T12:31:22.565Z"
+        }
+      ]
     }
   ],
-  "professores": [
-    {
-      "slug": "so-para-direita",
-      "nome": "Só para Direita",
-      "desde": "2026-10-27T12:31:22.565Z"
-    }
-  ]
+  "professores": []
 }
