@@ -3442,7 +3442,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // esse emaranhado que a pesquisadora achou confuso.
     '<div class="passo-painel" data-passo="3" hidden>' +
     '<fieldset class="escolhas" id="vb-dir">' +
-    '<legend class="campo-rotulo">Direção do membro — para onde o membro vai</legend>' +
+    // A DIREÇÃO É OPCIONAL (01/11/2026) — e a legenda diz que é, no mesmo desenho da orientação,
+    // que já era. Sem isto, a ausência de escolha lia-se como campo por preencher.
+    '<legend class="campo-rotulo">Direção do membro <span class="nota">— opcional; sem escolha, o trecho não tem direção</span></legend>' +
     '</fieldset>' +
     // A ORIENTAÇÃO É O OUTRO EIXO, e é opcional: sem escolha, o trecho é `en face`. Ela existe
     // porque «battement tendu à frente» não diz se o corpo está de frente ou em croisé — e são
@@ -5186,12 +5188,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // instante. A conta certa soma, na ordem da gramática, tudo o que vem antes — as direções
     // anteriores inteiras e as células que esta direção já tem, porque a nova entra no fim dela.
     // Assim o início da contagem e a coluna do compasso saem da MESMA soma, e não podem divergir.
+    // A ORDEM É A DO REGISTO, E NÃO A DA GRAMÁTICA (01/11/2026). Iterava-se a lista das três
+    // direções do alfabeto — e uma célula SEM direção não era visitada, o que fazia o «antes»
+    // somar o verbete inteiro. Com a chave vazia como balde legítimo, a conta passa a correr
+    // sobre as chaves que existem, na ordem em que foram escritas. A semântica é a de antes:
+    // soma-se o balde e só depois se pára — é o que faz o compasso cair no tempo certo.
     'function temposAntesDe(dir){' +
     '  var t = 0;' +
-    '  direcoesDaGramatica().forEach(function(d){' +
-    '    if (d.termo === dir) { (CELULAS[d.termo] || []).forEach(function(c){ t += temposDaContagem(c.contagem); }); return; }' +
-    '    (CELULAS[d.termo] || []).forEach(function(c){ t += temposDaContagem(c.contagem); });' +
-    '  });' +
+    '  var chaves = Object.keys(CELULAS);' +
+    '  for (var i = 0; i < chaves.length; i++) {' +
+    '    (CELULAS[chaves[i]] || []).forEach(function(c){ t += temposDaContagem(c.contagem); });' +
+    '    if (chaves[i] === dir) return t;' +
+    '  }' +
     '  return t;' +
     '}' +
     'function opcoesDeContagem(dir){' +
@@ -5213,11 +5221,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O COMPASSO DE CADA TRECHO, calculado. A conta corre na ordem em que o motor compõe — uma
     // direção de cada vez —, e é por isso que a coluna não se escreve: somam-se os tempos e o
     // compasso cai por si.
+    // O COMPASSO CORRE POR TODOS OS TRECHOS, na ordem em que foram escritos (01/11/2026). Aqui
+    // iterava-se `direcoesDaGramatica()` — as três do alfabeto —, e um trecho SEM direção não
+    // entrava na conta: ficava com o compasso errado e não descontava os tempos dos seguintes.
     'function compassosDosTrechos(){' +
     '  var n = numeradorDoCompasso(), corridos = 0, mapa = {};' +
-    '  direcoesDaGramatica().forEach(function(d){' +
-    '    (CELULAS[d.termo] || []).forEach(function(c, k){' +
-    '      mapa[d.termo + ":" + k] = Math.floor(corridos / n) + 1;' +
+    '  Object.keys(CELULAS).forEach(function(d){' +
+    '    (CELULAS[d] || []).forEach(function(c, k){' +
+    '      mapa[d + ":" + k] = Math.floor(corridos / n) + 1;' +
     '      corridos += temposDaContagem(c.contagem);' +
     '    });' +
     '  });' +
@@ -5233,6 +5244,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A TABELA ÚNICA. Uma linha por direção (o cabeçalho do bloco), as células dentro, e a
     // linha de acrescentar no fim. A direção que não é coberta aparece — é ela que responde ao
     // «o fouetté não vai às três» —, e a tela distingue «não vai» de «falta escrever».
+    // A DECOMPOSIÇÃO É UMA LISTA, E NÃO TRÊS BLOCOS (01/11/2026). Havia um `<table>` por direção
+    // do alfabeto — e um exercício que não vai a nenhuma das três (o `relevé`, que sobe e desce em
+    // primeira posição) via TRÊS tabelas a dizer «este exercício não vai à frente / ao lado /
+    // atrás». A pesquisadora leu isso como erro, e era: a tela afirmava três ausências para um
+    // exercício que não tem eixo horizontal nenhum.
+    //
+    // A direção passou a ser um ATRIBUTO do trecho, e opcional: a lista mostra os trechos na ordem
+    // em que foram escritos, e a coluna diz a direção quando ela existe. Sem direção, a coluna diz
+    // «sem direção» — a ausência declarada, e não um vazio que se lê como esquecimento.
     'function pintarTabela(){' +
     '  var alvo = document.getElementById("vb-tabela");' +
     '  if (!alvo) return;' +
@@ -5245,71 +5265,72 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return;' +
     '  }' +
     '  var mapa = compassosDosTrechos();' +
-    '  var html = "";' +
-    // QUATRO COLUNAS, E NÃO CINCO (31/10/2026). Havia uma quinta — «o que acontece neste trecho»,
-    // com um campo editável por linha —, e a pesquisadora viu o que ela era: **redundante**. Com a
-    // frase a vir da definição do exercício, todas as linhas diziam o mesmo; e a parte que muda por
-    // trecho (o «lê-se») é função da notação, que já tem a sua coluna. A frase passou para o campo
-    // único acima da tabela, e a tabela ficou com o que varia: compasso · contagem · orientação ·
-    // notação.
-    '  direcoesDaGramatica().forEach(function(d){' +
-    '    var lista = CELULAS[d.termo] || [];' +
-    '    html += "<table><thead><tr><th scope=\\"col\\" colspan=\\"4\\">" + d.nome +' +
-    '      "</th></tr></thead><tbody>";' +
-    '    if (!lista.length) {' +
-    '      var noutra = ondeOExercicioTem(nome, d.termo);' +
-    '      html += "<tr><td colspan=\\"4\\" class=\\"nota\\">" + (noutra' +
-    '        ? "O exercício vai " + d.nome + " noutra música (" + noutra + "), mas não nesta."' +
-    '        : "Este exercício não vai " + d.nome + ".") +' +
-    '        " Se for engano, acrescente o trecho abaixo." + "</td></tr>";' +
-    '    }' +
-    // A ORIENTAÇÃO DO CORPO NA SUA PRÓPRIA COLUNA. Vazia quer dizer `en face` — e é o que se
-    // escreve, porque uma coluna em branco lê-se como esquecimento e «en face» lê-se como facto.
-    '    lista.forEach(function(c, k){' +
-    '      var orient = "";' +
-    '      orientacoesDaGramatica().forEach(function(o){' +
-    '        if (o.termo === (c.orientacao || "")) orient = o.nome;' +
-    '      });' +
+    '  var linhas = [];' +
+    '  Object.keys(CELULAS).forEach(function(d){' +
+    '    (CELULAS[d] || []).forEach(function(c, k){ linhas.push({dir: d, k: k, c: c}); });' +
+    '  });' +
+    '  if (!linhas.length) {' +
+    // SEM TRECHOS, NÃO HÁ DECOMPOSIÇÃO A MOSTRAR. É o estado de um exercício que ainda não foi
+    // decomposto — e é o que a pesquisadora pediu: a decomposição «nem aparece». Uma linha diz
+    // porquê; três tabelas a dizer «não vai» era a tela a inventar três factos.
+    '    alvo.innerHTML = "<p class=\\"nota\\">Ainda sem trechos. Escreva o primeiro no botão abaixo — ' +
+    '      a direção, no passo 3, é opcional.</p>";' +
+    '    pintarCobertura();' +
+    '    pintarFica();' +
+    '    return;' +
+    '  }' +
+    '  var html = "<table><thead><tr>" +' +
+    '    "<th scope=\\"col\\">compasso</th><th scope=\\"col\\">contagem</th>" +' +
+    '    "<th scope=\\"col\\">direção</th><th scope=\\"col\\">orientação</th>" +' +
+    '    "<th scope=\\"col\\">notação</th><th scope=\\"col\\"></th>" +' +
+    '    "</tr></thead><tbody>";' +
+    '  linhas.forEach(function(t){' +
+    '    var c = t.c;' +
+    '    var orient = "";' +
+    '    orientacoesDaGramatica().forEach(function(o){' +
+    '      if (o.termo === (c.orientacao || "")) orient = o.nome;' +
+    '    });' +
     // O TRECHO EM EDIÇÃO FICA MARCADO, E OS BOTÕES DELE MUDAM (31/10/2026). Um trecho que se está
     // a corrigir não é «mais um»; e o «×» sai, porque apagar o que se está a corrigir é a única
     // coisa que não pode acontecer por engano.
-    '      var emMim = Boolean(EM_EDICAO && EM_EDICAO.dir === d.termo && EM_EDICAO.k === k);' +
-    '      var acoes = emMim' +
-    '        ? "<span class=\\"nota\\">em edição</span> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-cancelar-edicao=\\"1\\">Cancelar</button>"' +
-    '        : "<button type=\\"button\\" class=\\"acao secundario pequena\\" data-editar=\\"" + d.termo + ":" + k +' +
-    '          "\\" title=\\"editar este trecho\\">Editar</button> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + d.termo + ":" + k +' +
-    '          "\\" title=\\"tirar este trecho\\">×</button>";' +
-    '      html += "<tr" + (emMim ? " class=\\"em-edicao\\"" : "") + "><td>compasso <strong>" + mapa[d.termo + ":" + k] + "</strong></td><td>" +' +
-    '        c.contagem + "</td><td>" + (orient || "<span class=\\"nota\\">en face</span>") +' +
-    '        "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
-    '        "]</code> " + acoes + "</td></tr>";' +
-    '    });' +
-    '    html += "</tbody></table>";' +
+    '    var emMim = Boolean(EM_EDICAO && EM_EDICAO.dir === t.dir && EM_EDICAO.k === t.k);' +
+    '    var chave = t.dir + ":" + t.k;' +
+    '    var acoes = emMim' +
+    '      ? "<span class=\\"nota\\">em edição</span> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-cancelar-edicao=\\"1\\">Cancelar</button>"' +
+    '      : "<button type=\\"button\\" class=\\"acao secundario pequena\\" data-editar=\\"" + chave +' +
+    '        "\\" title=\\"editar este trecho\\">Editar</button> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + chave +' +
+    '        "\\" title=\\"tirar este trecho\\">×</button>";' +
+    '    html += "<tr" + (emMim ? " class=\\"em-edicao\\"" : "") + "><td><strong>" + mapa[chave] + "</strong></td><td>" +' +
+    '      c.contagem + "</td><td>" + (t.dir ? nomeDaDirecao(t.dir) : "<span class=\\"nota\\">sem direção</span>") +' +
+    '      "</td><td>" + (orient || "<span class=\\"nota\\">en face</span>") +' +
+    '      "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
+    '      "]</code></td><td>" + acoes + "</td></tr>";' +
     '  });' +
+    '  html += "</tbody></table>";' +
     '  alvo.innerHTML = html;' +
+    '  pintarCobertura();' +
+    // A PRÉVIA DO QUE FICA ESCRITO ACOMPANHA A TABELA: as duas leem as mesmas células, e uma
+    // tabela que muda sem a prévia mudar seria a tela a dizer duas coisas do mesmo trecho.
+    '  pintarFica();' +
+    '}' +
+    // A COBERTURA é uma frase só, e vale a pena tê-la à parte: a tabela e a cobertura mudam
+    // juntas, e a cobertura também se lê quando ainda não há trechos.
+    'function pintarCobertura(){' +
     '  var t = temposTotais(), c = cobertura();' +
-    '  document.getElementById("vb-cobertura").textContent = !t' +
+    '  var alvo = document.getElementById("vb-cobertura");' +
+    '  if (!alvo) return;' +
+    '  alvo.textContent = !t' +
     '    ? "Diga quantos tempos tem a música."' +
     '    : (c === t' +
     '        ? "Cobre os " + t + " tempos, em " + Math.ceil(t / numeradorDoCompasso()) + " compasso(s) de " + numeradorDoCompasso() + "."' +
     '        : (c < t ? "Cobre " + c + " de " + t + " tempos — falta escrever " + (t - c) + "."' +
     '                 : "Cobre " + c + " de " + t + " tempos — passa " + (c - t) + "."));' +
-    // A PRÉVIA DO QUE FICA ESCRITO ACOMPANHA A TABELA: as duas leem as mesmas células, e uma
-    // tabela que muda sem a prévia mudar seria a tela a dizer duas coisas do mesmo trecho.
-    '  pintarFica();' +
     '}' +
-    // Onde o exercício tem uma direção, noutra música — é o que separa «não vai» de «falta
-    // escrever». Lido do alfabeto, não perguntado.
-    'function ondeOExercicioTem(nome, termo){' +
-    '  var v = VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome];' +
-    '  if (!v) return "";' +
-    '  var chaves = Object.keys(v);' +
-    '  for (var i = 0; i < chaves.length; i++) {' +
-    '    var c = v[chaves[i]] && v[chaves[i]].celulas;' +
-    '    if (c && Array.isArray(c[termo]) && c[termo].length) return chaves[i];' +
-    '  }' +
-    '  return "";' +
-    '}' +
+    // AQUI VIVIA `ondeOExercicioTem` (01/11/2026). Ela respondia «o exercício vai à frente noutra
+    // música, mas não nesta» — a frase que separava «não vai» de «falta escrever» nos três blocos
+    // por direção. Com a decomposição em lista, os blocos deixaram de existir e não há onde a
+    // frase caiba: o que a lista diz é o que está escrito, e o que não está escrito não se
+    // afirma. Se a distinção voltar a fazer falta, ela é uma coluna, não uma função morta.
     // ================= AS PÍLULAS (28/10/2026) ======================================
     // Uma pílula é um `<label class="escolha">` com uma caixa dentro — a peça que a folha já
     // tem. Não fica nenhuma lista suspensa no trecho: o que se escolhe vê-se, e o que está
@@ -5352,14 +5373,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //
     // ESCOLHA ÚNICA: um trecho vai PARA UM lado. O glifo não aparece aqui (`+` à frente é o que a
     // NOTAÇÃO escreve, e a notação compõe-se nos sinais) — aqui escreve-se em português.
+    // E É OPCIONAL (01/11/2026). O `relevé` sobe e desce em primeira posição, en face, nos pés:
+    // não vai à frente, nem ao lado, nem atrás. Obrigar a escolher uma das três obrigava a
+    // mentir sobre o exercício — e foi o que o alfabeto faz hoje com o `Plié`, que está todo em
+    // `devant` sem ir a lado nenhum.
+    //
+    // A pílula «sem direção» NÃO é uma quarta direção: é a AUSÊNCIA declarada, e entra primeiro,
+    // como o `en face` na orientação — a omissão aparece marcada quando nenhuma outra o está, e
+    // um clique nela volta ao estado de partida.
     'function pintarDirecao(){' +
-    '  pilulas("vb-dir", direcoesDaGramatica().map(function(d){' +
+    '  pilulas("vb-dir", [{ valor: "", nome: "sem direção" }].concat(direcoesDaGramatica().map(function(d){' +
     '    return { valor: d.termo, nome: d.nome };' +
-    '  }), DIRECAO, function(v){' +
+    '  })), DIRECAO, function(v){' +
     '    DIRECAO = v;' +
     '    CONTAGEM = "";' +
     '    pintarDirecao();' +
     '    pintarContagens();' +
+    '    pintarTabela();' +
+    '    pintarTira();' +
     '  }, "A gramática da modalidade não declara direções.", true);' +
     '}' +
     // A ORIENTAÇÃO DO CORPO — cinco, e a escolha única também. Mas aqui há uma diferença que a
@@ -5377,16 +5408,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }, "A gramática da modalidade não declara orientações.", true);' +
     '}' +
     // A CONTAGEM EM OFERTA, recalculada quando a direção muda. Só as que cabem.
+    // A CONTAGEM NÃO DEPENDE DA DIREÇÃO (01/11/2026). Aqui havia um `if (!DIRECAO)`: sem direção,
+    // a contagem oferecia ZERO opções e dizia «escolha a direção primeiro». Era o segundo erro da
+    // pesquisadora no `relevé` — ela tinha a contagem, e a tela dizia que faltava. O compasso é
+    // corrido; a direção não é a régua dele. O trecho sem direção conta como qualquer outro.
     'function pintarContagens(){' +
-    '  if (!DIRECAO) {' +
-    '    pilulas("vb-contagem", [], "", function(){}, "escolha a direção primeiro", true);' +
-    '    return;' +
-    '  }' +
     '  var possiveis = opcoesDeContagem(DIRECAO);' +
     '  if (possiveis.indexOf(CONTAGEM) === -1) CONTAGEM = possiveis[0] || "";' +
     '  pilulas("vb-contagem", possiveis.map(function(o){ return { valor: o, nome: o }; }), CONTAGEM,' +
     '    function(v){ CONTAGEM = v; pintarContagens(); },' +
-    '    "esta direção já tem os tempos todos preenchidos", true);' +
+    '    DIRECAO ? "esta direção já tem os tempos todos preenchidos"' +
+    '            : "os tempos já estão todos preenchidos", true);' +
     '}' +
     // REPINTA O TRECHO INTEIRO. É uma função só porque há mais de um sítio a mexer nele — o
     // «editar» e o «limpar» —, e cada um tem de deixar a tela coerente com o estado.
@@ -5532,8 +5564,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // passo 1 faria a prévia mentir sobre os trechos já escritos, que conservam a frase com que
     // nasceram (P-03/P-04: o que está escrito não se reescreve). Quando a frase gravada é outra,
     // a linha di-lo — senão a diferença parece um defeito.
-    '  direcoesDaGramatica().forEach(function(d){' +
-    '    (CELULAS[d.termo] || []).forEach(function(c, k){' +
+    // TODOS OS TRECHOS, COM OU SEM DIREÇÃO (01/11/2026). Iterava-se a lista da gramática, e um
+    // trecho sem direção não chegava a esta prévia — ficava escrito no verbete e invisível na
+    // última leitura antes de gravar.
+    '  Object.keys(CELULAS).forEach(function(d){' +
+    '    (CELULAS[d] || []).forEach(function(c, k){' +
     '      var orient = "";' +
     '      orientacoesDaGramatica().forEach(function(o){' +
     '        if (o.termo === (c.orientacao || "")) orient = o.nome;' +
@@ -5541,7 +5576,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      var gravada = partirFrase(c.descricao);' +
     '      var texto = c.descricao || [frase, comoSeLe(c.sinais || [], c.categoria)].filter(Boolean).join("\\n");' +
     '      var antiga = gravada && frase && gravada !== frase;' +
-    '      var onde = d.nome + (orient ? " · " + orient : "");' +
+    '      var rotulo = d ? nomeDaDirecao(d) : "sem direção";' +
+    '      var onde = rotulo + (orient ? " · " + orient : "");' +
     '      linhas.push("<p class=\\"nota\\">" + onde + " — compasso " +' +
     '        (compassosDosTrechos()[d.termo + ":" + k] || "—") + ", contagem " + c.contagem + "</p>" +' +
     '        "<p>" + (texto ? String(texto).split("\\n").join("<br>") :' +
@@ -5637,7 +5673,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var orient = "";' +
     '  orientacoesDaGramatica().forEach(function(o){ if (o.termo === ORIENTACAO) orient = o.nome; });' +
     '  var onde = [];' +
-    '  direcoesDaGramatica().forEach(function(d){ if (d.termo === DIRECAO) onde.push(d.nome); });' +
+    // SEM DIREÇÃO ESCOLHIDA, A TIRA NÃO INVENTA UMA (01/11/2026): ela diz só o que existe — a
+    // orientação, quando há, e o tempo. Antes, a direção era sempre a primeira coisa da frase.
+    '  direcoesDaGramatica().forEach(function(d){ if (DIRECAO && d.termo === DIRECAO) onde.push(d.nome); });' +
     '  if (orient) onde.push(orient);' +
     '  if (CONTAGEM) onde.push("tempo " + CONTAGEM);' +
     '  var valores = {' +
@@ -6158,7 +6196,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var desc = [escrito, comoSeLe(SINAIS)].filter(Boolean).join("\\n");' +
     '    var faltando = [];' +
     '    if (!MUSICA_EM_FOCO) faltando.push("o exercício, os tempos e o compasso");' +
-    '    if (!DIRECAO) faltando.push("a direção");' +
+    // A DIREÇÃO NÃO SE PEDE (01/11/2026). Era a primeira da lista de faltas — e não falta: um
+    // trecho pode não ter direção, e é o caso do `relevé`. A recusa continua a dizer o que falta
+    // DE VERDADE (o exercício, a contagem, os sinais e a frase).
     '    if (!CONTAGEM) faltando.push("a contagem");' +
     '    if (!SINAIS.length) faltando.push("ao menos um sinal");' +
     // A RECUSA OLHA PARA A FRASE DO VERBETE, e aponta o passo onde ela se escreve: sem ela, o

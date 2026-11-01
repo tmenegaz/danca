@@ -344,7 +344,13 @@ function segmentosDe(verbete, numerador) {
           // validação dos sinais — sempre leram `bloco`; ele continua a existir no SEGMENTO,
           // composto dos dois campos da célula. O que mudou foi onde a verdade mora.
           bloco: blocoDe(c),
-          direcao: direcao,
+          // A DIREÇÃO PODE NÃO EXISTIR (01/11/2026). O `relevé` não vai à frente, nem ao lado,
+          // nem atrás — sobe e desce, em primeira posição. Antes, um trecho assim só se
+          // escrevia enfiado debaixo de uma direção que não era a dele (o `Plié` do alfabeto
+          // está todo em `devant`). A chave VAZIA passa a ser a ausência declarada, e o
+          // segmento leva `null` — não `""`, para que quem lê pergunte «tem direção?» e não
+          // «que direção é a string vazia?».
+          direcao: direcao || null,
           // A ORIENTAÇÃO DO CORPO é outro eixo (28/10/2026): a direção diz para onde a perna vai,
           // a orientação diz como o corpo está voltado. Ficam separadas porque são coisas
           // diferentes — «à frente en croisé» é um trecho, não dois. Omitida, é `en-face`.
@@ -479,8 +485,10 @@ function compor(linha, alfabeto) {
     // é o que o documento escreve: cada direção que o exercício percorre, na ordem em que as
     // células foram escritas.
     posicao: escolhido.verbete.posicao || null,
+    // SEM A AUSÊNCIA (01/11/2026): a chave vazia é «sem direção», e uma lista de direções que
+    // a incluísse escreveria «o exercício vai a » — que não é uma frase.
     direcoes: Object.keys((escolhido.verbete.celulas && typeof escolhido.verbete.celulas === 'object')
-      ? escolhido.verbete.celulas : {}),
+      ? escolhido.verbete.celulas : {}).filter((d) => d !== ''),
     // AS ORIENTAÇÕES DO CORPO que este verbete usa, em palavras e sem repetir. `en face` sai:
     // é a omissão, e escrevê-la em cada linha seria dizer duas vezes a mesma coisa.
     orientacoes: [...new Set(Object.values(

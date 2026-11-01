@@ -82,7 +82,28 @@ function aValidacao() {
 
   const semNada = verbeteBom({ celulas: {} });
   const r2 = verbete.validarVerbete(semNada, ALFABETO, VOCABULARIO);
-  checar('e um verbete sem célula nenhuma também', !r2.ok && /ao menos uma direção/.test(r2.erros.join(' ')), r2.erros);
+  checar('e um verbete sem célula nenhuma também', !r2.ok && /ao menos um trecho/.test(r2.erros.join(' ')), r2.erros);
+
+  /* O TRECHO SEM DIREÇÃO (01/11/2026). A direção deixou de ser obrigatória: o `relevé` sobe e
+   * desce em primeira posição, en face, nos pés — não vai à frente, nem ao lado, nem atrás. Antes,
+   * a única saída era enfiar as células debaixo de uma direção que não era a delas (é o que o
+   * `Plié` do alfabeto faz: está todo em `devant`), e o verbete do relevé não se podia escrever.
+   * A chave VAZIA é a ausência declarada — e não uma direção a conferir contra a gramática. */
+  const semDirecao = verbeteBom({ celulas: { '': [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '↑'], descricao: 'sobe às meias-pontas e desce' }] } });
+  semDirecao.cobre = 2;
+  const rSemDir = verbete.validarVerbete(semDirecao, ALFABETO, VOCABULARIO);
+  checar('um trecho SEM direção é aceite — é o relevé, que não vai a lado nenhum',
+    rSemDir.ok, rSemDir.erros);
+  const direcaoInventada = verbeteBom({ celulas: { 'sur-la-tete': [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª'], descricao: 'x' }] } });
+  direcaoInventada.cobre = 2;
+  const rInv = verbete.validarVerbete(direcaoInventada, ALFABETO, VOCABULARIO);
+  checar('…mas uma direção que a gramática não tem continua a ser recusada',
+    !rInv.ok && /não existe na gramática/.test(rInv.erros.join(' ')), rInv.erros);
+  const celulaMuda = verbeteBom({ celulas: { '': [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª'], descricao: '' }] } });
+  celulaMuda.cobre = 2;
+  const rMuda = verbete.validarVerbete(celulaMuda, ALFABETO, VOCABULARIO);
+  checar('e a recusa de um trecho sem direção diz «no trecho sem direção», não «em «»»',
+    !rMuda.ok && /no trecho sem direção/.test(rMuda.erros.join(' ')), rMuda.erros);
 
   // O CAMPO `direcoes` NÃO VOLTA A ENTRAR. Se um pedido antigo o enviar, ele é ignorado — e o
   // verbete que daí sai é válido, porque o que manda são as células.

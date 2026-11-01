@@ -112,6 +112,15 @@ const CONTAGEM = /^\d+(\s*[–-]\s*\d+)?$/;
  * É a MESMA régua do motor — se ela fosse mais frouxa aqui, o CRUD deixaria entrar um verbete que
  * a geração recusaria, e o erro só apareceria no documento, longe de quem o escreveu.
  */
+/**
+ * COMO SE NOMEIA O TRECHO NA RECUSA (01/11/2026). A direção deixou de ser obrigatória, e a
+ * chave vazia é «sem direção» — sem isto, a mensagem de erro de um trecho sem direção dizia
+ * «em «»: a célula não tem descrição», que não se lê.
+ */
+function ondeEsta(direcao) {
+  return direcao ? 'em «' + direcao + '»' : 'no trecho sem direção';
+}
+
 function validarVerbete(verbete, alfabeto, vocabulario) {
   const erros = [];
   if (!verbete || typeof verbete !== 'object') return { ok: false, erros: ['o verbete não é um objeto'] };
@@ -126,18 +135,18 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
     erros.push('o verbete tem de ter `celulas`');
   } else {
     const dirs = Object.keys(celulas);
-    if (!dirs.length) erros.push('o verbete tem de ter ao menos uma direção (uma célula)');
+    if (!dirs.length) erros.push('o verbete tem de ter ao menos um trecho (uma célula)');
     for (const d of dirs) {
-      if (!Array.isArray(celulas[d]) || !celulas[d].length) erros.push('a direção «' + d + '» não tem célula');
+      if (!Array.isArray(celulas[d]) || !celulas[d].length) erros.push((d ? 'a direção «' + d + '»' : 'o trecho sem direção') + ' não tem célula');
     }
     const conhecidos = sinaisDo(alfabeto);
     const categorias = (alfabeto && alfabeto.categorias) || [];
     let soma = 0;
     for (const d of dirs) {
       for (const c of (celulas[d] || [])) {
-        if (!c || typeof c !== 'object') { erros.push('célula inválida em «' + d + '»'); continue; }
+        if (!c || typeof c !== 'object') { erros.push('célula inválida ' + ondeEsta(d)); continue; }
         if (!CONTAGEM.test(String(c.contagem || '').trim())) {
-          erros.push('em «' + d + '»: contagem inválida «' + (c.contagem || '') + '» (use «1–2» ou «3»)');
+          erros.push(ondeEsta(d) + ': contagem inválida «' + (c.contagem || '') + '» (use «1–2» ou «3»)');
         } else {
           soma += temposDaContagem(c.contagem);
         }
@@ -147,16 +156,16 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
         // como antes; o que muda é que agora se pode compor na tela.
         const categoria = String(c.categoria || '').trim();
         const sinais = Array.isArray(c.sinais) ? c.sinais.map((x) => String(x).trim()).filter(Boolean) : [];
-        if (!categoria) erros.push('em «' + d + '»: a célula não diz a categoria («'
+        if (!categoria) erros.push(ondeEsta(d) + ': a célula não diz a categoria («'
           + (categorias || []).join(' · ') + '»)');
-        if (!sinais.length) erros.push('em «' + d + '»: a célula não tem sinais');
+        if (!sinais.length) erros.push(ondeEsta(d) + ': a célula não tem sinais');
         const bloco = '[' + categoria + ': ' + sinais.join(' ') + ']';
         const lido = lerBloco(bloco, conhecidos, categorias);
         if (!lido.ok) {
-          erros.push('em «' + d + '»: ' + lido.detalhe);
+          erros.push(ondeEsta(d) + ': ' + lido.detalhe);
         }
         if (!String(c.descricao || '').trim()) {
-          erros.push('em «' + d + '»: a célula não tem descrição — é ela que a página em prosa mostra');
+          erros.push(ondeEsta(d) + ': a célula não tem descrição — é ela que a página em prosa mostra');
         }
       }
     }
@@ -178,8 +187,16 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
   }
 
   // As direções ESCRITAS têm de existir na gramática — senão o documento não as sabe dizer.
+  //
+  // EXCETO A AUSÊNCIA DELA (01/11/2026). A direção passou a ser OPCIONAL no trecho: o `relevé`
+  // não vai à frente, nem ao lado, nem atrás — sobe e desce, em primeira posição, en face, nos
+  // pés. Antes, a única saída era enfiar as células debaixo de uma direção que não é a delas (o
+  // `Plié` do alfabeto está todo em `devant`, e é um plié), e o verbete do relevé não se podia
+  // escrever. A chave VAZIA é o «sem direção» — e não é uma direção a validar, é a ausência
+  // dela. As que existem continuam a ser conferidas contra a gramática, uma por uma.
   const conhecidas = direcoesConhecidas(alfabeto);
   for (const d of Object.keys((celulas && typeof celulas === 'object') ? celulas : {})) {
+    if (d === '') continue;
     if (!conhecidas.has(d)) erros.push('a direção «' + d + '» não existe na gramática da modalidade');
   }
 
@@ -193,7 +210,7 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
     for (const c of (celulas[d] || [])) {
       const o = String((c && c.orientacao) || '').trim();
       if (o && !orientacoes.has(o)) {
-        erros.push('em «' + d + '»: a orientação «' + o + '» não está na gramática ('
+        erros.push(ondeEsta(d) + ': a orientação «' + o + '» não está na gramática ('
           + [...orientacoes].join(' · ') + ')');
       }
     }
@@ -333,6 +350,10 @@ function direcoesDoVerbete(musicas) {
   for (const chave of musicasDoVerbete(musicas)) {
     const celulas = (musicas[chave] && musicas[chave].celulas) || {};
     for (const dir of Object.keys(celulas)) {
+      // O TRECHO SEM DIREÇÃO NÃO ENTRA NA LISTA DE DIREÇÕES (01/11/2026): a lista é o que a
+      // etiqueta da listagem escreve («à frente · ao lado»), e uma direção vazia escreveria
+      // um separador solto. Os trechos dele contam em `contarTrechos`, que é sobre trechos.
+      if (dir === '') continue;
       if (Array.isArray(celulas[dir]) && celulas[dir].length && ordem.indexOf(dir) === -1) ordem.push(dir);
     }
   }

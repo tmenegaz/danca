@@ -29446,3 +29446,104 @@ reescreve.
 - **O `check-indices` continua a não olhar o KV** (decisão anterior, `tools/` é congelado).
 - **A prova do elo não está no `tools/`**: é `experimentos/`, e agora versionada. Um `check` no
   `tools/` continuaria a ser o lugar certo para uma checagem de integridade do índice.
+
+## 01/11/2026 — O trecho sem direção: o relevé não vai a lado nenhum
+
+**O que motivou.** A pesquisadora, a escrever o verbete do **`relevé`** na escola `breu`: «como o
+relevé não tem posição à frente, ao lado e atrás — ele é só para baixo e para cima, é primeira
+posição, é en face, é feito com os pés — não tem sentido existir esse erro». E o erro existia em
+dois sítios:
+
+- no passo 3, a **contagem** dizia «escolha a direção primeiro» e não oferecia nada — e ela tinha
+  a contagem;
+- ao pedir «Acrescentar trecho», a recusa dizia **«Falta a direção»** — e a direção não faltava:
+  não existia para aquele exercício.
+
+A gramática da modalidade tem **três** direções (`devant`, `a-la-seconde`, `derriere`) e nenhuma
+vertical. O `Plié` do próprio alfabeto está todo em `devant` **sem ir a lado nenhum** — a direção
+era a chave da célula, e quem não tinha direção enfiava-se na de outro. O passo 5 desenhava um
+bloco por direção, e um exercício como o relevé via **três tabelas a dizer «não vai»** — três
+afirmações sobre um eixo que o exercício não tem.
+
+**O que foi decidido** (a pesquisadora escolheu, entre três desenhos: verbete sem decomposição,
+direção opcional por trecho, ou uma quarta direção vertical):
+
+- **A direção é OPCIONAL por trecho.** O trecho sem direção grava-se na chave **vazia** (`""`) —
+  a ausência declarada — e continua a ser chave, para o `celulas` não mudar de forma e os onze
+  verbetes do alfabeto continuarem a ler-se iguais.
+- **A decomposição é UMA lista, não três blocos.** Uma tabela, com a coluna **direção**, que diz
+  «sem direção» quando não há. A frase «este exercício não vai ao lado» deixa de existir: o que
+  não está escrito não se afirma.
+- **Sem trechos, não há decomposição.** Fica uma linha que diz que faltam trechos — e não três
+  tabelas com três ausências.
+- **A contagem deixa de depender da direção.** O compasso é corrido; a direção não é a régua
+  dele. Era o segundo erro da mesma tela.
+- **No dado, a direção vazia vira `null`** no segmento derivado (`notacao.js`), e não entra na
+  lista de direções que o documento escreve em palavras.
+
+**Onde entrou.**
+
+- `motor/servidor/verbete.js` — o trecho sem direção é aceite; a direção vazia não é conferida
+  contra a gramática (as que existem continuam a ser); e as recusas nomeiam o trecho («no trecho
+  sem direção») em vez de escreverem «em «»»; `direcoesDoVerbete` não inclui a ausência.
+- `motor/nucleo/notacao.js` — `segmentosDe` devolve `direcao: null` para a chave vazia;
+  `direcoes` filtra a ausência.
+- `motor/servidor/bastidores.js` — a pílula «sem direção» no passo 3 (a omissão, como o `en face`
+  na orientação); a recusa deixa de pedir a direção; `pintarContagens` já não bloqueia sem
+  direção; a decomposição passa a **uma tabela** (`pintarTabela`), com a cobertura extraída
+  (`pintarCobertura`) para se ler também no estado vazio; `pintarFica`, `compassosDosTrechos` e
+  `temposAntesDe` passam a correr sobre **as chaves que existem**, e não sobre as três da
+  gramática — era isso que fazia um trecho sem direção não contar para o compasso.
+- `experimentos/provar-celula.js` — as asserções que afirmavam o desenho antigo (três blocos,
+  quatro colunas) foram reescritas, e entram as novas: uma tabela com a coluna da direção; sem
+  trechos não há tabela nem «não vai»; a contagem oferece o que cabe sem direção.
+- `experimentos/provar-verbete.js` — o trecho sem direção é aceite; uma direção que a gramática
+  não tem continua a ser recusada; a recusa nomeia o trecho sem direção.
+
+**Com o quê.** `provar-celula` **117/117** (eram 115), `provar-verbete` verde, `provar-notacao`
+**74/74**, `check-indices` **14/14**, `check-identidade` **20/20**. As provas
+`provar-aula-prosa` e `provar-dimensoes-plano` falham por a fonte da `batata` já não existir —
+expurgada às 12:55 deste dia —, e falhavam antes desta mudança.
+
+**O que ainda não está feito.**
+
+- **Um verbete só com trechos sem direção cobre 0 tempos na derivação.** Não é erro: a derivação
+  devolve `estado: 'parcial'`, motivo `resta-tempo`, e o documento dirá «cobre 0 dos N tempos».
+  Para o `relevé` isso pode ser a verdade — ou pode querer dizer que falta uma **quarta direção**
+  na gramática, para o eixo vertical. Fica declarado como decisão em aberto.
+- **O `Plié` do alfabeto continua com as células em `devant`**, e não foi migrado: a proveniência
+  acrescenta, não edita. Quem o corrigir fá-lo-á como elo novo.
+- **A distinção «não vai» × «falta escrever» saiu da tela** com os blocos por direção. Se voltar a
+  fazer falta, é uma coluna — e não uma função morta (a `ondeOExercicioTem` foi removida).
+
+## 01/11/2026 — A escola nasce com a âncora, e não só com o scaffold
+
+**O que motivou.** A `breu` nasceu às 14:30 e o acervo dizia `ciclos_com_ancora: 0`; o
+`tools/hash-ciclo.sh cafe-no-bule 01 breu --check` respondia «ancore com: …». A pesquisadora
+cobrou a pergunta: «o que diz a documentação? se não me engano, isso já está resolvido». E está:
+`AGENTS.md` declara o `reancorar.yml` como «Action, a cada push de `professores/**`». O que a
+documentação não diz é que **o push do `criar-escola.yml` usa o `GITHUB_TOKEN`, e o GitHub não
+dispara workflows a partir desses pushes** — é o que impede o laço, e é também o que deixou a
+escola sem âncora. A promessa e o comportamento não se encontravam em sítio nenhum.
+
+**O que foi decidido.** O `criar-escola.yml` **ancora antes de commitar**: `tools/hash-ciclo.sh
+<professor> <ciclo> <escola>` corre depois dos índices e antes do `git add`, e o `.fipp` cai na
+pasta que o `git add` já leva. É o único ponto em que a escola existe e ainda se pode escrever no
+mesmo commit. A falha **avisa e segue** — o motor já está no ar, e apagar uma escola viva por
+causa de uma âncora seria destruir o que está bom para corrigir o que falta.
+
+**Onde entrou.** `.github/workflows/criar-escola.yml` (o passo `Commitar o scaffold`), com o
+motivo escrito ao lado do comando.
+
+**Com o quê.** Não há prova de bancada para um workflow; a verificação é a próxima escola criada
+nascer com `ciclos_com_ancora: 1`. O caminho do comando é o mesmo que a prova do pacote usa
+(`hash-ciclo.sh --check`), e a `breu` foi ancorada à mão no commit seguinte.
+
+**O que ainda não está feito.**
+
+- **A `breu` ficou sem âncora até este mesmo dia** — o conserto vale para as escolas seguintes.
+- **As outras Actions continuam a não disparar** no commit do scaffold (`Publicar as escolas`,
+  `Regerar os índices`). As duas estão cobertas por outro caminho — o `wrangler deploy` é feito
+  pelo próprio workflow e os índices são regerados antes do commit —, mas a cobertura é
+  circunstancial, não declarada. Um `PAT` no lugar do `GITHUB_TOKEN` fecharia as três de uma vez,
+  e é decisão de segurança, não de código.

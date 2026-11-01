@@ -193,7 +193,9 @@ function estado() {
     && e.getBoundingClientRect().height > 0;
   const pílulas = (id) => [...((q(id) || {}).querySelectorAll
     ? q(id).querySelectorAll('input') : [])].map((x) => ({
-    valor: x.getAttribute('data-valor') || x.value,
+    // A PÍLULA «SEM DIREÇÃO» TEM `data-valor=""`, E O `||` A TRANSFORMAVA EM «on» (01/11/2026):
+    // o fallback para `x.value` só pode valer para uma caixa SEM o atributo.
+    valor: x.hasAttribute('data-valor') ? x.getAttribute('data-valor') : x.value,
     marcado: x.checked,
   }));
   const sel = q('vbnome');
@@ -205,15 +207,18 @@ function estado() {
     maisBloqueado: Boolean(mais && mais.disabled),
     opacidadeBloqueado: sel ? getComputedStyle(sel).opacity : null,
     foco: document.activeElement ? document.activeElement.id : '',
-    // UMA TABELA SÓ (28/10/2026): um bloco por direção, com as células dentro.
+    // UMA TABELA, UMA LISTA DE TRECHOS (01/11/2026). Era um `<table>` por direção do alfabeto;
+    // passou a ser uma só, com a direção como COLUNA — e a coluna pode dizer «sem direção».
     tabela: [...document.querySelectorAll('#vb-tabela table')].map((t) => ({
-      direcao: t.tHead.rows[0].cells[0].textContent.trim(),
+      cabecalho: [...t.tHead.rows[0].cells].map((c) => c.textContent.trim()),
       linhas: [...t.tBodies[0].rows].map((l) => [...l.cells].map((c) => {
         const campo = c.querySelector('input');
         return campo ? campo.value : c.textContent.trim();
       }).join(' | ')),
     })),
     cobertura: (q('vb-cobertura') || {}).textContent || '',
+    // A NOTA DO ESTADO VAZIO (01/11/2026): sem trechos, é ela que fica no lugar da tabela.
+    notaDaTabela: ((q('vb-tabela') || {}).textContent || '').trim(),
     // OS DOIS EIXOS, medidos como a tela os mostra.
     direcoes: pílulas('vb-dir'),
     orientacoes: pílulas('vb-orient'),
@@ -244,10 +249,11 @@ function estado() {
     notaDaFrase: (q('vb-frase-nota') || {}).textContent || '',
     fica: (q('vb-fica') || {}).textContent.replace(/\s+/g, ' ').trim(),
     blocosDaFica: document.querySelectorAll('#vb-fica p').length,
-    // As colunas contam-se pelo CABEÇALHO: a linha de «este exercício não vai…» ocupa a tabela
-    // toda com um `colspan`, e contá-la daria 1.
+    // As colunas contam-se pelo CABEÇALHO. Era `cells[0].colSpan` — havia UMA célula de título
+    // com `colspan` e as colunas contavam-se por ela; com a tabela de lista (01/11/2026) o
+    // cabeçalho tem uma célula por coluna, e conta-se o número delas.
     colunasDaTabela: [...document.querySelectorAll('#vb-tabela table')]
-      .map((t) => t.tHead.rows[0].cells[0].colSpan),
+      .map((t) => t.tHead.rows[0].cells.length),
     // OS SEIS PASSOS E O MODO DE EDIÇÃO (31/10/2026).
     passo: window.PASSO,
     avisoDeEdicao: (() => {
@@ -390,13 +396,23 @@ function estado() {
     await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '4/4');
     await new Promise((r) => setTimeout(r, 400));
     const comExercicio = await page.evaluate(estado);
-    conferir('há um bloco por DIREÇÃO do membro, e são três', comExercicio.tabela.length === 3,
-      comExercicio.tabela.map((x) => x.direcao));
-    conferir('a direção coberta mostra os trechos, com o compasso CALCULADO',
-      /compasso 1 \| 1–2 \| en face \| \[Pé: 1ª → \+\]/.test(comExercicio.tabela[0].linhas[0]),
+    conferir('a decomposição é UMA tabela, com a direção como coluna', comExercicio.tabela.length === 1,
+      comExercicio.tabela.map((x) => x.cabecalho));
+    conferir('…e as colunas são compasso · contagem · direção · orientação · notação',
+      JSON.stringify(comExercicio.tabela[0].cabecalho.slice(0, 5))
+        === JSON.stringify(['compasso', 'contagem', 'direção', 'orientação', 'notação']),
+      comExercicio.tabela[0].cabecalho);
+    conferir('o trecho coberto aparece, com o compasso CALCULADO e a direção em palavras',
+      /^1 \| 1–2 \| à frente \| en face \| \[Pé: 1ª → \+\]/.test(comExercicio.tabela[0].linhas[0]),
       comExercicio.tabela[0].linhas[0]);
-    conferir('e a que o exercício não faz diz que não vai',
-      /não vai ao lado/.test(comExercicio.tabela[1].linhas.join(' ')), comExercicio.tabela[1].linhas);
+    /* A FRASE QUE SAIU (01/11/2026). Havia três blocos, um por direção, e os dois que o
+     * exercício não faz diziam «não vai ao lado» e «não vai atrás». A pesquisadora leu as três
+     * ausências como um erro do sistema — e era: a tela afirmava três factos sobre um exercício
+     * cujo eixo é outro. O que se mede agora é que a afirmação não existe. */
+    conferir('o que o exercício não faz NÃO vira três blocos a dizer «não vai»',
+      !/não vai/.test(comExercicio.tabela[0].linhas.join(' '))
+        && !/não vai/.test(comExercicio.tabela[0].cabecalho.join(' ')),
+      comExercicio.tabela[0].linhas);
     conferir('a cobertura é dita em tempos', /Cobre os 8 tempos/.test(comExercicio.cobertura),
       comExercicio.cobertura);
     conferir('a célula sem orientação diz «en face» em palavras — a coluna não fica em branco',
@@ -462,13 +478,16 @@ function estado() {
     await new Promise((r) => setTimeout(r, 400));
     const eixos = await page.evaluate(estado);
     conferir('não há uma única lista suspensa no trecho', eixos.suspensasNoTrecho === 0, eixos.suspensasNoTrecho);
-    conferir('a direção do membro oferece TRÊS',
-      JSON.stringify(valores(eixos.direcoes)) === JSON.stringify(['devant', 'a-la-seconde', 'derriere']),
+    // A DIREÇÃO PASSOU A SER OPCIONAL (01/11/2026). «sem direção» entra primeiro, como o
+    // `en face` na orientação: é a AUSÊNCIA, e não uma quarta direção da gramática.
+    conferir('a direção do membro oferece as TRÊS da gramática e a ausência declarada',
+      JSON.stringify(valores(eixos.direcoes))
+        === JSON.stringify(['', 'devant', 'a-la-seconde', 'derriere']),
       valores(eixos.direcoes));
     conferir('e a orientação do corpo oferece CINCO — é o outro eixo',
       valores(eixos.orientacoes).length === 5, valores(eixos.orientacoes));
-    conferir('nenhuma direção está escolhida antes de o professor escolher',
-      marcada(eixos.direcoes) === undefined, marcada(eixos.direcoes));
+    conferir('antes de o professor escolher, está marcada «sem direção» — a omissão, e vê-se',
+      marcada(eixos.direcoes) === '', marcada(eixos.direcoes));
     // «EN FACE» APARECE MARCADA DESDE O INÍCIO (29/10/2026). Ela é a omissão — o campo
     // `orientacao` só existe quando não é en face —, mas a pílula tem de o DIZER: antes era a
     // única que nunca marcava, e a pesquisadora leu isso como «não habilita»: um clique que não
@@ -480,8 +499,11 @@ function estado() {
     conferir('«en face» aparece marcada quando nenhuma outra está — é a omissão, e vê-se',
       JSON.stringify(eixos.orientacoesMarcadas) === JSON.stringify(['en-face']),
       eixos.orientacoesMarcadas);
-    conferir('sem direção, a contagem diz que se escolha a direção primeiro',
-      eixos.contagens.length === 0, eixos.contagens);
+    /* O SEGUNDO ERRO DA PESQUISADORA (01/11/2026). Sem direção, a contagem oferecia ZERO opções
+     * e dizia «escolha a direção primeiro» — e ela TINHA a contagem. O compasso é corrido; a
+     * direção não é a régua dele. Um trecho sem direção conta como qualquer outro. */
+    conferir('sem direção, a contagem continua a oferecer o que cabe',
+      JSON.stringify(valores(eixos.contagens)) === JSON.stringify(['1', '1–2']), eixos.contagens);
 
     await clicar('#vb-dir input[data-valor="devant"]');
     const comDirecao = await page.evaluate(estado);
@@ -625,8 +647,10 @@ function estado() {
     // todas as linhas diziam o mesmo; e a parte que muda por trecho (o «lê-se») é função da
     // notação, que já tem coluna. A pesquisadora viu-o e mandou tirá-la.
     const quatroColunas = await page.evaluate(estado);
-    conferir('as tabelas têm quatro colunas, e não cinco',
-      quatroColunas.colunasDaTabela.every((n) => n === 4), quatroColunas.colunasDaTabela);
+    // SEIS COLUNAS, E NÃO CINCO (01/11/2026): a da DIREÇÃO entrou quando a decomposição deixou
+    // de ser um bloco por direção — sem ela, a lista não dizia para onde cada trecho vai.
+    conferir('a tabela tem seis colunas — e a da frase continua fora',
+      quatroColunas.colunasDaTabela.every((n) => n === 6), quatroColunas.colunasDaTabela);
     conferir('não há nenhum campo de frase dentro da tabela',
       (await page.evaluate(() => document.querySelectorAll('#vb-tabela input').length)) === 0);
 
@@ -693,9 +717,15 @@ function estado() {
     await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 500));
     const vazio = await page.evaluate(estado);
-    conferir('sem verbete, a decomposição está vazia nas três direções',
-      vazio.tabela.length === 3 && vazio.tabela.every((t) => /não vai/.test(t.linhas.join(' '))),
-      vazio.tabela.map((t) => t.direcao));
+    /* SEM TRECHOS, NÃO HÁ DECOMPOSIÇÃO A MOSTRAR (01/11/2026). Eram três tabelas — uma por
+     * direção — a dizer «este exercício não vai à frente / ao lado / atrás». Para o `relevé`, que
+     * não tem eixo horizontal nenhum, eram três afirmações inventadas sobre o exercício. Agora
+     * não há tabela: há uma linha que diz porquê. */
+    conferir('sem trechos, não há tabela de decomposição — e nenhum «não vai»',
+      vazio.tabela.length === 0, vazio.tabela.map((t) => t.cabecalho));
+    conferir('…e a linha que sobra diz que faltam trechos, e não que o exercício não vai a lado nenhum',
+      /Ainda sem trechos/.test(vazio.notaDaTabela) && !/não vai/.test(vazio.notaDaTabela),
+      vazio.notaDaTabela);
     conferir('e a mesma direção oferece 1 e 1–2 em 2/4',
       JSON.stringify(valores(vazio.contagens)) === JSON.stringify(['1', '1–2']), valores(vazio.contagens));
 
@@ -727,17 +757,20 @@ function estado() {
     await acrescentar('a-la-seconde');
     await acrescentar('derriere');
     const croix = await page.evaluate(estado);
-    conferir('o trecho de «à frente» está no bloco de «à frente», e não noutro',
-      croix.tabela[0].linhas.length === 1 && /compasso 1 \| 1 \|/.test(croix.tabela[0].linhas[0]),
-      croix.tabela.map((t) => ({ d: t.direcao, l: t.linhas })));
-    conferir('e o de «atrás» está no bloco de «atrás»',
-      /compasso 2 \|/.test((croix.tabela[2].linhas[0] || '')), croix.tabela[2].linhas);
+    conferir('os três trechos estão numa lista só, cada um com a SUA direção na coluna',
+      croix.tabela.length === 1 && croix.tabela[0].linhas.length === 3
+        && /\| à frente \|/.test(croix.tabela[0].linhas[0])
+        && /\| ao lado \|/.test(croix.tabela[0].linhas[1])
+        && /\| atrás \|/.test(croix.tabela[0].linhas[2]),
+      croix.tabela[0].linhas);
+    conferir('e o de «atrás» cai no compasso 2, e não no 1',
+      /^2 \|/.test(croix.tabela[0].linhas[2]), croix.tabela[0].linhas[2]);
     // A CONTAGEM CONTINUA ONDE O COMPASSO ESTÁ (29/10/2026) — em 2/4, «à frente» ocupa o tempo 1
     // e «ao lado» tem de ocupar o 2, senão dois trechos caem no mesmo tempo.
     conferir('a contagem de «ao lado» é 2, e não 1 — o compasso é corrido',
-      /\| 2 \|/.test(croix.tabela[1].linhas[0] || ''), croix.tabela[1].linhas);
+      /^1 \| 2 \| ao lado/.test(croix.tabela[0].linhas[1]), croix.tabela[0].linhas[1]);
     conferir('e a de «atrás» recomeça em 1, no compasso 2',
-      /compasso 2 \| 1 \|/.test(croix.tabela[2].linhas[0] || ''), croix.tabela[2].linhas);
+      /^2 \| 1 \| atrás/.test(croix.tabela[0].linhas[2]), croix.tabela[0].linhas[2]);
     conferir('a cobertura soma os três tempos', /Cobre 3 de 16 tempos/.test(croix.cobertura),
       croix.cobertura);
     // A FRASE FOI ESCRITA UMA VEZ E ESTÁ NOS TRÊS (31/10/2026). É a asserção que fecha o defeito
@@ -745,9 +778,11 @@ function estado() {
     conferir('a frase do verbete entra nos três trechos, sem se escrever três vezes',
       (croix.fica.match(/o pé bate e volta/g) || []).length === 3,
       { vezes: (croix.fica.match(/o pé bate e volta/g) || []).length, fica: croix.fica });
+    // Com a lista única, «ao lado» é a SEGUNDA linha — e a prova continua a olhar para ela.
     conferir('a segunda direção já não ofereceu o tempo 1',
-      JSON.stringify(offDevant) === JSON.stringify(['1', '1–2']) && !croix.tabela[1].linhas.length === false,
-      offDevant);
+      JSON.stringify(offDevant) === JSON.stringify(['1', '1–2'])
+        && /^1 \| 2 \| ao lado/.test(croix.tabela[0].linhas[1]),
+      { ofereceu: offDevant, linha: croix.tabela[0].linhas[1] });
 
     console.log('\n17. A DEFINIÇÃO DO EXERCÍCIO PRÉ-ENCHE «O QUE ACONTECE»');
     // O CASO QUE ORIGINOU ISTO (31/10/2026): a pesquisadora escreveu o primeiro verbete a sério,
