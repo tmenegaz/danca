@@ -187,6 +187,14 @@ experimentos/propostas/*
 # dizer a diferença. É citada por nome no REGISTRO.
 !experimentos/provar-expurgo-leitura-atrasada.js
 
+# A PROVA DO ELO DO EXPURGO (01/11/2026): o desfecho do KV tem de chegar ao elo SEMPRE. É
+# ela que fixa o ramo que faltava — quando a metade Cloudflare lança, o `?:` sobre
+# `cloudflare.kv` devolvia `null`, o elo ficava sem bloco `kv` e a retomada
+# (`POST /api/expurgar-kv`) respondia «nada pendente» sobre chaves que ninguém conferiu. Foi
+# exactamente esta a assinatura do elo 6 da escola `batata`. O controle negativo é o código
+# de antes. É citada por nome no REGISTRO.
+!experimentos/provar-elo-do-expurgo.js
+
 # A PROVA DAS ESCOLAS DE TESTE (19/10/2026): o fixture que nasce do sufixo do slug e a
 # regra «só preenche, não envia» — a prova que separa o atalho de teste de uma escrita no
 # motor. É citada pelo nome no README e no `experimentos/README.md`.

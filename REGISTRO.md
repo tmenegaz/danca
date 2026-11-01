@@ -29378,3 +29378,71 @@ leitura como autoridade); `motor/servidor/acervo-envelopes.js` (a migração de 
   a palavra «kv» não aparece em `tools/check-indices.js`. Uma checagem que exigisse, para
   `expurgada === true`, o bloco `kv` no elo — e um aviso quando ele falta — fecharia o buraco; é
   decisão da pesquisadora, porque `tools/` é congelado.
+
+## 01/11/2026 — O elo do expurgo diz o que aconteceu ao KV
+
+**O que motivou.** O fecho da entrada anterior. A `batata` foi expurgada e o KV dela **estava
+limpo** — medido: **404** nas nove chaves fixas e **0** chaves sob os dois prefixos. O que ficou
+errado foi o **registo**: o elo 6 de `escola/batata/indice.json` saiu sem bloco `kv`, e
+`pendenciaDoKv` — que só reconhece `kv.pendente === true` — respondia `nadaPendente: true`. A
+retomada (`POST /api/expurgar-kv`) ficava **cega**: é do elo que ela lê o namespace, e o
+`wrangler.<slug>.jsonc` sai no mesmo commit. A pesquisadora pediu «elimina isso de uma vez por
+todas» — não maquiar o elo 6, que já não tem pendência, mas fechar o caminho que a produz em
+silêncio.
+
+**Onde estava o defeito, e é de uma linha.** Em `raiz.js`, o passo 4 lia o desfecho do KV por
+`relatorio.cloudflare && relatorio.cloudflare.kv`. Quando `excluirEscola` **lança** — é o que
+acontece quando a enumeração do KV estoura a cota diária —, o `catch` grava `{ erro, morada }`:
+`cloudflare.kv` é `undefined`, o `?:` devolve `null` e o elo nasce sem `kv`. A contradição era
+visível no mesmo relatório: `kvFalhou` também saía `false`, e a rota respondia **`ok: true`**
+sobre chaves que ninguém tinha tocado. O comentário do passo 4 dizia, por escrito, que a pendência
+tem de ficar gravada «para a retomada a ler» — e o `?:` anulava-o em silêncio.
+
+**O que foi decidido.**
+
+- O desfecho do KV sai de **uma função com nome**, `desfechoDoKvParaOElo` — e a regra é a de um
+  invariante: **escola que declara namespace tem sempre bloco `kv` no elo**. Se a metade
+  Cloudflare explodiu antes de dizer o das chaves, o elo diz `ok:false`, guarda o namespace e os
+  prefixos (é o que a retomada precisa) e leva o motivo.
+- Escola **sem** namespace declarado continua a não gerar pendência — não se inventa o que não
+  existe.
+- `kvFalhou` passa a ser a conta do **desfecho**, não a de `cloudflare.kv`: o expurgo cujo KV não
+  se sabe já não responde `ok: true`.
+- O **porquê** viaja com o elo: `comElo` passou a preservar `kv.erro`. Antes chegava `ok:false`
+  sozinho, e a próxima sessão tinha de adivinhar entre cota, permissão e rede.
+
+**Onde entrou.**
+
+- `motor/servidor/raiz.js` — `desfechoDoKvParaOElo` (nova), o passo 4 a usá-la, `kvFalhou` pela
+  conta nova, e a função exportada para a prova.
+- `motor/servidor/repo-escola.js` — `comElo` preserva `kv.erro` no bloco do elo.
+- `experimentos/provar-elo-do-expurgo.js` — a prova (nova, 22 asserções).
+- `.gitignore` — a prova sai daqui para ser citável, ao lado das outras do expurgo.
+
+**Com o quê.** `experimentos/provar-elo-do-expurgo.js` — **22 asserções, 0 falha**, sem rede e sem
+tocar em token: mede a derivação pura, o elo que dela sai (`comElo` de verdade) e **o que a
+retomada vê** (a mesma pergunta de `pendenciaDoKv`). O **controle negativo** é o `?:` de antes, e
+reproduz a assinatura do elo 6 da `batata` — `apagado` cheio, `kv` ausente, retomada dizendo «nada
+pendente». As provas vizinhas do expurgo continuam verdes: `provar-expurgo-sem-listagem` **49/49**,
+`provar-expurgo-leitura-atrasada` **45/45**, `provar-bancadas-e-expurgo` **16/16**.
+
+**A medição que fechou a pendência da `batata` (01/11/2026, `get` + enumeração, sem custo de
+cota de escrita).** Nove chaves fixas de `bastidores/batata/` → **404** em todas. Enumeração por
+prefixo → **0** em `batata/` e **0** em `bastidores/batata/`. O namespace
+`2ee331c7a5bc446ca86c8f2cb039ec16` foi o dos elos 2–5; **nada a apagar**.
+
+**Referências.** `PROTOCOLO.md` (a norma «o que vive no KV, e o que não vive», entrada anterior);
+`motor/servidor/expurgar-escola.js` (a leitura como autoridade, e o comentário de 19/10 que já
+descrevia a cegueira); `motor/servidor/repo-escola.js` (`pendenciaDoKv`, `comResolucaoDoKv`);
+`REGISTRO.md`, entrada de 22/10/2026 («O segundo PO é recusado») para o rito do elo que não se
+reescreve.
+
+**O que ainda não está feito.**
+
+- **O elo 6 da `batata` continua sem o bloco `kv`.** É passado e a proveniência não se reescreve
+  (P-03/P-04): não se emenda o elo, fecha-se o caminho. Ele não é pendência — a medição provou que
+  não há chave nenhuma —, mas também não é prova de limpeza. Quem o ler de futuro deve ler a
+  entrada de hoje.
+- **O `check-indices` continua a não olhar o KV** (decisão anterior, `tools/` é congelado).
+- **A prova do elo não está no `tools/`**: é `experimentos/`, e agora versionada. Um `check` no
+  `tools/` continuaria a ser o lugar certo para uma checagem de integridade do índice.

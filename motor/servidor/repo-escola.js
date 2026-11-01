@@ -486,6 +486,11 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando,
       prefixos: kv.prefixos || null,
       em: elo.em,
     };
+    /* O PORQUÊ VAI COM O ELO (01/11/2026). Antes, `ok:false` chegava sozinho e a pendência
+     * dizia «não deu» sem dizer por quê — a próxima sessão tinha de adivinhar entre cota,
+     * permissão e rede. A retomada (`/api/expurgar-kv`) já existe; o que faltava era o
+     * motivo ao lado dela. */
+    if (kv.erro) elo.kv.erro = String(kv.erro);
     if (kv.ok !== true) elo.kv.pendente = true;
   }
   indice.expurgo.push(elo);

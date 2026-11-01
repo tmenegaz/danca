@@ -255,6 +255,60 @@ function lerJsonc(texto) {
  * devolve `null` — e o expurgo cai no slug e não limpa KV nenhum, em vez de chutar um namespace
  * compartilhado (o KV é de todas as escolas; apagar o errado apaga o alheio).
  */
+/**
+ * O DESFECHO DO KV QUE VAI PARA O ELO — e o ramo que faltava (01/11/2026).
+ *
+ * O DEFEITO, medido no expurgo da `batata` a 01/11/2026. O elo 6 de
+ * `escola/batata/indice.json` ficou **sem** o bloco `kv`, enquanto os elos 2 a 5 o têm
+ * (`ok:true, restantes:0`). A rota lia o desfecho por
+ * `relatorio.cloudflare.kv` — e quando `excluirEscola` LANÇA (é o que acontece quando a
+ * enumeração do KV estoura a cota diária), o `catch` grava `{ erro, morada }` e o `kv`
+ * nunca existe. `kvDoExpurgo` ficava `undefined`, o elo recebia `kv: null`, e
+ * `pendenciaDoKv` — que só reconhece `kv.pendente === true` — respondia «nada pendente».
+ *
+ * O efeito é o pior dos mundos: a escola sai do ar e do repositório, as chaves podem ter
+ * ficado, e **a retomada (`POST /api/expurgar-kv`) fica cega** — porque é do elo que ela lê
+ * o namespace. O comentário que está no passo 4 dizia exactamente isto, e o `?:` de uma
+ * linha anulava-o em silêncio.
+ *
+ * A REGRA: quando a escola DECLARA namespace (`morada.kvNamespaceId`), o elo regista o
+ * desfecho do KV **sempre** — mesmo que a metade Cloudflare tenha explodido antes de o
+ * saber. Quando não declara, não há o que limpar, e não se inventa pendência.
+ *
+ * Devolve `null` (escola sem KV declarado) ou o bloco `kv` do elo. `ok:false` faz
+ * `comElo` marcar `pendente: true` e a retomada a encontrar.
+ */
+function desfechoDoKvParaOElo({ cloudflare, morada, slug }) {
+  const namespaceId = (morada && morada.kvNamespaceId) || null;
+  const prefixos = prefixosDaEscola(slug);
+  const kv = cloudflare && cloudflare.kv;
+  if (kv) {
+    const bloco = {
+      ok: kv.ok === true,
+      apagadas: kv.apagadas,
+      restantes: kv.restantes,
+      namespaceId,
+      prefixos,
+    };
+    // O PORQUÊ viaja com o elo. Sem ele, a pendência diz «não deu» e deixa a próxima sessão
+    // a adivinhar se foi cota, permissão ou rede.
+    if (kv.erro) bloco.erro = String(kv.erro);
+    return bloco;
+  }
+  if (!namespaceId) return null;
+  const doExpurgo = cloudflare && cloudflare.erro;
+  return {
+    ok: false,
+    apagadas: null,
+    restantes: null,
+    namespaceId,
+    prefixos,
+    erro: doExpurgo
+      ? 'a metade Cloudflare falhou antes de dizer o das chaves: ' + doExpurgo
+      : 'a limpeza do KV não devolveu desfecho — não se sabe o que ficou nas chaves',
+  };
+}
+
 async function moradaDaEscola({ token, slug, fetchImpl }) {
   const caminho = 'wrangler.' + slug + '.jsonc';
   const texto = await lerArquivo({ token, dono: DONO, repo: REPO, ref: REF, caminho, fetchImpl });
@@ -605,17 +659,15 @@ async function fetch(request, env) {
     // 4. O REPOSITÓRIO. O desfecho do KV vai JUNTO: se a limpeza das chaves não se completou,
     // a pendência fica gravada no elo do expurgo — e é de lá que a retomada a lê, quando a
     // escola já não existe em lugar nenhum (`wrangler.<slug>.jsonc` sai neste mesmo commit).
-    const kvDoExpurgo = relatorio.cloudflare && relatorio.cloudflare.kv;
+    //
+    // O DESFECHO SAI DE `desfechoDoKvParaOElo`, e não de um `?:` sobre `cloudflare.kv`
+    // (01/11/2026): o `?:` devolvia `null` quando a metade Cloudflare LANÇAVA, e o elo ficava
+    // sem bloco `kv` — indistinguível de «não havia o que limpar». Ver a função.
+    const desfechoKv = desfechoDoKvParaOElo({ cloudflare: relatorio.cloudflare, morada, slug });
     try {
       relatorio.repositorio = await apagarEscolaDoRepo({
         token: ghToken, dono: DONO, repo: REPO, ref: REF, slug, confirmacao, motivo,
-        kv: kvDoExpurgo ? {
-          ok: kvDoExpurgo.ok === true,
-          apagadas: kvDoExpurgo.apagadas,
-          restantes: kvDoExpurgo.restantes,
-          namespaceId: (morada.kvNamespaceId || null),
-          prefixos: prefixosDaEscola(slug),
-        } : null,
+        kv: desfechoKv,
       });
     } catch (err) {
       relatorio.repositorio = { erro: (err && err.message) || String(err) };
@@ -629,7 +681,11 @@ async function fetch(request, env) {
     // sistema, NÃO foi expurgada — e a manchete da página não pode dizer que foi. Sem isto,
     // o relatório dava verde e a linha do KV, em vermelho, logo abaixo: a contradição que o
     // dono do produto acabou de encontrar.
-    const kvFalhou = Boolean(relatorio.cloudflare && relatorio.cloudflare.kv && relatorio.cloudflare.kv.ok === false);
+    //
+    // E a conta passa a ser a do DESFECHO (01/11/2026), não a de `cloudflare.kv`: com a
+    // metade Cloudflare lançada, `cloudflare.kv` é `undefined`, `kvFalhou` era `false` e a
+    // rota respondia `ok: true` sobre chaves que ninguém tinha tocado.
+    const kvFalhou = Boolean(desfechoKv && desfechoKv.ok === false);
     const ok = noRepositorio && !kvFalhou;
     return responderJson(
       Object.assign(relatorio, { ok, noRepositorio, noCloudflare, kvFalhou }),
@@ -947,4 +1003,7 @@ async function fetch(request, env) {
 // expurgo faz ANTES de apagar qualquer coisa, e a única que pode ser respondida sem apagar
 // nada. Exportada, ela é provável no runtime real (o defeito que ela sofreu — `Buffer` num
 // runtime que não o tem — passou por todos os testes em Node sem ser visto).
-module.exports = { fetch, scheduled, expurgar, moradaDaEscola, validarCriacaoEscola, tituloDoSlug };
+module.exports = {
+  fetch, scheduled, expurgar, moradaDaEscola, validarCriacaoEscola, tituloDoSlug,
+  desfechoDoKvParaOElo,
+};
