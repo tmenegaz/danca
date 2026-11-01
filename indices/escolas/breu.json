@@ -70,13 +70,13 @@
       "ciclo:sapo-bailarino/01/breu"
     ],
     "contagens": {
-      "anamneses": 1,
+      "anamneses": 2,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 1
+      "registros": 2
     },
     "criada_em": "2026-11-01T20:15:06.701086+00:00",
     "expurgada": false,
@@ -91,16 +91,18 @@
       "sapo-bailarino"
     ],
     "registros": [
-      "anamnese:anamnese-20261101-1726"
+      "anamnese:anamnese-20261101-1726",
+      "anamnese:anamnese-20261101-1727"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261101-1726"
+          "anamnese:anamnese-20261101-1726",
+          "anamnese:anamnese-20261101-1727"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -118,9 +120,10 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261101-1726"
+          "anamnese:anamnese-20261101-1726",
+          "anamnese:anamnese-20261101-1727"
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
@@ -136,9 +139,10 @@
     ],
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261101-1726"
+          "anamnese:anamnese-20261101-1726",
+          "anamnese:anamnese-20261101-1727"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -155,9 +159,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "f62d8c0"
+    "commit": "3165671"
   },
-  "gerado_em": "2026-11-01T20:26",
+  "gerado_em": "2026-11-01T20:27",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -188,6 +192,16 @@
       "ciclo": "01",
       "data": "2026-11-01T17:26",
       "id": "anamnese:anamnese-20261101-1726",
+      "professor": "pe-torto",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261101-1727",
+      "ciclo": "01",
+      "data": "2026-11-01T17:27",
+      "id": "anamnese:anamnese-20261101-1727",
       "professor": "pe-torto",
       "tipo": "anamnese"
     }
