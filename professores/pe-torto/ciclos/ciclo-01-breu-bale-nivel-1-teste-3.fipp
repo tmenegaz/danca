@@ -10,12 +10,12 @@ type: Ciclo
 professor: pe-torto
 ciclo: 01
 variante: breu-bale-nivel-1-teste-3
-hash_conteudo: 76589d9a0a9b49d4b607084bb4f1490d661a4876f0d8f12f8570063f9ab70fcd
+hash_conteudo: b1b0c39c4b2a48b322de8fd99d215eb81d827054f74fd214793680c61e6db0d0
 parentHash: 
-hash: 0afc463a8e398785f23e10eda52beccad7665178d924121b4fbedef06356cd07
+hash: 4307138b0fc0cd9b4e3b4a0125749b53a6391a2c722009210f99d4f943ae43e3
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-11-01
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,5 +23,13 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 15
 notacao_sha: 9cdfc99c94ba29554bed0d84c58f11e722b079f70686ae09e9c3a27d0de5ccc2
 cobertura:
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md
   - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md
   - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf
