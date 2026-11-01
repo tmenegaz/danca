@@ -433,4 +433,29 @@ if printf '%s\n' "$arquivos" | grep -qE '^(tools/|raiz/assets/|porta/|motor/|pro
   fi
 fi
 
+# ---------------------------------------------------------------------------
+# 11) O MOLDE E OS SCHEMAS DOS PROFESSORES DIZEM O MESMO CONTRATO
+#
+#     O caso que originou isto (01/11/2026): os `required` do schema do plano foram corrigidos
+#     em doze professores e NÃO no molde; os cinco professores criados depois (cópia do molde)
+#     nasceram a exigir `ciclo` e `rubrica`, que a derivação deixou de escrever — e a geração
+#     de um ciclo morreu em «campo ausente», depois do PO já ter passado.
+#
+#     A cópia sem comparação é uma segunda verdade. Aqui é onde ela se descobre, e é barato: são
+#     dezoito ficheiros pequenos, lidos de uma vez. Sempre que o stage toca num schema ou no
+#     molde — não vale a pena correr por um commit de conteúdo.
+# ---------------------------------------------------------------------------
+if printf '%s\n' "$arquivos" | grep -qE '^(modelo/ciclos/|professores/[^/]+/ciclos/ciclo-[0-9]+-.+-schema\.json$|motor/servidor/schemas-do-ciclo\.js$)'; then
+  echo "pre-commit: conferindo o molde dos schemas contra os professores ..."
+  if node tools/check-schemas.js > /tmp/pre-commit-schemas.log 2>&1; then
+    echo "pre-commit: molde e professores dizem o mesmo contrato ($(grep -c '^ok ' /tmp/pre-commit-schemas.log) verificações)"
+  else
+    echo "pre-commit: recusado — o molde dos schemas e os professores divergem." >&2
+    grep -E '^FALHA' /tmp/pre-commit-schemas.log | head -4 >&2
+    echo "  o molde é a fonte dos schemas de quem entra; um campo obrigatório a mais recusa" >&2
+    echo "  todo documento derivado. Alinhe os dois antes de commitar." >&2
+    exit 1
+  fi
+fi
+
 exit 0

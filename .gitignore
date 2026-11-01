@@ -485,3 +485,11 @@ experimentos/modelo-formulario/*
 # serve a `porta/index.html` do ref anterior: com o código de antes, o plano e o PO reprovam.
 # É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
 !experimentos/provar-numeros-do-roteiro.js
+
+# O MOLDE DOS SCHEMAS CONTRA OS PROFESSORES (01/11/2026). Nasceu do defeito que parou a geração de
+# um ciclo: o `required` do schema do plano foi corrigido em doze professores e não no molde, os
+# cinco professores criados depois nasceram a exigir campos que a derivação não escreve, e a
+# geração morreu em «campo ausente» — depois do PO já ter passado. A prova mede a checagem nos
+# dois sentidos, com os três controlos negativos (molde atrasado, professor atrasado, deriva de
+# bytes) numa árvore sintética. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-schemas.js

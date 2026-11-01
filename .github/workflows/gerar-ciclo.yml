@@ -144,6 +144,24 @@ jobs:
               echo "::warning::falta $pasta/ciclo-$nn-$s.json — o ciclo segue sem essa validação"
           done
 
+          # E O CONTEÚDO DO SCHEMA, que a presença não garante (01/11/2026). Um `required` com um
+          # campo que a derivação deixou de escrever recusa TODO documento — e o gerador só o diz
+          # a meio, em «campo ausente», depois de o PO ter passado. Medido no run 41347497746: o
+          # professor nascera de um molde atrasado e exigia `ciclo` e `rubrica`, que o plano não
+          # escreve desde 26/10/2026.
+          #
+          # O filtro é por professor, e é de propósito: o gerador não se importa com os outros
+          # dezasseis, e um schema alheio atrasado não deve impedir esta geração. O repositório
+          # inteiro é conferido no pre-commit.
+          if ! node tools/check-schemas.js --professor "$PROFESSOR"; then
+            echo "" >&2
+            echo "O schema do ciclo de '$PROFESSOR' não está com o contrato em vigor — e é a" >&2
+            echo "primeira coisa que a geração verifica, porque é ela que recusa todo documento" >&2
+            echo "derivado. Corrija o schema (alinhando-o com o contrato em vigor, que é o do" >&2
+            echo "molde) e dispare outra vez." >&2
+            exit 1
+          fi
+
       - name: Gerar e validar o pacote
         shell: bash
         run: |

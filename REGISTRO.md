@@ -29761,3 +29761,75 @@ escrevia — ver «O que ainda não está feito») ·
   clássico — o que mudou foi como se chamam na tela e no documento. Uma categoria que não seja
   ballet clássico precisará do seu próprio alfabeto, e é isso que a L14 e o `modalidade` já
   preveem.
+
+## 01/11/2026 — O molde dos schemas ficou atrás, e a geração de um ciclo morreu em «campo ausente»
+
+**O que aconteceu.** A geração do ciclo `pe-torto/01/breu-bale-nivel-1-teste-3` falhou no run
+`41347497746`, no passo «Gerar e validar o pacote», com o PO já validado:
+
+```
+plano ciclo-01-breu-bale-nivel-1-teste-3-plano.md × schema ciclo-01-plano-schema.json
+2 problema(s):
+  - campo ausente: ciclo
+  - campo ausente: rubrica
+erro: não consegui extrair o plano para o pacote (plano-01.json).
+```
+
+**A causa, e não é de hoje.** A 26/10/2026, dois commits (`8040378` e `1c8795c`) tiraram `ciclo` e
+`rubrica` do `required` do schema do plano — a derivação deixou de emitir a ficha de identificação
+e a segunda tabela da rubrica, e um campo obrigatório que ninguém escreve recusa todo documento.
+Os dois commits foram aos **doze professores que existiam** e **não foram ao molde**
+(`modelo/ciclos/`, que já existia desde 15/10 — `263e48e`). O molde ficou a exigir os dois campos
+que a derivação não escreve, e todo professor criado depois disso nasceu com o contrato velho.
+
+Medido, e não é um caso: **cinco** professores estavam assim — `luz-azul`, `meia-ponta`,
+`pe-torto`, `pirueta-aberta`, `so-para-direita` —, os cinco criados depois de 26/10. O `pe-torto`
+foi o primeiro a receber um ciclo completo, e por isso o primeiro a doer. Os outros quatro
+falhariam exactamente da mesma maneira.
+
+E havia uma segunda perda, silenciosa: o molde também não tinha a propriedade
+`objetivosEspecificos`, e por isso o `plano-01.json` de um professor novo saía **sem a lista dos
+objetivos específicos** — o campo existia na fonte, era escrito pela derivação, e não chegava ao
+derivado. A geração «passava» com o plano a perder conteúdo.
+
+**O que foi decidido.**
+
+- **O molde é alinhado com o contrato em vigor**, e os cinco professores atrasados com ele: os seis
+  ficheiros passam a ser iguais, byte a byte, aos doze que já estavam certos. Não se inventou
+  contrato nenhum — copiou-se o que a maioria já declarava.
+- **Nasce `tools/check-schemas.js`**, porque a causa não é nenhum dos cinco: é o molde ser uma
+  CÓPIA que ninguém comparava com o original. Uma cópia sem comparação é uma segunda verdade. A
+  checagem confere duas invariantes: o `required` é o mesmo em todos (é o contrato), e nos quatro
+  schemas genéricos o **ficheiro** é o mesmo — a `captura-schema` é a excepção declarada, e é a
+  única, porque guarda `_declaracao.porVariante`, que é de cada escola.
+- **A referência é a MAIORIA, e não o molde.** Quando o molde é o único no seu grupo, a leitura
+  natural («dezassete professores errados») manda corrigir os dezassete e deixa a fonte a produzir
+  o mesmo defeito. A maioria diz qual é o contrato em vigor.
+- **A checagem entra em dois sítios**, e com perguntas diferentes. No `pre-commit`, o repositório
+  inteiro — é lá que a divergência nasce. No `gerar-ciclo.yml`, com `--professor <slug>`: o
+  gerador não se importa com os outros dezasseis, e o defeito alheio não deve impedir a geração de
+  quem está certo. Ela corre no passo «Conferir os pré-requisitos», **antes** de o PO ser
+  validado — a falha passa a ser a primeira, com o motivo, em vez da última sem ele.
+
+**Onde entrou.** `modelo/ciclos/ciclo-01-plano-schema.json` ·
+`professores/{luz-azul,meia-ponta,pe-torto,pirueta-aberta,so-para-direita}/ciclos/ciclo-01-plano-schema.json` ·
+`tools/check-schemas.js` (novo) · `experimentos/provar-schemas.js` (novo) ·
+`tools/hooks/pre-commit` (passo 11) · `.github/workflows/gerar-ciclo.yml` (o conteúdo do schema, no
+passo dos pré-requisitos) · `REGISTRO.md` (esta entrada).
+
+**Com o quê.** `check-schemas` **TUDO CERTO** (18 ficheiros, 5 sufixos) · `provar-schemas`
+**18 asserções**, com os três controlos negativos — molde atrasado, professor atrasado, deriva de
+bytes sem mudança de `required` —, o filtro por professor nos dois sentidos, e a excepção da
+captura a passar · a geração completa de `pe-torto/01/breu-bale-nivel-1-teste-3` a correr de ponta
+a ponta na bancada local, **0 erro(s), 0 aviso(s)**, PDF de 31 páginas · `check-indices` 14/14 · as
+duas âncoras (`pe-torto/01/breu-bale-nivel-1-teste-3` e `sapo-bailarino/01/breu`) fecham em
+`--check`.
+
+**O que ainda não está feito.**
+
+- **Os quatro outros professores atrasados não têm ciclo para gerar.** Ficaram corrigidos, mas a
+  correcção deles não foi exercitada por uma geração — a primeira de cada um será a prova.
+- **O molde continua a ser uma cópia.** A checagem faz o que se pode fazer sem uma fonte única: diz
+  quando as duas verdades se separam. Uma fonte única (o `criar-escola.sh` e o
+  `schemas-do-ciclo.js` a lerem o mesmo módulo, em vez de copiarem um ficheiro) seria melhor, e não
+  foi feito — são dois consumidores, um em bash e um no Worker.

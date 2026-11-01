@@ -22,22 +22,28 @@
       "required": ["duracaoAulas", "duracaoMinutos", "inicio", "encerramento", "volumeAtivoPorAula", "professor"],
       "additionalProperties": true
     },
+    "objetivosEspecificos": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Os OBJETIVOS ESPECÍFICOS do ciclo (a tabela `| N | Objetivo específico | Bloco(s) onde é trabalhado |`, 26/10/2026): uma linha por objetivo, com o número DELE (`n`), o que se pretende (`objetivo`) e os blocos em que é trabalhado (`blocos`). O número é do objetivo, não da aula — é ele que `marcosPorAula[].objetivos` cita, e é isso que permite um objetivo em mais de uma aula e mais de um objetivo na mesma aula. A relação com os blocos é dele, e NÃO diz quais blocos a aula tem: a estrutura da aula é o quadro da distribuição do volume."
+    },
     "marcosPorAula": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
           "n": { "type": "string", "description": "O número como o documento o escreve (`01`, `02`, …)." },
-          "marco": { "type": "string", "description": "O marco parcial daquela aula." }
+          "objetivos": { "type": "string", "description": "O(s) NÚMERO(S) do(s) objetivo(s) que esta aula persegue — «01», ou «01, 03» quando a aula trabalha dois. A coluna é do documento; o envelope ainda emite uma linha por aula, e a derivação preenche com o número da posição." },
+          "marco": { "type": "string", "description": "O marco parcial daquela aula, em texto — é o que o formulário de lançamento, o guia de observação e a musicalidade leem." }
         },
         "required": ["n", "marco"]
       },
-      "description": "Os marcos parciais por aula (a tabela `| Aula | Objetivo específico (marco parcial) |`): uma linha de dados por objeto, com o mapa de colunas da declaração (`Aula` → `n`, `Objetivo…` → `marco`)."
+      "description": "Os marcos parciais por aula (a tabela `| Aula | Objetivo(s) | Marco |`, 26/10/2026): uma linha de dados por objeto, com o mapa de colunas da declaração (`Aula` → `n`, `Objetivo(s)` → `objetivos`, `Marco` → `marco`). O `marco` em texto continua obrigatório porque três consumidores o leem; o `objetivos` é a ligação com a lista dos objetivos."
     },
     "estruturaDeCadaAula": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Os blocos de cada aula, na ordem (Regra 3). No documento é uma lista NUMERADA (`1.`, `2.`) — que o contrato lê como texto, uma linha por item (a linha quebrada vira item separado)."
+      "description": "LEITURA DO PASSADO (até 26/10/2026). Era a secção «Estrutura de cada aula», e confundia a relação objetivo × bloco com a estrutura da própria aula — lia-se «a aula 1 tem só Solo e Barra» quando o professor tinha marcado «este objetivo trabalha-se em Solo e Barra». O que a ocupa hoje é `objetivosEspecificos` (a relação, que é do objetivo) e `distribuicaoDeVolume` (a estrutura, que é da aula). O campo fica para os documentos antigos continuarem a extrair."
     },
     "distribuicaoDeVolume": {
       "type": "array",
@@ -91,6 +97,6 @@
       "description": "LACUNA DECLARADA: o calendário NÃO está no .md. A seção tem o marcador `<!-- CALENDARIO -->`, e quem o preenche é o gerador, com o bloco calculado do .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais). O extrator declara isso em vez de inventar uma data."
     }
   },
-  "required": ["objetivoGeral", "ciclo", "marcosPorAula", "rubrica", "proveniencia"],
+  "required": ["objetivoGeral", "marcosPorAula", "proveniencia"],
   "additionalProperties": true
 }
