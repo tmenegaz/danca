@@ -99,6 +99,7 @@
       "nome": "breu",
       "professor": "sapo-bailarino",
       "professores": [
+        "pe-torto",
         "sapo-bailarino"
       ],
       "registros": [],
@@ -398,6 +399,11 @@
         "valor": "oculos-redondo"
       },
       {
+        "contagem": 1,
+        "rotulo": "Pé Torto",
+        "valor": "pe-torto"
+      },
+      {
         "contagem": 2,
         "rotulo": "Perna Boa",
         "valor": "perna-boa"
@@ -447,9 +453,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "78b76f9"
+    "commit": "523754d"
   },
-  "gerado_em": "2026-11-01T20:24",
+  "gerado_em": "2026-11-01T20:25",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -560,6 +566,15 @@
       "id": "professor:oculos-redondo",
       "nome": "Oculos Redondo",
       "slug": "oculos-redondo"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:pe-torto",
+      "nome": "Pé Torto",
+      "slug": "pe-torto"
     },
     {
       "ciclos": [],
