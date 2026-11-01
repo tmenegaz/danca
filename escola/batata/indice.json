@@ -3,10 +3,10 @@
   "worker": "batata",
   "criado_em": "2026-10-19T16:48:13.723848+00:00",
   "professor": {
-    "slug": "perna-boa",
-    "nome": "Perna Boa"
+    "slug": "pe-torto",
+    "nome": "Pe Torto"
   },
-  "responsavel": "Perna Boa",
+  "responsavel": "Pe Torto",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -657,13 +657,28 @@
           "desde": "2026-10-27T12:31:22.565Z"
         }
       ]
+    },
+    {
+      "em": "2026-11-01T22:29:37.341655+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "pe-torto",
+        "nome": "Pe Torto"
+      },
+      "responsavel": "Pe Torto",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "pirueta-aberta",
+          "nome": "Pirueta Aberta",
+          "desde": "2026-11-01T19:14:10.637Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "perna-boa",
+        "nome": "Perna Boa"
+      }
     }
   ],
-  "professores": [
-    {
-      "slug": "pirueta-aberta",
-      "nome": "Pirueta Aberta",
-      "desde": "2026-11-01T19:14:10.637Z"
-    }
-  ]
+  "professores": []
 }

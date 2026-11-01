@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-01",
+    "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.fipp",
+    "cobertura": [
+      "professores/pe-torto/ciclos/ciclo-01-batata.conf",
+      "professores/pe-torto/ciclos/ciclo-01.conf"
+    ],
+    "hash": "0d18d32da528b33b521b0727ce39453071d80218a29e57a4cbee3bf0c49fcffd",
+    "hash_conteudo": "bfa83716380531c39a6db314bbb5f6af35491e484e6948f500ec44e2001d5a49",
+    "id": "ciclo-01-batata",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/pe-torto/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-batata.conf",
+    "documento:schema:professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "batata",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "4bb971a"
+  },
+  "gerado_em": "2026-11-01T22:29",
+  "id": "ciclo:pe-torto/01/batata",
+  "professor": "pe-torto",
+  "versao": 6
+}

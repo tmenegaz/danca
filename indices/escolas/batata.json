@@ -1,52 +1,135 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-01",
+        "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.fipp",
+        "cobertura": [
+          "professores/pe-torto/ciclos/ciclo-01-batata.conf",
+          "professores/pe-torto/ciclos/ciclo-01.conf"
+        ],
+        "hash": "0d18d32da528b33b521b0727ce39453071d80218a29e57a4cbee3bf0c49fcffd",
+        "hash_conteudo": "bfa83716380531c39a6db314bbb5f6af35491e484e6948f500ec44e2001d5a49",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/pe-torto/ciclos/ciclo-01-batata.conf",
+        "professores/pe-torto/ciclos/ciclo-01-batata.fipp",
+        "professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:pe-torto/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "pe-torto",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.fipp",
+      "ciclo_id": "ciclo:pe-torto/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/pe-torto/ciclos/ciclo-01-batata.fipp",
+      "professor": "pe-torto",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.conf",
+      "ciclo_id": "ciclo:pe-torto/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-batata.conf",
+      "professor": "pe-torto",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:pe-torto/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "pe-torto",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:pe-torto/01/batata"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-01T19:05:50.836170+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-01T22:29:37.341655+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-01T20:13:24.467Z",
     "expurgos": 7,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:batata",
     "nome": "batata",
-    "professor": "perna-boa",
+    "professor": "pe-torto",
     "professores": [
-      "acucar-branco",
-      "cafe-no-bule",
-      "manga-curta",
-      "meia-cortada",
-      "perna-boa",
-      "pirueta-aberta",
-      "sapo-bailarino",
-      "so-para-direita",
-      "tela-de-celular",
-      "tiago-menegaz"
+      "pe-torto"
     ],
     "registros": [],
     "slug": "batata"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:pe-torto/01/batata"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:pe-torto/01/batata"
+        ],
+        "rotulo": "pe-torto",
+        "valor": "pe-torto"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:pe-torto/01/batata"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "8166c4e"
+    "commit": "4bb971a"
   },
-  "gerado_em": "2026-11-01T21:09",
+  "gerado_em": "2026-11-01T22:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
