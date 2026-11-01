@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "36010816720e8d4b2e88d6a4d52c6e13f68c98e2662badc6d5d32082bf570962",
+        "hash": "59e3063f21ad7fc7086abb01f3e9e77d9beddeafb23f90ee89985f5d7ae397a0",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -477,9 +477,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "fb14ca3"
+    "commit": "35aad32"
   },
-  "gerado_em": "2026-11-01T11:54",
+  "gerado_em": "2026-11-01T14:26",
   "nao_indexado": [
     {
       "familia": "conteudo",
