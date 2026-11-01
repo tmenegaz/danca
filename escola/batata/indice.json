@@ -680,5 +680,11 @@
       }
     }
   ],
-  "professores": []
+  "professores": [
+    {
+      "slug": "pe-junto",
+      "nome": "Pé Junto",
+      "desde": "2026-11-01T22:32:03.304Z"
+    }
+  ]
 }
