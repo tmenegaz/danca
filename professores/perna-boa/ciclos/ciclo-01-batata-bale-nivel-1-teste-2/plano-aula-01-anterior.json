@@ -15,24 +15,40 @@
     }
   ],
   "guiaDeObservacao": [
-    "Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor registra cada",
-    "item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·",
-    "vazio = não observei.",
+    "Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor",
+    "registra cada item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não",
+    "aconteceu · ? não vi · vazio = não observei.",
     {
       "dimensao": "Técnica — Solo",
-      "oQueSeObserva": "alinhamento do pé de apoio; eixo do corpo na preparação"
+      "oQueSeObserva": "alinhamento do pé de apoio"
+    },
+    {
+      "dimensao": "Técnica — Solo",
+      "oQueSeObserva": "eixo do corpo na preparação"
     },
     {
       "dimensao": "Técnica — Barra",
-      "oQueSeObserva": "saída do calcanhar no tendu; quadril sem subir no en dehors"
+      "oQueSeObserva": "saída do calcanhar no tendu"
+    },
+    {
+      "dimensao": "Técnica — Barra",
+      "oQueSeObserva": "quadril sem subir no en dehors"
     },
     {
       "dimensao": "Técnica — Centro",
-      "oQueSeObserva": "transferência de peso sem perder a verticalidade; braço junto do movimento"
+      "oQueSeObserva": "transferência de peso sem perder a verticalidade"
+    },
+    {
+      "dimensao": "Técnica — Centro",
+      "oQueSeObserva": "braço junto do movimento"
     },
     {
       "dimensao": "Técnica — Musicalidade",
-      "oQueSeObserva": "resposta ao pulso na marcação; frase até o fim da música"
+      "oQueSeObserva": "resposta ao pulso na marcação"
+    },
+    {
+      "dimensao": "Técnica — Musicalidade",
+      "oQueSeObserva": "frase até o fim da música"
     }
   ],
   "distribuicaoDoVolume": [
