@@ -55,6 +55,11 @@ const { validar } = require('./lib-validacao-md.js');
 // numeração diferente conforme a aula, e as duas formas têm de chegar ao mesmo campo.
 const MAPA_SECOES = {
   "1. validação dos objetivos, métricas e duração": "validacaoDaAula",
+  // O TÍTULO DA §2 DIZ O QUE O CORPO É (01/11/2026). O corpo sempre veio do campo «Condições do
+  // espaço»; o título vinha da Regra 4, que fala de força e flexibilidade — e afirmava sobre o
+  // corpo das alunas uma frase sobre a sala. O título anterior fica: há documento escrito à mão no
+  // repositório que o usa, e ele extraía antes desta mudança.
+  "2. condições preliminares de preparação (o espaço e o material)": "condicoesPreliminares",
   "2. condições preliminares de preparação (força e flexibilidade)": "condicoesPreliminares",
   "2. pré-requisitos declarados pelo professor": "condicoesPreliminares",
   "3. a sequência conectada (fio condutor)": "sequenciaDaAula",

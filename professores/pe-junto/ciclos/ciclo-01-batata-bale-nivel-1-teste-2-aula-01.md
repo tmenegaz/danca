@@ -21,7 +21,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Duração** | 50 minutos (Pré-requisito 4) |
 | **Volume ativo** | 90 tempos (faixa 80–100 da duração de 50 min — Regra 9, etapa 1) |
 
-## 2. Condições preliminares de preparação (força e flexibilidade)
+## 2. Condições preliminares de preparação (o espaço e o material)
 
 - Sala com barra, espelho e aparelho de som; piso adequado.
 
@@ -39,9 +39,11 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 ## 4. Bloco de musicalidade
 
-| Item | Trabalho |
+| Item | Nesta aula |
 |:--|:--|
-| **Pulso** | [Preencher: trabalho de pulso da Aula 01] |
+| **Fatia do plano** | 30% do volume — 27 tempos (Regra 9, etapa 2) |
+| **Exercícios neste bloco** | nenhum — a sequência da aula não tem linha no bloco Musicalidade |
+| **Trabalho de pulso, acento e frase** | [Preencher: nenhum formulário pergunta o trabalho musical da aula — ver Regra 15] |
 
 ## 5. Guia de observação do professor
 
@@ -62,8 +64,11 @@ aconteceu · ? não vi · vazio = não observei.
 
 ## 6. Proveniência consolidada
 
-Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — a cadeia foi
-gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).
+| Elo | Proveniência |
+|:--|:--|
+| **Plano de observação** | `po-20261101-1959` — o envelope elicitado, gravado pelo «Guardar» do PO |
+| **Plano de ensino** | `plano-20261101-1955` — o plano que o PO carrega em «Plano de ensino» |
+| **Esta aula** | derivada dos dois por `derivar-ciclo.js` — a proveniência acrescenta, não edita |
 
 ## 7. Registro de auditoria da aula
 
@@ -75,4 +80,9 @@ gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).
 
 ## 8. Próximo passo
 
-[Preencher: o próximo passo da progressão do ciclo]
+| Item | Proposta |
+|:--|:--|
+| **O que se entende por «próximo passo»** | o marco da aula seguinte, **proposto** — não a aula dada, nem o preenchimento do formulário (isso é o ciclo de vida do pacote) |
+| **Marco da Aula 02** | [Preencher: o plano declara um só marco — não há marco seguinte de onde propor] |
+| **Estado** | nada a propor |
+| **Lido de** | `plano · marcos-por-aula` |

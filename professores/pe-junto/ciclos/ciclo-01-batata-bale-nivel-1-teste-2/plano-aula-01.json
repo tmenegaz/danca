@@ -10,8 +10,16 @@
   "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Barra · 27 · 30% Centro · 27 · 30% Musicalidade · 27 · 30% Expressão · 9 · 10% **Total** · **90** · **100%**",
   "blocoDeMusicalidade": [
     {
-      "item": "Pulso",
-      "trabalho": "[Preencher: trabalho de pulso da Aula 01]"
+      "item": "Fatia do plano",
+      "nestaAula": "30% do volume — 27 tempos (Regra 9, etapa 2)"
+    },
+    {
+      "item": "Exercícios neste bloco",
+      "nestaAula": "nenhum — a sequência da aula não tem linha no bloco Musicalidade"
+    },
+    {
+      "item": "Trabalho de pulso, acento e frase",
+      "nestaAula": "[Preencher: nenhum formulário pergunta o trabalho musical da aula — ver Regra 15]"
     }
   ],
   "guiaDeObservacao": [
@@ -51,7 +59,7 @@
       "oQueSeObserva": "presença sem rigidez de rosto"
     }
   ],
-  "proveniencia": "Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — a cadeia foi gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).",
+  "proveniencia": "Elo · Proveniência **Plano de observação** · `po-20261101-1959` — o envelope elicitado, gravado pelo «Guardar» do PO **Plano de ensino** · `plano-20261101-1955` — o plano que o PO carrega em «Plano de ensino» **Esta aula** · derivada dos dois por `derivar-ciclo.js` — a proveniência acrescenta, não edita",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",
@@ -66,5 +74,5 @@
       "resultado": "ok — 90 tempos em 80–100"
     }
   ],
-  "proximoPasso": "[Preencher: o próximo passo da progressão do ciclo]"
+  "proximoPasso": "Item · Proposta **O que se entende por «próximo passo»** · o marco da aula seguinte, **proposto** — não a aula dada, nem o preenchimento do formulário (isso é o ciclo de vida do pacote) **Marco da Aula 02** · [Preencher: o plano declara um só marco — não há marco seguinte de onde propor] **Estado** · nada a propor **Lido de** · `plano · marcos-por-aula`"
 }

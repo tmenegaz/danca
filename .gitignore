@@ -493,3 +493,10 @@ experimentos/modelo-formulario/*
 # dois sentidos, com os três controlos negativos (molde atrasado, professor atrasado, deriva de
 # bytes) numa árvore sintética. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
 !experimentos/provar-schemas.js
+
+# A ORIGEM DE CADA SECÇÃO DA AULA, MEDIDA POR MUTAÇÃO (01/11/2026). A pesquisadora perguntou, secção
+# a secção, se o valor vinha do dado ou do código — e a resposta não se lê no documento: um texto
+# que nunca muda parece um dado enquanto nada muda à volta dele. A prova troca UMA resposta do
+# envelope real e vê se a secção muda. O `REGISTRO.md` de 01/11/2026 cita-a («28 asserções»), e uma
+# prova citada que não existe no clone é uma afirmação que ninguém confere.
+!experimentos/provar-o-que-vem-do-dado.js

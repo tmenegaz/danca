@@ -292,8 +292,32 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     secao('1. Validação dos objetivos, métricas e duração', corpo);
   }
 
-  // §2 — Condições preliminares.
-  secao('2. Condições preliminares de preparação (força e flexibilidade)',
+  /* §2 — Condições preliminares: O TÍTULO DIZIA OUTRA COISA QUE O CONTEÚDO (01/11/2026).
+   *
+   * A pesquisadora leu a Aula 01 do ciclo da `batata` e parou aqui: «Condições preliminares de
+   * preparação, força e flexibilidade — vê que esse valor não tem nada a ver com força e
+   * flexibilidade». Não tem, e a causa é de origem: O NOME DA REGRA e O NOME DO CAMPO são coisas
+   * diferentes.
+   *
+   *   · A **Regra 4** fala de «pré-requisitos de força e flexibilidade declarados e contados à
+   *     parte do volume da aula».
+   *   · O **campo** do formulário do plano é «Condições do espaço» — «o que a sala e o material
+   *     precisam ter para o ciclo acontecer».
+   *
+   * O título desta secção nasceu da Regra 4 e o corpo sempre veio do campo. Ou seja: durante
+   * todo este tempo o documento afirmou que aquela frase era sobre o corpo das alunas, quando é
+   * sobre a sala. E a metade que a Regra 4 pede — a força e a flexibilidade — **não é perguntada
+   * em formulário nenhum**, e por isso nunca apareceu.
+   *
+   * A CORREÇÃO É DO TÍTULO, e só dele: ele passa a dizer o que o corpo É («o espaço e o
+   * material»), que é o que o campo pergunta e o que a pessoa escreve. A lacuna da Regra 4
+   * fica **declarada como contradição** no `REGISTRO.md` e no `PLANO-AULA-E-OBSERVACAO.md`, e
+   * não se resolve aqui: inventar uma segunda lista de «força e flexibilidade» sem pergunta
+   * seria escrever no documento o que ninguém decidiu — o defeito que esta entrada corrige.
+   *
+   * O TÍTULO ANTIGO CONTINUA NO MAPA DO VALIDADOR. Há documento no repositório que o escreve
+   * (as aulas escritas à mão em `experimentos/`), e ele extraía antes desta mudança. */
+  secao('2. Condições preliminares de preparação (o espaço e o material)',
     condicoes.length ? condicoes.map((v) => '- ' + v) : ['- [Preencher: condições preliminares de preparação]']);
 
   // §3 — A sequência conectada.
@@ -321,9 +345,70 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     secao('3. A sequência conectada (fio condutor)', corpo);
   }
 
-  // §4 — Musicalidade (não derivável do plano: lacuna).
-  secao('4. Bloco de musicalidade',
-    ['| Item | Trabalho |', '|:--|:--|', '| **Pulso** | [Preencher: trabalho de pulso da Aula 01] |']);
+  /* §4 — O BLOCO DE MUSICALIDADE TINHA UM «PULSO» QUE NINGUÉM ESCREVEU (01/11/2026).
+   *
+   * O QUE ESTAVA AQUI, ao pé da letra, e saía igual em todo o ciclo de toda a escola:
+   *
+   *     | Item     | Trabalho                              |
+   *     | **Pulso**| [Preencher: trabalho de pulso da Aula 01] |
+   *
+   * Duas coisas erradas na mesma linha. «**Pulso**» é um RÓTULO fixo do código — não é pergunta
+   * de formulário nenhum, e não há em `porta/plano/conteudo/plano.json` um campo de musicalidade
+   * (o texto de ajuda da `distribuicao-de-volume` até promete «A musicalidade não entra aqui: ela
+   * tem o bloco dela» — e o bloco dela nunca teve pergunta). E «da Aula 01» está escrito à mão
+   * dentro de um gerador que produz todas as aulas: no dia em que houver Aula 02, ela sai a dizer
+   * «Aula 01».
+   *
+   * A pesquisadora: «todo o ajuste que a gente fez lá em produção e criamos os verbetes foi
+   * justamente pensando em preencher essa parte do bloco de musicalidade (…) não vejo sentido
+   * estar desse jeito aqui». A memória dela está certa quanto à intenção e a correção não foi
+   * feita: o `REGISTRO.md` de 28/10/2026 já dizia «O bloco de musicalidade continua sem pergunta».
+   *
+   * E A FORMA CERTA JÁ ESTAVA ESCRITA NO REPOSITÓRIO. O `tools/lib-vistas.js` (`mdMusicalidade`)
+   * resolve a musicalidade como o projeto a concebe — «A musicalidade é **dimensão do PO**,
+   * **bloco do plano** e **vista própria**: não é um terceiro dado» — e tira as três partes dos
+   * três sítios onde elas existem: a dimensão musical do PO, a fatia do bloco na distribuição do
+   * volume (Regra 9, etapa 2) e os marcos que a citam.
+   *
+   * É isso que esta secção passa a fazer, com uma poda: a dimensão musical do PO NÃO se repete
+   * aqui, porque a §5 («guia de observação») já lista os itens de todas as dimensões, e o mesmo
+   * dado em duas listas foi o que a pesquisadora mandou cortar da §3 em 28/10/2026. Fica o que só
+   * esta secção pode dizer: a fatia que o plano dá ao bloco, os exercícios que a aula põe lá, e —
+   * quando o plano não põe nenhum — a lacuna declarada, com a razão. */
+  {
+    const corpo = ['| Item | Nesta aula |', '|:--|:--|'];
+    // `linhasDaTabela` e não o valor cru: o envelope guarda `{unidade, linhas}` e a distribuição
+    // lê uma LISTA. Sem ela, a §4 saía com «[Preencher] · [Preencher]» mesmo com o plano cheio —
+    // foi o que a prova de mutação apanhou.
+    const volume = linhasDaTabela(resp(plano, 'distribuicao-de-volume'));
+    const fatia = distribuicaoDoTempo(estrutura, volume, volumeTotal)
+      .find((l) => /music/i.test(l));
+    if (fatia) {
+      // A linha vem formatada como `| Bloco | tempos | fatia |` — e a leitura é da FATIA e dos
+      // TEMPOS, nesta ordem («30% do volume — 27 tempos»), não na ordem da tabela da §3.
+      const [, , tempos, proporcao] = fatia.split('|').map((c) => c.trim());
+      const semTempos = !tempos || /Preencher/.test(tempos);
+      corpo.push('| **Fatia do plano** | ' + (proporcao || tempos)
+        + ' do volume' + (semTempos ? '' : ' — ' + tempos + ' tempos') + ' (Regra 9, etapa 2) |');
+    } else {
+      corpo.push('| **Fatia do plano** | [Preencher: a distribuição do volume não dá bloco à musicalidade] |');
+    }
+    const sequencia = sequenciaComoObjetos(plano);
+    const noBloco = (sequencia || []).filter((l) => /music/i.test(String(l.bloco || '')));
+    if (sequencia === null) {
+      // A forma LEGADA (prosa) não tem bloco por linha: dizer «nenhum» seria afirmar o que não
+      // se sabe. A lacuna di-lo-á.
+      corpo.push('| **Exercícios neste bloco** | [Preencher: a sequência está em prosa neste envelope — não há bloco por linha] |');
+    } else if (noBloco.length) {
+      for (const l of noBloco) {
+        corpo.push('| **' + rotuloDoExercicio(l) + '** | ' + (objetivoDaSequencia(l) || '[Preencher: o objetivo desta linha]') + ' |');
+      }
+    } else {
+      corpo.push('| **Exercícios neste bloco** | nenhum — a sequência da aula não tem linha no bloco Musicalidade |');
+    }
+    corpo.push('| **Trabalho de pulso, acento e frase** | [Preencher: nenhum formulário pergunta o trabalho musical da aula — ver Regra 15] |');
+    secao('4. Bloco de musicalidade', corpo);
+  }
 
   /* §5 — O GUIA DE OBSERVAÇÃO DIZ O QUE SE OBSERVA, E NÃO QUE ALGUÉM O PREENCHA (01/11/2026).
    *
@@ -383,10 +468,35 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
    * três variantes — sem isso o validador descartaria as três secções EM SILÊNCIO (é o modo de
    * falha que o próprio mapa documenta). */
 
-  // §6 — Proveniência consolidada.
-  secao('6. Proveniência consolidada',
-    ['Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — a cadeia foi',
-     'gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).']);
+  /* §6 — A PROVENIÊNCIA DIZIA «CICLO SIMULADO» A TODOS OS CICLOS (01/11/2026).
+   *
+   * O que estava aqui era uma frase fixa: «Ciclo **simulado** — a cadeia foi gerada pelo
+   * «Guardar» do PO». Duas coisas, e as duas erradas.
+   *
+   *   · «**simulado**» é FALSO para todo o ciclo que não seja o de ensaio. O ciclo da `batata`
+   *     nasceu de um PO elicitado a sério, de um plano a sério, e foi publicado — e o documento
+   *     publicado dizia à professora que era simulação. A palavra vem do tempo em que só existia
+   *     o ciclo de demonstração, e ficou no código como ficam as frases que ninguém relê.
+   *   · dizer «derivado do plano do ciclo e das fontes do PO» sem NOMEAR nenhum dos dois é o
+   *     contrário de proveniência: não se pode ir verificar. Os dois envelopes têm `id`, e é o
+   *     `id` que a cadeia de custódia usa em todo o resto do projecto.
+   *
+   * A secção passa a nomear os dois elos. O que não existir sai como lacuna declarada, e não
+   * como frase feita. */
+  {
+    const corpo = ['| Elo | Proveniência |', '|:--|:--|'];
+    const idPo = (po && (po.id || po.carimbo)) || '';
+    const idPlano = (plano && (plano.id || plano.carimbo)) || '';
+    corpo.push('| **Plano de observação** | ' + (idPo
+      ? '`' + idPo + '` — o envelope elicitado, gravado pelo «Guardar» do PO'
+      : '[Preencher: o envelope do PO não declara `id`]') + ' |');
+    corpo.push('| **Plano de ensino** | ' + (idPlano
+      ? '`' + idPlano + '` — o plano que o PO carrega em «Plano de ensino»'
+      : '[Preencher: o envelope do plano não declara `id`]') + ' |');
+    corpo.push('| **Esta aula** | derivada dos dois por `derivar-ciclo.js` — a proveniência '
+      + 'acrescenta, não edita |');
+    secao('6. Proveniência consolidada', corpo);
+  }
 
   // §7 — Registro de auditoria.
   {
@@ -398,8 +508,39 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     secao('7. Registro de auditoria da aula', corpo);
   }
 
-  // §8 — Próximo passo.
-  secao('8. Próximo passo', ['[Preencher: o próximo passo da progressão do ciclo]']);
+  /* §8 — O QUE É O «PRÓXIMO PASSO» ESTAVA ESCRITO NO PROJECTO, E NÃO AQUI (01/11/2026).
+   *
+   * A pesquisadora: «Próximo passo quer dizer o quê? A próxima aula? Ou que o meu próximo passo é
+   * dar a aula e preencher o formulário? Eu não sei.» A pergunta era justa, porque a linha era
+   * um `[Preencher]` sobre um título que não dizia o que se esperava ali — e a resposta existia
+   * desde antes, no documento de arquitectura: `PLANO-AULA-E-OBSERVACAO.md` define o próximo
+   * passo como «a aula anterior + **o marco seguinte** — *proposto*».
+   *
+   * Ou seja: NÃO é «dar a aula» nem «preencher o formulário» (esses são o ciclo de vida do
+   * pacote, não o conteúdo pedagógico), e não é «a Aula 02» — é o MARCO da aula seguinte, e
+   * proposto, porque quem o confirma é a professora na captura da impressão.
+   *
+   * A fonte é a mesma dos marcos que a §1 já lê (`marcos-por-aula`). Proposto, e dito proposto:
+   * sair como afirmação seria o mesmo defeito de sempre — o documento a decidir o que ninguém
+   * decidiu. Sem marco seguinte (plano com um marco só), di-lo, em vez de inventar um. */
+  {
+    const marcos = marcosEmTexto(resp(plano, 'marcos-por-aula')).filter((v) => !GABARITO_VAZADO.test(v));
+    const seguinte = marcos.length > 1 ? marcos[1] : '';
+    secao('8. Próximo passo', ['| Item | Proposta |', '|:--|:--|',
+      // A PRIMEIRA LINHA RESPONDE À PERGUNTA, e é ela que faltava: «próximo passo» não é a aula
+      // dada, nem o formulário, nem «a Aula 02» — é o MARCO da aula seguinte, e proposto.
+      '| **O que se entende por «próximo passo»** | o marco da aula seguinte, **proposto** — '
+        + 'não a aula dada, nem o preenchimento do formulário (isso é o ciclo de vida do pacote) |',
+      seguinte
+        ? '| **Marco da Aula 02** | ' + seguinte + ' |'
+        : '| **Marco da Aula 02** | [Preencher: o plano declara '
+          + (marcos.length ? 'um só marco' : 'nenhum marco')
+          + ' — não há marco seguinte de onde propor] |',
+      '| **Estado** | ' + (seguinte
+        ? 'proposto — a Aula 01 não o decide; confirma-se na captura da impressão'
+        : 'nada a propor') + ' |',
+      '| **Lido de** | `plano · marcos-por-aula`' + (seguinte ? ', o 2.º marco declarado' : '') + ' |']);
+  }
 
   /* UMA LINHA EM BRANCO, E NÃO DUAS. Cada `secao()` fecha com uma, e vários corpos terminam
    * com outra — o que deixava um vão de duas linhas entre secções, visível no `.md` e no HTML.

@@ -29900,3 +29900,89 @@ repositório vazio já não deixa o ciclo sem schema — é o resultado da unifi
 - **O molde continua a ser o ficheiro, e não um módulo de dados.** A escolha foi deliberada: os
   validadores recebem CAMINHOS, o `--modelo` também, e o Git mostra o diff de um JSON. Um objeto
   em JavaScript seria uma terceira forma de ler a mesma coisa.
+
+## 01/11/2026 — A aula deixa de afirmar o que ninguém escreveu: cinco secções, cinco origens
+
+**O que motivou.** A pesquisadora gerou o ciclo da `batata`, abriu a Aula 01 e foi secção a secção
+com a mesma pergunta: «isso vem do lugar certo?» «é código duro, escrito direto dentro do gerador?».
+E disse porquê: «eu não me lembro de ter escrito esses valores.» Não era desconfiança vaga — era a
+memória de quem escreveu os formulários.
+
+**O que foi medido, antes de mexer.** Ler o gerador responde por intenção; não responde por
+comportamento. A prova é de **mutação** (`experimentos/provar-o-que-vem-do-dado.js`): troca-se UMA
+resposta do envelope real por uma marca inconfundível e vê-se se a secção muda. Se muda, o valor vem
+do dado; se não muda, o texto é do código. É a única resposta que não depende de eu ter lido o
+ficheiro certo.
+
+| Secção | Origem | O que se viu |
+|:--|:--|:--|
+| Abertura «O que esta aula deixa de fora» | **dado** — PO `o-que-fica-de-fora` | muda com a resposta; o valor é **literal da fixture de teste** (`teste/batata.json`), e é daí que vem o «não me lembro de ter escrito» |
+| §1 objetivo, parâmetro, duração, volume | **dado** — `marcos-por-aula`, `aula-1-parametro`, `.conf` | muda com os três |
+| §2 o conteúdo | **dado** — plano `condicoes-preliminares` | muda; também literal da fixture |
+| §2 o título «(força e flexibilidade)» | **código** | não muda — e o corpo é sobre a sala: corrigido |
+| §3 a tabela do tempo | **dado** — plano `distribuicao-de-volume` | muda |
+| §4 «Bloco de musicalidade» | **CÓDIGO** | saía `\| **Pulso** \| [Preencher: trabalho de pulso da Aula 01] \|` em todo o ciclo de toda a escola: corrigido |
+| §5 guia de observação | **dado** — PO `itens-por-dimensao` | muda; o valor gravado **difere** da fixture — ela editou-o no formulário |
+| §6 proveniência | **CÓDIGO** | dizia «Ciclo **simulado**» a qualquer ciclo, inclusive um publicado: corrigido |
+| §7 registo de auditoria | **dado** | muda com a calibração |
+| §8 «Próximo passo» | **CÓDIGO** | um `[Preencher]` sobre um título que não dizia o que se esperava: corrigido |
+
+**O que foi decidido.**
+
+- **§2 — o título passa a dizer o que o corpo é** (`(o espaço e o material)`). O corpo sempre veio
+  do campo «Condições do espaço»; o título veio da Regra 4, que fala de força e flexibilidade. A
+  contradição que sobra — a Regra 4 pede uma lista que nenhum formulário pergunta — fica declarada
+  em `PLANO-AULA-E-OBSERVACAO.md` §2.5 e **não** se resolve inventando a lista.
+- **§4 — a musicalidade deixa de ser um rótulo do código.** A forma certa já estava escrita no
+  repositório: `tools/lib-vistas.js` (`mdMusicalidade`) trata a musicalidade como o projecto a
+  concebe — «**dimensão do PO**, **bloco do plano** e **vista própria**: não é um terceiro dado».
+  A secção passa a tirar dali o que só ela pode dizer: a **fatia** que o plano dá ao bloco (Regra 9,
+  etapa 2), os **exercícios** que a aula põe lá, e — quando não põe nenhum — a lacuna declarada.
+  A dimensão musical do PO **não** se repete aqui: a §5 já lista os itens de todas as dimensões, e o
+  mesmo dado em duas listas é o que a pesquisadora mandou cortar da §3 em 28/10/2026. Saiu também o
+  «da Aula 01» escrito à mão dentro de um gerador que produz todas as aulas.
+- **§6 — a proveniência nomeia os elos.** Os dois envelopes têm `id`, e é o `id` que a cadeia de
+  custódia usa em todo o projecto; dizer «derivado do plano e das fontes do PO» sem os nomear é o
+  contrário de proveniência — não se pode ir verificar. E «simulado» sai: é falso para todo o ciclo
+  que não seja o de ensaio, e era a palavra do tempo em que só existia o ciclo de demonstração.
+- **§8 — o «próximo passo» passa a dizer o que é.** A resposta já existia no documento de
+  arquitetura: `PLANO-AULA-E-OBSERVACAO.md` define-o como «a aula anterior + **o marco seguinte** —
+  *proposto*». Não é «dar a aula», nem «preencher o formulário» (isso é o ciclo de vida do pacote),
+  e não é «a Aula 02»: é o **marco** da aula seguinte, e proposto, porque quem o confirma é a
+  professora na captura da impressão. Vem de `marcos-por-aula`, a mesma fonte da §1.
+- **§3 — o título promete mais do que o corpo, e fica assim por agora.** «A sequência conectada (fio
+  condutor)» encima a tabela da distribuição do tempo; a sequência está em «Exercícios da Aula 01».
+  Não foi mexido porque não há aqui afirmação falsa sobre ninguém — há um nome que aponta para o
+  lado. Fica registado para decisão, e não corrigido por conta própria.
+- **O link do PDF da aula não depende mais da geração anterior.** O `gerar-ciclo.sh` testava
+  `[ -f "$PACOTE/aula-01.pdf" ]` para escolher entre «PDF da aula» e «PDF do ciclo» — e o PDF só se
+  escreve muito mais abaixo. Ou seja: media a geração ANTERIOR. Medido: o pacote saído da Action
+  (clone limpo) linkava «PDF do ciclo», a mesma geração corrida duas vezes na bancada linkava «PDF
+  da aula», e a seguinte voltava a inverter. A pergunta certa é «a fonte desta aula existe?».
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (§2, §4, §6, §8) ·
+`tools/validar-aula-ciclo.js` (a variante nova do título da §2 no mapa — sem ela o validador
+descartaria a secção **em silêncio**) · `tools/gerar-ciclo.sh` (o link do PDF) ·
+`PLANO-AULA-E-OBSERVACAO.md` §2.5 (a contradição da Regra 4) ·
+`professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md` e o pacote regerado
+(a aula é fonte derivada, e a âncora foi refeita).
+
+**Com o quê.** `provar-o-que-vem-do-dado` — 28 asserções, e as quatro da secção 2 **já foram o
+registo do defeito**: na primeira redação afirmavam que a §4 saía com o «Pulso» fixo, que a §6 dizia
+«simulado», que a §8 era uma lacuna muda e que a §2 se anunciava «força e flexibilidade». Agora
+guardam que não voltem · `validar-aula-ciclo` 9 campos extraídos, 3 lacunas declaradas (as mesmas
+de antes) · `check-pacote` 0 erro / 0 aviso (9 páginas, 245 links, PDF de 27 páginas) ·
+`hash-ciclo.sh --check` «cadeia intacta» · `provar-aula-e-plano-legiveis` 12/12 ·
+`provar-cabecalho-do-documento`, `provar-coerencia-do-po-no-pacote` 6/6.
+
+**O que ainda não está feito.**
+
+- **O bloco de musicalidade continua sem pergunta nos formulários.** O `porta/plano/conteudo/plano.json`
+  não tem campo de musicalidade — o texto de ajuda da `distribuicao-de-volume` até promete «A
+  musicalidade não entra aqui: ela tem o bloco dela», e o bloco dela nunca teve campo. A §4 agora
+  declara a lacuna em vez de a disfarçar com um rótulo; o campo é que falta, e é decisão de desenho.
+- **`provar-aula-prosa` e `provar-escopo-da-aula` estão vermelhas por fixture, não por código.** A
+  primeira aponta para `professores/perna-boa/ciclos/ciclo-01-batata-…`, a segunda para
+  `escola/batata/envelopes/plano-20261027-1025.json` — ambos apagados por expurgos anteriores. Já
+  falhavam em `HEAD`, e não foram corrigidas aqui: uma prova que aponta para uma escola expurgada é
+  uma pergunta que se responde escolhendo outra fixture, não um defeito do gerador.

@@ -138,6 +138,21 @@ uma linha. O dado existe, doze linhas acima, na secção 3.
 `## 2. Condições preliminares de preparação` na aula repete a `condicoesPreliminares` do plano
 («Sala com barra, espelho e aparelho de som; piso adequado.»). É a mesma frase nos dois documentos.
 
+**Correção de 01/11/2026 — o título dizia outra coisa, e agora di-lo.** O título da secção era
+`## 2. Condições preliminares de preparação (força e flexibilidade)` e o corpo sempre veio do campo
+«Condições do espaço». Duas frases sobre coisas diferentes no mesmo sítio, e a que se lê primeiro é
+a do parêntese: a pesquisadora, a ler a Aula 01 do ciclo da `batata`, parou exactamente aí — «vê que
+esse valor não tem nada a ver com força e flexibilidade». Não tem, e a causa é de origem: o título
+nasceu da **Regra 4** («pré-requisitos de força e flexibilidade declarados e contados à parte do
+volume da aula») e o corpo nasceu do **campo** («o que a sala e o material precisam ter»). O título
+passou a dizer o que o corpo é — `(o espaço e o material)`.
+
+**E fica aberta a contradição, que não é de redação:** a Regra 4 pede uma lista de força e
+flexibilidade e **nenhum formulário a pergunta** — nem o do plano, nem o do PO. Ou a regra passa a
+falar do espaço e do material, ou nasce o campo que ela pede. Enquanto não se decidir, a aula não
+inventa a lista: dizer «força e flexibilidade» sobre uma frase que fala de espelho e piso é o
+defeito, e é o que esta correção retira.
+
 ### 2.6 O guia de observação diz `[Preencher]` onde o PO tem os itens
 
 A aula tem a secção `## 5. Guia de observação do professor` com quatro linhas —

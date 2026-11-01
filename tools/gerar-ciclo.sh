@@ -852,11 +852,17 @@ rodape_docs() {   # $1 = documento atual (o rodapé é o DELE, não a lista do c
       # A ordem é a do trabalho na aula: o que ela segue (plano), a leitura em notação, a
       # folha para levar para a sala e a entrega impressa daquela aula.
       itens=(plano notacao "captura-$atual")
-      [ -f "$PACOTE/$atual.pdf" ] && pdf="<a href=\"$atual.pdf\">PDF da aula</a>" ;;
+      # O PDF DA AULA VAI EXISTIR, E NÃO JÁ EXISTE (01/11/2026). Aqui testava-se o ARQUIVO
+      # (`[ -f "$PACOTE/$atual.pdf" ]`), e o PDF só se escreve muito mais abaixo — logo o teste
+      # media a geração ANTERIOR. Consequência medida: o pacote saído da Action (clone limpo,
+      # nada por trás) linkava «PDF do ciclo», e a mesma geração corrida duas vezes na bancada
+      # linkava «PDF da aula»; a geração seguinte voltava a inverter. A pergunta certa é «a fonte
+      # desta aula existe?», que é a mesma que o laço de PDFs faz antes de o escrever.
+      [ -f "$(src_do_doc "$atual")" ] && pdf="<a href=\"$atual.pdf\">PDF da aula</a>" ;;
     captura-aula-*)
       # A folha de captura é a da aula: volta para a leitura em prosa e para o PDF dela.
       itens=(plano "aula-${atual#captura-aula-}")
-      [ -f "$PACOTE/aula-${atual#captura-aula-}.pdf" ] \
+      [ -f "$(src_do_doc "aula-${atual#captura-aula-}")" ] \
         && pdf="<a href=\"aula-${atual#captura-aula-}.pdf\">PDF da aula</a>" ;;
     notacao)
       itens=(plano glossario-benesh) ;;
