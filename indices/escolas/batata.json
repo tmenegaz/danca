@@ -3,7 +3,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-31",
+        "ancorado_em": "2026-11-01",
         "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
         "cobertura": [
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
@@ -25,7 +25,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-31",
+        "ancorado_em": "2026-11-01",
         "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
         "cobertura": [
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
@@ -50,7 +50,7 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-10-31",
+            "ancorado_em": "2026-11-01",
             "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
             "cobertura": [
               "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
@@ -473,9 +473,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "fd6f67c"
+    "commit": "fb14ca3"
   },
-  "gerado_em": "2026-10-31T19:46",
+  "gerado_em": "2026-11-01T11:54",
   "nao_indexado": [
     {
       "familia": "conteudo",
