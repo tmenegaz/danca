@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "0afc463a8e398785f23e10eda52beccad7665178d924121b4fbedef06356cd07",
+        "hash": "4307138b0fc0cd9b4e3b4a0125749b53a6391a2c722009210f99d4f943ae43e3",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 12,
+      "aulas": 1,
+      "documentos": 13,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:pe-torto/01/breu",
@@ -100,7 +100,7 @@
       ],
       "contagens": {
         "anamneses": 2,
-        "aulas": 0,
+        "aulas": 1,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 1,
@@ -497,9 +497,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e963d38"
+    "commit": "07752f8"
   },
-  "gerado_em": "2026-11-01T20:33",
+  "gerado_em": "2026-11-01T20:34",
   "nao_indexado": [
     {
       "familia": "conteudo",

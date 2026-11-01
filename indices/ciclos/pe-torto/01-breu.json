@@ -4,18 +4,29 @@
     "ancorado_em": "2026-11-01",
     "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "cobertura": [
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
       "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
       "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
     ],
-    "hash": "0afc463a8e398785f23e10eda52beccad7665178d924121b4fbedef06356cd07",
-    "hash_conteudo": "76589d9a0a9b49d4b607084bb4f1490d661a4876f0d8f12f8570063f9ab70fcd",
+    "hash": "4307138b0fc0cd9b4e3b4a0125749b53a6391a2c722009210f99d4f943ae43e3",
+    "hash_conteudo": "b1b0c39c4b2a48b322de8fd99d215eb81d827054f74fd214793680c61e6db0d0",
     "id": "ciclo-01-breu-bale-nivel-1-teste-3",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:pe-torto/01/breu/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
     "documento:ancora:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "documento:aula:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
     "documento:aula:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
@@ -34,7 +45,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
@@ -87,9 +98,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e963d38"
+    "commit": "07752f8"
   },
-  "gerado_em": "2026-11-01T20:33",
+  "gerado_em": "2026-11-01T20:34",
   "id": "ciclo:pe-torto/01/breu",
   "professor": "pe-torto",
   "versao": 6

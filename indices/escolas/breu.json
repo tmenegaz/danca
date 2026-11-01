@@ -1,5 +1,26 @@
 {
-  "aulas": [],
+  "aulas": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-01",
+        "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
+        "cobertura": [
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md"
+        ],
+        "hash": "4e6c5909c462213e35e8719ab11ed4b26f23c3bf83f738fb27298262c257ce42",
+        "hash_conteudo": "ecdda0c26ac6d0400e161539a1e0e0fe9dab1187231134590e37c5e9e6325a28",
+        "id": "ciclo-01-breu-bale-nivel-1-teste-3-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:pe-torto/01/breu",
+      "documento": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+      "id": "ciclo:pe-torto/01/breu/aula-01",
+      "numero": "01"
+    }
+  ],
   "ciclos": [
     {
       "ancora": {
@@ -7,17 +28,46 @@
         "ancorado_em": "2026-11-01",
         "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
         "cobertura": [
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
           "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+          "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
           "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
         ],
-        "hash": "0afc463a8e398785f23e10eda52beccad7665178d924121b4fbedef06356cd07",
-        "hash_conteudo": "76589d9a0a9b49d4b607084bb4f1490d661a4876f0d8f12f8570063f9ab70fcd",
+        "hash": "4307138b0fc0cd9b4e3b4a0125749b53a6391a2c722009210f99d4f943ae43e3",
+        "hash_conteudo": "b1b0c39c4b2a48b322de8fd99d215eb81d827054f74fd214793680c61e6db0d0",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [],
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-11-01",
+            "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
+            "cobertura": [
+              "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+              "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md"
+            ],
+            "hash": "4e6c5909c462213e35e8719ab11ed4b26f23c3bf83f738fb27298262c257ce42",
+            "hash_conteudo": "ecdda0c26ac6d0400e161539a1e0e0fe9dab1187231134590e37c5e9e6325a28",
+            "id": "ciclo-01-breu-bale-nivel-1-teste-3-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+          "id": "ciclo:pe-torto/01/breu/aula-01",
+          "numero": "01"
+        }
+      ],
       "documentos": [
+        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
         "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
         "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
         "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
@@ -87,6 +137,15 @@
     }
   ],
   "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
+      "ciclo_id": "ciclo:pe-torto/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
+      "professor": "pe-torto",
+      "tipo": "ancora"
+    },
     {
       "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
@@ -230,7 +289,7 @@
     ],
     "contagens": {
       "anamneses": 2,
-      "aulas": 0,
+      "aulas": 1,
       "ciclos": 2,
       "ciclos_com_ancora": 2,
       "planos": 1,
@@ -343,9 +402,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e963d38"
+    "commit": "07752f8"
   },
-  "gerado_em": "2026-11-01T20:33",
+  "gerado_em": "2026-11-01T20:34",
   "nao_indexado": [
     {
       "familia": "conteudo",
