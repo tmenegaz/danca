@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-31T20:52:22-0300`
-Commit atual: `c3f0fb1` — fix(estrutura): o plano diz por que um termo da turma não aparece
+Gerado em: `2026-10-31T21:51:12-0300`
+Commit atual: `885ea96` — feat(estrutura): os tempos e o compasso vêm do verbete, e não se perguntam duas vezes
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,8 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+885ea96 feat(estrutura): os tempos e o compasso vêm do verbete, e não se perguntam duas vezes
+621a4f3 docs(registro): a fotografia do conteúdo órfão que o plano passou a acusar
 c3f0fb1 fix(estrutura): o plano diz por que um termo da turma não aparece
 e12ad94 feat(notacao): declarar «Battement fondu» (2|4/4) no alfabeto bale-classico
 56470a8 chore(notacao): renovar o selo da âncora para a versão 7 do alfabeto
@@ -98,8 +100,6 @@ fd6f67c docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 db811d5 docs(registro): actualizar a fotografia após a definição no campo
 612c49b docs(registro): a definição do exercício no campo, e o «lê-se» abaixo
 7be42cb feat(estrutura): «o que acontece» recebe a definição do exercício, e o «lê-se» desce
-73f5330 feat(notacao): declarar «Rond de jambe en l’air» (4|2/4) no alfabeto bale-classico
-32ab5d1 docs(registro): regenerar o HANDOFF após a fotografia de 29/10/2026
 ```
 
 ## Por professor
@@ -199,73 +199,75 @@ db811d5 docs(registro): actualizar a fotografia após a definição no campo
 
 ## Última entrada do REGISTRO
 
-## 31/10/2026 — O plano diz por que um termo da turma não aparece
+## 31/10/2026 — Os tempos e o compasso vêm do verbete, e não se perguntam duas vezes
 
-**O que motivou.** Ela criou exercícios no verbete (dégagé, fondu, tendu, plié, port de bras, rond de
-jambe, rond de jambe en l'air), associou quatro à turma **Balé Nível 3 — Teste 2** e foi ao plano de
-ensino: «só está aparecendo o Jeté e o Arabesque… eu criei vários outros e eles não aparecem aqui. E
-precisa aparecer.» O dado estava certo e a tela estava calada — havia **duas** causas, e nenhuma delas
-era visível.
+**O que motivou.** Ela chegou ao nó «Sequência de exercícios por bloco», no plano do **Nível 3**, com o
+**Battement fondu** — que tinha acabado de escrever no verbete, com a música `2|4/4` — e os campos
+**Tempos** e **Compasso** estavam **vazios**. «A gente tinha conversado, a gente fez um plano a respeito
+disso… e não veio preenchido o Battement fondu.» O documento publicado diria, naquela linha, que os
+tempos e o compasso ainda não estavam declarados no plano.
 
-**Causa 1 — os parâmetros são o conteúdo da turma DO PLANO, não o vocabulário.** O «Parâmetro de
-medição» lê a relação turma↔conteúdo da turma escolhida em «Turmas observadas». Os planos que existem
-são do **Nível 1** e do **Nível 2**; o que ela associou foi ao **Nível 3**. Um termo criado no verbete
-entra no vocabulário, mas só chega ao plano depois de **associado a uma turma** — e o plano tem de
-apontar para essa turma. Não é um defeito: é o que faz a medição falar a mesma língua do que se ensina
-(decisão 17). O que faltava era a tela dizê-lo: agora diz de que turma vêm os parâmetros e **quantos
-termos estão associados** — «3 termos associados» ao lado de duas linhas explica o número.
+**O defeito não era o dado.** O plano contribui com **duas** coisas para a notação — os tempos e o
+compasso —, e juntas são a **chave do verbete** (`<tempos>|<compasso>`). O verbete **já a declara**.
+Pedi-la outra vez, em campos vazios, é a mesma redundância que se tirou da tabela de decomposição a
+30/10/2026, um andar acima: o professor a escrever o que o sistema já sabe. O plano deixa de
+**perguntar** o que o verbete já **respondeu**; passa a **selecionar**, quando há mais do que uma.
 
-**Causa 2 — um id que não resolve era descartado em silêncio.** A relação é chaveada por id, e o
-vocabulário mudou de casa a 28/10/2026: as associações antigas apontam para a lista que vivia no KV da
-escola. A relação das três turmas da `batata` guarda **`rond-de-jambe`**, que nunca existiu no ficheiro
-— o termo é «Rond de jambe à terre», id `rond-de-jambe-a-terre`. Um `filter(Boolean)` escondia-o, e os
-dois que sobravam **pareciam a lista inteira**. É a mesma família do `if` que filtrava o título vazio:
-«está aqui?» não é «existe?».
+**O que mudou — três casos, e um deles é o de antes.**
+- **Uma música declarada** → os dois campos vêm preenchidos e **travados** (como o Bloco e o Objetivo,
+  que também vêm do sistema), com o valor num campo escondido, e o que fica **gravado** é esse par —
+  sem um clique.
+- **Várias músicas** (o Battement tendu tem três: `4`, `8` e `12` tempos, todas em `4/4`) → os dois
+  viram **escolha**, e só as músicas **declaradas** se oferecem: «8 tempos» não pode conviver com
+  «6/8», porque essa música não existe no alfabeto. A linha leva os pares declarados e o compasso
+  acompanha os tempos quando um deles muda.
+- **Sem verbete** (Arabesque e Jeté, hoje) → fica **como era**: tempos à mão e o compasso dos oito. Não
+  há o que derivar, e derivar seria inventar.
 
-**O que mudou.**
-- `conteudoDaTurma(turmaId)` devolve `{termos, orfaos, turma}` em vez de uma lista já filtrada. Os
-  órfãos levam os **candidatos** — os ids do vocabulário que começam pelo id perdido —, para a tela
-  poder nomear o termo que mudou de nome sem o escolher por ninguém.
-- As duas disposições da matriz (`porMarcoDoNo`, `porParametrosDoNo`) mostram um **aviso de alerta**
-  com quantos são, quais são, os candidatos, a turma, e onde se corrige (Produção → Turmas → passo
-  Associar).
-- A **origem** fica à vista: «Os parâmetros vêm do conteúdo do nível de «Balé Nível 2 — Teste 2» — 3
-  termos associados.»
-- Sem conteúdo nenhum, a mensagem distingue os dois casos — «a turma ainda não tem conteúdo
-  declarado» e «há conteúdo associado que já não existe». Antes, o segundo caía no primeiro e mentia.
+**E a origem fica à vista.** Uma nota em cima da tabela diz que os tempos e o compasso vêm do verbete
+do exercício, e que **é o verbete que se altera** para os mudar. Um campo travado sem explicação lê-se
+como defeito; e um professor que queira outros tempos tem de saber que o sítio é o verbete, em Produção,
+e não o plano — senão procura um campo que não existe.
 
-**O que NÃO se fez, de propósito.** O id órfão **não** é corrigido automaticamente. Havia dois
-candidatos (`à terre` e `en l'air`), e escolher um seria decidir o que se mede. A tela mostra os dois;
-quem escolhe é quem ensina.
+**A fonte é o alfabeto, não uma lista paralela.** `musicasDosExercicios()` lê o `notacao.json` (que vai
+empacotado no Worker, **zero KV**) e a rota `/api/bastidores/termos` passou a devolver `musicas` por
+termo. A derivação custa uma leitura de ficheiro que já se fazia. Se a regra vivesse escrita na tela
+(um `switch` por nome de exercício), continuaria a preencher com a rota muda — e é isso que o **controle
+negativo** da prova impede.
+
+**Uma prova do CRUD deixou de depender do dado real.** `provar-verbete.js` criava o «Battement fondu» do
+zero e passou a receber **409**, com razão, no dia em que ele passou a existir a sério. Ganhou **fixture
+própria**, com o nome de fora: uma prova que se estraga porque se criou um exercício em Produção mede o
+dado, não o mecanismo.
 
 **Onde entrou.**
-- `porta/index.html` — `conteudoDaTurma`, `avisoDeConteudoOrfao`, a origem na matriz, e as duas
-  mensagens de «sem conteúdo» separadas.
-- `experimentos/provar-parametros-por-parametro.js` — **14 → 21 asserções**: a secção 7 mede o órfão
-  (aviso, candidato, destino, turma, contagem) e tem **controle negativo** (sem órfãos, sem aviso).
-- Os dois pacotes regenerados (a porta é copiada para `plano-observacao/`), e o selo da âncora
-  renovado para a **versão 8** do alfabeto.
+- `motor/servidor/bastidores.js` — `musicasDosExercicios()` e o campo `musicas` em `/api/bastidores/termos`.
+- `porta/index.html` — `MUSICAS_DO_TERMO`, `COLUNAS_DA_MUSICA`, `musicasDoExercicio`,
+  `ajustarCompassoDaMusica`, as duas colunas derivadas na grelha e a nota de origem.
+- `experimentos/provar-musica-no-plano.js` — **18 asserções, 0 falhas** (nova). A secção 6 é o
+  **controle negativo**: sem o campo na rota, o fondu volta a ser campo livre e não há nota.
+- `experimentos/provar-verbete.js` — fixture própria para a escrita.
+- Os dois pacotes regenerados; a cópia do scaffold `ciclo-01-batata` pelo mesmo processo do
+  `gerar-ciclo.sh` — corpo novo, barra daquele pacote preservada.
 
-**Medido com o dado real, na bancada local.** Com a relação que está ao vivo na `batata`: o Nível 1 e o
-Nível 2 mostram **Arabesque e Jeté** e acusam «`rond-de-jambe`»; o Nível 3 mostra **Arabesque, Jeté e
-Battement fondu** e acusa o mesmo. É exactamente o que ela vê, com a razão escrita ao lado.
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. A âncora **não**
+precisou de renovação: esta entrega **lê** o alfabeto, não o escreve, e o `hash` fica o mesmo.
 
-**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. O pacote
-`ciclo-01-batata` é scaffold (DOCS vazio) e o gerador recusa corrê-lo: a cópia da porta lá dentro foi
-actualizada pelo mesmo processo do `gerar-ciclo.sh` — corpo novo, barra daquele pacote preservada.
+**Validação.** `provar-musica-no-plano.js` → **18/0**. `provar-celula.js` → **106/0**.
+`provar-verbete.js` → verde. `provar-parametros-por-parametro.js` → **21/0**.
+`provar-plano-da-turma.js` → **46/0**. `provar-porta-sem-contexto.js` → **44/0**.
+`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
+íntegro, `3601081…`. **Não executado**: `provar-plano-completo.js` e `provar-plano-matriz.js` — falham
+**antes desta entrega**, confirmado por `git stash`.
 
-**Validação.**
-`provar-parametros-por-parametro.js` → **21, 0 falhas**. `provar-plano-da-turma.js` → **46/0**.
-`provar-porta-sem-contexto.js` → **44/0**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0
-erro**. `hash-ciclo.sh --check` → íntegro, `3601081…`. **Não executado**: `provar-plano-completo.js`
-e `provar-plano-matriz.js` — falham **antes desta entrega** (o nó `aula-de-cada-objetivo` sem destino
-declarado na prova, e `/api/mapa`), confirmado por `git stash` sobre `porta/index.html`.
-
-**O que fica em aberto, e é dela.**
-- **Corrigir a associação**: a relação das três turmas guarda um id que não existe. Em Produção →
-  Turmas → Associar, remover «rond-de-jambe» e associar «Rond de jambe à terre».
-- **Escolher a turma certa no plano**: os planos existentes são do Nível 1 e do Nível 2; o Nível 3 não
-  tem plano. Ou se planeia o Nível 3, ou se associam os termos que ela quer ao nível do plano que usa.
+**O que continua em aberto, e é dela.**
+- **O escopo B**: a `Posição`, a `Direção`, a `Orientação` e o `Lado` também são leitura do verbete. Hoje
+  o motor lê a posição e a direção **do verbete**, não do plano — e mexer nessas colunas mudaria o que
+  o documento publica. Fica para depois de ver esta.
+- **Arabesque e Jeté não têm verbete**: nenhuma linha deles compõe. Enquanto não houver verbete, os dois
+  campos ficam à mão, que é o comportamento correcto.
+- Corrigir a associação das turmas (`rond-de-jambe`) e escolher a turma do plano — como no lançamento
+  anterior.
 
 ## O que está pendente
 

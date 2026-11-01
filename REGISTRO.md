@@ -28737,3 +28737,73 @@ declarado na prova, e `/api/mapa`), confirmado por `git stash` sobre `porta/inde
   Turmas → Associar, remover «rond-de-jambe» e associar «Rond de jambe à terre».
 - **Escolher a turma certa no plano**: os planos existentes são do Nível 1 e do Nível 2; o Nível 3 não
   tem plano. Ou se planeia o Nível 3, ou se associam os termos que ela quer ao nível do plano que usa.
+
+## 31/10/2026 — Os tempos e o compasso vêm do verbete, e não se perguntam duas vezes
+
+**O que motivou.** Ela chegou ao nó «Sequência de exercícios por bloco», no plano do **Nível 3**, com o
+**Battement fondu** — que tinha acabado de escrever no verbete, com a música `2|4/4` — e os campos
+**Tempos** e **Compasso** estavam **vazios**. «A gente tinha conversado, a gente fez um plano a respeito
+disso… e não veio preenchido o Battement fondu.» O documento publicado diria, naquela linha, que os
+tempos e o compasso ainda não estavam declarados no plano.
+
+**O defeito não era o dado.** O plano contribui com **duas** coisas para a notação — os tempos e o
+compasso —, e juntas são a **chave do verbete** (`<tempos>|<compasso>`). O verbete **já a declara**.
+Pedi-la outra vez, em campos vazios, é a mesma redundância que se tirou da tabela de decomposição a
+30/10/2026, um andar acima: o professor a escrever o que o sistema já sabe. O plano deixa de
+**perguntar** o que o verbete já **respondeu**; passa a **selecionar**, quando há mais do que uma.
+
+**O que mudou — três casos, e um deles é o de antes.**
+- **Uma música declarada** → os dois campos vêm preenchidos e **travados** (como o Bloco e o Objetivo,
+  que também vêm do sistema), com o valor num campo escondido, e o que fica **gravado** é esse par —
+  sem um clique.
+- **Várias músicas** (o Battement tendu tem três: `4`, `8` e `12` tempos, todas em `4/4`) → os dois
+  viram **escolha**, e só as músicas **declaradas** se oferecem: «8 tempos» não pode conviver com
+  «6/8», porque essa música não existe no alfabeto. A linha leva os pares declarados e o compasso
+  acompanha os tempos quando um deles muda.
+- **Sem verbete** (Arabesque e Jeté, hoje) → fica **como era**: tempos à mão e o compasso dos oito. Não
+  há o que derivar, e derivar seria inventar.
+
+**E a origem fica à vista.** Uma nota em cima da tabela diz que os tempos e o compasso vêm do verbete
+do exercício, e que **é o verbete que se altera** para os mudar. Um campo travado sem explicação lê-se
+como defeito; e um professor que queira outros tempos tem de saber que o sítio é o verbete, em Produção,
+e não o plano — senão procura um campo que não existe.
+
+**A fonte é o alfabeto, não uma lista paralela.** `musicasDosExercicios()` lê o `notacao.json` (que vai
+empacotado no Worker, **zero KV**) e a rota `/api/bastidores/termos` passou a devolver `musicas` por
+termo. A derivação custa uma leitura de ficheiro que já se fazia. Se a regra vivesse escrita na tela
+(um `switch` por nome de exercício), continuaria a preencher com a rota muda — e é isso que o **controle
+negativo** da prova impede.
+
+**Uma prova do CRUD deixou de depender do dado real.** `provar-verbete.js` criava o «Battement fondu» do
+zero e passou a receber **409**, com razão, no dia em que ele passou a existir a sério. Ganhou **fixture
+própria**, com o nome de fora: uma prova que se estraga porque se criou um exercício em Produção mede o
+dado, não o mecanismo.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — `musicasDosExercicios()` e o campo `musicas` em `/api/bastidores/termos`.
+- `porta/index.html` — `MUSICAS_DO_TERMO`, `COLUNAS_DA_MUSICA`, `musicasDoExercicio`,
+  `ajustarCompassoDaMusica`, as duas colunas derivadas na grelha e a nota de origem.
+- `experimentos/provar-musica-no-plano.js` — **18 asserções, 0 falhas** (nova). A secção 6 é o
+  **controle negativo**: sem o campo na rota, o fondu volta a ser campo livre e não há nota.
+- `experimentos/provar-verbete.js` — fixture própria para a escrita.
+- Os dois pacotes regenerados; a cópia do scaffold `ciclo-01-batata` pelo mesmo processo do
+  `gerar-ciclo.sh` — corpo novo, barra daquele pacote preservada.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. A âncora **não**
+precisou de renovação: esta entrega **lê** o alfabeto, não o escreve, e o `hash` fica o mesmo.
+
+**Validação.** `provar-musica-no-plano.js` → **18/0**. `provar-celula.js` → **106/0**.
+`provar-verbete.js` → verde. `provar-parametros-por-parametro.js` → **21/0**.
+`provar-plano-da-turma.js` → **46/0**. `provar-porta-sem-contexto.js` → **44/0**.
+`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
+íntegro, `3601081…`. **Não executado**: `provar-plano-completo.js` e `provar-plano-matriz.js` — falham
+**antes desta entrega**, confirmado por `git stash`.
+
+**O que continua em aberto, e é dela.**
+- **O escopo B**: a `Posição`, a `Direção`, a `Orientação` e o `Lado` também são leitura do verbete. Hoje
+  o motor lê a posição e a direção **do verbete**, não do plano — e mexer nessas colunas mudaria o que
+  o documento publica. Fica para depois de ver esta.
+- **Arabesque e Jeté não têm verbete**: nenhuma linha deles compõe. Enquanto não houver verbete, os dois
+  campos ficam à mão, que é o comportamento correcto.
+- Corrigir a associação das turmas (`rond-de-jambe`) e escolher a turma do plano — como no lançamento
+  anterior.

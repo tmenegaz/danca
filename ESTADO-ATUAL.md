@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 31/10/2026 (base local `c3f0fb1`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6).
+> **Última fotografia:** 31/10/2026 (base local `885ea96`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -339,6 +339,17 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     as direções, o compasso, em quantas músicas está escrito e quantos trechos tem — tudo lido do
     alfabeto, sem um segundo dado a manter. A chave crua da música («4|4/4») deixa de se mostrar.
     **DECIDIDO** 31/10/2026.
+28. **OS TEMPOS E O COMPASSO DO PLANO VÊM DO VERBETE.** Juntos são a **chave do verbete**
+    (`<tempos>|<compasso>`); o plano contribui exactamente com esses dois campos para a notação, e
+    perguntá-los outra vez é pedir ao professor o que o sistema já sabe. Com **uma** música declarada,
+    os dois vêm preenchidos e **travados** (como o Bloco e o Objetivo), e é esse par que fica gravado;
+    com **várias**, são escolha, e **só as músicas declaradas se oferecem** — «8 tempos» não convive
+    com «6/8»; **sem verbete**, ficam à mão (Arabesque e Jeté hoje), porque não há o que derivar e
+    derivar seria inventar. A fonte é o **alfabeto**, lido do `notacao.json` que já viaja no Worker —
+    **zero KV** —, não uma lista paralela na tela; e a tela diz de onde vêm e que **é o verbete que se
+    altera**. **DECIDIDO** 31/10/2026. **As outras três colunas** (`Posição`, `Direção`,
+    `Orientação`/`Lado`) ficam **PENDENTES**: hoje o motor lê-as do verbete, não do plano, e mexer
+    nelas muda o que o documento publica.
 
 ## 7. Trabalho em andamento
 
@@ -347,8 +358,13 @@ Há **dois** trabalhos em andamento. O primeiro é de código e é a **Fase 1** 
 escreveu; o verbete ganhou posição, direção e lado; o CRUD está na Produção; o exercício é escolhido
 de uma lista e o «+» cria-o no vocabulário do repositório; o formulário tem **dois modos** e a
 **direção é derivada** da célula; e o **editor de célula** já cria a decomposição que faltava — sem
-ele, «Gravar verbete» recusava criar o que não existisse (eram 55 exercícios para 4 verbetes). Falta
-as **seleções no plano** (§1.6). O **bloco por pílulas** deixou de faltar: desde `9b318fe` não há
+ele, «Gravar verbete» recusava criar o que não existisse (eram 55 exercícios para 4 verbetes). Das
+**seleções no plano** (§1.6) ficou feita a primeira, e é a que se via: os **tempos e o compasso** do
+«Sequência de exercícios por bloco» deixaram de ser perguntados — vêm do verbete, travados quando ele
+declara uma música só e em escolha quando declara várias —, porque juntos são a **chave do verbete** e
+pedi-los outra vez era a mesma redundância da quarta coluna. As outras três (`Posição`, `Direção`,
+`Orientação`/`Lado`) continuam por fazer: hoje o motor lê-as do **verbete**, não do plano, e mexer
+nelas muda o que o documento publica. Falta ainda a decisão dela sobre essa fronteira. O **bloco por pílulas** deixou de faltar: desde `9b318fe` não há
 nenhuma lista suspensa no trecho, e a notação compõe-se de cliques. E a **arrumação do formulário**
 deixou de estar em aberto: ela viu as duas bancadas e escolheu **os passos** — «o Step, apesar de ter
 mais cliques, ele é mais fácil de entender» —, e o formulário passou a **seis passos, um de cada vez**,
@@ -361,8 +377,9 @@ de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. E
 **expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
 vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 31/10/2026 — `d7e71ff` (o verbete em seis passos, com o modo de edição)
-no `main` local, com `ccbc8d0` (o registo anterior) por trás. A base anterior: `b641acc` (o «lê-se»
+**Último ponto confirmado:** 31/10/2026 — `885ea96` (os tempos e o compasso vêm do verbete), com
+`621a4f3` (o registo anterior) por trás. Antes dele, `d7e71ff` (o verbete em seis passos, com o modo
+de edição) e `c3f0fb1` (o plano diz por que um termo da turma não aparece). A base anterior: `b641acc` (o «lê-se»
 dentro do campo e a quarta coluna fora), `48f43e2` (as definições no vocabulário), `9fb09dc` (a folha,
 com motivo declarado), `4f4795a` (os dois modos, a direção derivada e o editor de célula). O
 `GET /api/bastidores/termos` ao ar respondeu **200** com **87 termos** em 28/10/2026, 12 deles com
@@ -473,7 +490,24 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (31/10/2026 — o plano acusa o termo que não existe)
+### Executado nesta fotografia (31/10/2026 — os tempos e o compasso vêm do verbete)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-musica-no-plano.js` | **18 asserções, 0 falhas** (nova) — jsdom, com o conteúdo e o alfabeto **de verdade**; a secção 6 é o **controle negativo** |
+| …o que ela mede | uma música → `2` e `4/4` **travados** e já na resposta gravada; três músicas → dois `select` com só `4`/`8`/`12` e `4/4`, e `data-musicas` na linha; sem verbete → texto livre e os oito compassos; a nota diz a origem e onde se corrige; **sem o campo na rota, nada é derivado** |
+| `node experimentos/provar-celula.js` | **106 asserções, 0 falhas** |
+| `node experimentos/provar-verbete.js` | verde — o CRUD valida, grava no repositório e recusa apagar (fixture própria desde hoje: criava o «Battement fondu» do zero e recebia 409 agora que ele existe) |
+| `node experimentos/provar-parametros-por-parametro.js` | **21 asserções, 0 falhas** |
+| `node experimentos/provar-plano-da-turma.js` | **46 provas, 0 falhas** |
+| `node experimentos/provar-porta-sem-contexto.js` | **44 asserções, 0 falhas** |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-pacote.js professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; **`3601081…`**; **sem renovação** — esta entrega lê o alfabeto, não o escreve |
+| **não executado** | `provar-plano-completo.js` e `provar-plano-matriz.js` falham **antes desta entrega** (o nó `aula-de-cada-objetivo` sem destino na prova, e `/api/mapa`) — confirmado por `git stash` |
+| **ao ar** | não recarregado nesta entrega, de propósito: a cota do KV. Uma carga no fim, quando o push estiver publicado |
+
+### Executado na fotografia anterior (31/10/2026 — o plano acusa o termo que não existe)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -742,6 +776,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **31/10/2026** — **Os tempos e o compasso vêm do verbete.** Ela abriu o nó «Sequência de exercícios
+  por bloco», no plano do Nível 3, e o **Battement fondu** — escrito no verbete, com a música `2|4/4` —
+  estava com **Tempos** e **Compasso** vazios. O defeito não era o dado: o plano contribui com duas
+  coisas para a notação, e juntas são a **chave do verbete** (`<tempos>|<compasso>`), que o verbete já
+  declara. Agora, com **uma** música os dois campos vêm preenchidos e **travados** (o par viaja escondido
+  e é o que fica gravado); com **várias** (o Battement tendu tem três) são escolha, e só as declaradas se
+  oferecem; **sem verbete** (Arabesque, Jeté) fica como era. Uma nota diz de onde vêm e que é o **verbete
+  que se altera**. A fonte é o **alfabeto**, lido do `notacao.json` que já vai no Worker — **zero KV** —,
+  e o **controle negativo** da prova garante que a regra não está escrita na tela. **CONFIRMADO**:
+  `provar-musica-no-plano.js` **18/0** (nova), `provar-celula` 106/0, `provar-parametros-por-parametro`
+  21/0, `provar-plano-da-turma` 46/0, `provar-porta-sem-contexto` 44/0, `check-identidade` 20/20,
+  `check-pacote` 0 erro, âncora **sem renovação** (esta entrega lê o alfabeto, não o escreve). A prova do
+  CRUD do verbete ganhou **fixture própria**: criava o «Battement fondu» do zero e passou a receber 409
+  no dia em que ele existe a sério. Publicado em `885ea96`.
 
 - **31/10/2026** — **O plano diz por que um termo da turma não aparece.** Ela criou sete verbetes,
   associou quatro à turma **Balé Nível 3 — Teste 2** e no plano só viu **Jeté e Arabesque**. Duas
