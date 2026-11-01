@@ -46,6 +46,39 @@ function emLista(valor) {
     .filter((v) => v !== '');
 }
 
+/**
+ * OS ITENS DE UMA DIMENSÃO — o `;` TAMBÉM SEPARA (01/11/2026).
+ *
+ * DEFEITO MEDIDO, e é o que faz a folha mentir. O `emLista` corta por LINHA e trata o `;` como
+ * pontuação final — o que está certo para uma lista de prosa. Mas o campo «Itens observados» é
+ * preenchido em linha corrida («alinhamento do pé de apoio; eixo do corpo na preparação»), e a
+ * resposta da `batata` está exactamente assim. O efeito, medido na folha publicada:
+ *
+ *   o PO declara 4 dimensões × 2 itens = 8 itens
+ *   a folha de captura sai com 4 COLUNAS, cada uma com dois critérios no cabeçalho
+ *     «alinhamento do pé de apoio; eixo do corpo na preparação»
+ *
+ * O professor dá UM nível de rubrica a DOIS critérios que ele declarou separados, e nunca
+ * consegue dizer «o eixo está bem, o pé não» — que é precisamente a distinção que ele escreveu.
+ * E a unidade de tudo o resto depende disto: uma janela de itens sobre colunas que já agregam
+ * dois itens é uma janela de gavetas.
+ *
+ * A CORRECÇÃO É AQUI, E NÃO NO `emLista`: o `;` é pontuação legítima numa frase de lista (o
+ * `referencias`, por exemplo), e alargar a regra geral para todos os campos mudaria o sentido
+ * de respostas que estão certas. O que separa itens é uma pergunta do CAMPO, não do formato.
+ */
+function itensDaDimensao(valor) {
+  if (valor === null || valor === undefined || valor === '') return [];
+  if (Array.isArray(valor)) {
+    return valor.map(String).map((v) => v.trim()).filter((v) => v !== '')
+      .reduce((todos, v) => todos.concat(itensDaDimensao(v)), []);
+  }
+  return String(valor)
+    .split(/[\n;]+/)
+    .map((v) => v.replace(/^[-*]\s+/, '').trim())
+    .filter((v) => v !== '');
+}
+
 // A COMPOSIÇÃO DOS VALORES ESTRUTURADOS — o formulário grava o NÚMERO + a UNIDADE como
 // objeto (`{vezes, por, dias}`, `{min, max, unidade}`, `{numero, unidade}` ou `{inicio, fim}`),
 // e quem lê o envelope compõe o texto. Nada aqui inventa: o que veio vazio sai como `null`.
@@ -376,7 +409,8 @@ function itensPorDimensao(valor, dimensoes) {
   for (const r of (Array.isArray(valor) ? valor : [])) {
     if (!r || typeof r !== 'object') continue;
     const dim = String(r.sujeito || r.dimensao || '').trim();
-    if (dim) porDimensao.set(dim, emLista(r.itens));
+    // `itensDaDimensao` e não `emLista`: é ele que aceita o `;` (ver o comentário da função).
+    if (dim) porDimensao.set(dim, itensDaDimensao(r.itens));
   }
   if (!porDimensao.size && typeof valor === 'string') {
     for (const linha of String(valor).split(/\n+/)) {
@@ -584,6 +618,7 @@ module.exports = {
   condicaoDeRegistroEmTexto,
   respostaDo,
   emLista,
+  itensDaDimensao,
   itensPorDimensao,
   textoOuLacuna,
   rotulosDoChecklist,

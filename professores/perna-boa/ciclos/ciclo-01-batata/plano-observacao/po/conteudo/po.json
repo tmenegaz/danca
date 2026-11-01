@@ -217,8 +217,8 @@
           ],
           "explicacao": {
             "oQueE": "O que exatamente você marca, por aluno, em cada dimensão — um item por linha.",
-            "preencher": "Uma repetição aparece para cada dimensão que veio do plano; escreva os itens dela. Ex. (Técnica — Solo): «alinhamento dos metatarsos», «saída do calcanhar».",
-            "porQue": "É o que vira a coluna da folha de captura. Observável é o que outra pessoa também veria."
+            "preencher": "Uma repetição aparece para cada dimensão que veio do plano; escreva os itens dela, um por linha ou separados por ponto e vírgula (;). Ex. (Técnica — Solo): «alinhamento do pé de apoio; eixo do corpo na preparação» são DOIS itens, e cada um vira uma coluna da folha.",
+            "porQue": "É o que vira a coluna da folha de captura — uma coluna por critério, porque cada um se mede sozinho. Observável é o que outra pessoa também veria."
           }
         }
       ]

@@ -385,6 +385,32 @@ function sequenciaEmLinhas(valor) {
   return linhas;
 }
 
+/* A MÚSICA QUE A SEQUÊNCIA JÁ DECLARA — exercício por exercício, sem repetir.
+ *
+ * A fonte é a coluna derivada da sequência («Conteúdo do nível») e as duas colunas da música
+ * («Tempos» e «Compasso»), que vêm do VERBETE do exercício. Um exercício sem verbete sai dito
+ * por palavras: a ausência é do dado, e um documento que a esconde mente por omissão.
+ */
+function musicasDaSequencia(valor) {
+  const objetos = Array.isArray(valor)
+    ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
+    : [];
+  const vistos = [];
+  const linhas = [];
+  for (const l of objetos) {
+    const nome = String(l['Conteúdo do nível'] || l['Conteúdo'] || '').trim();
+    if (!nome || vistos.indexOf(nome) !== -1) continue;
+    vistos.push(nome);
+    const tempos = String(l['Tempos'] || l['Tempo'] || '').trim();
+    const compasso = String(l['Compasso'] || '').trim();
+    const medida = tempos && compasso
+      ? tempos + ' tempos em ' + compasso
+      : (tempos || compasso);
+    linhas.push(nome + ' — ' + (medida || 'tempos e compasso por declarar no verbete'));
+  }
+  return linhas;
+}
+
 /* AS LINHAS DE UMA TABELA — a forma nova é o OBJETO `{unidade, linhas}` (a grelha com a
  * unidade da proporção, que é da TABELA e não de cada linha), a antiga é o ARRAY de linhas.
  * Quem lê a tabela (a derivação do plano, a da aula) passa por aqui e não precisa saber. */
@@ -663,11 +689,22 @@ function derivarPlano(envelope) {
   saida.push('> declarado aqui for outro, é este que vale.');
   saida.push('');
 
-  // MÚSICA e REPERTÓRIO (Bloco 10 do formulário, «Música e repertório»): dois nós respondíveis
-  // que não tinham SEÇÃO nenhuma — e por isso não chegavam a documento algum, nem ao `.md`. A
-  // música é parte do dado (o mesmo exercício em 3/4 e em 4/4 não é o mesmo dado) e o repertório
-  // declara a origem do movimento; ambos são listas («um por linha»), como o conteúdo os pede.
-  lista('Músicas e vídeos', respostaDo(envelope, 'musicas-videos'));
+  /* MÚSICA e REPERTÓRIO (Bloco 10 do formulário, «Música e repertório»): dois nós que não
+   * tinham SEÇÃO nenhuma — e por isso não chegavam a documento algum, nem ao `.md`.
+   *
+   * A MÚSICA NÃO SE ESCREVE, ELA SOBE (01/11/2026). O nó pedia «um por linha: título e, se
+   * quiser, a faixa ou o compasso», e o compasso de cada exercício já estava no VERBETE e os
+   * exercícios da aula já estavam na SEQUÊNCIA, uma tela acima. O professor redigitava o que já
+   * tinha decidido, e as duas versões podiam discordar sem que nada falhasse. O documento passa
+   * a imprimir a música da sequência (exercício por exercício) e, depois dela, o que o professor
+   * escreveu no campo — que hoje é o VÍDEO de referência. Um plano antigo, escrito à mão, passa
+   * como veio: o que está no envelope não se reescreve.
+   *
+   * O REPERTÓRIO também é lido, não escrito: o nó dele é `somenteLeitura` e a tela o semeia com
+   * os exercícios da sequência. A chave do envelope continua a ser `repertorio`, e é por isso
+   * que esta linha não mudou — o que mudou foi quem a preenche. */
+  lista('Músicas e vídeos', musicasDaSequencia(respostaDo(envelope, 'aula-1-sequencia'))
+    .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
   lista('Repertório', respostaDo(envelope, 'repertorio'));
 
   // Registro de proveniência — required. A origem é MARCADA (as metodologias e o que foi

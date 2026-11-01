@@ -560,34 +560,10 @@
             }
           ]
         },
-        "aula-1-sequencia": [
-          {
-            "Bloco": "Solo",
-            "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
-            "Conteúdo do nível": "Plié",
-            "Tempos": "8",
-            "Compasso": "4/4"
-          },
-          {
-            "Bloco": "Barra",
-            "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-            "Conteúdo do nível": "Battement tendu",
-            "Tempos": "8",
-            "Compasso": "4/4"
-          },
-          {
-            "Bloco": "Centro",
-            "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-            "Conteúdo do nível": "Port de bras",
-            "Tempos": "16",
-            "Compasso": "3/4"
-          }
-        ],
         "condicoes-preliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
         "criterio-de-extensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
-        "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
-        "repertorio": "Sequência de teste com plié, tendu e port de bras.",
+        "musicas-videos": "https://www.youtube.com/watch?v=teste-nivel-1 — barra, exercício de referência (teste).",
         "proveniencia": [
           "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
           "Plano derivado de literatura de apoio sobre corpo e aula"
@@ -693,34 +669,10 @@
             }
           ]
         },
-        "aula-1-sequencia": [
-          {
-            "Bloco": "Solo",
-            "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
-            "Conteúdo do nível": "Plié",
-            "Tempos": "8",
-            "Compasso": "4/4"
-          },
-          {
-            "Bloco": "Barra",
-            "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-            "Conteúdo do nível": "Battement tendu",
-            "Tempos": "8",
-            "Compasso": "4/4"
-          },
-          {
-            "Bloco": "Centro",
-            "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-            "Conteúdo do nível": "Port de bras",
-            "Tempos": "16",
-            "Compasso": "3/4"
-          }
-        ],
         "condicoes-preliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
         "criterio-de-extensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
-        "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
-        "repertorio": "Sequência de teste com plié, tendu e port de bras.",
+        "musicas-videos": "https://www.youtube.com/watch?v=teste-nivel-2 — centro, exercício de referência (teste).",
         "proveniencia": [
           "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
           "Plano derivado de literatura de apoio sobre corpo e aula"
@@ -826,34 +778,10 @@
             }
           ]
         },
-        "aula-1-sequencia": [
-          {
-            "Bloco": "Solo",
-            "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
-            "Conteúdo do nível": "Plié",
-            "Tempos": "8",
-            "Compasso": "4/4"
-          },
-          {
-            "Bloco": "Barra",
-            "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-            "Conteúdo do nível": "Battement tendu",
-            "Tempos": "8",
-            "Compasso": "4/4"
-          },
-          {
-            "Bloco": "Centro",
-            "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-            "Conteúdo do nível": "Port de bras",
-            "Tempos": "16",
-            "Compasso": "3/4"
-          }
-        ],
         "condicoes-preliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
         "criterio-de-extensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
-        "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
-        "repertorio": "Sequência de teste com plié, tendu e port de bras.",
+        "musicas-videos": "https://www.youtube.com/watch?v=teste-nivel-3 — diagonal, exercício de referência (teste).",
         "proveniencia": [
           "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
           "Plano derivado de literatura de apoio sobre corpo e aula"

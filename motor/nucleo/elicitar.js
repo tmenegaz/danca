@@ -198,6 +198,17 @@ function descritores(campo) {
     // O que a direção ATRIBUIU (a turma curada): o nó FILTRA a lista para o que é do
     // professor e pré-marca o que já foi designado.
     daCuradoria: campo.daCuradoria || null,
+    // O QUE A SEQUÊNCIA JÁ RESPONDE (01/11/2026). O nó mostra, só de leitura, o que a
+    // `aula-1-sequencia` já decidiu — as MÚSICAS de cada exercício (tempos e compasso, que
+    // vêm do verbete) ou os próprios EXERCÍCIOS (o repertório da aula). Nasceu de um defeito
+    // medido: o professor escrevia «faixa de teste em 4/4 e 3/4» numa caixa de texto livre,
+    // tendo o 4/4 declarado duas telas acima — e as duas versões podiam discordar sem que
+    // nada falhasse. É `{oQue, rotulo}`, e o `oQue` é do conteúdo.
+    derivadoDaSequencia: campo.derivadoDaSequencia || null,
+    // O NÓ QUE NÃO SE ESCREVE. Com esta chave não há campo nenhum: o nó mostra o que é
+    // derivado e o valor entra semeado (como as folhas derivadas), para o envelope e o
+    // índice não ficarem cegos ao que a aula usa.
+    somenteLeitura: campo.somenteLeitura === true,
     // A LISTA RECORTADA PELA TURMA DO PLANO (20/10/2026). O nó `sujeitos` do PO declara-o, e
     // sem esta linha a chave morria aqui: `descritores` é uma lista FECHADA, e o que não está
     // nela nunca chega ao mapa que a tela lê. Foi assim que a correcção do vazamento ficou

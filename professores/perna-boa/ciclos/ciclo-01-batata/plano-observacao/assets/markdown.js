@@ -29,6 +29,8 @@
   else raiz.Markdown = fabrica();
 })(typeof self !== 'undefined' ? self : this, function () {
   const MOLDURA = /^[┌│└]/;
+  /** A cerca de código: o que marca «isto é monoespaçado» quando não há desenho. */
+  const CERCA = /^ {0,3}```/;
 
   const REGRAS = {
     titulo: /^(#{1,6})\s+(.*?)\s*$/,
@@ -122,6 +124,22 @@
 
       if (!linha.trim()) {
         i += 1;
+        continue;
+      }
+
+      // O BLOCO CERCADO — a mesma peça da moldura, sem o desenho (28/10/2026). O
+      // cabeçalho da ficha deixou de ser uma caixa de `┌─┐`: é um bloco de linhas
+      // alinhadas, e o que diz «monoespaçado» passou a ser a cerca do Markdown. O
+      // `pre` é o MESMO — o que muda é a marca que o abre.
+      if (CERCA.test(linha)) {
+        const bloco = [];
+        i += 1;
+        while (i < linhas.length && !CERCA.test(linhas[i])) {
+          bloco.push(linhas[i]);
+          i += 1;
+        }
+        i += 1;                       // a cerca de fecho
+        saida.push('<pre class="moldura">' + escapar(bloco.join('\n')) + '</pre>');
         continue;
       }
 

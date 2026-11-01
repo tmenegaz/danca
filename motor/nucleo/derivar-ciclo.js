@@ -22,7 +22,7 @@
  * exemplo de gabarito vazado) sai como lacuna declarada `[Preencher: …]`.
  */
 
-const { respostaDo, emLista } = require('./derivar-po.js');
+const { respostaDo, emLista, itensDaDimensao } = require('./derivar-po.js');
 // O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
 const moduloNotacao = require('./notacao.js');
 const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
@@ -784,7 +784,11 @@ function dimensoesEItens(po) {
   for (const r of Array.isArray(cru) ? cru : []) {
     if (!r || typeof r !== 'object') continue;
     const dim = String(r.sujeito || r.dimensao || '').trim();
-    const itens = emLista(r.itens).filter((v) => !GABARITO_VAZADO.test(v));
+    // O `;` SEPARA ITENS (01/11/2026). Era `emLista`, que corta só por linha — e a resposta da
+    // `batata` escreve os dois itens de cada dimensão numa linha só («a; b»). A folha saía com
+    // 4 colunas para 8 itens, e cada coluna pedia UM nível para DOIS critérios. A unidade de
+    // tudo o que se marca é esta linha.
+    const itens = itensDaDimensao(r.itens).filter((v) => !GABARITO_VAZADO.test(v));
     if (dim) porDimensao.set(dim, itens);
   }
 

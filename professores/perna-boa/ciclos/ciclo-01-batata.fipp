@@ -2,6 +2,8 @@
 # Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
 # Fontes cobertas: professores/perna-boa/ciclos/ciclo-01-batata.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
 # Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
 
 id: ciclo-01-batata
 type: Ciclo
@@ -14,7 +16,7 @@ hash: 1816e1eb7b3cc3fc1c8a736265a6d34ca1cc661612aec10096bd676e20294653
 algoritmo: SHA-256
 po: ausente — este ciclo ainda não tem PO declarado
 po_state: 
-ancorado_em: 2026-10-27
+ancorado_em: 2026-11-01
 cobertura:
   - professores/perna-boa/ciclos/ciclo-01-batata.conf
   - professores/perna-boa/ciclos/ciclo-01.conf

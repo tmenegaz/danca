@@ -535,26 +535,39 @@
     {
       "bloco": 10,
       "titulo": "Música e repertório",
-      "objetivo": "declarar as músicas, os vídeos e o repertório usados no ciclo",
+      "objetivo": "declarar o vídeo de referência e mostrar a música e o repertório que a aula já tem",
       "campos": [
         {
           "id": "musicas-videos",
-          "campo": "Músicas e vídeos",
+          "campo": "Vídeo de referência",
           "obrigatorio": false,
+          "derivadoDaSequencia": {
+            "oQue": "musicas",
+            "coluna": "Conteúdo do nível",
+            "rotulo": "A música de cada exercício",
+            "de": "Vem do VERBETE de cada exercício (Produção → Verbetes da Notação): os tempos e o compasso são do exercício, não desta aula. Aqui é leitura — se estiver errado, corrige-se no verbete."
+          },
           "explicacao": {
-            "oQueE": "As músicas ou vídeos que você usa na aula.",
-            "preencher": "Um por linha: título e, se quiser, a faixa ou o compasso.",
-            "porQue": "A música é parte da aula: o mesmo exercício em 3/4 e em 4/4 não é o mesmo dado."
+            "oQueE": "O VÍDEO desta aula. A música você não escreve aqui: ela está acima, lida do verbete de cada exercício — o mesmo exercício em 3/4 e em 4/4 não é o mesmo dado, e ele já foi decidido uma vez.",
+            "preencher": "O LINK do vídeo — do YouTube, publicado por você ou por outra pessoa — e, na mesma linha, o exercício ou o trecho que ele mostra. Um por linha.",
+            "porQue": "Porque o vídeo é a única parte desta secção que ainda não existe em lugar nenhum: a música veio do verbete e os exercícios vieram da sequência. Pedir a música outra vez era pedir ao professor que redigitasse o que ele já tinha decidido — e as duas versões podiam discordar sem que nada falhasse."
           }
         },
         {
           "id": "repertorio",
-          "campo": "Repertório (se usar)",
+          "campo": "Repertório desta aula",
           "obrigatorio": false,
+          "somenteLeitura": true,
+          "derivadoDaSequencia": {
+            "oQue": "exercicios",
+            "coluna": "Conteúdo do nível",
+            "rotulo": "Os exercícios que a aula usa",
+            "de": "São os exercícios da SEQUÊNCIA desta aula — os mesmos que a página da aula imprime, com a notação de cada um. Aqui é leitura: o repertório muda-se na sequência, e a sequência muda no que você marcou no «Parâmetro de medição». Um facto decide-se num lugar só."
+          },
           "explicacao": {
-            "oQueE": "O espetáculo ou a obra do repertório, se a aula trabalhar repertório.",
-            "preencher": "Um por linha: obra, versão/produção, compasso e o que você exclui, se excluir algo.",
-            "porQue": "O repertório declara a origem do movimento — a obra de onde ele vem."
+            "oQueE": "O repertório desta aula: os exercícios que ela usa. Ele não se escreve — ele é a sequência da aula, lida.",
+            "preencher": "Nada. Se o repertório está errado, corrija o exercício na «Sequência de exercícios por bloco», ou o que você marcou no «Parâmetro de medição» — é de lá que ele vem.",
+            "porQue": "Porque escrevê-lo aqui era a terceira versão da mesma lista: o que você marcou no parâmetro, o que a sequência derivou e o que você digitasse nesta caixa. Três listas da mesma coisa são duas listas a mais, e a que fica por último é a que o documento imprime."
           }
         }
       ]

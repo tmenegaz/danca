@@ -453,6 +453,14 @@ experimentos/modelo-formulario/*
 # ESTEVE FORA DO GIT POR UM DIA. A entrega de 31/10/2026 (`885ea96`) citava-a no `Auditoria:` e no
 # `REGISTRO.md` e o `git add` não a levou — o `experimentos/*` fecha a pasta e faltava o `!`. Quem
 # clonasse o repositório não tinha a prova que o commit diz ter corrido.
+# O QUE A SEQUÊNCIA JÁ RESPONDE (01/11/2026): a prova desta entrega — 26 asserções, com
+# controle negativo. E a das dimensões do PO, que estava MORTA desde que o pacote que ela
+# servia deixou de existir (`professores/tiago/ciclos/ciclo-01-maria`): a bancada servia o
+# `index.html` para todo asset, o `markdown.js` nunca carregava e ela morria em «Markdown is
+# not defined» antes da primeira asserção. Consertada, corre 11/11 sobre o pacote-zero — e o
+# REGISTRO cita as duas por nome.
+!experimentos/provar-derivados-da-sequencia.js
+!experimentos/provar-dimensoes-plano.js
 !experimentos/provar-musica-no-plano.js
 
 # O NÚMERO QUE SE LÊ É O DO ROTEIRO (01/11/2026). A prova nasceu do relato: «no roteiro, ela é o

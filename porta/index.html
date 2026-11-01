@@ -2948,7 +2948,10 @@ function gravarRespostaDoNo(no) {
   // qualquer outro, atravessá-los apagaria o valor semeado — `lerResposta` devolve `null` quando
   // não há campo, e `null` significa «apaga». O valor é da fonte (o cadastro, a barra), não desta
   // tela: quem o escreve é `semearNosDoCabecalho`.
-  if (no && no.noCabecalho) return;
+  // O MESMO VALE PARA O NÓ QUE NÃO SE ESCREVE (01/11/2026). O repertório não tem campo: lê-lo
+  // como qualquer outro nó devolveria `null` — que significa «apaga» —, e atravessá-lo apagaria
+  // o que a sequência acabou de semear. Quem o escreve é `semearDerivados`.
+  if (no && (no.noCabecalho || no.somenteLeitura)) return;
   const { valor, nota } = lerResposta(no);
   if (valor === null || valor === '') {
     RESPOSTAS.delete(no.id);
@@ -4971,6 +4974,117 @@ function musicasDoExercicio(nome) {
   return pares;
 }
 
+/* O QUE A SEQUÊNCIA JÁ RESPONDE (01/11/2026) — a música da aula e o repertório dela não se
+ * escrevem outra vez.
+ *
+ * O DEFEITO, dito pela pesquisadora: «toda vez eu tenho que digitar de novo o que já está lá».
+ * O bloco 10 pedia «um por linha: título e, se quiser, a faixa ou o compasso» — e o compasso de
+ * cada exercício já estava no VERBETE, e os exercícios da aula já estavam na SEQUÊNCIA, uma
+ * tela acima. Duas fontes para o mesmo dado é uma fonte a mais: o professor redigita o que já
+ * decidiu, e as duas versões podem discordar sem que nada falhe.
+ *
+ * O que se desenha: a peça da LEITURA (`leitura-do-cabecalho`, a mesma do nó que só se lê), uma
+ * linha por exercício, e a frase que diz de onde o dado vem. Não é campo: o campo do nó 24 é o
+ * VÍDEO, e o do 25 não existe (`somenteLeitura`).
+ */
+function linhasDaSequenciaDoPlano() {
+  const cru = RESPOSTAS.get('aula-1-sequencia');
+  return (Array.isArray(cru) ? cru : [])
+    .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
+}
+
+function exerciciosDaSequencia(no) {
+  const coluna = (no.derivadoDaSequencia && no.derivadoDaSequencia.coluna) || 'Conteúdo do nível';
+  const vistos = [];
+  for (const l of linhasDaSequenciaDoPlano()) {
+    const t = String(l[coluna] == null ? '' : l[coluna]).trim();
+    if (t && vistos.indexOf(t) === -1) vistos.push(t);
+  }
+  return vistos;
+}
+
+/* AS LINHAS DERIVADAS, em texto — uma por exercício. `musicas` traz os tempos e o compasso do
+ * verbete; `exercicios` traz o próprio exercício (o repertório da aula). */
+function valorDerivadoDaSequencia(no) {
+  const cfg = no.derivadoDaSequencia || {};
+  const exercicios = exerciciosDaSequencia(no);
+  if (cfg.oQue !== 'musicas') return exercicios;
+  return exercicios.map((nome) => {
+    const musicas = musicasDoExercicio(nome);
+    const medida = musicas.map((m) => m.tempos + ' tempos em ' + m.compasso).join(' · ');
+    return nome + ' — ' + (medida || 'tempos e compasso por declarar no verbete');
+  });
+}
+
+function blocoDerivadoDaSequencia(no) {
+  const cfg = no.derivadoDaSequencia;
+  if (!cfg) return '';
+  const linhas = valorDerivadoDaSequencia(no);
+  const corpo = linhas.length
+    ? linhas.map((l) => '<p class="da-turma"><b>' + escapar(l) + '</b></p>').join('')
+    : '<p class="da-turma"><b>—</b></p>';
+  return '<div class="leitura-do-cabecalho">' + corpo +
+    '<p class="sub">' + md((cfg.rotulo ? cfg.rotulo + '. ' : '') + (cfg.de || '')) + '</p></div>';
+}
+
+/* SEMEAR O QUE DERIVA — a cada pintura do roteiro, como as folhas derivadas do cabeçalho.
+ *
+ * Duas coisas entram semeadas, e por razões diferentes:
+ *
+ *  · O NÓ QUE NÃO SE ESCREVE (o repertório): o valor dele É a sequência, e sem ele o envelope,
+ *    o índice e o documento ficariam cegos ao que a AULA usa.
+ *  · A SEQUÊNCIA, que é um DEMONSTRATIVO: o bloco, o objetivo, o conteúdo e a música saem das
+ *    marcações e do verbete, e o professor não a digita. Ela era gravada só quando o nó era
+ *    ABERTO — quem preenchesse a matriz e gerasse o documento sem passar por aqui perdia a
+ *    sequência inteira, e a página da aula saía sem exercício nenhum. O que se colhe é o que a
+ *    própria grelha desenha (`grelhaDaTabela` + `lerGrelha`, sem duplicar a regra): a mesma
+ *    conta, uma vez, para a tela e para o dado.
+ *
+ * O QUE O PROFESSOR ESCREVEU NÃO SE SOBRESCREVE. `SEMENTE_ANTERIOR` guarda, por nó, o valor
+ * EXACTO que se pôs aqui; um nó com outro valor foi digitado (ou veio de um plano antigo) e
+ * passa como veio. Enquanto o valor for o semeado, ele se refaz a cada pintura — mudar a
+ * marcação muda a sequência, e uma consolidação que não acompanha a decisão é pior do que não
+ * existir. */
+const SEMENTE_ANTERIOR = new Map();
+
+function semearDerivados() {
+  if (!MAPA) return;
+  for (const no of MAPA.nos) {
+    if (no.somenteLeitura) {
+      const valor = valorDerivadoDaSequencia(no);
+      if (valor.length) RESPOSTAS.set(no.id, valor);
+      else RESPOSTAS.delete(no.id);
+      continue;
+    }
+    // A GRELHA COM UNIDADE (a distribuição de volume) fica de fora: ela grava
+    // `{unidade, linhas}`, e não a lista de linhas que a semente sabe comparar. O valor dela é
+    // do professor, e lê-lo aqui como se fosse uma lista o apagaria — foi o que aconteceu à
+    // primeira tentativa, e o `provar-teste` apanhou.
+    if (!(no.tabela && no.tabela.linhasDe) || no.tabela.unidade) continue;
+    const atual = RESPOSTAS.get(no.id);
+    const vazio = !Array.isArray(atual) || !atual.length;
+    // A AUTORIA: o valor é meu só enquanto for EXACTAMENTE o que eu semeei. Assim que o
+    // professor acrescenta uma linha, corrige um conteúdo ou muda uns tempos, ele deixa de ser
+    // meu — e nada aqui lhe toca. Sem esta comparação, cada pintura re-derivaria por cima dele.
+    const minhaSemente = !vazio && SEMENTE_ANTERIOR.get(no.id) === JSON.stringify(atual);
+    if (!vazio && !minhaSemente) continue;
+    // A SEMENTE NÃO HERDA DE SI MESMA: sem isto, a grelha mescla as linhas que eu já tinha
+    // semeado como se fossem escritas pelo professor — e um exercício que ele desmarcou deixava
+    // as linhas dele para trás («conteúdo do nível» já não marcado, mas ainda na sequência).
+    if (minhaSemente) RESPOSTAS.delete(no.id);
+    const caixa = document.createElement('div');
+    caixa.innerHTML = grelhaDaTabela(no);
+    const valor = lerGrelha(no, caixa);
+    if (Array.isArray(valor) && valor.length) {
+      RESPOSTAS.set(no.id, valor);
+      SEMENTE_ANTERIOR.set(no.id, JSON.stringify(valor));
+    } else {
+      RESPOSTAS.delete(no.id);
+      SEMENTE_ANTERIOR.delete(no.id);
+    }
+  }
+}
+
 /* O CAMPO LIDO DE UM MARCO (o objetivo específico da Aula 1 = marco 1) saiu com o
  * nó: o plano não tem mais esse campo — o objetivo da Aula 1 É o marco parcial 1
  * (Regra 2), e a derivação o lê de lá. O widget `doMarco` não tem mais usuário. */
@@ -5826,6 +5940,9 @@ function renderPergunta() {
   blocos.push(cabecalhoDoNo(no));
   blocos.push(avisoDoFecho());
   blocos.push(caixaDaExplicacao(no));
+  // O QUE A SEQUÊNCIA JÁ RESPONDE, acima do campo que ainda se escreve (o vídeo do nó 24).
+  // No nó que NÃO se escreve ele vem no ramo de baixo, como campo nenhum.
+  if (no.derivadoDaSequencia && !no.somenteLeitura) blocos.push(blocoDerivadoDaSequencia(no));
   if (no.lembra) blocos.push(lembrancaDoNo(no));
 
   // O nó repetido e o nó com opções dinâmicas são GENÉRICOS: a forma deles vem
@@ -5838,6 +5955,10 @@ function renderPergunta() {
     // Um dado que não se pergunta mostra-se, e só. Primeiro da fila: nenhum ramo por família
     // pode abrir-lhe um campo — é isso que fecha a fronteira que o roteiro deixou aberta.
     blocos.push(leituraDoNoDoCabecalho(no));
+  } else if (no.somenteLeitura) {
+    // O NÓ QUE NÃO SE ESCREVE (o repertório, 01/11/2026): mostra o que a sequência já
+    // respondeu o valor entra semeado; aqui não há campo, nem de resposta nem de nota.
+    blocos.push(blocoDerivadoDaSequencia(no));
   } else if (no.registro) {
     blocos.push(registroDoNo(no));
   } else if (no.porMarco) {
@@ -5976,7 +6097,7 @@ function renderPergunta() {
   // A NOTA NÃO SE DESENHA NO NÓ DO CABEÇALHO (26/10/2026). Ela grava-se no envelope por id, e
   // `gravarRespostaDoNo` recusa estes nós — a nota ficaria um campo que não guarda nada. Um
   // campo que não faz nada é pior do que um campo a menos.
-  if (!no.noCabecalho) {
+  if (!no.noCabecalho && !no.somenteLeitura) {
     const notaAtual = NOTAS.get(no.id) || '';
     blocos.push('<details' + (notaAtual ? ' open' : '') + '><summary>nota (opcional)</summary>' +
       '<textarea data-campo-nota placeholder="o que a resposta não alcança">' +
@@ -6056,6 +6177,7 @@ function semearNosDoCabecalho() {
 
 function pintarRoteiro() {
   semearNosDoCabecalho();
+  semearDerivados();
   const partes = [];
   let grupoAtual = null;
   // A NUMERAÇÃO é do que se PERGUNTA. O `data-i` continua a ser o índice real do mapa — é por
@@ -6075,10 +6197,12 @@ function pintarRoteiro() {
     partes.push('<li class="' + (feito + aqui).trim() + '" data-i="' + i + '">' +
       '<span class="n">' + degrau + '</span>' +
       md(no.campo) +
-      (no.derivado
-        ? ' <span class="selo preenchido">pré-preenchido</span>'
-        : (no.obrigatorio ? '' : ' <span class="selo opt">opcional</span>')) +
-      (no.obrigatorio
+      (no.somenteLeitura
+        ? ' <span class="selo preenchido">lido da sequência</span>'
+        : (no.derivado
+          ? ' <span class="selo preenchido">pré-preenchido</span>'
+          : (no.obrigatorio ? '' : ' <span class="selo opt">opcional</span>'))) +
+      (no.obrigatorio || no.somenteLeitura
         ? ''
         : ' <button class="limpar" data-limpar="' + i + '"' +
           (perguntaRespondida(no) ? '' : ' disabled') +
