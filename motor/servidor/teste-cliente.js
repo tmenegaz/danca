@@ -126,13 +126,33 @@ const SCRIPT = String.raw`(function () {
     dizer('Rubrica preenchida: ' + (r.nome || '(sem nome)') + '. Confira e envie manualmente.');
   }
 
+  /* O TERMO VAI PARA O «+» DO VERBETE (01/11/2026).
+   *
+   * O preenchimento apontava para "vtermo" e companhia — os campos da secção do vocabulário, que
+   * saiu. Os mesmos três campos passaram a viver no modo do exercício ("vnnome", "vncategoria",
+   * "vntradicao"): é o mesmo ato, no sítio onde ele agora acontece.
+   *
+   * O MODO ABRE-SE ANTES DE ESCREVER. Os campos só existem quando o «+» está aberto — o painel
+   * dos passos os esconde no modo do verbete —, e escrever num campo escondido daria a
+   * impressão de ter preenchido sem que ninguém o visse. "modoExercicio(true)" é a função que a
+   * própria página usa para isso; se ela não estiver ao alcance, o preenchimento não se faz e
+   * di-lo, em vez de escrever no escuro.
+   *
+   * ATENÇÃO AO EDITAR ESTE FICHEIRO: tudo o que está entre String.raw e o fecho é um template
+   * literal. Uma crase aqui dentro fecha-o, e o erro que se vê — "Unexpected identifier" a
+   * apontar uma palavra portuguesa — não se parece nada com a causa. */
   function preencherTermo(v) {
     if (!v) return;
-    preencher('vtermo', v.termo || '');
-    escolher('vcategoria', v.categoria || '');
-    escolher('vtradicao', v.tradicao || '');
+    if (typeof modoExercicio !== 'function') {
+      dizer('O modo do exercício não está ao alcance desta página — nada foi preenchido.');
+      return;
+    }
+    modoExercicio(true);
+    preencher('vnnome', v.termo || '');
+    escolher('vncategoria', v.categoria || '');
+    escolher('vntradicao', v.tradicao || '');
     if (typeof gravarEstado === 'function') gravarEstado();
-    dizer('Termo preenchido: ' + (v.termo || '(sem nome)') + '. Confira e envie manualmente.');
+    dizer('Exercício preenchido: ' + (v.termo || '(sem nome)') + '. Confira e envie manualmente.');
   }
 
   function preencherAluna(a) {

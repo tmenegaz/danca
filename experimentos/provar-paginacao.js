@@ -72,7 +72,9 @@ function kvEmMemoria(mapa) {
  *
  *  Eram SETE (18/10/2026): «Rubricas criadas» e «Com que régua cada turma é medida» saíram
  *  quando a secção Turmas passou a ter UMA listagem só, a mesma nos três passos. As rubricas
- *  continuam a existir no KV (e a ser semeadas abaixo), mas não têm painel próprio. */
+ *  continuam a existir no KV (e a ser semeadas abaixo), mas não têm painel próprio.
+ *
+ *  E QUATRO desde 01/11/2026: «Termos cadastrados» saiu com a secção do vocabulário. */
 const LISTAS = [
   // A ALUNA é o APELIDO em texto — a lista é de strings, não de objectos (`esc(a)` na
   // página). Semear objectos aqui dava quinze linhas a dizer `[object Object]`: o teste
@@ -80,8 +82,10 @@ const LISTAS = [
   { titulo: 'Professores cadastrados', chave: 'professores', itens: (i) => ({ id: 'p' + i, nome: 'Professor ' + i, slug: 'professor-' + i }) },
   { titulo: 'Alunas cadastradas', chave: 'alunas', itens: (i) => 'Aluna ' + i },
   { titulo: 'Turmas cadastradas', chave: 'turmas', itens: (i) => ({ id: 't' + i, nome: 'Turma ' + i, modalidade: 'Balé clássico' }) },
-  // O TERMO chama-se `termo` (não `nome`): é o campo que a página imprime.
-  { titulo: 'Termos cadastrados', chave: 'vocabulario', itens: (i) => ({ id: 'v' + i, termo: 'Termo ' + i }) },
+  /* «Termos cadastrados» SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). E ela nunca foi uma
+   * lista do KV: `termos()` lê o repositório, e a semente que aqui se punha em
+   * `bastidores/<escola>/vocabulario` já não era lida desde 28/10/2026 — a lista mostrava os
+   * termos do catálogo, não os semeados. A prova passou a medir uma lista que é mesmo do KV. */
   { titulo: 'Curadorias atribuídas', chave: 'curadorias', itens: (i) => ({ id: 'c' + i, professor: 'Professor ' + i, modalidade: 'Balé clássico', turma: 'Turma ' + i }) },
 ];
 

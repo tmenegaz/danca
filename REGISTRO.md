@@ -29604,3 +29604,64 @@ dois comandos e o comentário que a justifica (o resto do passo ficou igual).
 - **A `calango` ficou com o índice desatualizado no commit do scaffold** (`1437b0e`) e corrigido
   num commit próprio. Não se reescreve o commit: o derivado é reconstruível, e a leitura dele é
   a de hoje.
+
+## 01/11/2026 — A página do Vocabulário saiu; o exercício vive no «+» do verbete
+
+**O que motivou.** A pesquisadora olhou para as duas páginas e viu o mesmo: «o vocabulário técnico e
+o verbete, em certa medida, são redundantes». **Medido, e é literal** — as duas escrevem no mesmo
+sítio pelo mesmo caminho (`POST /api/bastidores/termo` → `biblioteca/modalidades/bale-classico/
+vocabulario.json`), e o verbete já pede, no `+` do primeiro passo, exactamente os três campos que o
+formulário do vocabulário pedia: **exercício, categoria e tradição**. Duas portas para a mesma
+gravação não são duas funcionalidades: são uma funcionalidade e um sítio onde ela aparece duas
+vezes — e, por isso, duas listas para manter em acordo.
+
+**O que foi decidido.**
+
+- **A secção «Vocabulário Técnico do Balé» saiu inteira** — o `form-termo`, a lista de termos e o
+  `itensTermos` que a desenhava. Saiu também do grupo `Pedagogia` do menu e do
+  `SECOES_COM_ACORDEAO`, que é a lista que guarda o que está aberto.
+- **O botão «Carregar as turmas iniciais» mudou-se para dentro do verbete**, no `#vb-modo-exercicio`,
+  ao lado de «Gravar exercício» e «Cancelar» — que é o sítio que o «+» abre. A função não mudou:
+  continua a semear turma, associações e curadoria pelo mesmo `POST /api/bastidores/semear`, e
+  continua a funcionar — a prova corre-a e confere o resultado.
+- **O aviso foi para o `confirm`, e não para a página.** A regra da casa é que a forma não explica
+  (a checagem da peça conta `<p class="nota">`, `<p class="sub">` e `class="dica"` e exige zero fora
+  da aparência). E havia o que avisar, medido: a carga **não traz o ritmo** — dias, hora de cada
+  dia, duração e período —, e `comporConf` **lança** sem ele. Uma turma semeada serve para a
+  curadoria e **não gera ciclo**.
+
+**Por que a lista de termos não deixa buraco.** O que o vocabulário mostrava — os termos
+cadastrados — continua visível nos `select`s que os consomem: o passo 1 do verbete, a associação
+turma↔termo e a derivação que lê `posicoes`. O que se perdeu foi a **segunda** lista, não a
+primeira.
+
+**O que ficou registado para o futuro, e não feito.** A pesquisadora deu ao botão um destino
+comercial — «carregar já turmas prontas, tudo pronto, montado já para o professor», para vender.
+Isso **não** é uma correcção: é uma frente, e entrou no `PLANEJAMENTO-LASTRO.md` como **L14** (o
+catálogo de turmas prontas), com a lacuna do ritmo medida e com uma contradição nova, **C19** — o
+que é uma «turma pronta» (só o esqueleto, ou também aulas e planos?) e de quem é o ritmo (do
+conteúdo, que se vende, ou do contrato da escola, que varia).
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a secção, o menu, o acordeão, o handler do
+`form-termo`, o `itensTermos`, o mapa `turmasDoTermo` e o seu ciclo, o botão movido e o `confirm`);
+`motor/servidor/teste-cliente.js` (`preencherTermo` passa a abrir `modoExercicio(true)` e a
+preencher `vnnome`/`vncategoria`/`vntradicao`); `experimentos/provar-producao.js` (7 secções em vez
+de 8, e duas asserções **novas** que exigem que `form-termo`, `vtermo`, `vcategoria` e `vtradicao`
+**não existam**); `experimentos/provar-acordeoes.js` e `experimentos/provar-teste.js`;
+`experimentos/provar-paginacao.js`; `PLANEJAMENTO-LASTRO.md` (L14 e C19).
+
+**Com o quê.** `provar-producao` **151 de 152** (a única falha, «o item do menu fica marcado», já
+falhava em `HEAD`); `provar-acordeoes`, `provar-verbete` e `provar-linhas-da-lista` **TUDO CERTO**;
+`provar-teste` **45/45**; `provar-celula` **117/117**; `check-indices` **14/14**;
+`check-identidade` **20/20**.
+
+**O que ainda não está feito.**
+
+- **A lacuna do ritmo não se resolveu — declarou-se.** Semeada hoje, a turma não gera ciclo, e é
+  isso que o `confirm` diz. Fechá-la é decisão de C19, não de código.
+- **A `provar-paginacao` já falhava em `HEAD`** (`fetch is not defined`), e continua a falhar; a
+  `provar-navegacao` falha por falta de pacote da `calango`, expurgada. Nenhuma das duas foi
+  tocada por esta entrada.
+- **Um efeito colateral observado e não corrigido:** os seis professores ainda carregam, no
+  `_declaracao.porVariante` dos schemas de captura, a declaração das escolas expurgadas. É do
+  expurgo, não disto, e fica registado aqui para não se perder.

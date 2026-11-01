@@ -55,7 +55,10 @@ const CONTEXTO = { professor: 'tiago-menegaz', ciclo: '01', query: 'professor=ti
 const SECOES = [
   ['professores', 'sec-professores', 'professores-miolo'],
   ['alunas', 'sec-alunas', 'alunas-miolo'],
-  ['vocabulário', 'sec-vocabulario', 'vocabulario-miolo'],
+  // O VOCABULÁRIO SAIU (01/11/2026) e o VERBETES entrou no lugar dele: as duas são secções com
+  // acordeão, e a prova mede a peça, não o assunto. Trocar um pelo outro mantém a cobertura —
+  // e mede a secção que a página GANHOU em importância, que é agora a porta do exercício.
+  ['verbetes', 'sec-verbetes', 'verbetes-miolo'],
   ['curadorias', 'sec-curadorias', 'curadorias-miolo'],
   // TURMAS entra na prova porque a seta dela é a única que já existia: a mudança de hoje
   // passou a despachar por `data-acordeao`, e o risco é exactamente ela deixar de funcionar.
@@ -274,7 +277,13 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
     // O BOTÃO DO CATÁLOGO INICIAL. Ele é `nowrap` por herança da folha — decisão certa para
     // «Avançar» e errada para um rótulo de 47 caracteres: em 320px media 367px dentro de uma
     // coluna de 288, e a PÁGINA rolava de lado. Mede-se o que transbordava.
-    await abrir(pg, 'sec-vocabulario');
+    //
+    // ELE MUDOU DE SECÇÃO (01/11/2026): vive agora no «+» do verbete, que é uma caixa escondida
+    // até se clicar — e uma caixa escondida não tem largura. Abre-se o modo do exercício antes de
+    // medir; sem isso, `getBoundingClientRect` devolve zero e a prova passaria sem medir nada.
+    await abrir(pg, 'sec-verbetes');
+    await pg.evaluate(() => { if (typeof modoExercicio === 'function') modoExercicio(true); });
+    await new Promise((r) => setTimeout(r, 150));
     const semear = await pg.evaluate(() => {
       const b = document.getElementById('semear');
       const pai = b.parentElement;
@@ -303,16 +312,16 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
   await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
   await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
   await pg.reload({ waitUntil: 'load' });
-  await abrir(pg, 'sec-vocabulario');
-  await tocarSeta(pg, 'sec-vocabulario');
+  await abrir(pg, 'sec-verbetes');
+  await tocarSeta(pg, 'sec-verbetes');
   await pg.reload({ waitUntil: 'load' });
-  await abrir(pg, 'sec-vocabulario');
+  await abrir(pg, 'sec-verbetes');
   const lembrado = await pg.evaluate(() => {
     const g = (id) => document.getElementById(id).getAttribute('data-recolhido');
-    return { vocabulario: g('sec-vocabulario'), alunas: g('sec-alunas'), professores: g('sec-professores') };
+    return { verbetes: g('sec-verbetes'), alunas: g('sec-alunas'), professores: g('sec-professores') };
   });
   provar('o recolhimento é lembrado depois de recarregar — e só o da secção recolhida',
-    lembrado.vocabulario === 'sim' && lembrado.alunas === 'nao' && lembrado.professores === 'nao',
+    lembrado.verbetes === 'sim' && lembrado.alunas === 'nao' && lembrado.professores === 'nao',
     lembrado);
 
   await br.close();

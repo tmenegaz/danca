@@ -1730,7 +1730,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   };
   const turmasDaAluna = new Map();
   const turmasDoProfessor = new Map();
-  const turmasDoTermo = new Map();
   for (const c of cursVigentes) {
     for (const nome of turmasDaCuradoria(c)) {
       for (const a of (Array.isArray(c.alunas) ? c.alunas : [])) acrescentarTurma(turmasDaAluna, a, nome);
@@ -1739,11 +1738,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   }
   for (const p of (pares || [])) {
     if (p && p.professor) acrescentarTurma(turmasDoProfessor, p.professor, p.turma);
-  }
-  for (const t of listaTurmas) {
-    for (const idDoTermo of (Array.isArray(relObj[t.id]) ? relObj[t.id] : [])) {
-      acrescentarTurma(turmasDoTermo, idDoTermo, t.nome);
-    }
   }
   // A COLUNA. Sem turma, não há coluna: a linha continua a dizer «livre» e nada mais — um
   // «turmas · —» seria um botão que não filtra nada. Com turma, o texto NOMEIA as turmas,
@@ -2075,27 +2069,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // coubessem: «posição» ficava ao lado do nome e «compartilhada» descia. Agora é um
   // complemento só, com o `·` entre as partes, e ele nunca quebra (a regra das duas
   // linhas, no CSS).
-  // O VOCABULÁRIO segue a MESMA regra (18/10/2026), e é o caso em que ela mais pesa: o
-  // termo é o que o plano ENSINA. Apagá-lo tira o conteúdo de um plano já feito — e o
-  // repertório que o cita passa a apontar para nada. Vinculado quando o plano o declara no
-  // repertório, ou quando ele está associado a uma turma que já tem plano de ensino.
-  const itensTermos = listaTermos.length
-    ? listaTermos.map((t) => {
-        const complemento = [rotuloDaCategoria(t.categoria), t.tradicao].filter(Boolean).join(' · ');
-        const preso = termoVinculadoA(usos, relObj,
-          new Set(listaTurmas.filter((x) => nomesDeTurmasVinculadas.has(x.nome)).map((x) => x.id)), t);
-        const selo = preso
-          ? '<span class="selo vinculada" title="este termo já é ensinado numa turma com plano, ou consta do repertório de um plano">em uso</span>'
-          : '<span class="selo livre" title="este termo ainda não está em nenhum plano de ensino">livre</span>';
-        return '<li><span class="nome">' + linhaDoNome(t.termo, selo) +
-          (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
-          colunaDeTurmas(turmasDoTermo.get(String(t.id || '').trim()), t.termo, 'termo') +
-          '<span class="acoes">' + (preso
-            ? '<button class="acao secundario pequena" disabled title="Em uso num plano de ensino: não se apaga">Excluir</button>'
-            : '<button class="apagar acao perigo pequena" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button>') +
-          '</span></li>';
-      }).join('')
-    : '<li class="vazia">(nenhum termo cadastrado)</li>';
+  /* `itensTermos` SAIU COM A LISTA DO VOCABULÁRIO (01/11/2026). Ela desenhava os `<li>` dos
+   * termos com os selos «em uso» / «livre» e a coluna das turmas que os usam — a lista que a
+   * secção mostrava. Sem a secção não há onde a pôr, e uma variável que se calcula para ninguém
+   * é a mentira mais barata que uma página conta a si mesma.
+   *
+   * O que ela lia continua a existir e a ser usado — `relObj`, `usos`, `termoVinculadoA` (a
+   * curadoria e as turmas leem-nos). O `turmasDoTermo` saiu com ela: era o mapa «que turmas usam
+   * este termo», e só a lista o lia. A regra «o que já entrou num plano não se apaga» continua
+   * aplicada no SERVIDOR (o `DELETE` recusa), que é onde ela vale. */
 
   // --- CURADORIA (Bloco 2 do pedido) ----------------------------------------
   // A LISTA da operação são as VIGENTES (16/10/2026): uma curadoria substituída por uma
@@ -2898,7 +2880,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     grupoDoMenu('Pessoas', [['#professores', 'professores', 'Professores'],
       ['#alunas', 'alunas', 'Alunas']]) +
     grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Turmas'],
-      ['#vocabulario', 'vocabulario', 'Vocabulário técnico'],
       ['#verbetes', 'verbetes', 'Verbetes da notação'],
       ['#curadorias', 'curadorias', 'Curadorias']]) +
     '</div>' +
@@ -3253,44 +3234,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Os conteúdos de cada turma, com o «×», prontos a clonar (ver `ajustarTurma`).
     blocosDeConteudos.join('') +
     '</section>' +
-    '<section class="secao" id="sec-vocabulario" hidden>' +
-    tituloComAcordeao('sec-vocabulario', 'Vocabulário Técnico do Balé', 'vocabulario-miolo') +
-    '<div class="col-form" id="vocabulario-miolo">' +
-    '<form id="form-termo">' +
-    // SÓ O NOME SE ESCREVE (18/10/2026). Categoria e tradição são LISTAS: o professor não
-    // decide a taxonomia enquanto cadastra, e uma categoria escrita à mão («passos»,
-    // «posições») partiria o vocabulário em duas famílias que ninguém consegue agrupar.
-    '<label class="campo-rotulo" for="vtermo">Termo principal (grafia francesa, com acentos)</label>' +
-    '<input id="vtermo" name="termo" autocomplete="off" placeholder="ex.: Plié">' +
-    '<label class="campo-rotulo" for="vcategoria">Categoria</label>' +
-    '<select id="vcategoria">' +
-    CATEGORIAS_DO_VOCABULARIO.map((c) =>
-      '<option value="' + esc(c) + '">' + esc(rotuloDaCategoria(c)) + '</option>').join('') +
-    '</select>' +
-    '<label class="campo-rotulo" for="vtradicao">Tradição de referência</label>' +
-    '<select id="vtradicao">' +
-    TRADICOES_DO_VOCABULARIO.map((t) =>
-      '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('') +
-    '</select>' +
-    '<div class="res" data-res="vocabulario"></div>' +
-    // Mesma fileira do professor e da aluna (26/10/2026): o `.res` entre o `select` e o botão
-    // anulava o vão da folha, e o «Cadastrar termo» encostava na tradição.
-    '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande">Cadastrar termo</button>' +
-    '</span>' +
-    '</form>' +
-    // O BOTÃO PASSOU A DIZER SÓ O QUE FAZ (28/10/2026). Ele semeava as turmas E o vocabulário;
-    // o vocabulário deixou de precisar de semente, porque passou a viver no repositório numa
-    // verdade só. Um rótulo que promete duas coisas e entrega uma é a mesma família de erro do
-    // `if` que filtrava o título vazio: diz uma coisa, faz outra, e ninguém dá por isso.
-    '<p><button id="semear" type="button">Carregar as turmas iniciais</button></p>' +
-    '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Termos cadastrados</h3>' +
-    '<div class="rolagem"><ul class="lista">' + itensTermos + '</ul></div>' +
-    rodapePaginacao() +
-    '</div>' +
-    '</section>' +
+    /* A PÁGINA DO VOCABULÁRIO SAIU (01/11/2026) — e é o verbete que a substitui.
+     *
+     * A pesquisadora, depois de escrever o verbete do `relevé` em produção: «o vocabulário
+     * técnico e o verbete, em certa medida, são redundantes […] não vejo mais sentido existir o
+     * vocabulário técnico, porque no verbete nós já podemos criar o exercício, a categoria e a
+     * tradição que ele usa».
+     *
+     * E é literalmente o mesmo ato. O «Cadastrar termo» daqui e o «Gravar exercício» do `+` do
+     * verbete chamam a MESMA rota (`POST /api/bastidores/termo`), que grava no MESMO sítio
+     * (`termo-repo.js` → `biblioteca/modalidades/<modalidade>/vocabulario.json`). Eram duas
+     * portas para a mesma sala, e a daqui não sabia nada do que a outra sabe: o `+` do verbete
+     * acrescenta o exercício à lista do próprio formulário para se escrever o verbete a seguir;
+     * a daqui criava o termo e deixava a pessoa a olhar para uma lista.
+     *
+     * O que estava aqui — o formulário (`form-termo`), a lista de termos com os selos de «em
+     * uso», e o botão «Carregar as turmas iniciais» — sai com a secção. O botão NÃO se perde:
+     * passa para o `+` do verbete, que é onde a pesquisadora o quer (ver `vb-modo-exercicio`), e
+     * leva uma nota do que a carga NÃO traz — ver `semearTurmasNoExercicio`.
+     *
+     * A LISTA NÃO SE PERDE NEM UM POUCO: o vocabulário nunca viveu no KV, vive no repositório,
+     * e continua a ser lido por `termos()` de lá. O que sai é a TELA que o mostrava em lista,
+     * não o dado. Quem quiser ver os termos vê-os no `select` do exercício, no plano e na
+     * curadoria, que são os sítios onde eles são usados.
+     */
     // ---------------------------------------------------------------------------
     // OS VERBETES DA NOTAÇÃO (28/10/2026). A secção é da MODALIDADE, não da escola — o alfabeto
     // não pertence a nenhuma —, e grava no REPOSITÓRIO, porque é de lá que o gerador o lê. A tela
@@ -3544,6 +3511,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" class="acao grande" id="vb-criar-exercicio">Gravar exercício</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-exercicio">Cancelar</button>' +
     '</span>' +
+    /* O BOTÃO DAS TURMAS INICIAIS MUDOU-SE PARA AQUI (01/11/2026).
+     *
+     * Ele vivia na página do vocabulário, que saiu. A pesquisadora quer-o aqui — «ele tem que ir
+     * pra dentro do verbete, nesse espaço que a gente abre com um sinalzinho de mais» — e com uma
+     * dúvida declarada: «tenho dúvidas se isso ainda vai existir». Fica, temporariamente, porque
+     * funciona.
+     *
+     * O QUE ELE FAZ: carrega as turmas iniciais do catálogo (`progressao.json`) para o cadastro
+     * da escola, sem duplicar as que já existem, e a relação turma↔conteúdo.
+     *
+     * O QUE ELE NÃO FAZ — MEDIDO, e é o que o `confirm` passa a dizer. As turmas do catálogo
+     * trazem nome, ordem, programa e nível de referência; NÃO trazem o RITMO (dias, hora de cada
+     * dia, duração e período). E o ritmo é o que a geração exige: `comporConf` LANÇA «a turma não
+     * tem o que a geração exige: os dias da semana da turma; a duração de cada aula; o início do
+     * período; o fim do período». Uma turma semeada assim serve para a curadoria e para o
+     * repertório, e NÃO serve para gerar ciclo — nasce pela metade.
+     *
+     * O AVISO VAI NO `confirm`, E NÃO EM PROSA NA PÁGINA. A regra da casa é que o formulário não
+     * explica — só rótulo, campo e placeholder (é o que `provar-producao` mede). E há uma razão
+     * melhor do que a regra: o aviso vale no INSTANTE da ação, que é quando alguém decide se
+     * quer aquilo. Em prosa fixa, quem não carrega turmas nunca precisa dele e quem carrega
+     * já não o lê.
+     *
+     * Quando o catálogo passar a trazer o ritmo (ou quando a carga o perguntar a quem clica), o
+     * aviso encurta com a mesma naturalidade.
+     */
+    '<p><button id="semear" type="button">Carregar as turmas iniciais</button></p>' +
     '</div>' +
     '</form>' +
     '</div>' +
@@ -3773,7 +3767,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // decisão da página inteira. `sessionStorage` pela razão de sempre: a página recarrega a
     // cada operação, e um formulário que se reabre sozinho desfaria o que a pessoa acabou de
     // pedir — sem ser preferência para amanhã.
-    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-vocabulario","sec-verbetes","sec-curadorias"];' +
+    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-verbetes","sec-curadorias"];' +
     'function chaveDaSecao(id){ return "producao:recolhido:" + id; }' +
     'function secaoRecolhida(id){' +
     '  try { return sessionStorage.getItem(chaveDaSecao(id)) === "sim"; } catch (err) { return false; }' +
@@ -4678,14 +4672,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  campos.vigencia = vig;' +
     '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a turma...", true, avancarParaRubricas);' +
     '});' +
-    'document.getElementById("form-termo").addEventListener("submit", function(e){' +
-    '  e.preventDefault();' +
-    '  enviar("/api/bastidores/termo", {' +
-    '    termo: document.getElementById("vtermo").value,' +
-    '    categoria: document.getElementById("vcategoria").value,' +
-    '    tradicao: document.getElementById("vtradicao").value' +
-    '  }, "cadastrando termo...", true);' +
-    '});' +
+    /* O `form-termo` SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). O cadastro de exercício
+     * vive agora num sítio só — o `+` do verbete —, e o handler dele é o `vb-criar-exercicio`,
+     * logo abaixo. Dois handlers a POSTar na mesma rota era a redundância que esta alteração
+     * veio eliminar; deixar o `getElementById` aqui rebentaria o script da página inteira no
+     * primeiro carregamento (`null.addEventListener`). */
     // A RÉGUA DA RUBRICA — a lista editável de níveis (uma por turma).
     // AS RUBRICAS, para o botão «Editar» da lista abrir a rubrica no formulário sem pedir ao
     // servidor: o mapa já veio com a página.
@@ -6310,8 +6301,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (linha && linha.className === "linha-regua") linha.parentElement.removeChild(linha);' +
     '  gravarEstado();' +
     '});' +
+    // O DIÁLOGO DIZ O QUE VEM **E** O QUE NÃO VEM (01/11/2026). O texto anterior — «turmas já
+    // existentes não são duplicadas» — dizia a única coisa que não faz falta a quem decide. O que
+    // faz falta é saber que a turma carregada nasce SEM o ritmo e que, por isso, ainda não gera
+    // ciclo: sem isso, o professor carrega, vai eliciar o plano, e o manifesto recusa a turma com
+    // quatro faltas que ele não tem como adivinhar de onde vieram.
     'document.getElementById("semear").addEventListener("click", function(e){' +
-    '  if (!confirm("Carregar as turmas iniciais? Turmas já existentes não são duplicadas.")) return;' +
+    '  if (!confirm("Carregar as turmas iniciais?\\n\\n' +
+    'Vem o nome e o nível de referência de cada turma — NÃO vem o ritmo (dias, hora, duração ' +
+    'e período). Uma turma carregada assim serve para a curadoria, mas ainda não gera ciclo: ' +
+    'complete o cadastro dela antes de eliciar o plano.\\n\\n' +
+    'Turmas já existentes não são duplicadas.")) return;' +
     '  enviar("/api/bastidores/semear-catalogo", {}, "carregando catálogo inicial...", false);' +
     '});' +
     'document.getElementById("form-curadoria").addEventListener("submit", function(e){' +

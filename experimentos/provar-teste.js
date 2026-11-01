@@ -187,7 +187,10 @@ async function producaoNoNavegador() {
   const primeira = await abrirProducao(false);
   assert.equal(primeira.d.getElementById('tnome').value, FIXTURE.producao.turmas[0].nome);
   assert.equal(primeira.d.getElementById('rubr-nome').value, FIXTURE.producao.rubricas[0].nome);
-  assert.equal(primeira.d.getElementById('vtermo').value, FIXTURE.producao.vocabulario[0].termo);
+  /* O TERMO PASSOU PARA O «+» DO VERBETE (01/11/2026). O preenchimento escreve agora em
+   * `vnnome` — os campos do exercício —, e abre o modo do exercício antes, porque esses campos
+   * só existem quando ele está aberto. O `vtermo` da secção do vocabulário deixou de existir. */
+  assert.equal(primeira.d.getElementById('vnnome').value, FIXTURE.producao.vocabulario[0].termo);
   assert.equal(primeira.d.getElementById('anome').value, FIXTURE.producao.alunas[0]);
   assert.ok(primeira.d.querySelector('details.teste-painel'), 'o painel de teste não apareceu na Produção');
   assert.deepEqual([...new Set(pedidos)], ['GET']);

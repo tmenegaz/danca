@@ -481,7 +481,12 @@ async function principal() {
   // principal entram. Não é pedagogia nem pessoa: é a forma da casa, e por isso ganhou grupo
   // próprio no menu.
   // OITO desde 28/10/2026: a sétima era a última antes de «Verbetes da notação» entrar.
-  conferir('as oito secções estão na página', dom.secoes.length, 8);
+  // SETE desde 01/11/2026: «Vocabulário Técnico do Balé» saiu — o verbete passou a ser o sítio
+  // onde o exercício se cadastra, e duas portas para a mesma rota eram a redundância que a
+  // pesquisadora apontou. A lista e o formulário saíram; o DADO não (vive no repositório).
+  conferir('as sete secções estão na página', dom.secoes.length, 7);
+  conferir('…e a do vocabulário não está entre elas',
+    dom.secoes.some((sec) => (sec.getAttribute('id') || '') === 'sec-vocabulario'), false);
   conferir('só o Painel inicial nasce visível', visiveis(dom.secoes), ['sec-painel']);
 
   // A APARÊNCIA É UMA ESCOLHA, E A ESCOLHA TEM PEÇA (18/10/2026).
@@ -533,7 +538,9 @@ async function principal() {
     new Function('document', 'window', 'location', 'fetch', 'sessionStorage', 'alert', 'confirm', script)(
       dom.documento, janela, local, buscar, sessao, () => {}, () => true
     );
-    for (const alvo of ['painel', 'professores', 'alunas', 'turmas', 'vocabulario', 'verbetes', 'curadorias']) {
+    /* SEM `vocabulario` (01/11/2026): a secção saiu, e um item de menu que aponta para uma
+     * secção inexistente é pior do que não ter item — a pessoa clica e não acontece nada. */
+    for (const alvo of ['painel', 'professores', 'alunas', 'turmas', 'verbetes', 'curadorias']) {
       local.hash = '#' + alvo;
       for (const ouvir of janela.ouvintes.hashchange || []) ouvir();
       conferir('o menu mostra só "' + alvo + '"', visiveis(dom.secoes), ['sec-' + alvo]);
@@ -548,7 +555,9 @@ async function principal() {
   conferir('o script roda sem erro', erroAoRodar, null);
   conferir('o menu registra a troca de secção', (dom.janela.ouvintes.hashchange || []).length >= 1, true);
 
-  const handlers = ['form-senha', 'form-prof', 'form-aluna', 'form-turma', 'form-termo', 'form-curadoria'];
+  // O `form-termo` saiu com a secção (01/11/2026). O cadastro de exercício vive no «+» do
+  // verbete, e o handler dele é medido na prova do verbo (`provar-celula`).
+  const handlers = ['form-senha', 'form-prof', 'form-aluna', 'form-turma', 'form-curadoria'];
   const comSubmit = handlers.filter((id) => (dom.doId(id).ouvintes.submit || []).length >= 1);
   conferir('os formulários ficam com handler', comSubmit, handlers);
   conferir('o botão do catálogo fica com handler', (dom.doId('semear').ouvintes.click || []).length >= 1, true);
@@ -620,24 +629,33 @@ async function principal() {
     html.includes('id="vinc-turma-nome"') && !html.includes('id="vinc-turma"'), true);
   conferir('o editor de níveis existe na página', script.includes('linhaDaReguaNoDom') && script.includes('tirar-regua'), true);
 
-  // O VOCABULÁRIO SÓ ESCREVE O NOME (18/10/2026). Categoria e tradição deixaram de ser
-  // texto livre: são listas fechadas, com as opções do CATÁLOGO. O que se prova é o markup
-  // servido — um `<input>` a mais aqui é a porta para «passos», «Posições», «rad» e o
-  // vocabulário a partir-se em famílias que ninguém agrupa.
-  const formTermo = (html.match(/<form id="form-termo">[\s\S]*?<\/form>/) || [''])[0];
+  /* O CADASTRO DE EXERCÍCIO MUDOU DE SÍTIO, E A REGRA FOI COM ELE (01/11/2026).
+   *
+   * O que se media aqui era o `<form id="form-termo">` da secção do vocabulário. A secção saiu —
+   * a pesquisadora: «o vocabulário técnico e o verbete, em certa medida, são redundantes […] no
+   * verbete nós já podemos criar o exercício, a categoria e a tradição». Os mesmos três campos
+   * passaram a viver no «+» do verbete (`vnnome`, `vncategoria`, `vntradicao`), e a regra que
+   * esta prova guardava vai com eles, intacta: SÓ O NOME SE ESCREVE, categoria e tradição são
+   * LISTAS fechadas com as opções do catálogo.
+   *
+   * E MEDE-SE TAMBÉM O QUE SAIU. Um `form-termo` que ficasse na página sem handler — ou um
+   * `<select id="vcategoria">` órfão — seria a segunda porta a sobreviver à primeira.
+   */
+  const formExercicio = (html.match(/<div id="vb-modo-exercicio"[\s\S]*?<\/form>/) || [''])[0];
   const opcoesDe = (id) => {
-    const trecho = (formTermo.match(new RegExp('<select id="' + id + '">([\\s\\S]*?)</select>')) || ['', ''])[1];
+    const trecho = (formExercicio.match(new RegExp('<select id="' + id + '">([\\s\\S]*?)</select>')) || ['', ''])[1];
     return [...trecho.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]);
   };
-  conferir('o termo tem UMA lista de categorias (e não um campo de texto)',
-    opcoesDe('vcategoria'), ['passo', 'posicao', 'direcao', 'ligacao', 'salto', 'giro']);
+  conferir('a página não tem mais o formulário do vocabulário',
+    /<form id="form-termo">/.test(html), false);
+  conferir('…nem os campos dele (o segundo caminho para a mesma rota)',
+    /id="vtermo"|id="vcategoria"|id="vtradicao"/.test(html), false);
+  conferir('o exercício novo tem UMA lista de categorias (e não um campo de texto)',
+    opcoesDe('vncategoria'), ['passo', 'salto', 'ligacao', 'giro']);
   conferir('…e uma lista de tradições, com a compartilhada',
-    opcoesDe('vtradicao'), ['compartilhada', 'RAD', 'francesa', 'Vaganova']);
-  conferir('…e nenhum dos dois é um `<input>`',
-    /<input id="vcategoria"|<input id="vtradicao"/.test(formTermo), false);
-  conferir('…com o rótulo acentuado, e o valor sem acento (o que o catálogo grava)',
-    formTermo.includes('<option value="posicao">posição</option>') &&
-    formTermo.includes('<option value="direcao">direção</option>'), true);
+    opcoesDe('vntradicao'), ['compartilhada', 'RAD', 'francesa', 'Vaganova']);
+  conferir('…e nenhum dos dois é um campo de texto',
+    /<input id="vncategoria"|<input id="vntradicao"/.test(formExercicio), false);
 
   // A TURMA: PROGRAMA EM LISTA, SEM POSIÇÃO E SEM FREQUÊNCIA (18/10/2026).
   const formTurma = (html.match(/<form id="form-turma">[\s\S]*?<\/form>/) || [''])[0];
@@ -830,7 +848,9 @@ async function principal() {
   conferir('…e sem o amarelo próprio do formulário (o fundo é o do sistema)',
     html.includes('#fdf6e3'), false);
 
-  const secoesComLista = ['professores', 'alunas', 'turmas', 'vocabulario', 'curadorias'];
+  // SEM `vocabulario` (01/11/2026): a secção saiu, e com ela a sua lista. As quatro que ficam
+  // continuam a ter a lista à direita e a paginação — é a regra, e ela não mudou.
+  const secoesComLista = ['professores', 'alunas', 'turmas', 'curadorias'];
   for (const s of secoesComLista) {
     const trecho = html.split('id="sec-' + s + '"')[1] || '';
     const fim = trecho.indexOf('</section>');
@@ -838,11 +858,11 @@ async function principal() {
     conferir('a lista de ' + s + ' fica na coluna da direita, paginada',
       corpo.includes('class="col-lista"') && corpo.includes('data-paginar') && corpo.includes('class="paginas"'), true);
   }
-  // SEIS secções de formulário (professores, alunas, vocabulário, verbetes, curadorias,
-  // aparência) mais as três abas de Turmas. As listas ficam à direita; a Aparência não tem
-  // lista — são dois botões e o que está em vigor.
-  conferir('o formulário fica na coluna da esquerda (6 secções + as 3 abas de Turmas)',
-    (html.match(/class="col-form"/g) || []).length, 9);
+  // CINCO secções de formulário desde 01/11/2026 (professores, alunas, verbetes, curadorias,
+  // aparência) mais as três abas de Turmas — o vocabulário saiu com a secção dele. As listas
+  // ficam à direita; a Aparência não tem lista — são dois botões e o que está em vigor.
+  conferir('o formulário fica na coluna da esquerda (5 secções + as 3 abas de Turmas)',
+    (html.match(/class="col-form"/g) || []).length, 8);
   conferir('o script pagina as listas', script.includes('function paginar()') && script.includes('data-paginar'), true);
 
   // 8. AS ESCOLHAS: SETE dias em pílulas (lista curta, fechada, fixa — tudo à vista), e o
@@ -960,8 +980,9 @@ async function principal() {
     /max-width/.test(corpo), false);
   conferir('o formulário ficou uniforme nas cinco secções (34rem, intacto)',
     /grid-template-columns:minmax\(0,34rem\)/.test(casa(/\.secao\{[^}]*\}/)), true);
-  conferir('as listas mostram 7 linhas por página (5 secções + Turmas, que agora é uma só)',
-    (html.match(/data-por-pagina="7"/g) || []).length, 6);
+  // CINCO desde 01/11/2026 — o vocabulário levou a sexta.
+  conferir('as listas mostram 7 linhas por página (4 secções + Turmas, que agora é uma só)',
+    (html.match(/data-por-pagina="7"/g) || []).length, 5);
 
   // 11. AS PEÇAS INTERATIVAS, EXECUTADAS. Medir o HTML não basta: o escolhedor e a paginação
   //     são código que roda no navegador, e foi código assim que já deixou botões mortos

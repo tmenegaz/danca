@@ -864,6 +864,34 @@ colisão é o que esta entrada faz.
 *(Afeta §2.9 (o andaime), §L12 (os quatro estados) e a L9 (o plano que os precede). Não é decisão de
 arquitetura: é de **vocabulário** — e de vocabulário que o dinheiro vai ler.)*
 
+**C19 — O que é uma «turma pronta», e de quem é o ritmo.** A pesquisadora, a 01/11/2026, deu ao
+botão «Carregar as turmas iniciais» um destino comercial: «carregar já turmas prontas, tudo pronto,
+montado já para o professor […] eu quero poder vender isso no futuro» (frente **L14**). A decisão
+tem duas metades, e **as duas precisam de resposta antes de haver oferta**:
+
+- **A extensão.** «Turma pronta» é o **esqueleto** — o nome, o nível de referência e as associações
+  turma↔termo, que é o que o catálogo tem hoje —, ou inclui também as **aulas**, os **planos de
+  ensino** e os **POs** de referência? A diferença não é de grau: um esqueleto é **configuração**, e
+  um plano com PO é **conteúdo pedagógico** — com autoria, com responsabilidade e com um preço
+  outro.
+- **O ritmo.** Medido: as turmas do catálogo **não trazem o ritmo** (dias, hora de cada dia,
+  duração e período), e `comporConf` **lança** sem ele — «a turma não tem o que a geração exige».
+  Semeada hoje, a turma serve para a curadoria e **não gera ciclo**. E o ritmo **não é do
+  conteúdo**: a mesma «Balé Nível 1» pode ser 2×/semana numa escola e 3× noutra, porque ele é do
+  **contrato da escola**, não do exercício. Três saídas, e a escolha decide quantas perguntas a
+  carga faz: **(a)** um ritmo de referência no catálogo, que a escola corrige; **(b)** um
+  intervalo («2 a 3×/semana, 60 min») que a carga converte em pergunta; **(c)** a carga passa a
+  pedir o ritmo, uma vez por turma carregada.
+
+**O que fica decidido sem esperar:** o aviso. Enquanto as duas metades estiverem abertas, o botão
+**diz o que não traz** — no `confirm`, e não em prosa fixa na página (a regra da casa é que o
+formulário não explica). Um botão que promete «carregar as turmas» e entrega metade delas é a
+mesma família de erro do `if` que filtrava o título vazio: diz uma coisa, faz outra, e ninguém dá
+por isso.
+
+*(Afeta §L14 (a frente que isto destranca), §L8 (o valor) e a L9 (a trava por plano). A metade do
+ritmo é de **domínio**; a da extensão é **comercial**.)*
+
 ---
 
 ## 4. As frentes
@@ -892,6 +920,7 @@ visual** —, em **§8**.
 | **L11** | A porta paga: cobrança, verificação e liberação de escolas | **P2** | o lado público da porta | L8 (o valor) · **decisão C11** (onde vive o estado) · **C16** (onde vive o material de cobrança) · **C17** (quem é o administrador que confirma) · **dependências externas** (provedor) |
 | **L12** | A jornada comercial: a oferta, o período gratuito e a comunicação | **P3** | a contratação | L8 (o valor) · L9 (a trava) · **C12** (as durações) · **C13** (onde a página vive) · **C17** (o administrador do e-mail) · **C18** (os quatro estados e o que é «pagante») · **o canal** (externo) |
 | **L13** | A identidade visual como escolha: o catálogo das doze combinações | **P3** | — (não destranca frente nenhuma) | o contrato de forma (`IDENTIDADE-VISUAL.md`) · **C15 decidida em 18/10/2026: a preferência é da escola**, e o mecanismo é o servidor · o *quando* (*A × B*) continua aberto, e decide **onde o valor mora** |
+| **L14** | O catálogo de turmas prontas — a oferta que se vende | **P3** | uma fonte de receita nova, e o primeiro conteúdo vendável | L8 (o valor) · L9 (a trava) · L11/L12 (a venda) · **decisão C19** (o que é «turma pronta») · **o ritmo do catálogo** (ver a frente) |
 
 > **A trilha mais curta até valor entregue:** L1 + L2 → L3 → L4 → **T01 ou P01** (as duas únicas
 > perguntas do catálogo que ficam viáveis sem decisão de conteúdo — §7). O resto do catálogo
@@ -1990,6 +2019,72 @@ decisão.
   de doze combinações são caros de escolher e baratos de escolher duas vezes.
 
 ---
+
+### L14 — O catálogo de turmas prontas: a oferta que se vende
+
+- **Objetivo e justificativa.** Transformar o botão «Carregar as turmas iniciais» — hoje um
+  andaime de desenvolvimento, que enche o cadastro com as turmas de referência do
+  `progressao.json` — na **primeira oferta comercial de conteúdo do produto**: turmas já
+  montadas, prontas para o professor usar, que a escola **compra** em vez de construir. A
+  pesquisadora, a 01/11/2026: «quando esse botão carregar turma for acionado, eu penso em
+  carregar já turmas prontas, tudo pronto, montado já para o professor. E eu quero poder vender
+  isso no futuro […] então no futuro eu quero usar isso, mas eu acho que isso tem que entrar com
+  um plano». É a diferença entre **um serviço** (a escola contrata o sistema e o alimenta) e
+  **um produto** (a escola compra conteúdo e o usa) — e o sistema já tem o conteúdo: 94 termos,
+  a progressão de níveis, os verbetes da notação e as associações turma↔conteúdo.
+- **Situação atual.** **Existe o mecanismo e não existe a oferta.** `POST
+  /api/bastidores/semear-catalogo` carrega `CATALOGO.TURMAS` e `CATALOGO.RELACOES` do
+  `biblioteca/modalidades/bale-classico/progressao.json` para o cadastro da escola, sem duplicar
+  o que já existe — idempotente, medido. O botão está hoje dentro do «+» do verbete
+  («Verbetes da notação» → exercício novo), para onde foi a 01/11/2026 quando a página do
+  vocabulário saiu (§2.1).
+  **O QUE ELE NÃO TRAZ, e é a lacuna que esta frente tem de fechar:** as turmas do catálogo
+  têm **nome, ordem, programa e nível de referência** e **não têm o RITMO** — dias, hora de cada
+  dia, duração e período. Medido: `comporConf` **lança** «a turma não tem o que a geração exige:
+  os dias da semana da turma; a duração de cada aula; o início do período; o fim do período».
+  Uma turma semeada assim serve para a curadoria e para o repertório e **não gera ciclo**: nasce
+  pela metade. Hoje o aviso está no `confirm` do botão; a frente tem de resolver a causa.
+- **Lacunas.** (a) O catálogo não declara o ritmo — e o ritmo é do **contrato da escola**, não
+  do conteúdo (a mesma turma pode ser 2×/semana numa escola e 3× noutra): falta decidir **quem
+  o fornece** (a escola ao carregar? um valor de referência que ela corrige? um intervalo?);
+  (b) não há noção de «turma pronta» como **objeto vendável** — hoje `progressao.json` é
+  conteúdo da modalidade, e não há preço, versão, autoria nem licença; (c) não há
+  **curadoria de conteúdo**: quem responde por uma turma que a escola paga para usar; (d) não
+  há como a escola **acrescentar ao** catálogo o que ela construiu (o inverso da compra), que é
+  o que separa um catálogo vivo de uma lista fixa; (e) não há registro de **o que foi comprado**
+  — a escola que carrega hoje não sabe depois o que veio do catálogo e o que é dela.
+- **Dependências técnicas e de domínio.** L8 (o valor — sem preço não há oferta) e L9 (a trava
+  por plano — quantas turmas prontas o plano inclui); L11/L12 para o ato de compra; **C19** (o
+  que exatamente é «turma pronta»: só o esqueleto de níveis e associações, ou também as aulas,
+  os planos de ensino e os POs de referência?); e a **decisão do ritmo** — técnica, porque
+  determina se o catálogo pode ser semeado sem mais perguntas ou se a carga passa a ter uma
+  etapa de cadastro.
+- **Entregas.** (a) O **ritmo no catálogo**, de uma das três formas que a decisão escolher:
+  valor de referência por turma (que a escola corrige), ou intervalo («2 a 3×/semana, 60 min»),
+  ou pergunta obrigatória ao carregar; (b) o **objeto «turma pronta»** com `id`, versão, autoria,
+  nível de referência e associações — separado do cadastro da escola, que passa a **referenciá-lo**
+  (`turmaProntaId`) em vez de o copiar, para a escola receber correções; (c) a **marca de
+  origem** em cada turma carregada (do catálogo × da escola), que é o que permite dizer depois o
+  que foi comprado; (d) o **catálogo como oferta**: o que está incluído, o que é adicional, e a
+  ligação a L8; (e) a via inversa — a escola propõe ao catálogo o que construiu, com curadoria.
+- **Critérios verificáveis.** (i) Uma turma carregada do catálogo **gera ciclo** sem nenhuma
+  edição manual — é a prova que hoje falha, e a que fecha esta frente; (ii) carregar duas vezes
+  não duplica (idempotência, que já se mede); (iii) a marca de origem distingue catálogo de
+  escola, e sobrevive à regeração dos índices; (iv) uma correção no catálogo chega às escolas que
+  o compraram sem lhes apagar o que é delas; (v) o preço e o que está incluído saem de L8, não do
+  código.
+- **Riscos e decisões por confirmar.** (a) **C19** — o que é «turma pronta» (só o esqueleto, ou
+  as aulas e os planos também): é a decisão que dá tamanho à frente; (b) **o ritmo**: sem ele a
+  oferta não entrega o que promete, e é a lacuna medida hoje; (c) **propriedade intelectual do
+  conteúdo** — de quem é a turma pronta, e o que impede uma escola de a repassar; (d) **o
+  catálogo envelhece**: uma turma vendida em 2026 e corrigida em 2027 muda debaixo dos pés de
+  quem já a usa — a resposta é versão, e ela custa; (e) **a fronteira com o gratuito**: o que a
+  escola recebe sem comprar (as turmas de referência, que hoje são o andaime) e o que passa a ser
+  oferta.
+- **Prioridade.** **P3** — não destranca nenhuma frente de dado, e depende de L8 e L9 para ser
+  oferta. Mas é a única frente que **cria conteúdo vendável a partir de conteúdo que já existe**,
+  e por isso é a que tem o melhor retorno por unidade de trabalho — desde que C19 e o ritmo
+  estejam decididos.
 
 ## 5. Sequência sugerida
 
