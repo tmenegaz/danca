@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 01/11/2026 (base local `b0d781f`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1).
+> **Última fotografia:** 01/11/2026 (base local `10bf6b6`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -354,6 +354,22 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     `Orientação`/`Lado`) ficam **PENDENTES**: hoje o motor lê-as do verbete, não do plano, e mexer
     nelas muda o que o documento publica.
 
+29. **O NÚMERO QUE SE LÊ É O DO ROTEIRO — UM SÓ, NOS TRÊS DOCUMENTOS.** O título, o roteiro e a barra
+    contavam coisas diferentes: o roteiro contava os **degraus** (os nós que se perguntam), o título
+    contava o **índice do mapa** — com os nós de cabeçalho dentro —, e a barra contava o **mapa
+    inteiro**. No plano, 18 dos 19 degraus tinham dois números (Δ −7); no PO, os 30. A anamnese
+    estava certa, e foi por isso que o defeito passou: é o documento onde ele não aparece. Uma
+    função (`numerosDoMapa`) conta os degraus, e os três leem dela. **O que não tem degrau continua a
+    barrar o fecho** — a turma é obrigatória e não se caminha até ela —, e passa a ser **nomeado**:
+    «Do contexto, na barra». **DECIDIDO** 01/11/2026.
+30. **A «SEQUÊNCIA DE EXERCÍCIOS POR BLOCO» É DEMONSTRATIVO, NÃO UM SEGUNDO LUGAR DE DECISÃO.** O
+    bloco vem de «Blocos de cada objetivo», o objetivo dos marcos, o conteúdo do nível da matriz do
+    «Parâmetro de medição», e os tempos e o compasso do **verbete**. As duas primeiras colunas entram
+    em `somenteLeitura`; ficam livres o **conteúdo** de um exercício sem parâmetro marcado e o
+    «Adicionar linha» — sem os dois, um plano cuja turma não tem conteúdo associado não podia ser
+    composto. **Ela não sai do formulário**: é dela que a página da aula lê a sequência
+    (`sequenciaComoObjetos`). **DECIDIDO** 01/11/2026.
+
 ## 7. Trabalho em andamento
 
 Há **dois** trabalhos em andamento. O primeiro é de código e é a **Fase 1** do plano
@@ -501,7 +517,26 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (01/11/2026 — a tira fora do formulário, e cinco passos)
+### Executado nesta fotografia (01/11/2026 — o número do roteiro, igual nos três documentos)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-numeros-do-roteiro.js` | **29 asserções, 0 falhas** (nova) — jsdom, com o mapa de verdade de cada documento |
+| …o que ela mede | nos **três** documentos: o número do título é o do item activo do roteiro em **todos** os degraus; a caminhada cobre 1..N sem salto; a barra conta os degraus (e os obrigatórios são os degraus obrigatórios); o «avançar» percorre os mesmos degraus; e o **fecho continua a barrar** o obrigatório que não tem degrau, nomeando-o |
+| **controle negativo** (`--controle-negativo`, `porta/index.html` de `HEAD`) | **12 falhas** no código de antes — plano e PO reprovam, a anamnese passa (era o único documento já alinhado) |
+| `node experimentos/provar-celula.js` | **115 asserções, 0 falhas** |
+| `node experimentos/provar-musica-no-plano.js` | **18 asserções, 0 falhas** |
+| `node experimentos/provar-parametros-por-parametro.js` | **21 asserções, 0 falhas** |
+| `node experimentos/provar-plano-da-turma.js` | **46 provas, 0 falhas** |
+| `node experimentos/provar-porta-sem-contexto.js` | **44 asserções, 0 falhas** |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-pacote.js …` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh … --check` | cadeia íntegra; **`3601081…`**; selo na **versão 9** — sem renovação (esta entrega não escreve o alfabeto) |
+| medido na tela | a `aula-1-sequencia` desenha **Bloco** e **Objetivo específico** como `travada`, e o **Conteúdo do nível** travado quando vem da matriz; os **Tempos/Compasso** seguem o verbete |
+| **não executado** | `provar-plano-completo.js` e `provar-plano-matriz.js` — falham **antes desta entrega**, confirmado por `git stash` em 31/10/2026 |
+| **ao ar** | não recarregado na exploração (a cota do KV). Uma carga no fim, depois do push |
+
+### Executado na fotografia anterior (01/11/2026 — a tira fora do formulário, e cinco passos)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -784,6 +819,17 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 verbete administrável, os dois eixos, o dicionário, o «lê-se», os cinco passos com o trecho editável, e
 a frase escrita **uma vez** por exercício.
 
+**Três nós do plano que a pesquisadora questionou em 01/11/2026, medidos e à espera da decisão
+dela** — os três são a mesma pergunta: *quantas vezes o mesmo facto se pede?*
+- **«Músicas e vídeos»** — o **compasso** de cada exercício já vem do verbete; o que **não existe em
+  lugar nenhum** é a **faixa** (o título da música) e o **vídeo de referência**. O nó devia perguntar
+  só esses dois.
+- **«Repertório (se usar)»** — o texto livre duplica o que a sequência já demonstra. Tem um
+  consumidor real (`usosDosPlanos`, que o lê para saber que termos um plano usa antes de deixar apagar
+  um termo do vocabulário), e derivá-lo da sequência tornaria essa conta **exacta** — hoje lê prosa.
+- **A música e o repertório podem passar a pré-preencher** o que é derivado, como se fez no nó 19 —
+  mas o que isso muda é o **texto que o documento publica**.
+
 **Pendente dela** (nada disto é código à espera de autorização, é olho dela):
 - **Corrigir a associação** das turmas da `batata`: a relação guarda `rond-de-jambe`, que não existe no
   vocabulário. Em Produção → Turmas → Associar, remover e associar «Rond de jambe à terre».
@@ -810,6 +856,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **01/11/2026** — **O número que se lê é o do roteiro, nos três documentos.** Três réguas para a
+  mesma contagem: o roteiro contava os **degraus**, o título da página o **índice do mapa** (com os
+  nós de cabeçalho dentro) e a barra o **mapa inteiro**. Medido: anamnese 53/53 (**0**
+  desalinhados — e é por isso que o defeito passou, porque é o documento onde ele não aparece),
+  plano de ensino 26 nós/19 degraus com **18 desalinhados** (Δ −7), plano de observação 33/30 com
+  **os 30**. `numerosDoMapa()` passa a ser a régua única, e o que não tem degrau continua a barrar o
+  fecho — **nomeado**, não somado. **CONFIRMADO**: `provar-numeros-do-roteiro` **29/0**, e **12
+  falhas** com o código de `HEAD` (controle negativo). Publicado em `10bf6b6`.
+- **01/11/2026** — **A «Sequência de exercícios por bloco» passa a demonstrativo.** `Bloco` e
+  `Objetivo específico` entram em `somenteLeitura` — vêm de «Blocos de cada objetivo» e dos marcos, e
+  o conteúdo do nível vem da matriz do «Parâmetro de medição», e os tempos e o compasso do verbete.
+  O texto do nó passa a dizer que é «um DEMONSTRATIVO, e não um segundo lugar para decidir». Fica
+  livre o conteúdo sem parâmetro marcado e o «Adicionar linha». **CONFIRMADO** na tela (as duas
+  colunas saem `travada`). Publicado em `10bf6b6`.
 
 - **01/11/2026** — **A tira dos passos sai do formulário, e o verbete fica em cinco.** Três pedidos
   numa frase: o formulário volta ao **padrão** (à esquerda, listagem **presa** à direita) — a regra que

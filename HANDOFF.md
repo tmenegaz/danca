@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-01T08:54:18-0300`
-Commit atual: `b0d781f` — refactor(estrutura): a tira dos passos sai do formulário, e o verbete fica em cinco
+Gerado em: `2026-11-01T09:24:15-0300`
+Commit atual: `10bf6b6` — fix(estrutura): o número que se lê é o do roteiro, nos três documentos
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,9 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+10bf6b6 fix(estrutura): o número que se lê é o do roteiro, nos três documentos
+5bfb7ae chore(estrutura): regerar os índices derivados
+fb14ca3 docs(registro): a fotografia, o registo e o handoff da tira fora do formulário
 b0d781f refactor(estrutura): a tira dos passos sai do formulário, e o verbete fica em cinco
 a33eb51 docs(registro): a conferência ao ar da música derivada, medida e não suposta
 1db8980 docs(registro): a fotografia, o registo e o handoff do verbete que responde pelo plano
@@ -97,9 +100,6 @@ ccbc8d0 docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 b20242e docs(registro): actualizar a fotografia após as definições e as duas arrumações
 2ff8ed4 docs(registro): as definições no vocabulário, o lê-se no campo, e as duas arrumações
 b641acc feat(estrutura): o «lê-se» dentro do campo, e a quarta coluna fora da tabela
-48f43e2 feat(biblioteca): as definições do dicionário dela entram no vocabulário, com a fonte
-09eaf2b chore(estrutura): regerar os índices derivados
-fd6f67c docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 ```
 
 ## Por professor
@@ -199,113 +199,96 @@ fd6f67c docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 
 ## Última entrada do REGISTRO
 
-## 01/11/2026 — A tira dos passos sai do formulário, e o verbete fica em cinco
+## 01/11/2026 — O número que se lê é o do roteiro, nos três documentos
 
-**O que motivou.** Ela abriu a secção dos verbetes na Produção e pediu três coisas de uma vez: «o
-formulário vai voltar a ser o padrão, vai ficar do lado esquerdo, dividindo o espaço com a lista dos
-exercícios de verbete do lado direito, da mesma forma que a gente já faz com a turma»; «os steps vão
-ficar fora do formulário, igual o modelo que a gente tem na turma»; e a fusão — «a fusão, ela é step
-1, step 2 e step 4».
+**O que motivou.** Ela andava o plano pelo botão «avançar» e parou num descompasso: «eu estou na
+sequência de exercícios por bloco. No roteiro, ela é o **número 12** e na página ela é o **número
+19**. Não pode ter esse descompasso.»
 
-**1. A secção voltou ao padrão, sem regra nova.** A 31/10/2026 ela tinha passado a uma coluna porque
-a tira tinha **sete** passos e na coluna de 34rem se partia em três linhas. A fusão tirou a causa, e a
-regra que forçava a coluna única saiu: `#sec-verbetes{grid-template-columns:minmax(0,1fr)}` e o
-`position:static` da listagem deixaram de existir. O padrão é a `.secao` — formulário à esquerda,
-listagem à direita, presa.
+**Havia três réguas para a mesma contagem**, e nenhuma delas estava errada em si:
 
-**2. A tira passou para fora do `<form>`**, dentro da coluna do formulário. É a mesma peça
-(`ol.passos`, `.passo`, `.passo-n`, `.passo-t`, `.passo-alerta`), e a razão é a dos dois lados: a tira
-diz **onde se está**, é navegação, e não deve viver dentro do que ela navega.
+| onde | o que contava |
+|:--|:--|
+| o **roteiro** | os **degraus** — os nós que se perguntam, e só eles |
+| o **título da página** | o **índice do mapa** (`INDICE + 1`), que conta também os nós de cabeçalho |
+| a **barra** | o **mapa inteiro** — «respondidos N/26» sobre um roteiro de 19 |
 
-Isso trouxe uma consequência que não era óbvia, e é do mesmo tipo da que já custou caro neste
-projecto: a tira **deixou de desaparecer de borla** quando `#vb-modo-verbete` sai. No modo do
-exercício (o «+») ela ficava no ecrã a navegar cinco passos de um formulário que já não estava lá. A
-correcção tem duas metades: `pintarPassos` passa a escondê-la, e a folha ganha
-`.passos[hidden]{display:none;}` — porque **o `[hidden]` do navegador é `display:none`, mas a regra de
-autor vence a do navegador independentemente da especificidade**, e `.passos{display:flex}` deixava
-visível o que o script mandava esconder. Sem a segunda metade, a primeira não faz nada.
+Os nós de cabeçalho — escola, professor, turma, frequência, duração, calendário, número de aulas —
+**não se perguntam**: vêm do cadastro e leem-se na barra. Contá-los no título dava um número que não
+correspondia a degrau nenhum.
 
-**3. Os sete passos viraram cinco.** O exercício, a frase e a posição — que eram os passos 1, 2 e 4 —
-são as três coisas que se decidem **antes de haver trecho**, e passaram a ser o passo 1: é ali que o
-dicionário responde à escolha do exercício, e a posição é a lista curta que acompanha o mesmo
-exercício. O resto mudou de número, não de sítio: **música 2 · para onde 3 · sinais 4 · decomposição
-5**. `PASSOS_DO_TRECHO` passou de `[5, 6]` para `[3, 4]` — e o aviso de edição, o «!» da tira e o
-rótulo do último botão continuam a ler os números **daquela lista**, sem um número escrito à mão em
-três lugares. Foi para isso que a lista existe.
+**Medido, documento a documento** (é o que a prova fixa):
 
-**O resumo da tira mudou com a fusão.** O passo 1 diz o **nome** e a **posição** («Battement tendu ·
-Première position»). A frase não cabe ali sem empurrar o nome para as reticências, e tem o sinal dela
-onde se escreve: a nota do passo 1 e a recusa do «Gravar verbete», que passou a dizer «falta a frase
-do verbete (**no passo 1**)». A posição ganhou ouvinte próprio — um resumo que só diz a verdade ao
-clique seguinte não é um resumo.
+| documento | nós | degraus | desalinhados |
+|:--|--:|--:|--:|
+| anamnese | 53 | 53 | **0** |
+| plano de ensino | 26 | 19 | **18 de 19** (Δ −7) |
+| plano de observação | 33 | 30 | **30 de 30** (Δ −2 e −3) |
 
-**4. Três modelos de ensaio no alfabeto**, a pedido dela: «acrescenta também esses modelos de teste,
-GT, ronde jam e arabesque, pré-preenchidos aqui no verbete da anotação, assim vai ficar mais fácil eu
-ficar fazendo os testes». Entram **Grand battement** (`8|4/4`, en croix, com a definição do dicionário
-dela), **Arabesque** (`4|4/4`) e **Rond de jambe à terre** (`8|4/4` — o exercício que já existia como
-«Rond de jambe», com o nome que o **vocabulário** usa; é por esse nome que o plano o pede, e era por
-isso que a associação da turma apontava para um id sem termo).
+A **anamnese estava certa** — e é isso que explica o defeito ter passado: é o documento onde ele não
+aparece, porque não tem nó de cabeçalho. Quem medisse só a anamnese concluiria que estava tudo bem.
 
-Os três passam pela **régua do motor** (`validarVerbete`) e pela **composição** (`compor`) antes de
-serem escritos: um verbete que o documento não consegue ler não entra, mesmo sendo de ensaio. O
-alfabeto vai à **versão 9** e o selo da âncora foi renovado.
+**O que mudou.** `numerosDoMapa()` conta os degraus **uma vez**, e o título, o roteiro e a barra leem
+dela. O título deixa de numerar pelo índice; a barra deixa de contar o mapa (no plano, dizia «16
+obrigatórios» sobre **10** degraus obrigatórios).
 
-**O que é meu, e está dito no dado.** A **decomposição** dos três é ensaio — a frase do Grand battement
-é a do dicionário dela, a do Arabesque é a que o dicionário tem (uma linha, a pedir as palavras dela),
-e o resto das descrições vem do verbete que já existia. A **música** do Arabesque e a do Grand
-battement são escolha minha (`4|4/4` e `8|4/4`), e isso tem consequência: o plano passa a trazê-las
-**travadas**, porque o verbete passou a responder por elas.
+**O que não tem degrau continua a barrar o fecho.** A turma é obrigatória no plano e vive no
+cabeçalho: tirá-la da conta não pode tirá-la da trava. Ela não entra no denominador e passa a ser
+**nomeada**: «Do contexto, na barra: Turma observada». Somá-la a um total escondia-a atrás de um
+número — e um número não se vai preencher.
 
-**O que já funcionava continua a funcionar**, e é medido: o modo do exercício, o trecho que se
-acrescenta, edita e tira, o «Gravar verbete», e a música derivada do verbete no plano.
+**E a «Sequência de exercícios por bloco» passa a ser DEMONSTRATIVO.** A pergunta dela — «o bloco e o
+objetivo específico editável é o que te questiono se ele precisa existir sendo editável» — tem
+resposta medida, e é **não**:
 
-**Uma prova mudou de exemplo por causa da semente.** A `provar-musica-no-plano.js` media «um exercício
-**sem** verbete» no Arabesque — e o Arabesque passou a ter um. O caso não desapareceu: é agora medido
-no **Jeté**, que continua sem verbete e continua a ser pedido pelo plano. Uma prova que mede «o que
-não tem verbete» com um exercício que passou a ter mediria o contrário do que diz.
+| coluna | de onde vem |
+|:--|:--|
+| Bloco | «Blocos de cada objetivo» (`estrutura-de-cada-aula`) |
+| Objetivo específico | os marcos do ciclo (`marcos-por-aula`) |
+| Conteúdo do nível | a matriz do «Parâmetro de medição», lida em `derivadaDe` |
+| Tempos · Compasso | o **verbete** do exercício, em Produção |
 
-**Uma correcção da entrega anterior.** A `provar-musica-no-plano.js` — que o commit `885ea96` cita no
-`Auditoria:` e que este registo dava como escrita — **nunca entrou no Git**: o `experimentos/*` fecha a
-pasta e faltava o `!`. Quem clonasse o repositório não tinha a prova que o commit diz ter corrido, e
-uma auditoria que não se pode repetir não é uma auditoria. Entra agora, com a razão ao lado no
-`.gitignore`.
+As duas primeiras entram em **`somenteLeitura`**, e o texto do nó passa a dizer o que ele é — «um
+DEMONSTRATIVO, e não um segundo lugar para decidir». Fica livre o **conteúdo** de um exercício que
+ainda não tem parâmetro marcado, e fica o «Adicionar linha»: sem os dois, um plano cuja turma não tem
+conteúdo associado **não podia ser composto de maneira nenhuma**.
+
+**Ela não sai do formulário, e a razão é medida.** É dela que a página da aula lê a sequência
+(`sequenciaComoObjetos`, em `motor/nucleo/derivar-ciclo.js`). O `notacao.md` publicado diz, nos
+exercícios do plano em uso, «os tempos e o compasso ainda não estão declarados no plano» — porque a
+resposta gravada é **anterior** à música derivada do verbete. Regravar o plano pelo formulário
+preenche as linhas que têm verbete.
 
 **Onde entrou.**
-- `motor/servidor/bastidores.js` — `PASSOS_DO_VERBETE` (5) e `PASSOS_DO_TRECHO` (`[3, 4]`); a `<ol
-  id="vb-tira">` antes do `<form>`; os painéis fundidos e renumerados; `pintarPassos` a esconder a
-  tira; `pintarTira` com os cinco valores e a posição; o ouvinte da posição; `.passos[hidden]`; a
-  regra de uma coluna removida.
-- `biblioteca/modalidades/bale-classico/notacao.json` — versão 9, três verbetes de ensaio, e a nota
-  do `_comentario` a dizer o que eles são.
-- `experimentos/provar-celula.js` — **106 → 115 asserções**: a tira fora do `<form>`, a tira que sai no
-  modo do exercício (atributo **e** altura medida, porque o atributo sozinho mentiria), os cinco
-  passos, a geometria de duas colunas com a lista presa ao lado, e o `ULTIMO_PASSO` **lido da página**
-  em vez de escrito à mão.
-- `experimentos/provar-musica-no-plano.js` — versionada; o exemplo do «sem verbete» passou a Jeté.
-- `.gitignore` — o `!` que faltava.
-- Os dois pacotes regenerados e a cópia do scaffold sincronizada.
+- `porta/index.html` — `numerosDoMapa()`/`numeroDoDegrau()`, usadas pelo título, pelo roteiro, pela
+  barra, pelo contador da retomada e pelo aviso do fecho; `NUMEROS = null` quando o mapa chega.
+- `porta/plano/conteudo/plano.json` — `somenteLeitura: [Bloco, Objetivo específico]` na
+  `aula-1-sequencia`, e as três explicações do nó reescritas (o que é, o que preencher, por que).
+- `experimentos/provar-numeros-do-roteiro.js` — **29 asserções**, com **controle negativo**.
 
-**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. O selo da âncora
-**mudou** desta vez (versão 9 do alfabeto), ao contrário da entrega anterior: aqui o alfabeto foi
-escrito, não só lido.
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. A âncora
+**não** mudou: esta entrega não escreve o alfabeto, e o `plano.json` do formulário não está na
+cobertura do selo.
 
-**Validação.** `provar-celula.js` → **115/0**. `provar-verbete.js` → verde. `provar-musica-no-plano.js`
-→ **18/0**. `provar-parametros-por-parametro.js` → **21/0**. `provar-plano-da-turma.js` → **46/0**.
-`provar-porta-sem-contexto.js` → **44/0**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0
-erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro, `3601081…`, selo na **versão 9**. Medido no
-browser: **nenhum transbordo horizontal** em 320, 390, 768 e 1280px; a tira ocupa **2 a 3 linhas** na
-coluna de 34rem. **Não executado**: `provar-plano-completo.js` e `provar-plano-matriz.js` — falham
-**antes desta entrega**, confirmado por `git stash` em 31/10/2026.
+**Validação.** `provar-numeros-do-roteiro.js` → **29/0**, e **12 falhas** com o `porta/index.html` de
+`HEAD` (o controle negativo: a anamnese passa, como deve). `provar-celula.js` → **115/0**.
+`provar-musica-no-plano.js` → **18/0**. `provar-parametros-por-parametro.js` → **21/0**.
+`provar-plano-da-turma.js` → **46/0**. `provar-porta-sem-contexto.js` → **44/0**.
+`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
+íntegro, `3601081…`, selo na **versão 9**.
 
-**O que fica em aberto, e é dela.**
-- **A música dos modelos de ensaio**: Arabesque `4|4/4` e Grand battement `8|4/4` são escolha minha, e
-  o plano passa a trazê-las travadas. Se a música for outra, corrige-se no verbete — e é isso que a
-  nota do passo 2 diz.
-- **A decomposição dos três** é ensaio e pede a conferência dela.
-- **A tira em 2–3 linhas**: se preferir uma linha, é alargar a coluna do formulário só nesta secção —
-  meia dúzia de caracteres, e ainda é «formulário à esquerda, listagem à direita».
-- Continua pendente a associação das turmas (`rond-de-jambe`) — agora com o termo certo à espera, que é
-  «Rond de jambe à terre», e ele **já tem verbete**.
+**O que fica em aberto, e é decisão dela** (medido, não executado):
+- **«Músicas e vídeos»**: o compasso de cada exercício já vem do verbete; o que **não existe em lugar
+  nenhum** é a **faixa** (o título da música) e o **vídeo de referência**. O nó devia perguntar só
+  isso — hoje pede «título e, se quiser, a faixa ou o compasso», e o compasso é a parte que já está
+  respondida.
+- **«Repertório (se usar)»**: o texto livre duplica o que a sequência já demonstra. Ele tem um
+  consumidor real — `usosDosPlanos`, que o lê para saber que termos um plano usa antes de deixar
+  apagar um termo do vocabulário —, e por isso não se apaga sem mudar essa conta; derivá-lo da
+  sequência tornaria essa conta **exacta** (hoje lê prosa: «Sequência de teste com plié, tendu e port
+  de bras»).
+- **Os dois nós podem passar a pré-preencher** o que é derivado — é o mesmo desenho da música no nó
+  19 —, mas o que isso muda é o **texto que o documento publica**, e por isso fica à espera dela.
 
 ## O que está pendente
 

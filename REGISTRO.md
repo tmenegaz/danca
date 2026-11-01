@@ -28915,3 +28915,94 @@ coluna de 34rem. **Não executado**: `provar-plano-completo.js` e `provar-plano-
   meia dúzia de caracteres, e ainda é «formulário à esquerda, listagem à direita».
 - Continua pendente a associação das turmas (`rond-de-jambe`) — agora com o termo certo à espera, que é
   «Rond de jambe à terre», e ele **já tem verbete**.
+
+## 01/11/2026 — O número que se lê é o do roteiro, nos três documentos
+
+**O que motivou.** Ela andava o plano pelo botão «avançar» e parou num descompasso: «eu estou na
+sequência de exercícios por bloco. No roteiro, ela é o **número 12** e na página ela é o **número
+19**. Não pode ter esse descompasso.»
+
+**Havia três réguas para a mesma contagem**, e nenhuma delas estava errada em si:
+
+| onde | o que contava |
+|:--|:--|
+| o **roteiro** | os **degraus** — os nós que se perguntam, e só eles |
+| o **título da página** | o **índice do mapa** (`INDICE + 1`), que conta também os nós de cabeçalho |
+| a **barra** | o **mapa inteiro** — «respondidos N/26» sobre um roteiro de 19 |
+
+Os nós de cabeçalho — escola, professor, turma, frequência, duração, calendário, número de aulas —
+**não se perguntam**: vêm do cadastro e leem-se na barra. Contá-los no título dava um número que não
+correspondia a degrau nenhum.
+
+**Medido, documento a documento** (é o que a prova fixa):
+
+| documento | nós | degraus | desalinhados |
+|:--|--:|--:|--:|
+| anamnese | 53 | 53 | **0** |
+| plano de ensino | 26 | 19 | **18 de 19** (Δ −7) |
+| plano de observação | 33 | 30 | **30 de 30** (Δ −2 e −3) |
+
+A **anamnese estava certa** — e é isso que explica o defeito ter passado: é o documento onde ele não
+aparece, porque não tem nó de cabeçalho. Quem medisse só a anamnese concluiria que estava tudo bem.
+
+**O que mudou.** `numerosDoMapa()` conta os degraus **uma vez**, e o título, o roteiro e a barra leem
+dela. O título deixa de numerar pelo índice; a barra deixa de contar o mapa (no plano, dizia «16
+obrigatórios» sobre **10** degraus obrigatórios).
+
+**O que não tem degrau continua a barrar o fecho.** A turma é obrigatória no plano e vive no
+cabeçalho: tirá-la da conta não pode tirá-la da trava. Ela não entra no denominador e passa a ser
+**nomeada**: «Do contexto, na barra: Turma observada». Somá-la a um total escondia-a atrás de um
+número — e um número não se vai preencher.
+
+**E a «Sequência de exercícios por bloco» passa a ser DEMONSTRATIVO.** A pergunta dela — «o bloco e o
+objetivo específico editável é o que te questiono se ele precisa existir sendo editável» — tem
+resposta medida, e é **não**:
+
+| coluna | de onde vem |
+|:--|:--|
+| Bloco | «Blocos de cada objetivo» (`estrutura-de-cada-aula`) |
+| Objetivo específico | os marcos do ciclo (`marcos-por-aula`) |
+| Conteúdo do nível | a matriz do «Parâmetro de medição», lida em `derivadaDe` |
+| Tempos · Compasso | o **verbete** do exercício, em Produção |
+
+As duas primeiras entram em **`somenteLeitura`**, e o texto do nó passa a dizer o que ele é — «um
+DEMONSTRATIVO, e não um segundo lugar para decidir». Fica livre o **conteúdo** de um exercício que
+ainda não tem parâmetro marcado, e fica o «Adicionar linha»: sem os dois, um plano cuja turma não tem
+conteúdo associado **não podia ser composto de maneira nenhuma**.
+
+**Ela não sai do formulário, e a razão é medida.** É dela que a página da aula lê a sequência
+(`sequenciaComoObjetos`, em `motor/nucleo/derivar-ciclo.js`). O `notacao.md` publicado diz, nos
+exercícios do plano em uso, «os tempos e o compasso ainda não estão declarados no plano» — porque a
+resposta gravada é **anterior** à música derivada do verbete. Regravar o plano pelo formulário
+preenche as linhas que têm verbete.
+
+**Onde entrou.**
+- `porta/index.html` — `numerosDoMapa()`/`numeroDoDegrau()`, usadas pelo título, pelo roteiro, pela
+  barra, pelo contador da retomada e pelo aviso do fecho; `NUMEROS = null` quando o mapa chega.
+- `porta/plano/conteudo/plano.json` — `somenteLeitura: [Bloco, Objetivo específico]` na
+  `aula-1-sequencia`, e as três explicações do nó reescritas (o que é, o que preencher, por que).
+- `experimentos/provar-numeros-do-roteiro.js` — **29 asserções**, com **controle negativo**.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. A âncora
+**não** mudou: esta entrega não escreve o alfabeto, e o `plano.json` do formulário não está na
+cobertura do selo.
+
+**Validação.** `provar-numeros-do-roteiro.js` → **29/0**, e **12 falhas** com o `porta/index.html` de
+`HEAD` (o controle negativo: a anamnese passa, como deve). `provar-celula.js` → **115/0**.
+`provar-musica-no-plano.js` → **18/0**. `provar-parametros-por-parametro.js` → **21/0**.
+`provar-plano-da-turma.js` → **46/0**. `provar-porta-sem-contexto.js` → **44/0**.
+`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
+íntegro, `3601081…`, selo na **versão 9**.
+
+**O que fica em aberto, e é decisão dela** (medido, não executado):
+- **«Músicas e vídeos»**: o compasso de cada exercício já vem do verbete; o que **não existe em lugar
+  nenhum** é a **faixa** (o título da música) e o **vídeo de referência**. O nó devia perguntar só
+  isso — hoje pede «título e, se quiser, a faixa ou o compasso», e o compasso é a parte que já está
+  respondida.
+- **«Repertório (se usar)»**: o texto livre duplica o que a sequência já demonstra. Ele tem um
+  consumidor real — `usosDosPlanos`, que o lê para saber que termos um plano usa antes de deixar
+  apagar um termo do vocabulário —, e por isso não se apaga sem mudar essa conta; derivá-lo da
+  sequência tornaria essa conta **exacta** (hoje lê prosa: «Sequência de teste com plié, tendu e port
+  de bras»).
+- **Os dois nós podem passar a pré-preencher** o que é derivado — é o mesmo desenho da música no nó
+  19 —, mas o que isso muda é o **texto que o documento publica**, e por isso fica à espera dela.
