@@ -1,136 +1,52 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-01",
-        "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
-        "cobertura": [
-          "professores/perna-boa/ciclos/ciclo-01-batata.conf",
-          "professores/perna-boa/ciclos/ciclo-01.conf"
-        ],
-        "hash": "1816e1eb7b3cc3fc1c8a736265a6d34ca1cc661612aec10096bd676e20294653",
-        "hash_conteudo": "5ed93e23b00fdd4c199f38dfc769d6d1b03e8e19da262f5394f0592c97282119",
-        "id": "ciclo-01-batata",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/perna-boa/ciclos/ciclo-01-batata.conf",
-        "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
-        "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:perna-boa/01/batata",
-      "numero": "01",
-      "pacote": null,
-      "professor": "perna-boa",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.fipp",
-      "ciclo_id": "ciclo:perna-boa/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/perna-boa/ciclos/ciclo-01-batata.fipp",
-      "professor": "perna-boa",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata.conf",
-      "ciclo_id": "ciclo:perna-boa/01/batata",
-      "escola": "batata",
-      "id": "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-batata.conf",
-      "professor": "perna-boa",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:perna-boa/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/perna-boa/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "perna-boa",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:perna-boa/01/batata"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-11-01T19:05:50.836170+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-01T15:55:33.697Z",
-    "expurgos": 6,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-01T20:13:24.467Z",
+    "expurgos": 7,
+    "habilitada": false,
     "id": "escola:batata",
     "nome": "batata",
     "professor": "perna-boa",
     "professores": [
+      "acucar-branco",
+      "cafe-no-bule",
+      "manga-curta",
+      "meia-cortada",
       "perna-boa",
-      "pirueta-aberta"
+      "pirueta-aberta",
+      "sapo-bailarino",
+      "so-para-direita",
+      "tela-de-celular",
+      "tiago-menegaz"
     ],
     "registros": [],
     "slug": "batata"
   },
   "filtros": {
     "anos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:perna-boa/01/batata"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:perna-boa/01/batata"
-        ],
-        "rotulo": "perna-boa",
-        "valor": "perna-boa"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:perna-boa/01/batata"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "1543787"
+    "commit": "6e05d84"
   },
-  "gerado_em": "2026-11-01T19:14",
+  "gerado_em": "2026-11-01T20:13",
   "nao_indexado": [
     {
       "familia": "conteudo",
