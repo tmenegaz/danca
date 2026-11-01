@@ -1,15 +1,63 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-01",
+    "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+    "cobertura": [
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+      "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
+    ],
+    "hash": "0afc463a8e398785f23e10eda52beccad7665178d924121b4fbedef06356cd07",
+    "hash_conteudo": "76589d9a0a9b49d4b607084bb4f1490d661a4876f0d8f12f8570063f9ab70fcd",
+    "id": "ciclo-01-breu-bale-nivel-1-teste-3",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+    "documento:aula:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+    "documento:aula:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+    "documento:dados:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
+    "documento:dados:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+    "documento:glossario:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+    "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
-    "documento:plano:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md"
+    "documento:notacao:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
+    "documento:plano:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+    "documento:po:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+    "documento:referencias:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md"
   ],
   "escola": "breu",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -17,16 +65,31 @@
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "07a973b"
+    "commit": "e963d38"
   },
-  "gerado_em": "2026-11-01T20:31",
+  "gerado_em": "2026-11-01T20:33",
   "id": "ciclo:pe-torto/01/breu",
   "professor": "pe-torto",
   "versao": 6
