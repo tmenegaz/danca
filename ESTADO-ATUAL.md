@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 31/10/2026 (base local `885ea96`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete.
+> **Última fotografia:** 01/11/2026 (base local `b0d781f`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -157,7 +157,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | PO: derivação e documento | **CONFIRMADO** | `motor/nucleo/derivar-po.js` |
 | Lançamento da aula | **CONFIRMADO** | `motor/nucleo/lancamento.js` |
 | Bastidores (Produção) com menu próprio | **CONFIRMADO** | `motor/servidor/{producao,bastidores}.js` |
-| O alfabeto da notação na Produção — sete passos, frase por exercício, trecho editável | **CONFIRMADO** 31/10/2026 na bancada local (106 asserções): o formulário percorre-se do passo 1 ao 7, um painel visível de cada vez, a frase escreve-se uma vez e entra em todos os trechos, e um trecho gravado abre em edição no passo 5 com os valores dele. **A conferência na página publicada fica para o deploy.** | `motor/servidor/bastidores.js`, `motor/servidor/verbete.js` |
+| O alfabeto da notação na Produção — cinco passos, frase por exercício, trecho editável | **CONFIRMADO** 01/11/2026 na bancada local (115 asserções): o formulário percorre-se do passo 1 ao 5, um painel visível de cada vez, a tira fica fora do `<form>` e sai no modo do exercício, a frase escreve-se uma vez e entra em todos os trechos, e um trecho gravado abre em edição no passo 3 com os valores dele. **A conferência na página publicada fica para o deploy.** | `motor/servidor/bastidores.js`, `motor/servidor/verbete.js` |
 | Criar escola / expurgar escola | **CONFIRMADO** | `provisionar-escola.js`, `expurgar-escola.js` |
 | Índice de envelopes com resumo invalidável | **CONFIRMADO** | `motor/nucleo/porta.js` (`VERSAO_DO_RESUMO = 4`) |
 | Âncora e cadeia de proveniência | **CONFIRMADO** | `tools/hash-ciclo.sh` |
@@ -315,10 +315,13 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     células que a sua própria direção já tem, porque a nova entra no fim dela. A coluna do compasso
     sai da **mesma** soma. Duas contas diferentes para a mesma coisa põem dois trechos no mesmo
     tempo, e a página da aula passa a dizer duas coisas para o mesmo instante. **DECIDIDO** 29/10/2026.
-24. **O FORMULÁRIO DO VERBETE ESCREVE-SE EM SETE PASSOS, E UM TRECHO GRAVADO PODE SER CORRIGIDO.** Ela
+24. **O FORMULÁRIO DO VERBETE ESCREVE-SE EM PASSOS, E UM TRECHO GRAVADO PODE SER CORRIGIDO.** Ela
     comparou as duas arrumações e escolheu os passos («o Step, apesar de ter mais cliques, ele é mais
-    fácil de entender»). Os sete: **1 O exercício · 2 A frase · 3 A música · 4 A posição · 5 Para onde ·
-    6 Os sinais · 7 A decomposição**. A tira em cima diz o que já está decidido e é a navegação; o passo
+    fácil de entender»). **DECIDIDO** 31/10/2026 em sete; **DECIDIDO** 01/11/2026 em **cinco** — o
+    exercício, a frase e a posição são um passo só, porque são as três coisas que se decidem antes de
+    haver trecho. Os cinco: **1 O exercício · 2 A música · 3 Para onde · 4 Os sinais · 5 A
+    decomposição**. A tira vive **fora do `<form>`**, na coluna do formulário, como a faixa da turma,
+    e sai do ecrã no modo do exercício. A tira em cima diz o que já está decidido e é a navegação; o passo
     1 fica **fora** do bloco do verbo, porque o modo do exercício o bloqueia em vez de o esconder.
     Corrigir um trecho é um **estado** (`EM_EDICAO`), não um botão: acende o «!» nos dois passos do
     trecho (5 e 6), leva ao 5, muda o rótulo do 7 para «Guardar a alteração», e a linha em edição
@@ -368,7 +371,14 @@ nelas muda o que o documento publica. Falta ainda a decisão dela sobre essa fro
 nenhuma lista suspensa no trecho, e a notação compõe-se de cliques. E a **arrumação do formulário**
 deixou de estar em aberto: ela viu as duas bancadas e escolheu **os passos** — «o Step, apesar de ter
 mais cliques, ele é mais fácil de entender» —, e o formulário passou a **seis passos, um de cada vez**,
-com o trecho **editável** (`d7e71ff`). O segundo trabalho **não é de
+com o trecho **editável** (`d7e71ff`). A **arrumação** também já não está em aberto: a 01/11/2026 ela pediu o contrário do
+que se tinha feito a 31/10 — **o formulário volta ao padrão** (à esquerda, com a listagem presa à
+direita) e a **tira dos passos sai para fora do `<form>`**, modelo da turma. Com a tira fora, os sete
+passos ficaram **cinco**: o exercício, a frase e a posição são um só (`b0d781f`), e o alfabeto ganhou
+**três verbetes de ensaio** (Grand battement, Arabesque, Rond de jambe à terre) para ela poder testar
+sem escrever do zero — **versão 9**, selo renovado.
+
+O segundo trabalho **não é de
 código**: **o plano da Batata vai ser refeito no formulário pela
 pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu os exercícios de
 **Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos publicados ficam
@@ -377,9 +387,10 @@ de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. E
 **expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
 vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 31/10/2026 — `885ea96` (os tempos e o compasso vêm do verbete), com
-`621a4f3` (o registo anterior) por trás. Antes dele, `d7e71ff` (o verbete em seis passos, com o modo
-de edição) e `c3f0fb1` (o plano diz por que um termo da turma não aparece). A base anterior: `b641acc` (o «lê-se»
+**Último ponto confirmado:** 01/11/2026 — `b0d781f` (a tira dos passos sai do formulário, e o verbete
+fica em cinco), com `a33eb51` (o registo anterior) por trás. Antes dele, `885ea96` (os tempos e o
+compasso vêm do verbete), `d7e71ff` (o verbete em seis passos, com o modo de edição) e `c3f0fb1` (o
+plano diz por que um termo da turma não aparece). A base anterior: `b641acc` (o «lê-se»
 dentro do campo e a quarta coluna fora), `48f43e2` (as definições no vocabulário), `9fb09dc` (a folha,
 com motivo declarado), `4f4795a` (os dois modos, a direção derivada e o editor de célula). O
 `GET /api/bastidores/termos` ao ar respondeu **200** com **87 termos** em 28/10/2026, 12 deles com
@@ -490,7 +501,25 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (31/10/2026 — os tempos e o compasso vêm do verbete)
+### Executado nesta fotografia (01/11/2026 — a tira fora do formulário, e cinco passos)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **115 asserções, 0 falhas** (eram 106) — no navegador, sobre bancada local |
+| …o que ela mede de novo | a tira **fora do `<form>`** (e antes dele); a tira **fora do ecrã no modo do exercício** — atributo `hidden` **e altura medida**, porque o atributo sozinho mentiria (`.passos{display:flex}` vence `[hidden]`); os **cinco** passos, numerados de 1 a 5; cada número com o seu painel; o valor do passo 1 com o nome e a posição; a **geometria de duas colunas** com a listagem à direita e **presa**; o `ULTIMO_PASSO` **lido da página** |
+| `node experimentos/provar-verbete.js` | verde — o CRUD valida, grava no repositório e recusa apagar |
+| `node experimentos/provar-musica-no-plano.js` | **18 asserções, 0 falhas** — versionada nesta entrega (faltava o `!` no `.gitignore` desde 31/10); o caso «sem verbete» passou a ser medido no **Jeté** |
+| `node experimentos/provar-parametros-por-parametro.js` | **21 asserções, 0 falhas** |
+| `node experimentos/provar-plano-da-turma.js` | **46 provas, 0 falhas** |
+| `node experimentos/provar-porta-sem-contexto.js` | **44 asserções, 0 falhas** |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-pacote.js professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh … --check` | cadeia íntegra; **`3601081…`**; **selo renovado para a versão 9** do alfabeto |
+| geometria da tira | **2 a 3 linhas** na coluna de 34rem (7,5rem por rótulo, valor com reticências); **nenhum transbordo** em 320, 390, 768 e 1280px |
+| **não executado** | `provar-plano-completo.js` e `provar-plano-matriz.js` — falham **antes desta entrega** (o nó `aula-de-cada-objetivo` sem destino na prova, e `/api/mapa`), confirmado por `git stash` |
+| **ao ar** | não recarregado na exploração, de propósito (a cota do KV). Uma carga no fim, depois do push |
+
+### Executado na fotografia anterior (31/10/2026 — os tempos e o compasso vêm do verbete)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -752,7 +781,7 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 ## 10. Próximos passos
 
 **Da Fase 1 falta um item:** as **seleções no plano** (§1.6). Todo o resto do alfabeto está feito — o
-verbete administrável, os dois eixos, o dicionário, o «lê-se», os sete passos com o trecho editável, e
+verbete administrável, os dois eixos, o dicionário, o «lê-se», os cinco passos com o trecho editável, e
 a frase escrita **uma vez** por exercício.
 
 **Pendente dela** (nada disto é código à espera de autorização, é olho dela):
@@ -761,21 +790,50 @@ a frase escrita **uma vez** por exercício.
 - **Escolher a turma do plano**: os planos existentes são do Nível 1 e do Nível 2, e os termos que ela
   quer estão associados ao Nível 3 — ou se planeia o Nível 3, ou se associam os termos ao nível do
   plano em uso.
-- **Usar o sétimo passo a sério** — acrescentar vários trechos e ver que a frase não se pede outra vez.
+- **Usar o último passo a sério** — acrescentar vários trechos e ver que a frase não se pede outra vez.
 - **As 4 linhas «a conferir»** das posições de braços no alfabeto — o dicionário dela só as responde em
   parte.
 - **Revisão das quatro descrições que eu redigi agora** (dégagé, glissé, tendu jeté, jeté): a `fonte`
   diz que são minhas, a partir da distinção que ela própria registou, e que estão a conferir.
 - **Revisão das frases que eu redigi** para os **32 exercícios sem definição** (23 de 55 têm).
-- **A tira em sete linhas no telefone** (322px de altura em 320px de largura): não transborda, mas
-  ocupa meia tela. Se incomodar, esconde-se o valor dos passos abaixo de 700px.
+- **A tira em cinco passos ocupa 2 a 3 linhas** na coluna de 34rem (e 5 no telefone): não transborda em
+  320–1280px, mas come altura acima do formulário. Se incomodar, alarga-se a coluna do formulário só
+  nesta secção — continua a ser «formulário à esquerda, listagem à direita» — ou esconde-se o valor dos
+  passos abaixo de 700px.
+- **Conferir os três modelos de ensaio** do alfabeto (versão 9): a decomposição é minha, e a música do
+  Arabesque (`4|4/4`) e a do Grand battement (`8|4/4`) são escolha minha — e o plano passa a trazê-las
+  **travadas**, porque o verbete passou a responder por elas.
 
-**Publicação:** depois do push, uma única carga ao ar para confirmar os sete passos e a listagem na
+**Publicação:** depois do push, uma única carga ao ar para confirmar os cinco passos e a listagem na
 página publicada — é a conferência final, não a exploração (ver §12 e a regra da cota do ar).
 
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **01/11/2026** — **A tira dos passos sai do formulário, e o verbete fica em cinco.** Três pedidos
+  numa frase: o formulário volta ao **padrão** (à esquerda, listagem **presa** à direita) — a regra que
+  forçava a coluna única saiu, porque a causa dela (sete passos numa coluna de 34rem) desapareceu —; a
+  tira passa a viver **fora do `<form>`**, modelo da turma; e o **exercício, a frase e a posição**
+  fundem-se no passo 1. Ficam **cinco**: 1 O exercício · 2 A música · 3 Para onde · 4 Os sinais · 5 A
+  decomposição, com `PASSOS_DO_TRECHO` em `[3, 4]`. **Uma armadilha paga:** com a tira fora, ela
+  deixou de sair de borla no modo do exercício, e o `hidden` não chegava — a regra de autor vence a do
+  navegador —, daí `.passos[hidden]{display:none;}`. O resumo do passo 1 passou a dizer o nome **e a
+  posição**. **CONFIRMADO**: `provar-celula` **115/0** (eram 106), as restantes provas verdes,
+  `check-identidade` 20/20, `check-pacote` 0 erro, âncora íntegra com o **selo na versão 9**.
+  Publicado em `b0d781f`.
+- **01/11/2026** — **Três verbetes de ensaio no alfabeto.** A pedido dela — «acrescenta também esses
+  modelos de teste, pré-preenchidos… assim vai ficar mais fácil eu ficar fazendo os testes» —, entram
+  **Grand battement** (`8|4/4`), **Arabesque** (`4|4/4`) e **Rond de jambe à terre** (`8|4/4`, com o
+  nome que o **vocabulário** usa; até aqui o alfabeto tinha «Rond de jambe», que não é termo nenhum). O
+  alfabeto vai à **versão 9**. Passam pela régua do motor e pela composição **antes** de serem
+  escritos. **A decomposição é ensaio** e a música do Arabesque e do Grand battement é escolha minha —
+  e o plano passa a trazê-las **travadas**, porque o verbete passou a responder por elas.
+  **CONFIRMADO** localmente.
+- **01/11/2026** — **Uma prova que o commit citava e o Git não tinha.** A `provar-musica-no-plano.js`
+  de `885ea96` ficou fora do repositório (o `experimentos/*` fecha a pasta, faltava o `!`). Entra
+  agora, com a razão escrita no `.gitignore`. O caso «sem verbete» passou a ser medido no **Jeté**,
+  porque o Arabesque ganhou um.
 
 - **31/10/2026** — **Os tempos e o compasso vêm do verbete.** Ela abriu o nó «Sequência de exercícios
   por bloco», no plano do Nível 3, e o **Battement fondu** — escrito no verbete, com a música `2|4/4` —

@@ -28807,3 +28807,111 @@ precisou de renovação: esta entrega **lê** o alfabeto, não o escreve, e o `h
   campos ficam à mão, que é o comportamento correcto.
 - Corrigir a associação das turmas (`rond-de-jambe`) e escolher a turma do plano — como no lançamento
   anterior.
+
+## 01/11/2026 — A tira dos passos sai do formulário, e o verbete fica em cinco
+
+**O que motivou.** Ela abriu a secção dos verbetes na Produção e pediu três coisas de uma vez: «o
+formulário vai voltar a ser o padrão, vai ficar do lado esquerdo, dividindo o espaço com a lista dos
+exercícios de verbete do lado direito, da mesma forma que a gente já faz com a turma»; «os steps vão
+ficar fora do formulário, igual o modelo que a gente tem na turma»; e a fusão — «a fusão, ela é step
+1, step 2 e step 4».
+
+**1. A secção voltou ao padrão, sem regra nova.** A 31/10/2026 ela tinha passado a uma coluna porque
+a tira tinha **sete** passos e na coluna de 34rem se partia em três linhas. A fusão tirou a causa, e a
+regra que forçava a coluna única saiu: `#sec-verbetes{grid-template-columns:minmax(0,1fr)}` e o
+`position:static` da listagem deixaram de existir. O padrão é a `.secao` — formulário à esquerda,
+listagem à direita, presa.
+
+**2. A tira passou para fora do `<form>`**, dentro da coluna do formulário. É a mesma peça
+(`ol.passos`, `.passo`, `.passo-n`, `.passo-t`, `.passo-alerta`), e a razão é a dos dois lados: a tira
+diz **onde se está**, é navegação, e não deve viver dentro do que ela navega.
+
+Isso trouxe uma consequência que não era óbvia, e é do mesmo tipo da que já custou caro neste
+projecto: a tira **deixou de desaparecer de borla** quando `#vb-modo-verbete` sai. No modo do
+exercício (o «+») ela ficava no ecrã a navegar cinco passos de um formulário que já não estava lá. A
+correcção tem duas metades: `pintarPassos` passa a escondê-la, e a folha ganha
+`.passos[hidden]{display:none;}` — porque **o `[hidden]` do navegador é `display:none`, mas a regra de
+autor vence a do navegador independentemente da especificidade**, e `.passos{display:flex}` deixava
+visível o que o script mandava esconder. Sem a segunda metade, a primeira não faz nada.
+
+**3. Os sete passos viraram cinco.** O exercício, a frase e a posição — que eram os passos 1, 2 e 4 —
+são as três coisas que se decidem **antes de haver trecho**, e passaram a ser o passo 1: é ali que o
+dicionário responde à escolha do exercício, e a posição é a lista curta que acompanha o mesmo
+exercício. O resto mudou de número, não de sítio: **música 2 · para onde 3 · sinais 4 · decomposição
+5**. `PASSOS_DO_TRECHO` passou de `[5, 6]` para `[3, 4]` — e o aviso de edição, o «!» da tira e o
+rótulo do último botão continuam a ler os números **daquela lista**, sem um número escrito à mão em
+três lugares. Foi para isso que a lista existe.
+
+**O resumo da tira mudou com a fusão.** O passo 1 diz o **nome** e a **posição** («Battement tendu ·
+Première position»). A frase não cabe ali sem empurrar o nome para as reticências, e tem o sinal dela
+onde se escreve: a nota do passo 1 e a recusa do «Gravar verbete», que passou a dizer «falta a frase
+do verbete (**no passo 1**)». A posição ganhou ouvinte próprio — um resumo que só diz a verdade ao
+clique seguinte não é um resumo.
+
+**4. Três modelos de ensaio no alfabeto**, a pedido dela: «acrescenta também esses modelos de teste,
+GT, ronde jam e arabesque, pré-preenchidos aqui no verbete da anotação, assim vai ficar mais fácil eu
+ficar fazendo os testes». Entram **Grand battement** (`8|4/4`, en croix, com a definição do dicionário
+dela), **Arabesque** (`4|4/4`) e **Rond de jambe à terre** (`8|4/4` — o exercício que já existia como
+«Rond de jambe», com o nome que o **vocabulário** usa; é por esse nome que o plano o pede, e era por
+isso que a associação da turma apontava para um id sem termo).
+
+Os três passam pela **régua do motor** (`validarVerbete`) e pela **composição** (`compor`) antes de
+serem escritos: um verbete que o documento não consegue ler não entra, mesmo sendo de ensaio. O
+alfabeto vai à **versão 9** e o selo da âncora foi renovado.
+
+**O que é meu, e está dito no dado.** A **decomposição** dos três é ensaio — a frase do Grand battement
+é a do dicionário dela, a do Arabesque é a que o dicionário tem (uma linha, a pedir as palavras dela),
+e o resto das descrições vem do verbete que já existia. A **música** do Arabesque e a do Grand
+battement são escolha minha (`4|4/4` e `8|4/4`), e isso tem consequência: o plano passa a trazê-las
+**travadas**, porque o verbete passou a responder por elas.
+
+**O que já funcionava continua a funcionar**, e é medido: o modo do exercício, o trecho que se
+acrescenta, edita e tira, o «Gravar verbete», e a música derivada do verbete no plano.
+
+**Uma prova mudou de exemplo por causa da semente.** A `provar-musica-no-plano.js` media «um exercício
+**sem** verbete» no Arabesque — e o Arabesque passou a ter um. O caso não desapareceu: é agora medido
+no **Jeté**, que continua sem verbete e continua a ser pedido pelo plano. Uma prova que mede «o que
+não tem verbete» com um exercício que passou a ter mediria o contrário do que diz.
+
+**Uma correcção da entrega anterior.** A `provar-musica-no-plano.js` — que o commit `885ea96` cita no
+`Auditoria:` e que este registo dava como escrita — **nunca entrou no Git**: o `experimentos/*` fecha a
+pasta e faltava o `!`. Quem clonasse o repositório não tinha a prova que o commit diz ter corrido, e
+uma auditoria que não se pode repetir não é uma auditoria. Entra agora, com a razão ao lado no
+`.gitignore`.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — `PASSOS_DO_VERBETE` (5) e `PASSOS_DO_TRECHO` (`[3, 4]`); a `<ol
+  id="vb-tira">` antes do `<form>`; os painéis fundidos e renumerados; `pintarPassos` a esconder a
+  tira; `pintarTira` com os cinco valores e a posição; o ouvinte da posição; `.passos[hidden]`; a
+  regra de uma coluna removida.
+- `biblioteca/modalidades/bale-classico/notacao.json` — versão 9, três verbetes de ensaio, e a nota
+  do `_comentario` a dizer o que eles são.
+- `experimentos/provar-celula.js` — **106 → 115 asserções**: a tira fora do `<form>`, a tira que sai no
+  modo do exercício (atributo **e** altura medida, porque o atributo sozinho mentiria), os cinco
+  passos, a geometria de duas colunas com a lista presa ao lado, e o `ULTIMO_PASSO` **lido da página**
+  em vez de escrito à mão.
+- `experimentos/provar-musica-no-plano.js` — versionada; o exemplo do «sem verbete» passou a Jeté.
+- `.gitignore` — o `!` que faltava.
+- Os dois pacotes regenerados e a cópia do scaffold sincronizada.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. O selo da âncora
+**mudou** desta vez (versão 9 do alfabeto), ao contrário da entrega anterior: aqui o alfabeto foi
+escrito, não só lido.
+
+**Validação.** `provar-celula.js` → **115/0**. `provar-verbete.js` → verde. `provar-musica-no-plano.js`
+→ **18/0**. `provar-parametros-por-parametro.js` → **21/0**. `provar-plano-da-turma.js` → **46/0**.
+`provar-porta-sem-contexto.js` → **44/0**. `check-identidade.js` → **20/20**. `check-pacote.js` → **0
+erro, 0 aviso**. `hash-ciclo.sh --check` → íntegro, `3601081…`, selo na **versão 9**. Medido no
+browser: **nenhum transbordo horizontal** em 320, 390, 768 e 1280px; a tira ocupa **2 a 3 linhas** na
+coluna de 34rem. **Não executado**: `provar-plano-completo.js` e `provar-plano-matriz.js` — falham
+**antes desta entrega**, confirmado por `git stash` em 31/10/2026.
+
+**O que fica em aberto, e é dela.**
+- **A música dos modelos de ensaio**: Arabesque `4|4/4` e Grand battement `8|4/4` são escolha minha, e
+  o plano passa a trazê-las travadas. Se a música for outra, corrige-se no verbete — e é isso que a
+  nota do passo 2 diz.
+- **A decomposição dos três** é ensaio e pede a conferência dela.
+- **A tira em 2–3 linhas**: se preferir uma linha, é alargar a coluna do formulário só nesta secção —
+  meia dúzia de caracteres, e ainda é «formulário à esquerda, listagem à direita».
+- Continua pendente a associação das turmas (`rond-de-jambe`) — agora com o termo certo à espera, que é
+  «Rond de jambe à terre», e ele **já tem verbete**.
