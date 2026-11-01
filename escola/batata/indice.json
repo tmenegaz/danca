@@ -625,5 +625,11 @@
       ]
     }
   ],
-  "professores": []
+  "professores": [
+    {
+      "slug": "pirueta-baerta",
+      "nome": "Pirueta Baerta",
+      "desde": "2026-11-01T19:10:08.823Z"
+    }
+  ]
 }
