@@ -6,6 +6,7 @@
     "anamnese-20261027-0946.json",
     "plano-20261027-1025.json",
     "plano-20261027-1131.json",
+    "plano-20261101-1159.json",
     "po-20261027-1353.json"
   ],
   "resumos": {
@@ -66,6 +67,27 @@
       "turma": "Balé Nível 2 — Teste 2",
       "repertorio": [
         "Sequência de teste com plié, tendu e port de bras."
+      ],
+      "professorNome": "so-para-direita"
+    },
+    "plano-20261101-1159.json": {
+      "id": "plano-20261101-1159",
+      "fonte": "plano",
+      "escola": "batata",
+      "professor": "so-para-direita",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-01T11:59",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 2, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 3 — Teste 2",
+      "repertorio": [
+        "Arabesque",
+        "Plié",
+        "Battement tendu",
+        "Battement fondu",
+        "Rond de jambe",
+        "Jeté",
+        "Port de bras"
       ],
       "professorNome": "so-para-direita"
     },
