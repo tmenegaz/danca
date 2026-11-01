@@ -10,12 +10,12 @@ type: Ciclo
 professor: pe-junto
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: a72490bbd230aded6545d8fab8b415e3c48db5010dc9ddeda83b4c865498e82f
+hash_conteudo: a2715b3db65b10cbc9b8b3f94863b4b84d97f0abdb1209e9464e58bd6d4c1664
 parentHash: 
-hash: d82a963a8cbcc0b15cadfca8283cfbf7ee75b9240cb67b35f9b93c425e4103f2
+hash: aa1e20e02a6c6064728c7778be61894189aa81b75432f5457e3eca33cb54b656
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-11-01
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,5 +23,13 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 15
 notacao_sha: 9cdfc99c94ba29554bed0d84c58f11e722b079f70686ae09e9c3a27d0de5ccc2
 cobertura:
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
   - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+  - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
   - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf
