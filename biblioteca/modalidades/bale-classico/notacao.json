@@ -54,7 +54,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 10,
+  "versao": 11,
   "aplicaseA": [
     "benesh"
   ],
@@ -402,7 +402,7 @@
     ],
     "Plié": {
       "8|4/4": {
-        "cobre": 8,
+        "cobre": 12,
         "posicao": {
           "membro": "pes",
           "termo": "premiere-position"
@@ -426,6 +426,28 @@
                 "↑"
               ],
               "descricao": "os apoios sobem e o eixo retorna"
+            }
+          ],
+          "": [
+            {
+              "contagem": "1–2",
+              "categoria": "Braço",
+              "sinais": [
+                "↓",
+                "⌒"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, cede, arco."
+            },
+            {
+              "contagem": "3–4",
+              "categoria": "Braço",
+              "sinais": [
+                "→",
+                "+",
+                "-",
+                "⌒"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, conduz a, à frente, ao lado, arco."
             }
           ]
         }
