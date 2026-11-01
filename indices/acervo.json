@@ -99,7 +99,6 @@
       "nome": "breu",
       "professor": "sapo-bailarino",
       "professores": [
-        "mao-alongada",
         "sapo-bailarino"
       ],
       "registros": [],
@@ -380,11 +379,6 @@
       },
       {
         "contagem": 1,
-        "rotulo": "Mão Alongada",
-        "valor": "mao-alongada"
-      },
-      {
-        "contagem": 1,
         "rotulo": "meia-cortada",
         "valor": "meia-cortada"
       },
@@ -453,9 +447,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c8d279"
+    "commit": "78b76f9"
   },
-  "gerado_em": "2026-11-01T20:17",
+  "gerado_em": "2026-11-01T20:24",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -530,15 +524,6 @@
       "id": "professor:manga-curta",
       "nome": null,
       "slug": "manga-curta"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:mao-alongada",
-      "nome": "Mão Alongada",
-      "slug": "mao-alongada"
     },
     {
       "ciclos": [],

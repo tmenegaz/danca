@@ -87,7 +87,6 @@
     "nome": "breu",
     "professor": "sapo-bailarino",
     "professores": [
-      "mao-alongada",
       "sapo-bailarino"
     ],
     "registros": [],
@@ -128,9 +127,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c8d279"
+    "commit": "78b76f9"
   },
-  "gerado_em": "2026-11-01T20:17",
+  "gerado_em": "2026-11-01T20:24",
   "nao_indexado": [
     {
       "familia": "conteudo",
