@@ -117,14 +117,19 @@ const ALFABETO = {
     { termo: 'a-la-seconde', nome: 'ao lado', glifo: '-' },
     { termo: 'derriere', nome: 'atrás', glifo: '×' },
   ],
+  // O NOME É O UNIVERSAL E A TRADIÇÃO VAI AO LADO (01/11/2026). Era `nome: 'croisé'` — o
+  // nome da tradição como rótulo da pílula —, e a pesquisadora pediu o contrário: «orientação
+  // do corpo, nós estamos adotando exclusivamente nomes do balé clássico […] a gente precisa
+  // adotar nomes que sejam mais universais». A rota serve `nome` (a leitura em português) e
+  // `tradicao` (como o ballet lhe chama), e o fixture tem de ter a forma que a rota serve.
   orientacoes: [
-    { termo: 'en-face', nome: 'en face', glifo: 'en-face' },
-    { termo: 'croise', nome: 'croisé', glifo: 'croise' },
-    { termo: 'efface', nome: 'effacé', glifo: 'efface' },
-    { termo: 'ecarte', nome: 'écarté', glifo: 'ecarte' },
-    { termo: 'epaulement', nome: 'épaulement', glifo: 'epaulement' },
+    { termo: 'en-face', nome: 'de frente', tradicao: 'en face', glifo: 'en-face' },
+    { termo: 'croise', nome: 'pernas cruzadas', tradicao: 'croisé', glifo: 'croise' },
+    { termo: 'efface', nome: 'pernas abertas', tradicao: 'effacé', glifo: 'efface' },
+    { termo: 'ecarte', nome: 'na diagonal', tradicao: 'écarté', glifo: 'ecarte' },
+    { termo: 'epaulement', nome: 'ombros rodados', tradicao: 'épaulement', glifo: 'epaulement' },
   ],
-  categoriasDeBloco: ['Pé', 'Peso', 'Plié', 'Braço'],
+  categoriasDeBloco: ['Pé', 'Peso', 'Perna', 'Braço'],
   // O DICIONÁRIO DO QUE ACONTECE, como a rota o serve — indexado pela NOTAÇÃO, e não pelo nome
   // do exercício: o Plié tem duas coisas (desce, sobe) e por isso duas frases.
   descricoes: {
@@ -403,7 +408,7 @@ function estado() {
         === JSON.stringify(['compasso', 'contagem', 'direção', 'orientação', 'notação']),
       comExercicio.tabela[0].cabecalho);
     conferir('o trecho coberto aparece, com o compasso CALCULADO e a direção em palavras',
-      /^1 \| 1–2 \| à frente \| en face \| \[Pé: 1ª → \+\]/.test(comExercicio.tabela[0].linhas[0]),
+      /^1 \| 1–2 \| à frente \| de frente \| \[Pé: 1ª → \+\]/.test(comExercicio.tabela[0].linhas[0]),
       comExercicio.tabela[0].linhas[0]);
     /* A FRASE QUE SAIU (01/11/2026). Havia três blocos, um por direção, e os dois que o
      * exercício não faz diziam «não vai ao lado» e «não vai atrás». A pesquisadora leu as três
@@ -415,8 +420,10 @@ function estado() {
       comExercicio.tabela[0].linhas);
     conferir('a cobertura é dita em tempos', /Cobre os 8 tempos/.test(comExercicio.cobertura),
       comExercicio.cobertura);
-    conferir('a célula sem orientação diz «en face» em palavras — a coluna não fica em branco',
-      /en face/.test(comExercicio.tabela[0].linhas[0]), comExercicio.tabela[0].linhas[0]);
+    // «EN FACE» VIROU «DE FRENTE» (01/11/2026), com o resto do eixo: o nome que a tela mostra
+    // é a leitura em português, e o da tradição vive em `tradicao`.
+    conferir('a célula sem orientação diz «de frente» em palavras — a coluna não fica em branco',
+      /de frente/.test(comExercicio.tabela[0].linhas[0]), comExercicio.tabela[0].linhas[0]);
 
     console.log('\n3. O «+» ABRE O MODO DO EXERCÍCIO — E O OUTRO SAI');
     await noPassoDe('#vb-novo-exercicio');
@@ -620,8 +627,11 @@ function estado() {
     conferir('acrescentado, o trecho entra na tabela com a notação composta',
       /\[Pé: 1ª → \+ 1ª ●\]/.test(acrescentado.tabela[0].linhas.join(' ')),
       acrescentado.tabela[0].linhas);
+    // A COLUNA DIZ O NOME UNIVERSAL (01/11/2026): «pernas cruzadas», e não «croisé» — o nome
+    // da tradição vive no `title` da pílula. É a mesma escolha que a direção do membro já fazia
+    // («à frente», e não «devant»).
     conferir('e a tabela mostra a ORIENTAÇÃO na sua coluna',
-      /croisé/.test(acrescentado.tabela[0].linhas[acrescentado.tabela[0].linhas.length - 1] || ''),
+      /pernas cruzadas/.test(acrescentado.tabela[0].linhas[acrescentado.tabela[0].linhas.length - 1] || ''),
       acrescentado.tabela[0].linhas);
     conferir('e a cobertura passa a contar os tempos dele',
       /Cobre 2 de 4 tempos/.test(acrescentado.cobertura), acrescentado.cobertura);
@@ -917,9 +927,20 @@ function estado() {
       antesDoFormulario: document.getElementById('vb-tira')
         .compareDocumentPosition(document.getElementById('form-verbete'))
         & Node.DOCUMENT_POSITION_FOLLOWING ? true : false,
-      // E O MESMO BLOCO: a tira e o formulário vivem na coluna da esquerda, e a lista na direita.
-      tiraNaColunaDoFormulario: Boolean(document.getElementById('vb-tira')
-        .closest('.col-form')),
+      // E A TIRA ATRAVESSA A SECÇÃO (01/11/2026). Ela vivia na COLUNA do formulário — a
+      // esquerda —, e a pesquisadora viu o resultado: «os steps ficam amontoados em cima do
+      // formulário e a listagem fica à direita também dos steps. O que a gente precisa é mover
+      // os steps para um bloco acima […] ocupando uma linha só, do começo ao fim da página».
+      // Agora é filha directa da secção, e as duas colunas começam ABAIXO dela.
+      tiraForaDaColuna: !document.getElementById('vb-tira').closest('.col-form'),
+      tiraAtravessaASecao: (() => {
+        const tira = document.getElementById('vb-tira').getBoundingClientRect();
+        const colForm = document.querySelector('#sec-verbetes .col-form').getBoundingClientRect();
+        const lista = document.querySelector('#sec-verbetes .col-lista').getBoundingClientRect();
+        return Math.round(tira.top) < Math.round(colForm.top)
+          && Math.round(tira.top) < Math.round(lista.top)
+          && tira.width > colForm.width + 1;
+      })(),
     }));
     conferir('a tira tem cinco passos, numerados de 1 a 5',
       JSON.stringify(tira.numeros) === JSON.stringify(['1', '2', '3', '4', '5']),
@@ -938,8 +959,32 @@ function estado() {
       tira.paineis);
     conferir('a tira está FORA do formulário, e antes dele',
       tira.dentroDoFormulario === false && tira.antesDoFormulario === true, tira);
-    conferir('e vive na coluna do formulário, como a faixa da turma',
-      tira.tiraNaColunaDoFormulario === true, tira.tiraNaColunaDoFormulario);
+    conferir('e atravessa a secção, acima do formulário e da listagem',
+      tira.tiraForaDaColuna === true && tira.tiraAtravessaASecao === true,
+      { foraDaColuna: tira.tiraForaDaColuna, atravessa: tira.tiraAtravessaASecao });
+
+    // O VALOR É DO PASSO EM QUE SE ESTÁ (01/11/2026). Os cinco passos com rótulo E valor mediam
+    // 1262px de conteúdo para 1048px de secção — uma linha só não cabia, e cortar os valores
+    // com reticências cortava o que eles dizem. O que se mede é a regra: um valor à vista, e é
+    // o do passo activo. Visibilidade a sério (`getBoundingClientRect`), não `textContent`: um
+    // `display:none` continua a ter texto, e uma asserção sobre texto passaria sem provar nada.
+    const valoresDaTira = await page.evaluate(() => {
+      const visivel = (e) => e.getBoundingClientRect().width > 0;
+      const vals = [...document.querySelectorAll('#vb-tira .passo-t[id^=vb-v]')];
+      return {
+        total: vals.length,
+        visiveis: vals.filter(visivel).map((e) => e.id),
+        ativo: (document.querySelector('#vb-tira .passo.ativo') || {}).getAttribute
+          ? document.querySelector('#vb-tira .passo.ativo').getAttribute('data-passo') : null,
+        rotulosInteiros: [...document.querySelectorAll('#vb-tira .passo-t:not([id^=vb-v])')]
+          .filter((t) => t.scrollWidth > t.clientWidth + 1).length,
+      };
+    });
+    conferir('a tira mostra UM valor, e é o do passo em que se está',
+      valoresDaTira.visiveis.length === 1 && valoresDaTira.total === 5 &&
+      valoresDaTira.visiveis[0] === 'vb-v' + valoresDaTira.ativo, valoresDaTira);
+    conferir('e os cinco rótulos dos passos ficam inteiros',
+      valoresDaTira.rotulosInteiros === 0, valoresDaTira.rotulosInteiros);
 
     // O PADRÃO DA SECÇÃO: FORMULÁRIO À ESQUERDA, LISTAGEM À DIREITA (01/11/2026). A 31/10/2026
     // ela tinha passado a uma coluna por causa dos sete passos; a fusão tirou a causa, e a secção

@@ -416,15 +416,23 @@ function executarComponentes(script) {
  */
 function criarSecaoDePassos(documento) {
   const nomes = ['turma', 'rubrica', 'vincular'];
-  // A ÁRVORE É A DA PÁGINA, e não uma secção solta (31/10/2026): o formulário da turma vive
-  // dentro de `#turmas-form` e os painéis dentro de `#turmas-paineis`, porque a página passou
-  // a ter DUAS tiras de passos — a da turma e a do verbete — e o script que as acciona tem de
-  // saber qual é qual. Uma secção de mentira pendurada no `body` deixou de ser o que o script
-  // procura: a prova mediria uma página que já não existe.
-  const form = criarElemento('div', 'turmas-form');
-  form.id = 'turmas-form';
+  // A ÁRVORE É A DA PÁGINA, e não uma secção solta (31/10/2026): os painéis vivem dentro de
+  // `#turmas-paineis`, porque a página passou a ter DUAS tiras de passos — a da turma e a do
+  // verbete — e o script que as acciona tem de saber qual é qual. Uma secção de mentira
+  // pendurada no `body` deixou de ser o que o script procura: a prova mediria uma página que
+  // já não existe.
+  //
+  // E A ÁRVORE MUDOU OUTRA VEZ A 01/11/2026, com a página: a faixa dos passos SAIU de dentro
+  // do formulário e passou a ser a primeira linha do corpo da secção. O âmbito dos seletores
+  // do script acompanhou — `#sec-turmas button.passo` —, e a bancada tem de acompanhar: sem o
+  // `#sec-turmas`, o `querySelectorAll` do script não acha botão nenhum e a prova mediria uma
+  // troca de painel que nunca aconteceu.
+  const secao = criarElemento('div', 'secao');
+  secao.id = 'sec-turmas';
+  const corpo = criarElemento('div', 'turmas-corpo');
+  secao.appendChild(corpo);
   const faixa = criarElemento('div', 'turmas-faixa');
-  form.appendChild(faixa);
+  corpo.appendChild(faixa);
   const lista = criarElemento('ol', 'passos');
   faixa.appendChild(lista);
   const botoes = nomes.map((n) => {
@@ -434,6 +442,9 @@ function criarSecaoDePassos(documento) {
     lista.appendChild(b);
     return b;
   });
+  const form = criarElemento('div', 'turmas-form');
+  form.id = 'turmas-form';
+  corpo.appendChild(form);
   const miolo = criarElemento('div');
   miolo.id = 'turmas-paineis';
   form.appendChild(miolo);
@@ -447,8 +458,8 @@ function criarSecaoDePassos(documento) {
   // A secção tem de estar LIGADA ao documento, como estaria num navegador: o
   // `document.querySelectorAll` do script procura a partir do `body`, e um ramo solto não
   // é achado por ninguém — nem aqui, nem lá.
-  documento.body.appendChild(form);
-  return { secao: form, lista, botoes, paineis };
+  documento.body.appendChild(secao);
+  return { secao, corpo, lista, botoes, paineis };
 }
 
 async function principal() {
@@ -577,8 +588,13 @@ async function principal() {
   // O RÓTULO MORA NUM `<span class="passo-t">` (18/10/2026): é ele que encolhe com
   // reticências quando a faixa não cabe no telefone, e por isso a asserção lê o span e não
   // «o texto a seguir ao número» — que agora é uma tag.
+  // A JANELA PASSOU A ABRIR NA FAIXA (01/11/2026). Ela ia de `id="turmas-form"` a
+  // `id="turmas-paineis"`, que era onde a faixa vivia; a faixa saiu para a linha de cima do
+  // corpo, e a janela antiga passou a apanhar um intervalo sem rótulo nenhum — e uma asserção
+  // sobre uma lista vazia compara duas listas vazias, ou nenhumas. Agora começa no `aria-label`
+  // da própria faixa, que é o que a identifica.
   conferir('…e os títulos são os que a direção lê',
-    (html.slice(html.indexOf('id="turmas-form"'), html.indexOf('id="turmas-paineis"'))
+    (html.slice(html.indexOf('aria-label="Etapas da turma"'), html.indexOf('id="turmas-paineis"'))
       .match(/class="passo-t">([^<]+)</g) || [])
       .map((s) => s.replace(/^[\s\S]*?>/, '').replace(/<$/, '').trim()),
     ['Turma', 'Rubricas', 'Associar']);

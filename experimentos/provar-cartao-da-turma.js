@@ -206,7 +206,14 @@ const LI = 'li.turma[data-turma="tu1"]';
     // pastas que os `require` do motor alcançam: `biblioteca/` (o catálogo lê o
     // vocabulário por caminho relativo) e `tools/templates/` (a barra do topo).
     const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'motor-cartao-'));
-    execSync('git archive HEAD motor biblioteca tools/templates | tar -x -C ' + destino, { cwd: raiz, stdio: 'pipe' });
+    // `tools/` E `teste/` ENTRARAM NA LISTA (01/11/2026). O motor de HEAD já carrega os três
+    // cenários de teste (`servidor/teste-fixtures.js` → `teste/<escola>.json`) e a cifra dos
+    // acompanhamentos (`acervo-envelopes.js` → `tools/lib-cifra.js`); sem eles o `require`
+    // rebentava antes da primeira asserção — e um controle negativo que não corre não controla
+    // nada. `tools/` inteiro, e não só os templates: a folha vem de `tools/templates`, mas o
+    // caminho é o mesmo `require`.**
+
+    execSync('git archive HEAD motor biblioteca tools teste | tar -x -C ' + destino, { cwd: raiz, stdio: 'pipe' });
     motor = path.join(destino, 'motor');
     console.log('CONTROLE NEGATIVO — o motor de HEAD (antes do cartão híbrido)\n');
   }
@@ -859,7 +866,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('o professor SEM plano fica como está: sem link, «livre», e editável',
     semPlano.link === null && semPlano.selo === 'livre' && semPlano.modo === 'editar', semPlano);
 
-  // ---- 18: A FAIXA DOS PASSOS É UMA LINHA SÓ, E A SETA NO FIM ----------------------
+  // ---- 18: A FAIXA DOS PASSOS É UMA LINHA SÓ, POR BAIXO DO TÍTULO -------------------
   //
   // «No celular, o botão do acordeão está fazendo os steps criarem duas linhas … o step tem
   // que continuar com uma linha e o botão de acordeão logo no final, do lado direito»
@@ -867,7 +874,15 @@ const LI = 'li.turma[data-turma="tu1"]';
   // terceira pílula desce — e nenhum atributo no HTML fica diferente por isso. Mede-se nas
   // três larguras de telefone, nos DOIS estados (editando e não), porque é o «!» da edição
   // que rouba largura aos rótulos.
-  for (const w of [414, 390, 360, 320]) {
+  //
+  // A SETA SAIU DA FAIXA E SUBIU AO TÍTULO (01/11/2026), e é a segunda metade do mesmo
+  // pedido: «os steps de Turma têm o botão de colapsar ou expandir na mesma linha dos steps […]
+  // nos demais, o botão está no título. Então aqui na Turma vamos fazer esse ajuste, deixar
+  // igual aos demais». O que se mede passa a ser três coisas, e todas de geometria: a faixa
+  // numa linha só; a seta DENTRO do título e FORA da faixa; e a faixa a atravessar o corpo de
+  // ponta a ponta, acima do formulário E da listagem — «vão ficar num bloco acima, abaixo do
+  // título, mas acima do formulário e dos exercícios».
+  for (const w of [414, 390, 360, 320, 1280]) {
     for (const editando of [false, true]) {
       await pg.setViewport({ width: w, height: 900 });
       await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
@@ -882,21 +897,36 @@ const LI = 'li.turma[data-turma="tu1"]';
         const f = document.querySelector('.turmas-faixa');
         const ol = f.querySelector('.passos');
         const seta = document.getElementById('alternar-form');
+        const titulo = document.querySelector('#sec-turmas h2');
+        const corpo = document.querySelector('.turmas-corpo');
+        // A COLUNA DO FORMULÁRIO, e não o `.col-form` do painel: o painel de um passo que
+        // não é o corrente está `hidden`, e um elemento dentro de um `hidden` mede zero em
+        // tudo — inclusive no `top`, que passava a 0 e fazia a asserção falhar por medir o
+        // vazio. `#turmas-form` é a coluna, e está sempre à vista.
+        const colForm = document.getElementById('turmas-form');
+        const lista = document.querySelector('#sec-turmas .col-lista');
         const r = (x) => x.getBoundingClientRect();
         return {
           linhas: new Set([...ol.querySelectorAll('li')].map((li) => Math.round(r(li).top))).size,
           passoDentro: Math.round(r(ol.querySelector('li:last-child .passo')).right) <= Math.round(r(f).right),
-          setaNoFim: Math.round(r(seta).right) === Math.round(r(f).right),
-          setaDepoisDoUltimoPasso:
-            Math.round(r(seta).left) >= Math.round(r(ol.querySelector('li:last-child .passo')).right),
+          setaNoTitulo: Boolean(seta) && titulo.contains(seta),
+          setaForaDaFaixa: Boolean(seta) && !f.contains(seta),
+          setaLadoANome: leftDe(seta) >= rightDe(titulo.querySelector('.secao-nome')),
+          faixaLarguraToda: Math.abs(r(f).width - r(corpo).width) <= 1,
+          faixaAcimaDoFormulario: Math.round(r(colForm).top) >= Math.round(r(f).bottom),
+          faixaAcimaDaLista: Math.round(r(lista).top) >= Math.round(r(f).bottom),
           cortados: [...ol.querySelectorAll('.passo-t')].filter((t) => t.scrollWidth > t.clientWidth + 1).length,
           estouro: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
+        function leftDe(e) { return Math.round(r(e).left); }
+        function rightDe(e) { return Math.round(r(e).right); }
       });
       const onde = w + 'px' + (editando ? ' (editando)' : '');
       provar(`em ${onde} os três passos ficam numa LINHA só`, faixa.linhas === 1, faixa);
-      provar(`em ${onde} a seta fica no FIM da faixa, depois de «Associar»`,
-        faixa.setaNoFim && faixa.setaDepoisDoUltimoPasso && faixa.passoDentro, faixa);
+      provar(`em ${onde} a seta vive no TÍTULO, e não na faixa`,
+        faixa.setaNoTitulo && faixa.setaForaDaFaixa && faixa.setaLadoANome && faixa.passoDentro, faixa);
+      provar(`em ${onde} a faixa atravessa o corpo, acima do formulário e da listagem`,
+        faixa.faixaLarguraToda && faixa.faixaAcimaDoFormulario && faixa.faixaAcimaDaLista, faixa);
       provar(`em ${onde} os rótulos cabem inteiros e a página não estoura`,
         faixa.cortados === 0 && faixa.estouro === 0, faixa);
     }

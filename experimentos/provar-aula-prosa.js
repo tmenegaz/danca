@@ -88,8 +88,11 @@ const notacaoCompleta = gerarAulaNotacao(aula, notacao);
 assert(notacaoCompleta.includes('## 1. Validação dos objetivos, métricas e duração')
   && notacaoCompleta.includes('## 5. Guia de observação do professor'),
   'a leitura de Notação deve incluir a estrutura comum da Aula');
+// A CATEGORIA MUDOU DE `Plié` PARA `Perna` (01/11/2026): plié não é parte do corpo — é o
+// exercício —, e a categoria do trecho diz que parte se move. O bloco compõe-se da categoria e
+// dos sinais, e por isso a string esperada mudou com ela.
 assert(notacaoCompleta.includes('| Compasso | Contagem | Notação | Descrição |')
-  && notacaoCompleta.includes('[Plié: 1ª ↓]'),
+  && notacaoCompleta.includes('[Perna: 1ª ↓]'),
   'a leitura de Notação deve acrescentar a coluna e os sinais Benesh');
 assert(notacaoCompleta.includes('glossario-href: "glossario-benesh.html"'),
   'a leitura de Notação deve preservar o destino do Glossário');

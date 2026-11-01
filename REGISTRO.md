@@ -29665,3 +29665,99 @@ falhava em `HEAD`); `provar-acordeoes`, `provar-verbete` e `provar-linhas-da-lis
 - **Um efeito colateral observado e não corrigido:** os seis professores ainda carregam, no
   `_declaracao.porVariante` dos schemas de captura, a declaração das escolas expurgadas. É do
   expurgo, não disto, e fica registado aqui para não se perder.
+
+## 01/11/2026 — A seta sobe ao título, os passos descem para a linha inteira, e o vocabulário deixa de ser só do ballet
+
+**O que motivou.** Três coisas que a pesquisadora viu na mesma sessão, e as três são de leitura da
+tela:
+
+1. **A seta do acordeão estava em dois sítios.** «Os steps de Turma têm o botão de colapsar ou
+   expandir na mesma linha dos steps. E nos demais, a exemplo do verbete, o botão está no título.
+   Então aqui na Turma vamos fazer esse ajuste, deixar igual aos demais.»
+2. **A tira dos passos estava presa à coluna do formulário.** «No caso do verbete da anotação, os
+   steps ficam amontoados em cima do formulário e a listagem fica à direita também dos steps. […]
+   vão ficar num bloco acima, abaixo do título, mas acima do formulário e dos exercícios.»
+3. **O vocabulário da categoria e da orientação era o de uma tradição só.** «Na categoria tem um
+   erro: a gente tá adotando pé, peso, plié e braço, quando na verdade seria pé, peso, perna e
+   braço — plié não. Plié está errado.» E: «orientação do corpo, nós estamos adotando
+   exclusivamente nomes do ballet clássico: en face, croisé, effacé […] a gente precisa adotar
+   nomes que sejam mais universais.»
+
+**O que foi decidido.**
+
+- **Uma seta, um desenho.** `tituloComAcordeao()` ganhou um quarto parâmetro (`idDoBotao`): a seta
+  das Turmas passa a viver no `<h2>`, como as outras quatro, e continua a ser a única que não
+  despacha por `data-acordeao` — o que ela recolhe é o **miolo dos passos** (`#turmas-paineis`), e
+  não o corpo da secção. A faixa dos passos fica, porque é ela que diz onde se está.
+- **A faixa é a primeira linha do corpo, nas duas secções.** Em Turmas, `.turmas-faixa` saiu de
+  dentro de `#turmas-form` e passou a atravessar a grelha (`grid-column:1/-1`); em Verbetes,
+  `#vb-tira` saiu de `.col-form` e é filha directa da secção. Nos dois casos o formulário e a
+  listagem descem para a linha de baixo, nas duas colunas de sempre. O âmbito dos seletores do
+  script acompanhou (`#turmas-form button.passo` → `#sec-turmas button.passo`): a faixa deixou de
+  estar dentro do formulário, e um seletor antigo deixaria os passos 2 e 3 habilitados com a turma
+  por completar.
+- **O valor do passo do verbete passou a ser o do passo em que se está.** Medido antes de decidir:
+  cinco passos com rótulo E valor davam **1262px de conteúdo para 1048px de secção** a 1280 — uma
+  linha só só existia cortando os valores. A pesquisadora escolheu, entre as três saídas medidas,
+  a que mostra **um valor — o do passo activo** — e mantém os cinco rótulos inteiros. A tira não
+  quebra acima de 1141px (o corte da folha, onde a página deixa de ter duas colunas) e mede
+  **1 linha a 1280 e a 1440, sem nada cortado**; a 390 passou de 5 linhas para 3.
+- **A categoria do trecho passou a vir do alfabeto**, e a lista mudou: `Pé · Peso · Perna · Braço`.
+  As duas células do verbete do `Plié` que se declaravam `Plié` passaram a `Perna`, e as chaves do
+  dicionário de descrições acompanharam (`[Plié: …]` → `[Perna: …]`). A tela deixa de ter a lista
+  escrita à mão: `categoriasDoTrecho()` lê `notacao.json → categorias`, que é a MESMA lista que o
+  validador do servidor usa — duas listas divergem ao primeiro item novo.
+- **A orientação do corpo passou a ter nome universal**, e a tradição ficou em campo próprio: `nome`
+  = «de frente» · «pernas cruzadas» · «pernas abertas» · «na diagonal» · «ombros rodados»;
+  `tradicao` = «en face» · «croisé» · «effacé» · «écarté» · «épaulement», que é o que a pílula
+  mostra ao passar o rato. O `termo` **não** mudou — é o `id` que os verbetes gravados
+  referenciam, e renomeá-lo reescreveria o passado. É a mesma regra que a direção do membro já
+  seguia: o documento diz «à frente», e não «devant».
+
+**O que isso muda nos documentos.** Onde o plano e o PO diziam «en face», passam a dizer «de
+frente». É consequência directa da decisão, e é a razão de ela estar registada aqui: uma mudança de
+vocabulário muda o que está publicado, mesmo sem tocar num único envelope.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o `tituloComAcordeao`, a secção Turmas, a secção
+Verbetes, o CSS das duas faixas, os seletores dos passos, as categorias, a legenda e as pílulas da
+orientação, o `pilulas`, que passou a aceitar `titulo`, e o recolher que passou a marcar a
+secção para o filete do título); `motor/nucleo/notacao.js` (comentários de `orientacaoEmPalavras` e
+`direcaoEmPalavras`); `biblioteca/modalidades/bale-classico/notacao.json` (versão 10 → 14:
+categorias, o grupo «Categorias», as orientações e as duas células do `Plié`, com o motivo escrito
+no `_comentario`); `biblioteca/modalidades/bale-classico/descricoes.json` (duas chaves).
+
+**Com o quê.** `provar-celula` **119/119** (eram 117; duas novas: um valor à vista e os cinco
+rótulos inteiros) · `provar-acordeoes` **TUDO CERTO** nas seis larguras · `provar-producao`
+**151/152** (a falha do menu já falhava em `HEAD`) · `provar-cartao-da-turma` **6 falhas, as mesmas
+6 do controle negativo em `HEAD`** — as que mediam a seta no fim da faixa foram reescritas para
+medir a seta no título e a faixa acima das duas colunas · `provar-notacao` **71/74** (as três que falham são de um dado que mudou enquanto esta entrada se
+escrevia — ver «O que ainda não está feito») ·
+`provar-verbete`, `provar-linhas-da-lista` e `provar-elo-do-expurgo` **TUDO CERTO** ·
+`check-indices` **14/14** · `check-identidade` **20/20**.
+
+**O que ainda não está feito.**
+
+- **O `provar-cartao-da-turma` continua vermelho em seis pontos, e já estava.** Foram medidos contra
+  o motor de `HEAD` com `--controle-negativo` — que, por estar quebrado (faltava `tools/` e `teste/`
+  no `git archive`), passou a correr. O que ele acusa é anterior a esta entrada: a coluna do termo
+  que vivia na página do vocabulário, e três asserções da tira dos passos que nunca souberam da
+  existência da tira do verbete (a 31/10/2026). Não se corrigiram aqui; ficam declarados.
+- **O `Plié` do alfabeto continua todo em `devant`.** Ele não vai a lado nenhum, e a direção é
+  opcional desde a entrada «O trecho sem direção». Migrar o dado é outra decisão, e não foi tomada.
+- **O verbete do `Plié` ficou inconsistente com a sua música, e não foi esta entrada que o fez.**
+  Enquanto esta entrada se escrevia, a Produção gravou `07f6f63` — «editar «Plié» (8|4/4) no
+  alfabeto» —, que levou o `cobre` de 8 para 12 e acrescentou dois trechos de braço no balde SEM
+  direção (a novidade da entrada anterior, a ser usada). O resultado está medido: o verbete diz
+  `cobre: 12` e a música da chave diz 8 tempos, e a composição responde
+  `verbete-inconsistente — os segmentos somam 12 tempos, que não fecham em compasso 4/4`. As três
+  asserções do `provar-notacao` que falham são exactamente essa. **O dado não foi tocado**: quem
+  decidiu que o `Plié` tem braços é quem ensina, e reescrever a escolha dela seria o contrário do
+  que a proveniência pede. O que fica declarado é o buraco do caminho: o servidor recusa um
+  verbete cujo `cobre` não fecha com os trechos, mas **aceita** um `cobre` maior do que a música
+  que o próprio verbete declara — e o sistema só o diz mais tarde, na hora de compor o documento.
+  Um verbete é `cobre < música` com lacuna declarada; `cobre > música` é contradição, e devia ser
+  recusado à entrada.
+- **A orientação mudou de nome, mas não de gramática.** Continua a haver cinco orientações do ballet
+  clássico — o que mudou foi como se chamam na tela e no documento. Uma categoria que não seja
+  ballet clássico precisará do seu próprio alfabeto, e é isso que a L14 e o `modalidade` já
+  preveem.

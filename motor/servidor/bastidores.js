@@ -375,6 +375,29 @@ async function termos(kv, escola) {
  * O alfabeto vem por `require` (empacotado no Worker): não há KV nem chamada à API do GitHub, e
  * é por isso que esta leitura pode ser feita a cada carga da página sem custo de cota.
  */
+/**
+ * AS CATEGORIAS DO TRECHO — «que parte do corpo se move».
+ *
+ * A LISTA É A DO ALFABETO, e não uma cópia escrita nesta página (01/11/2026). Ela era
+ * `['Pé', 'Peso', 'Plié', 'Braço']` — quatro strings escritas à mão aqui —, e o `Plié` no meio
+ * delas é o defeito que a pesquisadora viu: «na categoria nós temos pé, peso, plié e braço,
+ * quando na verdade seria pé, peso, perna e braço, plié não». Plié não é parte do corpo: é um
+ * exercício, e a categoria do trecho diz que parte se move. Duas listas do mesmo vocabulário
+ * divergem ao primeiro item novo — a do alfabeto é a que o VALIDADOR usa (`verbete.js` recusa
+ * uma célula cuja categoria não esteja aqui, e o `lerBloco` recusa o bloco inteiro), então é
+ * ela que a tela tem de ler.
+ *
+ * A ordem é a do alfabeto, e a primeira nasce marcada — é a convenção do formulário.
+ */
+function categoriasDoTrecho() {
+  const { ALFABETOS, MODALIDADE_PADRAO } = require('../nucleo/notacao.js');
+  const alfabeto = ALFABETOS[MODALIDADE_PADRAO] || {};
+  const lista = Array.isArray(alfabeto.categorias) ? alfabeto.categorias : [];
+  // Sem alfabeto publicado não há categorias a oferecer, e inventar quatro seria pior do que
+  // não oferecer nenhuma: a célula seria recusada pelo servidor com a mesma lista.
+  return lista;
+}
+
 function musicasDosExercicios() {
   const { alfabetos } = require('../nucleo/notacao.js');
   const mapa = new Map();
@@ -1062,11 +1085,22 @@ function escolhedor(id, opcoes) {
  *
  * A SETA É O ÚNICO TEXTO DO CONTROLE, e é um glifo: nada de «Recolher formulário» escrito. O
  * `aria-label` e o `title` dizem o mesmo a quem não vê a seta, e o `aria-expanded` diz em que
- * estado está. O `data-acordeao` é o gancho que o script procura — um só, para as quatro.
+ * estado está. O `data-acordeao` é o gancho que o script procura.
+ *
+ * TURMAS ENTROU NESTE DESENHO A 01/11/2026, e é a razão de haver um quarto parâmetro. A seta
+ * dela vivia no fim da FAIXA DOS PASSOS, e a pesquisadora pediu-a onde estão as outras: «os
+ * steps de Turma têm o botão de colapsar ou expandir na mesma linha dos steps […] nos demais o
+ * botão está no título. Então aqui na Turma vamos fazer esse ajuste, deixar igual aos demais».
+ *
+ * A SETA DA TURMA É A ÚNICA QUE NÃO PASSA POR `data-acordeao`, e não é excepção gratuita: o
+ * que ela recolhe é o MIOLO DOS PASSOS (`#turmas-paineis`), e não o corpo da secção — a faixa
+ * dos passos fica, porque é ela que diz onde se está. O `idDoBotao` existe para isso: a seta
+ * leva um `id` em vez do gancho, e o handler antigo continua a ser o dela.
  */
-function tituloComAcordeao(idDaSecao, titulo, idDoMiolo) {
+function tituloComAcordeao(idDaSecao, titulo, idDoMiolo, idDoBotao) {
   return '<h2 class="secao-titulo"><span class="secao-nome">' + titulo + '</span>' +
-    '<button type="button" class="alternar-form" data-acordeao="' + idDaSecao + '" ' +
+    '<button type="button" class="alternar-form" ' +
+    (idDoBotao ? 'id="' + idDoBotao + '" ' : 'data-acordeao="' + idDaSecao + '" ') +
     'aria-expanded="true" aria-controls="' + idDoMiolo + '" ' +
     'aria-label="Recolher o formulário" title="Recolher o formulário">▾</button></h2>';
 }
@@ -2316,19 +2350,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'box-shadow:var(--sombra-controle, none);}' +
     '.passo.ativo .passo-n{background:var(--marca-fundo);border-color:var(--marca-fundo);color:var(--sobre-marca);}' +
     '.passo:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
-    // O CORPO DA SECÇÃO TURMAS: formulário do passo à esquerda, listagem à direita. A
-    // listagem vive FORA dos `.passo-painel`, e é isso que a mantém a mesma nos três passos.
+    // O CORPO DA SECÇÃO TURMAS: a faixa dos passos na linha de cima, e o formulário do passo
+    // à esquerda com a listagem à direita na linha de baixo. A listagem vive FORA dos
+    // `.passo-painel`, e é isso que a mantém a mesma nos três passos.
     '.turmas-corpo{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     '.turmas-form{min-width:0;}' +
-    // A FAIXA E A SETA (18/10/2026). A faixa É o cabeçalho do acordeão: os três passos
-    // continuam à vista (é o que diz onde se está) e a seta é o único controle novo. Sem
-    // texto de «recolher»/«abrir» — a seta diz o estado, e o `aria-label` diz o mesmo a quem
-    // não a vê. Recolhido, o miolo sai e a listagem sobe.
-    '.turmas-faixa{display:flex;align-items:center;gap:.1rem;min-width:0;}' +
-    // UMA LINHA, SEMPRE (18/10/2026). A lista quebrava em duas assim que não cabia — e no
-    // telefone a seta ao lado bastava para a empurrar. Agora ela NÃO quebra: quem cede é o
-    // rótulo de cada passo (reticências), e a seta fica no fim, à direita, logo depois de
-    // «Associar». A seta não encolhe (`flex:0 0 auto`) nem a lista a empurra para fora.
+    // A FAIXA É A PRIMEIRA LINHA DO CORPO (01/11/2026). Os três passos deixaram de viver na
+    // coluna do formulário — «os steps não vão ser posicionados apenas sobre o formulário […] vão
+    // ficar num bloco acima, abaixo do título, mas acima do formulário e dos exercícios». A
+    // largura toda é esta linha: o corpo é a grelha, e a faixa atravessa-a de ponta a ponta.
+    '.turmas-faixa{grid-column:1/-1;display:flex;align-items:center;gap:.1rem;min-width:0;}' +
+    // UMA LINHA, SEMPRE (18/10/2026). A lista quebrava em duas assim que não cabia. Agora ela
+    // NÃO quebra: quem cede é o rótulo de cada passo (reticências). A seta já não está aqui —
+    // subiu ao título (01/11/2026) —, e com ela foram as duas regras que a encolhiam no
+    // telefone.
     '.turmas-faixa .passos{flex:1 1 auto;grid-column:auto;min-width:0;margin:.2rem 0 .4rem;' +
     'flex-wrap:nowrap;overflow:hidden;}' +
     '.turmas-faixa .passos>li{flex:0 1 auto;min-width:0;}' +
@@ -2340,12 +2375,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.alternar-form:hover{background:var(--fundo-hover);color:var(--marca-texto);}' +
     '.alternar-form:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
     // RECOLHIDO, A LISTAGEM OCUPA A LARGURA TODA (18/10/2026). A coluna do formulário deixa
-    // de existir como coluna: a faixa passa a ser o cabeçalho do acordeão, na linha inteira,
-    // e a lista fica sozinha abaixo. É a diferença entre «encolher» e «sair da frente» — e é
-    // o que faz o filtro valer a pena no telefone e na tela grande.
+    // de existir como coluna, e a lista fica sozinha abaixo da faixa. É a diferença entre
+    // «encolher» e «sair da frente» — e é o que faz o filtro valer a pena no telefone e na
+    // tela grande.
+    //
+    // O FILETE PASSOU PARA O TÍTULO (01/11/2026). Ele estava debaixo da faixa porque a faixa
+    // era o cabeçalho do acordeão; agora o cabeçalho é o título, e é ele que leva o filete
+    // pela mesma regra das outras quatro secções (`.secao[data-recolhido="sim"]>.secao-titulo`).
     '.turmas-corpo[data-recolhido="sim"]{grid-template-columns:minmax(0,1fr);}' +
-    '.turmas-corpo[data-recolhido="sim"] .turmas-faixa{padding:0 0 .2rem;' +
-    'border-bottom:1px solid var(--borda-campo);}' +
     '.turmas-corpo[data-recolhido="sim"] .passos{margin:.2rem 0 .45rem;}' +
     // NO TELEFONE, O CONECTOR SAI (18/10/2026). O traço entre os passos custa 1.1rem cada e
     // é ornamento: com ele, três passos e a seta não cabem em 320px de jeito nenhum. Sem ele,
@@ -2362,7 +2399,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '.turmas-faixa .passo .passo-alerta{position:absolute;top:-.16rem;right:-.06rem;' +
       'width:.68rem;height:.68rem;font-size:.5rem;}' +
       '.turmas-faixa .passo .passo-n{width:1.2rem;height:1.2rem;font-size:.7rem;}' +
-      '.turmas-faixa .alternar-form{width:1.85rem;height:1.85rem;}' +
     '}' +
     // EM 320px NÃO SOBRA NADA (18/10/2026): com o tipo de .84rem os três rótulos ficavam a
     // 2–3px de caber e as reticências comiam a última letra. Um degrau a menos no tipo — e não
@@ -2371,10 +2407,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '.turmas-faixa .passos{gap:.1rem;}' +
       '.turmas-faixa .passo{padding:.26rem .3rem .26rem .24rem;font-size:.8rem;}' +
       '.turmas-faixa .passo .passo-n{width:1.15rem;height:1.15rem;font-size:.66rem;}' +
-      // A SETA TAMBÉM CEDE UM POUCO (18/10/2026). Em 320px os passos ocupavam a largura
-      // toda por 1px; sem folga, qualquer diferença de métrica de tipo punha as reticências
-      // a comer a última letra. Dois décimos de rem na seta devolvem a folga.
-      '.turmas-faixa .alternar-form{width:1.7rem;height:1.7rem;}' +
     '}' +
     // O PAINEL DO PASSO já não tem grade própria: quem alinha formulário e lista é o
     // `.turmas-corpo`. Ele agora só existe/desaparece — o conteúdo é o formulário do passo.
@@ -2383,12 +2415,43 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // rótulo E o valor — o dobro do que a faixa da turma carrega. As travas são as MESMAS que a
     // faixa da turma já usa (`min-width:0` em cada elo da cadeia, e reticências no rótulo): sem
     // elas o botão não encolhe, e a tira empurra a página para lá do ecrã. Desde a fusão são
-    // cinco passos em vez de sete, e a tira voltou a viver na coluna do formulário (34rem).
+    // cinco passos em vez de sete.
     '#vb-tira{min-width:0;}' +
     '#vb-tira>li{flex:0 1 auto;min-width:0;max-width:100%;}' +
     '#vb-tira .passo{min-width:0;max-width:100%;}' +
     '#vb-tira .passo-t{max-width:7.5rem;}' +
     '#vb-tira .passo-alerta{flex:0 0 auto;}' +
+    // O VALOR É DO PASSO EM QUE SE ESTÁ (01/11/2026). A tira passou a atravessar a secção
+    // inteira — já não vive na coluna de 34rem —, e os cinco passos, cada um com rótulo E
+    // valor, mediam 1262px de conteúdo para 1048px de secção. Uma linha só não cabia, e
+    // cortar os valores com reticências cortava também o que eles dizem.
+    //
+    // O que se mostra é o valor do passo ACTIVO. O rótulo de cada passo é a navegação e está
+    // sempre inteiro («A música», «Para onde»); o valor é o resumo do que já está decidido, e
+    // lê-se inteiro no passo em que se está — que é precisamente o passo cuja decisão se está
+    // a tomar. É o mesmo princípio que fez a tira nascer: ela diz ONDE SE ESTÁ.
+    //
+    // E ASSIM ELA CABE NUMA LINHA: cinco rótulos curtos em vez de cinco pares. Na tela larga
+    // não quebra (`nowrap`); abaixo de 1141px — onde a própria página deixa de ter duas
+    // colunas — volta a quebrar, porque aí nem os rótulos cabem numa linha só.
+    '#vb-tira .passo-t[id^="vb-v"]{display:none;}' +
+    '#vb-tira .passo.ativo .passo-t[id^="vb-v"]{display:inline;}' +
+    // O RÓTULO NÃO CEDE; QUEM CEDE É O VALOR. O nome do passo é a navegação — cortado, deixa
+    // de se saber onde se está —, e o valor é o resumo, que se lê no passo aberto.
+    '#vb-tira .passo-t{flex:0 0 auto;}' +
+    // O VÃO ENTRE O NÚMERO, O RÓTULO E O VALOR É MENOR AQUI (01/11/2026). São três peças por
+    // passo, e o vão de meio rem de cada uma custava 16px nos cinco — exactamente a folga que
+    // faltava para o valor do passo activo caber inteiro a 1141px. Quatro décimos continuam a
+    // separar as três coisas, e a tira fica com a folga de volta.
+    '#vb-tira .passo{gap:.4rem;}' +
+    // E O VALOR DO PASSO ACTIVO NÃO TEM O TECTO DE 7.5rem DOS OUTROS: ele é o único à vista,
+    // e é o que a pessoa está a decidir. O tecto continua a valer para o rótulo, que é curto.
+    '#vb-tira .passo.ativo .passo-t[id^="vb-v"]{flex:0 1 auto;min-width:0;max-width:none;}' +
+    // Uma linha só na tela larga. O corte é o da folha: 1140px é onde a página deixa de ter
+    // duas colunas.
+    '@media (min-width:1141px){' +
+      '#vb-tira{flex-wrap:nowrap;}' +
+    '}' +
     // A SECÇÃO DOS VERBETES VOLTOU AO PADRÃO (01/11/2026). A 31/10/2026 ela passou a uma coluna
     // porque a tira tinha sete passos e precisava da largura toda: aqui a coluna de 34rem partia
     // a tira em três linhas. A fusão resolveu a causa — cinco passos, e cada um diz menos —, e a
@@ -3013,12 +3076,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-turmas" hidden>' +
-    '<h2>Turmas</h2>' +
-    // O CORPO DA SECÇÃO VEM PRIMEIRO, e a barra dos passos ENTRA NELE (18/10/2026): é ela que
-    // passa a ser o cabeçalho do acordeão. Antes ela vivia fora, ocupando a linha inteira da
-    // grelha da secção — e um cabeçalho que recolhe tem de estar DENTRO do que recolhe.
+    // A SETA SUBIU PARA O TÍTULO (01/11/2026). Ela vivia no FIM da faixa dos passos, e a
+    // pesquisadora viu a diferença entre esta secção e as outras quatro: «os steps de Turma
+    // têm o botão de colapsar ou expandir na mesma linha dos steps […] nos demais, o botão
+    // está no título». Agora é a MESMA peça em todas — e o que a seta daqui recolhe continua
+    // a ser o miolo dos passos, não o corpo: a faixa fica, e é ela que diz onde se está.
+    tituloComAcordeao('sec-turmas', 'Turmas', 'turmas-paineis', 'alternar-form') +
+    // A FAIXA DOS PASSOS SAIU DE DENTRO DO FORMULÁRIO (01/11/2026), e é a segunda metade do
+    // mesmo pedido: «os steps não vão ser posicionados apenas sobre o formulário […] vão ficar
+    // num bloco acima, abaixo do título, mas acima do formulário e dos exercícios». Aqui ela é
+    // a PRIMEIRA linha do corpo — `grid-column:1/-1` —, e o formulário e a listagem descem
+    // para a linha de baixo, nas duas colunas de sempre.
+    //
+    // A SETA NÃO VEM COM ELA: o acordeão é do miolo dos passos, e o que recolhe é
+    // `#turmas-paineis`. Um cabeçalho que recolhe não pode viver dentro do que recolhe — era
+    // a razão de a faixa ter entrado para dentro do formulário em 18/10/2026, e a razão
+    // deixou de existir quando a seta subiu ao título.
     '<div class="turmas-corpo">' +
-    '<div class="turmas-form" id="turmas-form" data-recolhido="nao">' +
     '<div class="turmas-faixa">' +
     '<ol class="passos" aria-label="Etapas da turma" data-editando="nao">' +
     // O RÓTULO VAI DENTRO DE UM `<span>` (18/10/2026): é ele que pode encurtar com
@@ -3036,12 +3110,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<li><button type="button" class="passo" data-passo="vincular">' +
     '<span class="passo-n">3</span> <span class="passo-t">Associar</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
     '</ol>' +
-    // A SETA DO ACORDEÃO (18/10/2026) — e SÓ ela: sem «Recolher formulário»/«Abrir
-    // formulário» escritos. A barra ao lado já diz que estes são os três passos; a seta diz
-    // se o miolo está aberto, e o `aria-label` diz o mesmo a quem não a vê.
-    '<button type="button" class="alternar-form" id="alternar-form" aria-expanded="true" ' +
-    'aria-controls="turmas-paineis" aria-label="Recolher o formulário" title="Recolher o formulário">▾</button>' +
     '</div>' +
+    // O FORMULÁRIO DO PASSO — a coluna da esquerda. Ele deixou de envolver a faixa: a faixa é
+    // a linha de cima, e este div é a célula da esquerda da linha de baixo.
+    '<div class="turmas-form" id="turmas-form" data-recolhido="nao">' +
     // O MIOLO — os três painéis. É ele que recolhe; a faixa fica.
     '<div id="turmas-paineis">' +
     // O CORPO DA SECÇÃO: à esquerda o FORMULÁRIO DO PASSO (um de cada vez), à direita a
@@ -3265,12 +3337,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ---------------------------------------------------------------------------
     '<section class="secao" id="sec-verbetes" hidden>' +
     tituloComAcordeao('sec-verbetes', 'Verbetes da Notação', 'verbetes-miolo') +
-    '<div class="col-form" id="verbetes-miolo">' +
-    // A TIRA DOS PASSOS FICA FORA DO FORMULÁRIO (01/11/2026). É o desenho da turma, e a
-    // pesquisadora pediu-o com essas palavras: «os steps vão ficar fora do formulário, igual o
-    // modelo que a gente tem na turma». A razão é a mesma dos dois lados: a tira diz ONDE SE
-    // ESTÁ e o que já está decidido — é navegação, e uma navegação que vive dentro do formulário
-    // desaparece quando o formulário desaparece (é o caso do modo do exercício, ver
+    // A TIRA DOS PASSOS É A PRIMEIRA LINHA DA SECÇÃO (01/11/2026). Ela nasceu fora do
+    // formulário — «os steps vão ficar fora do formulário, igual o modelo que a gente tem na
+    // turma» —, mas ficou na COLUNA do formulário: a pesquisadora viu o resultado e disse o
+    // resto: «os steps ficam amontoados em cima do formulário e a listagem fica à direita
+    // também dos steps. O que a gente precisa é mover os steps para um bloco acima, para que
+    // ele fique abaixo do título, mas acima do formulário e dos exercícios […] ocupando uma
+    // linha só, do começo ao fim da página».
+    //
+    // UMA LINHA, DO COMEÇO AO FIM, é a regra que a `.secao` já sabe dar: a grade da secção tem
+    // duas colunas, e `.passos` atravessa-as (`grid-column:1/-1`). Aqui a tira é FILHA DIRECTA
+    // da secção, e o formulário e a listagem descem para a linha de baixo.
+    //
+    // A RAZÃO DE ESTAR FORA DO FORMULÁRIO CONTINUA VÁLIDA, e agora vale ainda mais: a tira diz
+    // ONDE SE ESTÁ e o que já está decidido — é navegação, e uma navegação que vive dentro do
+    // formulário desaparece quando o formulário desaparece (é o caso do modo do exercício, ver
     // `pintarPassos`) e apaga-se com ele quando a secção recolhe.
     //
     // OS SETE PASSOS VIRARAM CINCO (01/11/2026). A tira é a navegação E o resumo do que já está
@@ -3294,6 +3375,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ? ' <span class="passo-alerta" aria-hidden="true">!</span>' : '') +
         '</button></li>').join('') +
     '</ol>' +
+    '<div class="col-form" id="verbetes-miolo">' +
     '<form id="form-verbete">' +
     '<input type="hidden" id="vbacao" value="criar">' +
     // O EXERCÍCIO É ESCOLHIDO, NÃO ESCRITO (28/10/2026). A lista vem do vocabulário técnico da
@@ -3413,17 +3495,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // que já era. Sem isto, a ausência de escolha lia-se como campo por preencher.
     '<legend class="campo-rotulo">Direção do membro <span class="nota">— opcional; sem escolha, o trecho não tem direção</span></legend>' +
     '</fieldset>' +
-    // A ORIENTAÇÃO É O OUTRO EIXO, e é opcional: sem escolha, o trecho é `en face`. Ela existe
-    // porque «battement tendu à frente» não diz se o corpo está de frente ou em croisé — e são
-    // dois trechos diferentes, não um.
+    // A ORIENTAÇÃO É O OUTRO EIXO, e é opcional: sem escolha, o corpo está DE FRENTE. Ela
+    // existe porque «battement tendu à frente» não diz se o corpo está de frente ou em relação
+    // cruzada — e são dois trechos diferentes, não um.
+    //
+    // A LEGENDA JÁ NÃO DIZ «en face» (01/11/2026). As orientações deixaram de se chamar
+    // exclusivamente pelos nomes do ballet clássico — «en face», «croisé», «effacé» são a
+    // gramática de uma tradição, e o Lastro quer poder acolher outras. O nome que a tela
+    // mostra é a leitura em português (`de frente`, `pernas cruzadas`), e o nome de sempre vai
+    // no `title` da pílula: quem ensina ballet continua a reconhecê-lo, e quem não ensina
+    // ballet percebe o que se está a dizer. Ver `orientacoesDoCorpo` no alfabeto.
     '<fieldset class="escolhas" id="vb-orient">' +
-    '<legend class="campo-rotulo">Orientação do corpo <span class="nota">— opcional; sem escolha, en face</span></legend>' +
+    '<legend class="campo-rotulo">Orientação do corpo <span class="nota">— opcional; sem escolha, de frente</span></legend>' +
     '</fieldset>' +
     '<fieldset class="escolhas" id="vb-categoria">' +
     '<legend class="campo-rotulo">Categoria — que parte do corpo se move</legend>' +
-    ['Pé', 'Peso', 'Plié', 'Braço'].map((c, i) =>
-      '<label class="escolha"><input type="radio" name="vb-cat" value="' + c + '"' +
-      (i === 0 ? ' checked' : '') + '><span>' + c + '</span></label>').join('') +
+    // A LISTA VEM DO ALFABETO (01/11/2026) — ver `categoriasDoTrecho`. Era escrita à mão aqui,
+    // e trazia o `Plié` como se fosse parte do corpo.
+    categoriasDoTrecho().map((c, i) =>
+      '<label class="escolha"><input type="radio" name="vb-cat" value="' + esc(c) + '"' +
+      (i === 0 ? ' checked' : '') + '><span>' + esc(c) + '</span></label>').join('') +
     '</fieldset>' +
     // AS CONTAGENS SÃO CALCULADAS. A contagem não se escreve: ela vai de 1 até o numerador do
     // compasso e recomeça no seguinte, e o trecho começa onde o anterior da MESMA direção
@@ -3648,11 +3739,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var corpo = document.getElementById("turmas-form");' +
     '  var miolo = document.getElementById("turmas-paineis");' +
     '  var seta = document.getElementById("alternar-form");' +
-    // O RECOLHIDO MUDA A GRELHA (18/10/2026): a faixa sobe para a linha inteira e a listagem
-    // fica sozinha, com a largura toda. O estado vai também no `.turmas-corpo` porque é ELE
-    // que tem a grade — e uma grade não se muda a partir do filho.
+    // O RECOLHIDO MUDA A GRELHA (18/10/2026): o formulário sai e a listagem fica sozinha, com
+    // a largura toda. O estado vai também no `.turmas-corpo` porque é ELE que tem a grade — e
+    // uma grade não se muda a partir do filho.
+    //
+    // E VAI NA SECÇÃO DESDE 01/11/2026, pela razão que as outras quatro já tinham: é a
+    // `.secao[data-recolhido="sim"]` que dá o filete ao título. Ele estava debaixo da faixa
+    // quando a faixa era o cabeçalho; agora o cabeçalho é o título, e o filete vai atrás dele.
     '  var grade = document.querySelector(".turmas-corpo");' +
     '  if (grade) grade.setAttribute("data-recolhido", sim ? "sim" : "nao");' +
+    '  var secao = document.getElementById("sec-turmas");' +
+    '  if (secao) secao.setAttribute("data-recolhido", sim ? "sim" : "nao");' +
     // A SETA É O ÚNICO TEXTO DO CONTROLE, e é um glifo: nada de «recolher»/«abrir» escrito.
     // O `aria-label` e o `title` dizem o mesmo a quem não vê a seta.
     '  if (corpo) corpo.setAttribute("data-recolhido", sim ? "sim" : "nao");' +
@@ -3858,7 +3955,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // SÓ A FAIXA DA TURMA (31/10/2026). Era `document.querySelectorAll("button.passo")` — a
     // página inteira —, e a partir de hoje há DUAS tiras de passos: esta e a do verbete. Sem
     // o âmbito, completar a turma ligava e desligava os passos do verbete, e vice-versa.
-    '  Array.prototype.slice.call(document.querySelectorAll("#turmas-form button.passo")).forEach(function(b){' +
+    //
+    // O ÂMBITO PASSOU A SER A SECÇÃO (01/11/2026), e não `#turmas-form`: a faixa dos passos
+    // saiu de dentro do formulário — ela é a linha de cima do corpo, e o formulário é a célula
+    // da esquerda da linha de baixo. Manter `#turmas-form` aqui deixava a faixa de fora, e os
+    // passos 2 e 3 ficavam habilitados com a turma por completar.
+    '  Array.prototype.slice.call(document.querySelectorAll("#sec-turmas button.passo")).forEach(function(b){' +
     '    var q = b.getAttribute("data-passo");' +
     '    if (q === "turma") { b.disabled = false; b.removeAttribute("title"); return; }' +
     '    b.disabled = !turmaOk;' +
@@ -3908,7 +4010,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // completa fica no passo 1: é lá que está o que falta.
     '  var faltaTurma = faltaDaTurma();' +
     '  if (qual !== "turma" && faltaTurma.length) qual = "turma";' +
-    '  var todos = document.querySelectorAll("#turmas-form button.passo");' +
+    '  var todos = document.querySelectorAll("#sec-turmas button.passo");' +
     '  for (var i = 0; i < todos.length; i++) {' +
     '    var ativo = todos[i].getAttribute("data-passo") === qual;' +
     '    todos[i].className = ativo ? "passo ativo" : "passo";' +
@@ -4121,11 +4223,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  Array.prototype.slice.call(document.querySelectorAll("button.cancelar-edicao")).forEach(function(b){' +
     '    b.hidden = !editando;' +
     '  });' +
-    '  var ol = document.querySelector("#turmas-form ol.passos");' +
+    '  var ol = document.querySelector("#sec-turmas ol.passos");' +
     '  if (ol) ol.setAttribute("data-editando", editando ? "sim" : "nao");' +
     '}' +
     'document.addEventListener("click", function(e){' +
-    '  var b = e.target.closest ? e.target.closest("#turmas-form button.passo") : null;' +
+    '  var b = e.target.closest ? e.target.closest("#sec-turmas button.passo") : null;' +
     '  if (!b) return;' +
     // TOCAR NUM PASSO ABRE O FORMULÁRIO (18/10/2026): quem toca em «Rubricas» quer o
     // formulário daquele passo, não a lista. A faixa recolhida deixa de ser um beco.
@@ -5293,7 +5395,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        "\\" title=\\"tirar este trecho\\">×</button>";' +
     '    html += "<tr" + (emMim ? " class=\\"em-edicao\\"" : "") + "><td><strong>" + mapa[chave] + "</strong></td><td>" +' +
     '      c.contagem + "</td><td>" + (t.dir ? nomeDaDirecao(t.dir) : "<span class=\\"nota\\">sem direção</span>") +' +
-    '      "</td><td>" + (orient || "<span class=\\"nota\\">en face</span>") +' +
+    // A OMISSÃO DIZ-SE EM PORTUGUÊS (01/11/2026). Era «en face» escrito à mão aqui — a única
+    // orientação que aparecia em francês na tabela, agora que todas as outras se leem em
+    // português («pernas cruzadas»). A célula sem orientação é a que está de frente, e é isso
+    // que ela passa a dizer.
+    '      "</td><td>" + (orient || "<span class=\\"nota\\">de frente</span>") +' +
     '      "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
     '      "]</code></td><td>" + acoes + "</td></tr>";' +
     '  });' +
@@ -5348,7 +5454,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var v = it.valor;' +
     '    var dentro = Array.isArray(escolhido) ? escolhido.indexOf(v) !== -1' +
     '                                           : (escolhido || "") === v;' +
-    '    return "<label class=\\"escolha\\"><input type=\\"" + tipo + "\\"" +' +
+    // O `titulo` É OPCIONAL (01/11/2026). A pílula diz o nome universal («pernas cruzadas») e
+    // o título diz como a tradição lhe chama («croisé»): uma leitura à vista, a outra a um
+    // gesto de rato. Sem `titulo`, o `title` não é escrito — e o navegador não inventa um.
+    '    var titulo = it.titulo ? " title=\\"" + String(it.titulo).replace(/"/g, "&quot;") + "\\"" : "";' +
+    '    return "<label class=\\"escolha\\"" + titulo + "><input type=\\"" + tipo + "\\"" +' +
     '      (unico ? " name=\\"" + nome + "\\"" : "") + (dentro ? " checked" : "") +' +
     '      " data-valor=\\"" + String(v).replace(/"/g, "&quot;") + "\\"><span>" +' +
     '      (it.glifo ? "<strong>" + it.glifo + "</strong> " : "") + it.nome + "</span></label>";' +
@@ -5392,7 +5502,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // nada, num campo onde todos os outros diziam.
     'function pintarOrientacao(){' +
     '  pilulas("vb-orient", orientacoesDaGramatica().map(function(o){' +
-    '    return { valor: o.termo, nome: o.nome };' +
+    // O NOME É O UNIVERSAL, E A TRADIÇÃO VAI NO TÍTULO (01/11/2026). A pílula diz «pernas
+    // cruzadas»; ao passar o rato, «croisé». Um rótulo só, e as duas leituras disponíveis —
+    // sem uma segunda linha de texto a competir com o rótulo.
+    '    return { valor: o.termo, nome: o.nome, titulo: o.tradicao };' +
     '  }), ORIENTACAO || "en-face", function(v){' +
     '    ORIENTACAO = (v === "en-face") ? "" : v;' +
     '    pintarOrientacao();' +

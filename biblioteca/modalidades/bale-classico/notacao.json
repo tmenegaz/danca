@@ -49,12 +49,31 @@
     "anotação». Não são verbetes conferidos — a frase do Grand battement vem do dicionário dela, a do",
     "Arabesque é a que o dicionário tem (uma linha, a pedir as palavras dela), e o Rond de jambe à",
     "terre é o exercício que já existia como «Rond de jambe», com o nome que o vocabulário usa. A",
-    "DECOMPOSIÇÃO dos três é ensaio: quem a confere é quem ensina."
+    "DECOMPOSIÇÃO dos três é ensaio: quem a confere é quem ensina.",
+    "",
+    "A CATEGORIA DO TRECHO E O NOME DA ORIENTAÇÃO MUDARAM (01/11/2026), e as duas coisas pela mesma",
+    "razão: o Lastro quer poder acolher categorias que não são o ballet clássico.",
+    "",
+    "A CATEGORIA era «Pé · Peso · Plié · Braço», e o `Plié` estava errado — não é parte do corpo, é",
+    "um exercício. Passou a «Pé · Peso · Perna · Braço», e as duas células do verbete do Plié que se",
+    "declaravam `Plié` passaram a `Perna` (é o joelho que cede e o eixo que desce). As chaves do",
+    "dicionário de descrições acompanharam: `[Plié: …]` → `[Perna: …]`.",
+    "",
+    "A ORIENTAÇÃO DO CORPO chamava-se só pelos nomes da tradição — «en face», «croisé», «effacé»,",
+    "«écarté», «épaulement». O campo `nome` passou a ser a LEITURA EM PORTUGUÊS («de frente»,",
+    "«pernas cruzadas», «pernas abertas», «na diagonal», «ombros rodados»), que é o mesmo papel que",
+    "`nome` já tem em `direcoesDoMembro` («à frente», «ao lado», «atrás»), e o nome da tradição foi",
+    "para um campo próprio, `tradicao`. O `termo` NÃO mudou: ele é o `id` que os verbetes gravados",
+    "referenciam, e renomeá-lo reescreveria o passado.",
+    "",
+    "O QUE ISSO MUDA NOS DOCUMENTOS: onde o plano e o PO diziam «en face», passam a dizer «de",
+    "frente». É a mesma regra que já valia para a direção do membro — o documento diz «à frente», e",
+    "não «devant» —, e agora os dois eixos falam a mesma língua."
   ],
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 11,
+  "versao": 15,
   "aplicaseA": [
     "benesh"
   ],
@@ -78,7 +97,7 @@
   "categorias": [
     "Pé",
     "Peso",
-    "Plié",
+    "Perna",
     "Braço"
   ],
   "grupos": [
@@ -95,9 +114,9 @@
           "significado": "a distribuição do peso entre os dois pés, ou a sua passagem de um lado ao outro.",
           "origem": "sistema"
         },
-        "Plié": {
-          "nome": "categoria plié",
-          "significado": "a flexão e a subida dos apoios — o eixo sobe e desce pelo chão.",
+        "Perna": {
+          "nome": "categoria perna",
+          "significado": "a flexão e a extensão do joelho — o eixo desce e sobe, e o apoio cede.",
           "origem": "sistema"
         },
         "Braço": {
@@ -264,28 +283,33 @@
     "orientacoesDoCorpo": {
       "en-face": {
         "termo": "en-face",
-        "nome": "en face",
-        "significado": "o corpo voltado de frente para quem olha."
+        "nome": "de frente",
+        "significado": "o corpo voltado de frente para quem olha.",
+        "tradicao": "en face"
       },
       "croise": {
         "termo": "croise",
-        "nome": "croisé",
-        "significado": "o corpo ligeiramente voltado, as pernas em relação cruzada."
+        "nome": "pernas cruzadas",
+        "significado": "o corpo ligeiramente voltado, as pernas em relação cruzada.",
+        "tradicao": "croisé"
       },
       "efface": {
         "termo": "efface",
-        "nome": "effacé",
-        "significado": "o corpo ligeiramente aberto, as pernas em relação aberta."
+        "nome": "pernas abertas",
+        "significado": "o corpo ligeiramente aberto, as pernas em relação aberta.",
+        "tradicao": "effacé"
       },
       "ecarte": {
         "termo": "ecarte",
-        "nome": "écarté",
-        "significado": "o corpo voltado na diagonal, o membro estendido nessa diagonal."
+        "nome": "na diagonal",
+        "significado": "o corpo voltado na diagonal, o membro estendido nessa diagonal.",
+        "tradicao": "écarté"
       },
       "epaulement": {
         "termo": "epaulement",
-        "nome": "épaulement",
-        "significado": "os ombros ligeiramente rodados, um à frente do outro."
+        "nome": "ombros rodados",
+        "significado": "os ombros ligeiramente rodados, um à frente do outro.",
+        "tradicao": "épaulement"
       }
     },
     "lados": {
@@ -411,7 +435,7 @@
           "devant": [
             {
               "contagem": "1–4",
-              "categoria": "Plié",
+              "categoria": "Perna",
               "sinais": [
                 "1ª",
                 "↓"
@@ -420,7 +444,7 @@
             },
             {
               "contagem": "1–4",
-              "categoria": "Plié",
+              "categoria": "Perna",
               "sinais": [
                 "↓",
                 "↑"

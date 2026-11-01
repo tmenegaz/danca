@@ -149,7 +149,7 @@ function posicaoEmPalavras(alfabeto, posicao) {
 /**
  * A DIREÇÃO EM PALAVRAS, pelo id do termo. As direções do membro e as orientações do corpo vivem
  * em blocos diferentes da gramática porque são coisas diferentes: «devant» é para onde o membro
- * vai, «en face» é como o corpo está. «Croisé devant» precisa das duas.
+ * vai, «de frente» é como o corpo está. «À frente, pernas cruzadas» precisa das duas.
  */
 function direcaoEmPalavras(alfabeto, id) {
   const g = (alfabeto && alfabeto.gramatica) || {};
@@ -217,7 +217,16 @@ function lerMusica(tempos, compasso) {
   return { tempos: nTempos, compasso: m[1] + '/' + m[2], numerador: Number(m[1]) };
 }
 
-/** A orientação do corpo em palavras — «croisé», e não `croise`. Vazia quando é `en face`. */
+/**
+ * A orientação do corpo em palavras — «pernas cruzadas», e não `croise`.
+ *
+ * O NOME É O UNIVERSAL (01/11/2026), e o da tradição fica em `tradicao` no alfabeto. Era o
+ * contrário — «croisé» —, e isso fazia o documento publicado falar a gramática de uma tradição
+ * a quem pode não a conhecer. É a mesma escolha que `direcaoEmPalavras` já faz para o membro:
+ * «à frente», e não «devant».
+ *
+ * Vazia quando o corpo está de frente (a omissão): o documento não escreve o que não foi dito.
+ */
 function orientacaoEmPalavras(alfabeto, orientacao) {
   const termo = String(orientacao || '').trim();
   if (!termo || termo === 'en-face') return '';
