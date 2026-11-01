@@ -48,13 +48,13 @@
         "ciclo:pe-torto/01/batata"
       ],
       "contagens": {
-        "anamneses": 1,
+        "anamneses": 2,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 1
+        "registros": 2
       },
       "criada_em": "2026-11-01T22:29:37.341655+00:00",
       "expurgada": false,
@@ -69,7 +69,8 @@
         "pe-torto"
       ],
       "registros": [
-        "anamnese:anamnese-20261101-1950"
+        "anamnese:anamnese-20261101-1950",
+        "anamnese:anamnese-20261101-1952"
       ],
       "slug": "batata"
     },
@@ -287,7 +288,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -460,7 +461,7 @@
     ],
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       }
@@ -468,9 +469,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "acd20da"
+    "commit": "3717b71"
   },
-  "gerado_em": "2026-11-01T22:50",
+  "gerado_em": "2026-11-01T22:52",
   "nao_indexado": [
     {
       "familia": "conteudo",
