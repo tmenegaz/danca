@@ -1,15 +1,20 @@
 {
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "aba3df786b0fa27cc28e198c72eb448cf711f9ebe71a2d8a936033f542a01483",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 3,
       "escola": "breu",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:cafe-no-bule/01/breu",
       "numero": "01",
       "professor": "cafe-no-bule",
-      "sem_ancora": true
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -79,7 +84,7 @@
         "anamneses": 0,
         "aulas": 0,
         "ciclos": 1,
-        "ciclos_com_ancora": 0,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "registros": 0
@@ -336,8 +341,8 @@
     "estados": [
       {
         "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -436,9 +441,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b059b2a"
+    "commit": "f309a68"
   },
-  "gerado_em": "2026-11-01T18:12",
+  "gerado_em": "2026-11-01T18:34",
   "nao_indexado": [
     {
       "familia": "conteudo",

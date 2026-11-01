@@ -147,6 +147,26 @@ jobs:
           node tools/gerar-indices.js \
             || echo "::warning::os índices não foram regerados — rode node tools/gerar-indices.js"
 
+          # A ÂNCORA DE PROVENIÊNCIA NASCE AQUI (01/11/2026).
+          #
+          # O `reancorar.yml` corre a cada push de `professores/**` — e a documentação conta com
+          # isso (AGENTS.md, a tabela dos cinco caminhos de escrita). Mas o push deste workflow
+          # usa o `GITHUB_TOKEN`, e o GitHub NÃO dispara workflows a partir desses pushes: é o
+          # que impede o laço, e é também o que deixou a escola `breu` nascer sem âncora, a
+          # 01/11/2026 — `ciclos_com_ancora: 0`, e `hash-ciclo.sh --check` a responder «ancore
+          # com: …». A promessa da documentação e o comportamento do GitHub não se encontravam
+          # em sítio nenhum.
+          #
+          # O `criar-escola.sh` não ancora: o rodapé dele manda ancorar à mão, como próximo
+          # passo. Aqui é o único ponto em que a escola existe e ainda se pode escrever no mesmo
+          # commit — por isso a âncora entra antes do `git add`, e cai na pasta que ele já leva.
+          #
+          # NÃO DERRUBA A CRIAÇÃO, pela mesma razão dos índices: o motor já está no ar. Uma
+          # âncora em falta vê-se e refaz-se (`tools/hash-ciclo.sh <prof> <ciclo> <escola>`);
+          # apagar uma escola viva por causa dela, não.
+          tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.escola }}" \
+            || echo "::warning::a âncora não foi gerada — rode tools/hash-ciclo.sh ${{ inputs.professor }} ${{ inputs.ciclo }} ${{ inputs.escola }}"
+
           git add -A -- \
             "professores/${{ inputs.professor }}" \
             "escola/${{ inputs.escola }}" \

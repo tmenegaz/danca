@@ -2,20 +2,35 @@
   "aulas": [],
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-01",
+        "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
+          "professores/cafe-no-bule/ciclos/ciclo-01.conf"
+        ],
+        "hash": "aba3df786b0fa27cc28e198c72eb448cf711f9ebe71a2d8a936033f542a01483",
+        "hash_conteudo": "f34ee77da1478f1c3b9cd74ead2111251caff41e861b95ec50b1e900f6e1c1a4",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
+        "professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
         "professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "breu",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:cafe-no-bule/01/breu",
       "numero": "01",
       "pacote": null,
       "professor": "cafe-no-bule",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "manifesto",
         "schema"
       ]
@@ -23,7 +38,16 @@
   ],
   "documentos": [
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:cafe-no-bule/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
+      "professor": "cafe-no-bule",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:cafe-no-bule/01/breu",
       "escola": "breu",
@@ -32,7 +56,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:cafe-no-bule/01/breu",
       "escola": "breu",
@@ -49,7 +73,7 @@
       "anamneses": 0,
       "aulas": 0,
       "ciclos": 1,
-      "ciclos_com_ancora": 0,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "registros": 0
@@ -77,8 +101,8 @@
         "ids": [
           "ciclo:cafe-no-bule/01/breu"
         ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -104,9 +128,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b059b2a"
+    "commit": "f309a68"
   },
-  "gerado_em": "2026-11-01T18:12",
+  "gerado_em": "2026-11-01T18:34",
   "nao_indexado": [
     {
       "familia": "conteudo",

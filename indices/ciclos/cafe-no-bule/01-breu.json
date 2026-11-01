@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-01",
+    "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
+    "cobertura": [
+      "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
+      "professores/cafe-no-bule/ciclos/ciclo-01.conf"
+    ],
+    "hash": "aba3df786b0fa27cc28e198c72eb448cf711f9ebe71a2d8a936033f542a01483",
+    "hash_conteudo": "f34ee77da1478f1c3b9cd74ead2111251caff41e861b95ec50b1e900f6e1c1a4",
+    "id": "ciclo-01-breu",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
     "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,9 +43,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b059b2a"
+    "commit": "f309a68"
   },
-  "gerado_em": "2026-11-01T18:12",
+  "gerado_em": "2026-11-01T18:34",
   "id": "ciclo:cafe-no-bule/01/breu",
   "professor": "cafe-no-bule",
   "versao": 6
