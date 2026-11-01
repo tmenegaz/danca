@@ -9,8 +9,8 @@
           "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
           "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
         ],
-        "hash": "381829390ddeb4d04ed43b17a54875e92b6ce549cc5cffcb08bc621a0b545e18",
-        "hash_conteudo": "ed2b6e41550a9d051bccfa6c89442d5729e297474c6b4415790c4e88e4f353dc",
+        "hash": "b93dabb2583a6eac21f04175c00a033019d228f12675dbe7bddec713854cf362",
+        "hash_conteudo": "4c0c3b5696af45e40cd74d32f5556622fda19d27b3fb6148e9cb03c7c04e8c89",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -39,8 +39,8 @@
           "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
           "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
         ],
-        "hash": "aa1e20e02a6c6064728c7778be61894189aa81b75432f5457e3eca33cb54b656",
-        "hash_conteudo": "a2715b3db65b10cbc9b8b3f94863b4b84d97f0abdb1209e9464e58bd6d4c1664",
+        "hash": "7d3a46e9c9cf9bbe04fe18c411679a0c6f49c743f2db7282489df5aa1412f787",
+        "hash_conteudo": "723e4f5eb0dc1e49f3f6997c2d7ab1dc6ea6622be8cc38909e991fcdc0aa857a",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -55,8 +55,8 @@
               "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
               "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
             ],
-            "hash": "381829390ddeb4d04ed43b17a54875e92b6ce549cc5cffcb08bc621a0b545e18",
-            "hash_conteudo": "ed2b6e41550a9d051bccfa6c89442d5729e297474c6b4415790c4e88e4f353dc",
+            "hash": "b93dabb2583a6eac21f04175c00a033019d228f12675dbe7bddec713854cf362",
+            "hash_conteudo": "4c0c3b5696af45e40cd74d32f5556622fda19d27b3fb6148e9cb03c7c04e8c89",
             "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -434,9 +434,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "136a5ae"
+    "commit": "03be290"
   },
-  "gerado_em": "2026-11-01T23:00",
+  "gerado_em": "2026-11-01T23:33",
   "nao_indexado": [
     {
       "familia": "conteudo",
