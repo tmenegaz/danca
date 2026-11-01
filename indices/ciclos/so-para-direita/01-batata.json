@@ -18,7 +18,8 @@
   "documentos": [
     "documento:ancora:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
     "documento:manifesto:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
-    "documento:plano:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md"
+    "documento:plano:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+    "documento:po:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-po.md"
   ],
   "escola": "batata",
   "estado": "ancorado",
@@ -38,14 +39,19 @@
         "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "289377d"
+    "commit": "861d80d"
   },
-  "gerado_em": "2026-11-01T15:00",
+  "gerado_em": "2026-11-01T15:02",
   "id": "ciclo:so-para-direita/01/batata",
   "professor": "so-para-direita",
   "versao": 6

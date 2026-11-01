@@ -24,7 +24,7 @@
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 3,
+      "documentos": 4,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:so-para-direita/01/batata",
@@ -70,8 +70,8 @@
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 3,
-        "pos": 1,
-        "registros": 7
+        "pos": 2,
+        "registros": 8
       },
       "criada_em": "2026-10-27T12:11:05.731644+00:00",
       "expurgada": false,
@@ -92,7 +92,8 @@
         "plano:plano-20261027-1025",
         "plano:plano-20261027-1131",
         "plano:plano-20261101-1159",
-        "po:po-20261027-1353"
+        "po:po-20261027-1353",
+        "po:po-20261101-1201"
       ],
       "slug": "batata"
     },
@@ -307,7 +308,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 7,
+        "contagem": 8,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -470,7 +471,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -478,9 +479,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "289377d"
+    "commit": "861d80d"
   },
-  "gerado_em": "2026-11-01T15:00",
+  "gerado_em": "2026-11-01T15:02",
   "nao_indexado": [
     {
       "familia": "conteudo",

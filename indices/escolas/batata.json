@@ -129,7 +129,8 @@
       "documentos": [
         "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
         "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
-        "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp"
+        "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
+        "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-po.md"
       ],
       "escola": "batata",
       "estado": "ancorado",
@@ -141,7 +142,8 @@
       "tipos": [
         "ancora",
         "manifesto",
-        "plano"
+        "plano",
+        "po"
       ]
     }
   ],
@@ -318,6 +320,15 @@
       "tipo": "po"
     },
     {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-po.md",
+      "ciclo_id": "ciclo:so-para-direita/01/batata",
+      "escola": "batata",
+      "id": "documento:po:professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-po.md",
+      "professor": "so-para-direita",
+      "tipo": "po"
+    },
+    {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
       "ciclo_id": "ciclo:perna-boa/01/batata",
@@ -356,8 +367,8 @@
       "ciclos": 2,
       "ciclos_com_ancora": 2,
       "planos": 3,
-      "pos": 1,
-      "registros": 7
+      "pos": 2,
+      "registros": 8
     },
     "criada_em": "2026-10-27T12:11:05.731644+00:00",
     "expurgada": false,
@@ -378,14 +389,15 @@
       "plano:plano-20261027-1025",
       "plano:plano-20261027-1131",
       "plano:plano-20261101-1159",
-      "po:po-20261027-1353"
+      "po:po-20261027-1353",
+      "po:po-20261101-1201"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 7,
+        "contagem": 8,
         "ids": [
           "anamnese:anamnese-20261027-0939",
           "anamnese:anamnese-20261027-0943",
@@ -393,7 +405,8 @@
           "plano:plano-20261027-1025",
           "plano:plano-20261027-1131",
           "plano:plano-20261101-1159",
-          "po:po-20261027-1353"
+          "po:po-20261027-1353",
+          "po:po-20261101-1201"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -423,13 +436,14 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 5,
+        "contagem": 6,
         "ids": [
           "anamnese:anamnese-20261027-0943",
           "anamnese:anamnese-20261027-0946",
           "ciclo:so-para-direita/01/batata",
           "plano:plano-20261027-1131",
-          "plano:plano-20261101-1159"
+          "plano:plano-20261101-1159",
+          "po:po-20261101-1201"
         ],
         "rotulo": "so-para-direita",
         "valor": "so-para-direita"
@@ -466,9 +480,10 @@
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "po:po-20261027-1353"
+          "po:po-20261027-1353",
+          "po:po-20261101-1201"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -477,9 +492,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "289377d"
+    "commit": "861d80d"
   },
-  "gerado_em": "2026-11-01T15:00",
+  "gerado_em": "2026-11-01T15:02",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -577,6 +592,16 @@
       "data": "2026-10-27T13:53",
       "id": "po:po-20261027-1353",
       "professor": "perna-boa",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261101-1201",
+      "ciclo": "01",
+      "data": "2026-11-01T12:01",
+      "id": "po:po-20261101-1201",
+      "professor": "so-para-direita",
       "tipo": "po"
     }
   ],
