@@ -464,6 +464,10 @@ experimentos/modelo-formulario/*
 # critérios e não por 4 células com dois dentro. Mede a TELA (jsdom, o pacote por HTTP), com
 # controle negativo: com o config antigo, os campos caem para metade.
 !experimentos/provar-janela-do-lancamento.js
+# O ESCOPO DA AULA (01/11/2026) — a prova de que o «o que fica de fora» vem do PO e não de uma
+# frase da Diaghilev promovida a código, de que a §6 duplicada saiu, e de que o par dimensão ×
+# item não se perde em silêncio quando falta a lista das dimensões.
+!experimentos/provar-escopo-da-aula.js
 !experimentos/provar-dimensoes-plano.js
 !experimentos/provar-musica-no-plano.js
 

@@ -10,7 +10,7 @@ volume-total: "90 tempos"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
-**Condição desta aula.** Sem deslocamento, sem giro, sem mudança de direção.
+**O que esta aula deixa de fora.** Ficam fora deste ciclo o allegro, o trabalho de ponta e a avaliação de repertório: o plano não os marca como bloco, e observar o que não se ensinou não é dado, é suposição.
 
 ## 1. Validação dos objetivos, métricas e duração
 
@@ -60,18 +60,12 @@ aconteceu · ? não vi · vazio = não observei.
 | Técnica — Musicalidade | resposta ao pulso na marcação |
 | Técnica — Musicalidade | frase até o fim da música |
 
-## 6. Distribuição do volume físico
-
-| Bloco | Tempos | Fatia |
-|:--|--:|--:|
-| **Total** | **90** | **100%** |
-
-## 7. Proveniência consolidada
+## 6. Proveniência consolidada
 
 Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — a cadeia foi
 gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).
 
-## 8. Registro de auditoria da aula
+## 7. Registro de auditoria da aula
 
 | Verificação | Resultado |
 |:--|:--|
@@ -79,6 +73,6 @@ gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).
 | Duração declarada (Pré-requisito 4) | ok — 50 minutos |
 | Volume dentro da faixa (Regra 9) | ok — 90 tempos em 80–100 |
 
-## 9. Próximo passo
+## 8. Próximo passo
 
 [Preencher: o próximo passo da progressão do ciclo]

@@ -249,12 +249,35 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     saida.push('');
   };
 
-  /* A CONDIÇÃO DA AULA DESCEU PARA O CORPO (28/10/2026). Ela era o `subtitle:` do
-   * documento — «Sem deslocamento, sem giro, sem mudança de direção» —, e essa é a única
-   * coisa que o subtítulo dizia que o corpo não dissesse: por isso sai do cabeçalho como
-   * PROSA, e não como decoração. As outras páginas perderam o subtítulo por repetição
-   * (referências, notação); esta perdê-lo-ia com informação dentro. */
-  saida.push('**Condição desta aula.** Sem deslocamento, sem giro, sem mudança de direção.', '');
+  /* A CONDIÇÃO DESTA AULA VEM DO PO, E NÃO DA PRIMEIRA AULA DO PROTÓTIPO (01/11/2026).
+   *
+   * A HISTÓRIA, medida no repositório: «Sem deslocamento, sem giro, sem mudança de direção» era
+   * o **subtítulo da Aula 01 da Diaghilev** (`4462d6a`, 23/09/2026) — e as aulas 02, 03 e 04
+   * tinham subtítulos DIFERENTES («Deslocamento frontal e lateral, com o eixo entre os apoios»,
+   * «O apoio deixa o chão: retorno controlado ao eixo»…). Ou seja: era **uma frase de uma aula**,
+   * escrita à mão numa fonte. Quando o subtítulo saiu do cabeçalho (28/10/2026), ela foi
+   * promovida a texto FIXO no código — e passou a sair igual em todas as aulas de todas as
+   * escolas. É o oposto do que o projeto pede: um dado que vem de um lugar, e um só.
+   *
+   * DE ONDE VEM DE VERDADE: do PO. A arquitetura do `po_ref/po.md` (§5.7 e §5.8) tem
+   * `what_is_left_out` — «o que fica de fora, e por quê» — como campo **obrigatório**, e o
+   * formulário do PO tem os dois campos que o realizam: «Critérios de exclusão» (`exclusao`) e
+   * «O que fica de fora» (`o-que-fica-de-fora`). A frase que a Diaghilev escreveu à mão é, na
+   * natureza dela, uma declaração de escopo: o que esta aula NÃO tem.
+   *
+   * A ORDEM DA LEITURA: `o-que-fica-de-fora` primeiro — é o campo que diz, em prosa, o que o
+   * recorte exclui —, e `exclusao` depois. Sem nenhum dos dois, a linha **não se inventa**: sai a
+   * lacuna declarada, com o caminho de volta. Uma aula sem condição declarada é uma aula cujo
+   * escopo ninguém escreveu, e calar isso seria o mesmo defeito outra vez. */
+  {
+    const deFora = emLista(resp(po, 'o-que-fica-de-fora')).filter((v) => !GABARITO_VAZADO.test(v)).join(' ');
+    const exclusao = emLista(resp(po, 'exclusao')).filter((v) => !GABARITO_VAZADO.test(v)).join(' ');
+    const condicao = deFora || exclusao;
+    saida.push(condicao
+      ? '**O que esta aula deixa de fora.** ' + condicao
+      : '**O que esta aula deixa de fora.** [Preencher: declara-se no Plano de Observação, em '
+        + '«O que fica de fora» — o recorte é do PO, e a aula não o inventa.]', '');
+  }
 
   // §1 — Validação dos objetivos, métricas e duração (item/valor → `identificacao`).
   {
@@ -344,27 +367,39 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     secao('5. Guia de observação do professor', corpo);
   }
 
-  // §6 — Distribuição do volume físico: o que a sequência não calculou fica lacuna.
-  secao('6. Distribuição do volume físico',
-    ['| Bloco | Tempos | Fatia |', '|:--|--:|--:|', '| **Total** | **' + (volumeTotal || '[Preencher]') + '** | **100%** |']);
+  /* A «DISTRIBUIÇÃO DO VOLUME FÍSICO» SAIU — ELA DUPLICAVA A §3 (01/11/2026).
+   *
+   * A pesquisadora: «se ele duplica (…) Tem que vir sempre do mesmo lugar e a informação é uma
+   * só.» Medido no documento da Batata: a §3 imprime `| Solo | 27 | 30% | … | **Total** | **90**
+   * | **100%** |`, e a §6 imprimia `| **Total** | **90** | **100%** |` — a MESMA conta, uma
+   * tabela depois, sem as linhas que a explicam. Nenhum consumidor lê o campo
+   * (`distribuicaoDoVolume` só era produzido e validado: nenhum template, nenhum renderizador).
+   *
+   * E a fonte já é a certa: o volume vem do PLANO (`distribuicao-de-volume`), e é isso que a §3
+   * mostra. Uma segunda tabela do mesmo número não é uma segunda leitura — é a mesma, mais pobre.
+   *
+   * A RENUMERAÇÃO foi decidida com ela em mente: um documento que salta do 5 para o 7 lê-se como
+   * defeito. As secções seguintes passam a 6, 7 e 8, e o mapa do `validar-aula-ciclo.js` ganhou as
+   * três variantes — sem isso o validador descartaria as três secções EM SILÊNCIO (é o modo de
+   * falha que o próprio mapa documenta). */
 
-  // §7 — Proveniência consolidada.
-  secao('7. Proveniência consolidada',
+  // §6 — Proveniência consolidada.
+  secao('6. Proveniência consolidada',
     ['Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — a cadeia foi',
      'gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).']);
 
-  // §8 — Registro de auditoria.
+  // §7 — Registro de auditoria.
   {
     const corpo = ['| Verificação | Resultado |', '|:--|:--|'];
     corpo.push('| Objetivo específico declarado | ' + (objetivo.startsWith('[Preencher') ? 'não' : 'ok') + ' |');
     corpo.push('| Duração declarada (Pré-requisito 4) | ok — ' + duracaoMin + ' minutos |');
     corpo.push('| Volume dentro da faixa (Regra 9) | ' +
       (volumeTotal ? 'ok — ' + volumeTotal + ' tempos em ' + volMin + '–' + volMax : '[Preencher]') + ' |');
-    secao('8. Registro de auditoria da aula', corpo);
+    secao('7. Registro de auditoria da aula', corpo);
   }
 
-  // §9 — Próximo passo.
-  secao('9. Próximo passo', ['[Preencher: o próximo passo da progressão do ciclo]']);
+  // §8 — Próximo passo.
+  secao('8. Próximo passo', ['[Preencher: o próximo passo da progressão do ciclo]']);
 
   /* UMA LINHA EM BRANCO, E NÃO DUAS. Cada `secao()` fecha com uma, e vários corpos terminam
    * com outra — o que deixava um vão de duas linhas entre secções, visível no `.md` e no HTML.
@@ -838,8 +873,30 @@ function dimensoesEItens(po) {
     }
   }
 
-  // Dimensões sem itens (o professor marcou a dimensão mas não escreveu os itens).
-  return dimensoes.map((d) => ({ dimensao: d, itens: porDimensao.get(d) || [] }));
+  /* NADA SE PERDE EM SILÊNCIO (01/11/2026).
+   *
+   * Era `dimensoes.map(...)` — só as dimensões DECLARADAS em `dimensoes-de-observacao`, e as
+   * outras eram descartadas com os itens dentro. Medido:
+   *   · sem `dimensoes-de-observacao` → `[]`, e os 4 blocos da folha desapareciam;
+   *   · com UMA dimensão declarada → só essa, e as outras três desapareciam.
+   * E nada falhava: a §5 da aula saía `[Preencher]`, a folha saía sem os blocos de critério, e o
+   * validador aprovava — porque uma folha com menos colunas continua a ser uma folha válida. É o
+   * silêncio mais caro que este ficheiro podia ter: o professor perde o que escreveu e o sistema
+   * diz que está tudo bem.
+   *
+   * A ORDEM: primeiro as dimensões DECLARADAS (é a ordem que o professor escolheu, e a que dá a
+   * numeração dos blocos), depois as que só têm itens — na ordem em que os itens aparecem. Uma
+   * dimensão sem itens fica com a lista vazia, e a folha declara a lacuna em vez de a esconder.
+   *
+   * O `dimensoes-de-observacao` é DERIVADO do plano quando o professor o abre; se ele não o
+   * abriu, ou se o plano não marca blocos, o campo vem vazio — e é exactamente aí que os itens
+   * ficavam sem casa. A união é o que faz o par dimensão × item sobreviver à falta do primeiro. */
+  const vistas = new Set(dimensoes);
+  const todas = dimensoes.slice();
+  for (const d of porDimensao.keys()) {
+    if (!vistas.has(d)) { vistas.add(d); todas.push(d); }
+  }
+  return todas.map((d) => ({ dimensao: d, itens: porDimensao.get(d) || [] }));
 }
 
 /**

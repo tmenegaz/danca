@@ -73,6 +73,15 @@ const MAPA_SECOES = {
   "5. guia de observação do professor": "guiaDeObservacao",
   "5. musicalidade e repertório": "musicalidade",
   "6. distribuição do volume físico": "distribuicaoDoVolume",
+  // A AULA PERDEU A §6 E RENUMEROU (01/11/2026). A «Distribuição do volume físico» duplicava a
+  // tabela da §3 (o mesmo `| **Total** | **90** | **100%** |`, uma secção depois, sem as linhas
+  // que a explicam), e nenhum consumidor lia o campo. Com ela fora, as três secções seguintes
+  // desceram um número — e um título fora deste mapa descarta a secção INTEIRA, em silêncio (é o
+  // modo de falha que o cabeçalho deste ficheiro documenta). Estas três linhas são o que impede a
+  // proveniência, a auditoria e o próximo passo de desaparecerem do contrato da aula.
+  "6. proveniência consolidada": "proveniencia",
+  "7. registro de auditoria da aula": "auditoria",
+  "8. próximo passo": "proximoPasso",
   "6. notas de proveniência": "proveniencia",
   "7. proveniência consolidada": "proveniencia",
   "7. distribuição do volume pelos blocos (comparação com o ciclo)": "distribuicaoPelosBlocos",
