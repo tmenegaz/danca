@@ -9,8 +9,8 @@
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
         ],
-        "hash": "00f6fcc717d043ba73938c1cdbeff704a83bec2f57964743c0c203b4de32088e",
-        "hash_conteudo": "af98866a13f5f3715a927ecd26e6657da948bf5b30d1c05cb0c25a48533c8618",
+        "hash": "db12c8ee0713f6a911818764f9c93ec4a37d7cf48097bf5d8dbd0912bb97b081",
+        "hash_conteudo": "060b02ce41fd02f72c0813d885bb59ac769a459b90b88ec32c9f2c7f496ef341",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -40,8 +40,8 @@
           "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
           "professores/perna-boa/ciclos/ciclo-01.conf"
         ],
-        "hash": "59e3063f21ad7fc7086abb01f3e9e77d9beddeafb23f90ee89985f5d7ae397a0",
-        "hash_conteudo": "03f73cf32a54d0e688898722eb0e26b7524275291152b5221ccb2a71e63ef15b",
+        "hash": "d673e78e741182db9672788e31b381aa231a8f072ea6000883b2858708a13387",
+        "hash_conteudo": "34633d3032a606b524e643873ad651da05a1e2f718a09a0a5d481add3bd28b1f",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -56,8 +56,8 @@
               "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
               "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
             ],
-            "hash": "00f6fcc717d043ba73938c1cdbeff704a83bec2f57964743c0c203b4de32088e",
-            "hash_conteudo": "af98866a13f5f3715a927ecd26e6657da948bf5b30d1c05cb0c25a48533c8618",
+            "hash": "db12c8ee0713f6a911818764f9c93ec4a37d7cf48097bf5d8dbd0912bb97b081",
+            "hash_conteudo": "060b02ce41fd02f72c0813d885bb59ac769a459b90b88ec32c9f2c7f496ef341",
             "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -492,9 +492,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "26ddade"
+    "commit": "c79c498"
   },
-  "gerado_em": "2026-11-01T15:02",
+  "gerado_em": "2026-11-01T15:10",
   "nao_indexado": [
     {
       "familia": "conteudo",

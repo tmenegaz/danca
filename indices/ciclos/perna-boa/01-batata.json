@@ -16,8 +16,8 @@
       "professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "professores/perna-boa/ciclos/ciclo-01.conf"
     ],
-    "hash": "59e3063f21ad7fc7086abb01f3e9e77d9beddeafb23f90ee89985f5d7ae397a0",
-    "hash_conteudo": "03f73cf32a54d0e688898722eb0e26b7524275291152b5221ccb2a71e63ef15b",
+    "hash": "d673e78e741182db9672788e31b381aa231a8f072ea6000883b2858708a13387",
+    "hash_conteudo": "34633d3032a606b524e643873ad651da05a1e2f718a09a0a5d481add3bd28b1f",
     "id": "ciclo-01-batata-bale-nivel-1-teste-2",
     "lida": true,
     "parent_hash": ""
@@ -115,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "26ddade"
+    "commit": "c79c498"
   },
-  "gerado_em": "2026-11-01T15:02",
+  "gerado_em": "2026-11-01T15:10",
   "id": "ciclo:perna-boa/01/batata",
   "professor": "perna-boa",
   "versao": 6
