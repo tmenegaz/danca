@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/meia-ponta/ciclos/ciclo-01-calango.conf",
+    "documento:schema:professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "calango",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "6e3a8ba"
+  },
+  "gerado_em": "2026-11-01T18:52",
+  "id": "ciclo:meia-ponta/01/calango",
+  "professor": "meia-ponta",
+  "versao": 6
+}

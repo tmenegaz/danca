@@ -3,10 +3,10 @@
   "worker": "calango",
   "criado_em": "2026-10-19T18:18:57.289485+00:00",
   "professor": {
-    "slug": "murisoca-baiana",
-    "nome": "Murisoca Baiana"
+    "slug": "meia-ponta",
+    "nome": "Meia Ponta"
   },
-  "responsavel": "Murisoca Baiana",
+  "responsavel": "Meia Ponta",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -578,6 +578,20 @@
         "nome": "Sapo Bailarino"
       },
       "nota": "campos professores_anteriores/professor_anterior completados em 27/10/2026 pela normalização do presente — a recriação não os gravava"
+    },
+    {
+      "em": "2026-11-01T18:52:13.679717+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "meia-ponta",
+        "nome": "Meia Ponta"
+      },
+      "responsavel": "Meia Ponta",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "murisoca-baiana",
+        "nome": "Murisoca Baiana"
+      }
     }
   ],
   "professores": []

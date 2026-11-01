@@ -1,47 +1,111 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
+        "professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "calango",
+      "estado": "sem-ancora",
+      "id": "ciclo:meia-ponta/01/calango",
+      "numero": "01",
+      "pacote": null,
+      "professor": "meia-ponta",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
+      "ciclo_id": "ciclo:meia-ponta/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/meia-ponta/ciclos/ciclo-01-calango.conf",
+      "professor": "meia-ponta",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:meia-ponta/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "meia-ponta",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:meia-ponta/01/calango"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-10-27T11:35:27.333757+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-01T18:52:13.679717+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-10-27T12:01:30.244Z",
     "expurgos": 8,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:calango",
     "nome": "calango",
-    "professor": "murisoca-baiana",
+    "professor": "meia-ponta",
     "professores": [
-      "murisoca-baiana",
-      "oculos-redondo",
-      "perna-boa",
-      "sapo-bailarino",
-      "tiago-menegaz"
+      "meia-ponta"
     ],
     "registros": [],
     "slug": "calango"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:meia-ponta/01/calango"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:meia-ponta/01/calango"
+        ],
+        "rotulo": "meia-ponta",
+        "valor": "meia-ponta"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:meia-ponta/01/calango"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "5bc466c"
+    "commit": "6e3a8ba"
   },
-  "gerado_em": "2026-11-01T18:46",
+  "gerado_em": "2026-11-01T18:52",
   "nao_indexado": [
     {
       "familia": "conteudo",
