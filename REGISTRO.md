@@ -29006,3 +29006,37 @@ cobertura do selo.
   de bras»).
 - **Os dois nós podem passar a pré-preencher** o que é derivado — é o mesmo desenho da música no nó
   19 —, mas o que isso muda é o **texto que o documento publica**, e por isso fica à espera dela.
+
+## 01/11/2026 — O conteúdo da porta no scaffold, que é o que a escola publica
+
+**O que motivou — a verificação ao ar.** Depois de publicar a entrega do número do roteiro, a página da
+escola servia a explicação **velha** da «Sequência de exercícios por bloco» e **não tinha** o
+`somenteLeitura`. A mudança estava no repositório, no pacote da turma e no ar da raiz — e **não** no ar
+da escola.
+
+**A causa é uma armadilha do processo de publicação.** `tools/montar-publicacao.js` copia a base da
+escola do **pacote-zero** (`ciclo-01-<escola>`), e não de `porta/`. O `gerar-ciclo.sh` **recusa-se** a
+correr sobre um ciclo-zero (DOCS vazio, é scaffold), e por isso a cópia do scaffold só se actualiza **à
+mão**.
+
+**Até aqui estava coberto por acidente.** O `check-identidade`, na checagem «Circuito», compara o
+`plano-observacao/index.html` de cada pacote com `porta/` e reprova quando diverge — foi ele que
+obrigou a sincronizar o HTML em `b0d781f`. Mas o «Circuito» compara **páginas e assets**, e não compara
+o **conteúdo** (`plano.json`, `anamnese.json`, `po.json`). É o conteúdo que diz quais são as perguntas.
+
+**Medido antes de corrigir, para não inventar uma dívida antiga:** contra `5bfb7ae`, o scaffold e
+`porta/` tinham **25 nós e 0 divergentes**. Estava em sincronia — o desvio nasce quando alguém muda só
+`porta/`, e não há nada que o diga.
+
+**O que muda.** A cópia do scaffold passa a ser a fonte, byte a byte (`diff` vazio).
+
+**O que fica registado e NÃO corrigido aqui.** A checagem que faltaria — comparar o conteúdo da porta
+entre `porta/` e o scaffold — vive em `tools/check-identidade.js`, que é **congelado**
+(`CONGELAMENTO.md`). Mudá-lo exige motivo declarado no corpo, entrada neste registo e **commit próprio**.
+Sem ela, a próxima mudança de conteúdo que só toque em `porta/` volta a ficar no repositório e a não
+chegar à escola, **em silêncio**.
+
+**Validação.** `diff` vazio entre `porta/plano/conteudo/plano.json` e a cópia do scaffold;
+`check-identidade.js` → **20/20**; `check-pacote.js` → **0 erro**; e ao ar, depois do deploy de
+`22b42ce`: `/plano-ensino/plano/conteudo/plano.json` devolve `somenteLeitura: [Bloco, Objetivo
+específico]` e a explicação nova. Os quatro workflows de `22b42ce` em `success`.

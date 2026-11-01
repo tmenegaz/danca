@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-01T09:24:15-0300`
-Commit atual: `10bf6b6` — fix(estrutura): o número que se lê é o do roteiro, nos três documentos
+Gerado em: `2026-11-01T09:28:56-0300`
+Commit atual: `22b42ce` — fix(entrega): o conteúdo da porta no scaffold, que é o que a escola publica
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,8 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+22b42ce fix(entrega): o conteúdo da porta no scaffold, que é o que a escola publica
+b64bac4 docs(registro): a fotografia do número do roteiro, e os três nós que ficam à espera
 10bf6b6 fix(estrutura): o número que se lê é o do roteiro, nos três documentos
 5bfb7ae chore(estrutura): regerar os índices derivados
 fb14ca3 docs(registro): a fotografia, o registo e o handoff da tira fora do formulário
@@ -98,8 +100,6 @@ c5d7359 docs(registro): a fotografia dos seis passos, e a decisão que os escolh
 d7e71ff feat(notacao): o verbete em seis passos, com o modo de edição
 ccbc8d0 docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 b20242e docs(registro): actualizar a fotografia após as definições e as duas arrumações
-2ff8ed4 docs(registro): as definições no vocabulário, o lê-se no campo, e as duas arrumações
-b641acc feat(estrutura): o «lê-se» dentro do campo, e a quarta coluna fora da tabela
 ```
 
 ## Por professor
@@ -199,96 +199,39 @@ b641acc feat(estrutura): o «lê-se» dentro do campo, e a quarta coluna fora da
 
 ## Última entrada do REGISTRO
 
-## 01/11/2026 — O número que se lê é o do roteiro, nos três documentos
+## 01/11/2026 — O conteúdo da porta no scaffold, que é o que a escola publica
 
-**O que motivou.** Ela andava o plano pelo botão «avançar» e parou num descompasso: «eu estou na
-sequência de exercícios por bloco. No roteiro, ela é o **número 12** e na página ela é o **número
-19**. Não pode ter esse descompasso.»
+**O que motivou — a verificação ao ar.** Depois de publicar a entrega do número do roteiro, a página da
+escola servia a explicação **velha** da «Sequência de exercícios por bloco» e **não tinha** o
+`somenteLeitura`. A mudança estava no repositório, no pacote da turma e no ar da raiz — e **não** no ar
+da escola.
 
-**Havia três réguas para a mesma contagem**, e nenhuma delas estava errada em si:
+**A causa é uma armadilha do processo de publicação.** `tools/montar-publicacao.js` copia a base da
+escola do **pacote-zero** (`ciclo-01-<escola>`), e não de `porta/`. O `gerar-ciclo.sh` **recusa-se** a
+correr sobre um ciclo-zero (DOCS vazio, é scaffold), e por isso a cópia do scaffold só se actualiza **à
+mão**.
 
-| onde | o que contava |
-|:--|:--|
-| o **roteiro** | os **degraus** — os nós que se perguntam, e só eles |
-| o **título da página** | o **índice do mapa** (`INDICE + 1`), que conta também os nós de cabeçalho |
-| a **barra** | o **mapa inteiro** — «respondidos N/26» sobre um roteiro de 19 |
+**Até aqui estava coberto por acidente.** O `check-identidade`, na checagem «Circuito», compara o
+`plano-observacao/index.html` de cada pacote com `porta/` e reprova quando diverge — foi ele que
+obrigou a sincronizar o HTML em `b0d781f`. Mas o «Circuito» compara **páginas e assets**, e não compara
+o **conteúdo** (`plano.json`, `anamnese.json`, `po.json`). É o conteúdo que diz quais são as perguntas.
 
-Os nós de cabeçalho — escola, professor, turma, frequência, duração, calendário, número de aulas —
-**não se perguntam**: vêm do cadastro e leem-se na barra. Contá-los no título dava um número que não
-correspondia a degrau nenhum.
+**Medido antes de corrigir, para não inventar uma dívida antiga:** contra `5bfb7ae`, o scaffold e
+`porta/` tinham **25 nós e 0 divergentes**. Estava em sincronia — o desvio nasce quando alguém muda só
+`porta/`, e não há nada que o diga.
 
-**Medido, documento a documento** (é o que a prova fixa):
+**O que muda.** A cópia do scaffold passa a ser a fonte, byte a byte (`diff` vazio).
 
-| documento | nós | degraus | desalinhados |
-|:--|--:|--:|--:|
-| anamnese | 53 | 53 | **0** |
-| plano de ensino | 26 | 19 | **18 de 19** (Δ −7) |
-| plano de observação | 33 | 30 | **30 de 30** (Δ −2 e −3) |
+**O que fica registado e NÃO corrigido aqui.** A checagem que faltaria — comparar o conteúdo da porta
+entre `porta/` e o scaffold — vive em `tools/check-identidade.js`, que é **congelado**
+(`CONGELAMENTO.md`). Mudá-lo exige motivo declarado no corpo, entrada neste registo e **commit próprio**.
+Sem ela, a próxima mudança de conteúdo que só toque em `porta/` volta a ficar no repositório e a não
+chegar à escola, **em silêncio**.
 
-A **anamnese estava certa** — e é isso que explica o defeito ter passado: é o documento onde ele não
-aparece, porque não tem nó de cabeçalho. Quem medisse só a anamnese concluiria que estava tudo bem.
-
-**O que mudou.** `numerosDoMapa()` conta os degraus **uma vez**, e o título, o roteiro e a barra leem
-dela. O título deixa de numerar pelo índice; a barra deixa de contar o mapa (no plano, dizia «16
-obrigatórios» sobre **10** degraus obrigatórios).
-
-**O que não tem degrau continua a barrar o fecho.** A turma é obrigatória no plano e vive no
-cabeçalho: tirá-la da conta não pode tirá-la da trava. Ela não entra no denominador e passa a ser
-**nomeada**: «Do contexto, na barra: Turma observada». Somá-la a um total escondia-a atrás de um
-número — e um número não se vai preencher.
-
-**E a «Sequência de exercícios por bloco» passa a ser DEMONSTRATIVO.** A pergunta dela — «o bloco e o
-objetivo específico editável é o que te questiono se ele precisa existir sendo editável» — tem
-resposta medida, e é **não**:
-
-| coluna | de onde vem |
-|:--|:--|
-| Bloco | «Blocos de cada objetivo» (`estrutura-de-cada-aula`) |
-| Objetivo específico | os marcos do ciclo (`marcos-por-aula`) |
-| Conteúdo do nível | a matriz do «Parâmetro de medição», lida em `derivadaDe` |
-| Tempos · Compasso | o **verbete** do exercício, em Produção |
-
-As duas primeiras entram em **`somenteLeitura`**, e o texto do nó passa a dizer o que ele é — «um
-DEMONSTRATIVO, e não um segundo lugar para decidir». Fica livre o **conteúdo** de um exercício que
-ainda não tem parâmetro marcado, e fica o «Adicionar linha»: sem os dois, um plano cuja turma não tem
-conteúdo associado **não podia ser composto de maneira nenhuma**.
-
-**Ela não sai do formulário, e a razão é medida.** É dela que a página da aula lê a sequência
-(`sequenciaComoObjetos`, em `motor/nucleo/derivar-ciclo.js`). O `notacao.md` publicado diz, nos
-exercícios do plano em uso, «os tempos e o compasso ainda não estão declarados no plano» — porque a
-resposta gravada é **anterior** à música derivada do verbete. Regravar o plano pelo formulário
-preenche as linhas que têm verbete.
-
-**Onde entrou.**
-- `porta/index.html` — `numerosDoMapa()`/`numeroDoDegrau()`, usadas pelo título, pelo roteiro, pela
-  barra, pelo contador da retomada e pelo aviso do fecho; `NUMEROS = null` quando o mapa chega.
-- `porta/plano/conteudo/plano.json` — `somenteLeitura: [Bloco, Objetivo específico]` na
-  `aula-1-sequencia`, e as três explicações do nó reescritas (o que é, o que preencher, por que).
-- `experimentos/provar-numeros-do-roteiro.js` — **29 asserções**, com **controle negativo**.
-
-**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado. A âncora
-**não** mudou: esta entrega não escreve o alfabeto, e o `plano.json` do formulário não está na
-cobertura do selo.
-
-**Validação.** `provar-numeros-do-roteiro.js` → **29/0**, e **12 falhas** com o `porta/index.html` de
-`HEAD` (o controle negativo: a anamnese passa, como deve). `provar-celula.js` → **115/0**.
-`provar-musica-no-plano.js` → **18/0**. `provar-parametros-por-parametro.js` → **21/0**.
-`provar-plano-da-turma.js` → **46/0**. `provar-porta-sem-contexto.js` → **44/0**.
-`check-identidade.js` → **20/20**. `check-pacote.js` → **0 erro, 0 aviso**. `hash-ciclo.sh --check` →
-íntegro, `3601081…`, selo na **versão 9**.
-
-**O que fica em aberto, e é decisão dela** (medido, não executado):
-- **«Músicas e vídeos»**: o compasso de cada exercício já vem do verbete; o que **não existe em lugar
-  nenhum** é a **faixa** (o título da música) e o **vídeo de referência**. O nó devia perguntar só
-  isso — hoje pede «título e, se quiser, a faixa ou o compasso», e o compasso é a parte que já está
-  respondida.
-- **«Repertório (se usar)»**: o texto livre duplica o que a sequência já demonstra. Ele tem um
-  consumidor real — `usosDosPlanos`, que o lê para saber que termos um plano usa antes de deixar
-  apagar um termo do vocabulário —, e por isso não se apaga sem mudar essa conta; derivá-lo da
-  sequência tornaria essa conta **exacta** (hoje lê prosa: «Sequência de teste com plié, tendu e port
-  de bras»).
-- **Os dois nós podem passar a pré-preencher** o que é derivado — é o mesmo desenho da música no nó
-  19 —, mas o que isso muda é o **texto que o documento publica**, e por isso fica à espera dela.
+**Validação.** `diff` vazio entre `porta/plano/conteudo/plano.json` e a cópia do scaffold;
+`check-identidade.js` → **20/20**; `check-pacote.js` → **0 erro**; e ao ar, depois do deploy de
+`22b42ce`: `/plano-ensino/plano/conteudo/plano.json` devolve `somenteLeitura: [Bloco, Objetivo
+específico]` e a explicação nova. Os quatro workflows de `22b42ce` em `success`.
 
 ## O que está pendente
 

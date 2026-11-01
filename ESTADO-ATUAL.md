@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 01/11/2026 (base local `10bf6b6`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1).
+> **Última fotografia:** 01/11/2026 (base local `22b42ce`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -403,8 +403,9 @@ de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. E
 **expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
 vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 01/11/2026 — `b0d781f` (a tira dos passos sai do formulário, e o verbete
-fica em cinco), com `a33eb51` (o registo anterior) por trás. Antes dele, `885ea96` (os tempos e o
+**Último ponto confirmado:** 01/11/2026 — `22b42ce` (o conteúdo da porta no scaffold), com `b64bac4` (o
+registo do número do roteiro) e `10bf6b6` (a correcção) por trás. Antes dele, `b0d781f` (a tira dos
+passos sai do formulário, e o verbete fica em cinco). Antes dele, `885ea96` (os tempos e o
 compasso vêm do verbete), `d7e71ff` (o verbete em seis passos, com o modo de edição) e `c3f0fb1` (o
 plano diz por que um termo da turma não aparece). A base anterior: `b641acc` (o «lê-se»
 dentro do campo e a quarta coluna fora), `48f43e2` (as definições no vocabulário), `9fb09dc` (a folha,
@@ -856,6 +857,16 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **01/11/2026** — **O conteúdo da porta no scaffold, que é o que a escola publica.** A verificação ao
+  ar mostrou a página da escola a servir a explicação **velha** do nó 19 e **sem** o `somenteLeitura`:
+  a mudança estava no repositório, no pacote da turma e no ar da raiz, e não no ar da escola. A causa
+  é o `montar-publicacao`, que copia a base do **pacote-zero**, e o `gerar-ciclo.sh` recusa correr
+  sobre um ciclo-zero — a cópia do scaffold actualiza-se **à mão**. O «Circuito» do
+  `check-identidade` compara páginas e assets, **não o conteúdo**. Medido antes de corrigir: contra
+  `5bfb7ae` eram **25 nós e 0 divergentes** — não era dívida antiga, é uma armadilha do processo.
+  **CONFIRMADO** ao ar em `22b42ce`. **A checagem que faltaria é em `tools/`, que é congelado** — fica
+  registada, não feita.
 
 - **01/11/2026** — **O número que se lê é o do roteiro, nos três documentos.** Três réguas para a
   mesma contagem: o roteiro contava os **degraus**, o título da página o **índice do mapa** (com os
