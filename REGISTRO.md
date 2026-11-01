@@ -29147,3 +29147,11 @@ grelha com unidade grava `{unidade, linhas}`, e não uma lista); `provar-numeros
   expurgado do repositório. A prova diz isso em vez de falhar em silêncio — mas está sem objeto.
 - **O P1 (a ligação bloco ↔ dimensão por id) não foi feito.** Continua a ser a peça maior, e agora
   com o plano escrito.
+
+**Conferência ao ar (01/11/2026, depois do push — uma carga, e só uma).** Os quatro workflows de
+`7b80274` em `success` (Reancorar, Publicar as escolas, Publicar a raiz, Regerar os índices). Uma única
+requisição a `https://batata.tmenegaz77.workers.dev/plano-ensino/plano/conteudo/plano.json`:
+**200**, 33 421 bytes, e o conteúdo que a escola serve diz `repertorio` com `somenteLeitura: true` e
+`derivadoDaSequencia: {oQue: "exercicios"}`, e `musicas-videos` com `oQue: "musicas"`. É o que a
+mudança tinha de chegar a fazer. **A cota do KV não foi tocada**: `plano.json` é asset estático, não
+endpoint de estado.
