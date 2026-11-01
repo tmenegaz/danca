@@ -1,38 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "d673e78e741182db9672788e31b381aa231a8f072ea6000883b2858708a13387",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 1,
-      "documentos": 19,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:perna-boa/01/batata",
-      "numero": "01",
-      "professor": "perna-boa",
-      "sem_ancora": false
-    },
-    {
-      "ancora": {
-        "hash": "40911ef61b77b58f3d3102a98e82bff56fed38475c6293dfd2cebe3a86292903",
-        "id": "ciclo-01-batata-bale-nivel-2-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 4,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:so-para-direita/01/batata",
-      "numero": "01",
-      "professor": "so-para-direita",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -60,41 +27,36 @@
       "slug": "barra"
     },
     {
-      "ciclos": [
-        "ciclo:perna-boa/01/batata",
-        "ciclo:so-para-direita/01/batata"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 3,
-        "aulas": 1,
-        "ciclos": 2,
-        "ciclos_com_ancora": 2,
-        "planos": 3,
-        "pos": 2,
-        "registros": 8
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
       },
       "criada_em": "2026-10-27T12:11:05.731644+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-10-27T00:04:38.481Z",
-      "expurgos": 5,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-11-01T15:55:33.697Z",
+      "expurgos": 6,
+      "habilitada": false,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "perna-boa",
       "professores": [
+        "acucar-branco",
+        "cafe-no-bule",
+        "manga-curta",
+        "meia-cortada",
         "perna-boa",
-        "so-para-direita"
+        "sapo-bailarino",
+        "so-para-direita",
+        "tela-de-celular",
+        "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261027-0939",
-        "anamnese:anamnese-20261027-0943",
-        "anamnese:anamnese-20261027-0946",
-        "plano:plano-20261027-1025",
-        "plano:plano-20261027-1131",
-        "plano:plano-20261101-1159",
-        "po:po-20261027-1353",
-        "po:po-20261101-1201"
-      ],
+      "registros": [],
       "slug": "batata"
     },
     {
@@ -306,13 +268,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 8,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -365,22 +321,16 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 2,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
-        "contagem": 0,
+        "contagem": 1,
         "rotulo": "acucar-branco",
         "valor": "acucar-branco"
       },
       {
-        "contagem": 0,
-        "rotulo": "cafe-no-bule",
+        "contagem": 1,
+        "rotulo": "Cafe No Bule",
         "valor": "cafe-no-bule"
       },
       {
@@ -399,12 +349,12 @@
         "valor": "luz-azul"
       },
       {
-        "contagem": 0,
+        "contagem": 1,
         "rotulo": "manga-curta",
         "valor": "manga-curta"
       },
       {
-        "contagem": 0,
+        "contagem": 1,
         "rotulo": "meia-cortada",
         "valor": "meia-cortada"
       },
@@ -424,7 +374,7 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -439,7 +389,7 @@
         "valor": "teclado-abnt"
       },
       {
-        "contagem": 0,
+        "contagem": 1,
         "rotulo": "tela-de-celular",
         "valor": "tela-de-celular"
       },
@@ -449,7 +399,7 @@
         "valor": "tiago"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Tiago",
         "valor": "tiago-menegaz"
       },
@@ -459,29 +409,13 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 3,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 3,
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 2,
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "c79c498"
+    "commit": "1721665"
   },
-  "gerado_em": "2026-11-01T15:10",
+  "gerado_em": "2026-11-01T15:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -507,16 +441,20 @@
   "professores": [
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:acucar-branco",
       "nome": null,
       "slug": "acucar-branco"
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:cafe-no-bule",
-      "nome": null,
+      "nome": "Cafe No Bule",
       "slug": "cafe-no-bule"
     },
     {
@@ -548,14 +486,18 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:manga-curta",
       "nome": null,
       "slug": "manga-curta"
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:meia-cortada",
       "nome": null,
       "slug": "meia-cortada"
@@ -579,9 +521,7 @@
       "slug": "oculos-redondo"
     },
     {
-      "ciclos": [
-        "ciclo:perna-boa/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata",
         "calango"
@@ -593,6 +533,7 @@
     {
       "ciclos": [],
       "escolas": [
+        "batata",
         "breu",
         "calando-teste-1",
         "calango"
@@ -602,9 +543,7 @@
       "slug": "sapo-bailarino"
     },
     {
-      "ciclos": [
-        "ciclo:so-para-direita/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata"
       ],
@@ -621,7 +560,9 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:tela-de-celular",
       "nome": null,
       "slug": "tela-de-celular"
@@ -639,6 +580,7 @@
     {
       "ciclos": [],
       "escolas": [
+        "batata",
         "breu",
         "calango",
         "fita",
