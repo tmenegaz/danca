@@ -1,0 +1,22 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/cafe-no-bule/ciclos/ciclo-01-breu.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-breu
+type: Ciclo
+professor: Cafe No Bule
+ciclo: 01
+variante: breu
+hash_conteudo: f34ee77da1478f1c3b9cd74ead2111251caff41e861b95ec50b1e900f6e1c1a4
+parentHash: 
+hash: aba3df786b0fa27cc28e198c72eb448cf711f9ebe71a2d8a936033f542a01483
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-01
+cobertura:
+  - professores/cafe-no-bule/ciclos/ciclo-01-breu.conf
+  - professores/cafe-no-bule/ciclos/ciclo-01.conf
