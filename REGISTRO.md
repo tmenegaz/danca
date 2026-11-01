@@ -29833,3 +29833,70 @@ duas âncoras (`pe-torto/01/breu-bale-nivel-1-teste-3` e `sapo-bailarino/01/breu
   quando as duas verdades se separam. Uma fonte única (o `criar-escola.sh` e o
   `schemas-do-ciclo.js` a lerem o mesmo módulo, em vez de copiarem um ficheiro) seria melhor, e não
   foi feito — são dois consumidores, um em bash e um no Worker.
+
+## 01/11/2026 — O molde dos schemas passa a ter um leitor só
+
+**O que motivou.** A entrada anterior fechou o sintoma — o molde ficou atrás dos professores e a
+geração de um ciclo morreu em «campo ausente» —, e deixou o diagnóstico a meio: **o molde era uma
+cópia que ninguém comparava com o original.** A comparação passou a existir (`check-schemas.js`),
+mas o problema de fundo continuava: o molde era lido por **duas portas, cada uma à sua maneira**.
+O `tools/criar-escola.sh` copiava cinco ficheiros com `cp`; o `motor/servidor/schemas-do-ciclo.js`
+ia buscá-los por HTTP ao GitHub, um `GET` por schema, com o caminho montado à mão. Duas maneiras de
+ler a mesma coisa são duas coisas, e a segunda só se descobre no dia em que dói.
+
+**O que foi decidido.**
+
+- **`motor/nucleo/schemas.js` é o leitor único.** Cinco `require` literais de
+  `modelo/ciclos/ciclo-01-*.json` (literal, e não montado: o empacotador do Worker não segue um
+  caminho calculado — a mesma regra de `notacao.js` com os alfabetos), a lista dos cinco sufixos,
+  o ciclo do molde, `dados()` (o objeto), `texto()` (a forma canónica, que é o que se ESCREVE) e
+  `nomeDoArquivo()`. O molde continua a ser o ficheiro que se lê, se revê e se versiona; o que
+  deixou de existir é a segunda maneira de o ler.
+- **`tools/gerar-schemas.js` é a porta para o shell.** O `criar-escola.sh` deixou de fazer `cp` no
+  caminho normal e chama este CLI, que escreve a partir do módulo. Com o `cp` foi-se também o
+  `cp: are the same file`, que matou o `criar-escola.yml` duas vezes a 15/10/2026 (a escola
+  `ponta`). O `--modelo <base>/<ciclo>` continua a valer, e é a **única** cópia que resta —
+  declarada, com o comentário a dizer porquê: quem semeia a partir do ciclo de um professor quer
+  aqueles cinco ficheiros, e não os do molde.
+- **O provisionador do Worker deixou de pedir o molde à rede.** Os cinco `GET` a
+  `modelo/ciclos/…` desapareceram: o conteúdo vem empacotado. Um `GET` a menos, e sobretudo uma
+  consequência que se mede — um molde ausente passou a ser **falha de build**, e não um ciclo que
+  nasce sem validação em silêncio. A regra da proveniência fica intacta: só se escreve o que
+  falta.
+- **A comparação passou a ser de CONTEÚDO, e não de bytes.** Era byte a byte, e era o reflexo do
+  defeito: com uma cópia, a única coisa comparável era o ficheiro. Dois schemas indentados de
+  maneira diferente dizem a mesma coisa, e o que tem de coincidir é o que dizem. O módulo serve a
+  forma canónica a quem **escreve** um ficheiro novo — dois professores provisionados em momentos
+  diferentes nascem iguais —, e quem já tem a sua cópia continua com ela: a proveniência
+  acrescenta, não reformata.
+- **`gerar-schemas.js --conferir` fecha o circuito** e entra no `pre-commit`: o molde em disco e o
+  que o módulo serve dizem o mesmo? Um `require` apontado para outro sítio, ou um JSON que deixou
+  de ser legível, é apanhado ali — e não numa geração a meio.
+
+**Onde entrou.** `motor/nucleo/schemas.js` (novo) · `tools/gerar-schemas.js` (novo) ·
+`motor/servidor/schemas-do-ciclo.js` (os cinco `GET` ao molde saem; a lista dos sufixos e o ciclo
+do molde vêm do módulo) · `tools/criar-escola.sh` (o `cp` sai no caminho normal; o `--modelo`
+declarado fica) · `tools/check-schemas.js` (a lista vem do módulo; compara conteúdo; a mensagem de
+erro ensina o comando que corrige) · `tools/hooks/pre-commit` (o `--conferir`) ·
+`modelo/README.md` (quem usa, e a regra do conteúdo) ·
+`experimentos/provar-schemas.js` e `experimentos/provar-schemas-do-professor.js`.
+
+**Com o quê.** `provar-schemas` **29 asserções** — as 18 de antes, oito novas na secção «uma
+leitura só» (o módulo serve o que está no disco; o CLI escreve os cinco com o ciclo no nome e o
+conteúdo do módulo; não sobrescreve; `--forcar` reescreve; **o provisionador do Worker não faz um
+único pedido ao molde** e escreve o mesmo conteúdo que o CLI) e três na secção do scaffolder, que
+corre `criar-escola.sh` de ponta a ponta numa árvore temporária e confere os cinco schemas
+escritos · `provar-schemas-do-professor` **24 asserções** (a secção C mudou de pergunta: um
+repositório vazio já não deixa o ciclo sem schema — é o resultado da unificação) ·
+`provar-professor-secundario` 19/19 · `provar-producao` 151/152 (a falha do menu já falhava em
+`HEAD`) · `check-schemas`, `gerar-schemas --conferir`, `check-indices` 14/14 e `check-identidade`
+20/20.
+
+**O que ainda não está feito.**
+
+- **O `--modelo` continua a ser um `cp`.** É a única cópia que resta, e é declarada: quem aponta o
+  scaffolder para o ciclo de um professor quer aqueles ficheiros, não o molde. Unificá-la exigiria
+  o módulo servir qualquer ciclo de qualquer professor — que é o oposto de «um molde».
+- **O molde continua a ser o ficheiro, e não um módulo de dados.** A escolha foi deliberada: os
+  validadores recebem CAMINHOS, o `--modelo` também, e o Git mostra o diff de um JSON. Um objeto
+  em JavaScript seria uma terceira forma de ler a mesma coisa.

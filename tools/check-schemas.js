@@ -32,11 +32,17 @@
  *      cada escola), mas um campo obrigatório a mais ou a menos é divergência de contrato — e é
  *      esta que parte a geração.
  *
- *   2) O FICHEIRO É O MESMO, nos quatro schemas que não têm dado de ninguém. `schema`,
+ *   2) O CONTEÚDO É O MESMO, nos quatro schemas que não têm dado de ninguém. `schema`,
  *      `po-schema`, `plano-schema` e `aula-schema` são genéricos: nada neles é da escola nem do
  *      professor. A `captura-schema` é a excepção DECLARADA, e a única: ela guarda
- *      `_declaracao.porVariante`, que é de cada escola. Comparar bytes contra o molde pedir-lhe-ia
- *      que perdesse o que a torna útil; o `required` dela continua a ser comparado.
+ *      `_declaracao.porVariante`, que é de cada escola. Comparar o conteúdo contra o molde
+ *      pedir-lhe-ia que perdesse o que a torna útil; o `required` dela continua a ser comparado.
+ *
+ *      CONTEÚDO, E NÃO BYTES. A 01/11/2026 a comparação era byte a byte — e era o reflexo do
+ *      defeito: o molde era uma cópia, e a única coisa que se podia comparar era o ficheiro. Com
+ *      um leitor único (`motor/nucleo/schemas.js`) o que interessa passou a ser o que o schema
+ *      DIZ. Um ficheiro indentado de outra maneira diz o mesmo, e recusá-lo seria recusar
+ *      formatação.
  *
  * A REFERÊNCIA É A MAIORIA, e não o molde. O molde é a fonte dos professores NOVOS, mas é uma
  * cópia — e uma cópia pode ficar atrás. Quando ele é o único no seu grupo, a leitura natural
@@ -55,13 +61,20 @@ const fs = require('fs');
 const path = require('path');
 
 const raiz = path.resolve(__dirname, '..');
-const MOLDE = path.join(raiz, 'modelo', 'ciclos');
-const CICLO_DO_MOLDE = '01';
 
-// Os cinco schemas do domínio, na ordem de `tools/criar-escola.sh` e de
-// `motor/servidor/schemas-do-ciclo.js` — a mesma lista em três sítios, e é o preço de não haver
-// um módulo partilhado entre bash e o Worker. Se ela divergir, é este ficheiro que o diz.
-const SUFIXOS = ['schema', 'po-schema', 'plano-schema', 'aula-schema', 'captura-schema'];
+// A LISTA E O MOLDE VÊM DO MÓDULO (01/11/2026). Havia aqui uma terceira cópia da lista dos cinco
+// sufixos — uma no bash, uma no provisionador do Worker, uma nesta checagem —, e uma lista em
+// três sítios é uma lista que diverge. `motor/nucleo/schemas.js` é o leitor único do molde,
+// partilhado com as duas portas que o escrevem; esta checagem usa a mesma lista que elas.
+//
+// O `require` é feito por caminho ABSOLUTO, e não pelo `raiz` — é o único ponto em que a raiz do
+// módulo e a raiz conferida podem divergir, e a prova (`experimentos/provar-schemas.js`) depende
+// de poder apontar a checagem a uma árvore sintética: lá, o módulo é copiado para dentro dela e
+// resolve os seus `require` a partir de si mesmo.
+const schemas = require(path.join(raiz, 'motor', 'nucleo', 'schemas.js'));
+const SUFIXOS = schemas.SUFIXOS;
+const CICLO_DO_MOLDE = schemas.CICLO_BASE;
+const MOLDE = path.join(raiz, 'modelo', 'ciclos');
 
 // O ÚNICO que carrega dado de uma escola, e por isso o único que não se compara byte a byte.
 const COM_DADO_DA_ESCOLA = new Set(['captura-schema']);
@@ -89,6 +102,17 @@ function professores() {
 
 /** Uma lista de `required` comparável: ordenada e sem repetidos. A ordem não é contrato. */
 const canonico = (lista) => JSON.stringify([...new Set(Array.isArray(lista) ? lista : [])].sort());
+
+/**
+ * O CONTEÚDO, e não os bytes. Dois ficheiros que dizem o mesmo schema com indentação diferente
+ * dizem a mesma coisa — e recusá-los seria recusar formatação. Foi o que a unificação de
+ * 01/11/2026 tornou explícito: o molde é lido por um módulo só, que serve a forma canónica a quem
+ * ESCREVE um ficheiro novo; quem já tem o seu continua com ele, e a comparação é do que ele diz.
+ *
+ * `JSON.stringify` de um objeto parseado é estável (a ordem das chaves é a de inserção, e o
+ * `require`/`JSON.parse` preservam-na), e é por isso que serve de assinatura.
+ */
+const assinatura = (dados) => JSON.stringify(dados);
 
 /** Todos os ficheiros de um sufixo, com o dono e (quando é professor) o slug. */
 function ficheirosDe(sufixo) {
@@ -121,7 +145,7 @@ function conferirSufixo(sufixo, soEste) {
   for (const f of ficheiros) {
     try {
       const dados = JSON.parse(fs.readFileSync(f.caminho, 'utf8'));
-      lidos.push(Object.assign({}, f, { required: canonico(dados.required), texto: JSON.stringify(dados) }));
+      lidos.push(Object.assign({}, f, { required: canonico(dados.required), texto: assinatura(dados) }));
     } catch (e) {
       erros.push(sufixo + ': ' + f.dono + ' — JSON ilegível (' + e.message + ')');
     }
@@ -175,9 +199,13 @@ function conferirSufixo(sufixo, soEste) {
   const universo = soEste ? lidos.filter((f) => f.professor === soEste) : lidos.filter((f) => f.dono !== 'molde');
   const divergentes = universo.filter((f) => f.texto !== modelo.texto && f.dono !== modelo.dono);
   if (divergentes.length) {
-    erros.push(sufixo + ': ' + divergentes.map((f) => f.dono).join(', ') + ' difere de ' + modelo.dono +
-      ', e este schema não tem dado de escola nem de professor — a diferença é deriva, não ' +
-      'declaração. Alinhe-o com modelo/ciclos/ciclo-' + CICLO_DO_MOLDE + '-' + sufixo + '.json');
+    // A CORRECÇÃO É UMA CHAMADA, e o erro diz qual — não é preciso «alinhar à mão» cinco ficheiros.
+    // É o género de mensagem que faz a diferença entre uma checagem que ensina e uma que só ralha.
+    erros.push(sufixo + ': ' + divergentes.map((f) => f.dono).join(', ') + ' diz outra coisa que ' +
+      modelo.dono + ', e este schema não tem dado de escola nem de professor — a diferença é ' +
+      'deriva, não declaração. O conteúdo em vigor está em ' + path.relative(raiz, modelo.caminho) +
+      '; o professor recebe-o com `node tools/gerar-schemas.js --professor <slug> --ciclo <NN> ' +
+      '--forcar`, e o molde, se for ele o atrasado, com o conteúdo do contrato em vigor');
   } else {
     ok.push(sufixo + ': os ' + universo.length + ' professores têm o schema igual ao molde');
   }

@@ -37,11 +37,17 @@
 // dependency»). Dentro da função, `escrever-po.js` já terminou de carregar.
 const constantes = () => require('./escrever-po.js');
 
-/** Os cinco schemas do domínio, na mesma ordem de `tools/criar-escola.sh`. */
-const SUFIXOS = ['schema', 'po-schema', 'plano-schema', 'aula-schema', 'captura-schema'];
-
-/** O ciclo do MOLDE. Fixo: o conteúdo dos schemas não muda com o número do ciclo. */
-const CICLO_DO_MOLDE = '01';
+// OS CINCO SCHEMAS E O CICLO DO MOLDE VÊM DE UM MÓDULO SÓ (01/11/2026). Havia aqui uma segunda
+// lista de sufixos e uma segunda maneira de ler o molde — um `GET` por schema, com o caminho
+// montado à mão —, e o `tools/criar-escola.sh` tinha a sua, com `cp`. Duas maneiras de ler a mesma
+// coisa são duas coisas: quando o molde ficou atrás dos professores, nada avisou, e a geração de
+// um ciclo morreu em «campo ausente». Agora as duas portas chamam `motor/nucleo/schemas.js`.
+//
+// O `require` é NORMAL (não tardio): o módulo dos schemas não depende de nada deste ficheiro, e o
+// `escrever-po.js` — que é quem fecha o ciclo de dependências — não é tocado por ele.
+const schemas = require('../nucleo/schemas.js');
+const SUFIXOS = schemas.SUFIXOS;
+const CICLO_DO_MOLDE = schemas.CICLO_BASE;
 
 function base64De(texto) {
   const bytes = new TextEncoder().encode(String(texto));
@@ -109,13 +115,18 @@ async function garantirSchemasDoCiclo({ token, dono, repo, ref, professor, ciclo
         continue;
       }
 
-      const molde = 'modelo/ciclos/ciclo-' + CICLO_DO_MOLDE + '-' + sufixo + '.json';
-      const texto = await ler(molde);
-      if (texto === null) {
-        // Sem molde não se inventa schema: diz-se. É a diferença entre um ciclo sem validação e
-        // um ciclo validado, e quem lê o relatório tem de saber qual dos dois tem.
+      // O CONTEÚDO VEM DO MÓDULO, e não de um `GET` ao molde (01/11/2026). O molde está empacotado
+      // no Worker (`motor/nucleo/schemas.js` → `require` literal de `modelo/ciclos/`), e por isso
+      // esta escrita já não depende da rede para saber O QUE escrever — só para escrever. Um `GET`
+      // a menos, e sobretudo um `require` a menos de haver duas cópias do caminho: um molde que
+      // não existe é agora uma falha de BUILD, e não um ciclo que nasce sem validação.
+      let texto;
+      try {
+        texto = schemas.texto(sufixo);
+      } catch (erro) {
         relatorio.ok = false;
-        relatorio.erros.push('o molde ' + molde + ' não existe — ' + destino + ' ficou por criar');
+        relatorio.erros.push('o molde do schema «' + sufixo + '» não está no Worker: ' +
+          (erro && erro.message ? erro.message : String(erro)) + ' — ' + destino + ' ficou por criar');
         continue;
       }
 

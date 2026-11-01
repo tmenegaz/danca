@@ -25,7 +25,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
 const CHECADOR = path.join(RAIZ, 'tools', 'check-schemas.js');
@@ -92,11 +92,15 @@ function montar(defeitos) {
     if (mudanca.descricao !== undefined) atual.description = mudanca.descricao;
     fs.writeFileSync(alvo, JSON.stringify(atual, null, 2) + '\n');
   }
-  // O `check-schemas.js` resolve a raiz a partir do próprio ficheiro (`__dirname/..`), e por
-  // isso a cópia do script vai junto com a árvore: é a mesma função, a medir outra árvore.
-  const destino = path.join(raiz, 'tools');
-  fs.mkdirSync(destino, { recursive: true });
-  fs.copyFileSync(CHECADOR, path.join(destino, 'check-schemas.js'));
+  // O `check-schemas.js` resolve a raiz a partir do próprio ficheiro (`__dirname/..`) e o MÓDULO
+  // dos schemas a partir do seu — por isso os dois vão junto com a árvore: é a mesma função, a
+  // medir outra árvore. Sem o módulo, a checagem não carregava; e é ele que faz a árvore
+  // sintética valer como árvore (os `require` são relativos a `motor/nucleo/`).
+  fs.mkdirSync(path.join(raiz, 'tools'), { recursive: true });
+  fs.mkdirSync(path.join(raiz, 'motor', 'nucleo'), { recursive: true });
+  fs.copyFileSync(CHECADOR, path.join(raiz, 'tools', 'check-schemas.js'));
+  fs.copyFileSync(path.join(RAIZ, 'motor', 'nucleo', 'schemas.js'),
+    path.join(raiz, 'motor', 'nucleo', 'schemas.js'));
   return raiz;
 }
 
@@ -202,9 +206,156 @@ comArvore({}, (raiz) => {
 });
 
 // ---------------------------------------------------------------------------------------
-for (const raiz of árvores) fs.rmSync(raiz, { recursive: true, force: true });
+// A SECÇÃO 7 É ASSÍNCRONA porque chama o provisionador do Worker, que devolve uma promessa. O
+// ficheiro é CommonJS (os `require` do topo), e um `await` solto no topo faz o Node recusar o
+// módulo — «both require() and top-level await are present». Por isso ela é uma função, chamada
+// no fim, e é ela que fecha a prova.
+async function secaoSete() {
+console.log('\n7. UMA LEITURA SÓ: O MÓDULO, O CLI E O WORKER');
+// ---------------------------------------------------------------------------------------
+//
+// É a razão de ser de tudo isto (01/11/2026). Havia DUAS maneiras de ler o molde — o `cp` do
+// `criar-escola.sh` e um `GET` por schema no provisionador do Worker —, e duas maneiras de ler a
+// mesma coisa são duas coisas. O que se prova aqui não é «escreve bem»: é que **as três portas
+// escrevem o mesmo conteúdo**, e que nenhuma delas lê o molde da rede.
+{
+  const schemas = require(path.join(RAIZ, 'motor', 'nucleo', 'schemas.js'));
 
-console.log('\nprovar-schemas: ' + (falhas === 0
-  ? 'TUDO CERTO — o molde atrasado, o professor atrasado e a deriva de bytes reprovam; a excepção da captura passa.'
-  : falhas + ' FALHA(S)'));
-process.exit(falhas ? 1 : 0);
+  // (a) o módulo e o molde em DISCO dizem o mesmo — o `require` aponta para onde se pensa.
+  const doDisco = {};
+  for (const s of SUFIXOS) {
+    doDisco[s] = JSON.parse(fs.readFileSync(path.join(RAIZ, 'modelo', 'ciclos', 'ciclo-01-' + s + '.json'), 'utf8'));
+  }
+  provar('o módulo serve o conteúdo que está em modelo/ciclos/ (o `require` não aponta para outro sítio)',
+    SUFIXOS.every((s) => JSON.stringify(schemas.dados(s)) === JSON.stringify(doDisco[s])), null);
+  provar('…e serve-o como texto canónico, que volta a ler-se no mesmo objeto',
+    SUFIXOS.every((s) => JSON.stringify(JSON.parse(schemas.texto(s))) === JSON.stringify(doDisco[s])), null);
+
+  // (b) o CLI escreve esses cinco, com o número do ciclo no NOME e não no conteúdo.
+  const raiz = montar({});
+  árvores.push(raiz);
+  // O CLI é o do repositório, a apontar para a árvore — a mesma função que o `criar-escola.sh`
+  // chama, e não uma cópia dela.
+  const correCli = (args) => {
+    try {
+      return { codigo: 0, saida: execFileSync(process.execPath,
+        [path.join(RAIZ, 'tools', 'gerar-schemas.js')].concat(args), { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) };
+    } catch (e) {
+      return { codigo: e.status == null ? 1 : e.status, saida: String(e.stdout || '') + String(e.stderr || '') };
+    }
+  };
+  const criou = correCli(['--professor', 'ana', '--ciclo', '02', '--raiz', raiz]);
+  provar('o CLI escreve os cinco na pasta do professor', criou.codigo === 0, criou.saida.split('\n').slice(-1));
+  const escritos = SUFIXOS.map((s) => path.join(raiz, 'professores', 'ana', 'ciclos', 'ciclo-02-' + s + '.json'));
+  // O NÚMERO DO CICLO ENTRA NO NOME, E NUNCA NO CONTEÚDO — nem no molde. Se o gerador escrevesse
+  // `modelo/ciclos/ciclo-02-*`, estaria a inventar um molde por ciclo para dizer o mesmo.
+  provar('…no destino com o ciclo de verdade, e nenhum molde novo criado',
+    escritos.every((p) => fs.existsSync(p)) &&
+    !SUFIXOS.some((s) => fs.existsSync(path.join(raiz, 'modelo', 'ciclos', 'ciclo-02-' + s + '.json'))), null);
+  provar('…e o conteúdo é o do módulo (as duas portas não podem divergir)',
+    SUFIXOS.every((s) => JSON.stringify(JSON.parse(
+      fs.readFileSync(path.join(raiz, 'professores', 'ana', 'ciclos', 'ciclo-02-' + s + '.json'), 'utf8')))
+      === JSON.stringify(schemas.dados(s))), null);
+
+  // (c) o CLI NÃO sobrescreve: um schema que existe é do professor (a regra da proveniência).
+  const antes = fs.readFileSync(escritos[0], 'utf8');
+  fs.writeFileSync(escritos[0], '{"doProfessor":true}\n');
+  const segunda = correCli(['--professor', 'ana', '--ciclo', '02', '--raiz', raiz]);
+  provar('a segunda passagem não toca no que já existe (é do professor)',
+    segunda.codigo === 0 && fs.readFileSync(escritos[0], 'utf8') === '{"doProfessor":true}\n', segunda.saida.split('\n').slice(-1));
+  provar('…e `--forcar` reescreve, dizendo que reescreveu',
+    correCli(['--professor', 'ana', '--ciclo', '02', '--raiz', raiz, '--forcar']).codigo === 0 &&
+    fs.readFileSync(escritos[0], 'utf8') === schemas.texto('schema'), antes.length);
+  fs.writeFileSync(escritos[0], antes);
+
+  // (d) o Worker: sem rede para o molde, e com o mesmo conteúdo. É a porta que mais importa —
+  //     é ela que provisiona quem NÃO criou a escola, e era ela que fazia cinco `GET`s.
+  const { garantirSchemasDoCiclo } = require(path.join(RAIZ, 'motor', 'servidor', 'schemas-do-ciclo.js'));
+  const leituras = [];
+  const escritas = new Map();
+  const fetchFalso = async (url, opcoes) => {
+    const caminho = decodeURIComponent(String(url).split('/contents/')[1] || '');
+    if (!opcoes || opcoes.method === 'GET' || !opcoes.method) {
+      leituras.push(caminho);
+      return { status: 404, json: async () => ({}) };
+    }
+    escritas.set(caminho, Buffer.from(JSON.parse(opcoes.body).content, 'base64').toString('utf8'));
+    return { status: 201, json: async () => ({}) };
+  };
+  const doWorker = await garantirSchemasDoCiclo({
+    token: 'x', dono: 'd', repo: 'r', professor: 'bruno', ciclo: '03', fetchImpl: fetchFalso,
+  });
+  provar('o provisionador do Worker escreve os cinco', doWorker.ok && doWorker.criados.length === 5, JSON.stringify(doWorker.erros));
+  provar('…sem UM único pedido ao molde (o conteúdo vem do módulo, não da rede)',
+    !leituras.some((c) => c.indexOf('modelo/') === 0), leituras);
+  provar('…e com o MESMO conteúdo que o CLI escreveu — uma leitura, duas portas',
+    SUFIXOS.every((s) => {
+      const daRede = escritas.get('professores/bruno/ciclos/ciclo-03-' + s + '.json');
+      return daRede !== undefined &&
+        JSON.stringify(JSON.parse(daRede)) === JSON.stringify(doDisco[s]);
+    }), null);
+
+// ---------------------------------------------------------------------------------------
+// 8. O SCAFFOLDER INTEIRO: `criar-escola.sh` de ponta a ponta
+// ---------------------------------------------------------------------------------------
+//
+// A porta do bash não pode ficar provada só pelo CLI: o que mudou foi o SCRIPT — o `cp` saiu e no
+// seu lugar entrou a chamada. Uma árvore temporária com o que o scaffolder lê (`tools`, `modelo`,
+// `motor`, `biblioteca`, `porta`), uma escola inventada, e o que se mede é o que ele escreveu.
+console.log('\n8. O SCAFFOLDER: criar-escola.sh escreve os schemas do molde');
+{
+  const raiz = fs.mkdtempSync(path.join(os.tmpdir(), 'scaffold-'));
+  árvores.push(raiz);
+  for (const pasta of ['tools', 'modelo', 'motor', 'biblioteca', 'porta']) {
+    fs.cpSync(path.join(RAIZ, pasta), path.join(raiz, pasta), { recursive: true });
+  }
+  const r = spawnSync('bash', ['tools/criar-escola.sh',
+    '--professor', 'prova-scaffold', '--professor-nome', 'Prova Scaffold',
+    '--escola', 'escolaprova', '--escola-nome', 'Escola Prova',
+    '--responsavel', 'Prova', '--ciclo', '01', '--frequencia', '2x/semana',
+    '--dias', '2@19:00,4@19:00', '--data-inicio', '01/03/2027', '--nao-interativo',
+  ], { cwd: raiz, encoding: 'utf8' });
+  provar('o scaffolder termina sem erro', r.status === 0,
+    { status: r.status, fim: String(r.stderr || r.stdout).split('\n').slice(-3) });
+
+  const pasta = path.join(raiz, 'professores', 'prova-scaffold', 'ciclos');
+  const escritos = SUFIXOS.map((s) => path.join(pasta, 'ciclo-01-' + s + '.json'));
+  provar('…e escreve os cinco schemas na pasta do professor novo',
+    escritos.every((p) => fs.existsSync(p)), escritos.map((p) => path.basename(p)));
+  provar('…com o conteúdo do molde — a porta do bash e a do Worker não divergem',
+    SUFIXOS.every((s) => {
+      const a = JSON.parse(fs.readFileSync(path.join(pasta, 'ciclo-01-' + s + '.json'), 'utf8'));
+      const b = JSON.parse(fs.readFileSync(path.join(RAIZ, 'modelo', 'ciclos', 'ciclo-01-' + s + '.json'), 'utf8'));
+      return JSON.stringify(a) === JSON.stringify(b);
+    }), null);
+
+  // A REGRA DA PROVENIÊNCIA, no script: uma segunda passagem não reescreve o que já existe.
+  const alvo = path.join(pasta, 'ciclo-01-plano-schema.json');
+  fs.writeFileSync(alvo, '{"doProfessor":true}\n');
+  const r2 = spawnSync('bash', ['tools/criar-escola.sh',
+    '--professor', 'prova-scaffold', '--professor-nome', 'Prova Scaffold',
+    '--escola', 'escolaprova2', '--escola-nome', 'Escola Prova 2',
+    '--responsavel', 'Prova', '--ciclo', '01', '--frequencia', '2x/semana',
+    '--dias', '2@19:00,4@19:00', '--data-inicio', '01/03/2027', '--nao-interativo',
+  ], { cwd: raiz, encoding: 'utf8' });
+  provar('a segunda escola do mesmo professor não reescreve o schema que já existe',
+    r2.status === 0 && fs.readFileSync(alvo, 'utf8') === '{"doProfessor":true}\n',
+    { status: r2.status, ficou: fs.readFileSync(alvo, 'utf8').slice(0, 40) });
+}
+}
+
+}
+
+// ---------------------------------------------------------------------------------------
+secaoSete().then(() => {
+  for (const raiz of árvores) fs.rmSync(raiz, { recursive: true, force: true });
+  console.log('\nprovar-schemas: ' + (falhas === 0
+    ? 'TUDO CERTO — o molde atrasado, o professor atrasado e a deriva de conteúdo reprovam; ' +
+      'a excepção da captura passa; o módulo, o CLI e o molde dizem a mesma coisa.'
+    : falhas + ' FALHA(S)'));
+  process.exit(falhas ? 1 : 0);
+}).catch((e) => {
+  for (const raiz of árvores) fs.rmSync(raiz, { recursive: true, force: true });
+  console.error('provar-schemas: a prova rebentou em vez de reprovar — ' + (e && e.message ? e.message : e));
+  process.exit(1);
+});

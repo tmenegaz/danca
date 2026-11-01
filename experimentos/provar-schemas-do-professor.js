@@ -59,9 +59,11 @@ const b64 = (t) => Buffer.from(String(t), 'utf8').toString('base64');
 function repoVirtual(inicial) {
   const arquivos = new Map(Object.entries(inicial || {}));
   const escritas = [];
+  const leituras = [];
   const f = async (url, opcoes) => {
     const caminho = decodeURIComponent(url.split('/contents/')[1] || '');
     if (!opcoes || opcoes.method === 'GET' || !opcoes.method) {
+      leituras.push(caminho);
       if (!arquivos.has(caminho)) return { status: 404, json: async () => ({}) };
       return { status: 200, json: async () => ({ sha: 'x', content: b64(arquivos.get(caminho)) }) };
     }
@@ -70,15 +72,23 @@ function repoVirtual(inicial) {
     escritas.push(caminho);
     return { status: 201, json: async () => ({}) };
   };
-  return { arquivos, escritas, f };
+  return { arquivos, escritas, leituras, f };
 }
 
-// O molde REAL do repositório — a prova lê os schemas de verdade, não texto inventado.
+// O MOLDE REAL do repositório — a prova lê os schemas de verdade, não texto inventado.
+//
+// DESDE 01/11/2026 O MOLDE NÃO ESTÁ NO REPOSITÓRIO VIRTUAL, e isso é o que se prova: o
+// provisionador já não vai buscá-lo por HTTP, porque o conteúdo vem empacotado em
+// `motor/nucleo/schemas.js`. O `Map` abaixo guarda-o só para CONFERIR o resultado — o que se
+// escreveu bate com o que o molde diz —, e nunca é oferecido ao `fetch` de mentira.
 const MOLDE = {};
 for (const s of SUFIXOS) {
-  const p = path.join(RAIZ, 'modelo', 'ciclos', 'ciclo-01-' + s + '.json');
-  MOLDE['modelo/ciclos/ciclo-01-' + s + '.json'] = fs.readFileSync(p, 'utf8');
+  MOLDE['modelo/ciclos/ciclo-01-' + s + '.json'] = fs.readFileSync(
+    path.join(RAIZ, 'modelo', 'ciclos', 'ciclo-01-' + s + '.json'), 'utf8');
 }
+
+/** O mesmo que `MOLDE`, mas como objeto: a comparação é de CONTEÚDO, não de bytes. */
+const CONTEUDO = Object.fromEntries(Object.entries(MOLDE).map(([c, t]) => [c, JSON.parse(t)]));
 
 // O PO mínimo que o schema aceita — as treze seções obrigatórias, com a lacuna declarada.
 const PO_MINIMO = [
@@ -127,11 +137,26 @@ async function prova() {
     checar('no destino com o ciclo de verdade (ciclo-01-*)',
       r.criados.every((c) => c.startsWith('professores/professora-nova/ciclos/ciclo-01-')),
       JSON.stringify(r.criados));
-    checar('o conteúdo é o do molde, byte a byte',
-      SUFIXOS.every((s) => vazio.arquivos.get('professores/professora-nova/ciclos/ciclo-01-' + s + '.json')
-        === MOLDE['modelo/ciclos/ciclo-01-' + s + '.json']));
+    checar('o conteúdo é o do molde (o schema que se escreve diz o mesmo)',
+      SUFIXOS.every((s) => {
+        const escrito = vazio.arquivos.get('professores/professora-nova/ciclos/ciclo-01-' + s + '.json');
+        return escrito !== undefined &&
+          JSON.stringify(JSON.parse(escrito)) === JSON.stringify(CONTEUDO['modelo/ciclos/ciclo-01-' + s + '.json']);
+      }));
     checar('nem um schema foi escrito onde já havia (o molde não é tocado)',
       vazio.escritas.every((c) => c.startsWith('professores/')), JSON.stringify(vazio.escritas));
+
+    // ─── A UNIFICAÇÃO (01/11/2026): uma leitura só ───────────────────────────
+    //
+    // O que se mede é a AUSÊNCIA de um segundo caminho: antes, cada schema custava um `GET` a
+    // `modelo/ciclos/…`, com o caminho montado à mão. Se um dia alguém voltar a buscá-lo à rede,
+    // esta asserção cai — e cai por uma razão que é a do defeito de 26/10 (duas maneiras de ler o
+    // mesmo molde), não por gosto.
+    checar('não há UM `GET` ao molde: o conteúdo vem empacotado, não da rede',
+      ![...vazio.leituras].some((c) => c.indexOf('modelo/') === 0),
+      JSON.stringify([...vazio.leituras]));
+    checar('…e o único molde em disco que a prova lê é o do repositório (a fixture não o injeta)',
+      Object.keys(MOLDE).length === SUFIXOS.length && CONTEUDO['modelo/ciclos/ciclo-01-schema.json'].required.length > 0);
 
     // O ciclo 02: o molde é sempre o 01 (o conteúdo não leva o número do ciclo).
     const v02 = repoVirtual(MOLDE);
@@ -141,6 +166,8 @@ async function prova() {
     checar('num ciclo 02, o destino é ciclo-02-* e o molde continua o 01',
       r02.criados.length === 5 && r02.criados.every((c) => c.includes('ciclo-02-')),
       JSON.stringify(r02.criados));
+    checar('…e o ciclo 02 também não vai buscar molde nenhum',
+      !r02.erros.length && ![...v02.leituras].some((c) => c.indexOf('modelo/') === 0), JSON.stringify([...v02.leituras]));
 
     // A segunda chamada não reescreve — e um schema já existente MANDA (é do professor).
     const comUm = Object.assign({}, MOLDE);
@@ -260,17 +287,31 @@ async function prova() {
       v.escritas.length === 6 && v.escritas[5].endsWith('-po.md'), JSON.stringify(v.escritas));
   }
 
-  // ═══ C. o molde ausente é dito, e não lança ═══════════════════════════════
-  console.log('\nC. Sem molde: diz-se, e a escrita do plano não aborta');
+  // ═══ C. o repositório vazio não deixa o ciclo sem schema ═════════════════
+  //
+  // ESTE CASO MUDOU DE PERGUNTA A 01/11/2026, e a mudança é o resultado. Antes, um repositório
+  // sem o molde deixava o ciclo SEM validação — `ok:false` e cinco erros —, porque o conteúdo era
+  // buscado à rede a cada provisionamento. Agora o molde vem empacotado no Worker: um repositório
+  // vazio não o afeta, e o ciclo nasce com os cinco schemas na mesma. A falha «o molde não
+  // existe» passou a ser de BUILD (o `require` de `motor/nucleo/schemas.js` não resolve), e uma
+  // falha de build não chega a correr.
+  //
+  // O que continua a ser de runtime, e por isso continua a ser provado: a escrita pode falhar (o
+  // PUT, no caso D), e a autorização pode faltar (sem token).
+  console.log('\nC. Um repositório vazio não deixa o ciclo sem schema');
   {
     const semMolde = repoVirtual({});
     const r = await garantirSchemasDoCiclo({
       token: 'x', dono: 'dono', repo: 'repo', professor: 'p', ciclo: '01', fetchImpl: semMolde.f,
     });
-    checar('sem molde, devolve ok:false e nomeia o que faltou',
-      r.ok === false && r.erros.length === 5 && r.erros.every((e) => /molde .* não existe/.test(e)),
-      JSON.stringify(r));
-    checar('e não inventa schema nenhum', semMolde.escritas.length === 0, JSON.stringify(semMolde.escritas));
+    checar('sem o molde no repositório, os cinco são escritos na mesma (o conteúdo vem do módulo)',
+      r.ok === true && r.criados.length === 5, JSON.stringify(r));
+    checar('…e o conteúdo escrito é o do molde do repositório, que a prova lê do disco',
+      SUFIXOS.every((s) => {
+        const escrito = semMolde.arquivos.get('professores/p/ciclos/ciclo-01-' + s + '.json');
+        return escrito && JSON.stringify(JSON.parse(escrito)) ===
+          JSON.stringify(CONTEUDO['modelo/ciclos/ciclo-01-' + s + '.json']);
+      }));
 
     const semToken = await garantirSchemasDoCiclo({ token: '', dono: 'd', repo: 'r', professor: 'p', ciclo: '01', fetchImpl: semMolde.f });
     checar('sem token, diz que não conferiu (não finge que conferiu)',

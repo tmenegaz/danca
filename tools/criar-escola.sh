@@ -348,23 +348,41 @@ echo "criando escola: professor=$PROFESSOR · escola=$ESCOLA · ciclo=$CICLO · 
 mkdir -p "$CICLOS_DIR" "$PROF_DIR/cadernos/ciclo-$CICLO" "$PROF_DIR/relatorios/ciclo-$CICLO" "$PROF_DIR/campo"
 
 # ---------------------------------------------------------------------------
-# 2) Schemas do domínio (copiados do modelo — genéricos, sem número de ciclo)
+# 2) Schemas do domínio — UM ESCRITOR SÓ (01/11/2026)
+#
+# AQUI HAVIA UM `cp`, E ELE ERA A SEGUNDA MANEIRA DE LER O MOLDE. O provisionador do Worker
+# (`motor/servidor/schemas-do-ciclo.js`) lia os mesmos cinco ficheiros por HTTP, um `GET` cada, e
+# este script copiava-os com `cp`. Duas maneiras de ler a mesma coisa são duas coisas: quando o
+# molde ficou atrás dos professores (26/10 → 01/11/2026), nada avisou, e a geração de um ciclo
+# morreu em «campo ausente», com o PO já validado.
+#
+# Agora há UM leitor — `motor/nucleo/schemas.js`, que faz `require` literal de `modelo/ciclos/` e
+# é o mesmo que o Worker empacota — e uma porta para o shell: `tools/gerar-schemas.js`. O `cp`
+# deixou de existir, e com ele o caso do `cp: are the same file`, que matou o `criar-escola.yml`
+# duas vezes a 15/10/2026 (a escola `ponta`, quando o professor novo era o do molde).
+#
+# A REGRA DA PROVENIÊNCIA FICA: só se escreve o que FALTA. Os schemas são do ciclo (genéricos),
+# partilhados pelas escolas do professor, e reescrevê-los numa segunda escola seria editar o que
+# já estava certo — é o `pulado` do gerador, e não um `cp` silencioso.
 # ---------------------------------------------------------------------------
-for s in schema po-schema plano-schema aula-schema captura-schema; do
-  origem="$MODELO_DIR/ciclo-$MODELO_CICLO-$s.json"
-  destino="$CICLOS_DIR/ciclo-$CICLO-$s.json"
-  # QUANDO O PROFESSOR NOVO **É** O DO MODELO — origem e destino são o MESMO arquivo e o `cp`
-  # recusa («are the same file») com erro; sob `set -e` o script morre no passo 2. A cópia,
-  # aqui, é um no-op legítimo: os schemas já estão onde a escola precisa deles. Aconteceu em
-  # 15/10/2026 — o dono do produto criou a escola `ponta` (professor `tiago`, que era o molde
-  # na época) e o `criar-escola.yml` morreu duas vezes aqui, com os passos do deploy e do commit
-  # pulados. Com o molde fora de `professores/` o caso deixou de acontecer por padrão, mas
-  # continua alcançável por `--modelo professores/<slug>/<ciclo>` — a guarda fica.
-  # Só o que FALTA: os schemas são do ciclo (genéricos), partilhados pelas escolas do
-  # professor. Reescrevê-los numa segunda escola seria editar o que já estava certo.
-  [ -e "$destino" ] || [ "$origem" = "$destino" ] || cp "$origem" "$destino"
-done
-echo "  schemas: de $MODELO (ciclo-$MODELO_CICLO-*) — os que faltavam"
+if [ "$MODELO_DIR" = "$RAIZ/modelo/ciclos" ] && [ "$MODELO_CICLO" = "01" ]; then
+  # O CAMINHO NORMAL: do módulo, que é o que o Worker também lê. A condição é a identidade do
+  # molde — não «o default de hoje»: se um dia o `MODELO` padrão mudar, este ramo tem de deixar de
+  # valer sozinho, em vez de escrever os cinco do 01 sob um nome que diz outra coisa.
+  node "$RAIZ/tools/gerar-schemas.js" --professor "$PROFESSOR" --ciclo "$CICLO" \
+    || { echo "erro: não escrevi os schemas do ciclo em $CICLOS_DIR" >&2; exit 1; }
+else
+  # O `--modelo <base>/<ciclo>` CONTINUA A VALER, e é a ÚNICA cópia que resta — declarada. Quem
+  # semeia a partir do ciclo de um professor quer aqueles cinco ficheiros, e não os do molde; o
+  # módulo não os serve, e o `cp` volta aqui, com a guarda do mesmo-ficheiro que a 15/10/2026
+  # faltou.
+  for s in schema po-schema plano-schema aula-schema captura-schema; do
+    origem="$MODELO_DIR/ciclo-$MODELO_CICLO-$s.json"
+    destino="$CICLOS_DIR/ciclo-$CICLO-$s.json"
+    [ -e "$destino" ] || [ "$origem" = "$destino" ] || cp "$origem" "$destino"
+  done
+  echo "  schemas: de $MODELO (ciclo-$MODELO_CICLO-*) — os que faltavam (--modelo declarado)"
+fi
 
 # ---------------------------------------------------------------------------
 # 3) Manifestos (base + variante) — DOCS vazio: nada foi escrito ainda

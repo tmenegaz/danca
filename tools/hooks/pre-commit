@@ -456,6 +456,17 @@ if printf '%s\n' "$arquivos" | grep -qE '^(modelo/ciclos/|professores/[^/]+/cicl
     echo "  todo documento derivado. Alinhe os dois antes de commitar." >&2
     exit 1
   fi
+  # E O MÓDULO QUE OS DOIS LEEM (01/11/2026). `motor/nucleo/schemas.js` faz `require` literal de
+  # `modelo/ciclos/`; se um `require` apontar para outro sítio — ou se o JSON em disco deixar de
+  # ser legível —, as duas portas escrevem uma coisa e a checagem acima confere outra. É a
+  # pergunta que fecha o circuito, e custa cinco `JSON.parse`.
+  if node tools/gerar-schemas.js --conferir > /tmp/pre-commit-molde.log 2>&1; then
+    echo "pre-commit: o molde em disco e o módulo dos schemas dizem o mesmo"
+  else
+    echo "pre-commit: recusado — o módulo dos schemas não serve o molde que está no disco." >&2
+    grep -E '^FALHA' /tmp/pre-commit-molde.log | head -4 >&2
+    exit 1
+  fi
 fi
 
 exit 0
