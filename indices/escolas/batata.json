@@ -70,13 +70,13 @@
       "ciclo:pe-torto/01/batata"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-01T22:29:37.341655+00:00",
     "expurgada": false,
@@ -90,11 +90,22 @@
       "pe-junto",
       "pe-torto"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261101-1950"
+    ],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261101-1950"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -109,6 +120,14 @@
       {
         "contagem": 1,
         "ids": [
+          "anamnese:anamnese-20261101-1950"
+        ],
+        "rotulo": "pe-junto",
+        "valor": "pe-junto"
+      },
+      {
+        "contagem": 1,
+        "ids": [
           "ciclo:pe-torto/01/batata"
         ],
         "rotulo": "pe-torto",
@@ -116,6 +135,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261101-1950"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -128,9 +155,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ca5b965"
+    "commit": "acd20da"
   },
-  "gerado_em": "2026-11-01T22:32",
+  "gerado_em": "2026-11-01T22:50",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -153,6 +180,17 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261101-1950",
+      "ciclo": "01",
+      "data": "2026-11-01T19:50",
+      "id": "anamnese:anamnese-20261101-1950",
+      "professor": "pe-junto",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }
