@@ -237,5 +237,11 @@
       }
     }
   ],
-  "professores": []
+  "professores": [
+    {
+      "slug": "meia-ponta",
+      "nome": "Meia Ponta",
+      "desde": "2026-11-01T18:12:26.751Z"
+    }
+  ]
 }
