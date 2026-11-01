@@ -29565,3 +29565,42 @@ no remoto** — ver a correção abaixo.
   pelo próprio workflow e os índices são regerados antes do commit —, mas a cobertura é
   circunstancial, não declarada. Um `PAT` no lugar do `GITHUB_TOKEN` fecharia as três de uma vez,
   e é decisão de segurança, não de código.
+
+## 01/11/2026 — A âncora antes dos índices, e não depois
+
+**O que motivou.** A `calango` foi criada às 15:51, e o conserto da entrada anterior («a escola
+nasce com a âncora») **funcionou**: o commit do scaffold `1437b0e` trouxe
+`professores/meia-ponta/ciclos/ciclo-01-calango.fipp`, e o `hash-ciclo.sh meia-ponta 01 calango
+--check` respondeu «ciclo 01-calango íntegro; cadeia intacta». Mas o `node tools/check-indices.js`
+**falhou com 3 divergências** (o acervo, o índice da escola e o do ciclo), e o índice dizia
+`ciclos_com_ancora: 0` sobre um `.fipp` que existia.
+
+**A causa, e é de ORDEM.** No passo `Commitar o scaffold` eu pus `gerar-indices.js` **antes** de
+`hash-ciclo.sh`. Os índices são derivados — e um deles, `ciclos_com_ancora`, **conta as âncoras
+que existem**. Regerados antes de a âncora nascer, dão `0`; a âncora nasce logo depois e entra no
+mesmo commit, e o índice fica a mentir sobre um facto que o commit leva.
+
+**Ordem errada não é erro de forma.** Antes do conserto, a escola nascia sem âncora e o índice
+dizia `0` — e era verdade. Depois do conserto com a ordem errada, a escola nasce com âncora e o
+índice continua a dizer `0` — e é mentira sobre um artefacto que existe. O primeiro caso vê-se
+(`hash-ciclo --check` reclama, o `ciclos_com_ancora` é coerente); o segundo não — o índice mente
+**a favor de um passado que já não é o estado**.
+
+**O que foi decidido.** A âncora corre **primeiro**, os índices **depois**, e o comentário do
+workflow diz porquê — com o caso da `calango` como medida. É a regra do derivado: **regera-se
+depois de tudo o que ele conta**, nunca antes.
+
+**Onde entrou.** `.github/workflows/criar-escola.yml`, passo `Commitar o scaffold` — a ordem dos
+dois comandos e o comentário que a justifica (o resto do passo ficou igual).
+
+**Com o quê.** O YAML é lido e a ordem é verificada por posição no script (`hash-ciclo` antes de
+`gerar-indices`, que vem antes do `git add`); os índices foram regerados sobre a `calango` e o
+`check-indices` voltou a **14/14**; `ciclos_com_ancora` passou de `0` para **1**.
+
+**O que ainda não está feito.**
+
+- **A prova é a próxima escola criada.** Não há bancada para um workflow; o que se pode medir, e
+  foi medido, é que o comando gera a âncora e que o índice a conta quando corre depois.
+- **A `calango` ficou com o índice desatualizado no commit do scaffold** (`1437b0e`) e corrigido
+  num commit próprio. Não se reescreve o commit: o derivado é reconstruível, e a leitura dele é
+  a de hoje.
