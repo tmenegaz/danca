@@ -63,7 +63,8 @@
     "nome": "breu",
     "professor": "cafe-no-bule",
     "professores": [
-      "cafe-no-bule"
+      "cafe-no-bule",
+      "meia-ponta"
     ],
     "registros": [],
     "slug": "breu"
@@ -103,9 +104,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "64f167f"
+    "commit": "b059b2a"
   },
-  "gerado_em": "2026-11-01T17:30",
+  "gerado_em": "2026-11-01T18:12",
   "nao_indexado": [
     {
       "familia": "conteudo",

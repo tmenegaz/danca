@@ -93,7 +93,8 @@
       "nome": "breu",
       "professor": "cafe-no-bule",
       "professores": [
-        "cafe-no-bule"
+        "cafe-no-bule",
+        "meia-ponta"
       ],
       "registros": [],
       "slug": "breu"
@@ -377,6 +378,11 @@
       },
       {
         "contagem": 1,
+        "rotulo": "Meia Ponta",
+        "valor": "meia-ponta"
+      },
+      {
+        "contagem": 1,
         "rotulo": "Murisoca Baiana",
         "valor": "murisoca-baiana"
       },
@@ -430,9 +436,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "64f167f"
+    "commit": "b059b2a"
   },
-  "gerado_em": "2026-11-01T17:30",
+  "gerado_em": "2026-11-01T18:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -519,6 +525,15 @@
       "id": "professor:meia-cortada",
       "nome": null,
       "slug": "meia-cortada"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:meia-ponta",
+      "nome": "Meia Ponta",
+      "slug": "meia-ponta"
     },
     {
       "ciclos": [],
