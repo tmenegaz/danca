@@ -1,135 +1,48 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-01",
-        "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
-        "cobertura": [
-          "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
-          "professores/meia-ponta/ciclos/ciclo-01.conf"
-        ],
-        "hash": "0f129d1c6fcb896a8c7260e8f33876ea58d1a6da022616d92c70b22ba9291ffc",
-        "hash_conteudo": "c4de8d43e28b44cbc944dc2c0e89e2cdc21da313273086616e7abd35757ea044",
-        "id": "ciclo-01-calango",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
-        "professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
-        "professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:meia-ponta/01/calango",
-      "numero": "01",
-      "pacote": null,
-      "professor": "meia-ponta",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
-      "ciclo_id": "ciclo:meia-ponta/01/calango",
-      "escola": "calango",
-      "id": "documento:ancora:professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
-      "professor": "meia-ponta",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
-      "ciclo_id": "ciclo:meia-ponta/01/calango",
-      "escola": "calango",
-      "id": "documento:manifesto:professores/meia-ponta/ciclos/ciclo-01-calango.conf",
-      "professor": "meia-ponta",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:meia-ponta/01/calango",
-      "escola": "calango",
-      "id": "documento:schema:professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "meia-ponta",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:meia-ponta/01/calango"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-11-01T18:52:13.679717+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-10-27T12:01:30.244Z",
-    "expurgos": 8,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-01T19:00:27.721Z",
+    "expurgos": 9,
+    "habilitada": false,
     "id": "escola:calango",
     "nome": "calango",
     "professor": "meia-ponta",
     "professores": [
-      "meia-ponta"
+      "meia-ponta",
+      "murisoca-baiana",
+      "oculos-redondo",
+      "perna-boa",
+      "sapo-bailarino",
+      "tiago-menegaz"
     ],
     "registros": [],
     "slug": "calango"
   },
   "filtros": {
     "anos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:meia-ponta/01/calango"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:meia-ponta/01/calango"
-        ],
-        "rotulo": "meia-ponta",
-        "valor": "meia-ponta"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:meia-ponta/01/calango"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "1510220"
+    "commit": "d8b10b0"
   },
-  "gerado_em": "2026-11-01T18:55",
+  "gerado_em": "2026-11-01T19:00",
   "nao_indexado": [
     {
       "familia": "conteudo",

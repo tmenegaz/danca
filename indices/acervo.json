@@ -1,22 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "0f129d1c6fcb896a8c7260e8f33876ea58d1a6da022616d92c70b22ba9291ffc",
-        "id": "ciclo-01-calango",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 3,
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:meia-ponta/01/calango",
-      "numero": "01",
-      "professor": "meia-ponta",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -132,28 +115,31 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [
-        "ciclo:meia-ponta/01/calango"
-      ],
+      "ciclos": [],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-11-01T18:52:13.679717+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-10-27T12:01:30.244Z",
-      "expurgos": 8,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-11-01T19:00:27.721Z",
+      "expurgos": 9,
+      "habilitada": false,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "meia-ponta",
       "professores": [
-        "meia-ponta"
+        "meia-ponta",
+        "murisoca-baiana",
+        "oculos-redondo",
+        "perna-boa",
+        "sapo-bailarino",
+        "tiago-menegaz"
       ],
       "registros": [],
       "slug": "calango"
@@ -338,13 +324,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -387,22 +367,22 @@
         "valor": "meia-ponta"
       },
       {
-        "contagem": 0,
-        "rotulo": "murisoca-baiana",
+        "contagem": 1,
+        "rotulo": "Murisoca Baiana",
         "valor": "murisoca-baiana"
       },
       {
-        "contagem": 0,
-        "rotulo": "oculos-redondo",
+        "contagem": 1,
+        "rotulo": "Oculos Redondo",
         "valor": "oculos-redondo"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Perna Boa",
         "valor": "perna-boa"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -427,7 +407,7 @@
         "valor": "tiago"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Tiago",
         "valor": "tiago-menegaz"
       },
@@ -441,9 +421,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1510220"
+    "commit": "d8b10b0"
   },
-  "gerado_em": "2026-11-01T18:55",
+  "gerado_em": "2026-11-01T19:00",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -532,9 +512,7 @@
       "slug": "meia-cortada"
     },
     {
-      "ciclos": [
-        "ciclo:meia-ponta/01/calango"
-      ],
+      "ciclos": [],
       "escolas": [
         "breu",
         "calango"
@@ -545,22 +523,27 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "calango"
+      ],
       "id": "professor:murisoca-baiana",
-      "nome": null,
+      "nome": "Murisoca Baiana",
       "slug": "murisoca-baiana"
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "calango"
+      ],
       "id": "professor:oculos-redondo",
-      "nome": null,
+      "nome": "Oculos Redondo",
       "slug": "oculos-redondo"
     },
     {
       "ciclos": [],
       "escolas": [
-        "batata"
+        "batata",
+        "calango"
       ],
       "id": "professor:perna-boa",
       "nome": "Perna Boa",
@@ -571,7 +554,8 @@
       "escolas": [
         "batata",
         "breu",
-        "calando-teste-1"
+        "calando-teste-1",
+        "calango"
       ],
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
@@ -617,6 +601,7 @@
       "escolas": [
         "batata",
         "breu",
+        "calango",
         "fita",
         "valse"
       ],
