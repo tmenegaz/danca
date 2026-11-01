@@ -1,5 +1,17 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:cafe-no-bule/01/breu",
+      "numero": "01",
+      "professor": "cafe-no-bule",
+      "sem_ancora": true
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -60,29 +72,28 @@
       "slug": "batata"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:cafe-no-bule/01/breu"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
+        "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
-      "criada_em": "2026-10-27T00:11:25.382309+00:00",
-      "expurgada": true,
+      "criada_em": "2026-11-01T17:30:40.080523+00:00",
+      "expurgada": false,
       "expurgada_em": "2026-10-27T11:21:49.499Z",
       "expurgos": 3,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:breu",
       "nome": "breu",
-      "professor": "luz-azul",
+      "professor": "cafe-no-bule",
       "professores": [
-        "luz-azul",
-        "sapo-bailarino",
-        "tiago-menegaz",
-        "vaso-bonito"
+        "cafe-no-bule"
       ],
       "registros": [],
       "slug": "breu"
@@ -321,7 +332,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -329,7 +346,7 @@
         "valor": "acucar-branco"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Cafe No Bule",
         "valor": "cafe-no-bule"
       },
@@ -344,8 +361,8 @@
         "valor": "leticia"
       },
       {
-        "contagem": 1,
-        "rotulo": "Luz Azul",
+        "contagem": 0,
+        "rotulo": "luz-azul",
         "valor": "luz-azul"
       },
       {
@@ -374,7 +391,7 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -399,12 +416,12 @@
         "valor": "tiago"
       },
       {
-        "contagem": 5,
+        "contagem": 4,
         "rotulo": "Tiago",
         "valor": "tiago-menegaz"
       },
       {
-        "contagem": 1,
+        "contagem": 0,
         "rotulo": "vaso-bonito",
         "valor": "vaso-bonito"
       }
@@ -413,9 +430,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1721665"
+    "commit": "64f167f"
   },
-  "gerado_em": "2026-11-01T15:55",
+  "gerado_em": "2026-11-01T17:30",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -449,9 +466,12 @@
       "slug": "acucar-branco"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:cafe-no-bule/01/breu"
+      ],
       "escolas": [
-        "batata"
+        "batata",
+        "breu"
       ],
       "id": "professor:cafe-no-bule",
       "nome": "Cafe No Bule",
@@ -477,11 +497,9 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:luz-azul",
-      "nome": "Luz Azul",
+      "nome": null,
       "slug": "luz-azul"
     },
     {
@@ -534,7 +552,6 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "calando-teste-1",
         "calango"
       ],
@@ -581,7 +598,6 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "calango",
         "fita",
         "valse"
@@ -592,9 +608,7 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:vaso-bonito",
       "nome": null,
       "slug": "vaso-bonito"

@@ -3,10 +3,10 @@
   "worker": "breu",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "sapo-bailarino",
-    "nome": "Sapo Bailarino"
+    "slug": "cafe-no-bule",
+    "nome": "Cafe No Bule"
   },
-  "responsavel": "Sapo Bailarino",
+  "responsavel": "Cafe No Bule",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -221,6 +221,21 @@
       },
       "responsavel": "Luz Azul",
       "ciclo": "01"
+    },
+    {
+      "em": "2026-11-01T17:30:40.080523+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "cafe-no-bule",
+        "nome": "Cafe No Bule"
+      },
+      "responsavel": "Cafe No Bule",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "sapo-bailarino",
+        "nome": "Sapo Bailarino"
+      }
     }
-  ]
+  ],
+  "professores": []
 }

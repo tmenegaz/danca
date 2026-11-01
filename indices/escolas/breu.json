@@ -1,46 +1,111 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
+        "professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:cafe-no-bule/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "cafe-no-bule",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:cafe-no-bule/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
+      "professor": "cafe-no-bule",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:cafe-no-bule/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "cafe-no-bule",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:cafe-no-bule/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-10-27T00:11:25.382309+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-01T17:30:40.080523+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-10-27T11:21:49.499Z",
     "expurgos": 3,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
-    "professor": "luz-azul",
+    "professor": "cafe-no-bule",
     "professores": [
-      "luz-azul",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "cafe-no-bule"
     ],
     "registros": [],
     "slug": "breu"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:cafe-no-bule/01/breu"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:cafe-no-bule/01/breu"
+        ],
+        "rotulo": "cafe-no-bule",
+        "valor": "cafe-no-bule"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:cafe-no-bule/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "1721665"
+    "commit": "64f167f"
   },
-  "gerado_em": "2026-11-01T15:55",
+  "gerado_em": "2026-11-01T17:30",
   "nao_indexado": [
     {
       "familia": "conteudo",
