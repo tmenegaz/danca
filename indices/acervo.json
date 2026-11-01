@@ -1,15 +1,20 @@
 {
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "0f129d1c6fcb896a8c7260e8f33876ea58d1a6da022616d92c70b22ba9291ffc",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 3,
       "escola": "calango",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:meia-ponta/01/calango",
       "numero": "01",
       "professor": "meia-ponta",
-      "sem_ancora": true
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -134,7 +139,7 @@
         "anamneses": 0,
         "aulas": 0,
         "ciclos": 1,
-        "ciclos_com_ancora": 0,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "registros": 0
@@ -336,8 +341,8 @@
     "estados": [
       {
         "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -436,9 +441,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6e3a8ba"
+    "commit": "90a137d"
   },
-  "gerado_em": "2026-11-01T18:52",
+  "gerado_em": "2026-11-01T18:54",
   "nao_indexado": [
     {
       "familia": "conteudo",

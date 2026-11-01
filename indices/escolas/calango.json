@@ -2,20 +2,35 @@
   "aulas": [],
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-01",
+        "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
+        "cobertura": [
+          "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
+          "professores/meia-ponta/ciclos/ciclo-01.conf"
+        ],
+        "hash": "0f129d1c6fcb896a8c7260e8f33876ea58d1a6da022616d92c70b22ba9291ffc",
+        "hash_conteudo": "c4de8d43e28b44cbc944dc2c0e89e2cdc21da313273086616e7abd35757ea044",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
+        "professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
         "professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "calango",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:meia-ponta/01/calango",
       "numero": "01",
       "pacote": null,
       "professor": "meia-ponta",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "manifesto",
         "schema"
       ]
@@ -23,7 +38,16 @@
   ],
   "documentos": [
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
+      "ciclo_id": "ciclo:meia-ponta/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/meia-ponta/ciclos/ciclo-01-calango.fipp",
+      "professor": "meia-ponta",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
       "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango.conf",
       "ciclo_id": "ciclo:meia-ponta/01/calango",
       "escola": "calango",
@@ -32,7 +56,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-calango",
       "caminho": "professores/meia-ponta/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:meia-ponta/01/calango",
       "escola": "calango",
@@ -49,7 +73,7 @@
       "anamneses": 0,
       "aulas": 0,
       "ciclos": 1,
-      "ciclos_com_ancora": 0,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "registros": 0
@@ -76,8 +100,8 @@
         "ids": [
           "ciclo:meia-ponta/01/calango"
         ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -103,9 +127,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6e3a8ba"
+    "commit": "90a137d"
   },
-  "gerado_em": "2026-11-01T18:52",
+  "gerado_em": "2026-11-01T18:54",
   "nao_indexado": [
     {
       "familia": "conteudo",
