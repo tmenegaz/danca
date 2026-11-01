@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+    "documento:plano:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md"
+  ],
+  "escola": "batata",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "68a760a"
+  },
+  "gerado_em": "2026-11-01T22:55",
+  "id": "ciclo:pe-junto/01/batata",
+  "professor": "pe-junto",
+  "versao": 6
+}

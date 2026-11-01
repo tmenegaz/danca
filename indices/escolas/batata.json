@@ -2,6 +2,25 @@
   "aulas": [],
   "ciclos": [
     {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+      ],
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:pe-junto/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "pe-junto",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "plano"
+      ]
+    },
+    {
       "ancora": {
         "algoritmo": "SHA-256",
         "ancorado_em": "2026-11-01",
@@ -47,6 +66,15 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": null,
+      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "ciclo_id": "ciclo:pe-junto/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "professor": "pe-junto",
+      "tipo": "manifesto"
+    },
+    {
       "ancora_id": "ciclo-01-batata",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:pe-torto/01/batata",
@@ -54,6 +82,15 @@
       "id": "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-batata.conf",
       "professor": "pe-torto",
       "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "ciclo_id": "ciclo:pe-junto/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professor": "pe-junto",
+      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-batata",
@@ -67,16 +104,17 @@
   ],
   "escola": {
     "ciclos": [
+      "ciclo:pe-junto/01/batata",
       "ciclo:pe-torto/01/batata"
     ],
     "contagens": {
       "anamneses": 2,
       "aulas": 0,
-      "ciclos": 1,
+      "ciclos": 2,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-11-01T22:29:37.341655+00:00",
     "expurgada": false,
@@ -92,17 +130,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261101-1950",
-      "anamnese:anamnese-20261101-1952"
+      "anamnese:anamnese-20261101-1952",
+      "plano:plano-20261101-1955"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261101-1950",
-          "anamnese:anamnese-20261101-1952"
+          "anamnese:anamnese-20261101-1952",
+          "plano:plano-20261101-1955"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -116,14 +156,24 @@
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:pe-junto/01/batata"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
       {
-        "contagem": 2,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261101-1950",
-          "anamnese:anamnese-20261101-1952"
+          "anamnese:anamnese-20261101-1952",
+          "ciclo:pe-junto/01/batata",
+          "plano:plano-20261101-1955"
         ],
         "rotulo": "pe-junto",
         "valor": "pe-junto"
@@ -148,20 +198,29 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "ciclo:pe-junto/01/batata",
           "ciclo:pe-torto/01/batata"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261101-1955"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "3717b71"
+    "commit": "68a760a"
   },
-  "gerado_em": "2026-11-01T22:52",
+  "gerado_em": "2026-11-01T22:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -204,6 +263,18 @@
       "id": "anamnese:anamnese-20261101-1952",
       "professor": "pe-junto",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261101-1955",
+      "ciclo": "01",
+      "data": "2026-11-01T19:55",
+      "id": "plano:plano-20261101-1955",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "pe-junto",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 2"
     }
   ],
   "versao": 6

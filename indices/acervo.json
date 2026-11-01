@@ -1,6 +1,17 @@
 {
   "ciclos": [
     {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:pe-junto/01/batata",
+      "numero": "01",
+      "professor": "pe-junto",
+      "sem_ancora": true
+    },
+    {
       "ancora": {
         "hash": "0d18d32da528b33b521b0727ce39453071d80218a29e57a4cbee3bf0c49fcffd",
         "id": "ciclo-01-batata",
@@ -45,16 +56,17 @@
     },
     {
       "ciclos": [
+        "ciclo:pe-junto/01/batata",
         "ciclo:pe-torto/01/batata"
       ],
       "contagens": {
         "anamneses": 2,
         "aulas": 0,
-        "ciclos": 1,
+        "ciclos": 2,
         "ciclos_com_ancora": 1,
-        "planos": 0,
+        "planos": 1,
         "pos": 0,
-        "registros": 2
+        "registros": 3
       },
       "criada_em": "2026-11-01T22:29:37.341655+00:00",
       "expurgada": false,
@@ -70,7 +82,8 @@
       ],
       "registros": [
         "anamnese:anamnese-20261101-1950",
-        "anamnese:anamnese-20261101-1952"
+        "anamnese:anamnese-20261101-1952",
+        "plano:plano-20261101-1955"
       ],
       "slug": "batata"
     },
@@ -288,7 +301,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -350,6 +363,11 @@
         "contagem": 1,
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -464,14 +482,19 @@
         "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "3717b71"
+    "commit": "68a760a"
   },
-  "gerado_em": "2026-11-01T22:52",
+  "gerado_em": "2026-11-01T22:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -580,7 +603,9 @@
       "slug": "oculos-redondo"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:pe-junto/01/batata"
+      ],
       "escolas": [
         "batata"
       ],
