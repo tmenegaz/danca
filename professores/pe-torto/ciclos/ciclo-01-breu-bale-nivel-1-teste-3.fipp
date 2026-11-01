@@ -1,0 +1,27 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-breu-bale-nivel-1-teste-3
+type: Ciclo
+professor: pe-torto
+ciclo: 01
+variante: breu-bale-nivel-1-teste-3
+hash_conteudo: 76589d9a0a9b49d4b607084bb4f1490d661a4876f0d8f12f8570063f9ab70fcd
+parentHash: 
+hash: 0afc463a8e398785f23e10eda52beccad7665178d924121b4fbedef06356cd07
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-01
+notacao: Benesh
+notacao_modalidade: bale-classico
+notacao_alfabeto: ballet-classico
+notacao_versao: 15
+notacao_sha: 9cdfc99c94ba29554bed0d84c58f11e722b079f70686ae09e9c3a27d0de5ccc2
+cobertura:
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md
+  - professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf
