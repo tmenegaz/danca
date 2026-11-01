@@ -1,0 +1,75 @@
+{
+  "contexto": {
+    "frequenciaSemanal": "2x semanal — seg e qua",
+    "duracaoPorAula": "50 minutos",
+    "calendario": "2027-02-01 → 2027-04-30",
+    "numeroTotalDeAulas": "26",
+    "professorResponsavel": "pe-junto",
+    "turmasObservadas": "Balé Nível 1 — Teste 2",
+    "volumeDeTrabalho": "3–6 séries",
+    "condicaoDeRegistro": "Na sala: professor, alunas da turma · observa: o próprio professor.",
+    "metodologiaDeReferencia": "RAD",
+    "quemEscolheAMetodologia": "Eu escolho",
+    "notacaoDominada": "Benesh"
+  },
+  "objetivoGeral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+  "objetivosEspecificos": [
+    {
+      "n": "01",
+      "objetivo": "reconhecer o apoio e alinhar o eixo vertical",
+      "blocos": "Barra · Centro · Musicalidade · Expressão"
+    }
+  ],
+  "marcosPorAula": [
+    {
+      "n": "01",
+      "objetivos": "01",
+      "marco": "reconhecer o apoio e alinhar o eixo vertical"
+    }
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "Barra",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Apoio e alinhamento."
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Justificativa centro"
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Justificativa musicalidade"
+    },
+    {
+      "bloco": "Expressão",
+      "proporcaoAlvo": "10%",
+      "justificativa": "Justificativa expressão"
+    }
+  ],
+  "condicoesPreliminares": [
+    "Sala com barra, espelho e aparelho de som; piso adequado."
+  ],
+  "reguaDaRubrica": [
+    "Satisfatório",
+    "Razoável",
+    "Em desenvolvimento",
+    "Não se aplica"
+  ],
+  "criterioDeExtensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
+  "musicasVideos": [
+    "Battement fondu — 2 tempos em 4/4",
+    "Battement tendu — 4 tempos em 4/4",
+    "Plié — 8 tempos em 4/4",
+    "https://www.youtube.com/watch?v=teste-nivel-1 — barra, exercício de referência (teste)."
+  ],
+  "repertorio": [
+    "Battement fondu",
+    "Battement tendu",
+    "Plié"
+  ],
+  "proveniencia": "Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado de literatura de apoio sobre corpo e aula",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]"
+}
