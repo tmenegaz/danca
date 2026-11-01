@@ -2512,7 +2512,7 @@ function mostrarRetomada(t) {
       + '.'
     : '';
   alvo.innerHTML = '<p class="sub">Retomando um preenchimento interrompido: último lançamento em '
-    + quando + ' — ' + t.respondidos + ' de ' + MAPA.total + ' respondidas. ' + descartadas + '</p>';
+    + quando + ' — ' + t.respondidos + ' de ' + numerosDoMapa().total + ' respondidas. ' + descartadas + '</p>';
   alvo.classList.remove('oculto');
 }
 
@@ -2547,7 +2547,14 @@ function contar() {
   let resp = 0, obrig = 0;
   // `MAPA` é nulo até o `api/mapa` chegar: contar antes disso é zero, não um erro. (A senha
   // é validada assim que se digita, e a validação reavalia a barra.)
-  for (const no of (MAPA && MAPA.nos) || []) {
+  //
+  // CONTA OS DEGRAUS, E NÃO O MAPA (01/11/2026). O denominador da barra era `MAPA.total` — o
+  // mapa inteiro, com os nós de cabeçalho dentro —, e a barra dizia «respondidos 26/26» sobre um
+  // roteiro de 19 degraus. O cabeçalho entra semeado, por isso o numerador também subia: os dois
+  // números estavam certos para outra pergunta. O que a barra mede é a CAMINHADA, e ela é feita
+  // de degraus.
+  for (const [i, no] of ((MAPA && MAPA.nos) || []).entries()) {
+    if (numeroDoDegrau(i) === null) continue;
     if (perguntaRespondida(no)) {
       resp += 1;
       if (no.obrigatorio) obrig += 1;
@@ -2648,6 +2655,49 @@ async function carregarMapa() {
   const resposta = await fetch('api/mapa' + (FONTE === 'anamnese' ? '' : '?fonte=' + FONTE));
   if (!resposta.ok) throw new Error('GET /api/mapa devolveu ' + resposta.status);
   return resposta.json();
+}
+
+/*
+ * O NÚMERO QUE SE LÊ É O DO ROTEIRO (01/11/2026) — e é o MESMO em três lugares.
+ *
+ * DEFEITO MEDIDO. A pesquisadora andava o plano de ensino pelo «avançar»: «eu estou na
+ * sequência de exercícios por bloco. No roteiro, ela é o número 12 e na página ela é o número
+ * 19.» Eram três réguas para a mesma contagem:
+ *
+ *   · o ROTEIRO numerava os DEGRAUS — os nós que se perguntam, e só eles;
+ *   · o TÍTULO da página numerava o ÍNDICE do mapa — `INDICE + 1` —, que conta também os nós
+ *     de cabeçalho (escola, professor, turma, frequência, duração, calendário, número de
+ *     aulas), e esses não se perguntam: vêm do cadastro e leem-se na barra;
+ *   · a BARRA dizia «respondidos N/26» — o mapa inteiro —, sobre um roteiro de 19 degraus.
+ *
+ * Medido: no plano, 18 dos 19 degraus tinham dois números (Δ −7); no PO, os 30 (Δ −2 ou −3).
+ * A anamnese estava certa — 53 e 53 — porque não tem nó de cabeçalho, e é isso que fez o
+ * defeito passar: o documento onde ele nasceu não o mostrava.
+ *
+ * A RÉGUA PASSA A SER UMA. `numerosDoMapa()` conta os degraus uma vez, e o título, o roteiro e
+ * a barra leem dela. Os nós de cabeçalho continuam a contar para o FECHO (um sem turma não
+ * pode fechar o plano) — mas por um caminho próprio: eles não têm degrau para onde levar o
+ * professor, e o que falta deles diz-se pelo nome, na barra, onde eles se leem.
+ */
+let NUMEROS = null;
+function numerosDoMapa() {
+  if (NUMEROS) return NUMEROS;
+  const numero = new Map();
+  let total = 0, obrigatorios = 0;
+  for (const [i, no] of ((MAPA && MAPA.nos) || []).entries()) {
+    if (no.noCabecalho) continue;
+    total += 1;
+    numero.set(i, total);
+    if (no.obrigatorio) obrigatorios += 1;
+  }
+  NUMEROS = { numero, total, obrigatorios };
+  return NUMEROS;
+}
+
+/** O número que este nó tem NO ROTEIRO; `null` quando ele não é um degrau. */
+function numeroDoDegrau(i) {
+  const n = numerosDoMapa().numero.get(i);
+  return n === undefined ? null : n;
 }
 
 /*
@@ -3002,7 +3052,12 @@ function tituloDoNo(no) {
     ? '<button type="button" class="ajuda" aria-expanded="false" aria-controls="explica"' +
       ' title="O que é este campo" aria-label="O que é este campo">?</button>'
     : '';
-  return '<h3 class="titulo-do-no">' + (INDICE + 1) + '. ' + md(no.campo) + marca + ajuda + '</h3>';
+  // O NÚMERO É O DO ROTEIRO (01/11/2026). Era `INDICE + 1` — o índice do mapa, que conta
+  // também os nós de cabeçalho que não se perguntam. O professor via «19. Sequência de
+  // exercícios por bloco» num roteiro onde ela é a 12.
+  const numero = numeroDoDegrau(INDICE);
+  return '<h3 class="titulo-do-no">' + (numero === null ? '' : numero + '. ') +
+    md(no.campo) + marca + ajuda + '</h3>';
 }
 
 function cabecalhoDoNo(no) {
@@ -3343,10 +3398,19 @@ function avisoDoFecho() {
   if (!faltam.length) return '';
   const nomes = faltam.slice(0, 3)
     .map((n) => md(n.campo || n.elemento || n.id)).join(' · ');
+  // O DENOMINADOR É O DO ROTEIRO; O QUE FALTA PODE NÃO SER (01/11/2026). Um nó de cabeçalho
+  // (a turma, por exemplo) é obrigatório para o FECHO e não tem degrau — não há onde o professor
+  // o preencha caminhando. Contá-lo no denominador punha a barra a dizer «16 obrigatórios» sobre
+  // dez degraus obrigatórios. Ele continua a barrar o fecho, e o nome dele sai na frase — que é
+  // o canal certo: dizer «falta a Turma observada» é accionável; somá-la a um total, não.
+  const doCabecalho = faltam.filter((n) => n.noCabecalho);
   return '<p class="aviso" id="aviso-fecho">' +
-    'O fecho abre quando os <b>' + (MAPA ? MAPA.obrigatorios : 0) + '</b> obrigatórios ' +
+    'O fecho abre quando os <b>' + numerosDoMapa().obrigatorios + '</b> obrigatórios ' +
     'estiverem preenchidos. Faltam <b>' + faltam.length + '</b>' +
-    (faltam.length <= 3 ? ' — ' + nomes : '') + '.</p>';
+    (faltam.length <= 3 ? ' — ' + nomes : '') + '.' +
+    (doCabecalho.length
+      ? ' Do contexto, na barra: ' + doCabecalho.map((n) => md(n.campo || n.id)).join(' · ') + '.'
+      : '') + '</p>';
 }
 
 /*
@@ -6035,11 +6099,12 @@ function pintarRoteiro() {
   const partes = [];
   let grupoAtual = null;
   // A NUMERAÇÃO é do que se PERGUNTA. O `data-i` continua a ser o índice real do mapa — é por
-  // ele que `irPara` navega —, mas o número que se lê conta só os degraus.
-  let degrau = 0;
+  // ele que `irPara` navega —, mas o número que se lê conta só os degraus. A conta é a MESMA do
+  // título e da barra (`numerosDoMapa`), e não uma segunda feita aqui: eram duas, e a primeira
+  // a mudar deixava as outras a mentir — foi o que aconteceu a 01/11/2026.
   MAPA.nos.forEach((no, i) => {
-    if (no.noCabecalho) return;
-    degrau += 1;
+    const degrau = numeroDoDegrau(i);
+    if (degrau === null) return;
     const grupo = grupoDoNo(no);
     if (grupo && grupo !== grupoAtual) {
       partes.push('<li class="grupo">' + md(grupo) + '</li>');
@@ -7847,6 +7912,10 @@ async function iniciar() {
 
   try {
     MAPA = await carregarMapa();
+    // A RÉGUA DOS NÚMEROS NASCE COM O MAPA (01/11/2026). Trocar de fonte — ou recarregar o mapa
+    // de outro documento — muda os degraus; sem esta linha o título continuaria a numerar pela
+    // contagem do documento anterior.
+    NUMEROS = null;
   } catch (erro) {
     /* O MAPA NÃO VEIO. Antes escrevia-se o erro numa caixa da abertura; agora essa caixa não
      * existe, e o sítio do recado é o do ato. */
@@ -8053,8 +8122,10 @@ async function iniciar() {
   atualizarBarra();
   marcarContextoFaltando();
   atualizarComecar();
-  $('n-total').textContent = MAPA.total;
-  $('n-obrig-total').textContent = MAPA.obrigatorios;
+  // O DENOMINADOR É O DO ROTEIRO (01/11/2026). `MAPA.total` conta o mapa inteiro — com os sete
+  // nós de cabeçalho do plano, que não têm degrau nenhum.
+  $('n-total').textContent = numerosDoMapa().total;
+  $('n-obrig-total').textContent = numerosDoMapa().obrigatorios;
   $('barra').classList.remove('oculto');
   revelarBarra();
 

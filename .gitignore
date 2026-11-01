@@ -454,3 +454,10 @@ experimentos/modelo-formulario/*
 # `REGISTRO.md` e o `git add` não a levou — o `experimentos/*` fecha a pasta e faltava o `!`. Quem
 # clonasse o repositório não tinha a prova que o commit diz ter corrido.
 !experimentos/provar-musica-no-plano.js
+
+# O NÚMERO QUE SE LÊ É O DO ROTEIRO (01/11/2026). A prova nasceu do relato: «no roteiro, ela é o
+# número 12 e na página ela é o número 19». Mede, nos TRÊS documentos, que o título, o roteiro e a
+# barra contam a mesma coisa — e que o «avançar» percorre os mesmos degraus. O controle negativo
+# serve a `porta/index.html` do ref anterior: com o código de antes, o plano e o PO reprovam.
+# É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
+!experimentos/provar-numeros-do-roteiro.js
