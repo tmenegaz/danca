@@ -552,6 +552,47 @@ async function porta() {
   assert.equal(objetivo2, FIXTURE.plano[1].respostas['objetivo-geral']);
   ok('trocar a turma no contexto repreenche com os valores daquela turma');
 
+  /* A TURMA É UMA SÓ, E O SELETOR VAI COM A RESPOSTA (01/11/2026).
+   *
+   * O caso que quebrou a `batata`: o painel escolhe um registo do fixture de OUTRA turma que a do
+   * seletor — as duas estão atribuídas ao professor, portanto as duas estão no seletor. Aqui
+   * escrevia-se só a resposta, e o seletor ficava onde estava: a resposta dizia «Nível 3», o
+   * `contexto.turma` (que decide a variante) dizia «Nível 2», o documento saía com um e o `.conf`
+   * com outro, e a geração morria com «manifesto da variante não encontrado».
+   *
+   * O que se mede: depois do painel preencher com a turma 2, o SELETOR e a RESPOSTA dizem a
+   * mesma coisa — e é a turma 2. Sem isto, o preenchimento de teste volta a fabricar duas
+   * verdades para a mesma coisa. */
+  /* O SELETOR VOLTA À TURMA 1 ANTES DE O PAINEL ESCOLHER A 2 (01/11/2026).
+   *
+   * Sem este passo a asserção era trivial: a secção anterior já tinha posto o seletor na turma 2,
+   * e preencher com a turma 2 não media divergência nenhuma. O defeito só aparece quando o
+   * seletor está numa turma e o painel escolhe o registo de OUTRA — que é o que acontece quando
+   * as duas estão atribuídas ao professor. */
+  await plano.win.eval(`(function(){
+    var s = document.getElementById('ctx-turma');
+    s.value = ${JSON.stringify(FIXTURE.plano[0].turma)};
+    s.dispatchEvent(new Event('change', {bubbles:true}));
+  })()`);
+  await espera(300);
+  // O gancho de diagnóstico da página (`window.__preencherTeste`) é o mesmo que o painel usa.
+  const painelPreencheu = await plano.win.eval(`(function(){
+    var antes = document.getElementById('ctx-turma').value;
+    window.__preencherTeste.plano(${JSON.stringify(FIXTURE.plano[1])});
+    return {
+      antes: antes,
+      seletor: document.getElementById('ctx-turma').value,
+      resposta: RESPOSTAS.get('contexto-turma'),
+    };
+  })()`);
+  assert.notEqual(painelPreencheu.antes, FIXTURE.plano[1].turma,
+    'a asserção não mediria nada: o seletor já estava na turma do registo escolhido');
+  assert.equal(painelPreencheu.seletor, FIXTURE.plano[1].turma,
+    'o painel não moveu o seletor: ' + JSON.stringify(painelPreencheu));
+  assert.equal(painelPreencheu.resposta, FIXTURE.plano[1].turma,
+    'a resposta e o seletor divergiram: ' + JSON.stringify(painelPreencheu));
+  ok('o painel de teste move o SELETOR com a resposta — a turma é uma só');
+
   const metodosPlano = [...new Set(PEDIDOS.map((p) => p.metodo))];
   assert.deepEqual(metodosPlano, ['GET']);
   ok('o plano só fez GET — nenhum envio, nenhuma gravação');

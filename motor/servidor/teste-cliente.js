@@ -365,9 +365,28 @@ const SCRIPT = String.raw`(function () {
         + 'o plano não se preenche por cima da curadoria. Escolha a turma dele no cabeçalho.');
       return;
     }
+    /* O SELETOR MUDA COM A RESPOSTA — AS DUAS COISAS SÃO A MESMA (01/11/2026).
+     *
+     * Aqui escrevia-se a resposta contexto-turma e o SELETOR da barra
+     * ficava onde estava. Quando o registo do fixture é de OUTRA turma que o seletor — e ele
+     * pode ser, se as duas estiverem atribuídas ao professor —, nasciam DUAS verdades para a
+     * mesma coisa: o documento era derivado com a resposta (a turma do fixture) e a VARIANTE
+     * era decidida pelo contexto.turma, que o contextoDaBarra() lê do SELETOR. As fontes
+     * caíam em pastas diferentes.
+     *
+     * MEDIDO na batata a 01/11/2026: o plano ficou com contexto.turma = «Balé Nível 2 —
+     * Teste 2» e respostas['contexto-turma'] = «Balé Nível 3 — Teste 2». O documento dizia
+     * Nível 3, o .conf era da variante do Nível 2, o PO foi gravado na variante do Nível 3 —
+     * e a geração morreu com «manifesto da variante não encontrado: …nivel-3-teste-2.conf».
+     *
+     * Mudar o seletor é o que o professor faria à mão para preencher aquela turma; e é o que
+     * torna as duas coisas uma só. O evento é disparado para a barra reagir (o onchange
+     * repinta o cabeçalho, e o contextoDaBarra() passa a ler o mesmo valor que a resposta). */
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
+    sel.value = registro.turma;
+    if (typeof atualizarBarra === 'function') atualizarBarra();
     RESPOSTAS.set('contexto-turma', registro.turma);
     Object.keys(registro.respostas || {}).forEach(function (k) { RESPOSTAS.set(k, registro.respostas[k]); });
     Object.keys(registro.notas || {}).forEach(function (k) { NOTAS.set(k, registro.notas[k]); });

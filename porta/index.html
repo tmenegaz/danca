@@ -2329,8 +2329,34 @@ function contextoDaBarra() {
   // ser DA TURMA: é ela que compõe o `<escola>-<turma>` do caminho da fonte. Sem ela
   // aqui, dois planos de duas turmas da MESMA escola escreviam no mesmo arquivo, e o
   // segundo apagava o primeiro.
+  /* A TURMA É UMA SÓ — E ELA MANDA NA RESPOSTA (01/11/2026).
+   *
+   * Havia DUAS verdades para a mesma coisa: `contexto.turma` (lido do SELETOR aqui) e a
+   * resposta `contexto-turma` (semeada do cabeçalho, e escrita pelo preenchimento de teste).
+   * Elas podiam divergir, e divergiram:
+   *
+   *   · o `contexto.turma` decide a VARIANTE — o `.conf`, o pacote, a âncora
+   *     (`varianteDoContexto` → `escola-turma`);
+   *   · a resposta decide o TEXTO do documento e o resumo do `.indice.json`, de onde o PO lê
+   *     a turma do plano (`turmaDoEnvelope`).
+   *
+   * MEDIDO na `batata` a 01/11/2026, depois de um preenchimento de teste que escreveu a
+   * resposta sem mexer no seletor: o plano ficou com `contexto.turma` = «Balé Nível 2 — Teste
+   * 2» e a resposta = «Balé Nível 3 — Teste 2». O documento dizia Nível 3; o `.conf` foi
+   * composto na variante do Nível 2; o PO foi gravado na variante do Nível 3 (lê a resposta do
+   * índice); e a geração morreu com «manifesto da variante não encontrado:
+   * …nivel-3-teste-2.conf». Quatro artefactos, três turmas.
+   *
+   * AQUI É O ÚLTIMO PONTO ANTES DA GRAVAÇÃO, e é onde as duas se reconciliam: o que a barra
+   * diz, o que o documento imprime, o que o índice regista e o que decide a variante passam a
+   * ser o mesmo valor. No PO, `turmaDoAto()` já devolve a turma do PLANO referenciado — é a
+   * decisão de que a turma do PO vem do plano, e a reconciliação não a contraria: só impede
+   * que a resposta diga outra coisa. */
   const turma = turmaDoAto();
-  if (turma !== '') contexto.turma = turma;
+  if (turma !== '') {
+    contexto.turma = turma;
+    if (RESPOSTAS.get('contexto-turma') !== turma) RESPOSTAS.set('contexto-turma', turma);
+  }
   const faltando = contextoFaltando();
   if (faltando.length) {
     apontarContextoFaltando(faltando);
