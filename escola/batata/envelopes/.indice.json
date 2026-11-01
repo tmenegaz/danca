@@ -2,7 +2,8 @@
   "versao": 4,
   "nomes": [
     "anamnese-20261101-1950.json",
-    "anamnese-20261101-1952.json"
+    "anamnese-20261101-1952.json",
+    "plano-20261101-1955.json"
   ],
   "resumos": {
     "anamnese-20261101-1950.json": {
@@ -24,6 +25,23 @@
       "ajuste_de": null,
       "gerado_em": "2026-11-01T19:52",
       "aluna": "Aluna B"
+    },
+    "plano-20261101-1955.json": {
+      "id": "plano-20261101-1955",
+      "fonte": "plano",
+      "escola": "batata",
+      "professor": "pe-junto",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-01T19:55",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 1 — Teste 2",
+      "repertorio": [
+        "Battement fondu",
+        "Battement tendu",
+        "Plié"
+      ],
+      "professorNome": "pe-junto"
     }
   }
 }
