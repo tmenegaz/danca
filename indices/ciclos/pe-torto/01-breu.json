@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
+    "documento:plano:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md"
+  ],
+  "escola": "breu",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "07a973b"
+  },
+  "gerado_em": "2026-11-01T20:31",
+  "id": "ciclo:pe-torto/01/breu",
+  "professor": "pe-torto",
+  "versao": 6
+}

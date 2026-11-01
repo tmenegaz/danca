@@ -2,6 +2,25 @@
   "aulas": [],
   "ciclos": [
     {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
+      ],
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:pe-torto/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "pe-torto",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "plano"
+      ]
+    },
+    {
       "ancora": {
         "algoritmo": "SHA-256",
         "ancorado_em": "2026-11-01",
@@ -47,6 +66,15 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": null,
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
+      "ciclo_id": "ciclo:pe-torto/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
+      "professor": "pe-torto",
+      "tipo": "manifesto"
+    },
+    {
       "ancora_id": "ciclo-01-breu",
       "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:sapo-bailarino/01/breu",
@@ -54,6 +82,15 @@
       "id": "documento:manifesto:professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
       "professor": "sapo-bailarino",
       "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+      "ciclo_id": "ciclo:pe-torto/01/breu",
+      "escola": "breu",
+      "id": "documento:plano:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+      "professor": "pe-torto",
+      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-breu",
@@ -67,16 +104,17 @@
   ],
   "escola": {
     "ciclos": [
+      "ciclo:pe-torto/01/breu",
       "ciclo:sapo-bailarino/01/breu"
     ],
     "contagens": {
       "anamneses": 2,
       "aulas": 0,
-      "ciclos": 1,
+      "ciclos": 2,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-11-01T20:15:06.701086+00:00",
     "expurgada": false,
@@ -92,17 +130,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261101-1726",
-      "anamnese:anamnese-20261101-1727"
+      "anamnese:anamnese-20261101-1727",
+      "plano:plano-20261101-1730"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261101-1726",
-          "anamnese:anamnese-20261101-1727"
+          "anamnese:anamnese-20261101-1727",
+          "plano:plano-20261101-1730"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -116,14 +156,24 @@
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:pe-torto/01/breu"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
       {
-        "contagem": 2,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261101-1726",
-          "anamnese:anamnese-20261101-1727"
+          "anamnese:anamnese-20261101-1727",
+          "ciclo:pe-torto/01/breu",
+          "plano:plano-20261101-1730"
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
@@ -148,20 +198,29 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "ciclo:pe-torto/01/breu",
           "ciclo:sapo-bailarino/01/breu"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261101-1730"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "3165671"
+    "commit": "07a973b"
   },
-  "gerado_em": "2026-11-01T20:27",
+  "gerado_em": "2026-11-01T20:31",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -204,6 +263,18 @@
       "id": "anamnese:anamnese-20261101-1727",
       "professor": "pe-torto",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261101-1730",
+      "ciclo": "01",
+      "data": "2026-11-01T17:30",
+      "id": "plano:plano-20261101-1730",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "pe-torto",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 3"
     }
   ],
   "versao": 6

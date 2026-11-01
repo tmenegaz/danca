@@ -1,6 +1,17 @@
 {
   "ciclos": [
     {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:pe-torto/01/breu",
+      "numero": "01",
+      "professor": "pe-torto",
+      "sem_ancora": true
+    },
+    {
       "ancora": {
         "hash": "5a4fc4f5d57d7a8479c982725da30444248c65f884f24cc2a7aea9c022e7aea2",
         "id": "ciclo-01-breu",
@@ -79,16 +90,17 @@
     },
     {
       "ciclos": [
+        "ciclo:pe-torto/01/breu",
         "ciclo:sapo-bailarino/01/breu"
       ],
       "contagens": {
         "anamneses": 2,
         "aulas": 0,
-        "ciclos": 1,
+        "ciclos": 2,
         "ciclos_com_ancora": 1,
-        "planos": 0,
+        "planos": 1,
         "pos": 0,
-        "registros": 2
+        "registros": 3
       },
       "criada_em": "2026-11-01T20:15:06.701086+00:00",
       "expurgada": false,
@@ -104,7 +116,8 @@
       ],
       "registros": [
         "anamnese:anamnese-20261101-1726",
-        "anamnese:anamnese-20261101-1727"
+        "anamnese:anamnese-20261101-1727",
+        "plano:plano-20261101-1730"
       ],
       "slug": "breu"
     },
@@ -292,7 +305,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -354,6 +367,11 @@
         "contagem": 1,
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -463,14 +481,19 @@
         "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "3165671"
+    "commit": "07a973b"
   },
-  "gerado_em": "2026-11-01T20:27",
+  "gerado_em": "2026-11-01T20:31",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -583,7 +606,9 @@
       "slug": "oculos-redondo"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:pe-torto/01/breu"
+      ],
       "escolas": [
         "breu"
       ],
