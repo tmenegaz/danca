@@ -29040,3 +29040,110 @@ chegar à escola, **em silêncio**.
 `check-identidade.js` → **20/20**; `check-pacote.js` → **0 erro**; e ao ar, depois do deploy de
 `22b42ce`: `/plano-ensino/plano/conteudo/plano.json` devolve `somenteLeitura: [Bloco, Objetivo
 específico]` e a explicação nova. Os quatro workflows de `22b42ce` em `success`.
+
+## 01/11/2026 — O `;` que separa os itens, e a coluna que deixa de ser duas
+
+**O que motivou — medido, não suposto.** O nó «Itens de cada dimensão» do PO pede «um item por
+linha», e a pesquisadora escreve «a; b» — a forma corrente de enumerar em português. O corte era só
+por `\n` (`emLista`), e o resultado era **dois critérios numa coluna só** da folha de captura. Uma
+célula com dois critérios não se mede: o lançamento pede **um** nível para o par inteiro, e o par
+não é observável.
+
+**O que foi decidido.**
+- O corte por `;` **não** entra no `emLista` geral. O `;` é pontuação legítima noutros campos (o
+  repertório, a referência, a proveniência), e alargar o corte em todo o lado partiria frases que
+  são uma só. A separação é **pergunta do campo**: nasce `itensDaDimensao(valor)`, em
+  `motor/nucleo/derivar-po.js`, e é ela que `itensPorDimensao` e `dimensoesEItens` usam.
+- Ela aceita as três formas que o professor pode escrever — `;`, `\n` e a lista já em array —,
+  achata arrays aninhados e tira o marcador de lista (`- `, `* `).
+- O conteúdo passa a **dizer** que o `;` separa, e que cada item vira uma coluna.
+
+**Onde entrou.**
+- `motor/nucleo/derivar-po.js` — `itensDaDimensao()` nova, usada por `itensPorDimensao`, exportada.
+- `motor/nucleo/derivar-ciclo.js` — `dimensoesEItens` (a declaração da folha) passa a usá-la.
+- `porta/po/conteudo/po.json` — a explicação do nó «Itens de cada dimensão».
+
+**Com o quê.** `experimentos/provar-dimensoes-plano.js` — secção 11 nova: três critérios (`;` e
+`\n` misturados) dão **três** colunas, e antes davam uma.
+
+**Uma bancada morta, consertada de passagem.** A `provar-dimensoes-plano.js` apontava os assets para
+`professores/tiago/ciclos/ciclo-01-maria`, que **não existe** (a pasta é `tiago-menegaz`, e o pacote
+nunca esteve lá). Todo pedido de asset devolvia o `index.html`, o `markdown.js` nunca carregava, e a
+bancada morria em `Markdown is not defined` **antes da primeira asserção** — 10 asserções que nunca
+correram. Agora serve o **pacote-zero**, e corre **11/11**.
+
+**Referências.** PROTOCOLO P-14 (o dado é do campo), P-21 (harmonização).
+
+**O que ainda não está feito.** O `;` **não** governa os outros campos de lista (de propósito). E os
+envelopes já gravados com «a; b» continuam a ler-se como um item só até serem regravados: a correção
+é do leitor, não do dado, e o dado antigo não se reescreve.
+
+## 01/11/2026 — O que a sequência já responde não se escreve outra vez
+
+**O que motivou — a mesma família de erro, um andar acima.** No verbete, ela teve de digitar o texto
+do trecho outra vez em cada acrescento. No plano, o bloco 10 pedia «um por linha: título e, se
+quiser, a faixa ou o compasso» — e o **compasso de cada exercício já estava no verbete**, e os
+exercícios da aula **já estavam na sequência**, uma tela acima. O professor redigitava o que já tinha
+decidido, e as duas versões podiam discordar **sem que nada falhasse**.
+
+**O que foi decidido.**
+- **«Músicas e vídeos» passa a ser «Vídeo de referência».** A música sobe da sequência — que a lê do
+  verbete —, exercício por exercício, **acima** do campo; o campo pede só o **link do vídeo**. Um
+  exercício sem verbete sai dito por palavras («tempos e compasso por declarar no verbete»), porque
+  a ausência é do dado e um documento que a esconde mente por omissão.
+- **«Repertório desta aula» é `somenteLeitura`.** O valor é a **sequência**; a tela semeia-o para o
+  envelope, o índice e o documento não ficarem cegos ao que a aula usa. A chave do envelope continua
+  a ser `repertorio` — o que muda é **quem a preenche**, e é isso que faz a conta do
+  `usosDosPlanos` (que lê prosa) passar a ler uma lista exacta.
+- **A sequência semeia-se sozinha.** Antes ela só era gravada se o nó fosse **aberto**: quem
+  preenchesse a matriz e gerasse o documento sem passar por lá perdia a sequência inteira, e a
+  página da aula saía sem exercício nenhum. Agora, a cada pintura do roteiro, o que a própria grelha
+  desenha (`grelhaDaTabela` + `lerGrelha`, **sem duplicar a regra**) é colhido para o dado.
+- **A autoria é respeitada.** `SEMENTE_ANTERIOR` guarda o valor exacto que se semeou; um valor
+  diferente é do professor (ou de um plano antigo) e **não se toca**. Enquanto for a semente, ela
+  refaz-se: mudar a marcação muda a sequência, e uma consolidação que não acompanha a decisão é pior
+  do que não existir. E a semente **não herda de si mesma** — sem isso, um exercício desmarcado
+  deixava as linhas dele para trás.
+- **O nó que não se escreve** ganha duas travas, as mesmas do nó do cabeçalho: `gravarRespostaDoNo`
+  recusa-o (lê-lo devolveria `null`, que significa «apaga») e a **nota** não se desenha nele.
+- **O `musicasAula` não existe.** A música chegou ao formulário por uma chave nova e genérica do
+  conteúdo — `derivadoDaSequencia: {oQue, coluna, rotulo, de}` —, e não por um mecanismo próprio para
+  a música: o motor não sabe o que é um compasso, e o conteúdo diz.
+
+**Onde entrou.**
+- `porta/index.html` — a leitura acima do campo, o nó só de leitura, `semearDerivados()`, as duas
+  travas em `gravarRespostaDoNo` e na nota, o selo «lido da sequência» no roteiro.
+- `porta/plano/conteudo/plano.json` — os dois nós reescritos (o 24 passa a pedir só o vídeo) e o
+  objetivo do bloco 10.
+- `motor/nucleo/elicitar.js` — `derivadoDaSequencia` e `somenteLeitura` na lista fechada dos
+  descritores; sem elas o nó chegava à tela sem o que o conteúdo declarou.
+- `motor/nucleo/derivar-plano-ciclo.js` — `musicasDaSequencia()`, e a secção «Músicas e vídeos» a
+  imprimir as duas coisas (a música derivada e o que o professor escreveu).
+- `teste/batata.json` e `teste/calango.json` — a `aula-1-sequencia` escrita à mão **sai** (é derivada),
+  o `repertorio` **sai** (é semeado) e o `musicas-videos` passa a ser o link do vídeo. Era isto que
+  produzia a confusão que ela descreveu: os valores de teste diziam exercícios e blocos que não
+  correspondiam ao que ela marcava.
+
+**Com o quê.** `experimentos/provar-derivados-da-sequencia.js` — **26 asserções**, com **controle
+negativo** (sem o campo `musicas` na rota, a música não sobe): a semente (7 linhas, com os tempos do
+verbete), o repertório sem campo nenhum, a música acima do campo único, o valor de fora que passa,
+a sequência que acompanha a decisão, e o documento (a música, o vídeo, e o plano antigo intacto).
+
+**Validação.** `provar-derivados-da-sequencia` **26/0** (**14 falhas** com o `porta/index.html` de
+`HEAD`); `provar-musica-no-plano` **18/0**; `provar-dimensoes-plano` **11/11**; `provar-teste`
+**44/44** (foi ela que apanhou o apagamento do `distribuicao-de-volume` na primeira tentativa — a
+grelha com unidade grava `{unidade, linhas}`, e não uma lista); `provar-numeros-do-roteiro` **29/0**;
+`provar-plano-da-turma` **46/0**; `provar-porta-sem-contexto` **44/0**; `provar-po-unico` **18/0**;
+`provar-recorte-do-po` **26/0**; `provar-leituras-do-po` **27/0**; `provar-coerencia-do-po-no-pacote`
+**6/0**; `check-identidade` **20/20**; `check-pacote` **0 erro, 0 aviso**; `hash-ciclo --check`
+íntegro.
+
+**O que ainda não está feito.**
+- **Três provas já falhavam antes desta entrega** e continuam a falhar: `provar-plano-matriz`
+  (a rota `/api/mapa` não responde), `provar-po-completo` (falta o `ciclo-01-po-schema.json` do
+  `leticia`) e `provar-aula-e-plano-legiveis` (a coluna «Linha de base revisitada → Observado na
+  aula» não está declarada no schema da captura). Medido com `git stash`: **idênticas antes**.
+- **`provar-objetivos-por-aula` não mede**: o fixture que media (`batata-bale-nivel-2-teste-2`) foi
+  expurgado do repositório. A prova diz isso em vez de falhar em silêncio — mas está sem objeto.
+- **O P1 (a ligação bloco ↔ dimensão por id) não foi feito.** Continua a ser a peça maior, e agora
+  com o plano escrito.

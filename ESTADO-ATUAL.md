@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 01/11/2026 (base local `22b42ce`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1).
+> **Última fotografia:** 01/11/2026 (base local `ac6caa0`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1). E o bloco 10 do plano deixou de pedir o que já estava respondido: a **música sobe da sequência** (que a lê do verbete) acima de um campo que passou a pedir **só o link do vídeo**, o **repertório** passou a **somente leitura** (é a sequência, semeada), a **sequência semeia-se sozinha** a cada pintura do roteiro — antes perdia-se inteira se o nó não fosse aberto —, e o **`;` passou a separar os itens** do PO, que era o que fazia dois critérios numa coluna da folha.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -369,6 +369,28 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     «Adicionar linha» — sem os dois, um plano cuja turma não tem conteúdo associado não podia ser
     composto. **Ela não sai do formulário**: é dela que a página da aula lê a sequência
     (`sequenciaComoObjetos`). **DECIDIDO** 01/11/2026.
+31. **O QUE A SEQUÊNCIA JÁ RESPONDE NÃO SE ESCREVE OUTRA VEZ.** O bloco 10 do plano deixou de
+    perguntar a música: ela **sobe da sequência**, exercício por exercício, do **verbete** de cada um,
+    e é mostrada acima do campo. O campo do nó 24 passou a ser o **link do vídeo** («Vídeo de
+    referência»), que é a única parte que não existia em lugar nenhum. O **«Repertório desta aula»**
+    passou a **`somenteLeitura`**: o valor é a sequência, semeada pela tela, e a chave `repertorio` do
+    envelope continua a mesma — o que muda é **quem a preenche**, e é isso que faz a conta do
+    `usosDosPlanos` ler uma lista exacta em vez de prosa. A regra geral: **um facto decide-se num
+    lugar só; onde ele aparece, é lido.** **DECIDIDO** 01/11/2026.
+32. **A SEQUÊNCIA SEMEIA-SE SOZINHA, E A AUTORIA MANDA.** A `aula-1-sequencia` era gravada **só
+    quando o nó era aberto**: quem preenchesse a matriz e gerasse o documento sem passar por lá
+    perdia a sequência inteira, e a página da aula saía sem exercício nenhum. Agora, a cada pintura
+    do roteiro, o que a **própria grelha desenha** (`grelhaDaTabela` + `lerGrelha` — a mesma conta,
+    uma vez, para a tela e para o dado) é colhido. `SEMENTE_ANTERIOR` guarda o valor **exacto** que se
+    semeou: enquanto for esse, a semente refaz-se (mudar a marcação muda a sequência); assim que for
+    outro, é do **professor** (ou de um plano antigo) e **não se toca**. A semente **não herda de si
+    mesma** — sem isso, um exercício desmarcado deixava as linhas dele para trás. A grelha **com
+    unidade** (a distribuição de volume, que grava `{unidade, linhas}`) fica de fora. **DECIDIDO**
+    01/11/2026.
+33. **O `;` SEPARA OS ITENS DO PO, E SÓ LÁ.** `itensDaDimensao()` corta por `;`, `\n` ou o array já
+    pronto. O `emLista` geral **não** se alarga: o `;` é pontuação legítima noutros campos (o
+    repertório, a proveniência), e alargar o corte em todo o lado partiria frases que são uma só. A
+    separação é **pergunta do campo**. **DECIDIDO** 01/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -403,8 +425,18 @@ de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. E
 **expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
 vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
-**Último ponto confirmado:** 01/11/2026 — `22b42ce` (o conteúdo da porta no scaffold), com `b64bac4` (o
-registo do número do roteiro) e `10bf6b6` (a correcção) por trás. Antes dele, `b0d781f` (a tira dos
+**O que ficou feito a 01/11/2026 (`ac6caa0`), e o que é o próximo passo.** O **P0** da revisão das
+janelas deslizantes está fechado: o `;` separa os itens do PO, e os dois critérios que caíam numa
+coluna são duas. O **bloco 10** do plano deixou de perguntar o que já estava respondido (a música e o
+repertório), e a sequência passou a semear-se sozinha. O que falta é o **P1 — a ligação
+bloco ↔ dimensão por id**: ela decidiu que `objetivosEspecificos[].blocos` (`Solo · Barra`) e as
+dimensões do PO (`Técnica — Solo`) são **a mesma coisa com dois nomes**, e que a ligação é **por id**.
+O recorte **já existe** no plano; o trabalho é **ligá-lo** e fazê-lo chegar ao formulário — e é
+**ligação**, não invenção. O plano por fases está na resposta desta sessão e no `TRANSFERENCIA-IA.md`.
+
+**Último ponto confirmado:** 01/11/2026 — `ac6caa0` (o que a sequência já responde não se escreve outra
+vez, e o `;`), com `22b42ce` (o conteúdo da porta no scaffold), `b64bac4` (o registo do número do
+roteiro) e `10bf6b6` (a correcção) por trás. Antes dele, `b0d781f` (a tira dos
 passos sai do formulário, e o verbete fica em cinco). Antes dele, `885ea96` (os tempos e o
 compasso vêm do verbete), `d7e71ff` (o verbete em seis passos, com o modo de edição) e `c3f0fb1` (o
 plano diz por que um termo da turma não aparece). A base anterior: `b641acc` (o «lê-se»
@@ -457,7 +489,7 @@ solo), porque o plano os declarou em apenas **3 linhas**. As outras 27 saem em l
 | **port de bras** | **DECIDIDO** — são **18 tempos, 3/4**. O verbete cobre **12** (4 compassos); os **2 últimos** saem em `conferir`. **PENDENTE** de verbete |
 | **braço do port de bras** | **HIPÓTESE** — nos compassos 1 a 3 são **os dois braços juntos** («os braços abrem», plural); o compasso 4 é que separa a condução (D → E). O vocabulário de lados `D`/`E` **existe** em `ballet-classico.json` e não é usado. Acrescentar a coluna de lado resolve a pergunta «qual braço?». **PENDENTE de decisão** |
 | **tendu ao lado** | **CONFIRMADO** — o Battement tendu vai à frente e depois atrás porque **o verbete é assim**: `1ª → +` e `1ª → ×`. Não há `→ lado` no verbete. Pedir o tendu ao lado é pedir verbete novo, não mudar o plano |
-| **tempos e compasso dos 27** | **PENDENTE** — é preenchimento, do lado do plano. É a maior lacuna da aula |
+| **tempos e compasso dos 27** | **RESOLVIDO na origem** (`885ea96`) — vêm do **verbete** de cada exercício e não se perguntam no plano. O que continua por fazer é **preencher os verbetes** dos exercícios que ainda não os declaram: a lacuna mudou de lugar, e agora está onde o dado se decide |
 | **bloco de musicalidade** | **PENDENTE** — ver abaixo |
 
 ### O bloco de musicalidade não tem pergunta
@@ -518,7 +550,28 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (01/11/2026 — o número do roteiro, igual nos três documentos)
+### Executado nesta fotografia (01/11/2026 — o que a sequência já responde, e o `;`)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-derivados-da-sequencia.js` | **26 asserções, 0 falhas** (nova) — jsdom, com o conteúdo, o alfabeto e a turma de verdade |
+| …o que ela mede | a sequência **semeia-se sozinha** sem o nó ser aberto (7 linhas com os tempos do verbete); o **repertório** sem campo nenhum e com o valor igual à sequência; a **música acima** do campo único (o do vídeo); o exercício **sem verbete** dito por palavras; o **valor de fora** que passa como veio; a semente que **acompanha a decisão** (desmarcar o tendu tira-lhe as linhas); e o **documento** (a música derivada, o vídeo depois dela, o plano antigo intacto) |
+| **controle negativo** (`porta/index.html` de `HEAD`) | **14 falhas** no código de antes |
+| `node experimentos/provar-dimensoes-plano.js` | **11/11** — secção 11 nova: `;` e `\n` misturados dão **três colunas** (davam uma). A bancada estava **morta** (apontava para `professores/tiago/`, que não existe: o `markdown.js` nunca carregava); passou a servir o pacote-zero |
+| `node experimentos/provar-teste.js` | **44 verificações** — foi ela que apanhou o `distribuicao-de-volume` apagado na primeira tentativa (a grelha com unidade grava `{unidade, linhas}`, não uma lista) |
+| `node experimentos/provar-musica-no-plano.js` | **18 asserções, 0 falhas** |
+| `node experimentos/provar-numeros-do-roteiro.js` | **29 asserções, 0 falhas** |
+| `node experimentos/provar-plano-da-turma.js` | **46 provas, 0 falhas** |
+| `node experimentos/provar-porta-sem-contexto.js` | **44 asserções, 0 falhas** |
+| `provar-po-unico` · `provar-recorte-do-po` · `provar-leituras-do-po` · `provar-coerencia-do-po-no-pacote` | **18** · **26** · **27** · **6**, todas sem falha |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-pacote.js professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh … --check` | cadeia íntegra; **`3601081…`** — **sem renovação**: esta entrega não escreve o alfabeto, e o `plano.json` do formulário não está na cobertura do selo. O `ancorado_em` do scaffold mudou de data |
+| medido na tela | o nó do repertório abre **sem campo nenhum** (nem a nota), com o selo «lido da sequência»; o nó do vídeo abre com a música acima e **um** campo |
+| **não executado** | `provar-plano-matriz.js`, `provar-po-completo.js` e `provar-aula-e-plano-legiveis.js` — falham **antes desta entrega**, confirmado por `git stash`; `provar-objetivos-por-aula.js` **não mede** (o fixture foi expurgado) |
+| **ao ar** | não recarregado na exploração (a cota do KV). Uma carga no fim, depois do push |
+
+### Executado na fotografia anterior (01/11/2026 — o número do roteiro, igual nos três documentos)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -820,16 +873,18 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 verbete administrável, os dois eixos, o dicionário, o «lê-se», os cinco passos com o trecho editável, e
 a frase escrita **uma vez** por exercício.
 
-**Três nós do plano que a pesquisadora questionou em 01/11/2026, medidos e à espera da decisão
-dela** — os três são a mesma pergunta: *quantas vezes o mesmo facto se pede?*
-- **«Músicas e vídeos»** — o **compasso** de cada exercício já vem do verbete; o que **não existe em
-  lugar nenhum** é a **faixa** (o título da música) e o **vídeo de referência**. O nó devia perguntar
-  só esses dois.
-- **«Repertório (se usar)»** — o texto livre duplica o que a sequência já demonstra. Tem um
-  consumidor real (`usosDosPlanos`, que o lê para saber que termos um plano usa antes de deixar apagar
-  um termo do vocabulário), e derivá-lo da sequência tornaria essa conta **exacta** — hoje lê prosa.
-- **A música e o repertório podem passar a pré-preencher** o que é derivado, como se fez no nó 19 —
-  mas o que isso muda é o **texto que o documento publica**.
+**Os três nós que ela questionou a 01/11/2026 estão fechados** (`ac6caa0`): a música **sobe da
+sequência** e é leitura, o campo do nó 24 pede **só o link do vídeo**, e o **repertório** é
+`somenteLeitura` — semeado com os exercícios da aula, o que torna exacta a conta do `usosDosPlanos`.
+A **faixa** (o título da música) continua a não existir em lugar nenhum, e é a única coisa que este
+bloco ainda pede por escrito, dentro da caixa do vídeo.
+
+**O P1 — a ligação bloco ↔ dimensão por id — é o próximo passo, e é decisão dela** (01/11/2026:
+«sim, são a mesma coisa com dois nomes; use ligação por id»). O recorte **já existe** em
+`objetivosEspecificos[].blocos`; o trabalho é **ligá-lo** ao PO e fazê-lo chegar ao formulário — é
+**ligação**, não invenção. Custo medido: `porta/index.html`, `tools/templates/lancamento.html` e
+`tools/validar-captura-ciclo.js` (**os dois congelados**: motivo declarado + entrada no `REGISTRO` +
+commit próprio), as **26 folhas** de captura e a reancora.
 
 **Pendente dela** (nada disto é código à espera de autorização, é olho dela):
 - **Corrigir a associação** das turmas da `batata`: a relação guarda `rond-de-jambe`, que não existe no
@@ -858,6 +913,16 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **01/11/2026** — **O que a sequência já responde não se escreve outra vez** (`ac6caa0`), e o `;`
+  que separa os itens do PO. O bloco 10 do plano pedia o compasso que o **verbete** já declara e os
+  exercícios que a **sequência** já demonstra; agora a música **sobe** acima de um campo que pede só o
+  link do vídeo, o repertório é **somente leitura** e semeado, e a **sequência semeia-se sozinha** (era
+  gravada só se o nó fosse aberto — a página da aula podia sair sem exercício nenhum). A autoria é
+  respeitada por comparação com a semente anterior, e a semente não herda de si mesma. De passagem:
+  `itensDaDimensao()` corta por `;`, e dois critérios que caíam numa coluna da folha passaram a ser
+  duas. **CONFIRMADO** por `provar-derivados-da-sequencia` (26/0, com 14 falhas no código de antes) e
+  `provar-dimensoes-plano` (11/11 — a bancada estava morta e foi consertada de passagem).
+  **NÃO CONFIRMADO ao ar**: só no deploy.
 - **01/11/2026** — **O conteúdo da porta no scaffold, que é o que a escola publica.** A verificação ao
   ar mostrou a página da escola a servir a explicação **velha** do nó 19 e **sem** o `somenteLeitura`:
   a mudança estava no repositório, no pacote da turma e no ar da raiz, e não no ar da escola. A causa

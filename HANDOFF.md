@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-01T09:28:56-0300`
-Commit atual: `22b42ce` — fix(entrega): o conteúdo da porta no scaffold, que é o que a escola publica
+Gerado em: `2026-11-01T10:46:11-0300`
+Commit atual: `ac6caa0` — feat(entrega): o que a sequência já responde não se escreve outra vez
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,8 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+ac6caa0 feat(entrega): o que a sequência já responde não se escreve outra vez
+f1f8689 docs(registro): a armadilha do scaffold, que a verificação ao ar descobriu
 22b42ce fix(entrega): o conteúdo da porta no scaffold, que é o que a escola publica
 b64bac4 docs(registro): a fotografia do número do roteiro, e os três nós que ficam à espera
 10bf6b6 fix(estrutura): o número que se lê é o do roteiro, nos três documentos
@@ -98,8 +100,6 @@ bf439f1 feat(notacao): a frase é do exercício, e o verbete ganha o sétimo pas
 1531eaa feat(notacao): declarar «Battement dégagé» (4|2/4) no alfabeto bale-classico
 c5d7359 docs(registro): a fotografia dos seis passos, e a decisão que os escolheu
 d7e71ff feat(notacao): o verbete em seis passos, com o modo de edição
-ccbc8d0 docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
-b20242e docs(registro): actualizar a fotografia após as definições e as duas arrumações
 ```
 
 ## Por professor
@@ -199,68 +199,77 @@ b20242e docs(registro): actualizar a fotografia após as definições e as duas 
 
 ## Última entrada do REGISTRO
 
-## 01/11/2026 — O conteúdo da porta no scaffold, que é o que a escola publica
+## 01/11/2026 — O que a sequência já responde não se escreve outra vez
 
-**O que motivou — a verificação ao ar.** Depois de publicar a entrega do número do roteiro, a página da
-escola servia a explicação **velha** da «Sequência de exercícios por bloco» e **não tinha** o
-`somenteLeitura`. A mudança estava no repositório, no pacote da turma e no ar da raiz — e **não** no ar
-da escola.
+**O que motivou — a mesma família de erro, um andar acima.** No verbete, ela teve de digitar o texto
+do trecho outra vez em cada acrescento. No plano, o bloco 10 pedia «um por linha: título e, se
+quiser, a faixa ou o compasso» — e o **compasso de cada exercício já estava no verbete**, e os
+exercícios da aula **já estavam na sequência**, uma tela acima. O professor redigitava o que já tinha
+decidido, e as duas versões podiam discordar **sem que nada falhasse**.
 
-**A causa é uma armadilha do processo de publicação.** `tools/montar-publicacao.js` copia a base da
-escola do **pacote-zero** (`ciclo-01-<escola>`), e não de `porta/`. O `gerar-ciclo.sh` **recusa-se** a
-correr sobre um ciclo-zero (DOCS vazio, é scaffold), e por isso a cópia do scaffold só se actualiza **à
-mão**.
+**O que foi decidido.**
+- **«Músicas e vídeos» passa a ser «Vídeo de referência».** A música sobe da sequência — que a lê do
+  verbete —, exercício por exercício, **acima** do campo; o campo pede só o **link do vídeo**. Um
+  exercício sem verbete sai dito por palavras («tempos e compasso por declarar no verbete»), porque
+  a ausência é do dado e um documento que a esconde mente por omissão.
+- **«Repertório desta aula» é `somenteLeitura`.** O valor é a **sequência**; a tela semeia-o para o
+  envelope, o índice e o documento não ficarem cegos ao que a aula usa. A chave do envelope continua
+  a ser `repertorio` — o que muda é **quem a preenche**, e é isso que faz a conta do
+  `usosDosPlanos` (que lê prosa) passar a ler uma lista exacta.
+- **A sequência semeia-se sozinha.** Antes ela só era gravada se o nó fosse **aberto**: quem
+  preenchesse a matriz e gerasse o documento sem passar por lá perdia a sequência inteira, e a
+  página da aula saía sem exercício nenhum. Agora, a cada pintura do roteiro, o que a própria grelha
+  desenha (`grelhaDaTabela` + `lerGrelha`, **sem duplicar a regra**) é colhido para o dado.
+- **A autoria é respeitada.** `SEMENTE_ANTERIOR` guarda o valor exacto que se semeou; um valor
+  diferente é do professor (ou de um plano antigo) e **não se toca**. Enquanto for a semente, ela
+  refaz-se: mudar a marcação muda a sequência, e uma consolidação que não acompanha a decisão é pior
+  do que não existir. E a semente **não herda de si mesma** — sem isso, um exercício desmarcado
+  deixava as linhas dele para trás.
+- **O nó que não se escreve** ganha duas travas, as mesmas do nó do cabeçalho: `gravarRespostaDoNo`
+  recusa-o (lê-lo devolveria `null`, que significa «apaga») e a **nota** não se desenha nele.
+- **O `musicasAula` não existe.** A música chegou ao formulário por uma chave nova e genérica do
+  conteúdo — `derivadoDaSequencia: {oQue, coluna, rotulo, de}` —, e não por um mecanismo próprio para
+  a música: o motor não sabe o que é um compasso, e o conteúdo diz.
 
-**Até aqui estava coberto por acidente.** O `check-identidade`, na checagem «Circuito», compara o
-`plano-observacao/index.html` de cada pacote com `porta/` e reprova quando diverge — foi ele que
-obrigou a sincronizar o HTML em `b0d781f`. Mas o «Circuito» compara **páginas e assets**, e não compara
-o **conteúdo** (`plano.json`, `anamnese.json`, `po.json`). É o conteúdo que diz quais são as perguntas.
+**Onde entrou.**
+- `porta/index.html` — a leitura acima do campo, o nó só de leitura, `semearDerivados()`, as duas
+  travas em `gravarRespostaDoNo` e na nota, o selo «lido da sequência» no roteiro.
+- `porta/plano/conteudo/plano.json` — os dois nós reescritos (o 24 passa a pedir só o vídeo) e o
+  objetivo do bloco 10.
+- `motor/nucleo/elicitar.js` — `derivadoDaSequencia` e `somenteLeitura` na lista fechada dos
+  descritores; sem elas o nó chegava à tela sem o que o conteúdo declarou.
+- `motor/nucleo/derivar-plano-ciclo.js` — `musicasDaSequencia()`, e a secção «Músicas e vídeos» a
+  imprimir as duas coisas (a música derivada e o que o professor escreveu).
+- `teste/batata.json` e `teste/calango.json` — a `aula-1-sequencia` escrita à mão **sai** (é derivada),
+  o `repertorio` **sai** (é semeado) e o `musicas-videos` passa a ser o link do vídeo. Era isto que
+  produzia a confusão que ela descreveu: os valores de teste diziam exercícios e blocos que não
+  correspondiam ao que ela marcava.
 
-**Medido antes de corrigir, para não inventar uma dívida antiga:** contra `5bfb7ae`, o scaffold e
-`porta/` tinham **25 nós e 0 divergentes**. Estava em sincronia — o desvio nasce quando alguém muda só
-`porta/`, e não há nada que o diga.
+**Com o quê.** `experimentos/provar-derivados-da-sequencia.js` — **26 asserções**, com **controle
+negativo** (sem o campo `musicas` na rota, a música não sobe): a semente (7 linhas, com os tempos do
+verbete), o repertório sem campo nenhum, a música acima do campo único, o valor de fora que passa,
+a sequência que acompanha a decisão, e o documento (a música, o vídeo, e o plano antigo intacto).
 
-**O que muda.** A cópia do scaffold passa a ser a fonte, byte a byte (`diff` vazio).
+**Validação.** `provar-derivados-da-sequencia` **26/0** (**14 falhas** com o `porta/index.html` de
+`HEAD`); `provar-musica-no-plano` **18/0**; `provar-dimensoes-plano` **11/11**; `provar-teste`
+**44/44** (foi ela que apanhou o apagamento do `distribuicao-de-volume` na primeira tentativa — a
+grelha com unidade grava `{unidade, linhas}`, e não uma lista); `provar-numeros-do-roteiro` **29/0**;
+`provar-plano-da-turma` **46/0**; `provar-porta-sem-contexto` **44/0**; `provar-po-unico` **18/0**;
+`provar-recorte-do-po` **26/0**; `provar-leituras-do-po` **27/0**; `provar-coerencia-do-po-no-pacote`
+**6/0**; `check-identidade` **20/20**; `check-pacote` **0 erro, 0 aviso**; `hash-ciclo --check`
+íntegro.
 
-**O que fica registado e NÃO corrigido aqui.** A checagem que faltaria — comparar o conteúdo da porta
-entre `porta/` e o scaffold — vive em `tools/check-identidade.js`, que é **congelado**
-(`CONGELAMENTO.md`). Mudá-lo exige motivo declarado no corpo, entrada neste registo e **commit próprio**.
-Sem ela, a próxima mudança de conteúdo que só toque em `porta/` volta a ficar no repositório e a não
-chegar à escola, **em silêncio**.
-
-**Validação.** `diff` vazio entre `porta/plano/conteudo/plano.json` e a cópia do scaffold;
-`check-identidade.js` → **20/20**; `check-pacote.js` → **0 erro**; e ao ar, depois do deploy de
-`22b42ce`: `/plano-ensino/plano/conteudo/plano.json` devolve `somenteLeitura: [Bloco, Objetivo
-específico]` e a explicação nova. Os quatro workflows de `22b42ce` em `success`.
+**O que ainda não está feito.**
+- **Três provas já falhavam antes desta entrega** e continuam a falhar: `provar-plano-matriz`
+  (a rota `/api/mapa` não responde), `provar-po-completo` (falta o `ciclo-01-po-schema.json` do
+  `leticia`) e `provar-aula-e-plano-legiveis` (a coluna «Linha de base revisitada → Observado na
+  aula» não está declarada no schema da captura). Medido com `git stash`: **idênticas antes**.
+- **`provar-objetivos-por-aula` não mede**: o fixture que media (`batata-bale-nivel-2-teste-2`) foi
+  expurgado do repositório. A prova diz isso em vez de falhar em silêncio — mas está sem objeto.
+- **O P1 (a ligação bloco ↔ dimensão por id) não foi feito.** Continua a ser a peça maior, e agora
+  com o plano escrito.
 
 ## O que está pendente
-
-## 28/10/2026 — A Sequência declarada sai, e a métrica ganha legenda
-
-- **O bloco de musicalidade continua sem pergunta.** Enquanto não houver nó no formulário do plano, o
-  documento não pode afirmar «Pulso»: a bancada propõe três itens (Pulso, Acento, Frase) com uma
-  coluna que os liga ao compasso declarado, e uma pergunta por item. Aprovar a bancada **não** resolve
-  isto — resolve só a legenda e as três colunas.
-- **29 dos 30 exercícios continuam sem tempos e compasso**, porque o plano não os declarou. É a maior
-  lacuna da aula, e é do lado do preenchimento, não do gerador.
-- O **envelope** só fica resolvido quando a pesquisadora refizer o plano no formulário.
-- A **sobrescrita do `plano-aula-01-anterior.json`** por cada regeneração continua a acontecer no
-  gerador (o instantâneo foi restaurado à mão outra vez, e as páginas de PDF e o `ciclos.json` também,
-  porque o `pre-commit` regera e reescreve os carimbos de tempo — o texto dos PDFs é idêntico,
-  confirmado por `pdftotext | md5sum`).
-- `tools/check-glossario.js` continua a falhar: aponta para
-  `professores/tiago/ciclos/ciclo-01-maria-notacao.md`, que já não existe neste worktree. É
-  pré-existente.
-
-## 28/10/2026 — O alfabeto muda de casa, e a âncora passa a selar com que código escreveu
-
-- **A opção (A)** — o alfabeto ainda não entra na cobertura da âncora. Fica para quando houver mais
-  de uma modalidade.
-- **O selo não está em todas as âncoras do repositório**: as outras variantes ficam com o aviso
-  «esta âncora não tem o selo do alfabeto» até serem reancoradas. O aviso é a peça que garante que
-  «sem selo» é um estado **declarado** e não um silêncio.
-- **A Fase 1 continua**: a forma nova do verbete (posição, direções, lado), a ligação sinal↔termo, as
-  posições por método, o CRUD na Produção, as seleções no plano e o motor a ler a forma nova.
 
 ## 28/10/2026 — O verbete ganha posição, direção e lado — e a prosa passa a saber dizê-las
 
@@ -283,6 +292,23 @@ específico]` e a explicação nova. Os quatro workflows de `22b42ce` em `succes
 
 - O **editor de célula** e o **«+» do exercício**, que dependem da decisão acima.
 - As **seleções no plano** (§1.6).
+
+## 01/11/2026 — O `;` que separa os itens, e a coluna que deixa de ser duas
+
+O `;` **não** governa os outros campos de lista (de propósito). E os
+envelopes já gravados com «a; b» continuam a ler-se como um item só até serem regravados: a correção
+é do leitor, não do dado, e o dado antigo não se reescreve.
+
+## 01/11/2026 — O que a sequência já responde não se escreve outra vez
+
+- **Três provas já falhavam antes desta entrega** e continuam a falhar: `provar-plano-matriz`
+  (a rota `/api/mapa` não responde), `provar-po-completo` (falta o `ciclo-01-po-schema.json` do
+  `leticia`) e `provar-aula-e-plano-legiveis` (a coluna «Linha de base revisitada → Observado na
+  aula» não está declarada no schema da captura). Medido com `git stash`: **idênticas antes**.
+- **`provar-objetivos-por-aula` não mede**: o fixture que media (`batata-bale-nivel-2-teste-2`) foi
+  expurgado do repositório. A prova diz isso em vez de falhar em silêncio — mas está sem objeto.
+- **O P1 (a ligação bloco ↔ dimensão por id) não foi feito.** Continua a ser a peça maior, e agora
+  com o plano escrito.
 
 ## Pendências anteriores (índice)
 
@@ -592,6 +618,8 @@ específico]` e a explicação nova. Os quatro workflows de `22b42ce` em `succes
 - **27/10/2026** — A Aula 01 chegou à produção da Batata → `REGISTRO.md` L27313
 - **28/10/2026** — O documento abre pela leitura, e o código interno sai da… → `REGISTRO.md` L27347
 - **28/10/2026** — O cabeçalho deixa de ter etiquetas, e o cartão da ficha… → `REGISTRO.md` L27463
+- **28/10/2026** — A Sequência declarada sai, e a métrica ganha legenda → `REGISTRO.md` L27558
+- **28/10/2026** — O alfabeto muda de casa, e a âncora passa a selar com que… → `REGISTRO.md` L27671
 - PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
