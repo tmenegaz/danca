@@ -65,6 +65,7 @@
       "nome": "batata",
       "professor": "pe-torto",
       "professores": [
+        "pe-junto",
         "pe-torto"
       ],
       "registros": [],
@@ -394,6 +395,11 @@
         "valor": "oculos-redondo"
       },
       {
+        "contagem": 1,
+        "rotulo": "Pé Junto",
+        "valor": "pe-junto"
+      },
+      {
         "contagem": 2,
         "rotulo": "Pe Torto",
         "valor": "pe-torto"
@@ -448,9 +454,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4bb971a"
+    "commit": "ca5b965"
   },
-  "gerado_em": "2026-11-01T22:29",
+  "gerado_em": "2026-11-01T22:32",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -557,6 +563,15 @@
       "id": "professor:oculos-redondo",
       "nome": "Oculos Redondo",
       "slug": "oculos-redondo"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:pe-junto",
+      "nome": "Pé Junto",
+      "slug": "pe-junto"
     },
     {
       "ciclos": [
