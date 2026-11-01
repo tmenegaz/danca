@@ -29537,11 +29537,29 @@ motivo escrito ao lado do comando.
 
 **Com o quê.** Não há prova de bancada para um workflow; a verificação é a próxima escola criada
 nascer com `ciclos_com_ancora: 1`. O caminho do comando é o mesmo que a prova do pacote usa
-(`hash-ciclo.sh --check`), e a `breu` foi ancorada à mão no commit seguinte.
+(`hash-ciclo.sh --check`). A `breu`, gerei-a à mão e o rebase mostrou que o ficheiro **já estava
+no remoto** — ver a correção abaixo.
+
+> **Correção de 01/11/2026 (mesmo dia).** A primeira redação desta entrada dizia «a `breu` foi
+> ancorada à mão no commit seguinte». **Está impreciso.** A âncora já existia no remoto, em
+> `3cb4042` («reancorar a cadeia das fontes alteradas»), posta pela Action — e não por mim: às
+> 15:12 a escola ganhou um segundo professor (`meia-ponta`, `b059b2a`), a Produção escreveu os
+> seis schemas do ciclo na pasta dele, **esses** commits foram empurrados com uma credencial de
+> pessoa, e o `reancorar.yml` disparou. A âncora que gerei à mão saiu **byte a byte igual** à do
+> remoto (`aba3df7…`, `parentHash` vazio) — o que confirma que o gerador é determinístico, e não
+> que o commit do scaffold ancore.
+>
+> **O furo é o que se disse:** o commit do `criar-escola.yml` **não** dispara o `reancorar`. Ele
+> **cura-se sozinho** quando outra coisa qualquer escreve em `professores/**` depois — e não se
+> cura se nada mais escrever. A escola fica, no intervalo, existindo sem âncora, e o
+> `ciclos_com_ancora: 0` diz isso sem alarme. A correção do workflow continua a ser a certa; o
+> que estava errado era a frase que atribuía a âncora desta escola a um gesto meu.
 
 **O que ainda não está feito.**
 
-- **A `breu` ficou sem âncora até este mesmo dia** — o conserto vale para as escolas seguintes.
+- **A `breu` ficou sem âncora entre as 14:30 e as 15:12** — até o `reancorar.yml` disparar por um
+  push alheio ao scaffold. O conserto vale para as escolas seguintes, e evita depender desse
+  acaso.
 - **As outras Actions continuam a não disparar** no commit do scaffold (`Publicar as escolas`,
   `Regerar os índices`). As duas estão cobertas por outro caminho — o `wrangler deploy` é feito
   pelo próprio workflow e os índices são regerados antes do commit —, mas a cobertura é
