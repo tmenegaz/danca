@@ -1,15 +1,63 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-01",
+    "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+    "cobertura": [
+      "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+    ],
+    "hash": "d82a963a8cbcc0b15cadfca8283cfbf7ee75b9240cb67b35f9b93c425e4103f2",
+    "hash_conteudo": "a72490bbd230aded6545d8fab8b415e3c48db5010dc9ddeda83b4c865498e82f",
+    "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+    "documento:aula:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+    "documento:aula:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+    "documento:dados:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+    "documento:dados:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+    "documento:glossario:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+    "documento:harmonizacao:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
     "documento:manifesto:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
-    "documento:plano:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md"
+    "documento:notacao:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
+    "documento:plano:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+    "documento:po:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+    "documento:referencias:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md"
   ],
   "escola": "batata",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -17,16 +65,31 @@
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "68a760a"
+    "commit": "d335f25"
   },
-  "gerado_em": "2026-11-01T22:55",
+  "gerado_em": "2026-11-01T22:59",
   "id": "ciclo:pe-junto/01/batata",
   "professor": "pe-junto",
   "versao": 6

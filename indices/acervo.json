@@ -1,15 +1,20 @@
 {
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "d82a963a8cbcc0b15cadfca8283cfbf7ee75b9240cb67b35f9b93c425e4103f2",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 12,
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:pe-junto/01/batata",
       "numero": "01",
       "professor": "pe-junto",
-      "sem_ancora": true
+      "sem_ancora": false
     },
     {
       "ancora": {
@@ -63,10 +68,10 @@
         "anamneses": 2,
         "aulas": 0,
         "ciclos": 2,
-        "ciclos_com_ancora": 1,
+        "ciclos_com_ancora": 2,
         "planos": 1,
-        "pos": 0,
-        "registros": 3
+        "pos": 1,
+        "registros": 4
       },
       "criada_em": "2026-11-01T22:29:37.341655+00:00",
       "expurgada": false,
@@ -83,7 +88,8 @@
       "registros": [
         "anamnese:anamnese-20261101-1950",
         "anamnese:anamnese-20261101-1952",
-        "plano:plano-20261101-1955"
+        "plano:plano-20261101-1955",
+        "po:po-20261101-1959"
       ],
       "slug": "batata"
     },
@@ -301,7 +307,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -360,14 +366,9 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -487,14 +488,19 @@
         "contagem": 1,
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "68a760a"
+    "commit": "d335f25"
   },
-  "gerado_em": "2026-11-01T22:55",
+  "gerado_em": "2026-11-01T22:59",
   "nao_indexado": [
     {
       "familia": "conteudo",
