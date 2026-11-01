@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-01T10:46:11-0300`
-Commit atual: `ac6caa0` — feat(entrega): o que a sequência já responde não se escreve outra vez
+Gerado em: `2026-11-01T11:04:08-0300`
+Commit atual: `5c3b3b0` — docs(registro): a conferência ao ar, medida
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,8 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+5c3b3b0 docs(registro): a conferência ao ar, medida
+7b80274 docs(registro): a fotografia do que a sequência já responde
 ac6caa0 feat(entrega): o que a sequência já responde não se escreve outra vez
 f1f8689 docs(registro): a armadilha do scaffold, que a verificação ao ar descobriu
 22b42ce fix(entrega): o conteúdo da porta no scaffold, que é o que a escola publica
@@ -98,8 +100,6 @@ e12ad94 feat(notacao): declarar «Battement fondu» (2|4/4) no alfabeto bale-cla
 2908822 docs(registro): a fotografia do sétimo passo, e as três decisões que ele fixou
 bf439f1 feat(notacao): a frase é do exercício, e o verbete ganha o sétimo passo
 1531eaa feat(notacao): declarar «Battement dégagé» (4|2/4) no alfabeto bale-classico
-c5d7359 docs(registro): a fotografia dos seis passos, e a decisão que os escolheu
-d7e71ff feat(notacao): o verbete em seis passos, com o modo de edição
 ```
 
 ## Por professor
@@ -199,86 +199,60 @@ d7e71ff feat(notacao): o verbete em seis passos, com o modo de edição
 
 ## Última entrada do REGISTRO
 
-## 01/11/2026 — O que a sequência já responde não se escreve outra vez
+## 01/11/2026 — As 23 aulas não são uma dívida: nascem à medida
 
-**O que motivou — a mesma família de erro, um andar acima.** No verbete, ela teve de digitar o texto
-do trecho outra vez em cada acrescento. No plano, o bloco 10 pedia «um por linha: título e, se
-quiser, a faixa ou o compasso» — e o **compasso de cada exercício já estava no verbete**, e os
-exercícios da aula **já estavam na sequência**, uma tela acima. O professor redigitava o que já tinha
-decidido, e as duas versões podiam discordar **sem que nada falhasse**.
+**O que motivou — um erro meu, medido.** Ao propor o P1 (a ligação bloco ↔ dimensão por id), escrevi
+que «derivar obriga a que as 23 aulas sem objetivo passem a ter um», e mandei para a pesquisadora o
+preenchimento dos «26 marcos». Ela corrigiu:
 
-**O que foi decidido.**
-- **«Músicas e vídeos» passa a ser «Vídeo de referência».** A música sobe da sequência — que a lê do
-  verbete —, exercício por exercício, **acima** do campo; o campo pede só o **link do vídeo**. Um
-  exercício sem verbete sai dito por palavras («tempos e compasso por declarar no verbete»), porque
-  a ausência é do dado e um documento que a esconde mente por omissão.
-- **«Repertório desta aula» é `somenteLeitura`.** O valor é a **sequência**; a tela semeia-o para o
-  envelope, o índice e o documento não ficarem cegos ao que a aula usa. A chave do envelope continua
-  a ser `repertorio` — o que muda é **quem a preenche**, e é isso que faz a conta do
-  `usosDosPlanos` (que lê prosa) passar a ler uma lista exacta.
-- **A sequência semeia-se sozinha.** Antes ela só era gravada se o nó fosse **aberto**: quem
-  preenchesse a matriz e gerasse o documento sem passar por lá perdia a sequência inteira, e a
-  página da aula saía sem exercício nenhum. Agora, a cada pintura do roteiro, o que a própria grelha
-  desenha (`grelhaDaTabela` + `lerGrelha`, **sem duplicar a regra**) é colhido para o dado.
-- **A autoria é respeitada.** `SEMENTE_ANTERIOR` guarda o valor exacto que se semeou; um valor
-  diferente é do professor (ou de um plano antigo) e **não se toca**. Enquanto for a semente, ela
-  refaz-se: mudar a marcação muda a sequência, e uma consolidação que não acompanha a decisão é pior
-  do que não existir. E a semente **não herda de si mesma** — sem isso, um exercício desmarcado
-  deixava as linhas dele para trás.
-- **O nó que não se escreve** ganha duas travas, as mesmas do nó do cabeçalho: `gravarRespostaDoNo`
-  recusa-o (lê-lo devolveria `null`, que significa «apaga») e a **nota** não se desenha nele.
-- **O `musicasAula` não existe.** A música chegou ao formulário por uma chave nova e genérica do
-  conteúdo — `derivadoDaSequencia: {oQue, coluna, rotulo, de}` —, e não por um mecanismo próprio para
-  a música: o motor não sabe o que é um compasso, e o conteúdo diz.
+> «A aula é elaborada no momento que o professor acha oportuno. Não faz sentido ele pensar em 26 aulas
+> de uma vez só, sendo que a situação do aluno, a capacidade do aluno, o desempenho dele, no que é
+> observado na aula 1, vai se transformar na aula 2, na aula 3. (…) Não dá pra fazer dessa maneira que
+> você tá sugerindo. Não tem como. É completamente fora do mundo real.»
+>
+> «Depois que a gente cria a aula 1, a gente dá a aula 1, coleta os dados dessa aula 1, gera o livro,
+> que é a base pra o professor poder então elaborar a aula 2. Mesmo que ele decida que a aula 2 vai
+> ser uma cópia da aula 1.»
 
-**Onde entrou.**
-- `porta/index.html` — a leitura acima do campo, o nó só de leitura, `semearDerivados()`, as duas
-  travas em `gravarRespostaDoNo` e na nota, o selo «lido da sequência» no roteiro.
-- `porta/plano/conteudo/plano.json` — os dois nós reescritos (o 24 passa a pedir só o vídeo) e o
-  objetivo do bloco 10.
-- `motor/nucleo/elicitar.js` — `derivadoDaSequencia` e `somenteLeitura` na lista fechada dos
-  descritores; sem elas o nó chegava à tela sem o que o conteúdo declarou.
-- `motor/nucleo/derivar-plano-ciclo.js` — `musicasDaSequencia()`, e a secção «Músicas e vídeos» a
-  imprimir as duas coisas (a música derivada e o que o professor escreveu).
-- `teste/batata.json` e `teste/calango.json` — a `aula-1-sequencia` escrita à mão **sai** (é derivada),
-  o `repertorio` **sai** (é semeado) e o `musicas-videos` passa a ser o link do vídeo. Era isto que
-  produzia a confusão que ela descreveu: os valores de teste diziam exercícios e blocos que não
-  correspondiam ao que ela marcava.
+**O que eu tinha lido mal.** Medi `ciclos.json` e contei **23 lugares de aula com `marco: null`**.
+Verdadeiro. E li aquilo como **lacuna de preenchimento** — quando é o **estado normal do método**: o
+plano declara os objetivos que o professor já sabe, e a lista mostra o resto como «Lugar do calendário
+— sem marco». O `PLANO-AULA-E-OBSERVACAO.md` §5.1 já o dizia; a `ESTADO-ATUAL` §8 já o dizia na linha
+`aula-object` («a aula nasce por um botão»); e eu tratei o **ainda não vivido** como **ainda não
+preenchido**. É a mesma família de erro do `if` que filtrava o título vazio: a pergunta «está aqui?» e
+a pergunta «devia estar?» não são a mesma pergunta.
 
-**Com o quê.** `experimentos/provar-derivados-da-sequencia.js` — **26 asserções**, com **controle
-negativo** (sem o campo `musicas` na rota, a música não sobe): a semente (7 linhas, com os tempos do
-verbete), o repertório sem campo nenhum, a música acima do campo único, o valor de fora que passa,
-a sequência que acompanha a decisão, e o documento (a música, o vídeo, e o plano antigo intacto).
+**O que foi decidido.** A decisão passa a ser a **34** da fotografia, e ela **fecha** uma pergunta
+aberta desde 25/10/2026 — o `REGISTRO` daquela data deixou escrito que «a primeira [decisão pendente]
+é o que fazer com as 23 aulas que não têm marco». A resposta é: **nada. Elas nascem à medida**, e o
+que as faz nascer é o **registo da aula anterior** (o caderno), não um preenchimento antecipado.
 
-**Validação.** `provar-derivados-da-sequencia` **26/0** (**14 falhas** com o `porta/index.html` de
-`HEAD`); `provar-musica-no-plano` **18/0**; `provar-dimensoes-plano` **11/11**; `provar-teste`
-**44/44** (foi ela que apanhou o apagamento do `distribuicao-de-volume` na primeira tentativa — a
-grelha com unidade grava `{unidade, linhas}`, e não uma lista); `provar-numeros-do-roteiro` **29/0**;
-`provar-plano-da-turma` **46/0**; `provar-porta-sem-contexto` **44/0**; `provar-po-unico` **18/0**;
-`provar-recorte-do-po` **26/0**; `provar-leituras-do-po` **27/0**; `provar-coerencia-do-po-no-pacote`
-**6/0**; `check-identidade` **20/20**; `check-pacote` **0 erro, 0 aviso**; `hash-ciclo --check`
-íntegro.
+**Consequência para o P1.** A ligação bloco ↔ dimensão é **por aula, no momento em que aquela aula
+nasce** — nunca uma derivação para as 26.
 
-**O que ainda não está feito.**
-- **Três provas já falhavam antes desta entrega** e continuam a falhar: `provar-plano-matriz`
-  (a rota `/api/mapa` não responde), `provar-po-completo` (falta o `ciclo-01-po-schema.json` do
-  `leticia`) e `provar-aula-e-plano-legiveis` (a coluna «Linha de base revisitada → Observado na
-  aula» não está declarada no schema da captura). Medido com `git stash`: **idênticas antes**.
-- **`provar-objetivos-por-aula` não mede**: o fixture que media (`batata-bale-nivel-2-teste-2`) foi
-  expurgado do repositório. A prova diz isso em vez de falhar em silêncio — mas está sem objeto.
-- **O P1 (a ligação bloco ↔ dimensão por id) não foi feito.** Continua a ser a peça maior, e agora
-  com o plano escrito.
+**O que fica registado como medido, e é o caminho crítico real** (não o P1):
+- a ação **«Definir o marco»**, que o `PLANO-AULA-E-OBSERVACAO.md` §5.1 prevê para o lugar sem marco,
+  **não existe no código** — busca em `motor/`, `porta/`, `tools/templates/` e `workers/`: zero
+  ocorrências;
+- **«Abrir a aula»** também não existe no produto: só nos fixtures do `check-identidade.js` e nas
+  propostas de desenho;
+- o **caderno** (o «livro» de que ela fala) tem builder em `tools/lib-vistas.js` e **não é gerado**:
+  o `gerar-vista.js` só produz `guia-de-observacao`, e as outras vistas «entram quando a captura tiver
+  o dado» — `aulas` está vazio.
+
+**Onde entrou.** `ESTADO-ATUAL.md` — decisão **34** na §6, a §7 com o caminho crítico medido, e a §10
+com o custo corrigido (a folha de **cada aula criada**, hoje **uma** — não «as 26»). O
+`TRANSFERENCIA-IA.md` foi reescrito no mesmo sentido, porque a versão anterior levava a afirmação
+errada para outro assistente.
+
+**Referências.** `PLANO-AULA-E-OBSERVACAO.md` §5 (a aula 2..N), `ARQUITETURA-AULA.md` §1 (o estado
+derivado e a intenção editável até à data da aula).
+
+**O que ainda não está feito.** O P1 continua por fazer, e passa a ter uma condição de entrada que não
+tinha: **a aula 2 tem de existir como objeto** antes de a herança poder ser medida — com uma aula só
+não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
 
 ## O que está pendente
-
-## 28/10/2026 — O verbete ganha posição, direção e lado — e a prosa passa a saber dizê-las
-
-- **O CRUD na Produção (§1.5)** — o lugar onde a pesquisadora administra o verbete. É a peça
-  central da fase e a que falta.
-- **As seleções no plano (§1.6)** — o plano ainda não tem as colunas de posição e direção; as
-  direções continuam a ser declaradas pelo verbete, não escolhidas por quem planeia.
-- **As posições de braços marcadas «por conferir»** — quatro linhas à espera da fonte.
-- A Fase 1.1 continua válida: o selo do alfabeto no `.fipp` já apanha a mudança de sha.
 
 ## 28/10/2026 — O verbete passa a ser administrável na Produção
 
@@ -309,6 +283,12 @@ envelopes já gravados com «a; b» continuam a ler-se como um item só até ser
   expurgado do repositório. A prova diz isso em vez de falhar em silêncio — mas está sem objeto.
 - **O P1 (a ligação bloco ↔ dimensão por id) não foi feito.** Continua a ser a peça maior, e agora
   com o plano escrito.
+
+## 01/11/2026 — As 23 aulas não são uma dívida: nascem à medida
+
+O P1 continua por fazer, e passa a ter uma condição de entrada que não
+tinha: **a aula 2 tem de existir como objeto** antes de a herança poder ser medida — com uma aula só
+não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
 
 ## Pendências anteriores (índice)
 
@@ -620,6 +600,7 @@ envelopes já gravados com «a; b» continuam a ler-se como um item só até ser
 - **28/10/2026** — O cabeçalho deixa de ter etiquetas, e o cartão da ficha… → `REGISTRO.md` L27463
 - **28/10/2026** — A Sequência declarada sai, e a métrica ganha legenda → `REGISTRO.md` L27558
 - **28/10/2026** — O alfabeto muda de casa, e a âncora passa a selar com que… → `REGISTRO.md` L27671
+- **28/10/2026** — O verbete ganha posição, direção e lado — e a prosa passa a… → `REGISTRO.md` L27753
 - PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

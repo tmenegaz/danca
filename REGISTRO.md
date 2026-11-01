@@ -29155,3 +29155,56 @@ requisição a `https://batata.tmenegaz77.workers.dev/plano-ensino/plano/conteud
 `derivadoDaSequencia: {oQue: "exercicios"}`, e `musicas-videos` com `oQue: "musicas"`. É o que a
 mudança tinha de chegar a fazer. **A cota do KV não foi tocada**: `plano.json` é asset estático, não
 endpoint de estado.
+
+## 01/11/2026 — As 23 aulas não são uma dívida: nascem à medida
+
+**O que motivou — um erro meu, medido.** Ao propor o P1 (a ligação bloco ↔ dimensão por id), escrevi
+que «derivar obriga a que as 23 aulas sem objetivo passem a ter um», e mandei para a pesquisadora o
+preenchimento dos «26 marcos». Ela corrigiu:
+
+> «A aula é elaborada no momento que o professor acha oportuno. Não faz sentido ele pensar em 26 aulas
+> de uma vez só, sendo que a situação do aluno, a capacidade do aluno, o desempenho dele, no que é
+> observado na aula 1, vai se transformar na aula 2, na aula 3. (…) Não dá pra fazer dessa maneira que
+> você tá sugerindo. Não tem como. É completamente fora do mundo real.»
+>
+> «Depois que a gente cria a aula 1, a gente dá a aula 1, coleta os dados dessa aula 1, gera o livro,
+> que é a base pra o professor poder então elaborar a aula 2. Mesmo que ele decida que a aula 2 vai
+> ser uma cópia da aula 1.»
+
+**O que eu tinha lido mal.** Medi `ciclos.json` e contei **23 lugares de aula com `marco: null`**.
+Verdadeiro. E li aquilo como **lacuna de preenchimento** — quando é o **estado normal do método**: o
+plano declara os objetivos que o professor já sabe, e a lista mostra o resto como «Lugar do calendário
+— sem marco». O `PLANO-AULA-E-OBSERVACAO.md` §5.1 já o dizia; a `ESTADO-ATUAL` §8 já o dizia na linha
+`aula-object` («a aula nasce por um botão»); e eu tratei o **ainda não vivido** como **ainda não
+preenchido**. É a mesma família de erro do `if` que filtrava o título vazio: a pergunta «está aqui?» e
+a pergunta «devia estar?» não são a mesma pergunta.
+
+**O que foi decidido.** A decisão passa a ser a **34** da fotografia, e ela **fecha** uma pergunta
+aberta desde 25/10/2026 — o `REGISTRO` daquela data deixou escrito que «a primeira [decisão pendente]
+é o que fazer com as 23 aulas que não têm marco». A resposta é: **nada. Elas nascem à medida**, e o
+que as faz nascer é o **registo da aula anterior** (o caderno), não um preenchimento antecipado.
+
+**Consequência para o P1.** A ligação bloco ↔ dimensão é **por aula, no momento em que aquela aula
+nasce** — nunca uma derivação para as 26.
+
+**O que fica registado como medido, e é o caminho crítico real** (não o P1):
+- a ação **«Definir o marco»**, que o `PLANO-AULA-E-OBSERVACAO.md` §5.1 prevê para o lugar sem marco,
+  **não existe no código** — busca em `motor/`, `porta/`, `tools/templates/` e `workers/`: zero
+  ocorrências;
+- **«Abrir a aula»** também não existe no produto: só nos fixtures do `check-identidade.js` e nas
+  propostas de desenho;
+- o **caderno** (o «livro» de que ela fala) tem builder em `tools/lib-vistas.js` e **não é gerado**:
+  o `gerar-vista.js` só produz `guia-de-observacao`, e as outras vistas «entram quando a captura tiver
+  o dado» — `aulas` está vazio.
+
+**Onde entrou.** `ESTADO-ATUAL.md` — decisão **34** na §6, a §7 com o caminho crítico medido, e a §10
+com o custo corrigido (a folha de **cada aula criada**, hoje **uma** — não «as 26»). O
+`TRANSFERENCIA-IA.md` foi reescrito no mesmo sentido, porque a versão anterior levava a afirmação
+errada para outro assistente.
+
+**Referências.** `PLANO-AULA-E-OBSERVACAO.md` §5 (a aula 2..N), `ARQUITETURA-AULA.md` §1 (o estado
+derivado e a intenção editável até à data da aula).
+
+**O que ainda não está feito.** O P1 continua por fazer, e passa a ter uma condição de entrada que não
+tinha: **a aula 2 tem de existir como objeto** antes de a herança poder ser medida — com uma aula só
+não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.

@@ -391,6 +391,17 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     pronto. O `emLista` geral **não** se alarga: o `;` é pontuação legítima noutros campos (o
     repertório, a proveniência), e alargar o corte em todo o lado partiria frases que são uma só. A
     separação é **pergunta do campo**. **DECIDIDO** 01/11/2026.
+34. **A AULA N NASCE QUANDO O PROFESSOR A ELABORA — O PLANO NÃO DECLARA AS 26.** O plano declara
+    **objetivos específicos** (poucos) e **em que aula** cada um cai (`aula-de-cada-objetivo`); os
+    lugares do calendário que ainda não têm objetivo aparecem na lista como «Lugar do calendário —
+    sem marco». **Isso não é lacuna a preencher: é o método.** O professor cria a aula 1, dá-a,
+    lança-a — e é com o **registo dela** (o caderno) à frente que ele elabora a aula 2, mesmo que
+    decida que ela é uma cópia da 1. A razão é a do domínio, não a do software: *«a situação do
+    aluno, a capacidade do aluno, o desempenho dele, no que é observado na aula 1, vai se
+    transformar na aula 2, na aula 3»*. **Consequência para o P1:** a ligação bloco ↔ dimensão é **por aula, no
+    momento em que aquela aula nasce** — nunca uma derivação para as 26. **DECIDIDO** 01/11/2026 —
+    e isto **responde** à pergunta que estava aberta desde 25/10/2026 («o que fazer com as 23 aulas
+    que não têm marco»): **nada. Elas nascem à medida.**
 
 ## 7. Trabalho em andamento
 
@@ -880,11 +891,28 @@ A **faixa** (o título da música) continua a não existir em lugar nenhum, e é
 bloco ainda pede por escrito, dentro da caixa do vídeo.
 
 **O P1 — a ligação bloco ↔ dimensão por id — é o próximo passo, e é decisão dela** (01/11/2026:
-«sim, são a mesma coisa com dois nomes; use ligação por id»). O recorte **já existe** em
+«Sim, são a mesma coisa com dois nomes. Use ligação por id»). O recorte **já existe** em
 `objetivosEspecificos[].blocos`; o trabalho é **ligá-lo** ao PO e fazê-lo chegar ao formulário — é
-**ligação**, não invenção. Custo medido: `porta/index.html`, `tools/templates/lancamento.html` e
+**ligação**, não invenção.
+
+**E a ligação é POR AULA, não para as 26** (decisão 34): ela corrigiu a 01/11/2026 o enquadramento
+que esta fotografia trazia — *«a aula é elaborada no momento que o professor acha oportuno (…). Não
+dá pra fazer dessa maneira que você tá sugerindo. Não tem como. É completamente fora do mundo real.»*
+O recorte lê-se **quando aquela aula nasce**, com o registo da anterior à frente.
+
+**O caminho crítico, medido, não é o P1 — é a aula 2 existir.** Hoje:
+- a **lista** mostra os 23 lugares sem marco como «Lugar do calendário — sem marco», e o
+  `PLANO-AULA-E-OBSERVACAO.md` §5.1 prevê a ação **«Definir o marco»** — que **não existe no código**
+  (busca em `motor/`, `porta/`, `tools/templates/`, `workers/`: zero ocorrências de «Definir o marco»);
+- «**Abrir a aula**» também não existe no produto: só nos fixtures do `check-identidade` e nas
+  propostas de desenho;
+- o **caderno** (o *livro* de que ela fala) tem builder em `tools/lib-vistas.js`, mas o
+  `gerar-vista.js` só gera `guia-de-observacao` — as outras vistas «entram quando a captura tiver o
+  dado», e `aulas` está vazio.
+
+**Custo do P1:** `porta/index.html`, `tools/templates/lancamento.html` e
 `tools/validar-captura-ciclo.js` (**os dois congelados**: motivo declarado + entrada no `REGISTRO` +
-commit próprio), as **26 folhas** de captura e a reancora.
+commit próprio), a folha de **cada aula criada** (hoje **uma**) e a reancora.
 
 **Pendente dela** (nada disto é código à espera de autorização, é olho dela):
 - **Corrigir a associação** das turmas da `batata`: a relação guarda `rond-de-jambe`, que não existe no
