@@ -378,6 +378,11 @@
         "valor": "manga-curta"
       },
       {
+        "contagem": 0,
+        "rotulo": "mao-alongada",
+        "valor": "mao-alongada"
+      },
+      {
         "contagem": 1,
         "rotulo": "meia-cortada",
         "valor": "meia-cortada"
@@ -447,9 +452,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "fb8416c"
+    "commit": "f2d5616"
   },
-  "gerado_em": "2026-11-01T20:15",
+  "gerado_em": "2026-11-01T20:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -524,6 +529,13 @@
       "id": "professor:manga-curta",
       "nome": null,
       "slug": "manga-curta"
+    },
+    {
+      "ciclos": [],
+      "escolas": [],
+      "id": "professor:mao-alongada",
+      "nome": null,
+      "slug": "mao-alongada"
     },
     {
       "ciclos": [],
