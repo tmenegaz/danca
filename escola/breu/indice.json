@@ -291,12 +291,5 @@
         "nome": "Cafe No Bule"
       }
     }
-  ],
-  "professores": [
-    {
-      "slug": "mao-alongada",
-      "nome": "Mão Alongada",
-      "desde": "2026-11-01T20:17:27.830Z"
-    }
   ]
 }
