@@ -1,14 +1,14 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-10-27",
+    "ancorado_em": "2026-11-01",
     "caminho": "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
     "cobertura": [
       "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
       "professores/so-para-direita/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf"
     ],
-    "hash": "dd67fde99f565c9806ea3f62ceffdc5d376a975d88b378ff890d4f78b7c5224a",
-    "hash_conteudo": "0898f1f122caa8eea879f02f839f9610cf170a17782c2c931a186757ff09fe57",
+    "hash": "40911ef61b77b58f3d3102a98e82bff56fed38475c6293dfd2cebe3a86292903",
+    "hash_conteudo": "7944d56868f95f10ec3ee8b8ca038015a879204c65a6aa7f04c24a4d0aa9c9bc",
     "id": "ciclo-01-batata-bale-nivel-2-teste-2",
     "lida": true,
     "parent_hash": ""
