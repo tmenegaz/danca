@@ -1455,6 +1455,18 @@ let TURMAS_CARREGANDO = false;
 // saem os parâmetros de medição do plano (o conteúdo do nível da turma escolhida).
 let TURMA_CONTEUDOS = null;
 let TERMOS_DA_ESCOLA = null;
+/* AS MÚSICAS QUE O VERBETE DECLARA, POR EXERCÍCIO (31/10/2026).
+ *
+ * O plano de ensino pede, em cada linha da sequência, os TEMPOS e o COMPASSO — e são as duas
+ * únicas coisas que ele contribui para a notação: juntas são a chave do verbete
+ * (`<tempos>|<compasso>`), e é com ela que `motor/nucleo/notacao.js` compõe o documento. O
+ * verbete de cada exercício já declara essa chave; pedi-la outra vez era a redundância que a
+ * pesquisadora viu: os campos vazios, e o documento a dizer «os tempos e o compasso ainda não
+ * estão declarados no plano».
+ *
+ * A lista chega na rota que esta página já pede (`/api/bastidores/termos`, campo `musicas`),
+ * lida do alfabeto empacotado — sem KV e sem uma segunda chamada. */
+let MUSICAS_DO_TERMO = new Map();
 
 async function carregarTurmasDaEscola() {
   if (TURMAS_DA_ESCOLA !== null || TURMAS_CARREGANDO) return;
@@ -1478,10 +1490,16 @@ async function carregarTurmasDaEscola() {
     TURMA_CONTEUDOS = rel.ok && r && r.relacoes && typeof r.relacoes === 'object' ? r.relacoes : {};
     const t = termos.dados;
     TERMOS_DA_ESCOLA = termos.ok && t && Array.isArray(t.termos) ? t.termos : [];
+    MUSICAS_DO_TERMO = new Map();
+    for (const termo of TERMOS_DA_ESCOLA) {
+      const lista = Array.isArray(termo && termo.musicas) ? termo.musicas : [];
+      if (termo && termo.termo && lista.length) MUSICAS_DO_TERMO.set(String(termo.termo), lista.map(String));
+    }
   } catch (erro) {
     TURMAS_DA_ESCOLA = [];
     TURMA_CONTEUDOS = {};
     TERMOS_DA_ESCOLA = [];
+    MUSICAS_DO_TERMO = new Map();
   }
   TURMAS_CARREGANDO = false;
 }
@@ -4240,9 +4258,50 @@ function grelhaDaTabela(no) {
   // marcação, e por isso não pode entrar na fila do que o professor acrescentou.
   while (linhas.length < minimo) linhas.push({});
 
-  const corpo = linhas.map((linha, i) =>
-    '<tr>' + colunas.map((c) => {
+  const corpo = linhas.map((linha, i) => {
+    // A MÚSICA DA LINHA — as que o verbete do exercício declara. Com UMA, os dois campos são
+    // leitura (o verbete é a fonte); com VÁRIAS, os dois escolhem dentro do que existe; sem
+    // nenhuma, fica tudo como era. A lista viaja no `data-musicas` da linha para o compasso
+    // poder ser refeito quando os tempos mudam — 8 tempos só existem em 4/4, e 12 em 3/4.
+    const musicas = colunaDerivada ? musicasDoExercicio(linha[colunaDerivada]) : [];
+    const umaMusica = musicas.length === 1 ? musicas[0] : null;
+    const valoresDaMusica = (qual) => {
+      const vistos = [];
+      for (const m of musicas) if (m[qual] && vistos.indexOf(m[qual]) === -1) vistos.push(m[qual]);
+      return vistos;
+    };
+    const atributos = musicas.length > 1
+      ? ' data-musicas="' + escapar(musicas.map((m) => m.tempos + '|' + m.compasso).join(' ')) + '"'
+      : '';
+    return '<tr' + atributos + '>' + colunas.map((c) => {
       const valor = escapar(linha[c] == null ? '' : linha[c]);
+      // AS DUAS COLUNAS DA MÚSICA VÊM DO VERBETE (31/10/2026) — e vêm ANTES da regra das
+      // travadas, porque não são `somenteLeitura` da tabela: são leitura NESTA linha, por causa
+      // do exercício dela. Um exercício sem verbete continua a escrevê-las à mão.
+      if (COLUNAS_DA_MUSICA.indexOf(c) !== -1) {
+        if (umaMusica) {
+          const v = escapar(umaMusica[c === 'Tempos' ? 'tempos' : 'compasso']);
+          return '<td class="travada" title="vem do verbete de ' + escapar(String(linha[colunaDerivada] || '')) +
+            '">' + v + '<input type="hidden" data-grelha="' + i + '" data-coluna="' + escapar(c) +
+            '" value="' + v + '"></td>';
+        }
+        if (musicas.length > 1) {
+          const opcoes = valoresDaMusica(c === 'Tempos' ? 'tempos' : 'compasso');
+          const atual = linha[c] == null ? '' : String(linha[c]);
+          // O que já estava gravado entra na lista mesmo que o verbete já não o declare: um
+          // select que apaga o valor guardado é a tela a perder dado por ter sido desenhada.
+          const itens = atual && opcoes.indexOf(atual) === -1 ? opcoes.concat([atual]) : opcoes;
+          // UMA OPÇÃO SÓ ESCOLHE-SE SOZINHA. Todos os verbetes de hoje declaram as suas músicas
+          // no mesmo compasso (o Battement tendu, em 4/4): oferecer «— escolher —» num campo com
+          // uma resposta possível é pedir um clique para confirmar o único valor que existe.
+          const escolhido = atual || (itens.length === 1 ? itens[0] : '');
+          return '<td><select data-grelha="' + i + '" data-coluna="' + escapar(c) + '">' +
+            '<option value="">— escolher —</option>' +
+            itens.map((o) => '<option value="' + escapar(o) + '"' +
+              (o === escolhido ? ' selected' : '') + '>' + escapar(o) + '</option>').join('') +
+            '</select></td>';
+        }
+      }
       if (travadas.indexOf(c) !== -1 || (c === colunaDerivada && linhasDaDerivada.has(linha))) {
         return '<td class="travada">' + (valor || '<span class="dono">—</span>') +
           '<input type="hidden" data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' + valor + '"></td>';
@@ -4283,7 +4342,18 @@ function grelhaDaTabela(no) {
           ? 'Esta linha vem dos blocos da aula — não se remove aqui'
           : 'Remover esta linha') + '">✕</button></td>'
       : '') +
-    '</tr>').join('');
+    '</tr>';
+  }).join('');
+
+  // A ORIGEM DAS DUAS COLUNAS, à vista (31/10/2026). O professor vê os tempos e o compasso já
+  // preenchidos e precisa de saber que não os escreve aqui — e onde os muda. Sem esta nota, o
+  // campo travado parece um defeito; com ela, é uma decisão.
+  const daMusica = colunaDerivada && linhas.some((l) => musicasDoExercicio(l[colunaDerivada]).length);
+  const nota = daMusica
+    ? '<p class="sub">Os <strong>tempos</strong> e o <strong>compasso</strong> vêm do verbete do ' +
+      'exercício — é a música que ele declara no alfabeto. Escolha outro exercício para mudar a ' +
+      'música; para corrigir o exercício, o verbete é que se altera, em Produção.</p>'
+    : '';
 
   const rodape = podeAcrescentar
     ? '<p class="linha-acao"><button type="button" data-grelha-add="1">Adicionar linha</button>' +
@@ -4308,7 +4378,7 @@ function grelhaDaTabela(no) {
       '</p>'
     : '';
 
-  return seletorDeUnidade + '<table class="grelha"><thead><tr>' +
+  return nota + seletorDeUnidade + '<table class="grelha"><thead><tr>' +
     colunas.map((c) => '<th>' + rotuloDaColuna(c) + '</th>').join('') +
     (removivel ? '<th></th>' : '') + '</tr></thead>' +
     '<tbody>' + corpo + '</tbody></table>' +
@@ -4785,6 +4855,56 @@ function avisoDeConteudoOrfao(orfaos, turma) {
     'Em Produção, na secção Turmas (passo Associar), remova ' +
     (um ? 'a associação' : 'as associações') + ' e associe o termo certo' +
     (turma ? ' — a turma é «' + escapar(turma) + '»' : '') + '.</p>';
+}
+
+/* O COMPASSO ACOMPANHA OS TEMPOS, nas linhas em que o verbete declara mais de uma música.
+ *
+ * A lista de pares viaja no `data-musicas` da linha («4|4/4 8|4/4 12|4/4»). Escolhido o tempo,
+ * o compasso só oferece os que existem para ele; se sobrar um só, fica escolhido sem clique. E o
+ * que estava escolhido é mantido quando continua a ser válido — trocar de tempo não pode apagar
+ * uma escolha que ainda serve.
+ */
+function ajustarCompassoDaMusica(el) {
+  const tr = el.closest ? el.closest('tr') : null;
+  if (!tr) return;
+  const pares = String(tr.getAttribute('data-musicas') || '').split(' ')
+    .map((p) => String(p).split('|'))
+    .filter((p) => p.length === 2 && p[0] === el.value);
+  const alvo = tr.querySelector('select[data-coluna="Compasso"]');
+  if (!alvo) return;
+  const antes = alvo.value;
+  const opcoes = [];
+  for (const p of pares) if (opcoes.indexOf(p[1]) === -1) opcoes.push(p[1]);
+  if (!opcoes.length) return;
+  alvo.innerHTML = '<option value="">— escolher —</option>' +
+    opcoes.map((o) => '<option value="' + escapar(o) + '">' + escapar(o) + '</option>').join('');
+  alvo.value = opcoes.indexOf(antes) !== -1 ? antes : (opcoes.length === 1 ? opcoes[0] : '');
+}
+
+/* AS DUAS COLUNAS DA MÚSICA — TEMPOS E COMPASSO (31/10/2026).
+ *
+ * O plano contribui com DUAS coisas para a notação, e são estas: juntas formam a chave do
+ * verbete (`<tempos>|<compasso>`). O verbete do exercício já a declara; perguntá-la outra vez,
+ * em campos vazios, punha a linha em lacuna sem motivo.
+ *
+ * A regra, e é a decidida pela pesquisadora:
+ *   · o verbete declara UMA música → os dois campos vêm preenchidos e TRAVADOS (como o Bloco e
+ *     o Objetivo, que também vêm do sistema);
+ *   · o verbete declara VÁRIAS → os dois viram escolha, e só as músicas declaradas se oferecem
+ *     (o Battement tendu tem 8|4/4 e 12|4/4: 8 em 3/4 não existe, e não se pode escrever);
+ *   · o exercício NÃO tem verbete → fica como era (tempos à mão, compasso da lista dos oito),
+ *     porque aí não há o que derivar — e a linha dirá «sem verbete» no documento.
+ */
+const COLUNAS_DA_MUSICA = ['Tempos', 'Compasso'];
+
+function musicasDoExercicio(nome) {
+  const lista = (nome && MUSICAS_DO_TERMO.get(String(nome))) || [];
+  const pares = [];
+  for (const m of lista) {
+    const partes = String(m).split('|');
+    if (partes[0] && partes[1]) pares.push({ tempos: partes[0], compasso: partes[1] });
+  }
+  return pares;
 }
 
 /* O CAMPO LIDO DE UM MARCO (o objetivo específico da Aula 1 = marco 1) saiu com o
@@ -8138,6 +8258,11 @@ async function iniciar() {
   });
 
   $('pergunta').addEventListener('change', (evento) => {
+    // OS TEMPOS MANDAM NO COMPASSO (31/10/2026). Quando o verbete declara mais de uma música,
+    // as duas colunas são escolha — e só valem em par: 8 tempos existem em 4/4, 12 em 3/4. Sem
+    // esta linha, o professor escolhia 8 tempos e 3/4, um par que o alfabeto não tem, e o
+    // documento caía em «o verbete existe, mas não para esta música» — verdade, e inútil.
+    if (evento.target.matches('select[data-coluna="Tempos"]')) ajustarCompassoDaMusica(evento.target);
     if (evento.target.matches('input[name="pratica"]')) aplicarExclusiva(MAPA.nos[INDICE]);
     // TROCAR O PLANO TROCA A TURMA — e com ela quem pode ser observado (20/10/2026).
     if (MAPA.nos[INDICE] && MAPA.nos[INDICE].id === 'plano-de-ensino') esquecerSujeitosDaTurma();

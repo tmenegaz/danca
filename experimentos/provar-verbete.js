@@ -37,6 +37,14 @@ const ALFABETO = JSON.parse(fs.readFileSync(
 const VOCABULARIO = JSON.parse(fs.readFileSync(
   path.join(RAIZ, 'biblioteca', 'modalidades', 'bale-classico', 'vocabulario.json'), 'utf8'));
 
+// A FIXTURE DA ESCRITA NÃO DEPENDE DO DADO REAL (31/10/2026). Esta prova cria o «Battement
+// fondu» do zero — e deixou de o poder fazer no dia em que ele passou a existir no alfabeto a
+// sério: o CRUD respondeu, e com razão, 409. Uma prova do CRUD que se estraga porque se criou um
+// exercício em Produção é uma prova que mede o dado, não o mecanismo. Por isso a escrita tem uma
+// fixture própria, com o nome de fora.
+const ALFABETO_DA_ESCRITA = JSON.parse(JSON.stringify(ALFABETO));
+delete (ALFABETO_DA_ESCRITA.verbetes || {})['Battement fondu'];
+
 function verbeteBom(extra) {
   return Object.assign({
     cobre: 4,
@@ -151,7 +159,7 @@ async function aEscrita() {
   const CAlfabeto = verbete.caminhoDoAlfabeto('bale-classico');
   const CVocabulario = verbete.caminhoDoVocabulario('bale-classico');
   const repo = githubFalso({
-    [CAlfabeto]: { sha: 'sha-inicial', conteudo: JSON.stringify(ALFABETO, null, 2) + '\n' },
+    [CAlfabeto]: { sha: 'sha-inicial', conteudo: JSON.stringify(ALFABETO_DA_ESCRITA, null, 2) + '\n' },
     [CVocabulario]: { sha: 'sha-voc', conteudo: JSON.stringify(VOCABULARIO, null, 2) + '\n' },
   });
 
@@ -164,7 +172,7 @@ async function aEscrita() {
     nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteBom(), acao: 'criar',
   }));
   checar('um verbete novo é criado', criado.ok, criado);
-  checar('e a versão do alfabeto sobe', criado.versao === Number(ALFABETO.versao) + 1, criado.versao);
+  checar('e a versão do alfabeto sobe', criado.versao === Number(ALFABETO_DA_ESCRITA.versao) + 1, criado.versao);
   checar('a gravação vai para o caminho do alfabeto da modalidade',
     repo.arquivos.has(CAlfabeto) && repo.pedidos.some((p) => p.metodo === 'PUT' && p.caminho === CAlfabeto));
 

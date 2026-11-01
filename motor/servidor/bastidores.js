@@ -365,6 +365,30 @@ async function termos(kv, escola) {
   return CATALOGO.TERMOS.map((t) => Object.assign({}, t));
 }
 
+/**
+ * AS MÚSICAS QUE O VERBETE DECLARA, por EXERCÍCIO — `Map(nome → ['2|4/4', …])`.
+ *
+ * O verbete é chaveado pelo NOME do exercício e, dentro, pela música `<tempos>|<compasso>`: é a
+ * mesma chave que `motor/nucleo/notacao.js` usa para compor. Esta função só a lê, e não decide
+ * nada — quem decide é a tela do plano (as duas colunas) e, quando há música, o motor.
+ *
+ * O alfabeto vem por `require` (empacotado no Worker): não há KV nem chamada à API do GitHub, e
+ * é por isso que esta leitura pode ser feita a cada carga da página sem custo de cota.
+ */
+function musicasDosExercicios() {
+  const { alfabetos } = require('../nucleo/notacao.js');
+  const mapa = new Map();
+  for (const { alfabeto } of alfabetos()) {
+    const verbetes = (alfabeto && alfabeto.verbetes) || {};
+    for (const nome of Object.keys(verbetes)) {
+      if (nome.startsWith('_')) continue;
+      const musicas = Object.keys(verbetes[nome] || {}).filter((k) => /^\d+\|/.test(k));
+      if (musicas.length) mapa.set(nome, musicas);
+    }
+  }
+  return mapa;
+}
+
 /** A relação turma↔termo: um MAPA `{ turmaId: [termoId, ...] }`. Um termo pode estar em
  *  várias turmas; uma turma tem vários termos. `lerLista` não serve aqui (não é array). */
 async function relacoes(kv, escola) {
@@ -7069,8 +7093,17 @@ async function fetch(request, env) {
   // GET /api/bastidores/termos — o vocabulário técnico (Produção).
   if (path === '/api/bastidores/termos') {
     const lista = await termos(kv, escola);
+    const musica = musicasDosExercicios();
+    // AS MÚSICAS DO VERBETE VÃO JUNTO (31/10/2026). O plano de ensino pede os tempos e o
+    // compasso de cada exercício, e o verbete JÁ OS DECLARA — é a chave dele, `<tempos>|<compasso>`.
+    // Pedir outra vez era a redundância que a pesquisadora viu no nó «Sequência de exercícios»:
+    // os campos vazios, e o documento a dizer «os tempos e o compasso ainda não estão declarados».
+    // O alfabeto é `require`-ado no bundle do Worker (zero KV, zero ida ao GitHub); vai aqui
+    // porque é esta a rota que a porta do plano já pede — uma rota nova seria uma leitura a mais.
+    const comMusicas = lista.map((t) => Object.assign({}, t,
+      { musicas: musica.get(String(t.termo || '')) || [] }));
     const opcoes = lista.map((t) => ({ valor: t.id, rotulo: t.termo }));
-    return json(200, { ok: true, escola, termos: lista, opcoes: opcoes });
+    return json(200, { ok: true, escola, termos: comMusicas, opcoes: opcoes });
   }
 
   // GET /api/bastidores/turma-conteudos — a relação turma↔termo (mapa inteiro).
