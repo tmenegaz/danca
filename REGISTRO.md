@@ -29287,3 +29287,94 @@ blocos de dimensão declaram **2 colunas cada** — os 8 critérios, um por um �
 com 1. É o artefato que o formulário publicado lê, e é o que prova que o conserto saiu do código e
 chegou à escola. **A cota do KV não foi tocada**: `captura-aula-01.json` é asset estático, não endpoint
 de estado.
+
+## 01/11/2026 — O que vive no KV, e o que não vive
+
+**O que motivou.** A pesquisadora expurgou a escola `batata` às 12:55 e pediu a medição. O
+expurgo fez a metade do repositório (commit `1721665`, **76 arquivos**, incluindo os quatro da
+pasta errada do `so-para-direita` — o plano que dizia «Nível 3» e morava em `nivel-2-teste-2`,
+o `.conf` que se contradizia, a âncora e o PO órfão) e as três Actions do commit fecharam em
+`success`; o sítio responde **404**. Mas o **elo 6** de `escola/batata/indice.json` ficou **sem
+o bloco `kv`**, enquanto os elos 2 a 5 o têm (`ok:true, restantes:0`). A pesquisadora
+contestou o diagnóstico — «não há nada no KV para ser visto, está tudo no Worker; KV é custo e
+tem regra de uso; *onde é que diz que tem que verificar o KV no expurgo?*». A verificação deu-lhe
+razão num ponto e desmentiu-o noutro, e a divergência estava escrita em dois sítios:
+
+- **os registros do ato já não estão no KV** desde 20/10/2026 — `servidor/acervo-envelopes.js`
+  diz «a escrita é só no repositório» e «não escreve no KV»; o que restava de antes foi limpo
+  pelo elo 5 (27/10, `restantes: 0`), antes da recriação das 12:11;
+- **o cadastro dos Bastidores continua no KV** — `kv.put` directo em dez sítios de
+  `bastidores.js` (`turmas`, `curadorias`, `alunas`, `rubricas`, `vocabulario`, `aparencia`,
+  `dono`, `turma-conteudos`), lido pelo Worker em `lerTurmasDoEnv`/`lerCuradoriasDoEnv`;
+- e a **documentação** do adaptador (`adaptadores/cloudflare.js`, `adaptadores/README.md`)
+  continuava a dizer «o KV guarda o que a elicitação produz (**os envelopes**)» — falso desde
+  20/10, e é essa frase que faz o expurgo parecer que precisa de limpar registros.
+
+**A prova de que o cadastro da `batata` estava no KV na hora do expurgo** — dedução fechada, sem
+tocar na cota: o `.conf` gravado às 12:00 traz `FREQUENCIA`, `DIAS`, `DURACAO_POR_DIA` e
+`TOTAL_AULAS`; os quatro saem do objeto `turma` (`compor-conf.js`, §ritmo); a `turma` só entra
+por `lerTurmas` (`escrever-plano.js`); e no Worker `lerTurmas` é **só**
+`kv.get('bastidores/<slug>/turmas')`. Não há outra fonte.
+
+**O que foi decidido.** Uma norma escrita, porque a divisão é do sistema e não de um caso:
+
+- o KV **não** guarda os registros do ato — eles vivem em `escola/<escola>/envelopes/`, e o KV é
+  **reserva** só dos anteriores a 20/10/2026;
+- o KV guarda o **cadastro** dos Bastidores, sob `bastidores/<escola>/`;
+- por isso o expurgo tem **duas metades com objectos diferentes** — o repositório apaga
+  `escola/<escola>/` e as fontes do ciclo, o KV apaga os prefixos `<escola>/` e
+  `bastidores/<escola>/` —, e **o elo tem de registar o desfecho das duas**;
+- **custo:** a enumeração (`kv.list`) é o último recurso; antes dela valem a lista declarada
+  (`CHAVES_FIXAS_DA_ESCOLA`) e a leitura directa (`get`), que não tem essa cota.
+
+**Onde entrou.**
+
+- `PROTOCOLO.md` — a norma «o que vive no KV, e o que não vive», logo depois das duas de
+  11/10/2026 e antes da P-05 (as pétreas não foram tocadas).
+- `motor/adaptadores/cloudflare.js` — o cabeçalho, que dizia que o KV guarda os envelopes.
+- `motor/adaptadores/README.md` — a tabela («KV (envelope)» → «KV (cadastro)») e o parágrafo,
+  com a nota da migração.
+
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `PROTOCOLO.md`, e ele foi
+tocado. **Por quê:** a norma que dizia onde o dado vive — a do expurgo — estava a descrever a
+metade errada, e foi essa descrição que sustentou um diagnóstico errado (o meu, sobre o elo 6)
+e uma leitura errada dela (a de que não havia nada a limpar). **O que não muda:** nenhuma das 22
+pétreas foi alterada, acrescentada ou removida; a fórmula do hash, a cobertura, os validadores
+de PO/plano/aula/captura e as 17 regras + 5 pré-requisitos do `REGRAS.md` ficam como estavam —
+o que entra é uma **norma descritiva** ao lado das duas que já lá estavam, no mesmo registo de
+11/10/2026. Não muda comportamento nenhum: o código faz o que esta norma passa a dizer.
+
+**Com o quê.** `PROTOCOLO.md` · `motor/adaptadores/cloudflare.js` (só comentário) ·
+`motor/adaptadores/README.md` · `REGISTRO.md`. Medição que sustentou: `1721665` (76 removidos,
+1 modificado) · `c95020a` (índices regerados: `batata` com `expurgada: true, habilitada: false,
+expurgos: 6`) · `escola/batata/indice.json` (elos 1–6, o 6 com 76 apagados e **sem `kv`**) ·
+`https://batata.tmenegaz77.workers.dev/` → **404**.
+
+**Referências.** `PROTOCOLO.md` (ressalva de escopo e norma de 11/10/2026 — o expurgo como elo);
+`README.md` § «O expurgo das escolas desabilitadas» (o único sítio que dizia que o KV é limpo no
+expurgo); `motor/servidor/expurgar-escola.js` (`CHAVES_FIXAS_DA_ESCOLA`, `prefixosDaEscola`, a
+leitura como autoridade); `motor/servidor/acervo-envelopes.js` (a migração de 20/10 e a reserva);
+`motor/servidor/raiz.js` (`/api/apagar-escola`, `/api/expurgar-kv`).
+
+**O que ainda não está feito.**
+
+- **O `check-indices` não olha o KV.** As 14 checagens passam com um cadastro órfão no namespace;
+  a palavra «kv» não aparece em `tools/check-indices.js`. Uma checagem que exigisse, para
+  `expurgada === true`, o bloco `kv` no elo — e um aviso quando ele falta — fecharia o buraco; é
+  decisão da pesquisadora, porque `tools/` é congelado.
+
+> **Correção de 01/11/2026 (mesmo dia) — a medição foi feita, e desmentiu a hipótese.**
+> A redação acima deixou dois pontos em aberto — «o desfecho do KV não foi medido» e «a causa é
+> **hipótese**» —, e a pesquisadora mandou fechar os dois. **Medido, com `CLOUDFLARE_API_TOKEN`
+> real:** as **nove** chaves fixas de `bastidores/batata/` respondem **404**, e a enumeração por
+> prefixo devolve **0** chaves em `batata/` e **0** em `bastidores/batata/`. Ou seja: **o KV da
+> `batata` está limpo** — a limpeza de 12:55 fez-se, e a pesquisadora tinha razão em dizer que
+> «tudo está no GitHub». **Não havia pendência nenhuma**: o que havia era um elo que não sabia
+> dizê-lo. E a causa deixou de ser hipótese: o `?:` sobre `cloudflare.kv` devolvia `null` quando
+> a metade Cloudflare lançava, e é o único caminho que produz a assinatura do elo 6 (`apagado`
+> cheio, `kv` ausente). O conserto e a prova estão na entrada seguinte.
+
+- **O `check-indices` não olha o KV.** As 14 checagens passam com um cadastro órfão no namespace;
+  a palavra «kv» não aparece em `tools/check-indices.js`. Uma checagem que exigisse, para
+  `expurgada === true`, o bloco `kv` no elo — e um aviso quando ele falta — fecharia o buraco; é
+  decisão da pesquisadora, porque `tools/` é congelado.

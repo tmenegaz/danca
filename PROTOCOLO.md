@@ -73,6 +73,23 @@ da cadeia, não saída reconstruível — é versionado.
 > para qualquer escola expurgada, a qualquer momento — é norma do sistema, não de
 > um caso.
 
+> **Norma (2026-11-01) — o que vive no KV, e o que não vive.** O **KV não guarda os
+> registros do ato**. A anamnese, o plano de ensino e o Plano de Observação vivem no
+> **repositório** (`escola/<escola>/envelopes/<carimbo>.json`) desde 20/10/2026, e é lá
+> que a escrita escreve (`motor/servidor/acervo-envelopes.js`); o KV fica como **reserva**
+> dos registros anteriores a essa migração, e não é escrito. O que **continua no KV** é o
+> **cadastro dos Bastidores** — `bastidores/<escola>/` · `turmas`, `curadorias`,
+> `alunas`, `rubricas`, `vocabulario`, `aparencia`, `dono`, `turma-conteudos` —, gravado
+> directamente naquela camada (`kv.put`) e lido pelo Worker. **Por isso o expurgo tem
+> duas metades, e cada uma limpa o que é seu**: o repositório apaga `escola/<escola>/` e
+> as fontes do ciclo (`professores/<professor>/ciclos/ciclo-NN-<escola>*`); o KV apaga os
+> prefixos `<escola>/` e `bastidores/<escola>/`. **O elo do expurgo registra o desfecho
+> das duas** — uma metade que falha sem ficar registada torna a outra irreconhecível: a
+> escola sai do ar e do repositório, e já ninguém sabe o que sobrou. **Custo:** a
+> enumeração (`kv.list`) tem cota diária e é o último recurso; antes dela valem a lista
+> declarada das chaves fixas (`CHAVES_FIXAS_DA_ESCOLA`) e a leitura directa de cada chave
+> (`get`), que não tem essa cota.
+
 **P-05 — O ciclo produz material, não evidência.**
 Evidência é produzida pelo PPQ, e o PPQ exige condições metodológicas que não
 estão disponíveis durante a prática. Chamar material de evidência antes do tempo

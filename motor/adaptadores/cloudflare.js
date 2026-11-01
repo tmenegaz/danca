@@ -7,11 +7,21 @@
  * Cloudflare:
  *   - `env.ASSETS`  — o conteúdo ESTÁTICO (po.json, anamnese.json, esquema),
  *                     lido por `fetch`. Read-only.
- *   - `env.PADD_KV` — os envelopes (o dado dinâmico), lido/escrito por
- *                     `get`/`put`/`list`.
+ *   - `env.PADD_KV` — o CADASTRO dos Bastidores (o dado dinâmico), lido/escrito
+ *                     por `get`/`put`/`list`.
+ *
+ * OS ENVELOPES SAÍRAM DAQUI (20/10/2026). Este cabeçalho dizia «o KV guarda o que a
+ * elicitação produz (os envelopes)» — verdade até 20/10, e FALSA desde então: a
+ * anamnese, o plano e o PO moram no repositório (`escola/<escola>/envelopes/`, ver
+ * `servidor/acervo-envelopes.js`), que é quem os escreve. A frase sobreviveu em dois
+ * sítios (aqui e no README desta pasta) e induzia a leitura errada de que o expurgo
+ * tem de limpar registos no KV: o que ele limpa lá é o CADASTRO
+ * (`bastidores/<escola>/…`), que é outra família. Um registo anterior à migração
+ * ainda pode vir do KV — mas como reserva, e por `acervo-envelopes.js`, não por esta
+ * camada.
  *
  * A divisão espelha o `workers/receber.js`: o ASSETS serve o que não muda, o KV
- * guarda o que a elicitação produz. O adaptador NÃO sabe o que é um PO nem uma
+ * guarda o que o cadastro produziu. O adaptador NÃO sabe o que é um PO nem uma
  * anamnese — só lê de um lado e escreve no outro, sob chaves. O que ele ACRESCENTA
  * sobre o KV compartilhado é o ISOLAMENTO: as famílias que não carregam a escola na
  * própria chave (o envelope e o registro de custo) ganham o slug da escola na frente —
