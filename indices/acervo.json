@@ -65,7 +65,8 @@
       "nome": "batata",
       "professor": "perna-boa",
       "professores": [
-        "perna-boa"
+        "perna-boa",
+        "pirueta-baerta"
       ],
       "registros": [],
       "slug": "batata"
@@ -399,6 +400,11 @@
         "valor": "perna-boa"
       },
       {
+        "contagem": 1,
+        "rotulo": "Pirueta Baerta",
+        "valor": "pirueta-baerta"
+      },
+      {
         "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
@@ -438,9 +444,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a8c9187"
+    "commit": "bb6bc2e"
   },
-  "gerado_em": "2026-11-01T19:05",
+  "gerado_em": "2026-11-01T19:10",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -560,6 +566,15 @@
       "id": "professor:perna-boa",
       "nome": "Perna Boa",
       "slug": "perna-boa"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:pirueta-baerta",
+      "nome": "Pirueta Baerta",
+      "slug": "pirueta-baerta"
     },
     {
       "ciclos": [],
