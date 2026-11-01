@@ -45,16 +45,20 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 ## 5. Guia de observação do professor
 
-Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor registra cada
-item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
-vazio = não observei.
+Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor
+registra cada item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não
+aconteceu · ? não vi · vazio = não observei.
 
 | Dimensão | O que se observa |
 |:--|:--|
-| Técnica — Solo | alinhamento do pé de apoio; eixo do corpo na preparação |
-| Técnica — Barra | saída do calcanhar no tendu; quadril sem subir no en dehors |
-| Técnica — Centro | transferência de peso sem perder a verticalidade; braço junto do movimento |
-| Técnica — Musicalidade | resposta ao pulso na marcação; frase até o fim da música |
+| Técnica — Solo | alinhamento do pé de apoio |
+| Técnica — Solo | eixo do corpo na preparação |
+| Técnica — Barra | saída do calcanhar no tendu |
+| Técnica — Barra | quadril sem subir no en dehors |
+| Técnica — Centro | transferência de peso sem perder a verticalidade |
+| Técnica — Centro | braço junto do movimento |
+| Técnica — Musicalidade | resposta ao pulso na marcação |
+| Técnica — Musicalidade | frase até o fim da música |
 
 ## 6. Distribuição do volume físico
 

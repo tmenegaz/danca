@@ -460,6 +460,10 @@ experimentos/modelo-formulario/*
 # not defined» antes da primeira asserção. Consertada, corre 11/11 sobre o pacote-zero — e o
 # REGISTRO cita as duas por nome.
 !experimentos/provar-derivados-da-sequencia.js
+# A JANELA DO LANÇAMENTO (01/11/2026) — a prova de que o formulário da coleta pergunta pelos 8
+# critérios e não por 4 células com dois dentro. Mede a TELA (jsdom, o pacote por HTTP), com
+# controle negativo: com o config antigo, os campos caem para metade.
+!experimentos/provar-janela-do-lancamento.js
 !experimentos/provar-dimensoes-plano.js
 !experimentos/provar-musica-no-plano.js
 

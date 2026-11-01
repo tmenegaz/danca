@@ -23,27 +23,31 @@ subtitle: "Folha de marcação para uso durante a aula"
 
 ## Bloco 1 — Técnica — Solo
 
-| Aluna(o) | alinhamento do pé de apoio; eixo do corpo na preparação |
+| Critério | Aluna A |
 |:--|:--:|
-| Aluna A |   |
+| alinhamento do pé de apoio |   |
+| eixo do corpo na preparação |   |
 
 ## Bloco 2 — Técnica — Barra
 
-| Aluna(o) | saída do calcanhar no tendu; quadril sem subir no en dehors |
+| Critério | Aluna A |
 |:--|:--:|
-| Aluna A |   |
+| saída do calcanhar no tendu |   |
+| quadril sem subir no en dehors |   |
 
 ## Bloco 3 — Técnica — Centro
 
-| Aluna(o) | transferência de peso sem perder a verticalidade; braço junto do movimento |
+| Critério | Aluna A |
 |:--|:--:|
-| Aluna A |   |
+| transferência de peso sem perder a verticalidade |   |
+| braço junto do movimento |   |
 
 ## Bloco 4 — Técnica — Musicalidade
 
-| Aluna(o) | resposta ao pulso na marcação; frase até o fim da música |
+| Critério | Aluna A |
 |:--|:--:|
-| Aluna A |   |
+| resposta ao pulso na marcação |   |
+| frase até o fim da música |   |
 
 ## Linha de base revisitada
 

@@ -302,14 +302,44 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   secao('4. Bloco de musicalidade',
     ['| Item | Trabalho |', '|:--|:--|', '| **Pulso** | [Preencher: trabalho de pulso da Aula 01] |']);
 
-  // §5 — Guia de observação do professor: as dimensões do PO viram as linhas.
+  /* §5 — O GUIA DE OBSERVAÇÃO DIZ O QUE SE OBSERVA, E NÃO QUE ALGUÉM O PREENCHA (01/11/2026).
+   *
+   * A pesquisadora: «o formulário precisa ser a expressão da janela. É o que eu olho pela janela.
+   * (…) Eu não posso só olhar por uma banda da janela. Eu tenho que olhar por todas as bandas.»
+   * Este é o mesmo erro, no documento: a secção que diz o que observar saía com `[Preencher]` em
+   * TODAS as dimensões — um guia de observação que não diz o que observar. Medido no `.md` da
+   * Aula 01: era a ÚNICA parte do documento que o código não reproduzia (16 das 18 linhas
+   * divergentes), porque alguém a tinha escrito à mão. Um documento cujo conteúdo não se
+   * reproduz é pior do que um documento com lacuna: a lacuna declara-se, e o texto à mão some
+   * na próxima geração sem ninguém dar por isso.
+   *
+   * UMA LINHA POR CRITÉRIO, e não por dimensão. A dimensão é a BANDA da janela; o critério é o
+   * que se marca. Agrupá-los numa célula («a; b») fazia o professor marcar dois critérios num
+   * só lugar — era o que a folha de captura fazia até hoje, e é o que a regra do `;` veio
+   * desfazer. O documento mostra o que a folha vai pedir, um a um.
+   *
+   * A FONTE É A MESMA DA FOLHA (`dimensoesEItens`): o guia e a captura não podem divergir,
+   * porque são duas leituras do mesmo par dimensão × item. */
   {
-    const dims = emLista(resp(po, 'dimensoes-de-observacao')).filter((v) => !GABARITO_VAZADO.test(v));
-    const corpo = ['| Dimensão | O que se observa | Como se registra |', '|:--|:--|:--|'];
+    const dims = dimensoesEItens(po);
+    const corpo = [
+      'Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor',
+      'registra cada item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não',
+      'aconteceu · ? não vi · vazio = não observei.',
+      '',
+      '| Dimensão | O que se observa |',
+      '|:--|:--|',
+    ];
     if (dims.length) {
-      for (const d of dims) corpo.push('| ' + d + ' | [Preencher] | marca por aluno |');
+      for (const d of dims) {
+        if (!d.itens.length) {
+          corpo.push('| ' + d.dimensao + ' | [Preencher: os itens desta dimensão no PO] |');
+          continue;
+        }
+        for (const item of d.itens) corpo.push('| ' + d.dimensao + ' | ' + item + ' |');
+      }
     } else {
-      corpo.push('| [Preencher] | [Preencher] | marca por aluno |');
+      corpo.push('| [Preencher] | [Preencher] |');
     }
     secao('5. Guia de observação do professor', corpo);
   }
@@ -336,7 +366,11 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   // §9 — Próximo passo.
   secao('9. Próximo passo', ['[Preencher: o próximo passo da progressão do ciclo]']);
 
-  return saida.join('\n') + '\n';
+  /* UMA LINHA EM BRANCO, E NÃO DUAS. Cada `secao()` fecha com uma, e vários corpos terminam
+   * com outra — o que deixava um vão de duas linhas entre secções, visível no `.md` e no HTML.
+   * A normalização é no FIM, e não em cada chamada: assim um corpo novo não tem de saber a
+   * convenção, e o documento sai igual seja qual for o caminho. */
+  return saida.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
 }
 
 // ---------------------------------------------------------------------------
@@ -839,7 +873,14 @@ function declaracaoDeCaptura({ po, escola }) {
     }
     blocos[titulo] = { chave: slugDe(d.dimensao), rotulo: d.dimensao, grao: 'aluna', colunas };
   });
-  blocos['Linha de base revisitada (P-10)'] = {
+  /* O TÍTULO É O DA FOLHA, E NÃO O DA NOTA (01/11/2026). Era «Linha de base revisitada (P-10)»,
+   * e a folha imprime «## Linha de base revisitada» (sem a nota). O validador casa a coluna pelo
+   * TÍTULO da tabela: a primeira declaração de qualquer variante NOVA saía com este título e caía
+   * em «coluna da folha não declarada no schema» — o pacote não fechava. Nunca se viu porque as
+   * variantes existentes já tinham a entrada, e o `mesclarDeclaracao` conservava o título antigo.
+   * A referência à P-10 vive no comentário e no documento, não num cabeçalho que outro ficheiro
+   * tem de casar. */
+  blocos['Linha de base revisitada'] = {
     chave: 'linha_de_base',
     rotulo: 'Linha de base',
     grao: 'aluna',
@@ -870,16 +911,34 @@ function declaracaoDeCaptura({ po, escola }) {
  */
 function mesclarDeclaracao(anterior, derivada) {
   if (!anterior || !anterior.blocos) return derivada;
+  /* A IDENTIDADE DE UM BLOCO É A CHAVE, NÃO O TÍTULO (01/11/2026).
+   *
+   * Era `anterior.blocos[titulo]`, e o título é um RÓTULO — o que ele tem de estável é a chave,
+   * que é debaixo dela que a marca se guarda. Medido ao tornar o guia do PO derivado: o bloco da
+   * linha de base chama-se «Linha de base revisitada (P-10)» na derivação e «Linha de base
+   * revisitada» na declaração anterior. Casando por título, o bloco entrava como NOVO, com o
+   * título da derivação — e a folha de captura, que imprime o título curto, deixava de o
+   * encontrar: «coluna da folha não declarada no schema», o pacote não fechava. Um bloco não
+   * muda de identidade porque lhe mudou o rótulo.
+   *
+   * O título ANTIGO vence quando há chave dos dois lados: conservar o rótulo é o que impede a
+   * folha publicada de mudar de cabeçalho sem ninguém o ter pedido. */
+  const porChave = new Map();
+  for (const [titulo, bloco] of Object.entries(anterior.blocos || {})) {
+    if (bloco && bloco.chave) porChave.set(bloco.chave, { titulo, bloco });
+  }
   const blocos = {};
   for (const [titulo, bloco] of Object.entries(derivada.blocos || {})) {
-    const velho = anterior.blocos[titulo];
-    if (!velho) { blocos[titulo] = bloco; continue; }
+    const achado = bloco.chave ? porChave.get(bloco.chave) : null;
+    const velho = achado ? achado.bloco : anterior.blocos[titulo];
+    const tituloFinal = achado ? achado.titulo : titulo;
+    if (!velho) { blocos[tituloFinal] = bloco; continue; }
     const colunas = {};
     for (const [rotulo, coluna] of Object.entries(bloco.colunas || {})) {
       const jaEra = velho.colunas && velho.colunas[rotulo];
       colunas[rotulo] = jaEra ? { chave: jaEra.chave, tipo: jaEra.tipo } : coluna;
     }
-    blocos[titulo] = {
+    blocos[tituloFinal] = {
       // A chave e o rótulo do BLOCO também se conservam: é debaixo dela que a marca é guardada.
       chave: velho.chave || bloco.chave,
       rotulo: velho.rotulo || bloco.rotulo,

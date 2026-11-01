@@ -36,8 +36,13 @@
       "grao": "aluna",
       "colunas": [
         {
-          "rotulo": "alinhamento do pé de apoio; eixo do corpo na preparação",
-          "chave": "alinhamento_do_pe_de_apoio_eixo_do_corpo_na_preparacao",
+          "rotulo": "alinhamento do pé de apoio",
+          "chave": "alinhamento_do_pe_de_apoio",
+          "tipo": "rubrica"
+        },
+        {
+          "rotulo": "eixo do corpo na preparação",
+          "chave": "eixo_do_corpo_na_preparacao",
           "tipo": "rubrica"
         }
       ],
@@ -53,8 +58,13 @@
       "grao": "aluna",
       "colunas": [
         {
-          "rotulo": "saída do calcanhar no tendu; quadril sem subir no en dehors",
-          "chave": "saida_do_calcanhar_no_tendu_quadril_sem_subir_no_en_dehors",
+          "rotulo": "saída do calcanhar no tendu",
+          "chave": "saida_do_calcanhar_no_tendu",
+          "tipo": "rubrica"
+        },
+        {
+          "rotulo": "quadril sem subir no en dehors",
+          "chave": "quadril_sem_subir_no_en_dehors",
           "tipo": "rubrica"
         }
       ],
@@ -70,8 +80,13 @@
       "grao": "aluna",
       "colunas": [
         {
-          "rotulo": "transferência de peso sem perder a verticalidade; braço junto do movimento",
-          "chave": "transferencia_de_peso_sem_perder_a_verticalidade_braco_junto_do_movimento",
+          "rotulo": "transferência de peso sem perder a verticalidade",
+          "chave": "transferencia_de_peso_sem_perder_a_verticalidade",
+          "tipo": "rubrica"
+        },
+        {
+          "rotulo": "braço junto do movimento",
+          "chave": "braco_junto_do_movimento",
           "tipo": "rubrica"
         }
       ],
@@ -87,8 +102,13 @@
       "grao": "aluna",
       "colunas": [
         {
-          "rotulo": "resposta ao pulso na marcação; frase até o fim da música",
-          "chave": "resposta_ao_pulso_na_marcacao_frase_ate_o_fim_da_musica",
+          "rotulo": "resposta ao pulso na marcação",
+          "chave": "resposta_ao_pulso_na_marcacao",
+          "tipo": "rubrica"
+        },
+        {
+          "rotulo": "frase até o fim da música",
+          "chave": "frase_ate_o_fim_da_musica",
           "tipo": "rubrica"
         }
       ],
