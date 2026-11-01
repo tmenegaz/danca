@@ -1,136 +1,48 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-01",
-        "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
-        "cobertura": [
-          "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
-          "professores/cafe-no-bule/ciclos/ciclo-01.conf"
-        ],
-        "hash": "aba3df786b0fa27cc28e198c72eb448cf711f9ebe71a2d8a936033f542a01483",
-        "hash_conteudo": "f34ee77da1478f1c3b9cd74ead2111251caff41e861b95ec50b1e900f6e1c1a4",
-        "id": "ciclo-01-breu",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
-        "professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
-        "professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "breu",
-      "estado": "ancorado",
-      "id": "ciclo:cafe-no-bule/01/breu",
-      "numero": "01",
-      "pacote": null,
-      "professor": "cafe-no-bule",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
-      "ciclo_id": "ciclo:cafe-no-bule/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-breu.fipp",
-      "professor": "cafe-no-bule",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
-      "ciclo_id": "ciclo:cafe-no-bule/01/breu",
-      "escola": "breu",
-      "id": "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-breu.conf",
-      "professor": "cafe-no-bule",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:cafe-no-bule/01/breu",
-      "escola": "breu",
-      "id": "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "cafe-no-bule",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:cafe-no-bule/01/breu"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-11-01T17:30:40.080523+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-10-27T11:21:49.499Z",
-    "expurgos": 3,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-01T18:46:28.041Z",
+    "expurgos": 4,
+    "habilitada": false,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "cafe-no-bule",
     "professores": [
       "cafe-no-bule",
-      "meia-ponta"
+      "luz-azul",
+      "meia-ponta",
+      "sapo-bailarino",
+      "tiago-menegaz",
+      "vaso-bonito"
     ],
     "registros": [],
     "slug": "breu"
   },
   "filtros": {
     "anos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:cafe-no-bule/01/breu"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:cafe-no-bule/01/breu"
-        ],
-        "rotulo": "cafe-no-bule",
-        "valor": "cafe-no-bule"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:cafe-no-bule/01/breu"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "f309a68"
+    "commit": "5bc466c"
   },
-  "gerado_em": "2026-11-01T18:34",
+  "gerado_em": "2026-11-01T18:46",
   "nao_indexado": [
     {
       "familia": "conteudo",
