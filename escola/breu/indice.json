@@ -3,10 +3,10 @@
   "worker": "breu",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "cafe-no-bule",
-    "nome": "Cafe No Bule"
+    "slug": "sapo-bailarino",
+    "nome": "Sapo Bailarino"
   },
-  "responsavel": "Cafe No Bule",
+  "responsavel": "Sapo Bailarino",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -269,13 +269,28 @@
         "slug": "sapo-bailarino",
         "nome": "Sapo Bailarino"
       }
+    },
+    {
+      "em": "2026-11-01T20:15:06.701086+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "sapo-bailarino",
+        "nome": "Sapo Bailarino"
+      },
+      "responsavel": "Sapo Bailarino",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "meia-ponta",
+          "nome": "Meia Ponta",
+          "desde": "2026-11-01T18:12:26.751Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "cafe-no-bule",
+        "nome": "Cafe No Bule"
+      }
     }
   ],
-  "professores": [
-    {
-      "slug": "meia-ponta",
-      "nome": "Meia Ponta",
-      "desde": "2026-11-01T18:12:26.751Z"
-    }
-  ]
+  "professores": []
 }

@@ -1,48 +1,135 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-01",
+        "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
+          "professores/sapo-bailarino/ciclos/ciclo-01.conf"
+        ],
+        "hash": "5a4fc4f5d57d7a8479c982725da30444248c65f884f24cc2a7aea9c022e7aea2",
+        "hash_conteudo": "094af3f062772acff08226e89b76864ea22f4d1a414167bbc1ee24d1a9e46b82",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
+        "professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
+        "professores/sapo-bailarino/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:sapo-bailarino/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "sapo-bailarino",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:sapo-bailarino/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
+      "professor": "sapo-bailarino",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:sapo-bailarino/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
+      "professor": "sapo-bailarino",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:sapo-bailarino/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/sapo-bailarino/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "sapo-bailarino",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:sapo-bailarino/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-01T17:30:40.080523+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-01T20:15:06.701086+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-01T18:46:28.041Z",
     "expurgos": 4,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
-    "professor": "cafe-no-bule",
+    "professor": "sapo-bailarino",
     "professores": [
-      "cafe-no-bule",
-      "luz-azul",
-      "meia-ponta",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "sapo-bailarino"
     ],
     "registros": [],
     "slug": "breu"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:sapo-bailarino/01/breu"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:sapo-bailarino/01/breu"
+        ],
+        "rotulo": "sapo-bailarino",
+        "valor": "sapo-bailarino"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:sapo-bailarino/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "6e05d84"
+    "commit": "fb8416c"
   },
-  "gerado_em": "2026-11-01T20:13",
+  "gerado_em": "2026-11-01T20:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
