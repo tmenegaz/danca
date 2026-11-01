@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-01T11:04:08-0300`
-Commit atual: `5c3b3b0` — docs(registro): a conferência ao ar, medida
+Gerado em: `2026-11-01T11:26:58-0300`
+Commit atual: `35aad32` — fix(entrega): o que o pré-commit regenera fica no commit
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,9 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+35aad32 fix(entrega): o que o pré-commit regenera fica no commit
+82d37ef feat(entrega): a janela vista por todas as bandas, na aula e no lançamento
+f8cf358 docs(registro): as 23 aulas não são uma dívida, nascem à medida
 5c3b3b0 docs(registro): a conferência ao ar, medida
 7b80274 docs(registro): a fotografia do que a sequência já responde
 ac6caa0 feat(entrega): o que a sequência já responde não se escreve outra vez
@@ -97,9 +100,6 @@ a33eb51 docs(registro): a conferência ao ar da música derivada, medida e não 
 c3f0fb1 fix(estrutura): o plano diz por que um termo da turma não aparece
 e12ad94 feat(notacao): declarar «Battement fondu» (2|4/4) no alfabeto bale-classico
 56470a8 chore(notacao): renovar o selo da âncora para a versão 7 do alfabeto
-2908822 docs(registro): a fotografia do sétimo passo, e as três decisões que ele fixou
-bf439f1 feat(notacao): a frase é do exercício, e o verbete ganha o sétimo passo
-1531eaa feat(notacao): declarar «Battement dégagé» (4|2/4) no alfabeto bale-classico
 ```
 
 ## Por professor
@@ -130,7 +130,7 @@ bf439f1 feat(notacao): a frase é do exercício, e o verbete ganha o sétimo pas
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `1816e1eb7b3c` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `36010816720e` | (vazio) | Input_PO_Aguardando |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `59e3063f21ad` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 0 ciclo(s)
 
@@ -199,68 +199,78 @@ bf439f1 feat(notacao): a frase é do exercício, e o verbete ganha o sétimo pas
 
 ## Última entrada do REGISTRO
 
-## 01/11/2026 — As 23 aulas não são uma dívida: nascem à medida
+## 01/11/2026 — A janela vista por todas as bandas: a aula e o lançamento
 
-**O que motivou — um erro meu, medido.** Ao propor o P1 (a ligação bloco ↔ dimensão por id), escrevi
-que «derivar obriga a que as 23 aulas sem objetivo passem a ter um», e mandei para a pesquisadora o
-preenchimento dos «26 marcos». Ela corrigiu:
+**O que motivou.** A pesquisadora: «o formulário precisa ser a expressão da janela. É o que eu olho
+pela janela. É o que olhar através da janela me dá de resposta. Então eu não posso só olhar por uma
+banda da janela. Eu tenho que olhar por todas as bandas.» O PO declara **4 dimensões e 8 critérios**;
+a aula e a folha de captura desenhavam **4** — os dois critérios de cada dimensão colados num rótulo
+só. O professor não podia marcar um sem marcar o outro, e o par não é observável.
 
-> «A aula é elaborada no momento que o professor acha oportuno. Não faz sentido ele pensar em 26 aulas
-> de uma vez só, sendo que a situação do aluno, a capacidade do aluno, o desempenho dele, no que é
-> observado na aula 1, vai se transformar na aula 2, na aula 3. (…) Não dá pra fazer dessa maneira que
-> você tá sugerindo. Não tem como. É completamente fora do mundo real.»
->
-> «Depois que a gente cria a aula 1, a gente dá a aula 1, coleta os dados dessa aula 1, gera o livro,
-> que é a base pra o professor poder então elaborar a aula 2. Mesmo que ele decida que a aula 2 vai
-> ser uma cópia da aula 1.»
+**Dois defeitos distintos, medidos, e a diferença entre eles importa.**
 
-**O que eu tinha lido mal.** Medi `ciclos.json` e contei **23 lugares de aula com `marco: null`**.
-Verdadeiro. E li aquilo como **lacuna de preenchimento** — quando é o **estado normal do método**: o
-plano declara os objetivos que o professor já sabe, e a lista mostra o resto como «Lugar do calendário
-— sem marco». O `PLANO-AULA-E-OBSERVACAO.md` §5.1 já o dizia; a `ESTADO-ATUAL` §8 já o dizia na linha
-`aula-object` («a aula nasce por um botão»); e eu tratei o **ainda não vivido** como **ainda não
-preenchido**. É a mesma família de erro do `if` que filtrava o título vazio: a pergunta «está aqui?» e
-a pergunta «devia estar?» não são a mesma pergunta.
+1. **A §5 da aula não era derivada.** Comparado o `.md` em disco com o que `derivarAula01` produz (com
+   os dois envelopes e a calibração do `.conf`): **18 linhas divergentes, 16 delas a §5**. A frase
+   «Os itens abaixo vêm de **Itens de cada dimensão**…» **não existe em código nenhum** — o trecho foi
+   escrito à mão, e a próxima geração apagava-o em silêncio. E a prova que o cobria
+   (`provar-aula-prosa`) exigia o texto colado: **media o documento, não a geração**, e por isso dava
+   verde sobre um trecho que não se reproduzia.
+2. **A regra do `;` não tinha chegado aos artefatos.** `itensDaDimensao` está no código desde
+   `ac6caa0`, mas os **três** sítios já gravados continuavam com o rótulo colado: a fonte da folha
+   (`-captura-aula-01.md`), a declaração do schema (`_declaracao.porVariante`) e o config que o
+   formulário lê (`captura-aula-01.json`). **Um conserto que fica no código e não chega ao artefato
+   não conserta nada.**
 
-**O que foi decidido.** A decisão passa a ser a **34** da fotografia, e ela **fecha** uma pergunta
-aberta desde 25/10/2026 — o `REGISTRO` daquela data deixou escrito que «a primeira [decisão pendente]
-é o que fazer com as 23 aulas que não têm marco». A resposta é: **nada. Elas nascem à medida**, e o
-que as faz nascer é o **registo da aula anterior** (o caderno), não um preenchimento antecipado.
+**O que foi decidido e feito.**
+- A **§5 passa a derivar do PO** por `dimensoesEItens` — a **mesma** fonte da folha —, **um critério
+  por linha**, com a prosa trazida para o código. O guia e a captura não podem divergir: são duas
+  leituras do mesmo par dimensão × item.
+- Os **três artefatos foram regenerados**. O formulário desenha **8 campos** em vez de 4.
+- **`mesclarDeclaracao` passou a casar os blocos por CHAVE, não por título.** A linha de base
+  chama-se «Linha de base revisitada (P-10)» na derivação e «Linha de base revisitada» na folha: por
+  título, a declaração entrava como bloco **novo** e o validador recusava («coluna da folha não
+  declarada no schema»). Um bloco não muda de identidade porque lhe mudou o rótulo.
+- **O título da linha de base na declaração passou a ser o que a folha imprime** (sem «(P-10)»). O
+  efeito colateral era grave e estava escondido: a **primeira** declaração de qualquer variante nova
+  nunca validava — só não se via porque as variantes existentes já tinham a entrada, e o merge
+  conservava o título antigo. `provar-aula-e-plano-legiveis`, que **falhava antes desta entrega**,
+  passa a **12/12**.
+- O `secao()` deixava **duas linhas em branco** entre secções (cada `secao` fecha com uma, e vários
+  corpos terminam com outra). A normalização passou para o fim da montagem: um corpo novo não tem de
+  saber a convenção.
 
-**Consequência para o P1.** A ligação bloco ↔ dimensão é **por aula, no momento em que aquela aula
-nasce** — nunca uma derivação para as 26.
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` — a §5, a normalização das linhas em branco,
+`mesclarDeclaracao` por chave, o título da declaração. `professores/perna-boa/ciclos/` — a fonte da
+aula e da captura, a declaração no `ciclo-01-captura-schema.json`, o pacote e a âncora.
 
-**O que fica registado como medido, e é o caminho crítico real** (não o P1):
-- a ação **«Definir o marco»**, que o `PLANO-AULA-E-OBSERVACAO.md` §5.1 prevê para o lugar sem marco,
-  **não existe no código** — busca em `motor/`, `porta/`, `tools/templates/` e `workers/`: zero
-  ocorrências;
-- **«Abrir a aula»** também não existe no produto: só nos fixtures do `check-identidade.js` e nas
-  propostas de desenho;
-- o **caderno** (o «livro» de que ela fala) tem builder em `tools/lib-vistas.js` e **não é gerado**:
-  o `gerar-vista.js` só produz `guia-de-observacao`, e as outras vistas «entram quando a captura tiver
-  o dado» — `aulas` está vazio.
+**Com o quê.**
+- `experimentos/provar-janela-do-lancamento.js` (**nova, 11 asserções**, versionada): o config declara
+  8 colunas com chave; a tela desenha 8 campos, dois por banda; e o **controle negativo** — com o
+  config antigo, os campos caem para 4. Mede a tela (jsdom, o pacote por HTTP), não o contrato.
+- `experimentos/provar-aula-prosa.js` — passou a exigir **cada critério sozinho na sua linha** (e a
+  recusar a célula partilhada), e ganhou a prova que faltava: **a fonte da aula é reproduzível pelo
+  código, byte a byte**.
 
-**Onde entrou.** `ESTADO-ATUAL.md` — decisão **34** na §6, a §7 com o caminho crítico medido, e a §10
-com o custo corrigido (a folha de **cada aula criada**, hoje **uma** — não «as 26»). O
-`TRANSFERENCIA-IA.md` foi reescrito no mesmo sentido, porque a versão anterior levava a afirmação
-errada para outro assistente.
+**Validação.** `provar-janela-do-lancamento` **11/0**; `provar-aula-prosa` **19**;
+`provar-aula-e-plano-legiveis` **12/0** (falhava antes); `provar-notacao` **74/0**;
+`provar-celula` **115/0**; `provar-teste` **44/44**; `provar-derivados-da-sequencia` **26/0**;
+`provar-numeros-do-roteiro` **29/0**; `provar-dimensoes-plano` **11/11**; `provar-musica-no-plano`
+**18/0**; `provar-plano-da-turma` **46/0**; `provar-porta-sem-contexto` **44/0**;
+`check-identidade` **20/20**; `check-pacote` **0 erro, 0 aviso**; `hash-ciclo --check` íntegro,
+`59e3063…`.
 
-**Referências.** `PLANO-AULA-E-OBSERVACAO.md` §5 (a aula 2..N), `ARQUITETURA-AULA.md` §1 (o estado
-derivado e a intenção editável até à data da aula).
-
-**O que ainda não está feito.** O P1 continua por fazer, e passa a ter uma condição de entrada que não
-tinha: **a aula 2 tem de existir como objeto** antes de a herança poder ser medida — com uma aula só
-não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
+**O que ainda não está feito — e é a próxima peça que ela pediu.**
+- **O caderno.** O formulário já pergunta pela janela inteira, mas o que ele grava ainda **não tem
+  onde a aula acontecer**: o caderno declara, em `tools/lib-vistas.js`, «Estrutura executada:
+  [Preencher: a ordem dos blocos vem do plano da aula, que é uma das três entradas — o JSON não a
+  guarda]». Ou seja: **a sequência executada não é perguntada em lugar nenhum**. É a banda que falta
+  entre o formulário e o caderno — e é ela que faz a aula 2 possível.
+- **A «Condição desta aula»** («Sem deslocamento, sem giro, sem mudança de direção») continua **fixa
+  no código** (`derivar-ciclo.js`), e sai igual em qualquer aula. Não foi decidido de onde vem.
+- **A §6 «Distribuição do volume físico»** é uma tabela com uma linha («Total») que **duplica a §3**,
+  que já traz bloco × tempos × fatia. Não foi tocada.
 
 ## O que está pendente
-
-## 28/10/2026 — O verbete passa a ser administrável na Produção
-
-- **O editor de CÉLULA.** A tela grava posição e direções, mas as células (contagem · bloco ·
-  descrição) vêm do que já está no alfabeto; uma direção nova tem de ser acrescentada com o conteúdo
-  à mão. Está dito ao utilizador na própria mensagem, em vez de falhar em silêncio.
-- **As seleções no plano (§1.6)** — o plano ainda não escolhe a posição nem as direções.
-- **A falha antiga do «item do menu»** na prova da Produção continua por investigar.
 
 ## 28/10/2026 — O verbete em Produção: três defeitos meus, e a pergunta que faltava
 
@@ -289,6 +299,18 @@ envelopes já gravados com «a; b» continuam a ler-se como um item só até ser
 O P1 continua por fazer, e passa a ter uma condição de entrada que não
 tinha: **a aula 2 tem de existir como objeto** antes de a herança poder ser medida — com uma aula só
 não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
+
+## 01/11/2026 — A janela vista por todas as bandas: a aula e o lançamento
+
+- **O caderno.** O formulário já pergunta pela janela inteira, mas o que ele grava ainda **não tem
+  onde a aula acontecer**: o caderno declara, em `tools/lib-vistas.js`, «Estrutura executada:
+  [Preencher: a ordem dos blocos vem do plano da aula, que é uma das três entradas — o JSON não a
+  guarda]». Ou seja: **a sequência executada não é perguntada em lugar nenhum**. É a banda que falta
+  entre o formulário e o caderno — e é ela que faz a aula 2 possível.
+- **A «Condição desta aula»** («Sem deslocamento, sem giro, sem mudança de direção») continua **fixa
+  no código** (`derivar-ciclo.js`), e sai igual em qualquer aula. Não foi decidido de onde vem.
+- **A §6 «Distribuição do volume físico»** é uma tabela com uma linha («Total») que **duplica a §3**,
+  que já traz bloco × tempos × fatia. Não foi tocada.
 
 ## Pendências anteriores (índice)
 
@@ -601,6 +623,7 @@ não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
 - **28/10/2026** — A Sequência declarada sai, e a métrica ganha legenda → `REGISTRO.md` L27558
 - **28/10/2026** — O alfabeto muda de casa, e a âncora passa a selar com que… → `REGISTRO.md` L27671
 - **28/10/2026** — O verbete ganha posição, direção e lado — e a prosa passa a… → `REGISTRO.md` L27753
+- **28/10/2026** — O verbete passa a ser administrável na Produção → `REGISTRO.md` L27835
 - PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

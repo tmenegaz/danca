@@ -29208,3 +29208,74 @@ derivado e a intenção editável até à data da aula).
 **O que ainda não está feito.** O P1 continua por fazer, e passa a ter uma condição de entrada que não
 tinha: **a aula 2 tem de existir como objeto** antes de a herança poder ser medida — com uma aula só
 não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
+
+## 01/11/2026 — A janela vista por todas as bandas: a aula e o lançamento
+
+**O que motivou.** A pesquisadora: «o formulário precisa ser a expressão da janela. É o que eu olho
+pela janela. É o que olhar através da janela me dá de resposta. Então eu não posso só olhar por uma
+banda da janela. Eu tenho que olhar por todas as bandas.» O PO declara **4 dimensões e 8 critérios**;
+a aula e a folha de captura desenhavam **4** — os dois critérios de cada dimensão colados num rótulo
+só. O professor não podia marcar um sem marcar o outro, e o par não é observável.
+
+**Dois defeitos distintos, medidos, e a diferença entre eles importa.**
+
+1. **A §5 da aula não era derivada.** Comparado o `.md` em disco com o que `derivarAula01` produz (com
+   os dois envelopes e a calibração do `.conf`): **18 linhas divergentes, 16 delas a §5**. A frase
+   «Os itens abaixo vêm de **Itens de cada dimensão**…» **não existe em código nenhum** — o trecho foi
+   escrito à mão, e a próxima geração apagava-o em silêncio. E a prova que o cobria
+   (`provar-aula-prosa`) exigia o texto colado: **media o documento, não a geração**, e por isso dava
+   verde sobre um trecho que não se reproduzia.
+2. **A regra do `;` não tinha chegado aos artefatos.** `itensDaDimensao` está no código desde
+   `ac6caa0`, mas os **três** sítios já gravados continuavam com o rótulo colado: a fonte da folha
+   (`-captura-aula-01.md`), a declaração do schema (`_declaracao.porVariante`) e o config que o
+   formulário lê (`captura-aula-01.json`). **Um conserto que fica no código e não chega ao artefato
+   não conserta nada.**
+
+**O que foi decidido e feito.**
+- A **§5 passa a derivar do PO** por `dimensoesEItens` — a **mesma** fonte da folha —, **um critério
+  por linha**, com a prosa trazida para o código. O guia e a captura não podem divergir: são duas
+  leituras do mesmo par dimensão × item.
+- Os **três artefatos foram regenerados**. O formulário desenha **8 campos** em vez de 4.
+- **`mesclarDeclaracao` passou a casar os blocos por CHAVE, não por título.** A linha de base
+  chama-se «Linha de base revisitada (P-10)» na derivação e «Linha de base revisitada» na folha: por
+  título, a declaração entrava como bloco **novo** e o validador recusava («coluna da folha não
+  declarada no schema»). Um bloco não muda de identidade porque lhe mudou o rótulo.
+- **O título da linha de base na declaração passou a ser o que a folha imprime** (sem «(P-10)»). O
+  efeito colateral era grave e estava escondido: a **primeira** declaração de qualquer variante nova
+  nunca validava — só não se via porque as variantes existentes já tinham a entrada, e o merge
+  conservava o título antigo. `provar-aula-e-plano-legiveis`, que **falhava antes desta entrega**,
+  passa a **12/12**.
+- O `secao()` deixava **duas linhas em branco** entre secções (cada `secao` fecha com uma, e vários
+  corpos terminam com outra). A normalização passou para o fim da montagem: um corpo novo não tem de
+  saber a convenção.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` — a §5, a normalização das linhas em branco,
+`mesclarDeclaracao` por chave, o título da declaração. `professores/perna-boa/ciclos/` — a fonte da
+aula e da captura, a declaração no `ciclo-01-captura-schema.json`, o pacote e a âncora.
+
+**Com o quê.**
+- `experimentos/provar-janela-do-lancamento.js` (**nova, 11 asserções**, versionada): o config declara
+  8 colunas com chave; a tela desenha 8 campos, dois por banda; e o **controle negativo** — com o
+  config antigo, os campos caem para 4. Mede a tela (jsdom, o pacote por HTTP), não o contrato.
+- `experimentos/provar-aula-prosa.js` — passou a exigir **cada critério sozinho na sua linha** (e a
+  recusar a célula partilhada), e ganhou a prova que faltava: **a fonte da aula é reproduzível pelo
+  código, byte a byte**.
+
+**Validação.** `provar-janela-do-lancamento` **11/0**; `provar-aula-prosa` **19**;
+`provar-aula-e-plano-legiveis` **12/0** (falhava antes); `provar-notacao` **74/0**;
+`provar-celula` **115/0**; `provar-teste` **44/44**; `provar-derivados-da-sequencia` **26/0**;
+`provar-numeros-do-roteiro` **29/0**; `provar-dimensoes-plano` **11/11**; `provar-musica-no-plano`
+**18/0**; `provar-plano-da-turma` **46/0**; `provar-porta-sem-contexto` **44/0**;
+`check-identidade` **20/20**; `check-pacote` **0 erro, 0 aviso**; `hash-ciclo --check` íntegro,
+`59e3063…`.
+
+**O que ainda não está feito — e é a próxima peça que ela pediu.**
+- **O caderno.** O formulário já pergunta pela janela inteira, mas o que ele grava ainda **não tem
+  onde a aula acontecer**: o caderno declara, em `tools/lib-vistas.js`, «Estrutura executada:
+  [Preencher: a ordem dos blocos vem do plano da aula, que é uma das três entradas — o JSON não a
+  guarda]». Ou seja: **a sequência executada não é perguntada em lugar nenhum**. É a banda que falta
+  entre o formulário e o caderno — e é ela que faz a aula 2 possível.
+- **A «Condição desta aula»** («Sem deslocamento, sem giro, sem mudança de direção») continua **fixa
+  no código** (`derivar-ciclo.js`), e sai igual em qualquer aula. Não foi decidido de onde vem.
+- **A §6 «Distribuição do volume físico»** é uma tabela com uma linha («Total») que **duplica a §3**,
+  que já traz bloco × tempos × fatia. Não foi tocada.

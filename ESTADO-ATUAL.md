@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 01/11/2026 (base local `ac6caa0`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1). E o bloco 10 do plano deixou de pedir o que já estava respondido: a **música sobe da sequência** (que a lê do verbete) acima de um campo que passou a pedir **só o link do vídeo**, o **repertório** passou a **somente leitura** (é a sequência, semeada), a **sequência semeia-se sozinha** a cada pintura do roteiro — antes perdia-se inteira se o nó não fosse aberto —, e o **`;` passou a separar os itens** do PO, que era o que fazia dois critérios numa coluna da folha.
+> **Última fotografia:** 01/11/2026 (base local `35aad32`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1). E o bloco 10 do plano deixou de pedir o que já estava respondido: a **música sobe da sequência** (que a lê do verbete) acima de um campo que passou a pedir **só o link do vídeo**, o **repertório** passou a **somente leitura** (é a sequência, semeada), a **sequência semeia-se sozinha** a cada pintura do roteiro — antes perdia-se inteira se o nó não fosse aberto —, e o **`;` passou a separar os itens** do PO, que era o que fazia dois critérios numa coluna da folha. E a **janela passou a ser vista por todas as bandas**: a §5 da aula deixou de ser escrita à mão e passou a derivar do PO, a folha e o formulário desenham **8 critérios** em vez de 4, e a fonte da aula passou a ser **reproduzível pelo código, byte a byte**.
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -402,6 +402,16 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     momento em que aquela aula nasce** — nunca uma derivação para as 26. **DECIDIDO** 01/11/2026 —
     e isto **responde** à pergunta que estava aberta desde 25/10/2026 («o que fazer com as 23 aulas
     que não têm marco»): **nada. Elas nascem à medida.**
+35. **O FORMULÁRIO DA COLETA É A EXPRESSÃO DA JANELA, POR TODAS AS BANDAS.** O PO declara 4
+    dimensões e **8 critérios**; a aula e a folha desenhavam **4** — os dois critérios de cada
+    dimensão colados num rótulo só. Quem olha pela janela tem de poder marcar **cada critério**: o
+    par não é observável. A fonte é **uma só** (`dimensoesEItens`) para a aula, a folha impressa e o
+    config que o formulário lê — **um conserto que fica no código e não chega aos artefatos gravados
+    não conserta nada**. **DECIDIDO** 01/11/2026.
+36. **A FONTE DE UM DOCUMENTO TEM DE SER O QUE O CÓDIGO GERA.** A §5 da aula era a única parte
+    escrita à mão (16 de 18 linhas divergentes), e nada o dizia: a próxima geração apagava-a em
+    silêncio. A prova deixou de medir o texto e passou a medir a **propriedade** — mesma entrada,
+    mesma saída, byte a byte. **DECIDIDO** 01/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -561,7 +571,26 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (01/11/2026 — o que a sequência já responde, e o `;`)
+### Executado nesta fotografia (01/11/2026 — a janela por todas as bandas)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-janela-do-lancamento.js` | **11 asserções, 0 falhas** (nova) — jsdom, o pacote por HTTP |
+| …o que ela mede | o config declara **8 colunas com chave**; a tela desenha **8 campos**, dois por banda; cada cabeçalho nomeia **um** critério; e o **controle negativo** — com o config antigo (os dois critérios numa coluna), os campos caem para **4** |
+| `node experimentos/provar-aula-prosa.js` | **19 verificações** — passou a exigir **cada critério sozinho na sua linha**, e ganhou a prova de que **a fonte da aula é reproduzível pelo código, byte a byte** |
+| `node experimentos/provar-aula-e-plano-legiveis.js` | **12 asserções, 0 falhas** — **falhava antes desta entrega** («coluna da folha não declarada: 'Linha de base revisitada'»); caiu ao corrigir o título da declaração e o `mesclarDeclaracao` por chave |
+| `node experimentos/provar-notacao.js` | **74 asserções, 0 falhas** |
+| `node experimentos/provar-celula.js` | **115 asserções, 0 falhas** |
+| `node experimentos/provar-teste.js` | **44 verificações** |
+| `provar-derivados-da-sequencia` · `provar-numeros-do-roteiro` · `provar-dimensoes-plano` · `provar-musica-no-plano` · `provar-plano-da-turma` · `provar-porta-sem-contexto` | **26** · **29** · **11** · **18** · **46** · **44**, todas sem falha |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-pacote.js professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh … --check` | cadeia íntegra; **`59e3063…`** — renovada (esta entrega reescreve fontes cobertas: a aula e a folha) |
+| medido na tela | `captura-aula-01.json` com **8 colunas**; `plano-aula-01.json` com **8 entradas** em `guiaDeObservacao`; a folha impressa com **8 linhas** de critério |
+| **não executado** | `provar-plano-matriz.js` e `provar-plano-completo.js` — falham **antes desta entrega** (a rota `/api/mapa`, e o nó `aula-de-cada-objetivo` sem destino declarado na prova); `provar-lancamento.js` **está morto** (aponta para `professores/tiago/ciclos/ciclo-01-maria`, que não existe); `provar-objetivos-por-aula.js` **não mede** (fixture expurgado) |
+| **ao ar** | não recarregado na exploração (a cota do KV). Uma carga no fim, depois do push |
+
+### Executado na fotografia anterior (01/11/2026 — o que a sequência já responde, e o `;`)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -900,7 +929,18 @@ que esta fotografia trazia — *«a aula é elaborada no momento que o professor
 dá pra fazer dessa maneira que você tá sugerindo. Não tem como. É completamente fora do mundo real.»*
 O recorte lê-se **quando aquela aula nasce**, com o registo da anterior à frente.
 
-**O caminho crítico, medido, não é o P1 — é a aula 2 existir.** Hoje:
+**A ordem que ela fixou (01/11/2026), e o ponto em que estamos:** *ajustar muito bem a geração da
+aula → o formulário da coleta ser a expressão da janela → o caderno → só então o botão de criar a
+aula.* As duas primeiras estão feitas (`82d37ef`). **A terceira é a próxima, e é o caderno.**
+
+**O que falta para o caderno ser a base da aula 2 — medido, não suposto.** O formulário já pergunta
+pela janela inteira (os 8 critérios, as condições de contorno, o relatório), mas **a sequência
+executada não é perguntada em lugar nenhum**: o próprio `tools/lib-vistas.js` declara a lacuna —
+«Estrutura executada: [Preencher: a ordem dos blocos vem do plano da aula, que é uma das três
+entradas — o JSON não a guarda]». Sem ela, o caderno diz o que se observou e **não diz o que se fez** —
+e é o que se fez que a aula 2 herda.
+
+**O caminho crítico medido, e não é o P1 — é a aula 2 existir.** Hoje:
 - a **lista** mostra os 23 lugares sem marco como «Lugar do calendário — sem marco», e o
   `PLANO-AULA-E-OBSERVACAO.md` §5.1 prevê a ação **«Definir o marco»** — que **não existe no código**
   (busca em `motor/`, `porta/`, `tools/templates/`, `workers/`: zero ocorrências de «Definir o marco»);
@@ -941,6 +981,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **01/11/2026** — **A janela vista por todas as bandas** (`82d37ef`). A §5 «Guia de observação» da
+  aula era a **única** parte do documento que o código não reproduzia (16 de 18 linhas divergentes; a
+  prosa não existia em código nenhum) — escrita à mão, e apagada em silêncio pela geração seguinte. E
+  a regra do `;` estava no código desde `ac6caa0` sem ter chegado aos **três** artefatos gravados (a
+  fonte da folha, a declaração do schema, o config do formulário). Agora a §5 deriva do PO pela mesma
+  função da folha, e a tela desenha **8 campos de critério em vez de 4**. **CONFIRMADO** por
+  `provar-janela-do-lancamento` (11/0, com controle negativo) e pela reprodutibilidade byte a byte da
+  fonte da aula. De passagem caíram dois defeitos escondidos: `mesclarDeclaracao` casava blocos por
+  título (a linha de base mudava de nome entre a derivação e a folha), e o título «(P-10)» fazia a
+  **primeira** declaração de qualquer variante nova nunca validar — `provar-aula-e-plano-legiveis`,
+  que falhava antes, passa a 12/12.
 - **01/11/2026** — **O que a sequência já responde não se escreve outra vez** (`ac6caa0`), e o `;`
   que separa os itens do PO. O bloco 10 do plano pedia o compasso que o **verbete** já declara e os
   exercícios que a **sequência** já demonstra; agora a música **sobe** acima de um campo que pede só o
