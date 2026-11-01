@@ -69,9 +69,9 @@
         "aulas": 1,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
-        "planos": 2,
+        "planos": 3,
         "pos": 1,
-        "registros": 6
+        "registros": 7
       },
       "criada_em": "2026-10-27T12:11:05.731644+00:00",
       "expurgada": false,
@@ -91,6 +91,7 @@
         "anamnese:anamnese-20261027-0946",
         "plano:plano-20261027-1025",
         "plano:plano-20261027-1131",
+        "plano:plano-20261101-1159",
         "po:po-20261027-1353"
       ],
       "slug": "batata"
@@ -306,7 +307,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 6,
+        "contagem": 7,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -464,7 +465,7 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
@@ -477,9 +478,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "35aad32"
+    "commit": "289377d"
   },
-  "gerado_em": "2026-11-01T14:26",
+  "gerado_em": "2026-11-01T15:00",
   "nao_indexado": [
     {
       "familia": "conteudo",
