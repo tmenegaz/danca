@@ -624,5 +624,12 @@
         }
       ]
     }
+  ],
+  "professores": [
+    {
+      "slug": "pirueta-aberta",
+      "nome": "Pirueta Aberta",
+      "desde": "2026-11-01T19:14:10.637Z"
+    }
   ]
 }
