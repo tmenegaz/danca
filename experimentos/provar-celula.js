@@ -23,8 +23,9 @@
  *      não se perde;
  *  10. o trecho acrescentado leva a `orientacao` ao repositório — e não a leva quando é en face;
  *  11. o último passo mostra o texto composto de cada trecho, e o «×» tira o trecho;
- *  12. os SETE passos estão na tira, o formulário ocupa a largura toda, e a listagem desce para
- *      baixo dele com as etiquetas de cada verbete (posição, direções, compasso, trechos);
+ *  12. os CINCO passos estão na tira — fora do formulário, à esquerda da listagem —, e a
+ *      listagem está ao lado com as etiquetas de cada verbete (posição, direções, compasso,
+ *      trechos); modelo da turma, desde 01/11/2026;
  *  13. nada transborda em 320, 390, 768 e 1280px, e nenhum erro de JavaScript aparece.
  *
  * A bancada é LOCAL: um `http.createServer` em porta efémera serve a página que o módulo monta,
@@ -309,23 +310,31 @@ function estado() {
    * faz (a caixa é parte da peça, não um alvo separado), e é o que funciona mesmo quando a
    * folha desenha a caixa com `appearance:none` e a esconde por baixo da peça.
    */
-  // ================= OS SEIS PASSOS (31/10/2026) ===================================
+  // ================= OS CINCO PASSOS (31/10/2026 — cinco desde 01/11/2026) ========
   // Só o painel do passo actual está no ecrã — e um controlo num painel escondido não se pode
-  // clicar. A prova leva-se ao passo onde o controlo vive, em vez de fingir que os seis estão
-  // todos à vista: é isso que a tela faz, e é isso que a prova deve fazer.
+  // clicar. A prova leva-se ao passo onde o controlo vive, em vez de fingir que estão todos à
+  // vista: é isso que a tela faz, e é isso que a prova deve fazer.
+  //
+  // O MAPA ENCOLHEU COM A FUSÃO. O exercício, a frase e a posição passaram a ser o passo 1 (o
+  // painel do par do exercício e o painel da frase/posição, ambos `data-passo="1"`); a música
+  // desceu a 2, o «para onde» a 3, os sinais a 4 e a decomposição a 5. É o passo onde o controlo
+  // VIVE, e não a ordem em que se aprende — por isso a música vem antes do par do exercício.
   const PASSO_DE = [
     [/^#vbnome|^#vb-novo-exercicio/, 1],
-    [/^#vb-frase|^#vb-frase-nota/, 2],
-    [/^#vbtempos|^#vbcompasso/, 3],
-    [/^#vbposicao/, 4],
-    [/^#vb-dir|^#vb-orient|^#vb-categoria|^#vb-contagem/, 5],
-    [/^#vb-sinais|^#vb-chips/, 6],
-    [/^#vb-tabela|^#vb-fica|^#vb-cel-acrescentar|^input\[name=vb-cat\]/, 7],
+    [/^#vb-frase|^#vb-frase-nota|^#vbposicao/, 1],
+    [/^#vbtempos|^#vbcompasso/, 2],
+    [/^#vb-dir|^#vb-orient|^#vb-categoria|^#vb-contagem/, 3],
+    [/^#vb-sinais|^#vb-chips/, 4],
+    [/^#vb-tabela|^#vb-fica|^#vb-cel-acrescentar|^input\[name=vb-cat\]/, 5],
   ];
   const passoDe = (seletor) => {
     for (const [re, n] of PASSO_DE) if (re.test(seletor)) return n;
     return null;
   };
+  // O ÚLTIMO PASSO lê-se DA PÁGINA, e só depois de ela abrir: uma prova que escreve «7» à mão
+  // mede a constante dela, não o comportamento — e já ficou com números errados quando a lista
+  // mudou de tamanho. (`let`, e não `const`: a página ainda está em `about:blank` aqui.)
+  let ULTIMO = null;
   const irA = async (n) => {
     await page.evaluate((k) => { if (typeof irParaPasso === 'function') irParaPasso(k); }, n);
     await new Promise((r) => setTimeout(r, 150));
@@ -350,6 +359,8 @@ function estado() {
   try {
     await page.setViewport({ width: 1280, height: 950 });
     await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    ULTIMO = await page.evaluate(() => window.ULTIMO_PASSO);
+    conferir('a página diz qual é o último passo, e são cinco', ULTIMO === 5, ULTIMO);
     // A Produção é uma página de sessão: `abrirSessao` é o que revela o conteúdo e o que o
     // login faz ao vivo. Ir pelo formulário da senha exigiria a rota de sessão, que aqui não
     // é o que se mede.
@@ -407,6 +418,21 @@ function estado() {
       noModoB.botaoVerboNoModoB);
     conferir('e os campos do verbete não estão no documento',
       await page.evaluate(() => !document.getElementById('vb-modo-exercicio').querySelector('#vbtempos')));
+    // A TIRA SAI TAMBÉM (01/11/2026). Ela passou a viver FORA do formulário, e por isso deixou de
+    // desaparecer de borla com `#vb-modo-verbete`: sem `pintarPassos` a esconder, ficava a navegar
+    // cinco passos de um formulário que não está no ecrã. O `hidden` sozinho não bastava — a regra
+    // `.passos{display:flex}` vence a do navegador —, e é isso que os dois números abaixo medem.
+    const tiraNoModoB = await page.evaluate(() => {
+      const t = document.getElementById('vb-tira');
+      return { atributo: t.hidden, altura: Math.round(t.getBoundingClientRect().height) };
+    });
+    conferir('a tira dos passos sai do ecrã no modo do exercício',
+      tiraNoModoB.atributo === true && tiraNoModoB.altura === 0, tiraNoModoB);
+    conferir('e o par do exercício também, que é o painel do passo 1',
+      await page.evaluate(() => {
+        const p = [...document.querySelectorAll('#form-verbete .passo-painel[data-passo="1"]')];
+        return p.length === 2 && p.every((x) => x.hidden);
+      }));
 
     console.log('\n4. O ENTER NÃO GRAVA UM VERBETE COM OS CAMPOS ESCONDIDOS');
     await page.type('#vnnome', 'Sissonne ouverte');
@@ -557,7 +583,7 @@ function estado() {
     await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
     await new Promise((r) => setTimeout(r, 250));
     conferir('a recusa nomeia a frase que falta, e o passo onde se escreve',
-      /Falta a frase do verbete \(no passo 2\)/.test((await page.evaluate(estado)).recado),
+      /Falta a frase do verbete \(no passo 1\)/.test((await page.evaluate(estado)).recado),
       (await page.evaluate(estado)).recado);
     await noPassoDe('#vb-frase');
     await page.evaluate(() => {
@@ -782,7 +808,7 @@ function estado() {
     await new Promise((r) => setTimeout(r, 500));
     await escreverFrase('o pé bate e troca');
     const oferecidas = await acrescentar('devant');
-    await irA(7);
+    await irA(ULTIMO);
     const comTrecho = await page.evaluate(estado);
     const botoesDaLinha = await page.evaluate(
       () => [...document.querySelectorAll('#vb-tabela button')].map((b) => b.textContent.trim()));
@@ -792,7 +818,7 @@ function estado() {
     await page.evaluate(() => { document.querySelector('#vb-tabela button[data-editar]').click(); });
     await new Promise((r) => setTimeout(r, 400));
     const emEdicao = await page.evaluate(estado);
-    conferir('«Editar» leva ao passo 5, que é onde a correcção começa', emEdicao.passo === 5, emEdicao.passo);
+    conferir('«Editar» leva ao passo 3, que é onde a correcção começa', emEdicao.passo === 3, emEdicao.passo);
     conferir('o aviso de edição está à vista e diz qual é o trecho',
       emEdicao.avisoDeEdicao !== null && /trecho 1/.test(emEdicao.avisoDeEdicao), emEdicao.avisoDeEdicao);
     conferir('a tira acende o «!» — e só nos passos do trecho',
@@ -808,7 +834,7 @@ function estado() {
       emEdicao.rotuloDoBotao === 'Guardar a alteração', emEdicao.rotuloDoBotao);
 
     // A LINHA EM EDIÇÃO, VISTA DO ÚLTIMO PASSO: marcada, sem «×» e com «Cancelar».
-    await irA(7);
+    await irA(ULTIMO);
     const linhaEmEdicao = await page.evaluate(estado);
     conferir('a linha em edição está marcada e não tem «×»',
       linhaEmEdicao.linhaEmEdicao === true && linhaEmEdicao.temBotaoTirar === false,
@@ -818,7 +844,7 @@ function estado() {
     await page.evaluate(() => { document.getElementById('vb-cancelar-edicao').click(); });
     await new Promise((r) => setTimeout(r, 400));
     const cancelado = await page.evaluate(estado);
-    conferir('«Cancelar a edição» volta ao último passo', cancelado.passo === 7, cancelado.passo);
+    conferir('«Cancelar a edição» volta ao último passo', cancelado.passo === ULTIMO, cancelado.passo);
     conferir('e apaga o modo: o aviso e o «!» desaparecem',
       cancelado.avisoDeEdicao === null && cancelado.tiraEditando === 'nao',
       { aviso: cancelado.avisoDeEdicao, tira: cancelado.tiraEditando });
@@ -826,27 +852,64 @@ function estado() {
       cancelado.linhasDaTabela === comTrecho.linhasDaTabela,
       { antes: comTrecho.linhasDaTabela, depois: cancelado.linhasDaTabela });
 
-    console.log('\n19. OS SETE PASSOS, A LISTAGEM POR BAIXO E AS ETIQUETAS DE CADA VERBETE');
-    // OS SETE PASSOS (31/10/2026). A tira é a navegação e o resumo; se um passo desaparecer dela,
-    // o painel dele fica inalcançável. O sétimo nasceu da redundância da frase — e é o que a
-    // prova tem de guardar, senão volta a ser seis por inércia.
+    console.log('\n19. OS CINCO PASSOS FORA DO FORMULÁRIO, E A LISTAGEM AO LADO');
+    // OS CINCO PASSOS (01/11/2026). A tira é a navegação e o resumo; se um passo desaparecer
+    // dela, o painel dele fica inalcançável. Eram sete — e a fusão do exercício, da frase e da
+    // posição num só é uma decisão dela, não uma simplificação minha: a prova guarda os cinco,
+    // senão volta a sete por inércia, ou a seis, que é como estava antes de nascer o sétimo.
+    //
+    // O ESTADO É PREPARADO, E NÃO HERDADO DO QUE A SECÇÃO 18 DEIXOU. A tira passou a resumir o
+    // passo 1 com o nome E a posição, e para o medir é preciso um exercício com as duas coisas
+    // escolhidas — o «Changement» da secção 18 não tem verbete no alfabeto de exemplo, e sem
+    // posição o valor certo é só o nome.
+    await irA(1);
+    await page.select('#vbnome', 'Battement tendu');
+    await new Promise((r) => setTimeout(r, 500));
+    await page.select('#vbposicao', 'premiere-position');
+    await new Promise((r) => setTimeout(r, 300));
     const tira = await page.evaluate(() => ({
       numeros: [...document.querySelectorAll('#vb-tira button.passo')]
         .map((b) => b.getAttribute('data-passo')),
       rotulos: [...document.querySelectorAll('#vb-tira button.passo')]
         .map((b) => (b.querySelectorAll('.passo-t')[0] || {}).textContent.trim()),
-      paineis: [...document.querySelectorAll('#form-verbete .passo-painel')].length,
+      valores: [...document.querySelectorAll('#vb-tira .passo-t[id^=vb-v]')]
+        .map((x) => x.textContent.trim()),
+      paineis: [...document.querySelectorAll('#form-verbete .passo-painel')].map(
+        (p) => p.getAttribute('data-passo')),
+      // A TIRA TEM DE ESTAR FORA DO `<form>` (01/11/2026) — é o desenho da turma, e é o que ela
+      // pediu. `closest` conta a história inteira: se a tira voltar para dentro, isto falha.
+      dentroDoFormulario: Boolean(document.getElementById('vb-tira').closest('form')),
+      antesDoFormulario: document.getElementById('vb-tira')
+        .compareDocumentPosition(document.getElementById('form-verbete'))
+        & Node.DOCUMENT_POSITION_FOLLOWING ? true : false,
+      // E O MESMO BLOCO: a tira e o formulário vivem na coluna da esquerda, e a lista na direita.
+      tiraNaColunaDoFormulario: Boolean(document.getElementById('vb-tira')
+        .closest('.col-form')),
     }));
-    conferir('a tira tem sete passos, numerados de 1 a 7',
-      JSON.stringify(tira.numeros) === JSON.stringify(['1', '2', '3', '4', '5', '6', '7']),
+    conferir('a tira tem cinco passos, numerados de 1 a 5',
+      JSON.stringify(tira.numeros) === JSON.stringify(['1', '2', '3', '4', '5']),
       tira.numeros);
-    conferir('e o segundo é a frase — o que se escreve uma vez para o exercício',
-      tira.rotulos[1] === 'A frase', tira.rotulos);
-    conferir('há um painel por passo', tira.paineis === 7, tira.paineis);
+    conferir('e o segundo é a música — o resto mudou de número, não de sítio',
+      tira.rotulos[1] === 'A música', tira.rotulos);
+    conferir('o passo 1 juntou o exercício, a frase e a posição', tira.rotulos[0] === 'O exercício',
+      tira.rotulos);
+    conferir('e a tira diz o nome do exercício com a posição, e não a frase',
+      /Battement tendu · Première position/.test(tira.valores[0]), tira.valores);
+    // UM PASSO PODE TER MAIS DE UM PAINEL (o 1 tem dois: o par do exercício, que o modo B bloqueia,
+    // e a frase com a posição). O que se exige é que TODO o número da tira tenha painel.
+    conferir('cada passo da tira tem o seu painel no formulário',
+      [...new Set(tira.paineis)].sort().join(',') === '1,2,3,4,5'
+        && tira.paineis.length >= tira.numeros.length,
+      tira.paineis);
+    conferir('a tira está FORA do formulário, e antes dele',
+      tira.dentroDoFormulario === false && tira.antesDoFormulario === true, tira);
+    conferir('e vive na coluna do formulário, como a faixa da turma',
+      tira.tiraNaColunaDoFormulario === true, tira.tiraNaColunaDoFormulario);
 
-    // O FORMULÁRIO OCUPA A LARGURA, E A LISTAGEM DESCE PARA BAIXO DELE (31/10/2026). Com sete
-    // passos, a coluna de 34rem partia a tira em três linhas. O que se mede é a GEOMETRIA: uma
-    // coluna só, o formulário com a largura dela, e a listagem abaixo — não presa ao lado.
+    // O PADRÃO DA SECÇÃO: FORMULÁRIO À ESQUERDA, LISTAGEM À DIREITA (01/11/2026). A 31/10/2026
+    // ela tinha passado a uma coluna por causa dos sete passos; a fusão tirou a causa, e a secção
+    // voltou a ser o que é em todas as outras. O que se mede é a GEOMETRIA: duas colunas, o
+    // formulário na da esquerda, a listagem à direita dele — e presa, a rolar por dentro.
     const layout = await page.evaluate(() => {
       const sec = document.getElementById('sec-verbetes');
       const form = sec.querySelector('.col-form');
@@ -856,17 +919,24 @@ function estado() {
         colunas: getComputedStyle(sec).gridTemplateColumns.split(' ').length,
         larguraSec: Math.round(r(sec).width),
         larguraForm: Math.round(r(form).width),
-        baseForm: Math.round(r(form).bottom),
+        direitaForm: Math.round(r(form).right),
+        esquerdaLista: Math.round(r(lista).left),
+        topoForm: Math.round(r(form).top),
         topoLista: Math.round(r(lista).top),
         presa: getComputedStyle(lista).position,
+        transbordo: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       };
     });
-    conferir('a secção dos verbetes passou a ter UMA coluna', layout.colunas === 1, layout.colunas);
-    conferir('e o formulário ocupa a largura dela',
-      layout.larguraForm >= layout.larguraSec - 4, layout);
-    conferir('a listagem fica ABAIXO do formulário, e não ao lado',
-      layout.topoLista >= layout.baseForm, layout);
-    conferir('e deixou de ser uma coluna presa', layout.presa !== 'sticky', layout.presa);
+    conferir('a secção dos verbetes tem DUAS colunas, como as outras',
+      layout.colunas === 2, layout);
+    conferir('e o formulário fica à esquerda, com a largura da coluna dele',
+      layout.larguraForm < layout.larguraSec * 0.6 && layout.larguraForm > 400, layout);
+    conferir('a listagem fica AO LADO, à direita do formulário',
+      layout.esquerdaLista >= layout.direitaForm, layout);
+    conferir('e começa no topo, como o formulário', Math.abs(layout.topoLista - layout.topoForm) <= 2,
+      layout);
+    conferir('volta a ser uma coluna presa', layout.presa === 'sticky', layout.presa);
+    conferir('e as duas colunas cabem na largura da secção', layout.transbordo === 0, layout);
 
     // AS ETIQUETAS DA LISTAGEM. Antes era o nome e a chave crua da música — «4 | 4/4 · 8 | 4/4»,
     // com o `|` a vazar para a tela. Agora a posição vai em selo e o complemento diz as direções,

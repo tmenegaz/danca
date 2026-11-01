@@ -16,12 +16,12 @@ hash: 36010816720e8d4b2e88d6a4d52c6e13f68c98e2662badc6d5d32082bf570962
 algoritmo: SHA-256
 po: professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Aguardando
-ancorado_em: 2026-10-31
+ancorado_em: 2026-11-01
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 8
-notacao_sha: 8da9f0afa6ce24843feeedd432283817bcee83f75124b114ddbc9c6a53205e39
+notacao_versao: 9
+notacao_sha: 17b815f5a57b6d9c699b591db0146001d943ea0b667f1b93d9cc2c5c85f04d0c
 cobertura:
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md

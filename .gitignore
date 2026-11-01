@@ -442,3 +442,15 @@ experimentos/modelo-formulario/*
 # A AULA TEM DUAS LEITURAS (27/10/2026). A prova garante que a versão em prosa conserva compasso,
 # contagem e descrição, omite a coluna Benesh e não inventa descrições que faltam na fonte.
 !experimentos/provar-aula-prosa.js
+
+# A MÚSICA DO VERBETE É A DO PLANO (31/10/2026 — versionada a 01/11/2026). A prova nasceu da
+# pergunta dela no nó «Sequência de exercícios por bloco»: «tempo não tem nada e compasso não tem
+# nada». Mede a derivação nos três casos — uma música (travada), várias (escolha, só as
+# declaradas) e nenhuma (à mão) —, e o controle negativo serve a mesma página sem o campo da rota:
+# sem ele, nada é derivado, e é isso que garante que a regra vem do alfabeto e não de uma lista
+# escrita na tela.
+#
+# ESTEVE FORA DO GIT POR UM DIA. A entrega de 31/10/2026 (`885ea96`) citava-a no `Auditoria:` e no
+# `REGISTRO.md` e o `git add` não a levou — o `experimentos/*` fecha a pasta e faltava o `!`. Quem
+# clonasse o repositório não tinha a prova que o commit diz ter corrido.
+!experimentos/provar-musica-no-plano.js

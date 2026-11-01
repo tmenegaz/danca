@@ -41,12 +41,20 @@
     "serializado — dois espaços, uma chave por linha —, e não a mão de quem o escreveu. A razão é",
     "que ele vai passar a ser editado pela Produção (o CRUD do verbete grava no repositório), e um",
     "gravador que reformata é um gravador que produz um diff ilegível. Quem lê a diferença continua",
-    "a lê-la: o que muda é o que mudou, e não o espaçamento todo."
+    "a lê-la: o que muda é o que mudou, e não o espaçamento todo.",
+    "",
+    "OS TRÊS MODELOS DE ENSAIO (01/11/2026). «Grand battement», «Arabesque» e «Rond de jambe à terre»",
+    "foram semeados a pedido da pesquisadora para ela poder ensaiar o formulário com exercícios que",
+    "têm verbete: «acrescenta também esses modelos de teste, pré-preenchidos aqui no verbete da",
+    "anotação». Não são verbetes conferidos — a frase do Grand battement vem do dicionário dela, a do",
+    "Arabesque é a que o dicionário tem (uma linha, a pedir as palavras dela), e o Rond de jambe à",
+    "terre é o exercício que já existia como «Rond de jambe», com o nome que o vocabulário usa. A",
+    "DECOMPOSIÇÃO dos três é ensaio: quem a confere é quem ensina."
   ],
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 8,
+  "versao": 9,
   "aplicaseA": [
     "benesh"
   ],
@@ -846,6 +854,152 @@
                 "×"
               ],
               "descricao": "Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.\nLê-se: Pé, quinta posição, conduz a, atrás."
+            }
+          ]
+        }
+      }
+    },
+    "Grand battement": {
+      "8|4/4": {
+        "cobre": 8,
+        "posicao": {
+          "membro": "pes",
+          "termo": "cinquieme-position"
+        },
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "+",
+                "●",
+                "5ª"
+              ],
+              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, à frente, fecha, quinta posição."
+            }
+          ],
+          "a-la-seconde": [
+            {
+              "contagem": "3–4",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "-",
+                "●",
+                "5ª"
+              ],
+              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, ao lado, fecha, quinta posição."
+            },
+            {
+              "contagem": "7–8",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "-",
+                "●",
+                "5ª"
+              ],
+              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, ao lado, fecha, quinta posição."
+            }
+          ],
+          "derriere": [
+            {
+              "contagem": "5–6",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "×",
+                "●",
+                "5ª"
+              ],
+              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, atrás, fecha, quinta posição."
+            }
+          ]
+        }
+      }
+    },
+    "Arabesque": {
+      "4|4/4": {
+        "cobre": 4,
+        "posicao": {
+          "membro": "pes",
+          "termo": "cinquieme-position"
+        },
+        "celulas": {
+          "derriere": [
+            {
+              "contagem": "1–4",
+              "categoria": "Pé",
+              "sinais": [
+                "5ª",
+                "→",
+                "×",
+                "↑"
+              ],
+              "descricao": "Diferentes posições de arabesque.\nLê-se: Pé, quinta posição, conduz a, atrás, sobe."
+            }
+          ]
+        }
+      }
+    },
+    "Rond de jambe à terre": {
+      "8|4/4": {
+        "cobre": 8,
+        "posicao": {
+          "membro": "pes",
+          "termo": "premiere-position"
+        },
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "categoria": "Pé",
+              "sinais": [
+                "1ª",
+                "→",
+                "+",
+                "ED"
+              ],
+              "descricao": "a perna de trabalho varre à frente, a partir da primeira posição\nLê-se: Pé, primeira posição, conduz a, à frente, en dehors."
+            },
+            {
+              "contagem": "3–4",
+              "categoria": "Pé",
+              "sinais": [
+                "+",
+                "↺",
+                "2ª"
+              ],
+              "descricao": "a varredura abre para a segunda posição, en dehors\nLê-se: Pé, à frente, rotação para fora, segunda posição."
+            }
+          ],
+          "derriere": [
+            {
+              "contagem": "1–2",
+              "categoria": "Pé",
+              "sinais": [
+                "2ª",
+                "→",
+                "×",
+                "EI"
+              ],
+              "descricao": "a perna continua atrás, en dedans\nLê-se: Pé, segunda posição, conduz a, atrás, en dedans."
+            },
+            {
+              "contagem": "3–4",
+              "categoria": "Pé",
+              "sinais": [
+                "×",
+                "●",
+                "1ª"
+              ],
+              "descricao": "retorno à primeira posição\nLê-se: Pé, atrás, fecha, primeira posição."
             }
           ]
         }
