@@ -5,21 +5,26 @@ ciclo: "01"
 escola: batata
 professor: so-para-direita
 title: "Plano do Ciclo 01 — batata"
-subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
 ## Contexto
 
+**Escola e espaço**
+
 | Item | Valor |
-|:--|:--|
-| **Escola / espaço** | batata |
+|:------------------------|:--------------------------------------------------------|
+| **Frequência semanal** | 1x semanal — ter |
+| **Duração por aula** | 1 hora 30 minutos |
+| **Calendário** | 2027-02-06 → 2027-05-29 |
+| **Número total de aulas** | 16 |
+
+**Professor, turma e método**
+
+| Item | Valor |
+|:------------------------|:--------------------------------------------------------|
 | **Professor responsável** | so-para-direita |
-| **Turmas observadas** | Balé Nível 2 — Teste 2 |
-| **Frequência semanal** | 2x semanal — ter e qui |
-| **Duração por aula** | 1 hora |
-| **Calendário** | 2027-02-02 → 2027-04-29 |
-| **Número total de aulas** | 26 |
+| **Turmas observadas** | Balé Nível 3 — Teste 2 |
 | **Volume de trabalho** | 3–6 séries |
 | **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
 | **Metodologia de referência** | RAD |
@@ -28,7 +33,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 ## Objetivo geral
 
-Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.
+Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 2, com musicalidade e controle do movimento.
 
 ## Objetivos específicos
 
@@ -75,9 +80,9 @@ Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turm
 
 ## Régua da rubrica
 
-- Domina
-- Domínio parcial
-- Precisa desenvolver
+- Satisfatório
+- Razoável
+- Em desenvolvimento
 
 > **A régua da turma — e só ela.** Os níveis, como a escola os escreve, na ordem da escala
 > — o primeiro é o mais baixo. É com ela que o LANÇAMENTO da aula mede cada critério: o
@@ -98,11 +103,24 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 
 ## Músicas e vídeos
 
-- Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.
+- Arabesque — 4 tempos em 4/4
+- Plié — 8 tempos em 4/4
+- Battement tendu — 4/4
+- Battement fondu — 2 tempos em 4/4
+- Rond de jambe — tempos e compasso por declarar no verbete
+- Jeté — tempos e compasso por declarar no verbete
+- Port de bras — 12 tempos em 3/4
+- https://www.youtube.com/watch?v=teste-nivel-3 — diagonal, exercício de referência (teste).
 
 ## Repertório
 
-- Sequência de teste com plié, tendu e port de bras.
+- Arabesque
+- Plié
+- Battement tendu
+- Battement fondu
+- Rond de jambe
+- Jeté
+- Port de bras
 
 ## Registro de proveniência
 
