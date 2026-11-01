@@ -54,7 +54,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 9,
+  "versao": 10,
   "aplicaseA": [
     "benesh"
   ],
@@ -1000,6 +1000,31 @@
                 "1ª"
               ],
               "descricao": "retorno à primeira posição\nLê-se: Pé, atrás, fecha, primeira posição."
+            }
+          ]
+        }
+      }
+    },
+    "Relevé": {
+      "2|2/2": {
+        "cobre": 1,
+        "posicao": {
+          "membro": "pes",
+          "termo": "premiere-position"
+        },
+        "celulas": {
+          "": [
+            {
+              "contagem": "1",
+              "categoria": "Pé",
+              "sinais": [
+                "ED",
+                "1ª",
+                "↑",
+                "↓",
+                "1ª"
+              ],
+              "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.\nLê-se: Pé, en dehors, primeira posição, sobe, cede, primeira posição."
             }
           ]
         }
