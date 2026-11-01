@@ -32,13 +32,16 @@
     "documento:aula:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
     "documento:dados:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
     "documento:dados:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+    "documento:dados:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
     "documento:glossario:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
     "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+    "documento:indice:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
     "documento:notacao:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
     "documento:plano:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
     "documento:po:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
-    "documento:referencias:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md"
+    "documento:referencias:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
+    "documento:schema:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
   "estado": "ancorado",
@@ -55,7 +58,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -68,6 +71,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 1,
@@ -93,14 +101,19 @@
         "contagem": 1,
         "rotulo": "referencias",
         "valor": "referencias"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "07752f8"
+    "commit": "570d900"
   },
-  "gerado_em": "2026-11-01T20:34",
+  "gerado_em": "2026-11-01T20:51",
   "id": "ciclo:pe-torto/01/breu",
   "professor": "pe-torto",
   "versao": 6

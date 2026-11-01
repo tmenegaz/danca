@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 13,
+      "documentos": 16,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:pe-torto/01/breu",
@@ -497,9 +497,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "07752f8"
+    "commit": "570d900"
   },
-  "gerado_em": "2026-11-01T20:34",
+  "gerado_em": "2026-11-01T20:51",
   "nao_indexado": [
     {
       "familia": "conteudo",

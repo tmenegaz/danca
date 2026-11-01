@@ -79,7 +79,10 @@
         "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
         "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
         "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
-        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp"
+        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
+        "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "breu",
       "estado": "ancorado",
@@ -94,11 +97,13 @@
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
         "po",
-        "referencias"
+        "referencias",
+        "schema"
       ]
     },
     {
@@ -202,6 +207,15 @@
     },
     {
       "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "ciclo_id": "ciclo:pe-torto/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "professor": "pe-torto",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
       "ciclo_id": "ciclo:pe-torto/01/breu",
       "escola": "breu",
@@ -217,6 +231,15 @@
       "id": "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
       "professor": "pe-torto",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
+      "ciclo_id": "ciclo:pe-torto/01/breu",
+      "escola": "breu",
+      "id": "documento:indice:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
+      "professor": "pe-torto",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
@@ -271,6 +294,15 @@
       "id": "documento:referencias:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
       "professor": "pe-torto",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:pe-torto/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/pe-torto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "pe-torto",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-breu",
@@ -402,9 +434,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "07752f8"
+    "commit": "570d900"
   },
-  "gerado_em": "2026-11-01T20:34",
+  "gerado_em": "2026-11-01T20:51",
   "nao_indexado": [
     {
       "familia": "conteudo",
