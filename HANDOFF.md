@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-31T21:51:12-0300`
-Commit atual: `885ea96` — feat(estrutura): os tempos e o compasso vêm do verbete, e não se perguntam duas vezes
+Gerado em: `2026-10-31T21:52:47-0300`
+Commit atual: `1db8980` — docs(registro): a fotografia, o registo e o handoff do verbete que responde pelo plano
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -80,6 +80,7 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
+1db8980 docs(registro): a fotografia, o registo e o handoff do verbete que responde pelo plano
 885ea96 feat(estrutura): os tempos e o compasso vêm do verbete, e não se perguntam duas vezes
 621a4f3 docs(registro): a fotografia do conteúdo órfão que o plano passou a acusar
 c3f0fb1 fix(estrutura): o plano diz por que um termo da turma não aparece
@@ -99,7 +100,6 @@ b641acc feat(estrutura): o «lê-se» dentro do campo, e a quarta coluna fora da
 fd6f67c docs(registro): regenerar o HANDOFF após a fotografia de 31/10/2026
 db811d5 docs(registro): actualizar a fotografia após a definição no campo
 612c49b docs(registro): a definição do exercício no campo, e o «lê-se» abaixo
-7be42cb feat(estrutura): «o que acontece» recebe a definição do exercício, e o «lê-se» desce
 ```
 
 ## Por professor

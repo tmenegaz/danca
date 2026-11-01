@@ -505,7 +505,7 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 | `node tools/check-pacote.js professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
 | `tools/hash-ciclo.sh perna-boa 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; **`3601081…`**; **sem renovação** — esta entrega lê o alfabeto, não o escreve |
 | **não executado** | `provar-plano-completo.js` e `provar-plano-matriz.js` falham **antes desta entrega** (o nó `aula-de-cada-objetivo` sem destino na prova, e `/api/mapa`) — confirmado por `git stash` |
-| **ao ar** | não recarregado nesta entrega, de propósito: a cota do KV. Uma carga no fim, quando o push estiver publicado |
+| **ao ar** — uma carga por sítio, no fim, e não na exploração | `/plano-ensino/?professor=perna-boa&escola=batata&ciclo=01` → **200**, com `musicasDoExercicio`, `MUSICAS_DO_TERMO` e a nota «vêm do verbete» no HTML servido; `GET /api/bastidores/termos` → **93 termos, 6 com `musicas`** (Plié `8\|4/4`; Battement tendu `4`, `8` e `12 em 4/4`; Battement dégagé `4\|2/4`; Rond de jambe en l'air `4\|2/4`; Battement fondu `2\|4/4`; Port de bras `12\|3/4`). A rota lê o alfabeto empacotado, **sem KV** |
 
 ### Executado na fotografia anterior (31/10/2026 — o plano acusa o termo que não existe)
 
