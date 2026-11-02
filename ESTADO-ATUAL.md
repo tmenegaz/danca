@@ -4,16 +4,31 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `cc54844`). Nesta entrega: **o verbete ganhou
-> proveniência.** O `DELETE` deixou de ser incondicional — se o exercício compõe um **plano de
-> ensino** ou o repertório de uma **curadoria**, o `409` diz porquê e aponta o caminho
-> («Descontinuar»). E o `UPDATE` deixou de reescrever o passado: ela escolheu **versões datadas**
+> **Última fotografia:** 02/11/2026 (base local `0e2ac45`, com a árvore de trabalho **por
+> commitar** — esta entrega não foi commitada). Nesta entrega, **a segunda correcção do dia sobre a
+> mesma tela**, e ela reverteu três decisões da manhã: o **rótulo da tradição** passou de CAIXA ALTA
+> a **Title Case** (`RAD` fica como sigla) e a `Compartilhada` duplicada saiu da lista do método; o
+> **«Apagar o verbete» saiu do passo 6** e vive só na listagem; e a **navegação bloqueia para a
+> frente** — o passo seguinte e o «Seguir» ficam desactivados até os obrigatórios da etapa estarem
+> preenchidos, e o «Voltar» continua livre. O passo 1 passou a **ler o passo 2**: escolhido um
+> exercício existente, categoria, tradição e «o que acontece» vêm do dicionário e ficam
+> **congelados** (`disabled`). Duas correcções de dados: o `ED`/`EI` do alfabeto deixaram de se
+> chamar «en dehors»/«en dedans» e passaram a **«varredura para fora/dentro»**, e as fixtures do
+> `breu` passaram a **Plié · Battement tendu · Battement fondu**, com a música e a decomposição
+> pré-escritas. Também se corrigiu uma **regressão medida**: o preenchedor de fixtures chamava
+> `modoExercicio (true)`, removida no passo 1 — nenhum termo chegava ao formulário.
+>
+> **Entrega anterior** (base `cc54844`). **O verbete ganhou proveniência.** O `DELETE` deixou de
+> ser incondicional — se o exercício compõe um **plano de ensino** ou o repertório de uma
+> **curadoria**, o `409` diz porquê e aponta o caminho («Descontinuar»). E o `UPDATE` deixou de
+> reescrever o passado: ela escolheu **versões datadas**
 > (opção B de três), e um verbete em uso passa a ser **ajustado** — o estado anterior fica no
 > histórico com a data em que deixou de valer, e o documento compõe o estado que valia **na data do
 > seu envelope**. Medido de ponta a ponta: o mesmo envelope, com a data de antes do ajuste, sai com
 > a notação antiga. **E duas regras de tela:** o «Gravar verbete» fica desactivado sem decomposição,
-> e o bloco do passo 1 (categoria, tradição, «o que acontece») só entra em vigor com um nome. **E a
-> tradição de referência** passou a exibir-se em **caixa alta**, com **CUBANA** — de uma lista só.
+> e o bloco do passo 1 (categoria, tradição, «o que acontece») só entra em vigor com um nome.
+> *(A terceira parte desta entrega — a tradição em caixa alta — foi **corrigida na mesma data**:
+> ver a nota da fotografia de cima.)*
 >
 > **Entrega anterior** (base `dbc3797`). Nesta entrega: **a música deixou de se poder mudar por
 > baixo dos trechos.** Ela escreveu os tempos à mão, de 8 para 16, e os trechos
@@ -388,12 +403,57 @@ Verificado nesta fotografia, com os comandos da §9.
   `repertorio` numa leitura. Não há base de dados, nem `tenant_id` — o isolamento é o `escola/` no
   caminho da chave. O que se fez foi o que o pedido queria no fundo: a guarda consulta o índice
   **uma vez** em vez de ler envelope por envelope, e a prova conta as leituras.
-- **A tradição de referência é uma lista só, e o ecrã mostra-a em caixa alta** (02/11/2026). Entra
-  **CUBANA**; a ordem é RAD · FRANCESA · VAGANOVA · CUBANA · COMPARTILHADA; e o rótulo é
-  **derivação** (`rotuloDaTradicao`), não migração: o dado guarda a chave (`francesa`) porque
-  `vocabulario.json` a grava em 4 termos e `diferencasDeNomenclatura` tem uma coluna por chave.
-  **CONFIRMADO** por `provar-verbete` §H, incluindo «em todos os selectores o texto é a chave em
-  caixa alta».
+- **A tradição de referência é uma lista só, e o rótulo está no dado** (02/11/2026; **corrigido na
+  mesma data**). Entra **CUBANA**; a ordem é RAD · Francesa · Vaganova · Cubana · Compartilhada. A
+  primeira redação desta linha dizia «o ecrã mostra em caixa alta» e «o rótulo é derivação
+  (`rotuloDaTradicao`)» — **está desactualizado**: ela reviu a decisão à tarde e pediu *Title Case*
+  com **apenas as siglas em caixa alta**. O mapa de rótulos passou para o **próprio ficheiro**
+  (`tradicoes.json` → `rotulos`), e `rotuloDaTradicao` só o lê: uma regra automática de maiúsculas
+  não saberia que `RAD` é sigla e `Vaganova` é nome próprio. O **dado dos termos não é migrado**
+  (`vocabulario.json` grava `francesa`, e `diferencasDeNomenclatura` tem uma coluna por chave).
+  **CONFIRMADO** por `provar-verbete` §H, incluindo «em todos os selectores, o texto é o rótulo do
+  ficheiro».
+- **O «Apagar o verbete» vive só na LISTAGEM** (02/11/2026, segunda correcção do dia). Ele esteve
+  também no passo 6 por pedido da manhã, e saiu: é a tela onde se escreve a decomposição, e apagar o
+  verbete inteiro ao lado do «Acrescentar trecho» é um alvo a um clique do gesto mais frequente. O
+  verbo e a guarda de proveniência ficam os mesmos — o que mudou foi o sítio. **CONFIRMADO** por
+  `provar-celula` §24-F (o botão não existe nem na marcação nem no script, e o da lista continua).
+- **A navegação bloqueia para a frente, e só para a frente** (02/11/2026, segunda correcção do dia).
+  O passo seguinte e o «Seguir» ficam `disabled` enquanto faltar um obrigatório da etapa; **voltar
+  continua livre**, porque não perde nada (o estado vive no DOM e o rascunho não é tocado). O
+  `title` do botão diz o que falta, por nome. O «Acrescentar trecho» também espera os passos 1–5.
+  A regra anterior — «a tira não bloqueia» — está **revogada**, e o comentário no código di-lo.
+  **CONFIRMADO** por `provar-celula` §24-G e §24-H.
+- **Escolher um exercício no passo 2 preenche e CONGELA o passo 1** (02/11/2026, segunda correcção
+  do dia). Categoria e tradição vêm do termo; a frase vem do que está **gravado** e, quando não há
+  nada, da definição do dicionário (P-03/P-04). Os três ficam `disabled` e a nota diz que a
+  definição é do dicionário — para a mudar, edita-se o **termo**, não o verbete. Sem nome de
+  exercício novo, o passo 1 também não pede nada. **CONFIRMADO** por `provar-celula` §24-C.
+- **O `ED`/`EI` do alfabeto deixaram de se chamar «en dehors»/«en dedans»** (02/11/2026). Os glifos
+  `↺`/`↻` já diziam «rotação para fora/dentro»; os dois que descrevem a **varredura** da perna
+  passam a dizer «varredura para fora/dentro», sem nomenclatura estrangeira duplicada. Os **sinais
+  não saíram**: `ED`/`EI` continuam válidos no dado, com o mesmo glifo e o mesmo significado —
+  mudou o rótulo, e é isso que tira a redundância que ela viu no passo 5. Alfabeto na **versão 31**.
+  **CONFIRMADO** por `provar-notacao` (48 asserções, 0 falhas).
+- **As fixtures do `breu` passaram a Plié · Battement tendu · Battement fondu** (02/11/2026), com
+  `musica` e `celulas` pré-escritas — o `Plié` em 8 tempos de 4/4 e os outros dois com um en croix
+  completo. As três passam o `validarVerbete`, e as curadorias acompanham. **CONFIRMADO** por
+  validação directa com `validarVerbete` e por `provar-teste` (a §7 mede o termo a chegar ao
+  formulário). O limite fica dito: a fixture **não é conteúdo pedagógico** — é massa sintética, e
+  nota-se nos textos.
+- **O preenchedor de fixtures chamava uma função que já não existe** (02/11/2026, defeito medido).
+  `modoExercicio(true)` saiu quando o «+» virou o passo 1; o `typeof` dava `undefined`, a função
+  saía pela porta de emergência e **nenhum termo chegava ao formulário** — `provar-teste` falhava
+  com `'' !== 'Jeté'` desde então. Agora o preenchimento **escolhe** o exercício no passo 2 (o termo
+  já existe no vocabulário) e, quando há bloco `verbete`, põe a música e as células no estado da
+  página. **CONFIRMADO** por `provar-teste` §7.
+- **Os índices do dicionário e do syllabus estão DECLARADOS, e não implementados** (02/11/2026). O
+  `PLANO-INDICES.md` §4.1 manda declarar antes de emitir: entraram `termo` e `verbete` em
+  `indices/esquema/campos.json` (`estado: prevista`) e a relação `verbete → termo`. A relação de
+  **proveniência** (verbete empregado em turma/plano/curadoria) **não** se declara ali: ela já é
+  respondida pelo acervo — `vinculo`, repertório da turma e `registro` —, e declará-la duas vezes
+  daria duas respostas para a mesma pergunta. **CONFIRMADO** por `check-indices` (14/14, e as 10
+  contraprovas a reprovarem como deviam).
 - **O exercício novo já está na lista ao avançar, e nada disto toca no KV.** O `POST
   /api/bastidores/termo` grava no **repositório** (`biblioteca/modalidades/bale-classico/
   vocabulario.json`, por `termo-repo.js`) e devolve o termo; a lista que `GET
@@ -1471,7 +1531,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — proveniência do verbete, versões datadas e as tradições)
+### Executado nesta fotografia (02/11/2026 — a segunda passagem: rótulos, travões e o apagar fora do passo 6)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **TUDO CERTO — 226 asserções** (eram 219). A **§24-C** passou a medir o contrário do que media: escolhido um exercício no passo 2, os três campos do passo 1 ficam **`disabled`**, com a categoria preenchida (`passo`) e a nota a dizer que a definição é do dicionário. A **§24-F** também: o «Apagar o verbete» **não está no passo 6** (nem na marcação nem no script) e continua na listagem. Novas: **§24-G** (só o passo 1 e o 2 abertos sem exercício nem música, do 3 em diante fechados, o «Voltar» desactivado no 1 e activo no 2, e o «Seguir» do passo 3 a dizer «quantos tempos» quando falta a música) e **§24-H** (o «Acrescentar trecho» desactivado sem sinais, com o motivo no `title`). A tradição passou de `FRANCESA` a `Francesa` em três asserções |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — a §H foi **reescrita**: o rótulo é o do ficheiro (`Francesa`, `Vaganova`, `Cubana`, `Compartilhada`, `RAD`), o mapa `rotulos` tem uma entrada por tradição, os quatro selectores concordam, e **nenhum `value` se repete** — é a asserção que guarda a `Compartilhada` duplicada que ela viu. O dado continua a gravar as **chaves** |
+| `node experimentos/provar-teste.js` | **falha mais adiante, e a falha de topo desapareceu.** A §7 («a Produção nasce com turma, rubrica, termo e aluna preenchidos») **passa** — era ela que estava vermelha com `'' !== 'Jeté'`. A prova pára agora na §«frequência, duração e calendário vêm do cadastro da turma», com `contexto-frequencia: null`; **medido em `0e2ac45` limpo com a asserção do termo relaxada, a mesma falha acontece** — não é regressão desta entrega, e não foi tocada |
+| `provar-notacao` · `check-indices` · `check-identidade` | **48 asserções, 0 falhas** · **14/14, e as 10 contraprovas reprovam como deviam** · **20/20** (inclui a checagem 8 «Peça») |
+| `provar-producao` · `provar-cartao-da-turma` | **147 de 152** · **6 falhas** — as duas listas são **iguais às do `0e2ac45` limpo**, verificadas por stash: o `className` do item do menu, as «explicações» dos formulários, e a contagem das pílulas. Anotadas como vermelho de antes no `TRANSFERENCIA-IA.md`, não como regressão |
+| **as três fixtures do `breu`** | `validarVerbete` aceita as três: `Plié` (8\|4/4, duas repetições de `1–4` na pista `Perna`), `Battement tendu` e `Battement fondu` (en croix em `devant`/`derriere`, `cobre: 8`). O `Pirouette`/`Épaulement`/`Fondu` saíram do vocabulário **e** das curadorias |
+| **não executado / vermelho de antes** | `provar-plano-completo` falha antes desta entrega (§14) · `provar-agnosticismo` (o ficheiro não existe neste worktree) · `provar-o-que-vem-do-dado` (sem fixture) · `check-glossario` (sem par registro × glossário) |
+
+### Executado na fotografia anterior (02/11/2026 — proveniência do verbete, versões datadas e as tradições)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2128,6 +2200,25 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **A segunda passagem sobre a mesma tela, e ela reverteu três decisões da manhã.**
+  O rótulo da tradição passou de CAIXA ALTA a **Title Case** (`RAD` fica como sigla), com o mapa no
+  próprio `tradicoes.json`; o **«Apagar o verbete» saiu do passo 6** e vive só na listagem; e a
+  **navegação passou a bloquear para a frente** (o passo seguinte e o «Seguir» desactivados até os
+  obrigatórios da etapa, o «Voltar» sempre livre). O passo 1 passou a **ler e congelar o passo 2**:
+  escolhido um exercício, categoria, tradição e «o que acontece» vêm do dicionário e ficam
+  `disabled`. E o `sugerirMetodo`, que punha uma `Compartilhada` a mais na lista, deixou de
+  acrescentar a opção quando ela já existe.
+- **02/11/2026** — **O `ED`/`EI` deixaram de se chamar «en dehors»/«en dedans».** Passam a
+  **«varredura para fora/dentro»**: os glifos `↺`/`↻` já diziam «rotação», e as duas entradas com
+  nome estrangeiro eram a redundância que ela viu no passo 5. Os sinais **não saíram**, e o dado
+  antigo continua válido. Alfabeto na versão **31**.
+- **02/11/2026** — **As fixtures do `breu` passaram a Plié · Battement tendu · Battement fondu**,
+  com `musica` e `celulas` pré-escritas (`Plié` em 8 tempos de 4/4; os outros dois com um en croix
+  completo). As curadorias acompanham. O preenchedor passou a **escolher** o exercício no passo 2 —
+  e a regressão que o travava (chamava `modoExercicio`, removida no passo 1) está corrigida.
+- **02/11/2026** — **O dicionário e o syllabus entraram no esquema dos índices como `prevista`**
+  (`termo`, `verbete`, e a relação `verbete → termo`). É o §4.1 do `PLANO-INDICES.md` a funcionar:
+  declarar antes de emitir. A proveniência não se declara ali — já é respondida pelo acervo.
 - **02/11/2026** — **O alfabeto ficou sem verbetes, e as provas deixaram de depender do conteúdo.**
   Ela apagou os onze verbetes pela Produção (onze commits, versão **30**, só o `_comentario`). O
   `provar-verbete` passou a **plantar** os exercícios que precisa; o `provar-notacao` declara as
@@ -2139,9 +2230,10 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `versoes[]` com a data em que deixou de valer, e a composição escolhe o estado que valia **na data
   do envelope**. Ela escolheu esta opção (B) entre três. Um verbete sem `versoes` lê-se como antes —
   não houve migração.
-- **02/11/2026** — **A tradição de referência em caixa alta e com CUBANA.** A lista é uma só
-  (`tradicoes.json`) e alimenta os quatro selectores; o rótulo é derivação (`rotuloDaTradicao`) e o
-  dado continua a guardar a chave. A Cubana não ganhou linhas de nomenclatura — não se inventam.
+- **02/11/2026** — **A tradição de referência em caixa alta e com CUBANA.** *(Rótulo corrigido na
+  mesma data — ver a entrada mais recente da lista: o ecrã passou a Title Case, com o mapa em
+  `tradicoes.json`.)* A lista é uma só e alimenta os quatro selectores; o dado continua a guardar a
+  chave. A Cubana não ganhou linhas de nomenclatura — não se inventam.
 - **02/11/2026** — **O «Gravar verbete» desactivado sem decomposição, e o passo 1 a acender com o
   nome.** A categoria, a tradição e «o que acontece» só valem quando há exercício (nome novo **ou**
   escolhido no passo 2). E o método do exercício herda a tradição dele — sem atropelar uma escolha à

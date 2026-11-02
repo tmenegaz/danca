@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T19:25:41-0300`
-Commit atual: `5dcfcf0` — feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
+Gerado em: `2026-11-02T20:11:25-0300`
+Commit atual: `0e2ac45` — fix(experimentos): as provas deixam de depender do conteúdo editorial do alfabeto
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+0e2ac45 fix(experimentos): as provas deixam de depender do conteúdo editorial do alfabeto
 5dcfcf0 feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
 f64d54e chore(notacao): apagar o verbete «Grand battement» no alfabeto bale-classico
 063dee1 chore(notacao): apagar o verbete «Battement fondu» no alfabeto bale-classico
@@ -104,7 +105,6 @@ dbc3797 feat(notacao): o cartão das turmas na listagem, e o vocabulário que cr
 b7acca6 fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
 544acf4 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais três
-04e2597 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 ```
 
 ## Por professor
@@ -228,50 +228,90 @@ e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais tr�
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — O alfabeto ficou sem verbetes, e as provas aprenderam a não depender do conteúdo
+## 02/11/2026 — A segunda passagem sobre a mesma tela: rótulos, travões e o «Apagar» fora do passo 6
 
-**O que aconteceu, e não fui eu.** Durante esta entrega, ela apagou os onze verbetes do alfabeto
-pela Produção — onze commits `chore(notacao): apagar o verbete «X»`, até `f64d54e`, versão **30**,
-com o `_comentario` e mais nada. O `DELETE` que se tinha implementado funciona; o que isto mostra é
-que o conteúdo editorial do alfabeto é dela, e muda.
+**O que motivou.** Três revisões da mesma tela, todas no mesmo dia, e duas delas **revogam** uma
+decisão da manhã — o que se regista como correcção datada, não como reescrita. (1) O rótulo da
+tradição tinha passado a caixa alta; ela corrigiu para *Title Case*, «mantendo apenas siglas em caixa
+alta». (2) O «Apagar o verbete» tinha entrado no passo 6 a pedido dela; ela reviu — é a tela onde se
+escreve a decomposição, e o botão que apaga o verbete inteiro ao lado do «Acrescentar trecho» é um
+alvo a um clique do gesto mais frequente. (3) A navegação era livre («a tira não bloqueia — é a
+diferença entre conduzir e impedir»); ela pediu o contrário: o passo seguinte e o «Seguir»
+desactivados até os obrigatórios da etapa estarem preenchidos, o «Voltar» sempre habilitado.
+Acresce o pedido que fecha o ciclo Step 1 ↔ Step 2: escolhido um exercício existente, categoria,
+tradição e «o que acontece» passam a ser **preenchidos e congelados** — são a definição oficial do
+dicionário, e não se reescrevem num verbete.
 
-**O que isso partiu — e a lição não é nova, é a mesma de sempre.** `provar-verbete` (3 asserções) e
-`provar-notacao` (12) liam o `notacao.json` de verdade e esperavam lá encontrar o `Battement tendu`
-com três músicas, o `Plié` com duas pistas, o `Port de bras` de 16 tempos em 3/4. Não estavam a
-medir o mecanismo: estavam a **medir o conteúdo**. Medido no `f64d54e` limpo, num worktree à parte:
-as três de `provar-verbete` já falhavam **antes** desta entrega.
+**O que foi decidido.**
 
-**O que se fez, em cada caso, e porquê:**
+- **O rótulo da tradição vive no dado**, em `tradicoes.json` → `rotulos`
+  (`RAD` · `Francesa` · `Vaganova` · `Cubana` · `Compartilhada`). Não é uma regra de maiúsculas no
+  código: uma regra automática não sabe distinguir uma sigla de um nome próprio, e a lista de
+  tradições pode crescer. O dado dos **termos não é migrado** — `vocabulario.json` grava `francesa`,
+  e `diferencasDeNomenclatura` tem uma coluna por chave.
+- **A `Compartilhada` duplicada era o `sugerirMetodo`, não a lista.** Ele acrescentava uma opção nova
+  sempre que o valor sugerido não era o escolhido, mesmo quando já existia uma com esse valor. Passa
+  a perguntar se a opção existe antes de a criar.
+- **O «Apagar o verbete» vive só na listagem.** O verbo, a confirmação e a guarda de proveniência
+  ficam os mesmos; muda o sítio.
+- **A navegação bloqueia para a frente, e só para a frente.** O `disabled` é do botão (não uma
+  guarda do clique): as chamadas internas que precisam de pôr o passo — o «Editar», o «Limpar», e as
+  provas — continuam a fazê-lo. O obrigatório de cada etapa é lido por `faltasDoPasso`, e o `title`
+  diz o que falta **por nome**.
+- **O «Acrescentar trecho» espera os passos 1 a 5**, no botão e não só na recusa do `submit`.
+- **O passo 1 congela o que vem do dicionário**: categoria e tradição do termo; a frase do que está
+  **gravado** e, quando não há nada, da definição (P-03/P-04). Para a mudar, edita-se o termo.
+- **`ED`/`EI` deixam de se chamar «en dehors»/«en dedans»** e passam a «varredura para fora/dentro».
+  O glifo, a chave e o significado não mudam — muda o rótulo, e é isso que tira a redundância com
+  `↺`/`↻`. Alfabeto na **versão 31**.
+- **As fixtures do `breu` passam a Plié · Battement tendu · Battement fondu**, com música e células
+  pré-escritas. É massa sintética, e os textos da decomposição di-lo pelo tom.
+- **O dicionário e o syllabus entram no esquema dos índices como `prevista`** (`termo`, `verbete`, e
+  `verbete → termo`). A relação de proveniência **não** se declara ali: já é respondida pelo acervo.
 
-| Prova | O que se fez | A razão |
-|:--|:--|:--|
-| `provar-verbete` | **planta** o que precisa: três exercícios (um com três músicas, dois ao lado) entram no alfabeto que a prova lê, e o alfabeto real fica por baixo — gramática, sinais, direções | a prova do CRUD e da listagem mede o mecanismo; o conteúdo é fixture, e uma fixture declarada não mente |
-| `provar-verbete` §I/§J | plantam o `Battement tendu` que o versionamento precisa e **tiram-no no fim** (`try/finally`) | a prova do ajuste não pode depender de haver exercício escrito |
-| `provar-notacao` B e C | **NÃO MEDIDAS**, com o motivo escrito na saída | compõem exercícios nomeados e mutam um verbete que existe; plantar quatro verbetes meus seria medir o meu conteúdo a fingir que é o dela — e reprovaria outra vez à primeira correcção editorial |
-| `provar-notacao` D (3 asserções) | NÃO MEDIDAS pela mesma razão; o `check-glossario` com zero símbolos diz «0 símbolos no corpo, 3 verbetes no glossário (3 aviso(s))» — um documento **sem registro**, e não um par consistente | dar «0 = 0» por bom seria dar por bom um documento vazio |
+**Onde entrou.** `biblioteca/modalidades/bale-classico/tradicoes.json` — o mapa `rotulos` e o
+comentário das duas passagens · `biblioteca/modalidades/bale-classico/notacao.json` — os dois nomes
+e a versão 31 · `motor/servidor/catalogo-seed.js` — `rotuloDaTradicao` a ler o mapa, `ROTULOS`
+exportado · `motor/servidor/bastidores.js` — `METODOS_DO_VERBETE`, o bloco do passo 1 com três
+estados, `sincronizarPasso1ComExercicio`, `faltasDoPasso`/`pintarNavegacao`/`pintarAcrescentar`, o
+«Apagar» removido do passo 6, o CSS do passo fechado · `motor/servidor/teste-cliente.js` — o
+preenchimento a escolher o exercício e a pôr a decomposição · `teste/breu.json` — o vocabulário, as
+curadorias e o bloco `verbete` · `teste/README.md` — o bloco novo documentado ·
+`indices/esquema/campos.json` e `relacoes.json` — as entidades e a relação `prevista` ·
+`experimentos/provar-celula.js` — §24-C e §24-F reescritas, §24-G e §24-H novas ·
+`experimentos/provar-verbete.js` — §H reescrita.
 
-**A regra que fica escrita:** uma prova que reprova porque o dado editorial mudou está a medir o
-dado. Quando o que se quer medir é o mecanismo, o dado é **fixture declarada**, dentro da prova;
-quando o mecanismo **só** existe sobre conteúdo real (compor este `Plié`), a resposta honesta é
-**NÃO MEDIDO com o motivo**, não um fixture inventado.
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado: `tools/`,
+`tools/templates/`, `prompts/`, `PROTOCOLO.md`, `REGRAS.md`, `METODO.md` e o guia do professor ficam
+como estavam. A prova disso é o `check-identidade` a passar nas 20 verificações **sem** alteração da
+folha (`tools/templates/ciclo.css`): o CSS novo do passo fechado é servido inline pelo
+`bastidores.js`, que não é congelado.
 
-**Com o quê.** `experimentos/provar-verbete.js` (a fixture de leitura) · `experimentos/
-provar-notacao.js` (`semVerbetesNoAlfabeto`, `naoMedido`).
+**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/catalogo-seed.js` ·
+`motor/servidor/teste-cliente.js` · `biblioteca/modalidades/bale-classico/{tradicoes,notacao}.json` ·
+`teste/breu.json` · `teste/README.md` · `indices/esquema/{campos,relacoes}.json` ·
+`experimentos/provar-celula.js` · `experimentos/provar-verbete.js` · `ESTADO-ATUAL.md`.
 
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-celula` | **226 asserções, TUDO CERTO** (eram 219) — §24-C a medir o congelamento, §24-F a medir a ausência do botão no passo 6 **e** a presença na lista, §24-G (navegação progressiva, o «Voltar» activo a partir do 2) e §24-H (o «Acrescentar» fechado sem sinais) |
+| `provar-verbete` | **TUDO CERTO** — §H reescrita: o rótulo é o do ficheiro, o mapa tem uma entrada por tradição, os quatro selectores concordam, e **nenhum `value` se repete** |
+| `provar-teste` | **a falha de topo desapareceu** (`'' !== 'Jeté'`, causada por `modoExercicio`, removida no passo 1 e chamada pelo preenchimento). A prova pára agora numa asserção de **frequência**, que falha **igual no `0e2ac45` limpo** — medida, não presumida — e não foi tocada |
+| `provar-notacao` · `check-indices` · `check-identidade` | 48 asserções, 0 falhas · 14/14 e 10/10 contraprovas · 20/20 |
+| `provar-producao` · `provar-cartao-da-turma` | 147/152 · 6 falhas — **iguais às do `0e2ac45` limpo** (verificado por stash). Vermelho de antes, não regressão |
+| **as três fixtures** | `validarVerbete` aceita as três com `cobre: 8` em 8\|4/4 |
+
+**O que ainda não está feito.** (a) A árvore **não foi commitada** — a entrega está no worktree, e o
+`TRANSFERENCIA-IA.md` di-lo. (b) O `provar-teste` continua vermelho numa asserção de frequência, e a
+investigação dessa asserção não faz parte desta entrega. (c) O `TRANSFERENCIA-IA.md` **não foi
+regenerado** — a fotografia ficou actualizada, mas o documento de transferência é da sessão
+anterior. (d) As entidades `termo` e `verbete` do índice estão **declaradas, não emitidas**: o
+gerador continua a não as produzir, e a emissão exige decidir o que fazer com a segunda cópia do
+vocabulário.
 
 ## O que está pendente
-
-## 01/11/2026 — A página do Vocabulário saiu; o exercício vive no «+» do verbete
-
-
-- **A lacuna do ritmo não se resolveu — declarou-se.** Semeada hoje, a turma não gera ciclo, e é
-  isso que o `confirm` diz. Fechá-la é decisão de C19, não de código.
-- **A `provar-paginacao` já falhava em `HEAD`** (`fetch is not defined`), e continua a falhar; a
-  `provar-navegacao` falha por falta de pacote da `calango`, expurgada. Nenhuma das duas foi
-  tocada por esta entrada.
-- **Um efeito colateral observado e não corrigido:** os seis professores ainda carregam, no
-  `_declaracao.porVariante` dos schemas de captura, a declaração das escolas expurgadas. É do
-  expurgo, não disto, e fica registado aqui para não se perder.
 
 ## 01/11/2026 — A seta sobe ao título, os passos descem para a linha inteira, e o vocabulário deixa de ser só do ballet
 
@@ -341,6 +381,16 @@ provar-notacao.js` (`semVerbetesNoAlfabeto`, `naoMedido`).
   `escola/batata/envelopes/plano-20261027-1025.json` — ambos apagados por expurgos anteriores. Já
   falhavam em `HEAD`, e não foram corrigidas aqui: uma prova que aponta para uma escola expurgada é
   uma pergunta que se responde escolhendo outra fixture, não um defeito do gerador.
+
+## 02/11/2026 — A segunda passagem sobre a mesma tela: rótulos, travões e o «Apagar» fora do passo 6
+
+(a) A árvore **não foi commitada** — a entrega está no worktree, e o
+`TRANSFERENCIA-IA.md` di-lo. (b) O `provar-teste` continua vermelho numa asserção de frequência, e a
+investigação dessa asserção não faz parte desta entrega. (c) O `TRANSFERENCIA-IA.md` **não foi
+regenerado** — a fotografia ficou actualizada, mas o documento de transferência é da sessão
+anterior. (d) As entidades `termo` e `verbete` do índice estão **declaradas, não emitidas**: o
+gerador continua a não as produzir, e a emissão exige decidir o que fazer com a segunda cópia do
+vocabulário.
 
 ## Pendências anteriores (índice)
 
@@ -664,6 +714,7 @@ provar-notacao.js` (`semVerbetesNoAlfabeto`, `naoMedido`).
 - **01/11/2026** — O trecho sem direção: o relevé não vai a lado nenhum → `REGISTRO.md` L29450
 - **01/11/2026** — A escola nasce com a âncora, e não só com o scaffold → `REGISTRO.md` L29519
 - **01/11/2026** — A âncora antes dos índices, e não depois → `REGISTRO.md` L29569
+- **01/11/2026** — A página do Vocabulário saiu; o exercício vive no «+» do… → `REGISTRO.md` L29608
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
