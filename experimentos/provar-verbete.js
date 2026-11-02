@@ -1102,24 +1102,28 @@ async function aGuardaDeProveniencia() {
 
 
 /**
- * H. A TRADIÇÃO DE REFERÊNCIA: UMA LISTA, CAIXA ALTA, E A CUBANA (02/11/2026).
+ * H. A TRADIÇÃO DE REFERÊNCIA: UMA LISTA, UM RÓTULO, E A CUBANA (02/11/2026).
  *
- * O QUE ELA PEDIU, em duas metades que se cruzam:
+ * A REGRA MUDOU DUAS VEZES NO MESMO DIA, e a segunda é a que vale. Primeiro ela pediu os valores
+ * em CAIXA ALTA; à tarde corrigiu: «Padronizar todas as opções para Title Case, alinhando com a
+ * grafia de Escola livre e Cecchetti, mantendo apenas siglas em caixa alta» — `RAD` fica,
+ * `Francesa`, `Vaganova`, `Cubana` e `Compartilhada` levam inicial maiúscula.
  *
- *   1. os valores exibidos em CAIXA ALTA, e a **CUBANA** acrescentada;
- *   2. «mantido em um único Enum / arquivo de constantes», e «a inclusão de CUBANA e a
- *      padronização das maiúsculas devem propagar instantaneamente para todas as telas (…)
- *      sem necessidade de alterações manuais em múltiplos pontos».
+ * O QUE NÃO MUDOU, e é o que esta secção guarda:
  *
- * A SEGUNDA METADE JÁ ERA VERDADE e ficou mais forte: `tradicoes.json` é a fonte, e os quatro
- * selectores da página (verbete, curadoria, programa da turma, método do exercício) são gerados
- * a partir dela. O que NÃO se fez — e é a decisão que se declara — foi subir as maiúsculas ao
- * DADO: `vocabulario.json` grava `francesa` em 4 termos, e `diferencasDeNomenclatura` tem uma
- * coluna por chave. Passar o dado a `FRANCESA` deixaria essas colunas sem ninguém, em silêncio.
- * A caixa alta é DERIVAÇÃO (`rotuloDaTradicao`), e o valor gravado continua a ser a chave.
+ *   1. `tradicoes.json` continua a ser a FONTE — as tradições E os rótulos (`rotulos`);
+ *   2. os quatro selectores da página saem dela, sem lista escrita à mão ao lado;
+ *   3. o dado NÃO é migrado: `vocabulario.json` grava `francesa`, e
+ *      `diferencasDeNomenclatura` tem uma coluna por chave. Subir o rótulo ao dado deixaria
+ *      essas colunas sem ninguém, em silêncio.
+ *
+ * E O DEFEITO QUE ELA VIU — «a opção Compartilhada duplicada, no meio e no final da lista» — era
+ * o `sugerirMetodo`, que acrescentava uma opção nova sempre que o valor sugerido não era o que já
+ * estava escolhido, mesmo quando já existia uma com esse valor. Mede-se por CONTAGEM: nenhum
+ * `value` aparece duas vezes.
  */
 async function aTradicaoDeReferencia() {
-  console.log('\nH. A TRADIÇÃO — uma lista, caixa alta, e a CUBANA');
+  console.log('\nH. A TRADIÇÃO — uma lista, um rótulo, e a CUBANA');
 
   const catalogo = require(path.join(RAIZ, 'motor', 'servidor', 'catalogo-seed.js'));
   const doDisco = JSON.parse(fs.readFileSync(
@@ -1134,14 +1138,19 @@ async function aTradicaoDeReferencia() {
       === JSON.stringify(['RAD', 'francesa', 'Vaganova', 'cubana', 'compartilhada']),
     doDisco.tradicoes);
 
-  checar('o rótulo é a chave em caixa alta — e o dado não é tocado',
-    catalogo.rotuloDaTradicao('francesa') === 'FRANCESA'
-      && catalogo.rotuloDaTradicao('Vaganova') === 'VAGANOVA'
-      && catalogo.rotuloDaTradicao('cubana') === 'CUBANA'
-      && catalogo.rotuloDaTradicao('compartilhada') === 'COMPARTILHADA'
+  checar('o rótulo é o do ficheiro — Title Case, e a sigla em caixa alta',
+    catalogo.rotuloDaTradicao('francesa') === 'Francesa'
+      && catalogo.rotuloDaTradicao('Vaganova') === 'Vaganova'
+      && catalogo.rotuloDaTradicao('cubana') === 'Cubana'
+      && catalogo.rotuloDaTradicao('compartilhada') === 'Compartilhada'
       && catalogo.rotuloDaTradicao('RAD') === 'RAD',
     ['francesa', 'Vaganova', 'cubana', 'compartilhada', 'RAD']
       .map((t) => t + '→' + catalogo.rotuloDaTradicao(t)));
+  // O MAPA É DO DADO, e não uma regra de maiúsculas no código: é ele que sabe que `RAD` é sigla
+  // (e não `Rad`) e que `Vaganova` é nome próprio (e não `Vaganova` em caixa alta).
+  checar('e o mapa de rótulos está no ficheiro, uma entrada por tradição',
+    doDisco.rotulos && doDisco.tradicoes.every((t) => typeof doDisco.rotulos[t] === 'string'),
+    doDisco.rotulos);
   checar('sem tradição, o rótulo é vazio e não «UNDEFINED»',
     catalogo.rotuloDaTradicao(null) === '' && catalogo.rotuloDaTradicao(undefined) === ''
       && catalogo.rotuloDaTradicao('  ') === '');
@@ -1164,9 +1173,9 @@ async function aTradicaoDeReferencia() {
   };
 
   const doVerbete = opcoesDe('vntradicao');
-  checar('o selector da tradição do verbete mostra as cinco, em caixa alta, na ordem dela',
+  checar('o selector da tradição do verbete mostra as cinco, na ordem dela',
     doVerbete.filter((o) => o.valor).map((o) => o.texto).join(',')
-      === 'RAD,FRANCESA,VAGANOVA,CUBANA,COMPARTILHADA',
+      === 'RAD,Francesa,Vaganova,Cubana,Compartilhada',
     doVerbete);
   checar('…e o valor de cada uma continua a ser a CHAVE que o dado grava',
     doVerbete.filter((o) => o.valor).map((o) => o.valor).join(',')
@@ -1177,13 +1186,26 @@ async function aTradicaoDeReferencia() {
   // listas excluem «compartilhada» (é o que sobra quando não há tradição declarada, não uma
   // tradição que a escola adota), e isso é uma regra antiga, não um esquecimento.
   const daCuradoria = opcoesDe('cutradicao');
-  checar('a curadoria mostra as mesmas, sem «compartilhada» — e agora com CUBANA',
-    daCuradoria.map((o) => o.texto).join(',') === 'RAD,FRANCESA,VAGANOVA,CUBANA', daCuradoria);
+  checar('a curadoria mostra as mesmas, sem «compartilhada» — e agora com Cubana',
+    daCuradoria.map((o) => o.texto).join(',') === 'RAD,Francesa,Vaganova,Cubana', daCuradoria);
 
   const doMetodo = opcoesDe('vbmetodo');
   checar('o «Método deste exercício» lê a MESMA lista, e o valor é a chave',
     doMetodo.filter((o) => o.valor).map((o) => o.valor).join(',')
       === 'RAD,francesa,Vaganova,cubana,compartilhada,Cecchetti,Escola livre',
+    doMetodo);
+  /* O DEFEITO QUE ELA VIU — «a opção Compartilhada duplicada, no meio e no final da lista».
+   *
+   * A LISTA SERVIDA já não tem a repetição (a fonte é única e deduplicada). E o `sugerirMetodo`,
+   * que a acrescentava ao escolher um exercício de tradição `compartilhada` com o campo vazio,
+   * passou a perguntar se a opção JÁ EXISTE antes de criar outra. As duas metades medem-se: aqui
+   * a contagem na marcação; mais abaixo, no script, o `sugerirMetodo` corrido duas vezes. */
+  const valoresDoMetodo = doMetodo.map((o) => o.valor).filter(Boolean);
+  checar('…e nenhuma opção aparece duas vezes — a «Compartilhada» duplicada saiu',
+    new Set(valoresDoMetodo).size === valoresDoMetodo.length, valoresDoMetodo);
+  checar('o texto do método é o rótulo: «Francesa», «Cubana», «Compartilhada» — e RAD em sigla',
+    doMetodo.filter((o) => o.valor).map((o) => o.texto).join(',')
+      === 'RAD,Francesa,Vaganova,Cubana,Compartilhada,Cecchetti,Escola livre',
     doMetodo);
   /* O DEFEITO QUE ESTAVA AQUI, e que se mede por ausência: a opção dizia `Francesa` (com maiúscula
    * e sem ser a chave), e `pintarNotaDoMetodo` procura `linha["Francesa"]` na tabela de diferenças,
@@ -1197,9 +1219,9 @@ async function aTradicaoDeReferencia() {
   const todasAsOpcoesDeTradicao = ['vntradicao', 'cutradicao', 'vbmetodo']
     .flatMap((id) => opcoesDe(id))
     .filter((o) => doDisco.tradicoes.indexOf(o.valor) !== -1);
-  checar('em todos os selectores, o texto de uma tradição é a chave em caixa alta',
+  checar('em todos os selectores, o texto de uma tradição é o rótulo do ficheiro',
     todasAsOpcoesDeTradicao.length >= 14
-      && todasAsOpcoesDeTradicao.every((o) => o.texto === o.valor.toUpperCase()),
+      && todasAsOpcoesDeTradicao.every((o) => o.texto === catalogo.rotuloDaTradicao(o.valor)),
     todasAsOpcoesDeTradicao.map((o) => o.valor + '→' + o.texto));
 
   // O DADO NÃO FOI MIGRADO. Se alguém «resolver» a caixa alta subindo-a ao vocabulário, esta

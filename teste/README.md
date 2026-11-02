@@ -23,9 +23,20 @@ exercitar o motor, não para representar uma turma de verdade.
 | Bloco | Onde aparece | O que preenche |
 |:--|:--|:--|
 | `producao` | Bastidores → Produção | turmas, rubricas, vocabulário, alunas e curadorias |
+| `verbete` | Bastidores → Produção | a música (tempos e compasso) e a decomposição de cada exercício da lista |
 | `anamnese` | `/anamnese/` | as respostas da aluna escolhida no contexto |
 | `plano` | `/plano-ensino/` | os campos de escrita do plano da turma escolhida |
 | `po` | `/plano-observacao/` | o Plano de Observação da turma do plano escolhido |
+
+O bloco `verbete` (02/11/2026) é o mais novo e o que muda mais a experiência: cada entrada traz
+`termo`, `musica` (`"8|4/4"`), `cobre` e `celulas` — a mesma forma que o alfabeto grava. O
+preenchimento **escolhe o exercício no passo 2** (o termo já existe no vocabulário, e escrevê-lo no
+passo 1 criaria um segundo termo com o mesmo nome), põe a música no passo 3 e as células no passo 6.
+É o que permite testar o motor métrico sem escrever a decomposição à mão.
+
+O que ele **não** faz continua a ser a regra da casa: não chama rota que escreva. As células são
+postas no estado da página — o mesmo sítio onde o professor as escreveria —, e gravar é decisão de
+quem clica.
 
 O bloco `po` (20/10/2026) tem uma diferença em relação aos outros dois: o
 `plano-de-ensino` não é um campo de escrita, e sim o **carimbo** de um plano já gravado

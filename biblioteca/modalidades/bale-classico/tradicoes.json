@@ -1,6 +1,6 @@
 {
   "nota": "Orientação inicial, NÃO tabela de equivalência normativa. A escola registra a fonte de cada diferença; quando não há confirmação, marca pendente de validação.",
-  "_comentario": "A LISTA É A FONTE ÚNICA (02/11/2026). Toda a interface — o formulário do verbete, a curadoria, o programa da turma, o método do exercício — lê daqui, e é por isso que acrescentar uma tradição aqui a faz aparecer em todas as telas sem tocar em mais nada. A ORDEM É A DA LISTA DELA (RAD · FRANCESA · VAGANOVA · CUBANA · COMPARTILHADA), e `compartilhada` fica no FIM porque não é uma tradição que se adota — é o que sobra quando não há nenhuma declarada, e é o valor por omissão de um termo novo. As CHAVES ficam em minúscula e sem acento (`francesa`, `Vaganova`, `cubana`) porque são elas que o vocabulário grava em cada termo e que a tabela `diferencasDeNomenclatura` usa como coluna; o RÓTULO que o ecrã mostra é a chave em caixa alta (`FRANCESA`, `VAGANOVA`, `CUBANA`), derivado por `rotuloDaTradicao` — uma função, e não uma segunda lista. A Cubana entrou a pedido dela em 02/11/2026 e ainda NÃO tem linhas em `diferencasDeNomenclatura`: não se inventam diferenças de nomenclatura, e a nota do método di-lo em vez de fingir que sabe.",
+  "_comentario": "A LISTA É A FONTE ÚNICA (02/11/2026). Toda a interface — o formulário do verbete, a curadoria, o programa da turma, o método do exercício — lê daqui, e é por isso que acrescentar uma tradição aqui a faz aparecer em todas as telas sem tocar em mais nada. A ORDEM É A DA LISTA DELA (RAD · FRANCESA · VAGANOVA · CUBANA · COMPARTILHADA), e `compartilhada` fica no FIM porque não é uma tradição que se adota — é o que sobra quando não há nenhuma declarada, e é o valor por omissão de um termo novo. As CHAVES ficam em minúscula e sem acento (`francesa`, `Vaganova`, `cubana`) porque são elas que o vocabulário grava em cada termo e que a tabela `diferencasDeNomenclatura` usa como coluna; o RÓTULO que o ecrã mostra está em `rotulos`, na mesma lista (`Francesa`, `Vaganova`, `Cubana`) — era a chave em caixa alta desde a manhã de 02/11/2026, e a pesquisadora corrigiu-a para Title Case na segunda passagem do mesmo dia, mantendo `RAD` como sigla. A Cubana entrou a pedido dela em 02/11/2026 e ainda NÃO tem linhas em `diferencasDeNomenclatura`: não se inventam diferenças de nomenclatura, e a nota do método di-lo em vez de fingir que sabe.",
   "tradicoes": [
     "RAD",
     "francesa",
@@ -8,6 +8,14 @@
     "cubana",
     "compartilhada"
   ],
+  "_rotulos": "O QUE A TELA MOSTRA, POR CHAVE (02/11/2026, segunda correcção da mesma data). A primeira passagem punha tudo em caixa alta (`FRANCESA`, `CUBANA`); a pesquisadora corrigiu: «Padronizar todas as opções para Title Case, alinhando com a grafia de Escola livre e Cecchetti, mantendo apenas siglas em caixa alta». Isto é um MAPA EXPLÍCITO, e não uma regra de maiúsculas inventada no código: `RAD` é sigla e fica; `Vaganova` é nome próprio e fica; `francesa` e `cubana` são adjectivos e levam inicial maiúscula. Uma lista de rótulos ao lado da lista de chaves é a mesma fonte — este ficheiro —, e não uma segunda lista noutro sítio. Sem entrada aqui, o rótulo é a chave como está escrita.",
+  "rotulos": {
+    "RAD": "RAD",
+    "francesa": "Francesa",
+    "Vaganova": "Vaganova",
+    "cubana": "Cubana",
+    "compartilhada": "Compartilhada"
+  },
   "categorias": {
     "passo": "Passos e ações fundamentais",
     "posicao": "Posições (pés, perna, corpo, braços)",

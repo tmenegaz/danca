@@ -46,9 +46,33 @@ const CATALOGO = require('./catalogo-seed.js');
  */
 const CATEGORIAS_DO_VOCABULARIO = Object.keys(CATALOGO.CATEGORIAS || {});
 const TRADICOES_DO_VOCABULARIO = (CATALOGO.TRADICOES || []).slice();
-/* A CAIXA ALTA É DERIVAÇÃO, NÃO UMA SEGUNDA LISTA (02/11/2026). O dado guarda a chave
- * (`francesa`); o ecrã mostra `FRANCESA`. Uma função só, chamada por quem desenha. */
+/* O RÓTULO É DERIVAÇÃO, E VIVE NO DADO (02/11/2026). O dado guarda a chave (`francesa`); o ecrã
+ * mostra o rótulo que `tradicoes.json` declara (`Francesa`). Uma função só, chamada por quem
+ * desenha — e um mapa só, no mesmo ficheiro que declara as tradições. */
 const rotuloDaTradicao = CATALOGO.rotuloDaTradicao;
+/* OS MÉTODOS QUE NÃO SÃO TRADIÇÕES DO CATÁLOGO (02/11/2026). `Cecchetti` e `Escola livre` não
+ * têm coluna em `diferencasDeNomenclatura`, e a nota do método di-lo — o que é o correcto: a
+ * lacuna fica escrita em vez de se inventar uma equivalência. Eles existem porque um verbete
+ * pode declarar um método que o catálogo não adopta.
+ *
+ * A LISTA É ÚNICA, e é usada pelo `<select>` do método. Ela e `TRADICOES_DO_VOCABULARIO` somam-se
+ * uma vez, aqui — foi a soma repetida em dois sítios que pôs uma `Compartilhada` a mais na tela. */
+const METODOS_LIVRES = ['Cecchetti', 'Escola livre'];
+const METODOS_DO_VERBETE = (() => {
+  const vistos = new Set();
+  const lista = [];
+  for (const chave of TRADICOES_DO_VOCABULARIO.concat(METODOS_LIVRES)) {
+    const rotulo = rotuloDaTradicao(chave);
+    // A chave de comparação é o RÓTULO: é ele que o ecrã mostra, e duas opções com o mesmo texto
+    // são a mesma opção para quem lê — mesmo que uma tenha vindo como chave e a outra como
+    // método livre.
+    const assinatura = String(rotulo || chave).toLowerCase();
+    if (vistos.has(assinatura)) continue;
+    vistos.add(assinatura);
+    lista.push({ valor: chave, rotulo });
+  }
+  return lista;
+})();
 const ROTULOS_DE_CATEGORIA = {
   passo: 'passo', posicao: 'posição', direcao: 'direção', ligacao: 'ligação',
   salto: 'salto', giro: 'giro',
@@ -2361,7 +2385,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.passo{display:inline-flex;align-items:center;gap:.5rem;background:transparent;border:1px solid transparent;' +
     'border-radius:999px;margin:0;padding:.32rem .8rem .32rem .38rem;color:var(--texto-suave);' +
     'font:600 .92rem/1.3 var(--ui);cursor:pointer;}' +
-    '.passo:hover{background:var(--fundo-hover);color:var(--marca-texto);}' +
+    '.passo:hover:not(:disabled){background:var(--fundo-hover);color:var(--marca-texto);}' +
+    // O PASSO QUE AINDA NÃO SE ABRE (02/11/2026). O `disabled` é do atributo, e a folha diz o
+    // que ele quer dizer: esbatido, e sem o `cursor` de quem pode clicar. Sem esta regra o passo
+    // fechado parecia igual aos outros, porque `.passo` não é um `button` do tema.
+    '.passo:disabled{opacity:.45;cursor:not-allowed;}' +
     // O NÚMERO é o que diz que isto é uma sequência. Redondo, e não um traço ao lado do
     // texto — um traço lê-se como decoração; um número lê-se como ordem.
     '.passo .passo-n{display:grid;place-items:center;width:1.4rem;height:1.4rem;border-radius:999px;' +
@@ -3612,14 +3640,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * nota do método dizia sempre «O alfabeto não declara esta posição em Francesa» — a negar um
      * dado que existe. A causa é a de sempre: a lista escrita à mão ao lado da lista do dado.
      *
-     * Agora o valor é a chave e o texto é o rótulo (a chave em caixa alta). `Cecchetti` e
-     * `Escola livre` ficam como valores livres — não são tradições do `tradicoes.json`, e a nota
-     * di-lo, correctamente, porque a tabela não tem coluna para eles.
+     * AGORA O VALOR É A CHAVE E O TEXTO É O RÓTULO, e os dois vêm de `METODOS_DO_VERBETE`: as
+     * tradições do `tradicoes.json` e os métodos livres (`Cecchetti`, `Escola livre`), somados
+     * UMA vez e sem repetir. A repetição que ela viu — «a opção Compartilhada duplicada, no meio
+     * e no final da lista» — não vinha daqui: vinha do `sugerirMetodo`, que acrescentava uma
+     * opção nova sempre que o valor sugerido não era o que já estava escolhido, mesmo quando ele
+     * já existia na lista. Está corrigido lá, e a lista aqui passa a ser a fonte.
      */
-    TRADICOES_DO_VOCABULARIO.map((t) =>
-      '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('') +
-    ['Cecchetti', 'Escola livre']
-      .map((m) => '<option value="' + m + '">' + m + '</option>').join('') +
+    METODOS_DO_VERBETE.map((m) =>
+      '<option value="' + esc(m.valor) + '">' + esc(m.rotulo) + '</option>').join('') +
     '</select>' +
     '<p class="nota" id="vb-metodo-nota"></p>' +
     '</div>' +
@@ -3751,20 +3780,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" class="acao secundario" id="vb-cel-duplicar" hidden>Duplicar o exercício</button>' +
     '<button type="button" class="acao secundario" id="vb-cel-guardar" hidden>Guardar a alteração</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-edicao-2" hidden>Cancelar a edição</button>' +
-    /* O «APAGAR» TAMBÉM AQUI (02/11/2026). Ele nasceu na listagem, e ela pediu-o «na listagem e na
-     * tela de decomposição»: quem acabou de escrever os trechos e vê que o exercício não é o que
-     * queria não devia ter de voltar à lista para o tirar.
+    /* O «APAGAR» SAIU DO PASSO 6 (02/11/2026, segunda correcção do mesmo dia).
      *
-     * Apaga O MESMO: o verbete do exercício escolhido, com todas as músicas. Não é um segundo
-     * verbo — é o mesmo pedido, com um segundo sítio para o fazer, e o `data-apagar-verbete` é o
-     * que o torna o mesmo gesto (o ouvinte da lista apanha os dois).
+     * ELE ESTEVE AQUI E ERA UM ERRO DE SÍTIO. Na manhã de 02/11/2026 a pesquisadora pediu-o «na
+     * listagem e na tela de decomposição»; à tarde ela reviu a decisão, e com razão: o passo 6 é
+     * a tela onde se está a ESCREVER a decomposição, e um botão que apaga o verbete inteiro — com
+     * todas as músicas — ao lado do «Acrescentar trecho» é um alvo a um clique de distância do
+     * gesto mais frequente. Um engano não se desfaz: o verbete sai do alfabeto.
+     *
+     * O VERBO NÃO DESAPARECE. Ele continua na LISTAGEM de verbetes (`data-apagar-verbete`, com a
+     * pergunta que diz o que se perde e que avisa da recusa por proveniência). O que muda é o
+     * lugar: apagar é um acto sobre um registo, e os actos sobre registos fazem-se na lista deles.
+     *
+     * A CONSEQUÊNCIA FICA DITA: quem acaba de escrever os trechos e percebe que o exercício não é
+     * o que queria tem de voltar à lista para o tirar — e é isso mesmo que se quer. O custo de um
+     * clique a mais é menor do que o de um verbete apagado por engano.
      */
-    // A CLASSE É `.acao.perigo`, E NÃO `.apagar` (02/11/2026). O `apagar` é o GANCHO do ouvinte
-    // genérico que serve as listas (alunas, turmas, curadorias) — e ele só existe dentro do
-    // `<script>`, que a checagem 8 («Peça») não mede. Escrito na marcação servida, o gancho
-    // passaria a ser uma classe sem desenho na folha, e a checagem reprova-o com razão: quem vê
-    // não é um gancho, é um botão. Este botão tem o seu próprio ouvinte e o seu próprio id.
-    '<button type="button" class="acao perigo" id="vb-cel-apagar" hidden>Apagar o verbete</button>' +
     '</span>' +
     '<div class="res" data-res="verbetes"></div>' +
     '</div>' +
@@ -6017,6 +6048,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pilulas("vb-contagem", possiveis.map(function(o){ return { valor: o, nome: o }; }), CONTAGEM,' +
     '    function(v){ CONTAGEM = v; pintarContagens(); },' +
     '    "a pista de " + cat + " já tem os tempos todos preenchidos", true);' +
+    // A CONTAGEM É O OBRIGATÓRIO DO PASSO 4, e é ela que abre o 5 (02/11/2026).
+    '  pintarNavegacao();' +
     '}' +
     // REPINTA O TRECHO INTEIRO. É uma função só porque há mais de um sítio a mexer nele — o
     // «editar» e o «limpar» —, e cada um tem de deixar a tela coerente com o estado.
@@ -6104,6 +6137,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // exercício, e os sinais não o mudam.
     '  pintarFica();' +
     '  pintarTira();' +
+    // E A NAVEGAÇÃO, porque o número de sinais é o que abre (ou fecha) o passo 6 (02/11/2026).
+    '  pintarNavegacao();' +
     '}' +
     // A FRASE VEM DO DICIONÁRIO — E NÃO POR CIMA DO QUE FOI ESCRITO. Só substitui quando o campo
     // está vazio ou ainda tem a sugestão anterior: quem ajustou a frase não a vê desaparecer ao
@@ -6146,13 +6181,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var podeTrocar = !actual || (METODO_SUGERIDO !== null && actual === METODO_SUGERIDO);' +
     '  if (!podeTrocar) return;' +
     '  METODO_SUGERIDO = t ? t.chave : "";' +
-    // O VALOR TEM DE EXISTIR NO `<select>`. Uma tradição que ficasse de fora da lista — página
-    // antiga em cache contra alfabeto novo, ou o contrário — poria o campo em branco em silêncio,
-    // e o branco quer dizer «herda o plano», que é outra coisa.
-    '  if (METODO_SUGERIDO && sel.value !== METODO_SUGERIDO) {' +
-    '    var o = document.createElement("option");' +
-    '    o.value = METODO_SUGERIDO; o.textContent = t.rotulo || METODO_SUGERIDO;' +
-    '    sel.appendChild(o);' +
+    /* A OPÇÃO SÓ SE ACRESCENTA QUANDO NÃO EXISTE (02/11/2026).
+     *
+     * ERA AQUI A «COMPARTILHADA» DUPLICADA que ela viu: a condição era `sel.value !==
+     * METODO_SUGERIDO`, e isso é verdade sempre que o valor sugerido ainda não é o escolhido —
+     * mesmo que ele JÁ esteja na lista. Escolher um exercício de tradição `compartilhada` com o
+     * campo vazio acrescentava uma segunda opção «Compartilhada» ao fim. O `value` duplicado não
+     * dá erro nenhum: dá duas linhas iguais, e a segunda a vencer no `sel.value`.
+     *
+     * A pergunta certa é «existe uma opção com este valor?». E, se existir, basta escolhê-la. */
+    '  if (METODO_SUGERIDO) {' +
+    '    var existente = null;' +
+    '    for (var i = 0; i < sel.options.length; i++) {' +
+    '      if (sel.options[i].value === METODO_SUGERIDO) { existente = sel.options[i]; break; }' +
+    '    }' +
+    '    if (!existente) {' +
+    '      var o = document.createElement("option");' +
+    '      o.value = METODO_SUGERIDO; o.textContent = t.rotulo || METODO_SUGERIDO;' +
+    '      sel.appendChild(o);' +
+    '    }' +
     '  }' +
     '  sel.value = METODO_SUGERIDO;' +
     '  METODO = METODO_SUGERIDO;' +
@@ -6345,15 +6392,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarDuplicar();' +
     '  var bGuardar = document.getElementById("vb-cel-guardar");' +
     '  if (bGuardar) bGuardar.hidden = (EM_EDICAO === null);' +
-    // O «APAGAR» DO PASSO 6 SÓ EXISTE QUANDO HÁ VERBETE PARA APAGAR — isto é, quando há um
-    // exercício escolhido. Oferecê-lo sem exercício daria um botão que não sabe o que apagar.
-    '  var bApagar = document.getElementById("vb-cel-apagar");' +
-    '  if (bApagar) {' +
-    '    var alvoApagar = String((document.getElementById("vbnome") || {}).value || "").trim();' +
-    '    bApagar.hidden = !alvoApagar;' +
-    '    if (alvoApagar) bApagar.setAttribute("data-apagar-verbete", alvoApagar);' +
-    '    else bApagar.removeAttribute("data-apagar-verbete");' +
-    '  }' +
+    /* O «APAGAR» JÁ NÃO VIVE AQUI (02/11/2026, segunda correcção do mesmo dia). O bloco que
+     * pintava o `#vb-cel-apagar` saiu com o botão: o verbo existe só na listagem, e um botão
+     * escondido por script que já não está na marcação é código que ninguém executa. */
     '  var voltar = document.getElementById("vb-voltar");' +
     '  if (voltar) voltar.disabled = (PASSO === 1);' +
     '  var seguir = document.getElementById("vb-seguir");' +
@@ -6369,10 +6410,99 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  alternarPasso1();' +
     // E O «GRAVAR» DIZ SE HÁ O QUE GRAVAR (02/11/2026). Ver `pintarGravar`.
     '  pintarGravar();' +
+    // E A NAVEGAÇÃO DIZ O QUE AINDA NÃO SE PODE FAZER (02/11/2026). Ver `pintarNavegacao`.
+    '  pintarNavegacao();' +
     '}' +
     'function irParaPasso(n){' +
+    // O `irParaPasso` É O COLOCADOR DO ESTADO, e não a guarda. Quem guarda é a INTERFACE: a tira
+    // desactiva os passos que ainda não se abrem, e o «Seguir» desactiva-se quando falta algo no
+    // passo actual (ver `pintarNavegacao`). A distinção é de propósito — há chamadas internas que
+    // precisam de pôr o passo sem passar pelo caminho do utilizador (o «Editar» de um verbete vai
+    // ao 1; o «Limpar» vai ao 2; e as provas colocam-se no passo que medem).
     '  PASSO = Math.max(1, Math.min(ULTIMO_PASSO, Number(n) || 1));' +
     '  pintarPassos();' +
+    '}' +
+    /* A NAVEGAÇÃO PROGRESSIVA (02/11/2026, segunda correcção do mesmo dia).
+     *
+     * O QUE ELA PEDIU: «enquanto o utilizador não preencher/selecionar os campos obrigatórios da
+     * etapa actual, o step seguinte permanece desabilitado; o botão Seguir permanece bloqueado; o
+     * botão Voltar permanece habilitado».
+     *
+     * A REGRA ANTERIOR ERA «A TIRA NÃO BLOQUEIA» — «é a diferença entre conduzir e impedir» —, e
+     * ela reviu-a. A tira bloqueia daqui para a frente, e só isso: **para trás continua tudo
+     * aberto**, porque voltar a um passo já visto não perde nada (o estado vive no DOM e o
+     * rascunho não é tocado) e travar a volta seria impedir a correcção.
+     *
+     * O QUE É OBRIGATÓRIO EM CADA PASSO, e porquê:
+     *
+     *   1. o exercício novo — nome, e (só com nome) categoria, tradição e frase. Sem nome, o passo
+     *      está cumprido: quem vai escolher um exercício existente não tem nada a criar aqui;
+     *   2. o exercício escolhido — é a chave de tudo o que vem depois;
+     *   3. a música — quantos tempos. O compasso nasce com um valor, e por isso não falta;
+     *   4. a contagem — ela nasce escolhida (a primeira que cabe), e o passo diz se não houver;
+     *   5. ao menos um sinal — sem sinais não há notação, e sem notação não há trecho.
+     *
+     * A FALTA DIZ-SE POR NOME, no `title` do botão: um botão apagado sem explicação lê-se como
+     * avaria. E diz-se de TODAS as que faltam antes do passo pedido, não só da imediatamente
+     * anterior — quem tenta o 5 e ficou no 2 precisa de saber as duas coisas.
+     */
+    'function faltasDoPasso(n){' +
+    '  if (n === 1) return oQueFaltaNoPasso1();' +
+    '  if (n === 2) return exercicioEscolhido() ? [] : ["o exercício (passo 2)"];' +
+    '  if (n === 3) return temposTotais() > 0 ? [] : ["quantos tempos tem a música (passo 3)"];' +
+    '  if (n === 4) return CONTAGEM ? [] : ["a contagem (passo 4)"];' +
+    // O PASSO 5 É O DOS SINAIS — mas ele não fecha a leitura de um verbete que JÁ TEM trechos.
+    // Sem esta segunda metade, abrir um verbete gravado e querer ver a decomposição obrigaria a
+    // compor um trecho novo: os sinais do editor nascem vazios, e o passo 6 ficaria inalcançável
+    // sobre um dado que já existe. Exigir sinais é exigir o que se vai ACRESCENTAR; o que já está
+    // escrito é o que o passo 6 mostra.
+    '  if (n === 5) return (SINAIS.length || Object.keys(CELULAS).length) ? [] : ["ao menos um sinal (passo 5)"];' +
+    '  return [];' +
+    '}' +
+    'function faltasAntesDe(n){' +
+    '  var faltas = [];' +
+    '  for (var i = 1; i < n; i++) faltas = faltas.concat(faltasDoPasso(i));' +
+    '  return faltas;' +
+    '}' +
+    'function podeIrPara(n){ return faltasAntesDe(Number(n) || 1).length === 0; }' +
+    /* O «ACRESCENTAR TRECHO» TAMBÉM ESPERA (02/11/2026). O pedido: «o botão "Acrescentar Trecho"
+     * só deve ser habilitado quando todos os campos obrigatórios dos steps anteriores (1 a 5)
+     * estiverem devidamente preenchidos e válidos». O `submit` já recusava — e recusar ao fim de
+     * cinco passos é a armadilha que o `disabled` evita: quem chega ao 6 vê, no botão, o que
+     * ainda falta em vez de o descobrir depois do clique. */
+    'function pintarAcrescentar(){' +
+    '  var b = document.getElementById("vb-cel-acrescentar");' +
+    '  if (!b) return;' +
+    '  var faltas = faltasAntesDe(6);' +
+    '  b.disabled = faltas.length > 0;' +
+    '  b.setAttribute("aria-disabled", faltas.length ? "true" : "false");' +
+    '  if (faltas.length) b.setAttribute("title", "Antes de acrescentar um trecho, falta " + faltas.join(", ") + ".");' +
+    '  else b.removeAttribute("title");' +
+    '}' +
+    'function pintarNavegacao(){' +
+    // A TIRA: os passos à frente fecham-se enquanto faltar algo antes deles. O passo actual e os
+    // anteriores ficam sempre abertos.
+    '  Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
+    '    var n = Number(b.getAttribute("data-passo")) || 0;' +
+    '    var fechado = (n > PASSO) && !podeIrPara(n);' +
+    '    b.disabled = fechado;' +
+    '    b.setAttribute("aria-disabled", fechado ? "true" : "false");' +
+    '    if (fechado) b.setAttribute("title", "Falta " + faltasAntesDe(n).join(", ") + ".");' +
+    '    else b.removeAttribute("title");' +
+    '  });' +
+    // O «SEGUIR»: bloqueado enquanto o passo actual tiver faltas.
+    '  var seguir = document.getElementById("vb-seguir");' +
+    '  if (seguir) {' +
+    '    var faltas = faltasDoPasso(PASSO);' +
+    '    seguir.disabled = faltas.length > 0;' +
+    '    seguir.setAttribute("aria-disabled", faltas.length ? "true" : "false");' +
+    '    if (faltas.length) seguir.setAttribute("title", "Falta " + faltas.join(", ") + ".");' +
+    '    else seguir.removeAttribute("title");' +
+    '  }' +
+    '  pintarAcrescentar();' +
+    '}' +
+    'function exercicioEscolhido(){' +
+    '  return String((document.getElementById("vbnome") || {}).value || "").trim();' +
     '}' +
     // O RESUMO DA TIRA. Cada passo diz o que já está decidido — sem isso, a tira só diria onde se
     // está, e quem está no último passo não saberia para onde o trecho vai.
@@ -6491,35 +6621,101 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O QUE FALTA DIZ-SE POR NOME, e todos de uma vez: um `alert` que pede um campo, e depois
      * outro, e depois outro, é o mesmo pedido feito três vezes.
      */
-    /* O BLOCO DO PASSO 1 EM VIGOR, OU FORA DELE (02/11/2026).
+    /* O BLOCO DO PASSO 1: EM VIGOR, FORA DELE, OU CONGELADO (02/11/2026).
      *
-     * Três campos e um texto. Sem nome de exercício novo, os três estão DESACTIVADOS (e o
-     * `disabled` é a sério: um campo esbatido continua a competir por atenção e a receber foco) e
-     * a nota diz porque. Com nome — ou com um exercício ESCOLHIDO no passo 2, que é o caso de
-     * quem está a corrigir um verbete que já existe —, os três ficam em vigor.
+     * TRÊS ESTADOS, e não dois — o terceiro é a correcção da tarde:
      *
-     * A EXCEPÇÃO DO `vbnome` NÃO É UM DESCUIVO: a frase é a do exercício, e corrigir um verbete
-     * que já existe começa por ela. Desactivá-la porque o campo do exercício NOVO está vazio
-     * fecharia a frase a quem a veio editar — e a frase é o que a página da aula publica.
+     *   1. **Sem exercício e sem nome** — os três estão DESACTIVADOS (e o `disabled` é a sério: um
+     *      campo esbatido continua a competir por atenção e a receber foco) e a nota diz porquê.
+     *   2. **Com nome de exercício novo** — os três ficam em vigor e são obrigatórios: é o passo 1
+     *      a criar a definição que o dicionário passa a guardar.
+     *   3. **Com um exercício ESCOLHIDO no passo 2 e sem nome novo** — os três ficam
+     *      **CONGELADOS**: preenchidos a partir do dicionário e com `disabled`. O pedido dela:
+     *      «o sistema deve carregar e preencher automaticamente no Step 1 os dados cadastrados:
+     *      Categoria, Tradição de Referência e O que acontece (significado)» e «esses três campos
+     *      devem ficar rigorosamente bloqueados para edição, pois pertencem à definição oficial
+     *      congelada do exercício no dicionário».
+     *
+     * A DEFINIÇÃO CONGELADA NÃO SE REESCREVE POR AQUI, e é isso que o `disabled` diz sem precisar
+     * de sermão: para a mudar, edita-se o TERMO (no vocabulário), e a mudança chega a todos os
+     * verbetes que o usam. Deixar o campo aberto daria duas verdades para a mesma definição — a
+     * do dicionário e a que alguém ajustou num verbete —, e a segunda a vencer sem que ninguém
+     * saiba qual é a oficial.
+     *
+     * A FRASE GRAVADA VENCE A DO DICIONÁRIO (P-03/P-04), e por isso o campo é preenchido com o
+     * que está gravado quando há verbete, e com a definição do dicionário quando não há. O que
+     * fica congelado é aquilo que se vê — e a nota diz de onde veio.
      */
     'function alternarPasso1(){' +
     '  var novo = document.getElementById("vnnome");' +
     '  var escolhido = document.getElementById("vbnome");' +
     '  var temNome = Boolean(novo && String(novo.value || "").trim());' +
     '  var temExercicio = Boolean(escolhido && String(escolhido.value || "").trim());' +
-    '  var emVigor = temNome || temExercicio;' +
+    '  var congelado = temExercicio && !temNome;' +
+    '  var emVigor = temNome || congelado;' +
     '  ["vncategoria", "vntradicao", "vb-frase"].forEach(function(id){' +
     '    var el = document.getElementById(id);' +
     '    if (!el) return;' +
-    '    el.disabled = !emVigor;' +
-    '    el.setAttribute("aria-disabled", emVigor ? "false" : "true");' +
+    // CONGELADO É MAIS DO QUE «EM VIGOR»: o campo tem valor, conta como obrigatório — e é
+    // `disabled` mesmo assim, porque o valor não se edita aqui (02/11/2026).
+    '    el.disabled = congelado || !emVigor;' +
+    '    el.setAttribute("aria-disabled", (congelado || !emVigor) ? "true" : "false");' +
+    '    if (congelado) el.setAttribute("data-congelado", "sim");' +
+    '    else el.removeAttribute("data-congelado");' +
     '  });' +
     '  var nota = document.getElementById("vb-vigor-nota");' +
     '  if (nota) {' +
-    '    nota.textContent = emVigor ? "" :' +
-    '      "A categoria, a tradição e o que acontece entram em vigor quando houver um exercício — ' +
-    '      escreva o nome acima, ou escolha um no passo 2. Sem nome, pode avançar livremente.";' +
+    '    nota.textContent = congelado' +
+    '      ? ("Estes três campos são a definição do exercício «" + String(escolhido.value || "") +' +
+    '         "» no dicionário, e ficam bloqueados aqui — para os mudar, edite o termo no vocabulário.")' +
+    '      : (emVigor ? "" :' +
+    '        "A categoria, a tradição e o que acontece entram em vigor quando houver um exercício — ' +
+    '        escreva o nome acima, ou escolha um no passo 2. Sem nome, pode avançar livremente.");' +
     '  }' +
+    // O PASSO 1 É O OBRIGATÓRIO DA PRÓPRIA ETAPA: o «Seguir» e a tira repintam-se com ele.
+    '  pintarNavegacao();' +
+    '}' +
+    /* O PASSO 1 LÊ O PASSO 2 (02/11/2026) — o pedido dela, na letra: «ao selecionar um exercício
+     * na listagem do Step 2, preencha automaticamente a Categoria, Tradição e "O que acontece" no
+     * Step 1».
+     *
+     * O QUE SE PREENCHE, e de onde: categoria e tradição vêm do TERMO (`exerciciosDoVocabulario`,
+     * que já as trazia desde 02/11/2026); a frase vem do que está GRAVADO no verbete e, quando não
+     * há nada gravado, da definição do dicionário. Essa ordem é a do projecto (P-03/P-04): o que
+     * foi escrito vence o que a máquina sugere, e o dicionário pode melhorar sem reescrever o
+     * passado.
+     *
+     * QUANDO NÃO SE PREENCHE: com um nome de exercício novo escrito, porque aí a definição é a que
+     * se está a criar — e sobrescrevê-la com a de outro termo apagaria o trabalho a meio.
+     */
+    'function dadosDoExercicio(nome){' +
+    '  var lista = (VERBETES && VERBETES.exerciciosDoVocabulario) || [];' +
+    '  var achado = null;' +
+    '  lista.forEach(function(t){ if (t && t.termo === nome) achado = t; });' +
+    '  return achado;' +
+    '}' +
+    'function sincronizarPasso1ComExercicio(){' +
+    '  var escolhido = document.getElementById("vbnome");' +
+    '  var novo = document.getElementById("vnnome");' +
+    '  var nome = escolhido ? String(escolhido.value || "").trim() : "";' +
+    '  if (!nome || (novo && String(novo.value || "").trim())) { alternarPasso1(); return; }' +
+    '  var dados = dadosDoExercicio(nome);' +
+    '  var cat = document.getElementById("vncategoria");' +
+    '  var tra = document.getElementById("vntradicao");' +
+    '  var frase = document.getElementById("vb-frase");' +
+    '  if (dados && cat && dados.categoria) cat.value = dados.categoria;' +
+    '  if (dados && tra && dados.tradicao) tra.value = dados.tradicao;' +
+    '  if (dados && frase) {' +
+    '    var gravada = partirFrase(frase.value || "");' +
+    '    var definicao = String(dados.descricao || "").trim();' +
+    '    if (!gravada && definicao) {' +
+    '      frase.value = definicao;' +
+    '      FRASE = definicao;' +
+    '      FRASE_ANTERIOR = definicao;' +
+    '    }' +
+    '  }' +
+    '  pintarNotaDaFrase();' +
+    '  alternarPasso1();' +
     '}' +
     'function oQueFaltaNoPasso1(){' +
     '  var campo = document.getElementById("vnnome");' +
@@ -6926,6 +7122,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (selMet) selMet.value = METODO;' +
     '  pintarNotaDoMetodo();' +
     '  carregarRascunho();' +
+    // E O PASSO 1 É PREENCHIDO COM O EXERCÍCIO ABERTO (02/11/2026). O `carregarRascunho` decide a
+    // FRASE (a gravada vence a do dicionário); o que ele não decide é a categoria e a tradição, que
+    // são do TERMO. Sem esta chamada, abrir um verbete deixava os dois `<select>` no vazio e
+    // congelados — um campo bloqueado sem resposta. */
+    '  sincronizarPasso1ComExercicio();' +
     // EDITAR LEVA AO PASSO 1 (02/11/2026 — era o 2). O passo 2 tinha o seletor do exercício e a
     // FRASE; a frase subiu para o passo 1, e é ela que se vem editar quando se abre um verbete. Ir
     // para o 2 deixaria o comportamento certo (não encher campos fora do ecrã) com o sítio errado.
@@ -7163,16 +7364,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    criarExercicioDoPasso1(function(){ irParaPasso(2); });' +
     '  });' +
     '}' +
-    // «LIMPAR» ESVAZIA O MODO A, E NÃO MUDA DE MODO (28/10/2026). Ele não é «Cancelar»: é
-    // começar outro verbete do zero, e o modo continua a ser o do verbete.
-    '(function(){' +
-    '  var b = document.getElementById("vb-cel-apagar");' +
-    '  if (!b) return;' +
-    '  b.addEventListener("click", function(){' +
-    '    var qual = b.getAttribute("data-apagar-verbete");' +
-    '    if (qual) apagarOVerbete(qual);' +
-    '  });' +
-    '})();' +
     'var novoVerbete = document.getElementById("vbnovo");' +
     'if (novoVerbete) novoVerbete.addEventListener("click", function(){' +
     '  var f = document.getElementById("form-verbete");' +
@@ -7206,7 +7397,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // exactamente o caso que tem de substituir.
     '    if (this && this.id === "vbnome") { MUSICA_ABERTA = ""; sugerirMetodo(); }' +
     '    carregarRascunho();' +
+    // O PASSO 1 LÊ O EXERCÍCIO ESCOLHIDO (02/11/2026). Depois de carregar o rascunho — que é
+    // quem decide a frase (a gravada vence a do dicionário) —, os três campos do passo 1 são
+    // preenchidos e congelados. Ver `sincronizarPasso1ComExercicio`.
+    '    if (this && this.id === "vbnome") sincronizarPasso1ComExercicio();' +
     '  });' +
+    '});' +
+    // A CATEGORIA E A TRADIÇÃO DO PASSO 1 SÃO OBRIGATÓRIAS, e mudam a validade da etapa
+    // (02/11/2026). O `change` basta: são `<select>`, e não há escrita a meio.
+    '["vncategoria", "vntradicao"].forEach(function(id){' +
+    '  var el = document.getElementById(id);' +
+    '  if (el) el.addEventListener("change", pintarNavegacao);' +
     '});' +
     // O `input` dos tempos recarrega também: mudar de 8 para 12 tempos muda a MÚSICA, e com ela
     // o verbete — não é uma repintura da mesma coisa.
@@ -7262,9 +7463,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '})();' +
     // ---- a tira e a navegação (31/10/2026) -------------------------------------------
-    // A TIRA É A NAVEGAÇÃO: clicar num passo leva lá. Não bloqueia — quem quer espiar o último passo
-    // antes de escrever os sinais pode, e a tabela diz o que falta. É a diferença entre conduzir
-    // e impedir.
+    /* A TIRA É A NAVEGAÇÃO, E AGORA ELA TAMBÉM FECHA (02/11/2026, segunda correcção do dia).
+     *
+     * ERA «NÃO BLOQUEIA — quem quer espiar o último passo antes de escrever os sinais pode, e a
+     * tabela diz o que falta. É a diferença entre conduzir e impedir.» A pesquisadora reviu-a:
+     * «o step seguinte permanece desabilitado; o Seguir permanece bloqueado; o Voltar permanece
+     * habilitado». A regra está em `pintarNavegacao`, e é ela que põe o `disabled` em cada botão
+     * — aqui só se liga o clique, que num botão desactivado nem chega a disparar.
+     *
+     * O QUE NÃO MUDA: o passo actual e os anteriores continuam abertos. Espiar o que já se
+     * decidiu não perde nada; espiar o que ainda não se pode decidir era o que ela quis travar. */
     'Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
     '  b.addEventListener("click", function(){ irParaPasso(b.getAttribute("data-passo")); });' +
     '});' +

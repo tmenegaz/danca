@@ -159,6 +159,37 @@
         "familia": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
         "motivo": { "tipo": "string", "obrigatorio": true, "acesso": "interno" }
       }
+    },
+    "termo": {
+      "estado": "prevista",
+      "id": "termo:<id>",
+      "$nota": "O TERMO DO DICIONÁRIO (02/11/2026). Ele já existe — `biblioteca/modalidades/<modalidade>/vocabulario.json`, 93 termos, com `id`, `termo`, `categoria`, `tradicao`, `membro`, `descricao` e `fonte` —, e é a chave primária do que o verbete decompõe: a fase 0 do PLANO-PRODUTOS-DO-MOTOR começa por ele. O que falta é entrar no índice DERIVADO como entidade, em vez de ser relido do disco por cada filtro. `prevista` porque o gerador ainda não o emite: o vocabulário já é um ficheiro só, servido do bundle, e copiá-lo para cá agora seria uma segunda cópia a divergir da primeira — o que o §2.1 proíbe. O que o índice precisa de guardar, quando o emitir, é o que os filtros PERGUNTAM (categoria, tradição, membro, se tem verbete), e não a descrição.",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "termo": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "categoria": { "tipo": "enum(passo|posicao|direcao|ligacao|salto|giro)", "obrigatorio": true, "acesso": "interno" },
+        "tradicao": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "membro": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "tem_verbete": { "tipo": "boolean", "obrigatorio": true, "acesso": "interno" },
+        "fonte": { "tipo": "string", "obrigatorio": false, "acesso": "interno" }
+      }
+    },
+    "verbete": {
+      "estado": "prevista",
+      "id": "verbete:<termo-id>/<tempos>|<compasso>",
+      "$nota": "O VERBETE (02/11/2026) — a notação de um termo numa música, com `celulas`, `cobre`, `metodo` e, desde 02/11/2026, `versoes` datadas. É a camada de SYLLABUS, e é o que os planos de ensino, as turmas e o PO citam. O `id` leva a música porque ela faz parte da identidade: o mesmo exercício em 8 e em 16 tempos são dois verbetes. `prevista` pelo mesmo motivo do `termo`: são poucos, todos num ficheiro, e o índice só passa a valer a pena quando houver acervo por escola a cruzar. A PROVENIÊNCIA (verbete empregado em turma, plano ou curadoria) não se declara aqui — é respondida pelo acervo, e declará-la duas vezes daria duas respostas para a mesma pergunta.",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "termo_id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "tempos": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "compasso": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "cobre": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "trechos": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "direcoes": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "categorias": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "versoes": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "vigente": { "tipo": "boolean", "obrigatorio": true, "acesso": "interno" }
+      }
     }
   },
   "proibidos": [

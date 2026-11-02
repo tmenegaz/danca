@@ -126,28 +126,82 @@ const SCRIPT = String.raw`(function () {
     dizer('Rubrica preenchida: ' + (r.nome || '(sem nome)') + '. Confira e envie manualmente.');
   }
 
-  /* O TERMO VAI PARA O «+» DO VERBETE (01/11/2026).
+  /* O TERMO DO FIXTURE — E, QUANDO ELE JÁ EXISTE NO CATÁLOGO, O VERBETE INTEIRO (02/11/2026).
    *
-   * O preenchimento apontava para "vtermo" e companhia — os campos da secção do vocabulário, que
-   * saiu. Os mesmos três campos passaram a viver no modo do exercício ("vnnome", "vncategoria",
-   * "vntradicao"): é o mesmo ato, no sítio onde ele agora acontece.
+   * AQUI HAVIA UM DEFEITO MEDIDO: o preenchimento chamava "modoExercicio(true)", uma função que
+   * deixou de existir quando o «+» virou o passo 1 (02/11/2026). O "typeof" dava "undefined", a
+   * função saía pela porta de emergência — e **nenhum termo chegava ao formulário**. A prova
+   * "provar-teste" falhava com «'' !== 'Jeté'», e era isso que ela media.
    *
-   * O MODO ABRE-SE ANTES DE ESCREVER. Os campos só existem quando o «+» está aberto — o painel
-   * dos passos os esconde no modo do verbete —, e escrever num campo escondido daria a
-   * impressão de ter preenchido sem que ninguém o visse. "modoExercicio(true)" é a função que a
-   * própria página usa para isso; se ela não estiver ao alcance, o preenchimento não se faz e
-   * di-lo, em vez de escrever no escuro.
+   * O CAMINHO NOVO SÃO DOIS, e a diferença importa:
+   *
+   *   1. **O termo já existe no vocabulário** — escolhe-se no passo 2 ("vbnome"), como faria uma
+   *      pessoa. O "change" é disparado para a página fazer o que faz sempre: carregar o
+   *      rascunho, sincronizar e congelar o passo 1 e sugerir o método. Escrever o nome no passo
+   *      1 criaria um SEGUNDO termo com o mesmo nome, e o servidor recusá-lo-ia com 409.
+   *   2. **O termo não está na lista** (ou a lista ainda não chegou) — escreve-se no passo 1, que
+   *      é o cadastro do exercício novo. É o caminho antigo, e continua a ser o certo para um
+   *      termo que ainda não existe.
+   *
+   * E O VERBETE DO FIXTURE ENTRA NO EDITOR, não no servidor: a música (passo 3) e as células do
+   * passo 6 são postas no estado da página, que é o mesmo sítio onde o professor as escreveria.
+   * Nada é enviado — a regra da casa continua: o preenchedor enche campos e não chama rota que
+   * escreva.
    *
    * ATENÇÃO AO EDITAR ESTE FICHEIRO: tudo o que está entre String.raw e o fecho é um template
    * literal. Uma crase aqui dentro fecha-o, e o erro que se vê — "Unexpected identifier" a
    * apontar uma palavra portuguesa — não se parece nada com a causa. */
+  function verbeteDoTermo(termo) {
+    var lista = fixture.verbete || [];
+    for (var i = 0; i < lista.length; i++) {
+      if (lista[i] && lista[i].termo === termo) return lista[i];
+    }
+    return null;
+  }
+
+  /* A MÚSICA E A DECOMPOSIÇÃO DO FIXTURE (02/11/2026).
+   *
+   * A ORDEM É A DA PÁGINA, e não é arbitrária: os tempos e o compasso primeiro, porque mudá-los
+   * recarrega o rascunho e ZERA as células (outra música é outra decomposição). Só depois de a
+   * música estar posta é que as células entram — se entrassem antes, o "input" dos tempos
+   * apagava-as, e o fixture parecia vazio sem ninguém saber porquê. */
+  function preencherVerbetes(registro) {
+    if (!registro || !registro.musica) return false;
+    var partes = String(registro.musica).split('|');
+    var tempos = porId('vbtempos');
+    var compasso = porId('vbcompasso');
+    if (!tempos || !compasso) return false;
+    if (typeof irParaPasso === 'function') irParaPasso(3);
+    tempos.value = partes[0];
+    compasso.value = partes[1];
+    tempos.dispatchEvent(new Event('input'));
+    compasso.dispatchEvent(new Event('change'));
+    if (typeof CELULAS === 'undefined' || typeof pintarTabela !== 'function') {
+      dizer('A página não expõe a decomposição — a música ficou preenchida e as células não.');
+      return false;
+    }
+    CELULAS = JSON.parse(JSON.stringify(registro.celulas || {}));
+    if (typeof MUSICA_EM_FOCO !== 'undefined') MUSICA_EM_FOCO = registro.musica;
+    if (typeof pintarTabela === 'function') pintarTabela();
+    if (typeof pintarTira === 'function') pintarTira();
+    if (typeof pintarPassos === 'function') pintarPassos();
+    return true;
+  }
+
   function preencherTermo(v) {
     if (!v) return;
-    if (typeof modoExercicio !== 'function') {
-      dizer('O modo do exercício não está ao alcance desta página — nada foi preenchido.');
+    var alvo = porId('vbnome');
+    if (alvo && escolher('vbnome', v.termo || '')) {
+      alvo.dispatchEvent(new Event('change'));
+      var registro = verbeteDoTermo(v.termo);
+      var comVerbeta = registro ? preencherVerbetes(registro) : false;
+      if (typeof gravarEstado === 'function') gravarEstado();
+      dizer('Exercício escolhido: ' + (v.termo || '(sem nome)')
+        + (comVerbeta ? ' — com a música ' + registro.musica + ' e a decomposição do fixture' : '')
+        + '. Confira e envie manualmente.');
       return;
     }
-    modoExercicio(true);
+    if (typeof irParaPasso === 'function') irParaPasso(1);
     preencher('vnnome', v.termo || '');
     escolher('vncategoria', v.categoria || '');
     escolher('vntradicao', v.tradicao || '');

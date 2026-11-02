@@ -1,6 +1,6 @@
 {
   "versao": 1,
-  "$comentario": "O MAPA DE RELAÇÕES do acervo — quem aponta para quem, por que chave e com que cardinalidade. É FONTE, como os outros dois esquemas, e é o que o verificador usa para recusar uma relação que aponte para entidade ou chave que o dicionário não declara (PLANO-INDICES.md §4.1, critério iii; §9 verificação 9). As relações marcadas `estado: \"prevista\"` são as do §4.11 — vínculo com vigência e autoria —, que o motor ainda não emite: declará-las agora é o que impede o gerador de inventar uma chave nova sem passar por aqui. A `chave` é o CAMINHO na entidade de origem; `[]` marca lista, e o primeiro segmento é o campo que o dicionário tem de declarar.",
+  "$comentario": "O MAPA DE RELAÇÕES do acervo — quem aponta para quem, por que chave e com que cardinalidade. É FONTE, como os outros dois esquemas, e é o que o verificador usa para recusar uma relação que aponte para entidade ou chave que o dicionário não declara (PLANO-INDICES.md §4.1, critério iii; §9 verificação 9). As relações marcadas `estado: \"prevista\"` são as do §4.11 — vínculo com vigência e autoria —, que o motor ainda não emite: declará-las agora é o que impede o gerador de inventar uma chave nova sem passar por aqui. A `chave` é o CAMINHO na entidade de origem; `[]` marca lista, e o primeiro segmento é o campo que o dicionário tem de declarar. Em 02/11/2026 entrou a relação do DICIONÁRIO e do SYLLABUS (`verbete → termo`), marcada `prevista`: o vocabulário e a notação já existem como ficheiros únicos, e o que falta é o índice derivado emitir as entidades `termo` e `verbete`. Declará-la agora é o que impede a próxima implementação de inventar a chave — e é a premissa do §2.8: «um vocabulário, não uma lista por página». A relação de PROVENIÊNCIA (um verbete empregado numa turma, num plano ou numa curadoria) não se declara aqui de propósito: ela já é respondida pelo acervo — o `vinculo`, o repertório da turma e o `registro` —, e declará-la outra vez daria duas respostas para a mesma pergunta.",
   "relacoes": [
     {
       "de": "professor",
@@ -90,6 +90,13 @@
       "de": "autoria",
       "para": "professor",
       "chave": "autor",
+      "cardinalidade": "N:1",
+      "estado": "prevista"
+    },
+    {
+      "de": "verbete",
+      "para": "termo",
+      "chave": "termo_id",
       "cardinalidade": "N:1",
       "estado": "prevista"
     }

@@ -2022,7 +2022,13 @@ function estado() {
         && /categoria/.test(v23_soComNome.falta[1]) && /tradi/.test(v23_soComNome.falta[2]),
       v23_soComNome.falta);
 
-    await page.evaluate(() => document.getElementById('vb-seguir').click());
+    /* O «SEGUIR» ESTÁ DESACTIVADO — e por isso o clique não faz nada (é o que a linha seguinte
+     * mede). A RECUSA CONTINUA A VALER para quem chega por outro caminho (o `Enter` no nome, uma
+     * página antiga em cache), e é ela que se mede aqui: chama-se a função, não o botão. */
+    await page.evaluate(() => {
+      document.getElementById('vb-seguir').click();
+      if (typeof criarExercicioDoPasso1 === 'function') criarExercicioDoPasso1();
+    });
     await new Promise((r) => setTimeout(r, 400));
     const v23_recusado = await page.evaluate(() => ({
       passo: window.PASSO,
@@ -2104,26 +2110,40 @@ function estado() {
       comNomeVigor);
     conferir('…e a nota desaparece — não há nada a explicar', comNomeVigor.nota === '', comNomeVigor.nota);
 
-    // ---- 24-C. A FRASE CONTINUA ABERTA QUANDO SE CORRIGE UM VERBETE EXISTENTE -----
-    // A EXCEPÇÃO QUE IMPORTA: corrigir um verbete que já existe começa pela frase, e o campo do
-    // exercício NOVO está vazio nesse caso. Desactivar a frase por causa disso fecharia o campo a
-    // quem o veio editar — e a frase é o que a página da aula publica.
+    /* ---- 24-C. O PASSO 1 LÊ O PASSO 2, E CONGELA O QUE VEM DO DICIONÁRIO -----------
+     *
+     * ESTA SECÇÃO MEDIA O CONTRÁRIO, e o contrário era o defeito da manhã: escolher um exercício
+     * existente deixava os três campos ABERTOS, porque a frase «é o que a página da aula publica»
+     * e quem a veio corrigir não podia ser travado. A pesquisadora reviu-o à tarde: se o exercício
+     * já existe, os três campos são a DEFINIÇÃO OFICIAL congelada do dicionário — «devem ficar
+     * rigorosamente bloqueados para edição (disabled / readonly)».
+     *
+     * O que se mede agora, e são três coisas: os campos vêm PREENCHIDOS do termo escolhido, ficam
+     * `disabled`, e a nota diz onde é que se mudam. */
     const aCorrigir = await page.evaluate(() => {
       const g = document.getElementById('vnnome');
       g.value = '';
       g.dispatchEvent(new Event('input'));
+      document.getElementById('vb-frase').value = '';
       const sel = document.getElementById('vbnome');
       const op = [...sel.options].find((o) => o.value === 'Battement tendu');
       if (!op) throw new Error('o exercício do fixture não está na lista do passo 2');
       sel.value = 'Battement tendu';
       sel.dispatchEvent(new Event('change'));
+      const q = (id) => document.getElementById(id);
       return {
-        frase: document.getElementById('vb-frase').disabled,
-        cat: document.getElementById('vncategoria').disabled,
+        frase: q('vb-frase').disabled, cat: q('vncategoria').disabled, tra: q('vntradicao').disabled,
+        valorCat: q('vncategoria').value,
+        congelado: q('vncategoria').getAttribute('data-congelado'),
+        nota: q('vb-vigor-nota').textContent.trim(),
       };
     });
-    conferir('com um exercício ESCOLHIDO no passo 2, a frase e a categoria reabrem — é o caso de corrigir',
-      aCorrigir.frase === false && aCorrigir.cat === false, aCorrigir);
+    conferir('com um exercício ESCOLHIDO no passo 2, os três campos ficam CONGELADOS (disabled)',
+      aCorrigir.frase === true && aCorrigir.cat === true && aCorrigir.tra === true, aCorrigir);
+    conferir('…e a categoria aparece preenchida com a do exercício, não vazia',
+      aCorrigir.valorCat === 'passo' && aCorrigir.congelado === 'sim', aCorrigir);
+    conferir('…e a nota diz que a definição é do dicionário e onde se muda',
+      /dicionário/.test(aCorrigir.nota) && /bloqueados/.test(aCorrigir.nota), aCorrigir.nota);
 
     // ---- 24-D. O MÉTODO HERDA A TRADIÇÃO DO EXERCÍCIO ---------------------------
     // «Ao selecionar um exercício no Step 2, o campo Método deste Exercício deve ser preenchido
@@ -2140,11 +2160,11 @@ function estado() {
         metodo: window.METODO,
       };
     });
-    conferir('escolher o exercício pré-enche o método com a tradição DELE — FRANCESA',
-      metodoHerdado.valor === 'francesa' && metodoHerdado.texto === 'FRANCESA', metodoHerdado);
+    conferir('escolher o exercício pré-enche o método com a tradição DELE — «Francesa»',
+      metodoHerdado.valor === 'francesa' && metodoHerdado.texto === 'Francesa', metodoHerdado);
     conferir('…e o valor gravado é a CHAVE, não o rótulo — é ela que a tabela do alfabeto usa',
       metodoHerdado.metodo === 'francesa', metodoHerdado.metodo);
-    conferir('e a lista do método é a do `tradicoes.json`, em caixa alta, mais os dois livres',
+    conferir('e a lista do método é a do `tradicoes.json`, com o rótulo do ficheiro, mais os dois livres',
       ['RAD', 'francesa', 'Vaganova', 'cubana', 'Cecchetti', 'Escola livre']
         .every((v) => metodoHerdado.opcoes.indexOf(v) !== -1), metodoHerdado.opcoes);
 
@@ -2201,35 +2221,112 @@ function estado() {
     conferir('a nota do rodapé diz o mesmo, em vez de deixar o botão mudo',
       /Ainda não há nenhum trecho/.test(semTrechos.nota), semTrechos.nota);
 
-    // ---- 24-F. O «APAGAR» TAMBÉM ESTÁ NO PASSO 6, E É O MESMO VERBO -----------
-    // «Adicione a ação de exclusão na listagem e na decomposição.» Ele só aparece quando há um
-    // exercício escolhido — sem exercício, não há o que apagar.
-    await page.evaluate(() => {
+    /* ---- 24-F. O «APAGAR» SAIU DO PASSO 6 (02/11/2026, segunda correcção do mesmo dia) ----
+     *
+     * ESTA SECÇÃO MEDIA O CONTRÁRIO, E O CONTRÁRIO ERA O DEFEITO. A manhã de 02/11/2026 pediu o
+     * botão «na listagem e na tela de decomposição»; à tarde ela reviu: o passo 6 é onde se
+     * ESCREVE a decomposição, e um botão que apaga o verbete inteiro ao lado do «Acrescentar
+     * trecho» é um alvo a um clique do gesto mais frequente. O lugar de apagar é a LISTA.
+     *
+     * A prova passa a medir três coisas: que o botão não está no passo 6, que o verbo continua na
+     * listagem (com a confirmação), e que nada mais o pinta — porque um botão escondido por script
+     * que já não existe na marcação é código que ninguém executa. */
+    const apagarNo6 = await page.evaluate(() => ({
+      noPasso6: Boolean(document.querySelector('#vb-tabela, #form-verbete') &&
+        document.getElementById('vb-cel-apagar')),
+      noScript: /vb-cel-apagar/.test(document.documentElement.innerHTML),
+    }));
+    conferir('o passo 6 já não tem o «Apagar o verbete» — nem na marcação, nem no script',
+      apagarNo6.noPasso6 === false && apagarNo6.noScript === false, apagarNo6);
+
+    const apagarNaLista = await page.evaluate(() => {
+      const b = document.querySelector('#lista-verbetes button[data-apagar-verbete]');
+      return { existe: Boolean(b), alvo: b ? b.getAttribute('data-apagar-verbete') : null,
+        texto: b ? (b.textContent || '').trim() : '' };
+    });
+    conferir('…e o verbo continua na LISTAGEM, que é o lugar de apagar um registo',
+      apagarNaLista.existe && apagarNaLista.alvo === 'Battement tendu', apagarNaLista);
+
+    /* ---- 24-G. A NAVEGAÇÃO É PROGRESSIVA (02/11/2026, segunda correcção) ----------------
+     *
+     * O PEDIDO: «enquanto o utilizador não preencher/selecionar os campos obrigatórios da etapa
+     * actual, o step seguinte permanece desabilitado; o botão Seguir permanece bloqueado; o botão
+     * Voltar permanece habilitado».
+     *
+     * A REGRA ANTERIOR ERA A OPOSTA — «a tira não bloqueia, é a diferença entre conduzir e
+     * impedir» —, e ela reviu-a. Para trás continua tudo aberto: voltar não perde nada, e travar a
+     * volta seria impedir a correcção. */
+    const navVazia = await page.evaluate(() => {
+      document.getElementById('vnnome').value = '';
+      document.getElementById('vbnome').value = '';
+      window.CELULAS = {}; window.SINAIS = [];
+      const t = document.getElementById('vbtempos');
+      t.value = ''; t.dispatchEvent(new Event('input'));
+      irParaPasso(1);
+      pintarPassos();
+      const passos = Array.prototype.slice
+        .call(document.querySelectorAll('#vb-tira button.passo'))
+        .map((b) => ({ n: b.getAttribute('data-passo'), disabled: b.disabled }));
+      const seguir = document.getElementById('vb-seguir');
+      return { passos, seguir: seguir.disabled, titulo: seguir.getAttribute('title') || '',
+        voltar: document.getElementById('vb-voltar').disabled };
+    });
+    /* O PASSO 1 VAZIO NÃO É UMA FALTA: sem nome de exercício novo, não há nada a exigir, e o
+     * passo 2 abre. É a mesma regra de 02/11/2026, do lado do bloqueio — «sem nome, pode avançar
+     * livremente». Do 3 em diante fecha tudo, porque já falta o exercício escolhido. */
+    conferir('sem exercício novo e sem música, o passo 2 abre e do 3 em diante fecha',
+      navVazia.passos.filter((p) => p.n === '1')[0].disabled === false
+        && navVazia.passos.filter((p) => p.n === '2')[0].disabled === false
+        && navVazia.passos.filter((p) => Number(p.n) >= 3).every((p) => p.disabled === true),
+      navVazia.passos);
+    conferir('o «Voltar» está desactivado no primeiro passo (não há para onde voltar)',
+      navVazia.voltar === true, navVazia.voltar);
+
+    const navComExercicio = await page.evaluate(() => {
       const sel = document.getElementById('vbnome');
       sel.value = 'Battement tendu';
       sel.dispatchEvent(new Event('change'));
-      irParaPasso(6);
+      irParaPasso(2);
       pintarPassos();
+      const t = document.getElementById('vbtempos');
+      const selP = Array.prototype.slice
+        .call(document.querySelectorAll('#vb-tira button.passo'))
+        .map((b) => ({ n: b.getAttribute('data-passo'), disabled: b.disabled }));
+      return { passos: selP, seguir: document.getElementById('vb-seguir').disabled,
+        voltar: document.getElementById('vb-voltar').disabled,
+        tempos: t.value };
     });
-    const apagarNo6 = await page.evaluate(() => {
-      const b = document.getElementById('vb-cel-apagar');
-      return { existe: Boolean(b), escondido: b.hidden, alvo: b.getAttribute('data-apagar-verbete'),
-        texto: (b.textContent || '').trim() };
-    });
-    conferir('o passo 6 tem o «Apagar o verbete», com o exercício escolhido por alvo',
-      apagarNo6.existe && apagarNo6.escondido === false
-        && apagarNo6.alvo === 'Battement tendu' && apagarNo6.texto === 'Apagar o verbete', apagarNo6);
-    const apagarSemExercicio = await page.evaluate(() => {
-      const sel = document.getElementById('vbnome');
-      sel.value = '';
-      sel.dispatchEvent(new Event('change'));
-      irParaPasso(6);
+    conferir('com o exercício escolhido, o passo 3 abre — e o «Voltar» volta a poder',
+      navComExercicio.passos.filter((p) => p.n === '3')[0].disabled === false
+        && navComExercicio.passos.filter((p) => p.n === '4')[0].disabled === true
+        && navComExercicio.voltar === false,
+      navComExercicio);
+
+    // O «SEGUIR» DIZ O QUE FALTA — um botão apagado sem explicação lê-se como avaria.
+    const semMusica = await page.evaluate(() => {
+      document.getElementById('vbtempos').value = '';
+      document.getElementById('vbtempos').dispatchEvent(new Event('input'));
+      irParaPasso(3);
       pintarPassos();
-      const b = document.getElementById('vb-cel-apagar');
-      return { escondido: b.hidden, alvo: b.getAttribute('data-apagar-verbete') };
+      const b = document.getElementById('vb-seguir');
+      return { desactivado: b.disabled, titulo: b.getAttribute('title') || '' };
     });
-    conferir('sem exercício escolhido, o «Apagar» do passo 6 não se oferece',
-      apagarSemExercicio.escondido === true && apagarSemExercicio.alvo === null, apagarSemExercicio);
+    conferir('sem os tempos da música, o «Seguir» do passo 3 fica bloqueado e diz o que falta',
+      semMusica.desactivado === true && /quantos tempos/.test(semMusica.titulo), semMusica);
+
+    // ---- 24-H. O «ACRESCENTAR TRECHO» ESPERA OS PASSOS 1 A 5 -------------------------
+    // «O botão "Acrescentar Trecho" só deve ser habilitado quando todos os campos obrigatórios
+    // dos steps anteriores (1 a 5) estiverem devidamente preenchidos e válidos.»
+    const acrescentarFechado = await page.evaluate(() => {
+      window.SINAIS = [];
+      window.CELULAS = {};
+      pintarPassos();
+      const b = document.getElementById('vb-cel-acrescentar');
+      return { desactivado: b.disabled, titulo: b.getAttribute('title') || '' };
+    });
+    conferir('sem sinais, o «Acrescentar trecho» está desactivado',
+      acrescentarFechado.desactivado === true
+        && /falta .*sinal/i.test(acrescentarFechado.titulo), acrescentarFechado);
 
     console.log('\n22. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {

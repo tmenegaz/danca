@@ -82,29 +82,40 @@ const RELACOES = (progressao.relacoes || []).map((r) => {
 
 const CATEGORIAS = tradicoes.categorias || {};
 const TRADICOES = tradicoes.tradicoes || [];
+const ROTULOS = tradicoes.rotulos || {};
 
 /**
  * O RÓTULO DE UMA TRADIÇÃO — o que a TELA mostra, e não o que o dado guarda (02/11/2026).
  *
- * Ela pediu «padronizar todos os valores exibidos para caixa alta» e avisou contra o risco: «a
- * inclusão de CUBANA e a padronização das maiúsculas devem propagar instantaneamente para todas
- * as telas (…) sem necessidade de alterações manuais em múltiplos pontos».
+ * ELA MUDOU DUAS VEZES NO MESMO DIA, e a segunda é a que vale. Primeiro pediu «padronizar todos
+ * os valores exibidos para caixa alta»; depois corrigiu: «Padronizar todas as opções para Title
+ * Case, alinhando com a grafia de Escola livre e Cecchetti, mantendo apenas siglas em caixa
+ * alta». `RAD` é sigla e fica; `Francesa`, `Vaganova`, `Cubana` e `Compartilhada` levam inicial
+ * maiúscula.
  *
- * A MANEIRA ERRADA seria escrever a lista outra vez em cada sítio, ou subir as maiúsculas ao
- * DADO. A segunda parte parte tudo: `vocabulario.json` grava `francesa` em 4 termos, e
- * `diferencasDeNomenclatura` tem uma COLUNA por chave (`RAD`, `francesa`, `Vaganova`) — passar o
- * dado a `FRANCESA` deixaria essas colunas sem ninguém, em silêncio. Fica como está o dado, e a
- * caixa alta é uma derivação: uma função, chamada por quem desenha.
+ * O MAPA ESTÁ NO DADO (`tradicoes.json` → `rotulos`), e não numa regra de maiúsculas aqui. Uma
+ * regra automática não sabe que `RAD` é sigla e `Vaganova` é nome próprio — e o dia em que alguém
+ * acrescentar «Cecchetti» à lista de tradições é o dia em que a regra erra. Com o mapa, a mesma
+ * fonte serve as quatro telas, e o rótulo de uma tradição nova declara-se onde ela se declara.
  *
- * Sem acento e sem plural: é a chave do dado, e a única transformação é a caixa.
+ * O QUE NÃO SE FAZ é subir o rótulo ao DADO dos termos: `vocabulario.json` grava `francesa` em
+ * 4 termos, e `diferencasDeNomenclatura` tem uma COLUNA por chave (`RAD`, `francesa`, `Vaganova`)
+ * — passar o dado a `Francesa` deixaria essas colunas sem ninguém, em silêncio. A chave fica, e o
+ * rótulo é derivação.
+ *
+ * Sem entrada no mapa, devolve-se o valor como veio: é o caso dos métodos livres (`Cecchetti`,
+ * `Escola livre`), que não são tradições do ficheiro e já se escrevem como se querem ver.
  */
 function rotuloDaTradicao(t) {
   const bruto = String(t == null ? '' : t).trim();
-  return bruto ? bruto.toUpperCase() : '';
+  if (!bruto) return '';
+  if (Object.prototype.hasOwnProperty.call(ROTULOS, bruto)) return ROTULOS[bruto];
+  const chave = Object.keys(ROTULOS).find((k) => k.toLowerCase() === bruto.toLowerCase());
+  return chave ? ROTULOS[chave] : bruto;
 }
 /** As frases do dicionário, por bloco de notação: `{"[Pé: 1ª → +]": "extensão à frente…"}`. */
 const DESCRICOES = descricoes.descricoes || {};
 
 module.exports = {
-  TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES, DESCRICOES, rotuloDaTradicao,
+  TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES, ROTULOS, DESCRICOES, rotuloDaTradicao,
 };

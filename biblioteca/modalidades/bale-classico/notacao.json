@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 30,
+  "versao": 31,
   "aplicaseA": [
     "benesh"
   ],
@@ -209,13 +209,13 @@
           "origem": "convenção do ciclo"
         },
         "ED": {
-          "nome": "en dehors",
-          "significado": "a varredura da perna para fora, no sentido do en dehors.",
+          "nome": "varredura para fora",
+          "significado": "a perna varre para fora do eixo do corpo, a partir do apoio.",
           "origem": "convenção do ciclo"
         },
         "EI": {
-          "nome": "en dedans",
-          "significado": "a varredura da perna para dentro, no sentido do en dedans.",
+          "nome": "varredura para dentro",
+          "significado": "a perna varre para dentro do eixo do corpo, a partir do apoio.",
           "origem": "convenção do ciclo"
         }
       }
