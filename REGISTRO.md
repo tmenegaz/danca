@@ -31158,3 +31158,70 @@ saiu da lista porque a régua é que estava errada.
 `motor/servidor/verbete.js` (`validarVerbete`) · `motor/servidor/bastidores.js` (`opcoesDeContagem`,
 `passoDaGrade`, `compassosDosTrechos`, `cobertura`, `pintarContagens`, `pintarCobertura`,
 `pintarNotaDoMetodo`, o campo da repetição e o do método).
+
+## 02/11/2026 — Corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
+
+**O defeito relatado, com as palavras dela:** «ao editar um item já salvo no Compasso 1 (por exemplo,
+os braços), o sistema move o item editado para o final da fila/lista e altera automaticamente a
+atribuição do compasso de Compasso 1 para Compasso 2». E três redirecionamentos: «Acrescentar
+Trecho» saía da decomposição, «Editar» saltava para o passo 4, e «Guardar Alteração» mudava de passo.
+
+### 1. A causa do compasso era `splice` + `push`, e a régua agora é a ordem
+
+O handler fazia:
+
+```js
+listaAntiga.splice(EM_EDICAO.k, 1);        // sai do lugar
+CELULAS[DIRECAO].push(celula);             // entra no fim
+```
+
+E como o compasso de cada trecho sai da **ordem** — um relógio por pista, acrescentado hoje de manhã
+—, corrigir uma descrição **reescrevia a posição temporal do trecho**. Não era o campo que mudava de
+sítio: era o índice, e o índice é o dado que a decomposição existe para mostrar.
+
+**A correcção substitui no lugar.** Com a mesma direção, `CELULAS[DIRECAO][k] = celula` e mais nada se
+mexe. Quando a direção muda, a célula muda de balde: entra na **mesma posição ordinal** (não no fim) e
+o balde que ficou vazio **sai** — um balde vazio é recusado pela validação («a direção X não tem
+célula»), e deixá-lo lá era preparar a recusa seguinte.
+
+**Medido, e é o cenário dela:** três trechos de `Perna` em 2/4 (pista única, relógio partilhado) dão
+compassos **1, 1 e 2**. Corrigir o primeiro não muda a sequência — continua `1, 1, 2` — e a linha
+corrigida continua a ser a **primeira**.
+
+### 2. Os três redireccionamentos eram um só, e a regra que os substitui é a área do trecho
+
+Os três vinham de `irParaPasso(PASSOS_DO_TRECHO[0])`: ao editar, e ao acrescentar ou guardar. A regra
+nova: **a correcção abre a área do trecho onde o utilizador está, e nada muda de passo sem ele.**
+
+- `editarTrecho` **não navega**; abre os painéis onde o trecho se compõe (4 e 5) e mantém a
+  decomposição à vista;
+- **e abre também o último painel**, mesmo quando se está no 4 ou no 5 — sem isso, corrigir os sinais
+  deixava o botão «Guardar a alteração» fora do ecrã, e o utilizador teria de o procurar. É o caso
+  difícil, e é o que a prova mede: em edição e no passo 5, os painéis **4, 5 e 6** estão à vista;
+- acrescentar e guardar **não mudam de passo**. A limpeza dos campos do trecho continua a acontecer
+  (é o que permite acrescentar o seguinte), e a tabela já mostra a linha nova;
+- **cancelar** fica onde está — é o comportamento que ela marcou como CORRECTO e pediu para
+  preservar. Antes ele saltava para o último passo, o que dava o mesmo resultado **por acidente**,
+  porque a edição começava nos passos do trecho; agora é a regra escrita.
+
+**Uma simplificação de caminho:** a primeira tentativa guardava o passo de origem num estado
+(`PASSO_DA_EDICAO`). Saiu — a regra «a área do trecho abre-se inteira» não precisa de memória, e um
+estado a mais é um sítio a mais para divergir.
+
+### 3. O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-celula` | **143 asserções** (eram 134) — secção **20-A** nova, com o cenário do compasso medido de ponta a ponta, e as asserções da navegação reescritas |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · 76/76 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `provar-producao` · `provar-cartao-da-turma` | **151/152** · **6 falhas** — as duas iguais a antes, não são regressões |
+| `check-indices` · `check-identidade` | 14/14 · 20/20 |
+
+**A fixture ganhou o sinal `⌒`.** Faltava-lhe, e a secção 20-A precisa dele: é o sinal que se
+acrescenta a **uma** célula para provar que corrigir não a move. A fixture também passou a chamar ao
+grupo «Posições dos pés e braços», que é o nome de hoje.
+
+**Com o quê.** `motor/servidor/bastidores.js` — `pintarPassos` (a área do trecho), `editarTrecho`,
+`cancelarEdicao` (o do verbete) e o handler que acrescenta e guarda · 
+`experimentos/provar-celula.js` — secção 20-A e o estado novo (`compassos`, `linhasComSinal`,
+`paineisVisiveis`).

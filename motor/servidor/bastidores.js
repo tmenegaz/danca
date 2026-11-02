@@ -5908,9 +5908,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // estava aberto — e era isso que fazia do «Cancelar» o único sinal de onde se estava e para
     // onde se ia. Agora o cadastro vive dentro do passo 1, e quem manda é o passo: nada mais o
     // esconde.
+    // O PAINEL DO TRECHO APARECE ONDE SE ESTÁ A CORRIGIR (02/11/2026). A regra era «um passo, um
+    // painel»; passa a haver uma excepção, e ela é a correcção: quem clica «Editar» na tabela não
+    // sai da tabela, e os dois painéis onde o trecho se compõe aparecem acima dela. Sem isto, o
+    // «Editar» saltava para o primeiro passo do trecho e o utilizador perdia o contexto — que é o
+    // defeito que ela relatou, e não uma preferência.
     '  Array.prototype.slice.call(document.querySelectorAll("#form-verbete .passo-painel")).forEach(function(p){' +
     '    var n = Number(p.getAttribute("data-passo")) || 0;' +
-    '    p.hidden = (n !== PASSO);' +
+    // A ÁREA DO TRECHO ABRE-SE INTEIRA DURANTE A CORRECÇÃO. Não basta mostrar os dois painéis
+    // onde o trecho se compõe: o botão que GUARDA está no último, e quem está a corrigir os sinais
+    // (no 5) ficaria sem o botão à vista. Com a área aberta, corrigir não obriga a procurar o
+    // passo onde se guarda.
+    '    var naArea = EM_EDICAO !== null && (PASSO === ULTIMO_PASSO || PASSOS_DO_TRECHO.indexOf(PASSO) !== -1);' +
+    '    var doTrecho = naArea && (PASSOS_DO_TRECHO.indexOf(n) !== -1 || n === ULTIMO_PASSO);' +
+    '    p.hidden = !(n === PASSO || doTrecho);' +
     '  });' +
     '  Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
     '    var n = Number(b.getAttribute("data-passo")) || 0;' +
@@ -5996,6 +6007,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var lista = CELULAS[dir] || [];' +
     '  var c = lista[Number(k)];' +
     '  if (!c) return;' +
+    // A CORRECÇÃO NÃO MUDA DE PASSO (02/11/2026). Era `irParaPasso(PASSOS_DO_TRECHO[0])`, e o
+    // efeito era o relatado: carregar em «Editar» na tabela atirava o utilizador para o passo 4 e
+    // ele perdia de vista a linha que estava a corrigir. Agora o formulário vem ter com ele.
     '  EM_EDICAO = { dir: dir, k: Number(k) };' +
     '  DIRECAO = dir;' +
     '  ORIENTACAO = c.orientacao || "";' +
@@ -6008,16 +6022,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // para o campo faria com que corrigir o trecho 2 reescrevesse a frase dos outros dois.
     '  var radios = document.querySelectorAll("input[name=vb-cat]");' +
     '  Array.prototype.slice.call(radios).forEach(function(r){ r.checked = (r.value === (c.categoria || "Pé")); });' +
-    '  irParaPasso(PASSOS_DO_TRECHO[0]);' +
+    '  var selRepC = document.getElementById("vb-repeticoes");' +
+    '  if (selRepC) selRepC.value = String(REPETICOES);' +
+    // O PASSO NÃO MUDA — e `pintarPassos` é que traz os painéis do trecho para aqui.
+    '  pintarPassos();' +
     '  pintarTrecho();' +
     // A TABELA TAMBÉM, e não só o trecho: é ela que marca a linha em edição e troca os botões
     // dela. Sem esta chamada, entrar na edição mudava o aviso e o «!» e deixava a linha igual.
     '  pintarTabela();' +
     '}' +
     'function cancelarEdicao(){' +
+    // CANCELAR SAI DA CORRECÇÃO E NÃO MEXE NO PASSO (02/11/2026) — é o comportamento que ela
+    // marcou como CORRECTO e pediu para preservar. Antes ele saltava para o último passo, o que
+    // dava o mesmo resultado por acidente (a edição começava nos passos do trecho); agora que ela
+    // começa na tabela, «não mexer» é a regra explícita.
     '  EM_EDICAO = null;' +
-    '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = [];' +
-    '  irParaPasso(ULTIMO_PASSO);' +
+    '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = []; REPETICOES = 1;' +
+    '  var selRepX = document.getElementById("vb-repeticoes"); if (selRepX) selRepX.value = "1";' +
+    '  pintarPassos();' +
     '  pintarTrecho();' +
     '  pintarTabela();' +
     '}' +
@@ -6568,11 +6590,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // muda numa edição, o trecho MUDA DE BLOCO: a direção é a chave da célula, e deixá-lo no
     // bloco antigo seria gravar uma célula que diz uma coisa e está noutra.
     '    var eraEdicao = Boolean(EM_EDICAO);' +
+    // A CORRECÇÃO SUBSTITUI NO LUGAR, E NÃO EMPURRA PARA O FIM (02/11/2026).
+    //
+    // ERA `splice` + `push`, e o efeito era o defeito relatado: corrigir o braço do compasso 1
+    // movia-o para o fim da lista, e como o compasso de cada trecho sai da ORDEM (um relógio por
+    // pista), o compasso 1 passava a 2 e a ordem da decomposição trocava. Corrigir um campo
+    // reescrevia a posição temporal do trecho — que é o dado que a decomposição existe para
+    // mostrar.
+    //
+    // Com a mesma direção, o índice é o mesmo: substitui-se a célula e nada mais se mexe. Quando a
+    // direção muda, a célula muda de balde — e aí entra na MESMA posição ordinal, não no fim, para
+    // o tempo se manter tanto quanto possível; e o balde que ficou vazio sai, porque um balde
+    // vazio é recusado pela validação («a direção X não tem célula»).
     '    if (EM_EDICAO) {' +
-    '      var listaAntiga = CELULAS[EM_EDICAO.dir] || [];' +
-    '      listaAntiga.splice(EM_EDICAO.k, 1);' +
-    '      CELULAS[DIRECAO] = CELULAS[DIRECAO] || [];' +
-    '      CELULAS[DIRECAO].push(celula);' +
+    '      var kEdit = EM_EDICAO.k;' +
+    '      if (EM_EDICAO.dir === DIRECAO) {' +
+    '        CELULAS[DIRECAO][kEdit] = celula;' +
+    '      } else {' +
+    '        CELULAS[EM_EDICAO.dir].splice(kEdit, 1);' +
+    '        if (!CELULAS[EM_EDICAO.dir].length) delete CELULAS[EM_EDICAO.dir];' +
+    '        CELULAS[DIRECAO] = CELULAS[DIRECAO] || [];' +
+    '        CELULAS[DIRECAO].splice(Math.min(kEdit, CELULAS[DIRECAO].length), 0, celula);' +
+    '      }' +
     '      EM_EDICAO = null;' +
     '    } else {' +
     '      CELULAS[DIRECAO] = CELULAS[DIRECAO] || [];' +
@@ -6588,10 +6627,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarChips();' +
     '    pintarTabela();' +
     '    pintarTira();' +
-    // ACRESCENTADO OU ALTERADO, VOLTA-SE AO PRINCÍPIO DO TRECHO (31/10/2026): os sinais e a
-    // contagem limpam-se e quem quer acrescentar outro começa no passo 3, sem procurar onde
-    // estava. O último passo continua a mostrar o que já está escrito.
-    '    irParaPasso(PASSOS_DO_TRECHO[0]);' +
+    // ACRESCENTAR OU GUARDAR NÃO MUDA DE PASSO (02/11/2026). Era `irParaPasso(PASSOS_DO_TRECHO[0])`,
+    // e o efeito era o relatado: carregar em «Acrescentar trecho» dentro da decomposição atirava o
+    // utilizador de volta para o passo 4 (ou para o 5, se fosse de lá que vinha), e ele tinha de
+    // voltar ao 6 para ver o que tinha acabado de acrescentar. Fica-se onde se está: o que se
+    // limpam são os campos do trecho, e a tabela — que é o que se está a olhar — já mostra a linha
+    // nova.
+    '    pintarPassos();' +
     '    recado("ok", (eraEdicao ? "trecho alterado" : "trecho acrescentado") + " — grave o verbete para o guardar.");' +
     '  });' +
     '}' +

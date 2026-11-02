@@ -144,11 +144,14 @@ const ALFABETO = {
     { sinal: '●', nome: 'fecha', grupo: 'Movimento' },
     { sinal: '↓', nome: 'cede', grupo: 'Movimento' },
     { sinal: '↑', nome: 'sobe', grupo: 'Movimento' },
+    // O `⌒` ENTROU COM A SECÇÃO 20-A (02/11/2026): é o sinal que se acrescenta a UMA célula para
+    // provar que corrigir não a move. Um fixture sem ele obrigaria a prova a adivinhar.
+    { sinal: '⌒', nome: 'arco', grupo: 'Movimento' },
     { sinal: '+', nome: 'à frente', grupo: 'Destino do membro' },
     { sinal: '-', nome: 'ao lado', grupo: 'Destino do membro' },
     { sinal: '×', nome: 'atrás', grupo: 'Destino do membro' },
-    { sinal: '1ª', nome: 'primeira posição', grupo: 'Posições dos pés' },
-    { sinal: '2ª', nome: 'segunda posição', grupo: 'Posições dos pés' },
+    { sinal: '1ª', nome: 'primeira posição', grupo: 'Posições dos pés e braços' },
+    { sinal: '2ª', nome: 'segunda posição', grupo: 'Posições dos pés e braços' },
   ],
 };
 
@@ -298,6 +301,20 @@ function estado() {
     rotuloDoBotao: (q('vb-cel-acrescentar') || {}).textContent || '',
     linhaEmEdicao: Boolean(document.querySelector('#vb-tabela tr.em-edicao')),
     temBotaoTirar: Boolean(document.querySelector('#vb-tabela button[data-tirar]')),
+    // OS PAINÉIS QUE ESTÃO À VISTA (02/11/2026). O número do passo já não chega para dizer o que
+    // o utilizador vê: em edição, os painéis do trecho aparecem ONDE ELE ESTÁ. Sem esta lista, a
+    // asserção do «Editar» mediria o passo e não o ecrã.
+    // O COMPASSO DE CADA LINHA, na ordem em que a tabela as mostra. É o dado que o bug relatado
+    // reescrevia sem ninguém pedir.
+    compassos: [...document.querySelectorAll('#vb-tabela tbody tr')]
+      .map((r) => (r.cells[0] || {}).textContent.trim()),
+    // Quais linhas têm o sinal `⌒` — o que a correcção acrescentou a UMA delas.
+    linhasComSinal: [...document.querySelectorAll('#vb-tabela tbody tr')]
+      .map((r, i) => (/⌒/.test(r.textContent) ? i : -1))
+      .filter((i) => i !== -1),
+    paineisVisiveis: [...document.querySelectorAll('#form-verbete .passo-painel')]
+      .filter((p) => !p.hidden)
+      .map((p) => Number(p.getAttribute('data-passo')) || 0),
     linhasDaTabela: [...document.querySelectorAll('#vb-tabela tr:not(.em-edicao)')]
       .map((r) => r.textContent.replace(/\s+/g, ' ').trim()).join(' | '),
     recado: (document.querySelector('[data-res=verbetes]') || {}).textContent || '',
@@ -1018,8 +1035,19 @@ function estado() {
     await page.evaluate(() => { document.querySelector('#vb-tabela button[data-editar]').click(); });
     await new Promise((r) => setTimeout(r, 400));
     const emEdicao = await page.evaluate(estado);
-    conferir('«Editar» leva ao primeiro passo do trecho, que é onde a correcção começa',
-      emEdicao.passo === 4, emEdicao.passo);
+    /* «EDITAR» NÃO MUDA DE PASSO (02/11/2026) — e esta asserção é o contrário da que aqui estava.
+     *
+     * A anterior dizia «leva ao primeiro passo do trecho, que é onde a correcção começa», e era a
+     * regra de então. A pesquisadora relatou o efeito medido: «ao clicar no botão de editar um
+     * item na decomposição, a interface força um redirecionamento automático para o Step 4 (…)
+     * deve ocorrer na tela/Step atual de Decomposição, sem saltar para Steps anteriores.» O
+     * formulário passa a vir ter com ela. */
+    conferir('«Editar» NÃO salta de passo: a correcção acontece na decomposição',
+      emEdicao.passo === ULTIMO, { passo: emEdicao.passo, ultimo: ULTIMO });
+    conferir('…e os dois painéis do trecho aparecem onde se está, em vez de ele se mudar para lá',
+      emEdicao.paineisVisiveis.indexOf(4) !== -1 && emEdicao.paineisVisiveis.indexOf(5) !== -1
+        && emEdicao.paineisVisiveis.indexOf(ULTIMO) !== -1,
+      emEdicao.paineisVisiveis);
     conferir('o aviso de edição está à vista e diz qual é o trecho',
       emEdicao.avisoDeEdicao !== null && /trecho 1/.test(emEdicao.avisoDeEdicao), emEdicao.avisoDeEdicao);
     conferir('a tira acende o «!» — e só nos passos do trecho',
@@ -1034,24 +1062,120 @@ function estado() {
     conferir('o botão do último passo passa a «Guardar a alteração»',
       emEdicao.rotuloDoBotao === 'Guardar a alteração', emEdicao.rotuloDoBotao);
 
-    // A LINHA EM EDIÇÃO, VISTA DO ÚLTIMO PASSO: marcada, sem «×» e com «Cancelar».
+    // A LINHA EM EDIÇÃO: marcada, sem «×» e com «Cancelar». Já se está no último passo — a edição
+    // não mudou de sítio —, e é isso que a linha 1 desta secção passou a medir.
     await irA(ULTIMO);
     const linhaEmEdicao = await page.evaluate(estado);
     conferir('a linha em edição está marcada e não tem «×»',
       linhaEmEdicao.linhaEmEdicao === true && linhaEmEdicao.temBotaoTirar === false,
       { marcada: linhaEmEdicao.linhaEmEdicao, tirar: linhaEmEdicao.temBotaoTirar });
 
-    // CANCELAR: nada muda, e volta-se à decomposição.
+    // CANCELAR: nada muda, e fica-se onde se está. O pedido dela é explícito — «Cancelar: mantém o
+    // usuário no mesmo Step. Status: CORRETO (deve ser preservado como está)» —, e o
+    // comportamento de antes (saltar para o último passo) dava o mesmo resultado por acidente,
+    // enquanto a edição começava nos passos do trecho. Agora começa na tabela, e o «mesmo passo»
+    // passa a ser o da tabela por decisão, não por coincidência.
     await page.evaluate(() => { document.getElementById('vb-cancelar-edicao').click(); });
     await new Promise((r) => setTimeout(r, 400));
     const cancelado = await page.evaluate(estado);
-    conferir('«Cancelar a edição» volta ao último passo', cancelado.passo === ULTIMO, cancelado.passo);
+    conferir('«Cancelar a edição» deixa o utilizador no mesmo passo', cancelado.passo === ULTIMO, cancelado.passo);
+    conferir('…e os painéis do trecho voltam a esconder-se',
+      cancelado.paineisVisiveis.indexOf(4) === -1, cancelado.paineisVisiveis);
     conferir('e apaga o modo: o aviso e o «!» desaparecem',
       cancelado.avisoDeEdicao === null && cancelado.tiraEditando === 'nao',
       { aviso: cancelado.avisoDeEdicao, tira: cancelado.tiraEditando });
     conferir('o trecho continua na tabela, intacto',
       cancelado.linhasDaTabela === comTrecho.linhasDaTabela,
       { antes: comTrecho.linhasDaTabela, depois: cancelado.linhasDaTabela });
+
+    /* 20-A. CORRIGIR UM TRECHO NÃO LHE MUDA O COMPASSO NEM O LUGAR (02/11/2026).
+     *
+     * É O BUG QUE ELA RELATOU, com estas palavras: «ao editar um item já salvo no Compasso 1 (por
+     * exemplo, os braços), o sistema move o item editado para o final da fila/lista e altera
+     * automaticamente a atribuição do compasso de Compasso 1 para Compasso 2».
+     *
+     * A CAUSA ERA UMA LINHA. O handler fazia `splice` no índice antigo e `push` no fim — e como o
+     * compasso de cada trecho sai da ORDEM (um relógio por pista), corrigir uma descrição
+     * reescrevia a posição temporal do trecho. A correcção substitui NO LUGAR.
+     *
+     * O CENÁRIO: três trechos de PERNA, que é a mesma pista e por isso partilham o relógio. Em
+     * 2/4, um tempo cada: 1 → compasso 1, 2 → compasso 1 (fecha o compasso), 1 → compasso 2. Se o
+     * primeiro for para o fim, o que estava no compasso 1 passa a 2 e o que estava no 2 passa a 3.
+     */
+    console.log('\n20-A. CORRIGIR UM TRECHO NÃO LHE MUDA O COMPASSO — O BUG RELATADO');
+    await irA(1);
+    await page.select('#vbnome', 'Changement');
+    await new Promise((r) => setTimeout(r, 400));
+    await irA(3);
+    await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '4';
+      t.dispatchEvent(new Event('input'));
+    });
+    await page.select('#vbcompasso', '2/4');
+    await new Promise((r) => setTimeout(r, 400));
+    await escreverFrase('sobe e desce');
+    // Três trechos que partilham a pista, e que por isso partilham o relógio.
+    for (let i = 0; i < 3; i += 1) {
+      await noPassoDe('#vb-dir');
+      await clicar('#vb-dir input[data-valor="devant"]');
+      // `#vb-categoria` é o id do fieldset, e é ele que o `PASSO_DE` conhece — o seletor por
+      // `input[name=vb-cat]` existia para outra altura e não dizia o passo.
+      await clicar('#vb-categoria input[value="Perna"]');
+      const opcoes = valores((await page.evaluate(estado)).contagens);
+      await clicar('#vb-contagem input[data-valor="' + opcoes[0] + '"]');
+      for (const sg of ['1ª', '↓']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
+      await noPassoDe('#vb-cel-acrescentar');
+      await page.click('#vb-cel-acrescentar');
+      await new Promise((r) => setTimeout(r, 350));
+    }
+    const antesDeEditar = await page.evaluate(estado);
+    /* «ACRESCENTAR TRECHO» NÃO SAI DA DECOMPOSIÇÃO (02/11/2026). Era `irParaPasso(PASSOS_DO_TRECHO[0])`,
+     * e o efeito era o relatado: «ao clicar em "Acrescentar Trecho" dentro do Step 6, o sistema
+     * executa a ação e redireciona o usuário de volta para o Step de onde ele veio». Agora fica-se
+     * onde se está — e é preciso, porque a linha nova só se vê na tabela. */
+    conferir('«Acrescentar trecho» mantém o utilizador na decomposição',
+      antesDeEditar.passo === ULTIMO, { passo: antesDeEditar.passo, ultimo: ULTIMO });
+    conferir('o cenário tem os três trechos, e os compassos são 1, 1 e 2',
+      antesDeEditar.tabela.length === 1 && antesDeEditar.tabela[0].linhas.length === 3
+        && antesDeEditar.compassos.join(',') === '1,1,2',
+      { compassos: antesDeEditar.compassos, linhas: antesDeEditar.tabela[0] && antesDeEditar.tabela[0].linhas });
+
+    // Corrige-se o PRIMEIRO — o que está no compasso 1, e o que o `push` mandava para o fim.
+    await page.evaluate(() => { document.querySelector('#vb-tabela button[data-editar]').click(); });
+    await new Promise((r) => setTimeout(r, 350));
+    await clicar('#vb-sinais input[data-sinal="⌒"]');
+    // A ÁREA DO TRECHO, MEDIDA EM EDIÇÃO E NO PASSO DOS SINAIS. É o caso difícil: os sinais
+    // vivem no 5, o botão que guarda vive no 6 — e sem a área aberta o utilizador teria de
+    // procurar o passo onde se guarda. Mede-se aqui, e não depois de guardar, porque guardar
+    // fecha a edição e a área volta ao normal (que é o comportamento certo).
+    const areaEmEdicao = await page.evaluate(estado);
+    conferir('em edição e no passo dos sinais, os dois painéis E a decomposição estão à vista',
+      [4, 5, ULTIMO].every((n) => areaEmEdicao.paineisVisiveis.indexOf(n) !== -1),
+      areaEmEdicao.paineisVisiveis);
+    await page.evaluate(() => { document.getElementById('vb-cel-acrescentar').click(); });
+    await new Promise((r) => setTimeout(r, 400));
+    const depoisDeEditar = await page.evaluate(estado);
+    conferir('depois de corrigir, o trecho continua no COMPASSO 1 — e não foi para o 2',
+      depoisDeEditar.compassos.join(',') === antesDeEditar.compassos.join(','),
+      { antes: antesDeEditar.compassos, depois: depoisDeEditar.compassos });
+    // A ORDEM É A OUTRA METADE DO MESMO BUG: o `push` punha a célula corrigida no FIM. O sinal `⌒`
+    // foi acrescentado só ao primeiro trecho, logo é ele que diz, sem ambiguidade, onde a célula
+    // corrigida está agora — e tem de continuar a ser a primeira linha.
+    conferir('…e a ordem das linhas não mudou: a corrigida continua a ser a PRIMEIRA',
+      depoisDeEditar.tabela[0].linhas.length === 3
+        && depoisDeEditar.linhasComSinal.length === 1
+        && depoisDeEditar.linhasComSinal[0] === 0,
+      { comSinal: depoisDeEditar.linhasComSinal, depois: depoisDeEditar.tabela[0].linhas });
+    // O PASSO NÃO MUDA SOZINHO. A prova navegou ao 5 para clicar o sinal (é lá que os sinais
+    // vivem), e é no 5 que fica: guardar não empurra para lado nenhum. O que se mede é que quem
+    // manda é o utilizador — e que a área do trecho fica toda aberta, com o botão de guardar à
+    // vista, para não ter de procurar o passo onde se guarda.
+    conferir('…e guardar não muda de passo: fica-se onde se estava',
+      depoisDeEditar.passo === 5, depoisDeEditar.passo);
+    conferir('…e a edição termina: a área do trecho fecha-se e o «!» apaga-se',
+      depoisDeEditar.paineisVisiveis.indexOf(4) === -1 && depoisDeEditar.tiraEditando === 'nao',
+      { paineis: depoisDeEditar.paineisVisiveis, tira: depoisDeEditar.tiraEditando });
 
     console.log('\n21. OS SEIS PASSOS FORA DO FORMULÁRIO, E A LISTAGEM AO LADO');
     // OS CINCO PASSOS (01/11/2026). A tira é a navegação e o resumo; se um passo desaparecer

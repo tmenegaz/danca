@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T15:10:59-0300`
-Commit atual: `de43a1b` — docs(registro): o push publica o que chega ao site, e documentação não chega
+Gerado em: `2026-11-02T15:39:34-0300`
+Commit atual: `9e04787` — feat(notacao): as células contam-se por pista — e o Plié, que estava certo, fecha
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+9e04787 feat(notacao): as células contam-se por pista — e o Plié, que estava certo, fecha
 de43a1b docs(registro): o push publica o que chega ao site, e documentação não chega
 08551a9 docs(estrutura): a licença em três camadas, e uma citação minha que era falsa
 e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
@@ -104,7 +105,6 @@ b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» 
 804000a docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
 787305d docs(regras): a Regra 15 é substituída pelo que o código faz
 6902897 fix(notacao): o cadastro do exercício é o passo 1, e a gravação confere a música
-a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição estava errada
 ```
 
 ## Por professor
@@ -228,114 +228,72 @@ a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição 
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — As pistas, a repetição, a métrica e o bloco de posições — o Plié fecha
+## 02/11/2026 — Corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
 
-**O que a pesquisadora pediu, e o que a medição respondeu.** Quatro ajustes vieram numa proposta
-fechada («Granularidade na Notação e Posições»), e a medição mostrou três coisas que a proposta não
-sabia: o **1.2 já existia no dado** (cada célula já tem a sua `categoria` e a sua `contagem`), a
-**contagem estava proibida de recomeçar** por uma decisão de 29/10/2026, e o bloco de posições
-colidia consigo mesmo nos literais `1ª`/`2ª`/`3ª`. As decisões dela fecharam os três: **pista por
-categoria**, **repetição da célula**, **rótulo duplo + método herdado**.
+**O defeito relatado, com as palavras dela:** «ao editar um item já salvo no Compasso 1 (por exemplo,
+os braços), o sistema move o item editado para o final da fila/lista e altera automaticamente a
+atribuição do compasso de Compasso 1 para Compasso 2». E três redirecionamentos: «Acrescentar
+Trecho» saía da decomposição, «Editar» saltava para o passo 4, e «Guardar Alteração» mudava de passo.
 
-### 1. As pistas — e o defeito que elas explicam
+### 1. A causa do compasso era `splice` + `push`, e a régua agora é a ordem
 
-O `Plié` está gravado em «8|4/4» com `cobre: 12`, e desde hoje de manhã a gravação o **recusava**:
-«as células somam 12 tempos e a música declara 8». Medido, célula a célula:
+O handler fazia:
 
-| Pista | Tempos |
-|:--|--:|
-| `Perna` · devant (dois compassos de 4/4) | **8** |
-| `Braço` · sem direção (um compasso) | 4 |
-| soma em linha | **12** ≠ 8 |
-| **maior pista** | **8 = a música** |
+```js
+listaAntiga.splice(EM_EDICAO.k, 1);        // sai do lugar
+CELULAS[DIRECAO].push(celula);             // entra no fim
+```
 
-**O dado estava certo; a régua é que não.** Os braços fazem o port de bras **enquanto** as pernas
-pliêam — correm em paralelo, não em fila. E o ficheiro já o dizia sem que ninguém o lesse: as
-células dos braços **recomeçam em 1** depois de as pernas terem usado 1–4 duas vezes.
+E como o compasso de cada trecho sai da **ordem** — um relógio por pista, acrescentado hoje de manhã
+—, corrigir uma descrição **reescrevia a posição temporal do trecho**. Não era o campo que mudava de
+sítio: era o índice, e o índice é o dado que a decomposição existe para mostrar.
 
-**A régua passa a ser a maior pista.** A pista é a **categoria** (Pé · Peso · Perna · Braço), e não
-a direção: `à frente` e `atrás` são o mesmo corpo em tempos diferentes e somam-se; `Perna` e `Braço`
-são corpos diferentes e correm lado a lado. Foi aplicada **em quatro sítios, com a mesma conta**:
-`pistasDe`/`coberturaDe` no `motor/nucleo/notacao.js`, `validarVerbete` no `verbete.js`, e
-`pistasDe`/`cobertura`/`compassosDosTrechos`/`opcoesDeContagem` na página.
+**A correcção substitui no lugar.** Com a mesma direção, `CELULAS[DIRECAO][k] = celula` e mais nada se
+mexe. Quando a direção muda, a célula muda de balde: entra na **mesma posição ordinal** (não no fim) e
+o balde que ficou vazio **sai** — um balde vazio é recusado pela validação («a direção X não tem
+célula»), e deixá-lo lá era preparar a recusa seguinte.
 
-**Resultado medido: 9 das 13 músicas fecham** (eram 8). O `Plié` compõe-se — `estado: composto`,
-cobertura 8, resto 0 — e a aula 01 deixa de lhe pôr `conferir`.
+**Medido, e é o cenário dela:** três trechos de `Perna` em 2/4 (pista única, relógio partilhado) dão
+compassos **1, 1 e 2**. Corrigir o primeiro não muda a sequência — continua `1, 1, 2` — e a linha
+corrigida continua a ser a **primeira**.
 
-### 2. A contagem por pista reverte uma decisão de 29/10/2026 — e a reversão é justificada
+### 2. Os três redireccionamentos eram um só, e a regra que os substitui é a área do trecho
 
-A decisão de 29/10 dizia, no código: «com um battement frappé de 16 tempos em 2/4, "à frente" e "ao
-lado" ficavam AMBOS com "compasso 1, contagem 1": dois trechos no mesmo tempo, e a página da aula a
-dizer duas coisas diferentes para o mesmo instante.» A leitura estava certa **para uma pista** e
-errada para duas: em duas categorias, o mesmo instante é **o mesmo instante com dois corpos a
-mexer** — não é contradição, é simultaneidade. `opcoesDeContagem(cat)` passa a somar só a pista da
-categoria escolhida, e o compasso da tabela sai de um relógio por pista.
+Os três vinham de `irParaPasso(PASSOS_DO_TRECHO[0])`: ao editar, e ao acrescentar ou guardar. A regra
+nova: **a correcção abre a área do trecho onde o utilizador está, e nada muda de passo sem ele.**
 
-### 3. A métrica — o que a proposta agrupava ao contrário
+- `editarTrecho` **não navega**; abre os painéis onde o trecho se compõe (4 e 5) e mantém a
+  decomposição à vista;
+- **e abre também o último painel**, mesmo quando se está no 4 ou no 5 — sem isso, corrigir os sinais
+  deixava o botão «Guardar a alteração» fora do ecrã, e o utilizador teria de o procurar. É o caso
+  difícil, e é o que a prova mede: em edição e no passo 5, os painéis **4, 5 e 6** estão à vista;
+- acrescentar e guardar **não mudam de passo**. A limpeza dos campos do trecho continua a acontecer
+  (é o que permite acrescentar o seguinte), e a tabela já mostra a linha nova;
+- **cancelar** fica onde está — é o comportamento que ela marcou como CORRECTO e pediu para
+  preservar. Antes ele saltava para o último passo, o que dava o mesmo resultado **por acidente**,
+  porque a edição começava nos passos do trecho; agora é a regra escrita.
 
-A contagem só lia o **numerador**: em 6/8 oferecia `1` a `1–6` como se fosse um compasso simples de
-seis. `passoDaGrade()` passa a distinguir os **compostos** (`/8` com numerador múltiplo de 3: 6/8,
-9/8, 12/8), onde o pulso vale **três** tempos — dois, três e quatro pulsos de três. A lista passa a
-trazer **primeiro os fins que fecham pulso** (`1–3`, `1–6`) e **no fim os que caem a meio** (`1–2`,
-`1–4`, `1–5`), porque um trecho de `1–2` num 6/8 é uma **síncope** e existe: **ordena-se, não se
-proíbe**. E a legenda do campo e a nota da música passam a dizer o agrupamento em português
-(«6/8 — dois pulsos de três»).
+**Uma simplificação de caminho:** a primeira tentativa guardava o passo de origem num estado
+(`PASSO_DA_EDICAO`). Saiu — a regra «a área do trecho abre-se inteira» não precisa de memória, e um
+estado a mais é um sítio a mais para divergir.
 
-**Uma correção à proposta:** ela juntava 3/4 e 6/8 como «ternárias/compostas». **3/4 é ternário
-simples** (três pulsos de dois) e **6/8 é composto duplo** (dois pulsos de três); o que interessa à
-notação é a **subdivisão do pulso**, e por essa régua as duas caem em lados opostos.
-
-### 4. A repetição — da célula, e entra na conta
-
-Campo novo `repeticoes` (inteiro ≥ 1), no passo do «quando», ao lado da contagem: `contagem` é a de
-**uma** execução e o que a célula ocupa é o **produto**. `temposDaCelula` substitui a contagem crua
-em toda a aritmética — se ficasse de fora, o `cobre` e a grade de compassos divergiam no primeiro
-`2x`, que é exactamente o defeito que as pistas vieram corrigir. Só se grava quando não é 1, pela
-mesma regra da orientação. Na tabela lê-se «1–2 **×2**». Um `0` ou um `2,5` é **recusado** pelo
-servidor: sem isso desaparecia da conta em silêncio.
-
-### 5. As posições — o bloco é um, e o rótulo diz as duas nomenclaturas
-
-O bloco chamava-se «Posições dos pés» e tinha cinco sinais. As posições de braços viviam noutra
-camada do alfabeto (`gramatica.posicoesDeBracos`, com `prep`, `1ª`, `2ª`, `3ª`, `RAD-3ª`, `RAD-4ª` e
-o nome em francês/RAD/Vaganova) e **não chegavam a nenhum ecrã**: `posicoesDeBracosDoMetodo` estava
-exportada e **ninguém a chamava**. O bloco passa a **«Posições dos pés e braços»**, com a
-**preparatória** e os cinco números, e a **3ª leva o rótulo duplo** — «terceira · quinta (braços)» —,
-que é a decisão dela: o mesmo sinal diz as duas nomenclaturas, e a **categoria do trecho** separa pés
-de braços (`[Pé: 3ª …]` / `[Braço: 3ª …]`).
-
-**O método, e a colisão que ela resolveu.** Ela pediu um seletor de método no verbete. Medido: o
-plano **já** declara «Metodologia de referência», **obrigatório** (`contexto-metodologia`). Duas
-declarações do mesmo facto divergem ao primeiro caso — por isso o campo nasce como **herança com
-sobreposição**: a primeira opção é «herda a metodologia do plano», e o que se sobrepõe vê-se
-escrito. A nota ao lado diz, para o método escolhido, como se chamam os dois braços acima da cabeça
-— e diz **que o alfabeto não tem a coluna** quando não tem (Cecchetti), em vez de inventar.
-
-**`RAD-3ª` e `RAD-4ª` não foram apagados.** Continuam em `gramatica.posicoesDeBracos` como as
-posições que só a numeração RAD nomeia, com o estado `a-conferir` que o alfabeto declara — a
-divergência que originou o bloco fica escrita onde se lê.
-
-### 6. O que se mediu, e o que continua por fazer
+### 3. O que se mediu
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-celula` | **134 asserções** (eram 130), todas passam — as quatro novas medem 6/8, a legenda da pista, a repetição e o método |
-| `provar-verbete` | **TUDO CERTO**, com sete asserções novas: as duas pistas em paralelo, o `cobre` que soma as pistas, a repetição que multiplica, a repetição inválida, o método como frase, o bloco de posições e a rota |
-| `provar-notacao` | **76 asserções** (eram 74) — o `Plié` dá quatro segmentos em duas pistas, e a pista das pernas atravessa os dois compassos |
-| `provar-producao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **151/152** (a falha conhecida do item do menu) · TUDO CERTO · 50/50 · 55/55 · 17/17 |
-| `provar-cartao-da-turma` | **6 falhas — as mesmas de antes**, e a evidência está na própria saída: a lista de passos da turma inclui «1 O exercício novo … 6 A decomposição», a tira do verbete. Não é regressão |
-| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · 20/20 |
-| `provar-o-que-vem-do-dado` | **NÃO CORREU** — depende dos envelopes da `batata`, que ela expurgou hoje. A prova declara-o e não finge: «conferência NÃO FEITA». **Fica sem fixture** |
+| `provar-celula` | **143 asserções** (eram 134) — secção **20-A** nova, com o cenário do compasso medido de ponta a ponta, e as asserções da navegação reescritas |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · 76/76 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `provar-producao` · `provar-cartao-da-turma` | **151/152** · **6 falhas** — as duas iguais a antes, não são regressões |
+| `check-indices` · `check-identidade` | 14/14 · 20/20 |
 
-**O que continua por fazer, e é de conteúdo:** as **4** músicas que ainda não fecham (Rond de jambe
-en l'air 3 em 4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — a do `Plié`
-saiu da lista porque a régua é que estava errada.
+**A fixture ganhou o sinal `⌒`.** Faltava-lhe, e a secção 20-A precisa dele: é o sinal que se
+acrescenta a **uma** célula para provar que corrigir não a move. A fixture também passou a chamar ao
+grupo «Posições dos pés e braços», que é o nome de hoje.
 
-**Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` (o bloco, o `cobre` do `Plié`) ·
-`motor/nucleo/notacao.js` (`pistasDe`, `coberturaDe`, `temposDaCelula`, `segmentosDe`) ·
-`motor/servidor/verbete.js` (`validarVerbete`) · `motor/servidor/bastidores.js` (`opcoesDeContagem`,
-`passoDaGrade`, `compassosDosTrechos`, `cobertura`, `pintarContagens`, `pintarCobertura`,
-`pintarNotaDoMetodo`, o campo da repetição e o do método).
+**Com o quê.** `motor/servidor/bastidores.js` — `pintarPassos` (a área do trecho), `editarTrecho`,
+`cancelarEdicao` (o do verbete) e o handler que acrescenta e guarda · 
+`experimentos/provar-celula.js` — secção 20-A e o estado novo (`compassos`, `linhasComSinal`,
+`paineisVisiveis`).
 
 ## O que está pendente
 

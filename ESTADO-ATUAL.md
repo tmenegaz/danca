@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `de43a1b`). Nesta entrega: **as pistas na notação** —
+> **Última fotografia:** 02/11/2026 (base local `9e04787`). Nesta entrega: **corrigir um trecho
+> deixou de lhe reescrever o compasso.** A causa era uma linha — `splice` + `push`, que mandava a
+> célula corrigida para o fim —, e como o compasso sai da **ordem** (um relógio por pista), corrigir
+> uma descrição mudava a posição temporal. Passa a **substituir no lugar**. E os **três
+> redirecionamentos** que ela relatou — «Acrescentar Trecho» a sair da decomposição, «Editar» a
+> saltar para o passo 4, «Guardar» a mudar de passo — desapareceram: a correcção **abre a área do
+> trecho onde se está** (os dois painéis e a decomposição, com o botão de guardar à vista) e nada
+> muda de passo sem o utilizador. O «Cancelar» continua a fazer o que ela marcou como CORRECTO.
+>
+> **Entrega anterior** (base `de43a1b`). Nesta entrega: **as pistas na notação** —
 > as células passam a ser contadas por **categoria** (Pé · Peso · Perna · Braço), e não em fila
 > única, e é isso que **fecha o `Plié`**: ele somava 12 tempos numa música de 8 porque as pernas (8)
 > e os braços (4) correm **em paralelo**. Com isso, **9 das 13 músicas fecham** (eram 8), e a Aula 01
@@ -259,6 +268,18 @@ Verificado nesta fotografia, com os comandos da §9.
   `PASSOS_DO_VERBETE`, não escrito à mão: com seis passos, os dois subiram de 2/3 para 3/4.
   **CONFIRMADO** por `provar-celula` (a recusa, com o recado medido) e por `provar-verbete`
   (o servidor valida a música como quarto argumento).
+- **Corrigir um trecho não lhe muda o compasso nem o lugar na lista.** O handler fazia `splice` +
+  `push` — a célula corrigida ia para o **fim** da lista —, e como o compasso sai da **ordem** (um
+  relógio por pista), corrigir uma descrição **reescrevia a posição temporal** do trecho. Medido, no
+  cenário dela: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, e corrigir o primeiro
+  deixava-o no 2. Agora **substitui-se no lugar** e a sequência mantém-se. **CONFIRMADO** por
+  `provar-celula`, secção 20-A (143 asserções).
+- **A correcção de um trecho abre a área do trecho onde se está, e não muda de passo.** Os três
+  redireccionamentos que ela relatou vinham todos de `irParaPasso(PASSOS_DO_TRECHO[0])`. A regra
+  passa a ser: em edição, os painéis **4, 5 e o último** ficam à vista — o último também, porque é
+  lá que está o botão que guarda, e sem ele quem corrige os sinais teria de o procurar;
+  **acrescentar** e **guardar** não mudam de passo; **cancelar** também não, que é o comportamento
+  que ela marcou como CORRECTO. **CONFIRMADO** por `provar-celula`.
 - **As células contam-se por PISTA, e é isso que fecha o `Plié`.** A pista é a **categoria** (Pé ·
   Peso · Perna · Braço): `à frente` e `atrás` são o mesmo corpo e somam-se; `Perna` e `Braço` são
   corpos diferentes e correm **em paralelo**. O que o verbete ocupa da música é a **maior** pista. O
@@ -841,6 +862,13 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     numerador múltiplo de 3) o pulso vale **três** tempos, e a lista de contagens traz **primeiro** os
     fins que fecham pulso e **no fim** os de meio — que **não** se proíbem, porque `1–2` num 6/8 é uma
     síncope e existe. **DECIDIDO e implementado** 02/11/2026.
+61. **CORRIGIR UM TRECHO NÃO LHE MUDA O COMPASSO, NEM O PASSO MUDA SEM O UTILIZADOR.** A edição
+    **substitui no lugar** — nunca `splice` + `push` —, porque o compasso sai da **ordem** e o
+    `push` reescrevia a posição temporal do trecho corrigido. E a correcção **abre a área do trecho
+    onde se está**: os painéis onde ele se compõe **e o último**, que é onde vive o botão de
+    guardar. Acrescentar, guardar e cancelar **não mudam de passo**; o «Cancelar» já era o
+    comportamento correcto e passa a ser a regra escrita, em vez de um acidente que dava o mesmo.
+    **DECIDIDO e implementado** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -1144,7 +1172,17 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — as pistas, a repetição, a métrica e as posições)
+### Executado nesta fotografia (02/11/2026 — a correcção de um trecho não muda o compasso)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **143 de 143** (eram 134) — a secção **20-A** é nova e mede o cenário dela de ponta a ponta: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, corrigir o primeiro **não** muda a sequência e a linha corrigida continua a ser a **primeira**; a área do trecho está toda à vista em edição (4, 5 e 6) e fecha-se ao guardar; «Acrescentar trecho», «Guardar» e «Cancelar» não mudam de passo |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **76/76** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `provar-producao` · `provar-cartao-da-turma` | **151/152** · **6 falhas** — as duas iguais a antes, **não são regressões** |
+| `check-indices` · `check-identidade` | **14/14** · **20/20** |
+| **não executado** | `provar-o-que-vem-do-dado` — continua sem fixture desde o expurgo da `batata` |
+
+### Executado na fotografia anterior (02/11/2026 — as pistas, a repetição, a métrica e as posições)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1716,6 +1754,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **Corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha.** O
+  handler fazia `splice` + `push` e a célula corrigida ia para o fim; como o compasso sai da **ordem**
+  (um relógio por pista, da entrega anterior), corrigir a descrição do braço do compasso 1 empurrava-o
+  para o 2. Passa a **substituir no lugar** — e quando a direção muda, a célula entra na mesma
+  posição ordinal, não no fim. No mesmo dia, os **três redireccionamentos** que ela relatou saíram:
+  vinham todos de `irParaPasso(PASSOS_DO_TRECHO[0])`, e a regra nova é **a área do trecho abrir-se
+  onde se está** — os painéis 4, 5 e o último, porque é no último que vive o botão de guardar.
+  Acrescentar, guardar e cancelar não mudam de passo. O «Cancelar» já era o comportamento correcto;
+  passa a ser regra escrita em vez de acidente.
 - **02/11/2026** — **As pistas, e o `Plié` que estava certo.** As células passaram a ser contadas por
   **categoria** e não em fila única — e o defeito que isso resolve é o mais instrutivo do dia: o
   `Plié` somava **12** tempos numa música de **8**, e a gravação o recusava desde a manhã. Medido,
