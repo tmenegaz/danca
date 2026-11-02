@@ -47,6 +47,41 @@ declara quais delas aplicou (rodapé `Regras:`).
 
 > **O contexto institucional e a frequência entram como Pré-requisito 5** (acima), não como regra: são dados de entrada obrigatórios, e a Regra 10 os transforma em calendário real. Uma entrega por escola.
 
+## Notas de substituição (o que a regra manda cumprir hoje)
+
+> **Motivo declarado.** Este ficheiro está congelado (`CONGELAMENTO.md`): uma alteração aqui exige
+> corpo no commit a explicar o porquê, entrada no `REGISTRO.md` e commit próprio. É o que se fez em
+> 02/11/2026. Nenhuma regra é apagada nem renumerada — o que se acrescenta é o que ela **manda
+> cumprir agora**, quando o que ela pedia deixou de ser o melhor que se sabe fazer.
+
+### Regra 15 — Musicalidade (substituída em 02/11/2026)
+
+**O que ela pedia.** «Bloco próprio em cada aula + arquivo paralelo do ciclo.» Doze palavras,
+escritas antes de o verbete existir.
+
+**Porque mudou.** Medido: **nenhum arquivo paralelo de musicalidade existe no repositório**, e essa
+metade nunca se implementou. E o «bloco próprio» partia de uma premissa que não se sustenta: a
+musicalidade **não é um bloco onde se põem exercícios** — é uma forma de olhar todos eles. Um
+exercício não «está na musicalidade»; tem tempos, compasso e uma grade de contagens.
+
+**O que manda cumprir hoje.** A musicalidade vive no **dado**, num sítio só, e o documento deriva
+dele:
+
+1. o **verbete** de cada exercício declara a grade de contagens por música (`<tempos>|<compasso>` →
+   cada célula com a contagem, a categoria e os sinais);
+2. a **sequência do plano** declara os tempos e o compasso de cada linha;
+3. a **§4 de cada aula** consolida os dois — uma linha por exercício, **uma vez só**, agrupada por
+   compasso, com a contagem e o que cai nela.
+
+O **pulso** é a contagem, o **acento** é o tempo do compasso em que ela cai, a **frase** é o
+exercício inteiro sobre a música. A conferência de que a grade **fecha** nos tempos declarados é
+feita na **gravação do verbete**, com a correção apontada nos passos 2 (a música) e 3 (para onde).
+
+**Porque é melhor do que a regra.** A regra pedia um **arquivo** por ciclo; o que existe é **dado**.
+Um arquivo paralelo seria mais uma verdade a manter sincronizada — exactamente o que este projeto
+elimina em cada decisão. Ver `REGISTRO.md`, entrada de 02/11/2026 («A Regra 15 foi substituída, e
+por mais do que ela pedia»).
+
 ## Convenção de nome — nomear pelo conceito
 
 **Nome de arquivo, de pasta e de ferramenta diz o que a coisa É — nunca o título que ela exibe.**
