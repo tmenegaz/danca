@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 26,
+  "versao": 27,
   "aplicaseA": [
     "benesh"
   ],
@@ -684,30 +684,6 @@
                 "5ª"
               ],
               "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, atrás, fecha, quinta posição."
-            }
-          ]
-        }
-      }
-    },
-    "Arabesque": {
-      "4|4/4": {
-        "cobre": 4,
-        "posicao": {
-          "membro": "pes",
-          "termo": "cinquieme-position"
-        },
-        "celulas": {
-          "derriere": [
-            {
-              "contagem": "1–4",
-              "categoria": "Pé",
-              "sinais": [
-                "5ª",
-                "→",
-                "×",
-                "↑"
-              ],
-              "descricao": "Diferentes posições de arabesque.\nLê-se: Pé, quinta posição, conduz a, atrás, sobe."
             }
           ]
         }
