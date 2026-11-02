@@ -1331,7 +1331,7 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   «Cancelar» — «não é isso: eu vou ter um step a mais». A segunda tirou-os: são **seis passos**, o
   primeiro são os campos do exercício novo, e quem grava o termo é o **«Seguir →»** que já existia.
   Avançar sem nome não grava nada; «Limpar» e «Editar» levam ao passo 2, onde vive o seletor. O
-  rótulo do passo 1 encurtou para «Exercício novo» porque a tira cortava o mais comprido. 130
+  rótulo do passo 2 encurtou para «O exercício» porque a tira cortava o mais comprido. 130
   asserções em `provar-celula`.
 - **02/11/2026** — **O cadastro do exercício é o passo 1, e a gravação confere a música.** O «+» do
   verbete abria um «modo» que escondia o formulário e a tira dos passos e bloqueava o `select`; a

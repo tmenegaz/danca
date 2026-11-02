@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T10:57:31-0300`
-Commit atual: `804000a` — docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
+Gerado em: `2026-11-02T10:59:12-0300`
+Commit atual: `b7935ff` — fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,7 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
 804000a docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
 787305d docs(regras): a Regra 15 é substituída pelo que o código faz
 6902897 fix(notacao): o cadastro do exercício é o passo 1, e a gravação confere a música
@@ -103,7 +104,6 @@ e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-
 67d8f53 chore(estrutura): reancorar a cadeia das fontes alteradas
 c13be2f chore(estrutura): regerar os índices derivados
 d335f25 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
-4c0c642 feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -248,10 +248,12 @@ passo**, e um passo não tem botões próprios — tem a navegação que todos t
   de um exercício que já existe não deve pôr ninguém a escrever outro nome. **«Editar» também** — é
   no passo 2 que vive o seletor, e sem isso preenchia campos que não estavam no ecrã.
 
-**Um detalhe de desenho que a prova obrigou.** O rótulo do passo 1 nasceu «O exercício novo», e a
-tira a 1280px cortava-o com reticências. A regra da casa é o rótulo do passo **activo** ficar
-inteiro; o do 1 é o mais comprido que a tira já teve. Ficou **«Exercício novo»** e **«O exercício»**
-para o 2 — que é, aliás, o nome que o antigo passo 1 tinha.
+**Um detalhe de desenho que a prova obrigou.** O passo 2 tinha nascido «O exercício e a frase», e a
+tira a 1280px cortava-o com reticências — a regra da casa é o rótulo ficar inteiro. Ficou **«O
+exercício»**, que é o nome que o antigo passo 1 já tinha, e o passo 1 é **«O exercício novo»**.
+
+*(Nota de correção, mesma data: a mensagem do commit `b7935ff` diz que o rótulo encurtado foi o do
+passo 1. Não foi — foi o do passo 2. O que está acima é o que se mediu.)*
 
 **Onde entrou.** `motor/servidor/bastidores.js` (`PASSOS_DO_VERBETE`, `PASSOS_DO_TRECHO`, o markup
 dos seis painéis, `criarExercicioDoPasso1`, o «Seguir», o `Enter`, `pintarTira`, `alvoDoRecado`,

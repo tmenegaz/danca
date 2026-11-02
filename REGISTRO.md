@@ -30532,10 +30532,12 @@ passo**, e um passo não tem botões próprios — tem a navegação que todos t
   de um exercício que já existe não deve pôr ninguém a escrever outro nome. **«Editar» também** — é
   no passo 2 que vive o seletor, e sem isso preenchia campos que não estavam no ecrã.
 
-**Um detalhe de desenho que a prova obrigou.** O rótulo do passo 1 nasceu «O exercício novo», e a
-tira a 1280px cortava-o com reticências. A regra da casa é o rótulo do passo **activo** ficar
-inteiro; o do 1 é o mais comprido que a tira já teve. Ficou **«Exercício novo»** e **«O exercício»**
-para o 2 — que é, aliás, o nome que o antigo passo 1 tinha.
+**Um detalhe de desenho que a prova obrigou.** O passo 2 tinha nascido «O exercício e a frase», e a
+tira a 1280px cortava-o com reticências — a regra da casa é o rótulo ficar inteiro. Ficou **«O
+exercício»**, que é o nome que o antigo passo 1 já tinha, e o passo 1 é **«O exercício novo»**.
+
+*(Nota de correção, mesma data: a mensagem do commit `b7935ff` diz que o rótulo encurtado foi o do
+passo 1. Não foi — foi o do passo 2. O que está acima é o que se mediu.)*
 
 **Onde entrou.** `motor/servidor/bastidores.js` (`PASSOS_DO_VERBETE`, `PASSOS_DO_TRECHO`, o markup
 dos seis painéis, `criarExercicioDoPasso1`, o «Seguir», o `Enter`, `pintarTira`, `alvoDoRecado`,
