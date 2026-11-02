@@ -581,7 +581,8 @@ function primeiraPosicao(musicas) {
  * (`tools/hash-ciclo.sh`) regista no `.fipp`, e é assim que se sabe com que código um documento
  * publicado foi escrito.
  */
-async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musica, musicaAnterior, verbete, acao }) {
+async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musica, musicaAnterior,
+  verbete, acao, vinculado, vigenteDe, motivo }) {
   if (!token) return { ok: false, status: 401, erro: 'sem token do repositório' };
   const nomeLimpo = String(nome || '').trim();
   if (!nomeLimpo) return { ok: false, status: 400, erro: 'informe o nome do exercício' };
@@ -603,6 +604,10 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
   }
 
   let mensagem = '';
+  // O AJUSTE NASCE AQUI, E NÃO DENTRO DO `else` (02/11/2026). Declarado lá dentro, ele morria com
+  // o bloco e a resposta não o podia dizer — um `let` de bloco não dá erro de sintaxe, dá
+  // `ReferenceError` em execução, e só na resposta.
+  let ajustou = null;
   if (acaoLimpa === 'descontinuar' || acaoLimpa === 'retomar') {
     const marcar = acaoLimpa === 'descontinuar';
     // A MARCA VALE PARA O EXERCÍCIO INTEIRO, em todas as músicas que ele declara: o exercício é
@@ -631,6 +636,11 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     // aceitar o pedido, outra é guardar o lixo dele.
     const limpo = Object.assign({}, semBaldesVazios(verbete));
     delete limpo.direcoes;
+    // O HISTÓRICO NÃO VEM DO PEDIDO (02/11/2026) — quem o escreve é este módulo, a partir do que
+    // está gravado. Aceitá-lo do corpo deixaria uma página antiga (ou um pedido forjado) apagar o
+    // passado substituindo `versoes` pelo que lhe apetecesse, que é o contrário do que ele existe
+    // para guardar.
+    delete limpo.versoes;
     dados.verbetes[nomeLimpo] = dados.verbetes[nomeLimpo] || {};
 
     /* A MÚSICA DE ONDE SE VEIO SAI — E É ISSO QUE FAZ DO «GRAVAR» UMA SUBSTITUIÇÃO (02/11/2026).
@@ -661,10 +671,49 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
       substituiu = anterior;
     }
 
+    /* O AJUSTE: UM VERBETE EM USO NÃO SE REESCREVE POR BAIXO DO DOCUMENTO (02/11/2026).
+     *
+     * O QUE ELA PEDIU: «antes de executar UPDATE em um verbete, verifique se ele possui vínculos
+     * (…) Se houver vínculo, bloqueie a exclusão e force a criação de um ajuste/nova versão para
+     * preservar o histórico», e «não altera a versão congelada em uso nos planos/turmas».
+     *
+     * O QUE ISTO FAZ, e o que NÃO faz. O estado anterior NÃO se perde: ele passa para
+     * `versoes[]`, com a data em que deixou de valer (`ate`) e o motivo. O estado corrente
+     * continua no topo, e é o que o editor e a listagem mostram — um verbete sem histórico não
+     * tem `versoes` nenhum, e por isso os que já existem continuam a ler-se como antes.
+     *
+     * E O DOCUMENTO DEIXA DE MUDAR: `compor` passou a receber a data do envelope, e escolhe o
+     * estado que valia NAQUELE dia (`estadoDoVerbete`). Um plano de ontem continua a sair com o
+     * texto de ontem; um plano novo sai com o de hoje.
+     *
+     * `vinculado` vem de FORA, e de propósito: quem sabe se o exercício compõe um plano é o
+     * `bastidores.js`, que já faz essa leitura para a guarda do `DELETE`. O `verbete.js` não fala
+     * com o acervo, e não passa a falar.
+     */
+    const anteriorRegisto = dados.verbetes[nomeLimpo] && dados.verbetes[nomeLimpo][chaveMusica];
+    if (vinculado && anteriorRegisto && typeof anteriorRegisto === 'object'
+      && anteriorRegisto.celulas && Object.keys(anteriorRegisto.celulas).length) {
+      const quando = String(vigenteDe || '').trim() || new Date().toISOString().slice(0, 10);
+      const historico = (Array.isArray(anteriorRegisto.versoes) ? anteriorRegisto.versoes : []).slice();
+      // O QUE SE GUARDA É O ESTADO, NÃO A LISTA DELA. `versoes` dentro de `versoes` seria o
+      // histórico do histórico, e o `estadoDoVerbete` só precisa de um nível.
+      historico.push({
+        ate: quando,
+        cobre: anteriorRegisto.cobre,
+        posicao: anteriorRegisto.posicao || null,
+        metodo: anteriorRegisto.metodo || undefined,
+        celulas: anteriorRegisto.celulas,
+        motivo: String(motivo || 'ajuste do verbete').trim(),
+      });
+      limpo.versoes = historico;
+      ajustou = quando;
+    }
+
     dados.verbetes[nomeLimpo][chaveMusica] = limpo;
     mensagem = (acaoLimpa === 'criar' ? 'feat(notacao): declarar «' : 'docs(notacao): editar «')
       + nomeLimpo + '» (' + chaveMusica + ') no alfabeto ' + modalidade;
     if (substituiu) mensagem += ' — substitui a música ' + substituiu;
+    if (ajustou) mensagem += ' — ajuste: a versão anterior (até ' + ajustou + ') fica no histórico';
   }
 
   // A VERSÃO SOBE, e sobe no alfabeto — não no verbete: o selo da âncora mede o ficheiro inteiro.
@@ -681,7 +730,11 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
   if (!escrita.ok) {
     return { ok: false, status: escrita.status, erro: 'o repositório recusou a gravação (HTTP ' + escrita.status + ')' };
   }
-  return { ok: true, status: 200, versao: dados.versao, commit: escrita.commit, mensagem: mensagem };
+  return { ok: true, status: 200, versao: dados.versao, commit: escrita.commit, mensagem: mensagem,
+    /* O AJUSTE VAI NA RESPOSTA (02/11/2026). A tela tem de o DIZER: quem corrigiu um verbete que
+     * já compõe um plano precisa de saber que a correcção não reescreveu o passado — se não, ou
+     * pensa que o documento antigo mudou, ou pensa que a correcção não pegou. */
+    ajustou: ajustou || null };
 }
 
 /**

@@ -869,8 +869,556 @@ async function aOrigemDoVocabulario() {
       fs.readFileSync(path.join(RAIZ, 'motor', 'servidor', 'verbete.js'), 'utf8')));
 }
 
+
+/**
+ * G. A GUARDA DE PROVENIÊNCIA DO VERBETE (02/11/2026).
+ *
+ * O QUE ELA PEDIU, e é a regra que o projeto já aplica ao termo, à turma, ao professor e à
+ * curadoria: «antes de executar DELETE ou UPDATE em um verbete, verifique se ele possui vínculos
+ * com Turmas, Curadorias, Planos de Ensino ou Planos de Observação. Se houver vínculo, bloqueie a
+ * exclusão e force a criação de um ajuste/nova versão para preservar o histórico».
+ *
+ * O MECANISMO NÃO É NOVO — `usosDosPlanos` + `termoVinculadoA` são as duas funções que decidem se
+ * um TERMO pode ser apagado, e o verbete é a NOTAÇÃO do mesmo termo. O que esta secção prova é que
+ * a rota as usa, e que a recusa diz o caminho.
+ *
+ * O ÍNDICE É O QUE MANDA, e ele é lido uma vez: os resumos dos planos já trazem o repertório
+ * (20/10/2026). Aqui substitui-se o `fetch` que vai ao GitHub por um índice de mentira — a
+ * bancada não toca na rede, e a regra mede-se na mesma.
+ */
+async function aGuardaDeProveniencia() {
+  console.log('\nG. A GUARDA DE PROVENIÊNCIA — o verbete que já compõe um plano não se apaga');
+
+  const bastidores = require(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'));
+  const env = {
+    ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim',
+    SENHA_ADMIN: 'senha-da-direcao', GITHUB_TOKEN: 'token-de-prova',
+    PADD_KV: { async get() { return null; }, async put() {}, async delete() {}, async list() { return { keys: [], list_complete: true }; } },
+  };
+
+  /* O ÍNDICE NÃO SE ESCREVE À MÃO (02/11/2026) — ele é feito pelo ENVELOPE, com o `resumoDoEnvelope`
+   * e a `VERSAO_DO_RESUMO` do próprio módulo. Um índice escrito à mão carimba a versão de hoje em
+   * resumos de ontem: o `decodificarIndice` detecta a forma que falta, descarta o resumo e volta a
+   * enumerar — e a prova mediria a enumeração vazia em vez da guarda. É a mesma família do `devant`
+   * do fixture: um fixture a afirmar a forma de um dado que evolui. */
+  const porta = require(path.join(RAIZ, 'motor', 'nucleo', 'porta.js'));
+  const envelopeDoPlano = {
+    id: 'plano-2026-01-abc',
+    contexto: { escola: 'batata', professor: 'perna-boa', ciclo: '01' },
+    gerado_em: '2026-01-01',
+    respostas: {
+      objetivo: { valor: 'a aula do 8A' },
+      'contexto-turma': { valor: '8A' },
+      'contexto-professor': { valor: 'Perna Boa' },
+      repertorio: { valor: ['Battement tendu', 'Plié'] },
+    },
+  };
+  const nomeDoPlano = 'plano-2026-01-abc.json';
+  const indice = {
+    versao: porta.VERSAO_DO_RESUMO,
+    nomes: [nomeDoPlano],
+    resumos: { [nomeDoPlano]: porta.resumoDoEnvelope(envelopeDoPlano, nomeDoPlano) },
+  };
+  checar('o fixture do índice tem a forma que o leitor aceita (senão mede-se a enumeração vazia)',
+    porta.resumoDoEnvelope(envelopeDoPlano, nomeDoPlano).repertorio.indexOf('Battement tendu') !== -1,
+    porta.resumoDoEnvelope(envelopeDoPlano, nomeDoPlano));
+  const respostaDoIndice = {
+    sha: 'sha-indice',
+    content: Buffer.from(JSON.stringify(indice), 'utf8').toString('base64'),
+  };
+  const original = globalThis.fetch;
+  const chamadas = [];
+  globalThis.fetch = async (url, opcoes) => {
+    const u = String(url);
+    chamadas.push(u);
+    if (u.indexOf('api.github.com') === -1) throw new TypeError('a rota não devia pedir «' + u + '»');
+    // UMA LEITURA DO ÍNDICE DO ACERVO — e não uma por plano. É a asserção de arquitetura.
+    if (u.indexOf('.indice.json') !== -1) {
+      return new Response(JSON.stringify(respostaDoIndice), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    // A ÁRVORE, para a enumeração — vazia: o índice já diz tudo.
+    if (u.indexOf('/git/trees/') !== -1) {
+      return new Response(JSON.stringify({ tree: [] }), { status: 200 });
+    }
+    return new Response('{}', { status: 404 });
+  };
+
+  let preso;
+  let corpoPreso;
+  try {
+    preso = await bastidores.fetch(new Request('https://e.workers.dev/api/bastidores/verbete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: 'senha-da-direcao', nome: 'Battement tendu', modalidade: 'bale-classico' }),
+    }), env);
+    corpoPreso = await preso.json();
+  } finally {
+    globalThis.fetch = original;
+  }
+
+  checar('um verbete que compõe um plano de ensino NÃO é apagado — 409, e não 200',
+    preso.status === 409, preso.status);
+  checar('a recusa diz QUAL é a consequência: a aula publicada ficaria em lacuna',
+    /plano de ensino/.test(corpoPreso.erro || '') && /lacuna/.test(corpoPreso.erro || ''), corpoPreso);
+  checar('…e diz o caminho que preserva a proveniência: descontinuar',
+    corpoPreso.vinculado === true && /descontinuar/i.test(corpoPreso.erro || '')
+      && corpoPreso.como === 'PUT com { acao: "descontinuar" }', corpoPreso);
+  checar('o índice do acervo é lido UMA vez — não um envelope por plano',
+    chamadas.filter((u) => u.indexOf('.indice.json') !== -1).length === 1,
+    chamadas.length);
+
+  // E O CONTRÁRIO: um exercício que NENHUM plano declara passa. Sem esta metade, a guarda poderia
+  // estar a recusar tudo, e a prova acima passaria à mesma.
+  const original2 = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const u = String(url);
+    if (u.indexOf('api.github.com') === -1) throw new TypeError('a rota não devia pedir «' + u + '»');
+    if (u.indexOf('.indice.json') !== -1) {
+      return new Response(JSON.stringify(respostaDoIndice), { status: 200 });
+    }
+    if (u.indexOf('/git/trees/') !== -1) return new Response(JSON.stringify({ tree: [] }), { status: 200 });
+    // O alfabeto, para o `apagarVerbete` poder ler e gravar.
+    if (u.indexOf('notacao.json') !== -1) {
+      return new Response(JSON.stringify({
+        sha: 'sha-alfa',
+        content: Buffer.from(JSON.stringify(ALFABETO, null, 2), 'utf8').toString('base64'),
+      }), { status: 200 });
+    }
+    if (u.indexOf('vocabulario.json') !== -1) {
+      return new Response(JSON.stringify({
+        sha: 'sha-voc',
+        content: Buffer.from(JSON.stringify(VOCABULARIO, null, 2), 'utf8').toString('base64'),
+      }), { status: 200 });
+    }
+    if (u.indexOf('/contents/') !== -1) {
+      return new Response(JSON.stringify({ commit: { sha: 'novo' } }), { status: 200 });
+    }
+    return new Response('{}', { status: 404 });
+  };
+  let livre;
+  let corpoLivre;
+  try {
+    livre = await bastidores.fetch(new Request('https://e.workers.dev/api/bastidores/verbete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: 'senha-da-direcao', nome: 'Rond de jambe', modalidade: 'bale-classico' }),
+    }), env);
+    corpoLivre = await livre.json();
+  } finally {
+    globalThis.fetch = original2;
+  }
+  checar('um verbete que nenhum plano usa é apagado — a guarda não recusa tudo',
+    livre.status === 200 && corpoLivre.ok === true, corpoLivre);
+
+  /* A CURADORIA É A OUTRA PORTA (02/11/2026) — §3.A.2 do pedido dela. O repertório da curadoria
+   * deixou de se pedir em 19/10/2026, mas o que está gravado FICA (P-03/P-04), e uma referência
+   * antiga é uma referência a sério: é a curadoria que autoriza o professor a dar aquela turma. */
+  const envComCuradoria = Object.assign({}, env, {
+    PADD_KV: {
+      async get(chave) {
+        if (String(chave).indexOf('/curadorias') !== -1) {
+          return JSON.stringify([{
+            id: 'perna-boa-bale-classico', professor: 'perna-boa', modalidade: 'bale-classico',
+            tradicao: 'francesa', turmas: ['8A'], alunas: ['Ana'],
+            repertorio: ['Battement tendu'],
+          }]);
+        }
+        return null;
+      },
+      async put() {}, async delete() {},
+      async list() { return { keys: [], list_complete: true }; },
+    },
+  });
+  const original3 = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const u = String(url);
+    if (u.indexOf('api.github.com') === -1) throw new TypeError('a rota não devia pedir «' + u + '»');
+    /* SEM PLANOS — mas com índice LEGÍVEL. Um índice a 404 devolve `null`, e `null` conta como
+     * VINCULADO («na dúvida não se apaga»): a recusa viria pela porta do plano, e a curadoria nunca
+     * seria consultada. O que se quer medir é a SEGUNDA porta, e para isso a primeira tem de estar
+     * aberta e vazia. */
+    if (u.indexOf('.indice.json') !== -1) {
+      const vazio = { versao: porta.VERSAO_DO_RESUMO, nomes: [], resumos: {} };
+      return new Response(JSON.stringify({
+        sha: 'sha-indice', content: Buffer.from(JSON.stringify(vazio), 'utf8').toString('base64'),
+      }), { status: 200 });
+    }
+    if (u.indexOf('/git/trees/') !== -1) return new Response(JSON.stringify({ tree: [] }), { status: 200 });
+    return new Response('{}', { status: 404 });
+  };
+  let porCuradoria;
+  let corpoCuradoria;
+  try {
+    porCuradoria = await bastidores.fetch(new Request('https://e.workers.dev/api/bastidores/verbete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: 'senha-da-direcao', nome: 'Battement tendu', modalidade: 'bale-classico' }),
+    }), envComCuradoria);
+    corpoCuradoria = await porCuradoria.json();
+  } finally {
+    globalThis.fetch = original3;
+  }
+  checar('um exercício no repertório de uma CURADORIA também não se apaga — 409',
+    porCuradoria.status === 409 && corpoCuradoria.motivo === 'curadoria', corpoCuradoria);
+  checar('…e a recusa nomeia o professor e o caminho (tirar do repertório)',
+    /curadoria de perna-boa/.test(corpoCuradoria.erro || '')
+      && /repert[óo]rio/.test(corpoCuradoria.como || ''), corpoCuradoria);
+}
+
+
+/**
+ * H. A TRADIÇÃO DE REFERÊNCIA: UMA LISTA, CAIXA ALTA, E A CUBANA (02/11/2026).
+ *
+ * O QUE ELA PEDIU, em duas metades que se cruzam:
+ *
+ *   1. os valores exibidos em CAIXA ALTA, e a **CUBANA** acrescentada;
+ *   2. «mantido em um único Enum / arquivo de constantes», e «a inclusão de CUBANA e a
+ *      padronização das maiúsculas devem propagar instantaneamente para todas as telas (…)
+ *      sem necessidade de alterações manuais em múltiplos pontos».
+ *
+ * A SEGUNDA METADE JÁ ERA VERDADE e ficou mais forte: `tradicoes.json` é a fonte, e os quatro
+ * selectores da página (verbete, curadoria, programa da turma, método do exercício) são gerados
+ * a partir dela. O que NÃO se fez — e é a decisão que se declara — foi subir as maiúsculas ao
+ * DADO: `vocabulario.json` grava `francesa` em 4 termos, e `diferencasDeNomenclatura` tem uma
+ * coluna por chave. Passar o dado a `FRANCESA` deixaria essas colunas sem ninguém, em silêncio.
+ * A caixa alta é DERIVAÇÃO (`rotuloDaTradicao`), e o valor gravado continua a ser a chave.
+ */
+async function aTradicaoDeReferencia() {
+  console.log('\nH. A TRADIÇÃO — uma lista, caixa alta, e a CUBANA');
+
+  const catalogo = require(path.join(RAIZ, 'motor', 'servidor', 'catalogo-seed.js'));
+  const doDisco = JSON.parse(fs.readFileSync(
+    path.join(RAIZ, 'biblioteca', 'modalidades', 'bale-classico', 'tradicoes.json'), 'utf8'));
+
+  checar('a lista servida é a do ficheiro — uma fonte, e não uma cópia',
+    JSON.stringify(catalogo.TRADICOES) === JSON.stringify(doDisco.tradicoes),
+    { servida: catalogo.TRADICOES, ficheiro: doDisco.tradicoes });
+  checar('a CUBANA entrou', doDisco.tradicoes.indexOf('cubana') !== -1, doDisco.tradicoes);
+  checar('e as cinco estão lá, na ordem que ela escreveu — «compartilhada» no fim',
+    JSON.stringify(doDisco.tradicoes)
+      === JSON.stringify(['RAD', 'francesa', 'Vaganova', 'cubana', 'compartilhada']),
+    doDisco.tradicoes);
+
+  checar('o rótulo é a chave em caixa alta — e o dado não é tocado',
+    catalogo.rotuloDaTradicao('francesa') === 'FRANCESA'
+      && catalogo.rotuloDaTradicao('Vaganova') === 'VAGANOVA'
+      && catalogo.rotuloDaTradicao('cubana') === 'CUBANA'
+      && catalogo.rotuloDaTradicao('compartilhada') === 'COMPARTILHADA'
+      && catalogo.rotuloDaTradicao('RAD') === 'RAD',
+    ['francesa', 'Vaganova', 'cubana', 'compartilhada', 'RAD']
+      .map((t) => t + '→' + catalogo.rotuloDaTradicao(t)));
+  checar('sem tradição, o rótulo é vazio e não «UNDEFINED»',
+    catalogo.rotuloDaTradicao(null) === '' && catalogo.rotuloDaTradicao(undefined) === ''
+      && catalogo.rotuloDaTradicao('  ') === '');
+
+  // ---- a página servida ------------------------------------------------------------
+  const bastidores = require(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'));
+  const env = {
+    ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim',
+    SENHA_ADMIN: 'senha-da-direcao', GITHUB_TOKEN: 'token-de-prova',
+    PADD_KV: { async get() { return null; }, async put() {}, async delete() {}, async list() { return { keys: [], list_complete: true }; } },
+  };
+  const html = await (await bastidores.fetch(
+    new Request('https://e.workers.dev/bastidores/producao'), env)).text();
+
+  /** As opções de um `<select>` por id, como `{valor, texto}`. */
+  const opcoesDe = (id) => {
+    const bloco = (html.match(new RegExp('<select id="' + id + '">([\\s\\S]*?)</select>')) || [])[1] || '';
+    return [...bloco.matchAll(/<option value="([^"]*)"[^>]*>([^<]*)<\/option>/g)]
+      .map((m) => ({ valor: m[1], texto: m[2] }));
+  };
+
+  const doVerbete = opcoesDe('vntradicao');
+  checar('o selector da tradição do verbete mostra as cinco, em caixa alta, na ordem dela',
+    doVerbete.filter((o) => o.valor).map((o) => o.texto).join(',')
+      === 'RAD,FRANCESA,VAGANOVA,CUBANA,COMPARTILHADA',
+    doVerbete);
+  checar('…e o valor de cada uma continua a ser a CHAVE que o dado grava',
+    doVerbete.filter((o) => o.valor).map((o) => o.valor).join(',')
+      === 'RAD,francesa,Vaganova,cubana,compartilhada',
+    doVerbete);
+
+  // A MESMA COISA NA CURADORIA E NO PROGRAMA DA TURMA — a «reverberação» que ela pediu. As duas
+  // listas excluem «compartilhada» (é o que sobra quando não há tradição declarada, não uma
+  // tradição que a escola adota), e isso é uma regra antiga, não um esquecimento.
+  const daCuradoria = opcoesDe('cutradicao');
+  checar('a curadoria mostra as mesmas, sem «compartilhada» — e agora com CUBANA',
+    daCuradoria.map((o) => o.texto).join(',') === 'RAD,FRANCESA,VAGANOVA,CUBANA', daCuradoria);
+
+  const doMetodo = opcoesDe('vbmetodo');
+  checar('o «Método deste exercício» lê a MESMA lista, e o valor é a chave',
+    doMetodo.filter((o) => o.valor).map((o) => o.valor).join(',')
+      === 'RAD,francesa,Vaganova,cubana,compartilhada,Cecchetti,Escola livre',
+    doMetodo);
+  /* O DEFEITO QUE ESTAVA AQUI, e que se mede por ausência: a opção dizia `Francesa` (com maiúscula
+   * e sem ser a chave), e `pintarNotaDoMetodo` procura `linha["Francesa"]` na tabela de diferenças,
+   * cuja coluna é `francesa`. O resultado era a nota dizer SEMPRE «O alfabeto não declara esta
+   * posição em Francesa» — a negar um dado que existe. Com a chave no valor, a coluna é encontrada. */
+  checar('e «Francesa» com maiúscula deixou de existir — era ela que fazia a nota negar o dado',
+    !/<option value="Francesa"/.test(html), /<option value="Francesa"/.test(html));
+
+  // OS DOIS RÓTULOS SÃO DO MESMO SÍTIO: nenhuma opção de tradição tem texto diferente da chave
+  // em caixa alta. É esta a asserção que impede alguém de escrever a lista à mão outra vez.
+  const todasAsOpcoesDeTradicao = ['vntradicao', 'cutradicao', 'vbmetodo']
+    .flatMap((id) => opcoesDe(id))
+    .filter((o) => doDisco.tradicoes.indexOf(o.valor) !== -1);
+  checar('em todos os selectores, o texto de uma tradição é a chave em caixa alta',
+    todasAsOpcoesDeTradicao.length >= 14
+      && todasAsOpcoesDeTradicao.every((o) => o.texto === o.valor.toUpperCase()),
+    todasAsOpcoesDeTradicao.map((o) => o.valor + '→' + o.texto));
+
+  // O DADO NÃO FOI MIGRADO. Se alguém «resolver» a caixa alta subindo-a ao vocabulário, esta
+  // asserção cai — e é para cair: 4 termos gravam `francesa`, e a tabela de diferenças depende
+  // disso.
+  const vocabulario = JSON.parse(fs.readFileSync(
+    path.join(RAIZ, 'biblioteca', 'modalidades', 'bale-classico', 'vocabulario.json'), 'utf8'));
+  const tradicoesGravadas = [...new Set(vocabulario.map((t) => t.tradicao).filter(Boolean))];
+  checar('o vocabulário continua a gravar as CHAVES, não os rótulos',
+    tradicoesGravadas.every((t) => t === t.toLowerCase() || t === 'RAD' || t === 'Vaganova'),
+    tradicoesGravadas);
+  checar('e as colunas da tabela de diferenças continuam a casar com uma tradição da lista',
+    Object.keys(doDisco.diferencasDeNomenclatura[0])
+      .filter((k) => k !== 'conceito')
+      .every((k) => doDisco.tradicoes.indexOf(k) !== -1),
+    Object.keys(doDisco.diferencasDeNomenclatura[0]));
+}
+
+
+/**
+ * I. O VERSIONAMENTO DO VERBETE (02/11/2026) — «ajuste», e não reescrita.
+ *
+ * O QUE ELA ESCOLHEU, entre as três opções: **B — versões datadas**. Um verbete que já compõe um
+ * plano não se reescreve por baixo do documento: a gravação passa a ser um ajuste, o estado
+ * anterior fica no `versoes` do próprio registo com a data em que deixou de valer (`ate`), e a
+ * composição escolhe o estado que valia NA DATA DO ENVELOPE.
+ *
+ * O QUE ESTA SECÇÃO MEDE, e por esta ordem — porque a segunda metade só vale se a primeira for
+ * verdade:
+ *   1. um verbete sem histórico lê-se exactamente como antes (nada de migração);
+ *   2. o ajuste guarda o estado anterior e NÃO perde o corrente;
+ *   3. a composição de uma data anterior dá o texto antigo, e a de hoje dá o novo;
+ *   4. a versão vai no resultado, para o documento a poder declarar;
+ *   5. o `versoes` que o PEDIDO traga é ignorado — o histórico não se escreve de fora.
+ */
+async function oVersionamento() {
+  console.log('\nI. O AJUSTE — um verbete em uso não se reescreve por baixo do documento');
+
+  const notacao = require(path.join(RAIZ, 'motor', 'nucleo', 'notacao.js'));
+  const verbete = require(path.join(RAIZ, 'motor', 'servidor', 'verbete.js'));
+  const { ALFABETOS, MODALIDADE_PADRAO } = notacao;
+  const alfabetoReal = ALFABETOS[MODALIDADE_PADRAO];
+
+  // ---- 1. SEM HISTÓRICO, LÊ-SE COMO SEMPRE -----------------------------------
+  const registo = { cobre: 8, celulas: { devant: [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª'], descricao: 'x' }] } };
+  checar('um verbete sem `versoes` devolve o estado corrente em qualquer data',
+    notacao.estadoDoVerbete(registo, '2020-01-01').estado === registo
+      && notacao.estadoDoVerbete(registo, '').estado === registo
+      && notacao.estadoDoVerbete(registo, '2030-01-01').estado === registo);
+
+  // ---- 2. O AJUSTE GUARDA O ANTERIOR E MANTÉM O CORRENTE --------------------
+  const antes = { cobre: 8, posicao: null, celulas: { devant: [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª'], descricao: 'antiga' }] } };
+  const depois = { cobre: 8, posicao: null, celulas: { devant: [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '↓'], descricao: 'nova' }] } };
+  const registoUsado = { cobre: 8, celulas: antes.celulas };
+  const li = (data) => notacao.estadoDoVerbete(
+    Object.assign({}, depois, { versoes: [{ ate: '2026-11-02', cobre: 8, celulas: antes.celulas, motivo: 'correção' }] }),
+    data);
+
+  checar('antes do ajuste, a data antiga lê o estado ANTIGO',
+    li('2026-10-01').estado.celulas.devant[0].descricao === 'antiga', li('2026-10-01').estado.celulas);
+  checar('no dia do ajuste — e depois dele — lê o estado NOVO',
+    li('2026-11-02').estado.celulas.devant[0].descricao === 'nova'
+      && li('2026-12-25').estado.celulas.devant[0].descricao === 'nova',
+    { noDia: li('2026-11-02').estado.celulas, depois: li('2026-12-25').estado.celulas });
+  checar('a data anterior a TODAS as versões lê a mais antiga — o estado original',
+    li('2019-01-01').estado.celulas.devant[0].descricao === 'antiga');
+  checar('e o `versao` do resultado diz QUAL se leu, para o documento o poder declarar',
+    li('2026-10-01').versao === '2026-11-02' && li('2026-12-25').versao === null,
+    { antigo: li('2026-10-01').versao, corrente: li('2026-12-25').versao });
+
+  // DUAS VERSÕES, EM ORDEM TROCADA NO FICHEIRO: a escolha não pode depender da ordem gravada.
+  const duas = Object.assign({}, depois, {
+    versoes: [
+      { ate: '2026-12-01', cobre: 8, celulas: { devant: [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª'], descricao: 'segunda' }] } },
+      { ate: '2026-11-02', cobre: 8, celulas: antes.celulas },
+    ],
+  });
+  checar('com duas versões gravadas fora de ordem, cada data lê a sua',
+    notacao.estadoDoVerbete(duas, '2026-10-01').estado.celulas.devant[0].descricao === 'antiga'
+      && notacao.estadoDoVerbete(duas, '2026-11-15').estado.celulas.devant[0].descricao === 'segunda'
+      && notacao.estadoDoVerbete(duas, '2027-01-01').estado.celulas.devant[0].descricao === 'nova',
+    ['2026-10-01', '2026-11-15', '2027-01-01']
+      .map((d) => d + '→' + notacao.estadoDoVerbete(duas, d).estado.celulas.devant[0].descricao));
+
+  // ---- 3. A COMPOSIÇÃO DO DOCUMENTO USA A DATA ------------------------------
+  // O `Battement tendu` do alfabeto real serve: compõe-se a mesma linha em duas datas.
+  const linha = { 'Bloco': 'Barra', 'Conteúdo do nível': 'Battement tendu', 'Tempos': '8', 'Compasso': '4/4' };
+  const composicaoHoje = notacao.compor(linha, alfabetoReal);
+  checar('a composição sem data continua a compor o estado corrente',
+    composicaoHoje && composicaoHoje.estado !== 'lacuna', composicaoHoje && composicaoHoje.estado);
+  // A prova de que a data CHEGA ao `verbetePara`: monta-se um alfabeto com histórico e mede-se.
+  const alfabetoComHistorico = JSON.parse(JSON.stringify(alfabetoReal));
+  const registoReal = alfabetoComHistorico.verbetes['Battement tendu']['8|4/4'];
+  /* O ESTADO ANTIGO TEM DE TER A FORMA DO REAL — mesma cobertura, mesmas pistas, mesmos sinais.
+   * Uma célula inventada de dois tempos com `cobre: 8` não é um verbete: é um verbete inválido, e
+   * o compositor recusa-o com razão («declara cobrir 8 tempos, mas a maior pista tem 2»). O que se
+   * quer medir é a ESCOLHA DA VERSÃO, e o resto tem de estar certo para ela ser a única variável. */
+  const celulasAntigas = JSON.parse(JSON.stringify(registoReal.celulas));
+  celulasAntigas.devant[0].descricao = 'a antiga';
+  registoReal.versoes = [{
+    ate: '2026-11-02', cobre: registoReal.cobre, posicao: registoReal.posicao, celulas: celulasAntigas,
+  }];
+  const antiga = notacao.compor(linha, alfabetoComHistorico, '2026-01-01');
+  const nova = notacao.compor(linha, alfabetoComHistorico, '2026-12-01');
+  checar('composta com a data de antes do ajuste, a linha sai com a descrição ANTIGA',
+    Boolean(antiga) && antiga.estado !== 'lacuna'
+      && /a antiga/.test(String((antiga.segmentos[0] || {}).descricao || '')),
+    { estado: antiga && antiga.estado, detalhe: antiga && antiga.detalhe,
+      seg: antiga && antiga.segmentos && antiga.segmentos.length });
+  checar('…e composta com a data de depois, sai com a de hoje — o «lê-se» atual',
+    Boolean(nova) && nova.estado !== 'lacuna' && !/a antiga/.test(JSON.stringify(nova.segmentos)),
+    { estado: nova && nova.estado, seg: nova && nova.segmentos && nova.segmentos.length });
+  checar('a versão usada vai no resultado da composição',
+    antiga.versao === '2026-11-02' && nova.versao === null,
+    { antiga: antiga.versao, nova: nova.versao });
+
+  // ---- 4. O MÓDULO NÃO ACEITA O HISTÓRICO DO PEDIDO -------------------------
+  const repo = githubFalso({
+    [verbete.caminhoDoAlfabeto('bale-classico')]: {
+      sha: 'sha-alfa', conteudo: JSON.stringify(ALFABETO_DA_ESCRITA, null, 2) + '\n',
+    },
+    [verbete.caminhoDoVocabulario('bale-classico')]: {
+      sha: 'sha-voc', conteudo: JSON.stringify(VOCABULARIO, null, 2) + '\n',
+    },
+  });
+  const base = { f: repo.f, token: 'token-de-prova', dono: 'dono', repo: 'repo', ref: 'main' };
+
+  const semVinculo = await verbete.gravarVerbete(Object.assign({}, base, {
+    modalidade: 'bale-classico',
+    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'criar',
+    vinculado: false,
+  }));
+  const gravadoSem = ((JSON.parse(repo.arquivos.get(verbete.caminhoDoAlfabeto('bale-classico')).conteudo)
+    .verbetes['Battement fondu']) || {})['8|4/4'] || {};
+  checar('sem vínculo, a gravação NÃO cria histórico — não há passado a guardar',
+    semVinculo.ok && !gravadoSem.versoes && semVinculo.ajustou === null, {
+      erro: semVinculo.erro, versoes: gravadoSem.versoes, ajustou: semVinculo.ajustou,
+    });
+
+  const comVinculo = await verbete.gravarVerbete(Object.assign({}, base, {
+    modalidade: 'bale-classico',
+    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'atualizar',
+    vinculado: true, vigenteDe: '2026-11-02', motivo: 'correção de braço',
+  }));
+  const gravadoCom = JSON.parse(repo.arquivos.get(verbete.caminhoDoAlfabeto('bale-classico')).conteudo)
+    .verbetes['Battement fondu']['8|4/4'];
+  checar('com vínculo, a gravação vira AJUSTE: o estado anterior vai para `versoes`',
+    comVinculo.ok && comVinculo.ajustou === '2026-11-02'
+      && Array.isArray(gravadoCom.versoes) && gravadoCom.versoes.length === 1,
+    { ajustou: comVinculo.ajustou, versoes: gravadoCom.versoes && gravadoCom.versoes.length });
+  checar('…com a data em que deixou de valer e o motivo',
+    gravadoCom.versoes[0].ate === '2026-11-02' && gravadoCom.versoes[0].motivo === 'correção de braço',
+    gravadoCom.versoes[0]);
+  checar('…e o estado corrente continua no topo, inteiro — nada se perdeu',
+    Boolean(gravadoCom.celulas) && Object.keys(gravadoCom.celulas).length > 0
+      && Boolean(gravadoCom.versoes[0].celulas) && Object.keys(gravadoCom.versoes[0].celulas).length > 0,
+    { corrente: Object.keys(gravadoCom.celulas || {}), antigo: Object.keys(gravadoCom.versoes[0].celulas || {}) });
+  checar('a mensagem do commit diz que é um ajuste, e até quando valia a versão anterior',
+    /ajuste: a versão anterior \(até 2026-11-02\)/.test(
+      String(repo.arquivos.get(verbete.caminhoDoAlfabeto('bale-classico')).mensagem || '')),
+    repo.arquivos.get(verbete.caminhoDoAlfabeto('bale-classico')).mensagem);
+
+  // UM SEGUNDO AJUSTE ACUMULA — e o histórico não se sobrepõe a si mesmo.
+  const segundo = await verbete.gravarVerbete(Object.assign({}, base, {
+    modalidade: 'bale-classico',
+    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'atualizar',
+    vinculado: true, vigenteDe: '2026-11-20',
+  }));
+  const gravadoDois = JSON.parse(repo.arquivos.get(verbete.caminhoDoAlfabeto('bale-classico')).conteudo)
+    .verbetes['Battement fondu']['8|4/4'];
+  checar('um segundo ajuste acrescenta uma versão em vez de substituir o histórico',
+    segundo.ok && gravadoDois.versoes.length === 2
+      && gravadoDois.versoes[0].ate === '2026-11-02' && gravadoDois.versoes[1].ate === '2026-11-20',
+    gravadoDois.versoes.map((v) => v.ate));
+  checar('…e nenhuma versão carrega `versoes` dentro de si — o histórico tem um nível só',
+    gravadoDois.versoes.every((v) => !v.versoes),
+    gravadoDois.versoes.map((v) => Object.keys(v)));
+}
+
+
+/**
+ * J. O DOCUMENTO ANTIGO NÃO MUDA QUANDO O VERBETE É AJUSTADO (02/11/2026) — fim a fim.
+ *
+ * A ESCOLHA DELA, entre as três: **versões datadas**. Um verbete que já compõe um plano não se
+ * reescreve por baixo do documento: o estado anterior fica no histórico com a data em que deixou
+ * de valer, e a composição escolhe o estado que valia NA DATA DO ENVELOPE.
+ *
+ * O QUE ESTA SECÇÃO PROVA, e é a única coisa que interessa: **o mesmo envelope, derivado com duas
+ * datas, sai com dois textos**. Se isto não for verdade, o versionamento é uma palavra no
+ * `REGISTRO` e nada mais. A §I mede as peças; esta mede o caminho inteiro, do envelope ao
+ * Markdown.
+ *
+ * O ALFABETO É O DE VERDADE, mutado e RESTAURADO no fim: um fixture paralelo mediria outro
+ * compositor, e a mutação esquecida é a pior espécie de defeito — silenciosa e noutra prova.
+ */
+async function oDocumentoAntigo() {
+  console.log('\nJ. O MESMO ENVELOPE, DUAS DATAS — dois textos');
+
+  const notacao = require(path.join(RAIZ, 'motor', 'nucleo', 'notacao.js'));
+  const { derivarAula01 } = require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'));
+  const alfabeto = notacao.ALFABETOS['bale-classico'];
+  const registo = alfabeto.verbetes['Battement tendu']['8|4/4'];
+  const original = JSON.parse(JSON.stringify(registo));
+
+  /* O QUE MUDA É A NOTAÇÃO, e não a prosa: o documento publica o `[Pé: …]` de cada trecho e não a
+   * descrição dele. Uma versão antiga que só mudasse o texto da descrição sairia igual — e a prova
+   * passaria a medir a minha expectativa em vez do comportamento. A última célula passa a fechar em
+   * «2ª», que é um sinal que existe e que nenhum documento de hoje tem. */
+  const celulasAntigas = JSON.parse(JSON.stringify(registo.celulas));
+  celulasAntigas.devant[celulasAntigas.devant.length - 1].sinais = ['×', '●', '2ª'];
+  registo.versoes = [{
+    ate: '2026-11-02', cobre: registo.cobre, posicao: registo.posicao, celulas: celulasAntigas,
+    motivo: 'correção da descrição',
+  }];
+
+  const envelope = (data) => ({
+    id: 'plano-de-prova',
+    gerado_em: data,
+    contexto: { ciclo: '01', escola: 'batata', professor: 'perna-boa' },
+    respostas: {
+      'contexto-notacao': { valor: 'benesh' },
+      'aula-1-sequencia': {
+        valor: [{ Bloco: 'Barra', 'Conteúdo do nível': 'Battement tendu', Tempos: 8, Compasso: '4/4' }],
+      },
+    },
+  });
+
+  let antigo = '';
+  let actual = '';
+  try {
+    antigo = String(derivarAula01({ plano: envelope('2026-10-01'), contexto: { ciclo: '01' } }));
+    actual = String(derivarAula01({ plano: envelope('2026-12-01'), contexto: { ciclo: '01' } }));
+  } finally {
+    delete registo.versoes;
+    Object.assign(registo, JSON.parse(JSON.stringify(original)));
+  }
+
+  checar('o documento datado de ANTES do ajuste sai com a notação ANTIGA',
+    antigo.indexOf('× ● 2ª') !== -1,
+    antigo.split('\n').filter((l) => /Battement tendu/.test(l)).slice(0, 1).join(''));
+  checar('e o de DEPOIS sai com a de hoje — o ajuste não reescreve o passado',
+    actual.indexOf('× ● 2ª') === -1
+      && actual.split('\n').filter((l) => /Battement tendu/.test(l)).length > 0,
+    actual.split('\n').filter((l) => /Battement tendu/.test(l)).slice(0, 1).join(''));
+  checar('o alfabeto fica como estava — a mutação não vaza para outra prova',
+    registo.versoes === undefined && registo.celulas.devant.slice(-1)[0].sinais.join(' ')
+      === original.celulas.devant.slice(-1)[0].sinais.join(' '),
+    { versoes: registo.versoes, sinais: registo.celulas.devant.slice(-1)[0].sinais });
+}
+
 aValidacao();
-aEscrita().then(aRota).then(aPagina).then(aOrigemDoVocabulario).then(() => {
+aEscrita().then(aRota).then(aPagina).then(aOrigemDoVocabulario).then(aGuardaDeProveniencia).then(aTradicaoDeReferencia).then(oVersionamento).then(oDocumentoAntigo).then(() => {
   console.log('');
   if (falhas) { console.log('FALHOU — ' + falhas + ' asserção(ões).'); process.exit(1); }
   console.log('TUDO CERTO — o CRUD do verbete valida, grava no repositório e APAGA o verbete'

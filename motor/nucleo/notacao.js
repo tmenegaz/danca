@@ -379,15 +379,59 @@ function maiorContagem(contagem) {
 }
 
 /**
+ * O ESTADO DE UM VERBETE NUMA DATA — o coração do versionamento (02/11/2026).
+ *
+ * A REGRA, e a razão. Um verbete que já compõe um plano de ensino não se reescreve por baixo do
+ * documento que o usa: a edição passa a ser um **ajuste**, e o estado anterior fica no
+ * `versoes` do próprio registo, com a data em que deixou de valer (`ate`). Quem lê pede o estado
+ * **daquela data** e recebe o que valia então.
+ *
+ * O QUE FICA NO TOPO E O QUE FICA NO HISTÓRICO. O estado CORRENTE continua a ser o do topo
+ * (`cobre`, `celulas`, `posicao`) — é o que o editor mostra e o que a listagem lê, e um verbete
+ * que nunca foi ajustado não tem `versoes` nenhum. Isso importa: os 12 verbetes que já existem
+ * continuam a ler-se exactamente como antes, sem migração.
+ *
+ * A ESCOLHA, em três casos e sem relógio:
+ *   1. sem data — ou com data posterior ao último `ate` —, vale o estado corrente;
+ *   2. com data anterior a um `ate`, vale o `versoes` dessa entrada (a primeira, na ordem, cujo
+ *      `ate` é posterior à data);
+ *   3. com data anterior a TODOS os `ate`, vale a entrada mais antiga — que é o estado original,
+ *      aquele de que não se guardou data porque sempre foi.
+ *
+ * `data` é uma string `AAAA-MM-DD` e compara-se como texto, que é o que ela é. Uma data inválida
+ * ou ausente não inventa versão nenhuma: devolve o corrente.
+ */
+function estadoDoVerbete(registro, data) {
+  const r = registro || {};
+  const versoes = (Array.isArray(r.versoes) ? r.versoes : [])
+    .filter((v) => v && typeof v === 'object')
+    .slice()
+    .sort((a, b) => String(a.ate || '').localeCompare(String(b.ate || '')));
+  if (!versoes.length) return { estado: r, versao: null };
+  const quando = String(data || '').trim();
+  if (!quando) return { estado: r, versao: null };
+  for (const v of versoes) {
+    if (quando < String(v.ate || '')) return { estado: v, versao: String(v.ate || '') };
+  }
+  return { estado: r, versao: null };
+}
+
+/**
  * A ESCOLHA DO VERBETE para uma música. Preferência pela música exacta; na falta dela, pelo
  * verbete da MESMA métrica que cobre menos tempos — o que se compõe é o que ele explica, e o
  * resto fica declarado. Nunca se estica um verbete para caber.
+ *
+ * O `data` é opcional e só serve para o versionamento: quando um verbete foi ajustado, é ele que
+ * diz QUAL dos estados se compõe. Sem `data`, compõe-se o corrente — o comportamento de sempre.
  */
-function verbetePara(alfabeto, exercicio, musica) {
+function verbetePara(alfabeto, exercicio, musica, data) {
   const doExercicio = (alfabeto && alfabeto.verbetes && alfabeto.verbetes[exercicio]) || null;
   if (!doExercicio) return { estado: 'sem-verbete' };
   const chave = musica.tempos + '|' + musica.compasso;
-  if (doExercicio[chave]) return { estado: 'exacto', musica: chave, verbete: doExercicio[chave] };
+  if (doExercicio[chave]) {
+    const lido = estadoDoVerbete(doExercicio[chave], data);
+    return { estado: 'exacto', musica: chave, verbete: lido.estado, versao: lido.versao };
+  }
 
   // O mesmo compasso, com menos tempos: compõe-se o que ele cobre e declara-se o resto.
   const candidatos = Object.keys(doExercicio)
@@ -398,7 +442,12 @@ function verbetePara(alfabeto, exercicio, musica) {
     .filter((c) => c.compasso === musica.compasso && c.tempos < musica.tempos)
     .sort((a, b) => b.tempos - a.tempos);
   if (candidatos.length) {
-    return { estado: 'parcial', musica: candidatos[0].chave, verbete: candidatos[0].verbete };
+    // A VERSÃO VALE TAMBÉM PARA O CANDIDATO (02/11/2026): quem compõe «o verbete da mesma métrica
+    // que cobre menos tempos» está a compor aquele registo — e ele pode ter histórico. Sem isto, um
+    // exercício de 8 tempos pedido numa música de 16 sairia com o texto de hoje mesmo num plano de
+    // ontem, que é exactamente o que o ajuste existe para impedir.
+    const lido = estadoDoVerbete(candidatos[0].verbete, data);
+    return { estado: 'parcial', musica: candidatos[0].chave, verbete: lido.estado, versao: lido.versao };
   }
   const cobertas = Object.keys(doExercicio)
     .map((k) => k.replace('|', ' em '))
@@ -476,7 +525,7 @@ function segmentosDe(verbete, numerador) {
  * Compasso}`), e o retorno diz o que o documento deve escrever — segmentos ou lacuna, nunca as
  * duas coisas ao mesmo tempo sem o dizer.
  */
-function compor(linha, alfabeto) {
+function compor(linha, alfabeto, data) {
   const campo = (...nomes) => {
     for (const n of nomes) {
       if (linha && linha[n] != null && String(linha[n]).trim()) return String(linha[n]).trim();
@@ -502,7 +551,7 @@ function compor(linha, alfabeto) {
       detalhe: 'os tempos e o compasso ainda não estão declarados no plano — sem eles não há grade' });
   }
 
-  const escolhido = verbetePara(alfabeto, exercicio, musica);
+  const escolhido = verbetePara(alfabeto, exercicio, musica, data);
   if (escolhido.estado === 'sem-verbete') {
     return Object.assign(base, { estado: 'lacuna', motivo: 'sem-verbete', segmentos: [], restoTempos: 0,
       detalhe: 'o alfabeto não tem verbete para «' + exercicio + '» — um exercício entra no registro '
@@ -612,14 +661,19 @@ function compor(linha, alfabeto) {
       .flat().map((c) => (c && c.orientacao) || '').filter((o) => o && o !== 'en-face'))]
       .map((o) => orientacaoEmPalavras(alfabeto, o)),
     lados: Array.isArray(escolhido.verbete.lado) ? escolhido.verbete.lado.slice() : [],
+    /* A VERSÃO QUE SE COMPÔS (02/11/2026). É `null` quando o verbete não tem histórico, e é a
+     * data em que a versão antiga deixou de valer quando tem. Vai no resultado para o documento
+     * o poder declarar: quem lê a §4 de um ciclo sabe se aquela notação é a de hoje ou a que
+     * valia quando a aula foi escrita. */
+    versao: escolhido.versao || null,
     detalhe,
   });
 }
 
 /** A composição de todas as linhas da sequência, na ordem do plano. */
-function comporTodas(linhas, alfabeto) {
+function comporTodas(linhas, alfabeto, data) {
   const lista = Array.isArray(linhas) ? linhas.filter((l) => l && typeof l === 'object') : [];
-  return lista.map((linha) => compor(linha, alfabeto));
+  return lista.map((linha) => compor(linha, alfabeto, data));
 }
 
 /**
@@ -696,6 +750,7 @@ module.exports = {
   temposDaContagem,
   maiorContagem,
   verbetePara,
+  estadoDoVerbete,
   compor,
   comporTodas,
   sinaisUsados,

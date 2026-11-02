@@ -4,8 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `dbc3797`). Nesta entrega: **a música deixou de se
-> poder mudar por baixo dos trechos.** Ela escreveu os tempos à mão, de 8 para 16, e os trechos
+> **Última fotografia:** 02/11/2026 (base local `cc54844`). Nesta entrega: **o verbete ganhou
+> proveniência.** O `DELETE` deixou de ser incondicional — se o exercício compõe um **plano de
+> ensino** ou o repertório de uma **curadoria**, o `409` diz porquê e aponta o caminho
+> («Descontinuar»). E o `UPDATE` deixou de reescrever o passado: ela escolheu **versões datadas**
+> (opção B de três), e um verbete em uso passa a ser **ajustado** — o estado anterior fica no
+> histórico com a data em que deixou de valer, e o documento compõe o estado que valia **na data do
+> seu envelope**. Medido de ponta a ponta: o mesmo envelope, com a data de antes do ajuste, sai com
+> a notação antiga. **E duas regras de tela:** o «Gravar verbete» fica desactivado sem decomposição,
+> e o bloco do passo 1 (categoria, tradição, «o que acontece») só entra em vigor com um nome. **E a
+> tradição de referência** passou a exibir-se em **caixa alta**, com **CUBANA** — de uma lista só.
+>
+> **Entrega anterior** (base `dbc3797`). Nesta entrega: **a música deixou de se poder mudar por
+> baixo dos trechos.** Ela escreveu os tempos à mão, de 8 para 16, e os trechos
 > desapareceram no mesmo instante, sem aviso. A saída escolhida foi **bloquear**: com trechos
 > escritos, `#vbtempos` fica só de leitura e o compasso desactivado, e a nota manda ao «Duplicar o
 > exercício» para a mesma decomposição noutra duração. **E o verbo apagar passou a existir** — a
@@ -16,7 +27,7 @@
 > trecho. A decomposição ganhou o «lê-se» atrás de um clique e deixou de repetir a frase do
 > exercício em cada linha.
 >
-> **Entrega anterior** (base `b7acca6`). Nesta entrega: **a listagem do verbete
+> **Duas entregas antes** (base `b7acca6`). Nesta entrega: **a listagem do verbete
 > passou a ser o cartão das turmas** — a opção 1 da bancada, escolhida por ela. O nome e o selo em
 > cima, o complemento por baixo, e **três caixinhas** com o «?»: `Música`, `Direção`, `Notação`. A
 > da notação abre a decomposição **trecho a trecho**, lida do motor. Nenhuma classe nova: as peças
@@ -361,6 +372,28 @@ Verificado nesta fotografia, com os comandos da §9.
   `chore(notacao): apagar o verbete «X»`. O **vocabulário não se toca** — a notação sai, a palavra
   fica. A consequência (uma aula publicada passa a sair em lacuna) vai escrita na pergunta que a
   tela faz antes do gesto. **CONFIRMADO** por `provar-verbete` §C-2 e `provar-celula` §23-D.
+- **O `DELETE` TEM GUARDA DE PROVENIÊNCIA, e a do `UPDATE` é o ajuste** (02/11/2026). Um verbete que
+  compõe um **plano de ensino** (o exercício está no repertório de um envelope, ou associado a uma
+  turma com plano) ou o repertório de uma **curadoria** não se apaga: `409` com a consequência e o
+  caminho («Descontinuar»). `usos === null` (leitura falhada) conta como vinculado. E um `UPDATE`
+  num verbete em uso **não reescreve** — passa a ser um **ajuste**, escolhido por ela entre três
+  caminhos: o estado anterior vai para `versoes[]` com `ate` e o motivo, e a composição escolhe o
+  estado que valia **na data do envelope** (`gerado_em`). Um verbete sem vínculo continua a editar-se
+  como sempre, e um verbete sem `versoes` lê-se exactamente como antes — não houve migração.
+  **CONFIRMADO** por `provar-verbete` §G (as três portas, e uma leitura só do índice), §I (as peças)
+  e §J (fim a fim: o mesmo envelope com duas datas dá dois textos).
+- **Os índices que o pedido nomeia não têm onde existir, e isso está medido, não suposto.** O
+  dicionário é um JSON de 93 termos no repositório, lido inteiro para memória; os envelopes vivem
+  num **índice de resumos** (`envelope/.indice.json`) que já traz `professor`, `turma`, `ciclo` e
+  `repertorio` numa leitura. Não há base de dados, nem `tenant_id` — o isolamento é o `escola/` no
+  caminho da chave. O que se fez foi o que o pedido queria no fundo: a guarda consulta o índice
+  **uma vez** em vez de ler envelope por envelope, e a prova conta as leituras.
+- **A tradição de referência é uma lista só, e o ecrã mostra-a em caixa alta** (02/11/2026). Entra
+  **CUBANA**; a ordem é RAD · FRANCESA · VAGANOVA · CUBANA · COMPARTILHADA; e o rótulo é
+  **derivação** (`rotuloDaTradicao`), não migração: o dado guarda a chave (`francesa`) porque
+  `vocabulario.json` a grava em 4 termos e `diferencasDeNomenclatura` tem uma coluna por chave.
+  **CONFIRMADO** por `provar-verbete` §H, incluindo «em todos os selectores o texto é a chave em
+  caixa alta».
 - **O exercício novo já está na lista ao avançar, e nada disto toca no KV.** O `POST
   /api/bastidores/termo` grava no **repositório** (`biblioteca/modalidades/bale-classico/
   vocabulario.json`, por `termo-repo.js`) e devolve o termo; a lista que `GET
@@ -1097,6 +1130,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     usado como recusa. O que **não** se apaga é o exercício no vocabulário: sai a notação, fica a
     palavra. **DECIDIDO por ela** («faltou fazer o verbo deletar o verbete») **e implementado**
     02/11/2026.
+76. **O VERBETE EM USO NÃO SE APAGA NEM SE REESCREVE: AJUSTA-SE.** Duas metades, uma decisão. O
+    `DELETE` fica guardado pela proveniência (plano de ensino, turma com plano, curadoria) e a
+    recusa diz o caminho — «Descontinuar». O `UPDATE` de um verbete em uso passa a ser um **ajuste**:
+    o estado anterior fica no histórico (`versoes[]`, com `ate` e motivo) e a composição escolhe o
+    estado que valia **na data do envelope**. A opção escolhida por ela foi a **B** (versões
+    datadas); a **A** (histórico sem tocar no gerador) não impedia o documento antigo de mudar ao ser
+    regerado, e a **C** (bloquear a edição) obrigaria a duplicar o exercício no dicionário para o
+    corrigir. **DECIDIDO por ela e implementado** 02/11/2026.
+77. **A LISTA DE TRADIÇÕES É UMA, E A CAIXA ALTA É DERIVAÇÃO.** `tradicoes.json` é a fonte; os
+    quatro selectores e as duas listagens geram-se dela, e por isso acrescentar **CUBANA** lá pôs a
+    tradição em todas as telas sem tocar em mais nada. O **dado** continua a guardar a chave
+    (`francesa`, `Vaganova`): subir as maiúsculas seria migrar 4 termos do vocabulário e deixar as
+    colunas de `diferencasDeNomenclatura` sem ninguém, em silêncio. A Cubana **não** ganhou linhas
+    de nomenclatura — inventá-las seria conteúdo sem fonte. **DECIDIDO por ela e implementado**
+    02/11/2026.
+78. **O QUE NÃO VALE NÃO SE PEDE — E O QUE SE PEDE ACENDE COM O NOME.** O «Gravar verbete» fica
+    `disabled` sem decomposição (a guarda do `submit` e a do servidor ficam, e servem quando o
+    JavaScript falha), e a categoria, a tradição e «o que acontece» só entram em vigor quando há um
+    exercício — nome novo **ou** escolhido no passo 2. A segunda metade da condição não estava no
+    pedido e é obrigatória: sem ela, corrigir um verbete que já existe fecharia a frase a quem a veio
+    corrigir. **DECIDIDO por ela e implementado** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -1417,7 +1471,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a música travada, o verbo apagar e os passos arrumados)
+### Executado nesta fotografia (02/11/2026 — proveniência do verbete, versões datadas e as tradições)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — três secções novas. **§G**: o `DELETE` recusado por plano (409, com «lacuna» e «descontinuar»), **o índice lido uma vez**, o mesmo `DELETE` aceite quando ninguém usa o verbete, e a **curadoria** como segunda porta (409, com o professor nomeado). **§I**: o `estadoDoVerbete` em seis casos (sem histórico, antes, no dia, depois, antes de tudo, e **duas versões fora de ordem**), a gravação sem vínculo a não criar histórico, com vínculo a criar (`ate` + motivo) e a manter o corrente, o segundo ajuste a acumular, e nenhuma versão com `versoes` dentro. **§J**: **fim a fim** — o mesmo envelope com data de antes do ajuste sai com a notação antiga, e com a de depois sai com a de hoje, com o alfabeto restaurado no fim. **§H**: a lista servida é a do ficheiro, a CUBANA, a ordem, o rótulo em caixa alta, os quatro selectores, e o `value="Francesa"` extinto |
+| `node experimentos/provar-celula.js` | **219 de 219** (eram 203) — a **§24** é nova: o bloco do passo 1 desactivado sem nome (com `aria-disabled` e a nota), a acordar com o nome, a reabrir com o exercício escolhido; o método a herdar `FRANCESA` e depois `CUBANA`, a escolha à mão a sobreviver, e o valor gravado a ser a **chave**; o «Gravar» desactivado sem trechos, com título e nota; e o «Apagar» do passo 6 a existir só com exercício escolhido |
+| `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **89/89** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — o «Apagar» do passo 6 usa a peça `.acao.perigo`: escrito na marcação servida, o gancho `.apagar` deixaria de ser gancho e passaria a classe sem desenho, e a checagem reprovou-o com razão |
+| **o defeito que a §H apanhou** | o `<select>` do método tinha `value="Francesa"` e a tabela do alfabeto a coluna `francesa`: a nota dizia sempre «O alfabeto não declara esta posição em Francesa». O valor passou a ser a chave |
+| **não executado / vermelho de antes** | `provar-plano-completo` falha **antes desta entrega** (medido no `cc54844` limpo: a §14 compara `['aula-de-cada-objetivo','aspecto-fisico']` com `[]`); não foi tocado, e a prova do versionamento fim a fim foi posta em `provar-verbete` §J, que é versionado e verde · `provar-agnosticismo` (o ficheiro não existe neste worktree) · `provar-o-que-vem-do-dado` (sem fixture) · `check-glossario` (sem par registro × glossário) |
+
+### Executado na fotografia anterior (02/11/2026 — a música travada, o verbo apagar e os passos arrumados)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2062,6 +2127,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **O verbete ganhou proveniência, e o `UPDATE` virou ajuste.** O `DELETE` recusa
+  (409) quando o exercício compõe um plano de ensino ou o repertório de uma curadoria, e diz o
+  caminho («Descontinuar»). Num verbete em uso, gravar é um **ajuste**: o estado anterior fica em
+  `versoes[]` com a data em que deixou de valer, e a composição escolhe o estado que valia **na data
+  do envelope**. Ela escolheu esta opção (B) entre três. Um verbete sem `versoes` lê-se como antes —
+  não houve migração.
+- **02/11/2026** — **A tradição de referência em caixa alta e com CUBANA.** A lista é uma só
+  (`tradicoes.json`) e alimenta os quatro selectores; o rótulo é derivação (`rotuloDaTradicao`) e o
+  dado continua a guardar a chave. A Cubana não ganhou linhas de nomenclatura — não se inventam.
+- **02/11/2026** — **O «Gravar verbete» desactivado sem decomposição, e o passo 1 a acender com o
+  nome.** A categoria, a tradição e «o que acontece» só valem quando há exercício (nome novo **ou**
+  escolhido no passo 2). E o método do exercício herda a tradição dele — sem atropelar uma escolha à
+  mão.
 - **02/11/2026** — **A música não se muda por baixo dos trechos: bloqueia-se.** Escrever os tempos à
   mão apagava a decomposição no mesmo instante, sem aviso — e ela foi categórica: «não pode editar
   esse campo». Com trechos, os tempos ficam só de leitura e o compasso desactivado, e a nota manda

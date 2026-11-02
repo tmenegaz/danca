@@ -122,8 +122,12 @@ const ALFABETO = {
   // e é o que a prova mede na secção da sugestão.
   exerciciosDoVocabulario: [
     { id: 'plie', termo: 'Plié', categoria: 'passo', descricao: '', fonte: '' },
-    { id: 'battement-tendu', termo: 'Battement tendu', categoria: 'passo', descricao: '', fonte: '' },
-    { id: 'changement', termo: 'Changement', categoria: 'salto', descricao: '', fonte: '' },
+    // A TRADIÇÃO VAI NO PAYLOAD (02/11/2026) — é dela que o «Método deste exercício» se pré-enche.
+    // O `tradicaoRotulo` é a chave em caixa alta, e é o que a tela mostra.
+    { id: 'battement-tendu', termo: 'Battement tendu', categoria: 'passo', descricao: '', fonte: '',
+      tradicao: 'francesa', tradicaoRotulo: 'FRANCESA' },
+    { id: 'changement', termo: 'Changement', categoria: 'salto', descricao: '', fonte: '',
+      tradicao: 'cubana', tradicaoRotulo: 'CUBANA' },
     {
       id: 'rond-de-jambe-en-l-air', termo: 'Rond de jambe en l’air', categoria: 'passo',
       descricao: 'Círculo da perna no ar.', fonte: '',
@@ -2047,6 +2051,185 @@ function estado() {
       TERMOS.length === v23_antesDosTermos + 1 && v23_criado.passo === 2, { v23_criado, termos: TERMOS.length });
     conferir('…e o termo leva a definição escrita no passo 1',
       v23_termoNovo.descricao === 'salta e fecha em quinta', v23_termoNovo);
+
+
+    console.log('\n24. O BLOCO DO PASSO 1 SÓ VALE COM NOME, O MÉTODO HERDA A TRADIÇÃO (02/11/2026)');
+
+    /* O PEDIDO DELA, pela segunda vez: «os campos Categoria, Tradição de Referência e O que
+     * acontece só entram em vigor (e passam a ser obrigatórios para o avanço) se o campo Nome do
+     * Exercício Novo estiver devidamente preenchido (…) Se não digitar um nome, permanecem
+     * desativados/desconsiderados, permitindo navegar livremente».
+     *
+     * A regra do servidor já era essa desde o commit anterior; o que faltava era a TELA. Um campo
+     * habilitado que não vale nada é pior do que um apagado: parece pedir uma resposta que
+     * ninguém vai ler. */
+
+    // ---- 24-A. SEM NOME, OS TRÊS ESTÃO DESACTIVADOS ------------------------------
+    const semNomeVigor = await page.evaluate(() => {
+      const f = document.getElementById('form-verbete');
+      if (f) f.reset();
+      document.getElementById('vbacao').value = 'criar';
+      window.CELULAS = {}; window.SINAIS = [];
+      irParaPasso(1);
+      alternarPasso1();
+      const q = (id) => document.getElementById(id);
+      return {
+        cat: q('vncategoria').disabled, ariaCat: q('vncategoria').getAttribute('aria-disabled'),
+        tra: q('vntradicao').disabled, frase: q('vb-frase').disabled,
+        nota: q('vb-vigor-nota').textContent.trim(),
+      };
+    });
+    conferir('sem nome do exercício novo, a categoria, a tradição e a frase ficam DESACTIVADAS',
+      semNomeVigor.cat === true && semNomeVigor.tra === true && semNomeVigor.frase === true,
+      semNomeVigor);
+    conferir('…e o `aria-disabled` diz o mesmo a quem lê com leitor de ecrã',
+      semNomeVigor.ariaCat === 'true', semNomeVigor.ariaCat);
+    conferir('a nota diz porque, e que sem nome se avança livremente',
+      /entram em vigor quando houver um exercício/.test(semNomeVigor.nota)
+        && /avançar livremente/.test(semNomeVigor.nota), semNomeVigor.nota);
+
+    // ---- 24-B. COM NOME, ACORDAM ------------------------------------------------
+    const comNomeVigor = await page.evaluate(() => {
+      const g = document.getElementById('vnnome');
+      g.value = 'Sissonne ouverte';
+      g.dispatchEvent(new Event('input'));
+      const q = (id) => document.getElementById(id);
+      return {
+        cat: q('vncategoria').disabled, tra: q('vntradicao').disabled, frase: q('vb-frase').disabled,
+        nota: q('vb-vigor-nota').textContent.trim(),
+      };
+    });
+    conferir('escrito o nome, os três passam a estar em vigor',
+      comNomeVigor.cat === false && comNomeVigor.tra === false && comNomeVigor.frase === false,
+      comNomeVigor);
+    conferir('…e a nota desaparece — não há nada a explicar', comNomeVigor.nota === '', comNomeVigor.nota);
+
+    // ---- 24-C. A FRASE CONTINUA ABERTA QUANDO SE CORRIGE UM VERBETE EXISTENTE -----
+    // A EXCEPÇÃO QUE IMPORTA: corrigir um verbete que já existe começa pela frase, e o campo do
+    // exercício NOVO está vazio nesse caso. Desactivar a frase por causa disso fecharia o campo a
+    // quem o veio editar — e a frase é o que a página da aula publica.
+    const aCorrigir = await page.evaluate(() => {
+      const g = document.getElementById('vnnome');
+      g.value = '';
+      g.dispatchEvent(new Event('input'));
+      const sel = document.getElementById('vbnome');
+      const op = [...sel.options].find((o) => o.value === 'Battement tendu');
+      if (!op) throw new Error('o exercício do fixture não está na lista do passo 2');
+      sel.value = 'Battement tendu';
+      sel.dispatchEvent(new Event('change'));
+      return {
+        frase: document.getElementById('vb-frase').disabled,
+        cat: document.getElementById('vncategoria').disabled,
+      };
+    });
+    conferir('com um exercício ESCOLHIDO no passo 2, a frase e a categoria reabrem — é o caso de corrigir',
+      aCorrigir.frase === false && aCorrigir.cat === false, aCorrigir);
+
+    // ---- 24-D. O MÉTODO HERDA A TRADIÇÃO DO EXERCÍCIO ---------------------------
+    // «Ao selecionar um exercício no Step 2, o campo Método deste Exercício deve ser preenchido
+    // automaticamente com base no valor predefinido no campo Tradição de Referência.»
+    const metodoHerdado = await page.evaluate(() => {
+      const sel = document.getElementById('vbnome');
+      sel.value = 'Battement tendu';
+      sel.dispatchEvent(new Event('change'));
+      const m = document.getElementById('vbmetodo');
+      return {
+        valor: m.value,
+        texto: (m.selectedOptions[0] || {}).textContent || '',
+        opcoes: [...m.options].map((o) => o.value),
+        metodo: window.METODO,
+      };
+    });
+    conferir('escolher o exercício pré-enche o método com a tradição DELE — FRANCESA',
+      metodoHerdado.valor === 'francesa' && metodoHerdado.texto === 'FRANCESA', metodoHerdado);
+    conferir('…e o valor gravado é a CHAVE, não o rótulo — é ela que a tabela do alfabeto usa',
+      metodoHerdado.metodo === 'francesa', metodoHerdado.metodo);
+    conferir('e a lista do método é a do `tradicoes.json`, em caixa alta, mais os dois livres',
+      ['RAD', 'francesa', 'Vaganova', 'cubana', 'Cecchetti', 'Escola livre']
+        .every((v) => metodoHerdado.opcoes.indexOf(v) !== -1), metodoHerdado.opcoes);
+
+    // A ESCOLHA À MÃO NÃO É ATROPELADA. Quem pôs «Cecchetti» neste verbete não o perde por mudar
+    // de exercício — a sugestão só entra num campo vazio ou ainda com a sugestão anterior.
+    const escolhaAMao = await page.evaluate(() => {
+      const m = document.getElementById('vbmetodo');
+      m.value = 'Cecchetti';
+      m.dispatchEvent(new Event('change'));
+      const sel = document.getElementById('vbnome');
+      sel.value = 'Changement';
+      sel.dispatchEvent(new Event('change'));
+      return { valor: m.value, metodo: window.METODO };
+    });
+    conferir('a escolha feita à mão sobrevive à troca de exercício',
+      escolhaAMao.valor === 'Cecchetti' && escolhaAMao.metodo === 'Cecchetti', escolhaAMao);
+
+    // E NUM CAMPO VAZIO, A SUGESTÃO ENTRA — agora CUBANA, que é a tradição do `Changement`.
+    const sugestaoNova = await page.evaluate(() => {
+      const m = document.getElementById('vbmetodo');
+      m.value = '';
+      m.dispatchEvent(new Event('change'));
+      const sel = document.getElementById('vbnome');
+      sel.value = 'Battement tendu';
+      sel.dispatchEvent(new Event('change'));
+      const antes = m.value;
+      sel.value = 'Changement';
+      sel.dispatchEvent(new Event('change'));
+      return { antes, depois: m.value, metodo: window.METODO };
+    });
+    conferir('num campo vazio a sugestão entra, e muda com o exercício — FRANCESA, depois CUBANA',
+      sugestaoNova.antes === 'francesa' && sugestaoNova.depois === 'cubana', sugestaoNova);
+
+    // ---- 24-E. SEM DECOMPOSIÇÃO, O «GRAVAR» ESTÁ DESACTIVADO --------------------
+    // «O botão Gravar Verbete só deve ser habilitado ou processado se houver pelo menos uma linha
+    // consolidada na Tabela de Decomposição (Step 6).»
+    await page.evaluate(() => {
+      window.CELULAS = {}; window.SINAIS = [];
+      irParaPasso(6);
+      pintarGravar();
+    });
+    const semTrechos = await page.evaluate(() => {
+      const b = document.getElementById('vb-gravar');
+      return {
+        desactivado: b.disabled, aria: b.getAttribute('aria-disabled'), titulo: b.getAttribute('title'),
+        nota: (document.getElementById('vb-gravar-nota') || {}).textContent || '',
+      };
+    });
+    conferir('sem nenhum trecho, o «Gravar verbete» está desactivado',
+      semTrechos.desactivado === true && semTrechos.aria === 'true', semTrechos);
+    conferir('…e o título do botão diz o que falta',
+      /sem decomposição não existe/.test(semTrechos.titulo || '')
+        && /ao menos um trecho/.test(semTrechos.titulo || ''), semTrechos.titulo);
+    conferir('a nota do rodapé diz o mesmo, em vez de deixar o botão mudo',
+      /Ainda não há nenhum trecho/.test(semTrechos.nota), semTrechos.nota);
+
+    // ---- 24-F. O «APAGAR» TAMBÉM ESTÁ NO PASSO 6, E É O MESMO VERBO -----------
+    // «Adicione a ação de exclusão na listagem e na decomposição.» Ele só aparece quando há um
+    // exercício escolhido — sem exercício, não há o que apagar.
+    await page.evaluate(() => {
+      const sel = document.getElementById('vbnome');
+      sel.value = 'Battement tendu';
+      sel.dispatchEvent(new Event('change'));
+      irParaPasso(6);
+      pintarPassos();
+    });
+    const apagarNo6 = await page.evaluate(() => {
+      const b = document.getElementById('vb-cel-apagar');
+      return { existe: Boolean(b), escondido: b.hidden, alvo: b.getAttribute('data-apagar-verbete'),
+        texto: (b.textContent || '').trim() };
+    });
+    conferir('o passo 6 tem o «Apagar o verbete», com o exercício escolhido por alvo',
+      apagarNo6.existe && apagarNo6.escondido === false
+        && apagarNo6.alvo === 'Battement tendu' && apagarNo6.texto === 'Apagar o verbete', apagarNo6);
+    const apagarSemExercicio = await page.evaluate(() => {
+      const sel = document.getElementById('vbnome');
+      sel.value = '';
+      sel.dispatchEvent(new Event('change'));
+      irParaPasso(6);
+      pintarPassos();
+      const b = document.getElementById('vb-cel-apagar');
+      return { escondido: b.hidden, alvo: b.getAttribute('data-apagar-verbete') };
+    });
+    conferir('sem exercício escolhido, o «Apagar» do passo 6 não se oferece',
+      apagarSemExercicio.escondido === true && apagarSemExercicio.alvo === null, apagarSemExercicio);
 
     console.log('\n22. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {

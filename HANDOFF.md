@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T18:41:38-0300`
-Commit atual: `dbc3797` — feat(notacao): o cartão das turmas na listagem, e o vocabulário que cresceu
+Gerado em: `2026-11-02T19:18:46-0300`
+Commit atual: `cc54844` — refactor(notacao): o código morto do campo da posição, e a razão onde ele estava
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+cc54844 refactor(notacao): o código morto do campo da posição, e a razão onde ele estava
+2b9de93 feat(notacao): a música bloqueia, o passo 1 fica condicional e o verbete aprende a apagar-se
 dbc3797 feat(notacao): o cartão das turmas na listagem, e o vocabulário que cresceu
 6c4227d docs(notacao): editar «Plié» (32|4/4) no alfabeto bale-classico — substitui a música 16|4/4
 b7acca6 fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
@@ -103,8 +105,6 @@ de43a1b docs(registro): o push publica o que chega ao site, e documentação nã
 e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
 3cd2c0c docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
 9f183bc docs(registro): a fotografia dos três produtos e do plano do motor
-c3bbf35 docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e as nove colisões
-e6e3092 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -228,44 +228,101 @@ e6e3092 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — O verbo apagar: o `DELETE` do verbete deixa de recusar
+## 02/11/2026 — Proveniência do verbete: o `DELETE` guardado e a edição por AJUSTE (versões datadas)
 
-**O que ela pediu.** «Faltou fazer o verbo deletar o verbete.»
+**O que ela pediu.** «Antes de executar `DELETE` ou `UPDATE` em um verbete, verifique se ele possui
+vínculos com **Turmas, Curadorias, Planos de Ensino ou Planos de Observação**. Se houver vínculo,
+**bloqueie a exclusão** e force a criação de um **ajuste/nova versão** para preservar o histórico»,
+e «não altera a versão congelada em uso nos planos/turmas».
 
-**O que havia.** A rota `DELETE /api/bastidores/verbete` existia — para dizer **não**. Respondia
-`409` com um sermão sobre a P-03/P-04: «a proveniência acrescenta, não edita». O caminho oferecido
-era `PUT { acao: "descontinuar" }`, que marca o verbete e o conserva.
+### A metade que não precisou de desenho novo: o `DELETE`
 
-**O que se decidiu, e o que a decisão NÃO desmente.** O argumento da P-03/P-04 continua verdadeiro
-para o **histórico**: uma aula já publicada que citava o exercício deixa de o poder ler de volta.
-Mas um verbete escrito ontem, numa música que não serve, **não é história — é lixo no dicionário**,
-e quem o escreveu tem de o poder tirar. A consequência não se esconde: fica escrita na pergunta
-que a tela faz **antes** do gesto («uma aula já publicada que use este exercício passa a sair com a
-notação em lacuna; o exercício continua no dicionário»).
+O mecanismo **já existia** para o termo do vocabulário: `usosDosPlanos` + `termoVinculadoA` são as
+duas funções que decidem se um termo pode ser apagado, e o verbete é a **notação do mesmo termo**.
+A guarda passa a usá-las, com a mesma semântica das outras rotas de proveniência:
+
+| Porta | O que conta | Resposta |
+|:--|:--|:--|
+| o plano de ensino | o exercício está no **repertório** do envelope | `409`, `motivo: 'plano'` |
+| a turma | o exercício está associado a uma turma **que tem plano** | `409`, `motivo: 'plano'` |
+| a curadoria | o exercício está no `repertorio` de uma curadoria | `409`, `motivo: 'curadoria'`, com o nome do professor |
+
+A recusa diz o caminho: **«Descontinuar»**, que conserva o registo e deixa o documento ler-se. E
+`usos === null` (leitura falhada) conta como VINCULADO — na dúvida não se apaga, porque apagar por
+engano não se desfaz.
+
+**Uma leitura, duas respostas.** A guarda e a gravação precisam do mesmo índice do acervo, e lê-lo
+duas vezes no mesmo pedido é exactamente o defeito que a fase 2 corrigiu em 20/10/2026. `paresComPlano`
+e `usosDosPlanos` passaram a aceitar o `jaLido` — o mesmo idioma do `resumosDeEnvelopes` —, e a
+prova conta as leituras (uma).
+
+### A metade que precisou de decisão: o `UPDATE` com vínculo
+
+**Três caminhos foram-lhe apresentados, e ela escolheu o B — versões datadas.** Fica registado o que
+o A e o C eram, porque a razão de os recusar é a razão de o B ser o que é: **A** (histórico dentro do
+verbete, sem tocar no gerador) não impedia o documento antigo de mudar ao ser regerado; **C**
+(bloquear a edição e obrigar a criar uma variação) obrigaria a duplicar o exercício no dicionário
+para o corrigir. O **B** é o único que cumpre a frase dela — «não altera a versão congelada».
+
+**O que «versão congelada» passou a querer dizer, dito sem eufemismo.** Não havia nenhuma: o plano
+não guarda a notação, compõe-na na hora a partir do alfabeto. O que o B fez foi **dar ao documento
+a data do documento**: `compor`/`comporTodas` recebem a data do envelope (`gerado_em`) e escolhem,
+para cada verbete, o estado que valia naquele dia. É isso que congela o passado — a data do
+envelope, não um instantâneo guardado no plano.
 
 | Peça | O que faz |
 |:--|:--|
-| `apagarVerbete` (`verbete.js`) | 401 sem token · 400 sem nome · 404 se o exercício não tem verbete · apaga a chave, **sobe a versão** e grava com `chore(notacao): apagar o verbete «X» no alfabeto Y` |
-| a rota `DELETE` | deixa de responder 409 e chama o verbo. A guarda que fica é o **nome**: um `DELETE` sem corpo apagaria «o que estivesse lá» |
-| o cartão da listagem | um «Apagar» **por exercício**, na linha da primeira música — repeti-lo por música daria dois botões para o mesmo gesto, e um deles pareceria apagar só aquela |
-| o que **não** se toca | o **vocabulário**. Apagar a notação de um exercício não apaga a palavra: o `«Battement fondu»` sai do alfabeto e continua no dicionário |
+| `gravarVerbete(… vinculado, vigenteDe, motivo)` | quando o verbete está em uso, o estado anterior passa para `versoes[]` com `ate` (a data em que deixou de valer) e o motivo; o estado **corrente** fica no topo |
+| `estadoDoVerbete(registo, data)` (núcleo) | devolve o estado que valia na data; sem data devolve o corrente; antes de todas as versões devolve a mais antiga |
+| `verbetePara` · `compor` · `comporTodas` | aceitam a data e **propagam** a versão usada no resultado |
+| `derivar-ciclo.js` | `dataDoEnvelope(plano)` alimenta os três `comporTodas` |
+| a tela | o recado diz que foi um **ajuste**, com a data, e que os documentos dessa data continuam a ler-se como foram escritos |
+
+**Três guardas que o desenho do dado exigiu, e porquê:**
+
+1. **O histórico não vem do pedido.** `verbete.js` faz `delete limpo.versoes` antes de escrever; quem
+   o escreve é o módulo, a partir do que está gravado. Aceitá-lo do corpo deixaria uma página antiga
+   — ou um pedido forjado — substituir o passado pelo que lhe apetecesse, que é o contrário do que
+   o histórico existe para guardar.
+2. **Um nível só.** O que se guarda é o **estado**, não a lista dele; uma versão nunca carrega
+   `versoes` dentro de si.
+3. **Sem vínculo não há histórico.** Um verbete que ninguém usa é editado como sempre foi: guardar
+   história de um rascunho seria encher o ficheiro com o que não interessa a ninguém.
+
+**O que isto NÃO resolve, e fica declarado.** (a) A tela **não sabe antes de gravar** se o verbete
+está em uso — sabê-lo exigiria uma leitura do índice em cada carga da página, que é cota. Ela
+descobre-o **ao gravar** e di-lo no recado; a guarda do `DELETE`, essa, recusa com a razão escrita.
+(b) Um plano **sem `gerado_em`** (envelope antigo, ou escrito à mão) compõe o estado corrente — não
+há data por que escolher, e inventá-la seria pior.
+
+### Sobre os «índices» — o pedido que não tem onde existir
+
+A especificação pede `idx_dicionario_termo`, `idx_verbete_metrica_musica`, `idx_verbete_tenant`,
+`idx_proveniencia_verbete_plano` e um `tenant_id`. **Este projeto não tem base de dados**: o
+dicionário é um JSON de 93 termos no repositório, lido inteiro para memória a cada carga, e os
+envelopes vivem num **índice de resumos** (`envelope/.indice.json`) que já é, ele próprio, a
+indexação que o pedido descreve — traz, por plano, `professor`, `professorNome`, `turma`, `ciclo` e
+**`repertorio`**, numa leitura só (20/10/2026). Não há `CREATE INDEX` a escrever, e um índice de
+base de dados num ficheiro JSON de 93 elementos seria teatro com custo de manutenção. O que **se
+fez** foi o que o pedido queria no fundo: a guarda de proveniência consulta o índice **uma vez** em
+vez de ler envelope por envelope, e a prova mede essa contagem.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-verbete` §C-2 | 401 sem token · 400 sem nome · 404 pelo nome · apaga e **sobe a versão** · o exercício sai com **todas** as músicas · os outros verbetes ficam · a mensagem do commit · a lista deixa de o mostrar · **o vocabulário não é escrito nem apagado** |
-| `provar-celula` §23-D | o `DELETE` sai com `{nome, modalidade, token}` · a pergunta diz «lacuna» e «dicionário» · o recado traz a versão nova · o formulário sai de cima do verbete apagado e volta ao passo 1 · **a página não recarrega** |
+| `provar-verbete` §G | o verbete num plano → **409** com a consequência («lacuna») e o caminho («descontinuar»); o **índice lido UMA vez**; um verbete sem vínculo → **200** (a guarda não recusa tudo); um exercício no repertório de uma **curadoria** → **409**, com o professor nomeado e o caminho («tirar do repertório») |
+| `provar-verbete` §I | sem `versoes` lê-se como sempre; a data antiga lê o estado antigo e a de hoje o novo; antes de todas as versões lê a mais antiga; duas versões **fora de ordem** no ficheiro são lidas pela data; a gravação sem vínculo não cria histórico; com vínculo cria (`ate` + motivo), mantém o corrente e escreve o ajuste na mensagem do commit; um segundo ajuste **acumula**; nenhuma versão tem `versoes` dentro |
+| `provar-verbete` §J | **fim a fim**: o mesmo envelope, derivado com data de antes do ajuste, sai com a notação antiga; com data de depois, sai com a de hoje; e o alfabeto fica como estava |
+| `provar-celula` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | 219/219 · 89/89 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · 20/20 |
+| **não executado / vermelho de antes** | `provar-plano-completo` falha **antes desta entrega** (medido no `cc54844` limpo: a §14 compara `['aula-de-cada-objetivo','aspecto-fisico']` com `[]`) — é pré-existente e não foi tocado; a prova do versionamento fim a fim foi por isso posta em `provar-verbete` §J, que é versionado e verde |
 
-**O que isto inverte, dito por palavras.** O próprio código dizia-o num comentário: «NÃO HÁ DELETE. A
-proveniência acrescenta, não edita», e a prova do servidor media-o — «e com a senha ele responde
-409 — apagar não é uma operação». Deixou de ser verdade. As asserções foram **corrigidas**, não
-apagadas: o título da secção C passa a «descontinuar — a marca que conserva o registo», a secção D
-mede a guarda nova (400 sem nome) em vez do 409 antigo, e o comment da rota passa a dizer o que ela
-faz. Uma prova que ficasse a defender a regra antiga seria a prova a mentir sobre o produto.
-
-**Com o quê.** `motor/servidor/verbete.js` (`apagarVerbete`) · `motor/servidor/bastidores.js` (a
-rota e o botão) · `experimentos/provar-verbete.js` §C-2 · `experimentos/provar-celula.js` §23-D.
+**Com o quê.** `motor/nucleo/notacao.js` (`estadoDoVerbete`, a data em `verbetePara`/`compor`/
+`comporTodas`, `versao` no resultado) · `motor/nucleo/derivar-ciclo.js` (`dataDoEnvelope` e os três
+sítios) · `motor/servidor/verbete.js` (o ajuste e as três guardas) · `motor/servidor/bastidores.js`
+(a guarda do `DELETE`, a proveniência antes da escrita, o `jaLido`, o recado) ·
+`experimentos/provar-verbete.js` §G, §I, §J.
 
 ## O que está pendente
 

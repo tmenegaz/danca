@@ -46,6 +46,9 @@ const CATALOGO = require('./catalogo-seed.js');
  */
 const CATEGORIAS_DO_VOCABULARIO = Object.keys(CATALOGO.CATEGORIAS || {});
 const TRADICOES_DO_VOCABULARIO = (CATALOGO.TRADICOES || []).slice();
+/* A CAIXA ALTA É DERIVAÇÃO, NÃO UMA SEGUNDA LISTA (02/11/2026). O dado guarda a chave
+ * (`francesa`); o ecrã mostra `FRANCESA`. Uma função só, chamada por quem desenha. */
+const rotuloDaTradicao = CATALOGO.rotuloDaTradicao;
 const ROTULOS_DE_CATEGORIA = {
   passo: 'passo', posicao: 'posição', direcao: 'direção', ligacao: 'ligação',
   salto: 'salto', giro: 'giro',
@@ -439,8 +442,12 @@ async function relacoes(kv, escola) {
  * lado seguro: derivar o que está livre é um elo a mais; editar o que está vinculado partiria
  * o plano.
  */
-async function paresComPlano(env, escola) {
-  const planos = await resumosDosPlanos(env, escola);
+async function paresComPlano(env, escola, jaLido) {
+  // O `jaLido` É O MESMO IDIOMA DO `resumosDeEnvelopes` (02/11/2026): quem precisa das duas
+  // respostas — os pares e os usos — lê o índice UMA vez e passa-o. Sem isto, a guarda de
+  // proveniência do verbete lia o índice duas vezes no mesmo pedido, que é exactamente o defeito
+  // que a fase 2 corrigiu em 20/10/2026 (ver o comentário acima de `resumosDosPlanos`).
+  const planos = jaLido || await resumosDosPlanos(env, escola);
   if (!planos) return null;
   const pares = [];
   for (const r of planos) {
@@ -554,9 +561,9 @@ function turmaVinculadaA(planoDeTurmas, nome) {
  * `null` quando a leitura falha — e quem lê trata `null` como «tudo vinculado», que é o lado
  * seguro: apagar por engano rompe a proveniência, e isso não se desfaz.
  */
-async function usosDosPlanos(env, escola) {
+async function usosDosPlanos(env, escola, jaLido) {
   const usos = { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 };
-  const planos = await resumosDosPlanos(env, escola);
+  const planos = jaLido || await resumosDosPlanos(env, escola);
   if (!planos) return null;
   for (const r of planos) {
     usos.planos += 1;
@@ -1744,8 +1751,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // de fora pela mesma razão de lá: ela é o que sobra quando não há tradição declarada, não
   // uma tradição que se escolhe. Um valor antigo que não esteja nesta lista é acrescentado
   // como opção na hora de abrir o formulário — o passado não se reescreve.
+  // O VALOR É A CHAVE (o que o dado guarda); o TEXTO é o rótulo (o que se lê). Uma tradição que
+  // já esteja gravada em maiúsculas — de antes desta regra — casa pela chave e mostra-se pela
+  // etiqueta: o `<select>` recebe o valor e o navegador encontra a opção.
   const opcoesProgramaDaTurma = tradicoesAdotaveis().map((t) =>
-    '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
+    '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('');
 
   // AS TURMAS DE CADA NOME (18/10/2026). A listagem passa a ter uma coluna que diz a que
   // turmas a pessoa/o termo pertence, e o «turmas» dela é um FILTRO: clicado, abre a secção
@@ -2138,8 +2148,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const opcoesModalidadeCuradoria = (MODALIDADES.modalidades || []).map((m) =>
     '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
     (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
+  // A MESMA DERIVAÇÃO DA TURMA E DO VERBETE (02/11/2026): chave no valor, rótulo no texto. A
+  // lista é a de `tradicoes.json` — acrescentar CUBANA lá pôs-na aqui, sem tocar nesta linha.
   const opcoesTradicaoCuradoria = tradicoesAdotaveis().map((t) =>
-    '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
+    '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('');
   // A TURMA É UM `select` — UMA POR VEZ (16/10/2026), no mesmo formato da modalidade e da
   // tradição. Era um escolhedor de múltiplas, e a lista MENTIA: quem marcava duas turmas
   // estava a dizer que as alunas de uma pertencem à outra, e não pertencem. Quem tem mais
@@ -2174,7 +2186,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         const rotuloProfessor = (profsParaCuradoria.find((p) => p.valor === c.professor) || {}).rotulo || c.professor;
         const turmas = turmasDaCuradoria(c);
         const resumo = [
-          c.tradicao,
+          // O RÓTULO, e não a chave crua (02/11/2026). Antes lia-se «francesa · 8A · 12 aluna(s)»;
+          // agora lê-se «FRANCESA · 8A · 12 aluna(s)», que é a mesma padronização dos selectores.
+          rotuloDaTradicao(c.tradicao),
           turmas.length ? turmas.join(' · ') : '',
           (c.alunas || []).length ? (c.alunas.length + ' aluna(s)') : '',
         ].filter(Boolean).join(' · ');
@@ -3446,8 +3460,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="vntradicao">Tradição de referência</label>' +
     '<select id="vntradicao">' +
     '<option value="">— escolha a tradição —</option>' +
+    // A LISTA É A DE `tradicoes.json`, e o texto é o rótulo (02/11/2026). «Compartilhada» entra
+    // aqui, ao contrário do que acontece na curadoria e no programa da turma, porque a tradição
+    // de um TERMO pode muito bem ser a que não é de ninguém.
     TRADICOES_DO_VOCABULARIO.map((t) =>
-      '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('') +
+      '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('') +
     '</select>' +
     /* «O QUE ACONTECE» É DO PASSO 1 (02/11/2026) — e a razão é a dela: «esse campo representa a
      * definição/significado do exercício, atuando como o valor descritivo no dicionário técnico».
@@ -3465,6 +3482,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="vb-frase">O que acontece — a definição do exercício</label>' +
     '<textarea id="vb-frase" rows="4" placeholder="a definição do exercício; cada trecho acrescenta, abaixo, o «lê-se» da sua notação"></textarea>' +
     '<p class="nota" id="vb-frase-nota"></p>' +
+    /* OS QUATRO CAMPOS DO PASSO 1 SÃO UM BLOCO, E O NOME É A CHAVE (02/11/2026).
+     *
+     * O pedido dela, e a segunda vez que o fez: «os campos Categoria, Tradição de Referência e O
+     * que acontece só entram em vigor (e passam a ser obrigatórios para o avanço) se o campo Nome
+     * do Exercício Novo estiver devidamente preenchido. Se o utilizador não digitar um nome (…)
+     * permanecem desativados/desconsiderados, permitindo navegar livremente».
+     *
+     * A REGRA JÁ ERA VERDADE NO SERVIDOR (a recusa só olha para os três quando há nome); o que
+     * faltava era a tela dizê-lo antes do clique. Um campo habilitado que não vale nada é pior do
+     * que um campo apagado: parece pedir uma resposta que ninguém vai ler.
+     */
+    '<p class="nota" id="vb-vigor-nota"></p>' +
     '<div class="res" data-res="vb-novo"></div>' +
     /* O BOTÃO DAS TURMAS INICIAIS FICA AQUI (01/11/2026 — e é do passo 1 desde 02/11/2026).
      *
@@ -3576,7 +3605,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="vbmetodo">Método deste exercício</label>' +
     '<select id="vbmetodo">' +
     '<option value="">— herda a metodologia do plano —</option>' +
-    ['RAD', 'Vaganova', 'Francesa', 'Cecchetti', 'Escola livre']
+    /* AS TRADIÇÕES SÃO AS DA LISTA ÚNICA, E O VALOR É A CHAVE (02/11/2026).
+     *
+     * DEFEITO QUE ESTAVA AQUI, medido: a opção dizia `Francesa` e a tabela
+     * `diferencasDeNomenclatura` tem a coluna `francesa`. `linha["Francesa"]` é `undefined`, e a
+     * nota do método dizia sempre «O alfabeto não declara esta posição em Francesa» — a negar um
+     * dado que existe. A causa é a de sempre: a lista escrita à mão ao lado da lista do dado.
+     *
+     * Agora o valor é a chave e o texto é o rótulo (a chave em caixa alta). `Cecchetti` e
+     * `Escola livre` ficam como valores livres — não são tradições do `tradicoes.json`, e a nota
+     * di-lo, correctamente, porque a tabela não tem coluna para eles.
+     */
+    TRADICOES_DO_VOCABULARIO.map((t) =>
+      '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('') +
+    ['Cecchetti', 'Escola livre']
       .map((m) => '<option value="' + m + '">' + m + '</option>').join('') +
     '</select>' +
     '<p class="nota" id="vb-metodo-nota"></p>' +
@@ -3709,6 +3751,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" class="acao secundario" id="vb-cel-duplicar" hidden>Duplicar o exercício</button>' +
     '<button type="button" class="acao secundario" id="vb-cel-guardar" hidden>Guardar a alteração</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-edicao-2" hidden>Cancelar a edição</button>' +
+    /* O «APAGAR» TAMBÉM AQUI (02/11/2026). Ele nasceu na listagem, e ela pediu-o «na listagem e na
+     * tela de decomposição»: quem acabou de escrever os trechos e vê que o exercício não é o que
+     * queria não devia ter de voltar à lista para o tirar.
+     *
+     * Apaga O MESMO: o verbete do exercício escolhido, com todas as músicas. Não é um segundo
+     * verbo — é o mesmo pedido, com um segundo sítio para o fazer, e o `data-apagar-verbete` é o
+     * que o torna o mesmo gesto (o ouvinte da lista apanha os dois).
+     */
+    // A CLASSE É `.acao.perigo`, E NÃO `.apagar` (02/11/2026). O `apagar` é o GANCHO do ouvinte
+    // genérico que serve as listas (alunas, turmas, curadorias) — e ele só existe dentro do
+    // `<script>`, que a checagem 8 («Peça») não mede. Escrito na marcação servida, o gancho
+    // passaria a ser uma classe sem desenho na folha, e a checagem reprova-o com razão: quem vê
+    // não é um gancho, é um botão. Este botão tem o seu próprio ouvinte e o seu próprio id.
+    '<button type="button" class="acao perigo" id="vb-cel-apagar" hidden>Apagar o verbete</button>' +
     '</span>' +
     '<div class="res" data-res="verbetes"></div>' +
     '</div>' +
@@ -5746,6 +5802,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        ? "Cobre os " + t + " tempos, em " + Math.ceil(t / numeradorDoCompasso()) + " compasso(s) de " + numeradorDoCompasso() + "."' +
     '        : (c < t ? "Cobre " + c + " de " + t + " tempos — falta escrever " + (t - c) + "."' +
     '                 : "Cobre " + c + " de " + t + " tempos — passa " + (c - t) + "."));' +
+    // O «GRAVAR» DEPENDE DO QUE ESTÁ ESCRITO (02/11/2026), e quem muda o que está escrito é o
+    // trecho que entra ou sai — todos passam por aqui a repintar a cobertura.
+    '  pintarGravar();' +
     '}' +
     // O «DUPLICAR» SÓ APARECE QUANDO HÁ O QUE DUPLICAR, e sai de cena durante a correcção de um
     // trecho — pelo mesmo motivo que o «Acrescentar»: em correcção, o que se pode fazer vê-se.
@@ -5778,6 +5837,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      ("Gravar substitui a música de " + String(MUSICA_ABERTA).replace("|", " tempos em ") +' +
     '       " por esta — o exercício fica com uma só." +' +
     '       " Marque a caixa se quiser ficar com as duas.");' +
+    '  }' +
+    '}' +
+    /* SEM DECOMPOSIÇÃO NÃO HÁ VERBETE — e o botão di-lo antes do clique (02/11/2026).
+     *
+     * O PEDIDO DELA: «o botão "Gravar Verbete" só deve ser habilitado ou processado se houver
+     * pelo menos uma linha consolidada na Tabela de Decomposição (Step 6). Não existe verbete
+     * válido sem decomposição.»
+     *
+     * A RECUSA JÁ EXISTIA no `submit` («Este verbete ainda não tem nenhuma célula») e no
+     * servidor (`validarVerbete`: «o verbete tem de ter ao menos um trecho»). Faltava o botão
+     * DIZÊ-LO: um botão vivo que recusa ao fim de quatro passos é uma armadilha, e o professor
+     * descobre no último passo o que podia saber no penúltimo.
+     *
+     * O `disabled` é do BOTÃO e não uma guarda do `submit`: as duas ficam. A guarda é a que vale
+     * quando o JavaScript falha; o `disabled` é o que se vê.
+     */
+    'function pintarGravar(){' +
+    '  var b = document.getElementById("vb-gravar");' +
+    '  if (!b) return;' +
+    '  var trechos = Object.keys(CELULAS).reduce(function(n, d){' +
+    '    return n + ((CELULAS[d] || []).length); }, 0);' +
+    '  b.disabled = trechos === 0;' +
+    '  b.setAttribute("aria-disabled", trechos === 0 ? "true" : "false");' +
+    '  if (trechos === 0) {' +
+    '    b.title = "Um verbete sem decomposição não existe: acrescente ao menos um trecho no passo 6.";' +
+    '  } else {' +
+    '    b.removeAttribute("title");' +
+    '  }' +
+    // A NOTA DO RODAPÉ JÁ DIZ OUTRA COISA (a substituição da música), e por isso o aviso de «sem
+    // trechos» vai para a nota do passo 6, que é onde os trechos se escrevem.
+    '  var alvo = document.getElementById("vb-gravar-nota");' +
+    '  if (alvo && trechos === 0 && !substituiMusica()) {' +
+    '    alvo.textContent = "Ainda não há nenhum trecho. Escreva ao menos um na decomposição — é ' +
+    '      ele que a página da aula mostra.";' +
+    '  } else if (alvo && trechos === 0) {' +
+    '    alvo.textContent = "Ainda não há nenhum trecho — e sem ele o verbete não existe.";' +
+    '  } else {' +
+    '    pintarComoNova();' +
     '  }' +
     '}' +
     'function pintarDuplicar(){' +
@@ -6015,6 +6112,52 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // dos termos — é de lá que sai a lista de exercícios que se escolhe —, e a definição de cada
     // um vive no mesmo sítio, com o campo `fonte` ao lado. Não há uma segunda lista de definições
     // a divergir: o que a pesquisadora der para um termo vale no formulário, na aula e no glossário.
+    /* O MÉTODO HERDA A TRADIÇÃO DO EXERCÍCIO (02/11/2026).
+     *
+     * O QUE ELA PEDIU: «ao selecionar um exercício na listagem do Step 2, o campo "Método deste
+     * Exercício" deve ser preenchido automaticamente com base no valor predefinido no campo
+     * Tradição de Referência (pois são sinónimos no modelo de domínio)», e depois «permanece
+     * editável (…) ou selecionar "Escolha Livre" / "Compartilhada"».
+     *
+     * SÃO SINÓNIMOS, e por isso é uma sugestão e não uma trava: o campo continua a poder dizer
+     * outra coisa. O que a sugestão resolve é o caso comum — o exercício declarado FRANCESA no
+     * dicionário não obrigar a escolher FRANCESA outra vez à mão.
+     *
+     * NÃO SOBRESCREVE O QUE JÁ ESTÁ ESCOLHIDO À MÃO. Se o professor pôs «Cecchetti» neste
+     * verbete, mudar de exercício não lhe apaga a escolha: a sugestão só entra quando o campo
+     * está vazio ou quando ainda tem a sugestão ANTERIOR (a que este código pôs lá). É o mesmo
+     * critério da frase do exercício — o que foi escrito por alguém vence o que a máquina sugere.
+     */
+    'var METODO_SUGERIDO = null;' +
+    'function tradicaoDoExercicio(){' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  var nome = nomes ? nomes.value : "";' +
+    '  if (!nome) return null;' +
+    '  var lista = (VERBETES && VERBETES.exerciciosDoVocabulario) || [];' +
+    '  var achado = null;' +
+    '  lista.forEach(function(t){ if (t && t.termo === nome && t.tradicao) achado = t; });' +
+    '  return achado ? { chave: String(achado.tradicao), rotulo: String(achado.tradicaoRotulo || "") } : null;' +
+    '}' +
+    'function sugerirMetodo(){' +
+    '  var sel = document.getElementById("vbmetodo");' +
+    '  if (!sel) return;' +
+    '  var t = tradicaoDoExercicio();' +
+    '  var actual = String(sel.value || "");' +
+    '  var podeTrocar = !actual || (METODO_SUGERIDO !== null && actual === METODO_SUGERIDO);' +
+    '  if (!podeTrocar) return;' +
+    '  METODO_SUGERIDO = t ? t.chave : "";' +
+    // O VALOR TEM DE EXISTIR NO `<select>`. Uma tradição que ficasse de fora da lista — página
+    // antiga em cache contra alfabeto novo, ou o contrário — poria o campo em branco em silêncio,
+    // e o branco quer dizer «herda o plano», que é outra coisa.
+    '  if (METODO_SUGERIDO && sel.value !== METODO_SUGERIDO) {' +
+    '    var o = document.createElement("option");' +
+    '    o.value = METODO_SUGERIDO; o.textContent = t.rotulo || METODO_SUGERIDO;' +
+    '    sel.appendChild(o);' +
+    '  }' +
+    '  sel.value = METODO_SUGERIDO;' +
+    '  METODO = METODO_SUGERIDO;' +
+    '  pintarNotaDoMetodo();' +
+    '}' +
     'function definicaoDoExercicio(){' +
     '  var nomes = document.getElementById("vbnome");' +
     '  var nome = nomes ? nomes.value : "";' +
@@ -6202,6 +6345,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarDuplicar();' +
     '  var bGuardar = document.getElementById("vb-cel-guardar");' +
     '  if (bGuardar) bGuardar.hidden = (EM_EDICAO === null);' +
+    // O «APAGAR» DO PASSO 6 SÓ EXISTE QUANDO HÁ VERBETE PARA APAGAR — isto é, quando há um
+    // exercício escolhido. Oferecê-lo sem exercício daria um botão que não sabe o que apagar.
+    '  var bApagar = document.getElementById("vb-cel-apagar");' +
+    '  if (bApagar) {' +
+    '    var alvoApagar = String((document.getElementById("vbnome") || {}).value || "").trim();' +
+    '    bApagar.hidden = !alvoApagar;' +
+    '    if (alvoApagar) bApagar.setAttribute("data-apagar-verbete", alvoApagar);' +
+    '    else bApagar.removeAttribute("data-apagar-verbete");' +
+    '  }' +
     '  var voltar = document.getElementById("vb-voltar");' +
     '  if (voltar) voltar.disabled = (PASSO === 1);' +
     '  var seguir = document.getElementById("vb-seguir");' +
@@ -6211,6 +6363,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarComoNova();' +
     '  var bLimpar = document.getElementById("vbnovo");' +
     '  if (bLimpar) bLimpar.hidden = (PASSO !== ULTIMO_PASSO);' +
+    // O BLOCO DO PASSO 1 É REPINTADO COM OS PASSOS (02/11/2026): ele depende do que está escrito
+    // no nome E do exercício escolhido, e o exercício escolhido é o `editarVerbete` que o põe —
+    // sem esta chamada, abrir um verbete deixaria a frase apagada até ao primeiro clique.
+    '  alternarPasso1();' +
+    // E O «GRAVAR» DIZ SE HÁ O QUE GRAVAR (02/11/2026). Ver `pintarGravar`.
+    '  pintarGravar();' +
     '}' +
     'function irParaPasso(n){' +
     '  PASSO = Math.max(1, Math.min(ULTIMO_PASSO, Number(n) || 1));' +
@@ -6333,6 +6491,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O QUE FALTA DIZ-SE POR NOME, e todos de uma vez: um `alert` que pede um campo, e depois
      * outro, e depois outro, é o mesmo pedido feito três vezes.
      */
+    /* O BLOCO DO PASSO 1 EM VIGOR, OU FORA DELE (02/11/2026).
+     *
+     * Três campos e um texto. Sem nome de exercício novo, os três estão DESACTIVADOS (e o
+     * `disabled` é a sério: um campo esbatido continua a competir por atenção e a receber foco) e
+     * a nota diz porque. Com nome — ou com um exercício ESCOLHIDO no passo 2, que é o caso de
+     * quem está a corrigir um verbete que já existe —, os três ficam em vigor.
+     *
+     * A EXCEPÇÃO DO `vbnome` NÃO É UM DESCUIVO: a frase é a do exercício, e corrigir um verbete
+     * que já existe começa por ela. Desactivá-la porque o campo do exercício NOVO está vazio
+     * fecharia a frase a quem a veio editar — e a frase é o que a página da aula publica.
+     */
+    'function alternarPasso1(){' +
+    '  var novo = document.getElementById("vnnome");' +
+    '  var escolhido = document.getElementById("vbnome");' +
+    '  var temNome = Boolean(novo && String(novo.value || "").trim());' +
+    '  var temExercicio = Boolean(escolhido && String(escolhido.value || "").trim());' +
+    '  var emVigor = temNome || temExercicio;' +
+    '  ["vncategoria", "vntradicao", "vb-frase"].forEach(function(id){' +
+    '    var el = document.getElementById(id);' +
+    '    if (!el) return;' +
+    '    el.disabled = !emVigor;' +
+    '    el.setAttribute("aria-disabled", emVigor ? "false" : "true");' +
+    '  });' +
+    '  var nota = document.getElementById("vb-vigor-nota");' +
+    '  if (nota) {' +
+    '    nota.textContent = emVigor ? "" :' +
+    '      "A categoria, a tradição e o que acontece entram em vigor quando houver um exercício — ' +
+    '      escreva o nome acima, ou escolha um no passo 2. Sem nome, pode avançar livremente.";' +
+    '  }' +
+    '}' +
     'function oQueFaltaNoPasso1(){' +
     '  var campo = document.getElementById("vnnome");' +
     '  var nome = campo ? campo.value.trim() : "";' +
@@ -6753,6 +6941,43 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var a = Number(n[0]), b = Number(n[n.length - 1]);' +
     '  return b >= a ? b - a + 1 : 0;' +
     '}' +
+    /* O VERBO APAGAR O VERBETE — UM SÓ, DOIS BOTÕES (02/11/2026).
+     *
+     * A CONFIRMAÇÃO DIZ O QUE SE PERDE ANTES — não depois. Um `confirm` que só perguntasse
+     * «apagar?» seria uma pergunta sem consequência escrita, e aqui a consequência é grande: uma
+     * aula publicada que citava o exercício passa a sair com a notação em lacuna.
+     *
+     * E DIZ TAMBÉM QUE PODE SER RECUSADO. O servidor guarda a proveniência: se o exercício já
+     * compõe um plano de ensino (ou o conteúdo de uma turma com plano), o `DELETE` volta 409 com a
+     * razão. A pergunta avisa disso antes do gesto — quem descobre a regra depois de confirmar
+     * pensa que o botão falhou.
+     */
+    'function apagarOVerbete(qual){' +
+    '  if (!qual) return;' +
+    '  var certo = window.confirm("Apagar o verbete de «" + qual + "»? A decomposição dele sai do ' +
+    '    alfabeto, e não há como a ler de volta. Uma aula já publicada que use este exercício ' +
+    '    passa a sair com a notação em lacuna. O exercício continua no dicionário. " +' +
+    '    "Se ele já compõe um plano de ensino, o sistema recusa — e diz porquê.");' +
+    '  if (!certo) return;' +
+    '  fetch("/api/bastidores/verbete", {' +
+    '    method: "DELETE", headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({token: TOKEN, nome: qual, modalidade: "bale-classico"})' +
+    '  }).then(lerResposta).then(function(d){' +
+    '    if (!d.ok) { recado("erro", d.erro || "não foi possível apagar"); return; }' +
+    '    recado("ok", "verbete de «" + qual + "» apagado — versão " + d.versao);' +
+    // E O FORMULÁRIO SAI DE CIMA DELE: apagar o exercício que está aberto deixaria a tela a compor
+    // trechos de um verbete que já não existe, e a gravação seguinte recriava-o sem ninguém pedir.
+    '    var emFoco = (document.getElementById("vbnome") || {}).value || "";' +
+    '    if (emFoco === qual) {' +
+    '      EM_EDICAO = null; MUSICA_ABERTA = ""; CELULAS = {}; SINAIS = [];' +
+    '      var f = document.getElementById("form-verbete"); if (f) f.reset();' +
+    '      document.getElementById("vbacao").value = "criar";' +
+    '      irParaPasso(1);' +
+    '      carregarRascunho();' +
+    '    }' +
+    '    carregarVerbetes();' +
+    '  }).catch(function(err){ recado("erro", "Erro: " + err.message); });' +
+    '}' +
     'var listaVerbetes = document.getElementById("lista-verbetes");' +
     'if (listaVerbetes) {' +
     '  carregarVerbetes();' +
@@ -6768,37 +6993,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * Como o cartão do verbete usa a MESMA marcação (`li.turma`, `.trio-item`, `.trio-painel`), ele
      * é servido pelo ouvinte que já existe. O que este `li` guarda é só a porta do nome.
      */
-    // O «APAGAR» DO CARTÃO (02/11/2026). Confirma e diz o que se perde ANTES — não depois. Um
-    // `confirm` que só perguntasse «apagar?» seria uma pergunta sem consequência escrita, e a
-    // consequência aqui é grande: uma aula publicada que citava o exercício passa a sair em lacuna.
+    // O «APAGAR» DO CARTÃO, E O DO PASSO 6 (02/11/2026). Os dois chamam a MESMA função — o
+    // verbo é um só, e ela pediu-o em dois sítios. Duas cópias divergiriam na primeira correcção.
     '    var ap = e.target.closest ? e.target.closest("button[data-apagar-verbete]") : null;' +
-    '    if (ap) {' +
-    '      var qual = ap.getAttribute("data-apagar-verbete");' +
-    // UMA LINHA SÓ: uma string partida em três deixa `\n` Verdadeiro no fonte e literal no emitido.
-    '      var certo = window.confirm("Apagar o verbete de «" + qual + "»? A decomposição dele sai do ' +
-    '        alfabeto, e não há como a ler de volta. Uma aula já publicada que use este exercício ' +
-    '        passa a sair com a notação em lacuna. O exercício continua no dicionário.");' +
-    '      if (!certo) return;' +
-    '      fetch("/api/bastidores/verbete", {' +
-    '        method: "DELETE", headers: {"Content-Type": "application/json"},' +
-    '        body: JSON.stringify({token: TOKEN, nome: qual, modalidade: "bale-classico"})' +
-    '      }).then(lerResposta).then(function(d){' +
-    '        if (!d.ok) { recado("erro", "Erro: " + (d.erro || "desconhecido")); return; }' +
-    '        recado("ok", "verbete de «" + qual + "» apagado — versão " + d.versao);' +
-    // E O FORMULÁRIO SAI DE CIMA DELE: apagar o exercício que está aberto deixaria a tela a compor
-    // trechos de um verbete que já não existe, e a gravação seguinte recriava-o sem ninguém pedir.
-    '        var emFoco = (document.getElementById("vbnome") || {}).value || "";' +
-    '        if (emFoco === qual) {' +
-    '          EM_EDICAO = null; MUSICA_ABERTA = ""; CELULAS = {}; SINAIS = [];' +
-    '          var f = document.getElementById("form-verbete"); if (f) f.reset();' +
-    '          document.getElementById("vbacao").value = "criar";' +
-    '          irParaPasso(1);' +
-    '          carregarRascunho();' +
-    '        }' +
-    '        carregarVerbetes();' +
-    '      }).catch(function(err){ recado("erro", "Erro: " + err.message); });' +
-    '      return;' +
-    '    }' +
+    '    if (ap) { apagarOVerbete(ap.getAttribute("data-apagar-verbete")); return; }' +
     '    var b = e.target.closest ? e.target.closest("button.verbetes-editar") : null;' +
     '    if (b) editarVerbete(b.getAttribute("data-nome"), b.getAttribute("data-musica"));' +
     '  });' +
@@ -6930,7 +7128,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    MUSICA_ABERTA = corpo.musica;' +
     '    var cn = document.getElementById("vb-como-nova"); if (cn) cn.checked = false;' +
     '    pintarComoNova();' +
-    '    recado("ok", "gravado — versão " + d.versao);' +
+    /* O AJUSTE DIZ-SE (02/11/2026). Se este verbete já compõe um plano de ensino, a gravação não
+     * reescreveu o passado: o estado anterior ficou no histórico, com a data em que deixou de
+     * valer. Quem corrigiu tem de o saber — senão, ou pensa que o documento antigo mudou, ou pensa
+     * que a correcção não pegou. */
+    '    recado("ok", d.ajustou' +
+    '      ? ("gravado — versão " + d.versao + ". Este exercício já compõe um plano, por isso a " +' +
+    '         "gravação é um AJUSTE: a versão anterior fica no histórico, com a data em que deixou " +' +
+    '         "de valer (" + d.ajustou + "), e os documentos dessa data continuam a ler-se como " +' +
+    '         "foram escritos.")' +
+    '      : ("gravado — versão " + d.versao));' +
     '    carregarVerbetes();' +
     '  });' +
     '});' +
@@ -6946,6 +7153,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ---------------------------------------------------------------------------
     'var campoNovo = document.getElementById("vnnome");' +
     'if (campoNovo) {' +
+    // O BLOCO DO PASSO 1 ACENDE E APAGA COM O NOME (02/11/2026). É `input` e não `change`: a
+    // regra é sobre o que está escrito, e `change` só dispara ao sair do campo — durante o
+    // preenchimento os três ficariam apagados e ninguém saberia porque.
+    '  campoNovo.addEventListener("input", alternarPasso1);' +
     '  campoNovo.addEventListener("keydown", function(ev){' +
     '    if (ev.key !== "Enter") return;' +
     '    ev.preventDefault();' +
@@ -6954,6 +7165,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // «LIMPAR» ESVAZIA O MODO A, E NÃO MUDA DE MODO (28/10/2026). Ele não é «Cancelar»: é
     // começar outro verbete do zero, e o modo continua a ser o do verbete.
+    '(function(){' +
+    '  var b = document.getElementById("vb-cel-apagar");' +
+    '  if (!b) return;' +
+    '  b.addEventListener("click", function(){' +
+    '    var qual = b.getAttribute("data-apagar-verbete");' +
+    '    if (qual) apagarOVerbete(qual);' +
+    '  });' +
+    '})();' +
     'var novoVerbete = document.getElementById("vbnovo");' +
     'if (novoVerbete) novoVerbete.addEventListener("click", function(){' +
     '  var f = document.getElementById("form-verbete");' +
@@ -6985,7 +7204,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // gravação seguinte apagava uma música que não tinha nada que ver com o que estava na tela.
     // O COMPASSO NÃO A ESQUECE: mudar de 4/4 para 3/4 é mudar a música do MESMO exercício, e é
     // exactamente o caso que tem de substituir.
-    '    if (this && this.id === "vbnome") MUSICA_ABERTA = "";' +
+    '    if (this && this.id === "vbnome") { MUSICA_ABERTA = ""; sugerirMetodo(); }' +
     '    carregarRascunho();' +
     '  });' +
     '});' +
@@ -8610,6 +8829,11 @@ async function fetch(request, env) {
         categoria: t.categoria,
         descricao: String(t.descricao || '').trim(),
         fonte: String(t.fonte || '').trim(),
+        // A TRADIÇÃO VAI JUNTO (02/11/2026), em chave E em rótulo. Ela é a mesma coisa que o
+        // «Método deste exercício» do passo 2, e é dela que o campo se pré-enche quando se
+        // escolhe o exercício — o mestre não tem de escrever duas vezes a mesma informação.
+        tradicao: String(t.tradicao || '').trim(),
+        tradicaoRotulo: rotuloDaTradicao(t.tradicao),
       }));
     return json(200, {
       ok: true,
@@ -8689,6 +8913,27 @@ async function fetch(request, env) {
     if (!(await autorizacaoDirecaoOk(env, corpo))) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
+    /* A PROVENIÊNCIA ANTES DA ESCRITA (02/11/2026) — e é a MESMA leitura da guarda do `DELETE`.
+     *
+     * Um verbete que já compõe um plano não se reescreve por baixo do documento: a gravação
+     * passa a ser um AJUSTE, e o estado anterior fica no histórico com a data em que deixou de
+     * valer. Quem decide isso é aqui, e não no `verbete.js`: ele não fala com o acervo, e não
+     * passa a falar.
+     *
+     * A LEITURA É UMA SÓ, partilhada com o resto do pedido (`jaLido`), e o erro dela conta como
+     * VINCULADO — na dúvida, guarda-se o histórico. Um histórico a mais é uma linha no ficheiro;
+     * um histórico a menos é o passado reescrito.
+     */
+    const planos = await resumosDosPlanos(env, escola);
+    const usos = await usosDosPlanos(env, escola, planos);
+    const pares = await paresComPlano(env, escola, planos);
+    const nomesPresos = new Set((pares || []).map((p) => p && p.turma));
+    const turmasPresas = new Set((await turmas(kv, escola))
+      .filter((t) => t && nomesPresos.has(t.nome)).map((t) => t.id));
+    const nomeGravado = String(corpo.nome || '').trim();
+    const vinculado = nomeGravado
+      ? termoVinculadoA(usos, await relacoes(kv, escola), turmasPresas, { termo: nomeGravado })
+      : false;
     const { gravarVerbete } = require('./verbete.js');
     const r = await gravarVerbete({
       f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
@@ -8701,6 +8946,11 @@ async function fetch(request, env) {
       musicaAnterior: corpo.musicaAnterior,
       verbete: corpo.verbete,
       acao: corpo.acao || (request.method === 'POST' ? 'criar' : 'atualizar'),
+      // O AJUSTE (02/11/2026). `vinculado` decide se o estado anterior é guardado; a data vem do
+      // corpo quando a tela a souber, e hoje não a manda — o servidor usa a do dia.
+      vinculado: vinculado,
+      vigenteDe: corpo.vigenteDe,
+      motivo: corpo.motivo,
     });
     return json(r.ok ? 200 : (r.status || 400), r);
   }
@@ -8726,12 +8976,77 @@ async function fetch(request, env) {
      * A GUARDA QUE FICA: o verbo exige o NOME no corpo. Um `DELETE` sem corpo apagaria «o que
      * estivesse lá», e é a única coisa que não pode acontecer por engano.
      */
+    const nome = String(corpo.nome || '').trim();
+    if (!nome) return json(400, { ok: false, erro: 'informe o nome do exercício' });
+    /* A GUARDA DE PROVENIÊNCIA (02/11/2026) — a regra que o projeto já aplica ao TERMO, à TURMA,
+     * ao PROFESSOR e à CURADORIA, agora também ao VERBETE.
+     *
+     * A pergunta é uma só: **este exercício já entrou em algum documento?** Três portas, e as três
+     * contam:
+     *
+     *   1. o plano de ensino declara-o no REPERTÓRIO (a porta directa);
+     *   2. o exercício está associado a uma turma, e essa turma tem plano;
+     *   3. o PO referencia um desses planos — o que os planos já cobrem, porque o PO deriva deles.
+     *
+     * O MECANISMO NÃO É NOVO, e isso é de propósito: `usosDosPlanos` + `termoVinculadoA` são
+     * exactamente as duas funções que decidem se um TERMO pode ser apagado. O verbete é a NOTAÇÃO
+     * do mesmo termo — apagá-lo apaga a leitura que o documento faz dele —, e por isso a pergunta
+     * é a mesma com o mesmo nome.
+     *
+     * UMA LEITURA DO ÍNDICE, e não uma por plano: o `resumo` do envelope já traz o repertório
+     * (20/10/2026), e é ele que se lê. `usos === null` — leitura falhada — conta como VINCULADO:
+     * na dúvida não se apaga, porque apagar por engano não se desfaz.
+     */
+    // UMA LEITURA DO ÍNDICE, DUAS RESPOSTAS (02/11/2026). `usos` e `pares` saem do MESMO índice do
+    // acervo: dois `await` sem o `jaLido` seriam duas idas ao GitHub neste pedido — e a regra
+    // «uma carga, uma leitura» está escrita no `acervo-envelopes.js` desde 20/10/2026.
+    const planos = await resumosDosPlanos(env, escola);
+    const usos = await usosDosPlanos(env, escola, planos);
+    const pares = await paresComPlano(env, escola, planos);
+    const nomesPresos = new Set((pares || []).map((p) => p && p.turma));
+    const turmasPresas = new Set((await turmas(kv, escola))
+      .filter((t) => t && nomesPresos.has(t.nome)).map((t) => t.id));
+    if (termoVinculadoA(usos, await relacoes(kv, escola), turmasPresas, { termo: nome })) {
+      return json(409, {
+        ok: false,
+        vinculado: true,
+        motivo: 'plano',
+        erro: 'o verbete de «' + nome + '» não se apaga: o exercício já compõe um plano de ensino '
+          + '(ou o conteúdo de uma turma com plano). Apagá-lo deixaria a aula publicada com a '
+          + 'notação em lacuna. Para o tirar de circulação sem romper a proveniência, use '
+          + '«Descontinuar» — a marca conserva o registo e o documento continua a poder ler-se.',
+        como: 'PUT com { acao: "descontinuar" }',
+      });
+    }
+    /* E A CURADORIA — a segunda porta que ela nomeou (02/11/2026).
+     *
+     * O repertório da curadoria DEIXOU DE SE PEDIR em 19/10/2026 (a turma é que declara os
+     * conteúdos, e ninguém lia a segunda lista), mas o que já está gravado FICA — P-03/P-04. Uma
+     * curadoria antiga pode portanto nomear um exercício, e é uma referência a sério: é ela que
+     * autoriza o professor a dar aquela turma. A guarda consulta-a, e a leitura é a mesma que a
+     * página já faz (`curadorias(kv, escola)`), não uma nova.
+     */
+    const curs = await curadorias(kv, escola);
+    const curadoriaQueUsa = (curs || []).find((c) => c && Array.isArray(c.repertorio)
+      && (c.repertorio.indexOf(nome) !== -1 || c.repertorio.indexOf(idDe(nome)) !== -1));
+    if (curadoriaQueUsa) {
+      return json(409, {
+        ok: false,
+        vinculado: true,
+        motivo: 'curadoria',
+        erro: 'o verbete de «' + nome + '» não se apaga: o exercício está no repertório da curadoria '
+          + 'de ' + (curadoriaQueUsa.professor || 'um professor') + '. Tirá-lo do repertório é o '
+          + 'caminho — a curadoria é que autoriza o trabalho, e o verbete que ela nomeia faz parte '
+          + 'dele.',
+        como: 'editar a curadoria e retirar o exercício do repertório',
+      });
+    }
     const { apagarVerbete } = require('./verbete.js');
     const r = await apagarVerbete({
       f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
       dono: 'tmenegaz', repo: 'danca', ref: 'main',
       modalidade: String(corpo.modalidade || 'bale-classico'),
-      nome: corpo.nome,
+      nome: nome,
     });
     return json(r.ok ? 200 : (r.status || 400), r);
   }

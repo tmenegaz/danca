@@ -31876,3 +31876,184 @@ faz. Uma prova que ficasse a defender a regra antiga seria a prova a mentir sobr
 
 **Com o quê.** `motor/servidor/verbete.js` (`apagarVerbete`) · `motor/servidor/bastidores.js` (a
 rota e o botão) · `experimentos/provar-verbete.js` §C-2 · `experimentos/provar-celula.js` §23-D.
+
+---
+
+## 02/11/2026 — A decomposição é obrigatória, o passo 1 acende com o nome, e o método herda a tradição
+
+**O que ela pediu,** em três frases:
+
+1. «O botão **Gravar Verbete** só deve ser habilitado ou processado se houver **pelo menos uma
+   linha consolidada na Tabela de Decomposição** (Step 6). Não existe verbete válido sem
+   decomposição.»
+2. «Os campos *Categoria*, *Tradição de Referência* e *O que acontece* só entram em vigor … se o
+   campo *Nome do Exercício Novo* estiver devidamente preenchido. Se não digitar um nome,
+   permanecem **desativados/desconsiderados**, permitindo navegar livremente.»
+3. «Ao selecionar um exercício no Step 2, o campo **Método deste Exercício** deve ser preenchido
+   automaticamente com base no valor predefinido no campo *Tradição de Referência* (pois são
+   sinónimos no modelo de domínio)», permanecendo editável.
+
+### O que ficou
+
+| Pedido | O que ficou |
+|:--|:--|
+| sem decomposição não se grava | o botão **fica `disabled`** (`aria-disabled` e `title`) e a nota do rodapé diz o que falta — a recusa do `submit` e a do servidor (`validarVerbete`) **ficam as duas**, e por razões diferentes |
+| o bloco do passo 1 só vale com nome | `alternarPasso1()` desactiva `#vncategoria`, `#vntradicao` e `#vb-frase` enquanto não houver nome **nem** exercício escolhido, e a nota `#vb-vigor-nota` diz porque. Ligado ao `input` do nome (e não ao `change`: a regra é sobre o que está escrito) |
+| o método herda a tradição | `sugerirMetodo()` põe a chave da tradição do exercício no `#vbmetodo`; **não atropela uma escolha à mão** — só entra em campo vazio ou ainda com a sugestão anterior |
+
+**A excepção que o pedido não previa, e que era obrigatória.** Desactivar a frase «porque o campo
+do exercício novo está vazio» fecharia a frase a **quem veio corrigir um verbete que já existe** —
+que é o caso comum, e a frase é o que a página da aula publica. A regra passou a ser «nome **ou**
+exercício escolhido», e a prova mede os dois lados.
+
+**Um defeito que a terceira frase revelou, e que não estava no pedido.** O `<select>` do método
+tinha `value="Francesa"` e a tabela `diferencasDeNomenclatura` tem a coluna `francesa`. O
+`pintarNotaDoMetodo` procura `linha["Francesa"]`, não encontra, e dizia **sempre** «O alfabeto não
+declara esta posição em Francesa» — a negar um dado que existe. A causa é a de sempre: uma lista
+escrita à mão ao lado da lista do dado. O valor passou a ser a chave.
+
+**O que se mediu.** `provar-celula` **219 asserções** (eram 203), com a §24 nova: os três campos
+desactivados e o `aria-disabled`; acordar com o nome; reabrir com o exercício escolhido; o método a
+herdar `FRANCESA` e depois `CUBANA`; a escolha à mão a sobreviver à troca de exercício; o «Gravar»
+desactivado sem trechos, com o título e a nota; e o «Apagar» do passo 6 a aparecer e a desaparecer
+consoante há exercício escolhido.
+
+**Com o quê.** `motor/servidor/bastidores.js` (`alternarPasso1`, `sugerirMetodo`,
+`pintarGravar`, o botão do passo 6) · `experimentos/provar-celula.js` §24.
+
+---
+
+## 02/11/2026 — A tradição de referência: uma lista, caixa alta e a CUBANA
+
+**O que ela pediu.** «Padronizar todos os valores exibidos para caixa alta» e incluir **CUBANA** —
+mantendo o conjunto «em um único Enum / arquivo de constantes», para que «a inclusão de CUBANA e a
+padronização das maiúsculas propaguem instantaneamente para todas as telas … sem necessidade de
+alterações manuais em múltiplos pontos».
+
+**A segunda metade já era verdade**, e ficou mais forte: `biblioteca/modalidades/bale-classico/
+tradicoes.json` é a fonte, e os quatro selectores (verbete, curadoria, programa da turma, método do
+exercício) e as duas listagens são gerados dela. Acrescentar `cubana` no ficheiro pôs a tradição em
+todos eles sem tocar em mais nada.
+
+**A decisão que se declara: a caixa alta é DERIVAÇÃO, não migração.** Subir as maiúsculas ao
+**dado** partiria duas coisas em silêncio: `vocabulario.json` grava `francesa` em 4 termos (e
+`RAD`, `Vaganova` noutros dois — o dado nunca foi uniforme), e `diferencasDeNomenclatura` tem uma
+**coluna por chave**. Passar tudo a `FRANCESA` deixaria essas colunas sem ninguém. Fica o dado como
+está, e `rotuloDaTradicao(chave)` faz a caixa alta numa função — uma lista, um rótulo, zero cópias.
+
+**A ordem é a dela** — RAD · FRANCESA · VAGANOVA · CUBANA · COMPARTILHADA —, e `compartilhada` fica
+no fim porque não é uma tradição que se adota: é o valor por omissão de um termo novo, e
+`tradicoesAdotaveis()` continua a excluí-la da curadoria e do programa da turma.
+
+**O que NÃO se inventou.** A Cubana entrou na lista e **não** ganhou linhas em
+`diferencasDeNomenclatura`: escrever diferenças de nomenclatura que ninguém conferiu seria conteúdo
+inventado. A nota do método di-lo em vez de fingir que sabe — e o `_comentario` do ficheiro também.
+
+**O que se mediu.** `provar-verbete` §H: a lista servida é **a do ficheiro** (uma fonte); a CUBANA
+está lá e a ordem é a dela; `rotuloDaTradicao` dá `FRANCESA`, `VAGANOVA`, `CUBANA`, `COMPARTILHADA`
+e `''` para o vazio; o selector do verbete mostra as cinco em caixa alta; a curadoria mostra quatro
+(sem `compartilhada`); o método mostra as cinco **mais** `Cecchetti` e `Escola livre`; o valor de
+cada opção é a **chave**; `value="Francesa"` deixou de existir; e — a asserção que impede a
+recaída — **em todos os selectores o texto de uma tradição é a chave em caixa alta**.
+
+**Com o quê.** `biblioteca/modalidades/bale-classico/tradicoes.json` (**conteúdo**) ·
+`motor/servidor/catalogo-seed.js` (`rotuloDaTradicao`) · `motor/servidor/bastidores.js` (os quatro
+selectores e a listagem da curadoria) · `experimentos/provar-verbete.js` §H.
+
+---
+
+## 02/11/2026 — Proveniência do verbete: o `DELETE` guardado e a edição por AJUSTE (versões datadas)
+
+**O que ela pediu.** «Antes de executar `DELETE` ou `UPDATE` em um verbete, verifique se ele possui
+vínculos com **Turmas, Curadorias, Planos de Ensino ou Planos de Observação**. Se houver vínculo,
+**bloqueie a exclusão** e force a criação de um **ajuste/nova versão** para preservar o histórico»,
+e «não altera a versão congelada em uso nos planos/turmas».
+
+### A metade que não precisou de desenho novo: o `DELETE`
+
+O mecanismo **já existia** para o termo do vocabulário: `usosDosPlanos` + `termoVinculadoA` são as
+duas funções que decidem se um termo pode ser apagado, e o verbete é a **notação do mesmo termo**.
+A guarda passa a usá-las, com a mesma semântica das outras rotas de proveniência:
+
+| Porta | O que conta | Resposta |
+|:--|:--|:--|
+| o plano de ensino | o exercício está no **repertório** do envelope | `409`, `motivo: 'plano'` |
+| a turma | o exercício está associado a uma turma **que tem plano** | `409`, `motivo: 'plano'` |
+| a curadoria | o exercício está no `repertorio` de uma curadoria | `409`, `motivo: 'curadoria'`, com o nome do professor |
+
+A recusa diz o caminho: **«Descontinuar»**, que conserva o registo e deixa o documento ler-se. E
+`usos === null` (leitura falhada) conta como VINCULADO — na dúvida não se apaga, porque apagar por
+engano não se desfaz.
+
+**Uma leitura, duas respostas.** A guarda e a gravação precisam do mesmo índice do acervo, e lê-lo
+duas vezes no mesmo pedido é exactamente o defeito que a fase 2 corrigiu em 20/10/2026. `paresComPlano`
+e `usosDosPlanos` passaram a aceitar o `jaLido` — o mesmo idioma do `resumosDeEnvelopes` —, e a
+prova conta as leituras (uma).
+
+### A metade que precisou de decisão: o `UPDATE` com vínculo
+
+**Três caminhos foram-lhe apresentados, e ela escolheu o B — versões datadas.** Fica registado o que
+o A e o C eram, porque a razão de os recusar é a razão de o B ser o que é: **A** (histórico dentro do
+verbete, sem tocar no gerador) não impedia o documento antigo de mudar ao ser regerado; **C**
+(bloquear a edição e obrigar a criar uma variação) obrigaria a duplicar o exercício no dicionário
+para o corrigir. O **B** é o único que cumpre a frase dela — «não altera a versão congelada».
+
+**O que «versão congelada» passou a querer dizer, dito sem eufemismo.** Não havia nenhuma: o plano
+não guarda a notação, compõe-na na hora a partir do alfabeto. O que o B fez foi **dar ao documento
+a data do documento**: `compor`/`comporTodas` recebem a data do envelope (`gerado_em`) e escolhem,
+para cada verbete, o estado que valia naquele dia. É isso que congela o passado — a data do
+envelope, não um instantâneo guardado no plano.
+
+| Peça | O que faz |
+|:--|:--|
+| `gravarVerbete(… vinculado, vigenteDe, motivo)` | quando o verbete está em uso, o estado anterior passa para `versoes[]` com `ate` (a data em que deixou de valer) e o motivo; o estado **corrente** fica no topo |
+| `estadoDoVerbete(registo, data)` (núcleo) | devolve o estado que valia na data; sem data devolve o corrente; antes de todas as versões devolve a mais antiga |
+| `verbetePara` · `compor` · `comporTodas` | aceitam a data e **propagam** a versão usada no resultado |
+| `derivar-ciclo.js` | `dataDoEnvelope(plano)` alimenta os três `comporTodas` |
+| a tela | o recado diz que foi um **ajuste**, com a data, e que os documentos dessa data continuam a ler-se como foram escritos |
+
+**Três guardas que o desenho do dado exigiu, e porquê:**
+
+1. **O histórico não vem do pedido.** `verbete.js` faz `delete limpo.versoes` antes de escrever; quem
+   o escreve é o módulo, a partir do que está gravado. Aceitá-lo do corpo deixaria uma página antiga
+   — ou um pedido forjado — substituir o passado pelo que lhe apetecesse, que é o contrário do que
+   o histórico existe para guardar.
+2. **Um nível só.** O que se guarda é o **estado**, não a lista dele; uma versão nunca carrega
+   `versoes` dentro de si.
+3. **Sem vínculo não há histórico.** Um verbete que ninguém usa é editado como sempre foi: guardar
+   história de um rascunho seria encher o ficheiro com o que não interessa a ninguém.
+
+**O que isto NÃO resolve, e fica declarado.** (a) A tela **não sabe antes de gravar** se o verbete
+está em uso — sabê-lo exigiria uma leitura do índice em cada carga da página, que é cota. Ela
+descobre-o **ao gravar** e di-lo no recado; a guarda do `DELETE`, essa, recusa com a razão escrita.
+(b) Um plano **sem `gerado_em`** (envelope antigo, ou escrito à mão) compõe o estado corrente — não
+há data por que escolher, e inventá-la seria pior.
+
+### Sobre os «índices» — o pedido que não tem onde existir
+
+A especificação pede `idx_dicionario_termo`, `idx_verbete_metrica_musica`, `idx_verbete_tenant`,
+`idx_proveniencia_verbete_plano` e um `tenant_id`. **Este projeto não tem base de dados**: o
+dicionário é um JSON de 93 termos no repositório, lido inteiro para memória a cada carga, e os
+envelopes vivem num **índice de resumos** (`envelope/.indice.json`) que já é, ele próprio, a
+indexação que o pedido descreve — traz, por plano, `professor`, `professorNome`, `turma`, `ciclo` e
+**`repertorio`**, numa leitura só (20/10/2026). Não há `CREATE INDEX` a escrever, e um índice de
+base de dados num ficheiro JSON de 93 elementos seria teatro com custo de manutenção. O que **se
+fez** foi o que o pedido queria no fundo: a guarda de proveniência consulta o índice **uma vez** em
+vez de ler envelope por envelope, e a prova mede essa contagem.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-verbete` §G | o verbete num plano → **409** com a consequência («lacuna») e o caminho («descontinuar»); o **índice lido UMA vez**; um verbete sem vínculo → **200** (a guarda não recusa tudo); um exercício no repertório de uma **curadoria** → **409**, com o professor nomeado e o caminho («tirar do repertório») |
+| `provar-verbete` §I | sem `versoes` lê-se como sempre; a data antiga lê o estado antigo e a de hoje o novo; antes de todas as versões lê a mais antiga; duas versões **fora de ordem** no ficheiro são lidas pela data; a gravação sem vínculo não cria histórico; com vínculo cria (`ate` + motivo), mantém o corrente e escreve o ajuste na mensagem do commit; um segundo ajuste **acumula**; nenhuma versão tem `versoes` dentro |
+| `provar-verbete` §J | **fim a fim**: o mesmo envelope, derivado com data de antes do ajuste, sai com a notação antiga; com data de depois, sai com a de hoje; e o alfabeto fica como estava |
+| `provar-celula` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | 219/219 · 89/89 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · 20/20 |
+| **não executado / vermelho de antes** | `provar-plano-completo` falha **antes desta entrega** (medido no `cc54844` limpo: a §14 compara `['aula-de-cada-objetivo','aspecto-fisico']` com `[]`) — é pré-existente e não foi tocado; a prova do versionamento fim a fim foi por isso posta em `provar-verbete` §J, que é versionado e verde |
+
+**Com o quê.** `motor/nucleo/notacao.js` (`estadoDoVerbete`, a data em `verbetePara`/`compor`/
+`comporTodas`, `versao` no resultado) · `motor/nucleo/derivar-ciclo.js` (`dataDoEnvelope` e os três
+sítios) · `motor/servidor/verbete.js` (o ajuste e as três guardas) · `motor/servidor/bastidores.js`
+(a guarda do `DELETE`, a proveniência antes da escrita, o `jaLido`, o recado) ·
+`experimentos/provar-verbete.js` §G, §I, §J.

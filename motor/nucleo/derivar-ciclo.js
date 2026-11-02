@@ -62,6 +62,24 @@ function rotuloDoItem(item) {
   return (i === -1 ? s : s.slice(0, i)).trim();
 }
 
+/**
+ * A DATA DO DOCUMENTO — a que decide qual VERSÃO de um verbete se compõe (02/11/2026).
+ *
+ * O QUE ELA RESOLVE. Um verbete que compõe um plano não se reescreve por baixo dele: a edição é um
+ * ajuste, e o estado anterior fica no histórico com a data em que deixou de valer. Para o passado
+ * não mudar, a composição tem de perguntar «qual era o estado NESTE dia?» — e a resposta é a data
+ * do envelope, que é a data em que o documento foi escrito.
+ *
+ * `gerado_em` é a do envelope e não a do relógio: regerar um documento antigo tem de reproduzir o
+ * documento antigo, não o de hoje. Quando não há data — envelope antigo, ou escrito à mão —, a
+ * composição cai no estado corrente, que é o comportamento de sempre.
+ */
+function dataDoEnvelope(envelope) {
+  const cru = String((envelope && envelope.gerado_em) || '').trim();
+  const achado = cru.match(/^(\d{4}-\d{2}-\d{2})/);
+  return achado ? achado[1] : '';
+}
+
 /** A resposta de um id no envelope (alias curto do `respostaDo` do irmão). */
 function resp(envelope, id) {
   return respostaDo(envelope, id);
@@ -422,7 +440,9 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     const sequencia = sequenciaComoObjetos(plano);
     const notacao = notacaoEscolhida(plano);
     const alfabeto = notacao ? moduloNotacao.paraNotacao(notacao) : null;
-    const composicoes = sequencia && alfabeto ? moduloNotacao.comporTodas(sequencia, alfabeto) : null;
+    const composicoes = sequencia && alfabeto
+      ? moduloNotacao.comporTodas(sequencia, alfabeto, dataDoEnvelope(plano))
+      : null;
 
     if (!composicoes) {
       corpo.push(sequencia === null
@@ -822,7 +842,9 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('## Exercícios da Aula 01');
   saida.push('');
 
-  const composicoes = linhas ? moduloNotacao.comporTodas(linhas, alfabetoDoCiclo) : null;
+  const composicoes = linhas
+    ? moduloNotacao.comporTodas(linhas, alfabetoDoCiclo, dataDoEnvelope(plano))
+    : null;
 
   if (!composicoes) {
     // A VIA ANTIGA, para o plano em prosa: uma linha por exercício, e a lacuna em todas.
@@ -964,7 +986,9 @@ function derivarGlossario({ plano, contexto }) {
   const ciclo = String((contexto && contexto.ciclo) || 'NN');
   const alfabeto = moduloNotacao.paraNotacao(notacao);
   const linhas = sequenciaComoObjetos(plano);
-  const composicoes = linhas && alfabeto ? moduloNotacao.comporTodas(linhas, alfabeto) : null;
+  const composicoes = linhas && alfabeto
+    ? moduloNotacao.comporTodas(linhas, alfabeto, dataDoEnvelope(plano))
+    : null;
   const usados = composicoes ? moduloNotacao.sinaisUsados(composicoes, alfabeto) : new Map();
 
   // AS TRÊS CONVENÇÕES APARECEM SEMPRE: `[`, `]` e `:` delimitam todos os blocos, por definição.

@@ -82,7 +82,29 @@ const RELACOES = (progressao.relacoes || []).map((r) => {
 
 const CATEGORIAS = tradicoes.categorias || {};
 const TRADICOES = tradicoes.tradicoes || [];
+
+/**
+ * O RÓTULO DE UMA TRADIÇÃO — o que a TELA mostra, e não o que o dado guarda (02/11/2026).
+ *
+ * Ela pediu «padronizar todos os valores exibidos para caixa alta» e avisou contra o risco: «a
+ * inclusão de CUBANA e a padronização das maiúsculas devem propagar instantaneamente para todas
+ * as telas (…) sem necessidade de alterações manuais em múltiplos pontos».
+ *
+ * A MANEIRA ERRADA seria escrever a lista outra vez em cada sítio, ou subir as maiúsculas ao
+ * DADO. A segunda parte parte tudo: `vocabulario.json` grava `francesa` em 4 termos, e
+ * `diferencasDeNomenclatura` tem uma COLUNA por chave (`RAD`, `francesa`, `Vaganova`) — passar o
+ * dado a `FRANCESA` deixaria essas colunas sem ninguém, em silêncio. Fica como está o dado, e a
+ * caixa alta é uma derivação: uma função, chamada por quem desenha.
+ *
+ * Sem acento e sem plural: é a chave do dado, e a única transformação é a caixa.
+ */
+function rotuloDaTradicao(t) {
+  const bruto = String(t == null ? '' : t).trim();
+  return bruto ? bruto.toUpperCase() : '';
+}
 /** As frases do dicionário, por bloco de notação: `{"[Pé: 1ª → +]": "extensão à frente…"}`. */
 const DESCRICOES = descricoes.descricoes || {};
 
-module.exports = { TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES, DESCRICOES };
+module.exports = {
+  TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES, DESCRICOES, rotuloDaTradicao,
+};
