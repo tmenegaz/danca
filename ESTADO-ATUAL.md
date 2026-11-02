@@ -116,9 +116,12 @@ renomeação. **DECIDIDO**.
 Verificado nesta fotografia, com os comandos da §9.
 
 - **A entrega foi publicada em `d349ed0`;** após o push, `git fetch origin` confirmou `origin/main` alinhado, sem divergência. **CONFIRMADO** naquele momento.
-- **18 professores** em `professores/`, e **2 variantes por escola com manifesto** depois dos
-  expurgos de 01–02/11/2026 (`pe-junto/01/batata-bale-nivel-1-teste-2`, `pe-torto/01/batata` — este
-  último é o **ciclo-zero**, com `DOCS=""`). **CONFIRMADO** por contagem em 02/11/2026.
+- **18 professores** em `professores/` e **nenhuma variante com manifesto** — o **expurgo da `batata`
+  de 02/11/2026** (`aeb2b2c`, **81 ficheiros**) levou as **duas**: o ciclo-zero (`pe-torto/01/batata`)
+  e o pacote de teste (`pe-junto/01/batata-bale-nivel-1-teste-2`). O `indices/acervo.json` passou a
+  **0 ciclos e 0 variantes** (`0e8d256`). Sobram os manifestos **base** — `ciclo-01.conf` em
+  `pe-torto`, `sapo-bailarino` e `tela-de-celular`, todos com `DOCS=""`. **CONFIRMADO** por contagem
+  depois do rebase, em 02/11/2026 — e é a correção do que esta secção dizia minutos antes.
 - **17 regras** em `REGRAS.md` e **22 pétreas** em `PROTOCOLO.md`. **CONFIRMADO** (contagem).
 - **O motor tem 52 ficheiros versionados, 31.850 linhas** entre `motor/nucleo/` e
   `motor/servidor/`. **CONFIRMADO** em 02/11/2026.
@@ -1040,8 +1043,9 @@ partir, e o que se mediu foi o que o plano afirma.
 | `node tools/check-indices.js` | **14 verificações, 0 falha(s)** — TUDO CERTO |
 | `node tools/check-schemas.js` · `gerar-schemas.js --conferir` | TUDO CERTO · ok (5 schemas) |
 | `node tools/check-identidade.js` | **20 verificações**, todas passaram |
-| `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | ciclo íntegro, cadeia intacta — `b1097a0d…` |
-| `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | ciclo íntegro, cadeia intacta — `b1097a0d…` — **medido ANTES do expurgo**: a variante foi apagada por ela no mesmo dia (`aeb2b2c`), e o comando hoje responde «manifesto da variante não encontrado». O valor fica como **registo datado**, não como estado |
+| `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** — **medido antes do mesmo expurgo**; hoje não há nenhum pacote no repositório para validar |
+| `indices/acervo.json` depois do expurgo | **0 ciclos, 0 variantes** e `filtros.estados` vazio — o índice é derivado e acompanhou (`0e8d256`) |
 | **não executado** | as provas de browser — nenhuma linha de código do motor mudou nesta entrega |
 
 ### Executado na fotografia anterior (02/11/2026 — três eixos, o ritmo obrigatório e a C22)

@@ -30894,3 +30894,20 @@ sim, é a mesma passagem pela curadoria).
 `professores/*/ciclos/*-glossario-benesh.md` · `REGRAS.md` Regra 9 · `professor*/ciclos/*.conf`
 (`VOLUME_MIN`/`VOLUME_MAX`) · `motor/servidor/compor-conf.js` · `tools/{gerar-ciclo,montar-publicacao,
 check-pacote,hash-ciclo}` · `motor/servidor/{catalogo-seed,termo-repo}.js` · `raiz/escolas-habilitadas.json`.
+
+**Nota de 02/11/2026, acrescentada a esta entrada depois de ela estar escrita.** Enquanto este plano
+era escrito, ela **expurgou a `batata`** — e o expurgo (`aeb2b2c`, **81 ficheiros**) levou as **duas**
+variantes, o ciclo-zero e o pacote de teste, mais o `wrangler.batata.jsonc`. Duas consequências, e as
+duas ficam registadas porque a entrada acima cita o que deixou de existir:
+
+1. **Os caminhos citados no «Com o quê» desta entrada** (`professores/*/ciclos/*-glossario-benesh.md`,
+   o pacote, a âncora `b1097a0d…`) descrevem o que se **leu e mediu antes** do expurgo. A leitura foi
+   feita sobre o exemplar que existia, e estava certa nesse momento; hoje o ficheiro não existe, e o
+   valor da âncora é **registo datado**, não estado. O que fica como fonte são o **gerador**
+   (`tools/gerar-ciclo.sh`) e o **verificador** (`tools/check-glossario.js`), que não foram tocados.
+2. **O repositório ficou sem nenhum pacote publicado.** `indices/acervo.json` — que é derivado e
+   acompanhou (`0e8d256`) — passou a **0 ciclos e 0 variantes**, e sobraram três manifestos **base**
+   com `DOCS=""` (`pe-torto`, `sapo-bailarino`, `tela-de-celular`). Isso não muda nada no plano dos
+   produtos — que não depende de haver ciclo —, mas muda o **ponto de partida** da fase 4: a
+   verificação «escola no Básico não vê; no Avançado vê» vai precisar de uma escola de teste criada
+   do zero.

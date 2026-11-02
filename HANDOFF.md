@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T13:58:38-0300`
-Commit atual: `377544c` — docs(registro): a fotografia dos três eixos, do ritmo obrigatório e da C22
+Gerado em: `2026-11-02T14:00:07-0300`
+Commit atual: `925c236` — docs(registro): a fotografia dos três produtos e do plano do motor
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -67,7 +67,8 @@ teclado-abnt
 tela-de-celular
 tiago-menegaz
 vaso-bonito (18)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -84,6 +85,10 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+925c236 docs(registro): a fotografia dos três produtos e do plano do motor
+fe4a946 docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e as nove colisões
+0e8d256 chore(estrutura): regerar os índices derivados
+aeb2b2c chore(estrutura): expurgar a escola batata
 377544c docs(registro): a fotografia dos três eixos, do ritmo obrigatório e da C22
 da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é viável
 273b62d docs(registro): correção — o modelo tem três eixos, a palavra «eixo» é que aparece uma vez
@@ -100,10 +105,6 @@ a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição 
 e9119d4 docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
 afbaeae chore(estrutura): regerar os índices derivados
 d74fda1 fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a correr
-cf1ef52 feat(po): a força e a flexibilidade vêm da anamnese, e a caixa mostra-as pelo nome
-33663bb chore(estrutura): regerar os índices derivados
-469c9d5 fix(aula-01): a proveniência leva a algum lado e o próximo passo diz o estado
-7e8b87b chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -128,15 +129,13 @@ cf1ef52 feat(po): a força e a flexibilidade vêm da anamnese, e a caixa mostra-
 
 ### pe-torto — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): batata
+**Ciclo 01** — variante(s): 
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| batata | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `0d18d32da528` | (vazio) | — |
 
 ### perna-boa — 0 ciclo(s)
 
@@ -309,6 +308,23 @@ sim, é a mesma passagem pela curadoria).
 `professores/*/ciclos/*-glossario-benesh.md` · `REGRAS.md` Regra 9 · `professor*/ciclos/*.conf`
 (`VOLUME_MIN`/`VOLUME_MAX`) · `motor/servidor/compor-conf.js` · `tools/{gerar-ciclo,montar-publicacao,
 check-pacote,hash-ciclo}` · `motor/servidor/{catalogo-seed,termo-repo}.js` · `raiz/escolas-habilitadas.json`.
+
+**Nota de 02/11/2026, acrescentada a esta entrada depois de ela estar escrita.** Enquanto este plano
+era escrito, ela **expurgou a `batata`** — e o expurgo (`aeb2b2c`, **81 ficheiros**) levou as **duas**
+variantes, o ciclo-zero e o pacote de teste, mais o `wrangler.batata.jsonc`. Duas consequências, e as
+duas ficam registadas porque a entrada acima cita o que deixou de existir:
+
+1. **Os caminhos citados no «Com o quê» desta entrada** (`professores/*/ciclos/*-glossario-benesh.md`,
+   o pacote, a âncora `b1097a0d…`) descrevem o que se **leu e mediu antes** do expurgo. A leitura foi
+   feita sobre o exemplar que existia, e estava certa nesse momento; hoje o ficheiro não existe, e o
+   valor da âncora é **registo datado**, não estado. O que fica como fonte são o **gerador**
+   (`tools/gerar-ciclo.sh`) e o **verificador** (`tools/check-glossario.js`), que não foram tocados.
+2. **O repositório ficou sem nenhum pacote publicado.** `indices/acervo.json` — que é derivado e
+   acompanhou (`0e8d256`) — passou a **0 ciclos e 0 variantes**, e sobraram três manifestos **base**
+   com `DOCS=""` (`pe-torto`, `sapo-bailarino`, `tela-de-celular`). Isso não muda nada no plano dos
+   produtos — que não depende de haver ciclo —, mas muda o **ponto de partida** da fase 4: a
+   verificação «escola no Básico não vê; no Avançado vê» vai precisar de uma escola de teste criada
+   do zero.
 
 ## O que está pendente
 
