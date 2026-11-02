@@ -4,7 +4,13 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `9e04787`). Nesta entrega: **corrigir um trecho
+> **Última fotografia:** 02/11/2026 (base local `65326a2`). Nesta entrega: **«Acrescentar trecho»
+> desaparece durante a correcção.** Os dois botões eram **um só**, com o rótulo a alternar entre
+> «Acrescentar trecho» e «Guardar a alteração» — e um rótulo que muda não esconde nada. Passaram a
+> ser **dois**: em correcção, o «Acrescentar» **sai de cena** e o «Guardar» entra. Uma função, dois
+> botões, para não divergirem.
+>
+> **Entrega anterior** (base `9e04787`). Nesta entrega: **corrigir um trecho
 > deixou de lhe reescrever o compasso.** A causa era uma linha — `splice` + `push`, que mandava a
 > célula corrigida para o fim —, e como o compasso sai da **ordem** (um relógio por pista), corrigir
 > uma descrição mudava a posição temporal. Passa a **substituir no lugar**. E os **três
@@ -274,6 +280,12 @@ Verificado nesta fotografia, com os comandos da §9.
   cenário dela: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, e corrigir o primeiro
   deixava-o no 2. Agora **substitui-se no lugar** e a sequência mantém-se. **CONFIRMADO** por
   `provar-celula`, secção 20-A (143 asserções).
+- **«Acrescentar trecho» não existe durante a correcção — são dois botões, e não um que muda de
+  nome.** Era um só (`vb-cel-acrescentar`), com o rótulo a alternar; um rótulo que muda não esconde
+  nada, e quem corrige vê o mesmo botão no mesmo sítio. Agora `vb-cel-acrescentar` («Acrescentar
+  trecho») fica **escondido** em correcção e `vb-cel-guardar` («Guardar a alteração») é que aparece.
+  **Uma função, dois botões** (`acrescentarOuGuardar`), para os dois não divergirem. **CONFIRMADO**
+  por `provar-celula` (145 asserções) e medido no browser.
 - **A correcção de um trecho abre a área do trecho onde se está, e não muda de passo.** Os três
   redireccionamentos que ela relatou vinham todos de `irParaPasso(PASSOS_DO_TRECHO[0])`. A regra
   passa a ser: em edição, os painéis **4, 5 e o último** ficam à vista — o último também, porque é
@@ -1178,6 +1190,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 |:--|:--|
 | `node experimentos/provar-celula.js` | **143 de 143** (eram 134) — a secção **20-A** é nova e mede o cenário dela de ponta a ponta: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, corrigir o primeiro **não** muda a sequência e a linha corrigida continua a ser a **primeira**; a área do trecho está toda à vista em edição (4, 5 e 6) e fecha-se ao guardar; «Acrescentar trecho», «Guardar» e «Cancelar» não mudam de passo |
 | `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **76/76** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `provar-celula`, secção 20-A (depois de esconder o «Acrescentar») | **145 asserções** — três novas guardam o par: em correcção o «Acrescentar» **não** está à vista, o «Guardar» está e diz o que faz; e sem correcção é o contrário |
 | `provar-producao` · `provar-cartao-da-turma` | **151/152** · **6 falhas** — as duas iguais a antes, **não são regressões** |
 | `check-indices` · `check-identidade` | **14/14** · **20/20** |
 | **não executado** | `provar-o-que-vem-do-dado` — continua sem fixture desde o expurgo da `batata` |
@@ -1754,6 +1767,13 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **«Acrescentar trecho» desaparece durante a correcção — e eu tinha descrito mal o
+  defeito.** Escrevi que, em edição, o «Acrescentar trecho» estava visível e **acrescentava** em vez
+  de guardar. **Medido, é falso:** havia **um** botão cujo rótulo alternava, e em correcção ele dizia
+  «Guardar a alteração» e guardava. Não havia acção errada. Mas o pedido resolve-se na mesma e o
+  resultado é melhor: um rótulo que muda **não esconde**, e o que se pediu foi esconder. Passaram a
+  ser **dois botões** — `vb-cel-acrescentar` sai de cena em correcção, `vb-cel-guardar` entra —, com
+  **uma função** partilhada para não divergirem. 145 asserções em `provar-celula`.
 - **02/11/2026** — **Corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha.** O
   handler fazia `splice` + `push` e a célula corrigida ia para o fim; como o compasso sai da **ordem**
   (um relógio por pista, da entrega anterior), corrigir a descrição do braço do compasso 1 empurrava-o

@@ -298,7 +298,12 @@ function estado() {
       .filter((a) => getComputedStyle(a).display !== 'none').length,
     contagensMarcadas: [...document.querySelectorAll('#vb-contagem input:checked')]
       .map((x) => x.getAttribute('data-valor')),
-    rotuloDoBotao: (q('vb-cel-acrescentar') || {}).textContent || '',
+    // OS DOIS BOTÕES DO TRECHO (02/11/2026). Eram um só, com rótulo que alternava; passaram a ser
+    // dois, e o que se mede é qual está à vista — porque «esconder o Acrescentar em correcção» é
+    // o pedido, e um rótulo que muda não esconde nada.
+    rotuloDoBotao: (q('vb-cel-guardar') || {}).textContent || '',
+    acrescentarVisivel: Boolean(q('vb-cel-acrescentar')) && !q('vb-cel-acrescentar').hidden,
+    guardarVisivel: Boolean(q('vb-cel-guardar')) && !q('vb-cel-guardar').hidden,
     linhaEmEdicao: Boolean(document.querySelector('#vb-tabela tr.em-edicao')),
     temBotaoTirar: Boolean(document.querySelector('#vb-tabela button[data-tirar]')),
     // OS PAINÉIS QUE ESTÃO À VISTA (02/11/2026). O número do passo já não chega para dizer o que
@@ -1059,8 +1064,16 @@ function estado() {
     conferir('e a contagem carregada é a DELE — a edição não desloca o trecho',
       emEdicao.contagensMarcadas[0] === oferecidas[0],
       { carregada: emEdicao.contagensMarcadas, era: oferecidas });
-    conferir('o botão do último passo passa a «Guardar a alteração»',
-      emEdicao.rotuloDoBotao === 'Guardar a alteração', emEdicao.rotuloDoBotao);
+    /* «ACRESCENTAR TRECHO» DESAPARECE NA CORRECÇÃO (02/11/2026). Era um botão só, e o rótulo
+     * alternava entre «Acrescentar trecho» e «Guardar a alteração» — a pesquisadora pediu para o
+     * esconder, e mudar um rótulo não esconde: quem está a corrigir vê o mesmo botão no mesmo
+     * sítio e tem de ler para saber o que ele faz agora. Com dois botões, o que se pode fazer
+     * vê-se. Estas três asserções são o par: um sai, o outro entra, e o que entra diz o que faz. */
+    conferir('em correcção, «Acrescentar trecho» NÃO está à vista',
+      emEdicao.acrescentarVisivel === false, emEdicao.acrescentarVisivel);
+    conferir('…e o «Guardar a alteração» está, e diz o que faz',
+      emEdicao.guardarVisivel === true && emEdicao.rotuloDoBotao === 'Guardar a alteração',
+      { visivel: emEdicao.guardarVisivel, rotulo: emEdicao.rotuloDoBotao });
 
     // A LINHA EM EDIÇÃO: marcada, sem «×» e com «Cancelar». Já se está no último passo — a edição
     // não mudou de sítio —, e é isso que a linha 1 desta secção passou a medir.
@@ -1136,6 +1149,9 @@ function estado() {
      * onde se está — e é preciso, porque a linha nova só se vê na tabela. */
     conferir('«Acrescentar trecho» mantém o utilizador na decomposição',
       antesDeEditar.passo === ULTIMO, { passo: antesDeEditar.passo, ultimo: ULTIMO });
+    conferir('…e sem correcção em curso, é o «Acrescentar» que está à vista',
+      antesDeEditar.acrescentarVisivel === true && antesDeEditar.guardarVisivel === false,
+      { acrescentar: antesDeEditar.acrescentarVisivel, guardar: antesDeEditar.guardarVisivel });
     conferir('o cenário tem os três trechos, e os compassos são 1, 1 e 2',
       antesDeEditar.tabela.length === 1 && antesDeEditar.tabela[0].linhas.length === 3
         && antesDeEditar.compassos.join(',') === '1,1,2',

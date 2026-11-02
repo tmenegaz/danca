@@ -3653,8 +3653,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // onde se vê que os trechos partilham a mesma frase e diferem no «lê-se».
     '<p class="campo-rotulo">O que fica escrito em cada trecho</p>' +
     '<div id="vb-fica"></div>' +
+    // DOIS BOTÕES, E NÃO UM QUE MUDA DE NOME (02/11/2026). Era um só, e o rótulo alternava entre
+    // «Acrescentar trecho» e «Guardar a alteração». A pesquisadora pediu para **esconder** o
+    // «Acrescentar» durante a correcção — e um rótulo que muda não esconde nada: quem está a
+    // corrigir vê o mesmo botão no mesmo sítio, e tem de ler para saber o que ele faz agora.
+    // Com dois botões, o que se pode fazer vê-se: em correcção, o «Acrescentar» não está lá.
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vb-cel-acrescentar">Acrescentar trecho</button>' +
+    '<button type="button" class="acao secundario" id="vb-cel-guardar" hidden>Guardar a alteração</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-edicao-2" hidden>Cancelar a edição</button>' +
     '</span>' +
     '<div class="res" data-res="verbetes"></div>' +
@@ -5943,8 +5949,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var cancelar2 = document.getElementById("vb-cancelar-edicao-2");' +
     '  if (cancelar2) cancelar2.hidden = EM_EDICAO === null;' +
-    '  var gravar = document.getElementById("vb-cel-acrescentar");' +
-    '  if (gravar) gravar.textContent = EM_EDICAO === null ? "Acrescentar trecho" : "Guardar a alteração";' +
+    // O «ACRESCENTAR» SAI DE CENA NA CORRECÇÃO, e o «GUARDAR» entra (02/11/2026). São dois botões
+    // porque são duas acções: acrescentar é o que se faz quando não se está a corrigir nada.
+    '  var bAcrescentar = document.getElementById("vb-cel-acrescentar");' +
+    '  if (bAcrescentar) bAcrescentar.hidden = (EM_EDICAO !== null);' +
+    '  var bGuardar = document.getElementById("vb-cel-guardar");' +
+    '  if (bGuardar) bGuardar.hidden = (EM_EDICAO === null);' +
     '  var voltar = document.getElementById("vb-voltar");' +
     '  if (voltar) voltar.disabled = (PASSO === 1);' +
     '  var seguir = document.getElementById("vb-seguir");' +
@@ -6557,9 +6567,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarTira();' +
     '  });' +
     '}' +
-'var bCelAcrescentar = document.getElementById("vb-cel-acrescentar");' +
-    'if (bCelAcrescentar) {' +
-    '  bCelAcrescentar.addEventListener("click", function(){' +
+// UMA FUNÇÃO, DOIS BOTÕES (02/11/2026). A acção é a mesma — acrescentar quando não se está a
+    // corrigir, guardar quando se está —, e o que mudou foi ONDE ela mora: um botão para cada
+    // coisa, e cada um só aparece quando se pode usar. Duplicar o corpo em dois sítios seria a
+    // receita para os dois divergirem ao primeiro ajuste.
+    'function acrescentarOuGuardar(){' +
     // A FRASE GRAVADA É COMPOSTA AQUI (31/10/2026): a frase do VERBETE (passo 1, escrita uma vez)
     // + o «lê-se» derivado dos sinais DESTE trecho. É a mesma composição para todos os trechos —
     // o que muda é o «lê-se» —, e é ela que a página da aula mostra.
@@ -6635,8 +6647,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // nova.
     '    pintarPassos();' +
     '    recado("ok", (eraEdicao ? "trecho alterado" : "trecho acrescentado") + " — grave o verbete para o guardar.");' +
-    '  });' +
     '}' +
+    '["vb-cel-acrescentar", "vb-cel-guardar"].forEach(function(id){' +
+    '  var b = document.getElementById(id);' +
+    '  if (b) b.addEventListener("click", acrescentarOuGuardar);' +
+    '});' +
     // O «×» DE CADA TRECHO — e só ele (31/10/2026). Havia aqui um segundo handler, para o campo
     // da frase na própria linha; a coluna saiu (a frase passou para o campo único acima da
     // tabela), e o handler saiu com ela. Um handler que fica sem markup a que responder é pior do

@@ -31225,3 +31225,35 @@ grupo «Posições dos pés e braços», que é o nome de hoje.
 `cancelarEdicao` (o do verbete) e o handler que acrescenta e guarda · 
 `experimentos/provar-celula.js` — secção 20-A e o estado novo (`compassos`, `linhasComSinal`,
 `paineisVisiveis`).
+
+**Nota de 02/11/2026, acrescentada à entrada anterior — e ela começa por uma correcção minha.**
+
+Ao propor esconder o «Acrescentar trecho» durante a correcção, escrevi: «em modo de edição, estando
+no passo 5 com a área toda aberta, o **Acrescentar trecho** também está visível — e clicá-lo no meio
+de uma edição **acrescenta** em vez de guardar». **Medido, é falso.** Havia **um** botão, e o rótulo
+alternava: `gravar.textContent = EM_EDICAO === null ? "Acrescentar trecho" : "Guardar a alteração"`.
+Em correcção ele dizia «Guardar a alteração» e guardava. Não havia acção errada nenhuma.
+
+**Mas o pedido resolve-se na mesma, e o que se fez é melhor do que o que eu descrevi:** um rótulo que
+muda **não esconde nada** — quem está a corrigir vê o mesmo botão no mesmo sítio e tem de o ler para
+saber o que ele faz agora. Passaram a ser **dois botões**, e cada um só aparece quando se pode usar:
+
+| Botão | Sem correcção | Em correcção |
+|:--|:--|:--|
+| `vb-cel-acrescentar` — «Acrescentar trecho» | **à vista** | **escondido** |
+| `vb-cel-guardar` — «Guardar a alteração» | escondido | **à vista** |
+
+**Uma função, dois botões.** O corpo é o mesmo (`acrescentarOuGuardar()`), e os dois `id` são ligados
+por um `forEach` — duplicar o corpo em dois sítios seria a receita para os dois divergirem ao
+primeiro ajuste. E o `if (EM_EDICAO)` continua a decidir o que acontece, agora com um botão para cada
+coisa em vez de um botão para as duas.
+
+**Medido no browser:** em correcção, no passo 6, `acrescentarEscondido: true`, `guardarVisivel: true`;
+sem correcção, o contrário. `provar-celula` passou a **145 asserções** — três novas guardam o par
+(um sai, o outro entra, e o que entra diz o que faz) e uma guarda o estado sem correcção.
+
+**O que fica registado disto, e é a lição:** afirmei um defeito sem o medir, e ele não existia — mas a
+conversa que ele abriu levou a uma solução melhor do que a que eu tinha proposto. É a terceira vez no
+mesmo dia que uma afirmação minha sobre a tela sai errada por não ter aberto a página: as outras duas
+foram «o modelo tem um eixo» e a citação da licença. **Antes de descrever o que a tela faz, abrir a
+tela.**

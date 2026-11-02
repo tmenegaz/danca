@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T15:39:34-0300`
-Commit atual: `9e04787` — feat(notacao): as células contam-se por pista — e o Plié, que estava certo, fecha
+Gerado em: `2026-11-02T15:47:04-0300`
+Commit atual: `65326a2` — fix(notacao): corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+65326a2 fix(notacao): corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
 9e04787 feat(notacao): as células contam-se por pista — e o Plié, que estava certo, fecha
 de43a1b docs(registro): o push publica o que chega ao site, e documentação não chega
 08551a9 docs(estrutura): a licença em três camadas, e uma citação minha que era falsa
@@ -104,7 +105,6 @@ f9d9612 docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
 b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
 804000a docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
 787305d docs(regras): a Regra 15 é substituída pelo que o código faz
-6902897 fix(notacao): o cadastro do exercício é o passo 1, e a gravação confere a música
 ```
 
 ## Por professor
@@ -294,6 +294,38 @@ grupo «Posições dos pés e braços», que é o nome de hoje.
 `cancelarEdicao` (o do verbete) e o handler que acrescenta e guarda · 
 `experimentos/provar-celula.js` — secção 20-A e o estado novo (`compassos`, `linhasComSinal`,
 `paineisVisiveis`).
+
+**Nota de 02/11/2026, acrescentada à entrada anterior — e ela começa por uma correcção minha.**
+
+Ao propor esconder o «Acrescentar trecho» durante a correcção, escrevi: «em modo de edição, estando
+no passo 5 com a área toda aberta, o **Acrescentar trecho** também está visível — e clicá-lo no meio
+de uma edição **acrescenta** em vez de guardar». **Medido, é falso.** Havia **um** botão, e o rótulo
+alternava: `gravar.textContent = EM_EDICAO === null ? "Acrescentar trecho" : "Guardar a alteração"`.
+Em correcção ele dizia «Guardar a alteração» e guardava. Não havia acção errada nenhuma.
+
+**Mas o pedido resolve-se na mesma, e o que se fez é melhor do que o que eu descrevi:** um rótulo que
+muda **não esconde nada** — quem está a corrigir vê o mesmo botão no mesmo sítio e tem de o ler para
+saber o que ele faz agora. Passaram a ser **dois botões**, e cada um só aparece quando se pode usar:
+
+| Botão | Sem correcção | Em correcção |
+|:--|:--|:--|
+| `vb-cel-acrescentar` — «Acrescentar trecho» | **à vista** | **escondido** |
+| `vb-cel-guardar` — «Guardar a alteração» | escondido | **à vista** |
+
+**Uma função, dois botões.** O corpo é o mesmo (`acrescentarOuGuardar()`), e os dois `id` são ligados
+por um `forEach` — duplicar o corpo em dois sítios seria a receita para os dois divergirem ao
+primeiro ajuste. E o `if (EM_EDICAO)` continua a decidir o que acontece, agora com um botão para cada
+coisa em vez de um botão para as duas.
+
+**Medido no browser:** em correcção, no passo 6, `acrescentarEscondido: true`, `guardarVisivel: true`;
+sem correcção, o contrário. `provar-celula` passou a **145 asserções** — três novas guardam o par
+(um sai, o outro entra, e o que entra diz o que faz) e uma guarda o estado sem correcção.
+
+**O que fica registado disto, e é a lição:** afirmei um defeito sem o medir, e ele não existia — mas a
+conversa que ele abriu levou a uma solução melhor do que a que eu tinha proposto. É a terceira vez no
+mesmo dia que uma afirmação minha sobre a tela sai errada por não ter aberto a página: as outras duas
+foram «o modelo tem um eixo» e a citação da licença. **Antes de descrever o que a tela faz, abrir a
+tela.**
 
 ## O que está pendente
 
