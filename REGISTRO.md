@@ -30577,6 +30577,11 @@ documentos, com evidência, porque quem a propôs não tem acesso ao repositóri
    ENCONTRADO**.
 5. **A poiésis não tem campo.** A única ocorrência de «poiese» em conteúdo é o texto de ajuda do
    bloco 10 do plano, escrito hoje. **NÃO ENCONTRADO**.
+   > **CORRIGIDO na entrada seguinte, no mesmo dia.** «Não tem campo» é verdade sobre a palavra
+   > «poiese»; não é verdade sobre o modelo. A poiésis está medida — nas dimensões «Musicalidade» e
+   > «Expressão» do PO, na música do verbete e da sequência, no repertório e no vídeo de referência.
+   > O que falta é **o nome do eixo**, e três coisas que não têm campo nenhum: a oralidade, a
+   > história da dança e o carácter. Ver «CORREÇÃO: o modelo tem três eixos».
 6. **A escada de quatro degraus não está no planeamento** — o que está são as frentes isoladas
    (L14, L8, L9, C19, C20) e **nenhuma frente para o syllabus**. **CORRIGIDO**.
 7. **A resposta nova da pesquisadora — a extensão da turma pronta depende do plano contratado —
@@ -30616,3 +30621,62 @@ verificação não muda comportamento.
 **Com o quê.** Medições citadas no corpo (ficheiro e linha) · `provar-celula` 130/130 ·
 `provar-verbete` TUDO CERTO · `check-identidade` 20/20 — as mesmas provas da entrega anterior, sem
 alteração de código nesta entrada.
+
+## 02/11/2026 — CORREÇÃO: o modelo tem três eixos. A palavra «eixo» é que só aparece uma vez
+
+**Nota de correção da entrada de hoje** («A proposta «o verbete é o átomo do syllabus», verificada
+contra o repositório»), onde se escreveu que «o modelo tem UM eixo, e não três». A pesquisadora
+corrigiu: «nós temos a perspectiva da poiésis e a perspectiva do corpo, só não está escrito como
+eixo, não está classificado (…) o técnico também não está ainda a ser a haste de todos os ramos».
+
+**O que se mediu, e ela tem razão.** A afirmação era verdadeira sobre a **string** e falsa sobre o
+**modelo**: `"eixo"` existe uma vez, em `porta/po/conteudo/po.json:196`, e o rótulo da dimensão é
+montado por concatenação — `doPlano.eixo` + `doPlano.separador` (`" — "`) + o bloco. Medido no
+envelope real da `batata`:
+
+```
+dimensoes-de-observacao = ["Técnica — Barra", "Técnica — Centro",
+                           "Técnica — Musicalidade", "Técnica — Expressão"]
+```
+
+Ou seja: **o eixo não é uma classificação, é um prefixo**. E o prefixo come todos os blocos — inclusive
+os dois que não são lugares na sala. O conteúdo de «Técnica — Musicalidade» (`resposta ao pulso na
+marcação; frase até o fim da música`) e de «Técnica — Expressão» (`olhar acompanha o braço; presença
+sem rigidez de rosto`) é **poiésis medida**, com o rótulo da técnica por cima.
+
+**Onde cada um dos três eixos já existe, medido.**
+
+| Eixo | Onde já existe | O que lhe falta para ser eixo |
+|:--|:--|:--|
+| **Corpo** (força e flexibilidade) | anamnese, 15 campos (7 de flexibilidade, 8 de força) · PO `linha-de-base` (`registroDaAnamnese`, os mesmos 15 pelo nome) · PO `restricoes` (Restrições físicas) · PO `inclusao`/`exclusao` (sugeridas a partir da anamnese) · plano bloco 10 `aspecto-fisico` (`lidoDasAnamneses`) → `## Aspecto físico` no plano · Regra 4 | **a ligação ao exercício** — nenhum verbete diz o que o movimento exige do corpo, e nenhuma linha da sequência carrega essa exigência. É o único dos três que **não** chega ao cruzamento |
+| **Técnica / código** | `notacao.json` v15 (11 verbetes, `categorias`, `grupos` de sinais, `gramatica` de direções × orientações) · `vocabulario.json` (93 termos, `categoria` com 8 valores, `tradicao`, `membro`, `fonte`) · `progressao.json` (13 turmas, 9 associações) · `catalogo-seed.DESCRICOES` (15 notação→frase) · plano `estrutura-de-cada-aula`, `distribuicao-de-volume`, `aula-1-sequencia` · PO `dimensoes-de-observacao` e `itens-por-dimensao` | **a haste declarada** — nada diz que categorias, gramática, sinais, vocabulário e progressão são **ramos do mesmo eixo**. Está no código e no dado; não está no vocabulário |
+| **Expressão** (poiésis) | **música**: verbete (grade de contagens) + sequência (tempos e compasso) + §4 da aula · **repertório**: plano bloco 12 (leitura da sequência) · **vídeo de referência**: plano bloco 11, campo «Vídeo de referência» (link + o exercício que mostra) · **qualidade de movimento**: 4 termos do vocabulário (Adagio, Allegro, Ballon, Legato) · PO: as dimensões «Musicalidade» e «Expressão», com itens escritos | **um lugar declarado, e o que não existe mesmo**: a **oralidade**, a **história da dança** e o **carácter** não têm campo nenhum. O vídeo é o único representante do contexto, e é um link solto |
+
+**E o ponto que a frase dela demonstra: o objetivo é o cruzamento, não um quarto eixo.** Medido, o
+cruzamento já existe **duas vezes** no plano:
+
+1. `estrutura-de-cada-aula` — «onde cada objetivo é trabalhado», marcado por bloco. Na `batata`:
+   `[{marco: 1, marcados: ["Barra", "Centro", "Musicalidade", "Expressão"]}]`. O objetivo **já está**
+   marcado na Musicalidade e na Expressão — ou seja, o objetivo já atravessa técnica e poiésis.
+2. `aula-1-sequencia` — cada linha traz `Objetivo específico` + `Bloco` + `Conteúdo do nível` +
+   `Tempos` + `Compasso`. Técnica e música, por linha, amarradas ao mesmo objetivo.
+
+O exemplo dela — «olhar o equilíbrio → a transferência de peso num tendu» — decompõe-se no dado que
+existe: o `tendu` tem **técnica** (o verbete), tem **música** (a grade de contagens e os 4 tempos em
+4/4), tem **contexto** (o vídeo de referência) e **exige corpo** (força para sustentar o *en dehors*,
+flexibilidade do tornozelo e do quadril para a direção). Três dos quatro já estão ligados à linha do
+objetivo; **o quarto — o corpo — não está**, e é a única costura que falta.
+
+**O que fica decidido.** A entrada de hoje fica **corrigida** por esta, e não reescrita (P-03/P-04: a
+proveniência acrescenta). O mapa acima entra no `PLANEJAMENTO-LASTRO.md`, na C20 — é ela que guarda «o
+que o Lastro observa» —, e **como medição datada, não como decisão de modelo**: transformar os três em
+eixos de primeira classe (com nome, campo e lugar no PO) muda a taxonomia das dimensões e a ligação
+bloco↔dimensão, e isso é da pesquisadora.
+
+**Onde entrou.** `REGISTRO.md` (esta entrada, e a nota de correção na entrada anterior) ·
+`PLANEJAMENTO-LASTRO.md` (C20: o mapa dos três eixos e o cruzamento no objetivo) ·
+`ESTADO-ATUAL.md` (§8: a pendência dos três eixos, agora medida).
+
+**Com o quê.** Medições citadas no corpo, com ficheiro e linha · o envelope real da `batata`
+(`escola/batata/envelopes/po-20261101-1959.json` e `plano-20261101-1955.json`) · nenhuma alteração de
+código nesta entrada.

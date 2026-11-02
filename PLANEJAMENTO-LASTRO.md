@@ -943,6 +943,28 @@ conteúdo do PO, e nada impede que os outros dois passem a ser eixos de primeira
 **L1** (o dicionário de campos), a **L10** (o vocabulário do domínio que falta) e a ligação
 bloco ↔ dimensão (**P1**), porque um eixo a mais é uma dimensão a mais a ligar.
 
+**Onde cada um dos três já existe hoje — medido a 02/11/2026, e é o que dá tamanho à C20.** A
+primeira leitura desta contradição dizia «o modelo tem um eixo só, e é o técnico». É verdade sobre a
+**string** e falso sobre o **modelo**: `"eixo"` aparece **uma vez**
+(`porta/po/conteudo/po.json:196`) e o rótulo da dimensão é montado por concatenação — `doPlano.eixo` +
+`" — "` + o bloco —, o que dá, no envelope da `batata`, `["Técnica — Barra", "Técnica — Centro",
+"Técnica — Musicalidade", "Técnica — Expressão"]`. O eixo não é uma classificação: é um **prefixo**,
+e come os dois blocos que não são lugares na sala.
+
+| Eixo | Onde já existe | O que lhe falta para ser eixo |
+|:--|:--|:--|
+| **Corpo** | anamnese (15 campos: 7 de flexibilidade, 8 de força) · PO `linha-de-base` e `restricoes` · PO `inclusao`/`exclusao` · plano bloco 10 `aspecto-fisico` · Regra 4 | a **ligação ao exercício**: nenhum verbete diz o que o movimento exige do corpo |
+| **Técnica / código** | `notacao.json` (verbetes, gramática, sinais) · `vocabulario.json` (93 termos, 8 categorias) · `progressao.json` · plano (blocos, volume, sequência) · PO (dimensões e itens) | a **haste declarada**: nada diz que estes são ramos do mesmo eixo |
+| **Expressão / poiésis** | música (verbete + sequência + §4) · repertório (bloco 12) · vídeo de referência (bloco 11) · 4 termos de `qualidade` · as dimensões «Musicalidade» e «Expressão» do PO | um **lugar declarado**; e o que não existe mesmo: **oralidade, história da dança, carácter** |
+
+**E o objetivo, que a pesquisadora apontou como o sítio do «olhar», não é um quarto eixo — é o
+cruzamento.** Já existe, duas vezes, no plano: `estrutura-de-cada-aula` marca «onde cada objetivo é
+trabalhado» **por bloco** (na `batata`: `["Barra", "Centro", "Musicalidade", "Expressão"]` — o
+objetivo já atravessa técnica e poiésis), e cada linha de `aula-1-sequencia` traz `Objetivo
+específico` + `Bloco` + `Conteúdo do nível` + `Tempos` + `Compasso`. Dos quatro elementos que a frase
+dela decompõe — técnica, música, contexto pelo vídeo, e exigência de corpo —, **três já estão ligados
+à linha do objetivo; o corpo é o único que não está.**
+
 **Decidido a 02/11/2026, e é a alternativa (b).** A pesquisadora: «você vai colocar, ó, antes da
 música e vídeo de referência você vai colocar esse item que é relacionado a força e flexibilidade,
 que é o aspecto físico, o aspecto do corpo das meninas». O **plano de ensino ganhou o bloco 10,

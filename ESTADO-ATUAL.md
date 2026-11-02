@@ -766,6 +766,34 @@ de uma premissa que não se sustenta. A regra **foi substituída pelo que o cód
 que é só dela. **CONFIRMADO**: a nota está no `REGRAS.md`, e o número das regras continua a ser 17
 (o `gerar-handoff` conta 17, e nenhuma foi apagada nem renumerada).
 
+### Os três eixos — medidos, e por isso já não são uma dúvida
+
+A primeira leitura dizia que o modelo tinha **um** eixo (o técnico), porque `"eixo"` aparece uma vez
+(`porta/po/conteudo/po.json:196`). É verdade sobre a string e falso sobre o modelo: o rótulo da
+dimensão é `doPlano.eixo` + `" — "` + o bloco, o que dá «Técnica — Musicalidade» e «Técnica —
+Expressão» — poiésis medida com o rótulo da técnica por cima. **CONFIRMADO** no envelope real da
+`batata`.
+
+Os três existem, em sítios diferentes, e **nenhum está declarado como eixo**:
+
+- **corpo** — anamnese (15 campos) → PO `linha-de-base` e `restricoes` → plano bloco 10
+  `aspecto-fisico`. Falta a **ligação ao exercício**;
+- **técnica** — `notacao.json`, `vocabulario.json`, `progressao.json`, plano e PO. Falta a **haste
+  declarada**;
+- **expressão** — música (verbete + sequência + §4), repertório, vídeo de referência, 4 termos de
+  `qualidade`, e as dimensões «Musicalidade» e «Expressão» do PO. Faltam **oralidade, história da
+  dança e carácter** — não têm campo nenhum.
+
+**E o objetivo é o cruzamento, não um quarto eixo.** `estrutura-de-cada-aula` marca cada objetivo
+**por bloco** (na `batata`: Barra, Centro, Musicalidade, Expressão), e cada linha da sequência traz
+objetivo + bloco + exercício + tempos + compasso. Três dos quatro elementos da frase dela estão
+ligados ao objetivo; **o corpo é o único que não está**. Medição inteira no `REGISTRO.md`
+(02/11/2026, «CORREÇÃO: o modelo tem três eixos») e na **C20** do `PLANEJAMENTO-LASTRO.md`.
+
+**O que fica por decidir:** transformar os três em eixos de primeira classe (nome, campo, lugar no
+PO) muda a taxonomia das dimensões e a ligação bloco↔dimensão. **É da pesquisadora**, e nada foi
+alterado no código.
+
 ### O motor dos verbetes — a proposta que vem a seguir (declarada, não começada)
 
 A pesquisadora anunciou, a 02/11/2026: «essa parte toda aqui dos verbetes vai ter que gerar um motor,
