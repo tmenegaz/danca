@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T10:59:12-0300`
-Commit atual: `b7935ff` — fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
+Gerado em: `2026-11-02T11:02:58-0300`
+Commit atual: `f9d9612` — docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,7 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+f9d9612 docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
 b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
 804000a docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
 787305d docs(regras): a Regra 15 é substituída pelo que o código faz
@@ -103,7 +104,6 @@ cf1ef52 feat(po): a força e a flexibilidade vêm da anamnese, e a caixa mostra-
 e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-2
 67d8f53 chore(estrutura): reancorar a cadeia das fontes alteradas
 c13be2f chore(estrutura): regerar os índices derivados
-d335f25 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
 ```
 
 ## Por professor
@@ -217,53 +217,73 @@ d335f25 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — O exercício novo é o passo 1: seis passos, e o «+» deixou de existir
+## 02/11/2026 — A proposta «o verbete é o átomo do syllabus» verificada contra o repositório
 
-**O que motivou.** A pesquisadora, ao ver o que eu tinha feito: «somente esses campos — exercício
-novo, categoria, tradição e carregar as turmas iniciais — vão ser o step 1. O step 2 passa a ser
-então o que antes era o step 1, e assim por diante, então agora eu vou ter seis steps ao todo. E esse
-botão de mais que está dentro do exercício a escolher, esse botão de mais que abre então aqueles
-campos, deixa de existir. Você não fez isso.»
+**O que motivou.** A pesquisadora trouxe uma conversa de planeamento em que se propõe que o
+**verbete** seja o **átomo de um syllabus** e que daí saia uma escada de produtos (dicionário →
+syllabus → aula pronta → gerador), e pediu que a proposta fosse **verificada** contra o código e os
+documentos, com evidência, porque quem a propôs não tem acesso ao repositório inteiro.
 
-**O que eu tinha feito, e porque estava errado.** Peguei nos campos do cadastro e **movi-os para
-dentro do painel do passo 1**, mantendo o «+», o «Gravar exercício» e o «Cancelar». O resultado não
-era um passo a mais: era o mesmo widget, mais abaixo. A pesquisadora queria que a criação fosse **o
-passo**, e um passo não tem botões próprios — tem a navegação que todos têm.
+**O que se mediu, e o que a proposta não sabia.**
 
-**O que foi decidido.**
+1. **O modelo tem UM eixo, e não três.** O PO declara `"eixo": "Técnica"` para **todas** as
+   dimensões (`porta/po/conteudo/po.json:196`), e as dimensões derivam dos blocos do plano. A
+   leitura «as três camadas são concomitantes» não é contrariada por uma partição — não há
+   partição nenhuma —, mas **o corpo e a poiésis não são eixos**: a força e a flexibilidade estão
+   na anamnese e chegam ao **Ponto de partida**, não a um eixo; e o verbete não diz o que o
+   exercício exige do corpo. **CORRIGIDO**.
+2. **`progressao.json` é uma ORDENAÇÃO, não um syllabus.** Medido: 13 turmas com `ordem`,
+   `nivelReferencia` e `programaReferencia`; **9** pares turma↔termo; e a própria `nota` do ficheiro
+   diz que as associações são **exemplos**, não uma progressão certificada. Não há, por unidade,
+   nem música, nem tempos, nem sessão, nem camada pedagógica. **CONFIRMADO** como ordem;
+   **CORRIGIDO** o número (9 associações, não «as associações» no plural indefinido).
+3. **«Syllabus» não está definido em documento nenhum.** Só aparece como referência ao RAD
+   (`tools/validar-captura-ciclo.js:11`) e em fixtures de `experimentos/`. **NÃO ENCONTRADO** — a
+   proposta introduz o termo.
+4. **A camada pedagógica de que a proposta fala não existe** — nem no verbete, nem no vocabulário,
+   nem na progressão: nenhum campo responde «o que isto exige / ensina / expressa». **NÃO
+   ENCONTRADO**.
+5. **A poiésis não tem campo.** A única ocorrência de «poiese» em conteúdo é o texto de ajuda do
+   bloco 10 do plano, escrito hoje. **NÃO ENCONTRADO**.
+6. **A escada de quatro degraus não está no planeamento** — o que está são as frentes isoladas
+   (L14, L8, L9, C19, C20) e **nenhuma frente para o syllabus**. **CORRIGIDO**.
+7. **A resposta nova da pesquisadora — a extensão da turma pronta depende do plano contratado —
+   não está modelada em lado nenhum.** A L9 trava professores, modalidades, consultas e tokens; a
+   L14 fala de «quantas turmas prontas» (uma **quantidade**), não de **que natureza**. **NÃO
+   ENCONTRADO** — é registo novo, e **fecha a primeira metade da C19**.
+8. **O que o «Carregar as turmas iniciais» semeia é o esqueleto, e só ele.** Medido na rota
+   (`motor/servidor/bastidores.js:8060`): escreve `turmas` e `turma-conteudos`, devolve
+   `turmasNovas`, `associacoes` e `termosNovos: 0` (literal, desde que o vocabulário saiu do KV).
+   Nem plano, nem PO, nem aula. **CONFIRMADO** — a distinção configuração × conteúdo pedagógico já
+   existe **no que o código faz**, e não no que o documento diz.
+9. **O ritmo continua em aberto, e é a lacuna que a L14 já tinha medido.** As turmas do catálogo
+   têm `nome, ordem, programaReferencia, nivelReferencia, descricao, ativo` — **não têm ritmo** —, e
+   `comporConf` lança sem ele. A resposta nova **não** responde ao ritmo. **CONFIRMADO**.
+10. **E um conflito que a proposta não viu, porque não é uma pergunta de produto mas de ficheiro:**
+    o `POST /api/bastidores/termo` grava em `biblioteca/modalidades/bale-classico/vocabulario.json`
+    (`termo-repo.js`, o `CAMINHO`) — que é o **catálogo**. Uma escola que acrescente um termo
+    **altera o catálogo de todos**, e a decisão 17 («o vocabulário vive no repositório, numa lista
+    só») é o que hoje impede a separação «catálogo público × adições da escola». Isso não é um
+    detalhe do degrau 1: é o que hoje faz o dicionário **não poder ser vendido sem ser separado
+    primeiro**. **CONFIRMADO** por leitura do módulo e da decisão.
+11. **Licença: não existe.** Sem ficheiro `LICENSE`; `ARQUITETURA-GERAL.md:109` diz «Licença do
+    repositório (**a definir**)»; a L14 já a lista como lacuna. Do campo `fonte`, medido: **30**
+    termos com «Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecida pela…», **4** com
+    «Redigida no projeto (31/10/2026)…» e **59** vazios (de 93 termos; 59 é também o número dos que
+    têm descrição, mas a coincidência é do acaso — são eixos diferentes). **CONFIRMADO**.
 
-- **Seis passos**, e o primeiro é o exercício novo (nome, categoria, tradição de referência,
-  carregar as turmas iniciais). O antigo passo 1 — o exercício a escolher, a frase e a posição — é
-  agora o **passo 2**; a música é o 3, o «para onde» o 4, os sinais o 5, a decomposição o 6.
-- **O «+» deixou de existir**, e com ele o «Gravar exercício» e o «Cancelar»: **quem grava é o
-  «Seguir →»** que já existia. Sem nome escrito, avançar não grava nada — quem só quer editar um
-  verbete que já existe passa pelo passo 1 sem escrever.
-- **O seletor do exercício desceu para o passo 2**, com a frase e a posição. Era um painel à parte,
-  por cima, porque o «modo» o bloqueava; sem modo, um painel fora da numeração seria um passo sem
-  número.
-- **A gravação continua a não gastar KV**: o `POST /api/bastidores/termo` grava no vocabulário do
-  repositório e a lista que a rota serve lê o mesmo ficheiro; a tela acrescenta o termo à lista
-  local, no grupo da categoria, e escolhe-o — e não o duplica se ele já lá estiver.
-- **«Limpar» vai para o passo 2**, e não para o 1: limpar o formulário para escrever outro verbete
-  de um exercício que já existe não deve pôr ninguém a escrever outro nome. **«Editar» também** — é
-  no passo 2 que vive o seletor, e sem isso preenchia campos que não estavam no ecrã.
+**O que ficou decidido.** **Nada foi registado no `PLANEJAMENTO-LASTRO.md`**, e é de propósito: o
+que a proposta acrescenta (o verbete como átomo do syllabus, a escada de quatro degraus, a camada
+pedagógica do verbete) é **proposta**, não decisão, e o documento recebe decisões com data e com
+quem as tomou. A lista do que falta, e onde deve entrar, foi entregue à pesquisadora com esta
+entrada — ela decide o que sobe para o documento e com que palavras.
 
-**Um detalhe de desenho que a prova obrigou.** O passo 2 tinha nascido «O exercício e a frase», e a
-tira a 1280px cortava-o com reticências — a regra da casa é o rótulo ficar inteiro. Ficou **«O
-exercício»**, que é o nome que o antigo passo 1 já tinha, e o passo 1 é **«O exercício novo»**.
+**Onde entrou.** `REGISTRO.md` (esta entrada). Nada em `motor/`, `porta/` ou `biblioteca/`: a
+verificação não muda comportamento.
 
-*(Nota de correção, mesma data: a mensagem do commit `b7935ff` diz que o rótulo encurtado foi o do
-passo 1. Não foi — foi o do passo 2. O que está acima é o que se mediu.)*
-
-**Onde entrou.** `motor/servidor/bastidores.js` (`PASSOS_DO_VERBETE`, `PASSOS_DO_TRECHO`, o markup
-dos seis painéis, `criarExercicioDoPasso1`, o «Seguir», o `Enter`, `pintarTira`, `alvoDoRecado`,
-`editarVerbete`) · `experimentos/provar-celula.js` (o mapa dos passos, as secções 1, 3–6 reescritas;
-130 asserções) · `experimentos/provar-verbete.js` (a ausência do «+» e dos dois botões, o «Seguir»
-que grava) · `experimentos/provar-producao.js` (o recorte do passo 1).
-
-**Com o quê.** `provar-celula` **130 de 130** · `provar-verbete` TUDO CERTO · `provar-acordeoes`
-TUDO CERTO · `provar-vao-do-botao` 50/50 · `provar-menu-da-producao` 55/55 · `provar-producao`
-**151/152** (o item do menu — falha igual em `HEAD`) · `check-identidade` 20/20.
+**Com o quê.** Medições citadas no corpo (ficheiro e linha) · `provar-celula` 130/130 ·
+`provar-verbete` TUDO CERTO · `check-identidade` 20/20 — as mesmas provas da entrega anterior, sem
+alteração de código nesta entrada.
 
 ## O que está pendente
 

@@ -30548,3 +30548,71 @@ que grava) · `experimentos/provar-producao.js` (o recorte do passo 1).
 **Com o quê.** `provar-celula` **130 de 130** · `provar-verbete` TUDO CERTO · `provar-acordeoes`
 TUDO CERTO · `provar-vao-do-botao` 50/50 · `provar-menu-da-producao` 55/55 · `provar-producao`
 **151/152** (o item do menu — falha igual em `HEAD`) · `check-identidade` 20/20.
+
+## 02/11/2026 — A proposta «o verbete é o átomo do syllabus» verificada contra o repositório
+
+**O que motivou.** A pesquisadora trouxe uma conversa de planeamento em que se propõe que o
+**verbete** seja o **átomo de um syllabus** e que daí saia uma escada de produtos (dicionário →
+syllabus → aula pronta → gerador), e pediu que a proposta fosse **verificada** contra o código e os
+documentos, com evidência, porque quem a propôs não tem acesso ao repositório inteiro.
+
+**O que se mediu, e o que a proposta não sabia.**
+
+1. **O modelo tem UM eixo, e não três.** O PO declara `"eixo": "Técnica"` para **todas** as
+   dimensões (`porta/po/conteudo/po.json:196`), e as dimensões derivam dos blocos do plano. A
+   leitura «as três camadas são concomitantes» não é contrariada por uma partição — não há
+   partição nenhuma —, mas **o corpo e a poiésis não são eixos**: a força e a flexibilidade estão
+   na anamnese e chegam ao **Ponto de partida**, não a um eixo; e o verbete não diz o que o
+   exercício exige do corpo. **CORRIGIDO**.
+2. **`progressao.json` é uma ORDENAÇÃO, não um syllabus.** Medido: 13 turmas com `ordem`,
+   `nivelReferencia` e `programaReferencia`; **9** pares turma↔termo; e a própria `nota` do ficheiro
+   diz que as associações são **exemplos**, não uma progressão certificada. Não há, por unidade,
+   nem música, nem tempos, nem sessão, nem camada pedagógica. **CONFIRMADO** como ordem;
+   **CORRIGIDO** o número (9 associações, não «as associações» no plural indefinido).
+3. **«Syllabus» não está definido em documento nenhum.** Só aparece como referência ao RAD
+   (`tools/validar-captura-ciclo.js:11`) e em fixtures de `experimentos/`. **NÃO ENCONTRADO** — a
+   proposta introduz o termo.
+4. **A camada pedagógica de que a proposta fala não existe** — nem no verbete, nem no vocabulário,
+   nem na progressão: nenhum campo responde «o que isto exige / ensina / expressa». **NÃO
+   ENCONTRADO**.
+5. **A poiésis não tem campo.** A única ocorrência de «poiese» em conteúdo é o texto de ajuda do
+   bloco 10 do plano, escrito hoje. **NÃO ENCONTRADO**.
+6. **A escada de quatro degraus não está no planeamento** — o que está são as frentes isoladas
+   (L14, L8, L9, C19, C20) e **nenhuma frente para o syllabus**. **CORRIGIDO**.
+7. **A resposta nova da pesquisadora — a extensão da turma pronta depende do plano contratado —
+   não está modelada em lado nenhum.** A L9 trava professores, modalidades, consultas e tokens; a
+   L14 fala de «quantas turmas prontas» (uma **quantidade**), não de **que natureza**. **NÃO
+   ENCONTRADO** — é registo novo, e **fecha a primeira metade da C19**.
+8. **O que o «Carregar as turmas iniciais» semeia é o esqueleto, e só ele.** Medido na rota
+   (`motor/servidor/bastidores.js:8060`): escreve `turmas` e `turma-conteudos`, devolve
+   `turmasNovas`, `associacoes` e `termosNovos: 0` (literal, desde que o vocabulário saiu do KV).
+   Nem plano, nem PO, nem aula. **CONFIRMADO** — a distinção configuração × conteúdo pedagógico já
+   existe **no que o código faz**, e não no que o documento diz.
+9. **O ritmo continua em aberto, e é a lacuna que a L14 já tinha medido.** As turmas do catálogo
+   têm `nome, ordem, programaReferencia, nivelReferencia, descricao, ativo` — **não têm ritmo** —, e
+   `comporConf` lança sem ele. A resposta nova **não** responde ao ritmo. **CONFIRMADO**.
+10. **E um conflito que a proposta não viu, porque não é uma pergunta de produto mas de ficheiro:**
+    o `POST /api/bastidores/termo` grava em `biblioteca/modalidades/bale-classico/vocabulario.json`
+    (`termo-repo.js`, o `CAMINHO`) — que é o **catálogo**. Uma escola que acrescente um termo
+    **altera o catálogo de todos**, e a decisão 17 («o vocabulário vive no repositório, numa lista
+    só») é o que hoje impede a separação «catálogo público × adições da escola». Isso não é um
+    detalhe do degrau 1: é o que hoje faz o dicionário **não poder ser vendido sem ser separado
+    primeiro**. **CONFIRMADO** por leitura do módulo e da decisão.
+11. **Licença: não existe.** Sem ficheiro `LICENSE`; `ARQUITETURA-GERAL.md:109` diz «Licença do
+    repositório (**a definir**)»; a L14 já a lista como lacuna. Do campo `fonte`, medido: **30**
+    termos com «Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecida pela…», **4** com
+    «Redigida no projeto (31/10/2026)…» e **59** vazios (de 93 termos; 59 é também o número dos que
+    têm descrição, mas a coincidência é do acaso — são eixos diferentes). **CONFIRMADO**.
+
+**O que ficou decidido.** **Nada foi registado no `PLANEJAMENTO-LASTRO.md`**, e é de propósito: o
+que a proposta acrescenta (o verbete como átomo do syllabus, a escada de quatro degraus, a camada
+pedagógica do verbete) é **proposta**, não decisão, e o documento recebe decisões com data e com
+quem as tomou. A lista do que falta, e onde deve entrar, foi entregue à pesquisadora com esta
+entrada — ela decide o que sobe para o documento e com que palavras.
+
+**Onde entrou.** `REGISTRO.md` (esta entrada). Nada em `motor/`, `porta/` ou `biblioteca/`: a
+verificação não muda comportamento.
+
+**Com o quê.** Medições citadas no corpo (ficheiro e linha) · `provar-celula` 130/130 ·
+`provar-verbete` TUDO CERTO · `check-identidade` 20/20 — as mesmas provas da entrega anterior, sem
+alteração de código nesta entrada.
