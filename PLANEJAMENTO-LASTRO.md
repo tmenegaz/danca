@@ -420,7 +420,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.3.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) e o **motor dos verbetes**, que a pesquisadora vai propor sobre arquivos JSON de chave e valor. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** — **resolvida a 02/11/2026 nas duas metades**: a extensão depende do plano contratado, e o ritmo é **do contrato** (já existe, obrigatório, no cadastro da turma) · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) · **C22** o **verbete como átomo do syllabus**, os quatro degraus com os seus bloqueios e a **viabilidade do motor**, medida. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -886,30 +886,41 @@ arquitetura: é de **vocabulário** — e de vocabulário que o dinheiro vai ler
 **C19 — O que é uma «turma pronta», e de quem é o ritmo.** A pesquisadora, a 01/11/2026, deu ao
 botão «Carregar as turmas iniciais» um destino comercial: «carregar já turmas prontas, tudo pronto,
 montado já para o professor […] eu quero poder vender isso no futuro» (frente **L14**). A decisão
-tem duas metades, e **as duas precisam de resposta antes de haver oferta**:
+tinha duas metades. **A primeira está fechada, e a segunda estava mal posta — o ritmo já existe.**
 
-- **A extensão.** «Turma pronta» é o **esqueleto** — o nome, o nível de referência e as associações
-  turma↔termo, que é o que o catálogo tem hoje —, ou inclui também as **aulas**, os **planos de
-  ensino** e os **POs** de referência? A diferença não é de grau: um esqueleto é **configuração**, e
-  um plano com PO é **conteúdo pedagógico** — com autoria, com responsabilidade e com um preço
-  outro.
-- **O ritmo.** Medido: as turmas do catálogo **não trazem o ritmo** (dias, hora de cada dia,
-  duração e período), e `comporConf` **lança** sem ele — «a turma não tem o que a geração exige».
-  Semeada hoje, a turma serve para a curadoria e **não gera ciclo**. E o ritmo **não é do
-  conteúdo**: a mesma «Balé Nível 1» pode ser 2×/semana numa escola e 3× noutra, porque ele é do
-  **contrato da escola**, não do exercício. Três saídas, e a escolha decide quantas perguntas a
-  carga faz: **(a)** um ritmo de referência no catálogo, que a escola corrige; **(b)** um
-  intervalo («2 a 3×/semana, 60 min») que a carga converte em pergunta; **(c)** a carga passa a
-  pedir o ritmo, uma vez por turma carregada.
+- **A extensão — RESOLVIDA a 02/11/2026, e a resposta é «depende do plano contratado».** A
+  pesquisadora: no **Básico e no Intermediário** a turma pronta é **configuração** (nome, nível de
+  referência, associações turma↔termo — o esqueleto); no **Avançado** é **configuração e conteúdo
+  pedagógico**, e é o **cliente** que escolhe se quer gerar o conteúdo ou só configurar. Isto fecha
+  a metade que a C19 deixava aberta e dá à **L14** o tamanho que ela não tinha: a oferta tem **duas
+  naturezas**, e o plano decide qual.
+- **O ritmo — CORRIGIDO a 02/11/2026: não está em aberto, e nunca esteve.** A primeira redação desta
+  entrada dizia que as três saídas (a/b/c) decidiam «quantas perguntas a carga faz». **É falso, e a
+  medição está no código:** o ritmo é **obrigatório no cadastro da turma**, e o servidor recusa
+  três vezes sem ele — gravar a turma (`bastidores.js:7402`), atribuí-la a um professor
+  (`:7463`) e gerar o ciclo (`:8203`, `:8343`), sempre com a frase que nomeia o que falta. O
+  formulário pede **os dias da semana e a hora de início de cada um**, a **duração de cada aula** e
+  o **início e o fim do período** (`:3174`–`:3190`); a **frequência** não se digita — ela é a
+  contagem dos dias, derivada (`frequenciaDaTurma`, `:822`). E o cartão da turma **diz o que
+  falta** (`:1957`).
 
-**O que fica decidido sem esperar:** o aviso. Enquanto as duas metades estiverem abertas, o botão
-**diz o que não traz** — no `confirm`, e não em prosa fixa na página (a regra da casa é que o
-formulário não explica). Um botão que promete «carregar as turmas» e entrega metade delas é a
-mesma família de erro do `if` que filtrava o título vazio: diz uma coisa, faz outra, e ninguém dá
-por isso.
+  A pergunta certa nunca foi «quem fornece o ritmo ao catálogo»: é **«o ritmo pode ir dentro do
+  pacote?»**, e a resposta é **não** — ele é do **contrato da escola**, não do conteúdo, e a mesma
+  «Balé Nível 1» é 2×/semana numa escola e 3× noutra. O que resta não é uma decisão de modelo: é uma
+  **consequência para a oferta** — a turma pronta vende-se **sem ritmo**, e o ritmo entra no ato de
+  contratação, onde já entra hoje, obrigatório. Nada a construir; **a L14 deixa de ter esta lacuna**
+  e passa a ter de o **dizer** na oferta.
+
+**O que fica decidido, e já está feito:** o aviso. O botão **diz o que não traz** — no `confirm`, e
+não em prosa fixa na página (a regra da casa é que o formulário não explica): «Vem o nome e o nível
+de referência de cada turma — NÃO vem o ritmo (dias, hora, duração e período)». Com o ritmo
+localizado como **do contrato**, este aviso deixa de ser uma lacuna por resolver e passa a ser a
+**frase certa**: o que se carrega é a configuração, e o ritmo declara-se depois, na turma, onde é
+obrigatório.
 
 *(Afeta §L14 (a frente que isto destranca), §L8 (o valor) e a L9 (a trava por plano). A metade do
-ritmo é de **domínio**; a da extensão é **comercial**.)*
+ritmo **fechou-se pela negativa** — não há decisão a tomar, há uma consequência a escrever na
+oferta; a da extensão é **comercial**, e está resolvida.)*
 
 **C20 — O que o Lastro observa: três aspectos macro, e a Regra 4 pede um quarto que ninguém declara.**
 A pesquisadora declarou, a 02/11/2026, o eixo que **qualquer modalidade** tem de ter — não é do balé
@@ -1001,6 +1012,72 @@ bloco 10. A decisão é dela, e não se toma por dentro do gerador.
 
 *(Afeta §L1, a L10 e a decisão da Regra 15, que fica fechada. A metade do motor é de **produto**; a
 do dicionário é de **dado**.)*
+
+**C22 — O verbete é o átomo de um syllabus: quatro degraus, e a viabilidade de cada um.** A
+pesquisadora trouxe, a 02/11/2026, a leitura que dá nome ao que o sistema já faz sem o dizer: quando
+o professor define um elemento técnico pelo dicionário, diz em que posição e direção ele acontece,
+gera a notação e o guarda à espera de uma aula, **não está a fazer «um verbete» — está a construir a
+unidade mínima de um syllabus.** Daí saem **quatro** produtos, e não três, com bloqueios distintos.
+
+**O que o átomo é hoje, medido** (é a base de tudo): `biblioteca/modalidades/bale-classico/`
+`notacao.json` **v15** — 11 verbetes, **13 músicas**, **43 células**, cada célula com `contagem`,
+`categoria`, `sinais` e `descricao`; 11 dos 11 verbetes declaram `posicao` (membro + termo), e 8 dos
+13 pares `cobre == tempos`. O `vocabulario.json` tem **93 termos** em 8 categorias (passo 23,
+direção 20, salto 17, posição 13, ligação 9, giro 6, qualidade 4, conceito 1), 59 com descrição e
+30 com `fonte` de dicionário. O `progressao.json` tem 13 turmas e 9 associações. E a cadeia já existe
+de ponta a ponta: catálogo → `semear-catalogo` → `turma-conteudos` → `Conteúdo do nível` da sequência
+(`plano.json`, `selecoes["Conteúdo do nível"].fonte = "termosDaTurma"`) → aula, plano, captura,
+notação, glossário.
+
+**Os quatro degraus, e o que bloqueia cada um.**
+
+| # | O que se vende | Existe? | O que bloqueia, medido |
+|:--|:--|:--|:--|
+| **1** | **Dicionário** — o vocabulário e os verbetes | **sim**, o conteúdo | **a separação catálogo × escola** e a **licença**. O `POST /api/bastidores/termo` grava em `biblioteca/modalidades/bale-classico/vocabulario.json` (`termo-repo.js`), que é o **catálogo** — uma escola que acrescente um termo altera o catálogo de todos. E não há `LICENSE`, e a `ARQUITETURA-GERAL.md:109` diz «a definir» |
+| **2** | **Syllabus** — a sequência por nível, com os três eixos por unidade | **parcial**: há ordem (13 turmas, 9 associações), não há programa | **a camada pedagógica do verbete** (exige/ensina/expressa) não existe em nenhum dos três ficheiros, e **os três eixos não são eixos** — são prefixo de rótulo (ver **C20**) |
+| **3** | **Aula pronta** — a sessão montada | **a mecânica sim**, o objecto vendável não | o mesmo do syllabus, e a **natureza da oferta**: no Básico/Intermediário é configuração; no Avançado é configuração + conteúdo (**C19**, resolvida) |
+| **4** | **Gerador** — a ferramenta que produz 2 e 3 a partir de 1 | **não** | depende dos três acima; é o plano Avançado da L8/L9 |
+
+**A escada é de baixo para cima, e a ordem não é preferência — é dependência.** O dicionário pode
+vender-se assim que houver separação e licença; o syllabus precisa da camada pedagógica e dos eixos;
+a aula pronta precisa do syllabus; o gerador precisa de tudo. Vender o gerador primeiro é vender a
+máquina antes de haver o que ela produz.
+
+**A viabilidade do motor — o veredicto, e o que o sustenta.** **É viável, e o átomo já tem a forma
+certa**: chave-valor, por música, com a notação derivada e não escrita (o `motor/nucleo/notacao.js`
+compõe `[Pé: 5ª → +]` a partir de `categoria` + `sinais`), e os três consumidores que já o leem — a
+aula, o plano e o glossário. Um motor que gere produtos a partir do dicionário **não precisa de um
+modelo novo**; precisa de quatro coisas, e três delas são de **arrumação**, não de invenção:
+
+1. **uma identidade estável por unidade.** Hoje o verbete é chaveado pelo **nome** do exercício, e o
+   `PUT /api/bastidores/termo` **recusa** mudar o nome de um termo em uso justamente porque o `id`
+   deriva dele. Para vender e versionar, a unidade precisa de `id` próprio e de versão — e é a
+   **L2** (identidade estável), já aberta;
+2. **a separação catálogo × adições da escola** (ver o degrau 1) — é o **pré-requisito**, não um
+   detalhe: sem ela, o catálogo que se vende é o mesmo ficheiro que a escola edita;
+3. **a camada pedagógica por unidade** — três campos, e são **de conteúdo** (P-16): o que a unidade
+   **exige** do corpo, o que ela **ensina** (o eixo prioritário) e o que ela **expressa** (música,
+   carácter, história, oralidade). Sem eles o syllabus é uma lista de exercícios;
+4. **uma leitura só do vocabulário.** Medido, há **duas**: `lerModalidade` lê do **GitHub** e
+   `termos()` lê do **bundle** (`CATALOGO.TERMOS`, `require` do JSON). É por isso que o termo criado
+   aparece na lista local e não no plano até ao deploy. Um motor que gera produtos não pode ter duas
+   frescuras diferentes para a mesma fonte.
+
+E há um **pré-requisito de integridade** que não é de arquitetura e é o mais barato de todos:
+**5 das 13 músicas do alfabeto têm `cobre` diferente dos tempos** (Plié 12 em 8, Rond de jambe en
+l'air 3 em 4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2). Um motor que gere
+produtos a partir de átomos inconsistentes gera produtos inconsistentes — e desde 02/11/2026 a
+gravação **recusa** esses verbetes, o que quer dizer que os cinco não podem ser regravados sem
+correção. **É a primeira tarefa do degrau 1, e é de conteúdo, não de código.**
+
+**O que não está decidido, e é dela.** O que sobe para este documento e com que palavras; se os três
+eixos passam a primeira classe (C20); e a ordem comercial entre os degraus. **Nada foi desenhado nem
+alterado no código por causa desta entrada** — o que ela acrescenta é a **medição**, e o veredicto de
+viabilidade.
+
+*(Afeta §L1, §L2 (identidade estável), §L10, a C19, a C20 e as frentes L8, L9 e L14. A metade do
+motor é de **produto**; a da camada pedagógica é de **conteúdo** (P-16); a da separação é de
+**dado**.)*
 
 ---
 
@@ -2154,31 +2231,46 @@ decisão.
   os dias da semana da turma; a duração de cada aula; o início do período; o fim do período».
   Uma turma semeada assim serve para a curadoria e para o repertório e **não gera ciclo**: nasce
   pela metade. Hoje o aviso está no `confirm` do botão; a frente tem de resolver a causa.
-- **Lacunas.** (a) O catálogo não declara o ritmo — e o ritmo é do **contrato da escola**, não
-  do conteúdo (a mesma turma pode ser 2×/semana numa escola e 3× noutra): falta decidir **quem
-  o fornece** (a escola ao carregar? um valor de referência que ela corrige? um intervalo?);
+- **Lacunas.** **(0) — A SEPARAÇÃO CATÁLOGO PÚBLICO × ADIÇÕES DA ESCOLA, e é a primeira, porque
+  sem ela nenhuma das outras se resolve.** Medido a 02/11/2026: `POST /api/bastidores/termo` grava
+  em `biblioteca/modalidades/bale-classico/vocabulario.json` (`motor/servidor/termo-repo.js`), que
+  é o **catálogo da modalidade**. Uma escola que acrescente um termo **altera o catálogo de
+  todos** — e a decisão **17** («o vocabulário vive no repositório, numa lista só») é o que hoje
+  garante que ele não se divide. As duas coisas são verdadeiras ao mesmo tempo e uma delas tem de
+  ceder: **vender** o catálogo exige que o que a escola constrói seja **dela**, e que o que se
+  vende seja **igual para todos**. É pré-requisito do degrau 1 da **C22**, e não um detalhe dele.
+  (a) O ritmo — **RESOLVIDO a 02/11/2026, e pela negativa**: o catálogo **não deve** declará-lo,
+  porque ele é do **contrato** e já é obrigatório no cadastro da turma (ver **C19**); o que a
+  oferta tem de fazer é **dizê-lo**, como o `confirm` do botão já diz;
   (b) não há noção de «turma pronta» como **objeto vendável** — hoje `progressao.json` é
   conteúdo da modalidade, e não há preço, versão, autoria nem licença; (c) não há
   **curadoria de conteúdo**: quem responde por uma turma que a escola paga para usar; (d) não
   há como a escola **acrescentar ao** catálogo o que ela construiu (o inverso da compra), que é
-  o que separa um catálogo vivo de uma lista fixa; (e) não há registro de **o que foi comprado**
-  — a escola que carrega hoje não sabe depois o que veio do catálogo e o que é dela.
+  o que separa um catálogo vivo de uma lista fixa — **e é a mesma lacuna (0)**, vista do outro
+  lado; (e) não há registro de **o que foi comprado** — a escola que carrega hoje não sabe depois
+  o que veio do catálogo e o que é dela.
 - **Dependências técnicas e de domínio.** L8 (o valor — sem preço não há oferta) e L9 (a trava
   por plano — quantas turmas prontas o plano inclui); L11/L12 para o ato de compra; **C19** (o
   que exatamente é «turma pronta»: só o esqueleto de níveis e associações, ou também as aulas,
-  os planos de ensino e os POs de referência?); e a **decisão do ritmo** — técnica, porque
-  determina se o catálogo pode ser semeado sem mais perguntas ou se a carga passa a ter uma
-  etapa de cadastro.
-- **Entregas.** (a) O **ritmo no catálogo**, de uma das três formas que a decisão escolher:
-  valor de referência por turma (que a escola corrige), ou intervalo («2 a 3×/semana, 60 min»),
-  ou pergunta obrigatória ao carregar; (b) o **objeto «turma pronta»** com `id`, versão, autoria,
+  os planos de ensino e os POs de referência?) — **resolvida a 02/11/2026**: a extensão depende do
+  plano contratado; e a **separação catálogo × escola** (lacuna 0), que decide se a oferta pode
+  existir. O **ritmo deixou de ser dependência**: é do contrato, é obrigatório na turma, e o
+  catálogo não o transporta.
+- **Entregas.** **(0) A separação** — o catálogo público num ficheiro (o que se vende, igual para
+  todos) e as adições da escola noutro (o que ela construiu, e é dela), com o leitor a **compor** os
+  dois na leitura e o cadastro a **escrever no da escola**. Sem isto, as restantes entregas
+  vendem o ficheiro que a escola edita. (a) O **ritmo** — **deixou de ser entrega no catálogo**: o
+  aviso do `confirm` já diz o que a carga não traz, e o ritmo declara-se na turma, onde é
+  obrigatório; (b) o **objeto «turma pronta»** com `id`, versão, autoria,
   nível de referência e associações — separado do cadastro da escola, que passa a **referenciá-lo**
   (`turmaProntaId`) em vez de o copiar, para a escola receber correções; (c) a **marca de
   origem** em cada turma carregada (do catálogo × da escola), que é o que permite dizer depois o
   que foi comprado; (d) o **catálogo como oferta**: o que está incluído, o que é adicional, e a
   ligação a L8; (e) a via inversa — a escola propõe ao catálogo o que construiu, com curadoria.
-- **Critérios verificáveis.** (i) Uma turma carregada do catálogo **gera ciclo** sem nenhuma
-  edição manual — é a prova que hoje falha, e a que fecha esta frente; (ii) carregar duas vezes
+- **Critérios verificáveis.** (0) Uma escola que cria um termo **não altera** o ficheiro do
+  catálogo, e outra escola **não vê** o termo dela; o catálogo, lido em paralelo, não muda;
+  (i) uma turma carregada do catálogo **gera ciclo** assim que o ritmo é declarado — que é o
+  único passo manual, e é obrigatório de qualquer forma; (ii) carregar duas vezes
   não duplica (idempotência, que já se mede); (iii) a marca de origem distingue catálogo de
   escola, e sobrevive à regeração dos índices; (iv) uma correção no catálogo chega às escolas que
   o compraram sem lhes apagar o que é delas; (v) o preço e o que está incluído saem de L8, não do
