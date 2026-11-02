@@ -6407,6 +6407,59 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * baixo. O complemento diz o que se quer saber de relance — os tempos e o compasso, quantos
      * trechos, por onde o exercício passa e que partes do corpo se movem.
      */
+    /* AS TRÊS PEÇAS DO CARTÃO, escritas uma vez (02/11/2026).
+     *
+     * O cartão da turma desenha o `metrica`/`trio-painel` inline, no servidor, porque a lista de
+     * turmas é montada lá. A lista de verbetes é montada AQUI, no `script` da página — e a peça
+     * tem de ser a mesma, senão as duas listas divergem no primeiro ajuste. Estas três funções
+     * são a peça, na linguagem de cá; quem as desenha é a folha (`.trio-item`, `.trio-painel`).
+     */
+    '    function metricaDoVerbete(rotulo, valor, qual, dica){' +
+    '      return "<button type=\\"button\\" class=\\"trio-item\\" data-balao=\\"" + qual +' +
+    '        "\\" aria-expanded=\\"false\\" aria-label=\\"" + dica + "\\">" +' +
+    '        "<span class=\\"trio-k\\">" + rotulo + "</span>" +' +
+    '        "<span class=\\"trio-v\\">" + valor + "</span>" +' +
+    '        "<span class=\\"trio-q\\" aria-hidden=\\"true\\">?</span></button>";' +
+    '    }' +
+    '    function painelDoVerbete(qual, miolo){' +
+    '      return "<div class=\\"trio-painel\\" data-painel=\\"" + qual + "\\" hidden>" + miolo + "</div>";' +
+    '    }' +
+    '    function painelDaMusica(ms){' +
+    '      return "<div class=\\"trio-grade\\">" + ms.map(function(m){' +
+    '        return "<div><span class=\\"trio-k\\">música</span><span class=\\"trio-v\\">" +' +
+    '          (m.tempos || "—") + " tempos em " + (m.compasso || "—") + "</span></div>" +' +
+    '          "<div><span class=\\"trio-k\\">compassos</span><span class=\\"trio-v\\">" +' +
+    '          Math.ceil((Number(m.tempos) || 0) / (Number(String(m.compasso || "4/4").split("/")[0]) || 4)) +' +
+    '          "</span></div>";' +
+    '      }).join("") + "</div>";' +
+    '    }' +
+    '    function painelDaDirecao(m){' +
+    '      var onde = (m.direcoes || []).map(nomeDaDirecao)' +
+    '        .concat((m.orientacoes || []).map(nomeDaOrientacao));' +
+    '      var chips = onde.length' +
+    '        ? onde.map(function(x){ return "<span>" + x + "</span>"; }).join("")' +
+    '        : "<span class=\\"dono\\">(sem direção — o trecho ainda não foi arrumado)</span>";' +
+    '      return "<div class=\\"trio-chips\\">" + chips + "</div>" +' +
+    '        "<p class=\\"trio-nota\\">As direções dizem para onde o membro vai; as orientações, como o corpo está voltado. Duas perguntas, e é por isso que são dois eixos.</p>";' +
+    '    }' +
+    /* A NOTAÇÃO EM TABELA. A peça é o `table` da folha — a mesma que o documento usa para a
+     * decomposição —, e não uma lista com um desenho novo: a tabela é o que se lê em coluna, e é
+     * a forma que o passo 6 já tem. Duas colunas porque no telefone quatro não cabem: o compasso
+     * e a contagem numa, o que acontece na outra. */
+    '    function painelDaNotacao(m){' +
+    '      var ls = m.linhas || [];' +
+    '      if (!ls.length) {' +
+    '        return "<p class=\\"trio-nota\\">A decomposição deste exercício não pôde ser lida — ' +
+    'confira os sinais no formulário.</p>";' +
+    '      }' +
+    '      return "<table><thead><tr><th>compasso</th><th>o que acontece</th></tr></thead><tbody>" +' +
+    '        ls.map(function(l){' +
+    '          return "<tr><td>" + l.compasso + " · " + l.contagem + "</td>" +' +
+    '            "<td><code>[" + (l.categoria || "") + ": " + (l.sinais || "") + "]</code>" +' +
+    '            (l.descricao ? "<br><span class=\\"nota\\">" + l.descricao + "</span>" : "") +' +
+    '            "</td></tr>";' +
+    '        }).join("") + "</tbody></table>";' +
+    '    }' +
     '    var linhas = [];' +
     '    (d.exercicios || []).forEach(function(x){' +
     '      var posicao = "";' +
@@ -6433,22 +6486,46 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          "</span></span></li>");' +
     '        return;' +
     '      }' +
+    /* O CARTÃO — as peças da lista de turmas (02/11/2026, escolha dela).
+     *
+     * A LINHA POR MÚSICA DIZIA TUDO NUMA FRASE e não abria nada; o cartão diz menos de relance e
+     * abre o resto a um toque. As três caixinhas são as mesmas da turma: `Música` (a mais alta
+     * das músicas que o exercício tem), `Direção` e `Notação`. A caixa INTEIRA é o alvo — o «?» é
+     * desenho, e não o alvo de 20px que num telefone pede pontaria.
+     *
+     * E CONTINUA A SER UMA LINHA POR MÚSICA: a música vai no `data-musica` do botão do nome, e é
+     * ela que abre a versão certa. Foi o defeito de hoje de manhã: duas músicas no alfabeto e o
+     * «editar» a abrir sempre a primeira.
+     */
     '      ms.forEach(function(m){' +
-    '        var partes = [];' +
-    '        partes.push((m.tempos || "—") + " tempos");' +
-    '        if (m.compasso) partes.push(m.compasso);' +
-    '        partes.push(m.trechos + (m.trechos === 1 ? " trecho" : " trechos"));' +
     '        var onde = (m.direcoes || []).map(nomeDaDirecao);' +
     '        if ((m.orientacoes || []).length) {' +
     '          onde = onde.concat((m.orientacoes || []).map(nomeDaOrientacao));' +
     '        }' +
-    '        if (onde.length) partes.push(onde.join(" · "));' +
-    '        if ((m.categorias || []).length) partes.push(m.categorias.join(", "));' +
-    '        linhas.push("<li><span class=\\"nome\\"><span class=\\"linha1\\">" +' +
-    '          "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" + x.nome +' +
-    '          "\\" data-musica=\\"" + m.chave +' +
-    '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button> " + selos +' +
-    '          "</span><span class=\\"dono\\">" + partes.join(" · ") + "</span></span></li>");' +
+    '        var detalhe = [];' +
+    '        detalhe.push((m.tempos || "—") + " tempos");' +
+    '        if (m.compasso) detalhe.push(m.compasso);' +
+    '        detalhe.push(m.trechos + (m.trechos === 1 ? " trecho" : " trechos"));' +
+    '        if ((m.categorias || []).length) detalhe.push(m.categorias.join(", "));' +
+    '        var alvoDeMusica = "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" +' +
+    '          x.nome + "\\" data-musica=\\"" + m.chave +' +
+    '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button>";' +
+    '        linhas.push("<li class=\\"turma\\" data-verbete=\\"" + x.nome + "\\">" +' +
+    '          "<div class=\\"linha-turma\\"><span class=\\"nome\\">" + alvoDeMusica +' +
+    '          " " + selos + "</span></div>" +' +
+    '          "<div class=\\"dono\\">" + detalhe.join(" · ") + "</div>" +' +
+    '          "<div class=\\"trio\\">" +' +
+    '          metricaDoVerbete("Música", (m.tempos || "—") + " tempos", "musica",' +
+    '            "ver a música deste exercício") +' +
+    '          metricaDoVerbete("Direção", onde.length ? onde.join(" · ") : "—", "direcao",' +
+    '            "ver as direções e as orientações deste exercício") +' +
+    '          metricaDoVerbete("Notação", m.trechos + (m.trechos === 1 ? " trecho" : " trechos"),' +
+    '            "notacao", "ver a notação deste exercício, trecho a trecho") +' +
+    '          "</div>" +' +
+    '          painelDoVerbete("musica", painelDaMusica(ms)) +' +
+    '          painelDoVerbete("direcao", painelDaDirecao(m)) +' +
+    '          painelDoVerbete("notacao", painelDaNotacao(m)) +' +
+    '          "</li>");' +
     '      });' +
     '    });' +
     '    lista.innerHTML = linhas.join("") || "<li>Nenhum exercício com verbete.</li>";' +
@@ -6512,6 +6589,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'if (listaVerbetes) {' +
     '  carregarVerbetes();' +
     '  listaVerbetes.addEventListener("click", function(e){' +
+    /* O «?» DAS CAIXINHAS NÃO PRECISA DE HANDLER AQUI (02/11/2026) — e escrevi um, e estava
+     * errado. A página já tem um ouvinte de `.trio-item` no `document`, o que serve o cartão da
+     * turma: abre um, fecha os outros, fecha ao tocar outra vez, e `Escape` fecha. Ele dispara
+     * DEPOIS deste, no mesmo clique — e o que ele encontrava era o painel que eu tinha acabado de
+     * abrir, com `aria-expanded="true"`, e fechava-o. O sintoma era o pior de todos: o botão
+     * respondia a tudo e não abria nada.
+     *
+     * A lição é a regra da casa, e eu tentei escrever uma segunda: **uma peça, um comportamento.**
+     * Como o cartão do verbete usa a MESMA marcação (`li.turma`, `.trio-item`, `.trio-painel`), ele
+     * é servido pelo ouvinte que já existe. O que este `li` guarda é só a porta do nome.
+     */
     '    var b = e.target.closest ? e.target.closest("button.verbetes-editar") : null;' +
     '    if (b) editarVerbete(b.getAttribute("data-nome"), b.getAttribute("data-musica"));' +
     '  });' +

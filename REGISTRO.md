@@ -31669,3 +31669,105 @@ pode medir. Antes escrevia **zero**.
 **Com o quê.** `experimentos/propostas/construir.js` (`dadosDosVerbetes`, `cartaoDoVerbete`,
 `proporVerbetes`, o pacote opcional e a página de ausência) · o cartão novo no `index.html` da
 bancada.
+
+---
+
+## 02/11/2026 — A listagem do verbete passa a ser o cartão das turmas (a opção 1, escolhida por ela)
+
+**O que ela decidiu.** Entre as três opções da bancada, **a opção 1 — «o cartão das turmas»**. E o
+que ela tinha pedido antes, e que a bancada só mostrava: «Reaproveitar o padrão visual e estrutural
+já adotado na **Listagem de Turmas** (…) e essa listagem tem que ter também tanto para a tela de
+desktop quanto para a tela do celular.»
+
+**O que ficou.** A linha por música (de hoje de manhã) passa a **cartão**: o nome como botão e o selo
+da posição em cima, o complemento por baixo, e as **três caixinhas** com o «?» — `Música`, `Direção`
+e `Notação`. As peças são as da folha (`.trio`, `.trio-item`, `.trio-painel`, `.trio-k`/`.trio-v`,
+`.trio-chips`, `.trio-grade`, `.trio-nota`), e a marcação é a mesma da turma (`li.turma`,
+`.linha-turma`) — **nenhuma classe nova**, e por isso nenhuma peça a inventar.
+
+O painel da notação é a **tabela do passo 6 em leitura**: uma linha por trecho, com o compasso que o
+motor deriva, a contagem, `[Categoria: sinais]` e a frase do trecho. Quem calcula é `compor`, no
+núcleo — a listagem **não faz uma segunda conta do compasso**.
+
+### O erro que eu cometi, e que a medição apanhou
+
+Escrevi um handler de clique para o «?». O botão respondia e **nada abria**. A causa: a página **já
+tem** um ouvinte de `.trio-item` no `document` — o que serve o cartão da turma —, e ele dispara
+**depois** do meu, no mesmo clique: encontrava o painel que eu acabara de abrir, com
+`aria-expanded="true"`, e **fechava-o**. O meu handler não estava ausente; estava a ser **desfeito**.
+
+A correção foi **apagar o meu**, e não contornar o outro. Como o cartão usa a mesma marcação, é
+servido pelo ouvinte que já existe — e ganha de borla o «abrir um fecha os outros» e o `Escape`.
+
+> **Uma peça, um comportamento.** A regra vale também para o JavaScript, e não só para o CSS.
+
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| **a geometria, sem transbordo** | por cartão fechado: **285 px a 320 · 192 a 390 · 142 a 768 · 161 a 1280**; página com **0** de transbordo nas quatro |
+| **o painel aberto** | a tabela cabe em todas as larguras (`scrollWidth` = `clientWidth`), e a página continua sem transbordo |
+| **o clique** | o «?» da notação do `Plié` abre **o painel daquele cartão** (não o do primeiro), com as 4 linhas do trecho e o compasso do motor; tocar outra vez fecha; abrir um fecha os outros |
+| `provar-celula` | **177 asserções** (eram 172) — a §21-B ganhou cinco: as três caixinhas, os valores da música da linha, o painel a abrir só ele, a tabela com compasso e sinais, e o segundo toque a fechar |
+| `provar-notacao` · `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **89/89** · TUDO CERTO · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — e é o que prova que não nasceu classe nenhuma sem dono |
+
+**Com o quê.** `motor/servidor/verbete.js` (`detalhePorMusica` passa a levar `linhas`, de `compor`) ·
+`motor/servidor/bastidores.js` (as três funções da peça, o cartão, e o handler que **não** se escreve)
+· `experimentos/provar-celula.js` §21-B · `experimentos/propostas/construir.js` (a proposta 7 passa a
+«decidida — opção 1»).
+
+---
+
+## 02/11/2026 — O vocabulário cresce: cabeça, eixo rotacional, os três eixos dos lados, e o perfil
+
+**O que ela pediu.** Quatro coisas no passo da notação: (1) **rotação para dentro** e a ação
+**abrir**; os **lados** a cobrir o eixo sagital e o vertical; (2) as direções **para dentro** e
+**para fora**; (3) rever o rótulo «ombros rodados» e acrescentar **de lado / perfil**; (4) a
+categoria **Cabeça**.
+
+### O que entrou, e o que cada acrescento é
+
+| Pedido | O que ficou | Onde |
+|:--|:--|:--|
+| rotação para dentro | `↻ rotação para dentro` — o par de `↺ rotação para fora`, que estava só | `grupos` › Movimento |
+| a ação abrir | `○ abre` — o par de `● fecha`, que também estava só | `grupos` › Movimento |
+| lados nos três eixos | `D`/`E` (horizontal) · `F`/`T` (sagital) · `C`/`B` (vertical), cada um com o eixo no significado | `grupos` › Lados e `gramatica.lados` |
+| para dentro / para fora | `↻ para-dentro` e `↺ para-fora` nas direções do membro | `gramatica.direcoesDoMembro` |
+| o rótulo do épaulement | **«ombros rodados» sai**: dizia que é o ombro que roda, e o que roda é a coluna. Passa a **«ombro à frente»** | `gramatica.orientacoesDoCorpo` |
+| de lado / perfil | `profil` — «de lado · perfil» | `gramatica.orientacoesDoCorpo` |
+| categoria Cabeça | `Cabeça` nas categorias e no grupo, e `cabeca` nos membros | `categorias`, `grupos`, `gramatica.membros` |
+
+**A decisão que o «eixo rotacional» obrigou, e que se declara:** o **mesmo glifo** `↻`/`↺` é um
+**movimento** (passo 5) e uma **direção** (passo 4). Não é descuido — é o que já acontece com `+`,
+`-` e `×`, que estão nos dois sítios desde sempre. Um membro que vai **para fora** roda **para
+fora**: as duas coisas são a mesma vista de dois lados, e a célula guarda a direção na chave e o
+movimento nos sinais.
+
+**O que a categoria Cabeça é e não é.** É uma **pista do relógio**, como as outras quatro — um
+movimento de cabeça conta os seus tempos em paralelo com as pernas. **Não** é um membro com
+posições: o vocabulário da modalidade ainda **não tem nenhuma posição de cabeça** (`tête`), e
+inventá-las seria escrever conteúdo que ninguém conferiu. Fica declarado em `membros` para que a
+posição possa existir; criá-la é conteúdo, com fonte, e é dela.
+
+### O que a expansão partiu — e o que isso ensinou
+
+`provar-notacao` usava **`Cabeça` como exemplo de categoria que o alfabeto NÃO declara**. A
+asserção guardava o mecanismo certo («o alfabeto é que manda») e ficou a medir o dado errado: no dia
+em que o vocabulário cresceu — que é o dia em que ela importa — passou a reprovar. Passa a inventar
+um nome que o próprio alfabeto confirma ausente.
+
+> É a mesma família do `devant` do `Plié`: **um fixture a afirmar a forma de um dado que melhora.**
+
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-notacao` | **89 asserções** (eram 79) — dez novas: `Cabeça` é categoria **e** pista (um bloco `[Cabeça: …]` é lido, e a pista conta 4 tempos); `↻`/`↺` e `○`/`●` são pares; os lados cobrem os três eixos e dizem qual; as direções novas existem e **nenhum termo se repete**; `profil` existe e o épaulement já não diz «ombros rodados» |
+| **o editor, no browser** | as pílulas do passo 5 mostram `○ abre` e `↻ rotação para dentro`; as do passo 4 mostram `↻ para dentro` e `↺ para fora`; as orientações mostram `ombro à frente` e `de lado · perfil`; as categorias são **cinco**, com `Cabeça` |
+| **uma célula de Cabeça, de ponta a ponta** | `validarVerbete` **aceita**; `pistasDe` devolve `Cabeça: 4`; e um verbete com o balde `para-fora` também passa |
+| `provar-celula` · `provar-verbete` · `provar-acordeoes` · `check-indices` · `check-schemas` · `check-identidade` | 177/177 · TUDO CERTO · TUDO CERTO · 14/14 · TUDO CERTO · 20/20 |
+
+**Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` — **conteúdo**, e não código:
+é o que o professor pode reescrever sem tocar no motor. Nenhuma linha de `tools/` mudou (o
+congelamento fica respeitado), e o `_comentario` do alfabeto diz o que cresceu e porquê.

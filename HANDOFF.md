@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T17:29:54-0300`
-Commit atual: `544acf4` — docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
+Gerado em: `2026-11-02T17:59:53-0300`
+Commit atual: `b7acca6` — fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+b7acca6 fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
 544acf4 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais três
 04e2597 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
@@ -104,7 +105,6 @@ c3bbf35 docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e 
 e6e3092 feat(acervo): envelope/.indice.json
 2fd6c07 feat(estrutura): criar a escola breu (motor completo)
 0e8d256 chore(estrutura): regerar os índices derivados
-aeb2b2c chore(estrutura): expurgar a escola batata
 ```
 
 ## Por professor
@@ -228,45 +228,58 @@ aeb2b2c chore(estrutura): expurgar a escola batata
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A bancada da listagem dos verbetes: para ver e validar, no computador e no telemóvel
+## 02/11/2026 — O vocabulário cresce: cabeça, eixo rotacional, os três eixos dos lados, e o perfil
 
-**O que ela pediu, e o que eu tinha feito em vez disso.** O pedido era uma **bancada** — uma página
-em `experimentos/propostas/`, publicada em `/propostas/`, para ela abrir e decidir. Eu implementei a
-listagem directamente na Produção e não construí a bancada. O pedido era explícito («Proposta de
-Interface e Componente (Desktop & Mobile)»), e a diferença não é de forma: uma bancada compara
-alternativas **sem** mexer no produto; o que eu fiz já mudou o produto.
+**O que ela pediu.** Quatro coisas no passo da notação: (1) **rotação para dentro** e a ação
+**abrir**; os **lados** a cobrir o eixo sagital e o vertical; (2) as direções **para dentro** e
+**para fora**; (3) rever o rótulo «ombros rodados» e acrescentar **de lado / perfil**; (4) a
+categoria **Cabeça**.
 
-**O que ficou:** `experimentos/propostas/proposta-verbetes.html`, com três opções medidas em quatro
-larguras — **320 · 390 · 768 · 1280 px**, sem transbordo em nenhuma:
+### O que entrou, e o que cada acrescento é
 
-| Opção | Por cartão (320 px) | Por cartão (1280 px) | O que diz |
-|:--|--:|--:|:--|
-| **0 · hoje** — a linha por música | **66 px** | 66 px | tempos, compasso, trechos, corpo |
-| **1 · o cartão das turmas** | 198 px | 123 px | + música, direção e a notação, a um toque |
-| **2 · o cartão com a notação à vista** | 561 px | 406 px | + a decomposição inteira, sem clique |
+| Pedido | O que ficou | Onde |
+|:--|:--|:--|
+| rotação para dentro | `↻ rotação para dentro` — o par de `↺ rotação para fora`, que estava só | `grupos` › Movimento |
+| a ação abrir | `○ abre` — o par de `● fecha`, que também estava só | `grupos` › Movimento |
+| lados nos três eixos | `D`/`E` (horizontal) · `F`/`T` (sagital) · `C`/`B` (vertical), cada um com o eixo no significado | `grupos` › Lados e `gramatica.lados` |
+| para dentro / para fora | `↻ para-dentro` e `↺ para-fora` nas direções do membro | `gramatica.direcoesDoMembro` |
+| o rótulo do épaulement | **«ombros rodados» sai**: dizia que é o ombro que roda, e o que roda é a coluna. Passa a **«ombro à frente»** | `gramatica.orientacoesDoCorpo` |
+| de lado / perfil | `profil` — «de lado · perfil» | `gramatica.orientacoesDoCorpo` |
+| categoria Cabeça | `Cabeça` nas categorias e no grupo, e `cabeca` nos membros | `categorias`, `grupos`, `gramatica.membros` |
 
-**As peças são as da lista de turmas, e não um desenho novo:** `.trio`, `.trio-item` com o «?»,
-`.trio-painel`, `.trio-k`/`.trio-v`, `.trio-chips`, `.trio-nota` — todas da folha. O que a bancada
-acrescenta é a lista dos trechos em leitura (a tabela do passo 6, do lado da lista).
+**A decisão que o «eixo rotacional» obrigou, e que se declara:** o **mesmo glifo** `↻`/`↺` é um
+**movimento** (passo 5) e uma **direção** (passo 4). Não é descuido — é o que já acontece com `+`,
+`-` e `×`, que estão nos dois sítios desde sempre. Um membro que vai **para fora** roda **para
+fora**: as duas coisas são a mesma vista de dois lados, e a célula guarda a direção na chave e o
+movimento nos sinais.
 
-**Os dados são os reais.** Onze exercícios, catorze músicas, lidos do alfabeto versionado; o
-compasso de cada trecho sai do **motor** (`compor`), não de uma segunda conta; e os nomes vêm em
-português (`primeira posição`, `à frente`).
+**O que a categoria Cabeça é e não é.** É uma **pista do relógio**, como as outras quatro — um
+movimento de cabeça conta os seus tempos em paralelo com as pernas. **Não** é um membro com
+posições: o vocabulário da modalidade ainda **não tem nenhuma posição de cabeça** (`tête`), e
+inventá-las seria escrever conteúdo que ninguém conferiu. Fica declarado em `membros` para que a
+posição possa existir; criá-la é conteúdo, com fonte, e é dela.
 
-### A bancada deixou de ser tudo-ou-nada
+### O que a expansão partiu — e o que isso ensinou
 
-O `construir.js` saía por inteiro quando nenhuma escola tinha ciclo gerado — e uma bancada que lê o
-**alfabeto** não precisa de ciclo nenhum. Numa escola nova (que é exactamente quando a listagem se
-quer decidir) não se construía nada. Passa a construir o que pode: a bancada do título sai como
-**página que explica a ausência** — com o motivo do registro e o comando que a faz voltar — e as
-outras constroem-se.
+`provar-notacao` usava **`Cabeça` como exemplo de categoria que o alfabeto NÃO declara**. A
+asserção guardava o mecanismo certo («o alfabeto é que manda») e ficou a medir o dado errado: no dia
+em que o vocabulário cresceu — que é o dia em que ela importa — passou a reprovar. Passa a inventar
+um nome que o próprio alfabeto confirma ausente.
 
-**Medido:** com `breu` sem ciclo, o construir escreve as **10 páginas**, e a do título diz que não
-pode medir. Antes escrevia **zero**.
+> É a mesma família do `devant` do `Plié`: **um fixture a afirmar a forma de um dado que melhora.**
 
-**Com o quê.** `experimentos/propostas/construir.js` (`dadosDosVerbetes`, `cartaoDoVerbete`,
-`proporVerbetes`, o pacote opcional e a página de ausência) · o cartão novo no `index.html` da
-bancada.
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-notacao` | **89 asserções** (eram 79) — dez novas: `Cabeça` é categoria **e** pista (um bloco `[Cabeça: …]` é lido, e a pista conta 4 tempos); `↻`/`↺` e `○`/`●` são pares; os lados cobrem os três eixos e dizem qual; as direções novas existem e **nenhum termo se repete**; `profil` existe e o épaulement já não diz «ombros rodados» |
+| **o editor, no browser** | as pílulas do passo 5 mostram `○ abre` e `↻ rotação para dentro`; as do passo 4 mostram `↻ para dentro` e `↺ para fora`; as orientações mostram `ombro à frente` e `de lado · perfil`; as categorias são **cinco**, com `Cabeça` |
+| **uma célula de Cabeça, de ponta a ponta** | `validarVerbete` **aceita**; `pistasDe` devolve `Cabeça: 4`; e um verbete com o balde `para-fora` também passa |
+| `provar-celula` · `provar-verbete` · `provar-acordeoes` · `check-indices` · `check-schemas` · `check-identidade` | 177/177 · TUDO CERTO · TUDO CERTO · 14/14 · TUDO CERTO · 20/20 |
+
+**Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` — **conteúdo**, e não código:
+é o que o professor pode reescrever sem tocar no motor. Nenhuma linha de `tools/` mudou (o
+congelamento fica respeitado), e o `_comentario` do alfabeto diz o que cresceu e porquê.
 
 ## O que está pendente
 

@@ -74,9 +74,17 @@ const ALFABETO = {
       // sem ele a listagem cai na linha única de antes, e é isso que ela acabou de medir.
       porMusica: [
         { chave: '4|4/4', tempos: 4, compasso: '4/4', cobre: 4, trechos: 2,
-          direcoes: ['devant', 'derriere', 'a-la-seconde'], categorias: ['Pé'] },
+          direcoes: ['devant', 'derriere', 'a-la-seconde'], categorias: ['Pé'],
+          linhas: [
+            { compasso: 1, contagem: '1–2', categoria: 'Pé', sinais: '1ª → +', descricao: 'extensão à frente' },
+            { compasso: 1, contagem: '3–4', categoria: 'Pé', sinais: '+ ● 1ª', descricao: 'retorno à 1ª posição' },
+          ] },
         { chave: '8|4/4', tempos: 8, compasso: '4/4', cobre: 8, trechos: 2,
-          direcoes: ['devant', 'derriere', 'a-la-seconde'], categorias: ['Pé'] },
+          direcoes: ['devant', 'derriere', 'a-la-seconde'], categorias: ['Pé'],
+          linhas: [
+            { compasso: 1, contagem: '1–2', categoria: 'Pé', sinais: '1ª → +', descricao: 'extensão à frente' },
+            { compasso: 2, contagem: '1–2', categoria: 'Pé', sinais: '1ª → ×', descricao: 'extensão atrás' },
+          ] },
       ],
     },
     {
@@ -1722,16 +1730,54 @@ function estado() {
      * música é uma linha, com os seus tempos, o seu compasso e os seus trechos — e é isso que lhe
      * dá porta. As direções continuam a vir em português, porque a listagem lê o `nome` da
      * gramática e nunca o `termo` em francês. */
-    // A PRIMEIRA LINHA É A PRIMEIRA MÚSICA — «4|4/4», dois trechos. As duas linhas do
-    // `Battement tendu` estão medidas na asserção seguinte.
-    conferir('e o complemento diz os tempos, o compasso, os trechos e as direções',
+    /* O COMPLEMENTO MUDOU DE CONTEÚDO COM O CARTÃO (02/11/2026, escolha dela). A linha diz os
+     * factos do exercício — tempos, compasso, trechos e as partes do corpo —, e as DIREÇÕES
+     * passaram para a caixinha «Direção», que é onde se abrem. Medir as direções no complemento
+     * seria medir o desenho de ontem. */
+    conferir('o complemento diz os tempos, o compasso, os trechos e as partes do corpo',
       /4 tempos/.test(linha.dono) && /4\/4/.test(linha.dono)
-        && /2 trechos/.test(linha.dono) && /à frente · atrás · ao lado/.test(linha.dono), linha.dono);
+        && /2 trechos/.test(linha.dono) && /Pé/.test(linha.dono), linha.dono);
     // E A MÚSICA VAI NO BOTÃO. Sem ela, o «editar» abre sempre a primeira — foi o defeito que ela
     // relatou: gravou o `Plié` de 16 tempos e a versão nova não apareceu em sítio nenhum.
     conferir('a música de cada linha vai no botão de editar, e as duas estão lá',
       linha.musicas.join(',') === '4|4/4,8|4/4', linha.musicas);
     conferir('o nome continua a ser o botão que abre o verbete', linha.botao, linha.botao);
+
+    /* O CARTÃO — TRÊS CAIXINHAS, E A DA NOTAÇÃO ABRE A DECOMPOSIÇÃO (02/11/2026).
+     *
+     * É a opção 1 que ela escolheu na bancada. O que se mede é o que a bancada prometeu: as três
+     * caixinhas com «?», o painel a abrir NO CARTÃO EM QUE SE CARREGOU, e a tabela com os trechos
+     * que o motor compôs. */
+    const cartao = await page.evaluate(() => {
+      const li = [...document.querySelectorAll('#lista-verbetes > li')]
+        .find((x) => /Battement tendu/.test(x.textContent));
+      const caixas = [...li.querySelectorAll('.trio-item')].map((b) => ({
+        qual: b.getAttribute('data-balao'), rotulo: b.querySelector('.trio-k').textContent,
+        valor: b.querySelector('.trio-v').textContent,
+      }));
+      const alvo = li.querySelector('.trio-item[data-balao="notacao"]');
+      alvo.click();
+      const painel = li.querySelector('.trio-painel[data-painel="notacao"]');
+      const outros = [...li.querySelectorAll('.trio-painel')].filter((x) => !x.hidden).length;
+      const linhasDaTabela = [...(painel.querySelectorAll('tbody tr') || [])].map((tr) => tr.textContent);
+      // O QUE SE MEDE ANTES DO SEGUNDO CLIQUE: aberto é o estado DEPOIS de abrir, e `fechou` o
+      // estado depois de tocar outra vez. Lidos pela ordem errada, os dois trocam de sentido.
+      const aberto = !painel.hidden;
+      alvo.click();
+      return { caixas, aberto, outros, linhasDaTabela,
+        fechou: li.querySelector('.trio-painel[data-painel="notacao"]').hidden };
+    });
+    conferir('o cartão tem três caixinhas: música, direção e notação',
+      cartao.caixas.map((c) => c.rotulo).join(',') === 'Música,Direção,Notação', cartao.caixas);
+    conferir('e os valores são os da música daquela linha — não os do exercício inteiro',
+      cartao.caixas[0].valor === '4 tempos' && /2 trechos/.test(cartao.caixas[2].valor), cartao.caixas);
+    conferir('a caixinha da notação abre a decomposição, e só ela',
+      cartao.aberto === true && cartao.outros === 1, cartao);
+    conferir('…com uma linha por trecho, o compasso e os sinais do motor',
+      cartao.linhasDaTabela.length === 2
+        && /1 · 1–2/.test(cartao.linhasDaTabela[0]) && /\[Pé: 1ª → \+\]/.test(cartao.linhasDaTabela[0]),
+      cartao.linhasDaTabela);
+    conferir('e tocar outra vez na mesma caixinha fecha o painel', cartao.fechou === true, cartao);
 
     console.log('\n22. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {

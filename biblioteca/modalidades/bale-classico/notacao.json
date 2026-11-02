@@ -68,7 +68,25 @@
     "",
     "O QUE ISSO MUDA NOS DOCUMENTOS: onde o plano e o PO diziam «en face», passam a dizer «de",
     "frente». É a mesma regra que já valia para a direção do membro — o documento diz «à frente», e",
-    "não «devant» —, e agora os dois eixos falam a mesma língua."
+    "não «devant» —, e agora os dois eixos falam a mesma língua.",
+    "",
+    "O VOCABULÁRIO CRESCEU A PEDIDO DELA (02/11/2026), e cada acrescento diz o que veio:",
+    "",
+    "  · a categoria `Cabeça` — a cabeça e o olhar são uma pista como as outras, e o",
+    "    `Pé · Peso · Perna · Braço` não os alcançava. É uma CATEGORIA (uma pista do relógio),",
+    "    e não um membro: ainda não há nenhuma posição de cabeça no vocabulário da modalidade,",
+    "    e um movimento de cabeça escreve-se com os sinais que já existem;",
+    "  · `↻` rotação para dentro — o par de `↺`, que estava só;",
+    "  · `○` abre — o par de `●` fecha, que também estava só;",
+    "  · os LADOS passam a cobrir os três eixos: `D`/`E` (horizontal), `F`/`T` (sagital),",
+    "    `C`/`B` (vertical). Antes só o horizontal existia, e um exercício que sobe ou que vai",
+    "    à frente não tinha como dizer de que lado do corpo acontece;",
+    "  · as direções `↻` para dentro e `↺` para fora — o eixo rotacional do membro. O mesmo",
+    "    glifo é um movimento (passo 5) e uma direção (passo 4), e é de propósito: um membro",
+    "    que vai para fora roda para fora;",
+    "  · a orientação `profil` (de lado), e o rótulo do `épaulement` corrigido: «ombros",
+    "    rodados» dizia que é o ombro que roda, e o que roda é a coluna. Passou a «ombro à",
+    "    frente», que é o que se vê."
   ],
   "id": "ballet-classico",
   "modalidade": "bale-classico",
@@ -98,7 +116,8 @@
     "Pé",
     "Peso",
     "Perna",
-    "Braço"
+    "Braço",
+    "Cabeça"
   ],
   "grupos": [
     {
@@ -123,6 +142,11 @@
           "nome": "categoria braço",
           "significado": "o caminho do braço: a posição de partida, o arco e a condução.",
           "origem": "sistema"
+        },
+        "Cabeça": {
+          "nome": "categoria cabeça",
+          "significado": "a cabeça e o olhar: a inclinação, a rotação e o foco — o que a dança clássica chama tête e o que dirige a leitura do movimento.",
+          "origem": "sistema"
         }
       }
     },
@@ -139,6 +163,11 @@
           "significado": "retorno ou permanência — volta ao estado declarado à esquerda, ou sustenta o estado em que está.",
           "origem": "convenção do ciclo"
         },
+        "○": {
+          "nome": "abre",
+          "significado": "sai do estado declarado à esquerda, e o membro afasta-se do eixo — o contrário de «fecha».",
+          "origem": "sistema"
+        },
         "⌒": {
           "nome": "arco",
           "significado": "o caminho entre os dois estados é curvo, e não reto.",
@@ -148,6 +177,11 @@
           "nome": "rotação para fora",
           "significado": "o segmento roda sobre o próprio eixo, para fora.",
           "origem": "convenção do ciclo"
+        },
+        "↻": {
+          "nome": "rotação para dentro",
+          "significado": "o segmento roda sobre o próprio eixo, para dentro (en dedans).",
+          "origem": "sistema"
         },
         "+": {
           "nome": "à frente",
@@ -234,6 +268,26 @@
           "nome": "lado esquerdo",
           "significado": "o lado esquerdo do corpo.",
           "origem": "convenção do ciclo"
+        },
+        "F": {
+          "nome": "lado da frente",
+          "significado": "o eixo sagital, na face da frente do corpo.",
+          "origem": "convenção do ciclo"
+        },
+        "T": {
+          "nome": "lado de trás",
+          "significado": "o eixo sagital, na face de trás do corpo.",
+          "origem": "convenção do ciclo"
+        },
+        "C": {
+          "nome": "lado de cima",
+          "significado": "o eixo vertical, para o alto.",
+          "origem": "convenção do ciclo"
+        },
+        "B": {
+          "nome": "lado de baixo",
+          "significado": "o eixo vertical, para o chão.",
+          "origem": "convenção do ciclo"
         }
       }
     }
@@ -267,7 +321,8 @@
     "membros": [
       "pes",
       "pernas",
-      "bracos"
+      "bracos",
+      "cabeca"
     ],
     "direcoesDoMembro": {
       "+": {
@@ -284,6 +339,18 @@
         "termo": "derriere",
         "nome": "atrás",
         "significado": "o membro estende-se atrás do corpo."
+      },
+      "↻": {
+        "termo": "para-dentro",
+        "nome": "para dentro",
+        "significado": "o membro roda ou dirige-se para dentro do eixo do corpo (en dedans).",
+        "tradicao": "en dedans"
+      },
+      "↺": {
+        "termo": "para-fora",
+        "nome": "para fora",
+        "significado": "o membro roda ou dirige-se para fora do eixo do corpo (en dehors).",
+        "tradicao": "en dehors"
       }
     },
     "orientacoesDoCorpo": {
@@ -313,9 +380,15 @@
       },
       "epaulement": {
         "termo": "epaulement",
-        "nome": "ombros rodados",
-        "significado": "os ombros ligeiramente rodados, um à frente do outro.",
+        "nome": "ombro à frente",
+        "significado": "a coluna roda sobre si, e um ombro fica à frente do outro. Não é o ombro que roda — é o tronco que se coloca.",
         "tradicao": "épaulement"
+      },
+      "profil": {
+        "termo": "profil",
+        "nome": "de lado · perfil",
+        "significado": "o corpo voltado de lado, de modo que quem olha vê o perfil.",
+        "tradicao": "profil"
       }
     },
     "lados": {
@@ -328,6 +401,26 @@
         "nome": "lado esquerdo",
         "comoBraco": "o braço esquerdo",
         "comoPerna": "a perna esquerda"
+      },
+      "F": {
+        "nome": "lado da frente",
+        "comoBraco": "o lado da frente do tronco",
+        "comoPerna": "a perna da frente"
+      },
+      "T": {
+        "nome": "lado de trás",
+        "comoBraco": "o lado de trás do tronco",
+        "comoPerna": "a perna de trás"
+      },
+      "C": {
+        "nome": "lado de cima",
+        "comoBraco": "o lado de cima do tronco",
+        "comoPerna": "a perna de cima"
+      },
+      "B": {
+        "nome": "lado de baixo",
+        "comoBraco": "o lado de baixo do tronco",
+        "comoPerna": "a perna de baixo"
       }
     },
     "posicoesDeBracos": {

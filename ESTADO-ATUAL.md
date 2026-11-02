@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `544acf4`). Nesta entrega: **gravar uma edição
+> **Última fotografia:** 02/11/2026 (base local `b7acca6`). Nesta entrega: **a listagem do verbete
+> passou a ser o cartão das turmas** — a opção 1 da bancada, escolhida por ela. O nome e o selo em
+> cima, o complemento por baixo, e **três caixinhas** com o «?»: `Música`, `Direção`, `Notação`. A
+> da notação abre a decomposição **trecho a trecho**, lida do motor. Nenhuma classe nova: as peças
+> são as da folha, e a marcação é a da turma. Medido: **285 px por cartão a 320**, 192 a 390, 142 a
+> 768, **sem transbordo** em nenhuma.
+>
+> **E o vocabulário cresceu**, a pedido dela: a categoria **Cabeça**; `↻` rotação para dentro e `○`
+> abre (os pares que faltavam); os **lados nos três eixos** (`F`/`T` sagital, `C`/`B` vertical, além
+> do `D`/`E`); as direções **para dentro** e **para fora**; e a orientação **de lado · perfil** — com
+> o rótulo do `épaulement` corrigido, porque «ombros rodados» dizia que é o ombro que roda.
+>
+> **Entrega anterior** (base `544acf4`). Nesta entrega: **gravar uma edição
 > passou a SUBSTITUIR.** Ela esticou o `Plié` de 8 para 16 tempos e o registo antigo ficou ao lado;
 > a hipótese dela era `INSERT` onde devia ser `UPDATE`, mas a mecânica é outra: a **chave do registo
 > é `<tempos>|<compasso>`**, e mudar os tempos muda a chave. Não havia verbo errado — faltava dizer
@@ -20,7 +32,7 @@
 > px**: 66 px por linha hoje, 198 px o cartão das turmas, 561 px com a notação à vista. E o
 > `construir.js` deixou de ser tudo-ou-nada: uma bancada que lê o alfabeto não precisa de ciclo.
 >
-> **Entrega anterior** (base `04e2597`). Nesta entrega: **a música duplicada
+> **Duas entregas antes** (base `04e2597`). Nesta entrega: **a música duplicada
 > passou a ter porta.** Ela duplicou o `Plié` de 8 para 16 tempos, gravou, e o registo «não apareceu»
 > — mas **estava gravado**: o alfabeto, versão 17, tem as duas músicas. O que faltava era o caminho
 > de volta: a listagem dizia «2 músicas» e o «editar» abria sempre `Object.keys(musicas)[0]`, isto é,
@@ -204,6 +216,13 @@ renomeação. **DECIDIDO**.
 Verificado nesta fotografia, com os comandos da §9.
 
 - **A entrega foi publicada em `d349ed0`;** após o push, `git fetch origin` confirmou `origin/main` alinhado, sem divergência. **CONFIRMADO** naquele momento.
+- **O alfabeto do `bale-classico` tem CINCO categorias** — `Pé · Peso · Perna · Braço · Cabeça` —,
+  **três eixos de lado** (`D`/`E` horizontal, `F`/`T` sagital, `C`/`B` vertical), **cinco direções**
+  (`devant`, `a-la-seconde`, `derriere`, `para-dentro`, `para-fora`), **seis orientações** e
+  **treze sinais de movimento**. Lido do ficheiro, versão 17 do alfabeto. **CONFIRMADO** 02/11/2026.
+  A **Cabeça é uma pista** — um movimento de cabeça conta os seus tempos em paralelo com as pernas —
+  e **não** um membro com posições: o vocabulário ainda não tem nenhuma posição de cabeça, e isso é
+  conteúdo a escrever com fonte, não código.
 - **19 professores** em `professores/`, e **uma variante**: a `breu`, criada por ela a 02/11/2026
   (`2fd6c07`) — `coqui-de-redinha/ciclos/ciclo-01-breu.conf`, com `DOCS=""` (é o **ciclo-zero**, sem
   documentos; existe o **pacote-zero** `ciclo-01-breu/`, com `assets`, `index.html` e
@@ -1009,6 +1028,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     sai como **página que explica a ausência**, com o motivo do registro e o comando que a faz
     voltar. Numa escola nova — que é quando a listagem se quer decidir — antes não se construía
     nada. **DECIDIDO e implementado** 02/11/2026.
+70. **A LISTAGEM DO VERBETE É O CARTÃO DAS TURMAS.** Escolhida a opção 1 da bancada: `li.turma`,
+    `.linha-turma`, o nome como botão, o selo, o complemento, e as três caixinhas `.trio` com o «?»
+    — `Música`, `Direção`, `Notação`. A da notação abre a tabela do passo 6 em leitura, com o
+    compasso **derivado pelo motor** (`compor`), e não por uma segunda conta. **Nenhuma classe
+    nova:** as peças são da folha, e a marcação é a da turma. Medido: 285 px por cartão a 320, 192 a
+    390, 142 a 768, 0 de transbordo. **DECIDIDO por ela e implementado** 02/11/2026.
+71. **UMA PEÇA, UM COMPORTAMENTO — TAMBÉM NO JAVASCRIPT.** Escrevi um handler de clique para o «?»
+    do cartão, e o botão não abria nada: a página **já tem** um ouvinte de `.trio-item` no
+    `document` (o da turma), que dispara depois e **fechava** o painel que o meu acabara de abrir. A
+    correção foi **apagar o meu** e usar o que existe — o cartão ganha o «abrir um fecha os outros» e
+    o `Escape` de borla. **DECIDIDO e implementado** 02/11/2026.
+72. **O VOCABULÁRIO DA MODALIDADE CRESCEU, E O GLIFO PODE TER DOIS PAPÉIS.** Entram a categoria
+    **Cabeça** (uma pista, e não um membro com posições), `↻` rotação para dentro, `○` abre, os
+    **lados nos três eixos** (`D`/`E` horizontal, `F`/`T` sagital, `C`/`B` vertical), as direções
+    **para dentro** e **para fora**, e a orientação **de lado · perfil**. O rótulo `épaulement`
+    deixou de ser «ombros rodados» — não é o ombro que roda, é a coluna — e passou a **«ombro à
+    frente»**. **O mesmo glifo `↻`/`↺` é movimento (passo 5) e direção (passo 4)**, de propósito:
+    é o que já acontecia com `+`, `-` e `×`, e um membro que vai para fora roda para fora.
+    **DECIDIDO por ela e implementado** 02/11/2026 — em **conteúdo** (`notacao.json`), sem tocar em
+    `tools/` nem no motor.
 
 ## 7. Trabalho em andamento
 
@@ -1325,7 +1364,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a substituição e a bancada da listagem)
+### Executado nesta fotografia (02/11/2026 — o cartão da listagem e o vocabulário expandido)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **177 de 177** (eram 172) — a §21-B ganhou cinco: as três caixinhas do cartão, os valores da **música daquela linha**, o painel a abrir **só ele**, a tabela com o compasso e os sinais do motor, e o segundo toque a fechar |
+| `node experimentos/provar-notacao.js` | **89 de 89** (eram 79) — dez novas: `Cabeça` é categoria **e** pista; `↻`/`↺` e `○`/`●` são pares; os lados cobrem os três eixos; as direções novas existem e nenhum termo se repete; `profil` existe e o épaulement já não diz «ombros rodados» |
+| **a geometria do cartão** | fechado: **285 px a 320 · 192 a 390 · 142 a 768 · 161 a 1280**; aberto (a tabela da notação): sem transbordo em nenhuma largura, e a página com **0** |
+| **o editor, no browser** | as pílulas mostram `○ abre`, `↻ rotação para dentro`, `↻ para dentro`, `↺ para fora`, `ombro à frente`, `de lado · perfil`; as categorias são **cinco**, com `Cabeça` |
+| **uma célula de Cabeça, de ponta a ponta** | `validarVerbete` aceita; `pistasDe` devolve `Cabeça: 4`; e um verbete com o balde `para-fora` também passa |
+| `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — a checagem «Peça» confirma que **não nasceu classe sem dono** |
+| **não executado** | `provar-agnosticismo` (o ficheiro não existe neste worktree) · `provar-o-que-vem-do-dado` (sem fixture) · `check-glossario` (sem par registro × glossário) |
+
+### Executado na fotografia anterior (02/11/2026 — a substituição e a bancada da listagem)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1946,6 +1998,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **A listagem do verbete passou a ser o cartão das turmas** (a opção 1, escolhida
+  por ela): o nome e o selo em cima, o complemento por baixo, e as três caixinhas `Música` ·
+  `Direção` · `Notação` com o «?». A da notação abre a decomposição trecho a trecho, com o compasso
+  do motor. Um handler meu foi **apagado** no caminho: a página já tinha o ouvinte de `.trio-item` no
+  `document`, e o meu desfazia o dele.
+- **02/11/2026** — **O vocabulário cresceu:** a categoria **Cabeça**, `↻` rotação para dentro, `○`
+  abre, os lados nos três eixos, as direções **para dentro** e **para fora**, e **de lado · perfil** —
+  com o `épaulement` corrigido de «ombros rodados» para «ombro à frente». Tudo em **conteúdo**, sem
+  tocar em `tools/` nem no motor.
 - **02/11/2026** — **Editar e esticar a música SUBSTITUI — não havia INSERT, havia uma chave.** A
   chave de uma música é `<tempos>|<compasso>`; mudar os tempos cria outro registo, e o antigo ficava
   ao lado. A tela passa a mandar `musicaAnterior`, o servidor apaga a chave antiga com quatro

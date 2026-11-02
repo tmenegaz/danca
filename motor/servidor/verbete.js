@@ -424,7 +424,7 @@ function listarVerbetes(dados) {
       trechos: contarTrechos(verbetes[nome]),
       direcoes: direcoesDoVerbete(verbetes[nome]),
       compassos: compassosDoVerbete(verbetes[nome]),
-      porMusica: detalhePorMusica(verbetes[nome]),
+      porMusica: detalhePorMusica(nome, verbetes[nome]),
     }));
 }
 
@@ -442,7 +442,7 @@ function listarVerbetes(dados) {
  * tempos, o compasso, os trechos, as direções e as categorias. Tudo derivado: não há um segundo
  * dado a manter ao lado do alfabeto.
  */
-function detalhePorMusica(musicas) {
+function detalhePorMusica(nome, musicas) {
   return musicasDoVerbete(musicas).map((chave) => {
     const m = musicas[chave] || {};
     const celulas = m.celulas || {};
@@ -478,9 +478,52 @@ function detalhePorMusica(musicas) {
       direcoes: direcoes,
       orientacoes: orientacoes,
       categorias: categorias,
+      linhas: linhasPorTrecho(nome, chave),
     };
   });
 }
+
+/**
+ * A DECOMPOSIÇÃO EM LEITURA — as mesmas linhas da tabela do passo 6 (02/11/2026).
+ *
+ * A listagem mostra o cartão com três caixinhas, e a da notação abre o exercício trecho a trecho.
+ * Essas linhas NÃO se calculam aqui: quem as calcula é o motor (`compor`), e é a mesma função que
+ * a página e o documento usam. Uma segunda conta do compasso divergiria à primeira repetição —
+ * este projeto já pagou esse preço quatro vezes num só dia.
+ *
+ * O que o motor precisa é uma LINHA DE PLANO, e a listagem não tem plano nenhum: ela tem o nome do
+ * exercício e a música dele. A linha é sintética e só diz isso — nenhum objetivo inventado, e é
+ * por isso que o `Objetivo específico` não vai.
+ */
+function linhasPorTrecho(nome, chave) {
+  if (!nome) return [];
+  const { compor } = require('../nucleo/notacao.js');
+  const { ALFABETOS, MODALIDADE_PADRAO } = require('../nucleo/notacao.js');
+  const alfabeto = ALFABETOS[MODALIDADE_PADRAO];
+  if (!alfabeto) return [];
+  const [tempos, compasso] = String(chave).split('|');
+  let composto = null;
+  try {
+    composto = compor({
+      'Bloco': 'Solo',
+      'Conteúdo do nível': nome,
+      'Tempos': tempos,
+      'Compasso': compasso,
+    }, alfabeto);
+  } catch (e) {
+    return [];
+  }
+  return ((composto && composto.segmentos) || []).map((seg) => ({
+    compasso: seg.compasso,
+    contagem: seg.contagem,
+    categoria: seg.categoria,
+    sinais: (seg.sinais || []).join(' '),
+    // A FRASE DO TRECHO É A PRIMEIRA LINHA DA DESCRIÇÃO — o que acontece. A segunda é o «lê-se»,
+    // que já está escrito nos sinais ao lado; repeti-lo ocuparia o dobro sem dizer nada de novo.
+    descricao: String(seg.descricao || '').split('\n')[0],
+  }));
+}
+
 
 /** As chaves de música de um verbete — o que tem a forma «<tempos>|<compasso>». */
 function musicasDoVerbete(musicas) {

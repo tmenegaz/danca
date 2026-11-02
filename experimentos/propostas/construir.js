@@ -2260,16 +2260,17 @@ projeto, embutido. Nada aqui muda o que está publicado na escola; a escolha é 
   </a>
 
   <a class="cartao" href="proposta-verbetes.html">
-    <p class="sobre">Proposta 7 · a listagem do verbete</p>
+    <p class="sobre">Proposta 7 · a listagem do verbete <strong>decidida — opção 1</strong></p>
     <h2>Os exercícios com a cara das turmas</h2>
-    <p>A listagem do verbete passa a usar as <strong>mesmas peças</strong> da listagem de turmas:
-    o nome e os selos numa linha, o complemento por baixo, e as três caixinhas com o «?» que
-    abrem. O conteúdo é o do passo 6 — a decomposição trecho a trecho. E os nomes em português.</p>
+    <p>Escolhida a <strong>opção 1</strong>, e implementada na Produção: as <strong>mesmas
+    peças</strong> da listagem de turmas — o nome e os selos numa linha, o complemento por baixo,
+    e as três caixinhas com o «?» que abrem. A da notação abre a decomposição trecho a trecho,
+    lida do motor. E os nomes em português.</p>
     <table>
-      <tr><th>Opção</th><th>Ocupa no celular (320)</th><th>Diz</th></tr>
-      <tr><td>0 · hoje</td><td><strong>66 px</strong></td><td>tempos, compasso, trechos, corpo</td></tr>
-      <tr><td>1 · o cartão das turmas</td><td>198 px</td><td>+ música, direção e a notação, a um toque</td></tr>
-      <tr><td>2 · com a notação à vista</td><td>561 px</td><td>+ a decomposição, sem clique</td></tr>
+      <tr><th>Opção</th><th>Na bancada (320)</th><th>No produto, por cartão</th></tr>
+      <tr><td>0 · a linha de antes</td><td>66 px</td><td>— (saiu)</td></tr>
+      <tr><td><strong>1 · o cartão das turmas</strong></td><td>198 px</td><td><strong>285 px</strong> a 320 · 192 a 390 · 142 a 768</td></tr>
+      <tr><td>2 · com a notação à vista</td><td>561 px</td><td>— (não escolhida)</td></tr>
     </table>
     <span class="abrir">Abrir a proposta →</span>
   </a>
