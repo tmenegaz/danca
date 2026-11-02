@@ -190,11 +190,11 @@ const CASOS = [
     valor: [{ sujeito: 'Técnica — Barra', itens: 'MUDADO-criterio' }], espera: 'dado',
   },
   {
-    // A §6 dizia «Ciclo **simulado**» a todos os ciclos, sem nomear um único elo. Agora nomeia os
-    // dois envelopes: trocar o `id` do PO tem de mudar a secção, ou não é proveniência — é frase.
-    // (só o `id` muda: a resposta do PO fica quieta, senão medir-se-ia a resposta e não o `id`)
-    nome: '§6 «Proveniência consolidada» — o `id` do PO', numero: 6, envelope: null,
-    espera: 'dado', idDoPo: 'po-19000101-0000',
+    // A §6 já foi «Ciclo **simulado**» para toda a gente e depois uma tabela de `id` de envelope —
+    // que não leva a lado nenhum. Hoje são dois LINKS, com o objetivo de cada documento ao lado.
+    // Mede-se o que ela mostra: trocar a pergunta do PO muda a primeira linha.
+    nome: '§6 «Proveniência consolidada» — o objetivo do PO (a pergunta que ele responde)',
+    numero: 6, envelope: 'po', chave: 'question', valor: 'MUDADO-pergunta-do-po', espera: 'dado',
   },
   {
     nome: '§7 «Registo de auditoria» (o volume auditado)', numero: 7,
@@ -212,8 +212,6 @@ const CASOS = [
 for (const caso of CASOS) {
   const opcoes = {};
   if (caso.envelope) opcoes[caso.envelope] = comResposta(caso.envelope === 'po' ? PO : PLANO, caso.chave, caso.valor);
-  // O `id` do envelope: a §6 nomeia-o, e trocá-lo é a forma de medir se ele é mesmo lido.
-  if (caso.idDoPo) opcoes.po = Object.assign({}, opcoes.po || PO, { id: caso.idDoPo });
   if (caso.calibracao) opcoes.calibracao = Object.assign({}, CALIBRACAO, caso.calibracao);
   const md = derivarAula(opcoes);
 
@@ -265,15 +263,22 @@ provar('§4 — a fatia vem da distribuição do volume do PLANO (Regra 9, etapa
 const bloco6 = secao(BASE, 6);
 provar('§6 — não chama «simulado» a um ciclo real',
   !/simulado/i.test(bloco6), (bloco6.match(/simulado/i) || [''])[0]);
-provar('§6 — nomeia o `id` dos dois envelopes (vai-se verificar a quem?)',
-  bloco6.includes('`' + (PO.id || '?') + '`') && bloco6.includes('`' + (PLANO.id || '?') + '`'),
-  bloco6.trim().split('\n').slice(0, 6));
+provar('§6 — as duas linhas são LINKS para os documentos (o `id` do envelope não leva a lado nenhum)',
+  /\[Plano de Observação\]\(\/?plano-observacao\/\?/.test(bloco6)
+  && /\[Plano de ensino\]\(\/?plano-ensino\/\?/.test(bloco6),
+  bloco6.trim().split('\n').slice(2, 4));
+provar('§6 — cada link leva o OBJETIVO do documento ao lado (não só o nome)',
+  /\*\* — \S/.test(bloco6), (bloco6.match(/\*\* — (.{0,40})/) || [''])[0]);
+provar('§6 — não explica o gerador a quem abriu a aula («derivar-ciclo.js» já não aparece)',
+  !/derivar-ciclo/.test(bloco6), (bloco6.match(/derivar-ciclo[^ ]*/) || [''])[0]);
 
 const bloco8 = secao(BASE, 8);
-provar('§8 — diz o que é «próximo passo» (o marco da aula seguinte, proposto)',
-  /marco da aula seguinte/.test(bloco8) && /\*\*proposto\*\*/.test(bloco8)
-  && /Marco da Aula 0?2/.test(bloco8),
+provar('§8 — uma linha só, «Marco da Aula 02», e nada de «Estado» nem «Lido de»',
+  /Marco da Aula 0?2/.test(bloco8) && !/\*\*Estado\*\*/.test(bloco8) && !/\*\*Lido de\*\*/.test(bloco8),
   bloco8.trim().split('\n').slice(0, 5));
+provar('§8 — sem segundo marco, diz que o plano declarou apenas um (não inventa o seguinte)',
+  /apenas um marco/.test(bloco8) && /aguarda-se o desenvolvimento do próximo marco/.test(bloco8),
+  bloco8.trim().split('\n').slice(2, 4));
 
 // 3. DE ONDE VIERAM OS VALORES CONCRETOS DESTE CICLO
 // ---------------------------------------------------------------------------

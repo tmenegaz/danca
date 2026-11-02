@@ -351,6 +351,22 @@ for folha_nn in $(familias_por_aula captura-aula); do
   [ -f "$(fonte_md "captura-aula-$folha_nn")" ] || continue
   CAP_FOLHAS="$CAP_FOLHAS $folha_nn"
 done
+# A DATA DETERMINÍSTICA, CALCULADA AQUI E NÃO SÓ NO PDF (02/11/2026).
+#
+# O PDF já era reprodutível — `SOURCE_DATE_EPOCH` com a data do último commit que tocou as fontes
+# do ciclo —, e o `ciclos.json` continuava a gravar `datetime.now()`. Resultado medido na bancada:
+# cada `gerar-ciclo.sh` sujava a árvore com uma linha de diferimento («gerado_em»), o `git status`
+# ficava sujo depois de gerar duas vezes sem mudar nada, e o commit seguinte levava dentro uma
+# alteração que ninguém fez. Um ficheiro versionado que muda por ter sido gerado não é derivado:
+# é carimbado.
+#
+# O `estado` do `aulas[]` CONTINUA a usar o relógio, e é o único que deve: ele é o juízo do
+# instante da geração («quem lê depois re-deriva com o próprio relógio», diz a nota do índice).
+# O que passa a ser determinístico é o carimbo do ficheiro — quando ele foi escrito, não o que
+# ele julgou.
+SOURCE_DATE_EPOCH="$(git -C "$RAIZ" log -1 --format=%ct -- "professores/$PROFESSOR_SLUG/ciclos" 2>/dev/null || true)"
+[ -n "$SOURCE_DATE_EPOCH" ] || SOURCE_DATE_EPOCH="$(date +%s)"
+export SOURCE_DATE_EPOCH
 CICLO="$CICLO" ESCOLA="$ESCOLA" INICIO="$DATA_PRIMEIRA_AULA" FIM="$DATA_ULTIMA_AULA" \
 TOTAL_AULAS="$TOTAL_AULAS" DURACAO_MIN="$DUR_CURTA" \
 PROFESSOR_SLUG="$PROFESSOR_SLUG" \
@@ -549,7 +565,11 @@ indice = {
              '(§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo '
              'declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois '
              're-deriva com o proprio relogio.',
-    'gerado_em': agora.strftime('%Y-%m-%dT%H:%M'),
+    # A hora do CARIMBO vem do `SOURCE_DATE_EPOCH` (a data do último commit nas fontes do ciclo),
+    # e não do relógio: sem isso, gerar duas vezes sem mudar nada produzia dois `ciclos.json`
+    # diferentes e uma árvore suja. Ver o comentário no shell, antes desta invocação.
+    'gerado_em': datetime.datetime.fromtimestamp(
+        int(os.environ.get('SOURCE_DATE_EPOCH') or agora.timestamp())).strftime('%Y-%m-%dT%H:%M'),
     'ciclos': [{
         'id': os.environ['CICLO'],
         # O SLUG da pasta (`professores/<slug>/`), não o nome de exibição: é por ele que o
@@ -1410,13 +1430,11 @@ fi
 } > "$TMP/consolidado-final.md"
 
 # PDF reprodutível. Sem isto, cada geração grava a hora atual em /CreationDate e o PDF
-# versionado aparece como modificado mesmo sem nenhuma mudança de conteúdo. Com
-# SOURCE_DATE_EPOCH + FORCE_SOURCE_DATE o pdfTeX usa uma data determinística: a do último
-# commit que tocou as FONTES do ciclo — estável enquanto o ciclo não muda, e diferente
-# quando ele muda. (Os pacotes passaram a ser versionados para o deploy automático.)
-SOURCE_DATE_EPOCH="$(git -C "$RAIZ" log -1 --format=%ct -- "professores/$PROFESSOR_SLUG/ciclos" 2>/dev/null || true)"
-[ -n "$SOURCE_DATE_EPOCH" ] || SOURCE_DATE_EPOCH="$(date +%s)"
-export SOURCE_DATE_EPOCH
+# versionado aparece como modificado mesmo sem nenhuma mudança de conteúdo. O
+# `SOURCE_DATE_EPOCH` já foi calculado acima (é o mesmo que carimba o `ciclos.json`); aqui só se
+# pede ao pdfTeX que o use — a data do último commit que tocou as FONTES do ciclo, estável
+# enquanto o ciclo não muda e diferente quando ele muda. (Os pacotes são versionados para o
+# deploy automático.)
 export FORCE_SOURCE_DATE=1
 
 for doc in $DOCS; do

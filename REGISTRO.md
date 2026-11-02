@@ -29986,3 +29986,105 @@ de antes) · `check-pacote` 0 erro / 0 aviso (9 páginas, 245 links, PDF de 27 p
   `escola/batata/envelopes/plano-20261027-1025.json` — ambos apagados por expurgos anteriores. Já
   falhavam em `HEAD`, e não foram corrigidas aqui: uma prova que aponta para uma escola expurgada é
   uma pergunta que se responde escolhendo outra fixture, não um defeito do gerador.
+
+## 02/11/2026 — A proveniência leva a algum lado, o próximo passo tem três estados, e o plano deixa de prometer o que não mostra
+
+**O que motivou.** Quatro coisas que a pesquisadora viu na Aula 01 do ciclo da `batata` e no plano
+de ensino, e uma que ela pediu de caminho:
+
+1. **A proveniência mostrava um código em vez de um sítio.** «A proveniência aponta para PO, que é
+   o documento (…) Não é isso que tem que mostrar. No plano de observação você vai mostrar o link
+   que leva ao plano de observação, e no plano de ensino a mesma coisa.» E: «isto não interessa
+   para o professor, ele nem sabe o que é um ponto JS» — a linha «derivada dos dois por
+   `derivar-ciclo.js`» explicava o gerador a quem abriu a aula.
+2. **O próximo passo explicava-se em vez de dizer o estado.** «Não precisa disso tudo (…) se não
+   tiver um próximo passo (…) coloca aqui: o plano declarou apenas um marco, e aguarda-se o
+   desenvolvimento do próximo marco para a elaboração da aula 2.»
+3. **O plano de ensino chamava «música e repertório» a uma secção que só pode ser a música.**
+   «Aqui continua sendo música e vídeo de referência. E o repertório é o próximo item.»
+4. **A descrição dos exercícios repetia o verbete em cada célula.** «Na linha de baixo você colocou
+   *lê-se, pé, quinta posição, conduz à frente*. Essa é a descrição — isso vai pra descrição, não é
+   na linha de abaixo. (…) a parte do verbete, que é aquela que fica fixa, você vai colocar no
+   cabeçalho.»
+5. **`ciclos.json` sujava a árvore em cada geração.** «Vamos usar a mesma data determinística.»
+
+**O que foi decidido.**
+
+- **§6 — duas linhas, dois links, dois objetivos.** `po-20261101-1959` é uma etiqueta de
+  armazenamento: não leva a lado nenhum. Saem o `id`, a tabela de duas colunas e a frase que
+  explicava o gerador; entram dois links com o **objetivo** de cada documento ao lado — a pergunta
+  que o PO se propõe responder (`question`) e o objetivo geral do ciclo (`objetivo-geral`), os dois
+  lidos do envelope. Os endereços são ABSOLUTOS, e a assimetria foi medida no ar: a porta do PO
+  viaja dentro do pacote do ciclo (`<variante>/plano-observacao/` responde 200), mas a do plano de
+  ensino é uma rota do Worker servida só na raiz (`/plano-ensino/?…` 200; `<variante>/plano-ensino/`
+  404). Uma forma só, absoluta, alcança as duas.
+- **§8 — uma linha e os três estados.** «Marco da Aula 02» e mais nada: sem segundo marco, «— o
+  plano declarou apenas um marco; aguarda-se o desenvolvimento do próximo marco para a elaboração
+  da Aula 02»; com marco e sem Aula 02, o marco e «a Aula 02 ainda não foi elaborada»; com marco e
+  com Aula 02, o título e o marco viram link para ela. O terceiro estado precisava de um dado que o
+  derivador não tinha — que aulas o ciclo tem —, e ele passa a chegar em `contexto.aulas`, lido do
+  `DOCS` por quem escreve as fontes. Sem esse dado o pior que pode sair é um link a menos, nunca um
+  link para uma aula que não existe.
+- **Bloco 10 do plano dividido em dois.** «Música e vídeo de referência» (o campo do vídeo, mais a
+  música de cada exercício lida do verbete) e «Repertório da aula» (o bloco 11, com o nó que só se
+  lê). A «Origem» desce para 12. O título do documento acompanha (`## Música e vídeo de
+  referência`), e o mapa do `validar-plano-ciclo.js` guarda os dois nomes — há plano no repositório
+  escrito com o antigo.
+- **A descrição fixa do exercício sobe para o cabeçalho, uma vez.** O verbete de cada exercício tem
+  duas metades: o que se diz dele sempre (e que saía repetido, palavra por palavra, em cada célula)
+  e a leitura daquela célula (`Lê-se: …`). A regra é MEDIDA, não declarada: o texto sobe quando é
+  igual em todas as células com conteúdo; quando cada célula diz uma coisa diferente (o `Battement
+  tendu`: «extensão à frente…» / «retorno à 1ª posição»), não há nada a subir e a descrição fica
+  onde está. De caminho corrige-se um defeito invisível no código e visível na página: a descrição
+  do verbete tem uma quebra de linha, e uma célula de tabela Markdown NÃO atravessa linhas — o
+  «Lê-se» saía como uma linha sem colunas, e o leitor via a notação no lugar da descrição.
+- **`ciclos.json` carimbado com a data das fontes, não com o relógio.** O `SOURCE_DATE_EPOCH` já
+  existia para o PDF; passou a ser calculado antes do índice e a carimbar o `gerado_em`. O `estado`
+  do `aulas[]` continua a usar o relógio, e é o único que deve: é o juízo do instante da geração.
+- **E o PDF passou a ser reproduzível a sério.** A data determinística acertava a data e não o
+  `/ID` do trailer: o pdfTeX deriva-o do nome do trabalho, e o pandoc compila numa pasta temporária
+  diferente em cada execução. Medido em duas gerações seguidas do mesmo ciclo: 62 bytes diferentes,
+  todos no `/ID`. `\pdftrailerid{}` e `\pdfsuppressptexinfo=-1` no cabeçalho partilhado (guardados
+  por `\ifdefined`, porque o LuaTeX não os tem) — **duas gerações seguidas dão agora o mesmo md5**, e
+  o `git status` fica limpo depois de gerar.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (§6, §8, `partirDescricao`, a tabela dos exercícios)
+· `motor/servidor/escrever-ciclo.js` (`contexto.aulas` a partir do `DOCS`) ·
+`motor/nucleo/derivar-plano-ciclo.js` (o título da secção) · `porta/plano/conteudo/plano.json`
+(bloco 10 dividido) · `porta/po/conteudo/po.json` e `porta/prompts/elicitar-ciclo.md` (o bloco 4 do PO
+passa a «Critérios de inclusão e de exclusão da observação», e o objetivo deixa de dizer «o que fica
+fora», que é o campo do bloco 6) · `tools/gerar-ciclo.sh` (o epoch antes do índice) ·
+`tools/templates/ciclo-cabecalho.tex` (`\pdftrailerid`) · `tools/check-pacote.js` (a query não faz
+parte do caminho) · `tools/validar-plano-ciclo.js` (o alias) · **`tools/regerar-derivados.js`**
+(novo) · `experimentos/provar-o-que-vem-do-dado.js`.
+
+**`tools/regerar-derivados.js` — a peça que faltava.** As fontes derivadas de um ciclo nascem no
+«Guardar» do PO, dentro do Worker, e depois ficam no repositório sem que nada as releia. Quando o
+DERIVADOR muda — e mudou três vezes esta semana —, o `-aula-01.md` do ciclo já gerado continua a
+dizer o que o gerador antigo dizia, e não havia comando nenhum que o pusesse em dia: a única forma
+era repetir à mão o que o Worker faz. O comando reescreve o `-plano.md`, a aula, a captura, a
+harmonização, as referências, a notação e o glossário; **não grava sem `--escrever`** (mostra o que
+mudaria, linha a linha), e **não toca no `-dados.json`** — esse não é derivável do envelope, é o
+ESTADO do ciclo, e regerá-lo escreveria `aulas: {}` por cima dos lançamentos.
+
+**Com o quê.** `provar-o-que-vem-do-dado` — 30 asserções, e a secção 2 cresceu: a §6 deixou de
+nomear `id` e passa a exigir os dois links com objetivo ao lado; a §8 passou a exigir uma linha só,
+sem «Estado» nem «Lido de», e a frase dos marcos. Provado também nos três estados do §8 (com dois
+marcos: sem Aula 02, com Aula 02) · `check-pacote` 0 erro / 0 aviso (245 links; o PDF agora byte a
+byte estável entre gerações) · `hash-ciclo.sh --check` «cadeia intacta» · `validar-aula-ciclo` 9
+campos, **2** lacunas (era 3: a do §8 virou uma frase com o estado) · `validar-plano-ciclo` 12
+campos · `provar-aula-e-plano-legiveis` 12/12 · `provar-cabecalho-do-documento`,
+`provar-coerencia-do-po-no-pacote` 6/6 · `provar-schemas` 29/29 · `provar-schemas-do-professor`
+24/24 · `check-schemas`, `gerar-schemas --conferir`, `check-indices` 14/14, `check-identidade` 20/20.
+
+**O que continua aberto.**
+
+- **O bloco de musicalidade (§4) continua sem pergunta própria.** A §4 passou a ler a fatia do plano
+  e os exercícios do bloco, e a DECLARAR a lacuna do trabalho musical — mas o campo que a
+  preencheria não existe em formulário nenhum.
+- **A Regra 4 pede força e flexibilidade e o PO não as mostra no ponto de partida.** A pesquisadora
+  localizou-os na ANAMNESE (`flexibilidade-dos-isquiotibiais`, `flexibilidade-dos-adutores`,
+  `controle-de-carga-no-demi-grand-plie`, `impulsao-e-absorcao-allegro`, …), e o que falta é a
+  travessia: o item 11 do PO («Ponto de partida») devia abrir o registo completo da aluna e trazer
+  de lá os campos escolhidos, por chave-valor. Os candidatos estão listados à espera da escolha
+  dela — a lista é dela, não do código.

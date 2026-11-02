@@ -295,7 +295,13 @@ paginas.forEach((f) => {
     // `assets/style.css`), sem a barra inicial — por isso a barra distingue as duas coisas.
     if (/^(\/|https?:|mailto:|data:)/.test(alvo)) return;
     linksChecados++;
-    const [arq, ancora] = alvo.split('#');
+    /*
+     * A QUERY NÃO FAZ PARTE DO CAMINHO (02/11/2026). O `alvo` era usado inteiro para procurar o
+     * arquivo, e `plano.html?aluna=ana` procurava um ficheiro com esse nome — recusando um link
+     * que funciona. Aqui a query e a âncora saem antes da procura; a âncora continua a ser
+     * verificada em separado, logo abaixo, e a query não se verifica: ela é do destino. */
+    const semQuery = alvo.split('?')[0];
+    const [arq, ancora] = semQuery.split('#');
     if (arq === '') {
       if (ancora && !ids[f].has(ancora)) erros.push(`${f}: âncora local inexistente → #${ancora}`);
       return;

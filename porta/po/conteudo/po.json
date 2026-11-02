@@ -291,9 +291,9 @@
     },
     {
       "bloco": 4,
-      "titulo": "Critérios de inclusão e exclusão",
+      "titulo": "Critérios de inclusão e de exclusão da observação",
       "dimensao": null,
-      "objetivo": "delimitar o que conta como observação e o que fica fora",
+      "objetivo": "declarar o que ENTRA na observação (inclusão) e o que NÃO entra (exclusão) — o que fica fora do âmbito é outro campo, na justificativa",
       "campos": [
         {
           "id": "inclusao",

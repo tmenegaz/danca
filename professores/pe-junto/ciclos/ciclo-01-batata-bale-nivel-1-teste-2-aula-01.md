@@ -64,11 +64,8 @@ aconteceu · ? não vi · vazio = não observei.
 
 ## 6. Proveniência consolidada
 
-| Elo | Proveniência |
-|:--|:--|
-| **Plano de observação** | `po-20261101-1959` — o envelope elicitado, gravado pelo «Guardar» do PO |
-| **Plano de ensino** | `plano-20261101-1955` — o plano que o PO carrega em «Plano de ensino» |
-| **Esta aula** | derivada dos dois por `derivar-ciclo.js` — a proveniência acrescenta, não edita |
+- **[Plano de Observação](/plano-observacao/?professor=pe-junto&escola=batata&ciclo=01&fonte=po)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/?professor=pe-junto&escola=batata&ciclo=01&fonte=plano)** — Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.
 
 ## 7. Registro de auditoria da aula
 
@@ -82,7 +79,4 @@ aconteceu · ? não vi · vazio = não observei.
 
 | Item | Proposta |
 |:--|:--|
-| **O que se entende por «próximo passo»** | o marco da aula seguinte, **proposto** — não a aula dada, nem o preenchimento do formulário (isso é o ciclo de vida do pacote) |
-| **Marco da Aula 02** | [Preencher: o plano declara um só marco — não há marco seguinte de onde propor] |
-| **Estado** | nada a propor |
-| **Lido de** | `plano · marcos-por-aula` |
+| **Marco da Aula 02** | — o plano declarou apenas um marco; aguarda-se o desenvolvimento do próximo marco para a elaboração da Aula 02 |

@@ -45,14 +45,13 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 *2 tempos, 4/4 · Cinquième position (pés) · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
+> **Descrição.** Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
+
 | Compasso | Contagem | Notação | Descrição |
 |:--:|:--:|:--|:--|
-| 1 | 1–2 | `[Pé: 5ª → +]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, à frente. |
-| 1 | 3–4 | `[Pé: 5ª → -]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, ao lado. |
-| 2 | 1–2 | `[Pé: 5ª → ×]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, atrás. |
+| 1 | 1–2 | `[Pé: 5ª → +]` | Lê-se: Pé, quinta posição, conduz a, à frente. |
+| 1 | 3–4 | `[Pé: 5ª → -]` | Lê-se: Pé, quinta posição, conduz a, ao lado. |
+| 2 | 1–2 | `[Pé: 5ª → ×]` | Lê-se: Pé, quinta posição, conduz a, atrás. |
 | — | — | **conferir** | os segmentos somam 6 tempos, que não fecham em compasso 4/4 |
 
 ### 2. Barra — Battement tendu
@@ -72,24 +71,21 @@ Lê-se: Pé, quinta posição, conduz a, atrás. |
 |:--:|:--:|:--|:--|
 | 1 | 1–4 | `[Perna: 1ª ↓]` | os dois apoios cedem em 1ª posição e o eixo desce |
 | 2 | 1–4 | `[Perna: ↓ ↑]` | os apoios sobem e o eixo retorna |
-| 3 | 1–2 | `[Braço: ↓ ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce
-Lê-se: Braço, cede, arco. |
-| 3 | 3–4 | `[Braço: → + - ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce
-Lê-se: Braço, conduz a, à frente, ao lado, arco. |
+| 3 | 1–2 | `[Braço: ↓ ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce — Lê-se: Braço, cede, arco. |
+| 3 | 3–4 | `[Braço: → + - ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce — Lê-se: Braço, conduz a, à frente, ao lado, arco. |
 | — | — | **conferir** | os segmentos somam 12 tempos, que não fecham em compasso 4/4 |
 
 ### 4. Centro — Battement fondu
 
 *2 tempos, 4/4 · Cinquième position (pés) · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
+> **Descrição.** Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
+
 | Compasso | Contagem | Notação | Descrição |
 |:--:|:--:|:--|:--|
-| 1 | 1–2 | `[Pé: 5ª → +]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, à frente. |
-| 1 | 3–4 | `[Pé: 5ª → -]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, ao lado. |
-| 2 | 1–2 | `[Pé: 5ª → ×]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, atrás. |
+| 1 | 1–2 | `[Pé: 5ª → +]` | Lê-se: Pé, quinta posição, conduz a, à frente. |
+| 1 | 3–4 | `[Pé: 5ª → -]` | Lê-se: Pé, quinta posição, conduz a, ao lado. |
+| 2 | 1–2 | `[Pé: 5ª → ×]` | Lê-se: Pé, quinta posição, conduz a, atrás. |
 | — | — | **conferir** | os segmentos somam 6 tempos, que não fecham em compasso 4/4 |
 
 ### 5. Centro — Battement tendu
@@ -109,24 +105,21 @@ Lê-se: Pé, quinta posição, conduz a, atrás. |
 |:--:|:--:|:--|:--|
 | 1 | 1–4 | `[Perna: 1ª ↓]` | os dois apoios cedem em 1ª posição e o eixo desce |
 | 2 | 1–4 | `[Perna: ↓ ↑]` | os apoios sobem e o eixo retorna |
-| 3 | 1–2 | `[Braço: ↓ ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce
-Lê-se: Braço, cede, arco. |
-| 3 | 3–4 | `[Braço: → + - ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce
-Lê-se: Braço, conduz a, à frente, ao lado, arco. |
+| 3 | 1–2 | `[Braço: ↓ ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce — Lê-se: Braço, cede, arco. |
+| 3 | 3–4 | `[Braço: → + - ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce — Lê-se: Braço, conduz a, à frente, ao lado, arco. |
 | — | — | **conferir** | os segmentos somam 12 tempos, que não fecham em compasso 4/4 |
 
 ### 7. Expressão — Battement fondu
 
 *2 tempos, 4/4 · Cinquième position (pés) · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
+> **Descrição.** Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
+
 | Compasso | Contagem | Notação | Descrição |
 |:--:|:--:|:--|:--|
-| 1 | 1–2 | `[Pé: 5ª → +]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, à frente. |
-| 1 | 3–4 | `[Pé: 5ª → -]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, ao lado. |
-| 2 | 1–2 | `[Pé: 5ª → ×]` | Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.
-Lê-se: Pé, quinta posição, conduz a, atrás. |
+| 1 | 1–2 | `[Pé: 5ª → +]` | Lê-se: Pé, quinta posição, conduz a, à frente. |
+| 1 | 3–4 | `[Pé: 5ª → -]` | Lê-se: Pé, quinta posição, conduz a, ao lado. |
+| 2 | 1–2 | `[Pé: 5ª → ×]` | Lê-se: Pé, quinta posição, conduz a, atrás. |
 | — | — | **conferir** | os segmentos somam 6 tempos, que não fecham em compasso 4/4 |
 
 ### 8. Expressão — Battement tendu
@@ -146,10 +139,8 @@ Lê-se: Pé, quinta posição, conduz a, atrás. |
 |:--:|:--:|:--|:--|
 | 1 | 1–4 | `[Perna: 1ª ↓]` | os dois apoios cedem em 1ª posição e o eixo desce |
 | 2 | 1–4 | `[Perna: ↓ ↑]` | os apoios sobem e o eixo retorna |
-| 3 | 1–2 | `[Braço: ↓ ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce
-Lê-se: Braço, cede, arco. |
-| 3 | 3–4 | `[Braço: → + - ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce
-Lê-se: Braço, conduz a, à frente, ao lado, arco. |
+| 3 | 1–2 | `[Braço: ↓ ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce — Lê-se: Braço, cede, arco. |
+| 3 | 3–4 | `[Braço: → + - ⌒]` | os dois apoios cedem em 1ª posição e o eixo desce — Lê-se: Braço, conduz a, à frente, ao lado, arco. |
 | — | — | **conferir** | os segmentos somam 12 tempos, que não fecham em compasso 4/4 |
 
 ## O que ficou em lacuna

@@ -16,6 +16,27 @@
 \usepackage{fancyhdr}
 
 % ---------------------------------------------------------------------------
+% PDF REPRODUTÍVEL (02/11/2026).
+%
+% O `SOURCE_DATE_EPOCH` + `FORCE_SOURCE_DATE` que o gerador exporta acertam a data, mas NÃO o
+% `/ID` do trailer: o pdfTeX deriva-o do nome do trabalho e do caminho, e o pandoc compila numa
+% pasta temporária diferente em cada execução. Medido em duas gerações seguidas do MESMO ciclo,
+% com o mesmo `SOURCE_DATE_EPOCH`: os dois PDFs saíam com 62 bytes diferentes, todos no `/ID` —
+% um ficheiro versionado que muda por ter sido gerado, exactamente o que a data determinística
+% veio acabar. Com o `/ID` fixo, os dois ficam byte a byte iguais.
+%
+% Os dois comandos são de pdfTeX e não existem no LuaTeX, que o `PDF_ENGINE` pode escolher: o
+% `\ifdefined` deixa o preâmbulo compilar nos dois. O `\pdfsuppressptexinfo` tira do `/Info` o
+% caminho do ficheiro de origem — que também muda a cada execução, e que não interessa a quem lê.
+% ---------------------------------------------------------------------------
+\ifdefined\pdftrailerid
+  \pdftrailerid{}
+\fi
+\ifdefined\pdfsuppressptexinfo
+  \pdfsuppressptexinfo=-1
+\fi
+
+% ---------------------------------------------------------------------------
 % Identidade visual (ver IDENTIDADE-VISUAL.md). O bloco de cores NÃO é escrito
 % aqui: o `@CORES@` abaixo é substituído, na geração, pelas definições lidas da
 % fonte de verdade (tools/templates/ciclo.css, via tools/lib-tokens.js). Assim o

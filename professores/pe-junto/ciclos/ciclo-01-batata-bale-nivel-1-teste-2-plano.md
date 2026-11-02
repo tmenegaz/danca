@@ -98,7 +98,7 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 > Calendário é conta do gerador a partir das datas e da frequência; se o horizonte
 > declarado aqui for outro, é este que vale.
 
-## Músicas e vídeos
+## Música e vídeo de referência
 
 - Battement fondu — 2 tempos em 4/4
 - Battement tendu — 4 tempos em 4/4

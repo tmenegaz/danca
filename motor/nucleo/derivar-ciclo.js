@@ -113,6 +113,27 @@ function numeroEmPortugues(n) {
  * fecharem no total. Sem bloco correspondente, ou sem percentagem declarada, a célula sai
  * como lacuna, e não como um número adivinhado.
  */
+/**
+ * A DESCRIÇÃO DE UMA CÉLULA, PARTIDA EM DUAS (02/11/2026).
+ *
+ * O que a pesquisadora viu na Aula 01: a coluna «Descrição» repetia, célula a célula, o MESMO
+ * parágrafo do verbete («Exercício de coordenação bi-lateral onde…»), e por baixo dele vinha a
+ * leitura da notação («Lê-se: Pé, quinta posição, conduz a, à frente.»). Duas coisas erradas, e a
+ * segunda era invisível no código e visível na página: uma célula de tabela Markdown NÃO atravessa
+ * linhas, e a quebra depois do parágrafo partia a linha em duas — a segunda metade («Lê-se: …»)
+ * saía como uma linha sem colunas, e o leitor via a notação no lugar da descrição.
+ *
+ * `descricao` = o texto FIXO do exercício (o que se diz dele uma vez) + a leitura da célula.
+ * Quem imprime decide: o fixo vai para o cabeçalho do exercício, uma vez; a célula fica com a
+ * leitura. Ver `derivarNotacao`.
+ */
+function partirDescricao(texto) {
+  const t = String(texto == null ? '' : texto);
+  const m = /(?:^|\n)\s*Lê-se:\s*([\s\S]*)$/.exec(t);
+  if (!m) return { fixa: t.replace(/\s*\n\s*/g, ' ').trim(), lida: '' };
+  return { fixa: t.slice(0, m.index).replace(/\s*\n\s*/g, ' ').trim(), lida: m[1].replace(/\s*\n\s*/g, ' ').trim() };
+}
+
 function distribuicaoDoTempo(estrutura, volume, volumeTotal) {
   // A distribuição declarada chega na forma da grelha — array de objetos, um por linha.
   // As duas primeiras colunas são o bloco e a proporção, na ordem em que foram gravadas.
@@ -468,34 +489,54 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
    * três variantes — sem isso o validador descartaria as três secções EM SILÊNCIO (é o modo de
    * falha que o próprio mapa documenta). */
 
-  /* §6 — A PROVENIÊNCIA DIZIA «CICLO SIMULADO» A TODOS OS CICLOS (01/11/2026).
+  /* §6 — A PROVENIÊNCIA É UM LUGAR AONDE SE VAI, NÃO UM CÓDIGO QUE SE MOSTRA (02/11/2026).
    *
-   * O que estava aqui era uma frase fixa: «Ciclo **simulado** — a cadeia foi gerada pelo
-   * «Guardar» do PO». Duas coisas, e as duas erradas.
+   * A primeira redação desta secção (01/11/2026) corrigiu duas coisas — «Ciclo **simulado**»
+   * saiu, e os elos passaram a ser nomeados — e deixou três que a pesquisadora leu de imediato:
    *
-   *   · «**simulado**» é FALSO para todo o ciclo que não seja o de ensaio. O ciclo da `batata`
-   *     nasceu de um PO elicitado a sério, de um plano a sério, e foi publicado — e o documento
-   *     publicado dizia à professora que era simulação. A palavra vem do tempo em que só existia
-   *     o ciclo de demonstração, e ficou no código como ficam as frases que ninguém relê.
-   *   · dizer «derivado do plano do ciclo e das fontes do PO» sem NOMEAR nenhum dos dois é o
-   *     contrário de proveniência: não se pode ir verificar. Os dois envelopes têm `id`, e é o
-   *     `id` que a cadeia de custódia usa em todo o resto do projecto.
+   *  1. **O `id` do envelope não é o documento.** «A proveniência aponta para PO, que é o
+   *     documento, né? (…) Não é isso que tem que mostrar.» `po-20261101-1959` é uma etiqueta de
+   *     armazenamento: não leva a lado nenhum. O que serve à professora é o LINK.
+   *  2. **«Esta aula deriva dos dois por `derivar-ciclo.js`» não é informação dela.** «Isso não
+   *     interessa para o professor, ele nem sabe o que é um ponto JS.» E a frase estava a
+   *     explicar o gerador a quem abriu a aula.
+   *  3. **Uma tabela de duas colunas para duas linhas** lê-se como formulário. É uma lista.
    *
-   * A secção passa a nomear os dois elos. O que não existir sai como lacuna declarada, e não
-   * como frase feita. */
+   * O QUE FICA NO LUGAR: duas linhas, cada uma um LINK para o sítio onde o documento vive, e ao
+   * lado o OBJETIVO daquele documento — porque «Plano de Observação» sozinho não diz o que se vai
+   * lá buscar. O objetivo do PO é a pergunta que ele se propõe responder (`question`); o do plano
+   * de ensino é o objetivo geral do ciclo (`objetivo-geral`). Os dois são dado, não código.
+   *
+   * OS LINKS SÃO ABSOLUTOS, e não relativos — e a assimetria NÃO é descuido. A porta do plano de
+   * observação viaja DENTRO do pacote do ciclo (`plano-observacao/`), mas a do plano de ensino é
+   * uma ROTA do Worker, servida só na raiz do site. Medido no ar (02/11/2026):
+   * `/plano-ensino/?…` responde 200, e `<variante>/plano-ensino/?…` responde 404. Duas formas
+   * diferentes para dois links irmãos seriam uma armadilha para quem editar isto depois; uma só,
+   * absoluta, alcança as duas — é a mesma forma que o `check-identidade.js` já usa para a rota.
+   * O custo é o de sempre num link absoluto: não se abre a partir do disco, e no PDF não navega. */
   {
-    const corpo = ['| Elo | Proveniência |', '|:--|:--|'];
-    const idPo = (po && (po.id || po.carimbo)) || '';
-    const idPlano = (plano && (plano.id || plano.carimbo)) || '';
-    corpo.push('| **Plano de observação** | ' + (idPo
-      ? '`' + idPo + '` — o envelope elicitado, gravado pelo «Guardar» do PO'
-      : '[Preencher: o envelope do PO não declara `id`]') + ' |');
-    corpo.push('| **Plano de ensino** | ' + (idPlano
-      ? '`' + idPlano + '` — o plano que o PO carrega em «Plano de ensino»'
-      : '[Preencher: o envelope do plano não declara `id`]') + ' |');
-    corpo.push('| **Esta aula** | derivada dos dois por `derivar-ciclo.js` — a proveniência '
-      + 'acrescenta, não edita |');
-    secao('6. Proveniência consolidada', corpo);
+    const corpo6 = [];
+    const q = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+    const encurtar = (texto, max) => (texto.length > max ? texto.slice(0, max - 1).replace(/[\s,;:.]+$/, '') + '…' : texto);
+    const docente = q((contexto && contexto.professor) || '');
+    const escola = q((contexto && contexto.escola) || '');
+    const ciclo = q((contexto && contexto.ciclo) || '');
+    const barra = [docente ? 'professor=' + encodeURIComponent(docente) : '',
+      escola ? 'escola=' + encodeURIComponent(escola) : '',
+      ciclo ? 'ciclo=' + encodeURIComponent(ciclo) : ''].filter(Boolean).join('&');
+
+    const objetivoDoPo = q(resp(po, 'question') || resp(po, 'pergunta'));
+    const objetivoDoPlano = q(resp(plano, 'objetivo-geral'));
+
+    corpo6.push('- **[Plano de Observação](/plano-observacao/?' + barra + '&fonte=po)** — '
+      + (objetivoDoPo
+        ? encurtar(objetivoDoPo, 160)
+        : '[Preencher: o PO não declara a pergunta que se propõe responder]'));
+    corpo6.push('- **[Plano de ensino](/plano-ensino/?' + barra + '&fonte=plano)** — '
+      + (objetivoDoPlano
+        ? encurtar(objetivoDoPlano, 160)
+        : '[Preencher: o plano não declara o objetivo geral do ciclo]'));
+    secao('6. Proveniência consolidada', corpo6);
   }
 
   // §7 — Registro de auditoria.
@@ -508,38 +549,40 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     secao('7. Registro de auditoria da aula', corpo);
   }
 
-  /* §8 — O QUE É O «PRÓXIMO PASSO» ESTAVA ESCRITO NO PROJECTO, E NÃO AQUI (01/11/2026).
+  /* §8 — UMA LINHA, E OS TRÊS ESTADOS QUE ELA PODE TER (02/11/2026).
    *
-   * A pesquisadora: «Próximo passo quer dizer o quê? A próxima aula? Ou que o meu próximo passo é
-   * dar a aula e preencher o formulário? Eu não sei.» A pergunta era justa, porque a linha era
-   * um `[Preencher]` sobre um título que não dizia o que se esperava ali — e a resposta existia
-   * desde antes, no documento de arquitectura: `PLANO-AULA-E-OBSERVACAO.md` define o próximo
-   * passo como «a aula anterior + **o marco seguinte** — *proposto*».
+   * A primeira redação explicava o que «próximo passo» queria dizer em três linhas de tabela
+   * (`O que se entende por…`, `Estado`, `Lido de`). A pesquisadora: «não precisa disso tudo (…)
+   * se não tiver um próximo passo, coloca aqui: o plano declarou apenas um marco (…) e aguarda-se
+   * o desenvolvimento do próximo marco para elaboração da aula 2». Ou seja: a secção não explica
+   * o conceito — DIZ O ESTADO. Fica uma linha, «Marco da Aula 02», e o resto sai.
    *
-   * Ou seja: NÃO é «dar a aula» nem «preencher o formulário» (esses são o ciclo de vida do
-   * pacote, não o conteúdo pedagógico), e não é «a Aula 02» — é o MARCO da aula seguinte, e
-   * proposto, porque quem o confirma é a professora na captura da impressão.
+   * OS TRÊS ESTADOS, ditos por ela:
+   *   · o plano tem um marco só       → «—» e a razão: aguarda-se o marco seguinte;
+   *   · há marco e não há Aula 02     → o marco, e «a Aula 02 ainda não foi elaborada»;
+   *   · há marco e há Aula 02         → o título E o marco viram link para a Aula 02.
    *
-   * A fonte é a mesma dos marcos que a §1 já lê (`marcos-por-aula`). Proposto, e dito proposto:
-   * sair como afirmação seria o mesmo defeito de sempre — o documento a decidir o que ninguém
-   * decidiu. Sem marco seguinte (plano com um marco só), di-lo, em vez de inventar um. */
+   * O TERCEIRO ESTADO PRECISA DE UM DADO QUE ESTE DERIVADOR NÃO TINHA: que aulas existem no
+   * ciclo. Ele chega em `contexto.aulas` (as que o `DOCS` declara), posto por quem escreve as
+   * fontes. Sem o dado, o pior que sai é um link a menos — nunca um link para uma aula que não
+   * existe, que é o defeito que se estava a evitar. */
   {
     const marcos = marcosEmTexto(resp(plano, 'marcos-por-aula')).filter((v) => !GABARITO_VAZADO.test(v));
     const seguinte = marcos.length > 1 ? marcos[1] : '';
-    secao('8. Próximo passo', ['| Item | Proposta |', '|:--|:--|',
-      // A PRIMEIRA LINHA RESPONDE À PERGUNTA, e é ela que faltava: «próximo passo» não é a aula
-      // dada, nem o formulário, nem «a Aula 02» — é o MARCO da aula seguinte, e proposto.
-      '| **O que se entende por «próximo passo»** | o marco da aula seguinte, **proposto** — '
-        + 'não a aula dada, nem o preenchimento do formulário (isso é o ciclo de vida do pacote) |',
-      seguinte
-        ? '| **Marco da Aula 02** | ' + seguinte + ' |'
-        : '| **Marco da Aula 02** | [Preencher: o plano declara '
-          + (marcos.length ? 'um só marco' : 'nenhum marco')
-          + ' — não há marco seguinte de onde propor] |',
-      '| **Estado** | ' + (seguinte
-        ? 'proposto — a Aula 01 não o decide; confirma-se na captura da impressão'
-        : 'nada a propor') + ' |',
-      '| **Lido de** | `plano · marcos-por-aula`' + (seguinte ? ', o 2.º marco declarado' : '') + ' |']);
+    const aulas = Array.isArray(contexto && contexto.aulas)
+      ? (contexto.aulas || []).map((a) => String(a).replace(/^aula-?/, '').replace(/^0+(?=\d)/, ''))
+      : null;
+    const haAula02 = aulas ? aulas.indexOf('2') !== -1 || aulas.indexOf('02') !== -1 : false;
+    const linkAula02 = 'aula-02.html';
+
+    const valor = !seguinte
+      ? '— o plano declarou ' + (marcos.length ? 'apenas um marco' : 'nenhum marco')
+        + '; aguarda-se o desenvolvimento do próximo marco para a elaboração da Aula 02'
+      : haAula02
+        ? '[' + seguinte + '](' + linkAula02 + ')'
+        : seguinte + ' — a Aula 02 ainda não foi elaborada';
+    const titulo = haAula02 && seguinte ? '**[Marco da Aula 02](' + linkAula02 + ')**' : '**Marco da Aula 02**';
+    secao('8. Próximo passo', ['| Item | Proposta |', '|:--|:--|', '| ' + titulo + ' | ' + valor + ' |']);
   }
 
   /* UMA LINHA EM BRANCO, E NÃO DUAS. Cada `secao()` fecha com uma, e vários corpos terminam
@@ -743,6 +786,29 @@ function derivarNotacao({ plano, contexto }) {
         .filter(Boolean).join(' · ');
       saida.push('*' + legenda + '*');
       saida.push('');
+
+      /* O QUE É DO EXERCÍCIO SAI DA CÉLULA (02/11/2026). A descrição do verbete tem duas
+       * metades: a que se diz do exercício UMA vez (e que se repetia em cada célula) e a leitura
+       * daquela célula. Medido na Aula 01 da batata: o parágrafo do `Battement fondu` saía
+       * três vezes seguidas, palavra por palavra, e a parte que mudava — o «Lê-se» — ficava
+       * escondida na segunda metade de uma célula partida.
+       *
+       * A REGRA É MEDIDA, NÃO DECLARADA: o texto fixo sobe para o cabeçalho do exercício
+       * quando é IGUAL em todas as células com conteúdo. Se cada célula diz uma coisa
+       * diferente (o `Battement tendu`: «extensão à frente…» / «retorno à 1ª posição»), não há
+       * nada a subir — e a descrição fica onde está, que é onde ela é daquela célula.
+       *
+       * A LINHA ENTRA ANTES DO CABEÇALHO DA TABELA: uma linha entre o cabeçalho e o separador
+       * parte a tabela em duas (é o mesmo modo de falha que a célula com quebra de linha tinha,
+       * um nível acima). */
+      const partes = c.estado === 'lacuna' ? [] : c.segmentos.map((sg) => partirDescricao(sg.descricao));
+      const fixas = [...new Set(partes.map((x) => x.fixa))].filter(Boolean);
+      const subir = fixas.length === 1 && c.segmentos.length > 1;
+      if (subir) {
+        saida.push('> **Descrição.** ' + fixas[0]);
+        saida.push('');
+      }
+
       saida.push('| Compasso | Contagem | Notação | Descrição |');
       saida.push('|:--:|:--:|:--|:--|');
 
@@ -750,9 +816,13 @@ function derivarNotacao({ plano, contexto }) {
         // A LACUNA NÃO ESCONDE O MOTIVO. Uma célula vazia diria «não sei»; a frase diz o que falta.
         saida.push('| — | — | [Preencher: notação do exercício] | ' + c.detalhe + ' |');
       } else {
-        for (const s of c.segmentos) {
-          saida.push('| ' + s.compasso + ' | ' + s.contagem + ' | `' + s.bloco + '` | ' + s.descricao + ' |');
-        }
+        c.segmentos.forEach((sg, k) => {
+          const p = partes[k];
+          const descricao = subir
+            ? (p.lida ? 'Lê-se: ' + p.lida : '—')
+            : (p.fixa + (p.lida ? ' — Lê-se: ' + p.lida : '') || '—');
+          saida.push('| ' + sg.compasso + ' | ' + sg.contagem + ' | `' + sg.bloco + '` | ' + descricao + ' |');
+        });
         if (c.estado === 'parcial') {
           // O QUE O VERBETE NÃO EXPLICA FICA ESCRITO, e com `conferir` — sem colchetes de código,
           // que os tornariam um «sinal» do registro aos olhos de quem o lê de volta.

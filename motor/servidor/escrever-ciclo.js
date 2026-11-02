@@ -432,8 +432,19 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
     // 2. As fontes derivadas, cada uma com o seu caminho. O `-dados.json` é a
     // FONTE (não entra em DOCS): é o que o cifrador lê para publicar a cópia no
     // pacote — sem ela o `check-pacote.js` acusa o pacote incompleto.
+    /* QUE AULAS O CICLO JÁ TEM (02/11/2026). O §8 da aula escreve «a Aula 02 ainda não foi
+     * elaborada» ou, quando ela existir, um link para ela — e para escolher entre os dois o
+     * derivador tem de saber a resposta. Quem sabe é o `DOCS` do manifesto, que este mesmo
+     * escritor liga mais abaixo. Sem esta passagem, o derivador só podia afirmar «não existe»,
+     * que é o que deixa de ser verdade no dia em que a segunda aula nascer. */
+    const aulasDoCiclo = docsAtuais(conf.texto)
+      .map((d) => /^aula-(\d+)$/.exec(d))
+      .filter(Boolean)
+      .map((m) => m[1]);
+
     const fontes = [
-      { sufixo: '-aula-01.md', md: derivarAula01({ plano, po, contexto: ctx, calibracao: cal }) },
+      { sufixo: '-aula-01.md',
+        md: derivarAula01({ plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }), calibracao: cal }) },
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },
       { sufixo: '-captura-aula-01.md', md: derivarCaptura({ po, contexto: ctx }) },
       { sufixo: '-harmonizacao.md', md: derivarHarmonizacao({ plano, po, contexto: ctx }) },

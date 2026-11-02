@@ -10,11 +10,11 @@ professor: pe-junto
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
 aula: 01
-hash_conteudo: 4c0c3b5696af45e40cd74d32f5556622fda19d27b3fb6148e9cb03c7c04e8c89
+hash_conteudo: 38676ec8ad96cffafdec7cbc8baa22665d099393d756234e31749ffdb17f2514
 parentHash: 
-hash: b93dabb2583a6eac21f04175c00a033019d228f12675dbe7bddec713854cf362
+hash: 6aa00857c0fa94ed6cd214fe25883b31994638e4b3e288aaeb394da5ad868790
 algoritmo: SHA-256
-ancorado_em: 2026-11-01
+ancorado_em: 2026-11-02
 cobertura:
   - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md

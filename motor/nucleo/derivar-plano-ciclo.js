@@ -703,7 +703,12 @@ function derivarPlano(envelope) {
    * O REPERTÓRIO também é lido, não escrito: o nó dele é `somenteLeitura` e a tela o semeia com
    * os exercícios da sequência. A chave do envelope continua a ser `repertorio`, e é por isso
    * que esta linha não mudou — o que mudou foi quem a preenche. */
-  lista('Músicas e vídeos', musicasDaSequencia(respostaDo(envelope, 'aula-1-sequencia'))
+  /* O TÍTULO DA SECÇÃO DIZ O QUE ELA É (02/11/2026). Era «Músicas e vídeos», e o bloco do
+   * formulário chamava-se «Música e repertório» — dois nomes para a mesma coisa, e o segundo
+   * prometia o repertório, que é a secção seguinte. A pesquisadora: «aqui continua sendo música e
+   * vídeo de referência; o repertório é o próximo item». As duas coisas passam a ter nomes
+   * próprios, iguais nos dois lados. */
+  lista('Música e vídeo de referência', musicasDaSequencia(respostaDo(envelope, 'aula-1-sequencia'))
     .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
   lista('Repertório', respostaDo(envelope, 'repertorio'));
 

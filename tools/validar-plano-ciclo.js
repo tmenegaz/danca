@@ -89,6 +89,9 @@ const MAPA_SECOES = {
   'critério de extensão': 'criterioDeExtensao',
   // A MÚSICA e o REPERTÓRIO: dois nós respondíveis que não tinham SEÇÃO (falha da derivação,
   // não do mapa) e que por isso não chegavam a documento nenhum.
+  // «Música e vídeo de referência» (02/11/2026): o título antigo prometia o repertório, que é a
+  // secção seguinte. Os dois nomes ficam no mapa — há plano no repositório escrito com o antigo.
+  'música e vídeo de referência': 'musicasVideos',
   'músicas e vídeos': 'musicasVideos',
   'repertório': 'repertorio',
   'registro de proveniência': 'proveniencia',
