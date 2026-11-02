@@ -31581,3 +31581,91 @@ dos quatro sítios a somar tempos).
 posições, `pintarDuplicar`, o painel único, `SINAL_EM_TROCA`, a ficha clicável, a regra `.chip.em-troca`)
 · `biblioteca/modalidades/bale-classico/vocabulario.json` (13 `nome`) · `experimentos/provar-celula.js`
 (§20, §20-D, §21).
+
+---
+
+## 02/11/2026 — Editar e esticar a música SUBSTITUI — não havia INSERT, havia uma chave
+
+**O que ela relatou.** «Ao tentar realizar a evolução de um exercício existente (transformando um
+*Plié* de 8 tempos em um novo *Plié* expandido de 16 tempos): o sistema **criou um novo registro** e
+**manteve o registro antigo**». E a hipótese dela: «a rotina de salvamento está executando uma
+instrução de inserção (`INSERT`) em vez de uma atualização (`UPDATE`)».
+
+**A hipótese não é a mecânica, e a diferença importa para o remédio.** Não há tabelas nem `INSERT`:
+a **chave do registo é `<tempos>|<compasso>`**. Mudar os tempos muda a chave, e a gravação escreve
+ao lado — o registo antigo fica, com toda a razão aparente. O efeito é exactamente o que ela viu; a
+causa é outra, e por isso o remédio também é outro: não é trocar o verbo da escrita, é **dizer qual
+é a chave que sai**.
+
+### O que ficou
+
+- **`musicaAnterior`** no corpo da gravação. Numa **edição**, quando a música em foco já não é a que
+  se abriu, a tela manda a chave antiga e o servidor **apaga-a** depois de escrever a nova. O
+  verbete fica com uma só.
+- **«Guardar como música nova, e manter a de 8 tempos»** — a outra intenção, explícita. Ela só
+  aparece **quando há o que decidir** (isto é, quando a música mudou); uma opção sempre presente
+  obriga a lê-la sempre.
+- **A nota que diz o que vai acontecer**, antes de acontecer: «Gravar substitui a música de 8
+  tempos em 4/4 por esta — o exercício fica com uma só». Uma coisa que apaga dados diz-se antes,
+  não depois.
+- **As guardas do servidor**, e todas foram provadas: só em edição; só com chave válida e
+  **diferente** da nova (senão apagaria o que se acabou de gravar); só se ela existir; e a mensagem
+  do commit diz «— substitui a música 8|4/4».
+
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-verbete` (servidor) | **TUDO CERTO** — com `musicaAnterior` a música antiga **sai** (`8\|4/4` fica, `4\|4/4` desaparece) e a mensagem diz «substitui a música 4\|4/4»; **sem** ela ficam as duas; e `musicaAnterior` **igual** à nova não apaga nada |
+| `provar-celula` §20-E (browser) | **172 asserções** (eram 167) — antes de mexer na música não há substituição a anunciar; com a música mudada a nota e a caixa aparecem e dizem qual sai; o corpo leva `musicaAnterior: "4\|4/4"` sem a caixa e **não leva** com ela |
+| **o risco, medido antes de escrever** | **nenhum plano de ensino usa o `Plié`** hoje (`professores/**/*.json`), e portanto apagar a música antiga não deixa nenhum ciclo em lacuna |
+
+**A regra que se aprendeu, e é mais geral do que o verbete:** quando a chave de um registo é
+**derivada de um valor editável**, editar esse valor **cria outro registo**. «Guardar» e «guardar
+como novo» deixam de ser o mesmo gesto, e quem desenha a tela tem de escolher qual é o de omissão.
+
+**Com o quê.** `motor/servidor/verbete.js` (`musicaAnterior` e as quatro guardas) ·
+`motor/servidor/bastidores.js` (`MUSICA_ABERTA`, `substituiMusica`, `pintarComoNova`, a caixa e a
+nota, e o esquecimento da música ao trocar de exercício) · `provar-verbete` · `provar-celula` §20-E.
+
+---
+
+## 02/11/2026 — A bancada da listagem dos verbetes: para ver e validar, no computador e no telemóvel
+
+**O que ela pediu, e o que eu tinha feito em vez disso.** O pedido era uma **bancada** — uma página
+em `experimentos/propostas/`, publicada em `/propostas/`, para ela abrir e decidir. Eu implementei a
+listagem directamente na Produção e não construí a bancada. O pedido era explícito («Proposta de
+Interface e Componente (Desktop & Mobile)»), e a diferença não é de forma: uma bancada compara
+alternativas **sem** mexer no produto; o que eu fiz já mudou o produto.
+
+**O que ficou:** `experimentos/propostas/proposta-verbetes.html`, com três opções medidas em quatro
+larguras — **320 · 390 · 768 · 1280 px**, sem transbordo em nenhuma:
+
+| Opção | Por cartão (320 px) | Por cartão (1280 px) | O que diz |
+|:--|--:|--:|:--|
+| **0 · hoje** — a linha por música | **66 px** | 66 px | tempos, compasso, trechos, corpo |
+| **1 · o cartão das turmas** | 198 px | 123 px | + música, direção e a notação, a um toque |
+| **2 · o cartão com a notação à vista** | 561 px | 406 px | + a decomposição inteira, sem clique |
+
+**As peças são as da lista de turmas, e não um desenho novo:** `.trio`, `.trio-item` com o «?»,
+`.trio-painel`, `.trio-k`/`.trio-v`, `.trio-chips`, `.trio-nota` — todas da folha. O que a bancada
+acrescenta é a lista dos trechos em leitura (a tabela do passo 6, do lado da lista).
+
+**Os dados são os reais.** Onze exercícios, catorze músicas, lidos do alfabeto versionado; o
+compasso de cada trecho sai do **motor** (`compor`), não de uma segunda conta; e os nomes vêm em
+português (`primeira posição`, `à frente`).
+
+### A bancada deixou de ser tudo-ou-nada
+
+O `construir.js` saía por inteiro quando nenhuma escola tinha ciclo gerado — e uma bancada que lê o
+**alfabeto** não precisa de ciclo nenhum. Numa escola nova (que é exactamente quando a listagem se
+quer decidir) não se construía nada. Passa a construir o que pode: a bancada do título sai como
+**página que explica a ausência** — com o motivo do registro e o comando que a faz voltar — e as
+outras constroem-se.
+
+**Medido:** com `breu` sem ciclo, o construir escreve as **10 páginas**, e a do título diz que não
+pode medir. Antes escrevia **zero**.
+
+**Com o quê.** `experimentos/propostas/construir.js` (`dadosDosVerbetes`, `cartaoDoVerbete`,
+`proporVerbetes`, o pacote opcional e a página de ausência) · o cartão novo no `index.html` da
+bancada.

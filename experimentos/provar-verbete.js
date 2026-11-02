@@ -327,6 +327,55 @@ async function aEscrita() {
   }));
   checar('e editar o que existe é aceito', editar.ok, editar);
 
+  /* EDITAR E MUDAR OS TEMPOS SUBSTITUI — não acrescenta ao lado (02/11/2026).
+   *
+   * O DEFEITO QUE ISTO GUARDA, relatado por ela: «o sistema criou um novo registro (o Plié de 16
+   * tempos) e manteve o registro antigo (o Plié de 8 tempos)». Não era INSERT: a CHAVE do registo
+   * é «<tempos>|<compasso>», e mudar os tempos muda a chave. O registo antigo ficava ao lado.
+   *
+   * A regra: numa EDIÇÃO, a música de onde se veio sai — a menos que a tela peça explicitamente
+   * para ficar com as duas (`musicaAnterior` vazio). As três asserções medem os três casos. */
+  // A SEGUNDA MÚSICA NASCE COM `atualizar`: uma música nova de um exercício que já existe não é
+  // «criar» — `criar` é o exercício, e ele já está lá.
+  const segunda = await verbete.gravarVerbete(Object.assign({}, base, {
+    nome: 'Battement fondu', musica: '4|4/4', verbete: verbeteBom(), acao: 'atualizar',
+  }));
+  const antesDaTroca = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo).verbetes['Battement fondu'];
+  checar('o cenário tem as duas músicas antes da troca',
+    segunda.ok && Boolean(antesDaTroca['8|4/4']) && Boolean(antesDaTroca['4|4/4']),
+    Object.keys(antesDaTroca));
+
+  const trocou = await verbete.gravarVerbete(Object.assign({}, base, {
+    nome: 'Battement fondu', musica: '8|4/4', musicaAnterior: '4|4/4',
+    verbete: verbeteDeOitoTempos(), acao: 'atualizar',
+  }));
+  const depoisDaTroca = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo).verbetes['Battement fondu'];
+  checar('editar com `musicaAnterior` TIRA a música de onde se veio',
+    trocou.ok && !('4|4/4' in depoisDaTroca) && Boolean(depoisDaTroca['8|4/4']),
+    Object.keys(depoisDaTroca));
+  checar('…e a mensagem diz que substituiu',
+    /substitui a música 4\|4\/4/.test(String(repo.arquivos.get(CAlfabeto).mensagem || '')),
+    repo.arquivos.get(CAlfabeto).mensagem);
+
+  // SEM `musicaAnterior`, ficam as duas — é a escolha explícita da tela («guardar como música nova»).
+  const comoNova = await verbete.gravarVerbete(Object.assign({}, base, {
+    nome: 'Battement fondu', musica: '4|4/4', verbete: verbeteBom(), acao: 'atualizar',
+  }));
+  const depoisComoNova = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo).verbetes['Battement fondu'];
+  checar('sem `musicaAnterior`, as duas músicas ficam — é o «guardar como música nova»',
+    comoNova.ok && Boolean(depoisComoNova['4|4/4']) && Boolean(depoisComoNova['8|4/4']),
+    Object.keys(depoisComoNova));
+
+  // E A GUARDA QUE MAIS IMPORTA: `musicaAnterior` IGUAL à nova não apaga o que se acabou de gravar.
+  const mesmo = await verbete.gravarVerbete(Object.assign({}, base, {
+    nome: 'Battement fondu', musica: '8|4/4', musicaAnterior: '8|4/4',
+    verbete: verbeteDeOitoTempos(), acao: 'atualizar',
+  }));
+  const depoisMesmo = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo).verbetes['Battement fondu'];
+  checar('`musicaAnterior` igual à nova não apaga o trabalho — o verbete fica com ela',
+    mesmo.ok && Boolean(depoisMesmo['8|4/4']) && Object.keys(depoisMesmo).filter((k) => /^\d+\|/.test(k)).length >= 1,
+    Object.keys(depoisMesmo));
+
   const semToken = await verbete.gravarVerbete(Object.assign({}, base, {
     token: '', nome: 'X', musica: '4|4/4', verbete: verbeteBom(), acao: 'criar',
   }));

@@ -538,7 +538,7 @@ function primeiraPosicao(musicas) {
  * (`tools/hash-ciclo.sh`) regista no `.fipp`, e é assim que se sabe com que código um documento
  * publicado foi escrito.
  */
-async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musica, verbete, acao }) {
+async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musica, musicaAnterior, verbete, acao }) {
   if (!token) return { ok: false, status: 401, erro: 'sem token do repositório' };
   const nomeLimpo = String(nome || '').trim();
   if (!nomeLimpo) return { ok: false, status: 400, erro: 'informe o nome do exercício' };
@@ -589,9 +589,39 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     const limpo = Object.assign({}, semBaldesVazios(verbete));
     delete limpo.direcoes;
     dados.verbetes[nomeLimpo] = dados.verbetes[nomeLimpo] || {};
+
+    /* A MÚSICA DE ONDE SE VEIO SAI — E É ISSO QUE FAZ DO «GRAVAR» UMA SUBSTITUIÇÃO (02/11/2026).
+     *
+     * O DEFEITO MEDIDO: ela duplicou o `Plié` de 8 para 16 tempos e gravou; o alfabeto ficou com
+     * `8|4/4` e `16|4/4`. Não era `INSERT` — a chave do registo é `<tempos>|<compasso>`, e mudar
+     * os tempos muda a chave. O registo antigo ficava ao lado, e ela leu-o como duplicação.
+     *
+     * A regra fica: numa EDIÇÃO, a música de onde se veio sai. Quem quer as duas manda
+     * `musicaAnterior` vazio, e é uma escolha explícita da tela («guardar como música nova»).
+     *
+     * AS GUARDAS, e todas importam:
+     *  · só numa edição (`acaoLimpa !== 'criar'`) — criar não tem de onde vir;
+     *  · só se a chave for válida e DIFERENTE da nova — apagar a chave que se acabou de escrever
+     *    seria perder o trabalho todo;
+     *  · só se ela existir — uma segunda gravação da mesma sessão manda a antiga outra vez, e um
+     *    `delete` de uma chave inexistente é inofensivo, mas não deve entrar na mensagem;
+     *  · e só se ela estiver VAZIA de outra coisa: o que sai é uma música, não o verbete. Se for
+     *    a última, o exercício fica sem nenhuma — e isso é o mesmo que apagá-lo, que esta casa
+     *    recusa (não há `DELETE`). Nesse caso a substituição faz-se, mas o verbete fica com a
+     *    música nova; nunca fica com zero.
+     */
+    let substituiu = '';
+    const anterior = String(musicaAnterior || '').trim();
+    if (acaoLimpa !== 'criar' && anterior && anterior !== chaveMusica && MUSICA.test(anterior)
+      && dados.verbetes[nomeLimpo] && Object.prototype.hasOwnProperty.call(dados.verbetes[nomeLimpo], anterior)) {
+      delete dados.verbetes[nomeLimpo][anterior];
+      substituiu = anterior;
+    }
+
     dados.verbetes[nomeLimpo][chaveMusica] = limpo;
     mensagem = (acaoLimpa === 'criar' ? 'feat(notacao): declarar «' : 'docs(notacao): editar «')
       + nomeLimpo + '» (' + chaveMusica + ') no alfabeto ' + modalidade;
+    if (substituiu) mensagem += ' — substitui a música ' + substituiu;
   }
 
   // A VERSÃO SOBE, e sobe no alfabeto — não no verbete: o selo da âncora mede o ficheiro inteiro.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T17:05:11-0300`
-Commit atual: `04e2597` — docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
+Gerado em: `2026-11-02T17:29:54-0300`
+Commit atual: `544acf4` — docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+544acf4 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
+e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais três
 04e2597 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 62da8c5 feat(notacao): duplicar o exercício — a barra repete-se, e a posição não se toca
 1b99e51 docs(notacao): editar «Plié» (8|4/4) no alfabeto bale-classico
@@ -103,8 +105,6 @@ e6e3092 feat(acervo): envelope/.indice.json
 2fd6c07 feat(estrutura): criar a escola breu (motor completo)
 0e8d256 chore(estrutura): regerar os índices derivados
 aeb2b2c chore(estrutura): expurgar a escola batata
-377544c docs(registro): a fotografia dos três eixos, do ritmo obrigatório e da C22
-da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é viável
 ```
 
 ## Por professor
@@ -228,41 +228,45 @@ da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A etiqueta em português deixou de ser francês
+## 02/11/2026 — A bancada da listagem dos verbetes: para ver e validar, no computador e no telemóvel
 
-**O relato.** «Atualmente, as etiquetas na listagem exibem termos diretamente em francês (ex:
-*première position*). Como o sistema é multi-modalidade e atenderá também linguagens como Hip Hop,
-Jazz e Dança Contemporânea, a interface precisa utilizar termos padronizados em português.»
+**O que ela pediu, e o que eu tinha feito em vez disso.** O pedido era uma **bancada** — uma página
+em `experimentos/propostas/`, publicada em `/propostas/`, para ela abrir e decidir. Eu implementei a
+listagem directamente na Produção e não construí a bancada. O pedido era explícito («Proposta de
+Interface e Componente (Desktop & Mobile)»), e a diferença não é de forma: uma bancada compara
+alternativas **sem** mexer no produto; o que eu fiz já mudou o produto.
 
-**A decisão: o nome localizado é um CAMPO DO DADO, não uma tabela na tela.** O vocabulário já tinha
-`termo` (o nome na língua da modalidade) e a `gramatica` já tinha `nome` para as direções («à frente»,
-«ao lado», «atrás»). Faltava o mesmo para as posições. Treze receberam `nome`; a listagem, o `select`
-da posição e a tira leem `p.nome || p.termo` — e o `termo` continua a ser o que se **grava** e o que
-o documento escreve.
+**O que ficou:** `experimentos/propostas/proposta-verbetes.html`, com três opções medidas em quatro
+larguras — **320 · 390 · 768 · 1280 px**, sem transbordo em nenhuma:
 
-O que **não** se traduziu, e é deliberado: `retiré`, `attitude`, `arabesque`, `sur le cou-de-pied`
-mantêm o nome internacional, porque é assim que a técnica se diz em português também. Escrever
-«atitude» onde a escola diz «attitude» seria inventar uma tradução que ninguém usa.
+| Opção | Por cartão (320 px) | Por cartão (1280 px) | O que diz |
+|:--|--:|--:|:--|
+| **0 · hoje** — a linha por música | **66 px** | 66 px | tempos, compasso, trechos, corpo |
+| **1 · o cartão das turmas** | 198 px | 123 px | + música, direção e a notação, a um toque |
+| **2 · o cartão com a notação à vista** | 561 px | 406 px | + a decomposição inteira, sem clique |
 
-**A hipótese alternativa, recusada:** uma tabela de tradução na camada de exibição. Duas listas do
-mesmo vocabulário divergem ao primeiro termo novo — é a regra que esta casa já pagou (P-15, e o dia
-dos quatro sítios a somar tempos).
+**As peças são as da lista de turmas, e não um desenho novo:** `.trio`, `.trio-item` com o «?»,
+`.trio-painel`, `.trio-k`/`.trio-v`, `.trio-chips`, `.trio-nota` — todas da folha. O que a bancada
+acrescenta é a lista dos trechos em leitura (a tabela do passo 6, do lado da lista).
 
-### O que se mediu
+**Os dados são os reais.** Onze exercícios, catorze músicas, lidos do alfabeto versionado; o
+compasso de cada trecho sai do **motor** (`compor`), não de uma segunda conta; e os nomes vêm em
+português (`primeira posição`, `à frente`).
 
-| Verificação | Resultado |
-|:--|:--|
-| `provar-celula` | **167 asserções** (eram 158) — §20-D é nova (nove asserções: marcar, trocar no lugar, vizinhos intactos, a marca a desaparecer, o «×» a desfazer índices, desistir, e a paleta a voltar a acrescentar); a §20 e a §21-B passaram a medir **um painel de cada vez**; e a listagem mede-se agora **por música**, com o francês **ausente** |
-| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **79/79** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
-| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — a peça nova (`.chip.em-troca`) passou a «Peça» e a «Aresta» |
-| a listagem, em quatro larguras | **nenhum transbordo** a 320, 390, 768 e 1280px, e 14 linhas (uma por música) — medido com os contentores abertos, porque medir um painel fechado dá zero, e zero passa em qualquer comparação |
-| **não executado** | `provar-agnosticismo` — **o ficheiro não existe neste worktree** (nunca foi versionado; a fotografia anterior citava-o) |
+### A bancada deixou de ser tudo-ou-nada
 
-**Com o quê.** `motor/servidor/verbete.js` (`detalhePorMusica`, orientações) ·
-`motor/servidor/bastidores.js` (a listagem por música, `editarVerbete` com a chave, `nome` nas
-posições, `pintarDuplicar`, o painel único, `SINAL_EM_TROCA`, a ficha clicável, a regra `.chip.em-troca`)
-· `biblioteca/modalidades/bale-classico/vocabulario.json` (13 `nome`) · `experimentos/provar-celula.js`
-(§20, §20-D, §21).
+O `construir.js` saía por inteiro quando nenhuma escola tinha ciclo gerado — e uma bancada que lê o
+**alfabeto** não precisa de ciclo nenhum. Numa escola nova (que é exactamente quando a listagem se
+quer decidir) não se construía nada. Passa a construir o que pode: a bancada do título sai como
+**página que explica a ausência** — com o motivo do registro e o comando que a faz voltar — e as
+outras constroem-se.
+
+**Medido:** com `breu` sem ciclo, o construir escreve as **10 páginas**, e a do título diz que não
+pode medir. Antes escrevia **zero**.
+
+**Com o quê.** `experimentos/propostas/construir.js` (`dadosDosVerbetes`, `cartaoDoVerbete`,
+`proporVerbetes`, o pacote opcional e a página de ausência) · o cartão novo no `index.html` da
+bancada.
 
 ## O que está pendente
 

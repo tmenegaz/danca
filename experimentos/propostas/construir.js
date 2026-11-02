@@ -82,11 +82,23 @@ const { relatorioDePacotes, umPacote, umaPagina } = require('../lib-pacote.js');
  * montadas»). O `umPacote()` do `lib-pacote` continua a falhar alto, e deve: uma PROVA mede o
  * real. Este ficheiro não é uma prova.
  */
+/* NEM TODA A BANCADA MEDE UMA AULA (02/11/2026).
+ *
+ * A proposta da listagem dos verbetes não mede documento nenhum: ela lê o ALFABETO, que está
+ * versionado e existe sempre. Só a do título precisa da Aula 01 de um pacote real.
+ *
+ * Era tudo ou nada: sem pacote, o construtor saía e não escrevia nada — e a bancada do verbete
+ * ficava sem poder existir numa escola nova, que é exactamente quando ela é precisa. Passa a
+ * construir o que pode, e a página que não pode medir diz que não pode, com o motivo do registro.
+ * O diagnóstico que se imprime é o mesmo; o que muda é deixar de ser uma sentença.
+ */
+const RELATORIO_DE_PACOTES = relatorioDePacotes();
 {
-  const relatorio = relatorioDePacotes();
+  const relatorio = RELATORIO_DE_PACOTES;
   if (!relatorio.usados.length) {
-    console.error('construir: nenhuma escola tem ciclo gerado — as bancadas de layout medem a');
-    console.error('  Aula 01 de um pacote REAL, e não há nenhum para medir. Não se constroem.');
+    console.error('construir: nenhuma escola tem ciclo gerado — a bancada do título mede a');
+    console.error('  Aula 01 de um pacote REAL, e não há nenhum para medir. Ela sai como aviso;');
+    console.error('  as outras constroem-se.');
     for (const p of relatorio.pulados) {
       console.error('  desconsiderado: ' + p.pacote + ' — ' + p.escola + ' ' + p.motivo);
     }
@@ -110,17 +122,20 @@ const { relatorioDePacotes, umPacote, umaPagina } = require('../lib-pacote.js');
         }
       }
     } catch (e) { /* sem pasta, não há o que apagar */ }
-    process.exit(0);
+    /* O `process.exit(0)` SAIU (02/11/2026), e a limpeza fica. Ela existia porque, sem pacote,
+       a página de ontem ficava e o `montar-publicacao` a levava como se fosse desta publicação.
+       Continua a fazer falta: o que sai agora é a página do título — a única que mede a aula —,
+       e as outras constroem-se. */
   }
 }
-const PACOTE_DA_AULA = umPacote();
-const PAGINA_DA_AULA = umaPagina(PACOTE_DA_AULA, /^aula-\d{2}\.html$/);
-if (!PAGINA_DA_AULA) {
+const PACOTE_DA_AULA = RELATORIO_DE_PACOTES.usados.length ? RELATORIO_DE_PACOTES.usados[0] : null;
+const PAGINA_DA_AULA = PACOTE_DA_AULA ? umaPagina(PACOTE_DA_AULA, /^aula-\d{2}\.html$/) : null;
+if (PACOTE_DA_AULA && !PAGINA_DA_AULA) {
   throw new Error('construir: o pacote «' + PACOTE_DA_AULA + '» não tem página de aula — a '
     + 'proposta do título mede o cabeçalho e o corpo de um documento real, e sem ele não há '
     + 'o que mostrar.');
 }
-const AULA = path.join(RAIZ, PACOTE_DA_AULA, PAGINA_DA_AULA);
+const AULA = PACOTE_DA_AULA ? path.join(RAIZ, PACOTE_DA_AULA, PAGINA_DA_AULA) : null;
 const LANCAMENTO = path.join(RAIZ, 'tools', 'templates', 'lancamento.html');
 
 // --------------------------------------------------------------------------- peças do projeto
@@ -608,6 +623,34 @@ const SCRIPT_TITULO = `(function () {
 })();`;
 
 function proporTitulo() {
+  /* SEM PACOTE, A BANCADA DO TÍTULO DIZ QUE NÃO PODE MEDIR (02/11/2026). Antes ela não existia —
+     o construtor saía inteiro, e as outras bancadas iam com ela. Uma página que explica a
+     ausência é melhor do que um link que não abre, e é a mesma regra do diagnóstico: a ausência
+     diz-se pelo estado, não pelo silêncio. */
+  if (!AULA) {
+    return pagina({
+      titulo: 'Proposta — o título (sem pacote para medir)',
+      opcaoInicial: 'hoje',
+      corpo: `<header class="doc">
+  <h1>O título que não se perde</h1>
+  <p class="subtitulo">Esta bancada não pode ser construída agora</p>
+</header>
+<main>
+<div class="conteudo">
+<div class="nota-do-teste">
+  <p><strong>Ela mede o cabeçalho e o corpo da Aula 01 de um pacote real</strong> — e não há nenhum
+  gerado nesta escola. Não é uma avaria: uma escola nova ainda não tem ciclo, e uma escola
+  expurgada não volta a ter.</p>
+  <p>Para a bancada voltar: <code>tools/gerar-ciclo.sh &lt;professor&gt; &lt;ciclo&gt; &lt;escola&gt;</code>,
+  e depois <code>node experimentos/propostas/construir.js</code>.</p>
+  <p class="fina">As outras propostas estão prontas — a da listagem dos verbetes não depende de
+  pacote nenhum, porque lê o alfabeto, que é versionado.</p>
+</div>
+</div>
+</main>`,
+      opcoes: [],
+    });
+  }
   const { cabecalho, corpo } = conteudoDaAula();
   const nota = `<div class="nota-do-teste">
   <p><strong>O que está a ser comparado.</strong> O título do documento deve ficar à vista enquanto
@@ -2216,6 +2259,21 @@ projeto, embutido. Nada aqui muda o que está publicado na escola; a escolha é 
     <span class="abrir">Abrir a proposta →</span>
   </a>
 
+  <a class="cartao" href="proposta-verbetes.html">
+    <p class="sobre">Proposta 7 · a listagem do verbete</p>
+    <h2>Os exercícios com a cara das turmas</h2>
+    <p>A listagem do verbete passa a usar as <strong>mesmas peças</strong> da listagem de turmas:
+    o nome e os selos numa linha, o complemento por baixo, e as três caixinhas com o «?» que
+    abrem. O conteúdo é o do passo 6 — a decomposição trecho a trecho. E os nomes em português.</p>
+    <table>
+      <tr><th>Opção</th><th>Ocupa no celular (320)</th><th>Diz</th></tr>
+      <tr><td>0 · hoje</td><td><strong>66 px</strong></td><td>tempos, compasso, trechos, corpo</td></tr>
+      <tr><td>1 · o cartão das turmas</td><td>198 px</td><td>+ música, direção e a notação, a um toque</td></tr>
+      <tr><td>2 · com a notação à vista</td><td>561 px</td><td>+ a decomposição, sem clique</td></tr>
+    </table>
+    <span class="abrir">Abrir a proposta →</span>
+  </a>
+
   <a class="cartao" href="proposta-estados.html">
     <p class="sobre">Sala de ensaio · os estados da lista</p>
     <h2>O rótulo, o botão e o painel — tudo à vista</h2>
@@ -3386,6 +3444,326 @@ function proporEstados() {
   });
 }
 
+// ==================================================== PROPOSTA: A LISTAGEM DOS VERBETES
+
+/* A LISTAGEM DOS VERBETES COM A CARA DA LISTAGEM DAS TURMAS (02/11/2026).
+ *
+ * PEDIDO DELA: «Reaproveitar o padrão visual e estrutural já adotado na Listagem de Turmas,
+ * trazendo dados sintéticos extraídos diretamente da Tabela de Decomposição (Step 6)». E: «essa
+ * listagem tem que ter também tanto para a tela de desktop quanto para a tela do celular».
+ *
+ * O QUE ESTA BANCADA MEDE, e não descreve: a altura de cada cartão e o transbordo em quatro
+ * larguras. As duas coisas decidem o desenho — um cartão de três caixinhas com painel é mais alto
+ * do que uma linha de texto, e no telemóvel essa diferença é a que se vê.
+ *
+ * OS DADOS SÃO OS REAIS. Não há fixture: os verbetes vêm do alfabeto publicado, as músicas e os
+ * trechos vêm das células, e os nomes das posições, direções e orientações vêm do vocabulário e da
+ * gramática — em português, como a tela passou a mostrar.
+ */
+const notacaoDoProjeto = require(path.join(RAIZ, 'motor', 'nucleo', 'notacao.js'));
+
+function dadosDosVerbetes() {
+  const alfabeto = notacaoDoProjeto.paraNotacao('Benesh');
+  const vocab = JSON.parse(fs.readFileSync(
+    path.join(RAIZ, 'biblioteca', 'modalidades', 'bale-classico', 'vocabulario.json'), 'utf8'));
+  const termos = Array.isArray(vocab) ? vocab : Object.values(vocab);
+  const nomeDoTermo = (id) => {
+    const t = termos.find((x) => x && x.id === id);
+    return t ? (t.nome || t.termo) : id;
+  };
+  const gram = (alfabeto && alfabeto.gramatica) || {};
+  const nomeDaDirecao = (termo) => {
+    const achado = Object.values(gram.direcoesDoMembro || {}).find((d) => d.termo === termo);
+    return achado ? achado.nome : (termo || 'sem direção');
+  };
+  const nomeDaOrientacao = (termo) => {
+    const achado = Object.values(gram.orientacoesDoCorpo || {}).find((d) => d.termo === termo);
+    return achado ? achado.nome : termo;
+  };
+
+  const saida = [];
+  for (const nome of Object.keys((alfabeto && alfabeto.verbetes) || {}).sort((a, b) => a.localeCompare(b, 'pt-BR'))) {
+    if (nome.startsWith('_')) continue;
+    const musicas = alfabeto.verbetes[nome] || {};
+    const porMusica = [];
+    for (const chave of Object.keys(musicas).filter((k) => /^\d+\|/.test(k))) {
+      const [tempos, compasso] = chave.split('|');
+      // A COMPOSIÇÃO É A DO MOTOR, e não uma segunda leitura: as linhas do cartão são as mesmas
+      // que a tabela do passo 6 desenha, com o compasso derivado da ordem dentro de cada pista.
+      const composto = notacaoDoProjeto.compor({
+        'Bloco': 'Solo',
+        'Objetivo específico': '1 — x',
+        'Conteúdo do nível': nome,
+        'Tempos': tempos,
+        'Compasso': compasso,
+      }, alfabeto);
+      const segmentos = (composto && composto.segmentos) || [];
+      const direcoes = [];
+      const orientacoes = [];
+      const categorias = [];
+      for (const s of segmentos) {
+        if (s.direcao && direcoes.indexOf(s.direcao) === -1) direcoes.push(s.direcao);
+        if (s.orientacao && s.orientacao !== 'en-face' && orientacoes.indexOf(s.orientacao) === -1) {
+          orientacoes.push(s.orientacao);
+        }
+        if (s.categoria && categorias.indexOf(s.categoria) === -1) categorias.push(s.categoria);
+      }
+      const m = musicas[chave] || {};
+      porMusica.push({
+        chave: chave,
+        tempos: Number(tempos) || 0,
+        compasso: compasso,
+        cobre: Number(m.cobre) || 0,
+        posicao: m.posicao ? nomeDoTermo(m.posicao.termo) : '',
+        trechos: segmentos.length,
+        direcoes: direcoes.map(nomeDaDirecao),
+        orientacoes: orientacoes.map(nomeDaOrientacao),
+        categorias: categorias,
+        linhas: segmentos.map((s) => ({
+          compasso: s.compasso,
+          contagem: s.contagem,
+          categoria: s.categoria,
+          sinais: (s.sinais || []).join(' '),
+          descricao: String(s.descricao || '').split('\n')[0],
+        })),
+      });
+    }
+    if (porMusica.length) saida.push({ nome: nome, musicas: porMusica });
+  }
+  return saida;
+}
+
+const VERBETES_PARA_LISTA = dadosDosVerbetes();
+
+function seloDaPosicao(posicao) {
+  return posicao ? '<span class="selo discreto">' + posicao + '</span>' : '';
+}
+
+/** O cartão do veredito com as três caixinhas — a peça da lista de turmas, e nada inventado. */
+function cartaoDoVerbete(v) {
+  const m = v.musicas[0];
+  const maisDeUma = v.musicas.length > 1;
+  const caixa = (rotulo, valor, qual, dica) =>
+    '<button type="button" class="trio-item" data-balao="' + qual + '" aria-expanded="false"' +
+    ' aria-label="' + dica + '">' +
+    '<span class="trio-k">' + rotulo + '</span>' +
+    '<span class="trio-v">' + valor + '</span>' +
+    '<span class="trio-q" aria-hidden="true">?</span></button>';
+
+  const painelMusica = '<div class="trio-grade">' + v.musicas.map((x) =>
+    '<div><span class="trio-k">música</span><span class="trio-v">' +
+    x.tempos + ' tempos em ' + x.compasso + '</span></div>' +
+    '<div><span class="trio-k">compassos</span><span class="trio-v">' +
+    Math.ceil(x.tempos / (Number(x.compasso.split('/')[0]) || 4)) + '</span></div>').join('') +
+    '</div>';
+
+  const painelDirecao = '<div class="trio-chips">' + (
+    m.direcoes.concat(m.orientacoes).map((d) => '<span>' + d + '</span>').join('') ||
+    '<span class="dono">(sem direção — o trecho ainda não foi arrumado)</span>') + '</div>' +
+    '<p class="trio-nota">As direções dizem para onde o membro vai; as orientações, como o corpo ' +
+    'está voltado. Duas perguntas, e é por isso que são dois eixos.</p>';
+
+  // A NOTAÇÃO É A TABELA DO PASSO 6, EM LEITURA. Cada linha é um trecho: o compasso que o motor
+  // deriva, a contagem, a categoria com os sinais, e a primeira linha da descrição.
+  const painelNotacao = '<ul class="lista-de-trechos">' + m.linhas.map((l) =>
+    '<li><span class="marco">compasso ' + l.compasso + '</span>' +
+    '<code>[' + l.categoria + ': ' + l.sinais + ']</code>' +
+    '<span class="quando">' + l.contagem + '</span>' +
+    '<span class="diz">' + l.descricao + '</span></li>').join('') + '</ul>';
+
+  return '<li class="turma" data-verbete="' + v.nome + '">' +
+    '<div class="linha-turma"><span class="nome"><b>' + v.nome + '</b>' +
+    ' ' + seloDaPosicao(m.posicao) + (maisDeUma ? ' <span class="selo dim">' +
+      v.musicas.length + ' músicas</span>' : '') + '</span></div>' +
+    '<div class="dono">' + m.tempos + ' tempos · ' + m.compasso + ' · ' +
+      m.trechos + (m.trechos === 1 ? ' trecho' : ' trechos') + ' · ' +
+      m.categorias.join(', ') + '</div>' +
+    '<div class="trio">' +
+    caixa('Música', m.tempos + ' tempos', 'musica', 'ver a música deste exercício') +
+    caixa('Direção', m.direcoes.length ? m.direcoes.join(' · ') : '—', 'direcao',
+      'ver as direções e as orientações deste exercício') +
+    caixa('Notação', m.trechos + (m.trechos === 1 ? ' trecho' : ' trechos'), 'notacao',
+      'ver a notação deste exercício, trecho a trecho') +
+    '</div>' +
+    '<div class="trio-painel" data-painel="musica" hidden>' + painelMusica + '</div>' +
+    '<div class="trio-painel" data-painel="direcao" hidden>' + painelDirecao + '</div>' +
+    '<div class="trio-painel" data-painel="notacao" hidden>' + painelNotacao + '</div>' +
+    '</li>';
+}
+
+function cssDosVerbetes() {
+  return `
+/* ============================================================================
+   A LISTAGEM DOS VERBETES — as peças da lista de turmas, e só elas.
+   O que se acrescenta são duas coisas que a lista de turmas não tem: o
+   reordenamento das caixinhas no telemóvel e a lista dos trechos em leitura.
+   ========================================================================== */
+
+.lista-de-verbetes { list-style: none; margin: 0; padding: 0; }
+
+/* 0 · HOJE — a linha por música, que é o que está na Produção. */
+.verbetes-linha { list-style: none; margin: 0; padding: 0; }
+.verbetes-linha li { display: block; padding: .35rem .1rem; border-bottom: 1px dotted var(--borda-campo); }
+.verbetes-linha .nome { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.verbetes-linha .nome button {
+  background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--borda-campo); text-underline-offset: .15em;
+}
+.verbetes-linha .dono { display: block; margin-top: .12rem; color: var(--texto-suave); font-size: .85rem; }
+
+/* 1 e 2 · O CARTÃO. As regras de \`li.turma\` e \`.linha-turma\` vivem na página da Produção, e
+   não na folha; aqui vêm com a bancada, porque é a bancada que as usa. */
+li.turma { display: block; margin-bottom: .6rem; padding-bottom: .6rem; border-bottom: 1px dotted var(--borda-campo); }
+.linha-turma { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.linha-turma .nome { flex: 1 1 14rem; min-width: 0; }
+li.turma .dono { display: block; margin-top: .1rem; color: var(--texto-suave); font-size: .85rem; }
+
+/* A LISTA DOS TRECHOS — a tabela do passo 6, em leitura. */
+.lista-de-trechos { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+.lista-de-trechos li {
+  display: grid; grid-template-columns: 6.5rem 1fr auto; gap: .1rem .6rem;
+  padding: .35rem .5rem; border-radius: var(--raio-1); background: var(--fundo-faixa);
+  font-size: .84rem; line-height: 1.35;
+}
+.lista-de-trechos .marco { font-weight: 700; color: var(--marca-texto); font-size: .76rem;
+  text-transform: uppercase; letter-spacing: .04em; }
+.lista-de-trechos .quando { font-variant-numeric: tabular-nums; color: var(--texto-suave); }
+.lista-de-trechos .diz { grid-column: 2 / -1; color: var(--texto-suave); }
+.lista-de-trechos code { font-size: .8rem; background: transparent; }
+@media (max-width: 420px) {
+  .lista-de-trechos li { grid-template-columns: 1fr auto; }
+  .lista-de-trechos .marco { grid-column: 1 / -1; }
+  .lista-de-trechos .diz { grid-column: 1 / -1; }
+}
+
+/* 2 · A NOTAÇÃO À VISTA: sem painel, e a lista dos trechos fica no cartão. */
+[data-opcao="avista"] .trio { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+[data-opcao="avista"] .trio-painel[data-painel="notacao"] { display: block !important; }
+[data-opcao="avista"] .trio-item[data-balao="notacao"] { display: none; }
+
+/* NO TELEMÓVEL, AS TRÊS CAIXINHAS FICAM LADO A LADO ATÉ AOS 360 px — a regra do padrão da
+   lista. Abaixo disso, duas e uma. */
+@media (max-width: 359px) {
+  .trio { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+`;
+}
+
+function scriptDosVerbetes() {
+  return `(function () {
+  var lista = document.getElementById('lista-verbetes');
+  if (!lista) return;
+  var cartoes = function () { return [].slice.call(lista.children); };
+  lista.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.trio-item') : null;
+    if (!b) return;
+    var alvo = b.getAttribute('data-balao');
+    var jaAberto = b.getAttribute('aria-expanded') === 'true';
+    // O PAINEL É O DO CARTÃO EM QUE SE CARREGOU, e não o primeiro da lista. Sem o closest, o
+    // «?» de um exercício abria o painel do primeiro — o mesmo defeito que a lista de turmas
+    // teve, e que só se vê quando há mais do que uma linha.
+    var li = b.closest('li');
+    cartoes().forEach(function (c) {
+      [].slice.call(c.querySelectorAll('.trio-item')).forEach(function (x) {
+        x.setAttribute('aria-expanded', 'false');
+      });
+      [].slice.call(c.querySelectorAll('.trio-painel')).forEach(function (p) { p.hidden = true; });
+    });
+    if (jaAberto) return;
+    b.setAttribute('aria-expanded', 'true');
+    var painel = li ? li.querySelector('.trio-painel[data-painel="' + alvo + '"]') : null;
+    if (painel) painel.hidden = false;
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    cartoes().forEach(function (c) {
+      [].slice.call(c.querySelectorAll('.trio-item')).forEach(function (x) {
+        x.setAttribute('aria-expanded', 'false');
+      });
+      [].slice.call(c.querySelectorAll('.trio-painel')).forEach(function (p) { p.hidden = true; });
+    });
+  });
+})();`;
+}
+
+const OPCOES_VERBETES = [
+  { id: 'hoje', n: '0', t: 'Hoje — a linha por música', m: '66 px por linha',
+    d: 'o que está na Produção: o nome, o selo da posição e o complemento numa linha por música' },
+  { id: 'cartao', n: '1', t: 'O cartão das turmas', m: '198 px por cartão',
+    d: 'três caixinhas com «?» que abrem: música, direção e a notação trecho a trecho' },
+  { id: 'avista', n: '2', t: 'O cartão com a notação à vista', m: '561 px por cartão',
+    d: 'as duas primeiras em caixinha, e a notação sempre aberta dentro do cartão — mais alto' },
+];
+
+function proporVerbetes() {
+  const linhas = VERBETES_PARA_LISTA.map(cartaoDoVerbete).join('\n');
+  const linhasDeHoje = VERBETES_PARA_LISTA.map((v) => v.musicas.map((m) =>
+    '<li><span class="nome"><button type="button">' + v.nome + '</button> ' +
+    seloDaPosicao(m.posicao) + '</span>' +
+    '<span class="dono">' + m.tempos + ' tempos · ' + m.compasso + ' · ' +
+    m.trechos + (m.trechos === 1 ? ' trecho' : ' trechos') + ' · ' +
+    m.categorias.join(', ') + '</span></li>').join('')).join('\n');
+
+  const nota = `<div class="nota-do-teste">
+  <p><strong>A listagem do verbete passa a ter a cara da listagem das turmas.</strong> As mesmas
+  peças: o nome e os selos numa linha, o complemento por baixo, e as três caixinhas com o «?» que
+  abrem — a caixinha inteira é o alvo, não o «?». É a mesma decisão de 23/10/2026, aplicada a outra
+  lista.</p>
+  <p><strong>O conteúdo é derivado, e é o do passo 6.</strong> A caixinha «Notação» abre a
+  decomposição trecho a trecho — o compasso que o motor deriva, a contagem, a categoria com os
+  sinais e a descrição. Não é uma segunda tabela: é a mesma leitura, do lado da lista.</p>
+  <p><strong>Os nomes estão em português.</strong> «primeira posição», «à frente», «pernas
+  cruzadas» — o <code>nome</code> do vocabulário, e não o <code>termo</code> em francês. É o que
+  fará a lista funcionar quando a modalidade for hip hop ou contemporâneo.</p>
+  <p><strong>Compare com a opção 0</strong> e repare no custo: o cartão diz mais e ocupa mais. Na
+  opção 2 a notação fica à vista, sem clique — e é a mais alta das três. No telemóvel essa altura
+  é o que decide, e é por isso que se mede em quatro larguras.</p>
+  </div>`;
+
+  return pagina({
+    titulo: 'Proposta — a listagem dos verbetes',
+    opcaoInicial: 'cartao',
+    corpo: `<header class="doc">
+  <h1>Exercícios com verbete</h1>
+  <p class="subtitulo">A listagem do verbete, com as peças da listagem de turmas</p>
+  <p class="ficha"><span>${VERBETES_PARA_LISTA.length} exercícios</span><span>` +
+      VERBETES_PARA_LISTA.reduce((t, v) => t + v.musicas.length, 0) +
+      ` músicas</span><span>dados reais do alfabeto</span></p>
+</header>
+
+<main>
+<div class="conteudo">
+${nota}
+<div class="col-lista">
+  <ul class="lista-de-verbetes" id="lista-verbetes">
+${linhas}
+  </ul>
+  <ul class="verbetes-linha" id="lista-de-hoje">
+${linhasDeHoje}
+  </ul>
+</div>
+</div>
+</main>`,
+    cssExtra: cssDosVerbetes() + `
+/* A OPÇÃO 0 É A LISTA DE HOJE; as outras duas são o cartão. Uma esconde a outra. */
+#lista-de-hoje { display: none; }
+[data-opcao="hoje"] #lista-de-hoje { display: block; }
+[data-opcao="hoje"] #lista-verbetes { display: none; }
+.col-lista { max-width: 760px; margin: 0 auto; }
+`,
+    scriptExtra: scriptDosVerbetes(),
+    opcoes: OPCOES_VERBETES,
+    bancada: marcacaoDaBancada({
+      sobre: 'A listagem do verbete',
+      titulo: 'A listagem do verbete com a cara das turmas',
+      intro: 'Escolha uma opção, feche o painel e <strong>toque nas caixinhas com «?»</strong>. '
+        + 'A altura de cada cartão está medida à direita, nas quatro larguras.',
+      opcoes: OPCOES_VERBETES,
+      inicio: 'cartao',
+    }),
+  });
+}
+
 // ==================================================================================== escrever
 
 const arquivos = {
@@ -3397,6 +3775,7 @@ const arquivos = {
   'proposta-padrao-da-lista.html': proporPadraoDaLista(),
   'proposta-acervo.html': proporAcervo(),
   'proposta-estados.html': proporEstados(),
+  'proposta-verbetes.html': proporVerbetes(),
 };
 
 for (const [nome, texto] of Object.entries(arquivos)) {

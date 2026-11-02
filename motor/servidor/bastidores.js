@@ -3688,6 +3688,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" id="vb-voltar">← Voltar</button>' +
     '<button type="button" class="acao" id="vb-seguir">Seguir →</button>' +
     '<button type="submit" class="acao grande" id="vb-gravar" hidden>Gravar verbete</button>' +
+    // GUARDAR COMO MÚSICA NOVA (02/11/2026). O «Gravar» de uma edição SUBSTITUI — se os tempos
+    // mudaram, a música de onde se veio sai e o verbete fica com uma só. Esta caixa é a outra
+    // intenção, e é explícita: «quero as duas», a de 8 e a de 16, o mesmo exercício em duas
+    // durações. Ela só aparece quando há o que decidir — isto é, quando a música em foco já não é
+    // a que se abriu. Uma opção que aparece sempre obriga a lê-la sempre.
+    '<label class="escolha" id="vb-como-nova-caixa" hidden>' +
+    '<input type="checkbox" id="vb-como-nova">' +
+    '<span>guardar como música nova, e manter a de <b id="vb-como-nova-antiga"></b></span></label>' +
     '<button type="button" id="vbnovo" hidden>Limpar</button>' +
     '</span>' +
     '<p class="nota" id="vb-gravar-nota"></p>' +
@@ -5321,6 +5329,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O método do verbete: vazio quer dizer «herda o do plano» (02/11/2026).
     'var METODO = "";' +
     'var MUSICA_EM_FOCO = "";' +
+    /* A MÚSICA QUE FOI ABERTA PARA EDITAR (02/11/2026).
+     *
+     * O RELATO DELA, e o mecanismo por trás: «ao tentar realizar a evolução de um exercício
+     * existente (transformando um Plié de 8 tempos em um novo Plié expandido de 16 tempos (…)), o
+     * sistema criou um novo registro e manteve o registro antigo». Não havia INSERT nem UPDATE: a
+     * CHAVE do registo É «tempos|compasso», e mudar os tempos muda a chave. Editar um verbete e
+     * esticar a música gravava ao lado, e o de 8 tempos ficava lá.
+     *
+     * Com esta chave guardada, gravar passa a SUBSTITUIR: a música de onde se veio sai, e o
+     * verbete fica com uma só. Quem quiser as duas — a de 8 e a de 16 — tem o «Guardar como música
+     * nova», que é explícito; não é o que acontece por omissão numa edição.
+     */
+    'var MUSICA_ABERTA = "";' +
     'var EXERCICIO_EM_FOCO = "";' +
     // A FRASE DO VERBETE (31/10/2026). É uma só por exercício, e não uma por trecho: era o campo
     // que obrigava a reescrever a definição a cada trecho. `FRASE_ANTERIOR` guarda o que o
@@ -5629,6 +5650,37 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // O «DUPLICAR» SÓ APARECE QUANDO HÁ O QUE DUPLICAR, e sai de cena durante a correcção de um
     // trecho — pelo mesmo motivo que o «Acrescentar»: em correcção, o que se pode fazer vê-se.
+    /* A SUBSTITUIÇÃO, DITA ANTES DE ACONTECER (02/11/2026).
+     *
+     * Gravar uma edição cuja música mudou **apaga a música de onde se veio** — e uma coisa que
+     * apaga dados tem de o dizer antes, não depois. Aqui a nota diz duas coisas: qual é a música
+     * que vai sair, e qual entra. E a caixa ao lado é a saída para quem quer as duas.
+     *
+     * Quando a música NÃO mudou não há nada a decidir, e a caixa não aparece: uma opção sempre
+     * presente obriga a lê-la sempre, e a maioria das gravações é «corrigi uma célula».
+     */
+    'function musicaEmFoco(){' +
+    '  var t = (document.getElementById("vbtempos") || {}).value || "";' +
+    '  var c = (document.getElementById("vbcompasso") || {}).value || "";' +
+    '  return (t && c) ? t + "|" + c : "";' +
+    '}' +
+    'function substituiMusica(){' +
+    '  return Boolean(MUSICA_ABERTA) && MUSICA_ABERTA !== musicaEmFoco();' +
+    '}' +
+    'function pintarComoNova(){' +
+    '  var caixa = document.getElementById("vb-como-nova-caixa");' +
+    '  var antiga = document.getElementById("vb-como-nova-antiga");' +
+    '  var nota = document.getElementById("vb-gravar-nota");' +
+    '  var troca = substituiMusica();' +
+    '  if (caixa) caixa.hidden = !troca;' +
+    '  if (antiga) antiga.textContent = String(MUSICA_ABERTA).replace("|", " tempos em ");' +
+    '  if (nota) {' +
+    '    nota.textContent = !troca ? "" :' +
+    '      ("Gravar substitui a música de " + String(MUSICA_ABERTA).replace("|", " tempos em ") +' +
+    '       " por esta — o exercício fica com uma só." +' +
+    '       " Marque a caixa se quiser ficar com as duas.");' +
+    '  }' +
+    '}' +
     'function pintarDuplicar(){' +
     '  var b = document.getElementById("vb-cel-duplicar");' +
     '  if (!b) return;' +
@@ -6041,6 +6093,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (seguir) seguir.hidden = (PASSO === ULTIMO_PASSO);' +
     '  var bGravar = document.getElementById("vb-gravar");' +
     '  if (bGravar) bGravar.hidden = (PASSO !== ULTIMO_PASSO);' +
+    '  pintarComoNova();' +
     '  var bLimpar = document.getElementById("vbnovo");' +
     '  if (bLimpar) bLimpar.hidden = (PASSO !== ULTIMO_PASSO);' +
     '}' +
@@ -6444,6 +6497,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // EDITAR LEVA AO PASSO 2 (02/11/2026) — é onde vive o seletor do exercício. Sem isto, quem
     // carregava no «editar» da listagem com o formulário noutro passo preenchia campos que não
     // estavam no ecrã, e o aviso «a editar…» aparecia sozinho num formulário que parecia vazio.
+    '  MUSICA_ABERTA = chave;' +
     '  irParaPasso(2);' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
@@ -6557,11 +6611,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var sel = document.getElementById("vbposicao");' +
     '  var opcao = sel.options[sel.selectedIndex];' +
+    '  var comoNova = document.getElementById("vb-como-nova");' +
+    '  var manterAsDuas = Boolean(comoNova && comoNova.checked);' +
     '  var corpo = {' +
     '    acao: document.getElementById("vbacao").value,' +
     '    modalidade: "bale-classico",' +
     '    nome: nome,' +
     '    musica: tempos + "|" + compasso,' +
+    // A MÚSICA DE ONDE SE VEIO VAI JUNTO, E É O QUE FAZ DO «GRAVAR» UMA SUBSTITUIÇÃO
+    // (02/11/2026). Sem ela o servidor só sabe escrever a chave nova, e a antiga fica ao lado: foi
+    // o «criou um novo registro e manteve o registro antigo» que ela relatou. Com a caixa marcada,
+    // não vai — e aí ficam as duas, que é a intenção declarada.
+    '    musicaAnterior: (!manterAsDuas && substituiMusica()) ? MUSICA_ABERTA : undefined,' +
     '    verbete: {' +
     '      cobre: soma,' +
     '      posicao: sel.value ? {membro: opcao.getAttribute("data-membro"), termo: sel.value} : null,' +
@@ -6572,6 +6633,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '  };' +
     '  enviar("/api/bastidores/verbete", corpo, "gravando...", false, function(d){' +
+    // DEPOIS DE GRAVAR, A MÚSICA ABERTA É A NOVA. Sem isto, a segunda gravação da mesma sessão
+    // voltaria a mandar a chave antiga, e o servidor tentaria apagar uma música que já não existe.
+    '    MUSICA_ABERTA = corpo.musica;' +
+    '    var cn = document.getElementById("vb-como-nova"); if (cn) cn.checked = false;' +
+    '    pintarComoNova();' +
     '    recado("ok", "gravado — versão " + d.versao);' +
     '    carregarVerbetes();' +
     '  });' +
@@ -6608,6 +6674,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // formulário para escrever outro verbete de um exercício que já existe não deve pôr ninguém a
     // escrever outro nome — quem quer criar um exercício vai ao 1 de propósito.
     '  EM_EDICAO = null;' +
+    '  MUSICA_ABERTA = "";' +
     '  irParaPasso(2);' +
     '  carregarRascunho();' +
     '});' +
@@ -6620,6 +6687,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // TROCAR DE EXERCÍCIO OU DE MÚSICA CANCELA A EDIÇÃO (31/10/2026): as células são outras, e
     // o trecho que se estava a corrigir deixou de existir neste verbete.
     '    EM_EDICAO = null;' +
+    // E TROCAR DE EXERCÍCIO ESQUECE A MÚSICA QUE SE TINHA ABERTO (02/11/2026). `MUSICA_ABERTA` é
+    // «o registo que estou a editar»; mudar de exercício é deixar de o editar. Sem isto, quem
+    // editasse o Plié e depois fosse criar outro exercício levava consigo a memória do Plié — e a
+    // gravação seguinte apagava uma música que não tinha nada que ver com o que estava na tela.
+    // O COMPASSO NÃO A ESQUECE: mudar de 4/4 para 3/4 é mudar a música do MESMO exercício, e é
+    // exactamente o caso que tem de substituir.
+    '    if (this && this.id === "vbnome") MUSICA_ABERTA = "";' +
     '    carregarRascunho();' +
     '  });' +
     '});' +
@@ -6859,6 +6933,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarTabela();' +
     '  pintarContagens();' +
     '  pintarTira();' +
+    // E A NOTA DA SUBSTITUIÇÃO, que é a consequência de duplicar dentro de uma edição (02/11/2026).
+    // A duplicação muda os tempos, portanto muda a música — e gravar passa a substituir a de onde
+    // se veio. Isso tem de estar à vista ANTES de gravar, não depois. Sem esta chamada, a caixa
+    // ficava escondida e o aviso vazio, e o corpo enviado já levava `musicaAnterior`: a tela
+    // apagava a música antiga sem o ter dito.
+    '  pintarComoNova();' +
     '  recado("ok", "exercício duplicado — a música passa a " + novo + " tempos. Mude a posição na cópia com «Editar».");' +
     '}' +
     '["vb-cel-duplicar"].forEach(function(id){' +
@@ -8316,6 +8396,9 @@ async function fetch(request, env) {
       modalidade: String(corpo.modalidade || 'bale-classico'),
       nome: corpo.nome,
       musica: corpo.musica,
+      // A MÚSICA QUE SAI, quando a edição mudou os tempos (02/11/2026). Vazia quer dizer «ficam as
+      // duas» — é a escolha explícita da tela.
+      musicaAnterior: corpo.musicaAnterior,
       verbete: corpo.verbete,
       acao: corpo.acao || (request.method === 'POST' ? 'criar' : 'atualizar'),
     });

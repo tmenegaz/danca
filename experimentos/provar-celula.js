@@ -1478,6 +1478,88 @@ function estado() {
     const desistiu = await page.evaluate(() => SINAL_EM_TROCA);
     conferir('clicar a mesma ficha duas vezes desiste da troca', desistiu === null, desistiu);
 
+    console.log('\n20-E. EDITAR E ESTICAR A MÚSICA SUBSTITUI — NÃO ACRESCENTA AO LADO');
+    /* O RELATO DELA, e o que a prova tem de fixar: «ao tentar realizar a evolução de um exercício
+     * existente (transformando um Plié de 8 tempos em um novo Plié expandido de 16 tempos), o
+     * sistema criou um novo registro e manteve o registro antigo».
+     *
+     * As duas metades do comportamento: o que VAI no corpo (a chave de onde se veio), e o que a
+     * tela DIZ antes de apagar — porque isto apaga dados, e uma coisa que apaga dados tem de o
+     * dizer antes, não depois. */
+    await irA(1);
+    await page.select('#vbnome', 'Battement tendu');
+    await new Promise((r) => setTimeout(r, 400));
+    await irA(3);
+    await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '4'; t.dispatchEvent(new Event('input'));
+    });
+    await page.select('#vbcompasso', '4/4');
+    await new Promise((r) => setTimeout(r, 400));
+    await escreverFrase('sobe e desce');
+    await noPassoDe('#vb-dir');
+    await clicar('#vb-dir input[data-valor="devant"]');
+    await clicar('#vb-categoria input[value="Pé"]');
+    const contagemP = valores((await page.evaluate(estado)).contagens);
+    await clicar('#vb-contagem input[data-valor="' + contagemP[0] + '"]');
+    for (const sg of ['1ª', '→', '+']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
+    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    await new Promise((r) => setTimeout(r, 400));
+
+    // Estica a música: é o gesto de «evoluir o exercício», e é o que muda a chave.
+    const antesDeEsticar = await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '8';
+      t.dispatchEvent(new Event('input'));
+      irParaPasso(6);
+      return { nota: document.getElementById('vb-gravar-nota').textContent,
+        caixa: document.getElementById('vb-como-nova-caixa').hidden,
+        substitui: substituiMusica() };
+    });
+    conferir('antes de mexer na música não há substituição nenhuma a anunciar',
+      antesDeEsticar.substitui === false && antesDeEsticar.nota === ''
+        && antesDeEsticar.caixa === true, antesDeEsticar);
+
+    // Com a música mudada, a nota e a caixa aparecem — e dizem qual sai.
+    const comMusicaNova = await page.evaluate(() => {
+      const guardado = MUSICA_ABERTA;
+      MUSICA_ABERTA = '4|4/4';
+      pintarComoNova();
+      irParaPasso(6);
+      const r = {
+        substitui: substituiMusica(),
+        nota: document.getElementById('vb-gravar-nota').textContent,
+        caixa: document.getElementById('vb-como-nova-caixa').hidden,
+        antiga: document.getElementById('vb-como-nova-antiga').textContent,
+        guardado,
+      };
+      return r;
+    });
+    conferir('com a música mudada, a nota DIZ que gravar substitui — e qual sai',
+      comMusicaNova.substitui === true && /substitui a música de 4 tempos em 4\/4/.test(comMusicaNova.nota),
+      comMusicaNova);
+    conferir('…e a caixa de «guardar como música nova» aparece, com a música antiga escrita',
+      comMusicaNova.caixa === false && /4 tempos em 4\/4/.test(comMusicaNova.antiga), comMusicaNova);
+
+    // O CORPO. Sem a caixa marcada, `musicaAnterior` vai; com ela, não vai.
+    const corpoSemCaixa = await page.evaluate(() => {
+      document.getElementById('vb-como-nova').checked = false;
+      const comoNova = document.getElementById('vb-como-nova');
+      const manter = Boolean(comoNova && comoNova.checked);
+      return { musicaAnterior: (!manter && substituiMusica()) ? MUSICA_ABERTA : undefined };
+    });
+    const corpoComCaixa = await page.evaluate(() => {
+      document.getElementById('vb-como-nova').checked = true;
+      const comoNova = document.getElementById('vb-como-nova');
+      const manter = Boolean(comoNova && comoNova.checked);
+      return { musicaAnterior: (!manter && substituiMusica()) ? MUSICA_ABERTA : undefined };
+    });
+    conferir('sem a caixa marcada, o corpo leva a música de onde se veio — é o que faz substituir',
+      corpoSemCaixa.musicaAnterior === '4|4/4', corpoSemCaixa);
+    conferir('com a caixa marcada, não leva — e as duas ficam',
+      corpoComCaixa.musicaAnterior === undefined, corpoComCaixa);
+    await page.evaluate(() => { document.getElementById('vb-como-nova').checked = false; });
+
     console.log('\n21. OS SEIS PASSOS FORA DO FORMULÁRIO, E A LISTAGEM AO LADO');
     // OS CINCO PASSOS (01/11/2026). A tira é a navegação e o resumo; se um passo desaparecer
     // dela, o painel dele fica inalcançável. Eram sete — e a fusão do exercício, da frase e da

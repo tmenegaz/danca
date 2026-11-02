@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `04e2597`). Nesta entrega: **a música duplicada
+> **Última fotografia:** 02/11/2026 (base local `544acf4`). Nesta entrega: **gravar uma edição
+> passou a SUBSTITUIR.** Ela esticou o `Plié` de 8 para 16 tempos e o registo antigo ficou ao lado;
+> a hipótese dela era `INSERT` onde devia ser `UPDATE`, mas a mecânica é outra: a **chave do registo
+> é `<tempos>|<compasso>`**, e mudar os tempos muda a chave. Não havia verbo errado — faltava dizer
+> **qual é a chave que sai**. A tela passa a mandar `musicaAnterior` e o servidor apaga-a, com nota
+> a dizer o que vai acontecer **antes**; e há uma caixa explícita para «guardar como música nova»,
+> que é a outra intenção. Medido antes de escrever: **nenhum plano de ensino usa o `Plié`**, e
+> portanto nada fica em lacuna.
+>
+> **E a bancada que faltava.** O pedido de uma **página para ver e validar** a listagem dos verbetes
+> — no computador e no telemóvel — não tinha sido entregue: eu implementei a listagem na Produção em
+> vez de construir a bancada. Passa a existir
+> `experimentos/propostas/proposta-verbetes.html`, com três opções medidas a **320, 390, 768 e 1280
+> px**: 66 px por linha hoje, 198 px o cartão das turmas, 561 px com a notação à vista. E o
+> `construir.js` deixou de ser tudo-ou-nada: uma bancada que lê o alfabeto não precisa de ciclo.
+>
+> **Entrega anterior** (base `04e2597`). Nesta entrega: **a música duplicada
 > passou a ter porta.** Ela duplicou o `Plié` de 8 para 16 tempos, gravou, e o registo «não apareceu»
 > — mas **estava gravado**: o alfabeto, versão 17, tem as duas músicas. O que faltava era o caminho
 > de volta: a listagem dizia «2 músicas» e o «editar» abria sempre `Object.keys(musicas)[0]`, isto é,
@@ -14,7 +30,7 @@
 > lugar** (clica-se a ficha, clica-se o sinal novo), e as etiquetas passaram a **português** — o
 > `nome` é um campo do vocabulário, não uma tabela na tela.
 >
-> **Entrega anterior** (base `1b99e51`). Nesta entrega: **a barra passou a
+> **Duas entregas antes** (base `1b99e51`). Nesta entrega: **a barra passou a
 > duplicar-se.** Um botão «Duplicar o exercício» clona a decomposição inteira — todos os compassos,
 > as pernas e os braços — e sobe os tempos sozinho, para o `Plié` em 1ª se repetir em 2ª, 4ª e 5ª
 > sem se escrever tudo outra vez. Ele **não reescreve sinal nenhum**: no `Plié` o `1ª` está nas duas
@@ -978,6 +994,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     foram traduzidos, porque traduzi-los seria inventar. A alternativa — uma tabela de tradução na
     camada de exibição — foi recusada: duas listas do mesmo vocabulário divergem ao primeiro termo
     novo. **DECIDIDO e implementado** 02/11/2026.
+68. **GRAVAR UMA EDIÇÃO SUBSTITUI O REGISTO DE ONDE SE VEIO — E O «SUBSTITUIR» DIZ-SE ANTES.**
+    A chave de uma música é `<tempos>|<compasso>`; mudar os tempos cria outro registo. Numa edição,
+    a tela manda `musicaAnterior` e o servidor apaga a chave antiga depois de escrever a nova, com
+    quatro guardas: só em edição; só com chave válida e **diferente** da nova; só se existir; e a
+    mensagem do commit diz o que substituiu. A nota da tela di-lo **antes**, porque isto apaga
+    dados. A outra intenção — «ficar com as duas» — existe numa caixa explícita que só aparece
+    quando a música mudou. **A regra geral:** quando a chave de um registo é derivada de um valor
+    editável, «guardar» e «guardar como novo» deixam de ser o mesmo gesto. **DECIDIDO por ela e
+    implementado** 02/11/2026.
+69. **AS BANCADAS DE LAYOUT NÃO SÃO TUDO-OU-NADA.** O `construir.js` saía por inteiro quando
+    nenhuma escola tinha ciclo gerado, e uma bancada que lê o **alfabeto** (a da listagem dos
+    verbetes) não precisa de ciclo. Passa a construir o que pode, e a bancada que mede a Aula 01
+    sai como **página que explica a ausência**, com o motivo do registro e o comando que a faz
+    voltar. Numa escola nova — que é quando a listagem se quer decidir — antes não se construía
+    nada. **DECIDIDO e implementado** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -1294,7 +1325,21 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a porta da música, os passos, a troca do sinal)
+### Executado nesta fotografia (02/11/2026 — a substituição e a bancada da listagem)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — quatro asserções novas: com `musicaAnterior` a música antiga **sai** e a mensagem diz «substitui a música 4\|4/4»; **sem** ela ficam as duas; `musicaAnterior` **igual** à nova não apaga o trabalho |
+| `node experimentos/provar-celula.js` | **172 de 172** (eram 167) — a **§20-E** é nova: antes de mexer na música não há substituição a anunciar; com a música mudada a nota e a caixa aparecem e dizem qual sai; o corpo leva `musicaAnterior: "4\|4/4"` sem a caixa e **não leva** com ela |
+| **o risco, medido antes de escrever** | nenhum plano de ensino usa o `Plié` (`professores/**/*.json`) — apagar a música antiga não deixa ciclo em lacuna |
+| `node experimentos/propostas/construir.js` | **10 páginas** (antes, sem pacote: **zero**) — a do título sai como página de ausência, com o motivo e o comando |
+| **a bancada, em quatro larguras** | altura por cartão (320 · 390 · 768 · 1280 px): **linha 66 · 66 · 66 · 66** · **cartão 198 · 142 · 123 · 123** · **à vista 561 · 478 · 406 · 406**; **nenhum transbordo** |
+| **a bancada, no browser** | o «?» de *Notação* abre **o painel do cartão em que se carregou** (não o do primeiro), com os 4 trechos do `Plié` e o compasso derivado pelo motor; `Escape` fecha; nenhum erro de JavaScript |
+| `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **79/79** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** |
+| **não executado** | `provar-agnosticismo` (o ficheiro não existe neste worktree) · `provar-o-que-vem-do-dado` (sem fixture) · `check-glossario` (sem par registro × glossário) |
+
+### Executado na fotografia anterior (02/11/2026 — a porta da música, os passos, a troca do sinal)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1901,6 +1946,16 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **Editar e esticar a música SUBSTITUI — não havia INSERT, havia uma chave.** A
+  chave de uma música é `<tempos>|<compasso>`; mudar os tempos cria outro registo, e o antigo ficava
+  ao lado. A tela passa a mandar `musicaAnterior`, o servidor apaga a chave antiga com quatro
+  guardas, e a nota di-lo **antes** de acontecer. A caixa «guardar como música nova» é a outra
+  intenção, e só aparece quando a música mudou.
+- **02/11/2026** — **A bancada da listagem dos verbetes, para ver e validar.** O pedido de uma
+  proposta em `experimentos/propostas/` não tinha sido entregue — implementei a listagem na Produção
+  em vez de a propor. Existe agora `proposta-verbetes.html`, com três opções medidas a 320, 390, 768
+  e 1280 px (66 / 198 / 561 px por cartão a 320) e sem transbordo. E o `construir.js` deixou de ser
+  tudo-ou-nada: sem ciclo gerado, constrói as bancadas que não dependem de pacote.
 - **02/11/2026** — **«O item duplicado não aparece»: ele estava gravado, faltava a porta.** Ela
   duplicou o `Plié` de 8 para 16 tempos, gravou, e o registo não apareceu — mas o remoto dizia
   `04e2597 docs(notacao): editar «Plié» (16|4/4)`, e o alfabeto, versão 17, tinha as duas músicas. A
