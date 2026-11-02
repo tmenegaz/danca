@@ -30393,3 +30393,110 @@ zero.
 **Com o quê.** `check-identidade` **20/20** · `check-indices` **14/14** (os índices foram regerados;
 os que só tinham mudado de `fonte.commit` e `gerado_em` foram revertidos, porque um índice que muda
 de hora em cada geração suja a árvore sem dizer nada).
+
+## 02/11/2026 — O cadastro do exercício é o passo 1 — e a gravação passou a conferir a música
+
+**O que motivou.** A pesquisadora, a usar o «+» do verbete: «quando eu entro dentro do verbete, o
+formulário que aparece para mim é o formulário do exercício novo (…) o professor não vai saber que
+quando ele clicar em cancelar, ele vai para onde de facto ele cria o verbete da aula. Então esse
+formulário vai passar a ser o nosso step um. E quando eu clicar em avançar para o step dois, esse
+exercício novo já tem que estar disponível na lista de exercícios.» E, sobre as duas grades de
+verbete que não fecham: «a validação disso será feita lá no verbete da anotação. Quando clicar em
+gravar verbete, faz a validação e aí aponta onde é que tem que ajustar, que é ou no step dois ou no
+step três.»
+
+**O que estava a acontecer.** O «+» abria um **modo**: escondia `#vb-modo-verbete` inteiro, escondia
+a tira dos passos e **bloqueava** o `select` e o próprio «+». Quem estava a criar um exercício deixava
+de ver em que passo estava, e o único caminho de saída chamava-se «Cancelar» — que não diz para onde
+vai. E a gravação conferia uma igualdade que o formulário calculava de si para si: `cobre` contra a
+**soma das próprias células**. A **música**, que é a chave do verbete, não era comparada com nada —
+foi assim que o `Battement fondu` ficou em «2|4/4» com 6 tempos de células e o `Plié` em «8|4/4» com
+12, e que a §4 da aula passou a dizer `conferir` sem nomear a quem.
+
+**O que foi decidido.**
+
+- **O cadastro passa a viver DENTRO do passo 1**, abaixo do campo que ele alimenta. Nada desaparece:
+  o formulário do verbete fica, a tira fica, o `select` e o «+» continuam activos. O «+» passou a
+  dizer em que estado está (`aria-expanded`), e carregar nele outra vez fecha.
+- **«Cancelar» passa a fazer o que a palavra diz** — fecha o cadastro breve e devolve o campo, sem
+  levar nada consigo.
+- **O exercício novo já está na lista ao avançar**, e fica escolhido. O `POST /api/bastidores/termo`
+  grava no **repositório** (`biblioteca/modalidades/<modalidade>/vocabulario.json`, por
+  `termo-repo.js`) e devolve o termo; a lista que a rota serve (`GET /api/bastidores/verbete`) lê o
+  **mesmo ficheiro no GitHub**, e a tela acrescenta-o localmente enquanto não há nova leitura. **Zero
+  chamadas ao KV** — medido nas duas rotas, e é a resposta à pergunta do custo: não há nada a mudar
+  para poupar KV, porque não se gasta nenhum.
+- **O mesmo termo não entra duas vezes na lista.** Ele pode já lá estar (a página foi recarregada
+  depois do commit), e um `option` repetido é uma segunda verdade na mesma lista.
+- **A gravação recusa um verbete que não fecha a música**, e diz onde se corrige: no **passo 2** (a
+  música) ou no **passo 3** (para onde). O número dos passos **não se escreve à mão** — sai de
+  `PASSOS_TITULOS`, a mesma lista que desenha a tira, para uma renumeração futura levar a mensagem
+  consigo; e a página navega para o passo mais provável (falta de tempos → os trechos; sobra → a
+  música).
+- **A regra vive nos dois lados.** A tela recusa antes de enviar (o professor vê o que fazer sem uma
+  ida e volta), e `validarVerbete` recebe a música como quarto argumento — uma página antiga em cache
+  não contorna o que o servidor garante.
+
+**Um defeito que a mudança destapou, e que a prova apanhou.** O recado da secção escreve no
+**primeiro** `.res` visível. Com o cadastro movido para o passo 1, o `.res` dele passou a ser o
+primeiro — e todos os recados do verbete («falta a frase», «gravado — versão 7») começaram a aparecer
+dentro da caixa do exercício novo. `alvoDoRecado` passou a ignorar as áreas de recado de um widget
+aninhado. Foi `provar-celula` que o viu: a recusa deixou de ser lida no sítio onde é escrita.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o markup do passo 1, `pintarPassos`, `modoExercicio`,
+o «+», o handler do termo, a recusa na gravação, `alvoDoRecado`) · `motor/servidor/verbete.js`
+(`validarVerbete` com a música) · `experimentos/provar-celula.js` (secções 3, 4 e 5 reescritas, e duas
+secções novas: a recusa e o fecho da música) · `experimentos/provar-verbete.js` (a fixture passou a
+ser coerente — oito tempos de células para a música de oito).
+
+**Com o quê.** `provar-celula` **128 de 128** (eram 122; as cinco asserções do «modo» foram
+substituídas por dez do cadastro dentro do passo 1, e a gravação ganhou a recusa) ·
+`provar-verbete` TUDO CERTO · `provar-acordeoes` TUDO CERTO · `provar-vao-do-botao` 50/50 ·
+`provar-menu-da-producao` 55/55 · `check-identidade` 20/20 · `check-pacote` 0 erro / 0 aviso.
+**Não são regressões, e ficam medidas:** `provar-producao` **151/152** (o item do menu com
+`className` — falha igual em `HEAD`) e `provar-cartao-da-turma` **6 falhas** (a tira do verbete entra
+na contagem dos passos da turma — falha igual em `HEAD`, confirmado com as alterações guardadas).
+
+## 02/11/2026 — A Regra 15 foi substituída, e por mais do que ela pedia
+
+**O que motivou.** A pesquisadora: «nós fizemos uma solução melhor do que o que a regra 15 propõe, né?
+E ela é congelada. Então vamos registrar que ela foi substituída pelo que acontece agora, e assim a
+gente justifica que ela não é mais uma pendência.»
+
+**O que a regra diz, e o que ela pedia.** *«Musicalidade — Bloco próprio em cada aula + arquivo
+paralelo do ciclo.»* Doze palavras, escritas **antes de o verbete existir**. Medido: **nenhum arquivo
+paralelo de musicalidade existe no repositório** (`find professores -iname "*musicalidade*"` devolve
+nada) — essa metade nunca se implementou. E o «bloco próprio» partia de uma premissa que a
+pesquisadora desfez: a musicalidade **não é um bloco onde se põem exercícios**, é uma forma de olhar
+todos eles.
+
+**O que a substitui, e é mais.**
+
+1. O **verbete** de cada exercício declara a grade de contagens por música (`<tempos>|<compasso>` →
+   cada célula com a contagem, a categoria e os sinais).
+2. A **sequência do plano** declara os tempos e o compasso de cada linha.
+3. A **§4 da aula** consolida os dois — uma linha por exercício, **uma vez só**, agrupada por
+   compasso, com a contagem e o que cai nela.
+
+O **pulso** é a contagem, o **acento** é o tempo do compasso em que ela cai, e a **frase** é o
+exercício inteiro sobre a música. E a conferência de que a grade fecha nos tempos passou a ser feita
+na **gravação do verbete**, com a correção apontada nos passos 2 e 3.
+
+**Porque é melhor.** A regra pedia um **arquivo** por ciclo; o que existe é **dado**, num sítio só, do
+qual derivam o documento da aula, a notação e o glossário. Um arquivo paralelo por ciclo seria mais
+uma verdade a manter sincronizada — exactamente o que este repositório elimina em cada decisão (o
+molde dos schemas, o vocabulário, a régua da rubrica). E uma regra que pede um ficheiro que ninguém
+abre não se cumpre: cumpre-se por omissão, que é pior do que emendar.
+
+**O que foi feito, e o ritual do congelamento.** O `REGRAS.md` está congelado (`CONGELAMENTO.md`), e
+mudá-lo exige motivo declarado, entrada no `REGISTRO.md` e commit próprio. A **nota de substituição**
+foi escrita no próprio `REGRAS.md`, debaixo da tabela das 17 regras, com a data, o que substitui a
+regra e o ponteiro para esta entrada; o commit leva só esse ficheiro e esta entrada. **A Regra 15
+continua numerada e continua a existir** — o que muda é o que ela manda cumprir.
+
+**Onde entrou.** `REGRAS.md` (nota de substituição) · `REGISTRO.md` (esta entrada) · `ESTADO-ATUAL.md`
+(a decisão e a pendência fechada).
+
+**Com o quê.** `grep` no repositório inteiro: nenhum `musicalidade-*.md`, e a única menção a «arquivo
+paralelo» fora do `REGRAS.md` era a pendência desta fotografia. A substituição mede-se no que já
+existe — `provar-o-que-vem-do-dado` (a §4 vem do dado) e `provar-celula` (a gravação confere a música).

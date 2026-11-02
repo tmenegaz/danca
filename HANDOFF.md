@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T09:54:28-0300`
-Commit atual: `8175264` — docs(registro): a fotografia da §4 por compasso e do aspecto físico no plano
+Gerado em: `2026-11-02T10:40:04-0300`
+Commit atual: `787305d` — docs(regras): a Regra 15 é substituída pelo que o código faz
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,9 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+787305d docs(regras): a Regra 15 é substituída pelo que o código faz
+6902897 fix(notacao): o cadastro do exercício é o passo 1, e a gravação confere a música
+a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição estava errada
 8175264 docs(registro): a fotografia da §4 por compasso e do aspecto físico no plano
 0cb2e54 fix(musicalidade): a §4 consolida por compasso, e o aspecto físico entra no plano
 2a7f13f docs(registro): as limitações de conhecimento desta fotografia, medidas
@@ -101,9 +104,6 @@ c13be2f chore(estrutura): regerar os índices derivados
 d335f25 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
 4c0c642 feat(po): o PO elicitado vira a fonte do ciclo
 bd1298f feat(acervo): envelope/po-20261101-1959.json
-22a6799 feat(acervo): envelope/.indice.json
-8fe6474 chore(estrutura): reancorar a cadeia das fontes alteradas
-98d9a5f chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -217,25 +217,49 @@ bd1298f feat(acervo): envelope/po-20261101-1959.json
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — Um resíduo de expurgo travava o commit de quem mexesse na porta
+## 02/11/2026 — A Regra 15 foi substituída, e por mais do que ela pedia
 
-**O que aconteceu.** Depois de `porta/index.html` mudar, o `check-identidade` reprovou o **Circuito**
-num pacote que não é o do ciclo em uso: `professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/
-index.html` divergia da fonte. Aquele pacote é o que o `criar-escola.sh` deixou quando a escola
-`batata` foi criada em 01/11/2026 e **nunca recebeu documentos** (`DOCS=""` no
-`ciclo-01-batata.conf`): tem a porta, os assets e o índice, e mais nada. O `gerar-ciclo.sh` não o pode
-regenerar — «DOCS está vazio» —, e por isso a cópia da porta ficou congelada no dia em que nasceu.
+**O que motivou.** A pesquisadora: «nós fizemos uma solução melhor do que o que a regra 15 propõe, né?
+E ela é congelada. Então vamos registrar que ela foi substituída pelo que acontece agora, e assim a
+gente justifica que ela não é mais uma pendência.»
 
-**O que foi decidido.** A cópia foi **refrescada** — a mesma operação que o `gerar-ciclo.sh` faz
-(`porta/` → `plano-observacao/`) —, e não apagada: apagar um ciclo de um professor é decisão da
-pesquisadora, não do gerador. **A pendência de fundo fica dita:** um ciclo criado e nunca preenchido
-envelhece em silêncio e trava o commit de quem toca em `porta/`; o remédio definitivo é o expurgo da
-escola, que é o que ela vai fazer a seguir. Fica registado para não voltar a ser diagnosticado do
-zero.
+**O que a regra diz, e o que ela pedia.** *«Musicalidade — Bloco próprio em cada aula + arquivo
+paralelo do ciclo.»* Doze palavras, escritas **antes de o verbete existir**. Medido: **nenhum arquivo
+paralelo de musicalidade existe no repositório** (`find professores -iname "*musicalidade*"` devolve
+nada) — essa metade nunca se implementou. E o «bloco próprio» partia de uma premissa que a
+pesquisadora desfez: a musicalidade **não é um bloco onde se põem exercícios**, é uma forma de olhar
+todos eles.
 
-**Com o quê.** `check-identidade` **20/20** · `check-indices` **14/14** (os índices foram regerados;
-os que só tinham mudado de `fonte.commit` e `gerado_em` foram revertidos, porque um índice que muda
-de hora em cada geração suja a árvore sem dizer nada).
+**O que a substitui, e é mais.**
+
+1. O **verbete** de cada exercício declara a grade de contagens por música (`<tempos>|<compasso>` →
+   cada célula com a contagem, a categoria e os sinais).
+2. A **sequência do plano** declara os tempos e o compasso de cada linha.
+3. A **§4 da aula** consolida os dois — uma linha por exercício, **uma vez só**, agrupada por
+   compasso, com a contagem e o que cai nela.
+
+O **pulso** é a contagem, o **acento** é o tempo do compasso em que ela cai, e a **frase** é o
+exercício inteiro sobre a música. E a conferência de que a grade fecha nos tempos passou a ser feita
+na **gravação do verbete**, com a correção apontada nos passos 2 e 3.
+
+**Porque é melhor.** A regra pedia um **arquivo** por ciclo; o que existe é **dado**, num sítio só, do
+qual derivam o documento da aula, a notação e o glossário. Um arquivo paralelo por ciclo seria mais
+uma verdade a manter sincronizada — exactamente o que este repositório elimina em cada decisão (o
+molde dos schemas, o vocabulário, a régua da rubrica). E uma regra que pede um ficheiro que ninguém
+abre não se cumpre: cumpre-se por omissão, que é pior do que emendar.
+
+**O que foi feito, e o ritual do congelamento.** O `REGRAS.md` está congelado (`CONGELAMENTO.md`), e
+mudá-lo exige motivo declarado, entrada no `REGISTRO.md` e commit próprio. A **nota de substituição**
+foi escrita no próprio `REGRAS.md`, debaixo da tabela das 17 regras, com a data, o que substitui a
+regra e o ponteiro para esta entrada; o commit leva só esse ficheiro e esta entrada. **A Regra 15
+continua numerada e continua a existir** — o que muda é o que ela manda cumprir.
+
+**Onde entrou.** `REGRAS.md` (nota de substituição) · `REGISTRO.md` (esta entrada) · `ESTADO-ATUAL.md`
+(a decisão e a pendência fechada).
+
+**Com o quê.** `grep` no repositório inteiro: nenhum `musicalidade-*.md`, e a única menção a «arquivo
+paralelo» fora do `REGRAS.md` era a pendência desta fotografia. A substituição mede-se no que já
+existe — `provar-o-que-vem-do-dado` (a §4 vem do dado) e `provar-celula` (a gravação confere a música).
 
 ## O que está pendente
 

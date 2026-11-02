@@ -4,7 +4,13 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `2a7f13f`). Nesta entrega: a **§4 deixou de dizer
+> **Última fotografia:** 02/11/2026 (base local `a99196e`). Nesta entrega: o **cadastro do exercício
+> é o passo 1** — deixou de ser um «modo» que escondia o formulário e a tira e cujo único caminho de
+> saída se chamava «Cancelar»; a **gravação do verbete passou a conferir a música** (as células têm de
+> fechar os tempos declarados) e diz onde se corrige — passo 2 ou passo 3; e a **Regra 15 foi
+> substituída**, com nota no `REGRAS.md` e motivo declarado.
+>
+> **Entrega anterior** (base `2a7f13f`). Nesta entrega: a **§4 deixou de dizer
 > uma coisa falsa** — afirmava «exercícios neste bloco: nenhum» sobre o bloco de musicalidade, e as
 > três linhas de exercício tinham tempos e compasso; passou a ser uma **vista consolidada por
 > compasso**, um exercício uma vez só, com a contagem *e* o que cai nela, e a «fatia do plano»
@@ -172,6 +178,25 @@ Verificado nesta fotografia, com os comandos da §9.
   workflow de push e correu — as quatro Actions de `8175264` ficaram `success`. Publicar não estraga
   nada (o expurgo apaga), e **não publicar não era uma opção que este repositório oferecesse.**
   **CONFIRMADO** pela API do GitHub e pela leitura das duas páginas.
+- **O cadastro do exercício é o PASSO 1, e não um «modo».** Ele vivia num bloco que escondia
+  `#vb-modo-verbete` inteiro, escondia a tira dos passos e bloqueava o `select` e o «+» — quem
+  criava um exercício deixava de ver em que passo estava, e «Cancelar» era a única saída, sem dizer
+  para onde ia. Passou a viver **dentro do passo 1**; nada desaparece, e o «+» diz em que estado
+  está (`aria-expanded`). **CONFIRMADO** por `provar-celula` (dez asserções novas, incluindo «o
+  cadastro abre DENTRO do painel do passo 1» e «a tira NÃO sai»).
+- **O exercício novo já está na lista ao avançar, e nada disto toca no KV.** O `POST
+  /api/bastidores/termo` grava no **repositório** (`biblioteca/modalidades/bale-classico/
+  vocabulario.json`, por `termo-repo.js`) e devolve o termo; a lista que `GET
+  /api/bastidores/verbete` serve lê o **mesmo ficheiro no GitHub**. **Zero chamadas ao KV** nas
+  duas rotas — **CONFIRMADO** por leitura das rotas e dos módulos. A tela acrescenta o termo à
+  lista local sem esperar por outra leitura, e o mesmo nome não entra duas vezes.
+- **A gravação do verbete recusa um verbete que não fecha a música.** Antes só se conferia `cobre`
+  contra a soma das próprias células — uma conta do formulário consigo mesmo; a música, que é a
+  chave do verbete, não era comparada com nada. Foi por isso que o `Battement fondu` ficou em
+  «2|4/4» com 6 tempos e o `Plié` em «8|4/4» com 12. A recusa diz onde se corrige — **passo 2** (a
+  música) ou **passo 3** (para onde) —, e o número sai de `PASSOS_TITULOS`, não escrito à mão.
+  **CONFIRMADO** por `provar-celula` (a recusa, com o recado medido) e por `provar-verbete`
+  (o servidor valida a música como quarto argumento).
 - **A §4 consolidava por MÚSICA e afirmava «exercícios neste bloco: nenhum».** As duas coisas
   estavam erradas: as três linhas de exercício da aula trazem `Tempos` e `Compasso`, e o verbete traz
   a grade das contagens. Passou a **consolidar por compasso**, um exercício uma vez só, e a prova
@@ -245,6 +270,8 @@ Verificado nesta fotografia, com os comandos da §9.
 | Índice de envelopes com resumo invalidável | **CONFIRMADO** | `motor/nucleo/porta.js` (`VERSAO_DO_RESUMO = 4`) |
 | Âncora e cadeia de proveniência | **CONFIRMADO** | `tools/hash-ciclo.sh` |
 | A §4 da aula como vista consolidada da musicalidade, por compasso | **CONFIRMADO** 02/11/2026 — uma linha por exercício (o mesmo em Barra, Centro e Expressão é uma só), com `Tempos` e a contagem *e* o que cai nela; `conferir` onde a grade do verbete não fecha. Medido no `.md` gerado e nas cinco asserções do `provar-o-que-vem-do-dado`. | `motor/nucleo/derivar-ciclo.js` (§4) |
+| O cadastro do exercício como passo 1 do verbete, e o termo novo na lista ao avançar | **CONFIRMADO** 02/11/2026 — abre dentro do painel do passo 1 (a tira fica, o formulário fica, nada é bloqueado); «Gravar exercício» grava no vocabulário do repositório e deixa-o escolhido; `Enter` no nome grava o exercício, não o verbete. **Zero KV.** | `motor/servidor/bastidores.js`, `motor/servidor/termo-repo.js` |
+| A gravação do verbete confere a música | **CONFIRMADO** 02/11/2026 — as células têm de somar os tempos da música declarada; a recusa nomeia os passos 2 e 3, e o servidor recusa também (`validarVerbete` recebe a música). | `motor/servidor/verbete.js`, `motor/servidor/bastidores.js` |
 | O aspecto físico — força e flexibilidade — no PLANO, lido das anamneses da turma | **CONFIRMADO** 02/11/2026 — bloco 10 do plano (`aspecto-fisico`, descritor `lidoDasAnamneses`, quinze campos em dois grupos); a porta consolida por aspecto e marca o ponto de atenção pela ordem das opções da anamnese. Sem leitura, a secção declara a lacuna. | `porta/plano/conteudo/plano.json`, `porta/index.html`, `motor/nucleo/derivar-plano-ciclo.js` |
 
 ### Parcial
@@ -558,6 +585,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     e a cópia da porta ficou congelada no dia em que nasceu — quem mexesse em `porta/` reprovava no
     Circuito. A cópia foi refrescada (não apagada: apagar um ciclo é decisão da pesquisadora), e o
     remédio de fundo é o **expurgo da escola**. **DECIDIDO** 02/11/2026.
+49. **O CADASTRO DO EXERCÍCIO É O PASSO 1, E NÃO UM MODO.** Um formulário que substitui a página
+    inteira e cujo único caminho de saída se chama «Cancelar» não diz onde se está nem para onde se
+    vai. Ele abre **dentro** do passo 1, com a tira à vista; «Cancelar» fecha só o cadastro; e o
+    exercício criado fica escolhido no campo que ele alimenta. **DECIDIDO** 02/11/2026.
+50. **O QUE JÁ VAI PARA O REPOSITÓRIO NÃO PRECISA DE KV — E NÃO GASTA NENHUM.** O termo novo é
+    escrito no vocabulário da modalidade (Contents API) e a lista de exercícios é lida do **mesmo
+    ficheiro**. A tela acrescenta-o localmente enquanto não há outra leitura: o pedido menor é
+    nenhum. **DECIDIDO** 02/11/2026.
+51. **A GRAVAÇÃO CONFERE A MÚSICA, E APONTA ONDE SE CORRIGE.** `cobre` contra a soma das células é
+    uma conta do formulário consigo mesmo; a música é a chave do verbete e tem de fechar com as
+    células. A recusa nomeia os dois sítios — a música (passo 2) e os trechos (passo 3) — e o
+    número dos passos vem da lista que desenha a tira. A regra vive nos dois lados: a tela recusa
+    antes de enviar e o servidor garante que uma página em cache não a contorna. **DECIDIDO**
+    02/11/2026.
+52. **A REGRA 15 FOI SUBSTITUÍDA PELO QUE O CÓDIGO FAZ, E O `REGRAS.md` DIZ ISSO.** «Bloco próprio +
+    arquivo paralelo do ciclo» foi escrito antes de o verbete existir; **nenhum arquivo paralelo
+    existe**, e a musicalidade não é um bloco. O que a substitui — verbete com a grade, sequência
+    com tempos e compasso, §4 consolidada — é **dado**, num sítio só. A regra **não é apagada nem
+    renumerada**: ganha uma nota de substituição, com motivo declarado, e o commit da nota é só
+    dela (`CONGELAMENTO.md`). **DECIDIDO** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -704,11 +751,24 @@ Sem nenhum `[Preencher]`. **CONFIRMADO** por `provar-o-que-vem-do-dado` (mutaç�
 muda o documento; e cinco asserções que guardam a forma consolidada, entre elas «não afirma que o
 bloco não tem exercícios») e pelo `.md` gerado.
 
-**O que a §4 NÃO resolve, e é uma pergunta para a pesquisadora:** a **Regra 15** do `REGRAS.md` diz
-«bloco próprio em cada aula + arquivo paralelo do ciclo» — doze palavras escritas **antes** de o
-verbete existir. Nenhum formulário pergunta «trabalho de pulso, acento ou frase», e o que existe é
-melhor: o verbete e a sequência já o dizem. A Regra 15 está provavelmente **obsoleta**, e substituí-la
-ou retirá-la é decisão dela (o `REGRAS.md` é congelado — `CONGELAMENTO.md`). **PENDENTE**.
+**A Regra 15 — RESOLVIDA em 02/11/2026.** Ela dizia «bloco próprio em cada aula + arquivo paralelo do
+ciclo»: doze palavras escritas **antes** de o verbete existir. Medido: **nenhum arquivo paralelo de
+musicalidade existe no repositório** — essa metade nunca se implementou. E o «bloco próprio» partia
+de uma premissa que não se sustenta. A regra **foi substituída pelo que o código faz**, e o
+`REGRAS.md` — que é congelado — ganhou uma **nota de substituição** com motivo declarado, no commit
+que é só dela. **CONFIRMADO**: a nota está no `REGRAS.md`, e o número das regras continua a ser 17
+(o `gerar-handoff` conta 17, e nenhuma foi apagada nem renumerada).
+
+### O motor dos verbetes — a proposta que vem a seguir (declarada, não começada)
+
+A pesquisadora anunciou, a 02/11/2026: «essa parte toda aqui dos verbetes vai ter que gerar um motor,
+e a gente vai criar arquivos JSON de chave e valor para o dicionário, para o syllabus e para outras
+propostas que eu vou te apresentar. Então eu vou precisar ler direitinho com calma antes de te
+propor a análise, o planejamento lastro.» **PENDENTE** — e é dela a vez: nada se desenha antes de a
+proposta existir. O que já se sabe, e é o que a proposta vai encontrar: o vocabulário é uma verdade
+só no repositório (`biblioteca/modalidades/<modalidade>/vocabulario.json`), o alfabeto da notação é
+outro (`alfabeto.json`), e o **dicionário do que acontece** (`catalogo-seed.js`, indexado por
+notação) é hoje o único destes que ainda vive no código.
 
 O que **continua** em aberto desta família é outro: a **bancada**
 `experimentos/propostas/proposta-musicalidade.html` (local, não versionada) propunha uma legenda de
@@ -775,7 +835,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a §4 consolidada por compasso e o aspecto físico no plano)
+### Executado nesta fotografia (02/11/2026 — o cadastro é o passo 1, e a gravação confere a música)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **128 de 128** (eram 122) — as cinco asserções do «modo» foram substituídas por dez do cadastro dentro do passo 1, e há duas secções novas: a recusa por a música não fechar, e o exercício novo sem duplicar a linha |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — a fixture passou a ser coerente (oito tempos de células para a música de oito), e há duas asserções novas: a tela compara a soma com os tempos, e o servidor valida a música |
+| `node experimentos/provar-acordeoes.js` · `provar-vao-do-botao.js` · `provar-menu-da-producao.js` | **TUDO CERTO** · **50/50** · **55/55** |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| **não são regressões, e ficam medidas** | `provar-producao` **151/152** (o item do menu com `className`) e `provar-cartao-da-turma` **6 falhas** (a tira do verbete entra na contagem dos passos da turma) — as duas falham **igual** com as alterações guardadas, confirmado nesta sessão |
+| **ao ar** | **o push publica** — a Action `Publicar as escolas` corre em cada push e não há passo manual (medido na entrega anterior, `8175264`). O que se confere depois do push: que a página da Produção serve o cadastro dentro do passo 1 e que a Aula 01 continua a sair como saía |
+
+### Executado na fotografia anterior (02/11/2026 — a §4 consolidada por compasso e o aspecto físico no plano)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1237,6 +1309,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **O cadastro do exercício é o passo 1, e a gravação confere a música.** O «+» do
+  verbete abria um «modo» que escondia o formulário e a tira dos passos e bloqueava o `select`; a
+  pesquisadora: «o professor não vai saber que quando ele clicar em cancelar, ele vai para onde de
+  facto ele cria o verbete da aula». O cadastro passou a viver **dentro do passo 1** — a tira fica,
+  nada é bloqueado, «Cancelar» fecha só o cadastro —, o exercício criado fica escolhido no campo que
+  alimenta, e **nada disto toca no KV**: o termo vai para o vocabulário do repositório e a lista lê o
+  mesmo ficheiro. No mesmo dia, a **gravação do verbete passou a conferir a música**: as células têm
+  de somar os tempos declarados, e a recusa nomeia o passo 2 (a música) e o passo 3 (para onde) —
+  era o buraco por onde passaram o `Battement fondu` (6 tempos numa música de 2) e o `Plié` (12 numa
+  de 8). E a **Regra 15 foi substituída**, com nota no `REGRAS.md` e motivo declarado: nenhum
+  arquivo paralelo de musicalidade existe, e a musicalidade não é um bloco. **CONFIRMADO** por
+  `provar-celula` (128/128), `provar-verbete`, e um `alvoDoRecado` que passou a ignorar os recados de
+  um widget aninhado — defeito que a prova apanhou e que a mudança tinha introduzido.
 - **02/11/2026** — **A §4 dizia uma coisa falsa, e o aspecto físico chegou ao plano.** A §4 da Aula
   01 afirmava, em tabela, «Exercícios neste bloco | nenhum» sobre o bloco de musicalidade — e as três
   linhas de exercício da mesma aula traziam `Tempos` e `Compasso` preenchidos. O erro era de
