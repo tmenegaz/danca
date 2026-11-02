@@ -90,8 +90,78 @@ function aValidacao() {
   checar('um verbete bem formado é aceito', bom.ok, bom.erros);
 
   const cobreErrado = verbete.validarVerbete(verbeteBom({ cobre: 6 }), ALFABETO, VOCABULARIO);
-  checar('e um `cobre` que não soma é recusado', !cobreErrado.ok && /somam/.test(cobreErrado.erros.join(' ')),
+  // A MENSAGEM MUDOU DE RÉGUA (02/11/2026): já não diz «as células somam», diz «a maior pista tem».
+  // A soma em linha e a maior pista são a mesma coisa quando há uma pista só — e é o caso desta
+  // fixture, toda em `Pé`. O que se mede é que a recusa continua a nomear a conta.
+  checar('e um `cobre` que não é o das células é recusado',
+    !cobreErrado.ok && /maior pista tem 4/.test(cobreErrado.erros.join(' ')),
     cobreErrado.erros);
+
+  /* AS PISTAS (02/11/2026) — a régua que substituiu a soma em linha.
+   *
+   * O CASO É O `Plié` REAL: as pernas fazem dois compassos de 4/4 (8 tempos) e os braços fazem um
+   * (4), AO MESMO TEMPO. Somado em linha dava 12 numa música de 8, e a gravação recusava o
+   * verbete — o dado estava certo e a conta é que não. Estas três asserções guardam a leitura
+   * nova, e a terceira é o controle negativo: sem pistas diferentes, a conta antiga tem de dar o
+   * mesmo que a nova. */
+  const paralelo = verbete.validarVerbete(verbeteBom({
+    cobre: 8,
+    celulas: {
+      devant: [
+        { contagem: '1–4', categoria: 'Perna', sinais: ['1ª', '↓'], descricao: 'os apoios cedem' },
+        { contagem: '1–4', categoria: 'Perna', sinais: ['1ª', '↑'], descricao: 'os apoios sobem' },
+        { contagem: '1–2', categoria: 'Braço', sinais: ['↓', '⌒'], descricao: 'os braços descem' },
+        { contagem: '3–4', categoria: 'Braço', sinais: ['→', '⌒'], descricao: 'e conduzem' },
+      ],
+    },
+  }), ALFABETO, VOCABULARIO);
+  checar('duas pistas em paralelo fecham quando a MAIOR fecha, e não a soma',
+    paralelo.ok, paralelo.erros);
+
+  const paraleloErrado = verbete.validarVerbete(verbeteBom({
+    cobre: 12,
+    celulas: {
+      devant: [
+        { contagem: '1–4', categoria: 'Perna', sinais: ['1ª', '↓'], descricao: 'os apoios cedem' },
+        { contagem: '1–4', categoria: 'Perna', sinais: ['1ª', '↑'], descricao: 'os apoios sobem' },
+        { contagem: '1–2', categoria: 'Braço', sinais: ['↓', '⌒'], descricao: 'os braços descem' },
+        { contagem: '3–4', categoria: 'Braço', sinais: ['→', '⌒'], descricao: 'e conduzem' },
+      ],
+    },
+  }), ALFABETO, VOCABULARIO);
+  checar('…e o `cobre` que soma as pistas é recusado, com as duas contas na mensagem',
+    !paraleloErrado.ok && /maior pista tem 8/.test(paraleloErrado.erros.join(' '))
+      && /soma em linha daria 12/.test(paraleloErrado.erros.join(' ')),
+    paraleloErrado.erros);
+
+  /* A REPETIÇÃO É DA CÉLULA (02/11/2026). «O plié desce e sobe duas vezes» era escrito duplicando
+   * a linha; passa a ser um número na célula, e o que ela ocupa na música é o produto. */
+  const comRepeticao = verbete.validarVerbete(verbeteBom({
+    cobre: 8,
+    celulas: {
+      devant: [
+        { contagem: '1–4', categoria: 'Pé', sinais: ['1ª', '→'], descricao: 'extensão', repeticoes: 2 },
+      ],
+    },
+  }), ALFABETO, VOCABULARIO);
+  checar('a repetição multiplica o que a célula ocupa (1–4, 2× = 8 tempos)',
+    comRepeticao.ok, comRepeticao.erros);
+
+  const repeticaoInvalida = verbete.validarVerbete(verbeteBom({
+    celulas: {
+      devant: [
+        { contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→'], descricao: 'extensão', repeticoes: 0 },
+      ],
+    },
+  }), ALFABETO, VOCABULARIO);
+  checar('…e uma repetição que não é um inteiro ≥ 1 é recusada',
+    !repeticaoInvalida.ok && /repetição inválida/.test(repeticaoInvalida.erros.join(' ')),
+    repeticaoInvalida.erros);
+
+  // O MÉTODO é uma SOBREPOSIÇÃO ao do plano, e o nome não tem comprimento de frase.
+  const metodoLongo = verbete.validarVerbete(verbeteBom({ metodo: 'x'.repeat(41) }), ALFABETO, VOCABULARIO);
+  checar('…e um método declarado como frase, e não como nome, é recusado',
+    !metodoLongo.ok && /método declarado/.test(metodoLongo.erros.join(' ')), metodoLongo.erros);
 
   // A DIREÇÃO É A CHAVE DA CÉLULA (28/10/2026). Estas duas asserções guardavam a comparação entre
   // o campo `direcoes` e as chaves de `celulas` — e o campo deixou de existir. O que resta a poder
@@ -590,9 +660,35 @@ async function aOrigemDoVocabulario() {
     && !/<select id="vb-cel-contagem"/.test(html));
   checar('e não ficou nenhuma lista suspensa no editor do trecho',
     !/<select id="vb-(cel-)?(dir|contagem|sinal|sinais)"/.test(html));
-  checar('e a lista da contagem é calculada, não fixa',
-    /function opcoesDeContagem\(dir\)/.test(script) && /function pintarContagens\(\)/.test(script)
+  // A ASSINATURA MUDOU (02/11/2026): a contagem é por PISTA (a categoria), e o passo da grade
+  // passou a depender da métrica — os compostos agrupam de três em três.
+  checar('e a lista da contagem é calculada por pista, não fixa',
+    /function opcoesDeContagem\(cat\)/.test(script) && /function pintarContagens\(\)/.test(script)
     && /numeradorDoCompasso/.test(script));
+  checar('…e o passo da grade distingue os compassos compostos',
+    /function passoDaGrade\(\)/.test(script) && /d === 8 && n % 3 === 0/.test(script));
+
+  /* AS POSIÇÕES DOS PÉS E BRAÇOS (02/11/2026). O bloco era «Posições dos pés», com cinco sinais;
+   * a preparatória e as posições de braços estavam no alfabeto e NÃO chegavam a nenhuma tela —
+   * `posicoesDeBracosDoMetodo` era exportada e ninguém a chamava. Estas asserções guardam a
+   * unificação e o rótulo duplo que resolve a divergência francesa/RAD. */
+  const grupos = ALFABETO.grupos || [];
+  const blocoPosicoes = grupos.filter((g) => /Posi/.test(String(g.titulo || '')))[0] || { itens: {} };
+  checar('o bloco de posições é UM só, e chama-se «Posições dos pés e braços»',
+    /Posições dos pés e braços/.test(String(blocoPosicoes.titulo || '')), blocoPosicoes.titulo);
+  checar('…e tem a preparatória, os cinco números, e o rótulo duplo da terceira',
+    Boolean(blocoPosicoes.itens && blocoPosicoes.itens.prep)
+      && ['1ª', '2ª', '3ª', '4ª', '5ª'].every((k) => blocoPosicoes.itens[k])
+      && /quinta/.test(String((blocoPosicoes.itens['3ª'] || {}).nome || '')),
+    Object.keys(blocoPosicoes.itens || {}));
+  // A TABELA VIAJA NA ROTA, e é por isso que ela se procura no SERVIDOR e não no script: o
+  // `posicoesDeBracos` entra na resposta do `GET /api/bastidores/verbete`, e o que a página faz
+  // com ela é pintar a nota do método.
+  const fonteBastidores = fs.readFileSync(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'), 'utf8');
+  checar('…e a rota passa a servir as posições de braços por método',
+    /posicoesDeBracos:/.test(fonteBastidores) && /function pintarNotaDoMetodo\(\)/.test(script));
+  checar('…e o método é uma herança com sobreposição, não uma segunda declaração',
+    /herda a «Metodologia de referência» do plano/.test(script));
 
   // OS SINAIS VÊM AGRUPADOS E COM NOME, e as CATEGORIAS não estão na lista deles. Era o defeito
   // que a pesquisadora viu: «pé, peso, plié, braço» aparecia duas vezes, porque o grupo

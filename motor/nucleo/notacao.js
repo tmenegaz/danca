@@ -288,6 +288,57 @@ function temposDaContagem(contagem) {
   return ate >= de ? ate - de + 1 : 0;
 }
 
+/**
+ * QUANTAS VEZES A CÉLULA ACONTECE, e quanto ela ocupa por isso (02/11/2026).
+ *
+ * O `repeticoes` é da CÉLULA — «este trecho acontece 2×» —, e a `contagem` continua a ser a de
+ * UMA execução. A conta é a multiplicação, e é ela que entra em toda a aritmética: se a repetição
+ * ficasse de fora, o `cobre` e a grade de compassos divergiam no primeiro `2x` — exactamente o
+ * defeito que a soma por pista veio corrigir.
+ */
+function repeticoesDaCelula(celula) {
+  const n = Number((celula && celula.repeticoes) || 1);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+}
+
+function temposDaCelula(celula) {
+  return temposDaContagem(celula && celula.contagem) * repeticoesDaCelula(celula);
+}
+
+/**
+ * AS PISTAS — o eixo que faltava (02/11/2026).
+ *
+ * DEFEITO MEDIDO. As células eram somadas em LINHA, e o `Plié` fechava em 12 tempos numa música
+ * de 8: as pernas fazem 8 (dois compassos de 4/4) e os braços fazem 4 — **em paralelo**, porque o
+ * port de bras acontece enquanto o plié acontece. Somadas como sequência davam 12, e a gravação
+ * passou a recusar o verbete por causa disso.
+ *
+ * A PISTA É A CATEGORIA (Pé · Peso · Perna · Braço), e não a direção: `à frente` e `atrás` são o
+ * MESMO corpo em tempos diferentes, logo somam-se; `Perna` e `Braço` são corpos diferentes, logo
+ * correm lado a lado. O que o exercício ocupa na música é a pista MAIS LONGA, não a soma.
+ *
+ * Isto não é invenção: é a leitura que os próprios verbetes já tinham — o `Plié` grava os braços
+ * a recomeçar em 1, e o `Battement tendu` grava as três direções a continuar. As duas coisas
+ * sempre conviveram no mesmo ficheiro porque ninguém as somava por pista.
+ */
+function pistasDe(celulas) {
+  const pistas = new Map();
+  for (const direcao of Object.keys(celulas || {})) {
+    for (const c of (celulas[direcao] || [])) {
+      const chave = String((c && c.categoria) || '').trim() || '(sem categoria)';
+      pistas.set(chave, (pistas.get(chave) || 0) + temposDaCelula(c));
+    }
+  }
+  return pistas;
+}
+
+/** O que o verbete OCUPA da música: a maior pista. É este número que se compara com os tempos. */
+function coberturaDe(celulas) {
+  let maior = 0;
+  for (const t of pistasDe(celulas).values()) if (t > maior) maior = t;
+  return maior;
+}
+
 /** O maior número de uma contagem — para conferir que ela cabe no numerador do compasso. */
 function maiorContagem(contagem) {
   const nums = String(contagem == null ? '' : contagem).match(/\d+/g);
@@ -344,10 +395,16 @@ function segmentosDe(verbete, numerador) {
     // que é a ordem em que as células foram escritas — a mesma que `direcoes` declarava.
     const ordem = Object.keys(verbete.celulas);
     const saida = [];
-    let corridos = 0;
+    // O COMPASSO CORRE POR PISTA (02/11/2026). Antes havia um `corridos` único, somando tudo na
+    // ordem do ficheiro — e por isso os braços do `Plié`, que começam em 1, apareciam no compasso
+    // 3 (o 12º tempo). Cada categoria tem o seu relógio: as pernas vão no 1º e no 2º compasso
+    // enquanto os braços vão no 1º, e é isso que a página da aula tem de dizer.
+    const corridosPorPista = new Map();
     for (const direcao of ordem) {
       const celulas = Array.isArray(verbete.celulas[direcao]) ? verbete.celulas[direcao] : [];
       for (const c of celulas) {
+        const pista = String((c && c.categoria) || '').trim() || '(sem categoria)';
+        const corridos = corridosPorPista.get(pista) || 0;
         saida.push(Object.assign({}, c, {
           // A NOTAÇÃO DERIVADA. Os leitores a jusante — a tabela do documento, o glossário, a
           // validação dos sinais — sempre leram `bloco`; ele continua a existir no SEGMENTO,
@@ -366,8 +423,12 @@ function segmentosDe(verbete, numerador) {
           orientacao: c.orientacao || 'en-face',
           // O compasso começa em 1 e cada `numerador` tempos vira a página.
           compasso: Math.floor(corridos / numerador) + 1,
+          // A PISTA VAI NO SEGMENTO: é ela que diz a quem o compasso pertence, e sem ela quem lê
+          // a grade não sabe que os dois «compasso 1» são simultâneos e não sucessivos.
+          pista,
+          repeticoes: repeticoesDaCelula(c),
         }));
-        corridos += temposDaContagem(c.contagem);
+        corridosPorPista.set(pista, corridos + temposDaCelula(c));
       }
     }
     return saida;
@@ -439,12 +500,21 @@ function compor(linha, alfabeto) {
     }
   }
 
-  const soma = segmentos.reduce((t, s) => t + temposDaContagem(s.contagem), 0);
+  // A CONTA É A DA MAIOR PISTA (02/11/2026), e não a da soma em linha. O `Plié` soma 12 e ocupa
+  // 8: as pernas fazem os dois compassos e os braços fazem um, ao mesmo tempo. Comparar a soma
+  // com o `cobre` dava `verbete-inconsistente` a um verbete que está certo — era a régua que
+  // estava errada, não o dado.
+  const somaLinear = segmentos.reduce((t, s) => t + temposDaContagem(s.contagem) * repeticoesDaCelula(s), 0);
+  const celulasDoVerbete = escolhido.verbete.celulas;
+  const somaLida = (celulasDoVerbete && typeof celulasDoVerbete === 'object')
+    ? coberturaDe(celulasDoVerbete) : somaLinear;
+  const soma = somaLida;
   const declarado = escolhido.verbete.cobre == null ? soma : Number(escolhido.verbete.cobre);
   if (declarado !== soma) {
     return Object.assign(base, { estado: 'lacuna', motivo: 'verbete-inconsistente', segmentos: [], restoTempos: 0,
       detalhe: 'o verbete de «' + exercicio + '» (' + escolhido.musica + ') declara cobrir '
-        + plural(declarado, 'tempo') + ', mas os segmentos somam ' + soma });
+        + plural(declarado, 'tempo') + ', mas a maior pista tem ' + soma
+        + (somaLinear !== soma ? ' (a soma em linha daria ' + somaLinear + ')' : '') });
   }
 
   // O SINAL DESCONHECIDO MANDA A LINHA INTEIRA PARA A LACUNA. Publicar um bloco com um símbolo que
@@ -577,6 +647,10 @@ module.exports = {
   posicaoEmPalavras,
   direcaoEmPalavras,
   posicoesDeBracosDoMetodo,
+  repeticoesDaCelula,
+  temposDaCelula,
+  pistasDe,
+  coberturaDe,
   normalizarMetodo,
   lerMusica,
   blocoDe,

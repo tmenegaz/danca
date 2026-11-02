@@ -187,31 +187,37 @@
       }
     },
     {
-      "titulo": "Posições dos pés",
+      "titulo": "Posições dos pés e braços",
       "itens": {
+        "prep": {
+          "nome": "preparatória",
+          "significado": "os braços baixos e arredondados à frente do corpo, abaixo da cintura (bras bas na RAD).",
+          "origem": "sistema"
+        },
         "1ª": {
           "nome": "primeira posição",
-          "significado": "as pernas em 1ª, os calcanhares juntos e os pés em linha.",
+          "significado": "pés: as pernas em 1ª, os calcanhares juntos e os pés em linha. braços: arredondados à frente do corpo, à altura da cintura.",
           "origem": "sistema"
         },
         "2ª": {
           "nome": "segunda posição",
-          "significado": "as pernas em 2ª, a uma distância de um pé uma da outra.",
+          "significado": "pés: as pernas em 2ª, a uma distância de um pé uma da outra. braços: abertos ao lado, um pouco abaixo da linha do ombro.",
           "origem": "sistema"
         },
         "3ª": {
-          "nome": "terceira posição",
-          "significado": "as pernas em 3ª, o calcanhar à frente do arco do pé.",
-          "origem": "sistema"
+          "nome": "terceira · quinta (braços)",
+          "significado": "pés: as pernas em 3ª, o calcanhar à frente do arco do pé. braços: os dois acima da cabeça, arredondados — a 3ª na escola francesa, a 5ª na RAD e em Vaganova.",
+          "origem": "sistema",
+          "nota": "O rótulo duplo é a decisão de 02/11/2026: o MESMO sinal diz as duas nomenclaturas, e a categoria do trecho separa pés de braços."
         },
         "4ª": {
           "nome": "quarta posição",
-          "significado": "as pernas em 4ª, uma à frente da outra a um pé de distância, em dehors.",
+          "significado": "pés: as pernas em 4ª, uma à frente da outra a um pé de distância, em dehors. braços: um acima da cabeça e outro à frente, à altura da cintura (RAD).",
           "origem": "sistema"
         },
         "5ª": {
           "nome": "quinta posição",
-          "significado": "as pernas em 5ª, um pé colado ao outro.",
+          "significado": "pés: as pernas em 5ª, um pé colado ao outro.",
           "origem": "sistema"
         }
       }
@@ -426,7 +432,7 @@
     ],
     "Plié": {
       "8|4/4": {
-        "cobre": 12,
+        "cobre": 8,
         "posicao": {
           "membro": "pes",
           "termo": "premiere-position"
@@ -474,7 +480,8 @@
               "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, conduz a, à frente, ao lado, arco."
             }
           ]
-        }
+        },
+        "_porQue": "cobre = a maior pista (Perna 8, Braço 4): os braços correm EM PARALELO com as pernas, e a soma linear dava 12 numa música de 8."
       }
     },
     "Battement tendu": {

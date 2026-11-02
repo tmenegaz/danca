@@ -604,8 +604,33 @@ function estado() {
       JSON.stringify(valores((await page.evaluate(estado)).contagens))
         === JSON.stringify(['1', '1–2', '1–3', '1–4']),
       valores((await page.evaluate(estado)).contagens));
+    /* O COMPASSO COMPOSTO (02/11/2026). Em 6/8 o pulso vale TRÊS tempos — dois pulsos de três —,
+     * e a lista deixa de ser a rampa de um em um: os fins que FECHAM pulso vêm primeiro (1–3, 1–6)
+     * e os que caem a meio vêm no fim. É a diferença entre «cabe» e «fecha», que o numerador
+     * sozinho não sabe fazer. */
+    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '6/8');
+    await new Promise((r) => setTimeout(r, 300));
+    conferir('em 6/8 os fins que fecham pulso vêm primeiro, e os de meio no fim',
+      JSON.stringify(valores((await page.evaluate(estado)).contagens))
+        === JSON.stringify(['1', '1–3', '1–6', '1–2', '1–4', '1–5']),
+      valores((await page.evaluate(estado)).contagens));
+    // A LEGENDA DIZ A PISTA E O AGRUPAMENTO. «1–3» num 6/8 não se distingue de um erro sem isto.
+    const legendaContagem = await page.$eval('#vb-contagem legend', (el) => el.textContent.replace(/\s+/g, ' ').trim());
+    conferir('…e a legenda diz em que pista a contagem corre',
+      /pista de (Pé|Peso|Perna|Braço)/.test(legendaContagem) && /pulsos de três/.test(legendaContagem),
+      legendaContagem);
     await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 300));
+
+    /* A REPETIÇÃO E O MÉTODO (02/11/2026). Os dois campos são novos e os dois são de HERANÇA ou de
+     * MULTIPLICAÇÃO: a repetição diz quantas vezes o trecho ocupa o compasso (e entra na conta do
+     * tempo), o método sobrepõe-se ao do plano e a primeira opção diz que herda. */
+    const repeticoes = await page.$eval('#vb-repeticoes', (el) => [...el.options].map((o) => o.value));
+    conferir('o passo do «quando» tem a repetição, de 1× a 4×',
+      JSON.stringify(repeticoes) === JSON.stringify(['1', '2', '3', '4']), repeticoes);
+    const metodos = await page.$eval('#vbmetodo', (el) => [...el.options].map((o) => o.value));
+    conferir('o passo 2 tem o método, e a primeira opção é a herança',
+      metodos[0] === '' && metodos.indexOf('RAD') !== -1 && metodos.indexOf('Vaganova') !== -1, metodos);
 
     console.log('\n8. TRÊS CLIQUES EM TRÊS DIREÇÕES DEIXAM UMA SÓ — E É A ÚLTIMA');
     for (const d of ['devant', 'a-la-seconde', 'derriere']) {

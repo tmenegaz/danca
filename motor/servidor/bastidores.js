@@ -3524,6 +3524,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="nota" id="vb-frase-nota"></p>' +
     '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
     '<select id="vbposicao"><option value="">— escolha a posição —</option></select>' +
+    // O MÉTODO DESTE VERBETE (02/11/2026) — e ele HERDA, não duplica.
+    //
+    // O plano já declara «Metodologia de referência» e é obrigatório: o ciclo inteiro tem um
+    // padrão, e é de lá que sai. Este campo existe para o exercício que foge ao padrão — «neste
+    // sou RAD, nos outros sou francês» —, e a primeira opção diz exactamente isso. Duas
+    // declarações do mesmo facto divergiriam ao primeiro caso; uma herança com sobreposição
+    // não: quem não escolhe nada herda, e o que herda vê-se escrito.
+    //
+    // A razão de ele existir é a 3ª posição: os dois braços acima da cabeça são a 3ª na escola
+    // francesa e a 5ª na RAD. O rótulo do sinal já diz as duas («3ª · quinta (braços)»); o
+    // método decide QUAL delas vem primeiro, e é isso que o documento publica.
+    '<label class="campo-rotulo" for="vbmetodo">Método deste exercício</label>' +
+    '<select id="vbmetodo">' +
+    '<option value="">— herda a metodologia do plano —</option>' +
+    ['RAD', 'Vaganova', 'Francesa', 'Cecchetti', 'Escola livre']
+      .map((m) => '<option value="' + m + '">' + m + '</option>').join('') +
+    '</select>' +
+    '<p class="nota" id="vb-metodo-nota"></p>' +
     '</div>' +
     '<div class="passo-painel" data-passo="3" hidden>' +
     '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
@@ -3582,6 +3600,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<fieldset class="escolhas" id="vb-contagem">' +
     '<legend class="campo-rotulo">Contagem — em que tempos do compasso</legend>' +
     '</fieldset>' +
+    // A REPETIÇÃO É DO TRECHO (02/11/2026). O mesmo trecho acontece mais de uma vez — «o plié
+    // desce e sobe, duas vezes» —, e antes isso só se escrevia duplicando a linha. Aqui diz-se
+    // uma vez, e o tempo que ele ocupa na música é o produto: dois tempos × 2 = quatro.
+    //
+    // Fica no PASSO DO «QUANDO», e não na decomposição: repetir é dizer quantas vezes o trecho
+    // ocupa o compasso, e é a contagem que isso muda. A decomposição mostra o resultado; quem o
+    // decide está aqui, ao lado do tempo.
+    '<label class="campo-rotulo" for="vb-repeticoes">Quantas vezes este trecho acontece</label>' +
+    '<select id="vb-repeticoes">' +
+    [1, 2, 3, 4].map((n) => '<option value="' + n + '">' + n + '×' +
+      (n === 1 ? ' — uma vez' : '') + '</option>').join('') +
+    '</select>' +
     '</div>' +
     // ---- PASSO 4: COMO O TRECHO SE ESCREVE (31/10/2026 — passo 4 desde 01/11/2026) -----
     '<div class="passo-painel" data-passo="5" hidden>' +
@@ -5257,6 +5287,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var DIRECAO = "";' +
     'var ORIENTACAO = "";' +
     'var CONTAGEM = "";' +
+    // Quantas vezes o trecho em composição acontece. Limpa-se como a contagem, no fim de cada
+    // trecho — é do trecho, e não do verbete.
+    'var REPETICOES = 1;' +
+    // O método do verbete: vazio quer dizer «herda o do plano» (02/11/2026).
+    'var METODO = "";' +
     'var MUSICA_EM_FOCO = "";' +
     'var EXERCICIO_EM_FOCO = "";' +
     // A FRASE DO VERBETE (31/10/2026). É uma só por exercício, e não uma por trecho: era o campo
@@ -5311,6 +5346,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var p = String(c || "").split("–");' +
     '  return p.length === 2 ? Number(p[1]) - Number(p[0]) + 1 : 1;' +
     '}' +
+    // A REPETIÇÃO É DA CÉLULA (02/11/2026). A `contagem` é a de UMA execução; o `repeticoes` diz
+    // quantas vezes ela acontece, e o que a célula ocupa é o produto. Ficou fora da conta no dia
+    // em que foi inventada? Não pode — é a mesma conta que fecha a música.
+    'function repeticoesDaCelula(c){' +
+    '  var n = Number((c && c.repeticoes) || 1);' +
+    '  return (isFinite(n) && n >= 1) ? Math.floor(n) : 1;' +
+    '}' +
+    'function temposDaCelula(c){ return temposDaContagem(c && c.contagem) * repeticoesDaCelula(c); }' +
+    // AS PISTAS POR CATEGORIA (02/11/2026). `Perna` e `Braço` correm EM PARALELO; `à frente` e
+    // `atrás` somam-se, porque são o mesmo corpo em tempos diferentes. O que o exercício ocupa da
+    // música é a pista MAIS LONGA — e era a soma em linha que fazia o `Plié` fechar em 12 numa
+    // música de 8.
+    'function pistasDe(celulas){' +
+    '  var pistas = {}, ordem = [];' +
+    '  Object.keys(celulas || {}).forEach(function(d){' +
+    '    (celulas[d] || []).forEach(function(c){' +
+    '      var k = String((c && c.categoria) || "").trim() || "(sem categoria)";' +
+    '      if (ordem.indexOf(k) === -1) ordem.push(k);' +
+    '      pistas[k] = (pistas[k] || 0) + temposDaCelula(c);' +
+    '    });' +
+    '  });' +
+    '  return {pistas: pistas, ordem: ordem};' +
+    '}' +
+    'function coberturaDe(celulas){' +
+    '  var p = pistasDe(celulas).pistas, maior = 0;' +
+    '  Object.keys(p).forEach(function(k){ if (p[k] > maior) maior = p[k]; });' +
+    '  return maior;' +
+    '}' +
     // AS OPÇÕES DE CONTAGEM QUE CABEM. A primeira célula de uma direção começa em 1; as
     // seguintes continuam de onde a anterior acabou, ou recomeçam em 1 quando o compasso fechou.
     // É a convenção que os quatro verbetes já seguem — verificada, não inventada: o Plié grava
@@ -5328,30 +5391,72 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // somar o verbete inteiro. Com a chave vazia como balde legítimo, a conta passa a correr
     // sobre as chaves que existem, na ordem em que foram escritas. A semântica é a de antes:
     // soma-se o balde e só depois se pára — é o que faz o compasso cair no tempo certo.
-    'function temposAntesDe(dir){' +
+    // A PISTA MANDA, NÃO A DIREÇÃO (02/11/2026). Era aqui que `à frente` e `ao lado` se empurravam:
+    // a versão anterior somava TUDO o que vinha antes, de todas as categorias, para achar onde o
+    // novo trecho começa. Com as pistas, a conta corre só sobre a categoria do trecho — é o que
+    // permite ao braço recomeçar em 1 enquanto a perna continua no 2º compasso.
+    'function temposAntesDaPista(cat){' +
     '  var t = 0;' +
     '  var chaves = Object.keys(CELULAS);' +
     '  for (var i = 0; i < chaves.length; i++) {' +
-    '    (CELULAS[chaves[i]] || []).forEach(function(c){ t += temposDaContagem(c.contagem); });' +
-    '    if (chaves[i] === dir) return t;' +
+    '    (CELULAS[chaves[i]] || []).forEach(function(c){' +
+    '      if (String((c && c.categoria) || "").trim() === cat) t += temposDaCelula(c);' +
+    '    });' +
     '  }' +
     '  return t;' +
     '}' +
-    'function opcoesDeContagem(dir){' +
+    // O PASSO DA GRADE DA MÉTRICA (02/11/2026). O compasso diz duas coisas: quantos tempos cabem
+    // (o numerador) e COMO se agrupam. Nos simples (2/4, 3/4, 4/4, 2/2) cada tempo é um pulso, e
+    // qualquer fim de trecho cai numa fronteira. Nos COMPOSTOS (6/8, 9/8, 12/8) o pulso vale TRÊS
+    // tempos: 6/8 são dois pulsos de três, 9/8 são três, 12/8 são quatro. Fechar um trecho em
+    // «1–4» de 6/8 é fechar a meio de um pulso — e era o que a lista antiga oferecia, porque só
+    // lia o numerador.
+    //
+    // O QUE NÃO SE PROÍBE: um trecho de «1–2» num compasso composto é uma síncope, e existe. O
+    // que muda é a OFERTA — os fins que fecham pulso vêm primeiro, e a lista pára no fim do
+    // compasso. O professor escolhe; não lhe escondemos a música.
+    'function passoDaGrade(){' +
+    '  var v = (document.getElementById("vbcompasso") || {}).value || "4/4";' +
+    '  var p = String(v).split("/");' +
+    '  var n = Number(p[0]) || 4, d = Number(p[1]) || 4;' +
+    '  return (d === 8 && n % 3 === 0) ? 3 : 1;' +
+    '}' +
+    // COMO SE LÊ O COMPASSO EM PORTUGUÊS. A nota do passo 3 dizia só «N tempos em X» — e «6
+    // tempos em 6/8» não diz a ninguém que são DOIS pulsos de três. Passa a dizer.
+    'function leituraDoCompasso(){' +
+    '  var v = (document.getElementById("vbcompasso") || {}).value || "4/4";' +
+    '  var p = String(v).split("/");' +
+    '  var n = Number(p[0]) || 4, d = Number(p[1]) || 4;' +
+    '  if (d === 8 && n % 3 === 0) {' +
+    '    var pulsos = n / 3;' +
+    '    return v + " — " + (pulsos === 1 ? "um pulso" : pulsos + " pulsos") + " de três";' +
+    '  }' +
+    '  var quantos = n === 2 ? "dois" : n === 3 ? "três" : n === 4 ? "quatro" : String(n);' +
+    '  return v + " — " + (n === 1 ? "um pulso" : quantos + " pulsos") + " de dois";' +
+    '}' +
+    'function opcoesDeContagem(cat){' +
     '  var n = numeradorDoCompasso();' +
-    // A CÉLULA QUE SE ESTÁ A CORRIGIR NÃO CONTA (31/10/2026). `temposAntesDe` soma tudo o que
-    // vem antes, e a célula em edição JÁ está na lista — contá-la empurrava a contagem para o
-    // tempo seguinte e o trecho mudava de sítio só por se abrir a edição. Medido: um trecho em
-    // «1» de 2/4 abria a edição a oferecer «2».
-    '  var antes = temposAntesDe(dir);' +
-    '  if (EM_EDICAO && EM_EDICAO.dir === dir) {' +
-    '    var emCorrecao = (CELULAS[dir] || [])[EM_EDICAO.k];' +
-    '    if (emCorrecao) antes -= temposDaContagem(emCorrecao.contagem);' +
+    '  var passo = passoDaGrade();' +
+    // A CÉLULA QUE SE ESTÁ A CORRIGIR NÃO CONTA (31/10/2026). A conta soma a pista, e a célula em
+    // edição JÁ está na lista — contá-la empurrava a contagem para o tempo seguinte e o trecho
+    // mudava de sítio só por se abrir a edição.
+    '  var antes = temposAntesDaPista(cat);' +
+    '  if (EM_EDICAO) {' +
+    '    var emCorrecao = (CELULAS[EM_EDICAO.dir] || [])[EM_EDICAO.k];' +
+    '    if (emCorrecao && String((emCorrecao.categoria) || "").trim() === cat) antes -= temposDaCelula(emCorrecao);' +
     '  }' +
     '  var inicio = (antes % n) + 1;' +
-    '  var out = [];' +
-    '  for (var f = inicio; f <= n; f++) out.push(f === inicio ? String(inicio) : inicio + "–" + f);' +
-    '  return out;' +
+    // OS QUE FECHAM PULSO VÊM PRIMEIRO, E OS OUTROS NÃO DESAPARECEM. Um trecho de «1–2» dentro de
+    // um 6/8 é uma síncope, e existe — proibi-la seria proibir a música. O que a lista faz é
+    // ORDENAR: à frente os fins que caem em fronteira de pulso, no fim os que caem a meio. Assim
+    // quem quer o compasso inteiro vê «1–6» sem contar tempos, e quem quer a síncope continua a
+    // tê-la.
+    '  var alinhados = [], outros = [];' +
+    '  for (var f = inicio + 1; f <= n; f++) {' +
+    '    var alvo = inicio + "–" + f;' +
+    '    if (passo === 1 || f % passo === 0 || f === n) alinhados.push(alvo); else outros.push(alvo);' +
+    '  }' +
+    '  return [String(inicio)].concat(alinhados, outros);' +
     '}' +
     // O COMPASSO DE CADA TRECHO, calculado. A conta corre na ordem em que o motor compõe — uma
     // direção de cada vez —, e é por isso que a coluna não se escreve: somam-se os tempos e o
@@ -5360,22 +5465,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // iterava-se `direcoesDaGramatica()` — as três do alfabeto —, e um trecho SEM direção não
     // entrava na conta: ficava com o compasso errado e não descontava os tempos dos seguintes.
     'function compassosDosTrechos(){' +
-    '  var n = numeradorDoCompasso(), corridos = 0, mapa = {};' +
+    '  var n = numeradorDoCompasso(), mapa = {};' +
+    '  var relogios = {};' +
     '  Object.keys(CELULAS).forEach(function(d){' +
     '    (CELULAS[d] || []).forEach(function(c, k){' +
+    // UM RELÓGIO POR PISTA (02/11/2026) — a mesma conta do motor. Com um relógio só, os braços do
+    // `Plié`, que começam em 1, apareciam no compasso 3; e a tela contradizia o documento.
+    '      var pista = String((c && c.categoria) || "").trim() || "(sem categoria)";' +
+    '      var corridos = relogios[pista] || 0;' +
     '      mapa[d + ":" + k] = Math.floor(corridos / n) + 1;' +
-    '      corridos += temposDaContagem(c.contagem);' +
+    '      relogios[pista] = corridos + temposDaCelula(c);' +
     '    });' +
     '  });' +
     '  return mapa;' +
     '}' +
-    'function cobertura(){' +
-    '  var t = 0;' +
-    '  Object.keys(CELULAS).forEach(function(d){' +
-    '    (CELULAS[d] || []).forEach(function(c){ t += temposDaContagem(c.contagem); });' +
-    '  });' +
-    '  return t;' +
-    '}' +
+    // O QUE O VERBETE COBRE É A MAIOR PISTA (02/11/2026), e não a soma em linha. É a mesma régua
+    // do motor e do validador; se as três divergissem, a tela diria «falta escrever» sobre um
+    // verbete que a gravação aceita.
+    'function cobertura(){ return coberturaDe(CELULAS); }' +
     // A TABELA ÚNICA. Uma linha por direção (o cabeçalho do bloco), as células dentro, e a
     // linha de acrescentar no fim. A direção que não é coberta aparece — é ela que responde ao
     // «o fouetté não vai às três» —, e a tela distingue «não vai» de «falta escrever».
@@ -5435,8 +5542,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      : "<button type=\\"button\\" class=\\"acao secundario pequena\\" data-editar=\\"" + chave +' +
     '        "\\" title=\\"editar este trecho\\">Editar</button> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + chave +' +
     '        "\\" title=\\"tirar este trecho\\">×</button>";' +
+    // A REPETIÇÃO APARECE AO LADO DA CONTAGEM (02/11/2026): «1–2 ×2» lê-se como «1–2 duas vezes», e
+    // uma coluna só para o número gastaria largura numa coisa que existe em poucas linhas.
+    '    var vezes = repeticoesDaCelula(c) > 1 ? " <span class=\\"nota\\">×" + repeticoesDaCelula(c) + "</span>" : "";' +
     '    html += "<tr" + (emMim ? " class=\\"em-edicao\\"" : "") + "><td><strong>" + mapa[chave] + "</strong></td><td>" +' +
-    '      c.contagem + "</td><td>" + (t.dir ? nomeDaDirecao(t.dir) : "<span class=\\"nota\\">sem direção</span>") +' +
+    '      c.contagem + vezes + "</td><td>" + (t.dir ? nomeDaDirecao(t.dir) : "<span class=\\"nota\\">sem direção</span>") +' +
     // A OMISSÃO DIZ-SE EM PORTUGUÊS (01/11/2026). Era «en face» escrito à mão aqui — a única
     // orientação que aparecia em francês na tabela, agora que todas as outras se leem em
     // português («pernas cruzadas»). A célula sem orientação é a que está de frente, e é isso
@@ -5542,6 +5652,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `en face` **aparece marcada** quando nenhuma outra está. Antes ela era a única que não
     // marcava nunca, e a pesquisadora leu isso como «não habilita»: era um clique que não dizia
     // nada, num campo onde todos os outros diziam.
+    // A NOTA DO MÉTODO (02/11/2026). Diz três coisas, e nenhuma é opinião: se herda ou sobrepõe,
+    // como os dois braços acima da cabeça se chamam NESTE método, e — quando o alfabeto não tem o
+    // método — que a lacuna é declarada.
+    'function pintarNotaDoMetodo(){' +
+    '  var alvo = document.getElementById("vb-metodo-nota");' +
+    '  if (!alvo) return;' +
+    '  var linha = null;' +
+    '  var tabela = (VERBETES && VERBETES.posicoesDeBracos) || [];' +
+    '  for (var i = 0; i < tabela.length; i++) {' +
+    '    if (String(tabela[i].conceito || "").indexOf("acima da cabeça") !== -1) { linha = tabela[i]; break; }' +
+    '  }' +
+    '  var partes = [];' +
+    '  partes.push(METODO ? ("sobrepõe a metodologia do plano: " + METODO + ".")' +
+    '                      : "herda a «Metodologia de referência» do plano.");' +
+    '  if (linha) {' +
+    '    var noMetodo = METODO ? linha[METODO] : null;' +
+    '    if (!METODO) {' +
+    '      partes.push("Os dois braços acima da cabeça: 3ª na escola francesa, 5ª na RAD.");' +
+    '    } else if (noMetodo) {' +
+    '      partes.push("Os dois braços acima da cabeça são a " + noMetodo + " em " + METODO + ".");' +
+    '    } else {' +
+    '      partes.push("O alfabeto não declara esta posição em " + METODO + " — a lacuna fica escrita.");' +
+    '    }' +
+    '  }' +
+    '  alvo.textContent = partes.join(" ");' +
+    '}' +
     'function pintarOrientacao(){' +
     '  pilulas("vb-orient", orientacoesDaGramatica().map(function(o){' +
     // O NOME É O UNIVERSAL, E A TRADIÇÃO VAI NO TÍTULO (01/11/2026). A pílula diz «pernas
@@ -5559,12 +5695,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // pesquisadora no `relevé` — ela tinha a contagem, e a tela dizia que faltava. O compasso é
     // corrido; a direção não é a régua dele. O trecho sem direção conta como qualquer outro.
     'function pintarContagens(){' +
-    '  var possiveis = opcoesDeContagem(DIRECAO);' +
+    '  var cat = categoriaEscolhida();' +
+    '  var possiveis = opcoesDeContagem(cat);' +
     '  if (possiveis.indexOf(CONTAGEM) === -1) CONTAGEM = possiveis[0] || "";' +
+    // A LEGENDA DIZ A PISTA E O AGRUPAMENTO (02/11/2026). Era «em que tempos do compasso»; agora
+    // diz em que pista a contagem corre e como o compasso se agrupa — sem isso, «1–3» num 6/8 não
+    // se distingue de um erro.
+    '  var caixa = document.getElementById("vb-contagem");' +
+    '  var legenda = caixa ? caixa.querySelector("legend") : null;' +
+    '  if (legenda) {' +
+    '    legenda.innerHTML = "Contagem — a pista de " + cat +' +
+    '      " <span class=\\\"nota\\\">— " + leituraDoCompasso() + ", e cada pista conta o seu tempo</span>";' +
+    '  }' +
     '  pilulas("vb-contagem", possiveis.map(function(o){ return { valor: o, nome: o }; }), CONTAGEM,' +
     '    function(v){ CONTAGEM = v; pintarContagens(); },' +
-    '    DIRECAO ? "esta direção já tem os tempos todos preenchidos"' +
-    '            : "os tempos já estão todos preenchidos", true);' +
+    '    "a pista de " + cat + " já tem os tempos todos preenchidos", true);' +
     '}' +
     // REPINTA O TRECHO INTEIRO. É uma função só porque há mais de um sítio a mexer nele — o
     // «editar» e o «limpar» —, e cada um tem de deixar a tela coerente com o estado.
@@ -5855,6 +6000,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  DIRECAO = dir;' +
     '  ORIENTACAO = c.orientacao || "";' +
     '  CONTAGEM = c.contagem || "";' +
+    '  REPETICOES = repeticoesDaCelula(c);' +
+    '  var selRepE = document.getElementById("vb-repeticoes"); if (selRepE) selRepE.value = String(REPETICOES);' +
     '  SINAIS = (c.sinais || []).slice();' +
     // A FRASE NÃO SE TOCA AQUI (31/10/2026). Ela é do verbete, escrita uma vez no passo 1; o que
     // este trecho tem de próprio é o «lê-se», que se refaz dos sinais. Carregar a frase do trecho
@@ -6124,6 +6271,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("vbacao").value = "atualizar";' +
     '  var pos = document.getElementById("vbposicao");' +
     '  if (pos && v.posicao) pos.value = v.posicao.termo;' +
+    '  METODO = v.metodo || "";' +
+    '  var selMet = document.getElementById("vbmetodo");' +
+    '  if (selMet) selMet.value = METODO;' +
+    '  pintarNotaDoMetodo();' +
     '  carregarRascunho();' +
     // EDITAR LEVA AO PASSO 2 (02/11/2026) — é onde vive o seletor do exercício. Sem isto, quem
     // carregava no «editar» da listagem com o formulário noutro passo preenchia campos que não
@@ -6225,6 +6376,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    verbete: {' +
     '      cobre: soma,' +
     '      posicao: sel.value ? {membro: opcao.getAttribute("data-membro"), termo: sel.value} : null,' +
+    // O método só viaja quando é uma SOBREPOSIÇÃO; vazio quer dizer «herda», e gravar a chave
+    // vazia seria escrever a ausência de uma decisão que ninguém tomou.
+    '      metodo: METODO || undefined,' +
     '      celulas: celulas' +
     '    }' +
     '  };' +
@@ -6320,7 +6474,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarChips();' +
     '  });' +
     '  Array.prototype.slice.call(document.querySelectorAll("input[name=vb-cat]")).forEach(function(r){' +
-    '    r.addEventListener("change", pintarChips);' +
+    // A CATEGORIA MANDA NA CONTAGEM (02/11/2026). Ela é a pista, e a pista é o relógio: mudar de
+    // `Perna` para `Braço` pode recomeçar a contagem em 1. Sem esta repintura, a lista continuava
+    // a oferecer os tempos da pista anterior e o trecho nascia no sítio errado.
+    '    r.addEventListener("change", function(){ pintarChips(); pintarContagens(); });' +
     '  });' +
     '})();' +
     // ---- a tira e a navegação (31/10/2026) -------------------------------------------
@@ -6364,7 +6521,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ACRESCENTAR O TRECHO. A recusa diz O QUE FALTA, campo a campo — e nunca «faltam campos».
     // A DIREÇÃO E A ORIENTAÇÃO FICAM depois de acrescentar, e só os sinais, a contagem e a frase
     // se limpam: é o que permite emendar o en croix sem reescolher a direção a cada trecho.
-    'var bCelAcrescentar = document.getElementById("vb-cel-acrescentar");' +
+        // O SELECT DA REPETIÇÃO ALIMENTA O ESTADO — sem isto seria decoração: mudar o número não
+    // mudaria o que se grava, e a célula saía sempre com 1×.
+    'var selMetodo = document.getElementById("vbmetodo");' +
+    'if (selMetodo) {' +
+    '  selMetodo.addEventListener("change", function(){ METODO = selMetodo.value; pintarNotaDoMetodo(); });' +
+    '}' +
+    'var selRepeticoes = document.getElementById("vb-repeticoes");' +
+    'if (selRepeticoes) {' +
+    '  selRepeticoes.addEventListener("change", function(){' +
+    '    REPETICOES = Number(selRepeticoes.value) || 1;' +
+    '    pintarContagens();' +
+    '    pintarTira();' +
+    '  });' +
+    '}' +
+'var bCelAcrescentar = document.getElementById("vb-cel-acrescentar");' +
     'if (bCelAcrescentar) {' +
     '  bCelAcrescentar.addEventListener("click", function(){' +
     // A FRASE GRAVADA É COMPOSTA AQUI (31/10/2026): a frase do VERBETE (passo 1, escrita uma vez)
@@ -6385,6 +6556,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (faltando.length) { recado("erro", "Falta " + faltando.join(", ") + "."); return; }' +
     '    var celula = {contagem: CONTAGEM, categoria: categoriaEscolhida(),' +
     '      sinais: SINAIS.slice(), descricao: desc};' +
+    // A REPETIÇÃO SÓ SE GRAVA QUANDO NÃO É 1: a omissão já quer dizer «uma vez», e escrevê-la em
+    // todas as células seria ruído — a mesma regra da orientação, que só se grava quando não é
+    // `en face`.
+    '    if (REPETICOES > 1) celula.repeticoes = REPETICOES;' +
     // A ORIENTAÇÃO SÓ SE GRAVA QUANDO NÃO É `en face`: a omissão já quer dizer isso, e escrevê-la
     // em todas as células encheria o alfabeto de ruído que não diz nada de novo.
     '    if (ORIENTACAO) celula.orientacao = ORIENTACAO;' +
@@ -6405,6 +6580,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    SINAIS = [];' +
     '    CONTAGEM = "";' +
+    '    REPETICOES = 1;' +
+    '    var selRep = document.getElementById("vb-repeticoes"); if (selRep) selRep.value = "1";' +
     // A FRASE NÃO SE LIMPA (31/10/2026): ela é do VERBETE, e é precisamente isso que impede a
     // professora de a reescrever a cada trecho. O que se limpa é o que é do trecho.
     '    pintarContagens();' +
@@ -7824,6 +8001,11 @@ async function fetch(request, env) {
         return lista;
       })(),
       categoriasDeBloco: Array.isArray(lido.dados.categorias) ? lido.dados.categorias : [],
+      // AS POSIÇÕES DE BRAÇOS POR MÉTODO (02/11/2026). A tabela existia no alfabeto desde o
+      // início e NÃO CHEGAVA A NENHUMA TELA — `posicoesDeBracosDoMetodo` estava exportada e
+      // ninguém a chamava. É ela que responde à pergunta que originou o bloco («os dois braços
+      // acima da cabeça são a 3ª ou a 5ª?»), e sem ela a nota do método não teria o que dizer.
+      posicoesDeBracos: ((lido.dados.gramatica || {}).posicoesDeBracos || {}).posicoes || [],
       // O DICIONÁRIO DO QUE ACONTECE (28/10/2026): bloco de notação → frase em português. A tela
       // preenche a descrição com ele quando o professor compõe o bloco, e ele ajusta se não
       // servir. Não é a fonte do que está publicado — a frase fica gravada na célula, porque a

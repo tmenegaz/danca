@@ -141,14 +141,20 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
     }
     const conhecidos = sinaisDo(alfabeto);
     const categorias = (alfabeto && alfabeto.categorias) || [];
-    let soma = 0;
     for (const d of dirs) {
       for (const c of (celulas[d] || [])) {
         if (!c || typeof c !== 'object') { erros.push('célula inválida ' + ondeEsta(d)); continue; }
         if (!CONTAGEM.test(String(c.contagem || '').trim())) {
           erros.push(ondeEsta(d) + ': contagem inválida «' + (c.contagem || '') + '» (use «1–2» ou «3»)');
-        } else {
-          soma += temposDaContagem(c.contagem);
+        }
+        // A REPETIÇÃO É DA CÉLULA, e é um inteiro positivo ou não existe (02/11/2026). Um `0` ou
+        // um `2.5` gravado aqui desaparecia da conta em silêncio — e a conta é o que fecha a
+        // música, logo o silêncio saía como um verbete que não fecha sem ninguém saber porquê.
+        if (c.repeticoes != null && c.repeticoes !== '') {
+          const r = Number(c.repeticoes);
+          if (!Number.isInteger(r) || r < 1) {
+            erros.push(ondeEsta(d) + ': repetição inválida «' + c.repeticoes + '» (use um inteiro ≥ 1)');
+          }
         }
         // A NOTAÇÃO VEM DE DOIS CAMPOS (28/10/2026): `categoria` e `sinais`. O `bloco` de texto
         // deixou de existir no dado — «bloco» já queria dizer Solo · Barra · Centro, e pedir a
@@ -169,9 +175,16 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
         }
       }
     }
-    if (verbete.cobre == null) erros.push('o verbete tem de declarar `cobre` (quantos tempos explica)');
+    // O QUE O VERBETE OCUPA É A MAIOR PISTA (02/11/2026). A mensagem mostra as duas contas quando
+    // elas divergem — sem isso, quem lesse «a maior pista tem 8» e visse 12 células somadas
+    // pensaria que a conta está errada, e a conta certa é a das pistas.
+    const soma = coberturaDe(celulas);
+    const somaLinear = dirs.reduce((t, d) => t
+      + (celulas[d] || []).reduce((u, c) => u + temposDaCelula(c), 0), 0);
+    if (verbete.cobre == null) erros.push('o verbete tem de declarar `cobre` (quantos tempos ocupa)');
     else if (Number(verbete.cobre) !== soma) {
-      erros.push('`cobre` diz ' + verbete.cobre + ' tempos e as células somam ' + soma);
+      erros.push('`cobre` diz ' + verbete.cobre + ' tempos e a maior pista tem ' + soma
+        + (somaLinear !== soma ? ' (a soma em linha daria ' + somaLinear + ')' : ''));
     }
 
     /* AS CÉLULAS TÊM DE FECHAR A MÚSICA (02/11/2026).
@@ -201,6 +214,14 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
     }
   }
 
+  // O MÉTODO DECLARADO NO VERBETE (02/11/2026) é uma SOBREPOSIÇÃO, não uma segunda verdade: o
+  // plano já declara «Metodologia de referência» (obrigatório), e é de lá que o ciclo inteiro
+  // herda. O verbete só o repete quando este exercício foge ao método do ciclo — e a chave
+  // vazia quer dizer «herda». Um método novo é uma linha de texto, como no plano: não há lista
+  // fechada a recusar a escola que trabalha de outra maneira.
+  if (verbete.metodo != null && String(verbete.metodo).trim() && String(verbete.metodo).length > 40) {
+    erros.push('o método declarado no verbete tem mais de 40 caracteres — é um nome, não uma frase');
+  }
   if (verbete.posicao) {
     if (!verbete.posicao.termo) erros.push('a posição não declara o termo');
     else {
@@ -271,6 +292,44 @@ function direcoesConhecidas(alfabeto) {
     for (const item of Object.values(g[grupo] || {})) if (item && item.termo) conjunto.add(item.termo);
   }
   return conjunto;
+}
+
+/**
+ * QUANTAS VEZES A CÉLULA ACONTECE (02/11/2026). O `repeticoes` é da célula, e a `contagem` é a de
+ * UMA execução: o que a célula ocupa é o produto. A conta é a mesma do motor — se divergissem, o
+ * CRUD deixaria entrar um verbete que a geração recusa, que é o defeito que a validação existe
+ * para não ter.
+ */
+function repeticoesDaCelula(celula) {
+  const n = Number((celula && celula.repeticoes) || 1);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+}
+
+function temposDaCelula(celula) {
+  return temposDaContagem(celula && celula.contagem) * repeticoesDaCelula(celula);
+}
+
+/**
+ * AS PISTAS, POR CATEGORIA (02/11/2026). É a régua que substituiu a soma em linha: `Perna` e
+ * `Braço` correm em paralelo, `à frente` e `atrás` somam-se. O que o verbete ocupa da música é a
+ * pista MAIS LONGA. Sem isto, o `Plié` (pernas 8, braços 4) fechava em 12 numa música de 8 e era
+ * recusado — o dado estava certo, a conta é que não.
+ */
+function pistasDe(celulas) {
+  const pistas = new Map();
+  for (const d of Object.keys(celulas || {})) {
+    for (const c of (celulas[d] || [])) {
+      const chave = String((c && c.categoria) || '').trim() || '(sem categoria)';
+      pistas.set(chave, (pistas.get(chave) || 0) + temposDaCelula(c));
+    }
+  }
+  return pistas;
+}
+
+function coberturaDe(celulas) {
+  let maior = 0;
+  for (const t of pistasDe(celulas).values()) if (t > maior) maior = t;
+  return maior;
 }
 
 /** `1–4` → 4; `3` → 1. A mesma conta do motor, e escrita uma vez só de cada lado. */

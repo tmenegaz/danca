@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T14:12:31-0300`
-Commit atual: `08551a9` — docs(estrutura): a licença em três camadas, e uma citação minha que era falsa
+Gerado em: `2026-11-02T15:10:59-0300`
+Commit atual: `de43a1b` — docs(registro): o push publica o que chega ao site, e documentação não chega
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+de43a1b docs(registro): o push publica o que chega ao site, e documentação não chega
 08551a9 docs(estrutura): a licença em três camadas, e uma citação minha que era falsa
 e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
 3cd2c0c docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
@@ -104,7 +105,6 @@ b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» 
 787305d docs(regras): a Regra 15 é substituída pelo que o código faz
 6902897 fix(notacao): o cadastro do exercício é o passo 1, e a gravação confere a música
 a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição estava errada
-8175264 docs(registro): a fotografia da §4 por compasso e do aspecto físico no plano
 ```
 
 ## Por professor
@@ -228,105 +228,114 @@ a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição 
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A licença em três camadas, e o produto em pacote próprio
+## 02/11/2026 — As pistas, a repetição, a métrica e o bloco de posições — o Plié fecha
 
-**As duas decisões.** A pesquisadora: «a decisão a respeito da licença, eu vou seguir o que você
-recomenda. E o produto pacote próprio, também eu vou seguir o que você recomenda.» As duas estavam
-abertas no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md) §10 (itens 2 e 3), e as duas
-fecharam.
+**O que a pesquisadora pediu, e o que a medição respondeu.** Quatro ajustes vieram numa proposta
+fechada («Granularidade na Notação e Posições»), e a medição mostrou três coisas que a proposta não
+sabia: o **1.2 já existia no dado** (cada célula já tem a sua `categoria` e a sua `contagem`), a
+**contagem estava proibida de recomeçar** por uma decisão de 29/10/2026, e o bloco de posições
+colidia consigo mesmo nos literais `1ª`/`2ª`/`3ª`. As decisões dela fecharam os três: **pista por
+categoria**, **repetição da célula**, **rótulo duplo + método herdado**.
 
-**A primeira ressalva, e é honesta:** sobre a **licença** eu **não tinha recomendado nada**. O plano
-dizia «a licença (decisão de negócio)» e listava-a como pendente — o que ela leu como recomendação não
-existia. A recomendação fica escrita agora, e é a primeira vez: ela pode discordar, e nada foi
-implementado.
+### 1. As pistas — e o defeito que elas explicam
 
-### 1. A licença — três camadas, porque o repositório guarda três coisas de donos diferentes
+O `Plié` está gravado em «8|4/4» com `cobre: 12`, e desde hoje de manhã a gravação o **recusava**:
+«as células somam 12 tempos e a música declara 8». Medido, célula a célula:
 
-Está na **`ARQUITETURA-GERAL.md` §10**, e o resumo:
+| Pista | Tempos |
+|:--|--:|
+| `Perna` · devant (dois compassos de 4/4) | **8** |
+| `Braço` · sem direção (um compasso) | 4 |
+| soma em linha | **12** ≠ 8 |
+| **maior pista** | **8 = a música** |
 
-| Camada | Onde | Regime |
-|:--|:--|:--|
-| **a máquina** | `motor/` · `tools/` · `porta/` · `raiz/` · `.github/` | **proprietário, todos os direitos reservados, e não licenciado** com os produtos — a escola compra o uso do produto, não a máquina que o produz |
-| **o catálogo** | `biblioteca/modalidades/` | **licença comercial de uso, por escola**, em seis cláusulas |
-| **o que a escola acrescenta** | `biblioteca/escolas/<escola>/` | **é dela**, com uma concessão estreita ao projeto |
+**O dado estava certo; a régua é que não.** Os braços fazem o port de bras **enquanto** as pernas
+pliêam — correm em paralelo, não em fila. E o ficheiro já o dizia sem que ninguém o lesse: as
+células dos braços **recomeçam em 1** depois de as pernas terem usado 1–4 duas vezes.
 
-**As seis cláusulas do catálogo, e cada uma por uma razão medida:**
+**A régua passa a ser a maior pista.** A pista é a **categoria** (Pé · Peso · Perna · Braço), e não
+a direção: `à frente` e `atrás` são o mesmo corpo em tempos diferentes e somam-se; `Perna` e `Braço`
+são corpos diferentes e correm lado a lado. Foi aplicada **em quatro sítios, com a mesma conta**:
+`pistasDe`/`coberturaDe` no `motor/nucleo/notacao.js`, `validarVerbete` no `verbete.js`, e
+`pistasDe`/`cobertura`/`compassosDosTrechos`/`opcoesDeContagem` na página.
 
-1. **vinculada à fotografia datada** — é a lógica da **C5a** («o que existe na data de vigência»),
-   aplicada ao conteúdo;
-2. **perpétua para a versão contratada** — a regra da **L9** («a trava não pode ser punição ao dado»);
-3. **não exclusiva, não transferível, não sublicenciável**;
-4. **uso interno sem limite de cópias** — imprimir, projetar, derivar material de aula: o produto só
-   vale se circular dentro da escola;
-5. **redistribuição e revenda proibidas** — incluindo «republicar o dicionário como serviço», que é a
-   revenda que este produto torna fácil;
-6. **atribuição preservada** — cada descrição mantém o `fonte`, e a licença proíbe esvaziá-lo.
+**Resultado medido: 9 das 13 músicas fecham** (eram 8). O `Plié` compõe-se — `estado: composto`,
+cobertura 8, resto 0 — e a aula 01 deixa de lhe pôr `conferir`.
 
-**E a concessão do lado da escola (§10.3)** — sem ela, a «via inversa» da **L14 (e)** usa conteúdo
-alheio com base numa boa intenção: a escola concede **uso não exclusivo** para o projeto (a) servir o
-conteúdo de volta a ela e (b) **avaliar** a proposta de entrada no catálogo; a entrada exige
-**aceitação explícita**, com a atribuição nomeada; e a recusa não tira nada a ela.
+### 2. A contagem por pista reverte uma decisão de 29/10/2026 — e a reversão é justificada
 
-**A base da decisão foi medida, não suposta.** O repositório é **privado** (`tmenegaz/danca`,
-verificado pela API) — não há distribuição pública, logo a decisão é de negócio e não de
-compatibilidade. E **não há conteúdo de terceiros a acomodar**: os SVGs são da marca do projeto
-(`tools/templates/marca/`), a tipografia é `system-ui` + Georgia **sem ficheiro de fonte embutido**
-(`ciclo.css:76-77`), e a nomenclatura RAD/Vaganova são **nomes de posições**, que não são obra.
+A decisão de 29/10 dizia, no código: «com um battement frappé de 16 tempos em 2/4, "à frente" e "ao
+lado" ficavam AMBOS com "compasso 1, contagem 1": dois trechos no mesmo tempo, e a página da aula a
+dizer duas coisas diferentes para o mesmo instante.» A leitura estava certa **para uma pista** e
+errada para duas: em duas categorias, o mesmo instante é **o mesmo instante com dois corpos a
+mexer** — não é contradição, é simultaneidade. `opcoesDeContagem(cat)` passa a somar só a pista da
+categoria escolhida, e o compasso da tabela sai de um relógio por pista.
 
-### 2. O achado que a licença obrigou a medir — 25 descrições sem origem
+### 3. A métrica — o que a proposta agrupava ao contrário
 
-**Uma descrição sem `fonte` declarado não entra no catálogo que se vende.** Não é formalismo: não se
-licencia o que não se declarou como seu, e a cláusula 6 não tem como ser cumprida sobre origem omissa.
+A contagem só lia o **numerador**: em 6/8 oferecia `1` a `1–6` como se fosse um compasso simples de
+seis. `passoDaGrade()` passa a distinguir os **compostos** (`/8` com numerador múltiplo de 3: 6/8,
+9/8, 12/8), onde o pulso vale **três** tempos — dois, três e quatro pulsos de três. A lista passa a
+trazer **primeiro os fins que fecham pulso** (`1–3`, `1–6`) e **no fim os que caem a meio** (`1–2`,
+`1–4`, `1–5`), porque um trecho de `1–2` num 6/8 é uma **síncope** e existe: **ordena-se, não se
+proíbe**. E a legenda do campo e a nota da música passam a dizer o agrupamento em português
+(«6/8 — dois pulsos de três»).
 
-Medido em `vocabulario.json` (**93 termos, 59 com descrição**): **30** vêm do «Dicionário Técnico
-Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora», **4** foram «redigida no projeto», e
-**59 têm `fonte` vazio**. E o cruzamento que faltava — porque os dois eixos foram tratados como
-independentes na entrada da verificação —: dos **59 termos com descrição**, **25 estão sem `fonte`**.
+**Uma correção à proposta:** ela juntava 3/4 e 6/8 como «ternárias/compostas». **3/4 é ternário
+simples** (três pulsos de dois) e **6/8 é composto duplo** (dois pulsos de três); o que interessa à
+notação é a **subdivisão do pulso**, e por essa régua as duas caem em lados opostos.
 
-**São 25 descrições que a edição paga não pode levar** enquanto a origem não for declarada. Duas
-saídas, e são dela: **declarar** as 25, ou **deixá-las fora** da edição paga (e dentro da interna).
-Entrou como **lacuna F** no plano, e como **item da fase 0** — não é código.
+### 4. A repetição — da célula, e entra na conta
 
-### 3. O pacote próprio — decidido, e a razão fica escrita
+Campo novo `repeticoes` (inteiro ≥ 1), no passo do «quando», ao lado da contagem: `contagem` é a de
+**uma** execução e o que a célula ocupa é o **produto**. `temposDaCelula` substitui a contagem crua
+em toda a aritmética — se ficasse de fora, o `cobre` e a grade de compassos divergiam no primeiro
+`2x`, que é exactamente o defeito que as pistas vieram corrigir. Só se grava quando não é 1, pela
+mesma regra da orientação. Na tabela lê-se «1–2 **×2**». Um `0` ou um `2,5` é **recusado** pelo
+servidor: sem isso desaparecia da conta em silêncio.
 
-O produto é **um pacote próprio**, com **`.fipp` próprio**, rota própria no Worker e **a licença do
-produto** (não a do ciclo). É a única forma de o produto ter **âncora, versão e licença independentes**
-do ciclo daquela escola — que é o que a negociação pede. A alternativa (uma secção do site da escola)
-seria mais barata, e amarraria o dicionário ao ciclo que aquela escola tem — o contrário de «vender o
-dicionário». Três consequências, e nenhuma cosmética: publicar um produto **não reancora nenhum
-ciclo**; «descer de plano» **não edita o pacote da escola**; e a fotografia datada do catálogo tem um
-suporte físico onde ser citada.
+### 5. As posições — o bloco é um, e o rótulo diz as duas nomenclaturas
 
-### 4. O que NÃO foi feito
+O bloco chamava-se «Posições dos pés» e tinha cinco sinais. As posições de braços viviam noutra
+camada do alfabeto (`gramatica.posicoesDeBracos`, com `prep`, `1ª`, `2ª`, `3ª`, `RAD-3ª`, `RAD-4ª` e
+o nome em francês/RAD/Vaganova) e **não chegavam a nenhum ecrã**: `posicoesDeBracosDoMetodo` estava
+exportada e **ninguém a chamava**. O bloco passa a **«Posições dos pés e braços»**, com a
+**preparatória** e os cinco números, e a **3ª leva o rótulo duplo** — «terceira · quinta (braços)» —,
+que é a decisão dela: o mesmo sinal diz as duas nomenclaturas, e a **categoria do trecho** separa pés
+de braços (`[Pé: 3ª …]` / `[Braço: 3ª …]`).
 
-**Nenhuma linha de código, e o `LICENSE.md` não foi criado** — ela pediu explicitamente para não
-começar a implementação, porque vai testar a `breu` com as soluções desta sessão. A licença está
-**decidida e escrita em documento**, que é onde a decisão vive; o texto formal espera o ok dela.
+**O método, e a colisão que ela resolveu.** Ela pediu um seletor de método no verbete. Medido: o
+plano **já** declara «Metodologia de referência», **obrigatório** (`contexto-metodologia`). Duas
+declarações do mesmo facto divergem ao primeiro caso — por isso o campo nasce como **herança com
+sobreposição**: a primeira opção é «herda a metodologia do plano», e o que se sobrepõe vê-se
+escrito. A nota ao lado diz, para o método escolhido, como se chamam os dois braços acima da cabeça
+— e diz **que o alfabeto não tem a coluna** quando não tem (Cecchetti), em vez de inventar.
 
-**Com o quê.** `ARQUITETURA-GERAL.md` §10 (novo) · `vocabulario.json` (a contagem do `fonte`) ·
-`tools/templates/marca/` · `tools/templates/ciclo.css:76-77` · a API do GitHub (repo privado) ·
-`PLANO-PRODUTOS-DO-MOTOR.md` §5, §7-D/F, §9 (critérios 8 e 9), §10 (itens 2 e 3 fechados).
+**`RAD-3ª` e `RAD-4ª` não foram apagados.** Continuam em `gramatica.posicoesDeBracos` como as
+posições que só a numeração RAD nomeia, com o estado `a-conferir` que o alfabeto declara — a
+divergência que originou o bloco fica escrita onde se lê.
 
-**Nota de 02/11/2026, acrescentada à entrada anterior.** Ao verificar as Actions depois do push,
-apareceu uma precisão que corrige uma frase repetida nesta sessão e nas anteriores: **«o push
-publica» é verdade, mas não é «todo o push»**.
+### 6. O que se mediu, e o que continua por fazer
 
-O `deploy-escolas.yml` tem **`paths:`** (linha 43), e a lista é **o que a escola serve**:
-`professores/**/ciclos/ciclo-*/**`, `professores/**/ciclos/*.conf`, `motor/**`, `workers/**`,
-`wrangler.*.jsonc`, `tools/templates/**`, `tools/montar-publicacao.js`, `tools/check-identidade.js` e
-`experimentos/propostas/**`. **Um `*.md` na raiz não está lá.**
+| Verificação | Resultado |
+|:--|:--|
+| `provar-celula` | **134 asserções** (eram 130), todas passam — as quatro novas medem 6/8, a legenda da pista, a repetição e o método |
+| `provar-verbete` | **TUDO CERTO**, com sete asserções novas: as duas pistas em paralelo, o `cobre` que soma as pistas, a repetição que multiplica, a repetição inválida, o método como frase, o bloco de posições e a rota |
+| `provar-notacao` | **76 asserções** (eram 74) — o `Plié` dá quatro segmentos em duas pistas, e a pista das pernas atravessa os dois compassos |
+| `provar-producao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **151/152** (a falha conhecida do item do menu) · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `provar-cartao-da-turma` | **6 falhas — as mesmas de antes**, e a evidência está na própria saída: a lista de passos da turma inclui «1 O exercício novo … 6 A decomposição», a tira do verbete. Não é regressão |
+| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · 20/20 |
+| `provar-o-que-vem-do-dado` | **NÃO CORREU** — depende dos envelopes da `batata`, que ela expurgou hoje. A prova declara-o e não finge: «conferência NÃO FEITA». **Fica sem fixture** |
 
-Medido nos três pushes desta entrega: `377544c`, `e323e60` e `08551a9` — só documentação — **não**
-geraram run nenhum de `Publicar as escolas`; `aeb2b2c` (expurgo da `batata`, que toca
-`professores/**`) gerou três, e `0e8d256` disparou o `Regerar os índices`. **CONFIRMADO** pela API das
-Actions e pelo `paths` do workflow.
+**O que continua por fazer, e é de conteúdo:** as **4** músicas que ainda não fecham (Rond de jambe
+en l'air 3 em 4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — a do `Plié`
+saiu da lista porque a régua é que estava errada.
 
-**Por que fica registado.** A frase nasceu de um caso real (19–20/10/2026, quando o `Publicar as
-escolas` correu depois de um push que se pensava não publicar) e, desde então, foi usada como se fosse
-incondicional. A versão precisa é a que serve à regra de «medir sem gastar a cota do ar»: publicar
-custa quando o caminho chega ao site; documentação não chega. É uma diferença de custo, não de
-princípio — e o princípio que continua de pé é o outro: **não há passo manual, e supor que «não
-publiquei» é sempre a suposição errada quando o caminho é do site.**
+**Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` (o bloco, o `cobre` do `Plié`) ·
+`motor/nucleo/notacao.js` (`pistasDe`, `coberturaDe`, `temposDaCelula`, `segmentosDe`) ·
+`motor/servidor/verbete.js` (`validarVerbete`) · `motor/servidor/bastidores.js` (`opcoesDeContagem`,
+`passoDaGrade`, `compassosDosTrechos`, `cobertura`, `pintarContagens`, `pintarCobertura`,
+`pintarNotaDoMetodo`, o campo da repetição e o do método).
 
 ## O que está pendente
 

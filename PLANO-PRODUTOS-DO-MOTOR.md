@@ -73,7 +73,7 @@ documento nenhum chamado «dicionário», «syllabus» ou «aula pronta»), os *
 | **O que lê** | `vocabulario.json` (93 termos) + `notacao.json` (11 verbetes, 13 músicas, 43 células) | o dicionário **+ `progressao.json`** (a ordem) **+ a camada pedagógica** | o syllabus **+ as faixas de volume** (Regra 9) **+ o tempo de cada unidade** (o `cobre` do verbete) |
 | **O que acrescenta de entrada** | nada | a **ordem** (existe) e a **camada pedagógica** (não existe) | a **duração** e a **distribuição por bloco** (ambas existem, como norma) |
 | **Granularidade de venda** | por modalidade | por **nível** (13) | por **nível × faixa** (13 × 2 = **26** sessões no balé) |
-| **O que bloqueia hoje** | a **licença** e a **separação** catálogo × escola | a camada pedagógica **e** o conteúdo dos níveis | o mesmo do syllabus, **+ as 5 músicas que não fecham** |
+| **O que bloqueia hoje** | a **licença** e a **separação** catálogo × escola | a camada pedagógica **e** o conteúdo dos níveis | o mesmo do syllabus, **+ as 4 músicas que não fecham** |
 | **Reutiliza** | o glossário (`glossario-benesh`) sobre o catálogo inteiro | — | o pacote (`gerar-ciclo.sh`) e a publicação (`montar-publicacao.js`) |
 
 **A leitura que decide o §3.** A aula pronta é uma **projecção** do syllabus: pega no nível, aplica
@@ -278,7 +278,7 @@ de **conteúdo** (P-16: declara-se, não se deduz), e é por isso que nenhuma li
 |:--|:--|:--|:--|
 | **A** | **O mapa nível → termos** | `progressao.json`: **13 turmas**, **9 associações** — e só **2 níveis** têm alguma (nível 1: 4 termos; nível 2: 5). Os outros **11 níveis estão vazios** | o syllabus de qualquer nível acima do 2, e a aula pronta correspondente |
 | **B** | **A camada pedagógica por unidade** (o que **exige**, o que **ensina**, o que **expressa**) | não existe em nenhum dos três ficheiros do catálogo | o syllabus como **programa** e não como lista |
-| **C** | **As 5 músicas que não fecham** | Plié 12 em 8 · Rond de jambe en l'air 3 em 4 · Battement dégagé 6 em 4 · Battement fondu 6 em 2 · Relevé 1 em 2 | a aula pronta **fecha** o teto: uma célula que não fecha estraga a aritmética da Regra 9. E a gravação **já as recusa** desde 02/11/2026 |
+| **C** | **As 4 músicas que não fecham** | Rond de jambe en l'air 3 em 4 · Battement dégagé 6 em 4 · Battement fondu 6 em 2 · Relevé 1 em 2. *(O `Plié` **saiu desta lista** a 02/11/2026: 12 tempos numa música de 8 era a soma em linha de duas pistas — pernas 8, braços 4 —, e com as pistas a régua passa a ser a maior. Ficou 8 = 8.)* | a aula pronta **fecha** o teto: uma célula que não fecha estraga a aritmética da Regra 9. E a gravação **já as recusa** desde 02/11/2026 |
 | **D** | **A licença** | **DECIDIDA a 02/11/2026** (`ARQUITETURA-GERAL.md` §10) — falta o `LICENSE.md` e o contrato citá-lo | o degrau 1 deixa de estar bloqueado por ela; **mas** o catálogo que se vende não pode levar as **25 descrições com `fonte` vazio** (ver **F**) |
 | **E** | **A separação catálogo × escola** | `termo-repo.js`: **um** ficheiro (`biblioteca/modalidades/bale-classico/vocabulario.json`) para os dois | vender o dicionário sem vender as edições de cada escola — e é ela que dá sentido à §10.3 da licença |
 | **F** | **A proveniência das descrições** | dos **59 termos com descrição**, **25 têm `fonte` vazio** (30 vêm do dicionário que ela forneceu, 4 foram redigidas no projeto) | a **edição paga** do dicionário: sem origem declarada, a descrição não pode ser licenciada. Duas saídas, e são dela: **declarar** as 25 ou **deixá-las fora** da edição paga |
@@ -299,7 +299,7 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 - **A**: o mapa nível→termos para os 13 níveis, em `progressao.json` (`relacoes`), declarado pela
   pesquisadora — começando pelo **nível 1 completo** (é o nível da `breu`, a escola de teste criada a
   02/11/2026).
-- **C**: corrigir as 5 músicas (ou os verbetes) para que `cobre` feche os tempos.
+- **C**: corrigir as **4** músicas (ou os verbetes) para que `cobre` feche os tempos — o `Plié` já lá está desde 02/11/2026, quando a soma em linha deu lugar à maior pista.
 - **D**: a licença — **decidida a 02/11/2026** e escrita na `ARQUITETURA-GERAL.md` §10 (que é
   livre). Falta o `LICENSE.md` na raiz, que é o texto que o **contrato cita**.
 - **F**: a **proveniência das 25 descrições** com `fonte` vazio — declarar, ou deixá-las fora da
@@ -410,7 +410,7 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 |:--|:--|:--|:--|
 | — | **L1 · L2 · L10** (a base) — camada 0 do `PLANEJAMENTO` §5 | — | **sim, e continua a ser o primeiro** |
 | — | **L14** (turma pronta) | L2 | sim, em paralelo |
-| **0** | o conteúdo: nível→termos, 5 músicas, licença | dela | **sim — e é o caminho crítico** |
+| **0** | o conteúdo: nível→termos, 4 músicas, licença | dela | **sim — e é o caminho crítico** |
 | **1** | a separação catálogo × escola | fase 0-D | sim, em paralelo com a base |
 | **2** | as três saídas em memória | fases 0 e 1 | depois de 1 |
 | **3** | manifestos + pacote | fase 2 · `tools/` congelado | depois de 2 |

@@ -4,7 +4,18 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `e323e60`). Nesta entrega: **a licença está decidida** —
+> **Última fotografia:** 02/11/2026 (base local `de43a1b`). Nesta entrega: **as pistas na notação** —
+> as células passam a ser contadas por **categoria** (Pé · Peso · Perna · Braço), e não em fila
+> única, e é isso que **fecha o `Plié`**: ele somava 12 tempos numa música de 8 porque as pernas (8)
+> e os braços (4) correm **em paralelo**. Com isso, **9 das 13 músicas fecham** (eram 8), e a Aula 01
+> deixa de lhe pôr `conferir`. Também: a **contagem é por pista** (reverte, com razão, uma decisão de
+> 29/10), a **métrica composta** oferece os fins que fecham pulso (6/8 são dois pulsos de três), a
+> **repetição** passou a ser da célula (`1–2 ×2`, e entra na conta), e o bloco de posições passou a
+> ser **«Posições dos pés e braços»** com a preparatória e a **3ª de rótulo duplo** («terceira ·
+> quinta»). O **método** entrou no verbete como **herança com sobreposição**, porque o plano já o
+> declara e é obrigatório.
+>
+> **Entrega anterior** (base `e323e60`). Nesta entrega: **a licença está decidida** —
 > três camadas (a máquina é proprietária e **não** se licencia com os produtos; o catálogo licencia-se
 > por escola, **vinculado à fotografia datada**; o que a escola acrescenta **é dela**, com uma
 > concessão estreita para a via inversa), escrita na `ARQUITETURA-GERAL.md` §10 —, e **o produto é
@@ -248,16 +259,48 @@ Verificado nesta fotografia, com os comandos da §9.
   `PASSOS_DO_VERBETE`, não escrito à mão: com seis passos, os dois subiram de 2/3 para 3/4.
   **CONFIRMADO** por `provar-celula` (a recusa, com o recado medido) e por `provar-verbete`
   (o servidor valida a música como quarto argumento).
+- **As células contam-se por PISTA, e é isso que fecha o `Plié`.** A pista é a **categoria** (Pé ·
+  Peso · Perna · Braço): `à frente` e `atrás` são o mesmo corpo e somam-se; `Perna` e `Braço` são
+  corpos diferentes e correm **em paralelo**. O que o verbete ocupa da música é a **maior** pista. O
+  `Plié` somava 12 numa música de 8 (pernas 8 + braços 4) porque era contado em fila; com pistas dá
+  **8 = 8**, e passa a `estado: composto`. **CONFIRMADO** por `provar-notacao` (76 asserções) e pelo
+  próprio motor. **9 das 13 músicas fecham** — eram 8.
+- **A contagem é por pista, e isso reverte uma decisão de 29/10/2026.** Aquela decisão impedia dois
+  trechos de começarem no mesmo tempo, porque a aula diria «duas coisas diferentes para o mesmo
+  instante». Medido: em **duas categorias** o mesmo instante não é contradição, é **simultaneidade**.
+  `opcoesDeContagem(cat)` soma só a pista da categoria, e o compasso da tabela sai de um **relógio
+  por pista**. **DECIDIDO** e implementado em 02/11/2026.
+- **A métrica composta deixou de ser lida como simples.** A contagem só via o numerador: em 6/8
+  oferecia `1` a `1–6` como um compasso de seis. `passoDaGrade()` distingue os **compostos** (`/8`
+  com numerador múltiplo de 3) — 6/8 são **dois pulsos de três**, 9/8 três, 12/8 quatro — e a lista
+  traz **primeiro os fins que fecham pulso**, no fim os de meio (que **não** são proibidos: `1–2` num
+  6/8 é síncope, e existe). **CONFIRMADO** por `provar-celula` (134 asserções). **Correção da
+  proposta:** 3/4 é ternário **simples** e 6/8 é composto **duplo**; o que decide é a subdivisão do
+  pulso, e por essa régua as duas caem em lados opostos.
+- **A repetição é da célula.** `repeticoes` (inteiro ≥ 1) diz quantas vezes o trecho acontece; a
+  `contagem` é a de **uma** execução e o que a célula ocupa é o **produto**. Entra em toda a
+  aritmética (`temposDaCelula`), e um `0` é **recusado**. Na tabela lê-se «1–2 **×2**».
+  **CONFIRMADO** por `provar-verbete`.
+- **O bloco de posições é um só: «Posições dos pés e braços».** Tem a **preparatória** e os cinco
+  números, e a **3ª leva o rótulo duplo** — «terceira · quinta (braços)» —, porque os dois braços
+  acima da cabeça são a 3ª na francesa e a 5ª na RAD. A **categoria do trecho** separa pés de braços
+  (`[Pé: 3ª …]` / `[Braço: 3ª …]`). As posições de braços existiam no alfabeto **e não chegavam a
+  nenhum ecrã**: `posicoesDeBracosDoMetodo` estava exportada e ninguém a chamava. **CONFIRMADO**.
+- **O método no verbete é HERANÇA COM SOBREPOSIÇÃO, não uma segunda declaração.** O plano já declara
+  «Metodologia de referência», **obrigatório** (`contexto-metodologia`); o campo do verbete tem como
+  primeira opção «herda a metodologia do plano». Duas declarações do mesmo facto divergiriam ao
+  primeiro caso. **DECIDIDO** 02/11/2026.
 - **A §4 consolidava por MÚSICA e afirmava «exercícios neste bloco: nenhum».** As duas coisas
   estavam erradas: as três linhas de exercício da aula trazem `Tempos` e `Compasso`, e o verbete traz
   a grade das contagens. Passou a **consolidar por compasso**, um exercício uma vez só, e a prova
   guarda cinco asserções que tornam a afirmação falsa impossível — entre elas «não afirma que o bloco
   não tem exercícios» e «cada exercício aparece uma vez» (`provar-o-que-vem-do-dado`).
   **CONFIRMADO** no `.md` gerado e na prova.
-- **Duas grades de verbete não fecham nos tempos da música desta aula**, e o documento passou a
-  dizê-lo com `conferir`: **Battement fondu** soma 6 tempos numa música de 2, **Plié** soma 12 onde a
-  música tem 8. **CONFIRMADO** pelo `motor/nucleo/notacao.js` (`estado: parcial`, com o detalhe). A
-  correção é do verbete, e a decisão é da pesquisadora.
+- **A grade que não fechava era a régua, não o dado — e o `Plié` já fecha.** O documento punha
+  `conferir` no **Plié** («12 tempos onde a música tem 8») e no **Battement fondu** (6 numa de 2). O
+  `Plié` era o **defeito de conta**: duas pistas somadas em fila. Com a régua por pista dá 8 = 8 e
+  ele compõe-se (`estado: composto`). O **fondu** continua a não fechar (6 numa de 2), e é conteúdo:
+  ou a música é outra, ou as células. **CONFIRMADO** em 02/11/2026 pelo motor e por `provar-notacao`.
 - **O primeiro dos três eixos macro passou a ter campo no PLANO.** O plano de ensino tem o **bloco
   10, «Aspecto físico — força e flexibilidade»**, com `aspecto-fisico` e o descritor
   `lidoDasAnamneses` (quinze campos da anamnese, em dois grupos). A porta consolida por aspecto com
@@ -287,7 +330,7 @@ Verificado nesta fotografia, com os comandos da §9.
   02/11/2026.
 - **O que falta para os produtos é CONTEÚDO, não código.** O mapa nível→termos tem **13 turmas e 9
   associações**, e só **2 dos 13 níveis** têm alguma (nível 1: quatro termos; nível 2: cinco); a
-  camada pedagógica não existe em ficheiro nenhum do catálogo; as **5 músicas** continuam a não
+  camada pedagógica não existe em ficheiro nenhum do catálogo; as **4 músicas** continuam a não
   fechar; faltam a **licença** e a **separação** catálogo × escola. **CONFIRMADO** — e é o caminho
   crítico do plano.
 - **A licença está decidida — três camadas, e nenhuma delas existia.** `ARQUITETURA-GERAL.md` §10:
@@ -752,8 +795,9 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     **separação catálogo × escola** (é o mesmo ficheiro: `termo-repo.js`), (3) a **camada pedagógica**
     (o que a unidade **exige**, **ensina** e **expressa** — **de conteúdo**, P-16), (4) **uma leitura
     só** do vocabulário (hoje `lerModalidade` lê do GitHub e `termos()` do bundle). E antes de tudo:
-    **5 das 13 músicas** têm `cobre` diferente dos tempos (Plié 12 em 8, Rond de jambe en l'air 3 em
-    4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — e a gravação já as
+    **4 das 13 músicas** têm `cobre` diferente dos tempos (Rond de jambe en l'air 3 em 4, Battement
+    dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — o `Plié`, que era o quinto, saiu da lista
+    quando a régua passou a ser a maior pista — e a gravação já as
     **recusa**, o que quer dizer que precisam de correção antes de qualquer regravação. A
     **licença** (não há `LICENSE`; estava a definir desde 18/09/2026, `REGISTRO.md:109` — **decidida a
     02/11/2026**, `ARQUITETURA-GERAL.md` §10) trava o degrau 1 tanto quanto a separação. **DECIDIDO** o diagnóstico e o veredicto; a **ordem comercial** é dela
@@ -783,6 +827,20 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     proposta de entrada no catálogo, que exige **aceitação explícita**. **A condição que a licença
     impõe:** uma descrição **sem `fonte`** não entra na edição paga — e **25 das 59** estão nessa
     situação. Escrita na `ARQUITETURA-GERAL.md` §10. **DECIDIDO** 02/11/2026.
+59. **AS CÉLULAS CONTAM-SE POR PISTA, E A PISTA É A CATEGORIA.** `à frente` e `atrás` são o mesmo
+    corpo e **somam-se**; `Pé`, `Peso`, `Perna` e `Braço` são corpos diferentes e correm **em
+    paralelo**. O que o verbete ocupa da música é a **maior pista**, e não a soma em linha. O `Plié`
+    somava 12 numa música de 8 (pernas 8 + braços 4) e era recusado; com esta régua dá 8 = 8 e
+    compõe-se. Foi aplicada com a mesma conta em quatro sítios — motor, validador, e duas funções da
+    página —, porque três réguas diferentes para a mesma conta é o defeito que esta casa trata pior.
+    **DECIDIDO e implementado** 02/11/2026. **Reverte, com razão, a decisão de 29/10/2026**: o «mesmo
+    instante» que ali era contradição é, em duas categorias, **simultaneidade**.
+60. **A REPETIÇÃO É DO TRECHO, E A MÉTRICA COMPOSTA CONTA POR PULSO.** `repeticoes` (inteiro ≥ 1)
+    multiplica o que a célula ocupa — a `contagem` é a de uma execução, e o produto entra em toda a
+    aritmética. E o compasso deixa de ser lido só pelo numerador: nos **compostos** (`/8` com
+    numerador múltiplo de 3) o pulso vale **três** tempos, e a lista de contagens traz **primeiro** os
+    fins que fecham pulso e **no fim** os de meio — que **não** se proíbem, porque `1–2` num 6/8 é uma
+    síncope e existe. **DECIDIDO e implementado** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -984,11 +1042,12 @@ verificação e o veredicto estão na **C22** do `PLANEJAMENTO-LASTRO.md`; o res
   o que ela **expressa** (três campos, e são **de conteúdo**, P-16); (4) **uma leitura só** do
   vocabulário — hoje há duas (`lerModalidade` lê do **GitHub**, `termos()` lê do **bundle**), e é por
   isso que o termo criado não chega ao plano antes do deploy.
-- **E há um pré-requisito de integridade, o mais barato de todos: 5 das 13 músicas do alfabeto têm
-  `cobre` diferente dos tempos** (Plié 12 em 8, Rond de jambe en l'air 3 em 4, Battement dégagé 6 em
-  4, Battement fondu 6 em 2, Relevé 1 em 2). Um motor que gera produtos de átomos inconsistentes
-  gera produtos inconsistentes — e a gravação **recusa** esses verbetes desde hoje, o que quer dizer
-  que os cinco precisam de correção **antes** de qualquer regravação. **É a primeira tarefa do degrau
+- **E há um pré-requisito de integridade, o mais barato de todos: 4 das 13 músicas do alfabeto têm
+  `cobre` diferente dos tempos** (Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4, Battement
+  fondu 6 em 2, Relevé 1 em 2). Um motor que gera produtos de átomos inconsistentes gera produtos
+  inconsistentes — e a gravação **recusa** esses verbetes, o que quer dizer que os quatro precisam de
+  correção **antes** de qualquer regravação. O `Plié` era o quinto: saiu da lista quando a régua
+  passou a ser a **maior pista**. **É a primeira tarefa do degrau
   1, e é de conteúdo.**
 
 **O que trava o degrau 1 não é técnico, e são duas coisas.** A **licença**: não há `LICENSE`, e a
@@ -1013,7 +1072,7 @@ curadoria) e **por qual plano** (§5) — e declara **nove colisões** com os pl
 não é o quarto produto, é o meio) e na **L14** (a turma pronta referencia o syllabus, não o contém).
 
 **O que continua a travar, e não é código:** o mapa nível→termos (**11 dos 13 níveis vazios**), a
-camada pedagógica, as **5 músicas**, a **separação** catálogo × escola — e, agora com nome e número,
+camada pedagógica, as **4 músicas**, a **separação** catálogo × escola — e, agora com nome e número,
 **as 25 descrições sem `fonte`**, que a licença impede de entrar na edição paga. A **licença** deixou
 de estar nesta lista: foi **decidida** (`ARQUITETURA-GERAL.md` §10), e falta apenas o `LICENSE.md`,
 que é o texto que o contrato cita. E a fase 4 depende de **C11**: o plano contratado **não existe em
@@ -1085,7 +1144,21 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a licença e o pacote próprio)
+### Executado nesta fotografia (02/11/2026 — as pistas, a repetição, a métrica e as posições)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **134 de 134** (eram 130) — as quatro novas medem o 6/8 ordenado por pulso, a legenda que nomeia a pista, o campo da repetição (1× a 4×) e o do método (com a herança na primeira opção) |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — sete asserções novas: duas pistas em paralelo fecham pela maior, o `cobre` que soma as pistas é recusado **com as duas contas na mensagem**, a repetição multiplica, a repetição inválida é recusada, o método-frase é recusado, o bloco de posições é um só com a preparatória e o rótulo duplo, e a rota serve as posições de braços |
+| `node experimentos/provar-notacao.js` | **76 asserções, 0 falhas** (eram 74) — o `Plié` dá **quatro** segmentos em **duas** pistas, a das pernas atravessa os dois compassos e a dos braços vive no primeiro |
+| `provar-producao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **151/152** (a falha conhecida do item do menu) · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `provar-cartao-da-turma` | **6 falhas — as mesmas de antes**, e a própria saída mostra porquê: a lista de passos conta «1 O exercício novo … 6 A decomposição», a tira do verbete, junto dos três passos da turma. **Não é regressão** |
+| `provar-o-que-vem-do-dado` | **NÃO CORREU** — depende dos envelopes da `batata`, expurgada hoje. A prova declara «conferência NÃO FEITA» em vez de passar por vácuo. **Fica sem fixture** |
+| `node tools/check-indices.js` · `check-schemas.js` · `check-identidade.js` | **14/14** · TUDO CERTO · **20/20** |
+| **o motor, medido à mão** | `compor` do `Plié` em «8\|4/4» → **`composto`**, cobertura **8**, resto **0**; o `Battement fondu` continua `parcial` (6 numa música de 2) |
+| **não executado** | `tools/check-glossario.js` — não há nenhum par registro × glossário no repositório, porque a única escola com documentos foi expurgada |
+
+### Executado na fotografia anterior (02/11/2026 — a licença e o pacote próprio)
 
 Esta entrega **não alterou código**: é decisão, mais a correção de uma citação. O que se mediu foi o
 que a decisão exigia saber.
@@ -1111,7 +1184,7 @@ partir, e o que se mediu foi o que o plano afirma.
 | **o núcleo é um só e a fronteira é provada** | `motor/nucleo/` — **21 ficheiros**, sem `fs`/`path`/`http`; `provar-agnosticismo.js` verifica por máquina. É o primeiro argumento do §3 do plano |
 | **o glossário já é o dicionário de um ciclo** | `professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md` — índice de símbolos, verbetes, origem declarada |
 | **a Regra 9 é norma e tem faixas no `.conf`** | `solo 30–40% · barra 20–30% · centro 30–40% · musicalidade 5–10%`; `VOLUME_MIN` 80–100 (60 min) e 150–200 (120 min) |
-| **o catálogo, medido para as fases** | `progressao.json`: **13 turmas, 9 associações**, e só **2 níveis** com termos (4 e 5); `vocabulario.json`: 93 termos; `notacao.json` v15: 11 verbetes, 13 músicas, 43 células, **5 músicas que não fecham** |
+| **o catálogo, medido para as fases** | `progressao.json`: **13 turmas, 9 associações**, e só **2 níveis** com termos (4 e 5); `vocabulario.json`: 93 termos; `notacao.json` v15: 11 verbetes, 13 músicas, 43 células, **4 músicas que não fecham** (o `Plié` fechou com as pistas) |
 | **o plano contratado não existe em código** | `raiz/escolas-habilitadas.json` tem `habilitada` e `pagante`; **nenhum campo `plano`** |
 | **`tools/` é congelado** | `CONGELAMENTO.md` lista `tools/`, `tools/templates/`, `prompts/` — a entrega do produto **chama** os geradores sem os alterar |
 | `node tools/check-indices.js` | **14 verificações, 0 falha(s)** — TUDO CERTO |
@@ -1556,7 +1629,7 @@ que vem do código).
 **Os três produtos estão decididos, e o primeiro passo deles NÃO é código.** O
 [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md) tem seis fases, e a **fase 0 é conteúdo**:
 (1) o **mapa nível→termos** para os 13 níveis, começando pelo nível 1 (hoje: 13 turmas, **9
-associações**, e só 2 níveis com alguma); (2) as **5 músicas** que não fecham os tempos (Plié 12 em 8,
+associações**, e só 2 níveis com alguma); (2) as **4 músicas** que não fecham os tempos (
 Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — e a
 gravação **já as recusa**, logo não se podem regravar sem corrigir; (3) ~~a licença~~ — **decidida**
 (`ARQUITETURA-GERAL.md` §10), falta só o `LICENSE.md`; (4) a **proveniência das 25 descrições**, que a
@@ -1643,6 +1716,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **As pistas, e o `Plié` que estava certo.** As células passaram a ser contadas por
+  **categoria** e não em fila única — e o defeito que isso resolve é o mais instrutivo do dia: o
+  `Plié` somava **12** tempos numa música de **8**, e a gravação o recusava desde a manhã. Medido,
+  ele tem **duas pistas**: as pernas fazem os dois compassos (8) e os braços fazem um (4), **em
+  paralelo** — o port de bras acontece enquanto o plié acontece. O dado estava certo e a régua é que
+  não estava. Com a maior pista, **9 das 13 músicas fecham** (eram 8). A mesma mudança pôs a
+  **contagem por pista** (revertendo, com razão, a decisão de 29/10: em duas categorias o mesmo
+  instante é simultaneidade, não contradição), a **métrica composta** a oferecer os fins que fecham
+  pulso (6/8 são dois pulsos de três, e `1–2` continua possível porque é síncope), a **repetição** na
+  célula (`1–2 ×2`, e a multiplicar na conta) e o bloco **«Posições dos pés e braços»** com a
+  preparatória e a 3ª de **rótulo duplo** («terceira · quinta»). O **método** entrou no verbete como
+  **herança com sobreposição** — o plano já o declara e é obrigatório, e duas declarações do mesmo
+  facto divergem ao primeiro caso.
 - **02/11/2026** — **A licença em três camadas, o pacote próprio, e uma citação minha que era falsa.** A
   licença estava aberta desde 18/09/2026 e ficou decidida: a **máquina** é proprietária e **não** se
   licencia com os produtos; o **catálogo** licencia-se **por escola**, vinculado à **fotografia
@@ -1663,7 +1749,7 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   vive a granularidade da negociação. O plano
   ([PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md)) tem seis fases, declara **nove
   colisões** com os planos existentes e o ajuste de cada uma, e mostra que **o que falta é conteúdo**,
-  não código: 11 dos 13 níveis estão vazios, a camada pedagógica não existe, 5 músicas não fecham,
+  não código: 11 dos 13 níveis estão vazios, a camada pedagógica não existe, 4 músicas não fecham,
   falta licença e falta a separação catálogo × escola. Mudaram de texto, hoje, a **C22** (o gerador
   não é o quarto produto: é o meio) e a **L14** (a turma pronta referencia o syllabus).
 - **02/11/2026** — **Três eixos, o ritmo obrigatório, e a C22 com o veredicto do motor.** Três
@@ -1677,7 +1763,7 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   **C22** — o verbete como átomo do syllabus, os **quatro degraus** (dicionário → syllabus → aula
   pronta → gerador) com os bloqueios medidos, e o **veredicto: o motor é viável**, com quatro
   arrumações (identidade estável, separação catálogo × escola, camada pedagógica, uma leitura só do
-  vocabulário) e **cinco músicas por corrigir** antes de qualquer regravação. A **L14** ganhou a
+  vocabulário) e **quatro músicas por corrigir** antes de qualquer regravação. A **L14** ganhou a
   lacuna **(0)** — a separação é pré-requisito do degrau 1 — e perdeu a entrega do ritmo no catálogo.
   **Nenhuma linha de código mudou**: é fotografia, decisão e registo.
 - **02/11/2026** — **O exercício novo é o passo 1, e o «+» deixou de existir.** A primeira tentativa

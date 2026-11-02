@@ -1073,10 +1073,12 @@ modelo novo**; precisa de quatro coisas, e três delas são de **arrumação**, 
    frescuras diferentes para a mesma fonte.
 
 E há um **pré-requisito de integridade** que não é de arquitetura e é o mais barato de todos:
-**5 das 13 músicas do alfabeto têm `cobre` diferente dos tempos** (Plié 12 em 8, Rond de jambe en
-l'air 3 em 4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2). Um motor que gere
+**4 das 13 músicas do alfabeto têm `cobre` diferente dos tempos** (Rond de jambe en l'air 3 em 4,
+Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — o `Plié`, que era o quinto, deixou
+de ser inconsistente a 02/11/2026, quando as células passaram a ser contadas por **pista** (pernas e
+braços correm em paralelo) e a régua passou a ser a maior. Um motor que gere
 produtos a partir de átomos inconsistentes gera produtos inconsistentes — e desde 02/11/2026 a
-gravação **recusa** esses verbetes, o que quer dizer que os cinco não podem ser regravados sem
+gravação **recusa** esses verbetes, o que quer dizer que os quatro não podem ser regravados sem
 correção. **É a primeira tarefa do degrau 1, e é de conteúdo, não de código.**
 
 **O que não está decidido, e é dela.** O que sobe para este documento e com que palavras; se os três
