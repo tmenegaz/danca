@@ -1,442 +1,53 @@
 {
-  "aulas": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-02",
-        "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
-        "cobertura": [
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
-        ],
-        "hash": "730870733b29bf994eb64538e3de7ecf84b4977a742673de4cd62752d190c4e3",
-        "hash_conteudo": "622fbb84cd66c6598afe8c211e002de90614686a16ee0ce9a82a9dd8e5092681",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "documento": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-      "id": "ciclo:pe-junto/01/batata/aula-01",
-      "numero": "01"
-    }
-  ],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-02",
-        "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
-        "cobertura": [
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
-          "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
-        ],
-        "hash": "b1097a0d2a7730b6e1c55f6f57b5101f050c410a55ab3726b32f6862faf7cfb2",
-        "hash_conteudo": "39b7f29e9df8ac7ac2fd0c44faa0828a9a36c9f37b48df7e176943c83b820bcf",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [
-        {
-          "ancora": {
-            "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-02",
-            "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
-            "cobertura": [
-              "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-              "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
-            ],
-            "hash": "730870733b29bf994eb64538e3de7ecf84b4977a742673de4cd62752d190c4e3",
-            "hash_conteudo": "622fbb84cd66c6598afe8c211e002de90614686a16ee0ce9a82a9dd8e5092681",
-            "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
-            "lida": true,
-            "parent_hash": ""
-          },
-          "documento": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-          "id": "ciclo:pe-junto/01/batata/aula-01",
-          "numero": "01"
-        }
-      ],
-      "documentos": [
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
-        "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:pe-junto/01/batata",
-      "numero": "01",
-      "pacote": null,
-      "professor": "pe-junto",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "aula",
-        "dados",
-        "glossario",
-        "harmonizacao",
-        "indice",
-        "manifesto",
-        "notacao",
-        "plano",
-        "po",
-        "referencias",
-        "schema"
-      ]
-    },
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-01",
-        "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.fipp",
-        "cobertura": [
-          "professores/pe-torto/ciclos/ciclo-01-batata.conf",
-          "professores/pe-torto/ciclos/ciclo-01.conf"
-        ],
-        "hash": "0d18d32da528b33b521b0727ce39453071d80218a29e57a4cbee3bf0c49fcffd",
-        "hash_conteudo": "bfa83716380531c39a6db314bbb5f6af35491e484e6948f500ec44e2001d5a49",
-        "id": "ciclo-01-batata",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/pe-torto/ciclos/ciclo-01-batata.conf",
-        "professores/pe-torto/ciclos/ciclo-01-batata.fipp",
-        "professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:pe-torto/01/batata",
-      "numero": "01",
-      "pacote": null,
-      "professor": "pe-torto",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
-      "professor": "pe-junto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
-      "professor": "pe-junto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.fipp",
-      "ciclo_id": "ciclo:pe-torto/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/pe-torto/ciclos/ciclo-01-batata.fipp",
-      "professor": "pe-torto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:aula:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
-      "professor": "pe-junto",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:aula:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
-      "professor": "pe-junto",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:dados:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
-      "professor": "pe-junto",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:dados:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
-      "professor": "pe-junto",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:dados:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
-      "professor": "pe-junto",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:glossario:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
-      "professor": "pe-junto",
-      "tipo": "glossario"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:harmonizacao:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
-      "professor": "pe-junto",
-      "tipo": "harmonizacao"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:indice:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
-      "professor": "pe-junto",
-      "tipo": "indice"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:manifesto:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
-      "professor": "pe-junto",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/pe-torto/ciclos/ciclo-01-batata.conf",
-      "ciclo_id": "ciclo:pe-torto/01/batata",
-      "escola": "batata",
-      "id": "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-batata.conf",
-      "professor": "pe-torto",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:notacao:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
-      "professor": "pe-junto",
-      "tipo": "notacao"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:plano:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
-      "professor": "pe-junto",
-      "tipo": "plano"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:po:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
-      "professor": "pe-junto",
-      "tipo": "po"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:referencias:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
-      "professor": "pe-junto",
-      "tipo": "referencias"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
-      "caminho": "professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:pe-junto/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "pe-junto",
-      "tipo": "schema"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:pe-torto/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "pe-torto",
-      "tipo": "schema"
-    }
-  ],
+  "aulas": [],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:pe-junto/01/batata",
-      "ciclo:pe-torto/01/batata"
-    ],
+    "ciclos": [],
     "contagens": {
-      "anamneses": 2,
-      "aulas": 1,
-      "ciclos": 2,
-      "ciclos_com_ancora": 2,
-      "planos": 1,
-      "pos": 1,
-      "registros": 4
+      "anamneses": 0,
+      "aulas": 0,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
+      "planos": 0,
+      "pos": 0,
+      "registros": 0
     },
     "criada_em": "2026-11-01T22:29:37.341655+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-01T20:13:24.467Z",
-    "expurgos": 7,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-02T16:53:47.077Z",
+    "expurgos": 8,
+    "habilitada": false,
     "id": "escola:batata",
     "nome": "batata",
     "professor": "pe-torto",
     "professores": [
+      "acucar-branco",
+      "cafe-no-bule",
+      "manga-curta",
+      "meia-cortada",
       "pe-junto",
-      "pe-torto"
+      "pe-torto",
+      "perna-boa",
+      "sapo-bailarino",
+      "so-para-direita",
+      "tela-de-celular",
+      "tiago-menegaz"
     ],
-    "registros": [
-      "anamnese:anamnese-20261101-1950",
-      "anamnese:anamnese-20261101-1952",
-      "plano:plano-20261101-1955",
-      "po:po-20261101-1959"
-    ],
+    "registros": [],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [
-      {
-        "contagem": 4,
-        "ids": [
-          "anamnese:anamnese-20261101-1950",
-          "anamnese:anamnese-20261101-1952",
-          "plano:plano-20261101-1955",
-          "po:po-20261101-1959"
-        ],
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
-    "estados": [
-      {
-        "contagem": 2,
-        "ids": [
-          "ciclo:pe-junto/01/batata",
-          "ciclo:pe-torto/01/batata"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 5,
-        "ids": [
-          "anamnese:anamnese-20261101-1950",
-          "anamnese:anamnese-20261101-1952",
-          "ciclo:pe-junto/01/batata",
-          "plano:plano-20261101-1955",
-          "po:po-20261101-1959"
-        ],
-        "rotulo": "pe-junto",
-        "valor": "pe-junto"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:pe-torto/01/batata"
-        ],
-        "rotulo": "pe-torto",
-        "valor": "pe-torto"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 2,
-        "ids": [
-          "anamnese:anamnese-20261101-1950",
-          "anamnese:anamnese-20261101-1952"
-        ],
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 2,
-        "ids": [
-          "ciclo:pe-junto/01/batata",
-          "ciclo:pe-torto/01/batata"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "plano:plano-20261101-1955"
-        ],
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "po:po-20261101-1959"
-        ],
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "anos": [],
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "2a7f13f"
+    "commit": "aeb2b2c"
   },
-  "gerado_em": "2026-11-02T12:48",
+  "gerado_em": "2026-11-02T16:54",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -459,49 +70,6 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261101-1950",
-      "ciclo": "01",
-      "data": "2026-11-01T19:50",
-      "id": "anamnese:anamnese-20261101-1950",
-      "professor": "pe-junto",
-      "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261101-1952",
-      "ciclo": "01",
-      "data": "2026-11-01T19:52",
-      "id": "anamnese:anamnese-20261101-1952",
-      "professor": "pe-junto",
-      "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "plano-20261101-1955",
-      "ciclo": "01",
-      "data": "2026-11-01T19:55",
-      "id": "plano:plano-20261101-1955",
-      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
-      "professor": "pe-junto",
-      "tipo": "plano",
-      "turma": "Balé Nível 1 — Teste 2"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "po-20261101-1959",
-      "ciclo": "01",
-      "data": "2026-11-01T19:59",
-      "id": "po:po-20261101-1959",
-      "professor": "pe-junto",
-      "tipo": "po"
-    }
-  ],
+  "registros": [],
   "versao": 6
 }
