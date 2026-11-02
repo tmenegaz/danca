@@ -500,3 +500,10 @@ experimentos/modelo-formulario/*
 # envelope real e vê se a secção muda. O `REGISTRO.md` de 01/11/2026 cita-a («28 asserções»), e uma
 # prova citada que não existe no clone é uma afirmação que ninguém confere.
 !experimentos/provar-o-que-vem-do-dado.js
+
+# A FORÇA E A FLEXIBILIDADE, TRAZIDAS DA ANAMNESE (02/11/2026). A Regra 4 pede-as e o item 11 do
+# PO passou a lê-las; a prova mede o conteúdo, o mapa do motor (a lista fechada de descritores) e a
+# caixa no browser, com o controle negativo na mesma execução. Citada no REGISTRO e no rodapé
+# `Auditoria:` do commit — uma prova citada que não existe no clone é uma afirmação que ninguém
+# confere.
+!experimentos/provar-forca-e-flexibilidade.js

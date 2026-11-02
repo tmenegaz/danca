@@ -243,10 +243,14 @@ ausência é o registro, e inventar um horizonte que não existe é dedução.
   É esta lista que a folha de captura usa para revisitar a linha de base, aula a
   aula, aluna por aluna.
 
-## Bloco 7 — PO — Critérios de inclusão e exclusão
+## Bloco 7 — PO — Critérios de inclusão e de exclusão da observação
 
-- **Inclusão:** o que conta como observação? O que você registra?
-- **Exclusão:** o que não conta? O que fica fora do recorte?
+- **Inclusão:** o que ENTRA na observação? O que você registra?
+- **Exclusão:** o que NÃO entra na observação? O que já está resolvido e não
+  precisa de ser olhado?
+
+> «O que fica fora do recorte» é o bloco seguinte (Justificativa, «O que fica de
+> fora»), e é outra coisa: lá é o âmbito do ciclo, aqui é o que se olha na aula.
 
 **Derive um rascunho antes de me perguntar.** Você já tem a linha de base (Bloco
 6) e os itens por dimensão (Bloco 5): proponha **você** a lista — o que, no que

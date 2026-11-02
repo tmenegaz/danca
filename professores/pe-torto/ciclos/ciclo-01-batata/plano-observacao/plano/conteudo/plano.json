@@ -534,8 +534,8 @@
     },
     {
       "bloco": 10,
-      "titulo": "Música e repertório",
-      "objetivo": "declarar o vídeo de referência e mostrar a música e o repertório que a aula já tem",
+      "titulo": "Música e vídeo de referência",
+      "objetivo": "declarar o vídeo de referência desta aula e mostrar a música que cada exercício já tem",
       "campos": [
         {
           "id": "musicas-videos",
@@ -552,7 +552,14 @@
             "preencher": "O LINK do vídeo — do YouTube, publicado por você ou por outra pessoa — e, na mesma linha, o exercício ou o trecho que ele mostra. Um por linha.",
             "porQue": "Porque o vídeo é a única parte desta secção que ainda não existe em lugar nenhum: a música veio do verbete e os exercícios vieram da sequência. Pedir a música outra vez era pedir ao professor que redigitasse o que ele já tinha decidido — e as duas versões podiam discordar sem que nada falhasse."
           }
-        },
+        }
+      ]
+    },
+    {
+      "bloco": 11,
+      "titulo": "Repertório da aula",
+      "objetivo": "mostrar os exercícios que esta aula usa — lidos da sequência, não escritos",
+      "campos": [
         {
           "id": "repertorio",
           "campo": "Repertório desta aula",
@@ -573,7 +580,7 @@
       ]
     },
     {
-      "bloco": 11,
+      "bloco": 12,
       "titulo": "Origem",
       "objetivo": "declarar a base pedagógica do plano",
       "campos": [

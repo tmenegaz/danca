@@ -287,6 +287,14 @@ function descritores(campo) {
     // SÓ o nome do conceito (ex.: «objetivo»), e o SISTEMA resolve o que esse
     // conceito exige — a regra e a pergunta são infraestrutura, não conteúdo.
     socratico: campo.socratico || null,
+    // O QUE O REGISTO DA ANAMNESE TRAZ PARA AQUI (02/11/2026). O nó `linha-de-base` do PO
+    // declara os CAMPOS da anamnese de que ele se alimenta — força e flexibilidade, que a
+    // Regra 4 pede e que nenhum formulário perguntava neste lado. A tela mostra o resumo
+    // desses campos ao lado de cada aluna e o atalho para o registo completo. O motor não
+    // escolhe os campos nem os interpreta: repassa a lista que o conteúdo declara. Sem esta
+    // linha a chave morreria aqui — a lista é fechada, e o sintoma é sempre mudo (a tela
+    // mostra os primeiros campos crus, que foi o que aconteceu).
+    registroDaAnamnese: campo.registroDaAnamnese || null,
   };
 }
 

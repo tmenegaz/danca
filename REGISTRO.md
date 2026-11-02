@@ -30088,3 +30088,74 @@ campos · `provar-aula-e-plano-legiveis` 12/12 · `provar-cabecalho-do-documento
   travessia: o item 11 do PO («Ponto de partida») devia abrir o registo completo da aluna e trazer
   de lá os campos escolhidos, por chave-valor. Os candidatos estão listados à espera da escolha
   dela — a lista é dela, não do código.
+
+## 02/11/2026 — A força e a flexibilidade estavam na anamnese; faltava a travessia
+
+**O que motivou.** A entrada anterior registou como pendência que «a Regra 4 pede força e
+flexibilidade e nenhum formulário as pergunta». A pesquisadora corrigiu o diagnóstico: **pergunta,
+sim** — na anamnese, e ela nomeou os sítios.
+
+> «Isso também não é verdade. Nós temos isso (…) no item 11 do PO, o ponto de partida (…) é preciso
+> que eu tenha aqui esse abrir registro, que abra numa próxima aba a anamnese completa da aluna (…)
+> Dentre elas existe força e flexibilidade. (…) Se você quiser que eu determine esses campos,
+> apresenta pra mim quais são os candidatos.»
+
+E, sobre o que via: a caixa do registo mostrava «somente alguns itens» — os primeiros catorze campos
+crus, por ordem de chave, com o `id` como rótulo. A força e a flexibilidade podiam não estar entre
+eles.
+
+**Os três aspectos macro, declarados por ela.** «A gente precisa de três aspectos macro: força e
+flexibilidade, que tem de existir para o balé clássico e para qualquer outra modalidade; o elemento
+da técnica, do código (o balé clássico é a técnica do balé clássico, Graham é a técnica, o hip hop
+tem as suas); e a poiésis — a expressividade, o olhar, a condução do professor, o vídeo, a música,
+os *pas de bras*.» É a razão pela qual o bloco de musicalidade e o vídeo de referência existem.
+
+**O que foi decidido.**
+
+- **Os campos são ESCOLHA DELA, e ela escolheu.** O nó `linha-de-base` do PO passa a declarar
+  `registroDaAnamnese` com dois grupos — **Flexibilidade e amplitude** (isquiotibiais, adutores,
+  grand écart, cambré, quadril/en dehors, tornozelo, ombros) e **Força** (demi/grand plié, força
+  excêntrica, sustentação de MMII, equilíbrio unipodal, push-ups, tração, resistência de MMSS,
+  dedos) —, todos com `id` que JÁ existem na anamnese. `impulsao-e-absorcao-allegro` ficou de fora
+  por decisão dela.
+- **A escolha é do conteúdo, e o motor só a repassa.** `descritores()` em `elicitar.js` é uma lista
+  FECHADA — a chave que não está nela morre em silêncio (já aconteceu ao `recortePeloPlano` e ao
+  `leituras`). `registroDaAnamnese` entrou nela com o comentário do costume, porque o sintoma de
+  não entrar é sempre mudo: a caixa volta a mostrar os campos crus.
+- **Os NOMES vêm do mapa da anamnese, não de uma segunda lista.** A caixa mostra «Flexibilidade dos
+  isquiotibiais», não `flexibilidade-dos-isquiotibiais` — e o rótulo é lido de `api/mapa` (a fonte
+  por omissão é a anamnese), uma vez por sessão. Escrever os nomes ao lado dos `id` no PO seria uma
+  segunda verdade, e a primeira renomeação de um campo lá punha-a a mentir.
+- **«Abrir o registro completo» abre noutra aba, e leva o contexto do ato.** Ao lado do «ver o
+  registro» nasce o link para `/anamnese/?…&aluna=…` com `target="_blank"`: a caixa ao lado dá o
+  resumo (o que ela traz, o que precisa desenvolver, a força e a flexibilidade) e a anamnese
+  inteira vive na porta dela.
+- **O bloco 4 do PO deixou de confundir inclusão com âmbito.** «Critérios de inclusão e de
+  exclusão da observação», e o objetivo sem o «o que fica fora» — que é o campo do bloco 6
+  (`o-que-fica-de-fora`). O `porta/prompts/elicitar-ciclo.md` acompanhou, com a nota a dizer qual é
+  qual.
+
+**Onde entrou.** `porta/po/conteudo/po.json` (o `registroDaAnamnese`; o bloco 4) ·
+`motor/nucleo/elicitar.js` (a chave na lista fechada) · `porta/index.html`
+(`carregarRotulosDaAnamnese`, `detalheDoEnvelope` com os grupos, o link para o registo completo) ·
+`porta/prompts/elicitar-ciclo.md` · `professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/`
+(a cópia da porta do pacote-zero, que é a que a publicação serve na raiz da escola — estava
+atrasada, e sem ela a correção não chegava ao ar) · `experimentos/provar-forca-e-flexibilidade.js`.
+
+**Com o quê.** `provar-forca-e-flexibilidade` **17 asserções** e um controle negativo na mesma
+execução: o conteúdo declara os campos, todos existem na anamnese, o motor repassa a declaração, a
+caixa mostra o NOME e o VALOR, um campo não declarado não entra, o «o que traz / precisa
+desenvolver» continua, o link existe com `target="_blank"` e o apelido — e, **sem** a declaração, a
+caixa volta ao que era · `provar-alunas-da-anamnese` 14/14 · `provar-po-unico` 18/18 ·
+`provar-o-que-vem-do-dado` 30 asserções · `provar-schemas` 29/29 · `provar-aula-e-plano-legiveis`
+12/12 · `check-identidade` 20/20 (a cópia da porta do ciclo-zero foi refrescada: era divergência
+medida) · `check-indices` 14/14 · `check-pacote` 0 erro / 0 aviso.
+
+**O que continua aberto.**
+
+- **`provar-ajustes-anamnese` falha em `window.location.replace`** — e já falhava em `HEAD` (medido
+  com a alteração guardada): é o jsdom a chamar `replace` num caminho que a prova não intercepta,
+  não a página. Fica registado, não corrigido.
+- **O item 11 continua a pedir a formulação dela por palavras.** Os campos da anamnese são LIDOS ao
+  lado; «o que traz» e «o que precisa desenvolver» escrevem-se, porque a anamnese informa e a
+  formulação é da professora — é o que o próprio `porQue` do nó diz desde antes.

@@ -261,6 +261,37 @@
           "campo": "Ponto de partida",
           "obrigatorio": true,
           "repetirPor": "sujeitos",
+          "registroDaAnamnese": {
+            "rotulo": "Força e flexibilidade",
+            "porque": "A Regra 4 pede os pré-requisitos de força e flexibilidade declarados, e a anamnese é onde eles estão: são o que a aluna já traz e o que precisa desenvolver. Aqui são LIDOS — o ponto de partida escreve-se nas suas palavras, ao lado.",
+            "grupos": [
+              {
+                "grupo": "Flexibilidade e amplitude",
+                "campos": [
+                  "flexibilidade-dos-isquiotibiais",
+                  "flexibilidade-dos-adutores",
+                  "flexibilidade-anteroposterior-grand-ecart",
+                  "mobilidade-das-costas-e-tronco-cambre",
+                  "mobilidade-de-quadril-en-dehors-de-origem",
+                  "mobilidade-de-flexao-extensao-do-tornozelo",
+                  "rotacao-e-amplitude-dos-ombros"
+                ]
+              },
+              {
+                "grupo": "Força",
+                "campos": [
+                  "controle-de-carga-no-demi-grand-plie",
+                  "forca-excentrica-recuo-na-flexao-de-tronco",
+                  "sustentacao-ativa-de-mmii-forca-de-adagio",
+                  "equilibrio-unipodal",
+                  "forca-de-empurrar-push-ups",
+                  "forca-de-puxar-tracao",
+                  "resistencia-de-mmss-port-de-bras-prolongado",
+                  "articulacao-e-forca-intrinseca-dos-dedos"
+                ]
+              }
+            ]
+          },
           "camposDoItem": [
             {
               "id": "traz",
@@ -291,9 +322,9 @@
     },
     {
       "bloco": 4,
-      "titulo": "Critérios de inclusão e exclusão",
+      "titulo": "Critérios de inclusão e de exclusão da observação",
       "dimensao": null,
-      "objetivo": "delimitar o que conta como observação e o que fica fora",
+      "objetivo": "declarar o que ENTRA na observação (inclusão) e o que NÃO entra (exclusão) — o que fica fora do âmbito é outro campo, na justificativa",
       "campos": [
         {
           "id": "inclusao",

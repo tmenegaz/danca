@@ -5604,11 +5604,20 @@ function referenciaDaAnamnese(opcao, sujeito) {
       ' neste sistema.</p><p>' + criar + ' — e depois volte e recarregue esta página.</p></div>';
   }
   const carimbo = opcao.carimbo || '';
+  /* O REGISTO COMPLETO ABRE NUMA ABA NOVA (02/11/2026). «É preciso que eu tenha aqui esse abrir
+   * registro, que abra numa próxima aba a anamnese completa da aluna» — a caixa ao lado mostra o
+   * resumo (o que ela traz, o que precisa desenvolver, a força e a flexibilidade), e a anamnese
+   * inteira vive na porta dela. Os dois caminhos levam o MESMO contexto do ato, com o apelido:
+   * a aba nova nasce identificada, e o professor volta sem perder o que estava a escrever. */
+  const completo = new URLSearchParams(contexto);
+  completo.set('aluna', sujeito);
   return '<div class="referencia">' +
     '<p><b>Anamnese</b> ' + md(opcao.rotulo || carimbo) + ' — ' +
     '<button class="ver-anamnese" data-detalhe="' + escapar(opcao.detalhe || '') +
     '" data-carimbo="' + escapar(carimbo) + '" data-sujeito="' + escapar(sujeito) +
-    '">ver o registro</button></p>' +
+    '">ver o registro</button> · ' +
+    '<a href="/anamnese/?' + completo.toString() + '" target="_blank" rel="noopener">' +
+    'abrir o registro completo</a></p>' +
     '<div class="detalhe oculto" data-detalhe-de="' + escapar(carimbo) + '"></div>' +
     '</div>';
 }
@@ -5633,7 +5642,45 @@ function referenciaDaAnamnese(opcao, sujeito) {
  */
 const TEM_BLOCO = /(?:^|\n)\s*(?:[-*+] |\d+\. |#{1,6} |\||>)/;
 
-function detalheDoEnvelope(envelope) {
+/*
+ * OS NOMES DOS CAMPOS DA ANAMNESE (02/11/2026). O nó `linha-de-base` do PO declara os campos
+ * de força e flexibilidade de que se alimenta, e a caixa do registo tem de os mostrar pelo NOME
+ * («Flexibilidade dos isquiotibiais»), não pelo `id` («flexibilidade-dos-isquiotibiais»).
+ *
+ * A lista de nomes NÃO se escreve aqui: ela já existe no conteúdo da anamnese, e uma segunda
+ * cópia divergiria ao primeiro campo renomeado. O mapa da anamnese chega pela mesma rota que a
+ * página já conhece (`api/mapa`), com a fonte por omissão — uma vez por sessão, e só quando
+ * alguém abre um registo.
+ */
+let ROTULOS_DA_ANAMNESE = null;
+let CARREGANDO_ROTULOS = null;
+
+async function carregarRotulosDaAnamnese() {
+  if (ROTULOS_DA_ANAMNESE) return ROTULOS_DA_ANAMNESE;
+  if (!CARREGANDO_ROTULOS) {
+    CARREGANDO_ROTULOS = (async () => {
+      const mapa = new Map();
+      try {
+        const resposta = await fetch('api/mapa?fonte=anamnese');
+        if (resposta.ok) {
+          const dados = await resposta.json();
+          for (const no of (dados && dados.nos) || []) {
+            if (no && no.id) mapa.set(String(no.id), String(no.campo || no.id));
+          }
+        }
+      } catch (erro) {
+        /* Sem os nomes, a caixa mostra os `id` — que é o que mostrava antes. Não é um erro que
+         * impeça ler o registo, e falhar a caixa inteira por causa de um rótulo seria pior. */
+        mapa.clear();
+      }
+      ROTULOS_DA_ANAMNESE = mapa;
+      return mapa;
+    })();
+  }
+  return CARREGANDO_ROTULOS;
+}
+
+function detalheDoEnvelope(envelope, declaracao) {
   const respostas = envelope.respostas || {};
   const bruto = respostas['linha-de-base'];
   const lb = bruto && (bruto.valor !== undefined ? bruto.valor : bruto);
@@ -5659,6 +5706,33 @@ function detalheDoEnvelope(envelope) {
         return '<li>' + escapar(id) + ': <b>' + md(texto) + '</b></li>';
       });
       partes.push('<ul>' + linhas.join('') + '</ul>');
+    }
+  }
+  /* O QUE A REGRA 4 PEDE, LIDO DA ANAMNESE (02/11/2026). O nó `linha-de-base` declara os campos
+   * de força e flexibilidade, e é por eles que o ponto de partida se ancora — antes, a caixa
+   * mostrava os primeiros catorze campos crus, por ordem de chave, e a força e a flexibilidade
+   * podiam simplesmente não estar entre eles. Os nomes vêm do mapa da anamnese; os valores do
+   * envelope que já está aberto. */
+  if (declaracao && Array.isArray(declaracao.grupos)) {
+    const mapa = ROTULOS_DA_ANAMNESE || new Map();
+    const grupos = [];
+    for (const grupo of declaracao.grupos) {
+      const linhas = [];
+      for (const id of grupo.campos || []) {
+        const reg = respostas[id];
+        const v = reg && reg.valor !== undefined ? reg.valor : reg;
+        const texto = Array.isArray(v) ? v.join(' · ') : v;
+        if (texto === undefined || texto === null || String(texto).trim() === '') continue;
+        linhas.push('<li>' + escapar(mapa.get(id) || id) + ': <b>' + md(String(texto)) + '</b></li>');
+      }
+      if (linhas.length) {
+        grupos.push('<p><b>' + md(grupo.grupo || '') + '</b></p><ul>' + linhas.join('') + '</ul>');
+      }
+    }
+    if (grupos.length) {
+      partes.push('<div class="referencia"><p><b>' + md(declaracao.rotulo || 'Registo') + '</b></p>' +
+        grupos.join('') + (declaracao.porque ? '<p class="sub">' + md(declaracao.porque) + '</p>' : '') +
+        '</div>');
     }
   }
   return partes.join('');
@@ -5717,8 +5791,12 @@ async function abrirDetalhe(botao, no) {
   alvo.classList.remove('oculto');
   alvo.innerHTML = '<p class="sub">carregando o registro…</p>';
   try {
-    const envelope = await carregarDetalhe({ carimbo, detalhe: botao.dataset.detalhe });
-    alvo.innerHTML = detalheDoEnvelope(envelope);
+    const declaracao = (no && no.registroDaAnamnese) || null;
+    const [envelope] = await Promise.all([
+      carregarDetalhe({ carimbo, detalhe: botao.dataset.detalhe }),
+      declaracao ? carregarRotulosDaAnamnese() : Promise.resolve(null),
+    ]);
+    alvo.innerHTML = detalheDoEnvelope(envelope, declaracao);
     alvo.dataset.carregado = '1';
     if (no && no.repetirPor) prefillDoDetalhe(no, sujeito, envelope);
   } catch (erro) {
