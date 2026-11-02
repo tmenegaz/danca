@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `65326a2`). Nesta entrega: **«Acrescentar trecho»
+> **Última fotografia:** 02/11/2026 (base local `b2d6816`). Nesta entrega: **a tela deixou de somar
+> em fila** — a régua das pistas tinha sido aplicada em três sítios e ficou um quarto por corrigir: a
+> conta que a página faz **antes de enviar**. Um `Plié` correcto (pernas 8, braços 4, em paralelo)
+> era **recusado na tela** com «as células somam 12», antes de chegar ao servidor que já o aceitava.
+> Passa a chamar `cobertura()` — a mesma função da tabela —, e a mensagem mostra as pistas. E a
+> **recusa deixou de navegar**: era `irParaPasso(...)`, e atirava o professor para o passo da música
+> sem o deixar ler o que estava errado.
+>
+> **Entrega anterior** (base `65326a2`). Nesta entrega: **«Acrescentar trecho»
 > desaparece durante a correcção.** Os dois botões eram **um só**, com o rótulo a alternar entre
 > «Acrescentar trecho» e «Guardar a alteração» — e um rótulo que muda não esconde nada. Passaram a
 > ser **dois**: em correcção, o «Acrescentar» **sai de cena** e o «Guardar» entra. Uma função, dois
@@ -280,6 +288,17 @@ Verificado nesta fotografia, com os comandos da §9.
   cenário dela: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, e corrigir o primeiro
   deixava-o no 2. Agora **substitui-se no lugar** e a sequência mantém-se. **CONFIRMADO** por
   `provar-celula`, secção 20-A (143 asserções).
+- **A conta dos tempos tem UM nome, e é chamada nos quatro sítios.** A régua das pistas foi aplicada
+  no motor, no validador e na cobertura da tabela — e **faltou a conta do `submit`**, que somava em
+  fila **e sem a repetição**. Resultado medido: um `Plié` correcto (pernas 8 + braços 4, em paralelo)
+  era **recusado na tela** com «as células somam 12», antes de chegar ao servidor que já o aceitava.
+  Passou a `var soma = cobertura();` — a mesma função da tabela. **CONFIRMADO** por `provar-celula`
+  §15-A (148 asserções).
+- **A recusa de gravação NÃO navega.** Era `irParaPasso(...)`, e o professor era atirado para o passo
+  da música sem ler a mensagem no sítio onde estava. A mensagem diz **onde** se corrige; **ir é
+  decisão de quem lê**. E ela fica numa faixa na própria página (`.res.erro`, com o fundo e o bordo da
+  falha), não num `alert()` que se fecha e leva a mensagem consigo. **CONFIRMADO** por
+  `provar-celula` §15.
 - **«Acrescentar trecho» não existe durante a correcção — são dois botões, e não um que muda de
   nome.** Era um só (`vb-cel-acrescentar`), com o rótulo a alternar; um rótulo que muda não esconde
   nada, e quem corrige vê o mesmo botão no mesmo sítio. Agora `vb-cel-acrescentar` («Acrescentar
@@ -1190,7 +1209,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 |:--|:--|
 | `node experimentos/provar-celula.js` | **143 de 143** (eram 134) — a secção **20-A** é nova e mede o cenário dela de ponta a ponta: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, corrigir o primeiro **não** muda a sequência e a linha corrigida continua a ser a **primeira**; a área do trecho está toda à vista em edição (4, 5 e 6) e fecha-se ao guardar; «Acrescentar trecho», «Guardar» e «Cancelar» não mudam de passo |
 | `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **76/76** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
-| `provar-celula`, secção 20-A (depois de esconder o «Acrescentar») | **145 asserções** — três novas guardam o par: em correcção o «Acrescentar» **não** está à vista, o «Guardar» está e diz o que faz; e sem correcção é o contrário |
+| `provar-celula` | **148 asserções** (eram 145) — a 15-A é nova e mede a conta no cenário dela (perna 8, braço 8, verbete **8**, não 12); a 15 ganhou duas: a recusa **não muda de passo** e a mensagem fica na página |
 | `provar-producao` · `provar-cartao-da-turma` | **151/152** · **6 falhas** — as duas iguais a antes, **não são regressões** |
 | `check-indices` · `check-identidade` | **14/14** · **20/20** |
 | **não executado** | `provar-o-que-vem-do-dado` — continua sem fixture desde o expurgo da `batata` |
@@ -1767,6 +1786,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **A tela ainda somava em fila — a régua das pistas tinha ficado a meio.** Ela
+  relatou «as células somam 12 tempos e a música declara 8» e perguntou se o motor somava em linha. A
+  resposta é sim, e não era o motor: a régua das pistas foi aplicada em **três** sítios e ficou um
+  **quarto** — a conta que a página faz antes de enviar, que somava em fila **e sem a repetição**. Um
+  `Plié` correcto era recusado na tela antes de chegar ao servidor que já o aceitava: o pior dos dois
+  mundos. Passou a chamar `cobertura()`, a mesma função da tabela, e a mensagem mostra as pistas. E a
+  **recusa deixou de navegar** — era `irParaPasso(...)`, e atirava o professor para o passo da música
+  sem o deixar ler. **A lição:** um número calculado em quatro sítios é um número calculado em zero;
+  a conta passou a ter um nome e a prova mede a conta, não a sua repetição.
 - **02/11/2026** — **«Acrescentar trecho» desaparece durante a correcção — e eu tinha descrito mal o
   defeito.** Escrevi que, em edição, o «Acrescentar trecho» estava visível e **acrescentava** em vez
   de guardar. **Medido, é falso:** havia **um** botão cujo rótulo alternava, e em correcção ele dizia

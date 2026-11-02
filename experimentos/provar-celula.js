@@ -801,6 +801,7 @@ function estado() {
      * Aqui a tela está com 4 tempos e um trecho de 2: a gravação tem de recusar, dizer o que falta
      * e apontar os dois sítios onde se corrige — a música (passo 2) ou os trechos (passo 3). */
     console.log('\n15. A GRAVAÇÃO RECUSA UM VERBETE QUE NÃO FECHA A MÚSICA');
+    const passoAntesDaRecusa = (await page.evaluate(estado)).passo;
     ULTIMO_CORPO = null;
     await page.evaluate(() => {
       const f = document.getElementById('form-verbete');
@@ -817,6 +818,46 @@ function estado() {
     // e a mensagem não, a prova apanha.
     conferir('…e cada um pelo nome que a tira usa',
       /«A música»/.test(recusado.recado) && /«Para onde»/.test(recusado.recado), recusado.recado);
+
+    /* A RECUSA NÃO NAVEGA (02/11/2026). Era `irParaPasso(...)`, e o efeito foi o relatado: «o
+     * sistema identificou uma inconsistência de tempo e redirecionou o usuário automaticamente
+     * para o Step 3 (Música) (…) impede que o professor leia a mensagem de erro com calma no
+     * contexto em que estava». A mensagem diz ONDE se corrige; ir é decisão de quem lê. */
+    conferir('a recusa NÃO muda de passo: o utilizador fica onde estava',
+      recusado.passo === passoAntesDaRecusa, { antes: passoAntesDaRecusa, depois: recusado.passo });
+    conferir('…e a mensagem fica à vista, na própria página — não num alerta que se fecha',
+      /não fecha a música/.test(recusado.recado), recusado.recado);
+
+    /* 15-A. O VERBETE DE DUAS PISTAS EM PARALELO NÃO PODE SER RECUSADO (02/11/2026).
+     *
+     * É O SEGUNDO PONTO DO RELATÓRIO, com o número exacto: «as células somam 12 tempos e a música
+     * declara 8». O caso dela — perna 1–2 ×2 e 1–4, braço igual, em paralelo — ocupa 8 e não 12,
+     * e a tela RECUSAVA-O antes de chegar ao servidor, que já o aceitava. A régua das pistas foi
+     * aplicada no motor, no validador e na cobertura da tabela; a conta do `submit` ficou para
+     * trás. O sintoma é o pior dos dois mundos: o dado está certo e a tela diz que não.
+     *
+     * O cenário é montado no próprio estado da página e restaurado em seguida — o que se mede é a
+     * CONTA, não o desenho. */
+    const contaDasPistas = await page.evaluate(() => {
+      const antes = CELULAS;
+      CELULAS = {
+        devant: [
+          { contagem: '1–2', categoria: 'Perna', repeticoes: 2, sinais: ['1ª', '↓'], descricao: 'desce e sobe' },
+          { contagem: '1–4', categoria: 'Perna', sinais: ['1ª', '↓'], descricao: 'grand plié' },
+        ],
+        '': [
+          { contagem: '1–2', categoria: 'Braço', repeticoes: 2, sinais: ['⌒'], descricao: 'port de bras' },
+          { contagem: '1–4', categoria: 'Braço', sinais: ['⌒'], descricao: 'port de bras longo' },
+        ],
+      };
+      const porPista = pistasDe(CELULAS);
+      const total = cobertura();
+      CELULAS = antes;
+      return { total, pistas: porPista.pistas, somaLinear: 12 };
+    });
+    conferir('…e a conta da tela é a da maior pista: perna 8, braço 8, verbete 8 — não 12',
+      contaDasPistas.total === 8 && contaDasPistas.pistas.Perna === 8 && contaDasPistas.pistas.Braço === 8,
+      contaDasPistas);
 
     console.log('\n16. FECHADA A MÚSICA, A GRAVAÇÃO PASSA — E LEVA A ORIENTAÇÃO');
     // O TRECHO QUE FALTA: a contagem que a tela ainda oferece, escolhida como a mão a escolhe.

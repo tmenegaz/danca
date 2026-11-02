@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T15:47:04-0300`
-Commit atual: `65326a2` — fix(notacao): corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
+Gerado em: `2026-11-02T16:00:15-0300`
+Commit atual: `b2d6816` — fix(notacao): «Acrescentar trecho» desaparece durante a correcção
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+b2d6816 fix(notacao): «Acrescentar trecho» desaparece durante a correcção
 65326a2 fix(notacao): corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
 9e04787 feat(notacao): as células contam-se por pista — e o Plié, que estava certo, fecha
 de43a1b docs(registro): o push publica o que chega ao site, e documentação não chega
@@ -104,7 +105,6 @@ da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é
 f9d9612 docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
 b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
 804000a docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
-787305d docs(regras): a Regra 15 é substituída pelo que o código faz
 ```
 
 ## Por professor
@@ -228,104 +228,65 @@ b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» 
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — Corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
+## 02/11/2026 — A tela ainda somava em fila: a régua das pistas tinha ficado a meio
 
-**O defeito relatado, com as palavras dela:** «ao editar um item já salvo no Compasso 1 (por exemplo,
-os braços), o sistema move o item editado para o final da fila/lista e altera automaticamente a
-atribuição do compasso de Compasso 1 para Compasso 2». E três redirecionamentos: «Acrescentar
-Trecho» saía da decomposição, «Editar» saltava para o passo 4, e «Guardar Alteração» mudava de passo.
+**A segunda vez que o mesmo defeito apareceu, e desta vez a culpa é minha.** Ela relatou: «as células
+somam 12 tempos e a música declara 8», com o cenário medido — perna `1–2` ×2 no compasso 1 e `1–4` no
+compasso 2, braço igual, em paralelo. **8 tempos, não 12.** E a pergunta dela é a certa: «o motor de
+validação está somando as linhas de forma sequencial/linear, sem considerar a simultaneidade.»
 
-### 1. A causa do compasso era `splice` + `push`, e a régua agora é a ordem
-
-O handler fazia:
+**Estava, e não era o motor.** Na entrega de hoje de manhã a régua das pistas foi aplicada em
+**três** sítios — `motor/nucleo/notacao.js`, `validarVerbete` do `verbete.js`, e a cobertura da
+tabela. Ficou **um quarto** por corrigir: a conta que a página faz **antes de enviar**, no handler do
+`submit`:
 
 ```js
-listaAntiga.splice(EM_EDICAO.k, 1);        // sai do lugar
-CELULAS[DIRECAO].push(celula);             // entra no fim
+var soma = dirs.reduce(function(t, d){
+  return t + celulas[d].reduce(function(s, c){ return s + temposDaContagem(c.contagem); }, 0);
+}, 0);
 ```
 
-E como o compasso de cada trecho sai da **ordem** — um relógio por pista, acrescentado hoje de manhã
-—, corrigir uma descrição **reescrevia a posição temporal do trecho**. Não era o campo que mudava de
-sítio: era o índice, e o índice é o dado que a decomposição existe para mostrar.
+Uma soma em linha, **e sem a repetição**: nem pistas, nem `repeticoes`. O `Plié` correcto — pernas 8,
+braços 4 — era **recusado na tela** antes de chegar ao servidor, que já o aceitava. O pior dos dois
+mundos: o dado está certo e a tela diz que não.
 
-**A correcção substitui no lugar.** Com a mesma direção, `CELULAS[DIRECAO][k] = celula` e mais nada se
-mexe. Quando a direção muda, a célula muda de balde: entra na **mesma posição ordinal** (não no fim) e
-o balde que ficou vazio **sai** — um balde vazio é recusado pela validação («a direção X não tem
-célula»), e deixá-lo lá era preparar a recusa seguinte.
+**A correção foi uma linha:** `var soma = cobertura();` — a **mesma função** que a tabela usa. Uma
+conta, um sítio; `dirs` e `celulas` deixam de ser lidos ali. E a mensagem passou a mostrar as pistas
+quando há mais de uma («pistas: perna 8 · braço 8 — vale a maior, porque correm ao mesmo tempo»),
+porque «a maior pista tem 8» é um número que ninguém confere a olho — e foi essa incompreensão que
+gerou o relatório.
 
-**Medido, e é o cenário dela:** três trechos de `Perna` em 2/4 (pista única, relógio partilhado) dão
-compassos **1, 1 e 2**. Corrigir o primeiro não muda a sequência — continua `1, 1, 2` — e a linha
-corrigida continua a ser a **primeira**.
+### A recusa deixou de navegar
 
-### 2. Os três redireccionamentos eram um só, e a regra que os substitui é a área do trecho
+Era `irParaPasso(soma < temposDaMusica ? nO : nM)` — o utilizador era atirado para o passo da música
+(ou dos trechos) sem poder ler a mensagem onde estava. Ela: «impede que o professor leia a mensagem de
+erro com calma no contexto em que estava, gerando desorientação». O `irParaPasso` **saiu**: a mensagem
+diz onde se corrige, e **ir é decisão de quem lê**. A mensagem continua a cair no
+`.res[data-res=verbetes]` — um bloco com fundo e borda de falha, dentro do painel 6, que é o único
+passo onde o «Gravar verbete» existe —, com `scrollIntoView` para não ficar fora do ecrã.
 
-Os três vinham de `irParaPasso(PASSOS_DO_TRECHO[0])`: ao editar, e ao acrescentar ou guardar. A regra
-nova: **a correcção abre a área do trecho onde o utilizador está, e nada muda de passo sem ele.**
+**O «modal ou toast» que ela pediu já era o que estava lá.** Não é um `alert()` que se fecha e leva a
+mensagem consigo: é uma faixa na própria página, e é a peça `.res.erro` da folha (fundo
+`--falha-fundo`, bordo `--falha`). O que faltava não era a forma do aviso — era ele não desaparecer
+atrás de uma navegação.
 
-- `editarTrecho` **não navega**; abre os painéis onde o trecho se compõe (4 e 5) e mantém a
-  decomposição à vista;
-- **e abre também o último painel**, mesmo quando se está no 4 ou no 5 — sem isso, corrigir os sinais
-  deixava o botão «Guardar a alteração» fora do ecrã, e o utilizador teria de o procurar. É o caso
-  difícil, e é o que a prova mede: em edição e no passo 5, os painéis **4, 5 e 6** estão à vista;
-- acrescentar e guardar **não mudam de passo**. A limpeza dos campos do trecho continua a acontecer
-  (é o que permite acrescentar o seguinte), e a tabela já mostra a linha nova;
-- **cancelar** fica onde está — é o comportamento que ela marcou como CORRECTO e pediu para
-  preservar. Antes ele saltava para o último passo, o que dava o mesmo resultado **por acidente**,
-  porque a edição começava nos passos do trecho; agora é a regra escrita.
-
-**Uma simplificação de caminho:** a primeira tentativa guardava o passo de origem num estado
-(`PASSO_DA_EDICAO`). Saiu — a regra «a área do trecho abre-se inteira» não precisa de memória, e um
-estado a mais é um sítio a mais para divergir.
-
-### 3. O que se mediu
+### O que se mediu
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-celula` | **143 asserções** (eram 134) — secção **20-A** nova, com o cenário do compasso medido de ponta a ponta, e as asserções da navegação reescritas |
-| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · 76/76 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
-| `provar-producao` · `provar-cartao-da-turma` | **151/152** · **6 falhas** — as duas iguais a antes, não são regressões |
+| `provar-celula` | **148 asserções** (eram 145) — a secção 15 ganhou duas: a recusa **não muda de passo** e a mensagem fica na página; a **15-A** é nova e mede a conta no cenário dela (perna 8, braço 8, verbete **8**) |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` | TUDO CERTO · 76/76 · TUDO CERTO · 50/50 · 55/55 |
+| `provar-producao` | **151/152** — a falha conhecida do item do menu |
 | `check-indices` · `check-identidade` | 14/14 · 20/20 |
+| o script emitido da página | `node --check` passa — o teste que apanha os erros de escaping do `bastidores.js` |
 
-**A fixture ganhou o sinal `⌒`.** Faltava-lhe, e a secção 20-A precisa dele: é o sinal que se
-acrescenta a **uma** célula para provar que corrigir não a move. A fixture também passou a chamar ao
-grupo «Posições dos pés e braços», que é o nome de hoje.
+**A lição, e ela é estrutural.** Um número calculado em quatro sítios é um número calculado em zero
+sítios: basta um ficar para trás, e o que fica para trás é sempre o que a pessoa vê primeiro. A conta
+passou a ter **um nome** (`cobertura()`, `pistasDe`, `temposDaCelula`) e a ser **chamada** nos quatro
+— e a prova mede a conta, não a sua repetição.
 
-**Com o quê.** `motor/servidor/bastidores.js` — `pintarPassos` (a área do trecho), `editarTrecho`,
-`cancelarEdicao` (o do verbete) e o handler que acrescenta e guarda · 
-`experimentos/provar-celula.js` — secção 20-A e o estado novo (`compassos`, `linhasComSinal`,
-`paineisVisiveis`).
-
-**Nota de 02/11/2026, acrescentada à entrada anterior — e ela começa por uma correcção minha.**
-
-Ao propor esconder o «Acrescentar trecho» durante a correcção, escrevi: «em modo de edição, estando
-no passo 5 com a área toda aberta, o **Acrescentar trecho** também está visível — e clicá-lo no meio
-de uma edição **acrescenta** em vez de guardar». **Medido, é falso.** Havia **um** botão, e o rótulo
-alternava: `gravar.textContent = EM_EDICAO === null ? "Acrescentar trecho" : "Guardar a alteração"`.
-Em correcção ele dizia «Guardar a alteração» e guardava. Não havia acção errada nenhuma.
-
-**Mas o pedido resolve-se na mesma, e o que se fez é melhor do que o que eu descrevi:** um rótulo que
-muda **não esconde nada** — quem está a corrigir vê o mesmo botão no mesmo sítio e tem de o ler para
-saber o que ele faz agora. Passaram a ser **dois botões**, e cada um só aparece quando se pode usar:
-
-| Botão | Sem correcção | Em correcção |
-|:--|:--|:--|
-| `vb-cel-acrescentar` — «Acrescentar trecho» | **à vista** | **escondido** |
-| `vb-cel-guardar` — «Guardar a alteração» | escondido | **à vista** |
-
-**Uma função, dois botões.** O corpo é o mesmo (`acrescentarOuGuardar()`), e os dois `id` são ligados
-por um `forEach` — duplicar o corpo em dois sítios seria a receita para os dois divergirem ao
-primeiro ajuste. E o `if (EM_EDICAO)` continua a decidir o que acontece, agora com um botão para cada
-coisa em vez de um botão para as duas.
-
-**Medido no browser:** em correcção, no passo 6, `acrescentarEscondido: true`, `guardarVisivel: true`;
-sem correcção, o contrário. `provar-celula` passou a **145 asserções** — três novas guardam o par
-(um sai, o outro entra, e o que entra diz o que faz) e uma guarda o estado sem correcção.
-
-**O que fica registado disto, e é a lição:** afirmei um defeito sem o medir, e ele não existia — mas a
-conversa que ele abriu levou a uma solução melhor do que a que eu tinha proposto. É a terceira vez no
-mesmo dia que uma afirmação minha sobre a tela sai errada por não ter aberto a página: as outras duas
-foram «o modelo tem um eixo» e a citação da licença. **Antes de descrever o que a tela faz, abrir a
-tela.**
+**Com o quê.** `motor/servidor/bastidores.js` — o handler do `submit` do formulário do verbete ·
+`experimentos/provar-celula.js` — secções 15 e 15-A.
 
 ## O que está pendente
 

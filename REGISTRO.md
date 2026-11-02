@@ -31257,3 +31257,63 @@ conversa que ele abriu levou a uma solução melhor do que a que eu tinha propos
 mesmo dia que uma afirmação minha sobre a tela sai errada por não ter aberto a página: as outras duas
 foram «o modelo tem um eixo» e a citação da licença. **Antes de descrever o que a tela faz, abrir a
 tela.**
+
+## 02/11/2026 — A tela ainda somava em fila: a régua das pistas tinha ficado a meio
+
+**A segunda vez que o mesmo defeito apareceu, e desta vez a culpa é minha.** Ela relatou: «as células
+somam 12 tempos e a música declara 8», com o cenário medido — perna `1–2` ×2 no compasso 1 e `1–4` no
+compasso 2, braço igual, em paralelo. **8 tempos, não 12.** E a pergunta dela é a certa: «o motor de
+validação está somando as linhas de forma sequencial/linear, sem considerar a simultaneidade.»
+
+**Estava, e não era o motor.** Na entrega de hoje de manhã a régua das pistas foi aplicada em
+**três** sítios — `motor/nucleo/notacao.js`, `validarVerbete` do `verbete.js`, e a cobertura da
+tabela. Ficou **um quarto** por corrigir: a conta que a página faz **antes de enviar**, no handler do
+`submit`:
+
+```js
+var soma = dirs.reduce(function(t, d){
+  return t + celulas[d].reduce(function(s, c){ return s + temposDaContagem(c.contagem); }, 0);
+}, 0);
+```
+
+Uma soma em linha, **e sem a repetição**: nem pistas, nem `repeticoes`. O `Plié` correcto — pernas 8,
+braços 4 — era **recusado na tela** antes de chegar ao servidor, que já o aceitava. O pior dos dois
+mundos: o dado está certo e a tela diz que não.
+
+**A correção foi uma linha:** `var soma = cobertura();` — a **mesma função** que a tabela usa. Uma
+conta, um sítio; `dirs` e `celulas` deixam de ser lidos ali. E a mensagem passou a mostrar as pistas
+quando há mais de uma («pistas: perna 8 · braço 8 — vale a maior, porque correm ao mesmo tempo»),
+porque «a maior pista tem 8» é um número que ninguém confere a olho — e foi essa incompreensão que
+gerou o relatório.
+
+### A recusa deixou de navegar
+
+Era `irParaPasso(soma < temposDaMusica ? nO : nM)` — o utilizador era atirado para o passo da música
+(ou dos trechos) sem poder ler a mensagem onde estava. Ela: «impede que o professor leia a mensagem de
+erro com calma no contexto em que estava, gerando desorientação». O `irParaPasso` **saiu**: a mensagem
+diz onde se corrige, e **ir é decisão de quem lê**. A mensagem continua a cair no
+`.res[data-res=verbetes]` — um bloco com fundo e borda de falha, dentro do painel 6, que é o único
+passo onde o «Gravar verbete» existe —, com `scrollIntoView` para não ficar fora do ecrã.
+
+**O «modal ou toast» que ela pediu já era o que estava lá.** Não é um `alert()` que se fecha e leva a
+mensagem consigo: é uma faixa na própria página, e é a peça `.res.erro` da folha (fundo
+`--falha-fundo`, bordo `--falha`). O que faltava não era a forma do aviso — era ele não desaparecer
+atrás de uma navegação.
+
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-celula` | **148 asserções** (eram 145) — a secção 15 ganhou duas: a recusa **não muda de passo** e a mensagem fica na página; a **15-A** é nova e mede a conta no cenário dela (perna 8, braço 8, verbete **8**) |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` | TUDO CERTO · 76/76 · TUDO CERTO · 50/50 · 55/55 |
+| `provar-producao` | **151/152** — a falha conhecida do item do menu |
+| `check-indices` · `check-identidade` | 14/14 · 20/20 |
+| o script emitido da página | `node --check` passa — o teste que apanha os erros de escaping do `bastidores.js` |
+
+**A lição, e ela é estrutural.** Um número calculado em quatro sítios é um número calculado em zero
+sítios: basta um ficar para trás, e o que fica para trás é sempre o que a pessoa vê primeiro. A conta
+passou a ter **um nome** (`cobertura()`, `pistasDe`, `temposDaCelula`) e a ser **chamada** nos quatro
+— e a prova mede a conta, não a sua repetição.
+
+**Com o quê.** `motor/servidor/bastidores.js` — o handler do `submit` do formulário do verbete ·
+`experimentos/provar-celula.js` — secções 15 e 15-A.

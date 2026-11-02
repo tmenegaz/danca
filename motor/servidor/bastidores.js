@@ -6386,16 +6386,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O NÚMERO DOS PASSOS NÃO SE ESCREVE À MÃO: sai de `PASSOS_TITULOS`, que é a mesma lista que
      * desenha a tira. Uma renumeração futura leva a mensagem consigo.
      */
-    '  var soma = dirs.reduce(function(t, d){' +
-    '    return t + celulas[d].reduce(function(s, c){ return s + temposDaContagem(c.contagem); }, 0);' +
-    '  }, 0);' +
+    /* A CONTA É A DA MAIOR PISTA — E AQUI AINDA ERA A SOMA EM LINHA (02/11/2026).
+     *
+     * É O DEFEITO QUE ELA RELATOU, com o número exacto: «as células somam 12 tempos e a música
+     * declara 8». Um Plié com a perna a fazer 8 e o braço a fazer 4, em paralelo, era contado como
+     * 12 e RECUSADO NA TELA — antes de chegar ao servidor, que já o aceitava. A régua das pistas
+     * foi aplicada no motor, no validador e na cobertura da tabela, e esta linha ficou para trás:
+     * quatro sítios, três corrigidos. O sintoma é o pior dos dois mundos — o dado está certo e a
+     * tela diz que não.
+     *
+     * Passa a chamar `cobertura()`, que é a MESMA função que a tabela usa: uma conta, um sítio.
+     * `dirs` e `celulas` deixam de ser lidos aqui — quem soma é `pistasDe`, e é de lá que sai a
+     * maior. */
+    '  var soma = cobertura();' +
     '  var temposDaMusica = Number(tempos) || 0;' +
     '  if (soma !== temposDaMusica) {' +
     '    var nM = passoPorRotulo("a música"), nO = passoPorRotulo("para onde");' +
-    '    recado("erro", "Este verbete não fecha a música: as células somam " + soma + " tempos e a música declara " + temposDaMusica + " — " +' +
-    '      (soma < temposDaMusica ? "faltam " + (temposDaMusica - soma) : "sobram " + (soma - temposDaMusica)) + " tempos. " +' +
+    // AS PISTAS VÃO NA MENSAGEM quando há mais do que uma: sem elas, «a maior pista tem 8» é um
+    // número que o professor não tem como conferir a olho — e foi exactamente a incompreensão que
+    // gerou o relatório («o motor está somando as linhas de forma sequencial/linear»).
+    '    var pistasDaVez = pistasDe(CELULAS);' +
+    '    var onde = pistasDaVez.ordem.length > 1' +
+    '      ? " (pistas: " + pistasDaVez.ordem.map(function(k){ return k.toLowerCase() + " " + pistasDaVez.pistas[k]; }).join(" · ") + " — vale a maior, porque correm ao mesmo tempo)"' +
+    '      : "";' +
+    '    recado("erro", "Este verbete não fecha a música: as células ocupam " + soma + " tempos e a música declara " + temposDaMusica + " — " +' +
+    '      (soma < temposDaMusica ? "faltam " + (temposDaMusica - soma) : "sobram " + (soma - temposDaMusica)) + " tempos" + onde + ". " +' +
     '      "Corrija no passo " + nM + " («" + rotuloDoPasso(nM) + "») se a música é outra, ou no passo " + nO + " («" + rotuloDoPasso(nO) + "») se falta — ou sobra — um trecho.");' +
-    '    irParaPasso(soma < temposDaMusica ? nO : nM);' +
+    // A RECUSA NÃO NAVEGA (02/11/2026). Era `irParaPasso(...)`, e o efeito era o relatado: o
+    // utilizador era atirado para o passo 3 sem poder ler a mensagem no sítio onde estava. O
+    // professor é quem decide quando e para onde vai — a mensagem diz onde se corrige, e o botão
+    // de ir continua a fazer o que sempre fez.
     '    return;' +
     '  }' +
     '  var sel = document.getElementById("vbposicao");' +
