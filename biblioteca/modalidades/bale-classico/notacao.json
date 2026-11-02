@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 21,
+  "versao": 22,
   "aplicaseA": [
     "benesh"
   ],
@@ -639,51 +639,6 @@
               ],
               "lado": "D→E",
               "descricao": "a condução passa do braço direito ao braço esquerdo"
-            }
-          ]
-        }
-      }
-    },
-    "Rond de jambe en l’air": {
-      "4|2/4": {
-        "cobre": 3,
-        "posicao": {
-          "membro": "pernas",
-          "termo": "retire"
-        },
-        "celulas": {
-          "devant": [
-            {
-              "contagem": "1",
-              "categoria": "Pé",
-              "sinais": [
-                "-",
-                "5ª"
-              ],
-              "descricao": "rondejambe en l'eir"
-            }
-          ],
-          "a-la-seconde": [
-            {
-              "contagem": "2",
-              "categoria": "Pé",
-              "sinais": [
-                "-",
-                "5ª"
-              ],
-              "descricao": "rondejambe en l'eir"
-            }
-          ],
-          "derriere": [
-            {
-              "contagem": "1",
-              "categoria": "Pé",
-              "sinais": [
-                "-",
-                "-",
-                "5ª"
-              ],
-              "descricao": "rondejambe en l'eir"
             }
           ]
         }
