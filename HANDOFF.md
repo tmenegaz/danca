@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T09:27:27-0300`
-Commit atual: `d74fda1` — fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a correr
+Gerado em: `2026-11-02T09:30:58-0300`
+Commit atual: `e9119d4` — docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,8 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+e9119d4 docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
+afbaeae chore(estrutura): regerar os índices derivados
 d74fda1 fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a correr
 cf1ef52 feat(po): a força e a flexibilidade vêm da anamnese, e a caixa mostra-as pelo nome
 33663bb chore(estrutura): regerar os índices derivados
@@ -102,8 +104,6 @@ bd1298f feat(acervo): envelope/po-20261101-1959.json
 68a760a feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 8b7f897 feat(plano): o plano elicitado vira a fonte do ciclo
 9472d9d feat(acervo): envelope/plano-20261101-1955.json
-e9f1b7a feat(acervo): envelope/.indice.json
-2832a1e chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor

@@ -1513,18 +1513,24 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
 
 O que **não** consigo confirmar, e o senhor tem de decidir ou informar:
 
-- **A produção não foi percorrida página a página após a reorganização de Aula/Notação.** O deploy
-  da Aula 01 foi confirmado no workflow e a raiz respondeu HTTP 200, mas a rota `/aulas/` não foi
-  carregada após este deploy; as demais páginas também não foram verificadas ao vivo.
+- **A produção não foi percorrida página a página.** Em 02/11/2026 carregou-se a **Aula 01** da
+  `batata` (200, com as quatro correções) e leram-se duas respostas de `api/mapa`; **as outras
+  páginas** do pacote (o plano, a notação, a captura) não foram conferidas ao vivo nesta fotografia.
+  A rota `/aulas/` que aqui estava citada **deixou de existir** no reagrupamento de 24/10.
 - **Não sei a distribuição real de uso em produção.** Não há telemetria; o que sei é o que os
   `curl` devolvem.
 - **Não sei se o `TRANSFERENCIA-IA.md` serve o seu caso de uso.** Foi desenhado a partir de uma
-  descrição, não de uma tentativa real de o anexar a outro assistente.
+  descrição, não de uma tentativa real de o anexar a outro assistente. A versão de 02/11/2026 é a
+  primeira escrita **depois** de uma sessão inteira de correções, e não a partir de um resumo — é a
+  melhor aproximação até agora, e continua por testar.
 - **Não sei se as perguntas abertas da §8 foram decididas fora do repositório.** A §8 regista o que
   a pesquisadora respondeu em 25/10/2026, em duas rondas. Continua **sem resposta** apenas
   `alinhamento` (a frequência do passo de confirmação com o PO), e **sem decisão** a possibilidade de
   referências bibliográficas por aula — levantada de passagem, não pedida.
-- **Não verifiquei as 11 provas não versionadas** — não sei se ainda são recuperáveis.
+- **Não verifiquei as 11 provas não versionadas** — não sei se ainda são recuperáveis. Em
+  02/11/2026 descobriu-se que uma delas, a `provar-ajustes-anamnese`, **estava versionada mas a
+  correr pela metade**: 56 asserções em vez de 126. É a demonstração de que «está no `.gitignore`
+  como exceção» não é o mesmo que «corre inteira».
 - **Não sei o estado do KV em produção** — cota, ocupação e envelopes reais não foram medidos
   agora. Medir custa cota diária.
 - **A fotografia envelhece no commit seguinte.** Se o `HEAD` avançou e este documento não, vale o
