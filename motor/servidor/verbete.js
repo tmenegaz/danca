@@ -121,7 +121,7 @@ function ondeEsta(direcao) {
   return direcao ? 'em «' + direcao + '»' : 'no trecho sem direção';
 }
 
-function validarVerbete(verbete, alfabeto, vocabulario) {
+function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
   const erros = [];
   if (!verbete || typeof verbete !== 'object') return { ok: false, erros: ['o verbete não é um objeto'] };
 
@@ -172,6 +172,32 @@ function validarVerbete(verbete, alfabeto, vocabulario) {
     if (verbete.cobre == null) erros.push('o verbete tem de declarar `cobre` (quantos tempos explica)');
     else if (Number(verbete.cobre) !== soma) {
       erros.push('`cobre` diz ' + verbete.cobre + ' tempos e as células somam ' + soma);
+    }
+
+    /* AS CÉLULAS TÊM DE FECHAR A MÚSICA (02/11/2026).
+     *
+     * DEFEITO MEDIDO, e é ele que a pesquisadora viu na Aula 01: o `Battement fondu` está gravado
+     * em «2|4/4» com células que somam 6 tempos, e o `Plié` em «8|4/4» com células que somam 12.
+     * Os dois passaram a gravação porque a única igualdade que se conferia era `cobre` contra a
+     * soma das células — uma conta que o formulário faz de si para si. A MÚSICA, que é a chave do
+     * verbete, não era comparada com nada; e a notação do exercício seguia sem fechar em compasso
+     * nenhum, com a §4 da aula a dizer `conferir` sem nomear o que estava torto.
+     *
+     * A recusa NOMEIA as duas hipóteses, porque são as duas que existem: ou a música declarada é
+     * outra, ou falta (ou sobra) um trecho. Não escolhe por quem grava — e não diz «passo 2» nem
+     * «passo 3»: os números dos passos são da TELA, e este módulo não os conhece. Quem os diz é a
+     * página, que os lê de `PASSOS_DO_VERBETE`.
+     *
+     * `musicaDeclarada` é opcional: as provas chamam `validarVerbete` sem ela, e o que já está
+     * gravado continua a ler-se. É a GRAVAÇÃO que passa a exigir. */
+    if (musicaDeclarada) {
+      const tempos = Number(String(musicaDeclarada).split('|')[0]);
+      if (Number.isFinite(tempos) && tempos > 0 && soma !== tempos) {
+        erros.push('as células somam ' + soma + ' tempos e a música «' + musicaDeclarada
+          + '» declara ' + tempos + ' — '
+          + (soma < tempos ? 'faltam ' + (tempos - soma) : 'sobram ' + (soma - tempos))
+          + '. Ou a música está errada, ou falta um trecho.');
+      }
     }
   }
 
@@ -422,7 +448,7 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     if (!MUSICA.test(chaveMusica)) {
       return { ok: false, status: 400, erro: 'a música tem de ser «<tempos>|<compasso>», por exemplo «8|4/4»' };
     }
-    const conferido = validarVerbete(verbete, dados, lido.vocabulario);
+    const conferido = validarVerbete(verbete, dados, lido.vocabulario, chaveMusica);
     if (!conferido.ok) return { ok: false, status: 400, erro: 'verbete inválido', erros: conferido.erros };
 
     // O QUE SE GRAVA NÃO LEVA `direcoes` (28/10/2026). Se um pedido antigo — ou uma página em

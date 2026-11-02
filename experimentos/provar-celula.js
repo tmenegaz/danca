@@ -154,6 +154,8 @@ const ALFABETO = {
 
 /** O último corpo que a tela mandou gravar — lido no POST, não adivinhado na tela. */
 let ULTIMO_CORPO = null;
+/** Os pedidos de TERMO — cada um com o corpo que a tela mandou. */
+const TERMOS = [];
 
 function servir(html) {
   const srv = http.createServer((req, res) => {
@@ -181,7 +183,14 @@ function servir(html) {
     }
     if (caminho === '/api/bastidores/verbete') return ok('application/json', JSON.stringify(ALFABETO));
     if (caminho === '/api/bastidores/termo') {
-      return ok('application/json', JSON.stringify({ ok: true, termo: 'Sissonne ouverte', id: 'sissonne-ouverte' }));
+      // O PEDIDO É CONTADO E GUARDADO (02/11/2026). O `Enter` no nome passou a criar o exercício,
+      // e o que se quer medir é isso mesmo: que ele cria um TERMO e não grava um verbete.
+      let cru = '';
+      req.on('data', (t) => { cru += t; });
+      return req.on('end', () => {
+        try { TERMOS.push(JSON.parse(cru)); } catch { TERMOS.push(null); }
+        ok('application/json', JSON.stringify({ ok: true, termo: 'Sissonne ouverte', id: 'sissonne-ouverte' }));
+      });
     }
     if (caminho.indexOf('/api/') !== -1) return ok('application/json', '{"ok":true}');
     ok('text/html; charset=utf-8', html);
@@ -211,6 +220,22 @@ function estado() {
     selBloqueado: Boolean(sel && sel.disabled),
     maisBloqueado: Boolean(mais && mais.disabled),
     opacidadeBloqueado: sel ? getComputedStyle(sel).opacity : null,
+    // O «+» DIZ EM QUE ESTADO ESTÁ (02/11/2026): `aria-expanded` substitui o bloqueio que
+    // existia quando o cadastro era outro «modo».
+    maisExpandido: mais ? mais.getAttribute('aria-expanded') : null,
+    // O CADASTRO VIVE DENTRO DO PASSO 1 — é esta a asserção que guarda a mudança: um formulário
+    // que substitui a página inteira não diz em que passo se está.
+    caixaDentroDoPasso1: (() => {
+      const c = q('vb-modo-exercicio');
+      const p1 = c && c.closest ? c.closest('.passo-painel[data-passo="1"]') : null;
+      return Boolean(p1) && p1.contains(c);
+    })(),
+    tiraVisivel: (() => {
+      const t = q('vb-tira');
+      return Boolean(t) && !t.hidden && t.getBoundingClientRect().height > 0;
+    })(),
+    opcoesDoExercicio: sel ? [...sel.options].map((o) => o.value).filter(Boolean) : [],
+    exercicioEscolhido: sel ? sel.value : null,
     foco: document.activeElement ? document.activeElement.id : '',
     // UMA TABELA, UMA LISTA DE TRECHOS (01/11/2026). Era um `<table>` por direção do alfabeto;
     // passou a ser uma só, com a direção como COLUNA — e a coluna pode dizer «sem direção».
@@ -425,54 +450,86 @@ function estado() {
     conferir('a célula sem orientação diz «de frente» em palavras — a coluna não fica em branco',
       /de frente/.test(comExercicio.tabela[0].linhas[0]), comExercicio.tabela[0].linhas[0]);
 
-    console.log('\n3. O «+» ABRE O MODO DO EXERCÍCIO — E O OUTRO SAI');
+    /* 3. O «+» ABRE O CADASTRO DENTRO DO PASSO 1 — E NADA DESAPARECE (02/11/2026).
+     *
+     * ESTA SECÇÃO MEDIA O CONTRÁRIO, E O CONTRÁRIO ERA O DEFEITO. O «+» abria o «MODO B», que
+     * escondia `#vb-modo-verbete` inteiro, escondia a tira dos passos e bloqueava o `select` e o
+     * próprio «+». A pesquisadora, a usar: «o professor não vai saber que quando ele clicar em
+     * cancelar, ele vai para onde de facto ele cria o verbete da aula» — um formulário que
+     * substitui a página inteira e cujo único caminho de saída se chama «Cancelar» não diz onde se
+     * está nem para onde se vai.
+     *
+     * O cadastro passa a viver DENTRO do passo 1. O que se mede, por isso, inverteu-se: o
+     * verbete FICA, o seletor NÃO fica bloqueado, a tira NÃO sai — e o «+» diz em que estado
+     * está. A asserção que guarda a mudança é a do lugar: `#vb-modo-exercicio` tem de estar
+     * dentro do painel do passo 1. */
+    console.log('\n3. O «+» ABRE O CADASTRO DENTRO DO PASSO 1 — E NADA DESAPARECE');
     await noPassoDe('#vb-novo-exercicio');
     await page.click('#vb-novo-exercicio');
     await new Promise((r) => setTimeout(r, 300));
-    const noModoB = await page.evaluate(estado);
-    conferir('o modo do verbete desaparece', noModoB.modoVerbete === false, noModoB.modoVerbete);
-    conferir('e o do exercício aparece', noModoB.modoExercicio, noModoB.modoExercicio);
-    conferir('o seletor fica BLOQUEADO', noModoB.selBloqueado, noModoB.selBloqueado);
-    conferir('o «+» também', noModoB.maisBloqueado, noModoB.maisBloqueado);
-    conferir('e o bloqueio vê-se: a opacidade cai', noModoB.opacidadeBloqueado === '0.4',
-      noModoB.opacidadeBloqueado);
-    conferir('o foco vai para o nome do exercício novo', noModoB.foco === 'vnnome', noModoB.foco);
-    conferir('não há «Gravar verbete» no modo do exercício', noModoB.botaoVerboNoModoB === false,
-      noModoB.botaoVerboNoModoB);
-    conferir('e os campos do verbete não estão no documento',
-      await page.evaluate(() => !document.getElementById('vb-modo-exercicio').querySelector('#vbtempos')));
-    // A TIRA SAI TAMBÉM (01/11/2026). Ela passou a viver FORA do formulário, e por isso deixou de
-    // desaparecer de borla com `#vb-modo-verbete`: sem `pintarPassos` a esconder, ficava a navegar
-    // cinco passos de um formulário que não está no ecrã. O `hidden` sozinho não bastava — a regra
-    // `.passos{display:flex}` vence a do navegador —, e é isso que os dois números abaixo medem.
-    const tiraNoModoB = await page.evaluate(() => {
-      const t = document.getElementById('vb-tira');
-      return { atributo: t.hidden, altura: Math.round(t.getBoundingClientRect().height) };
-    });
-    conferir('a tira dos passos sai do ecrã no modo do exercício',
-      tiraNoModoB.atributo === true && tiraNoModoB.altura === 0, tiraNoModoB);
-    conferir('e o par do exercício também, que é o painel do passo 1',
+    const comCadastro = await page.evaluate(estado);
+    conferir('o cadastro abre DENTRO do painel do passo 1', comCadastro.caixaDentroDoPasso1,
+      comCadastro.caixaDentroDoPasso1);
+    conferir('o formulário do verbete FICA — não é substituído', comCadastro.modoVerbete,
+      comCadastro.modoVerbete);
+    conferir('e o cadastro está à vista', comCadastro.modoExercicio, comCadastro.modoExercicio);
+    conferir('a tira dos passos NÃO sai: é ela que diz onde se está', comCadastro.tiraVisivel,
+      comCadastro.tiraVisivel);
+    conferir('o seletor do exercício continua activo', !comCadastro.selBloqueado, comCadastro.selBloqueado);
+    conferir('e o «+» também', !comCadastro.maisBloqueado, comCadastro.maisBloqueado);
+    conferir('o «+» diz que está aberto (`aria-expanded`)', comCadastro.maisExpandido === 'true',
+      comCadastro.maisExpandido);
+    conferir('o foco vai para o nome do exercício novo', comCadastro.foco === 'vnnome', comCadastro.foco);
+    conferir('não há «Gravar verbete» dentro do cadastro', comCadastro.botaoVerboNoModoB === false,
+      comCadastro.botaoVerboNoModoB);
+    conferir('e os campos do verbete não estão dentro do cadastro',
       await page.evaluate(() => {
-        const p = [...document.querySelectorAll('#form-verbete .passo-painel[data-passo="1"]')];
-        return p.length === 2 && p.every((x) => x.hidden);
+        const c = document.getElementById('vb-modo-exercicio');
+        return !c.querySelector('#vbtempos') && !c.querySelector('#vbposicao');
       }));
 
-    console.log('\n4. O ENTER NÃO GRAVA UM VERBETE COM OS CAMPOS ESCONDIDOS');
+    /* 4. O ENTER NO NOME GRAVA O EXERCÍCIO — E NÃO UM VERBETE COM OS CAMPOS VAZIOS (02/11/2026).
+     *
+     * A asserção anterior era «o Enter não grava um verbete», e o mecanismo era a guarda do modo:
+     * `submit` com a caixa aberta, e o formulário saía. Agora o cadastro é um passo do próprio
+     * formulário, e o `Enter` passou a ter um sentido: grava o exercício que está escrito. O que
+     * se mede é o pedido que sai — um TERMO, nunca um verbete. */
+    console.log('\n4. O ENTER NO NOME GRAVA O EXERCÍCIO, E NÃO UM VERBETE');
+    ULTIMO_CORPO = null;
+    const termosAntesDoEnter = TERMOS.length;
     await page.type('#vnnome', 'Sissonne ouverte');
     await page.keyboard.press('Enter');
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 700));
     const depoisDoEnter = await page.evaluate(estado);
-    conferir('o modo do exercício continua aberto', depoisDoEnter.modoExercicio, depoisDoEnter.modoExercicio);
-    conferir('e nenhum recado de gravação apareceu', !/gravado/i.test(depoisDoEnter.recado), depoisDoEnter.recado);
+    conferir('o Enter manda UM pedido de termo', TERMOS.length === termosAntesDoEnter + 1,
+      { antes: termosAntesDoEnter, depois: TERMOS.length });
+    conferir('…com o nome, a categoria e a tradição que estão nos campos',
+      Boolean(TERMOS[TERMOS.length - 1]) && TERMOS[TERMOS.length - 1].termo === 'Sissonne ouverte'
+      && TERMOS[TERMOS.length - 1].categoria && TERMOS[TERMOS.length - 1].tradicao,
+      TERMOS[TERMOS.length - 1]);
+    conferir('e NENHUM verbete foi enviado', ULTIMO_CORPO === null, ULTIMO_CORPO);
+    conferir('o cadastro fecha', depoisDoEnter.modoExercicio === false, depoisDoEnter.modoExercicio);
+    conferir('e o exercício novo fica escolhido no campo que ele alimenta',
+      depoisDoEnter.exercicioEscolhido === 'Sissonne ouverte', depoisDoEnter.exercicioEscolhido);
 
-    console.log('\n5. GRAVAR O EXERCÍCIO DEVOLVE AO MODO DO VERBETE, COM ELE ESCOLHIDO');
+    /* 5. GRAVAR OUTRA VEZ O MESMO NOME NÃO DUPLICA A LINHA (02/11/2026).
+     *
+     * O termo entra na lista LOCAL para não se esperar por uma leitura do repositório. Mas ele
+     * pode já lá estar — porque a página foi recarregada depois do commit —, e um `option`
+     * repetido é uma segunda verdade na mesma lista. */
+    console.log('\n5. O MESMO EXERCÍCIO NÃO ENTRA DUAS VEZES NA LISTA');
+    await page.click('#vb-novo-exercicio');
+    await new Promise((r) => setTimeout(r, 200));
+    await page.type('#vnnome', 'Sissonne ouverte');
     await page.click('#vb-criar-exercicio');
     await new Promise((r) => setTimeout(r, 700));
-    const gravado = await page.evaluate(estado);
-    conferir('o modo do verbete voltou', gravado.modoVerbete, gravado.modoVerbete);
-    conferir('o seletor está activo outra vez', !gravado.selBloqueado, gravado.selBloqueado);
-    conferir('e o exercício novo está escolhido',
-      await page.evaluate(() => document.getElementById('vbnome').value) === 'Sissonne ouverte');
+    const repetido = await page.evaluate(estado);
+    conferir('o nome aparece uma só vez na lista',
+      repetido.opcoesDoExercicio.filter((x) => x === 'Sissonne ouverte').length === 1,
+      repetido.opcoesDoExercicio);
+    conferir('e continua escolhido', repetido.exercicioEscolhido === 'Sissonne ouverte',
+      repetido.exercicioEscolhido);
+    conferir('o cadastro fechou outra vez', repetido.modoExercicio === false, repetido.modoExercicio);
 
     console.log('\n6. O EDITOR DE TRECHO É DE PÍLULAS, E OS DOIS EIXOS ESTÃO SEPARADOS');
     await noPassoDe('#vbnome'); await page.select('#vbnome', 'Battement tendu');
@@ -664,7 +721,53 @@ function estado() {
     conferir('não há nenhum campo de frase dentro da tabela',
       (await page.evaluate(() => document.querySelectorAll('#vb-tabela input').length)) === 0);
 
-    console.log('\n14. O QUE SE GRAVA LEVA A ORIENTAÇÃO — E NÃO A LEVA QUANDO É EN FACE');
+    /* 14. A GRAVAÇÃO RECUSA UM VERBETE QUE NÃO FECHA A MÚSICA (02/11/2026).
+     *
+     * O DEFEITO QUE ISTO GUARDA é o que a pesquisadora viu na Aula 01: o `Battement fondu` está
+     * gravado em «2|4/4» com células que somam 6 tempos, e o `Plié` em «8|4/4» com células que
+     * somam 12 — os dois passaram a gravação, porque a única igualdade que se conferia era `cobre`
+     * contra a soma das células, uma conta que o formulário faz de si para si. A música, que é a
+     * chave do verbete, não era comparada com nada.
+     *
+     * Aqui a tela está com 4 tempos e um trecho de 2: a gravação tem de recusar, dizer o que falta
+     * e apontar os dois sítios onde se corrige — a música (passo 2) ou os trechos (passo 3). */
+    console.log('\n14. A GRAVAÇÃO RECUSA UM VERBETE QUE NÃO FECHA A MÚSICA');
+    ULTIMO_CORPO = null;
+    await page.evaluate(() => {
+      const f = document.getElementById('form-verbete');
+      if (f) f.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    const recusado = await page.evaluate(estado);
+    conferir('a gravação é RECUSADA, e nada é enviado', ULTIMO_CORPO === null, ULTIMO_CORPO);
+    conferir('a recusa diz quantos tempos faltam',
+      /faltam 2 tempos/.test(recusado.recado), recusado.recado);
+    conferir('e aponta os DOIS sítios: a música e os trechos',
+      /passo 2/.test(recusado.recado) && /passo 3/.test(recusado.recado), recusado.recado);
+    // O NÚMERO DOS PASSOS NÃO É ESCRITO À MÃO: sai da lista que desenha a tira. Se a lista mudar
+    // e a mensagem não, a prova apanha.
+    conferir('…e cada um pelo nome que a tira usa',
+      /«A música»/.test(recusado.recado) && /«Para onde»/.test(recusado.recado), recusado.recado);
+
+    console.log('\n15. FECHADA A MÚSICA, A GRAVAÇÃO PASSA — E LEVA A ORIENTAÇÃO');
+    // O TRECHO QUE FALTA: a contagem que a tela ainda oferece, escolhida como a mão a escolhe.
+    const contagensLivres = (await page.evaluate(estado)).contagens
+      .map((c) => c.valor).filter(Boolean);
+    conferir('a tela oferece a contagem que falta', contagensLivres.length > 0, contagensLivres);
+    // A QUE FECHA: as opções são crescentes, e a última é a que cobre o resto dos dois tempos. A
+    // primeira seria 1 tempo, e o verbete continuaria a não fechar.
+    await clicar('#vb-contagem input[data-valor="'
+      + contagensLivres[contagensLivres.length - 1] + '"]');
+    const sinaisDoTrecho = await page.evaluate(() => {
+      const s = document.querySelector('#vb-sinais input[data-sinal]');
+      return s ? s.getAttribute('data-sinal') : null;
+    });
+    await clicar('#vb-sinais input[data-sinal="' + sinaisDoTrecho + '"]');
+    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    await new Promise((r) => setTimeout(r, 350));
+    const comDoisTrechos = await page.evaluate(estado);
+    conferir('o trecho que faltava entra, e a cobertura fecha a música',
+      /Cobre os 4 tempos/.test(comDoisTrechos.cobertura), comDoisTrechos.cobertura);
     ULTIMO_CORPO = null;
     await page.evaluate(() => {
       const f = document.getElementById('form-verbete');
@@ -684,9 +787,14 @@ function estado() {
     // deixou de a mostrar, e por isso é aqui que se mede que ela não se perdeu.
     conferir('a frase gravada é a do campo, com as duas linhas',
       Boolean(nova) && /Lê-se:/.test(nova.descricao || ''), nova || diagnostico);
-    conferir('o botão de gravar não inventa o campo nas células antigas',
-      Boolean(gravadas) && gravadas.devant.every((c, i) => i === gravadas.devant.length - 1
-        || !('orientacao' in c)), gravadas && gravadas.devant);
+    /* O QUE É OMISSÃO NÃO SE ESCREVE (28/10/2026 — e continua a valer). «En face» é o estado de
+     * omissão: escrevê-lo em todas as células encheria o alfabeto de ruído que não diz nada de
+     * novo. Com a escolha em «croisé», TODAS as células desta gravação levam o campo — e nenhuma
+     * leva «en-face». Era o que o título desta secção prometia e só metade se media. */
+    conferir('as células levam a orientação em vigor, e não a omissão',
+      Boolean(gravadas) && gravadas.devant.length > 1
+      && gravadas.devant.every((c) => c.orientacao === 'croise'),
+      gravadas && gravadas.devant);
 
     console.log('\n15. O «×» TIRA O TRECHO — E O QUE FICA É O QUE SE GRAVA');
     // Volta a 8/4/4, que tem células no alfabeto: é onde o «×» se pode medir sem deixar a
@@ -1056,9 +1164,10 @@ function estado() {
     console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
     process.exit(1);
   }
-  console.log('TUDO CERTO — ' + total + ' asserções: os dois modos não coexistem, os dois eixos');
-  console.log('estão separados, os sinais compõem-se por clique sem se substituírem, a direção e');
-  console.log('a orientação ficam, e a orientação é o que se grava com o trecho.');
+  console.log('TUDO CERTO — ' + total + ' asserções: os dois eixos estão separados, os sinais');
+  console.log('compõem-se por clique sem se substituírem, a direção e a orientação ficam, a orientação');
+  console.log('é o que se grava com o trecho, o cadastro do exercício abre DENTRO do passo 1 sem');
+  console.log('substituir o formulário, e a gravação recusa um verbete que não fecha a música.');
 })().catch((erro) => {
   console.error('erro na prova:', erro);
   process.exit(1);

@@ -61,6 +61,27 @@ function verbeteBom(extra) {
   }, extra || {});
 }
 
+/* O VERBETE DE OITO TEMPOS — a mesma forma, com as células que a música «8|4/4» pede.
+ *
+ * ELE EXISTE PORQUE A MÚSICA PASSOU A SER CONFERIDA (02/11/2026). O `verbeteBom` cobre 4 tempos,
+ * e era gravado em «8|4/4» — uma inconsistência que passava porque nada comparava a chave com as
+ * células, e que é exactamente o defeito que a pesquisadora encontrou no alfabeto publicado (o
+ * `Battement fondu` em «2|4/4» com 6 tempos, o `Plié` em «8|4/4» com 12). A fixture passa a ser
+ * coerente: 8 tempos de células para a música de 8. */
+function verbeteDeOitoTempos(extra) {
+  return verbeteBom(Object.assign({
+    cobre: 8,
+    celulas: {
+      devant: [
+        { contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→', '+'], descricao: 'extensão à frente a partir da 1ª posição' },
+        { contagem: '3–4', categoria: 'Pé', sinais: ['+', '●', '1ª'], descricao: 'retorno à 1ª posição' },
+        { contagem: '5–6', categoria: 'Pé', sinais: ['1ª', '→', '+'], descricao: 'segunda extensão, no compasso seguinte' },
+        { contagem: '7–8', categoria: 'Pé', sinais: ['+', '●', '1ª'], descricao: 'e o retorno' },
+      ],
+    },
+  }, extra || {}));
+}
+
 // ------------------------------------------------------------------ A. a validação
 function aValidacao() {
   console.log('\nA. A VALIDAÇÃO — a mesma régua do motor, aplicada antes de gravar');
@@ -190,7 +211,7 @@ async function aEscrita() {
   };
 
   const criado = await verbete.gravarVerbete(Object.assign({}, base, {
-    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteBom(), acao: 'criar',
+    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'criar',
   }));
   checar('um verbete novo é criado', criado.ok, criado);
   checar('e a versão do alfabeto sobe', criado.versao === Number(ALFABETO_DA_ESCRITA.versao) + 1, criado.versao);
@@ -217,7 +238,7 @@ async function aEscrita() {
   checar('criar o que já existe é recusado com 409', !deNovo.ok && deNovo.status === 409, deNovo);
 
   const editar = await verbete.gravarVerbete(Object.assign({}, base, {
-    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteBom({ cobre: 4 }), acao: 'atualizar',
+    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'atualizar',
   }));
   checar('e editar o que existe é aceito', editar.ok, editar);
 
@@ -503,8 +524,12 @@ async function aOrigemDoVocabulario() {
 
   // OS DOIS BOTÕES PRIMÁRIOS NÃO COEXISTEM. «Gravar verbete» e «Gravar exercício» têm de viver
   // em blocos diferentes, senão a tela volta a ter dois botões com o mesmo peso à vista.
-  const blocoA = (html.match(/<div id="vb-modo-verbete">([\s\S]*?)<\/div>\s*<div id="vb-modo-exercicio"/) || [])[1] || '';
-  const blocoB = (html.match(/<div id="vb-modo-exercicio" hidden>([\s\S]*?)<\/form>/) || [])[1] || '';
+  //
+  // A ORDEM DOS BLOCOS MUDOU (02/11/2026): o cadastro do exercício passou a viver DENTRO do passo
+  // 1, e o passo 1 vem antes do formulário do verbete. A extracção segue a ordem do documento, e
+  // não a que se lembrava.
+  const blocoB = (html.match(/<div id="vb-modo-exercicio" hidden>([\s\S]*?)<div id="vb-modo-verbete">/) || [])[1] || '';
+  const blocoA = (html.match(/<div id="vb-modo-verbete">([\s\S]*?)<\/form>/) || [])[1] || '';
   checar('«Gravar verbete» está só no modo do verbete',
     /Gravar verbete/.test(blocoA) && !/Gravar verbete/.test(blocoB), [blocoA.length, blocoB.length]);
   checar('e «Gravar exercício» só no modo do exercício',
@@ -586,17 +611,34 @@ async function aOrigemDoVocabulario() {
     Boolean(dicionario['[Pé: 1ª → +]']) && !dicionario['Plié'], Object.keys(dicionario).slice(0, 2));
 
 
-  // AS REGRAS DO PAR, medidas no texto do script: o modo B esconde o A, bloqueia o `select` e o
-  // «+», e o `submit` do verbete não passa enquanto o modo do exercício está aberto.
-  checar('o modo do exercício esconde os campos do verbete e bloqueia o par do exercício',
-    /caixaVerbete\.hidden = Boolean\(aberto\)/.test(script)
-    && /caixaExercicio\.hidden = !aberto/.test(script)
-    && /nomes\.disabled = Boolean\(aberto\)/.test(script)
-    && /mais\.disabled = Boolean\(aberto\)/.test(script));
-  checar('e o Enter no modo do exercício não grava um verbete',
+  /* AS REGRAS DO CADASTRO, medidas no texto do script — e a regra mudou (02/11/2026).
+   *
+   * ERA: o «modo B» escondia o «modo A», bloqueava o `select` e o «+», e o `submit` do verbete
+   * não passava enquanto ele estava aberto. A pesquisadora, a usar: «o professor não vai saber
+   * que quando ele clicar em cancelar, ele vai para onde de facto ele cria o verbete da aula».
+   *
+   * PASSA A SER: o cadastro abre DENTRO do passo 1, o formulário fica, a tira fica, e nada é
+   * bloqueado — o «+» diz em que estado está. A guarda do `submit` fica, porque um `Enter` dentro
+   * do cadastro não pode gravar um verbete que ninguém preencheu. */
+  checar('o cadastro do exercício abre e fecha sem esconder o formulário nem bloquear o par',
+    /caixaExercicio\.hidden = !aberto/.test(script)
+    && /mais\.setAttribute\("aria-expanded"/.test(script)
+    && !/caixaVerbete\.hidden = Boolean\(aberto\)/.test(script)
+    && !/nomes\.disabled = Boolean\(aberto\)/.test(script));
+  checar('e o Enter no cadastro não grava um verbete',
     /if \(caixaExercicio && !caixaExercicio\.hidden\) return;/.test(script));
-  checar('e ao gravar o exercício, o modo volta com ele escolhido',
-    /modoExercicio\(false\);/.test(script) && /agora o verbete dele/.test(script));
+  checar('e ao gravar o exercício, ele fica escolhido no campo que alimenta',
+    /modoExercicio\(false\);/.test(script) && /já está na lista e escolhido/.test(script));
+  checar('e o Enter no nome cria o exercício, em vez de submeter o formulário',
+    /ev\.key !== "Enter"/.test(script) && /vb-criar-exercicio"\)\.click\(\)/.test(script));
+  /* A GRAVAÇÃO RECUSA UM VERBETE QUE NÃO FECHA A MÚSICA (02/11/2026) — a regra vive nos dois
+   * lados, e é de propósito: a tela diz ONDE se corrige, e o servidor garante que ninguém a
+   * contorna com uma página antiga em cache. */
+  checar('a tela compara a soma das células com os tempos da música, antes de enviar',
+    /soma !== temposDaMusica/.test(script) && /passoPorRotulo\("a música"\)/.test(script));
+  checar('…e o servidor também, com a música como chave',
+    /validarVerbete\(verbete, dados, lido\.vocabulario, chaveMusica\)/.test(
+      fs.readFileSync(path.join(RAIZ, 'motor', 'servidor', 'verbete.js'), 'utf8')));
 }
 
 aValidacao();
