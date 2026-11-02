@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 27,
+  "versao": 28,
   "aplicaseA": [
     "benesh"
   ],
@@ -523,60 +523,6 @@
       "foram migrados na mesma alteração. Manter as duas seria manter duas verdades sobre o mesmo",
       "exercício."
     ],
-    "Battement dégagé": {
-      "4|2/4": {
-        "cobre": 6,
-        "posicao": {
-          "membro": "pes",
-          "termo": "premiere-position"
-        },
-        "celulas": {
-          "devant": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "D",
-                "1ª",
-                "→",
-                "+",
-                "●",
-                "1ª"
-              ],
-              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo\nLê-se: Pé, lado direito, primeira posição, conduz a, à frente, fecha, primeira posição."
-            }
-          ],
-          "a-la-seconde": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "1ª",
-                "→",
-                "-",
-                "●",
-                "1ª"
-              ],
-              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo\nLê-se: Pé, primeira posição, conduz a, ao lado, fecha, primeira posição."
-            }
-          ],
-          "derriere": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "1ª",
-                "→",
-                "×",
-                "●",
-                "1ª"
-              ],
-              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo\nLê-se: Pé, primeira posição, conduz a, atrás, fecha, primeira posição."
-            }
-          ]
-        }
-      }
-    },
     "Battement fondu": {
       "2|4/4": {
         "cobre": 6,
