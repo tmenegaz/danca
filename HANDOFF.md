@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T09:50:55-0300`
-Commit atual: `2a7f13f` — docs(registro): as limitações de conhecimento desta fotografia, medidas
+Gerado em: `2026-11-02T09:54:28-0300`
+Commit atual: `8175264` — docs(registro): a fotografia da §4 por compasso e do aspecto físico no plano
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,8 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+8175264 docs(registro): a fotografia da §4 por compasso e do aspecto físico no plano
+0cb2e54 fix(musicalidade): a §4 consolida por compasso, e o aspecto físico entra no plano
 2a7f13f docs(registro): as limitações de conhecimento desta fotografia, medidas
 e9119d4 docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
 afbaeae chore(estrutura): regerar os índices derivados
@@ -102,8 +104,6 @@ bd1298f feat(acervo): envelope/po-20261101-1959.json
 22a6799 feat(acervo): envelope/.indice.json
 8fe6474 chore(estrutura): reancorar a cadeia das fontes alteradas
 98d9a5f chore(estrutura): regerar os índices derivados
-68a760a feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-8b7f897 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor

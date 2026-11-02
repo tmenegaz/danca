@@ -160,12 +160,18 @@ Verificado nesta fotografia, com os comandos da §9.
 - **A publicação de 01–02/11/2026 foi verde em todas as Actions.** `Publicar as escolas`,
   `Publicar a raiz`, `Reancorar a cadeia` e `Regerar os índices` concluíram com sucesso nos commits
   `cf1ef52` e `d74fda1`. **CONFIRMADO** pela API do GitHub.
-- **O ar serve a Aula 01 com as correções de `cf1ef52`/`d74fda1`** — «(o espaço e o material)», a
-  proveniência como dois links, o «Marco da Aula 02» numa linha. **CONFIRMADO** em 02/11/2026. **Já
-  não é o que o gerador produz:** a §4 desta entrega (consolidada por compasso) e o bloco 10 do plano
-  ainda **não foram publicados**, e é a pesquisadora quem decide quando — ela vai **expurgar a escola
-  `batata` e recriá-la do zero** para ver os ajustes a funcionar de ponta a ponta. **PENDENTE**
-  (publicação), **CONFIRMADO** (o que o gerador produz, medido no `.md` gerado).
+- **O ar serve a Aula 01 e o plano desta entrega.** Uma carga por página, no fim: `aula-01` **200**
+  com os oito títulos, «3. Distribuição do tempo pelos blocos» e «Os compassos desta aula» (e
+  «Exercícios neste bloco» já não aparece); `plano` **200** com «Aspecto físico — força e
+  flexibilidade» antes da música. **CONFIRMADO** em 02/11/2026, depois do push — a Action
+  `Publicar as escolas` corre em cada push e **publica sem passo manual**: dizer «não publiquei»
+  teria sido falso. É a mesma família do «o worktree não sabe que o remoto mudou» — supor o que o
+  outro lado faz, sem lá olhar.
+- **A expectativa de que a publicação ficaria por fazer estava errada**, e vale a pena registá-lo: o
+  plano era não publicar, porque ela vai expurgar a `batata`. Mas o `Publicar as escolas` é um
+  workflow de push e correu — as quatro Actions de `8175264` ficaram `success`. Publicar não estraga
+  nada (o expurgo apaga), e **não publicar não era uma opção que este repositório oferecesse.**
+  **CONFIRMADO** pela API do GitHub e pela leitura das duas páginas.
 - **A §4 consolidava por MÚSICA e afirmava «exercícios neste bloco: nenhum».** As duas coisas
   estavam erradas: as três linhas de exercício da aula trazem `Tempos` e `Compasso`, e o verbete traz
   a grade das contagens. Passou a **consolidar por compasso**, um exercício uma vez só, e a prova
@@ -784,7 +790,8 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; **`b1097a0d…`** (ciclo) e **`73087073…`** (aula 01) |
 | `node tools/regerar-derivados.js … --escrever` | **2 fontes reescritas** (`-plano.md` e `-aula-01.md`); as outras cinco iguais |
 | **não executado** | `provar-plano-matriz.js` (falha na rota `/api/mapa` — **já falhava em `HEAD`**); `provar-aula-prosa.js` e `provar-escopo-da-aula.js` (fixtures de escolas expurgadas) |
-| **ao ar** | **não publicado nesta entrega, de propósito.** A pesquisadora vai **expurgar a escola `batata` e recriá-la do zero** para ver os ajustes a funcionar de ponta a ponta: publicar agora seria publicar o que vai ser apagado |
+| **ao ar** | uma carga por página, no fim: `/bale-nivel-1-teste-2/aula-01` **200** com «3. Distribuição do tempo pelos blocos» e «Os compassos desta aula»; `/bale-nivel-1-teste-2/plano` **200** com «Aspecto físico — força e flexibilidade». A Action `Publicar as escolas` publica em cada push — **não há passo manual**, e o registo anterior que dizia «fica para o deploy» estava a supor um controle que não existe |
+| Actions de `8175264` | `Reancorar a cadeia`, `Publicar as escolas`, `Regerar os índices` e `Publicar a raiz` — as quatro `completed / success` |
 
 ### Executado na fotografia anterior (02/11/2026 — a aula deixa de afirmar o que ninguém escreveu)
 

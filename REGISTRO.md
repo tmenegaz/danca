@@ -30362,6 +30362,13 @@ e os dezoito schemas dos professores (a propriedade, propagada com `gerar-schema
 «abrir o registro completo» · `validar-plano-ciclo` 13 campos extraídos · `check-pacote` 0 erro /
 0 aviso · `hash-ciclo --check` cadeia intacta.
 
+**Uma suposição corrigida no fim, e é a mesma de sempre.** A entrega ia a caminho do `main` com a
+expectativa de **não** ser publicada — ela vai expurgar a `batata`, e publicar o que vai ser apagado
+parecia trabalho perdido. Mas o `Publicar as escolas` é um **workflow de push**: correu, e o ar passou
+a servir a §4 nova e o plano com o aspecto físico. **Não publicar não era uma opção que este
+repositório oferecesse**, e dizê-lo teria sido falso. É a família do «o worktree não sabe que o remoto
+mudou»: supor o que o outro lado faz sem lá olhar.
+
 **O que ficou deliberadamente em aberto.** A **Regra 4** (`REGRAS.md`, congelado) continua a usar a
 expressão «pré-requisitos de força e flexibilidade» e o campo que a alimentava era o do espaço. A
 contradição está registada na C20, com as duas leituras possíveis, e **não se resolve mexendo no
