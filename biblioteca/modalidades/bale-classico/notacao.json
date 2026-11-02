@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 29,
+  "versao": 30,
   "aplicaseA": [
     "benesh"
   ],
@@ -522,71 +522,6 @@
       "A FORMA ANTIGA (segmentos, com o compasso escrito à mão) deixou de existir: os quatro verbetes",
       "foram migrados na mesma alteração. Manter as duas seria manter duas verdades sobre o mesmo",
       "exercício."
-    ],
-    "Grand battement": {
-      "8|4/4": {
-        "cobre": 8,
-        "posicao": {
-          "membro": "pes",
-          "termo": "cinquieme-position"
-        },
-        "celulas": {
-          "devant": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "5ª",
-                "→",
-                "+",
-                "●",
-                "5ª"
-              ],
-              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, à frente, fecha, quinta posição."
-            }
-          ],
-          "a-la-seconde": [
-            {
-              "contagem": "3–4",
-              "categoria": "Pé",
-              "sinais": [
-                "5ª",
-                "→",
-                "-",
-                "●",
-                "5ª"
-              ],
-              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, ao lado, fecha, quinta posição."
-            },
-            {
-              "contagem": "7–8",
-              "categoria": "Pé",
-              "sinais": [
-                "5ª",
-                "→",
-                "-",
-                "●",
-                "5ª"
-              ],
-              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, ao lado, fecha, quinta posição."
-            }
-          ],
-          "derriere": [
-            {
-              "contagem": "5–6",
-              "categoria": "Pé",
-              "sinais": [
-                "5ª",
-                "→",
-                "×",
-                "●",
-                "5ª"
-              ],
-              "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.\nLê-se: Pé, quinta posição, conduz a, atrás, fecha, quinta posição."
-            }
-          ]
-        }
-      }
-    }
+    ]
   }
 }
