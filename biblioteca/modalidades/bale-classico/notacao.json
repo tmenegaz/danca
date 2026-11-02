@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 25,
+  "versao": 26,
   "aplicaseA": [
     "benesh"
   ],
@@ -523,70 +523,6 @@
       "foram migrados na mesma alteração. Manter as duas seria manter duas verdades sobre o mesmo",
       "exercício."
     ],
-    "Port de bras": {
-      "12|3/4": {
-        "cobre": 12,
-        "posicao": {
-          "membro": "bracos",
-          "termo": "premiere-position-bracos"
-        },
-        "lado": [
-          "D",
-          "E"
-        ],
-        "celulas": {
-          "devant": [
-            {
-              "contagem": "1–3",
-              "categoria": "Braço",
-              "sinais": [
-                "1ª",
-                "→",
-                "2ª",
-                "⌒"
-              ],
-              "lado": "D+E",
-              "descricao": "os dois braços abrem em arco até a 2ª posição"
-            },
-            {
-              "contagem": "1–3",
-              "categoria": "Braço",
-              "sinais": [
-                "2ª",
-                "→",
-                "3ª",
-                "⌒"
-              ],
-              "lado": "D+E",
-              "descricao": "os dois braços fecham em arco até a 3ª posição, acima da cabeça (5ª em RAD e Vaganova)"
-            },
-            {
-              "contagem": "1–3",
-              "categoria": "Braço",
-              "sinais": [
-                "3ª",
-                "→",
-                "1ª",
-                "⌒"
-              ],
-              "lado": "D+E",
-              "descricao": "os dois braços retornam em arco à 1ª posição"
-            },
-            {
-              "contagem": "1–3",
-              "categoria": "Braço",
-              "sinais": [
-                "D",
-                "→",
-                "E"
-              ],
-              "lado": "D→E",
-              "descricao": "a condução passa do braço direito ao braço esquerdo"
-            }
-          ]
-        }
-      }
-    },
     "Battement dégagé": {
       "4|2/4": {
         "cobre": 6,
