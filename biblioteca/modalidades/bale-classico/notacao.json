@@ -73,7 +73,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 15,
+  "versao": 16,
   "aplicaseA": [
     "benesh"
   ],
@@ -438,50 +438,63 @@
           "termo": "premiere-position"
         },
         "celulas": {
-          "devant": [
+          "": [
             {
-              "contagem": "1–4",
+              "contagem": "1–2",
               "categoria": "Perna",
               "sinais": [
+                "ED",
                 "1ª",
-                "↓"
-              ],
-              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce"
-            },
-            {
-              "contagem": "1–4",
-              "categoria": "Perna",
-              "sinais": [
                 "↓",
                 "↑"
               ],
-              "descricao": "os apoios sobem e o eixo retorna"
-            }
-          ],
-          "": [
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Perna, en dehors, primeira posição, cede, sobe.",
+              "repeticoes": 2
+            },
             {
               "contagem": "1–2",
               "categoria": "Braço",
               "sinais": [
-                "↓",
-                "⌒"
+                "⌒",
+                "2ª",
+                "→",
+                "1ª",
+                "→",
+                "2ª"
               ],
-              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, cede, arco."
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, arco, segunda posição, conduz a, primeira posição, conduz a, segunda posição.",
+              "repeticoes": 2
             },
             {
-              "contagem": "3–4",
+              "contagem": "1–4",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "1ª",
+                "↓",
+                "↑",
+                "→",
+                "2ª"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Perna, en dehors, primeira posição, cede, sobe, conduz a, segunda posição."
+            },
+            {
+              "contagem": "1–4",
               "categoria": "Braço",
               "sinais": [
+                "⌒",
+                "2ª",
                 "→",
-                "+",
-                "-",
-                "⌒"
+                "prep",
+                "→",
+                "1ª",
+                "→",
+                "2ª"
               ],
-              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, conduz a, à frente, ao lado, arco."
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, arco, segunda posição, conduz a, preparatória, conduz a, primeira posição, conduz a, segunda posição."
             }
           ]
-        },
-        "_porQue": "cobre = a maior pista (Perna 8, Braço 4): os braços correm EM PARALELO com as pernas, e a soma linear dava 12 numa música de 8."
+        }
       }
     },
     "Battement tendu": {
