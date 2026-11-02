@@ -3,10 +3,10 @@
   "worker": "breu",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "sapo-bailarino",
-    "nome": "Sapo Bailarino"
+    "slug": "coqui-de-redinha",
+    "nome": "Coqui de Redinha"
   },
-  "responsavel": "Sapo Bailarino",
+  "responsavel": "Coqui de Redinha",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -373,13 +373,28 @@
         "slug": "cafe-no-bule",
         "nome": "Cafe No Bule"
       }
+    },
+    {
+      "em": "2026-11-02T16:59:08.409473+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "coqui-de-redinha",
+        "nome": "Coqui de Redinha"
+      },
+      "responsavel": "Coqui de Redinha",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "pe-torto",
+          "nome": "Pé Torto",
+          "desde": "2026-11-01T20:25:22.490Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "sapo-bailarino",
+        "nome": "Sapo Bailarino"
+      }
     }
   ],
-  "professores": [
-    {
-      "slug": "pe-torto",
-      "nome": "Pé Torto",
-      "desde": "2026-11-01T20:25:22.490Z"
-    }
-  ]
+  "professores": []
 }

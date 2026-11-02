@@ -1,0 +1,22 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-breu
+type: Ciclo
+professor: Coqui de Redinha
+ciclo: 01
+variante: breu
+hash_conteudo: caacf74291a57dde3bf5dced923bd15179de1865e4fb4c77814cf03597ac0bc9
+parentHash: 
+hash: 984c97ffc7a14d042982beca72a9febc4d3092ba799b5a6450be976e832b4e35
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-02
+cobertura:
+  - professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf
+  - professores/coqui-de-redinha/ciclos/ciclo-01.conf
