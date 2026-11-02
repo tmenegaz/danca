@@ -4,11 +4,12 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `a99196e`). Nesta entrega: o **cadastro do exercício
-> é o passo 1** — deixou de ser um «modo» que escondia o formulário e a tira e cujo único caminho de
-> saída se chamava «Cancelar»; a **gravação do verbete passou a conferir a música** (as células têm de
-> fechar os tempos declarados) e diz onde se corrige — passo 2 ou passo 3; e a **Regra 15 foi
-> substituída**, com nota no `REGRAS.md` e motivo declarado.
+> **Última fotografia:** 02/11/2026 (base local `804000a`). Nesta entrega: o verbete passou a ter
+> **seis passos**, e o **exercício novo é o passo 1** — o «+», o «Gravar exercício» e o «Cancelar»
+> deixaram de existir, e quem grava o termo é o **«Seguir →»** que já existia; a **gravação do
+> verbete confere a música** (as células têm de fechar os tempos declarados) e diz onde se corrige —
+> passo 3 (a música) ou passo 4 (para onde); e a **Regra 15 foi substituída**, com nota no
+> `REGRAS.md` e motivo declarado.
 >
 > **Entrega anterior** (base `2a7f13f`). Nesta entrega: a **§4 deixou de dizer
 > uma coisa falsa** — afirmava «exercícios neste bloco: nenhum» sobre o bloco de musicalidade, e as
@@ -178,12 +179,14 @@ Verificado nesta fotografia, com os comandos da §9.
   workflow de push e correu — as quatro Actions de `8175264` ficaram `success`. Publicar não estraga
   nada (o expurgo apaga), e **não publicar não era uma opção que este repositório oferecesse.**
   **CONFIRMADO** pela API do GitHub e pela leitura das duas páginas.
-- **O cadastro do exercício é o PASSO 1, e não um «modo».** Ele vivia num bloco que escondia
-  `#vb-modo-verbete` inteiro, escondia a tira dos passos e bloqueava o `select` e o «+» — quem
-  criava um exercício deixava de ver em que passo estava, e «Cancelar» era a única saída, sem dizer
-  para onde ia. Passou a viver **dentro do passo 1**; nada desaparece, e o «+» diz em que estado
-  está (`aria-expanded`). **CONFIRMADO** por `provar-celula` (dez asserções novas, incluindo «o
-  cadastro abre DENTRO do painel do passo 1» e «a tira NÃO sai»).
+- **O verbete tem SEIS passos, e o exercício novo é o primeiro.** O «+» que abria um cadastro, o
+  «Gravar exercício» e o «Cancelar» **deixaram de existir**: o passo 1 são os campos do exercício
+  novo (nome, categoria, tradição, carregar as turmas iniciais), o **«Seguir →»** é que grava o
+  termo, e avançar sem nome não grava nada. O seletor do exercício desceu para o passo 2, com a
+  frase e a posição; a música é o 3, o «para onde» o 4, os sinais o 5, a decomposição o 6.
+  **CONFIRMADO** por `provar-celula` (130 asserções, incluindo «não tem «+»», «nem «Gravar
+  exercício» nem «Cancelar»», «o «Seguir →» manda UM pedido de termo», «avançar sem nome não grava
+  nada») e por `provar-verbete`.
 - **O exercício novo já está na lista ao avançar, e nada disto toca no KV.** O `POST
   /api/bastidores/termo` grava no **repositório** (`biblioteca/modalidades/bale-classico/
   vocabulario.json`, por `termo-repo.js`) e devolve o termo; a lista que `GET
@@ -270,7 +273,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | Índice de envelopes com resumo invalidável | **CONFIRMADO** | `motor/nucleo/porta.js` (`VERSAO_DO_RESUMO = 4`) |
 | Âncora e cadeia de proveniência | **CONFIRMADO** | `tools/hash-ciclo.sh` |
 | A §4 da aula como vista consolidada da musicalidade, por compasso | **CONFIRMADO** 02/11/2026 — uma linha por exercício (o mesmo em Barra, Centro e Expressão é uma só), com `Tempos` e a contagem *e* o que cai nela; `conferir` onde a grade do verbete não fecha. Medido no `.md` gerado e nas cinco asserções do `provar-o-que-vem-do-dado`. | `motor/nucleo/derivar-ciclo.js` (§4) |
-| O cadastro do exercício como passo 1 do verbete, e o termo novo na lista ao avançar | **CONFIRMADO** 02/11/2026 — abre dentro do painel do passo 1 (a tira fica, o formulário fica, nada é bloqueado); «Gravar exercício» grava no vocabulário do repositório e deixa-o escolhido; `Enter` no nome grava o exercício, não o verbete. **Zero KV.** | `motor/servidor/bastidores.js`, `motor/servidor/termo-repo.js` |
+| O exercício novo como passo 1 do verbete — seis passos, sem «+» nem botões próprios | **CONFIRMADO** 02/11/2026 — o passo 1 tem os quatro controlos e mais nada; «Seguir →» grava o termo no vocabulário do repositório e avança para o passo 2 com ele escolhido; avançar sem nome não grava nada; «Limpar» e «Editar» levam ao passo 2. **Zero KV.** | `motor/servidor/bastidores.js`, `motor/servidor/termo-repo.js` |
 | A gravação do verbete confere a música | **CONFIRMADO** 02/11/2026 — as células têm de somar os tempos da música declarada; a recusa nomeia os passos 2 e 3, e o servidor recusa também (`validarVerbete` recebe a música). | `motor/servidor/verbete.js`, `motor/servidor/bastidores.js` |
 | O aspecto físico — força e flexibilidade — no PLANO, lido das anamneses da turma | **CONFIRMADO** 02/11/2026 — bloco 10 do plano (`aspecto-fisico`, descritor `lidoDasAnamneses`, quinze campos em dois grupos); a porta consolida por aspecto e marca o ponto de atenção pela ordem das opções da anamnese. Sem leitura, a secção declara a lacuna. | `porta/plano/conteudo/plano.json`, `porta/index.html`, `motor/nucleo/derivar-plano-ciclo.js` |
 
@@ -585,18 +588,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     e a cópia da porta ficou congelada no dia em que nasceu — quem mexesse em `porta/` reprovava no
     Circuito. A cópia foi refrescada (não apagada: apagar um ciclo é decisão da pesquisadora), e o
     remédio de fundo é o **expurgo da escola**. **DECIDIDO** 02/11/2026.
-49. **O CADASTRO DO EXERCÍCIO É O PASSO 1, E NÃO UM MODO.** Um formulário que substitui a página
-    inteira e cujo único caminho de saída se chama «Cancelar» não diz onde se está nem para onde se
-    vai. Ele abre **dentro** do passo 1, com a tira à vista; «Cancelar» fecha só o cadastro; e o
-    exercício criado fica escolhido no campo que ele alimenta. **DECIDIDO** 02/11/2026.
+49. **O EXERCÍCIO NOVO É O PASSO 1 — E NÃO UM «+» NEM UM MODO.** Duas correções no mesmo dia. A
+    primeira tirou o «modo» que substituía a página inteira; a segunda tirou o «+» e os dois botões
+    que restavam, porque a pesquisadora queria **um passo a mais**, e um passo não tem vida própria:
+    avança-se com a navegação que todos têm. São **seis**: o exercício novo, o exercício, a música, o
+    para onde, os sinais, a decomposição. Quem grava o termo é o **«Seguir →»**; avançar sem nome não
+    grava nada. **DECIDIDO** 02/11/2026.
 50. **O QUE JÁ VAI PARA O REPOSITÓRIO NÃO PRECISA DE KV — E NÃO GASTA NENHUM.** O termo novo é
     escrito no vocabulário da modalidade (Contents API) e a lista de exercícios é lida do **mesmo
     ficheiro**. A tela acrescenta-o localmente enquanto não há outra leitura: o pedido menor é
     nenhum. **DECIDIDO** 02/11/2026.
 51. **A GRAVAÇÃO CONFERE A MÚSICA, E APONTA ONDE SE CORRIGE.** `cobre` contra a soma das células é
     uma conta do formulário consigo mesmo; a música é a chave do verbete e tem de fechar com as
-    células. A recusa nomeia os dois sítios — a música (passo 2) e os trechos (passo 3) — e o
-    número dos passos vem da lista que desenha a tira. A regra vive nos dois lados: a tela recusa
+    células. A recusa nomeia os dois sítios — a música (passo 3) e os trechos (passo 4) — e o
+    número dos passos vem da lista que desenha a tira, por isso a renumeração de 02/11/2026 levou a
+    mensagem consigo. A regra vive nos dois lados: a tela recusa
     antes de enviar e o servidor garante que uma página em cache não a contorna. **DECIDIDO**
     02/11/2026.
 52. **A REGRA 15 FOI SUBSTITUÍDA PELO QUE O CÓDIGO FAZ, E O `REGRAS.md` DIZ ISSO.** «Bloco próprio +
@@ -627,8 +633,9 @@ pedi-los outra vez era a mesma redundância da quarta coluna. As outras três (`
 nelas muda o que o documento publica. Falta ainda a decisão dela sobre essa fronteira. O **bloco por pílulas** deixou de faltar: desde `9b318fe` não há
 nenhuma lista suspensa no trecho, e a notação compõe-se de cliques. E a **arrumação do formulário**
 deixou de estar em aberto: ela viu as duas bancadas e escolheu **os passos** — «o Step, apesar de ter
-mais cliques, ele é mais fácil de entender» —, e o formulário passou a **seis passos, um de cada vez**,
-com o trecho **editável** (`d7e71ff`). A **arrumação** também já não está em aberto: a 01/11/2026 ela pediu o contrário do
+mais cliques, ele é mais fácil de entender» —, e o formulário passou a passos, um de cada vez, com o
+trecho **editável** (`d7e71ff`). Desde 02/11/2026 são **seis**, e o primeiro é o **exercício novo**:
+o «+» que abria o cadastro deixou de existir e criar o exercício é o passo. A **arrumação** também já não está em aberto: a 01/11/2026 ela pediu o contrário do
 que se tinha feito a 31/10 — **o formulário volta ao padrão** (à esquerda, com a listagem presa à
 direita) e a **tira dos passos sai para fora do `<form>`**, modelo da turma. Com a tira fora, os sete
 passos ficaram **cinco**: o exercício, a frase e a posição são um só (`b0d781f`), e o alfabeto ganhou
@@ -835,7 +842,17 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — o cadastro é o passo 1, e a gravação confere a música)
+### Executado nesta fotografia (02/11/2026 — seis passos, e o exercício novo é o primeiro)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **130 de 130** — o mapa dos passos, as secções 1 e 3–6 reescritas: seis passos na tira, «não tem «+»», «nem «Gravar exercício» nem «Cancelar»», «o «Seguir →» manda UM pedido de termo», «avançar sem nome não grava nada», «o mesmo exercício não entra duas vezes na lista» |
+| `node experimentos/provar-verbete.js` · `provar-producao.js` | TUDO CERTO · **151/152** (o item do menu — falha igual em `HEAD`) |
+| `node experimentos/provar-acordeoes.js` · `provar-vao-do-botao.js` · `provar-menu-da-producao.js` | TUDO CERTO · **50/50** · **55/55** |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| **ao ar** | o push publica (Action `Publicar as escolas`); a conferência é a da página da Produção a servir seis passos |
+
+### Executado na fotografia anterior (02/11/2026 — o cadastro é o passo 1, e a gravação confere a música)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1309,6 +1326,13 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **O exercício novo é o passo 1, e o «+» deixou de existir.** A primeira tentativa
+  moveu os campos do cadastro para dentro do passo 1 e manteve o «+», o «Gravar exercício» e o
+  «Cancelar» — «não é isso: eu vou ter um step a mais». A segunda tirou-os: são **seis passos**, o
+  primeiro são os campos do exercício novo, e quem grava o termo é o **«Seguir →»** que já existia.
+  Avançar sem nome não grava nada; «Limpar» e «Editar» levam ao passo 2, onde vive o seletor. O
+  rótulo do passo 1 encurtou para «Exercício novo» porque a tira cortava o mais comprido. 130
+  asserções em `provar-celula`.
 - **02/11/2026** — **O cadastro do exercício é o passo 1, e a gravação confere a música.** O «+» do
   verbete abria um «modo» que escondia o formulário e a tira dos passos e bloqueava o `select`; a
   pesquisadora: «o professor não vai saber que quando ele clicar em cancelar, ele vai para onde de

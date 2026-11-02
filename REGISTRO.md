@@ -30500,3 +30500,49 @@ continua numerada e continua a existir** — o que muda é o que ela manda cumpr
 **Com o quê.** `grep` no repositório inteiro: nenhum `musicalidade-*.md`, e a única menção a «arquivo
 paralelo» fora do `REGRAS.md` era a pendência desta fotografia. A substituição mede-se no que já
 existe — `provar-o-que-vem-do-dado` (a §4 vem do dado) e `provar-celula` (a gravação confere a música).
+
+## 02/11/2026 — O exercício novo é o passo 1: seis passos, e o «+» deixou de existir
+
+**O que motivou.** A pesquisadora, ao ver o que eu tinha feito: «somente esses campos — exercício
+novo, categoria, tradição e carregar as turmas iniciais — vão ser o step 1. O step 2 passa a ser
+então o que antes era o step 1, e assim por diante, então agora eu vou ter seis steps ao todo. E esse
+botão de mais que está dentro do exercício a escolher, esse botão de mais que abre então aqueles
+campos, deixa de existir. Você não fez isso.»
+
+**O que eu tinha feito, e porque estava errado.** Peguei nos campos do cadastro e **movi-os para
+dentro do painel do passo 1**, mantendo o «+», o «Gravar exercício» e o «Cancelar». O resultado não
+era um passo a mais: era o mesmo widget, mais abaixo. A pesquisadora queria que a criação fosse **o
+passo**, e um passo não tem botões próprios — tem a navegação que todos têm.
+
+**O que foi decidido.**
+
+- **Seis passos**, e o primeiro é o exercício novo (nome, categoria, tradição de referência,
+  carregar as turmas iniciais). O antigo passo 1 — o exercício a escolher, a frase e a posição — é
+  agora o **passo 2**; a música é o 3, o «para onde» o 4, os sinais o 5, a decomposição o 6.
+- **O «+» deixou de existir**, e com ele o «Gravar exercício» e o «Cancelar»: **quem grava é o
+  «Seguir →»** que já existia. Sem nome escrito, avançar não grava nada — quem só quer editar um
+  verbete que já existe passa pelo passo 1 sem escrever.
+- **O seletor do exercício desceu para o passo 2**, com a frase e a posição. Era um painel à parte,
+  por cima, porque o «modo» o bloqueava; sem modo, um painel fora da numeração seria um passo sem
+  número.
+- **A gravação continua a não gastar KV**: o `POST /api/bastidores/termo` grava no vocabulário do
+  repositório e a lista que a rota serve lê o mesmo ficheiro; a tela acrescenta o termo à lista
+  local, no grupo da categoria, e escolhe-o — e não o duplica se ele já lá estiver.
+- **«Limpar» vai para o passo 2**, e não para o 1: limpar o formulário para escrever outro verbete
+  de um exercício que já existe não deve pôr ninguém a escrever outro nome. **«Editar» também** — é
+  no passo 2 que vive o seletor, e sem isso preenchia campos que não estavam no ecrã.
+
+**Um detalhe de desenho que a prova obrigou.** O rótulo do passo 1 nasceu «O exercício novo», e a
+tira a 1280px cortava-o com reticências. A regra da casa é o rótulo do passo **activo** ficar
+inteiro; o do 1 é o mais comprido que a tira já teve. Ficou **«Exercício novo»** e **«O exercício»**
+para o 2 — que é, aliás, o nome que o antigo passo 1 tinha.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`PASSOS_DO_VERBETE`, `PASSOS_DO_TRECHO`, o markup
+dos seis painéis, `criarExercicioDoPasso1`, o «Seguir», o `Enter`, `pintarTira`, `alvoDoRecado`,
+`editarVerbete`) · `experimentos/provar-celula.js` (o mapa dos passos, as secções 1, 3–6 reescritas;
+130 asserções) · `experimentos/provar-verbete.js` (a ausência do «+» e dos dois botões, o «Seguir»
+que grava) · `experimentos/provar-producao.js` (o recorte do passo 1).
+
+**Com o quê.** `provar-celula` **130 de 130** · `provar-verbete` TUDO CERTO · `provar-acordeoes`
+TUDO CERTO · `provar-vao-do-botao` 50/50 · `provar-menu-da-producao` 55/55 · `provar-producao`
+**151/152** (o item do menu — falha igual em `HEAD`) · `check-identidade` 20/20.

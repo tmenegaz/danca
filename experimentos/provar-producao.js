@@ -650,14 +650,19 @@ async function principal() {
    * O que se media aqui era o `<form id="form-termo">` da secção do vocabulário. A secção saiu —
    * a pesquisadora: «o vocabulário técnico e o verbete, em certa medida, são redundantes […] no
    * verbete nós já podemos criar o exercício, a categoria e a tradição». Os mesmos três campos
-   * passaram a viver no «+» do verbete (`vnnome`, `vncategoria`, `vntradicao`), e a regra que
-   * esta prova guardava vai com eles, intacta: SÓ O NOME SE ESCREVE, categoria e tradição são
-   * LISTAS fechadas com as opções do catálogo.
+   * passaram a viver no verbete (`vnnome`, `vncategoria`, `vntradicao`), e a regra que esta prova
+   * guardava vai com eles, intacta: SÓ O NOME SE ESCREVE, categoria e tradição são LISTAS
+   * fechadas com as opções do catálogo.
+   *
+   * E O SÍTIO DELES MUDOU OUTRA VEZ (02/11/2026): eram um «+» que abria um cadastro, e são o
+   * PASSO 1 do verbete. A extracção deixou de procurar um bloco por id — o passo 1 não tem id
+   * próprio, é um `.passo-painel[data-passo="1"]` como os outros — e passa a recortá-lo pelo
+   * marcador que existe: do painel 1 até o painel 2.
    *
    * E MEDE-SE TAMBÉM O QUE SAIU. Um `form-termo` que ficasse na página sem handler — ou um
    * `<select id="vcategoria">` órfão — seria a segunda porta a sobreviver à primeira.
    */
-  const formExercicio = (html.match(/<div id="vb-modo-exercicio"[\s\S]*?<\/form>/) || [''])[0];
+  const formExercicio = (html.match(/<div class="passo-painel" data-passo="1">([\s\S]*?)<div id="vb-modo-verbete">/) || ['', ''])[1];
   const opcoesDe = (id) => {
     const trecho = (formExercicio.match(new RegExp('<select id="' + id + '">([\\s\\S]*?)</select>')) || ['', ''])[1];
     return [...trecho.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]);

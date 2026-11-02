@@ -1390,12 +1390,17 @@ function senhaDaDirecaoOk(env, senha) {
  */
 const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
 
-/* OS CINCO PASSOS DO VERBETE (31/10/2026 — cinco desde 01/11/2026).
+/* OS SEIS PASSOS DO VERBETE (31/10/2026 — cinco desde 01/11/2026, seis desde 02/11/2026).
  *
  * A lista vive AQUI, e não dentro do `map` que desenha a tira, porque três coisas dependem
  * dela e não podem discordar: os painéis (`data-passo`), a contagem que `pintarPassos` esconde,
  * e o texto do aviso de edição — que diz em que passo a correcção começa e em que passo
  * continua. Escrito à mão em três lugares, o primeiro a mudar deixaria os outros dois a mentir.
+ *
+ * PASSARAM A SEIS (02/11/2026). O exercício NOVO — nome, categoria, tradição — deixou de ser um
+ * «+» que abria um cadastro por cima do formulário e passou a ser o primeiro passo; tudo o que
+ * estava depois desceu um número. A razão é a da pesquisadora: criar o exercício é a primeira
+ * coisa que se faz num verbete, e um formulário que não diz isso obriga a descobrir o «+».
  *
  * ERAM SETE, E A PESQUISADORA FUNDIU TRÊS NUM SÓ (01/11/2026). O passo 1 juntou o exercício, a
  * frase e a posição: são as três coisas que se decidem ANTES de haver trecho, e estavam
@@ -1411,18 +1416,19 @@ const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
  * o texto escreve-se uma vez e cada trecho acrescenta-lhe, abaixo, o «lê-se» da sua notação.
  */
 const PASSOS_DO_VERBETE = [
-  ['1', 'O exercício'],
-  ['2', 'A música'],
-  ['3', 'Para onde'],
-  ['4', 'Os sinais'],
-  ['5', 'A decomposição'],
+  ['1', 'O exercício novo'],
+  ['2', 'O exercício'],
+  ['3', 'A música'],
+  ['4', 'Para onde'],
+  ['5', 'Os sinais'],
+  ['6', 'A decomposição'],
 ];
 
 /* OS DOIS PASSOS POR ONDE A CORRECÇÃO DE UM TRECHO PASSA. É neles que o «!» de edição acende —
  * e são eles, e não outros, porque um trecho se corrige na direção, na contagem, na orientação e
  * nos sinais. A fusão de 01/11/2026 puxou-os de 5 e 6 para 3 e 4: os números são estes, e não os
  * de antes, e é por isso que o aviso de edição e a prova os leem daqui em vez de os escreverem. */
-const PASSOS_DO_TRECHO = [3, 4];
+const PASSOS_DO_TRECHO = [4, 5];
 
 function b64url(bytes) {
   const a = new Uint8Array(bytes);
@@ -3322,8 +3328,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * O que estava aqui — o formulário (`form-termo`), a lista de termos com os selos de «em
      * uso», e o botão «Carregar as turmas iniciais» — sai com a secção. O botão NÃO se perde:
-     * passa para o `+` do verbete, que é onde a pesquisadora o quer (ver `vb-modo-exercicio`), e
-     * leva uma nota do que a carga NÃO traz — ver `semearTurmasNoExercicio`.
+     * passa para o passo 1 do verbete, que é onde a pesquisadora o quer, e leva uma nota do que
+     * a carga NÃO traz — ver `semearTurmasNoExercicio`.
      *
      * A LISTA NÃO SE PERDE NEM UM POUCO: o vocabulário nunca viveu no KV, vive no repositório,
      * e continua a ser lido por `termos()` de lá. O que sai é a TELA que o mostrava em lista,
@@ -3397,36 +3403,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // um segundo cadastro de termos: é o mesmo, numa forma breve, e grava no mesmo sítio (o
     // vocabulário do repositório). O que se cria é um EXERCÍCIO (um termo), não um verbete: um
     // verbete sem exercício seria a decomposição de nada, e a ordem é a inversa.
-    // O PASSO 1 É O PAR DO EXERCÍCIO, e fica FORA do bloco do verbo (31/10/2026) — quem o
-    // esconde é o passo, não um modo. Dentro do bloco, esconder o bloco esconderia também a
-    // memória do que está escolhido.
-    '<div class="passo-painel" data-passo="1">' +
-    '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
-    '<span class="par-associar">' +
-    '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
-    '<button type="button" class="acao secundario" id="vb-novo-exercicio"' +
-    ' title="Criar um exercício novo no vocabulário da modalidade"' +
-    ' aria-expanded="false" aria-controls="vb-modo-exercicio">+</button>' +
-    '</span>' +
-
-    /* O CADASTRO DO EXERCÍCIO É O PASSO 1, E NÃO UM MODO À PARTE (02/11/2026).
+    /* O PASSO 1 É O EXERCÍCIO NOVO — E NÃO UM «+» QUE ABRE UM CADASTRO (02/11/2026).
      *
-     * ELE ERA O «MODO B»: um bloco que ESCONDIA o formulário inteiro e a tira dos passos, e cujo
-     * único caminho de saída se chamava «Cancelar». A pesquisadora, ao usá-lo: «o professor não
-     * vai saber que quando ele clicar em cancelar, ele vai para onde de facto ele cria o verbete
-     * da aula». Ela tem razão, e o defeito é de LUGAR: um formulário que substitui a página
-     * inteira, sem a tira à vista, não diz em que passo se está nem para onde se vai.
+     * ELE ERA DUAS COISAS, E NENHUMA DELAS SERVE. Primeiro um «+» colado ao campo do exercício,
+     * que abria um cadastro breve por cima do formulário. Depois, ainda por cima, um «modo» que
+     * escondia o formulário e a tira dos passos e cujo único caminho de saída se chamava
+     * «Cancelar». A pesquisadora: «somente esses campos — exercício novo, categoria, tradição e
+     * carregar as turmas iniciais — vão ser o step 1. O step 2 passa a ser o que antes era o
+     * step 1, e assim por diante, então agora eu vou ter seis steps ao todo. E esse botão de
+     * mais (…) deixa de existir.»
      *
-     * Passa a viver DENTRO do passo 1, abaixo do campo que ele alimenta: quem cria um exercício
-     * vê que está no passo 1 de um verbete, e «Cancelar» passa a fazer o que a palavra diz —
-     * fecha este cadastro breve e devolve o campo, sem levar nada consigo.
+     * O QUE MUDA, e é uma coisa só: criar o exercício passa a ser um PASSO, o primeiro. Não há
+     * «+», não há modo, não há «Gravar exercício» nem «Cancelar» — o «Seguir →» que já existia é
+     * que grava o termo e avança. Quem está no passo 1 vê a tira, e a tira diz que há seis.
      *
-     * E O EXERCÍCIO NOVO JÁ ESTÁ NA LISTA AO AVANÇAR. `criarTermo` grava no REPOSITÓRIO (o
-     * vocabulário da modalidade, por `termo-repo.js`) e devolve o termo criado; a tela
-     * acrescenta-o ao `select`, no grupo da categoria, e escolhe-o. Zero chamadas ao KV — a
-     * lista que a rota serve vem do GitHub, e é o mesmo ficheiro que o commit acabou de mudar.
+     * O QUE NÃO SE PERDE. O exercício criado entra na lista do passo 2, no grupo da categoria, já
+     * escolhido — e continua a não gastar KV: o `POST /api/bastidores/termo` grava no vocabulário
+     * do repositório (`termo-repo.js`) e a lista que a rota serve lê o MESMO ficheiro. A tela
+     * acrescenta-o localmente enquanto não há outra leitura.
      */
-    '<div id="vb-modo-exercicio" hidden>' +
+    '<div class="passo-painel" data-passo="1">' +
     '<label class="campo-rotulo" for="vnnome">Exercício novo (grafia francesa, com acentos)</label>' +
     '<input id="vnnome" autocomplete="off" placeholder="ex.: Battement fondu">' +
     '<label class="campo-rotulo" for="vncategoria">Categoria</label>' +
@@ -3440,19 +3436,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('') +
     '</select>' +
     '<div class="res" data-res="vb-novo"></div>' +
-    '<span class="par-botoes">' +
-    '<button type="button" class="acao grande" id="vb-criar-exercicio">Gravar exercício</button>' +
-    '<button type="button" class="acao secundario" id="vb-cancelar-exercicio">Cancelar</button>' +
-    '</span>' +
-    /* O BOTÃO DAS TURMAS INICIAIS MUDOU-SE PARA AQUI (01/11/2026) — e desce com o cadastro.
+    /* O BOTÃO DAS TURMAS INICIAIS FICA AQUI (01/11/2026 — e é do passo 1 desde 02/11/2026).
      *
-     * Ele vivia na página do vocabulário, que saiu. A pesquisadora quer-o aqui — «ele tem que ir
-     * pra dentro do verbete, nesse espaço que a gente abre com um sinalzinho de mais» — e com uma
-     * dúvida declarada: «tenho dúvidas se isso ainda vai existir». Fica, temporariamente, porque
-     * funciona.
+     * Ele vivia na página do vocabulário, que saiu. A pesquisadora quer-o neste passo — «ele tem
+     * que ir pra dentro do verbete, nesse espaço» — e com uma dúvida declarada: «tenho dúvidas se
+     * isso ainda vai existir». Fica, temporariamente, porque funciona.
      *
-     * O QUE ELE FAZ: carrega as turmas iniciais do catálogo (`progressao.json`) para o cadastro
-     * da escola, sem duplicar as que já existem, e a relação turma↔conteúdo.
+     * O QUE ELE FAZ: carrega as turmas iniciais do catálogo (`progressao.json`) para o cadastro da
+     * escola, sem duplicar as que já existem, e a relação turma↔conteúdo.
      *
      * O QUE ELE NÃO FAZ — MEDIDO, e é o que o `confirm` passa a dizer. As turmas do catálogo
      * trazem nome, ordem, programa e nível de referência; NÃO trazem o RITMO (dias, hora de cada
@@ -3463,20 +3454,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * O AVISO VAI NO `confirm`, E NÃO EM PROSA NA PÁGINA. A regra da casa é que o formulário não
      * explica — só rótulo, campo e placeholder (é o que `provar-producao` mede). E há uma razão
-     * melhor do que a regra: o aviso vale no INSTANTE da ação, que é quando alguém decide se
-     * quer aquilo. Em prosa fixa, quem não carrega turmas nunca precisa dele e quem carrega
-     * já não o lê.
+     * melhor do que a regra: o aviso vale no INSTANTE da ação, que é quando alguém decide se quer
+     * aquilo. Em prosa fixa, quem não carrega turmas nunca precisa dele e quem carrega já não o lê.
      *
      * Quando o catálogo passar a trazer o ritmo (ou quando a carga o perguntar a quem clica), o
      * aviso encurta com a mesma naturalidade.
      */
     '<p><button id="semear" type="button">Carregar as turmas iniciais</button></p>' +
     '</div>' +
-    '</div>' +
 
     // ---- MODO A: o verbete ---------------------------------------------------------------
     '<div id="vb-modo-verbete">' +
-    // ================= OS PASSOS, UM DE CADA VEZ (31/10/2026 — cinco desde 01/11/2026) =====
+    // ================= OS PASSOS, UM DE CADA VEZ (31/10/2026 — seis desde 02/11/2026) ======
     // Decidido pela pesquisadora depois de ver as duas bancadas: «o Step, apesar de ter mais
     // cliques, ele é mais fácil de entender». O formulário era uma coluna comprida em que a maior
     // parte dos campos não se podia preencher a maior parte do tempo — a posição depende do
@@ -3506,7 +3495,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     PASSOS_DO_TRECHO[1] + '. ' +
     '<button type="button" class="acao secundario pequena" id="vb-cancelar-edicao">Cancelar a edição</button>' +
     '</p>' +
-    // ---- PASSO 1: A FRASE E A POSIÇÃO (31/10/2026 — juntas ao exercício desde 01/11/2026) --
+    // ---- PASSO 2: O EXERCÍCIO, A FRASE E A POSIÇÃO (02/11/2026) --------------------------
+    // ELE ERA O PASSO 1, e desceu um número quando o exercício novo passou a ser o passo 1. O
+    // seletor do exercício veio para dentro dele: era um painel à parte, por cima, porque o
+    // «modo» do exercício novo o bloqueava em vez de o esconder — e sem modo, um painel à parte
+    // seria um passo sem número.
+    //
     // A FRASE É DO EXERCÍCIO, E ESCREVE-SE UMA VEZ. Era o campo do último passo, e o defeito só
     // apareceu a usar: quem acrescentava três trechos escrevia três vezes a mesma definição —
     // a redundância que ela mandou tirar da tabela continuava viva no preenchimento. Aqui o
@@ -3520,17 +3514,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //
     // ELA VIVE AQUI, E NÃO NUM PAINEL PRÓPRIO, desde a fusão de 01/11/2026: a frase nasce da
     // escolha do exercício (o dicionário responde à escolha), e a posição é a lista curta que
-    // acompanha o mesmo exercício. As três coisas são um passo — o primeiro —, e o painel do
-    // par do exercício está ACIMA, fora deste bloco, porque é ele que o modo do exercício
-    // bloqueia em vez de esconder.
-    '<div class="passo-painel" data-passo="1" hidden>' +
+    // acompanha o mesmo exercício. Desde 02/11/2026 as três são o passo 2 — o exercício novo é
+    // o passo 1, e é o «Seguir →» dele que grava o termo antes de se chegar aqui.
+    '<div class="passo-painel" data-passo="2" hidden>' +
+    '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
+    '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
     '<label class="campo-rotulo" for="vb-frase">O que acontece — a frase deste exercício</label>' +
     '<textarea id="vb-frase" rows="4" placeholder="a definição do exercício; cada trecho acrescenta, abaixo, o «lê-se» da sua notação"></textarea>' +
     '<p class="nota" id="vb-frase-nota"></p>' +
     '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
     '<select id="vbposicao"><option value="">— escolha a posição —</option></select>' +
     '</div>' +
-    '<div class="passo-painel" data-passo="2" hidden>' +
+    '<div class="passo-painel" data-passo="3" hidden>' +
     '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
     '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="ex.: 8">' +
     '<label class="campo-rotulo" for="vbcompasso">Em que compasso</label>' +
@@ -3554,7 +3549,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Quatro escolhas que respondem à mesma pergunta: a direção do membro, a orientação do
     // corpo, a categoria e a contagem. Estavam misturadas com os sinais e com a tabela, e era
     // esse emaranhado que a pesquisadora achou confuso.
-    '<div class="passo-painel" data-passo="3" hidden>' +
+    '<div class="passo-painel" data-passo="4" hidden>' +
     '<fieldset class="escolhas" id="vb-dir">' +
     // A DIREÇÃO É OPCIONAL (01/11/2026) — e a legenda diz que é, no mesmo desenho da orientação,
     // que já era. Sem isto, a ausência de escolha lia-se como campo por preencher.
@@ -3589,7 +3584,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</fieldset>' +
     '</div>' +
     // ---- PASSO 4: COMO O TRECHO SE ESCREVE (31/10/2026 — passo 4 desde 01/11/2026) -----
-    '<div class="passo-painel" data-passo="4" hidden>' +
+    '<div class="passo-painel" data-passo="5" hidden>' +
     '<fieldset class="escolhas" id="vb-sinais">' +
     '<legend class="campo-rotulo">Sinais, pela ordem em que acontecem <span class="nota">— clique para acrescentar ao fim; clique outra vez para tirar</span></legend>' +
     '</fieldset>' +
@@ -3605,7 +3600,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o campo continuava a pedir a MESMA frase a cada trecho. A frase é do exercício e passou
     // para o passo 1; o que este passo mostra é o que fica ESCRITO em cada trecho, já composto
     // (frase + «lê-se»), sem nada para reescrever.
-    '<div class="passo-painel" data-passo="5" hidden>' +
+    '<div class="passo-painel" data-passo="6" hidden>' +
     // Havia DUAS tabelas — «direções que este verbete cobre» e «células deste verbete» —, e elas
     // diziam a mesma coisa: a primeira era a segunda agrupada. Sem células, as duas diziam «não
     // há nada». É o mesmo defeito das duas listas de direções no dado, repetido na tela; a
@@ -4472,21 +4467,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
  */
 'function alvoDoRecado() {' +
     '  var secao = document.querySelector("#conteudo .secao:not([hidden])");' +
-    '  var proprio = secao ? secao.querySelector(".res") : null;' +
-    /* O RECADO DA SECÇÃO NÃO É O DO CADASTRO ANINHADO (02/11/2026).
+    /* O RECADO DA SECÇÃO NÃO É O DO PASSO 1 (02/11/2026).
      *
-     * O cadastro breve do exercício passou a viver DENTRO do passo 1 — e o `.res` dele, que antes
-     * estava no fim do formulário, passou a ser o PRIMEIRO da secção. Resultado medido: todos os
-     * recados do verbete («falta a frase», «gravado — versão 7») começaram a aparecer dentro da
-     * caixa do exercício novo. Um recado pertence a quem o pediu; o de um widget fica no widget.
-     * A prova que o apanhou foi `provar-celula` — a recusa deixou de ser lida no sítio onde é
-     * escrita. */
+     * O passo 1 (o exercício novo) tem um `.res` próprio, e é o PRIMEIRO da secção. O recado
+     * geral — «falta a frase», «gravado — versão 7», a recusa da música — pertence ao verbete e
+     * ao seu `[data-res=verbetes]`; entregá-lo ao primeiro `.res` punha-o dentro do passo 1, a
+     * dizer coisas do exercício a quem estava a gravar a decomposição.
+     *
+     * O `[data-res=verbetes]` é o alvo por NOME, e o resto fica como estava: o primeiro `.res`
+     * da secção serve as outras secções, que não têm widget nenhum lá dentro. Foi `provar-celula`
+     * que apanhou o defeito — a recusa deixou de ser lida no sítio onde é escrita. */
     '  if (secao) {' +
-    '    var proprios = secao.querySelectorAll(".res[data-res]");' +
-    '    for (var i = 0; i < proprios.length; i++) {' +
-    '      if (!proprios[i].closest || !proprios[i].closest("#vb-modo-exercicio")) return proprios[i];' +
-    '    }' +
+    '    var doVerbete = secao.querySelector(".res[data-res=verbetes]");' +
+    '    if (doVerbete) return doVerbete;' +
     '  }' +
+    '  var proprio = secao ? secao.querySelector(".res") : null;' +
     '  return proprio || document.getElementById("res");' +
     '}' +
     // O mesmo elemento, e o recado anterior da OUTRA secção não fica a mentir: ao escolher um
@@ -4805,10 +4800,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a turma...", true, avancarParaRubricas);' +
     '});' +
     /* O `form-termo` SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). O cadastro de exercício
-     * vive agora num sítio só — o `+` do verbete —, e o handler dele é o `vb-criar-exercicio`,
-     * logo abaixo. Dois handlers a POSTar na mesma rota era a redundância que esta alteração
-     * veio eliminar; deixar o `getElementById` aqui rebentaria o script da página inteira no
-     * primeiro carregamento (`null.addEventListener`). */
+     * vive agora num sítio só — o passo 1 do verbete —, e quem o grava é o handler do «Seguir →»
+     * (`criarExercicioDoPasso1`). Dois handlers a POSTar na mesma rota era a redundância que esta
+     * alteração veio eliminar; deixar o `getElementById` aqui rebentaria o script da página
+     * inteira no primeiro carregamento (`null.addEventListener`). */
     // A RÉGUA DA RUBRICA — a lista editável de níveis (uma por turma).
     // AS RUBRICAS, para o botão «Editar» da lista abrir a rubrica no formulário sem pedir ao
     // servidor: o mapa já veio com a página.
@@ -5269,7 +5264,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // sistema escreveu no campo, para a sugestão não voltar por cima do que a professora ajustou.
     'var FRASE = "";' +
     'var FRASE_ANTERIOR = "";' +
-    // OS CINCO PASSOS, E O MODO DE EDIÇÃO (31/10/2026 — cinco desde 01/11/2026). `PASSO` diz
+    // OS SEIS PASSOS, E A EDIÇÃO (31/10/2026 — seis desde 02/11/2026). `PASSO` diz
     // onde se está; `EM_EDICAO` é `null` quando se está a compor um trecho NOVO e o número do
     // trecho quando se está a corrigir um que já lá está. A edição atravessa os DOIS passos do
     // trecho — é por isso que ela é um estado, e não um botão. `ULTIMO_PASSO` vem da lista do
@@ -5749,7 +5744,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // os campos do verbete e bloqueia o par do exercício; o modo A esconde os do exercício.
     // Um campo que desaparece por completo é diferente de um campo esbatido: o esbatido continua
     // a competir por atenção, e é isso que a tela de antes fazia.
-    // ================= OS CINCO PASSOS (31/10/2026 — cinco desde 01/11/2026) ========
+    // ================= OS SEIS PASSOS (31/10/2026 — seis desde 02/11/2026) ===========
     // Um passo de cada vez, a sério: só o painel do passo actual fica no ecrã. A tira em cima é
     // a memória do que já está decidido E a navegação — voltar a um passo anterior não perde nada,
     // porque tudo vive no DOM e o rascunho (`CELULAS`) não é tocado ao andar.
@@ -5830,11 +5825,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (orient) onde.push(orient);' +
     '  if (CONTAGEM) onde.push("tempo " + CONTAGEM);' +
     '  var valores = {' +
-    '    1: (nome || "a escolher") + (posicao === "a escolher" ? "" : " · " + posicao),' +
-    '    2: (tempos || "—") + " tempos · " + (compasso || "—"),' +
-    '    3: onde.length ? onde.join(" · ") : "a escolher",' +
-    '    4: SINAIS.length ? SINAIS.length + (SINAIS.length === 1 ? " sinal" : " sinais") : "a escolher",' +
-    '    5: (function(){ var t = 0; Object.keys(CELULAS).forEach(function(d){ (CELULAS[d] || []).forEach(function(c){ t += 1; }); }); return t ? t + (t === 1 ? " trecho" : " trechos") : "nenhum trecho"; })()' +
+    '    1: (document.getElementById("vnnome") || {}).value || "a criar",' +
+    '    2: (nome || "a escolher") + (posicao === "a escolher" ? "" : " · " + posicao),' +
+    '    3: (tempos || "—") + " tempos · " + (compasso || "—"),' +
+    '    4: onde.length ? onde.join(" · ") : "a escolher",' +
+    '    5: SINAIS.length ? SINAIS.length + (SINAIS.length === 1 ? " sinal" : " sinais") : "a escolher",' +
+    '    6: (function(){ var t = 0; Object.keys(CELULAS).forEach(function(d){ (CELULAS[d] || []).forEach(function(c){ t += 1; }); }); return t ? t + (t === 1 ? " trecho" : " trechos") : "nenhum trecho"; })()' +
     '  };' +
     '  Object.keys(valores).forEach(function(n){' +
     '    var el = document.getElementById("vb-v" + n);' +
@@ -5878,27 +5874,67 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarTrecho();' +
     '  pintarTabela();' +
     '}' +
-    /* O CADASTRO BREVE DO EXERCÍCIO ABRE E FECHA — não troca de modo (02/11/2026).
+    /* O PASSO 1 GRAVA O EXERCÍCIO QUANDO SE AVANÇA (02/11/2026).
      *
-     * Chamava-se `modoExercicio` e fazia muito mais: escondia `#vb-modo-verbete` inteiro,
-     * escondia a tira dos passos e BLOQUEAVA o `select` e o «+». O resultado, medido a usar, é o
-     * que a pesquisadora descreveu — a página passava a ser só o cadastro, e «Cancelar» era a
-     * única saída visível, sem dizer para onde ia.
+     * É A SUBSTITUIÇÃO DOS DOIS BOTÕES QUE HAVIA. O «Gravar exercício» e o «Cancelar» existiam
+     * porque o cadastro era um widget com vida própria, aberto por um «+». Como passo, ele não
+     * tem vida própria: o «Seguir →» que já existia é que o grava e avança — e quem não tem nada
+     * a criar avança sem gravar nada.
      *
-     * Agora é o que o nome diz: abre e fecha o cadastro, dentro do passo 1, com a tira à vista.
-     * O `select` e o «+» não ficam bloqueados — o «+» diz em que estado está (`aria-expanded`) e
-     * carregar nele outra vez fecha. */
-    'function modoExercicio(aberto){' +
-    '  var caixaExercicio = document.getElementById("vb-modo-exercicio");' +
-    '  var mais = document.getElementById("vb-novo-exercicio");' +
-    '  if (!caixaExercicio) return;' +
-    '  caixaExercicio.hidden = !aberto;' +
-    '  if (mais) mais.setAttribute("aria-expanded", aberto ? "true" : "false");' +
-    '  pintarPassos();' +
-    '  if (aberto) {' +
-    '    var campo = document.getElementById("vnnome");' +
-    '    if (campo) campo.focus();' +
-    '  }' +
+     * A ORDEM É A DO GESTO. Só se avança depois de o termo estar no repositório (`criarTermo`, no
+     * servidor) e escolhido no `select` do passo 2. Um avanço que deixasse a gravação falhada em
+     * segundo plano poria o professor a escrever a decomposição de um exercício que não existe.
+     *
+     * O QUE NÃO GASTA: nada. A rota grava no vocabulário do repositório e a lista é lida do mesmo
+     * ficheiro; o termo entra na lista local para o passo 2 o mostrar sem esperar por um deploy.
+     */
+    'function criarExercicioDoPasso1(depois){' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  var nome = campo ? campo.value.trim() : "";' +
+    '  if (!nome) { if (depois) depois(true); return; }' +
+    '  var cat = document.getElementById("vncategoria").value;' +
+    '  var tra = document.getElementById("vntradicao").value;' +
+    '  var res = document.querySelector("[data-res=vb-novo]");' +
+    '  if (res) { res.className = "res"; res.textContent = "gravando..."; }' +
+    '  fetch("/api/bastidores/termo", {' +
+    '    method: "POST", headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({token: TOKEN, termo: nome, categoria: cat, tradicao: tra})' +
+    '  }).then(lerResposta).then(function(d){' +
+    '    if (!d.ok) {' +
+    '      if (res) { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
+    '      return;' +
+    '    }' +
+    '    var nomes = document.getElementById("vbnome");' +
+    '    var grupo = nomes ? nomes.querySelector("optgroup[data-cat=\'" + cat + "\']") : null;' +
+    // O TERMO QUE JÁ ESTÁ NA LISTA NÃO ENTRA DUAS VEZES: pode lá estar porque a página foi
+    // recarregada depois do commit, e um `option` repetido é uma segunda verdade na mesma lista.
+    '    var existente = null;' +
+    '    if (nomes) {' +
+    '      Array.prototype.slice.call(nomes.options).forEach(function(x){' +
+    '        if (!existente && x.value === d.termo) existente = x;' +
+    '      });' +
+    '    }' +
+    '    if (!existente && nomes) {' +
+    '      var o = document.createElement("option");' +
+    '      o.value = d.termo; o.textContent = d.termo;' +
+    '      if (grupo) { grupo.appendChild(o); }' +
+    '      else {' +
+    '        var g = document.createElement("optgroup");' +
+    '        g.setAttribute("data-cat", cat);' +
+    '        g.label = ROTULO_DE_CATEGORIA[cat] || cat;' +
+    '        g.appendChild(o);' +
+    '        nomes.appendChild(g);' +
+    '      }' +
+    '    }' +
+    '    if (nomes) nomes.value = d.termo;' +
+    '    if (campo) campo.value = "";' +
+    '    if (res) { res.className = "res"; res.textContent = ""; }' +
+    '    recado("ok", "exercício gravado: " + d.termo + " — já está na lista do passo 2.");' +
+    '    carregarRascunho();' +
+    '    if (depois) depois(true);' +
+    '  }).catch(function(e){' +
+    '    if (res) { res.className = "res erro"; res.textContent = "Erro: " + e.message; }' +
+    '  });' +
     '}' +
     // O RASCUNHO. Nasce do que o alfabeto tem para a música em foco — cópia, não a referência:
     // o que se edita na tela não pode alterar o dado antes de a gravação ser aceite.
@@ -6089,6 +6125,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var pos = document.getElementById("vbposicao");' +
     '  if (pos && v.posicao) pos.value = v.posicao.termo;' +
     '  carregarRascunho();' +
+    // EDITAR LEVA AO PASSO 2 (02/11/2026) — é onde vive o seletor do exercício. Sem isto, quem
+    // carregava no «editar» da listagem com o formulário noutro passo preenchia campos que não
+    // estavam no ecrã, e o aviso «a editar…» aparecia sozinho num formulário que parecia vazio.
+    '  irParaPasso(2);' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
     'function temposDaContagem(c){' +
@@ -6109,11 +6149,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var formVerbete = document.getElementById("form-verbete");' +
     'if (formVerbete) formVerbete.addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    // A GUARDA DO MODO. No modo do exercício as teclas de atalho e o Enter ainda podem
-    // submeter este formulário — e submeter aqui com os campos do verbete escondidos seria
-    // gravar um verbete que ninguém preencheu. O modo manda sobre o `submit`.
-    '  var caixaExercicio = document.getElementById("vb-modo-exercicio");' +
-    '  if (caixaExercicio && !caixaExercicio.hidden) return;' +
+    // O `submit` PERTENCE AO VERBETE, E SÓ A ELE (02/11/2026). Havia aqui uma guarda para o
+    // «modo do exercício» — submeter com os campos do verbete escondidos gravaria um verbete que
+    // ninguém preencheu. Já não há modo: o passo 1 tem os seus campos e o `Enter` dele cria o
+    // exercício (ver o handler do `vnnome`), e o `submit` só chega aqui vindo do passo 6.
     '  var nomes = document.getElementById("vbnome");' +
     '  var nome = nomes ? nomes.value.trim() : "";' +
     '  var tempos = document.getElementById("vbtempos").value.trim();' +
@@ -6195,101 +6234,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '});' +
     // ---------------------------------------------------------------------------
-    // O «+» DO EXERCÍCIO (28/10/2026) — a opção A, decidida pela pesquisadora.
+    // O PASSO 1 GRAVA O EXERCÍCIO — e é o «Seguir →» que o faz (02/11/2026).
     //
-    // O botão abre um cadastro breve, colado ao campo que ele alimenta. Ele NÃO cria um
-    // verbete: cria o EXERCÍCIO — um termo do vocabulário da modalidade —, que é a condição
-    // para o verbete existir. Um verbete sem exercício seria a decomposição de nada, e a
-    // ordem é essa e não a inversa.
+    // NÃO HÁ «+», NÃO HÁ «Gravar exercício», NÃO HÁ «Cancelar». O «+» existia para abrir um
+    // cadastro que agora é um passo; os dois botões existiam porque o cadastro tinha vida
+    // própria, e um passo não tem: avança-se com a navegação que já estava lá.
     //
-    // O EXERCÍCIO NOVO FICA NA LISTA, E O CAMINHO ATÉ LÁ NÃO PASSA PELO KV (02/11/2026). O
-    // `POST /api/bastidores/termo` grava o termo no VOCABULÁRIO DO REPOSITÓRIO
-    // (`biblioteca/modalidades/<modalidade>/vocabulario.json`, por `termo-repo.js`) e devolve o
-    // termo criado. Duas consequências, medidas:
-    //   · a lista que a rota serve (`GET /api/bastidores/verbete`) também vem do GitHub — é o
-    //     MESMO ficheiro que o commit acabou de mudar, por isso a próxima leitura já o traz;
-    //   · enquanto essa leitura não acontece, a tela acrescenta-o ao `select`, no grupo da
-    //     categoria, e escolhe-o. Zero pedidos a mais, zero KV.
+    // O `Enter` no nome faz o mesmo que o «Seguir →»: cria e avança. Sem isto, o `Enter` dentro
+    // do passo 1 submetia `#form-verbete` — um verbete sem exercício nenhum.
     // ---------------------------------------------------------------------------
-    'var bNovoExercicio = document.getElementById("vb-novo-exercicio");' +
-    'var caixaNovoExercicio = document.getElementById("vb-modo-exercicio");' +
-    'if (bNovoExercicio && caixaNovoExercicio) {' +
-    // O «+» ABRE E FECHA o cadastro breve, dentro do passo 1 (02/11/2026). Já não troca de modo:
-    // nada desaparece, e o `aria-expanded` diz em que estado está.
-    '  bNovoExercicio.addEventListener("click", function(){' +
-    '    modoExercicio(caixaNovoExercicio.hidden);' +
-    '  });' +
-    // ENTER NO NOME GRAVA O EXERCÍCIO, e não o verbete. Sem isto, o `Enter` dentro do cadastro
-    // submetia `#form-verbete` — um verbete sem exercício escolhido.
-    '  (function(){' +
-    '    var campo = document.getElementById("vnnome");' +
-    '    if (!campo) return;' +
-    '    campo.addEventListener("keydown", function(ev){' +
-    '      if (ev.key !== "Enter") return;' +
-    '      ev.preventDefault();' +
-    '      document.getElementById("vb-criar-exercicio").click();' +
-    '    });' +
-    '  })();' +
-    '  document.getElementById("vb-cancelar-exercicio").addEventListener("click", function(){' +
-    '    var nomes = document.getElementById("vbnome");' +
-    '    var r = caixaNovoExercicio.querySelector("[data-res=vb-novo]");' +
-    '    if (r) { r.className = "res"; r.textContent = ""; }' +
-    '    document.getElementById("vnnome").value = "";' +
-    '    modoExercicio(false);' +
-    '    if (nomes) nomes.focus();' +
-    '  });' +
-    '  document.getElementById("vb-criar-exercicio").addEventListener("click", function(){' +
-    '    var nome = document.getElementById("vnnome").value.trim();' +
-    '    var cat = document.getElementById("vncategoria").value;' +
-    '    var tra = document.getElementById("vntradicao").value;' +
-    '    var res = caixaNovoExercicio.querySelector("[data-res=vb-novo]");' +
-    '    if (!nome) { res.className = "res erro"; res.textContent = "Informe o nome do exercício."; return; }' +
-    '    res.className = "res"; res.textContent = "gravando...";' +
-    '    fetch("/api/bastidores/termo", {' +
-    '      method: "POST", headers: {"Content-Type": "application/json"},' +
-    '      body: JSON.stringify({token: TOKEN, termo: nome, categoria: cat, tradicao: tra})' +
-    '    }).then(lerResposta).then(function(d){' +
-    '      if (!d.ok) { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); return; }' +
-    '      var nomes = document.getElementById("vbnome");' +
-    '      var grupo = nomes ? nomes.querySelector("optgroup[data-cat=\'" + cat + "\']") : null;' +
-    // O TERMO QUE JÁ ESTÁ NA LISTA NÃO ENTRA DUAS VEZES. Ele pode lá estar porque a página foi
-    // recarregada depois do commit — e um `option` repetido é uma segunda verdade na mesma lista.
-    '      var existente = null;' +
-    '      if (nomes) {' +
-    '        Array.prototype.slice.call(nomes.options).forEach(function(x){' +
-    '          if (!existente && x.value === d.termo) existente = x;' +
-    '        });' +
-    '      }' +
-    '      if (!existente) {' +
-    '        var o = document.createElement("option");' +
-    '        o.value = d.termo; o.textContent = d.termo;' +
-    '        if (nomes) {' +
-    '          if (grupo) { grupo.appendChild(o); }' +
-    '          else {' +
-    '            var g = document.createElement("optgroup");' +
-    '            g.setAttribute("data-cat", cat);' +
-    '            g.label = ROTULO_DE_CATEGORIA[cat] || cat;' +
-    '            g.appendChild(o);' +
-    '            nomes.appendChild(g);' +
-    '          }' +
-    '        }' +
-    '      }' +
-    '      if (nomes) nomes.value = d.termo;' +
-    // AO GRAVAR, O CADASTRO FECHA — e o exercício novo fica ESCOLHIDO no campo que ele alimenta.
-    // Quem acabou de o criar quer escrever o verbete dele agora; pedir-lhe que o procure na lista
-    // seria devolvê-lo ao princípio do gesto que ele acabou de fazer. Fica-se no PASSO 1: a frase
-    // e a posição decidem-se aqui, e «Seguir →» leva à música.
-    '      document.getElementById("vnnome").value = "";' +
-    '      caixaNovoExercicio.querySelector("[data-res=vb-novo]").className = "res";' +
-    '      caixaNovoExercicio.querySelector("[data-res=vb-novo]").textContent = "";' +
-    '      modoExercicio(false);' +
-    '      irParaPasso(1);' +
-    '      carregarRascunho();' +
-    '      recado("ok", "exercício gravado: " + d.termo + " — já está na lista e escolhido.");' +
-    '      pintarTabela();' +
-    '    }).catch(function(e){' +
-    '      res.className = "res erro"; res.textContent = "Erro: " + e.message;' +
-    '    });' +
+    'var campoNovo = document.getElementById("vnnome");' +
+    'if (campoNovo) {' +
+    '  campoNovo.addEventListener("keydown", function(ev){' +
+    '    if (ev.key !== "Enter") return;' +
+    '    ev.preventDefault();' +
+    '    criarExercicioDoPasso1(function(){ irParaPasso(2); });' +
     '  });' +
     '}' +
     // «LIMPAR» ESVAZIA O MODO A, E NÃO MUDA DE MODO (28/10/2026). Ele não é «Cancelar»: é
@@ -6301,8 +6260,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("vbacao").value = "criar";' +
     // «LIMPAR» TAMBÉM SAI DA EDIÇÃO (31/10/2026): quem limpa o formulário não quer voltar a um
     // trecho que já não está lá a ser corrigido.
+    //
+    // E VAI PARA O PASSO 2, e não para o 1 (02/11/2026). O passo 1 é o exercício NOVO: limpar o
+    // formulário para escrever outro verbete de um exercício que já existe não deve pôr ninguém a
+    // escrever outro nome — quem quer criar um exercício vai ao 1 de propósito.
     '  EM_EDICAO = null;' +
-    '  irParaPasso(1);' +
+    '  irParaPasso(2);' +
     '  carregarRascunho();' +
     '});' +
     // A TABELA ACOMPANHA A ESCOLHA. Ela depende de três campos — exercício, tempos e compasso —,
@@ -6369,8 +6332,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     'var bVoltar = document.getElementById("vb-voltar");' +
     'if (bVoltar) bVoltar.addEventListener("click", function(){ irParaPasso(PASSO - 1); });' +
+    /* O «SEGUIR» GRAVA O EXERCÍCIO QUANDO ESTÁ NO PASSO 1 (02/11/2026). É o único ponto do
+     * formulário em que avançar tem um efeito além de avançar — e tem de ter: o passo 2 escolhe
+     * de uma lista que ainda não tem o exercício que se acabou de escrever. Nos outros passos
+     * continua a ser só navegação. */
     'var bSeguir = document.getElementById("vb-seguir");' +
-    'if (bSeguir) bSeguir.addEventListener("click", function(){ irParaPasso(PASSO + 1); });' +
+    'if (bSeguir) bSeguir.addEventListener("click", function(){' +
+    '  if (PASSO === 1) { criarExercicioDoPasso1(function(){ irParaPasso(2); }); return; }' +
+    '  irParaPasso(PASSO + 1);' +
+    '});' +
     '["vb-cancelar-edicao", "vb-cancelar-edicao-2"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
     '  if (b) b.addEventListener("click", cancelarEdicao);' +

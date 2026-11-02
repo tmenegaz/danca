@@ -513,36 +513,37 @@ async function aOrigemDoVocabulario() {
 
   const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/producao'), env);
   const html = await pagina.text();
-  checar('o «+» fica ao lado do exercício, e não noutra secção',
-    /<span class="par-associar"><select id="vbnome"/.test(html), /par-associar/.test(html));
-  // O MODO DO EXERCÍCIO NASCE FECHADO, e o do verbete aberto (28/10/2026). A caixa antiga
-  // (`#vb-novo`) era uma caixa a meio do formulário; agora é um modo, com os seus campos, o seu
-  // botão e o seu recado — e o modo do verbete não está no documento enquanto ele está aberto.
-  checar('o modo do exercício nasce fechado, e o do verbete aberto',
-    /<div id="vb-modo-verbete">/.test(html) && /<div id="vb-modo-exercicio" hidden>/.test(html),
-    /vb-modo-exercicio/.test(html));
-
-  // OS DOIS BOTÕES PRIMÁRIOS NÃO COEXISTEM. «Gravar verbete» e «Gravar exercício» têm de viver
-  // em blocos diferentes, senão a tela volta a ter dois botões com o mesmo peso à vista.
-  //
-  // A ORDEM DOS BLOCOS MUDOU (02/11/2026): o cadastro do exercício passou a viver DENTRO do passo
-  // 1, e o passo 1 vem antes do formulário do verbete. A extracção segue a ordem do documento, e
-  // não a que se lembrava.
-  const blocoB = (html.match(/<div id="vb-modo-exercicio" hidden>([\s\S]*?)<div id="vb-modo-verbete">/) || [])[1] || '';
-  const blocoA = (html.match(/<div id="vb-modo-verbete">([\s\S]*?)<\/form>/) || [])[1] || '';
-  checar('«Gravar verbete» está só no modo do verbete',
-    /Gravar verbete/.test(blocoA) && !/Gravar verbete/.test(blocoB), [blocoA.length, blocoB.length]);
-  checar('e «Gravar exercício» só no modo do exercício',
-    /Gravar exercício/.test(blocoB) && !/Gravar exercício/.test(blocoA), null);
-  checar('e os campos do verbete não estão no modo do exercício',
-    !/id="vbtempos"/.test(blocoB) && !/id="vbposicao"/.test(blocoB), null);
+  /* O EXERCÍCIO NOVO É O PASSO 1, E NÃO UM «+» (02/11/2026).
+   *
+   * A pesquisadora: «somente esses campos — exercício novo, categoria, tradição e carregar as
+   * turmas iniciais — vão ser o step 1 (…) e esse botão de mais (…) deixa de existir.» Estas
+   * asserções medem a AUSÊNCIA, que é o que distingue o pedido dela do que eu tinha feito: nada
+   * de «+», nada de «Gravar exercício», nada de «Cancelar». */
+  const painel1 = (html.match(/<div class="passo-painel" data-passo="1">([\s\S]*?)<div id="vb-modo-verbete">/) || [])[1] || '';
+  checar('o passo 1 tem os quatro controlos, e só eles',
+    ['vnnome', 'vncategoria', 'vntradicao', 'semear']
+      .every((id) => new RegExp('id="' + id + '"').test(painel1))
+    && painel1.length > 0, painel1.length);
+  checar('e NÃO tem o «+» — criar o exercício deixou de ser um botão que abre um cadastro',
+    !/vb-novo-exercicio/.test(html), /vb-novo-exercicio/.test(html));
+  checar('nem «Gravar exercício» nem «Cancelar»: quem grava é o «Seguir →»',
+    !/Gravar exercício/.test(html) && !/vb-cancelar-exercicio/.test(html),
+    [/Gravar exercício/.test(html), /vb-cancelar-exercicio/.test(html)]);
+  checar('o seletor do exercício está no passo 2, com a frase e a posição',
+    (() => {
+      const p2 = (html.match(/data-passo="2" hidden>([\s\S]*?)data-passo="3"/) || [])[1] || '';
+      return ['vbnome', 'vb-frase', 'vbposicao'].every((id) => new RegExp('id="' + id + '"').test(p2));
+    })());
+  checar('e a tira anuncia SEIS passos, com o exercício novo em primeiro',
+    /data-passo="6"/.test(html) && /<span class="passo-t">O exercício novo<\/span>/.test(html));
   checar('e o botão de semear deixou de prometer o vocabulário',
     /Carregar as turmas iniciais/.test(html) && !/turmas \+ vocabulário/.test(html));
 
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
     .map((m) => m[1]).sort((a, b) => b.length - a.length)[0] || '';
-  checar('e o «+» grava pelo cadastro que já existe (o mesmo, não um segundo)',
-    /fetch\("\/api\/bastidores\/termo"/.test(script) && /vb-criar-exercicio/.test(script));
+  checar('o «Seguir →» do passo 1 grava o termo e avança',
+    /PASSO === 1/.test(script) && /criarExercicioDoPasso1/.test(script)
+    && /fetch\("\/api\/bastidores\/termo"/.test(script));
 
   // ---- O EDITOR DE CÉLULA E OS DOIS MODOS (28/10/2026) -----------------------------
   // O gargalo que o editor destapa: o formulário lia as células do que já existia e, quando não
@@ -611,26 +612,24 @@ async function aOrigemDoVocabulario() {
     Boolean(dicionario['[Pé: 1ª → +]']) && !dicionario['Plié'], Object.keys(dicionario).slice(0, 2));
 
 
-  /* AS REGRAS DO CADASTRO, medidas no texto do script — e a regra mudou (02/11/2026).
+  /* AS REGRAS DO PASSO 1, medidas no texto do script — e a regra mudou outra vez (02/11/2026).
    *
-   * ERA: o «modo B» escondia o «modo A», bloqueava o `select` e o «+», e o `submit` do verbete
-   * não passava enquanto ele estava aberto. A pesquisadora, a usar: «o professor não vai saber
-   * que quando ele clicar em cancelar, ele vai para onde de facto ele cria o verbete da aula».
-   *
-   * PASSA A SER: o cadastro abre DENTRO do passo 1, o formulário fica, a tira fica, e nada é
-   * bloqueado — o «+» diz em que estado está. A guarda do `submit` fica, porque um `Enter` dentro
-   * do cadastro não pode gravar um verbete que ninguém preencheu. */
-  checar('o cadastro do exercício abre e fecha sem esconder o formulário nem bloquear o par',
-    /caixaExercicio\.hidden = !aberto/.test(script)
-    && /mais\.setAttribute\("aria-expanded"/.test(script)
-    && !/caixaVerbete\.hidden = Boolean\(aberto\)/.test(script)
-    && !/nomes\.disabled = Boolean\(aberto\)/.test(script));
-  checar('e o Enter no cadastro não grava um verbete',
-    /if \(caixaExercicio && !caixaExercicio\.hidden\) return;/.test(script));
-  checar('e ao gravar o exercício, ele fica escolhido no campo que alimenta',
-    /modoExercicio\(false\);/.test(script) && /já está na lista e escolhido/.test(script));
+   * JÁ FOI: o «modo B» escondia o «modo A», bloqueava o `select` e o «+», e o `submit` do verbete
+   * não passava enquanto ele estava aberto.
+   * DEPOIS: o cadastro abria dentro do passo 1, com «Gravar exercício» e «Cancelar» próprios.
+   * AGORA: não há cadastro nenhum — o passo 1 SÃO os campos do exercício, e quem o grava é o
+   * «Seguir →», que já existia. Sem «+», sem segundo botão, sem segundo caminho. */
+  checar('o «Seguir →» grava o exercício quando está no passo 1, e só então',
+    /if \(PASSO === 1\) \{ criarExercicioDoPasso1/.test(script));
+  checar('e o «+», o «Gravar exercício» e o «Cancelar» já não existem no script',
+    !/vb-novo-exercicio/.test(script) && !/vb-criar-exercicio/.test(script)
+    && !/vb-cancelar-exercicio/.test(script) && !/modoExercicio/.test(script));
   checar('e o Enter no nome cria o exercício, em vez de submeter o formulário',
-    /ev\.key !== "Enter"/.test(script) && /vb-criar-exercicio"\)\.click\(\)/.test(script));
+    /ev\.key !== "Enter"/.test(script)
+    && /criarExercicioDoPasso1\(function\(\)\{ irParaPasso\(2\); \}\)/.test(script));
+  checar('e o exercício criado fica escolhido no campo do passo 2',
+    /nomes\.value = d\.termo/.test(script)
+    && /já está na lista do passo 2/.test(script));
   /* A GRAVAÇÃO RECUSA UM VERBETE QUE NÃO FECHA A MÚSICA (02/11/2026) — a regra vive nos dois
    * lados, e é de propósito: a tela diz ONDE se corrige, e o servidor garante que ninguém a
    * contorna com uma página antiga em cache. */

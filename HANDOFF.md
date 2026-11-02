@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T10:40:04-0300`
-Commit atual: `787305d` — docs(regras): a Regra 15 é substituída pelo que o código faz
+Gerado em: `2026-11-02T10:57:31-0300`
+Commit atual: `804000a` — docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,7 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+804000a docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
 787305d docs(regras): a Regra 15 é substituída pelo que o código faz
 6902897 fix(notacao): o cadastro do exercício é o passo 1, e a gravação confere a música
 a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição estava errada
@@ -103,7 +104,6 @@ e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-
 c13be2f chore(estrutura): regerar os índices derivados
 d335f25 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
 4c0c642 feat(po): o PO elicitado vira a fonte do ciclo
-bd1298f feat(acervo): envelope/po-20261101-1959.json
 ```
 
 ## Por professor
@@ -217,49 +217,51 @@ bd1298f feat(acervo): envelope/po-20261101-1959.json
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A Regra 15 foi substituída, e por mais do que ela pedia
+## 02/11/2026 — O exercício novo é o passo 1: seis passos, e o «+» deixou de existir
 
-**O que motivou.** A pesquisadora: «nós fizemos uma solução melhor do que o que a regra 15 propõe, né?
-E ela é congelada. Então vamos registrar que ela foi substituída pelo que acontece agora, e assim a
-gente justifica que ela não é mais uma pendência.»
+**O que motivou.** A pesquisadora, ao ver o que eu tinha feito: «somente esses campos — exercício
+novo, categoria, tradição e carregar as turmas iniciais — vão ser o step 1. O step 2 passa a ser
+então o que antes era o step 1, e assim por diante, então agora eu vou ter seis steps ao todo. E esse
+botão de mais que está dentro do exercício a escolher, esse botão de mais que abre então aqueles
+campos, deixa de existir. Você não fez isso.»
 
-**O que a regra diz, e o que ela pedia.** *«Musicalidade — Bloco próprio em cada aula + arquivo
-paralelo do ciclo.»* Doze palavras, escritas **antes de o verbete existir**. Medido: **nenhum arquivo
-paralelo de musicalidade existe no repositório** (`find professores -iname "*musicalidade*"` devolve
-nada) — essa metade nunca se implementou. E o «bloco próprio» partia de uma premissa que a
-pesquisadora desfez: a musicalidade **não é um bloco onde se põem exercícios**, é uma forma de olhar
-todos eles.
+**O que eu tinha feito, e porque estava errado.** Peguei nos campos do cadastro e **movi-os para
+dentro do painel do passo 1**, mantendo o «+», o «Gravar exercício» e o «Cancelar». O resultado não
+era um passo a mais: era o mesmo widget, mais abaixo. A pesquisadora queria que a criação fosse **o
+passo**, e um passo não tem botões próprios — tem a navegação que todos têm.
 
-**O que a substitui, e é mais.**
+**O que foi decidido.**
 
-1. O **verbete** de cada exercício declara a grade de contagens por música (`<tempos>|<compasso>` →
-   cada célula com a contagem, a categoria e os sinais).
-2. A **sequência do plano** declara os tempos e o compasso de cada linha.
-3. A **§4 da aula** consolida os dois — uma linha por exercício, **uma vez só**, agrupada por
-   compasso, com a contagem e o que cai nela.
+- **Seis passos**, e o primeiro é o exercício novo (nome, categoria, tradição de referência,
+  carregar as turmas iniciais). O antigo passo 1 — o exercício a escolher, a frase e a posição — é
+  agora o **passo 2**; a música é o 3, o «para onde» o 4, os sinais o 5, a decomposição o 6.
+- **O «+» deixou de existir**, e com ele o «Gravar exercício» e o «Cancelar»: **quem grava é o
+  «Seguir →»** que já existia. Sem nome escrito, avançar não grava nada — quem só quer editar um
+  verbete que já existe passa pelo passo 1 sem escrever.
+- **O seletor do exercício desceu para o passo 2**, com a frase e a posição. Era um painel à parte,
+  por cima, porque o «modo» o bloqueava; sem modo, um painel fora da numeração seria um passo sem
+  número.
+- **A gravação continua a não gastar KV**: o `POST /api/bastidores/termo` grava no vocabulário do
+  repositório e a lista que a rota serve lê o mesmo ficheiro; a tela acrescenta o termo à lista
+  local, no grupo da categoria, e escolhe-o — e não o duplica se ele já lá estiver.
+- **«Limpar» vai para o passo 2**, e não para o 1: limpar o formulário para escrever outro verbete
+  de um exercício que já existe não deve pôr ninguém a escrever outro nome. **«Editar» também** — é
+  no passo 2 que vive o seletor, e sem isso preenchia campos que não estavam no ecrã.
 
-O **pulso** é a contagem, o **acento** é o tempo do compasso em que ela cai, e a **frase** é o
-exercício inteiro sobre a música. E a conferência de que a grade fecha nos tempos passou a ser feita
-na **gravação do verbete**, com a correção apontada nos passos 2 e 3.
+**Um detalhe de desenho que a prova obrigou.** O rótulo do passo 1 nasceu «O exercício novo», e a
+tira a 1280px cortava-o com reticências. A regra da casa é o rótulo do passo **activo** ficar
+inteiro; o do 1 é o mais comprido que a tira já teve. Ficou **«Exercício novo»** e **«O exercício»**
+para o 2 — que é, aliás, o nome que o antigo passo 1 tinha.
 
-**Porque é melhor.** A regra pedia um **arquivo** por ciclo; o que existe é **dado**, num sítio só, do
-qual derivam o documento da aula, a notação e o glossário. Um arquivo paralelo por ciclo seria mais
-uma verdade a manter sincronizada — exactamente o que este repositório elimina em cada decisão (o
-molde dos schemas, o vocabulário, a régua da rubrica). E uma regra que pede um ficheiro que ninguém
-abre não se cumpre: cumpre-se por omissão, que é pior do que emendar.
+**Onde entrou.** `motor/servidor/bastidores.js` (`PASSOS_DO_VERBETE`, `PASSOS_DO_TRECHO`, o markup
+dos seis painéis, `criarExercicioDoPasso1`, o «Seguir», o `Enter`, `pintarTira`, `alvoDoRecado`,
+`editarVerbete`) · `experimentos/provar-celula.js` (o mapa dos passos, as secções 1, 3–6 reescritas;
+130 asserções) · `experimentos/provar-verbete.js` (a ausência do «+» e dos dois botões, o «Seguir»
+que grava) · `experimentos/provar-producao.js` (o recorte do passo 1).
 
-**O que foi feito, e o ritual do congelamento.** O `REGRAS.md` está congelado (`CONGELAMENTO.md`), e
-mudá-lo exige motivo declarado, entrada no `REGISTRO.md` e commit próprio. A **nota de substituição**
-foi escrita no próprio `REGRAS.md`, debaixo da tabela das 17 regras, com a data, o que substitui a
-regra e o ponteiro para esta entrada; o commit leva só esse ficheiro e esta entrada. **A Regra 15
-continua numerada e continua a existir** — o que muda é o que ela manda cumprir.
-
-**Onde entrou.** `REGRAS.md` (nota de substituição) · `REGISTRO.md` (esta entrada) · `ESTADO-ATUAL.md`
-(a decisão e a pendência fechada).
-
-**Com o quê.** `grep` no repositório inteiro: nenhum `musicalidade-*.md`, e a única menção a «arquivo
-paralelo» fora do `REGRAS.md` era a pendência desta fotografia. A substituição mede-se no que já
-existe — `provar-o-que-vem-do-dado` (a §4 vem do dado) e `provar-celula` (a gravação confere a música).
+**Com o quê.** `provar-celula` **130 de 130** · `provar-verbete` TUDO CERTO · `provar-acordeoes`
+TUDO CERTO · `provar-vao-do-botao` 50/50 · `provar-menu-da-producao` 55/55 · `provar-producao`
+**151/152** (o item do menu — falha igual em `HEAD`) · `check-identidade` 20/20.
 
 ## O que está pendente
 
