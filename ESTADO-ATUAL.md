@@ -211,6 +211,16 @@ Verificado nesta fotografia, com os comandos da §9.
   `Publicar as escolas` corre em cada push e **publica sem passo manual**: dizer «não publiquei»
   teria sido falso. É a mesma família do «o worktree não sabe que o remoto mudou» — supor o que o
   outro lado faz, sem lá olhar.
+- **«O push publica» é verdade, mas não é «todo o push» — e a diferença é de custo.** O
+  `deploy-escolas.yml` tem **`paths:`** (linha 43), e o que lá está é **o que a escola serve**:
+  `professores/**/ciclos/ciclo-*/**`, `professores/**/ciclos/*.conf`, `motor/**`, `workers/**`,
+  `wrangler.*.jsonc`, `tools/templates/**`, `tools/montar-publicacao.js`, `tools/check-identidade.js`
+  e `experimentos/propostas/**`. **Um commit que só toca `*.md` na raiz não publica nada** — medido
+  em 02/11/2026: os pushes `377544c`, `e323e60` e `08551a9` (documentação) **não** geraram run de
+  `Publicar as escolas`, enquanto `aeb2b2c` (expurgo) gerou três. **CONFIRMADO** pela API das Actions
+  e pelo `paths` do workflow. **Corrige a frase que esta secção repetia** («o push publica» como se
+  fosse incondicional): é verdade para o que chega ao site, e é falso para documentação — o que é
+  bom, porque é exactamente o que a regra de «medir sem gastar a cota do ar» precisa.
 - **A expectativa de que a publicação ficaria por fazer estava errada**, e vale a pena registá-lo: o
   plano era não publicar, porque ela vai expurgar a `batata`. Mas o `Publicar as escolas` é um
   workflow de push e correu — as quatro Actions de `8175264` ficaram `success`. Publicar não estraga

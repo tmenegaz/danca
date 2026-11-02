@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T14:10:52-0300`
-Commit atual: `e323e60` — docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
+Gerado em: `2026-11-02T14:12:31-0300`
+Commit atual: `08551a9` — docs(estrutura): a licença em três camadas, e uma citação minha que era falsa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+08551a9 docs(estrutura): a licença em três camadas, e uma citação minha que era falsa
 e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
 3cd2c0c docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
 9f183bc docs(registro): a fotografia dos três produtos e do plano do motor
@@ -104,7 +105,6 @@ b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» 
 6902897 fix(notacao): o cadastro do exercício é o passo 1, e a gravação confere a música
 a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição estava errada
 8175264 docs(registro): a fotografia da §4 por compasso e do aspecto físico no plano
-0cb2e54 fix(musicalidade): a §4 consolida por compasso, e o aspecto físico entra no plano
 ```
 
 ## Por professor
@@ -306,6 +306,27 @@ começar a implementação, porque vai testar a `breu` com as soluções desta s
 **Com o quê.** `ARQUITETURA-GERAL.md` §10 (novo) · `vocabulario.json` (a contagem do `fonte`) ·
 `tools/templates/marca/` · `tools/templates/ciclo.css:76-77` · a API do GitHub (repo privado) ·
 `PLANO-PRODUTOS-DO-MOTOR.md` §5, §7-D/F, §9 (critérios 8 e 9), §10 (itens 2 e 3 fechados).
+
+**Nota de 02/11/2026, acrescentada à entrada anterior.** Ao verificar as Actions depois do push,
+apareceu uma precisão que corrige uma frase repetida nesta sessão e nas anteriores: **«o push
+publica» é verdade, mas não é «todo o push»**.
+
+O `deploy-escolas.yml` tem **`paths:`** (linha 43), e a lista é **o que a escola serve**:
+`professores/**/ciclos/ciclo-*/**`, `professores/**/ciclos/*.conf`, `motor/**`, `workers/**`,
+`wrangler.*.jsonc`, `tools/templates/**`, `tools/montar-publicacao.js`, `tools/check-identidade.js` e
+`experimentos/propostas/**`. **Um `*.md` na raiz não está lá.**
+
+Medido nos três pushes desta entrega: `377544c`, `e323e60` e `08551a9` — só documentação — **não**
+geraram run nenhum de `Publicar as escolas`; `aeb2b2c` (expurgo da `batata`, que toca
+`professores/**`) gerou três, e `0e8d256` disparou o `Regerar os índices`. **CONFIRMADO** pela API das
+Actions e pelo `paths` do workflow.
+
+**Por que fica registado.** A frase nasceu de um caso real (19–20/10/2026, quando o `Publicar as
+escolas` correu depois de um push que se pensava não publicar) e, desde então, foi usada como se fosse
+incondicional. A versão precisa é a que serve à regra de «medir sem gastar a cota do ar»: publicar
+custa quando o caminho chega ao site; documentação não chega. É uma diferença de custo, não de
+princípio — e o princípio que continua de pé é o outro: **não há passo manual, e supor que «não
+publiquei» é sempre a suposição errada quando o caminho é do site.**
 
 ## O que está pendente
 
