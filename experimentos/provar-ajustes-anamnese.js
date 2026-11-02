@@ -282,16 +282,30 @@ globalThis.__porta = {
   // O que a rota da EDIÇÃO devolve — a prova o troca para medir o que a tela faz com a
   // resposta (o carimbo novo, ou a notícia de que nada mudou).
   const roteiro = { editar: { ok: true } };
+  const destinos = [];
   const sandbox = {
     console: { log() {}, warn() {}, error() {} },
     URL, URLSearchParams, Date, Math, JSON, Set, Map, Array, Object, String, Number,
     Boolean, Error, Promise, RegExp, Intl, setTimeout, clearTimeout,
     Markdown: { paraLinha: (t) => String(t) },
     globalThis: null,
+    /* `replace` EXISTE, E REGISTA O DESTINO (02/11/2026).
+     *
+     * O `location` do mock tinha `pathname`, `search` e `href` — e a página chama
+     * `window.location.replace(alvo)` no caminho em que o ato não tem contexto válido
+     * (`voltarParaALista`, e é o comportamento certo: sem contexto não há formulário a abrir, só
+     * um endereço órfão). Sem `replace` no mock, esse caminho morria num `TypeError` e a prova
+     * inteira parava ali, a meio do bloco (8) — a última asserção do ficheiro deixava de correr,
+     * e o que se lia era «erro na prova», não «a página devolveu-me à lista».
+     *
+     * É o mock que estava incompleto, não a página: um navegador tem `replace`. Agora o destino
+     * é REGISTADO (`destinos`), e quem quiser prova-lo fá-lo em vez de apanhar a exceção. */
     location: {
       pathname: pagina,
       search: '?professor=tiago-menegaz&escola=fita&ciclo=01',
       href: 'https://x' + pagina,
+      replace(alvo) { destinos.push(String(alvo)); },
+      assign(alvo) { destinos.push(String(alvo)); },
     },
     document: {
       getElementById: porId,
@@ -307,11 +321,23 @@ globalThis.__porta = {
     fetch: async (alvo, opcoes) => {
       const metodo = (opcoes && opcoes.method) || 'GET';
       chamadas.push(metodo + ' ' + String(alvo));
-      const corpo = String(alvo).indexOf('mapa') !== -1
+      /* A LISTA DE ALUNAS E A DE PROFESSORES SÃO SERVIDAS (02/11/2026). O `fetch` do mock
+       * respondia `{ok:true}` a tudo, e `carregarAlunas()` — que corre DEPOIS de a página semear o
+       * contexto — reconstruía o `select` a partir de uma lista vazia e apagava a aluna. O
+       * contexto ficava incompleto sem ninguém lhe tocar, `podePreencher()` via-o faltar, e a
+       * porta devolvia à lista: o bloco (8) media a saída em vez do «Guardar».
+       *
+       * Não é o mock a imitar a página: é a página a receber a resposta que o servidor dá. */
+      const endereco = String(alvo);
+      const corpo = endereco.indexOf('mapa') !== -1
         ? { nos: [{ id: 'n1', campo: 'Pergunta' }], obrigatorios: 0, respondidas: 0, total: 1, tituloCabecalho: 'Prova' }
-        : String(alvo).indexOf('anamnese-editar') !== -1
+        : endereco.indexOf('anamnese-editar') !== -1
           ? roteiro.editar
-          : { ok: true };
+          : endereco.indexOf('/api/bastidores/alunas') !== -1
+            ? { ok: true, alunas: ['Vavá'] }
+            : endereco.indexOf('/api/bastidores/professores') !== -1
+              ? { ok: true, professores: [{ nome: 'Tiago Menegaz', slug: 'tiago-menegaz' }] }
+              : { ok: true };
       return { ok: true, json: async () => corpo };
     },
     CSS: { escape: (s) => String(s).replace(/"/g, '\\"') },
@@ -328,7 +354,7 @@ globalThis.__porta = {
   sandbox.self = sandbox;
   vm.createContext(sandbox);
   new vm.Script(js, { filename: 'porta/index.html:script' }).runInContext(sandbox);
-  return { porta: sandbox.__porta, porId, chamadas, roteiro };
+  return { porta: sandbox.__porta, porId, chamadas, roteiro, destinos };
 }
 
 function main() {
@@ -463,22 +489,55 @@ function main() {
 
     // (8) A EDIÇÃO NÃO GRAVA SEM A SENHA — pelo caminho REAL do «Guardar»
     const boot = carregarPortaIniciada();
+    /* O CONTEXTO DO ATO É POSTO ANTES DE `iniciar()` (02/11/2026).
+     *
+     * É a ordem do navegador: quem abre a porta chega com os campos do cabeçalho preenchidos do
+     * envelope ou da barra, e `podePreencher()` confere-os na PRIMEIRA coisa que faz. A prova
+     * punha-os depois, e por isso a página fazia o que deve — `voltarParaALista()` — e nunca
+     * chegava a ligar o «Guardar». O bloco (8) media, sem saber, o caminho de saída.
+     *
+     * O que se prova agora são as DUAS metades: com contexto, a página fica (e liga o
+     * manipulador); sem contexto, devolve à lista. A segunda era invisível — era o `TypeError`
+     * que a escondia. */
+    /* OS DOIS `select` PRECISAM DA `<option>` (02/11/2026). O `value` do elemento do mock só cola
+     * quando há uma opção com aquele valor — é o que o DOM de verdade faz —, e a página semeia o
+     * contexto da URL na abertura (`el.value = params.get(campo)`). Sem as opções, o `select` do
+     * professor voltava a vazio no seed e `podePreencher()` via contexto faltando. As opções são
+     * as que o servidor traria; aqui entram à mão porque o `fetch` do mock não as serve. */
+    const comOpcoes = (id, valores) => {
+      const el = boot.porId(id);
+      for (const v of valores) if (!el.opcoes.some((o) => o.value === v)) el.appendChild({ value: v, textContent: v });
+      return el;
+    };
+    comOpcoes('ctx-professor', ['tiago-menegaz']);
+    comOpcoes('ctx-aluna', ['Vavá']);
+    const porContexto = () => {
+      boot.porId('ctx-escola').value = 'fita';
+      boot.porId('ctx-professor').value = 'tiago-menegaz';
+      boot.porId('ctx-ciclo').value = '01';
+      boot.porId('ctx-aluna').value = 'Vavá';
+    };
+    porContexto();
+    /* E EM MODO DE EDIÇÃO, que é o caminho que este bloco mede. A anamnese pede a senha para
+     * ENTRAR (é a regra dela: a senha é pré-requisito de gravação, mas o ato novo começa com
+     * ela); a EDIÇÃO não pede, e é por isso que o «Editar» da lista abre direto no formulário
+     * (26/10/2026). Sem esta linha a prova pedia a entrada por um caminho que a página
+     * legitimamente fecha — não havia defeito nenhum, havia um cenário errado. */
+    boot.porta.setEditando('anamnese-20261016-1404');
     return boot.porta.iniciar().then(async () => {
+      provar('COM o contexto do ato, a porta fica (não devolve à lista)',
+        boot.destinos.length === 0,
+        boot.destinos);
       const cliques = (boot.porId('gravar')._handlers || {}).click || [];
       provar('o «Guardar» liga o seu manipulador', cliques.length === 1, 'handlers=' + cliques.length);
       if (cliques.length !== 1) return;
 
-      // `iniciar()` dispara buscas sem esperar por elas (alunas, professores, turmas): o
-      // contexto só se fixa depois de a página assentar, senão a lista de alunas reescreve o
-      // `select` por cima do que a prova acabou de pôr.
+      // `iniciar()` dispara buscas sem esperar por elas (alunas, professores, turmas): as
+      // respostas podem reescrever os `select` por cima do que se pôs. Repõe-se depois de a
+      // página assentar — e o `select` do mock só aceita um valor que tenha `<option>`, daí o
+      // depósito interno (`_valor`), que é o que o `value` do elemento devolve.
       for (let i = 0; i < 8; i += 1) await new Promise((r) => setTimeout(r, 0));
-
-      // O contexto do ato é pré-requisito da escrita (a barra o exige); com os `select` do
-      // DOM de verdade, o valor vai pelo depósito interno — as opções não existem no mock.
-      boot.porId('ctx-escola')._valor = 'fita';
-      boot.porId('ctx-professor')._valor = 'tiago-menegaz';
-      boot.porId('ctx-ciclo')._valor = '01';
-      boot.porId('ctx-aluna')._valor = 'Vavá';
+      porContexto();
 
       boot.porta.setEditando('anamnese-20261016-1404');
       boot.porId('senha').value = 'segredo-do-professor';
@@ -664,12 +723,18 @@ function main() {
       provar('o paginador fica limpo quando não há o que paginar',
         String(boot.porId('paginacao').innerHTML) === '', String(boot.porId('paginacao').innerHTML));
 
-      // (13) O ROTEIRO SÓ NA CONDUÇÃO, e o espaço dele é do texto
-      boot.porta.voltarAoPortal();
-      provar('no portal o roteiro está escondido',
-        boot.porId('rail').classList.contains('oculto') === true);
-      provar('e o conteúdo ocupa a largura inteira',
-        boot.porId('principal').classList.contains('sem-roteiro') === true);
+      /* (13) O ROTEIRO SÓ NA CONDUÇÃO — e SAIR É NAVEGAR, não esconder (02/11/2026).
+       *
+       * As três asserções que aqui estavam mediam o roteiro a esconder-se ao «voltar ao portal».
+       * Esse portal já não existe nesta página: a abertura foi apagada (26/10/2026) e o «Sair»
+       * passou a NAVEGAR para a lista (`voltarParaALista` → `location.replace`). O roteiro nasce
+       * escondido no HTML (`<aside class="rail oculto">`) e aparece quando a condução abre; quem
+       * sai da página não deixa um roteiro pendurado porque a página deixou de existir.
+       *
+       * Ficam as duas metades que continuam verdadeiras, medidas onde elas estão: o estado
+       * inicial vem do HTML, e a saída é um DESTINO — que é o que se pode observar sem navegar. */
+      provar('o roteiro nasce escondido no HTML (é a condução que o abre)',
+        /<aside class="rail oculto" id="rail">/.test(fs.readFileSync(FONTE_HTML, 'utf8')));
 
       boot.porta.abrirFormulario(0, false);
       provar('na condução o roteiro aparece',
@@ -677,15 +742,37 @@ function main() {
       provar('e a segunda coluna volta',
         boot.porId('principal').classList.contains('sem-roteiro') === false);
 
+      boot.destinos.length = 0;
       boot.porta.voltarAoPortal();
-      provar('saindo da condução o roteiro se apaga outra vez',
-        boot.porId('rail').classList.contains('oculto') === true &&
-        boot.porId('principal').classList.contains('sem-roteiro') === true);
+      provar('sair da condução NAVEGA para a lista (o destino é declarado, não deduzido)',
+        boot.destinos.length === 1 && /\/area-do-professor\/anamnese\/$/.test(boot.destinos[0]),
+        boot.destinos);
 
       // (14) A TURMA DO PLANO: UMA POR PLANO, A JÁ FEITA BLOQUEADA — e o atalho para ela
       // A PÁGINA DO PLANO, e não a da anamnese: `turmasJaUsadas()` devolve vazio fora do
       // plano, por desenho — medir o bloqueio da turma na anamnese media o vazio.
       const bootDoPlano = carregarPortaIniciada('/plano-ensino/');
+      /* O PROFESSOR DA BARRA, POSTO ANTES DE PERGUNTAR (02/11/2026). `listaDeTurmasDoProfessor`
+       * devolve LISTA VAZIA quando não há professor — o recorte é dele, e sem ele não se sabe de
+       * quem são as turmas. A prova pedia a grade sem o professor e lia «Escolha primeiro o
+       * professor» em todas as doze asserções: medía o aviso, não a grade. As duas metades são
+       * medidas: sem professor a tela DIZ o que falta (é o `avisoDaTurma`), com professor a
+       * grade aparece. */
+      const comProfessor = (boot, slug) => {
+        const el = boot.porId('ctx-professor');
+        if (!el.opcoes.some((o) => o.value === slug)) el.appendChild({ value: slug, textContent: slug });
+        el.value = slug;
+        boot.porId('ctx-escola').value = 'fita';
+        boot.porId('ctx-ciclo').value = '01';
+      };
+      const gradeSemProfessor = bootDoPlano.porta.gradeDeOpcoesDinamicas({
+        id: 'contexto-turma', campo: 'Turma observada', obrigatorio: true,
+        aberto: true, opcoesDe: '/api/bastidores/turmas', daCuradoria: 'turmas',
+      });
+      provar('sem professor, a grade DIZ que é preciso escolher o professor (o recorte é dele)',
+        gradeSemProfessor.indexOf('Escolha primeiro o professor') !== -1,
+        gradeSemProfessor.slice(0, 120));
+      comProfessor(bootDoPlano, 'tiago-menegaz');
       bootDoPlano.porta.setOpcoes('/api/bastidores/turmas', [
         { valor: 'Balé Nível 1' }, { valor: 'Balé Nível 2' }, { valor: 'Balé Nível 3' },
       ]);
@@ -724,8 +811,14 @@ function main() {
         /href="[^"]*editar=plano-20261016-1000/.test(grade), grade);
       provar('o plano LIGADO oferece «ver o plano», não a edição',
         grade.indexOf('ver o plano') !== -1 && !/editar=plano-20261016-1100/.test(grade), grade);
-      provar('e o atalho do ligado é o do envelope (leitura)',
-        /href="api\/envelope\/plano-20261016-1100"/.test(grade), grade);
+      /* O ATALHO DO LIGADO MUDOU DE DESTINO (02/11/2026) — e a prova tinha ficado no antigo.
+       * Ele apontava para `api/envelope/<carimbo>` (o JSON cru); passou a apontar para
+       * `api/plano-preenchido.<carimbo>?formato=html`, que é o documento LEGÍVEL — o mesmo
+       * caminho que o PO e a aula já usam. A prova foi atualizada para o que a página faz; o que
+       * ela guarda continua a ser o essencial: o plano ligado é LEITURA, e o atalho não oferece
+       * `editar=`. */
+      provar('e o atalho do ligado é a LEITURA do plano preenchido (não a edição)',
+        /href="api\/plano-preenchido\.plano-20261016-1100\?formato=html"/.test(grade), grade);
       provar('o atalho abre em OUTRA aba',
         (grade.match(/target="_blank"/g) || []).length >= 2, grade);
       provar('a turma livre é a SUGERIDA (a primeira que ainda dá para planejar)',

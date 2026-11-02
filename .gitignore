@@ -106,6 +106,13 @@ experimentos/*
 !experimentos/provar-ato-e-barra.js
 # A prova do plano e da anamnese: o REGISTRO cita-a por nome («125 de 125»), e uma prova
 # citada que não existe no clone é uma afirmação que ninguém confere.
+#
+# E ela esteve a falhar em silêncio (02/11/2026). Duas coisas, e as duas de medição: o mock do
+# `location` não tinha `replace`, e a página — que faz o certo, mandando de volta à lista quem não
+# tem contexto — morria num `TypeError` a meio; e o `fetch` do mock respondia `{ok:true}` a tudo,
+# de modo que as listas de alunas e de professores chegavam vazias e o contexto ficava incompleto
+# sem ninguém lhe tocar. Corrigido, corriam 126 provas onde antes corriam 56: **70 asserções nunca
+# se tinham executado**, e 12 mediam um aviso («escolha primeiro o professor») em vez da grade.
 !experimentos/provar-ajustes-anamnese.js
 # AS PROVAS DO KV E DO ACERVO (19–20/10/2026). As quatro estão citadas pelo REGISTRO e pelos
 # rodapés `Auditoria:` dos commits — e uma prova citada que não existe no clone é uma
@@ -507,3 +514,4 @@ experimentos/modelo-formulario/*
 # `Auditoria:` do commit — uma prova citada que não existe no clone é uma afirmação que ninguém
 # confere.
 !experimentos/provar-forca-e-flexibilidade.js
+

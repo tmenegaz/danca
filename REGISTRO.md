@@ -29981,6 +29981,14 @@ de antes) · `check-pacote` 0 erro / 0 aviso (9 páginas, 245 links, PDF de 27 p
   não tem campo de musicalidade — o texto de ajuda da `distribuicao-de-volume` até promete «A
   musicalidade não entra aqui: ela tem o bloco dela», e o bloco dela nunca teve campo. A §4 agora
   declara a lacuna em vez de a disfarçar com um rótulo; o campo é que falta, e é decisão de desenho.
+
+  **Correção de 02/11/2026 — a premissa estava errada, e o «campo que falta» não falta.** «Não tem
+  que existir uma pergunta. Isso já está elaborado pelo professor lá na produção (…) automaticamente
+  isso já é respondido.» O professor declara, no VERBETE, a grade das contagens de cada exercício
+  (por música: `8|4/4` → cada célula com a sua contagem), e no PLANO os tempos e o compasso de cada
+  linha da sequência. Os dois juntos são o trabalho musical — pulso é a contagem, acento é o tempo
+  do compasso em que ela cai, frase é o exercício inteiro sobre a música. O que faltava não era uma
+  pergunta: era a secção **consolidar** o que já existe. Ver a entrada de 02/11/2026.
 - **`provar-aula-prosa` e `provar-escopo-da-aula` estão vermelhas por fixture, não por código.** A
   primeira aponta para `professores/perna-boa/ciclos/ciclo-01-batata-…`, a segunda para
   `escola/batata/envelopes/plano-20261027-1025.json` — ambos apagados por expurgos anteriores. Já
@@ -30082,6 +30090,10 @@ campos · `provar-aula-e-plano-legiveis` 12/12 · `provar-cabecalho-do-documento
 - **O bloco de musicalidade (§4) continua sem pergunta própria.** A §4 passou a ler a fatia do plano
   e os exercícios do bloco, e a DECLARAR a lacuna do trabalho musical — mas o campo que a
   preencheria não existe em formulário nenhum.
+
+  **Correção de 02/11/2026 — o parágrafo acima é falso, e é meu, não dela.** O campo não existe
+  porque **não tem de existir**: a musicalidade já foi decidida no verbete e na sequência, e o que
+  a §4 devia fazer era consolidá-la — não declará-la em falta. Ver a entrada de 02/11/2026.
 - **A Regra 4 pede força e flexibilidade e o PO não as mostra no ponto de partida.** A pesquisadora
   localizou-os na ANAMNESE (`flexibilidade-dos-isquiotibiais`, `flexibilidade-dos-adutores`,
   `controle-de-carga-no-demi-grand-plie`, `impulsao-e-absorcao-allegro`, …), e o que falta é a
@@ -30159,3 +30171,93 @@ medida) · `check-indices` 14/14 · `check-pacote` 0 erro / 0 aviso.
 - **O item 11 continua a pedir a formulação dela por palavras.** Os campos da anamnese são LIDOS ao
   lado; «o que traz» e «o que precisa desenvolver» escrevem-se, porque a anamnese informa e a
   formulação é da professora — é o que o próprio `porQue` do nó diz desde antes.
+
+## 02/11/2026 — A musicalidade não se pergunta: consolida-se
+
+**O que motivou.** Eu insisti três vezes na mesma ideia errada. A pesquisadora, pela terceira:
+
+> «Você continua insistindo que tem que haver uma pergunta a respeito da musicalidade. **Não tem
+> que existir uma pergunta.** Isso já está elaborado pelo professor lá na produção. E quando ele faz
+> o plano de ensino e recolhe aqueles elementos que ele precisa para a aula dele, ele já traz junto
+> a musicalidade. Então automaticamente isso já é respondido, não em forma de pergunta.»
+
+**O que eu não tinha entendido.** Eu tratava a §4 como uma lacuna — uma coisa que falta perguntar.
+Não falta nada. O professor **declara**, no VERBETE, a grade de cada exercício por música (`8|4/4` →
+cada célula com a sua contagem, a categoria e os sinais); e **declara**, no PLANO, os tempos e o
+compasso de cada linha da sequência. Juntos, são o trabalho musical inteiro: **o pulso é a
+contagem; o acento, o tempo do compasso em que ela cai; a frase, o exercício inteiro sobre a
+música**. Perguntar outra vez seria pedir ao professor que redigisse o que ele já decidiu — e as
+duas versões podiam discordar sem que nada falhasse, que é o defeito que a §4 vinha arrastando de
+outra forma.
+
+**O que foi decidido.** A §4 passa a **consolidar**:
+
+- uma linha por **música**, com os exercícios que a usam e a grade das contagens tal como o verbete
+  a declara. Agrupar por música e não por exercício é a diferença entre três linhas legíveis e nove
+  a repetir a mesma grade — e a grade só se junta quando é **igual** (medido, não suposto): dois
+  exercícios com a mesma música e distribuições diferentes são duas linhas;
+- a **fatia** que o plano dá ao bloco (Regra 9, etapa 2), que já vinha da correção anterior;
+- **nenhum `[Preencher]`**, e a frase que diz de onde vem cada metade.
+
+O que continua a **não** entrar aqui: os itens da dimensão musical do PO — estão na §5, com os das
+outras dimensões, e o mesmo dado em duas listas foi o que ela mandou cortar da §3 em 28/10/2026.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (§4) ·
+`experimentos/provar-o-que-vem-do-dado.js` (§4 e a secção 3) · as duas notas de correção nas
+entradas de 01/11/2026, que diziam o contrário.
+
+**Com o quê.** `provar-o-que-vem-do-dado` — as asserções da §4 mudaram de pergunta: já não é «esta
+secção não tem de onde vir», é «a música vem da sequência, a grade vem do verbete, e a secção não
+pede a ninguém que escreva». São seis, com a mutação a provar que trocar a música de uma linha muda
+o documento. A secção 3 ganhou três: a sequência do plano declara tempos e compasso, o verbete
+declara contagens, e a musicalidade do PO existe como **dimensão** de observação (o outro eixo).
+`check-pacote` 0 erro / 0 aviso · `hash-ciclo --check` cadeia intacta.
+
+## 02/11/2026 — A prova da porta estava a medir-se a si mesma
+
+**O que motivou.** Ficou registado na entrada anterior, como pendência, que
+`experimentos/provar-ajustes-anamnese.js` falhava em `window.location.replace` e «já falhava em
+`HEAD`». A pesquisadora perguntou o que era e o que fazer. A resposta é pior do que a pendência
+dizia, e é de medição em três camadas.
+
+**O que estava a acontecer.**
+
+1. **O mock do `location` não tinha `replace`.** A página chama `location.replace` no caminho em que
+   o ato não tem contexto válido (`voltarParaALista`) — e é o comportamento certo: sem contexto não
+   há formulário a abrir, só um endereço órfão. No sandbox isso era um `TypeError`, e a prova
+   inteira parava ali.
+2. **E parava a meio:** corriam **56** asserções e as últimas do ficheiro nunca se executavam. Com o
+   `replace` no mock, correram **126**. Ou seja: **70 asserções estavam a passar por não correr.**
+3. **E as que passavam, algumas mediam outra coisa.** O `fetch` do mock respondia `{ok:true}` a tudo,
+   de modo que as listas de alunas e de professores chegavam vazias, `carregarAlunas()` reconstruía o
+   `select` a partir do vazio, e o contexto ficava incompleto sem ninguém lhe tocar. Doze asserções
+   do bloco da turma liam «Escolha primeiro o professor» — o **aviso** — e chamavam-lhe a grade.
+
+**O que foi decidido.**
+
+- **O mock ganha `replace`, e regista o destino.** É o que um navegador tem. Passa a haver duas
+  asserções onde havia uma exceção: com contexto a porta **fica**; sem contexto a porta **volta à
+  lista** — a segunda era invisível, era o `TypeError` que a escondia.
+- **O `fetch` do mock serve as listas.** Não é o mock a imitar a página: é a página a receber a
+  resposta que o servidor dá. A aluna e o professor chegam pelo caminho de produção.
+- **O cenário passou a ser o real.** O bloco (8) media o «Guardar» sem dizer que estava em EDIÇÃO —
+  e a anamnese pede a senha para ENTRAR (a senha é pré-requisito de gravação, mas o ato novo começa
+  com ela); a edição não pede, e é por isso que o «Editar» da lista abre direto. Sem essa linha, a
+  prova pedia a entrada por um caminho que a página legitimamente fecha.
+- **Três asserções do roteiro foram reescritas, e uma do atalho do plano.** O «portal» que elas
+  mediam já não existe nesta página (a abertura foi apagada em 26/10/2026; sair é NAVEGAR), e o
+  atalho do plano ligado passou a apontar para `api/plano-preenchido.<carimbo>?formato=html` (o
+  documento legível) em vez do envelope cru. A prova tinha ficado no mundo anterior.
+
+**Onde entrou.** `experimentos/provar-ajustes-anamnese.js` · `.gitignore` (o bloco de abertura da
+prova, com a razão) · nada em `porta/` — **a página estava certa nas quatro coisas**.
+
+**Com o quê.** `provar-ajustes-anamnese` **126 de 126** (eram 56, e a última do ficheiro não
+corria) · `provar-o-que-vem-do-dado` TUDO CERTO · `provar-forca-e-flexibilidade` 17/17 ·
+`provar-aula-e-plano-legiveis` 12/12 · `provar-po-unico` 18/18 · `provar-schemas` 29/29 ·
+`check-pacote` 0 erro / 0 aviso · `check-identidade` 20/20 · `hash-ciclo --check` cadeia intacta.
+
+**A lição, e é a mesma de sempre neste repositório:** uma prova que não corre não falha — passa.
+O `TypeError` era o único sinal, e estava a ser lido como «a prova é frágil» em vez de «a prova
+parou». A partir de agora, uma prova que morra a meio tem de dizer **quantas** asserções correu, e
+é isso que o resumo dela imprime.

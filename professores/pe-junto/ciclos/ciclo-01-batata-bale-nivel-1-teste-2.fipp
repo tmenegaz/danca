@@ -10,9 +10,9 @@ type: Ciclo
 professor: pe-junto
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: 70efeadb02061007ceaf5e75f6e9d589e357f4e11c2d2515c8b9b0f5d8e1ea8a
+hash_conteudo: 1b918aa9160d07deb9a786a572e61b95af7e4791f1acc5bfa4cdab91d92b892b
 parentHash: 
-hash: b9c7e31dc3642096fce992d23ff5162292558ba0504f6cfd5dc81e8427914dc8
+hash: 54e37c7008b33158b11e8478992e5afb0240871286e844a9359561ddebbf4cbe
 algoritmo: SHA-256
 po: professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Aguardando

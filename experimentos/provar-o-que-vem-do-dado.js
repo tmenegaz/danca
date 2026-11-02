@@ -179,9 +179,12 @@ const CASOS = [
     // A §4 TINHA UM «PULSO» FIXO, E NÃO MUDOU (a primeira redação desta prova mediu-o com
     // `espera: 'codigo'` — o registo de que o defeito existia). Corrigida em 01/11/2026: a fatia
     // do bloco vem da distribuição do volume do plano, como o `tools/lib-vistas.js` já fazia.
-    nome: '§4 «Bloco de musicalidade» — a fatia que o plano lhe dá', numero: 4, envelope: 'plano',
-    chave: 'distribuicao-de-volume',
-    valor: { unidade: 'percentual', linhas: [{ Bloco: 'Musicalidade', 'Proporção alvo': '100%' }] },
+    // A MUSICALIDADE NÃO SE PERGUNTA, MAS VEM DO DADO (02/11/2026): a música de cada linha está na
+    // SEQUÊNCIA (tempos + compasso) e a grade das contagens no VERBETE. Trocar a música de uma
+    // linha tem de mudar a secção — se não mudasse, seria texto do código outra vez.
+    nome: '§4 «Bloco de musicalidade» — a música de cada exercício (da sequência)', numero: 4,
+    envelope: 'plano', chave: 'aula-1-sequencia',
+    valor: [{ Bloco: 'Musicalidade', 'Conteúdo do nível': 'Plié', Tempos: '16', Compasso: '4/4' }],
     espera: 'dado',
   },
   {
@@ -255,10 +258,16 @@ provar('§2 — o título já diz o que o corpo é (o espaço e o material), e n
 const bloco4 = secao(BASE, 4);
 provar('§4 — o rótulo fixo «Pulso» saiu',
   !/\*\*Pulso\*\*/i.test(bloco4), bloco4.trim().split('\n').slice(0, 5));
-provar('§4 — o número da aula não está escrito à mão dentro da lacuna',
-  !/Aula 01/.test(bloco4), (bloco4.match(/\[Preencher:[^\]]*\]/) || [''])[0]);
-provar('§4 — a fatia vem da distribuição do volume do PLANO (Regra 9, etapa 2)',
-  /\*\*Fatia do plano\*\*/.test(bloco4) && /%/.test(bloco4), bloco4.trim().split('\n').slice(2, 5));
+provar('§4 — não pede a ninguém que escreva nada (nenhum `[Preencher]`)',
+  !/\[Preencher/.test(bloco4), (bloco4.match(/\[Preencher:[^\]]*\]/) || [''])[0]);
+provar('§4 — consolida por MÚSICA, com os exercícios que a usam',
+  /\| Música \| Exercícios \|/.test(bloco4) && /tempos em \d\/\d/.test(bloco4),
+  bloco4.trim().split('\n').slice(2, 6));
+provar('§4 — a grade das contagens vem do verbete (contagem + bloco de notação)',
+  /\d[–-]\d\s*`\[[^\]]+\]`/.test(bloco4),
+  (bloco4.match(/\d[–-]\d\s*`\[[^\]]+\]`/) || [''])[0]);
+provar('§4 — a fatia do plano continua dita (Regra 9, etapa 2)',
+  /Bloco no plano\./.test(bloco4) && /%/.test(bloco4));
 
 const bloco6 = secao(BASE, 6);
 provar('§6 — não chama «simulado» a um ciclo real',
@@ -371,9 +380,31 @@ const temPergunta = (arquivo, id) => {
   if (!fs.existsSync(p)) return null;
   return fs.readFileSync(p, 'utf8').includes('"' + id + '"');
 };
-provar('não existe campo «musicalidade» no formulário do PLANO (a §4 não tem de onde vir)',
+/* A MUSICALIDADE NÃO É UMA PERGUNTA — E ISSO NÃO A FAZ UMA LACUNA (02/11/2026).
+ *
+ * A primeira redação desta secção dizia «não existe campo `musicalidade` no plano (a §4 não tem de
+ * onde vir)», e tratava isso como um defeito. A pesquisadora corrigiu: «Não tem que existir uma
+ * pergunta. Isso já está elaborado pelo professor lá na produção (…) automaticamente isso já é
+ * respondido.» O que se prova, então, é o CONTRÁRIO — que a §4 tem de onde vir sem pergunta
+ * nenhuma: a música de cada linha vem da sequência do plano (tempos + compasso) e a grade das
+ * contagens vem do VERBETE do exercício. */
+provar('não existe campo «musicalidade» no formulário do PLANO — e não tem de existir',
   temPergunta(path.join('plano', 'conteudo', 'plano.json'), 'musicalidade') === false);
-provar('…e no PO a musicalidade existe como DIMENSÃO, não como o bloco da §4',
+provar('…mas a sequência do plano declara os TEMPOS e o COMPASSO de cada exercício (a música vem daí)',
+  (() => {
+    const linhas = (PLANO.respostas['aula-1-sequencia'] || {}).valor;
+    return Array.isArray(linhas) && linhas.some((l) => l && l.Tempos && l.Compasso);
+  })());
+provar('…e o VERBETE declara a grade das contagens (o pulso, o acento e a frase vêm daí)',
+  (() => {
+    const { alfabetos } = require(path.join(RAIZ, 'motor/nucleo/notacao.js'));
+    return alfabetos().some(({ alfabeto }) =>
+      Object.values((alfabeto && alfabeto.verbetes) || {}).some((porMusica) =>
+        Object.values(porMusica || {}).some((v) => v && v.celulas
+          && Object.values(v.celulas).some((cels) =>
+            Array.isArray(cels) && cels.some((c) => c && c.contagem)))));
+  })());
+provar('…e no PO a musicalidade existe como DIMENSÃO de observação (o outro eixo, na §5)',
   temPergunta(path.join('po', 'conteudo', 'po.json'), 'musicalidade') === true
   && dimensoesEItens(PO).some((d) => /musicalidade/i.test(d.dimensao)),
   dimensoesEItens(PO).map((d) => d.dimensao));

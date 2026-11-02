@@ -9,18 +9,23 @@
   "condicoesPreliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
   "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Barra · 27 · 30% Centro · 27 · 30% Musicalidade · 27 · 30% Expressão · 9 · 10% **Total** · **90** · **100%**",
   "blocoDeMusicalidade": [
+    "**Bloco no plano.** 30% do volume — 27 tempos (Regra 9, etapa 2).",
     {
-      "item": "Fatia do plano",
-      "nestaAula": "30% do volume — 27 tempos (Regra 9, etapa 2)"
+      "musica": "2 tempos em 4/4",
+      "exercicios": "Barra — Battement fondu · Centro — Battement fondu · Expressão — Battement fondu",
+      "oQueCaiEmCadaContagem": "1–2 `[Pé: 5ª → +]` · 3–4 `[Pé: 5ª → -]` · 1–2 `[Pé: 5ª → ×]`"
     },
     {
-      "item": "Exercícios neste bloco",
-      "nestaAula": "nenhum — a sequência da aula não tem linha no bloco Musicalidade"
+      "musica": "4 tempos em 4/4",
+      "exercicios": "Barra — Battement tendu · Centro — Battement tendu · Expressão — Battement tendu",
+      "oQueCaiEmCadaContagem": "1–2 `[Pé: 1ª → +]` · 3–4 `[Pé: + ● 1ª]`"
     },
     {
-      "item": "Trabalho de pulso, acento e frase",
-      "nestaAula": "[Preencher: nenhum formulário pergunta o trabalho musical da aula — ver Regra 15]"
-    }
+      "musica": "8 tempos em 4/4",
+      "exercicios": "Barra — Plié · Centro — Plié · Expressão — Plié",
+      "oQueCaiEmCadaContagem": "1–4 `[Perna: 1ª ↓]` · 1–4 `[Perna: ↓ ↑]` · 1–2 `[Braço: ↓ ⌒]` · 3–4 `[Braço: → + - ⌒]`"
+    },
+    "O pulso é a contagem; o acento, o tempo do compasso em que ela cai; a frase, o exercício inteiro sobre a música. A grade vem do **verbete** de cada exercício e a música, da sequência do plano — não se perguntam outra vez."
   ],
   "guiaDeObservacao": [
     "Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor",

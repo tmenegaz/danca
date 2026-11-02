@@ -39,11 +39,15 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 ## 4. Bloco de musicalidade
 
-| Item | Nesta aula |
-|:--|:--|
-| **Fatia do plano** | 30% do volume — 27 tempos (Regra 9, etapa 2) |
-| **Exercícios neste bloco** | nenhum — a sequência da aula não tem linha no bloco Musicalidade |
-| **Trabalho de pulso, acento e frase** | [Preencher: nenhum formulário pergunta o trabalho musical da aula — ver Regra 15] |
+**Bloco no plano.** 30% do volume — 27 tempos (Regra 9, etapa 2).
+
+| Música | Exercícios | O que cai em cada contagem |
+|:--|:--|:--|
+| 2 tempos em 4/4 | Barra — Battement fondu · Centro — Battement fondu · Expressão — Battement fondu | 1–2 `[Pé: 5ª → +]` · 3–4 `[Pé: 5ª → -]` · 1–2 `[Pé: 5ª → ×]` |
+| 4 tempos em 4/4 | Barra — Battement tendu · Centro — Battement tendu · Expressão — Battement tendu | 1–2 `[Pé: 1ª → +]` · 3–4 `[Pé: + ● 1ª]` |
+| 8 tempos em 4/4 | Barra — Plié · Centro — Plié · Expressão — Plié | 1–4 `[Perna: 1ª ↓]` · 1–4 `[Perna: ↓ ↑]` · 1–2 `[Braço: ↓ ⌒]` · 3–4 `[Braço: → + - ⌒]` |
+
+O pulso é a contagem; o acento, o tempo do compasso em que ela cai; a frase, o exercício inteiro sobre a música. A grade vem do **verbete** de cada exercício e a música, da sequência do plano — não se perguntam outra vez.
 
 ## 5. Guia de observação do professor
 
