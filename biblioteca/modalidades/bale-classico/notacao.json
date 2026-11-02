@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 22,
+  "versao": 23,
   "aplicaseA": [
     "benesh"
   ],
@@ -829,63 +829,6 @@
                 "↑"
               ],
               "descricao": "Diferentes posições de arabesque.\nLê-se: Pé, quinta posição, conduz a, atrás, sobe."
-            }
-          ]
-        }
-      }
-    },
-    "Rond de jambe à terre": {
-      "8|4/4": {
-        "cobre": 8,
-        "posicao": {
-          "membro": "pes",
-          "termo": "premiere-position"
-        },
-        "celulas": {
-          "devant": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "1ª",
-                "→",
-                "+",
-                "ED"
-              ],
-              "descricao": "a perna de trabalho varre à frente, a partir da primeira posição\nLê-se: Pé, primeira posição, conduz a, à frente, en dehors."
-            },
-            {
-              "contagem": "3–4",
-              "categoria": "Pé",
-              "sinais": [
-                "+",
-                "↺",
-                "2ª"
-              ],
-              "descricao": "a varredura abre para a segunda posição, en dehors\nLê-se: Pé, à frente, rotação para fora, segunda posição."
-            }
-          ],
-          "derriere": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "2ª",
-                "→",
-                "×",
-                "EI"
-              ],
-              "descricao": "a perna continua atrás, en dedans\nLê-se: Pé, segunda posição, conduz a, atrás, en dedans."
-            },
-            {
-              "contagem": "3–4",
-              "categoria": "Pé",
-              "sinais": [
-                "×",
-                "●",
-                "1ª"
-              ],
-              "descricao": "retorno à primeira posição\nLê-se: Pé, atrás, fecha, primeira posição."
             }
           ]
         }
