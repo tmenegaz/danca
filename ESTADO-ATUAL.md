@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `8980a37`). Nesta entrega: **um balde vazio deixou de
+> **Última fotografia:** 02/11/2026 (base local `1b99e51`). Nesta entrega: **a barra passou a
+> duplicar-se.** Um botão «Duplicar o exercício» clona a decomposição inteira — todos os compassos,
+> as pernas e os braços — e sobe os tempos sozinho, para o `Plié` em 1ª se repetir em 2ª, 4ª e 5ª
+> sem se escrever tudo outra vez. Ele **não reescreve sinal nenhum**: no `Plié` o `1ª` está nas duas
+> pistas (perna `ED 1ª ↓ ↑`, braço `⌒ 2ª → 1ª → 2ª`), e uma troca automática escreveria
+> `⌒ 2ª → 2ª → 2ª`. A posição muda-se depois, no «Editar», onde se vê o que se está a mudar. De
+> caminho ficou medido o que **não** se resolveu: mudar os tempos **apaga a decomposição em
+> silêncio** — a duplicação não passa por lá, mas quem escreve à mão passa.
+>
+> **Entrega anterior** (base `a3f99d5`). Nesta entrega: **um balde vazio deixou de
 > bloquear a gravação.** O editor deixava ficar `celulas: { devant: [] }` quando o último trecho de
 > uma direção saía — e um balde vazio é **invisível**, porque a tabela percorre células e zero
 > células não desenham linha. Ela recebeu um `400` com «a direção «devant» não tem célula» e a frase
@@ -13,7 +22,7 @@
 > não é lista continua a ser acusada. De caminho saiu uma **quarta** soma em linha, que não decidia
 > nada e respondia `soma: 12` a um verbete aceite com 8.
 >
-> **Entrega anterior** (base `b2d6816`). Nesta entrega: **a tela deixou de somar
+> **Duas entregas antes** (base `b2d6816`). Nesta entrega: **a tela deixou de somar
 > em fila** — a régua das pistas tinha sido aplicada em três sítios e ficou um quarto por corrigir: a
 > conta que a página faz **antes de enviar**. Um `Plié` correcto (pernas 8, braços 4, em paralelo)
 > era **recusado na tela** com «as células somam 12», antes de chegar ao servidor que já o aceitava.
@@ -916,6 +925,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     guardar. Acrescentar, guardar e cancelar **não mudam de passo**; o «Cancelar» já era o
     comportamento correcto e passa a ser a regra escrita, em vez de um acidente que dava o mesmo.
     **DECIDIDO e implementado** 02/11/2026.
+62. **DUPLICAR O EXERCÍCIO DUPLICA O BLOCO INTEIRO, TAL E QUAL, E SOBE OS TEMPOS.** O botão clona
+    as células de **cada direção** e acrescenta-as ao fim da sua lista — o compasso sai da ordem, e
+    por isso as cópias caem nos compassos **seguintes** (3 e 4 numa música de 8), que é o que «logo
+    abaixo na sequência» quer dizer. Os tempos sobem **sozinhos**: duplicar um bloco de 8 numa música
+    de 8 deixaria a música a declarar 8 e as células a cobrir 16, e a gravação recusaria com «sobram
+    8 tempos» o resultado de uma acção que a própria tela ofereceu. `MUSICA_EM_FOCO` acompanha, senão
+    o envio recarregava o rascunho da música antiga. **E não se reescreve sinal nenhum** — a
+    Alternativa B da proposta, que perguntava a posição nova, foi recusada com medição: no `Plié` o
+    `1ª` está nas **duas** pistas, e a troca automática escreveria `⌒ 2ª → 2ª → 2ª`. A posição muda-se
+    no «Editar», onde se vê o que se está a mudar. **DECIDIDO por ela** (bloco = exercício inteiro;
+    posição depois, Alternativa A) e **implementado** 02/11/2026.
+63. **MUDAR OS TEMPOS É DECLARAR OUTRA MÚSICA — E OUTRA MÚSICA É OUTRA DECOMPOSIÇÃO.** Tentei
+    conservar as células quando a música em foco ainda não existe, com o argumento de que elas são o
+    gesto; **a suite revertou a ideia com números** — 13 asserções passaram a medir o exercício
+    anterior, porque construir um cenário passa por declarar uma música nova. O `carregarRascunho`
+    ficou como estava, e o bloqueio dos tempos resolveu-se **localmente**, dentro da duplicação.
+    **DECIDIDO** 02/11/2026, contra a minha primeira proposta.
 
 ## 7. Trabalho em andamento
 
@@ -1020,6 +1046,19 @@ memória da aula registra.
 também no PO» — **não é defeito**. **DECIDIDO** que a repetição é proposital: o professor elabora o
 plano de ensino e o PO em momentos diferentes e precisa dos valores à mão, **só de leitura**. A
 análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
+
+### Mudar os tempos apaga a decomposição — em silêncio, e a decisão é dela
+
+**Medido** 02/11/2026: com as quatro células do `Plié`, mudar os tempos de 8 para 16 — uma música que
+ainda não existe no alfabeto — deixa `CELULAS` em **0** e a cobertura em **0**. Não há aviso, não há
+«descartar alterações?»: o trabalho desaparece. É o comportamento **certo** (outra música é outra
+decomposição — a decisão **63**), exercido da maneira errada.
+
+A duplicação não passa por aí, e quem só duplica não o encontra. Quem escreve os tempos à mão encontra.
+O que fica por decidir é dela, e são três saídas: **(a)** avisar antes de apagar («isto descarta os
+trechos desta música — continuar?»); **(b)** duplicar a música em vez de a substituir, quando já tem
+células; **(c)** deixar como está, porque declarar outra música é declarar outra decomposição e o
+professor sabe o que está a fazer. **PENDENTE.**
 
 ### A métrica da aula — o que falta declarar
 
@@ -1219,7 +1258,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a correcção de um trecho não muda o compasso)
+### Executado nesta fotografia (02/11/2026 — a duplicação do exercício)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **156 de 156** (eram 150) — a secção **20-C** é nova: o «Duplicar» aparece quando há trechos, duplicar duplica a decomposição (4→8 células) e a cobertura (4→8), os tempos sobem para 8 sozinhos e `MUSICA_EM_FOCO` acompanha (`8\|4/4`), as cópias caem nos compassos **1,1,2,2** e o `1ª` do braço fica onde está; e uma guarda de que **trocar de exercício limpa** a decomposição |
+| `node experimentos/provar-notacao.js` | **79 de 79** (eram 78, e o ficheiro **estourava a meio**) — quatro fixtures afirmavam a forma de um dado que melhorou: a direção `devant` que o `Plié` já não tem, os braços «no primeiro compasso» quando atravessam dois, o `'devant'` escrito à mão, e a linha composta `[Perna: 1ª ↓]` copiada do dia |
+| `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — a peça nova é o `acao secundario` que a folha já tem |
+| o script emitido | `node --check` passa no `<script>` que `paginaProducao` serve, e o botão está no HTML |
+| **o que se tentou e reverteu** | conservar as células quando a música ainda não existe → **13 asserções** do `provar-celula` passaram a medir o exercício anterior. Revertido; o `carregarRascunho` ficou como estava |
+| **não executado** | `provar-o-que-vem-do-dado` (sem fixture desde o expurgo da `batata`) · `check-glossario` (não há par registro × glossário) · `provar-producao` e `provar-cartao-da-turma`, cujas falhas conhecidas são anteriores a esta entrega |
+
+### Executado na fotografia anterior (02/11/2026 — a correcção de um trecho não muda o compasso)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1802,6 +1853,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **«Duplicar o exercício»: a barra repete-se, e a posição não se toca.** O pedido
+  dela: o `Plié` em 1ª, 2ª, 4ª e 5ª tem a mesma estrutura rítmica e os mesmos braços, e só a posição
+  das pernas muda. O botão clona a decomposição de cada direção e acrescenta-a ao fim da sua lista,
+  e **sobe os tempos sozinho** — senão a música declarava 8 com células a cobrir 16. **Não reescreve
+  sinal nenhum**, e a razão é medida: o `1ª` está nas duas pistas, e a Alternativa B da proposta
+  escreveria `⌒ 2ª → 2ª → 2ª`. A posição muda-se no «Editar». Uma tentativa pelo caminho — conservar
+  as células ao declarar uma música nova — foi **revertida pela suite**: 13 asserções passaram a
+  medir o exercício anterior. E o `provar-notacao` deixou de estourar: quatro fixtures afirmavam a
+  forma de um dado que melhorou (a direção `devant` que o `Plié` já não tem).
 - **02/11/2026** — **O 400 do «devant»: um balde vazio que ninguém escolheu.** A console dela deu
   `400` com «a direção «devant» não tem célula», e a chave do caso é a frase dela — «em nenhum
   momento eu escolhi «devant»». Não escolheu: o editor deixava ficar `celulas: { devant: [] }` quando

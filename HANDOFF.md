@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T16:12:36-0300`
-Commit atual: `8980a37` — fix(notacao): a tela ainda somava em fila — a régua das pistas tinha ficado a meio
+Gerado em: `2026-11-02T16:34:43-0300`
+Commit atual: `1b99e51` — docs(notacao): editar «Plié» (8|4/4) no alfabeto bale-classico
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+1b99e51 docs(notacao): editar «Plié» (8|4/4) no alfabeto bale-classico
+a3f99d5 fix(notacao): o 400 do «devant» — um balde vazio que ninguém escolheu
 8980a37 fix(notacao): a tela ainda somava em fila — a régua das pistas tinha ficado a meio
 b2d6816 fix(notacao): «Acrescentar trecho» desaparece durante a correcção
 65326a2 fix(notacao): corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
@@ -103,8 +105,6 @@ aeb2b2c chore(estrutura): expurgar a escola batata
 da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é viável
 273b62d docs(registro): correção — o modelo tem três eixos, a palavra «eixo» é que aparece uma vez
 04e60a7 docs(registro): a proposta «o verbete é o átomo do syllabus», verificada com evidência
-f9d9612 docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
-b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
 ```
 
 ## Por professor
@@ -228,74 +228,86 @@ b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» 
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — O 400 do «devant»: um balde vazio que ninguém escolheu
+## 02/11/2026 — «Duplicar o exercício»: a barra repete-se, e a posição não se toca
 
-**O relato, e a chave está nele.** A console dela deu `400` com `"a direção «devant» não tem célula"`,
-e a frase que resolve o caso é a última: **«Em nenhum momento eu escolhi «devant»».** Não escolheu —
-e é exactamente por isso que o defeito existe.
+**O que motivou.** A proposta dela: «Para criar uma barra completa, o professor costuma repetir a mesma
+estrutura rítmica e de braços (ex: 8 tempos) alterando apenas a **posição base das pernas** (passando
+da 1ª posição para a 2ª, 4ª, 5ª, etc.). Inserir e configurar cada compasso do zero para cada nova
+posição torna o processo repetitivo e trabalhoso.» Duas alternativas foram propostas: **A**, duplicar
+tal e qual e editar depois; **B**, perguntar a posição no acto da duplicação.
 
-### O que estava a acontecer
+### O que se mediu antes de escrever, e o que mudou o desenho
 
-O corpo enviado trazia:
+| Medição | Resultado | Consequência |
+|:--|:--|:--|
+| o `1ª` nas células do `Plié` gravado | está nas **duas** pistas: perna `ED 1ª ↓ ↑`, braço `⌒ 2ª → 1ª → 2ª` | uma troca de posição feita pela máquina escreveria `⌒ 2ª → 2ª → 2ª` — a Alternativa **B** não tem como saber qual `1ª` é a perna |
+| `posicao` no verbete | `{membro: 'pes', termo: 'premiere-position'}`, **um só por verbete** | não há posição-base por célula onde o prompt da **B** escrevesse a escolha |
+| o compasso das cópias | derivado da **ordem** dentro da pista | as cópias caem nos compassos **seguintes** (3 e 4 numa música de 8), que é exactamente «logo abaixo na sequência» — isto, que eu tinha escrito como bloqueio, **não era** |
+| mudar os tempos de 8 para 16 | `CELULAS` de **4 células** para **0**, cobertura de 8 para **0** | este **era** o bloqueio: duplicar obriga a crescer a música, e crescer a música apagava a decomposição |
 
-```json
-"celulas": { "devant": [], "": [ …quatro células… ] }
-```
+**A decisão dela:** o bloco é o **exercício inteiro** (não o compasso) e a posição muda-se **depois**
+(Alternativa A). Registado por pergunta directa, não por inferência.
 
-Um **balde vazio**. O editor deixava-o ficar quando o último trecho daquela direção saía — pelo `×`
-ou por uma correcção que mudava a direção —, e um balde vazio é **invisível**: `pintarTabela`
-percorre as células, e zero células não desenham linha nenhuma. Ela nunca viu «devant» em sítio
-nenhum; o balde estava lá e o servidor recusava o verbete inteiro por causa dele.
+### O que ficou
 
-**A validação do servidor estava certa** — a guarda de 28/10/2026 dizia «um verbete que declara uma
-direção e não diz o que nela acontece é um verbete pela metade». O que estava errado era **o editor
-mandá-lo**.
+Um botão **«Duplicar o exercício»** na decomposição, ao lado do «Acrescentar trecho», que aparece só
+quando há trechos e sai de cena em correcção — pela mesma razão que o «Acrescentar». Ele clona as
+células de **cada direção** e acrescenta-as ao fim da sua própria lista, e **sobe os tempos sozinho**:
+duplicar um bloco de 8 numa música de 8 deixaria a música a declarar 8 e as células a cobrir 16 — a
+gravação recusaria com «sobram 8 tempos» o resultado de uma acção que a própria tela ofereceu.
+`MUSICA_EM_FOCO` acompanha, senão o envio recarregava o rascunho da música antiga e apagava o que se
+acabou de duplicar.
 
-### A decisão: um balde vazio é RUÍDO, não uma declaração
+**Não se reescreve sinal nenhum.** É uma decisão, não uma omissão: quem sabe qual `1ª` é a perna é a
+professora, e ela muda-o no «Editar» do trecho, onde vê o que está a mudar. Uma cópia que fica por
+ajustar vê-se; uma cópia silenciosamente errada, não.
 
-Com a direção a ser a **chave** da célula (28/10), uma chave vazia não declara nada — diz o mesmo que
-a chave não existir. **Não há informação a perder em a tirar, e há um erro a evitar em a manter.** E
-a guarda antiga defendia uma forma que não tem significado: a única declaração possível de «vai à
-frente» é ter células em `devant`.
+### O que tentei e reverti — e a lição
 
-**`semBaldesVazios` vive no NÚCLEO** (`motor/nucleo/notacao.js`) e é usada pelos dois lados: o
-`verbete.js` valida e grava com ela, e o `compor` compõe com ela. Escrevi-a primeiro no servidor e
-**mudei-a** — seria a segunda cópia da mesma regra no mesmo dia em que a conta dos tempos pagou caro
-por estar em quatro sítios. A fronteira do núcleo proíbe o motor de depender do servidor; o contrário
-é permitido, e é o que o `bastidores.js` já faz.
+Para resolver o bloqueio dos tempos, mudei o `carregarRascunho` para **conservar as células** quando a
+música em foco ainda não existe. O argumento era bom — as células são o gesto, e a própria função já
+preservava a direção «porque apagar-lhe a direção seria recomeçar o gesto». **A suite disse o
+contrário, e com números: 13 asserções passaram a medir o exercício anterior**, porque construir um
+cenário novo passa por declarar uma música nova. Revertido, e o bloqueio resolveu-se **localmente**,
+dentro da duplicação, sem tocar na regra geral.
 
-**E ela não apaga o erro:** sai só a **lista vazia**. Uma chave que não é lista (um ficheiro mal
-formado) fica, e a guarda acusa-a — a primeira versão que escrevi engolia-a, e a prova apanhou-o («a
-direção «derriere» não tem célula» deixou de disparar). Uma normalização que apaga o erro é pior do
-que não a haver.
+A regra que fica: **mudar os tempos é declarar OUTRA música, e outra música é outra decomposição.** O
+que fica por decidir — e é dela — é se essa troca deve avisar antes de apagar, porque hoje apaga em
+silêncio. Fica na §8 do `ESTADO-ATUAL.md`.
 
-### Três sítios no editor, e uma quarta soma que só mentia
+### Quatro asserções do `provar-notacao` que já estavam a mentir
 
-- o **`×`** que tira o último trecho leva a direção consigo;
-- **antes de enviar** — a última defesa, porque um balde pode nascer onde ainda não se viu;
-- e a **gravação** normaliza, para o ficheiro não ficar com o lixo que o pedido trazia.
+O `provar-notacao` **estourava** antes de chegar ao fim: `celulas.devant[0].sinais = …`, e o `Plié`
+gravado por ela deixou de ter `devant` — o balde vazio saiu com a correcção de hoje. Apanhado por
+tabela, o resto do que estava atrás do estouro também estava errado, e tudo pela mesma razão: fixtures
+a afirmar a forma de um dado que melhorou.
 
-De caminho apareceu uma **quarta** conta em linha: `somaTempos`, que não decidia nada mas informava
-quem lia a resposta — o `Plié` de pernas 8 e braços 4 respondia `soma: 12` e era aceite com 8. **Saiu**;
-o `soma` da resposta é agora `coberturaDe`, a régua. É a mesma família do número em quatro sítios: a
-diferença é que este não bloqueava, só mentia.
+- a direção passa a ser **a primeira que tem célula**, e há uma asserção a dizer que existe (um
+  `find` vazio dava `undefined`, e `Boolean('')` é falso — o caso da chave sem nome apanhava-o);
+- os **braços** atravessam os **dois** compassos, como as pernas: o `[1, 1]` que lá estava só era
+  verdade enquanto a leitura somava em fila;
+- `semBaldesVazios` conserva a direção **com** célula, seja ela qual for, em vez de `'devant'` escrita
+  à mão;
+- a linha composta é lida **do alfabeto** em vez de `[Perna: 1ª ↓]` copiado do dia — o `Plié` cresceu
+  (`ED`, `↑`), como cresce tudo o que a professora escreve.
 
-### O que se mediu
+**Nota sobre o versionamento:** o `experimentos/*` está no `.gitignore` e o `provar-notacao.js` **não
+está versionado** (13 provas estão nesta situação). A correcção acima vive no worktree e não sobe com
+o commit; fica registada aqui para não se perder.
+
+### O que se mediu, no fim
 
 | Verificação | Resultado |
 |:--|:--|
-| **o payload dela, com o `devant: []`** | `validarVerbete` → **`ok: true`**, `soma: 8`; o corpo normalizado tem só a chave `""` |
-| **o motor com um balde vazio** | `compor` do `Plié` → **`composto`**, cobertura **8** |
-| **uma chave que não é lista** | continua recusada: «a direção «derriere» não tem célula» |
-| `provar-celula` | **150 asserções** (eram 148) — a **20-B** é nova: `limparBaldesVazios` deixa o mapa sem chaves vazias e o `×` do último trecho leva a direção consigo |
-| `provar-notacao` · `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-forca-e-flexibilidade` | **78/78** (eram 76) · TUDO CERTO · TUDO CERTO · 50/50 · 17/17 |
-| `provar-producao` · `provar-agnosticismo` | **151/152** · **44/44** — o agnosticismo confirma que a função nova não trouxe infraestrutura para o núcleo |
-| `check-indices` · `check-identidade` | 14/14 · 20/20 |
+| `provar-celula` | **156 asserções** (eram 150) — a **20-C** é nova: o botão aparece quando há trechos, duplicar dá 4→8 células e cobertura 4→8, os tempos e a música em foco acompanham, as cópias caem nos compassos **1,1,2,2**, e o `1ª` do braço fica onde está; e a guarda de que trocar de exercício **limpa** |
+| `provar-notacao` | **79/79** (eram 78, e o ficheiro **estourava** a meio) — as quatro asserções corrigidas acima e uma nova |
+| `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · **20/20** — a peça nova é o `acao secundario` que a folha já tem |
+| o script emitido | `node --check` passa, e o botão está no HTML servido |
 
-**Com o quê.** `motor/nucleo/notacao.js` (`semBaldesVazios`, a guarda que passou a acusar só o que não
-é lista) · `motor/servidor/verbete.js` (normaliza à entrada e à gravação; `somaTempos` saiu) ·
-`motor/servidor/bastidores.js` (`limparBaldesVazios` e as três chamadas) · `experimentos/provar-celula.js`
-§20-B · `provar-notacao` e `provar-verbete`, com as asserções da direção vazia reescritas.
+**Com o quê.** `motor/servidor/bastidores.js` (o botão, `pintarDuplicar`, `duplicarExercicio` e a
+chamada em `pintarPassos`/`pintarTabela`) · `experimentos/provar-celula.js` §20-C ·
+`experimentos/provar-notacao.js` (quatro fixtures).
 
 ## O que está pendente
 

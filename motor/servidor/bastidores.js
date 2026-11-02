@@ -3660,6 +3660,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Com dois botões, o que se pode fazer vê-se: em correcção, o «Acrescentar» não está lá.
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vb-cel-acrescentar">Acrescentar trecho</button>' +
+    // DUPLICAR O EXERCÍCIO (02/11/2026). A barra repete a mesma estrutura rítmica e os mesmos
+    // braços mudando só a posição das pernas — 1ª, 2ª, 4ª, 5ª. Escrever os dois compassos vezes
+    // e vezes é trabalho repetido, e o que varia é uma coisa só.
+    //
+    // ELE DUPLICA TAL E QUAL, sem tocar em sinal nenhum: no `Plié` o `1ª` está nas duas pistas
+    // (a perna é `ED 1ª ↓ ↑`, o braço é `⌒ 2ª → 1ª → 2ª`), e uma troca de posição feita por
+    // conta própria escreveria `⌒ 2ª → 2ª → 2ª`. A posição da cópia muda-se a seguir, com o
+    // «Editar» do trecho — que é onde se vê o que se está a mudar.
+    '<button type="button" class="acao secundario" id="vb-cel-duplicar" hidden>Duplicar o exercício</button>' +
     '<button type="button" class="acao secundario" id="vb-cel-guardar" hidden>Guardar a alteração</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-edicao-2" hidden>Cancelar a edição</button>' +
     '</span>' +
@@ -5579,6 +5588,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  html += "</tbody></table>";' +
     '  alvo.innerHTML = html;' +
     '  pintarCobertura();' +
+    '  pintarDuplicar();' +
     // A PRÉVIA DO QUE FICA ESCRITO ACOMPANHA A TABELA: as duas leem as mesmas células, e uma
     // tabela que muda sem a prévia mudar seria a tela a dizer duas coisas do mesmo trecho.
     '  pintarFica();' +
@@ -5595,6 +5605,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        ? "Cobre os " + t + " tempos, em " + Math.ceil(t / numeradorDoCompasso()) + " compasso(s) de " + numeradorDoCompasso() + "."' +
     '        : (c < t ? "Cobre " + c + " de " + t + " tempos — falta escrever " + (t - c) + "."' +
     '                 : "Cobre " + c + " de " + t + " tempos — passa " + (c - t) + "."));' +
+    '}' +
+    // O «DUPLICAR» SÓ APARECE QUANDO HÁ O QUE DUPLICAR, e sai de cena durante a correcção de um
+    // trecho — pelo mesmo motivo que o «Acrescentar»: em correcção, o que se pode fazer vê-se.
+    'function pintarDuplicar(){' +
+    '  var b = document.getElementById("vb-cel-duplicar");' +
+    '  if (!b) return;' +
+    '  b.hidden = (EM_EDICAO !== null) || !cobertura();' +
     '}' +
     // AQUI VIVIA `ondeOExercicioTem` (01/11/2026). Ela respondia «o exercício vai à frente noutra
     // música, mas não nesta» — a frase que separava «não vai» de «falta escrever» nos três blocos
@@ -5968,6 +5985,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // porque são duas acções: acrescentar é o que se faz quando não se está a corrigir nada.
     '  var bAcrescentar = document.getElementById("vb-cel-acrescentar");' +
     '  if (bAcrescentar) bAcrescentar.hidden = (EM_EDICAO !== null);' +
+    '  pintarDuplicar();' +
     '  var bGuardar = document.getElementById("vb-cel-guardar");' +
     '  if (bGuardar) bGuardar.hidden = (EM_EDICAO === null);' +
     '  var voltar = document.getElementById("vb-voltar");' +
@@ -6140,6 +6158,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  MUSICA_EM_FOCO = (nome && tempos && compasso) ? tempos + "|" + compasso : "";' +
     '  var v = (VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome]) || null;' +
     '  var base = (MUSICA_EM_FOCO && v && v[MUSICA_EM_FOCO] && v[MUSICA_EM_FOCO].celulas) || {};' +
+    // TROCAR A MÚSICA RECOMECE A DECOMPOSIÇÃO, e é a decisão que fica (02/11/2026 — ver a nota da
+    // `duplicarExercicio`, que é quem precisa do contrário e o resolve sem mexer aqui). Cheguei a
+    // conservar as células quando a música ainda não existe, com o argumento de que elas são o
+    // gesto; a suite disse o contrário, e com números: treze asserções passaram a medir o
+    // exercício anterior. Uma mão que muda os tempos está a declarar OUTRA música, e outra música
+    // é outra decomposição — não um rascunho que se arrasta.
     '  CELULAS = JSON.parse(JSON.stringify(base));' +
     '  SINAIS = [];' +
     // A DIREÇÃO, A ORIENTAÇÃO E A CONTAGEM SOBREVIVEM TROCA DE MÚSICA: quem mudou os tempos
@@ -6687,6 +6711,53 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarPassos();' +
     '    recado("ok", (eraEdicao ? "trecho alterado" : "trecho acrescentado") + " — grave o verbete para o guardar.");' +
     '}' +
+    /* DUPLICAR O EXERCÍCIO (02/11/2026).
+     *
+     * A barra repete a MESMA decomposição mudando a posição das pernas — `Plié` em 1ª, em 2ª,
+     * em 4ª, em 5ª. O que varia é uma coisa; o resto é igual, e reescrevê-lo compasso a compasso
+     * é trabalho repetido.
+     *
+     * DUPLICA TAL E QUAL, e isto é uma decisão e não uma omissão. No `Plié` o `1ª` está nas duas
+     * pistas — a perna é `ED 1ª ↓ ↑`, o braço é `⌒ 2ª → 1ª → 2ª` — e uma troca de posição feita
+     * pela máquina escreveria `⌒ 2ª → 2ª → 2ª`: a cópia ficaria silenciosamente errada, que é
+     * pior do que ficar por ajustar. Quem sabe qual `1ª` é a perna é a professora, e ela muda-o
+     * no «Editar» do trecho, onde vê o que está a mudar.
+     *
+     * A CÓPIA ENTRA NO FIM DE CADA DIREÇÃO, e é o que se quer: o compasso é derivado da ORDEM
+     * dentro da pista, portanto as cópias caem nos compassos seguintes — 8 tempos viram 16, com
+     * os compassos 3 e 4 a repetir a estrutura dos compassos 1 e 2.
+     *
+     * OS TEMPOS SOBEM, e o campo é escrito AQUI, não pelo utilizador: duplicar um bloco de 8
+     * numa música de 8 deixaria a música a declarar 8 e as células a cobrir 16 — a gravação
+     * recusaria com «sobram 8 tempos» o resultado de uma acção que a própria tela ofereceu.
+     * `MUSICA_EM_FOCO` acompanha, senão o envio recarregava o rascunho da música antiga e
+     * apagava o que se acabou de duplicar.
+     */
+    'function duplicarExercicio(){' +
+    '  limparBaldesVazios();' +
+    '  var bloco = cobertura();' +
+    '  if (!bloco) { recado("erro", "Ainda não há trechos para duplicar."); return; }' +
+    '  var declarado = temposTotais();' +
+    '  var novo = (declarado > 0 ? declarado : bloco) + bloco;' +
+    '  var alvo = {};' +
+    '  Object.keys(CELULAS).forEach(function(d){' +
+    '    var lista = CELULAS[d] || [];' +
+    '    alvo[d] = lista.concat(JSON.parse(JSON.stringify(lista)));' +
+    '  });' +
+    '  CELULAS = alvo;' +
+    '  var campo = document.getElementById("vbtempos");' +
+    '  if (campo) campo.value = String(novo);' +
+    '  var compasso = (document.getElementById("vbcompasso") || {}).value || "";' +
+    '  MUSICA_EM_FOCO = novo + "|" + compasso;' +
+    '  pintarTabela();' +
+    '  pintarContagens();' +
+    '  pintarTira();' +
+    '  recado("ok", "exercício duplicado — a música passa a " + novo + " tempos. Mude a posição na cópia com «Editar».");' +
+    '}' +
+    '["vb-cel-duplicar"].forEach(function(id){' +
+    '  var b = document.getElementById(id);' +
+    '  if (b) b.addEventListener("click", duplicarExercicio);' +
+    '});' +
     '["vb-cel-acrescentar", "vb-cel-guardar"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
     '  if (b) b.addEventListener("click", acrescentarOuGuardar);' +

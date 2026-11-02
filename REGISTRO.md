@@ -31386,3 +31386,86 @@ diferença é que este não bloqueava, só mentia.
 é lista) · `motor/servidor/verbete.js` (normaliza à entrada e à gravação; `somaTempos` saiu) ·
 `motor/servidor/bastidores.js` (`limparBaldesVazios` e as três chamadas) · `experimentos/provar-celula.js`
 §20-B · `provar-notacao` e `provar-verbete`, com as asserções da direção vazia reescritas.
+
+---
+
+## 02/11/2026 — «Duplicar o exercício»: a barra repete-se, e a posição não se toca
+
+**O que motivou.** A proposta dela: «Para criar uma barra completa, o professor costuma repetir a mesma
+estrutura rítmica e de braços (ex: 8 tempos) alterando apenas a **posição base das pernas** (passando
+da 1ª posição para a 2ª, 4ª, 5ª, etc.). Inserir e configurar cada compasso do zero para cada nova
+posição torna o processo repetitivo e trabalhoso.» Duas alternativas foram propostas: **A**, duplicar
+tal e qual e editar depois; **B**, perguntar a posição no acto da duplicação.
+
+### O que se mediu antes de escrever, e o que mudou o desenho
+
+| Medição | Resultado | Consequência |
+|:--|:--|:--|
+| o `1ª` nas células do `Plié` gravado | está nas **duas** pistas: perna `ED 1ª ↓ ↑`, braço `⌒ 2ª → 1ª → 2ª` | uma troca de posição feita pela máquina escreveria `⌒ 2ª → 2ª → 2ª` — a Alternativa **B** não tem como saber qual `1ª` é a perna |
+| `posicao` no verbete | `{membro: 'pes', termo: 'premiere-position'}`, **um só por verbete** | não há posição-base por célula onde o prompt da **B** escrevesse a escolha |
+| o compasso das cópias | derivado da **ordem** dentro da pista | as cópias caem nos compassos **seguintes** (3 e 4 numa música de 8), que é exactamente «logo abaixo na sequência» — isto, que eu tinha escrito como bloqueio, **não era** |
+| mudar os tempos de 8 para 16 | `CELULAS` de **4 células** para **0**, cobertura de 8 para **0** | este **era** o bloqueio: duplicar obriga a crescer a música, e crescer a música apagava a decomposição |
+
+**A decisão dela:** o bloco é o **exercício inteiro** (não o compasso) e a posição muda-se **depois**
+(Alternativa A). Registado por pergunta directa, não por inferência.
+
+### O que ficou
+
+Um botão **«Duplicar o exercício»** na decomposição, ao lado do «Acrescentar trecho», que aparece só
+quando há trechos e sai de cena em correcção — pela mesma razão que o «Acrescentar». Ele clona as
+células de **cada direção** e acrescenta-as ao fim da sua própria lista, e **sobe os tempos sozinho**:
+duplicar um bloco de 8 numa música de 8 deixaria a música a declarar 8 e as células a cobrir 16 — a
+gravação recusaria com «sobram 8 tempos» o resultado de uma acção que a própria tela ofereceu.
+`MUSICA_EM_FOCO` acompanha, senão o envio recarregava o rascunho da música antiga e apagava o que se
+acabou de duplicar.
+
+**Não se reescreve sinal nenhum.** É uma decisão, não uma omissão: quem sabe qual `1ª` é a perna é a
+professora, e ela muda-o no «Editar» do trecho, onde vê o que está a mudar. Uma cópia que fica por
+ajustar vê-se; uma cópia silenciosamente errada, não.
+
+### O que tentei e reverti — e a lição
+
+Para resolver o bloqueio dos tempos, mudei o `carregarRascunho` para **conservar as células** quando a
+música em foco ainda não existe. O argumento era bom — as células são o gesto, e a própria função já
+preservava a direção «porque apagar-lhe a direção seria recomeçar o gesto». **A suite disse o
+contrário, e com números: 13 asserções passaram a medir o exercício anterior**, porque construir um
+cenário novo passa por declarar uma música nova. Revertido, e o bloqueio resolveu-se **localmente**,
+dentro da duplicação, sem tocar na regra geral.
+
+A regra que fica: **mudar os tempos é declarar OUTRA música, e outra música é outra decomposição.** O
+que fica por decidir — e é dela — é se essa troca deve avisar antes de apagar, porque hoje apaga em
+silêncio. Fica na §8 do `ESTADO-ATUAL.md`.
+
+### Quatro asserções do `provar-notacao` que já estavam a mentir
+
+O `provar-notacao` **estourava** antes de chegar ao fim: `celulas.devant[0].sinais = …`, e o `Plié`
+gravado por ela deixou de ter `devant` — o balde vazio saiu com a correcção de hoje. Apanhado por
+tabela, o resto do que estava atrás do estouro também estava errado, e tudo pela mesma razão: fixtures
+a afirmar a forma de um dado que melhorou.
+
+- a direção passa a ser **a primeira que tem célula**, e há uma asserção a dizer que existe (um
+  `find` vazio dava `undefined`, e `Boolean('')` é falso — o caso da chave sem nome apanhava-o);
+- os **braços** atravessam os **dois** compassos, como as pernas: o `[1, 1]` que lá estava só era
+  verdade enquanto a leitura somava em fila;
+- `semBaldesVazios` conserva a direção **com** célula, seja ela qual for, em vez de `'devant'` escrita
+  à mão;
+- a linha composta é lida **do alfabeto** em vez de `[Perna: 1ª ↓]` copiado do dia — o `Plié` cresceu
+  (`ED`, `↑`), como cresce tudo o que a professora escreve.
+
+**Nota sobre o versionamento:** o `experimentos/*` está no `.gitignore` e o `provar-notacao.js` **não
+está versionado** (13 provas estão nesta situação). A correcção acima vive no worktree e não sobe com
+o commit; fica registada aqui para não se perder.
+
+### O que se mediu, no fim
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-celula` | **156 asserções** (eram 150) — a **20-C** é nova: o botão aparece quando há trechos, duplicar dá 4→8 células e cobertura 4→8, os tempos e a música em foco acompanham, as cópias caem nos compassos **1,1,2,2**, e o `1ª` do braço fica onde está; e a guarda de que trocar de exercício **limpa** |
+| `provar-notacao` | **79/79** (eram 78, e o ficheiro **estourava** a meio) — as quatro asserções corrigidas acima e uma nova |
+| `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · **20/20** — a peça nova é o `acao secundario` que a folha já tem |
+| o script emitido | `node --check` passa, e o botão está no HTML servido |
+
+**Com o quê.** `motor/servidor/bastidores.js` (o botão, `pintarDuplicar`, `duplicarExercicio` e a
+chamada em `pintarPassos`/`pintarTabela`) · `experimentos/provar-celula.js` §20-C ·
+`experimentos/provar-notacao.js` (quatro fixtures).

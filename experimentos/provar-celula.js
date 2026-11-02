@@ -1289,6 +1289,76 @@ function estado() {
       antesDoX.length === 1 && antesDoX[0] === 'devant' && depoisDoX.length === 0,
       { antes: antesDoX, depois: depoisDoX });
 
+    console.log('\n20-C. DUPLICAR O EXERCÍCIO — A BARRA REPETE-SE, A POSIÇÃO NÃO SE TOCA');
+    // A BARRA REPETE-SE (02/11/2026). O pedido dela: o `Plié` em 1ª, 2ª, 4ª e 5ª — a mesma
+    // estrutura rítmica e os mesmos braços, mudando só a posição das pernas. Montar do zero cada
+    // compasso de cada posição é trabalho repetido, e o que varia é uma coisa só.
+    const dup = await page.evaluate(() => {
+      const antes = CELULAS;
+      const campo = document.getElementById('vbtempos');
+      const sel = document.getElementById('vbcompasso');
+      const temposAntes = campo.value, musicaAntes = MUSICA_EM_FOCO, compassoAntes = sel.value;
+      campo.value = '4'; sel.value = '4/4';
+      CELULAS = { '': [
+        { contagem: '1–2', categoria: 'Perna', sinais: ['ED', '1ª', '↓', '↑'], descricao: 'x', repeticoes: 2 },
+        { contagem: '1–2', categoria: 'Braço', sinais: ['⌒', '2ª', '→', '1ª', '→', '2ª'], descricao: 'y', repeticoes: 2 },
+      ] };
+      const cobAntes = cobertura();
+      const visivelAntes = !document.getElementById('vb-cel-duplicar').hidden;
+      duplicarExercicio();
+      const mapa = compassosDosTrechos();
+      const linhas = CELULAS[''].map((c, k) => ({
+        cat: c.categoria, comp: mapa[':' + k], sinais: (c.sinais || []).join(' '),
+      }));
+      const r = {
+        cobAntes, cobDepois: cobertura(), n: CELULAS[''].length,
+        tempos: campo.value, musica: MUSICA_EM_FOCO, linhas, visivelAntes,
+      };
+      CELULAS = antes; campo.value = temposAntes; sel.value = compassoAntes;
+      MUSICA_EM_FOCO = musicaAntes;
+      return r;
+    });
+    conferir('o «Duplicar» aparece quando há trechos', dup.visivelAntes, dup);
+    conferir('duplicar duplica a decomposição e a cobertura',
+      dup.cobAntes === 4 && dup.cobDepois === 8 && dup.n === 4, dup);
+    // OS TEMPOS SOBEM SOZINHOS. Duplicar um bloco de 4 numa música de 4 deixaria a música a
+    // declarar 4 e as células a cobrir 8 — a gravação recusaria com «sobram 4 tempos» o
+    // resultado de uma acção que a própria tela ofereceu.
+    conferir('e a música cresce um bloco — o campo e a música em foco acompanham',
+      dup.tempos === '8' && dup.musica === '8|4/4', dup);
+    // A CÓPIA ENTRA NOS COMPASSOS SEGUINTES, e não a repetir o primeiro: o compasso é derivado
+    // da ordem dentro da pista, e é isso que faz 4 tempos virarem 8 — e 8 virarem 16.
+    conferir('as cópias caem nos compassos seguintes, não repetem o primeiro',
+      dup.linhas.map((l) => l.comp).join(',') === '1,1,2,2', dup.linhas);
+    // NENHUM SINAL É REESCRITO. O `1ª` está nas duas pistas — a perna é `ED 1ª ↓ ↑` e o caminho
+    // do braço é `⌒ 2ª → 1ª → 2ª` —, e uma troca de posição feita pela máquina escreveria
+    // `⌒ 2ª → 2ª → 2ª`. A cópia é tal e qual; a posição muda-se no «Editar», onde se vê o que
+    // se está a mudar.
+    conferir('a cópia é tal e qual: nenhum sinal é trocado — o `1ª` do braço fica onde está',
+      dup.linhas[2].sinais === 'ED 1ª ↓ ↑' && dup.linhas[3].sinais === '⌒ 2ª → 1ª → 2ª', dup.linhas);
+
+    // O QUE QUASE SE PARTIU, E FICA GUARDADO: trocar de exercício LIMPA as células. Cheguei a
+    // conservá-las quando a música ainda não existe, e a suite apanhou treze asserções a medir o
+    // exercício anterior. A regra fica com prova para quem a queira mudar outra vez.
+    const trocou = await page.evaluate(() => {
+      const antes = CELULAS;
+      CELULAS = { '': [{ contagem: '1–2', categoria: 'Perna', sinais: ['1ª'], descricao: 'x' }] };
+      const n = document.getElementById('vbnome');
+      const guardado = n.value;
+      const o = document.createElement('option');
+      o.value = 'Exercício que não tem nada'; o.textContent = o.value; n.appendChild(o);
+      n.value = o.value;
+      carregarRascunho();
+      const ficou = Object.keys(CELULAS).length;
+      n.value = guardado;
+      n.removeChild(o);
+      carregarRascunho();
+      CELULAS = antes;
+      return { ficou };
+    });
+    conferir('trocar de exercício limpa a decomposição — as células eram do anterior',
+      trocou.ficou === 0, trocou);
+
     console.log('\n21. OS SEIS PASSOS FORA DO FORMULÁRIO, E A LISTAGEM AO LADO');
     // OS CINCO PASSOS (01/11/2026). A tira é a navegação e o resumo; se um passo desaparecer
     // dela, o painel dele fica inalcançável. Eram sete — e a fusão do exercício, da frase e da
