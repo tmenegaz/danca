@@ -6510,18 +6510,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      nomes.innerHTML = html;' +
     '      if (antes) nomes.value = antes;' +
     '    }' +
-    '    var pos = document.getElementById("vbposicao");' +
-    '    if (pos) {' +
-    '      var opcoes = ["<option value=\'\'>— escolha a posição —</option>"];' +
-    '      (d.posicoes || []).forEach(function(p){' +
-    // A OPÇÃO MOSTRA A ETIQUETA LOCALIZADA, E GUARDA O `id` (02/11/2026). O que se lê é
-    // «primeira posição»; o que se grava continua a ser `premiere-position`, porque é o `id` que
-    // liga ao vocabulário e viaja para o documento. A etiqueta é de exibição, não de dados.
-    '        opcoes.push("<option value=\'" + p.id + "\' data-membro=\'" + (p.membro || "") + "\'>" +' +
-    '          (p.nome || p.termo) + (p.membro ? " (" + p.membro + ")" : "") + "</option>");' +
-    '      });' +
-    '      pos.innerHTML = opcoes.join("");' +
-    '    }' +
+    /* O `<select>` DA POSIÇÃO SAIU COM O CAMPO (02/11/2026). Aqui construía-se a lista
+     * «primeira posição (pés) · segunda posição (pés)…» para o `#vbposicao`. O campo deixou de
+     * existir — a posição escreve-se nos sinais do trecho —, e um bloco que enche um elemento
+     * ausente é código que ninguém executa e que faz o próximo leitor procurar o elemento. A
+     * etiqueta localizada continua a ler-se onde importa: na LISTAGEM, sobre `p.nome || p.termo`. */
     // A TABELA DAS DIREÇÕES substitui as três caixas de marcar (28/10/2026). Ela não pergunta
     // nada: mostra, para cada direção da gramática, se ESTE verbete a cobre e o que nela acontece.
     // A regra que a governa é a do dado: uma direção existe num verbete se — e só se — esse
@@ -6738,8 +6731,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("vbtempos").value = partes[0];' +
     '  document.getElementById("vbcompasso").value = partes[1];' +
     '  document.getElementById("vbacao").value = "atualizar";' +
-    '  var pos = document.getElementById("vbposicao");' +
-    '  if (pos && v.posicao) pos.value = v.posicao.termo;' +
+    // `v.posicao` continua no DADO (o selo da listagem lê-o); o que já não há é um campo onde o
+    // mostrar no formulário. Ver o bloco acima, em `pintarNomes`.
     '  METODO = v.metodo || "";' +
     '  var selMet = document.getElementById("vbmetodo");' +
     '  if (selMet) selMet.value = METODO;' +
@@ -7015,14 +7008,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarFica();' +
     '  });' +
     '})();' +
-    // A POSIÇÃO ENTROU NA TIRA (01/11/2026). Ela passou a ser a segunda metade do valor do passo 1
-    // — «Battement tendu · Première position» —, e sem este ouvinte a tira só a mostrava depois de
-    // outro gesto a repintar. A tira é o resumo do que já está decidido; um resumo que espera pelo
-    // próximo clique para dizer a verdade não é um resumo.
-    '(function(){' +
-    '  var p = document.getElementById("vbposicao");' +
-    '  if (p) p.addEventListener("change", pintarTira);' +
-    '})();' +
+    // O OUVINTE QUE REPINTAVA A TIRA AO MUDAR A POSIÇÃO SAIU (02/11/2026): não há campo de posição
+    // para mudar. O que resta da ideia de 01/11/2026 — «a tira é o resumo do que já está decidido»
+    // — continua no `pintarTira`, chamado por quem muda o nome e a música.
     // ---- o formulário de um trecho -----------------------------------------------------
     // AS PÍLULAS LIGAM-SE A SI MESMAS. A direção manda na contagem — quem escolhe a direção vê
     // as contagens que cabem naquela direção, e não uma lista fixa de «1–2, 3–4», que só serviria
