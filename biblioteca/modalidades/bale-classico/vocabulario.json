@@ -202,7 +202,8 @@
     "descricao": "Posição da perna recolhida.",
     "fonte": "",
     "observacoes": "",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "retiré"
   },
   {
     "id": "passe",
@@ -228,7 +229,8 @@
     "descricao": "",
     "fonte": "",
     "observacoes": "",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "atitude"
   },
   {
     "id": "arabesque",
@@ -240,7 +242,8 @@
     "descricao": "Diferentes posições de arabesque.",
     "fonte": "",
     "observacoes": "",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "arabesque"
   },
   {
     "id": "port-de-bras",
@@ -318,7 +321,8 @@
     "descricao": "Calcanhares juntos e pontas dos pés voltadas para fora em rotação en dehors completa, formando uma linha reta paralela aos ombros sem desabar os arcos plantares. Detalhe técnico: apoio, distribuição igual de peso nos três pontos do pé (base do dedão, dedinho e calcanhar).",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "primeira posição"
   },
   {
     "id": "deuxieme-position",
@@ -330,7 +334,8 @@
     "descricao": "Pés mantidos em linha reta na mesma rotação en dehors da primeira posição, porém afastados lateralmente pela distância equivalente a aproximadamente um pé do bailarino. Detalhe técnico: distancia, um pé de distância entre os calcanhares.",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "segunda posição"
   },
   {
     "id": "troisieme-position",
@@ -342,7 +347,8 @@
     "descricao": "Pés em en dehors onde o calcanhar de um pé fica posicionado exatamente em frente ao meio/arco do outro pé. Muito utilizada em níveis iniciantes e na metodologia RAD. Detalhe técnico: uso, transição para a quinta posição no aprendizado infantil/iniciante.",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "terceira posição"
   },
   {
     "id": "quatrieme-position",
@@ -354,7 +360,8 @@
     "descricao": "Pés paralelos em linhas cruzadas com en dehors ativo, estando um pé posicionado à frente do outro a uma distância de aproximadamente um pé. Pode ser aberta (alinhada com a 1ª) ou cruzada (alinhada com a 5ª). Detalhe técnico: tipos, quarta aberta (ouverte) e Quarta cruzada (croisée).",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "Os nomes e a execução das posições dos braços variam entre métodos; não supor que «quarta posição» significa a mesma configuração em todos os vocabulários.",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "quarta posição"
   },
   {
     "id": "cinquieme-position",
@@ -366,7 +373,8 @@
     "descricao": "Pés completamente cruzados e sobrepostos em en dehors, onde o calcanhar do pé da frente encosta na ponta do dedão do pé de trás, sem frestas entre as pernas. Detalhe técnico: exigencia, exige en dehors total do quadril para evitar torção nos joelhos.",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "quinta posição"
   },
   {
     "id": "sur-le-cou-de-pied",
@@ -381,7 +389,8 @@
     "descricao": "",
     "fonte": "",
     "observacoes": "Distinguir as formas devant e derrière e registrar a descrição usada pela escola.",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "sobre o colo do pé"
   },
   {
     "id": "ecarte",
@@ -967,7 +976,8 @@
     "descricao": "Braços mantidos em formato oval em frente ao corpo, alinhados na altura do esterno/estômago, com cotovelos sustentados e ombros relaxados. (Na Escola Francesa é chamada de 'En Avant'). Variação de nome — Vaganova: 1ª Posição | Francesa: En avant | RAD: 1st Position.",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "A numeração muda com o método: ver `gramatica.posicoesDeBracos` do alfabeto da modalidade.",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "primeira posição (braços)"
   },
   {
     "id": "deuxieme-position-bracos",
@@ -979,7 +989,8 @@
     "descricao": "Braços estendidos lateralmente em uma suave curva descendente do ombro até o pulso, mantendo os cotovelos sustentados e ligeiramente voltados para trás. Detalhe técnico: alinhamento, os braços devem ficar ligeiramente à frente da linha dos ombros no campo de visão periférica.",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "A numeração muda com o método: ver `gramatica.posicoesDeBracos` do alfabeto da modalidade.",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "segunda posição (braços)"
   },
   {
     "id": "troisieme-position-bracos",
@@ -991,7 +1002,8 @@
     "descricao": "Braços elevados acima da cabeça mantendo o formato curvo/oval, sem levantar os ombros. (Na Escola Francesa é 'En Haut'; na RAD varia segundo os exames de syllabus). Variação de nome — Vaganova: 3ª Posição | Francesa: En haut | RAD: 5th Position en haut.",
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "A numeração muda com o método: ver `gramatica.posicoesDeBracos` do alfabeto da modalidade.",
-    "estado": "documentado"
+    "estado": "documentado",
+    "nome": "terceira posição (braços)"
   },
   {
     "id": "aplomb",
@@ -1014,7 +1026,8 @@
     "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
     "observacoes": "",
     "estado": "documentado",
-    "membro": "bracos"
+    "membro": "bracos",
+    "nome": "braços baixos"
   },
   {
     "id": "adagio",

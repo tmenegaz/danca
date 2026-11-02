@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T16:34:43-0300`
-Commit atual: `1b99e51` — docs(notacao): editar «Plié» (8|4/4) no alfabeto bale-classico
+Gerado em: `2026-11-02T17:05:11-0300`
+Commit atual: `04e2597` — docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+04e2597 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
+62da8c5 feat(notacao): duplicar o exercício — a barra repete-se, e a posição não se toca
 1b99e51 docs(notacao): editar «Plié» (8|4/4) no alfabeto bale-classico
 a3f99d5 fix(notacao): o 400 do «devant» — um balde vazio que ninguém escolheu
 8980a37 fix(notacao): a tela ainda somava em fila — a régua das pistas tinha ficado a meio
@@ -103,8 +105,6 @@ e6e3092 feat(acervo): envelope/.indice.json
 aeb2b2c chore(estrutura): expurgar a escola batata
 377544c docs(registro): a fotografia dos três eixos, do ritmo obrigatório e da C22
 da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é viável
-273b62d docs(registro): correção — o modelo tem três eixos, a palavra «eixo» é que aparece uma vez
-04e60a7 docs(registro): a proposta «o verbete é o átomo do syllabus», verificada com evidência
 ```
 
 ## Por professor
@@ -228,86 +228,41 @@ da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — «Duplicar o exercício»: a barra repete-se, e a posição não se toca
+## 02/11/2026 — A etiqueta em português deixou de ser francês
 
-**O que motivou.** A proposta dela: «Para criar uma barra completa, o professor costuma repetir a mesma
-estrutura rítmica e de braços (ex: 8 tempos) alterando apenas a **posição base das pernas** (passando
-da 1ª posição para a 2ª, 4ª, 5ª, etc.). Inserir e configurar cada compasso do zero para cada nova
-posição torna o processo repetitivo e trabalhoso.» Duas alternativas foram propostas: **A**, duplicar
-tal e qual e editar depois; **B**, perguntar a posição no acto da duplicação.
+**O relato.** «Atualmente, as etiquetas na listagem exibem termos diretamente em francês (ex:
+*première position*). Como o sistema é multi-modalidade e atenderá também linguagens como Hip Hop,
+Jazz e Dança Contemporânea, a interface precisa utilizar termos padronizados em português.»
 
-### O que se mediu antes de escrever, e o que mudou o desenho
+**A decisão: o nome localizado é um CAMPO DO DADO, não uma tabela na tela.** O vocabulário já tinha
+`termo` (o nome na língua da modalidade) e a `gramatica` já tinha `nome` para as direções («à frente»,
+«ao lado», «atrás»). Faltava o mesmo para as posições. Treze receberam `nome`; a listagem, o `select`
+da posição e a tira leem `p.nome || p.termo` — e o `termo` continua a ser o que se **grava** e o que
+o documento escreve.
 
-| Medição | Resultado | Consequência |
-|:--|:--|:--|
-| o `1ª` nas células do `Plié` gravado | está nas **duas** pistas: perna `ED 1ª ↓ ↑`, braço `⌒ 2ª → 1ª → 2ª` | uma troca de posição feita pela máquina escreveria `⌒ 2ª → 2ª → 2ª` — a Alternativa **B** não tem como saber qual `1ª` é a perna |
-| `posicao` no verbete | `{membro: 'pes', termo: 'premiere-position'}`, **um só por verbete** | não há posição-base por célula onde o prompt da **B** escrevesse a escolha |
-| o compasso das cópias | derivado da **ordem** dentro da pista | as cópias caem nos compassos **seguintes** (3 e 4 numa música de 8), que é exactamente «logo abaixo na sequência» — isto, que eu tinha escrito como bloqueio, **não era** |
-| mudar os tempos de 8 para 16 | `CELULAS` de **4 células** para **0**, cobertura de 8 para **0** | este **era** o bloqueio: duplicar obriga a crescer a música, e crescer a música apagava a decomposição |
+O que **não** se traduziu, e é deliberado: `retiré`, `attitude`, `arabesque`, `sur le cou-de-pied`
+mantêm o nome internacional, porque é assim que a técnica se diz em português também. Escrever
+«atitude» onde a escola diz «attitude» seria inventar uma tradução que ninguém usa.
 
-**A decisão dela:** o bloco é o **exercício inteiro** (não o compasso) e a posição muda-se **depois**
-(Alternativa A). Registado por pergunta directa, não por inferência.
+**A hipótese alternativa, recusada:** uma tabela de tradução na camada de exibição. Duas listas do
+mesmo vocabulário divergem ao primeiro termo novo — é a regra que esta casa já pagou (P-15, e o dia
+dos quatro sítios a somar tempos).
 
-### O que ficou
-
-Um botão **«Duplicar o exercício»** na decomposição, ao lado do «Acrescentar trecho», que aparece só
-quando há trechos e sai de cena em correcção — pela mesma razão que o «Acrescentar». Ele clona as
-células de **cada direção** e acrescenta-as ao fim da sua própria lista, e **sobe os tempos sozinho**:
-duplicar um bloco de 8 numa música de 8 deixaria a música a declarar 8 e as células a cobrir 16 — a
-gravação recusaria com «sobram 8 tempos» o resultado de uma acção que a própria tela ofereceu.
-`MUSICA_EM_FOCO` acompanha, senão o envio recarregava o rascunho da música antiga e apagava o que se
-acabou de duplicar.
-
-**Não se reescreve sinal nenhum.** É uma decisão, não uma omissão: quem sabe qual `1ª` é a perna é a
-professora, e ela muda-o no «Editar» do trecho, onde vê o que está a mudar. Uma cópia que fica por
-ajustar vê-se; uma cópia silenciosamente errada, não.
-
-### O que tentei e reverti — e a lição
-
-Para resolver o bloqueio dos tempos, mudei o `carregarRascunho` para **conservar as células** quando a
-música em foco ainda não existe. O argumento era bom — as células são o gesto, e a própria função já
-preservava a direção «porque apagar-lhe a direção seria recomeçar o gesto». **A suite disse o
-contrário, e com números: 13 asserções passaram a medir o exercício anterior**, porque construir um
-cenário novo passa por declarar uma música nova. Revertido, e o bloqueio resolveu-se **localmente**,
-dentro da duplicação, sem tocar na regra geral.
-
-A regra que fica: **mudar os tempos é declarar OUTRA música, e outra música é outra decomposição.** O
-que fica por decidir — e é dela — é se essa troca deve avisar antes de apagar, porque hoje apaga em
-silêncio. Fica na §8 do `ESTADO-ATUAL.md`.
-
-### Quatro asserções do `provar-notacao` que já estavam a mentir
-
-O `provar-notacao` **estourava** antes de chegar ao fim: `celulas.devant[0].sinais = …`, e o `Plié`
-gravado por ela deixou de ter `devant` — o balde vazio saiu com a correcção de hoje. Apanhado por
-tabela, o resto do que estava atrás do estouro também estava errado, e tudo pela mesma razão: fixtures
-a afirmar a forma de um dado que melhorou.
-
-- a direção passa a ser **a primeira que tem célula**, e há uma asserção a dizer que existe (um
-  `find` vazio dava `undefined`, e `Boolean('')` é falso — o caso da chave sem nome apanhava-o);
-- os **braços** atravessam os **dois** compassos, como as pernas: o `[1, 1]` que lá estava só era
-  verdade enquanto a leitura somava em fila;
-- `semBaldesVazios` conserva a direção **com** célula, seja ela qual for, em vez de `'devant'` escrita
-  à mão;
-- a linha composta é lida **do alfabeto** em vez de `[Perna: 1ª ↓]` copiado do dia — o `Plié` cresceu
-  (`ED`, `↑`), como cresce tudo o que a professora escreve.
-
-**Nota sobre o versionamento:** o `experimentos/*` está no `.gitignore` e o `provar-notacao.js` **não
-está versionado** (13 provas estão nesta situação). A correcção acima vive no worktree e não sobe com
-o commit; fica registada aqui para não se perder.
-
-### O que se mediu, no fim
+### O que se mediu
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-celula` | **156 asserções** (eram 150) — a **20-C** é nova: o botão aparece quando há trechos, duplicar dá 4→8 células e cobertura 4→8, os tempos e a música em foco acompanham, as cópias caem nos compassos **1,1,2,2**, e o `1ª` do braço fica onde está; e a guarda de que trocar de exercício **limpa** |
-| `provar-notacao` | **79/79** (eram 78, e o ficheiro **estourava** a meio) — as quatro asserções corrigidas acima e uma nova |
-| `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · TUDO CERTO · 50/50 · 55/55 · 17/17 |
-| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · **20/20** — a peça nova é o `acao secundario` que a folha já tem |
-| o script emitido | `node --check` passa, e o botão está no HTML servido |
+| `provar-celula` | **167 asserções** (eram 158) — §20-D é nova (nove asserções: marcar, trocar no lugar, vizinhos intactos, a marca a desaparecer, o «×» a desfazer índices, desistir, e a paleta a voltar a acrescentar); a §20 e a §21-B passaram a medir **um painel de cada vez**; e a listagem mede-se agora **por música**, com o francês **ausente** |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **79/79** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — a peça nova (`.chip.em-troca`) passou a «Peça» e a «Aresta» |
+| a listagem, em quatro larguras | **nenhum transbordo** a 320, 390, 768 e 1280px, e 14 linhas (uma por música) — medido com os contentores abertos, porque medir um painel fechado dá zero, e zero passa em qualquer comparação |
+| **não executado** | `provar-agnosticismo` — **o ficheiro não existe neste worktree** (nunca foi versionado; a fotografia anterior citava-o) |
 
-**Com o quê.** `motor/servidor/bastidores.js` (o botão, `pintarDuplicar`, `duplicarExercicio` e a
-chamada em `pintarPassos`/`pintarTabela`) · `experimentos/provar-celula.js` §20-C ·
-`experimentos/provar-notacao.js` (quatro fixtures).
+**Com o quê.** `motor/servidor/verbete.js` (`detalhePorMusica`, orientações) ·
+`motor/servidor/bastidores.js` (a listagem por música, `editarVerbete` com a chave, `nome` nas
+posições, `pintarDuplicar`, o painel único, `SINAL_EM_TROCA`, a ficha clicável, a regra `.chip.em-troca`)
+· `biblioteca/modalidades/bale-classico/vocabulario.json` (13 `nome`) · `experimentos/provar-celula.js`
+(§20, §20-D, §21).
 
 ## O que está pendente
 

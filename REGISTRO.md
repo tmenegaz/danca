@@ -31469,3 +31469,115 @@ o commit; fica registada aqui para não se perder.
 **Com o quê.** `motor/servidor/bastidores.js` (o botão, `pintarDuplicar`, `duplicarExercicio` e a
 chamada em `pintarPassos`/`pintarTabela`) · `experimentos/provar-celula.js` §20-C ·
 `experimentos/provar-notacao.js` (quatro fixtures).
+
+---
+
+## 02/11/2026 — «O item duplicado não aparece»: ele estava gravado, faltava a porta
+
+**O que ela relatou.** «O usuário executou o fluxo de criar um bloco completo (…), realizou a
+**duplicação**, fez uma edição e clicou em **"Gravar Verbete"**. O sistema dá indicativos de sucesso
+(…), porém **o registro não aparece na tela**. Mesmo após atualizar a página, trocar de exercício ou
+navegar entre os steps, o item duplicado permanece ausente.» E pediu que se verificasse a base de
+dados, a API e os filtros da listagem.
+
+### A hipótese estava errada, e a medição disse-o em dois comandos
+
+O remoto primeiro: **`04e2597 docs(notacao): editar «Plié» (16|4/4)`** — a gravação dela **está
+feita**. O alfabeto, versão 17, tem as duas músicas:
+
+| chave | `cobre` | posição | células |
+|:--|:--|:--|:--|
+| `8|4/4` | 8 | `premiere-position` | 4 |
+| `16|4/4` | 16 | `premiere-position` | 8 |
+
+E o servidor conta-as bem: `listarVerbetes` devolve `Plié · 2 músicas · 12 trechos`. Não era base de
+dados, não era API, não era filtro. **Era a porta:** a listagem dizia «2 músicas» e o «editar» fazia
+`Object.keys(musicas)[0]` — **sempre a primeira**. Medido no browser com o dado real: clicar em
+«Plié» abria `8|4/4`, com 4 trechos. A música de 16 tempos existia no ficheiro, era contada na
+etiqueta, e **nenhum sítio da tela a mostrava**.
+
+> Um dado que se grava e não se consegue voltar a ver é um dado perdido. A etiqueta agregada dava a
+> ilusão de o mostrar — e foi por isso que o diagnóstico começou pelo sítio errado.
+
+### O que ficou
+
+- **`detalhePorMusica`** no `verbete.js`: cada música com os seus tempos, compasso, `cobre`, trechos,
+  direções, orientações e categorias — tudo derivado do alfabeto, sem um segundo dado a manter.
+- **Uma linha por música** na listagem, no modelo do cartão das turmas: o nome e o selo na primeira
+  linha, o complemento por baixo. E a música vai no `data-musica` do botão — é ela a porta.
+- **`editarVerbete(nome, chave)`**, com a chave pedida; e a primeira música deixa de ser
+  `Object.keys(...)[0]` (que também devolvia chaves que não são música) para ser a primeira que **tem
+  a forma de uma**.
+
+**O que se mediu, no browser, com o dado real:** duas linhas para o `Plié` — «8 tempos · 4/4 · 4
+trechos · Perna, Braço» e «16 tempos · 4/4 · 8 trechos · Perna, Braço»; clicar na segunda abre
+`16|4/4` com cobertura 16 e 8 trechos. O fluxo inteiro dela, do princípio ao fim: duplicar (4→8
+células, 8→16 tempos), editar um trecho, gravar → o corpo enviado é `{musica: "16|4/4", cobre: 16,
+celulas: 8}`.
+
+---
+
+## 02/11/2026 — A correcção volta a andar por passos, e o sinal troca-se no lugar
+
+### Um passo, um painel — também a corrigir
+
+A decisão da manhã abria os painéis **4, 5 e 6** durante a correcção de um trecho, para não saltar de
+passo. Ela respondeu com o efeito medido: «ao clicar em Editar, o sistema (…) abre tudo em um
+formulário único (página única), transformando os steps em meros indicadores visuais (com ícones de
+exclamação)». **As duas coisas que ela pediu não competem:** o «Editar» continua a não mudar de passo
+— a correcção da manhã fica — e o formulário volta a mostrar **um painel de cada vez**. Quem está no
+6 fica no 6, e vai ao 4 e ao 5 pela tira. O «!» nos números passa a ser o que sempre foi: uma marca
+num sítio para onde se pode ir.
+
+Medido: em correcção, `1:o 2:o 3:o 4:o 5:o 6:V`; ao ir para o 5, `1:o 2:o 3:o 4:o 5:V 6:o`.
+
+### O sinal troca-se no lugar
+
+O relato: «quando um arranjo possui muitos sinais (10 a 20) e o professor precisa alterar apenas um
+item intermediário (o 3º), o sistema exige que o usuário limpe todos os sinais posteriores». Havia um
+`×` por ficha e a paleta só sabia **acrescentar ao fim** — corrigir o meio obrigava a refazer a cauda.
+
+Agora a ficha é clicável: clicar marca para troca, clicar um sinal na paleta **substitui naquele
+índice**, e os vizinhos ficam onde estavam. Clicar a mesma ficha outra vez desiste; o «×» continua a
+tirar — e **desfaz a marca quando os índices andam para trás**, senão uma marca esquecida em cima do
+vizinho trocaria o sinal errado sem ninguém dar por isso.
+
+Medido: `ED 1ª ↓ ↑` → marcar a ficha 2 → `⌒` → `ED ⌒ ↓ ↑`. Sem marca, o clique volta a acrescentar.
+
+---
+
+## 02/11/2026 — A etiqueta em português deixou de ser francês
+
+**O relato.** «Atualmente, as etiquetas na listagem exibem termos diretamente em francês (ex:
+*première position*). Como o sistema é multi-modalidade e atenderá também linguagens como Hip Hop,
+Jazz e Dança Contemporânea, a interface precisa utilizar termos padronizados em português.»
+
+**A decisão: o nome localizado é um CAMPO DO DADO, não uma tabela na tela.** O vocabulário já tinha
+`termo` (o nome na língua da modalidade) e a `gramatica` já tinha `nome` para as direções («à frente»,
+«ao lado», «atrás»). Faltava o mesmo para as posições. Treze receberam `nome`; a listagem, o `select`
+da posição e a tira leem `p.nome || p.termo` — e o `termo` continua a ser o que se **grava** e o que
+o documento escreve.
+
+O que **não** se traduziu, e é deliberado: `retiré`, `attitude`, `arabesque`, `sur le cou-de-pied`
+mantêm o nome internacional, porque é assim que a técnica se diz em português também. Escrever
+«atitude» onde a escola diz «attitude» seria inventar uma tradução que ninguém usa.
+
+**A hipótese alternativa, recusada:** uma tabela de tradução na camada de exibição. Duas listas do
+mesmo vocabulário divergem ao primeiro termo novo — é a regra que esta casa já pagou (P-15, e o dia
+dos quatro sítios a somar tempos).
+
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-celula` | **167 asserções** (eram 158) — §20-D é nova (nove asserções: marcar, trocar no lugar, vizinhos intactos, a marca a desaparecer, o «×» a desfazer índices, desistir, e a paleta a voltar a acrescentar); a §20 e a §21-B passaram a medir **um painel de cada vez**; e a listagem mede-se agora **por música**, com o francês **ausente** |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **79/79** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — a peça nova (`.chip.em-troca`) passou a «Peça» e a «Aresta» |
+| a listagem, em quatro larguras | **nenhum transbordo** a 320, 390, 768 e 1280px, e 14 linhas (uma por música) — medido com os contentores abertos, porque medir um painel fechado dá zero, e zero passa em qualquer comparação |
+| **não executado** | `provar-agnosticismo` — **o ficheiro não existe neste worktree** (nunca foi versionado; a fotografia anterior citava-o) |
+
+**Com o quê.** `motor/servidor/verbete.js` (`detalhePorMusica`, orientações) ·
+`motor/servidor/bastidores.js` (a listagem por música, `editarVerbete` com a chave, `nome` nas
+posições, `pintarDuplicar`, o painel único, `SINAL_EM_TROCA`, a ficha clicável, a regra `.chip.em-troca`)
+· `biblioteca/modalidades/bale-classico/vocabulario.json` (13 `nome`) · `experimentos/provar-celula.js`
+(§20, §20-D, §21).

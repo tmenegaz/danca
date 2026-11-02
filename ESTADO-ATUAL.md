@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `1b99e51`). Nesta entrega: **a barra passou a
+> **Última fotografia:** 02/11/2026 (base local `04e2597`). Nesta entrega: **a música duplicada
+> passou a ter porta.** Ela duplicou o `Plié` de 8 para 16 tempos, gravou, e o registo «não apareceu»
+> — mas **estava gravado**: o alfabeto, versão 17, tem as duas músicas. O que faltava era o caminho
+> de volta: a listagem dizia «2 músicas» e o «editar» abria sempre `Object.keys(musicas)[0]`, isto é,
+> **sempre a primeira**. Passa a haver **uma linha por música**, no modelo do cartão das turmas, com
+> os tempos, o compasso, os trechos, as direções e as categorias — e a música vai no botão. De
+> caminho: a **correcção volta a andar por passos** (um painel, não três), o **sinal troca-se no
+> lugar** (clica-se a ficha, clica-se o sinal novo), e as etiquetas passaram a **português** — o
+> `nome` é um campo do vocabulário, não uma tabela na tela.
+>
+> **Entrega anterior** (base `1b99e51`). Nesta entrega: **a barra passou a
 > duplicar-se.** Um botão «Duplicar o exercício» clona a decomposição inteira — todos os compassos,
 > as pernas e os braços — e sobe os tempos sozinho, para o `Plié` em 1ª se repetir em 2ª, 4ª e 5ª
 > sem se escrever tudo outra vez. Ele **não reescreve sinal nenhum**: no `Plié` o `1ª` está nas duas
@@ -13,7 +23,7 @@
 > caminho ficou medido o que **não** se resolveu: mudar os tempos **apaga a decomposição em
 > silêncio** — a duplicação não passa por lá, mas quem escreve à mão passa.
 >
-> **Entrega anterior** (base `a3f99d5`). Nesta entrega: **um balde vazio deixou de
+> **Duas entregas antes** (base `a3f99d5`). Nesta entrega: **um balde vazio deixou de
 > bloquear a gravação.** O editor deixava ficar `celulas: { devant: [] }` quando o último trecho de
 > uma direção saía — e um balde vazio é **invisível**, porque a tabela percorre células e zero
 > células não desenham linha. Ela recebeu um `400` com «a direção «devant» não tem célula» e a frase
@@ -942,6 +952,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     anterior, porque construir um cenário passa por declarar uma música nova. O `carregarRascunho`
     ficou como estava, e o bloqueio dos tempos resolveu-se **localmente**, dentro da duplicação.
     **DECIDIDO** 02/11/2026, contra a minha primeira proposta.
+64. **CADA MÚSICA DE UM VERBETE TEM DE TER PORTA.** A listagem agregava («2 músicas») e o «editar»
+    fazia `Object.keys(musicas)[0]` — sempre a primeira. Consequência medida: ela duplicou o `Plié`
+    de 8 para 16 tempos, gravou, o alfabeto ficou com as duas, e **a segunda não aparecia em sítio
+    nenhum**. A listagem passa a ter **uma linha por música**, com a música no `data-musica` do botão,
+    e o servidor manda `detalhePorMusica` (tempos, compasso, `cobre`, trechos, direções, orientações,
+    categorias — tudo derivado). **A regra geral:** um dado que se grava e não se consegue voltar a
+    abrir é um dado perdido, ainda que esteja no ficheiro e a etiqueta o conte.
+    **DECIDIDO e implementado** 02/11/2026.
+65. **A CORRECÇÃO ANDA POR PASSOS — UM PAINEL DE CADA VEZ.** A decisão da manhã abria os painéis 4, 5
+    e 6 durante a correcção de um trecho; ela respondeu que isso «abre tudo em um formulário único
+    (página única)» e transforma os passos em «meros indicadores visuais». As duas coisas que ela
+    pediu — **não saltar de passo** e **andar por passos** — não competem: o «Editar» não muda de
+    passo (decisão 61, que fica), e o formulário mostra um painel só. **Corrige, com data, a decisão
+    61 na parte da área do trecho. DECIDIDO e implementado** 02/11/2026.
+66. **O SINAL TROCA-SE NO LUGAR.** Clicar uma ficha marca-a; clicar um sinal na paleta
+    **substitui naquele índice**. Sem marca, a paleta acrescenta ao fim, como sempre. O «×» continua a
+    tirar e **desfaz a marca quando os índices andam para trás** — uma marca esquecida em cima do
+    vizinho trocaria o sinal errado em silêncio. A ordem é a informação: ela é a sequência em que o
+    gesto acontece. **DECIDIDO e implementado** 02/11/2026.
+67. **A ETIQUETA LOCALIZADA É UM CAMPO DO DADO, NÃO UMA TABELA NA TELA.** Cada termo do vocabulário
+    pode ter `nome` — a etiqueta em português; a tela mostra `nome || termo`, e o `termo` continua a
+    ser o que se grava e o que o documento escreve. Treze posições receberam `nome`; os empréstimos
+    que se dizem assim em português (`retiré`, `attitude`, `arabesque`, `sur le cou-de-pied`) **não**
+    foram traduzidos, porque traduzi-los seria inventar. A alternativa — uma tabela de tradução na
+    camada de exibição — foi recusada: duas listas do mesmo vocabulário divergem ao primeiro termo
+    novo. **DECIDIDO e implementado** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -1258,7 +1294,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a duplicação do exercício)
+### Executado nesta fotografia (02/11/2026 — a porta da música, os passos, a troca do sinal)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **167 de 167** (eram 158) — a secção **20-D** é nova e mede a troca no lugar: marcar a ficha 2 de cinco, trocar por outro sinal, vizinhos intactos, a marca a desaparecer, o «×» a desfazer a marca quando os índices andam para trás, o clique repetido a desistir, e a paleta a voltar a acrescentar sem marca. A **§20** e a **§21-B** passaram a medir **um painel de cada vez**; a listagem mede-se **por música**, e o francês tem de estar **ausente** |
+| **o fluxo dela, de ponta a ponta** | abrir o `Plié` (`8\|4/4`, 4 células) → duplicar (**8 células, 16 tempos, `16\|4/4`**) → editar um trecho (passo 6, um painel) → ir ao 5 (só o 5) → voltar ao 6 → gravar. **O corpo enviado: `{musica: "16\|4/4", cobre: 16, celulas: 8}`** |
+| **a listagem com o dado real** | **duas linhas** para o `Plié` — «8 tempos · 4/4 · 4 trechos · Perna, Braço» e «16 tempos · 4/4 · 8 trechos · Perna, Braço»; a segunda abre `16\|4/4` com cobertura **16** |
+| **a listagem em quatro larguras** | 320 · 390 · 768 · 1280 px: **14 linhas, nenhum transbordo** — medido com os contentores **abertos** (um painel fechado mede zero, e zero passa em qualquer comparação) |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **79/79** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — a peça nova (`.chip.em-troca`) passou «Peça» e «Aresta» |
+| **não executado** | `provar-agnosticismo` — **o ficheiro não existe neste worktree** (nunca foi versionado; a fotografia anterior citava-o) · `provar-o-que-vem-do-dado` (sem fixture desde o expurgo) · `check-glossario` (sem par registro × glossário) |
+
+### Executado na fotografia anterior (02/11/2026 — a duplicação do exercício)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1853,6 +1901,20 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **«O item duplicado não aparece»: ele estava gravado, faltava a porta.** Ela
+  duplicou o `Plié` de 8 para 16 tempos, gravou, e o registo não apareceu — mas o remoto dizia
+  `04e2597 docs(notacao): editar «Plié» (16|4/4)`, e o alfabeto, versão 17, tinha as duas músicas. A
+  falha era outra: a listagem dizia «2 músicas» e o «editar» abria sempre a primeira. Passa a haver
+  **uma linha por música**, com a música no botão, e o servidor manda `detalhePorMusica`.
+- **02/11/2026** — **A correcção volta a andar por passos, e o sinal troca-se no lugar.** Os três
+  painéis abertos durante a correcção viravam «um formulário único (página única)» — volta a ser um
+  painel de cada vez, sem o «Editar» voltar a saltar de passo. E a ficha do sinal passou a ser
+  clicável: marca-se uma e clica-se o sinal novo, que entra **naquele índice**, com os vizinhos
+  intactos.
+- **02/11/2026** — **As etiquetas passaram a português.** «Première position» era lido em cru na
+  listagem. O `nome` passou a ser um campo do vocabulário (13 posições), a tela mostra `nome ||
+  termo`, e o `termo` continua a ser o que se grava. Os empréstimos que se dizem assim em português
+  (`retiré`, `attitude`, `arabesque`) **não** foram traduzidos — traduzi-los seria inventar.
 - **02/11/2026** — **«Duplicar o exercício»: a barra repete-se, e a posição não se toca.** O pedido
   dela: o `Plié` em 1ª, 2ª, 4ª e 5ª tem a mesma estrutura rítmica e os mesmos braços, e só a posição
   das pernas muda. O botão clona a decomposição de cada direção e acrescenta-a ao fim da sua lista,

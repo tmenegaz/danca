@@ -2653,6 +2653,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // melhor do que duas a competir pelo mesmo `<span>`.
     '.chip{display:inline-block;margin:0;padding:.1rem .45rem;background:var(--fundo-faixa);' +
     'border:1px solid var(--borda-campo);border-radius:var(--raio-pilula);font-size:.82rem;color:var(--texto);}' +
+    // O SINAL MARCADO PARA TROCA (02/11/2026). Ele é o alvo do próximo clique na paleta, e tem de
+    // se ver qual é: sem marca, trocar o sinal número 3 de doze é escolher às cegas. Usa as cores
+    // de estado que a folha já tem — `--alerta-fundo` é o âmbar de «falta aqui», e é isso que a
+    // ficha diz enquanto espera.
+    '.chip[data-trocar]{cursor:pointer;}' +
+    '.chip.em-troca{background:var(--alerta-fundo);border-color:var(--marca-texto);' +
+    'outline:2px solid var(--marca-texto);outline-offset:1px;}' +
     '.bloco-assoc .chips{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;min-height:1.7rem;margin:.1rem 0 .55rem;}' +
     // A PEÇA É UMA SÓ (28/10/2026). Ela estava escopada a `.bloco-assoc`, e por isso o «+» do
     // exercício — que precisa do mesmo arranjo, seletor largo e botão colado — teria de
@@ -5296,6 +5303,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //   · havia duas tabelas a dizer a mesma coisa. Passa a haver uma.
     'var CELULAS = {};' +
     'var SINAIS = [];' +
+    // O SINAL EM TROCA (02/11/2026). Um arranjo de barra tem dez, quinze, vinte sinais, e corrigir
+    // o terceiro obrigava a apagar do terceiro para a frente e a reescrever tudo — ela descreveu-o
+    // como «inviável e frustrante», e é. Com o índice guardado aqui, a sequência passa a poder
+    // corrigir-se **no lugar**: clica-se na ficha que se quer trocar, clica-se no sinal novo na
+    // paleta, e o resto da ordem fica onde estava.
+    'var SINAL_EM_TROCA = null;' +
     // O TRECHO EM COMPOSIÇÃO TEM ESTADO PRÓPRIO (28/10/2026). A direção e a orientação ficam
     // depois de acrescentar — é o que permite emendar o en croix sem reescolher a direção a cada
     // trecho —, e só os sinais, a contagem e a frase se limpam.
@@ -5348,6 +5361,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function nomeDaDirecao(termo){' +
     '  var achado = null;' +
     '  direcoesDaGramatica().forEach(function(x){ if (x.termo === termo) achado = x; });' +
+    '  return achado ? achado.nome : termo;' +
+    '}' +
+    // O NOME DA ORIENTAÇÃO, PELA MESMA REGRA (02/11/2026). Ela vem em francês no dado — `en-face`,
+    // `croise` — e a listagem tem de dizer «de frente». É a segunda lista da gramática, e a função
+    // é a mesma com a outra lista: quem escrever uma terceira regra de nomes vai divergir das duas.
+    'function nomeDaOrientacao(termo){' +
+    '  var achado = null;' +
+    '  orientacoesDaGramatica().forEach(function(x){ if (x.termo === termo) achado = x; });' +
     '  return achado ? achado.nome : termo;' +
     '}' +
     // O NUMERADOR do compasso — 4 em «4/4», 2 em «2/4». É ele que diz quantos tempos cabem
@@ -5790,7 +5811,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  caixa.innerHTML = (legenda ? legenda.outerHTML : "") + html;' +
     '  Array.prototype.slice.call(caixa.querySelectorAll("input")).forEach(function(x){' +
     '    x.addEventListener("change", function(){' +
-    '      SINAIS.push(x.getAttribute("data-sinal"));' +
+    // TROCAR NO LUGAR, E NÃO ACRESCENTAR AO FIM (02/11/2026). Com um sinal marcado para troca, o
+    // clique na paleta substitui-o e a ordem fica intacta; sem ele, acrescenta ao fim, que é o
+    // que sempre fez. A posição na sequência é a informação — ela é a ordem em que o gesto
+    // acontece —, e mandar o sinal corrigido para o fim seria dizer que ele acontece no fim.
+    '      var novo = x.getAttribute("data-sinal");' +
+    '      if (SINAL_EM_TROCA !== null && SINAL_EM_TROCA < SINAIS.length) {' +
+    '        SINAIS[SINAL_EM_TROCA] = novo;' +
+    '        SINAL_EM_TROCA = null;' +
+    '      } else {' +
+    '        SINAIS.push(novo);' +
+    '      }' +
     '      x.checked = false;' +
     '      pintarChips();' +
     '    });' +
@@ -5804,10 +5835,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!SINAIS.length) {' +
     '    alvo.innerHTML = "<span class=\\"nota\\">Escolha a categoria e os sinais.</span>";' +
     '  } else {' +
+    // A FICHA INTEIRA É CLICÁVEL, E O «×» CONTINUA A SER O «×» (02/11/2026). Clicar na ficha
+    // marca-a para troca; clicar no «×» tira-a. São duas acções no mesmo sítio, e a distinção é o
+    // alvo do clique — por isso o «×» é um `button` dentro da ficha e não um glifo ao lado.
     '    alvo.innerHTML = SINAIS.map(function(s, i){' +
-    '      return "<span class=\\"chip\\">" + (i + 1) + ". " + s +' +
+    '      var emTroca = (SINAL_EM_TROCA === i);' +
+    '      return "<span class=\\"chip" + (emTroca ? " em-troca" : "") + "\\" data-trocar=\\"" + i +' +
+    '        "\\" title=\\"corrigir este sinal no lugar\\">" + (i + 1) + ". " + s +' +
     '        "<button type=\\"button\\" data-sinal=\\"" + i + "\\" aria-label=\\"tirar " + s + "\\">×</button></span>";' +
     '    }).join(" ");' +
+    // A INSTRUÇÃO SÓ APARECE QUANDO HÁ O QUE INSTRUIR. Uma frase permanente a explicar um gesto
+    // que ainda não se pode fazer é ruído em cima de quem está a compor.
+    '    if (SINAL_EM_TROCA !== null && SINAL_EM_TROCA < SINAIS.length) {' +
+    '      alvo.innerHTML += "<p class=\\"nota\\">a corrigir o sinal " + (SINAL_EM_TROCA + 1) +' +
+    '        " («" + SINAIS[SINAL_EM_TROCA] + "») — escolha o sinal novo na paleta, ou clique na ficha outra vez para desistir.</p>";' +
+    '    }' +
     '  }' +
     // O QUE FICA ESCRITO É REFEITO A CADA SINAL (31/10/2026): o «lê-se» deriva dos sinais, e a
     // prévia do último passo tem de acompanhar. O campo da frase NÃO é tocado — ele é do
@@ -5946,20 +5988,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // estava aberto — e era isso que fazia do «Cancelar» o único sinal de onde se estava e para
     // onde se ia. Agora o cadastro vive dentro do passo 1, e quem manda é o passo: nada mais o
     // esconde.
-    // O PAINEL DO TRECHO APARECE ONDE SE ESTÁ A CORRIGIR (02/11/2026). A regra era «um passo, um
-    // painel»; passa a haver uma excepção, e ela é a correcção: quem clica «Editar» na tabela não
-    // sai da tabela, e os dois painéis onde o trecho se compõe aparecem acima dela. Sem isto, o
-    // «Editar» saltava para o primeiro passo do trecho e o utilizador perdia o contexto — que é o
-    // defeito que ela relatou, e não uma preferência.
+    /* UM PASSO, UM PAINEL — TAMBÉM A CORRIGIR (02/11/2026, corrigindo a decisão da manhã).
+     *
+     * A manhã abriu uma excepção: durante a correcção de um trecho, os painéis 4, 5 e 6 ficavam
+     * todos à vista. Ela resolvia um defeito real — o «Editar» da tabela saltava para o passo 4 e
+     * fazia perder de vista a linha que se estava a corrigir —, mas pagava-o caro, e foi ela que o
+     * disse: «ao clicar em Editar (…) abre tudo em um formulário único (página única),
+     * transformando os steps em meros indicadores visuais». Três painéis ao mesmo tempo não são
+     * três passos: são uma página, com uma tira decorativa em cima.
+     *
+     * As duas coisas que ela pediu — **não saltar** e **andar por passos** — não competem. O
+     * «Editar» continua a não mudar de passo (é a correcção da manhã, e fica), e o formulário
+     * volta a mostrar **um painel de cada vez**: quem está no 6 fica no 6, e vai ao 4 e ao 5 pela
+     * tira, como em qualquer outra altura. O «!» nos números continua a dizer que aquele passo
+     * tem trabalho pendente — e agora é isso mesmo que ele é, uma marca num sítio para onde se
+     * pode ir, e não a legenda de um painel que já está aberto.
+     */
     '  Array.prototype.slice.call(document.querySelectorAll("#form-verbete .passo-painel")).forEach(function(p){' +
     '    var n = Number(p.getAttribute("data-passo")) || 0;' +
-    // A ÁREA DO TRECHO ABRE-SE INTEIRA DURANTE A CORRECÇÃO. Não basta mostrar os dois painéis
-    // onde o trecho se compõe: o botão que GUARDA está no último, e quem está a corrigir os sinais
-    // (no 5) ficaria sem o botão à vista. Com a área aberta, corrigir não obriga a procurar o
-    // passo onde se guarda.
-    '    var naArea = EM_EDICAO !== null && (PASSO === ULTIMO_PASSO || PASSOS_DO_TRECHO.indexOf(PASSO) !== -1);' +
-    '    var doTrecho = naArea && (PASSOS_DO_TRECHO.indexOf(n) !== -1 || n === ULTIMO_PASSO);' +
-    '    p.hidden = !(n === PASSO || doTrecho);' +
+    '    p.hidden = !(n === PASSO);' +
     '  });' +
     '  Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
     '    var n = Number(b.getAttribute("data-passo")) || 0;' +
@@ -6080,7 +6127,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // dava o mesmo resultado por acidente (a edição começava nos passos do trecho); agora que ela
     // começa na tabela, «não mexer» é a regra explícita.
     '  EM_EDICAO = null;' +
-    '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = []; REPETICOES = 1;' +
+    '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = []; SINAL_EM_TROCA = null; REPETICOES = 1;' +
     '  var selRepX = document.getElementById("vb-repeticoes"); if (selRepX) selRepX.value = "1";' +
     '  pintarPassos();' +
     '  pintarTrecho();' +
@@ -6247,8 +6294,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (pos) {' +
     '      var opcoes = ["<option value=\'\'>— escolha a posição —</option>"];' +
     '      (d.posicoes || []).forEach(function(p){' +
+    // A OPÇÃO MOSTRA A ETIQUETA LOCALIZADA, E GUARDA O `id` (02/11/2026). O que se lê é
+    // «primeira posição»; o que se grava continua a ser `premiere-position`, porque é o `id` que
+    // liga ao vocabulário e viaja para o documento. A etiqueta é de exibição, não de dados.
     '        opcoes.push("<option value=\'" + p.id + "\' data-membro=\'" + (p.membro || "") + "\'>" +' +
-    '          p.termo + (p.membro ? " (" + p.membro + ")" : "") + "</option>");' +
+    '          (p.nome || p.termo) + (p.membro ? " (" + p.membro + ")" : "") + "</option>");' +
     '      });' +
     '      pos.innerHTML = opcoes.join("");' +
     '    }' +
@@ -6293,34 +6343,78 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // pediu etiquetas que digam, de relance, o que o verbete é: a POSIÇÃO em que acontece (selo,
     // ao lado do nome, como nas outras listas), e por baixo as direções que cobre, o compasso, em
     // quantas músicas está escrito e quantos trechos tem. Tudo derivado do alfabeto.
-    '    lista.innerHTML = (d.exercicios || []).map(function(x){' +
+    /* UMA LINHA POR MÚSICA — E É ASSIM QUE A MÚSICA NOVA TEM PORTA (02/11/2026).
+     *
+     * A etiqueta agregada («2 músicas») contava o que existia e não abria nada: o «editar» levava
+     * sempre `Object.keys(musicas)[0]`, isto é, sempre a primeira. Ela duplicou o `Plié` de 8 para
+     * 16 tempos, gravou, o alfabeto ficou com as duas — e a de 16 não apareceu em sítio nenhum.
+     * Um dado que se grava e não se consegue voltar a ver é um dado perdido.
+     *
+     * O cartão segue o modelo das turmas: o nome e os selos na primeira linha, o complemento por
+     * baixo. O complemento diz o que se quer saber de relance — os tempos e o compasso, quantos
+     * trechos, por onde o exercício passa e que partes do corpo se movem.
+     */
+    '    var linhas = [];' +
+    '    (d.exercicios || []).forEach(function(x){' +
     '      var posicao = "";' +
     '      (d.posicoes || []).forEach(function(p){' +
-    '        if (x.posicao && p.id === x.posicao.termo) posicao = p.termo;' +
+    // A ETIQUETA É A DO TERMO, EM PORTUGUÊS, QUANDO ELE A TEM (02/11/2026). O `termo` é o nome
+    // na língua da modalidade — «Première position» —, e a listagem lia-o em cru. `nome` é a
+    // etiqueta localizada, e é a mesma peça que a `gramatica` já usa para as direções («à
+    // frente»). Sem `nome` — um termo que ainda não foi traduzido —, mostra-se o `termo`: uma
+    // linha em francês é legível, uma linha vazia não é.
+    '        if (x.posicao && p.id === x.posicao.termo) posicao = p.nome || p.termo;' +
     '      });' +
     '      var selos = posicao ? "<span class=\\"selo discreto\\">" + posicao + "</span>" : "";' +
     '      if (x.descontinuado) selos += " <span class=\\"selo alerta\\">descontinuado</span>";' +
-    '      var onde = (x.direcoes || []).map(nomeDaDirecao);' +
-    '      var partes = [];' +
-    '      if (onde.length) partes.push(onde.join(" · "));' +
-    '      if ((x.compassos || []).length) partes.push(x.compassos.join(" · "));' +
-    '      if ((x.musicas || []).length) partes.push(x.musicas.length +' +
-    '        (x.musicas.length === 1 ? " música" : " músicas"));' +
-    '      var t = Number(x.trechos) || 0;' +
-    '      partes.push(t + (t === 1 ? " trecho" : " trechos"));' +
-    '      return "<li><span class=\\"nome\\"><span class=\\"linha1\\">" +' +
-    '        "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" + x.nome +' +
-    '        "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button> " + selos +' +
-    '        "</span><span class=\\"dono\\">" + partes.join(" · ") + "</span></span></li>";' +
-    '    }).join("") || "<li>Nenhum exercício com verbete.</li>";' +
+    // `porMusica` é o que o servidor passou a mandar. Quando ele não vem — uma página antiga
+    // contra um servidor novo, ou o contrário — a listagem cai na linha única de antes, em vez
+    // de ficar em branco.
+    '      var ms = x.porMusica && x.porMusica.length ? x.porMusica : null;' +
+    '      if (!ms) {' +
+    '        var t0 = Number(x.trechos) || 0;' +
+    '        linhas.push("<li><span class=\\"nome\\"><span class=\\"linha1\\">" +' +
+    '          "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" + x.nome +' +
+    '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button> " + selos +' +
+    '          "</span><span class=\\"dono\\">" + (t0 + (t0 === 1 ? " trecho" : " trechos")) +' +
+    '          "</span></span></li>");' +
+    '        return;' +
+    '      }' +
+    '      ms.forEach(function(m){' +
+    '        var partes = [];' +
+    '        partes.push((m.tempos || "—") + " tempos");' +
+    '        if (m.compasso) partes.push(m.compasso);' +
+    '        partes.push(m.trechos + (m.trechos === 1 ? " trecho" : " trechos"));' +
+    '        var onde = (m.direcoes || []).map(nomeDaDirecao);' +
+    '        if ((m.orientacoes || []).length) {' +
+    '          onde = onde.concat((m.orientacoes || []).map(nomeDaOrientacao));' +
+    '        }' +
+    '        if (onde.length) partes.push(onde.join(" · "));' +
+    '        if ((m.categorias || []).length) partes.push(m.categorias.join(", "));' +
+    '        linhas.push("<li><span class=\\"nome\\"><span class=\\"linha1\\">" +' +
+    '          "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" + x.nome +' +
+    '          "\\" data-musica=\\"" + m.chave +' +
+    '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button> " + selos +' +
+    '          "</span><span class=\\"dono\\">" + partes.join(" · ") + "</span></span></li>");' +
+    '      });' +
+    '    });' +
+    '    lista.innerHTML = linhas.join("") || "<li>Nenhum exercício com verbete.</li>";' +
     '  }).catch(function(e){ lista.innerHTML = "<li>Erro: " + e.message + "</li>"; });' +
     '}' +
     // O «editar» preenche o formulário a partir do que já está no alfabeto: quem edita não
     // reescreve o verbete todo à mão, e o que não mudou não se perde.
-    'function editarVerbete(nome){' +
+    // A MÚSICA VEM DITA, E NÃO ESCOLHIDA PELA ORDEM DAS CHAVES (02/11/2026). Era
+    // `Object.keys(musicas)[0]` — sempre a primeira —, e por isso a segunda música de um verbete
+    // era inalcançável: existia no alfabeto, era contada na etiqueta, e não havia como a abrir. A
+    // listagem passa a dizer qual, e quando não diz (uma chamada antiga) a primeira continua a ser
+    // a resposta — mas `Object.keys` também devolve chaves que não são música, e a primeira dessas
+    // daria um formulário em branco sobre um verbete que existe.
+    'function editarVerbete(nome, chavePedida){' +
     '  if (!VERBETES || !VERBETES.verbetes || !VERBETES.verbetes[nome]) return;' +
     '  var musicas = VERBETES.verbetes[nome];' +
-    '  var chave = Object.keys(musicas)[0];' +
+    '  var deMusica = Object.keys(musicas).filter(function(k){ return /^\\d+\\|/.test(k); });' +
+    '  var chave = (chavePedida && musicas[chavePedida]) ? chavePedida : deMusica[0];' +
+    '  if (!chave) return;' +
     '  var v = musicas[chave];' +
     '  var nomes = document.getElementById("vbnome");' +
     '  if (nomes) {' +
@@ -6365,7 +6459,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  carregarVerbetes();' +
     '  listaVerbetes.addEventListener("click", function(e){' +
     '    var b = e.target.closest ? e.target.closest("button.verbetes-editar") : null;' +
-    '    if (b) editarVerbete(b.getAttribute("data-nome"));' +
+    '    if (b) editarVerbete(b.getAttribute("data-nome"), b.getAttribute("data-musica"));' +
     '  });' +
     '}' +
     'var formVerbete = document.getElementById("form-verbete");' +
@@ -6564,8 +6658,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = document.getElementById("vb-chips");' +
     '  if (alvo) alvo.addEventListener("click", function(e){' +
     '    var b = e.target.closest ? e.target.closest("button[data-sinal]") : null;' +
-    '    if (!b) return;' +
-    '    SINAIS.splice(Number(b.getAttribute("data-sinal")), 1);' +
+    '    if (b) {' +
+    // O «×» TIRA — e tira o SINAL CERTO. A ficha que estava marcada para troca perde a marca
+    // quando o índice que sai é ela ou um anterior: os índices andam para trás, e uma marca
+    // deixada em cima do vizinho trocaria o sinal errado sem ninguém dar por isso.
+    '      var i = Number(b.getAttribute("data-sinal"));' +
+    '      SINAIS.splice(i, 1);' +
+    '      if (SINAL_EM_TROCA !== null && SINAL_EM_TROCA >= i) SINAL_EM_TROCA = null;' +
+    '      pintarChips();' +
+    '      return;' +
+    '    }' +
+    '    var f = e.target.closest ? e.target.closest("[data-trocar]") : null;' +
+    '    if (!f) return;' +
+    '    var k = Number(f.getAttribute("data-trocar"));' +
+    '    SINAL_EM_TROCA = (SINAL_EM_TROCA === k) ? null : k;' +
     '    pintarChips();' +
     '  });' +
     '  Array.prototype.slice.call(document.querySelectorAll("input[name=vb-cat]")).forEach(function(r){' +
@@ -6693,6 +6799,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      CELULAS[DIRECAO].push(celula);' +
     '    }' +
     '    SINAIS = [];' +
+    '    SINAL_EM_TROCA = null;' +
     '    CONTAGEM = "";' +
     '    REPETICOES = 1;' +
     '    var selRep = document.getElementById("vb-repeticoes"); if (selRep) selRep.value = "1";' +
@@ -8137,7 +8244,13 @@ async function fetch(request, env) {
         .filter(([k]) => !k.startsWith('_'))),
       posicoes: (lido.vocabulario || [])
         .filter((t) => t && t.categoria === 'posicao')
-        .map((t) => ({ id: t.id, termo: t.termo, membro: t.membro || null })),
+        // `nome` É A ETIQUETA LOCALIZADA (02/11/2026). O `termo` é o nome na língua da
+        // modalidade — «Première position» — e é o que o dado guarda e o documento escreve. O
+        // `nome` é o que a TELA mostra: o sistema atende hip hop, jazz e contemporâneo, e uma
+        // listagem em francês obriga a traduzir de cabeça o que devia ler-se de relance. Vai
+        // `null` quando o termo ainda não tem etiqueta, e aí a tela mostra o `termo` — que é
+        // legível — em vez de um vazio.
+        .map((t) => ({ id: t.id, termo: t.termo, nome: t.nome || null, membro: t.membro || null })),
       // DOIS EIXOS, DUAS LISTAS (versão 5 do alfabeto, 28/10/2026). Até aqui as duas listas iam
       // concatenadas num só campo, e era por isso que o formulário oferecia OITO blocos onde há
       // três mais cinco — «à frente», «ao lado», «atrás» são DIREÇÕES do membro; «en face»,

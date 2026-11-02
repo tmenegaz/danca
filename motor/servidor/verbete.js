@@ -424,7 +424,62 @@ function listarVerbetes(dados) {
       trechos: contarTrechos(verbetes[nome]),
       direcoes: direcoesDoVerbete(verbetes[nome]),
       compassos: compassosDoVerbete(verbetes[nome]),
+      porMusica: detalhePorMusica(verbetes[nome]),
     }));
+}
+
+/**
+ * CADA MÚSICA É UM VERBETE, E TEM DE PODER ABRIR-SE (02/11/2026).
+ *
+ * O sintoma que isto corrige é o do dia em que a duplicação foi usada a sério: ela duplicou o
+ * `Plié` de 8 para 16 tempos, gravou — e a versão 17 do alfabeto ficou com as duas músicas —, mas
+ * a listagem dizia só «2 músicas» e o «editar» abria sempre `Object.keys(musicas)[0]`, isto é,
+ * **sempre a primeira**. A música nova existia no ficheiro, era contada na etiqueta, e **não tinha
+ * porta**: nenhum sítio da tela a mostrava. Gravar e não conseguir voltar a ver é a mesma coisa que
+ * não ter gravado.
+ *
+ * O que sai daqui é o que a listagem precisa para fazer **uma linha por música** — a chave, os
+ * tempos, o compasso, os trechos, as direções e as categorias. Tudo derivado: não há um segundo
+ * dado a manter ao lado do alfabeto.
+ */
+function detalhePorMusica(musicas) {
+  return musicasDoVerbete(musicas).map((chave) => {
+    const m = musicas[chave] || {};
+    const celulas = m.celulas || {};
+    const direcoes = [];
+    const orientacoes = [];
+    const categorias = [];
+    let trechos = 0;
+    for (const dir of Object.keys(celulas)) {
+      if (!Array.isArray(celulas[dir])) continue;
+      trechos += celulas[dir].length;
+      // A ORIENTAÇÃO É O OUTRO EIXO (02/11/2026) — «de frente», «pernas cruzadas». Ela não muda a
+      // direção e não se deduz dela; a etiqueta diz as duas porque são as duas perguntas que se
+      // faz a um trecho. A omissão quer dizer «de frente», e é omitida como no documento.
+      for (const c of celulas[dir]) {
+        const o = String((c && c.orientacao) || '').trim();
+        if (o && orientacoes.indexOf(o) === -1) orientacoes.push(o);
+      }
+      // A DIREÇÃO VAZIA NÃO SE ESCREVE: a célula sem direção é o trecho que ainda não foi
+      // arrumado num dos três lados, e escrever «» na etiqueta deixaria um separador solto.
+      if (dir && celulas[dir].length && direcoes.indexOf(dir) === -1) direcoes.push(dir);
+      for (const c of celulas[dir]) {
+        const cat = String((c && c.categoria) || '').trim();
+        if (cat && categorias.indexOf(cat) === -1) categorias.push(cat);
+      }
+    }
+    const [tempos, compasso] = String(chave).split('|');
+    return {
+      chave: chave,
+      tempos: Number(tempos) || 0,
+      compasso: compasso || '',
+      cobre: Number(m.cobre) || 0,
+      trechos: trechos,
+      direcoes: direcoes,
+      orientacoes: orientacoes,
+      categorias: categorias,
+    };
+  });
 }
 
 /** As chaves de música de um verbete — o que tem a forma «<tempos>|<compasso>». */

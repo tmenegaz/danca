@@ -69,11 +69,24 @@ const ALFABETO = {
       nome: 'Battement tendu', musicas: ['4|4/4', '8|4/4'], descontinuado: false,
       posicao: { membro: 'pes', termo: 'premiere-position' },
       trechos: 4, direcoes: ['devant', 'derriere', 'a-la-seconde'], compassos: ['4/4'],
+      // O DETALHE POR MÚSICA (02/11/2026) — é ele que dá uma linha a cada uma, e a porta que
+      // faltava. O servidor manda-o (`detalhePorMusica`), e a fixture tem de o mandar também:
+      // sem ele a listagem cai na linha única de antes, e é isso que ela acabou de medir.
+      porMusica: [
+        { chave: '4|4/4', tempos: 4, compasso: '4/4', cobre: 4, trechos: 2,
+          direcoes: ['devant', 'derriere', 'a-la-seconde'], categorias: ['Pé'] },
+        { chave: '8|4/4', tempos: 8, compasso: '4/4', cobre: 8, trechos: 2,
+          direcoes: ['devant', 'derriere', 'a-la-seconde'], categorias: ['Pé'] },
+      ],
     },
     {
       nome: 'Plié', musicas: ['8|4/4'], descontinuado: false,
       posicao: { membro: 'pes', termo: 'premiere-position' },
       trechos: 2, direcoes: ['devant'], compassos: ['4/4'],
+      porMusica: [
+        { chave: '8|4/4', tempos: 8, compasso: '4/4', cobre: 8, trechos: 2,
+          direcoes: ['devant'], categorias: ['Pé'] },
+      ],
     },
   ],
   verbetes: {
@@ -108,7 +121,12 @@ const ALFABETO = {
       descricao: 'Círculo da perna no ar.', fonte: '',
     },
   ],
-  posicoes: [{ id: 'premiere-position', termo: 'Première position', membro: 'pes' }],
+  // A POSIÇÃO TEM `nome` EM PORTUGUÊS (02/11/2026). O `termo` é o nome na língua da modalidade e
+  // é o que se grava; o `nome` é o que a tela mostra. E ele não é decoração: o sistema atende hip
+  // hop, jazz e contemporâneo, e uma listagem em francês obriga a traduzir de cabeça.
+  posicoes: [{
+    id: 'premiere-position', termo: 'Première position', nome: 'primeira posição', membro: 'pes',
+  }],
   // DOIS EIXOS (versão 5, 28/10/2026). A rota deixou de os mandar concatenados: a direção diz
   // para onde o membro vai, a orientação diz como o corpo está voltado. O fixture tem de ter a
   // forma que a rota serve — três e cinco, e não oito numa lista só.
@@ -1090,9 +1108,14 @@ function estado() {
      * formulário passa a vir ter com ela. */
     conferir('«Editar» NÃO salta de passo: a correcção acontece na decomposição',
       emEdicao.passo === ULTIMO, { passo: emEdicao.passo, ultimo: ULTIMO });
-    conferir('…e os dois painéis do trecho aparecem onde se está, em vez de ele se mudar para lá',
-      emEdicao.paineisVisiveis.indexOf(4) !== -1 && emEdicao.paineisVisiveis.indexOf(5) !== -1
-        && emEdicao.paineisVisiveis.indexOf(ULTIMO) !== -1,
+    /* UM PASSO, UM PAINEL — TAMBÉM A CORRIGIR (02/11/2026). A asserção anterior pedia os três
+     * painéis à vista (4, 5 e 6), e era a decisão da manhã. Ela foi corrigida no mesmo dia, pela
+     * mesma pessoa, com o efeito medido: «ao clicar em Editar (…) abre tudo em um formulário
+     * único (página única), transformando os steps em meros indicadores visuais». As duas coisas
+     * que ela pediu — não saltar de passo, e andar por passos — não competem: a correcção fica
+     * onde está, e o formulário mostra um painel de cada vez, como em qualquer outro momento. */
+    conferir('…e o formulário continua a mostrar UM painel de cada vez — não vira página única',
+      emEdicao.paineisVisiveis.length === 1 && emEdicao.paineisVisiveis[0] === ULTIMO,
       emEdicao.paineisVisiveis);
     conferir('o aviso de edição está à vista e diz qual é o trecho',
       emEdicao.avisoDeEdicao !== null && /trecho 1/.test(emEdicao.avisoDeEdicao), emEdicao.avisoDeEdicao);
@@ -1207,8 +1230,11 @@ function estado() {
     // procurar o passo onde se guarda. Mede-se aqui, e não depois de guardar, porque guardar
     // fecha a edição e a área volta ao normal (que é o comportamento certo).
     const areaEmEdicao = await page.evaluate(estado);
-    conferir('em edição e no passo dos sinais, os dois painéis E a decomposição estão à vista',
-      [4, 5, ULTIMO].every((n) => areaEmEdicao.paineisVisiveis.indexOf(n) !== -1),
+    // NO PASSO DOS SINAIS, SÓ O PAINEL DOS SINAIS. É o caso que a decisão da manhã abria, e que
+    // ela mandou fechar: quem está a corrigir os sinais vê os sinais; a decomposição e o botão de
+    // guardar estão a um clique na tira, como sempre estiveram.
+    conferir('em edição e no passo dos sinais, está à vista o painel dos sinais — e só ele',
+      areaEmEdicao.paineisVisiveis.length === 1 && areaEmEdicao.paineisVisiveis[0] === 5,
       areaEmEdicao.paineisVisiveis);
     await page.evaluate(() => { document.getElementById('vb-cel-acrescentar').click(); });
     await new Promise((r) => setTimeout(r, 400));
@@ -1359,6 +1385,99 @@ function estado() {
     conferir('trocar de exercício limpa a decomposição — as células eram do anterior',
       trocou.ficou === 0, trocou);
 
+    console.log('\n20-D. TROCAR UM SINAL NO LUGAR — O «INVIÁVEL E FRUSTRANTE» DELA');
+    /* O QUE ELA DESCREVEU: «quando um arranjo possui muitos sinais (ex: 10 a 20) e o professor
+     * precisa alterar apenas um item intermediário (o 3º), o sistema exige que o usuário limpe
+     * todos os sinais posteriores», refazendo o trecho do zero. A posição na sequência É a
+     * informação — é a ordem em que o gesto acontece —, e mandar o sinal corrigido para o fim
+     * seria dizer que ele acontece no fim.
+     *
+     * A troca tem de ser cirúrgica: um índice substituído, os vizinhos intactos, a ordem igual. */
+    await irA(1);
+    await page.select('#vbnome', 'Battement tendu');
+    await new Promise((r) => setTimeout(r, 400));
+    await irA(3);
+    await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '4'; t.dispatchEvent(new Event('input'));
+    });
+    await page.select('#vbcompasso', '4/4');
+    await new Promise((r) => setTimeout(r, 400));
+    await escreverFrase('sobe e desce');
+    await noPassoDe('#vb-dir');
+    await clicar('#vb-dir input[data-valor="devant"]');
+    await clicar('#vb-categoria input[value="Pé"]');
+    await noPassoDe('#vb-sinais');
+    for (const sg of ['1ª', '→', '+', '●', '1ª']) {
+      await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
+    }
+    const antesDaTroca = await page.evaluate(() => SINAIS.slice());
+    // A FICHA 2 (índice 1) É A QUE SE QUER CORRIGIR — um «→» no meio de cinco sinais.
+    await page.evaluate(() => { document.querySelectorAll('#vb-chips [data-trocar]')[1].click(); });
+    await new Promise((r) => setTimeout(r, 250));
+    const marcado = await page.evaluate(() => ({
+      fichas: [...document.querySelectorAll('#vb-chips .chip')].map((x) => x.className),
+      indice: SINAL_EM_TROCA,
+      nota: (document.getElementById('vb-chips').textContent.match(/a corrigir[^—]*—/) || [''])[0],
+      // E AS PÍLULAS DA PALETA NÃO FICAM MARCADAS: marcar para troca não é escolher um sinal.
+      paletaMarcada: [...document.querySelectorAll('#vb-sinais input[data-sinal]')]
+        .filter((x) => x.checked).length,
+    }));
+    conferir('a ficha clicada fica marcada — e só ela', marcado.indice === 1
+      && marcado.fichas[1].indexOf('em-troca') !== -1
+      && marcado.fichas.filter((c) => c.indexOf('em-troca') !== -1).length === 1, marcado);
+    conferir('e a ficha diz qual é, em palavras', /sinal 2/.test(marcado.nota), marcado.nota);
+    conferir('marcar para troca não marca nenhuma pílula da paleta', marcado.paletaMarcada === 0,
+      marcado.paletaMarcada);
+
+    await clicar('#vb-sinais input[data-sinal="⌒"]');
+    const depoisDaTroca = await page.evaluate(() => ({
+      sinais: SINAIS.slice(), indice: SINAL_EM_TROCA,
+    }));
+    conferir('o sinal novo entra NO LUGAR do antigo, e não no fim',
+      depoisDaTroca.sinais[1] === '⌒' && depoisDaTroca.sinais.length === antesDaTroca.length,
+      { antes: antesDaTroca, depois: depoisDaTroca.sinais });
+    conferir('…e os vizinhos ficam exactamente onde estavam',
+      JSON.stringify(depoisDaTroca.sinais) === JSON.stringify(
+        [antesDaTroca[0], '⌒', antesDaTroca[2], antesDaTroca[3], antesDaTroca[4]]),
+      depoisDaTroca.sinais);
+    conferir('e a marca desaparece — a troca é um gesto, não um modo',
+      depoisDaTroca.indice === null, depoisDaTroca.indice);
+
+    // SEM MARCA, A PALETA VOLTA A ACRESCENTAR AO FIM: o gesto antigo não se perdeu.
+    await clicar('#vb-sinais input[data-sinal="×"]');
+    const voltouAAcrescentar = await page.evaluate(() => SINAIS.slice());
+    conferir('sem marca, o clique na paleta volta a acrescentar ao fim',
+      voltouAAcrescentar.length === depoisDaTroca.sinais.length + 1
+        && voltouAAcrescentar[voltouAAcrescentar.length - 1] === '×',
+      voltouAAcrescentar);
+
+    // O «×» TIRA O SINAL CERTO, E DESFAZ A MARCA QUANDO OS ÍNDICES ANDAM PARA TRÁS. Sem isto,
+    // uma marca deixada em cima do vizinho trocaria o sinal errado sem ninguém dar por isso.
+    await page.evaluate(() => {
+      const f = document.querySelectorAll('#vb-chips [data-trocar]');
+      f[f.length - 1].click();
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const antesDoXTroca = await page.evaluate(() => ({ sinais: SINAIS.slice(), i: SINAL_EM_TROCA }));
+    await page.evaluate(() => {
+      document.querySelectorAll('#vb-chips button[data-sinal]')[0].click();
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const depoisDoXTroca = await page.evaluate(() => ({ sinais: SINAIS.slice(), i: SINAL_EM_TROCA }));
+    conferir('tirar um sinal anterior ao marcado desfaz a marca — os índices andaram para trás',
+      antesDoXTroca.i === antesDoXTroca.sinais.length - 1 && depoisDoXTroca.i === null
+        && depoisDoXTroca.sinais.length === antesDoXTroca.sinais.length - 1,
+      { antes: antesDoXTroca, depois: depoisDoXTroca });
+
+    // CLICAR OUTRA VEZ NA MESMA FICHA DESISTE — não há como ficar preso num modo.
+    await page.evaluate(() => { document.querySelectorAll('#vb-chips [data-trocar]')[0].click(); });
+    await new Promise((r) => setTimeout(r, 200));
+    await page.evaluate(() => { document.querySelectorAll('#vb-chips [data-trocar]')[0].click(); });
+    await new Promise((r) => setTimeout(r, 200));
+    const desistiu = await page.evaluate(() => SINAL_EM_TROCA);
+    conferir('clicar a mesma ficha duas vezes desiste da troca', desistiu === null, desistiu);
+
     console.log('\n21. OS SEIS PASSOS FORA DO FORMULÁRIO, E A LISTAGEM AO LADO');
     // OS CINCO PASSOS (01/11/2026). A tira é a navegação e o resumo; se um passo desaparecer
     // dela, o painel dele fica inalcançável. Eram sete — e a fusão do exercício, da frase e da
@@ -1417,8 +1536,11 @@ function estado() {
       tira.rotulos[1] === 'O exercício', tira.rotulos);
     conferir('e a música é o terceiro — o resto desceu um número, não mudou de sítio',
       tira.rotulos[2] === 'A música', tira.rotulos);
-    conferir('o passo 2 diz o nome do exercício com a posição, e não a frase',
-      /Battement tendu · Première position/.test(tira.valores[1]), tira.valores);
+    // A TIRA LÊ O QUE O SELECT MOSTRA — e o select passou a mostrar a etiqueta localizada
+    // (02/11/2026). O que se mede continua a ser o mesmo: o passo 2 diz o exercício com a
+    // posição, e não a frase.
+    conferir('o passo 2 diz o nome do exercício com a posição, em português, e não a frase',
+      /Battement tendu · primeira posição/.test(tira.valores[1]), tira.valores);
     conferir('e o passo 1 diz o que está a ser criado, ou que não há nada a criar',
       typeof tira.valores[0] === 'string' && tira.valores[0].length > 0, tira.valores);
     // UM PASSO, UM PAINEL — agora sem excepção: o antigo passo 1 tinha dois (o par do exercício,
@@ -1502,13 +1624,31 @@ function estado() {
           .map((x) => x.textContent.trim()),
         dono: ((li.querySelector ? li.querySelector('.dono') : null) || {}).textContent || '',
         botao: Boolean(li.querySelector && li.querySelector('button.verbetes-editar')),
+        musicas: [...document.querySelectorAll('#lista-verbetes li button.verbetes-editar')]
+          .filter((x) => /Battement tendu/.test(x.getAttribute('data-nome') || ''))
+          .map((x) => x.getAttribute('data-musica')),
       };
     });
-    conferir('a posição do exercício vai num selo', linha.selos.indexOf('Première position') !== -1,
-      linha.selos);
-    conferir('e o complemento diz as direções, o compasso e os trechos',
-      /à frente · atrás · ao lado/.test(linha.dono) && /4\/4/.test(linha.dono)
-        && /2 músicas/.test(linha.dono) && /4 trechos/.test(linha.dono), linha.dono);
+    // EM PORTUGUÊS, E O FRANCÊS NÃO APARECE. A asserção anterior pedia «Première position» — o
+    // `termo` em cru —, que é precisamente o que ela mandou corrigir. Mede-se agora as duas
+    // metades: a etiqueta localizada está lá, e a estrangeira não.
+    conferir('a posição do exercício vai num selo, em português',
+      linha.selos.indexOf('primeira posição') !== -1, linha.selos);
+    conferir('…e o nome estrangeiro não aparece na listagem',
+      !/Premi[eè]re/.test(linha.selos.join(' ')), linha.selos);
+    /* UMA LINHA POR MÚSICA (02/11/2026). O complemento deixou de agregar («2 músicas»): cada
+     * música é uma linha, com os seus tempos, o seu compasso e os seus trechos — e é isso que lhe
+     * dá porta. As direções continuam a vir em português, porque a listagem lê o `nome` da
+     * gramática e nunca o `termo` em francês. */
+    // A PRIMEIRA LINHA É A PRIMEIRA MÚSICA — «4|4/4», dois trechos. As duas linhas do
+    // `Battement tendu` estão medidas na asserção seguinte.
+    conferir('e o complemento diz os tempos, o compasso, os trechos e as direções',
+      /4 tempos/.test(linha.dono) && /4\/4/.test(linha.dono)
+        && /2 trechos/.test(linha.dono) && /à frente · atrás · ao lado/.test(linha.dono), linha.dono);
+    // E A MÚSICA VAI NO BOTÃO. Sem ela, o «editar» abre sempre a primeira — foi o defeito que ela
+    // relatou: gravou o `Plié` de 16 tempos e a versão nova não apareceu em sítio nenhum.
+    conferir('a música de cada linha vai no botão de editar, e as duas estão lá',
+      linha.musicas.join(',') === '4|4/4,8|4/4', linha.musicas);
     conferir('o nome continua a ser o botão que abre o verbete', linha.botao, linha.botao);
 
     console.log('\n22. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
