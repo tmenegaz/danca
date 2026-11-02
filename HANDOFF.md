@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T14:00:07-0300`
-Commit atual: `925c236` — docs(registro): a fotografia dos três produtos e do plano do motor
+Gerado em: `2026-11-02T14:01:00-0300`
+Commit atual: `146d57d` — docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -51,6 +51,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** acucar-branco
 cafe-no-bule
+coqui-de-redinha
 luz-azul
 manga-curta
 meia-cortada
@@ -66,9 +67,8 @@ so-para-direita
 teclado-abnt
 tela-de-celular
 tiago-menegaz
-vaso-bonito (18)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+vaso-bonito (19)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -85,8 +85,10 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
-925c236 docs(registro): a fotografia dos três produtos e do plano do motor
-fe4a946 docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e as nove colisões
+146d57d docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
+d97bb91 docs(registro): a fotografia dos três produtos e do plano do motor
+312fe8d docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e as nove colisões
+2fd6c07 feat(estrutura): criar a escola breu (motor completo)
 0e8d256 chore(estrutura): regerar os índices derivados
 aeb2b2c chore(estrutura): expurgar a escola batata
 377544c docs(registro): a fotografia dos três eixos, do ritmo obrigatório e da C22
@@ -103,8 +105,6 @@ a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição 
 0cb2e54 fix(musicalidade): a §4 consolida por compasso, e o aspecto físico entra no plano
 2a7f13f docs(registro): as limitações de conhecimento desta fotografia, medidas
 e9119d4 docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
-afbaeae chore(estrutura): regerar os índices derivados
-d74fda1 fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a correr
 ```
 
 ## Por professor
@@ -112,6 +112,18 @@ d74fda1 fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a co
 ### acucar-branco — 0 ciclo(s)
 
 ### cafe-no-bule — 0 ciclo(s)
+
+### coqui-de-redinha — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -319,12 +331,16 @@ duas ficam registadas porque a entrada acima cita o que deixou de existir:
    feita sobre o exemplar que existia, e estava certa nesse momento; hoje o ficheiro não existe, e o
    valor da âncora é **registo datado**, não estado. O que fica como fonte são o **gerador**
    (`tools/gerar-ciclo.sh`) e o **verificador** (`tools/check-glossario.js`), que não foram tocados.
-2. **O repositório ficou sem nenhum pacote publicado.** `indices/acervo.json` — que é derivado e
-   acompanhou (`0e8d256`) — passou a **0 ciclos e 0 variantes**, e sobraram três manifestos **base**
-   com `DOCS=""` (`pe-torto`, `sapo-bailarino`, `tela-de-celular`). Isso não muda nada no plano dos
-   produtos — que não depende de haver ciclo —, mas muda o **ponto de partida** da fase 4: a
-   verificação «escola no Básico não vê; no Avançado vê» vai precisar de uma escola de teste criada
-   do zero.
+2. **O repositório ficou sem nenhum ciclo gerado — por minutos.** O `indices/acervo.json`, que é
+   derivado e acompanhou (`0e8d256`), passou a **0 ciclos e 0 variantes**; e logo depois ela criou a
+   **`breu`** (`2fd6c07`), que o mesmo índice regista como **1 ciclo, 0 variantes**, `estado:
+   ancorado` — com `DOCS=""` e o pacote-zero montado (`assets`, `index.html`, `plano-observacao`).
+   **O mesmo número mudou duas vezes no mesmo dia**, e as duas foram no remoto enquanto a sessão
+   escrevia: é a demonstração, no próprio registo, da regra de ler o `origin` antes de contar.
+   Para o plano dos produtos isto não muda nada — ele não depende de haver ciclo —, mas muda o
+   **ponto de partida** da fase 4: a verificação «escola no Básico não vê; no Avançado vê» vai
+   precisar de uma escola de teste com ciclo gerado, e a `breu` está a meio caminho (tem o esqueleto,
+   não os documentos).
 
 ## O que está pendente
 
@@ -731,6 +747,7 @@ duas ficam registadas porque a entrada acima cita o que deixou de existir:
 - **01/11/2026** — O trecho sem direção: o relevé não vai a lado nenhum → `REGISTRO.md` L29450
 - **01/11/2026** — A escola nasce com a âncora, e não só com o scaffold → `REGISTRO.md` L29519
 - **01/11/2026** — A âncora antes dos índices, e não depois → `REGISTRO.md` L29569
+- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

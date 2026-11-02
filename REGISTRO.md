@@ -30905,9 +30905,13 @@ duas ficam registadas porque a entrada acima cita o que deixou de existir:
    feita sobre o exemplar que existia, e estava certa nesse momento; hoje o ficheiro não existe, e o
    valor da âncora é **registo datado**, não estado. O que fica como fonte são o **gerador**
    (`tools/gerar-ciclo.sh`) e o **verificador** (`tools/check-glossario.js`), que não foram tocados.
-2. **O repositório ficou sem nenhum pacote publicado.** `indices/acervo.json` — que é derivado e
-   acompanhou (`0e8d256`) — passou a **0 ciclos e 0 variantes**, e sobraram três manifestos **base**
-   com `DOCS=""` (`pe-torto`, `sapo-bailarino`, `tela-de-celular`). Isso não muda nada no plano dos
-   produtos — que não depende de haver ciclo —, mas muda o **ponto de partida** da fase 4: a
-   verificação «escola no Básico não vê; no Avançado vê» vai precisar de uma escola de teste criada
-   do zero.
+2. **O repositório ficou sem nenhum ciclo gerado — por minutos.** O `indices/acervo.json`, que é
+   derivado e acompanhou (`0e8d256`), passou a **0 ciclos e 0 variantes**; e logo depois ela criou a
+   **`breu`** (`2fd6c07`), que o mesmo índice regista como **1 ciclo, 0 variantes**, `estado:
+   ancorado` — com `DOCS=""` e o pacote-zero montado (`assets`, `index.html`, `plano-observacao`).
+   **O mesmo número mudou duas vezes no mesmo dia**, e as duas foram no remoto enquanto a sessão
+   escrevia: é a demonstração, no próprio registo, da regra de ler o `origin` antes de contar.
+   Para o plano dos produtos isto não muda nada — ele não depende de haver ciclo —, mas muda o
+   **ponto de partida** da fase 4: a verificação «escola no Básico não vê; no Avançado vê» vai
+   precisar de uma escola de teste com ciclo gerado, e a `breu` está a meio caminho (tem o esqueleto,
+   não os documentos).

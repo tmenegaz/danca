@@ -116,12 +116,17 @@ renomeação. **DECIDIDO**.
 Verificado nesta fotografia, com os comandos da §9.
 
 - **A entrega foi publicada em `d349ed0`;** após o push, `git fetch origin` confirmou `origin/main` alinhado, sem divergência. **CONFIRMADO** naquele momento.
-- **18 professores** em `professores/` e **nenhuma variante com manifesto** — o **expurgo da `batata`
-  de 02/11/2026** (`aeb2b2c`, **81 ficheiros**) levou as **duas**: o ciclo-zero (`pe-torto/01/batata`)
-  e o pacote de teste (`pe-junto/01/batata-bale-nivel-1-teste-2`). O `indices/acervo.json` passou a
-  **0 ciclos e 0 variantes** (`0e8d256`). Sobram os manifestos **base** — `ciclo-01.conf` em
-  `pe-torto`, `sapo-bailarino` e `tela-de-celular`, todos com `DOCS=""`. **CONFIRMADO** por contagem
-  depois do rebase, em 02/11/2026 — e é a correção do que esta secção dizia minutos antes.
+- **19 professores** em `professores/`, e **uma variante**: a `breu`, criada por ela a 02/11/2026
+  (`2fd6c07`) — `coqui-de-redinha/ciclos/ciclo-01-breu.conf`, com `DOCS=""` (é o **ciclo-zero**, sem
+  documentos; existe o **pacote-zero** `ciclo-01-breu/`, com `assets`, `index.html` e
+  `plano-observacao`). O `indices/acervo.json` diz **1 ciclo, 0 variantes**, com `estado: ancorado`.
+  **CONFIRMADO** por contagem e por leitura do índice, depois do rebase, em 02/11/2026.
+- **O mesmo número mudou DUAS vezes no mesmo dia, e isso é a lição.** Minutos antes desta linha, o
+  expurgo da `batata` (`aeb2b2c`, **81 ficheiros**) tinha levado as **duas** variantes — o ciclo-zero
+  (`pe-torto/01/batata`) e o pacote de teste (`pe-junto/01/batata-bale-nivel-1-teste-2`) — e o acervo
+  ficou a **0 ciclos**. Contar sem `git fetch` antes teria dado um terceiro número errado. É a mesma
+  família de erro do «o worktree não sabe que o remoto mudou»: **um `git status` limpo diz que nada
+  aconteceu aqui, não que nada aconteceu.**
 - **17 regras** em `REGRAS.md` e **22 pétreas** em `PROTOCOLO.md`. **CONFIRMADO** (contagem).
 - **O motor tem 52 ficheiros versionados, 31.850 linhas** entre `motor/nucleo/` e
   `motor/servidor/`. **CONFIRMADO** em 02/11/2026.
@@ -1045,7 +1050,7 @@ partir, e o que se mediu foi o que o plano afirma.
 | `node tools/check-identidade.js` | **20 verificações**, todas passaram |
 | `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | ciclo íntegro, cadeia intacta — `b1097a0d…` — **medido ANTES do expurgo**: a variante foi apagada por ela no mesmo dia (`aeb2b2c`), e o comando hoje responde «manifesto da variante não encontrado». O valor fica como **registo datado**, não como estado |
 | `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** — **medido antes do mesmo expurgo**; hoje não há nenhum pacote no repositório para validar |
-| `indices/acervo.json` depois do expurgo | **0 ciclos, 0 variantes** e `filtros.estados` vazio — o índice é derivado e acompanhou (`0e8d256`) |
+| `indices/acervo.json` depois do expurgo e da criação da `breu` | **1 ciclo, 0 variantes**, `estado: ancorado` — o índice é derivado e acompanhou as duas mudanças (`0e8d256`, `2fd6c07`) |
 | **não executado** | as provas de browser — nenhuma linha de código do motor mudou nesta entrega |
 
 ### Executado na fotografia anterior (02/11/2026 — três eixos, o ritmo obrigatório e a C22)
