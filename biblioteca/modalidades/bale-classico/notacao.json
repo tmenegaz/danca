@@ -73,7 +73,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 18,
+  "versao": 19,
   "aplicaseA": [
     "benesh"
   ],
@@ -496,8 +496,8 @@
           ]
         }
       },
-      "16|4/4": {
-        "cobre": 16,
+      "32|4/4": {
+        "cobre": 32,
         "posicao": {
           "membro": "pes",
           "termo": "premiere-position"
@@ -596,6 +596,114 @@
                 "4ª"
               ],
               "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Perna, en dehors, segunda posição, cede, sobe, conduz a, quarta posição."
+            },
+            {
+              "contagem": "1–4",
+              "categoria": "Braço",
+              "sinais": [
+                "⌒",
+                "2ª",
+                "→",
+                "prep",
+                "→",
+                "1ª",
+                "→",
+                "2ª"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, arco, segunda posição, conduz a, preparatória, conduz a, primeira posição, conduz a, segunda posição."
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "4ª",
+                "↓",
+                "↑"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Perna, en dehors, quarta posição, cede, sobe.",
+              "repeticoes": 2
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Braço",
+              "sinais": [
+                "⌒",
+                "2ª",
+                "→",
+                "1ª",
+                "→",
+                "2ª"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, arco, segunda posição, conduz a, primeira posição, conduz a, segunda posição.",
+              "repeticoes": 2
+            },
+            {
+              "contagem": "1–4",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "4ª",
+                "↓",
+                "↑",
+                "→",
+                "5ª"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Perna, en dehors, quarta posição, cede, sobe, conduz a, quinta posição."
+            },
+            {
+              "contagem": "1–4",
+              "categoria": "Braço",
+              "sinais": [
+                "⌒",
+                "2ª",
+                "→",
+                "prep",
+                "→",
+                "1ª",
+                "→",
+                "2ª"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, arco, segunda posição, conduz a, preparatória, conduz a, primeira posição, conduz a, segunda posição."
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "5ª",
+                "↓",
+                "↑"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Perna, en dehors, quinta posição, cede, sobe.",
+              "repeticoes": 2
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Braço",
+              "sinais": [
+                "⌒",
+                "2ª",
+                "→",
+                "1ª",
+                "→",
+                "2ª"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Braço, arco, segunda posição, conduz a, primeira posição, conduz a, segunda posição.",
+              "repeticoes": 2
+            },
+            {
+              "contagem": "1–4",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "5ª",
+                "↓",
+                "↑",
+                "→",
+                "1ª"
+              ],
+              "descricao": "os dois apoios cedem em 1ª posição e o eixo desce\nLê-se: Perna, en dehors, quinta posição, cede, sobe, conduz a, primeira posição."
             },
             {
               "contagem": "1–4",
