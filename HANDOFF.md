@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T11:16:34-0300`
-Commit atual: `04e60a7` — docs(registro): a proposta «o verbete é o átomo do syllabus», verificada com evidência
+Gerado em: `2026-11-02T11:35:02-0300`
+Commit atual: `273b62d` — docs(registro): correção — o modelo tem três eixos, a palavra «eixo» é que aparece uma vez
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,7 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+273b62d docs(registro): correção — o modelo tem três eixos, a palavra «eixo» é que aparece uma vez
 04e60a7 docs(registro): a proposta «o verbete é o átomo do syllabus», verificada com evidência
 f9d9612 docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
 b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
@@ -103,7 +104,6 @@ cf1ef52 feat(po): a força e a flexibilidade vêm da anamnese, e a caixa mostra-
 7e8b87b chore(estrutura): regerar os índices derivados
 03be290 fix(aula-01): a aula deixa de afirmar o que ninguém escreveu, secção a secção
 e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-2
-67d8f53 chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -217,64 +217,59 @@ e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — CORREÇÃO: o modelo tem três eixos. A palavra «eixo» é que só aparece uma vez
+## 02/11/2026 — C22 nasce no planejamento: os quatro degraus, e o motor é viável
 
-**Nota de correção da entrada de hoje** («A proposta «o verbete é o átomo do syllabus», verificada
-contra o repositório»), onde se escreveu que «o modelo tem UM eixo, e não três». A pesquisadora
-corrigiu: «nós temos a perspectiva da poiésis e a perspectiva do corpo, só não está escrito como
-eixo, não está classificado (…) o técnico também não está ainda a ser a haste de todos os ramos».
+**A decisão registada (C22) e o veredicto de viabilidade do motor.** A pesquisadora pediu três
+coisas na mesma mensagem: que se revisse o que ela já corrigiu (o ritmo, o corpo — ver a entrada
+anterior), que se registasse a proposta dela, e que se dissesse **se é viável criar um motor** que
+gere os novos produtos. A verificação da proposta já está na entrada «A proposta «o verbete é o
+átomo do syllabus» verificada contra o repositório»; esta entrada é a **decisão**, e ela não é
+minha: é ela que decide o que sobe para o documento.
 
-**O que se mediu, e ela tem razão.** A afirmação era verdadeira sobre a **string** e falsa sobre o
-**modelo**: `"eixo"` existe uma vez, em `porta/po/conteudo/po.json:196`, e o rótulo da dimensão é
-montado por concatenação — `doPlano.eixo` + `doPlano.separador` (`" — "`) + o bloco. Medido no
-envelope real da `batata`:
+**O que ficou escrito no `PLANEJAMENTO-LASTRO.md`** (nenhuma linha de código mudou):
 
-```
-dimensoes-de-observacao = ["Técnica — Barra", "Técnica — Centro",
-                           "Técnica — Musicalidade", "Técnica — Expressão"]
-```
+- **C22**, nova, em §3 — os **quatro degraus** (dicionário → syllabus → aula pronta → gerador), cada
+  um com o bloqueio **medido**, e a escada de baixo para cima porque a ordem é de **dependência**,
+  não de preferência. Acompanha a medição do átomo (v15: 11 verbetes, 13 músicas, 43 células, 93
+  termos, 59 com descrição, 30 com `fonte`; 13 turmas, 9 associações) e a cadeia que já existe de
+  ponta a ponta — catálogo → `semear-catalogo` → `turma-conteudos` → `Conteúdo do nível` → aula,
+  plano, captura, notação, glossário.
+- **O veredicto: o motor é viável**, e o átomo já tem a forma certa — chave-valor por música, com a
+  notação **derivada** e não escrita (`motor/nucleo/notacao.js` compõe `[Pé: 5ª → +]` a partir de
+  `categoria` + `sinais`), e três consumidores que já o leem. Não precisa de modelo novo; precisa de
+  **quatro** coisas, e três são de arrumação: (1) **identidade estável** por unidade — hoje o
+  verbete é chaveado pelo nome, e o `PUT /api/bastidores/termo` recusa mudar o nome de um termo em
+  uso porque o `id` deriva dele (é a **L2**); (2) a **separação catálogo × escola**; (3) a **camada
+  pedagógica** (exige/ensina/expressa — três campos, e são de conteúdo, P-16); (4) **uma leitura só**
+  do vocabulário (hoje `lerModalidade` lê do GitHub e `termos()` lê do bundle — é por isso que o
+  termo criado não chega ao plano antes do deploy).
+- **O pré-requisito de integridade**, e é o mais barato: **5 das 13 músicas** do alfabeto têm `cobre`
+  diferente dos tempos (Plié 12 em 8, Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4,
+  Battement fondu 6 em 2, Relevé 1 em 2). Um motor que gera produtos de átomos inconsistentes gera
+  produtos inconsistentes — e, desde hoje, a gravação **recusa** esses verbetes, o que quer dizer
+  que os cinco precisam de correção antes de qualquer regravação. **É a primeira tarefa do degrau 1,
+  e é de conteúdo.**
+- **L14** reescrita com a lacuna **(0)** — a **separação catálogo público × adições da escola** como
+  **pré-requisito do degrau 1** e não como detalhe: hoje são **o mesmo ficheiro**
+  (`termo-repo.js`, `CAMINHO = 'biblioteca/modalidades/bale-classico/vocabulario.json'`), e é isso
+  que impede vender o dicionário. A entrega (a) — «o ritmo no catálogo» — **saiu**, pela razão da
+  entrada anterior: o ritmo é do contrato e é obrigatório na turma. E o critério (i) mudou de «gera
+  ciclo sem nenhuma edição manual» para «**assim que o ritmo é declarado**, que é o único passo
+  manual e é obrigatório de qualquer forma» — o critério antigo pedia o impossível e por isso nunca
+  poderia fechar a frente.
+- O **índice de decisões** (§2, linha «PRECISA DE DECISÃO») atualizado para C19 e C22.
 
-Ou seja: **o eixo não é uma classificação, é um prefixo**. E o prefixo come todos os blocos — inclusive
-os dois que não são lugares na sala. O conteúdo de «Técnica — Musicalidade» (`resposta ao pulso na
-marcação; frase até o fim da música`) e de «Técnica — Expressão» (`olhar acompanha o braço; presença
-sem rigidez de rosto`) é **poiésis medida**, com o rótulo da técnica por cima.
+**O que não foi feito, e de propósito.** Nada de código; nada de desenho de modelo; nenhuma alteração
+no `CONGELAMENTO.md`. A entrada declara-o: o que a C22 acrescenta é a **medição** e o veredicto — o
+que sobe, com que palavras, e em que ordem comercial é **decisão dela**. E o ponto que continua a
+travar a primeira frente não é técnico: sem **licença** e sem a **separação**, o degrau 1 não se
+vende, mesmo estando pronto.
 
-**Onde cada um dos três eixos já existe, medido.**
-
-| Eixo | Onde já existe | O que lhe falta para ser eixo |
-|:--|:--|:--|
-| **Corpo** (força e flexibilidade) | anamnese, 15 campos (7 de flexibilidade, 8 de força) · PO `linha-de-base` (`registroDaAnamnese`, os mesmos 15 pelo nome) · PO `restricoes` (Restrições físicas) · PO `inclusao`/`exclusao` (sugeridas a partir da anamnese) · plano bloco 10 `aspecto-fisico` (`lidoDasAnamneses`) → `## Aspecto físico` no plano · Regra 4 | **a ligação ao exercício** — nenhum verbete diz o que o movimento exige do corpo, e nenhuma linha da sequência carrega essa exigência. É o único dos três que **não** chega ao cruzamento |
-| **Técnica / código** | `notacao.json` v15 (11 verbetes, `categorias`, `grupos` de sinais, `gramatica` de direções × orientações) · `vocabulario.json` (93 termos, `categoria` com 8 valores, `tradicao`, `membro`, `fonte`) · `progressao.json` (13 turmas, 9 associações) · `catalogo-seed.DESCRICOES` (15 notação→frase) · plano `estrutura-de-cada-aula`, `distribuicao-de-volume`, `aula-1-sequencia` · PO `dimensoes-de-observacao` e `itens-por-dimensao` | **a haste declarada** — nada diz que categorias, gramática, sinais, vocabulário e progressão são **ramos do mesmo eixo**. Está no código e no dado; não está no vocabulário |
-| **Expressão** (poiésis) | **música**: verbete (grade de contagens) + sequência (tempos e compasso) + §4 da aula · **repertório**: plano bloco 12 (leitura da sequência) · **vídeo de referência**: plano bloco 11, campo «Vídeo de referência» (link + o exercício que mostra) · **qualidade de movimento**: 4 termos do vocabulário (Adagio, Allegro, Ballon, Legato) · PO: as dimensões «Musicalidade» e «Expressão», com itens escritos | **um lugar declarado, e o que não existe mesmo**: a **oralidade**, a **história da dança** e o **carácter** não têm campo nenhum. O vídeo é o único representante do contexto, e é um link solto |
-
-**E o ponto que a frase dela demonstra: o objetivo é o cruzamento, não um quarto eixo.** Medido, o
-cruzamento já existe **duas vezes** no plano:
-
-1. `estrutura-de-cada-aula` — «onde cada objetivo é trabalhado», marcado por bloco. Na `batata`:
-   `[{marco: 1, marcados: ["Barra", "Centro", "Musicalidade", "Expressão"]}]`. O objetivo **já está**
-   marcado na Musicalidade e na Expressão — ou seja, o objetivo já atravessa técnica e poiésis.
-2. `aula-1-sequencia` — cada linha traz `Objetivo específico` + `Bloco` + `Conteúdo do nível` +
-   `Tempos` + `Compasso`. Técnica e música, por linha, amarradas ao mesmo objetivo.
-
-O exemplo dela — «olhar o equilíbrio → a transferência de peso num tendu» — decompõe-se no dado que
-existe: o `tendu` tem **técnica** (o verbete), tem **música** (a grade de contagens e os 4 tempos em
-4/4), tem **contexto** (o vídeo de referência) e **exige corpo** (força para sustentar o *en dehors*,
-flexibilidade do tornozelo e do quadril para a direção). Três dos quatro já estão ligados à linha do
-objetivo; **o quarto — o corpo — não está**, e é a única costura que falta.
-
-**O que fica decidido.** A entrada de hoje fica **corrigida** por esta, e não reescrita (P-03/P-04: a
-proveniência acrescenta). O mapa acima entra no `PLANEJAMENTO-LASTRO.md`, na C20 — é ela que guarda «o
-que o Lastro observa» —, e **como medição datada, não como decisão de modelo**: transformar os três em
-eixos de primeira classe (com nome, campo e lugar no PO) muda a taxonomia das dimensões e a ligação
-bloco↔dimensão, e isso é da pesquisadora.
-
-**Onde entrou.** `REGISTRO.md` (esta entrada, e a nota de correção na entrada anterior) ·
-`PLANEJAMENTO-LASTRO.md` (C20: o mapa dos três eixos e o cruzamento no objetivo) ·
-`ESTADO-ATUAL.md` (§8: a pendência dos três eixos, agora medida).
-
-**Com o quê.** Medições citadas no corpo, com ficheiro e linha · o envelope real da `batata`
-(`escola/batata/envelopes/po-20261101-1959.json` e `plano-20261101-1955.json`) · nenhuma alteração de
-código nesta entrada.
+**Com o quê.** `notacao.json` v15 · `vocabulario.json` · `progressao.json` dentro de
+`biblioteca/modalidades/bale-classico/` · `motor/servidor/termo-repo.js` · `termos()` em
+`bastidores.js:364` · `lerModalidade` em `verbete.js` · `semear-catalogo` (`bastidores.js:8060`,
+devolve `termosNovos: 0`) · a ausência de `LICENSE` e a `ARQUITETURA-GERAL.md:109` · e as provas
+existentes, sem regressão.
 
 ## O que está pendente
 

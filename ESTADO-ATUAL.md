@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `804000a`). Nesta entrega: o verbete passou a ter
+> **Última fotografia:** 02/11/2026 (base local `273b62d`). Nesta entrega: **o modelo tem três eixos,
+> não um** — a palavra «eixo» aparece uma vez porque o rótulo da dimensão é **prefixo por
+> concatenação**, e é ele que rotula «Musicalidade» e «Expressão» como «Técnica — …»; **o ritmo
+> nunca esteve em aberto** — é obrigatório no cadastro da turma, conferido em quatro portas do
+> `bastidores.js`, e é **do contrato**, não do catálogo (a C19 fechou-se pela negativa); o **corpo já
+> está no ciclo** (anamnese → PO → bloco 10 do plano), e o que falta é só a ligação **ao exercício**;
+> e nasceu a **C22** no `PLANEJAMENTO-LASTRO.md` — o verbete como átomo do syllabus, os quatro
+> degraus e o **veredicto de viabilidade do motor**: é viável, faltam quatro arrumações e cinco
+> músicas por corrigir. **Nenhuma linha de código mudou nesta entrega** — é fotografia e registo.
+>
+> **Entrega anterior** (base `804000a`). Nesta entrega: o verbete passou a ter
 > **seis passos**, e o **exercício novo é o passo 1** — o «+», o «Gravar exercício» e o «Cancelar»
 > deixaram de existir, e quem grava o termo é o **«Seguir →»** que já existia; a **gravação do
 > verbete confere a música** (as células têm de fechar os tempos declarados) e diz onde se corrige —
@@ -196,8 +206,9 @@ Verificado nesta fotografia, com os comandos da §9.
 - **A gravação do verbete recusa um verbete que não fecha a música.** Antes só se conferia `cobre`
   contra a soma das próprias células — uma conta do formulário consigo mesmo; a música, que é a
   chave do verbete, não era comparada com nada. Foi por isso que o `Battement fondu` ficou em
-  «2|4/4» com 6 tempos e o `Plié` em «8|4/4» com 12. A recusa diz onde se corrige — **passo 2** (a
-  música) ou **passo 3** (para onde) —, e o número sai de `PASSOS_TITULOS`, não escrito à mão.
+  «2|4/4» com 6 tempos e o `Plié` em «8|4/4» com 12. A recusa diz onde se corrige — **passo 3** (a
+  música) ou **passo 4** (para onde) —, e o número sai de `passoPorRotulo()`, sobre
+  `PASSOS_DO_VERBETE`, não escrito à mão: com seis passos, os dois subiram de 2/3 para 3/4.
   **CONFIRMADO** por `provar-celula` (a recusa, com o recado medido) e por `provar-verbete`
   (o servidor valida a música como quarto argumento).
 - **A §4 consolidava por MÚSICA e afirmava «exercícios neste bloco: nenhum».** As duas coisas
@@ -216,6 +227,31 @@ Verificado nesta fotografia, com os comandos da §9.
   `derivarDasAnamnesesDaTurma`, e a **régua é a ordem das opções da própria anamnese** — não há
   segunda lista escrita à mão. **CONFIRMADO** por leitura e pela propagação do schema nos 18
   professores (`check-schemas` TUDO CERTO).
+- **O ritmo da turma é OBRIGATÓRIO, e nunca esteve em aberto.** O formulário da turma pede os **dias
+  da semana** e a **hora de início de cada um**, a **duração de cada aula** e o **início e o fim do
+  período**; a **frequência** não se digita — é a contagem dos dias (`frequenciaDaTurma`), e o campo
+  saiu do formulário em 18/10/2026 para os dois números não poderem discordar. O sistema **recusa**
+  gravar a turma, atribuí-la a um professor e **gerar o ciclo** sem o ritmo
+  (`faltaNoRitmoDaTurma`, quatro portas: `bastidores.js:7402`, `:7463`/`:7554`, `:8203`, `:8343`), e
+  o cartão da turma **diz o que falta** em vez de deixar o botão apagado. **CONFIRMADO** por leitura
+  do código em 02/11/2026 — e é a correção de uma afirmação minha («o ritmo continua em aberto»),
+  que procurava o ritmo no **catálogo** em vez do **cadastro**.
+- **O ritmo é do CONTRATO, e por isso o catálogo não o transporta.** A mesma «Balé Nível 1» é
+  2×/semana numa escola e 3× noutra: o ritmo não é do conteúdo, é da contratação. É o que fecha a
+  **C19** pela negativa — a turma pronta vende-se **sem** ritmo, e o ritmo entra onde já entra hoje.
+  **DECIDIDO** em 02/11/2026, e registado no `PLANEJAMENTO-LASTRO.md` (C19 e L14).
+- **O corpo está no ciclo em cinco sítios, e só falta a ligação ao exercício.** Anamnese (15 campos,
+  7 de flexibilidade e 8 de força) → PO `linha-de-base` (os mesmos 15, **pelo nome**, mais «o que
+  traz / o que precisa desenvolver») → PO `restricoes` → PO `inclusao`/`exclusao` (critérios
+  **sugeridos a partir da anamnese**) → plano **bloco 10** `aspecto-fisico` → «## Aspecto físico —
+  força e flexibilidade». O que **não** existe é o verbete a declarar o que **o exercício** exige do
+  corpo — e é **de conteúdo** (P-16), não de código. **CONFIRMADO** em 02/11/2026 por
+  `provar-forca-e-flexibilidade` (17 asserções) e pela leitura dos cinco sítios.
+- **O modelo tem TRÊS eixos, e a palavra «eixo» aparecer uma vez não diz o contrário.** É **prefixo
+  por concatenação** (`doPlano.eixo` + `" — "` + bloco): o envelope real da `batata` traz
+  `["Técnica — Barra", "Técnica — Centro", "Técnica — Musicalidade", "Técnica — Expressão"]`, e o
+  eixo come os dois blocos que não são lugares na sala. **CONFIRMADO** no envelope, e é a correção de
+  uma afirmação minha («o modelo tem um eixo») — datada no `REGISTRO.md`, não reescrita.
 - **Um resíduo de expurgo travava o commit de quem mexe em `porta/`.** O ciclo
   `pe-torto/01/batata` foi criado pelo `criar-escola.sh` em 01/11/2026 e **nunca recebeu documentos**
   (`DOCS=""`); o `gerar-ciclo.sh` não o pode regenerar, e a cópia da porta ficava congelada. A cópia
@@ -611,6 +647,37 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     com tempos e compasso, §4 consolidada — é **dado**, num sítio só. A regra **não é apagada nem
     renumerada**: ganha uma nota de substituição, com motivo declarado, e o commit da nota é só
     dela (`CONGELAMENTO.md`). **DECIDIDO** 02/11/2026.
+53. **O MODELO TEM TRÊS EIXOS, E A PALAVRA «eixo» APARECER UMA VEZ NÃO DIZ O CONTRÁRIO.** O rótulo da
+    dimensão do PO é **prefixo por concatenação** — `doPlano.eixo` + `" — "` + o bloco —, e o
+    envelope real da `batata` mostra `["Técnica — Barra", "Técnica — Centro", "Técnica —
+    Musicalidade", "Técnica — Expressão"]`. O eixo **come** os dois blocos que não são lugares na
+    sala, e o conteúdo deles é **poiésis** com o rótulo da técnica por cima. Os três existem — corpo
+    (anamnese → PO → bloco 10), técnica (`notacao`/`vocabulario`/`progressao`), expressão (música,
+    repertório, vídeo, 4 termos de `qualidade`) — e **nenhum está declarado como eixo**. **O objetivo
+    não é um quarto eixo: é o cruzamento**, e já existe duas vezes (`estrutura-de-cada-aula` marca o
+    objetivo por bloco, `aula-1-sequencia` amarra objetivo + bloco + tempos + compasso por linha).
+    **CONFIRMADO** 02/11/2026 (correção de uma afirmação minha, datada no `REGISTRO.md`); o que fica
+    por decidir — os três como eixos de primeira classe — é a **C20**.
+54. **O RITMO É DO CONTRATO, E POR ISSO O CATÁLOGO NÃO O TRANSPORTA.** Ele é **obrigatório** e vive no
+    **cadastro da turma** — dias e hora de cada um, duração, período; a frequência é **derivada**, não
+    digitada. O sistema recusa gravar a turma, atribuí-la e **gerar o ciclo** sem ele
+    (`faltaNoRitmoDaTurma`, quatro portas). A mesma «Balé Nível 1» é 2×/semana numa escola e 3×
+    noutra: não é do conteúdo, é da contratação. **É o que fecha a C19 pela negativa** — a turma
+    pronta vende-se **sem** ritmo, e o ritmo entra onde já entra hoje. **DECIDIDO** 02/11/2026.
+55. **O VERBETE É O ÁTOMO DO SYLLABUS, E O MOTOR É VIÁVEL — FALTAM QUATRO ARRUMAÇÕES E CINCO
+    MÚSICAS.** Os quatro degraus são **dicionário → syllabus → aula pronta → gerador**, e a ordem é de
+    **dependência**, não de preferência. O motor não precisa de modelo novo: o átomo já é chave-valor
+    por música, com a notação **derivada**. Precisa de (1) **identidade estável** por unidade (hoje o
+    `id` deriva do nome, e o `PUT /termo` recusa renomear um termo em uso — é a **L2**), (2) a
+    **separação catálogo × escola** (é o mesmo ficheiro: `termo-repo.js`), (3) a **camada pedagógica**
+    (o que a unidade **exige**, **ensina** e **expressa** — **de conteúdo**, P-16), (4) **uma leitura
+    só** do vocabulário (hoje `lerModalidade` lê do GitHub e `termos()` do bundle). E antes de tudo:
+    **5 das 13 músicas** têm `cobre` diferente dos tempos (Plié 12 em 8, Rond de jambe en l'air 3 em
+    4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — e a gravação já as
+    **recusa**, o que quer dizer que precisam de correção antes de qualquer regravação. A
+    **licença** (não há `LICENSE`; `ARQUITETURA-GERAL.md:109` diz «a definir») trava o degrau 1 tanto
+    quanto a separação. **DECIDIDO** o diagnóstico e o veredicto; a **ordem comercial** é dela
+    (**C22**).
 
 ## 7. Trabalho em andamento
 
@@ -794,16 +861,41 @@ ligados ao objetivo; **o corpo é o único que não está**. Medição inteira n
 PO) muda a taxonomia das dimensões e a ligação bloco↔dimensão. **É da pesquisadora**, e nada foi
 alterado no código.
 
-### O motor dos verbetes — a proposta que vem a seguir (declarada, não começada)
+### O motor dos verbetes — a proposta chegou, e o veredicto é VIÁVEL (C22)
 
 A pesquisadora anunciou, a 02/11/2026: «essa parte toda aqui dos verbetes vai ter que gerar um motor,
 e a gente vai criar arquivos JSON de chave e valor para o dicionário, para o syllabus e para outras
-propostas que eu vou te apresentar. Então eu vou precisar ler direitinho com calma antes de te
-propor a análise, o planejamento lastro.» **PENDENTE** — e é dela a vez: nada se desenha antes de a
-proposta existir. O que já se sabe, e é o que a proposta vai encontrar: o vocabulário é uma verdade
-só no repositório (`biblioteca/modalidades/<modalidade>/vocabulario.json`), o alfabeto da notação é
-outro (`alfabeto.json`), e o **dicionário do que acontece** (`catalogo-seed.js`, indexado por
-notação) é hoje o único destes que ainda vive no código.
+propostas que eu vou te apresentar.» E na mesma data trouxe a proposta: o **verbete é o átomo de um
+syllabus**, e daí saem **quatro** degraus — **dicionário → syllabus → aula pronta → gerador**. A
+verificação e o veredicto estão na **C22** do `PLANEJAMENTO-LASTRO.md`; o resumo:
+
+- **É viável, e o átomo já tem a forma certa** — chave-valor por música, com a notação **derivada** e
+  não escrita (`motor/nucleo/notacao.js` compõe `[Pé: 5ª → +]` a partir de `categoria` + `sinais`), e
+  três consumidores que já o leem (a aula, o plano, o glossário). **Não precisa de modelo novo.**
+- **Precisa de quatro arrumações**, e três não são invenção: (1) **identidade estável** por unidade —
+  hoje o verbete é chaveado pelo **nome**, e o `PUT /api/bastidores/termo` recusa mudar o nome de um
+  termo em uso porque o `id` deriva dele (é a **L2**); (2) a **separação catálogo × escola** (abaixo);
+  (3) a **camada pedagógica** por unidade — o que a unidade **exige** do corpo, o que ela **ensina** e
+  o que ela **expressa** (três campos, e são **de conteúdo**, P-16); (4) **uma leitura só** do
+  vocabulário — hoje há duas (`lerModalidade` lê do **GitHub**, `termos()` lê do **bundle**), e é por
+  isso que o termo criado não chega ao plano antes do deploy.
+- **E há um pré-requisito de integridade, o mais barato de todos: 5 das 13 músicas do alfabeto têm
+  `cobre` diferente dos tempos** (Plié 12 em 8, Rond de jambe en l'air 3 em 4, Battement dégagé 6 em
+  4, Battement fondu 6 em 2, Relevé 1 em 2). Um motor que gera produtos de átomos inconsistentes
+  gera produtos inconsistentes — e a gravação **recusa** esses verbetes desde hoje, o que quer dizer
+  que os cinco precisam de correção **antes** de qualquer regravação. **É a primeira tarefa do degrau
+  1, e é de conteúdo.**
+
+**O que trava o degrau 1 não é técnico, e são duas coisas.** A **licença**: não há `LICENSE`, e a
+`ARQUITETURA-GERAL.md:109` diz «a definir» — de quem é a descrição é pergunta que o `fonte` distingue
+mas não resolve. E a **separação catálogo × escola**: `POST /api/bastidores/termo` grava em
+`biblioteca/modalidades/bale-classico/vocabulario.json` (`termo-repo.js`), que é o **catálogo** — uma
+escola que acrescente um termo altera o catálogo de todos. É a lacuna **(0)** da **L14**, e é
+pré-requisito do degrau 1, não um detalhe dele.
+
+**O que é dela decidir:** o que sobe para o planejamento e com que palavras; se os três eixos passam
+a primeira classe (**C20**); e a ordem comercial entre os degraus. **Nada foi desenhado nem alterado
+no código por causa da C22.**
 
 O que **continua** em aberto desta família é outro: a **bancada**
 `experimentos/propostas/proposta-musicalidade.html` (local, não versionada) propunha uma legenda de
@@ -820,11 +912,12 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 - **O item 11 continua a pedir a formulação por palavras.** Os campos da anamnese são **lidos** ao
   lado; «o que traz» e «o que precisa desenvolver» escrevem-se. É o que o próprio `porQue` do nó diz
   desde antes — a anamnese informa, a formulação é da professora. **DECIDIDO**, não é pendência.
-- **Os três aspectos macro do Lastro ainda não estão escritos em documento de produto.** Ela declarou
-  que toda a modalidade precisa de **força e flexibilidade**, do **elemento da técnica/código** e da
-  **poiésis** (expressividade, olhar, condução, oralidade, história) — e é a razão de existirem o
-  vídeo e a música. Está no `REGISTRO.md`; falta passar ao `PLANEJAMENTO-LASTRO.md` como eixo.
-  **PENDENTE**.
+- **Os três aspectos macro do Lastro passaram a estar escritos — como MEDIÇÃO, não como modelo.**
+  Ela declarou que toda a modalidade precisa de **força e flexibilidade**, do **elemento da
+  técnica/código** e da **poiésis** (expressividade, olhar, condução, oralidade, história) — e é a
+  razão de existirem o vídeo e a música. O mapa está na **C20** do `PLANEJAMENTO-LASTRO.md` e na §8
+  acima. **O que continua PENDENTE** é o passo seguinte: transformá-los em **eixos de primeira
+  classe** (nome, campo, lugar no PO), que mexe na taxonomia das dimensões.
 - **A §3 da aula tem um título que promete mais do que o corpo.** «A sequência conectada (fio
   condutor)» encima a tabela da distribuição do tempo; a sequência está em «Exercícios da Aula 01».
   **PENDENTE** — a pesquisadora não viu o problema na descrição, e a mudança é de nome, não de dado.
@@ -870,7 +963,29 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — seis passos, e o exercício novo é o primeiro)
+### Executado nesta fotografia (02/11/2026 — três eixos, o ritmo obrigatório e a C22)
+
+Esta entrega **não alterou código**: é fotografia, decisão e registo. O que se mediu foi o código que
+já estava lá, para as duas correções, e o que se correu foi o que o `.md` do planejamento pode
+partir.
+
+| Verificação | Resultado |
+|:--|:--|
+| **o modelo tem três eixos** — leitura do envelope real da `batata` | `"eixo"` aparece **uma vez** (`porta/po/conteudo/po.json:196`) e o rótulo é **prefixo por concatenação**: `["Técnica — Barra", "Técnica — Centro", "Técnica — Musicalidade", "Técnica — Expressão"]` |
+| **o ritmo é obrigatório** — leitura das quatro portas de recusa | `faltaNoRitmoDaTurma` (`bastidores.js:829`) é chamada ao **gravar a turma** (`:7402`), ao **atribuir** (`:7463`, `:7554`) e ao **gerar o ciclo** (`:8203`, `:8343`); o formulário pede dias + hora, duração e período (`:3174`–`:3190`), e a frequência é derivada (`frequenciaDaTurma`, `:822`) |
+| **o corpo está no ciclo** | os cinco sítios lidos um a um (anamnese → `linha-de-base` → `restricoes` → `inclusao`/`exclusao` → plano bloco 10); `provar-forca-e-flexibilidade` **17 asserções, 0 falhas** |
+| **o átomo, medido para a C22** | `notacao.json` **v15**: 11 verbetes, 13 músicas, 43 células, 11 com `posicao`, 8 dos 13 pares `cobre == tempos`; `vocabulario.json`: 93 termos, 59 com descrição, 30 com `fonte`; `progressao.json`: 13 turmas, 9 associações |
+| **as duas leituras do vocabulário** | `lerModalidade` (`verbete.js`) lê do **GitHub**; `termos()` (`bastidores.js:364`) lê do **bundle** — é a razão de o termo criado não chegar ao plano antes do deploy |
+| **o catálogo é um ficheiro só** | `termo-repo.js`: `CAMINHO = 'biblioteca/modalidades/bale-classico/vocabulario.json'` — o que a escola acrescenta vai para o catálogo |
+| `node tools/check-indices.js` | **14 verificações, 0 falha(s)** — TUDO CERTO |
+| `node tools/check-schemas.js` · `gerar-schemas.js --conferir` | TUDO CERTO (o molde e os 18 professores dizem o mesmo contrato) · ok (5 schemas) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | ciclo íntegro, cadeia intacta — `b1097a0d…` |
+| `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| **não executado** | as provas de browser (`provar-celula`, `provar-verbete`, `provar-producao`, `provar-cartao-da-turma`) — nenhuma linha de código do motor mudou nesta entrega, e as duas falhas conhecidas (`provar-producao` 151/152, `provar-cartao-da-turma` 6) continuam a ser as de antes |
+| **ao ar** | **nada foi publicado por esta entrega antes do push**; o push publica, como sempre (`Publicar as escolas` corre em cada push) |
+
+### Executado na fotografia anterior (02/11/2026 — seis passos, e o exercício novo é o primeiro)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1279,6 +1394,13 @@ ajustes, a gente vai esmiuçar isso daqui porque tem um bocado de erros») — e
 concreto: **a tabela dos exercícios, a coluna a coluna**, com o mesmo método (o que vem do dado e o
 que vem do código).
 
+**A proposta do motor chegou, e tem um primeiro passo de conteúdo.** A **C22** diz que o motor é
+viável e que a primeira tarefa do degrau 1 **não é código**: **corrigir as cinco músicas** cujo
+`cobre` não fecha os tempos (Plié 12 em 8, Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4,
+Battement fondu 6 em 2, Relevé 1 em 2). A gravação já as recusa — o que quer dizer que hoje **não se
+pode regravá-las sem corrigir**. As outras três arrumações (identidade estável, separação
+catálogo × escola, camada pedagógica) e a **licença** esperam a decisão dela sobre o que sobe.
+
 **PENDENTE dela, e só ela pode decidir:** a **Regra 4** — «força e flexibilidade» no texto, ou o
 campo do espaço —, agora que a força e a flexibilidade se sabe onde estão e já chegam ao PO.
 
@@ -1354,6 +1476,20 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **Três eixos, o ritmo obrigatório, e a C22 com o veredicto do motor.** Três
+  correções que a pesquisadora fez, e as três eram minhas: (1) **o modelo não tem um eixo, tem
+  três** — `"eixo"` aparece uma vez porque o rótulo é **prefixo por concatenação**, e é ele que
+  rotula «Musicalidade» e «Expressão» como «Técnica — …» enquanto o conteúdo delas é poiésis; (2)
+  **o ritmo nunca esteve em aberto** — eu o procurei no **catálogo** e ele vive no **cadastro da
+  turma**, obrigatório, conferido em quatro portas de recusa; e é **do contrato**, não do conteúdo,
+  o que fechou a **C19 pela negativa** (a turma pronta vende-se sem ritmo); (3) **o corpo já está no
+  ciclo**, em cinco sítios, e o que falta é só a ligação **ao exercício**. No mesmo dia nasceu a
+  **C22** — o verbete como átomo do syllabus, os **quatro degraus** (dicionário → syllabus → aula
+  pronta → gerador) com os bloqueios medidos, e o **veredicto: o motor é viável**, com quatro
+  arrumações (identidade estável, separação catálogo × escola, camada pedagógica, uma leitura só do
+  vocabulário) e **cinco músicas por corrigir** antes de qualquer regravação. A **L14** ganhou a
+  lacuna **(0)** — a separação é pré-requisito do degrau 1 — e perdeu a entrega do ritmo no catálogo.
+  **Nenhuma linha de código mudou**: é fotografia, decisão e registo.
 - **02/11/2026** — **O exercício novo é o passo 1, e o «+» deixou de existir.** A primeira tentativa
   moveu os campos do cadastro para dentro do passo 1 e manteve o «+», o «Gravar exercício» e o
   «Cancelar» — «não é isso: eu vou ter um step a mais». A segunda tirou-os: são **seis passos**, o

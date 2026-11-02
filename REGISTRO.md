@@ -30680,3 +30680,124 @@ bloco↔dimensão, e isso é da pesquisadora.
 **Com o quê.** Medições citadas no corpo, com ficheiro e linha · o envelope real da `batata`
 (`escola/batata/envelopes/po-20261101-1959.json` e `plano-20261101-1955.json`) · nenhuma alteração de
 código nesta entrada.
+
+## 02/11/2026 — CORREÇÃO: o ritmo já existe, e o corpo já está no ciclo
+
+**Nota de correção da entrada de hoje** («A proposta «o verbete é o átomo do syllabus», verificada»),
+em dois pontos, e os dois são meus, não da proposta.
+
+### 1. O ritmo não está em aberto — eu procurei no sítio errado
+
+Escrevi: «O ritmo continua em aberto, e é a lacuna que a L14 já tinha medido». A pesquisadora: «eu
+acho que você não olhou no lugar certo (…) em Produção, quando a gente define a turma,
+obrigatoriamente a gente tem que definir o ritmo. A gente não pode deixar o ritmo em branco.»
+
+**Ela tem razão, e a medição está no código.** Procurei o ritmo **no catálogo** (`progressao.json`) e
+não o encontrei — e daí concluí que faltava. Mas o catálogo **não é** o sítio do ritmo: o sítio é o
+**cadastro da turma**, e lá ele é **obrigatório**, verificado em três portas:
+
+- **gravar a turma** — `bastidores.js:7402`, `faltaNoRitmoDaTurma(nova)`, com a frase «é o ritmo do
+  ciclo, e é a escola que o declara: é dele que saem o calendário e o número total de aulas do
+  plano»;
+- **atribuir a turma a um professor** — `:7463` (curadoria) e `:7554`;
+- **gerar o ciclo** — `:8203` e `:8343`, que recusam com a lista do que falta por turma.
+
+O que o formulário pede (`:3174`–`:3190`): **os dias da semana e a hora de início de cada um**, a
+**duração de cada aula**, o **início e o fim do período**. A **frequência** não se digita — é a
+contagem dos dias (`frequenciaDaTurma`, `:822`), e o campo saiu do formulário em 18/10/2026
+justamente porque dois números podiam discordar. E o **cartão da turma diz o que falta**
+(`:1957`: `<b>falta</b> …`), em vez de deixar um botão apagado sem explicação.
+
+**A consequência para a C19, e é o que a decisão ganha.** As três saídas que lá estavam escritas
+(a: um ritmo de referência no catálogo; b: um intervalo; c: a carga passa a pedir o ritmo) partiam
+de uma pergunta errada — «quem fornece o ritmo ao catálogo». A pergunta certa é **«o ritmo pode ir
+dentro do pacote?»**, e a resposta é **não**, porque ele é do **contrato** e a mesma «Balé Nível 1»
+é 2×/semana numa escola e 3× noutra. Então: **a turma pronta vende-se sem ritmo**, e o ritmo entra
+no ato de contratação, onde já entra hoje. Não há nada a construir; há uma frase a escrever na
+oferta. A C19 **fechou-se pela negativa**, e isso é uma resposta, não uma pendência.
+
+### 2. O corpo está no ciclo — o que falta é a ligação ao exercício
+
+Escrevi, na resposta, que o corpo era «o único que não está» e que «não temos a parte do corpo». A
+pesquisadora: «nós temos a parte do corpo, força e flexibilidade. Tá lá no ciclo, nós já fizemos esse
+ajuste também.»
+
+**Ela tem razão, e o ajuste é desta manhã.** O corpo **está** no ciclo, em cinco sítios:
+
+1. `porta/conteudo/anamnese.json` — os 15 campos (7 de flexibilidade, 8 de força);
+2. PO `linha-de-base` — `registroDaAnamnese`, os mesmos 15 **pelo nome**, mais «o que traz / o que
+   precisa desenvolver» por aluna;
+3. PO `restricoes` — «Restrições físicas», força e flexibilidade incluídas;
+4. PO `inclusao` / `exclusao` — os critérios **sugeridos a partir da anamnese** (na `batata`, o
+   `inclusao` está preenchido com 22 itens classificados);
+5. plano, **bloco 10** `aspecto-fisico` → `## Aspecto físico — força e flexibilidade`, e a **§2** da
+   aula com «(o espaço e o material)», que é o outro eixo que estava a ser lido no mesmo sítio.
+
+O que **não** existe é a declaração **por exercício** — o verbete do `tendu` não diz que ele exige
+força para sustentar o *en dehors* e flexibilidade do tornozelo e do quadril. Isso é a costura que
+falta, e é de **conteúdo** (P-16), não de código: ninguém a deduz do código, declara-se.
+
+**O que fica corrigido nos documentos.** A C19 e a L14 do `PLANEJAMENTO-LASTRO.md` passaram a dizer
+o que se mediu (o ritmo é do contrato, é obrigatório, e o catálogo não o transporta); a **C22**
+nasceu com os quatro degraus, os bloqueios e a viabilidade do motor; o `ESTADO-ATUAL.md` §8 passou a
+distinguir «o corpo no ciclo» de «o corpo no exercício»; e o `TRANSFERENCIA-IA.md` foi regenerado,
+porque ainda dizia «o modelo tem UM eixo» — a conclusão que a entrada anterior já refutava.
+
+**Com o quê.** `faltaNoRitmoDaTurma` e as quatro portas de recusa, com linha · o formulário da turma
+(`:3174`–`:3190`) · `provar-forca-e-flexibilidade` **17/17** · a secção `## Aspecto físico` no plano
+gerado (declara a lacuna neste envelope antigo, que não tem a resposta) · nenhuma alteração de código
+nesta entrada.
+
+## 02/11/2026 — C22 nasce no planejamento: os quatro degraus, e o motor é viável
+
+**A decisão registada (C22) e o veredicto de viabilidade do motor.** A pesquisadora pediu três
+coisas na mesma mensagem: que se revisse o que ela já corrigiu (o ritmo, o corpo — ver a entrada
+anterior), que se registasse a proposta dela, e que se dissesse **se é viável criar um motor** que
+gere os novos produtos. A verificação da proposta já está na entrada «A proposta «o verbete é o
+átomo do syllabus» verificada contra o repositório»; esta entrada é a **decisão**, e ela não é
+minha: é ela que decide o que sobe para o documento.
+
+**O que ficou escrito no `PLANEJAMENTO-LASTRO.md`** (nenhuma linha de código mudou):
+
+- **C22**, nova, em §3 — os **quatro degraus** (dicionário → syllabus → aula pronta → gerador), cada
+  um com o bloqueio **medido**, e a escada de baixo para cima porque a ordem é de **dependência**,
+  não de preferência. Acompanha a medição do átomo (v15: 11 verbetes, 13 músicas, 43 células, 93
+  termos, 59 com descrição, 30 com `fonte`; 13 turmas, 9 associações) e a cadeia que já existe de
+  ponta a ponta — catálogo → `semear-catalogo` → `turma-conteudos` → `Conteúdo do nível` → aula,
+  plano, captura, notação, glossário.
+- **O veredicto: o motor é viável**, e o átomo já tem a forma certa — chave-valor por música, com a
+  notação **derivada** e não escrita (`motor/nucleo/notacao.js` compõe `[Pé: 5ª → +]` a partir de
+  `categoria` + `sinais`), e três consumidores que já o leem. Não precisa de modelo novo; precisa de
+  **quatro** coisas, e três são de arrumação: (1) **identidade estável** por unidade — hoje o
+  verbete é chaveado pelo nome, e o `PUT /api/bastidores/termo` recusa mudar o nome de um termo em
+  uso porque o `id` deriva dele (é a **L2**); (2) a **separação catálogo × escola**; (3) a **camada
+  pedagógica** (exige/ensina/expressa — três campos, e são de conteúdo, P-16); (4) **uma leitura só**
+  do vocabulário (hoje `lerModalidade` lê do GitHub e `termos()` lê do bundle — é por isso que o
+  termo criado não chega ao plano antes do deploy).
+- **O pré-requisito de integridade**, e é o mais barato: **5 das 13 músicas** do alfabeto têm `cobre`
+  diferente dos tempos (Plié 12 em 8, Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4,
+  Battement fondu 6 em 2, Relevé 1 em 2). Um motor que gera produtos de átomos inconsistentes gera
+  produtos inconsistentes — e, desde hoje, a gravação **recusa** esses verbetes, o que quer dizer
+  que os cinco precisam de correção antes de qualquer regravação. **É a primeira tarefa do degrau 1,
+  e é de conteúdo.**
+- **L14** reescrita com a lacuna **(0)** — a **separação catálogo público × adições da escola** como
+  **pré-requisito do degrau 1** e não como detalhe: hoje são **o mesmo ficheiro**
+  (`termo-repo.js`, `CAMINHO = 'biblioteca/modalidades/bale-classico/vocabulario.json'`), e é isso
+  que impede vender o dicionário. A entrega (a) — «o ritmo no catálogo» — **saiu**, pela razão da
+  entrada anterior: o ritmo é do contrato e é obrigatório na turma. E o critério (i) mudou de «gera
+  ciclo sem nenhuma edição manual» para «**assim que o ritmo é declarado**, que é o único passo
+  manual e é obrigatório de qualquer forma» — o critério antigo pedia o impossível e por isso nunca
+  poderia fechar a frente.
+- O **índice de decisões** (§2, linha «PRECISA DE DECISÃO») atualizado para C19 e C22.
+
+**O que não foi feito, e de propósito.** Nada de código; nada de desenho de modelo; nenhuma alteração
+no `CONGELAMENTO.md`. A entrada declara-o: o que a C22 acrescenta é a **medição** e o veredicto — o
+que sobe, com que palavras, e em que ordem comercial é **decisão dela**. E o ponto que continua a
+travar a primeira frente não é técnico: sem **licença** e sem a **separação**, o degrau 1 não se
+vende, mesmo estando pronto.
+
+**Com o quê.** `notacao.json` v15 · `vocabulario.json` · `progressao.json` dentro de
+`biblioteca/modalidades/bale-classico/` · `motor/servidor/termo-repo.js` · `termos()` em
+`bastidores.js:364` · `lerModalidade` em `verbete.js` · `semear-catalogo` (`bastidores.js:8060`,
+devolve `termosNovos: 0`) · a ausência de `LICENSE` e a `ARQUITETURA-GERAL.md:109` · e as provas
+existentes, sem regressão.
