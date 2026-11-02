@@ -32050,6 +32050,7 @@ vez de ler envelope por envelope, e a prova mede essa contagem.
 | `provar-verbete` §J | **fim a fim**: o mesmo envelope, derivado com data de antes do ajuste, sai com a notação antiga; com data de depois, sai com a de hoje; e o alfabeto fica como estava |
 | `provar-celula` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | 219/219 · 89/89 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
 | `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · 20/20 |
+| **`provar-notacao`** | **48 asserções, 0 falhas, 7 NÃO MEDIDAS** — e as não medidas são a notícia: ela apagou os 11 verbetes do alfabeto em 02/11/2026 (versão 30, só o `_comentario`), e as secções que compõem exercícios NOMEADOS deixaram de ter o que compor. Declaram-se em vez de se plantarem quatro verbetes inventados por mim para voltarem a verde |
 | **não executado / vermelho de antes** | `provar-plano-completo` falha **antes desta entrega** (medido no `cc54844` limpo: a §14 compara `['aula-de-cada-objetivo','aspecto-fisico']` com `[]`) — é pré-existente e não foi tocado; a prova do versionamento fim a fim foi por isso posta em `provar-verbete` §J, que é versionado e verde |
 
 **Com o quê.** `motor/nucleo/notacao.js` (`estadoDoVerbete`, a data em `verbetePara`/`compor`/
@@ -32057,3 +32058,36 @@ vez de ler envelope por envelope, e a prova mede essa contagem.
 sítios) · `motor/servidor/verbete.js` (o ajuste e as três guardas) · `motor/servidor/bastidores.js`
 (a guarda do `DELETE`, a proveniência antes da escrita, o `jaLido`, o recado) ·
 `experimentos/provar-verbete.js` §G, §I, §J.
+
+---
+
+## 02/11/2026 — O alfabeto ficou sem verbetes, e as provas aprenderam a não depender do conteúdo
+
+**O que aconteceu, e não fui eu.** Durante esta entrega, ela apagou os onze verbetes do alfabeto
+pela Produção — onze commits `chore(notacao): apagar o verbete «X»`, até `f64d54e`, versão **30**,
+com o `_comentario` e mais nada. O `DELETE` que se tinha implementado funciona; o que isto mostra é
+que o conteúdo editorial do alfabeto é dela, e muda.
+
+**O que isso partiu — e a lição não é nova, é a mesma de sempre.** `provar-verbete` (3 asserções) e
+`provar-notacao` (12) liam o `notacao.json` de verdade e esperavam lá encontrar o `Battement tendu`
+com três músicas, o `Plié` com duas pistas, o `Port de bras` de 16 tempos em 3/4. Não estavam a
+medir o mecanismo: estavam a **medir o conteúdo**. Medido no `f64d54e` limpo, num worktree à parte:
+as três de `provar-verbete` já falhavam **antes** desta entrega.
+
+**O que se fez, em cada caso, e porquê:**
+
+| Prova | O que se fez | A razão |
+|:--|:--|:--|
+| `provar-verbete` | **planta** o que precisa: três exercícios (um com três músicas, dois ao lado) entram no alfabeto que a prova lê, e o alfabeto real fica por baixo — gramática, sinais, direções | a prova do CRUD e da listagem mede o mecanismo; o conteúdo é fixture, e uma fixture declarada não mente |
+| `provar-verbete` §I/§J | plantam o `Battement tendu` que o versionamento precisa e **tiram-no no fim** (`try/finally`) | a prova do ajuste não pode depender de haver exercício escrito |
+| `provar-notacao` B e C | **NÃO MEDIDAS**, com o motivo escrito na saída | compõem exercícios nomeados e mutam um verbete que existe; plantar quatro verbetes meus seria medir o meu conteúdo a fingir que é o dela — e reprovaria outra vez à primeira correcção editorial |
+| `provar-notacao` D (3 asserções) | NÃO MEDIDAS pela mesma razão; o `check-glossario` com zero símbolos diz «0 símbolos no corpo, 3 verbetes no glossário (3 aviso(s))» — um documento **sem registro**, e não um par consistente | dar «0 = 0» por bom seria dar por bom um documento vazio |
+
+**A regra que fica escrita:** uma prova que reprova porque o dado editorial mudou está a medir o
+dado. Quando o que se quer medir é o mecanismo, o dado é **fixture declarada**, dentro da prova;
+quando o mecanismo **só** existe sobre conteúdo real (compor este `Plié`), a resposta honesta é
+**NÃO MEDIDO com o motivo**, não um fixture inventado.
+
+**Com o quê.** `experimentos/provar-verbete.js` (a fixture de leitura) · `experimentos/
+provar-notacao.js` (`semVerbetesNoAlfabeto`, `naoMedido`).
+

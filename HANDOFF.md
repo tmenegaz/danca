@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T19:18:46-0300`
-Commit atual: `cc54844` — refactor(notacao): o código morto do campo da posição, e a razão onde ele estava
+Gerado em: `2026-11-02T19:25:41-0300`
+Commit atual: `5dcfcf0` — feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,18 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+5dcfcf0 feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
+f64d54e chore(notacao): apagar o verbete «Grand battement» no alfabeto bale-classico
+063dee1 chore(notacao): apagar o verbete «Battement fondu» no alfabeto bale-classico
+4c90f58 chore(notacao): apagar o verbete «Battement dégagé» no alfabeto bale-classico
+965faa8 chore(notacao): apagar o verbete «Arabesque» no alfabeto bale-classico
+c6ce738 chore(notacao): apagar o verbete «Port de bras» no alfabeto bale-classico
+ae7f5f3 chore(notacao): apagar o verbete «Relevé» no alfabeto bale-classico
+8259894 chore(notacao): apagar o verbete «Rond de jambe» no alfabeto bale-classico
+fa4ab07 chore(notacao): apagar o verbete «Rond de jambe à terre» no alfabeto bale-classico
+5db2f1d chore(notacao): apagar o verbete «Rond de jambe en l’air» no alfabeto bale-classico
+4076803 chore(notacao): apagar o verbete «Battement tendu» no alfabeto bale-classico
+95ecee5 chore(notacao): apagar o verbete «Plié» no alfabeto bale-classico
 cc54844 refactor(notacao): o código morto do campo da posição, e a razão onde ele estava
 2b9de93 feat(notacao): a música bloqueia, o passo 1 fica condicional e o verbete aprende a apagar-se
 dbc3797 feat(notacao): o cartão das turmas na listagem, e o vocabulário que cresceu
@@ -93,18 +105,6 @@ b7acca6 fix(notacao): gravar uma edição substitui — e a bancada da listagem 
 544acf4 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais três
 04e2597 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
-62da8c5 feat(notacao): duplicar o exercício — a barra repete-se, e a posição não se toca
-1b99e51 docs(notacao): editar «Plié» (8|4/4) no alfabeto bale-classico
-a3f99d5 fix(notacao): o 400 do «devant» — um balde vazio que ninguém escolheu
-8980a37 fix(notacao): a tela ainda somava em fila — a régua das pistas tinha ficado a meio
-b2d6816 fix(notacao): «Acrescentar trecho» desaparece durante a correcção
-65326a2 fix(notacao): corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
-9e04787 feat(notacao): as células contam-se por pista — e o Plié, que estava certo, fecha
-de43a1b docs(registro): o push publica o que chega ao site, e documentação não chega
-08551a9 docs(estrutura): a licença em três camadas, e uma citação minha que era falsa
-e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
-3cd2c0c docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
-9f183bc docs(registro): a fotografia dos três produtos e do plano do motor
 ```
 
 ## Por professor
@@ -228,101 +228,36 @@ e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — Proveniência do verbete: o `DELETE` guardado e a edição por AJUSTE (versões datadas)
+## 02/11/2026 — O alfabeto ficou sem verbetes, e as provas aprenderam a não depender do conteúdo
 
-**O que ela pediu.** «Antes de executar `DELETE` ou `UPDATE` em um verbete, verifique se ele possui
-vínculos com **Turmas, Curadorias, Planos de Ensino ou Planos de Observação**. Se houver vínculo,
-**bloqueie a exclusão** e force a criação de um **ajuste/nova versão** para preservar o histórico»,
-e «não altera a versão congelada em uso nos planos/turmas».
+**O que aconteceu, e não fui eu.** Durante esta entrega, ela apagou os onze verbetes do alfabeto
+pela Produção — onze commits `chore(notacao): apagar o verbete «X»`, até `f64d54e`, versão **30**,
+com o `_comentario` e mais nada. O `DELETE` que se tinha implementado funciona; o que isto mostra é
+que o conteúdo editorial do alfabeto é dela, e muda.
 
-### A metade que não precisou de desenho novo: o `DELETE`
+**O que isso partiu — e a lição não é nova, é a mesma de sempre.** `provar-verbete` (3 asserções) e
+`provar-notacao` (12) liam o `notacao.json` de verdade e esperavam lá encontrar o `Battement tendu`
+com três músicas, o `Plié` com duas pistas, o `Port de bras` de 16 tempos em 3/4. Não estavam a
+medir o mecanismo: estavam a **medir o conteúdo**. Medido no `f64d54e` limpo, num worktree à parte:
+as três de `provar-verbete` já falhavam **antes** desta entrega.
 
-O mecanismo **já existia** para o termo do vocabulário: `usosDosPlanos` + `termoVinculadoA` são as
-duas funções que decidem se um termo pode ser apagado, e o verbete é a **notação do mesmo termo**.
-A guarda passa a usá-las, com a mesma semântica das outras rotas de proveniência:
+**O que se fez, em cada caso, e porquê:**
 
-| Porta | O que conta | Resposta |
+| Prova | O que se fez | A razão |
 |:--|:--|:--|
-| o plano de ensino | o exercício está no **repertório** do envelope | `409`, `motivo: 'plano'` |
-| a turma | o exercício está associado a uma turma **que tem plano** | `409`, `motivo: 'plano'` |
-| a curadoria | o exercício está no `repertorio` de uma curadoria | `409`, `motivo: 'curadoria'`, com o nome do professor |
+| `provar-verbete` | **planta** o que precisa: três exercícios (um com três músicas, dois ao lado) entram no alfabeto que a prova lê, e o alfabeto real fica por baixo — gramática, sinais, direções | a prova do CRUD e da listagem mede o mecanismo; o conteúdo é fixture, e uma fixture declarada não mente |
+| `provar-verbete` §I/§J | plantam o `Battement tendu` que o versionamento precisa e **tiram-no no fim** (`try/finally`) | a prova do ajuste não pode depender de haver exercício escrito |
+| `provar-notacao` B e C | **NÃO MEDIDAS**, com o motivo escrito na saída | compõem exercícios nomeados e mutam um verbete que existe; plantar quatro verbetes meus seria medir o meu conteúdo a fingir que é o dela — e reprovaria outra vez à primeira correcção editorial |
+| `provar-notacao` D (3 asserções) | NÃO MEDIDAS pela mesma razão; o `check-glossario` com zero símbolos diz «0 símbolos no corpo, 3 verbetes no glossário (3 aviso(s))» — um documento **sem registro**, e não um par consistente | dar «0 = 0» por bom seria dar por bom um documento vazio |
 
-A recusa diz o caminho: **«Descontinuar»**, que conserva o registo e deixa o documento ler-se. E
-`usos === null` (leitura falhada) conta como VINCULADO — na dúvida não se apaga, porque apagar por
-engano não se desfaz.
+**A regra que fica escrita:** uma prova que reprova porque o dado editorial mudou está a medir o
+dado. Quando o que se quer medir é o mecanismo, o dado é **fixture declarada**, dentro da prova;
+quando o mecanismo **só** existe sobre conteúdo real (compor este `Plié`), a resposta honesta é
+**NÃO MEDIDO com o motivo**, não um fixture inventado.
 
-**Uma leitura, duas respostas.** A guarda e a gravação precisam do mesmo índice do acervo, e lê-lo
-duas vezes no mesmo pedido é exactamente o defeito que a fase 2 corrigiu em 20/10/2026. `paresComPlano`
-e `usosDosPlanos` passaram a aceitar o `jaLido` — o mesmo idioma do `resumosDeEnvelopes` —, e a
-prova conta as leituras (uma).
+**Com o quê.** `experimentos/provar-verbete.js` (a fixture de leitura) · `experimentos/
+provar-notacao.js` (`semVerbetesNoAlfabeto`, `naoMedido`).
 
-### A metade que precisou de decisão: o `UPDATE` com vínculo
-
-**Três caminhos foram-lhe apresentados, e ela escolheu o B — versões datadas.** Fica registado o que
-o A e o C eram, porque a razão de os recusar é a razão de o B ser o que é: **A** (histórico dentro do
-verbete, sem tocar no gerador) não impedia o documento antigo de mudar ao ser regerado; **C**
-(bloquear a edição e obrigar a criar uma variação) obrigaria a duplicar o exercício no dicionário
-para o corrigir. O **B** é o único que cumpre a frase dela — «não altera a versão congelada».
-
-**O que «versão congelada» passou a querer dizer, dito sem eufemismo.** Não havia nenhuma: o plano
-não guarda a notação, compõe-na na hora a partir do alfabeto. O que o B fez foi **dar ao documento
-a data do documento**: `compor`/`comporTodas` recebem a data do envelope (`gerado_em`) e escolhem,
-para cada verbete, o estado que valia naquele dia. É isso que congela o passado — a data do
-envelope, não um instantâneo guardado no plano.
-
-| Peça | O que faz |
-|:--|:--|
-| `gravarVerbete(… vinculado, vigenteDe, motivo)` | quando o verbete está em uso, o estado anterior passa para `versoes[]` com `ate` (a data em que deixou de valer) e o motivo; o estado **corrente** fica no topo |
-| `estadoDoVerbete(registo, data)` (núcleo) | devolve o estado que valia na data; sem data devolve o corrente; antes de todas as versões devolve a mais antiga |
-| `verbetePara` · `compor` · `comporTodas` | aceitam a data e **propagam** a versão usada no resultado |
-| `derivar-ciclo.js` | `dataDoEnvelope(plano)` alimenta os três `comporTodas` |
-| a tela | o recado diz que foi um **ajuste**, com a data, e que os documentos dessa data continuam a ler-se como foram escritos |
-
-**Três guardas que o desenho do dado exigiu, e porquê:**
-
-1. **O histórico não vem do pedido.** `verbete.js` faz `delete limpo.versoes` antes de escrever; quem
-   o escreve é o módulo, a partir do que está gravado. Aceitá-lo do corpo deixaria uma página antiga
-   — ou um pedido forjado — substituir o passado pelo que lhe apetecesse, que é o contrário do que
-   o histórico existe para guardar.
-2. **Um nível só.** O que se guarda é o **estado**, não a lista dele; uma versão nunca carrega
-   `versoes` dentro de si.
-3. **Sem vínculo não há histórico.** Um verbete que ninguém usa é editado como sempre foi: guardar
-   história de um rascunho seria encher o ficheiro com o que não interessa a ninguém.
-
-**O que isto NÃO resolve, e fica declarado.** (a) A tela **não sabe antes de gravar** se o verbete
-está em uso — sabê-lo exigiria uma leitura do índice em cada carga da página, que é cota. Ela
-descobre-o **ao gravar** e di-lo no recado; a guarda do `DELETE`, essa, recusa com a razão escrita.
-(b) Um plano **sem `gerado_em`** (envelope antigo, ou escrito à mão) compõe o estado corrente — não
-há data por que escolher, e inventá-la seria pior.
-
-### Sobre os «índices» — o pedido que não tem onde existir
-
-A especificação pede `idx_dicionario_termo`, `idx_verbete_metrica_musica`, `idx_verbete_tenant`,
-`idx_proveniencia_verbete_plano` e um `tenant_id`. **Este projeto não tem base de dados**: o
-dicionário é um JSON de 93 termos no repositório, lido inteiro para memória a cada carga, e os
-envelopes vivem num **índice de resumos** (`envelope/.indice.json`) que já é, ele próprio, a
-indexação que o pedido descreve — traz, por plano, `professor`, `professorNome`, `turma`, `ciclo` e
-**`repertorio`**, numa leitura só (20/10/2026). Não há `CREATE INDEX` a escrever, e um índice de
-base de dados num ficheiro JSON de 93 elementos seria teatro com custo de manutenção. O que **se
-fez** foi o que o pedido queria no fundo: a guarda de proveniência consulta o índice **uma vez** em
-vez de ler envelope por envelope, e a prova mede essa contagem.
-
-**O que se mediu.**
-
-| Verificação | Resultado |
-|:--|:--|
-| `provar-verbete` §G | o verbete num plano → **409** com a consequência («lacuna») e o caminho («descontinuar»); o **índice lido UMA vez**; um verbete sem vínculo → **200** (a guarda não recusa tudo); um exercício no repertório de uma **curadoria** → **409**, com o professor nomeado e o caminho («tirar do repertório») |
-| `provar-verbete` §I | sem `versoes` lê-se como sempre; a data antiga lê o estado antigo e a de hoje o novo; antes de todas as versões lê a mais antiga; duas versões **fora de ordem** no ficheiro são lidas pela data; a gravação sem vínculo não cria histórico; com vínculo cria (`ate` + motivo), mantém o corrente e escreve o ajuste na mensagem do commit; um segundo ajuste **acumula**; nenhuma versão tem `versoes` dentro |
-| `provar-verbete` §J | **fim a fim**: o mesmo envelope, derivado com data de antes do ajuste, sai com a notação antiga; com data de depois, sai com a de hoje; e o alfabeto fica como estava |
-| `provar-celula` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | 219/219 · 89/89 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
-| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · 20/20 |
-| **não executado / vermelho de antes** | `provar-plano-completo` falha **antes desta entrega** (medido no `cc54844` limpo: a §14 compara `['aula-de-cada-objetivo','aspecto-fisico']` com `[]`) — é pré-existente e não foi tocado; a prova do versionamento fim a fim foi por isso posta em `provar-verbete` §J, que é versionado e verde |
-
-**Com o quê.** `motor/nucleo/notacao.js` (`estadoDoVerbete`, a data em `verbetePara`/`compor`/
-`comporTodas`, `versao` no resultado) · `motor/nucleo/derivar-ciclo.js` (`dataDoEnvelope` e os três
-sítios) · `motor/servidor/verbete.js` (o ajuste e as três guardas) · `motor/servidor/bastidores.js`
-(a guarda do `DELETE`, a proveniência antes da escrita, o `jaLido`, o recado) ·
-`experimentos/provar-verbete.js` §G, §I, §J.
 
 ## O que está pendente
 

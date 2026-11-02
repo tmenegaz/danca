@@ -1480,6 +1480,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **89/89** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
 | `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** — o «Apagar» do passo 6 usa a peça `.acao.perigo`: escrito na marcação servida, o gancho `.apagar` deixaria de ser gancho e passaria a classe sem desenho, e a checagem reprovou-o com razão |
 | **o defeito que a §H apanhou** | o `<select>` do método tinha `value="Francesa"` e a tabela do alfabeto a coluna `francesa`: a nota dizia sempre «O alfabeto não declara esta posição em Francesa». O valor passou a ser a chave |
+| **`provar-notacao`** | **48 asserções, 0 falhas, 7 NÃO MEDIDAS** — o alfabeto ficou sem verbetes (ela apagou os 11, versão 30), e as secções que compõem exercícios nomeados declararam-se não medidas em vez de se plantarem verbetes inventados. As provas deixaram de depender do conteúdo editorial: `provar-verbete` **planta** os exercícios de que precisa |
 | **não executado / vermelho de antes** | `provar-plano-completo` falha **antes desta entrega** (medido no `cc54844` limpo: a §14 compara `['aula-de-cada-objetivo','aspecto-fisico']` com `[]`); não foi tocado, e a prova do versionamento fim a fim foi posta em `provar-verbete` §J, que é versionado e verde · `provar-agnosticismo` (o ficheiro não existe neste worktree) · `provar-o-que-vem-do-dado` (sem fixture) · `check-glossario` (sem par registro × glossário) |
 
 ### Executado na fotografia anterior (02/11/2026 — a música travada, o verbo apagar e os passos arrumados)
@@ -2127,6 +2128,11 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **O alfabeto ficou sem verbetes, e as provas deixaram de depender do conteúdo.**
+  Ela apagou os onze verbetes pela Produção (onze commits, versão **30**, só o `_comentario`). O
+  `provar-verbete` passou a **plantar** os exercícios que precisa; o `provar-notacao` declara as
+  secções de composição **NÃO MEDIDAS**, com o motivo — plantar verbetes meus para voltar a verde
+  seria medir o meu conteúdo a fingir que é o dela.
 - **02/11/2026** — **O verbete ganhou proveniência, e o `UPDATE` virou ajuste.** O `DELETE` recusa
   (409) quando o exercício compõe um plano de ensino ou o repertório de uma curadoria, e diz o
   caminho («Descontinuar»). Num verbete em uso, gravar é um **ajuste**: o estado anterior fica em

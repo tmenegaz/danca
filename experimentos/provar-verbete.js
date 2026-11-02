@@ -42,6 +42,39 @@ const VOCABULARIO = JSON.parse(fs.readFileSync(
 // sério: o CRUD respondeu, e com razão, 409. Uma prova do CRUD que se estraga porque se criou um
 // exercício em Produção é uma prova que mede o dado, não o mecanismo. Por isso a escrita tem uma
 // fixture própria, com o nome de fora.
+/* E A LEITURA TAMBÉM NÃO DEPENDE DO DADO REAL (02/11/2026) — a mesma lição, na outra metade.
+ *
+ * A pesquisadora apagou os 11 verbetes do alfabeto em 02/11/2026 (versão 30, só o `_comentario`
+ * ficou), e três asserções desta prova caíram: elas liam o `notacao.json` de verdade e esperavam
+ * lá encontrar o `Battement tendu` com três músicas. Não estavam a medir o mecanismo — estavam a
+ * medir o conteúdo editorial, que é dela e muda.
+ *
+ * O QUE SE PLANTA AQUI é o mínimo para as três perguntas: um exercício com três músicas (a
+ * listagem), outro ao lado (para «os outros ficam onde estavam») e nada mais. O alfabeto REAL
+ * continua por baixo — gramática, sinais, direções, categorias —, e é isso que o resto da prova
+ * precisa.
+ */
+const celulasDeQuatro = (marca) => ({
+  devant: [
+    { contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→', '+'], descricao: marca + ' (ida)' },
+    { contagem: '3–4', categoria: 'Pé', sinais: ['+', '●', '1ª'], descricao: marca + ' (volta)' },
+  ],
+});
+const registroDe = (tempos, marca) => ({
+  cobre: tempos,
+  posicao: { membro: 'pes', termo: 'premiere-position' },
+  celulas: celulasDeQuatro(marca),
+});
+ALFABETO.verbetes = Object.assign({}, ALFABETO.verbetes, {
+  'Battement tendu': {
+    '4|4/4': registroDe(4, 'tendu 4'),
+    '8|4/4': registroDe(4, 'tendu 8'),
+    '12|4/4': registroDe(4, 'tendu 12'),
+  },
+  'Plié': { '8|4/4': registroDe(4, 'plié') },
+  'Rond de jambe': { '8|4/4': registroDe(4, 'rond') },
+});
+
 const ALFABETO_DA_ESCRITA = JSON.parse(JSON.stringify(ALFABETO));
 delete (ALFABETO_DA_ESCRITA.verbetes || {})['Battement fondu'];
 
@@ -1209,6 +1242,17 @@ async function oVersionamento() {
   const verbete = require(path.join(RAIZ, 'motor', 'servidor', 'verbete.js'));
   const { ALFABETOS, MODALIDADE_PADRAO } = notacao;
   const alfabetoReal = ALFABETOS[MODALIDADE_PADRAO];
+  /* O ALFABETO DO MÓDULO PODE ESTAR VAZIO — ela apagou os 11 verbetes em 02/11/2026. A prova do
+   * versionamento não pode depender de haver conteúdo editorial: planta o exercício de que
+   * precisa e tira-o no fim. A §J faz o mesmo, e é a que o exercita fim a fim. */
+  const plantaDeLeitura = () => {
+    alfabetoReal.verbetes = alfabetoReal.verbetes || {};
+    alfabetoReal.verbetes['Battement tendu'] = alfabetoReal.verbetes['Battement tendu'] || {
+      '8|4/4': { cobre: 4, posicao: null, celulas: celulasDeQuatro('planta') },
+    };
+  };
+  const tinhaBattement = Boolean(alfabetoReal.verbetes && alfabetoReal.verbetes['Battement tendu']);
+  plantaDeLeitura();
 
   // ---- 1. SEM HISTÓRICO, LÊ-SE COMO SEMPRE -----------------------------------
   const registo = { cobre: 8, celulas: { devant: [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª'], descricao: 'x' }] } };
@@ -1257,6 +1301,10 @@ async function oVersionamento() {
   const composicaoHoje = notacao.compor(linha, alfabetoReal);
   checar('a composição sem data continua a compor o estado corrente',
     composicaoHoje && composicaoHoje.estado !== 'lacuna', composicaoHoje && composicaoHoje.estado);
+  // A PLANTA SAI NO FIM DESTA SECÇÃO, e só se ela a pôs.
+  const desplantarLeitura = () => {
+    if (!tinhaBattement && alfabetoReal.verbetes) delete alfabetoReal.verbetes['Battement tendu'];
+  };
   // A prova de que a data CHEGA ao `verbetePara`: monta-se um alfabeto com histórico e mede-se.
   const alfabetoComHistorico = JSON.parse(JSON.stringify(alfabetoReal));
   const registoReal = alfabetoComHistorico.verbetes['Battement tendu']['8|4/4'];
@@ -1282,6 +1330,8 @@ async function oVersionamento() {
   checar('a versão usada vai no resultado da composição',
     antiga.versao === '2026-11-02' && nova.versao === null,
     { antiga: antiga.versao, nova: nova.versao });
+
+  desplantarLeitura();
 
   // ---- 4. O MÓDULO NÃO ACEITA O HISTÓRICO DO PEDIDO -------------------------
   const repo = githubFalso({
@@ -1368,6 +1418,15 @@ async function oDocumentoAntigo() {
   const notacao = require(path.join(RAIZ, 'motor', 'nucleo', 'notacao.js'));
   const { derivarAula01 } = require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'));
   const alfabeto = notacao.ALFABETOS['bale-classico'];
+  /* O MESMO CUIDADO DA §I: o alfabeto do módulo pode não ter verbete nenhum — ela apagou os 11
+   * em 02/11/2026. A prova planta o que precisa e restaura o que estava, sem depender de haver
+   * conteúdo editorial. */
+  const tinha = Boolean(alfabeto.verbetes && alfabeto.verbetes['Battement tendu']);
+  const planta = { '8|4/4': { cobre: 4, posicao: null, celulas: celulasDeQuatro('planta') } };
+  if (!tinha) {
+    alfabeto.verbetes = alfabeto.verbetes || {};
+    alfabeto.verbetes['Battement tendu'] = JSON.parse(JSON.stringify(planta));
+  }
   const registo = alfabeto.verbetes['Battement tendu']['8|4/4'];
   const original = JSON.parse(JSON.stringify(registo));
 
@@ -1402,6 +1461,7 @@ async function oDocumentoAntigo() {
   } finally {
     delete registo.versoes;
     Object.assign(registo, JSON.parse(JSON.stringify(original)));
+    if (!tinha) delete alfabeto.verbetes['Battement tendu'];
   }
 
   checar('o documento datado de ANTES do ajuste sai com a notação ANTIGA',
@@ -1412,9 +1472,10 @@ async function oDocumentoAntigo() {
       && actual.split('\n').filter((l) => /Battement tendu/.test(l)).length > 0,
     actual.split('\n').filter((l) => /Battement tendu/.test(l)).slice(0, 1).join(''));
   checar('o alfabeto fica como estava — a mutação não vaza para outra prova',
-    registo.versoes === undefined && registo.celulas.devant.slice(-1)[0].sinais.join(' ')
-      === original.celulas.devant.slice(-1)[0].sinais.join(' '),
-    { versoes: registo.versoes, sinais: registo.celulas.devant.slice(-1)[0].sinais });
+    (tinha || alfabeto.verbetes['Battement tendu'] === undefined)
+      && registo.celulas.devant.slice(-1)[0].sinais.join(' ')
+        === original.celulas.devant.slice(-1)[0].sinais.join(' '),
+    { apagado: !tinha, sinais: registo.celulas.devant.slice(-1)[0].sinais });
 }
 
 aValidacao();
