@@ -5652,32 +5652,45 @@ const TEM_BLOCO = /(?:^|\n)\s*(?:[-*+] |\d+\. |#{1,6} |\||>)/;
  * página já conhece (`api/mapa`), com a fonte por omissão — uma vez por sessão, e só quando
  * alguém abre um registo.
  */
+let NOS_DA_ANAMNESE = null;
+let CARREGANDO_NOS = null;
 let ROTULOS_DA_ANAMNESE = null;
-let CARREGANDO_ROTULOS = null;
 
-async function carregarRotulosDaAnamnese() {
-  if (ROTULOS_DA_ANAMNESE) return ROTULOS_DA_ANAMNESE;
-  if (!CARREGANDO_ROTULOS) {
-    CARREGANDO_ROTULOS = (async () => {
+/* O MAPA DA ANAMNESE INTEIRO, e não só os rótulos (02/11/2026). O plano lê as anamneses das
+ * alunas da turma para consolidar força e flexibilidade, e para dizer «2 de 3 em «Abertura
+ * parcial»» precisa também das OPÇÕES de cada campo — a ordem delas é a régua (a primeira é o
+ * melhor estado, e é isso que a anamnese declara). Uma segunda lista de níveis escrita à mão
+ * divergiria da anamnese ao primeiro campo renomeado. */
+async function carregarNosDaAnamnese() {
+  if (NOS_DA_ANAMNESE) return NOS_DA_ANAMNESE;
+  if (!CARREGANDO_NOS) {
+    CARREGANDO_NOS = (async () => {
       const mapa = new Map();
       try {
         const resposta = await fetch('api/mapa?fonte=anamnese');
         if (resposta.ok) {
           const dados = await resposta.json();
           for (const no of (dados && dados.nos) || []) {
-            if (no && no.id) mapa.set(String(no.id), String(no.campo || no.id));
+            if (no && no.id) mapa.set(String(no.id), no);
           }
         }
       } catch (erro) {
-        /* Sem os nomes, a caixa mostra os `id` — que é o que mostrava antes. Não é um erro que
+        /* Sem o mapa, a caixa mostra os `id` — que é o que mostrava antes. Não é um erro que
          * impeça ler o registo, e falhar a caixa inteira por causa de um rótulo seria pior. */
         mapa.clear();
       }
-      ROTULOS_DA_ANAMNESE = mapa;
+      NOS_DA_ANAMNESE = mapa;
       return mapa;
     })();
   }
-  return CARREGANDO_ROTULOS;
+  return CARREGANDO_NOS;
+}
+
+async function carregarRotulosDaAnamnese() {
+  if (ROTULOS_DA_ANAMNESE) return ROTULOS_DA_ANAMNESE;
+  const nos = await carregarNosDaAnamnese();
+  ROTULOS_DA_ANAMNESE = new Map([...nos].map(([id, no]) => [id, String(no.campo || id)]));
+  return ROTULOS_DA_ANAMNESE;
 }
 
 function detalheDoEnvelope(envelope, declaracao) {
@@ -5841,6 +5854,152 @@ function botaoDaDerivacao(no) {
     'Sugerir a partir da anamnese</button> ' +
     '<span class="sub">— lê as anamneses de ' + citacao(rot) + ' e ' + dica + '; você edita.</span></p>' +
     '<div class="detalhe oculto" data-derivacao-de="' + escapar(no.id) + '"></div>';
+}
+
+/*
+ * AS ANAMNESES DA TURMA, CONSOLIDADAS (02/11/2026).
+ *
+ * O plano declara, no bloco «Aspecto físico — força e flexibilidade», o que a TURMA mostra no
+ * corpo — e isso não é uma linha por aluna: é o que elas mostram JUNTAS. A pesquisadora: «você
+ * não vai fazer por aluno, aluna A, aluna B, aluna C. Você vai reunir todas aquelas que são
+ * comuns às alunas da turma».
+ *
+ * A CONSOLIDAÇÃO É DELA, NÃO MINHA: para cada campo que o conteúdo declara, conta em que nível
+ * está cada aluna e escreve «2 de 3 em «Abertura parcial»». O «ponto de atenção» não é um
+ * juízo meu — é a ORDEM DAS OPÇÕES que a própria anamnese declara: a primeira é o melhor
+ * estado, e quem não está nela é o que se vai olhar. Se a anamnese mudar a ordem, isto
+ * acompanha sem uma linha de código a mais.
+ *
+ * A LEITURA É SOB DEMANDA, e só no plano: o botão é a única coisa que toca as anamneses. O
+ * resultado é escrito na tabela e fica no envelope — o documento imprime-o, e o professor pode
+ * corrigir linha a linha (o que não se corrige aqui é o nível: esse vive na anamnese).
+ */
+function botaoDasAnamneses(no) {
+  const cfg = no.lidoDasAnamneses || {};
+  const quantos = (cfg.grupos || []).reduce((t, g) => t + (g.campos || []).length, 0);
+  return '<p class="linha-acao folgada"><button class="derivar-da-turma" data-turma-de="' +
+    escapar(no.id) + '">Carregar das anamneses da turma</button> ' +
+    '<span class="sub">— lê as anamneses das alunas desta turma e mostra o que elas têm em comum ' +
+    'nos ' + quantos + ' aspectos de força e flexibilidade; você corrige.</span></p>' +
+    '<div class="detalhe oculto" data-turma-aviso="' + escapar(no.id) + '"></div>';
+}
+
+/* A turma do plano, como lista de apelidos. `contexto-turma` pode ser texto ou lista. */
+function turmaDoPlano() {
+  const cru = RESPOSTAS.get('contexto-turma');
+  const lista = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
+  return lista.map((v) => String(v).trim()).filter(Boolean);
+}
+
+async function derivarDasAnamnesesDaTurma(botao, no) {
+  const cfg = no.lidoDasAnamneses;
+  const aviso = document.querySelector('[data-turma-aviso="' + CSS.escape(no.id) + '"]');
+  const dica = (texto, tipo) => {
+    if (!aviso) return;
+    aviso.classList.remove('oculto');
+    aviso.innerHTML = '<p class="' + (tipo || 'sub') + '">' + escapar(texto) + '</p>';
+  };
+
+  const turma = turmaDoPlano();
+  const professor = (($('ctx-professor') || {}).value || '').trim();
+  if (!turma.length) {
+    return dica('Escolha a turma no começo do plano — a sugestão vem das anamneses das alunas '
+      + 'dela.', 'aviso');
+  }
+
+  dica('lendo as anamneses da turma…');
+  const parametros = new URLSearchParams();
+  if (professor) parametros.set('professor', professor);
+  parametros.set('turma', turma.join(','));
+  let opcoes = [];
+  try {
+    const resposta = await fetch('api/anamneses?' + parametros.toString());
+    const dados = await resposta.json();
+    opcoes = (dados && Array.isArray(dados.opcoes)) ? dados.opcoes : [];
+  } catch (erro) {
+    return dica('Não consegui ler as anamneses agora: ' + erro.message, 'aviso');
+  }
+  if (!opcoes.length) {
+    return dica('Ainda não há anamnese lançada para as alunas desta turma. A força e a '
+      + 'flexibilidade vêm de lá — lance a anamnese e volte aqui.', 'aviso');
+  }
+
+  const nos = await carregarNosDaAnamnese();
+  const porAluna = [];
+  for (const opcao of opcoes) {
+    try {
+      const envelope = await carregarDetalhe(opcao);
+      porAluna.push({ aluna: opcao.valor || opcao.rotulo, respostas: (envelope && envelope.respostas) || {} });
+    } catch (erro) {
+      /* Uma anamnese ilegível não impede a consolidação das outras — e o resumo diz quantas
+       * entraram. Deter tudo por causa de uma seria perder o que existe. */
+    }
+  }
+  if (!porAluna.length) {
+    return dica('As anamneses existem, mas nenhuma pôde ser lida agora.', 'aviso');
+  }
+
+  const linhas = [];
+  const semRegisto = [];
+  for (const grupo of cfg.grupos || []) {
+    for (const id of grupo.campos || []) {
+      const noDaAnamnese = nos.get(id);
+      const nome = String((noDaAnamnese && noDaAnamnese.campo) || id);
+      const niveis = new Map();
+      let quantas = 0;
+      for (const aluno of porAluna) {
+        const valor = valorDaResposta(aluno.respostas[id]);
+        const texto = Array.isArray(valor) ? valor.join(' · ') : valor;
+        if (texto === undefined || texto === null || String(texto).trim() === '') continue;
+        const chave = String(texto).trim();
+        niveis.set(chave, (niveis.get(chave) || 0) + 1);
+        quantas += 1;
+      }
+      if (!quantas) { semRegisto.push(nome); continue; }
+      /* A RÉGUA É A ORDEM DAS OPÇÕES. O primeiro nível é o melhor estado que a anamnese
+       * conhece; quem está abaixo dele é o que se vai olhar. Sem opções declaradas, o campo
+       * não se julga — entra como registado e sem marca. */
+      const opcoesDoCampo = Array.isArray(noDaAnamnese && noDaAnamnese.opcoes) ? noDaAnamnese.opcoes : [];
+      const melhor = opcoesDoCampo.length ? String(opcoesDoCampo[0]).trim() : null;
+      const atencao = melhor !== null && [...niveis.keys()].some((n) => n !== melhor);
+      const comoEsta = [...niveis.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([nivel, n]) => n + ' de ' + quantas + ' em «' + nivel + '»')
+        .join(' · ');
+      linhas.push({
+        Aspecto: nome,
+        'Como está a turma': comoEsta + (atencao ? ' — ponto de atenção' : ''),
+        atencao,
+      });
+    }
+  }
+
+  // OS PONTOS DE ATENÇÃO PRIMEIRO: é o que o plano precisa de ver. A ordem dentro de cada
+  // metade é a do conteúdo (flexibilidade, depois força), e o `sort` é estável.
+  linhas.sort((a, b) => (b.atencao ? 1 : 0) - (a.atencao ? 1 : 0));
+  const paraATabela = linhas.map((l) => ({ Aspecto: l.Aspecto, 'Como está a turma': l['Como está a turma'] }));
+
+  if (!paraATabela.length) {
+    return dica('As anamneses não têm nenhum dos aspectos de força e flexibilidade preenchido. '
+      + 'Sem eles não há o que consolidar.', 'aviso');
+  }
+
+  RESPOSTAS.set(no.id, paraATabela);
+  SEMENTE_ANTERIOR.set(no.id, JSON.stringify(paraATabela));
+  renderPergunta();
+
+  const pontos = linhas.filter((l) => l.atencao).length;
+  const falta = semRegisto.length
+    ? ' Sem registo em ' + semRegisto.length + ' aspecto(s) — a anamnese não os preencheu.'
+    : '';
+  const alvo = document.querySelector('[data-turma-aviso="' + CSS.escape(no.id) + '"]');
+  if (alvo) {
+    alvo.classList.remove('oculto');
+    alvo.innerHTML = '<p class="aviso">' + escapar(linhas.length + ' aspecto(s) lidos das anamneses de '
+      + (porAluna.length === 1 ? '1 aluna' : porAluna.length + ' alunas') + ', '
+      + pontos + ' como ponto de atenção.' + falta + ' Edite o que quiser — o nível corrige-se '
+      + 'na anamnese.') + '</p>';
+  }
 }
 
 /* O `valor` de uma resposta, seja ela registo `{valor:…}` ou valor cru. */
@@ -6087,6 +6246,7 @@ function renderPergunta() {
   } else if (no.opcoesDe) {
     blocos.push(gradeDeOpcoesDinamicas(no));
   } else if (no.tabela) {
+    if (no.lidoDasAnamneses) blocos.push(botaoDasAnamneses(no));
     blocos.push(grelhaDaTabela(no));
   } else if (no.lista) {
     blocos.push(listaNumerada(no));
@@ -8598,6 +8758,12 @@ async function iniciar() {
     const derivar = evento.target.closest('.derivar');
     if (derivar) {
       derivarDoConjunto(derivar, MAPA.nos[INDICE]);
+      return;
+    }
+    // A CONSOLIDAÇÃO DA TURMA (o plano): lê as anamneses das alunas e escreve a tabela.
+    const daTurma = evento.target.closest('.derivar-da-turma');
+    if (daTurma) {
+      derivarDasAnamnesesDaTurma(daTurma, MAPA.nos[INDICE]);
       return;
     }
     const addLinha = evento.target.closest('[data-grelha-add]');

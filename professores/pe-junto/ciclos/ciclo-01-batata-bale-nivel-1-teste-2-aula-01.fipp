@@ -10,9 +10,9 @@ professor: pe-junto
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
 aula: 01
-hash_conteudo: 911a2eb08f3fcc7f5c24cb6dd043f9331035eb9a21ac5a4d85216bbf1ce3d038
+hash_conteudo: 622fbb84cd66c6598afe8c211e002de90614686a16ee0ce9a82a9dd8e5092681
 parentHash: 
-hash: fd0bace5379b66ffea511d0e66f2fd86bb2888d4fcbea7087b0ab7ea8c8e3c5c
+hash: 730870733b29bf994eb64538e3de7ecf84b4977a742673de4cd62752d190c4e3
 algoritmo: SHA-256
 ancorado_em: 2026-11-02
 cobertura:

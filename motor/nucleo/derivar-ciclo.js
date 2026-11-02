@@ -341,12 +341,12 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   secao('2. Condições preliminares de preparação (o espaço e o material)',
     condicoes.length ? condicoes.map((v) => '- ' + v) : ['- [Preencher: condições preliminares de preparação]']);
 
-  // §3 — A sequência conectada.
+  // §3 — A distribuição do tempo pelos blocos.
   {
     const corpo = [];
     if (estrutura.length) {
-      corpo.push('### Distribuição do tempo da aula');
-      corpo.push('');
+      /* O SUBTÍTULO SAIU (02/11/2026). Ele dizia «Distribuição do tempo da aula» por baixo de um
+       * título que passou a dizer o mesmo — dois nomes para a mesma tabela, na mesma secção. */
       corpo.push('| Bloco | Tempos | Fatia |');
       corpo.push('|:--|--:|--:|');
       for (const linha of distribuicaoDoTempo(estrutura, linhasDaTabela(resp(plano, 'distribuicao-de-volume')), volumeTotal)) {
@@ -363,97 +363,138 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
      *
      * A SECÇÃO FICA, com a tabela do tempo: ela é a distribuição da aula pelos blocos (Regra 9),
      * e isso não se repete em nenhum outro lugar. */
-    secao('3. A sequência conectada (fio condutor)', corpo);
+    /* O TÍTULO DIZIA «A SEQUÊNCIA CONECTADA (FIO CONDUTOR)» E O CORPO É A TABELA DO TEMPO
+     * (02/11/2026). A pesquisadora, ao ler a Aula 01, não reconheceu o que estava debaixo do
+     * título: a sequência — os exercícios na ordem, com compasso e descrição — está em
+     * «Exercícios da Aula 01», e o que esta secção mostra é a **distribuição do tempo pelos
+     * blocos** (Regra 9, etapa 2). Um título que promete outra coisa obriga a pessoa a
+     * procurar; o nome passa a ser o do conteúdo. */
+    secao('3. Distribuição do tempo pelos blocos', corpo);
   }
 
-  /* §4 — A MUSICALIDADE NÃO SE PERGUNTA: ELA JÁ FOI DECIDIDA NO VERBETE (02/11/2026).
+  /* §4 — A MUSICALIDADE É UMA VISTA CONSOLIDADA, E NÃO UM BLOCO COM EXERCÍCIOS PRÓPRIOS
+   * (02/11/2026, a segunda correção do mesmo dia).
    *
-   * A HISTÓRIA DESTA SECÇÃO, em três redações erradas:
+   * A PRIMEIRA REDAÇÃO desta secção dizia, ao pé da letra:
    *
-   *   1. `| **Pulso** | [Preencher: trabalho de pulso da Aula 01] |` — um rótulo fixo do código e
-   *      um número de aula escrito dentro de um gerador que produz todas as aulas.
-   *   2. Na correção de 01/11/2026 eu troquei o rótulo pela fatia do plano e deixei, no fim, a
-   *      linha «[Preencher: nenhum formulário pergunta o trabalho musical da aula]». Melhor, e
-   *      ainda errado pelo mesmo motivo de fundo: eu continuei a tratar a musicalidade como uma
-   *      coisa que FALTA PERGUNTAR.
-   *   3. A pesquisadora: «Você continua insistindo que tem que haver uma pergunta a respeito da
-   *      musicalidade. Não tem que existir uma pergunta. Isso já está elaborado pelo professor lá
-   *      na produção. (…) automaticamente isso já é respondido, não em forma de pergunta.»
+   *     | **Exercícios neste bloco** | nenhum — a sequência da aula não tem linha no bloco
+   *     |                              Musicalidade |
    *
-   * ELA TEM RAZÃO, E O DADO JÁ ESTAVA AQUI. Quando o professor cria o verbete de um exercício em
-   * Produção, ele declara — por música (`8|4/4`) — cada célula com a sua **contagem**, a categoria
-   * e os sinais: é o exercício distribuído pelo tempo. E quando preenche «Sequência de exercícios
-   * por bloco», no plano de ensino, ele escreve os **tempos e o compasso** de cada linha. As duas
-   * coisas juntas SÃO o trabalho musical: o pulso é a contagem, o acento é o tempo do compasso em
-   * que a contagem cai, e a frase é o exercício inteiro sobre a música. Nada disso é pergunta
-   * aberta, e nada disso mora no gerador — mora no verbete e no plano.
+   * E É FALSO. A pesquisadora: «não existe uma linha musicalidade. Você precisa relacionar a sua
+   * afirmação de que o exercício neste bloco, nessa aula, não tem nenhum está errada, é falsa. Se
+   * eu descer um pouquinho mais e olhar para o exercício 1, eu tenho compasso e contagem no
+   * battement fondu, eu tenho no battement tendu, no plié eu também tenho.»
    *
-   * O QUE ESTA SECÇÃO PASSA A FAZER: consolidar. Uma linha por MÚSICA, com os exercícios que a
-   * usam e a grade das contagens tal como o verbete a declara. Agrupar por música e não por
-   * exercício é a diferença entre «três exercícios com a mesma música» (o que se lê de uma vez) e
-   * nove linhas a repetir a mesma grade — e a grade só se junta quando é IGUAL (medido, não
-   * suposto): se dois exercícios partilham a música e não a distribuição, são duas linhas.
+   * Ela tem razão, e o erro foi de MODELO, não de redação. Eu tratava «Musicalidade» como um
+   * bloco da aula — ao lado de Barra, Centro e Expressão — e concluía «nenhum exercício cai lá».
+   * Mas a musicalidade não é um sítio onde se põem exercícios: é uma **forma de olhar todos
+   * eles**. Cada linha da sequência declara os tempos e o compasso, e cada exercício tem no
+   * verbete a grade das suas contagens. As duas coisas juntas são a música da aula, e é isso que
+   * esta secção consolida.
    *
-   * O QUE NÃO ENTRA AQUI: os itens da dimensão musical do PO. Eles estão na §5, com os das outras
-   * dimensões, e o mesmo dado em duas listas foi o que a pesquisadora mandou cortar da §3 em
-   * 28/10/2026. */
+   * A VISTA DO EXERCÍCIO E A VISTA DA MUSICALIDADE, ditas por ela: «eu tenho a visão do
+   * exercício, aonde eu já tô mostrando ali embaixo qual é o exercício (…) e eu tenho uma visão
+   * da musicalidade, que eu tô mostrando uma forma consolidada de que a musicalidade vai ser
+   * adotada com 4 por 4, 3 por 4, 2 por 2, as que estiverem selecionadas (…) e eu vou ter um
+   * compasso, dois compassos, de 1 até 3, de 1 até 4. Eu vou consolidar isso.»
+   *
+   * O QUE ISSO QUER DIZER, em tabela: **um compasso por grupo**, e dentro dele **uma linha por
+   * exercício** — porque o mesmo exercício aparece em Barra, Centro e Expressão com a mesma
+   * música, e repeti-lo três vezes é a redundância que ela mandou cortar. A vista da aula mostra
+   * os nove; a da musicalidade mostra os três que existem, cada um com a sua contagem.
+   *
+   * O QUE SAIU, e porquê:
+   *   · a «fatia do plano» (30% do volume — 27 tempos, Regra 9, etapa 2) — «eu não sei o que isso
+   *     quer dizer, não é claro, eu não sei de onde você tirou isso». Ela vem da tabela de
+   *     distribuição do volume, que é a §3 inteira: repetir o número aqui sem a tabela não
+   *     informa — confunde;
+   *   · o «trabalho de pulso, acento e frase» — uma lacuna que eu escrevi e que remetia para uma
+   *     Regra 15 que fala de outra coisa (ver `REGRAS.md`: «bloco próprio em cada aula + arquivo
+   *     paralelo do ciclo»). Nada no formulário pergunta «pulso, acento e frase», e ela: «isso eu
+   *     não sei o que você quer dizer (…) talvez a gente precise ajustar isso pra existir esses
+   *     campos, ou talvez a gente não precise disso». Fica declarado como contradição no
+   *     `REGISTRO.md`, não inventado aqui.
+   *
+   * SEM GRADE NÃO HÁ O QUE CONSOLIDAR, e diz-se qual das duas metades falta — a música, que vem
+   * da sequência, ou a contagem, que vem do verbete. Nunca se pede a ninguém que escreva. */
   {
     const corpo = [];
-    const volume = linhasDaTabela(resp(plano, 'distribuicao-de-volume'));
-    const fatia = distribuicaoDoTempo(estrutura, volume, volumeTotal)
-      .find((l) => /music/i.test(l));
-
-    if (fatia) {
-      // A linha vem formatada como `| Bloco | tempos | fatia |` — e a leitura é da FATIA e dos
-      // TEMPOS, nesta ordem («30% do volume — 27 tempos»), não na ordem da tabela da §3.
-      const [, , tempos, proporcao] = fatia.split('|').map((c) => c.trim());
-      const semTempos = !tempos || /Preencher/.test(tempos);
-      corpo.push('**Bloco no plano.** ' + (proporcao || tempos) + ' do volume'
-        + (semTempos ? '' : ' — ' + tempos + ' tempos') + ' (Regra 9, etapa 2).', '');
-    }
-
     const sequencia = sequenciaComoObjetos(plano);
     const notacao = notacaoEscolhida(plano);
     const alfabeto = notacao ? moduloNotacao.paraNotacao(notacao) : null;
     const composicoes = sequencia && alfabeto ? moduloNotacao.comporTodas(sequencia, alfabeto) : null;
 
     if (!composicoes) {
-      /* SEM GRADE NÃO HÁ O QUE CONSOLIDAR, e dizê-lo é o que se pode afirmar: a música vem do
-       * verbete e da sequência, e uma das duas não está nesta forma (envelope em prosa, ou ciclo
-       * sem notação declarada). A frase diz QUAL das duas — e não pede a ninguém que escreva. */
       corpo.push(sequencia === null
-        ? 'A sequência deste envelope está em prosa, e a grade das contagens vem do verbete: sem '
-          + 'linha por exercício não há música a consolidar.'
-        : 'Este ciclo não declara notação, e é o verbete do exercício que guarda a distribuição '
-          + 'das contagens sobre a música.');
+        ? 'A sequência deste envelope está em prosa, e a música vem dela: sem uma linha por '
+          + 'exercício não há compasso a consolidar.'
+        : 'Este ciclo não declara notação, e é o verbete de cada exercício que guarda a divisão '
+          + 'das contagens.');
     } else {
-      // Agrupa por (música + grade). A chave inclui a grade porque dois exercícios com a mesma
-      // música podem distribuí-la de maneiras diferentes — e aí são duas linhas, não uma.
-      const grupos = new Map();
+      /* AGRUPA POR COMPASSO (a forma da vista que ela descreveu: «4 por 4, 3 por 4, 2 por 2, as
+       * que estiverem selecionadas»), e dentro do compasso **um exercício uma vez** — a chave é o
+       * exercício + os tempos, e não o bloco: o mesmo Battement fondu em Barra, Centro e Expressão
+       * é a mesma música, e a vista da musicalidade é sobre a música. */
+      const porCompasso = new Map();
+      const semMusica = [];
       for (const c of composicoes) {
-        if (c.estado === 'lacuna' || !c.musica) continue;
-        const grade = c.segmentos.map((sg) => sg.contagem + ' `' + sg.bloco + '`').join(' · ');
-        const chave = c.musica.tempos + '|' + c.musica.compasso + '|' + grade;
-        if (!grupos.has(chave)) {
-          grupos.set(chave, { musica: c.musica, grade, exercicios: [] });
+        if (!c.musica) {
+          if (!semMusica.some((n) => n === rotuloDoExercicio(c))) semMusica.push(rotuloDoExercicio(c));
+          continue;
         }
-        grupos.get(chave).exercicios.push(rotuloDoExercicio(c));
+        const chave = c.musica.compasso;
+        if (!porCompasso.has(chave)) porCompasso.set(chave, new Map());
+        const doExercicio = porCompasso.get(chave);
+        const id = c.exercicio + '|' + c.musica.tempos;
+        if (!doExercicio.has(id)) {
+          /* A CÉLULA É A CONTAGEM *E* O QUE CAI NELA. Cortar só pela contagem — «1–2 · 3–4 · 1–2»
+           * sem a notação — deitava fora exactamente o que a tabela anterior mostrava e que ela
+           * nomeou: «o que cai em cada contagem». O `1–2` do fim é outra coisa do pé que o `1–2`
+           * do princípio, e a repetição sobre o segundo compasso é a frase, não redundância. */
+          const vistas = new Set();
+          const contagens = [];
+          for (const sg of c.segmentos || []) {
+            const celula = sg.contagem + (sg.bloco ? ' `' + sg.bloco + '`' : '');
+            if (vistas.has(celula)) continue;
+            vistas.add(celula);
+            contagens.push(celula);
+          }
+          doExercicio.set(id, {
+            exercicio: c.exercicio,
+            tempos: c.musica.tempos,
+            contagens,
+            conferir: c.estado === 'parcial',
+          });
+        }
       }
 
-      if (!grupos.size) {
-        corpo.push('Nenhum exercício desta aula tem música e verbete declarados — não há grade '
-          + 'musical a consolidar.');
+      const compassos = [...porCompasso.keys()].sort((a, b) => b.localeCompare(a));
+      if (!compassos.length) {
+        corpo.push('Nenhum exercício desta aula tem tempos e compasso declarados na sequência — '
+          + 'sem eles não há música a consolidar.');
       } else {
-        corpo.push('| Música | Exercícios | O que cai em cada contagem |');
-        corpo.push('|:--|:--|:--|');
-        for (const g of grupos.values()) {
-          corpo.push('| ' + g.musica.tempos + ' tempos em ' + g.musica.compasso + ' | '
-            + g.exercicios.join(' · ') + ' | ' + g.grade + ' |');
+        corpo.push('**Os compassos desta aula.** ' + compassos.join(' · ') + '.', '');
+        corpo.push('| Compasso | Exercício | Tempos | Contagem |');
+        corpo.push('|:--|:--|--:|:--|');
+        for (const compasso of compassos) {
+          for (const linha of porCompasso.get(compasso).values()) {
+            corpo.push('| ' + compasso + ' | ' + linha.exercicio + ' | ' + linha.tempos + ' | '
+              + (linha.contagens.length ? linha.contagens.join(' · ') : '—')
+              + (linha.conferir ? ' **conferir**' : '') + ' |');
+          }
         }
         corpo.push('');
-        corpo.push('O pulso é a contagem; o acento, o tempo do compasso em que ela cai; a frase, o '
-          + 'exercício inteiro sobre a música. A grade vem do **verbete** de cada exercício e a '
-          + 'música, da sequência do plano — não se perguntam outra vez.');
+        corpo.push('Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e '
+          + 'Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o '
+          + 'compasso vêm da sequência do plano; a contagem, do verbete de cada exercício.');
+        if ([...porCompasso.values()].some((m) => [...m.values()].some((l) => l.conferir))) {
+          corpo.push('', 'Onde diz **conferir**, a grade de contagens do verbete não fecha nos '
+            + 'tempos que a sequência declara para aquela música. O que se corrige é o verbete, e '
+            + 'a decisão é da professora: o documento não escolhe por ela.');
+        }
+      }
+      if (semMusica.length) {
+        corpo.push('', 'Sem música declarada na sequência: ' + semMusica.join(' · ') + '.');
       }
     }
 

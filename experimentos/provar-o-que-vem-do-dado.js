@@ -260,14 +260,36 @@ provar('§4 — o rótulo fixo «Pulso» saiu',
   !/\*\*Pulso\*\*/i.test(bloco4), bloco4.trim().split('\n').slice(0, 5));
 provar('§4 — não pede a ninguém que escreva nada (nenhum `[Preencher]`)',
   !/\[Preencher/.test(bloco4), (bloco4.match(/\[Preencher:[^\]]*\]/) || [''])[0]);
-provar('§4 — consolida por MÚSICA, com os exercícios que a usam',
-  /\| Música \| Exercícios \|/.test(bloco4) && /tempos em \d\/\d/.test(bloco4),
+/* A SEGUNDA CORRECÇÃO DA §4 (02/11/2026) — as asserções mudaram com a vista, e a razão fica
+ * escrita porque são elas que impedem a regressão.
+ *
+ * A redacção anterior dizia, em tabela, «Exercícios neste bloco | nenhum — a sequência da aula não
+ * tem linha no bloco Musicalidade». É FALSO, e a pesquisadora apanhou-o: «se eu descer um pouquinho
+ * e olhar para o exercício 1, eu tenho compasso e contagem no battement fondu, no tendu, no plié».
+ * A musicalidade não é um bloco onde se põem exercícios — é uma forma de olhar todos eles.
+ *
+ * Por isso a prova deixou de verificar «tem tabela por música» e passou a verificar três coisas
+ * que, juntas, tornam a afirmação falsa impossível: a secção CONSOLIDA POR COMPASSO, mostra a
+ * contagem de cada exercício, e cada exercício aparece UMA vez. */
+provar('§4 — consolida por COMPASSO, e diz quais são os desta aula',
+  /\*\*Os compassos desta aula\.\*\*/i.test(bloco4) && /\| Compasso \| Exercício \|/.test(bloco4),
   bloco4.trim().split('\n').slice(2, 6));
 provar('§4 — a grade das contagens vem do verbete (contagem + bloco de notação)',
   /\d[–-]\d\s*`\[[^\]]+\]`/.test(bloco4),
   (bloco4.match(/\d[–-]\d\s*`\[[^\]]+\]`/) || [''])[0]);
-provar('§4 — a fatia do plano continua dita (Regra 9, etapa 2)',
-  /Bloco no plano\./.test(bloco4) && /%/.test(bloco4));
+provar('§4 — NÃO afirma que o bloco de musicalidade não tem exercícios (a afirmação falsa)',
+  !/Exerc[ií]cios neste bloco/i.test(bloco4) && !/\bnenhum\b/i.test(bloco4),
+  (bloco4.match(/[^\n]*nenhum[^\n]*/i) || [''])[0]);
+provar('§4 — cada exercício aparece UMA vez (o mesmo fondu em Barra, Centro e Expressão é a mesma música)',
+  (() => {
+    const linhas = bloco4.split('\n').filter((l) => /^\|\s*\d+\/\d+\s*\|/.test(l));
+    const nomes = linhas.map((l) => l.split('|')[2].trim());
+    return nomes.length > 0 && new Set(nomes).size === nomes.length;
+  })(),
+  bloco4.split('\n').filter((l) => /^\|\s*\d+\/\d+\s*\|/.test(l)).map((l) => l.split('|')[2].trim()));
+provar('§4 — a «fatia do plano» saiu (30% do volume — 27 tempos, Regra 9) — repetir a §3 confundia',
+  !/Bloco no plano/i.test(bloco4) && !/Regra 9/.test(bloco4),
+  (bloco4.match(/[^\n]*Regra 9[^\n]*/) || [''])[0]);
 
 const bloco6 = secao(BASE, 6);
 provar('§6 — não chama «simulado» a um ciclo real',

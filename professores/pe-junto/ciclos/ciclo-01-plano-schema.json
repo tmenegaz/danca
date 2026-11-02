@@ -127,6 +127,11 @@
       "type": "string",
       "description": "O critério de extensão declarado em prosa (a seção `## Critério de extensão`) — o módulo condicional do plano, comum ao PO. Mesmo caso das condições preliminares: estava no documento e fora do mapa."
     },
+    "aspectoFisico": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "O que a TURMA mostra de força e flexibilidade — o aspecto do corpo, o primeiro dos três eixos do que se observa em dança. Lido das anamneses das alunas da turma e consolidado por aspecto (nunca uma linha por aluna); a seção é `## Aspecto físico — força e flexibilidade`."
+    },
     "musicasVideos": {
       "type": "array",
       "items": {

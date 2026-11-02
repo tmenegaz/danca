@@ -98,6 +98,12 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 > Calendário é conta do gerador a partir das datas e da frequência; se o horizonte
 > declarado aqui for outro, é este que vale.
 
+## Aspecto físico — força e flexibilidade
+
+[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico — força e flexibilidade» do plano de ensino.]
+
+O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha por aluna, e sim o que elas têm em comum. É um **ponto de atenção** do ciclo: o que se vai olhar, e não uma avaliação de ninguém.
+
 ## Música e vídeo de referência
 
 - Battement fondu — 2 tempos em 4/4

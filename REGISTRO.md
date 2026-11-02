@@ -30261,3 +30261,128 @@ corria) · `provar-o-que-vem-do-dado` TUDO CERTO · `provar-forca-e-flexibilidad
 O `TypeError` era o único sinal, e estava a ser lido como «a prova é frágil» em vez de «a prova
 parou». A partir de agora, uma prova que morra a meio tem de dizer **quantas** asserções correu, e
 é isso que o resumo dela imprime.
+
+## 02/11/2026 — A §4 dizia uma coisa falsa sobre o bloco de musicalidade
+
+**O que motivou.** A pesquisadora leu a Aula 01 e apontou três coisas na mesma secção: (1) «a fatia
+do plano tem nesta aula 30% do volume, 27 tempos, regra 9, etapa 2 — eu não sei o que isso quer
+dizer, não é claro, eu não sei de onde você tirou isso»; (2) «você disse que exercícios neste bloco
+nenhum — está errada, é falsa: se eu descer um pouquinho e olhar para o exercício 1, eu tenho
+compasso e contagem no battement fondu, no tendu, no plié»; e (3) o título da §3, «A sequência
+conectada (fio condutor)», não descrevia o que estava debaixo dele.
+
+**O que estava a acontecer.** O erro (2) não era de redação, era de **modelo**. Tratava-se
+«Musicalidade» como um bloco da aula, ao lado de Barra, Centro e Expressão, e concluía-se «nenhum
+exercício cai lá» — um raciocínio correto sobre uma premissa falsa. A musicalidade não é um sítio
+onde se põem exercícios: é uma **forma de olhar todos eles**. Cada linha da sequência declara os
+tempos e o compasso, e o verbete de cada exercício declara a grade das contagens. As duas coisas
+juntas são a música da aula. Prova de que a premissa era falsa: as três linhas de exercício da
+própria aula trazem `Tempos` e `Compasso` preenchidos.
+
+**O que foi decidido.**
+
+- **A §4 passa a ser uma vista consolidada, agrupada por compasso** — a forma que ela descreveu:
+  «a musicalidade vai ser adotada com 4 por 4, 3 por 4, 2 por 2 (…) e eu vou ter um compasso, dois
+  compassos, de 1 até 3, de 1 até 4. Eu vou consolidar isso.» Uma tabela
+  `| Compasso | Exercício | Tempos | Contagem |`, **um exercício uma vez só**: o mesmo Battement
+  fondu em Barra, Centro e Expressão tem a mesma música, e repeti-lo três vezes é a redundância
+  que ela mandou cortar. A vista da aula mostra os nove; a da musicalidade mostra os três que
+  existem.
+- **A célula da contagem é a contagem *e* o que cai nela** (`1–2 `[Pé: 5ª → +]``). Cortar só pela
+  contagem — `1–2 · 3–4 · 1–2` nu — deitava fora exactamente o que a tabela anterior mostrava e que
+  ela nomeou: «o que cai em cada contagem». As repetições que sobram sobre o segundo compasso são a
+  frase, não redundância.
+- **A «fatia do plano» saiu.** «30% do volume — 27 tempos (Regra 9, etapa 2)» repetia, sem a
+  tabela, o número que a §3 já publica inteira: informar não informava, confundia.
+- **O título da §3 passou a ser o do conteúdo: «Distribuição do tempo pelos blocos».** O subtítulo
+  `### Distribuição do tempo da aula`, que dizia o mesmo duas vezes, saiu.
+- **Onde a grade do verbete não fecha nos tempos, a linha diz `conferir`**, com uma nota que diz o
+  que se corrige (o verbete) e quem decide (a professora). Medido nesta aula: **Battement fondu**
+  soma 6 tempos numa música de 2 (não fecha compasso 4/4); **Plié** soma 12 onde a música tem 8.
+  São inconsistências de verbete reais, e o documento passa a mostrá-las em vez de as alinhar.
+
+**A contradição que ficou declarada, e não resolvida.** O «trabalho de pulso, acento e frase» que a
+primeira redação pedia era uma lacuna que eu escrevi, a remeter para a **Regra 15** do `REGRAS.md` —
+e a Regra 15 diz outra coisa: «bloco próprio em cada aula + arquivo paralelo do ciclo», doze
+palavras escritas antes de o verbete existir. Nenhum formulário pergunta «pulso, acento ou frase», e
+a pesquisadora: «talvez a gente precise ajustar isso pra existir esses campos, ou talvez a gente não
+precise disso.» **A decisão é dela**, e o documento não a inventa: o que a §4 mostra é o que o dado
+tem — tempos, compasso e contagem.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (§3 e §4) · `tools/validar-aula-ciclo.js` (o
+título da §3 no `MAPA_SECOES`, com as duas formas) · `experimentos/provar-o-que-vem-do-dado.js`.
+
+**Com o quê.** `provar-o-que-vem-do-dado` — as asserções da §4 passaram a guardar as três coisas que
+tornam a afirmação falsa impossível: consolida **por compasso**, mostra a contagem de cada
+exercício, e cada exercício aparece **uma vez**. Mais duas: a secção **não** afirma «exercícios
+neste bloco: nenhum» (a afirmação falsa), e a «fatia do plano» saiu. `check-pacote` 0 erro / 0 aviso ·
+`check-identidade` 20/20 · `check-schemas` TUDO CERTO · `check-indices` 14/14 · `hash-ciclo --check`
+cadeia intacta.
+
+## 02/11/2026 — A força e a flexibilidade passam a estar no plano, lidas das anamneses
+
+**O que motivou.** A pesquisadora, a fechar a leitura do plano: «na aula você não colocou aqui uma
+tabela para fazer essa relação (…) você não vai fazer por aluno, aluna A, aluna B, aluna C. Você vai
+reunir todas aquelas que são comuns às alunas da turma (…) Então você vai colocar, antes da música e
+vídeo de referência, esse item que é relacionado a força e flexibilidade, que é o aspecto físico, o
+aspecto do corpo das meninas.» É a decisão que faltava para a **C20** do
+`PLANEJAMENTO-LASTRO.md` — e é a alternativa **(b)**: um campo próprio no plano, e as condições do
+espaço ficam com o espaço.
+
+**O que foi decidido.**
+
+- **O plano de ensino ganha o bloco 10, «Aspecto físico — força e flexibilidade»**, e ele fica
+  **imediatamente antes** de «Música e vídeo de referência»: é o que se lê a seguir às condições do
+  espaço, porque é da mesma família — o que a aula precisa para acontecer. Os blocos seguintes
+  passaram a 11 (música e vídeo), 12 (repertório) e 13 (origem).
+- **O campo é LIDO, não escrito.** A chave é `aspecto-fisico`, com um descritor novo no
+  `elicitar.js` (`lidoDasAnamneses`) que diz de onde vem o valor: quinze campos da anamnese, em dois
+  grupos — sete de flexibilidade e amplitude, oito de força. A porta traz o botão que os lê em
+  `api/anamneses`, consolida por aspecto com a contagem de alunas, e **marca como ponto de atenção**
+  quem não está no melhor nível.
+- **A régua é a ordem das opções da própria anamnese** — a primeira é o melhor estado —, lida em
+  `api/mapa?fonte=anamnese`. Não há segunda lista escrita à mão: uma régua paralela poderia dizer
+  «excelente» onde a anamnese diz outra coisa, e ninguém daria por isso.
+- **É da turma, nunca da aluna.** «Não é por aluna: é o que a turma mostra em cada aspecto.» O que se
+  corrige corrige-se **na anamnese**, que é onde o dado se decide — e a nota do campo di-lo.
+- **Sem leitura, a secção declara a lacuna** e diz o caminho de volta («carregue a sugestão a partir
+  das anamneses da turma»). Não inventa um ponto de atenção que ninguém viu.
+
+**Onde entrou.** `porta/plano/conteudo/plano.json` (o bloco 10 e a renumeração) ·
+`porta/index.html` (`carregarNosDaAnamnese`, `botaoDasAnamneses`, `turmaDoPlano`,
+`derivarDasAnamnesesDaTurma`) · `motor/nucleo/elicitar.js` (`lidoDasAnamneses` na lista fechada dos
+descritores — a lista é fechada, e um descritor esquecido morre em silêncio) ·
+`motor/nucleo/derivar-plano-ciclo.js` (a secção, emitida antes da música) ·
+`tools/validar-plano-ciclo.js` (o alias `aspectoFisico`) · `modelo/ciclos/ciclo-01-plano-schema.json`
+e os dezoito schemas dos professores (a propriedade, propagada com `gerar-schemas.js`).
+
+**Com o quê.** `check-schemas` TUDO CERTO (o molde e os dezoito professores dizem o mesmo contrato) ·
+`gerar-schemas --conferir` ok · `provar-forca-e-flexibilidade` 17/17 · `provar-ajustes-anamnese`
+126/126 · o item 11 do PO continua a trazer os quinze campos pelo nome, com
+«abrir o registro completo» · `validar-plano-ciclo` 13 campos extraídos · `check-pacote` 0 erro /
+0 aviso · `hash-ciclo --check` cadeia intacta.
+
+**O que ficou deliberadamente em aberto.** A **Regra 4** (`REGRAS.md`, congelado) continua a usar a
+expressão «pré-requisitos de força e flexibilidade» e o campo que a alimentava era o do espaço. A
+contradição está registada na C20, com as duas leituras possíveis, e **não se resolve mexendo no
+gerador**: resolvê-la é escolher uma das duas redações, e isso é da pesquisadora.
+
+## 02/11/2026 — Um resíduo de expurgo travava o commit de quem mexesse na porta
+
+**O que aconteceu.** Depois de `porta/index.html` mudar, o `check-identidade` reprovou o **Circuito**
+num pacote que não é o do ciclo em uso: `professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/
+index.html` divergia da fonte. Aquele pacote é o que o `criar-escola.sh` deixou quando a escola
+`batata` foi criada em 01/11/2026 e **nunca recebeu documentos** (`DOCS=""` no
+`ciclo-01-batata.conf`): tem a porta, os assets e o índice, e mais nada. O `gerar-ciclo.sh` não o pode
+regenerar — «DOCS está vazio» —, e por isso a cópia da porta ficou congelada no dia em que nasceu.
+
+**O que foi decidido.** A cópia foi **refrescada** — a mesma operação que o `gerar-ciclo.sh` faz
+(`porta/` → `plano-observacao/`) —, e não apagada: apagar um ciclo de um professor é decisão da
+pesquisadora, não do gerador. **A pendência de fundo fica dita:** um ciclo criado e nunca preenchido
+envelhece em silêncio e trava o commit de quem toca em `porta/`; o remédio definitivo é o expurgo da
+escola, que é o que ela vai fazer a seguir. Fica registado para não voltar a ser diagnosticado do
+zero.
+
+**Com o quê.** `check-identidade` **20/20** · `check-indices` **14/14** (os índices foram regerados;
+os que só tinham mudado de `fonte.commit` e `gerado_em` foram revertidos, porque um índice que muda
+de hora em cada geração suja a árvore sem dizer nada).

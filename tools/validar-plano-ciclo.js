@@ -91,6 +91,10 @@ const MAPA_SECOES = {
   // não do mapa) e que por isso não chegavam a documento nenhum.
   // «Música e vídeo de referência» (02/11/2026): o título antigo prometia o repertório, que é a
   // secção seguinte. Os dois nomes ficam no mapa — há plano no repositório escrito com o antigo.
+  // O ASPECTO FÍSICO — FORÇA E FLEXIBILIDADE (02/11/2026): o primeiro dos três eixos do que se
+  // observa em dança, e o que a Regra 4 pede. Sem esta linha a secção não era extraída, e o
+  // mapa documenta que um título fora dele descarta a secção INTEIRA, em silêncio.
+  'aspecto físico — força e flexibilidade': 'aspectoFisico',
   'música e vídeo de referência': 'musicasVideos',
   'músicas e vídeos': 'musicasVideos',
   'repertório': 'repertorio',

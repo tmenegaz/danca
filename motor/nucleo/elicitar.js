@@ -295,6 +295,13 @@ function descritores(campo) {
     // linha a chave morreria aqui — a lista é fechada, e o sintoma é sempre mudo (a tela
     // mostra os primeiros campos crus, que foi o que aconteceu).
     registroDaAnamnese: campo.registroDaAnamnese || null,
+    // O QUE A TURMA MOSTRA NO CORPO, LIDO DAS ANAMNESES (02/11/2026). O nó `aspecto-fisico` do
+    // plano declara os campos da anamnese que o alimentam — força e flexibilidade, o primeiro dos
+    // três eixos do que se observa em dança. A tela carrega as anamneses das alunas da TURMA (não
+    // de uma aluna) e consolida: o que interessa ao plano é o que a turma mostra em cada aspecto.
+    // O motor não escolhe os campos nem interpreta os níveis: repassa a declaração. Sem esta
+    // linha a chave morreria aqui — `descritores()` é uma lista fechada, e o sintoma é mudo.
+    lidoDasAnamneses: campo.lidoDasAnamneses || null,
   };
 }
 

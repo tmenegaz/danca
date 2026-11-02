@@ -708,6 +708,28 @@ function derivarPlano(envelope) {
    * prometia o repertório, que é a secção seguinte. A pesquisadora: «aqui continua sendo música e
    * vídeo de referência; o repertório é o próximo item». As duas coisas passam a ter nomes
    * próprios, iguais nos dois lados. */
+  /* O ASPECTO FÍSICO — FORÇA E FLEXIBILIDADE (02/11/2026). É o primeiro dos três eixos do que se
+   * observa em dança (o corpo, a técnica, a poiese), e a Regra 4 pede-o declarado. Fica ANTES da
+   * música e do repertório, e imediatamente antes: é o que se lê a seguir às condições do espaço,
+   * porque é da MESMA família — o que a aula precisa para acontecer.
+   *
+   * A tabela sai do que o formulário consolidou a partir das anamneses das alunas da turma — o
+   * que elas mostram JUNTAS, nunca uma linha por aluna. Sem a leitura, a secção declara a lacuna
+   * com o caminho de volta, e não inventa um ponto de atenção que ninguém viu. */
+  {
+    const linhas = linhasDaTabela(respostaDo(envelope, 'aspecto-fisico'))
+      .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
+    const corpo = linhas.length
+      ? tabelaDeLista(linhas, '| Aspecto | Como está a turma |', '|:--|:--|')
+      : ['[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto '
+        + 'físico — força e flexibilidade» do plano de ensino.]'];
+    corpo.push('');
+    corpo.push('O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha por '
+      + 'aluna, e sim o que elas têm em comum. É um **ponto de atenção** do ciclo: o que se vai '
+      + 'olhar, e não uma avaliação de ninguém.');
+    secao('Aspecto físico — força e flexibilidade', corpo);
+  }
+
   lista('Música e vídeo de referência', musicasDaSequencia(respostaDo(envelope, 'aula-1-sequencia'))
     .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
   lista('Repertório', respostaDo(envelope, 'repertorio'));

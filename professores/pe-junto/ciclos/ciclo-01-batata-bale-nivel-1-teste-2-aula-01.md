@@ -25,9 +25,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 - Sala com barra, espelho e aparelho de som; piso adequado.
 
-## 3. A sequência conectada (fio condutor)
-
-### Distribuição do tempo da aula
+## 3. Distribuição do tempo pelos blocos
 
 | Bloco | Tempos | Fatia |
 |:--|--:|--:|
@@ -39,15 +37,17 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 ## 4. Bloco de musicalidade
 
-**Bloco no plano.** 30% do volume — 27 tempos (Regra 9, etapa 2).
+**Os compassos desta aula.** 4/4.
 
-| Música | Exercícios | O que cai em cada contagem |
-|:--|:--|:--|
-| 2 tempos em 4/4 | Barra — Battement fondu · Centro — Battement fondu · Expressão — Battement fondu | 1–2 `[Pé: 5ª → +]` · 3–4 `[Pé: 5ª → -]` · 1–2 `[Pé: 5ª → ×]` |
-| 4 tempos em 4/4 | Barra — Battement tendu · Centro — Battement tendu · Expressão — Battement tendu | 1–2 `[Pé: 1ª → +]` · 3–4 `[Pé: + ● 1ª]` |
-| 8 tempos em 4/4 | Barra — Plié · Centro — Plié · Expressão — Plié | 1–4 `[Perna: 1ª ↓]` · 1–4 `[Perna: ↓ ↑]` · 1–2 `[Braço: ↓ ⌒]` · 3–4 `[Braço: → + - ⌒]` |
+| Compasso | Exercício | Tempos | Contagem |
+|:--|:--|--:|:--|
+| 4/4 | Battement fondu | 2 | 1–2 `[Pé: 5ª → +]` · 3–4 `[Pé: 5ª → -]` · 1–2 `[Pé: 5ª → ×]` **conferir** |
+| 4/4 | Battement tendu | 4 | 1–2 `[Pé: 1ª → +]` · 3–4 `[Pé: + ● 1ª]` |
+| 4/4 | Plié | 8 | 1–4 `[Perna: 1ª ↓]` · 1–4 `[Perna: ↓ ↑]` · 1–2 `[Braço: ↓ ⌒]` · 3–4 `[Braço: → + - ⌒]` **conferir** |
 
-O pulso é a contagem; o acento, o tempo do compasso em que ela cai; a frase, o exercício inteiro sobre a música. A grade vem do **verbete** de cada exercício e a música, da sequência do plano — não se perguntam outra vez.
+Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício.
+
+Onde diz **conferir**, a grade de contagens do verbete não fecha nos tempos que a sequência declara para aquela música. O que se corrige é o verbete, e a decisão é da professora: o documento não escolhe por ela.
 
 ## 5. Guia de observação do professor
 

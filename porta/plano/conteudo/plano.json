@@ -534,6 +534,61 @@
     },
     {
       "bloco": 10,
+      "titulo": "Aspecto físico — força e flexibilidade",
+      "objetivo": "declarar o que a turma mostra de força e flexibilidade que vai ser observado — o aspecto do corpo",
+      "campos": [
+        {
+          "id": "aspecto-fisico",
+          "campo": "Força e flexibilidade da turma",
+          "obrigatorio": false,
+          "lidoDasAnamneses": {
+            "turma": "contexto-turma",
+            "nota": "Lido das anamneses das alunas desta turma. Não é por aluna: é o que a turma mostra em cada aspecto. Corrige-se na anamnese, que é onde o dado se decide.",
+            "grupos": [
+              {
+                "grupo": "Flexibilidade e amplitude",
+                "campos": [
+                  "flexibilidade-dos-isquiotibiais",
+                  "flexibilidade-dos-adutores",
+                  "flexibilidade-anteroposterior-grand-ecart",
+                  "mobilidade-das-costas-e-tronco-cambre",
+                  "mobilidade-de-quadril-en-dehors-de-origem",
+                  "mobilidade-de-flexao-extensao-do-tornozelo",
+                  "rotacao-e-amplitude-dos-ombros"
+                ]
+              },
+              {
+                "grupo": "Força",
+                "campos": [
+                  "controle-de-carga-no-demi-grand-plie",
+                  "forca-excentrica-recuo-na-flexao-de-tronco",
+                  "sustentacao-ativa-de-mmii-forca-de-adagio",
+                  "equilibrio-unipodal",
+                  "forca-de-empurrar-push-ups",
+                  "forca-de-puxar-tracao",
+                  "resistencia-de-mmss-port-de-bras-prolongado",
+                  "articulacao-e-forca-intrinseca-dos-dedos"
+                ]
+              }
+            ]
+          },
+          "tabela": {
+            "colunas": ["Aspecto", "Como está a turma"],
+            "minimo": 1,
+            "textoLargo": ["Como está a turma"],
+            "acrescentavel": true,
+            "removivel": true
+          },
+          "explicacao": {
+            "oQueE": "O aspecto do CORPO: o que esta turma mostra de força e flexibilidade, e que por isso vai ser olhado durante o ciclo. É o primeiro dos três eixos do que se observa em dança — o corpo, a técnica e a poiese.",
+            "preencher": "Carregue a sugestão a partir das anamneses da turma e corrija: é o que as alunas mostram JUNTAS, não uma linha por aluna. Se a anamnese de uma aluna estiver errada, corrija na anamnese — o dado decide-se lá.",
+            "porQue": "Porque sem o ponto de partida do corpo, «melhorou» não quer dizer nada: a mesma aula não produz o mesmo efeito em duas alunas que partem de lugares diferentes. E porque a força e a flexibilidade são o que a Regra 4 pede declarado — este é o sítio onde isso está."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 11,
       "titulo": "Música e vídeo de referência",
       "objetivo": "declarar o vídeo de referência desta aula e mostrar a música que cada exercício já tem",
       "campos": [
@@ -556,7 +611,7 @@
       ]
     },
     {
-      "bloco": 11,
+      "bloco": 12,
       "titulo": "Repertório da aula",
       "objetivo": "mostrar os exercícios que esta aula usa — lidos da sequência, não escritos",
       "campos": [
@@ -580,7 +635,7 @@
       ]
     },
     {
-      "bloco": 12,
+      "bloco": 13,
       "titulo": "Origem",
       "objetivo": "declarar a base pedagógica do plano",
       "campos": [

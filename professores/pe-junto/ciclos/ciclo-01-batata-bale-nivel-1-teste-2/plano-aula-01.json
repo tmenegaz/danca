@@ -7,25 +7,29 @@
     "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
   },
   "condicoesPreliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
-  "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Barra · 27 · 30% Centro · 27 · 30% Musicalidade · 27 · 30% Expressão · 9 · 10% **Total** · **90** · **100%**",
+  "sequenciaDaAula": "Bloco · Tempos · Fatia Barra · 27 · 30% Centro · 27 · 30% Musicalidade · 27 · 30% Expressão · 9 · 10% **Total** · **90** · **100%**",
   "blocoDeMusicalidade": [
-    "**Bloco no plano.** 30% do volume — 27 tempos (Regra 9, etapa 2).",
+    "**Os compassos desta aula.** 4/4.",
     {
-      "musica": "2 tempos em 4/4",
-      "exercicios": "Barra — Battement fondu · Centro — Battement fondu · Expressão — Battement fondu",
-      "oQueCaiEmCadaContagem": "1–2 `[Pé: 5ª → +]` · 3–4 `[Pé: 5ª → -]` · 1–2 `[Pé: 5ª → ×]`"
+      "compasso": "4/4",
+      "exercicio": "Battement fondu",
+      "tempos": "2",
+      "contagem": "1–2 `[Pé: 5ª → +]` · 3–4 `[Pé: 5ª → -]` · 1–2 `[Pé: 5ª → ×]` conferir"
     },
     {
-      "musica": "4 tempos em 4/4",
-      "exercicios": "Barra — Battement tendu · Centro — Battement tendu · Expressão — Battement tendu",
-      "oQueCaiEmCadaContagem": "1–2 `[Pé: 1ª → +]` · 3–4 `[Pé: + ● 1ª]`"
+      "compasso": "4/4",
+      "exercicio": "Battement tendu",
+      "tempos": "4",
+      "contagem": "1–2 `[Pé: 1ª → +]` · 3–4 `[Pé: + ● 1ª]`"
     },
     {
-      "musica": "8 tempos em 4/4",
-      "exercicios": "Barra — Plié · Centro — Plié · Expressão — Plié",
-      "oQueCaiEmCadaContagem": "1–4 `[Perna: 1ª ↓]` · 1–4 `[Perna: ↓ ↑]` · 1–2 `[Braço: ↓ ⌒]` · 3–4 `[Braço: → + - ⌒]`"
+      "compasso": "4/4",
+      "exercicio": "Plié",
+      "tempos": "8",
+      "contagem": "1–4 `[Perna: 1ª ↓]` · 1–4 `[Perna: ↓ ↑]` · 1–2 `[Braço: ↓ ⌒]` · 3–4 `[Braço: → + - ⌒]` conferir"
     },
-    "O pulso é a contagem; o acento, o tempo do compasso em que ela cai; a frase, o exercício inteiro sobre a música. A grade vem do **verbete** de cada exercício e a música, da sequência do plano — não se perguntam outra vez."
+    "Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício.",
+    "Onde diz **conferir**, a grade de contagens do verbete não fecha nos tempos que a sequência declara para aquela música. O que se corrige é o verbete, e a decisão é da professora: o documento não escolhe por ela."
   ],
   "guiaDeObservacao": [
     "Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor",

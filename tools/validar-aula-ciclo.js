@@ -62,6 +62,10 @@ const MAPA_SECOES = {
   "2. condições preliminares de preparação (o espaço e o material)": "condicoesPreliminares",
   "2. condições preliminares de preparação (força e flexibilidade)": "condicoesPreliminares",
   "2. pré-requisitos declarados pelo professor": "condicoesPreliminares",
+  // «A sequência conectada (fio condutor)» → «Distribuição do tempo pelos blocos» (02/11/2026):
+  // o corpo sempre foi a tabela da Regra 9, e o título prometia os exercícios, que estão na
+  // secção seguinte. O título antigo fica no mapa: há documento escrito com ele.
+  "3. distribuição do tempo pelos blocos": "sequenciaDaAula",
   "3. a sequência conectada (fio condutor)": "sequenciaDaAula",
   "3. a sequência da aula (fio condutor)": "sequenciaDaAula",
   "4. bloco de musicalidade (8 tempos · 9%)": "blocoDeMusicalidade",
