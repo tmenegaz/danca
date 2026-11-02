@@ -226,11 +226,20 @@ leitura da **C22**, onde o gerador aparecia como o degrau 4 da escada (ver §6, 
    dentro dele; subir de plano acrescenta uma secção ao site da escola, e não toca em nenhum pacote
    já publicado (nem na sua âncora).
 
-**O que ainda não está decidido, e é dela:** se o produto é **incluído no pacote** da escola (uma
-secção do site, servida pelo mesmo Worker) ou **entregue fora** (um pacote separado, com a sua âncora
-e a sua licença). A primeira é mais barata e menos vendável; a segunda é o que «vender o dicionário»
-exige. **A recomendação deste plano: o produto é um pacote próprio**, porque é a única forma de ele
-ter âncora, versão e licença independentes do ciclo — que é o que a negociação pede.
+**DECIDIDO a 02/11/2026: o produto é um PACOTE PRÓPRIO.** Ela seguiu a recomendação deste plano. A
+razão, e fica escrita porque decide a forma do artefacto: é a única forma de o produto ter **âncora,
+versão e licença independentes do ciclo** — e é isso que a negociação pede. Uma secção do site da
+escola seria mais barata e menos vendável, e amarraria o dicionário ao ciclo que aquela escola tem,
+que é o contrário de «vender o dicionário».
+
+**Três consequências, e nenhuma é cosmética:**
+
+- **cada produto tem `.fipp` próprio** (`tools/hash-ciclo.sh` já sela por documento, e a convenção é a
+  mesma) — logo, publicar um produto **não reancora nenhum ciclo**;
+- **o Worker serve-o por uma rota própria**, ao lado da publicação da escola, e não dentro dela —
+  sem isso, «descer de plano» teria de editar o pacote da escola;
+- **a licença é a do produto, não a do ciclo**: a `ARQUITETURA-GERAL.md` §10 diz que o catálogo se
+  licencia **vinculado à fotografia datada**, e o pacote é o suporte dessa fotografia.
 
 ---
 
@@ -250,7 +259,7 @@ são operacionais.
 | 6 | **`PLANO-INDICES.md`** | os índices vêm **antes** de L6 e da Tabela de actividades, e indexam o **acervo** (ciclos, professores, escolas) | **não colide — mas falta um índice** | os produtos não precisam do índice para **existir**; precisam dele para serem **encontráveis** (fase 5). O índice do acervo não muda; os produtos ganham o seu |
 | 7 | **`CONGELAMENTO.md`** | `tools/` (geradores, validadores, hooks) e `tools/templates/` são **congelados** | **sim — operacional** | a entrega **chama** `gerar-ciclo.sh`/`montar-publicacao.js` **sem os alterar**. Se for preciso alterar, é **motivo declarado + entrada no REGISTRO + commit próprio** — o mesmo caminho da Regra 15 |
 | 8 | **Decisão 17** (`ESTADO-ATUAL.md` §6) | «o vocabulário vive no **repositório**, numa lista só», sem cópia no KV | **não colide, se a separação for no repositório** | catálogo e adições são **dois ficheiros no repositório**, com **um leitor que compõe**. A decisão 17 proíbe a cópia em KV, não a separação em ficheiros — mas a nota tem de o dizer, senão a primeira leitura conclui que colide |
-| 9 | **`ARQUITETURA-GERAL.md:109`** | a licença está «a definir» | **bloqueia a fase 1** | não é colisão de desenho: é **decisão de negócio**. Enquanto não houver licença e separação, o degrau 1 não se vende |
+| 9 | **A licença** — aberta desde 18/09/2026 (`REGISTRO.md:109`) | estava «a definir»; nenhuma versão de `ARQUITETURA-GERAL.md` o dizia (a citação que aqui esteve, «`:109` diz a definir», era **falsa** — correção datada no `REGISTRO.md`) | **resolvida a 02/11/2026** | **decidida**: três camadas (máquina proprietária · catálogo licenciado · adições da escola dela), na `ARQUITETURA-GERAL.md` §10. O que continua a travar o degrau 1 é a **separação** e as **25 descrições sem `fonte`** |
 
 **E uma nona colisão que não é com um plano, é com uma frase deste repositório.** O `PLANEJAMENTO`
 §5 diz «o que **não** se deve fazer: implementar L6 antes de L1/L2/L3 e de L10». Os produtos **não
@@ -270,8 +279,9 @@ de **conteúdo** (P-16: declara-se, não se deduz), e é por isso que nenhuma li
 | **A** | **O mapa nível → termos** | `progressao.json`: **13 turmas**, **9 associações** — e só **2 níveis** têm alguma (nível 1: 4 termos; nível 2: 5). Os outros **11 níveis estão vazios** | o syllabus de qualquer nível acima do 2, e a aula pronta correspondente |
 | **B** | **A camada pedagógica por unidade** (o que **exige**, o que **ensina**, o que **expressa**) | não existe em nenhum dos três ficheiros do catálogo | o syllabus como **programa** e não como lista |
 | **C** | **As 5 músicas que não fecham** | Plié 12 em 8 · Rond de jambe en l'air 3 em 4 · Battement dégagé 6 em 4 · Battement fondu 6 em 2 · Relevé 1 em 2 | a aula pronta **fecha** o teto: uma célula que não fecha estraga a aritmética da Regra 9. E a gravação **já as recusa** desde 02/11/2026 |
-| **D** | **A licença** | não há `LICENSE`; `ARQUITETURA-GERAL.md:109` diz «a definir» | o degrau 1 inteiro |
-| **E** | **A separação catálogo × escola** | `termo-repo.js`: **um** ficheiro (`biblioteca/modalidades/bale-classico/vocabulario.json`) para os dois | vender o dicionário sem vender as edições de cada escola |
+| **D** | **A licença** | **DECIDIDA a 02/11/2026** (`ARQUITETURA-GERAL.md` §10) — falta o `LICENSE.md` e o contrato citá-lo | o degrau 1 deixa de estar bloqueado por ela; **mas** o catálogo que se vende não pode levar as **25 descrições com `fonte` vazio** (ver **F**) |
+| **E** | **A separação catálogo × escola** | `termo-repo.js`: **um** ficheiro (`biblioteca/modalidades/bale-classico/vocabulario.json`) para os dois | vender o dicionário sem vender as edições de cada escola — e é ela que dá sentido à §10.3 da licença |
+| **F** | **A proveniência das descrições** | dos **59 termos com descrição**, **25 têm `fonte` vazio** (30 vêm do dicionário que ela forneceu, 4 foram redigidas no projeto) | a **edição paga** do dicionário: sem origem declarada, a descrição não pode ser licenciada. Duas saídas, e são dela: **declarar** as 25 ou **deixá-las fora** da edição paga |
 
 **E uma nota sobre a ordem entre A e B.** O mapa nível→termos (A) pode ser **o mesmo trabalho** que a
 camada pedagógica (B): quem declara «o nível 1 ensina `plié` e `tendu`» já está a dizer o que a
@@ -287,10 +297,16 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 ### Fase 0 — o conteúdo (não é código)
 
 - **A**: o mapa nível→termos para os 13 níveis, em `progressao.json` (`relacoes`), declarado pela
-  pesquisadora — começando pelo **nível 1 completo** (é o que a `batata` usa).
+  pesquisadora — começando pelo **nível 1 completo** (é o nível da `breu`, a escola de teste criada a
+  02/11/2026).
 - **C**: corrigir as 5 músicas (ou os verbetes) para que `cobre` feche os tempos.
-- **D**: a licença, como decisão de negócio, escrita em `ARQUITETURA-GERAL.md` (que é livre).
-- **Verificação:** os 11 verbetes fecham; o nível 1 tem ≥ 8 termos associados; existe um `LICENSE`.
+- **D**: a licença — **decidida a 02/11/2026** e escrita na `ARQUITETURA-GERAL.md` §10 (que é
+  livre). Falta o `LICENSE.md` na raiz, que é o texto que o **contrato cita**.
+- **F**: a **proveniência das 25 descrições** com `fonte` vazio — declarar, ou deixá-las fora da
+  edição paga. **É a condição que a licença impõe** (§10.4), e sem ela o dicionário não se vende
+  inteiro.
+- **Verificação:** os 11 verbetes fecham; o nível 1 tem ≥ 8 termos associados; existe um `LICENSE.md`
+  que cita a fotografia datada; **nenhuma descrição da edição paga tem `fonte` vazio**.
 
 ### Fase 1 — a separação catálogo × escola (C22, item 2 · L14, lacuna 0)
 
@@ -348,7 +364,12 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 5. **A separação é real.** Criar um termo numa escola não muda o catálogo (§Fase 1).
 6. **O plano decide, e descer não apaga.** Os quatro casos da §Fase 4 passam, incluindo o downgrade.
 7. **A âncora do produto é independente.** Publicar um produto não reancora nenhum ciclo, e nenhuma
-   âncora de ciclo muda por causa dele.
+   âncora de ciclo muda por causa dele — é o que o **pacote próprio** (decidido) torna verificável.
+8. **A licença é executável.** Existe `LICENSE.md`, ele **nomeia a fotografia datada** do catálogo, e
+   uma descrição com `fonte` vazio **não entra** na edição paga — testável por varredura no ficheiro
+   que o pacote do dicionário leva.
+9. **O que a escola acrescenta é dela.** Retirar a escola do projeto não leva os termos dela para o
+   catálogo, e propô-los exige aceitação explícita (§10.3 da `ARQUITETURA-GERAL.md`).
 
 ---
 
@@ -369,9 +390,15 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 
 **Por decidir, e é dela.**
 
-1. **Preço e empacotamento** dos três produtos (C8 / L8).
-2. **A licença** (§7-D).
-3. **Produto dentro do pacote ou pacote próprio** (§5 — a recomendação deste plano é pacote próprio).
+1. **Preço** dos três produtos (C8 / L8). **PENDENTE** — é dela e do L8.
+2. ~~**A licença**~~ — **DECIDIDA a 02/11/2026**: três camadas (máquina proprietária · catálogo
+   licenciado por escola, vinculado à fotografia datada · adições da escola são dela, com concessão
+   estreita para a via inversa). Escrita na `ARQUITETURA-GERAL.md` §10. **Falta o `LICENSE.md`**, que
+   é o texto que o contrato cita, e **não foi criado** (ela pediu para não começar a implementação).
+   A condição de conteúdo que a licença impõe — **25 descrições sem `fonte`** não entram na edição
+   paga — continua aberta, e é dela.
+3. ~~**Produto dentro do pacote ou pacote próprio**~~ — **DECIDIDO a 02/11/2026: pacote próprio**
+   (§5), com âncora, versão e licença próprias.
 4. **O lugar do `plano`** na habilitação (C11).
 5. **Se a camada pedagógica (B) se faz junto com o mapa nível→termos (A)** (§7 — recomendação: sim).
 

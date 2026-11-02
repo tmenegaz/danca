@@ -1033,7 +1033,7 @@ notação, glossário.
 
 | # | O que se vende | Existe? | O que bloqueia, medido |
 |:--|:--|:--|:--|
-| **1** | **Dicionário** — o vocabulário e os verbetes | **sim**, o conteúdo | **a separação catálogo × escola** e a **licença**. O `POST /api/bastidores/termo` grava em `biblioteca/modalidades/bale-classico/vocabulario.json` (`termo-repo.js`), que é o **catálogo** — uma escola que acrescente um termo altera o catálogo de todos. E não há `LICENSE`, e a `ARQUITETURA-GERAL.md:109` diz «a definir» |
+| **1** | **Dicionário** — o vocabulário e os verbetes | **sim**, o conteúdo | **a separação catálogo × escola** e a **licença**. O `POST /api/bastidores/termo` grava em `biblioteca/modalidades/bale-classico/vocabulario.json` (`termo-repo.js`), que é o **catálogo** — uma escola que acrescente um termo altera o catálogo de todos. E não há `LICENSE`, e a licença está **a definir desde 18/09/2026** (`REGISTRO.md:109`) — a **decisão de 02/11/2026** está na `ARQUITETURA-GERAL.md` §10 |
 | **2** | **Syllabus** — a sequência por nível, com os três eixos por unidade | **parcial**: há ordem (13 turmas, 9 associações), não há programa | **a camada pedagógica do verbete** (exige/ensina/expressa) não existe em nenhum dos três ficheiros, e **os três eixos não são eixos** — são prefixo de rótulo (ver **C20**) |
 | **3** | **Aula pronta** — a sessão montada | **a mecânica sim**, o objecto vendável não | o mesmo do syllabus, e a **natureza da oferta**: no Básico/Intermediário é configuração; no Avançado é configuração + conteúdo (**C19**, resolvida) |
 | **4** | **Gerador** — a ferramenta que produz 2 e 3 a partir de 1 | **não** | depende dos três acima; é o plano Avançado da L8/L9 |

@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `377544c`). Nesta entrega: **a decisão dos três produtos**
+> **Última fotografia:** 02/11/2026 (base local `e323e60`). Nesta entrega: **a licença está decidida** —
+> três camadas (a máquina é proprietária e **não** se licencia com os produtos; o catálogo licencia-se
+> por escola, **vinculado à fotografia datada**; o que a escola acrescenta **é dela**, com uma
+> concessão estreita para a via inversa), escrita na `ARQUITETURA-GERAL.md` §10 —, e **o produto é
+> pacote próprio**, com âncora, versão e licença independentes do ciclo. A licença obrigou a medir uma
+> coisa que faltava: **25 das 59 descrições não têm `fonte`**, e sem origem declarada não podem entrar
+> na edição paga. E foi corrigida uma **citação minha, falsa em cinco sítios** — «a
+> `ARQUITETURA-GERAL.md:109` diz a definir»; a frase verdadeira é do `REGISTRO.md:109`, na entrada de
+> 18/09/2026. Nenhuma linha de código; o `LICENSE.md` **não** foi criado (ela vai testar a `breu`).
+>
+> **Entrega anterior** (base `377544c`). Nesta entrega: **a decisão dos três produtos**
 > — dicionário, syllabus e aula pronta, gerados **antes do ciclo** e entregues **conforme o plano
 > contratado** (o Avançado recebe; os outros fazem tudo) —, e o plano que a constrói:
 > [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), em seis fases. A resposta à pergunta
@@ -270,6 +280,26 @@ Verificado nesta fotografia, com os comandos da §9.
   camada pedagógica não existe em ficheiro nenhum do catálogo; as **5 músicas** continuam a não
   fechar; faltam a **licença** e a **separação** catálogo × escola. **CONFIRMADO** — e é o caminho
   crítico do plano.
+- **A licença está decidida — três camadas, e nenhuma delas existia.** `ARQUITETURA-GERAL.md` §10:
+  **a máquina** (`motor/` · `tools/` · `porta/` · `raiz/` · `.github/`) é **proprietária e não se
+  licencia** com os produtos; **o catálogo** licencia-se **por escola**, em seis cláusulas, **vinculado
+  à fotografia datada** (a lógica da C5a) e **perpétuo para a versão contratada** (a lógica da L9);
+  **o que a escola acrescenta é dela**, com uma concessão **não exclusiva** para o projeto o servir de
+  volta e **avaliar** a entrada no catálogo, que exige **aceitação explícita**. **DECIDIDO**
+  02/11/2026. O `LICENSE.md` **não foi criado** — é o texto que o contrato cita, e espera o ok dela.
+- **25 das 59 descrições do vocabulário não têm `fonte`.** Medido em `vocabulario.json` (93 termos):
+  30 vêm do «Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora», 4
+  são «redigida no projeto», e **59 têm `fonte` vazio** — e, destes, **25 têm descrição**. Sem origem
+  declarada a descrição **não pode ser licenciada**, logo não entra na **edição paga** do dicionário.
+  As duas saídas — declarar as 25 ou deixá-las fora — são dela. **CONFIRMADO** por contagem em
+  02/11/2026.
+- **Não há conteúdo de terceiros a acomodar** — o que a decisão da licença exigia saber. Os SVGs são
+  da marca do projecto (`tools/templates/marca/`); a tipografia é `system-ui` + Georgia **sem ficheiro
+  de fonte embutido** (`ciclo.css:76-77`); e a nomenclatura RAD/Vaganova são **nomes de posições**, que
+  não são obra. O repositório é **privado**. **CONFIRMADO** em 02/11/2026.
+- **O produto é um PACOTE PRÓPRIO**, com `.fipp` próprio, rota própria no Worker e a **licença do
+  produto** — não a do ciclo. **DECIDIDO** 02/11/2026: é a única forma de o produto ter âncora, versão
+  e licença independentes; a alternativa amarraria o dicionário ao ciclo daquela escola.
 - **O plano contratado não existe em código.** `raiz/escolas-habilitadas.json` tem `habilitada` e
   `pagante` (a trava do expurgo) e **não tem `plano`**. A distribuição por plano (fase 4) depende de
   **C11** decidir onde vive o estado comercial. **CONFIRMADO**.
@@ -715,8 +745,8 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     **5 das 13 músicas** têm `cobre` diferente dos tempos (Plié 12 em 8, Rond de jambe en l'air 3 em
     4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — e a gravação já as
     **recusa**, o que quer dizer que precisam de correção antes de qualquer regravação. A
-    **licença** (não há `LICENSE`; `ARQUITETURA-GERAL.md:109` diz «a definir») trava o degrau 1 tanto
-    quanto a separação. **DECIDIDO** o diagnóstico e o veredicto; a **ordem comercial** é dela
+    **licença** (não há `LICENSE`; estava a definir desde 18/09/2026, `REGISTRO.md:109` — **decidida a
+    02/11/2026**, `ARQUITETURA-GERAL.md` §10) trava o degrau 1 tanto quanto a separação. **DECIDIDO** o diagnóstico e o veredicto; a **ordem comercial** é dela
     (**C22**).
 56. **UM MOTOR, TRÊS SAÍDAS, TRÊS MANIFESTOS — E OS PRODUTOS VÊM ANTES DO CICLO.** Os três produtos
     (dicionário · syllabus · aula pronta) são **saídas de um motor só**, porque o trabalho é um: o
@@ -733,6 +763,16 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     dado da escola, não respondem pergunta nenhuma. Podem por isso vir **antes** das camadas
     analíticas, e o que os trava é **conteúdo** e **L1 · L2 · L14**, não o índice nem o catálogo de
     consultas. **DECIDIDO** 02/11/2026.
+
+58. **A LICENÇA TEM TRÊS CAMADAS, E O QUE A ESCOLA ACRESCENTA É DELA.** A **máquina** é proprietária e
+    **não** se licencia com os produtos — a escola compra o uso do produto, não o motor que o produz.
+    O **catálogo** licencia-se **por escola**: **vinculado à fotografia datada** (C5a), **perpétuo para
+    a versão contratada** (L9), **não exclusivo/transferível/sublicenciável**, uso interno livre,
+    **revenda proibida**, **atribuição preservada** no `fonte` de cada descrição. E o que **a escola
+    acrescenta é dela**: concede ao projecto uso não exclusivo para o servir de volta e **avaliar** a
+    proposta de entrada no catálogo, que exige **aceitação explícita**. **A condição que a licença
+    impõe:** uma descrição **sem `fonte`** não entra na edição paga — e **25 das 59** estão nessa
+    situação. Escrita na `ARQUITETURA-GERAL.md` §10. **DECIDIDO** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -942,8 +982,9 @@ verificação e o veredicto estão na **C22** do `PLANEJAMENTO-LASTRO.md`; o res
   1, e é de conteúdo.**
 
 **O que trava o degrau 1 não é técnico, e são duas coisas.** A **licença**: não há `LICENSE`, e a
-`ARQUITETURA-GERAL.md:109` diz «a definir» — de quem é a descrição é pergunta que o `fonte` distingue
-mas não resolve. E a **separação catálogo × escola**: `POST /api/bastidores/termo` grava em
+a licença estava a definir desde 18/09/2026 (`REGISTRO.md:109`) — de quem é a descrição é pergunta
+que o `fonte` distingue mas não resolve —, e foi **decidida a 02/11/2026** (`ARQUITETURA-GERAL.md`
+§10, três camadas). E a **separação catálogo × escola**: `POST /api/bastidores/termo` grava em
 `biblioteca/modalidades/bale-classico/vocabulario.json` (`termo-repo.js`), que é o **catálogo** — uma
 escola que acrescente um termo altera o catálogo de todos. É a lacuna **(0)** da **L14**, e é
 pré-requisito do degrau 1, não um detalhe dele.
@@ -962,9 +1003,11 @@ curadoria) e **por qual plano** (§5) — e declara **nove colisões** com os pl
 não é o quarto produto, é o meio) e na **L14** (a turma pronta referencia o syllabus, não o contém).
 
 **O que continua a travar, e não é código:** o mapa nível→termos (**11 dos 13 níveis vazios**), a
-camada pedagógica, as **5 músicas**, a **licença** e a **separação** catálogo × escola. E a fase 4
-depende de **C11**: o plano contratado **não existe em código** — `raiz/escolas-habilitadas.json` só
-tem `habilitada` e `pagante`.
+camada pedagógica, as **5 músicas**, a **separação** catálogo × escola — e, agora com nome e número,
+**as 25 descrições sem `fonte`**, que a licença impede de entrar na edição paga. A **licença** deixou
+de estar nesta lista: foi **decidida** (`ARQUITETURA-GERAL.md` §10), e falta apenas o `LICENSE.md`,
+que é o texto que o contrato cita. E a fase 4 depende de **C11**: o plano contratado **não existe em
+código** — `raiz/escolas-habilitadas.json` só tem `habilitada` e `pagante`.
 
 O que **continua** em aberto desta família é outro: a **bancada**
 `experimentos/propostas/proposta-musicalidade.html` (local, não versionada) propunha uma legenda de
@@ -1032,7 +1075,23 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — os três produtos e o plano do motor)
+### Executado nesta fotografia (02/11/2026 — a licença e o pacote próprio)
+
+Esta entrega **não alterou código**: é decisão, mais a correção de uma citação. O que se mediu foi o
+que a decisão exigia saber.
+
+| Verificação | Resultado |
+|:--|:--|
+| **o repositório é privado** | `tmenegaz/danca`, `private: true`, `license: null` — pela API do GitHub, 02/11/2026. Não há distribuição pública, logo a licença é decisão de negócio e não de compatibilidade |
+| **não há conteúdo de terceiros** | `tools/templates/marca/` — 4 SVG da marca do projecto; `tools/templates/ciclo.css:76-77` — `--serif: Georgia…` e `--ui: system-ui…`, **sem ficheiro de fonte embutido**; RAD/Vaganova são nomes de posições |
+| **a proveniência das descrições** | `vocabulario.json`: 93 termos, **59 com descrição**; `fonte` = 30 do dicionário fornecido, 4 «redigida no projeto», **59 vazio** — e **25 das 59 com descrição estão sem `fonte`** |
+| **a citação da licença** | `sed -n '109p' ARQUITETURA-GERAL.md` → o diagrama do deploy; `grep -n 'licen'` → **uma** ocorrência (§5, «nem licença»); `git log --all -S'Licença do repositório' -- ARQUITETURA-GERAL.md` → **vazio**. A frase está em `REGISTRO.md:109`, entrada de 18/09/2026 |
+| `node tools/check-indices.js` | **14 verificações, 0 falha(s)** — TUDO CERTO |
+| `node tools/check-schemas.js` | TUDO CERTO — o molde e os professores dizem o mesmo contrato |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| **não executado** | as provas de browser — nenhuma linha de código do motor mudou nesta entrega |
+
+### Executado na fotografia anterior (02/11/2026 — os três produtos e o plano do motor)
 
 Esta entrega **não alterou código**: é decisão e plano. O que se correu foi o que a documentação pode
 partir, e o que se mediu foi o que o plano afirma.
@@ -1489,8 +1548,10 @@ que vem do código).
 (1) o **mapa nível→termos** para os 13 níveis, começando pelo nível 1 (hoje: 13 turmas, **9
 associações**, e só 2 níveis com alguma); (2) as **5 músicas** que não fecham os tempos (Plié 12 em 8,
 Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — e a
-gravação **já as recusa**, logo não se podem regravar sem corrigir; (3) a **licença**. Só depois a
-fase 1 (a separação catálogo × escola) e a fase 2 (as três saídas em memória) entram em código.
+gravação **já as recusa**, logo não se podem regravar sem corrigir; (3) ~~a licença~~ — **decidida**
+(`ARQUITETURA-GERAL.md` §10), falta só o `LICENSE.md`; (4) a **proveniência das 25 descrições**, que a
+licença exige para o dicionário poder ser vendido inteiro. Só depois a fase 1 (a separação
+catálogo × escola) e a fase 2 (as três saídas em memória) entram em código.
 
 **E há uma ordem que o plano recomenda e ela ainda não decidiu:** a **camada pedagógica**
 (exige/ensina/expressa) pode ser o **mesmo trabalho** que o mapa nível→termos — quem declara «o nível
@@ -1572,6 +1633,16 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **A licença em três camadas, o pacote próprio, e uma citação minha que era falsa.** A
+  licença estava aberta desde 18/09/2026 e ficou decidida: a **máquina** é proprietária e **não** se
+  licencia com os produtos; o **catálogo** licencia-se **por escola**, vinculado à **fotografia
+  datada**, perpétuo para a versão contratada, com uso interno livre e revenda proibida, atribuição
+  preservada no `fonte`; e **o que a escola acrescenta é dela**, com uma concessão estreita para a via
+  inversa. E o produto é **pacote próprio**, com âncora, versão e licença independentes do ciclo. A
+  licença obrigou a medir o que faltava para a poder executar — **25 das 59 descrições não têm
+  `fonte`**, e sem origem declarada não entram na edição paga. De caminho, **corrigi uma citação minha
+  falsa em cinco sítios**: «a `ARQUITETURA-GERAL.md:109` diz a definir»; a frase existe, mas é do
+  `REGISTRO.md:109` (entrada de 18/09/2026). O número estava certo; o ficheiro, não.
 - **02/11/2026** — **Os três produtos, um motor só, e as nove colisões.** A pesquisadora decidiu
   criar **dicionário, syllabus e aula pronta** — gerados **antes do ciclo**, entregues conforme o
   plano contratado (Básico e Intermediário «fazem tudo»; o Avançado «recebe as benesses»). A

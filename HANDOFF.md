@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T14:01:00-0300`
-Commit atual: `146d57d` — docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
+Gerado em: `2026-11-02T14:10:52-0300`
+Commit atual: `e323e60` — docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,9 +85,11 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-146d57d docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
-d97bb91 docs(registro): a fotografia dos três produtos e do plano do motor
-312fe8d docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e as nove colisões
+e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez no mesmo dia
+3cd2c0c docs(registro): o expurgo da batata invalidou dois registos, e eles são corrigidos
+9f183bc docs(registro): a fotografia dos três produtos e do plano do motor
+c3bbf35 docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e as nove colisões
+e6e3092 feat(acervo): envelope/.indice.json
 2fd6c07 feat(estrutura): criar a escola breu (motor completo)
 0e8d256 chore(estrutura): regerar os índices derivados
 aeb2b2c chore(estrutura): expurgar a escola batata
@@ -103,8 +105,6 @@ b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» 
 a99196e docs(registro): a publicação desta entrega aconteceu, e a suposição estava errada
 8175264 docs(registro): a fotografia da §4 por compasso e do aspecto físico no plano
 0cb2e54 fix(musicalidade): a §4 consolida por compasso, e o aspecto físico entra no plano
-2a7f13f docs(registro): as limitações de conhecimento desta fotografia, medidas
-e9119d4 docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
 ```
 
 ## Por professor
@@ -228,119 +228,84 @@ e9119d4 docs(registro): a fotografia do estado, o planeamento e a transferência
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — Os três produtos, um motor só, e as nove colisões com os planos existentes
+## 02/11/2026 — A licença em três camadas, e o produto em pacote próprio
 
-**A decisão.** A pesquisadora decidiu criar os três produtos que a C22 mediu — **dicionário,
-syllabus e aula pronta** —, gerados **antes do ciclo** (antes da anamnese, do plano de ensino e do
-PO), e entregues **conforme o plano contratado**: Básico e Intermediário «têm só os formulários e
-fazem tudo»; o **Avançado** «recebe as benesses», e é o **gerador** que as entrega. E pediu três
-coisas: melhorar a investigação, fazer o plano de implementação, documentá-lo — e **verificar se os
-planos que já existem colidem com ele**.
+**As duas decisões.** A pesquisadora: «a decisão a respeito da licença, eu vou seguir o que você
+recomenda. E o produto pacote próprio, também eu vou seguir o que você recomenda.» As duas estavam
+abertas no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md) §10 (itens 2 e 3), e as duas
+fecharam.
 
-**O que ficou escrito, e onde:** [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), plano
-novo, em seis fases. Nenhuma linha de código mudou.
+**A primeira ressalva, e é honesta:** sobre a **licença** eu **não tinha recomendado nada**. O plano
+dizia «a licença (decisão de negócio)» e listava-a como pendente — o que ela leu como recomendação não
+existia. A recomendação fica escrita agora, e é a primeira vez: ela pode discordar, e nada foi
+implementado.
 
-### 1. Quantos motores — a resposta, e a razão dela é medida
+### 1. A licença — três camadas, porque o repositório guarda três coisas de donos diferentes
 
-**Um motor, três saídas, três manifestos.** A hipótese dela (syllabus + dicionário num motor, aula
-pronta noutro) acerta na dependência e custa caro na duplicação:
+Está na **`ARQUITETURA-GERAL.md` §10**, e o resumo:
 
-- **o núcleo já é um e a fronteira é provada por máquina** (`motor/nucleo/`, 21 ficheiros, sem
-  `fs`/`path`/`http`; `provar-agnosticismo.js`). Partir obrigaria a duplicar a fronteira ou a cruzar
-  um núcleo dentro do outro — que é o que a fronteira existe para impedir;
-- **a duplicação já foi paga uma vez**: há **duas leituras** do vocabulário (`lerModalidade` lê do
-  GitHub; `termos()` lê do bundle), e a C22 já manda unificá-las. Dois motores seriam duas leituras
-  **de novo**;
-- **a aula pronta é uma PROJECÇÃO do syllabus**, não outro cálculo: o nível dá a lista, a Regra 9 dá o
-  reparto (`solo 30–40 · barra 20–30 · centro 30–40 · musicalidade 5–10`), e o `cobre` do verbete dá os
-  tempos. Uma segunda função, não um segundo programa;
-- **a âncora é uma convenção só** (`hash-ciclo.sh` → `.fipp`), e **a entrega está em `tools/`, que é
-  congelado** — dois motores pediriam duas alterações ao congelado em vez de uma.
+| Camada | Onde | Regime |
+|:--|:--|:--|
+| **a máquina** | `motor/` · `tools/` · `porta/` · `raiz/` · `.github/` | **proprietário, todos os direitos reservados, e não licenciado** com os produtos — a escola compra o uso do produto, não a máquina que o produz |
+| **o catálogo** | `biblioteca/modalidades/` | **licença comercial de uso, por escola**, em seis cláusulas |
+| **o que a escola acrescenta** | `biblioteca/escolas/<escola>/` | **é dela**, com uma concessão estreita ao projeto |
 
-O que **deve** partir é o **manifesto**: três objectos com `id`, `versao`, `licenca` e `ancora`
-próprios. É isso que dá à negociação a granularidade que ela quer — três coisas a preçar, a versionar
-e a licenciar em separado — sem duplicar a máquina.
+**As seis cláusulas do catálogo, e cada uma por uma razão medida:**
 
-### 2. A investigação — o que já existe, medido
+1. **vinculada à fotografia datada** — é a lógica da **C5a** («o que existe na data de vigência»),
+   aplicada ao conteúdo;
+2. **perpétua para a versão contratada** — a regra da **L9** («a trava não pode ser punição ao dado»);
+3. **não exclusiva, não transferível, não sublicenciável**;
+4. **uso interno sem limite de cópias** — imprimir, projetar, derivar material de aula: o produto só
+   vale se circular dentro da escola;
+5. **redistribuição e revenda proibidas** — incluindo «republicar o dicionário como serviço», que é a
+   revenda que este produto torna fácil;
+6. **atribuição preservada** — cada descrição mantém o `fonte`, e a licença proíbe esvaziá-lo.
 
-Sete das nove peças do motor já estão no repositório, e três estão exactamente na forma que os
-produtos exigem: **a notação é derivada e não escrita** (`notacao.js` compõe `[Pé: 5ª → +]` a partir
-de `categoria` + `sinais`); **o glossário já é o dicionário aplicado a um ciclo** (`glossario-benesh`,
-com índice de símbolos e origem por verbete — falta a mesma função sobre o catálogo inteiro); e **a
-regra do volume já está escrita e é norma** (Regra 9, com as faixas `VOLUME_MIN`/`VOLUME_MAX` no
-`.conf`). Somam-se a ordem por nível (`progressao.json`), o `.conf` derivado da turma
-(`compor-conf.js` — é o que impede o produto de carregar ritmo), a entrega inteira (`gerar-ciclo.sh`,
-`montar-publicacao.js`, `check-pacote.js`, `hash-ciclo.sh`) e a cadeia catálogo → escola
-(`semear-catalogo` → `turma-conteudos` → `Conteúdo do nível` → `aula-1-sequencia`).
+**E a concessão do lado da escola (§10.3)** — sem ela, a «via inversa» da **L14 (e)** usa conteúdo
+alheio com base numa boa intenção: a escola concede **uso não exclusivo** para o projeto (a) servir o
+conteúdo de volta a ela e (b) **avaliar** a proposta de entrada no catálogo; a entrada exige
+**aceitação explícita**, com a atribuição nomeada; e a recusa não tira nada a ela.
 
-**O que falta continua a ser conteúdo, não código:** o mapa nível→termos (**13 turmas, 9 associações**
-— e só **2 dos 13 níveis** têm alguma), a camada pedagógica (exige/ensina/expressa), as **5 músicas**
-que não fecham, a **licença** e a **separação** catálogo × escola.
+**A base da decisão foi medida, não suposta.** O repositório é **privado** (`tmenegaz/danca`,
+verificado pela API) — não há distribuição pública, logo a decisão é de negócio e não de
+compatibilidade. E **não há conteúdo de terceiros a acomodar**: os SVGs são da marca do projeto
+(`tools/templates/marca/`), a tipografia é `system-ui` + Georgia **sem ficheiro de fonte embutido**
+(`ciclo.css:76-77`), e a nomenclatura RAD/Vaganova são **nomes de posições**, que não são obra.
 
-### 3. As nove colisões — e nenhuma é fatal
+### 2. O achado que a licença obrigou a medir — 25 descrições sem origem
 
-Três são **de leitura** (o que está escrito passa a significar outra coisa), três são **aditivas** e
-três são **operacionais**. As que mudam texto hoje:
+**Uma descrição sem `fonte` declarado não entra no catálogo que se vende.** Não é formalismo: não se
+licencia o que não se declarou como seu, e a cláusula 6 não tem como ser cumprida sobre origem omissa.
 
-- **C22** — o gerador aparecia como o **quarto produto** da escada. Correção datada: não é produto, é
-  o **meio**; a escada passa a ler-se **três produtos + um motor**. A tabela não foi reescrita — a
-  nota acrescenta-se (P-03/P-04).
-- **L14** — a **turma pronta** passa a **referenciar** o syllabus (`syllabusId` + versão) em vez de o
-  conter. Sem isto ficariam **dois catálogos** a divergir, e o segundo seria o primeiro copiado.
-- **L8** e **L9** — os produtos entram como **itens da composição** (L8) e a habilitação ganha um
-  **quarto eixo**: conteúdo entregue. A regra da L9 — «descer de plano não apaga» — passa a cobrir os
-  produtos já entregues.
-- As que **não** colidem, e é bom que se diga: **`PLANO-CICLO-DA-TURMA`** (o manifesto do produto
-  **alimenta** o `.conf` — a mesma forma, dois leitores); **`PLANO-INDICES`** (os produtos não precisam
-  do índice para existir, só para serem encontráveis — fase 5); a **decisão 17** (a separação é **no
-  repositório**, em dois ficheiros com um leitor que compõe — o que a 17 proíbe é a cópia em KV).
-- E a colisão que **bloqueia**: a **licença** (`ARQUITETURA-GERAL.md:109`, «a definir») é decisão de
-  negócio e trava o degrau 1 inteiro. E a que é **de infraestrutura**: `tools/` é congelado, logo a
-  entrega **chama** `gerar-ciclo.sh`/`montar-publicacao.js` **sem os alterar**.
+Medido em `vocabulario.json` (**93 termos, 59 com descrição**): **30** vêm do «Dicionário Técnico
+Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora», **4** foram «redigida no projeto», e
+**59 têm `fonte` vazio**. E o cruzamento que faltava — porque os dois eixos foram tratados como
+independentes na entrada da verificação —: dos **59 termos com descrição**, **25 estão sem `fonte`**.
 
-### 4. O achado que muda o mapa, e não estava pedido
+**São 25 descrições que a edição paga não pode levar** enquanto a origem não for declarada. Duas
+saídas, e são dela: **declarar** as 25, ou **deixá-las fora** da edição paga (e dentro da interna).
+Entrou como **lacuna F** no plano, e como **item da fase 0** — não é código.
 
-O `PLANEJAMENTO` §5 diz «não implementar L6 antes de L1/L2/L3 e L10». **Os produtos não são L6**: não
-consultam, não cruzam dado da escola, não respondem pergunta nenhuma. Podem por isso vir **antes** das
-camadas analíticas — e é essa a posição deles no mapa: são a **cara comercial da base**, não a cara
-analítica. O analítico (L4 · L6 · L7) continua a esperar; os produtos esperam por **L1 · L2 · L14** e
-pelo **conteúdo**.
+### 3. O pacote próprio — decidido, e a razão fica escrita
 
-### 5. O que NÃO ficou decidido — e é dela
+O produto é **um pacote próprio**, com **`.fipp` próprio**, rota própria no Worker e **a licença do
+produto** (não a do ciclo). É a única forma de o produto ter **âncora, versão e licença independentes**
+do ciclo daquela escola — que é o que a negociação pede. A alternativa (uma secção do site da escola)
+seria mais barata, e amarraria o dicionário ao ciclo que aquela escola tem — o contrário de «vender o
+dicionário». Três consequências, e nenhuma cosmética: publicar um produto **não reancora nenhum
+ciclo**; «descer de plano» **não edita o pacote da escola**; e a fotografia datada do catálogo tem um
+suporte físico onde ser citada.
 
-O preço e o empacotamento (C8/L8) · a licença · se o produto é **incluído no pacote da escola** ou
-**pacote próprio** (a recomendação do plano é pacote próprio, porque é a única forma de ter âncora,
-versão e licença independentes do ciclo) · **onde vive o `plano`** na habilitação (C11 — hoje
-`raiz/escolas-habilitadas.json` só tem `habilitada` e `pagante`, e o plano contratado **não existe em
-código nenhum**) · e se a camada pedagógica se faz **junto** com o mapa nível→termos (recomendação:
-sim, é a mesma passagem pela curadoria).
+### 4. O que NÃO foi feito
 
-**Com o quê.** `motor/nucleo/` (21 ficheiros, `provar-agnosticismo`) · `motor/nucleo/notacao.js` ·
-`biblioteca/modalidades/bale-classico/{notacao,vocabulario,progressao}.json` ·
-`professores/*/ciclos/*-glossario-benesh.md` · `REGRAS.md` Regra 9 · `professor*/ciclos/*.conf`
-(`VOLUME_MIN`/`VOLUME_MAX`) · `motor/servidor/compor-conf.js` · `tools/{gerar-ciclo,montar-publicacao,
-check-pacote,hash-ciclo}` · `motor/servidor/{catalogo-seed,termo-repo}.js` · `raiz/escolas-habilitadas.json`.
+**Nenhuma linha de código, e o `LICENSE.md` não foi criado** — ela pediu explicitamente para não
+começar a implementação, porque vai testar a `breu` com as soluções desta sessão. A licença está
+**decidida e escrita em documento**, que é onde a decisão vive; o texto formal espera o ok dela.
 
-**Nota de 02/11/2026, acrescentada a esta entrada depois de ela estar escrita.** Enquanto este plano
-era escrito, ela **expurgou a `batata`** — e o expurgo (`aeb2b2c`, **81 ficheiros**) levou as **duas**
-variantes, o ciclo-zero e o pacote de teste, mais o `wrangler.batata.jsonc`. Duas consequências, e as
-duas ficam registadas porque a entrada acima cita o que deixou de existir:
-
-1. **Os caminhos citados no «Com o quê» desta entrada** (`professores/*/ciclos/*-glossario-benesh.md`,
-   o pacote, a âncora `b1097a0d…`) descrevem o que se **leu e mediu antes** do expurgo. A leitura foi
-   feita sobre o exemplar que existia, e estava certa nesse momento; hoje o ficheiro não existe, e o
-   valor da âncora é **registo datado**, não estado. O que fica como fonte são o **gerador**
-   (`tools/gerar-ciclo.sh`) e o **verificador** (`tools/check-glossario.js`), que não foram tocados.
-2. **O repositório ficou sem nenhum ciclo gerado — por minutos.** O `indices/acervo.json`, que é
-   derivado e acompanhou (`0e8d256`), passou a **0 ciclos e 0 variantes**; e logo depois ela criou a
-   **`breu`** (`2fd6c07`), que o mesmo índice regista como **1 ciclo, 0 variantes**, `estado:
-   ancorado` — com `DOCS=""` e o pacote-zero montado (`assets`, `index.html`, `plano-observacao`).
-   **O mesmo número mudou duas vezes no mesmo dia**, e as duas foram no remoto enquanto a sessão
-   escrevia: é a demonstração, no próprio registo, da regra de ler o `origin` antes de contar.
-   Para o plano dos produtos isto não muda nada — ele não depende de haver ciclo —, mas muda o
-   **ponto de partida** da fase 4: a verificação «escola no Básico não vê; no Avançado vê» vai
-   precisar de uma escola de teste com ciclo gerado, e a `breu` está a meio caminho (tem o esqueleto,
-   não os documentos).
+**Com o quê.** `ARQUITETURA-GERAL.md` §10 (novo) · `vocabulario.json` (a contagem do `fonte`) ·
+`tools/templates/marca/` · `tools/templates/ciclo.css:76-77` · a API do GitHub (repo privado) ·
+`PLANO-PRODUTOS-DO-MOTOR.md` §5, §7-D/F, §9 (critérios 8 e 9), §10 (itens 2 e 3 fechados).
 
 ## O que está pendente
 

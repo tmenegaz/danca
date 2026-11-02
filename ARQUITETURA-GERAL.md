@@ -243,3 +243,92 @@ o **rascunho/cofre de runtime**; o Git é a **fonte de verdade e o histórico**.
   arquivo no Git** quando vira conteúdo.
 - **Mais barato** porque não há banco nem servidor sempre ligado; **mais rápido** porque a leitura
   é cache de CDN, não query.
+
+---
+
+## 10. A licença — três camadas, e uma condição de conteúdo
+
+> **Decidida em 02/11/2026.** A questão estava **aberta desde 18/09/2026**, onde o `REGISTRO.md`
+> a registou pela primeira vez («Licença do repositório (a definir)», na entrada da publicação do
+> repositório no GitHub). O que se segue é a decisão; o **texto** que a formaliza é um `LICENSE.md`
+> na raiz, que **ainda não foi escrito** — e que o contrato com a escola **cita**, não substitui.
+
+### 10.1 Por que três camadas, e não uma
+
+O repositório guarda três coisas de **donos diferentes**: a **máquina** (o motor e as ferramentas), o
+**catálogo** (o que se vende) e o que **cada escola acrescenta** (que é dela). Uma licença só teria
+de dar a mesma resposta às três — e as três respostas são opostas: a máquina **não** se entrega, o
+catálogo **entrega-se com limites**, e o que a escola constrói **não é do projeto**.
+
+| Camada | Onde vive | Regime | Porquê |
+|:--|:--|:--|:--|
+| **A máquina** | `motor/` · `tools/` · `porta/` · `raiz/` · `.github/` | **proprietário — todos os direitos reservados**, e **não licenciado** com os produtos | é o diferencial: a escola compra o **uso do produto**, não a máquina que o produz. Entregar o motor seria entregar o negócio |
+| **O catálogo** | `biblioteca/modalidades/` | **licença comercial de uso, por escola** (§10.2) | é o que se vende — e é o que se **licencia**, não se vende em propriedade |
+| **O que a escola acrescenta** | `biblioteca/escolas/<escola>/` | **é dela**; ela concede ao projeto o uso mínimo (§10.3) | ela construiu; o projeto só precisa de o poder servir de volta |
+
+**O repositório é privado** (`tmenegaz/danca`, verificado a 02/11/2026). Não há hoje distribuição
+pública de nada — logo não há obrigação criada por distribuição, e a decisão é de negócio, não de
+compatibilidade.
+
+**E não há conteúdo de terceiros a acomodar.** Medido: os SVGs são da marca do projeto
+(`tools/templates/marca/`); a tipografia é **system-ui e Georgia**, sem ficheiro de fonte embutido
+(`tools/templates/ciclo.css:76-77`); e a nomenclatura RAD/Vaganova que o catálogo usa são **nomes de
+posições**, que não são obra — as descrições é que são, e essas têm `fonte` (ou deviam ter, §10.4).
+
+### 10.2 O catálogo — a licença que a escola compra
+
+Seis cláusulas, e cada uma existe por uma razão medida neste repositório:
+
+1. **Vinculada à fotografia datada.** A licença nomeia o catálogo **como ele está na data**, não «o
+   catálogo». É a **C5a**, já decidida: «todas as perguntas disponíveis na data de vigência», e o
+   contrato congela `catalogo@AAAA-MM-DD`. Aqui o mesmo princípio, do lado do conteúdo.
+2. **Perpétua para a versão contratada.** O que a escola pagou não lhe é retirado quando o catálogo
+   evolui. É a mesma regra da **L9** («a trava não pode ser punição ao dado»), aplicada ao produto.
+3. **Não exclusiva, não transferível, não sublicenciável.** Uma licença por escola, para aquela
+   escola.
+4. **Uso interno permitido, sem limite de cópias** — imprimir, projetar, derivar material de aula,
+   incorporar no plano do ciclo. O produto só vale se circular **dentro** da escola.
+5. **Redistribuição e revenda proibidas** — inclusive «republicar o dicionário como serviço», que é
+   a forma de revenda que este produto torna fácil.
+6. **Atribuição preservada.** Cada descrição mantém o seu `fonte`, e a licença proíbe removê-lo ou
+   esvaziá-lo. É o que impede o produto de servir para apagar a origem do que não é de quem copia.
+
+### 10.3 O que a escola acrescenta — dela, com uma concessão estreita
+
+Os termos, turmas e descrições que a escola cria **são dela**. A «via inversa» da **L14 (e)** — a
+escola propõe ao catálogo o que construiu — **exige** uma concessão explícita, senão o projeto fica
+a usar conteúdo alheio com base numa boa intenção:
+
+- a escola concede ao projeto uma licença **não exclusiva** para (a) **servir** o conteúdo de volta à
+  própria escola e (b) **avaliar** a proposta de entrada no catálogo;
+- a entrada no catálogo exige **aceitação explícita** da escola, com a atribuição nomeada — não é
+  automática por ter sido proposta;
+- se ela recusar, o conteúdo **continua a funcionar** para ela e **não** entra no catálogo.
+
+Sem estas três linhas, a via inversa transforma o que é dela no que é do produto.
+
+### 10.4 A condição de conteúdo — e ela trava a venda hoje
+
+**Uma descrição sem `fonte` declarado não entra no catálogo que se vende.** A razão não é formal: não
+se licencia o que não se declarou como seu, e um catálogo com origem omissa não tem como sustentar a
+cláusula 6 (§10.2) nem a Regra 8.
+
+**Medido a 02/11/2026, em `vocabulario.json` (93 termos, 59 com descrição):**
+
+| `fonte` | Termos |
+|:--|--:|
+| «Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)» | **30** |
+| «Redigida no projeto (31/10/2026)…» | **4** |
+| **vazio** | **59** |
+
+E o cruzamento que importa, e que não estava medido: dos **59 termos com descrição**, **25 têm `fonte`
+vazio**. É o buraco — **25 descrições que a edição paga não pode levar** enquanto a origem não for
+declarada. As duas saídas são dela: **declarar** as 25, ou **deixá-las fora** da edição paga e dentro
+da edição interna.
+
+> **Nota de correção (02/11/2026).** Esta secção existe porque a licença passou a ser uma decisão. Ao
+> escrevê-la, medi a citação que os documentos faziam dela — «`ARQUITETURA-GERAL.md:109` diz «a
+> definir»» — e **ela não existe**: a linha 109 deste documento é o diagrama do deploy, e a palavra
+> «licença» só aparece aqui na §5 (e não sobre isto). A frase verdadeira é outra, e está no
+> `REGISTRO.md:109`, na entrada de **18/09/2026**: «Licença do repositório (a definir)». O facto
+> sobreviveu; a atribuição não. Corrigida nos sítios onde vivia, com nota datada no `REGISTRO.md`.

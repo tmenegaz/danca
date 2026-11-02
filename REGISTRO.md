@@ -30915,3 +30915,116 @@ duas ficam registadas porque a entrada acima cita o que deixou de existir:
    **ponto de partida** da fase 4: a verificação «escola no Básico não vê; no Avançado vê» vai
    precisar de uma escola de teste com ciclo gerado, e a `breu` está a meio caminho (tem o esqueleto,
    não os documentos).
+
+## 02/11/2026 — CORREÇÃO: a licença estava a definir no REGISTRO, não na ARQUITETURA-GERAL
+
+**Nota de correção das entradas de hoje** que citam a licença — «a proposta «o verbete é o átomo do
+syllabus», verificada» (ponto 11), «C22 nasce no planejamento» (o «Com o quê») e «Os três produtos,
+um motor só» (colisão 9). Nas três, a frase é a mesma e a atribuição é falsa:
+
+> «não há `LICENSE`, e a `ARQUITETURA-GERAL.md:109` diz «a definir»»
+
+**A `ARQUITETURA-GERAL.md:109` não diz isso, e nunca disse.** Medido: a linha 109 é o diagrama do
+deploy (`Cloudflare — um worker por escola + ASSETS no CDN`); a palavra «licença» aparece **uma vez**
+no ficheiro inteiro (§5, «não há instância paga, nem licença, nem DBA»), e não é sobre isto; e
+`git log -S'Licença do repositório' -- ARQUITETURA-GERAL.md` devolve **nada**, em nenhum commit.
+
+**O facto é verdadeiro, a fonte é outra.** A frase existe — e encontra-se na linha **109** do
+`REGISTRO.md`, na entrada de **18/09/2026** («Publicação do repositório no GitHub»), em «O que ainda
+não está feito»: «Licença do repositório (**a definir**)». O número da linha era o certo; o
+**ficheiro** é que foi trocado. Foi um deslize de transcrição — `REGISTRO` por `ARQUITETURA-GERAL` —
+e ele propagou-se a **cinco sítios** em três documentos ao longo do dia.
+
+**O que se corrigiu, e como.** Nos documentos curados (`PLANEJAMENTO-LASTRO.md` C22, `ESTADO-ATUAL.md`
+§6 e §8, `PLANO-PRODUTOS-DO-MOTOR.md` colisão 9 e §7-D) a citação passa a dizer o que é verdade —
+**aberta desde 18/09/2026, `REGISTRO.md:109`** — e a apontar para a decisão de hoje. Aqui, no
+`REGISTRO.md`, não se reescreve: **acrescenta-se esta nota**, e as três entradas anteriores ficam como
+estão, porque são datadas e o erro delas é parte do registo (P-03/P-04).
+
+**Por que isto importa mais do que parece.** É um documento sobre proveniência a citar mal a própria
+proveniência — a mesma família de erro que a Regra 8 existe para impedir, e a segunda vez no mesmo dia
+(a primeira foi «o modelo tem um eixo»). E o sintoma é o mesmo nos dois casos: **citei de memória em
+vez de abrir o ficheiro**. Um número de linha sem o `sed` que o confirme é uma afirmação não medida.
+
+**Com o quê.** `sed -n '109p' ARQUITETURA-GERAL.md` · `grep -n 'licen' ARQUITETURA-GERAL.md` (uma
+ocorrência, e é outra) · `git log --all -S'Licença do repositório' -- ARQUITETURA-GERAL.md` (vazio) ·
+`sed -n '109p' REGISTRO.md` (a frase, na entrada de 18/09/2026).
+
+## 02/11/2026 — A licença em três camadas, e o produto em pacote próprio
+
+**As duas decisões.** A pesquisadora: «a decisão a respeito da licença, eu vou seguir o que você
+recomenda. E o produto pacote próprio, também eu vou seguir o que você recomenda.» As duas estavam
+abertas no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md) §10 (itens 2 e 3), e as duas
+fecharam.
+
+**A primeira ressalva, e é honesta:** sobre a **licença** eu **não tinha recomendado nada**. O plano
+dizia «a licença (decisão de negócio)» e listava-a como pendente — o que ela leu como recomendação não
+existia. A recomendação fica escrita agora, e é a primeira vez: ela pode discordar, e nada foi
+implementado.
+
+### 1. A licença — três camadas, porque o repositório guarda três coisas de donos diferentes
+
+Está na **`ARQUITETURA-GERAL.md` §10**, e o resumo:
+
+| Camada | Onde | Regime |
+|:--|:--|:--|
+| **a máquina** | `motor/` · `tools/` · `porta/` · `raiz/` · `.github/` | **proprietário, todos os direitos reservados, e não licenciado** com os produtos — a escola compra o uso do produto, não a máquina que o produz |
+| **o catálogo** | `biblioteca/modalidades/` | **licença comercial de uso, por escola**, em seis cláusulas |
+| **o que a escola acrescenta** | `biblioteca/escolas/<escola>/` | **é dela**, com uma concessão estreita ao projeto |
+
+**As seis cláusulas do catálogo, e cada uma por uma razão medida:**
+
+1. **vinculada à fotografia datada** — é a lógica da **C5a** («o que existe na data de vigência»),
+   aplicada ao conteúdo;
+2. **perpétua para a versão contratada** — a regra da **L9** («a trava não pode ser punição ao dado»);
+3. **não exclusiva, não transferível, não sublicenciável**;
+4. **uso interno sem limite de cópias** — imprimir, projetar, derivar material de aula: o produto só
+   vale se circular dentro da escola;
+5. **redistribuição e revenda proibidas** — incluindo «republicar o dicionário como serviço», que é a
+   revenda que este produto torna fácil;
+6. **atribuição preservada** — cada descrição mantém o `fonte`, e a licença proíbe esvaziá-lo.
+
+**E a concessão do lado da escola (§10.3)** — sem ela, a «via inversa» da **L14 (e)** usa conteúdo
+alheio com base numa boa intenção: a escola concede **uso não exclusivo** para o projeto (a) servir o
+conteúdo de volta a ela e (b) **avaliar** a proposta de entrada no catálogo; a entrada exige
+**aceitação explícita**, com a atribuição nomeada; e a recusa não tira nada a ela.
+
+**A base da decisão foi medida, não suposta.** O repositório é **privado** (`tmenegaz/danca`,
+verificado pela API) — não há distribuição pública, logo a decisão é de negócio e não de
+compatibilidade. E **não há conteúdo de terceiros a acomodar**: os SVGs são da marca do projeto
+(`tools/templates/marca/`), a tipografia é `system-ui` + Georgia **sem ficheiro de fonte embutido**
+(`ciclo.css:76-77`), e a nomenclatura RAD/Vaganova são **nomes de posições**, que não são obra.
+
+### 2. O achado que a licença obrigou a medir — 25 descrições sem origem
+
+**Uma descrição sem `fonte` declarado não entra no catálogo que se vende.** Não é formalismo: não se
+licencia o que não se declarou como seu, e a cláusula 6 não tem como ser cumprida sobre origem omissa.
+
+Medido em `vocabulario.json` (**93 termos, 59 com descrição**): **30** vêm do «Dicionário Técnico
+Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora», **4** foram «redigida no projeto», e
+**59 têm `fonte` vazio**. E o cruzamento que faltava — porque os dois eixos foram tratados como
+independentes na entrada da verificação —: dos **59 termos com descrição**, **25 estão sem `fonte`**.
+
+**São 25 descrições que a edição paga não pode levar** enquanto a origem não for declarada. Duas
+saídas, e são dela: **declarar** as 25, ou **deixá-las fora** da edição paga (e dentro da interna).
+Entrou como **lacuna F** no plano, e como **item da fase 0** — não é código.
+
+### 3. O pacote próprio — decidido, e a razão fica escrita
+
+O produto é **um pacote próprio**, com **`.fipp` próprio**, rota própria no Worker e **a licença do
+produto** (não a do ciclo). É a única forma de o produto ter **âncora, versão e licença independentes**
+do ciclo daquela escola — que é o que a negociação pede. A alternativa (uma secção do site da escola)
+seria mais barata, e amarraria o dicionário ao ciclo que aquela escola tem — o contrário de «vender o
+dicionário». Três consequências, e nenhuma cosmética: publicar um produto **não reancora nenhum
+ciclo**; «descer de plano» **não edita o pacote da escola**; e a fotografia datada do catálogo tem um
+suporte físico onde ser citada.
+
+### 4. O que NÃO foi feito
+
+**Nenhuma linha de código, e o `LICENSE.md` não foi criado** — ela pediu explicitamente para não
+começar a implementação, porque vai testar a `breu` com as soluções desta sessão. A licença está
+**decidida e escrita em documento**, que é onde a decisão vive; o texto formal espera o ok dela.
+
+**Com o quê.** `ARQUITETURA-GERAL.md` §10 (novo) · `vocabulario.json` (a contagem do `fonte`) ·
+`tools/templates/marca/` · `tools/templates/ciclo.css:76-77` · a API do GitHub (repo privado) ·
+`PLANO-PRODUTOS-DO-MOTOR.md` §5, §7-D/F, §9 (critérios 8 e 9), §10 (itens 2 e 3 fechados).
