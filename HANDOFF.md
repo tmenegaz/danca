@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T17:59:53-0300`
-Commit atual: `b7acca6` — fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
+Gerado em: `2026-11-02T18:41:38-0300`
+Commit atual: `dbc3797` — feat(notacao): o cartão das turmas na listagem, e o vocabulário que cresceu
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+dbc3797 feat(notacao): o cartão das turmas na listagem, e o vocabulário que cresceu
+6c4227d docs(notacao): editar «Plié» (32|4/4) no alfabeto bale-classico — substitui a música 16|4/4
 b7acca6 fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
 544acf4 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
 e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais três
@@ -103,8 +105,6 @@ e323e60 docs(registro): a escola breu nasceu, e o número mudou pela segunda vez
 9f183bc docs(registro): a fotografia dos três produtos e do plano do motor
 c3bbf35 docs(estrutura): PLANO-PRODUTOS-DO-MOTOR — um motor, três saídas, e as nove colisões
 e6e3092 feat(acervo): envelope/.indice.json
-2fd6c07 feat(estrutura): criar a escola breu (motor completo)
-0e8d256 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -228,58 +228,44 @@ e6e3092 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — O vocabulário cresce: cabeça, eixo rotacional, os três eixos dos lados, e o perfil
+## 02/11/2026 — O verbo apagar: o `DELETE` do verbete deixa de recusar
 
-**O que ela pediu.** Quatro coisas no passo da notação: (1) **rotação para dentro** e a ação
-**abrir**; os **lados** a cobrir o eixo sagital e o vertical; (2) as direções **para dentro** e
-**para fora**; (3) rever o rótulo «ombros rodados» e acrescentar **de lado / perfil**; (4) a
-categoria **Cabeça**.
+**O que ela pediu.** «Faltou fazer o verbo deletar o verbete.»
 
-### O que entrou, e o que cada acrescento é
+**O que havia.** A rota `DELETE /api/bastidores/verbete` existia — para dizer **não**. Respondia
+`409` com um sermão sobre a P-03/P-04: «a proveniência acrescenta, não edita». O caminho oferecido
+era `PUT { acao: "descontinuar" }`, que marca o verbete e o conserva.
 
-| Pedido | O que ficou | Onde |
-|:--|:--|:--|
-| rotação para dentro | `↻ rotação para dentro` — o par de `↺ rotação para fora`, que estava só | `grupos` › Movimento |
-| a ação abrir | `○ abre` — o par de `● fecha`, que também estava só | `grupos` › Movimento |
-| lados nos três eixos | `D`/`E` (horizontal) · `F`/`T` (sagital) · `C`/`B` (vertical), cada um com o eixo no significado | `grupos` › Lados e `gramatica.lados` |
-| para dentro / para fora | `↻ para-dentro` e `↺ para-fora` nas direções do membro | `gramatica.direcoesDoMembro` |
-| o rótulo do épaulement | **«ombros rodados» sai**: dizia que é o ombro que roda, e o que roda é a coluna. Passa a **«ombro à frente»** | `gramatica.orientacoesDoCorpo` |
-| de lado / perfil | `profil` — «de lado · perfil» | `gramatica.orientacoesDoCorpo` |
-| categoria Cabeça | `Cabeça` nas categorias e no grupo, e `cabeca` nos membros | `categorias`, `grupos`, `gramatica.membros` |
+**O que se decidiu, e o que a decisão NÃO desmente.** O argumento da P-03/P-04 continua verdadeiro
+para o **histórico**: uma aula já publicada que citava o exercício deixa de o poder ler de volta.
+Mas um verbete escrito ontem, numa música que não serve, **não é história — é lixo no dicionário**,
+e quem o escreveu tem de o poder tirar. A consequência não se esconde: fica escrita na pergunta
+que a tela faz **antes** do gesto («uma aula já publicada que use este exercício passa a sair com a
+notação em lacuna; o exercício continua no dicionário»).
 
-**A decisão que o «eixo rotacional» obrigou, e que se declara:** o **mesmo glifo** `↻`/`↺` é um
-**movimento** (passo 5) e uma **direção** (passo 4). Não é descuido — é o que já acontece com `+`,
-`-` e `×`, que estão nos dois sítios desde sempre. Um membro que vai **para fora** roda **para
-fora**: as duas coisas são a mesma vista de dois lados, e a célula guarda a direção na chave e o
-movimento nos sinais.
+| Peça | O que faz |
+|:--|:--|
+| `apagarVerbete` (`verbete.js`) | 401 sem token · 400 sem nome · 404 se o exercício não tem verbete · apaga a chave, **sobe a versão** e grava com `chore(notacao): apagar o verbete «X» no alfabeto Y` |
+| a rota `DELETE` | deixa de responder 409 e chama o verbo. A guarda que fica é o **nome**: um `DELETE` sem corpo apagaria «o que estivesse lá» |
+| o cartão da listagem | um «Apagar» **por exercício**, na linha da primeira música — repeti-lo por música daria dois botões para o mesmo gesto, e um deles pareceria apagar só aquela |
+| o que **não** se toca | o **vocabulário**. Apagar a notação de um exercício não apaga a palavra: o `«Battement fondu»` sai do alfabeto e continua no dicionário |
 
-**O que a categoria Cabeça é e não é.** É uma **pista do relógio**, como as outras quatro — um
-movimento de cabeça conta os seus tempos em paralelo com as pernas. **Não** é um membro com
-posições: o vocabulário da modalidade ainda **não tem nenhuma posição de cabeça** (`tête`), e
-inventá-las seria escrever conteúdo que ninguém conferiu. Fica declarado em `membros` para que a
-posição possa existir; criá-la é conteúdo, com fonte, e é dela.
-
-### O que a expansão partiu — e o que isso ensinou
-
-`provar-notacao` usava **`Cabeça` como exemplo de categoria que o alfabeto NÃO declara**. A
-asserção guardava o mecanismo certo («o alfabeto é que manda») e ficou a medir o dado errado: no dia
-em que o vocabulário cresceu — que é o dia em que ela importa — passou a reprovar. Passa a inventar
-um nome que o próprio alfabeto confirma ausente.
-
-> É a mesma família do `devant` do `Plié`: **um fixture a afirmar a forma de um dado que melhora.**
-
-### O que se mediu
+**O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-notacao` | **89 asserções** (eram 79) — dez novas: `Cabeça` é categoria **e** pista (um bloco `[Cabeça: …]` é lido, e a pista conta 4 tempos); `↻`/`↺` e `○`/`●` são pares; os lados cobrem os três eixos e dizem qual; as direções novas existem e **nenhum termo se repete**; `profil` existe e o épaulement já não diz «ombros rodados» |
-| **o editor, no browser** | as pílulas do passo 5 mostram `○ abre` e `↻ rotação para dentro`; as do passo 4 mostram `↻ para dentro` e `↺ para fora`; as orientações mostram `ombro à frente` e `de lado · perfil`; as categorias são **cinco**, com `Cabeça` |
-| **uma célula de Cabeça, de ponta a ponta** | `validarVerbete` **aceita**; `pistasDe` devolve `Cabeça: 4`; e um verbete com o balde `para-fora` também passa |
-| `provar-celula` · `provar-verbete` · `provar-acordeoes` · `check-indices` · `check-schemas` · `check-identidade` | 177/177 · TUDO CERTO · TUDO CERTO · 14/14 · TUDO CERTO · 20/20 |
+| `provar-verbete` §C-2 | 401 sem token · 400 sem nome · 404 pelo nome · apaga e **sobe a versão** · o exercício sai com **todas** as músicas · os outros verbetes ficam · a mensagem do commit · a lista deixa de o mostrar · **o vocabulário não é escrito nem apagado** |
+| `provar-celula` §23-D | o `DELETE` sai com `{nome, modalidade, token}` · a pergunta diz «lacuna» e «dicionário» · o recado traz a versão nova · o formulário sai de cima do verbete apagado e volta ao passo 1 · **a página não recarrega** |
 
-**Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` — **conteúdo**, e não código:
-é o que o professor pode reescrever sem tocar no motor. Nenhuma linha de `tools/` mudou (o
-congelamento fica respeitado), e o `_comentario` do alfabeto diz o que cresceu e porquê.
+**O que isto inverte, dito por palavras.** O próprio código dizia-o num comentário: «NÃO HÁ DELETE. A
+proveniência acrescenta, não edita», e a prova do servidor media-o — «e com a senha ele responde
+409 — apagar não é uma operação». Deixou de ser verdade. As asserções foram **corrigidas**, não
+apagadas: o título da secção C passa a «descontinuar — a marca que conserva o registo», a secção D
+mede a guarda nova (400 sem nome) em vez do 409 antigo, e o comment da rota passa a dizer o que ela
+faz. Uma prova que ficasse a defender a regra antiga seria a prova a mentir sobre o produto.
+
+**Com o quê.** `motor/servidor/verbete.js` (`apagarVerbete`) · `motor/servidor/bastidores.js` (a
+rota e o botão) · `experimentos/provar-verbete.js` §C-2 · `experimentos/provar-celula.js` §23-D.
 
 ## O que está pendente
 

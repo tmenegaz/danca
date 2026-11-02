@@ -185,6 +185,8 @@ const ALFABETO = {
 let ULTIMO_CORPO = null;
 /** Os pedidos de TERMO — cada um com o corpo que a tela mandou. */
 const TERMOS = [];
+/** Os pedidos de APAGAR — o corpo do DELETE, para se medir o que a tela manda sair (02/11/2026). */
+const APAGADOS = [];
 
 function servir(html) {
   const srv = http.createServer((req, res) => {
@@ -208,6 +210,16 @@ function servir(html) {
       return req.on('end', () => {
         try { ULTIMO_CORPO = JSON.parse(cru); } catch { ULTIMO_CORPO = null; }
         ok('application/json', JSON.stringify({ ok: true, versao: 6 }));
+      });
+    }
+    // O APAGAR SAI DA TELA E CHEGA AQUI (02/11/2026). O que se mede não é que o fixture mude — é
+    // que a tela mande o pedido certo, com o nome e a modalidade, em vez de dizer que apagou.
+    if (caminho === '/api/bastidores/verbete' && req.method === 'DELETE') {
+      let cru = '';
+      req.on('data', (t) => { cru += t; });
+      return req.on('end', () => {
+        try { APAGADOS.push(JSON.parse(cru)); } catch { APAGADOS.push(null); }
+        ok('application/json', JSON.stringify({ ok: true, versao: 7 }));
       });
     }
     if (caminho === '/api/bastidores/verbete') return ok('application/json', JSON.stringify(ALFABETO));
@@ -385,6 +397,14 @@ function estado() {
   // o silêncio dela. Registá-lo também mostra qual foi a recusa.
   const dialogos = [];
   page.on('dialog', async (d) => { dialogos.push(d.message()); await d.dismiss(); });
+  /* AS NAVEGAÇÕES SÃO CONTADAS, E NÃO IMPRESSAS (02/11/2026). O «Apagar» do verbete recarregava a
+   * página — o ouvinte genérico do `button.apagar` apanhava o clique, mandava o pedido para
+   * `/api/bastidores/null` e fazia `location.reload()`. O recado que a tela tinha acabado de
+   * escrever desaparecia com o reload, e uma prova que só lesse o texto leria o vazio. Contar as
+   * navegações é o que torna isso visível: um `reload` no meio de um fluxo apaga o estado, e o
+   * que se medisse depois seria outra página. */
+  const navegacoes = [];
+  page.on('framenavigated', (f) => navegacoes.push(f.url()));
 
   /**
    * Clicar numa pílula — o gesto que a tela pede, e não uma escrita de valor.
@@ -398,13 +418,17 @@ function estado() {
   // clicar. A prova leva-se ao passo onde o controlo vive, em vez de fingir que estão todos à
   // vista: é isso que a tela faz, e é isso que a prova deve fazer.
   //
-  // O MAPA DESDOBROU-SE. O exercício NOVO — nome, categoria, tradição — é o passo 1; o exercício
-  // escolhido, a frase e a posição são o passo 2; a música desceu a 3, o «para onde» a 4, os
+  // O MAPA DESDOBROU-SE. O exercício NOVO — nome, categoria, tradição — é o passo 1, e a FRASE
+  // desceu para lá (02/11/2026): ela é a definição do exercício, e o exercício define-se quando
+  // se nomeia. O exercício escolhido é o passo 2; a música desceu a 3, o «para onde» a 4, os
   // sinais a 5 e a decomposição a 6. É o passo onde o controlo VIVE, e não a ordem em que se
-  // aprende — por isso a música vem antes do par do exercício.
+  // aprende — por isso a música vem antes do exercício escolhido.
+  //
+  // A POSIÇÃO SAIU DO MAPA, porque saiu do formulário: ela deixou de ser um campo do passo 2 e
+  // passou a ser o que se escreve nos sinais do trecho.
   const PASSO_DE = [
-    [/^#vnnome|^#vncategoria|^#vntradicao|^#semear/, 1],
-    [/^#vbnome|^#vb-frase|^#vb-frase-nota|^#vbposicao/, 2],
+    [/^#vnnome|^#vncategoria|^#vntradicao|^#semear|^#vb-frase|^#vb-frase-nota/, 1],
+    [/^#vbnome/, 2],
     [/^#vbtempos|^#vbcompasso/, 3],
     [/^#vb-dir|^#vb-orient|^#vb-categoria|^#vb-contagem/, 4],
     [/^#vb-sinais|^#vb-chips/, 5],
@@ -435,6 +459,24 @@ function estado() {
       (alvo.closest('label') || alvo).click();
     }, seletor);
     await new Promise((r) => setTimeout(r, 200));
+  };
+  /* O PASSO 1 TEM QUATRO OBRIGATÓRIOS (02/11/2026): o nome, «o que acontece», a categoria e a
+   * tradição de referência. Antes desta data os dois `<select>` nasciam com uma resposta já
+   * escolhida — a tela perguntava «qual é a categoria?» mostrando «passo» —, e por isso a prova
+   * avançava só com o nome. O que ela media era o defeito, lido como se fosse a regra. */
+  const completarPasso1 = async (nome, frase) => {
+    await irA(1);
+    await page.evaluate((n, f) => {
+      const c = document.getElementById('vnnome');
+      c.value = n;
+      c.dispatchEvent(new Event('input'));
+      const fr = document.getElementById('vb-frase');
+      fr.value = f;
+      fr.dispatchEvent(new Event('input'));
+      document.getElementById('vncategoria').value = 'salto';
+      document.getElementById('vntradicao').value = 'francesa';
+    }, nome, frase);
+    await new Promise((r) => setTimeout(r, 150));
   };
   const marcada = (lista) => (lista.find((x) => x.marcado) || {}).valor;
   const valores = (lista) => lista.map((x) => x.valor);
@@ -533,8 +575,7 @@ function estado() {
     console.log('\n3. O «SEGUIR →» DO PASSO 1 GRAVA O EXERCÍCIO E AVANÇA');
     ULTIMO_CORPO = null;
     const termosAntesDoAvancar = TERMOS.length;
-    await irA(1);
-    await page.type('#vnnome', 'Sissonne ouverte');
+    await completarPasso1('Sissonne ouverte', 'salta e fecha');
     await page.click('#vb-seguir');
     await new Promise((r) => setTimeout(r, 800));
     const depoisDeAvancar = await page.evaluate(estado);
@@ -557,9 +598,9 @@ function estado() {
      * Com o cadastro como passo, o Enter passa a ter sentido: cria o exercício e avança. O que se
      * mede é o pedido que sai — um TERMO, nunca um verbete. */
     console.log('\n4. O ENTER NO NOME CRIA O EXERCÍCIO, E NÃO SUBMETE UM VERBETE');
-    await irA(1);
     const termosAntesDoEnter = TERMOS.length;
-    await page.type('#vnnome', 'Sissonne fermée');
+    await completarPasso1('Sissonne fermée', 'salta e fecha atrás');
+    await page.focus('#vnnome');
     await page.keyboard.press('Enter');
     await new Promise((r) => setTimeout(r, 800));
     const depoisDoEnter = await page.evaluate(estado);
@@ -590,8 +631,7 @@ function estado() {
      * porque a página foi recarregada depois do commit — e um `option` repetido é uma segunda
      * verdade na mesma lista. */
     console.log('\n6. O MESMO EXERCÍCIO NÃO ENTRA DUAS VEZES NA LISTA');
-    await irA(1);
-    await page.type('#vnnome', 'Sissonne ouverte');
+    await completarPasso1('Sissonne ouverte', 'salta e fecha');
     await page.click('#vb-seguir');
     await new Promise((r) => setTimeout(r, 800));
     const repetido = await page.evaluate(estado);
@@ -1029,9 +1069,18 @@ function estado() {
       croix.cobertura);
     // A FRASE FOI ESCRITA UMA VEZ E ESTÁ NOS TRÊS (31/10/2026). É a asserção que fecha o defeito
     // que ela descreveu: antes, cada trecho obrigava a escrever outra vez «o que acontece».
-    conferir('a frase do verbete entra nos três trechos, sem se escrever três vezes',
-      (croix.fica.match(/o pé bate e volta/g) || []).length === 3,
+    /* A FRASE ENTRA UMA VEZ, E NÃO UMA VEZ POR TRECHO (02/11/2026). A asserção guardava o
+     * contrário — «entra nos três trechos» —, e era o defeito que ela mandou corrigir: «está
+     * repetindo em todos os trechos a mesma frase descritiva definida na etapa 2». A frase é do
+     * EXERCÍCIO; repeti-la em cada linha de uma barra de oito é a repetição massiva que se vê na
+     * tela. Agora sobe para o topo do bloco, uma vez, e cada trecho traz só o «lê-se» dele. */
+    conferir('a frase do exercício aparece UMA vez na prévia, e não uma por trecho',
+      (croix.fica.match(/o pé bate e volta/g) || []).length === 1,
       { vezes: (croix.fica.match(/o pé bate e volta/g) || []).length, fica: croix.fica });
+    conferir('e cada trecho traz o «lê-se» dele, que é o que muda de trecho para trecho',
+      (croix.fica.match(/Lê-se:/g) || []).length === 3
+        && /compasso 1/.test(croix.fica) && /compasso 2/.test(croix.fica),
+      croix.fica);
     // Com a lista única, «ao lado» é a SEGUNDA linha — e a prova continua a olhar para ela.
     conferir('a segunda direção já não ofereceu o tempo 1',
       JSON.stringify(offDevant) === JSON.stringify(['1', '1–2'])
@@ -1058,8 +1107,11 @@ function estado() {
       /Rond de jambe en l’air/.test(comDefinicao.notaDaFrase), comDefinicao.notaDaFrase);
     conferir('a definição aparece SEM sinal nenhum escolhido — ela não depende do trecho',
       comDefinicao.chips.length > 0 && !/1\./.test(comDefinicao.chips), comDefinicao.chips);
+    // SEM TRECHOS, A PRÉVIA DIZ A FRASE E SÓ ISSO (02/11/2026). Antes mostrava o aviso de «ainda
+    // não há trechos»; agora a frase subiu para o topo do bloco, e é ela que lá está — o aviso
+    // aparece quando também não há frase. O que se mede é o que importa: o «lê-se» não existe.
     conferir('e nada ainda foi acrescentado, por isso não há «lê-se» a mostrar',
-      /Ainda não há trechos/.test(comDefinicao.fica), comDefinicao.fica);
+      comDefinicao.fica.indexOf('Lê-se') === -1, comDefinicao.fica);
     // A DEFINIÇÃO NÃO É TEXTO A REESCREVER: quem ajustou não a vê voltar sozinha.
     await escreverFrase('o círculo da perna no ar, a partir do retiré');
     await noPassoDe('#vb-dir');
@@ -1574,15 +1626,12 @@ function estado() {
     // posição num só é uma decisão dela, não uma simplificação minha: a prova guarda os cinco,
     // senão volta a sete por inércia, ou a seis, que é como estava antes de nascer o sétimo.
     //
-    // O ESTADO É PREPARADO, E NÃO HERDADO DO QUE A SECÇÃO 18 DEIXOU. A tira passou a resumir o
-    // passo 1 com o nome E a posição, e para o medir é preciso um exercício com as duas coisas
-    // escolhidas — o «Changement» da secção 18 não tem verbete no alfabeto de exemplo, e sem
-    // posição o valor certo é só o nome.
-    await irA(1);
+    // O ESTADO É PREPARADO, E NÃO HERDADO DO QUE A SECÇÃO 18 DEIXOU. A tira resume o passo 2 com
+    // o nome do exercício escolhido — o «Changement» da secção 18 não tem verbete no alfabeto de
+    // exemplo. A posição já não entra no resumo (02/11/2026): ela deixou de ser um campo.
+    await irA(2);
     await page.select('#vbnome', 'Battement tendu');
     await new Promise((r) => setTimeout(r, 500));
-    await page.select('#vbposicao', 'premiere-position');
-    await new Promise((r) => setTimeout(r, 300));
     const tira = await page.evaluate(() => ({
       numeros: [...document.querySelectorAll('#vb-tira button.passo')]
         .map((b) => b.getAttribute('data-passo')),
@@ -1627,10 +1676,11 @@ function estado() {
     conferir('e a música é o terceiro — o resto desceu um número, não mudou de sítio',
       tira.rotulos[2] === 'A música', tira.rotulos);
     // A TIRA LÊ O QUE O SELECT MOSTRA — e o select passou a mostrar a etiqueta localizada
-    // (02/11/2026). O que se mede continua a ser o mesmo: o passo 2 diz o exercício com a
-    // posição, e não a frase.
-    conferir('o passo 2 diz o nome do exercício com a posição, em português, e não a frase',
-      /Battement tendu · primeira posição/.test(tira.valores[1]), tira.valores);
+    // (02/11/2026). O que se mede continua a ser o mesmo: o passo 2 diz o exercício, e não a
+    // frase. A POSIÇÃO NÃO ENTRA (02/11/2026): ela saiu do formulário, e um resumo que ainda a
+    // prometesse estaria a pedir uma escolha que já não se faz aqui.
+    conferir('o passo 2 diz o nome do exercício — e não promete uma posição que já não se escolhe',
+      tira.valores[1] === 'Battement tendu', tira.valores);
     conferir('e o passo 1 diz o que está a ser criado, ou que não há nada a criar',
       typeof tira.valores[0] === 'string' && tira.valores[0].length > 0, tira.valores);
     // UM PASSO, UM PAINEL — agora sem excepção: o antigo passo 1 tinha dois (o par do exercício,
@@ -1778,6 +1828,225 @@ function estado() {
         && /1 · 1–2/.test(cartao.linhasDaTabela[0]) && /\[Pé: 1ª → \+\]/.test(cartao.linhasDaTabela[0]),
       cartao.linhasDaTabela);
     conferir('e tocar outra vez na mesma caixinha fecha o painel', cartao.fechou === true, cartao);
+
+
+    console.log('\n23. A POSIÇÃO SAIU, A MÚSICA TRAVA E O VERBETE PODE SER APAGADO (02/11/2026)');
+    /* TRÊS PEDIDOS DELA, E UM DELES REVERTE UMA REGRA ANTIGA.
+     *
+     *   1. «Faltou fazer o verbo deletar o verbete.» Havia um DELETE que recusava com 409 — o
+     *      argumento era o P-03/P-04, e o argumento continua verdadeiro para o HISTÓRICO. Mas um
+     *      verbete escrito ontem numa música que não serve não é história: é lixo no dicionário, e
+     *      quem o escreveu tem de o poder tirar. O que sai é a decomposição daquela música; o
+     *      exercício fica no vocabulário.
+     *   2. «Se você escrever os tempos à mão, os trechos desaparecem no mesmo instante. — solução
+     *      bloqueia. Não pode editar esse campo.»
+     *   3. «Posição em que o exercício acontece» é redundante com os sinais do trecho — o campo
+     *      sai, e a posição deixa de se pedir duas vezes.
+     */
+
+    // ---- 23-A. O CAMPO DA POSIÇÃO SAIU DO PASSO 2 -----------------------------------
+    const v23_posicaoFora = await page.evaluate(() => {
+      const painel2 = document.querySelector('#form-verbete .passo-painel[data-passo="2"]');
+      return {
+        campo: Boolean(document.getElementById('vbposicao')),
+        nota: ((painel2 && painel2.querySelector('.nota')) || {}).textContent || '',
+        listagem: ((document.getElementById('lista-verbetes') || {}).textContent || ''),
+      };
+    });
+    conferir('o passo 2 já não pergunta a posição — o campo não existe',
+      v23_posicaoFora.campo === false, v23_posicaoFora.campo);
+    conferir('…e a nota diz onde ela passou a viver: nos sinais do trecho',
+      /posi/i.test(v23_posicaoFora.nota) && /sinais/i.test(v23_posicaoFora.nota), v23_posicaoFora.nota);
+    // O DADO NÃO SAIU COM O CAMPO. A posição de um verbete antigo continua no alfabeto e continua
+    // a ler-se na listagem — tirar o campo é tirar o pedido, não a informação.
+    conferir('e o dado fica: a listagem continua a dizer a posição dos verbetes que a têm',
+      /primeira posição/.test(v23_posicaoFora.listagem), v23_posicaoFora.listagem.slice(0, 160));
+
+    // ---- 23-B. COM TRECHOS ESCRITOS, A MÚSICA NÃO SE MUDA POR BAIXO DELES -----------
+    // O GESTO É O DELA: clicar o nome na listagem. Abrir pelo caminho real importa, porque é o
+    // `editarVerbete` que carrega o rascunho e trava (ou não) a música.
+    await page.evaluate(() => {
+      const b = document.querySelector('#lista-verbetes button.verbetes-editar[data-musica="4|4/4"]');
+      if (!b) throw new Error('o verbete do Battement tendu em 4|4 não está na listagem');
+      b.click();
+    });
+    await new Promise((r) => setTimeout(r, 600));
+    const v23_travada = await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      const c = document.getElementById('vbcompasso');
+      const n = document.getElementById('vb-musica-nota');
+      return {
+        passo: window.PASSO,
+        tempos: t.readOnly, ariaTempos: t.getAttribute('aria-readonly'),
+        compasso: c.disabled, marca: n.getAttribute('data-travada'), nota: n.textContent,
+        celulas: Object.keys(window.CELULAS || {})
+          .reduce((s, d) => s + (window.CELULAS[d] || []).length, 0),
+      };
+    });
+    // EDITAR ABRE NO PASSO 1 (02/11/2026 — era o 2). A frase mora lá, e é ela que se vem corrigir
+    // quando se abre um verbete; o seletor do exercício está a um clique na tira.
+    conferir('abrir um verbete começa no passo 1, onde está a frase do exercício',
+      v23_travada.passo === 1, v23_travada.passo);
+    conferir('com trechos escritos, os tempos ficam só de leitura e o compasso fica desactivado',
+      v23_travada.celulas > 0 && v23_travada.tempos === true && v23_travada.compasso === true,
+      { celulas: v23_travada.celulas, tempos: v23_travada.tempos, compasso: v23_travada.compasso });
+    conferir('…e o campo diz que está travado, também para quem lê com leitor de ecrã',
+      v23_travada.ariaTempos === 'true' && v23_travada.marca === 'sim',
+      { aria: v23_travada.ariaTempos, marca: v23_travada.marca });
+    conferir('a nota diz PORQUE está travado, e qual é a saída para outra duração',
+      /Já tem trechos escritos/.test(v23_travada.nota) && /Duplicar o exercício/.test(v23_travada.nota),
+      v23_travada.nota);
+
+    // ---- 23-C. O «LÊ-SE» ATRÁS DE UM CLIQUE, E A FRASE UMA VEZ SÓ ----------------
+    // O trecho novo nasce composto — frase do exercício + «Lê-se: …» —, e é ele que faz aparecer
+    // o `<details>`: os trechos do fixture são de uma linha só e não têm «lê-se» para dobrar.
+    await acrescentar('derriere');
+    await irA(6);
+    const v23_dobra = await page.evaluate(() => {
+      const tabela = document.getElementById('vb-tabela');
+      const fica = document.getElementById('vb-fica');
+      const frase = String((document.getElementById('vb-frase') || {}).value || '')
+        .split('\n')[0].trim();
+      const conta = (txt, alvo) => (alvo ? (String(txt).split(alvo).length - 1) : 0);
+      const ds = [...tabela.querySelectorAll('details.dito')];
+      return {
+        frase,
+        quantos: ds.length,
+        fechados: ds.filter((d) => !d.open).length,
+        sumario: ds.length ? ds[0].querySelector('summary').textContent.trim() : '',
+        naTabela: conta(tabela.textContent, frase),
+        naPrevia: conta(fica.textContent, frase),
+      };
+    });
+    conferir('o «lê-se» de um trecho fica atrás de um clique, e o clique começa fechado',
+      v23_dobra.quantos >= 1 && v23_dobra.fechados === v23_dobra.quantos, v23_dobra);
+    conferir('…e o botão que o abre diz «lê-se»', v23_dobra.sumario === 'lê-se', v23_dobra.sumario);
+    // A FRASE É DO EXERCÍCIO, E NÃO DE CADA TRECHO: na tabela não se repete nenhuma vez, e na
+    // prévia aparece UMA — à frente do que varia.
+    conferir('a frase do exercício não se repete em linha nenhuma da tabela',
+      v23_dobra.frase.length > 0 && v23_dobra.naTabela === 0, v23_dobra);
+    conferir('…e na prévia aparece uma vez, no topo, e não uma por trecho',
+      v23_dobra.naPrevia === 1, v23_dobra);
+
+    // ---- 23-D. O «APAGAR» — O VERBO QUE FALTAVA ----------------------------------
+    // A CONFIRMAÇÃO É LIDA ANTES DE SER ACEITE: uma coisa que apaga dados tem de dizer o que se
+    // perde. Aqui aceita-se, e o que se mede é o pedido que sai e o estado em que a tela fica.
+    const v23_antesDeApagar = await page.evaluate(() => {
+      const b = document.querySelector('#lista-verbetes button[data-apagar-verbete]');
+      return b ? { nome: b.getAttribute('data-apagar-verbete'), texto: b.textContent.trim() } : null;
+    });
+    conferir('cada exercício da listagem tem um «Apagar», ao lado do nome',
+      Boolean(v23_antesDeApagar) && v23_antesDeApagar.texto === 'Apagar', v23_antesDeApagar);
+
+    // O CLIQUE É UM GESTO SÓ, E A LEITURA VEM DEPOIS. Devolver uma promessa de dentro do
+    // `evaluate` deixava a prova à espera dentro de um contexto que a própria gravação pode
+    // substituir — e o que se perdia era a medição, não o comportamento.
+    await page.evaluate(() => {
+      // `confirm` é do navegador, e a prova responde por ele — mas guarda o TEXTO da pergunta,
+      // que é o que se quer medir: a consequência escrita antes do gesto.
+      window.__perguntaDoApagar = '';
+      window.confirm = (t) => { window.__perguntaDoApagar = String(t); return true; };
+      const b = document.querySelector('#lista-verbetes button[data-apagar-verbete]');
+      b.click();
+    });
+    await new Promise((r) => setTimeout(r, 1200));
+    const v23_apagar = await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      const c = document.getElementById('vbcompasso');
+      const n = document.getElementById('vb-musica-nota');
+      return {
+        pergunta: window.__perguntaDoApagar || '',
+        recado: ((document.querySelector('[data-res=verbetes]') || {}).textContent || ''),
+        passo: window.PASSO,
+        nome: ((document.getElementById('vbnome') || {}).value || ''),
+        travada: n.getAttribute('data-travada'),
+        tempos: t.readOnly, compasso: c.disabled,
+      };
+    });
+    const v23_apagado = APAGADOS[APAGADOS.length - 1] || {};
+    conferir('o «Apagar» manda o DELETE com o exercício e a modalidade — o corpo certo',
+      v23_apagado && v23_apagado.nome === v23_antesDeApagar.nome && v23_apagado.modalidade === 'bale-classico'
+        && Boolean(v23_apagado.token), v23_apagado);
+    conferir('a pergunta diz o que se perde antes do gesto: a aula publicada sai em lacuna',
+      /não há como a ler de volta/.test(v23_apagar.pergunta) && /lacuna/.test(v23_apagar.pergunta)
+        && /dicionário/.test(v23_apagar.pergunta), v23_apagar.pergunta);
+    conferir('e o recado diz que foi apagado, com a versão nova',
+      /apagado/.test(v23_apagar.recado) && /vers[aã]o 7/.test(v23_apagar.recado), v23_apagar.recado);
+    // O FORMULÁRIO SAI DE CIMA DO VERBETE APAGADO — senão a gravação seguinte recriava-o.
+    conferir('apagar o verbete que está aberto limpa o formulário e volta ao passo 1',
+      v23_apagar.nome === '' && v23_apagar.passo === 1, v23_apagar);
+    conferir('…e a música fica outra vez editável — sem trechos, não há o que perder',
+      v23_apagar.tempos === false && v23_apagar.compasso === false && v23_apagar.travada === 'nao', v23_apagar);
+    // DUAS NAVEGAÇÕES, E SÓ ISSO: a abertura e a âncora da secção. Qualquer outra seria um
+    // `reload` — e um `reload` aqui apagou o recado deste gesto até 02/11/2026.
+    conferir('e apagar não recarrega a página — o recado fica onde foi escrito',
+      navegacoes.length === 2, navegacoes);
+
+    // ---- 23-E. O PASSO 1 É CONDICIONAL: SEM NOME, NINGUÉM É OBRIGADO A NADA --------
+    // O PEDIDO DELA, ao pé da letra: «se não preencher o nome, os campos seguintes permanecem
+    // opcionais e ele pode navegar livremente; se escrever o nome, os seguintes tornam-se
+    // estritamente obrigatórios». O nome é a chave: sem ele não há exercício a criar.
+    const v23_semNomeNaCriacao = await page.evaluate(() => ({
+      falta: oQueFaltaNoPasso1(),
+      passo: window.PASSO,
+      termos: 0,
+    }));
+    conferir('sem nome, o passo 1 não exige mais nada — a navegação é livre',
+      v23_semNomeNaCriacao.falta.length === 0 && v23_semNomeNaCriacao.passo === 1, v23_semNomeNaCriacao);
+
+    const v23_antesDosTermos = TERMOS.length;
+    const v23_soComNome = await page.evaluate(() => {
+      const g = document.getElementById('vnnome');
+      g.value = 'Sissonne ouverte';
+      g.dispatchEvent(new Event('input'));
+      // A FRASE É ESVAZIADA DEPOIS DO NOME, e de propósito: o passo 1 pré-enche «o que acontece»
+      // com a definição do dicionário quando o exercício já tem uma. O que se mede aqui é a
+      // REGRA (com nome e sem frase, falta), não o pré-enchimento — que tem a sua asserção.
+      const f = document.getElementById('vb-frase');
+      f.value = '';
+      f.dispatchEvent(new Event('input'));
+      return { falta: oQueFaltaNoPasso1(),
+        categoria: document.getElementById('vncategoria').value,
+        tradicao: document.getElementById('vntradicao').value };
+    });
+    conferir('os dois escolhedores começam VAZIOS — a pergunta não traz a resposta pronta',
+      v23_soComNome.categoria === '' && v23_soComNome.tradicao === '',
+      { categoria: v23_soComNome.categoria, tradicao: v23_soComNome.tradicao });
+    conferir('escrito o nome, o que acontece, a categoria e a tradição passam a faltar',
+      v23_soComNome.falta.length === 3
+        && /o que acontece/.test(v23_soComNome.falta[0])
+        && /categoria/.test(v23_soComNome.falta[1]) && /tradi/.test(v23_soComNome.falta[2]),
+      v23_soComNome.falta);
+
+    await page.evaluate(() => document.getElementById('vb-seguir').click());
+    await new Promise((r) => setTimeout(r, 400));
+    const v23_recusado = await page.evaluate(() => ({
+      passo: window.PASSO,
+      recado: ((document.querySelector('[data-res=verbetes]') || {}).textContent || ''),
+    }));
+    conferir('com o nome escrito e o resto em branco, o «Seguir» NÃO avança — e não grava nada',
+      v23_recusado.passo === 1 && TERMOS.length === v23_antesDosTermos,
+      { passo: v23_recusado.passo, termos: TERMOS.length - v23_antesDosTermos });
+    conferir('…e o recado diz, pelo nome, o que falta',
+      /Sissonne ouverte/.test(v23_recusado.recado) && /falta/.test(v23_recusado.recado),
+      v23_recusado.recado);
+
+    // COMPLETO, O PASSO 1 GRAVA O TERMO — E LEVA A FRASE, que agora é dele.
+    await escreverFrase('salta e fecha em quinta');
+    await page.select('#vncategoria', 'salto');
+    await page.select('#vntradicao', 'francesa');
+    await new Promise((r) => setTimeout(r, 150));
+    await page.evaluate(() => document.getElementById('vb-seguir').click());
+    await new Promise((r) => setTimeout(r, 700));
+    const v23_criado = await page.evaluate(() => ({
+      passo: window.PASSO,
+      falta: oQueFaltaNoPasso1(),
+    }));
+    const v23_termoNovo = TERMOS[TERMOS.length - 1] || {};
+    conferir('com os quatro preenchidos, o «Seguir» cria o exercício e avança para o passo 2',
+      TERMOS.length === v23_antesDosTermos + 1 && v23_criado.passo === 2, { v23_criado, termos: TERMOS.length });
+    conferir('…e o termo leva a definição escrita no passo 1',
+      v23_termoNovo.descricao === 'salta e fecha em quinta', v23_termoNovo);
 
     console.log('\n22. NADA TRANSBORDA, E O SCRIPT NÃO REBENTA');
     for (const largura of [320, 390, 768, 1280]) {

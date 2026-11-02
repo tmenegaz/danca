@@ -31771,3 +31771,108 @@ um nome que o próprio alfabeto confirma ausente.
 **Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` — **conteúdo**, e não código:
 é o que o professor pode reescrever sem tocar no motor. Nenhuma linha de `tools/` mudou (o
 congelamento fica respeitado), e o `_comentario` do alfabeto diz o que cresceu e porquê.
+
+---
+
+## 02/11/2026 — A música não se muda por baixo dos trechos, e a frase sobe ao passo 1
+
+**O que ela pediu,** em quatro frases que são uma só arrumação:
+
+1. «No passo 3, se você **escrever** os tempos à mão (8 → 16), os trechos que já estão na tela
+   **desaparecem no mesmo instante**, sem aviso. — solução bloqueia. Não pode editar esse campo.»
+2. «O texto descritivo de cada trecho fica excessivamente longo» e «está repetindo em todos os
+   trechos a mesma frase descritiva definida na etapa 2» — um `<details>` por trecho, e a
+   redundância fora.
+3. «Esse campo representa a definição/significado do exercício (…) deve ser **removido do Step 2**
+   e posicionado obrigatoriamente no **Step 1**», e, com o nome escrito, os três seguintes passam a
+   ser obrigatórios.
+4. «O campo *Posição em que o exercício acontece* do Step 2 deve ser **removido/extinto**» — a
+   posição já se escreve nos sinais do trecho, e pedi-la outra vez era pedi-la duas.
+
+### O que ficou
+
+| Pedido | O que ficou |
+|:--|:--|
+| os tempos à mão apagavam a decomposição | `#vbtempos` fica **só de leitura** e `#vbcompasso` **desactivado** enquanto houver trechos; a nota diz porque, e manda ao «Duplicar o exercício» para a mesma decomposição noutra duração |
+| o «lê-se» comprido | vai para `<details class="dito">`, **fechado** por omissão, com o `<summary>` a dizer «lê-se» |
+| a frase repetida em cada linha | sobe **uma vez** para o topo do bloco; cada trecho mostra só o que é dele |
+| a frase no passo 1 | `#vb-frase` muda de painel; `editarVerbete` passa a abrir no passo 1 |
+| o nome obriga o resto | `oQueFaltaNoPasso1()`: **sem nome devolve `[]`** (a navegação é livre); com nome exige a frase, a categoria e a tradição. `criarExercicioDoPasso1` recusa pelo nome do que falta |
+| a posição no passo 2 | o campo sai do markup. O **dado** fica: uma posição já gravada continua no alfabeto e continua a ler-se na listagem |
+
+**A categoria e a tradição começam vazias.** Os dois `<select>` nasciam com a primeira opção **já
+escolhida** — a tela perguntava «qual é a categoria?» mostrando «passo» como se fosse a resposta —,
+e por isso os dois campos que ela mandou tornar obrigatórios nunca podiam faltar. Sem o vazio à
+frente, a regra seria decorativa.
+
+### Dois defeitos que apareceram a medir, e não estavam no pedido
+
+**1. O compasso da prévia dizia sempre «—».** `pintarFica` procurava o compasso em
+`compassosDosTrechos()[d.termo + ":" + k]` — e `d` é uma **chave** (uma string), não a direção:
+`d.termo` é `undefined`, a chave buscada era `"undefined:0"`, e o mapa nunca respondia. Um
+`undefined` numa chave não dá erro: dá silêncio.
+
+**2. O «Apagar» do verbete recarregava a página.** O botão nasceu com a classe `.apagar` — é a peça
+da casa — e existe um ouvinte genérico no `document` que trata `button.apagar`. O clique chegava
+aos **dois**: o meu escrevia o recado, e o genérico, com `data-tipo` nulo, mandava o corpo
+`{nome: null}` para `/api/bastidores/null` e fazia `location.reload()`. O recado desaparecia com o
+reload — e a confirmação que diz o que se perde nem chegava a ser lida. O ouvinte genérico passa a
+só actuar em quem declara o `data-tipo`.
+
+> É a segunda vez nesta semana que **um ouvinte global da página atravessa uma peça nova** (a
+> primeira foi o `.trio-item` do cartão da turma). Fica a regra: uma peça que se acrescenta a uma
+> página com ouvintes globais mede-se pelo **efeito**, não pela marcação.
+
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-celula` | **203 asserções** (eram 177), todas verdes — 26 novas: o campo da posição ausente e a nota que diz para onde ela foi; os tempos travados (e libertos pelo «Limpar»/«Apagar»); o `<details>` fechado e o «lê-se»; a frase **zero** vezes na tabela e **uma** na prévia; o passo 1 condicional com a recusa pelo nome; os dois escolhedores vazios; o `DELETE` com o corpo certo; a pergunta que diz «lacuna»; o recado, e **a página não recarregar** |
+| `provar-verbete` | TUDO CERTO — as asserções do passo 1 e do passo 2 foram corrigidas para a arrumação nova (a frase no 1, a posição fora) |
+| `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | 89/89 · TUDO CERTO · 50/50 · 55/55 · 17/17 |
+| `check-indices` · `check-schemas` · `check-identidade` | 14/14 · TUDO CERTO · 20/20 |
+
+**Com o quê.** `motor/servidor/bastidores.js` (o campo da posição fora do markup, `bloquearMusica`,
+`soOLeSe`, o `<details>`, `oQueFaltaNoPasso1`, o «Apagar» do cartão, e a guarda do ouvinte genérico)
+· `experimentos/provar-celula.js` §23 · `experimentos/provar-verbete.js`.
+
+---
+
+## 02/11/2026 — O verbo apagar: o `DELETE` do verbete deixa de recusar
+
+**O que ela pediu.** «Faltou fazer o verbo deletar o verbete.»
+
+**O que havia.** A rota `DELETE /api/bastidores/verbete` existia — para dizer **não**. Respondia
+`409` com um sermão sobre a P-03/P-04: «a proveniência acrescenta, não edita». O caminho oferecido
+era `PUT { acao: "descontinuar" }`, que marca o verbete e o conserva.
+
+**O que se decidiu, e o que a decisão NÃO desmente.** O argumento da P-03/P-04 continua verdadeiro
+para o **histórico**: uma aula já publicada que citava o exercício deixa de o poder ler de volta.
+Mas um verbete escrito ontem, numa música que não serve, **não é história — é lixo no dicionário**,
+e quem o escreveu tem de o poder tirar. A consequência não se esconde: fica escrita na pergunta
+que a tela faz **antes** do gesto («uma aula já publicada que use este exercício passa a sair com a
+notação em lacuna; o exercício continua no dicionário»).
+
+| Peça | O que faz |
+|:--|:--|
+| `apagarVerbete` (`verbete.js`) | 401 sem token · 400 sem nome · 404 se o exercício não tem verbete · apaga a chave, **sobe a versão** e grava com `chore(notacao): apagar o verbete «X» no alfabeto Y` |
+| a rota `DELETE` | deixa de responder 409 e chama o verbo. A guarda que fica é o **nome**: um `DELETE` sem corpo apagaria «o que estivesse lá» |
+| o cartão da listagem | um «Apagar» **por exercício**, na linha da primeira música — repeti-lo por música daria dois botões para o mesmo gesto, e um deles pareceria apagar só aquela |
+| o que **não** se toca | o **vocabulário**. Apagar a notação de um exercício não apaga a palavra: o `«Battement fondu»` sai do alfabeto e continua no dicionário |
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-verbete` §C-2 | 401 sem token · 400 sem nome · 404 pelo nome · apaga e **sobe a versão** · o exercício sai com **todas** as músicas · os outros verbetes ficam · a mensagem do commit · a lista deixa de o mostrar · **o vocabulário não é escrito nem apagado** |
+| `provar-celula` §23-D | o `DELETE` sai com `{nome, modalidade, token}` · a pergunta diz «lacuna» e «dicionário» · o recado traz a versão nova · o formulário sai de cima do verbete apagado e volta ao passo 1 · **a página não recarrega** |
+
+**O que isto inverte, dito por palavras.** O próprio código dizia-o num comentário: «NÃO HÁ DELETE. A
+proveniência acrescenta, não edita», e a prova do servidor media-o — «e com a senha ele responde
+409 — apagar não é uma operação». Deixou de ser verdade. As asserções foram **corrigidas**, não
+apagadas: o título da secção C passa a «descontinuar — a marca que conserva o registo», a secção D
+mede a guarda nova (400 sem nome) em vez do 409 antigo, e o comment da rota passa a dizer o que ela
+faz. Uma prova que ficasse a defender a regra antiga seria a prova a mentir sobre o produto.
+
+**Com o quê.** `motor/servidor/verbete.js` (`apagarVerbete`) · `motor/servidor/bastidores.js` (a
+rota e o botão) · `experimentos/provar-verbete.js` §C-2 · `experimentos/provar-celula.js` §23-D.

@@ -684,6 +684,55 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
   return { ok: true, status: 200, versao: dados.versao, commit: escrita.commit, mensagem: mensagem };
 }
 
+/**
+ * APAGAR UM VERBETE (02/11/2026) — a pedido dela: «faltou fazer o verbo deletar o verbete».
+ *
+ * A REGRA QUE CAI, E O QUE ELA CUSTAVA. Até hoje não havia `DELETE`: um verbete descontinuava-se,
+ * e o passado que o citou continuava a poder ler-se de volta (P-03/P-04). A regra estava certa
+ * como princípio e errada como produto — sem apagar, um exercício escrito por engano fica no
+ * alfabeto para sempre, aparece em todas as listas e nunca se pode corrigir. Ela decidiu; o
+ * `REGISTRO.md` guarda o motivo e a consequência.
+ *
+ * A CONSEQUÊNCIA, e é declarada na tela antes de acontecer: uma aula PUBLICADA que citava este
+ * exercício passa a sair em lacuna («o exercício não tem verbete»), porque a notação dela já não
+ * existe. Não se apaga o documento — apaga-se a leitura dele. Quem apaga escolhe isso.
+ *
+ * O QUE **NÃO** SE APAGA: o termo do vocabulário. O verbete é a DECOMPOSIÇÃO de um exercício; o
+ * exercício é um termo do dicionário, com a sua definição e a sua fonte, e apagá-lo é outra
+ * operação (a rota do vocabulário) com outras guardas. Aqui sai a notação; a palavra fica.
+ */
+async function apagarVerbete({ f, token, dono, repo, ref, modalidade, nome }) {
+  if (!token) return { ok: false, status: 401, erro: 'sem token do repositório' };
+  const nomeLimpo = String(nome || '').trim();
+  if (!nomeLimpo) return { ok: false, status: 400, erro: 'informe o nome do exercício' };
+  if (nomeLimpo.startsWith('_')) return { ok: false, status: 400, erro: 'o nome não pode começar por «_»' };
+
+  const lido = await lerModalidade({ f, token, dono, repo, ref, modalidade });
+  if (!lido.ok) return { ok: false, status: 404, erro: lido.erro };
+
+  const dados = lido.dados;
+  const verbetes = dados.verbetes || {};
+  if (!Object.prototype.hasOwnProperty.call(verbetes, nomeLimpo)) {
+    return { ok: false, status: 404, erro: '«' + nomeLimpo + '» não tem verbete' };
+  }
+  delete verbetes[nomeLimpo];
+  dados.versao = Number(dados.versao || 1) + 1;
+
+  const mensagem = 'chore(notacao): apagar o verbete «' + nomeLimpo + '» no alfabeto ' + modalidade;
+  const h = cabecalhos(token);
+  const raiz = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/';
+  const escrita = await gravarNoRepo({
+    f, h, url: raiz + caminhoDoAlfabeto(modalidade),
+    texto: JSON.stringify(dados, null, 2) + '\n',
+    sha: lido.sha, ref: ref,
+    mensagem: mensagem + '\n\nApagado pela Produção (Sistema Lastro).\n',
+  });
+  if (!escrita.ok) {
+    return { ok: false, status: escrita.status, erro: 'o repositório recusou a gravação (HTTP ' + escrita.status + ')' };
+  }
+  return { ok: true, status: 200, versao: dados.versao, commit: escrita.commit, mensagem: mensagem };
+}
+
 module.exports = {
   pastaDaModalidade,
   caminhoDoAlfabeto,
@@ -693,6 +742,7 @@ module.exports = {
   validarVerbete,
   semBaldesVazios,
   gravarVerbete,
+  apagarVerbete,
   direcoesConhecidas,
   sinaisDo,
   temposDaContagem,

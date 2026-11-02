@@ -3433,15 +3433,38 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="vnnome">Exercício novo (grafia francesa, com acentos)</label>' +
     '<input id="vnnome" autocomplete="off" placeholder="ex.: Battement fondu">' +
     '<label class="campo-rotulo" for="vncategoria">Categoria</label>' +
+    // A CATEGORIA E A TRADIÇÃO COMEÇAM VAZIAS (02/11/2026). Os dois `<select>` nasciam com a
+    // primeira opção JÁ ESCOLHIDA, e por isso os dois campos que ela mandou tornar obrigatórios
+    // nunca podiam faltar: a tela perguntava «qual é a categoria?» mostrando «passo» como se
+    // fosse a resposta. Com o vazio à frente, a pergunta é uma pergunta — e o «Seguir →» recusa
+    // enquanto não houver resposta.
     '<select id="vncategoria">' +
+    '<option value="">— escolha a categoria —</option>' +
     ['passo', 'salto', 'ligacao', 'giro']
       .map((c) => '<option value="' + c + '">' + esc(rotuloDaCategoria(c)) + '</option>').join('') +
     '</select>' +
     '<label class="campo-rotulo" for="vntradicao">Tradição de referência</label>' +
     '<select id="vntradicao">' +
+    '<option value="">— escolha a tradição —</option>' +
     TRADICOES_DO_VOCABULARIO.map((t) =>
       '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('') +
     '</select>' +
+    /* «O QUE ACONTECE» É DO PASSO 1 (02/11/2026) — e a razão é a dela: «esse campo representa a
+     * definição/significado do exercício, atuando como o valor descritivo no dicionário técnico».
+     * Se é a definição do EXERCÍCIO, nasce onde o exercício nasce.
+     *
+     * O QUE ISSO RESOLVE, e não é só arrumação: a frase deixa de ser uma coisa que o passo 2 pede
+     * a quem já escolheu o exercício — passa a ser o que o termo GUARDA. Ela vai no corpo do
+     * `POST /api/bastidores/termo` como `descricao`, e é a mesma que o dicionário mostra depois.
+     * Uma definição escrita uma vez, num sítio, e lida nos três (formulário, aula, glossário).
+     *
+     * ELA CONTINUA A SER A FRASE DOS TRECHOS: cada célula guarda a sua `descricao`, composta da
+     * frase + o «lê-se» — e o que está escrito não se reescreve (P-03/P-04). Escrevê-la aqui é
+     * escrever a frase com que os trechos que se seguem vão nascer.
+     */
+    '<label class="campo-rotulo" for="vb-frase">O que acontece — a definição do exercício</label>' +
+    '<textarea id="vb-frase" rows="4" placeholder="a definição do exercício; cada trecho acrescenta, abaixo, o «lê-se» da sua notação"></textarea>' +
+    '<p class="nota" id="vb-frase-nota"></p>' +
     '<div class="res" data-res="vb-novo"></div>' +
     /* O BOTÃO DAS TURMAS INICIAIS FICA AQUI (01/11/2026 — e é do passo 1 desde 02/11/2026).
      *
@@ -3526,11 +3549,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="passo-painel" data-passo="2" hidden>' +
     '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
     '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
-    '<label class="campo-rotulo" for="vb-frase">O que acontece — a frase deste exercício</label>' +
-    '<textarea id="vb-frase" rows="4" placeholder="a definição do exercício; cada trecho acrescenta, abaixo, o «lê-se» da sua notação"></textarea>' +
-    '<p class="nota" id="vb-frase-nota"></p>' +
-    '<label class="campo-rotulo" for="vbposicao">Posição em que o exercício acontece</label>' +
-    '<select id="vbposicao"><option value="">— escolha a posição —</option></select>' +
+    /* A POSIÇÃO SAIU DAQUI (02/11/2026), a pedido dela: «essa mesma configuração já é tratada de
+     * forma muito mais granular, robusta e organizada no Step 4 (Para Onde) e no Step 5 (Sinais)».
+     *
+     * O QUE ELA DIZIA, e não era mentira: a posição era um selo guardado no verbete
+     * (`posicao: {membro, termo}`), lido pela listagem e pelo documento. O que era verdade é que
+     * ela não dizia NADA que os sinais das células já não dissessem — e dizia-o pior, porque era
+     * uma segunda declaração do mesmo facto, escrita à parte e nunca conferida contra eles.
+     *
+     * O CAMPO DO DADO NÃO SAI. Os verbetes que já o têm continuam a mostrá-lo na listagem e no
+     * documento, e o validador continua a conferi-lo quando existe. O que sai é a TELA que pedia
+     * uma segunda resposta para uma pergunta que os sinais já respondem.
+     */
+    '<p class="nota">A posição de cada trecho escreve-se nos sinais dele — passo 4, para onde, e passo 5, os sinais.</p>' +
     // O MÉTODO DESTE VERBETE (02/11/2026) — e ele HERDA, não duplica.
     //
     // O plano já declara «Metodologia de referência» e é obrigatório: o ciclo inteiro tem um
@@ -5617,6 +5648,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A REPETIÇÃO APARECE AO LADO DA CONTAGEM (02/11/2026): «1–2 ×2» lê-se como «1–2 duas vezes», e
     // uma coluna só para o número gastaria largura numa coisa que existe em poucas linhas.
     '    var vezes = repeticoesDaCelula(c) > 1 ? " <span class=\\"nota\\">×" + repeticoesDaCelula(c) + "</span>" : "";' +
+    /* O «LÊ-SE» FICA ATRÁS DE UM CLIQUE, E UMA VEZ SÓ (02/11/2026).
+     *
+     * O QUE ELA VIU, e são duas queixas numa: «o texto descritivo fica excessivamente longo,
+     * poluindo visualmente a tela» e «está repetindo em todos os trechos a mesma frase descritiva
+     * definida na etapa 2».
+     *
+     * A SEGUNDA ERA UM DEFEITO DE COMPOSIÇÃO, e não de gosto: a `descricao` de cada célula é
+     * «frase do exercício» + «lê-se: …». Numa barra de oito trechos, a mesma frase oito vezes — e
+     * ela é a mesma porque é do EXERCÍCIO, escrita uma vez. O que é do TRECHO é o «lê-se».
+     *
+     * A PRIMEIRA resolve-se com um `<details>`: fechado por omissão, abre a pedido. É a peça que a
+     * casa já usa (o histórico da curadoria, o menu) — `<summary>` é o botão, e a folha desenha-o.
+     */
+    '    var dito = soOLeSe(c.descricao);' +
+    '    var oQue = dito ? "<details class=\\"dito\\"><summary>lê-se</summary><p>" +' +
+    '      String(dito).split("\\n").join("<br>") + "</p></details>" : "";' +
     '    html += "<tr" + (emMim ? " class=\\"em-edicao\\"" : "") + "><td><strong>" + mapa[chave] + "</strong></td><td>" +' +
     '      c.contagem + vezes + "</td><td>" + (t.dir ? nomeDaDirecao(t.dir) : "<span class=\\"nota\\">sem direção</span>") +' +
     // A OMISSÃO DIZ-SE EM PORTUGUÊS (01/11/2026). Era «en face» escrito à mão aqui — a única
@@ -5624,11 +5671,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // português («pernas cruzadas»). A célula sem orientação é a que está de frente, e é isso
     // que ela passa a dizer.
     '      "</td><td>" + (orient || "<span class=\\"nota\\">de frente</span>") +' +
+    /* O QUE ACONTECE FICA ATRÁS DE UM «LÊ-SE», E UMA VEZ SÓ (02/11/2026).
+     *
+     * O QUE ELA VIU, e são duas queixas numa: «o texto descritivo fica excessivamente longo,
+     * poluindo visualmente a tela» e «está repetindo em todos os trechos a mesma frase descritiva
+     * definida na etapa 2».
+     *
+     * A SEGUNDA ERA UM DEFEITO DE COMPOSIÇÃO, e não de gosto: a `descricao` de cada célula é
+     * «frase do exercício» + «lê-se: …». Numa barra de oito trechos, a mesma frase oito vezes — e
+     * ela é a mesma porque é do EXERCÍCIO, escrita uma vez. O que é do TRECHO é o «lê-se».
+     *
+     * A PRIMEIRA resolve-se com um `<details>`: fechado por omissão, abre a pedido. É a peça que a
+     * casa já usa (o histórico da curadoria, o menu) — `<summary>` é o botão, e a folha desenha-o.
+     */
     '      "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
-    '      "]</code></td><td>" + acoes + "</td></tr>";' +
+    '      "]</code>" + oQue + "</td><td>" + acoes + "</td></tr>";' +
     '  });' +
     '  html += "</tbody></table>";' +
     '  alvo.innerHTML = html;' +
+    '  bloquearMusica();' +
     '  pintarCobertura();' +
     '  pintarDuplicar();' +
     // A PRÉVIA DO QUE FICA ESCRITO ACOMPANHA A TABELA: as duas leem as mesmas células, e uma
@@ -5637,6 +5698,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // A COBERTURA é uma frase só, e vale a pena tê-la à parte: a tabela e a cobertura mudam
     // juntas, e a cobertura também se lê quando ainda não há trechos.
+    /* A MÚSICA NÃO SE EDITA DEPOIS DE HAVER TRECHOS (02/11/2026).
+     *
+     * O DEFEITO, medido antes de escrever: com as quatro células do `Plié`, mudar os tempos de 8
+     * para 16 deixava `CELULAS` em **0** e a cobertura em **0**. Meio segundo, sem aviso: o campo
+     * mudava e a decomposição ficava vazia. A causa é a chave — a música É `<tempos>|<compasso>`,
+     * e o rascunho carrega-se dela; uma chave nova não tem células, e as da tela não são as dela.
+     *
+     * A SAÍDA DELA, e é a certa: **bloquear o campo**. Uma coisa que apaga trabalho não se deixa
+     * ao alcance de um clique acidental; e a música não é um campo que se afine — é a identidade
+     * da decomposição. Quem quer a mesma decomposição noutra duração tem o «Duplicar o exercício»,
+     * que escreve os tempos e as células na mesma acção e passa por cima disto de propósito. Quem
+     * quer outra música começa outra («Limpar», ou «Apagar» e escrever de novo).
+     *
+     * O CAMPO FICA À VISTA E APAGADO, e não escondido: esconder faria o professor procurá-lo.
+     * `readOnly` no número e `disabled` na lista — um `<select>` não conhece `readOnly`.
+     */
+    /* O QUE É DO TRECHO, E SÓ ISSO (02/11/2026). A `descricao` guardada é
+     * `frase do exercício` + `\n` + `lê-se: …`. A primeira metade é do EXERCÍCIO e repete-se em
+     * todos os trechos; a segunda é a leitura daquela notação. Devolve só a segunda.
+     *
+     * Quando a célula não tem «lê-se» — uma célula antiga, escrita antes de a frase ser composta
+     * assim —, devolve a `descricao` inteira: mostrar o que há é melhor do que não mostrar nada. */
+    'function soOLeSe(descricao){' +
+    '  var t = String(descricao || "");' +
+    '  var i = t.indexOf("Lê-se:");' +
+    '  if (i >= 0) return t.slice(i);' +
+    '  var l = t.split("\\n");' +
+    '  return l.length > 1 ? l.slice(1).join("\\n") : "";' +
+    '}' +
+    'function bloquearMusica(){' +
+    '  var t = document.getElementById("vbtempos");' +
+    '  var c = document.getElementById("vbcompasso");' +
+    '  var trava = Object.keys(CELULAS).some(function(d){ return (CELULAS[d] || []).length > 0; });' +
+    '  if (t) { t.readOnly = trava; t.setAttribute("aria-readonly", trava ? "true" : "false"); }' +
+    '  if (c) { c.disabled = trava; }' +
+    '  var nota = document.getElementById("vb-musica-nota");' +
+    '  if (nota) nota.setAttribute("data-travada", trava ? "sim" : "nao");' +
+    '}' +
     'function pintarCobertura(){' +
     '  var t = temposTotais(), c = cobertura();' +
     '  var alvo = document.getElementById("vb-cobertura");' +
@@ -5982,6 +6081,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!alvo) return;' +
     '  var frase = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
     '  var linhas = [];' +
+    '  var mapa = compassosDosTrechos();' +
     // O TEXTO MOSTRADO É O DO TRECHO, NÃO O DA FRASE DO MOMENTO (31/10/2026). Cada célula guarda
     // o seu `descricao` — e é ele que vai para a página da aula. Compor aqui a partir da frase do
     // passo 1 faria a prévia mentir sobre os trechos já escritos, que conservam a frase com que
@@ -5996,21 +6096,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      orientacoesDaGramatica().forEach(function(o){' +
     '        if (o.termo === (c.orientacao || "")) orient = o.nome;' +
     '      });' +
+    // A FRASE DO EXERCÍCIO APARECE UMA VEZ, NÃO UMA VEZ POR TRECHO (02/11/2026).
+    //
+    // O QUE ELA VIU: «o texto descritivo está repetindo em todos os trechos a mesma frase». É
+    // literal — a `descricao` de cada célula começa pela frase do exercício, e a prévia mostrava-a
+    // inteira em cada linha. Numa barra de oito trechos, oito vezes a mesma frase.
+    //
+    // O QUE MUDA: a frase sobe para o topo do bloco, sozinha, e cada trecho mostra só o que é
+    // dele — o «lê-se» daquela notação. É a mesma informação, sem a repetição.
+    //
+    // E O COMPASSO ESTAVA ERRADO AQUI. Era `d.termo` — e `d` é uma CHAVE (uma string), não a
+    // direção: `d.termo` é `undefined`, a chave buscada era `"undefined:0"`, e o compasso saía
+    // sempre «—». Um `undefined` numa chave não dá erro; dá silêncio, que é pior. Passa a `d`.
     '      var gravada = partirFrase(c.descricao);' +
-    '      var texto = c.descricao || [frase, comoSeLe(c.sinais || [], c.categoria)].filter(Boolean).join("\\n");' +
+    '      var lido = soOLeSe(c.descricao) || comoSeLe(c.sinais || [], c.categoria);' +
     '      var antiga = gravada && frase && gravada !== frase;' +
     '      var rotulo = d ? nomeDaDirecao(d) : "sem direção";' +
     '      var onde = rotulo + (orient ? " · " + orient : "");' +
     '      linhas.push("<p class=\\"nota\\">" + onde + " — compasso " +' +
-    '        (compassosDosTrechos()[d.termo + ":" + k] || "—") + ", contagem " + c.contagem + "</p>" +' +
-    '        "<p>" + (texto ? String(texto).split("\\n").join("<br>") :' +
-    '          "<span class=\\"nota\\">(sem frase — passo 1)</span>") +' +
+    '        (mapa[d + ":" + k] || "—") + ", contagem " + c.contagem + "</p>" +' +
+    '        "<p>" + (lido ? String(lido).split("\\n").join("<br>") :' +
+    '          "<span class=\\"nota\\">(sem «lê-se» — sem sinais)</span>") +' +
     '        (antiga ? "<br><span class=\\"nota\\">guardado com a frase com que foi escrito</span>" : "") +' +
     '        "</p>");' +
     '    });' +
     '  });' +
-    '  alvo.innerHTML = linhas.length ? linhas.join("") :' +
-    '    "<p class=\\\"nota\\\">Ainda não há trechos. Escolha a direção e os sinais, e acrescente o primeiro.</p>";' +
+    // A FRASE, UMA VEZ, À FRENTE DO QUE VARIA. Sem ela o bloco perdia a metade que é do exercício;
+    // com ela em cada linha, era a repetição que ela mandou tirar.
+    '  var topo = frase ? "<p class=\\"nota\\">" + frase + "</p>" : "";' +
+    '  alvo.innerHTML = linhas.length ? (topo + linhas.join("")) : (topo ||' +
+    '    "<p class=\\\"nota\\\">Ainda não há trechos. Escolha a direção e os sinais, e acrescente o primeiro.</p>");' +
     '}' +
     'function nomeDoExercicio(){' +
     '  var n = document.getElementById("vbnome");' +
@@ -6113,8 +6228,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var nome = (document.getElementById("vbnome") || {}).value || "";' +
     '  var tempos = (document.getElementById("vbtempos") || {}).value || "";' +
     '  var compasso = (document.getElementById("vbcompasso") || {}).value || "";' +
-    '  var sel = document.getElementById("vbposicao");' +
-    '  var posicao = sel && sel.value ? sel.options[sel.selectedIndex].textContent : "a escolher";' +
+    // SEM A POSIÇÃO NO FORMULÁRIO, A TIRA NÃO A PROMETE (02/11/2026). O passo 2 dizia
+    // «Battement tendu · Première position», e a segunda metade passou a ser uma pergunta que já
+    // não se faz aqui — é nos sinais do trecho. A tira diz o exercício e mais nada.
+    '  var posicao = "";' +
     '  var orient = "";' +
     '  orientacoesDaGramatica().forEach(function(o){ if (o.termo === ORIENTACAO) orient = o.nome; });' +
     '  var onde = [];' +
@@ -6125,7 +6242,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (CONTAGEM) onde.push("tempo " + CONTAGEM);' +
     '  var valores = {' +
     '    1: (document.getElementById("vnnome") || {}).value || "a criar",' +
-    '    2: (nome || "a escolher") + (posicao === "a escolher" ? "" : " · " + posicao),' +
+    '    2: (nome || "a escolher") + (posicao ? " · " + posicao : ""),' +
     '    3: (tempos || "—") + " tempos · " + (compasso || "—"),' +
     '    4: onde.length ? onde.join(" · ") : "a escolher",' +
     '    5: SINAIS.length ? SINAIS.length + (SINAIS.length === 1 ? " sinal" : " sinais") : "a escolher",' +
@@ -6138,7 +6255,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var notaM = document.getElementById("vb-musica-nota");' +
     '  if (notaM) {' +
     '    var t = Number(tempos) || 0;' +
-    '    notaM.textContent = t ? (t + " tempos em " + compasso + " — " + Math.ceil(t / numeradorDoCompasso()) + " compasso(s) de " + numeradorDoCompasso() + ".") : "";' +
+    '    var base = t ? (t + " tempos em " + compasso + " — " + Math.ceil(t / numeradorDoCompasso()) + " compasso(s) de " + numeradorDoCompasso() + ".") : "";' +
+    // O BLOQUEIO DIZ-SE, e diz para onde ir. Um campo apagado sem explicação lê-se como avaria.
+    '    var travada = Object.keys(CELULAS).some(function(d){ return (CELULAS[d] || []).length > 0; });' +
+    '    notaM.textContent = base + (travada' +
+    '      ? " Já tem trechos escritos, e a música não se muda por baixo deles — use «Duplicar o exercício» para a mesma decomposição noutra duração." : "");' +
     '  }' +
     '}' +
     // ================= O MODO DE EDIÇÃO (31/10/2026) ================================
@@ -6200,17 +6321,50 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O QUE NÃO GASTA: nada. A rota grava no vocabulário do repositório e a lista é lida do mesmo
      * ficheiro; o termo entra na lista local para o passo 2 o mostrar sem esperar por um deploy.
      */
+    /* O PASSO 1: SE HÁ NOME, TUDO O RESTO É OBRIGATÓRIO (02/11/2026) — pedido dela, e a
+     * condicional é dele: «se o usuário escrever o nome do exercício, os seguintes campos
+     * tornam-se estritamente obrigatórios para permitir o avanço: nome, campo descritivo,
+     * categoria, tradição».
+     *
+     * A REGRA TEM DUAS METADES, e a segunda é a que se esquece: com o nome VAZIO não se pede nada
+     * e a navegação é livre. Quem só quer ver o formulário, ou quem vai escolher um exercício que
+     * já existe (passo 2), não pode ser travado por campos de um exercício que não está a criar.
+     *
+     * O QUE FALTA DIZ-SE POR NOME, e todos de uma vez: um `alert` que pede um campo, e depois
+     * outro, e depois outro, é o mesmo pedido feito três vezes.
+     */
+    'function oQueFaltaNoPasso1(){' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  var nome = campo ? campo.value.trim() : "";' +
+    '  if (!nome) return [];' +
+    '  var falta = [];' +
+    '  var frase = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
+    '  if (!frase) falta.push("o que acontece (a definição do exercício)");' +
+    '  if (!document.getElementById("vncategoria").value) falta.push("a categoria");' +
+    '  if (!document.getElementById("vntradicao").value) falta.push("a tradição de referência");' +
+    '  return falta;' +
+    '}' +
     'function criarExercicioDoPasso1(depois){' +
     '  var campo = document.getElementById("vnnome");' +
     '  var nome = campo ? campo.value.trim() : "";' +
     '  if (!nome) { if (depois) depois(true); return; }' +
+    '  var falta = oQueFaltaNoPasso1();' +
+    '  if (falta.length) {' +
+    '    recado("erro", "Para criar «" + nome + "», falta " + falta.join(", ") + ".");' +
+    '    return;' +
+    '  }' +
     '  var cat = document.getElementById("vncategoria").value;' +
     '  var tra = document.getElementById("vntradicao").value;' +
+    // A FRASE VAI PARA O TERMO, e é ela que o dicionário passa a mostrar. Ela é guardada antes de
+    // `carregarRascunho()` porque essa função a pode trocar (a frase recarrega quando o exercício
+    // muda) — e perder aqui o que se acabou de escrever seria o mesmo defeito de sempre.
+    '  var fraseDoTermo = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
     '  var res = document.querySelector("[data-res=vb-novo]");' +
     '  if (res) { res.className = "res"; res.textContent = "gravando..."; }' +
     '  fetch("/api/bastidores/termo", {' +
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
-    '    body: JSON.stringify({token: TOKEN, termo: nome, categoria: cat, tradicao: tra})' +
+    '    body: JSON.stringify({token: TOKEN, termo: nome, categoria: cat, tradicao: tra,' +
+    '      descricao: fraseDoTermo})' +
     '  }).then(lerResposta).then(function(d){' +
     '    if (!d.ok) {' +
     '      if (res) { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
@@ -6242,7 +6396,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (campo) campo.value = "";' +
     '    if (res) { res.className = "res"; res.textContent = ""; }' +
     '    recado("ok", "exercício gravado: " + d.termo + " — já está na lista do passo 2.");' +
+    // A FRASE VOLTA PARA O CAMPO DEPOIS DE `carregarRascunho` (02/11/2026). A função recarrega a
+    // frase quando o exercício muda — e acabou de mudar. Sem esta linha, a definição que a
+    // professora escreveu no passo 1 era substituída pela do dicionário (ou por nada) no instante
+    // em que o termo ficava criado: escrevia-se, gravava-se, e desaparecia do ecrã.
     '    carregarRascunho();' +
+    '    if (fraseDoTermo) {' +
+    '      FRASE = fraseDoTermo;' +
+    '      FRASE_ANTERIOR = fraseDoTermo;' +
+    '      var campoF = document.getElementById("vb-frase");' +
+    '      if (campoF) campoF.value = fraseDoTermo;' +
+    '      pintarNotaDaFrase();' +
+    '    }' +
+    '    pintarTira();' +
     '    if (depois) depois(true);' +
     '  }).catch(function(e){' +
     '    if (res) { res.className = "res erro"; res.textContent = "Erro: " + e.message; }' +
@@ -6292,6 +6458,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (campoFrase) campoFrase.value = FRASE;' +
     '  pintarNotaDaFrase();' +
     '  pintarTrecho();' +
+    '  bloquearMusica();' +
     '  pintarTabela();' +
     '  pintarTira();' +
     '  pintarPassos();' +
@@ -6497,7 +6664,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * ela que abre a versão certa. Foi o defeito de hoje de manhã: duas músicas no alfabeto e o
      * «editar» a abrir sempre a primeira.
      */
-    '      ms.forEach(function(m){' +
+    '      ms.forEach(function(m, i){' +
     '        var onde = (m.direcoes || []).map(nomeDaDirecao);' +
     '        if ((m.orientacoes || []).length) {' +
     '          onde = onde.concat((m.orientacoes || []).map(nomeDaOrientacao));' +
@@ -6512,7 +6679,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button>";' +
     '        linhas.push("<li class=\\"turma\\" data-verbete=\\"" + x.nome + "\\">" +' +
     '          "<div class=\\"linha-turma\\"><span class=\\"nome\\">" + alvoDeMusica +' +
-    '          " " + selos + "</span></div>" +' +
+    '          " " + selos + "</span>" +' +
+    // O «APAGAR» É DO EXERCÍCIO, E ESTÁ UMA VEZ SÓ NA PRIMEIRA MÚSICA (02/11/2026). Repeti-lo em
+    // cada linha daria dois botões para o mesmo gesto — e um deles pareceria apagar só aquela
+    // música. Fica ao lado do nome, no sítio onde as outras listas põem as acções.
+    '          (i === 0 ? "<span class=\\"acoes\\">" +' +
+    '            "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-verbete=\\"" +' +
+    '            x.nome + "\\" title=\\"apagar o verbete deste exercício\\">Apagar</button></span>" : "") +' +
+    '          "</div>" +' +
     '          "<div class=\\"dono\\">" + detalhe.join(" · ") + "</div>" +' +
     '          "<div class=\\"trio\\">" +' +
     '          metricaDoVerbete("Música", (m.tempos || "—") + " tempos", "musica",' +
@@ -6571,11 +6745,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (selMet) selMet.value = METODO;' +
     '  pintarNotaDoMetodo();' +
     '  carregarRascunho();' +
-    // EDITAR LEVA AO PASSO 2 (02/11/2026) — é onde vive o seletor do exercício. Sem isto, quem
-    // carregava no «editar» da listagem com o formulário noutro passo preenchia campos que não
-    // estavam no ecrã, e o aviso «a editar…» aparecia sozinho num formulário que parecia vazio.
+    // EDITAR LEVA AO PASSO 1 (02/11/2026 — era o 2). O passo 2 tinha o seletor do exercício e a
+    // FRASE; a frase subiu para o passo 1, e é ela que se vem editar quando se abre um verbete. Ir
+    // para o 2 deixaria o comportamento certo (não encher campos fora do ecrã) com o sítio errado.
+    // O seletor do exercício continua a um clique na tira.
     '  MUSICA_ABERTA = chave;' +
-    '  irParaPasso(2);' +
+    '  irParaPasso(1);' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
     'function temposDaContagem(c){' +
@@ -6600,6 +6775,37 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * Como o cartão do verbete usa a MESMA marcação (`li.turma`, `.trio-item`, `.trio-painel`), ele
      * é servido pelo ouvinte que já existe. O que este `li` guarda é só a porta do nome.
      */
+    // O «APAGAR» DO CARTÃO (02/11/2026). Confirma e diz o que se perde ANTES — não depois. Um
+    // `confirm` que só perguntasse «apagar?» seria uma pergunta sem consequência escrita, e a
+    // consequência aqui é grande: uma aula publicada que citava o exercício passa a sair em lacuna.
+    '    var ap = e.target.closest ? e.target.closest("button[data-apagar-verbete]") : null;' +
+    '    if (ap) {' +
+    '      var qual = ap.getAttribute("data-apagar-verbete");' +
+    // UMA LINHA SÓ: uma string partida em três deixa `\n` Verdadeiro no fonte e literal no emitido.
+    '      var certo = window.confirm("Apagar o verbete de «" + qual + "»? A decomposição dele sai do ' +
+    '        alfabeto, e não há como a ler de volta. Uma aula já publicada que use este exercício ' +
+    '        passa a sair com a notação em lacuna. O exercício continua no dicionário.");' +
+    '      if (!certo) return;' +
+    '      fetch("/api/bastidores/verbete", {' +
+    '        method: "DELETE", headers: {"Content-Type": "application/json"},' +
+    '        body: JSON.stringify({token: TOKEN, nome: qual, modalidade: "bale-classico"})' +
+    '      }).then(lerResposta).then(function(d){' +
+    '        if (!d.ok) { recado("erro", "Erro: " + (d.erro || "desconhecido")); return; }' +
+    '        recado("ok", "verbete de «" + qual + "» apagado — versão " + d.versao);' +
+    // E O FORMULÁRIO SAI DE CIMA DELE: apagar o exercício que está aberto deixaria a tela a compor
+    // trechos de um verbete que já não existe, e a gravação seguinte recriava-o sem ninguém pedir.
+    '        var emFoco = (document.getElementById("vbnome") || {}).value || "";' +
+    '        if (emFoco === qual) {' +
+    '          EM_EDICAO = null; MUSICA_ABERTA = ""; CELULAS = {}; SINAIS = [];' +
+    '          var f = document.getElementById("form-verbete"); if (f) f.reset();' +
+    '          document.getElementById("vbacao").value = "criar";' +
+    '          irParaPasso(1);' +
+    '          carregarRascunho();' +
+    '        }' +
+    '        carregarVerbetes();' +
+    '      }).catch(function(err){ recado("erro", "Erro: " + err.message); });' +
+    '      return;' +
+    '    }' +
     '    var b = e.target.closest ? e.target.closest("button.verbetes-editar") : null;' +
     '    if (b) editarVerbete(b.getAttribute("data-nome"), b.getAttribute("data-musica"));' +
     '  });' +
@@ -6697,8 +6903,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // de ir continua a fazer o que sempre fez.
     '    return;' +
     '  }' +
-    '  var sel = document.getElementById("vbposicao");' +
-    '  var opcao = sel.options[sel.selectedIndex];' +
+    /* A POSIÇÃO NÃO VAI MAIS NO CORPO (02/11/2026): o campo saiu do formulário. `null` é a
+     * resposta honesta — «este verbete não declara posição» —, e o validador só confere a posição
+     * quando ela existe. Um verbete ANTIGO que já a tinha conserva-a no ficheiro? Não: gravar
+     * substitui a música, e a posição vai com ela. É a consequência de a retirar, e é declarada:
+     * quem quiser a posição de volta escreve-a nos sinais, que é onde ela passou a viver. */
+    '  var sel = null;' +
+    '  var opcao = null;' +
     '  var comoNova = document.getElementById("vb-como-nova");' +
     '  var manterAsDuas = Boolean(comoNova && comoNova.checked);' +
     '  var corpo = {' +
@@ -6713,7 +6924,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    musicaAnterior: (!manterAsDuas && substituiMusica()) ? MUSICA_ABERTA : undefined,' +
     '    verbete: {' +
     '      cobre: soma,' +
-    '      posicao: sel.value ? {membro: opcao.getAttribute("data-membro"), termo: sel.value} : null,' +
+    '      posicao: (sel && opcao && sel.value) ? {membro: opcao.getAttribute("data-membro"), termo: sel.value} : null,' +
     // O método só viaja quando é uma SOBREPOSIÇÃO; vazio quer dizer «herda», e gravar a chave
     // vazia seria escrever a ausência de uma decisão que ninguém tomou.
     '      metodo: METODO || undefined,' +
@@ -7234,9 +7445,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var ed = e.target.closest("button.editar");' +
     '  if (ed) { editarProfessor(ed.getAttribute("data-alvo")); return; }' +
     '  if (e.target.closest("button#prof-cancelar")) { sairDaEdicaoDoProfessor(); return; }' +
+    // O «APAGAR» GENÉRICO SÓ ACTUA EM QUEM DECLARA O TIPO (02/11/2026).
+    //
+    // O defeito, medido: o «Apagar» de um verbete nasceu com a classe `.apagar` — é a peça da
+    // casa — e este ouvinte vive no `document`. Resultado: o clique chegava aqui com
+    // `data-tipo` NULO, o corpo saía `{nome: null}` para `/api/bastidores/null`, e a página
+    // RECARREGAVA por cima do recado que o outro ouvinte tinha acabado de escrever. A
+    // confirmação do verbete — a que diz o que se perde — nem chegava a ser lida.
+    //
+    // A guarda é a declaração: quem apaga pelo caminho genérico diz o `data-tipo` (`aluna`,
+    // `turma`, `curadoria`, `rubrica`). Um botão que traz o seu próprio contrato — o verbete
+    // traz `data-apagar-verbete` e trata do pedido no ouvinte da lista — não é deste caminho.
     '  var b = e.target.closest("button.apagar"); if (!b) return;' +
+    '  if (b.hasAttribute("data-apagar-verbete")) return;' +
     '  var alvo = b.getAttribute("data-alvo");' +
     '  var tipo = b.getAttribute("data-tipo");' +
+    '  if (!tipo) return;' +
     '  var rotulo = b.getAttribute("data-nome") || alvo;' +
     '  if (!confirm("Excluir " + rotulo + "?")) return;' +
     '  var corpo = tipo === "aluna" ? {apelido: alvo}' +
@@ -8493,21 +8717,35 @@ async function fetch(request, env) {
     return json(r.ok ? 200 : (r.status || 400), r);
   }
 
-  // NÃO HÁ DELETE. A proveniência acrescenta, não edita (P-03/P-04): um verbete que já compôs um
-  // documento publicado é parte do passado desse documento, e apagá-lo faria o registro deixar de
-  // se poder ler de volta. A rota existe para o dizer, e não para 404 em silêncio.
+  // O DELETE DO VERBETE APAGA (02/11/2026). Este comentário dizia «NÃO HÁ DELETE» — e era verdade
+  // até esta data: a rota existia para responder 409 e explicar a P-03/P-04. O argumento continua
+  // válido para o HISTÓRICO (uma aula publicada que citava o exercício passa a sair em lacuna), e
+  // é por isso que a consequência vai escrita na pergunta que a tela faz antes do gesto, e não
+  // escondida aqui. O que muda: a notação sai do alfabeto, o exercício fica no vocabulário.
   if (path === '/api/bastidores/verbete' && request.method === 'DELETE') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
     if (!(await autorizacaoDirecaoOk(env, corpo))) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
-    return json(409, {
-      ok: false,
-      erro: 'o verbete não se apaga: descontinua-se. Um verbete que já compôs um documento publicado '
-        + 'é parte do passado desse documento (P-03/P-04).',
-      como: 'PUT com { acao: "descontinuar" }',
+    /* O VERBETE PASSA A APAGAR-SE (02/11/2026) — a pedido dela: «faltou fazer o verbo deletar o
+     * verbete». Era 409 com um sermão sobre a P-03/P-04.
+     *
+     * A REGRA ANTIGA NÃO ERA UM CAPRICHO, e a diferença fica dita: uma aula já publicada que
+     * citava este exercício passa a sair em lacuna, porque a notação dela deixou de existir. O
+     * documento não se apaga — apaga-se a leitura dele. É o preço, e a tela di-lo antes.
+     *
+     * A GUARDA QUE FICA: o verbo exige o NOME no corpo. Um `DELETE` sem corpo apagaria «o que
+     * estivesse lá», e é a única coisa que não pode acontecer por engano.
+     */
+    const { apagarVerbete } = require('./verbete.js');
+    const r = await apagarVerbete({
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main',
+      modalidade: String(corpo.modalidade || 'bale-classico'),
+      nome: corpo.nome,
     });
+    return json(r.ok ? 200 : (r.status || 400), r);
   }
 
   // POST /api/bastidores/termo — incluir termo do vocabulário.

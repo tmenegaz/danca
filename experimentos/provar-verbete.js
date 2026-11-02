@@ -381,7 +381,10 @@ async function aEscrita() {
   }));
   checar('sem token do repositório não se grava nada', !semToken.ok && semToken.status === 401, semToken);
 
-  console.log('\nC. A PROVENIÊNCIA — não há DELETE; há descontinuação');
+  // O TÍTULO MUDOU (02/11/2026). Ele dizia «não há DELETE» — e passou a haver. O que continua a
+  // não haver é APAGAR O EXERCÍCIO: descontinuar marca e conserva o registo, e é isso que esta
+  // secção mede. O apagar do verbete tem secção própria (C-2), com a consequência escrita.
+  console.log('\nC. DESCONTINUAR — a marca que conserva o registo');
 
   const descontinuado = await verbete.gravarVerbete(Object.assign({}, base, {
     nome: 'Battement fondu', acao: 'descontinuar',
@@ -405,11 +408,62 @@ async function aEscrita() {
   checar('e traz as músicas de cada exercício', lista.length >= 4
     && lista.find((x) => x.nome === 'Battement tendu').musicas.length === 3,
     lista.map((x) => x.nome + ':' + x.musicas.length));
+
+  /* C-2. APAGAR O VERBETE (02/11/2026) — «faltou fazer o verbo deletar o verbete».
+   *
+   * A REGRA ANTIGA RECUSAVA com 409, e o argumento era o P-03/P-04: um verbete que já compôs um
+   * documento publicado é parte do passado desse documento. O argumento continua verdadeiro para
+   * o HISTÓRICO — e é por isso que a consequência fica escrita na tela, no `confirm`, antes do
+   * gesto. Mas um verbete escrito ontem numa música que não serve não é história: é lixo no
+   * dicionário, e quem o escreveu tem de o poder tirar.
+   *
+   * O QUE SAI e o que fica: sai a DECOMPOSIÇÃO daquele exercício; fica o EXERCÍCIO no
+   * vocabulário. Apagar a notação não apaga a palavra.
+   */
+  console.log('\nC-2. APAGAR O VERBETE — o verbo que faltava, e o que ele NÃO apaga');
+
+  const semTokenApagar = await verbete.apagarVerbete(Object.assign({}, base, {
+    token: '', nome: 'Battement fondu',
+  }));
+  checar('apagar sem token do repositório é recusado com 401',
+    !semTokenApagar.ok && semTokenApagar.status === 401, semTokenApagar);
+
+  const semNomeApagar = await verbete.apagarVerbete(Object.assign({}, base, { nome: '  ' }));
+  checar('apagar sem dizer QUAL é recusado com 400 — não se apaga «o que estiver lá»',
+    !semNomeApagar.ok && semNomeApagar.status === 400, semNomeApagar);
+
+  const naoExiste = await verbete.apagarVerbete(Object.assign({}, base, { nome: 'Pas assemblé' }));
+  checar('apagar o que não existe responde 404, e di-lo pelo nome',
+    !naoExiste.ok && naoExiste.status === 404 && /Pas assemblé/.test(naoExiste.erro || ''), naoExiste);
+
+  const versaoAntesDeApagar = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo).versao;
+  const apagado = await verbete.apagarVerbete(Object.assign({}, base, { nome: 'Battement fondu' }));
+  checar('apagar um verbete que existe é aceito', apagado.ok, apagado);
+  checar('…e a versão do alfabeto sobe — apagar também é um elo da cadeia',
+    apagado.versao === Number(versaoAntesDeApagar) + 1, { antes: versaoAntesDeApagar, depois: apagado.versao });
+
+  const semOVerbete = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo);
+  checar('o exercício sai do alfabeto, com todas as músicas dele',
+    !('Battement fondu' in semOVerbete.verbetes), Object.keys(semOVerbete.verbetes));
+  checar('…e os OUTROS verbetes ficam onde estavam',
+    Boolean(semOVerbete.verbetes['Battement tendu']), Object.keys(semOVerbete.verbetes));
+  checar('a mensagem do commit diz o que foi apagado e onde',
+    /^chore\(notacao\): apagar o verbete «Battement fondu» no alfabeto bale-classico/.test(
+      String(repo.arquivos.get(CAlfabeto).mensagem || '').split('\n')[0]),
+    repo.arquivos.get(CAlfabeto).mensagem);
+  checar('e a lista deixa de o mostrar',
+    verbete.listarVerbetes(semOVerbete).every((x) => x.nome !== 'Battement fondu'),
+    verbete.listarVerbetes(semOVerbete).map((x) => x.nome));
+  // O QUE NÃO SE TOCA: o ficheiro do VOCABULÁRIO. Uma notação apagada não é uma palavra apagada.
+  checar('o vocabulário não é escrito nem apagado por este verbo',
+    !repo.pedidos.some((p) => p.metodo === 'DELETE')
+      && JSON.parse(repo.arquivos.get(CVocabulario).conteudo).length === VOCABULARIO.length,
+    repo.pedidos.map((p) => p.metodo + ' ' + p.caminho));
 }
 
 /** A rota da Produção: a guarda da direção e a recusa do DELETE, medidas pelo `fetch` do Worker. */
 async function aRota() {
-  console.log('\nD. A ROTA — a guarda da direção, e o DELETE que existe para dizer não');
+  console.log('\nD. A ROTA — a guarda da direção e o DELETE que agora apaga');
 
   const bastidores = require(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'));
   const env = {
@@ -432,9 +486,13 @@ async function aRota() {
     body: JSON.stringify({ senhaDirecao: 'senha-da-direcao' }),
   }), env);
   const corpo = await comSenha.json();
-  checar('e com a senha ele responde 409, não 200 — apagar não é uma operação', comSenha.status === 409, comSenha.status);
-  checar('a recusa explica a regra e diz o caminho', /P-03\/P-04/.test(corpo.erro || '')
-    && corpo.como === 'PUT com { acao: "descontinuar" }', corpo);
+  // SEM NOME, A ROTA NÃO APAGA NADA (02/11/2026). Era 409 com o sermão da P-03/P-04; agora é 400
+  // — o verbo existe, e a guarda é o NOME. Um `DELETE` sem corpo apagaria «o que estivesse lá», e
+  // é a única coisa que não pode acontecer por engano. O caminho que apaga a sério (com o
+  // repositório de mentira) está medido em C-2; aqui mede-se a guarda, que não toca na rede.
+  checar('e com a senha, mas sem dizer qual, ele responde 400 — não apaga «o que estiver lá»',
+    comSenha.status === 400, comSenha.status);
+  checar('a recusa diz o que falta', /nome/i.test(corpo.erro || ''), corpo);
 }
 
 /**
@@ -663,10 +721,21 @@ async function aOrigemDoVocabulario() {
   checar('nem «Gravar exercício» nem «Cancelar»: quem grava é o «Seguir →»',
     !/Gravar exercício/.test(html) && !/vb-cancelar-exercicio/.test(html),
     [/Gravar exercício/.test(html), /vb-cancelar-exercicio/.test(html)]);
-  checar('o seletor do exercício está no passo 2, com a frase e a posição',
+  /* A FRASE SUBIU PARA O PASSO 1, E A POSIÇÃO SAIU DO FORMULÁRIO (02/11/2026).
+   *
+   * O que ela pediu: «esse campo representa a definição/significado do exercício (…) deve ser
+   * removido do Step 2 e posicionado obrigatoriamente no Step 1» e «o campo "Posição em que o
+   * exercício acontece" do Step 2 deve ser removido/extinto». A posição continua no DADO — o que
+   * sai é o pedido, porque ela passa a escrever-se nos sinais do trecho. */
+  checar('a FRASE está no passo 1, ao lado do nome — o exercício define-se quando se nomeia',
     (() => {
-      const p2 = (html.match(/data-passo="2" hidden>([\s\S]*?)data-passo="3"/) || [])[1] || '';
-      return ['vbnome', 'vb-frase', 'vbposicao'].every((id) => new RegExp('id="' + id + '"').test(p2));
+      const p1 = (html.match(/<div class="passo-painel" data-passo="1">([\s\S]*?)<div class="passo-painel" data-passo="2"/) || [])[1] || '';
+      return /id="vb-frase"/.test(p1);
+    })());
+  checar('o seletor do exercício está no passo 2 — e o passo 2 já não pede a posição',
+    (() => {
+      const p2 = (html.match(/<div class="passo-painel" data-passo="2" hidden>([\s\S]*?)<div class="passo-painel" data-passo="3"/) || [])[1] || '';
+      return /id="vbnome"/.test(p2) && !/id="vbposicao"/.test(html);
     })());
   checar('e a tira anuncia SEIS passos, com o exercício novo em primeiro',
     /data-passo="6"/.test(html) && /<span class="passo-t">O exercício novo<\/span>/.test(html));
@@ -804,8 +873,8 @@ aValidacao();
 aEscrita().then(aRota).then(aPagina).then(aOrigemDoVocabulario).then(() => {
   console.log('');
   if (falhas) { console.log('FALHOU — ' + falhas + ' asserção(ões).'); process.exit(1); }
-  console.log('TUDO CERTO — o CRUD do verbete valida, grava no repositório e recusa apagar;'
-    + ' e o vocabulário vive numa verdade só.');
+  console.log('TUDO CERTO — o CRUD do verbete valida, grava no repositório e APAGA o verbete'
+    + ' sem tocar no vocabulário; e o vocabulário vive numa verdade só.');
 }).catch((erro) => {
   console.error('erro na prova:', erro);
   process.exit(1);

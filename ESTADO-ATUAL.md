@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `b7acca6`). Nesta entrega: **a listagem do verbete
+> **Última fotografia:** 02/11/2026 (base local `dbc3797`). Nesta entrega: **a música deixou de se
+> poder mudar por baixo dos trechos.** Ela escreveu os tempos à mão, de 8 para 16, e os trechos
+> desapareceram no mesmo instante, sem aviso. A saída escolhida foi **bloquear**: com trechos
+> escritos, `#vbtempos` fica só de leitura e o compasso desactivado, e a nota manda ao «Duplicar o
+> exercício» para a mesma decomposição noutra duração. **E o verbo apagar passou a existir** — a
+> rota respondia 409 com um sermão sobre a P-03/P-04 e passou a apagar, com a consequência escrita
+> na pergunta. **E os passos re-arrumaram-se:** a frase subiu ao passo 1, o passo 1 ficou
+> condicional (sem nome, ninguém é obrigado a nada; com nome, os três seguintes são obrigatórios),
+> e o campo «posição em que o exercício acontece» **saiu** — a posição escreve-se nos sinais do
+> trecho. A decomposição ganhou o «lê-se» atrás de um clique e deixou de repetir a frase do
+> exercício em cada linha.
+>
+> **Entrega anterior** (base `b7acca6`). Nesta entrega: **a listagem do verbete
 > passou a ser o cartão das turmas** — a opção 1 da bancada, escolhida por ela. O nome e o selo em
 > cima, o complemento por baixo, e **três caixinhas** com o «?»: `Música`, `Direção`, `Notação`. A
 > da notação abre a decomposição **trecho a trecho**, lida do motor. Nenhuma classe nova: as peças
@@ -326,11 +338,29 @@ Verificado nesta fotografia, com os comandos da §9.
 - **O verbete tem SEIS passos, e o exercício novo é o primeiro.** O «+» que abria um cadastro, o
   «Gravar exercício» e o «Cancelar» **deixaram de existir**: o passo 1 são os campos do exercício
   novo (nome, categoria, tradição, carregar as turmas iniciais), o **«Seguir →»** é que grava o
-  termo, e avançar sem nome não grava nada. O seletor do exercício desceu para o passo 2, com a
-  frase e a posição; a música é o 3, o «para onde» o 4, os sinais o 5, a decomposição o 6.
-  **CONFIRMADO** por `provar-celula` (130 asserções, incluindo «não tem «+»», «nem «Gravar
-  exercício» nem «Cancelar»», «o «Seguir →» manda UM pedido de termo», «avançar sem nome não grava
-  nada») e por `provar-verbete`.
+  termo, e avançar sem nome não grava nada. O seletor do exercício é o passo 2; a música é o 3, o
+  «para onde» o 4, os sinais o 5, a decomposição o 6. **CONFIRMADO** por `provar-celula` e por
+  `provar-verbete`.
+- **O passo 1 ficou condicional, e a frase do exercício vive lá** (02/11/2026). A regra, ao pé da
+  letra dela: «se não preencher o nome, os campos seguintes permanecem opcionais e ele pode navegar
+  livremente; se escrever o nome, os seguintes tornam-se estritamente obrigatórios». `oQueFaltaNoPasso1()`
+  devolve **`[]` sem nome** e, com nome, exige a frase, a categoria e a tradição — a recusa diz o
+  que falta pelo nome. A **categoria e a tradição deixaram de nascer escolhidas**: os dois
+  `<select>` tinham a primeira opção já marcada, e por isso os dois obrigatórios nunca podiam
+  faltar. E o campo **«posição em que o exercício acontece» saiu do formulário** — pedi-la era
+  pedi-la duas vezes, porque ela escreve-se nos sinais do trecho. **O dado fica**: uma posição já
+  gravada continua no alfabeto e continua a ler-se na listagem. **CONFIRMADO** por `provar-celula`
+  §23 (203 asserções) e por `provar-verbete`.
+- **A música não se muda por baixo dos trechos** (02/11/2026). Com uma célula que seja, `#vbtempos`
+  fica `readOnly` e `#vbcompasso` `disabled`, com `aria-readonly` e uma nota que diz porque e para
+  onde ir (o «Duplicar o exercício», que escreve tempos e células na mesma acção). **CONFIRMADO** em
+  §23-B, e a libertação medida depois do «Apagar», que limpa o formulário.
+- **O verbo apagar o verbete existe, e o que ele NÃO apaga está dito** (02/11/2026). O `DELETE
+  /api/bastidores/verbete` respondia 409 e passou a apagar: exige token e **nome** (um `DELETE` sem
+  corpo apagaria «o que estivesse lá»), sobe a versão do alfabeto e grava com
+  `chore(notacao): apagar o verbete «X»`. O **vocabulário não se toca** — a notação sai, a palavra
+  fica. A consequência (uma aula publicada passa a sair em lacuna) vai escrita na pergunta que a
+  tela faz antes do gesto. **CONFIRMADO** por `provar-verbete` §C-2 e `provar-celula` §23-D.
 - **O exercício novo já está na lista ao avançar, e nada disto toca no KV.** O `POST
   /api/bastidores/termo` grava no **repositório** (`biblioteca/modalidades/bale-classico/
   vocabulario.json`, por `termo-repo.js`) e devolve o termo; a lista que `GET
@@ -1048,6 +1078,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     é o que já acontecia com `+`, `-` e `×`, e um membro que vai para fora roda para fora.
     **DECIDIDO por ela e implementado** 02/11/2026 — em **conteúdo** (`notacao.json`), sem tocar em
     `tools/` nem no motor.
+73. **O QUE APAGA TRABALHO NÃO SE DEIXA AO ALCANCE DE UM CLIQUE ACIDENTAL — BLOQUEIA-SE.** Era a
+    terceira vez que o assunto dos tempos apareceu, e a resposta dela foi a mais simples: «não pode
+    editar esse campo». Com trechos escritos, a música fica só de leitura e o compasso desactivado;
+    quem quer a mesma decomposição noutra duração usa o «Duplicar o exercício», que é o gesto
+    **explícito** para isso. A alternativa era um `confirm` a perguntar «isto descarta os trechos?»,
+    e ela já disse o que pensa de um formulário que pergunta o que devia saber. **DECIDIDO por ela e
+    implementado** 02/11/2026.
+74. **A POSIÇÃO É DO TRECHO, E NÃO SE PEDE DUAS VEZES.** O campo «posição em que o exercício
+    acontece» **saiu** do passo 2: a posição já se escreve nos sinais do trecho, com a direção e a
+    contagem ao lado. O **dado fica** (`posicao: {membro, termo}`) — tirar o pedido não é tirar a
+    informação, e um verbete antigo continua a ler-se. A frase do exercício subiu ao passo 1, porque
+    é a **definição** dele e nasce onde ele nasce. **DECIDIDO por ela e implementado** 02/11/2026.
+75. **O VERBETE PODE SER APAGADO — E O QUE ISSO INVERTE FICA ESCRITO.** A rota respondia 409 com a
+    P-03/P-04; passou a apagar. O argumento antigo não era um capricho e não se apaga com o código:
+    uma aula já publicada que citava o exercício passa a sair com a notação em **lacuna**. A
+    diferença é que isso passa a ser **dito antes** do gesto, na pergunta que a tela faz, e não
+    usado como recusa. O que **não** se apaga é o exercício no vocabulário: sai a notação, fica a
+    palavra. **DECIDIDO por ela** («faltou fazer o verbo deletar o verbete») **e implementado**
+    02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -1153,18 +1202,22 @@ também no PO» — **não é defeito**. **DECIDIDO** que a repetição é propo
 plano de ensino e o PO em momentos diferentes e precisa dos valores à mão, **só de leitura**. A
 análise foi emendada. **CONFIRMADO** que os campos não são editáveis no PO.
 
-### Mudar os tempos apaga a decomposição — em silêncio, e a decisão é dela
+### Mudar os tempos apagava a decomposição em silêncio — **RESOLVIDO**, e a solução é o bloqueio
 
-**Medido** 02/11/2026: com as quatro células do `Plié`, mudar os tempos de 8 para 16 — uma música que
-ainda não existe no alfabeto — deixa `CELULAS` em **0** e a cobertura em **0**. Não há aviso, não há
-«descartar alterações?»: o trabalho desaparece. É o comportamento **certo** (outra música é outra
-decomposição — a decisão **63**), exercido da maneira errada.
+**Era uma pergunta; já tem resposta.** A dúvida, medida 02/11/2026: com as quatro células do `Plié`,
+mudar os tempos de 8 para 16 — uma música que ainda não existe no alfabeto — deixava `CELULAS` em
+**0** e a cobertura em **0**. Sem aviso e sem «descartar alterações?»: o trabalho desaparecia. As
+três saídas propostas eram avisar antes, duplicar em vez de substituir, ou deixar como estava.
 
-A duplicação não passa por aí, e quem só duplica não o encontra. Quem escreve os tempos à mão encontra.
-O que fica por decidir é dela, e são três saídas: **(a)** avisar antes de apagar («isto descarta os
-trechos desta música — continuar?»); **(b)** duplicar a música em vez de a substituir, quando já tem
-células; **(c)** deixar como está, porque declarar outra música é declarar outra decomposição e o
-professor sabe o que está a fazer. **PENDENTE.**
+**A escolha foi dela, na terceira vez que o assunto apareceu:** «solução bloqueia. Não pode editar
+esse campo.» Com uma célula que seja, os tempos ficam **só de leitura** e o compasso **desactivado**
+(`aria-readonly` incluído), e a nota diz porque e qual é a saída — o **«Duplicar o exercício»**, que
+escreve os tempos e as células na mesma acção e passa por cima do bloqueio **de propósito**.
+
+**Duas coisas que o bloqueio preserva, e que se declaram:** o «Limpar» e o «Apagar» **libertam** o
+campo (sem trechos, não há o que perder); e quem quer **outra música** começa outra — a
+decomposição de uma música é daquela música, e isso é a decisão **63**, aplicada. **CONFIRMADO** em
+`provar-celula` §23-B e §23-D (o campo travado, a nota, e a libertação depois do «Apagar»).
 
 ### A métrica da aula — o que falta declarar
 
@@ -1364,7 +1417,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — o cartão da listagem e o vocabulário expandido)
+### Executado nesta fotografia (02/11/2026 — a música travada, o verbo apagar e os passos arrumados)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-celula.js` | **203 de 203** (eram 178) — a **§23** é nova, com 25 asserções: o campo da posição ausente e a nota que diz para onde ele foi; os tempos `readOnly` e o compasso `disabled` com trechos, com `aria-readonly` e a nota que manda ao «Duplicar»; o `<details class="dito">` **fechado** e o «lê-se»; a frase **zero** vezes na tabela e **uma** na prévia; o passo 1 condicional (sem nome, nada falta; com nome, faltam três); os dois escolhedores **vazios**; o `DELETE` com `{nome, modalidade, token}`; a pergunta que diz «lacuna» e «dicionário»; o recado com a versão nova; o formulário a sair de cima do verbete apagado; a música a **libertar-se**; e **a página não recarregar** |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — a **§C-2** é nova: 401 sem token, 400 sem nome, 404 pelo nome, apaga e **sobe a versão**, o exercício sai com **todas** as músicas, os outros ficam, a mensagem do commit, a lista deixa de o mostrar, e **o vocabulário não é escrito nem apagado**. A §D passou a medir a guarda nova (400 sem nome) no lugar do 409 antigo |
+| `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | **89/89** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · TUDO CERTO · **20/20** |
+| **dois defeitos encontrados a medir** | o compasso da prévia dizia sempre «—» (`compassosDosTrechos()[d.termo + ":" + k]`, com `d` a ser uma chave e não a direção); e o «Apagar» do verbete **recarregava a página**, porque caía no ouvinte genérico do `button.apagar` e mandava o corpo para `/api/bastidores/null`. Os dois corrigidos, e o segundo com uma asserção que conta as navegações |
+| **não executado** | `provar-agnosticismo` (o ficheiro não existe neste worktree) · `provar-o-que-vem-do-dado` (sem fixture) · `check-glossario` (sem par registro × glossário) |
+
+### Executado na fotografia anterior (02/11/2026 — o cartão da listagem e o vocabulário expandido)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1998,6 +2062,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **A música não se muda por baixo dos trechos: bloqueia-se.** Escrever os tempos à
+  mão apagava a decomposição no mesmo instante, sem aviso — e ela foi categórica: «não pode editar
+  esse campo». Com trechos, os tempos ficam só de leitura e o compasso desactivado, e a nota manda
+  ao «Duplicar o exercício». O «Limpar» e o «Apagar» libertam o campo.
+- **02/11/2026** — **O verbo apagar o verbete existe.** O `DELETE` respondia 409 com a P-03/P-04 e
+  passa a apagar: exige o **nome** (um `DELETE` sem corpo apagaria «o que estivesse lá»), sobe a
+  versão e grava com `chore(notacao): apagar o verbete «X»`. O **vocabulário não se toca**, e a
+  consequência (aula publicada em lacuna) é dita na pergunta, antes do gesto.
+- **02/11/2026** — **Os passos arrumaram-se, e o passo 1 ficou condicional.** A frase do exercício
+  subiu para o passo 1 (é a definição, e nasce com o nome); sem nome nada é obrigatório, com nome
+  são-no a frase, a categoria e a tradição — e os dois escolhedores deixaram de nascer respondidos.
+  O campo «posição em que o exercício acontece» **saiu**. A decomposição ganhou o «lê-se» atrás de um
+  clique e a frase deixou de se repetir em cada linha.
 - **02/11/2026** — **A listagem do verbete passou a ser o cartão das turmas** (a opção 1, escolhida
   por ela): o nome e o selo em cima, o complemento por baixo, e as três caixinhas `Música` ·
   `Direção` · `Notação` com o «?». A da notação abre a decomposição trecho a trecho, com o compasso
