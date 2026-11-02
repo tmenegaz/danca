@@ -107,6 +107,25 @@
 > **§2.10** acolhe C17 e C18, o **§4** nomeia-as nas linhas da L11 e da L12, e o **§9** ganha a
 > lista do que esta rodada **não** decidiu. Nenhuma linha de código de produto foi alterada — e
 > **nada** foi implementado.
+>
+> **Registo de 02/11/2026 — os três aspectos macro, e a musicalidade que não se pergunta.** A
+> pesquisadora declarou o eixo que qualquer modalidade tem de ter — **força e flexibilidade**, o
+> **elemento da técnica/código** e a **poiésis** —, e a declaração tem duas consequências neste
+> documento. A primeira é uma **contradição nova**, a **C20**: a **Regra 4** pede «pré-requisitos de
+> força e flexibilidade» e o campo que a alimenta é «**Condições do espaço**», que é outra coisa (o
+> piso, a barra, o espelho); e a força e a flexibilidade **existem** — na **anamnese**, e desde
+> 02/11/2026 chegam ao **ponto de partida** do PO com os quinze campos que ela escolheu. A segunda é
+> de **taxonomia**: se os três aspectos são o que se observa, eles são os **eixos das dimensões** —
+> hoje só «Técnica» o é —, e isso toca a **L1**, a **L10** e a ligação bloco ↔ dimensão (**P1**), onde
+> um eixo a mais é uma dimensão a mais a ligar.
+>
+> No mesmo dia ficou assente, pela terceira vez e agora por escrito no código, que a **musicalidade
+> não se pergunta**: o professor decide-a no **verbete** (a grade de contagens, por música) e no
+> **plano** (os tempos e o compasso), e o documento da aula **consolida** — o pulso é a contagem, o
+> acento é o tempo do compasso em que ela cai, a frase é o exercício inteiro sobre a música. É a mesma
+> família da decisão 31 já registada no `ESTADO-ATUAL` («o que a sequência já responde não se escreve
+> outra vez»), e é o princípio que o §L1 tem de respeitar: **um campo por dado, e o dado no sítio onde
+> se decide**. Nenhuma linha de código de produto foi alterada nesta rodada de planeamento.
 
 ---
 
@@ -401,7 +420,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.3.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -891,6 +910,41 @@ por isso.
 
 *(Afeta §L14 (a frente que isto destranca), §L8 (o valor) e a L9 (a trava por plano). A metade do
 ritmo é de **domínio**; a da extensão é **comercial**.)*
+
+**C20 — O que o Lastro observa: três aspectos macro, e a Regra 4 pede um quarto que ninguém declara.**
+A pesquisadora declarou, a 02/11/2026, o eixo que **qualquer modalidade** tem de ter — não é do balé
+clássico, é do que se observa em dança:
+
+- **Força e flexibilidade** — «a gente tem que ter isso, para o balé clássico e para qualquer outra
+  habilidade que a gente queira em dança, em qualquer modalidade»;
+- **o elemento da técnica, do código** — «o balé clássico é a técnica do balé clássico, a codificação
+  do balé clássico, qualquer que seja a tradição. Marta Graham é a técnica, release é a técnica, o hip
+  hop tem as suas técnicas também, a dança de salão também tem»;
+- **a poiésis** — «a parte da expressividade, a parte do olhar, a parte da condução que o professor faz
+  através do contexto, através do processo pedagógico dele, através do estímulo e transmissão da
+  oralidade, através da história da dança. E é por isso que a gente tem o vídeo e é por isso que a
+  gente tem a música, é por isso que a gente tem os *pas de bras*».
+
+**E é aqui que a contradição se mede.** A **Regra 4** usa a expressão «pré-requisitos de **força e
+flexibilidade**» — o primeiro dos três aspectos —, mas o **campo** que a alimenta no plano de ensino é
+«**Condições do espaço**»: «o que a sala e o material precisam ter». São duas coisas diferentes com o
+mesmo nome de regra, e o documento da aula dizia a primeira por cima do conteúdo da segunda. Corrigido
+o título (02/11/2026), **a contradição que sobra é do modelo**: a força e a flexibilidade **existem** —
+estão na **anamnese**, em campos que já se perguntam (`flexibilidade-dos-isquiotibiais`,
+`flexibilidade-dos-adutores`, `controle-de-carga-no-demi-grand-plie`, …), e desde 02/11/2026 chegam ao
+**ponto de partida** do PO com os quinze campos que ela escolheu. O que está por decidir é **o que a
+Regra 4 quer dizer**: (a) passa a falar do espaço e do material, e a força e a flexibilidade ficam
+onde estão (a anamnese → o PO); ou (b) nasce no plano um campo próprio para elas, e o «Condições do
+espaço» fica só com a sala.
+
+**A consequência para o produto, e é a que interessa a este documento:** se os três aspectos são o que
+o Lastro observa, eles são **a taxonomia das dimensões** — hoje o eixo («Técnica») é declarado no
+conteúdo do PO, e nada impede que os outros dois passem a ser eixos de primeira classe. Isso toca a
+**L1** (o dicionário de campos), a **L10** (o vocabulário do domínio que falta) e a ligação
+bloco ↔ dimensão (**P1**), porque um eixo a mais é uma dimensão a mais a ligar.
+
+*(Afeta §L1, §L10, a ligação bloco ↔ dimensão (P1) e a decisão da Regra 4. A metade da taxonomia é de
+**domínio**; a do campo no plano é de **formulário**.)*
 
 ---
 

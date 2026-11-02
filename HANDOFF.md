@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-01T11:26:58-0300`
-Commit atual: `35aad32` — fix(entrega): o que o pré-commit regenera fica no commit
+Gerado em: `2026-11-02T09:27:27-0300`
+Commit atual: `d74fda1` — fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a correr
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -54,16 +54,20 @@ cafe-no-bule
 luz-azul
 manga-curta
 meia-cortada
+meia-ponta
 murisoca-baiana
 oculos-redondo
+pe-junto
+pe-torto
 perna-boa
+pirueta-aberta
 sapo-bailarino
 so-para-direita
 teclado-abnt
 tela-de-celular
 tiago-menegaz
-vaso-bonito (14)
-- **Ciclos com manifesto:** 3 variante(s)
+vaso-bonito (18)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -80,26 +84,26 @@ vaso-bonito (14)
 ## Últimos commits
 
 ```
-35aad32 fix(entrega): o que o pré-commit regenera fica no commit
-82d37ef feat(entrega): a janela vista por todas as bandas, na aula e no lançamento
-f8cf358 docs(registro): as 23 aulas não são uma dívida, nascem à medida
-5c3b3b0 docs(registro): a conferência ao ar, medida
-7b80274 docs(registro): a fotografia do que a sequência já responde
-ac6caa0 feat(entrega): o que a sequência já responde não se escreve outra vez
-f1f8689 docs(registro): a armadilha do scaffold, que a verificação ao ar descobriu
-22b42ce fix(entrega): o conteúdo da porta no scaffold, que é o que a escola publica
-b64bac4 docs(registro): a fotografia do número do roteiro, e os três nós que ficam à espera
-10bf6b6 fix(estrutura): o número que se lê é o do roteiro, nos três documentos
-5bfb7ae chore(estrutura): regerar os índices derivados
-fb14ca3 docs(registro): a fotografia, o registo e o handoff da tira fora do formulário
-b0d781f refactor(estrutura): a tira dos passos sai do formulário, e o verbete fica em cinco
-a33eb51 docs(registro): a conferência ao ar da música derivada, medida e não suposta
-1db8980 docs(registro): a fotografia, o registo e o handoff do verbete que responde pelo plano
-885ea96 feat(estrutura): os tempos e o compasso vêm do verbete, e não se perguntam duas vezes
-621a4f3 docs(registro): a fotografia do conteúdo órfão que o plano passou a acusar
-c3f0fb1 fix(estrutura): o plano diz por que um termo da turma não aparece
-e12ad94 feat(notacao): declarar «Battement fondu» (2|4/4) no alfabeto bale-classico
-56470a8 chore(notacao): renovar o selo da âncora para a versão 7 do alfabeto
+d74fda1 fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a correr
+cf1ef52 feat(po): a força e a flexibilidade vêm da anamnese, e a caixa mostra-as pelo nome
+33663bb chore(estrutura): regerar os índices derivados
+469c9d5 fix(aula-01): a proveniência leva a algum lado e o próximo passo diz o estado
+7e8b87b chore(estrutura): regerar os índices derivados
+03be290 fix(aula-01): a aula deixa de afirmar o que ninguém escreveu, secção a secção
+e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-2
+67d8f53 chore(estrutura): reancorar a cadeia das fontes alteradas
+c13be2f chore(estrutura): regerar os índices derivados
+d335f25 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
+4c0c642 feat(po): o PO elicitado vira a fonte do ciclo
+bd1298f feat(acervo): envelope/po-20261101-1959.json
+22a6799 feat(acervo): envelope/.indice.json
+8fe6474 chore(estrutura): reancorar a cadeia das fontes alteradas
+98d9a5f chore(estrutura): regerar os índices derivados
+68a760a feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+8b7f897 feat(plano): o plano elicitado vira a fonte do ciclo
+9472d9d feat(acervo): envelope/plano-20261101-1955.json
+e9f1b7a feat(acervo): envelope/.indice.json
+2832a1e chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -114,25 +118,39 @@ e12ad94 feat(notacao): declarar «Battement fondu» (2|4/4) no alfabeto bale-cla
 
 ### meia-cortada — 0 ciclo(s)
 
+### meia-ponta — 0 ciclo(s)
+
 ### murisoca-baiana — 0 ciclo(s)
 
 ### oculos-redondo — 0 ciclo(s)
 
-### perna-boa — 1 ciclo(s)
+### pe-junto — 0 ciclo(s)
 
-**Ciclo 01** — variante(s): batata, batata-bale-nivel-1-teste-2
+### pe-torto — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): batata
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | batata | (sem PO) | — | — |
-| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `1816e1eb7b3c` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `59e3063f21ad` | (vazio) | Input_PO_Aguardando |
+| batata | ciclo-01-batata.fipp | `0d18d32da528` | (vazio) | — |
 
-### sapo-bailarino — 0 ciclo(s)
+### perna-boa — 0 ciclo(s)
+
+### pirueta-aberta — 0 ciclo(s)
+
+### sapo-bailarino — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): 
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
 
 ### so-para-direita — 0 ciclo(s)
 
@@ -199,118 +217,137 @@ e12ad94 feat(notacao): declarar «Battement fondu» (2|4/4) no alfabeto bale-cla
 
 ## Última entrada do REGISTRO
 
-## 01/11/2026 — A janela vista por todas as bandas: a aula e o lançamento
+## 02/11/2026 — A prova da porta estava a medir-se a si mesma
 
-**O que motivou.** A pesquisadora: «o formulário precisa ser a expressão da janela. É o que eu olho
-pela janela. É o que olhar através da janela me dá de resposta. Então eu não posso só olhar por uma
-banda da janela. Eu tenho que olhar por todas as bandas.» O PO declara **4 dimensões e 8 critérios**;
-a aula e a folha de captura desenhavam **4** — os dois critérios de cada dimensão colados num rótulo
-só. O professor não podia marcar um sem marcar o outro, e o par não é observável.
+**O que motivou.** Ficou registado na entrada anterior, como pendência, que
+`experimentos/provar-ajustes-anamnese.js` falhava em `window.location.replace` e «já falhava em
+`HEAD`». A pesquisadora perguntou o que era e o que fazer. A resposta é pior do que a pendência
+dizia, e é de medição em três camadas.
 
-**Dois defeitos distintos, medidos, e a diferença entre eles importa.**
+**O que estava a acontecer.**
 
-1. **A §5 da aula não era derivada.** Comparado o `.md` em disco com o que `derivarAula01` produz (com
-   os dois envelopes e a calibração do `.conf`): **18 linhas divergentes, 16 delas a §5**. A frase
-   «Os itens abaixo vêm de **Itens de cada dimensão**…» **não existe em código nenhum** — o trecho foi
-   escrito à mão, e a próxima geração apagava-o em silêncio. E a prova que o cobria
-   (`provar-aula-prosa`) exigia o texto colado: **media o documento, não a geração**, e por isso dava
-   verde sobre um trecho que não se reproduzia.
-2. **A regra do `;` não tinha chegado aos artefatos.** `itensDaDimensao` está no código desde
-   `ac6caa0`, mas os **três** sítios já gravados continuavam com o rótulo colado: a fonte da folha
-   (`-captura-aula-01.md`), a declaração do schema (`_declaracao.porVariante`) e o config que o
-   formulário lê (`captura-aula-01.json`). **Um conserto que fica no código e não chega ao artefato
-   não conserta nada.**
+1. **O mock do `location` não tinha `replace`.** A página chama `location.replace` no caminho em que
+   o ato não tem contexto válido (`voltarParaALista`) — e é o comportamento certo: sem contexto não
+   há formulário a abrir, só um endereço órfão. No sandbox isso era um `TypeError`, e a prova
+   inteira parava ali.
+2. **E parava a meio:** corriam **56** asserções e as últimas do ficheiro nunca se executavam. Com o
+   `replace` no mock, correram **126**. Ou seja: **70 asserções estavam a passar por não correr.**
+3. **E as que passavam, algumas mediam outra coisa.** O `fetch` do mock respondia `{ok:true}` a tudo,
+   de modo que as listas de alunas e de professores chegavam vazias, `carregarAlunas()` reconstruía o
+   `select` a partir do vazio, e o contexto ficava incompleto sem ninguém lhe tocar. Doze asserções
+   do bloco da turma liam «Escolha primeiro o professor» — o **aviso** — e chamavam-lhe a grade.
 
-**O que foi decidido e feito.**
-- A **§5 passa a derivar do PO** por `dimensoesEItens` — a **mesma** fonte da folha —, **um critério
-  por linha**, com a prosa trazida para o código. O guia e a captura não podem divergir: são duas
-  leituras do mesmo par dimensão × item.
-- Os **três artefatos foram regenerados**. O formulário desenha **8 campos** em vez de 4.
-- **`mesclarDeclaracao` passou a casar os blocos por CHAVE, não por título.** A linha de base
-  chama-se «Linha de base revisitada (P-10)» na derivação e «Linha de base revisitada» na folha: por
-  título, a declaração entrava como bloco **novo** e o validador recusava («coluna da folha não
-  declarada no schema»). Um bloco não muda de identidade porque lhe mudou o rótulo.
-- **O título da linha de base na declaração passou a ser o que a folha imprime** (sem «(P-10)»). O
-  efeito colateral era grave e estava escondido: a **primeira** declaração de qualquer variante nova
-  nunca validava — só não se via porque as variantes existentes já tinham a entrada, e o merge
-  conservava o título antigo. `provar-aula-e-plano-legiveis`, que **falhava antes desta entrega**,
-  passa a **12/12**.
-- O `secao()` deixava **duas linhas em branco** entre secções (cada `secao` fecha com uma, e vários
-  corpos terminam com outra). A normalização passou para o fim da montagem: um corpo novo não tem de
-  saber a convenção.
+**O que foi decidido.**
 
-**Onde entrou.** `motor/nucleo/derivar-ciclo.js` — a §5, a normalização das linhas em branco,
-`mesclarDeclaracao` por chave, o título da declaração. `professores/perna-boa/ciclos/` — a fonte da
-aula e da captura, a declaração no `ciclo-01-captura-schema.json`, o pacote e a âncora.
+- **O mock ganha `replace`, e regista o destino.** É o que um navegador tem. Passa a haver duas
+  asserções onde havia uma exceção: com contexto a porta **fica**; sem contexto a porta **volta à
+  lista** — a segunda era invisível, era o `TypeError` que a escondia.
+- **O `fetch` do mock serve as listas.** Não é o mock a imitar a página: é a página a receber a
+  resposta que o servidor dá. A aluna e o professor chegam pelo caminho de produção.
+- **O cenário passou a ser o real.** O bloco (8) media o «Guardar» sem dizer que estava em EDIÇÃO —
+  e a anamnese pede a senha para ENTRAR (a senha é pré-requisito de gravação, mas o ato novo começa
+  com ela); a edição não pede, e é por isso que o «Editar» da lista abre direto. Sem essa linha, a
+  prova pedia a entrada por um caminho que a página legitimamente fecha.
+- **Três asserções do roteiro foram reescritas, e uma do atalho do plano.** O «portal» que elas
+  mediam já não existe nesta página (a abertura foi apagada em 26/10/2026; sair é NAVEGAR), e o
+  atalho do plano ligado passou a apontar para `api/plano-preenchido.<carimbo>?formato=html` (o
+  documento legível) em vez do envelope cru. A prova tinha ficado no mundo anterior.
 
-**Com o quê.**
-- `experimentos/provar-janela-do-lancamento.js` (**nova, 11 asserções**, versionada): o config declara
-  8 colunas com chave; a tela desenha 8 campos, dois por banda; e o **controle negativo** — com o
-  config antigo, os campos caem para 4. Mede a tela (jsdom, o pacote por HTTP), não o contrato.
-- `experimentos/provar-aula-prosa.js` — passou a exigir **cada critério sozinho na sua linha** (e a
-  recusar a célula partilhada), e ganhou a prova que faltava: **a fonte da aula é reproduzível pelo
-  código, byte a byte**.
+**Onde entrou.** `experimentos/provar-ajustes-anamnese.js` · `.gitignore` (o bloco de abertura da
+prova, com a razão) · nada em `porta/` — **a página estava certa nas quatro coisas**.
 
-**Validação.** `provar-janela-do-lancamento` **11/0**; `provar-aula-prosa` **19**;
-`provar-aula-e-plano-legiveis` **12/0** (falhava antes); `provar-notacao` **74/0**;
-`provar-celula` **115/0**; `provar-teste` **44/44**; `provar-derivados-da-sequencia` **26/0**;
-`provar-numeros-do-roteiro` **29/0**; `provar-dimensoes-plano` **11/11**; `provar-musica-no-plano`
-**18/0**; `provar-plano-da-turma` **46/0**; `provar-porta-sem-contexto` **44/0**;
-`check-identidade` **20/20**; `check-pacote` **0 erro, 0 aviso**; `hash-ciclo --check` íntegro,
-`59e3063…`.
+**Com o quê.** `provar-ajustes-anamnese` **126 de 126** (eram 56, e a última do ficheiro não
+corria) · `provar-o-que-vem-do-dado` TUDO CERTO · `provar-forca-e-flexibilidade` 17/17 ·
+`provar-aula-e-plano-legiveis` 12/12 · `provar-po-unico` 18/18 · `provar-schemas` 29/29 ·
+`check-pacote` 0 erro / 0 aviso · `check-identidade` 20/20 · `hash-ciclo --check` cadeia intacta.
 
-**O que ainda não está feito — e é a próxima peça que ela pediu.**
-- **O caderno.** O formulário já pergunta pela janela inteira, mas o que ele grava ainda **não tem
-  onde a aula acontecer**: o caderno declara, em `tools/lib-vistas.js`, «Estrutura executada:
-  [Preencher: a ordem dos blocos vem do plano da aula, que é uma das três entradas — o JSON não a
-  guarda]». Ou seja: **a sequência executada não é perguntada em lugar nenhum**. É a banda que falta
-  entre o formulário e o caderno — e é ela que faz a aula 2 possível.
-- **A «Condição desta aula»** («Sem deslocamento, sem giro, sem mudança de direção») continua **fixa
-  no código** (`derivar-ciclo.js`), e sai igual em qualquer aula. Não foi decidido de onde vem.
-- **A §6 «Distribuição do volume físico»** é uma tabela com uma linha («Total») que **duplica a §3**,
-  que já traz bloco × tempos × fatia. Não foi tocada.
+**A lição, e é a mesma de sempre neste repositório:** uma prova que não corre não falha — passa.
+O `TypeError` era o único sinal, e estava a ser lido como «a prova é frágil» em vez de «a prova
+parou». A partir de agora, uma prova que morra a meio tem de dizer **quantas** asserções correu, e
+é isso que o resumo dela imprime.
 
 ## O que está pendente
 
-## 28/10/2026 — O verbete em Produção: três defeitos meus, e a pergunta que faltava
+## 01/11/2026 — A página do Vocabulário saiu; o exercício vive no «+» do verbete
 
-- O **editor de célula** e o **«+» do exercício**, que dependem da decisão acima.
-- As **seleções no plano** (§1.6).
 
-## 01/11/2026 — O `;` que separa os itens, e a coluna que deixa de ser duas
+- **A lacuna do ritmo não se resolveu — declarou-se.** Semeada hoje, a turma não gera ciclo, e é
+  isso que o `confirm` diz. Fechá-la é decisão de C19, não de código.
+- **A `provar-paginacao` já falhava em `HEAD`** (`fetch is not defined`), e continua a falhar; a
+  `provar-navegacao` falha por falta de pacote da `calango`, expurgada. Nenhuma das duas foi
+  tocada por esta entrada.
+- **Um efeito colateral observado e não corrigido:** os seis professores ainda carregam, no
+  `_declaracao.porVariante` dos schemas de captura, a declaração das escolas expurgadas. É do
+  expurgo, não disto, e fica registado aqui para não se perder.
 
-O `;` **não** governa os outros campos de lista (de propósito). E os
-envelopes já gravados com «a; b» continuam a ler-se como um item só até serem regravados: a correção
-é do leitor, não do dado, e o dado antigo não se reescreve.
+## 01/11/2026 — A seta sobe ao título, os passos descem para a linha inteira, e o vocabulário deixa de ser só do ballet
 
-## 01/11/2026 — O que a sequência já responde não se escreve outra vez
 
-- **Três provas já falhavam antes desta entrega** e continuam a falhar: `provar-plano-matriz`
-  (a rota `/api/mapa` não responde), `provar-po-completo` (falta o `ciclo-01-po-schema.json` do
-  `leticia`) e `provar-aula-e-plano-legiveis` (a coluna «Linha de base revisitada → Observado na
-  aula» não está declarada no schema da captura). Medido com `git stash`: **idênticas antes**.
-- **`provar-objetivos-por-aula` não mede**: o fixture que media (`batata-bale-nivel-2-teste-2`) foi
-  expurgado do repositório. A prova diz isso em vez de falhar em silêncio — mas está sem objeto.
-- **O P1 (a ligação bloco ↔ dimensão por id) não foi feito.** Continua a ser a peça maior, e agora
-  com o plano escrito.
+- **O `provar-cartao-da-turma` continua vermelho em seis pontos, e já estava.** Foram medidos contra
+  o motor de `HEAD` com `--controle-negativo` — que, por estar quebrado (faltava `tools/` e `teste/`
+  no `git archive`), passou a correr. O que ele acusa é anterior a esta entrada: a coluna do termo
+  que vivia na página do vocabulário, e três asserções da tira dos passos que nunca souberam da
+  existência da tira do verbete (a 31/10/2026). Não se corrigiram aqui; ficam declarados.
+- **O `Plié` do alfabeto continua todo em `devant`.** Ele não vai a lado nenhum, e a direção é
+  opcional desde a entrada «O trecho sem direção». Migrar o dado é outra decisão, e não foi tomada.
+- **O verbete do `Plié` ficou inconsistente com a sua música, e não foi esta entrada que o fez.**
+  Enquanto esta entrada se escrevia, a Produção gravou `07f6f63` — «editar «Plié» (8|4/4) no
+  alfabeto» —, que levou o `cobre` de 8 para 12 e acrescentou dois trechos de braço no balde SEM
+  direção (a novidade da entrada anterior, a ser usada). O resultado está medido: o verbete diz
+  `cobre: 12` e a música da chave diz 8 tempos, e a composição responde
+  `verbete-inconsistente — os segmentos somam 12 tempos, que não fecham em compasso 4/4`. As três
+  asserções do `provar-notacao` que falham são exactamente essa. **O dado não foi tocado**: quem
+  decidiu que o `Plié` tem braços é quem ensina, e reescrever a escolha dela seria o contrário do
+  que a proveniência pede. O que fica declarado é o buraco do caminho: o servidor recusa um
+  verbete cujo `cobre` não fecha com os trechos, mas **aceita** um `cobre` maior do que a música
+  que o próprio verbete declara — e o sistema só o diz mais tarde, na hora de compor o documento.
+  Um verbete é `cobre < música` com lacuna declarada; `cobre > música` é contradição, e devia ser
+  recusado à entrada.
+- **A orientação mudou de nome, mas não de gramática.** Continua a haver cinco orientações do ballet
+  clássico — o que mudou foi como se chamam na tela e no documento. Uma categoria que não seja
+  ballet clássico precisará do seu próprio alfabeto, e é isso que a L14 e o `modalidade` já
+  preveem.
 
-## 01/11/2026 — As 23 aulas não são uma dívida: nascem à medida
+## 01/11/2026 — O molde dos schemas ficou atrás, e a geração de um ciclo morreu em «campo ausente»
 
-O P1 continua por fazer, e passa a ter uma condição de entrada que não
-tinha: **a aula 2 tem de existir como objeto** antes de a herança poder ser medida — com uma aula só
-não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
 
-## 01/11/2026 — A janela vista por todas as bandas: a aula e o lançamento
+- **Os quatro outros professores atrasados não têm ciclo para gerar.** Ficaram corrigidos, mas a
+  correcção deles não foi exercitada por uma geração — a primeira de cada um será a prova.
+- **O molde continua a ser uma cópia.** A checagem faz o que se pode fazer sem uma fonte única: diz
+  quando as duas verdades se separam. Uma fonte única (o `criar-escola.sh` e o
+  `schemas-do-ciclo.js` a lerem o mesmo módulo, em vez de copiarem um ficheiro) seria melhor, e não
+  foi feito — são dois consumidores, um em bash e um no Worker.
 
-- **O caderno.** O formulário já pergunta pela janela inteira, mas o que ele grava ainda **não tem
-  onde a aula acontecer**: o caderno declara, em `tools/lib-vistas.js`, «Estrutura executada:
-  [Preencher: a ordem dos blocos vem do plano da aula, que é uma das três entradas — o JSON não a
-  guarda]». Ou seja: **a sequência executada não é perguntada em lugar nenhum**. É a banda que falta
-  entre o formulário e o caderno — e é ela que faz a aula 2 possível.
-- **A «Condição desta aula»** («Sem deslocamento, sem giro, sem mudança de direção») continua **fixa
-  no código** (`derivar-ciclo.js`), e sai igual em qualquer aula. Não foi decidido de onde vem.
-- **A §6 «Distribuição do volume físico»** é uma tabela com uma linha («Total») que **duplica a §3**,
-  que já traz bloco × tempos × fatia. Não foi tocada.
+## 01/11/2026 — O molde dos schemas passa a ter um leitor só
+
+
+- **O `--modelo` continua a ser um `cp`.** É a única cópia que resta, e é declarada: quem aponta o
+  scaffolder para o ciclo de um professor quer aqueles ficheiros, não o molde. Unificá-la exigiria
+  o módulo servir qualquer ciclo de qualquer professor — que é o oposto de «um molde».
+- **O molde continua a ser o ficheiro, e não um módulo de dados.** A escolha foi deliberada: os
+  validadores recebem CAMINHOS, o `--modelo` também, e o Git mostra o diff de um JSON. Um objeto
+  em JavaScript seria uma terceira forma de ler a mesma coisa.
+
+## 01/11/2026 — A aula deixa de afirmar o que ninguém escreveu: cinco secções, cinco origens
+
+
+- **O bloco de musicalidade continua sem pergunta nos formulários.** O `porta/plano/conteudo/plano.json`
+  não tem campo de musicalidade — o texto de ajuda da `distribuicao-de-volume` até promete «A
+  musicalidade não entra aqui: ela tem o bloco dela», e o bloco dela nunca teve campo. A §4 agora
+  declara a lacuna em vez de a disfarçar com um rótulo; o campo é que falta, e é decisão de desenho.
+
+  **Correção de 02/11/2026 — a premissa estava errada, e o «campo que falta» não falta.** «Não tem
+  que existir uma pergunta. Isso já está elaborado pelo professor lá na produção (…) automaticamente
+  isso já é respondido.» O professor declara, no VERBETE, a grade das contagens de cada exercício
+  (por música: `8|4/4` → cada célula com a sua contagem), e no PLANO os tempos e o compasso de cada
+  linha da sequência. Os dois juntos são o trabalho musical — pulso é a contagem, acento é o tempo
+  do compasso em que ela cai, frase é o exercício inteiro sobre a música. O que faltava não era uma
+  pergunta: era a secção **consolidar** o que já existe. Ver a entrada de 02/11/2026.
+- **`provar-aula-prosa` e `provar-escopo-da-aula` estão vermelhas por fixture, não por código.** A
+  primeira aponta para `professores/perna-boa/ciclos/ciclo-01-batata-…`, a segunda para
+  `escola/batata/envelopes/plano-20261027-1025.json` — ambos apagados por expurgos anteriores. Já
+  falhavam em `HEAD`, e não foram corrigidas aqui: uma prova que aponta para uma escola expurgada é
+  uma pergunta que se responde escolhendo outra fixture, não um defeito do gerador.
 
 ## Pendências anteriores (índice)
 
@@ -624,8 +661,18 @@ não há nada a herdar, e uma prova sobre uma aula só prova o caso trivial.
 - **28/10/2026** — O alfabeto muda de casa, e a âncora passa a selar com que… → `REGISTRO.md` L27671
 - **28/10/2026** — O verbete ganha posição, direção e lado — e a prosa passa a… → `REGISTRO.md` L27753
 - **28/10/2026** — O verbete passa a ser administrável na Produção → `REGISTRO.md` L27835
-- PO de **perna-boa · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **perna-boa · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **28/10/2026** — O verbete em Produção: três defeitos meus, e a pergunta que… → `REGISTRO.md` L27881
+- **01/11/2026** — O `;` que separa os itens, e a coluna que deixa de ser duas → `REGISTRO.md` L29044
+- **01/11/2026** — O que a sequência já responde não se escreve outra vez → `REGISTRO.md` L29081
+- **01/11/2026** — As 23 aulas não são uma dívida: nascem à medida → `REGISTRO.md` L29159
+- **01/11/2026** — A janela vista por todas as bandas: a aula e o lançamento → `REGISTRO.md` L29212
+- **01/11/2026** — O que vive no KV, e o que não vive → `REGISTRO.md` L29291
+- **01/11/2026** — O elo do expurgo diz o que aconteceu ao KV → `REGISTRO.md` L29382
+- **01/11/2026** — O trecho sem direção: o relevé não vai a lado nenhum → `REGISTRO.md` L29450
+- **01/11/2026** — A escola nasce com a âncora, e não só com o scaffold → `REGISTRO.md` L29519
+- **01/11/2026** — A âncora antes dos índices, e não depois → `REGISTRO.md` L29569
+- **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

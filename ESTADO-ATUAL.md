@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 01/11/2026 (base local `35aad32`). Nesta entrega: o **verbete** ganhou posição, direção e lado (`8df6c0c`), é **administrável na Produção** (`3dcc344`), e os três defeitos do primeiro dia foram corrigidos (`6318ded`); o **vocabulário vive no repositório** (`4e09bc9`); o formulário ganhou **dois modos**, **direção derivada** e **editor de célula** (`4f4795a`); a **célula foi explicada** (`4342f16`); a célula tem **dois eixos** — direção (3) e orientação (5), alfabeto **versão 6** — com o trecho **em pílulas** (`4994b34`, `9b318fe`), corrigidas ao primeiro uso a sério (`5af8aff`); «**o que acontece**» recebe a **definição do exercício** (`7be42cb`), que passou a ser a do **dicionário dela** em **93 termos com `fonte`** (`48f43e2`), com o «**lê-se**» na segunda linha do campo e a **quarta coluna fora** da tabela (`b641acc`); e o formulário passou a **seis passos, um de cada vez**, com o trecho **editável** (`d7e71ff`) — a arrumação está **decidida** (os passos), e a tira que os mostra reusa a peça da faixa da turma. Depois disso, a **frase passou a ser do exercício** — escrita uma vez no passo 2, com o sétimo passo a mostrar o que fica escrito em cada trecho —, a **secção dos verbetes ficou numa coluna** com a listagem abaixo e etiquetas por verbete, e o vocabulário ganhou a família do tendu (dégagé, glissé, tendu jeté, jeté) em **59 termos com descrição**. E o plano passou a dizer **de que turma vêm os parâmetros** e a **acusar o conteúdo associado que já não existe** no vocabulário, em vez de o esconder. Da Fase 1 falta só as **seleções no plano** (§1.6) — e a primeira delas já está feita: os **tempos e o compasso** deixaram de ser perguntados no plano e passaram a vir do verbete. E os **números do roteiro** passaram a ser **um só** nos três documentos — o título, o roteiro e a barra contavam coisas diferentes, e no plano 18 dos 19 degraus tinham dois números —, e a «Sequência de exercícios por bloco» passou a **demonstrativo** (bloco e objetivo específico travados). E o formulário do verbete voltou ao **padrão** da casa — à esquerda, com a listagem à direita —, com a **tira dos passos fora do `<form>`** e **cinco passos** em vez de sete (o exercício, a frase e a posição juntos no 1). E o bloco 10 do plano deixou de pedir o que já estava respondido: a **música sobe da sequência** (que a lê do verbete) acima de um campo que passou a pedir **só o link do vídeo**, o **repertório** passou a **somente leitura** (é a sequência, semeada), a **sequência semeia-se sozinha** a cada pintura do roteiro — antes perdia-se inteira se o nó não fosse aberto —, e o **`;` passou a separar os itens** do PO, que era o que fazia dois critérios numa coluna da folha. E a **janela passou a ser vista por todas as bandas**: a §5 da aula deixou de ser escrita à mão e passou a derivar do PO, a folha e o formulário desenham **8 critérios** em vez de 4, e a fonte da aula passou a ser **reproduzível pelo código, byte a byte**.
+> **Última fotografia:** 02/11/2026 (base local `d74fda1`). Nesta entrega: o **molde dos
+> schemas** ficou atrás dos professores e matou a geração do ciclo da `breu` («campo ausente»),
+> e foi corrigido e **unificado** num leitor só (`570d900`, `e27e462`); a página do **Vocabulário
+> saiu** e o botão de semear passou para o «+» do verbete (`ea6cd0d`); a **seta subiu ao título**,
+> os **passos desceram para a linha inteira** e o vocabulário deixou de ser só do ballet — `Perna`
+> em vez de `Plié`, e orientações com nome português (`a5275c3`); a **Aula 01 deixou de afirmar o
+> que ninguém escreveu** — a §2 dizia «força e flexibilidade» sobre o campo da sala, a §4 tinha um
+> «Pulso» fixo, a §6 chamava «simulado» a um ciclo publicado e a §8 era um `[Preencher]` mudo —, a
+> **proveniência passou a ser dois links** com o objetivo de cada documento, o **próximo passo**
+> passou a ter os três estados, e o **PDF ficou reproduzível** (`03be290`, `469c9d5`); a **força e
+> a flexibilidade vêm da anamnese**, com os 15 campos que ela escolheu, pelo nome e com o registo
+> completo a abrir noutra aba (`cf1ef52`); e a **musicalidade deixou de ser uma lacuna** — consolida
+> o que o verbete e a sequência já dizem, por música (`d74fda1`).
 > **Como pedir uma atualização:** ver [§13 — Rotina](#13-rotina-de-atualização-e-transferência).
 
 ## Quem é dono de quê
@@ -68,13 +80,30 @@ renomeação. **DECIDIDO**.
 Verificado nesta fotografia, com os comandos da §9.
 
 - **A entrega foi publicada em `d349ed0`;** após o push, `git fetch origin` confirmou `origin/main` alinhado, sem divergência. **CONFIRMADO** naquele momento.
-- **12 professores** em `professores/`, **4 ciclos com manifesto**. **CONFIRMADO** (contagem do
-  `gerar-handoff.sh`).
+- **18 professores** em `professores/`, e **2 variantes por escola com manifesto** depois dos
+  expurgos de 01–02/11/2026 (`pe-junto/01/batata-bale-nivel-1-teste-2`, `pe-torto/01/batata` — este
+  último é o **ciclo-zero**, com `DOCS=""`). **CONFIRMADO** por contagem em 02/11/2026.
 - **17 regras** em `REGRAS.md` e **22 pétreas** em `PROTOCOLO.md`. **CONFIRMADO** (contagem).
-- **O motor tem 52 ficheiros versionados, 26.311 linhas** entre `motor/nucleo/` e
-  `motor/servidor/`. **CONFIRMADO**.
-- **31 rotas** registadas em `motor/servidor/rotas.js`. **CONFIRMADO**.
-- **68 provas versionadas** em `experimentos/provar-*.js`. **CONFIRMADO**.
+- **O motor tem 52 ficheiros versionados, 31.850 linhas** entre `motor/nucleo/` e
+  `motor/servidor/`. **CONFIRMADO** em 02/11/2026.
+- **33 rotas** registadas em `motor/servidor/rotas.js`. **CONFIRMADO** em 02/11/2026.
+- **91 provas versionadas** em `experimentos/provar-*.js` (104 no disco; as outras são bancadas
+  locais que o `.gitignore` fecha). **CONFIRMADO** em 02/11/2026.
+- **O molde dos schemas tem um leitor só.** `motor/nucleo/schemas.js` é o único sítio que lê
+  `modelo/ciclos/`; o `tools/gerar-schemas.js` é a porta para o shell e o provisionador do Worker
+  deixou de pedir o molde por HTTP (os cinco `GET` saíram). `gerar-schemas --conferir` corre no
+  `pre-commit`. **CONFIRMADO** (`provar-schemas` 29/29, `check-schemas` TUDO CERTO).
+- **A geração de um ciclo é REPETÍVEL byte a byte.** Duas gerações seguidas do mesmo ciclo dão o
+  mesmo md5 nos dois PDFs e deixam o `git status` limpo — o `gerado_em` passou a vir do
+  `SOURCE_DATE_EPOCH` (a data do último commit nas fontes) e o `/ID` do trailer do PDF está fixo
+  (`\pdftrailerid{}`). **CONFIRMADO** em 02/11/2026, medido com duas execuções.
+- **A força e a flexibilidade chegam ao PO pela anamnese.** O nó `linha-de-base` declara 15 campos
+  em dois grupos, e o mapa servido ao vivo em `batata.tmenegaz77.workers.dev` devolve-os com o nome
+  do formulário («Flexibilidade dos isquiotibiais»). **CONFIRMADO** em 02/11/2026 por
+  `provar-forca-e-flexibilidade` (17 asserções, com controle negativo) e por uma leitura ao ar.
+- **A §4 da aula não pede nada a ninguém.** Consolida, por música, a grade de contagens do verbete e
+  os exercícios que a usam; a música vem da sequência do plano. **CONFIRMADO** em 02/11/2026 por
+  `provar-o-que-vem-do-dado` (mutação: trocar a música muda o documento).
 - **6 workflows** em `.github/workflows/`: `criar-escola`, `deploy-escolas`, `deploy-raiz`,
   `gerar-ciclo`, `reancorar`, `regerar-indices`. **CONFIRMADO**.
 - **Produção da escola `batata` responde** (`batata.tmenegaz77.workers.dev`). **CONFIRMADO**
@@ -118,6 +147,16 @@ Verificado nesta fotografia, com os comandos da §9.
 
 - **O `HANDOFF.md` estava desatualizado** — dizia `6bdb06a` com o `HEAD` em `7182307`.
   **CONFIRMADO** e corrigido nesta sessão por regeneração.
+- **A publicação de 01–02/11/2026 foi verde em todas as Actions.** `Publicar as escolas`,
+  `Publicar a raiz`, `Reancorar a cadeia` e `Regerar os índices` concluíram com sucesso nos commits
+  `cf1ef52` e `d74fda1`. **CONFIRMADO** pela API do GitHub.
+- **O ar serve a Aula 01 com as correções.** `batata.tmenegaz77.workers.dev/bale-nivel-1-teste-2/aula-01`
+  responde 200 e a página traz «(o espaço e o material)», a proveniência como dois links, o «Marco da
+  Aula 02» numa linha e a §4 consolidada por música. **CONFIRMADO** em 02/11/2026.
+- **O `gerar-handoff.sh` tem de ser corrido com `bash`, não com `node`.** Com `node` ele morre num
+  `SyntaxError` (é um script de shell); a `skill` e a documentação dizem `tools/gerar-handoff.sh`,
+  que é o que funciona. **CONFIRMADO** em 02/11/2026 — e é a razão de a linha `variantes:` do
+  resumo dele continuar a imprimir `0` (§8).
 
 ## 3. Arquitetura atual
 
@@ -148,8 +187,12 @@ Verificado nesta fotografia, com os comandos da §9.
 |:--|:--|:--|
 | Navegação: coluna + barra + caminho | **CONFIRMADO** | `motor/nucleo/nav.js` |
 | Listas no padrão novo | **CONFIRMADO** | `motor/nucleo/lista-html.js` |
-| Aulas: leitura em prosa e Notação Benesh | **CONFIRMADO em produção** em 27/10/2026 — o nome abre a prosa, «Abrir notação» fica ao lado da Aula 01, e o Glossário está no cabeçalho persistente da Notação, em nova aba. A rota `/aulas/` respondeu 200 e continha os dois destinos; as provas locais confirmaram a montagem e a remoção das listas independentes. | `tools/gerar-aula-prosa.js`, `tools/montar-publicacao.js`, `motor/nucleo/nav.js` |
-| Aula 01: Guia preenchido com os itens do PO, Notação com a estrutura da Aula e PDF individual | **CONFIRMADO no pacote e implantado**: commit `8b939d0` em `origin/main`; run #287 e job Batata com sucesso. A conferência ao vivo limitou-se à raiz (HTTP 200, com link para `/aulas/`); a rota específica não foi carregada após este deploy. | `professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`, `tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` |
+| Aulas: leitura em prosa e Notação Benesh | **CONFIRMADO em produção** em 27/10/2026 — o nome abre a prosa, «Abrir notação» fica ao lado da Aula 01, e o Glossário está no cabeçalho persistente da Notação, em nova aba; as provas locais confirmaram a montagem e a remoção das listas independentes. **Correção de 02/11/2026:** a rota `/aulas/` citada aqui deixou de existir no reagrupamento de 24/10 — o que se publica hoje é `<variante>/aula-NN.html` dentro do pacote da turma. | `tools/gerar-aula-prosa.js`, `tools/montar-publicacao.js`, `motor/nucleo/nav.js` |
+| Aula 01: Guia preenchido com os itens do PO, Notação com a estrutura da Aula e PDF individual | **CONFIRMADO no pacote e no ar** — a variante é hoje `pe-junto/01/batata-bale-nivel-1-teste-2` (`/bale-nivel-1-teste-2/aula-01`, HTTP 200). O caminho antigo (`perna-boa`) foi expurgado em 01–02/11/2026 | `professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`, `tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` |
+| **A aula regenera-se das fontes com um comando, e diz o que muda** | **CONFIRMADO** 02/11/2026 — `tools/regerar-derivados.js <professor> <ciclo> <variante>` reescreve a aula, o plano, a captura, a harmonização, as referências, a notação e o glossário a partir dos envelopes; **não grava sem `--escrever`** e **não toca no `-dados.json`** (que é estado, não derivação). Antes dele, pôr um ciclo em dia exigia repetir à mão o que o Worker faz | `tools/regerar-derivados.js` |
+| **A geração é reprodutível** | **CONFIRMADO** 02/11/2026 — duas gerações seguidas do mesmo ciclo dão o mesmo md5 nos dois PDFs e o `git status` fica limpo | `tools/gerar-ciclo.sh`, `tools/templates/ciclo-cabecalho.tex` |
+| **Música e vídeo de referência** e **Repertório da aula** são dois blocos no plano | **CONFIRMADO** 02/11/2026 — o bloco 10 chamava-se «música e repertório» e prometia os dois; o repertório passou a bloco próprio (11) e a Origem desceu para 12 | `porta/plano/conteudo/plano.json`, `motor/nucleo/derivar-plano-ciclo.js` |
+| **O ponto de partida lê a anamnese** (força e flexibilidade, 15 campos) | **CONFIRMADO** 02/11/2026 — a caixa mostra os campos pelo **nome** e pelo **valor**, e o «abrir o registro completo» leva à anamnese da aluna noutra aba com o contexto do ato | `porta/po/conteudo/po.json`, `motor/nucleo/elicitar.js`, `porta/index.html` |
 | As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado, o aviso da senha errada; 43 verificações no browser | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
 | Anamnese: formulário, vínculo, ajuste | **CONFIRMADO** | `rotas.js` (11 rotas `/api/anamnese*`) |
@@ -223,11 +266,15 @@ Verificado nesta fotografia, com os comandos da §9.
 |:--|:--|
 | `motor/nucleo/` | derivação e HTML, sem I/O de servidor |
 | `motor/servidor/` | rotas, KV, cifra, GitHub, montagem |
-| `motor/servidor/rotas.js` | as 31 rotas do Worker |
+| `motor/servidor/rotas.js` | as **33** rotas do Worker |
 | `motor/servidor/verbete.js` | o alfabeto da notação no **repositório** (CRUD, com proveniência) |
 | `motor/servidor/termo-repo.js` | o vocabulário técnico no **repositório** — a única lista de termos |
+| `motor/nucleo/schemas.js` | **o único leitor** de `modelo/ciclos/` (o shell chega lá pelo `tools/gerar-schemas.js`) |
+| `motor/nucleo/derivar-ciclo.js` | a fonte da aula: as oito secções, e a origem de cada uma |
+| `motor/nucleo/notacao.js` | o compositor: verbete + música → a grade de contagens |
 | `porta/`, `tools/templates/` | a folha e o desenho (peças do catálogo) |
-| `experimentos/provar-*.js` | 68 provas executáveis |
+| `experimentos/provar-*.js` | **91** provas versionadas (104 no disco) |
+| `tools/regerar-derivados.js` | põe as fontes derivadas de um ciclo em dia a partir dos envelopes |
 | `tools/` | infraestrutura — **congelado** |
 
 ## 6. Decisões vigentes
@@ -412,10 +459,47 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     escrita à mão (16 de 18 linhas divergentes), e nada o dizia: a próxima geração apagava-a em
     silêncio. A prova deixou de medir o texto e passou a medir a **propriedade** — mesma entrada,
     mesma saída, byte a byte. **DECIDIDO** 01/11/2026.
+37. **NENHUMA SECÇÃO DO DOCUMENTO AFIRMA O QUE NINGUÉM ESCREVEU.** A origem de cada secção da aula
+    mede-se por **mutação** — troca-se uma resposta do envelope e vê-se se a secção muda. Se não
+    mudar, o texto é do código, e o documento está a afirmar sobre a aula de alguém o que ninguém
+    decidiu. Foi assim que se apanharam quatro: um título sobre a sala a anunciar «força e
+    flexibilidade», um «Pulso» fixo, um «Ciclo simulado» num ciclo publicado e um `[Preencher]` sem
+    dizer o que se esperava. **DECIDIDO** 02/11/2026.
+38. **A MUSICALIDADE NÃO SE PERGUNTA: ELA JÁ FOI DECIDIDA, NO VERBETE E NA SEQUÊNCIA.** O professor
+    declara a grade de contagens no **verbete** (por música) e os tempos e o compasso no **plano**. O
+    pulso é a contagem, o acento é o tempo do compasso em que ela cai, a frase é o exercício inteiro
+    sobre a música. O que o documento faz é **consolidar** — nunca pedir outra vez, nunca declarar em
+    falta. **DECIDIDO** 02/11/2026, e é a terceira vez que ele foi dito.
+39. **A PROVENIÊNCIA É UM LUGAR AONDE SE VAI.** Um `id` de envelope (`po-20261101-1959`) não leva a
+    lado nenhum: o que serve é o **link** para o documento, com o **objetivo** dele ao lado. E o
+    gerador não se explica a quem abriu a aula. **DECIDIDO** 02/11/2026.
+40. **O «PRÓXIMO PASSO» DIZ O ESTADO, NÃO EXPLICA O CONCEITO.** Uma linha, «Marco da Aula 02», e três
+    casos: sem marco seguinte, diz que o plano declarou um só e aguarda; com marco e sem Aula 02, diz
+    isso mesmo; com marco e com Aula 02, o título e o marco viram link para ela. **DECIDIDO**
+    02/11/2026.
+41. **A FORÇA E A FLEXIBILIDADE VÊM DA ANAMNESE, E OS CAMPOS SÃO ESCOLHA DELA.** O nó
+    `linha-de-base` do PO declara os campos de que se alimenta (15, em dois grupos), os **nomes**
+    vêm do mapa da anamnese — nunca de uma segunda lista —, e o registo completo abre noutra aba
+    com o contexto do ato. A anamnese **informa**; «o que traz» e «o que precisa desenvolver»
+    continuam a escrever-se, porque a formulação é da professora. **DECIDIDO** 02/11/2026.
+42. **GERAR NÃO PODE SUJAR A ÁRVORE.** Um ficheiro versionado que muda por ter sido gerado não é
+    derivado: é carimbado. O `gerado_em` vem do `SOURCE_DATE_EPOCH` (a data do último commit nas
+    fontes) e o `/ID` do trailer do PDF é fixo — duas gerações seguidas dão o mesmo md5. O relógio
+    continua a servir para o `estado` do `aulas[]`, que é juízo do instante, e só para ele.
+    **DECIDIDO** 02/11/2026.
+43. **O MOLDE DOS SCHEMAS TEM UM LEITOR SÓ, E A COMPARAÇÃO É DE CONTEÚDO.** `motor/nucleo/schemas.js`
+    é o único que lê `modelo/ciclos/`; o shell chega lá pelo `tools/gerar-schemas.js`. Uma cópia sem
+    comparação é uma segunda verdade — foi assim que o molde ficou cinco professores atrás.
+    **DECIDIDO** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
-Há **dois** trabalhos em andamento. O primeiro é de código e é a **Fase 1** do plano
+**O segundo trabalho desta secção morreu, e é notícia boa:** o «plano da Batata vai ser refeito
+porque o envelope perdeu Arabesque e Jeté» e o «expurgar a Batata» aconteceram — a Batata foi
+expurgada e recriada, o `pe-junto` recebeu a turma `Balé Nível 1 — Teste 2`, e o ciclo existe e está
+publicado (`e8a1700` e seguintes). O que resta é **um** trabalho em andamento, de código.
+
+O que continua: a **Fase 1** do plano
 (`PLANO-VERBETE-E-MUSICALIDADE.md`): o alfabeto mudou de casa e a âncora sela com que código
 escreveu; o verbete ganhou posição, direção e lado; o CRUD está na Produção; o exercício é escolhido
 de uma lista e o «+» cria-o no vocabulário do repositório; o formulário tem **dois modos** e a
@@ -437,14 +521,6 @@ passos ficaram **cinco**: o exercício, a frase e a posição são um só (`b0d7
 **três verbetes de ensaio** (Grand battement, Arabesque, Rond de jambe à terre) para ela poder testar
 sem escrever do zero — **versão 9**, selo renovado.
 
-O segundo trabalho **não é de
-código**: **o plano da Batata vai ser refeito no formulário pela
-pesquisadora**, porque o envelope mais recente (`plano-20261027-1131.json`) perdeu os exercícios de
-**Arabesque** e **Jeté** — 14 linhas contra as 30 do envelope em uso. Os documentos publicados ficam
-sobre o `plano-20261027-1025.json` até essa reposição; regerar a partir do 1131 apagaria exercícios
-de uma página publicada e deixaria o «Parâmetro de medição» a citá-los. Ela anunciou também que vai
-**expurgar a escola Batata e criar uma escola nova** — o que torna definitivamente obsoleto o
-vocabulário que ainda esteja no KV daquela escola (já ninguém o lê).
 
 **O que ficou feito a 01/11/2026 (`ac6caa0`), e o que é o próximo passo.** O **P0** da revisão das
 janelas deslizantes está fechado: o `;` separa os itens do PO, e os dois critérios que caíam numa
@@ -455,7 +531,27 @@ dimensões do PO (`Técnica — Solo`) são **a mesma coisa com dois nomes**, e 
 O recorte **já existe** no plano; o trabalho é **ligá-lo** e fazê-lo chegar ao formulário — e é
 **ligação**, não invenção. O plano por fases está na resposta desta sessão e no `TRANSFERENCIA-IA.md`.
 
-**Último ponto confirmado:** 01/11/2026 — `ac6caa0` (o que a sequência já responde não se escreve outra
+**O que ficou feito a 02/11/2026, na Aula 01 (§ secções 2, 4, 6 e 8).** A aula deixou de afirmar o
+que ninguém escreveu: a §2 dizia «força e flexibilidade» sobre o campo da sala (o título vinha da
+Regra 4, o corpo do formulário), a §4 tinha um «Pulso» fixo, a §6 chamava «simulado» a um ciclo
+publicado e a §8 era um `[Preencher]` mudo. A **proveniência** passou a ser dois **links** com o
+objetivo de cada documento ao lado (o `id` do envelope não leva a lado nenhum), o **próximo passo**
+passou a dizer o **estado** em vez de explicar o conceito, com os três casos (sem marco seguinte, com
+marco e sem Aula 02, com marco e com Aula 02 — aí com link), e a **musicalidade** passou a
+**consolidar** o que o verbete e a sequência já dizem. De caminho: o bloco 10 do plano deixou de se
+chamar «música e repertório» (são dois, com blocos próprios), a descrição fixa do verbete subiu para o
+cabeçalho do exercício uma vez por igualdade medida, a **força e a flexibilidade** chegaram ao item 11
+do PO vindas da anamnese, e a **geração ficou reproduzível** (o `gerado_em` vem das fontes; o `/ID` do
+PDF está fixo). Novo `tools/regerar-derivados.js` põe as fontes derivadas em dia a partir dos
+envelopes — mostra o que muda e só grava com `--escrever`.
+
+**Último ponto confirmado:** 02/11/2026 — `d74fda1` (a musicalidade consolida-se, e a prova da porta
+volta a correr), com `cf1ef52` (a força e a flexibilidade vêm da anamnese), `469c9d5` (a proveniência
+leva a algum lado) e `03be290` (a aula deixa de afirmar o que ninguém escreveu) por trás. Antes deles,
+`e27e462` (o molde dos schemas passa a ter um leitor só), `570d900` (o molde volta a dizer o que a
+derivação escreve), `a5275c3` (a seta sobe ao título, os passos descem à linha inteira) e `ea6cd0d`
+(o exercício passa a nascer só no «+» do verbete).
+A série anterior: `ac6caa0` (o que a sequência já responde não se escreve outra
 vez, e o `;`), com `22b42ce` (o conteúdo da porta no scaffold), `b64bac4` (o registo do número do
 roteiro) e `10bf6b6` (a correcção) por trás. Antes dele, `b0d781f` (a tira dos
 passos sai do formulário, e o verbete fica em cinco). Antes dele, `885ea96` (os tempos e o
@@ -513,30 +609,57 @@ solo), porque o plano os declarou em apenas **3 linhas**. As outras 27 saem em l
 | **tempos e compasso dos 27** | **RESOLVIDO na origem** (`885ea96`) — vêm do **verbete** de cada exercício e não se perguntam no plano. O que continua por fazer é **preencher os verbetes** dos exercícios que ainda não os declaram: a lacuna mudou de lugar, e agora está onde o dado se decide |
 | **bloco de musicalidade** | **PENDENTE** — ver abaixo |
 
-### O bloco de musicalidade não tem pergunta
+### O bloco de musicalidade — RESOLVIDO, e a premissa estava errada
 
-A linha que a Aula 01 mostra — `| Pulso | [Preencher: trabalho de pulso da Aula 01] |` — está
-**escrita à mão** em `motor/nucleo/derivar-ciclo.js`. «Pulso» não é escolha do professor e «Trabalho»
-nunca foi perguntado. **CONFIRMADO** por leitura: não há nó no formulário do plano que peça a
-musicalidade, embora a ajuda do formulário prometa o contrário («A musicalidade não entra aqui: ela
-tem o bloco dela»); e `Vistas.musicalidade` (em `tools/lib-vistas.js`), que a derivaria do PO e do
-volume do plano, **nunca foi ligada a esta variante** — não existe `-musicalidade.md` para a Batata.
+**Já não é uma pendência, e o que estava escrito aqui era um erro meu**, repetido três vezes e
+corrigido pela pesquisadora:
 
-**DECIDIDO** que a solução se decide numa bancada antes de tocar em fonte. A bancada existe —
-`experimentos/propostas/proposta-musicalidade.html`, **local e não versionada** (`experimentos/propostas/*`
-está no `.gitignore`) — e propõe: a legenda de **compasso e contagem** dita uma vez no topo da grade;
-os tempos por exercício à vista, para a aritmética ficar legível (8 tempos em 4/4 = 2 compassos);
-a coluna de **lado** no port de bras; e o bloco de musicalidade em **três colunas** (Item · Trabalho ·
-onde se ouve na métrica declarada), com uma pergunta por item no plano. **PENDENTE de aprovação** — e
-metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulário do plano** (`porta/`).
+> «Você continua insistindo que tem que haver uma pergunta a respeito da musicalidade. **Não tem que
+> existir uma pergunta.** Isso já está elaborado pelo professor lá na produção (…) automaticamente
+> isso já é respondido, não em forma de pergunta.»
+
+**CONFIRMADO** que não falta nada perguntar, e a prova está no repositório: o professor **declara a
+grade de contagens no VERBETE** (por música — `8|4/4` → cada célula com a contagem, a categoria e os
+sinais) e **os tempos e o compasso no PLANO**. Juntos são o trabalho musical inteiro: o **pulso é a
+contagem**, o **acento** é o tempo do compasso em que ela cai, a **frase** é o exercício inteiro
+sobre a música.
+
+A §4 passou a **consolidar** (`d74fda1`): uma linha por música, com os exercícios que a usam e a
+grade tal como o verbete a declara — agrupada quando a grade é igual (medido, não suposto) —, mais a
+fatia que o plano dá ao bloco. Sem nenhum `[Preencher]`. **CONFIRMADO** por
+`provar-o-que-vem-do-dado` (mutação: trocar a música muda o documento) e pela página ao ar.
+
+O que **continua** em aberto desta família é outro: a **bancada**
+`experimentos/propostas/proposta-musicalidade.html` (local, não versionada) propunha uma legenda de
+compasso e contagem, os tempos à vista, a coluna de lado no port de bras e três colunas — e a decisão
+sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a apresentação, não sobre o dado.
 
 ### Pendências de infraestrutura — de datas anteriores
 
+- **A Regra 4 pede uma lista que nenhum formulário pergunta — e agora sabe-se porquê e onde está.**
+  A Regra diz «pré-requisitos de força e flexibilidade declarados e contados à parte do volume», e o
+  campo do plano que existe é «Condições do espaço». A força e a flexibilidade **estão na anamnese**
+  e, desde `cf1ef52`, chegam ao item 11 do PO. O que fica por decidir é **a Regra**, não o código:
+  ou ela passa a falar do espaço e do material, ou nasce o campo. **PENDENTE** de decisão dela.
+- **O item 11 continua a pedir a formulação por palavras.** Os campos da anamnese são **lidos** ao
+  lado; «o que traz» e «o que precisa desenvolver» escrevem-se. É o que o próprio `porQue` do nó diz
+  desde antes — a anamnese informa, a formulação é da professora. **DECIDIDO**, não é pendência.
+- **Os três aspectos macro do Lastro ainda não estão escritos em documento de produto.** Ela declarou
+  que toda a modalidade precisa de **força e flexibilidade**, do **elemento da técnica/código** e da
+  **poiésis** (expressividade, olhar, condução, oralidade, história) — e é a razão de existirem o
+  vídeo e a música. Está no `REGISTRO.md`; falta passar ao `PLANEJAMENTO-LASTRO.md` como eixo.
+  **PENDENTE**.
+- **A §3 da aula tem um título que promete mais do que o corpo.** «A sequência conectada (fio
+  condutor)» encima a tabela da distribuição do tempo; a sequência está em «Exercícios da Aula 01».
+  **PENDENTE** — a pesquisadora não viu o problema na descrição, e a mudança é de nome, não de dado.
+- **A bancada da musicalidade** (`experimentos/propostas/proposta-musicalidade.html`, local e não
+  versionada) propõe a legenda de compasso e contagem, os tempos à vista, a coluna de lado no port de
+  bras e três colunas. Nunca foi aprovada nem recusada. **PENDENTE** — é apresentação, não dado.
 - **Coluna única nos Bastidores:** fundir as secções `#hash` no `nav.json`. **PENDENTE**.
 - **Comentário com `<h1>` literal** dentro de `tools/templates/lancamento.html`. **PENDENTE**.
 - **11 provas não versionadas** que dependem de fixtures perdidas com a escola `calango`.
   **PENDENTE**.
-- **O resumo do terminal do `gerar-handoff.sh` mente.** A linha final imprime
+- **O resumo do terminal do `gerar-handoff.sh` mente, e é a única coisa que mente nele.** A linha final imprime
   `variantes: $(… "$variantes" …)`, e `variantes` é a variável do **último ciclo do último
   professor** — não um total. Hoje imprime `variantes: 0` enquanto o documento diz, corretamente,
   «4 variante(s)». **CONFIRMADO** por leitura do script (linha 354) e contagem dos manifestos.
@@ -571,7 +694,29 @@ metade dela (a coluna «Trabalho») **só se resolve com um nó novo no formulá
 
 ## 9. Validação
 
-### Executado nesta fotografia (01/11/2026 — a janela por todas as bandas)
+### Executado nesta fotografia (02/11/2026 — a aula deixa de afirmar o que ninguém escreveu)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-que-vem-do-dado.js` | **TUDO CERTO** — a origem de cada secção da aula, medida por mutação (troca-se uma resposta do envelope e vê-se se a secção muda). As asserções da §4 mudaram de pergunta: já não é «não tem de onde vir», é «a música vem da sequência, a grade vem do verbete, e não se pede nada a ninguém» |
+| `node experimentos/provar-forca-e-flexibilidade.js` | **17 asserções, 0 falhas** (nova) — o conteúdo declara os 15 campos, todos existem na anamnese, o motor repassa a declaração, a caixa mostra o **nome** e o **valor**, e o **controle negativo** (sem a declaração, a caixa volta ao `id` cru) |
+| `node experimentos/provar-ajustes-anamnese.js` | **126 de 126** — eram **56**, e a última asserção do ficheiro não corria. O mock do `location` não tinha `replace` e o `fetch` respondia `{ok:true}` a tudo; a página estava certa nas quatro coisas. **70 asserções nunca se tinham executado** |
+| `node experimentos/provar-alunas-da-anamnese.js` | **14 de 14** |
+| `node experimentos/provar-po-unico.js` | **18 asserções, 0 falhas** |
+| `node experimentos/provar-aula-e-plano-legiveis.js` | **12 asserções, 0 falhas** |
+| `node experimentos/provar-cabecalho-do-documento.js` · `provar-coerencia-do-po-no-pacote.js` | TUDO CERTO · **6 asserções** |
+| `node experimentos/provar-schemas.js` · `provar-schemas-do-professor.js` | **29/29** · **24/24** |
+| `node tools/check-schemas.js` · `gerar-schemas.js --conferir` | TUDO CERTO · o molde em disco e o módulo dizem o mesmo (5 schemas) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram — incluindo a **cópia da porta do ciclo-zero**, que estava divergente e foi refrescada |
+| `node tools/check-indices.js` | **14 verificações, 0 falhas** |
+| `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** — 9 páginas, 245 links, PDF de 27 páginas |
+| `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; **`54e37c70…`** |
+| reprodutibilidade | **duas gerações seguidas** do mesmo ciclo: o **mesmo md5** nos dois PDFs e o `git status` **limpo** |
+| `bash tools/gerar-handoff.sh` | o `HANDOFF.md` gerado no commit `d74fda1` |
+| **não executado** | `provar-plano-matriz.js` (falha na rota `/api/mapa` — **já falhava em `HEAD`**, confirmado com a alteração guardada); `provar-aula-prosa.js` e `provar-escopo-da-aula.js` (apontam para fixtures de escolas expurgadas — `perna-boa` e um envelope de 27/10 da `batata`) |
+| **ao ar** | uma carga por página, no fim: `/bale-nivel-1-teste-2/aula-01` **200** com as quatro correções; `api/mapa?fonte=anamnese` com os nomes dos campos; `api/mapa?fonte=po` com os 15 declarados |
+
+### Executado na fotografia anterior (01/11/2026 — a janela por todas as bandas)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -909,6 +1054,18 @@ verificação. É exatamente o que a §12 avisa: «está no documento» não é 
 
 ## 10. Próximos passos
 
+**O que a sessão de 02/11/2026 mudou nesta lista.** A **ordem que ela fixou** continua a ser a régua
+— *ajustar muito bem a geração da aula → o formulário da coleta → o caderno → o botão de criar a
+aula* —, e o primeiro item deixou de estar «feito» para estar **verificado secção a secção**: a aula
+já não afirma o que ninguém escreveu, e é isso que estava a impedir o passo seguinte. O que ela pediu
+a seguir, nas palavras dela, foi **esmiuçar os exercícios da aula** («depois que você fizer esses
+ajustes, a gente vai esmiuçar isso daqui porque tem um bocado de erros») — e é esse o próximo passo
+concreto: **a tabela dos exercícios, a coluna a coluna**, com o mesmo método (o que vem do dado e o
+que vem do código).
+
+**PENDENTE dela, e só ela pode decidir:** a **Regra 4** — «força e flexibilidade» no texto, ou o
+campo do espaço —, agora que a força e a flexibilidade se sabe onde estão e já chegam ao PO.
+
 **Da Fase 1 falta um item:** as **seleções no plano** (§1.6). Todo o resto do alfabeto está feito — o
 verbete administrável, os dois eixos, o dicionário, o «lê-se», os cinco passos com o trecho editável, e
 a frase escrita **uma vez** por exercício.
@@ -981,6 +1138,41 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **A aula deixa de afirmar o que ninguém escreveu; a musicalidade consolida-se; a
+  prova da porta volta a correr.** Quatro secções da Aula 01 diziam coisas que ninguém escreveu (a §2
+  anunciava «força e flexibilidade» sobre o campo da sala, a §4 tinha um «Pulso» fixo, a §6 chamava
+  «simulado» a um ciclo publicado, a §8 era um `[Preencher]` mudo), e a pesquisadora foi secção a
+  secção com a pergunta certa: «isso vem do lugar certo? é código duro?». O método de resposta foi
+  **mutação** — trocar uma resposta do envelope e ver se a secção muda —, e é o que fica: uma secção
+  que o gerador escreve à mão é uma afirmação do sistema sobre a aula de alguém. A §6 passou a dois
+  **links** com objetivo, a §8 a dizer o **estado** com os três casos, a §4 a **consolidar** por música
+  o que o verbete e a sequência já dizem, e a §2 a dizer o que o corpo é. A par disso: a **força e a
+  flexibilidade** chegaram ao PO pela **anamnese** com os 15 campos que ela escolheu, e o registo
+  completo abre noutra aba; o **bloco 10** do plano dividiu-se em dois (música/vídeo e repertório); a
+  **geração ficou reproduzível** (o `gerado_em` vem das fontes, o `/ID` do PDF está fixo — duas
+  gerações seguidas dão o mesmo md5 e a árvore fica limpa); e um **erro meu** de três sessões foi
+  corrigido: a musicalidade **não** é uma lacuna. **CONFIRMADO** por `provar-o-que-vem-do-dado`,
+  `provar-forca-e-flexibilidade` (17/0, com controle negativo), `check-pacote` 0/0, e a página ao ar.
+  No mesmo dia, `provar-ajustes-anamnese` passou de **56** a **126** asserções: o mock do `location`
+  não tinha `replace` e a prova morria a meio — **70 asserções nunca se tinham executado**, e doze
+  mediam um aviso em vez da grade. A página estava certa nas quatro coisas.
+- **02/11/2026** — **O molde dos schemas ficou atrás e matou a geração de um ciclo** (`570d900`), e
+  depois passou a ter **um leitor só** (`e27e462`). Em 26/10 dois commits removeram `ciclo` e `rubrica`
+  do `required` do plano nos doze professores e **não no molde**; cinco professores criados depois
+  herdaram o contrato velho, e a `breu` falhou com «campo ausente». O molde é a fonte de todo professor
+  novo, e uma cópia sem comparação é uma segunda verdade: agora `motor/nucleo/schemas.js` é o único que
+  o lê, o `tools/gerar-schemas.js` é a porta para o shell, o provisionador do Worker deixou de o pedir
+  por HTTP, e `check-schemas.js --professor` corre no `pre-commit` e no `gerar-ciclo.yml` — um contrato
+  atrasado falha **antes** da geração, com o nome do comando que o corrige.
+- **01–02/11/2026** — **A página do Vocabulário saiu; o exercício nasce no «+» do verbete**
+  (`ea6cd0d`). O verbete já tem o termo, a categoria e a tradição, e o vocabulário técnico era a mesma
+  coisa num segundo endereço. O botão «Carregar as turmas iniciais» foi para dentro do «+»; o futuro
+  comercial dele (turmas prontas para o professor só curar) está registado como frente no
+  `PLANEAMENTO-LASTRO.md` (L14), e a contradição com o «o professor cria a turma» também (C19).
+- **02/11/2026** — **A seta sobe ao título, os passos descem para a linha inteira, o vocabulário deixa
+  de ser só do ballet** (`a5275c3`). `tituloComAcordeao()` ganhou o `idDoBotao`; a faixa dos passos
+  passou a atravessar a grelha em Turmas e no verbete; a categoria é `Pé · Peso · Perna · Braço` (o
+  `Plié` estava errado) e as orientações do corpo têm **nome português** com a tradição ao lado.
 - **01/11/2026** — **A janela vista por todas as bandas** (`82d37ef`). A §5 «Guia de observação» da
   aula era a **única** parte do documento que o código não reproduzia (16 de 18 linhas divergentes; a
   prosa não existia em código nenhum) — escrita à mão, e apagada em silêncio pela geração seguinte. E
