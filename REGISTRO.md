@@ -30801,3 +30801,96 @@ vende, mesmo estando pronto.
 `bastidores.js:364` · `lerModalidade` em `verbete.js` · `semear-catalogo` (`bastidores.js:8060`,
 devolve `termosNovos: 0`) · a ausência de `LICENSE` e a `ARQUITETURA-GERAL.md:109` · e as provas
 existentes, sem regressão.
+
+## 02/11/2026 — Os três produtos, um motor só, e as nove colisões com os planos existentes
+
+**A decisão.** A pesquisadora decidiu criar os três produtos que a C22 mediu — **dicionário,
+syllabus e aula pronta** —, gerados **antes do ciclo** (antes da anamnese, do plano de ensino e do
+PO), e entregues **conforme o plano contratado**: Básico e Intermediário «têm só os formulários e
+fazem tudo»; o **Avançado** «recebe as benesses», e é o **gerador** que as entrega. E pediu três
+coisas: melhorar a investigação, fazer o plano de implementação, documentá-lo — e **verificar se os
+planos que já existem colidem com ele**.
+
+**O que ficou escrito, e onde:** [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), plano
+novo, em seis fases. Nenhuma linha de código mudou.
+
+### 1. Quantos motores — a resposta, e a razão dela é medida
+
+**Um motor, três saídas, três manifestos.** A hipótese dela (syllabus + dicionário num motor, aula
+pronta noutro) acerta na dependência e custa caro na duplicação:
+
+- **o núcleo já é um e a fronteira é provada por máquina** (`motor/nucleo/`, 21 ficheiros, sem
+  `fs`/`path`/`http`; `provar-agnosticismo.js`). Partir obrigaria a duplicar a fronteira ou a cruzar
+  um núcleo dentro do outro — que é o que a fronteira existe para impedir;
+- **a duplicação já foi paga uma vez**: há **duas leituras** do vocabulário (`lerModalidade` lê do
+  GitHub; `termos()` lê do bundle), e a C22 já manda unificá-las. Dois motores seriam duas leituras
+  **de novo**;
+- **a aula pronta é uma PROJECÇÃO do syllabus**, não outro cálculo: o nível dá a lista, a Regra 9 dá o
+  reparto (`solo 30–40 · barra 20–30 · centro 30–40 · musicalidade 5–10`), e o `cobre` do verbete dá os
+  tempos. Uma segunda função, não um segundo programa;
+- **a âncora é uma convenção só** (`hash-ciclo.sh` → `.fipp`), e **a entrega está em `tools/`, que é
+  congelado** — dois motores pediriam duas alterações ao congelado em vez de uma.
+
+O que **deve** partir é o **manifesto**: três objectos com `id`, `versao`, `licenca` e `ancora`
+próprios. É isso que dá à negociação a granularidade que ela quer — três coisas a preçar, a versionar
+e a licenciar em separado — sem duplicar a máquina.
+
+### 2. A investigação — o que já existe, medido
+
+Sete das nove peças do motor já estão no repositório, e três estão exactamente na forma que os
+produtos exigem: **a notação é derivada e não escrita** (`notacao.js` compõe `[Pé: 5ª → +]` a partir
+de `categoria` + `sinais`); **o glossário já é o dicionário aplicado a um ciclo** (`glossario-benesh`,
+com índice de símbolos e origem por verbete — falta a mesma função sobre o catálogo inteiro); e **a
+regra do volume já está escrita e é norma** (Regra 9, com as faixas `VOLUME_MIN`/`VOLUME_MAX` no
+`.conf`). Somam-se a ordem por nível (`progressao.json`), o `.conf` derivado da turma
+(`compor-conf.js` — é o que impede o produto de carregar ritmo), a entrega inteira (`gerar-ciclo.sh`,
+`montar-publicacao.js`, `check-pacote.js`, `hash-ciclo.sh`) e a cadeia catálogo → escola
+(`semear-catalogo` → `turma-conteudos` → `Conteúdo do nível` → `aula-1-sequencia`).
+
+**O que falta continua a ser conteúdo, não código:** o mapa nível→termos (**13 turmas, 9 associações**
+— e só **2 dos 13 níveis** têm alguma), a camada pedagógica (exige/ensina/expressa), as **5 músicas**
+que não fecham, a **licença** e a **separação** catálogo × escola.
+
+### 3. As nove colisões — e nenhuma é fatal
+
+Três são **de leitura** (o que está escrito passa a significar outra coisa), três são **aditivas** e
+três são **operacionais**. As que mudam texto hoje:
+
+- **C22** — o gerador aparecia como o **quarto produto** da escada. Correção datada: não é produto, é
+  o **meio**; a escada passa a ler-se **três produtos + um motor**. A tabela não foi reescrita — a
+  nota acrescenta-se (P-03/P-04).
+- **L14** — a **turma pronta** passa a **referenciar** o syllabus (`syllabusId` + versão) em vez de o
+  conter. Sem isto ficariam **dois catálogos** a divergir, e o segundo seria o primeiro copiado.
+- **L8** e **L9** — os produtos entram como **itens da composição** (L8) e a habilitação ganha um
+  **quarto eixo**: conteúdo entregue. A regra da L9 — «descer de plano não apaga» — passa a cobrir os
+  produtos já entregues.
+- As que **não** colidem, e é bom que se diga: **`PLANO-CICLO-DA-TURMA`** (o manifesto do produto
+  **alimenta** o `.conf` — a mesma forma, dois leitores); **`PLANO-INDICES`** (os produtos não precisam
+  do índice para existir, só para serem encontráveis — fase 5); a **decisão 17** (a separação é **no
+  repositório**, em dois ficheiros com um leitor que compõe — o que a 17 proíbe é a cópia em KV).
+- E a colisão que **bloqueia**: a **licença** (`ARQUITETURA-GERAL.md:109`, «a definir») é decisão de
+  negócio e trava o degrau 1 inteiro. E a que é **de infraestrutura**: `tools/` é congelado, logo a
+  entrega **chama** `gerar-ciclo.sh`/`montar-publicacao.js` **sem os alterar**.
+
+### 4. O achado que muda o mapa, e não estava pedido
+
+O `PLANEJAMENTO` §5 diz «não implementar L6 antes de L1/L2/L3 e L10». **Os produtos não são L6**: não
+consultam, não cruzam dado da escola, não respondem pergunta nenhuma. Podem por isso vir **antes** das
+camadas analíticas — e é essa a posição deles no mapa: são a **cara comercial da base**, não a cara
+analítica. O analítico (L4 · L6 · L7) continua a esperar; os produtos esperam por **L1 · L2 · L14** e
+pelo **conteúdo**.
+
+### 5. O que NÃO ficou decidido — e é dela
+
+O preço e o empacotamento (C8/L8) · a licença · se o produto é **incluído no pacote da escola** ou
+**pacote próprio** (a recomendação do plano é pacote próprio, porque é a única forma de ter âncora,
+versão e licença independentes do ciclo) · **onde vive o `plano`** na habilitação (C11 — hoje
+`raiz/escolas-habilitadas.json` só tem `habilitada` e `pagante`, e o plano contratado **não existe em
+código nenhum**) · e se a camada pedagógica se faz **junto** com o mapa nível→termos (recomendação:
+sim, é a mesma passagem pela curadoria).
+
+**Com o quê.** `motor/nucleo/` (21 ficheiros, `provar-agnosticismo`) · `motor/nucleo/notacao.js` ·
+`biblioteca/modalidades/bale-classico/{notacao,vocabulario,progressao}.json` ·
+`professores/*/ciclos/*-glossario-benesh.md` · `REGRAS.md` Regra 9 · `professor*/ciclos/*.conf`
+(`VOLUME_MIN`/`VOLUME_MAX`) · `motor/servidor/compor-conf.js` · `tools/{gerar-ciclo,montar-publicacao,
+check-pacote,hash-ciclo}` · `motor/servidor/{catalogo-seed,termo-repo}.js` · `raiz/escolas-habilitadas.json`.

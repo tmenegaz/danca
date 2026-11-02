@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T11:35:02-0300`
-Commit atual: `273b62d` — docs(registro): correção — o modelo tem três eixos, a palavra «eixo» é que aparece uma vez
+Gerado em: `2026-11-02T13:58:38-0300`
+Commit atual: `377544c` — docs(registro): a fotografia dos três eixos, do ritmo obrigatório e da C22
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,8 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+377544c docs(registro): a fotografia dos três eixos, do ritmo obrigatório e da C22
+da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é viável
 273b62d docs(registro): correção — o modelo tem três eixos, a palavra «eixo» é que aparece uma vez
 04e60a7 docs(registro): a proposta «o verbete é o átomo do syllabus», verificada com evidência
 f9d9612 docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
@@ -102,8 +104,6 @@ cf1ef52 feat(po): a força e a flexibilidade vêm da anamnese, e a caixa mostra-
 33663bb chore(estrutura): regerar os índices derivados
 469c9d5 fix(aula-01): a proveniência leva a algum lado e o próximo passo diz o estado
 7e8b87b chore(estrutura): regerar os índices derivados
-03be290 fix(aula-01): a aula deixa de afirmar o que ninguém escreveu, secção a secção
-e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-2
 ```
 
 ## Por professor
@@ -217,59 +217,98 @@ e8a1700 chore(entrega): gerar o pacote de pe-junto/01/batata-bale-nivel-1-teste-
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — C22 nasce no planejamento: os quatro degraus, e o motor é viável
+## 02/11/2026 — Os três produtos, um motor só, e as nove colisões com os planos existentes
 
-**A decisão registada (C22) e o veredicto de viabilidade do motor.** A pesquisadora pediu três
-coisas na mesma mensagem: que se revisse o que ela já corrigiu (o ritmo, o corpo — ver a entrada
-anterior), que se registasse a proposta dela, e que se dissesse **se é viável criar um motor** que
-gere os novos produtos. A verificação da proposta já está na entrada «A proposta «o verbete é o
-átomo do syllabus» verificada contra o repositório»; esta entrada é a **decisão**, e ela não é
-minha: é ela que decide o que sobe para o documento.
+**A decisão.** A pesquisadora decidiu criar os três produtos que a C22 mediu — **dicionário,
+syllabus e aula pronta** —, gerados **antes do ciclo** (antes da anamnese, do plano de ensino e do
+PO), e entregues **conforme o plano contratado**: Básico e Intermediário «têm só os formulários e
+fazem tudo»; o **Avançado** «recebe as benesses», e é o **gerador** que as entrega. E pediu três
+coisas: melhorar a investigação, fazer o plano de implementação, documentá-lo — e **verificar se os
+planos que já existem colidem com ele**.
 
-**O que ficou escrito no `PLANEJAMENTO-LASTRO.md`** (nenhuma linha de código mudou):
+**O que ficou escrito, e onde:** [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), plano
+novo, em seis fases. Nenhuma linha de código mudou.
 
-- **C22**, nova, em §3 — os **quatro degraus** (dicionário → syllabus → aula pronta → gerador), cada
-  um com o bloqueio **medido**, e a escada de baixo para cima porque a ordem é de **dependência**,
-  não de preferência. Acompanha a medição do átomo (v15: 11 verbetes, 13 músicas, 43 células, 93
-  termos, 59 com descrição, 30 com `fonte`; 13 turmas, 9 associações) e a cadeia que já existe de
-  ponta a ponta — catálogo → `semear-catalogo` → `turma-conteudos` → `Conteúdo do nível` → aula,
-  plano, captura, notação, glossário.
-- **O veredicto: o motor é viável**, e o átomo já tem a forma certa — chave-valor por música, com a
-  notação **derivada** e não escrita (`motor/nucleo/notacao.js` compõe `[Pé: 5ª → +]` a partir de
-  `categoria` + `sinais`), e três consumidores que já o leem. Não precisa de modelo novo; precisa de
-  **quatro** coisas, e três são de arrumação: (1) **identidade estável** por unidade — hoje o
-  verbete é chaveado pelo nome, e o `PUT /api/bastidores/termo` recusa mudar o nome de um termo em
-  uso porque o `id` deriva dele (é a **L2**); (2) a **separação catálogo × escola**; (3) a **camada
-  pedagógica** (exige/ensina/expressa — três campos, e são de conteúdo, P-16); (4) **uma leitura só**
-  do vocabulário (hoje `lerModalidade` lê do GitHub e `termos()` lê do bundle — é por isso que o
-  termo criado não chega ao plano antes do deploy).
-- **O pré-requisito de integridade**, e é o mais barato: **5 das 13 músicas** do alfabeto têm `cobre`
-  diferente dos tempos (Plié 12 em 8, Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4,
-  Battement fondu 6 em 2, Relevé 1 em 2). Um motor que gera produtos de átomos inconsistentes gera
-  produtos inconsistentes — e, desde hoje, a gravação **recusa** esses verbetes, o que quer dizer
-  que os cinco precisam de correção antes de qualquer regravação. **É a primeira tarefa do degrau 1,
-  e é de conteúdo.**
-- **L14** reescrita com a lacuna **(0)** — a **separação catálogo público × adições da escola** como
-  **pré-requisito do degrau 1** e não como detalhe: hoje são **o mesmo ficheiro**
-  (`termo-repo.js`, `CAMINHO = 'biblioteca/modalidades/bale-classico/vocabulario.json'`), e é isso
-  que impede vender o dicionário. A entrega (a) — «o ritmo no catálogo» — **saiu**, pela razão da
-  entrada anterior: o ritmo é do contrato e é obrigatório na turma. E o critério (i) mudou de «gera
-  ciclo sem nenhuma edição manual» para «**assim que o ritmo é declarado**, que é o único passo
-  manual e é obrigatório de qualquer forma» — o critério antigo pedia o impossível e por isso nunca
-  poderia fechar a frente.
-- O **índice de decisões** (§2, linha «PRECISA DE DECISÃO») atualizado para C19 e C22.
+### 1. Quantos motores — a resposta, e a razão dela é medida
 
-**O que não foi feito, e de propósito.** Nada de código; nada de desenho de modelo; nenhuma alteração
-no `CONGELAMENTO.md`. A entrada declara-o: o que a C22 acrescenta é a **medição** e o veredicto — o
-que sobe, com que palavras, e em que ordem comercial é **decisão dela**. E o ponto que continua a
-travar a primeira frente não é técnico: sem **licença** e sem a **separação**, o degrau 1 não se
-vende, mesmo estando pronto.
+**Um motor, três saídas, três manifestos.** A hipótese dela (syllabus + dicionário num motor, aula
+pronta noutro) acerta na dependência e custa caro na duplicação:
 
-**Com o quê.** `notacao.json` v15 · `vocabulario.json` · `progressao.json` dentro de
-`biblioteca/modalidades/bale-classico/` · `motor/servidor/termo-repo.js` · `termos()` em
-`bastidores.js:364` · `lerModalidade` em `verbete.js` · `semear-catalogo` (`bastidores.js:8060`,
-devolve `termosNovos: 0`) · a ausência de `LICENSE` e a `ARQUITETURA-GERAL.md:109` · e as provas
-existentes, sem regressão.
+- **o núcleo já é um e a fronteira é provada por máquina** (`motor/nucleo/`, 21 ficheiros, sem
+  `fs`/`path`/`http`; `provar-agnosticismo.js`). Partir obrigaria a duplicar a fronteira ou a cruzar
+  um núcleo dentro do outro — que é o que a fronteira existe para impedir;
+- **a duplicação já foi paga uma vez**: há **duas leituras** do vocabulário (`lerModalidade` lê do
+  GitHub; `termos()` lê do bundle), e a C22 já manda unificá-las. Dois motores seriam duas leituras
+  **de novo**;
+- **a aula pronta é uma PROJECÇÃO do syllabus**, não outro cálculo: o nível dá a lista, a Regra 9 dá o
+  reparto (`solo 30–40 · barra 20–30 · centro 30–40 · musicalidade 5–10`), e o `cobre` do verbete dá os
+  tempos. Uma segunda função, não um segundo programa;
+- **a âncora é uma convenção só** (`hash-ciclo.sh` → `.fipp`), e **a entrega está em `tools/`, que é
+  congelado** — dois motores pediriam duas alterações ao congelado em vez de uma.
+
+O que **deve** partir é o **manifesto**: três objectos com `id`, `versao`, `licenca` e `ancora`
+próprios. É isso que dá à negociação a granularidade que ela quer — três coisas a preçar, a versionar
+e a licenciar em separado — sem duplicar a máquina.
+
+### 2. A investigação — o que já existe, medido
+
+Sete das nove peças do motor já estão no repositório, e três estão exactamente na forma que os
+produtos exigem: **a notação é derivada e não escrita** (`notacao.js` compõe `[Pé: 5ª → +]` a partir
+de `categoria` + `sinais`); **o glossário já é o dicionário aplicado a um ciclo** (`glossario-benesh`,
+com índice de símbolos e origem por verbete — falta a mesma função sobre o catálogo inteiro); e **a
+regra do volume já está escrita e é norma** (Regra 9, com as faixas `VOLUME_MIN`/`VOLUME_MAX` no
+`.conf`). Somam-se a ordem por nível (`progressao.json`), o `.conf` derivado da turma
+(`compor-conf.js` — é o que impede o produto de carregar ritmo), a entrega inteira (`gerar-ciclo.sh`,
+`montar-publicacao.js`, `check-pacote.js`, `hash-ciclo.sh`) e a cadeia catálogo → escola
+(`semear-catalogo` → `turma-conteudos` → `Conteúdo do nível` → `aula-1-sequencia`).
+
+**O que falta continua a ser conteúdo, não código:** o mapa nível→termos (**13 turmas, 9 associações**
+— e só **2 dos 13 níveis** têm alguma), a camada pedagógica (exige/ensina/expressa), as **5 músicas**
+que não fecham, a **licença** e a **separação** catálogo × escola.
+
+### 3. As nove colisões — e nenhuma é fatal
+
+Três são **de leitura** (o que está escrito passa a significar outra coisa), três são **aditivas** e
+três são **operacionais**. As que mudam texto hoje:
+
+- **C22** — o gerador aparecia como o **quarto produto** da escada. Correção datada: não é produto, é
+  o **meio**; a escada passa a ler-se **três produtos + um motor**. A tabela não foi reescrita — a
+  nota acrescenta-se (P-03/P-04).
+- **L14** — a **turma pronta** passa a **referenciar** o syllabus (`syllabusId` + versão) em vez de o
+  conter. Sem isto ficariam **dois catálogos** a divergir, e o segundo seria o primeiro copiado.
+- **L8** e **L9** — os produtos entram como **itens da composição** (L8) e a habilitação ganha um
+  **quarto eixo**: conteúdo entregue. A regra da L9 — «descer de plano não apaga» — passa a cobrir os
+  produtos já entregues.
+- As que **não** colidem, e é bom que se diga: **`PLANO-CICLO-DA-TURMA`** (o manifesto do produto
+  **alimenta** o `.conf` — a mesma forma, dois leitores); **`PLANO-INDICES`** (os produtos não precisam
+  do índice para existir, só para serem encontráveis — fase 5); a **decisão 17** (a separação é **no
+  repositório**, em dois ficheiros com um leitor que compõe — o que a 17 proíbe é a cópia em KV).
+- E a colisão que **bloqueia**: a **licença** (`ARQUITETURA-GERAL.md:109`, «a definir») é decisão de
+  negócio e trava o degrau 1 inteiro. E a que é **de infraestrutura**: `tools/` é congelado, logo a
+  entrega **chama** `gerar-ciclo.sh`/`montar-publicacao.js` **sem os alterar**.
+
+### 4. O achado que muda o mapa, e não estava pedido
+
+O `PLANEJAMENTO` §5 diz «não implementar L6 antes de L1/L2/L3 e L10». **Os produtos não são L6**: não
+consultam, não cruzam dado da escola, não respondem pergunta nenhuma. Podem por isso vir **antes** das
+camadas analíticas — e é essa a posição deles no mapa: são a **cara comercial da base**, não a cara
+analítica. O analítico (L4 · L6 · L7) continua a esperar; os produtos esperam por **L1 · L2 · L14** e
+pelo **conteúdo**.
+
+### 5. O que NÃO ficou decidido — e é dela
+
+O preço e o empacotamento (C8/L8) · a licença · se o produto é **incluído no pacote da escola** ou
+**pacote próprio** (a recomendação do plano é pacote próprio, porque é a única forma de ter âncora,
+versão e licença independentes do ciclo) · **onde vive o `plano`** na habilitação (C11 — hoje
+`raiz/escolas-habilitadas.json` só tem `habilitada` e `pagante`, e o plano contratado **não existe em
+código nenhum**) · e se a camada pedagógica se faz **junto** com o mapa nível→termos (recomendação:
+sim, é a mesma passagem pela curadoria).
+
+**Com o quê.** `motor/nucleo/` (21 ficheiros, `provar-agnosticismo`) · `motor/nucleo/notacao.js` ·
+`biblioteca/modalidades/bale-classico/{notacao,vocabulario,progressao}.json` ·
+`professores/*/ciclos/*-glossario-benesh.md` · `REGRAS.md` Regra 9 · `professor*/ciclos/*.conf`
+(`VOLUME_MIN`/`VOLUME_MAX`) · `motor/servidor/compor-conf.js` · `tools/{gerar-ciclo,montar-publicacao,
+check-pacote,hash-ciclo}` · `motor/servidor/{catalogo-seed,termo-repo}.js` · `raiz/escolas-habilitadas.json`.
 
 ## O que está pendente
 

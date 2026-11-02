@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `273b62d`). Nesta entrega: **o modelo tem três eixos,
+> **Última fotografia:** 02/11/2026 (base local `377544c`). Nesta entrega: **a decisão dos três produtos**
+> — dicionário, syllabus e aula pronta, gerados **antes do ciclo** e entregues **conforme o plano
+> contratado** (o Avançado recebe; os outros fazem tudo) —, e o plano que a constrói:
+> [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), em seis fases. A resposta à pergunta
+> dela sobre **quantos motores**: **um motor, três saídas, três manifestos** — a granularidade que a
+> negociação pede está nos manifestos, não no código. O plano declara ainda as **nove colisões** com
+> os planos existentes e o ajuste de cada uma, e a **C22** ganhou a correção de leitura (o gerador
+> não é o quarto produto: é o **meio**). Nenhuma linha de código mudou.
+>
+> **Entrega anterior** (base `273b62d`). Nesta entrega: **o modelo tem três eixos,
 > não um** — a palavra «eixo» aparece uma vez porque o rótulo da dimensão é **prefixo por
 > concatenação**, e é ele que rotula «Musicalidade» e «Expressão» como «Técnica — …»; **o ritmo
 > nunca esteve em aberto** — é obrigatório no cadastro da turma, conferido em quatro portas do
@@ -236,6 +245,29 @@ Verificado nesta fotografia, com os comandos da §9.
   o cartão da turma **diz o que falta** em vez de deixar o botão apagado. **CONFIRMADO** por leitura
   do código em 02/11/2026 — e é a correção de uma afirmação minha («o ritmo continua em aberto»),
   que procurava o ritmo no **catálogo** em vez do **cadastro**.
+- **Os três produtos estão decididos, e a arquitetura é um motor só.** A pesquisadora decidiu
+  (02/11/2026) criar **dicionário, syllabus e aula pronta**, gerados **antes do ciclo** e entregues
+  **conforme o plano contratado** — o Básico e o Intermediário «fazem tudo», o Avançado «recebe as
+  benesses». A pergunta «um motor ou dois?» ficou respondida com medição: **um motor, três saídas,
+  três manifestos**. **DECIDIDO** o produto; o plano está em
+  [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md) e **nada foi implementado**.
+- **Sete das nove peças do motor já existem, e três estão na forma que os produtos exigem.** A
+  **notação é derivada** (`notacao.js`, `categoria` + `sinais` → `[Pé: 5ª → +]`); o **glossário já é
+  o dicionário aplicado a um ciclo** (`glossario-benesh`, com índice de símbolos e origem por
+  verbete); e a **regra do volume já é norma** (Regra 9: teto pela duração, depois solo 30–40% · barra
+  20–30% · centro 30–40% · musicalidade 5–10%, com as faixas no `.conf`). **CONFIRMADO** por leitura em
+  02/11/2026.
+- **O que falta para os produtos é CONTEÚDO, não código.** O mapa nível→termos tem **13 turmas e 9
+  associações**, e só **2 dos 13 níveis** têm alguma (nível 1: quatro termos; nível 2: cinco); a
+  camada pedagógica não existe em ficheiro nenhum do catálogo; as **5 músicas** continuam a não
+  fechar; faltam a **licença** e a **separação** catálogo × escola. **CONFIRMADO** — e é o caminho
+  crítico do plano.
+- **O plano contratado não existe em código.** `raiz/escolas-habilitadas.json` tem `habilitada` e
+  `pagante` (a trava do expurgo) e **não tem `plano`**. A distribuição por plano (fase 4) depende de
+  **C11** decidir onde vive o estado comercial. **CONFIRMADO**.
+- **A escada da C22 mudou de leitura: três produtos + um motor.** O gerador **não é o quarto
+  produto** — é o **meio** pelo qual o Avançado recebe os três. Nota de correção datada na C22, sem
+  reescrever a tabela (P-03/P-04). **DECIDIDO** 02/11/2026.
 - **O ritmo é do CONTRATO, e por isso o catálogo não o transporta.** A mesma «Balé Nível 1» é
   2×/semana numa escola e 3× noutra: o ritmo não é do conteúdo, é da contratação. É o que fecha a
   **C19** pela negativa — a turma pronta vende-se **sem** ritmo, e o ritmo entra onde já entra hoje.
@@ -678,6 +710,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     **licença** (não há `LICENSE`; `ARQUITETURA-GERAL.md:109` diz «a definir») trava o degrau 1 tanto
     quanto a separação. **DECIDIDO** o diagnóstico e o veredicto; a **ordem comercial** é dela
     (**C22**).
+56. **UM MOTOR, TRÊS SAÍDAS, TRÊS MANIFESTOS — E OS PRODUTOS VÊM ANTES DO CICLO.** Os três produtos
+    (dicionário · syllabus · aula pronta) são **saídas de um motor só**, porque o trabalho é um: o
+    núcleo já é único e a fronteira é provada por máquina (`provar-agnosticismo`), a leitura do
+    catálogo já está duplicada uma vez e a C22 manda unificá-la, a notação é uma regra só, a âncora é
+    uma convenção só, e a entrega vive em `tools/`, que é congelado. **O que parte é o MANIFESTO** —
+    três objectos com `id`, `versao`, `licenca` e `ancora` —, e é ali que vive a granularidade da
+    negociação. E são gerados **antes do ciclo**: são **matéria-prima** da anamnese, do plano e do PO,
+    e tornam-se da escola **na curadoria**. Isso **não inverte** o pipeline — acrescenta-lhe uma etapa
+    à frente. **DECIDIDO** 02/11/2026; o plano é o
+    [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md).
+57. **OS PRODUTOS SÃO A CARA COMERCIAL DA BASE, NÃO A CARA ANALÍTICA.** O `PLANEJAMENTO` §5 proíbe
+    implementar L6 antes de L1/L2/L3 e L10 — e os produtos **não são L6**: não consultam, não cruzam
+    dado da escola, não respondem pergunta nenhuma. Podem por isso vir **antes** das camadas
+    analíticas, e o que os trava é **conteúdo** e **L1 · L2 · L14**, não o índice nem o catálogo de
+    consultas. **DECIDIDO** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -897,6 +944,20 @@ pré-requisito do degrau 1, não um detalhe dele.
 a primeira classe (**C20**); e a ordem comercial entre os degraus. **Nada foi desenhado nem alterado
 no código por causa da C22.**
 
+**A 02/11/2026 ela decidiu avançar, e o plano está escrito.** São **três produtos** (dicionário ·
+syllabus · aula pronta), gerados por **um motor** e entregues **conforme o plano contratado** — o
+[PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), em seis fases. O plano responde às três
+perguntas dela — **quantos motores** (§3: um, com os manifestos a dar a granularidade), **em que
+ordem** (§4: antes do ciclo, porque são matéria-prima das três fontes e tornam-se da escola na
+curadoria) e **por qual plano** (§5) — e declara **nove colisões** com os planos que já existem
+(§6), com o ajuste de cada uma. Três dessas colisões **mudaram texto hoje**: na **C22** (o gerador
+não é o quarto produto, é o meio) e na **L14** (a turma pronta referencia o syllabus, não o contém).
+
+**O que continua a travar, e não é código:** o mapa nível→termos (**11 dos 13 níveis vazios**), a
+camada pedagógica, as **5 músicas**, a **licença** e a **separação** catálogo × escola. E a fase 4
+depende de **C11**: o plano contratado **não existe em código** — `raiz/escolas-habilitadas.json` só
+tem `habilitada` e `pagante`.
+
 O que **continua** em aberto desta família é outro: a **bancada**
 `experimentos/propostas/proposta-musicalidade.html` (local, não versionada) propunha uma legenda de
 compasso e contagem, os tempos à vista, a coluna de lado no port de bras e três colunas — e a decisão
@@ -963,7 +1024,27 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — três eixos, o ritmo obrigatório e a C22)
+### Executado nesta fotografia (02/11/2026 — os três produtos e o plano do motor)
+
+Esta entrega **não alterou código**: é decisão e plano. O que se correu foi o que a documentação pode
+partir, e o que se mediu foi o que o plano afirma.
+
+| Verificação | Resultado |
+|:--|:--|
+| **o núcleo é um só e a fronteira é provada** | `motor/nucleo/` — **21 ficheiros**, sem `fs`/`path`/`http`; `provar-agnosticismo.js` verifica por máquina. É o primeiro argumento do §3 do plano |
+| **o glossário já é o dicionário de um ciclo** | `professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md` — índice de símbolos, verbetes, origem declarada |
+| **a Regra 9 é norma e tem faixas no `.conf`** | `solo 30–40% · barra 20–30% · centro 30–40% · musicalidade 5–10%`; `VOLUME_MIN` 80–100 (60 min) e 150–200 (120 min) |
+| **o catálogo, medido para as fases** | `progressao.json`: **13 turmas, 9 associações**, e só **2 níveis** com termos (4 e 5); `vocabulario.json`: 93 termos; `notacao.json` v15: 11 verbetes, 13 músicas, 43 células, **5 músicas que não fecham** |
+| **o plano contratado não existe em código** | `raiz/escolas-habilitadas.json` tem `habilitada` e `pagante`; **nenhum campo `plano`** |
+| **`tools/` é congelado** | `CONGELAMENTO.md` lista `tools/`, `tools/templates/`, `prompts/` — a entrega do produto **chama** os geradores sem os alterar |
+| `node tools/check-indices.js` | **14 verificações, 0 falha(s)** — TUDO CERTO |
+| `node tools/check-schemas.js` · `gerar-schemas.js --conferir` | TUDO CERTO · ok (5 schemas) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram |
+| `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | ciclo íntegro, cadeia intacta — `b1097a0d…` |
+| `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** |
+| **não executado** | as provas de browser — nenhuma linha de código do motor mudou nesta entrega |
+
+### Executado na fotografia anterior (02/11/2026 — três eixos, o ritmo obrigatório e a C22)
 
 Esta entrega **não alterou código**: é fotografia, decisão e registo. O que se mediu foi o código que
 já estava lá, para as duas correções, e o que se correu foi o que o `.md` do planejamento pode
@@ -1394,12 +1475,18 @@ ajustes, a gente vai esmiuçar isso daqui porque tem um bocado de erros») — e
 concreto: **a tabela dos exercícios, a coluna a coluna**, com o mesmo método (o que vem do dado e o
 que vem do código).
 
-**A proposta do motor chegou, e tem um primeiro passo de conteúdo.** A **C22** diz que o motor é
-viável e que a primeira tarefa do degrau 1 **não é código**: **corrigir as cinco músicas** cujo
-`cobre` não fecha os tempos (Plié 12 em 8, Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4,
-Battement fondu 6 em 2, Relevé 1 em 2). A gravação já as recusa — o que quer dizer que hoje **não se
-pode regravá-las sem corrigir**. As outras três arrumações (identidade estável, separação
-catálogo × escola, camada pedagógica) e a **licença** esperam a decisão dela sobre o que sobe.
+**Os três produtos estão decididos, e o primeiro passo deles NÃO é código.** O
+[PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md) tem seis fases, e a **fase 0 é conteúdo**:
+(1) o **mapa nível→termos** para os 13 níveis, começando pelo nível 1 (hoje: 13 turmas, **9
+associações**, e só 2 níveis com alguma); (2) as **5 músicas** que não fecham os tempos (Plié 12 em 8,
+Rond de jambe en l'air 3 em 4, Battement dégagé 6 em 4, Battement fondu 6 em 2, Relevé 1 em 2) — e a
+gravação **já as recusa**, logo não se podem regravar sem corrigir; (3) a **licença**. Só depois a
+fase 1 (a separação catálogo × escola) e a fase 2 (as três saídas em memória) entram em código.
+
+**E há uma ordem que o plano recomenda e ela ainda não decidiu:** a **camada pedagógica**
+(exige/ensina/expressa) pode ser o **mesmo trabalho** que o mapa nível→termos — quem declara «o nível
+1 ensina `plié` e `tendu`» já está a dizer o que a unidade ensina, e fazer as duas na mesma passagem
+poupa uma ida à curadoria.
 
 **PENDENTE dela, e só ela pode decidir:** a **Regra 4** — «força e flexibilidade» no texto, ou o
 campo do espaço —, agora que a força e a flexibilidade se sabe onde estão e já chegam ao PO.
@@ -1476,6 +1563,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **Os três produtos, um motor só, e as nove colisões.** A pesquisadora decidiu
+  criar **dicionário, syllabus e aula pronta** — gerados **antes do ciclo**, entregues conforme o
+  plano contratado (Básico e Intermediário «fazem tudo»; o Avançado «recebe as benesses»). A
+  pergunta dela — **um motor ou dois?** — ficou respondida com medição: **um motor, três saídas, três
+  manifestos**. Um, porque o núcleo já é único e a fronteira é provada por máquina, porque a leitura
+  do catálogo já está duplicada uma vez, porque a notação e a âncora são uma convenção só, e porque a
+  entrega vive em `tools/`, que é congelado. Três, porque **o manifesto é que parte** — e é ali que
+  vive a granularidade da negociação. O plano
+  ([PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md)) tem seis fases, declara **nove
+  colisões** com os planos existentes e o ajuste de cada uma, e mostra que **o que falta é conteúdo**,
+  não código: 11 dos 13 níveis estão vazios, a camada pedagógica não existe, 5 músicas não fecham,
+  falta licença e falta a separação catálogo × escola. Mudaram de texto, hoje, a **C22** (o gerador
+  não é o quarto produto: é o meio) e a **L14** (a turma pronta referencia o syllabus).
 - **02/11/2026** — **Três eixos, o ritmo obrigatório, e a C22 com o veredicto do motor.** Três
   correções que a pesquisadora fez, e as três eram minhas: (1) **o modelo não tem um eixo, tem
   três** — `"eixo"` aparece uma vez porque o rótulo é **prefixo por concatenação**, e é ele que
