@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 23,
+  "versao": 24,
   "aplicaseA": [
     "benesh"
   ],
@@ -523,63 +523,6 @@
       "foram migrados na mesma alteração. Manter as duas seria manter duas verdades sobre o mesmo",
       "exercício."
     ],
-    "Rond de jambe": {
-      "8|4/4": {
-        "cobre": 8,
-        "posicao": {
-          "membro": "pes",
-          "termo": "premiere-position"
-        },
-        "celulas": {
-          "devant": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "1ª",
-                "→",
-                "+",
-                "ED"
-              ],
-              "descricao": "a perna varre à frente a partir da 1ª posição"
-            },
-            {
-              "contagem": "3–4",
-              "categoria": "Pé",
-              "sinais": [
-                "+",
-                "↺",
-                "2ª"
-              ],
-              "descricao": "a varredura abre para a 2ª posição, en dehors"
-            }
-          ],
-          "derriere": [
-            {
-              "contagem": "1–2",
-              "categoria": "Pé",
-              "sinais": [
-                "2ª",
-                "→",
-                "×",
-                "EI"
-              ],
-              "descricao": "a perna continua atrás, en dedans"
-            },
-            {
-              "contagem": "3–4",
-              "categoria": "Pé",
-              "sinais": [
-                "×",
-                "●",
-                "1ª"
-              ],
-              "descricao": "retorno à 1ª posição"
-            }
-          ]
-        }
-      }
-    },
     "Port de bras": {
       "12|3/4": {
         "cobre": 12,
