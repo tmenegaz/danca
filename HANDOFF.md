@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T09:30:58-0300`
-Commit atual: `e9119d4` — docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
+Gerado em: `2026-11-02T09:50:55-0300`
+Commit atual: `2a7f13f` — docs(registro): as limitações de conhecimento desta fotografia, medidas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -84,6 +84,7 @@ vaso-bonito (18)
 ## Últimos commits
 
 ```
+2a7f13f docs(registro): as limitações de conhecimento desta fotografia, medidas
 e9119d4 docs(registro): a fotografia do estado, o planeamento e a transferência de 02/11/2026
 afbaeae chore(estrutura): regerar os índices derivados
 d74fda1 fix(aula-01): a musicalidade consolida-se, e a prova da porta volta a correr
@@ -103,7 +104,6 @@ bd1298f feat(acervo): envelope/po-20261101-1959.json
 98d9a5f chore(estrutura): regerar os índices derivados
 68a760a feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 8b7f897 feat(plano): o plano elicitado vira a fonte do ciclo
-9472d9d feat(acervo): envelope/plano-20261101-1955.json
 ```
 
 ## Por professor
@@ -217,54 +217,25 @@ bd1298f feat(acervo): envelope/po-20261101-1959.json
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A prova da porta estava a medir-se a si mesma
+## 02/11/2026 — Um resíduo de expurgo travava o commit de quem mexesse na porta
 
-**O que motivou.** Ficou registado na entrada anterior, como pendência, que
-`experimentos/provar-ajustes-anamnese.js` falhava em `window.location.replace` e «já falhava em
-`HEAD`». A pesquisadora perguntou o que era e o que fazer. A resposta é pior do que a pendência
-dizia, e é de medição em três camadas.
+**O que aconteceu.** Depois de `porta/index.html` mudar, o `check-identidade` reprovou o **Circuito**
+num pacote que não é o do ciclo em uso: `professores/pe-torto/ciclos/ciclo-01-batata/plano-observacao/
+index.html` divergia da fonte. Aquele pacote é o que o `criar-escola.sh` deixou quando a escola
+`batata` foi criada em 01/11/2026 e **nunca recebeu documentos** (`DOCS=""` no
+`ciclo-01-batata.conf`): tem a porta, os assets e o índice, e mais nada. O `gerar-ciclo.sh` não o pode
+regenerar — «DOCS está vazio» —, e por isso a cópia da porta ficou congelada no dia em que nasceu.
 
-**O que estava a acontecer.**
+**O que foi decidido.** A cópia foi **refrescada** — a mesma operação que o `gerar-ciclo.sh` faz
+(`porta/` → `plano-observacao/`) —, e não apagada: apagar um ciclo de um professor é decisão da
+pesquisadora, não do gerador. **A pendência de fundo fica dita:** um ciclo criado e nunca preenchido
+envelhece em silêncio e trava o commit de quem toca em `porta/`; o remédio definitivo é o expurgo da
+escola, que é o que ela vai fazer a seguir. Fica registado para não voltar a ser diagnosticado do
+zero.
 
-1. **O mock do `location` não tinha `replace`.** A página chama `location.replace` no caminho em que
-   o ato não tem contexto válido (`voltarParaALista`) — e é o comportamento certo: sem contexto não
-   há formulário a abrir, só um endereço órfão. No sandbox isso era um `TypeError`, e a prova
-   inteira parava ali.
-2. **E parava a meio:** corriam **56** asserções e as últimas do ficheiro nunca se executavam. Com o
-   `replace` no mock, correram **126**. Ou seja: **70 asserções estavam a passar por não correr.**
-3. **E as que passavam, algumas mediam outra coisa.** O `fetch` do mock respondia `{ok:true}` a tudo,
-   de modo que as listas de alunas e de professores chegavam vazias, `carregarAlunas()` reconstruía o
-   `select` a partir do vazio, e o contexto ficava incompleto sem ninguém lhe tocar. Doze asserções
-   do bloco da turma liam «Escolha primeiro o professor» — o **aviso** — e chamavam-lhe a grade.
-
-**O que foi decidido.**
-
-- **O mock ganha `replace`, e regista o destino.** É o que um navegador tem. Passa a haver duas
-  asserções onde havia uma exceção: com contexto a porta **fica**; sem contexto a porta **volta à
-  lista** — a segunda era invisível, era o `TypeError` que a escondia.
-- **O `fetch` do mock serve as listas.** Não é o mock a imitar a página: é a página a receber a
-  resposta que o servidor dá. A aluna e o professor chegam pelo caminho de produção.
-- **O cenário passou a ser o real.** O bloco (8) media o «Guardar» sem dizer que estava em EDIÇÃO —
-  e a anamnese pede a senha para ENTRAR (a senha é pré-requisito de gravação, mas o ato novo começa
-  com ela); a edição não pede, e é por isso que o «Editar» da lista abre direto. Sem essa linha, a
-  prova pedia a entrada por um caminho que a página legitimamente fecha.
-- **Três asserções do roteiro foram reescritas, e uma do atalho do plano.** O «portal» que elas
-  mediam já não existe nesta página (a abertura foi apagada em 26/10/2026; sair é NAVEGAR), e o
-  atalho do plano ligado passou a apontar para `api/plano-preenchido.<carimbo>?formato=html` (o
-  documento legível) em vez do envelope cru. A prova tinha ficado no mundo anterior.
-
-**Onde entrou.** `experimentos/provar-ajustes-anamnese.js` · `.gitignore` (o bloco de abertura da
-prova, com a razão) · nada em `porta/` — **a página estava certa nas quatro coisas**.
-
-**Com o quê.** `provar-ajustes-anamnese` **126 de 126** (eram 56, e a última do ficheiro não
-corria) · `provar-o-que-vem-do-dado` TUDO CERTO · `provar-forca-e-flexibilidade` 17/17 ·
-`provar-aula-e-plano-legiveis` 12/12 · `provar-po-unico` 18/18 · `provar-schemas` 29/29 ·
-`check-pacote` 0 erro / 0 aviso · `check-identidade` 20/20 · `hash-ciclo --check` cadeia intacta.
-
-**A lição, e é a mesma de sempre neste repositório:** uma prova que não corre não falha — passa.
-O `TypeError` era o único sinal, e estava a ser lido como «a prova é frágil» em vez de «a prova
-parou». A partir de agora, uma prova que morra a meio tem de dizer **quantas** asserções correu, e
-é isso que o resumo dela imprime.
+**Com o quê.** `check-identidade` **20/20** · `check-indices` **14/14** (os índices foram regerados;
+os que só tinham mudado de `fonte.commit` e `gerado_em` foram revertidos, porque um índice que muda
+de hora em cada geração suja a árvore sem dizer nada).
 
 ## O que está pendente
 

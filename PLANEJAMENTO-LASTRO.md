@@ -943,6 +943,19 @@ conteúdo do PO, e nada impede que os outros dois passem a ser eixos de primeira
 **L1** (o dicionário de campos), a **L10** (o vocabulário do domínio que falta) e a ligação
 bloco ↔ dimensão (**P1**), porque um eixo a mais é uma dimensão a mais a ligar.
 
+**Decidido a 02/11/2026, e é a alternativa (b).** A pesquisadora: «você vai colocar, ó, antes da
+música e vídeo de referência você vai colocar esse item que é relacionado a força e flexibilidade,
+que é o aspecto físico, o aspecto do corpo das meninas». O **plano de ensino ganhou o bloco 10,
+«Aspecto físico — força e flexibilidade»** — e ele é **lido, não escrito**: consolida as anamneses
+das alunas da turma por aspecto (nunca uma linha por aluna) e marca como **ponto de atenção** quem
+não está no melhor nível, usando a **ordem das opções da própria anamnese** como régua. O «Condições
+preliminares» fica com o espaço e o material, e o §2 da aula passou a dizer «(o espaço e o material)»
+no título, para não voltar a ler-se como se fosse a força e a flexibilidade. **O que sobra por
+decidir é só a redação da Regra 4**, que é texto congelado (`CONGELAMENTO.md`) e continua a usar a
+expressão «pré-requisitos de força e flexibilidade»: ou se lhe dá o sentido do bloco 10, ou se
+declara que essa expressão quer dizer o espaço e o material, e a força e a flexibilidade vivem no
+bloco 10. A decisão é dela, e não se toma por dentro do gerador.
+
 *(Afeta §L1, §L10, a ligação bloco ↔ dimensão (P1) e a decisão da Regra 4. A metade da taxonomia é de
 **domínio**; a do campo no plano é de **formulário**.)*
 

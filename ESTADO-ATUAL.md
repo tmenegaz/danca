@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `d74fda1`). Nesta entrega: o **molde dos
+> **Última fotografia:** 02/11/2026 (base local `2a7f13f`). Nesta entrega: a **§4 deixou de dizer
+> uma coisa falsa** — afirmava «exercícios neste bloco: nenhum» sobre o bloco de musicalidade, e as
+> três linhas de exercício tinham tempos e compasso; passou a ser uma **vista consolidada por
+> compasso**, um exercício uma vez só, com a contagem *e* o que cai nela, e a «fatia do plano»
+> (30% — 27 tempos) saiu porque repetia a §3 sem a tabela; o título da §3 passou a ser **«Distribuição
+> do tempo pelos blocos»**; o **plano de ensino ganhou o bloco 10, «Aspecto físico — força e
+> flexibilidade»**, lido das anamneses da turma e marcando o ponto de atenção pela ordem das opções
+> da própria anamnese; e um **resíduo de expurgo** (`pe-torto/ciclos/ciclo-01-batata`, um ciclo criado
+> e nunca preenchido) deixou de travar o commit de quem mexe em `porta/`.
+>
+> **Entrega anterior** (base `d74fda1`). Nesta entrega: o **molde dos
 > schemas** ficou atrás dos professores e matou a geração do ciclo da `breu` («campo ausente»),
 > e foi corrigido e **unificado** num leitor só (`570d900`, `e27e462`); a página do **Vocabulário
 > saiu** e o botão de semear passou para o «+» do verbete (`ea6cd0d`); a **seta subiu ao título**,
@@ -150,9 +160,33 @@ Verificado nesta fotografia, com os comandos da §9.
 - **A publicação de 01–02/11/2026 foi verde em todas as Actions.** `Publicar as escolas`,
   `Publicar a raiz`, `Reancorar a cadeia` e `Regerar os índices` concluíram com sucesso nos commits
   `cf1ef52` e `d74fda1`. **CONFIRMADO** pela API do GitHub.
-- **O ar serve a Aula 01 com as correções.** `batata.tmenegaz77.workers.dev/bale-nivel-1-teste-2/aula-01`
-  responde 200 e a página traz «(o espaço e o material)», a proveniência como dois links, o «Marco da
-  Aula 02» numa linha e a §4 consolidada por música. **CONFIRMADO** em 02/11/2026.
+- **O ar serve a Aula 01 com as correções de `cf1ef52`/`d74fda1`** — «(o espaço e o material)», a
+  proveniência como dois links, o «Marco da Aula 02» numa linha. **CONFIRMADO** em 02/11/2026. **Já
+  não é o que o gerador produz:** a §4 desta entrega (consolidada por compasso) e o bloco 10 do plano
+  ainda **não foram publicados**, e é a pesquisadora quem decide quando — ela vai **expurgar a escola
+  `batata` e recriá-la do zero** para ver os ajustes a funcionar de ponta a ponta. **PENDENTE**
+  (publicação), **CONFIRMADO** (o que o gerador produz, medido no `.md` gerado).
+- **A §4 consolidava por MÚSICA e afirmava «exercícios neste bloco: nenhum».** As duas coisas
+  estavam erradas: as três linhas de exercício da aula trazem `Tempos` e `Compasso`, e o verbete traz
+  a grade das contagens. Passou a **consolidar por compasso**, um exercício uma vez só, e a prova
+  guarda cinco asserções que tornam a afirmação falsa impossível — entre elas «não afirma que o bloco
+  não tem exercícios» e «cada exercício aparece uma vez» (`provar-o-que-vem-do-dado`).
+  **CONFIRMADO** no `.md` gerado e na prova.
+- **Duas grades de verbete não fecham nos tempos da música desta aula**, e o documento passou a
+  dizê-lo com `conferir`: **Battement fondu** soma 6 tempos numa música de 2, **Plié** soma 12 onde a
+  música tem 8. **CONFIRMADO** pelo `motor/nucleo/notacao.js` (`estado: parcial`, com o detalhe). A
+  correção é do verbete, e a decisão é da pesquisadora.
+- **O primeiro dos três eixos macro passou a ter campo no PLANO.** O plano de ensino tem o **bloco
+  10, «Aspecto físico — força e flexibilidade»**, com `aspecto-fisico` e o descritor
+  `lidoDasAnamneses` (quinze campos da anamnese, em dois grupos). A porta consolida por aspecto com
+  `derivarDasAnamnesesDaTurma`, e a **régua é a ordem das opções da própria anamnese** — não há
+  segunda lista escrita à mão. **CONFIRMADO** por leitura e pela propagação do schema nos 18
+  professores (`check-schemas` TUDO CERTO).
+- **Um resíduo de expurgo travava o commit de quem mexe em `porta/`.** O ciclo
+  `pe-torto/01/batata` foi criado pelo `criar-escola.sh` em 01/11/2026 e **nunca recebeu documentos**
+  (`DOCS=""`); o `gerar-ciclo.sh` não o pode regenerar, e a cópia da porta ficava congelada. A cópia
+  foi refrescada e a pendência de fundo está registada: **o remédio é o expurgo da escola.**
+  **CONFIRMADO** por `check-identidade` 20/20 depois do refresco.
 - **O `gerar-handoff.sh` tem de ser corrido com `bash`, não com `node`.** Com `node` ele morre num
   `SyntaxError` (é um script de shell); a `skill` e a documentação dizem `tools/gerar-handoff.sh`,
   que é o que funciona. **CONFIRMADO** em 02/11/2026 — e é a razão de a linha `variantes:` do
@@ -204,6 +238,8 @@ Verificado nesta fotografia, com os comandos da §9.
 | Criar escola / expurgar escola | **CONFIRMADO** | `provisionar-escola.js`, `expurgar-escola.js` |
 | Índice de envelopes com resumo invalidável | **CONFIRMADO** | `motor/nucleo/porta.js` (`VERSAO_DO_RESUMO = 4`) |
 | Âncora e cadeia de proveniência | **CONFIRMADO** | `tools/hash-ciclo.sh` |
+| A §4 da aula como vista consolidada da musicalidade, por compasso | **CONFIRMADO** 02/11/2026 — uma linha por exercício (o mesmo em Barra, Centro e Expressão é uma só), com `Tempos` e a contagem *e* o que cai nela; `conferir` onde a grade do verbete não fecha. Medido no `.md` gerado e nas cinco asserções do `provar-o-que-vem-do-dado`. | `motor/nucleo/derivar-ciclo.js` (§4) |
+| O aspecto físico — força e flexibilidade — no PLANO, lido das anamneses da turma | **CONFIRMADO** 02/11/2026 — bloco 10 do plano (`aspecto-fisico`, descritor `lidoDasAnamneses`, quinze campos em dois grupos); a porta consolida por aspecto e marca o ponto de atenção pela ordem das opções da anamnese. Sem leitura, a secção declara a lacuna. | `porta/plano/conteudo/plano.json`, `porta/index.html`, `motor/nucleo/derivar-plano-ciclo.js` |
 
 ### Parcial
 
@@ -491,6 +527,31 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     é o único que lê `modelo/ciclos/`; o shell chega lá pelo `tools/gerar-schemas.js`. Uma cópia sem
     comparação é uma segunda verdade — foi assim que o molde ficou cinco professores atrás.
     **DECIDIDO** 02/11/2026.
+44. **A VISTA DA MUSICALIDADE CONSOLIDA POR COMPASSO, E UM EXERCÍCIO APARECE UMA VEZ.** A vista do
+    exercício mostra os nove; a da musicalidade mostra os três que existem, agrupados pelo compasso
+    (a forma que ela descreveu: «4 por 4, 3 por 4, 2 por 2 (…) de 1 até 3, de 1 até 4»). Repetir o
+    mesmo fondu em Barra, Centro e Expressão é redundância: ela é do exercício, não do bloco. A célula
+    é a **contagem e o que cai nela** — cortar pela contagem só deitava fora o que a tabela anterior
+    mostrava. **DECIDIDO** 02/11/2026.
+45. **REPETIR UM NÚMERO SEM A TABELA DELE CONFUNDE.** «30% do volume — 27 tempos (Regra 9, etapa 2)»
+    na §4 repetia, sem a grelha, o que a §3 publica inteira. Saiu. O título da §3 passou a ser o do
+    conteúdo — **«Distribuição do tempo pelos blocos»** —, e o subtítulo que dizia o mesmo duas vezes
+    saiu. **DECIDIDO** 02/11/2026.
+46. **UMA GRADE DE VERBETE QUE NÃO FECHA NOS TEMPOS DIZ `conferir`, E NÃO SE CORRIGE SOZINHA.** O que
+    se corrige é o verbete, e a decisão é da professora; o documento mostra e não escolhe. Medido
+    nesta aula: fondu soma 6 tempos numa música de 2; plié soma 12 onde a música tem 8. **DECIDIDO**
+    02/11/2026.
+47. **O ASPECTO FÍSICO FICA NO PLANO, ANTES DA MÚSICA E DO REPERTÓRIO.** É o primeiro dos três eixos
+    (o corpo, a técnica, a poiésis) e é da família das condições do espaço: o que a aula precisa para
+    acontecer. É **da turma, nunca da aluna** — o que elas mostram juntas —, e a régua é a ordem das
+    opções da própria anamnese (a primeira é o melhor estado), sem segunda lista à mão. Resolve a
+    **C20** do `PLANEJAMENTO-LASTRO.md` pela alternativa **(b)**; sobra só a redação da Regra 4, que é
+    texto congelado. **DECIDIDO** 02/11/2026.
+48. **UM CICLO CRIADO E NUNCA PREENCHIDO ENVELHECE EM SILÊNCIO E TRAVA O COMMIT DOS OUTROS.** O
+    `pe-torto/01/batata` nasceu do `criar-escola.sh` com `DOCS=""`, o `gerar-ciclo.sh` não o regenera,
+    e a cópia da porta ficou congelada no dia em que nasceu — quem mexesse em `porta/` reprovava no
+    Circuito. A cópia foi refrescada (não apagada: apagar um ciclo é decisão da pesquisadora), e o
+    remédio de fundo é o **expurgo da escola**. **DECIDIDO** 02/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -624,10 +685,24 @@ sinais) e **os tempos e o compasso no PLANO**. Juntos são o trabalho musical in
 contagem**, o **acento** é o tempo do compasso em que ela cai, a **frase** é o exercício inteiro
 sobre a música.
 
-A §4 passou a **consolidar** (`d74fda1`): uma linha por música, com os exercícios que a usam e a
-grade tal como o verbete a declara — agrupada quando a grade é igual (medido, não suposto) —, mais a
-fatia que o plano dá ao bloco. Sem nenhum `[Preencher]`. **CONFIRMADO** por
-`provar-o-que-vem-do-dado` (mutação: trocar a música muda o documento) e pela página ao ar.
+A §4 passou a **consolidar**, em duas correções no mesmo dia:
+
+- **a primeira** (`d74fda1`) — uma linha por **música**, com os exercícios que a usam e a grade tal
+  como o verbete a declara, mais a fatia que o plano dá ao bloco. Tinha ainda duas coisas erradas: a
+  linha «Exercícios neste bloco: **nenhum**» — **falsa**, porque as três linhas de exercício trazem
+  `Tempos` e `Compasso` — e a «fatia do plano» dita em número solto;
+- **a segunda** (esta entrega) — consolida **por compasso**, um exercício **uma vez só**, a célula
+  com a contagem *e* o que cai nela, a fatia fora, e `conferir` onde a grade do verbete não fecha.
+
+Sem nenhum `[Preencher]`. **CONFIRMADO** por `provar-o-que-vem-do-dado` (mutação: trocar a música
+muda o documento; e cinco asserções que guardam a forma consolidada, entre elas «não afirma que o
+bloco não tem exercícios») e pelo `.md` gerado.
+
+**O que a §4 NÃO resolve, e é uma pergunta para a pesquisadora:** a **Regra 15** do `REGRAS.md` diz
+«bloco próprio em cada aula + arquivo paralelo do ciclo» — doze palavras escritas **antes** de o
+verbete existir. Nenhum formulário pergunta «trabalho de pulso, acento ou frase», e o que existe é
+melhor: o verbete e a sequência já o dizem. A Regra 15 está provavelmente **obsoleta**, e substituí-la
+ou retirá-la é decisão dela (o `REGRAS.md` é congelado — `CONGELAMENTO.md`). **PENDENTE**.
 
 O que **continua** em aberto desta família é outro: a **bancada**
 `experimentos/propostas/proposta-musicalidade.html` (local, não versionada) propunha uma legenda de
@@ -694,7 +769,24 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a aula deixa de afirmar o que ninguém escreveu)
+### Executado nesta fotografia (02/11/2026 — a §4 consolidada por compasso e o aspecto físico no plano)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-que-vem-do-dado.js` | **TUDO CERTO** — as asserções da §4 passaram a guardar a **forma consolidada**: consolida por compasso, mostra a contagem de cada exercício, cada exercício aparece **uma vez**, **não** afirma «exercícios neste bloco: nenhum», e a «fatia do plano» saiu |
+| `node experimentos/provar-ajustes-anamnese.js` | **126 de 126** |
+| `node experimentos/provar-forca-e-flexibilidade.js` | **17 asserções, 0 falhas** |
+| `node tools/check-schemas.js` · `gerar-schemas.js --conferir` | TUDO CERTO (o molde e os **18** professores dizem o mesmo contrato, com `aspectoFisico`) · ok (5 schemas) |
+| `node tools/check-identidade.js` | **20 verificações**, todas passaram — depois de refrescada a cópia da porta do ciclo-zero |
+| `node tools/check-indices.js` | **14 verificações, 0 falhas** (os índices que só tinham mudado de `fonte.commit`/`gerado_em` foram revertidos) |
+| `node tools/validar-plano-ciclo.js` · `validar-aula-ciclo.js` · `validar-po-ciclo.js` · `validar-captura-ciclo.js` | ok, **13** campos no plano (o novo `aspectoFisico` entre eles) · ok, 9 · ok, 13 · ok |
+| `node tools/check-pacote.js professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2` | **0 erro(s), 0 aviso(s)** — 9 páginas, 245 links, PDF de 25 páginas |
+| `tools/hash-ciclo.sh pe-junto 01 batata-bale-nivel-1-teste-2 --check` | cadeia íntegra; **`b1097a0d…`** (ciclo) e **`73087073…`** (aula 01) |
+| `node tools/regerar-derivados.js … --escrever` | **2 fontes reescritas** (`-plano.md` e `-aula-01.md`); as outras cinco iguais |
+| **não executado** | `provar-plano-matriz.js` (falha na rota `/api/mapa` — **já falhava em `HEAD`**); `provar-aula-prosa.js` e `provar-escopo-da-aula.js` (fixtures de escolas expurgadas) |
+| **ao ar** | **não publicado nesta entrega, de propósito.** A pesquisadora vai **expurgar a escola `batata` e recriá-la do zero** para ver os ajustes a funcionar de ponta a ponta: publicar agora seria publicar o que vai ser apagado |
+
+### Executado na fotografia anterior (02/11/2026 — a aula deixa de afirmar o que ninguém escreveu)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -1138,6 +1230,23 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **A §4 dizia uma coisa falsa, e o aspecto físico chegou ao plano.** A §4 da Aula
+  01 afirmava, em tabela, «Exercícios neste bloco | nenhum» sobre o bloco de musicalidade — e as três
+  linhas de exercício da mesma aula traziam `Tempos` e `Compasso` preenchidos. O erro era de
+  **modelo**: tratava a musicalidade como um bloco ao lado de Barra/Centro/Expressão, quando ela é uma
+  **forma de olhar todos eles**. Passou a consolidar **por compasso**, um exercício **uma vez só** (o
+  mesmo fondu em três blocos é a mesma música), com a contagem *e* o que cai nela, e `conferir` onde a
+  grade do verbete não fecha nos tempos — medido: fondu 6 tempos numa música de 2, plié 12 onde a
+  música tem 8. Saíram a «fatia do plano» (30% — 27 tempos, Regra 9) e o subtítulo repetido da §3, que
+  passou a chamar-se **«Distribuição do tempo pelos blocos»**. No mesmo dia, o **plano de ensino**
+  ganhou o **bloco 10, «Aspecto físico — força e flexibilidade»** — o primeiro dos três eixos macro,
+  lido das anamneses da turma (quinze campos em dois grupos), consolidado por aspecto e **nunca por
+  aluna**, com a régua na ordem das opções da própria anamnese. Resolve a **C20** do
+  `PLANEJAMENTO-LASTRO.md` pela alternativa (b). Ficou também refrescada a cópia da porta de um ciclo
+  criado e nunca preenchido (`pe-torto/01/batata`) que travava o commit de quem mexe em `porta/`.
+  **CONFIRMADO** por `provar-o-que-vem-do-dado` (cinco asserções novas), `check-schemas` TUDO CERTO
+  nos 18 professores, `check-pacote` 0/0 e `hash-ciclo --check` íntegro. **Não publicado**, de
+  propósito: ela vai expurgar e recriar a escola.
 - **02/11/2026** — **A aula deixa de afirmar o que ninguém escreveu; a musicalidade consolida-se; a
   prova da porta volta a correr.** Quatro secções da Aula 01 diziam coisas que ninguém escreveu (a §2
   anunciava «força e flexibilidade» sobre o campo da sala, a §4 tinha um «Pulso» fixo, a §6 chamava
