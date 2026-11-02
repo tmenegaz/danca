@@ -166,10 +166,25 @@ function aValidacao() {
   // A DIREÇÃO É A CHAVE DA CÉLULA (28/10/2026). Estas duas asserções guardavam a comparação entre
   // o campo `direcoes` e as chaves de `celulas` — e o campo deixou de existir. O que resta a poder
   // estar mal é a célula vazia, e é isso que passa a ser medido.
-  const semCelula = verbeteBom();
-  semCelula.celulas.derriere = [];
-  const r1 = verbete.validarVerbete(semCelula, ALFABETO, VOCABULARIO);
-  checar('uma direção sem célula é recusada', !r1.ok && /derriere/.test(r1.erros.join(' ')), r1.erros);
+  /* O BALDE VAZIO DEIXOU DE SER RECUSADO (02/11/2026). Foi ele que produziu o 400 real — «a
+   * direção «devant» não tem célula» — sobre um balde que o editor deixou e que a tabela nunca
+   * mostra: a pesquisadora nunca escolheu «devant». Uma chave com zero células diz o mesmo que a
+   * chave não existir, e o que se grava é o corpo NORMALIZADO — o balde não entra no ficheiro. */
+  const comBalde = verbeteBom();
+  comBalde.celulas.derriere = [];
+  const r1 = verbete.validarVerbete(comBalde, ALFABETO, VOCABULARIO);
+  checar('um balde vazio é aceite — é ruído do editor, não uma declaração', r1.ok, r1.erros);
+
+  const chaveTorta = verbeteBom();
+  chaveTorta.celulas.derriere = 'não é uma lista';
+  const rTorta = verbete.validarVerbete(chaveTorta, ALFABETO, VOCABULARIO);
+  checar('…mas uma direção que não é uma lista continua a ser recusada',
+    !rTorta.ok && /derriere/.test(rTorta.erros.join(' ')), rTorta.erros);
+
+  checar('…e a normalização tira o balde sem tocar no que tem células',
+    !('derriere' in verbete.semBaldesVazios(comBalde).celulas)
+      && 'devant' in verbete.semBaldesVazios(comBalde).celulas,
+    Object.keys(verbete.semBaldesVazios(comBalde).celulas));
 
   const semNada = verbeteBom({ celulas: {} });
   const r2 = verbete.validarVerbete(semNada, ALFABETO, VOCABULARIO);

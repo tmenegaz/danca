@@ -1234,6 +1234,61 @@ function estado() {
       depoisDeEditar.paineisVisiveis.indexOf(4) === -1 && depoisDeEditar.tiraEditando === 'nao',
       { paineis: depoisDeEditar.paineisVisiveis, tira: depoisDeEditar.tiraEditando });
 
+    /* 20-B. UM BALDE VAZIO NÃO É ENVIADO (02/11/2026).
+     *
+     * O 400 REAL que ela recebeu, com estas palavras da consola: «a direção «devant» não tem
+     * célula» — e a resposta dela, que é a chave do defeito: «Em nenhum momento eu escolhi
+     * «devant»». Não escolheu: o editor deixou `CELULAS["devant"] = []` quando o último trecho
+     * daquela direção saiu, e um balde vazio é INVISÍVEL — a tabela percorre as células, e zero
+     * células não desenham linha nenhuma.
+     *
+     * O QUE SE MEDE, em três sítios: (1) o «×» que tira o último trecho leva a direção consigo;
+     * (2) `limparBaldesVazios` deixa o mapa sem chaves vazias; (3) o corpo que o `submit` monta
+     * não tem nenhuma.
+     */
+    console.log('\n20-B. UM BALDE VAZIO NÃO É ENVIADO — O 400 QUE ELA RECEBEU');
+    const baldes = await page.evaluate(() => {
+      const antes = CELULAS;
+      CELULAS = { devant: [], '': [{ contagem: '1–2', categoria: 'Pé', sinais: ['1ª'], descricao: 'x' }] };
+      const tinha = Object.keys(CELULAS);
+      limparBaldesVazios();
+      const ficou = Object.keys(CELULAS);
+      CELULAS = antes;
+      return { tinha, ficou };
+    });
+    conferir('`limparBaldesVazios` tira a chave vazia e deixa a que tem célula',
+      JSON.stringify(baldes.tinha) === JSON.stringify(['devant', ''])
+        && JSON.stringify(baldes.ficou) === JSON.stringify(['']),
+      baldes);
+
+    // E PELO GESTO: o «×» que tira o ÚLTIMO trecho de uma direção tem de levar a direção consigo.
+    await irA(1);
+    await page.select('#vbnome', 'Changement');
+    await new Promise((r) => setTimeout(r, 400));
+    await irA(3);
+    await page.evaluate(() => {
+      const t = document.getElementById('vbtempos');
+      t.value = '2'; t.dispatchEvent(new Event('input'));
+    });
+    await page.select('#vbcompasso', '2/4');
+    await new Promise((r) => setTimeout(r, 400));
+    await escreverFrase('sobe e desce');
+    await noPassoDe('#vb-dir');
+    await clicar('#vb-dir input[data-valor="devant"]');
+    await clicar('#vb-categoria input[value="Perna"]');
+    const contagemUnica = valores((await page.evaluate(estado)).contagens);
+    await clicar('#vb-contagem input[data-valor="' + contagemUnica[0] + '"]');
+    for (const sg of ['1ª', '↓']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
+    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    await new Promise((r) => setTimeout(r, 400));
+    const antesDoX = await page.evaluate(() => Object.keys(CELULAS));
+    await page.evaluate(() => { document.querySelector('#vb-tabela button[data-tirar]').click(); });
+    await new Promise((r) => setTimeout(r, 350));
+    const depoisDoX = await page.evaluate(() => Object.keys(CELULAS));
+    conferir('tirar o último trecho de uma direção leva a direção consigo — não fica balde vazio',
+      antesDoX.length === 1 && antesDoX[0] === 'devant' && depoisDoX.length === 0,
+      { antes: antesDoX, depois: depoisDoX });
+
     console.log('\n21. OS SEIS PASSOS FORA DO FORMULÁRIO, E A LISTAGEM AO LADO');
     // OS CINCO PASSOS (01/11/2026). A tira é a navegação e o resumo; se um passo desaparecer
     // dela, o painel dele fica inalcançável. Eram sete — e a fusão do exercício, da frase e da

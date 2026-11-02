@@ -306,6 +306,39 @@ function temposDaCelula(celula) {
 }
 
 /**
+ * UM BALDE VAZIO NÃO É UM DADO (02/11/2026).
+ *
+ * `celulas: { devant: [], "": [...] }` — uma chave com zero células diz o mesmo que a chave não
+ * existir: «não há trecho nesta direção». Não há informação a perder em a tirar, e há um erro a
+ * evitar em a manter: a guarda do `verbete-incompleto` recusava o verbete INTEIRO por causa de um
+ * balde que ninguém vê, e a tabela do editor não desenha linha nenhuma para ele — foi assim que a
+ * pesquisadora recebeu um 400 com «a direção «devant» não tem célula» sem nunca ter escolhido
+ * `devant`.
+ *
+ * Vive no NÚCLEO porque os dois lados precisam dela e a fronteira proíbe que o servidor a defina
+ * para o motor usar: o `verbete.js` valida e grava com ela, e o `compor` compõe com ela. Uma regra,
+ * um sítio — a lição que a conta dos tempos pagou caro hoje.
+ *
+ * Devolve um objeto novo: não altera o que recebeu.
+ */
+function semBaldesVazios(verbete) {
+  if (!verbete || typeof verbete !== 'object') return verbete;
+  const celulas = verbete.celulas;
+  if (!celulas || typeof celulas !== 'object' || Array.isArray(celulas)) return verbete;
+  const limpas = {};
+  for (const d of Object.keys(celulas)) {
+    const v = celulas[d];
+    // SAI SÓ O QUE NÃO DIZ NADA: uma lista com zero células. Tudo o resto FICA — inclusive o que
+    // não é uma lista, porque isso é um ficheiro mal formado e não um artefacto, e quem o tem de
+    // acusar é a guarda, não este filtro. Uma normalização que apaga o erro é pior do que não a
+    // haver: o ficheiro torto passaria a compor como se estivesse certo.
+    if (Array.isArray(v) && !v.length) continue;
+    limpas[d] = v;
+  }
+  return Object.assign({}, verbete, { celulas: limpas });
+}
+
+/**
  * AS PISTAS — o eixo que faltava (02/11/2026).
  *
  * DEFEITO MEDIDO. As células eram somadas em LINHA, e o `Plié` fechava em 12 tempos numa música
@@ -485,13 +518,16 @@ function compor(linha, alfabeto) {
 
   // A DIREÇÃO DECLARADA E A DIREÇÃO ESCRITA NÃO SÃO DUAS COISAS (28/10/2026). Aqui havia uma
   // conferência entre `direcoes` e as chaves de `celulas` — e ela existia porque havia duas listas.
-  // Deixou de haver: a direção é a chave da célula. O que ainda pode estar mal é uma célula VAZIA,
-  // e isso continua a ser recusado: um verbete que declara uma direção e não diz o que nela
-  // acontece é um verbete pela metade, e o motor nunca estica um verbete para caber.
+  // Deixou de haver: a direção é a chave da célula. O que ainda pode estar mal é uma chave que não
+  // é uma lista, e isso continua a ser recusado: o motor nunca estica um verbete para caber. Uma
+  // lista VAZIA deixou de ser recusada em 02/11/2026 — é ruído do editor, não uma declaração, e
+  // ver `semBaldesVazios`.
   {
     const celulas = escolhido.verbete.celulas;
     if (celulas && typeof celulas === 'object') {
-      const vazias = Object.keys(celulas).filter((d) => !Array.isArray(celulas[d]) || !celulas[d].length);
+      // A GUARDA FICA PARA O QUE É MESMO UM ERRO: uma direção que não é uma lista. Uma lista
+      // VAZIA é ruído, e o ruído sai — ver `semBaldesVazios`, que é o que os dois lados usam.
+      const vazias = Object.keys(celulas).filter((d) => !Array.isArray(celulas[d]));
       if (vazias.length) {
         return Object.assign(base, { estado: 'lacuna', motivo: 'verbete-incompleto', segmentos: [], restoTempos: 0,
           detalhe: 'o verbete de «' + exercicio + '» (' + escolhido.musica + ') não tem célula em: '
@@ -649,6 +685,7 @@ module.exports = {
   posicoesDeBracosDoMetodo,
   repeticoesDaCelula,
   temposDaCelula,
+  semBaldesVazios,
   pistasDe,
   coberturaDe,
   normalizarMetodo,

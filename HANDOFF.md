@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T16:00:15-0300`
-Commit atual: `b2d6816` — fix(notacao): «Acrescentar trecho» desaparece durante a correcção
+Gerado em: `2026-11-02T16:12:36-0300`
+Commit atual: `8980a37` — fix(notacao): a tela ainda somava em fila — a régua das pistas tinha ficado a meio
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+8980a37 fix(notacao): a tela ainda somava em fila — a régua das pistas tinha ficado a meio
 b2d6816 fix(notacao): «Acrescentar trecho» desaparece durante a correcção
 65326a2 fix(notacao): corrigir um trecho reescrevia-lhe o compasso — a causa era uma linha
 9e04787 feat(notacao): as células contam-se por pista — e o Plié, que estava certo, fecha
@@ -104,7 +105,6 @@ da92da7 docs(estrutura): C22 — o verbete é o átomo do syllabus, e o motor é
 04e60a7 docs(registro): a proposta «o verbete é o átomo do syllabus», verificada com evidência
 f9d9612 docs(registro): o rótulo que encurtou foi o do passo 2, não o do 1
 b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» deixa de existir
-804000a docs(registro): a fotografia do cadastro no passo 1 e da Regra 15 substituída
 ```
 
 ## Por professor
@@ -228,65 +228,74 @@ b7935ff fix(notacao): o exercício novo é o passo 1 — seis passos, e o «+» 
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A tela ainda somava em fila: a régua das pistas tinha ficado a meio
+## 02/11/2026 — O 400 do «devant»: um balde vazio que ninguém escolheu
 
-**A segunda vez que o mesmo defeito apareceu, e desta vez a culpa é minha.** Ela relatou: «as células
-somam 12 tempos e a música declara 8», com o cenário medido — perna `1–2` ×2 no compasso 1 e `1–4` no
-compasso 2, braço igual, em paralelo. **8 tempos, não 12.** E a pergunta dela é a certa: «o motor de
-validação está somando as linhas de forma sequencial/linear, sem considerar a simultaneidade.»
+**O relato, e a chave está nele.** A console dela deu `400` com `"a direção «devant» não tem célula"`,
+e a frase que resolve o caso é a última: **«Em nenhum momento eu escolhi «devant»».** Não escolheu —
+e é exactamente por isso que o defeito existe.
 
-**Estava, e não era o motor.** Na entrega de hoje de manhã a régua das pistas foi aplicada em
-**três** sítios — `motor/nucleo/notacao.js`, `validarVerbete` do `verbete.js`, e a cobertura da
-tabela. Ficou **um quarto** por corrigir: a conta que a página faz **antes de enviar**, no handler do
-`submit`:
+### O que estava a acontecer
 
-```js
-var soma = dirs.reduce(function(t, d){
-  return t + celulas[d].reduce(function(s, c){ return s + temposDaContagem(c.contagem); }, 0);
-}, 0);
+O corpo enviado trazia:
+
+```json
+"celulas": { "devant": [], "": [ …quatro células… ] }
 ```
 
-Uma soma em linha, **e sem a repetição**: nem pistas, nem `repeticoes`. O `Plié` correcto — pernas 8,
-braços 4 — era **recusado na tela** antes de chegar ao servidor, que já o aceitava. O pior dos dois
-mundos: o dado está certo e a tela diz que não.
+Um **balde vazio**. O editor deixava-o ficar quando o último trecho daquela direção saía — pelo `×`
+ou por uma correcção que mudava a direção —, e um balde vazio é **invisível**: `pintarTabela`
+percorre as células, e zero células não desenham linha nenhuma. Ela nunca viu «devant» em sítio
+nenhum; o balde estava lá e o servidor recusava o verbete inteiro por causa dele.
 
-**A correção foi uma linha:** `var soma = cobertura();` — a **mesma função** que a tabela usa. Uma
-conta, um sítio; `dirs` e `celulas` deixam de ser lidos ali. E a mensagem passou a mostrar as pistas
-quando há mais de uma («pistas: perna 8 · braço 8 — vale a maior, porque correm ao mesmo tempo»),
-porque «a maior pista tem 8» é um número que ninguém confere a olho — e foi essa incompreensão que
-gerou o relatório.
+**A validação do servidor estava certa** — a guarda de 28/10/2026 dizia «um verbete que declara uma
+direção e não diz o que nela acontece é um verbete pela metade». O que estava errado era **o editor
+mandá-lo**.
 
-### A recusa deixou de navegar
+### A decisão: um balde vazio é RUÍDO, não uma declaração
 
-Era `irParaPasso(soma < temposDaMusica ? nO : nM)` — o utilizador era atirado para o passo da música
-(ou dos trechos) sem poder ler a mensagem onde estava. Ela: «impede que o professor leia a mensagem de
-erro com calma no contexto em que estava, gerando desorientação». O `irParaPasso` **saiu**: a mensagem
-diz onde se corrige, e **ir é decisão de quem lê**. A mensagem continua a cair no
-`.res[data-res=verbetes]` — um bloco com fundo e borda de falha, dentro do painel 6, que é o único
-passo onde o «Gravar verbete» existe —, com `scrollIntoView` para não ficar fora do ecrã.
+Com a direção a ser a **chave** da célula (28/10), uma chave vazia não declara nada — diz o mesmo que
+a chave não existir. **Não há informação a perder em a tirar, e há um erro a evitar em a manter.** E
+a guarda antiga defendia uma forma que não tem significado: a única declaração possível de «vai à
+frente» é ter células em `devant`.
 
-**O «modal ou toast» que ela pediu já era o que estava lá.** Não é um `alert()` que se fecha e leva a
-mensagem consigo: é uma faixa na própria página, e é a peça `.res.erro` da folha (fundo
-`--falha-fundo`, bordo `--falha`). O que faltava não era a forma do aviso — era ele não desaparecer
-atrás de uma navegação.
+**`semBaldesVazios` vive no NÚCLEO** (`motor/nucleo/notacao.js`) e é usada pelos dois lados: o
+`verbete.js` valida e grava com ela, e o `compor` compõe com ela. Escrevi-a primeiro no servidor e
+**mudei-a** — seria a segunda cópia da mesma regra no mesmo dia em que a conta dos tempos pagou caro
+por estar em quatro sítios. A fronteira do núcleo proíbe o motor de depender do servidor; o contrário
+é permitido, e é o que o `bastidores.js` já faz.
+
+**E ela não apaga o erro:** sai só a **lista vazia**. Uma chave que não é lista (um ficheiro mal
+formado) fica, e a guarda acusa-a — a primeira versão que escrevi engolia-a, e a prova apanhou-o («a
+direção «derriere» não tem célula» deixou de disparar). Uma normalização que apaga o erro é pior do
+que não a haver.
+
+### Três sítios no editor, e uma quarta soma que só mentia
+
+- o **`×`** que tira o último trecho leva a direção consigo;
+- **antes de enviar** — a última defesa, porque um balde pode nascer onde ainda não se viu;
+- e a **gravação** normaliza, para o ficheiro não ficar com o lixo que o pedido trazia.
+
+De caminho apareceu uma **quarta** conta em linha: `somaTempos`, que não decidia nada mas informava
+quem lia a resposta — o `Plié` de pernas 8 e braços 4 respondia `soma: 12` e era aceite com 8. **Saiu**;
+o `soma` da resposta é agora `coberturaDe`, a régua. É a mesma família do número em quatro sítios: a
+diferença é que este não bloqueava, só mentia.
 
 ### O que se mediu
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-celula` | **148 asserções** (eram 145) — a secção 15 ganhou duas: a recusa **não muda de passo** e a mensagem fica na página; a **15-A** é nova e mede a conta no cenário dela (perna 8, braço 8, verbete **8**) |
-| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` | TUDO CERTO · 76/76 · TUDO CERTO · 50/50 · 55/55 |
-| `provar-producao` | **151/152** — a falha conhecida do item do menu |
+| **o payload dela, com o `devant: []`** | `validarVerbete` → **`ok: true`**, `soma: 8`; o corpo normalizado tem só a chave `""` |
+| **o motor com um balde vazio** | `compor` do `Plié` → **`composto`**, cobertura **8** |
+| **uma chave que não é lista** | continua recusada: «a direção «derriere» não tem célula» |
+| `provar-celula` | **150 asserções** (eram 148) — a **20-B** é nova: `limparBaldesVazios` deixa o mapa sem chaves vazias e o `×` do último trecho leva a direção consigo |
+| `provar-notacao` · `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-forca-e-flexibilidade` | **78/78** (eram 76) · TUDO CERTO · TUDO CERTO · 50/50 · 17/17 |
+| `provar-producao` · `provar-agnosticismo` | **151/152** · **44/44** — o agnosticismo confirma que a função nova não trouxe infraestrutura para o núcleo |
 | `check-indices` · `check-identidade` | 14/14 · 20/20 |
-| o script emitido da página | `node --check` passa — o teste que apanha os erros de escaping do `bastidores.js` |
 
-**A lição, e ela é estrutural.** Um número calculado em quatro sítios é um número calculado em zero
-sítios: basta um ficar para trás, e o que fica para trás é sempre o que a pessoa vê primeiro. A conta
-passou a ter **um nome** (`cobertura()`, `pistasDe`, `temposDaCelula`) e a ser **chamada** nos quatro
-— e a prova mede a conta, não a sua repetição.
-
-**Com o quê.** `motor/servidor/bastidores.js` — o handler do `submit` do formulário do verbete ·
-`experimentos/provar-celula.js` — secções 15 e 15-A.
+**Com o quê.** `motor/nucleo/notacao.js` (`semBaldesVazios`, a guarda que passou a acusar só o que não
+é lista) · `motor/servidor/verbete.js` (normaliza à entrada e à gravação; `somaTempos` saiu) ·
+`motor/servidor/bastidores.js` (`limparBaldesVazios` e as três chamadas) · `experimentos/provar-celula.js`
+§20-B · `provar-notacao` e `provar-verbete`, com as asserções da direção vazia reescritas.
 
 ## O que está pendente
 

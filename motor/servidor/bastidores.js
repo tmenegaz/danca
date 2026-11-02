@@ -5489,6 +5489,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // do motor e do validador; se as três divergissem, a tela diria «falta escrever» sobre um
     // verbete que a gravação aceita.
     'function cobertura(){ return coberturaDe(CELULAS); }' +
+    /* UM BALDE VAZIO NÃO É UM DADO, E NÃO SE GUARDA (02/11/2026).
+     *
+     * DEFEITO MEDIDO, e ela viu-o como um 400: «a direção «devant» não tem célula». O editor
+     * deixava ficar `CELULAS["devant"] = []` depois de o último trecho daquela direção sair —
+     * pelo «×» ou por uma correção que mudou a direção. E um balde vazio é INVISÍVEL: a tabela
+     * percorre as células, e zero células não desenham linha nenhuma. Ela nunca escolheu «devant»;
+     * o balde é que lá ficou.
+     *
+     * A validação do servidor está certa ao recusar — um verbete que declara uma direção e não diz
+     * o que nela acontece é um verbete pela metade. O que estava errado era o editor MANDÁ-LO. */
+    'function limparBaldesVazios(){' +
+    '  Object.keys(CELULAS).forEach(function(d){' +
+    '    if (!CELULAS[d] || !CELULAS[d].length) delete CELULAS[d];' +
+    '  });' +
+    '}' +
     // A TABELA ÚNICA. Uma linha por direção (o cabeçalho do bloco), as células dentro, e a
     // linha de acrescentar no fim. A direção que não é coberta aparece — é ela que responde ao
     // «o fouetté não vai às três» —, e a tela distingue «não vai» de «falta escrever».
@@ -6352,6 +6367,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O QUE SE GRAVA É O RASCUNHO (28/10/2026) — com as células que o editor acrescentou e sem
     // as que ele tirou. Era aqui que o formulário só sabia repetir o que já existia.
     '  if (MUSICA_EM_FOCO !== tempos + "|" + compasso) carregarRascunho();' +
+    // A ÚLTIMA DEFESA ANTES DE ENVIAR (02/11/2026). O balde vazio pode nascer em mais sítios do
+    // que os dois que já o limpam — e um 400 no fim do trabalho é a pior altura para descobrir.
+    // Aqui o que sai é o que existe: nenhum balde com zero células atravessa esta linha.
+    '  limparBaldesVazios();' +
     '  var celulas = CELULAS;' +
     '  var dirs = Object.keys(celulas);' +
     '  if (!dirs.length) {' +
@@ -6684,6 +6703,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var p = b.getAttribute("data-tirar").split(":");' +
     '    if (!CELULAS[p[0]]) return;' +
     '    CELULAS[p[0]].splice(Number(p[1]), 1);' +
+    // TIRAR O ÚLTIMO TRECHO DE UMA DIREÇÃO TIRA A DIREÇÃO (02/11/2026). Deixá-la vazia dava um
+    // balde invisível que o servidor recusava com «a direção X não tem célula» — um 400 que ela
+    // não tinha como relacionar com nada do que fez.
+    '    limparBaldesVazios();' +
     '    pintarTabela();' +
     '    pintarContagens();' +
     '  });' +

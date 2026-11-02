@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `b2d6816`). Nesta entrega: **a tela deixou de somar
+> **Última fotografia:** 02/11/2026 (base local `8980a37`). Nesta entrega: **um balde vazio deixou de
+> bloquear a gravação.** O editor deixava ficar `celulas: { devant: [] }` quando o último trecho de
+> uma direção saía — e um balde vazio é **invisível**, porque a tabela percorre células e zero
+> células não desenham linha. Ela recebeu um `400` com «a direção «devant» não tem célula» e a frase
+> que resolve o caso é a dela: «em nenhum momento eu escolhi «devant»». `semBaldesVazios` vive no
+> **núcleo**, é usada pelos dois lados, e **não apaga o erro** — só a lista vazia sai; uma chave que
+> não é lista continua a ser acusada. De caminho saiu uma **quarta** soma em linha, que não decidia
+> nada e respondia `soma: 12` a um verbete aceite com 8.
+>
+> **Entrega anterior** (base `b2d6816`). Nesta entrega: **a tela deixou de somar
 > em fila** — a régua das pistas tinha sido aplicada em três sítios e ficou um quarto por corrigir: a
 > conta que a página faz **antes de enviar**. Um `Plié` correcto (pernas 8, braços 4, em paralelo)
 > era **recusado na tela** com «as células somam 12», antes de chegar ao servidor que já o aceitava.
@@ -288,6 +297,13 @@ Verificado nesta fotografia, com os comandos da §9.
   cenário dela: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, e corrigir o primeiro
   deixava-o no 2. Agora **substitui-se no lugar** e a sequência mantém-se. **CONFIRMADO** por
   `provar-celula`, secção 20-A (143 asserções).
+- **Um balde vazio é ruído, não uma declaração — e não bloqueia a gravação.** Com a direção a ser a
+  **chave** da célula, uma chave com zero células diz o mesmo que a chave não existir. `semBaldesVazios`
+  (no **núcleo**, usada pelo `verbete.js` e pelo `compor`) tira-a; o editor nunca a manda (o `×`
+  leva a direção consigo, e há uma última defesa antes de enviar); e a gravação **normaliza**, para o
+  ficheiro não ficar com o lixo do pedido. **A normalização não apaga o erro**: uma chave que **não é
+  lista** fica e é acusada. **CONFIRMADO** pelo payload real, por `provar-celula` §20-B e por
+  `provar-notacao` (78 asserções).
 - **A conta dos tempos tem UM nome, e é chamada nos quatro sítios.** A régua das pistas foi aplicada
   no motor, no validador e na cobertura da tabela — e **faltou a conta do `submit`**, que somava em
   fila **e sem a repetição**. Resultado medido: um `Plié` correcto (pernas 8 + braços 4, em paralelo)
@@ -1208,8 +1224,8 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | Verificação | Resultado |
 |:--|:--|
 | `node experimentos/provar-celula.js` | **143 de 143** (eram 134) — a secção **20-A** é nova e mede o cenário dela de ponta a ponta: três trechos de `Perna` em 2/4 dão compassos **1, 1 e 2**, corrigir o primeiro **não** muda a sequência e a linha corrigida continua a ser a **primeira**; a área do trecho está toda à vista em edição (4, 5 e 6) e fecha-se ao guardar; «Acrescentar trecho», «Guardar» e «Cancelar» não mudam de passo |
-| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-menu-da-producao` · `provar-forca-e-flexibilidade` | TUDO CERTO · **76/76** · TUDO CERTO · **50/50** · **55/55** · **17/17** |
-| `provar-celula` | **148 asserções** (eram 145) — a 15-A é nova e mede a conta no cenário dela (perna 8, braço 8, verbete **8**, não 12); a 15 ganhou duas: a recusa **não muda de passo** e a mensagem fica na página |
+| `provar-verbete` · `provar-notacao` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-forca-e-flexibilidade` · `provar-agnosticismo` | TUDO CERTO · **78/78** · TUDO CERTO · **50/50** · **17/17** · **44/44** — o agnosticismo confirma que a função nova não trouxe infraestrutura para o núcleo |
+| `provar-celula` | **150 asserções** (eram 148) — a **20-B** é nova: `limparBaldesVazios` deixa o mapa sem chaves vazias e o `×` do último trecho leva a direção consigo. A 15-A é a e mede a conta no cenário dela (perna 8, braço 8, verbete **8**, não 12); a 15 ganhou duas: a recusa **não muda de passo** e a mensagem fica na página |
 | `provar-producao` · `provar-cartao-da-turma` | **151/152** · **6 falhas** — as duas iguais a antes, **não são regressões** |
 | `check-indices` · `check-identidade` | **14/14** · **20/20** |
 | **não executado** | `provar-o-que-vem-do-dado` — continua sem fixture desde o expurgo da `batata` |
@@ -1786,6 +1802,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **O 400 do «devant»: um balde vazio que ninguém escolheu.** A console dela deu
+  `400` com «a direção «devant» não tem célula», e a chave do caso é a frase dela — «em nenhum
+  momento eu escolhi «devant»». Não escolheu: o editor deixava ficar `celulas: { devant: [] }` quando
+  o último trecho daquela direção saía, e um balde vazio é **invisível** — a tabela percorre células,
+  e zero células não desenham linha. A validação estava certa; errado era o editor mandá-lo. `semBaldesVazios`
+  passou ao **núcleo** e serve os dois lados, e **não apaga o erro**: só a lista vazia sai, e uma
+  chave que não é lista continua a ser acusada — a primeira versão que escrevi engolia-a, e a prova
+  apanhou. De caminho saiu uma **quarta** soma em linha (`somaTempos`), que não decidia nada e
+  respondia `soma: 12` a um verbete aceite com 8: não bloqueava, só mentia.
 - **02/11/2026** — **A tela ainda somava em fila — a régua das pistas tinha ficado a meio.** Ela
   relatou «as células somam 12 tempos e a música declara 8» e perguntou se o motor somava em linha. A
   resposta é sim, e não era o motor: a régua das pistas foi aplicada em **três** sítios e ficou um

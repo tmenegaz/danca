@@ -121,9 +121,18 @@ function ondeEsta(direcao) {
   return direcao ? 'em «' + direcao + '»' : 'no trecho sem direção';
 }
 
+// A REGRA DO BALDE VAZIO VIVE NO NÚCLEO (02/11/2026) — `semBaldesVazios`, em
+// `motor/nucleo/notacao.js`. Escrevi-a aqui primeiro, e seria a segunda cópia da mesma regra no
+// mesmo dia em que a conta dos tempos pagou caro por estar em quatro sítios: a fronteira do núcleo
+// proíbe o motor de depender do servidor, mas não o contrário — o servidor pode e deve ler o
+// núcleo. Uma regra, um sítio.
+const { semBaldesVazios } = require('../nucleo/notacao.js');
+
 function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
   const erros = [];
   if (!verbete || typeof verbete !== 'object') return { ok: false, erros: ['o verbete não é um objeto'] };
+  // O BALDE VAZIO SAI ANTES DE SE CONTAR SEJA O QUE FOR. Ver `semBaldesVazios`.
+  verbete = semBaldesVazios(verbete);
 
   // A DIREÇÃO É A CHAVE DA CÉLULA (28/10/2026). Havia um campo `direcoes` ao lado de `celulas`, e
   // nas seis entradas do alfabeto ele era exactamente a lista das chaves — duas listas da mesma
@@ -137,12 +146,16 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
     const dirs = Object.keys(celulas);
     if (!dirs.length) erros.push('o verbete tem de ter ao menos um trecho (uma célula)');
     for (const d of dirs) {
-      if (!Array.isArray(celulas[d]) || !celulas[d].length) erros.push((d ? 'a direção «' + d + '»' : 'o trecho sem direção') + ' não tem célula');
+      // UM BALDE VAZIO JÁ NÃO CHEGA AQUI — `semBaldesVazios` tira-o à entrada (02/11/2026). O que
+      // resta a acusar é a chave que não é uma lista, e é ela que esta guarda serve agora.
+      if (!Array.isArray(celulas[d])) {
+        erros.push((d ? 'a direção «' + d + '»' : 'o trecho sem direção') + ' não tem célula');
+      }
     }
     const conhecidos = sinaisDo(alfabeto);
     const categorias = (alfabeto && alfabeto.categorias) || [];
     for (const d of dirs) {
-      for (const c of (celulas[d] || [])) {
+      for (const c of (Array.isArray(celulas[d]) ? celulas[d] : [])) {
         if (!c || typeof c !== 'object') { erros.push('célula inválida ' + ondeEsta(d)); continue; }
         if (!CONTAGEM.test(String(c.contagem || '').trim())) {
           erros.push(ondeEsta(d) + ': contagem inválida «' + (c.contagem || '') + '» (use «1–2» ou «3»)');
@@ -178,9 +191,13 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
     // O QUE O VERBETE OCUPA É A MAIOR PISTA (02/11/2026). A mensagem mostra as duas contas quando
     // elas divergem — sem isso, quem lesse «a maior pista tem 8» e visse 12 células somadas
     // pensaria que a conta está errada, e a conta certa é a das pistas.
+    // UMA CHAVE QUE NÃO É LISTA NÃO SE SOMA — e o erro dela já está registado acima. Aqui a conta
+    // salta-a, em vez de rebentar: o `reduce` sobre uma string lança, e a validação é a última
+    // coisa que pode falhar de forma opaca, porque é ela que diz o que está mal.
     const soma = coberturaDe(celulas);
-    const somaLinear = dirs.reduce((t, d) => t
-      + (celulas[d] || []).reduce((u, c) => u + temposDaCelula(c), 0), 0);
+    const somaLinear = dirs
+      .filter((d) => Array.isArray(celulas[d]))
+      .reduce((t, d) => t + celulas[d].reduce((u, c) => u + temposDaCelula(c), 0), 0);
     if (verbete.cobre == null) erros.push('o verbete tem de declarar `cobre` (quantos tempos ocupa)');
     else if (Number(verbete.cobre) !== soma) {
       erros.push('`cobre` diz ' + verbete.cobre + ' tempos e a maior pista tem ' + soma
@@ -263,17 +280,13 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
     }
   }
 
-  return { ok: erros.length === 0, erros, soma: somaTempos(verbete) };
+  // O `soma` QUE SE DEVOLVE É O DA RÉGUA (02/11/2026). Havia aqui uma QUARTA soma em linha —
+  // `somaTempos` —, que não decidia nada mas informava quem lia a resposta: o `Plié` de pernas 8 e
+  // braços 4 respondia «soma: 12» e era aceite com 8. É a mesma família do número em quatro
+  // sítios; a diferença é que este não bloqueava, só mentia. Saiu.
+  return { ok: erros.length === 0, erros, soma: coberturaDe((verbete && verbete.celulas) || {}) };
 }
 
-function somaTempos(verbete) {
-  let soma = 0;
-  const celulas = (verbete && verbete.celulas) || {};
-  for (const d of Object.keys(celulas)) {
-    for (const c of (celulas[d] || [])) soma += temposDaContagem(c && c.contagem);
-  }
-  return soma;
-}
 
 /** Os sinais do alfabeto, num `Set` — a mesma leitura que `motor/nucleo/notacao.js` faz. */
 function sinaisDo(alfabeto) {
@@ -514,7 +527,11 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     // cache — o enviar, ele não entra no ficheiro: o campo deixou de existir no dado, e o que o
     // alimentava era a mesma lista das chaves de `celulas`. Uma gravação não pode ressuscitá-lo,
     // senão a segunda lista volta pela porta de trás.
-    const limpo = Object.assign({}, verbete);
+    // E O BALDE VAZIO TAMBÉM NÃO (02/11/2026). A validação já o ignora, mas o que se ESCREVE é o
+    // corpo que chegou — e gravar `devant: []` era deixar no ficheiro um balde invisível que o
+    // próximo editor carregava de volta e o motor recusava como `verbete-incompleto`. Uma coisa é
+    // aceitar o pedido, outra é guardar o lixo dele.
+    const limpo = Object.assign({}, semBaldesVazios(verbete));
     delete limpo.direcoes;
     dados.verbetes[nomeLimpo] = dados.verbetes[nomeLimpo] || {};
     dados.verbetes[nomeLimpo][chaveMusica] = limpo;
@@ -546,6 +563,7 @@ module.exports = {
   lerModalidade,
   listarVerbetes,
   validarVerbete,
+  semBaldesVazios,
   gravarVerbete,
   direcoesConhecidas,
   sinaisDo,

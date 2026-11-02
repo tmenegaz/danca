@@ -31317,3 +31317,72 @@ passou a ter **um nome** (`cobertura()`, `pistasDe`, `temposDaCelula`) e a ser *
 
 **Com o quê.** `motor/servidor/bastidores.js` — o handler do `submit` do formulário do verbete ·
 `experimentos/provar-celula.js` — secções 15 e 15-A.
+
+## 02/11/2026 — O 400 do «devant»: um balde vazio que ninguém escolheu
+
+**O relato, e a chave está nele.** A console dela deu `400` com `"a direção «devant» não tem célula"`,
+e a frase que resolve o caso é a última: **«Em nenhum momento eu escolhi «devant»».** Não escolheu —
+e é exactamente por isso que o defeito existe.
+
+### O que estava a acontecer
+
+O corpo enviado trazia:
+
+```json
+"celulas": { "devant": [], "": [ …quatro células… ] }
+```
+
+Um **balde vazio**. O editor deixava-o ficar quando o último trecho daquela direção saía — pelo `×`
+ou por uma correcção que mudava a direção —, e um balde vazio é **invisível**: `pintarTabela`
+percorre as células, e zero células não desenham linha nenhuma. Ela nunca viu «devant» em sítio
+nenhum; o balde estava lá e o servidor recusava o verbete inteiro por causa dele.
+
+**A validação do servidor estava certa** — a guarda de 28/10/2026 dizia «um verbete que declara uma
+direção e não diz o que nela acontece é um verbete pela metade». O que estava errado era **o editor
+mandá-lo**.
+
+### A decisão: um balde vazio é RUÍDO, não uma declaração
+
+Com a direção a ser a **chave** da célula (28/10), uma chave vazia não declara nada — diz o mesmo que
+a chave não existir. **Não há informação a perder em a tirar, e há um erro a evitar em a manter.** E
+a guarda antiga defendia uma forma que não tem significado: a única declaração possível de «vai à
+frente» é ter células em `devant`.
+
+**`semBaldesVazios` vive no NÚCLEO** (`motor/nucleo/notacao.js`) e é usada pelos dois lados: o
+`verbete.js` valida e grava com ela, e o `compor` compõe com ela. Escrevi-a primeiro no servidor e
+**mudei-a** — seria a segunda cópia da mesma regra no mesmo dia em que a conta dos tempos pagou caro
+por estar em quatro sítios. A fronteira do núcleo proíbe o motor de depender do servidor; o contrário
+é permitido, e é o que o `bastidores.js` já faz.
+
+**E ela não apaga o erro:** sai só a **lista vazia**. Uma chave que não é lista (um ficheiro mal
+formado) fica, e a guarda acusa-a — a primeira versão que escrevi engolia-a, e a prova apanhou-o («a
+direção «derriere» não tem célula» deixou de disparar). Uma normalização que apaga o erro é pior do
+que não a haver.
+
+### Três sítios no editor, e uma quarta soma que só mentia
+
+- o **`×`** que tira o último trecho leva a direção consigo;
+- **antes de enviar** — a última defesa, porque um balde pode nascer onde ainda não se viu;
+- e a **gravação** normaliza, para o ficheiro não ficar com o lixo que o pedido trazia.
+
+De caminho apareceu uma **quarta** conta em linha: `somaTempos`, que não decidia nada mas informava
+quem lia a resposta — o `Plié` de pernas 8 e braços 4 respondia `soma: 12` e era aceite com 8. **Saiu**;
+o `soma` da resposta é agora `coberturaDe`, a régua. É a mesma família do número em quatro sítios: a
+diferença é que este não bloqueava, só mentia.
+
+### O que se mediu
+
+| Verificação | Resultado |
+|:--|:--|
+| **o payload dela, com o `devant: []`** | `validarVerbete` → **`ok: true`**, `soma: 8`; o corpo normalizado tem só a chave `""` |
+| **o motor com um balde vazio** | `compor` do `Plié` → **`composto`**, cobertura **8** |
+| **uma chave que não é lista** | continua recusada: «a direção «derriere» não tem célula» |
+| `provar-celula` | **150 asserções** (eram 148) — a **20-B** é nova: `limparBaldesVazios` deixa o mapa sem chaves vazias e o `×` do último trecho leva a direção consigo |
+| `provar-notacao` · `provar-verbete` · `provar-acordeoes` · `provar-vao-do-botao` · `provar-forca-e-flexibilidade` | **78/78** (eram 76) · TUDO CERTO · TUDO CERTO · 50/50 · 17/17 |
+| `provar-producao` · `provar-agnosticismo` | **151/152** · **44/44** — o agnosticismo confirma que a função nova não trouxe infraestrutura para o núcleo |
+| `check-indices` · `check-identidade` | 14/14 · 20/20 |
+
+**Com o quê.** `motor/nucleo/notacao.js` (`semBaldesVazios`, a guarda que passou a acusar só o que não
+é lista) · `motor/servidor/verbete.js` (normaliza à entrada e à gravação; `somaTempos` saiu) ·
+`motor/servidor/bastidores.js` (`limparBaldesVazios` e as três chamadas) · `experimentos/provar-celula.js`
+§20-B · `provar-notacao` e `provar-verbete`, com as asserções da direção vazia reescritas.
