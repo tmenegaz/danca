@@ -552,3 +552,8 @@ experimentos/modelo-formulario/*
 # conteúdos; a turma que já está numa curadoria deriva em vez de se editar; e a nota da turma saiu
 # do cadastro sem apagar o que já estava escrito. Citada no `REGISTRO.md`.
 !experimentos/provar-conteudos-e-estado-da-turma.js
+
+# A CURADORIA CHEGA AO PLANO (03/11/2026). Duas funções com o mesmo nome em `porta/index.html` — a
+# segunda ganhava, e o plano deixou de ler a turma e o conteúdo curado. A prova mede a cadeia e, na
+# §E, a CLASSE do defeito (nenhum bloco declara a mesma função duas vezes). Citada no `REGISTRO.md`.
+!experimentos/provar-plano-e-curadoria.js
