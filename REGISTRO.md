@@ -32655,3 +32655,75 @@ listagem pela vista da escola, o `apagarVerbete` por dono · `motor/nucleo/produ
 terminar de testar, e o cálculo dos 17 ficheiros está na entrada anterior. (b) **O `ESCOLA.conf`**
 continua a não existir, e a chave `plano` continua por decidir onde entra. (c) O resto do caminho
 crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+
+## 03/11/2026 — A listagem lia com o alfabeto errado, e deitava fora o que estava gravado
+
+**O que motivou.** Ela gravou o «Battement tendu» com **dois** trechos — compasso 1 e compasso 3 —
+e a lista respondeu «A decomposição deste exercício não pode ser lida». O relatório dela trazia uma
+hipótese: o parser a exigir numeração contígua de compassos. A hipótese **não** se confirmou. O
+dado estava lá, inteiro; quem estava errada era a leitura — e por **três** elos encadeados, cada um
+suficiente para produzir sozinho a mesma frase.
+
+**Os três elos, medidos um a um.**
+
+1. **O alfabeto vinha do bundle.** `linhasPorTrecho` compunha com
+   `require('../../nucleo/notacao').ALFABETOS`, isto é, com o JSON **embutido no build** — e não com
+   o que a rota acabou de ler do repositório. Uma escrita feita pela tela só passava a ser legível
+   no processo seguinte. É o mesmo modo de falha do `deploy-escolas.yml` (entrada anterior): grava,
+   responde, e a leitura a seguir não o vê.
+2. **A composição ia sem `escola`.** Desde 03/11 o alfabeto tem dono: o registo dela vive em
+   `8|2/4@breu`. Uma composição que pede `8|2/4` ao **catálogo** não o encontra — e o silêncio
+   disso tem nome, `musica-nao-coberta`. A vista certa lia o que a vista errada tinha escondido.
+3. **O que estava gravado era atirado fora.** Quando a composição falhava, as linhas guardadas
+   desapareciam e ficava só o erro. **O erro substituía o dado** em vez de o mostrar: quem lê a
+   lista via «não pode ser lida» para uma decomposição que existe e está completa.
+
+**O que mudou.** `linhasPorTrecho` dá lugar a `lerLinhas(nome, chave, registo, alfabeto, escola)`,
+que recebe o alfabeto **lido** em vez de o ir buscar ao bundle; cada música passa a trazer o seu
+`motivo`; e a composição **parcial** deixa de ser um erro e passa a ser um estado declarado — as
+linhas que compõem aparecem, o trecho que não compõe diz porquê, e a música sem trechos nenhuns
+diz que ainda não tem. O painel da Produção distingue os três casos, e a frase «A decomposição deste
+exercício não pôde ser lida» deixou de existir no código.
+
+**A hipótese do relatório, corrigida — e é o que a prova fixa.** O salto de **1 para 3** não é
+lacuna nem sequer numeração descontínua: são **dois compassos de 2/4**. O relógio corre **por pista**
+(e `coberturaDe` toma a pista maior, não a soma linear), pelo que o primeiro trecho ocupa os
+compassos 1–2 e o segundo começa no 3. A asserção «o primeiro trecho cai no compasso 1 · e o
+segundo no 3, porque cada trecho ocupa dois compassos de 2/4» prende-o: uma decomposição com
+compassos 1–2 e depois 5–6 também se lê, e as contagens escritas aparecem como foram escritas.
+
+**Uma correcção na prova anterior.** O `provar-verbete` plantava a decomposição **por exercício** —
+se o `Battement tendu` existisse, dava a música do catálogo por coberta. Desde que o alfabeto tem
+dono, o exercício existe com a música **da escola** (`8|2/4@breu`) e a do **catálogo** (`8|4/4`),
+que é a que aquela secção compõe, continuava a faltar. Passa a plantar **música a música**. A prova
+falhou primeiro e é bom que tenha falhado: era o mesmo erro de pergunta («o exercício existe?» em
+vez de «esta música existe?»).
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-leitura-da-decomposicao` (novo) | **25 asserções, 4 secções, TUDO CERTO**: `A` o caso relatado (os dois trechos lidos, os compassos 1 e 3, a página já sem a frase) · `B` a vista (a `breu` lê a sua, a `maria` e uma terceira leem o catálogo) · `C` a leitura não deita fora o gravado (a conta que não fecha mostra as linhas **e** o motivo, com os dois números; 1–2 e 5–6 também se leem; sem trechos, o motivo di-lo) · `D` o alfabeto usado é o **lido**, não o embutido |
+| `provar-verbete` | **TUDO CERTO**, com a planta por música |
+| `provar-musica-do-verbete` | **TUDO CERTO** (33 asserções) |
+| `provar-produtos` | **TUDO CERTO — 89 asserções** |
+| `provar-linhas-da-lista` | **TUDO CERTO** |
+| `check-identidade` | **20/20 `ok`** |
+| **o que NÃO foi medido** | a página ao vivo — **nenhuma carga ao ar** nesta sessão; a conferência é a dela, no próximo `F5` |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+
+**Com o quê.** `motor/servidor/verbete.js` · `motor/servidor/bastidores.js` ·
+`motor/nucleo/notacao.js` (o `segmentosDe` passa a ser exportado) ·
+`experimentos/provar-leitura-da-decomposicao.js` (novo) · `experimentos/provar-verbete.js` ·
+`.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** `PLANO-PRODUTOS-DO-MOTOR.md` §9-critério 5 · a decisão dela de 03/11/2026 («o dono
+do alfabeto é a escola») · a entrada anterior deste registo (o alfabeto com dono e a chave
+composta) · P-16 · o relatório dela de 03/11/2026.
+
+**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela expurga-a pela tela quando
+terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
+decidir onde entra (C11) — a decisão dela de 03/11 é que vive no `.conf`, **nunca no KV**. (c) O
+caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
+**fase 3**.

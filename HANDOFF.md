@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T08:49:02-0300`
-Commit atual: `9f9e891` — feat(estrutura): a música sem trava, o desacordo como aviso e o dono do alfabeto
+Gerado em: `2026-11-03T09:12:56-0300`
+Commit atual: `1b305e3` — fix(estrutura): a listagem lê a decomposição que está gravada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,12 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+1b305e3 fix(estrutura): a listagem lê a decomposição que está gravada
+7696834 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
+5dbb9ba docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
+57cf491 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
+3dfcc81 feat(notacao): declarar «Battement tendu» (8|2/4) no alfabeto bale-classico
+942b81c docs(registro): a música sem trava, o desacordo como aviso e o dono do alfabeto
 9f9e891 feat(estrutura): a música sem trava, o desacordo como aviso e o dono do alfabeto
 89d1f83 docs(registro): o termo da tela, o alfabeto sem dono e o deploy do catálogo
 508d22f fix(estrutura): o catálogo muda, a escola não publicava
@@ -99,12 +105,6 @@ c61c39a docs(registro): a fotografia datada, o dono do termo e o lugar do plano
 890937a feat(estrutura): a licença em texto, a edição paga e a camada herdada
 026c281 fix(estrutura): a repetição na decomposição, e o número que mudou no remoto
 76d023c docs(registro): a fotografia dos dois produtos, e o que eles ainda não são
-9760028 feat(estrutura): o motor dos produtos — o dicionário e o syllabus, gerados do catálogo
-23d4c0e feat(notacao): declarar «Plié» (4|2/4) no alfabeto bale-classico
-2a59d98 docs(registro): a segunda passagem sobre a mesma tela, e o que ela reverteu
-dbb5ade fix(notacao): o rótulo em Title Case, a navegação que trava e o «Apagar» fora do passo 6
-0e2ac45 fix(experimentos): as provas deixam de depender do conteúdo editorial do alfabeto
-5dcfcf0 feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
 ```
 
 ## Por professor
@@ -228,96 +228,79 @@ dbb5ade fix(notacao): o rótulo em Title Case, a navegação que trava e o «Apa
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A música deixou de se bloquear e de se multiplicar, e o alfabeto ganhou dono
+## 03/11/2026 — A listagem lia com o alfabeto errado, e deitava fora o que estava gravado
 
-**O que motivou.** Três defeitos relatados por ela depois de usar a Produção a sério, mais uma
-decisão. Os defeitos: **duplicar um trecho inflava a duração da música** (8 → 12, e a soma repetia-se
-a cada duplicação); **o campo da música estava bloqueado**; e **a divergência entre a música e a
-decomposição recusava a gravação**. A decisão: **«O dono do alfabeto é a escola, e deve ser dado o
-campo `escola` como no vocabulário»** — era o buraco que a entrada anterior tinha nomeado.
+**O que motivou.** Ela gravou o «Battement tendu» com **dois** trechos — compasso 1 e compasso 3 —
+e a lista respondeu «A decomposição deste exercício não pode ser lida». O relatório dela trazia uma
+hipótese: o parser a exigir numeração contígua de compassos. A hipótese **não** se confirmou. O
+dado estava lá, inteiro; quem estava errada era a leitura — e por **três** elos encadeados, cada um
+suficiente para produzir sozinho a mesma frase.
 
-**O que foi decidido, e porquê.**
+**Os três elos, medidos um a um.**
 
-- **Duplicar um trecho não toca na música.** A função escrevia `declarado + bloco` no campo, e o
-  argumento era que a gravação recusaria o resultado de uma acção que a própria tela ofereceu. Com a
-  recusa a cair (abaixo), o argumento desapareceu — e ficou à vista o defeito próprio: a cada
-  duplicação a música crescia outra vez. A música é a **base rítmica**, define-se no passo 3, e o que
-  a cópia muda é o que a decomposição **ocupa**.
-- **A música edita-se sempre, e a decomposição não se apaga.** A trava de 02/11 existia porque mudar
-  os tempos recomeçava o rascunho a partir da chave e deixava `CELULAS` em zero. A correcção certa
-  não era travar o campo: era **não recomeçar**. `musicaMudou()` passou a ser o que corre nos campos
-  da música — actualiza a chave em foco, repinta o que depende dela e **deixa as células como estão**.
-  Quem recomeça é `carregarRascunho`, e só quando o **exercício** muda.
-- **O desacordo é um ESTADO, não uma recusa.** `validarVerbete` devolve a divergência em **`avisos`**
-  e não em `erros`; `gravarVerbete` grava e devolve os avisos; a tela mostra o selo
-  «Os tempos da música estão em desacordo com a decomposição» no passo 3, e a resposta de gravar
-  di-lo em vez de dizer só «gravado». A listagem passou a marcar o verbete em desacordo — sem isso,
-  a tela aceitaria em silêncio e o professor descobriria no documento.
-- **O alfabeto ganhou dono, como o vocabulário.** O registo do catálogo fica com a chave da música
-  (`8|4/4`); o de uma escola leva o dono ao lado (`8|4/4@breu`) e o campo `escola` dentro, como no
-  termo. A chave composta é uma **necessidade**, não um gosto: o verbete é o membro de um **objecto
-  indexado pela música**, e dois donos com a mesma música colidiriam no primeiro `set` — no
-  vocabulário, que é uma **lista**, o dono cabe num campo. A precedência é uma só, no núcleo
-  (`registosDaEscola`): a escola vence o catálogo, e a composição do documento, a listagem e os
-  produtos leem por ela.
-- **Cada dono apaga o que é seu.** O `DELETE` apagava o exercício inteiro; com dois donos isso
-  permitiria a uma escola apagar o verbete do catálogo, que é o que se vende. Passa a apagar os
-  registos daquele dono, e a recusa di-lo quando o que existe é do outro lado. Na tela, a versão do
-  catálogo mostra o selo «do catálogo» e **não** tem botão de apagar — um botão que recusa é pior do
-  que a sua ausência.
-- **E `criar` recusa por (dono, exercício, música), não por exercício.** A guarda antiga impedia a
-  escola de declarar o seu verbete de um exercício que o catálogo já decompõe — o caso normal, porque
-  o vocabulário é o do catálogo.
+1. **O alfabeto vinha do bundle.** `linhasPorTrecho` compunha com
+   `require('../../nucleo/notacao').ALFABETOS`, isto é, com o JSON **embutido no build** — e não com
+   o que a rota acabou de ler do repositório. Uma escrita feita pela tela só passava a ser legível
+   no processo seguinte. É o mesmo modo de falha do `deploy-escolas.yml` (entrada anterior): grava,
+   responde, e a leitura a seguir não o vê.
+2. **A composição ia sem `escola`.** Desde 03/11 o alfabeto tem dono: o registo dela vive em
+   `8|2/4@breu`. Uma composição que pede `8|2/4` ao **catálogo** não o encontra — e o silêncio
+   disso tem nome, `musica-nao-coberta`. A vista certa lia o que a vista errada tinha escondido.
+3. **O que estava gravado era atirado fora.** Quando a composição falhava, as linhas guardadas
+   desapareciam e ficava só o erro. **O erro substituía o dado** em vez de o mostrar: quem lê a
+   lista via «não pode ser lida» para uma decomposição que existe e está completa.
 
-**Onde entrou.** `motor/servidor/bastidores.js` — `musicaMudou()`, `pintarDesacordo()`, a saída do
-`bloquearMusica`, a duplicação sem tocar nos tempos, o selo no passo 3 e na listagem, o «do
-catálogo»/«edição da escola», o `DELETE` só do dono, e as rotas a passarem `ESCOLA_SLUG` ·
-`motor/nucleo/notacao.js` — `chaveDoVerbete`, `escolaDoRegisto`, `musicaDaChave`, `registosDaEscola`,
-e `verbetePara`/`compor`/`comporTodas` a aceitarem `escola` (omissão: catálogo) ·
-`motor/nucleo/derivar-ciclo.js` — `escolaDoEnvelope`, e as três composições a recebê-la ·
-`motor/servidor/verbete.js` — `validarVerbete` com `avisos`, a gravação com a chave do dono, a
-listagem pela vista da escola, o `apagarVerbete` por dono · `motor/nucleo/produtos/dicionario.js` e
-`syllabus.js` — a vista da escola · `motor/nucleo/produtos/comum.js` — `chaveDaMusica` limpa o dono ·
-`experimentos/provar-musica-do-verbete.js` (**novo**, 33 asserções) · `experimentos/provar-verbete.js`
-— as três asserções do apagar e a do criar · `.gitignore` — a excepção da prova nova ·
-`ESTADO-ATUAL.md` · `REGISTRO.md`.
+**O que mudou.** `linhasPorTrecho` dá lugar a `lerLinhas(nome, chave, registo, alfabeto, escola)`,
+que recebe o alfabeto **lido** em vez de o ir buscar ao bundle; cada música passa a trazer o seu
+`motivo`; e a composição **parcial** deixa de ser um erro e passa a ser um estado declarado — as
+linhas que compõem aparecem, o trecho que não compõe diz porquê, e a música sem trechos nenhuns
+diz que ainda não tem. O painel da Produção distingue os três casos, e a frase «A decomposição deste
+exercício não pôde ser lida» deixou de existir no código.
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+**A hipótese do relatório, corrigida — e é o que a prova fixa.** O salto de **1 para 3** não é
+lacuna nem sequer numeração descontínua: são **dois compassos de 2/4**. O relógio corre **por pista**
+(e `coberturaDe` toma a pista maior, não a soma linear), pelo que o primeiro trecho ocupa os
+compassos 1–2 e o segundo começa no 3. A asserção «o primeiro trecho cai no compasso 1 · e o
+segundo no 3, porque cada trecho ocupa dois compassos de 2/4» prende-o: uma decomposição com
+compassos 1–2 e depois 5–6 também se lê, e as contagens escritas aparecem como foram escritas.
 
-**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/verbete.js` ·
-`motor/nucleo/notacao.js` · `motor/nucleo/derivar-ciclo.js` ·
-`motor/nucleo/produtos/{comum,dicionario,syllabus}.js` · `experimentos/provar-musica-do-verbete.js` ·
-`experimentos/provar-verbete.js` · `.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
-
-**Referências.** `ARQUITETURA-GERAL.md` §10.1 e §10.3 · `PLANO-PRODUTOS-DO-MOTOR.md` §8-fase 1 e
-§9-critério 5 · a decisão dela de 03/11/2026 («o dono do alfabeto é a escola») · P-16 · a norma do
-`PROTOCOLO.md` de 01/11/2026.
+**Uma correcção na prova anterior.** O `provar-verbete` plantava a decomposição **por exercício** —
+se o `Battement tendu` existisse, dava a música do catálogo por coberta. Desde que o alfabeto tem
+dono, o exercício existe com a música **da escola** (`8|2/4@breu`) e a do **catálogo** (`8|4/4`),
+que é a que aquela secção compõe, continuava a faltar. Passa a plantar **música a música**. A prova
+falhou primeiro e é bom que tenha falhado: era o mesmo erro de pergunta («o exercício existe?» em
+vez de «esta música existe?»).
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-musica-do-verbete` (novo) | **33 asserções, TUDO CERTO**: a divergência em `avisos` e a gravação a passar; o campo da música aberto; duplicar sem mexer nos tempos (**8 continua 8**, e os trechos **8 → 16**); o selo a aparecer e a desaparecer; mudar tempos e compasso **sem apagar trechos**; e as cinco do dono — chave, vista, composição da escola, catálogo intacto, apagar só o próprio |
-| `provar-verbete` | **TUDO CERTO**, com as três asserções do apagar reescritas para a regra do dono |
+| `provar-leitura-da-decomposicao` (novo) | **25 asserções, 4 secções, TUDO CERTO**: `A` o caso relatado (os dois trechos lidos, os compassos 1 e 3, a página já sem a frase) · `B` a vista (a `breu` lê a sua, a `maria` e uma terceira leem o catálogo) · `C` a leitura não deita fora o gravado (a conta que não fecha mostra as linhas **e** o motivo, com os dois números; 1–2 e 5–6 também se leem; sem trechos, o motivo di-lo) · `D` o alfabeto usado é o **lido**, não o embutido |
+| `provar-verbete` | **TUDO CERTO**, com a planta por música |
+| `provar-musica-do-verbete` | **TUDO CERTO** (33 asserções) |
 | `provar-produtos` | **TUDO CERTO — 89 asserções** |
 | `provar-linhas-da-lista` | **TUDO CERTO** |
-| `check-identidade` | **20/20 `ok`** — o selo novo usa estados que já existem na folha |
-| **comparados com o estado anterior** | `provar-notacao` **11 falhas antes e depois** (conteúdo: o alfabeto tem só o `Plié`) · `provar-cartao-da-turma` **7 antes e depois** · `provar-derivados-da-sequencia` **2 antes e depois** · `provar-producao` **5 antes e depois**. Nenhuma regressão foi introduzida; as vermelhas são as de antes |
-| **o que NÃO foi medido** | a página ao vivo (nenhuma carga ao ar nesta sessão) · o expurgo da `breu`, que ela faz pela tela |
+| `check-identidade` | **20/20 `ok`** |
+| **o que NÃO foi medido** | a página ao vivo — **nenhuma carga ao ar** nesta sessão; a conferência é a dela, no próximo `F5` |
 
-**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela vai expurgá-la pela tela quando
-terminar de testar, e o cálculo dos 17 ficheiros está na entrada anterior. (b) **O `ESCOLA.conf`**
-continua a não existir, e a chave `plano` continua por decidir onde entra. (c) O resto do caminho
-crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+
+**Com o quê.** `motor/servidor/verbete.js` · `motor/servidor/bastidores.js` ·
+`motor/nucleo/notacao.js` (o `segmentosDe` passa a ser exportado) ·
+`experimentos/provar-leitura-da-decomposicao.js` (novo) · `experimentos/provar-verbete.js` ·
+`.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** `PLANO-PRODUTOS-DO-MOTOR.md` §9-critério 5 · a decisão dela de 03/11/2026 («o dono
+do alfabeto é a escola») · a entrada anterior deste registo (o alfabeto com dono e a chave
+composta) · P-16 · o relatório dela de 03/11/2026.
+
+**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela expurga-a pela tela quando
+terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
+decidir onde entra (C11) — a decisão dela de 03/11 é que vive no `.conf`, **nunca no KV**. (c) O
+caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
+**fase 3**.
 
 ## O que está pendente
-
-## 02/11/2026 — O motor dos produtos: o dicionário e o syllabus, e o que eles se recusam a inventar
-
-(a) **A aula pronta** — o terceiro produto, e o próximo passo de
-código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
-pela metade**: a composição existe, os **ficheiros não** — `termo-repo.js` escreve no vocabulário do
-catálogo, e o critério 5 do plano («criar um termo numa escola não altera o ficheiro do catálogo»)
 
 ## 02/11/2026 — A licença em texto, a condição de conteúdo executável, e a camada que se herda
 
@@ -353,6 +336,13 @@ pronta**, **fase 3** e **a chave `plano`**.
 terminar de testar, e o cálculo dos 17 ficheiros está na entrada anterior. (b) **O `ESCOLA.conf`**
 continua a não existir, e a chave `plano` continua por decidir onde entra. (c) O resto do caminho
 crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+
+## 03/11/2026 — A listagem lia com o alfabeto errado, e deitava fora o que estava gravado
+
+(a) **A `breu` continua no ar** — ela expurga-a pela tela quando
+terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
+decidir onde entra (C11) — a decisão dela de 03/11 é que vive no `.conf`, **nunca no KV**. (c) O
+caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
 
 ## Pendências anteriores (índice)
 
@@ -682,6 +672,7 @@ crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), 
 - **01/11/2026** — O molde dos schemas passa a ter um leitor só → `REGISTRO.md` L29837
 - **01/11/2026** — A aula deixa de afirmar o que ninguém escreveu: cinco… → `REGISTRO.md` L29904
 - **02/11/2026** — A segunda passagem sobre a mesma tela: rótulos, travões e o… → `REGISTRO.md` L32097
+- **02/11/2026** — O motor dos produtos: o dicionário e o syllabus, e o que… → `REGISTRO.md` L32182
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

@@ -4,9 +4,26 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `89d1f83`, árvore **por commitar**). Nesta entrega, os
-> **três defeitos** que ela relatou ao usar a Produção a sério estão corrigidos, e a **fase 1
-> fechou-se no alfabeto**. **(1)** Duplicar um trecho **não** mexe na música: era `declarado + bloco`
+> **Última fotografia:** 03/11/2026 (base `89d1f83` + `1b305e3`, árvore **limpa**). Nesta entrega,
+> a **listagem deixou de mentir sobre a decomposição**. Ela gravou o «Battement tendu» com dois
+> trechos — compasso 1 e compasso 3 — e a lista respondeu «A decomposição deste exercício não pode
+> ser lida». **O dado estava lá, inteiro; a leitura é que estava errada**, e por **três** elos
+> encadeados: **(1)** a composição usava o alfabeto **embutido no build** (`require`) e não o que a
+> rota acaba de ler, pelo que uma escrita da tela só era legível no processo seguinte; **(2)** ia
+> **sem `escola`**, e desde 03/11 o registo dela vive em `8|2/4@breu` — pedir `8|2/4` ao catálogo
+> não o encontra, e o silêncio disso chama-se `musica-nao-coberta`; **(3)** quando a composição
+> falhava, os trechos **gravados eram atirados fora** — o erro substituía o dado. **A hipótese do
+> relatório não se confirma**: o salto de 1 para 3 **não** é lacuna nem numeração descontínua, são
+> **dois compassos de 2/4** — o relógio corre por pista e `coberturaDe` toma a pista maior, não a
+> soma linear. A leitura passa a ser `lerLinhas(…, alfabeto, escola)`, cada música traz o seu
+> `motivo`, e a composição **parcial** deixou de ser erro para ser um estado declarado: as linhas que
+> compõem aparecem, o trecho que não compõe diz porquê, a música sem trechos diz que ainda não tem.
+> A frase «A decomposição deste exercício não pôde ser lida» **deixou de existir no código**. Prova
+> nova: `provar-leitura-da-decomposicao`, **25 asserções** em 4 secções. **PENDENTE**: a conferência
+> ao ar é a dela, no próximo `F5` — nesta sessão **nenhuma carga foi ao ar**.
+>
+> **Entrega anterior** (base `89d1f83`, árvore **por commitar**). Os **três defeitos** que ela
+> relatou ao usar a Produção a sério estão corrigidos, e a **fase 1 fechou-se no alfabeto**. **(1)** Duplicar um trecho **não** mexe na música: era `declarado + bloco`
 > escrito no campo, e uma música de 8 ia a 12 e crescia a cada cópia; agora a música é a base rítmica
 > e o que a cópia muda é o que a decomposição **ocupa**. **(2)** O campo da música **deixou de estar
 > bloqueado** — a trava de 02/11 existia porque mudar os tempos recomeçava o rascunho a partir da
@@ -1355,6 +1372,11 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
   compõem o do catálogo — medido em `provar-musica-do-verbete` §C. **O ficheiro continua a ser um**:
   um caminho por escola não se embute no bundle do Worker, e é isso que mantém o critério 5 a passar
   **na substância** e não ao pé da letra.
+- **A leitura acompanhou o dono, e esse era o último elo.** Com o alfabeto a ter dono, a listagem
+  compunha com o alfabeto **embutido no build** e **sem `escola`** — e, quando a composição falhava,
+  atirava fora os trechos gravados para mostrar o erro. A leitura passa a receber o alfabeto **lido**
+  e a escola, cada música traz o seu `motivo`, e a composição parcial é um estado declarado em vez
+  de uma frase única de falha. É o que torna visível, na tela, o que a fase 1 decidiu no núcleo.
 - **A fase 3 (manifestos e pacote)** não começou. O produto tem manifesto em memória (`id`,
    `versao`, `edicao`, `licenca`, `fonte`) e **não tem âncora** — a `.fipp` própria é da fase 3. O
    campo `licenca` já **não** sai «pendente»: vem do título de `biblioteca/LICENSE.md`, com o caminho
@@ -1713,7 +1735,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a música sem trava, e o alfabeto com dono)
+### Executado nesta fotografia (03/11/2026 — a listagem lê o que está gravado)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-leitura-da-decomposicao.js` (novo) | **TUDO CERTO — 25 asserções em 4 secções**. **§A** o caso relatado: a rota responde 200, o exercício aparece, a música sai **sem o dono na chave** e **com** o dono declarado, os **dois** trechos são contados **e lidos** — «era aqui que a lista dizia 'não pôde ser lida'» —, sem motivo nenhum porque a composição fechou, o primeiro no **compasso 1** e o segundo no **3** (dois compassos de 2/4), a contagem e a frase que ela escreveu ao lado, e a página **já sem a frase**; **§B** a vista: a `breu` lê a sua, a `maria` e uma terceira leem a do catálogo; **§C** a leitura **não deita fora o gravado**: a conta que não fecha mostra as linhas **e** o motivo, com os dois números, uma numeração 1–2 / 5–6 também se lê, e sem trechos o motivo di-lo; **§D** o alfabeto usado é o **lido do repositório**, e não o embutido no build |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — a planta passou a ser **música a música**: plantar «o exercício» dava por coberta a música do catálogo (`8|4/4`) só porque o exercício já existia com a música da escola (`8|2/4@breu`) |
+| `node experimentos/provar-musica-do-verbete.js` | **TUDO CERTO — 33 asserções** |
+| `node experimentos/provar-produtos.js` | **TUDO CERTO — 89 asserções** |
+| `node experimentos/provar-linhas-da-lista.js` | **TUDO CERTO** |
+| `node tools/check-identidade.js` | **20/20 `ok`** |
+| **o que NÃO foi medido** | a página **ao vivo** — **nenhuma carga ao ar** nesta sessão; a conferência é a dela, no próximo `F5` |
+
+### Executado na fotografia anterior (03/11/2026 — a música sem trava, e o alfabeto com dono)
 
 | Verificação | Resultado |
 |:--|:--|
