@@ -1488,7 +1488,11 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 }
 .selo.falha { background: var(--falha-fundo); border-color: var(--falha); color: var(--falha); }
 .selo.marca, .selo.obrig { background: transparent; border-color: var(--marca); color: var(--marca); }
-.selo.derivada, .selo.vinculada {
+/* `.curada` ENTRA NO MESMO DESENHO DE `.vinculada` (03/11/2026), e não num terceiro. O estado é
+   outro — a turma está numa curadoria mas ainda não num plano —, mas o que a escola FAZ com ela é
+   o mesmo: deriva. Um desenho diferente para a mesma acção mandaria procurar uma diferença de
+   comportamento que não existe. A palavra é que muda, porque muda o motivo da recusa. */
+.selo.derivada, .selo.vinculada, .selo.curada {
   background: var(--derivada-fundo); border-color: var(--derivada); color: var(--derivada);
 }
 .selo.discreto, .selo.dim, .selo.legado,
