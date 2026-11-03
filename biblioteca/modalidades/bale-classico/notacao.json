@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 33,
+  "versao": 32,
   "aplicaseA": [
     "benesh"
   ],
@@ -540,31 +540,6 @@
                 "↑"
               ],
               "descricao": "Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores.\nLê-se: Perna, varredura para fora, primeira posição, cede, sobe.",
-              "repeticoes": 2
-            }
-          ]
-        }
-      }
-    },
-    "Battement tendu": {
-      "8|4/4": {
-        "cobre": 8,
-        "posicao": null,
-        "metodo": "compartilhada",
-        "celulas": {
-          "a-la-seconde": [
-            {
-              "contagem": "1–4",
-              "categoria": "Pé",
-              "sinais": [
-                "ED",
-                "1ª",
-                "○",
-                "-",
-                "●",
-                "1ª"
-              ],
-              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Pé, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição.",
               "repeticoes": 2
             }
           ]
