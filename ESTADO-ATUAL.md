@@ -4,8 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `89d1f83` + `1b305e3`, árvore **limpa**). Nesta entrega,
-> a **listagem deixou de mentir sobre a decomposição**. Ela gravou o «Battement tendu» com dois
+> **Última fotografia:** 03/11/2026 (base `1b305e3` + `cc150e6`, árvore **limpa**). Nesta entrega,
+> a **notação da listagem passou a três colunas** e o **passo 6 deixou de crescer com os trechos**.
+> **(1)** A tabela tinha duas colunas, e uma delas era **a definição do exercício repetida em cada
+> linha** — com dois trechos, duas vezes a mesma frase. Passa a `compasso` · `contagem` · `notação`,
+> e a definição sobe para o topo do bloco **escrita uma vez**: ela é do **exercício**, não do trecho.
+> Quando duas linhas têm frases **diferentes** — um trecho guardado com a frase com que foi escrito
+> (P-03/P-04) — aparecem as duas, cada uma uma vez; escolher uma e calar a outra seria perder a
+> diferença em nome da limpeza. **(2)** A coluna da contagem passou a dizer a **frequência por
+> extenso** — «1–2 (duas vezes)» —, que existia na célula desde 02/11 (`repeticoes`) e **não chegava
+> à listagem**. **(3)** O bloco «o que fica escrito em cada trecho», que despejava **dois parágrafos
+> abertos por trecho**, passa a **uma dobra fechada por trecho**, com o resumo a dizer onde ele cai;
+> a dobra **sobrevive ao repintar**, e por isso não se fecha no gesto seguinte. Prova nova:
+> `provar-tabela-da-notacao`, **41 asserções**. **NÃO medido**: **pixéis** — não há navegador nesta
+> bancada; mediu-se a **prosa** à vista (251 de 385 letras, 65%), que é a causa da altura.
+>
+> **Entrega anterior** (base `89d1f83` + `1b305e3`, árvore **limpa**). A **listagem deixou de
+> mentir sobre a decomposição**. Ela gravou o «Battement tendu» com dois
 > trechos — compasso 1 e compasso 3 — e a lista respondeu «A decomposição deste exercício não pode
 > ser lida». **O dado estava lá, inteiro; a leitura é que estava errada**, e por **três** elos
 > encadeados: **(1)** a composição usava o alfabeto **embutido no build** (`require`) e não o que a
@@ -1372,6 +1387,10 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
   compõem o do catálogo — medido em `provar-musica-do-verbete` §C. **O ficheiro continua a ser um**:
   um caminho por escola não se embute no bundle do Worker, e é isso que mantém o critério 5 a passar
   **na substância** e não ao pé da letra.
+- **A tela acompanhou a leitura.** A notação da listagem passou a três colunas — a definição do
+  exercício uma vez, no topo, e a contagem com a frequência escrita —, e cada trecho do passo 6 é
+  agora uma dobra fechada. Não é enfeite: com oito trechos, a versão de antes punha dezasseis
+  parágrafos de prosa aberta entre o professor e o «Gravar».
 - **A leitura acompanhou o dono, e esse era o último elo.** Com o alfabeto a ter dono, a listagem
   compunha com o alfabeto **embutido no build** e **sem `escola`** — e, quando a composição falhava,
   atirava fora os trechos gravados para mostrar o erro. A leitura passa a receber o alfabeto **lido**
@@ -1735,7 +1754,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a listagem lê o que está gravado)
+### Executado nesta fotografia (03/11/2026 — a notação em três colunas e o trecho dobrado)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-tabela-da-notacao.js` (novo) | **TUDO CERTO — 41 asserções em 3 secções**. **§A** o dado: `repeticoes` em cada linha, os compassos **1 e 3**, o recurso a conhecer a mesma frequência; **§B** a listagem em jsdom: **três** colunas, o «o que acontece» fora do cabeçalho, **uma** definição acima da tabela e **nenhuma** dentro das linhas, as células a dizer «1 · 1–2 (duas vezes) · [Perna: …]» e «3 · …», e o caso das **duas frases diferentes** com as duas à vista; **§C** o passo 6: uma dobra por trecho, **todas fechadas**, o resumo com «compasso 1 · contagem 1–2 ×2», **um** parágrafo de prosa fora das dobras, abrir mostra a leitura, e o estado **sobrevive ao duplicar** |
+| `node experimentos/provar-leitura-da-decomposicao.js` | **TUDO CERTO — 25 asserções** |
+| `node experimentos/provar-musica-do-verbete.js` | **TUDO CERTO — 33 asserções** |
+| `node experimentos/provar-verbete.js` · `provar-produtos.js` · `provar-linhas-da-lista.js` | **TUDO CERTO** · **TUDO CERTO — 89 asserções** · **TUDO CERTO** |
+| `node tools/check-identidade.js` | **20/20 `ok`** — e o `dito` passou a **gancho declarado** (14): a dobra é comportamental, quem desenha é o `details` nativo |
+| **o alfabeto real, pela rota da listagem** | `Battement tendu` (`8|2/4@breu`): **2** linhas, compassos **1 e 3**, contagem **1–2**, `repeticoes` **2** — «1–2 (duas vezes)» nos dois, e **uma** frase distinta |
+| `node experimentos/provar-producao.js` | **147 de 152, depois como antes** — as cinco falhas são as de antes e nenhuma toca o que esta entrega mudou |
+| **o que NÃO foi medido** | **pixéis** — sem navegador nesta bancada, a altura não se mede; mede-se a prosa à vista (251 de 385 caracteres). A geometria em navegador é a das provas `provar-celular`/`provar-producao` |
+
+### Executado na fotografia anterior (03/11/2026 — a listagem lê o que está gravado)
 
 | Verificação | Resultado |
 |:--|:--|

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T09:12:56-0300`
-Commit atual: `1b305e3` — fix(estrutura): a listagem lê a decomposição que está gravada
+Gerado em: `2026-11-03T09:44:16-0300`
+Commit atual: `cc150e6` — feat(estrutura): a notação em três colunas, e o trecho que não estica a tela
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,7 +85,11 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-1b305e3 fix(estrutura): a listagem lê a decomposição que está gravada
+cc150e6 feat(estrutura): a notação em três colunas, e o trecho que não estica a tela
+e8cc4c6 docs(registro): a conferência ao ar que a entrada dizia não ter sido feita
+b28f8b9 docs(registro): a listagem lia com o alfabeto errado e deitava fora o gravado
+d681b43 fix(estrutura): a listagem lê a decomposição que está gravada
+b67b325 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
 7696834 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
 5dbb9ba docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
 57cf491 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
@@ -101,10 +105,6 @@ vaso-bonito (19)
 c61c39a docs(registro): a fotografia datada, o dono do termo e o lugar do plano
 5e109c1 feat(estrutura): a fotografia datada, o dono do termo e o `--escola`
 4e1593a docs(biblioteca): a cláusula 1 diz de onde vem a data enquanto não há contrato
-885a2ad docs(registro): a fotografia da licença e da camada herdada
-890937a feat(estrutura): a licença em texto, a edição paga e a camada herdada
-026c281 fix(estrutura): a repetição na decomposição, e o número que mudou no remoto
-76d023c docs(registro): a fotografia dos dois produtos, e o que eles ainda não são
 ```
 
 ## Por professor
@@ -228,84 +228,75 @@ c61c39a docs(registro): a fotografia datada, o dono do termo e o lugar do plano
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A listagem lia com o alfabeto errado, e deitava fora o que estava gravado
+## 03/11/2026 — A notação em três colunas, e o trecho que não estica a tela
 
-**O que motivou.** Ela gravou o «Battement tendu» com **dois** trechos — compasso 1 e compasso 3 —
-e a lista respondeu «A decomposição deste exercício não pode ser lida». O relatório dela trazia uma
-hipótese: o parser a exigir numeração contígua de compassos. A hipótese **não** se confirmou. O
-dado estava lá, inteiro; quem estava errada era a leitura — e por **três** elos encadeados, cada um
-suficiente para produzir sozinho a mesma frase.
+**O que motivou.** Dois pedidos dela sobre a tela da Produção, escritos como especificação: a
+tabela de notação da listagem devia passar a três colunas — compasso, contagem e notação — com a
+definição do exercício fora das linhas; e o passo 6 devia deixar de crescer com tantos trechos.
 
-**Os três elos, medidos um a um.**
+**1. A tabela da listagem repetia a definição em cada linha.** Eram duas colunas, e uma delas era
+«o que acontece»: a frase do exercício, escrita por inteiro em cada linha. Com dois trechos, duas
+vezes a mesma frase; com oito, oito vezes. E o compasso e a contagem dividiam a mesma célula — e a
+**frequência** de cada trecho, que a célula guarda desde 02/11 (`repeticoes`), **nem chegava à
+listagem**: `lerLinhas` montava a linha com cinco campos e deixava esse de fora. Uma contagem que
+omite quantas vezes não é a contagem, é metade dela.
 
-1. **O alfabeto vinha do bundle.** `linhasPorTrecho` compunha com
-   `require('../../nucleo/notacao').ALFABETOS`, isto é, com o JSON **embutido no build** — e não com
-   o que a rota acabou de ler do repositório. Uma escrita feita pela tela só passava a ser legível
-   no processo seguinte. É o mesmo modo de falha do `deploy-escolas.yml` (entrada anterior): grava,
-   responde, e a leitura a seguir não o vê.
-2. **A composição ia sem `escola`.** Desde 03/11 o alfabeto tem dono: o registo dela vive em
-   `8|2/4@breu`. Uma composição que pede `8|2/4` ao **catálogo** não o encontra — e o silêncio
-   disso tem nome, `musica-nao-coberta`. A vista certa lia o que a vista errada tinha escondido.
-3. **O que estava gravado era atirado fora.** Quando a composição falhava, as linhas guardadas
-   desapareciam e ficava só o erro. **O erro substituía o dado** em vez de o mostrar: quem lê a
-   lista via «não pode ser lida» para uma decomposição que existe e está completa.
+Passa a haver **três colunas com um trabalho cada**: `compasso` (onde cai), `contagem` (o que dura
+e **quantas vezes** — «1–2 (duas vezes)») e `notação` (a forma, que se lê de relance). E a definição
+sobe para o topo do bloco, **escrita uma vez**: ela é do **exercício**, e repeti-la por linha era
+dizer quatro vezes a mesma frase para no fim não dizer nada.
 
-**O que mudou.** `linhasPorTrecho` dá lugar a `lerLinhas(nome, chave, registo, alfabeto, escola)`,
-que recebe o alfabeto **lido** em vez de o ir buscar ao bundle; cada música passa a trazer o seu
-`motivo`; e a composição **parcial** deixa de ser um erro e passa a ser um estado declarado — as
-linhas que compõem aparecem, o trecho que não compõe diz porquê, e a música sem trechos nenhuns
-diz que ainda não tem. O painel da Produção distingue os três casos, e a frase «A decomposição deste
-exercício não pôde ser lida» deixou de existir no código.
+**A decisão que a instrução não tomava, e que os dados obrigam.** «Remover o texto descritivo» é
+claro quando as linhas o repetem — e é o caso dela: os dois trechos do «Battement tendu» têm a
+**mesma** frase. Mas há um caso legítimo em que as frases **diferem**: o trecho guardado com a frase
+com que foi escrito, porque a frase do exercício mudou depois (P-03/P-04 — o que está escrito não se
+reescreve). Aí mostram-se **as duas, cada uma uma vez**. Escolher uma e calar a outra seria perder a
+diferença em nome da limpeza, e o registo passaria a afirmar uma frase que aquele trecho não tem.
 
-**A hipótese do relatório, corrigida — e é o que a prova fixa.** O salto de **1 para 3** não é
-lacuna nem sequer numeração descontínua: são **dois compassos de 2/4**. O relógio corre **por pista**
-(e `coberturaDe` toma a pista maior, não a soma linear), pelo que o primeiro trecho ocupa os
-compassos 1–2 e o segundo começa no 3. A asserção «o primeiro trecho cai no compasso 1 · e o
-segundo no 3, porque cada trecho ocupa dois compassos de 2/4» prende-o: uma decomposição com
-compassos 1–2 e depois 5–6 também se lê, e as contagens escritas aparecem como foram escritas.
+**2. O passo 6 crescia — e o sítio não era a tabela.** Na tabela, o «lê-se» de cada linha já vivia
+dentro de um `<details>` fechado desde 02/11. Quem crescia era o bloco **«o que fica escrito em cada
+trecho»**: para cada trecho, um parágrafo de cabeçalho e outro com a leitura inteira, **todos
+abertos**. Com oito trechos eram dezasseis parágrafos de texto corrido antes de o professor chegar
+ao «Gravar».
 
-**Uma correcção na prova anterior.** O `provar-verbete` plantava a decomposição **por exercício** —
-se o `Battement tendu` existisse, dava a música do catálogo por coberta. Desde que o alfabeto tem
-dono, o exercício existe com a música **da escola** (`8|2/4@breu`) e a do **catálogo** (`8|4/4`),
-que é a que aquela secção compõe, continuava a faltar. Passa a plantar **música a música**. A prova
-falhou primeiro e é bom que tenha falhado: era o mesmo erro de pergunta («o exercício existe?» em
-vez de «esta música existe?»).
+Passa a ser **uma dobra fechada por trecho** (`<details>`/`<summary>`, a peça que a casa usa para
+dobrar), com o resumo a dizer **onde o trecho cai** — direção, orientação, compasso e contagem. A
+frase do exercício continua uma vez, no topo. E o estado **sobrevive ao repintar**: a tela repinta a
+cada gesto (acrescentar, duplicar, mudar a música), e sem isso a dobra que se acabou de abrir fechava
+no gesto seguinte — o que se lê como «não abre».
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-leitura-da-decomposicao` (novo) | **25 asserções, 4 secções, TUDO CERTO**: `A` o caso relatado (os dois trechos lidos, os compassos 1 e 3, a página já sem a frase) · `B` a vista (a `breu` lê a sua, a `maria` e uma terceira leem o catálogo) · `C` a leitura não deita fora o gravado (a conta que não fecha mostra as linhas **e** o motivo, com os dois números; 1–2 e 5–6 também se leem; sem trechos, o motivo di-lo) · `D` o alfabeto usado é o **lido**, não o embutido |
-| `provar-verbete` | **TUDO CERTO**, com a planta por música |
+| `provar-tabela-da-notacao` (novo) | **41 asserções, 3 secções, TUDO CERTO**. **§A** o dado: `repeticoes` na linha, a contagem intacta, os compassos **1 e 3** (dois de 2/4 cada), e o recurso (trechos gravados) a conhecer a mesma frequência. **§B** a listagem, em jsdom: três colunas (`compasso`, `contagem`, `notação`), o «o que acontece» fora do cabeçalho, **uma** definição acima da tabela e **nenhuma** dentro das linhas, as células a dizer **1 · 1–2 (duas vezes) · [Perna: ED 1ª ○ - ● 1ª]** e **3 · 1–2 (duas vezes)**, três colunas por linha; e o caso das **duas frases diferentes**, com as duas à vista e cada uma uma vez. **§C** o passo 6: uma dobra por trecho, **todas fechadas**, o resumo com «compasso 1 · contagem 1–2 ×2», **um** parágrafo de prosa fora das dobras (o do exercício), abrir a dobra mostra a leitura daquele trecho, e o estado **sobrevive ao duplicar** |
+| `provar-leitura-da-decomposicao` | **TUDO CERTO** (25 asserções) |
 | `provar-musica-do-verbete` | **TUDO CERTO** (33 asserções) |
-| `provar-produtos` | **TUDO CERTO — 89 asserções** |
-| `provar-linhas-da-lista` | **TUDO CERTO** |
-| `check-identidade` | **20/20 `ok`** |
-| **o que NÃO foi medido** | a página ao vivo — **nenhuma carga ao ar** nesta sessão; a conferência é a dela, no próximo `F5` |
+| `provar-verbete` · `provar-produtos` · `provar-linhas-da-lista` | **TUDO CERTO** · **TUDO CERTO — 89 asserções** · **TUDO CERTO** |
+| `check-identidade` | **20/20 `ok`** — e o `dito` passou a **gancho declarado** (14 ganchos): é a dobra que a marcação emite e que a folha não desenha, porque quem desenha é o `details` nativo |
+| **o alfabeto real, pela rota da listagem** | `Battement tendu` (`8|2/4@breu`): **2** linhas, compassos **1 e 3**, contagem **1–2**, `repeticoes` **2** nas duas — «1–2 (duas vezes)» nos dois compassos, e **uma** frase distinta |
+| `provar-producao` | **147 de 152, depois como antes** — as cinco falhas são as de antes (a lista de tradições com «cubana», o item do menu, a explicação num formulário, as pílulas a 18 contra 16) e nenhuma toca o que esta entrega mudou |
+| **o que NÃO foi medido** | **PIXÉIS.** Não há navegador nesta bancada (`puppeteer` não instalado): a altura da página não foi medida — mediu-se a **prosa** que fica à vista, que é a causa da altura. Das 385 letras do bloco, **251** ficam à vista com as dobras fechadas (65%); o resto é a pedido. A geometria em navegador de verdade continua a ser a das provas `provar-celular`/`provar-producao` |
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. A
+`ciclo.css` **não** mudou: não nasceu peça nenhuma — as três colunas são o `table` da folha, a
+dobra é o `details` nativo, e a definição no topo usa o `trio-frase` que o painel já tinha.
 
-**Com o quê.** `motor/servidor/verbete.js` · `motor/servidor/bastidores.js` ·
-`motor/nucleo/notacao.js` (o `segmentosDe` passa a ser exportado) ·
-`experimentos/provar-leitura-da-decomposicao.js` (novo) · `experimentos/provar-verbete.js` ·
-`.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+**Com o quê.** `motor/servidor/bastidores.js` (`painelDaNotacao`, `vezesEmPalavras`, `pintarFica`) ·
+`motor/servidor/verbete.js` (`linhaDe`) · `tools/check-identidade.js` (o gancho `dito`) ·
+`experimentos/provar-tabela-da-notacao.js` (novo) · `.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
 
-**Referências.** `PLANO-PRODUTOS-DO-MOTOR.md` §9-critério 5 · a decisão dela de 03/11/2026 («o dono
-do alfabeto é a escola») · a entrada anterior deste registo (o alfabeto com dono e a chave
-composta) · P-16 · o relatório dela de 03/11/2026.
+**Referências.** A especificação dela de 03/11/2026 · `IDENTIDADE-VISUAL.md` (a regra 8 e o catálogo
+das peças) · P-03, P-04, P-16 · a entrada anterior deste registo (a listagem que lia com o alfabeto
+errado).
 
 **O que ainda não está feito.** (a) **A `breu` continua no ar** — ela expurga-a pela tela quando
 terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
-decidir onde entra (C11) — a decisão dela de 03/11 é que vive no `.conf`, **nunca no KV**. (c) O
-caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
+decidir onde entra (C11) — a decisão dela é que vive no `.conf`, **nunca no KV**. (c) O caminho
+crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
 **fase 3**.
 
 ## O que está pendente
-
-## 02/11/2026 — A licença em texto, a condição de conteúdo executável, e a camada que se herda
-
-(a) **A fotografia datada** — a cláusula 1 da licença diz
-`catalogo@AAAA-MM-DD`, e a data vem do contrato: é **de negócio**, e o critério 8 do plano passa
 
 ## 02/11/2026 — A fotografia datada, o dono do termo, e o plano que vai para o `.conf`
 
@@ -343,6 +334,13 @@ crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), 
 terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
 decidir onde entra (C11) — a decisão dela de 03/11 é que vive no `.conf`, **nunca no KV**. (c) O
 caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
+
+## 03/11/2026 — A notação em três colunas, e o trecho que não estica a tela
+
+(a) **A `breu` continua no ar** — ela expurga-a pela tela quando
+terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
+decidir onde entra (C11) — a decisão dela é que vive no `.conf`, **nunca no KV**. (c) O caminho
+crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
 
 ## Pendências anteriores (índice)
 
@@ -673,6 +671,7 @@ caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três c
 - **01/11/2026** — A aula deixa de afirmar o que ninguém escreveu: cinco… → `REGISTRO.md` L29904
 - **02/11/2026** — A segunda passagem sobre a mesma tela: rótulos, travões e o… → `REGISTRO.md` L32097
 - **02/11/2026** — O motor dos produtos: o dicionário e o syllabus, e o que… → `REGISTRO.md` L32182
+- **02/11/2026** — A licença em texto, a condição de conteúdo executável, e a… → `REGISTRO.md` L32261
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

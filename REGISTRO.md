@@ -32740,3 +32740,71 @@ escolas» e «Publicar a raiz», ambas `success`):
 
 Isto **não** substitui a conferência dela: a listagem é desenhada no cliente, e o que se mediu ao ar
 foi a rota que a alimenta. O gesto — abrir a lista e ver os dois trechos — é dela, e é o próximo `F5`.
+
+## 03/11/2026 — A notação em três colunas, e o trecho que não estica a tela
+
+**O que motivou.** Dois pedidos dela sobre a tela da Produção, escritos como especificação: a
+tabela de notação da listagem devia passar a três colunas — compasso, contagem e notação — com a
+definição do exercício fora das linhas; e o passo 6 devia deixar de crescer com tantos trechos.
+
+**1. A tabela da listagem repetia a definição em cada linha.** Eram duas colunas, e uma delas era
+«o que acontece»: a frase do exercício, escrita por inteiro em cada linha. Com dois trechos, duas
+vezes a mesma frase; com oito, oito vezes. E o compasso e a contagem dividiam a mesma célula — e a
+**frequência** de cada trecho, que a célula guarda desde 02/11 (`repeticoes`), **nem chegava à
+listagem**: `lerLinhas` montava a linha com cinco campos e deixava esse de fora. Uma contagem que
+omite quantas vezes não é a contagem, é metade dela.
+
+Passa a haver **três colunas com um trabalho cada**: `compasso` (onde cai), `contagem` (o que dura
+e **quantas vezes** — «1–2 (duas vezes)») e `notação` (a forma, que se lê de relance). E a definição
+sobe para o topo do bloco, **escrita uma vez**: ela é do **exercício**, e repeti-la por linha era
+dizer quatro vezes a mesma frase para no fim não dizer nada.
+
+**A decisão que a instrução não tomava, e que os dados obrigam.** «Remover o texto descritivo» é
+claro quando as linhas o repetem — e é o caso dela: os dois trechos do «Battement tendu» têm a
+**mesma** frase. Mas há um caso legítimo em que as frases **diferem**: o trecho guardado com a frase
+com que foi escrito, porque a frase do exercício mudou depois (P-03/P-04 — o que está escrito não se
+reescreve). Aí mostram-se **as duas, cada uma uma vez**. Escolher uma e calar a outra seria perder a
+diferença em nome da limpeza, e o registo passaria a afirmar uma frase que aquele trecho não tem.
+
+**2. O passo 6 crescia — e o sítio não era a tabela.** Na tabela, o «lê-se» de cada linha já vivia
+dentro de um `<details>` fechado desde 02/11. Quem crescia era o bloco **«o que fica escrito em cada
+trecho»**: para cada trecho, um parágrafo de cabeçalho e outro com a leitura inteira, **todos
+abertos**. Com oito trechos eram dezasseis parágrafos de texto corrido antes de o professor chegar
+ao «Gravar».
+
+Passa a ser **uma dobra fechada por trecho** (`<details>`/`<summary>`, a peça que a casa usa para
+dobrar), com o resumo a dizer **onde o trecho cai** — direção, orientação, compasso e contagem. A
+frase do exercício continua uma vez, no topo. E o estado **sobrevive ao repintar**: a tela repinta a
+cada gesto (acrescentar, duplicar, mudar a música), e sem isso a dobra que se acabou de abrir fechava
+no gesto seguinte — o que se lê como «não abre».
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-tabela-da-notacao` (novo) | **41 asserções, 3 secções, TUDO CERTO**. **§A** o dado: `repeticoes` na linha, a contagem intacta, os compassos **1 e 3** (dois de 2/4 cada), e o recurso (trechos gravados) a conhecer a mesma frequência. **§B** a listagem, em jsdom: três colunas (`compasso`, `contagem`, `notação`), o «o que acontece» fora do cabeçalho, **uma** definição acima da tabela e **nenhuma** dentro das linhas, as células a dizer **1 · 1–2 (duas vezes) · [Perna: ED 1ª ○ - ● 1ª]** e **3 · 1–2 (duas vezes)**, três colunas por linha; e o caso das **duas frases diferentes**, com as duas à vista e cada uma uma vez. **§C** o passo 6: uma dobra por trecho, **todas fechadas**, o resumo com «compasso 1 · contagem 1–2 ×2», **um** parágrafo de prosa fora das dobras (o do exercício), abrir a dobra mostra a leitura daquele trecho, e o estado **sobrevive ao duplicar** |
+| `provar-leitura-da-decomposicao` | **TUDO CERTO** (25 asserções) |
+| `provar-musica-do-verbete` | **TUDO CERTO** (33 asserções) |
+| `provar-verbete` · `provar-produtos` · `provar-linhas-da-lista` | **TUDO CERTO** · **TUDO CERTO — 89 asserções** · **TUDO CERTO** |
+| `check-identidade` | **20/20 `ok`** — e o `dito` passou a **gancho declarado** (14 ganchos): é a dobra que a marcação emite e que a folha não desenha, porque quem desenha é o `details` nativo |
+| **o alfabeto real, pela rota da listagem** | `Battement tendu` (`8|2/4@breu`): **2** linhas, compassos **1 e 3**, contagem **1–2**, `repeticoes` **2** nas duas — «1–2 (duas vezes)» nos dois compassos, e **uma** frase distinta |
+| `provar-producao` | **147 de 152, depois como antes** — as cinco falhas são as de antes (a lista de tradições com «cubana», o item do menu, a explicação num formulário, as pílulas a 18 contra 16) e nenhuma toca o que esta entrega mudou |
+| **o que NÃO foi medido** | **PIXÉIS.** Não há navegador nesta bancada (`puppeteer` não instalado): a altura da página não foi medida — mediu-se a **prosa** que fica à vista, que é a causa da altura. Das 385 letras do bloco, **251** ficam à vista com as dobras fechadas (65%); o resto é a pedido. A geometria em navegador de verdade continua a ser a das provas `provar-celular`/`provar-producao` |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. A
+`ciclo.css` **não** mudou: não nasceu peça nenhuma — as três colunas são o `table` da folha, a
+dobra é o `details` nativo, e a definição no topo usa o `trio-frase` que o painel já tinha.
+
+**Com o quê.** `motor/servidor/bastidores.js` (`painelDaNotacao`, `vezesEmPalavras`, `pintarFica`) ·
+`motor/servidor/verbete.js` (`linhaDe`) · `tools/check-identidade.js` (o gancho `dito`) ·
+`experimentos/provar-tabela-da-notacao.js` (novo) · `.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** A especificação dela de 03/11/2026 · `IDENTIDADE-VISUAL.md` (a regra 8 e o catálogo
+das peças) · P-03, P-04, P-16 · a entrada anterior deste registo (a listagem que lia com o alfabeto
+errado).
+
+**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela expurga-a pela tela quando
+terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
+decidir onde entra (C11) — a decisão dela é que vive no `.conf`, **nunca no KV**. (c) O caminho
+crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
+**fase 3**.
