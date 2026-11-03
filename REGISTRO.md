@@ -32887,3 +32887,98 @@ terminar de testar. (b) **A habilitação do professor não existe**: onde ela v
 que acontece a uma turma cuja modalidade o professor deixou de ter — **são decisões dela**, e sem
 elas o campo nasceria com a forma errada. (c) O caminho crítico é o de sempre: **conteúdo** (11
 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+
+## 03/11/2026 — A habilitação é da pessoa, a turma fica marcada, e o nível tem a forma da tradição
+
+**O que motivou.** A pesquisadora respondeu às três perguntas que a entrega anterior deixou abertas —
+onde vive a habilitação, o que acontece à turma cuja modalidade o professor deixou de ter, e se a
+habilitação tem níveis — e acrescentou a arquitetura que as liga: «a autorização de lecionar
+determinado curso em certo local pertence à Escola (Contrato/Instalação)», mas «as modalidades, o
+repertório pedagógico e as habilidades técnicas pertencem ao Professor (Pessoa/Identidade)». Com
+uma consequência explícita: «o expurgo de um tenant não apaga o cadastro do professor nem limpa a
+lista de modalidades que ele está habilitado a ensinar».
+
+**1. A habilitação vive no perfil do professor, e o argumento é o expurgo.** O KV de uma escola tem
+o prefixo dela (`bastidores/<escola>/`) — é o cofre do **tenant**. Guardar ali a competência fá-la-ia
+um dado do **contrato**, e o expurgo levá-la-ia consigo: o professor ficaria sem saber ensinar no
+dia em que a escola fechasse. Passa a viver em `professores/<slug>/perfil.json`, que é do **sistema**
+e não da escola — o que o `professores/README.md` já declarava antes desta decisão.
+
+O perfil **nasce com a escola** (`tools/criar-escola.sh`, com `--modalidade`, padrão `bale-classico`):
+quem cria a escola é quem a vai ensinar. E **não se sobrescreve** — um professor com duas escolas
+conserva o que declarou, porque a segunda escola não lhe acrescenta nem lhe tira competência. Medido:
+três escolas seguidas do mesmo professor, e a lista de modalidades dele intacta.
+
+**2. A turma não se apaga — fica descontinuada.** É a regra dela, e é a regra da proveniência dita
+do outro lado. A marca tem **data e motivo**, e é **revogável**: quem volta a declarar a modalidade
+apaga-a. Uma marca que só se acendesse seria uma pena perpétua por uma decisão que se corrige.
+
+**Onde a marca é gravada, e porquê.** No KV, junto da turma — e não derivada a cada leitura: a
+página da Produção é servida de forma **síncrona** e não pode ir ao repositório ler N perfis
+enquanto desenha a lista. A gravação das habilitações é o único momento em que o perfil e as turmas
+estão na mesma mão, e é aí que a consequência se regista. **A habilitação continua no repositório,
+que é da pessoa; o que fica no KV é a consequência sobre uma turma — e a turma é da escola.**
+
+**3. O nível tem a forma da tradição, e não se inventa o «N».** `tradicoes.json` ganhou
+`estruturaDeNiveis`: a RAD é **numerada** («Grade»), as outras agrupam em **graus** (Básico,
+Intermediário, Avançado) com o nível por cima. A turma ganhou `grau` e `nivel`, e `nivelReferencia`
+passou a ser **composto** deles — o rótulo que o plano e o PO já imprimem deixa de ser escrito à
+mão. **Nenhum limite é inventado**: na RAD as opções são as que o catálogo declara em
+`progressao.json`; nas outras o nível é um número que se escreve, porque o «N de Nível 1 a N» é de
+cada escola. A turma antiga, que só tem o texto livre, continua a lê-lo.
+
+**E o expurgo, que é onde a decisão se prova.** O perfil **já** sobrevivia — mas por **não se
+parecer com nada do que se apaga**, e uma garantia que depende de um caminho não casar com um
+padrão alheio revoga-se sem avisar no dia em que o padrão mudar. Passa a haver: uma regra com nome
+(`ehPerfilDoProfessor`), o perfil **nomeado no relatório** do commit do expurgo (uma preservação que
+ninguém anuncia é indistinguível de um esquecimento), e uma **guarda** (`semPerfisNaLista`) que
+recusa antes de apagar. A guarda tem **controlo negativo** na prova: a mesma lista sem o perfil passa.
+
+**Dois defeitos que a prova encontrou antes de a entrega sair.** (a) O `atualizado` do perfil saía
+**vazio em toda a gravação** — o servidor não passava a data, e um campo que nunca diz quando foi
+mexido não diz nada. (b) O cliente usava `createElement`, que a bancada de DOM mínimo não tem — e
+que esta página já não usa nos outros `<select>`. O segundo é o mais instrutivo: **a página morria
+com o script a meio**, e o sintoma só apareceu porque a `provar-producao` executa o script.
+
+**E um erro meu, que vale registar porque é de leitura.** A primeira versão do bloco do grau levava
+uma linha `//` **dentro** da string que compõe o script do cliente. Como o script é uma linha
+física só, o comentário engoliu o resto — `Unexpected end of input`. O mesmo tipo de erro, do outro
+lado: `var NIVEIS_POR_TRADICAO` estava declarado **depois** do primeiro uso, e `var` eleva a
+declaração mas não a atribuição.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-habilitacao-do-professor` (novo) | **TUDO CERTO — 62 asserções, 5 secções**. **§A** o núcleo: o perfil que nasce habilitado, o id desconhecido recusado («kuduro» não está no catálogo), **zero modalidades aceite** como declaração, e as três turmas que **não** se descontinuam (sem modalidade, de outro professor, sem perfil). **§B** o ficheiro, pela rota de verdade: grava em `professores/<slug>/perfil.json` e **nada sob o prefixo da escola**, o `criado` não se reescreve, o perfil de professor de **outra** escola é 403, e sem senha não grava. **§C** a consequência: acende, **não apaga a turma**, e **volta atrás**. **§D** o expurgo: preservado, nomeado, e a guarda com controlo negativo. **§E** o nível: RAD numerada, graus nas outras, o texto antigo preservado, os quatro campos no formulário |
+| `tools/criar-escola.sh` | **medido num clone de ensaio**: cria `professores/teste-perfil/perfil.json` com a modalidade principal; na **segunda** e **terceira** escola do mesmo professor **reusa** o perfil («as habilitações são da pessoa, não desta escola») e não sobrescreve as modalidades que ele já tinha |
+| `provar-producao` | **147 de 152, depois como antes** — as cinco falhas são as de antes, contadas com e sem a mudança |
+| `provar-cartao-da-turma` · `provar-teste` | **6 falhas antes e depois** · **a mesma falha antes e depois** — nenhuma regressão introduzida |
+| `provar-verbete` · `provar-tabela-da-notacao` · `provar-leitura-da-decomposicao` · `provar-sinais-da-modalidade` · `provar-produtos` · `provar-linhas-da-lista` · `provar-musica-do-verbete` | **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **89 asserções** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| **o que NÃO foi medido** | a página **ao vivo** — o deploy corre depois do push · a **migração** das turmas que já existem (não há nenhuma turma com `modalidade`, e o campo nasce vazio nas antigas, o que as deixa fora da regra — é a decisão, não um esquecimento) |
+
+**Motivo declarado — os congelados.** `tools/criar-escola.sh` está em `CONGELAMENTO.md`, e a
+alteração foi num **commit próprio** (`feat(tools)`), com o motivo no corpo. **Nenhum outro**
+ficheiro do congelamento foi tocado, e a `ciclo.css` não mudou: o bloco das habilitações usa
+`bloco-lista`/`bloco-cabeca`/`bloco-corpo`, que já existiam.
+
+**Com o quê.** `motor/nucleo/perfil-do-professor.js` (novo) · `motor/nucleo/niveis-da-turma.js`
+(novo) · `motor/servidor/perfil-professor.js` (novo) · `motor/servidor/bastidores.js` (as rotas, o
+bloco das habilitações, o grau e o nível na turma, a marca e o selo) ·
+`motor/servidor/catalogo-seed.js` (`TRADICOES_JSON`) · `motor/servidor/repo-escola.js` (a regra, o
+relatório e a guarda) · `biblioteca/modalidades/bale-classico/tradicoes.json` (`estruturaDeNiveis`) ·
+`tools/criar-escola.sh` · `experimentos/provar-habilitacao-do-professor.js` (novo) · `.gitignore` ·
+`ARQUITETURA-GERAL.md` §2.2 · `professores/README.md` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** As três decisões dela de 03/11/2026 (transcritas na §2.2 da `ARQUITETURA-GERAL.md`) ·
+P-03, P-04, P-16 · a entrada anterior deste registo (a modalidade pertence ao professor).
+
+**O que ainda não está feito.** (a) **A modalidade continua escrita à mão em 10 sítios de `motor/`** —
+o dado passou a existir, mas ainda não é ele que escolhe o alfabeto; é o trabalho de médio prazo, e o
+número é a linha de base. (b) **Nenhuma turma tem `modalidade`** hoje: o campo nasce vazio nas
+existentes, e uma turma sem modalidade **não** é descontinuada (a ausência não é a negação). (c) A
+**oferta da escola** (que modalidades ela tem à venda) continua a **não** existir como campo — é
+derivação, e derivá-la exige ler os perfis, o que a página síncrona ainda não faz. (d) **A `breu`
+continua no ar** — ela expurga-a pela tela. (e) O caminho crítico é o de sempre: **conteúdo** (11
+níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.

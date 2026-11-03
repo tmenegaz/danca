@@ -79,9 +79,10 @@ Ou seja: **"banco" é um detalhe de adaptador, não o centro do desenho.**
 | O quê | De quem é | Onde vive hoje |
 |:--|:--|:--|
 | **O conhecimento** — o alfabeto e o vocabulário de uma modalidade | da **modalidade**, não de pessoa nenhuma | `biblioteca/modalidades/<slug>/` (dado versionado, partilhado) |
-| **A habilitação** — que modalidades este professor ensina | do **professor** | **não existe**: nenhum registo de professor tem este campo |
-| **A oferta** — que modalidades esta escola tem à venda | **reflexo** das habilitações dos professores dela | **não existe**: nenhum registo de escola tem este campo |
+| **A habilitação** — que modalidades este professor ensina | do **professor** | `professores/<slug>/perfil.json` → `modalidades` — **implementado** 03/11/2026 |
+| **A oferta** — que modalidades esta escola tem à venda | **reflexo** das habilitações dos professores dela | **não existe**: nenhum registo de escola tem este campo, e é de propósito (ver consequência 1) |
 | **A escolha, na aula** — que metodologia aquele ciclo segue | do **ciclo**, declarada no plano | `contexto-metodologia` no plano (P-16) |
+| **A turma que perdeu quem a ensine** | da **escola** (é a turma dela) | campo `descontinuada` na turma — **implementado** 03/11/2026 |
 
 **As três consequências que isto obriga a dizer:**
 
@@ -92,10 +93,11 @@ Ou seja: **"banco" é um detalhe de adaptador, não o centro do desenho.**
 2. **O catálogo não muda de sítio.** O alfabeto continua em `biblioteca/modalidades/`, e continua
    **da modalidade** — nenhuma escola precisa de uma cópia dele. O que a decisão muda é **quem
    escolhe** qual se usa, não **onde ele mora**.
-3. **O que já existe é uma porta, e ela está declarada.** O núcleo tem `MODALIDADE_PADRAO` e os dois
-   mapas (`ALFABETOS`, `VOCABULARIOS`), e a rota da Produção **já devolve** `modalidade` na resposta.
-   O que falta é a modalidade deixar de ser uma **constante** e passar a ser um **dado lido do
-   professor** — e esse dado, hoje, não existe em lado nenhum.
+3. **A porta existe, e o dado passou a existir.** O núcleo tem `MODALIDADE_PADRAO` e os dois mapas
+   (`ALFABETOS`, `VOCABULARIOS`), e a rota da Produção devolve `modalidade` na resposta. O que faltava
+   era o dado lido do professor; desde 03/11/2026 ele existe em `professores/<slug>/perfil.json`, e
+   nasce com a escola (`tools/criar-escola.sh`). O que ainda falta é **usá-lo**: a modalidade
+   continua a ser uma constante em 10 sítios de `motor/` — é o acoplamento medido abaixo.
 
 **O acoplamento, medido a 03/11/2026** (`experimentos/provar-sinais-da-modalidade.js`, §D): a
 modalidade está escrita **à mão em 10 sítios de `motor/`** — dois mapas e o padrão no núcleo, dois
@@ -103,11 +105,19 @@ no CLI dos produtos, e **cinco na página da Produção** (o `POST` do verbete, 
 serve o alfabeto e os dois corpos que a tela monta). Este número é a **linha de base**: o trabalho de
 médio prazo é levá-lo a zero, e a prova passa a afirmar o zero.
 
-**O que continua aberto, e é dela:** (a) **onde** vive a habilitação do professor — um ficheiro
-`professores/<slug>/perfil.json`, um campo no `.conf` do ciclo, ou o registo da escola; (b) se uma
-habilitação tem **níveis** (ensina até que nível) ou é só sim/não; (c) como se comporta uma turma
-cuja modalidade o professor **deixou** de ter. Nenhuma das três é código que falte: são decisões, e
-sem elas o campo nasceria com a forma errada.
+**As três perguntas que ficaram abertas a 03/11/2026, e as respostas dela no mesmo dia:**
+
+| A pergunta | A resposta dela |
+|:--|:--|
+| Onde vive a habilitação? | `professores/<slug>/perfil.json`, independente do tenant. Nasce com a escola (o professor que a cria já nasce habilitado na modalidade principal) e edita-se nos **Bastidores · Produção → Professores → Habilitações** |
+| A turma cuja modalidade o professor deixou de ter? | **Não se apaga.** Fica `descontinuada`, com data e motivo, e o histórico intacto. A marca é **revogável**: quem volta a declarar a modalidade apaga-a |
+| A habilitação tem níveis? | Os níveis são **da turma**, não da habilitação, e têm a **forma da tradição**: `grau` + `nivel` (RAD numera em fila, «Grade 3»; as outras agrupam, «Intermediário 2»). O campo mora em `tradicoes.json` → `estruturaDeNiveis` |
+
+**E o expurgo, que é onde a decisão se prova.** O perfil **não** é dado do tenant: o expurgo
+preserva-o (`repo-escola.js` → `ehPerfilDoProfessor`), nomeia-o no relatório do commit, e há uma
+guarda (`semPerfisNaLista`) que **recusa antes de apagar** se alguma regra de caminho chegar até
+lá. Sem essa guarda a preservação dependeria de o caminho não casar com um padrão alheio — e uma
+garantia que depende de um acidente revoga-se sem avisar.
 
 ---
 

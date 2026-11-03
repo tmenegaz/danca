@@ -64,6 +64,23 @@ O ciclo-modelo é o **molde** de que nascem as escolas, e vive num diretório de
 qualquer outro. Os modelos disponíveis estão declarados em `tools/criar-escola.sh`
 (`MODELO`, selecionável por `--modelo <professor>/<ciclo>`).
 
+## O perfil — o que o professor sabe ensinar, e porque é dele
+
+Cada pasta de professor pode ter um **`perfil.json`**, e é ele que declara **o que aquela pessoa
+sabe ensinar** (`modalidades`). Não é um dado da escola: a modalidade nasce da competência de quem
+ensina, e a escola só a oferece porque tem quem a saiba ensinar
+([`ARQUITETURA-GERAL.md` §2.2](../ARQUITETURA-GERAL.md)).
+
+**O ficheiro nasce com a escola** (`tools/criar-escola.sh`), habilitado na modalidade principal — e
+**não se sobrescreve**: um professor que cria a segunda escola conserva o que declarou, porque a
+segunda escola não lhe acrescenta nem lhe tira competência. Edita-se em **Bastidores · Produção →
+Professores → Habilitações**.
+
+**E o expurgo de uma escola não lhe toca.** Uma escola que fecha leva os dados **dela**; a
+competência de quem ensina fica com quem ensina. O mecanismo está em `motor/servidor/repo-escola.js`
+(`ehPerfilDoProfessor` e a guarda `semPerfisNaLista`), e a prova em
+`experimentos/provar-habilitacao-do-professor.js`.
+
 ## Onde a pasta nasce
 
 Criar um professor **nos Bastidores · Produção** registra-o na **escola** — nome, slug e

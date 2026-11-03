@@ -4,9 +4,25 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `cc150e6`, árvore **por commitar**). Nesta entrega, **o
-> coupé e o sur le cou-de-pied passaram a poder escrever-se**, e a **modalidade passou a ter dono
-> declarado**. **(1)** O que ela pediu como «adicionar os termos» encontrou-os **já no vocabulário** —
+> **Última fotografia:** 03/11/2026 (base `21089cb`, árvore **limpa**). Nesta entrega, **a
+> habilitação passou a existir como dado e a turma passou a poder ficar descontinuada**. **(1)** As
+> três decisões dela: a **habilitação vive no perfil do professor** (`professores/<slug>/perfil.json`
+> → `modalidades`), **independente do tenant** — e o argumento é o expurgo: o KV de uma escola tem o
+> prefixo dela, e guardar ali a competência faria dela um dado do contrato, que sai com ele. O
+> perfil **nasce com a escola** (`tools/criar-escola.sh`, commit próprio por estar em
+> `CONGELAMENTO.md`) e **não se sobrescreve** na segunda escola. **(2)** A **turma cuja modalidade o
+> professor deixou de ter não se apaga**: fica `descontinuada`, com data e motivo, e o histórico
+> intacto — e a marca é **revogável**, porque uma marca que só se acendesse seria uma pena perpétua
+> por uma decisão que se corrige. **(3)** O **nível tem a forma da tradição**: a RAD numera em fila
+> («Grade 3»), as outras agrupam em graus («Intermediário 2»); `grau` e `nivel` são campos da turma e
+> `nivelReferencia` é **composto** deles. Nenhum «N» foi inventado. E o expurgo ganhou **regra com
+> nome** (`ehPerfilDoProfessor`), **nome no relatório** do commit e uma **guarda** que recusa antes
+> de apagar (`semPerfisNaLista`), com controlo negativo. Prova nova:
+> `provar-habilitacao-do-professor`, **62 asserções**. **PENDENTE**: a modalidade continua escrita à
+> mão em **10 sítios** de `motor/` — o dado existe, mas ainda não é ele que escolhe o alfabeto.
+>
+> **Entrega anterior** (base `cc150e6`, árvore **por commitar**). O **coupé e o sur le cou-de-pied
+> passaram a poder escrever-se**, e a **modalidade passou a ter dono declarado**. **(1)** O que ela pediu como «adicionar os termos» encontrou-os **já no vocabulário** —
 > `coupe` e `sur-le-cou-de-pied` existiam desde o dicionário dela. O que faltava era o **SIGNO**: o
 > grupo «Posições dos pés e braços» tinha `prep` e os cinco números, e o `lerBloco` **recusa o bloco
 > inteiro** quando um token não existe — escrever o battement frappé, que parte do cou-de-pied, era
@@ -1498,7 +1514,24 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
-### A modalidade mora no professor, e a escola a oferece por reflexo (03/11/2026)
+### A modalidade mora no professor — IMPLEMENTADO a 03/11/2026, e o que resta
+
+**As três perguntas que estavam abertas foram respondidas por ela no mesmo dia, e estão
+implementadas:** a habilitação vive em `professores/<slug>/perfil.json` (nasce com a escola, edita-se
+em **Bastidores · Produção → Professores → Habilitações**, e o expurgo **não lhe toca**); a turma
+cuja modalidade o professor deixou de ter **não se apaga** — fica `descontinuada`, com data e motivo,
+e a marca é **revogável**; e os níveis são **da turma**, com a forma da **tradição** (`grau` +
+`nivel`, RAD numerada, as outras por graus). A análise completa está na **§2.2 da
+`ARQUITETURA-GERAL.md`**.
+
+**O que ainda falta, e não é decisão — é trabalho declarado:** a modalidade continua escrita **à mão
+em 10 sítios de `motor/`**. O dado passou a existir, mas **ainda não é ele que escolhe o alfabeto**:
+`ALFABETOS['bale-classico']` continua a ser `require`-ado, e a página manda `modalidade:
+"bale-classico"` em cinco sítios. Enquanto assim for, o sistema tem **uma** modalidade com
+repertório, e um professor habilitado em «jazz» não vê o repertório de jazz — porque ele não existe.
+O número é a linha de base de `provar-sinais-da-modalidade` §D, e o alvo é zero.
+
+### A decisão original, como foi tomada (contexto)
 
 **DECIDIDO por ela a 03/11/2026.** A modalidade **nasce da competência de quem ensina**: uma escola
 só oferece balé clássico porque tem quem o saiba ensinar. Pô-la na escola faria o contrário — a
@@ -1798,7 +1831,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — os dois sinais novos e o dono da modalidade)
+### Executado nesta fotografia (03/11/2026 — o perfil do professor, a turma descontinuada, o nível)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-habilitacao-do-professor.js` (novo) | **TUDO CERTO — 62 asserções em 5 secções**. **§A** o núcleo: perfil que nasce habilitado, id desconhecido recusado, **zero modalidades aceite**, e as três turmas que **não** se descontinuam. **§B** o ficheiro pela rota de verdade: grava em `professores/<slug>/perfil.json` e **nada sob o prefixo da escola**, o `criado` não se reescreve, professor de outra escola → **403**, sem senha → **401**. **§C** a consequência: acende, **não apaga**, e **volta atrás**. **§D** o expurgo: preservado, e a guarda com **controlo negativo**. **§E** o nível: RAD numerada, graus nas outras, texto antigo preservado, e os quatro campos no formulário |
+| `tools/criar-escola.sh` | **medido num clone de ensaio** (árvore do `HEAD` + o script): cria o perfil com a modalidade principal; na **2.ª** e **3.ª** escola do mesmo professor **reusa-o** e não sobrescreve o que ele já declara |
+| `provar-producao` | **147 de 152, depois como antes** — contadas as falhas com e sem a mudança |
+| `provar-cartao-da-turma` · `provar-teste` | **6 antes e depois** · **a mesma falha antes e depois** |
+| `provar-verbete` · `provar-tabela-da-notacao` · `provar-leitura-da-decomposicao` · `provar-sinais-da-modalidade` · `provar-produtos` · `provar-linhas-da-lista` · `provar-musica-do-verbete` | **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **89 asserções** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · a **migração** das turmas existentes: nenhuma tem `modalidade`, o campo nasce vazio, e uma turma sem modalidade **não** é descontinuada — é a decisão, não um esquecimento |
+
+### Executado na fotografia anterior (03/11/2026 — os dois sinais novos e o dono da modalidade)
 
 | Verificação | Resultado |
 |:--|:--|
