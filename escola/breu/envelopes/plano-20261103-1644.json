@@ -27,12 +27,6 @@
       "respondente": "professor",
       "nota": null
     },
-    "contexto-metodologia-origem": {
-      "valor": "Eu escolho",
-      "origem": "perguntado",
-      "respondente": "professor",
-      "nota": null
-    },
     "marcos-por-aula": {
       "valor": [
         "reconhecer o apoio e alinhar o eixo vertical"
@@ -382,7 +376,7 @@
   },
   "ramificacoes": [],
   "ancora": null,
-  "gerado_em": "2026-11-03T16:44",
+  "gerado_em": "2026-11-03T20:42",
   "contexto": {
     "escola": "breu",
     "professor": "coqui-de-redinha",
