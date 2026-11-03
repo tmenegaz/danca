@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T11:19:04-0300`
-Commit atual: `ddcd92a` — refactor(estrutura): a turma é o ritmo, a curadoria é o ensino
+Gerado em: `2026-11-03T12:28:16-0300`
+Commit atual: `9d636fe` — feat(experimentos): a prova dos conteúdos e dos três estados, e dois bancos que mediam o contrário
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,7 +85,13 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-ddcd92a refactor(estrutura): a turma é o ritmo, a curadoria é o ensino
+9d636fe feat(experimentos): a prova dos conteúdos e dos três estados, e dois bancos que mediam o contrário
+774aae7 style(template): o selo «curada» na folha, para a turma ter os três estados
+7988519 feat(estrutura): a turma tem três estados, e o conteúdo passou a ser da curadoria
+3016cae fix(estrutura): a nota do perfil vem primeiro, e a mensagem do commit no escopo
+622071b docs(estrutura): a turma é o ritmo, e o ensino é da curadoria
+a42e0e2 refactor(estrutura): a turma é o ritmo, a curadoria é o ensino
+d1dc000 perfil(professor): habilitar coqui-de-redinha em bale-classico
 33c55f8 docs(estrutura): a habilitação é da pessoa, e o expurgo não a leva
 21089cb feat(tools): o perfil do professor nasce com a escola
 5ac8d6b feat(estrutura): a habilitação é da pessoa, a turma fica marcada, o nível tem a forma da tradição
@@ -99,12 +105,6 @@ d681b43 fix(estrutura): a listagem lê a decomposição que está gravada
 b67b325 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
 7696834 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
 5dbb9ba docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
-57cf491 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
-3dfcc81 feat(notacao): declarar «Battement tendu» (8|2/4) no alfabeto bale-classico
-942b81c docs(registro): a música sem trava, o desacordo como aviso e o dono do alfabeto
-9f9e891 feat(estrutura): a música sem trava, o desacordo como aviso e o dono do alfabeto
-89d1f83 docs(registro): o termo da tela, o alfabeto sem dono e o deploy do catálogo
-508d22f fix(estrutura): o catálogo muda, a escola não publicava
 ```
 
 ## Por professor
@@ -228,116 +228,103 @@ b67b325 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-class
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A habilitação é da pessoa, a turma fica marcada, e o nível tem a forma da tradição
+## 03/11/2026 — A auditoria da turma, o conteúdo na curadoria, e o formulário que só oferece o que o professor pode ensinar
 
-**O que motivou.** A pesquisadora respondeu às três perguntas que a entrega anterior deixou abertas —
-onde vive a habilitação, o que acontece à turma cuja modalidade o professor deixou de ter, e se a
-habilitação tem níveis — e acrescentou a arquitetura que as liga: «a autorização de lecionar
-determinado curso em certo local pertence à Escola (Contrato/Instalação)», mas «as modalidades, o
-repertório pedagógico e as habilidades técnicas pertencem ao Professor (Pessoa/Identidade)». Com
-uma consequência explícita: «o expurgo de um tenant não apaga o cadastro do professor nem limpa a
-lista de modalidades que ele está habilitado a ensinar».
+**O que motivou.** Quatro pedidos da pesquisadora na mesma volta, e o primeiro era uma pergunta, não
+uma ordem: *«auditar o comportamento de edição da turma após a consolidação da curadoria»* — porque
+lhe parecia que editar a «Balé Nível 1» depois de a curadoria existir podia estar a violar a
+proveniência. Os outros três vinham já decididos: tirar a **nota** da turma, mover os **conteúdos**
+para a curadoria, e fazer o formulário da curadoria **inteligente** (a modalidade do professor, a
+tradição da modalidade).
 
-**1. A habilitação vive no perfil do professor, e o argumento é o expurgo.** O KV de uma escola tem
-o prefixo dela (`bastidores/<escola>/`) — é o cofre do **tenant**. Guardar ali a competência fá-la-ia
-um dado do **contrato**, e o expurgo levá-la-ia consigo: o professor ficaria sem saber ensinar no
-dia em que a escola fechasse. Passa a viver em `professores/<slug>/perfil.json`, que é do **sistema**
-e não da escola — o que o `professores/README.md` já declarava antes desta decisão.
+**1. A auditoria mudou o diagnóstico, e o diagnóstico era outro.** A rota `turma-editar` **já**
+recusava com 409 a turma **presa a um plano de ensino**. O que ninguém tinha visto: a turma que
+apenas **compunha uma curadoria** continuava a gravar tudo — inclusive o **nome** —, e a curadoria
+guarda o **nome** e não o id. Renomear partia a ligação **em silêncio**: sem erro, sem aviso, a
+curadoria a apontar para um nome que já não existia. O defeito não era o botão que faltava; era a
+**assimetria** — o professor já tinha três estados (`livre` → `curado` → `vinculado`) e a turma
+tinha dois. `motor/nucleo/estado-da-turma.js` nomeia os três (`livre` · `curada` · `vinculada`),
+`motivoDaRecusa` diz por que não se edita, e **três leitores** perguntam ao mesmo sítio: a rota
+`turma-editar`, o `DELETE` e o cartão. **A turma curada não se apaga nem se trava**: edita-se no
+lugar o que não parte a ligação — a hora, a duração —, e renomear pede sair da curadoria primeiro.
+A `turma-derivar` continua a preservar a ligação porque mantém o nome.
 
-O perfil **nasce com a escola** (`tools/criar-escola.sh`, com `--modalidade`, padrão `bale-classico`):
-quem cria a escola é quem a vai ensinar. E **não se sobrescreve** — um professor com duas escolas
-conserva o que declarou, porque a segunda escola não lhe acrescenta nem lhe tira competência. Medido:
-três escolas seguidas do mesmo professor, e a lista de modalidades dele intacta.
+**2. A nota da turma saiu, e o que está escrito fica.** O campo de observações «na prática
+operacional do professor não agrega valor», diz ela. Saiu do `normalizarTurma`, do formulário e das
+duas listas de campos que o `turma-editar` e o `turma-derivar` copiam. **Não houve migração**: o que
+sai da lista deixa simplesmente de ser tocado, e o registo anterior conserva-o (P-03/P-04).
 
-**2. A turma não se apaga — fica descontinuada.** É a regra dela, e é a regra da proveniência dita
-do outro lado. A marca tem **data e motivo**, e é **revogável**: quem volta a declarar a modalidade
-apaga-a. Uma marca que só se acendesse seria uma pena perpétua por uma decisão que se corrige.
+**3. Os conteúdos passaram para a curadoria — e o mapa antigo não se migra, lê-se.** Eram o último
+resto do enquadramento no cadastro da turma. Saíram do passo 3 («Associar», que ficou só com a
+régua) e entraram no formulário da curadoria, com o mesmo `escolhedor` das alunas e o **nome** do
+termo como valor (a lista é para o professor **ler**). `motor/nucleo/conteudos.js` **compõe** o mapa
+antigo (`turma-conteudos`) com o `repertorio` de cada curadoria, e a peça que faz os dois falarem a
+mesma língua é o `idDe`, que normaliza os dois lados; a curadoria **substituída** não entra. Efeito:
+nada se perde — o cartão da turma continua a mostrar a lista —, e a escrita passa a ter um sítio só.
 
-**Onde a marca é gravada, e porquê.** No KV, junto da turma — e não derivada a cada leitura: a
-página da Produção é servida de forma **síncrona** e não pode ir ao repositório ler N perfis
-enquanto desenha a lista. A gravação das habilitações é o único momento em que o perfil e as turmas
-estão na mesma mão, e é aí que a consequência se regista. **A habilitação continua no repositório,
-que é da pessoa; o que fica no KV é a consequência sobre uma turma — e a turma é da escola.**
+**4. O formulário da curadoria ficou inteligente, e a regra nova não podia trancar o que já
+funcionava.** As modalidades filtram-se pelas habilitações do `perfil.json` do professor, com a nota
+a dizer quando ele não declara nenhuma. As tradições seguem a modalidade:
+`motor/nucleo/tradicoes.js` fixa a precedência — **a lista própria da modalidade vence a
+compartilhada** — e, quando a modalidade **não tem** lista própria, cai na compartilhada. A tentação
+era exigir o `tradicoes.json` próprio; isso deixaria jazz, circo e contemporâneo **sem tradição
+nenhuma**, e uma regra que tranca o que já funcionava é uma regressão com boa intenção. A tela diz
+qual das duas listas está a mostrar. **Nenhuma modalidade tem ainda o seu `tradicoes.json`**: os
+nomes das tradições de cada uma são conteúdo dela (P-16).
 
-**3. O nível tem a forma da tradição, e não se inventa o «N».** `tradicoes.json` ganhou
-`estruturaDeNiveis`: a RAD é **numerada** («Grade»), as outras agrupam em **graus** (Básico,
-Intermediário, Avançado) com o nível por cima. A turma ganhou `grau` e `nivel`, e `nivelReferencia`
-passou a ser **composto** deles — o rótulo que o plano e o PO já imprimem deixa de ser escrito à
-mão. **Nenhum limite é inventado**: na RAD as opções são as que o catálogo declara em
-`progressao.json`; nas outras o nível é um número que se escreve, porque o «N de Nível 1 a N» é de
-cada escola. A turma antiga, que só tem o texto livre, continua a lê-lo.
-
-**E o expurgo, que é onde a decisão se prova.** O perfil **já** sobrevivia — mas por **não se
-parecer com nada do que se apaga**, e uma garantia que depende de um caminho não casar com um
-padrão alheio revoga-se sem avisar no dia em que o padrão mudar. Passa a haver: uma regra com nome
-(`ehPerfilDoProfessor`), o perfil **nomeado no relatório** do commit do expurgo (uma preservação que
-ninguém anuncia é indistinguível de um esquecimento), e uma **guarda** (`semPerfisNaLista`) que
-recusa antes de apagar. A guarda tem **controlo negativo** na prova: a mesma lista sem o perfil passa.
-
-**Dois defeitos que a prova encontrou antes de a entrega sair.** (a) O `atualizado` do perfil saía
-**vazio em toda a gravação** — o servidor não passava a data, e um campo que nunca diz quando foi
-mexido não diz nada. (b) O cliente usava `createElement`, que a bancada de DOM mínimo não tem — e
-que esta página já não usa nos outros `<select>`. O segundo é o mais instrutivo: **a página morria
-com o script a meio**, e o sintoma só apareceu porque a `provar-producao` executa o script.
-
-**E um erro meu, que vale registar porque é de leitura.** A primeira versão do bloco do grau levava
-uma linha `//` **dentro** da string que compõe o script do cliente. Como o script é uma linha
-física só, o comentário engoliu o resto — `Unexpected end of input`. O mesmo tipo de erro, do outro
-lado: `var NIVEIS_POR_TRADICAO` estava declarado **depois** do primeiro uso, e `var` eleva a
-declaração mas não a atribuição.
+**5. O primeiro ficheiro do acervo sem tipo declarado.** O `perfil.json` que ela criou **pela tela**
+em 03/11 entrou no acervo sem tipo em `indices/esquema/tipos.json`, e a verificação 8 do
+`check-indices` reprovou-o — com razão. O tipo `perfil` declara-o (com `classificado_pelo_motor:
+false`: o perfil não é documento de ciclo).
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-habilitacao-do-professor` (novo) | **TUDO CERTO — 62 asserções, 5 secções**. **§A** o núcleo: o perfil que nasce habilitado, o id desconhecido recusado («kuduro» não está no catálogo), **zero modalidades aceite** como declaração, e as três turmas que **não** se descontinuam (sem modalidade, de outro professor, sem perfil). **§B** o ficheiro, pela rota de verdade: grava em `professores/<slug>/perfil.json` e **nada sob o prefixo da escola**, o `criado` não se reescreve, o perfil de professor de **outra** escola é 403, e sem senha não grava. **§C** a consequência: acende, **não apaga a turma**, e **volta atrás**. **§D** o expurgo: preservado, nomeado, e a guarda com controlo negativo. **§E** o nível: RAD numerada, graus nas outras, o texto antigo preservado, os quatro campos no formulário |
-| `tools/criar-escola.sh` | **medido num clone de ensaio**: cria `professores/teste-perfil/perfil.json` com a modalidade principal; na **segunda** e **terceira** escola do mesmo professor **reusa** o perfil («as habilitações são da pessoa, não desta escola») e não sobrescreve as modalidades que ele já tinha |
-| `provar-producao` | **147 de 152, depois como antes** — as cinco falhas são as de antes, contadas com e sem a mudança |
-| `provar-cartao-da-turma` · `provar-teste` | **6 falhas antes e depois** · **a mesma falha antes e depois** — nenhuma regressão introduzida |
-| `provar-verbete` · `provar-tabela-da-notacao` · `provar-leitura-da-decomposicao` · `provar-sinais-da-modalidade` · `provar-produtos` · `provar-linhas-da-lista` · `provar-musica-do-verbete` | **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **89 asserções** · **TUDO CERTO** · **TUDO CERTO** |
+| `provar-conteudos-e-estado-da-turma` (novo) | **TUDO CERTO — 74 asserções, 7 secções**. **§A** o núcleo composto (mapa antigo + `repertorio`, colapsados pelo `idDe`, a substituída fora). **§B** os três estados e o motivo de cada recusa, **com os três do professor ao lado** — a assimetria era o defeito. **§C** a rota como linha do servidor: a curada recusa a mudança de **nome** e **aceita** a da hora; a vinculada recusa tudo. **§D** a tela: o passo 3 sem `#vinc-conteudos`, a curadoria com o `escolhedor`. **§E** a nota saiu do cadastro e a antiga **fica**. **§F** o termo de uma curadoria de turma com plano **não** se apaga. **§G** o formulário inteligente, com a queda para a compartilhada |
+| `provar-producao` | **151 de 155** (era **149 de 153**; as duas novas são as asserções acrescentadas). Duas foram **reescritas em vez de contornadas** — «concluir exige conteúdo» (o formulário já não os oferece) e o menu de conteúdos no passo 3 (mudou de casa). As **quatro falhas restantes são as de antes**, e a da lista de tradições do **verbete** foi medida à parte: vem do `tradicoes.json` (a `cubana` entrou, e `compartilhada` vem no fim), não desta mudança |
+| `provar-cartao-da-turma` | **6 antes, 14 no meio, 6 no fim.** As oito que esta mudança introduziu **mediavam o contrário** (`#vinc-conteudos`, os chips, o par seletor+botão, a geometria deles no telefone) e foram reescritas para medir a decisão nova. As seis que sobram são **as mesmas** do `--controle-negativo` sobre o motor de HEAD: os seletores globais `button.passo` apanham a segunda barra de passos (a do verbete) |
+| `provar-teste` | **a mesma falha antes e depois** («a frequência não saiu dos dias da turma»), medida com e sem a mudança. De caminho, corrigi um comentário meu que **fechava o `String.raw`** do cliente com uma crase: o `require` rebentava antes da primeira asserção |
+| as outras sete | **TUDO CERTO** em todas: enquadramento, habilitação, tabela da notação, sinais, verbete, produtos, linhas da lista, música e leitura da decomposição |
 | `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
-| **o que NÃO foi medido** | a página **ao vivo** — o deploy corre depois do push · a **migração** das turmas que já existem (não há nenhuma turma com `modalidade`, e o campo nasce vazio nas antigas, o que as deixa fora da regra — é a decisão, não um esquecimento) |
+| `hash-ciclo.sh --check` · `gerar-indices.js --check` · `check-pacote.js` | **cadeia intacta** · **12 arquivos em dia** · **11 erros antes e depois** (o pacote da `breu` nunca foi gerado por inteiro) |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · **nenhuma curadoria real tem `repertorio`**, e nenhuma modalidade tem lista própria de tradições — os dois caminhos medem-se com registos de ensaio |
 
-**Motivo declarado — os congelados.** `tools/criar-escola.sh` está em `CONGELAMENTO.md`, e a
-alteração foi num **commit próprio** (`feat(tools)`), com o motivo no corpo. **Nenhum outro**
-ficheiro do congelamento foi tocado, e a `ciclo.css` não mudou: o bloco das habilitações usa
-`bloco-lista`/`bloco-cabeca`/`bloco-corpo`, que já existiam.
+**Uma correção no `ESTADO-ATUAL.md`.** O cabeçalho da fotografia anterior citava a base `ddcd92a`,
+que **não é ancestral** de `main` (sobra de um rebase). A base correta é `622071b`, e a nota fica
+lá — não se reescreve o que se pensou, corrige-se ao lado.
 
-**Com o quê.** `motor/nucleo/perfil-do-professor.js` (novo) · `motor/nucleo/niveis-da-turma.js`
-(novo) · `motor/servidor/perfil-professor.js` (novo) · `motor/servidor/bastidores.js` (as rotas, o
-bloco das habilitações, o grau e o nível na turma, a marca e o selo) ·
-`motor/servidor/catalogo-seed.js` (`TRADICOES_JSON`) · `motor/servidor/repo-escola.js` (a regra, o
-relatório e a guarda) · `biblioteca/modalidades/bale-classico/tradicoes.json` (`estruturaDeNiveis`) ·
-`tools/criar-escola.sh` · `experimentos/provar-habilitacao-do-professor.js` (novo) · `.gitignore` ·
-`ARQUITETURA-GERAL.md` §2.2 · `professores/README.md` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` ganhou **`.selo.curada`**, em
+commit próprio (`774aae7`) e com o corpo a dizer porquê: a turma passou a ter três estados e o
+cartão só sabia desenhar dois — sem peça própria, a turma curada aparecia como livre e convidava a
+um clique que a rota recusa. **O que não muda:** a fórmula de hash, a cobertura da âncora, os
+validadores, as regras e as pétreas. A peça é o nono selo do catálogo, entra no grupo que
+`.derivada` e `.vinculada` já formavam, e a verificação «Peça» do `check-identidade` continua
+**20/20**. As duas cópias (`raiz/assets/style.css` e a do pacote) foram **regeradas** com
+`tools/gerar-raiz.sh` e a cópia do pacote, não editadas à mão.
 
-**Referências.** As três decisões dela de 03/11/2026 (transcritas na §2.2 da `ARQUITETURA-GERAL.md`) ·
-P-03, P-04, P-16 · a entrada anterior deste registo (a modalidade pertence ao professor).
+**Com o quê.** `motor/nucleo/estado-da-turma.js` (novo) · `motor/nucleo/conteudos.js` (novo) ·
+`motor/nucleo/tradicoes.js` (novo) · `motor/servidor/bastidores.js` (a nota fora, os conteúdos
+mudados de casa, o filtro por habilitação, a tradição por modalidade, os três estados na rota e no
+cartão) · `motor/servidor/teste-cliente.js` · `tools/templates/ciclo.css` ·
+`raiz/assets/style.css` · `professores/coqui-de-redinha/ciclos/ciclo-01-breu/assets/style.css` ·
+`indices/esquema/tipos.json` · `experimentos/provar-conteudos-e-estado-da-turma.js` (novo) ·
+`experimentos/provar-cartao-da-turma.js` · `experimentos/provar-producao.js` · `.gitignore` ·
+`ARQUITETURA-GERAL.md` §2.3 · `ESTADO-ATUAL.md` · `REGISTRO.md`.
 
-**O que ainda não está feito.** (a) **A modalidade continua escrita à mão em 10 sítios de `motor/`** —
-o dado passou a existir, mas ainda não é ele que escolhe o alfabeto; é o trabalho de médio prazo, e o
-número é a linha de base. (b) **Nenhuma turma tem `modalidade`** hoje: o campo nasce vazio nas
-existentes, e uma turma sem modalidade **não** é descontinuada (a ausência não é a negação). (c) A
-**oferta da escola** (que modalidades ela tem à venda) continua a **não** existir como campo — é
-derivação, e derivá-la exige ler os perfis, o que a página síncrona ainda não faz. (d) **A `breu`
-continua no ar** — ela expurga-a pela tela. (e) O caminho crítico é o de sempre: **conteúdo** (11
-níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+**Referências.** A especificação dela de 03/11/2026 (nota, conteúdos, auditoria da turma, formulário
+inteligente) · P-03, P-04, P-16 · a decisão da mesma manhã (§2.2, §2.3 de `ARQUITETURA-GERAL.md`) ·
+`ESTADO-ATUAL.md` §9.
+
+**O que ainda não está feito.** (a) **As tradições por modalidade não têm conteúdo**: a estrutura
+existe e nenhuma modalidade tem o seu `tradicoes.json` — os nomes são dela (P-16). (b) **A oferta da
+escola** (que modalidades tem à venda) continua a **não** existir como campo: é derivação das
+habilitações, e a página é síncrona. (c) A **modalidade continua escrita à mão em 10 sítios** de
+`motor/`, medidos por `provar-sinais-da-modalidade` §D. (d) **A `breu` continua no ar** — ela
+expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de sempre: **conteúdo**
+(11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## O que está pendente
-
-## 03/11/2026 — A música deixou de se bloquear e de se multiplicar, e o alfabeto ganhou dono
-
-(a) **A `breu` continua no ar** — ela vai expurgá-la pela tela quando
-terminar de testar, e o cálculo dos 17 ficheiros está na entrada anterior. (b) **O `ESCOLA.conf`**
-continua a não existir, e a chave `plano` continua por decidir onde entra. (c) O resto do caminho
-crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
-
-## 03/11/2026 — A listagem lia com o alfabeto errado, e deitava fora o que estava gravado
-
-(a) **A `breu` continua no ar** — ela expurga-a pela tela quando
-terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
-decidir onde entra (C11) — a decisão dela de 03/11 é que vive no `.conf`, **nunca no KV**. (c) O
-caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
 
 ## 03/11/2026 — A notação em três colunas, e o trecho que não estica a tela
 
@@ -360,6 +347,20 @@ níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 o dado passou a existir, mas ainda não é ele que escolhe o alfabeto; é o trabalho de médio prazo, e o
 número é a linha de base. (b) **Nenhuma turma tem `modalidade`** hoje: o campo nasce vazio nas
 existentes, e uma turma sem modalidade **não** é descontinuada (a ausência não é a negação). (c) A
+
+## 03/11/2026 — A turma é o ritmo, e o ensino é da curadoria
+
+(a) **A `breu` continua no ar** — ela expurga-a pela tela. (b) A
+
+## 03/11/2026 — A auditoria da turma, o conteúdo na curadoria, e o formulário que só oferece o que o professor pode ensinar
+
+(a) **As tradições por modalidade não têm conteúdo**: a estrutura
+existe e nenhuma modalidade tem o seu `tradicoes.json` — os nomes são dela (P-16). (b) **A oferta da
+escola** (que modalidades tem à venda) continua a **não** existir como campo: é derivação das
+habilitações, e a página é síncrona. (c) A **modalidade continua escrita à mão em 10 sítios** de
+`motor/`, medidos por `provar-sinais-da-modalidade` §D. (d) **A `breu` continua no ar** — ela
+expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de sempre: **conteúdo**
+(11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## Pendências anteriores (índice)
 
@@ -693,6 +694,8 @@ existentes, e uma turma sem modalidade **não** é descontinuada (a ausência n�
 - **02/11/2026** — A licença em texto, a condição de conteúdo executável, e a… → `REGISTRO.md` L32261
 - **02/11/2026** — A fotografia datada, o dono do termo, e o plano que vai… → `REGISTRO.md` L32369
 - **03/11/2026** — O termo que a Produção criou, o alfabeto que não tem dono,… → `REGISTRO.md` L32488
+- **03/11/2026** — A música deixou de se bloquear e de se multiplicar, e o… → `REGISTRO.md` L32577
+- **03/11/2026** — A listagem lia com o alfabeto errado, e deitava fora o que… → `REGISTRO.md` L32659
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

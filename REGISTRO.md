@@ -33065,3 +33065,99 @@ curadoria) · P-03, P-04, P-16 · a decisão da manhã do mesmo dia (§2.2) · `
 derivação das habilitações, e derivá-la exige ler os perfis — a página é síncrona e ainda não o faz.
 (c) A **modalidade continua escrita à mão em 10 sítios** de `motor/`. (d) O caminho crítico é o de
 sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+
+## 03/11/2026 — A auditoria da turma, o conteúdo na curadoria, e o formulário que só oferece o que o professor pode ensinar
+
+**O que motivou.** Quatro pedidos da pesquisadora na mesma volta, e o primeiro era uma pergunta, não
+uma ordem: *«auditar o comportamento de edição da turma após a consolidação da curadoria»* — porque
+lhe parecia que editar a «Balé Nível 1» depois de a curadoria existir podia estar a violar a
+proveniência. Os outros três vinham já decididos: tirar a **nota** da turma, mover os **conteúdos**
+para a curadoria, e fazer o formulário da curadoria **inteligente** (a modalidade do professor, a
+tradição da modalidade).
+
+**1. A auditoria mudou o diagnóstico, e o diagnóstico era outro.** A rota `turma-editar` **já**
+recusava com 409 a turma **presa a um plano de ensino**. O que ninguém tinha visto: a turma que
+apenas **compunha uma curadoria** continuava a gravar tudo — inclusive o **nome** —, e a curadoria
+guarda o **nome** e não o id. Renomear partia a ligação **em silêncio**: sem erro, sem aviso, a
+curadoria a apontar para um nome que já não existia. O defeito não era o botão que faltava; era a
+**assimetria** — o professor já tinha três estados (`livre` → `curado` → `vinculado`) e a turma
+tinha dois. `motor/nucleo/estado-da-turma.js` nomeia os três (`livre` · `curada` · `vinculada`),
+`motivoDaRecusa` diz por que não se edita, e **três leitores** perguntam ao mesmo sítio: a rota
+`turma-editar`, o `DELETE` e o cartão. **A turma curada não se apaga nem se trava**: edita-se no
+lugar o que não parte a ligação — a hora, a duração —, e renomear pede sair da curadoria primeiro.
+A `turma-derivar` continua a preservar a ligação porque mantém o nome.
+
+**2. A nota da turma saiu, e o que está escrito fica.** O campo de observações «na prática
+operacional do professor não agrega valor», diz ela. Saiu do `normalizarTurma`, do formulário e das
+duas listas de campos que o `turma-editar` e o `turma-derivar` copiam. **Não houve migração**: o que
+sai da lista deixa simplesmente de ser tocado, e o registo anterior conserva-o (P-03/P-04).
+
+**3. Os conteúdos passaram para a curadoria — e o mapa antigo não se migra, lê-se.** Eram o último
+resto do enquadramento no cadastro da turma. Saíram do passo 3 («Associar», que ficou só com a
+régua) e entraram no formulário da curadoria, com o mesmo `escolhedor` das alunas e o **nome** do
+termo como valor (a lista é para o professor **ler**). `motor/nucleo/conteudos.js` **compõe** o mapa
+antigo (`turma-conteudos`) com o `repertorio` de cada curadoria, e a peça que faz os dois falarem a
+mesma língua é o `idDe`, que normaliza os dois lados; a curadoria **substituída** não entra. Efeito:
+nada se perde — o cartão da turma continua a mostrar a lista —, e a escrita passa a ter um sítio só.
+
+**4. O formulário da curadoria ficou inteligente, e a regra nova não podia trancar o que já
+funcionava.** As modalidades filtram-se pelas habilitações do `perfil.json` do professor, com a nota
+a dizer quando ele não declara nenhuma. As tradições seguem a modalidade:
+`motor/nucleo/tradicoes.js` fixa a precedência — **a lista própria da modalidade vence a
+compartilhada** — e, quando a modalidade **não tem** lista própria, cai na compartilhada. A tentação
+era exigir o `tradicoes.json` próprio; isso deixaria jazz, circo e contemporâneo **sem tradição
+nenhuma**, e uma regra que tranca o que já funcionava é uma regressão com boa intenção. A tela diz
+qual das duas listas está a mostrar. **Nenhuma modalidade tem ainda o seu `tradicoes.json`**: os
+nomes das tradições de cada uma são conteúdo dela (P-16).
+
+**5. O primeiro ficheiro do acervo sem tipo declarado.** O `perfil.json` que ela criou **pela tela**
+em 03/11 entrou no acervo sem tipo em `indices/esquema/tipos.json`, e a verificação 8 do
+`check-indices` reprovou-o — com razão. O tipo `perfil` declara-o (com `classificado_pelo_motor:
+false`: o perfil não é documento de ciclo).
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-conteudos-e-estado-da-turma` (novo) | **TUDO CERTO — 74 asserções, 7 secções**. **§A** o núcleo composto (mapa antigo + `repertorio`, colapsados pelo `idDe`, a substituída fora). **§B** os três estados e o motivo de cada recusa, **com os três do professor ao lado** — a assimetria era o defeito. **§C** a rota como linha do servidor: a curada recusa a mudança de **nome** e **aceita** a da hora; a vinculada recusa tudo. **§D** a tela: o passo 3 sem `#vinc-conteudos`, a curadoria com o `escolhedor`. **§E** a nota saiu do cadastro e a antiga **fica**. **§F** o termo de uma curadoria de turma com plano **não** se apaga. **§G** o formulário inteligente, com a queda para a compartilhada |
+| `provar-producao` | **151 de 155** (era **149 de 153**; as duas novas são as asserções acrescentadas). Duas foram **reescritas em vez de contornadas** — «concluir exige conteúdo» (o formulário já não os oferece) e o menu de conteúdos no passo 3 (mudou de casa). As **quatro falhas restantes são as de antes**, e a da lista de tradições do **verbete** foi medida à parte: vem do `tradicoes.json` (a `cubana` entrou, e `compartilhada` vem no fim), não desta mudança |
+| `provar-cartao-da-turma` | **6 antes, 14 no meio, 6 no fim.** As oito que esta mudança introduziu **mediavam o contrário** (`#vinc-conteudos`, os chips, o par seletor+botão, a geometria deles no telefone) e foram reescritas para medir a decisão nova. As seis que sobram são **as mesmas** do `--controle-negativo` sobre o motor de HEAD: os seletores globais `button.passo` apanham a segunda barra de passos (a do verbete) |
+| `provar-teste` | **a mesma falha antes e depois** («a frequência não saiu dos dias da turma»), medida com e sem a mudança. De caminho, corrigi um comentário meu que **fechava o `String.raw`** do cliente com uma crase: o `require` rebentava antes da primeira asserção |
+| as outras sete | **TUDO CERTO** em todas: enquadramento, habilitação, tabela da notação, sinais, verbete, produtos, linhas da lista, música e leitura da decomposição |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| `hash-ciclo.sh --check` · `gerar-indices.js --check` · `check-pacote.js` | **cadeia intacta** · **12 arquivos em dia** · **11 erros antes e depois** (o pacote da `breu` nunca foi gerado por inteiro) |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · **nenhuma curadoria real tem `repertorio`**, e nenhuma modalidade tem lista própria de tradições — os dois caminhos medem-se com registos de ensaio |
+
+**Uma correção no `ESTADO-ATUAL.md`.** O cabeçalho da fotografia anterior citava a base `ddcd92a`,
+que **não é ancestral** de `main` (sobra de um rebase). A base correta é `622071b`, e a nota fica
+lá — não se reescreve o que se pensou, corrige-se ao lado.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` ganhou **`.selo.curada`**, em
+commit próprio (`774aae7`) e com o corpo a dizer porquê: a turma passou a ter três estados e o
+cartão só sabia desenhar dois — sem peça própria, a turma curada aparecia como livre e convidava a
+um clique que a rota recusa. **O que não muda:** a fórmula de hash, a cobertura da âncora, os
+validadores, as regras e as pétreas. A peça é o nono selo do catálogo, entra no grupo que
+`.derivada` e `.vinculada` já formavam, e a verificação «Peça» do `check-identidade` continua
+**20/20**. As duas cópias (`raiz/assets/style.css` e a do pacote) foram **regeradas** com
+`tools/gerar-raiz.sh` e a cópia do pacote, não editadas à mão.
+
+**Com o quê.** `motor/nucleo/estado-da-turma.js` (novo) · `motor/nucleo/conteudos.js` (novo) ·
+`motor/nucleo/tradicoes.js` (novo) · `motor/servidor/bastidores.js` (a nota fora, os conteúdos
+mudados de casa, o filtro por habilitação, a tradição por modalidade, os três estados na rota e no
+cartão) · `motor/servidor/teste-cliente.js` · `tools/templates/ciclo.css` ·
+`raiz/assets/style.css` · `professores/coqui-de-redinha/ciclos/ciclo-01-breu/assets/style.css` ·
+`indices/esquema/tipos.json` · `experimentos/provar-conteudos-e-estado-da-turma.js` (novo) ·
+`experimentos/provar-cartao-da-turma.js` · `experimentos/provar-producao.js` · `.gitignore` ·
+`ARQUITETURA-GERAL.md` §2.3 · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** A especificação dela de 03/11/2026 (nota, conteúdos, auditoria da turma, formulário
+inteligente) · P-03, P-04, P-16 · a decisão da mesma manhã (§2.2, §2.3 de `ARQUITETURA-GERAL.md`) ·
+`ESTADO-ATUAL.md` §9.
+
+**O que ainda não está feito.** (a) **As tradições por modalidade não têm conteúdo**: a estrutura
+existe e nenhuma modalidade tem o seu `tradicoes.json` — os nomes são dela (P-16). (b) **A oferta da
+escola** (que modalidades tem à venda) continua a **não** existir como campo: é derivação das
+habilitações, e a página é síncrona. (c) A **modalidade continua escrita à mão em 10 sítios** de
+`motor/`, medidos por `provar-sinais-da-modalidade` §D. (d) **A `breu` continua no ar** — ela
+expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de sempre: **conteúdo**
+(11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.

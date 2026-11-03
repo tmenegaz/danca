@@ -4,7 +4,29 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `ddcd92a`, árvore **limpa**). Nesta entrega, **a turma
+> **Última fotografia:** 03/11/2026 (base `9d636fe`, árvore limpa). Nesta entrega, **o conteúdo
+> saiu do cadastro da turma**, e a turma passou a ter **três estados**. **(1) A auditoria que ela
+> pediu mudou o diagnóstico:** a rota `turma-editar` já recusava (409) a turma presa a um plano, mas
+> a turma que apenas **compunha uma curadoria** continuava editável — e a curadoria guarda o **nome**
+> dela, portanto renomear partia a ligação **sem erro nenhum**. O defeito não era o botão: era a
+> assimetria (o professor tinha três estados, a turma tinha dois). `motor/nucleo/estado-da-turma.js`
+> nomeia-os — `livre` · `curada` · `vinculada` —, `motivoDaRecusa` diz por que não se edita, e a
+> rota, o `DELETE` e o cartão perguntam ao mesmo sítio. **(2) A nota da turma saiu** do formulário e
+> da lista de campos copiados; o que já está gravado fica (P-03/P-04). **(3) Os conteúdos passaram
+> para a curadoria** — eram o último resto do enquadramento no cadastro —, e
+> `motor/nucleo/conteudos.js` **compõe** o mapa antigo (`turma-conteudos`, que continua a ser lido)
+> com o `repertorio` de cada curadoria: nada se perde, e o cartão continua a mostrar a lista.
+> **(4) O formulário da curadoria ficou inteligente**: as modalidades filtram-se pelas habilitações
+> do `perfil.json` do professor, e as tradições seguem a modalidade
+> (`motor/nucleo/tradicoes.js`: a lista própria vence a compartilhada — e uma modalidade **sem**
+> lista própria cai na compartilhada, em vez de ficar sem nenhuma). Nenhuma modalidade tem ainda o
+> seu `tradicoes.json`, e a tela **diz** isso em vez de fingir. Prova nova:
+> `provar-conteudos-e-estado-da-turma`, **74 asserções em 7 secções**. Também entrou
+> `indices/esquema/tipos.json` (o tipo `perfil`): o `perfil.json` que ela criou pela tela em 03/11
+> era o primeiro ficheiro do acervo **sem tipo declarado**, e o `check-indices` reprovava-o.
+>
+> **Entrega anterior** (base citada: `ddcd92a` — **corrigida** para `622071b`, ver §9; árvore
+> limpa). **A turma
 > deixou de ser o enquadramento** — e a decisão é dela, revendo a do mesmo dia. O nível, a
 > modalidade, a tradição e o professor tinham sido postos na **turma** de manhã; à tarde ela reviu:
 > «a turma deixa de ser carregada com definições rígidas de nível pedagógico», o cadastro fica
@@ -22,7 +44,7 @@
 > `niveis-da-turma.js` passou a `niveis.js` — o nome dizia «da turma» e deixou de ser verdade. Prova
 > nova: `provar-enquadramento-da-turma`, **46 asserções**.
 >
-> **Entrega anterior** (base `21089cb`, árvore **limpa**). A **habilitação passou a existir como
+> **Entrega anterior a essa** (base `21089cb`, árvore **limpa**). A **habilitação passou a existir como
 > dado** e a **turma passou a poder ficar descontinuada**. **(1)** As
 > três decisões dela: a **habilitação vive no perfil do professor** (`professores/<slug>/perfil.json`
 > → `modalidades`), **independente do tenant** — e o argumento é o expurgo: o KV de uma escola tem o
@@ -887,6 +909,9 @@ Verificado nesta fotografia, com os comandos da §9.
 | **O syllabus como produto** — a sequência por nível, com a camada pedagógica | **CONFIRMADO** 02/11/2026 na bancada (73 asserções, com o dicionário): um documento por nível na **ordem declarada** em `progressao.json`, mais um índice com as contagens; `exige` · `ensina` · `expressa` **herdados do termo ou sobrepostos pela relação**, com a origem escrita ao lado (`(herdado do termo)` / `(declarado no nível)`); `[Preencher]` só quando **nenhum dos dois** declara; o nível sem unidades diz que é a lacuna; `--nivel` gera um só, e um nível inexistente é **recusado**. Gerado por `node motor/produtos.js syllabus`. | `motor/nucleo/produtos/syllabus.js`, `motor/servidor/produtos.js`, `motor/produtos.js` |
 | **A licença é lida e a condição de conteúdo é executável** | **CONFIRMADO** 02/11/2026 na bancada: o nome da licença vem do **título** de `biblioteca/LICENSE.md` (o manifesto cita o caminho, e a lacuna `sem-licenca` desapareceu); e `--edicao paga` deixa de fora a definição **sem `fonte`**, di-lo no sítio dela, mantém o termo, e conta — **25** no catálogo de hoje, o mesmo número que a §10.4 mediu à mão. | `motor/produtos.js` (`licencaDoDisco`), `motor/nucleo/produtos/dicionario.js` |
 | **A composição catálogo × escola** — uma função só | **CONFIRMADO** 02/11/2026: `compor` dá precedência à escola e marca `origem`, mantendo a posição do catálogo na ordem. É a peça de código da fase 1 — **mas os ficheiros continuam um só** (ver §2 e §7). | `motor/nucleo/produtos/comum.js` |
+| **A turma tem três estados, e a edição pergunta antes** | **CONFIRMADO** 03/11/2026 (`provar-conteudos-e-estado-da-turma`, §B e §C): `livre` · `curada` · `vinculada`. A curada recusa a mudança de **nome** (a curadoria guarda o nome, e renomear partia a ligação em silêncio) e aceita o resto; a vinculada recusa tudo. A tela mostra o selo e desactiva o «Excluir»; a rota é quem decide. | `motor/nucleo/estado-da-turma.js`, `motor/servidor/bastidores.js` |
+| **Os conteúdos são da curadoria — e o mapa antigo continua a ler-se** | **CONFIRMADO** 03/11/2026 (§A, §D, §F): `conteudosDaTurma` e `mapaDeConteudos` compõem `turma-conteudos` com o `repertorio` de cada curadoria, colapsados pelo mesmo `idDe`; a curadoria **substituída** não entra. O passo 3 da turma ficou sem o bloco, e o cartão continua a mostrar a lista. | `motor/nucleo/conteudos.js`, `motor/servidor/bastidores.js` |
+| **O formulário da curadoria só oferece o que o professor pode ensinar** | **CONFIRMADO** 03/11/2026 (§G): as modalidades vêm do `perfil.json` do professor; a tradição segue a modalidade (lista própria a vencer a compartilhada, e queda para a compartilhada quando não há própria). **Nenhuma modalidade tem `tradicoes.json` próprio** — o conteúdo é dela (P-16). | `motor/nucleo/tradicoes.js`, `motor/servidor/bastidores.js` |
 
 ### Parcial
 
@@ -1429,6 +1454,37 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**A turma ficou só com o ritmo, e a auditoria que ela pediu mudou o diagnóstico (03/11/2026).** O
+pedido era «auditar a edição da turma depois da curadoria»: se a turma já compõe uma curadoria, a
+edição estrutural devia ser «bloqueada ou controlada». **CONFIRMADO** por leitura da rota e por
+prova: o que existia era **meio bloqueio**, e o meio que faltava era o perigoso. A rota recusava
+(409) a turma presa a um **plano de ensino** — a `vinculada` —, mas a turma apenas **curada**
+continuava a gravar tudo, inclusive o **nome**; e a curadoria guarda o **nome**, não o id. Renomear
+partia a ligação em silêncio: sem erro, sem vínculo, a curadoria a apontar para um nome que já não
+existia. O defeito não era o botão que faltava — era a **assimetria** (o professor tinha três
+estados, a turma tinha dois). Hoje há três nomes (`motor/nucleo/estado-da-turma.js`: `livre` ·
+`curada` · `vinculada`), uma função que diz **por que** não se edita, e três leitores que a
+consultam: a rota `turma-editar`, o `DELETE` e o cartão. **A turma curada não se apaga nem se
+trava**: edita-se no lugar o que não parte a ligação, e renomear pede sair da curadoria primeiro.
+A derivação continua a preservar a ligação, porque `turma-derivar` mantém o nome.
+
+**O que saiu do cadastro nesta volta.** A **nota** da turma (não é usada na operação; o campo
+deixou de ser copiado e o que está gravado fica) e os **conteúdos** — que eram o último resto do
+enquadramento ali. A associação do conteúdo passou para o formulário da **curadoria**
+(`#esc-conteudos`, o mesmo `escolhedor` das alunas, com o **nome** do termo como valor). Nada se
+perde: `motor/nucleo/conteudos.js` **compõe** o mapa antigo (`turma-conteudos`, que continua a ser
+lido) com o `repertorio` de cada curadoria, normalizando os dois lados pelo mesmo `idDe` — e o
+cartão da turma continua a mostrar a lista. **O mapa antigo não se migra: lê-se.**
+
+**O formulário da curadoria passou a ser inteligente.** As **modalidades** filtram-se pelas
+habilitações do `perfil.json` do professor (e a nota diz quando o perfil não declara nenhuma: «o
+professor não declarou modalidades»), e a **tradição** segue a modalidade. `motor/nucleo/tradicoes.js`
+guarda a precedência — **a lista própria da modalidade vence a compartilhada** — e, quando a
+modalidade **não tem** lista própria, cai na compartilhada: a regra nova não pode trancar o que já
+funcionava (jazz, circo e contemporâneo continuam curados, e a tela diz que a lista é a
+compartilhada). **NENHUMA modalidade tem ainda o seu `tradicoes.json`**: os nomes das tradições de
+cada uma são **conteúdo dela** (P-16), não do agente. **PENDENTE.**
+
 **O motor dos produtos está a meio, e o que falta é de conteúdo dela (02/11/2026).** O
 `PLANO-PRODUTOS-DO-MOTOR` tem seis fases; a **2** está feita para **dois dos três** produtos
 (dicionário e syllabus), com prova e CLI. O ponto exacto de continuidade:
@@ -1856,6 +1912,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
   não foi pedida. **PENDENTE**.
 
 ## 9. Validação
+
+### Executado nesta fotografia (03/11/2026 — os conteúdos na curadoria e os três estados da turma)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-conteudos-e-estado-da-turma.js` (novo) | **TUDO CERTO — 74 asserções em 7 secções**. **§A** o núcleo composto: o mapa antigo somado ao `repertorio`, colapsado pelo `idDe`, e a curadoria **substituída** a não entrar. **§B** os três estados e o motivo de cada recusa, **com os três do professor ao lado** — a assimetria era o defeito. **§C** a rota é a linha do servidor (o que a tela mostra é comodidade): `turma-editar` recusa a curada que muda o nome, **aceita** a que muda a hora, e recusa a vinculada. **§D** a tela: o passo 3 sem `#vinc-conteudos`, e a curadoria com o `escolhedor`. **§E** a nota saiu do cadastro e o que estava escrito **fica**. **§F** o termo ensinado numa curadoria de turma com plano **não** se apaga. **§G** o formulário inteligente: modalidade pelo perfil, tradição pela modalidade, e a queda para a compartilhada |
+| `provar-producao` | **151 de 155** (era **149 de 153**; as duas asserções acrescidas são as novas). Duas foram **reescritas em vez de contornadas**: a de «concluir exige conteúdo» (o formulário já não os oferece) e a do menu de conteúdos no passo 3 (mudou para a curadoria). As **quatro falhas restantes são as de antes** — medidas uma a uma, e a da lista de tradições do **verbete** vem do `tradicoes.json` (a `cubana` entrou e `compartilhada` vem no fim), não desta mudança |
+| `provar-cartao-da-turma` | **6 falhas, antes e depois**. As oito que esta mudança introduziu foram reescritas para medir a decisão nova (o passo 3 **sem** bloco de conteúdos, a curadoria **com** o `escolhedor`, a régua sem transbordar em 390px com a ressalva do `flex-wrap`). As seis que sobram são as mesmas do `--controle-negativo` sobre o motor de HEAD: os seletores globais `button.passo` apanham também a **segunda** barra de passos (a do verbete) |
+| `provar-teste` | **a mesma falha de antes** («a frequência não saiu dos dias da turma»), confirmada com e sem a mudança |
+| as outras sete (enquadramento, habilitação, tabela, sinais, verbete, produtos, linhas, música, leitura) | **TUDO CERTO** em todas |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| `hash-ciclo.sh … --check` · `gerar-indices.js --check` · `check-pacote.js` | **cadeia intacta** · **12 arquivos em dia** · **11 erros, antes e depois** (o pacote da `breu` nunca foi gerado por inteiro: falta o PDF e o `-dados.json`) |
+| **a correção do cabeçalho** | a fotografia anterior citava a base `ddcd92a`, que **não é ancestral** de `main` (sobra de um rebase). A base correta é `622071b` |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · **nenhuma curadoria real tem `repertorio`** hoje, e nenhuma modalidade tem lista própria de tradições — os dois caminhos medem-se com registos de ensaio |
 
 ### Executado nesta fotografia (03/11/2026 — a turma é o ritmo, a curadoria é o ensino)
 
@@ -2644,6 +2714,20 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **A auditoria da turma mudou o diagnóstico, e o conteúdo foi para a curadoria.**
+  A pergunta era se editar uma turma já curada fere a proveniência. A resposta: a rota já recusava a
+  turma **presa a um plano**, mas a turma apenas **curada** gravava tudo — inclusive o **nome**, que
+  é o que a curadoria guarda. Renomear partia a ligação **em silêncio**. O defeito era a
+  **assimetria** (três estados no professor, dois na turma), e a correção é
+  `motor/nucleo/estado-da-turma.js` com três nomes (`livre` · `curada` · `vinculada`) lidos pela
+  rota, pelo `DELETE` e pelo cartão. A **nota** da turma saiu do cadastro (o que está gravado fica),
+  e os **conteúdos** passaram para o formulário da curadoria — `motor/nucleo/conteudos.js` compõe o
+  mapa antigo com o `repertorio` das curadorias, e nada se perde. O formulário da curadoria passou a
+  **filtrar modalidades pelas habilitações** do perfil do professor e a **seguir a modalidade** nas
+  tradições (`motor/nucleo/tradicoes.js`, com a lista própria a vencer a compartilhada). Entrou
+  `indices/esquema/tipos.json` com o tipo `perfil` — o `perfil.json` criado pela tela era o primeiro
+  ficheiro do acervo sem tipo declarado.
 
 - **02/11/2026** — **O motor dos produtos começou: dicionário e syllabus.** Dois módulos puros em
   `motor/nucleo/produtos/`, a ponte em `motor/servidor/produtos.js`, o CLI `motor/produtos.js`, e a

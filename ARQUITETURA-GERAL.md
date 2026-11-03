@@ -132,9 +132,28 @@ garantia que depende de um acidente revoga-se sem avisar.
 | A **turma** — infraestrutura operacional | A **curadoria** — direção pedagógica |
 |:--|:--|
 | dias da semana, horários, duração, frequência e período | vinculação ao **professor** habilitado |
-| os **conteúdos** que aquele grupo vai aprender | **modalidade** e **tradição** de referência |
-| a **rubrica** de medição | o **nível** (`grau` + `nivel`), na forma da tradição |
-| as **alunas** (o vínculo operacional) | as **alunas** daquela entrega (o recorte) |
+| a **rubrica** de medição | **modalidade** e **tradição** de referência |
+| as **alunas** (o vínculo operacional) | o **nível** (`grau` + `nivel`), na forma da tradição |
+| — | os **conteúdos** que aquele grupo vai aprender |
+| — | as **alunas** daquela entrega (o recorte) |
+
+> **Correção de 03/11/2026 (mesmo dia).** A primeira redação desta tabela punha «os conteúdos que
+> aquele grupo vai aprender» do lado da **turma**. **Está errado**: o conteúdo prático é «um ato
+> pedagógico», e o sítio de um ato pedagógico é a curadoria — a turma é o **ritmo**. A associação
+> saiu do passo 3 do cadastro e vive no formulário da curadoria (`#esc-conteudos`), e o mapa antigo
+> (`turma-conteudos`) **continua a ser lido**: `motor/nucleo/conteudos.js` compõe-no com o
+> `repertorio` de cada curadoria e normaliza os dois lados pelo mesmo `idDe`. A versão anterior não
+> é apagada — fica como o elo que regista o que se pensou antes da correção.
+
+**A turma tem três estados, e a edição pergunta antes.** É o mesmo desenho do professor, que já
+tinha três (`livre` → `curado` → `vinculado`) e não tinha do lado da turma senão dois. A assimetria
+custava caro: a rota recusava (409) a turma presa a um **plano de ensino**, mas a turma apenas
+**curada** gravava tudo — inclusive o **nome**, e é o nome que a curadoria guarda. Renomear partia a
+ligação **em silêncio**: sem erro, sem vínculo, a curadoria a apontar para um nome que já não
+existia. Hoje há `motor/nucleo/estado-da-turma.js` com os três nomes e o motivo da recusa, lido por
+três sítios (a rota `turma-editar`, o `DELETE` e o cartão). **A turma curada não se apaga nem se
+trava**: edita-se no lugar o que não parte a ligação, e renomear pede sair da curadoria primeiro. A
+derivação preserva a ligação porque mantém o nome.
 
 **Três leituras ficariam ambíguas sem regra escrita** — e é para isso que existe
 `motor/nucleo/enquadramento.js`, um módulo puro:
