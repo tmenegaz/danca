@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T20:42:04-0300`
-Commit atual: `9547aaec` — fix(campo): a sequência não inventa linha — o repertório nasce na curadoria, e é lá que se muda
+Gerado em: `2026-11-03T20:53:17-0300`
+Commit atual: `93a1dc14` — fix(campo): o «Apagar» do registo solto volta à listagem — e é botão, não link
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+93a1dc14 fix(campo): o «Apagar» do registo solto volta à listagem — e é botão, não link
+8b6452d8 docs(registro): a sequência não inventa linha — e a correção é de uma decisão minha, de horas antes
 9547aaec fix(campo): a sequência não inventa linha — o repertório nasce na curadoria, e é lá que se muda
 af280726 chore(estrutura): reancorar a cadeia das fontes alteradas
 c13cfffa feat(plano): o plano elicitado vira a fonte do ciclo
@@ -103,8 +105,6 @@ b3e822eb feat(experimentos): a prova da metodologia que deixou de se perguntar
 c92f2af2 feat(campo): a metodologia é da curadoria — sai do formulário e lê-se no cabeçalho
 d0329926 chore(estrutura): reancorar a cadeia das fontes alteradas
 525c7083 chore(estrutura): regerar os índices derivados
-b97d26e8 chore(estrutura): regerar os índices derivados
-817229ff feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 ```
 
 ## Por professor
@@ -230,76 +230,79 @@ b97d26e8 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A sequência não inventa linha: o repertório nasce na curadoria
+## 03/11/2026 — O «Apagar» do registo solto volta à listagem, e é botão
 
-**O que motivou, e é uma correção do que eu tinha feito horas antes.** A pesquisadora: «adicionar
-uma linha não faz sentido existir aqui. Se eu quiser que tenha mais, eu preciso voltar lá para a
-produção e vincular na curadoria que tenha mais exercícios para essa turma. […] Isso quebra toda a
-nossa regra de negócio, porque a gente tá gerando uma fraude. Não foi curado isso. A curadoria ela é
-um plano também. Ela faz parte do que foi acordado por um comitê de professores ou o diretor da
-escola e o professor. […] Se o professor quer usar menos recursos, ele vai lá e tira, porque é
-autonomia dele.»
+**O que motivou.** A pesquisadora: «na listagem atual de Planos de Ensino, o sistema exibe
+corretamente o botão de editar para planos soltos. No entanto, o botão de apagar (excluir) sumiu».
+Sumiu mesmo, e a razão é de migração: a estante antiga da porta tinha `acoesDoPlano` com «editar» e
+«apagar»; quando a listagem passou a ser a página da **Área do Professor**, o `acoesDaLinha` trouxe
+o «Editar» e deixou o outro gesto para trás. Ficou a regra sem o botão.
 
-**O ARGUMENTO DELA ESTÁ CERTO, E O BOTÃO QUE EU TINHA ACABADO DE ACRESCENTAR ESTAVA ERRADO** — os
-dois, o «Adicionar linha» e o ✕. A justificativa que eu dei para o ✕ («havia como acrescentar e não
-como remover») estava certa na assimetria e errada na conclusão: o certo era não haver nem um nem
-outro. A tabela não é um lugar de decisão — é a **consolidação** do que foi decidido, e o próprio
-conteúdo do nó o dizia («É um DEMONSTRATIVO, e não um segundo lugar para decidir») enquanto oferecia
-os dois botões que o desmentiam.
+**E havia um segundo defeito da mesma família, na linha da ANAMNESE** — que a spec não nomeia mas o
+contexto dela cobre («a anamnese **ou** o plano»): o «Apagar» era um `<a>` para o **mesmo endereço**
+do «Editar». Dois botões, um destino, e o segundo a prometer uma coisa que não fazia — abria o
+formulário de edição. Um `DELETE` não tem página de destino.
 
-**A ORIGEM, escrita como ela a descreveu.** O exercício nasce nos **bastidores** (o verbete, com a
-música e o compasso), a curadoria é onde ele é **acordado** para aquela turma, e esta tabela é onde
-ele se **encontra** com o objetivo e o bloco. Acrescentar uma linha aqui é um acordo que ninguém fez,
-publicado como se fosse a aula — e o que se publica é a página da aula, exercício por exercício.
+**A REGRA, e é a mesma das duas famílias.**
 
-| O que saiu | Por quê |
+| Estado | O que a linha oferece |
 |:--|:--|
-| **«Adicionar linha»** (`acrescentavel: false`) | a linha nasce na curadoria, não aqui |
-| **o ✕ de cada linha** (`removivel: false`) | remover aqui é apagar a decisão no sítio errado — quem tira é a curadoria |
-| **o campo livre do «Conteúdo do nível»** (sai o `livre`) | era a mesma fraude por outra porta: escrever ali um exercício que não foi curado. A célula passou a ser **sempre** leitura, e a lacuna mostra-se como lacuna (`—`) |
-| **o `extras` da derivação** | as linhas gravadas que nenhuma decisão de agora reclamava ficavam na tabela «para não se perder o que o professor escreveu». O pressuposto era falso: ele **não pode escrever nenhuma célula desta tabela**. O que sobrava era semente de uma sessão anterior. |
+| **solto** (não vinculado a nenhum PO, não derivado) | **Editar** e **Apagar** |
+| **vinculado** (um PO o usa) | **Ajustar** — acrescenta um elo; o servidor recusa o `DELETE` com 409 |
+| **derivado** (`legado`) | **Ajustar** — o sucessor já existe |
+| **PO** | nunca «Apagar» — é o topo da cadeia (P-10) |
 
-**O que NÃO se perdeu.** O caminho legítimo continua inteiro e é o que a prova mede: marcar mais um
-exercício em «Parâmetro de medição» acrescenta as linhas dele em cada bloco onde o objetivo é
-trabalhado. E o envelope gravado **não se reescreve** (P-03) — a próxima gravação escreve o que a
-derivação decidiu, e o que ficou para trás fica como memória do que já foi.
+**A tela mostra o que a regra permite; quem decide é o servidor** — e as duas coisas ficaram
+medidas: o botão não aparece no vinculado, **e** o `DELETE` responde 409 com o motivo escrito.
 
-**O rodapé passou a dizer de onde a linha vem — por FORMA, não por id.** A tabela com objetivo por
-linha aponta a curadoria como o sítio do repertório; a **distribuição do volume**, que também recebe
-as linhas dos blocos marcados mas onde a proporção **se escreve**, mantém a frase dela. Uma mensagem
-só para as duas telas seria meia verdade numa delas, e a prova mede as duas.
+**O gesto, e por que é botão.** Exige a **senha do professor já conferida no painel**; quando não
+está, aponta o campo e diz porquê — em vez de pedir o segredo numa caixa fora do sítio onde ele se
+digita. Depois confirma **nomeando o sujeito** («Apagar a anamnese X de Aluna B?»), chama a rota e
+recarrega: a lista é do servidor, e apagar a linha do DOM deixaria a contagem, os filtros e a
+paginação a falar de um registo que já não existe.
 
-**Duas asserções guardavam a regra de ontem, e passavam a afirmar o contrário.** `provar-plano-matriz`
-dizia «o que não está na lista se escreve ao lado» e «a sequência aceita mais de um exercício» —
-as duas eram **verdadeiras até hoje** e são a regra que esta decisão revoga. Uma asserção que
-descreve o comportamento antigo não é uma prova, é um atraso: as duas passaram a afirmar o contrário,
-com a razão escrita ao lado, para o próximo agente não «corrigir» a tabela de volta.
+**Três defeitos encontrados no caminho, e nenhum deles era o pedido.**
+
+1. **A rota relativa não chegava.** As rotas de escrita vivem no roteador da **porta**, que a ponte
+   serve debaixo de `/anamnese` e `/plano-ensino`. Relativa, ela resolvia para
+   `/area-do-professor/plano-ensino/api/…` — **404**, medido. O caminho passou a levar o prefixo.
+2. **A assimetria do acervo.** O `guardar` cai no armazenamento antigo quando não há
+   `GITHUB_TOKEN` (a escola de antes continua a gravar); o **`apagar`** exigia token e respondia **500**. Era invisível enquanto ninguém apagava, e deixou de o ser no dia em que o botão a tornou
+   alcançável. Apagar é o inverso de gravar, e onde se gravou é onde se apaga.
+3. **A barreira do template.** O `\n\n` da confirmação, escrito num literal de template que gera
+   outro `<script>`, virava uma **quebra de linha real** dentro de uma string de JavaScript — e o
+   script inteiro da página deixava de correr com `SyntaxError`. Apanhado em JSDOM (o clique não
+   fazia nada e não havia erro à vista); a correção é `\\n`, e a lição é a mesma de sempre: o script
+   do cliente é **gerado**, e um escape atravessa duas linguagens.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-sequencia-que-acompanha` | **TUDO CERTO — 33 asserções, 6 secções**. §5 reescrita: **nenhum** `[data-grelha-add]`, **nenhum** `[data-grelha-del]`, **nenhum** campo livre nem seletor; **controlo positivo** — marcar um exercício a mais no parâmetro acrescenta **três** linhas (uma por bloco onde o objetivo é trabalhado); sem parâmetro marcado a célula fica vazia e travada (`—`), e o rodapé diz que o repertório se muda na Curadoria; e a distribuição do volume **não** herda essa frase |
-| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — verdes |
-| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-aula-e-plano-legiveis` · `provar-metodologia-no-cabecalho` · `provar-compasso-limpo` | **TUDO CERTO** nas cinco |
-| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
-| **vermelhos, e de antes** | `provar-plano-matriz` (a rota `/api/mapa` da bancada — a prova não corre, e por isso as duas asserções reescritas não chegam a ser medidas **nesta** bancada: ficam medidas pela §5 do `provar-sequencia-que-acompanha`) · `provar-derivados-da-sequencia` (as mesmas 2) · `provar-plano-completo` · `provar-po-completo` · `provar-notacao` |
+| `provar-apagar-da-listagem` (**novo**) | **TUDO CERTO — 31 asserções, 6 secções**. Monta uma **publicação mínima** num diretório temporário (a listagem não depende de existir ciclo gerado) e serve a página a sério por `producao.fetch`, com KV em memória. **§1** o plano solto: Editar + Apagar, com o carimbo e a rota certos, e «Apagar» **não** é link. **§2** o vinculado: nem Editar nem Apagar, «Ajustar», e o `DELETE` **recusado** pelo servidor (409, com o motivo); o derivado também não. **§3** a anamnese, solta e vinculada. **§4** o clique em JSDOM: **sem** a senha conferida não se chama a rota e o painel diz porquê; **com** ela, chama-se uma vez com o carimbo. **§5** o PO não ganha o botão. **§6** a rota apaga **mesmo** (200, o envelope desaparece, a listagem deixa de o mostrar; e a anamnese vinculada é recusada) |
+| `provar-acervo-envelopes` | **TUDO CERTO — 48 asserções**, incluindo «sem GITHUB_TOKEN a gravação vai para o KV» |
+| `provar-teste` · `provar-ajustes-anamnese` · `provar-ficha-na-listagem` | **45 verificações** · **126 provas** · **35 asserções** — verdes |
+| `provar-producao` | **153 de 156** — as mesmas três de antes (o item de menu marcado, a ordem das tradições, a contagem das pílulas) |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** · **14/14** · **TUDO CERTO** |
+| `provar-listas-do-acervo` | **NÃO FEITO — e continua sem poder correr**: a única escola viva (`breu`) ainda não tem `aula-NN.html` no pacote, e a bancada procura um ciclo gerado para servir. Não é o meu defeito, e é a razão por que a prova nova monta a própria publicação |
+| **vermelhos, e de antes** | `check-pacote` no `ciclo-01-breu` (11 erros: o pacote-zero não tem PDF, nem aulas, nem dados — nunca gerado aqui) |
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
-`porta/plano/conteudo/plano.json` é conteúdo.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
 
-**Com o quê.** `porta/plano/conteudo/plano.json` (os dois botões, o `livre`, a explicação) ·
-`porta/index.html` (o `extras` fora, a coluna derivada sempre em leitura, o rodapé por forma) · a
-cópia da porta no pacote · `experimentos/provar-sequencia-que-acompanha.js` ·
-`experimentos/provar-plano-matriz.js` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+**Com o quê.** `motor/servidor/listas-do-acervo.js` (`ROTA_DE_APAGAR`, `acoesDaLinha`, o handler do
+clique) · `motor/nucleo/lista-html.js` (o cartão aceita link **e** botão) ·
+`motor/servidor/acervo-envelopes.js` (a simetria do `apagar`) ·
+`experimentos/provar-apagar-da-listagem.js` (novo) · `.gitignore` · `REGISTRO.md` ·
+`ESTADO-ATUAL.md`.
 
-**Referências.** A correção dela de 03/11/2026 (a mesma sessão, horas depois) · a entrada anterior,
-do mesmo dia, que esta corrige · P-03/P-04 · Regra 10.
+**Referências.** A especificação dela de 03/11/2026 · a regra de proveniência (P-03/P-04, P-10) ·
+`rotas.js` 7.2 e 9 · a entrada de 26/10/2026, quando a estante da porta deu lugar à lista.
 
-**O que a decisão deixa por fazer.** O `provar-plano-matriz` continua **vermelho por outra razão**
-(a bancada não serve `/api/mapa`), e é o único sítio que ainda descreve — sem medir — o formato da
-sequência. Consertar a bancada é trabalho de meia hora e faria as duas asserções novas valerem por
-si; fica nomeado, e não escondido atrás de um verde que não existe.
+**O que fica por fazer.** (a) O `provar-listas-do-acervo` continua **NÃO FEITO** por falta de ciclo
+gerado — e é a bancada com mais cobertura da listagem; quando a `breu` tiver um pacote completo, ela
+mede o que sempre mediu. (b) A **senha só é conferida no cliente**: a rota `DELETE` não a pede (nem
+antes desta mudança), e o Worker não tem sessão — a área é protegida pelo endereço, não por
+credencial. Fica nomeado, porque é uma fronteira de segurança e não uma decisão de tela.
 
 ## O que está pendente
 

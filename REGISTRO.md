@@ -33626,3 +33626,77 @@ do mesmo dia, que esta corrige · P-03/P-04 · Regra 10.
 (a bancada não serve `/api/mapa`), e é o único sítio que ainda descreve — sem medir — o formato da
 sequência. Consertar a bancada é trabalho de meia hora e faria as duas asserções novas valerem por
 si; fica nomeado, e não escondido atrás de um verde que não existe.
+
+## 03/11/2026 — O «Apagar» do registo solto volta à listagem, e é botão
+
+**O que motivou.** A pesquisadora: «na listagem atual de Planos de Ensino, o sistema exibe
+corretamente o botão de editar para planos soltos. No entanto, o botão de apagar (excluir) sumiu».
+Sumiu mesmo, e a razão é de migração: a estante antiga da porta tinha `acoesDoPlano` com «editar» e
+«apagar»; quando a listagem passou a ser a página da **Área do Professor**, o `acoesDaLinha` trouxe
+o «Editar» e deixou o outro gesto para trás. Ficou a regra sem o botão.
+
+**E havia um segundo defeito da mesma família, na linha da ANAMNESE** — que a spec não nomeia mas o
+contexto dela cobre («a anamnese **ou** o plano»): o «Apagar» era um `<a>` para o **mesmo endereço**
+do «Editar». Dois botões, um destino, e o segundo a prometer uma coisa que não fazia — abria o
+formulário de edição. Um `DELETE` não tem página de destino.
+
+**A REGRA, e é a mesma das duas famílias.**
+
+| Estado | O que a linha oferece |
+|:--|:--|
+| **solto** (não vinculado a nenhum PO, não derivado) | **Editar** e **Apagar** |
+| **vinculado** (um PO o usa) | **Ajustar** — acrescenta um elo; o servidor recusa o `DELETE` com 409 |
+| **derivado** (`legado`) | **Ajustar** — o sucessor já existe |
+| **PO** | nunca «Apagar» — é o topo da cadeia (P-10) |
+
+**A tela mostra o que a regra permite; quem decide é o servidor** — e as duas coisas ficaram
+medidas: o botão não aparece no vinculado, **e** o `DELETE` responde 409 com o motivo escrito.
+
+**O gesto, e por que é botão.** Exige a **senha do professor já conferida no painel**; quando não
+está, aponta o campo e diz porquê — em vez de pedir o segredo numa caixa fora do sítio onde ele se
+digita. Depois confirma **nomeando o sujeito** («Apagar a anamnese X de Aluna B?»), chama a rota e
+recarrega: a lista é do servidor, e apagar a linha do DOM deixaria a contagem, os filtros e a
+paginação a falar de um registo que já não existe.
+
+**Três defeitos encontrados no caminho, e nenhum deles era o pedido.**
+
+1. **A rota relativa não chegava.** As rotas de escrita vivem no roteador da **porta**, que a ponte
+   serve debaixo de `/anamnese` e `/plano-ensino`. Relativa, ela resolvia para
+   `/area-do-professor/plano-ensino/api/…` — **404**, medido. O caminho passou a levar o prefixo.
+2. **A assimetria do acervo.** O `guardar` cai no armazenamento antigo quando não há
+   `GITHUB_TOKEN` (a escola de antes continua a gravar); o **`apagar`** exigia token e respondia **500**. Era invisível enquanto ninguém apagava, e deixou de o ser no dia em que o botão a tornou
+   alcançável. Apagar é o inverso de gravar, e onde se gravou é onde se apaga.
+3. **A barreira do template.** O `\n\n` da confirmação, escrito num literal de template que gera
+   outro `<script>`, virava uma **quebra de linha real** dentro de uma string de JavaScript — e o
+   script inteiro da página deixava de correr com `SyntaxError`. Apanhado em JSDOM (o clique não
+   fazia nada e não havia erro à vista); a correção é `\\n`, e a lição é a mesma de sempre: o script
+   do cliente é **gerado**, e um escape atravessa duas linguagens.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-apagar-da-listagem` (**novo**) | **TUDO CERTO — 31 asserções, 6 secções**. Monta uma **publicação mínima** num diretório temporário (a listagem não depende de existir ciclo gerado) e serve a página a sério por `producao.fetch`, com KV em memória. **§1** o plano solto: Editar + Apagar, com o carimbo e a rota certos, e «Apagar» **não** é link. **§2** o vinculado: nem Editar nem Apagar, «Ajustar», e o `DELETE` **recusado** pelo servidor (409, com o motivo); o derivado também não. **§3** a anamnese, solta e vinculada. **§4** o clique em JSDOM: **sem** a senha conferida não se chama a rota e o painel diz porquê; **com** ela, chama-se uma vez com o carimbo. **§5** o PO não ganha o botão. **§6** a rota apaga **mesmo** (200, o envelope desaparece, a listagem deixa de o mostrar; e a anamnese vinculada é recusada) |
+| `provar-acervo-envelopes` | **TUDO CERTO — 48 asserções**, incluindo «sem GITHUB_TOKEN a gravação vai para o KV» |
+| `provar-teste` · `provar-ajustes-anamnese` · `provar-ficha-na-listagem` | **45 verificações** · **126 provas** · **35 asserções** — verdes |
+| `provar-producao` | **153 de 156** — as mesmas três de antes (o item de menu marcado, a ordem das tradições, a contagem das pílulas) |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** · **14/14** · **TUDO CERTO** |
+| `provar-listas-do-acervo` | **NÃO FEITO — e continua sem poder correr**: a única escola viva (`breu`) ainda não tem `aula-NN.html` no pacote, e a bancada procura um ciclo gerado para servir. Não é o meu defeito, e é a razão por que a prova nova monta a própria publicação |
+| **vermelhos, e de antes** | `check-pacote` no `ciclo-01-breu` (11 erros: o pacote-zero não tem PDF, nem aulas, nem dados — nunca gerado aqui) |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+
+**Com o quê.** `motor/servidor/listas-do-acervo.js` (`ROTA_DE_APAGAR`, `acoesDaLinha`, o handler do
+clique) · `motor/nucleo/lista-html.js` (o cartão aceita link **e** botão) ·
+`motor/servidor/acervo-envelopes.js` (a simetria do `apagar`) ·
+`experimentos/provar-apagar-da-listagem.js` (novo) · `.gitignore` · `REGISTRO.md` ·
+`ESTADO-ATUAL.md`.
+
+**Referências.** A especificação dela de 03/11/2026 · a regra de proveniência (P-03/P-04, P-10) ·
+`rotas.js` 7.2 e 9 · a entrada de 26/10/2026, quando a estante da porta deu lugar à lista.
+
+**O que fica por fazer.** (a) O `provar-listas-do-acervo` continua **NÃO FEITO** por falta de ciclo
+gerado — e é a bancada com mais cobertura da listagem; quando a `breu` tiver um pacote completo, ela
+mede o que sempre mediu. (b) A **senha só é conferida no cliente**: a rota `DELETE` não a pede (nem
+antes desta mudança), e o Worker não tem sessão — a área é protegida pelo endereço, não por
+credencial. Fica nomeado, porque é uma fronteira de segurança e não uma decisão de tela.

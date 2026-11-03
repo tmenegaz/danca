@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `9547aae`, árvore limpa). Nesta entrega, **a sequência
+> **Última fotografia:** 03/11/2026 (base `93a1dc1`, árvore limpa). Nesta entrega, **o registo
+> solto voltou a poder ser apagado** — e o gesto passou a ser **botão**, não link. O «Apagar» sumiu
+> da listagem do plano quando ela passou a ser a página da Área do Professor (a estante antiga da
+> porta tinha-o); e na anamnese ele era um `<a>` para o **mesmo endereço** do «Editar» — dois
+> botões, um destino, o segundo a prometer o que não fazia. A regra é a mesma das duas famílias:
+> **solto** → Editar e Apagar; **vinculado a um PO** ou **derivado** → só Ajustar (e o servidor
+> recusa o `DELETE` com 409); **PO** → nunca. O clique exige a senha já conferida no painel, nomeia
+> o que vai apagar, e recarrega (a lista é do servidor). Três defeitos no caminho: a **rota
+> relativa** não chegava (404 — faltava o prefixo da porta), o **`apagar` do acervo** exigia token e
+> respondia 500 enquanto o `guardar` caía no KV (assimetria que o botão tornou alcançável), e o
+> `\n` da confirmação **quebrava o script da página** (escape a atravessar duas linguagens). Prova
+> nova: `provar-apagar-da-listagem`, **31 asserções em 6 secções**, com publicação mínima própria.
+>
+> **Entrega anterior** (base `9547aae`, árvore limpa). Nesta entrega, **a sequência
 > deixou de inventar linha** — e é a correção de uma decisão da mesma sessão, horas antes. O repertório
 > nasce nos **bastidores** (o verbete, com a música), é **acordado na curadoria** para aquela turma, e
 > esta tabela é onde ele se **encontra** com o objetivo e o bloco. Acrescentar uma linha aqui — ou
@@ -1540,6 +1553,28 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**O registo SOLTO edita-se e apaga-se; o VINCULADO só se ajusta (03/11/2026).** O «Apagar» tinha
+sumido da listagem do plano — a estante antiga da porta tinha-o, e a migração para a página da Área
+do Professor trouxe o «Editar» e deixou-o para trás. **CONFIRMADO** na página publicada da `breu`:
+o plano solto mostrava um único `class="acao"`. E na anamnese ele era um `<a>` para o **mesmo
+endereço** do «Editar», ou seja, um botão que prometia o que não fazia. **DECIDIDO**: o gesto é
+**botão** (um `DELETE` não tem página de destino), exige a senha já conferida no painel, nomeia o
+sujeito na confirmação, e **quem decide continua a ser o servidor** — o vinculado e o derivado não
+têm o botão **e** o `DELETE` responde 409.
+
+**Três defeitos no caminho, nenhum deles o pedido.** (1) A **rota relativa** não chegava: as rotas
+de escrita vivem no roteador da porta, servido debaixo de `/anamnese` e `/plano-ensino`; relativa,
+resolvia para `/area-do-professor/plano-ensino/api/…` — **404**, medido. (2) O **`apagar` do
+acervo** exigia `GITHUB_TOKEN` e respondia **500** enquanto o `guardar` caía no armazenamento antigo:
+assimetria invisível enquanto ninguém apagava, e que o botão tornou alcançável. (3) O `\n` da
+confirmação, escrito no literal de template que gera o `<script>`, virava uma **quebra de linha
+real** dentro de uma string — e o script da página inteira parava com `SyntaxError`. O escape
+atravessa duas linguagens, e é preciso escrevê-lo duas vezes.
+
+**A senha só é conferida no cliente, e isso é uma fronteira por nomear.** A rota `DELETE` não pede
+senha (nunca pediu), e o Worker não tem sessão: a Área do Professor é protegida **pelo endereço**,
+não por credencial. **PENDENTE**, e é decisão de segurança — não de tela.
+
 **A sequência não inventa linha — o repertório nasce na curadoria (03/11/2026).** Ela corrigiu, horas
 depois, o que eu tinha decidido na mesma sessão: **o «Adicionar linha» e o ✕ saem**, os dois. O
 argumento é dela e é de negócio: «a curadoria ela é um plano também. Ela faz parte do que foi
@@ -2112,7 +2147,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a sequência não inventa linha)
+### Executado nesta fotografia (03/11/2026 — o «Apagar» do registo solto)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-apagar-da-listagem.js` (novo) | **TUDO CERTO — 31 asserções em 6 secções**. Monta uma **publicação mínima** num diretório temporário — a listagem não depende de existir ciclo gerado — e serve a página a sério por `producao.fetch`, com KV em memória. **§1** o plano solto: Editar + Apagar, com o carimbo e a rota certos, e «Apagar» **não** é link. **§2** o vinculado: nem Editar nem Apagar, «Ajustar», e o `DELETE` **recusado** (409, com o motivo); o derivado também não. **§3** a anamnese, solta e vinculada. **§4** o clique em JSDOM: **sem** a senha conferida não se chama a rota e o painel diz porquê; **com** ela, chama-se uma vez com o carimbo. **§5** o PO não ganha o botão. **§6** a rota apaga **mesmo** (200, o envelope desaparece, a listagem deixa de o mostrar; a anamnese vinculada é recusada) |
+| `provar-acervo-envelopes` | **TUDO CERTO — 48 asserções**, incluindo «sem GITHUB_TOKEN a gravação vai para o KV» |
+| `provar-teste` · `provar-ajustes-anamnese` · `provar-ficha-na-listagem` | **45 verificações** · **126 provas** · **35 asserções** — verdes |
+| `provar-producao` | **153 de 156** — as mesmas três de antes (o item de menu marcado, a ordem das tradições, a contagem das pílulas) |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** · **14/14** · **TUDO CERTO** |
+| `provar-listas-do-acervo` | **NÃO FEITO** — a única escola viva (`breu`) não tem `aula-NN.html` no pacote, e a bancada procura um ciclo gerado para servir. É por isso que a prova nova monta a **própria** publicação |
+| **vermelhos, e de antes** | `check-pacote` no `ciclo-01-breu`: 11 erros (o pacote-zero não tem PDF, nem aulas, nem dados — nunca gerado aqui) |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
+
+### Executado na fotografia anterior (03/11/2026 — a sequência não inventa linha)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2123,7 +2171,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `provar-plano-matriz` — a bancada não serve `/api/mapa` e a prova **não corre**; as duas asserções que ela guarda (reescritas hoje para a regra nova) ficam medidas pela §5 do `provar-sequencia-que-acompanha` · `provar-derivados-da-sequencia` (as mesmas 2) · `provar-plano-completo` · `provar-po-completo` · `provar-notacao` |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado na fotografia anterior (03/11/2026 — a sequência acompanha os objetivos)
+### Executado duas fotografias atrás (03/11/2026 — a sequência acompanha os objetivos)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2135,7 +2183,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o caminho do schema aponta para `professores/leticia/`) · `provar-notacao` (o alfabeto não tem os exercícios que a fixture do ciclo lista) · `provar-plano-matriz` (a rota `/api/mapa` da bancada) · `check-pacote` no `ciclo-01-breu` (o pacote-zero não tem PDF nem aulas — nunca gerado aqui) |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado duas fotografias atrás (03/11/2026 — a metodologia é do professor)
+### Executado três fotografias atrás (03/11/2026 — a metodologia é do professor)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2146,7 +2194,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o caminho do schema aponta para `professores/leticia/`, que já não existe) · `provar-derivados-da-sequencia` (2 falhas) — medidos com o motor de HEAD, não tocados |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado três fotografias atrás (03/11/2026 — o compasso sem o dono da música)
+### Executado quatro fotografias atrás (03/11/2026 — o compasso sem o dono da música)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2984,6 +3032,14 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **O «Apagar» do registo solto volta à listagem, e é botão.** Sumiu na migração
+  para a página da Área do Professor, e na anamnese era um link para o formulário de edição. A regra
+  é a mesma das duas famílias: solto → Editar e Apagar; vinculado a um PO ou derivado → só Ajustar
+  (e o servidor recusa o `DELETE` com 409); PO → nunca. O clique exige a senha já conferida, nomeia
+  o sujeito e recarrega. Três defeitos no caminho: a rota relativa sem o prefixo da porta (404), o
+  `apagar` do acervo a exigir token enquanto o `guardar` caía no KV (500), e o `\n` da confirmação
+  a quebrar o script gerado. Prova nova: `provar-apagar-da-listagem`, 31 asserções.
 
 - **03/11/2026** — **A sequência não inventa linha.** Saiu o «Adicionar linha», saiu o ✕, saiu o
   campo livre do conteúdo e saiu o `extras` da derivação: o repertório nasce nos bastidores
