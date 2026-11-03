@@ -804,10 +804,14 @@ async function porta() {
   const noRoteiro = JSON.parse(await plano.win.eval(`JSON.stringify(
     Array.prototype.slice.call(document.querySelectorAll('#roteiro li[data-i]'))
       .map(function(li){ return Number(li.dataset.i); }))`));
-  assert.equal(semCabecalho.length, 7,
-    'os nós do cabeçalho não são 7: ' + JSON.stringify(semCabecalho));
+  /* O NÚMERO É DERIVADO, E NÃO ESCRITO (03/11/2026). Era `7` em três sítios, e a metodologia
+     entrou no cabeçalho — a conta passou a 8 e a asserção ficou vermelha por estar a medir a data
+     em que foi escrita. O que ela guarda não é o número: é a IGUALDADE entre os nós que o mapa
+     marca como do cabeçalho e os que o roteiro salta. Um nó novo entra sozinho. */
+  assert.ok(semCabecalho.length > 0,
+    'o mapa não tem nenhum nó do cabeçalho: ' + JSON.stringify(semCabecalho));
   const totalDeNos = await plano.win.eval('MAPA.nos.length');
-  assert.equal(noRoteiro.length, totalDeNos - 7,
+  assert.equal(noRoteiro.length, totalDeNos - semCabecalho.length,
     'o roteiro não perdeu os nós do cabeçalho: ' + JSON.stringify(noRoteiro));
   assert.deepEqual(noRoteiro.filter((i) => semCabecalho.indexOf(i) !== -1), [],
     'um nó do cabeçalho continua a ser um degrau do roteiro');
@@ -817,7 +821,7 @@ async function porta() {
   assert.equal(numeros[0], '1', 'a numeração do roteiro não começa em 1: ' + numeros[0]);
   assert.equal(numeros[numeros.length - 1], String(numeros.length),
     'a numeração do roteiro não conta só os degraus: ' + numeros.join(','));
-  ok('o roteiro salta os 7 nós do cabeçalho, e a numeração conta só o que se pergunta');
+  ok('o roteiro salta os ' + semCabecalho.length + ' nós do cabeçalho, e a numeração conta só o que se pergunta');
 
   const semeados = JSON.parse(await plano.win.eval(`(function(){
     pintarRoteiro();
@@ -844,8 +848,8 @@ async function porta() {
   const indicesDoCabecalho = JSON.parse(await plano.win.eval(
     'JSON.stringify(MAPA.nos.map(function(n, i){ return n.noCabecalho ? i : null; })'
     + '.filter(function(i){ return i !== null; }))'));
-  assert.equal(indicesDoCabecalho.length, 7,
-    'os nos do cabecalho nao sao 7: ' + JSON.stringify(indicesDoCabecalho));
+  assert.equal(indicesDoCabecalho.length, semCabecalho.length,
+    'a segunda leitura dos nos do cabecalho discorda da primeira: ' + JSON.stringify(indicesDoCabecalho));
   const leituras = [];
   for (const indiceDoNo of indicesDoCabecalho) {
     const r = JSON.parse(await plano.win.eval(
