@@ -32232,11 +32232,19 @@ como estavam. E isso é uma decisão, não um acaso: a fase 3 do plano reutiliza
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-produtos` | **50 asserções, TUDO CERTO** — §A a fronteira; §B o dicionário (ordem, lacunas, compasso por pista 1,1,2,2, notação composta, verbete que não fecha); §C o syllabus (ordem declarada, camada, órfã, nível vazio, `--nivel`, recusa); §D as adições fora por omissão; §E o determinismo; §F o ritmo ausente; §G o catálogo real (**só contagens**); §H o CLI |
+| `provar-produtos` | **52 asserções, TUDO CERTO** — §A a fronteira; §B o dicionário (ordem, lacunas, compasso por pista 1,1,2,2, notação composta, verbete que não fecha); §C o syllabus (ordem declarada, camada, órfã, nível vazio, `--nivel`, recusa); §D as adições fora por omissão; §E o determinismo; §F o ritmo ausente; §G o catálogo real (**só contagens**); §H o CLI |
 | `provar-verbete` | **TUDO CERTO** — o `lerProgressao` entrou sem mexer no `lerModalidade` |
 | `check-identidade` · `check-indices` | 20/20 · 14/14 |
-| **o catálogo de hoje, medido** | 93 termos (59 com definição, 34 com origem), **0 verbetes** no alfabeto (versão 31), 13 níveis com **9 associações em 2** |
+| **o catálogo de hoje, medido** | 93 termos (59 com definição, 34 com origem), **1 verbete** no alfabeto (o `Plié` em 4\|2/4, versão 32), 13 níveis com **9 associações em 2** |
 | **o que a prova NÃO afirma** | nada sobre o **conteúdo** — quantos termos, quais, se são bons. É a lição de hoje: uma prova que mede o conteúdo reprova quando o conteúdo muda |
+
+**Correcção de 02/11/2026, antes do push.** A primeira redação desta entrada dizia «**0 verbetes**
+no alfabeto, versão 31» e «55 exercícios sem verbete». **Está desactualizado**: enquanto a sessão
+escrevia, ela declarou o **`Plié` em 4 tempos de 2/4** pela Produção (commit `23d4c0e`, versão
+**32**), e o `git push` foi recusado por *non-fast-forward* — o sintoma de sempre. Rebase feito, o
+número mudou para **1 verbete** e **54 exercícios sem verbete**, e a prova continua verde porque a §G
+mede **contagens dinâmicas**: foi para isto que ela deixou de fixar o conteúdo. A redação anterior
+não se apaga: fica como o elo que registra o que se mediu antes de o remoto mudar.
 
 **O que ainda não está feito.** (a) **A aula pronta** — o terceiro produto, e o próximo passo de
 código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
@@ -32245,5 +32253,5 @@ catálogo, e o critério 5 do plano («criar um termo numa escola não altera o 
 **não passa**. (c) **A fase 3 não começou**: não há `.fipp` de produto, e o campo `licenca` sai
 «pendente» porque o `LICENSE.md` não existe. (d) **A fase 4** espera por C11, e a **5** pela 3.
 (e) **O contrato dos três campos** é meu, não dela (§8 do `ESTADO-ATUAL.md`). (f) O conteúdo é o
-caminho crítico: o produto sai honesto e **magro** — 55 exercícios sem verbete, 34 termos sem
+caminho crítico: o produto sai honesto e **magro** — 54 exercícios sem verbete, 34 termos sem
 definição e 11 níveis vazios.

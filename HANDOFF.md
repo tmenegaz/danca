@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T21:09:35-0300`
-Commit atual: `2a59d98` — docs(registro): a segunda passagem sobre a mesma tela, e o que ela reverteu
+Gerado em: `2026-11-02T21:12:03-0300`
+Commit atual: `76d023c` — docs(registro): a fotografia dos dois produtos, e o que eles ainda não são
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,9 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+76d023c docs(registro): a fotografia dos dois produtos, e o que eles ainda não são
+9760028 feat(estrutura): o motor dos produtos — o dicionário e o syllabus, gerados do catálogo
+23d4c0e feat(notacao): declarar «Plié» (4|2/4) no alfabeto bale-classico
 2a59d98 docs(registro): a segunda passagem sobre a mesma tela, e o que ela reverteu
 dbb5ade fix(notacao): o rótulo em Title Case, a navegação que trava e o «Apagar» fora do passo 6
 0e2ac45 fix(experimentos): as provas deixam de depender do conteúdo editorial do alfabeto
@@ -102,9 +105,6 @@ fa4ab07 chore(notacao): apagar o verbete «Rond de jambe à terre» no alfabeto 
 95ecee5 chore(notacao): apagar o verbete «Plié» no alfabeto bale-classico
 cc54844 refactor(notacao): o código morto do campo da posição, e a razão onde ele estava
 2b9de93 feat(notacao): a música bloqueia, o passo 1 fica condicional e o verbete aprende a apagar-se
-dbc3797 feat(notacao): o cartão das turmas na listagem, e o vocabulário que cresceu
-6c4227d docs(notacao): editar «Plié» (32|4/4) no alfabeto bale-classico — substitui a música 16|4/4
-b7acca6 fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
 ```
 
 ## Por professor
@@ -281,11 +281,19 @@ como estavam. E isso é uma decisão, não um acaso: a fase 3 do plano reutiliza
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-produtos` | **50 asserções, TUDO CERTO** — §A a fronteira; §B o dicionário (ordem, lacunas, compasso por pista 1,1,2,2, notação composta, verbete que não fecha); §C o syllabus (ordem declarada, camada, órfã, nível vazio, `--nivel`, recusa); §D as adições fora por omissão; §E o determinismo; §F o ritmo ausente; §G o catálogo real (**só contagens**); §H o CLI |
+| `provar-produtos` | **52 asserções, TUDO CERTO** — §A a fronteira; §B o dicionário (ordem, lacunas, compasso por pista 1,1,2,2, notação composta, verbete que não fecha); §C o syllabus (ordem declarada, camada, órfã, nível vazio, `--nivel`, recusa); §D as adições fora por omissão; §E o determinismo; §F o ritmo ausente; §G o catálogo real (**só contagens**); §H o CLI |
 | `provar-verbete` | **TUDO CERTO** — o `lerProgressao` entrou sem mexer no `lerModalidade` |
 | `check-identidade` · `check-indices` | 20/20 · 14/14 |
-| **o catálogo de hoje, medido** | 93 termos (59 com definição, 34 com origem), **0 verbetes** no alfabeto (versão 31), 13 níveis com **9 associações em 2** |
+| **o catálogo de hoje, medido** | 93 termos (59 com definição, 34 com origem), **1 verbete** no alfabeto (o `Plié` em 4\|2/4, versão 32), 13 níveis com **9 associações em 2** |
 | **o que a prova NÃO afirma** | nada sobre o **conteúdo** — quantos termos, quais, se são bons. É a lição de hoje: uma prova que mede o conteúdo reprova quando o conteúdo muda |
+
+**Correcção de 02/11/2026, antes do push.** A primeira redação desta entrada dizia «**0 verbetes**
+no alfabeto, versão 31» e «55 exercícios sem verbete». **Está desactualizado**: enquanto a sessão
+escrevia, ela declarou o **`Plié` em 4 tempos de 2/4** pela Produção (commit `23d4c0e`, versão
+**32**), e o `git push` foi recusado por *non-fast-forward* — o sintoma de sempre. Rebase feito, o
+número mudou para **1 verbete** e **54 exercícios sem verbete**, e a prova continua verde porque a §G
+mede **contagens dinâmicas**: foi para isto que ela deixou de fixar o conteúdo. A redação anterior
+não se apaga: fica como o elo que registra o que se mediu antes de o remoto mudar.
 
 **O que ainda não está feito.** (a) **A aula pronta** — o terceiro produto, e o próximo passo de
 código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
@@ -294,7 +302,7 @@ catálogo, e o critério 5 do plano («criar um termo numa escola não altera o 
 **não passa**. (c) **A fase 3 não começou**: não há `.fipp` de produto, e o campo `licenca` sai
 «pendente» porque o `LICENSE.md` não existe. (d) **A fase 4** espera por C11, e a **5** pela 3.
 (e) **O contrato dos três campos** é meu, não dela (§8 do `ESTADO-ATUAL.md`). (f) O conteúdo é o
-caminho crítico: o produto sai honesto e **magro** — 55 exercícios sem verbete, 34 termos sem
+caminho crítico: o produto sai honesto e **magro** — 54 exercícios sem verbete, 34 termos sem
 definição e 11 níveis vazios.
 
 ## O que está pendente

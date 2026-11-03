@@ -75,6 +75,16 @@ const ALFABETO = {
   verbetes: {
     _comentario: 'o comentário não é exercício',
     'Battement tendu': {
+      // UMA MÚSICA COM REPETIÇÃO, para a tabela não esconder o que o trecho ocupa.
+      '4|4/4': {
+        cobre: 4,
+        celulas: {
+          devant: [
+            { contagem: '1–2', categoria: 'Pé', sinais: ['1ª', '→', '+'], repeticoes: 2,
+              descricao: 'extensão à frente, duas vezes' },
+          ],
+        },
+      },
       '8|4/4': {
         cobre: 8,
         celulas: {
@@ -195,13 +205,23 @@ const dic = dicionario.gerar(BASE);
       && dic.manifesto.contagens.com_origem === 3, dic.manifesto.contagens);
 
   // O COMPASSO É POR PISTA, e a conta é a do editor: quatro trechos de `Pé` em 4/4 dão 1,1,2,2.
-  const compassos = [...t.matchAll(/^\| (\d+) \| [^|]+ \| [^|]+ \| Pé \|/gm)].map((m) => m[1]);
+  // A CONTA É LIDA NA MÚSICA DE 8, e não no documento inteiro: a de 4 tem uma linha só, e somar
+  // as duas tabelas mediria outra coisa.
+  const trechoDe8 = t.slice(t.indexOf('**8 tempos em 4/4**'));
+  const compassos = [...trechoDe8.matchAll(/^\| (\d+) \| [^|]+ \| [^|]+ \| Pé \|/gm)].map((m) => m[1]);
   checar('a decomposição sai em tabela, com o compasso por pista — 1, 1, 2, 2',
     JSON.stringify(compassos) === JSON.stringify(['1', '1', '2', '2']), compassos);
   checar('e a notação vai composta, como o documento a escreve',
     /`\[Pé: 1ª → \+]`/.test(t));
   checar('cada trecho leva o «o que acontece» dele',
     /extensão à frente/.test(t) && /extensão atrás/.test(t));
+  // A REPETIÇÃO APARECE NA CONTAGEM. «1–2» repetido duas vezes ocupa quatro tempos; a tabela que
+  // só dissesse «1–2» estaria a dizer que o trecho não enche a música.
+  checar('a repetição vai ao lado da contagem, e não escondida',
+    /\| 1 \| 1–2 ×2 \|/.test(t), (t.match(/\| 1 \| 1–2[^|]*\|/g) || []));
+  checar('e as duas músicas do exercício saem por ordem de tempos — 4 antes de 8',
+    t.indexOf('4 tempos em 4/4') !== -1 && t.indexOf('4 tempos em 4/4') < t.indexOf('8 tempos em 4/4'),
+    [t.indexOf('4 tempos em 4/4'), t.indexOf('8 tempos em 4/4')]);
 
   // O VERBETE QUE NÃO FECHA NÃO PUBLICA A CONTAGEM.
   checar('o verbete que não fecha sai com [conferir] e o motivo, e não com o número torto',

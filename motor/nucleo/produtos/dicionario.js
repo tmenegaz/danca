@@ -51,6 +51,12 @@ function tabelaDaMusica(musica, verbete) {
       linhas.push({
         compasso: compasso.get(direcao + ':' + k) || 1,
         contagem: String((c && c.contagem) || '').trim(),
+        // A REPETIÇÃO ENTRA NA COLUNA (02/11/2026). Um trecho «1–2» repetido duas vezes ocupa
+        // QUATRO tempos, e a tabela que só mostrasse «1–2» diria a um leitor que ele não enche a
+        // música — que é exactamente o contrário do que o verbete declara. O número vai ao lado
+        // da contagem, e não numa coluna nova: numa tabela de seis colunas, a sétima é a que
+        // ninguém lê.
+        repeticoes: Number((c && c.repeticoes) || 1),
         direcao: direcao || '—',
         pista: String((c && c.categoria) || '').trim() || '—',
         bloco: comum.blocoDaCelula(c),
@@ -224,7 +230,8 @@ function gerar(entrada) {
           linhas.push('| compasso | contagem | direção | pista | notação | o que acontece |');
           linhas.push('|:--|:--|:--|:--|:--|:--|');
           for (const l of lida.linhas) {
-            linhas.push('| ' + l.compasso + ' | ' + comum.celula(l.contagem) + ' | '
+            linhas.push('| ' + l.compasso + ' | '
+              + comum.celula(l.contagem + (l.repeticoes > 1 ? ' ×' + l.repeticoes : '')) + ' | '
               + comum.celula(l.direcao) + ' | ' + comum.celula(l.pista) + ' | `'
               + comum.celula(l.bloco) + '` | ' + comum.celula(l.descricao) + ' |');
           }
