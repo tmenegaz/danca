@@ -547,3 +547,8 @@ experimentos/modelo-formulario/*
 # A TURMA É O RITMO, A CURADORIA É O ENSINO (03/11/2026). O nível, a modalidade, a tradição e o
 # professor saíram do cadastro da turma; a memória não se apaga. Citada no `REGISTRO.md`.
 !experimentos/provar-enquadramento-da-turma.js
+
+# O CONTEÚDO É DA CURADORIA, E A TURMA TEM TRÊS ESTADOS (03/11/2026). O passo 3 da turma perdeu os
+# conteúdos; a turma que já está numa curadoria deriva em vez de se editar; e a nota da turma saiu
+# do cadastro sem apagar o que já estava escrito. Citada no `REGISTRO.md`.
+!experimentos/provar-conteudos-e-estado-da-turma.js

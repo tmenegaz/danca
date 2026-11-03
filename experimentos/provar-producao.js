@@ -792,13 +792,18 @@ async function principal() {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(Object.assign({ senhaDirecao: SENHA_DA_DIRECAO }, corpo)),
   });
-  // «GRAVAR TURMA» TEM A VALIDAÇÃO MÁXIMA NO SERVIDOR (18/10/2026): concluir sem conteúdo
-  // é recusado, mesmo que a tela tenha deixado o botão acender. O ato intermédio «Associar
-  // rubrica» continua a poder gravar só o vínculo — é por isso que `concluir` existe.
+  // «GRAVAR TURMA» TEM A VALIDAÇÃO MÁXIMA NO SERVIDOR (18/10/2026), e ela mudou a 03/11/2026:
+  // concluir sem RUBRICA continua a ser recusado, e concluir sem CONTEÚDO deixou de o ser —
+  // porque os conteúdos saíram do formulário da turma e passaram para a curadoria. Uma validação
+  // que exige o que o formulário já não pede tranca a escola em vez de a proteger, e esta
+  // asserção guardava exactamente essa tranca.
+  const concluirSemRegua = await vincular({ turma: 'turma-sem-regua', concluir: true });
+  conferir('«Gravar turma» sem rubrica é recusado', concluirSemRegua.status, 400);
   const concluirSemConteudo = await vincular({
     turma: 'turma-sem-regua', rubricaId: 'regua-do-nivel-1', concluir: true,
   });
-  conferir('«Gravar turma» sem conteúdo associado é recusado', concluirSemConteudo.status, 400);
+  conferir('…e concluir SEM conteúdo é aceite, porque o conteúdo já não é daqui',
+    concluirSemConteudo.status, 200);
   const vinc1 = await vincular({ turma: 'turma-sem-regua', rubricaId: 'regua-do-nivel-1' });
   conferir('a turma é vinculada a uma rubrica', vinc1.status, 200);
   turmas = (await (await pedir(env, '/api/bastidores/turmas')).json()).turmas;
@@ -962,11 +967,16 @@ async function principal() {
   });
   conferir('tradição fora do catálogo é recusada', tradicaoInventada.status, 400);
   const comTermos = await (await pedir(env, '/bastidores/producao')).text();
-  // O MENU DOS TERMOS vive agora num lugar só: o passo «Associar» da TURMA (`#vinc-termo`),
-  // que é quem alimenta o plano.
-  const menuDosTermos = (comTermos.match(/id="vinc-termo"[\s\S]*?<\/select>/) || [''])[0];
+  // O MENU DOS TERMOS MUDOU DE CASA A 03/11/2026: era o passo «Associar» da TURMA
+  // (`#vinc-termo`), e é agora o escolhedor da CURADORIA (`#esc-conteudos`). A asserção é a
+  // mesma pergunta — «o menu oferece o vocabulário inteiro?» —, feita no sítio certo.
+  //
+  // E O SÍTIO É A AFIRMAÇÃO: o `#vinc-termo` deixou de existir porque o conteúdo saiu da turma.
+  // Uma bancada que continuasse a procurá-lo passaria a medir uma página que já não existe.
+  conferir('o passo 3 da turma já não tem menu de termos', comTermos.includes('id="vinc-termo"'), false);
+  const menuDosTermos = (comTermos.match(/id="esc-conteudos"[\s\S]*?<\/select>/) || [''])[0];
   const vocabularioDaModalidade = require('../motor/servidor/catalogo-seed.js').TERMOS;
-  conferir('…e os termos do vocabulário entram como OPÇÕES do menu da turma',
+  conferir('…e os termos do vocabulário entram como OPÇÕES do menu da curadoria',
     (menuDosTermos.match(/<option /g) || []).length, vocabularioDaModalidade.length + 1);
   conferir('…e o formulário entrega as fichas que o servidor espera',
     script.includes('fichasDe("esc-alunas")'), true);

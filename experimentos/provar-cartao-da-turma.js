@@ -513,15 +513,16 @@ const LI = 'li.turma[data-turma="tu1"]';
 
   // ---- 9 a 14: a ASSOCIAÇÃO vive no PASSO 3, e o passo é uma SEQUÊNCIA ------------
   //
-  // A regra mudou duas vezes (18/10/2026), e a segunda corrigiu a primeira:
+  // A regra mudou três vezes:
   //
-  //   1. a associação saiu do cartão (o painel passou a MOSTRAR);
-  //   2. e saiu TAMBÉM do formulário da turma — só se associa conteúdo a uma turma que já
-  //      existe, e o cadastro é o sítio onde ela ainda está a nascer. Foi para o passo 3,
-  //      «Associar», que é onde a turma já existe e recebe a régua e os conteúdos.
+  //   1. (18/10/2026) a associação saiu do cartão (o painel passou a MOSTRAR);
+  //   2. (18/10/2026) e saiu TAMBÉM do formulário da turma — só se associa a uma turma que já
+  //      existe, e o cadastro é o sítio onde ela ainda está a nascer. Foi para o passo 3;
+  //   3. (03/11/2026) e a dos CONTEÚDOS saiu do passo 3 também: o conteúdo é ato pedagógico, e
+  //      o passo 3 ficou só com a régua. Ver `provar-conteudos-e-estado-da-turma.js`.
   //
-  // As provas abaixo medem as três coisas: o que o painel do cartão deixou de ter, o que o
-  // formulário da turma deixou de ter, e o que o passo 3 passou a ter.
+  // As provas abaixo medem as três coisas: o que o painel do cartão deixou de ter, o que os
+  // dois formulários deixaram de ter, e o que o passo 3 passou a ter.
 
   await pg.evaluate(() => { location.hash = '#turmas'; });
   await pg.waitForFunction(() => {
@@ -557,7 +558,12 @@ const LI = 'li.turma[data-turma="tu1"]';
   }));
   provar('o formulário da TURMA não tem mais bloco de conteúdos',
     noCadastro.noFormularioDaTurma === false && noCadastro.temBlocoDaTurma === false, noCadastro);
-  provar('o bloco de conteúdos existe no passo ASSOCIAR', noCadastro.temBlocoNoPasso3 === true, noCadastro);
+  // E O PASSO «ASSOCIAR» TAMBÉM NÃO O TEM (03/11/2026). Ele morou aqui entre 18/10 e 03/11 — a
+  // régua e os conteúdos associavam-se no mesmo passo, porque o passo é o sítio onde a turma já
+  // existe. A pesquisadora levou-o mais longe: o conteúdo é «um ato pedagógico», e o lugar de um
+  // ato pedagógico é a CURADORIA. O passo 3 ficou com o que é dele — a rubrica.
+  provar('…nem o passo ASSOCIAR, que passou a ser só da rubrica',
+    noCadastro.temBlocoNoPasso3 === false, noCadastro);
 
   // OS TRÊS PASSOS: o rótulo, a ordem e o nome semântico.
   const passos = await pg.evaluate(() => [...document.querySelectorAll('button.passo')].map((b) => ({
@@ -678,22 +684,30 @@ const LI = 'li.turma[data-turma="tu1"]';
       temAssociarTermo: Boolean(document.getElementById('vinc-associar-termo')),
     };
   });
-  provar('o passo «Associar» mostra a turma em foco e os chips DELA',
+  provar('o passo «Associar» mostra a turma em foco, sem chips de conteúdo',
     noPasso3.visivel && /Balé nível 1/.test(noPasso3.nomeDaTurma) &&
-    !noPasso3.temSelectTurma && noPasso3.chipsDaTurma1 === 2, noPasso3);
+    !noPasso3.temSelectTurma && noPasso3.chipsDaTurma1 === 0, noPasso3);
   provar('…e diz com que régua a turma está hoje', /Hoje:/.test(noPasso3.estado), noPasso3.estado);
   provar('…e tem associar E desassociar a RUBRICA',
     noPasso3.temRubrica && noPasso3.temAssociarRubrica && noPasso3.temDesassociarRubrica, noPasso3);
-  provar('…e associar o CONTEÚDO', noPasso3.temAssociarTermo === true, noPasso3);
+  provar('…e NÃO associa conteúdo — isso é da curadoria', noPasso3.temAssociarTermo === false, noPasso3);
 
-  // OS CHIPS SÃO OS DA TURMA EM FOCO — e não há como «trocar de turma» aqui: a troca é sair
-  // da edição e entrar noutra. O que se prova é que os chips e o «×» vieram do bloco DELA.
-  const chipsDaTurma = await pg.evaluate(() => ({
-    chips: document.querySelectorAll('#vinc-conteudos .chip').length,
-    remover: document.querySelectorAll('#vinc-conteudos button.desassociar').length,
-  }));
-  provar('os chips do passo 3 são os da turma em foco',
-    chipsDaTurma.chips === 2 && chipsDaTurma.remover === 2, chipsDaTurma);
+  // O CONTEÚDO MUDOU DE CASA (03/11/2026). O que era o `#vinc-conteudos` é hoje o
+  // `#esc-conteudos` do formulário da CURADORIA — o mesmo `escolhedor` das alunas, com o NOME
+  // do termo como valor (a lista é para o professor LER). O que se prova é o par: o passo 3
+  // ficou sem ele, e a curadoria passou a tê-lo, com opções de verdade.
+  const conteudosOndeEstao = await pg.evaluate(() => {
+    const e = document.getElementById('esc-conteudos');
+    return {
+      noPasso3: document.querySelectorAll('#vinc-conteudos *').length,
+      naCuradoria: Boolean(e),
+      opcoes: e ? e.querySelectorAll('select.opcoes option[value]:not([value=""])').length : 0,
+      adicionar: e ? Boolean(e.querySelector('button.adicionar')) : false,
+    };
+  });
+  provar('os conteúdos saíram do passo 3 e vivem no formulário da curadoria',
+    conteudosOndeEstao.noPasso3 === 0 && conteudosOndeEstao.naCuradoria &&
+    conteudosOndeEstao.opcoes > 1 && conteudosOndeEstao.adicionar, conteudosOndeEstao);
 
   // O PASSO É LEMBRADO: recarregar não devolve a direção ao passo 1.
   await pg.reload({ waitUntil: 'load' });
@@ -718,27 +732,38 @@ const LI = 'li.turma[data-turma="tu1"]';
   });
   await pg.waitForFunction(() => {
     const p = document.getElementById('passo-vincular');
-    return Boolean(p) && !p.hidden && Boolean(document.getElementById('vinc-termo'));
+    return Boolean(p) && !p.hidden && Boolean(document.getElementById('vinc-rubrica'));
   }, { timeout: 2000 }).catch(() => {});
+  // O QUE SE MEDE NO TELEFONE, DEPOIS DE 03/11/2026: o par «seletor de termo + Adicionar»
+  // deixou de existir no passo 3 (foi para a curadoria), e o que resta é a régua. A geometria
+  // que importa é a dela: o seletor com largura útil, os dois botões juntos, e nada a estourar.
   const par = await pg.evaluate(() => {
-    const s = document.getElementById('vinc-termo');
-    const b = document.getElementById('vinc-associar-termo');
-    const caixa = document.getElementById('vinc-conteudos');
-    if (!s || !b) return { tem: false };
+    const s = document.getElementById('vinc-rubrica');
+    const a = document.getElementById('vinc-associar');
+    const d = document.getElementById('vinc-desassociar');
+    const p = document.getElementById('passo-vincular');
+    if (!s || !a || !d || !p) return { tem: false };
     const r = (x) => x.getBoundingClientRect();
+    const caixa = p.getBoundingClientRect();
     return {
       tem: true,
-      mesmaLinha: Math.abs(r(s).top - r(b).top) <= 4,
-      dentro: Math.round(r(b).right) <= Math.round(r(caixa.parentElement).right) + 1,
       larguraDoSeletor: Math.round(r(s).width),
-      estouro: caixa.parentElement.scrollWidth - caixa.parentElement.clientWidth,
+      estouro: p.scrollWidth - p.clientWidth,
+      // `.par-botoes` é `flex-wrap:wrap`: no telefone os dois botões podem descer um para
+      // baixo do outro, e isso é o desenho — o que NÃO pode é um deles sair da caixa.
+      dentroDaCaixa: Math.round(r(a).right) <= Math.round(caixa.right) + 1 &&
+        Math.round(r(d).right) <= Math.round(caixa.right) + 1,
+      seletorDeTermo: Boolean(document.getElementById('vinc-termo')),
     };
   });
-  provar('no telefone, no passo Associar, o seletor e o botão ficam na MESMA linha',
-    par && par.tem && par.mesmaLinha, par);
-  provar('…e o botão fica dentro do bloco', par && par.dentro, par);
-  provar('…e o seletor tem largura útil', par && par.larguraDoSeletor > 120, par && par.larguraDoSeletor);
-  provar('…e o bloco não transborda em 390px', par && par.estouro <= 1, par && par.estouro);
+  provar('no telefone, o passo Associar não transborda em 390px',
+    par && par.tem && par.estouro <= 1, par);
+  provar('…e o seletor da rubrica tem largura útil',
+    par && par.larguraDoSeletor > 120, par && par.larguraDoSeletor);
+  provar('…e os dois botões da rubrica cabem na caixa (um pode descer)',
+    par && par.dentroDaCaixa, par);
+  provar('…e não há seletor de termo nenhum (o par de associação saiu)',
+    par && par.seletorDeTermo === false, par);
 
   // O «CANCELAR» DO PASSO 3 (18/10/2026). Ele é o mesmo ato nos três passos — sair da
   // edição —, e o que se prova é o DEPOIS: a memória do preenchimento e do modo apagada, o
