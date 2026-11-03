@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T21:12:03-0300`
-Commit atual: `76d023c` — docs(registro): a fotografia dos dois produtos, e o que eles ainda não são
+Gerado em: `2026-11-02T22:19:15-0300`
+Commit atual: `026c281` — fix(estrutura): a repetição na decomposição, e o número que mudou no remoto
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+026c281 fix(estrutura): a repetição na decomposição, e o número que mudou no remoto
 76d023c docs(registro): a fotografia dos dois produtos, e o que eles ainda não são
 9760028 feat(estrutura): o motor dos produtos — o dicionário e o syllabus, gerados do catálogo
 23d4c0e feat(notacao): declarar «Plié» (4|2/4) no alfabeto bale-classico
@@ -104,7 +105,6 @@ fa4ab07 chore(notacao): apagar o verbete «Rond de jambe à terre» no alfabeto 
 4076803 chore(notacao): apagar o verbete «Battement tendu» no alfabeto bale-classico
 95ecee5 chore(notacao): apagar o verbete «Plié» no alfabeto bale-classico
 cc54844 refactor(notacao): o código morto do campo da posição, e a razão onde ele estava
-2b9de93 feat(notacao): a música bloqueia, o passo 1 fica condicional e o verbete aprende a apagar-se
 ```
 
 ## Por professor
@@ -228,94 +228,107 @@ cc54844 refactor(notacao): o código morto do campo da posição, e a razão ond
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — O motor dos produtos: o dicionário e o syllabus, e o que eles se recusam a inventar
+## 02/11/2026 — A licença em texto, a condição de conteúdo executável, e a camada que se herda
 
-**O que motivou.** Com o verbete pronto (o CRUD, a proveniência e as versões datadas), a próxima
-peça planeada é o motor que gera **o que se vende**: o `PLANO-PRODUTOS-DO-MOTOR` responde «um motor,
-três saídas, três manifestos», e ordena seis fases. A fase 2 é «as três saídas, em memória». Esta
-sessão começou por ela, e por **dois** dos três produtos — o dicionário e o syllabus. A aula pronta
-fica para a seguinte, porque depende dos verbetes (hoje zero) e do conteúdo dos níveis (2 de 13).
+**O que motivou.** Duas perguntas dela, na mesma mensagem em que pediu o relatório de estado do
+motor. A primeira: «que tipo de licença é exigida aqui? Podemos criar provisoriamente uma licença
+descritiva alinhada com o Planejamento de Lastro, para destravar?» A segunda: «por que `exige`,
+`ensina`, `expressa`? Esses nomes vieram como contrato imposto pelo agente, e não como decisão de
+design — precisamos da lógica para validar se mantemos». As duas tinham resposta nos documentos, e
+as duas estavam a travar trabalho de código: o `PLANO-PRODUTOS-DO-MOTOR` dizia que a **fase 3** não
+começa sem `licenca.md`, e a camada pedagógica não tinha lugar definido no dado.
+
+**O que foi respondido, e não inventado.** A licença **não** é Creative Commons nem EULA clássica: é
+uma decisão de negócio de **02/11/2026**, escrita na `ARQUITETURA-GERAL.md` §10, com **três camadas**
+— a máquina (proprietária), o catálogo (licenciado por escola) e o que a escola acrescenta (dela).
+E os três nomes **não** são contrato do agente: estão no `PLANEJAMENTO-LASTRO.md` §C22, com as
+palavras dela. O que era do agente era o **lugar** — e essa era a pergunta certa.
 
 **O que foi decidido.**
 
-- **Os produtos são do núcleo, e são puros.** `motor/nucleo/produtos/{comum,dicionario,syllabus}.js`
-  não tocam em `fs`/`path`/`http`/`process` e não olham o relógio: recebem o catálogo já lido e
-  devolvem texto. É o que permite o mesmo módulo no Worker e na bancada, e o que torna o determinismo
-  uma propriedade e não uma promessa.
-- **O produto declara o que falta, e nunca o preenche.** Um termo sem definição sai
-  `[Preencher: a definição do que acontece]`; sem `fonte`, sai `[Preencher: de onde vem esta
-  definição — sem isso, ela não entra na edição paga]`; um exercício sem verbete declara a lacuna; um
-  nível sem unidades diz que é a lacuna e não que não ensina nada. É a P-16 aplicada ao produto.
-- **Um verbete que não fecha NÃO publica a contagem.** O `cobre` e as células são conferidos contra
-  os tempos da música; quando não batem, o trecho sai em `[conferir]` com o motivo, e o manifesto
-  conta o número de verbetes que não fecham. Publicar o número torto seria ensinar o erro, e é ele
-  que estraga a aritmética da aula pronta.
-- **A composição catálogo × escola passa a ser uma função só** (`compor`), com a escola a ganhar e o
-  resultado a dizer `origem: "escola"`. O dicionário **exclui as adições por omissão**: o produto que
-  se vende é o do catálogo, e é preciso pedi-las (`incluirAdicoes`) para as ter.
-- **Os três campos da camada pedagógica são `exige`, `ensina` e `expressa`** — lidos de cada relação
-  de `progressao.json`. O plano nomeia as três em prosa e não como campos; a forma é **contrato meu**,
-  e fica declarada como pendência em `ESTADO-ATUAL.md` §8. O motor lê-as quando existem e declara a
-  lacuna quando não existem.
-- **O CLI é `motor/produtos.js`**, e escreve em `publicacao/produtos/<modalidade>/` — pasta **gerada**
-  e no `.gitignore`. O produto não é fonte: a fonte é o catálogo, e o documento reconstrói-se dele. A
-  âncora própria é a fase 3.
+- **A licença passa de decisão a texto, em DOIS ficheiros.** `LICENSE.md` na raiz para **a máquina**
+  (todos os direitos reservados, não licenciada com os produtos) e `biblioteca/LICENSE.md` para **o
+  catálogo** (as seis cláusulas da §10.2, a concessão estreita da §10.3 e a condição da §10.4). São
+  dois porque as duas camadas dizem o contrário uma da outra — «não se licencia» e «licencia-se com
+  limites» — e um ficheiro só não consegue dizê-lo. A **camada 3 fica dentro do ficheiro do
+  catálogo** porque só existe se a do catálogo existir.
+- **O nome do ficheiro é `LICENSE.md`, e não `licenca.md`.** O GitHub só reconhece a licença em nomes
+  reconhecidos (`LICENSE.md`, `LICENSE`, `COPYING`); `licenca.md` seria um ficheiro comum, sem a
+  licença a aparecer no repositório. O plano citava `licenca.md` e foi corrigido com nota datada.
+- **O gerador lê a licença, e a lacuna desaparece por isso.** O nome vem do **título** de
+  `biblioteca/LICENSE.md` — uma fonte só, e não uma constante no código que envelhece no dia em que o
+  texto mudar — e o manifesto acrescenta o caminho, porque um título sem caminho não leva um leitor
+  ao documento. O `--licenca` explícito continua a vencer. Efeito medido: a lacuna `sem-licenca`
+  desapareceu, e o dicionário caiu de **148 para 147**.
+- **A condição de conteúdo ficou EXECUTÁVEL.** Há duas edições: `--edicao interna` (por omissão,
+  mostra tudo, e é a da escola e do projeto) e `--edicao paga`, em que **a definição sem `fonte` não
+  entra** — o termo continua, o sítio da definição diz porque está vazio, e o manifesto conta
+  (`definicoes_fora_da_edicao_paga`). A regra estava na `ARQUITETURA-GERAL.md` §10.4 e não passava de
+  boa intenção até aqui. **Medido no catálogo: 25** — exactamente o número que a §10.4 tinha medido à
+  mão. Duas medições independentes que concordam é a única coisa que este projeto aceita como prova.
+- **A camada pedagógica vive em dois lugares, e é herança com sobreposição.** O **padrão** no termo
+  (`vocabulario.json`) vale em todos os níveis; a **sobreposição** na relação (`progressao.json`)
+  vale só naquele nível e **vence sempre**. A razão é a mesma pela qual o «método» do verbete não se
+  repete: o mesmo passo, em dois níveis, quase sempre **exige** a mesma coisa do corpo e quase nunca
+  **expressa** a mesma coisa — repetir a exigência em cada relação faria do dado uma cópia, e a
+  primeira correcção deixaria as cópias a divergir. Escolher só o termo perderia a variação por
+  nível; escolher só a relação obrigaria a repetir o que não muda.
+- **O documento diz de onde veio cada campo** — `(herdado do termo)` ou `(declarado no nível)` —, com
+  a contagem no manifesto (`camada_herdada` · `camada_declarada` · `camada_ausente`). Apresentar como
+  «do nível» o que veio do termo é uma afirmação falsa sobre quem declarou o quê, e a marca custa
+  três palavras. **Herdar não é faltar**: só a ausência nos dois lugares vira `[Preencher]` e conta
+  como lacuna — e a lacuna passou a nomear **quais** dos três faltam.
 
-**Onde entrou.** `motor/nucleo/produtos/comum.js` (a composição, a ordem das categorias, a
-integridade do verbete, o relógio das pistas, a lacuna) · `motor/nucleo/produtos/dicionario.js` ·
-`motor/nucleo/produtos/syllabus.js` · `motor/servidor/produtos.js` (a ponte: rótulos + leitura) ·
-`motor/produtos.js` (o CLI) · `motor/servidor/verbete.js` (`lerProgressao`, e o export) ·
-`motor/nucleo/README.md` (as três linhas novas, o CLI, e a **correcção datada** da fronteira) ·
-`experimentos/provar-produtos.js` (a prova) · `ESTADO-ATUAL.md`.
+**Onde entrou.** `LICENSE.md` (raiz, novo) — a máquina, §10.1 · `biblioteca/LICENSE.md` (novo) — o
+catálogo, §10.2, §10.3 e §10.4 · `motor/produtos.js` — `licencaDoDisco()` (o título lido do
+ficheiro), `--edicao`, e o `--licenca` a deixar de ter omissão vazia · `motor/nucleo/produtos/
+dicionario.js` — a edição `interna`/`paga`, a retirada da definição sem origem com o aviso no sítio
+dela, o tipo novo de lacuna e as contagens · `motor/nucleo/produtos/syllabus.js` —
+`camadaDaUnidade`/`camadaCompleta`, a marca de origem na linha, a lacuna que nomeia o que falta e as
+três contagens · `motor/nucleo/README.md` — a secção nova da camada e a linha do syllabus ·
+`experimentos/provar-produtos.js` — §I, §J e §K (52 → **73**) · `ARQUITETURA-GERAL.md` §10 — a nota
+datada (o `LICENSE.md` passou a existir, e são dois) · `PLANO-PRODUTOS-DO-MOTOR.md` — as linhas D e a
+**§9-critério 8**, que era «não passa» e passa agora **menos** a fotografia datada · `ESTADO-ATUAL.md`
+§2, §4, §5, §7, §8 e §9.
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: `tools/`,
-`tools/templates/`, `prompts/`, `PROTOCOLO.md`, `REGRAS.md`, `METODO.md` e o guia do professor ficam
-como estavam. E isso é uma decisão, não um acaso: a fase 3 do plano reutiliza `montar-publicacao.js`
-**sem o alterar**, e o produto ainda não chegou lá.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. E aqui isso
+tem um sentido preciso: os dois `LICENSE.md` são ficheiros **novos** na raiz e em `biblioteca/`, e
+nenhum deles está na lista congelada; o `biblioteca/guia-do-professor.md`, que está, ficou intacto.
+O `LICENSE.md` da raiz **declara** que a máquina é proprietária — e declarar o regime de um ficheiro
+congelado não é alterá-lo.
 
-**Com o quê.** `motor/nucleo/produtos/*.js` · `motor/servidor/produtos.js` · `motor/produtos.js` ·
-`motor/servidor/verbete.js` · `motor/nucleo/README.md` · `experimentos/provar-produtos.js` ·
-`ESTADO-ATUAL.md`.
+**Com o quê.** `LICENSE.md` · `biblioteca/LICENSE.md` · `motor/produtos.js` ·
+`motor/nucleo/produtos/dicionario.js` · `motor/nucleo/produtos/syllabus.js` ·
+`motor/nucleo/README.md` · `experimentos/provar-produtos.js` · `ARQUITETURA-GERAL.md` ·
+`PLANO-PRODUTOS-DO-MOTOR.md` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** `ARQUITETURA-GERAL.md` §10 (as três camadas, as seis cláusulas e a condição de
+conteúdo) · `PLANEJAMENTO-LASTRO.md` §C22 (os três campos, nas palavras dela) · `PLANO-PRODUTOS-DO-
+MOTOR.md` §7-B, §8-fase 0 e §9-critério 8 · C8 (o preço, ainda aberto) · C11 (a distribuição, que
+trava a fase 4) · L9 (a trava não pode ser punição ao dado) · P-16 (não inventar conteúdo) · C19 (o
+produto não carrega ritmo) · C20 (os três não são eixos de medição).
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-produtos` | **52 asserções, TUDO CERTO** — §A a fronteira; §B o dicionário (ordem, lacunas, compasso por pista 1,1,2,2, notação composta, verbete que não fecha); §C o syllabus (ordem declarada, camada, órfã, nível vazio, `--nivel`, recusa); §D as adições fora por omissão; §E o determinismo; §F o ritmo ausente; §G o catálogo real (**só contagens**); §H o CLI |
-| `provar-verbete` | **TUDO CERTO** — o `lerProgressao` entrou sem mexer no `lerModalidade` |
-| `check-identidade` · `check-indices` | 20/20 · 14/14 |
-| **o catálogo de hoje, medido** | 93 termos (59 com definição, 34 com origem), **1 verbete** no alfabeto (o `Plié` em 4\|2/4, versão 32), 13 níveis com **9 associações em 2** |
-| **o que a prova NÃO afirma** | nada sobre o **conteúdo** — quantos termos, quais, se são bons. É a lição de hoje: uma prova que mede o conteúdo reprova quando o conteúdo muda |
+| `provar-produtos` | **73 asserções, TUDO CERTO** (eram 52). **§I** a herança (herdado · sobreposto · ausente, a soma `3 · 3 · 6` que impede uma unidade de sair da conta sem sair do documento). **§J** a licença lida do ficheiro, e o documento gerado pelo CLI a trazê-la em vez de «pendente». **§K** a edição paga: retira só a definição sem origem, mantém o termo, conta `1`, muda o tipo da lacuna, e o `--edicao paga` do CLI **chega** ao manifesto |
+| **as lacunas do dicionário** | **147** (eram 148) — a `sem-licenca` desapareceu porque o gerador passou a **ler** o ficheiro |
+| **a edição paga, no catálogo** | **25 definições fora** — o mesmo 25 da `ARQUITETURA-GERAL.md` §10.4, medido à mão antes de existir código que o medisse |
+| `git fetch origin` | feito **depois** de a árvore estar suja: `origin/main` em `026c281`, sem divergência. *(O `fetch` falhou primeiro, e a causa não era o remoto: o valor de `GITHUB_TOKEN` em `.dev.vars` está entre aspas, e a primeira versão do `GIT_ASKPASS` devolvia as aspas — «Invalid username or token». Corrigido a retirar as aspas, e não a mexer no ficheiro.)* |
+| **o que NÃO foi medido** | a **fotografia datada** da licença (é do contrato, C8 — sem contrato não há data para nomear) · a **fase 1** (a separação dos ficheiros: o critério 5 continua a não passar) · a **fase 3** (a âncora do produto) · a **fase 4** (C11) · o conteúdo dos três campos, que continua a **0 das 9 unidades** |
 
-**Correcção de 02/11/2026, antes do push.** A primeira redação desta entrada dizia «**0 verbetes**
-no alfabeto, versão 31» e «55 exercícios sem verbete». **Está desactualizado**: enquanto a sessão
-escrevia, ela declarou o **`Plié` em 4 tempos de 2/4** pela Produção (commit `23d4c0e`, versão
-**32**), e o `git push` foi recusado por *non-fast-forward* — o sintoma de sempre. Rebase feito, o
-número mudou para **1 verbete** e **54 exercícios sem verbete**, e a prova continua verde porque a §G
-mede **contagens dinâmicas**: foi para isto que ela deixou de fixar o conteúdo. A redação anterior
-não se apaga: fica como o elo que registra o que se mediu antes de o remoto mudar.
-
-**O que ainda não está feito.** (a) **A aula pronta** — o terceiro produto, e o próximo passo de
-código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
-pela metade**: a composição existe, os **ficheiros não** — `termo-repo.js` escreve no vocabulário do
-catálogo, e o critério 5 do plano («criar um termo numa escola não altera o ficheiro do catálogo»)
-**não passa**. (c) **A fase 3 não começou**: não há `.fipp` de produto, e o campo `licenca` sai
-«pendente» porque o `LICENSE.md` não existe. (d) **A fase 4** espera por C11, e a **5** pela 3.
-(e) **O contrato dos três campos** é meu, não dela (§8 do `ESTADO-ATUAL.md`). (f) O conteúdo é o
-caminho crítico: o produto sai honesto e **magro** — 54 exercícios sem verbete, 34 termos sem
-definição e 11 níveis vazios.
+**O que ainda não está feito.** (a) **A fotografia datada** — a cláusula 1 da licença diz
+`catalogo@AAAA-MM-DD`, e a data vem do contrato: é **de negócio**, e o critério 8 do plano passa
+**menos** essa parte. (b) **A fase 1** continua pela metade: a composição existe, os ficheiros não —
+`termo-repo.js` escreve no vocabulário do catálogo, e a §4 da licença («o que a escola acrescenta é
+dela») descreve uma regra **que ainda não tem onde valer**. (c) **A aula pronta** — o terceiro
+produto — não foi começada. (d) **O conteúdo dos três campos** é dela: a forma está pronta, e o
+syllabus sai com `[Preencher]` até ela declarar. (e) **A edição paga não é um produto completo**: ela
+tira as 25 e di-lo, mas as 34 descrições que faltam e os 54 exercícios sem verbete continuam a ser o
+que o produto não tem.
 
 ## O que está pendente
-
-## 01/11/2026 — O molde dos schemas ficou atrás, e a geração de um ciclo morreu em «campo ausente»
-
-
-- **Os quatro outros professores atrasados não têm ciclo para gerar.** Ficaram corrigidos, mas a
-  correcção deles não foi exercitada por uma geração — a primeira de cada um será a prova.
-- **O molde continua a ser uma cópia.** A checagem faz o que se pode fazer sem uma fonte única: diz
-  quando as duas verdades se separam. Uma fonte única (o `criar-escola.sh` e o
-  `schemas-do-ciclo.js` a lerem o mesmo módulo, em vez de copiarem um ficheiro) seria melhor, e não
-  foi feito — são dois consumidores, um em bash e um no Worker.
 
 ## 01/11/2026 — O molde dos schemas passa a ter um leitor só
 
@@ -366,6 +379,11 @@ vocabulário.
 código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
 pela metade**: a composição existe, os **ficheiros não** — `termo-repo.js` escreve no vocabulário do
 catálogo, e o critério 5 do plano («criar um termo numa escola não altera o ficheiro do catálogo»)
+
+## 02/11/2026 — A licença em texto, a condição de conteúdo executável, e a camada que se herda
+
+(a) **A fotografia datada** — a cláusula 1 da licença diz
+`catalogo@AAAA-MM-DD`, e a data vem do contrato: é **de negócio**, e o critério 8 do plano passa
 
 ## Pendências anteriores (índice)
 
@@ -691,6 +709,7 @@ catálogo, e o critério 5 do plano («criar um termo numa escola não altera o 
 - **01/11/2026** — A âncora antes dos índices, e não depois → `REGISTRO.md` L29569
 - **01/11/2026** — A página do Vocabulário saiu; o exercício vive no «+» do… → `REGISTRO.md` L29608
 - **01/11/2026** — A seta sobe ao título, os passos descem para a linha… → `REGISTRO.md` L29669
+- **01/11/2026** — O molde dos schemas ficou atrás, e a geração de um ciclo… → `REGISTRO.md` L29765
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
