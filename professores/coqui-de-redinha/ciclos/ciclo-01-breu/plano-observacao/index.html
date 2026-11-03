@@ -1409,15 +1409,52 @@ async function carregarProfessores() {
  */
 let CURADORIAS = [];            // as curadorias do professor selecionado ([] = nenhuma)
 let CURADORIA_CARREGADA = false; // a busca terminou (evita travar antes de carregar)
+/* OS RÓTULOS DAS TRADIÇÕES (03/11/2026). O registo da curadoria guarda a CHAVE (`francesa`); o
+ * ecrã mostra o rótulo que `tradicoes.json` declara (`Francesa`). O mapa vem na MESMA resposta da
+ * curadoria — uma segunda rota para o mesmo ficheiro seria uma leitura a mais e uma cópia a
+ * divergir. Vazio até a resposta chegar, e a tela cai na chave. */
+let ROTULOS_DE_TRADICAO = {};
+
+/** O RÓTULO de uma tradição, pelo mapa do catálogo; sem mapa, a chave como veio. */
+function rotuloDaTradicao(chave) {
+  const k = String(chave == null ? '' : chave).trim();
+  return (k && ROTULOS_DE_TRADICAO[k]) || k;
+}
 
 /* O que a direção atribuiu ao professor, num campo da curadoria (turmas, repertório,
- *  alunas) — a MESMA leitura para os três, para a tela não ter três regras. */
+ *  alunas) — a MESMA leitura para os três, para a tela não ter três regras.
+ *
+ * OS DOIS TIPOS, E O ESCALAR CAUSOU UM DEFEITO (03/11/2026). Um campo da curadoria é uma LISTA
+ * (`turmas`, `repertorio`, `alunas`) ou um ESCALAR (`tradicao`, `modalidade`). O `for…of` de uma
+ * string percorre os CARACTERES: a tradição `francesa` chegava à tela como `f`, `r`, `a`… — e o
+ * cabeçalho do plano, que passou a ler a metodologia daqui, mostrava «Metodologia de referência:
+ * f». A leitura é a mesma; o que muda é o tipo do valor. */
 function daCuradoria(campo) {
   const vistas = new Set();
   for (const c of CURADORIAS) {
-    for (const v of (c && c[campo]) || []) if (v) vistas.add(String(v));
+    const v = c && c[campo];
+    if (Array.isArray(v)) {
+      for (const x of v) if (x) vistas.add(String(x));
+    } else if (typeof v === 'string' && v.trim()) {
+      vistas.add(v.trim());
+    }
   }
   return [...vistas];
+}
+
+/** O PRIMEIRO valor de um campo da curadoria — o que o cabeçalho lê. */
+function valorDaCuradoria(no) {
+  const campo = no && no.daCuradoria;
+  if (!campo) return undefined;
+  const vistos = daCuradoria(campo);
+  return vistos.length ? vistos[0] : undefined;
+}
+
+/** O TEXTO de um valor da curadoria, na forma que o campo declara (`forma` é rótulo, não tipo). */
+function textoDaCuradoria(no, valor) {
+  if (valor === undefined || valor === null || valor === '') return '—';
+  if (no && no.daCuradoria === 'tradicao') return rotuloDaTradicao(valor);
+  return String(valor);
 }
 
 /*
@@ -1438,6 +1475,13 @@ function semearDaCuradoria() {
     if (!atribuido.length) continue;
     if (RESPOSTAS.has(no.id) && !SUGERIDAS.has(no.id)) continue; // o professor já respondeu
     let valor = no.multipla ? atribuido : atribuido[0];
+    /* O NÓ DO CABEÇALHO GRAVA O TEXTO, E NÃO A CHAVE (03/11/2026). A metodologia saiu do
+     * formulário e passou a leitura do cabeçalho — mas o ENVELOPE continua a tê-la de levar: é
+     * dele que o documento do plano e o PO a leem, e sem isto o `## Contexto` do `.md` diria
+     * «[a decidir]» sobre um dado que a curadoria declara. O registo da curadoria guarda a chave
+     * (`francesa`); o que se grava aqui é o RÓTULO (`Francesa`) — este campo sempre foi texto
+     * humano, e é ele que o documento publica. */
+    if (no.noCabecalho) valor = textoDaCuradoria(no, valor);
     // A TURMA JÁ PLANEJADA NÃO SE SUGERE (16/10/2026). O plano seguinte abre na PRIMEIRA
     // turma que ainda pode ser planejada — não na primeira atribuída, que pode estar
     // bloqueada. Sem isto o segundo plano nasceria apontando a turma que já tem plano, e o
@@ -1895,9 +1939,15 @@ function lembrancaDoNo(no) {
  * de resposta nem de nota. */
 function leituraDoNoDoCabecalho(no) {
   const daTurma = no.daTurma ? valorDaTurma(no) : undefined;
+  // O QUE VEM DA CURADORIA (03/11/2026) — a metodologia, que saiu do formulário. Lê-se do registo
+  // que a direção curou, e não da resposta: se a curadoria mudar, a leitura acompanha.
+  const daCuradoria = no.daCuradoria ? valorDaCuradoria(no) : undefined;
   const valor = RESPOSTAS.get(no.id);
   let corpo;
   if (daTurma !== undefined) corpo = mostrarDaTurma(no, daTurma);
+  else if (daCuradoria !== undefined) {
+    corpo = '<p class="da-turma"><b>' + escapar(textoDaCuradoria(no, daCuradoria)) + '</b></p>';
+  }
   else if (no.id === 'contexto-turma') corpo = turmaNoCabecalho(no);
   else corpo = '<p class="da-turma"><b>' + escapar(valor == null ? '—' : String(valor)) + '</b></p>';
   /* A ORIGEM É A DO CAMPO (27/10/2026). Antes eram três casos fixos, e um nó que declara
@@ -1906,11 +1956,13 @@ function leituraDoNoDoCabecalho(no) {
    * do ato, e é ele que a barra diz. */
   const origem = no.daTurma
     ? 'vem do cadastro da turma, declarado pela direção na Produção'
-    : (no.id === 'contexto-turma'
+    : (no.daCuradoria
+      ? 'vem da curadoria desta turma — é o professor que escolhe a metodologia, e a direção a registou ao habilitá-lo'
+      : (no.id === 'contexto-turma'
       ? 'escolhe-se no cabeçalho do ato, aqui em cima'
       : (no.deContexto
         ? 'vem do contexto do ato, na barra do alto — aqui é leitura'
-        : 'vem de quem abriu esta página — a barra já o disse'));
+        : 'vem de quem abriu esta página — a barra já o disse')));
   return '<div class="leitura-do-cabecalho">' + corpo +
     '<p class="sub">Não se preenche aqui: ' + md(origem) + '.</p></div>';
 }
@@ -1942,8 +1994,13 @@ async function atualizarCuradoria() {
     const resposta = await fetch('/api/bastidores/curadoria-professor?professor=' + encodeURIComponent(slug));
     const dados = await resposta.json();
     CURADORIAS = (resposta.ok && Array.isArray(dados.curadorias)) ? dados.curadorias : [];
+    // OS RÓTULOS VÊM NA MESMA RESPOSTA (03/11/2026): o registo guarda a chave, o ecrã mostra o
+    // rótulo do catálogo. Uma rota própria para o mesmo ficheiro seria uma leitura a mais.
+    ROTULOS_DE_TRADICAO = (resposta.ok && dados.rotulos && typeof dados.rotulos === 'object')
+      ? dados.rotulos : {};
   } catch (erro) {
     CURADORIAS = [];
+    ROTULOS_DE_TRADICAO = {};
   }
   CURADORIA_CARREGADA = true;
   aplicarCuradoria();
@@ -3878,16 +3935,24 @@ function renderLeiturasDoCabecalho() {
    * saía «nº de aulas, calendário, duração, frequência» — o mapa ao contrário. */
   const ancoras = [...caixa.querySelectorAll('.campo:not([data-leitura])')];
   const ancora = ancoras.length ? ancoras[ancoras.length - 1] : null;
-  const nos = (MAPA.nos || []).filter((n) => n.noCabecalho && n.daTurma);
+  /* AS DUAS ORIGENS DO CABEÇALHO (03/11/2026): o CADASTRO DA TURMA (o ritmo) e a CURADORIA (a
+   * metodologia). São a mesma peça de leitura, com o rótulo e o texto que cada nó declara; o que
+   * muda é de onde o valor vem, e é o próprio nó que o diz (`daTurma` / `daCuradoria`). */
+  const nos = (MAPA.nos || []).filter((n) => n.noCabecalho && (n.daTurma || n.daCuradoria));
   for (const no of nos) {
-    const cru = valorDaTurma(no);
+    const daTurma = no.daTurma ? valorDaTurma(no) : undefined;
+    const daCuradoria = no.daCuradoria ? valorDaCuradoria(no) : undefined;
+    const cru = daTurma !== undefined ? daTurma : daCuradoria;
     if (cru === undefined || cru === null) continue;
     const item = document.createElement('span');
     item.className = 'campo';
     item.setAttribute('data-leitura', no.id);
-    item.title = 'Não se preenche aqui: vem do cadastro da turma, declarado pela direção.';
+    item.title = no.daTurma
+      ? 'Não se preenche aqui: vem do cadastro da turma, declarado pela direção.'
+      : 'Não se preenche aqui: vem da curadoria desta turma, declarada pela direção.';
     item.innerHTML = '<span class="ctx-rotulo">' + escapar(no.campo) + '</span>'
-      + '<span class="ctx-inscricao">' + textoDaTurma(no, cru) + '</span>';
+      + '<span class="ctx-inscricao">'
+      + (no.daTurma ? textoDaTurma(no, cru) : escapar(textoDaCuradoria(no, cru))) + '</span>';
     if (ancora && ancora.parentNode === caixa) caixa.insertBefore(item, ancora);
     else caixa.appendChild(item);
   }

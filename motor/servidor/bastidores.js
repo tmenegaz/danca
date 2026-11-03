@@ -10470,7 +10470,14 @@ async function fetch(request, env) {
     // guardada, mas não autoriza nada — quem a lê para trabalhar são as vigentes.
     const todas = curadoriasVigentes(await curadorias(kv, escola));
     const dele = todas.filter((c) => c && c.professor === slug);
-    return json(200, { ok: true, escola, professor: slug, curadorias: dele });
+    /* OS RÓTULOS DAS TRADIÇÕES VÃO JUNTO (03/11/2026). O registo guarda a CHAVE (`francesa`); o
+     * ecrã mostra o rótulo do catálogo (`Francesa`). O plano passou a LER a metodologia da
+     * curadoria em vez de a perguntar — e a leitura tem o mesmo direito à grafia que o resto da
+     * tela. Vai nesta resposta, e não numa rota nova: é o mesmo ficheiro, é o mesmo pedido, e uma
+     * segunda leitura seria uma segunda cópia do mesmo mapa a divergir. */
+    const rotulos = {};
+    for (const chave of TRADICOES_DO_VOCABULARIO) rotulos[chave] = rotuloDaTradicao(chave);
+    return json(200, { ok: true, escola, professor: slug, curadorias: dele, rotulos });
   }
 
   // POST /api/bastidores/curadoria — gravar (upsert) a curadoria de um professor.

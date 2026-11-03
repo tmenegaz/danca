@@ -478,7 +478,7 @@ const GRUPOS_DO_CONTEXTO = [
       'contexto-total-aulas']],
   ['Professor, turma e método',
     ['contexto-professor', 'contexto-turma', 'contexto-volume', 'contexto-registro',
-      'contexto-metodologia', 'contexto-metodologia-origem', 'contexto-notacao']],
+      'contexto-metodologia', 'contexto-notacao']],
 ];
 
 function tabelaDeContexto(envelope) {

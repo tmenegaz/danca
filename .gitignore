@@ -567,3 +567,8 @@ experimentos/modelo-formulario/*
 # o sufixo é armazenamento. Limpo na fonte (a rota do vocabulário) e na tela, e o dado fica como
 # está. Citada no `REGISTRO.md`.
 !experimentos/provar-compasso-limpo.js
+
+# A METODOLOGIA É DA CURADORIA (03/11/2026). O Bloco 1 do plano deixou de a perguntar — e o «quem
+# escolhe» deixou de existir, porque a resposta passou a ser premissa do domínio. Lê-se no
+# cabeçalho, e o documento continua a publicá-la. Citada no `REGISTRO.md`.
+!experimentos/provar-metodologia-no-cabecalho.js

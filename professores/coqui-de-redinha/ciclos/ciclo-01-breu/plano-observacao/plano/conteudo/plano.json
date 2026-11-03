@@ -222,24 +222,12 @@
         {
           "id": "contexto-metodologia",
           "campo": "Metodologia de referência",
-          "obrigatorio": true,
-          "forma": "RAD · Vaganova · Francesa/Cecchetti · Escola livre · Cada professor segue a própria",
-          "aberto": true,
+          "obrigatorio": false,
+          "noCabecalho": true,
+          "daCuradoria": "tradicao",
           "explicacao": {
-            "oQueE": "O PADRÃO com que você ensina — o «jeito» de referência: RAD, Vaganova, escola francesa/Cecchetti.",
-            "preencher": "Escolha a que corresponde ao seu ensino. «Escola livre» é para quem monta o próprio percurso. Se você mistura, escreva no campo aberto como você chama isso.",
-            "porQue": "A metodologia é declarada, nunca deduzida. Sem o padrão, «certo» e «errado» viram opinião de quem olha."
-          }
-        },
-        {
-          "id": "contexto-metodologia-origem",
-          "campo": "Quem escolhe a metodologia",
-          "obrigatorio": true,
-          "forma": "Eu escolho · A escola impõe",
-          "explicacao": {
-            "oQueE": "Se a metodologia de referência é uma decisão sua ou uma imposição da escola.",
-            "preencher": "«Eu escolho» quando o percurso é seu; «a escola impõe» quando você segue uma norma da instituição.",
-            "porQue": "Uma metodologia escolhida é parte do seu recorte; uma imposta é contexto institucional."
+            "oQueE": "O PADRÃO com que este professor ensina — RAD, Vaganova, francesa/Cecchetti.",
+            "porQue": "É a tradição que a direção declarou na curadoria desta turma. O professor não a repete aqui: ela já foi declarada quando a escola o habilitou, e pedi-la outra vez era pedir o mesmo facto duas vezes — com o risco de as duas respostas discordarem."
           }
         },
         {

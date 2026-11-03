@@ -327,7 +327,6 @@ const ROTULOS_DO_CONTEXTO = {
   'contexto-volume': 'Volume de trabalho',
   'contexto-registro': 'Condição de registro',
   'contexto-metodologia': 'Metodologia de referência',
-  'contexto-metodologia-origem': 'Quem escolhe a metodologia',
   'contexto-notacao': 'Notação dominada',
 };
 
@@ -390,8 +389,11 @@ function comporContexto(envelope, plano) {
 // «ligar» do laudo L5: hoje ficavam presas no plano e não chegavam ao PO. Sem plano (ou sem
 // valor), a lacuna sai declarada — nunca se preenche por inferência.
 function comporMetodologiaENotacao(plano) {
-  return comporLinhasDePlano(plano,
-    ['contexto-metodologia', 'contexto-metodologia-origem', 'contexto-notacao']);
+  // «QUEM ESCOLHE A METODOLOGIA» SAIU (03/11/2026). Era um item do Bloco 1 do plano («Eu escolho ·
+  // A escola impõe»), e a resposta deixou de ser perguntável: a premissa é do domínio e é
+  // permanente — «o professor escolhe, a metodologia pertence ao professor». Um facto que não
+  // varia com o ciclo não se pergunta ciclo a ciclo; perguntá-lo sugeria que podia variar.
+  return comporLinhasDePlano(plano, ['contexto-metodologia', 'contexto-notacao']);
 }
 
 // O VALOR de um campo de PROSA, ou a lacuna declarada. O `null` do envelope é «não
