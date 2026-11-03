@@ -17,11 +17,20 @@ escreve. Só sabe **o que faz**.
 | `derivar-plano-ciclo.js` | a ponte envelope → fonte do PLANO (`ciclo-XX-<escola>-plano.md`), irmã do `derivar-po.js`: cada nó respondível tem a SUA seção, e o **`## Contexto` é a fonte única** do que o professor declarou — a ficha do ciclo (`## Objetivo geral` → `ciclo`) é **composta dele** (`tabelaDeIdentificacao`), e não repete a pergunta. É daqui que saem `parametroEmLinhas` (a matriz `{marco, marcados}` do parâmetro de medição, que sem ela chegava ao `aula-01.md` como `[object Object]`), `linhasDaEstrutura`, `marcosEmTexto`, a **sequência de exercícios posta em tabela** (`tabelaDaSequencia`, com as cinco colunas fixas — a coluna que o `tabelaDeLista` tiraria das chaves do primeiro objeto desaparecia do documento quando o exercício ainda não tinha tempos), a régua (`niveisDaRubrica`/`linhasDaRubrica`) e os `BLOCOS_DA_AULA` — sem `fs`/`path`/`http`/`process` |
 | `chaves.js` | a regra do prefixo das famílias do KV (`prefixoDaEscola`, `raizDaChave`, `segmento`, `cicloDaChave`) — sem infraestrutura. Era o `cofre.js`, que também guardava a anamnese cifrada no KV; o cofre saiu (20/10/2026) e ficou a regra de chave que o `lancamento.js` usa |
 | `armazenamento.js` | o **contrato de armazenamento** (`ler`/`guardar`/`anexar`/`listar`/`existe`/`apagar`) e a implementação de memória |
+| `produtos/comum.js` | o que os três produtos partilham: a **composição catálogo × escola** (`compor`, com a escola a ganhar e a marcar `origem`), a ordem das categorias, a integridade do verbete (o `cobre` e as células contra os tempos), o relógio das pistas e a lacuna — sem `fs`/`path`/`http`/`process` |
+| `produtos/dicionario.js` | o produto **dicionário**: o vocabulário do catálogo e a decomposição de cada exercício, com a definição, a origem e o que falta dito (`[Preencher]`), e um verbete que não fecha a sair em `[conferir]` em vez da contagem errada — sem infraestrutura |
+| `produtos/syllabus.js` | o produto **syllabus**: um documento por nível (a ordem declarada em `progressao.json`), com a camada pedagógica por unidade (`exige` · `ensina` · `expressa`) quando existe, mais um índice que diz quantos níveis ainda não declararam nada — sem infraestrutura |
 
 ## A fronteira
 
 - O núcleo **não importa** `fs`, `path`, `http` nem nada do runtime — a prova
   (`provar-agnosticismo.js`) verifica isso por máquina.
+  **Correcção de 02/11/2026:** o `provar-agnosticismo.js` **não existe neste worktree** (o
+  `PLANO-PRODUTOS-DO-MOTOR` e a `TRANSFERENCIA-IA` já o diziam, e este README continuava a
+  prometê-lo). O que existe, desde esta data, é a **§A do `experimentos/provar-produtos.js`**:
+  ela lê os três ficheiros de `produtos/` e reprova se algum requer `fs`/`path`/`http`/`process`
+  ou olha o relógio. A fronteira do resto do núcleo continua **sem prova por máquina** — é
+  lacuna declarada, não uma verificação que se possa alegar.
 - O núcleo **recebe** o que precisa: o `elicitar` exige `opcoes.esquema` (o contrato já
   carregado pelo adaptador) e devolve o documento em memória. Ele **não vai buscar** nada ao
   disco.
@@ -34,3 +43,9 @@ O diretório `motor/` continua a existir — mas agora é o **adaptador Node**: 
 e acrescenta o que é de runtime (os caminhos, a leitura do disco, o autoteste e a CLI). Os
 mesmos comandos de sempre continuam a funcionar (`node motor/elicitar.js --autoteste` ⇒ 41/41;
 `node motor/validar.js --autoteste` ⇒ 22/22; `node motor/derivar-plano.js`).
+
+**E, desde 02/11/2026, `motor/produtos.js`** — o CLI que gera os produtos a partir do catálogo:
+`node motor/produtos.js dicionario` e `node motor/produtos.js syllabus` escrevem em
+`publicacao/produtos/<modalidade>/` (pasta gerada, no `.gitignore`), com `--out -` para a saída
+padrão, `--nivel` para um nível só, `--json` para o manifesto e `--do-repo` para ler o `main` em
+vez do disco. O produto **não é fonte**: a fonte é o catálogo, e o documento reconstrói-se dele.

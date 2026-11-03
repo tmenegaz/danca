@@ -399,6 +399,32 @@ async function lerModalidade({ f, token, dono, repo, ref, modalidade }) {
   return { ok: true, sha: alfabeto.sha, dados, vocabulario: voc, ref };
 }
 
+/**
+ * A PROGRESSÃO — a ORDEM dos níveis e a relação nível↔termo (02/11/2026).
+ *
+ * Ela já existia no repositório desde o início (`progressao.json`), mas nenhuma rota a lia: o
+ * plano recebia o «conteúdo do nível» do KV, semeado por `catalogo-seed`, e o syllabus não tinha
+ * por onde saber a ordem. O produto «syllabus» precisa das duas coisas — a ordem e a relação —, e
+ * é isso que esta leitura serve.
+ *
+ * O CAMINHO É O DA MODALIDADE, ao lado do alfabeto e do vocabulário: um catálogo é uma pasta, e
+ * quem acrescentar uma modalidade nova não tem de editar uma lista de caminhos.
+ */
+async function lerProgressao({ f, token, dono, repo, ref, modalidade }) {
+  const raiz = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/';
+  const url = raiz + pastaDaModalidade(modalidade) + '/progressao.json'
+    + (ref ? '?ref=' + encodeURIComponent(ref) : '');
+  try {
+    const lido = await lerDoRepo({ f, url, h: cabecalhos(token) });
+    if (!lido.existe) {
+      return { ok: false, status: 404, erro: 'a progressão da modalidade «' + modalidade + '» não existe' };
+    }
+    return { ok: true, sha: lido.sha, dados: JSON.parse(lido.texto) };
+  } catch (erro) {
+    return { ok: false, status: erro.status || 502, erro: erro.message };
+  }
+}
+
 /** A lista dos verbetes, sem o `_comentario` — que é a explicação do dado, não um exercício.
  *
  *  A LISTAGEM PASSOU A DIZER O QUE O VERBETE É (31/10/2026). Antes trazia só o nome e as
@@ -791,6 +817,7 @@ module.exports = {
   caminhoDoAlfabeto,
   caminhoDoVocabulario,
   lerModalidade,
+  lerProgressao,
   listarVerbetes,
   validarVerbete,
   semBaldesVazios,

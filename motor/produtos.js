@@ -1,0 +1,191 @@
+'use strict';
+
+/**
+ * produtos.js — o CLI que GERA os produtos a partir do catálogo.
+ *
+ * O QUE ELE É. O adaptador Node do motor de produtos: lê o catálogo do disco (ou do `main`), chama
+ * o núcleo puro e escreve os documentos. Não decide conteúdo, não inventa lacuna e não assina
+ * nada — a âncora do produto é a fase 3 do plano.
+ *
+ *   node motor/produtos.js dicionario
+ *   node motor/produtos.js syllabus
+ *   node motor/produtos.js syllabus --nivel bale-nivel-1
+ *   node motor/produtos.js dicionario --out -            (para a saída padrão)
+ *   node motor/produtos.js dicionario --do-repo          (lê o `main`, não o disco)
+ *
+ * A SAÍDA VAI PARA `publicacao/produtos/<modalidade>/`, que é uma pasta GERADA e está no
+ * `.gitignore` — como o resto de `publicacao/`. O produto não é fonte: a fonte é o catálogo, e o
+ * documento reconstrói-se dele. (A fase 3 é que dá ao produto um pacote e uma âncora próprios.)
+ *
+ * AS LACUNAS CONTAM-SE NO FIM, EM VOZ ALTA. Um produto gerado com 59 termos sem origem declarada
+ * não pode sair como se estivesse completo: quem corre o comando lê o número antes de o publicar.
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const RAIZ = path.resolve(__dirname, '..');
+
+function lerJson(rel) {
+  const caminho = path.join(RAIZ, rel);
+  try {
+    return JSON.parse(fs.readFileSync(caminho, 'utf8'));
+  } catch (erro) {
+    throw new Error('não consegui ler ' + rel + ': ' + erro.message);
+  }
+}
+
+function uso() {
+  console.log('uso: node motor/produtos.js <dicionario|syllabus> [opções]');
+  console.log('');
+  console.log('  --modalidade <slug>   modalidade do catálogo (por omissão, bale-classico)');
+  console.log('  --nivel <id>          só um nível do syllabus (id de progressao.json)');
+  console.log('  --versao <v>          versão do produto (por omissão, 0.1.0)');
+  console.log('  --licenca <texto>     a licença do produto (por omissão, pendente)');
+  console.log('  --out <dir|->         onde escrever; `-` é a saída padrão');
+  console.log('                        (por omissão, publicacao/produtos/<modalidade>/)');
+  console.log('  --do-repo             ler o `main` do GitHub em vez do disco (precisa de GITHUB_TOKEN)');
+  console.log('  --json                imprimir o manifesto, e não os documentos');
+}
+
+function argumentos(argv) {
+  const opts = { tipo: '', modalidade: 'bale-classico', nivel: '', versao: '0.1.0',
+    licenca: '', out: '', doRepo: false, json: false };
+  const resto = [];
+  for (let i = 0; i < argv.length; i += 1) {
+    const a = argv[i];
+    const valor = () => {
+      i += 1;
+      if (i >= argv.length) throw new Error('falta o valor de ' + a);
+      return argv[i];
+    };
+    if (a === '--modalidade') opts.modalidade = valor();
+    else if (a === '--nivel') opts.nivel = valor();
+    else if (a === '--versao') opts.versao = valor();
+    else if (a === '--licenca') opts.licenca = valor();
+    else if (a === '--out') opts.out = valor();
+    else if (a === '--do-repo') opts.doRepo = true;
+    else if (a === '--json') opts.json = true;
+    else if (a === '-h' || a === '--help') opts.ajuda = true;
+    else resto.push(a);
+  }
+  opts.tipo = resto[0] || '';
+  return opts;
+}
+
+/** O catálogo no disco: a fonte que o gerador lê é a mesma que o repositório guarda. */
+function catalogoDoDisco(modalidade) {
+  const pasta = 'biblioteca/modalidades/' + modalidade;
+  return {
+    modalidade,
+    alfabeto: lerJson(pasta + '/notacao.json'),
+    vocabulario: lerJson(pasta + '/vocabulario.json'),
+    progressao: lerJson(pasta + '/progressao.json'),
+  };
+}
+
+/** A escrita: cada documento no seu ficheiro, e a pasta criada se não existir. */
+function escrever(destino, documentos) {
+  fs.mkdirSync(destino, { recursive: true });
+  const escritos = [];
+  for (const d of documentos) {
+    const caminho = path.join(destino, d.nome);
+    fs.writeFileSync(caminho, d.texto, 'utf8');
+    escritos.push(caminho);
+  }
+  return escritos;
+}
+
+/** O resumo para quem corre o comando — contagens e o que falta, sem enfeite. */
+function resumo(produto) {
+  const c = (produto.manifesto && produto.manifesto.contagens) || {};
+  const linhas = [];
+  linhas.push(produto.nomeDoProduto + ' — ' + produto.id + ' v' + produto.versao);
+  if (produto.produto === 'dicionario') {
+    linhas.push('  termos: ' + c.termos + ' · com definição: ' + c.com_definicao
+      + ' · com origem: ' + c.com_origem + ' · com decomposição: ' + c.com_decomposicao);
+  } else {
+    linhas.push('  níveis: ' + c.niveis + ' · com unidades: ' + c.niveis_com_unidades
+      + ' · unidades: ' + c.unidades);
+  }
+  linhas.push('  lacunas: ' + (c.lacunas == null ? 0 : c.lacunas));
+  const tipos = {};
+  for (const l of (produto.lacunas || [])) tipos[l.tipo] = (tipos[l.tipo] || 0) + 1;
+  for (const tipo of Object.keys(tipos).sort()) linhas.push('    · ' + tipo + ': ' + tipos[tipo]);
+  return linhas.join('\n');
+}
+
+async function main(argv) {
+  const opts = argumentos(argv);
+  if (opts.ajuda || !opts.tipo) {
+    uso();
+    process.exit(opts.ajuda ? 0 : 2);
+  }
+  if (opts.tipo !== 'dicionario' && opts.tipo !== 'syllabus') {
+    console.error('produtos: «' + opts.tipo + '» não é um produto. Use `dicionario` ou `syllabus`.');
+    process.exit(2);
+  }
+
+  const produtos = require('./servidor/produtos.js');
+  const comuns = {
+    versao: opts.versao,
+    licenca: opts.licenca,
+    nivel: opts.nivel || undefined,
+  };
+
+  let produto;
+  if (opts.doRepo) {
+    const token = String(process.env.GITHUB_TOKEN || '').trim();
+    if (!token) {
+      console.error('produtos: --do-repo precisa de GITHUB_TOKEN no ambiente.');
+      process.exit(2);
+    }
+    produto = await produtos.gerarDoRepo({
+      tipo: opts.tipo, f: (u, o) => fetch(u, o), token,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main',
+      modalidade: opts.modalidade, opcoes: comuns,
+    });
+  } else {
+    const catalogo = catalogoDoDisco(opts.modalidade);
+    const gerar = opts.tipo === 'dicionario' ? produtos.gerarDicionario : produtos.gerarSyllabus;
+    produto = gerar(Object.assign({}, catalogo, comuns));
+  }
+
+  if (!produto.ok) {
+    console.error('produtos: ' + (produto.erro || 'não foi possível gerar'));
+    process.exit(1);
+  }
+  produto.nomeDoProduto = opts.tipo === 'dicionario' ? 'Dicionário' : 'Syllabus';
+
+  if (opts.json) {
+    console.log(JSON.stringify(produto.manifesto, null, 2));
+    return;
+  }
+  if (opts.out === '-') {
+    for (const d of produto.documentos) {
+      console.log('<!-- ' + d.nome + ' -->');
+      console.log(d.texto);
+    }
+    console.error(resumo(produto));
+    return;
+  }
+  const destino = opts.out || path.join('publicacao', 'produtos', opts.modalidade);
+  // O CAMINHO DO `--out` PODE SER ABSOLUTO. `path.join(RAIZ, '/tmp/x')` dá `RAIZ/tmp/x` — o
+  // `join` só normaliza, não respeita a raiz do segundo argumento. Quem pede um destino absoluto
+  // quer AQUELE destino, e a prova escreve num temporário.
+  const alvo = path.isAbsolute(destino) ? destino : path.join(RAIZ, destino);
+  const escritos = escrever(alvo, produto.documentos);
+  console.log(resumo(produto));
+  console.log('  escritos: ' + escritos.length + ' documento(s) em '
+    + (opts.out ? destino : path.relative(RAIZ, alvo)));
+  for (const e of escritos) console.log('    ' + (path.isAbsolute(destino) ? e : path.relative(RAIZ, e)));
+}
+
+if (require.main === module) {
+  main(process.argv.slice(2)).catch((erro) => {
+    console.error('produtos: ' + erro.message);
+    process.exit(1);
+  });
+}
+
+module.exports = { main, argumentos, catalogoDoDisco };

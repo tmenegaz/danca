@@ -84,6 +84,11 @@ experimentos/*
 # O comportamento dos dois modos e do editor de célula (28/10/2026), num navegador de
 # verdade sobre uma bancada local. É prova, não bancada: não vai ao ar, e reprova sozinha.
 !experimentos/provar-celula.js
+# A PROVA DOS PRODUTOS (02/11/2026). O REGISTRO e o ESTADO-ATUAL citam-na por nome
+# («50 asserções»), e uma prova citada que não existe no clone é uma afirmação que
+# ninguém confere. É ela que mede o dicionário e o syllabus — o mecanismo, e não o
+# conteúdo: as fixtures são declaradas dentro da própria prova.
+!experimentos/provar-produtos.js
 !experimentos/provar-derivacao-da-turma.js
 !experimentos/provar-plano-da-turma.js
 !experimentos/provar-escola-fixa.js
