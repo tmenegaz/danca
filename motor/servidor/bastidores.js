@@ -38,6 +38,17 @@ const CATALOGO = require('./catalogo-seed.js');
 const { normalizarNivel, estruturaDaTradicao } = require('../nucleo/niveis.js');
 // O ENQUADRAMENTO — quem ensina o quê, em que nível, e que turmas ficaram sem quem as ensine.
 const enquadramento = require('../nucleo/enquadramento.js');
+// OS TRÊS ESTADOS DA TURMA (03/11/2026) — livre, curada, vinculada. O professor já tinha três
+// (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
+// continuava editável, e renomeá-la partia a ligação em silêncio (a curadoria guarda o NOME).
+const estadoDaTurmaNucleo = require('../nucleo/estado-da-turma.js');
+const { estadoDaTurma, podeEditarNoLugar, motivoDaRecusa } = estadoDaTurmaNucleo;
+// O CONTEÚDO MUDOU DE CASA (03/11/2026) — vive na curadoria, e a turma lê a UNIÃO do que ficou
+// gravado no mapa antigo (`turma-conteudos`) com o que as curadorias dela declaram.
+const conteudos = require('../nucleo/conteudos.js');
+// A TRADIÇÃO DE CADA MODALIDADE (03/11/2026) — o específico vence o compartilhado, a mesma
+// precedência das fontes de ciclo (`tools/lib-fontes.sh`).
+const tradicoesNucleo = require('../nucleo/tradicoes.js');
 // A HABILITAÇÃO DO PROFESSOR (03/11/2026) — o núcleo puro que diz quem ensina o quê.
 const perfilNucleo = require('../nucleo/perfil-do-professor.js');
 // A COMPOSIÇÃO catálogo × escola é a dos produtos, e é a única (02/11/2026).
@@ -476,6 +487,26 @@ async function relacoes(kv, escola) {
   } catch (e) {
     return {};
   }
+}
+
+/**
+ * O QUE AS TURMAS DESTA ESCOLA APRENDEM (03/11/2026) — o mapa `{ turmaId: [termoId, …] }`, com o
+ * mapa antigo `turma-conteudos` SOMADO ao que as curadorias declaram.
+ *
+ * É o que os LEITORES passam a usar: o cartão da turma, a guarda de proveniência do termo e a
+ * validação do «Gravar turma». Ninguém precisa de saber que houve duas camadas — e é de propósito:
+ * o dia em que a segunda camada nascesse como um segundo mapa, os dois divergiriam, que é
+ * exactamente o defeito que a 19/10 mandou corrigir no repertório da curadoria.
+ *
+ * As ROTAS DE ESCRITA do mapa antigo continuam a ler `relacoes` cru: elas escrevem ali, e escrever
+ * num mapa composto gravaria a composição por cima da memória.
+ */
+async function conteudosDaEscola(kv, escola, listaTurmas) {
+  return conteudos.mapaDeConteudos({
+    legado: await relacoes(kv, escola),
+    curadorias: await curadorias(kv, escola),
+    turmas: listaTurmas || await turmas(kv, escola),
+  });
 }
 
 /**
@@ -1002,7 +1033,16 @@ function normalizarTurma(corpo) {
     id: idDe(nome),
     nome: nome,
     ordem: ordem,
-    descricao: String(corpo.descricao || '').trim(),
+    // A «NOTA SOBRE ESTA TURMA» SAIU DO CADASTRO (03/11/2026), e por decisão dela: «na prática
+    // operacional do professor ele não agrega valor e não será utilizado». Era o único campo de
+    // texto livre da turma, e texto livre num cadastro que a proveniência trava é um sítio onde
+    // se escreve o que devia ser um ajuste datado.
+    //
+    // O CAMPO NÃO É APAGADO DOS REGISTOS ANTIGOS — não está aqui, e por isso não é reescrito:
+    // `Object.assign({}, anterior, ajustado)` deixa ficar o que a turma já tinha. É a mesma
+    // técnica do `nivelReferencia` e da `modalidade` (03/11/2026): o que sai da lista de campos
+    // deixa de ser tocado, e a memória fica onde está (P-03/P-04). Uma turma que tinha nota
+    // continua a tê-la no ficheiro; o que deixa de haver é o sítio que a pedia.
     // O RITMO DA TURMA — decisão da DIREÇÃO, não da cena (IDEIA-PAINEL-ESCOLA §8.3: «não
     // tem frequência semanal — vem do contrato»). É o que desce para o plano de ensino:
     // frequência, dias, duração e o período do termo. O plano LÊ; não reescreve.
@@ -1068,6 +1108,24 @@ const MODALIDADES = require('../../biblioteca/modalidades/modalidades.json');
 function tradicoesAdotaveis() {
   return (CATALOGO.TRADICOES || []).filter((t) => t !== 'compartilhada');
 }
+
+/**
+ * AS TRADIÇÕES, POR MODALIDADE (03/11/2026).
+ *
+ * O catálogo tem hoje UMA lista, e ela vive dentro de `biblioteca/modalidades/bale-classico/
+ * tradicoes.json` — a modalidade que tem conteúdo. As outras não têm lista própria, e é por isso
+ * que `tradicoesNucleo` cai na COMPARTILHADA quando a modalidade não declara nada: uma modalidade
+ * sem lista ficaria sem tradições, e a curadoria deixaria de se poder atribuir em jazz, em circo ou
+ * em contemporâneo. Uma regra nova que tranca o que já funcionava é uma regressão com boa
+ * intenção.
+ *
+ * ONDE CRESCE: um `require` do `tradicoes.json` da modalidade nova e uma linha aqui. É o mesmo
+ * sítio e o mesmo custo que o `catalogo-seed.js` já paga para as outras quatro listas do clássico
+ * (vocabulário, progressão, tradições, descrições) — o Worker não tem `fs`, e o esbuild embute os
+ * ficheiros por `require`. O dia em que houver duas modalidades com conteúdo, o mapa passa a ter
+ * duas entradas e mais nada muda.
+ */
+const TRADICOES_POR_MODALIDADE = { 'bale-classico': tradicoesAdotaveis() };
 
 /**
  * AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — marcadas no sítio onde elas vivem (03/11/2026).
@@ -2046,12 +2104,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
 
-  // As opções do <select> de associação (uma por termo). A categoria aparece com o rótulo
-  // acentuado — o valor gravado continua a ser a chave sem acento (`posicao`), que é a que
-  // os 84 termos do catálogo já usam.
-  const opcoesTermo = listaTermos.map((t) =>
-    '<option value="' + esc(t.termo) + '">' + esc(t.termo) +
-    (t.categoria ? ' — ' + esc(rotuloDaCategoria(t.categoria)) : '') + '</option>').join('');
+  // OS CONTEÚDOS DA CURADORIA (03/11/2026) — a peça que era o `<select>` do passo 3 da turma,
+  // agora no sítio certo. É o `escolhedor` da casa (o mesmo das alunas), e o valor de cada ficha
+  // é o NOME do termo, não o id: a lista é para o professor LER. O id sai dele por `idDe`, que é
+  // a mesma regra com que o mapa antigo sempre gravou — `motor/nucleo/conteudos.js` normaliza os
+  // dois lados antes de os unir, e é isso que faz os dois mapas falarem a mesma língua.
+  const escolarConteudosCuradoria = escolhedor('esc-conteudos', listaTermos.map((t) => ({
+    valor: t.termo,
+    rotulo: t.termo + (t.categoria ? ' — ' + rotuloDaCategoria(t.categoria) : ''),
+  })));
 
   // A RÉGUA DE CADA TURMA, JÁ RESOLVIDA (vínculo → própria → padrão). O cartão da turma
   // recebe este mapa para desenhar a escala sem resolver nada: ele mostra o que o servidor
@@ -2073,10 +2134,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // nesta escola?»). A direção pediu uma só: «Turmas cadastradas», sempre. É ela que liga os
   // três passos, e é nela que se vê o que já foi cadastrado enquanto se preenche o resto.
 
-  // Os blocos ocultos de conteúdos, um por turma, para o formulário clonar o da turma que
-  // estiver aberto. Ficam FORA da lista (abaixo), e não dentro do `<li>`: um `<div>` com
-  // `hidden` dentro de um item de lista flex ainda ocupa um lugar no flex.
-  const blocosDeConteudos = [];
+  // OS BLOCOS OCULTOS DE CONTEÚDOS SAÍRAM A 03/11/2026. Eles existiam para o formulário CLONAR,
+  // por turma, os chips com o «×» que removia a associação — e o formulário que os clonava era o
+  // passo 3 da turma, que deixou de ter conteúdos. Sem clonador não há o que clonar, e um `<div
+  // hidden>` por turma que ninguém lê é peso morto na página.
   const itensTurmas = listaTurmas.length
     ? listaTurmas.map((t) => {
         const associados = Array.isArray(relObj[t.id]) ? relObj[t.id] : [];
@@ -2084,19 +2145,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           const o = termoPorId.get(tid);
           return o ? o.termo : tid;
         });
-        // A ASSOCIAÇÃO SAIU DA LISTAGEM (18/10/2026). Ela vivia no cartão da turma, ao lado
-        // dos chips — e o cartão passou a ser um cartão de LEITURA: quem abre o «?» dos
-        // conteúdos vê QUAIS são, e mais nada. Associar e desassociar desceram para o
-        // formulário, abaixo da duração da aula, que é o lugar onde a direção decide o que
-        // a turma vai usar. O painel mostra; o formulário compõe.
+        // A ASSOCIAÇÃO SAIU DA LISTAGEM (18/10/2026), e o cartão ficou de LEITURA: quem abre o
+        // «?» dos conteúdos vê QUAIS são, e mais nada.
+        //
+        // E A 03/11/2026 O CARTÃO PASSOU A LER O MAPA COMPOSTO (`relObj` já vem de
+        // `conteudosDaEscola`): o que a turma aprende é o mapa antigo somado ao que as curadorias
+        // dela declaram. O cartão não mudou de desenho; mudou de fonte, e passou a mostrar a
+        // verdade inteira sem que ninguém tenha migrado nada.
         const chips = nomesAssociados.map((n) => '<span class="chip">' + esc(n) + '</span>').join(' ');
-        // A cópia do formulário: os mesmos chips, com o «×» que remove. Fica num bloco
-        // oculto por turma, e o `ajustarTurma` clona o da turma que estiver no formulário —
-        // assim o markup do chip é escrito UMA vez só (aqui), e não outra vez no JavaScript.
-        const chipsAjuste = nomesAssociados.map((n) => '<span class="chip">' + esc(n) +
-          ' <button type="button" class="desassociar acao secundario pequena" data-turma="' + esc(t.id) +
-          '" data-termo="' + esc(n) + '" title="Remover associação">×</button></span>').join(' ');
-        blocosDeConteudos.push('<div class="conteudos-da-turma" data-de="' + esc(t.id) + '" hidden>' + chipsAjuste + '</div>');
         // O ritmo declarado pela direção (frequência, dias, duração e período do termo):
         // é o que desce para o plano de ensino — por isso aparece no cadastro.
         const diasTexto = (t.dias && t.dias.length)
@@ -2188,19 +2244,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ? '<span class="selo alerta" title="' + esc(motivoDescontinuada) + '">descontinuada'
             + esc(emDescontinuada) + '</span>'
           : '';
-        // LIVRE ou VINCULADA (16/10/2026). É a mesma regra do plano de ensino: uma turma sem
-        // plano é cadastro e edita-se; uma turma com plano é linha de base e deriva-se. A
-        // escola não precisa de saber a diferença — vê a bandeirinha e o botão certo.
-        const vinculada = turmaVinculadaA(
-          pares ? new Set(pares.map((p) => p.turma)) : null, t.nome);
-        const seloEstado = vinculada
-          ? '<span class="selo vinculada" title="esta turma já tem plano de ensino; mexer-lhe muda o passado">vinculada</span>'
-          : '<span class="selo livre" title="esta turma ainda não tem plano de ensino; pode ser corrigida">livre</span>';
-        const botaoAjuste = vinculada
-          ? '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="derivar" ' +
-            'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
-          : '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
-            'title="Editar a turma (ela ainda não tem plano de ensino)">Editar</button>';
+        // LIVRE, CURADA ou VINCULADA (16/10/2026, três estados a 03/11/2026). É a mesma regra do
+        // plano de ensino, e a mesma do PERFIL do professor: uma turma sem plano e fora de
+        // qualquer curadoria é cadastro e edita-se; uma turma que já está numa curadoria activa
+        // deriva, porque a curadoria guarda o NOME dela; uma turma com plano é linha de base e
+        // deriva sempre. A escola não precisa de saber a diferença — vê a bandeirinha e o botão.
+        //
+        // O SELO «curada» NASCEU DE UM DEFEITO MEDIDO, e não de uma dúvida de nomenclatura: a
+        // tela dizia «livre» a uma turma que já compunha uma curadoria, e «livre» ali não era
+        // informação — era a ausência do segundo estado. A regra do professor já o tinha; a
+        // turma não.
+        const estado = estadoDaTurma(t, {
+          turmasComPlano: pares ? new Set(pares.map((p) => p.turma)) : null,
+          curadorias: curs,
+        });
+        const livre = podeEditarNoLugar(estado);
+        const seloEstado = livre
+          ? '<span class="selo livre" title="esta turma ainda não tem plano de ensino nem curadoria; pode ser corrigida">livre</span>'
+          : estado === 'curada'
+            ? '<span class="selo curada" title="esta turma já está numa curadoria activa; a curadoria guarda o nome dela, por isso deriva-se em vez de se corrigir">curada</span>'
+            : '<span class="selo vinculada" title="esta turma já tem plano de ensino; mexer-lhe muda o passado">vinculada</span>';
+        const botaoAjuste = livre
+          ? '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
+            'title="Editar a turma (ela ainda não tem plano de ensino nem curadoria)">Editar</button>'
+          : '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="derivar" ' +
+            'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>';
         // O CARTÃO DA TURMA PASSA A SER O HÍBRIDO (18/10/2026). Ele trazia NOVE faixas de
         // informação todas abertas ao mesmo tempo — nome, nível, programa, ritmo, estado,
         // vigência, o aviso de «falta …», a régua em prosa, os conteúdos em chips, o
@@ -2275,8 +2343,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           botaoAjuste +
           // A TURMA COM PLANO NÃO SE APAGA (18/10/2026) — o selo já existia; o botão não
           // respeitava. O servidor também recusa (é a mesma regra, não uma comodidade).
-          (vinculada
-            ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
+          //
+          // E DESDE 03/11/2026 A MESMA RÉGUA VALE PARA A TURMA CURADA: apagá-la deixaria a
+          // curadoria a apontar para o vazio, que é o mesmo mal de a renomear. O botão desliga
+          // — o `estado` já diz qual dos dois casos é, e o `title` diz o que fazer.
+          (!livre
+            ? '<button class="acao secundario pequena" disabled title="' +
+              (estado === 'curada'
+                ? 'Numa curadoria activa: remova primeiro a curadoria para poder apagar'
+                : 'Vinculada a um plano de ensino: não se apaga') + '">Excluir</button>'
             : '<button class="apagar acao perigo pequena" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button>') +
           '</span></div>' +
           (detalhe ? '<div class="dono">' + esc(detalhe) + '</div>' : '') +
@@ -3355,11 +3430,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<span class="passo-n">1</span> <span class="passo-t">Turma</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
     '<li><button type="button" class="passo" data-passo="rubrica">' +
     '<span class="passo-n">2</span> <span class="passo-t">Rubricas</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
-    // «VINCULAR TURMA À RUBRICA» VIROU «ASSOCIAR» (18/10/2026). O passo deixou de ser só o
-    // vínculo com a rubrica: é ali que a turma recebe a régua E os conteúdos, e as duas
-    // coisas são o mesmo ato — dizer com o que a turma vai ser medida e o que vai ser
-    // ensinado nela. «Vincular» é o termo do vínculo com a rubrica; «associar» cobre os
-    // dois, e é a palavra que o resto do sistema já usa (`turma-conteudo`, «Associar»).
+    // «VINCULAR TURMA À RUBRICA» VIROU «ASSOCIAR» (18/10/2026), porque o passo passou a ter
+    // duas coisas: a régua com que a turma é medida e os conteúdos que ela usa.
+    //
+    // A 03/11/2026 SOBROU A RÉGUA — os conteúdos foram para a curadoria —, e o rótulo fica:
+    // «Associar» nunca foi o nome dos conteúdos, é o nome do ATO de ligar uma coisa da escola a
+    // esta turma. O que se associa a uma turma é a régua; o que se associa a uma curadoria é o
+    // que se ensina. Duas palavras iguais para o mesmo verbo, em dois sujeitos diferentes.
     '<li><button type="button" class="passo" data-passo="vincular">' +
     '<span class="passo-n">3</span> <span class="passo-t">Associar</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
     '</ol>' +
@@ -3410,15 +3487,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * destruir e recriar a estrutura operacional — muda-se a CURADORIA, e o calendário, a
      * frequência e os lançamentos da turma não são tocados.
      *
-     * O QUE FICA: o nome, as notas, os dias com a hora, a duração e o período. É o ritmo.
+     * O QUE FICA: o nome, os dias com a hora, a duração e o período. É o ritmo.
      * O QUE VAI PARA A CURADORIA: professor, modalidade, tradição e nível.
      *
      * A «EQUIVALÊNCIA PEDAGÓGICA» também saiu — ela era o mesmo nível escrito de outra maneira, e
      * o nível passou a ter dois campos com a forma da tradição, na curadoria. Manter as duas
      * seria pedir o mesmo facto em dois sítios com dois formatos.
+     *
+     * E AS «NOTAS SOBRE ESTA TURMA» SAÍRAM A 03/11/2026, por decisão dela: «na prática operacional
+     * do professor ele não agrega valor e não será utilizado». O que a turma precisa de dizer já o
+     * diz pelos números; uma caixa de texto livre ao lado de um cadastro datado é onde se escreve
+     * o que devia ser um ajuste. O que estava escrito fica onde está — o campo deixou de ser
+     * pedido e reescrito, não foi apagado.
      */
-    '<label class="campo-rotulo" for="tdescricao">Notas sobre esta turma (opcional)</label>' +
-    '<input id="tdescricao" name="descricao" autocomplete="off">' +
     // OS DIAS VÊM ANTES DA FREQUÊNCIA, e a ordem é a da causa (18/10/2026): é dos dias que
     // a frequência sai. Era o contrário — perguntava-se «quantas vezes por semana?» e
     // depois os dias, e as duas respostas podiam discordar (3x/semana com dois dias).
@@ -3499,11 +3580,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</form>' +
     '</div>' +
     '</div>' +
-    // PASSO 3 — ASSOCIAR. A turma já existe; aqui ela recebe o que vai precisar. São dois
-    // atos e os dois são «associar»: a RÉGUA com que é medida (uma rubrica) e os CONTEÚDOS
-    // que vai usar. Estavam separados — a régua num passo e os conteúdos no cadastro — e a
-    // associação de conteúdo não tinha lugar: só se associa conteúdo a uma turma que já
-    // existe, e o cadastro é o sítio onde ela ainda está a nascer.
+    // PASSO 3 — ASSOCIAR. A turma já existe; aqui ela recebe a RÉGUA com que é medida.
+    //
+    // ERAM DOIS ATOS (18/10/2026) — a régua e os CONTEÚDOS. A 03/11/2026 ficou um: os conteúdos
+    // passaram para a curadoria, que é onde se declara o que se ensina («é um ato pedagógico», e
+    // o cadastro da turma é o ritmo).
     '<div class="passo-painel" id="passo-vincular" hidden>' +
     '<div class="col-form">' +
     '<form id="form-vincular">' +
@@ -3531,13 +3612,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</span>' +
     '<p class="nota" id="vinc-estado"></p>' +
     '</fieldset>' +
-    '<fieldset class="bloco-assoc">' +
-    '<legend>Conteúdos desta turma</legend>' +
-    '<div class="chips" id="vinc-conteudos"><span class="dono">(nenhum conteúdo associado)</span></div>' +
-    '<span class="par-associar"><select class="sel-termo" id="vinc-termo" aria-label="termo a associar">' +
-    '<option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
-    '<button type="button" class="associar acao pequena" id="vinc-associar-termo"' + (listaTermos.length ? '' : ' disabled') + '>Associar</button></span>' +
-    '</fieldset>' +
+    // OS CONTEÚDOS SAÍRAM DESTE PASSO (03/11/2026). Aqui estava «Conteúdos desta turma» — os
+    // chips e o «Associar termo» —, e foi ela que o mandou sair: «o conteúdo prático/técnico a
+    // ser ensinado não deve pertencer ao cadastro estático da turma, pois isso é um ato
+    // pedagógico […] mover a atribuição e associação de conteúdo inteiramente para o formulário
+    // de Curadoria».
+    //
+    // Não é uma mudança de lugar por gosto: a turma é o ritmo, e o que se ENSINA nela é a
+    // curadoria — o mesmo par que a 03/11/2026 já tinha levado o professor, a modalidade, a
+    // tradição e o nível. Os conteúdos eram a última coisa do enquadramento a ficar para trás.
+    //
+    // O QUE JÁ ESTÁ ASSOCIADO NÃO SE PERDE: o mapa antigo (`turma-conteudos`) continua a ser
+    // LIDO — `motor/nucleo/conteudos.js` soma-o ao que as curadorias declaram —, e o cartão da
+    // turma continua a mostrar a lista. O que deixa de haver é o sítio que a escrevia.
+    // Os chips que se lêem no cartão e nos painéis vêm do mapa COMPOSTO (`conteudosDaEscola`).
     // O FIM DA SEQUÊNCIA (18/10/2026). «Gravar turma» conclui: grava a régua escolhida (se
     // mudou) e volta ao início, com a lista à vista. A turma já foi gravada no passo 1 — é o
     // que permite associar aqui —, e o botão diz o que a direção sente: «terminei esta turma».
@@ -3565,7 +3653,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '</div>' +   // /.turmas-corpo
     // Os conteúdos de cada turma, com o «×», prontos a clonar (ver `ajustarTurma`).
-    blocosDeConteudos.join('') +
     '</section>' +
     /* A PÁGINA DO VOCABULÁRIO SAIU (01/11/2026) — e é o verbete que a substitui.
      *
@@ -4061,6 +4148,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<select id="cuprofessor">' + opcoesProfessorCuradoria + '</select>' +
     '<label class="campo-rotulo" for="cumodalidade">Modalidade</label>' +
     '<select id="cumodalidade">' + opcoesModalidadeCuradoria + '</select>' +
+    // A NOTA DO FILTRO (03/11/2026). Ela só existe quando há algo a declarar — um professor que
+    // ainda não tem habilitações registadas, ou cujas habilitações não casam com o catálogo —, e
+    // é a peça que o passo 3 da turma já usa para o mesmo ofício (`#vinc-estado`): um `.nota` que
+    // diz um FACTO sobre o dado, e não uma explicação do campo.
+    '<p class="nota" id="cu-habilitacao-nota" hidden></p>' +
     '<label class="campo-rotulo" for="cutradicao">Tradição</label>' +
     // A TRADIÇÃO É OBRIGATÓRIA (23/10/2026). Havia aqui um «— nenhuma —», e era o único
     // campo da curadoria que se podia deixar em branco sem que nada reclamasse: a curadoria
@@ -4068,6 +4160,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // quem editar um registo antigo sem tradição escolhe uma (P-03: a proveniência acrescenta,
     // e a versão nova fica completa).
     '<select id="cutradicao">' + opcoesTradicaoCuradoria + '</select>' +
+    // E A DA TRADIÇÃO, pela mesma razão e com a mesma regra: quando a lista é a compartilhada
+    // porque a modalidade ainda não tem tradições próprias, a nota di-lo. Mostrar as tradições
+    // do catálogo clássico com o rótulo do jazz seria uma afirmação falsa sobre o que se escolhe.
+    '<p class="nota" id="cu-tradicao-nota" hidden></p>' +
     /* O NÍVEL É AQUI, E NÃO NA TURMA (03/11/2026).
      *
      * A eleição dela: «a curadoria passa a ser o núcleo inteligente de gestão pedagógica da
@@ -4089,12 +4185,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label>Alunas</label>' +
     escolarAlunasCuradoria +
-    // O «REPERTÓRIO» NÃO MORA AQUI (19/10/2026). Ele era um segundo lugar para digitar os
-    // mesmos 84 termos do vocabulário que a TURMA já declara no passo «Associar»
-    // (`turma-conteudos`) — e **ninguém o lia**: o plano, o PO e a captura derivam da turma,
-    // e nenhum nó do conteúdo declara `daCuradoria: "repertorio"`. Duas listas da mesma coisa
-    // é uma lista a mais, e a que sobra só pode divergir. O de cá não foi apagado do que já
-    // está gravado (P-03/P-04): ele apenas deixou de se pedir.
+    // O «REPERTÓRIO» VOLTOU A ESTE FORMULÁRIO A 03/11/2026 — e não é a reversão que parece.
+    //
+    // Ele saiu daqui a 19/10/2026 com uma razão que continua verdadeira: era o SEGUNDO lugar
+    // para a mesma lista, porque a turma já a declarava no passo «Associar». O que mudou não foi
+    // a razão, foi o primeiro lugar: os conteúdos SAÍRAM da turma por decisão dela («o conteúdo
+    // […] não deve pertencer ao cadastro estático da turma, pois isso é um ato pedagógico»).
+    // Sem o primeiro, este deixa de ser o segundo — passa a ser o único, e um único não diverge.
+    // SÓ O RÓTULO, SEM EXPLICAÇÃO (a regra da casa: nenhum formulário traz parágrafo
+    // explicativo — rótulo, campo e placeholder, e nada mais). O que a lista significa diz-se
+    // onde ela é LIDA, não onde é preenchida.
+    '<label>Conteúdos desta curadoria</label>' +
+    escolarConteudosCuradoria +
     // O «CANCELAR» AO LADO DO BOTÃO, E SÓ NA EDIÇÃO (18/10/2026) — a mesma regra dos três
     // passos da turma. Ele não tem texto de aviso, e nasce escondido: sem edição em curso não
     // há nada para cancelar.
@@ -4369,8 +4471,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // gravar ou a que se mandou editar). Sem foco não há a quem associar.
     '  if (!turmaEmFoco()) falta.push("escolher a turma");' +
     '  if (!selR || !String(selR.value || "").trim()) falta.push("escolher a rubrica");' +
-    '  var chips = document.querySelectorAll("#vinc-conteudos .chip").length;' +
-    '  if (!chips) falta.push("associar pelo menos um conteúdo");' +
+    // A EXIGÊNCIA DE «PELO MENOS UM CONTEÚDO» SAIU A 03/11/2026, e pelo mesmo motivo que a do
+    // servidor: os conteúdos deixaram de se associar aqui. Uma trava no cliente que exige o que
+    // o formulário já não oferece é um botão que nunca acende — e a escola ficaria sem conseguir
+    // concluir a turma, com a tela a pedir-lhe uma coisa que não tem onde fazer.
     '  return falta;' +
     '}' +
     'function fraseDaFaltaNoCliente(falta) {' +
@@ -4416,11 +4520,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (associar) associar.disabled = !temTurma || !(selR && String(selR.value || "").trim());' +
     '  var desassociar = document.getElementById("vinc-desassociar");' +
     '  if (desassociar) desassociar.disabled = !temTurma;' +
-    // Associar um CONTEÚDO também exige a turma — e um termo que exista (o menu tem sempre
-    // o vazio «— associar termo —» na primeira posição).
-    '  var associarTermo = document.getElementById("vinc-associar-termo");' +
-    '  var selTermo = document.getElementById("vinc-termo");' +
-    '  if (associarTermo) associarTermo.disabled = !temTurma || !selTermo || !selTermo.options || selTermo.options.length <= 1;' +
     '  var faltaAssoc = faltaDaAssociacao();' +
     '  var gravar = document.getElementById("vinc-gravar");' +
     '  var tudoOk = turmaOk && faltaAssoc.length === 0;' +
@@ -5278,7 +5377,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // saíram do formulário da turma e passaram para a curadoria. Mandá-los em branco apagaria o
     // que uma turma antiga guarda — e é a lista de campos do servidor que os preserva. Ver
     // `motor/nucleo/enquadramento.js`.
-    '    descricao: document.getElementById("tdescricao").value,' +
+    // A NOTA TAMBÉM NÃO (03/11/2026): saiu do cadastro por decisão dela. Não se manda vazia —
+    // mandá-la vazia apagaria a nota de uma turma antiga. Simplesmente deixou de existir aqui.
+
     // A frequência NÃO se envia mais do formulário: o servidor a calcula a partir dos
     // dias. O campo continua a existir no JSON — só deixou de vir de um `<input>`.
     '    dias: marcados("dia"),' +
@@ -5319,6 +5420,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // servidor: o mapa já veio com a página (16/10/2026). Só as vigentes — uma substituída não
     // é ponto de partida de um ajuste novo.
     'var TURMAS = ' + JSON.stringify(listaTurmas) + ';' +
+    /* A TRADIÇÃO DE CADA MODALIDADE, E O QUE ELA É (03/11/2026). O filtro é do cliente porque a
+     * lista depende da modalidade que se acabou de escolher — e ir ao servidor a cada mudança de
+     * um `<select>` seria uma viagem por tecla. O mapa vem inteiro com a página, e é a mesma
+     * precedência do núcleo (`motor/nucleo/tradicoes.js`): a lista da modalidade, quando existe;
+     * a compartilhada, quando não. */
+    'var TRADICOES_DA_MODALIDADE = ' + JSON.stringify(tradicoesNucleo.mapaDeTradicoes(
+      (MODALIDADES && MODALIDADES.modalidades) || [],
+      { porModalidade: TRADICOES_POR_MODALIDADE, compartilhadas: tradicoesAdotaveis() })) + ';' +
+    // O RÓTULO DE CADA TRADIÇÃO (o `RAD` fica sigla, o `francesa` vira «Francesa»). O mapa está no
+    // dado (`tradicoes.json` → `rotulos`), e vem para aqui porque é o cliente que repinta a lista
+    // quando a modalidade muda — o servidor não pode repintar um formulário que ainda não foi
+    // submetido.
+    'var ROTULOS_DE_TRADICAO = ' + JSON.stringify(CATALOGO.ROTULOS || {}) + ';' +
+    'var CATALOGO_DE_MODALIDADES = ' + JSON.stringify(
+      ((MODALIDADES && MODALIDADES.modalidades) || []).map((m) => ({
+        id: m.id, nome: m.nome, temConteudo: Boolean(m.temConteudo) }))) + ';' +
     // O BOTÃO DE UM CARTÃO — «Editar» numa turma LIVRE, «Derivar» numa VINCULADA (16/10/2026).
     // Enche o formulário com a turma de hoje e põe o modo. A diferença que a escola sente:
     // no «Derivar» o nome fica travado (é ele que a curadoria e o plano referenciam) e há uma
@@ -5348,7 +5465,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // entra como opção própria — abrir a turma não pode perder a referência que ela declara.
     // O ENQUADRAMENTO NÃO SE PREENCHE AQUI (03/11/2026): ele vive na curadoria. O que a turma
     // antiga guarda continua no registo dela, intocado — não é este formulário que o reescreve.
-    '  document.getElementById("tdescricao").value = t.descricao || "";' +
+    // E a NOTA deixou de ter campo (03/11/2026): não há `<input>` para preencher.
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
     '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
     '  document.getElementById("tfim").value = t.periodoFim || "";' +
@@ -5467,6 +5584,137 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    recado("erro", "Já estão noutra turma desta modalidade: " + saiu.join("; ") + ".");' +
     '  }' +
     '}' +
+    /* =========================================================================
+     * O FORMULÁRIO INTELIGENTE (03/11/2026) — o pedido dela, nas duas metades.
+     *
+     * «O formulário de Curadoria deve ser inteligente em relação ao Professor selecionado: a lista
+     * de modalidades exibida deve filtrar e restringir-se estritamente às habilidades que aquele
+     * professor possui cadastradas (um professor de jazz não deve ter opções de ballet clássico se
+     * não possuir essa habilidade).» E, do outro lado, «as tradições técnicas devem aparecer de
+     * forma dinâmica de acordo com a modalidade escolhida».
+     *
+     * PORQUE É QUE AS HABILITAÇÕES NÃO VÊM COM A PÁGINA. Elas vivem no perfil de cada pessoa, no
+     * repositório — uma leitura remota por professor. Ler N perfis para desenhar uma lista é a
+     * operação que a regra da casa proíbe (a página é servida de forma síncrona, e a leitura por
+     * fora é o que gastou a cota do KV em 18/10/2026). O pedido é feito quando a direção ESCOLHE
+     * um professor, que é quando a informação passa a fazer falta — e fica em memória enquanto a
+     * aba estiver aberta.
+     *
+     * NÃO DECLARADO ≠ NÃO ENSINA NADA. Um professor sem perfil (ou com a lista vazia) não vê a
+     * lista encolher para nada: vê a lista do catálogo, com uma nota a dizer que ele ainda não
+     * declarou as habilitações. Restringir por um dado que não existe seria transformar «não sei»
+     * em «não pode» — e a mesma distinção está escrita no núcleo do perfil.
+     * ========================================================================= */
+    'var HABILITACOES = {};' +
+    'var HABILITACOES_EM_CURSO = {};' +
+    'function listaDoCatalogo(){' +
+    '  var op = [];' +
+    '  for (var i = 0; i < CATALOGO_DE_MODALIDADES.length; i++) {' +
+    '    var m = CATALOGO_DE_MODALIDADES[i];' +
+    '    op.push({ valor: m.nome, rotulo: m.nome + (m.temConteudo ? "" : " (sem conteúdo ainda)"), id: m.id });' +
+    '  }' +
+    '  return op;' +
+    '}' +
+    'function pintarModalidades(opcoes, nota){' +
+    '  var sel = document.getElementById("cumodalidade");' +
+    '  if (!sel) return;' +
+    '  var antes = sel.value;' +
+    '  var partes = ["<option value=\u0027\u0027>— escolher —</option>"];' +
+    '  for (var i = 0; i < opcoes.length; i++) {' +
+    '    partes.push("<option value=\u0027" + opcoes[i].valor + "\u0027>" + opcoes[i].rotulo + "</option>");' +
+    '  }' +
+    '  sel.innerHTML = partes.join("");' +
+    // A ESCOLHA ANTERIOR SÓ FICA SE AINDA ESTIVER NA LISTA. Insistir num valor que saiu daria um
+    // `<select>` a mostrar o primeiro item e um `value` a dizer outra coisa — e é o `value` que vai
+    // no corpo do pedido.
+    '  var aindaVale = false;' +
+    '  for (var j = 0; j < opcoes.length; j++) { if (opcoes[j].valor === antes) aindaVale = true; }' +
+    '  sel.value = aindaVale ? antes : "";' +
+    '  var aviso = document.getElementById("cu-habilitacao-nota");' +
+    '  if (aviso) { aviso.hidden = !nota; aviso.textContent = nota || ""; }' +
+    '  pintarTradicoes(sel.value);' +
+    '}' +
+    'function pintarTradicoes(modalidade){' +
+    '  var sel = document.getElementById("cutradicao");' +
+    '  if (!sel) return;' +
+    '  var antes = sel.value;' +
+    '  var bloco = TRADICOES_DA_MODALIDADE[modalidade || ""] || {lista: [], de: "compartilhada"};' +
+    '  var partes = [];' +
+    '  for (var i = 0; i < bloco.lista.length; i++) {' +
+    '    var chave = bloco.lista[i];' +
+    '    partes.push("<option value=\u0027" + chave + "\u0027>" + (ROTULOS_DE_TRADICAO[chave] || chave) + "</option>");' +
+    '  }' +
+    '  if (!partes.length) partes.push("<option value=\u0027\u0027>— esta modalidade ainda não tem tradições —</option>");' +
+    '  sel.innerHTML = partes.join("");' +
+    '  var aindaVale = false;' +
+    '  for (var j = 0; j < bloco.lista.length; j++) { if (bloco.lista[j] === antes) aindaVale = true; }' +
+    '  sel.value = aindaVale ? antes : (bloco.lista.length === 1 ? bloco.lista[0] : "");' +
+    '  var nota = document.getElementById("cu-tradicao-nota");' +
+    '  if (nota) {' +
+    // A NOTA DIZ DE ONDE VEM A LISTA. Mostrar as tradições da compartilhada com o rótulo da
+    // modalidade seria afirmar uma coisa falsa sobre o que está a ser escolhido.
+    '    nota.textContent = (modalidade && bloco.de === "compartilhada")' +
+    '      ? "Ainda sem tradições próprias: a lista é a do catálogo." : "";' +
+    '    nota.hidden = !nota.textContent;' +
+    '  }' +
+    '  pintarGraus("");' +
+    '}' +
+    'function filtrarPorHabilitacao(){' +
+    '  var slug = String((document.getElementById("cuprofessor") || {}).value || "");' +
+    // EM EDIÇÃO NÃO SE REFILTRA. O par (professor, modalidade) de uma curadoria que já existe está
+    // travado, e reconstruir a lista à volta dele apagaria a escolha que está no formulário.
+    '  var emEdicao = String((document.getElementById("cuderivar") || {}).value || "");' +
+    '  if (emEdicao) { return; }' +
+    '  if (!slug) { pintarModalidades(listaDoCatalogo(), ""); return; }' +
+    '  if (Object.prototype.hasOwnProperty.call(HABILITACOES, slug)) {' +
+    '    aplicarHabilitacao(slug); return;' +
+    '  }' +
+    '  if (HABILITACOES_EM_CURSO[slug]) { return; }' +
+    '  HABILITACOES_EM_CURSO[slug] = true;' +
+    '  fetch("/api/bastidores/perfil?professor=" + encodeURIComponent(slug))' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      delete HABILITACOES_EM_CURSO[slug];' +
+    '      HABILITACOES[slug] = (d && d.existe && Array.isArray(d.modalidades)) ? d.modalidades : null;' +
+    // O NOME de cada modalidade vem do catálogo do perfil quando ele vem; sem ele, fica o id.
+    '      HABILITACOES[slug + ":nomes"] = (d && Array.isArray(d.catalogo)) ? d.catalogo : CATALOGO_DE_MODALIDADES;' +
+    '      aplicarHabilitacao(slug);' +
+    '    })' +
+    '    .catch(function(){' +
+    '      delete HABILITACOES_EM_CURSO[slug];' +
+    // A FALHA NÃO TRANCA O FORMULÁRIO: sem resposta, a lista fica a do catálogo. Perder o filtro
+    // é melhor do que impedir a curadoria.
+    '      HABILITACOES[slug] = null;' +
+    '      aplicarHabilitacao(slug);' +
+    '    });' +
+    '}' +
+    'function aplicarHabilitacao(slug){' +
+    '  var ids = HABILITACOES[slug];' +
+    '  var catalogo = HABILITACOES[slug + ":nomes"] || CATALOGO_DE_MODALIDADES;' +
+    '  if (!ids || !ids.length) {' +
+    '    pintarModalidades(listaDoCatalogo(), "Este professor ainda não declarou as habilitações — a lista é a do catálogo.");' +
+    '    return;' +
+    '  }' +
+    '  var opcoes = [];' +
+    '  for (var i = 0; i < catalogo.length; i++) {' +
+    '    var m = catalogo[i];' +
+    '    if (ids.indexOf(m.id) === -1) continue;' +
+    '    opcoes.push({ valor: m.nome, rotulo: m.nome + (m.temConteudo ? "" : " (sem conteúdo ainda)"), id: m.id });' +
+    '  }' +
+    '  if (!opcoes.length) {' +
+    '    pintarModalidades(listaDoCatalogo(), "As habilitações deste professor não casam com nenhuma modalidade do catálogo — a lista é a do catálogo.");' +
+    '    return;' +
+    '  }' +
+    '  pintarModalidades(opcoes, "");' +
+    '}' +
+    'var selProfCu = document.getElementById("cuprofessor");' +
+    'if (selProfCu) selProfCu.addEventListener("change", function(){ filtrarPorHabilitacao(); });' +
+    'var selModCu = document.getElementById("cumodalidade");' +
+    'if (selModCu) selModCu.addEventListener("change", function(){ pintarTradicoes(selModCu.value); });' +
+    // O ESTADO DE PARTIDA: a lista de tradições já sai filtrada pela modalidade actual, e o
+    // professor que vier escolhido no HTML (o primeiro) filtra as modalidades de seguida.
+    'pintarTradicoes((document.getElementById("cumodalidade") || {}).value || "");' +
+    'filtrarPorHabilitacao();' +
     // Trocar a modalidade ou a turma refiltra — e limpar o par também repõe a lista toda.
     'document.addEventListener("change", function(e){' +
     '  var alvo = e.target;' +
@@ -5497,6 +5745,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("cuprofessor").disabled = true;' +
     '  document.getElementById("cumodalidade").value = c.modalidade;' +
     '  document.getElementById("cumodalidade").disabled = true;' +
+    // AS TRADIÇÕES SÃO REPINTADAS PARA A MODALIDADE DELA (03/11/2026), antes de a escolher: desde
+    // que a lista depende da modalidade, uma curadoria de outra modalidade poderia ter uma tradição
+    // que a lista actual não oferece — e o `value` ficaria a apontar para uma opção inexistente.
+    '  pintarTradicoes(c.modalidade);' +
     '  document.getElementById("cutradicao").value = c.tradicao || "";' +
     // O NÍVEL VEM DA CURADORIA (03/11/2026). O grau é reposto DEPOIS de a tradição estar
     // escolhida — a lista dele depende dela —, e o que a curadoria não declarar cai no que a
@@ -5517,7 +5769,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ocupadas (o `cuderivar` já está preenchido, e `alunasOcupadas` exclui-a).
     '  refiltrarAlunas();' +
     // As ALUNAS são fichas: limpam e voltam a marcar.
-    '  [["esc-alunas", c.alunas || []]].forEach(function(par){' +
+    '  [["esc-alunas", c.alunas || []], ["esc-conteudos", c.repertorio || []]].forEach(function(par){' +
     '    var el = document.getElementById(par[0]);' +
     '    if (!el) return;' +
     '    Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
@@ -5542,14 +5794,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("cuprofessor").disabled = false;' +
     '    document.getElementById("cumodalidade").disabled = false;' +
     '    document.getElementById("form-curadoria").reset();' +
-    '    [["esc-alunas"]].forEach(function(par){' +
+    '    [["esc-alunas"], ["esc-conteudos"]].forEach(function(par){' +
     '      var el = document.getElementById(par[0]);' +
     '      if (!el) return;' +
     '      Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
     '      mostrarVazio(el);' +
     '    });' +
-    // As alunas voltam todas a poder ser escolhidas: a modalidade foi reposta.
+    // As alunas voltam todas a poder ser escolhidas: a modalidade foi reposta. Os conteúdos
+    // também se limpam — `reset()` não toca em fichas, porque elas não são campos de formulário.
     '    refiltrarAlunas();' +
+    // E A LISTA DAS MODALIDADES VOLTA A SER A DO CATÁLOGO (03/11/2026): ela tinha sido filtrada
+    // pelas habilitações do professor que estava escolhido, e `reset()` repõe os campos mas não
+    // as opções que o script escreveu.
+    '    pintarModalidades(listaDoCatalogo(), "");' +
+    '    filtrarPorHabilitacao();' +
     '  }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
@@ -5657,23 +5915,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var id = turmaEmFoco();' +
     '  var t = turmaDoFoco();' +
     '  atualizarTurmaEmFoco();' +
-    // --- o bloco dos CONTEÚDOS: os chips vêm do bloco oculto daquela turma -----------
-    // FORA DA EDIÇÃO, O BLOCO NASCE VAZIO (19/10/2026). Os chips da turma que estava em
-    // foco sobreviviam ao passo 3 e pareciam associação já feita. Em edição, os chips
-    // são os dela; em criação, o bloco espera o primeiro «Associar».
-    '  var lista = document.getElementById("vinc-conteudos");' +
-    '  if (lista) {' +
-    '    var editando = modoEditando();' +
-    '    var fonte = null;' +
-    '    if (editando) {' +
-    '      Array.prototype.slice.call(document.querySelectorAll(".conteudos-da-turma")).forEach(function(d){' +
-    '        if (d.getAttribute("data-de") === id) fonte = d;' +
-    '      });' +
-    '    }' +
-    '    lista.innerHTML = (fonte && fonte.innerHTML.trim())' +
-    '      ? fonte.innerHTML' +
-    '      : "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
-    '  }' +
+    // O BLOCO DOS CONTEÚDOS SAIU DAQUI A 03/11/2026 — ele clonava os chips de um `<div hidden>`
+    // por turma, e os dois lados dessa clonagem deixaram de existir quando os conteúdos passaram
+    // para a curadoria. O que sobra é a régua, que é o que este passo passou a ser.
     // --- o bloco da RÉGUA: diz com que rubrica a turma está hoje ---------------------
     '  var r = rubricaDaTurma(t);' +
     '  var selR = document.getElementById("vinc-rubrica");' +
@@ -8166,31 +8410,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarContagens();' +
     '  });' +
     '}' +
-    // --- associar o CONTEÚDO à turma escolhida ---------------------------------------
-    // O MESMO endpoint e o mesmo botão de antes; o que mudou é de ONDE vem a turma: era um
-    // `data-turma` no próprio botão (o cartão da listagem), agora é a turma em foco.
-    'document.getElementById("vinc-associar-termo").addEventListener("click", function(){' +
-    '  var turma = turmaEmFoco();' +
-    '  var sel = document.getElementById("vinc-termo");' +
-    '  var termo = sel ? sel.value : "";' +
-    '  if (!turma) { alert("Grave a turma primeiro, no passo «Turma»."); return; }' +
-    '  if (!termo) { alert("Escolha um termo para associar."); return; }' +
-    '  enviar("/api/bastidores/turma-conteudo", {turma: turma, termo: termo}, "associando...", true);' +
-    '});' +
-    // O «×» de cada chip: o markup vem do servidor (`.conteudos-da-turma`), e o handler
-    // continua a ler o `data-turma` e o `data-termo` que lá estão.
-    'document.getElementById("vinc-conteudos").addEventListener("click", function(e){' +
-    '  var b = e.target.closest ? e.target.closest("button.desassociar") : null;' +
-    '  if (!b) return;' +
-    '  var tId = b.getAttribute("data-turma");' +
-    '  var tTermo = b.getAttribute("data-termo");' +
-    '  if (!confirm("Desassociar «" + tTermo + "» desta turma?")) return;' +
-    '  var corpo = {turma: tId, termo: tTermo, token: TOKEN};' +
-    '  fetch("/api/bastidores/turma-conteudo", {method: "DELETE", headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
-    '    .then(function(r){ return r.json(); }).then(function(d){' +
-    '      if (d.ok) { location.reload(); } else { alert("Erro: " + (d.erro || "desconhecido")); }' +
-    '    }).catch(function(err){ alert("Erro: " + err.message); });' +
-    '});' +
+    // OS DOIS HANDLERS DA ASSOCIAÇÃO DE CONTEÚDO SAÍRAM A 03/11/2026 — e com eles o
+    // `location.reload()` que cada associação custava. A associação já não é um ato à parte que
+    // grava a meio de um passo: é uma ficha do formulário da curadoria, e vai no corpo do
+    // submit como as alunas. Uma viagem em vez de N, e nada recarrega a página.
     // ================= A MEMÓRIA DO PASSO 3 ==================================
     // A TURMA EM FOCO e o passo em que se estava são lembrados enquanto a aba estiver aberta.
     // Sem isto, cada associação — que chama a API e RECARREGA — devolvia a direção ao passo 1,
@@ -8265,7 +8488,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    grau: document.getElementById("cugrau").value,' +
     '    nivel: document.getElementById("cunivel").value,' +
     '    turmas: umaTurma ? [umaTurma] : [],' +
-    '    alunas: fichasDe("esc-alunas")' +
+    '    alunas: fichasDe("esc-alunas"),' +
+    // OS CONTEÚDOS VÃO NO CORPO (03/11/2026) — são eles a associação, e não um segundo mapa.
+    // Vai SEMPRE, mesmo vazio: o servidor distingue «não trouxe» de «trouxe nenhum», e limpar a
+    // lista é uma declaração (tirar o último conteúdo), não uma omissão.
+    '    repertorio: fichasDe("esc-conteudos")' +
     '  };' +
     // CRIAR, EDITAR ou DERIVAR — a mesma bifurcação da turma (16/10/2026). Criar e editar vão
     // para a mesma rota (o id é o par professor+modalidade); o que os separa é a regra no
@@ -8287,29 +8514,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  campos.vigencia = vig;' +
     '  enviar("/api/bastidores/curadoria-derivar", campos, "ajustando curadoria...", true);' +
     '});' +
-    'document.addEventListener("click", function(e){' +
-    '  var as = e.target.closest("button.associar");' +
-    '  if (as) {' +
-    '    var turmaId = as.getAttribute("data-turma");' +
-    '    var sel = as.parentElement.querySelector("select.sel-termo");' +
-    '    var termo = sel ? sel.value : "";' +
-    '    if (!termo) { alert("Escolha um termo para associar."); return; }' +
-    '    enviar("/api/bastidores/turma-conteudo", {turma: turmaId, termo: termo}, "associando...", true);' +
-    '    return;' +
-    '  }' +
-    '  var ds = e.target.closest("button.desassociar");' +
-    '  if (ds) {' +
-    '    var tId = ds.getAttribute("data-turma");' +
-    '    var tTermo = ds.getAttribute("data-termo");' +
-    '    if (!confirm("Remover a associação com " + tTermo + "?")) return;' +
-    '    var corpo = {turma: tId, termo: tTermo, token: TOKEN};' +
-    '    fetch("/api/bastidores/turma-conteudo", {method: "DELETE", headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
-    '      .then(function(r){ return r.json(); }).then(function(d){' +
-    '        if (d.ok) { location.reload(); } else { alert("Erro: " + (d.erro || "desconhecido")); }' +
-    '      }).catch(function(err){ alert("Erro: " + err.message); });' +
-    '    return;' +
-    '  }' +
-    '});' +
+    // O HANDLER DELEGADO DA ASSOCIAÇÃO SAIU A 03/11/2026. Ele servia os botões
+    // `button.associar`/`button.desassociar` dos chips por turma — e os chips por turma
+    // deixaram de existir: associar conteúdo é agora uma ficha do formulário da curadoria, e
+    // desassociar é tirar a ficha. Não há botão nenhum na página para este handler servir, e um
+    // `location.reload()` a cada associação era o preço de um ato que já não é à parte.
     // OS TRÊS NÚMEROS DO CARTÃO DA TURMA (18/10/2026). Cada «?» abre o painel DAQUELE
     // número, um só por vez, e a célula acende. Fecha com o mesmo toque, com Escape e com
     // um toque fora — no telefone não há hover, e um painel que só fecha recarregando a
@@ -8480,8 +8689,12 @@ async function fetch(request, env) {
     ]);
     const dono = await nomeDoDono(env, kv, escola);
     const donoSlug = slugDoDono(env);
-    const rel = await relacoes(kv, escola);
     const curs = await curadorias(kv, escola);
+    // O MAPA COMPOSTO (03/11/2026): o que a turma aprende é o mapa antigo somado ao que as
+    // curadorias dela declaram. A ordem inverteu-se — as curadorias primeiro — porque a
+    // composição precisa delas.
+    const rel = conteudos.mapaDeConteudos({
+      legado: await relacoes(kv, escola), curadorias: curs, turmas: trms });
     // Que (professor, turma) já têm plano de ensino: é o que decide, na turma e na curadoria,
     // entre «Editar» e «Derivar» (16/10/2026).
     const pares = await paresComPlano(env, escola);
@@ -9233,8 +9446,13 @@ async function fetch(request, env) {
   }
 
   // GET /api/bastidores/turma-conteudos — a relação turma↔termo (mapa inteiro).
+  //
+  // O MAPA COMPOSTO, e não só o antigo (03/11/2026). Este é o endpoint que responde «o que esta
+  // escola ensina, por turma», e a resposta certa passou a ser a união: o que ficou gravado no
+  // mapa antigo mais o que as curadorias declaram. Ler só o antigo devolveria uma lista que
+  // encolhe a cada dia — e a página mostraria «nenhum conteúdo» a uma turma que tem três.
   if (path === '/api/bastidores/turma-conteudos') {
-    const rel = await relacoes(kv, escola);
+    const rel = await conteudosDaEscola(kv, escola);
     return json(200, { ok: true, escola, relacoes: rel });
   }
 
@@ -9299,15 +9517,16 @@ async function fetch(request, env) {
     const lista = await turmas(kv, escola);
     const alvo = lista.find((t) => t && t.id === pedido);
     if (!alvo) return json(404, { ok: false, erro: 'turma não encontrada: ' + pedido });
-    const comPlano = await turmasComPlano(env, escola);
-    if (turmaVinculadaA(comPlano, alvo.nome)) {
-      return json(409, {
-        ok: false,
-        erro: 'a turma «' + alvo.nome + '» já tem um plano de ensino — ela não se edita: ' +
-          'derive uma versão nova, que passa a valer a partir de uma data e deixa a anterior ' +
-          'como referência do passado.',
-        vinculada: true,
-      });
+    // OS TRÊS ESTADOS (03/11/2026). Antes esta guarda só conhecia o plano, e uma turma que já
+    // compunha uma curadoria activa continuava editável — mas a curadoria guarda o NOME da
+    // turma: renomeá-la partia a ligação em silêncio, sem erro nenhum. `estadoDaTurma` diz
+    // livre / curada / vinculada, e só a livre se edita no lugar.
+    const estado = estadoDaTurma(alvo, {
+      turmasComPlano: await turmasComPlano(env, escola),
+      curadorias: await curadorias(kv, escola),
+    });
+    if (!podeEditarNoLugar(estado)) {
+      return json(409, { ok: false, erro: motivoDaRecusa(estado, alvo.nome), estado });
     }
     const declarado = normalizarTurma(Object.assign({}, corpo, { nome: corpo.nome || alvo.nome }));
     if (!declarado.nome) return json(400, { ok: false, erro: 'informe o nome da turma' });
@@ -9335,8 +9554,11 @@ async function fetch(request, env) {
     // que já não se copia fica onde está. É o que preserva o `nivelReferencia` de uma turma
     // cadastrada antes desta decisão — a memória não se reescreve (P-03/P-04). Ver
     // `motor/nucleo/enquadramento.js`.
+    // A NOTA SAIU DA LISTA (03/11/2026): o campo deixou de ser pedido, e um campo que não se
+    // copia fica onde está no registo anterior. É a mesma técnica do enquadramento — a memória
+    // não se reescreve, e uma turma que tinha nota não a perde por ser ajustada.
     const CAMPOS_DO_FORMULARIO = ['nome',
-      'descricao', 'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
+      'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
     const indice = lista.findIndex((t) => t && t.id === idAntigo);
@@ -9401,8 +9623,11 @@ async function fetch(request, env) {
     // que já não se copia fica onde está. É o que preserva o `nivelReferencia` de uma turma
     // cadastrada antes desta decisão — a memória não se reescreve (P-03/P-04). Ver
     // `motor/nucleo/enquadramento.js`.
+    // A NOTA SAIU DA LISTA (03/11/2026): o campo deixou de ser pedido, e um campo que não se
+    // copia fica onde está no registo anterior. É a mesma técnica do enquadramento — a memória
+    // não se reescreve, e uma turma que tinha nota não a perde por ser ajustada.
     const CAMPOS_DO_FORMULARIO = ['nome',
-      'descricao', 'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
+      'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
     const nova = Object.assign({}, anterior, ajustado);
@@ -9463,14 +9688,23 @@ async function fetch(request, env) {
     if (idx === -1) return json(404, { ok: false, erro: 'turma não encontrada' });
     // PROVENIÊNCIA (18/10/2026): a turma com plano é linha de base. Ela já tinha o selo na
     // tela, mas o «Excluir» continuava a aparecer — e apagá-la deixaria o plano órfão.
+    // APAGAR É A MESMA COISA QUE RENOMEAR (03/11/2026): as duas fazem o nome desaparecer, e é o
+    // nome que a curadoria guarda. Por isso a guarda é a mesma, e o estado é o mesmo.
     {
-      const pares = await paresComPlano(env, escola);
-      if (turmaVinculadaA(pares ? new Set(pares.map((p) => p.turma)) : null, lista[idx].nome)) {
+      const estado = estadoDaTurma(lista[idx], {
+        turmasComPlano: await turmasComPlano(env, escola),
+        curadorias: await curadorias(kv, escola),
+      });
+      if (!podeEditarNoLugar(estado)) {
         return json(409, {
           ok: false,
-          erro: 'a turma «' + lista[idx].nome + '» já tem plano de ensino — apagá-la romperia a ' +
-            'proveniência. Se o ritmo mudou, derive uma versão nova.',
-          vinculado: true,
+          erro: estado === 'curada'
+            ? 'a turma «' + lista[idx].nome + '» está numa curadoria activa — apagá-la deixaria a '
+              + 'curadoria a apontar para o vazio. Remova primeiro a curadoria (é permitido '
+              + 'enquanto não houver plano de ensino).'
+            : 'a turma «' + lista[idx].nome + '» já tem plano de ensino — apagá-la romperia a '
+              + 'proveniência. Se o ritmo mudou, derive uma versão nova.',
+          estado,
         });
       }
     }
@@ -9510,22 +9744,17 @@ async function fetch(request, env) {
     const existentes = await rubricas(kv, escola);
     const rubricaId = String(corpo.rubricaId || '').trim();
     // «GRAVAR TURMA» TEM A VALIDAÇÃO MÁXIMA TAMBÉM NO SERVIDOR (18/10/2026). O botão da tela
-    // só acende com a turma completa, uma rubrica escolhida e pelo menos um conteúdo; mas uma
-    // tela antiga (ou um pedido forjado) não pode concluir uma turma pela metade. `concluir`
-    // distingue o fim da sequência do ato intermédio «Associar rubrica», que continua a poder
-    // gravar só o vínculo.
+    // só acende com a turma completa e uma rubrica escolhida; mas uma tela antiga (ou um pedido
+    // forjado) não pode concluir uma turma pela metade. `concluir` distingue o fim da sequência
+    // do ato intermédio «Associar rubrica», que continua a poder gravar só o vínculo.
+    //
+    // A EXIGÊNCIA DE «PELO MENOS UM CONTEÚDO» SAIU A 03/11/2026, e não por afrouxamento: os
+    // conteúdos deixaram de se associar na turma (passaram para a curadoria). Mantê-la aqui
+    // deixaria o «Gravar turma» impossível de acender — uma validação que exige o que o
+    // formulário já não pede tranca a escola, e não a protege.
     if (corpo.concluir === true || corpo.concluir === 'sim') {
       if (!rubricaId) {
         return json(400, { ok: false, erro: 'para gravar a turma, escolha a rubrica', falta: ['a rubrica'] });
-      }
-      const rel = await relacoes(kv, escola);
-      const conteudos = Array.isArray(rel[turma.id]) ? rel[turma.id] : [];
-      if (!conteudos.length) {
-        return json(400, {
-          ok: false,
-          erro: 'para gravar a turma, associe pelo menos um conteúdo',
-          falta: ['pelo menos um conteúdo'],
-        });
       }
     }
     if (Array.isArray(corpo.rubrica)) {
@@ -9751,7 +9980,7 @@ async function fetch(request, env) {
       .filter((t) => t && nomesPresos.has(t.nome)).map((t) => t.id));
     const nomeGravado = String(corpo.nome || '').trim();
     const vinculado = nomeGravado
-      ? termoVinculadoA(usos, await relacoes(kv, escola), turmasPresas, { termo: nomeGravado })
+      ? termoVinculadoA(usos, await conteudosDaEscola(kv, escola), turmasPresas, { termo: nomeGravado })
       : false;
     const { gravarVerbete } = require('./verbete.js');
     const r = await gravarVerbete({
@@ -9829,7 +10058,7 @@ async function fetch(request, env) {
     const nomesPresos = new Set((pares || []).map((p) => p && p.turma));
     const turmasPresas = new Set((await turmas(kv, escola))
       .filter((t) => t && nomesPresos.has(t.nome)).map((t) => t.id));
-    if (termoVinculadoA(usos, await relacoes(kv, escola), turmasPresas, { termo: nome })) {
+    if (termoVinculadoA(usos, await conteudosDaEscola(kv, escola), turmasPresas, { termo: nome })) {
       return json(409, {
         ok: false,
         vinculado: true,
@@ -9976,7 +10205,7 @@ async function fetch(request, env) {
       const nomesPresos = new Set((pares || []).map((p) => p && p.turma));
       const turmasPresas = new Set((await turmas(kv, escola))
         .filter((t) => t && nomesPresos.has(t.nome)).map((t) => t.id));
-      if (termoVinculadoA(usos, await relacoes(kv, escola), turmasPresas, lista[idx])) {
+      if (termoVinculadoA(usos, await conteudosDaEscola(kv, escola), turmasPresas, lista[idx])) {
         return json(409, {
           ok: false,
           erro: 'o termo «' + lista[idx].termo + '» já está num plano de ensino (repertório) ou ' +
@@ -10020,6 +10249,12 @@ async function fetch(request, env) {
   }
 
   // POST /api/bastidores/turma-conteudo — associar um termo a uma turma (sem duplicar).
+  //
+  // LEGADO DESDE 03/11/2026: a página já não chama este endpoint — associar conteúdo passou a ser
+  // uma ficha do formulário da curadoria, que viaja no corpo do submit e é gravada com o resto. A
+  // rota fica porque o mapa antigo é memória e um cliente antigo (ou uma aba aberta de antes)
+  // ainda pode escrever nele; o que ela escreve continua a ser LIDO, porque a composição
+  // (`motor/nucleo/conteudos.js`) soma o mapa antigo ao das curadorias.
   if (path === '/api/bastidores/turma-conteudo' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }

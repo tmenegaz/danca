@@ -86,8 +86,10 @@ const SCRIPT = String.raw`(function () {
   function preencherTurma(t) {
     if (!t) return;
     preencher('tnome', t.nome || '');
-    if (typeof selecionarPrograma === 'function') selecionarPrograma(t.programaReferencia || '');
-    preencher('tdescricao', t.descricao || '');
+    // O «programa» e as «notas» já não têm campo no formulário da turma (03/11/2026): o
+    // enquadramento passou para a curadoria e a nota saiu do cadastro. As duas linhas ficavam a
+    // preencher um id que já não existe — a função preencher não dá erro, mas também não faz
+    // nada, e uma linha que não faz nada num preenchedor de teste lê-se como «o campo existe».
     preencher('tduracao', t.duracaoMin == null ? '' : t.duracaoMin);
     preencher('tinicio', t.periodoInicio || '');
     preencher('tfim', t.periodoFim || '');

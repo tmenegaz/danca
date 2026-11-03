@@ -14,6 +14,15 @@
       "latente": false
     },
     {
+      "id": "perfil",
+      "rotulo": "Perfil do professor",
+      "familia": "contrato",
+      "padrao": "^professores/[a-z0-9-]+/perfil\\.json$",
+      "publico": false,
+      "classificado_pelo_motor": false,
+      "latente": false
+    },
+    {
       "id": "schema",
       "rotulo": "Schema (contrato)",
       "familia": "contrato",
