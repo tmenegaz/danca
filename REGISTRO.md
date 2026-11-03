@@ -32571,3 +32571,87 @@ publicado a todas, e é o buraco que resta da fase 1. (b) **A `breu` continua no
 o verbete já retirados do catálogo; o expurgo está calculado e à espera da palavra dela. (c) O resto
 do caminho crítico é o da véspera: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula
 pronta**, **fase 3** e **a chave `plano`**.
+
+---
+
+## 03/11/2026 — A música deixou de se bloquear e de se multiplicar, e o alfabeto ganhou dono
+
+**O que motivou.** Três defeitos relatados por ela depois de usar a Produção a sério, mais uma
+decisão. Os defeitos: **duplicar um trecho inflava a duração da música** (8 → 12, e a soma repetia-se
+a cada duplicação); **o campo da música estava bloqueado**; e **a divergência entre a música e a
+decomposição recusava a gravação**. A decisão: **«O dono do alfabeto é a escola, e deve ser dado o
+campo `escola` como no vocabulário»** — era o buraco que a entrada anterior tinha nomeado.
+
+**O que foi decidido, e porquê.**
+
+- **Duplicar um trecho não toca na música.** A função escrevia `declarado + bloco` no campo, e o
+  argumento era que a gravação recusaria o resultado de uma acção que a própria tela ofereceu. Com a
+  recusa a cair (abaixo), o argumento desapareceu — e ficou à vista o defeito próprio: a cada
+  duplicação a música crescia outra vez. A música é a **base rítmica**, define-se no passo 3, e o que
+  a cópia muda é o que a decomposição **ocupa**.
+- **A música edita-se sempre, e a decomposição não se apaga.** A trava de 02/11 existia porque mudar
+  os tempos recomeçava o rascunho a partir da chave e deixava `CELULAS` em zero. A correcção certa
+  não era travar o campo: era **não recomeçar**. `musicaMudou()` passou a ser o que corre nos campos
+  da música — actualiza a chave em foco, repinta o que depende dela e **deixa as células como estão**.
+  Quem recomeça é `carregarRascunho`, e só quando o **exercício** muda.
+- **O desacordo é um ESTADO, não uma recusa.** `validarVerbete` devolve a divergência em **`avisos`**
+  e não em `erros`; `gravarVerbete` grava e devolve os avisos; a tela mostra o selo
+  «Os tempos da música estão em desacordo com a decomposição» no passo 3, e a resposta de gravar
+  di-lo em vez de dizer só «gravado». A listagem passou a marcar o verbete em desacordo — sem isso,
+  a tela aceitaria em silêncio e o professor descobriria no documento.
+- **O alfabeto ganhou dono, como o vocabulário.** O registo do catálogo fica com a chave da música
+  (`8|4/4`); o de uma escola leva o dono ao lado (`8|4/4@breu`) e o campo `escola` dentro, como no
+  termo. A chave composta é uma **necessidade**, não um gosto: o verbete é o membro de um **objecto
+  indexado pela música**, e dois donos com a mesma música colidiriam no primeiro `set` — no
+  vocabulário, que é uma **lista**, o dono cabe num campo. A precedência é uma só, no núcleo
+  (`registosDaEscola`): a escola vence o catálogo, e a composição do documento, a listagem e os
+  produtos leem por ela.
+- **Cada dono apaga o que é seu.** O `DELETE` apagava o exercício inteiro; com dois donos isso
+  permitiria a uma escola apagar o verbete do catálogo, que é o que se vende. Passa a apagar os
+  registos daquele dono, e a recusa di-lo quando o que existe é do outro lado. Na tela, a versão do
+  catálogo mostra o selo «do catálogo» e **não** tem botão de apagar — um botão que recusa é pior do
+  que a sua ausência.
+- **E `criar` recusa por (dono, exercício, música), não por exercício.** A guarda antiga impedia a
+  escola de declarar o seu verbete de um exercício que o catálogo já decompõe — o caso normal, porque
+  o vocabulário é o do catálogo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `musicaMudou()`, `pintarDesacordo()`, a saída do
+`bloquearMusica`, a duplicação sem tocar nos tempos, o selo no passo 3 e na listagem, o «do
+catálogo»/«edição da escola», o `DELETE` só do dono, e as rotas a passarem `ESCOLA_SLUG` ·
+`motor/nucleo/notacao.js` — `chaveDoVerbete`, `escolaDoRegisto`, `musicaDaChave`, `registosDaEscola`,
+e `verbetePara`/`compor`/`comporTodas` a aceitarem `escola` (omissão: catálogo) ·
+`motor/nucleo/derivar-ciclo.js` — `escolaDoEnvelope`, e as três composições a recebê-la ·
+`motor/servidor/verbete.js` — `validarVerbete` com `avisos`, a gravação com a chave do dono, a
+listagem pela vista da escola, o `apagarVerbete` por dono · `motor/nucleo/produtos/dicionario.js` e
+`syllabus.js` — a vista da escola · `motor/nucleo/produtos/comum.js` — `chaveDaMusica` limpa o dono ·
+`experimentos/provar-musica-do-verbete.js` (**novo**, 33 asserções) · `experimentos/provar-verbete.js`
+— as três asserções do apagar e a do criar · `.gitignore` — a excepção da prova nova ·
+`ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+
+**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/verbete.js` ·
+`motor/nucleo/notacao.js` · `motor/nucleo/derivar-ciclo.js` ·
+`motor/nucleo/produtos/{comum,dicionario,syllabus}.js` · `experimentos/provar-musica-do-verbete.js` ·
+`experimentos/provar-verbete.js` · `.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** `ARQUITETURA-GERAL.md` §10.1 e §10.3 · `PLANO-PRODUTOS-DO-MOTOR.md` §8-fase 1 e
+§9-critério 5 · a decisão dela de 03/11/2026 («o dono do alfabeto é a escola») · P-16 · a norma do
+`PROTOCOLO.md` de 01/11/2026.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-musica-do-verbete` (novo) | **33 asserções, TUDO CERTO**: a divergência em `avisos` e a gravação a passar; o campo da música aberto; duplicar sem mexer nos tempos (**8 continua 8**, e os trechos **8 → 16**); o selo a aparecer e a desaparecer; mudar tempos e compasso **sem apagar trechos**; e as cinco do dono — chave, vista, composição da escola, catálogo intacto, apagar só o próprio |
+| `provar-verbete` | **TUDO CERTO**, com as três asserções do apagar reescritas para a regra do dono |
+| `provar-produtos` | **TUDO CERTO — 89 asserções** |
+| `provar-linhas-da-lista` | **TUDO CERTO** |
+| `check-identidade` | **20/20 `ok`** — o selo novo usa estados que já existem na folha |
+| **comparados com o estado anterior** | `provar-notacao` **11 falhas antes e depois** (conteúdo: o alfabeto tem só o `Plié`) · `provar-cartao-da-turma` **7 antes e depois** · `provar-derivados-da-sequencia` **2 antes e depois** · `provar-producao` **5 antes e depois**. Nenhuma regressão foi introduzida; as vermelhas são as de antes |
+| **o que NÃO foi medido** | a página ao vivo (nenhuma carga ao ar nesta sessão) · o expurgo da `breu`, que ela faz pela tela |
+
+**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela vai expurgá-la pela tela quando
+terminar de testar, e o cálculo dos 17 ficheiros está na entrada anterior. (b) **O `ESCOLA.conf`**
+continua a não existir, e a chave `plano` continua por decidir onde entra. (c) O resto do caminho
+crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.

@@ -4,7 +4,24 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `508d22f`, árvore **limpa**). Nesta entrega, a **Produção
+> **Última fotografia:** 03/11/2026 (base `89d1f83`, árvore **por commitar**). Nesta entrega, os
+> **três defeitos** que ela relatou ao usar a Produção a sério estão corrigidos, e a **fase 1
+> fechou-se no alfabeto**. **(1)** Duplicar um trecho **não** mexe na música: era `declarado + bloco`
+> escrito no campo, e uma música de 8 ia a 12 e crescia a cada cópia; agora a música é a base rítmica
+> e o que a cópia muda é o que a decomposição **ocupa**. **(2)** O campo da música **deixou de estar
+> bloqueado** — a trava de 02/11 existia porque mudar os tempos recomeçava o rascunho a partir da
+> chave e apagava as células; a correcção certa era **não recomeçar** (`musicaMudou`), e não travar o
+> campo. **(3)** O **desacordo entre a música e a decomposição passou de recusa a aviso**:
+> `validarVerbete` devolve-o em `avisos`, a gravação passa, a tela mostra o selo «Os tempos da música
+> estão em desacordo com a decomposição» no passo 3, e a listagem marca o verbete. **(4)** E a
+> decisão dela — **«o dono do alfabeto é a escola»** — está implementada **como no vocabulário**: o
+> registo do catálogo fica com a chave da música (`8|4/4`), o de uma escola leva o dono ao lado
+> (`8|4/4@breu`) e o campo `escola` dentro; a precedência é uma só (`registosDaEscola`), lida pela
+> composição do documento, pela listagem e pelos produtos; e o apagar é **por dono** — uma escola não
+> apaga o catálogo. A prova nova (`provar-musica-do-verbete`) tem **33 asserções** e corre a página
+> em jsdom.
+>
+> **Entrega anterior** (base `508d22f`, árvore **limpa**). Nesta entrega, a **Produção
 > usou a tela pela primeira vez** — criou «Battement tendu» na escola `breu` —, e o exercício de
 > medir o que isso fez encontrou três coisas. **(1)** A separação **funciona**: `batata` e `maria`
 > viram o termo do **catálogo** (com `fonte`), a `breu` viu o dela. **(2)** Mas o termo era uma
@@ -1329,13 +1346,15 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 - **A aula pronta** (o terceiro produto) não foi começada: ela é a **Regra 9** (norma congelada)
    aplicada ao nível, com o teto da faixa e os tempos de cada unidade. Depende dos verbetes e do
    conteúdo — e é a próxima peça de código.
-- **A fase 1 passa na substância, e tem um buraco com nome.** O **termo** já declara o dono
-   (`escola`), e o produto do catálogo e a tela compõem por ele: `batata` e `maria` veem o termo do
-   catálogo, `breu` vê o dela — medido a 03/11/2026 com o primeiro termo criado pela tela. O
-   **alfabeto NÃO** tem esse campo: `notacao.json` é, por decisão escrita, «da modalidade, não da
-   escola», e é `require`-ado no bundle — por isso um verbete escrito numa escola é publicado a
-   todas. Enquanto isso não mudar, o critério 5 do plano passa para o vocabulário e **não** para a
-   notação.
+- **A fase 1 passou a valer para os dois ficheiros, e o critério 5 fica na substância.** O **termo**
+  declara o dono (`escola`), e o **verbete** passou a declarar o seu — por decisão dela a 03/11/2026,
+  «o dono do alfabeto é a escola»: o registo do catálogo fica com a chave da música (`8|4/4`), o de
+  uma escola leva o dono ao lado (`8|4/4@breu`) e o campo `escola` dentro, como no vocabulário. A
+  precedência é uma só (`registosDaEscola`, no núcleo) e é lida pela **composição do documento**,
+  pela **listagem** e pelos **produtos**: a `breu` compõe o seu texto, o catálogo e as outras escolas
+  compõem o do catálogo — medido em `provar-musica-do-verbete` §C. **O ficheiro continua a ser um**:
+  um caminho por escola não se embute no bundle do Worker, e é isso que mantém o critério 5 a passar
+  **na substância** e não ao pé da letra.
 - **A fase 3 (manifestos e pacote)** não começou. O produto tem manifesto em memória (`id`,
    `versao`, `edicao`, `licenca`, `fonte`) e **não tem âncora** — a `.fipp` própria é da fase 3. O
    campo `licenca` já **não** sai «pendente»: vem do título de `biblioteca/LICENSE.md`, com o caminho
@@ -1694,7 +1713,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — o termo da tela, o alfabeto sem dono e o deploy do catálogo)
+### Executado nesta fotografia (03/11/2026 — a música sem trava, e o alfabeto com dono)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-musica-do-verbete.js` (novo) | **TUDO CERTO — 33 asserções**. **§A** a divergência sai em `avisos` e a gravação **passa**, com o verbete escrito; **§B** a página da Produção em **jsdom**: o campo da música está **aberto**, duplicar **não** reescreve os tempos (8 continua 8, e os trechos 8 → 16), o selo aparece e desaparece, e mudar tempos **e** compasso **não apaga** a decomposição; **§C** o dono do alfabeto: a chave com e sem dono, as três vistas (catálogo, breu, maria), a composição do documento a escolher a versão de cada uma, a escola a gravar sem tocar no catálogo, e o apagar a só levar os registos de quem apaga |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — com três asserções reescritas para a regra do dono (a escola **não** apaga o catálogo; apaga o que é dela; a lista da escola deixa de mostrar a versão dela) e a do `criar`, que passou a recusar por (dono, exercício, música) |
+| `node experimentos/provar-produtos.js` | **TUDO CERTO — 89 asserções** |
+| `node experimentos/provar-linhas-da-lista.js` | **TUDO CERTO** |
+| `node tools/check-identidade.js` | **20/20 `ok`** — os dois selos novos usam estados que já existem na folha (`alerta`, `discreto`, `dim`) |
+| **os vermelhos de antes, comparados** | `provar-notacao` **11 antes e depois** · `provar-cartao-da-turma` **7 antes e depois** · `provar-derivados-da-sequencia` **2 antes e depois** · `provar-producao` **5 antes e depois**. Contados stashed/unstashed: **nenhuma regressão introduzida** |
+| **o que NÃO foi medido** | a página **ao vivo** — nenhuma carga ao ar nesta sessão · o expurgo da `breu`, que é ela que faz pela tela |
+
+### Executado na fotografia anterior (03/11/2026 — o termo da tela, o alfabeto sem dono e o deploy do catálogo)
 
 | Verificação | Resultado |
 |:--|:--|

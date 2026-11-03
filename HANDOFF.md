@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T08:21:07-0300`
-Commit atual: `508d22f` — fix(estrutura): o catálogo muda, a escola não publicava
+Gerado em: `2026-11-03T08:49:02-0300`
+Commit atual: `9f9e891` — feat(estrutura): a música sem trava, o desacordo como aviso e o dono do alfabeto
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+9f9e891 feat(estrutura): a música sem trava, o desacordo como aviso e o dono do alfabeto
+89d1f83 docs(registro): o termo da tela, o alfabeto sem dono e o deploy do catálogo
 508d22f fix(estrutura): o catálogo muda, a escola não publicava
 793f4eb fix(experimentos): as provas comparam com o catálogo, e não com o ficheiro
 057c555 fix(biblioteca): retirar o termo e o verbete que a Produção criou para a breu
@@ -103,8 +105,6 @@ c61c39a docs(registro): a fotografia datada, o dono do termo e o lugar do plano
 dbb5ade fix(notacao): o rótulo em Title Case, a navegação que trava e o «Apagar» fora do passo 6
 0e2ac45 fix(experimentos): as provas deixam de depender do conteúdo editorial do alfabeto
 5dcfcf0 feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
-f64d54e chore(notacao): apagar o verbete «Grand battement» no alfabeto bale-classico
-063dee1 chore(notacao): apagar o verbete «Battement fondu» no alfabeto bale-classico
 ```
 
 ## Por professor
@@ -228,106 +228,89 @@ f64d54e chore(notacao): apagar o verbete «Grand battement» no alfabeto bale-cl
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — O termo que a Produção criou, o alfabeto que não tem dono, e o deploy que não disparava
+## 03/11/2026 — A música deixou de se bloquear e de se multiplicar, e o alfabeto ganhou dono
 
-**O que motivou.** Ela perguntou o que estava feito, se a execução seguiu a ordem do plano, e se
-podia expurgar a escola `breu` e recomeçar. A resposta pediu medição — e a medição encontrou três
-coisas que ninguém tinha visto, duas delas produzidas por ela na véspera sem que o sistema as
-tratasse.
+**O que motivou.** Três defeitos relatados por ela depois de usar a Produção a sério, mais uma
+decisão. Os defeitos: **duplicar um trecho inflava a duração da música** (8 → 12, e a soma repetia-se
+a cada duplicação); **o campo da música estava bloqueado**; e **a divergência entre a música e a
+decomposição recusava a gravação**. A decisão: **«O dono do alfabeto é a escola, e deve ser dado o
+campo `escola` como no vocabulário»** — era o buraco que a entrada anterior tinha nomeado.
 
-**O que se mediu, e o que cada medida obrigou a corrigir.**
+**O que foi decidido, e porquê.**
 
-- **O primeiro termo criado pela TELA existia — e era uma sombra.** Os commits `28cbc06` e
-  `4cebff7` (03/11, 07:33 e 07:35) criaram «Battement tendu» na escola `breu` e declararam o
-  verbete. A separação **funcionou**: `batata` e `maria` viram o termo do **catálogo** (com
-  `fonte`), `breu` viu o dela. Mas o termo do catálogo já existia com o mesmo `id`, e a versão da
-  breu vencia **perdendo a origem**: a edição paga da breu excluía **26** definições contra **25**
-  do catálogo. E o verbete foi para o **alfabeto da modalidade**, que **não tem campo `escola`** —
-  o texto escrito na breu passou a ser a decomposição do termo **do catálogo**, visível a todas as
-  escolas, com erros de transcrição («direcoes, devant,a la seconde,derriere funcao»).
-- **A decisão dela: remover os dois.** O expurgo da `breu` deixá-los-ia órfãos — o termo fora do
-  catálogo e invisível a qualquer escola nova, o verbete dentro do alfabeto que não é dela. Os dois
-  ficheiros voltam ao estado anterior aos dois commits: **93 termos**, nenhum com `escola`,
-  alfabeto na **versão 32** e só com o `Plié`. A **versão não sobe para 34**: não fica conteúdo
-  nenhum da mudança, e um número que conta uma alteração inexistente é a mesma mentira que uma data
-  de relógio. Consequência medida: as lacunas voltam de **146 para 147** — o termo do catálogo
-  volta a não ter decomposição, que é a verdade de hoje.
-- **A fase 1 tem um buraco com nome: o ALFABETO.** O `escola` existe no termo e não existe no
-  verbete. `notacao.json` é — por decisão escrita em `bastidores.js:9023` — «da MODALIDADE, não da
-  escola», e é `require`-ado no bundle. Enquanto assim for, o verbete que uma escola escreve é
-  publicado a todas. Isto **não** se corrigiu: exige decidir se o alfabeto passa a ter dono por
-  verbete (mais um campo, como no vocabulário) ou se continua da modalidade com a escola a propor.
-  **É dela.**
-- **E o defeito que a véspera revelou: o catálogo mudava, a escola não publicava.**
-  `motor/servidor/catalogo-seed.js` e `motor/nucleo/notacao.js` fazem `require` dos JSON de
-  `biblioteca/modalidades/`, e o esbuild embute-os no Worker — mas o filtro de `paths` do
-  `deploy-escolas.yml` **não incluía essa pasta**. Medido: `28cbc06` e `4cebff7` ficaram **sem run
-  nenhum**. O modo de falha é o pior: o `POST` grava no repositório e devolve o termo, a tela
-  acrescenta-o à lista sem esperar, e no `F5` seguinte **ele desaparece** — o Worker continua a
-  servir o bundle anterior. A frase do `termo-repo.js` («chega a todos os Workers no deploy que
-  esse commit dispara») era falsa. Corrigido com uma linha no filtro, e verificado: o deploy de
-  `508d22f` correu e a página da `breu` em produção já não traz o texto da escola (**0**
-  ocorrências de «direcoes, devant»).
+- **Duplicar um trecho não toca na música.** A função escrevia `declarado + bloco` no campo, e o
+  argumento era que a gravação recusaria o resultado de uma acção que a própria tela ofereceu. Com a
+  recusa a cair (abaixo), o argumento desapareceu — e ficou à vista o defeito próprio: a cada
+  duplicação a música crescia outra vez. A música é a **base rítmica**, define-se no passo 3, e o que
+  a cópia muda é o que a decomposição **ocupa**.
+- **A música edita-se sempre, e a decomposição não se apaga.** A trava de 02/11 existia porque mudar
+  os tempos recomeçava o rascunho a partir da chave e deixava `CELULAS` em zero. A correcção certa
+  não era travar o campo: era **não recomeçar**. `musicaMudou()` passou a ser o que corre nos campos
+  da música — actualiza a chave em foco, repinta o que depende dela e **deixa as células como estão**.
+  Quem recomeça é `carregarRascunho`, e só quando o **exercício** muda.
+- **O desacordo é um ESTADO, não uma recusa.** `validarVerbete` devolve a divergência em **`avisos`**
+  e não em `erros`; `gravarVerbete` grava e devolve os avisos; a tela mostra o selo
+  «Os tempos da música estão em desacordo com a decomposição» no passo 3, e a resposta de gravar
+  di-lo em vez de dizer só «gravado». A listagem passou a marcar o verbete em desacordo — sem isso,
+  a tela aceitaria em silêncio e o professor descobriria no documento.
+- **O alfabeto ganhou dono, como o vocabulário.** O registo do catálogo fica com a chave da música
+  (`8|4/4`); o de uma escola leva o dono ao lado (`8|4/4@breu`) e o campo `escola` dentro, como no
+  termo. A chave composta é uma **necessidade**, não um gosto: o verbete é o membro de um **objecto
+  indexado pela música**, e dois donos com a mesma música colidiriam no primeiro `set` — no
+  vocabulário, que é uma **lista**, o dono cabe num campo. A precedência é uma só, no núcleo
+  (`registosDaEscola`): a escola vence o catálogo, e a composição do documento, a listagem e os
+  produtos leem por ela.
+- **Cada dono apaga o que é seu.** O `DELETE` apagava o exercício inteiro; com dois donos isso
+  permitiria a uma escola apagar o verbete do catálogo, que é o que se vende. Passa a apagar os
+  registos daquele dono, e a recusa di-lo quando o que existe é do outro lado. Na tela, a versão do
+  catálogo mostra o selo «do catálogo» e **não** tem botão de apagar — um botão que recusa é pior do
+  que a sua ausência.
+- **E `criar` recusa por (dono, exercício, música), não por exercício.** A guarda antiga impedia a
+  escola de declarar o seu verbete de um exercício que o catálogo já decompõe — o caso normal, porque
+  o vocabulário é o do catálogo.
 
-**O que NÃO se fez, e é deliberado.** **Não se expurgou a `breu`** — ela decidiu não o fazer agora.
-O cálculo ficou feito e registado para quando quiser: sairiam **17 ficheiros** (`wrangler.breu.jsonc`,
-14 do pacote `ciclo-01-breu`, o `ciclo-01.conf` base porque a breu é a única escola desse professor
-naquele ciclo) mais os prefixos `breu/` e `bastidores/breu/` no KV e o Worker; **sobreviveria**
-`escola/breu/indice.json` com mais um elo. **Não há dado a perder**: `escola/breu/envelopes/` só tem
-o `.indice.json` (50 bytes).
-
-**Onde entrou.** `biblioteca/modalidades/bale-classico/vocabulario.json` — o termo da breu sai ·
-`biblioteca/modalidades/bale-classico/notacao.json` — o verbete sai e a versão volta a 32 ·
-`experimentos/provar-produtos.js` §G — a régua passa a ser o subconjunto do catálogo
-(`separarPorEscola`), e não o comprimento do ficheiro · `experimentos/provar-verbete.js` §I, §J e a
-asserção do bundle — as pistas do verbete real não se chamam sempre `devant`, e o seed passou a
-incluir termos de escola · `.github/workflows/deploy-escolas.yml` — `biblioteca/modalidades/**` no
-filtro de `paths` · `REGISTRO.md`.
+**Onde entrou.** `motor/servidor/bastidores.js` — `musicaMudou()`, `pintarDesacordo()`, a saída do
+`bloquearMusica`, a duplicação sem tocar nos tempos, o selo no passo 3 e na listagem, o «do
+catálogo»/«edição da escola», o `DELETE` só do dono, e as rotas a passarem `ESCOLA_SLUG` ·
+`motor/nucleo/notacao.js` — `chaveDoVerbete`, `escolaDoRegisto`, `musicaDaChave`, `registosDaEscola`,
+e `verbetePara`/`compor`/`comporTodas` a aceitarem `escola` (omissão: catálogo) ·
+`motor/nucleo/derivar-ciclo.js` — `escolaDoEnvelope`, e as três composições a recebê-la ·
+`motor/servidor/verbete.js` — `validarVerbete` com `avisos`, a gravação com a chave do dono, a
+listagem pela vista da escola, o `apagarVerbete` por dono · `motor/nucleo/produtos/dicionario.js` e
+`syllabus.js` — a vista da escola · `motor/nucleo/produtos/comum.js` — `chaveDaMusica` limpa o dono ·
+`experimentos/provar-musica-do-verbete.js` (**novo**, 33 asserções) · `experimentos/provar-verbete.js`
+— as três asserções do apagar e a do criar · `.gitignore` — a excepção da prova nova ·
+`ESTADO-ATUAL.md` · `REGISTRO.md`.
 
 **Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
-`biblioteca/modalidades/` **não** está na lista congelada (o congelado em `biblioteca/` é só o
-`guia-do-professor.md`), `.github/workflows/` também não, e `experimentos/` é demonstrativo.
 
-**Com o quê.** `biblioteca/modalidades/bale-classico/vocabulario.json` · `…/notacao.json` ·
-`experimentos/provar-produtos.js` · `experimentos/provar-verbete.js` ·
-`.github/workflows/deploy-escolas.yml` · `REGISTRO.md`.
+**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/verbete.js` ·
+`motor/nucleo/notacao.js` · `motor/nucleo/derivar-ciclo.js` ·
+`motor/nucleo/produtos/{comum,dicionario,syllabus}.js` · `experimentos/provar-musica-do-verbete.js` ·
+`experimentos/provar-verbete.js` · `.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
 
-**Referências.** `ARQUITETURA-GERAL.md` §10.1 e §10.3 (o que a escola acrescenta é dela) ·
-`PLANO-PRODUTOS-DO-MOTOR.md` §8-fase 1 e §9-critério 5 · `PROTOCOLO.md` (a norma de 01/11/2026) ·
-P-16 (declarar, nunca deduzir) · `motor/servidor/termo-repo.js` (a promessa do deploy).
+**Referências.** `ARQUITETURA-GERAL.md` §10.1 e §10.3 · `PLANO-PRODUTOS-DO-MOTOR.md` §8-fase 1 e
+§9-critério 5 · a decisão dela de 03/11/2026 («o dono do alfabeto é a escola») · P-16 · a norma do
+`PROTOCOLO.md` de 01/11/2026.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-produtos` | **89 asserções, TUDO CERTO** — depois das duas correções de régua |
-| `provar-verbete` | **TUDO CERTO** — o CRUD continua a gravar no repositório sem tocar no vocabulário |
-| `check-identidade` | **20/20 `ok`** |
-| o vocabulário depois da limpeza | **93 termos**, **0** com `escola`, alfabeto **v32** com **1** verbete (`Plié`) |
-| a edição paga | **25** fora — no catálogo **e** na `breu` (era 26 na breu, pela sombra sem `fonte`) |
-| as lacunas | **147** (eram 146): o termo do catálogo volta a não ter decomposição |
-| o deploy do catálogo | **corrigido e provado**: `508d22f` → «Publicar as escolas» `success`; a página da breu em produção tem **0** ocorrências do texto da escola |
-| **o que NÃO foi medido** | a decisão do **alfabeto** (dono por verbete ou da modalidade) · o **expurgo** da breu, que ela não pediu agora · o contrato (C8) · a chave `plano` · a fase 3 e a aula pronta |
+| `provar-musica-do-verbete` (novo) | **33 asserções, TUDO CERTO**: a divergência em `avisos` e a gravação a passar; o campo da música aberto; duplicar sem mexer nos tempos (**8 continua 8**, e os trechos **8 → 16**); o selo a aparecer e a desaparecer; mudar tempos e compasso **sem apagar trechos**; e as cinco do dono — chave, vista, composição da escola, catálogo intacto, apagar só o próprio |
+| `provar-verbete` | **TUDO CERTO**, com as três asserções do apagar reescritas para a regra do dono |
+| `provar-produtos` | **TUDO CERTO — 89 asserções** |
+| `provar-linhas-da-lista` | **TUDO CERTO** |
+| `check-identidade` | **20/20 `ok`** — o selo novo usa estados que já existem na folha |
+| **comparados com o estado anterior** | `provar-notacao` **11 falhas antes e depois** (conteúdo: o alfabeto tem só o `Plié`) · `provar-cartao-da-turma` **7 antes e depois** · `provar-derivados-da-sequencia` **2 antes e depois** · `provar-producao` **5 antes e depois**. Nenhuma regressão foi introduzida; as vermelhas são as de antes |
+| **o que NÃO foi medido** | a página ao vivo (nenhuma carga ao ar nesta sessão) · o expurgo da `breu`, que ela faz pela tela |
 
-**O que ainda não está feito.** (a) **O alfabeto continua sem dono** — o verbete de uma escola é
-publicado a todas, e é o buraco que resta da fase 1. (b) **A `breu` continua no ar**, com o termo e
-o verbete já retirados do catálogo; o expurgo está calculado e à espera da palavra dela. (c) O resto
-do caminho crítico é o da véspera: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula
-pronta**, **fase 3** e **a chave `plano`**.
+**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela vai expurgá-la pela tela quando
+terminar de testar, e o cálculo dos 17 ficheiros está na entrada anterior. (b) **O `ESCOLA.conf`**
+continua a não existir, e a chave `plano` continua por decidir onde entra. (c) O resto do caminho
+crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## O que está pendente
-
-## 02/11/2026 — A segunda passagem sobre a mesma tela: rótulos, travões e o «Apagar» fora do passo 6
-
-(a) A árvore **não foi commitada** — a entrega está no worktree, e o
-`TRANSFERENCIA-IA.md` di-lo. (b) O `provar-teste` continua vermelho numa asserção de frequência, e a
-investigação dessa asserção não faz parte desta entrega. (c) O `TRANSFERENCIA-IA.md` **não foi
-regenerado** — a fotografia ficou actualizada, mas o documento de transferência é da sessão
-anterior. (d) As entidades `termo` e `verbete` do índice estão **declaradas, não emitidas**: o
-gerador continua a não as produzir, e a emissão exige decidir o que fazer com a segunda cópia do
-vocabulário.
-
----
 
 ## 02/11/2026 — O motor dos produtos: o dicionário e o syllabus, e o que eles se recusam a inventar
 
@@ -361,6 +344,15 @@ publicado a todas, e é o buraco que resta da fase 1. (b) **A `breu` continua no
 o verbete já retirados do catálogo; o expurgo está calculado e à espera da palavra dela. (c) O resto
 do caminho crítico é o da véspera: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula
 pronta**, **fase 3** e **a chave `plano`**.
+
+---
+
+## 03/11/2026 — A música deixou de se bloquear e de se multiplicar, e o alfabeto ganhou dono
+
+(a) **A `breu` continua no ar** — ela vai expurgá-la pela tela quando
+terminar de testar, e o cálculo dos 17 ficheiros está na entrada anterior. (b) **O `ESCOLA.conf`**
+continua a não existir, e a chave `plano` continua por decidir onde entra. (c) O resto do caminho
+crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## Pendências anteriores (índice)
 
@@ -689,6 +681,7 @@ pronta**, **fase 3** e **a chave `plano`**.
 - **01/11/2026** — O molde dos schemas ficou atrás, e a geração de um ciclo… → `REGISTRO.md` L29765
 - **01/11/2026** — O molde dos schemas passa a ter um leitor só → `REGISTRO.md` L29837
 - **01/11/2026** — A aula deixa de afirmar o que ninguém escreveu: cinco… → `REGISTRO.md` L29904
+- **02/11/2026** — A segunda passagem sobre a mesma tela: rótulos, travões e o… → `REGISTRO.md` L32097
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
