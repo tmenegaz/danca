@@ -32727,3 +32727,16 @@ terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `p
 decidir onde entra (C11) — a decisão dela de 03/11 é que vive no `.conf`, **nunca no KV**. (c) O
 caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
 **fase 3**.
+
+**Nota de correcção (03/11/2026, depois do push).** A tabela acima diz que a página ao vivo **não**
+foi medida — era verdade quando foi escrita, e deixou de ser minutos depois. Feita a conferência
+mínima ao ar, **uma carga por endpoint e por página**, depois de `b28f8b9` publicado («Publicar as
+escolas» e «Publicar a raiz», ambas `success`):
+
+| Verificação ao ar | Resultado |
+|:--|:--|
+| `GET https://breu.tmenegaz77.workers.dev/api/bastidores/verbete` | **200**, alfabeto **v37**, **2** verbetes — e o «Battement tendu» vem com a chave **`8|2/4`**, sem o dono: a rota compõe a vista **daquela** escola, que é o que a página precisa de ler |
+| `GET …/bastidores/producao` | **200**, e **0** ocorrências da frase «não pôde/pode ser lida» |
+
+Isto **não** substitui a conferência dela: a listagem é desenhada no cliente, e o que se mediu ao ar
+foi a rota que a alimenta. O gesto — abrir a lista e ver os dois trechos — é dela, e é o próximo `F5`.
