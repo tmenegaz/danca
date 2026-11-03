@@ -91,7 +91,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 33,
+  "versao": 34,
   "aplicaseA": [
     "benesh"
   ],
@@ -555,7 +555,7 @@
           "a-la-seconde": [
             {
               "contagem": "1–2",
-              "categoria": "Pé",
+              "categoria": "Perna",
               "sinais": [
                 "ED",
                 "1ª",
@@ -564,8 +564,22 @@
                 "●",
                 "1ª"
               ],
-              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Pé, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição.",
-              "repeticoes": 4
+              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição.",
+              "repeticoes": 2
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "1ª",
+                "○",
+                "-",
+                "●",
+                "1ª"
+              ],
+              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição.",
+              "repeticoes": 2
             }
           ]
         },
