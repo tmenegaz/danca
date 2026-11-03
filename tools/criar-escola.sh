@@ -42,6 +42,12 @@ DATA_INICIO="";    TOTAL_AULAS="5"
 # O MOLDE DE QUE NASCE TODA ESCOLA — e ele NÃO mora em `professores/`: molde não é professor
 # (ver `modelo/README.md` e a nota longa em `MODELO_BASE`, mais abaixo).
 MODELO="modelo/01"
+# A MODALIDADE PRINCIPAL do professor (03/11/2026). Quem cria a escola é quem a vai ensinar, e
+# nasce habilitado na modalidade dela — é a decisão da pesquisadora: «cria-se obrigatoriamente um
+# professor, o qual já nasce com o pré-requisito de saber ensinar pelo menos a modalidade
+# principal». A lista de onde este valor sai é `biblioteca/modalidades/modalidades.json`; o
+# padrão é a única modalidade que hoje tem repertório.
+MODALIDADE="bale-classico"
 DEPLOY=0;          NAO_INTERATIVO=0; SOMENTE_INDICE=0
 
 # ---------------------------------------------------------------------------
@@ -68,6 +74,8 @@ OPÇÕES COM PADRÃO:
   --worker <nome>           nome do Worker page            (padrão: slug da escola)
   --duracao <min>           duração em minutos (DURACOES)  (padrão: 60)
   --duracao-texto <texto>   DURACAO_POR_DIA                 (padrão: derivado de --duracao)
+  --modalidade <slug>       modalidade principal do professor (padrão: bale-classico;
+                            a lista é biblioteca/modalidades/modalidades.json)
   --total-aulas <N>         número de aulas                (padrão: 5)
   --modelo <base/ciclo>     ciclo de onde copiar schemas   (padrão: modelo/01)
 
@@ -114,6 +122,7 @@ while [ "$#" -gt 0 ]; do
     --data-inicio)     DATA_INICIO="$2"; shift 2 ;;
     --total-aulas)     TOTAL_AULAS="$2"; shift 2 ;;
     --modelo)          MODELO="$2"; shift 2 ;;
+    --modalidade)      MODALIDADE="$2"; shift 2 ;;
     --somente-indice)  SOMENTE_INDICE=1; shift ;;
     --deploy)          DEPLOY=1; shift ;;
     --nao-interativo)  NAO_INTERATIVO=1; shift ;;
@@ -346,6 +355,53 @@ echo "criando escola: professor=$PROFESSOR · escola=$ESCOLA · ciclo=$CICLO · 
 # 1) Estrutura do professor (se nova)
 # ---------------------------------------------------------------------------
 mkdir -p "$CICLOS_DIR" "$PROF_DIR/cadernos/ciclo-$CICLO" "$PROF_DIR/relatorios/ciclo-$CICLO" "$PROF_DIR/campo"
+
+# ---------------------------------------------------------------------------
+# 1b) O PERFIL DO PROFESSOR — a habilitação nasce com a escola (03/11/2026)
+#
+# A DECISÃO DELA, e é ela que este bloco implementa: «as habilidades do professor vivem no
+# registro da entidade do Professor (`professores/<slug>/perfil.json`), de forma independente do
+# tenant da escola». Por isso o ficheiro nasce AQUI — na criação da escola, que é o momento em
+# que a pessoa entra no sistema — e NÃO no cofre da escola: no KV, o expurgo levá-lo-ia consigo,
+# e o professor ficaria sem saber ensinar no dia em que a escola fechasse.
+#
+# NÃO SE SOBRESCREVE. Um professor que já tem perfil e cria a SEGUNDA escola conserva as
+# habilitações que declarou — a segunda escola não lhe acrescenta nem lhe tira competência. É a
+# mesma regra da base do ciclo (`ciclo-NN.conf`), que também é do par (professor, ciclo) e não
+# da escola: a variante diz o contexto, não reescreve a pessoa.
+#
+# A MODALIDADE É VALIDADA contra a lista do catálogo. Um slug que não existe ali produziria um
+# perfil que nenhuma tela sabe ler — e o erro aparece agora, na criação, e não meses depois.
+# ---------------------------------------------------------------------------
+PERFIL="$PROF_DIR/perfil.json"
+if [ -e "$PERFIL" ]; then
+  echo "  perfil: reusando $PERFIL (as habilitações são da pessoa, não desta escola)"
+else
+  node - "$RAIZ" "$PERFIL" "$PROFESSOR" "$PROFESSOR_NOME" "$MODALIDADE" <<'NODE' || exit 1
+const fs = require('fs');
+const path = require('path');
+const [raiz, arquivo, slug, nome, modalidade] = process.argv.slice(2);
+// O `require` é ABSOLUTO: com `node -` não há `__dirname`, e um caminho relativo ao `cwd`
+// quebraria na chamada feita de outro diretório (que é como o workflow a faz).
+const nucleo = require(path.join(raiz, 'motor', 'nucleo', 'perfil-do-professor.js'));
+const hoje = new Date().toISOString().slice(0, 10);
+const validado = nucleo.normalizarPerfil({ slug, nome, modalidades: [modalidade] }, { hoje });
+if (!validado.ok) {
+  console.error('erro: ' + validado.erros.join('; '));
+  process.exit(1);
+}
+// A NOTA VEM PRIMEIRO: quem abre o ficheiro lê a regra antes do dado. Um `_nota` no fim é o que
+// ninguém lê — e este ficheiro existe para dizer, a quem chegar depois, de quem ele é.
+const perfil = Object.assign({
+  _nota: 'O PERFIL DO PROFESSOR — a habilitação é da PESSOA, não da escola (03/11/2026). '
+    + '`modalidades` é o que este professor declara saber ensinar; a escola oferece o que os '
+    + 'professores dela declaram, por derivação. O expurgo de uma escola NÃO apaga este '
+    + 'ficheiro: a competência de quem ensina não é dado do tenant.',
+}, validado.perfil);
+fs.writeFileSync(arquivo, JSON.stringify(perfil, null, 2) + '\n');
+NODE
+  echo "  perfil: criado $PERFIL (habilitado em $MODALIDADE)"
+fi
 
 # ---------------------------------------------------------------------------
 # 2) Schemas do domínio — UM ESCRITOR SÓ (01/11/2026)
