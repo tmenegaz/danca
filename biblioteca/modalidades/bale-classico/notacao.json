@@ -86,12 +86,21 @@
     "    que vai para fora roda para fora;",
     "  · a orientação `profil` (de lado), e o rótulo do `épaulement` corrigido: «ombros",
     "    rodados» dizia que é o ombro que roda, e o que roda é a coluna. Passou a «ombro à",
-    "    frente», que é o que se vê."
+    "    frente», que é o que se vê.",
+    "",
+    "O «POSIÇÕES» GANHOU DOIS SINAIS QUE FALTAVAM (03/11/2026), e o que faltava não era",
+    "o termo — era o SIGNO. O vocabulário da modalidade já tinha «Coupé» e «Sur le cou-de-pied»;",
+    "o alfabeto tinha `prep` e os cinco números, e mais nada. Medido: escrever o battement",
+    "frappé — que parte do sur le cou-de-pied — não era possível, porque o sinal não existia.",
+    "Entram `cp` (coupé) e `cdp` (sur le cou-de-pied), com a origem declarada: o CONCEITO é",
+    "técnico, a ABREVIAÇÃO é deste código. O nome fica em francês, por decisão dela — a",
+    "tradução literal («sobre o colo do pé») não é o que a técnica diz, e cou-de-pied é o",
+    "peito do pé. É a regra da D-67 aplicada a um sinal novo."
   ],
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 37,
+  "versao": 38,
   "aplicaseA": [
     "benesh"
   ],
@@ -253,6 +262,18 @@
           "nome": "quinta posição",
           "significado": "pés: as pernas em 5ª, um pé colado ao outro.",
           "origem": "sistema"
+        },
+        "cp": {
+          "nome": "coupé",
+          "significado": "pés: o pé de trabalho sobe e apoia-se na região do tornozelo da perna de apoio, com o joelho dobrado e o pé alongado — no tornozelo, e não sobre o peito do pé.",
+          "origem": "convenção do ciclo",
+          "nota": "O conceito é técnico e a ABREVIAÇÃO é deste código: o alfabeto escreve por sinais curtos (`prep`, `ED`, `1ª`), e «coupé» por extenso dentro do bloco não se leria de relance. Acrescentado a pedido da pesquisadora (03/11/2026) — é a posição de partida do battement frappé e do petit battement, e sem ela esses exercícios não se escrevem."
+        },
+        "cdp": {
+          "nome": "sur le cou-de-pied",
+          "significado": "pés: o pé de trabalho envolve o peito do pé da perna de apoio — à frente (devant) ou atrás (derrière) do tornozelo. É a colocação que o vocabulário chama «pé colocado na região do tornozelo»; o nome fica em francês porque é assim que a técnica se diz, em português também.",
+          "origem": "convenção do ciclo",
+          "nota": "Duas decisões de 03/11/2026, a pedido dela. (a) O SIGNO existe: o vocabulário tinha o termo e o alfabeto não tinha o sinal, por isso o sur le cou-de-pied não se conseguia escrever num trecho. (b) O NOME É O INTERNACIONAL, e não a tradução literal — «sobre o colo do pé» não é o que a técnica diz, e cou-de-pied é o peito do pé, não o colo. É a mesma regra da D-67 (02/11/2026): os empréstimos que se dizem assim em português não se traduzem."
         }
       }
     },

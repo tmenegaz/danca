@@ -534,3 +534,8 @@ experimentos/modelo-formulario/*
 # uma afirmação que ninguém confere.
 !experimentos/provar-leitura-da-decomposicao.js
 !experimentos/provar-tabela-da-notacao.js
+
+# O SINAL QUE FALTAVA E O NOME QUE NÃO SE TRADUZ (03/11/2026). O vocabulário já tinha «Coupé» e
+# «Sur le cou-de-pied»; o alfabeto não tinha o SIGNO, e o nome era a tradução literal. Citada no
+# `REGISTRO.md`.
+!experimentos/provar-sinais-da-modalidade.js
