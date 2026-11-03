@@ -25,6 +25,7 @@
 const { respostaDo, emLista, itensDaDimensao } = require('./derivar-po.js');
 // O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
 const moduloNotacao = require('./notacao.js');
+const sequenciaDoPlano = require('./sequencia.js');
 const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
 
 // ---------------------------------------------------------------------------
@@ -773,9 +774,16 @@ function derivarReferencias({ plano, contexto }) {
  */
 function sequenciaComoObjetos(plano) {
   const valor = resp(plano, 'aula-1-sequencia');
-  return Array.isArray(valor) && valor.some((l) => l && typeof l === 'object' && !Array.isArray(l))
-    ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
-    : null;
+  if (!Array.isArray(valor) || !valor.some((l) => l && typeof l === 'object' && !Array.isArray(l))) {
+    return null;
+  }
+  /* A LINHA DE UM OBJETIVO QUE NÃO EXISTE NÃO VIRA EXERCÍCIO (03/11/2026). Ela não é memória —
+   * a coluna do objetivo é só de leitura, e quem a escreveu foi o sistema quando o objetivo
+   * existia. Compô-la punha na `aula-01.md` um exercício cujo objetivo a mesma página não lista.
+   * A regra é a do `motor/nucleo/sequencia.js`, a mesma da tela e do plano. */
+  const objetivos = marcosEmTexto(resp(plano, 'marcos-por-aula'));
+  return sequenciaDoPlano.linhasVivas(valor, objetivos)
+    .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
 }
 
 /** O rótulo de uma linha no registro: «Solo — Plié». É por ele que o glossário aponta para cá. */

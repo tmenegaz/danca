@@ -402,7 +402,7 @@
             ],
             "minimo": 1,
             "acrescentavel": true,
-            "removivel": false,
+            "removivel": true,
             "somenteLeitura": [
               "Bloco",
               "Objetivo específico"
@@ -450,7 +450,7 @@
           },
           "explicacao": {
             "oQueE": "OS EXERCÍCIOS DA AULA, NA ORDEM EM QUE ACONTECEM — e o que a página da aula vai mostrar. O bloco, o objetivo específico, o conteúdo do nível, os tempos e o compasso já estão decididos noutro lugar; aqui eles aparecem juntos, para você ver a aula inteira antes de gerar o documento.",
-            "preencher": "É um DEMONSTRATIVO, e não um segundo lugar para decidir. O bloco vem de «Blocos de cada objetivo», o objetivo específico dos marcos, o conteúdo do nível do que você MARCOU em «Parâmetro de medição», e os tempos e o compasso do VERBETE do exercício (Produção → Verbetes da Notação). Nada disso se escreve aqui — é por isso que as três listas não podem divergir. Fica livre o conteúdo de um exercício que ainda não tem parâmetro marcado, e uma linha a mais para um segundo exercício no mesmo conteúdo. A musicalidade não entra aqui: ela tem o bloco dela.",
+            "preencher": "É um DEMONSTRATIVO, e não um segundo lugar para decidir. O bloco vem de «Blocos de cada objetivo», o objetivo específico dos marcos, o conteúdo do nível do que você MARCOU em «Parâmetro de medição», e os tempos e o compasso do VERBETE do exercício (Produção → Verbetes da Notação). Nada disso se escreve aqui — é por isso que as três listas não podem divergir. Fica livre o conteúdo de um exercício que ainda não tem parâmetro marcado, e uma linha a mais para um segundo exercício no mesmo conteúdo. A musicalidade não entra aqui: ela tem o bloco dela. O ✕ remove a linha que VOCÊ acrescentou; nas que vêm das suas decisões ele fica apagado, porque removê-las aqui seria apagar a decisão no sítio errado — quem as tira é a marcação que as gerou (desmarque o parâmetro, ou o bloco do objetivo).",
             "porQue": "Porque a aula é a CONSOLIDAÇÃO do que foi decidido antes — e uma consolidação só serve se for lida, não reescrita. É ela que a página da aula imprime, exercício por exercício, com a notação de cada um. Se fosse um campo a preencher outra vez, o professor redigitaria à mão o que já tinha decidido duas telas acima, e as duas versões podiam discordar. Um facto decide-se num lugar só: aqui ele aparece."
           }
         }

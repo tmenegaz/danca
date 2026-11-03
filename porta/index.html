@@ -2247,6 +2247,32 @@ function exigeSenha() {
 }
 
 /*
+ * O CONTROLE QUE JÁ NASCE TRAVADO POR UMA REGRA DA TELA (03/11/2026).
+ *
+ * A trava da senha varria o formulário e escrevia `disabled = trava` em TODOS os controles — e
+ * ao DESTRAVAR escrevia `false` em todos, inclusive nos que a tela tinha desenhado travados de
+ * propósito. O ✕ de uma linha derivada da sequência (que não se remove ali: quem a tira é a
+ * marcação que a gerou) e o «−» do primeiro objetivo específico (a lista nunca fica vazia)
+ * nasciam apagados e ficavam acesos no instante em que o professor digitava a senha — botões que
+ * prometem o que não fazem, e que ao clicar não faziam nada.
+ *
+ * A marca é o que separa as duas razões de estar travado: a SENHA (que sai quando ela é
+ * validada) e a REGRA (que fica). Fixa-se no momento em que se desenha, que é o único em que a
+ * regra é conhecida, e não se recalcula depois.
+ */
+const TRAVADOS_DE_ORIGEM = new Set();
+
+function marcarTravadosDeOrigem() {
+  const raiz = $('pergunta');
+  TRAVADOS_DE_ORIGEM.clear();
+  if (!raiz || !raiz.querySelectorAll) return;
+  for (const controle of raiz.querySelectorAll('[disabled]')) {
+    TRAVADOS_DE_ORIGEM.add(controle);
+    controle.setAttribute('data-travado-de-origem', '');
+  }
+}
+
+/*
  * A TRAVA DA SENHA no formulário: enquanto ela não é validada, o que se responde fica em
  * SÓ-LEITURA. A senha é o que autoriza a ESCRITA, e ela não se herda de quem chegou pela
  * estante.
@@ -2256,7 +2282,7 @@ function travarFormularioSemSenha() {
   const raiz = $('pergunta');
   if (raiz && raiz.querySelectorAll) {
     for (const controle of raiz.querySelectorAll('input, select, textarea, button')) {
-      controle.disabled = trava;
+      controle.disabled = trava || TRAVADOS_DE_ORIGEM.has(controle);
     }
     if (raiz.classList && raiz.classList.toggle) raiz.classList.toggle('travado', trava);
   }
@@ -4171,6 +4197,29 @@ function rotuloDoMarco(n, texto) {
   return t ? n + ' — ' + t : String(n);
 }
 
+/* O NÚMERO DE UM OBJETIVO ESPECÍFICO, lido do rótulo que a linha guarda («3 — sustentar…» → 3).
+ * A mesma regra do `numeroDoObjetivo` de `motor/nucleo/sequencia.js`: quem reconhece uma linha é
+ * o NÚMERO, e não o texto — se fosse o texto, corrigir a redacção de um objetivo fazia a linha
+ * gravada deixar de casar com a semente e a tabela mostrava duas linhas para o mesmo objetivo. */
+function numeroDoObjetivo(valor) {
+  const achado = /^(\d{1,3})\b/.exec(String(valor == null ? '' : valor).trim());
+  const n = achado ? Number(achado[1]) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : NaN;
+}
+
+/* A LINHA DA SEQUÊNCIA CUJO OBJETIVO JÁ NÃO EXISTE — sai da tabela (03/11/2026).
+ *
+ * Ela não é memória do que o professor decidiu: a coluna «Objetivo específico» é `somenteLeitura`,
+ * e quem a escreve é o SISTEMA. Uma linha a nomear o objetivo 2 quando só existe um é a semente que
+ * ele mesmo escreveu numa sessão anterior, e que ficou a apontar para um sujeito apagado. Sem uma
+ * lista contra a qual medir (`total` 0, os objetivos ainda vazios) não há órfão a declarar: não se
+ * apaga o que não se pode julgar. */
+function objetivoForaDaSequencia(valor, total) {
+  if (!total) return false;
+  const n = numeroDoObjetivo(valor);
+  return Number.isFinite(n) && n > total;
+}
+
 /* O nome (o `campo`) de um nó pelo id — para a tela citar a fonte pelo nome que o professor
  * vê, nunca pelo id. */
 function campoDoNo(id) {
@@ -4232,7 +4281,7 @@ function grelhaDaTabela(no) {
   const selecoes = (no.tabela && no.tabela.selecoes) || {};
   const podeAcrescentar = !(no.tabela && no.tabela.linhasDe) || (no.tabela && no.tabela.acrescentavel === true);
   const registado = RESPOSTAS.get(no.id);
-  const linhas = [];
+  let linhas = [];
   for (const l of linhasDaTabela(registado)) {
     if (!l || typeof l !== 'object' || Array.isArray(l)) continue;
     const copia = {};
@@ -4305,6 +4354,15 @@ function grelhaDaTabela(no) {
     // O par (objetivo, bloco): uma linha por objetivo EM CADA bloco onde ele é trabalhado,
     // porque o exercício é disso que se trata — o objetivo aplicado naquele bloco.
     const chave = cfg.porMarco && colunas.indexOf(cfg.porMarco) !== -1 ? cfg.porMarco : null;
+    const marcos = marcosDoNo(RESPOSTAS.get(cfg.de || 'marcos-por-aula'));
+    /* A LINHA DE UM OBJETIVO QUE JÁ NÃO EXISTE SAI DA TABELA (03/11/2026) — e sai antes de tudo,
+     * porque é daqui que saem a fila das sementes, as linhas que ninguém reusou e o que a próxima
+     * gravação escreve no envelope. Medido no envelope verdadeiro: um objetivo, oito linhas, duas
+     * a nomear os objetivos 2 e 3. A regra está escrita em `motor/nucleo/sequencia.js`, e é a
+     * mesma que o `.md` do plano e a `aula-01.md` usam. */
+    if (chave) {
+      linhas = linhas.filter((l) => !objetivoForaDaSequencia(l[chave], marcos.length));
+    }
     // OS TERMOS MARCADOS, por objetivo — a fonte da coluna derivada. Ela é a MESMA matriz do
     // «Parâmetro de medição»: o que ele marcou lá como medida é o conteúdo de cada exercício.
     const termosPorMarco = new Map();
@@ -4320,7 +4378,6 @@ function grelhaDaTabela(no) {
     }
     const pares = [];
     if (chave) {
-      const marcos = marcosDoNo(RESPOSTAS.get(cfg.de || 'marcos-por-aula'));
       for (const bloco of blocos) {
         for (const linha of Array.isArray(RESPOSTAS.get(cfg.no)) ? RESPOSTAS.get(cfg.no) : []) {
           if (!linha || !Array.isArray(linha.marcados) || linha.marcados.indexOf(bloco) === -1) continue;
@@ -4333,8 +4390,19 @@ function grelhaDaTabela(no) {
     if (blocos.length) {
       // A chave de uma linha: o bloco, o objetivo quando a linha é de um objetivo, e o valor
       // derivado quando há coluna derivada — o mesmo conteúdo noutro exercício é OUTRA linha.
+      // O OBJETIVO ENTRA NA CHAVE PELO NÚMERO, e não pelo texto (03/11/2026): a linha gravada
+      // guarda o rótulo do dia em que foi semeada, e o rótulo muda quando o professor corrige a
+      // redacção do objetivo. Pelo texto, a linha gravada deixava de casar, ficava como «linha a
+      // mais» e a tabela mostrava DUAS linhas do mesmo objetivo — a segunda com o texto velho e o
+      // conteúdo outra vez por escolher.
+      const parteDoObjetivo = (l) => {
+        if (!chave) return '';
+        const v = l && l[chave];
+        const n = numeroDoObjetivo(v);
+        return Number.isFinite(n) ? String(n) : String(v || '');
+      };
       const chaveDe = (l) => String((l && l[colunas[0]]) || '') + '␟' +
-        String((chave && l && l[chave]) || '') + '␟' +
+        parteDoObjetivo(l) + '␟' +
         String((colunaDerivada && l && l[colunaDerivada]) || '');
       // UMA FILA POR CHAVE: se duas linhas têm o mesmo par (dois exercícios no mesmo
       // objetivo), cada semente consome UMA — a linha não se perde por repetição.
@@ -4369,6 +4437,12 @@ function grelhaDaTabela(no) {
         // matriz — o valor anterior não o sobrepõe (ao contrário das colunas digitadas).
         if (colunaDerivada && s[colunaDerivada]) nova[colunaDerivada] = s[colunaDerivada];
         for (const c of colunas.slice(1)) {
+          // O RÓTULO DO OBJETIVO É DO SISTEMA, E É O DE AGORA (03/11/2026). Aqui esteve a regra
+          // geral («o que já está gravado não se sobrescreve»), e nesta coluna ela estava errada:
+          // o professor não escreve este rótulo — ele é o número e o texto do objetivo, e o texto
+          // muda quando ele corrige a redacção. Deixar o valor antigo vencer mantinha na tabela (e
+          // no `aula-01.md`, que lê o objetivo daqui) o texto que ele já tinha corrigido.
+          if (chave && c === chave) continue;
           if (nova[c] !== undefined) {
             nova[c] = anterior && anterior[c] != null ? anterior[c] : nova[c];
             continue;
@@ -6218,6 +6292,7 @@ function renderCarregando(no) {
   blocos.push('<p class="sub">carregando a lista…</p>');
   blocos.push('</div>');
   $('pergunta').innerHTML = blocos.join('');
+  marcarTravadosDeOrigem();
   $('anterior').disabled = INDICE === 0;
   $('proxima').disabled = INDICE >= MAPA.nos.length - 1;
   $('proxima').textContent = INDICE >= MAPA.nos.length - 1 ? 'Fim do roteiro' : 'Próxima →';
@@ -6454,6 +6529,7 @@ function renderPergunta() {
   blocos.push('</div>');
 
   $('pergunta').innerHTML = blocos.join('');
+  marcarTravadosDeOrigem();
   $('anterior').disabled = INDICE === 0;
   $('proxima').disabled = INDICE >= MAPA.nos.length - 1;
   $('proxima').textContent = INDICE >= MAPA.nos.length - 1 ? 'Fim do roteiro' : 'Próxima →';

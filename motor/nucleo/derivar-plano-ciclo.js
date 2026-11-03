@@ -29,6 +29,7 @@ const {
   ROTULOS_DO_CONTEXTO,
   COMPOR_DO_CONTEXTO,
 } = require('./derivar-po.js');
+const sequenciaDoPlano = require('./sequencia.js');
 
 // OS BLOCOS DA AULA — a ordem canónica da Regra 3 (solo → barra → centro), a
 // musicalidade e a expressão. Os quatro primeiros são a estrutura espacial; a EXPRESSÃO
@@ -730,8 +731,16 @@ function derivarPlano(envelope) {
     secao('Aspecto físico — força e flexibilidade', corpo);
   }
 
-  lista('Música e vídeo de referência', musicasDaSequencia(respostaDo(envelope, 'aula-1-sequencia'))
-    .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
+  /* A MÚSICA É A DOS EXERCÍCIOS QUE AINDA EXISTEM (03/11/2026). A sequência guarda uma linha por
+   * par objetivo × bloco × exercício, e a linha de um objetivo que a pessoa apagou não é memória:
+   * quem a escreveu foi o sistema, numa sessão em que o objetivo existia. Publicá-la punha no
+   * documento um exercício cujo objetivo o mesmo documento não lista — a contradição dentro da
+   * própria página. A regra é a do `motor/nucleo/sequencia.js`, e é a MESMA que a tela usa; se as
+   * duas divergirem, o `provar-sequencia-que-acompanha` reprova. */
+  const objetivosVivos = marcosEmTexto(respostaDo(envelope, 'marcos-por-aula'));
+  lista('Música e vídeo de referência',
+    musicasDaSequencia(sequenciaDoPlano.linhasVivas(respostaDo(envelope, 'aula-1-sequencia'), objetivosVivos))
+      .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
   lista('Repertório', respostaDo(envelope, 'repertorio'));
 
   // Registro de proveniência — required. A origem é MARCADA (as metodologias e o que foi

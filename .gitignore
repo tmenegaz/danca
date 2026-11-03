@@ -572,3 +572,9 @@ experimentos/modelo-formulario/*
 # escolhe» deixou de existir, porque a resposta passou a ser premissa do domínio. Lê-se no
 # cabeçalho, e o documento continua a publicá-la. Citada no `REGISTRO.md`.
 !experimentos/provar-metodologia-no-cabecalho.js
+
+# A SEQUÊNCIA ACOMPANHA OS OBJETIVOS (03/11/2026). A linha de um objetivo que já não existe saía
+# da derivação e continuava na tabela e no documento; a chave era o texto do objetivo, e corrigi-lo
+# duplicava a linha. A linha órfã sai, a chave passa a ser o número, e o ✕ deixa de acender nas
+# derivadas quando a senha é validada. Citada no `REGISTRO.md`.
+!experimentos/provar-sequencia-que-acompanha.js
