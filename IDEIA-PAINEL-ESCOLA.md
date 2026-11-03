@@ -4,16 +4,32 @@
 > menu com duas vistas — o Estúdio de Dança (que a direção partilha com o professor) e a
 > Produção (só da direção) —, regido pelo princípio cena × bastidores, pela regra da
 > reverberação (o que a escola declara desce para os documentos da cena) e pela proveniência
-> própria da escola. Não implementado.
+> própria da escola.
+>
+> **Estado a 02/11/2026: o ambiente EXISTE; o que não existe é quase todo o resto.** O grupo
+> «Bastidores» está no menu do sistema, com as duas vistas servidas pelo Worker. A **Produção**
+> tem sete secções; o **Estúdio** é hoje uma porta para a Área do Professor, e os números
+> agregados ainda não subiram. A correspondência entre o que a escola **declara** e o que os
+> documentos da cena leem (`ESCOLA.conf` → PO/plano) **não existe** — ver §2.1 e §10. *(Este
+> parágrafo dizia «Não implementado»; a correção é datada e medida, não estimada.)*
 
 > **Documento de plano.** O documento anterior chamava-se "Painel da escola e a página
 > pública da cadeia de custódia" e registrava, desde 23/09/2026, a ideia de um painel de
 > gestão. A conversa que deu origem a esta versão definiu o **Bastidores** — e este arquivo
-> passou a ser o **plano desse ambiente**. **Nada disto está implementado**, e o desenho das
-> telas ainda não foi feito: o que fica registrado aqui é **a ideia, o que o sistema já tem
-> pronto e o que ainda precisa ser decidido**. As partes do documento anterior que continuam
-> valendo (o painel de gestão, a página pública, a retenção e a consulta do material) foram
-> mantidas, agora como partes do mesmo ambiente — ver as seções finais.
+> passou a ser o **plano desse ambiente**. O desenho das telas **da Produção foi feito e
+> implementado** (§2.1); o do **Estúdio** e o da **página pública** continuam a ser desenho.
+> O que fica registrado aqui é **a ideia, o que o sistema já tem pronto e o que ainda precisa
+> ser decidido**. As partes do documento anterior que continuam valendo (o painel de gestão, a
+> página pública, a retenção e a consulta do material) foram mantidas, agora como partes do
+> mesmo ambiente — ver as seções finais.
+>
+> **Nota de correção (02/11/2026).** Este parágrafo dizia «**Nada disto está
+> implementado**» e «o desenho das telas ainda não foi feito». As duas metades estavam
+> erradas, e o erro tinha a mesma forma: o documento descrevia como futuro o que já corria no
+> ar. O grupo «Bastidores» está no menu do sistema (`tools/templates/nav-html.js:151-158`), e a
+> página da Produção serve sete secções (`motor/servidor/bastidores.js:3008-3017`). O que
+> **continua** a não existir é a correspondência `ESCOLA.conf` → documentos (§10), o Estúdio
+> com números, e a página pública. A tabela medida está em §2.1.
 
 > **Escopo.** Este repositório é a **memória da aula dada** — protótipo testado no universo
 > da dança (não é agnóstico; o projeto agnóstico será criado a partir dele). Não é o projeto
@@ -46,6 +62,38 @@ o **gabinete**.
 
 No menu principal, o Bastidores fica **depois da «Área do Professor»** — é o **último grupo**
 da navegação.
+
+> **Isto está no ar, e medido a 02/11/2026.** `tools/templates/nav-html.js:122-160` desenha
+> exatamente três grupos — «Área do Professor» (anamnese · plano de ensino · plano de
+> observação), «Bastidores» (Estúdio de Dança · Produção) —, e um quarto «Painel» que **só**
+> aparece na raiz (`painel: true`). A ordem declarada aqui é a ordem do código.
+
+### 2.1 O que já está construído — medido a 02/11/2026
+
+O documento descrevia como plano o que já corre. Esta tabela é a medição, com a fonte de cada
+linha, para a próxima sessão não voltar a tratar a Produção como ideia.
+
+| Onde | O que já existe | Fonte |
+|:--|:--|:--|
+| **Menu do sistema** | o grupo **Bastidores**, com as **duas** vistas: Estúdio de Dança e Produção | `tools/templates/nav-html.js:122` |
+| **`/bastidores`** | **não** é página: redireciona (302) para a Produção — o passo a mais saiu em 15/10/2026 | `motor/servidor/bastidores.js:7988` |
+| **Estúdio** | uma página com o princípio escrito e **um** caminho para a Área do Professor. **Não** há números agregados | `motor/servidor/bastidores.js:1716` |
+| **Produção · Painel inicial** | existe e **está vazio por desenho**: «aqui aparece o que mudou desde a última vez» | `motor/servidor/bastidores.js:3049` |
+| **Produção · Configuração** | **Aparência** — modo (claro/escuro) e paleta, **um** valor para a escola inteira (C15) | `motor/servidor/bastidores.js:3012` |
+| **Produção · Pessoas** | **Professores** (o dono vem do secret, os adicionais do KV) e **Alunas** | idem, `:3013` |
+| **Produção · Pedagogia** | **Turmas**, **Verbetes da notação** e **Curadorias** | idem, `:3015` |
+| **A porta da Produção** | `POST /api/bastidores/validar-producao` aceita a **senha da direção** (administrador **ou** professor dono) e devolve um **token** — o navegador guarda o token, nunca a senha | `motor/servidor/bastidores.js:8600` |
+
+**O que esta tabela não diz, e é preciso saber.** A **página** da Produção é servida sem portão:
+quem a pede recebe a marcação com o formulário de senha, e é o **token** que liberta os dados
+(`#gate` · `#conteudo`, ambos no servidor). Não há dado da escola na marcação — mas a página
+existe antes da senha, e isso é uma decisão de desenho, não um esquecimento.
+
+**E o que continua a ser plano, dito por nome:** a correspondência **`ESCOLA.conf` →
+documentos da cena** (§10), o **Estúdio com números**, a **página pública da cadeia** (§13), a
+**retenção** (§14) e a **consulta do material** (§15). O **expurgo**, que era o §17.5, **está
+feito** e corre por Cron na raiz (`wrangler.danca.jsonc`, `*/5 * * * *`, com o prazo de
+teste de 3 minutos em `motor/servidor/raiz.js:34`).
 
 ## 3. O princípio — cena × bastidores
 
@@ -338,6 +386,12 @@ O que já existe serve; o que falta é pequeno:
 
 ## 9. O que cada vista mostra
 
+> **Nota de 02/11/2026.** O que segue é o **desenho** de cada vista, e o tempo verbal é o do
+> plano. Medido: o **Estúdio** hoje é uma página com o princípio escrito e **um** caminho para a
+> Área do Professor (`motor/servidor/bastidores.js:1716`) — não mostra turmas, alunas nem ciclos.
+> A **Produção** é que está construída, e com outras secções do que este desenho previa
+> (§2.1).
+
 **Estúdio de Dança — o professor vê:**
 
 - As suas turmas, as suas alunas, os seus ciclos.
@@ -362,6 +416,38 @@ O que já existe serve; o que falta é pequeno:
 **O professor não vê nada disto.** Não por segredo — por **não ser o lugar dele**.
 
 ## 10. O `ESCOLA.conf`
+
+> **Nota de correção (02/11/2026) — o nome não existe, e há três ficheiros a fazer o que ele
+> faria.** Medido: **não há `ESCOLA.conf` em lado nenhum** do repositório — nem na raiz, nem em
+> `escola/<slug>/`. O que existe, versionado e por escola, é:
+>
+> | Ficheiro | O que guarda hoje | Quem lê |
+> |:--|:--|:--|
+> | `escola/<slug>/indice.json` | `escola` · `professor` · `ciclo` · `senha.chave`/`arquivo` · `estado.habilitada` · `arquivos` · `expurgo` | `tools/gerar-indices.js`, o expurgo (`motor/servidor/raiz.js`) e `provar-bancadas-e-expurgo` |
+> | `wrangler.<slug>.jsonc` → `vars` | `ESCOLA_SLUG` · `ESCOLA_HABILITADA` | o build (Cloudflare) e o Worker (`env`) |
+> | `raiz/escolas-habilitadas.json` | `habilitada` · `pagante` (a trava do expurgo) | a raiz |
+>
+> E os **segredos** (`SENHA_ADMIN` · `SENHA_PROFESSOR` · `PROFESSOR_NOME`) vivem nos **secrets**
+> do Worker — não no repositório, e é assim que deve ser.
+>
+> **O que isto muda no plano.** O `ESCOLA.conf` continua a ser o destino da **declaração
+> pedagógica** (metodologia, diretrizes, alunos, notação, tetos — o resto desta secção). O
+> **estado comercial**, que é outra coisa, não espera por ele: o campo que já existe para isso é
+> `escola/<slug>/indice.json` → `estado`, que é versionado, é um por escola, e já é lido pela
+> raiz. Pôr o `plano` lá é acrescentar uma chave a um ficheiro que já existe; criar o
+> `ESCOLA.conf` para uma chave só seria inventar um quarto sítio.
+>
+> **E não é no KV — a norma manda, e ela é de 01/11/2026.** O `PROTOCOLO.md` reserva o KV para o
+> **cadastro dos Bastidores** (`bastidores/<escola>/`: turmas, curadorias, alunas, rubricas,
+> vocabulário, aparência, dono, turma-conteudos). O **estado comercial não é cadastro**: é a
+> memória de uma decisão de dinheiro, tem de ser auditável por `git diff` e não pode depender de
+> uma cota diária — a enumeração (`kv.list`) é o último recurso daquela norma, e em 18/10/2026 a
+> cota acabou. Nas palavras dela: «o conf faz o negócio acontecer e fica lá no repositório, e não
+> há custo de KV».
+>
+> **PENDENTE, e é dela:** se o `plano` entra em `indice.json → estado` (o mínimo, hoje) ou se é o
+> `ESCOLA.conf` desta secção que nasce primeiro. A decisão do **sítio** — repositório, nunca KV —
+> já está tomada.
 
 O `ESCOLA.conf` segue o **mesmo formato chave=valor** do `.conf` do ciclo — é assim que ele
 se lê e se estende sem aprender uma sintaxe nova.
@@ -388,6 +474,10 @@ se lê e se estende sem aprender uma sintaxe nova.
     desligada a escola, nada daquela escola funciona — ciclos, aulas, proveniência, glossário.
     A `ESCOLA_HABILITADA` da variante só tem efeito quando a escola está ligada: é o
     interruptor fino, por ciclo, dentro da escola ligada.**
+  - `PLANO` — o plano contratado (Básico · Intermediário · Avançado). **O lugar foi decidido em
+    C11 a 02/11/2026:** vive **aqui**, no repositório, e **nunca** no KV. O que cada plano entrega é
+    a fase 4 do `PLANO-PRODUTOS-DO-MOTOR.md`; o que ele custa é C8. Até este ficheiro existir, o
+    campo vive em `raiz/escolas-habilitadas.json`, que é **andaime declarado**.
 - **Opcionais / em aberto** — o documento nomeia onde o dado vai morar, sem decidir o valor:
   - `VALOR_HORA` — para o cálculo de horas × valor (onde o valor mora, indeciso — ver §16).
   - `RETENCAO` — a duração da retenção (a decisão está em §14; onde o número mora, em §16).
@@ -398,8 +488,9 @@ se lê e se estende sem aprender uma sintaxe nova.
 
 - **A senha por escola** — `tools/lib-senhas.sh` (`SENHA_<ESCOLA>` em `tools/.senhas-locais`).
 - **O estado da escola** — `ESCOLA_HABILITADA` (+ motivo e desde) na variante do ciclo: o
-  vínculo escola × ciclo. O interruptor-mestre da escola (no servidor) sobe para o
-  `ESCOLA.conf`.
+  vínculo escola × ciclo; e `ESCOLA_HABILITADA` + `ESCOLA_SLUG` nos `vars` do
+  `wrangler.<slug>.jsonc`. O interruptor-mestre da escola (no servidor) **ainda não subiu para
+  um `ESCOLA.conf`** — o que existe é `escola/<slug>/indice.json` → `estado` (§10).
 - **A âncora encadeada** — `tools/hash-ciclo.sh` → `.fipp`, por ciclo e por aula; o precedente
   da cadeia da escola.
 - **A norma institucional** — `departamentos/` (P-14), hoje sem nenhuma escola; o precedente
@@ -416,9 +507,13 @@ se lê e se estende sem aprender uma sintaxe nova.
 
 **Precisa ser criado:**
 
-- O `ESCOLA.conf` e a sua âncora (`ESCOLA.fipp`) com o histórico de elos.
-- A variável `SENHA_<ESCOLA>_PRODUCAO` na convenção de senhas.
-- As duas vistas — o Estúdio e a Produção — e o grupo de menu «Bastidores».
+- O `ESCOLA.conf` e a sua âncora (`ESCOLA.fipp`) com o histórico de elos. *(Hoje: o inventário
+  por escola existe em `escola/<slug>/indice.json`; o `ESCOLA.conf` da §10 não.)*
+- A variável `SENHA_<ESCOLA>_PRODUCAO` na convenção de senhas. *(Hoje a porta da Produção usa
+  `SENHA_ADMIN` **ou** `SENHA_PROFESSOR`, ambas **secrets** do Worker — e é por isso que uma
+  senha de direção por escola ainda não tem nome próprio.)*
+- ~~As duas vistas — o Estúdio e a Produção — e o grupo de menu «Bastidores».~~ **FEITAS**: ver
+  §2.1. O grupo está no menu, as duas rotas respondem, e a Produção tem sete secções.
 - A página pública da cadeia e a retenção (já decididas; ver as seções finais).
 
 ## 12. O painel de gestão — a outra face do mesmo dado
@@ -647,11 +742,12 @@ Produção nascer.
 - **O que muda.** A Produção passa a ter uma secção de gestão das senhas dos professores. O que
   fica visível é **o nome do professor** (a entrada da senha) — **nunca a senha em si**. A direção
   pode **deletar** e **criar** uma senha nova; **nunca editar**, **nunca ler** a antiga.
-- **O que já existe (lido).** A Produção **não existe** (§9/§11). A convenção
-  `tools/lib-senhas.sh` é o único precedente: o nome é visível (a variável `SENHA_<ESCOLA>`) e o
-  valor vive fora do Git (`tools/.senhas-locais`) — mas é **por escola**, e o valor é legível por
-  quem abre o arquivo local. Serve como **semente do modelo** (nome visível, valor protegido), não
-  como o modelo final.
+- **O que já existe (lido).** A **Produção existe** desde 18/10/2026 e tem a secção **Pessoas ·
+  Professores** (§2.1): o **dono** vive no secret `SENHA_PROFESSOR`/`PROFESSOR_NOME`, e os
+  **adicionais** vivem no KV (`bastidores/<escola>/`), com «Excluir» para os adicionais e
+  «Editar» para o dono. O que **não** existe é o que esta secção pede: uma convenção
+  **por professor** (`SENHA_<ESCOLA>_<PROFESSOR>`) e um fluxo em que a direção **cria/deleta sem
+  ler** — hoje criar a senha de um professor adicional é outra coisa (o §17.7).
 - **O que falta.** Uma convenção **por professor** (ex.: `SENHA_<ESCOLA>_<PROFESSOR>`), e uma
   secção na Produção que guarda a senha num sítio em que a direção **cria/deleta sem ler** — o
   valor nunca volta a quem administra.
@@ -661,9 +757,13 @@ Produção nascer.
 - **O que muda.** A «criar senha» da anamnese é **só para professor**. A senha do
   **administrador** (dono da escola) é criada **noutro sítio**: no `criar-escola.sh`, quando a
   escola nova nasce. Essa senha dá acesso a **tudo** — Produção e Estúdio.
-- **O que já existe (lido).** `tools/criar-escola.sh` **não cria senha de administrador** — nem
-  senha nenhuma. A distinção **professor × administrador não existe** no sistema (uma só senha por
-  escola, no `tools/.senhas-locais`).
+- **O que já existe (lido).** *(Corrigido a 02/11/2026.)* O CLI `tools/criar-escola.sh` continua a
+  **não criar senha nenhuma** — mas a **página `danca`** cria: `motor/servidor/provisionar-escola.js`
+  grava **dois** secrets no Worker novo, `SENHA_ADMIN` (a direção) e `SENHA_PROFESSOR` (o professor
+  dono). E a distinção **existe no código**: `senhaDaDirecaoOk` aceita **uma ou outra**
+  (`motor/servidor/bastidores.js:1413-1414`). O que **não** existe é **papel** — quem tem a senha
+  do professor dono entra na Produção exatamente como a direção, e não há um «só direção» que
+  exclua o dono.
 - **O que falta.** A senha do administrador no `criar-escola.sh` (onde é guardada e o que permite)
   e a separação explícita professor × administrador — hoje não há nenhum papel, é plano.
 
@@ -685,6 +785,15 @@ Produção nascer.
 - **O que falta.** O handler `scheduled` no Worker (lê a flag + a data, calcula o prazo, expurga),
   o registo da **data de desabilitação no nível do servidor** (o `desde` do andaime — §17.5), e a
   regra da proveniência condicional — já registrada em `PROTOCOLO.md`.
+
+> **Correção de 02/11/2026 — isto FOI FEITO, e o parágrafo acima está a descrever o antes.** O
+> Cron Trigger existe (`wrangler.danca.jsonc` → `*/5 * * * *`), o prazo de teste é **3 minutos**
+> (`motor/servidor/raiz.js:34`), e o expurgo apaga as **duas metades** — o repositório
+> (`escola/<escola>/` e as fontes do ciclo) e o KV (`<escola>/` e `bastidores/<escola>/`) —,
+> como a norma de 01/11/2026 exige. A data de desabilitação vive no andaime
+> `raiz/escolas-habilitadas.json` (`desde`), e **não** no `ESCOLA.conf`, porque ele não existe.
+> A correção anterior a esta (o «não há nenhum Cron Trigger») era verdadeira quando foi escrita;
+> não é apagada, é este o elo de depois.
 
 > **Enquanto a Produção não existe:** a flag `HABILITADA` (e a data de desabilitação, quando
 > aplicável) lê de um **arquivo JSON temporário** de chave-valor — `{escola: {habilitada: sim|nao}}`.

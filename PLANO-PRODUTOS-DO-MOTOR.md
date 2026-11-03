@@ -280,7 +280,7 @@ de **conteúdo** (P-16: declara-se, não se deduz), e é por isso que nenhuma li
 | **B** | **A camada pedagógica por unidade** (o que **exige**, o que **ensina**, o que **expressa**) | não existe em nenhum dos três ficheiros do catálogo | o syllabus como **programa** e não como lista |
 | **C** | **As 4 músicas que não fecham** | Rond de jambe en l'air 3 em 4 · Battement dégagé 6 em 4 · Battement fondu 6 em 2 · Relevé 1 em 2. *(O `Plié` **saiu desta lista** a 02/11/2026: 12 tempos numa música de 8 era a soma em linha de duas pistas — pernas 8, braços 4 —, e com as pistas a régua passa a ser a maior. Ficou 8 = 8.)* | a aula pronta **fecha** o teto: uma célula que não fecha estraga a aritmética da Regra 9. E a gravação **já as recusa** desde 02/11/2026 |
 | **D** | **A licença** | **ESCRITA a 02/11/2026** (`ARQUITETURA-GERAL.md` §10): `LICENSE.md` na raiz (a máquina) e `biblioteca/LICENSE.md` (o catálogo + o que a escola acrescenta). Falta **o contrato citá-la** | o degrau 1 deixa de estar bloqueado por ela; **mas** o catálogo que se vende não pode levar as **25 descrições com `fonte` vazio** (ver **F**) |
-| **E** | **A separação catálogo × escola** | `termo-repo.js`: **um** ficheiro (`biblioteca/modalidades/bale-classico/vocabulario.json`) para os dois | vender o dicionário sem vender as edições de cada escola — e é ela que dá sentido à §10.3 da licença |
+| **E** | **A separação catálogo × escola** | **RESOLVIDA na substância a 02/11/2026**, e não ao pé da letra: o dono é um campo (`escola`) no termo, e `separarPorEscola` + `compor` filtram-no; o **ficheiro** continua a ser um. Nenhum termo foi criado pela tela até aqui, logo não há migração | vender o dicionário sem vender as edições de cada escola — e é ela que dá sentido à §10.3 da licença |
 | **F** | **A proveniência das descrições** | dos **59 termos com descrição**, **25 têm `fonte` vazio** (30 vêm do dicionário que ela forneceu, 4 foram redigidas no projeto) | a **edição paga** do dicionário: sem origem declarada, a descrição não pode ser licenciada. Duas saídas, e são dela: **declarar** as 25 ou **deixá-las fora** da edição paga |
 
 **E uma nota sobre a ordem entre A e B.** O mapa nível→termos (A) pode ser **o mesmo trabalho** que a
@@ -315,11 +315,20 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 
 ### Fase 1 — a separação catálogo × escola (C22, item 2 · L14, lacuna 0)
 
-- `biblioteca/modalidades/bale-classico/vocabulario.json` passa a ser **só o catálogo**;
-  `biblioteca/escolas/<escola>/vocabulario.json` recebe as adições; **um leitor compõe** os dois.
-- `termo-repo.js` passa a escrever no **da escola**.
-- **Verificação:** criar um termo numa escola **não altera** o ficheiro do catálogo; outra escola
-  **não vê** o termo; o catálogo, lido em paralelo, não muda.
+- **O que era planeado.** `biblioteca/modalidades/bale-classico/vocabulario.json` passa a ser **só
+  o catálogo**; `biblioteca/escolas/<escola>/vocabulario.json` recebe as adições; **um leitor
+  compõe** os dois; `termo-repo.js` passa a escrever no **da escola**.
+- **O que foi feito a 02/11/2026, e é diferente.** O **dono passou a viver no termo**: `escola`
+  ausente = catálogo; `escola: '<slug>'` = daquela escola. O ficheiro continua a ser **um**, porque
+  o Worker lê o vocabulário do **bundle** (`require` de caminho fixo, embutido pelo esbuild) e um
+  caminho variável **não** pode ser embutido — a razão inteira está em
+  `motor/nucleo/produtos/comum.js`. O escritor grava o dono no termo (`termo-repo.js`), o leitor
+  separa-o pela mesma função (`separarPorEscola` + `compor`), e o `--escola` do CLI entrega a edição
+  da escola. **Não há nada a migrar:** nenhum dos commits que tocaram o vocabulário tem a mensagem
+  do formulário (`acrescentar «…»`) — nenhum termo foi criado pela tela até 02/11/2026.
+- **Verificação, e o que ela vale.** Criar um termo na escola A **não** o faz aparecer na escola B —
+  **passa**, e é o que a §10.3 da licença exige. «Não altera **o ficheiro** do catálogo» **não**
+  passa ao pé da letra: o ficheiro é um só.
 
 ### Fase 2 — as três saídas, em memória
 
@@ -339,9 +348,13 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 
 ### Fase 4 — a distribuição por plano
 
-- A habilitação ganha `plano` — e o lugar é decisão de **C11** (o estado comercial). Até lá, o campo
-  vive ao lado de `habilitada`/`pagante` em `raiz/escolas-habilitadas.json`, que é **andaime
-  declarado**.
+- A habilitação ganha `plano`. **O lugar foi decidido a 02/11/2026 (C11, a parte do «onde»):** vive
+  num **ficheiro declarativo do repositório** — **nunca no KV**. A norma do `PROTOCOLO.md`
+  (01/11/2026) reserva o KV ao **cadastro dos Bastidores**, e o estado comercial não é cadastro.
+  *Correção de 02/11/2026:* **não existe nenhum `ESCOLA.conf`** com esse nome — o «`.conf`» foi dito
+  no sentido genérico. O que já existe, versionado e por escola, é `escola/<slug>/indice.json`
+  (com `estado`) e os `vars` de `wrangler.<slug>.jsonc`; e o `raiz/escolas-habilitadas.json`, onde
+  `habilitada`/`pagante` vivem hoje, é **andaime declarado** que sai quando a Produção nascer.
 - **Verificação:** escola no Básico **não vê** a secção; no Avançado **vê**; **descer** de plano
   mantém o produto legível e corta o gerador; **subir** acrescenta a secção **sem** regenerar o ciclo
   e **sem** tocar na âncora.
@@ -367,6 +380,11 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 4. **O produto não carrega ritmo.** Nenhum manifesto tem `dias`, `frequencia`, `periodoInicio` nem
    `periodoFim`; o `.conf` continua a tirá-los da turma (C19, `compor-conf.js`).
 5. **A separação é real.** Criar um termo numa escola não muda o catálogo (§Fase 1).
+   *Estado a 02/11/2026: passa na substância e **não** ao pé da letra.* O termo da escola A deixa de
+   aparecer no dicionário da B — é o que se mede, e `provar-produtos` §M prova-o —, mas o
+   **ficheiro** é um só: o dono é um campo (`escola`) dentro do termo. Um ficheiro por escola
+   continua a ser o destino da camada C (`ARQUITETURA-GERAL.md` §10.1) e não cabe no bundle do
+   Worker enquanto o vocabulário chegar por `require` de caminho fixo.
 6. **O plano decide, e descer não apaga.** Os quatro casos da §Fase 4 passam, incluindo o downgrade.
 7. **A âncora do produto é independente.** Publicar um produto não reancora nenhum ciclo, e nenhuma
    âncora de ciclo muda por causa dele — é o que o **pacote próprio** (decidido) torna verificável.
@@ -377,9 +395,14 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
    deixa de dizer «pendente» e cita o caminho), e a varredura do `fonte` **existe**: o dicionário tem
    duas edições — `--edicao interna` mostra tudo, `--edicao paga` deixa de fora a definição sem
    origem, diz no sítio dela porque está fora, e conta-a (`definicoes_fora_da_edicao_paga`).
-   Medido no catálogo a 02/11/2026: **25**. O que continua por fazer é a **fotografia datada**, que
-   é do **contrato** (C8) — sem contrato não há data para nomear. O critério passa **menos** essa
-   cláusula.
+   Medido no catálogo a 02/11/2026: **25**.
+   *Actualização (02/11/2026, mais tarde no mesmo dia): a **fotografia datada** deixou de faltar por
+   inteiro.* O gerador calcula-a do **último commit que tocou o catálogo** — a mesma técnica do
+   `SOURCE_DATE_EPOCH` — e cita-a: medido, `catalogo@2026-11-02` (`23d4c0e`), a mesma em duas
+   execuções. É **derivada**, e a diferença está declarada: ela diz «a versão do catálogo nesta
+   data», **não** «a versão que esta escola contratou». Essa é do **contrato** (C8), e no dia em que
+   ele existir **a data dele vence**. O critério **passa**, com a pendência nomeada — deixou de ser
+   impeditivo e passou a ser dívida escrita no `REGISTRO.md` e em `biblioteca/LICENSE.md` §1.
 9. **O que a escola acrescenta é dela.** Retirar a escola do projeto não leva os termos dela para o
    catálogo, e propô-los exige aceitação explícita (§10.3 da `ARQUITETURA-GERAL.md`).
 
@@ -397,8 +420,11 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 - **A licença é de negócio e trava o degrau 1.** Nenhuma fase técnica a resolve.
 - **`tools/` é congelado.** A primeira alteração que os produtos exigirem lá custa motivo declarado,
   entrada no `REGISTRO.md` e commit próprio.
-- **O `plano` da escola não existe em código** (§5). Até **C11** decidir onde vive o estado comercial,
-  o gate é um andaime — e andaime mente quando ninguém o lê.
+- **O `plano` da escola não existe em código** (§5). A **C11** decidiu, a 02/11/2026, **onde** ele
+  vai viver — um ficheiro declarativo do repositório, nunca o KV —, mas **nenhum ficheiro desse
+  tipo tem ainda a chave**: o que existe é `escola/<slug>/indice.json` → `estado` e os `vars` do
+  `wrangler.<slug>.jsonc`. Até a chave entrar, o gate é um andaime, e andaime mente quando ninguém
+  o lê.
 
 **Por decidir, e é dela.**
 
@@ -411,7 +437,10 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
    paga — continua aberta, e é dela.
 3. ~~**Produto dentro do pacote ou pacote próprio**~~ — **DECIDIDO a 02/11/2026: pacote próprio**
    (§5), com âncora, versão e licença próprias.
-4. **O lugar do `plano`** na habilitação (C11).
+4. ~~**O lugar do `plano`** na habilitação (C11).~~ — **DECIDIDO a 02/11/2026 na parte que faltava
+   aqui: um ficheiro declarativo do repositório, e nunca o KV** (o «`.conf`», dito no sentido
+   genérico — um ficheiro com esse nome não existe). O resto da C11 — o lado público da porta, o
+   pagamento, «desde quando» e «até quando» — continua aberto e é dela.
 5. **Se a camada pedagógica (B) se faz junto com o mapa nível→termos (A)** (§7 — recomendação: sim).
 
 ---
@@ -426,7 +455,7 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 | **1** | a separação catálogo × escola | fase 0-D | sim, em paralelo com a base |
 | **2** | as três saídas em memória | fases 0 e 1 | depois de 1 |
 | **3** | manifestos + pacote | fase 2 · `tools/` congelado | depois de 2 |
-| **4** | a distribuição por plano | fase 3 · **C11** · L8 · L9 | depois de 3, e **C11 decide onde** |
+| **4** | a distribuição por plano | fase 3 · **C11** · L8 · L9 | depois de 3, e **C11 já decidiu o sítio** (o repositório — nunca o KV) |
 | **5** | o índice dos produtos | fase 3 | em paralelo com 4 |
 | — | **L4 · L6 · L7** (o analítico) | L1 · L2 · L3 · L10 | **depois** — e os produtos **não** esperam por eles |
 

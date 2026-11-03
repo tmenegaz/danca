@@ -706,10 +706,39 @@ async function aOrigemDoVocabulario() {
   checar('e o termo está lá, com o `id` derivado do nome',
     depois.some((t) => t.id === 'sissonne-ouverte'), depois.map((t) => t.id).slice(-2));
 
+  checar('o termo criado sem escola NÃO declara dono — é do catálogo',
+    criado.ok && !depois.find((t) => t.id === 'sissonne-ouverte').escola,
+    depois.find((t) => t.id === 'sissonne-ouverte'));
+
   const duplicado = await termoRepo.criarTermo(Object.assign({}, base, {
     corpo: { termo: 'Sissonne ouverte', categoria: 'salto' }, tradicoes: TRADICOES,
   }));
   checar('criar o que já existe é recusado com 409', !duplicado.ok && duplicado.status === 409, duplicado);
+
+  // O DONO DO TERMO (02/11/2026). O termo criado na Produção de uma escola é DELA — e a colisão
+  // passa a ser por (dono, id), e não só por id: sem isso, a escola B ficaria bloqueada por um
+  // termo da escola A que ela nem vê, que é a contaminação disfarçada de «já existe».
+  const daEscola = await termoRepo.criarTermo(Object.assign({}, base, {
+    corpo: { termo: 'Sissonne fermée', categoria: 'salto', tradicao: 'compartilhada' },
+    tradicoes: TRADICOES, escola: 'breu',
+  }));
+  checar('o termo criado numa escola declara o dono no próprio termo',
+    daEscola.ok && daEscola.termo.escola === 'breu', daEscola.termo);
+  checar('…e a mensagem do commit diz de que escola é',
+    /escola «breu»/.test(String(repo.arquivos.get(Caminho).mensagem || '')), repo.arquivos.get(Caminho).mensagem);
+  const mesmaNoutra = await termoRepo.criarTermo(Object.assign({}, base, {
+    corpo: { termo: 'Sissonne fermée', categoria: 'salto', tradicao: 'compartilhada' },
+    tradicoes: TRADICOES, escola: 'outra',
+  }));
+  checar('…e o mesmo nome noutra escola é aceito — a colisão é por (dono, id)',
+    mesmaNoutra.ok, mesmaNoutra);
+  const mesmaNaMesma = await termoRepo.criarTermo(Object.assign({}, base, {
+    corpo: { termo: 'Sissonne fermée', categoria: 'salto', tradicao: 'compartilhada' },
+    tradicoes: TRADICOES, escola: 'breu',
+  }));
+  checar('…e repetido na MESMA escola continua a ser 409',
+    !mesmaNaMesma.ok && mesmaNaMesma.status === 409
+      && /desta escola/.test(String(mesmaNaMesma.erro || '')), mesmaNaMesma);
 
   const editado = await termoRepo.editarNomeDoTermo(Object.assign({}, base, {
     idAntigo: 'sissonne-ouverte', novoNome: 'Sissonne ouverte simple',

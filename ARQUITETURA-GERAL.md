@@ -278,6 +278,22 @@ catálogo **entrega-se com limites**, e o que a escola constrói **não é do pr
 | **O catálogo** | `biblioteca/modalidades/` | **licença comercial de uso, por escola** (§10.2) | é o que se vende — e é o que se **licencia**, não se vende em propriedade |
 | **O que a escola acrescenta** | `biblioteca/escolas/<escola>/` | **é dela**; ela concede ao projeto o uso mínimo (§10.3) | ela construiu; o projeto só precisa de o poder servir de volta |
 
+> **Nota de correção (02/11/2026) — onde a camada C vive HOJE.** A coluna «Onde vive» declara o
+> **destino** da camada C (`biblioteca/escolas/<escola>/`), e o destino continua a ser esse. O que a
+> implementação mediu é que **o ficheiro por escola não cabe no Worker**: o vocabulário chega ao
+> bundle por `require` de um **caminho fixo** (`motor/servidor/catalogo-seed.js`), e o esbuild
+> resolve o `require` em **tempo de build** — a escola só se sabe em tempo de execução. Enquanto
+> isso não mudar, o **dono vive no termo**: `escola` ausente = termo do **catálogo**;
+> `escola: '<slug>'` = termo **daquela escola**. O regime **não** muda (o termo da escola é dela);
+> o que muda é **onde a marca está escrita** — e ela está num sítio só, lida pela mesma `compor`
+> no gerador e na tela (`motor/nucleo/produtos/comum.js`).
+>
+> **E uma consequência que é preciso dizer.** `biblioteca/` **não** é do domínio do professor. É o
+> **terceiro dono** — o que se vende —, e puxá-lo para dentro de `professores/<professor>/` faria
+> uma cópia por professor, que divergiria ao primeiro termo novo. Foi exactamente essa cópia que o
+> `termo-repo.js` matou em 28/10/2026 (havia uma por escola no KV). O que impede a contaminação
+> entre escolas é o **dono no termo**, não o sítio do ficheiro.
+
 **O repositório é privado** (`tmenegaz/danca`, verificado a 02/11/2026). Não há hoje distribuição
 pública de nada — logo não há obrigação criada por distribuição, e a decisão é de negócio, não de
 compatibilidade.

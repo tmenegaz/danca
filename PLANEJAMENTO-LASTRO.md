@@ -626,6 +626,27 @@ Escolher entre as três é decisão de **arquitetura**, e vem **antes** do model
 registo-a aqui em vez de a presumir. *(Afeta L11 e L9: é a mesma pergunta que C2 e o «onde a
 habilitação do plano vive» — §8, declarado — já faziam, agora com as mãos no dinheiro.)*
 
+> **Decidido a 02/11/2026 — a metade do «onde».** O **estado comercial não vive no KV**: nem o
+> plano, nem o período, nem o pagamento. Vive num **ficheiro declarativo do repositório** — o
+> «`.conf` da escola» no sentido genérico, que é como ela o nomeou. **Não** existe um ficheiro com
+> esse nome: o que existe, versionado e **por escola**, é `escola/<slug>/indice.json` (que já
+> guarda `estado.habilitada`, `arquivos` e o histórico de `expurgo`) e os `vars` de
+> `wrangler.<slug>.jsonc` (`ESCOLA_SLUG`, `ESCOLA_HABILITADA`). A razão, nas palavras dela: «o
+> conf faz o negócio acontecer e fica lá no repositório, e não há custo de KV».
+>
+> **E a norma confirma-o.** O `PROTOCOLO.md` (norma de 01/11/2026) reserva o KV para o **cadastro
+> dos Bastidores** — o que as telas escrevem. O estado comercial **não é cadastro**: é a memória de
+> uma decisão de dinheiro, tem de se poder auditar com `git diff`, e a enumeração (`kv.list`) é o
+> último recurso daquela norma porque tem cota diária — a que acabou em 18/10/2026. Pô-lo no KV
+> seria gastar o recurso escasso e ficar sem história.
+>
+> **O que continua aberto na C11, e é dela:** o **lado público** da porta (hoje não há nenhum), a
+> **confirmação de pagamento** (nenhum webhook pode mudar um ficheiro do repositório sem um
+> mecanismo — e esse **não** foi decidido), e o **modelo de estados** (desde/até quando, o que
+> suspende). E **onde exactamente** a chave entra: em `indice.json → estado` (o mínimo, hoje) ou
+> num `ESCOLA.conf` próprio, que continua a ser o destino da **declaração pedagógica**
+> (`IDEIA-PAINEL-ESCOLA.md` §10). A escolha do **sítio** — repositório, nunca KV — está tomada.
+
 **C12 — As quatro durações, e qual delas é qual.** A estratégia de 16/10/2026 (§L12) nomeia
 **três** prazos e menciona um **quarto** como «regra existente». Varridos, nenhum deles se
 relaciona hoje com o outro no repositório, e um deles **não existe** (§2.9, medido):

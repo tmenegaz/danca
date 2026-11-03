@@ -24,6 +24,19 @@ const API_VERSAO = '2022-11-28';
 
 const CAMINHO = 'biblioteca/modalidades/bale-classico/vocabulario.json';
 
+/**
+ * DE QUEM É O TERMO, GRAVADO NO TERMO (02/11/2026).
+ *
+ * O ficheiro continua a ser um só — e a razão está escrita em `comum.js` → `separarPorEscola`: o
+ * Worker lê este vocabulário do BUNDLE (`require` de JSON, embutido pelo esbuild), e um ficheiro
+ * de caminho variável (`biblioteca/escolas/<escola>/…`) não pode ser embutido. O que passa a
+ * existir é o **dono declarado em cada termo**, que é o mínimo para o termo da escola A não
+ * aparecer no dicionário da B.
+ *
+ * `escola` ausente = termo do CATÁLOGO (o que se vende). Um slug = termo daquela escola.
+ */
+const ESCOLA_DO_CATALOGO = '';
+
 function cabecalhos(token) {
   return {
     'Accept': ACEITE,
@@ -156,21 +169,36 @@ function validarTermo(corpo, tradicoes) {
 }
 
 /** Cria um termo. Recusa quando ele já existe — o `id` é derivado do nome, e o nome é a chave. */
-async function criarTermo({ f, token, dono, repo, ref, corpo, tradicoes }) {
+async function criarTermo({ f, token, dono, repo, ref, corpo, tradicoes, escola }) {
   const conferido = validarTermo(corpo, tradicoes);
   if (!conferido.ok) return { ok: false, status: 400, erro: 'termo inválido', erros: conferido.erros };
+  // O DONO VAI NO TERMO. Um termo criado na Produção de uma escola é DELA — a licença, §4 —, e o
+  // produto do catálogo passa a conseguir excluí-lo. Sem isto, criar um termo na escola A mudava o
+  // dicionário de B.
+  const donoDoTermo = String(escola || '').trim();
+  if (donoDoTermo) conferido.termo.escola = donoDoTermo;
 
   const lido = await ler({ f, token, dono, repo, ref });
   if (!lido.ok) return lido;
-  const existente = lido.termos.find((t) => t && t.id === conferido.termo.id);
+  // A COLISÃO É POR (DONO, id), E NÃO SÓ POR id (02/11/2026). Com o dono gravado no termo, duas
+  // escolas podem declarar o MESMO nome — e têm de poder: uma escola que quer o seu «Battement
+  // tendu» com a sua definição não pode ficar bloqueada por um termo de outra escola que ela nem
+  // vê. Ficar bloqueada seria a contaminação outra vez, disfarçada de «já existe».
+  //
+  // E a mesma regra serve para a sobreposição do catálogo: a escola pode declarar a sua versão de
+  // um termo do catálogo, e a composição (`compor`) faz a dela vencer.
+  const existente = lido.termos.find((t) => t && t.id === conferido.termo.id
+    && String(t.escola || '').trim() === donoDoTermo);
   if (existente) {
-    return { ok: false, status: 409, erro: '«' + existente.termo + '» já está no vocabulário', termo: existente };
+    return { ok: false, status: 409, erro: '«' + existente.termo + '» já está no vocabulário'
+      + (donoDoTermo ? ' desta escola' : ''), termo: existente };
   }
   lido.termos.push(conferido.termo);
   const escrito = await escrever({
     f, token, dono, repo, ref, termos: lido.termos, sha: lido.sha,
     mensagem: 'feat(biblioteca): acrescentar «' + conferido.termo.termo + '» ao vocabulário do balé clássico\n\n'
-      + 'Cadastrado pela Produção (Sistema Lastro).\n',
+      + 'Cadastrado pela Produção (Sistema Lastro)'
+      + (donoDoTermo ? ', para a escola «' + donoDoTermo + '».\n' : '.\n'),
   });
   if (!escrito.ok) {
     return { ok: false, status: escrito.status, erro: 'o repositório recusou a gravação (HTTP ' + escrito.status + ')' };
@@ -210,6 +238,7 @@ async function editarNomeDoTermo({ f, token, dono, repo, ref, idAntigo, novoNome
 
 module.exports = {
   CAMINHO,
+  ESCOLA_DO_CATALOGO,
   ler,
   escrever,
   criarTermo,

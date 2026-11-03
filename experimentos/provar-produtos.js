@@ -556,6 +556,125 @@ console.log('\nK. A EDIÇÃO PAGA — a definição sem origem não entra, e o s
   }
 }
 
+// ================= L. A FOTOGRAFIA DATADA ======================================
+console.log('\nL. A FOTOGRAFIA — a data vem do git, não do relógio, e a licença cita-a');
+{
+  const foto = cli.fotografiaDoCatalogo('bale-classico');
+  checar('a fotografia do catálogo sai com a forma `catalogo@AAAA-MM-DD` e o commit',
+    !!foto && /^\d{4}-\d{2}-\d{2}$/.test(foto.data) && foto.rotulo === 'catalogo@' + foto.data
+      && /^[0-9a-f]{7,}$/.test(String(foto.commit || '')), foto);
+
+  // DUAS LEITURAS SEGUIDAS DÃO A MESMA DATA. É a asserção que impede o regresso ao `new Date()`:
+  // uma data que muda entre duas gerações do mesmo catálogo não é fotografia, é carimbo.
+  const outra = cli.fotografiaDoCatalogo('bale-classico');
+  checar('…e é a mesma duas vezes seguidas — não é o relógio',
+    JSON.stringify(foto) === JSON.stringify(outra));
+
+  checar('um catálogo que não existe não inventa data',
+    cli.fotografiaDoCatalogo('modalidade-que-nao-existe') === null);
+
+  // O NÚCLEO NÃO OLHA O GIT: recebe a fotografia por parâmetro, como o resto. Sem ela, declara.
+  const sem = dicionario.gerar(Object.assign({}, BASE, { licenca: 'licença de prova' }));
+  checar('sem fotografia, o manifesto declara a lacuna `sem-fotografia`',
+    sem.lacunas.some((l) => l.tipo === 'sem-fotografia')
+      && sem.manifesto.fotografia === null);
+  checar('…e não escreve linha de fotografia nenhuma no cabeçalho',
+    !/^fotografia:/m.test(texto(sem)));
+
+  const comFoto = dicionario.gerar(Object.assign({}, BASE, {
+    licenca: 'licença de prova', fotografia: { data: '2026-11-02', commit: '23d4c0e' },
+  }));
+  checar('com fotografia, a licença citável leva-a e a lacuna desaparece',
+    /^licenca: licença de prova · catalogo@2026-11-02 \(23d4c0e\)$/m.test(texto(comFoto))
+      && !comFoto.lacunas.some((l) => l.tipo === 'sem-fotografia'),
+    (texto(comFoto).match(/^licenca: .*$/m) || [])[0]);
+  checar('…e ela vai também no manifesto, para quem não lê o documento',
+    comFoto.manifesto.fotografia === 'catalogo@2026-11-02 (23d4c0e)'
+      && comFoto.manifesto.fonte.fotografia.data === '2026-11-02');
+
+  // E o mesmo no syllabus — os dois produtos têm de citar a MESMA string, senão divergem ao
+  // primeiro ajuste de texto, que é precisamente o que a função única em `comum.js` evita.
+  const silFoto = syllabus.gerar(Object.assign({}, BASE, {
+    licenca: 'licença de prova', fotografia: { data: '2026-11-02', commit: '23d4c0e' },
+  }));
+  checar('o syllabus cita a mesma string de licença que o dicionário',
+    /^licenca: licença de prova · catalogo@2026-11-02 \(23d4c0e\)$/m.test(texto(silFoto)));
+
+  // E do CLI à ponta: o documento gerado pelo próprio comando traz a fotografia real.
+  const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'produtos-foto-'));
+  try {
+    execFileSync('node', [path.join(RAIZ, 'motor', 'produtos.js'), 'dicionario', '--out', destino],
+      { cwd: RAIZ, stdio: 'pipe' });
+    const doc = fs.readFileSync(path.join(destino, 'dicionario-bale-classico.md'), 'utf8');
+    checar('o CLI tira a data do git e o documento sai com ela',
+      /^fotografia: catalogo@\d{4}-\d{2}-\d{2} \([0-9a-f]+\)$/m.test(doc),
+      (doc.match(/^fotografia: .*$/m) || [])[0]);
+  } finally {
+    fs.rmSync(destino, { recursive: true, force: true });
+  }
+}
+
+// ================= M. O DONO DO TERMO =========================================
+console.log('\nM. O DONO DO TERMO — a escola A não aparece no dicionário da escola B');
+{
+  // O QUE ELA DESCREVEU, em uma asserção: «com duas escolas, o termo de A aparece no dicionário
+  // de B». Três termos: um do catálogo, um da escola A, um da escola B.
+  const VOC = [
+    { id: 'plie', termo: 'Plié', categoria: 'passo', descricao: 'do catálogo', fonte: 'fonte de prova' },
+    { id: 'so-a', termo: 'Só de A', categoria: 'passo', descricao: 'da escola A', fonte: 'fonte de prova',
+      escola: 'a' },
+    { id: 'so-b', termo: 'Só de B', categoria: 'passo', descricao: 'da escola B', fonte: 'fonte de prova',
+      escola: 'b' },
+  ];
+
+  const sep = comum.separarPorEscola(VOC, 'a');
+  checar('sem dono = catálogo; o dono é do campo, e não do ficheiro',
+    sep.catalogo.length === 1 && sep.adicoes.length === 1 && sep.deOutras.length === 1,
+    { catalogo: sep.catalogo.length, adicoes: sep.adicoes.length, deOutras: sep.deOutras.length });
+  checar('…e sem escola pedida, as adições de todas ficam de fora — declaradas, não perdidas',
+    comum.separarPorEscola(VOC, '').catalogo.length === 1
+      && comum.separarPorEscola(VOC, '').adicoes.length === 0
+      && comum.separarPorEscola(VOC, '').deOutras.length === 2);
+
+  const base = Object.assign({}, BASE, { progressao: { turmas: [], relacoes: [] } });
+  const doCatalogo = dicionario.gerar(Object.assign({}, base,
+    { licenca: 'licença de prova', vocabulario: sep.catalogo, adicoes: [], incluirAdicoes: false }));
+  const deA = dicionario.gerar(Object.assign({}, base,
+    { licenca: 'licença de prova', vocabulario: sep.catalogo, adicoes: sep.adicoes,
+      incluirAdicoes: true, escola: 'a' }));
+
+  checar('o dicionário do CATÁLOGO não tem o termo de A nem o de B',
+    /### Plié/.test(texto(doCatalogo)) && !/Só de A/.test(texto(doCatalogo))
+      && !/Só de B/.test(texto(doCatalogo)));
+  checar('a edição de A tem o termo de A e NÃO tem o de B',
+    /### Só de A/.test(texto(deA)) && !/Só de B/.test(texto(deA)) && /### Plié/.test(texto(deA)));
+  checar('…e o termo de A sai marcado como acréscimo da escola',
+    /\*\*Origem do termo\.\*\* acréscimo da escola/.test(texto(deA)));
+
+  // O `produto_id` NOMEIA A EDIÇÃO: dois produtos diferentes com o mesmo id fariam a âncora de um
+  // (fase 3) cobrir o outro.
+  checar('o id do produto nomeia a edição, e o do catálogo não',
+    deA.manifesto.id === 'produto:dicionario:bale-classico/a'
+      && doCatalogo.manifesto.id === 'produto:dicionario:bale-classico'
+      && deA.manifesto.escola === 'a' && doCatalogo.manifesto.escola === null,
+    { a: deA.manifesto.id, catalogo: doCatalogo.manifesto.id });
+
+  // E do CLI à ponta, com o ficheiro do repositório: `--escola breu` inclui as adições dela e o
+  // produto sem `--escola` não. Hoje a `breu` não tem termos próprios — e é isso que se mede: o
+  // catálogo tem de continuar inteiro (93), e as adições têm de ser zero.
+  const sem = JSON.parse(execFileSync('node',
+    [path.join(RAIZ, 'motor', 'produtos.js'), 'dicionario', '--json'],
+    { cwd: RAIZ, stdio: 'pipe' }).toString());
+  const com = JSON.parse(execFileSync('node',
+    [path.join(RAIZ, 'motor', 'produtos.js'), 'dicionario', '--escola', 'breu', '--json'],
+    { cwd: RAIZ, stdio: 'pipe' }).toString());
+  checar('o `--escola` marca o produto como edição da escola, sem mexer no catálogo',
+    sem.fonte.vocabulario.incluidas === false && sem.escola === null
+      && com.fonte.vocabulario.incluidas === true && com.escola === 'breu'
+      && com.fonte.vocabulario.catalogo === sem.fonte.vocabulario.catalogo,
+    { sem: sem.fonte.vocabulario, com: com.fonte.vocabulario });
+}
+
 console.log('');
 if (falhas) {
   console.log('FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).');

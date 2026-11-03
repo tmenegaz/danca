@@ -23,6 +23,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
 
@@ -39,6 +40,8 @@ function uso() {
   console.log('uso: node motor/produtos.js <dicionario|syllabus> [opções]');
   console.log('');
   console.log('  --modalidade <slug>   modalidade do catálogo (por omissão, bale-classico)');
+  console.log('  --escola <slug>       a edição de uma escola: o catálogo + os termos dela, com a');
+  console.log('                        dela a vencer. Sem isto, o produto é o do CATÁLOGO');
   console.log('  --nivel <id>          só um nível do syllabus (id de progressao.json)');
   console.log('  --versao <v>          versão do produto (por omissão, 0.1.0)');
   console.log('  --licenca <texto>     a licença do produto (por omissão, a de biblioteca/LICENSE.md)');
@@ -52,7 +55,7 @@ function uso() {
 
 function argumentos(argv) {
   const opts = { tipo: '', modalidade: 'bale-classico', nivel: '', versao: '0.1.0',
-    licenca: '', edicao: 'interna', out: '', doRepo: false, json: false };
+    licenca: '', edicao: 'interna', escola: '', out: '', doRepo: false, json: false };
   const resto = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -66,6 +69,7 @@ function argumentos(argv) {
     else if (a === '--versao') opts.versao = valor();
     else if (a === '--licenca') opts.licenca = valor();
     else if (a === '--edicao') opts.edicao = valor();
+    else if (a === '--escola') opts.escola = valor();
     else if (a === '--out') opts.out = valor();
     else if (a === '--do-repo') opts.doRepo = true;
     else if (a === '--json') opts.json = true;
@@ -85,6 +89,38 @@ function catalogoDoDisco(modalidade) {
     vocabulario: lerJson(pasta + '/vocabulario.json'),
     progressao: lerJson(pasta + '/progressao.json'),
   };
+}
+
+/**
+ * A FOTOGRAFIA DATADA DO CATÁLOGO — `catalogo@AAAA-MM-DD`, tirada do `git` e não do relógio.
+ *
+ * A MESMA TÉCNICA QUE TORNOU O PDF REPRODUTÍVEL (`SOURCE_DATE_EPOCH` em `tools/gerar-ciclo.sh`): a
+ * data de um conteúdo versionado é a do último commit que o tocou. Usar `new Date()` daria uma data
+ * diferente a cada geração para o mesmo catálogo — e uma licença que muda de data sem o conteúdo
+ * mudar não é uma licença, é um carimbo.
+ *
+ * ELA É DERIVADA, E O CONTRATO É QUE NÃO É. A cláusula 1 da licença (`ARQUITETURA-GERAL` §10.2)
+ * descreve a fotografia que o CONTRATO congela (`catalogo@AAAA-MM-DD`). Enquanto não há contrato
+ * (C8), o produto cita esta — que é verdadeira e conferível por máquina. É a pendência declarada no
+ * `REGISTRO.md` de 02/11/2026: no dia em que o contrato existir, a data dele **vence**, e esta
+ * passa a ser só o que o gerador sabe dizer sozinho.
+ *
+ * Sem `git` (ou com o catálogo por commitar), devolve `null` — e o núcleo transforma isso na lacuna
+ * `sem-fotografia`. É a diferença entre «não sei a data» e «inventei a data».
+ */
+function fotografiaDoCatalogo(modalidade) {
+  const pasta = 'biblioteca/modalidades/' + String(modalidade || 'bale-classico');
+  const git = (args) => execFileSync('git', args, { cwd: RAIZ, stdio: 'pipe' }).toString().trim();
+  let data = '';
+  let commit = '';
+  try {
+    data = git(['log', '-1', '--format=%ad', '--date=short', '--', pasta]);
+    commit = git(['log', '-1', '--format=%h', '--', pasta]);
+  } catch {
+    return null;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return null;
+  return { data, commit: commit || null, rotulo: 'catalogo@' + data };
 }
 
 /**
@@ -160,7 +196,9 @@ async function main(argv) {
     // continua a vencer — é ele que a prova usa, e é ele que serve a quem gera um produto que não
     // é o do catálogo.
     licenca: opts.licenca || licencaDoDisco(),
+    fotografia: fotografiaDoCatalogo(opts.modalidade),
     edicao: opts.edicao === 'paga' ? 'paga' : 'interna',
+    escola: opts.escola || '',
     nivel: opts.nivel || undefined,
   };
 
@@ -179,7 +217,8 @@ async function main(argv) {
   } else {
     const catalogo = catalogoDoDisco(opts.modalidade);
     const gerar = opts.tipo === 'dicionario' ? produtos.gerarDicionario : produtos.gerarSyllabus;
-    produto = gerar(Object.assign({}, catalogo, comuns));
+    const preparado = produtos.prepararCatalogo(catalogo.vocabulario, opts.escola);
+    produto = gerar(Object.assign({}, catalogo, preparado, comuns));
   }
 
   if (!produto.ok) {
@@ -219,4 +258,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, argumentos, catalogoDoDisco, licencaDoDisco };
+module.exports = { main, argumentos, catalogoDoDisco, licencaDoDisco, fotografiaDoCatalogo };

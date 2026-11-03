@@ -82,7 +82,8 @@ function gerar(entrada) {
   const incluirAdicoes = e.incluirAdicoes === true;
   const termos = comum.compor(e.vocabulario, incluirAdicoes ? e.adicoes : []);
   const versao = String(e.versao || '0.1.0');
-  const licenca = String(e.licenca || 'pendente — o LICENSE.md não existe');
+  const fotografia = comum.rotuloDaFotografia(e.fotografia);
+  const licenca = comum.licencaCitavel(e.licenca, e.fotografia);
   // A CONDIÇÃO DE CONTEÚDO DA LICENÇA, EXECUTÁVEL (ARQUITETURA-GERAL §10.4). Por omissão a edição é
   // a INTERNA — mostra tudo, e é a que a escola e o projeto usam. A `paga` é a que se vende, e nela
   // uma descrição sem `fonte` NÃO ENTRA: «não se licencia o que não se declarou como seu». A regra
@@ -135,9 +136,15 @@ function gerar(entrada) {
       }
     }
   }
-  if (!String(e.licenca || '').trim()) {
+  if (!licenca) {
     lacunas.push(comum.lacuna('sem-licenca', 'produto',
       'o texto da licença que o contrato cita (LICENSE.md)'));
+  }
+  if (!fotografia) {
+    // A CLÁUSULA 1 NÃO SE CUMPRE SEM ELA — mas ela não se inventa. Sem `git` (ou sem catálogo
+    // commitado) não há data a citar, e a lacuna di-lo; o produto continua a gerar-se.
+    lacunas.push(comum.lacuna('sem-fotografia', 'produto',
+      'a data do catálogo que a licença nomeia (cláusula 1, ARQUITETURA-GERAL §10.2)'));
   }
 
   // ---------------------------------------------------------------- o documento
@@ -146,11 +153,15 @@ function gerar(entrada) {
   linhas.push('---');
   linhas.push('projeto: Sistema Lastro');
   linhas.push('produto: dicionário');
-  linhas.push('produto_id: produto:dicionario:' + modalidade);
+  // O `produto_id` NOMEIA A EDIÇÃO (02/11/2026): o do catálogo e o de uma escola não são o mesmo
+  // objecto, e dar-lhes o mesmo id faria a âncora de um produto (fase 3) cobrir o outro.
+  linhas.push('produto_id: produto:dicionario:' + modalidade
+    + (String(e.escola || '').trim() ? '/' + String(e.escola).trim() : ''));
   linhas.push('modalidade: ' + modalidade);
   if (declaracao) linhas.push('alfabeto: ' + declaracao.id + ' v' + declaracao.versao);
   linhas.push('versao: ' + versao);
   linhas.push('edicao: ' + edicao);
+  if (fotografia) linhas.push('fotografia: ' + fotografia);
   linhas.push('licenca: ' + licenca.replace(/\n/g, ' '));
   linhas.push('---');
   linhas.push('');
@@ -180,8 +191,10 @@ function gerar(entrada) {
   if (incluirAdicoes) {
     const daEscola = termos.filter((t) => t.origem === 'escola').length;
     linhas.push('');
-    linhas.push('**Adições da escola incluídas.** ' + daEscola + ' — este documento NÃO é o do');
-    linhas.push('catálogo: são as duas camadas, e o manifesto diz quantas são de cada.');
+    linhas.push('**Adições da escola incluídas.** ' + daEscola
+      + (String(e.escola || '').trim() ? ' da escola «' + String(e.escola).trim() + '»' : '')
+      + ' — este documento NÃO é o do catálogo: são as duas camadas, e o manifesto diz quantas');
+    linhas.push('são de cada.');
   }
   linhas.push('');
 
@@ -284,13 +297,17 @@ function gerar(entrada) {
   }
 
   const manifesto = {
-    id: 'produto:dicionario:' + modalidade,
+    id: 'produto:dicionario:' + modalidade
+      + (String(e.escola || '').trim() ? '/' + String(e.escola).trim() : ''),
+    escola: String(e.escola || '').trim() || null,
     produto: 'dicionario',
     modalidade,
     versao,
     edicao,
     licenca,
+    fotografia: fotografia || null,
     fonte: {
+      fotografia: e.fotografia || null,
       alfabeto: declaracao ? { id: declaracao.id, versao: declaracao.versao } : null,
       vocabulario: {
         catalogo: (Array.isArray(e.vocabulario) ? e.vocabulario : []).length,

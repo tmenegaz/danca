@@ -19,6 +19,48 @@
  * diz `origem: "escola"` para quem precisar de o excluir de uma edição paga.
  */
 
+/**
+ * QUEM É O DONO DE CADA TERMO — a separação catálogo × escola, por CAMPO e não por ficheiro
+ * (decisão de 02/11/2026, proposta por ela).
+ *
+ * O problema que isto resolve, dito por ela: «o termo é inscrito no ficheiro do catálogo, e o
+ * catálogo que se vende cresce com o conteúdo de uma escola; com duas escolas, o termo de A
+ * aparece no dicionário de B». O caminho do ficheiro era um só, e um termo criado na Produção da
+ * escola A ia para o catálogo de todos.
+ *
+ * PORQUE UM CAMPO E NÃO UM FICHEIRO POR ESCOLA. O Worker lê o vocabulário do BUNDLE — `require` de
+ * um JSON que o esbuild embute no build (`catalogo-seed.js`). Um ficheiro de caminho VARIÁVEL
+ * (`biblioteca/escolas/<escola>/vocabulario.json`) não pode ser embutido: o esbuild resolve o
+ * `require` em tempo de build, e a escola só se sabe em tempo de execução. As três saídas seriam
+ * (a) gerar um índice de todas as escolas no build — mexer em `tools/`, que é congelado; (b) ler a
+ * API do GitHub a cada carga da página — a cota que a 18/10/2026 acabou; (c) um campo no termo. A
+ * (c) é a única que não custa nem um nem outro, e é a que ela propôs.
+ *
+ * O QUE ISTO **NÃO** É. Não é a fase 1 completa, e o critério 5 do plano («criar um termo numa
+ * escola não muda o ficheiro do catálogo») continua a **não passar** ao pé da letra: o ficheiro é
+ * um só. O que passa é o que ela pediu — **o termo de A não aparece no dicionário de B** —, e é
+ * isso que torna o catálogo vendável a uma escola sem lhe entregar as edições das outras.
+ *
+ * `escola` vazio (ou ausente) é **do catálogo**: o que se vende. `escola: '<slug>'` é daquela
+ * escola. Sem `escola` pedida, as adições de todas as escolas ficam em `deOutras` — e não se
+ * perdem em silêncio: quem gera o produto do catálogo vê-as contadas no manifesto.
+ */
+function separarPorEscola(termos, escola) {
+  const lista = Array.isArray(termos) ? termos : [];
+  const alvo = String(escola || '').trim();
+  const catalogo = [];
+  const adicoes = [];
+  const deOutras = [];
+  for (const t of lista) {
+    if (!t) continue;
+    const dono = String(t.escola || '').trim();
+    if (!dono) catalogo.push(t);
+    else if (alvo && dono === alvo) adicoes.push(t);
+    else deOutras.push(t);
+  }
+  return { catalogo, adicoes, deOutras };
+}
+
 /** Os termos de um objecto indexado por nome, sem as chaves de comentário (`_`). */
 function semComentario(objeto) {
   const saida = {};
@@ -53,6 +95,42 @@ function celula(valor) {
 /** A lacuna, sempre com o mesmo nome — é ela que a prova conta, e não um texto solto. */
 function lacuna(tipo, onde, falta) {
   return { tipo: String(tipo), onde: String(onde || ''), falta: String(falta || '') };
+}
+
+/**
+ * A FOTOGRAFIA DATADA DO CATÁLOGO — `catalogo@AAAA-MM-DD`.
+ *
+ * A cláusula 1 da licença (ARQUITETURA-GERAL §10.2) exige que a licença nomeie o catálogo **como ele
+ * está numa data**, e não «o catálogo». A data vem de fora, por parâmetro: este ficheiro é do núcleo
+ * e não olha para o `git` nem para o relógio — quem a calcula é o CLI, do último commit que tocou o
+ * catálogo, que é a MESMA técnica que tornou o PDF reprodutível (`SOURCE_DATE_EPOCH`).
+ *
+ * É DERIVADA, E ISSO NÃO É O CONTRATO. Ela diz «esta é a versão do catálogo nesta data»; não diz
+ * «esta é a versão que ESTA escola comprou» — isso é um acto do contrato (C8), e enquanto ele não
+ * existe o produto cita a derivada. A diferença fica escrita no `REGISTRO.md`, e não escondida.
+ *
+ * Sem data, devolve vazio — e quem chama declara a lacuna. Inventar uma data seria pior do que não
+ * a ter: uma licença com data inventada parece mais forte do que é.
+ */
+function rotuloDaFotografia(fotografia) {
+  const f = fotografia || {};
+  const data = String(f.data || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return '';
+  const commit = String(f.commit || '').trim();
+  return 'catalogo@' + data + (commit ? ' (' + commit + ')' : '');
+}
+
+/**
+ * A LICENÇA COMO ELA ENTRA NO PRODUTO: o título, a fotografia e o caminho.
+ *
+ * Uma linha só, e ela é a que o contrato vai citar. Fica aqui, e não em cada produto, porque os
+ * três têm de citar a MESMA string — três cópias divergem ao primeiro ajuste de texto.
+ */
+function licencaCitavel(licenca, fotografia) {
+  const titulo = String(licenca || '').trim();
+  const foto = rotuloDaFotografia(fotografia);
+  if (!titulo) return '';
+  return foto ? titulo + ' · ' + foto : titulo;
 }
 
 /**
@@ -187,6 +265,9 @@ function compassosDasCelulas(celulas, temposDaCelula, numerador) {
 }
 
 module.exports = {
+  separarPorEscola,
+  rotuloDaFotografia,
+  licencaCitavel,
   compassosDasCelulas,
   semComentario,
   comparar,

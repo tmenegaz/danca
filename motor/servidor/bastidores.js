@@ -32,6 +32,8 @@ const { numeroDoTeste } = require('./teste-fixtures.js');
 // O catálogo INICIAL de turmas e vocabulário técnico (conteúdo, não código). Carregado
 // sob demanda pela Produção (`POST /api/bastidores/semear-catalogo`), idempotente.
 const CATALOGO = require('./catalogo-seed.js');
+// A COMPOSIÇÃO catálogo × escola é a dos produtos, e é a única (02/11/2026).
+const COMUM = require('../nucleo/produtos/comum.js');
 
 /**
  * AS CATEGORIAS E AS TRADIÇÕES DO VOCABULÁRIO (18/10/2026). O formulário do termo deixou de
@@ -389,7 +391,20 @@ function normalizarRubrica(corpo) {
  * onde o dado está pelo comentário; um comentário a mentir é pior do que um argumento a sobrar.
  */
 async function termos(kv, escola) {
-  return CATALOGO.TERMOS.map((t) => Object.assign({}, t));
+  // O TERMO DA ESCOLA APARECE NA ESCOLA, E SÓ NELA (02/11/2026). O vocabulário é um ficheiro só,
+  // e cada termo declara o seu dono (`escola`); ausente = do catálogo. Antes desta linha, criar um
+  // termo na escola A punha-o no dicionário de B — que é a razão pela qual o produto que se vende
+  // não podia ser vendido sem entregar as edições das outras.
+  //
+  // O FILTRO É AQUI E NÃO NO DADO: `CATALOGO.TERMOS` é o bundle inteiro, e é esta função que
+  // responde «o que é que esta escola vê». Uma leitura filtrada no build obrigaria o build a saber
+  // de que escola é o Worker — e o Worker é o mesmo código para todas.
+  const alvo = String(escola || '').trim();
+  const { catalogo, adicoes } = COMUM.separarPorEscola(CATALOGO.TERMOS, alvo);
+  // A COMPOSIÇÃO É A MESMA DOS PRODUTOS, e não uma segunda: `compor` é a única função que decide
+  // a precedência (a escola vence, o catálogo preenche). Uma lista própria aqui divergiria do
+  // dicionário ao primeiro termo — e divergiria em silêncio, que é o pior modo.
+  return COMUM.compor(catalogo, adicoes).map((t) => Object.assign({}, t));
 }
 
 /**
@@ -9302,6 +9317,9 @@ async function fetch(request, env) {
         fonte: novo.fonte, observacoes: novo.observacoes,
       },
       tradicoes: TRADICOES_DO_VOCABULARIO,
+      // O TERMO NASCE DA ESCOLA QUE O CRIOU (02/11/2026). É o `ESCOLA_SLUG` do Worker, e não o
+      // parâmetro `escola` do pedido: o dono de um termo não se escolhe na tela.
+      escola: (env && env.ESCOLA_SLUG) || escola || '',
     });
     if (!r.ok) {
       return json(r.status || 400, { ok: false, erro: r.erro, erros: r.erros, termo: r.termo });

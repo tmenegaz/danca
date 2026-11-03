@@ -108,7 +108,7 @@ function musicasDoExercicio(alfabeto, nomeDoExercicio) {
 }
 
 /** O documento de um nível. Recebe tudo pronto; não lê nada. */
-function documentoDoNivel({ turma, unidades, unidadesLidas, e, versao, licenca }) {
+function documentoDoNivel({ turma, unidades, unidadesLidas, e, versao, licenca, fotografia }) {
   const linhas = [];
   linhas.push('---');
   linhas.push('projeto: Sistema Lastro');
@@ -117,6 +117,7 @@ function documentoDoNivel({ turma, unidades, unidadesLidas, e, versao, licenca }
   linhas.push('modalidade: ' + e.modalidade);
   linhas.push('nivel: ' + turma.id);
   linhas.push('versao: ' + versao);
+  if (fotografia) linhas.push('fotografia: ' + fotografia);
   linhas.push('licenca: ' + licenca.replace(/\n/g, ' '));
   linhas.push('---');
   linhas.push('');
@@ -199,7 +200,7 @@ function documentoDoNivel({ turma, unidades, unidadesLidas, e, versao, licenca }
 }
 
 /** O documento de índice: todos os níveis, o que cada um tem e o que falta. */
-function documentoIndice({ turmas, porNivel, e, versao, licenca }) {
+function documentoIndice({ turmas, porNivel, e, versao, licenca, fotografia }) {
   const linhas = [];
   linhas.push('---');
   linhas.push('projeto: Sistema Lastro');
@@ -207,6 +208,7 @@ function documentoIndice({ turmas, porNivel, e, versao, licenca }) {
   linhas.push('produto_id: produto:syllabus:' + e.modalidade);
   linhas.push('modalidade: ' + e.modalidade);
   linhas.push('versao: ' + versao);
+  if (fotografia) linhas.push('fotografia: ' + fotografia);
   linhas.push('licenca: ' + licenca.replace(/\n/g, ' '));
   linhas.push('---');
   linhas.push('');
@@ -249,7 +251,8 @@ function gerar(entrada) {
   const incluirAdicoes = e.incluirAdicoes === true;
   const termos = comum.compor(e.vocabulario, incluirAdicoes ? e.adicoes : []);
   const versao = String(e.versao || '0.1.0');
-  const licenca = String(e.licenca || 'pendente — o LICENSE.md não existe');
+  const fotografia = comum.rotuloDaFotografia(e.fotografia);
+  const licenca = comum.licencaCitavel(e.licenca, e.fotografia);
 
   const porId = new Map();
   const porNome = new Map();
@@ -338,7 +341,7 @@ function gerar(entrada) {
       nome: 'syllabus-' + String(turma.id) + '.md',
       texto: documentoDoNivel({
         turma, unidades, unidadesLidas: lidas, e: Object.assign({}, e, { modalidade }),
-        versao, licenca,
+        versao, licenca, fotografia,
       }),
     });
   }
@@ -348,12 +351,17 @@ function gerar(entrada) {
   if (!filtro) {
     documentos.unshift({
       nome: 'syllabus-' + modalidade + '.md',
-      texto: documentoIndice({ turmas: escolhidas, porNivel, e: Object.assign({}, e, { modalidade }), versao, licenca }),
+      texto: documentoIndice({ turmas: escolhidas, porNivel,
+        e: Object.assign({}, e, { modalidade }), versao, licenca, fotografia }),
     });
   }
-  if (!String(e.licenca || '').trim()) {
+  if (!licenca) {
     lacunas.push(comum.lacuna('sem-licenca', 'produto',
       'o texto da licença que o contrato cita (LICENSE.md)'));
+  }
+  if (!fotografia) {
+    lacunas.push(comum.lacuna('sem-fotografia', 'produto',
+      'a data do catálogo que a licença nomeia (cláusula 1, ARQUITETURA-GERAL §10.2)'));
   }
 
   const manifesto = {
@@ -362,7 +370,9 @@ function gerar(entrada) {
     modalidade,
     versao,
     licenca,
+    fotografia: fotografia || null,
     fonte: {
+      fotografia: e.fotografia || null,
       alfabeto: alfabeto ? { id: alfabeto.id, versao: alfabeto.versao } : null,
       vocabulario: {
         catalogo: (Array.isArray(e.vocabulario) ? e.vocabulario : []).length,

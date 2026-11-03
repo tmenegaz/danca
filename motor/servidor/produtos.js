@@ -18,6 +18,7 @@ const CATALOGO = require('./catalogo-seed.js');
 const { lerModalidade, lerProgressao } = require('./verbete.js');
 const moduloDicionario = require('../nucleo/produtos/dicionario.js');
 const moduloSyllabus = require('../nucleo/produtos/syllabus.js');
+const comum = require('../nucleo/produtos/comum.js');
 
 /**
  * A ORDEM DAS CATEGORIAS NUM PRODUTO. É a do dia de aula — solo, barra, centro —, e não a
@@ -66,6 +67,26 @@ async function lerDoCatalogo({ f, token, dono, repo, ref, modalidade }) {
 }
 
 /**
+ * O CATÁLOGO POSTO NA FORMA DE UM PRODUTO — a separação pelo dono de cada termo (02/11/2026).
+ *
+ * `escola` vazia dá o produto do CATÁLOGO: só os termos sem dono, e as edições das escolas
+ * contadas em `deOutras` (para o manifesto poder dizer quantas ficaram de fora, em vez de as
+ * perder em silêncio). `escola: '<slug>'` dá a edição daquela escola: o catálogo mais os termos
+ * dela, com a dela a vencer — a mesma `compor` que a tela usa.
+ */
+function prepararCatalogo(vocabulario, escola) {
+  const alvo = String(escola || '').trim();
+  const separado = comum.separarPorEscola(vocabulario, alvo);
+  return {
+    vocabulario: separado.catalogo,
+    adicoes: separado.adicoes,
+    incluirAdicoes: !!alvo,
+    escola: alvo || null,
+    deOutrasEscolas: separado.deOutras.length,
+  };
+}
+
+/**
  * Gera um produto a partir do repositório. `tipo` é `dicionario` ou `syllabus`.
  *
  * O `f` é o `fetch` do sítio onde isto corre — no Worker, o de sempre; na bancada, o do teste. É a
@@ -74,9 +95,13 @@ async function lerDoCatalogo({ f, token, dono, repo, ref, modalidade }) {
 async function gerarDoRepo({ tipo, f, token, dono, repo, ref, modalidade, opcoes }) {
   const lido = await lerDoCatalogo({ f, token, dono, repo, ref, modalidade });
   if (!lido.ok) return lido;
+  const preparado = prepararCatalogo(lido.vocabulario, opcoes && opcoes.escola);
   const base = Object.assign({
     modalidade: lido.modalidade,
-    vocabulario: lido.vocabulario,
+    vocabulario: preparado.vocabulario,
+    adicoes: preparado.adicoes,
+    incluirAdicoes: preparado.incluirAdicoes,
+    escola: preparado.escola,
     alfabeto: lido.alfabeto,
     progressao: lido.progressao,
   }, opcoes || {});
@@ -90,6 +115,7 @@ async function gerarDoRepo({ tipo, f, token, dono, repo, ref, modalidade, opcoes
 
 module.exports = {
   ORDEM_DAS_CATEGORIAS,
+  prepararCatalogo,
   rotulosDoCatalogo,
   gerarDicionario,
   gerarSyllabus,
