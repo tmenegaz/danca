@@ -392,7 +392,7 @@ function executarComponentes(script) {
   const api = new Function(
     'document', 'window', 'location', 'fetch', 'sessionStorage', 'alert', 'confirm',
     script + '\n;return {paginar:paginar, adicionarFicha:adicionarFicha, fichasDe:fichasDe,' +
-      ' mostrarVazio:mostrarVazio};'
+      '};'
   )(documento, janela, local, buscar, sessao, () => {}, () => true);
   // A entrega de um clique a TODOS os ouvintes de `document`, como o navegador faz: é assim
   // que as abas e o «Adicionar» são exercitados de verdade, e não só relidos.
@@ -976,8 +976,30 @@ async function principal() {
   conferir('o passo 3 da turma já não tem menu de termos', comTermos.includes('id="vinc-termo"'), false);
   const menuDosTermos = (comTermos.match(/id="esc-conteudos"[\s\S]*?<\/select>/) || [''])[0];
   const vocabularioDaModalidade = require('../motor/servidor/catalogo-seed.js').TERMOS;
-  conferir('…e os termos do vocabulário entram como OPÇÕES do menu da curadoria',
-    (menuDosTermos.match(/<option /g) || []).length, vocabularioDaModalidade.length + 1);
+  /* A LISTA É A DOS EXERCÍCIOS QUE TÊM NOTAÇÃO (03/11/2026), e não a do vocabulário inteiro.
+   *
+   * O PEDIDO DELA: «a lista de conteúdos disponíveis na curadoria não deve ser estática ou
+   * excessiva; ela deve crescer e refletir dinamicamente apenas os passos/verbetes que de fato
+   * possuem notação/conteúdo cadastrado». Antes vinham os 93 termos (uma lista que prometia 93 e
+   * entregava 2), e a asserção media esse número — era a MEDIDA de uma decisão que já não vale.
+   *
+   * A EXPECTATIVA É DERIVADA do alfabeto publicado, e não escrita à mão: um verbete conta quando
+   * tem, ao menos, uma música com um trecho dentro. Escrever `2` aqui seria medir o dia em que o
+   * texto foi escrito, que é o defeito que a asserção das tradições já corrigiu uma vez.
+   */
+  const alfabeto = require('../biblioteca/modalidades/bale-classico/notacao.json');
+  const comNotacao = Object.keys(alfabeto.verbetes || {}).filter((nome) => {
+    if (nome.startsWith('_')) return false;
+    const musicas = alfabeto.verbetes[nome] || {};
+    return Object.keys(musicas).filter((k) => /^\d+\|/.test(k)).some((k) => {
+      const celulas = (musicas[k] && musicas[k].celulas) || {};
+      return Object.keys(celulas).some((d) => (celulas[d] || []).length > 0);
+    });
+  });
+  conferir('…e o menu da curadoria oferece só os exercícios que TÊM notação',
+    (menuDosTermos.match(/<option /g) || []).length, comNotacao.length + 1);
+  conferir('…e são MENOS do que o vocabulário — a lista não promete o que não existe',
+    comNotacao.length < vocabularioDaModalidade.length, true);
   conferir('…e o formulário entrega as fichas que o servidor espera',
     script.includes('fichasDe("esc-alunas")'), true);
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',

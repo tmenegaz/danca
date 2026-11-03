@@ -694,20 +694,39 @@ const LI = 'li.turma[data-turma="tu1"]';
 
   // O CONTEÚDO MUDOU DE CASA (03/11/2026). O que era o `#vinc-conteudos` é hoje o
   // `#esc-conteudos` do formulário da CURADORIA — o mesmo `escolhedor` das alunas, com o NOME
-  // do termo como valor (a lista é para o professor LER). O que se prova é o par: o passo 3
-  // ficou sem ele, e a curadoria passou a tê-lo, com opções de verdade.
+  // do termo como valor (a lista é para o professor LER).
+  //
+  // E A LISTA PASSOU A SER A DOS EXERCÍCIOS QUE TÊM NOTAÇÃO (03/11/2026, pedido dela). Este
+  // `TERMOS` de prova escreve «plié» e «battement tendu», minúsculos: o verbete do alfabeto é
+  // «Plié» e «Battement tendu», e nenhum dos dois casa. O menu fica VAZIO — e é isso que se
+  // mede aqui: a lista segue o verbete, não o vocabulário. Uma asserção que esperasse «> 1»
+  // media a lista antiga (o vocabulário inteiro), que é exactamente o que saiu.
+  const ALFABETO = JSON.parse(fs.readFileSync(
+    path.join(raiz, 'biblioteca/modalidades/bale-classico/notacao.json'), 'utf8'));
+  const comNotacao = new Set(Object.keys(ALFABETO.verbetes || {}).filter((nome) => {
+    if (nome.startsWith('_')) return false;
+    const musicas = ALFABETO.verbetes[nome] || {};
+    return Object.keys(musicas).filter((k) => /^\d+\|/.test(k)).some((k) => {
+      const celulas = (musicas[k] && musicas[k].celulas) || {};
+      return Object.keys(celulas).some((d) => (celulas[d] || []).length > 0);
+    });
+  }));
   const conteudosOndeEstao = await pg.evaluate(() => {
     const e = document.getElementById('esc-conteudos');
     return {
       noPasso3: document.querySelectorAll('#vinc-conteudos *').length,
       naCuradoria: Boolean(e),
-      opcoes: e ? e.querySelectorAll('select.opcoes option[value]:not([value=""])').length : 0,
+      opcoes: e ? [...e.querySelectorAll('select.opcoes option')].map((o) => o.value).filter(Boolean) : [],
       adicionar: e ? Boolean(e.querySelector('button.adicionar')) : false,
     };
   });
   provar('os conteúdos saíram do passo 3 e vivem no formulário da curadoria',
     conteudosOndeEstao.noPasso3 === 0 && conteudosOndeEstao.naCuradoria &&
-    conteudosOndeEstao.opcoes > 1 && conteudosOndeEstao.adicionar, conteudosOndeEstao);
+    conteudosOndeEstao.adicionar, conteudosOndeEstao);
+  provar('…e o menu só oferece exercícios com notação',
+    conteudosOndeEstao.opcoes.every((v) => comNotacao.has(v)), conteudosOndeEstao.opcoes);
+  provar('…e os termos da prova, que não têm verbete, não entram na lista',
+    conteudosOndeEstao.opcoes.length === 0, conteudosOndeEstao.opcoes);
 
   // O PASSO É LEMBRADO: recarregar não devolve a direção ao passo 1.
   await pg.reload({ waitUntil: 'load' });

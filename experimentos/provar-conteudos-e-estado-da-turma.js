@@ -312,12 +312,35 @@ async function aTela() {
   checar('…nem os blocos ocultos que o formulário clonava',
     html.includes('conteudos-da-turma') === false);
   checar('o formulário da curadoria tem o escolhedor de conteúdos', html.includes('id="esc-conteudos"'), true);
-  checar('…com uma opção por termo do vocabulário, mais o «— escolher —»',
+  /* A LISTA DO MENU É A DOS EXERCÍCIOS QUE TÊM NOTAÇÃO (03/11/2026) — e esta asserção media o
+   * contrário, com razão no dia em que foi escrita: o menu oferecia o vocabulário inteiro.
+   *
+   * O PEDIDO DELA: «a lista de conteúdos disponíveis na curadoria não deve ser estática ou
+   * excessiva; ela deve crescer e refletir dinamicamente apenas os passos/verbetes que de fato
+   * possuem notação/conteúdo cadastrado». A expectativa passa a ser DERIVADA do alfabeto — um
+   * verbete conta quando tem uma música com pelo menos um trecho —, e não o número de termos: uma
+   * asserção que fixasse «2» mediria o dia em que foi escrita, não a regra.
+   */
+  checar('…com uma opção por exercício que TEM notação, mais o «— escolher —»',
     (() => {
       const bloco = (html.match(/id="esc-conteudos"[\s\S]*?<\/select>/) || [''])[0];
       const n = (bloco.match(/<option /g) || []).length;
+      const alfabeto = require(path.join(RAIZ, 'biblioteca/modalidades/bale-classico/notacao.json'));
+      const comNotacao = Object.keys(alfabeto.verbetes || {}).filter((nome) => {
+        if (nome.startsWith('_')) return false;
+        const musicas = alfabeto.verbetes[nome] || {};
+        return Object.keys(musicas).filter((k) => /^\d+\|/.test(k)).some((k) => {
+          const celulas = (musicas[k] && musicas[k].celulas) || {};
+          return Object.keys(celulas).some((d) => (celulas[d] || []).length > 0);
+        });
+      });
+      return n === comNotacao.length + 1;
+    })());
+  checar('…e o vocabulário continua INTEIRO fora da curadoria (a lista não o apaga)',
+    (() => {
+      const bloco = (html.match(/id="esc-conteudos"[\s\S]*?<\/select>/) || [''])[0];
       const termos = require(path.join(RAIZ, 'motor/servidor/catalogo-seed.js')).TERMOS;
-      return n === termos.length + 1;
+      return (bloco.match(/<option /g) || []).length < termos.length + 1;
     })());
   // A REGRA DA CASA: nenhum formulário traz parágrafo explicativo. O bloco novo podia tê-lo
   // trazido — e uma nota a explicar a lista é o começo de um formulário que se lê como um manual.

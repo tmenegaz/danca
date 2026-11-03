@@ -1017,12 +1017,15 @@ function estado() {
     const vazio = await page.evaluate(estado);
     /* SEM TRECHOS, NÃO HÁ DECOMPOSIÇÃO A MOSTRAR (01/11/2026). Eram três tabelas — uma por
      * direção — a dizer «este exercício não vai à frente / ao lado / atrás». Para o `relevé`, que
-     * não tem eixo horizontal nenhum, eram três afirmações inventadas sobre o exercício. Agora
-     * não há tabela: há uma linha que diz porquê. */
+     * não tem eixo horizontal nenhum, eram três afirmações inventadas sobre o exercício. Depois
+     * disso passou a haver uma linha a dizer porquê — e essa linha SAIU a 03/11/2026, com a
+     * limpeza dos formulários: o botão que acrescenta o trecho está logo abaixo, e a tela vazia
+     * já diz que está vazia. A asserção fica INVERTIDA em vez de apagada — o que se mede é que
+     * não há nem tabela nem «não vai» nem sermão. */
     conferir('sem trechos, não há tabela de decomposição — e nenhum «não vai»',
       vazio.tabela.length === 0, vazio.tabela.map((t) => t.cabecalho));
-    conferir('…e a linha que sobra diz que faltam trechos, e não que o exercício não vai a lado nenhum',
-      /Ainda sem trechos/.test(vazio.notaDaTabela) && !/não vai/.test(vazio.notaDaTabela),
+    conferir('…nem frase de instrução no lugar da tabela',
+      !/Ainda sem trechos|Escreva o primeiro|opcional/.test(vazio.notaDaTabela) && !/não vai/.test(vazio.notaDaTabela),
       vazio.notaDaTabela);
     conferir('e a mesma direção oferece 1 e 1–2 em 2/4',
       JSON.stringify(valores(vazio.contagens)) === JSON.stringify(['1', '1–2']), valores(vazio.contagens));
@@ -2218,8 +2221,12 @@ function estado() {
     conferir('…e o título do botão diz o que falta',
       /sem decomposição não existe/.test(semTrechos.titulo || '')
         && /ao menos um trecho/.test(semTrechos.titulo || ''), semTrechos.titulo);
-    conferir('a nota do rodapé diz o mesmo, em vez de deixar o botão mudo',
-      /Ainda não há nenhum trecho/.test(semTrechos.nota), semTrechos.nota);
+    /* A NOTA DO RODAPÉ NÃO REPETE O QUE O BOTÃO DIZ (03/11/2026). Ela dizia «Ainda não há nenhum
+     * trecho. Escreva ao menos um na decomposição…» — instrução dentro de um formulário, que a
+     * limpeza pedida por ela removeu. O rodapé passou a ter um ofício só: a substituição da
+     * música. O `disabled` e o `title` são quem diz o que falta. */
+    conferir('…e a nota do rodapé não repete o aviso em prosa',
+      !/Ainda não há nenhum trecho|Escreva ao menos um/.test(semTrechos.nota), semTrechos.nota);
 
     /* ---- 24-F. O «APAGAR» SAIU DO PASSO 6 (02/11/2026, segunda correcção do mesmo dia) ----
      *
