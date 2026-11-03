@@ -44,6 +44,15 @@ on:
     paths:
       - 'professores/**/ciclos/ciclo-*/**'
       - 'professores/**/ciclos/*.conf'
+      # O CATÁLOGO VAI DENTRO DO BUNDLE DA ESCOLA (03/11/2026). `motor/servidor/catalogo-seed.js`
+      # e `motor/nucleo/notacao.js` fazem `require` dos JSON de `biblioteca/modalidades/` — o
+      # esbuild embute-os, porque o Worker não tem `fs`. Sem esta linha, um termo criado pela
+      # Produção chegava ao repositório e **nunca** ao Worker: o `POST` devolvia o termo, a tela
+      # acrescentava-o à lista sem esperar, e no `F5` seguinte ele desaparecia — o commit não
+      # disparava deploy nenhum. Medido a 03/11/2026 nos commits `28cbc06` e `4cebff7`, que
+      # ficaram sem run por esta razão. A pergunta do filtro é a desta secção — «este arquivo
+      # chega ao que a escola serve?» —, e a resposta aqui é sim: chega, embutido.
+      - 'biblioteca/modalidades/**'
       - 'motor/**'
       - 'workers/**'
       - 'wrangler.*.jsonc'
