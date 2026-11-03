@@ -138,20 +138,6 @@
           "Conteúdo do nível": "Plié",
           "Tempos": "4",
           "Compasso": "2/4"
-        },
-        {
-          "Bloco": "Barra",
-          "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
-          "Conteúdo do nível": "Battement tendu",
-          "Tempos": "8",
-          "Compasso": "2/4"
-        },
-        {
-          "Bloco": "Centro",
-          "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
-          "Conteúdo do nível": "Port de bras",
-          "Tempos": "16",
-          "Compasso": "3/4"
         }
       ],
       "origem": "perguntado",
@@ -185,8 +171,7 @@
     "repertorio": {
       "valor": [
         "Battement tendu",
-        "Plié",
-        "Port de bras"
+        "Plié"
       ],
       "origem": "perguntado",
       "respondente": "professor",
@@ -376,7 +361,7 @@
   },
   "ramificacoes": [],
   "ancora": null,
-  "gerado_em": "2026-11-03T20:42",
+  "gerado_em": "2026-11-03T23:37",
   "contexto": {
     "escola": "breu",
     "professor": "coqui-de-redinha",
