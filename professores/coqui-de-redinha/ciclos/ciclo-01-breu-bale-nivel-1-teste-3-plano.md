@@ -28,7 +28,6 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Volume de trabalho** | 3–6 séries |
 | **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
 | **Metodologia de referência** | RAD |
-| **Quem escolhe a metodologia** | Eu escolho |
 | **Notação dominada** | Benesh |
 
 ## Objetivo geral
@@ -124,7 +123,6 @@ O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha 
 
 - Battement tendu — 8 tempos em 2/4
 - Plié — 4 tempos em 2/4
-- Port de bras — 16 tempos em 3/4
 - vídeo de referência de teste.
 
 ## Repertório
