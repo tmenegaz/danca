@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T20:11:25-0300`
-Commit atual: `0e2ac45` — fix(experimentos): as provas deixam de depender do conteúdo editorial do alfabeto
+Gerado em: `2026-11-02T21:09:35-0300`
+Commit atual: `2a59d98` — docs(registro): a segunda passagem sobre a mesma tela, e o que ela reverteu
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+2a59d98 docs(registro): a segunda passagem sobre a mesma tela, e o que ela reverteu
+dbb5ade fix(notacao): o rótulo em Title Case, a navegação que trava e o «Apagar» fora do passo 6
 0e2ac45 fix(experimentos): as provas deixam de depender do conteúdo editorial do alfabeto
 5dcfcf0 feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
 f64d54e chore(notacao): apagar o verbete «Grand battement» no alfabeto bale-classico
@@ -103,8 +105,6 @@ cc54844 refactor(notacao): o código morto do campo da posição, e a razão ond
 dbc3797 feat(notacao): o cartão das turmas na listagem, e o vocabulário que cresceu
 6c4227d docs(notacao): editar «Plié» (32|4/4) no alfabeto bale-classico — substitui a música 16|4/4
 b7acca6 fix(notacao): gravar uma edição substitui — e a bancada da listagem que faltava
-544acf4 docs(notacao): editar «Plié» (16|4/4) no alfabeto bale-classico
-e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais três
 ```
 
 ## Por professor
@@ -228,118 +228,76 @@ e9f802f fix(notacao): a música duplicada tinha porta? Não tinha — e mais tr�
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A segunda passagem sobre a mesma tela: rótulos, travões e o «Apagar» fora do passo 6
+## 02/11/2026 — O motor dos produtos: o dicionário e o syllabus, e o que eles se recusam a inventar
 
-**O que motivou.** Três revisões da mesma tela, todas no mesmo dia, e duas delas **revogam** uma
-decisão da manhã — o que se regista como correcção datada, não como reescrita. (1) O rótulo da
-tradição tinha passado a caixa alta; ela corrigiu para *Title Case*, «mantendo apenas siglas em caixa
-alta». (2) O «Apagar o verbete» tinha entrado no passo 6 a pedido dela; ela reviu — é a tela onde se
-escreve a decomposição, e o botão que apaga o verbete inteiro ao lado do «Acrescentar trecho» é um
-alvo a um clique do gesto mais frequente. (3) A navegação era livre («a tira não bloqueia — é a
-diferença entre conduzir e impedir»); ela pediu o contrário: o passo seguinte e o «Seguir»
-desactivados até os obrigatórios da etapa estarem preenchidos, o «Voltar» sempre habilitado.
-Acresce o pedido que fecha o ciclo Step 1 ↔ Step 2: escolhido um exercício existente, categoria,
-tradição e «o que acontece» passam a ser **preenchidos e congelados** — são a definição oficial do
-dicionário, e não se reescrevem num verbete.
+**O que motivou.** Com o verbete pronto (o CRUD, a proveniência e as versões datadas), a próxima
+peça planeada é o motor que gera **o que se vende**: o `PLANO-PRODUTOS-DO-MOTOR` responde «um motor,
+três saídas, três manifestos», e ordena seis fases. A fase 2 é «as três saídas, em memória». Esta
+sessão começou por ela, e por **dois** dos três produtos — o dicionário e o syllabus. A aula pronta
+fica para a seguinte, porque depende dos verbetes (hoje zero) e do conteúdo dos níveis (2 de 13).
 
 **O que foi decidido.**
 
-- **O rótulo da tradição vive no dado**, em `tradicoes.json` → `rotulos`
-  (`RAD` · `Francesa` · `Vaganova` · `Cubana` · `Compartilhada`). Não é uma regra de maiúsculas no
-  código: uma regra automática não sabe distinguir uma sigla de um nome próprio, e a lista de
-  tradições pode crescer. O dado dos **termos não é migrado** — `vocabulario.json` grava `francesa`,
-  e `diferencasDeNomenclatura` tem uma coluna por chave.
-- **A `Compartilhada` duplicada era o `sugerirMetodo`, não a lista.** Ele acrescentava uma opção nova
-  sempre que o valor sugerido não era o escolhido, mesmo quando já existia uma com esse valor. Passa
-  a perguntar se a opção existe antes de a criar.
-- **O «Apagar o verbete» vive só na listagem.** O verbo, a confirmação e a guarda de proveniência
-  ficam os mesmos; muda o sítio.
-- **A navegação bloqueia para a frente, e só para a frente.** O `disabled` é do botão (não uma
-  guarda do clique): as chamadas internas que precisam de pôr o passo — o «Editar», o «Limpar», e as
-  provas — continuam a fazê-lo. O obrigatório de cada etapa é lido por `faltasDoPasso`, e o `title`
-  diz o que falta **por nome**.
-- **O «Acrescentar trecho» espera os passos 1 a 5**, no botão e não só na recusa do `submit`.
-- **O passo 1 congela o que vem do dicionário**: categoria e tradição do termo; a frase do que está
-  **gravado** e, quando não há nada, da definição (P-03/P-04). Para a mudar, edita-se o termo.
-- **`ED`/`EI` deixam de se chamar «en dehors»/«en dedans»** e passam a «varredura para fora/dentro».
-  O glifo, a chave e o significado não mudam — muda o rótulo, e é isso que tira a redundância com
-  `↺`/`↻`. Alfabeto na **versão 31**.
-- **As fixtures do `breu` passam a Plié · Battement tendu · Battement fondu**, com música e células
-  pré-escritas. É massa sintética, e os textos da decomposição di-lo pelo tom.
-- **O dicionário e o syllabus entram no esquema dos índices como `prevista`** (`termo`, `verbete`, e
-  `verbete → termo`). A relação de proveniência **não** se declara ali: já é respondida pelo acervo.
+- **Os produtos são do núcleo, e são puros.** `motor/nucleo/produtos/{comum,dicionario,syllabus}.js`
+  não tocam em `fs`/`path`/`http`/`process` e não olham o relógio: recebem o catálogo já lido e
+  devolvem texto. É o que permite o mesmo módulo no Worker e na bancada, e o que torna o determinismo
+  uma propriedade e não uma promessa.
+- **O produto declara o que falta, e nunca o preenche.** Um termo sem definição sai
+  `[Preencher: a definição do que acontece]`; sem `fonte`, sai `[Preencher: de onde vem esta
+  definição — sem isso, ela não entra na edição paga]`; um exercício sem verbete declara a lacuna; um
+  nível sem unidades diz que é a lacuna e não que não ensina nada. É a P-16 aplicada ao produto.
+- **Um verbete que não fecha NÃO publica a contagem.** O `cobre` e as células são conferidos contra
+  os tempos da música; quando não batem, o trecho sai em `[conferir]` com o motivo, e o manifesto
+  conta o número de verbetes que não fecham. Publicar o número torto seria ensinar o erro, e é ele
+  que estraga a aritmética da aula pronta.
+- **A composição catálogo × escola passa a ser uma função só** (`compor`), com a escola a ganhar e o
+  resultado a dizer `origem: "escola"`. O dicionário **exclui as adições por omissão**: o produto que
+  se vende é o do catálogo, e é preciso pedi-las (`incluirAdicoes`) para as ter.
+- **Os três campos da camada pedagógica são `exige`, `ensina` e `expressa`** — lidos de cada relação
+  de `progressao.json`. O plano nomeia as três em prosa e não como campos; a forma é **contrato meu**,
+  e fica declarada como pendência em `ESTADO-ATUAL.md` §8. O motor lê-as quando existem e declara a
+  lacuna quando não existem.
+- **O CLI é `motor/produtos.js`**, e escreve em `publicacao/produtos/<modalidade>/` — pasta **gerada**
+  e no `.gitignore`. O produto não é fonte: a fonte é o catálogo, e o documento reconstrói-se dele. A
+  âncora própria é a fase 3.
 
-**Onde entrou.** `biblioteca/modalidades/bale-classico/tradicoes.json` — o mapa `rotulos` e o
-comentário das duas passagens · `biblioteca/modalidades/bale-classico/notacao.json` — os dois nomes
-e a versão 31 · `motor/servidor/catalogo-seed.js` — `rotuloDaTradicao` a ler o mapa, `ROTULOS`
-exportado · `motor/servidor/bastidores.js` — `METODOS_DO_VERBETE`, o bloco do passo 1 com três
-estados, `sincronizarPasso1ComExercicio`, `faltasDoPasso`/`pintarNavegacao`/`pintarAcrescentar`, o
-«Apagar» removido do passo 6, o CSS do passo fechado · `motor/servidor/teste-cliente.js` — o
-preenchimento a escolher o exercício e a pôr a decomposição · `teste/breu.json` — o vocabulário, as
-curadorias e o bloco `verbete` · `teste/README.md` — o bloco novo documentado ·
-`indices/esquema/campos.json` e `relacoes.json` — as entidades e a relação `prevista` ·
-`experimentos/provar-celula.js` — §24-C e §24-F reescritas, §24-G e §24-H novas ·
-`experimentos/provar-verbete.js` — §H reescrita.
+**Onde entrou.** `motor/nucleo/produtos/comum.js` (a composição, a ordem das categorias, a
+integridade do verbete, o relógio das pistas, a lacuna) · `motor/nucleo/produtos/dicionario.js` ·
+`motor/nucleo/produtos/syllabus.js` · `motor/servidor/produtos.js` (a ponte: rótulos + leitura) ·
+`motor/produtos.js` (o CLI) · `motor/servidor/verbete.js` (`lerProgressao`, e o export) ·
+`motor/nucleo/README.md` (as três linhas novas, o CLI, e a **correcção datada** da fronteira) ·
+`experimentos/provar-produtos.js` (a prova) · `ESTADO-ATUAL.md`.
 
-**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi tocado: `tools/`,
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: `tools/`,
 `tools/templates/`, `prompts/`, `PROTOCOLO.md`, `REGRAS.md`, `METODO.md` e o guia do professor ficam
-como estavam. A prova disso é o `check-identidade` a passar nas 20 verificações **sem** alteração da
-folha (`tools/templates/ciclo.css`): o CSS novo do passo fechado é servido inline pelo
-`bastidores.js`, que não é congelado.
+como estavam. E isso é uma decisão, não um acaso: a fase 3 do plano reutiliza `montar-publicacao.js`
+**sem o alterar**, e o produto ainda não chegou lá.
 
-**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/catalogo-seed.js` ·
-`motor/servidor/teste-cliente.js` · `biblioteca/modalidades/bale-classico/{tradicoes,notacao}.json` ·
-`teste/breu.json` · `teste/README.md` · `indices/esquema/{campos,relacoes}.json` ·
-`experimentos/provar-celula.js` · `experimentos/provar-verbete.js` · `ESTADO-ATUAL.md`.
+**Com o quê.** `motor/nucleo/produtos/*.js` · `motor/servidor/produtos.js` · `motor/produtos.js` ·
+`motor/servidor/verbete.js` · `motor/nucleo/README.md` · `experimentos/provar-produtos.js` ·
+`ESTADO-ATUAL.md`.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-celula` | **226 asserções, TUDO CERTO** (eram 219) — §24-C a medir o congelamento, §24-F a medir a ausência do botão no passo 6 **e** a presença na lista, §24-G (navegação progressiva, o «Voltar» activo a partir do 2) e §24-H (o «Acrescentar» fechado sem sinais) |
-| `provar-verbete` | **TUDO CERTO** — §H reescrita: o rótulo é o do ficheiro, o mapa tem uma entrada por tradição, os quatro selectores concordam, e **nenhum `value` se repete** |
-| `provar-teste` | **a falha de topo desapareceu** (`'' !== 'Jeté'`, causada por `modoExercicio`, removida no passo 1 e chamada pelo preenchimento). A prova pára agora numa asserção de **frequência**, que falha **igual no `0e2ac45` limpo** — medida, não presumida — e não foi tocada |
-| `provar-notacao` · `check-indices` · `check-identidade` | 48 asserções, 0 falhas · 14/14 e 10/10 contraprovas · 20/20 |
-| `provar-producao` · `provar-cartao-da-turma` | 147/152 · 6 falhas — **iguais às do `0e2ac45` limpo** (verificado por stash). Vermelho de antes, não regressão |
-| **as três fixtures** | `validarVerbete` aceita as três com `cobre: 8` em 8\|4/4 |
+| `provar-produtos` | **50 asserções, TUDO CERTO** — §A a fronteira; §B o dicionário (ordem, lacunas, compasso por pista 1,1,2,2, notação composta, verbete que não fecha); §C o syllabus (ordem declarada, camada, órfã, nível vazio, `--nivel`, recusa); §D as adições fora por omissão; §E o determinismo; §F o ritmo ausente; §G o catálogo real (**só contagens**); §H o CLI |
+| `provar-verbete` | **TUDO CERTO** — o `lerProgressao` entrou sem mexer no `lerModalidade` |
+| `check-identidade` · `check-indices` | 20/20 · 14/14 |
+| **o catálogo de hoje, medido** | 93 termos (59 com definição, 34 com origem), **0 verbetes** no alfabeto (versão 31), 13 níveis com **9 associações em 2** |
+| **o que a prova NÃO afirma** | nada sobre o **conteúdo** — quantos termos, quais, se são bons. É a lição de hoje: uma prova que mede o conteúdo reprova quando o conteúdo muda |
 
-**O que ainda não está feito.** (a) A árvore **não foi commitada** — a entrega está no worktree, e o
-`TRANSFERENCIA-IA.md` di-lo. (b) O `provar-teste` continua vermelho numa asserção de frequência, e a
-investigação dessa asserção não faz parte desta entrega. (c) O `TRANSFERENCIA-IA.md` **não foi
-regenerado** — a fotografia ficou actualizada, mas o documento de transferência é da sessão
-anterior. (d) As entidades `termo` e `verbete` do índice estão **declaradas, não emitidas**: o
-gerador continua a não as produzir, e a emissão exige decidir o que fazer com a segunda cópia do
-vocabulário.
+**O que ainda não está feito.** (a) **A aula pronta** — o terceiro produto, e o próximo passo de
+código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
+pela metade**: a composição existe, os **ficheiros não** — `termo-repo.js` escreve no vocabulário do
+catálogo, e o critério 5 do plano («criar um termo numa escola não altera o ficheiro do catálogo»)
+**não passa**. (c) **A fase 3 não começou**: não há `.fipp` de produto, e o campo `licenca` sai
+«pendente» porque o `LICENSE.md` não existe. (d) **A fase 4** espera por C11, e a **5** pela 3.
+(e) **O contrato dos três campos** é meu, não dela (§8 do `ESTADO-ATUAL.md`). (f) O conteúdo é o
+caminho crítico: o produto sai honesto e **magro** — 55 exercícios sem verbete, 34 termos sem
+definição e 11 níveis vazios.
 
 ## O que está pendente
-
-## 01/11/2026 — A seta sobe ao título, os passos descem para a linha inteira, e o vocabulário deixa de ser só do ballet
-
-
-- **O `provar-cartao-da-turma` continua vermelho em seis pontos, e já estava.** Foram medidos contra
-  o motor de `HEAD` com `--controle-negativo` — que, por estar quebrado (faltava `tools/` e `teste/`
-  no `git archive`), passou a correr. O que ele acusa é anterior a esta entrada: a coluna do termo
-  que vivia na página do vocabulário, e três asserções da tira dos passos que nunca souberam da
-  existência da tira do verbete (a 31/10/2026). Não se corrigiram aqui; ficam declarados.
-- **O `Plié` do alfabeto continua todo em `devant`.** Ele não vai a lado nenhum, e a direção é
-  opcional desde a entrada «O trecho sem direção». Migrar o dado é outra decisão, e não foi tomada.
-- **O verbete do `Plié` ficou inconsistente com a sua música, e não foi esta entrada que o fez.**
-  Enquanto esta entrada se escrevia, a Produção gravou `07f6f63` — «editar «Plié» (8|4/4) no
-  alfabeto» —, que levou o `cobre` de 8 para 12 e acrescentou dois trechos de braço no balde SEM
-  direção (a novidade da entrada anterior, a ser usada). O resultado está medido: o verbete diz
-  `cobre: 12` e a música da chave diz 8 tempos, e a composição responde
-  `verbete-inconsistente — os segmentos somam 12 tempos, que não fecham em compasso 4/4`. As três
-  asserções do `provar-notacao` que falham são exactamente essa. **O dado não foi tocado**: quem
-  decidiu que o `Plié` tem braços é quem ensina, e reescrever a escolha dela seria o contrário do
-  que a proveniência pede. O que fica declarado é o buraco do caminho: o servidor recusa um
-  verbete cujo `cobre` não fecha com os trechos, mas **aceita** um `cobre` maior do que a música
-  que o próprio verbete declara — e o sistema só o diz mais tarde, na hora de compor o documento.
-  Um verbete é `cobre < música` com lacuna declarada; `cobre > música` é contradição, e devia ser
-  recusado à entrada.
-- **A orientação mudou de nome, mas não de gramática.** Continua a haver cinco orientações do ballet
-  clássico — o que mudou foi como se chamam na tela e no documento. Uma categoria que não seja
-  ballet clássico precisará do seu próprio alfabeto, e é isso que a L14 e o `modalidade` já
-  preveem.
 
 ## 01/11/2026 — O molde dos schemas ficou atrás, e a geração de um ciclo morreu em «campo ausente»
 
@@ -391,6 +349,15 @@ regenerado** — a fotografia ficou actualizada, mas o documento de transferênc
 anterior. (d) As entidades `termo` e `verbete` do índice estão **declaradas, não emitidas**: o
 gerador continua a não as produzir, e a emissão exige decidir o que fazer com a segunda cópia do
 vocabulário.
+
+---
+
+## 02/11/2026 — O motor dos produtos: o dicionário e o syllabus, e o que eles se recusam a inventar
+
+(a) **A aula pronta** — o terceiro produto, e o próximo passo de
+código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
+pela metade**: a composição existe, os **ficheiros não** — `termo-repo.js` escreve no vocabulário do
+catálogo, e o critério 5 do plano («criar um termo numa escola não altera o ficheiro do catálogo»)
 
 ## Pendências anteriores (índice)
 
@@ -715,6 +682,7 @@ vocabulário.
 - **01/11/2026** — A escola nasce com a âncora, e não só com o scaffold → `REGISTRO.md` L29519
 - **01/11/2026** — A âncora antes dos índices, e não depois → `REGISTRO.md` L29569
 - **01/11/2026** — A página do Vocabulário saiu; o exercício vive no «+» do… → `REGISTRO.md` L29608
+- **01/11/2026** — A seta sobe ao título, os passos descem para a linha… → `REGISTRO.md` L29669
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

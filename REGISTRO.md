@@ -32176,3 +32176,74 @@ regenerado** — a fotografia ficou actualizada, mas o documento de transferênc
 anterior. (d) As entidades `termo` e `verbete` do índice estão **declaradas, não emitidas**: o
 gerador continua a não as produzir, e a emissão exige decidir o que fazer com a segunda cópia do
 vocabulário.
+
+---
+
+## 02/11/2026 — O motor dos produtos: o dicionário e o syllabus, e o que eles se recusam a inventar
+
+**O que motivou.** Com o verbete pronto (o CRUD, a proveniência e as versões datadas), a próxima
+peça planeada é o motor que gera **o que se vende**: o `PLANO-PRODUTOS-DO-MOTOR` responde «um motor,
+três saídas, três manifestos», e ordena seis fases. A fase 2 é «as três saídas, em memória». Esta
+sessão começou por ela, e por **dois** dos três produtos — o dicionário e o syllabus. A aula pronta
+fica para a seguinte, porque depende dos verbetes (hoje zero) e do conteúdo dos níveis (2 de 13).
+
+**O que foi decidido.**
+
+- **Os produtos são do núcleo, e são puros.** `motor/nucleo/produtos/{comum,dicionario,syllabus}.js`
+  não tocam em `fs`/`path`/`http`/`process` e não olham o relógio: recebem o catálogo já lido e
+  devolvem texto. É o que permite o mesmo módulo no Worker e na bancada, e o que torna o determinismo
+  uma propriedade e não uma promessa.
+- **O produto declara o que falta, e nunca o preenche.** Um termo sem definição sai
+  `[Preencher: a definição do que acontece]`; sem `fonte`, sai `[Preencher: de onde vem esta
+  definição — sem isso, ela não entra na edição paga]`; um exercício sem verbete declara a lacuna; um
+  nível sem unidades diz que é a lacuna e não que não ensina nada. É a P-16 aplicada ao produto.
+- **Um verbete que não fecha NÃO publica a contagem.** O `cobre` e as células são conferidos contra
+  os tempos da música; quando não batem, o trecho sai em `[conferir]` com o motivo, e o manifesto
+  conta o número de verbetes que não fecham. Publicar o número torto seria ensinar o erro, e é ele
+  que estraga a aritmética da aula pronta.
+- **A composição catálogo × escola passa a ser uma função só** (`compor`), com a escola a ganhar e o
+  resultado a dizer `origem: "escola"`. O dicionário **exclui as adições por omissão**: o produto que
+  se vende é o do catálogo, e é preciso pedi-las (`incluirAdicoes`) para as ter.
+- **Os três campos da camada pedagógica são `exige`, `ensina` e `expressa`** — lidos de cada relação
+  de `progressao.json`. O plano nomeia as três em prosa e não como campos; a forma é **contrato meu**,
+  e fica declarada como pendência em `ESTADO-ATUAL.md` §8. O motor lê-as quando existem e declara a
+  lacuna quando não existem.
+- **O CLI é `motor/produtos.js`**, e escreve em `publicacao/produtos/<modalidade>/` — pasta **gerada**
+  e no `.gitignore`. O produto não é fonte: a fonte é o catálogo, e o documento reconstrói-se dele. A
+  âncora própria é a fase 3.
+
+**Onde entrou.** `motor/nucleo/produtos/comum.js` (a composição, a ordem das categorias, a
+integridade do verbete, o relógio das pistas, a lacuna) · `motor/nucleo/produtos/dicionario.js` ·
+`motor/nucleo/produtos/syllabus.js` · `motor/servidor/produtos.js` (a ponte: rótulos + leitura) ·
+`motor/produtos.js` (o CLI) · `motor/servidor/verbete.js` (`lerProgressao`, e o export) ·
+`motor/nucleo/README.md` (as três linhas novas, o CLI, e a **correcção datada** da fronteira) ·
+`experimentos/provar-produtos.js` (a prova) · `ESTADO-ATUAL.md`.
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: `tools/`,
+`tools/templates/`, `prompts/`, `PROTOCOLO.md`, `REGRAS.md`, `METODO.md` e o guia do professor ficam
+como estavam. E isso é uma decisão, não um acaso: a fase 3 do plano reutiliza `montar-publicacao.js`
+**sem o alterar**, e o produto ainda não chegou lá.
+
+**Com o quê.** `motor/nucleo/produtos/*.js` · `motor/servidor/produtos.js` · `motor/produtos.js` ·
+`motor/servidor/verbete.js` · `motor/nucleo/README.md` · `experimentos/provar-produtos.js` ·
+`ESTADO-ATUAL.md`.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-produtos` | **50 asserções, TUDO CERTO** — §A a fronteira; §B o dicionário (ordem, lacunas, compasso por pista 1,1,2,2, notação composta, verbete que não fecha); §C o syllabus (ordem declarada, camada, órfã, nível vazio, `--nivel`, recusa); §D as adições fora por omissão; §E o determinismo; §F o ritmo ausente; §G o catálogo real (**só contagens**); §H o CLI |
+| `provar-verbete` | **TUDO CERTO** — o `lerProgressao` entrou sem mexer no `lerModalidade` |
+| `check-identidade` · `check-indices` | 20/20 · 14/14 |
+| **o catálogo de hoje, medido** | 93 termos (59 com definição, 34 com origem), **0 verbetes** no alfabeto (versão 31), 13 níveis com **9 associações em 2** |
+| **o que a prova NÃO afirma** | nada sobre o **conteúdo** — quantos termos, quais, se são bons. É a lição de hoje: uma prova que mede o conteúdo reprova quando o conteúdo muda |
+
+**O que ainda não está feito.** (a) **A aula pronta** — o terceiro produto, e o próximo passo de
+código: a Regra 9 como norma lida, o teto da faixa, os tempos por unidade. (b) **A fase 1 continua
+pela metade**: a composição existe, os **ficheiros não** — `termo-repo.js` escreve no vocabulário do
+catálogo, e o critério 5 do plano («criar um termo numa escola não altera o ficheiro do catálogo»)
+**não passa**. (c) **A fase 3 não começou**: não há `.fipp` de produto, e o campo `licenca` sai
+«pendente» porque o `LICENSE.md` não existe. (d) **A fase 4** espera por C11, e a **5** pela 3.
+(e) **O contrato dos três campos** é meu, não dela (§8 do `ESTADO-ATUAL.md`). (f) O conteúdo é o
+caminho crítico: o produto sai honesto e **magro** — 55 exercícios sem verbete, 34 termos sem
+definição e 11 níveis vazios.

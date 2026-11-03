@@ -4,9 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base local `0e2ac45`, com a árvore de trabalho **por
-> commitar** — esta entrega não foi commitada). Nesta entrega, **a segunda correcção do dia sobre a
-> mesma tela**, e ela reverteu três decisões da manhã: o **rótulo da tradição** passou de CAIXA ALTA
+> **Última fotografia:** 02/11/2026 (base `2a59d98`, com a árvore de trabalho **por commitar**).
+> Nesta entrega, **o motor dos produtos começou, e são dois dos três**: o **dicionário** e o
+> **syllabus** geram-se do catálogo por `node motor/produtos.js`, em módulos puros
+> (`motor/nucleo/produtos/`) que não tocam no runtime. O que eles NÃO fazem é inventar: um termo
+> sem definição ou sem origem sai em `[Preencher]`, um exercício sem verbete declara a lacuna, um
+> verbete cujo `cobre` não fecha sai em `[conferir]` em vez da contagem errada, e um nível sem
+> unidades diz que é a lacuna. Pela primeira vez o **fase 1** tem código — a **composição**
+> catálogo × escola (`compor`), com a escola a ganhar e a marcar `origem` —, mas **os ficheiros
+> continuam um só**: a separação que o plano exige não foi feita, e `termo-repo.js` continua a
+> escrever no vocabulário do catálogo. Medido no catálogo de hoje: **93 termos** (59 com
+> definição, 34 com origem declarada), **0 verbetes** no alfabeto, **9 associações** em **2 dos 13
+> níveis**. A **aula pronta** não foi começada.
+>
+> **Entrega anterior** (base `0e2ac45` → `2a59d98`). **A segunda correcção do dia sobre a mesma
+> tela**, e ela reverteu três decisões da manhã: o **rótulo da tradição** passou de CAIXA ALTA
 > a **Title Case** (`RAD` fica como sigla) e a `Compartilhada` duplicada saiu da lista do método; o
 > **«Apagar o verbete» saiu do passo 6** e vive só na listagem; e a **navegação bloqueia para a
 > frente** — o passo seguinte e o «Seguir» ficam desactivados até os obrigatórios da etapa estarem
@@ -454,6 +466,24 @@ Verificado nesta fotografia, com os comandos da §9.
   respondida pelo acervo — `vinculo`, repertório da turma e `registro` —, e declará-la duas vezes
   daria duas respostas para a mesma pergunta. **CONFIRMADO** por `check-indices` (14/14, e as 10
   contraprovas a reprovarem como deviam).
+- **O motor dos produtos existe para dois dos três, e não inventa** (02/11/2026). O **dicionário**
+  (`motor/nucleo/produtos/dicionario.js`) e o **syllabus** (`.../syllabus.js`) são puros,
+  determinísticos e geram markdown a partir do catálogo já lido; o CLI `node motor/produtos.js`
+  escreve-os em `publicacao/produtos/<modalidade>/` (pasta gerada, no `.gitignore`). O que falta
+  sai **nomeado**: `[Preencher]` para o termo sem definição ou sem origem, lacuna para o exercício
+  sem verbete, `[conferir]` **com o motivo** para o verbete cujo `cobre` não fecha os tempos — e a
+  contagem errada **não é publicada**. O nível que ainda não declarou unidades diz que é a lacuna.
+  A **aula pronta não foi começada**. **CONFIRMADO** por `provar-produtos` (50 asserções), que
+  mede o mecanismo sobre uma fixture declarada e, no catálogo real, só as **contagens** — a lição
+  de 02/11/2026 é que uma prova que mede o conteúdo reprova quando o conteúdo muda.
+- **A composição catálogo × escola tem código, a separação dos ficheiros NÃO** (02/11/2026). O
+  `plano` (fase 1) pede dois ficheiros e um leitor que os componha; o que existe é a **função
+  única** (`compor`, em `produtos/comum.js`, com a escola a ganhar e a marcar `origem`) e o
+  dicionário a **excluir as adições por omissão** — o produto que se vende é o do catálogo. O que
+  **não** foi feito: `termo-repo.js` continua a escrever no `vocabulario.json` do catálogo, e
+  `lerModalidade` continua a lê-lo inteiro. Logo, o **critério 5 do plano** («criar um termo numa
+  escola não altera o ficheiro do catálogo») **não está cumprido** — é lacuna declarada, não uma
+  verificação que se possa alegar.
 - **O exercício novo já está na lista ao avançar, e nada disto toca no KV.** O `POST
   /api/bastidores/termo` grava no **repositório** (`biblioteca/modalidades/bale-classico/
   vocabulario.json`, por `termo-repo.js`) e devolve o termo; a lista que `GET
@@ -680,6 +710,9 @@ Verificado nesta fotografia, com os comandos da §9.
 | O exercício novo como passo 1 do verbete — seis passos, sem «+» nem botões próprios | **CONFIRMADO** 02/11/2026 — o passo 1 tem os quatro controlos e mais nada; «Seguir →» grava o termo no vocabulário do repositório e avança para o passo 2 com ele escolhido; avançar sem nome não grava nada; «Limpar» e «Editar» levam ao passo 2. **Zero KV.** | `motor/servidor/bastidores.js`, `motor/servidor/termo-repo.js` |
 | A gravação do verbete confere a música | **CONFIRMADO** 02/11/2026 — as células têm de somar os tempos da música declarada; a recusa nomeia os passos 2 e 3, e o servidor recusa também (`validarVerbete` recebe a música). | `motor/servidor/verbete.js`, `motor/servidor/bastidores.js` |
 | O aspecto físico — força e flexibilidade — no PLANO, lido das anamneses da turma | **CONFIRMADO** 02/11/2026 — bloco 10 do plano (`aspecto-fisico`, descritor `lidoDasAnamneses`, quinze campos em dois grupos); a porta consolida por aspecto e marca o ponto de atenção pela ordem das opções da anamnese. Sem leitura, a secção declara a lacuna. | `porta/plano/conteudo/plano.json`, `porta/index.html`, `motor/nucleo/derivar-plano-ciclo.js` |
+| **O dicionário como produto** — o vocabulário do catálogo com a decomposição | **CONFIRMADO** 02/11/2026 na bancada (`provar-produtos`, 50 asserções): agrupado por categoria na ordem de aula, com definição, origem, tradição e alternativos; a decomposição em tabela com o **compasso por pista**; o verbete que não fecha em `[conferir]` **com o motivo**, sem publicar a contagem; as adições de escola **excluídas por omissão**. Gerado por `node motor/produtos.js dicionario`. | `motor/nucleo/produtos/dicionario.js`, `motor/servidor/produtos.js`, `motor/produtos.js` |
+| **O syllabus como produto** — a sequência por nível, com a camada pedagógica | **CONFIRMADO** 02/11/2026 na bancada: um documento por nível na **ordem declarada** em `progressao.json`, mais um índice com as contagens; `exige` · `ensina` · `expressa` quando existem, `[Preencher]` quando não; o nível sem unidades diz que é a lacuna; `--nivel` gera um só, e um nível inexistente é **recusado**. Gerado por `node motor/produtos.js syllabus`. | `motor/nucleo/produtos/syllabus.js`, `motor/servidor/produtos.js`, `motor/produtos.js` |
+| **A composição catálogo × escola** — uma função só | **CONFIRMADO** 02/11/2026: `compor` dá precedência à escola e marca `origem`, mantendo a posição do catálogo na ordem. É a peça de código da fase 1 — **mas os ficheiros continuam um só** (ver §2 e §7). | `motor/nucleo/produtos/comum.js` |
 
 ### Parcial
 
@@ -699,6 +732,9 @@ Verificado nesta fotografia, com os comandos da §9.
 
 ### Planejado, não implementado
 
+- **O motor dos produtos — a aula pronta (fase 2 do `PLANO-PRODUTOS-DO-MOTOR`).** O dicionário e o
+  syllabus existem; a aula pronta — a sessão montada pelo teto da **Regra 9** e pelos tempos de
+  cada unidade — **não foi começada**. Depende dos verbetes (hoje zero) e do conteúdo dos níveis.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo. **CONFIRMADO** como não
   implementado.
 - **`IDEIA-PAINEL-ESCOLA.md`** — o Estúdio de Dança como ambiente da direção. **CONFIRMADO**
@@ -745,6 +781,9 @@ Verificado nesta fotografia, com os comandos da §9.
 | `motor/servidor/rotas.js` | as **33** rotas do Worker |
 | `motor/servidor/verbete.js` | o alfabeto da notação no **repositório** (CRUD, com proveniência) |
 | `motor/servidor/termo-repo.js` | o vocabulário técnico no **repositório** — a única lista de termos |
+| `motor/nucleo/produtos/` | os **produtos** (dicionário, syllabus): puros, determinísticos, sem `fs`/`path`/`http` |
+| `motor/servidor/produtos.js` | a ponte do produto: os rótulos do catálogo e a leitura do repositório |
+| `motor/produtos.js` | o **CLI** dos produtos — escreve em `publicacao/produtos/<modalidade>/` (gerado) |
 | `motor/nucleo/schemas.js` | **o único leitor** de `modelo/ciclos/` (o shell chega lá pelo `tools/gerar-schemas.js`) |
 | `motor/nucleo/derivar-ciclo.js` | a fonte da aula: as oito secções, e a origem de cada uma |
 | `motor/nucleo/notacao.js` | o compositor: verbete + música → a grade de contagens |
@@ -1214,6 +1253,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**O motor dos produtos está a meio, e o que falta é de conteúdo dela (02/11/2026).** O
+`PLANO-PRODUTOS-DO-MOTOR` tem seis fases; a **2** está feita para **dois dos três** produtos
+(dicionário e syllabus), com prova e CLI. O ponto exacto de continuidade:
+
+- **A aula pronta** (o terceiro produto) não foi começada: ela é a **Regra 9** (norma congelada)
+   aplicada ao nível, com o teto da faixa e os tempos de cada unidade. Depende dos verbetes e do
+   conteúdo — e é a próxima peça de código.
+- **A fase 1 (separação catálogo × escola) só tem metade.** A composição existe
+   (`motor/nucleo/produtos/comum.js`), os **ficheiros não**: `termo-repo.js` continua a escrever no
+   `vocabulario.json` do catálogo. Enquanto não houver
+   `biblioteca/escolas/<escola>/vocabulario.json`, o critério 5 do plano não passa.
+- **A fase 3 (manifestos e pacote)** não começou. O produto tem manifesto em memória (`id`,
+   `versao`, `licenca`, `fonte`) e **não tem âncora** — a `.fipp` própria é da fase 3, e sem o
+   `LICENSE.md` o campo `licenca` sai «pendente».
+- **A fase 4 (distribuição por plano)** continua bloqueada em **C11**, e a **5** (índice dos
+   produtos) depende da 3.
+- **A camada pedagógica tem contrato e não tem conteúdo.** O motor lê `exige` · `ensina` ·
+   `expressa` de cada relação de `progressao.json`; os três nomes são **contrato meu** e não
+   decisão dela (ver §8). Hoje, 0 das 9 unidades os têm.
+
 **O segundo trabalho desta secção morreu, e é notícia boa:** o «plano da Batata vai ser refeito
 porque o envelope perdeu Arabesque e Jeté» e o «expurgar a Batata» aconteceram — a Batata foi
 expurgada e recriada, o `pe-junto` recebeu a turma `Balé Nível 1 — Teste 2`, e o ciclo existe e está
@@ -1285,6 +1344,20 @@ com motivo declarado), `4f4795a` (os dois modos, a direção derivada e o editor
 repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só se confirma no deploy.
 
 ## 8. Pendências e dúvidas
+
+### O contrato da camada pedagógica é meu, e ela não o declarou (02/11/2026)
+
+O motor do syllabus lê **três chaves** de cada relação de `progressao.json`: `exige`, `ensina` e
+`expressa`. O `PLANO-PRODUTOS-DO-MOTOR` §7-B nomeia as três **em português corrente** («o que ela
+exige do corpo, o que ela ensina, o que ela expressa»), e não como campos — a forma do dado é
+**decisão pendente**. O que existe hoje é a minha: três strings (ou listas de strings) ao lado do
+par `{turma, termo}` que já lá está. **PENDENTE** — e é dela: se os três são **colunas da relação**
+(uma por nível, que é o que o motor lê), ou **do termo** (uma por exercício, e aí o nível não pode
+dizer «aqui isto ensina outra coisa»). A primeira é a que o plano recomenda («acréscimo de duas
+colunas ao mesmo ficheiro»); a segunda é mais simples e perde a variação por nível.
+
+**E uma nota de leitura, que o plano já fez:** os três **não são eixos de medição** (C20) — são
+prefixo de rótulo e declaração de programa. Quem mede o aluno mede nas dimensões do PO.
 
 ### As decisões sobre a aula — por nome, não por número
 
@@ -1531,7 +1604,16 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a segunda passagem: rótulos, travões e o apagar fora do passo 6)
+### Executado nesta fotografia (02/11/2026 — o motor dos produtos: dicionário e syllabus)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-produtos.js` | **TUDO CERTO — 50 asserções**, numa prova **nova**. **§A** a fronteira (os três módulos de produto, nenhum com `fs`/`path`/`http`/`process`, nenhum a olhar o relógio). **§B** o dicionário sobre uma fixture declarada: a ordem das categorias, a definição e a origem em falta em `[Preencher]`, a tabela com o **compasso por pista** (1, 1, 2, 2), a notação composta, o verbete que **não fecha** em `[conferir]` com o motivo e **sem publicar** a contagem, o exercício sem verbete, e o `_comentario` que não vira exercício. **§C** o syllabus: a **ordem declarada**, a camada pedagógica quando existe, a relação órfã, o nível sem unidades, o `--nivel` e a **recusa** de um nível inexistente. **§D** as adições excluídas por omissão e incluídas quando pedidas, com o selo `origem`. **§E** o determinismo (mesma entrada, mesmo byte). **§F** o ritmo fora dos manifestos e dos documentos (C19). **§G** o catálogo de verdade — só **contagens**, e nenhuma afirmação sobre o conteúdo. **§H** o CLI: escreve no destino, o `--json` dá um manifesto legível, o `--out -` e o `--nivel` funcionam |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — sem regressão: `lerProgressao` foi acrescentada a `verbete.js` e o `lerModalidade` não mudou |
+| `check-identidade` · `check-indices` | **20/20** · **14/14** — o produto não emite marcação, e o índice do acervo não muda |
+| **o que NÃO foi medido** | a **aula pronta** (não existe), a **fase 1** (a separação dos ficheiros não foi feita — o critério 5 do plano **não passa**), a **fase 3** (sem âncora e sem `LICENSE.md`), a **fase 4** (depende de C11) · `provar-producao` e `provar-cartao-da-turma` continuam com os vermelhos de antes (iguais aos do `0e2ac45` limpo) · `provar-teste` continua a parar na asserção de frequência, também de antes |
+
+### Executado na fotografia anterior (02/11/2026 — a segunda passagem: rótulos, travões e o apagar fora do passo 6)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2200,6 +2282,14 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **02/11/2026** — **O motor dos produtos começou: dicionário e syllabus.** Dois módulos puros em
+  `motor/nucleo/produtos/`, a ponte em `motor/servidor/produtos.js`, o CLI `motor/produtos.js`, e a
+  prova `provar-produtos` (50 asserções). O produto **declara o que falta** — `[Preencher]` para a
+  definição e a origem, lacuna para o exercício sem verbete, `[conferir]` para o verbete que não
+  fecha (sem publicar a contagem), lacuna para o nível sem unidades. A **composição** catálogo ×
+  escola passou a existir como função (`compor`) e as adições ficam **fora** do produto por omissão
+  — mas os ficheiros continuam um só, e `termo-repo.js` não mudou. A **aula pronta** não foi
+  começada.
 - **02/11/2026** — **A segunda passagem sobre a mesma tela, e ela reverteu três decisões da manhã.**
   O rótulo da tradição passou de CAIXA ALTA a **Title Case** (`RAD` fica como sigla), com o mapa no
   próprio `tradicoes.json`; o **«Apagar o verbete» saiu do passo 6** e vive só na listagem; e a
