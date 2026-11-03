@@ -7054,19 +7054,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * decomposição —, e não uma lista com um desenho novo: a tabela é o que se lê em coluna, e é
      * a forma que o passo 6 já tem. Duas colunas porque no telefone quatro não cabem: o compasso
      * e a contagem numa, o que acontece na outra. */
+    /* A NOTAÇÃO ABRE SEMPRE QUE HÁ TRECHO GRAVADO (03/11/2026).
+     *
+     * A frase era «A decomposição deste exercício não pôde ser lida — confira os sinais no
+     * formulário», e ela apareceu com DOIS trechos na tabela. O defeito estava antes de aqui (ver
+     * `lerLinhas`, em `verbete.js`: o alfabeto do bundle e a escola que não ia na composição), mas
+     * a mensagem piorava-o — mandava conferir sinais que estavam certos e escondia o trabalho.
+     *
+     * Agora a listagem distingue três casos, e só o terceiro é «não há o que ler»:
+     *  · há linhas e não há motivo — a decomposição compõe-se, mostra-se a tabela;
+     *  · há linhas e há motivo — os trechos estão gravados mas o motor não fecha a conta: mostra-se
+     *    a tabela E a razão, porque o dado existe e é legível;
+     *  · não há linhas — aí sim não há decomposição, e a frase diz isso sem falar em erro. */
     '    function painelDaNotacao(m){' +
     '      var ls = m.linhas || [];' +
+    '      var motivo = String(m.motivo || "");' +
     '      if (!ls.length) {' +
-    '        return "<p class=\\"trio-nota\\">A decomposição deste exercício não pôde ser lida — ' +
-    'confira os sinais no formulário.</p>";' +
+    '        return "<p class=\\"trio-nota\\">" + (motivo ||' +
+    '          "Ainda não há trechos gravados nesta música.") + "</p>";' +
     '      }' +
+    '      var aviso = motivo ? "<p class=\\"trio-nota\\">" + motivo + "</p>" : "";' +
     '      return "<table><thead><tr><th>compasso</th><th>o que acontece</th></tr></thead><tbody>" +' +
     '        ls.map(function(l){' +
     '          return "<tr><td>" + l.compasso + " · " + l.contagem + "</td>" +' +
     '            "<td><code>[" + (l.categoria || "") + ": " + (l.sinais || "") + "]</code>" +' +
     '            (l.descricao ? "<br><span class=\\"nota\\">" + l.descricao + "</span>" : "") +' +
     '            "</td></tr>";' +
-    '        }).join("") + "</tbody></table>";' +
+    '        }).join("") + "</tbody></table>" + aviso;' +
     '    }' +
     '    var linhas = [];' +
     '    (d.exercicios || []).forEach(function(x){' +

@@ -1334,13 +1334,19 @@ async function oVersionamento() {
   /* O ALFABETO DO MÓDULO PODE ESTAR VAZIO — ela apagou os 11 verbetes em 02/11/2026. A prova do
    * versionamento não pode depender de haver conteúdo editorial: planta o exercício de que
    * precisa e tira-o no fim. A §J faz o mesmo, e é a que o exercita fim a fim. */
+  // A PLANTA É POR MÚSICA, NÃO POR EXERCÍCIO (03/11/2026). Desde que o alfabeto tem dono, o
+  // `Battement tendu` existe no catálogo com a música da escola (`8|2/4@breu`) e o exercício
+  // deixou de faltar — mas a música do catálogo (`8|4/4`), que é a que esta secção compõe,
+  // continuou a faltar. Plantar «o exercício» dava por coberto o que não estava.
   const plantaDeLeitura = () => {
     alfabetoReal.verbetes = alfabetoReal.verbetes || {};
-    alfabetoReal.verbetes['Battement tendu'] = alfabetoReal.verbetes['Battement tendu'] || {
-      '8|4/4': { cobre: 4, posicao: null, celulas: celulasDeQuatro('planta') },
-    };
+    const verbete = alfabetoReal.verbetes['Battement tendu'] || {};
+    verbete['8|4/4'] = verbete['8|4/4'] || { cobre: 4, posicao: null, celulas: celulasDeQuatro('planta') };
+    alfabetoReal.verbetes['Battement tendu'] = verbete;
   };
-  const tinhaBattement = Boolean(alfabetoReal.verbetes && alfabetoReal.verbetes['Battement tendu']);
+  const tinhaBattement = Boolean(
+    alfabetoReal.verbetes && alfabetoReal.verbetes['Battement tendu']
+      && alfabetoReal.verbetes['Battement tendu']['8|4/4']);
   plantaDeLeitura();
 
   // ---- 1. SEM HISTÓRICO, LÊ-SE COMO SEMPRE -----------------------------------

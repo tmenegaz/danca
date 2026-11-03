@@ -478,8 +478,13 @@ function listarVerbetes(dados, escola) {
       trechos: contarTrechos(verbetes[nome], escola),
       direcoes: direcoesDoVerbete(verbetes[nome], escola),
       compassos: compassosDoVerbete(verbetes[nome], escola),
-      porMusica: detalhePorMusica(nome, verbetes[nome], escola),
-    }));
+      porMusica: detalhePorMusica(nome, verbetes[nome], escola, dados),
+    }))
+    /* UM EXERCÍCIO SEM MÚSICA VISÍVEL NÃO ENTRA NA LISTA (03/11/2026). Desde que o alfabeto guarda
+     * o verbete de cada escola, há exercícios que existem só do outro lado: o verbete da `breu` não
+     * está na vista da `maria`. Sem este filtro a `maria` veria «Battement tendu» sem música
+     * nenhuma, e a lista que se chama «exercícios com verbete» mostraria um sem verbete. */
+    .filter((x) => x.porMusica.length > 0);
 }
 
 /**
@@ -496,7 +501,7 @@ function listarVerbetes(dados, escola) {
  * tempos, o compasso, os trechos, as direções e as categorias. Tudo derivado: não há um segundo
  * dado a manter ao lado do alfabeto.
  */
-function detalhePorMusica(nome, musicas, escola) {
+function detalhePorMusica(nome, musicas, escola, alfabeto) {
   const vistos = registosDaEscola(musicas, escola);
   return musicasDoVerbete(musicas, escola).map((chave) => {
     const m = vistos[chave] || {};
@@ -524,6 +529,8 @@ function detalhePorMusica(nome, musicas, escola) {
       }
     }
     const [tempos, compasso] = String(chave).split('|');
+    // A LEITURA É UMA SÓ, e é dela que saem as linhas e o motivo (03/11/2026).
+    const leitura = lerLinhas(nome, chave, m, alfabeto, escola);
     return {
       chave: chave,
       // DE QUEM É ESTA VERSÃO: vazio = catálogo, um slug = a escola. A tela mostra-o para ninguém
@@ -539,13 +546,18 @@ function detalhePorMusica(nome, musicas, escola) {
       direcoes: direcoes,
       orientacoes: orientacoes,
       categorias: categorias,
-      linhas: linhasPorTrecho(nome, chave),
+      // A LEITURA USA O ALFABETO QUE VEIO DO REPOSITÓRIO, e a vista da escola (03/11/2026).
+      linhas: leitura.linhas,
+      // E QUANDO A COMPOSIÇÃO NÃO FECHA, DIZ-SE PORQUÊ E MOSTRAM-SE OS TRECHOS ASSIM MESMO —
+      // «não pôde ser lida» sem motivo mandava a pessoa procurar um defeito que pode ser só uma
+      // música mal declarada, e escondia um trabalho que está gravado e é legível.
+      motivo: leitura.motivo,
     };
   });
 }
 
 /**
- * A DECOMPOSIÇÃO EM LEITURA — as mesmas linhas da tabela do passo 6 (02/11/2026).
+ * A DECOMPOSIÇÃO EM LEITURA — as mesmas linhas da tabela do passo 6.
  *
  * A listagem mostra o cartão com três caixinhas, e a da notação abre o exercício trecho a trecho.
  * Essas linhas NÃO se calculam aqui: quem as calcula é o motor (`compor`), e é a mesma função que
@@ -555,13 +567,30 @@ function detalhePorMusica(nome, musicas, escola) {
  * O que o motor precisa é uma LINHA DE PLANO, e a listagem não tem plano nenhum: ela tem o nome do
  * exercício e a música dele. A linha é sintética e só diz isso — nenhum objetivo inventado, e é
  * por isso que o `Objetivo específico` não vai.
+ *
+ * TRÊS DEFEITOS CORRIGIDOS A 03/11/2026, e o terceiro é o que ela viu na tela:
+ *
+ *  1. **O alfabeto era o do BUNDLE, e não o que veio do repositório.** A função fazia
+ *     `require('../nucleo/notacao.js').ALFABETOS[...]` — o JSON embutido no Worker no build. Quem
+ *     acabou de gravar um verbete via na listagem a versão ANTERIOR (ou nada, se o verbete é novo e
+ *     o bundle ainda não o tem). Agora recebe o alfabeto que `lerModalidade` acabou de ler.
+ *  2. **A escola não ia na composição.** Desde 03/11 o verbete de uma escola vive em
+ *     `8|2/4@breu`; compor sem a escola procurava a do catálogo, não a encontrava e devolvia
+ *     `musica-nao-coberta`. Era o «A decomposição deste exercício não pôde ser lida» com dois
+ *     trechos gravados na tabela.
+ *  3. **Uma leitura que falhasse apagava o dado à vista.** Agora, quando o motor não compõe, a
+ *     listagem cai para os TRECHOS GRAVADOS — que existem e são legíveis — e leva o motivo junto.
+ *     Um trabalho gravado não desaparece da tela por causa de uma conta que não fecha.
+ *
+ * O QUE NÃO SE FAZ NO RECURSO: inventar compasso. Quando a leitura vem dos trechos gravados, o
+ * compasso é o DERIVADO da acumulação (a mesma régua do `segmentosDe`, por pista), e não o número
+ * que a pessoa escreveu na contagem — mas a CONTAGEM que ela escreveu vai na linha, ao lado. É a
+ * diferença entre «não sei onde cai» e «sei o que está escrito».
  */
-function linhasPorTrecho(nome, chave) {
-  if (!nome) return [];
-  const { compor } = require('../nucleo/notacao.js');
-  const { ALFABETOS, MODALIDADE_PADRAO } = require('../nucleo/notacao.js');
-  const alfabeto = ALFABETOS[MODALIDADE_PADRAO];
-  if (!alfabeto) return [];
+function lerLinhas(nome, chave, registo, alfabeto, escola) {
+  const vazio = { linhas: [], motivo: '' };
+  if (!nome) return vazio;
+  const { compor, segmentosDe } = require('../nucleo/notacao.js');
   const [tempos, compasso] = String(chave).split('|');
   let composto = null;
   try {
@@ -570,11 +599,11 @@ function linhasPorTrecho(nome, chave) {
       'Conteúdo do nível': nome,
       'Tempos': tempos,
       'Compasso': compasso,
-    }, alfabeto);
+    }, alfabeto, '', escola);
   } catch (e) {
-    return [];
+    composto = null;
   }
-  return ((composto && composto.segmentos) || []).map((seg) => ({
+  const doMotor = ((composto && composto.segmentos) || []).map((seg) => ({
     compasso: seg.compasso,
     contagem: seg.contagem,
     categoria: seg.categoria,
@@ -583,6 +612,32 @@ function linhasPorTrecho(nome, chave) {
     // que já está escrito nos sinais ao lado; repeti-lo ocuparia o dobro sem dizer nada de novo.
     descricao: String(seg.descricao || '').split('\n')[0],
   }));
+  if (doMotor.length) {
+    /* A COMPOSIÇÃO FECHOU PARCIALMENTE, E ISSO DIZ-SE (03/11/2026). Um verbete que cobre 4 dos 8
+     * tempos compõe as linhas que tem e declara o resto — e é isso que a listagem passa a dizer,
+     * em vez de mostrar a tabela como se estivesse tudo lá. Não é erro: é a lacuna, nomeada. */
+    const resto = Number(composto && composto.restoTempos) || 0;
+    const motivo = resto > 0 ? String((composto && composto.detalhe) || 'os trechos não cobrem a música toda') : '';
+    return { linhas: doMotor, motivo: motivo };
+  }
+
+  /* O RECURSO: os trechos GRAVADOS, lidos como estão. A ordem é a das pistas — o mesmo relógio do
+   * `segmentosDe` —, e o compasso sai da acumulação dentro de cada pista. O numerador vem do
+   * compasso da música; sem ele, 4. */
+  const numerador = Number(String(compasso || '4/4').split('/')[0]) || 4;
+  const segmentos = segmentosDe(registo, numerador);
+  const linhas = segmentos.map((seg) => ({
+    compasso: seg.compasso,
+    contagem: seg.contagem,
+    categoria: seg.categoria,
+    sinais: (seg.sinais || []).join(' '),
+    descricao: String(seg.descricao || '').split('\n')[0],
+  }));
+  const motivo = linhas.length
+    ? 'Os trechos estão gravados, mas o motor não compõe esta música'
+      + (composto && composto.detalhe ? ': ' + composto.detalhe : '') + '.'
+    : 'Não há trecho nenhum gravado nesta música.';
+  return { linhas: linhas, motivo: motivo };
 }
 
 

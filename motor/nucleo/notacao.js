@@ -822,6 +822,10 @@ module.exports = {
   maiorContagem,
   verbetePara,
   estadoDoVerbete,
+  // O ESTADO DE UM REGISTO, na forma de segmentos (03/11/2026). O `compor` já a usa; o servidor
+  // precisa dela para mostrar os trechos gravados quando a composição não fecha — e uma segunda
+  // cópia da regra do compasso divergiria à primeira repetição.
+  segmentosDe,
   // O DONO DO ALFABETO (03/11/2026) — as três funções que compõem a chave de um registo e leem o
   // seu dono. O servidor e as provas usam-nas; nenhuma regra de dono se escreve fora daqui.
   chaveDoVerbete,

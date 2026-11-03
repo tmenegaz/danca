@@ -527,3 +527,9 @@ experimentos/modelo-formulario/*
 # `REGISTRO.md` cita-a — uma prova citada que não existe no clone é uma afirmação que ninguém
 # confere.
 !experimentos/provar-musica-do-verbete.js
+
+# A LISTAGEM LÊ O QUE ESTÁ GRAVADO (03/11/2026). Ela criou o verbete com dois trechos e a lista
+# respondeu «A decomposição deste exercício não pôde ser lida» — o alfabeto vinha do bundle e a
+# escola não ia na composição. Citada no `REGISTRO.md`; uma prova citada que não existe no clone é
+# uma afirmação que ninguém confere.
+!experimentos/provar-leitura-da-decomposicao.js
