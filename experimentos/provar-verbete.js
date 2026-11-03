@@ -762,8 +762,16 @@ async function aOrigemDoVocabulario() {
   const servido = await bastidores.fetch(new Request('https://e.workers.dev/api/bastidores/termos'), env);
   const lista = await servido.json();
   const doBundle = require(path.join(RAIZ, 'motor', 'servidor', 'catalogo-seed.js')).TERMOS;
+  /* O BUNDLE TEM TAMBÉM O QUE CADA ESCOLA CRIOU (03/11/2026). O ficheiro passou a guardar o
+   * termo da escola marcado com `escola`, e a rota compõe o que AQUELA escola vê: o catálogo
+   * mais as dela. Comparar com o comprimento cru do bundle passaria a exigir que a `batata`
+   * visse os termos da `breu` — o contrário do que a separação existe para garantir. O que se
+   * mede continua a ser o mesmo: o KV está vazio e o vocabulário aparece, logo veio do bundle. */
+  const comum = require(path.join(RAIZ, 'motor', 'nucleo', 'produtos', 'comum.js'));
+  const separado = comum.separarPorEscola(doBundle, 'batata');
+  const esperado = comum.compor(separado.catalogo, separado.adicoes);
   checar('o vocabulário é servido do bundle, com o KV vazio', servido.status === 200
-    && lista.termos.length === doBundle.length, [servido.status, lista.termos && lista.termos.length]);
+    && lista.termos.length === esperado.length, [servido.status, lista.termos && lista.termos.length]);
 
   const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/producao'), env);
   const html = await pagina.text();
@@ -1363,8 +1371,19 @@ async function oVersionamento() {
    * Uma célula inventada de dois tempos com `cobre: 8` não é um verbete: é um verbete inválido, e
    * o compositor recusa-o com razão («declara cobrir 8 tempos, mas a maior pista tem 2»). O que se
    * quer medir é a ESCOLHA DA VERSÃO, e o resto tem de estar certo para ela ser a única variável. */
+  // A PISTA NÃO SE CHAMA SEMPRE `devant` (03/11/2026). Esta prova lia `celulas.devant[0]` e
+  // funcionava porque, sem verbete real, ela plantava um com essa pista. Desde que a Produção
+  // gravou o `Battement tendu` no alfabeto, o verbete real existe — e a pista dele é
+  // `a-la-seconde`. Fixar o nome da pista fazia a prova depender de um dado que ela não
+  // controla; o que ela quer medir é a **escolha da versão**, e isso vale em qualquer pista.
+  // Por isso: a primeira célula de CADA pista antiga muda, e a asserção procura a antiga no
+  // primeiro segmento — com uma pista só, é a mesma coisa; com duas, continua a ser verdade.
   const celulasAntigas = JSON.parse(JSON.stringify(registoReal.celulas));
-  celulasAntigas.devant[0].descricao = 'a antiga';
+  for (const pista of Object.keys(celulasAntigas)) {
+    if (Array.isArray(celulasAntigas[pista]) && celulasAntigas[pista][0]) {
+      celulasAntigas[pista][0].descricao = 'a antiga';
+    }
+  }
   registoReal.versoes = [{
     ate: '2026-11-02', cobre: registoReal.cobre, posicao: registoReal.posicao, celulas: celulasAntigas,
   }];
@@ -1486,7 +1505,14 @@ async function oDocumentoAntigo() {
    * passaria a medir a minha expectativa em vez do comportamento. A última célula passa a fechar em
    * «2ª», que é um sinal que existe e que nenhum documento de hoje tem. */
   const celulasAntigas = JSON.parse(JSON.stringify(registo.celulas));
-  celulasAntigas.devant[celulasAntigas.devant.length - 1].sinais = ['×', '●', '2ª'];
+  // A PISTA TAMBÉM AQUI NÃO SE CHAMA SEMPRE `devant` (03/11/2026) — o verbete real que a Produção
+  // gravou tem `a-la-seconde`, e fixar o nome da pista fazia a prova depender do dado que ela
+  // deveria só usar. A última célula de CADA pista passa a fechar em «2ª»: com uma pista é o mesmo
+  // que antes; com duas, a asserção do documento continua a valer.
+  for (const pista of Object.keys(celulasAntigas)) {
+    const celulas = celulasAntigas[pista];
+    if (Array.isArray(celulas) && celulas.length) celulas[celulas.length - 1].sinais = ['×', '●', '2ª'];
+  }
   registo.versoes = [{
     ate: '2026-11-02', cobre: registo.cobre, posicao: registo.posicao, celulas: celulasAntigas,
     motivo: 'correção da descrição',
@@ -1524,9 +1550,9 @@ async function oDocumentoAntigo() {
     actual.split('\n').filter((l) => /Battement tendu/.test(l)).slice(0, 1).join(''));
   checar('o alfabeto fica como estava — a mutação não vaza para outra prova',
     (tinha || alfabeto.verbetes['Battement tendu'] === undefined)
-      && registo.celulas.devant.slice(-1)[0].sinais.join(' ')
-        === original.celulas.devant.slice(-1)[0].sinais.join(' '),
-    { apagado: !tinha, sinais: registo.celulas.devant.slice(-1)[0].sinais });
+      && JSON.stringify(registo.celulas) === JSON.stringify(original.celulas)
+      && registo.versoes === undefined,
+    { apagado: !tinha, pistas: Object.keys(registo.celulas || {}) });
 }
 
 aValidacao();

@@ -368,12 +368,20 @@ console.log('\nG. O CATÁLOGO DE VERDADE — do disco, sem rede, e as contagens 
 
   checar('o dicionário do catálogo real gera',
     dReal.ok === true && dReal.documentos.length === 1 && dReal.documentos[0].texto.length > 1000);
-  checar('…e a contagem de termos é a do vocabulário',
-    dReal.manifesto.contagens.termos === catalogo.vocabulario.length,
-    { manifesto: dReal.manifesto.contagens.termos, ficheiro: catalogo.vocabulario.length });
-  checar('…e cada termo sem origem declarada está nomeado nas lacunas',
+  // O FICHEIRO JÁ TEM TERMOS DE ESCOLA (03/11/2026). A partir do 28cbc06, o
+  // `vocabulario.json` guarda também o que cada escola criou, marcado com `escola`. O produto do
+  // CATÁLOGO conta só os sem dono — e é isso que se mede: a contagem do manifesto é a do
+  // **catálogo**, não a do ficheiro. Comparar com o ficheiro cru passaria a mentir em duas
+  // direcções: contaria as edições das escolas, e contaria duas vezes o mesmo `id` (o do
+  // catálogo e o da escola), que a `compor` funde numa linha só.
+  const soDoCatalogo = comum.separarPorEscola(catalogo.vocabulario, '').catalogo;
+  checar('…e a contagem de termos é a do CATÁLOGO — o ficheiro pode ter termos de escola',
+    dReal.manifesto.contagens.termos === soDoCatalogo.length,
+    { manifesto: dReal.manifesto.contagens.termos, catalogo: soDoCatalogo.length,
+      ficheiro: catalogo.vocabulario.length });
+  checar('…e cada termo do catálogo sem origem declarada está nomeado nas lacunas',
     dReal.lacunas.filter((l) => l.tipo === 'termo-sem-fonte').length
-      === catalogo.vocabulario.filter((t) => !String(t.fonte || '').trim()).length,
+      === soDoCatalogo.filter((t) => !String(t.fonte || '').trim()).length,
     dReal.lacunas.filter((l) => l.tipo === 'termo-sem-fonte').length);
   checar('…e o documento conta o que o manifesto conta',
     new RegExp('\\*\\*Conteúdo\\.\\*\\* ' + dReal.manifesto.contagens.termos + ' termo').test(texto(dReal)));
