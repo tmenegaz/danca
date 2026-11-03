@@ -33463,3 +33463,95 @@ elicitado antes desta mudança, e **não se reescreve** (P-03/P-04: acrescenta-s
 corrige o passado). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se: não é a
 mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a decisão é
 dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).
+
+## 03/11/2026 — A sequência acompanha os objetivos, e a pergunta era a certa
+
+**O que motivou.** A pesquisadora viu, na «Sequência de exercícios por bloco» do plano, linhas a
+nomear «Barra com objetivo específico 2» e «Centro com objetivo específico 3» — depois de ter
+reduzido os objetivos específicos a **um** e de ter desmarcado o bloco do solo. E fez a pergunta
+certa, que é a que decide onde se procura o defeito: «a sequência é dinâmica ou está presa a dados
+de mock/teste estáticos?»
+
+**A resposta, e é precisa: é dinâmica, e não havia mock nenhum.** O bloco estava certo — o solo saiu
+quando ela o desmarcou, a musicalidade nunca entrou (tem bloco próprio desde a Regra 3). O que ficou
+preso foi o **outro lado do par**: o objetivo específico. Medido no envelope que ela gravou
+(`escola/breu/envelopes/plano-20261103-1644.json`): `marcos-por-aula` com **um** item e
+`aula-1-sequencia` com **oito** linhas, as duas últimas a nomear objetivos que já não existem.
+
+**E não havia fixture a interferir**, o que também se mediu em vez de se supor: a pasta `teste/`
+(`teste/breu.json`, `teste/calango.json`, `teste/batata.json`) é lida **só** pelos bancos de
+`experimentos/`; o `tools/montar-publicacao.js` monta a publicação a partir de `professores/` e
+`tools/templates/`, e o `wrangler.breu.jsonc` serve `publicacao/breu` — nenhum dos dois toca em
+`teste/`. O «lixo de dados anteriores» era o que **o próprio sistema** tinha escrito.
+
+**Por que sobreviviam, e é a raiz.** A derivação junta duas coisas: as linhas que monta a partir das
+decisões de agora, e as já gravadas que nenhuma delas consumiu — a regra «o que o professor escreveu
+não se sobrescreve», que existe para não perder trabalho. Só que estas duas **não foram escritas
+pelo professor**: a coluna «Objetivo específico» é `somenteLeitura`, ele não a pode digitar. São a
+semente que o **sistema** escreveu numa sessão em que havia três objetivos. E a autoria da semente
+vivia num `Map` de memória (`SEMENTE_ANTERIOR`), que **morre com a página**: depois do primeiro
+recarregamento, a semente do sistema torna-se indistinguível da escrita da pessoa.
+
+**E a chave estava errada, o que é o mesmo defeito por outra porta.** A linha era reconhecida pelo
+rótulo **inteiro** («1 — reconhecer o apoio…»). Corrigir a redacção de um objetivo mudava o rótulo,
+a linha gravada deixava de casar com a semente, e a tabela passava a mostrar **duas** linhas para o
+mesmo objetivo — a segunda com o texto velho e o «Conteúdo do nível» outra vez a pedir escolha.
+Medido, era **exactamente** o «campo aberto/vazio» que ela relatou; não era um segundo defeito, era
+o mesmo visto de outro ângulo.
+
+**A REGRA, e é uma só.** A linha de um objetivo que não existe **não é memória — é semente órfã**.
+Memória é o que alguém decidiu; a referência a um objetivo apagado não pode ter sido decidida por
+ninguém, porque quem a escreve é o sistema. Ela sai da derivação, da tabela e do documento, e a
+próxima gravação deixa de a escrever no envelope — sem que se reescreva o que está gravado (P-03),
+porque o que está gravado é justamente o que a regra manda não publicar.
+
+| Camada | O que mudou |
+|:--|:--|
+| `motor/nucleo/sequencia.js` (**novo**) | `numeroDoObjetivo`, `linhaOrfa`, `linhasVivas` — a regra num sítio só |
+| o `.md` do plano | a «Música e vídeo de referência» deixa de publicar o exercício de um objetivo apagado |
+| a `aula-01.md` | a notação deixa de compor esse exercício — o documento não cita o que ele mesmo não lista |
+| a tela | a mesma regra; a **chave da linha passa a ser o NÚMERO** do objetivo; e o rótulo do objetivo passa a ser o **de agora** (o antigo vencia) |
+| `porta/plano/conteudo/plano.json` | `removivel: true` — havia como **acrescentar** uma linha e não como removê-la |
+
+**E O QUE NÃO SE APAGA, que é a metade que uma limpeza apressada teria levado.** A linha sem objetivo
+(a que ela acrescentou à mão) fica; a prosa de um plano antigo fica; e o plano cujos objetivos ainda
+estão vazios **não perde nada** — sem uma lista contra a qual medir, não há órfão a declarar.
+
+**O defeito que apareceu por baixo, e é da mesma família.** O «✕» de uma linha derivada existia e
+nascia apagado — mas a **trava da senha** reescrevia `disabled = trava` em *todos* os controles do
+formulário e, ao destravar, `false` em *todos*: o ✕ acendia no instante em que a pessoa digitava a
+senha. Botão que promete o que não faz, e que ao clicar não fazia nada. O mesmo acontecia ao «−» do
+primeiro objetivo específico (a lista nunca fica vazia). Passam a ser marcados **no momento em que
+se desenham** (`data-travado-de-origem`), e a trava da senha distingue as duas razões de estar
+travado: a senha, que sai quando ela é validada, e a regra, que fica.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-sequencia-que-acompanha` (**novo**) | **TUDO CERTO — 27 asserções, 6 secções**. §1 o núcleo (e **controlo negativo**: com os três objetivos de volta, as oito linhas ficam). §2 o documento (e **controlo negativo**: com os três objetivos, o «Port de bras» reaparece). §3 a tela, com os números do envelope dela: seis linhas, nenhuma a nomear os objetivos 2 e 3, o conteúdo preenchido e travado, e o envelope com seis ao gravar. §4 a chave pelo número: corrigir a redacção de um objetivo **não** duplica. §5 o ✕: apagado nas derivadas **com a senha validada**, activo na acrescentada, e remove só a ela. §6 a tela e o núcleo concordam |
+| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — as duas verdes, incluindo «com senha o controlo volta a habilitar» |
+| `provar-derivados-da-sequencia` | **26 asserções, as mesmas 2 falhas de antes** (o *fondu* da fixture não declara música no alfabeto) — não tocada por esta mudança |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-compasso-limpo` · `provar-metodologia-no-cabecalho` · `provar-conteudos-e-estado-da-turma` · `provar-aula-e-plano-legiveis` | **TUDO CERTO** nas seis |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` · `provar-notacao` (o alfabeto não tem os exercícios que a fixture do ciclo lista) · `provar-plano-matriz` (a rota `/api/mapa` da bancada) · `check-pacote` no `ciclo-01-breu` (o pacote-zero não tem PDF nem aulas — nunca gerado aqui) |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
+`porta/plano/conteudo/plano.json` é conteúdo.
+
+**Com o quê.** `motor/nucleo/sequencia.js` (novo) · `motor/nucleo/derivar-plano-ciclo.js` ·
+`motor/nucleo/derivar-ciclo.js` · `porta/index.html` (`numeroDoObjetivo`,
+`objetivoForaDaSequencia`, a poda, a chave pelo número, `TRAVADOS_DE_ORIGEM`,
+`marcarTravadosDeOrigem`) · `porta/plano/conteudo/plano.json` · a cópia da porta no pacote ·
+`experimentos/provar-sequencia-que-acompanha.js` (novo) · `.gitignore` · `REGISTRO.md` ·
+`ESTADO-ATUAL.md`.
+
+**Referências.** O relatório dela de 03/11/2026 · P-03/P-04 (o passado não se reescreve) · P-16 ·
+Regra 10 · o envelope `plano-20261103-1644` (a fixture da prova, reduzida ao que ela mede).
+
+**O que ainda não está feito.** (a) **O plano já gravado não se reescreve**: o envelope dela
+continua com as oito linhas — a tela e o documento deixam de as publicar, e a próxima gravação do nó
+as deixa de escrever. Quem quiser o envelope limpo **antes** disso abre a sequência e grava.
+(b) A `aula-01.md` desse ciclo, se for regerada, perde o exercício do objetivo 3 — e é o correcto,
+mas é uma mudança no documento que vale a pena ler depois de gerada. (c) O conteúdo pedagógico
+continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-16).

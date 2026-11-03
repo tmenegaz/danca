@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `cbd9b18`, árvore limpa). Nesta entrega, **a metodologia
+> **Última fotografia:** 03/11/2026 (base `53e8235`, árvore limpa). Nesta entrega, **a sequência
+> de exercícios passou a acompanhar os objetivos**. Ela mostrava «Barra com objetivo específico 2» e
+> «Centro com objetivo específico 3» depois de os objetivos terem sido reduzidos a um — e a pergunta
+> era a certa: é dinâmica ou está presa a mock? **É dinâmica, e não há mock nenhum** (a pasta
+> `teste/` só é lida pelos bancos). O que ficou preso foi o **objetivo**: medido no envelope dela,
+> um objetivo e **oito** linhas, duas a nomear os 2 e 3. **(1) A linha de um objetivo que não existe
+> sai** — ela não é memória (a coluna é só de leitura; quem a escreve é o sistema, e a autoria da
+> semente vivia num `Map` que morre com a página), e a regra vive em `motor/nucleo/sequencia.js`, a
+> mesma para a tela, o `.md` do plano e a `aula-01.md`. **(2) A chave da linha passou a ser o NÚMERO
+> do objetivo** — pelo texto, corrigir a redacção de um objetivo duplicava a linha, com o texto
+> velho e o conteúdo outra vez por escolher: era esse o «campo aberto/vazio» relatado. **(3) O ✕
+> passou a existir** (`removivel: true`) — havia como acrescentar uma linha e não como removê-la.
+> E o defeito que apareceu por baixo: a **trava da senha** reescrevia `disabled` em todos os
+> controles, e acendia o ✕ das linhas derivadas no instante em que a senha era validada. Prova nova:
+> `provar-sequencia-que-acompanha`, **27 asserções em 6 secções**, com dois controlos negativos.
+>
+> **Entrega anterior** (base `cbd9b18`, árvore limpa). Nesta entrega, **a metodologia
 > deixou de se perguntar duas vezes**. O Bloco 1 do plano pedia-a em dois itens — «Metodologia de
 > referência» e «Quem escolhe a metodologia» («Eu escolho · A escola impõe») — e os dois já estavam
 > respondidos na **curadoria**. **(1) O item 5 deixou de existir**: a premissa passou a ser do
@@ -1510,6 +1526,31 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**A sequência acompanha os objetivos — e a pergunta «é mock?» teve resposta medida (03/11/2026).** A
+tabela «Sequência de exercícios por bloco» mostrava linhas a nomear os objetivos 2 e 3 depois de a
+lista ter ficado com **um**. **CONFIRMADO** no envelope dela (`plano-20261103-1644`): um objetivo e
+**oito** linhas guardadas. E **não havia fixture**: a pasta `teste/` só é lida pelos bancos de
+`experimentos/`, e o `wiring` da publicação (`tools/montar-publicacao.js` → `publicacao/breu` →
+`wrangler.breu.jsonc`) não a alcança — o «lixo» era o que o próprio sistema tinha escrito. O bloco
+estava certo (o solo saiu quando ela o desmarcou); o que ficou preso foi o **objetivo**. A linha de
+um objetivo que não existe **não é memória** — a coluna é `somenteLeitura` e quem a escreve é o
+sistema —, e a autoria da semente vivia num `Map` que morre com a página. **DECIDIDO**: a linha sai,
+a regra é uma só (`motor/nucleo/sequencia.js`) e serve a tela, o `.md` do plano e a `aula-01.md`.
+
+**A chave pelo NÚMERO, e é o segundo defeito do mesmo nó (03/11/2026).** A linha era reconhecida pelo
+rótulo **inteiro** do objetivo; corrigir a sua redacção fazia a linha gravada não casar com a semente
+e a tabela mostrava **duas** linhas do mesmo objetivo — a segunda com o texto velho e o «Conteúdo do
+nível» outra vez por escolher. Era **esse** o «campo aberto/vazio» que ela relatou: o mesmo defeito
+visto de outro ângulo, não um segundo. **CONFIRMADO** pela §4 da prova, e a correção é o número.
+
+**O ✕ passou a existir, e a trava da senha deixou de o acender (03/11/2026).** Havia como
+**acrescentar** uma linha e não como removê-la (`removivel: false` com `acrescentavel: true`) —
+**DECIDIDO**: o ✕ existe, apagado nas linhas derivadas. E por baixo apareceu a razão de ele nunca ter
+valido: `travarFormularioSemSenha` escrevia `disabled = trava` em *todos* os controles e, ao
+destravar, `false` em *todos* — o ✕ acendia no instante em que a senha era validada. O mesmo com o
+«−» do primeiro objetivo. Os controles travados por regra passam a ser marcados no desenho
+(`data-travado-de-origem`). **CONFIRMADO** pela §5.
+
 **A metodologia deixou de se perguntar dentro do plano (03/11/2026).** O Bloco 1 pedia duas coisas
 que a curadoria já responde: «Metodologia de referência» (campo obrigatório) e «Quem escolhe a
 metodologia» («Eu escolho · A escola impõe»). **O segundo deixou de existir**, e a razão não é
@@ -2031,7 +2072,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a metodologia é do professor)
+### Executado nesta fotografia (03/11/2026 — a sequência acompanha os objetivos)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-sequencia-que-acompanha.js` (novo) | **TUDO CERTO — 27 asserções em 6 secções**, com **dois controlos negativos**. **§1** o núcleo (`numeroDoObjetivo`, `linhaOrfa`, `linhasVivas`) — e, com os três objetivos de volta, as oito linhas ficam. **§2** o documento: a música deixa de publicar o exercício do objetivo apagado, e com os três objetivos o «Port de bras» **reaparece**. **§3** a tela, com os números do envelope dela: seis linhas, nenhuma a nomear os objetivos 2 e 3, o conteúdo preenchido e travado, e o envelope com seis ao gravar. **§4** a chave pelo número: corrigir a redacção de um objetivo **não** duplica a linha, e o rótulo acompanha o texto novo. **§5** o ✕: apagado nas derivadas **com a senha já validada**, activo na acrescentada, e remove só a ela; e o «−» do primeiro objetivo continua apagado. **§6** a tela e o núcleo concordam nas linhas que sobrevivem |
+| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — as duas verdes, incluindo «com senha o controlo volta a habilitar» |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-compasso-limpo` · `provar-metodologia-no-cabecalho` · `provar-conteudos-e-estado-da-turma` · `provar-aula-e-plano-legiveis` | **TUDO CERTO** nas seis |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| `provar-derivados-da-sequencia` | **26 asserções, as mesmas 2 falhas de antes** (o *fondu* da fixture não declara música no alfabeto) — não tocada por esta mudança |
+| **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o caminho do schema aponta para `professores/leticia/`) · `provar-notacao` (o alfabeto não tem os exercícios que a fixture do ciclo lista) · `provar-plano-matriz` (a rota `/api/mapa` da bancada) · `check-pacote` no `ciclo-01-breu` (o pacote-zero não tem PDF nem aulas — nunca gerado aqui) |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
+
+### Executado na fotografia anterior (03/11/2026 — a metodologia é do professor)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2042,7 +2095,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o caminho do schema aponta para `professores/leticia/`, que já não existe) · `provar-derivados-da-sequencia` (2 falhas) — medidos com o motor de HEAD, não tocados |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado na fotografia anterior (03/11/2026 — o compasso sem o dono da música)
+### Executado duas fotografias atrás (03/11/2026 — o compasso sem o dono da música)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2880,6 +2933,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **A sequência acompanha os objetivos.** A tabela mostrava linhas a nomear os
+  objetivos 2 e 3 depois de a lista ter ficado com um. A pergunta «é dinâmica ou é mock?» teve
+  resposta medida: **é dinâmica, e não há mock** (a pasta `teste/` só é lida pelos bancos). O que
+  ficou preso foi o objetivo: a linha de um objetivo apagado **não é memória** — a coluna é
+  `somenteLeitura` e quem a escreve é o sistema — e a autoria da semente morria com a página. A
+  regra passou a viver em `motor/nucleo/sequencia.js` e serve a tela, o `.md` do plano e a
+  `aula-01.md`. A **chave da linha passou a ser o NÚMERO** do objetivo (pelo texto, corrigir a
+  redacção duplicava a linha — e era esse o «campo aberto/vazio»). O **✕ passou a existir**, e
+  apareceu por baixo o defeito que o tornava inútil: a trava da senha acendia todos os controles
+  travados por regra ao ser validada. Prova nova: `provar-sequencia-que-acompanha`, 27 asserções.
 
 - **03/11/2026** — **A metodologia é do professor, e não se pergunta duas vezes.** O Bloco 1 do
   plano pedia «Metodologia de referência» e «Quem escolhe a metodologia» («Eu escolho · A escola

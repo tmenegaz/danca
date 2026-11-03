@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T16:50:15-0300`
-Commit atual: `5aea425d` — docs(registro): a metodologia é do professor, e não se pergunta duas vezes
+Gerado em: `2026-11-03T17:05:01-0300`
+Commit atual: `53e82350` — fix(campo): a sequência acompanha os objetivos — a linha órfã sai, e a chave é o número
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,9 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+53e82350 fix(campo): a sequência acompanha os objetivos — a linha órfã sai, e a chave é o número
+d36ab2d6 chore(estrutura): regerar os índices derivados
+8b049f60 docs(registro): o plano foi gravado — corrigir a frase que dizia o contrário
 5aea425d docs(registro): a metodologia é do professor, e não se pergunta duas vezes
 b3e822eb feat(experimentos): a prova da metodologia que deixou de se perguntar
 c92f2af2 feat(campo): a metodologia é da curadoria — sai do formulário e lê-se no cabeçalho
@@ -102,9 +105,6 @@ b44f2f52 chore(estrutura): regerar os índices derivados
 204f806e feat(acervo): envelope/anamnese-20261103-1626.json
 e69adcec feat(acervo): envelope/.indice.json
 5909ddcb docs(estrutura): a lista que só promete o que existe, e a régua do formulário
-85ff724d feat(experimentos): a prova do menu que não promete o que não existe, e quatro bancos que mediam o contrário
-45ba75b8 feat(estrutura): a curadoria só oferece o que tem notação, e o formulário deixa de explicar
-8794c109 docs(estrutura): a verificação da curadoria ao plano, e o nome que partia a cadeia
 ```
 
 ## Por professor
@@ -230,102 +230,99 @@ e69adcec feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A metodologia é do professor, e não se pergunta duas vezes
+## 03/11/2026 — A sequência acompanha os objetivos, e a pergunta era a certa
 
-**O que motivou.** A pesquisadora: «a metodologia de referência e sua respectiva escolha já vêm
-pré-definidas e vinculadas estruturalmente no processo de Curadoria […]. Exigir que o professor
-preencha isso novamente dentro do preenchimento do Plano de Ensino gera redundância operacional».
-Os dois itens do Bloco 1 — **4. Metodologia de referência** e **5. Quem escolhe a metodologia** —
-pediam ao professor, ciclo a ciclo, um facto que a escola já registou ao habilitá-lo.
+**O que motivou.** A pesquisadora viu, na «Sequência de exercícios por bloco» do plano, linhas a
+nomear «Barra com objetivo específico 2» e «Centro com objetivo específico 3» — depois de ter
+reduzido os objetivos específicos a **um** e de ter desmarcado o bloco do solo. E fez a pergunta
+certa, que é a que decide onde se procura o defeito: «a sequência é dinâmica ou está presa a dados
+de mock/teste estáticos?»
 
-**A direção de domínio, e é ela que fica decidida.** Entre «eu escolho» e «a escola impõe», o
-sistema adopta **permanentemente** a primeira: **o professor escolhe / a metodologia pertence ao
-professor**. A justificativa é a mesma da modalidade — a competência técnica é de quem ensina, e a
-escola a oferece por reflexo (derivação das habilitações). É por isso que o item 5 **deixa de
-existir** em vez de mudar de sítio: uma pergunta cuja resposta passa a ser uma premissa do domínio
-não se pergunta ciclo a ciclo, e perguntá-la sugeria que podia variar.
+**A resposta, e é precisa: é dinâmica, e não havia mock nenhum.** O bloco estava certo — o solo saiu
+quando ela o desmarcou, a musicalidade nunca entrou (tem bloco próprio desde a Regra 3). O que ficou
+preso foi o **outro lado do par**: o objetivo específico. Medido no envelope que ela gravou
+(`escola/breu/envelopes/plano-20261103-1644.json`): `marcos-por-aula` com **um** item e
+`aula-1-sequencia` com **oito** linhas, as duas últimas a nomear objetivos que já não existem.
 
-**O que saiu, e o que passou a ler-se.**
+**E não havia fixture a interferir**, o que também se mediu em vez de se supor: a pasta `teste/`
+(`teste/breu.json`, `teste/calango.json`, `teste/batata.json`) é lida **só** pelos bancos de
+`experimentos/`; o `tools/montar-publicacao.js` monta a publicação a partir de `professores/` e
+`tools/templates/`, e o `wrangler.breu.jsonc` serve `publicacao/breu` — nenhum dos dois toca em
+`teste/`. O «lixo de dados anteriores» era o que **o próprio sistema** tinha escrito.
 
-| Item | Antes | Agora |
-|:--|:--|:--|
-| 4. Metodologia de referência | campo obrigatório do Bloco 1 (`forma` + `aberto`) | `noCabecalho: true` + `daCuradoria: 'tradicao'` — **lê-se**, não se escreve |
-| 5. Quem escolhe a metodologia | campo obrigatório («Eu escolho · A escola impõe») | **removido** — premissa do domínio |
+**Por que sobreviviam, e é a raiz.** A derivação junta duas coisas: as linhas que monta a partir das
+decisões de agora, e as já gravadas que nenhuma delas consumiu — a regra «o que o professor escreveu
+não se sobrescreve», que existe para não perder trabalho. Só que estas duas **não foram escritas
+pelo professor**: a coluna «Objetivo específico» é `somenteLeitura`, ele não a pode digitar. São a
+semente que o **sistema** escreveu numa sessão em que havia três objetivos. E a autoria da semente
+vivia num `Map` de memória (`SEMENTE_ANTERIOR`), que **morre com a página**: depois do primeiro
+recarregamento, a semente do sistema torna-se indistinguível da escrita da pessoa.
 
-A maquinaria do cabeçalho já existia (é a mesma da escola, da turma e do ritmo: um nó `noCabecalho`
-não é degrau do roteiro e desenha-se em leitura). O que faltava era a **origem**: havia `daTurma`
-para o ritmo e não havia `daCuradoria` para o que a direção curou.
+**E a chave estava errada, o que é o mesmo defeito por outra porta.** A linha era reconhecida pelo
+rótulo **inteiro** («1 — reconhecer o apoio…»). Corrigir a redacção de um objetivo mudava o rótulo,
+a linha gravada deixava de casar com a semente, e a tabela passava a mostrar **duas** linhas para o
+mesmo objetivo — a segunda com o texto velho e o «Conteúdo do nível» outra vez a pedir escolha.
+Medido, era **exactamente** o «campo aberto/vazio» que ela relatou; não era um segundo defeito, era
+o mesmo visto de outro ângulo.
 
-**O envelope continua a levar o valor, e essa é a parte que uma limpeza apressada teria perdido.**
-É dele que o documento do plano — e o PO, que lê a metodologia no plano referenciado — a extraem. A
-semente grava o **rótulo** («Francesa»), não a chave (`francesa`): este campo sempre foi texto
-humano, e é ele que se publica. Sem a semente, o `## Contexto` do `.md` passaria a dizer
-«[a decidir]» sobre um dado que a curadoria declara — a limpeza a degradar o documento.
+**A REGRA, e é uma só.** A linha de um objetivo que não existe **não é memória — é semente órfã**.
+Memória é o que alguém decidiu; a referência a um objetivo apagado não pode ter sido decidida por
+ninguém, porque quem a escreve é o sistema. Ela sai da derivação, da tabela e do documento, e a
+próxima gravação deixa de a escrever no envelope — sem que se reescreva o que está gravado (P-03),
+porque o que está gravado é justamente o que a regra manda não publicar.
 
-**Dois defeitos apanhados pelo caminho, e nenhum dos dois era o pedido.**
+| Camada | O que mudou |
+|:--|:--|
+| `motor/nucleo/sequencia.js` (**novo**) | `numeroDoObjetivo`, `linhaOrfa`, `linhasVivas` — a regra num sítio só |
+| o `.md` do plano | a «Música e vídeo de referência» deixa de publicar o exercício de um objetivo apagado |
+| a `aula-01.md` | a notação deixa de compor esse exercício — o documento não cita o que ele mesmo não lista |
+| a tela | a mesma regra; a **chave da linha passa a ser o NÚMERO** do objetivo; e o rótulo do objetivo passa a ser o **de agora** (o antigo vencia) |
+| `porta/plano/conteudo/plano.json` | `removivel: true` — havia como **acrescentar** uma linha e não como removê-la |
 
-1. **`daCuradoria()` só sabia ler listas.** O `for…of` de uma string percorre os **caracteres**: a
-   tradição `francesa` chegava à tela como `f`, e o cabeçalho mostrava «Metodologia de referência:
-   f». O defeito estava latente desde que a curadoria existe — mas nenhum leitor lia um campo
-   escalar até hoje. Passa a tratar lista e escalar na mesma leitura.
-2. **Os rótulos das tradições não chegavam à porta.** Vivem em `tradicoes.json` (`francesa` →
-   «Francesa»), e a porta só os conhecia pela chave. Vão na **mesma resposta** da curadoria
-   (`/api/bastidores/curadoria-professor` → `rotulos`), e não numa rota nova: é o mesmo ficheiro, é
-   o mesmo pedido, e uma segunda leitura seria uma segunda cópia do mesmo mapa a divergir.
+**E O QUE NÃO SE APAGA, que é a metade que uma limpeza apressada teria levado.** A linha sem objetivo
+(a que ela acrescentou à mão) fica; a prosa de um plano antigo fica; e o plano cujos objetivos ainda
+estão vazios **não perde nada** — sem uma lista contra a qual medir, não há órfão a declarar.
+
+**O defeito que apareceu por baixo, e é da mesma família.** O «✕» de uma linha derivada existia e
+nascia apagado — mas a **trava da senha** reescrevia `disabled = trava` em *todos* os controles do
+formulário e, ao destravar, `false` em *todos*: o ✕ acendia no instante em que a pessoa digitava a
+senha. Botão que promete o que não faz, e que ao clicar não fazia nada. O mesmo acontecia ao «−» do
+primeiro objetivo específico (a lista nunca fica vazia). Passam a ser marcados **no momento em que
+se desenham** (`data-travado-de-origem`), e a trava da senha distingue as duas razões de estar
+travado: a senha, que sai quando ela é validada, e a regra, que fica.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-metodologia-no-cabecalho` (novo) | **TUDO CERTO — 20 asserções, 5 secções**. **§A** o conteúdo (o nó é do cabeçalho, `daCuradoria: tradicao`, sem `forma`; o «quem escolhe» não existe, e «A escola impõe» não aparece em sítio nenhum). **§B** sem campo no corpo e sem degrau no roteiro. **§C** a barra mostra «Francesa» — o rótulo, não a chave —, e a leitura do corpo diz de onde vem e que ali não se preenche. **§D** o `.md` publica a metodologia e deixou de publicar a autoria. **§E** o **controlo negativo**: sem curadoria não se semeia, não se mostra e o documento declara a lacuna |
-| `provar-teste` | **45 verificações, TODAS verdes** — e estava vermelho: afirmava «os nós do cabeçalho não são 7» em dois sítios e escrevia `- 7` num terceiro. A metodologia entrou no cabeçalho, a conta passou a 8. O número passou a ser **derivado do mapa** (o que a asserção guarda é a igualdade entre os nós marcados e os que o roteiro salta) |
-| `provar-plano-e-curadoria` · `provar-compasso-limpo` · `provar-curadoria-e-limpeza` · `provar-aula-e-plano-legiveis` | **TUDO CERTO** nas quatro |
+| `provar-sequencia-que-acompanha` (**novo**) | **TUDO CERTO — 27 asserções, 6 secções**. §1 o núcleo (e **controlo negativo**: com os três objetivos de volta, as oito linhas ficam). §2 o documento (e **controlo negativo**: com os três objetivos, o «Port de bras» reaparece). §3 a tela, com os números do envelope dela: seis linhas, nenhuma a nomear os objetivos 2 e 3, o conteúdo preenchido e travado, e o envelope com seis ao gravar. §4 a chave pelo número: corrigir a redacção de um objetivo **não** duplica. §5 o ✕: apagado nas derivadas **com a senha validada**, activo na acrescentada, e remove só a ela. §6 a tela e o núcleo concordam |
+| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — as duas verdes, incluindo «com senha o controlo volta a habilitar» |
+| `provar-derivados-da-sequencia` | **26 asserções, as mesmas 2 falhas de antes** (o *fondu* da fixture não declara música no alfabeto) — não tocada por esta mudança |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-compasso-limpo` · `provar-metodologia-no-cabecalho` · `provar-conteudos-e-estado-da-turma` · `provar-aula-e-plano-legiveis` | **TUDO CERTO** nas seis |
 | `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
-| **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o `leticia` do caminho do schema já não existe) · `provar-derivados-da-sequencia` (2) — medidos com o motor de HEAD, não tocados |
-| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
+| **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` · `provar-notacao` (o alfabeto não tem os exercícios que a fixture do ciclo lista) · `provar-plano-matriz` (a rota `/api/mapa` da bancada) · `check-pacote` no `ciclo-01-breu` (o pacote-zero não tem PDF nem aulas — nunca gerado aqui) |
 
 **Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
-`porta/plano/conteudo/plano.json` é conteúdo, e a folha não mudou.
+`porta/plano/conteudo/plano.json` é conteúdo.
 
-**Com o quê.** `porta/plano/conteudo/plano.json` (os dois itens) · `porta/index.html`
-(`valorDaCuradoria`, `textoDaCuradoria`, `rotuloDaTradicao`, `daCuradoria` com os dois tipos, a
-leitura no cabeçalho e na barra, a semente) · `motor/nucleo/derivar-plano-ciclo.js` (o grupo do
-contexto) · `motor/nucleo/derivar-po.js` (a composição da metodologia e o mapa de rótulos) ·
-`motor/servidor/bastidores.js` (os rótulos na resposta da curadoria) ·
-`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/` (a cópia, regerada) ·
-`experimentos/provar-metodologia-no-cabecalho.js` (novo) · `experimentos/provar-teste.js` ·
-`.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+**Com o quê.** `motor/nucleo/sequencia.js` (novo) · `motor/nucleo/derivar-plano-ciclo.js` ·
+`motor/nucleo/derivar-ciclo.js` · `porta/index.html` (`numeroDoObjetivo`,
+`objetivoForaDaSequencia`, a poda, a chave pelo número, `TRAVADOS_DE_ORIGEM`,
+`marcarTravadosDeOrigem`) · `porta/plano/conteudo/plano.json` · a cópia da porta no pacote ·
+`experimentos/provar-sequencia-que-acompanha.js` (novo) · `.gitignore` · `REGISTRO.md` ·
+`ESTADO-ATUAL.md`.
 
-**Referências.** A especificação dela de 03/11/2026 · `ARQUITETURA-GERAL.md` §2.2 e §2.3 (a
-modalidade e o ensino pertencem ao professor) · P-03/P-04, P-16 · `tradicoes.json` (o rótulo vive no
-dado).
+**Referências.** O relatório dela de 03/11/2026 · P-03/P-04 (o passado não se reescreve) · P-16 ·
+Regra 10 · o envelope `plano-20261103-1644` (a fixture da prova, reduzida ao que ela mede).
 
-**Correção de facto, datada, e apanhada pelo remoto.** Ao escrever esta entrada dei o caminho
-crítico por parado — «plano e PO por gravar». **Estava errado no primeiro termo**: entre a escrita e
-o `push` apareceram no `origin/main` três commits da própria operação — `b349c562`
-(`escola/breu/envelopes/plano-20261103-1644.json`, **um plano de ensino gravado às 16:44**),
-`342c3ad6` (o `-plano.md` derivado dele) e `817229ff` (o `.conf` da variante). O enunciado do
-formulário estava certo; o que faltava era olhar o remoto antes de escrever a frase. **O `PO`
-continua por gravar** — é o segundo acto, e o par `.md`/`.conf` do PO só nasce depois dele.
-
-**O que ainda não está feito.** (a) **O PO deixou de publicar «Quem escolhe a metodologia»** — a
-linha sai do documento dele na próxima geração; o **plano já gravado** continua a tê-la, porque foi
-elicitado antes desta mudança, e **não se reescreve** (P-03/P-04: acrescenta-se ajuste, não se
-corrige o passado). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se: não é a
-mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a decisão é
-dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).
+**O que ainda não está feito.** (a) **O plano já gravado não se reescreve**: o envelope dela
+continua com as oito linhas — a tela e o documento deixam de as publicar, e a próxima gravação do nó
+as deixa de escrever. Quem quiser o envelope limpo **antes** disso abre a sequência e grava.
+(b) A `aula-01.md` desse ciclo, se for regerada, perde o exercício do objetivo 3 — e é o correcto,
+mas é uma mudança no documento que vale a pena ler depois de gerada. (c) O conteúdo pedagógico
+continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-16).
 
 ## O que está pendente
-
-## 03/11/2026 — A auditoria da turma, o conteúdo na curadoria, e o formulário que só oferece o que o professor pode ensinar
-
-(a) **As tradições por modalidade não têm conteúdo**: a estrutura
-existe e nenhuma modalidade tem o seu `tradicoes.json` — os nomes são dela (P-16). (b) **A oferta da
-escola** (que modalidades tem à venda) continua a **não** existir como campo: é derivação das
-habilitações, e a página é síncrona. (c) A **modalidade continua escrita à mão em 10 sítios** de
-`motor/`, medidos por `provar-sinais-da-modalidade` §D. (d) **A `breu` continua no ar** — ela
-expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de sempre: **conteúdo**
-(11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## 03/11/2026 — A curadoria chegou ao plano, e o que a travava era um nome repetido
 
@@ -356,6 +353,15 @@ elicitado antes desta mudança, e **não se reescreve** (P-03/P-04: acrescenta-s
 corrige o passado). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se: não é a
 mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a decisão é
 dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).
+
+## 03/11/2026 — A sequência acompanha os objetivos, e a pergunta era a certa
+
+(a) **O plano já gravado não se reescreve**: o envelope dela
+continua com as oito linhas — a tela e o documento deixam de as publicar, e a próxima gravação do nó
+as deixa de escrever. Quem quiser o envelope limpo **antes** disso abre a sequência e grava.
+(b) A `aula-01.md` desse ciclo, se for regerada, perde o exercício do objetivo 3 — e é o correcto,
+mas é uma mudança no documento que vale a pena ler depois de gerada. (c) O conteúdo pedagógico
+continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-16).
 
 ## Pendências anteriores (índice)
 
@@ -695,6 +701,7 @@ dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).
 - **03/11/2026** — O sinal que faltava, o nome que não se traduz, e o dono da… → `REGISTRO.md` L32812
 - **03/11/2026** — A habilitação é da pessoa, a turma fica marcada, e o nível… → `REGISTRO.md` L32891
 - **03/11/2026** — A turma é o ritmo, e o ensino é da curadoria → `REGISTRO.md` L32986
+- **03/11/2026** — A auditoria da turma, o conteúdo na curadoria, e o… → `REGISTRO.md` L33069
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
