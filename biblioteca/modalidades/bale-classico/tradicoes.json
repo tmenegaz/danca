@@ -49,5 +49,38 @@
       "francesa": "Battement fondu",
       "Vaganova": "Battement fondu"
     }
-  ]
+  ],
+  "estruturaDeNiveis": {
+    "_comentario": [
+      "A FORMA DO NÍVEL DEPENDE DA TRADIÇÃO (03/11/2026) — decisão da pesquisadora.",
+      "",
+      "«Para tradições estruturadas por números (como a escola inglesa RAD), a turma contará com um",
+      "seletor de número para indicar o nível. Para outras tradições (como Vaganova ou geral), a",
+      "estrutura segue por graus/fases (Balé Básico Nível 1 a N, Intermediário, Avançado).»",
+      "",
+      "O QUE SE DECLARA AQUI É A FORMA, e não o conteúdo: `tipo` diz se a tradição numera os níveis",
+      "em fila (`numerada`) ou os agrupa em graus (`grau-e-nivel`), e `rotulo` é a palavra que a",
+      "tela usa («Grade» na RAD). NENHUM NÚMERO É INVENTADO: na RAD, as opções são as que o próprio",
+      "catálogo declara em `progressao.json`; nas outras, o nível é um número que quem cadastra",
+      "escreve, porque o «N» de «Nível 1 a N» é de cada escola e não deste ficheiro.",
+      "",
+      "A `compartilhada` não tem entrada: ela descreve um TERMO, não uma tradição que a escola adota",
+      "(ver `tradicoesAdotaveis` em `bastidores.js`). Uma tradição que não esteja aqui cai no",
+      "`padrao` — e o padrão é o que a pesquisadora descreveu como «geral»."
+    ],
+    "padrao": {
+      "tipo": "grau-e-nivel",
+      "graus": [
+        "Básico",
+        "Intermediário",
+        "Avançado"
+      ],
+      "rotulo": "Nível"
+    },
+    "RAD": {
+      "tipo": "numerada",
+      "rotulo": "Grade",
+      "_nota": "As opções vêm de `progressao.json` (`nivelReferencia` das 13 turmas do catálogo): Grade 1 a Grade 8 e os quatro Vocational. Não se copiam para aqui — seria uma segunda lista a divergir."
+    }
+  }
 }

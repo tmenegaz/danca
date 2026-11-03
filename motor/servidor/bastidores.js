@@ -32,6 +32,10 @@ const { numeroDoTeste } = require('./teste-fixtures.js');
 // O catálogo INICIAL de turmas e vocabulário técnico (conteúdo, não código). Carregado
 // sob demanda pela Produção (`POST /api/bastidores/semear-catalogo`), idempotente.
 const CATALOGO = require('./catalogo-seed.js');
+// A FORMA DO NÍVEL, por tradição (03/11/2026) — o núcleo puro que a turma usa.
+const { normalizarNivel, estruturaDaTradicao } = require('../nucleo/niveis-da-turma.js');
+// A HABILITAÇÃO DO PROFESSOR (03/11/2026) — o núcleo puro que diz quem ensina o quê.
+const perfilNucleo = require('../nucleo/perfil-do-professor.js');
 // A COMPOSIÇÃO catálogo × escola é a dos produtos, e é a única (02/11/2026).
 const COMUM = require('../nucleo/produtos/comum.js');
 // E a do ALFABETO é a do núcleo (03/11/2026): `registosDaEscola` decide o que uma escola vê de
@@ -973,12 +977,39 @@ function normalizarTurma(corpo) {
     const h = String(crus[d] == null ? '' : crus[d]).trim();
     if (/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(h)) horarios[d] = h;
   }
+  /* O NÍVEL TEM A FORMA DA TRADIÇÃO (03/11/2026) — ver `motor/nucleo/niveis-da-turma.js`.
+   *
+   * `grau` e `nivel` são os dois campos que a decisão dela pede («incluir no cadastro/criação da
+   * turma os seletores de nível e grau»), e `nivelReferencia` passa a ser **composto** deles: é o
+   * rótulo que o plano e o PO imprimem. Compor em vez de pedir duas vezes é a regra da casa — e a
+   * turma antiga que só tem o texto livre continua a lê-lo, porque o `normalizarNivel` cai nele
+   * quando não há nada declarado.
+   *
+   * O `programaReferencia` é lido ANTES, porque é ele que escolhe a forma: «Grade 3» na RAD,
+   * «Intermediário 2» numa tradição por graus. */
+  const programaReferencia = String(corpo.programaReferencia || '').trim();
+  const niveis = normalizarNivel(CATALOGO.TRADICOES_JSON, {
+    programaReferencia,
+    grau: corpo.grau,
+    nivel: corpo.nivel,
+    nivelReferencia: corpo.nivelReferencia,
+  });
   return {
     id: idDe(nome),
     nome: nome,
     ordem: ordem,
-    programaReferencia: String(corpo.programaReferencia || '').trim(),
-    nivelReferencia: String(corpo.nivelReferencia || '').trim(),
+    programaReferencia: programaReferencia,
+    // O NÍVEL EM DOIS CAMPOS, e o rótulo composto ao lado. Um `nivelReferencia` escrito à mão
+    // depois disto seria a segunda declaração do mesmo facto.
+    grau: niveis.grau,
+    nivel: niveis.nivel,
+    nivelReferencia: niveis.nivelReferencia,
+    // A MODALIDADE E O PROFESSOR RESPONSÁVEL (03/11/2026). São os dois elos que a decisão dela
+    // precisa: a modalidade é o que a escola oferece, e o professor é quem a declara saber
+    // ensinar. Sem eles, «a turma cuja modalidade o professor deixou de ter» não tem como ser
+    // respondida — não há o que comparar.
+    modalidade: String(corpo.modalidade || '').trim(),
+    professor: String(corpo.professor || '').trim(),
     descricao: String(corpo.descricao || '').trim(),
     // O RITMO DA TURMA — decisão da DIREÇÃO, não da cena (IDEIA-PAINEL-ESCOLA §8.3: «não
     // tem frequência semanal — vem do contrato»). É o que desce para o plano de ensino:
@@ -1044,6 +1075,61 @@ const MODALIDADES = require('../../biblioteca/modalidades/modalidades.json');
  *  (que descreve um termo, não a tradição que a escola adota). */
 function tradicoesAdotaveis() {
   return (CATALOGO.TRADICOES || []).filter((t) => t !== 'compartilhada');
+}
+
+/**
+ * AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — marcadas no sítio onde elas vivem (03/11/2026).
+ *
+ * A REGRA DELA: «quando deixa de existir uma turma daquela modalidade para o professor, o sistema
+ * deve apenas marcar a turma como descontinuada. Dessa forma, o histórico pedagógico permanece
+ * intacto e auditável.» E a regra da proveniência diz o mesmo do outro lado: o passado não se
+ * reescreve — a turma **não se apaga**.
+ *
+ * PORQUE A MARCA FICA NO KV E NÃO SE DERIVA NA LEITURA. A página da Produção é servida de forma
+ * **síncrona** — não pode ir ao repositório ler N perfis enquanto desenha a lista. A marca é
+ * gravada no momento em que a decisão acontece (a gravação das habilitações), que é também o
+ * único momento em que o perfil e as turmas estão na mesma mão. A HABILITAÇÃO continua no
+ * repositório, que é da pessoa; o que fica no KV é a **consequência** dela sobre uma turma — e a
+ * turma é da escola.
+ *
+ * A MARCA É REVOGÁVEL, e tem de ser: quem volta a declarar a modalidade desfaz a descontinuidade.
+ * Uma marca que só se acende seria uma pena perpétua por uma decisão que se corrige.
+ */
+async function marcarTurmasSemHabilitacao(kv, escola, professor, perfil, quando) {
+  const alvo = String(professor || '').trim();
+  if (!alvo) return { mudadas: [], descontinuadas: [] };
+  const lista = await turmas(kv, escola);
+  const hoje = String(quando || new Date().toISOString().slice(0, 10));
+  const mudadas = [];
+  let mexeu = false;
+  const nova = lista.map((t) => {
+    if (!t || String(t.professor || '').trim() !== alvo) return t;
+    const modalidade = String(t.modalidade || '').trim();
+    // UMA TURMA SEM MODALIDADE NÃO SE DESCONTINUA: não há o que comparar, e a ausência de um
+    // dado não é a negação dele. É a mesma distinção do `cobre` nos verbetes antigos.
+    if (!modalidade) return t;
+    const deveEstar = perfilNucleo.estadoDaHabilitacao(perfil, modalidade) === 'perdeu';
+    if (deveEstar === Boolean(t.descontinuada)) return t;
+    mexeu = true;
+    mudadas.push(String(t.nome || t.id || ''));
+    if (deveEstar) {
+      return Object.assign({}, t, {
+        descontinuada: {
+          em: hoje,
+          motivo: 'o professor já não declara «' + perfilNucleo.nomeDaModalidade(modalidade)
+            + '» nas habilitações dele',
+        },
+      });
+    }
+    const semMarca = Object.assign({}, t);
+    delete semMarca.descontinuada;
+    return semMarca;
+  });
+  if (mexeu) await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(nova));
+  return {
+    mudadas,
+    descontinuadas: nova.filter((t) => t && String(t.professor || '').trim() === alvo && t.descontinuada),
+  };
 }
 
 /** OS NÍVEIS que o formulário da turma oferece: os `nivelReferencia` do catálogo. Não é uma
@@ -1921,6 +2007,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const itensProfs = linhasProfs.length
     ? linhasProfs.join('')
     : '<li class="vazia">(nenhum professor cadastrado)</li>';
+  /* AS HABILITAÇÕES (03/11/2026) — o seletor de quem se está a habilitar.
+   *
+   * O `<option>` leva o SLUG, e não o nome: o slug é a pasta (`professores/<slug>/perfil.json`),
+   * e é ele que a rota grava. O nome viaja em `data-nome`, para o perfil novo nascer com o nome
+   * de exibição em vez de um slug vazio. */
+  const opcoesDeHabilitacao = [];
+  if (donoNome) {
+    opcoesDeHabilitacao.push('<option value="' + esc(String(donoSlug || '').trim()) + '" data-nome="'
+      + esc(donoNome) + '">' + esc(donoNome) + ' (principal)</option>');
+  }
+  for (const p of profs) {
+    if (!p || !p.nome) continue;
+    const sl = slugDoProfessor(p);
+    if (!sl || sl === donoSlug) continue;
+    opcoesDeHabilitacao.push('<option value="' + esc(sl) + '" data-nome="' + esc(p.nome) + '">'
+      + esc(p.nome) + '</option>');
+  }
   // AS ALUNAS seguem a MESMA regra (18/10/2026). O plano de ensino é da turma, mas a
   // CURADORIA declara quem está nela — e é a curadoria que tem plano. Então a aluna fica
   // vinculada quando alguma curadoria que a inclui já virou plano de ensino.
@@ -2052,6 +2155,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ? '<span class="selo vigencia" title="esta versão da turma vale a partir desta data">ajustada em ' +
             esc(dataBr(t.vigenteDe)) + '</span>'
           : '';
+        /* A TURMA DESCONTINUADA (03/11/2026).
+         *
+         * A REGRA DELA: «o sistema deve apenas marcar a turma como descontinuada… o histórico
+         * pedagógico permanece intacto e auditável». O selo é o que torna a marca visível — sem
+         * ele, a turma continuaria na lista com o mesmo aspecto de uma turma viva, e a decisão
+         * de desligar uma modalidade não teria consequência à vista.
+         *
+         * O TEXTO DIZ PORQUÊ, e não só que está: «descontinuada» sozinho manda procurar um
+         * defeito. O motivo é o que foi gravado quando a habilitação mudou. */
+        const motivoDescontinuada = String((t.descontinuada && t.descontinuada.motivo)
+          || 'a modalidade desta turma já não está nas habilitações do professor');
+        const emDescontinuada = (t.descontinuada && t.descontinuada.em)
+          ? ' em ' + dataBr(t.descontinuada.em) : '';
+        const seloDescontinuada = t.descontinuada
+          ? '<span class="selo alerta" title="' + esc(motivoDescontinuada) + '">descontinuada'
+            + esc(emDescontinuada) + '</span>'
+          : '';
         // LIVRE ou VINCULADA (16/10/2026). É a mesma regra do plano de ensino: uma turma sem
         // plano é cadastro e edita-se; uma turma com plano é linha de base e deriva-se. A
         // escola não precisa de saber a diferença — vê a bandeirinha e o botão certo.
@@ -2133,7 +2253,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '<span class="trio-q" aria-hidden="true">?</span></button>';
         return '<li class="turma" data-turma="' + esc(t.id) + '">' +
           '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
-          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
+          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') +
+          (seloDescontinuada ? ' ' + seloDescontinuada : '') + '</span>' +
           '<span class="acoes">' +
           botaoAjuste +
           // A TURMA COM PLANO NÃO SE APAGA (18/10/2026) — o selo já existia; o botão não
@@ -2188,6 +2309,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const opcoesProfessorCuradoria = profsParaCuradoria.length
     ? profsParaCuradoria.map((p) => '<option value="' + esc(p.valor) + '">' + esc(p.rotulo) + '</option>').join('')
     : '<option value="">— nenhum professor —</option>';
+  // O PROFESSOR RESPONSÁVEL DA TURMA (03/11/2026). É a MESMA lista da curadoria — os professores
+  // da escola —, e não uma segunda: o elo «quem ensina esta turma» é o mesmo nos dois sítios, e
+  // duas listas divergiriam à primeira admissão.
+  const opcoesDeProfessorDaTurma = opcoesProfessorCuradoria;
   const opcoesModalidadeCuradoria = (MODALIDADES.modalidades || []).map((m) =>
     '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
     (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
@@ -3124,6 +3249,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h3>Professores cadastrados</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensProfs + '</ul></div>' +
     rodapePaginacao() +
+    /* O QUE CADA PROFESSOR SABE ENSINAR (03/11/2026).
+     *
+     * A decisão dela: a modalidade «nasce da competência/habilidade do professor», e a escola só
+     * oferece a que os professores dela declaram. O lugar de editar é aqui — «editável
+     * posteriormente nos bastidores da produção» —, e o dado NÃO fica no KV desta escola: vai
+     * para `professores/<slug>/perfil.json`, que o expurgo não toca.
+     *
+     * Um formulário só, com o professor à escolha, porque as habilitações de cada um são uma
+     * lista curta e as pessoas da escola são poucas: um painel por linha gastaria um `fetch` por
+     * professor para dizer, na maioria dos casos, «ainda não declarou».
+     */
+    // A PEÇA É O BLOCO DOBRÁVEL DA CASA (`bloco-lista`/`bloco-cabeca`/`bloco-corpo`) — o mesmo
+    // dos painéis de «Procurar» e «Contexto do ato» nas listas. Não se inventa um `details` com
+    // desenho próprio: o `summary` daquele bloco já nasce com cursor, sem marcador do navegador e
+    // com a seta a rodar quando abre, e é isso que se quer aqui.
+    '<details class="bloco-lista" id="hab-bloco">' +
+    '<summary class="bloco-cabeca">' +
+    '<span class="bloco-titulo">Habilitações — o que cada professor sabe ensinar</span>' +
+    '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
+    '</summary>' +
+    '<div class="bloco-corpo">' +
+    '<form id="form-habilitacao">' +
+    '<label class="campo-rotulo" for="hab-professor">Professor</label>' +
+    '<select id="hab-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
+    '<label>Modalidades que este professor declara ensinar</label>' +
+    '<div class="escolhas" id="hab-modalidades">' +
+    MODALIDADES.modalidades.map((m) =>
+      '<label class="escolha"><input type="checkbox" name="hab-modalidade" value="' + esc(m.id) + '">' +
+      '<span>' + esc(m.nome) + (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</span></label>').join('') +
+    '</div>' +
+    '<p class="sub" id="hab-nota">Escolha o professor para ver o que ele já declara.</p>' +
+    '<div class="res" data-res="habilitacao"></div>' +
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao grande" id="hab-enviar">Gravar as habilitações</button>' +
+    '</span>' +
+    '</form>' +
+    '</div>' +
+    '</details>' +
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-alunas" hidden>' +
@@ -3223,6 +3386,40 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<option value="">— nenhum —</option>' +
     opcoesProgramaDaTurma +
     '</select>' +
+    /* A MODALIDADE E O PROFESSOR RESPONSÁVEL (03/11/2026).
+     *
+     * São os dois elos da decisão dela: a modalidade é o que a ESCOLA oferece, e o professor é
+     * quem a declara saber ensinar. Com os dois, a pergunta «esta turma ainda tem quem a ensine?»
+     * passa a ter resposta — sem eles não havia o que comparar.
+     *
+     * A LISTA DE MODALIDADES é a do catálogo, e a de professores é a da escola. Nenhuma delas se
+     * filtra pela habilitação: quem escolhe é a direção, e uma modalidade que o professor não
+     * declara não é recusada — é MARCADA (a regra dela: descontinuada, nunca apagada). Esconder
+     * a opção obrigaria a adivinhar por que ela não está lá. */
+    '<label class="campo-rotulo" for="tmodalidade">Modalidade da turma</label>' +
+    '<select id="tmodalidade">' +
+    '<option value="">— nenhuma —</option>' +
+    MODALIDADES.modalidades.map((m) =>
+      '<option value="' + esc(m.id) + '">' + esc(m.nome) + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="tprofessor">Professor responsável</label>' +
+    '<select id="tprofessor">' +
+    '<option value="">— nenhum —</option>' +
+    opcoesDeProfessorDaTurma +
+    '</select>' +
+    /* O NÍVEL, EM DOIS CAMPOS, COM A FORMA DA TRADIÇÃO (03/11/2026).
+     *
+     * O GRAU é um `select` cujas opções são as da tradição escolhida em «Programa de referência»
+     * — Básico/Intermediário/Avançado no caso geral, e nenhum na RAD (que numera em fila). O
+     * NÍVEL é um número: o «N» de «Nível 1 a N» é de cada escola, e um limite escrito aqui seria
+     * escolher por quem ensina.
+     *
+     * A troca de tradição REPOVOA o grau (script abaixo) — senão uma turma de RAD ficaria com um
+     * grau «Básico» que aquela tradição não tem. */
+    '<label class="campo-rotulo" for="tgrau">Grau</label>' +
+    '<select id="tgrau"><option value="">— sem grau —</option></select>' +
+    '<label class="campo-rotulo" for="tnivel">Nível</label>' +
+    '<input id="tnivel" name="nivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
     // O NÍVEL é ESCOLHEDOR: escolhe no menu, «Adicionar», e o nível fica em ficha com o «×».
     // A lista são os níveis do catálogo MAIS os que alguma turma já declara — um nível que a
     // escola já usa não desaparece do formulário por não estar no catálogo. O que sai daqui
@@ -3916,6 +4113,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<script>' +
     'var TOKEN = "";' +
+    /* A FORMA DO NÍVEL, POR TRADIÇÃO (03/11/2026), DECLARADA ANTES DE SER USADA.
+     *
+     * Vai para o cliente porque é ele que repovoa o `<select>` do grau quando a tradição muda — o
+     * servidor não pode repintar um formulário que ainda não foi submetido. É o dado de
+     * `tradicoes.json`, não uma segunda cópia dele.
+     *
+     * E FICA NO TOPO: `var` eleva a DECLARAÇÃO mas não a ATRIBUIÇÃO, e `pintarGraus()` corre mais
+     * acima do que o bloco de dados da página. Medido — a primeira versão punha-o junto de
+     * `TURMAS`, e a página morria em `pintarGraus` com `undefined[trad]`. */
+    'var NIVEIS_POR_TRADICAO = ' + JSON.stringify(CATALOGO.TRADICOES_JSON.estruturaDeNiveis || {}) + ';' +
     // O FILTRO QUE CHEGA PELO ATALHO (22/10/2026): o PO linka «ver a turma» com o nome
     // dela. A listagem é reduzida ANTES de a secção abrir, e o «Mostrar todas» continua a
     // devolver o resto — é uma vista, não uma exclusão. A aplicação fica no ARRANQUE, e não
@@ -4831,6 +5038,71 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  e.preventDefault();' +
     '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
     '});' +
+    /* AS HABILITAÇÕES — LER AO ESCOLHER, GRAVAR AO SUBMETER (03/11/2026).
+     *
+     * A LEITURA É POR GESTO, e não na carga da página: são N professores da escola e, hoje,
+     * nenhum deles tem perfil — carregar todos para escrever «nada» em N sítios é uma despesa
+     * sem informação. Um pedido quando se escolhe a pessoa.
+     */
+    'function pintarHabilitacoes(d){' +
+    '  var caixa = document.getElementById("hab-modalidades");' +
+    '  var nota = document.getElementById("hab-nota");' +
+    '  if (!caixa || !nota) return;' +
+    '  var marcadas = (d && d.modalidades) || [];' +
+    '  Array.prototype.slice.call(caixa.querySelectorAll("input")).forEach(function(x){' +
+    '    x.checked = marcadas.indexOf(x.value) !== -1;' +
+    '  });' +
+    '  if (!d || !d.existe) {' +
+    '    nota.textContent = "Este professor ainda não tem perfil: nada declarado até agora. " +' +
+    '      "O que se marcar aqui passa a valer a partir de agora.";' +
+    '  } else {' +
+    '    nota.textContent = marcadas.length' +
+    '      ? "Declara ensinar: " + marcadas.length + " modalidade(s)." :' +
+    '      "Declara NÃO ensinar modalidade nenhuma — é uma declaração, não um vazio.";' +
+    '  }' +
+    '  var fora = (d && d.descontinuadas) || [];' +
+    '  if (fora.length) {' +
+    '    nota.textContent += " Turma(s) que ficam DESCONTINUADAS (não se apagam): " +' +
+    '      fora.map(function(t){ return t.nome; }).join(", ") + ".";' +
+    '  }' +
+    '}' +
+    'function carregarHabilitacoes(){' +
+    '  var sel = document.getElementById("hab-professor");' +
+    '  if (!sel || !sel.value) return;' +
+    '  fetch("/api/bastidores/perfil?professor=" + encodeURIComponent(sel.value))' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){ if (d && d.ok !== false) pintarHabilitacoes(d); })' +
+    '    .catch(function(){});' +
+    '}' +
+    'var selHab = document.getElementById("hab-professor");' +
+    'if (selHab) { selHab.addEventListener("change", carregarHabilitacoes); carregarHabilitacoes(); }' +
+    'var formHab = document.getElementById("form-habilitacao");' +
+    'if (formHab) formHab.addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var sel = document.getElementById("hab-professor");' +
+    '  var opt = sel && sel.options[sel.selectedIndex];' +
+    '  var corpo = {' +
+    '    professor: sel ? sel.value : "",' +
+    '    nome: opt ? (opt.getAttribute("data-nome") || "") : "",' +
+    '    modalidades: marcados("hab-modalidade"),' +
+    '    token: TOKEN' +
+    '  };' +
+    '  var antes = ocuparBotao(formHab, "gravando...");' +
+    '  fetch("/api/bastidores/perfil", {method: "POST",' +
+    '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      liberarBotao(antes);' +
+    '      if (d && d.ok) {' +
+    '        recado("ok", "habilitações gravadas" + (d.descontinuadas && d.descontinuadas.length' +
+    '          ? " — " + d.descontinuadas.length + " turma(s) marcada(s) como descontinuada(s)" : "") + ".");' +
+    '        carregarHabilitacoes();' +
+    '      } else {' +
+    '        recado("erro", "Erro: " + ((d && d.erro) || "desconhecido"));' +
+    '      }' +
+    '    })' +
+    '    .catch(function(err){ liberarBotao(antes); recado("erro", "Erro: " + err.message); });' +
+    '});' +
     // As caixas marcadas de um grupo — usado pelos dias da semana (as pílulas curtas).
     // A leitura é por `input` + `name`, e não pelo seletor `input[name="…"]:checked`: assim
     // a função não depende de um motor de seletores completo, e a prova que a executa num
@@ -4896,6 +5168,41 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     // No arranque, o formulário nasce com as sete horas desabilitadas — nenhum dia escolhido.
     'sincronizarHoras();' +
+    /* O GRAU TEM A FORMA DA TRADIÇÃO (03/11/2026).
+     *
+     * A RAD numera em fila (Grade 1…8, Vocational…) e não tem graus; as outras agrupam em
+     * Básico/Intermediário/Avançado. Repovoar o `<select>` ao mudar a tradição é o que impede
+     * uma turma de RAD de ficar com um grau «Básico» que aquela tradição não tem.
+     *
+     * O VALOR QUE JÁ ESTAVA É PRESERVADO quando ainda existe na lista nova: mudar de Vaganova
+     * para francesa não pode apagar um grau «Intermediário» que as duas declaram.
+     */
+    'function pintarGraus(manter) {' +
+    '  var sel = document.getElementById("tgrau");' +
+    '  if (!sel) return;' +
+    '  var trad = (document.getElementById("tprograma") || {}).value || "";' +
+    '  var bloco = NIVEIS_POR_TRADICAO[trad] || NIVEIS_POR_TRADICAO.padrao || {};' +
+    '  var graus = (bloco.tipo === "numerada") ? [] : (bloco.graus || []);' +
+    '  var antes = (manter === undefined) ? sel.value : manter;' +
+    // AS OPÇÕES SÃO MARCAÇÃO, E NÃO NÓS CRIADOS (03/11/2026). Era `createElement`/
+    // `appendChild`; o resultado é o mesmo e a peça é a que esta página já usa nos outros
+    // `<select>` (`selSinal.innerHTML = opSinal.join("")`). Além de mais curto, não depende de
+    // uma API de DOM que as bancadas têm de simular — e uma bancada que finge metade do DOM
+    // mede a metade que fingiu.
+    '  var op = ["<option value=\'\'>" + (graus.length ? "— sem grau —" : "— esta tradição não usa grau —") + "</option>"];' +
+    '  graus.forEach(function(g){' +
+    '    op.push("<option value=\'" + g + "\'>" + g + "</option>");' +
+    '  });' +
+    '  sel.innerHTML = op.join("");' +
+    '  sel.value = (graus.indexOf(antes) !== -1) ? antes : "";' +
+    // O RÓTULO DO NÍVEL muda com a tradição: «Grade» na RAD, «Nível» nas outras. É uma DICA no
+    // `placeholder`, e não um texto a substituir o rótulo — o campo é o mesmo nos dois casos.
+    '  var rot = document.getElementById("tnivel");' +
+    '  if (rot) rot.setAttribute("placeholder", "ex.: 3" + (bloco.rotulo ? " (" + bloco.rotulo + ")" : ""));' +
+    '}' +
+    'var selTrad = document.getElementById("tprograma");' +
+    'if (selTrad) selTrad.addEventListener("change", function(){ pintarGraus(""); });' +
+    'pintarGraus();' +
     // AS FICHAS de um escolhedor — o que foi escolhido, na ordem em que se escolheu.
     'function fichasDe(id) {' +
     '  var el = document.getElementById(id);' +
@@ -4976,6 +5283,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // topo. Enviar o campo vazio obrigaria o servidor a distinguir «não quis dizer nada» de
     // «quer no fim» — e o fim nunca é o que a direção quer ao criar uma turma.
     '    programaReferencia: document.getElementById("tprograma").value,' +
+    // O NÍVEL EM DOIS CAMPOS (03/11/2026): o grau e o número. O `nivelReferencia` deixa de ser
+    // escrito à mão — o servidor compõe-no («Grade 3», «Intermediário 2») em `normalizarNivel`.
+    '    grau: (document.getElementById("tgrau") || {}).value || "",' +
+    '    nivel: (document.getElementById("tnivel") || {}).value || "",' +
+    '    modalidade: (document.getElementById("tmodalidade") || {}).value || "",' +
+    '    professor: (document.getElementById("tprofessor") || {}).value || "",' +
     '    nivelReferencia: fichasDe("esc-niveis").join(", "),' +
     '    descricao: document.getElementById("tdescricao").value,' +
     // A frequência NÃO se envia mais do formulário: o servidor a calcula a partir dos
@@ -5046,6 +5359,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O PROGRAMA É UMA LISTA: se o valor gravado for de uma época anterior (texto livre), ele
     // entra como opção própria — abrir a turma não pode perder a referência que ela declara.
     '  selecionarPrograma(t.programaReferencia || "");' +
+    // O QUE A TURMA JÁ DECLARA (03/11/2026): a modalidade, o professor responsável, o grau e o
+    // nível. O grau é reposto DEPOIS de a tradição estar escolhida — a lista dele depende dela.
+    '  pintarGraus(t.grau || "");' +
+    '  (function(){' +
+    '    var m = document.getElementById("tmodalidade"); if (m) m.value = t.modalidade || "";' +
+    '    var pr = document.getElementById("tprofessor"); if (pr) pr.value = t.professor || "";' +
+    '    var nv = document.getElementById("tnivel"); if (nv) nv.value = t.nivel || "";' +
+    '  })();' +
     '  document.getElementById("tdescricao").value = t.descricao || "";' +
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
     '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
@@ -8217,6 +8538,102 @@ async function fetch(request, env) {
     return json(200, {
       ok: true, escola, alunas: recorte.alunas, novas: recorte.novas,
       recorte: { professor: professorDoRecorte },
+    });
+  }
+
+  /* ===================================================================================
+   * O PERFIL DO PROFESSOR — AS HABILITAÇÕES (03/11/2026)
+   *
+   * A decisão dela: «as habilidades do professor vivem no registro da entidade do Professor
+   * (`professores/<slug>/perfil.json`), de forma independente do tenant da escola», e são
+   * «editáveis posteriormente nos bastidores da produção».
+   *
+   * A ROTA NÃO GUARDA ESTADO NO KV, e é o ponto: o cofre tem o prefixo da escola
+   * (`bastidores/<escola>/`), e o expurgo leva-o consigo. Guardar ali a habilitação faria dela um
+   * dado do tenant — a competência da pessoa sairia com o contrato.
+   * =================================================================================== */
+
+  // GET /api/bastidores/perfil?professor=<slug> — o perfil de um professor da escola.
+  if (path === '/api/bastidores/perfil' && request.method === 'GET') {
+    const alvo = String(url.searchParams.get('professor') || '').trim();
+    if (!alvo) return json(400, { ok: false, erro: 'informe o professor' });
+    const { lerPerfil } = require('./perfil-professor.js');
+    const lido = await lerPerfil({
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo,
+    });
+    if (!lido.ok) return json(lido.status || 502, { ok: false, erro: lido.erro });
+    // AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — derivadas, não guardadas. A tela mostra-as para
+    // a direcção ver o efeito de desligar uma modalidade ANTES de gravar; a lista de turmas
+    // também as marca, e é a mesma regra (`turmasDescontinuadas`, no núcleo).
+    const perfilNucleo = require('../nucleo/perfil-do-professor.js');
+    const descontinuadas = lido.existe
+      ? perfilNucleo.turmasDescontinuadas(await turmas(kv, escola), lido.perfil, { professor: alvo })
+      : [];
+    return json(200, {
+      ok: true,
+      professor: alvo,
+      // NÃO DECLARADO ≠ VAZIO. Sem perfil, `existe: false` e a lista de modalidades vem com o
+      // que a escola sabe — nada. A tela diz «ainda não declarou», e não «não ensina nada».
+      existe: Boolean(lido.existe),
+      perfil: lido.perfil,
+      modalidades: perfilNucleo.modalidadesDoPerfil(lido.perfil),
+      descontinuadas,
+      // A LISTA DO CATÁLOGO vai junto para a tela não ter uma segunda cópia das modalidades.
+      catalogo: perfilNucleo.LISTA_DE_MODALIDADES,
+    });
+  }
+
+  // POST /api/bastidores/perfil — grava as habilitações de um professor.
+  if (path === '/api/bastidores/perfil' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const alvo = String(corpo.professor || corpo.slug || '').trim();
+    if (!alvo) return json(400, { ok: false, erro: 'informe o professor' });
+    /* O PERFIL DE QUEM NÃO É DESTA ESCOLA NÃO SE EDITA AQUI. A página é da escola e a senha é a
+     * dela; sem esta guarda, quem tem a senha de uma escola reescreveria a habilitação de
+     * qualquer professor do sistema — e a habilitação é da PESSOA, não da instalação. */
+    const nomesDaEscola = new Set();
+    nomesDaEscola.add(String(slugDoDono(env) || '').trim());
+    for (const p of await professores(kv, escola)) {
+      if (p && p.nome) { nomesDaEscola.add(String(p.nome).trim()); nomesDaEscola.add(slugificar(p.nome)); }
+    }
+    if (!nomesDaEscola.has(alvo)) {
+      return json(403, { ok: false, erro: '«' + alvo + '» não é professor desta escola' });
+    }
+    const { lerPerfil, gravarPerfil, caminhoDoPerfil } = require('./perfil-professor.js');
+    const f = (u, o) => globalThis.fetch(u, o);
+    const token = env && env.GITHUB_TOKEN;
+    const atual = await lerPerfil({ f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo });
+    if (!atual.ok) return json(atual.status || 502, { ok: false, erro: atual.erro });
+    const nome = String(corpo.nome || (atual.perfil && atual.perfil.nome) || alvo).trim();
+    const gravado = await gravarPerfil({
+      f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo,
+      sha: atual.sha || undefined,
+      perfil: Object.assign({}, atual.perfil || {}, {
+        slug: alvo, nome, modalidades: corpo.modalidades,
+        // O `criado` de um perfil que já existia NÃO se reescreve: é desde quando a pessoa está
+        // no sistema. O `atualizado` é hoje, e é o que o servidor põe.
+        criado: (atual.perfil && atual.perfil.criado) || new Date().toISOString().slice(0, 10),
+      }),
+    });
+    if (!gravado.ok) return json(gravado.status || 502, { ok: false, erro: gravado.erro });
+    // AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — marcadas, nunca apagadas. A gravação das
+    // habilitações é o único momento em que o perfil e as turmas estão na mesma mão, e é por
+    // isso que a consequência se regista aqui (ver `marcarTurmasSemHabilitacao`).
+    const marcadas = await marcarTurmasSemHabilitacao(kv, escola, alvo, gravado.perfil);
+    return json(200, {
+      ok: true,
+      professor: alvo,
+      caminho: caminhoDoPerfil(alvo),
+      commit: gravado.commit,
+      modalidades: perfilNucleo.modalidadesDoPerfil(gravado.perfil),
+      // O QUE A GRAVAÇÃO FEZ ÀS TURMAS: quais passaram a descontinuadas e quais voltaram atrás.
+      descontinuadas: marcadas.descontinuadas,
+      turmasMarcadas: marcadas.mudadas,
     });
   }
 

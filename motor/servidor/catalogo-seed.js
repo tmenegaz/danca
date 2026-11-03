@@ -118,4 +118,7 @@ const DESCRICOES = descricoes.descricoes || {};
 
 module.exports = {
   TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES, ROTULOS, DESCRICOES, rotuloDaTradicao,
+  // A FORMA DO NÍVEL, por tradição (03/11/2026). Vai inteira porque quem a lê — o formulário da
+  // turma e o `normalizarNivel` — precisam da mesma: `tipo`, `graus` e o `rotulo` do nível.
+  TRADICOES_JSON: tradicoes,
 };

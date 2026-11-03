@@ -286,6 +286,51 @@ function manifestoBaseDoCiclo(caminhos, professor, ciclo) {
   }).sort();
 }
 
+/**
+ * O PERFIL DO PROFESSOR — E O EXPURGO NÃO LHE TOCA (03/11/2026).
+ *
+ * A DECISÃO DELA, e não é uma preferência de arrumação: «o fim de um vínculo contratual ou o
+ * expurgo físico de uma escola apaga os dados operacionais daquela escola, mas NÃO extingue e
+ * nem corrompe as habilidades do professor». A competência de quem ensina não é dado do tenant —
+ * é da pessoa —, e uma escola que fecha não pode levar consigo o que a pessoa sabe.
+ *
+ * POR QUE UMA FUNÇÃO, SE JÁ FUNCIONAVA. Medido: `professores/<slug>/perfil.json` já caía em
+ * `materialPreservado` (não casa `ehArquivoDaEscola`, que exige `ciclos/ciclo-NN-<escola>`), e por
+ * isso já sobrevivia. Mas sobrevivia **por não se parecer com nada do que se apaga** — e uma
+ * garantia que depende de o caminho não casar com um padrão alheio é uma garantia que a próxima
+ * mudança de padrão revoga sem avisar. Passa a haver uma regra com nome, uma guarda no expurgo e
+ * uma prova que a prende.
+ */
+const EH_PERFIL_DO_PROFESSOR = /^professores\/[^/]+\/perfil\.json$/;
+
+/** Se o caminho é o perfil de um professor — o que o expurgo preserva por decisão, não por acaso. */
+function ehPerfilDoProfessor(caminho) {
+  return EH_PERFIL_DO_PROFESSOR.test(String(caminho || ''));
+}
+
+/**
+ * A GUARDA DO EXPURGO: recusa ANTES de apagar se a lista levar um perfil.
+ *
+ * NENHUMA REGRA DE CAMINHO LEVA UM PERFIL HOJE — a de `ehArquivoDaEscola` exige
+ * `ciclos/ciclo-NN-<escola>`, e um `professores/<slug>/perfil.json` não casa. A guarda existe
+ * porque isso é uma coincidência entre dois padrões, e não um contrato: no dia em que o padrão
+ * alargar, a lista passa a levar perfis **sem que ninguém tenha decidido isso**.
+ *
+ * E o expurgo é a operação mais destrutiva do sistema, sem desfazer. Um erro que impede uma
+ * limpeza custa uma retomada; uma limpeza que leva a competência de uma pessoa custa a pessoa.
+ *
+ * Devolve a mesma lista quando está limpa — quem chama não tem de saber que houve uma guarda.
+ */
+function semPerfisNaLista(apagados) {
+  const lista = Array.isArray(apagados) ? apagados : [];
+  const perfis = lista.filter((c) => ehPerfilDoProfessor(c));
+  if (perfis.length) {
+    throw new Error('o expurgo ia apagar o perfil de um professor ('
+      + perfis.join(', ') + ') — a habilitação é da pessoa, não da escola; nada foi apagado');
+  }
+  return lista;
+}
+
 /** O material do professor que o expurgo NÃO toca — para o relatório dizer o que ficou.
  * Aqui entram os SCHEMAS do ciclo (o modelo) e `cadernos/`, `relatorios/`, `campo/`.
  *
@@ -525,6 +570,8 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     ? manifestoBaseDoCiclo(caminhos, escola.professor, escola.ciclo)
     : [];
   const apagados = escola.arquivos.concat(manifesto);
+  // A GUARDA DO PERFIL, aplicada à lista que vai ser apagada — ver `semPerfisNaLista`.
+  semPerfisNaLista(apagados);
   const classificados = classificarPreservados(caminhos, escola.professor, slug);
   const semApagados = (lista) => lista.filter((c) => !apagados.includes(c));
   const preservadosPorTipo = {
@@ -537,6 +584,9 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     .concat(preservadosPorTipo.doProfessor, preservadosPorTipo.deOutrasEscolas)
     .filter((c) => !c.startsWith('professores/' + escola.professor + '/ciclos/ciclo-' + escola.ciclo + '-' + slug))
     .sort();
+  // O PERFIL DO PROFESSOR, nomeado no relatório: quem lê o commit do expurgo tem de ver que ele
+  // sobreviveu E porquê — uma preservação que ninguém anuncia é indistinguível de um esquecimento.
+  const perfisPreservados = preservados.filter((c) => ehPerfilDoProfessor(c));
 
   const caminhoIndice = 'escola/' + slug + '/indice.json';
   const indiceAtual = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl });
@@ -590,6 +640,12 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     'O índice da escola sobrevive de propósito: a proveniência acrescenta, não apaga a memória de',
     'que a escola existiu.',
     '',
+    ...(perfisPreservados.length
+      ? ['O PERFIL DO PROFESSOR FICA, e é decisão (03/11/2026): a habilitação é da PESSOA, não do',
+        'tenant. Uma escola que fecha não leva consigo o que a pessoa sabe ensinar —',
+        perfisPreservados.join(', ') + '.']
+      : []),
+    '',
     'Refs: escola/' + slug + '/indice.json, wrangler.' + slug + '.jsonc',
     'Regras: P-03, P-04, P-17',
     'Auditoria: ' + (motivo || 'expurgada pela raiz'),
@@ -624,6 +680,9 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     professorTemOutraEscolaNoCiclo: outras.map((e) => e.slug),
     preservados,
     preservadosPorTipo,
+    // Os perfis que o expurgo deixou intactos — a lista que a decisão de 03/11/2026 obriga a
+    // mostrar. Vazia quando o professor ainda não tem perfil, e isso também é verdade.
+    perfisPreservados,
     elo: caminhoIndice,
     commit: novoCommit.corpo.sha,
     url: novoCommit.corpo.html_url || null,
@@ -1087,6 +1146,8 @@ module.exports = {
   professoresDosCaminhos,
   ehArquivoDaEscola,
   ehAcervoDaEscola,
+  ehPerfilDoProfessor,
+  semPerfisNaLista,
   ehAnamneseDaEscola,
   manifestoBaseDoCiclo,
   materialPreservado,

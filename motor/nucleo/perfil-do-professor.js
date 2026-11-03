@@ -1,0 +1,184 @@
+/**
+ * perfil-do-professor.js — A HABILITAÇÃO É DA PESSOA, NÃO DA ESCOLA (03/11/2026).
+ *
+ * A DECISÃO DELA, com as palavras dela: «a modalidade nasce da competência/habilidade do
+ * professor. A escola só incorpora e oferta uma modalidade se possuir professores habilitados
+ * para lecioná-la.» E, na mesma frase, o lugar: «as habilidades do professor vivem no registro
+ * da entidade do Professor (`professores/<slug>/perfil.json`), de forma independente do tenant
+ * da escola.»
+ *
+ * POR QUE ISTO É UM MÓDULO DO NÚCLEO E NÃO DO SERVIDOR. A regra tem duas perguntas — «que
+ * modalidades esta pessoa declara?» e «esta turma ainda tem quem a ensine?» — e as duas são
+ * lógica pura, sem IO. O servidor lê e grava o ficheiro; o expurgo decide o que preserva; a
+ * prova mede. Se cada um respondesse a sua, seriam três respostas para a mesma pergunta, e a
+ * primeira correcção deixaria duas a divergir. É a regra que esta casa já pagou com a conta dos
+ * tempos (quatro sítios a somar) e com o vocabulário por escola.
+ *
+ * O QUE ESTE MÓDULO **NÃO** FAZ: não lê ficheiros, não chama a rede, não sabe o que é uma
+ * escola. Recebe o que existe e devolve o que se conclui.
+ */
+
+const MODALIDADES = require('../../biblioteca/modalidades/modalidades.json');
+
+/** A lista de modalidades que o sistema oferece — a mesma que o catálogo publica. */
+const LISTA_DE_MODALIDADES = (MODALIDADES && MODALIDADES.modalidades) || [];
+
+/** A modalidade quando o chamador não a declara. Só há uma com conteúdo — e é declarada. */
+const MODALIDADE_PADRAO = 'bale-classico';
+
+/** Os ids válidos. Um id que não está aqui é um erro de dado, não uma modalidade nova. */
+function idsDeModalidade() {
+  return new Set(LISTA_DE_MODALIDADES.map((m) => m.id));
+}
+
+/** O nome de exibição de uma modalidade; sem ele, o próprio id — legível e não vazio. */
+function nomeDaModalidade(id) {
+  const achada = LISTA_DE_MODALIDADES.find((m) => m && m.id === id);
+  return achada ? achada.nome : String(id || '');
+}
+
+/** Se a modalidade tem repertório na biblioteca — a tela diz isso, e é dado do catálogo. */
+function modalidadeTemConteudo(id) {
+  const achada = LISTA_DE_MODALIDADES.find((m) => m && m.id === id);
+  return Boolean(achada && achada.temConteudo);
+}
+
+/**
+ * O PERFIL VAZIO — o de um professor que nasce com a escola.
+ *
+ * Ele NÃO nasce sem modalidade: quem cria uma escola é, por definição, quem a vai ensinar, e
+ * nasce habilitado na modalidade principal. É a decisão dela: «cria-se obrigatoriamente um
+ * professor (que pode ser o administrador/proprietário), o qual já nasce com o pré-requisito de
+ * saber ensinar pelo menos a modalidade principal».
+ */
+function perfilVazio({ slug, nome, modalidades, hoje } = {}) {
+  const lista = Array.isArray(modalidades) && modalidades.length
+    ? modalidades.slice()
+    : [MODALIDADE_PADRAO];
+  return {
+    slug: String(slug || '').trim(),
+    nome: String(nome || '').trim(),
+    modalidades: lista,
+    criado: String(hoje || ''),
+    atualizado: String(hoje || ''),
+  };
+}
+
+/**
+ * NORMALIZA E VALIDA o que a tela manda.
+ *
+ * O QUE SE RECUSA, e não se corrige em silêncio: um id que não existe na lista. Aceitá-lo
+ * criaria uma modalidade-fantasma no perfil — a tela mostraria «kuduro» e o catálogo não teria
+ * onde procurar o repertório. A mensagem diz qual, porque um «dados inválidos» genérico obriga
+ * a adivinhar.
+ *
+ * O QUE SE ACEITA VAZIO: a lista sem nenhuma modalidade. Não é um erro de forma — é uma
+ * declaração, e é ela que **descontinua** as turmas daquele professor (ver `turmasDescontinuadas`).
+ * Recusá-la obrigaria a mentir para desligar uma habilitação.
+ */
+function normalizarPerfil(corpo, { hoje } = {}) {
+  const bruto = corpo && typeof corpo === 'object' ? corpo : {};
+  const erros = [];
+  const validos = idsDeModalidade();
+
+  const lista = Array.isArray(bruto.modalidades)
+    ? bruto.modalidades
+    : String(bruto.modalidades || '').split(',');
+  const vistas = [];
+  const desconhecidas = [];
+  for (const m of lista) {
+    const id = String(m == null ? '' : m).trim();
+    if (!id) continue;
+    if (!validos.has(id)) { if (desconhecidas.indexOf(id) === -1) desconhecidas.push(id); continue; }
+    if (vistas.indexOf(id) === -1) vistas.push(id);
+  }
+  if (desconhecidas.length) {
+    erros.push('modalidade desconhecida: ' + desconhecidas.join(', ')
+      + ' — as que existem são: ' + [...validos].join(', '));
+  }
+
+  return {
+    ok: erros.length === 0,
+    erros,
+    perfil: {
+      slug: String(bruto.slug || '').trim(),
+      nome: String(bruto.nome || '').trim(),
+      modalidades: vistas,
+      criado: String(bruto.criado || hoje || ''),
+      atualizado: String(hoje || bruto.atualizado || ''),
+    },
+  };
+}
+
+/** As modalidades de um perfil, à prova de um registo antigo ou partido. */
+function modalidadesDoPerfil(perfil) {
+  const lista = (perfil && perfil.modalidades) || [];
+  return (Array.isArray(lista) ? lista : [])
+    .map((m) => String(m == null ? '' : m).trim())
+    .filter(Boolean);
+}
+
+/**
+ * A PERGUNTA QUE A DECISÃO DELA OBRIGA A FAZER: este professor ainda tem esta modalidade?
+ *
+ * Sem perfil, a resposta é «não sei» — e «não sei» NÃO descontinua nada. É a mesma distinção do
+ * `cobre` nos verbetes antigos: a ausência de um dado não é a negação dele. Um professor sem
+ * `perfil.json` (todos, hoje) continua a ter as suas turmas a funcionar; o que falta é o dado,
+ * e a tela diz isso em vez de inventar uma descontinuidade.
+ */
+function estadoDaHabilitacao(perfil, modalidade) {
+  if (!perfil || !Array.isArray(perfil.modalidades)) return 'sem-perfil';
+  const id = String(modalidade || '').trim();
+  if (!id) return 'sem-modalidade';
+  return modalidadesDoPerfil(perfil).indexOf(id) !== -1 ? 'habilitado' : 'perdeu';
+}
+
+/**
+ * AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — marcadas, nunca apagadas.
+ *
+ * A REGRA DELA: «a turma não é apagada, respeitando estritamente a regra da proveniência e a
+ * imutabilidade do histórico. O sistema deve apenas marcar a turma como descontinuada.»
+ *
+ * Três condições, e todas importam:
+ *   · a turma declara uma `modalidade` (sem ela não há o que comparar — e uma turma antiga, que
+ *     não declarava, NÃO é descontinuada: é dado que falta);
+ *   · a turma declara um `professor` que é o dono do perfil (uma turma de outra pessoa não é
+ *     descontinuada pela habilitação desta);
+ *   · e o perfil JÁ EXISTE e não tem essa modalidade.
+ *
+ * Devolve a lista com o motivo de cada uma — a tela mostra-o, porque «descontinuada» sem dizer
+ * porquê manda procurar um defeito onde há uma decisão.
+ */
+function turmasDescontinuadas(turmas, perfil, { professor } = {}) {
+  const lista = Array.isArray(turmas) ? turmas : [];
+  const deQuem = String(professor || (perfil && perfil.slug) || '').trim();
+  const saida = [];
+  for (const t of lista) {
+    if (!t || typeof t !== 'object') continue;
+    const modalidade = String(t.modalidade || '').trim();
+    if (!modalidade) continue;
+    const dono = String(t.professor || '').trim();
+    if (deQuem && dono && dono !== deQuem) continue;
+    if (estadoDaHabilitacao(perfil, modalidade) !== 'perdeu') continue;
+    saida.push({
+      id: String(t.id || ''),
+      nome: String(t.nome || ''),
+      modalidade,
+      motivo: 'o professor já não declara «' + nomeDaModalidade(modalidade) + '» nas habilitações dele',
+    });
+  }
+  return saida;
+}
+
+module.exports = {
+  LISTA_DE_MODALIDADES,
+  MODALIDADE_PADRAO,
+  idsDeModalidade,
+  nomeDaModalidade,
+  modalidadeTemConteudo,
+  perfilVazio,
+  normalizarPerfil,
+  modalidadesDoPerfil,
+  estadoDaHabilitacao,
+  turmasDescontinuadas,
+};

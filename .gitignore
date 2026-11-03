@@ -539,3 +539,7 @@ experimentos/modelo-formulario/*
 # «Sur le cou-de-pied»; o alfabeto não tinha o SIGNO, e o nome era a tradução literal. Citada no
 # `REGISTRO.md`.
 !experimentos/provar-sinais-da-modalidade.js
+
+# A HABILITAÇÃO É DA PESSOA (03/11/2026). O perfil do professor nasce com a escola, a turma sem
+# quem a ensine fica marcada, e o expurgo não leva a competência de ninguém. Citada no `REGISTRO.md`.
+!experimentos/provar-habilitacao-do-professor.js
