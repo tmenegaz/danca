@@ -8,8 +8,8 @@
       "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
       "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
     ],
-    "hash": "c2cdd9d3fc59cde8cf0b1b3c1dfd9f1dd2fa52ac828a4f1147839c4ece0cedcc",
-    "hash_conteudo": "593a0641eaa5ede06e79c9c68097b909bacf78a71a4e0d0494627cdb796081c4",
+    "hash": "d421f79428b4a1d3e32585ef798cad9c5d1a42777be5bb8f2387285ced15dc85",
+    "hash_conteudo": "ff4a5b7a74ffead9518b204e717682d57d58d3d27e2d9eef09d3c923e31f0b5a",
     "id": "ciclo-01-breu-bale-nivel-1-teste-3",
     "lida": true,
     "parent_hash": ""
@@ -52,9 +52,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8b049f6"
+    "commit": "33f38dc"
   },
-  "gerado_em": "2026-11-03T19:50",
+  "gerado_em": "2026-11-03T20:43",
   "id": "ciclo:coqui-de-redinha/01/breu",
   "professor": "coqui-de-redinha",
   "versao": 6
