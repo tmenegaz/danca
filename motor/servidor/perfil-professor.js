@@ -119,12 +119,16 @@ async function gravarPerfil({ f, token, dono, repo, ref, slug, perfil, sha, mens
   if (!validado.ok) return { ok: false, status: 400, erro: validado.erros.join('; '), erros: validado.erros };
 
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
-  const corpo = JSON.stringify(Object.assign({}, validado.perfil, {
+  /* A NOTA VEM PRIMEIRO, e a ordem é o que a torna lida. `Object.assign(perfil, {_nota})` põe a
+   * nota no FIM — foi o que aconteceu no primeiro perfil gravado pela tela (03/11/2026), e o
+   * ficheiro ficou com a regra depois do dado. Quem abre o ficheiro lê a primeira linha; é lá que
+   * a regra tem de estar, e é assim que `tools/criar-escola.sh` também o escreve. */
+  const corpo = JSON.stringify(Object.assign({
     _nota: 'O PERFIL DO PROFESSOR — a habilitação é da PESSOA, não da escola (03/11/2026). '
       + '`modalidades` é o que este professor declara saber ensinar; a escola oferece o que os '
       + 'professores dela declaram, por derivação. O expurgo de uma escola NÃO apaga este '
       + 'ficheiro: a competência de quem ensina não é dado do tenant.',
-  }), null, 2) + '\n';
+  }, validado.perfil), null, 2) + '\n';
 
   let resposta;
   try {
@@ -132,7 +136,10 @@ async function gravarPerfil({ f, token, dono, repo, ref, slug, perfil, sha, mens
       method: 'PUT',
       headers: cabecalhos(token),
       body: JSON.stringify({
-        message: mensagem || ('perfil(professor): habilitar ' + slug + ' em '
+        // O ESCOPO É DA LISTA FECHADA DO PROJETO (Regra 17). A primeira versão dizia
+        // `perfil(professor)`, que não está na lista — e o hook local recusa esse escopo. Passou
+        // a `feat(estrutura)`, que é onde as mudanças de estrutura deste repositório vivem.
+        message: mensagem || ('feat(estrutura): habilitar ' + slug + ' em '
           + (validado.perfil.modalidades.join(', ') || 'nenhuma modalidade')),
         content: codificarBase64(corpo),
         ...(ref ? { branch: ref } : {}),
