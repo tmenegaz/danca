@@ -4,15 +4,16 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-02",
-        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+        "ancorado_em": "2026-11-03",
+        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
         "cobertura": [
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
           "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
         ],
-        "hash": "984c97ffc7a14d042982beca72a9febc4d3092ba799b5a6450be976e832b4e35",
-        "hash_conteudo": "caacf74291a57dde3bf5dced923bd15179de1865e4fb4c77814cf03597ac0bc9",
-        "id": "ciclo-01-breu",
+        "hash": "c2cdd9d3fc59cde8cf0b1b3c1dfd9f1dd2fa52ac828a4f1147839c4ece0cedcc",
+        "hash_conteudo": "593a0641eaa5ede06e79c9c68097b909bacf78a71a4e0d0494627cdb796081c4",
+        "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
       },
@@ -20,6 +21,7 @@
       "documentos": [
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
@@ -41,7 +43,16 @@
   ],
   "documentos": [
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+      "professor": "coqui-de-redinha",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -50,7 +61,7 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -59,7 +70,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -68,7 +79,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -77,7 +88,7 @@
       "tipo": "plano"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -179,9 +190,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b97d26e"
+    "commit": "8b049f6"
   },
-  "gerado_em": "2026-11-03T19:45",
+  "gerado_em": "2026-11-03T19:50",
   "nao_indexado": [
     {
       "familia": "conteudo",
