@@ -195,6 +195,19 @@ function acaoDaPagina(chave) {
  * dentro — a pessoa chegava a um formulário em branco com o contexto, e não ao registo que
  * tinha acabado de escolher. Passou a levar o CARIMBO (`ajustar=<id>`), e a porta carrega-o.
  */
+/* A ROTA DE CADA FAMÍLIA para apagar — as duas que têm o gesto são as duas que têm registo
+ * solto. O PO não entra: é o topo da cadeia e não se apaga (P-10).
+ *
+ * COM O PREFIXO DA PORTA, e não relativa (03/11/2026). As rotas de escrita vivem no roteador da
+ * PORTA, que a ponte serve debaixo de `/anamnese`, `/plano-ensino` e `/plano-observacao`. Uma rota
+ * relativa resolvida a partir de `/area-do-professor/plano-de-ensino/` dava
+ * `/area-do-professor/plano-ensino/api/…` — 404, medido. O caminho é absoluto e diz de que porta
+ * é, que é o mesmo que `porta/index.html` faz com o seu `api/…` relativo. */
+const ROTA_DE_APAGAR = {
+  anamnese: '/anamnese/api/anamnese-vinculo/',
+  'plano-de-ensino': '/plano-ensino/api/plano-vinculo/',
+};
+
 function acoesDaLinha(chave, registo, estado) {
   const f = FAMILIAS[chave];
   /* O LINK DE EDIÇÃO LEVA O CONTEXTO (26/10/2026). Levava só `?editar=<carimbo>`, e por isso a
@@ -207,8 +220,30 @@ function acoesDaLinha(chave, registo, estado) {
     professor: base.professor, ciclo: base.ciclo,
     aluna: chave === 'anamnese' ? base.aluna : '',
   });
+  /* O PLANO SOLTO EDITA-SE **E APAGA-SE** (03/11/2026).
+   *
+   * O DEFEITO, medido na listagem publicada: o plano livre mostrava «Editar» e mais nada. O
+   * «Apagar» existia na estante antiga da porta (`acoesDoPlano`) e não foi trazido quando a
+   * listagem passou a ser a página da Área do Professor — ficou a regra sem o gesto, e a
+   * pesquisadora reparou: «na listagem atual de Planos de Ensino o sistema exibe corretamente o
+   * botão de editar para planos soltos. No entanto, o botão de apagar sumiu».
+   *
+   * A REGRA, e é a mesma das duas famílias: enquanto o registo está SOLTO — não vinculado a
+   * nenhum Plano de Observação e não derivado — o professor tem liberdade operacional sobre ele.
+   * Depois de vinculado, o gesto deixa de existir na tela (a linha passa a oferecer «Ajustar»,
+   * que acrescenta um elo), e o servidor recusa o `DELETE` de qualquer maneira com 409 —
+   * `rotas.js`, 7.2. A tela mostra o que a regra permite; quem decide continua a ser o servidor.
+   *
+   * E O BOTÃO, E NÃO UM LINK: apagar não tem página de destino. O gesto acontece na lista — pede
+   * a senha, pede confirmação, chama a rota e a linha sai. */
   if (chave === 'plano-de-ensino' && estado && estado.estado === 'solta') {
-    return [['Editar', f.porta + consulta(comEdicao(registo)), '']];
+    return [
+      ['Editar', f.porta + consulta(comEdicao(registo)), ''],
+      { rotulo: 'Apagar', apagar: registo.id, rota: ROTA_DE_APAGAR[chave],
+        nome: 'o plano de ensino ' + registo.id,
+        dica: 'apaga de vez — e só é possível porque ele não está ligado a nenhum Plano de '
+          + 'Observação nem foi derivado' },
+    ];
   }
   /* A ANAMNESE TINHA O MESMO DEFEITO DO PLANO, e a pesquisadora viu-o: «as anamneses que eu já
    * tenho prontas estão livres… então eu preciso que tenha esse indicativo para o professor saber
@@ -230,10 +265,16 @@ function acoesDaLinha(chave, registo, estado) {
         professor: registo.professor, ciclo: registo.ciclo, aluna: registo.aluna }), 'secundario',
         'acrescenta um elo novo; o registo anterior permanece']];
     }
+    /* «APAGAR» ERA UM LINK PARA O FORMULÁRIO (03/11/2026). Ele e o «Editar» apontavam para o
+     * MESMO endereço — dois botões, um destino, e o segundo a prometer uma coisa que não fazia
+     * (abria a edição). Agora é botão, chama a rota 9 (`/api/anamnese-vinculo/:id`) e apaga: a
+     * anamnese solta pode ser apagada, e a vinculada oferece «Ajustar» (o outro ramo acima). */
     return [
       ['Editar', f.porta + consulta(comEdicao(registo)), ''],
-      ['Apagar', f.porta + consulta(comEdicao(registo)), 'secundario',
-        'a anamnese solta pode ser apagada; a vinculada, não'],
+      { rotulo: 'Apagar', apagar: registo.id, rota: ROTA_DE_APAGAR[chave],
+        nome: 'a anamnese ' + registo.id + (registo.aluna ? ' de ' + registo.aluna : ''),
+        dica: 'apaga de vez — e só é possível porque ela não está ligada a nenhum Plano de '
+          + 'Observação' },
     ];
   }
   /* O PLANO VINCULADO E O PO — «ajustar», com o carimbo.
@@ -413,6 +454,79 @@ function scriptDoPainel(chave, escola) {
    * seta — é o do bloco. O guarda é o mesmo (sem o bloco, não há painel a pôr a funcionar), e o que
    * procura o «painel» passa a procurar o bloco. */
   var painel = document.getElementById('bloco-ato');
+
+  /* ---------------------------------------------------------------- APAGAR (03/11/2026)
+   *
+   * O GESTO VIVE NA LISTA, E NÃO NO PAINEL — por isso este bloco vem ANTES da guarda: o botão
+   * está no cartão, e o cartão existe mesmo quando o bloco do ato não existe. Sem isto, o
+   * «Apagar» que a listagem voltou a oferecer seria um botão morto.
+   *
+   * A SENHA, e porquê. É escrita, e a escrita neste sistema pede a senha do professor (a porta
+   * diz o mesmo: «a exclusão exige a senha»). O campo está no painel, no alto da página; se ela
+   * ainda não conferiu, o gesto não acontece — aponta-se o campo e diz-se porquê, em vez de
+   * abrir uma caixa a pedir o segredo fora do sítio onde ele se digita.
+   *
+   * QUEM DECIDE É O SERVIDOR. A tela só mostra o botão a quem a regra permite (o registo solto);
+   * se o estado mudar entre a pintura e o clique, a rota responde 409 — e a mensagem dela é a que
+   * se mostra, porque é a verdade.
+   */
+  function senhaConferida() {
+    if (!CFG.temSenha) return true;
+    var status = document.querySelector('[data-senha-status]');
+    return !!(status && !status.hidden);
+  }
+  function dizerNoPainel(texto) {
+    var estado = document.querySelector('[data-estado]');
+    if (!estado) return;
+    estado.hidden = false;
+    estado.setAttribute('data-falta', 'sim');
+    estado.textContent = texto;
+  }
+  function apontarSenha() {
+    var campoDaSenha = document.querySelector('[data-ato="senha"]');
+    if (!campoDaSenha) return;
+    var bloco = document.getElementById('bloco-ato');
+    if (bloco && bloco.tagName === 'DETAILS') bloco.open = true;
+    try { campoDaSenha.focus(); } catch (e) {}
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-apagar]');
+    if (!b) return;
+    var id = b.getAttribute('data-apagar');
+    var rota = b.getAttribute('data-apagar-rota') || '';
+    var nome = b.getAttribute('data-apagar-nome') || ('o registo ' + id);
+    if (!id || !rota) return;
+    if (!senhaConferida()) {
+      dizerNoPainel('A exclusão exige a senha do professor — digite-a no painel, no alto da '
+        + 'página, e o «Apagar» passa a funcionar.');
+      apontarSenha();
+      return;
+    }
+    /* A CONFIRMAÇÃO DIZ O SUJEITO E O QUE ACONTECE. «Apagar?» sozinho não faz ninguém parar:
+     * um gesto que não se desfaz tem de nomear o que desaparece. */
+    if (!window.confirm('Apagar ' + nome + '?\\n\\nÉ definitivo — e só é possível porque ele não '
+      + 'está vinculado a nenhum Plano de Observação nem foi derivado.')) return;
+    b.disabled = true;
+    fetch(rota + encodeURIComponent(id), { method: 'DELETE' })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) {
+        return { ok: r.ok, status: r.status, dados: d };
+      }); })
+      .then(function (r) {
+        /* 404 = já não existe; era esse o objetivo. 409 (vinculado ou derivado) continua a ser
+         * recusa, e aí a linha FICA — com o motivo escrito, e não com um botão que voltou ao
+         * normal sem explicação. */
+        if (!r.ok && r.status !== 404) throw new Error((r.dados && r.dados.erro) || ('HTTP ' + r.status));
+        /* A LISTA É DO SERVIDOR. Apagar a linha do DOM sem repintar deixaria a contagem, os
+         * filtros e a paginação a falar de um registo que já não existe; recarregar é a única
+         * resposta que não mente — e o contexto do ato sobrevive, porque está no localStorage. */
+        window.location.reload();
+      })
+      .catch(function (erro) {
+        b.disabled = false;
+        dizerNoPainel('Não apaguei ' + nome + ': ' + erro.message);
+      });
+  });
+
   if (!painel) return;
 
   function $(seletor) { return document.querySelector(seletor); }

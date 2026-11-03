@@ -578,3 +578,9 @@ experimentos/modelo-formulario/*
 # duplicava a linha. A linha órfã sai, a chave passa a ser o número, e o ✕ deixa de acender nas
 # derivadas quando a senha é validada. Citada no `REGISTRO.md`.
 !experimentos/provar-sequencia-que-acompanha.js
+
+# O REGISTO SOLTO EDITA-SE E APAGA-SE (03/11/2026). O «Apagar» sumiu da listagem do plano quando
+# ela passou a ser a página da Área do Professor, e na anamnese era um link para o formulário de
+# edição — dois botões, um destino, o segundo a prometer o que não fazia. Voltou como botão, com a
+# senha e a confirmação, e o servidor a decidir. Citada no `REGISTRO.md`.
+!experimentos/provar-apagar-da-listagem.js

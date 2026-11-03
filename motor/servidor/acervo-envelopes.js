@@ -413,10 +413,19 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
 
     /** APAGA. Devolve `true` se existia (a mesma resposta do adaptador do KV). */
     async apagar(chave) {
-      exigirToken();
       const nome = String(chave || '');
       if (!nome.startsWith('envelope/')) {
         return legado && typeof legado.apagar === 'function' ? legado.apagar(nome) : false;
+      }
+      /* A MESMA SIMETRIA DO `guardar` (03/11/2026). Sem token, o `guardar` cai no armazenamento
+       * antigo («não sei escrever no repositório» não pode virar «não sei gravar»); o `apagar`
+       * exigia token e respondia 500. A assimetria era invisível enquanto ninguém apagava — e
+       * deixou de ser no dia em que a listagem voltou a oferecer o «Apagar» do registo solto: o
+       * botão funciona numa escola com token e dá erro na que não tem, sem que nada na tela
+       * explique porquê. Apagar é o inverso de gravar, e onde se gravou é onde se apaga. */
+      if (!token || !slug) {
+        if (legado && typeof legado.apagar === 'function') return legado.apagar(nome);
+        exigirToken();   // sem um nem outro: a falta tem nome
       }
       const achado = await conteudo(nome);
       if (!achado) return false;

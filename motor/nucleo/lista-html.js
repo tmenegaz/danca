@@ -129,14 +129,34 @@ function cartaoDaLista(item, indice) {
   const selo = item.selo
     ? ' <span class="selo ' + esc(item.seloClasse || 'discreto') + '">' + esc(item.selo) + '</span>'
     : '';
-  const acoes = (item.acoes || []).filter(([, href]) => href)
-    /* O QUARTO ELEMENTO É A EXPLICAÇÃO (`title`). Ela não é decoração: «editar» e «ajustar» são
-       gestos diferentes, e a diferença — o que se apaga, o que permanece — não cabe no rótulo.
-       Quem não vê o `title` (o telemóvel) perde a frase, mas não perde o gesto: o rótulo diz o
-       que vai acontecer, e os dois nunca fazem a mesma coisa. */
-    .map(([rotulo, href, classe, dica]) =>
-      '<a class="acao ' + (classe || '') + ' pequena" href="' + esc(href) + '"'
-      + (dica ? ' title="' + esc(dica) + '"' : '') + '>' + esc(rotulo) + '</a>')
+  /* DUAS ESPÉCIES DE ACÇÃO, e a diferença é o que acontece ao clique (03/11/2026).
+   *
+   *   · o LINK — leva a outro sítio (o formulário, a ficha), e o destino vai no `href`;
+   *   · o BOTÃO — o gesto acontece AQUI, e não tem página para onde ir. «Apagar» é o caso: pede
+   *     confirmação, chama a rota e a linha desaparece. Era um `<a>` e não podia ser: um link
+   *     para um `DELETE` não existe, e o que havia no lugar — dois links com o mesmo destino, o
+   *     segundo a dizer «Apagar» — abria o formulário de edição e não apagava nada.
+   *
+   * O BOTÃO DIZ O QUE VAI APAGAR (`data-apagar-nome`) e por onde (`data-apagar-rota`): é o
+   * `scriptDoPainel` que lê os dois. Sem nome, a confirmação teria de inventar um sujeito. */
+  const acoes = (item.acoes || [])
+    .filter((a) => (Array.isArray(a) ? !!a[1] : !!(a && a.apagar)))
+    .map((a) => {
+      if (!Array.isArray(a)) {
+        return '<button type="button" class="acao ' + esc(a.classe || 'perigo') + ' pequena"'
+          + ' data-apagar="' + esc(a.apagar) + '"'
+          + (a.rota ? ' data-apagar-rota="' + esc(a.rota) + '"' : '')
+          + (a.nome ? ' data-apagar-nome="' + esc(a.nome) + '"' : '')
+          + (a.dica ? ' title="' + esc(a.dica) + '"' : '') + '>' + esc(a.rotulo) + '</button>';
+      }
+      const [rotulo, href, classe, dica] = a;
+      /* O QUARTO ELEMENTO É A EXPLICAÇÃO (`title`). Ela não é decoração: «editar» e «ajustar» são
+         gestos diferentes, e a diferença — o que se apaga, o que permanece — não cabe no rótulo.
+         Quem não vê o `title` (o telemóvel) perde a frase, mas não perde o gesto: o rótulo diz o
+         que vai acontecer, e os dois nunca fazem a mesma coisa. */
+      return '<a class="acao ' + (classe || '') + ' pequena" href="' + esc(href) + '"'
+        + (dica ? ' title="' + esc(dica) + '"' : '') + '>' + esc(rotulo) + '</a>';
+    })
     .join('');
   const fatos = (item.fatos || []).filter(Boolean).length
     ? '<div class="fatos">' + item.fatos.filter(Boolean)
