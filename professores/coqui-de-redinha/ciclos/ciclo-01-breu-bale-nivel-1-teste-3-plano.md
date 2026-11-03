@@ -129,7 +129,6 @@ O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha 
 
 - Battement tendu
 - Plié
-- Port de bras
 
 ## Registro de proveniência
 
