@@ -312,30 +312,79 @@ const bloco = (titulo) => console.log('\n' + titulo);
     depois.map((l) => l.celulas[1].texto));
 
   /* --------------------------------------------------------------------------------------- */
-  bloco('5. O ✕ — a derivada não se remove, a acrescentada sim');
+  bloco('5. A TABELA NÃO INVENTA NADA — nem uma linha a mais, nem uma a menos');
   /* --------------------------------------------------------------------------------------- */
+  /* A REGRA, e ela é de negócio (03/11/2026): «adicionar uma linha não faz sentido existir aqui.
+   * Se eu quiser que tenha mais, eu preciso voltar lá para a produção e vincular na curadoria
+   * que tenha mais exercícios para essa turma. […] Isso quebra toda a nossa regra de negócio,
+   * porque a gente tá gerando uma fraude. Não foi curado isso.» A curadoria é ela mesma um
+   * plano, acordado entre a direção e o professor: uma linha acrescentada aqui seria um acordo
+   * que ninguém fez, e publicá-la é o mesmo que falsificá-lo. */
   w.eval(semear([OBJETIVO_1], ESTADO.estrutura, ESTADO.parametro, SEQUENCIA_GUARDADA));
   await new Promise((r) => setTimeout(r, 250));
-  const comXis = abrirASequencia(w);
-  provar('as seis derivadas têm ✕ apagado, e isto COM a senha já validada',
-    comXis.every((l) => l.xis === 'apagado'), comXis.map((l) => l.xis));
+  const osBotoes = w.eval(`(function(){
+    var q = document.getElementById('pergunta');
+    return {
+      acrescentar: q.querySelectorAll('[data-grelha-add]').length,
+      remover: q.querySelectorAll('[data-grelha-del]').length,
+      livres: q.querySelectorAll('[data-grelha-livre]').length,
+      selects: q.querySelectorAll('tbody select').length
+    };
+  })()`);
+  provar('não há botão «Adicionar linha»', osBotoes.acrescentar === 0, osBotoes);
+  provar('não há ✕ nenhum na tabela', osBotoes.remover === 0, osBotoes);
+  provar('não há campo livre — nem no conteúdo, nem nos tempos e no compasso',
+    osBotoes.livres === 0 && osBotoes.selects === 0, osBotoes);
 
-  w.eval("(function(){ mudarLinhasDaGrelha('add'); return true; })()");
+  /* CONTROLE POSITIVO, e é o que impede a leitura errada de que «a tabela deixou de funcionar»:
+   * o caminho legítimo de ter mais exercícios — marcar mais um em «Parâmetro de medição» —
+   * continua a produzir mais linhas. Sem esta asserção, a secção passaria com a tabela vazia. */
+  const antesDoParametro = abrirASequencia(w).length;
+  w.eval("(function(){ RESPOSTAS.set('aula-1-parametro',"
+    + " [{ marco: 1, marcados: ['Battement tendu', 'Plié', 'Port de bras'] }]);"
+    + ' pintarRoteiro(); return true; })()');
   await new Promise((r) => setTimeout(r, 250));
-  const comExtra = abrirASequencia(w);
-  provar('a linha acrescentada nasce com ✕ activo', comExtra[comExtra.length - 1].xis === 'activo',
-    comExtra.map((l) => l.xis));
-  provar('…e as derivadas continuam apagadas', comExtra.slice(0, 6).every((l) => l.xis === 'apagado'),
-    comExtra.map((l) => l.xis));
+  const depoisDoParametro = abrirASequencia(w).length;
+  provar('marcar um exercício a mais no PARÂMETRO acrescenta as linhas dele',
+    depoisDoParametro > antesDoParametro,
+    { antes: antesDoParametro, depois: depoisDoParametro });
+  provar('e cada exercício novo ganha uma linha por bloco onde o objetivo é trabalhado',
+    depoisDoParametro === antesDoParametro + 3,
+    { antes: antesDoParametro, depois: depoisDoParametro });
 
-  w.eval("(function(){ var bs = document.querySelectorAll('#pergunta [data-grelha-del]');"
-    + ' bs[bs.length - 1].click(); return true; })()');
+  /* O CASO DA LACUNA — e ele é o que distingue «derivado de nada» de «campo por preencher». Sem
+   * parâmetro marcado não há exercício nenhum para aquele objetivo; a tabela mostra o bloco e o
+   * objetivo, e a célula do conteúdo fica VAZIA e travada — não vira campo livre. Um campo livre
+   * aqui era a porta por onde entrava o exercício que a curadoria não acordou. */
+  w.eval(semear([OBJETIVO_1], ESTADO.estrutura, [], SEQUENCIA_GUARDADA));
   await new Promise((r) => setTimeout(r, 250));
-  const semExtra = abrirASequencia(w);
-  provar('o ✕ da acrescentada remove-a — e só a ela', semExtra.length === 6, semExtra.length);
+  const semParametro = abrirASequencia(w);
+  provar('sem parâmetro marcado, aparecem as linhas dos blocos e nenhuma inventada',
+    semParametro.length === 3, semParametro.length);
+  provar('…e o conteúdo do nível fica vazio e travado, em vez de um campo para escrever',
+    semParametro.every((l) => l.celulas[2].travada && !l.celulas[2].select
+      && l.celulas[2].texto === '—'),
+    semParametro.map((l) => l.celulas[2]));
+  const rodape = w.eval("(function(){ var q = document.getElementById('pergunta');"
+    + " var p = q.querySelectorAll('.sub'); var t = '';"
+    + " for (var i = 0; i < p.length; i++) t += p[i].textContent; return t; })()");
+  provar('e o rodapé diz que o repertório se muda na Curadoria',
+    /Curadoria/.test(rodape), rodape.slice(0, 200));
 
-  // A MESMA CLASSE, num sítio onde ela morde: o «−» do primeiro objetivo específico (a lista
-  // nunca fica vazia) tem de continuar apagado com a senha validada.
+  /* E O OUTRO LADO — a tabela que NÃO é a sequência não herda essa frase. A distribuição do
+   * volume também recebe as linhas dos blocos marcados, mas ali a proporção SE ESCREVE, e o
+   * rodapé tem de dizer isso. Uma mensagem só para as duas telas seria meia verdade numa delas. */
+  const rodapeDoVolume = w.eval("(function(){ var i = MAPA.nos.findIndex(function(n){"
+    + " return n.id === 'distribuicao-de-volume'; }); INDICE = i; renderPergunta();"
+    + " var p = document.querySelectorAll('#pergunta .sub'); var t = '';"
+    + " for (var j = 0; j < p.length; j++) t += p[j].textContent; return t; })()");
+  provar('a distribuição do volume diz que ali a proporção se preenche',
+    /proporção/.test(rodapeDoVolume) && !/Curadoria/.test(rodapeDoVolume),
+    rodapeDoVolume.slice(0, 220));
+
+  /* E a outra classe, que continua a valer: o controle que nasce travado por REGRA não pode ser
+   * aceso pela senha. O «−» do primeiro objetivo específico (a lista nunca fica vazia) é o caso
+   * vivo — a trava da senha escrevia `disabled = false` em todos os controles ao destravar. */
   const menos = w.eval("(function(){ var i = MAPA.nos.findIndex(function(n){ return n.id === 'marcos-por-aula'; });"
     + ' INDICE = i; renderPergunta();'
     + " return Array.prototype.slice.call(document.querySelectorAll('#pergunta [data-lista-del]'))"
@@ -344,15 +393,20 @@ const bloco = (titulo) => console.log('\n' + titulo);
     JSON.stringify(menos) === JSON.stringify(['apagado']), menos);
 
   /* --------------------------------------------------------------------------------------- */
+  /* --------------------------------------------------------------------------------------- */
   bloco('6. A TELA E O NÚCLEO CONCORDAM — a mesma lista de objetivos, as mesmas linhas');
   /* --------------------------------------------------------------------------------------- */
-  const ficaram = JSON.parse(w.eval(
-    "(function(){ return JSON.stringify(RESPOSTAS.get('aula-1-sequencia')); })()"));
+  // O estado volta ao caso dela: a secção 5 marcou um exercício a mais de propósito.
+  w.eval(semear([OBJETIVO_1], ESTADO.estrutura, ESTADO.parametro, SEQUENCIA_GUARDADA));
+  await new Promise((r) => setTimeout(r, 250));
+  const desenhadas = abrirASequencia(w);
   const peloNucleo = sequenciaDoPlano.linhasVivas(SEQUENCIA_GUARDADA, [OBJETIVO_1]);
-  provar('as linhas que a tela gravou são as que o núcleo deixa passar',
-    JSON.stringify(ficaram.map((l) => l['Objetivo específico']))
-    === JSON.stringify(peloNucleo.map((l) => l['Objetivo específico'])),
-    { tela: ficaram.length, nucleo: peloNucleo.length });
+  provar('a tela desenha exactamente as linhas que o núcleo deixa passar',
+    JSON.stringify(desenhadas.map((l) => l.celulas[0].texto + '␟' + l.celulas[1].texto))
+    === JSON.stringify(peloNucleo.map((l) => String(l.Bloco) + '␟' + String(l['Objetivo específico']))),
+    { tela: desenhadas.map((l) => l.celulas[0].texto), nucleo: peloNucleo.length });
+  provar('…e são seis, no caso dela', desenhadas.length === 6 && peloNucleo.length === 6,
+    { tela: desenhadas.length, nucleo: peloNucleo.length });
   provar('nenhum erro de JavaScript na página', problemas.length === 0, problemas);
 
   srv.close();

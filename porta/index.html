@@ -4452,24 +4452,25 @@ function grelhaDaTabela(no) {
         derivadas.push(nova);
         if (colunaDerivada && nova[colunaDerivada]) linhasDaDerivada.add(nova);
       }
-      // E O QUE FICOU — a linha NÃO SE PERDE, mas o bloco que não é mais trabalhado SAI:
-      //   · bloco ainda marcado (uma 2ª linha do mesmo par: dois exercícios no mesmo
-      //     objetivo) — fica;
-      //   · linha sem bloco (a que o professor acrescentou por cima dos blocos) — fica,
-      //     e é ela que ele preenche escolhendo o bloco;
-      //   · bloco que deixou de ser marcado — sai (a distribuição não tem musicalidade se
-      //     a musicalidade não é trabalhada).
-      const marcados = new Set(blocos);
-      const extras = [];
-      for (const lista of fila.values()) {
-        for (const l of lista) {
-          const b = String((l && l[colunas[0]]) || '');
-          if (b && !marcados.has(b)) continue;
-          extras.push(l);
-        }
-      }
+      /* A TABELA NÃO ACRESCENTA NADA, E NÃO GUARDA O QUE NÃO FOI DECIDIDO (03/11/2026).
+       *
+       * Aqui havia um `extras`: as linhas gravadas que nenhuma semente consumiu ficavam na
+       * tabela «para não se perder o que o professor escreveu». O argumento era bom e o
+       * pressuposto era falso — ele NÃO PODE escrever nenhuma destas células. A coluna do
+       * bloco e a do objetivo são `somenteLeitura`, o conteúdo vem do parâmetro e os tempos e o
+       * compasso vêm do verbete. Uma linha que não sai de uma decisão só pode ser sobra de uma
+       * sessão anterior — e mostrá-la como se fosse a aula é publicar um acordo que não houve.
+       *
+       * Decidido por ela, e o argumento é o de negócio: «a curadoria ela é um plano também. Ela
+       * faz parte do que foi acordado por um comitê de professores ou o diretor da escola e o
+       * professor. […] adicionar uma linha não faz sentido existir aqui. Se eu quiser que tenha
+       * mais, eu preciso voltar lá para a produção e vincular na curadoria». Se ele quer usar
+       * MENOS, tira na curadoria — a autonomia é dele, mas o sítio é lá, onde o acordo se vê.
+       *
+       * A linha gravada NÃO se apaga do envelope por isto (P-03): a próxima gravação escreve o
+       * que a derivação decidiu, e o que ficou para trás fica como memória do que já foi. */
       linhas.length = 0;
-      for (const l of derivadas.concat(extras)) linhas.push(l);
+      for (const l of derivadas) linhas.push(l);
       quantasDerivadas = derivadas.length;
     } else if (!Array.isArray(registado) || !registado.length) {
       // Sem bloco marcado não há linha a preencher — e a tela DIZ isso, em vez de
@@ -4534,7 +4535,13 @@ function grelhaDaTabela(no) {
             '</select></td>';
         }
       }
-      if (travadas.indexOf(c) !== -1 || (c === colunaDerivada && linhasDaDerivada.has(linha))) {
+      /* A COLUNA DERIVADA É SEMPRE LEITURA (03/11/2026). Aqui havia uma condição a mais —
+       * `linhasDaDerivada.has(linha)` —, e ela abria um buraco: a linha cujo conteúdo não vinha
+       * do parâmetro (porque ele ainda não o marcou) caía no seletor com campo livre, e o
+       * professor escrevia ali um exercício que a curadoria nunca acordou. O conteúdo de um
+       * exercício da aula é do repertório curado da turma; o que não foi marcado mostra-se como
+       * lacuna, e é em «Parâmetro de medição» que se resolve. */
+      if (travadas.indexOf(c) !== -1 || c === colunaDerivada) {
         return '<td class="travada">' + (valor || '<span class="dono">—</span>') +
           '<input type="hidden" data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' + valor + '"></td>';
       }
@@ -4587,12 +4594,25 @@ function grelhaDaTabela(no) {
       'música; para corrigir o exercício, o verbete é que se altera, em Produção.</p>'
     : '';
 
+  /* O RODAPÉ DIZ ONDE A LINHA NASCE — e não que se preenche aqui (03/11/2026). Este texto
+   * dizia «aqui você preenche o valor de cada bloco», o que deixou de ser verdade no dia em que a
+   * sequência passou a ser derivada por inteiro. Quem quer mais exercícios não os acrescenta
+   * nesta tabela: acrescenta-os à curadoria, ou marca-os como parâmetro. A frase aponta o sítio,
+   * porque um campo sem saída é pior do que um campo a menos. */
   const rodape = podeAcrescentar
-    ? '<p class="linha-acao"><button type="button" data-grelha-add="1">Adicionar linha</button>' +
-      (no.tabela && no.tabela.linhasDe
-        ? ' <span class="dono">as linhas vêm dos objetivos e dos blocos — acrescente só se houver mais de um exercício no mesmo conteúdo.</span>'
-        : '') + '</p>'
-    : '<p class="sub">As linhas vêm do campo anterior — aqui você preenche o valor de cada bloco.</p>';
+    ? '<p class="linha-acao"><button type="button" data-grelha-add="1">Adicionar linha</button></p>'
+    : (no.tabela && no.tabela.linhasDe
+      ? (no.tabela.linhasDe.de
+        // A SEQUÊNCIA — a única tabela com objetivo por linha, e a única onde a origem é dupla
+        // (as decisões da aula dentro, a curadoria fora).
+        ? '<p class="sub">As linhas vêm das suas decisões — o bloco e o objetivo de ' +
+          citacao(campoDoNo(no.tabela.linhasDe.no)) + ', o exercício e o objetivo dos ' +
+          citacao(campoDoNo(no.tabela.linhasDe.de)) + ', e a música do verbete. Para a aula ' +
+          'ter mais ou menos exercícios, quem se muda é o repertório da turma, na Curadoria.</p>'
+        // A DISTRIBUIÇÃO DO VOLUME — uma linha por bloco marcado, e nada mais.
+        : '<p class="sub">As linhas vêm dos blocos que você marcou em ' +
+          citacao(campoDoNo(no.tabela.linhasDe.no)) + ' — aqui você preenche a proporção de cada um.</p>')
+      : '<p class="sub">As linhas vêm do campo anterior.</p>');
 
   const rotuloDaColuna = (c) =>
     c === colunaDoAlvo && unidade ? md(c) + ' <span class="dono">(' + escapar(unidade) + ')</span>' : md(c);
