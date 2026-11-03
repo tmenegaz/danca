@@ -111,13 +111,51 @@ médio prazo é levá-lo a zero, e a prova passa a afirmar o zero.
 |:--|:--|
 | Onde vive a habilitação? | `professores/<slug>/perfil.json`, independente do tenant. Nasce com a escola (o professor que a cria já nasce habilitado na modalidade principal) e edita-se nos **Bastidores · Produção → Professores → Habilitações** |
 | A turma cuja modalidade o professor deixou de ter? | **Não se apaga.** Fica `descontinuada`, com data e motivo, e o histórico intacto. A marca é **revogável**: quem volta a declarar a modalidade apaga-a |
-| A habilitação tem níveis? | Os níveis são **da turma**, não da habilitação, e têm a **forma da tradição**: `grau` + `nivel` (RAD numera em fila, «Grade 3»; as outras agrupam, «Intermediário 2»). O campo mora em `tradicoes.json` → `estruturaDeNiveis` |
+| A habilitação tem níveis? | **Não** — a habilitação é sim/não por modalidade. O nível é do **enquadramento**, e o enquadramento é da **curadoria** (§2.3): `grau` + `nivel`, na forma da tradição, declarada em `tradicoes.json` → `estruturaDeNiveis` |
 
 **E o expurgo, que é onde a decisão se prova.** O perfil **não** é dado do tenant: o expurgo
 preserva-o (`repo-escola.js` → `ehPerfilDoProfessor`), nomeia-o no relatório do commit, e há uma
 guarda (`semPerfisNaLista`) que **recusa antes de apagar** se alguma regra de caminho chegar até
 lá. Sem essa guarda a preservação dependeria de o caminho não casar com um padrão alheio — e uma
 garantia que depende de um acidente revoga-se sem avisar.
+
+### 2.3 A turma é o ritmo, a curadoria é o ensino
+
+> **DECIDIDO pela pesquisadora a 03/11/2026**, revendo a arrumação do mesmo dia. O nível, a
+> modalidade, a tradição e o professor tinham sido postos na **turma** de manhã; à tarde ela
+> reviu, e a razão é de operação: «se a escola precisar mover uma turma de nível ou reajustá-la
+> para outra modalidade por razões estratégicas ou sazonais, ela não precisa destruir ou recriar a
+> estrutura operacional da turma; basta ajustar a **curadoria**». E o ganho que ela nomeia:
+> «a história operacional da turma (calendário, frequência, lançamentos) descola-se das mudanças
+> de enquadramento de nível».
+
+| A **turma** — infraestrutura operacional | A **curadoria** — direção pedagógica |
+|:--|:--|
+| dias da semana, horários, duração, frequência e período | vinculação ao **professor** habilitado |
+| os **conteúdos** que aquele grupo vai aprender | **modalidade** e **tradição** de referência |
+| a **rubrica** de medição | o **nível** (`grau` + `nivel`), na forma da tradição |
+| as **alunas** (o vínculo operacional) | as **alunas** daquela entrega (o recorte) |
+
+**Três leituras ficariam ambíguas sem regra escrita** — e é para isso que existe
+`motor/nucleo/enquadramento.js`, um módulo puro:
+
+1. **Qual é o enquadramento de uma turma?** A curadoria que a referencia (pelo **nome** — é assim
+   que a curadoria a encontra depois de ela ser derivada). Sem nenhuma, **não há**, e não se
+   inventa: a listagem diz «sem curadoria atribuída», porque a ausência é um estado operacional e
+   um espaço em branco lê-se como esquecimento.
+2. **Qual é o nível efetivo?** O da curadoria; sem ele, o texto que a turma guardou **antes desta
+   decisão** — com a origem dita (`de: 'curadoria' | 'turma' | 'nenhum'`). **A memória não se
+   apaga** (P-03/P-04): o que sai da lista de campos que o `turma-editar` copia deixa de ser
+   tocado, e fica onde está.
+3. **Que turmas ficaram sem quem as ensine?** Lidas pelo enquadramento. Era por
+   `t.modalidade`/`t.professor` — campos que o cadastro novo **já não tem** —, e um `undefined`
+   numa comparação não dá erro: dá `false`, e a marca de `descontinuada` **deixava de acender em
+   silêncio**. É o modo de falha que motivou o módulo.
+
+**O que NÃO muda:** a forma do nível continua a vir da tradição (`tradicoes.json` →
+`estruturaDeNiveis`), o rótulo continua a ser composto («Grade 3» na RAD, «Intermediário 2» nas
+outras), e nenhum «N» é inventado. O nome do ficheiro mudou — `niveis-da-turma.js` → `niveis.js` —
+porque dizia «da turma» e deixou de ser verdade.
 
 ---
 

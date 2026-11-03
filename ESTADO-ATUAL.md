@@ -4,8 +4,26 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `21089cb`, árvore **limpa**). Nesta entrega, **a
-> habilitação passou a existir como dado e a turma passou a poder ficar descontinuada**. **(1)** As
+> **Última fotografia:** 03/11/2026 (base `ddcd92a`, árvore **limpa**). Nesta entrega, **a turma
+> deixou de ser o enquadramento** — e a decisão é dela, revendo a do mesmo dia. O nível, a
+> modalidade, a tradição e o professor tinham sido postos na **turma** de manhã; à tarde ela reviu:
+> «a turma deixa de ser carregada com definições rígidas de nível pedagógico», o cadastro fica
+> «estritamente no que lhe é inerente (dias, horários e rotina)», e o enquadramento passa para a
+> **curadoria** — para a escola poder «transitar turmas entre modalidades e níveis» sem destruir a
+> estrutura operacional. **(1)** A curadoria ganhou `grau`, `nivel` e o `nivelReferencia`
+> **composto** pela tradição («Grade 3» na RAD, «Intermediário 2» nas outras), e a derivação herda-o
+> e **recompõe** o rótulo se a tradição mudar. **(2)** **A memória não se apaga** (P-03/P-04): uma
+> turma cadastrada de manhã conserva o `nivelReferencia` que guardou — o campo deixou de ser tocado,
+> não foi apagado —, e `nivelEfetivo` lê-o quando a curadoria não declara nível, dizendo de onde
+> veio. **(3)** O enquadramento passou a ser um **módulo** (`motor/nucleo/enquadramento.js`), porque
+> três leituras ficariam ambíguas — e a terceira doía: a marca de `descontinuada` lia
+> `t.professor`/`t.modalidade`, campos que o cadastro novo já não tem, e um `undefined` numa
+> comparação **não dá erro**: dá `false`, e a marca deixava de acender em silêncio. O módulo
+> `niveis-da-turma.js` passou a `niveis.js` — o nome dizia «da turma» e deixou de ser verdade. Prova
+> nova: `provar-enquadramento-da-turma`, **46 asserções**.
+>
+> **Entrega anterior** (base `21089cb`, árvore **limpa**). A **habilitação passou a existir como
+> dado** e a **turma passou a poder ficar descontinuada**. **(1)** As
 > três decisões dela: a **habilitação vive no perfil do professor** (`professores/<slug>/perfil.json`
 > → `modalidades`), **independente do tenant** — e o argumento é o expurgo: o KV de uma escola tem o
 > prefixo dela, e guardar ali a competência faria dela um dado do contrato, que sai com ele. O
@@ -693,6 +711,14 @@ Verificado nesta fotografia, com os comandos da §9.
   `contagem` é a de **uma** execução e o que a célula ocupa é o **produto**. Entra em toda a
   aritmética (`temposDaCelula`), e um `0` é **recusado**. Na tabela lê-se «1–2 **×2**».
   **CONFIRMADO** por `provar-verbete`.
+- **A TURMA É O RITMO; O ENSINO É DA CURADORIA (03/11/2026, revendo a decisão da manhã).** O
+  professor, a modalidade, a tradição e o nível saíram do cadastro da turma e passaram para a
+  **curadoria** — para a escola poder mover uma turma de nível sem destruir a estrutura
+  operacional dela. O nível da curadoria é `grau` + `nivel`, na forma da tradição, e o rótulo
+  (`nivelReferencia`) é **composto**. **A memória não se apaga**: uma turma que guardou o nível
+  antigo conserva-o, e ele é lido quando a curadoria não declara — com a origem dita. A regra
+  inteira está em `motor/nucleo/enquadramento.js` e na **§2.3 da `ARQUITETURA-GERAL.md`**.
+  **DECIDIDO e implementado** 03/11/2026.
 - **O bloco de posições é um só: «Posições dos pés e braços».** Tem a **preparatória**, os cinco
   números **e, desde 03/11/2026, `cp` (coupé) e `cdp` (sur le cou-de-pied)** — o termo existia no
   vocabulário e o **sinal** não existia, e sem o sinal o battement frappé não se escrevia. A **3ª
@@ -1831,7 +1857,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — o perfil do professor, a turma descontinuada, o nível)
+### Executado nesta fotografia (03/11/2026 — a turma é o ritmo, a curadoria é o ensino)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-enquadramento-da-turma.js` (novo) | **TUDO CERTO — 46 asserções em 5 secções**. **§A** o núcleo: a curadoria que enquadra (pelo nome), a vigente a vencer a substituída, o nível efetivo com a origem dita, **a curadoria a vencer a memória** (controlo negativo da ordem), e a leitura pelo enquadramento a achar a turma **mesmo sem os campos nela** — com o controlo negativo da leitura antiga. **§B** a turma grava o ritmo e **ignora** o enquadramento que o corpo ainda manda (página antiga aberta). **§C** a **memória**: a turma deriva, muda a hora, e o `nivelReferencia` antigo **não é apagado**. **§D** a curadoria: o nível grava, o rótulo é **composto** pela tradição, e a listagem da turma mostra o da curadoria. **§E** a tela: os campos saíram de um formulário, entraram no outro, e **o script compila** |
+| `provar-producao` | **149 de 153, MELHOR do que antes** (era 147/152). Duas asserções foram **reescritas em vez de contornadas** — elas afirmavam que a turma tem a tradição em lista, que é agora o contrário da decisão —, e a lista de tradições esperada passou a ser **derivada do catálogo**: estava vermelha desde que a «cubana» entrou. As quatro falhas restantes são as de antes |
+| `provar-habilitacao-do-professor` | **TUDO CERTO** — as quatro asserções dos campos do nível mudaram de `#tgrau`/`#tnivel` para `#cugrau`/`#cunivel`, e ganharam uma que mede o **contrário**: que a turma já não os tem |
+| `provar-cartao-da-turma` · `provar-teste` · `provar-notacao` | **6 antes e depois** · **a mesma falha antes e depois** · as mesmas 11 antes e depois |
+| as outras sete (verbete, tabela, leitura, sinais, produtos, linhas, música) | **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **89 asserções** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · **nenhuma turma real tem curadoria com nível**: a `breu` ainda não tem turmas, e o caminho mede-se com registos de ensaio — o primeiro uso a sério é dela |
+
+### Executado na fotografia anterior (03/11/2026 — o perfil do professor, a turma descontinuada, o nível)
 
 | Verificação | Resultado |
 |:--|:--|

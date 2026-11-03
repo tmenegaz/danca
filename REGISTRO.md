@@ -32982,3 +32982,86 @@ existentes, e uma turma sem modalidade **não** é descontinuada (a ausência n�
 derivação, e derivá-la exige ler os perfis, o que a página síncrona ainda não faz. (d) **A `breu`
 continua no ar** — ela expurga-a pela tela. (e) O caminho crítico é o de sempre: **conteúdo** (11
 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+
+## 03/11/2026 — A turma é o ritmo, e o ensino é da curadoria
+
+**O que motivou.** A pesquisadora reviu a arrumação do mesmo dia. De manhã, o professor, a
+modalidade, a tradição e o nível foram postos na **turma**; à tarde, ela decidiu que pertencem à
+**curadoria**. A razão é de operação, e ela di-la com precisão: «se a escola precisar mover uma
+turma de nível ou reajustá-la para outra modalidade por razões estratégicas ou sazonais, ela não
+precisa destruir ou recriar a estrutura operacional da turma; basta ajustar a curadoria». E o
+ganho que nomeia: «a história operacional da turma (calendário, frequência, lançamentos)
+descola-se das mudanças de enquadramento de nível».
+
+**1. O que saiu do cadastro da turma, e o que ficou.** Saíram `programaReferencia`,
+`nivelReferencia`, `grau`, `nivel`, `modalidade` e `professor` — do `normalizarTurma`, da lista de
+campos que o `turma-editar` e o `turma-derivar` copiam, e do formulário. Ficou o **ritmo**: nome,
+notas, dias com hora, duração e período. A «Equivalência pedagógica» também saiu: era o nível
+escrito de outra maneira, e o nível passou a ter dois campos com a forma da tradição.
+
+**2. A memória não se apaga — e a mecânica é o contrário do que se esperaria.** Não foi preciso
+migrar nada: o que sai da **lista** de campos que o `turma-editar` copia deixa simplesmente de ser
+tocado, e o registo anterior conserva-o (`Object.assign({}, alvo, ajustado)`). Uma turma
+cadastrada de manhã mantém o `nivelReferencia` e a tradição, e `nivelEfetivo` lê-os quando a
+curadoria não declara nível — dizendo de onde vieram (`de: 'turma'`). É a P-03/P-04 aplicada à
+arrumação: **mudar de casa não é apagar o que estava lá**.
+
+**3. A curadoria ganhou o nível.** `grau`, `nivel` e o `nivelReferencia` **composto** pela tradição
+(«Grade 3» na RAD, «Intermediário 2» nas outras). A derivação herda o nível da anterior e
+**recompõe** o rótulo quando a tradição muda: um «Grade 3» colado numa tradição por graus seria um
+rótulo a mentir. Nada disto é novo na forma — a forma já vinha de `tradicoes.json` →
+`estruturaDeNiveis` desde a manhã; mudou o sítio.
+
+**4. E o defeito que a mudança teria criado, se ninguém olhasse.** A marca de `descontinuada` lia
+`t.professor` e `t.modalidade`. Esses campos deixaram de existir no cadastro novo. Um `undefined`
+numa comparação **não dá erro**: dá `false` — e a marca deixava de acender **em silêncio**, que é o
+pior modo de falha e o mesmo que a entrega anterior já tinha nomeado noutro sítio. Foi por isso que
+o enquadramento passou a ser um **módulo** (`motor/nucleo/enquadramento.js`) e não uma convenção:
+três leituras ficavam ambíguas ao mesmo tempo — qual é o enquadramento de uma turma, qual é o nível
+efetivo, e que turmas ficaram sem quem as ensine.
+
+**O nome do ficheiro mudou, e é a mesma regra.** `niveis-da-turma.js` → `niveis.js`: o módulo
+nunca foi da turma no que faz (a forma vem da tradição), e depois desta decisão também não é no
+nome. Um ficheiro chamado «da turma» a guardar a regra da curadoria é a primeira coisa que engana
+quem chega.
+
+**Duas provas que foram reescritas, e não contornadas.** (a) A `provar-producao` afirmava «a turma
+tem o programa de referência em lista» — que é agora o **contrário** da decisão. Corrigi-la para
+voltar a passar teria sido afirmar o que já não é verdade: as asserções passaram a medir que o campo
+**saiu** de lá e que está na curadoria. (b) A mesma prova esperava a lista de tradições
+`['RAD','francesa','Vaganova']` **escrita à mão**, e estava vermelha desde que a «cubana» entrou no
+catálogo — ela media a data em que foi escrita, não a regra. Passou a derivar a lista de
+`tradicoes.json`. Efeito medido: **149 de 153**, contra **147 de 152** antes.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-enquadramento-da-turma` (novo) | **TUDO CERTO — 46 asserções, 5 secções**. **§A** o núcleo: o enquadramento pelo nome, a vigente a vencer a substituída, o nível efetivo com a origem, **a curadoria a vencer a memória** (controlo negativo da ordem), e a leitura nova a achar a turma **mesmo sem os campos nela** — com o controlo negativo da leitura antiga a não achar nada. **§B** a turma grava o ritmo e **ignora** o enquadramento que o corpo ainda manda (o caso da página antiga aberta num separador). **§C** a memória: a turma deriva, muda a hora, e o `nivelReferencia` **não é apagado**. **§D** a curadoria: o nível grava, o rótulo compõe-se pela tradição, e a listagem da turma mostra o da curadoria. **§E** a tela: os campos saíram de um formulário e entraram no outro, o `pintarGraus` recebe os ids por parâmetro, e **o script compila** |
+| `provar-producao` | **149 de 153** (era **147 de 152**) — as quatro falhas restantes são as de antes |
+| `provar-habilitacao-do-professor` | **TUDO CERTO** — quatro asserções reescritas para o formulário novo, e uma nova que mede o **contrário**: que a turma já não traz os campos |
+| `provar-cartao-da-turma` · `provar-teste` · `provar-notacao` | **6 antes e depois** · **a mesma falha antes e depois** · **as mesmas 11 antes e depois** |
+| as outras sete | **TUDO CERTO** em todas; `provar-produtos` com **89 asserções** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| **o que NÃO foi medido** | a página **ao vivo** — o deploy corre depois do push · **nenhuma turma real tem curadoria com nível** hoje: a `breu` não tem turmas, e o caminho mede-se com registos de ensaio. O primeiro uso a sério é dela |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado, e a
+`ciclo.css` não mudou: os campos novos usam as peças que já existiam (`campo-rotulo`, `select`,
+`input`, `bloco-lista`).
+
+**Com o quê.** `motor/nucleo/enquadramento.js` (novo) · `motor/nucleo/niveis.js` (era
+`niveis-da-turma.js`) · `motor/nucleo/perfil-do-professor.js` (`turmasDescontinuadas` marcada como
+substituída, com a razão) · `motor/servidor/bastidores.js` (o cadastro da turma, a curadoria, a
+marca, as duas listagens, os dois formulários) · `experimentos/provar-enquadramento-da-turma.js`
+(novo) · `experimentos/provar-habilitacao-do-professor.js` · `experimentos/provar-producao.js` ·
+`.gitignore` · `ARQUITETURA-GERAL.md` §2.3 · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+
+**Referências.** A especificação dela de 03/11/2026 (a redefinição dos papéis entre turma e
+curadoria) · P-03, P-04, P-16 · a decisão da manhã do mesmo dia (§2.2) · `ARQUITETURA-GERAL.md`
+§2.3.
+
+**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela expurga-a pela tela. (b) A
+**oferta da escola** (que modalidades ela tem à venda) continua a **não** existir como campo: é
+derivação das habilitações, e derivá-la exige ler os perfis — a página é síncrona e ainda não o faz.
+(c) A **modalidade continua escrita à mão em 10 sítios** de `motor/`. (d) O caminho crítico é o de
+sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.

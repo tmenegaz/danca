@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T11:06:17-0300`
-Commit atual: `21089cb` — feat(tools): o perfil do professor nasce com a escola
+Gerado em: `2026-11-03T11:19:04-0300`
+Commit atual: `ddcd92a` — refactor(estrutura): a turma é o ritmo, a curadoria é o ensino
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+ddcd92a refactor(estrutura): a turma é o ritmo, a curadoria é o ensino
+33c55f8 docs(estrutura): a habilitação é da pessoa, e o expurgo não a leva
 21089cb feat(tools): o perfil do professor nasce com a escola
 5ac8d6b feat(estrutura): a habilitação é da pessoa, a turma fica marcada, o nível tem a forma da tradição
 faf9897 docs(estrutura): a modalidade pertence ao professor, e o sinal que faltava
@@ -103,8 +105,6 @@ b67b325 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-class
 9f9e891 feat(estrutura): a música sem trava, o desacordo como aviso e o dono do alfabeto
 89d1f83 docs(registro): o termo da tela, o alfabeto sem dono e o deploy do catálogo
 508d22f fix(estrutura): o catálogo muda, a escola não publicava
-793f4eb fix(experimentos): as provas comparam com o catálogo, e não com o ficheiro
-057c555 fix(biblioteca): retirar o termo e o verbete que a Produção criou para a breu
 ```
 
 ## Por professor
