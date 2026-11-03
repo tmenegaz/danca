@@ -250,8 +250,20 @@ o **rascunho/cofre de runtime**; o Git é a **fonte de verdade e o histórico**.
 
 > **Decidida em 02/11/2026.** A questão estava **aberta desde 18/09/2026**, onde o `REGISTRO.md`
 > a registou pela primeira vez («Licença do repositório (a definir)», na entrada da publicação do
-> repositório no GitHub). O que se segue é a decisão; o **texto** que a formaliza é um `LICENSE.md`
-> na raiz, que **ainda não foi escrito** — e que o contrato com a escola **cita**, não substitui.
+> repositório no GitHub). O que se segue é a decisão.
+>
+> **O texto que a formaliza já existe, e são dois ficheiros** (escritos a 02/11/2026): [`LICENSE.md`](LICENSE.md)
+> na raiz para **a máquina** (§10.1, camada A) e [`biblioteca/LICENSE.md`](biblioteca/LICENSE.md)
+> para **o catálogo** (§10.2, camada B). São dois porque as duas camadas dizem o contrário uma da
+> outra — «não se licencia» e «licencia-se com limites» —, e um ficheiro só não consegue dizê-lo.
+> A camada C (§10.3) fica dentro do `biblioteca/LICENSE.md` porque o regime dela **só existe** se o
+> da B existir. O contrato com a escola **cita** estes ficheiros; não os substitui.
+>
+> **Nota de correção (02/11/2026).** Esta secção dizia «o texto que a formaliza é um `LICENSE.md` na
+> raiz, que ainda não foi escrito». A primeira metade continua verdadeira e a segunda deixou de o
+> ser no mesmo dia. E o nome tinha um erro de facto: o GitHub só reconhece a licença em ficheiros com
+> nome reconhecido (`LICENSE.md`, `LICENSE`, `COPYING`) — `licenca.md`, que o
+> `PLANO-PRODUTOS-DO-MOTOR` citava, seria um ficheiro comum, sem a licença aparecer no repositório.
 
 ### 10.1 Por que três camadas, e não uma
 

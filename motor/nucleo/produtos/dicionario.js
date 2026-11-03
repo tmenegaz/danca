@@ -83,6 +83,13 @@ function gerar(entrada) {
   const termos = comum.compor(e.vocabulario, incluirAdicoes ? e.adicoes : []);
   const versao = String(e.versao || '0.1.0');
   const licenca = String(e.licenca || 'pendente — o LICENSE.md não existe');
+  // A CONDIÇÃO DE CONTEÚDO DA LICENÇA, EXECUTÁVEL (ARQUITETURA-GERAL §10.4). Por omissão a edição é
+  // a INTERNA — mostra tudo, e é a que a escola e o projeto usam. A `paga` é a que se vende, e nela
+  // uma descrição sem `fonte` NÃO ENTRA: «não se licencia o que não se declarou como seu». A regra
+  // não fica na boa intenção de quem gera — fica no código, e o manifesto conta o que saiu.
+  const edicao = String(e.edicao || 'interna').trim() === 'paga' ? 'paga' : 'interna';
+  const semFonteComDescricao = termos.filter((t) => String(t.descricao || '').trim()
+    && !String(t.fonte || '').trim()).map((t) => t.id || t.termo);
 
   const lacunas = [];
   const comDefinicao = termos.filter((t) => String(t.descricao || '').trim()).length;
@@ -102,7 +109,10 @@ function gerar(entrada) {
         'a definição do que acontece'));
     }
     if (!String(t.fonte || '').trim()) {
-      lacunas.push(comum.lacuna('termo-sem-fonte', t.id || t.termo,
+      lacunas.push(comum.lacuna(
+        edicao === 'paga' && String(t.descricao || '').trim()
+          ? 'descricao-fora-da-edicao-paga' : 'termo-sem-fonte',
+        t.id || t.termo,
         'a origem da definição (a licença não a pode cobrir)'));
     }
 
@@ -140,6 +150,7 @@ function gerar(entrada) {
   linhas.push('modalidade: ' + modalidade);
   if (declaracao) linhas.push('alfabeto: ' + declaracao.id + ' v' + declaracao.versao);
   linhas.push('versao: ' + versao);
+  linhas.push('edicao: ' + edicao);
   linhas.push('licenca: ' + licenca.replace(/\n/g, ' '));
   linhas.push('---');
   linhas.push('');
@@ -157,6 +168,15 @@ function gerar(entrada) {
   linhas.push('**Conteúdo.** ' + termos.length + (termos.length === 1 ? ' termo' : ' termos')
     + ' — ' + comDefinicao + ' com definição escrita, ' + comFonte + ' com origem declarada, '
     + comVerbete.length + ' com decomposição.');
+  if (edicao === 'paga' && semFonteComDescricao.length) {
+    linhas.push('');
+    linhas.push('**Edição paga.** ' + semFonteComDescricao.length
+      + (semFonteComDescricao.length === 1
+        ? ' definição ficou de fora' : ' definições ficaram de fora')
+      + ' por a origem não estar declarada — é a condição de conteúdo da licença (§3). Este');
+    linhas.push('documento é o que se vende; a edição interna tem as ' + semFonteComDescricao.length
+      + ' completas.');
+  }
   if (incluirAdicoes) {
     const daEscola = termos.filter((t) => t.origem === 'escola').length;
     linhas.push('');
@@ -191,7 +211,18 @@ function gerar(entrada) {
       linhas.push('');
 
       const descricao = String(t.descricao || '').trim();
-      linhas.push(descricao || '[Preencher: a definição do que acontece]');
+      const retida = edicao === 'paga' && descricao
+        && !String(t.fonte || '').trim();
+      if (retida) {
+        // A DESCRIÇÃO NÃO É APAGADA EM SILÊNCIO. O termo continua no dicionário — o nome do passo
+        // não é obra de ninguém —, e o sítio da definição diz porque está vazio. Um buraco
+        // explicado é uma lacuna; um buraco calado é uma promessa quebrada.
+        linhas.push('> **Fora da edição paga.** A definição deste termo não entra na edição que se');
+        linhas.push('> vende enquanto a origem dela não for declarada (licença, §3). Ela continua na');
+        linhas.push('> edição interna.');
+      } else {
+        linhas.push(descricao || '[Preencher: a definição do que acontece]');
+      }
       linhas.push('');
 
       const alternativos = comum.comoLista(t.alternativos);
@@ -257,6 +288,7 @@ function gerar(entrada) {
     produto: 'dicionario',
     modalidade,
     versao,
+    edicao,
     licenca,
     fonte: {
       alfabeto: declaracao ? { id: declaracao.id, versao: declaracao.versao } : null,
@@ -273,6 +305,7 @@ function gerar(entrada) {
       com_decomposicao: comVerbete.length,
       sem_decomposicao: semVerbete.length,
       verbetes_que_nao_fecham: naoFecham.length,
+      definicoes_fora_da_edicao_paga: edicao === 'paga' ? semFonteComDescricao.length : 0,
       lacunas: lacunas.length,
     },
     lacunas,
@@ -284,6 +317,7 @@ function gerar(entrada) {
     id: manifesto.id,
     modalidade,
     versao,
+    edicao,
     licenca,
     documentos: [{ nome: 'dicionario-' + modalidade + '.md', texto: linhas.join('\n') + '\n' }],
     manifesto,

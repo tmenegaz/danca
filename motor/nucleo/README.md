@@ -19,7 +19,30 @@ escreve. Só sabe **o que faz**.
 | `armazenamento.js` | o **contrato de armazenamento** (`ler`/`guardar`/`anexar`/`listar`/`existe`/`apagar`) e a implementação de memória |
 | `produtos/comum.js` | o que os três produtos partilham: a **composição catálogo × escola** (`compor`, com a escola a ganhar e a marcar `origem`), a ordem das categorias, a integridade do verbete (o `cobre` e as células contra os tempos), o relógio das pistas e a lacuna — sem `fs`/`path`/`http`/`process` |
 | `produtos/dicionario.js` | o produto **dicionário**: o vocabulário do catálogo e a decomposição de cada exercício, com a definição, a origem e o que falta dito (`[Preencher]`), e um verbete que não fecha a sair em `[conferir]` em vez da contagem errada — sem infraestrutura |
-| `produtos/syllabus.js` | o produto **syllabus**: um documento por nível (a ordem declarada em `progressao.json`), com a camada pedagógica por unidade (`exige` · `ensina` · `expressa`) quando existe, mais um índice que diz quantos níveis ainda não declararam nada — sem infraestrutura |
+| `produtos/syllabus.js` | o produto **syllabus**: um documento por nível (a ordem declarada em `progressao.json`), com a camada pedagógica por unidade (`exige` · `ensina` · `expressa`) **herdada do termo ou sobreposta pela relação** (`camadaDaUnidade`), mais um índice que diz quantos níveis ainda não declararam nada — sem infraestrutura |
+
+## A camada pedagógica: onde vive, e por que em dois lugares
+
+`exige` · `ensina` · `expressa` são **três declarações** (o que a unidade exige do corpo, o que
+ensina, o que expressa) — e **não** três eixos de medição (C20). Quem mede o aluno mede nas
+dimensões do PO; isto é o programa.
+
+Decisão de **02/11/2026**, e a razão é a mesma pela qual o «método» do verbete não se repete:
+**o mesmo passo, em dois níveis, quase sempre exige a mesma coisa do corpo e quase nunca expressa a
+mesma coisa.** Repetir a exigência em cada relação faria do dado uma cópia, e a primeira correcção
+deixaria as cópias a divergir. Há então dois lugares, e **a relação vence sempre**:
+
+| Onde | Ficheiro | Vale |
+|:--|:--|:--|
+| **o padrão do exercício** | `vocabulario.json`, no termo | em todos os níveis |
+| **a sobreposição do nível** | `progressao.json`, na relação | só naquele nível |
+
+O documento gerado **escreve de onde veio** — `(herdado do termo)` ou `(declarado no nível)` —, e o
+manifesto conta `camada_herdada` · `camada_declarada` · `camada_ausente`. A marca não é enfeite:
+apresentar como «do nível» o que veio do termo é uma afirmação falsa sobre quem declarou o quê.
+
+**Herdar não é faltar.** Só a ausência nos **dois** lugares vira `[Preencher: …]` e conta como
+lacuna (`unidade-sem-camada`, com o nome dos campos que faltam).
 
 ## A fronteira
 

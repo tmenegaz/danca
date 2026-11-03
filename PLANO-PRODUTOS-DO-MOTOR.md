@@ -279,7 +279,7 @@ de **conteúdo** (P-16: declara-se, não se deduz), e é por isso que nenhuma li
 | **A** | **O mapa nível → termos** | `progressao.json`: **13 turmas**, **9 associações** — e só **2 níveis** têm alguma (nível 1: 4 termos; nível 2: 5). Os outros **11 níveis estão vazios** | o syllabus de qualquer nível acima do 2, e a aula pronta correspondente |
 | **B** | **A camada pedagógica por unidade** (o que **exige**, o que **ensina**, o que **expressa**) | não existe em nenhum dos três ficheiros do catálogo | o syllabus como **programa** e não como lista |
 | **C** | **As 4 músicas que não fecham** | Rond de jambe en l'air 3 em 4 · Battement dégagé 6 em 4 · Battement fondu 6 em 2 · Relevé 1 em 2. *(O `Plié` **saiu desta lista** a 02/11/2026: 12 tempos numa música de 8 era a soma em linha de duas pistas — pernas 8, braços 4 —, e com as pistas a régua passa a ser a maior. Ficou 8 = 8.)* | a aula pronta **fecha** o teto: uma célula que não fecha estraga a aritmética da Regra 9. E a gravação **já as recusa** desde 02/11/2026 |
-| **D** | **A licença** | **DECIDIDA a 02/11/2026** (`ARQUITETURA-GERAL.md` §10) — falta o `LICENSE.md` e o contrato citá-lo | o degrau 1 deixa de estar bloqueado por ela; **mas** o catálogo que se vende não pode levar as **25 descrições com `fonte` vazio** (ver **F**) |
+| **D** | **A licença** | **ESCRITA a 02/11/2026** (`ARQUITETURA-GERAL.md` §10): `LICENSE.md` na raiz (a máquina) e `biblioteca/LICENSE.md` (o catálogo + o que a escola acrescenta). Falta **o contrato citá-la** | o degrau 1 deixa de estar bloqueado por ela; **mas** o catálogo que se vende não pode levar as **25 descrições com `fonte` vazio** (ver **F**) |
 | **E** | **A separação catálogo × escola** | `termo-repo.js`: **um** ficheiro (`biblioteca/modalidades/bale-classico/vocabulario.json`) para os dois | vender o dicionário sem vender as edições de cada escola — e é ela que dá sentido à §10.3 da licença |
 | **F** | **A proveniência das descrições** | dos **59 termos com descrição**, **25 têm `fonte` vazio** (30 vêm do dicionário que ela forneceu, 4 foram redigidas no projeto) | a **edição paga** do dicionário: sem origem declarada, a descrição não pode ser licenciada. Duas saídas, e são dela: **declarar** as 25 ou **deixá-las fora** da edição paga |
 
@@ -300,13 +300,18 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
   pesquisadora — começando pelo **nível 1 completo** (é o nível da `breu`, a escola de teste criada a
   02/11/2026).
 - **C**: corrigir as **4** músicas (ou os verbetes) para que `cobre` feche os tempos — o `Plié` já lá está desde 02/11/2026, quando a soma em linha deu lugar à maior pista.
-- **D**: a licença — **decidida a 02/11/2026** e escrita na `ARQUITETURA-GERAL.md` §10 (que é
-  livre). Falta o `LICENSE.md` na raiz, que é o texto que o **contrato cita**.
+- **D**: a licença — **decidida e escrita a 02/11/2026**: a decisão está na `ARQUITETURA-GERAL.md`
+  §10 (que é livre) e o texto em dois ficheiros — `LICENSE.md` na raiz (a máquina, que **não** se
+  licencia) e `biblioteca/LICENSE.md` (o catálogo e a §10.3). Falta **o contrato citá-la**, e o
+  contrato é de negócio (C8). *(O plano pedia `licenca.md`; o GitHub só reconhece o nome com a
+  grafia `LICENSE.md` — correção de 02/11/2026.)*
 - **F**: a **proveniência das 25 descrições** com `fonte` vazio — declarar, ou deixá-las fora da
   edição paga. **É a condição que a licença impõe** (§10.4), e sem ela o dicionário não se vende
   inteiro.
 - **Verificação:** os 11 verbetes fecham; o nível 1 tem ≥ 8 termos associados; existe um `LICENSE.md`
   que cita a fotografia datada; **nenhuma descrição da edição paga tem `fonte` vazio**.
+  *(A 02/11/2026: o `LICENSE.md` existe e é lido pelo gerador, e a separação por edição existe
+  (`--edicao paga` retira as 25). Falta a data, que é do contrato (C8), e a Fase 1.)*
 
 ### Fase 1 — a separação catálogo × escola (C22, item 2 · L14, lacuna 0)
 
@@ -368,6 +373,13 @@ Seis fases. Cada uma é verificável **sozinha**, e a ordem é de dependência �
 8. **A licença é executável.** Existe `LICENSE.md`, ele **nomeia a fotografia datada** do catálogo, e
    uma descrição com `fonte` vazio **não entra** na edição paga — testável por varredura no ficheiro
    que o pacote do dicionário leva.
+   *Estado a 02/11/2026, e é parcial:* os dois ficheiros existem, o gerador **lê-os** (o manifesto
+   deixa de dizer «pendente» e cita o caminho), e a varredura do `fonte` **existe**: o dicionário tem
+   duas edições — `--edicao interna` mostra tudo, `--edicao paga` deixa de fora a definição sem
+   origem, diz no sítio dela porque está fora, e conta-a (`definicoes_fora_da_edicao_paga`).
+   Medido no catálogo a 02/11/2026: **25**. O que continua por fazer é a **fotografia datada**, que
+   é do **contrato** (C8) — sem contrato não há data para nomear. O critério passa **menos** essa
+   cláusula.
 9. **O que a escola acrescenta é dela.** Retirar a escola do projeto não leva os termos dela para o
    catálogo, e propô-los exige aceitação explícita (§10.3 da `ARQUITETURA-GERAL.md`).
 

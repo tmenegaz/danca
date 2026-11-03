@@ -41,7 +41,9 @@ function uso() {
   console.log('  --modalidade <slug>   modalidade do catálogo (por omissão, bale-classico)');
   console.log('  --nivel <id>          só um nível do syllabus (id de progressao.json)');
   console.log('  --versao <v>          versão do produto (por omissão, 0.1.0)');
-  console.log('  --licenca <texto>     a licença do produto (por omissão, pendente)');
+  console.log('  --licenca <texto>     a licença do produto (por omissão, a de biblioteca/LICENSE.md)');
+  console.log('  --edicao <interna|paga>  a interna mostra tudo (omissão); a paga deixa de fora as');
+  console.log('                        definições sem origem declarada — é a licença, §3');
   console.log('  --out <dir|->         onde escrever; `-` é a saída padrão');
   console.log('                        (por omissão, publicacao/produtos/<modalidade>/)');
   console.log('  --do-repo             ler o `main` do GitHub em vez do disco (precisa de GITHUB_TOKEN)');
@@ -50,7 +52,7 @@ function uso() {
 
 function argumentos(argv) {
   const opts = { tipo: '', modalidade: 'bale-classico', nivel: '', versao: '0.1.0',
-    licenca: '', out: '', doRepo: false, json: false };
+    licenca: '', edicao: 'interna', out: '', doRepo: false, json: false };
   const resto = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -63,6 +65,7 @@ function argumentos(argv) {
     else if (a === '--nivel') opts.nivel = valor();
     else if (a === '--versao') opts.versao = valor();
     else if (a === '--licenca') opts.licenca = valor();
+    else if (a === '--edicao') opts.edicao = valor();
     else if (a === '--out') opts.out = valor();
     else if (a === '--do-repo') opts.doRepo = true;
     else if (a === '--json') opts.json = true;
@@ -82,6 +85,30 @@ function catalogoDoDisco(modalidade) {
     vocabulario: lerJson(pasta + '/vocabulario.json'),
     progressao: lerJson(pasta + '/progressao.json'),
   };
+}
+
+/**
+ * A LICENÇA DO PRODUTO, LIDA DO FICHEIRO QUE A DECLARA (02/11/2026).
+ *
+ * O nome vem do **título** de `biblioteca/LICENSE.md` — uma fonte só, e não uma constante escrita
+ * aqui que envelhece no dia em que o texto mudar. O `— ver biblioteca/LICENSE.md` vai junto porque
+ * o manifesto do produto tem de levar um leitor ao documento, e um título sem caminho não leva.
+ *
+ * Sem ficheiro, devolve vazio — e o núcleo transforma isso na lacuna `sem-licenca`. É a diferença
+ * entre «não há licença» e «há uma que eu não encontrei»: as duas levam a correcções diferentes, e
+ * só a primeira é verdade quando o ficheiro não existe.
+ */
+function licencaDoDisco() {
+  const caminho = path.join(RAIZ, 'biblioteca', 'LICENSE.md');
+  let texto;
+  try {
+    texto = fs.readFileSync(caminho, 'utf8');
+  } catch {
+    return '';
+  }
+  const titulo = (texto.match(/^#\s+(.+)$/m) || [])[1];
+  if (!titulo) return '';
+  return titulo.trim() + ' · texto integral em biblioteca/LICENSE.md';
 }
 
 /** A escrita: cada documento no seu ficheiro, e a pasta criada se não existir. */
@@ -129,7 +156,11 @@ async function main(argv) {
   const produtos = require('./servidor/produtos.js');
   const comuns = {
     versao: opts.versao,
-    licenca: opts.licenca,
+    // A LICENÇA VEM DO FICHEIRO, e não de uma constante daqui (02/11/2026). O `--licenca` explícito
+    // continua a vencer — é ele que a prova usa, e é ele que serve a quem gera um produto que não
+    // é o do catálogo.
+    licenca: opts.licenca || licencaDoDisco(),
+    edicao: opts.edicao === 'paga' ? 'paga' : 'interna',
     nivel: opts.nivel || undefined,
   };
 
@@ -188,4 +219,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, argumentos, catalogoDoDisco };
+module.exports = { main, argumentos, catalogoDoDisco, licencaDoDisco };

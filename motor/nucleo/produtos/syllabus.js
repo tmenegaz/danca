@@ -33,6 +33,47 @@ const CAMPOS_DA_CAMADA = [
   { chave: 'expressa', rotulo: 'Expressa' },
 ];
 
+/**
+ * DE ONDE VEM CADA CAMPO DA CAMADA — a herança com sobreposição (decisão de 02/11/2026).
+ *
+ * O mesmo passo, ensinado em dois níveis, quase sempre **exige** a mesma coisa do corpo e quase
+ * nunca **expressa** a mesma coisa: o que muda com o nível é o eixo prioritário. Repetir a
+ * exigência em cada relação transformaria o dado numa cópia, e a primeira correcção deixaria as
+ * cópias a divergir — que é a razão pela qual o «método» do verbete também não se repete.
+ *
+ * Então há dois lugares, e **a relação vence sempre**:
+ *
+ *   - no **termo** (`vocabulario.json`), o padrão daquele exercício — vale em todos os níveis;
+ *   - na **relação** (`progressao.json`), a sobreposição — vale só naquele nível.
+ *
+ * A ORIGEM VAI ESCRITA NO DOCUMENTO. Um syllabus que apresenta como «do nível» o que veio do termo
+ * faz uma afirmação falsa sobre quem declarou o quê; a marca `(herdado do termo)` custa três
+ * palavras e devolve a autoria a quem a tem. E é a mesma regra do «— herda a metodologia do plano —».
+ *
+ * `ausente` quando **nenhum dos dois** declara: é a única situação que vira `[Preencher: …]`, e a
+ * única que conta como lacuna. Herdar não é faltar.
+ */
+function camadaDaUnidade(termo, relacao) {
+  const saida = {};
+  for (const campo of CAMPOS_DA_CAMADA) {
+    const noNivel = comum.comoLista(relacao && relacao[campo.chave]);
+    if (noNivel.length) {
+      saida[campo.chave] = { valores: noNivel, origem: 'nivel' };
+      continue;
+    }
+    const noTermo = comum.comoLista(termo && termo[campo.chave]);
+    saida[campo.chave] = noTermo.length
+      ? { valores: noTermo, origem: 'herdado' }
+      : { valores: [], origem: 'ausente' };
+  }
+  return saida;
+}
+
+/** A unidade tem a camada completa quando nenhum dos três campos está ausente. */
+function camadaCompleta(camada) {
+  return CAMPOS_DA_CAMADA.every((c) => camada[c.chave].origem !== 'ausente');
+}
+
 /** As unidades de um nível, na ordem em que `progressao.json` as declara. */
 function unidadesDoNivel(relacoes, idDoNivel) {
   return (Array.isArray(relacoes) ? relacoes : [])
@@ -137,9 +178,12 @@ function documentoDoNivel({ turma, unidades, unidadesLidas, e, versao, licenca }
       linhas.push('');
     }
     for (const campo of CAMPOS_DA_CAMADA) {
-      const valor = comum.comoLista(u.relacao[campo.chave]);
-      linhas.push('**' + campo.rotulo + '.** '
-        + (valor.length ? valor.join('; ') : '[Preencher: ' + campo.rotulo.toLowerCase() + ']'));
+      const lido = u.camada[campo.chave];
+      const marca = lido.origem === 'herdado' ? ' _(herdado do termo)_'
+        : lido.origem === 'nivel' ? ' _(declarado no nível)_' : '';
+      linhas.push('**' + campo.rotulo + '.** ' + (lido.valores.length
+        ? lido.valores.join('; ') + marca
+        : '[Preencher: ' + campo.rotulo.toLowerCase() + ']'));
       linhas.push('');
     }
     if (u.musicas.length) {
@@ -248,11 +292,14 @@ function gerar(entrada) {
           'o termo no vocabulário'));
       }
       const musicas = termo ? musicasDoExercicio(alfabeto, termo.termo) : [];
-      const camadaCompleta = CAMPOS_DA_CAMADA.every((c) => comum.comoLista(relacao[c.chave]).length);
-      if (!camadaCompleta) {
+      const camada = camadaDaUnidade(termo, relacao);
+      const completa = camadaCompleta(camada);
+      if (!completa) {
+        const faltam = CAMPOS_DA_CAMADA.filter((c) => camada[c.chave].origem === 'ausente')
+          .map((c) => c.chave);
         lacunas.push(comum.lacuna('unidade-sem-camada', String(turma.id) + ' · '
           + String(termo ? termo.termo : relacao.termo),
-        'a camada pedagógica (exige · ensina · expressa)'));
+        'a camada pedagógica (falta: ' + faltam.join(' · ') + ')'));
       }
       if (termo && !musicas.length) {
         lacunas.push(comum.lacuna('unidade-sem-verbete', String(turma.id) + ' · ' + termo.termo,
@@ -265,7 +312,7 @@ function gerar(entrada) {
             m.integridade.motivos.join('; ')));
         }
       }
-      return { relacao, termo, musicas, camadaCompleta };
+      return { relacao, termo, musicas, camada, camadaCompleta: completa };
     });
 
     if (!unidades.length) {
@@ -279,6 +326,12 @@ function gerar(entrada) {
       unidadesLidas: lidas,
       comCamada: lidas.filter((u) => u.camadaCompleta).length,
       comVerbete: lidas.filter((u) => u.musicas.length).length,
+      herdados: lidas.reduce((n, u) => n + CAMPOS_DA_CAMADA
+        .filter((c) => u.camada[c.chave].origem === 'herdado').length, 0),
+      declarados: lidas.reduce((n, u) => n + CAMPOS_DA_CAMADA
+        .filter((c) => u.camada[c.chave].origem === 'nivel').length, 0),
+      ausentes: lidas.reduce((n, u) => n + CAMPOS_DA_CAMADA
+        .filter((c) => u.camada[c.chave].origem === 'ausente').length, 0),
     });
 
     documentos.push({
@@ -331,6 +384,7 @@ function gerar(entrada) {
         unidades: lido.unidades.length,
         com_camada: lido.comCamada,
         com_decomposicao: lido.comVerbete,
+        camada: { herdados: lido.herdados, declarados: lido.declarados, ausentes: lido.ausentes },
         documento: 'syllabus-' + String(t.id) + '.md',
       };
     }),
@@ -338,6 +392,9 @@ function gerar(entrada) {
       niveis: escolhidas.length,
       niveis_com_unidades: escolhidas.filter((t) => porNivel.get(String(t.id)).unidades.length).length,
       unidades: Array.from(porNivel.values()).reduce((n, x) => n + x.unidades.length, 0),
+      camada_herdada: Array.from(porNivel.values()).reduce((n, x) => n + x.herdados, 0),
+      camada_declarada: Array.from(porNivel.values()).reduce((n, x) => n + x.declarados, 0),
+      camada_ausente: Array.from(porNivel.values()).reduce((n, x) => n + x.ausentes, 0),
       lacunas: lacunas.length,
     },
     lacunas,
@@ -356,4 +413,4 @@ function gerar(entrada) {
   };
 }
 
-module.exports = { gerar, CAMPOS_DA_CAMADA };
+module.exports = { gerar, CAMPOS_DA_CAMADA, camadaDaUnidade, camadaCompleta };

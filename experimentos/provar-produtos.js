@@ -425,6 +425,137 @@ console.log('\nH. O CLI — escreve os documentos, e o --json imprime o manifest
   }
 }
 
+// ================= I. A HERANÇA DA CAMADA =====================================
+console.log('\nI. A HERANÇA — o termo dá o padrão, a relação sobrepõe, e o documento diz de onde veio');
+{
+  // O termo declara a exigência; a relação não. Isso é herdar, e herdar NÃO é faltar.
+  const camada = syllabus.camadaDaUnidade(
+    { exige: ['o pé esticado'], ensina: ['a extensão'] },
+    { ensina: ['a prioridade deste nível'] });
+  checar('o campo que só o termo declara é herdado', camada.exige.origem === 'herdado'
+    && camada.exige.valores[0] === 'o pé esticado', camada.exige);
+  checar('o campo que a relação declara sobrepõe o do termo', camada.ensina.origem === 'nivel'
+    && camada.ensina.valores[0] === 'a prioridade deste nível', camada.ensina);
+  checar('…e o que nem um nem outro declara fica ausente', camada.expressa.origem === 'ausente'
+    && camada.expressa.valores.length === 0, camada.expressa);
+  checar('a camada só está completa quando nenhum dos três está ausente',
+    syllabus.camadaCompleta(camada) === false
+      && syllabus.camadaCompleta({ exige: { valores: ['a'], origem: 'herdado' },
+        ensina: { valores: ['b'], origem: 'nivel' }, expressa: { valores: ['c'], origem: 'herdado' } }) === true);
+
+  // E o dado de prova prova-o de ponta a ponta: o vocabulário não declara camada nenhuma, e a
+  // relação `tendu` declara as três — logo a unidade sai declarada no nível, e não herdada.
+  const t = texto(sil);
+  checar('o documento marca a origem da camada, e a marca aparece nele',
+    /_\(declarado no nível\)_/.test(t), t.match(/_\([a-zçãí ]+\)_/g));
+  checar('…e a unidade que não declara nada continua a sair com a lacuna, não com um vazio',
+    /\[Preencher: exige do corpo\]/.test(t));
+
+  // A CONTAGEM IMPEDE A HERANÇA DE VIRAR LACUNA EM SILÊNCIO. Se um dia as três forem herdadas e o
+  // manifesto disser «0 herdados», a marca do documento e o número contradizem-se — e é a prova que
+  // apanha isso, não a leitura do documento.
+  const h = syllabus.gerar(Object.assign({}, BASE, {
+    vocabulario: VOCABULARIO.map((t2) => (t2.id === 'tendu'
+      ? Object.assign({}, t2, { exige: ['herdado de prova'], ensina: 'herdado',
+        expressa: 'herdado' }) : t2)),
+    progressao: { turmas: PROGRESSAO.turmas, relacoes: PROGRESSAO.relacoes.map((r) => (
+      r.termo === 'tendu' ? { turma: r.turma, termo: r.termo } : r)) },
+  }));
+  const nivel1 = h.manifesto.niveis.find((x) => x.id === 'n1');
+  // Quatro unidades no nível 1: `tendu` (as três herdadas), `premiere` (as três declaradas),
+  // `plie` e a relação órfã (as seis ausentes). A soma tem de dar 12 — e é a soma que impede
+  // uma unidade de desaparecer da conta sem desaparecer do documento.
+  checar('o manifesto conta o que foi herdado, o que foi declarado e o que falta',
+    nivel1.camada.herdados === 3 && nivel1.camada.declarados === 3
+      && nivel1.camada.ausentes === 6, nivel1.camada);
+  checar('…e o herdado aparece marcado como herdado no documento',
+    /_\(herdado do termo\)_/.test(texto(h)));
+  checar('a lacuna da camada nomeia o que falta, e não repete os três nomes',
+    h.lacunas.some((l) => l.tipo === 'unidade-sem-camada' && /falta: exige/.test(l.falta || '')),
+    h.lacunas.filter((l) => l.tipo === 'unidade-sem-camada'));
+}
+
+// ================= J. A LICENÇA ===============================================
+console.log('\nJ. A LICENÇA — o nome vem do ficheiro que a declara, e some a lacuna `sem-licenca`');
+{
+  const lido = cli.licencaDoDisco();
+  checar('a licença é lida do ficheiro do catálogo, e cita o caminho dele',
+    lido.length > 0 && /biblioteca\/LICENSE\.md/.test(lido), lido);
+  checar('…e o ficheiro existe de facto', fs.existsSync(path.join(RAIZ, 'biblioteca', 'LICENSE.md')));
+
+  // A LACUNA NÃO DESAPARECE POR O TEXTO EXISTIR NA PROVA: ela desaparece porque o CLI a leu. Sem o
+  // `--licenca`, quem gera é o ficheiro, e é isso que este par mede.
+  const semTexto = syllabus.gerar(Object.assign({}, BASE, { licenca: '' }));
+  checar('sem licença, o manifesto declara a lacuna', semTexto.lacunas.some((l) => l.tipo === 'sem-licenca'));
+
+  const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'produtos-licenca-'));
+  try {
+    execFileSync('node', [path.join(RAIZ, 'motor', 'produtos.js'), 'dicionario', '--out', destino],
+      { cwd: RAIZ, stdio: 'pipe' });
+    const doc = fs.readFileSync(path.join(destino, 'dicionario-bale-classico.md'), 'utf8');
+    checar('o documento gerado pelo CLI traz a licença do ficheiro, e não «pendente»',
+      /^licenca: Licença de uso do catálogo/m.test(doc) && !/pendente/.test(doc),
+      (doc.match(/^licenca: .*$/m) || [])[0]);
+  } finally {
+    fs.rmSync(destino, { recursive: true, force: true });
+  }
+}
+
+// ================= K. A CONDIÇÃO DE CONTEÚDO DA LICENÇA =======================
+console.log('\nK. A EDIÇÃO PAGA — a definição sem origem não entra, e o sítio dela di-lo');
+{
+  // Três termos, três casos: definição sem origem (sai da paga), definição com origem (fica), e
+  // termo sem definição (é lacuna nos dois, e não é o mesmo problema).
+  const VOC = [
+    { id: 'a', termo: 'Alfa', categoria: 'passo', descricao: 'a definição sem origem', fonte: '' },
+    { id: 'b', termo: 'Beta', categoria: 'passo', descricao: 'a definição com origem',
+      fonte: 'fonte declarada na prova' },
+    { id: 'c', termo: 'Gama', categoria: 'passo', descricao: '', fonte: '' },
+  ];
+  const base = Object.assign({}, BASE, { vocabulario: VOC, progressao: { turmas: [], relacoes: [] } });
+  const interna = dicionario.gerar(Object.assign({}, base, { licenca: 'licença de prova' }));
+  const paga = dicionario.gerar(Object.assign({}, base,
+    { licenca: 'licença de prova', edicao: 'paga' }));
+
+  checar('a edição interna mostra a definição sem origem, e nomeia-a como lacuna',
+    /a definição sem origem/.test(texto(interna))
+      && interna.lacunas.some((l) => l.tipo === 'termo-sem-fonte' && l.onde === 'a'));
+  checar('a edição paga retira essa definição e di-lo no sítio dela',
+    !/a definição sem origem/.test(texto(paga))
+      && (texto(paga).match(/Fora da edição paga/g) || []).length === 1);
+  checar('…e o termo continua no dicionário: o que sai é a definição, não o nome do passo',
+    /### Alfa/.test(texto(paga)));
+  checar('…e a definição com origem fica nas duas',
+    /a definição com origem/.test(texto(paga)) && /a definição com origem/.test(texto(interna)));
+  checar('o manifesto conta o que ficou de fora, e o tipo da lacuna muda com a edição',
+    paga.manifesto.contagens.definicoes_fora_da_edicao_paga === 1
+      && interna.manifesto.contagens.definicoes_fora_da_edicao_paga === 0
+      && paga.lacunas.some((l) => l.tipo === 'descricao-fora-da-edicao-paga' && l.onde === 'a')
+      && !interna.lacunas.some((l) => l.tipo === 'descricao-fora-da-edicao-paga'),
+    paga.manifesto.contagens);
+  checar('…e a edição vai escrita no manifesto e no cabeçalho do documento',
+    paga.manifesto.edicao === 'paga' && /^edicao: paga$/m.test(texto(paga))
+      && /^edicao: interna$/m.test(texto(interna)));
+  checar('o termo sem definição é lacuna nas duas edições — e não é a mesma coisa que a retirada',
+    interna.lacunas.some((l) => l.tipo === 'termo-sem-definicao' && l.onde === 'c')
+      && paga.lacunas.some((l) => l.tipo === 'termo-sem-definicao' && l.onde === 'c'));
+
+  // O `--edicao` do CLI chega ao manifesto. Sem isto, a regra existiria no núcleo e não chegaria a
+  // quem gera o produto — que é a forma mais comum de uma regra nascer morta.
+  const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'produtos-edicao-'));
+  try {
+    const saida = execFileSync('node',
+      [path.join(RAIZ, 'motor', 'produtos.js'), 'dicionario', '--edicao', 'paga', '--json',
+        '--out', destino], { cwd: RAIZ, stdio: 'pipe' }).toString();
+    const m = JSON.parse(saida);
+    checar('o `--edicao paga` chega ao manifesto, e conta o que saiu',
+      m.edicao === 'paga' && m.contagens.definicoes_fora_da_edicao_paga > 0,
+      { edicao: m.edicao, fora: m.contagens.definicoes_fora_da_edicao_paga });
+  } finally {
+    fs.rmSync(destino, { recursive: true, force: true });
+  }
+}
+
 console.log('');
 if (falhas) {
   console.log('FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).');
