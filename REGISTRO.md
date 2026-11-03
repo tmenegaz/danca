@@ -33231,3 +33231,88 @@ secções) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
 próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c) O caminho
 `plano → .md → pacote` só se prova com um plano a sério: hoje mede-se em bancada, não ao vivo.
 (d) O caminho crítico continua a ser conteúdo: 11 níveis vazios, 0 dos três campos, a aula pronta.
+
+## 03/11/2026 — A curadoria só oferece o que tem notação, os rótulos ficaram um só, e o formulário deixou de explicar
+
+**O que motivou.** Três pedidos da pesquisadora, e o primeiro é o que tem consequência: «a lista de
+seleção de conteúdo na Curadoria exibe uma quantidade massiva de nomes de passos genéricos, enquanto
+na prática de verbetes de notação cadastrados reais existem apenas dois». A lista oferecia o
+vocabulário inteiro — **93 palavras** — e **duas** tinham decomposição. Uma lista que promete 93 e
+entrega 2 ensina a desconfiar dela, e é o mesmo defeito de sempre: a tela a afirmar mais do que o
+sistema sabe.
+
+**1. A lista passou a ser a pergunta certa.** `exerciciosComNotacao()` responde «o que já se pode
+ENSINAR com notação»: um verbete com, ao menos, uma música (`<tempos>|<compasso>`) e um trecho
+escrito dentro dela. A lista cresce sozinha quando um verbete ganha trechos e encolhe quando o
+último sai. **O vocabulário não perde nada** — ele continua a ser a lista do dicionário e a dos
+produtos; o que mudou é a pergunta. E **o que já está gravado continua a ler-se**: as fichas de uma
+curadoria antiga vêm de `c.repertorio` e o cliente desenha-as sem passar pelo menu, porque a memória
+não se apaga (P-03/P-04).
+
+O comportamento de seleção **já era** o das alunas — o mesmo `escolhedor`, com menu, «Adicionar» e
+ficha removível. O que não era igual era o conteúdo da lista. A prova §A compara os dois blocos e
+mostra que são a mesma peça; a §D é o controlo negativo (vocabulário sem verbete → menu vazio, e as
+alunas continuam a ser oferecidas).
+
+**2. Os rótulos não eram a mesma peça.** «Professor», «Modalidade», «Tradição», «Grau», «Nível» e
+«Turma» usavam `.campo-rotulo`; «Alunas» e «Conteúdos desta curadoria» eram `<label>` nu — o
+navegador desenhava-os **em linha**, com outra cor e outro peso. Passaram a usar a mesma peça, e com
+eles **três sítios que ninguém tinha visto**: «Modalidades que este professor declara ensinar»,
+«Dias da semana e a hora de início de cada um» e «Níveis». **Nenhuma folha foi tocada** — a
+unificação é usar o que já existe, não inventar uma segunda classe. A §B mede no **Chromium**, com a
+folha de verdade: `getComputedStyle` dos oito em `display`, peso, tamanho, cor e margens.
+
+**3. O formulário deixou de explicar.** Saiu o que ensinava o gesto em vez de o permitir:
+
+| O que saiu | Onde |
+|:--|:--|
+| «(nada escolhido ainda)» e o `mostrarVazio` que só existia para o esconder | os dois escolhedores |
+| «— opcional; sem escolha, o trecho não tem direção» · «… de frente» | legendas do passo 3 |
+| «— clique para acrescentar ao fim; clique outra vez para tirar» | legenda dos sinais |
+| «A posição de cada trecho escreve-se nos sinais dele — passo 4… e passo 5…» | passo 2 |
+| «Escolha a categoria e os sinais.» | chips (marcação e repintura) |
+| «Escolha o exercício para ver e escrever a decomposição dele.» · «Ainda sem trechos. Escreva o primeiro no botão abaixo — a direção, no passo 3, é opcional.» | listagem do passo 6 |
+| «Ainda não há nenhum trecho…» (as duas variantes) | rodapé do «Gravar» |
+| «— sem grau —» · «— esta tradição não usa grau —» · «— esta modalidade ainda não tem tradições —» | opções vazias, agora mudas |
+
+**O que NÃO saiu, e a fronteira importa:** o feedback que **informa** — a contagem de tempos e
+compassos abaixo da música, o aviso de desacordo entre a música e a decomposição, a cobertura, o
+«Hoje: …» da associação da turma, o modo de edição, a nota do método herdado, a nota da frase do
+dicionário, e as duas notas da curadoria (habilitações e tradições da modalidade). **Nove blocos**,
+e a §E conta-os um a um. A regra é contra o sermão, não contra a informação.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-curadoria-e-limpeza` (novo) | **TUDO CERTO — 22 asserções, 5 secções**. **§A** o menu = os exercícios com notação, derivado do alfabeto (o «Jeté» da prova é termo e não entra), e os dois escolhedores são a mesma peça. **§B** os oito rótulos com a mesma pele, medidos no Chromium. **§C** dez textos removidos, um a um. **§D** o controlo negativo. **§E** os nove blocos de feedback que ficam |
+| `provar-producao` | **153 de 156** (era **151 de 155**). A asserção «nenhum formulário traz explicação» estava vermelha desde antes (obtido 1, esperado 0) e o único resto era a frase da posição: **passou**. As duas novas são as do menu. As **três falhas que restam são as de antes** (o item do menu, a lista de tradições do verbete e a contagem de pílulas) |
+| `provar-conteudos-e-estado-da-turma` | **TUDO CERTO — 75 asserções** (era 74; a nova garante que o vocabulário não foi apagado do sistema) |
+| `provar-cartao-da-turma` | **4 falhas, antes e depois** — as mesmas do `--controle-negativo` sobre HEAD |
+| `provar-teste` · `provar-plano-e-curadoria` · `provar-habilitacao-do-professor` · `provar-enquadramento-da-turma` · `provar-verbete` · `provar-tabela-da-notacao` | **45 verificações** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** · **14/14** · **TUDO CERTO** |
+| **uma nota honesta** | `provar-celula` **rebenta na secção 2**, com e sem esta mudança (mesmo `TypeError` sobre `cabecalho`, medido com o motor de HEAD). As duas asserções que afirmavam os textos removidos foram **invertidas** — para não mentirem a quem reparar o banco —, mas **não correram** |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · a lista real da `breu` depois do deploy: ao vivo ela deve passar de **94** opções para **3** (o «— escolher —» e os dois exercícios com notação) |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. A
+`ciclo.css` não mudou: a unificação dos rótulos foi aplicar a classe que a folha já tem, e a única
+regra CSS que saiu (`escolhedor .escolhidos .vazio`) vivia no `<style>` da própria página.
+
+**Com o quê.** `motor/servidor/bastidores.js` (o helper `exerciciosComNotacao`, o filtro do menu, os
+oito rótulos, as dez remoções, o `mostrarVazio` que saiu) · `experimentos/provar-curadoria-e-limpeza.js`
+(novo) · `experimentos/provar-producao.js` · `experimentos/provar-conteudos-e-estado-da-turma.js` ·
+`experimentos/provar-cartao-da-turma.js` · `experimentos/provar-celula.js` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**Referências.** A especificação dela de 03/11/2026 (a lista, os rótulos e a limpeza semântica) ·
+P-03/P-04 (a memória não se apaga) · P-16 (o conteúdo é dela) · `IDENTIDADE-VISUAL.md` (as peças).
+
+**O que ainda não está feito.** (a) **Um exercício passa a aparecer no menu no instante em que
+ganha o primeiro trecho** — mas a página é servida pelo Worker, e o verbete é lido do alfabeto
+**embutido no bundle**: um verbete criado pela Produção chega ao repositório e **só entra no menu
+depois do deploy**. É o mesmo mecanismo que já governa a notação, e é o que faz o `deploy-escolas`
+disparar com `biblioteca/modalidades/**`. (b) A lista é a **união dos alfabetos** — hoje só há um
+(`bale-classico`), e filtrá-la pela modalidade escolhida é o passo seguinte, quando houver uma
+segunda. (c) As duas notas da curadoria (habilitações, tradições) **ficaram**: são estado do dado, e
+sem elas um `<select>` vazio não tem explicação. Se a régua for «nenhuma nota, nunca», elas são as
+próximas a sair — e a decisão é dela.

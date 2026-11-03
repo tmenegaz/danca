@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `bb8d122`, árvore limpa). Esta entrega é uma
+> **Última fotografia:** 03/11/2026 (base `85ff724`, árvore limpa). Nesta entrega, **o formulário
+> da curadoria passou a prometer só o que existe**. **(1) A lista de conteúdos** oferecia o
+> vocabulário inteiro — 93 palavras — e duas tinham decomposição; passa a oferecer os exercícios
+> que **têm notação** (um verbete com música e, dentro dela, ao menos um trecho), por
+> `exerciciosComNotacao()`. Cresce sozinha quando um verbete ganha trechos, e o que já está gravado
+> continua a ler-se (as fichas vêm do registo, não do menu). **(2) Os oito rótulos do formulário**
+> passaram a vestir a mesma peça: «Alunas» e «Conteúdos desta curadoria» eram `<label>` nu e o
+> navegador desenhava-os em linha, com outra cor — e com eles três sítios que ninguém tinha visto.
+> **(3) O formulário deixou de explicar**: saíram o «(nada escolhido ainda)», as legendas
+> «— opcional; sem escolha…», a instrução de clique dos sinais, a frase da posição, os quatro
+> avisos de estado vazio do passo 6 e do rodapé, e as opções que rotulavam a ausência de escolha
+> («— sem grau —»…). **Ficou o feedback que informa** — nove blocos, contados um a um na §E da
+> prova nova, `provar-curadoria-e-limpeza` (**22 asserções**). Efeito medido: a asserção
+> «nenhum formulário traz explicação» do `provar-producao` estava vermelha desde antes e **passou**
+> (153 de 156, era 151 de 155).
+>
+> **Entrega anterior** (base `bb8d122`, árvore limpa). Esta entrega é uma
 > **verificação a pedido** («o processo da curadoria até à geração dos documentos»), e achou um elo
 > partido: `porta/index.html` tinha **duas funções com o mesmo nome** — `turmaDoPlano` —, e a
 > segunda (a que devolve uma lista de nomes, nascida a 02/11 com o «Carregar das anamneses da
@@ -18,7 +34,7 @@
 > registada e o `repertorio` dela já chega ao formulário** (medido no ar), mas **não há plano nem PO
 > guardados** — e sem PO não há documentos.
 >
-> **Entrega anterior** (base `9d636fe`, árvore limpa). **O conteúdo
+> **Entrega anterior a essa** (base `9d636fe`, árvore limpa). **O conteúdo
 > saiu do cadastro da turma**, e a turma passou a ter **três estados**. **(1) A auditoria que ela
 > pediu mudou o diagnóstico:** a rota `turma-editar` já recusava (409) a turma presa a um plano, mas
 > a turma que apenas **compunha uma curadoria** continuava editável — e a curadoria guarda o **nome**
@@ -1468,6 +1484,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**O formulário da curadoria promete só o que existe (03/11/2026).** A lista de conteúdos passou a
+ser a dos **exercícios com notação** — um verbete com música e, dentro dela, ao menos um trecho —,
+e não o vocabulário inteiro: eram **93** palavras para **duas** decomposições, e a lista cresce ou
+encolhe sozinha com o alfabeto. **CONFIRMADO** por `provar-curadoria-e-limpeza` §A (a expectativa
+derivada do alfabeto público) e pela §D (controlo negativo). Os **oito rótulos** do formulário
+vestem a mesma peça, e o formulário perdeu as instruções e os estados vazios escritos por palavras
+— **ficou o feedback que informa**, nove blocos contados na §E.
+
+**O que continua a travar os produtos, e é o mesmo de antes.** A curadoria existe e o plano lê-a;
+o que **não** existe é o **plano de ensino** e o **PO** gravados, e sem PO não há documentos. O
+`GITHUB_TOKEN` do `.dev.vars` responde **401** e é o valor que `criar-escola.sh --deploy` grava no
+Worker. **PENDENTE**, e é o próximo passo dela.
+
+**Um efeito da lista nova que é preciso dizer.** Um exercício entra no menu **no instante em que
+ganha o primeiro trecho** — no alfabeto do repositório. Mas o Worker serve o alfabeto **embutido no
+bundle**: o verbete criado pela Produção chega ao repositório e **só aparece no menu depois do
+deploy** (o `deploy-escolas` dispara com `biblioteca/modalidades/**`, e é por isso que ele chega).
+**CONFIRMADO** por leitura de `motor/nucleo/notacao.js` e do filtro de `paths` do workflow.
+
 **A curadoria existe e o plano já a lê; o que falta é GRAVAR (03/11/2026).** A verificação a pedido
 mediu o estado, elo por elo, e a resposta curta é: **a curadoria está registada**, o `repertorio`
 dela (`Plié`, `Battement tendu`) já chega ao formulário do plano pela coluna «Conteúdo do nível», e
@@ -1944,7 +1979,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a curadoria chega ao plano)
+### Executado nesta fotografia (03/11/2026 — a lista que só promete o que existe, e o formulário sem sermão)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-curadoria-e-limpeza.js` (novo) | **TUDO CERTO — 22 asserções em 5 secções**. **§A** o menu da curadoria = os exercícios **com notação**, derivado do alfabeto (não um número à mão); o «Jeté» da prova é termo e não entra; os dois escolhedores são a mesma peça. **§B** os **oito rótulos** com a mesma pele, medidos no **Chromium** (`display`, peso, tamanho, cor, margens). **§C** dez textos removidos, um a um. **§D** controlo negativo: vocabulário sem verbete → menu vazio, alunas intactas. **§E** os **nove** blocos de feedback que ficam |
+| `provar-producao` | **153 de 156** (era **151 de 155**). A asserção «nenhum formulário traz explicação» estava vermelha desde antes (obtido 1, esperado 0) e **passou** — o único resto era a frase da posição, que saiu. As duas novas são as do menu. As três que restam são as de antes |
+| `provar-conteudos-e-estado-da-turma` | **TUDO CERTO — 75 asserções** (era 74): a nova garante que o vocabulário não foi apagado do sistema |
+| `provar-cartao-da-turma` | **4 falhas, antes e depois** — as mesmas do `--controle-negativo` sobre HEAD |
+| `provar-teste` · `provar-plano-e-curadoria` · `provar-habilitacao-do-professor` · `provar-enquadramento-da-turma` · `provar-verbete` · `provar-tabela-da-notacao` | **45 verificações** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** · **14/14** · **TUDO CERTO** |
+| `provar-celula` | **rebenta na secção 2**, com e sem esta mudança (`TypeError` sobre `cabecalho`, medido com o motor de HEAD). As duas asserções que afirmavam os textos removidos foram **invertidas** para não mentirem a quem reparar o banco — mas **não correram** |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push): ao vivo, o menu da `breu` deve passar de **94** para **3** opções |
+
+### Executado na fotografia anterior (03/11/2026 — a curadoria chega ao plano)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2758,6 +2806,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **A lista da curadoria só promete o que existe, os rótulos ficaram um só, e o
+  formulário deixou de explicar.** O menu de conteúdos oferecia o vocabulário inteiro — 93
+  palavras — e duas tinham decomposição; passa a oferecer os exercícios que **têm notação**
+  (`exerciciosComNotacao()`: verbete com música e, dentro dela, ao menos um trecho), e o que já
+  está gravado continua a ler-se (as fichas vêm do registo, não do menu). Os **oito rótulos** do
+  formulário vestem a mesma peça — «Alunas» e «Conteúdos desta curadoria» eram `<label>` nu, e o
+  navegador desenhava-os em linha, com outra cor e outro peso —, e com eles três sítios que
+  ninguém tinha visto. Saíram dez textos: o «(nada escolhido ainda)» e o `mostrarVazio`, as
+  legendas «— opcional; sem escolha…», a instrução de clique dos sinais, a frase da posição, os
+  avisos de estado vazio do passo 6 e do rodapé, e as opções que rotulavam a ausência de escolha.
+  **Ficou o feedback que informa** (nove blocos). Prova nova: `provar-curadoria-e-limpeza`, 22
+  asserções. Efeito medido: `provar-producao` de 151/155 para **153/156** (a asserção «nenhum
+  formulário traz explicação» estava vermelha e passou), e `provar-conteudos-e-estado-da-turma` de
+  74 para **75**.
 
 - **03/11/2026** — **A curadoria chegou ao plano, e o que a travava era um nome repetido.**
   `porta/index.html` tinha duas funções chamadas `turmaDoPlano` — a que devolve a turma e a que

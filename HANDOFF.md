@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T13:07:25-0300`
-Commit atual: `bb8d122` — feat(experimentos): a prova da cadeia curadoria → plano, e a classe do defeito que a partiu
+Gerado em: `2026-11-03T13:28:45-0300`
+Commit atual: `85ff724` — feat(experimentos): a prova do menu que não promete o que não existe, e quatro bancos que mediam o contrário
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,9 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+85ff724 feat(experimentos): a prova do menu que não promete o que não existe, e quatro bancos que mediam o contrário
+45ba75b feat(estrutura): a curadoria só oferece o que tem notação, e o formulário deixa de explicar
+8794c10 docs(estrutura): a verificação da curadoria ao plano, e o nome que partia a cadeia
 bb8d122 feat(experimentos): a prova da cadeia curadoria → plano, e a classe do defeito que a partiu
 4e90c3c fix(estrutura): o plano volta a ler a turma, e a curadoria volta a chegar ao formulário
 5ac0d2a docs(estrutura): a auditoria que mudou o diagnóstico, e o conteúdo que é da curadoria
@@ -102,9 +105,6 @@ faf9897 docs(estrutura): a modalidade pertence ao professor, e o sinal que falta
 f2c10da feat(notacao): o coupé e o sur le cou-de-pied passam a escrever-se
 47ecdfc docs(registro): a notação em três colunas e o trecho que não estica a tela
 cc150e6 feat(estrutura): a notação em três colunas, e o trecho que não estica a tela
-e8cc4c6 docs(registro): a conferência ao ar que a entrada dizia não ter sido feita
-b28f8b9 docs(registro): a listagem lia com o alfabeto errado e deitava fora o gravado
-d681b43 fix(estrutura): a listagem lê a decomposição que está gravada
 ```
 
 ## Por professor
@@ -228,85 +228,92 @@ d681b43 fix(estrutura): a listagem lê a decomposição que está gravada
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A curadoria chegou ao plano, e o que a travava era um nome repetido
+## 03/11/2026 — A curadoria só oferece o que tem notação, os rótulos ficaram um só, e o formulário deixou de explicar
 
-**O que motivou.** A pesquisadora fez a curadoria pela tela e pediu: *«verifique o processo desse
-ponto até a geração dos documentos, a partir do po completo»*. É a pergunta certa, e a resposta
-começa pelo estado: medido no remoto e no ar, **a curadoria está registada e o `repertorio` dela já
-chega ao formulário do plano** — e **não há nenhum plano de ensino e nenhum PO guardados** (três
-medições independentes: o índice do acervo em `escola/breu/envelopes/.indice.json` está vazio, o KV
-antigo não tem chave `envelope/`, e a lista ao vivo diz «Ainda não há Plano de Observação nesta
-escola»). Sem PO não há o que gerar: o pacote da `breu` continua o scaffold (`DOCS=""`).
+**O que motivou.** Três pedidos da pesquisadora, e o primeiro é o que tem consequência: «a lista de
+seleção de conteúdo na Curadoria exibe uma quantidade massiva de nomes de passos genéricos, enquanto
+na prática de verbetes de notação cadastrados reais existem apenas dois». A lista oferecia o
+vocabulário inteiro — **93 palavras** — e **duas** tinham decomposição. Uma lista que promete 93 e
+entrega 2 ensina a desconfiar dela, e é o mesmo defeito de sempre: a tela a afirmar mais do que o
+sistema sabe.
 
-**O elo partido, e o modo de falha.** `porta/index.html` tinha **duas** funções chamadas
-`turmaDoPlano`: a que devolve a TURMA (o ritmo e o conteúdo descem dela) e a que devolve uma **lista
-de nomes**, nascida a 02/11/2026 com o «Carregar das anamneses da turma». Duas declarações no mesmo
-escopo: a segunda ganhava para **todos** os chamadores, por hoisting. Um array não dá erro — dá
-`undefined` em `t.periodoInicio`, `NaN` em `Number(t.frequencia)` (e `valorDaTurma` devolvia
-`undefined`), e `termosDaTurma(undefined)` devolvia `[]`. O plano deixou de ler a turma **e** de
-mostrar o que a direção curou, sem uma palavra na tela. É a mesma família de falha que o
-`REGISTRO.md` já nomeou duas vezes: o dado falta, e o silêncio faz o professor concluir que o
-sistema «não pega» o que ele acabou de decidir.
+**1. A lista passou a ser a pergunta certa.** `exerciciosComNotacao()` responde «o que já se pode
+ENSINAR com notação»: um verbete com, ao menos, uma música (`<tempos>|<compasso>`) e um trecho
+escrito dentro dela. A lista cresce sozinha quando um verbete ganha trechos e encolhe quando o
+último sai. **O vocabulário não perde nada** — ele continua a ser a lista do dicionário e a dos
+produtos; o que mudou é a pergunta. E **o que já está gravado continua a ler-se**: as fichas de uma
+curadoria antiga vêm de `c.repertorio` e o cliente desenha-as sem passar pelo menu, porque a memória
+não se apaga (P-03/P-04).
 
-**A classe, e não só a instância.** Procurando a mesma armadilha no resto do cliente apareceram
-mais duas, na Produção: `cancelarEdicao` (a da turma e a do verbete — a do verbete ganhava, e o
-«Cancelar» da turma corria a do verbete: limpava o estado errado e deixava a turma no passo 3), e
-`temposDaContagem` (a conta que corre e uma segunda que nunca correu). As três foram renomeadas. A
-prova nova mede a **classe**: nenhum bloco de cliente declara a mesma função duas vezes.
+O comportamento de seleção **já era** o das alunas — o mesmo `escolhedor`, com menu, «Adicionar» e
+ficha removível. O que não era igual era o conteúdo da lista. A prova §A compara os dois blocos e
+mostra que são a mesma peça; a §D é o controlo negativo (vocabulário sem verbete → menu vazio, e as
+alunas continuam a ser oferecidas).
 
-**O efeito medido que ninguém tinha visto.** `provar-teste` estava vermelho — «a frequência não saiu
-dos dias da turma» — e passou a **45 verificações, todas verdes**: a frequência voltou a sair da
-turma. E `provar-cartao-da-turma` caiu de **6 falhas para 4**, e as quatro são as mesmas do
-`--controle-negativo` sobre o motor de HEAD.
+**2. Os rótulos não eram a mesma peça.** «Professor», «Modalidade», «Tradição», «Grau», «Nível» e
+«Turma» usavam `.campo-rotulo`; «Alunas» e «Conteúdos desta curadoria» eram `<label>` nu — o
+navegador desenhava-os **em linha**, com outra cor e outro peso. Passaram a usar a mesma peça, e com
+eles **três sítios que ninguém tinha visto**: «Modalidades que este professor declara ensinar»,
+«Dias da semana e a hora de início de cada um» e «Níveis». **Nenhuma folha foi tocada** — a
+unificação é usar o que já existe, não inventar uma segunda classe. A §B mede no **Chromium**, com a
+folha de verdade: `getComputedStyle` dos oito em `display`, peso, tamanho, cor e margens.
 
-**O que foi verificado, elo por elo.**
+**3. O formulário deixou de explicar.** Saiu o que ensinava o gesto em vez de o permitir:
 
-| Elo | Estado |
+| O que saiu | Onde |
 |:--|:--|
-| curadoria → turma e habilitação | **CONFIRMADO no ar**: `/api/bastidores/curadoria-professor` devolve a curadoria com `repertorio: ['Plié','Battement tendu']`, e `/api/bastidores/turmas` devolve a turma `bale-nivel-1-teste-3` com o ritmo |
-| curadoria → mapa de conteúdos | **CONFIRMADO no ar**: `/api/bastidores/turma-conteudos` devolve `{ "bale-nivel-1-teste-3": ["battement-tendu","plie"] }` — o mapa **composto**, sem escrever no antigo |
-| curadoria/turma → formulário do plano | **estava partido**, corrigido, e provado por `provar-plano-e-curadoria` (§A–§D) |
-| plano → fonte `.md` + manifesto da variante | **não exercitado ao vivo** — não há plano guardado. O caminho existe e é o mesmo (`escrever-plano.js`, `comporManifestoDaTurma`), e compõe o `.conf` da variante a partir do **cadastro da turma** |
-| PO → fonte `.md` | **não exercitado**: o PO é o segundo ato (o formulário do PO pede o plano de ensino observado), e não há plano |
-| fonte → pacote | **não exercitado**: `gerar-ciclo.sh` recusa o ciclo-zero (11 erros, os mesmos de antes — falta PDF, `-dados.json` e os links das fontes) |
+| «(nada escolhido ainda)» e o `mostrarVazio` que só existia para o esconder | os dois escolhedores |
+| «— opcional; sem escolha, o trecho não tem direção» · «… de frente» | legendas do passo 3 |
+| «— clique para acrescentar ao fim; clique outra vez para tirar» | legenda dos sinais |
+| «A posição de cada trecho escreve-se nos sinais dele — passo 4… e passo 5…» | passo 2 |
+| «Escolha a categoria e os sinais.» | chips (marcação e repintura) |
+| «Escolha o exercício para ver e escrever a decomposição dele.» · «Ainda sem trechos. Escreva o primeiro no botão abaixo — a direção, no passo 3, é opcional.» | listagem do passo 6 |
+| «Ainda não há nenhum trecho…» (as duas variantes) | rodapé do «Gravar» |
+| «— sem grau —» · «— esta tradição não usa grau —» · «— esta modalidade ainda não tem tradições —» | opções vazias, agora mudas |
 
-**Uma nota operacional, medida.** O `GITHUB_TOKEN` do `.dev.vars` local responde **401** em
-`/user` e na API do repositório: está morto. Não é o mesmo que dizer que o Worker escreve mal — o
-secret do Worker não se lê de fora, e a lista do acervo ao vivo responde com uma leitura limpa
-(o que é igualmente compatível com «token válido e árvore vazia»). Mas é o valor que
-`tools/criar-escola.sh --deploy` grava no Worker, e é o que qualquer execução local usa: **antes do
-próximo teste de gravação, o token tem de ser reposto**.
+**O que NÃO saiu, e a fronteira importa:** o feedback que **informa** — a contagem de tempos e
+compassos abaixo da música, o aviso de desacordo entre a música e a decomposição, a cobertura, o
+«Hoje: …» da associação da turma, o modo de edição, a nota do método herdado, a nota da frase do
+dicionário, e as duas notas da curadoria (habilitações e tradições da modalidade). **Nove blocos**,
+e a §E conta-os um a um. A regra é contra o sermão, não contra a informação.
 
-**Quatro provas que estão vermelhas desde antes desta sessão — e não por causa dela.** Medidas com o
-motor de HEAD no worktree: `provar-plano-completo` (a tabela de destinos não conhece os nós de
-02/11/2026 e ainda aponta para uma escola que já não existe — `professores/leticia/`),
-`provar-po-completo` (o validador recusa o PO derivado), `provar-manifesto-do-plano` (2 falhas) e
-`provar-geracao-do-ciclo` (1 de 14). Não foram tocadas: cada uma pede uma decisão de conteúdo ou de
-contrato que não é desta sessão — e ficam escritas para não parecerem verdes.
+**O que se mediu.**
 
-**Com o quê.** `porta/index.html` (a função renomeada) · `motor/servidor/bastidores.js`
-(`cancelarEdicaoDoVerbete`, `temposDaContagemPelaMusica`) ·
-`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (a cópia da porta,
-regerada como o gerador faz) · `experimentos/provar-plano-e-curadoria.js` (novo, 12 asserções em 5
-secções) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+| Verificação | Resultado |
+|:--|:--|
+| `provar-curadoria-e-limpeza` (novo) | **TUDO CERTO — 22 asserções, 5 secções**. **§A** o menu = os exercícios com notação, derivado do alfabeto (o «Jeté» da prova é termo e não entra), e os dois escolhedores são a mesma peça. **§B** os oito rótulos com a mesma pele, medidos no Chromium. **§C** dez textos removidos, um a um. **§D** o controlo negativo. **§E** os nove blocos de feedback que ficam |
+| `provar-producao` | **153 de 156** (era **151 de 155**). A asserção «nenhum formulário traz explicação» estava vermelha desde antes (obtido 1, esperado 0) e o único resto era a frase da posição: **passou**. As duas novas são as do menu. As **três falhas que restam são as de antes** (o item do menu, a lista de tradições do verbete e a contagem de pílulas) |
+| `provar-conteudos-e-estado-da-turma` | **TUDO CERTO — 75 asserções** (era 74; a nova garante que o vocabulário não foi apagado do sistema) |
+| `provar-cartao-da-turma` | **4 falhas, antes e depois** — as mesmas do `--controle-negativo` sobre HEAD |
+| `provar-teste` · `provar-plano-e-curadoria` · `provar-habilitacao-do-professor` · `provar-enquadramento-da-turma` · `provar-verbete` · `provar-tabela-da-notacao` | **45 verificações** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** · **14/14** · **TUDO CERTO** |
+| **uma nota honesta** | `provar-celula` **rebenta na secção 2**, com e sem esta mudança (mesmo `TypeError` sobre `cabecalho`, medido com o motor de HEAD). As duas asserções que afirmavam os textos removidos foram **invertidas** — para não mentirem a quem reparar o banco —, mas **não correram** |
+| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · a lista real da `breu` depois do deploy: ao vivo ela deve passar de **94** opções para **3** (o «— escolher —» e os dois exercícios com notação) |
 
-**Referências.** O pedido dela de 03/11/2026 · P-03/P-04 (a memória não se apaga) · P-16 (o conteúdo
-é dela) · `provar-cartao-da-turma`, `provar-teste`, `provar-plano-da-turma`.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. A
+`ciclo.css` não mudou: a unificação dos rótulos foi aplicar a classe que a folha já tem, e a única
+regra CSS que saiu (`escolhedor .escolhidos .vazio`) vivia no `<style>` da própria página.
 
-**O que ainda não está feito.** (a) **Guardar o plano** (e depois o PO) — depende do token e é o
-próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c) O caminho
-`plano → .md → pacote` só se prova com um plano a sério: hoje mede-se em bancada, não ao vivo.
-(d) O caminho crítico continua a ser conteúdo: 11 níveis vazios, 0 dos três campos, a aula pronta.
+**Com o quê.** `motor/servidor/bastidores.js` (o helper `exerciciosComNotacao`, o filtro do menu, os
+oito rótulos, as dez remoções, o `mostrarVazio` que saiu) · `experimentos/provar-curadoria-e-limpeza.js`
+(novo) · `experimentos/provar-producao.js` · `experimentos/provar-conteudos-e-estado-da-turma.js` ·
+`experimentos/provar-cartao-da-turma.js` · `experimentos/provar-celula.js` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**Referências.** A especificação dela de 03/11/2026 (a lista, os rótulos e a limpeza semântica) ·
+P-03/P-04 (a memória não se apaga) · P-16 (o conteúdo é dela) · `IDENTIDADE-VISUAL.md` (as peças).
+
+**O que ainda não está feito.** (a) **Um exercício passa a aparecer no menu no instante em que
+ganha o primeiro trecho** — mas a página é servida pelo Worker, e o verbete é lido do alfabeto
+**embutido no bundle**: um verbete criado pela Produção chega ao repositório e **só entra no menu
+depois do deploy**. É o mesmo mecanismo que já governa a notação, e é o que faz o `deploy-escolas`
+disparar com `biblioteca/modalidades/**`. (b) A lista é a **união dos alfabetos** — hoje só há um
+(`bale-classico`), e filtrá-la pela modalidade escolhida é o passo seguinte, quando houver uma
+segunda. (c) As duas notas da curadoria (habilitações, tradições) **ficaram**: são estado do dado, e
+sem elas um `<select>` vazio não tem explicação. Se a régua for «nenhuma nota, nunca», elas são as
+próximas a sair — e a decisão é dela.
 
 ## O que está pendente
-
-## 03/11/2026 — O sinal que faltava, o nome que não se traduz, e o dono da modalidade
-
-(a) **A `breu` continua no ar** — ela expurga-a pela tela quando
-terminar de testar. (b) **A habilitação do professor não existe**: onde ela vive, se tem níveis, e o
-que acontece a uma turma cuja modalidade o professor deixou de ter — **são decisões dela**, e sem
-elas o campo nasceria com a forma errada. (c) O caminho crítico é o de sempre: **conteúdo** (11
-níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## 03/11/2026 — A habilitação é da pessoa, a turma fica marcada, e o nível tem a forma da tradição
 
@@ -335,6 +342,11 @@ expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de se
 próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c) O caminho
 `plano → .md → pacote` só se prova com um plano a sério: hoje mede-se em bancada, não ao vivo.
 (d) O caminho crítico continua a ser conteúdo: 11 níveis vazios, 0 dos três campos, a aula pronta.
+
+## 03/11/2026 — A curadoria só oferece o que tem notação, os rótulos ficaram um só, e o formulário deixou de explicar
+
+(a) **Um exercício passa a aparecer no menu no instante em que
+ganha o primeiro trecho** — mas a página é servida pelo Worker, e o verbete é lido do alfabeto
 
 ## Pendências anteriores (índice)
 
@@ -671,6 +683,7 @@ próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c)
 - **03/11/2026** — A música deixou de se bloquear e de se multiplicar, e o… → `REGISTRO.md` L32577
 - **03/11/2026** — A listagem lia com o alfabeto errado, e deitava fora o que… → `REGISTRO.md` L32659
 - **03/11/2026** — A notação em três colunas, e o trecho que não estica a tela → `REGISTRO.md` L32744
+- **03/11/2026** — O sinal que faltava, o nome que não se traduz, e o dono da… → `REGISTRO.md` L32812
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
