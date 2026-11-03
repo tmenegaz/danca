@@ -4,8 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `1b305e3` + `cc150e6`, árvore **limpa**). Nesta entrega,
-> a **notação da listagem passou a três colunas** e o **passo 6 deixou de crescer com os trechos**.
+> **Última fotografia:** 03/11/2026 (base `cc150e6`, árvore **por commitar**). Nesta entrega, **o
+> coupé e o sur le cou-de-pied passaram a poder escrever-se**, e a **modalidade passou a ter dono
+> declarado**. **(1)** O que ela pediu como «adicionar os termos» encontrou-os **já no vocabulário** —
+> `coupe` e `sur-le-cou-de-pied` existiam desde o dicionário dela. O que faltava era o **SIGNO**: o
+> grupo «Posições dos pés e braços» tinha `prep` e os cinco números, e o `lerBloco` **recusa o bloco
+> inteiro** quando um token não existe — escrever o battement frappé, que parte do cou-de-pied, era
+> impossível. Entram `cp` e `cdp`, e o alfabeto vai à **versão 38**. **(2)** O **nome** de dois
+> empréstimos contrariava a decisão D-67 (02/11/2026): `sur-le-cou-de-pied` dizia «sobre o colo do
+> pé» — e cou-de-pied é o **peito** do pé — e `attitude` dizia «atitude». Os dois voltam ao nome
+> internacional, e a prova passa a prendê-los. **(3)** **A modalidade pertence ao PROFESSOR**
+> (**DECIDIDO** por ela): a escola herda por **derivação**, não por campo copiado. O acoplamento está
+> medido — **10 sítios** de `motor/` escrevem a modalidade à mão —, e é essa a linha de base do
+> trabalho de médio prazo. Prova nova: `provar-sinais-da-modalidade`, **29 asserções**.
+>
+> **Entrega anterior** (base `1b305e3` + `cc150e6`, árvore **limpa**). A **notação da listagem passou
+> a três colunas** e o **passo 6 deixou de crescer com os trechos**.
 > **(1)** A tabela tinha duas colunas, e uma delas era **a definição do exercício repetida em cada
 > linha** — com dois trechos, duas vezes a mesma frase. Passa a `compasso` · `contagem` · `notação`,
 > e a definição sobe para o topo do bloco **escrita uma vez**: ela é do **exercício**, não do trecho.
@@ -663,8 +677,10 @@ Verificado nesta fotografia, com os comandos da §9.
   `contagem` é a de **uma** execução e o que a célula ocupa é o **produto**. Entra em toda a
   aritmética (`temposDaCelula`), e um `0` é **recusado**. Na tabela lê-se «1–2 **×2**».
   **CONFIRMADO** por `provar-verbete`.
-- **O bloco de posições é um só: «Posições dos pés e braços».** Tem a **preparatória** e os cinco
-  números, e a **3ª leva o rótulo duplo** — «terceira · quinta (braços)» —, porque os dois braços
+- **O bloco de posições é um só: «Posições dos pés e braços».** Tem a **preparatória**, os cinco
+  números **e, desde 03/11/2026, `cp` (coupé) e `cdp` (sur le cou-de-pied)** — o termo existia no
+  vocabulário e o **sinal** não existia, e sem o sinal o battement frappé não se escrevia. A **3ª
+  leva o rótulo duplo** — «terceira · quinta (braços)» —, porque os dois braços
   acima da cabeça são a 3ª na francesa e a 5ª na RAD. A **categoria do trecho** separa pés de braços
   (`[Pé: 3ª …]` / `[Braço: 3ª …]`). As posições de braços existiam no alfabeto **e não chegavam a
   nenhum ecrã**: `posicoesDeBracosDoMetodo` estava exportada e ninguém a chamava. **CONFIRMADO**.
@@ -1482,6 +1498,34 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
+### A modalidade mora no professor, e a escola a oferece por reflexo (03/11/2026)
+
+**DECIDIDO por ela a 03/11/2026.** A modalidade **nasce da competência de quem ensina**: uma escola
+só oferece balé clássico porque tem quem o saiba ensinar. Pô-la na escola faria o contrário — a
+escola declararia uma competência que ninguém lá tem, e o clássico viraria atributo do **edifício**
+em vez do **ofício**. A escola **herda por derivação** (a união das habilitações de quem lá dá aula),
+não por campo copiado.
+
+| O quê | De quem é | Onde vive hoje |
+|:--|:--|:--|
+| O **conhecimento** (alfabeto + vocabulário) | da **modalidade** | `biblioteca/modalidades/<slug>/`, partilhado e versionado |
+| A **habilitação** (que modalidades este professor ensina) | do **professor** | **não existe** — nenhum registo tem o campo |
+| A **oferta** (o que a escola tem à venda) | **reflexo** das habilitações | **não existe** |
+| A **escolha na aula** (que metodologia aquele ciclo segue) | do **ciclo** | `contexto-metodologia`, no plano (P-16) |
+
+**O que já está feito, e o que falta — medido.** O núcleo tem a porta declarada (`MODALIDADE_PADRAO`
+e os dois mapas) e a rota da Produção **já devolve** `modalidade` na resposta. Mas a modalidade está
+escrita **à mão em 10 sítios de `motor/`** (dois mapas e o padrão no núcleo, dois no CLI dos
+produtos, e cinco na página da Produção). **Esse número é a linha de base** do trabalho de médio
+prazo: desacoplar é levá-lo a zero, e `provar-sinais-da-modalidade` §D mede-o. A ausência também
+está medida: **nenhum** registo de escola declara `modalidade`.
+
+**O que continua aberto, e é dela** (sem isto o campo nasceria com a forma errada): **(a)** onde vive
+a habilitação — `professores/<slug>/perfil.json`, um campo do `.conf` do ciclo, ou o registo da
+escola; **(b)** se a habilitação tem **níveis** («ensina até que nível») ou é sim/não; **(c)** o que
+acontece a uma turma cuja modalidade o professor **deixou** de ter. A análise completa — com a
+tabela do que fica onde e as três consequências — está na **§2.2 da `ARQUITETURA-GERAL.md`**.
+
 ### O contrato da camada pedagógica — o nome é dela, o lugar foi decidido (02/11/2026)
 
 O motor do syllabus lê **três chaves**: `exige`, `ensina` e `expressa`. **O nome não é meu:** está no
@@ -1754,7 +1798,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a notação em três colunas e o trecho dobrado)
+### Executado nesta fotografia (03/11/2026 — os dois sinais novos e o dono da modalidade)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-sinais-da-modalidade.js` (novo) | **TUDO CERTO — 29 asserções em 4 secções**. **§A** o signo: `cp` e `cdp` no grupo das posições com o nome em francês; são sinais conhecidos do validador; **o bloco do frappé (`[Perna: ED cdp ↓ ↑]`) lê-se** e o do coupé também; um verbete que usa os dois **compõe**; e a **contraprova** — tirados os dois sinais, o mesmo verbete cai em `sinal-desconhecido`; versão ≥ 38 e o acrescento declarado no comentário. **§B** o nome: os quatro empréstimos da D-67 com o nome internacional, nenhum a dizer «colo» ou «atitude», e as cinco posições **a continuar em português**. **§C** a rota: 200, `modalidade` na resposta, os dois sinais no grupo certo com nome e significado, e a posição com o nome internacional. **§D** o acoplamento: **10 sítios** de `motor/` escrevem a modalidade à mão (impressos um a um), a porta declarada existe, e **nenhum** registo de escola declara `modalidade` |
+| `node experimentos/provar-notacao.js` | **as mesmas 11 falhas de antes, contadas uma a uma (stash × unstash)** — e o acrescento ao alfabeto **esteve a ponto de introduzir a décima segunda**: a palavra «meia-ponta» é o nome de uma escola, e a varredura de nomes de escola dentro de `biblioteca/modalidades/` apanhou-a. O texto passou a «pé alongado». Fica dito porque é a armadilha: **um sinal novo escreve-se sem os nomes das escolas** |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** |
+| `node experimentos/provar-produtos.js` | **TUDO CERTO — 89 asserções** |
+| `node experimentos/provar-tabela-da-notacao.js` · `provar-leitura-da-decomposicao.js` | **TUDO CERTO** · **TUDO CERTO** |
+| `node tools/check-indices.js` · `check-schemas.js` · `check-identidade.js` | **14/14** · **TUDO CERTO** · **20/20** |
+| **o que NÃO foi medido** | a página **ao vivo** — a conferência é dela, e o deploy só corre depois do push. Nenhum verbete real usa ainda os dois sinais: não havia nenhum para converter |
+
+### Executado na fotografia anterior (03/11/2026 — a notação em três colunas e o trecho dobrado)
 
 | Verificação | Resultado |
 |:--|:--|

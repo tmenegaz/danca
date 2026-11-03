@@ -64,6 +64,51 @@ precisa e devolve o que produz. Quem persiste é o **adaptador** — em desenvol
 de arquivos; no Worker é o KV. Trocar de provedor é trocar de adaptador, não reescrever o motor.
 Ou seja: **"banco" é um detalhe de adaptador, não o centro do desenho.**
 
+### 2.2 A modalidade pertence ao professor — a escola a oferece por reflexo
+
+> **DECIDIDO pela pesquisadora a 03/11/2026.** A pergunta era onde vive a modalidade — se na escola,
+> que é a unidade que se vende, ou no professor. A resposta é o **professor**, e a razão é de domínio,
+> não de conveniência: **a modalidade nasce da competência de quem ensina.** Uma escola só oferece
+> balé clássico porque tem quem o saiba ensinar; a mesma escola oferece contemporâneo no dia em que
+> contrata quem o ensine, e continua a ser a mesma escola. Pôr a modalidade na escola faria o
+> contrário: a escola declararia uma competência que ninguém lá tem, e o balé clássico viraria um
+> atributo do **edifício** em vez de um atributo do **ofício**.
+
+**O que fica onde, depois desta decisão:**
+
+| O quê | De quem é | Onde vive hoje |
+|:--|:--|:--|
+| **O conhecimento** — o alfabeto e o vocabulário de uma modalidade | da **modalidade**, não de pessoa nenhuma | `biblioteca/modalidades/<slug>/` (dado versionado, partilhado) |
+| **A habilitação** — que modalidades este professor ensina | do **professor** | **não existe**: nenhum registo de professor tem este campo |
+| **A oferta** — que modalidades esta escola tem à venda | **reflexo** das habilitações dos professores dela | **não existe**: nenhum registo de escola tem este campo |
+| **A escolha, na aula** — que metodologia aquele ciclo segue | do **ciclo**, declarada no plano | `contexto-metodologia` no plano (P-16) |
+
+**As três consequências que isto obriga a dizer:**
+
+1. **A escola não herda um campo — herda uma derivação.** `modalidadesDaEscola(professores)` é a
+   união das habilitações de quem lá dá aula. Escrito como campo, seria uma segunda declaração do
+   mesmo facto, e a primeira contratação deixaria as duas a divergir — é a regra que esta casa já
+   pagou com o vocabulário por escola (28/10) e com a conta dos tempos.
+2. **O catálogo não muda de sítio.** O alfabeto continua em `biblioteca/modalidades/`, e continua
+   **da modalidade** — nenhuma escola precisa de uma cópia dele. O que a decisão muda é **quem
+   escolhe** qual se usa, não **onde ele mora**.
+3. **O que já existe é uma porta, e ela está declarada.** O núcleo tem `MODALIDADE_PADRAO` e os dois
+   mapas (`ALFABETOS`, `VOCABULARIOS`), e a rota da Produção **já devolve** `modalidade` na resposta.
+   O que falta é a modalidade deixar de ser uma **constante** e passar a ser um **dado lido do
+   professor** — e esse dado, hoje, não existe em lado nenhum.
+
+**O acoplamento, medido a 03/11/2026** (`experimentos/provar-sinais-da-modalidade.js`, §D): a
+modalidade está escrita **à mão em 10 sítios de `motor/`** — dois mapas e o padrão no núcleo, dois
+no CLI dos produtos, e **cinco na página da Produção** (o `POST` do verbete, o `DELETE`, a rota que
+serve o alfabeto e os dois corpos que a tela monta). Este número é a **linha de base**: o trabalho de
+médio prazo é levá-lo a zero, e a prova passa a afirmar o zero.
+
+**O que continua aberto, e é dela:** (a) **onde** vive a habilitação do professor — um ficheiro
+`professores/<slug>/perfil.json`, um campo no `.conf` do ciclo, ou o registo da escola; (b) se uma
+habilitação tem **níveis** (ensina até que nível) ou é só sim/não; (c) como se comporta uma turma
+cuja modalidade o professor **deixou** de ter. Nenhuma das três é código que falte: são decisões, e
+sem elas o campo nasceria com a forma errada.
+
 ---
 
 ## 3. O desenho de fluxo

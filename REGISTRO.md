@@ -32808,3 +32808,82 @@ terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `p
 decidir onde entra (C11) — a decisão dela é que vive no `.conf`, **nunca no KV**. (c) O caminho
 crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
 **fase 3**.
+
+## 03/11/2026 — O sinal que faltava, o nome que não se traduz, e o dono da modalidade
+
+**O que motivou.** Uma especificação dela com dois pedidos: incluir **Coupé** e **Sur le cou-de-pied**
+no módulo de sinais (posições de pés e braços), mantendo a nomenclatura técnica internacional em vez
+de traduções literais; e decidir de quem é a **modalidade**, para o plano de médio prazo.
+
+**1. Os dois termos JÁ EXISTIAM — o que faltava era o SIGNO.** `coupe` está no vocabulário como
+`ligacao` desde o dicionário dela, e `sur-le-cou-de-pied` como `posicao` de pé. A medição antes da
+primeira linha evitou um acrescento duplicado — o vocabulário continua com **93 termos**. O que **não**
+existia era o **sinal**: o grupo «Posições dos pés e braços» do alfabeto tinha `prep` e os cinco
+números, e mais nada. E a falta não era cosmética: o `lerBloco` **recusa o bloco inteiro** quando um
+token não está no alfabeto, pelo que escrever o **battement frappé** — que parte do sur le cou-de-pied
+— dava `sinal-desconhecido`, não um sinal a menos. Entram **`cp`** (coupé) e **`cdp`** (sur le
+cou-de-pied), o alfabeto vai à **versão 38**, e a origem fica declarada: o **conceito** é técnico, a
+**abreviação** é deste código (`prep`, `ED`, `1ª` são o precedente).
+
+**2. E o nome de dois empréstimos contrariava a própria decisão.** A D-67 (02/11/2026) escreveu que
+`retiré`, `attitude`, `arabesque` e `sur le cou-de-pied` **não** se traduzem. O dado dizia outra
+coisa: `sur-le-cou-de-pied` tinha `nome: "sobre o colo do pé"` e `attitude` tinha `nome: "atitude"`.
+A primeira é pior do que uma escolha de estilo — **cou-de-pied é o peito do pé**, e «colo» é outra
+coisa. As duas voltam ao nome internacional, e a prova passa a prendê-las: quem traduzir outra vez
+vê-a vermelha. **O que continua em português é o que não é empréstimo** — as cinco posições, e a
+prova di-lo para que a regra não seja lida como «nunca traduzir».
+
+**3. A modalidade pertence ao PROFESSOR — DECIDIDO por ela.** A razão é de domínio: a modalidade
+nasce da competência de quem ensina, e a escola só a oferece porque tem quem a saiba ensinar. Pô-la
+na escola faria dela um atributo do **edifício** em vez do **ofício**. A escola **herda por
+derivação** — a união das habilitações de quem lá dá aula —, e não por campo copiado: um campo seria
+uma segunda declaração do mesmo facto, e a primeira contratação deixaria as duas a divergir. A
+análise completa, com a tabela do que fica onde e as três consequências, está na **§2.2 da
+`ARQUITETURA-GERAL.md`**; o estado e o que falta, na **§8 do `ESTADO-ATUAL.md`**.
+
+**Medido, para «desacoplar» não ser uma palavra sem número.** A modalidade está escrita **à mão em 10
+sítios de `motor/`**: dois mapas e o padrão no núcleo, dois no CLI dos produtos, e **cinco** na
+página da Produção (o `POST` do verbete, o `DELETE`, a rota que serve o alfabeto e os dois corpos que
+a tela monta). É a **linha de base**; o alvo é zero. E o que já existe é a **porta**: `MODALIDADE_PADRAO`
+declarada, e a rota **já devolve** `modalidade` na resposta. A ausência também está medida: **nenhum**
+registo de escola declara `modalidade`.
+
+**Uma armadilha que o acrescento revelou, e vale para o próximo.** `meia-ponta` é o **nome de uma
+escola** (`escola/calango` é da professora «Meia Ponta»), e a prova do alfabeto varre
+`biblioteca/modalidades/` à procura de nomes de escola — dentro de **crases** ou **capitalizados**. A
+primeira redacção do sinal dizia «o pé em meia-ponta», minúsculo e sem crases, e passou; mas a
+observação que escrevi no vocabulário usava crases em volta de `cdp`, e o par de crases abriu um vão
+que **apanhou** o «meia-ponta» de outra descrição. As duas coisas se corrigiram: o significado diz
+«pé alongado» e a observação não usa crases. **Um sinal novo escreve-se sem os nomes das escolas** —
+e o número de falhas do `provar-notacao` foi comparado **uma a uma** (stash × unstash) para garantir
+que o acrescento não deixou nenhuma atrás.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-sinais-da-modalidade` (novo) | **TUDO CERTO — 29 asserções, 4 secções**: o signo (lê, compõe, e a contraprova a cair em `sinal-desconhecido` quando se tiram os dois), o nome (os quatro empréstimos da D-67 no internacional e as cinco posições em português), a rota (200, os dois sinais no grupo certo, a posição com o nome internacional) e o acoplamento (**10 sítios** impressos um a um) |
+| `provar-notacao` | **as mesmas 11 falhas de antes**, comparadas uma a uma — nenhuma introduzida |
+| `provar-verbete` · `provar-produtos` · `provar-tabela-da-notacao` · `provar-leitura-da-decomposicao` | **TUDO CERTO** · **89 asserções** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| **o vocabulário** | **93 termos** — não cresceu: os dois termos já existiam, e o que se acrescentou foi o signal |
+| **o alfabeto** | **v38**, com **8** sinais no grupo das posições (eram 6) |
+| **o que NÃO foi medido** | a página **ao vivo** — o deploy corre depois do push · nenhum verbete real usa ainda os dois sinais (não havia nenhum para converter) |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado, e a
+`ciclo.css` não mudou: não nasceu peça nenhuma.
+
+**Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` (os dois sinais, v38) ·
+`biblioteca/modalidades/bale-classico/vocabulario.json` (dois `nome` e uma observação) ·
+`experimentos/provar-sinais-da-modalidade.js` (novo) · `.gitignore` · `ARQUITETURA-GERAL.md` §2.2 ·
+`ESTADO-ATUAL.md` · `TRANSFERENCIA-IA.md` · `REGISTRO.md`.
+
+**Referências.** A especificação dela de 03/11/2026 · a D-67 (02/11/2026, a etiqueta localizada é
+campo do dado) · `tradicoes.json` (as duas entradas que distinguem «pé colocado na região do
+tornozelo» de «ação chamada coupé») · P-16 · `ARQUITETURA-GERAL.md` §2.2.
+
+**O que ainda não está feito.** (a) **A `breu` continua no ar** — ela expurga-a pela tela quando
+terminar de testar. (b) **A habilitação do professor não existe**: onde ela vive, se tem níveis, e o
+que acontece a uma turma cuja modalidade o professor deixou de ter — **são decisões dela**, e sem
+elas o campo nasceria com a forma errada. (c) O caminho crítico é o de sempre: **conteúdo** (11
+níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.

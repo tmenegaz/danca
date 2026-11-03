@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T09:44:16-0300`
-Commit atual: `cc150e6` — feat(estrutura): a notação em três colunas, e o trecho que não estica a tela
+Gerado em: `2026-11-03T10:03:18-0300`
+Commit atual: `f2c10da` — feat(notacao): o coupé e o sur le cou-de-pied passam a escrever-se
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+f2c10da feat(notacao): o coupé e o sur le cou-de-pied passam a escrever-se
+47ecdfc docs(registro): a notação em três colunas e o trecho que não estica a tela
 cc150e6 feat(estrutura): a notação em três colunas, e o trecho que não estica a tela
 e8cc4c6 docs(registro): a conferência ao ar que a entrada dizia não ter sido feita
 b28f8b9 docs(registro): a listagem lia com o alfabeto errado e deitava fora o gravado
@@ -103,8 +105,6 @@ b67b325 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-class
 4cebff7 feat(notacao): declarar «Battement tendu» (8|4/4) no alfabeto bale-classico
 28cbc06 feat(biblioteca): acrescentar «Battement tendu» ao vocabulário do balé clássico
 c61c39a docs(registro): a fotografia datada, o dono do termo e o lugar do plano
-5e109c1 feat(estrutura): a fotografia datada, o dono do termo e o `--escola`
-4e1593a docs(biblioteca): a cláusula 1 diz de onde vem a data enquanto não há contrato
 ```
 
 ## Por professor
@@ -228,88 +228,86 @@ c61c39a docs(registro): a fotografia datada, o dono do termo e o lugar do plano
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A notação em três colunas, e o trecho que não estica a tela
+## 03/11/2026 — O sinal que faltava, o nome que não se traduz, e o dono da modalidade
 
-**O que motivou.** Dois pedidos dela sobre a tela da Produção, escritos como especificação: a
-tabela de notação da listagem devia passar a três colunas — compasso, contagem e notação — com a
-definição do exercício fora das linhas; e o passo 6 devia deixar de crescer com tantos trechos.
+**O que motivou.** Uma especificação dela com dois pedidos: incluir **Coupé** e **Sur le cou-de-pied**
+no módulo de sinais (posições de pés e braços), mantendo a nomenclatura técnica internacional em vez
+de traduções literais; e decidir de quem é a **modalidade**, para o plano de médio prazo.
 
-**1. A tabela da listagem repetia a definição em cada linha.** Eram duas colunas, e uma delas era
-«o que acontece»: a frase do exercício, escrita por inteiro em cada linha. Com dois trechos, duas
-vezes a mesma frase; com oito, oito vezes. E o compasso e a contagem dividiam a mesma célula — e a
-**frequência** de cada trecho, que a célula guarda desde 02/11 (`repeticoes`), **nem chegava à
-listagem**: `lerLinhas` montava a linha com cinco campos e deixava esse de fora. Uma contagem que
-omite quantas vezes não é a contagem, é metade dela.
+**1. Os dois termos JÁ EXISTIAM — o que faltava era o SIGNO.** `coupe` está no vocabulário como
+`ligacao` desde o dicionário dela, e `sur-le-cou-de-pied` como `posicao` de pé. A medição antes da
+primeira linha evitou um acrescento duplicado — o vocabulário continua com **93 termos**. O que **não**
+existia era o **sinal**: o grupo «Posições dos pés e braços» do alfabeto tinha `prep` e os cinco
+números, e mais nada. E a falta não era cosmética: o `lerBloco` **recusa o bloco inteiro** quando um
+token não está no alfabeto, pelo que escrever o **battement frappé** — que parte do sur le cou-de-pied
+— dava `sinal-desconhecido`, não um sinal a menos. Entram **`cp`** (coupé) e **`cdp`** (sur le
+cou-de-pied), o alfabeto vai à **versão 38**, e a origem fica declarada: o **conceito** é técnico, a
+**abreviação** é deste código (`prep`, `ED`, `1ª` são o precedente).
 
-Passa a haver **três colunas com um trabalho cada**: `compasso` (onde cai), `contagem` (o que dura
-e **quantas vezes** — «1–2 (duas vezes)») e `notação` (a forma, que se lê de relance). E a definição
-sobe para o topo do bloco, **escrita uma vez**: ela é do **exercício**, e repeti-la por linha era
-dizer quatro vezes a mesma frase para no fim não dizer nada.
+**2. E o nome de dois empréstimos contrariava a própria decisão.** A D-67 (02/11/2026) escreveu que
+`retiré`, `attitude`, `arabesque` e `sur le cou-de-pied` **não** se traduzem. O dado dizia outra
+coisa: `sur-le-cou-de-pied` tinha `nome: "sobre o colo do pé"` e `attitude` tinha `nome: "atitude"`.
+A primeira é pior do que uma escolha de estilo — **cou-de-pied é o peito do pé**, e «colo» é outra
+coisa. As duas voltam ao nome internacional, e a prova passa a prendê-las: quem traduzir outra vez
+vê-a vermelha. **O que continua em português é o que não é empréstimo** — as cinco posições, e a
+prova di-lo para que a regra não seja lida como «nunca traduzir».
 
-**A decisão que a instrução não tomava, e que os dados obrigam.** «Remover o texto descritivo» é
-claro quando as linhas o repetem — e é o caso dela: os dois trechos do «Battement tendu» têm a
-**mesma** frase. Mas há um caso legítimo em que as frases **diferem**: o trecho guardado com a frase
-com que foi escrito, porque a frase do exercício mudou depois (P-03/P-04 — o que está escrito não se
-reescreve). Aí mostram-se **as duas, cada uma uma vez**. Escolher uma e calar a outra seria perder a
-diferença em nome da limpeza, e o registo passaria a afirmar uma frase que aquele trecho não tem.
+**3. A modalidade pertence ao PROFESSOR — DECIDIDO por ela.** A razão é de domínio: a modalidade
+nasce da competência de quem ensina, e a escola só a oferece porque tem quem a saiba ensinar. Pô-la
+na escola faria dela um atributo do **edifício** em vez do **ofício**. A escola **herda por
+derivação** — a união das habilitações de quem lá dá aula —, e não por campo copiado: um campo seria
+uma segunda declaração do mesmo facto, e a primeira contratação deixaria as duas a divergir. A
+análise completa, com a tabela do que fica onde e as três consequências, está na **§2.2 da
+`ARQUITETURA-GERAL.md`**; o estado e o que falta, na **§8 do `ESTADO-ATUAL.md`**.
 
-**2. O passo 6 crescia — e o sítio não era a tabela.** Na tabela, o «lê-se» de cada linha já vivia
-dentro de um `<details>` fechado desde 02/11. Quem crescia era o bloco **«o que fica escrito em cada
-trecho»**: para cada trecho, um parágrafo de cabeçalho e outro com a leitura inteira, **todos
-abertos**. Com oito trechos eram dezasseis parágrafos de texto corrido antes de o professor chegar
-ao «Gravar».
+**Medido, para «desacoplar» não ser uma palavra sem número.** A modalidade está escrita **à mão em 10
+sítios de `motor/`**: dois mapas e o padrão no núcleo, dois no CLI dos produtos, e **cinco** na
+página da Produção (o `POST` do verbete, o `DELETE`, a rota que serve o alfabeto e os dois corpos que
+a tela monta). É a **linha de base**; o alvo é zero. E o que já existe é a **porta**: `MODALIDADE_PADRAO`
+declarada, e a rota **já devolve** `modalidade` na resposta. A ausência também está medida: **nenhum**
+registo de escola declara `modalidade`.
 
-Passa a ser **uma dobra fechada por trecho** (`<details>`/`<summary>`, a peça que a casa usa para
-dobrar), com o resumo a dizer **onde o trecho cai** — direção, orientação, compasso e contagem. A
-frase do exercício continua uma vez, no topo. E o estado **sobrevive ao repintar**: a tela repinta a
-cada gesto (acrescentar, duplicar, mudar a música), e sem isso a dobra que se acabou de abrir fechava
-no gesto seguinte — o que se lê como «não abre».
+**Uma armadilha que o acrescento revelou, e vale para o próximo.** `meia-ponta` é o **nome de uma
+escola** (`escola/calango` é da professora «Meia Ponta»), e a prova do alfabeto varre
+`biblioteca/modalidades/` à procura de nomes de escola — dentro de **crases** ou **capitalizados**. A
+primeira redacção do sinal dizia «o pé em meia-ponta», minúsculo e sem crases, e passou; mas a
+observação que escrevi no vocabulário usava crases em volta de `cdp`, e o par de crases abriu um vão
+que **apanhou** o «meia-ponta» de outra descrição. As duas coisas se corrigiram: o significado diz
+«pé alongado» e a observação não usa crases. **Um sinal novo escreve-se sem os nomes das escolas** —
+e o número de falhas do `provar-notacao` foi comparado **uma a uma** (stash × unstash) para garantir
+que o acrescento não deixou nenhuma atrás.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-tabela-da-notacao` (novo) | **41 asserções, 3 secções, TUDO CERTO**. **§A** o dado: `repeticoes` na linha, a contagem intacta, os compassos **1 e 3** (dois de 2/4 cada), e o recurso (trechos gravados) a conhecer a mesma frequência. **§B** a listagem, em jsdom: três colunas (`compasso`, `contagem`, `notação`), o «o que acontece» fora do cabeçalho, **uma** definição acima da tabela e **nenhuma** dentro das linhas, as células a dizer **1 · 1–2 (duas vezes) · [Perna: ED 1ª ○ - ● 1ª]** e **3 · 1–2 (duas vezes)**, três colunas por linha; e o caso das **duas frases diferentes**, com as duas à vista e cada uma uma vez. **§C** o passo 6: uma dobra por trecho, **todas fechadas**, o resumo com «compasso 1 · contagem 1–2 ×2», **um** parágrafo de prosa fora das dobras (o do exercício), abrir a dobra mostra a leitura daquele trecho, e o estado **sobrevive ao duplicar** |
-| `provar-leitura-da-decomposicao` | **TUDO CERTO** (25 asserções) |
-| `provar-musica-do-verbete` | **TUDO CERTO** (33 asserções) |
-| `provar-verbete` · `provar-produtos` · `provar-linhas-da-lista` | **TUDO CERTO** · **TUDO CERTO — 89 asserções** · **TUDO CERTO** |
-| `check-identidade` | **20/20 `ok`** — e o `dito` passou a **gancho declarado** (14 ganchos): é a dobra que a marcação emite e que a folha não desenha, porque quem desenha é o `details` nativo |
-| **o alfabeto real, pela rota da listagem** | `Battement tendu` (`8|2/4@breu`): **2** linhas, compassos **1 e 3**, contagem **1–2**, `repeticoes` **2** nas duas — «1–2 (duas vezes)» nos dois compassos, e **uma** frase distinta |
-| `provar-producao` | **147 de 152, depois como antes** — as cinco falhas são as de antes (a lista de tradições com «cubana», o item do menu, a explicação num formulário, as pílulas a 18 contra 16) e nenhuma toca o que esta entrega mudou |
-| **o que NÃO foi medido** | **PIXÉIS.** Não há navegador nesta bancada (`puppeteer` não instalado): a altura da página não foi medida — mediu-se a **prosa** que fica à vista, que é a causa da altura. Das 385 letras do bloco, **251** ficam à vista com as dobras fechadas (65%); o resto é a pedido. A geometria em navegador de verdade continua a ser a das provas `provar-celular`/`provar-producao` |
+| `provar-sinais-da-modalidade` (novo) | **TUDO CERTO — 29 asserções, 4 secções**: o signo (lê, compõe, e a contraprova a cair em `sinal-desconhecido` quando se tiram os dois), o nome (os quatro empréstimos da D-67 no internacional e as cinco posições em português), a rota (200, os dois sinais no grupo certo, a posição com o nome internacional) e o acoplamento (**10 sítios** impressos um a um) |
+| `provar-notacao` | **as mesmas 11 falhas de antes**, comparadas uma a uma — nenhuma introduzida |
+| `provar-verbete` · `provar-produtos` · `provar-tabela-da-notacao` · `provar-leitura-da-decomposicao` | **TUDO CERTO** · **89 asserções** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
+| **o vocabulário** | **93 termos** — não cresceu: os dois termos já existiam, e o que se acrescentou foi o signal |
+| **o alfabeto** | **v38**, com **8** sinais no grupo das posições (eram 6) |
+| **o que NÃO foi medido** | a página **ao vivo** — o deploy corre depois do push · nenhum verbete real usa ainda os dois sinais (não havia nenhum para converter) |
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. A
-`ciclo.css` **não** mudou: não nasceu peça nenhuma — as três colunas são o `table` da folha, a
-dobra é o `details` nativo, e a definição no topo usa o `trio-frase` que o painel já tinha.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado, e a
+`ciclo.css` não mudou: não nasceu peça nenhuma.
 
-**Com o quê.** `motor/servidor/bastidores.js` (`painelDaNotacao`, `vezesEmPalavras`, `pintarFica`) ·
-`motor/servidor/verbete.js` (`linhaDe`) · `tools/check-identidade.js` (o gancho `dito`) ·
-`experimentos/provar-tabela-da-notacao.js` (novo) · `.gitignore` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+**Com o quê.** `biblioteca/modalidades/bale-classico/notacao.json` (os dois sinais, v38) ·
+`biblioteca/modalidades/bale-classico/vocabulario.json` (dois `nome` e uma observação) ·
+`experimentos/provar-sinais-da-modalidade.js` (novo) · `.gitignore` · `ARQUITETURA-GERAL.md` §2.2 ·
+`ESTADO-ATUAL.md` · `TRANSFERENCIA-IA.md` · `REGISTRO.md`.
 
-**Referências.** A especificação dela de 03/11/2026 · `IDENTIDADE-VISUAL.md` (a regra 8 e o catálogo
-das peças) · P-03, P-04, P-16 · a entrada anterior deste registo (a listagem que lia com o alfabeto
-errado).
+**Referências.** A especificação dela de 03/11/2026 · a D-67 (02/11/2026, a etiqueta localizada é
+campo do dado) · `tradicoes.json` (as duas entradas que distinguem «pé colocado na região do
+tornozelo» de «ação chamada coupé») · P-16 · `ARQUITETURA-GERAL.md` §2.2.
 
 **O que ainda não está feito.** (a) **A `breu` continua no ar** — ela expurga-a pela tela quando
-terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
-decidir onde entra (C11) — a decisão dela é que vive no `.conf`, **nunca no KV**. (c) O caminho
-crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
-**fase 3**.
+terminar de testar. (b) **A habilitação do professor não existe**: onde ela vive, se tem níveis, e o
+que acontece a uma turma cuja modalidade o professor deixou de ter — **são decisões dela**, e sem
+elas o campo nasceria com a forma errada. (c) O caminho crítico é o de sempre: **conteúdo** (11
+níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## O que está pendente
-
-## 02/11/2026 — A fotografia datada, o dono do termo, e o plano que vai para o `.conf`
-
-(a) **A fotografia é derivada** — a pendência está declarada e deixa
-de ser impeditivo, mas continua a **não** ser a data do contrato: no dia em que C8 existir, há que
-voltar aqui e trocar a string pela data e versão contratadas. (b) **A fase 1 fica pela metade**, e é
-honesto dizê-lo: o critério 5 passa na substância (A não contamina B) e **não** ao pé da letra (o
-ficheiro é um). (c) **O `ESCOLA.conf` não existe** — e não é um ficheiro, é uma intenção: a C11
-decidiu o **sítio** (o repositório, nunca o KV) e falta decidir **onde a chave entra**. (d) **A aula
-pronta** não foi começada; a **fase 3** (âncora do produto) e a **5** (índice) continuam por fazer.
-(e) **O conteúdo** dos três campos e o mapa nível→termos são dela. (f) **O remoto foi conferido
-depois de o token ser lido**: `git fetch origin` com o `GITHUB_TOKEN` de `.dev.vars` (via
-`GIT_ASKPASS` — a variável que faltava) deu `origin/main` em **`885a2ad`**, **zero** commits atrás e
 
 ## 03/11/2026 — O termo que a Produção criou, o alfabeto que não tem dono, e o deploy que não disparava
 
@@ -341,6 +339,14 @@ caminho crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três c
 terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
 decidir onde entra (C11) — a decisão dela é que vive no `.conf`, **nunca no KV**. (c) O caminho
 crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
+
+## 03/11/2026 — O sinal que faltava, o nome que não se traduz, e o dono da modalidade
+
+(a) **A `breu` continua no ar** — ela expurga-a pela tela quando
+terminar de testar. (b) **A habilitação do professor não existe**: onde ela vive, se tem níveis, e o
+que acontece a uma turma cuja modalidade o professor deixou de ter — **são decisões dela**, e sem
+elas o campo nasceria com a forma errada. (c) O caminho crítico é o de sempre: **conteúdo** (11
+níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
 
 ## Pendências anteriores (índice)
 
@@ -672,6 +678,7 @@ crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), 
 - **02/11/2026** — A segunda passagem sobre a mesma tela: rótulos, travões e o… → `REGISTRO.md` L32097
 - **02/11/2026** — O motor dos produtos: o dicionário e o syllabus, e o que… → `REGISTRO.md` L32182
 - **02/11/2026** — A licença em texto, a condição de conteúdo executável, e a… → `REGISTRO.md` L32261
+- **02/11/2026** — A fotografia datada, o dono do termo, e o plano que vai… → `REGISTRO.md` L32369
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
