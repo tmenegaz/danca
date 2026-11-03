@@ -33449,9 +33449,17 @@ contexto) · `motor/nucleo/derivar-po.js` (a composição da metodologia e o map
 modalidade e o ensino pertencem ao professor) · P-03/P-04, P-16 · `tradicoes.json` (o rótulo vive no
 dado).
 
+**Correção de facto, datada, e apanhada pelo remoto.** Ao escrever esta entrada dei o caminho
+crítico por parado — «plano e PO por gravar». **Estava errado no primeiro termo**: entre a escrita e
+o `push` apareceram no `origin/main` três commits da própria operação — `b349c562`
+(`escola/breu/envelopes/plano-20261103-1644.json`, **um plano de ensino gravado às 16:44**),
+`342c3ad6` (o `-plano.md` derivado dele) e `817229ff` (o `.conf` da variante). O enunciado do
+formulário estava certo; o que faltava era olhar o remoto antes de escrever a frase. **O `PO`
+continua por gravar** — é o segundo acto, e o par `.md`/`.conf` do PO só nasce depois dele.
+
 **O que ainda não está feito.** (a) **O PO deixou de publicar «Quem escolhe a metodologia»** — a
-linha sai do documento dele na próxima geração; um PO antigo continua a lê-la do plano antigo, e
-nada se reescreve (P-03/P-04). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se:
-não é a mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a
-decisão é dela. (c) O caminho crítico é o de sempre: plano e PO por gravar (token morto) e o
-conteúdo.
+linha sai do documento dele na próxima geração; o **plano já gravado** continua a tê-la, porque foi
+elicitado antes desta mudança, e **não se reescreve** (P-03/P-04: acrescenta-se ajuste, não se
+corrige o passado). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se: não é a
+mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a decisão é
+dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).

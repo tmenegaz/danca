@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T16:48:44-0300`
-Commit atual: `cbd9b18b` — feat(experimentos): a prova da metodologia que deixou de se perguntar
+Gerado em: `2026-11-03T16:50:15-0300`
+Commit atual: `5aea425d` — docs(registro): a metodologia é do professor, e não se pergunta duas vezes
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -68,7 +68,7 @@ teclado-abnt
 tela-de-celular
 tiago-menegaz
 vaso-bonito (19)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -85,8 +85,16 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-cbd9b18b feat(experimentos): a prova da metodologia que deixou de se perguntar
-bbe8da6f feat(campo): a metodologia é da curadoria — sai do formulário e lê-se no cabeçalho
+5aea425d docs(registro): a metodologia é do professor, e não se pergunta duas vezes
+b3e822eb feat(experimentos): a prova da metodologia que deixou de se perguntar
+c92f2af2 feat(campo): a metodologia é da curadoria — sai do formulário e lê-se no cabeçalho
+d0329926 chore(estrutura): reancorar a cadeia das fontes alteradas
+525c7083 chore(estrutura): regerar os índices derivados
+b97d26e8 chore(estrutura): regerar os índices derivados
+817229ff feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+342c3ad6 feat(plano): o plano elicitado vira a fonte do ciclo
+b349c562 feat(acervo): envelope/plano-20261103-1644.json
+678feab5 feat(acervo): envelope/.indice.json
 cbc7ae46 docs(campo): o dono da música não é compasso, e o dado não se limpa
 49fb3e66 feat(experimentos): a prova do compasso sem dono, nos dois lados e no dado
 824f47b6 fix(campo): o dono da música não é compasso — a coluna mostra a fórmula, e só ela
@@ -97,14 +105,6 @@ e69adcec feat(acervo): envelope/.indice.json
 85ff724d feat(experimentos): a prova do menu que não promete o que não existe, e quatro bancos que mediam o contrário
 45ba75b8 feat(estrutura): a curadoria só oferece o que tem notação, e o formulário deixa de explicar
 8794c109 docs(estrutura): a verificação da curadoria ao plano, e o nome que partia a cadeia
-bb8d122d feat(experimentos): a prova da cadeia curadoria → plano, e a classe do defeito que a partiu
-4e90c3c3 fix(estrutura): o plano volta a ler a turma, e a curadoria volta a chegar ao formulário
-5ac0d2a6 docs(estrutura): a auditoria que mudou o diagnóstico, e o conteúdo que é da curadoria
-9d636fe5 feat(experimentos): a prova dos conteúdos e dos três estados, e dois bancos que mediam o contrário
-774aae77 style(template): o selo «curada» na folha, para a turma ter os três estados
-7988519f feat(estrutura): a turma tem três estados, e o conteúdo passou a ser da curadoria
-3016cae7 fix(estrutura): a nota do perfil vem primeiro, e a mensagem do commit no escopo
-622071b9 docs(estrutura): a turma é o ritmo, e o ensino é da curadoria
 ```
 
 ## Por professor
@@ -115,15 +115,17 @@ bb8d122d feat(experimentos): a prova da cadeia curadoria → plano, e a classe d
 
 ### coqui-de-redinha — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): breu
+**Ciclo 01** — variante(s): breu, breu-bale-nivel-1-teste-3
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
+| breu-bale-nivel-1-teste-3 | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `c2cdd9d3fc59` | (vazio) | — |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -298,12 +300,20 @@ contexto) · `motor/nucleo/derivar-po.js` (a composição da metodologia e o map
 modalidade e o ensino pertencem ao professor) · P-03/P-04, P-16 · `tradicoes.json` (o rótulo vive no
 dado).
 
+**Correção de facto, datada, e apanhada pelo remoto.** Ao escrever esta entrada dei o caminho
+crítico por parado — «plano e PO por gravar». **Estava errado no primeiro termo**: entre a escrita e
+o `push` apareceram no `origin/main` três commits da própria operação — `b349c562`
+(`escola/breu/envelopes/plano-20261103-1644.json`, **um plano de ensino gravado às 16:44**),
+`342c3ad6` (o `-plano.md` derivado dele) e `817229ff` (o `.conf` da variante). O enunciado do
+formulário estava certo; o que faltava era olhar o remoto antes de escrever a frase. **O `PO`
+continua por gravar** — é o segundo acto, e o par `.md`/`.conf` do PO só nasce depois dele.
+
 **O que ainda não está feito.** (a) **O PO deixou de publicar «Quem escolhe a metodologia»** — a
-linha sai do documento dele na próxima geração; um PO antigo continua a lê-la do plano antigo, e
-nada se reescreve (P-03/P-04). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se:
-não é a mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a
-decisão é dela. (c) O caminho crítico é o de sempre: plano e PO por gravar (token morto) e o
-conteúdo.
+linha sai do documento dele na próxima geração; o **plano já gravado** continua a tê-la, porque foi
+elicitado antes desta mudança, e **não se reescreve** (P-03/P-04: acrescenta-se ajuste, não se
+corrige o passado). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se: não é a
+mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a decisão é
+dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).
 
 ## O que está pendente
 
@@ -341,11 +351,11 @@ continua o de sempre: plano e PO por gravar (token morto), e o conteúdo.
 ## 03/11/2026 — A metodologia é do professor, e não se pergunta duas vezes
 
 (a) **O PO deixou de publicar «Quem escolhe a metodologia»** — a
-linha sai do documento dele na próxima geração; um PO antigo continua a lê-la do plano antigo, e
-nada se reescreve (P-03/P-04). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se:
-não é a mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a
-decisão é dela. (c) O caminho crítico é o de sempre: plano e PO por gravar (token morto) e o
-conteúdo.
+linha sai do documento dele na próxima geração; o **plano já gravado** continua a tê-la, porque foi
+elicitado antes desta mudança, e **não se reescreve** (P-03/P-04: acrescenta-se ajuste, não se
+corrige o passado). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se: não é a
+mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a decisão é
+dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).
 
 ## Pendências anteriores (índice)
 

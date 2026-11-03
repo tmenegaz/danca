@@ -1540,10 +1540,14 @@ derivada do alfabeto público) e pela §D (controlo negativo). Os **oito rótulo
 vestem a mesma peça, e o formulário perdeu as instruções e os estados vazios escritos por palavras
 — **ficou o feedback que informa**, nove blocos contados na §E.
 
-**O que continua a travar os produtos, e é o mesmo de antes.** A curadoria existe e o plano lê-a;
-o que **não** existe é o **plano de ensino** e o **PO** gravados, e sem PO não há documentos. O
-`GITHUB_TOKEN` do `.dev.vars` responde **401** e é o valor que `criar-escola.sh --deploy` grava no
-Worker. **PENDENTE**, e é o próximo passo dela.
+**O plano foi gravado, e a frase que dizia o contrário está corrigida (03/11/2026).** O primeiro
+**plano de ensino** existe: `escola/breu/envelopes/plano-20261103-1644.json` (commit `b349c562`),
+com o `-plano.md` derivado (`342c3ad6`) e o `.conf` da variante (`817229ff`) — a turma «Balé Nível 1
+— Teste 3», o repertório da curadoria (`Battement tendu`, `Plié`, `Port de bras`) e as 27 respostas
+validadas contra o contrato. **CONFIRMADO** no remoto. O que **não** existe é o **PO** — o segundo
+acto, que pede esse plano —, e sem PO não há documentos. **PENDENTE**, e é o próximo passo dela.
+O `GITHUB_TOKEN` do `.dev.vars` responde **401**, mas o Worker gravou: o caminho que a página usa
+funciona, e o valor morto é o da bancada local.
 
 **Um efeito da lista nova que é preciso dizer.** Um exercício entra no menu **no instante em que
 ganha o primeiro trecho** — no alfabeto do repositório. Mas o Worker serve o alfabeto **embutido no
