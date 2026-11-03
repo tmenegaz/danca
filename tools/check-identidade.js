@@ -942,6 +942,11 @@ const GANCHOS = new Map(Object.entries({
   filtros: 'o grupo de filtros do lançamento, que o script lê',
   // — ganchos de composição: o desenho é do PAI (o grid da secção), e o filho só existe
   //   para o grid ter onde pôr a coluna
+  /* A DOBRA DO TEXTO DE UM TRECHO (03/11/2026). Não tem desenho próprio — quem desenha é o
+     `details` nativo, e é de propósito: a dobra é um comportamento, não uma forma. Fica declarada
+     porque a marcação a emite (o «lê-se» de cada linha do passo 6 e a leitura de cada trecho no fim
+     do formulário), e uma classe emitida que ninguém declara é a que se copia sem se saber o que é. */
+  dito: 'a dobra fechada do texto de um trecho — o desenho é do `details` nativo',
   'col-form': 'a coluna do formulário no grid da secção — o desenho é do grid',
   principal: 'a coluna do conteúdo nos Bastidores — o desenho é do grid',
   form: 'o contentor do formulário na raiz — o desenho é do cartão que o contém',

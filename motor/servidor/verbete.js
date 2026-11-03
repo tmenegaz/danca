@@ -603,15 +603,24 @@ function lerLinhas(nome, chave, registo, alfabeto, escola) {
   } catch (e) {
     composto = null;
   }
-  const doMotor = ((composto && composto.segmentos) || []).map((seg) => ({
+  /* A LINHA DA LISTAGEM — uma forma só, para o motor e para o recurso (03/11/2026).
+   *
+   * A FRASE DO TRECHO É A PRIMEIRA LINHA DA DESCRIÇÃO — o que acontece. A segunda é o «lê-se»,
+   * que já está escrito nos sinais ao lado; repeti-lo ocuparia o dobro sem dizer nada de novo.
+   *
+   * E A REPETIÇÃO PASSA A IR NA LINHA. Ela existe na célula (`repeticoes`, «este trecho acontece
+   * 2×») desde 02/11, mas ficava de fora desta vista — a listagem mostrava «1–2» e escondia que
+   * são duas vezes. A tabela passou a ter uma coluna de contagem, e uma contagem que omite a
+   * frequência não é a contagem: é metade dela. */
+  const linhaDe = (seg) => ({
     compasso: seg.compasso,
     contagem: seg.contagem,
+    repeticoes: Number(seg.repeticoes) || 1,
     categoria: seg.categoria,
     sinais: (seg.sinais || []).join(' '),
-    // A FRASE DO TRECHO É A PRIMEIRA LINHA DA DESCRIÇÃO — o que acontece. A segunda é o «lê-se»,
-    // que já está escrito nos sinais ao lado; repeti-lo ocuparia o dobro sem dizer nada de novo.
     descricao: String(seg.descricao || '').split('\n')[0],
-  }));
+  });
+  const doMotor = ((composto && composto.segmentos) || []).map(linhaDe);
   if (doMotor.length) {
     /* A COMPOSIÇÃO FECHOU PARCIALMENTE, E ISSO DIZ-SE (03/11/2026). Um verbete que cobre 4 dos 8
      * tempos compõe as linhas que tem e declara o resto — e é isso que a listagem passa a dizer,
@@ -626,13 +635,7 @@ function lerLinhas(nome, chave, registo, alfabeto, escola) {
    * compasso da música; sem ele, 4. */
   const numerador = Number(String(compasso || '4/4').split('/')[0]) || 4;
   const segmentos = segmentosDe(registo, numerador);
-  const linhas = segmentos.map((seg) => ({
-    compasso: seg.compasso,
-    contagem: seg.contagem,
-    categoria: seg.categoria,
-    sinais: (seg.sinais || []).join(' '),
-    descricao: String(seg.descricao || '').split('\n')[0],
-  }));
+  const linhas = segmentos.map(linhaDe);
   const motivo = linhas.length
     ? 'Os trechos estão gravados, mas o motor não compõe esta música'
       + (composto && composto.detalhe ? ': ' + composto.detalhe : '') + '.'

@@ -533,3 +533,4 @@ experimentos/modelo-formulario/*
 # escola não ia na composição. Citada no `REGISTRO.md`; uma prova citada que não existe no clone é
 # uma afirmação que ninguém confere.
 !experimentos/provar-leitura-da-decomposicao.js
+!experimentos/provar-tabela-da-notacao.js

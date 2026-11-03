@@ -6327,12 +6327,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    nota.textContent = "Este exercício ainda não tem definição no dicionário. Escreva a frase: é ela que a página da aula mostra, em todos os trechos.";' +
     '  }' +
     '}' +
+    /* UM TRECHO, UMA DOBRA FECHADA (03/11/2026) — o pedido dela, na letra.
+     *
+     * «À medida que o professor adiciona múltiplos trechos, os textos descritivos expandem a tela
+     * verticalmente de forma excessiva. Por padrão, os blocos devem iniciar colapsados.»
+     *
+     * O DEFEITO ERA AQUI, e não na tabela: na tabela o «lê-se» já vivia dentro de um `<details>`
+     * fechado. Este bloco — «o que fica escrito em cada trecho» — é que despejava, para cada
+     * trecho, um parágrafo de cabeçalho e outro com a leitura inteira, todos abertos. Com oito
+     * trechos eram dezasseis parágrafos de texto corrido antes de o professor chegar ao «Gravar».
+     *
+     * A PEÇA É A QUE A CASA USA PARA DOBRAR (`<details>`/`<summary>`), a mesma do «lê-se» ao lado,
+     * e nasce FECHADA: fechada, a lista mostra um rótulo por trecho e nada mais. Um clique abre o
+     * que é daquele trecho — e o que se abre é só o que é DELE: a frase do exercício é uma, e fica
+     * uma vez, no topo.
+     *
+     * O RESUMO DIZ ONDE O TRECHO CAI — direção, orientação, compasso e contagem. Fechado, é a
+     * única identificação que sobra, e sem ela a lista seria uma pilha de «lê-se» iguais. */
     'function pintarFica(){' +
     '  var alvo = document.getElementById("vb-fica");' +
     '  if (!alvo) return;' +
     '  var frase = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
-    '  var linhas = [];' +
+    '  var blocos = [];' +
     '  var mapa = compassosDosTrechos();' +
+    // O QUE ESTAVA ABERTO CONTINUA ABERTO. Repintar acontece a cada gesto — acrescentar um trecho,
+    // mudar a música —, e sem isto a dobra que se abriu fechava-se sozinha no gesto seguinte, o
+    // que se lê como «não abre». Fechada por omissão; aberta quando quem lê a abriu.
+    '  var abertos = {};' +
+    '  Array.prototype.forEach.call(alvo.querySelectorAll("details[data-trecho]"), function(x){' +
+    '    if (x.open) abertos[x.getAttribute("data-trecho")] = true;' +
+    '  });' +
     // O TEXTO MOSTRADO É O DO TRECHO, NÃO O DA FRASE DO MOMENTO (31/10/2026). Cada célula guarda
     // o seu `descricao` — e é ele que vai para a página da aula. Compor aqui a partir da frase do
     // passo 1 faria a prévia mentir sobre os trechos já escritos, que conservam a frase com que
@@ -6364,18 +6388,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      var antiga = gravada && frase && gravada !== frase;' +
     '      var rotulo = d ? nomeDaDirecao(d) : "sem direção";' +
     '      var onde = rotulo + (orient ? " · " + orient : "");' +
-    '      linhas.push("<p class=\\"nota\\">" + onde + " — compasso " +' +
-    '        (mapa[d + ":" + k] || "—") + ", contagem " + c.contagem + "</p>" +' +
+    '      var vezes = repeticoesDaCelula(c) > 1 ? " ×" + repeticoesDaCelula(c) : "";' +
+    '      blocos.push("<details class=\\"dito\\" data-trecho=\\"" + d + ":" + k + "\\"" +' +
+    '        (abertos[d + ":" + k] ? " open" : "") + "><summary>" + onde + " · compasso " +' +
+    '        (mapa[d + ":" + k] || "—") + " · contagem " + c.contagem + vezes + "</summary>" +' +
     '        "<p>" + (lido ? String(lido).split("\\n").join("<br>") :' +
     '          "<span class=\\"nota\\">(sem «lê-se» — sem sinais)</span>") +' +
     '        (antiga ? "<br><span class=\\"nota\\">guardado com a frase com que foi escrito</span>" : "") +' +
-    '        "</p>");' +
+    '        "</p></details>");' +
     '    });' +
     '  });' +
     // A FRASE, UMA VEZ, À FRENTE DO QUE VARIA. Sem ela o bloco perdia a metade que é do exercício;
     // com ela em cada linha, era a repetição que ela mandou tirar.
     '  var topo = frase ? "<p class=\\"nota\\">" + frase + "</p>" : "";' +
-    '  alvo.innerHTML = linhas.length ? (topo + linhas.join("")) : (topo ||' +
+    '  alvo.innerHTML = blocos.length ? (topo + blocos.join("")) : (topo ||' +
     '    "<p class=\\\"nota\\\">Ainda não há trechos. Escolha a direção e os sinais, e acrescente o primeiro.</p>");' +
     '}' +
     'function nomeDoExercicio(){' +
@@ -7050,10 +7076,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      return "<div class=\\"trio-chips\\">" + chips + "</div>" +' +
     '        "<p class=\\"trio-nota\\">As direções dizem para onde o membro vai; as orientações, como o corpo está voltado. Duas perguntas, e é por isso que são dois eixos.</p>";' +
     '    }' +
-    /* A NOTAÇÃO EM TABELA. A peça é o `table` da folha — a mesma que o documento usa para a
-     * decomposição —, e não uma lista com um desenho novo: a tabela é o que se lê em coluna, e é
-     * a forma que o passo 6 já tem. Duas colunas porque no telefone quatro não cabem: o compasso
-     * e a contagem numa, o que acontece na outra. */
+    /* A NOTAÇÃO EM TABELA, EM TRÊS COLUNAS (03/11/2026, a pedido dela).
+     *
+     * A PEÇA É O `table` DA FOLHA — a mesma do documento e do passo 6 —, e não uma lista com um
+     * desenho novo: a tabela é o que se lê em coluna.
+     *
+     * O QUE ELA VIU, e são duas queixas numa: o «o que acontece» repetia-se exaustivamente em cada
+     * linha — quatro linhas, quatro vezes a mesma definição —, e o compasso e a contagem dividiam
+     * uma célula, com a frequência a faltar.
+     *
+     * Agora são três colunas com um trabalho cada: `compasso` (onde cai), `contagem` (o que dura,
+     * e QUANTAS VEZES — «1–2 (duas vezes)») e `notação` (a forma, que é o que se lê de relance). E
+     * a definição sobe para o topo do bloco, ESCRITA UMA VEZ: ela é do EXERCÍCIO, e repeti-la por
+     * linha era dizer quatro vezes a mesma frase para no fim não dizer nada.
+     *
+     * Quando duas linhas têm frases DIFERENTES — um trecho antigo, guardado com a frase com que foi
+     * escrito (P-03/P-04) —, aparecem as duas, cada uma uma vez. O que não se faz é escolher uma e
+     * calar a outra: seria perder a diferença em nome da limpeza. */
     /* A NOTAÇÃO ABRE SEMPRE QUE HÁ TRECHO GRAVADO (03/11/2026).
      *
      * A frase era «A decomposição deste exercício não pôde ser lida — confira os sinais no
@@ -7066,6 +7105,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *  · há linhas e há motivo — os trechos estão gravados mas o motor não fecha a conta: mostra-se
      *    a tabela E a razão, porque o dado existe e é legível;
      *  · não há linhas — aí sim não há decomposição, e a frase diz isso sem falar em erro. */
+    /* «DUAS VEZES», E NÃO «×2» (03/11/2026). Ela pediu a frequência escrita na coluna da
+     * contagem, com este exemplo à frente: «1 a 2 (duas vezes)». A tela da tabela do passo 6 usa
+     * `×2` porque ali a largura é disputada por seis colunas; aqui são três, e o português cabe. */
+    '    function vezesEmPalavras(n){' +
+    '      var nomes = {2: "duas", 3: "três", 4: "quatro", 5: "cinco", 6: "seis", 7: "sete", 8: "oito"};' +
+    '      return (nomes[n] || String(n)) + " vezes";' +
+    '    }' +
     '    function painelDaNotacao(m){' +
     '      var ls = m.linhas || [];' +
     '      var motivo = String(m.motivo || "");' +
@@ -7073,13 +7119,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        return "<p class=\\"trio-nota\\">" + (motivo ||' +
     '          "Ainda não há trechos gravados nesta música.") + "</p>";' +
     '      }' +
+    // O QUE ACONTECE, UMA VEZ, ACIMA DA TABELA. A ordem é a das linhas; as repetidas caem.
+    '      var ditas = [];' +
+    '      ls.forEach(function(l){' +
+    '        var t = String(l.descricao || "").trim();' +
+    '        if (t && ditas.indexOf(t) === -1) ditas.push(t);' +
+    '      });' +
+    '      var topo = ditas.map(function(t){' +
+    '        return "<p class=\\"trio-frase\\">" + t + "</p>";' +
+    '      }).join("");' +
     '      var aviso = motivo ? "<p class=\\"trio-nota\\">" + motivo + "</p>" : "";' +
-    '      return "<table><thead><tr><th>compasso</th><th>o que acontece</th></tr></thead><tbody>" +' +
+    '      return topo + "<table><thead><tr>" +' +
+    '        "<th scope=\\"col\\">compasso</th>" +' +
+    '        "<th scope=\\"col\\">contagem</th>" +' +
+    '        "<th scope=\\"col\\">notação</th>" +' +
+    '        "</tr></thead><tbody>" +' +
     '        ls.map(function(l){' +
-    '          return "<tr><td>" + l.compasso + " · " + l.contagem + "</td>" +' +
-    '            "<td><code>[" + (l.categoria || "") + ": " + (l.sinais || "") + "]</code>" +' +
-    '            (l.descricao ? "<br><span class=\\"nota\\">" + l.descricao + "</span>" : "") +' +
-    '            "</td></tr>";' +
+    '          var n = Number(l.repeticoes) || 1;' +
+    '          return "<tr><td><strong>" + l.compasso + "</strong></td>" +' +
+    '            "<td>" + l.contagem + (n > 1 ? " (" + vezesEmPalavras(n) + ")" : "") + "</td>" +' +
+    '            "<td><code>[" + (l.categoria || "") + ": " + (l.sinais || "") + "]</code></td></tr>";' +
     '        }).join("") + "</tbody></table>" + aviso;' +
     '    }' +
     '    var linhas = [];' +
