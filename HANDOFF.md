@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T17:05:01-0300`
-Commit atual: `53e82350` — fix(campo): a sequência acompanha os objetivos — a linha órfã sai, e a chave é o número
+Gerado em: `2026-11-03T20:42:04-0300`
+Commit atual: `9547aaec` — fix(campo): a sequência não inventa linha — o repertório nasce na curadoria, e é lá que se muda
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,16 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+9547aaec fix(campo): a sequência não inventa linha — o repertório nasce na curadoria, e é lá que se muda
+af280726 chore(estrutura): reancorar a cadeia das fontes alteradas
+c13cfffa feat(plano): o plano elicitado vira a fonte do ciclo
+f841cb8b feat(acervo): envelope/plano-20261103-1644.json
+10523fe1 feat(acervo): envelope/.indice.json
+25d39e48 chore(estrutura): reancorar a cadeia das fontes alteradas
+33f38dc7 feat(plano): o plano elicitado vira a fonte do ciclo
+904a3271 feat(acervo): envelope/plano-20261103-1644.json
+7b4cba59 feat(acervo): envelope/.indice.json
+f6fd2eb3 docs(registro): a sequência acompanha os objetivos — e a pergunta 'é mock?' teve resposta medida
 53e82350 fix(campo): a sequência acompanha os objetivos — a linha órfã sai, e a chave é o número
 d36ab2d6 chore(estrutura): regerar os índices derivados
 8b049f60 docs(registro): o plano foi gravado — corrigir a frase que dizia o contrário
@@ -95,16 +105,6 @@ d0329926 chore(estrutura): reancorar a cadeia das fontes alteradas
 525c7083 chore(estrutura): regerar os índices derivados
 b97d26e8 chore(estrutura): regerar os índices derivados
 817229ff feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-342c3ad6 feat(plano): o plano elicitado vira a fonte do ciclo
-b349c562 feat(acervo): envelope/plano-20261103-1644.json
-678feab5 feat(acervo): envelope/.indice.json
-cbc7ae46 docs(campo): o dono da música não é compasso, e o dado não se limpa
-49fb3e66 feat(experimentos): a prova do compasso sem dono, nos dois lados e no dado
-824f47b6 fix(campo): o dono da música não é compasso — a coluna mostra a fórmula, e só ela
-b44f2f52 chore(estrutura): regerar os índices derivados
-204f806e feat(acervo): envelope/anamnese-20261103-1626.json
-e69adcec feat(acervo): envelope/.indice.json
-5909ddcb docs(estrutura): a lista que só promete o que existe, e a régua do formulário
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ e69adcec feat(acervo): envelope/.indice.json
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `c2cdd9d3fc59` | (vazio) | — |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `434fa8ca6347` | (vazio) | — |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,97 +230,76 @@ e69adcec feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A sequência acompanha os objetivos, e a pergunta era a certa
+## 03/11/2026 — A sequência não inventa linha: o repertório nasce na curadoria
 
-**O que motivou.** A pesquisadora viu, na «Sequência de exercícios por bloco» do plano, linhas a
-nomear «Barra com objetivo específico 2» e «Centro com objetivo específico 3» — depois de ter
-reduzido os objetivos específicos a **um** e de ter desmarcado o bloco do solo. E fez a pergunta
-certa, que é a que decide onde se procura o defeito: «a sequência é dinâmica ou está presa a dados
-de mock/teste estáticos?»
+**O que motivou, e é uma correção do que eu tinha feito horas antes.** A pesquisadora: «adicionar
+uma linha não faz sentido existir aqui. Se eu quiser que tenha mais, eu preciso voltar lá para a
+produção e vincular na curadoria que tenha mais exercícios para essa turma. […] Isso quebra toda a
+nossa regra de negócio, porque a gente tá gerando uma fraude. Não foi curado isso. A curadoria ela é
+um plano também. Ela faz parte do que foi acordado por um comitê de professores ou o diretor da
+escola e o professor. […] Se o professor quer usar menos recursos, ele vai lá e tira, porque é
+autonomia dele.»
 
-**A resposta, e é precisa: é dinâmica, e não havia mock nenhum.** O bloco estava certo — o solo saiu
-quando ela o desmarcou, a musicalidade nunca entrou (tem bloco próprio desde a Regra 3). O que ficou
-preso foi o **outro lado do par**: o objetivo específico. Medido no envelope que ela gravou
-(`escola/breu/envelopes/plano-20261103-1644.json`): `marcos-por-aula` com **um** item e
-`aula-1-sequencia` com **oito** linhas, as duas últimas a nomear objetivos que já não existem.
+**O ARGUMENTO DELA ESTÁ CERTO, E O BOTÃO QUE EU TINHA ACABADO DE ACRESCENTAR ESTAVA ERRADO** — os
+dois, o «Adicionar linha» e o ✕. A justificativa que eu dei para o ✕ («havia como acrescentar e não
+como remover») estava certa na assimetria e errada na conclusão: o certo era não haver nem um nem
+outro. A tabela não é um lugar de decisão — é a **consolidação** do que foi decidido, e o próprio
+conteúdo do nó o dizia («É um DEMONSTRATIVO, e não um segundo lugar para decidir») enquanto oferecia
+os dois botões que o desmentiam.
 
-**E não havia fixture a interferir**, o que também se mediu em vez de se supor: a pasta `teste/`
-(`teste/breu.json`, `teste/calango.json`, `teste/batata.json`) é lida **só** pelos bancos de
-`experimentos/`; o `tools/montar-publicacao.js` monta a publicação a partir de `professores/` e
-`tools/templates/`, e o `wrangler.breu.jsonc` serve `publicacao/breu` — nenhum dos dois toca em
-`teste/`. O «lixo de dados anteriores» era o que **o próprio sistema** tinha escrito.
+**A ORIGEM, escrita como ela a descreveu.** O exercício nasce nos **bastidores** (o verbete, com a
+música e o compasso), a curadoria é onde ele é **acordado** para aquela turma, e esta tabela é onde
+ele se **encontra** com o objetivo e o bloco. Acrescentar uma linha aqui é um acordo que ninguém fez,
+publicado como se fosse a aula — e o que se publica é a página da aula, exercício por exercício.
 
-**Por que sobreviviam, e é a raiz.** A derivação junta duas coisas: as linhas que monta a partir das
-decisões de agora, e as já gravadas que nenhuma delas consumiu — a regra «o que o professor escreveu
-não se sobrescreve», que existe para não perder trabalho. Só que estas duas **não foram escritas
-pelo professor**: a coluna «Objetivo específico» é `somenteLeitura`, ele não a pode digitar. São a
-semente que o **sistema** escreveu numa sessão em que havia três objetivos. E a autoria da semente
-vivia num `Map` de memória (`SEMENTE_ANTERIOR`), que **morre com a página**: depois do primeiro
-recarregamento, a semente do sistema torna-se indistinguível da escrita da pessoa.
-
-**E a chave estava errada, o que é o mesmo defeito por outra porta.** A linha era reconhecida pelo
-rótulo **inteiro** («1 — reconhecer o apoio…»). Corrigir a redacção de um objetivo mudava o rótulo,
-a linha gravada deixava de casar com a semente, e a tabela passava a mostrar **duas** linhas para o
-mesmo objetivo — a segunda com o texto velho e o «Conteúdo do nível» outra vez a pedir escolha.
-Medido, era **exactamente** o «campo aberto/vazio» que ela relatou; não era um segundo defeito, era
-o mesmo visto de outro ângulo.
-
-**A REGRA, e é uma só.** A linha de um objetivo que não existe **não é memória — é semente órfã**.
-Memória é o que alguém decidiu; a referência a um objetivo apagado não pode ter sido decidida por
-ninguém, porque quem a escreve é o sistema. Ela sai da derivação, da tabela e do documento, e a
-próxima gravação deixa de a escrever no envelope — sem que se reescreva o que está gravado (P-03),
-porque o que está gravado é justamente o que a regra manda não publicar.
-
-| Camada | O que mudou |
+| O que saiu | Por quê |
 |:--|:--|
-| `motor/nucleo/sequencia.js` (**novo**) | `numeroDoObjetivo`, `linhaOrfa`, `linhasVivas` — a regra num sítio só |
-| o `.md` do plano | a «Música e vídeo de referência» deixa de publicar o exercício de um objetivo apagado |
-| a `aula-01.md` | a notação deixa de compor esse exercício — o documento não cita o que ele mesmo não lista |
-| a tela | a mesma regra; a **chave da linha passa a ser o NÚMERO** do objetivo; e o rótulo do objetivo passa a ser o **de agora** (o antigo vencia) |
-| `porta/plano/conteudo/plano.json` | `removivel: true` — havia como **acrescentar** uma linha e não como removê-la |
+| **«Adicionar linha»** (`acrescentavel: false`) | a linha nasce na curadoria, não aqui |
+| **o ✕ de cada linha** (`removivel: false`) | remover aqui é apagar a decisão no sítio errado — quem tira é a curadoria |
+| **o campo livre do «Conteúdo do nível»** (sai o `livre`) | era a mesma fraude por outra porta: escrever ali um exercício que não foi curado. A célula passou a ser **sempre** leitura, e a lacuna mostra-se como lacuna (`—`) |
+| **o `extras` da derivação** | as linhas gravadas que nenhuma decisão de agora reclamava ficavam na tabela «para não se perder o que o professor escreveu». O pressuposto era falso: ele **não pode escrever nenhuma célula desta tabela**. O que sobrava era semente de uma sessão anterior. |
 
-**E O QUE NÃO SE APAGA, que é a metade que uma limpeza apressada teria levado.** A linha sem objetivo
-(a que ela acrescentou à mão) fica; a prosa de um plano antigo fica; e o plano cujos objetivos ainda
-estão vazios **não perde nada** — sem uma lista contra a qual medir, não há órfão a declarar.
+**O que NÃO se perdeu.** O caminho legítimo continua inteiro e é o que a prova mede: marcar mais um
+exercício em «Parâmetro de medição» acrescenta as linhas dele em cada bloco onde o objetivo é
+trabalhado. E o envelope gravado **não se reescreve** (P-03) — a próxima gravação escreve o que a
+derivação decidiu, e o que ficou para trás fica como memória do que já foi.
 
-**O defeito que apareceu por baixo, e é da mesma família.** O «✕» de uma linha derivada existia e
-nascia apagado — mas a **trava da senha** reescrevia `disabled = trava` em *todos* os controles do
-formulário e, ao destravar, `false` em *todos*: o ✕ acendia no instante em que a pessoa digitava a
-senha. Botão que promete o que não faz, e que ao clicar não fazia nada. O mesmo acontecia ao «−» do
-primeiro objetivo específico (a lista nunca fica vazia). Passam a ser marcados **no momento em que
-se desenham** (`data-travado-de-origem`), e a trava da senha distingue as duas razões de estar
-travado: a senha, que sai quando ela é validada, e a regra, que fica.
+**O rodapé passou a dizer de onde a linha vem — por FORMA, não por id.** A tabela com objetivo por
+linha aponta a curadoria como o sítio do repertório; a **distribuição do volume**, que também recebe
+as linhas dos blocos marcados mas onde a proporção **se escreve**, mantém a frase dela. Uma mensagem
+só para as duas telas seria meia verdade numa delas, e a prova mede as duas.
+
+**Duas asserções guardavam a regra de ontem, e passavam a afirmar o contrário.** `provar-plano-matriz`
+dizia «o que não está na lista se escreve ao lado» e «a sequência aceita mais de um exercício» —
+as duas eram **verdadeiras até hoje** e são a regra que esta decisão revoga. Uma asserção que
+descreve o comportamento antigo não é uma prova, é um atraso: as duas passaram a afirmar o contrário,
+com a razão escrita ao lado, para o próximo agente não «corrigir» a tabela de volta.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-sequencia-que-acompanha` (**novo**) | **TUDO CERTO — 27 asserções, 6 secções**. §1 o núcleo (e **controlo negativo**: com os três objetivos de volta, as oito linhas ficam). §2 o documento (e **controlo negativo**: com os três objetivos, o «Port de bras» reaparece). §3 a tela, com os números do envelope dela: seis linhas, nenhuma a nomear os objetivos 2 e 3, o conteúdo preenchido e travado, e o envelope com seis ao gravar. §4 a chave pelo número: corrigir a redacção de um objetivo **não** duplica. §5 o ✕: apagado nas derivadas **com a senha validada**, activo na acrescentada, e remove só a ela. §6 a tela e o núcleo concordam |
-| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — as duas verdes, incluindo «com senha o controlo volta a habilitar» |
-| `provar-derivados-da-sequencia` | **26 asserções, as mesmas 2 falhas de antes** (o *fondu* da fixture não declara música no alfabeto) — não tocada por esta mudança |
-| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-compasso-limpo` · `provar-metodologia-no-cabecalho` · `provar-conteudos-e-estado-da-turma` · `provar-aula-e-plano-legiveis` | **TUDO CERTO** nas seis |
+| `provar-sequencia-que-acompanha` | **TUDO CERTO — 33 asserções, 6 secções**. §5 reescrita: **nenhum** `[data-grelha-add]`, **nenhum** `[data-grelha-del]`, **nenhum** campo livre nem seletor; **controlo positivo** — marcar um exercício a mais no parâmetro acrescenta **três** linhas (uma por bloco onde o objetivo é trabalhado); sem parâmetro marcado a célula fica vazia e travada (`—`), e o rodapé diz que o repertório se muda na Curadoria; e a distribuição do volume **não** herda essa frase |
+| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — verdes |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-aula-e-plano-legiveis` · `provar-metodologia-no-cabecalho` · `provar-compasso-limpo` | **TUDO CERTO** nas cinco |
 | `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
-| **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` · `provar-notacao` (o alfabeto não tem os exercícios que a fixture do ciclo lista) · `provar-plano-matriz` (a rota `/api/mapa` da bancada) · `check-pacote` no `ciclo-01-breu` (o pacote-zero não tem PDF nem aulas — nunca gerado aqui) |
+| **vermelhos, e de antes** | `provar-plano-matriz` (a rota `/api/mapa` da bancada — a prova não corre, e por isso as duas asserções reescritas não chegam a ser medidas **nesta** bancada: ficam medidas pela §5 do `provar-sequencia-que-acompanha`) · `provar-derivados-da-sequencia` (as mesmas 2) · `provar-plano-completo` · `provar-po-completo` · `provar-notacao` |
 
 **Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
 `porta/plano/conteudo/plano.json` é conteúdo.
 
-**Com o quê.** `motor/nucleo/sequencia.js` (novo) · `motor/nucleo/derivar-plano-ciclo.js` ·
-`motor/nucleo/derivar-ciclo.js` · `porta/index.html` (`numeroDoObjetivo`,
-`objetivoForaDaSequencia`, a poda, a chave pelo número, `TRAVADOS_DE_ORIGEM`,
-`marcarTravadosDeOrigem`) · `porta/plano/conteudo/plano.json` · a cópia da porta no pacote ·
-`experimentos/provar-sequencia-que-acompanha.js` (novo) · `.gitignore` · `REGISTRO.md` ·
-`ESTADO-ATUAL.md`.
+**Com o quê.** `porta/plano/conteudo/plano.json` (os dois botões, o `livre`, a explicação) ·
+`porta/index.html` (o `extras` fora, a coluna derivada sempre em leitura, o rodapé por forma) · a
+cópia da porta no pacote · `experimentos/provar-sequencia-que-acompanha.js` ·
+`experimentos/provar-plano-matriz.js` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
 
-**Referências.** O relatório dela de 03/11/2026 · P-03/P-04 (o passado não se reescreve) · P-16 ·
-Regra 10 · o envelope `plano-20261103-1644` (a fixture da prova, reduzida ao que ela mede).
+**Referências.** A correção dela de 03/11/2026 (a mesma sessão, horas depois) · a entrada anterior,
+do mesmo dia, que esta corrige · P-03/P-04 · Regra 10.
 
-**O que ainda não está feito.** (a) **O plano já gravado não se reescreve**: o envelope dela
-continua com as oito linhas — a tela e o documento deixam de as publicar, e a próxima gravação do nó
-as deixa de escrever. Quem quiser o envelope limpo **antes** disso abre a sequência e grava.
-(b) A `aula-01.md` desse ciclo, se for regerada, perde o exercício do objetivo 3 — e é o correcto,
-mas é uma mudança no documento que vale a pena ler depois de gerada. (c) O conteúdo pedagógico
-continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-16).
+**O que a decisão deixa por fazer.** O `provar-plano-matriz` continua **vermelho por outra razão**
+(a bancada não serve `/api/mapa`), e é o único sítio que ainda descreve — sem medir — o formato da
+sequência. Consertar a bancada é trabalho de meia hora e faria as duas asserções novas valerem por
+si; fica nomeado, e não escondido atrás de um verde que não existe.
 
 ## O que está pendente
 

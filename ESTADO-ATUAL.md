@@ -4,7 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `53e8235`, árvore limpa). Nesta entrega, **a sequência
+> **Última fotografia:** 03/11/2026 (base `9547aae`, árvore limpa). Nesta entrega, **a sequência
+> deixou de inventar linha** — e é a correção de uma decisão da mesma sessão, horas antes. O repertório
+> nasce nos **bastidores** (o verbete, com a música), é **acordado na curadoria** para aquela turma, e
+> esta tabela é onde ele se **encontra** com o objetivo e o bloco. Acrescentar uma linha aqui — ou
+> apagá-la — é um acordo que ninguém fez, publicado como se fosse a aula: **saiu o «Adicionar linha»,
+> saiu o ✕, saiu o campo livre do conteúdo** (a mesma fraude por outra porta) e saiu o `extras` da
+> derivação. O caminho legítimo fica inteiro: marcar mais um exercício em «Parâmetro de medição»
+> acrescenta as linhas dele em cada bloco onde o objetivo é trabalhado, e a curadoria manda no
+> repertório da turma. O rodapé passou a dizer **de onde a linha vem**, e por **forma** — a
+> distribuição do volume, onde a proporção se escreve, mantém a frase dela. Duas asserções do
+> `provar-plano-matriz` guardavam a regra de ontem e passaram a afirmar o contrário, com a razão ao
+> lado. Prova: `provar-sequencia-que-acompanha`, **33 asserções em 6 secções**, agora com controlo
+> positivo (mais um parâmetro → três linhas).
+>
+> **Entrega anterior** (base `53e8235`, árvore limpa). Nesta entrega, **a sequência
 > de exercícios passou a acompanhar os objetivos**. Ela mostrava «Barra com objetivo específico 2» e
 > «Centro com objetivo específico 3» depois de os objetivos terem sido reduzidos a um — e a pergunta
 > era a certa: é dinâmica ou está presa a mock? **É dinâmica, e não há mock nenhum** (a pasta
@@ -1526,6 +1540,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**A sequência não inventa linha — o repertório nasce na curadoria (03/11/2026).** Ela corrigiu, horas
+depois, o que eu tinha decidido na mesma sessão: **o «Adicionar linha» e o ✕ saem**, os dois. O
+argumento é dela e é de negócio: «a curadoria ela é um plano também. Ela faz parte do que foi
+acordado por um comitê de professores ou o diretor da escola e o professor. […] Isso quebra toda a
+nossa regra de negócio, porque a gente tá gerando uma fraude. Não foi curado isso.» A origem é
+descrita por ela com precisão — o exercício **nasce nos bastidores** (o verbete, com a música e o
+compasso), é **acordado na curadoria** para aquela turma, e esta tabela é onde ele se **encontra**
+com o objetivo e o bloco. **DECIDIDO**, e a justificativa que eu tinha dado para o ✕ («havia como
+acrescentar e não como remover») estava certa na assimetria e errada na conclusão: o certo era não
+haver nem um nem outro.
+
+**O que saiu, e o que ficou no lugar.** Saíram os dois botões, o **campo livre** do «Conteúdo do
+nível» (a mesma fraude por outra porta — escrever ali um exercício que não foi curado) e o `extras`
+da derivação. Este último tinha um argumento que parecia bom — «não se perde o que o professor
+escreveu» — e um pressuposto falso: **ele não pode escrever nenhuma célula desta tabela**. O que
+sobrava era semente de uma sessão anterior. A célula derivada passou a ser **sempre** leitura, e a
+lacuna mostra-se como lacuna (`—`). **CONFIRMADO** pela §5 da prova, que mede as três ausências e
+tem **controlo positivo**: marcar um exercício a mais em «Parâmetro de medição» acrescenta as linhas
+dele em cada bloco onde o objetivo é trabalhado — o caminho legítimo continua inteiro.
+
+**O rodapé diz de onde a linha vem, e distingue as duas tabelas.** A sequência aponta a curadoria
+como o sítio do repertório; a **distribuição do volume** — que também recebe as linhas dos blocos
+marcados, mas onde a **proporção se escreve** — mantém a frase dela. A distinção é por **forma**
+(`linhasDe.de`), não por id, e a prova mede as duas: uma mensagem só para as duas telas seria meia
+verdade numa delas.
+
 **A sequência acompanha os objetivos — e a pergunta «é mock?» teve resposta medida (03/11/2026).** A
 tabela «Sequência de exercícios por bloco» mostrava linhas a nomear os objetivos 2 e 3 depois de a
 lista ter ficado com **um**. **CONFIRMADO** no envelope dela (`plano-20261103-1644`): um objetivo e
@@ -2072,7 +2112,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a sequência acompanha os objetivos)
+### Executado nesta fotografia (03/11/2026 — a sequência não inventa linha)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-sequencia-que-acompanha.js` | **TUDO CERTO — 33 asserções em 6 secções**. **§1** o núcleo, com controlo negativo. **§2** o documento. **§3** a tela com os números do envelope dela (seis linhas, nenhuma a nomear os objetivos 2 e 3). **§4** a chave pelo número. **§5** reescrita: **nenhum** `[data-grelha-add]`, **nenhum** `[data-grelha-del]`, **nenhum** campo livre nem seletor; **controlo positivo** — marcar um exercício a mais no parâmetro acrescenta **três** linhas (uma por bloco); sem parâmetro marcado a célula fica vazia, travada, com `—`; e a distribuição do volume **não** herda a frase da curadoria. **§6** a tela desenha exactamente as linhas que o núcleo deixa passar |
+| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — verdes |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-aula-e-plano-legiveis` · `provar-metodologia-no-cabecalho` · `provar-compasso-limpo` | **TUDO CERTO** nas cinco |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **vermelhos, e de antes** | `provar-plano-matriz` — a bancada não serve `/api/mapa` e a prova **não corre**; as duas asserções que ela guarda (reescritas hoje para a regra nova) ficam medidas pela §5 do `provar-sequencia-que-acompanha` · `provar-derivados-da-sequencia` (as mesmas 2) · `provar-plano-completo` · `provar-po-completo` · `provar-notacao` |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
+
+### Executado na fotografia anterior (03/11/2026 — a sequência acompanha os objetivos)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2084,7 +2135,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o caminho do schema aponta para `professores/leticia/`) · `provar-notacao` (o alfabeto não tem os exercícios que a fixture do ciclo lista) · `provar-plano-matriz` (a rota `/api/mapa` da bancada) · `check-pacote` no `ciclo-01-breu` (o pacote-zero não tem PDF nem aulas — nunca gerado aqui) |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado na fotografia anterior (03/11/2026 — a metodologia é do professor)
+### Executado duas fotografias atrás (03/11/2026 — a metodologia é do professor)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2095,7 +2146,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o caminho do schema aponta para `professores/leticia/`, que já não existe) · `provar-derivados-da-sequencia` (2 falhas) — medidos com o motor de HEAD, não tocados |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado duas fotografias atrás (03/11/2026 — o compasso sem o dono da música)
+### Executado três fotografias atrás (03/11/2026 — o compasso sem o dono da música)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2933,6 +2984,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **A sequência não inventa linha.** Saiu o «Adicionar linha», saiu o ✕, saiu o
+  campo livre do conteúdo e saiu o `extras` da derivação: o repertório nasce nos bastidores
+  (verbete), é acordado na curadoria, e a tabela só o encontra com o objetivo e o bloco — uma linha
+  acrescentada aqui seria um acordo que ninguém fez. O caminho legítimo fica (mais um parâmetro →
+  mais linhas), e o rodapé passou a dizer de onde a linha vem, distinguindo a distribuição do
+  volume, onde a proporção se escreve. Duas asserções do `provar-plano-matriz` guardavam a regra de
+  ontem e passaram a afirmar o contrário, com a razão ao lado. Prova: `provar-sequencia-que-acompanha`,
+  33 asserções.
 
 - **03/11/2026** — **A sequência acompanha os objetivos.** A tabela mostrava linhas a nomear os
   objetivos 2 e 3 depois de a lista ter ficado com um. A pergunta «é dinâmica ou é mock?» teve

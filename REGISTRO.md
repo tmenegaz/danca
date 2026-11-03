@@ -33555,3 +33555,74 @@ as deixa de escrever. Quem quiser o envelope limpo **antes** disso abre a sequê
 (b) A `aula-01.md` desse ciclo, se for regerada, perde o exercício do objetivo 3 — e é o correcto,
 mas é uma mudança no documento que vale a pena ler depois de gerada. (c) O conteúdo pedagógico
 continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-16).
+
+## 03/11/2026 — A sequência não inventa linha: o repertório nasce na curadoria
+
+**O que motivou, e é uma correção do que eu tinha feito horas antes.** A pesquisadora: «adicionar
+uma linha não faz sentido existir aqui. Se eu quiser que tenha mais, eu preciso voltar lá para a
+produção e vincular na curadoria que tenha mais exercícios para essa turma. […] Isso quebra toda a
+nossa regra de negócio, porque a gente tá gerando uma fraude. Não foi curado isso. A curadoria ela é
+um plano também. Ela faz parte do que foi acordado por um comitê de professores ou o diretor da
+escola e o professor. […] Se o professor quer usar menos recursos, ele vai lá e tira, porque é
+autonomia dele.»
+
+**O ARGUMENTO DELA ESTÁ CERTO, E O BOTÃO QUE EU TINHA ACABADO DE ACRESCENTAR ESTAVA ERRADO** — os
+dois, o «Adicionar linha» e o ✕. A justificativa que eu dei para o ✕ («havia como acrescentar e não
+como remover») estava certa na assimetria e errada na conclusão: o certo era não haver nem um nem
+outro. A tabela não é um lugar de decisão — é a **consolidação** do que foi decidido, e o próprio
+conteúdo do nó o dizia («É um DEMONSTRATIVO, e não um segundo lugar para decidir») enquanto oferecia
+os dois botões que o desmentiam.
+
+**A ORIGEM, escrita como ela a descreveu.** O exercício nasce nos **bastidores** (o verbete, com a
+música e o compasso), a curadoria é onde ele é **acordado** para aquela turma, e esta tabela é onde
+ele se **encontra** com o objetivo e o bloco. Acrescentar uma linha aqui é um acordo que ninguém fez,
+publicado como se fosse a aula — e o que se publica é a página da aula, exercício por exercício.
+
+| O que saiu | Por quê |
+|:--|:--|
+| **«Adicionar linha»** (`acrescentavel: false`) | a linha nasce na curadoria, não aqui |
+| **o ✕ de cada linha** (`removivel: false`) | remover aqui é apagar a decisão no sítio errado — quem tira é a curadoria |
+| **o campo livre do «Conteúdo do nível»** (sai o `livre`) | era a mesma fraude por outra porta: escrever ali um exercício que não foi curado. A célula passou a ser **sempre** leitura, e a lacuna mostra-se como lacuna (`—`) |
+| **o `extras` da derivação** | as linhas gravadas que nenhuma decisão de agora reclamava ficavam na tabela «para não se perder o que o professor escreveu». O pressuposto era falso: ele **não pode escrever nenhuma célula desta tabela**. O que sobrava era semente de uma sessão anterior. |
+
+**O que NÃO se perdeu.** O caminho legítimo continua inteiro e é o que a prova mede: marcar mais um
+exercício em «Parâmetro de medição» acrescenta as linhas dele em cada bloco onde o objetivo é
+trabalhado. E o envelope gravado **não se reescreve** (P-03) — a próxima gravação escreve o que a
+derivação decidiu, e o que ficou para trás fica como memória do que já foi.
+
+**O rodapé passou a dizer de onde a linha vem — por FORMA, não por id.** A tabela com objetivo por
+linha aponta a curadoria como o sítio do repertório; a **distribuição do volume**, que também recebe
+as linhas dos blocos marcados mas onde a proporção **se escreve**, mantém a frase dela. Uma mensagem
+só para as duas telas seria meia verdade numa delas, e a prova mede as duas.
+
+**Duas asserções guardavam a regra de ontem, e passavam a afirmar o contrário.** `provar-plano-matriz`
+dizia «o que não está na lista se escreve ao lado» e «a sequência aceita mais de um exercício» —
+as duas eram **verdadeiras até hoje** e são a regra que esta decisão revoga. Uma asserção que
+descreve o comportamento antigo não é uma prova, é um atraso: as duas passaram a afirmar o contrário,
+com a razão escrita ao lado, para o próximo agente não «corrigir» a tabela de volta.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-sequencia-que-acompanha` | **TUDO CERTO — 33 asserções, 6 secções**. §5 reescrita: **nenhum** `[data-grelha-add]`, **nenhum** `[data-grelha-del]`, **nenhum** campo livre nem seletor; **controlo positivo** — marcar um exercício a mais no parâmetro acrescenta **três** linhas (uma por bloco onde o objetivo é trabalhado); sem parâmetro marcado a célula fica vazia e travada (`—`), e o rodapé diz que o repertório se muda na Curadoria; e a distribuição do volume **não** herda essa frase |
+| `provar-teste` · `provar-ajustes-anamnese` | **45 verificações** · **126 provas** — verdes |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-aula-e-plano-legiveis` · `provar-metodologia-no-cabecalho` · `provar-compasso-limpo` | **TUDO CERTO** nas cinco |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **vermelhos, e de antes** | `provar-plano-matriz` (a rota `/api/mapa` da bancada — a prova não corre, e por isso as duas asserções reescritas não chegam a ser medidas **nesta** bancada: ficam medidas pela §5 do `provar-sequencia-que-acompanha`) · `provar-derivados-da-sequencia` (as mesmas 2) · `provar-plano-completo` · `provar-po-completo` · `provar-notacao` |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
+`porta/plano/conteudo/plano.json` é conteúdo.
+
+**Com o quê.** `porta/plano/conteudo/plano.json` (os dois botões, o `livre`, a explicação) ·
+`porta/index.html` (o `extras` fora, a coluna derivada sempre em leitura, o rodapé por forma) · a
+cópia da porta no pacote · `experimentos/provar-sequencia-que-acompanha.js` ·
+`experimentos/provar-plano-matriz.js` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**Referências.** A correção dela de 03/11/2026 (a mesma sessão, horas depois) · a entrada anterior,
+do mesmo dia, que esta corrige · P-03/P-04 · Regra 10.
+
+**O que a decisão deixa por fazer.** O `provar-plano-matriz` continua **vermelho por outra razão**
+(a bancada não serve `/api/mapa`), e é o único sítio que ainda descreve — sem medir — o formato da
+sequência. Consertar a bancada é trabalho de meia hora e faria as duas asserções novas valerem por
+si; fica nomeado, e não escondido atrás de um verde que não existe.
