@@ -4,7 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `9d636fe`, árvore limpa). Nesta entrega, **o conteúdo
+> **Última fotografia:** 03/11/2026 (base `bb8d122`, árvore limpa). Esta entrega é uma
+> **verificação a pedido** («o processo da curadoria até à geração dos documentos»), e achou um elo
+> partido: `porta/index.html` tinha **duas funções com o mesmo nome** — `turmaDoPlano` —, e a
+> segunda (a que devolve uma lista de nomes, nascida a 02/11 com o «Carregar das anamneses da
+> turma») ganhava para todos os chamadores, por hoisting. Um array não dá erro: dava `undefined` no
+> calendário, `NaN` na frequência e `termosDaTurma(undefined)` na coluna «Conteúdo do nível» — **o
+> plano deixou de ler a turma e de mostrar o que a direção curou**, sem uma palavra na tela. As
+> três funções homónimas (a da porta e duas na Produção: `cancelarEdicao` e `temposDaContagem`)
+> foram renomeadas, e a prova nova — `provar-plano-e-curadoria`, **12 asserções** — mede a cadeia
+> **e a classe** do defeito. Efeito medido: `provar-teste` passou de vermelho a **45 verificações
+> verdes**, e `provar-cartao-da-turma` de 6 falhas a **4**. Do lado do estado: **a curadoria está
+> registada e o `repertorio` dela já chega ao formulário** (medido no ar), mas **não há plano nem PO
+> guardados** — e sem PO não há documentos.
+>
+> **Entrega anterior** (base `9d636fe`, árvore limpa). **O conteúdo
 > saiu do cadastro da turma**, e a turma passou a ter **três estados**. **(1) A auditoria que ela
 > pediu mudou o diagnóstico:** a rota `turma-editar` já recusava (409) a turma presa a um plano, mas
 > a turma que apenas **compunha uma curadoria** continuava editável — e a curadoria guarda o **nome**
@@ -1454,6 +1468,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**A curadoria existe e o plano já a lê; o que falta é GRAVAR (03/11/2026).** A verificação a pedido
+mediu o estado, elo por elo, e a resposta curta é: **a curadoria está registada**, o `repertorio`
+dela (`Plié`, `Battement tendu`) já chega ao formulário do plano pela coluna «Conteúdo do nível», e
+o ritmo da turma (qua/sex, 45 min, março a junho) já desce para o plano — **depois da correção
+desta sessão**, que desfez um nome repetido em `porta/index.html`. O que **não** existe é o
+**plano de ensino** e o **PO**: três medições independentes (o índice do acervo em git, o KV antigo,
+e a lista ao vivo) dizem «nenhum». E o PO é o segundo ato — o formulário dele pede o plano de
+ensino observado —, portanto a ordem é: **plano → PO → documentos**.
+
+**Por que não foram gravados, e é o que trava agora.** O `GITHUB_TOKEN` do `.dev.vars` está **morto**
+(401 em `/user` e na API do repositório). É o valor que `tools/criar-escola.sh --deploy` grava como
+secret do Worker, e o que qualquer execução local usa. O token **do Worker** não se lê de fora — a
+lista do acervo ao vivo responde com uma leitura limpa, o que é igualmente compatível com «token
+válido e árvore vazia» —, mas **nenhuma gravação de envelope foi feita**, e a primeira que se tentar
+dirá qual dos dois casos é (a mensagem é «o GitHub recusou a escrita: HTTP 401»). **PENDENTE**, e é
+o próximo passo dela.
+
 **A turma ficou só com o ritmo, e a auditoria que ela pediu mudou o diagnóstico (03/11/2026).** O
 pedido era «auditar a edição da turma depois da curadoria»: se a turma já compõe uma curadoria, a
 edição estrutural devia ser «bloqueada ou controlada». **CONFIRMADO** por leitura da rota e por
@@ -1913,7 +1944,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — os conteúdos na curadoria e os três estados da turma)
+### Executado nesta fotografia (03/11/2026 — a curadoria chega ao plano)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-plano-e-curadoria.js` (novo) | **TUDO CERTO — 12 asserções em 5 secções**. **§A** `turmaDoPlano()` devolve a **turma**, e não uma lista. **§B** o ritmo desce: frequência 2 (qua e sex), 45 min, calendário 2027-03-03 → 2027-06-30, total de aulas. **§C** a coluna «Conteúdo do nível» oferece **Plié e Battement tendu** (o `repertorio` da curadoria). **§D** o **controlo negativo**: sem o mapa composto a coluna fica vazia e o ritmo continua a descer. **§E** a **classe** do defeito: nenhum bloco de cliente declara a mesma função duas vezes |
+| `provar-teste` | **45 verificações, TODAS verdes** — estava vermelho («a frequência não saiu dos dias da turma») e a correção do nome devolveu-lhe a leitura da turma |
+| `provar-cartao-da-turma` | **4 falhas** (eram **6**): o «Cancelar» da turma voltou a ser o da turma. As quatro que sobram são as mesmas do `--controle-negativo` sobre HEAD |
+| `provar-producao` · `provar-verbete` · `provar-plano-da-turma` · `provar-conteudos-e-estado-da-turma` · `provar-tabela-da-notacao` | **151 de 155** (as quatro de antes) · **TUDO CERTO** · **46 provas, 0 falhas** · **TUDO CERTO** · **TUDO CERTO** |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **no ar, uma leitura por sítio** | `/api/bastidores/curadoria-professor` devolve a curadoria com `repertorio: ['Plié','Battement tendu']`; `/api/bastidores/turmas` devolve a turma com o ritmo; `/api/bastidores/turma-conteudos` devolve `{"bale-nivel-1-teste-3":["battement-tendu","plie"]}`; a lista do PO diz «Ainda não há Plano de Observação nesta escola» |
+| **provas vermelhas desde antes desta sessão** | `provar-plano-completo` · `provar-po-completo` · `provar-manifesto-do-plano` · `provar-geracao-do-ciclo` — medidas com o motor de HEAD no worktree, **não tocadas**: cada uma pede uma decisão de contrato ou de conteúdo |
+| **o que NÃO foi medido** | o caminho `plano → .md → pacote` **ao vivo**: não há plano guardado. E o `GITHUB_TOKEN` do `.dev.vars` está **morto** (401 em `/user` e na API do repositório) — o token do Worker não se lê de fora, mas é este o valor que `criar-escola.sh --deploy` grava |
+
+### Executado na fotografia anterior (03/11/2026 — os conteúdos na curadoria e os três estados da turma)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2714,6 +2758,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **A curadoria chegou ao plano, e o que a travava era um nome repetido.**
+  `porta/index.html` tinha duas funções chamadas `turmaDoPlano` — a que devolve a turma e a que
+  devolve uma lista de nomes (02/11) —, e a segunda ganhava para todos os chamadores, por hoisting.
+  O plano deixou de ler a turma (calendário, frequência, duração, total de aulas) e a coluna
+  «Conteúdo do nível» deixou de mostrar o que a direção curou — sem uma palavra na tela. Nas
+  mesmas condições, e no mesmo dia, apareceram mais duas na Produção (`cancelarEdicao` e
+  `temposDaContagem`): o «Cancelar» da turma corria o do verbete. As três foram renomeadas, e a
+  prova nova (`provar-plano-e-curadoria`, 12 asserções) mede a **classe**: nenhum bloco de cliente
+  declara a mesma função duas vezes. `provar-teste` passou de vermelho a **45 verdes**, e
+  `provar-cartao-da-turma` de 6 falhas a 4. Do lado do estado: a curadoria está registada e o
+  `repertorio` chega ao formulário, mas **não há plano nem PO guardados**, e o token do `.dev.vars`
+  está morto (401).
 
 - **03/11/2026** — **A auditoria da turma mudou o diagnóstico, e o conteúdo foi para a curadoria.**
   A pergunta era se editar uma turma já curada fere a proveniência. A resposta: a rota já recusava a

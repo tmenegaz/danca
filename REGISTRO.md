@@ -33161,3 +33161,73 @@ habilitações, e a página é síncrona. (c) A **modalidade continua escrita à
 `motor/`, medidos por `provar-sinais-da-modalidade` §D. (d) **A `breu` continua no ar** — ela
 expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de sempre: **conteúdo**
 (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+
+## 03/11/2026 — A curadoria chegou ao plano, e o que a travava era um nome repetido
+
+**O que motivou.** A pesquisadora fez a curadoria pela tela e pediu: *«verifique o processo desse
+ponto até a geração dos documentos, a partir do po completo»*. É a pergunta certa, e a resposta
+começa pelo estado: medido no remoto e no ar, **a curadoria está registada e o `repertorio` dela já
+chega ao formulário do plano** — e **não há nenhum plano de ensino e nenhum PO guardados** (três
+medições independentes: o índice do acervo em `escola/breu/envelopes/.indice.json` está vazio, o KV
+antigo não tem chave `envelope/`, e a lista ao vivo diz «Ainda não há Plano de Observação nesta
+escola»). Sem PO não há o que gerar: o pacote da `breu` continua o scaffold (`DOCS=""`).
+
+**O elo partido, e o modo de falha.** `porta/index.html` tinha **duas** funções chamadas
+`turmaDoPlano`: a que devolve a TURMA (o ritmo e o conteúdo descem dela) e a que devolve uma **lista
+de nomes**, nascida a 02/11/2026 com o «Carregar das anamneses da turma». Duas declarações no mesmo
+escopo: a segunda ganhava para **todos** os chamadores, por hoisting. Um array não dá erro — dá
+`undefined` em `t.periodoInicio`, `NaN` em `Number(t.frequencia)` (e `valorDaTurma` devolvia
+`undefined`), e `termosDaTurma(undefined)` devolvia `[]`. O plano deixou de ler a turma **e** de
+mostrar o que a direção curou, sem uma palavra na tela. É a mesma família de falha que o
+`REGISTRO.md` já nomeou duas vezes: o dado falta, e o silêncio faz o professor concluir que o
+sistema «não pega» o que ele acabou de decidir.
+
+**A classe, e não só a instância.** Procurando a mesma armadilha no resto do cliente apareceram
+mais duas, na Produção: `cancelarEdicao` (a da turma e a do verbete — a do verbete ganhava, e o
+«Cancelar» da turma corria a do verbete: limpava o estado errado e deixava a turma no passo 3), e
+`temposDaContagem` (a conta que corre e uma segunda que nunca correu). As três foram renomeadas. A
+prova nova mede a **classe**: nenhum bloco de cliente declara a mesma função duas vezes.
+
+**O efeito medido que ninguém tinha visto.** `provar-teste` estava vermelho — «a frequência não saiu
+dos dias da turma» — e passou a **45 verificações, todas verdes**: a frequência voltou a sair da
+turma. E `provar-cartao-da-turma` caiu de **6 falhas para 4**, e as quatro são as mesmas do
+`--controle-negativo` sobre o motor de HEAD.
+
+**O que foi verificado, elo por elo.**
+
+| Elo | Estado |
+|:--|:--|
+| curadoria → turma e habilitação | **CONFIRMADO no ar**: `/api/bastidores/curadoria-professor` devolve a curadoria com `repertorio: ['Plié','Battement tendu']`, e `/api/bastidores/turmas` devolve a turma `bale-nivel-1-teste-3` com o ritmo |
+| curadoria → mapa de conteúdos | **CONFIRMADO no ar**: `/api/bastidores/turma-conteudos` devolve `{ "bale-nivel-1-teste-3": ["battement-tendu","plie"] }` — o mapa **composto**, sem escrever no antigo |
+| curadoria/turma → formulário do plano | **estava partido**, corrigido, e provado por `provar-plano-e-curadoria` (§A–§D) |
+| plano → fonte `.md` + manifesto da variante | **não exercitado ao vivo** — não há plano guardado. O caminho existe e é o mesmo (`escrever-plano.js`, `comporManifestoDaTurma`), e compõe o `.conf` da variante a partir do **cadastro da turma** |
+| PO → fonte `.md` | **não exercitado**: o PO é o segundo ato (o formulário do PO pede o plano de ensino observado), e não há plano |
+| fonte → pacote | **não exercitado**: `gerar-ciclo.sh` recusa o ciclo-zero (11 erros, os mesmos de antes — falta PDF, `-dados.json` e os links das fontes) |
+
+**Uma nota operacional, medida.** O `GITHUB_TOKEN` do `.dev.vars` local responde **401** em
+`/user` e na API do repositório: está morto. Não é o mesmo que dizer que o Worker escreve mal — o
+secret do Worker não se lê de fora, e a lista do acervo ao vivo responde com uma leitura limpa
+(o que é igualmente compatível com «token válido e árvore vazia»). Mas é o valor que
+`tools/criar-escola.sh --deploy` grava no Worker, e é o que qualquer execução local usa: **antes do
+próximo teste de gravação, o token tem de ser reposto**.
+
+**Quatro provas que estão vermelhas desde antes desta sessão — e não por causa dela.** Medidas com o
+motor de HEAD no worktree: `provar-plano-completo` (a tabela de destinos não conhece os nós de
+02/11/2026 e ainda aponta para uma escola que já não existe — `professores/leticia/`),
+`provar-po-completo` (o validador recusa o PO derivado), `provar-manifesto-do-plano` (2 falhas) e
+`provar-geracao-do-ciclo` (1 de 14). Não foram tocadas: cada uma pede uma decisão de conteúdo ou de
+contrato que não é desta sessão — e ficam escritas para não parecerem verdes.
+
+**Com o quê.** `porta/index.html` (a função renomeada) · `motor/servidor/bastidores.js`
+(`cancelarEdicaoDoVerbete`, `temposDaContagemPelaMusica`) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (a cópia da porta,
+regerada como o gerador faz) · `experimentos/provar-plano-e-curadoria.js` (novo, 12 asserções em 5
+secções) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**Referências.** O pedido dela de 03/11/2026 · P-03/P-04 (a memória não se apaga) · P-16 (o conteúdo
+é dela) · `provar-cartao-da-turma`, `provar-teste`, `provar-plano-da-turma`.
+
+**O que ainda não está feito.** (a) **Guardar o plano** (e depois o PO) — depende do token e é o
+próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c) O caminho
+`plano → .md → pacote` só se prova com um plano a sério: hoje mede-se em bancada, não ao vivo.
+(d) O caminho crítico continua a ser conteúdo: 11 níveis vazios, 0 dos três campos, a aula pronta.

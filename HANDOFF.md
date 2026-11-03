@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T12:28:16-0300`
-Commit atual: `9d636fe` — feat(experimentos): a prova dos conteúdos e dos três estados, e dois bancos que mediam o contrário
+Gerado em: `2026-11-03T13:07:25-0300`
+Commit atual: `bb8d122` — feat(experimentos): a prova da cadeia curadoria → plano, e a classe do defeito que a partiu
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,9 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+bb8d122 feat(experimentos): a prova da cadeia curadoria → plano, e a classe do defeito que a partiu
+4e90c3c fix(estrutura): o plano volta a ler a turma, e a curadoria volta a chegar ao formulário
+5ac0d2a docs(estrutura): a auditoria que mudou o diagnóstico, e o conteúdo que é da curadoria
 9d636fe feat(experimentos): a prova dos conteúdos e dos três estados, e dois bancos que mediam o contrário
 774aae7 style(template): o selo «curada» na folha, para a turma ter os três estados
 7988519 feat(estrutura): a turma tem três estados, e o conteúdo passou a ser da curadoria
@@ -102,9 +105,6 @@ cc150e6 feat(estrutura): a notação em três colunas, e o trecho que não estic
 e8cc4c6 docs(registro): a conferência ao ar que a entrada dizia não ter sido feita
 b28f8b9 docs(registro): a listagem lia com o alfabeto errado e deitava fora o gravado
 d681b43 fix(estrutura): a listagem lê a decomposição que está gravada
-b67b325 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
-7696834 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
-5dbb9ba docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-classico
 ```
 
 ## Por professor
@@ -228,110 +228,77 @@ b67b325 docs(notacao): editar «Battement tendu» (8|2/4) no alfabeto bale-class
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A auditoria da turma, o conteúdo na curadoria, e o formulário que só oferece o que o professor pode ensinar
+## 03/11/2026 — A curadoria chegou ao plano, e o que a travava era um nome repetido
 
-**O que motivou.** Quatro pedidos da pesquisadora na mesma volta, e o primeiro era uma pergunta, não
-uma ordem: *«auditar o comportamento de edição da turma após a consolidação da curadoria»* — porque
-lhe parecia que editar a «Balé Nível 1» depois de a curadoria existir podia estar a violar a
-proveniência. Os outros três vinham já decididos: tirar a **nota** da turma, mover os **conteúdos**
-para a curadoria, e fazer o formulário da curadoria **inteligente** (a modalidade do professor, a
-tradição da modalidade).
+**O que motivou.** A pesquisadora fez a curadoria pela tela e pediu: *«verifique o processo desse
+ponto até a geração dos documentos, a partir do po completo»*. É a pergunta certa, e a resposta
+começa pelo estado: medido no remoto e no ar, **a curadoria está registada e o `repertorio` dela já
+chega ao formulário do plano** — e **não há nenhum plano de ensino e nenhum PO guardados** (três
+medições independentes: o índice do acervo em `escola/breu/envelopes/.indice.json` está vazio, o KV
+antigo não tem chave `envelope/`, e a lista ao vivo diz «Ainda não há Plano de Observação nesta
+escola»). Sem PO não há o que gerar: o pacote da `breu` continua o scaffold (`DOCS=""`).
 
-**1. A auditoria mudou o diagnóstico, e o diagnóstico era outro.** A rota `turma-editar` **já**
-recusava com 409 a turma **presa a um plano de ensino**. O que ninguém tinha visto: a turma que
-apenas **compunha uma curadoria** continuava a gravar tudo — inclusive o **nome** —, e a curadoria
-guarda o **nome** e não o id. Renomear partia a ligação **em silêncio**: sem erro, sem aviso, a
-curadoria a apontar para um nome que já não existia. O defeito não era o botão que faltava; era a
-**assimetria** — o professor já tinha três estados (`livre` → `curado` → `vinculado`) e a turma
-tinha dois. `motor/nucleo/estado-da-turma.js` nomeia os três (`livre` · `curada` · `vinculada`),
-`motivoDaRecusa` diz por que não se edita, e **três leitores** perguntam ao mesmo sítio: a rota
-`turma-editar`, o `DELETE` e o cartão. **A turma curada não se apaga nem se trava**: edita-se no
-lugar o que não parte a ligação — a hora, a duração —, e renomear pede sair da curadoria primeiro.
-A `turma-derivar` continua a preservar a ligação porque mantém o nome.
+**O elo partido, e o modo de falha.** `porta/index.html` tinha **duas** funções chamadas
+`turmaDoPlano`: a que devolve a TURMA (o ritmo e o conteúdo descem dela) e a que devolve uma **lista
+de nomes**, nascida a 02/11/2026 com o «Carregar das anamneses da turma». Duas declarações no mesmo
+escopo: a segunda ganhava para **todos** os chamadores, por hoisting. Um array não dá erro — dá
+`undefined` em `t.periodoInicio`, `NaN` em `Number(t.frequencia)` (e `valorDaTurma` devolvia
+`undefined`), e `termosDaTurma(undefined)` devolvia `[]`. O plano deixou de ler a turma **e** de
+mostrar o que a direção curou, sem uma palavra na tela. É a mesma família de falha que o
+`REGISTRO.md` já nomeou duas vezes: o dado falta, e o silêncio faz o professor concluir que o
+sistema «não pega» o que ele acabou de decidir.
 
-**2. A nota da turma saiu, e o que está escrito fica.** O campo de observações «na prática
-operacional do professor não agrega valor», diz ela. Saiu do `normalizarTurma`, do formulário e das
-duas listas de campos que o `turma-editar` e o `turma-derivar` copiam. **Não houve migração**: o que
-sai da lista deixa simplesmente de ser tocado, e o registo anterior conserva-o (P-03/P-04).
+**A classe, e não só a instância.** Procurando a mesma armadilha no resto do cliente apareceram
+mais duas, na Produção: `cancelarEdicao` (a da turma e a do verbete — a do verbete ganhava, e o
+«Cancelar» da turma corria a do verbete: limpava o estado errado e deixava a turma no passo 3), e
+`temposDaContagem` (a conta que corre e uma segunda que nunca correu). As três foram renomeadas. A
+prova nova mede a **classe**: nenhum bloco de cliente declara a mesma função duas vezes.
 
-**3. Os conteúdos passaram para a curadoria — e o mapa antigo não se migra, lê-se.** Eram o último
-resto do enquadramento no cadastro da turma. Saíram do passo 3 («Associar», que ficou só com a
-régua) e entraram no formulário da curadoria, com o mesmo `escolhedor` das alunas e o **nome** do
-termo como valor (a lista é para o professor **ler**). `motor/nucleo/conteudos.js` **compõe** o mapa
-antigo (`turma-conteudos`) com o `repertorio` de cada curadoria, e a peça que faz os dois falarem a
-mesma língua é o `idDe`, que normaliza os dois lados; a curadoria **substituída** não entra. Efeito:
-nada se perde — o cartão da turma continua a mostrar a lista —, e a escrita passa a ter um sítio só.
+**O efeito medido que ninguém tinha visto.** `provar-teste` estava vermelho — «a frequência não saiu
+dos dias da turma» — e passou a **45 verificações, todas verdes**: a frequência voltou a sair da
+turma. E `provar-cartao-da-turma` caiu de **6 falhas para 4**, e as quatro são as mesmas do
+`--controle-negativo` sobre o motor de HEAD.
 
-**4. O formulário da curadoria ficou inteligente, e a regra nova não podia trancar o que já
-funcionava.** As modalidades filtram-se pelas habilitações do `perfil.json` do professor, com a nota
-a dizer quando ele não declara nenhuma. As tradições seguem a modalidade:
-`motor/nucleo/tradicoes.js` fixa a precedência — **a lista própria da modalidade vence a
-compartilhada** — e, quando a modalidade **não tem** lista própria, cai na compartilhada. A tentação
-era exigir o `tradicoes.json` próprio; isso deixaria jazz, circo e contemporâneo **sem tradição
-nenhuma**, e uma regra que tranca o que já funcionava é uma regressão com boa intenção. A tela diz
-qual das duas listas está a mostrar. **Nenhuma modalidade tem ainda o seu `tradicoes.json`**: os
-nomes das tradições de cada uma são conteúdo dela (P-16).
+**O que foi verificado, elo por elo.**
 
-**5. O primeiro ficheiro do acervo sem tipo declarado.** O `perfil.json` que ela criou **pela tela**
-em 03/11 entrou no acervo sem tipo em `indices/esquema/tipos.json`, e a verificação 8 do
-`check-indices` reprovou-o — com razão. O tipo `perfil` declara-o (com `classificado_pelo_motor:
-false`: o perfil não é documento de ciclo).
-
-**O que se mediu.**
-
-| Verificação | Resultado |
+| Elo | Estado |
 |:--|:--|
-| `provar-conteudos-e-estado-da-turma` (novo) | **TUDO CERTO — 74 asserções, 7 secções**. **§A** o núcleo composto (mapa antigo + `repertorio`, colapsados pelo `idDe`, a substituída fora). **§B** os três estados e o motivo de cada recusa, **com os três do professor ao lado** — a assimetria era o defeito. **§C** a rota como linha do servidor: a curada recusa a mudança de **nome** e **aceita** a da hora; a vinculada recusa tudo. **§D** a tela: o passo 3 sem `#vinc-conteudos`, a curadoria com o `escolhedor`. **§E** a nota saiu do cadastro e a antiga **fica**. **§F** o termo de uma curadoria de turma com plano **não** se apaga. **§G** o formulário inteligente, com a queda para a compartilhada |
-| `provar-producao` | **151 de 155** (era **149 de 153**; as duas novas são as asserções acrescentadas). Duas foram **reescritas em vez de contornadas** — «concluir exige conteúdo» (o formulário já não os oferece) e o menu de conteúdos no passo 3 (mudou de casa). As **quatro falhas restantes são as de antes**, e a da lista de tradições do **verbete** foi medida à parte: vem do `tradicoes.json` (a `cubana` entrou, e `compartilhada` vem no fim), não desta mudança |
-| `provar-cartao-da-turma` | **6 antes, 14 no meio, 6 no fim.** As oito que esta mudança introduziu **mediavam o contrário** (`#vinc-conteudos`, os chips, o par seletor+botão, a geometria deles no telefone) e foram reescritas para medir a decisão nova. As seis que sobram são **as mesmas** do `--controle-negativo` sobre o motor de HEAD: os seletores globais `button.passo` apanham a segunda barra de passos (a do verbete) |
-| `provar-teste` | **a mesma falha antes e depois** («a frequência não saiu dos dias da turma»), medida com e sem a mudança. De caminho, corrigi um comentário meu que **fechava o `String.raw`** do cliente com uma crase: o `require` rebentava antes da primeira asserção |
-| as outras sete | **TUDO CERTO** em todas: enquadramento, habilitação, tabela da notação, sinais, verbete, produtos, linhas da lista, música e leitura da decomposição |
-| `check-indices` · `check-schemas` · `check-identidade` | **14/14** · **TUDO CERTO** · **20/20** |
-| `hash-ciclo.sh --check` · `gerar-indices.js --check` · `check-pacote.js` | **cadeia intacta** · **12 arquivos em dia** · **11 erros antes e depois** (o pacote da `breu` nunca foi gerado por inteiro) |
-| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · **nenhuma curadoria real tem `repertorio`**, e nenhuma modalidade tem lista própria de tradições — os dois caminhos medem-se com registos de ensaio |
+| curadoria → turma e habilitação | **CONFIRMADO no ar**: `/api/bastidores/curadoria-professor` devolve a curadoria com `repertorio: ['Plié','Battement tendu']`, e `/api/bastidores/turmas` devolve a turma `bale-nivel-1-teste-3` com o ritmo |
+| curadoria → mapa de conteúdos | **CONFIRMADO no ar**: `/api/bastidores/turma-conteudos` devolve `{ "bale-nivel-1-teste-3": ["battement-tendu","plie"] }` — o mapa **composto**, sem escrever no antigo |
+| curadoria/turma → formulário do plano | **estava partido**, corrigido, e provado por `provar-plano-e-curadoria` (§A–§D) |
+| plano → fonte `.md` + manifesto da variante | **não exercitado ao vivo** — não há plano guardado. O caminho existe e é o mesmo (`escrever-plano.js`, `comporManifestoDaTurma`), e compõe o `.conf` da variante a partir do **cadastro da turma** |
+| PO → fonte `.md` | **não exercitado**: o PO é o segundo ato (o formulário do PO pede o plano de ensino observado), e não há plano |
+| fonte → pacote | **não exercitado**: `gerar-ciclo.sh` recusa o ciclo-zero (11 erros, os mesmos de antes — falta PDF, `-dados.json` e os links das fontes) |
 
-**Uma correção no `ESTADO-ATUAL.md`.** O cabeçalho da fotografia anterior citava a base `ddcd92a`,
-que **não é ancestral** de `main` (sobra de um rebase). A base correta é `622071b`, e a nota fica
-lá — não se reescreve o que se pensou, corrige-se ao lado.
+**Uma nota operacional, medida.** O `GITHUB_TOKEN` do `.dev.vars` local responde **401** em
+`/user` e na API do repositório: está morto. Não é o mesmo que dizer que o Worker escreve mal — o
+secret do Worker não se lê de fora, e a lista do acervo ao vivo responde com uma leitura limpa
+(o que é igualmente compatível com «token válido e árvore vazia»). Mas é o valor que
+`tools/criar-escola.sh --deploy` grava no Worker, e é o que qualquer execução local usa: **antes do
+próximo teste de gravação, o token tem de ser reposto**.
 
-**Motivo declarado — os congelados.** `tools/templates/ciclo.css` ganhou **`.selo.curada`**, em
-commit próprio (`774aae7`) e com o corpo a dizer porquê: a turma passou a ter três estados e o
-cartão só sabia desenhar dois — sem peça própria, a turma curada aparecia como livre e convidava a
-um clique que a rota recusa. **O que não muda:** a fórmula de hash, a cobertura da âncora, os
-validadores, as regras e as pétreas. A peça é o nono selo do catálogo, entra no grupo que
-`.derivada` e `.vinculada` já formavam, e a verificação «Peça» do `check-identidade` continua
-**20/20**. As duas cópias (`raiz/assets/style.css` e a do pacote) foram **regeradas** com
-`tools/gerar-raiz.sh` e a cópia do pacote, não editadas à mão.
+**Quatro provas que estão vermelhas desde antes desta sessão — e não por causa dela.** Medidas com o
+motor de HEAD no worktree: `provar-plano-completo` (a tabela de destinos não conhece os nós de
+02/11/2026 e ainda aponta para uma escola que já não existe — `professores/leticia/`),
+`provar-po-completo` (o validador recusa o PO derivado), `provar-manifesto-do-plano` (2 falhas) e
+`provar-geracao-do-ciclo` (1 de 14). Não foram tocadas: cada uma pede uma decisão de conteúdo ou de
+contrato que não é desta sessão — e ficam escritas para não parecerem verdes.
 
-**Com o quê.** `motor/nucleo/estado-da-turma.js` (novo) · `motor/nucleo/conteudos.js` (novo) ·
-`motor/nucleo/tradicoes.js` (novo) · `motor/servidor/bastidores.js` (a nota fora, os conteúdos
-mudados de casa, o filtro por habilitação, a tradição por modalidade, os três estados na rota e no
-cartão) · `motor/servidor/teste-cliente.js` · `tools/templates/ciclo.css` ·
-`raiz/assets/style.css` · `professores/coqui-de-redinha/ciclos/ciclo-01-breu/assets/style.css` ·
-`indices/esquema/tipos.json` · `experimentos/provar-conteudos-e-estado-da-turma.js` (novo) ·
-`experimentos/provar-cartao-da-turma.js` · `experimentos/provar-producao.js` · `.gitignore` ·
-`ARQUITETURA-GERAL.md` §2.3 · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+**Com o quê.** `porta/index.html` (a função renomeada) · `motor/servidor/bastidores.js`
+(`cancelarEdicaoDoVerbete`, `temposDaContagemPelaMusica`) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (a cópia da porta,
+regerada como o gerador faz) · `experimentos/provar-plano-e-curadoria.js` (novo, 12 asserções em 5
+secções) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
 
-**Referências.** A especificação dela de 03/11/2026 (nota, conteúdos, auditoria da turma, formulário
-inteligente) · P-03, P-04, P-16 · a decisão da mesma manhã (§2.2, §2.3 de `ARQUITETURA-GERAL.md`) ·
-`ESTADO-ATUAL.md` §9.
+**Referências.** O pedido dela de 03/11/2026 · P-03/P-04 (a memória não se apaga) · P-16 (o conteúdo
+é dela) · `provar-cartao-da-turma`, `provar-teste`, `provar-plano-da-turma`.
 
-**O que ainda não está feito.** (a) **As tradições por modalidade não têm conteúdo**: a estrutura
-existe e nenhuma modalidade tem o seu `tradicoes.json` — os nomes são dela (P-16). (b) **A oferta da
-escola** (que modalidades tem à venda) continua a **não** existir como campo: é derivação das
-habilitações, e a página é síncrona. (c) A **modalidade continua escrita à mão em 10 sítios** de
-`motor/`, medidos por `provar-sinais-da-modalidade` §D. (d) **A `breu` continua no ar** — ela
-expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de sempre: **conteúdo**
-(11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+**O que ainda não está feito.** (a) **Guardar o plano** (e depois o PO) — depende do token e é o
+próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c) O caminho
+`plano → .md → pacote` só se prova com um plano a sério: hoje mede-se em bancada, não ao vivo.
+(d) O caminho crítico continua a ser conteúdo: 11 níveis vazios, 0 dos três campos, a aula pronta.
 
 ## O que está pendente
-
-## 03/11/2026 — A notação em três colunas, e o trecho que não estica a tela
-
-(a) **A `breu` continua no ar** — ela expurga-a pela tela quando
-terminar de testar. (b) O `ESCOLA.conf` continua a **não existir** e a chave `plano` continua por
-decidir onde entra (C11) — a decisão dela é que vive no `.conf`, **nunca no KV**. (c) O caminho
-crítico é o de sempre: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula pronta**,
 
 ## 03/11/2026 — O sinal que faltava, o nome que não se traduz, e o dono da modalidade
 
@@ -361,6 +328,13 @@ habilitações, e a página é síncrona. (c) A **modalidade continua escrita à
 `motor/`, medidos por `provar-sinais-da-modalidade` §D. (d) **A `breu` continua no ar** — ela
 expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de sempre: **conteúdo**
 (11 níveis vazios, 0 dos três campos), **aula pronta**, **fase 3**.
+
+## 03/11/2026 — A curadoria chegou ao plano, e o que a travava era um nome repetido
+
+(a) **Guardar o plano** (e depois o PO) — depende do token e é o
+próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c) O caminho
+`plano → .md → pacote` só se prova com um plano a sério: hoje mede-se em bancada, não ao vivo.
+(d) O caminho crítico continua a ser conteúdo: 11 níveis vazios, 0 dos três campos, a aula pronta.
 
 ## Pendências anteriores (índice)
 
@@ -696,6 +670,7 @@ expurga-a pela tela quando terminar de testar. (e) O caminho crítico é o de se
 - **03/11/2026** — O termo que a Produção criou, o alfabeto que não tem dono,… → `REGISTRO.md` L32488
 - **03/11/2026** — A música deixou de se bloquear e de se multiplicar, e o… → `REGISTRO.md` L32577
 - **03/11/2026** — A listagem lia com o alfabeto errado, e deitava fora o que… → `REGISTRO.md` L32659
+- **03/11/2026** — A notação em três colunas, e o trecho que não estica a tela → `REGISTRO.md` L32744
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
