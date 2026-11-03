@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T22:19:15-0300`
-Commit atual: `026c281` — fix(estrutura): a repetição na decomposição, e o número que mudou no remoto
+Gerado em: `2026-11-02T23:22:24-0300`
+Commit atual: `5e109c1` — feat(estrutura): a fotografia datada, o dono do termo e o `--escola`
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -79,12 +79,16 @@ vaso-bonito (19)
 - **`ARQUITETURA-GERAL.md`** — Arquitetura geral — por que sistema de arquivos, e não um backend com banco
 - **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
-- **`IDEIA-PAINEL-ESCOLA.md`** — o Bastidores é o ambiente da direção da escola: um grupo de menu com duas vistas — o Estúdio de Dança (que a direção partilha com o professor) e a Produção (só da direção) —, regido pelo princípio cena × bastidores, pela regra da reverberação (o que a escola declara desce para os documentos da cena) e pela proveniência própria da escola. Não implementado.
+- **`IDEIA-PAINEL-ESCOLA.md`** — o Bastidores é o ambiente da direção da escola: um grupo de menu com duas vistas — o Estúdio de Dança (que a direção partilha com o professor) e a Produção (só da direção) —, regido pelo princípio cena × bastidores, pela regra da reverberação (o que a escola declara desce para os documentos da cena) e pela proveniência própria da escola.
 - **`PLANEJAMENTO-LASTRO.md`** — o mapa de evolução do **Sistema Lastro** (o nome comercial do produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os relacionamentos, os índices, o versionamento e o comercial — e **treze frentes** com objetivo, lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi implementado: este documento é o mapa, não a obra.
 
 ## Últimos commits
 
 ```
+5e109c1 feat(estrutura): a fotografia datada, o dono do termo e o `--escola`
+4e1593a docs(biblioteca): a cláusula 1 diz de onde vem a data enquanto não há contrato
+885a2ad docs(registro): a fotografia da licença e da camada herdada
+890937a feat(estrutura): a licença em texto, a edição paga e a camada herdada
 026c281 fix(estrutura): a repetição na decomposição, e o número que mudou no remoto
 76d023c docs(registro): a fotografia dos dois produtos, e o que eles ainda não são
 9760028 feat(estrutura): o motor dos produtos — o dicionário e o syllabus, gerados do catálogo
@@ -101,10 +105,6 @@ c6ce738 chore(notacao): apagar o verbete «Port de bras» no alfabeto bale-class
 ae7f5f3 chore(notacao): apagar o verbete «Relevé» no alfabeto bale-classico
 8259894 chore(notacao): apagar o verbete «Rond de jambe» no alfabeto bale-classico
 fa4ab07 chore(notacao): apagar o verbete «Rond de jambe à terre» no alfabeto bale-classico
-5db2f1d chore(notacao): apagar o verbete «Rond de jambe en l’air» no alfabeto bale-classico
-4076803 chore(notacao): apagar o verbete «Battement tendu» no alfabeto bale-classico
-95ecee5 chore(notacao): apagar o verbete «Plié» no alfabeto bale-classico
-cc54844 refactor(notacao): o código morto do campo da posição, e a razão onde ele estava
 ```
 
 ## Por professor
@@ -228,117 +228,124 @@ cc54844 refactor(notacao): o código morto do campo da posição, e a razão ond
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A licença em texto, a condição de conteúdo executável, e a camada que se herda
+## 02/11/2026 — A fotografia datada, o dono do termo, e o plano que vai para o `.conf`
 
-**O que motivou.** Duas perguntas dela, na mesma mensagem em que pediu o relatório de estado do
-motor. A primeira: «que tipo de licença é exigida aqui? Podemos criar provisoriamente uma licença
-descritiva alinhada com o Planejamento de Lastro, para destravar?» A segunda: «por que `exige`,
-`ensina`, `expressa`? Esses nomes vieram como contrato imposto pelo agente, e não como decisão de
-design — precisamos da lógica para validar se mantemos». As duas tinham resposta nos documentos, e
-as duas estavam a travar trabalho de código: o `PLANO-PRODUTOS-DO-MOTOR` dizia que a **fase 3** não
-começa sem `licenca.md`, e a camada pedagógica não tinha lugar definido no dado.
-
-**O que foi respondido, e não inventado.** A licença **não** é Creative Commons nem EULA clássica: é
-uma decisão de negócio de **02/11/2026**, escrita na `ARQUITETURA-GERAL.md` §10, com **três camadas**
-— a máquina (proprietária), o catálogo (licenciado por escola) e o que a escola acrescenta (dela).
-E os três nomes **não** são contrato do agente: estão no `PLANEJAMENTO-LASTRO.md` §C22, com as
-palavras dela. O que era do agente era o **lugar** — e essa era a pergunta certa.
+**O que motivou.** Três perguntas dela, na mesma mensagem, e as três eram sobre **onde uma coisa
+vive**. (1) A licença está escrita, mas a cláusula 1 exige uma fotografia datada e o contrato não
+existe — «tem que colocar no registro que vai ficar uma pendência, porque por enquanto vai ser
+apenas uma string». (2) A fase 1: «o problema é o caminho escrito, né?» — é, e ela propôs a saída:
+«acrescente um campo que distingue que aquilo pertence à escola». (3) O plano comercial: «não vai
+viver no KV. Pode viver no repositório ou pode viver no `.conf`» — e a escolha é o `.conf`.
 
 **O que foi decidido.**
 
-- **A licença passa de decisão a texto, em DOIS ficheiros.** `LICENSE.md` na raiz para **a máquina**
-  (todos os direitos reservados, não licenciada com os produtos) e `biblioteca/LICENSE.md` para **o
-  catálogo** (as seis cláusulas da §10.2, a concessão estreita da §10.3 e a condição da §10.4). São
-  dois porque as duas camadas dizem o contrário uma da outra — «não se licencia» e «licencia-se com
-  limites» — e um ficheiro só não consegue dizê-lo. A **camada 3 fica dentro do ficheiro do
-  catálogo** porque só existe se a do catálogo existir.
-- **O nome do ficheiro é `LICENSE.md`, e não `licenca.md`.** O GitHub só reconhece a licença em nomes
-  reconhecidos (`LICENSE.md`, `LICENSE`, `COPYING`); `licenca.md` seria um ficheiro comum, sem a
-  licença a aparecer no repositório. O plano citava `licenca.md` e foi corrigido com nota datada.
-- **O gerador lê a licença, e a lacuna desaparece por isso.** O nome vem do **título** de
-  `biblioteca/LICENSE.md` — uma fonte só, e não uma constante no código que envelhece no dia em que o
-  texto mudar — e o manifesto acrescenta o caminho, porque um título sem caminho não leva um leitor
-  ao documento. O `--licenca` explícito continua a vencer. Efeito medido: a lacuna `sem-licenca`
-  desapareceu, e o dicionário caiu de **148 para 147**.
-- **A condição de conteúdo ficou EXECUTÁVEL.** Há duas edições: `--edicao interna` (por omissão,
-  mostra tudo, e é a da escola e do projeto) e `--edicao paga`, em que **a definição sem `fonte` não
-  entra** — o termo continua, o sítio da definição diz porque está vazio, e o manifesto conta
-  (`definicoes_fora_da_edicao_paga`). A regra estava na `ARQUITETURA-GERAL.md` §10.4 e não passava de
-  boa intenção até aqui. **Medido no catálogo: 25** — exactamente o número que a §10.4 tinha medido à
-  mão. Duas medições independentes que concordam é a única coisa que este projeto aceita como prova.
-- **A camada pedagógica vive em dois lugares, e é herança com sobreposição.** O **padrão** no termo
-  (`vocabulario.json`) vale em todos os níveis; a **sobreposição** na relação (`progressao.json`)
-  vale só naquele nível e **vence sempre**. A razão é a mesma pela qual o «método» do verbete não se
-  repete: o mesmo passo, em dois níveis, quase sempre **exige** a mesma coisa do corpo e quase nunca
-  **expressa** a mesma coisa — repetir a exigência em cada relação faria do dado uma cópia, e a
-  primeira correcção deixaria as cópias a divergir. Escolher só o termo perderia a variação por
-  nível; escolher só a relação obrigaria a repetir o que não muda.
-- **O documento diz de onde veio cada campo** — `(herdado do termo)` ou `(declarado no nível)` —, com
-  a contagem no manifesto (`camada_herdada` · `camada_declarada` · `camada_ausente`). Apresentar como
-  «do nível» o que veio do termo é uma afirmação falsa sobre quem declarou o quê, e a marca custa
-  três palavras. **Herdar não é faltar**: só a ausência nos dois lugares vira `[Preencher]` e conta
-  como lacuna — e a lacuna passou a nomear **quais** dos três faltam.
+- **A fotografia datada é DERIVADA, e a pendência fica declarada.** O produto cita
+  `catalogo@AAAA-MM-DD` tirado do **último commit que tocou o catálogo** — a mesma técnica que
+  tornou o PDF reprodutível (`SOURCE_DATE_EPOCH`) —, nunca o relógio. **Medido: `catalogo@2026-11-02`
+  (`23d4c0e`)**, e a mesma entrada dá a mesma data em duas execuções. **A pendência, por escrito:**
+  ela diz «a versão do catálogo nesta data», **não** «a versão que esta escola contratou». Essa é do
+  **contrato** (C8), e no dia em que ele existir **a data dele vence**. Deixa de ser **impeditivo** e
+  passa a ser **dívida nomeada**: o critério 8 do plano **passa**, com a pendência declarada.
+- **O dono do termo é um CAMPO, e não um ficheiro.** `escola` ausente = termo do catálogo;
+  `escola: '<slug>'` = termo daquela escola. **Porquê:** o Worker lê o vocabulário do **bundle**
+  (`require` de caminho fixo, embutido pelo esbuild), e um ficheiro de caminho variável
+  (`biblioteca/escolas/<escola>/vocabulario.json`) **não** pode ser embutido. O escritor grava o dono
+  no termo (`termo-repo.js`), o leitor separa-o pela mesma função (`separarPorEscola` + `compor`, em
+  `comum.js`), e o `--escola` do CLI entrega a edição da escola. **Não há nada a migrar:** medido, os
+  **5** commits que tocaram o vocabulário não têm a mensagem do formulário (`acrescentar «…»`) —
+  nenhum termo foi criado pela tela até aqui.
+- **O catálogo NÃO se puxa para dentro do domínio do professor.** A pergunta era justa — «a
+  `biblioteca` está fora do domínio do professor?» — e a resposta é **sim, de propósito**: é o
+  **terceiro dono**, o que se vende (camada B, §10.1). Puxá-lo para `professores/<professor>/` faria
+  uma cópia por professor, e a primeira palavra nova punha as cópias a divergir — que é exactamente a
+  cópia que o `termo-repo.js` matou em 28/10/2026. O que impede a contaminação entre escolas é o
+  **dono no termo**, não o sítio do ficheiro.
+- **O plano comercial vive no `ESCOLA.conf`, e nunca no KV.** Decisão dela a 02/11/2026, na parte da
+  **C11** que faltava: «o conf faz o negócio acontecer e fica lá no repositório, e não há custo de
+  KV». O `ESCOLA.conf` **ainda não existe**; enquanto não existir, `habilitada`/`pagante` continuam
+  em `raiz/escolas-habilitadas.json`, andaime que já declara a própria morte.
 
-**Onde entrou.** `LICENSE.md` (raiz, novo) — a máquina, §10.1 · `biblioteca/LICENSE.md` (novo) — o
-catálogo, §10.2, §10.3 e §10.4 · `motor/produtos.js` — `licencaDoDisco()` (o título lido do
-ficheiro), `--edicao`, e o `--licenca` a deixar de ter omissão vazia · `motor/nucleo/produtos/
-dicionario.js` — a edição `interna`/`paga`, a retirada da definição sem origem com o aviso no sítio
-dela, o tipo novo de lacuna e as contagens · `motor/nucleo/produtos/syllabus.js` —
-`camadaDaUnidade`/`camadaCompleta`, a marca de origem na linha, a lacuna que nomeia o que falta e as
-três contagens · `motor/nucleo/README.md` — a secção nova da camada e a linha do syllabus ·
-`experimentos/provar-produtos.js` — §I, §J e §K (52 → **73**) · `ARQUITETURA-GERAL.md` §10 — a nota
-datada (o `LICENSE.md` passou a existir, e são dois) · `PLANO-PRODUTOS-DO-MOTOR.md` — as linhas D e a
-**§9-critério 8**, que era «não passa» e passa agora **menos** a fotografia datada · `ESTADO-ATUAL.md`
-§2, §4, §5, §7, §8 e §9.
+> **Correção de 02/11/2026 (mesmo dia, minutos depois).** O bullet acima escreve `ESCOLA.conf` como
+> se fosse um ficheiro — **e não é.** Ela corrigiu: «o conf que eu me referi foi de forma genérica,
+> não especificamente o `ESCOLA.conf`». **Medido: nenhum `ESCOLA.conf` existe** no repositório. O que
+> existe, versionado e por escola, é `escola/<slug>/indice.json` (que já guarda `estado`,
+> `arquivos` e o histórico de `expurgo`) e os `vars` de `wrangler.<slug>.jsonc` (`ESCOLA_SLUG`,
+> `ESCOLA_HABILITADA`); os segredos vivem nos **secrets** do Worker. A decisão **não muda no que
+> importa** — o estado comercial vai para o **repositório, e nunca para o KV** —, e a norma do
+> `PROTOCOLO.md` de 01/11/2026 confirma-o: o KV é do **cadastro dos Bastidores**, e o estado
+> comercial não é cadastro. O que fica **PENDENTE** é só **onde a chave entra**: em
+> `indice.json → estado`, ou num `ESCOLA.conf` próprio, que continua a ser o destino da
+> **declaração pedagógica**.
+>
+> **E o mesmo exercício derrubou outra frase.** O `IDEIA-PAINEL-ESCOLA.md` abria com «Nada disto
+> está implementado» — falso: o grupo **Bastidores** está no menu do sistema desde 15–18/10/2026, e
+> a **Produção** serve sete secções (`bastidores.js:3008-3017`): **Painel inicial** (vazio por
+> desenho) · **Configuração · Aparência** · **Pessoas · Professores e Alunas** · **Pedagogia ·
+> Turmas, Verbetes da notação e Curadorias**. O documento ganhou uma tabela medida (§2.1) e notas
+> datadas onde dizia o contrário (§9, §10, §11, §17.3, §17.4, §17.5). A redação anterior não é
+> apagada: ela é o elo de antes.
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. E aqui isso
-tem um sentido preciso: os dois `LICENSE.md` são ficheiros **novos** na raiz e em `biblioteca/`, e
-nenhum deles está na lista congelada; o `biblioteca/guia-do-professor.md`, que está, ficou intacto.
-O `LICENSE.md` da raiz **declara** que a máquina é proprietária — e declarar o regime de um ficheiro
-congelado não é alterá-lo.
+**Onde entrou.** `motor/produtos.js` — `fotografiaDoCatalogo()` (git, não relógio), `--escola` e
+`--edicao`, e a fotografia passada ao núcleo (a fronteira é a do `SOURCE_DATE_EPOCH`: o `git` existe
+no CLI, não no núcleo) · `motor/nucleo/produtos/comum.js` — `separarPorEscola()`, `compor()` (a única
+precedência: a escola vence) e `rotuloDaFotografia()`, com a nota do porquê do campo e não do
+ficheiro · `motor/nucleo/produtos/dicionario.js` e `syllabus.js` — a fotografia no cabeçalho, a
+lacuna `sem-fotografia`, e o dono no manifesto · `motor/servidor/termo-repo.js` — `escola` no termo
+e a colisão por **(dono, id)**, e não só por `id` · `motor/servidor/produtos.js` —
+`prepararCatalogo()` · `motor/servidor/bastidores.js` — `termos(kv, escola)` a compor pela mesma
+função, e o termo a nascer com `env.ESCOLA_SLUG` · `experimentos/provar-produtos.js` — **§L** e
+**§M** (73 → **89**) · `experimentos/provar-verbete.js` — as asserções do dono ·
+`biblioteca/LICENSE.md` §1 — a nota de onde vem a data (commit `4e1593a`) ·
+`ARQUITETURA-GERAL.md` §10.1 — a nota datada do sítio da camada C ·
+`PLANEJAMENTO-LASTRO.md` — a nota datada na **C11** (a metade do «onde», e o que continua aberto) ·
+`PLANO-PRODUTOS-DO-MOTOR.md` — fase 1, fase 4, §7-E, §9-5, §9-8, §10-4 e §11 ·
+`IDEIA-PAINEL-ESCOLA.md` — §2.1 (a tabela medida do que está construído), §9, §10 (o campo
+`PLANO` e o nome que não existe), §11, §17.3, §17.4 e §17.5 · `ESTADO-ATUAL.md` · `REGISTRO.md`.
 
-**Com o quê.** `LICENSE.md` · `biblioteca/LICENSE.md` · `motor/produtos.js` ·
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+`biblioteca/LICENSE.md` **não** está na lista congelada (o congelado em `biblioteca/` é só o
+`guia-do-professor.md`), e é por isso que a nota da cláusula 1 pôde ser escrita sem motivo declarado
+— ainda assim, em commit próprio (`4e1593a`), como o próprio texto exige.
+
+**Com o quê.** `motor/produtos.js` · `motor/nucleo/produtos/comum.js` ·
 `motor/nucleo/produtos/dicionario.js` · `motor/nucleo/produtos/syllabus.js` ·
-`motor/nucleo/README.md` · `experimentos/provar-produtos.js` · `ARQUITETURA-GERAL.md` ·
-`PLANO-PRODUTOS-DO-MOTOR.md` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+`motor/servidor/termo-repo.js` · `motor/servidor/produtos.js` · `motor/servidor/bastidores.js` ·
+`experimentos/provar-produtos.js` · `experimentos/provar-verbete.js` · `biblioteca/LICENSE.md` ·
+`ARQUITETURA-GERAL.md` · `PLANEJAMENTO-LASTRO.md` · `PLANO-PRODUTOS-DO-MOTOR.md` ·
+`IDEIA-PAINEL-ESCOLA.md` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
 
-**Referências.** `ARQUITETURA-GERAL.md` §10 (as três camadas, as seis cláusulas e a condição de
-conteúdo) · `PLANEJAMENTO-LASTRO.md` §C22 (os três campos, nas palavras dela) · `PLANO-PRODUTOS-DO-
-MOTOR.md` §7-B, §8-fase 0 e §9-critério 8 · C8 (o preço, ainda aberto) · C11 (a distribuição, que
-trava a fase 4) · L9 (a trava não pode ser punição ao dado) · P-16 (não inventar conteúdo) · C19 (o
-produto não carrega ritmo) · C20 (os três não são eixos de medição).
+**Referências.** `ARQUITETURA-GERAL.md` §10.1–§10.3 (as três camadas e a concessão da escola) ·
+`PLANO-PRODUTOS-DO-MOTOR.md` §8-fases 1 e 4 e §9-critérios 5 e 8 · `PLANEJAMENTO-LASTRO.md` C11 (o
+estado comercial) e C8 (o contrato) · `IDEIA-PAINEL-ESCOLA.md` §10 (o `ESCOLA.conf`) · L9 (a trava
+não pode ser punição ao dado) · P-16 (declarar, nunca deduzir) · `SOURCE_DATE_EPOCH`
+(`tools/gerar-ciclo.sh:367`).
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-produtos` | **73 asserções, TUDO CERTO** (eram 52). **§I** a herança (herdado · sobreposto · ausente, a soma `3 · 3 · 6` que impede uma unidade de sair da conta sem sair do documento). **§J** a licença lida do ficheiro, e o documento gerado pelo CLI a trazê-la em vez de «pendente». **§K** a edição paga: retira só a definição sem origem, mantém o termo, conta `1`, muda o tipo da lacuna, e o `--edicao paga` do CLI **chega** ao manifesto |
-| **as lacunas do dicionário** | **147** (eram 148) — a `sem-licenca` desapareceu porque o gerador passou a **ler** o ficheiro |
-| **a edição paga, no catálogo** | **25 definições fora** — o mesmo 25 da `ARQUITETURA-GERAL.md` §10.4, medido à mão antes de existir código que o medisse |
-| `git fetch origin` | feito **depois** de a árvore estar suja: `origin/main` em `026c281`, sem divergência. *(O `fetch` falhou primeiro, e a causa não era o remoto: o valor de `GITHUB_TOKEN` em `.dev.vars` está entre aspas, e a primeira versão do `GIT_ASKPASS` devolvia as aspas — «Invalid username or token». Corrigido a retirar as aspas, e não a mexer no ficheiro.)* |
-| **o que NÃO foi medido** | a **fotografia datada** da licença (é do contrato, C8 — sem contrato não há data para nomear) · a **fase 1** (a separação dos ficheiros: o critério 5 continua a não passar) · a **fase 3** (a âncora do produto) · a **fase 4** (C11) · o conteúdo dos três campos, que continua a **0 das 9 unidades** |
+| `provar-produtos` | **89 asserções, TUDO CERTO** (eram 73). **§L** a fotografia: a forma `catalogo@AAAA-MM-DD` com o commit, **a mesma duas vezes seguidas** (não é o relógio), catálogo inexistente **não inventa data**, a lacuna `sem-fotografia` quando não há, e a licença citável a levá-la. **§M** o dono: sem dono = catálogo; sem `--escola` as adições de todas ficam **declaradas** em `deOutras`; o dicionário do catálogo não tem o termo de A nem o de B; a edição de A tem o de A e **não** o de B; e o `--escola` do CLI chega ao manifesto |
+| `provar-verbete` | **TUDO CERTO** — o CRUD do verbete continua a gravar no repositório sem tocar no vocabulário |
+| `check-identidade` | **20/20 `ok`** — nada na tela mudou, e a checagem confirma-o |
+| **a fotografia, no catálogo de hoje** | `catalogo@2026-11-02` (`23d4c0e`) — calculada do `git`, e igual em duas execuções |
+| **as lacunas do dicionário** | **147**, as mesmas de antes: a `sem-fotografia` **não** aparece, porque a data existe |
+| **a edição paga** | **25 definições fora**, o mesmo número da §10.4 |
+| `git fetch origin` | **FALHOU**, e a causa é o ambiente: `could not read Username for 'https://github.com'` (não há credenciais nesta sessão). `origin/main` fica no último valor conhecido, `885a2ad`. O local está **1 commit à frente** (`4e1593a`, por publicar) e a árvore de trabalho tem as alterações deste marco **por commitar**. *(Não se afirma que o remoto não mudou: não foi possível olhá-lo.)* |
+| **o que NÃO foi medido** | o contrato (C8) · a chave `plano` num ficheiro do repositório (`ESCOLA.conf` não existe) · a **fase 1** ao pé da letra (um ficheiro só) · a **fase 3** (a âncora do produto) · a **aula pronta** (não existe) · os três `exige/ensina/expressa` continuam a **0 das 9 unidades** (P-16) |
 
-**O que ainda não está feito.** (a) **A fotografia datada** — a cláusula 1 da licença diz
-`catalogo@AAAA-MM-DD`, e a data vem do contrato: é **de negócio**, e o critério 8 do plano passa
-**menos** essa parte. (b) **A fase 1** continua pela metade: a composição existe, os ficheiros não —
-`termo-repo.js` escreve no vocabulário do catálogo, e a §4 da licença («o que a escola acrescenta é
-dela») descreve uma regra **que ainda não tem onde valer**. (c) **A aula pronta** — o terceiro
-produto — não foi começada. (d) **O conteúdo dos três campos** é dela: a forma está pronta, e o
-syllabus sai com `[Preencher]` até ela declarar. (e) **A edição paga não é um produto completo**: ela
-tira as 25 e di-lo, mas as 34 descrições que faltam e os 54 exercícios sem verbete continuam a ser o
-que o produto não tem.
+**O que ainda não está feito.** (a) **A fotografia é derivada** — a pendência está declarada e deixa
+de ser impeditivo, mas continua a **não** ser a data do contrato: no dia em que C8 existir, há que
+voltar aqui e trocar a string pela data e versão contratadas. (b) **A fase 1 fica pela metade**, e é
+honesto dizê-lo: o critério 5 passa na substância (A não contamina B) e **não** ao pé da letra (o
+ficheiro é um). (c) **O `ESCOLA.conf` não existe** — e não é um ficheiro, é uma intenção: a C11
+decidiu o **sítio** (o repositório, nunca o KV) e falta decidir **onde a chave entra**. (d) **A aula
+pronta** não foi começada; a **fase 3** (âncora do produto) e a **5** (índice) continuam por fazer.
+(e) **O conteúdo** dos três campos e o mapa nível→termos são dela. (f) **O remoto foi conferido
+depois de o token ser lido**: `git fetch origin` com o `GITHUB_TOKEN` de `.dev.vars` (via
+`GIT_ASKPASS` — a variável que faltava) deu `origin/main` em **`885a2ad`**, **zero** commits atrás e
+**um** à frente (`4e1593a`).
 
 ## O que está pendente
-
-## 01/11/2026 — O molde dos schemas passa a ter um leitor só
-
-
-- **O `--modelo` continua a ser um `cp`.** É a única cópia que resta, e é declarada: quem aponta o
-  scaffolder para o ciclo de um professor quer aqueles ficheiros, não o molde. Unificá-la exigiria
-  o módulo servir qualquer ciclo de qualquer professor — que é o oposto de «um molde».
-- **O molde continua a ser o ficheiro, e não um módulo de dados.** A escolha foi deliberada: os
-  validadores recebem CAMINHOS, o `--modelo` também, e o Git mostra o diff de um JSON. Um objeto
-  em JavaScript seria uma terceira forma de ler a mesma coisa.
 
 ## 01/11/2026 — A aula deixa de afirmar o que ninguém escreveu: cinco secções, cinco origens
 
@@ -384,6 +391,19 @@ catálogo, e o critério 5 do plano («criar um termo numa escola não altera o 
 
 (a) **A fotografia datada** — a cláusula 1 da licença diz
 `catalogo@AAAA-MM-DD`, e a data vem do contrato: é **de negócio**, e o critério 8 do plano passa
+
+## 02/11/2026 — A fotografia datada, o dono do termo, e o plano que vai para o `.conf`
+
+(a) **A fotografia é derivada** — a pendência está declarada e deixa
+de ser impeditivo, mas continua a **não** ser a data do contrato: no dia em que C8 existir, há que
+voltar aqui e trocar a string pela data e versão contratadas. (b) **A fase 1 fica pela metade**, e é
+honesto dizê-lo: o critério 5 passa na substância (A não contamina B) e **não** ao pé da letra (o
+ficheiro é um). (c) **O `ESCOLA.conf` não existe** — e não é um ficheiro, é uma intenção: a C11
+decidiu o **sítio** (o repositório, nunca o KV) e falta decidir **onde a chave entra**. (d) **A aula
+pronta** não foi começada; a **fase 3** (âncora do produto) e a **5** (índice) continuam por fazer.
+(e) **O conteúdo** dos três campos e o mapa nível→termos são dela. (f) **O remoto foi conferido
+depois de o token ser lido**: `git fetch origin` com o `GITHUB_TOKEN` de `.dev.vars` (via
+`GIT_ASKPASS` — a variável que faltava) deu `origin/main` em **`885a2ad`**, **zero** commits atrás e
 
 ## Pendências anteriores (índice)
 
@@ -710,6 +730,7 @@ catálogo, e o critério 5 do plano («criar um termo numa escola não altera o 
 - **01/11/2026** — A página do Vocabulário saiu; o exercício vive no «+» do… → `REGISTRO.md` L29608
 - **01/11/2026** — A seta sobe ao título, os passos descem para a linha… → `REGISTRO.md` L29669
 - **01/11/2026** — O molde dos schemas ficou atrás, e a geração de um ciclo… → `REGISTRO.md` L29765
+- **01/11/2026** — O molde dos schemas passa a ter um leitor só → `REGISTRO.md` L29837
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

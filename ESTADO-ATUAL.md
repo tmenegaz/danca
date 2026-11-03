@@ -4,7 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base `026c281`, com a árvore de trabalho **por commitar**).
+> **Última fotografia:** 02/11/2026 (base `885a2ad` + o `4e1593a` local, com a árvore de trabalho
+> **por commitar**). Nesta entrega, as duas peças que faltavam **deixaram de faltar por inteiro**.
+> A **fotografia datada** da licença passou a ser **calculada**: `catalogo@AAAA-MM-DD` sai do último
+> commit que tocou o catálogo — a técnica do `SOURCE_DATE_EPOCH` —, medido em `catalogo@2026-11-02`
+> (`23d4c0e`) e igual em duas execuções. E é **derivada**, com a **pendência declarada**: não é a
+> data do contrato (C8), que a vence no dia em que existir; deixa de ser impeditivo e passa a ser
+> dívida nomeada. E a **fase 1** passou a separar catálogo × escola por **campo**: `escola` ausente
+> é do catálogo, `escola: '<slug>'` é daquela escola; o escritor grava o dono no termo, o leitor
+> filtra-o pela mesma `compor`, e o `--escola` do CLI entrega a edição. O **ficheiro continua a ser
+> um** — um caminho variável não se embute no bundle do Worker —, e é por isso que o critério 5
+> passa **na substância** e não ao pé da letra. A **C11** decidiu, na parte que faltava, **onde** o
+> `plano` vive: num **ficheiro declarativo do repositório** (o «`.conf`» no sentido genérico — um
+> ficheiro com esse nome não existe), e **nunca no KV**. A prova dos produtos passou de 73 para **89
+> asserções**.
+>
+> **Entrega anterior** (base `026c281`, com a árvore de trabalho **por commitar**).
 > Nesta entrega, **a licença passou de decisão a texto**, e o motor passou a **executá-la**. Existem
 > dois `LICENSE.md` — o da raiz para **a máquina** (que continua a não se licenciar) e o de
 > `biblioteca/` para **o catálogo**, com as seis cláusulas da §10, a concessão da escola (§10.3) e a
@@ -306,7 +321,11 @@ Verificado nesta fotografia, com os comandos da §9.
   (o **catálogo**: seis cláusulas, a concessão estreita da escola e a condição do `fonte`). São dois
   porque as duas camadas dizem o contrário uma da outra — «não se licencia» e «licencia-se com
   limites» — e um ficheiro só não consegue dizê-lo. **CONFIRMADO** 02/11/2026 por leitura.
-  A **fotografia datada** (`catalogo@AAAA-MM-DD`) **não** está nomeada: a data é do contrato (C8).
+  A **fotografia datada** (`catalogo@AAAA-MM-DD`) passou a ser **calculada** do último commit que
+  tocou o catálogo — medido `catalogo@2026-11-02` (`23d4c0e`) — e é **derivada**: diz «a versão nesta
+  data», não «a versão que esta escola contratou». Essa é do **contrato** (C8), e a data dele vence
+  quando existir. **PENDENTE** declarada, e já não impeditiva. **CONFIRMADO** 02/11/2026 por
+  `provar-produtos` §L.
 - **17 regras** em `REGRAS.md` e **22 pétreas** em `PROTOCOLO.md`. **CONFIRMADO** (contagem).
 - **O motor tem 52 ficheiros versionados, 31.850 linhas** entre `motor/nucleo/` e
   `motor/servidor/`. **CONFIRMADO** em 02/11/2026.
@@ -637,7 +656,8 @@ Verificado nesta fotografia, com os comandos da §9.
   à fotografia datada** (a lógica da C5a) e **perpétuo para a versão contratada** (a lógica da L9);
   **o que a escola acrescenta é dela**, com uma concessão **não exclusiva** para o projeto o servir de
   volta e **avaliar** a entrada no catálogo, que exige **aceitação explícita**. **DECIDIDO**
-  02/11/2026. O `LICENSE.md` **não foi criado** — é o texto que o contrato cita, e espera o ok dela.
+  02/11/2026. O texto **existe** nos dois ficheiros (`890937a`); o que faltava era **a data**, e ela
+  passou a ser derivada do `git` (§2). **CONFIRMADO** 02/11/2026.
 - **25 das 59 descrições do vocabulário não têm `fonte`.** Medido em `vocabulario.json` (93 termos):
   30 vêm do «Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora», 4
   são «redigida no projeto», e **59 têm `fonte` vazio** — e, destes, **25 têm descrição**. Sem origem
@@ -651,9 +671,16 @@ Verificado nesta fotografia, com os comandos da §9.
 - **O produto é um PACOTE PRÓPRIO**, com `.fipp` próprio, rota própria no Worker e a **licença do
   produto** — não a do ciclo. **DECIDIDO** 02/11/2026: é a única forma de o produto ter âncora, versão
   e licença independentes; a alternativa amarraria o dicionário ao ciclo daquela escola.
-- **O plano contratado não existe em código.** `raiz/escolas-habilitadas.json` tem `habilitada` e
-  `pagante` (a trava do expurgo) e **não tem `plano`**. A distribuição por plano (fase 4) depende de
-  **C11** decidir onde vive o estado comercial. **CONFIRMADO**.
+- **O plano contratado não existe em código, e já se sabe onde vai viver.** `raiz/escolas-habilitadas.json`
+  tem `habilitada` e `pagante` (a trava do expurgo) e **não tem `plano`**. A **C11** decidiu a
+  02/11/2026 a parte que faltava — **o sítio**: um **ficheiro declarativo do repositório, nunca o
+  KV** («o conf faz o negócio acontecer e fica lá no repositório, e não há custo de KV»), e a norma
+  do `PROTOCOLO.md` de 01/11/2026 confirma-o — o KV é do **cadastro dos Bastidores**, e estado
+  comercial não é cadastro. **Nenhum ficheiro com o nome `ESCOLA.conf` existe**; o que existe, por
+  escola e versionado, é `escola/<slug>/indice.json` → `estado` e os `vars` de
+  `wrangler.<slug>.jsonc`, e é aí que a chave entra enquanto não houver ficheiro próprio. O resto
+  da C11 — o lado público da porta, o pagamento, «desde/até quando» — continua aberto.
+  **DECIDIDO** (o sítio) e **PENDENTE** (a chave e o resto).
 - **A escada da C22 mudou de leitura: três produtos + um motor.** O gerador **não é o quarto
   produto** — é o **meio** pelo qual o Avançado recebe os três. Nota de correção datada na C22, sem
   reescrever a tabela (P-03/P-04). **DECIDIDO** 02/11/2026.
@@ -1286,15 +1313,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 - **A aula pronta** (o terceiro produto) não foi começada: ela é a **Regra 9** (norma congelada)
    aplicada ao nível, com o teto da faixa e os tempos de cada unidade. Depende dos verbetes e do
    conteúdo — e é a próxima peça de código.
-- **A fase 1 (separação catálogo × escola) só tem metade.** A composição existe
-   (`motor/nucleo/produtos/comum.js`), os **ficheiros não**: `termo-repo.js` continua a escrever no
-   `vocabulario.json` do catálogo. Enquanto não houver
-   `biblioteca/escolas/<escola>/vocabulario.json`, o critério 5 do plano não passa.
+- **A fase 1 (separação catálogo × escola) passa na substância, e não ao pé da letra.** O **dono
+   passou a viver no termo** (`escola`): o escritor grava-o (`termo-repo.js`), o leitor separa-o
+   (`separarPorEscola` + `compor`, em `motor/nucleo/produtos/comum.js`), e o `--escola` do CLI entrega
+   a edição. Criar um termo em A **já não** o faz aparecer em B — e não havia nada a migrar, porque
+   nenhum termo foi criado pela tela. O **ficheiro continua a ser um**
+   (`biblioteca/escolas/<escola>/vocabulario.json` não cabe no bundle do Worker), e é isso que o
+   critério 5 não cumpre ao pé da letra.
 - **A fase 3 (manifestos e pacote)** não começou. O produto tem manifesto em memória (`id`,
    `versao`, `edicao`, `licenca`, `fonte`) e **não tem âncora** — a `.fipp` própria é da fase 3. O
    campo `licenca` já **não** sai «pendente»: vem do título de `biblioteca/LICENSE.md`, com o caminho
    ao lado.
-- **A fase 4 (distribuição por plano)** continua bloqueada em **C11**, e a **5** (índice dos
+- **A fase 4 (distribuição por plano)** já sabe **o sítio** do `plano` — um ficheiro declarativo do
+   repositório, nunca o KV (C11, 02/11/2026) —, e espera que a chave exista; a **5** (índice dos
    produtos) depende da 3.
 - **A camada pedagógica tem lugar e não tem conteúdo.** O motor lê `exige` · `ensina` · `expressa`
    em **dois** sítios — o padrão no **termo** (`vocabulario.json`) e a sobreposição na **relação**
@@ -1647,7 +1678,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a licença em texto e a camada herdada)
+### Executado nesta fotografia (02/11/2026 — a fotografia datada, o dono do termo e o lugar do plano)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-produtos.js` | **TUDO CERTO — 89 asserções** (eram 73). **§L** a fotografia: a forma `catalogo@AAAA-MM-DD` com o commit, **a mesma duas vezes seguidas** (prova de que não é o relógio), catálogo inexistente **não inventa data**, a lacuna `sem-fotografia` quando não há, e a licença citável a levá-la. **§M** o dono do termo: sem dono = catálogo; sem `--escola` as adições de todas ficam **declaradas** (`deOutras`), não perdidas; o dicionário do catálogo não tem o termo de A nem o de B; a edição de A tem o de A e **não** o de B; e o `--escola` do CLI chega ao manifesto |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO** — o CRUD do verbete continua a gravar no repositório sem tocar no vocabulário |
+| `node tools/check-identidade.js` | **20/20 `ok`** — nada na tela mudou, e a checagem confirma-o |
+| **a fotografia, no catálogo de hoje** | `catalogo@2026-11-02` (`23d4c0e`) — calculada do `git`, igual em duas execuções |
+| **as lacunas do dicionário** | **147** — a `sem-fotografia` **não** aparece, porque a data existe; continuam `termo-sem-fonte` 59 · `exercicio-sem-verbete` 54 · `termo-sem-definicao` 34 |
+| **a edição paga** | **25 definições fora** — o mesmo número da §10.4 |
+| `git fetch origin` | **feito com o token de `.dev.vars`** (via `GIT_ASKPASS`, a variável que faltava): `origin/main` em **`885a2ad`**, **0** commits atrás e **1** à frente (`4e1593a`). A primeira tentativa falhara por `could not read Username` — não era o remoto, era o ambiente |
+| **o que NÃO foi medido** | o **contrato** (C8) · a chave `plano` num ficheiro do repositório (`ESCOLA.conf` não existe) · a **fase 1** ao pé da letra (o ficheiro é um) · a **fase 3** (a âncora do produto) · a **aula pronta** (não existe) · os três `exige/ensina/expressa` continuam a **0 das 9 unidades** (P-16) |
+
+### Executado na fotografia anterior (02/11/2026 — a licença em texto e a camada herdada)
 
 | Verificação | Resultado |
 |:--|:--|
