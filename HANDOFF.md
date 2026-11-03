@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T13:28:45-0300`
-Commit atual: `85ff724` — feat(experimentos): a prova do menu que não promete o que não existe, e quatro bancos que mediam o contrário
+Gerado em: `2026-11-03T16:35:19-0300`
+Commit atual: `49fb3e66` — feat(experimentos): a prova do compasso sem dono, nos dois lados e no dado
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,26 +85,26 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-85ff724 feat(experimentos): a prova do menu que não promete o que não existe, e quatro bancos que mediam o contrário
-45ba75b feat(estrutura): a curadoria só oferece o que tem notação, e o formulário deixa de explicar
-8794c10 docs(estrutura): a verificação da curadoria ao plano, e o nome que partia a cadeia
-bb8d122 feat(experimentos): a prova da cadeia curadoria → plano, e a classe do defeito que a partiu
-4e90c3c fix(estrutura): o plano volta a ler a turma, e a curadoria volta a chegar ao formulário
-5ac0d2a docs(estrutura): a auditoria que mudou o diagnóstico, e o conteúdo que é da curadoria
-9d636fe feat(experimentos): a prova dos conteúdos e dos três estados, e dois bancos que mediam o contrário
-774aae7 style(template): o selo «curada» na folha, para a turma ter os três estados
-7988519 feat(estrutura): a turma tem três estados, e o conteúdo passou a ser da curadoria
-3016cae fix(estrutura): a nota do perfil vem primeiro, e a mensagem do commit no escopo
-622071b docs(estrutura): a turma é o ritmo, e o ensino é da curadoria
-a42e0e2 refactor(estrutura): a turma é o ritmo, a curadoria é o ensino
-d1dc000 perfil(professor): habilitar coqui-de-redinha em bale-classico
-33c55f8 docs(estrutura): a habilitação é da pessoa, e o expurgo não a leva
-21089cb feat(tools): o perfil do professor nasce com a escola
-5ac8d6b feat(estrutura): a habilitação é da pessoa, a turma fica marcada, o nível tem a forma da tradição
-faf9897 docs(estrutura): a modalidade pertence ao professor, e o sinal que faltava
-f2c10da feat(notacao): o coupé e o sur le cou-de-pied passam a escrever-se
-47ecdfc docs(registro): a notação em três colunas e o trecho que não estica a tela
-cc150e6 feat(estrutura): a notação em três colunas, e o trecho que não estica a tela
+49fb3e66 feat(experimentos): a prova do compasso sem dono, nos dois lados e no dado
+824f47b6 fix(campo): o dono da música não é compasso — a coluna mostra a fórmula, e só ela
+b44f2f52 chore(estrutura): regerar os índices derivados
+204f806e feat(acervo): envelope/anamnese-20261103-1626.json
+e69adcec feat(acervo): envelope/.indice.json
+5909ddcb docs(estrutura): a lista que só promete o que existe, e a régua do formulário
+85ff724d feat(experimentos): a prova do menu que não promete o que não existe, e quatro bancos que mediam o contrário
+45ba75b8 feat(estrutura): a curadoria só oferece o que tem notação, e o formulário deixa de explicar
+8794c109 docs(estrutura): a verificação da curadoria ao plano, e o nome que partia a cadeia
+bb8d122d feat(experimentos): a prova da cadeia curadoria → plano, e a classe do defeito que a partiu
+4e90c3c3 fix(estrutura): o plano volta a ler a turma, e a curadoria volta a chegar ao formulário
+5ac0d2a6 docs(estrutura): a auditoria que mudou o diagnóstico, e o conteúdo que é da curadoria
+9d636fe5 feat(experimentos): a prova dos conteúdos e dos três estados, e dois bancos que mediam o contrário
+774aae77 style(template): o selo «curada» na folha, para a turma ter os três estados
+7988519f feat(estrutura): a turma tem três estados, e o conteúdo passou a ser da curadoria
+3016cae7 fix(estrutura): a nota do perfil vem primeiro, e a mensagem do commit no escopo
+622071b9 docs(estrutura): a turma é o ritmo, e o ensino é da curadoria
+a42e0e25 refactor(estrutura): a turma é o ritmo, a curadoria é o ensino
+d1dc0003 perfil(professor): habilitar coqui-de-redinha em bale-classico
+33c55f86 docs(estrutura): a habilitação é da pessoa, e o expurgo não a leva
 ```
 
 ## Por professor
@@ -228,99 +228,69 @@ cc150e6 feat(estrutura): a notação em três colunas, e o trecho que não estic
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A curadoria só oferece o que tem notação, os rótulos ficaram um só, e o formulário deixou de explicar
+## 03/11/2026 — O dono da música não é compasso
 
-**O que motivou.** Três pedidos da pesquisadora, e o primeiro é o que tem consequência: «a lista de
-seleção de conteúdo na Curadoria exibe uma quantidade massiva de nomes de passos genéricos, enquanto
-na prática de verbetes de notação cadastrados reais existem apenas dois». A lista oferecia o
-vocabulário inteiro — **93 palavras** — e **duas** tinham decomposição. Uma lista que promete 93 e
-entrega 2 ensina a desconfiar dela, e é o mesmo defeito de sempre: a tela a afirmar mais do que o
-sistema sabe.
+**O que motivou.** A pesquisadora viu `2/4 @breu` na coluna «Compasso» da sequência de exercícios
+do Plano de Ensino, e o diagnóstico dela está certo e é preciso: «essa notação técnica com o
+sufixo/slug é um metadado estritamente de controle interno […], gerando ruído visual e confusão
+para o professor». O sufixo não é um erro de escrita: é o **dono** do registo do alfabeto.
 
-**1. A lista passou a ser a pergunta certa.** `exerciciosComNotacao()` responde «o que já se pode
-ENSINAR com notação»: um verbete com, ao menos, uma música (`<tempos>|<compasso>`) e um trecho
-escrito dentro dela. A lista cresce sozinha quando um verbete ganha trechos e encolhe quando o
-último sai. **O vocabulário não perde nada** — ele continua a ser a lista do dicionário e a dos
-produtos; o que mudou é a pergunta. E **o que já está gravado continua a ler-se**: as fichas de uma
-curadoria antiga vêm de `c.repertorio` e o cliente desenha-as sem passar pelo menu, porque a memória
-não se apaga (P-03/P-04).
+**De onde vem, e por que existe.** Desde 03/11/2026 o alfabeto guarda o verbete do catálogo e o de
+cada escola, e a chave de um registo de escola leva o dono ao lado — `8|2/4@breu` — para os dois
+poderem declarar a mesma música sem colidir no objecto. É a mesma forma do termo (identidade =
+conteúdo + dono), e é **armazenamento**. Quem compõe o documento já o tirava (`registosDaEscola`),
+o dicionário também (`comum.js` → `chaveDaMusica`), e a Produção também (`detalhePorMusica` devolve
+a chave limpa e guarda a de armazenamento em `chaveGravada`). **Faltava o caminho da TELA**: o mapa
+que alimenta o plano (`/api/bastidores/termos` → `musicasDosExercicios`) mandava a chave em cru.
 
-O comportamento de seleção **já era** o das alunas — o mesmo `escolhedor`, com menu, «Adicionar» e
-ficha removível. O que não era igual era o conteúdo da lista. A prova §A compara os dois blocos e
-mostra que são a mesma peça; a §D é o controlo negativo (vocabulário sem verbete → menu vazio, e as
-alunas continuam a ser oferecidas).
+**Duas limpezas, e são duas por uma razão.**
 
-**2. Os rótulos não eram a mesma peça.** «Professor», «Modalidade», «Tradição», «Grau», «Nível» e
-«Turma» usavam `.campo-rotulo`; «Alunas» e «Conteúdos desta curadoria» eram `<label>` nu — o
-navegador desenhava-os **em linha**, com outra cor e outro peso. Passaram a usar a mesma peça, e com
-eles **três sítios que ninguém tinha visto**: «Modalidades que este professor declara ensinar»,
-«Dias da semana e a hora de início de cada um» e «Níveis». **Nenhuma folha foi tocada** — a
-unificação é usar o que já existe, não inventar uma segunda classe. A §B mede no **Chromium**, com a
-folha de verdade: `getComputedStyle` dos oito em `display`, peso, tamanho, cor e margens.
+1. **A fonte** — `musicasDosExercicios()` limpa com `musicaDaChave` do **núcleo**, que é a função
+   que já define a regra; nenhuma segunda forma de tirar o `@` foi escrita. Ganhou também a
+   **deduplicação**, e ela não é cosmética: quando o catálogo e a escola declaram a mesma música o
+   alfabeto tem as duas chaves, e sem deduplicar o menu oferecia a mesma música duas vezes. Quem
+   escolhe entre as duas é `registosDaEscola` (a da escola vence), não o menu.
+2. **A tela** — `musicasDoExercicio()` no `porta/index.html` corta o mesmo sufixo antes de partir
+   `tempos|compasso`. É a mesma regra do lado de quem **mostra**, e existe porque o adaptador pode
+   servir o alfabeto em cru (uma bancada, um servidor antigo): quem exibe não repete o
+   identificador de armazenamento de quem guarda.
 
-**3. O formulário deixou de explicar.** Saiu o que ensinava o gesto em vez de o permitir:
-
-| O que saiu | Onde |
-|:--|:--|
-| «(nada escolhido ainda)» e o `mostrarVazio` que só existia para o esconder | os dois escolhedores |
-| «— opcional; sem escolha, o trecho não tem direção» · «… de frente» | legendas do passo 3 |
-| «— clique para acrescentar ao fim; clique outra vez para tirar» | legenda dos sinais |
-| «A posição de cada trecho escreve-se nos sinais dele — passo 4… e passo 5…» | passo 2 |
-| «Escolha a categoria e os sinais.» | chips (marcação e repintura) |
-| «Escolha o exercício para ver e escrever a decomposição dele.» · «Ainda sem trechos. Escreva o primeiro no botão abaixo — a direção, no passo 3, é opcional.» | listagem do passo 6 |
-| «Ainda não há nenhum trecho…» (as duas variantes) | rodapé do «Gravar» |
-| «— sem grau —» · «— esta tradição não usa grau —» · «— esta modalidade ainda não tem tradições —» | opções vazias, agora mudas |
-
-**O que NÃO saiu, e a fronteira importa:** o feedback que **informa** — a contagem de tempos e
-compassos abaixo da música, o aviso de desacordo entre a música e a decomposição, a cobertura, o
-«Hoje: …» da associação da turma, o modo de edição, a nota do método herdado, a nota da frase do
-dicionário, e as duas notas da curadoria (habilitações e tradições da modalidade). **Nove blocos**,
-e a §E conta-os um a um. A regra é contra o sermão, não contra a informação.
+**O dado não se limpa (P-03/P-04).** A chave do alfabeto continua `8|2/4@breu`, e é isso que
+permite à escola ter a sua versão sem apagar a do catálogo. O que muda é só o que se **lê** — e a
+§D da prova mede os dois lados, porque uma limpeza que apagasse o dono do alfabeto passaria a §A e
+partiria a composição.
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-curadoria-e-limpeza` (novo) | **TUDO CERTO — 22 asserções, 5 secções**. **§A** o menu = os exercícios com notação, derivado do alfabeto (o «Jeté» da prova é termo e não entra), e os dois escolhedores são a mesma peça. **§B** os oito rótulos com a mesma pele, medidos no Chromium. **§C** dez textos removidos, um a um. **§D** o controlo negativo. **§E** os nove blocos de feedback que ficam |
-| `provar-producao` | **153 de 156** (era **151 de 155**). A asserção «nenhum formulário traz explicação» estava vermelha desde antes (obtido 1, esperado 0) e o único resto era a frase da posição: **passou**. As duas novas são as do menu. As **três falhas que restam são as de antes** (o item do menu, a lista de tradições do verbete e a contagem de pílulas) |
-| `provar-conteudos-e-estado-da-turma` | **TUDO CERTO — 75 asserções** (era 74; a nova garante que o vocabulário não foi apagado do sistema) |
-| `provar-cartao-da-turma` | **4 falhas, antes e depois** — as mesmas do `--controle-negativo` sobre HEAD |
-| `provar-teste` · `provar-plano-e-curadoria` · `provar-habilitacao-do-professor` · `provar-enquadramento-da-turma` · `provar-verbete` · `provar-tabela-da-notacao` | **45 verificações** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** · **TUDO CERTO** |
-| `check-identidade` · `check-indices` · `check-schemas` | **20/20** · **14/14** · **TUDO CERTO** |
-| **uma nota honesta** | `provar-celula` **rebenta na secção 2**, com e sem esta mudança (mesmo `TypeError` sobre `cabecalho`, medido com o motor de HEAD). As duas asserções que afirmavam os textos removidos foram **invertidas** — para não mentirem a quem reparar o banco —, mas **não correram** |
-| **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · a lista real da `breu` depois do deploy: ao vivo ela deve passar de **94** opções para **3** (o «— escolher —» e os dois exercícios com notação) |
+| `/api/bastidores/termos`, antes e depois | servia `Battement tendu → ["8\|2/4@breu"]`; serve `["8\|2/4"]` (**CONFIRMADO** ao vivo antes, e em processo depois) |
+| `provar-compasso-limpo` (novo) | **TUDO CERTO — 16 asserções, 4 secções**. **§A** a fonte; **§B** a tela com a fonte limpa (a linha grava `Compasso: '2/4'`, e a leitura diz «8 tempos em 2/4»); **§C** a defesa da tela com o adaptador a servir as chaves **em cru** — e o controlo vem primeiro, a provar que o stub serve mesmo o sufixo; **§D** o dado intacto, com o par `musicaDaChave`/`chaveDoVerbete` e a vista da escola |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-plano-da-turma` | **TUDO CERTO** nas três |
+| `provar-derivados-da-sequencia` · `provar-musica-no-plano` | **2 e 9 falhas — as mesmas de antes**, medidas com o motor de HEAD no worktree. A primeira delas é a leitura que agora diz «8 tempos em 2/4» em vez de «…2/4@breu»: o texto que a asserção espera é outro, e a asserção está vermelha por uma razão que não é esta |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em bancada, com o adaptador a servir os dois formatos |
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. A
-`ciclo.css` não mudou: a unificação dos rótulos foi aplicar a classe que a folha já tem, e a única
-regra CSS que saiu (`escolhedor .escolhidos .vazio`) vivia no `<style>` da própria página.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: a
+limpeza é código de servidor e de cliente, e a folha não mudou.
 
-**Com o quê.** `motor/servidor/bastidores.js` (o helper `exerciciosComNotacao`, o filtro do menu, os
-oito rótulos, as dez remoções, o `mostrarVazio` que saiu) · `experimentos/provar-curadoria-e-limpeza.js`
-(novo) · `experimentos/provar-producao.js` · `experimentos/provar-conteudos-e-estado-da-turma.js` ·
-`experimentos/provar-cartao-da-turma.js` · `experimentos/provar-celula.js` · `.gitignore` ·
-`REGISTRO.md` · `ESTADO-ATUAL.md`.
+**Com o quê.** `motor/servidor/bastidores.js` (`musicasDosExercicios`: limpeza + deduplicação) ·
+`porta/index.html` (`musicasDoExercicio`) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (a cópia, regerada)
+· `experimentos/provar-compasso-limpo.js` (novo) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
 
-**Referências.** A especificação dela de 03/11/2026 (a lista, os rótulos e a limpeza semântica) ·
-P-03/P-04 (a memória não se apaga) · P-16 (o conteúdo é dela) · `IDENTIDADE-VISUAL.md` (as peças).
+**Referências.** A especificação dela de 03/11/2026 · `motor/nucleo/notacao.js` (o dono do alfabeto)
+· `motor/nucleo/produtos/comum.js` (a mesma limpeza, feita no dia anterior para o produto) · P-03,
+P-04, P-16.
 
-**O que ainda não está feito.** (a) **Um exercício passa a aparecer no menu no instante em que
-ganha o primeiro trecho** — mas a página é servida pelo Worker, e o verbete é lido do alfabeto
-**embutido no bundle**: um verbete criado pela Produção chega ao repositório e **só entra no menu
-depois do deploy**. É o mesmo mecanismo que já governa a notação, e é o que faz o `deploy-escolas`
-disparar com `biblioteca/modalidades/**`. (b) A lista é a **união dos alfabetos** — hoje só há um
-(`bale-classico`), e filtrá-la pela modalidade escolhida é o passo seguinte, quando houver uma
-segunda. (c) As duas notas da curadoria (habilitações, tradições) **ficaram**: são estado do dado, e
-sem elas um `<select>` vazio não tem explicação. Se a régua for «nenhuma nota, nunca», elas são as
-próximas a sair — e a decisão é dela.
+**O que ainda não está feito.** (a) `listarVerbetes` continua a devolver a lista **crua** em
+`musicas` — e está certo assim: não é superfície de exibição, é a lista de armazenamento, e quem
+mostra usa `porMusica` (limpo) com a `chaveGravada` ao lado. Fica escrito para a próxima sessão não
+a «corrigir» por engano. (b) Fora do plano, a Produção mostra a música no cartão do verbete a partir
+de `porMusica`, que já vinha limpo — não havia segundo sítio a corrigir. (c) O caminho crítico
+continua o de sempre: plano e PO por gravar (token morto), e o conteúdo.
 
 ## O que está pendente
-
-## 03/11/2026 — A habilitação é da pessoa, a turma fica marcada, e o nível tem a forma da tradição
-
-(a) **A modalidade continua escrita à mão em 10 sítios de `motor/`** —
-o dado passou a existir, mas ainda não é ele que escolhe o alfabeto; é o trabalho de médio prazo, e o
-número é a linha de base. (b) **Nenhuma turma tem `modalidade`** hoje: o campo nasce vazio nas
-existentes, e uma turma sem modalidade **não** é descontinuada (a ausência não é a negação). (c) A
 
 ## 03/11/2026 — A turma é o ritmo, e o ensino é da curadoria
 
@@ -347,6 +317,15 @@ próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c)
 
 (a) **Um exercício passa a aparecer no menu no instante em que
 ganha o primeiro trecho** — mas a página é servida pelo Worker, e o verbete é lido do alfabeto
+
+## 03/11/2026 — O dono da música não é compasso
+
+(a) `listarVerbetes` continua a devolver a lista **crua** em
+`musicas` — e está certo assim: não é superfície de exibição, é a lista de armazenamento, e quem
+mostra usa `porMusica` (limpo) com a `chaveGravada` ao lado. Fica escrito para a próxima sessão não
+a «corrigir» por engano. (b) Fora do plano, a Produção mostra a música no cartão do verbete a partir
+de `porMusica`, que já vinha limpo — não havia segundo sítio a corrigir. (c) O caminho crítico
+continua o de sempre: plano e PO por gravar (token morto), e o conteúdo.
 
 ## Pendências anteriores (índice)
 
@@ -684,6 +663,7 @@ ganha o primeiro trecho** — mas a página é servida pelo Worker, e o verbete 
 - **03/11/2026** — A listagem lia com o alfabeto errado, e deitava fora o que… → `REGISTRO.md` L32659
 - **03/11/2026** — A notação em três colunas, e o trecho que não estica a tela → `REGISTRO.md` L32744
 - **03/11/2026** — O sinal que faltava, o nome que não se traduz, e o dono da… → `REGISTRO.md` L32812
+- **03/11/2026** — A habilitação é da pessoa, a turma fica marcada, e o nível… → `REGISTRO.md` L32891
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

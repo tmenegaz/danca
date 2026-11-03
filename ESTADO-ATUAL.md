@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `85ff724`, árvore limpa). Nesta entrega, **o formulário
+> **Última fotografia:** 03/11/2026 (base `49fb3e6`, árvore limpa). Nesta entrega, **o dono da
+> música deixou de aparecer no compasso**. A coluna «Compasso» da sequência do plano mostrava
+> `2/4 @breu`: o sufixo é o **dono do registo do alfabeto** (`8|2/4@breu`), que existe para o
+> catálogo e a escola poderem declarar a mesma música sem colidir — armazenamento, e não fórmula.
+> Corrigido nos dois lados: **a fonte** (`musicasDosExercicios` limpa com `musicaDaChave` do núcleo
+> e **deduplica** — quando o catálogo e a escola declaram a mesma música o alfabeto tem as duas
+> chaves, e sem deduplicar o menu a oferecia duas vezes) e **a tela** (`musicasDoExercicio` corta o
+> mesmo sufixo, para um adaptador que sirva o alfabeto em cru). **O dado NÃO se limpa**: a chave do
+> alfabeto continua `8|2/4@breu`, e é isso que mantém as duas versões — P-03/P-04. Prova nova:
+> `provar-compasso-limpo`, **16 asserções em 4 secções**, com o controlo da §C a provar primeiro
+> que a bancada serve mesmo o sufixo.
+>
+> **Entrega anterior** (base `85ff724`, árvore limpa). Nesta entrega, **o formulário
 > da curadoria passou a prometer só o que existe**. **(1) A lista de conteúdos** oferecia o
 > vocabulário inteiro — 93 palavras — e duas tinham decomposição; passa a oferecer os exercícios
 > que **têm notação** (um verbete com música e, dentro dela, ao menos um trecho), por
@@ -20,7 +32,7 @@
 > «nenhum formulário traz explicação» do `provar-producao` estava vermelha desde antes e **passou**
 > (153 de 156, era 151 de 155).
 >
-> **Entrega anterior** (base `bb8d122`, árvore limpa). Esta entrega é uma
+> **Entrega anterior a essa** (base `bb8d122`, árvore limpa). Esta entrega é uma
 > **verificação a pedido** («o processo da curadoria até à geração dos documentos»), e achou um elo
 > partido: `porta/index.html` tinha **duas funções com o mesmo nome** — `turmaDoPlano` —, e a
 > segunda (a que devolve uma lista de nomes, nascida a 02/11 com o «Carregar das anamneses da
@@ -1979,7 +1991,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a lista que só promete o que existe, e o formulário sem sermão)
+### Executado nesta fotografia (03/11/2026 — o compasso sem o dono da música)
+
+| Verificação | Resultado |
+|:--|:--|
+| `/api/bastidores/termos` | **antes**, ao vivo: `Battement tendu → ["8\|2/4@breu"]`. **depois**, em processo: `["8\|2/4"]`. É a medida que abriu o trabalho |
+| `node experimentos/provar-compasso-limpo.js` (novo) | **TUDO CERTO — 16 asserções em 4 secções**. **§A** a fonte não serve nenhuma música com `@`. **§B** a tela com a fonte limpa: a linha grava `Compasso: '2/4'`, os tempos continuam 8 e 4, e a leitura diz «8 tempos em 2/4». **§C** a **defesa da tela** com o adaptador a servir as chaves **em cru** — e o **controlo vem primeiro**, a provar que o stub serve mesmo o sufixo. **§D** o **dado intacto**: o alfabeto guarda `8\|2/4@breu`, `musicaDaChave` devolve a música, `chaveDoVerbete` recompõe a de armazenamento, e a vista da escola resolve a música limpa para o registo dela |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-plano-da-turma` | **TUDO CERTO** nas três |
+| `provar-derivados-da-sequencia` · `provar-musica-no-plano` | **2 e 9 falhas — as mesmas de antes**, medidas com o motor de HEAD no worktree. A primeira é a leitura que agora diz «8 tempos em 2/4»: a asserção espera outro texto, e está vermelha por uma razão que não é esta |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em bancada, com o adaptador a servir os dois formatos |
+
+### Executado na fotografia anterior (03/11/2026 — a lista que só promete o que existe, e o formulário sem sermão)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2806,6 +2829,13 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **O dono da música não é compasso.** A coluna «Compasso» da sequência do plano
+  mostrava `2/4@breu`; o sufixo é o dono do registo do alfabeto (armazenamento). Limpo na **fonte**
+  (`musicasDosExercicios` usa `musicaDaChave` do núcleo e deduplica — catálogo e escola podem
+  declarar a mesma música) e na **tela** (`musicasDoExercicio`), e o **dado fica como está**: a
+  chave continua `8|2/4@breu` (P-03/P-04). Provado por `provar-compasso-limpo`, 16 asserções, com
+  o controlo da §C a provar que a bancada serve mesmo o sufixo.
 
 - **03/11/2026** — **A lista da curadoria só promete o que existe, os rótulos ficaram um só, e o
   formulário deixou de explicar.** O menu de conteúdos oferecia o vocabulário inteiro — 93

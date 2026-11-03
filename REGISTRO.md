@@ -33316,3 +33316,65 @@ disparar com `biblioteca/modalidades/**`. (b) A lista é a **união dos alfabeto
 segunda. (c) As duas notas da curadoria (habilitações, tradições) **ficaram**: são estado do dado, e
 sem elas um `<select>` vazio não tem explicação. Se a régua for «nenhuma nota, nunca», elas são as
 próximas a sair — e a decisão é dela.
+
+## 03/11/2026 — O dono da música não é compasso
+
+**O que motivou.** A pesquisadora viu `2/4 @breu` na coluna «Compasso» da sequência de exercícios
+do Plano de Ensino, e o diagnóstico dela está certo e é preciso: «essa notação técnica com o
+sufixo/slug é um metadado estritamente de controle interno […], gerando ruído visual e confusão
+para o professor». O sufixo não é um erro de escrita: é o **dono** do registo do alfabeto.
+
+**De onde vem, e por que existe.** Desde 03/11/2026 o alfabeto guarda o verbete do catálogo e o de
+cada escola, e a chave de um registo de escola leva o dono ao lado — `8|2/4@breu` — para os dois
+poderem declarar a mesma música sem colidir no objecto. É a mesma forma do termo (identidade =
+conteúdo + dono), e é **armazenamento**. Quem compõe o documento já o tirava (`registosDaEscola`),
+o dicionário também (`comum.js` → `chaveDaMusica`), e a Produção também (`detalhePorMusica` devolve
+a chave limpa e guarda a de armazenamento em `chaveGravada`). **Faltava o caminho da TELA**: o mapa
+que alimenta o plano (`/api/bastidores/termos` → `musicasDosExercicios`) mandava a chave em cru.
+
+**Duas limpezas, e são duas por uma razão.**
+
+1. **A fonte** — `musicasDosExercicios()` limpa com `musicaDaChave` do **núcleo**, que é a função
+   que já define a regra; nenhuma segunda forma de tirar o `@` foi escrita. Ganhou também a
+   **deduplicação**, e ela não é cosmética: quando o catálogo e a escola declaram a mesma música o
+   alfabeto tem as duas chaves, e sem deduplicar o menu oferecia a mesma música duas vezes. Quem
+   escolhe entre as duas é `registosDaEscola` (a da escola vence), não o menu.
+2. **A tela** — `musicasDoExercicio()` no `porta/index.html` corta o mesmo sufixo antes de partir
+   `tempos|compasso`. É a mesma regra do lado de quem **mostra**, e existe porque o adaptador pode
+   servir o alfabeto em cru (uma bancada, um servidor antigo): quem exibe não repete o
+   identificador de armazenamento de quem guarda.
+
+**O dado não se limpa (P-03/P-04).** A chave do alfabeto continua `8|2/4@breu`, e é isso que
+permite à escola ter a sua versão sem apagar a do catálogo. O que muda é só o que se **lê** — e a
+§D da prova mede os dois lados, porque uma limpeza que apagasse o dono do alfabeto passaria a §A e
+partiria a composição.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `/api/bastidores/termos`, antes e depois | servia `Battement tendu → ["8\|2/4@breu"]`; serve `["8\|2/4"]` (**CONFIRMADO** ao vivo antes, e em processo depois) |
+| `provar-compasso-limpo` (novo) | **TUDO CERTO — 16 asserções, 4 secções**. **§A** a fonte; **§B** a tela com a fonte limpa (a linha grava `Compasso: '2/4'`, e a leitura diz «8 tempos em 2/4»); **§C** a defesa da tela com o adaptador a servir as chaves **em cru** — e o controlo vem primeiro, a provar que o stub serve mesmo o sufixo; **§D** o dado intacto, com o par `musicaDaChave`/`chaveDoVerbete` e a vista da escola |
+| `provar-plano-e-curadoria` · `provar-curadoria-e-limpeza` · `provar-plano-da-turma` | **TUDO CERTO** nas três |
+| `provar-derivados-da-sequencia` · `provar-musica-no-plano` | **2 e 9 falhas — as mesmas de antes**, medidas com o motor de HEAD no worktree. A primeira delas é a leitura que agora diz «8 tempos em 2/4» em vez de «…2/4@breu»: o texto que a asserção espera é outro, e a asserção está vermelha por uma razão que não é esta |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em bancada, com o adaptador a servir os dois formatos |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: a
+limpeza é código de servidor e de cliente, e a folha não mudou.
+
+**Com o quê.** `motor/servidor/bastidores.js` (`musicasDosExercicios`: limpeza + deduplicação) ·
+`porta/index.html` (`musicasDoExercicio`) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (a cópia, regerada)
+· `experimentos/provar-compasso-limpo.js` (novo) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**Referências.** A especificação dela de 03/11/2026 · `motor/nucleo/notacao.js` (o dono do alfabeto)
+· `motor/nucleo/produtos/comum.js` (a mesma limpeza, feita no dia anterior para o produto) · P-03,
+P-04, P-16.
+
+**O que ainda não está feito.** (a) `listarVerbetes` continua a devolver a lista **crua** em
+`musicas` — e está certo assim: não é superfície de exibição, é a lista de armazenamento, e quem
+mostra usa `porMusica` (limpo) com a `chaveGravada` ao lado. Fica escrito para a próxima sessão não
+a «corrigir» por engano. (b) Fora do plano, a Produção mostra a música no cartão do verbete a partir
+de `porMusica`, que já vinha limpo — não havia segundo sítio a corrigir. (c) O caminho crítico
+continua o de sempre: plano e PO por gravar (token morto), e o conteúdo.
