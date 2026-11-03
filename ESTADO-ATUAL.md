@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 02/11/2026 (base `885a2ad` + o `4e1593a` local, com a árvore de trabalho
+> **Última fotografia:** 03/11/2026 (base `508d22f`, árvore **limpa**). Nesta entrega, a **Produção
+> usou a tela pela primeira vez** — criou «Battement tendu» na escola `breu` —, e o exercício de
+> medir o que isso fez encontrou três coisas. **(1)** A separação **funciona**: `batata` e `maria`
+> viram o termo do **catálogo** (com `fonte`), a `breu` viu o dela. **(2)** Mas o termo era uma
+> **sombra** de um que o catálogo já tinha, e na `breu` vencia **perdendo a origem** (a edição paga
+> dela excluía **26**, contra **25** do catálogo); e o **verbete** foi para o alfabeto da
+> **modalidade**, que **não tem campo `escola`** — o texto da escola passou a ser a decomposição do
+> termo do catálogo, visível a todas. **DECIDIDO** por ela: retirar os dois. O catálogo voltou a
+> **93 termos**, nenhum com `escola`, alfabeto **v32** e **1** verbete. **(3)** O defeito que isso
+> revelou: `biblioteca/modalidades/**` não estava no filtro de `paths` do `deploy-escolas.yml`, e
+> os dois commits da tela ficaram **sem run nenhum** — o termo entrava no repositório e
+> **desaparecia no `F5`**, porque o Worker servia o bundle anterior. Corrigido e provado: `508d22f`
+> publicou, e a página da `breu` em produção já não traz o texto da escola. **(4)** A `breu`
+> **não** foi expurgada: ela decidiu não o fazer agora, e o cálculo dos 17 ficheiros ficou
+> registado. **PENDENTE**: o **alfabeto continua sem dono** — é o buraco que resta da fase 1.
+>
+> **Entrega anterior** (base `885a2ad` + o `4e1593a` local, com a árvore de trabalho
 > **por commitar**). Nesta entrega, as duas peças que faltavam **deixaram de faltar por inteiro**.
 > A **fotografia datada** da licença passou a ser **calculada**: `catalogo@AAAA-MM-DD` sai do último
 > commit que tocou o catálogo — a técnica do `SOURCE_DATE_EPOCH` —, medido em `catalogo@2026-11-02`
@@ -1313,13 +1329,13 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 - **A aula pronta** (o terceiro produto) não foi começada: ela é a **Regra 9** (norma congelada)
    aplicada ao nível, com o teto da faixa e os tempos de cada unidade. Depende dos verbetes e do
    conteúdo — e é a próxima peça de código.
-- **A fase 1 (separação catálogo × escola) passa na substância, e não ao pé da letra.** O **dono
-   passou a viver no termo** (`escola`): o escritor grava-o (`termo-repo.js`), o leitor separa-o
-   (`separarPorEscola` + `compor`, em `motor/nucleo/produtos/comum.js`), e o `--escola` do CLI entrega
-   a edição. Criar um termo em A **já não** o faz aparecer em B — e não havia nada a migrar, porque
-   nenhum termo foi criado pela tela. O **ficheiro continua a ser um**
-   (`biblioteca/escolas/<escola>/vocabulario.json` não cabe no bundle do Worker), e é isso que o
-   critério 5 não cumpre ao pé da letra.
+- **A fase 1 passa na substância, e tem um buraco com nome.** O **termo** já declara o dono
+   (`escola`), e o produto do catálogo e a tela compõem por ele: `batata` e `maria` veem o termo do
+   catálogo, `breu` vê o dela — medido a 03/11/2026 com o primeiro termo criado pela tela. O
+   **alfabeto NÃO** tem esse campo: `notacao.json` é, por decisão escrita, «da modalidade, não da
+   escola», e é `require`-ado no bundle — por isso um verbete escrito numa escola é publicado a
+   todas. Enquanto isso não mudar, o critério 5 do plano passa para o vocabulário e **não** para a
+   notação.
 - **A fase 3 (manifestos e pacote)** não começou. O produto tem manifesto em memória (`id`,
    `versao`, `edicao`, `licenca`, `fonte`) e **não tem âncora** — a `.fipp` própria é da fase 3. O
    campo `licenca` já **não** sai «pendente»: vem do título de `biblioteca/LICENSE.md`, com o caminho
@@ -1678,7 +1694,22 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (02/11/2026 — a fotografia datada, o dono do termo e o lugar do plano)
+### Executado nesta fotografia (03/11/2026 — o termo da tela, o alfabeto sem dono e o deploy do catálogo)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-produtos.js` | **TUDO CERTO — 89 asserções**. Esteve **vermelho duas vezes** por causa do termo criado na tela, e a causa era a régua: §G comparava a contagem do produto do catálogo com o comprimento do ficheiro, que passou a poder guardar termos de escola e a contar duas vezes o mesmo `id`. Agora compara com o **subconjunto do catálogo** (`separarPorEscola`) |
+| `node experimentos/provar-verbete.js` | **TUDO CERTO**. §I e §J liam `celulas.devant[…]` de um verbete real que passou a existir com a pista `a-la-seconde` (o teste morria num `TypeError`); passam a percorrer as pistas que houver. E a asserção do bundle compõe o que **aquela** escola vê, em vez de comparar com o seed cru |
+| `node tools/check-identidade.js` | **20/20 `ok`** |
+| **o vocabulário, depois de retirar o termo da breu** | **93 termos**, **0** com `escola`; alfabeto **v32** com **1** verbete (`Plié`) |
+| **a edição paga** | **25** fora, no catálogo e na `breu` — era **26** na breu enquanto a sombra sem `fonte` vencia |
+| **as lacunas** | **147** (eram 146 com o verbete da escola, que dava decomposição ao termo do catálogo) |
+| **as três escolas, pelo mesmo código** | `batata` 93 · `maria` 93 · `breu` 93 — e antes da limpeza a `breu` via o **seu** «Battement tendu» sem `fonte`, as outras o do catálogo **com** `fonte` |
+| **o expurgo da `breu` — calculado, NÃO executado** | sairiam **17 ficheiros** + KV + Worker; sobreviveria `escola/breu/indice.json` com mais um elo. **Ela decidiu não purgar agora** |
+| **o deploy do catálogo** | `508d22f` → «Publicar as escolas» **success**; `https://breu.tmenegaz77.workers.dev/bastidores/producao` responde **200** e tem **0** ocorrências do texto da escola («direcoes, devant») |
+| **o que NÃO foi medido** | o **alfabeto com dono** (é decisão dela) · o **expurgo** (não pedido agora) · o contrato (C8) · a chave `plano` · a fase 3 · a aula pronta · os três `exige/ensina/expressa` (**0** das 9 unidades) |
+
+### Executado na fotografia anterior (02/11/2026 — a fotografia datada, o dono do termo e o lugar do plano)
 
 | Verificação | Resultado |
 |:--|:--|

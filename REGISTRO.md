@@ -32482,3 +32482,92 @@ pronta** não foi começada; a **fase 3** (âncora do produto) e a **5** (índic
 depois de o token ser lido**: `git fetch origin` com o `GITHUB_TOKEN` de `.dev.vars` (via
 `GIT_ASKPASS` — a variável que faltava) deu `origin/main` em **`885a2ad`**, **zero** commits atrás e
 **um** à frente (`4e1593a`).
+
+---
+
+## 03/11/2026 — O termo que a Produção criou, o alfabeto que não tem dono, e o deploy que não disparava
+
+**O que motivou.** Ela perguntou o que estava feito, se a execução seguiu a ordem do plano, e se
+podia expurgar a escola `breu` e recomeçar. A resposta pediu medição — e a medição encontrou três
+coisas que ninguém tinha visto, duas delas produzidas por ela na véspera sem que o sistema as
+tratasse.
+
+**O que se mediu, e o que cada medida obrigou a corrigir.**
+
+- **O primeiro termo criado pela TELA existia — e era uma sombra.** Os commits `28cbc06` e
+  `4cebff7` (03/11, 07:33 e 07:35) criaram «Battement tendu» na escola `breu` e declararam o
+  verbete. A separação **funcionou**: `batata` e `maria` viram o termo do **catálogo** (com
+  `fonte`), `breu` viu o dela. Mas o termo do catálogo já existia com o mesmo `id`, e a versão da
+  breu vencia **perdendo a origem**: a edição paga da breu excluía **26** definições contra **25**
+  do catálogo. E o verbete foi para o **alfabeto da modalidade**, que **não tem campo `escola`** —
+  o texto escrito na breu passou a ser a decomposição do termo **do catálogo**, visível a todas as
+  escolas, com erros de transcrição («direcoes, devant,a la seconde,derriere funcao»).
+- **A decisão dela: remover os dois.** O expurgo da `breu` deixá-los-ia órfãos — o termo fora do
+  catálogo e invisível a qualquer escola nova, o verbete dentro do alfabeto que não é dela. Os dois
+  ficheiros voltam ao estado anterior aos dois commits: **93 termos**, nenhum com `escola`,
+  alfabeto na **versão 32** e só com o `Plié`. A **versão não sobe para 34**: não fica conteúdo
+  nenhum da mudança, e um número que conta uma alteração inexistente é a mesma mentira que uma data
+  de relógio. Consequência medida: as lacunas voltam de **146 para 147** — o termo do catálogo
+  volta a não ter decomposição, que é a verdade de hoje.
+- **A fase 1 tem um buraco com nome: o ALFABETO.** O `escola` existe no termo e não existe no
+  verbete. `notacao.json` é — por decisão escrita em `bastidores.js:9023` — «da MODALIDADE, não da
+  escola», e é `require`-ado no bundle. Enquanto assim for, o verbete que uma escola escreve é
+  publicado a todas. Isto **não** se corrigiu: exige decidir se o alfabeto passa a ter dono por
+  verbete (mais um campo, como no vocabulário) ou se continua da modalidade com a escola a propor.
+  **É dela.**
+- **E o defeito que a véspera revelou: o catálogo mudava, a escola não publicava.**
+  `motor/servidor/catalogo-seed.js` e `motor/nucleo/notacao.js` fazem `require` dos JSON de
+  `biblioteca/modalidades/`, e o esbuild embute-os no Worker — mas o filtro de `paths` do
+  `deploy-escolas.yml` **não incluía essa pasta**. Medido: `28cbc06` e `4cebff7` ficaram **sem run
+  nenhum**. O modo de falha é o pior: o `POST` grava no repositório e devolve o termo, a tela
+  acrescenta-o à lista sem esperar, e no `F5` seguinte **ele desaparece** — o Worker continua a
+  servir o bundle anterior. A frase do `termo-repo.js` («chega a todos os Workers no deploy que
+  esse commit dispara») era falsa. Corrigido com uma linha no filtro, e verificado: o deploy de
+  `508d22f` correu e a página da `breu` em produção já não traz o texto da escola (**0**
+  ocorrências de «direcoes, devant»).
+
+**O que NÃO se fez, e é deliberado.** **Não se expurgou a `breu`** — ela decidiu não o fazer agora.
+O cálculo ficou feito e registado para quando quiser: sairiam **17 ficheiros** (`wrangler.breu.jsonc`,
+14 do pacote `ciclo-01-breu`, o `ciclo-01.conf` base porque a breu é a única escola desse professor
+naquele ciclo) mais os prefixos `breu/` e `bastidores/breu/` no KV e o Worker; **sobreviveria**
+`escola/breu/indice.json` com mais um elo. **Não há dado a perder**: `escola/breu/envelopes/` só tem
+o `.indice.json` (50 bytes).
+
+**Onde entrou.** `biblioteca/modalidades/bale-classico/vocabulario.json` — o termo da breu sai ·
+`biblioteca/modalidades/bale-classico/notacao.json` — o verbete sai e a versão volta a 32 ·
+`experimentos/provar-produtos.js` §G — a régua passa a ser o subconjunto do catálogo
+(`separarPorEscola`), e não o comprimento do ficheiro · `experimentos/provar-verbete.js` §I, §J e a
+asserção do bundle — as pistas do verbete real não se chamam sempre `devant`, e o seed passou a
+incluir termos de escola · `.github/workflows/deploy-escolas.yml` — `biblioteca/modalidades/**` no
+filtro de `paths` · `REGISTRO.md`.
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+`biblioteca/modalidades/` **não** está na lista congelada (o congelado em `biblioteca/` é só o
+`guia-do-professor.md`), `.github/workflows/` também não, e `experimentos/` é demonstrativo.
+
+**Com o quê.** `biblioteca/modalidades/bale-classico/vocabulario.json` · `…/notacao.json` ·
+`experimentos/provar-produtos.js` · `experimentos/provar-verbete.js` ·
+`.github/workflows/deploy-escolas.yml` · `REGISTRO.md`.
+
+**Referências.** `ARQUITETURA-GERAL.md` §10.1 e §10.3 (o que a escola acrescenta é dela) ·
+`PLANO-PRODUTOS-DO-MOTOR.md` §8-fase 1 e §9-critério 5 · `PROTOCOLO.md` (a norma de 01/11/2026) ·
+P-16 (declarar, nunca deduzir) · `motor/servidor/termo-repo.js` (a promessa do deploy).
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-produtos` | **89 asserções, TUDO CERTO** — depois das duas correções de régua |
+| `provar-verbete` | **TUDO CERTO** — o CRUD continua a gravar no repositório sem tocar no vocabulário |
+| `check-identidade` | **20/20 `ok`** |
+| o vocabulário depois da limpeza | **93 termos**, **0** com `escola`, alfabeto **v32** com **1** verbete (`Plié`) |
+| a edição paga | **25** fora — no catálogo **e** na `breu` (era 26 na breu, pela sombra sem `fonte`) |
+| as lacunas | **147** (eram 146): o termo do catálogo volta a não ter decomposição |
+| o deploy do catálogo | **corrigido e provado**: `508d22f` → «Publicar as escolas» `success`; a página da breu em produção tem **0** ocorrências do texto da escola |
+| **o que NÃO foi medido** | a decisão do **alfabeto** (dono por verbete ou da modalidade) · o **expurgo** da breu, que ela não pediu agora · o contrato (C8) · a chave `plano` · a fase 3 e a aula pronta |
+
+**O que ainda não está feito.** (a) **O alfabeto continua sem dono** — o verbete de uma escola é
+publicado a todas, e é o buraco que resta da fase 1. (b) **A `breu` continua no ar**, com o termo e
+o verbete já retirados do catálogo; o expurgo está calculado e à espera da palavra dela. (c) O resto
+do caminho crítico é o da véspera: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula
+pronta**, **fase 3** e **a chave `plano`**.

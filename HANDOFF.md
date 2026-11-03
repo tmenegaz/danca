@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-02T23:22:24-0300`
-Commit atual: `5e109c1` — feat(estrutura): a fotografia datada, o dono do termo e o `--escola`
+Gerado em: `2026-11-03T08:21:07-0300`
+Commit atual: `508d22f` — fix(estrutura): o catálogo muda, a escola não publicava
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,12 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+508d22f fix(estrutura): o catálogo muda, a escola não publicava
+793f4eb fix(experimentos): as provas comparam com o catálogo, e não com o ficheiro
+057c555 fix(biblioteca): retirar o termo e o verbete que a Produção criou para a breu
+4cebff7 feat(notacao): declarar «Battement tendu» (8|4/4) no alfabeto bale-classico
+28cbc06 feat(biblioteca): acrescentar «Battement tendu» ao vocabulário do balé clássico
+c61c39a docs(registro): a fotografia datada, o dono do termo e o lugar do plano
 5e109c1 feat(estrutura): a fotografia datada, o dono do termo e o `--escola`
 4e1593a docs(biblioteca): a cláusula 1 diz de onde vem a data enquanto não há contrato
 885a2ad docs(registro): a fotografia da licença e da camada herdada
@@ -99,12 +105,6 @@ dbb5ade fix(notacao): o rótulo em Title Case, a navegação que trava e o «Apa
 5dcfcf0 feat(notacao): proveniência do verbete — o DELETE guardado e a edição por ajuste
 f64d54e chore(notacao): apagar o verbete «Grand battement» no alfabeto bale-classico
 063dee1 chore(notacao): apagar o verbete «Battement fondu» no alfabeto bale-classico
-4c90f58 chore(notacao): apagar o verbete «Battement dégagé» no alfabeto bale-classico
-965faa8 chore(notacao): apagar o verbete «Arabesque» no alfabeto bale-classico
-c6ce738 chore(notacao): apagar o verbete «Port de bras» no alfabeto bale-classico
-ae7f5f3 chore(notacao): apagar o verbete «Relevé» no alfabeto bale-classico
-8259894 chore(notacao): apagar o verbete «Rond de jambe» no alfabeto bale-classico
-fa4ab07 chore(notacao): apagar o verbete «Rond de jambe à terre» no alfabeto bale-classico
 ```
 
 ## Por professor
@@ -228,145 +228,94 @@ fa4ab07 chore(notacao): apagar o verbete «Rond de jambe à terre» no alfabeto 
 
 ## Última entrada do REGISTRO
 
-## 02/11/2026 — A fotografia datada, o dono do termo, e o plano que vai para o `.conf`
+## 03/11/2026 — O termo que a Produção criou, o alfabeto que não tem dono, e o deploy que não disparava
 
-**O que motivou.** Três perguntas dela, na mesma mensagem, e as três eram sobre **onde uma coisa
-vive**. (1) A licença está escrita, mas a cláusula 1 exige uma fotografia datada e o contrato não
-existe — «tem que colocar no registro que vai ficar uma pendência, porque por enquanto vai ser
-apenas uma string». (2) A fase 1: «o problema é o caminho escrito, né?» — é, e ela propôs a saída:
-«acrescente um campo que distingue que aquilo pertence à escola». (3) O plano comercial: «não vai
-viver no KV. Pode viver no repositório ou pode viver no `.conf`» — e a escolha é o `.conf`.
+**O que motivou.** Ela perguntou o que estava feito, se a execução seguiu a ordem do plano, e se
+podia expurgar a escola `breu` e recomeçar. A resposta pediu medição — e a medição encontrou três
+coisas que ninguém tinha visto, duas delas produzidas por ela na véspera sem que o sistema as
+tratasse.
 
-**O que foi decidido.**
+**O que se mediu, e o que cada medida obrigou a corrigir.**
 
-- **A fotografia datada é DERIVADA, e a pendência fica declarada.** O produto cita
-  `catalogo@AAAA-MM-DD` tirado do **último commit que tocou o catálogo** — a mesma técnica que
-  tornou o PDF reprodutível (`SOURCE_DATE_EPOCH`) —, nunca o relógio. **Medido: `catalogo@2026-11-02`
-  (`23d4c0e`)**, e a mesma entrada dá a mesma data em duas execuções. **A pendência, por escrito:**
-  ela diz «a versão do catálogo nesta data», **não** «a versão que esta escola contratou». Essa é do
-  **contrato** (C8), e no dia em que ele existir **a data dele vence**. Deixa de ser **impeditivo** e
-  passa a ser **dívida nomeada**: o critério 8 do plano **passa**, com a pendência declarada.
-- **O dono do termo é um CAMPO, e não um ficheiro.** `escola` ausente = termo do catálogo;
-  `escola: '<slug>'` = termo daquela escola. **Porquê:** o Worker lê o vocabulário do **bundle**
-  (`require` de caminho fixo, embutido pelo esbuild), e um ficheiro de caminho variável
-  (`biblioteca/escolas/<escola>/vocabulario.json`) **não** pode ser embutido. O escritor grava o dono
-  no termo (`termo-repo.js`), o leitor separa-o pela mesma função (`separarPorEscola` + `compor`, em
-  `comum.js`), e o `--escola` do CLI entrega a edição da escola. **Não há nada a migrar:** medido, os
-  **5** commits que tocaram o vocabulário não têm a mensagem do formulário (`acrescentar «…»`) —
-  nenhum termo foi criado pela tela até aqui.
-- **O catálogo NÃO se puxa para dentro do domínio do professor.** A pergunta era justa — «a
-  `biblioteca` está fora do domínio do professor?» — e a resposta é **sim, de propósito**: é o
-  **terceiro dono**, o que se vende (camada B, §10.1). Puxá-lo para `professores/<professor>/` faria
-  uma cópia por professor, e a primeira palavra nova punha as cópias a divergir — que é exactamente a
-  cópia que o `termo-repo.js` matou em 28/10/2026. O que impede a contaminação entre escolas é o
-  **dono no termo**, não o sítio do ficheiro.
-- **O plano comercial vive no `ESCOLA.conf`, e nunca no KV.** Decisão dela a 02/11/2026, na parte da
-  **C11** que faltava: «o conf faz o negócio acontecer e fica lá no repositório, e não há custo de
-  KV». O `ESCOLA.conf` **ainda não existe**; enquanto não existir, `habilitada`/`pagante` continuam
-  em `raiz/escolas-habilitadas.json`, andaime que já declara a própria morte.
+- **O primeiro termo criado pela TELA existia — e era uma sombra.** Os commits `28cbc06` e
+  `4cebff7` (03/11, 07:33 e 07:35) criaram «Battement tendu» na escola `breu` e declararam o
+  verbete. A separação **funcionou**: `batata` e `maria` viram o termo do **catálogo** (com
+  `fonte`), `breu` viu o dela. Mas o termo do catálogo já existia com o mesmo `id`, e a versão da
+  breu vencia **perdendo a origem**: a edição paga da breu excluía **26** definições contra **25**
+  do catálogo. E o verbete foi para o **alfabeto da modalidade**, que **não tem campo `escola`** —
+  o texto escrito na breu passou a ser a decomposição do termo **do catálogo**, visível a todas as
+  escolas, com erros de transcrição («direcoes, devant,a la seconde,derriere funcao»).
+- **A decisão dela: remover os dois.** O expurgo da `breu` deixá-los-ia órfãos — o termo fora do
+  catálogo e invisível a qualquer escola nova, o verbete dentro do alfabeto que não é dela. Os dois
+  ficheiros voltam ao estado anterior aos dois commits: **93 termos**, nenhum com `escola`,
+  alfabeto na **versão 32** e só com o `Plié`. A **versão não sobe para 34**: não fica conteúdo
+  nenhum da mudança, e um número que conta uma alteração inexistente é a mesma mentira que uma data
+  de relógio. Consequência medida: as lacunas voltam de **146 para 147** — o termo do catálogo
+  volta a não ter decomposição, que é a verdade de hoje.
+- **A fase 1 tem um buraco com nome: o ALFABETO.** O `escola` existe no termo e não existe no
+  verbete. `notacao.json` é — por decisão escrita em `bastidores.js:9023` — «da MODALIDADE, não da
+  escola», e é `require`-ado no bundle. Enquanto assim for, o verbete que uma escola escreve é
+  publicado a todas. Isto **não** se corrigiu: exige decidir se o alfabeto passa a ter dono por
+  verbete (mais um campo, como no vocabulário) ou se continua da modalidade com a escola a propor.
+  **É dela.**
+- **E o defeito que a véspera revelou: o catálogo mudava, a escola não publicava.**
+  `motor/servidor/catalogo-seed.js` e `motor/nucleo/notacao.js` fazem `require` dos JSON de
+  `biblioteca/modalidades/`, e o esbuild embute-os no Worker — mas o filtro de `paths` do
+  `deploy-escolas.yml` **não incluía essa pasta**. Medido: `28cbc06` e `4cebff7` ficaram **sem run
+  nenhum**. O modo de falha é o pior: o `POST` grava no repositório e devolve o termo, a tela
+  acrescenta-o à lista sem esperar, e no `F5` seguinte **ele desaparece** — o Worker continua a
+  servir o bundle anterior. A frase do `termo-repo.js` («chega a todos os Workers no deploy que
+  esse commit dispara») era falsa. Corrigido com uma linha no filtro, e verificado: o deploy de
+  `508d22f` correu e a página da `breu` em produção já não traz o texto da escola (**0**
+  ocorrências de «direcoes, devant»).
 
-> **Correção de 02/11/2026 (mesmo dia, minutos depois).** O bullet acima escreve `ESCOLA.conf` como
-> se fosse um ficheiro — **e não é.** Ela corrigiu: «o conf que eu me referi foi de forma genérica,
-> não especificamente o `ESCOLA.conf`». **Medido: nenhum `ESCOLA.conf` existe** no repositório. O que
-> existe, versionado e por escola, é `escola/<slug>/indice.json` (que já guarda `estado`,
-> `arquivos` e o histórico de `expurgo`) e os `vars` de `wrangler.<slug>.jsonc` (`ESCOLA_SLUG`,
-> `ESCOLA_HABILITADA`); os segredos vivem nos **secrets** do Worker. A decisão **não muda no que
-> importa** — o estado comercial vai para o **repositório, e nunca para o KV** —, e a norma do
-> `PROTOCOLO.md` de 01/11/2026 confirma-o: o KV é do **cadastro dos Bastidores**, e o estado
-> comercial não é cadastro. O que fica **PENDENTE** é só **onde a chave entra**: em
-> `indice.json → estado`, ou num `ESCOLA.conf` próprio, que continua a ser o destino da
-> **declaração pedagógica**.
->
-> **E o mesmo exercício derrubou outra frase.** O `IDEIA-PAINEL-ESCOLA.md` abria com «Nada disto
-> está implementado» — falso: o grupo **Bastidores** está no menu do sistema desde 15–18/10/2026, e
-> a **Produção** serve sete secções (`bastidores.js:3008-3017`): **Painel inicial** (vazio por
-> desenho) · **Configuração · Aparência** · **Pessoas · Professores e Alunas** · **Pedagogia ·
-> Turmas, Verbetes da notação e Curadorias**. O documento ganhou uma tabela medida (§2.1) e notas
-> datadas onde dizia o contrário (§9, §10, §11, §17.3, §17.4, §17.5). A redação anterior não é
-> apagada: ela é o elo de antes.
+**O que NÃO se fez, e é deliberado.** **Não se expurgou a `breu`** — ela decidiu não o fazer agora.
+O cálculo ficou feito e registado para quando quiser: sairiam **17 ficheiros** (`wrangler.breu.jsonc`,
+14 do pacote `ciclo-01-breu`, o `ciclo-01.conf` base porque a breu é a única escola desse professor
+naquele ciclo) mais os prefixos `breu/` e `bastidores/breu/` no KV e o Worker; **sobreviveria**
+`escola/breu/indice.json` com mais um elo. **Não há dado a perder**: `escola/breu/envelopes/` só tem
+o `.indice.json` (50 bytes).
 
-**Onde entrou.** `motor/produtos.js` — `fotografiaDoCatalogo()` (git, não relógio), `--escola` e
-`--edicao`, e a fotografia passada ao núcleo (a fronteira é a do `SOURCE_DATE_EPOCH`: o `git` existe
-no CLI, não no núcleo) · `motor/nucleo/produtos/comum.js` — `separarPorEscola()`, `compor()` (a única
-precedência: a escola vence) e `rotuloDaFotografia()`, com a nota do porquê do campo e não do
-ficheiro · `motor/nucleo/produtos/dicionario.js` e `syllabus.js` — a fotografia no cabeçalho, a
-lacuna `sem-fotografia`, e o dono no manifesto · `motor/servidor/termo-repo.js` — `escola` no termo
-e a colisão por **(dono, id)**, e não só por `id` · `motor/servidor/produtos.js` —
-`prepararCatalogo()` · `motor/servidor/bastidores.js` — `termos(kv, escola)` a compor pela mesma
-função, e o termo a nascer com `env.ESCOLA_SLUG` · `experimentos/provar-produtos.js` — **§L** e
-**§M** (73 → **89**) · `experimentos/provar-verbete.js` — as asserções do dono ·
-`biblioteca/LICENSE.md` §1 — a nota de onde vem a data (commit `4e1593a`) ·
-`ARQUITETURA-GERAL.md` §10.1 — a nota datada do sítio da camada C ·
-`PLANEJAMENTO-LASTRO.md` — a nota datada na **C11** (a metade do «onde», e o que continua aberto) ·
-`PLANO-PRODUTOS-DO-MOTOR.md` — fase 1, fase 4, §7-E, §9-5, §9-8, §10-4 e §11 ·
-`IDEIA-PAINEL-ESCOLA.md` — §2.1 (a tabela medida do que está construído), §9, §10 (o campo
-`PLANO` e o nome que não existe), §11, §17.3, §17.4 e §17.5 · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+**Onde entrou.** `biblioteca/modalidades/bale-classico/vocabulario.json` — o termo da breu sai ·
+`biblioteca/modalidades/bale-classico/notacao.json` — o verbete sai e a versão volta a 32 ·
+`experimentos/provar-produtos.js` §G — a régua passa a ser o subconjunto do catálogo
+(`separarPorEscola`), e não o comprimento do ficheiro · `experimentos/provar-verbete.js` §I, §J e a
+asserção do bundle — as pistas do verbete real não se chamam sempre `devant`, e o seed passou a
+incluir termos de escola · `.github/workflows/deploy-escolas.yml` — `biblioteca/modalidades/**` no
+filtro de `paths` · `REGISTRO.md`.
 
 **Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
-`biblioteca/LICENSE.md` **não** está na lista congelada (o congelado em `biblioteca/` é só o
-`guia-do-professor.md`), e é por isso que a nota da cláusula 1 pôde ser escrita sem motivo declarado
-— ainda assim, em commit próprio (`4e1593a`), como o próprio texto exige.
+`biblioteca/modalidades/` **não** está na lista congelada (o congelado em `biblioteca/` é só o
+`guia-do-professor.md`), `.github/workflows/` também não, e `experimentos/` é demonstrativo.
 
-**Com o quê.** `motor/produtos.js` · `motor/nucleo/produtos/comum.js` ·
-`motor/nucleo/produtos/dicionario.js` · `motor/nucleo/produtos/syllabus.js` ·
-`motor/servidor/termo-repo.js` · `motor/servidor/produtos.js` · `motor/servidor/bastidores.js` ·
-`experimentos/provar-produtos.js` · `experimentos/provar-verbete.js` · `biblioteca/LICENSE.md` ·
-`ARQUITETURA-GERAL.md` · `PLANEJAMENTO-LASTRO.md` · `PLANO-PRODUTOS-DO-MOTOR.md` ·
-`IDEIA-PAINEL-ESCOLA.md` · `ESTADO-ATUAL.md` · `REGISTRO.md`.
+**Com o quê.** `biblioteca/modalidades/bale-classico/vocabulario.json` · `…/notacao.json` ·
+`experimentos/provar-produtos.js` · `experimentos/provar-verbete.js` ·
+`.github/workflows/deploy-escolas.yml` · `REGISTRO.md`.
 
-**Referências.** `ARQUITETURA-GERAL.md` §10.1–§10.3 (as três camadas e a concessão da escola) ·
-`PLANO-PRODUTOS-DO-MOTOR.md` §8-fases 1 e 4 e §9-critérios 5 e 8 · `PLANEJAMENTO-LASTRO.md` C11 (o
-estado comercial) e C8 (o contrato) · `IDEIA-PAINEL-ESCOLA.md` §10 (o `ESCOLA.conf`) · L9 (a trava
-não pode ser punição ao dado) · P-16 (declarar, nunca deduzir) · `SOURCE_DATE_EPOCH`
-(`tools/gerar-ciclo.sh:367`).
+**Referências.** `ARQUITETURA-GERAL.md` §10.1 e §10.3 (o que a escola acrescenta é dela) ·
+`PLANO-PRODUTOS-DO-MOTOR.md` §8-fase 1 e §9-critério 5 · `PROTOCOLO.md` (a norma de 01/11/2026) ·
+P-16 (declarar, nunca deduzir) · `motor/servidor/termo-repo.js` (a promessa do deploy).
 
 **O que se mediu.**
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-produtos` | **89 asserções, TUDO CERTO** (eram 73). **§L** a fotografia: a forma `catalogo@AAAA-MM-DD` com o commit, **a mesma duas vezes seguidas** (não é o relógio), catálogo inexistente **não inventa data**, a lacuna `sem-fotografia` quando não há, e a licença citável a levá-la. **§M** o dono: sem dono = catálogo; sem `--escola` as adições de todas ficam **declaradas** em `deOutras`; o dicionário do catálogo não tem o termo de A nem o de B; a edição de A tem o de A e **não** o de B; e o `--escola` do CLI chega ao manifesto |
-| `provar-verbete` | **TUDO CERTO** — o CRUD do verbete continua a gravar no repositório sem tocar no vocabulário |
-| `check-identidade` | **20/20 `ok`** — nada na tela mudou, e a checagem confirma-o |
-| **a fotografia, no catálogo de hoje** | `catalogo@2026-11-02` (`23d4c0e`) — calculada do `git`, e igual em duas execuções |
-| **as lacunas do dicionário** | **147**, as mesmas de antes: a `sem-fotografia` **não** aparece, porque a data existe |
-| **a edição paga** | **25 definições fora**, o mesmo número da §10.4 |
-| `git fetch origin` | **FALHOU**, e a causa é o ambiente: `could not read Username for 'https://github.com'` (não há credenciais nesta sessão). `origin/main` fica no último valor conhecido, `885a2ad`. O local está **1 commit à frente** (`4e1593a`, por publicar) e a árvore de trabalho tem as alterações deste marco **por commitar**. *(Não se afirma que o remoto não mudou: não foi possível olhá-lo.)* |
-| **o que NÃO foi medido** | o contrato (C8) · a chave `plano` num ficheiro do repositório (`ESCOLA.conf` não existe) · a **fase 1** ao pé da letra (um ficheiro só) · a **fase 3** (a âncora do produto) · a **aula pronta** (não existe) · os três `exige/ensina/expressa` continuam a **0 das 9 unidades** (P-16) |
+| `provar-produtos` | **89 asserções, TUDO CERTO** — depois das duas correções de régua |
+| `provar-verbete` | **TUDO CERTO** — o CRUD continua a gravar no repositório sem tocar no vocabulário |
+| `check-identidade` | **20/20 `ok`** |
+| o vocabulário depois da limpeza | **93 termos**, **0** com `escola`, alfabeto **v32** com **1** verbete (`Plié`) |
+| a edição paga | **25** fora — no catálogo **e** na `breu` (era 26 na breu, pela sombra sem `fonte`) |
+| as lacunas | **147** (eram 146): o termo do catálogo volta a não ter decomposição |
+| o deploy do catálogo | **corrigido e provado**: `508d22f` → «Publicar as escolas» `success`; a página da breu em produção tem **0** ocorrências do texto da escola |
+| **o que NÃO foi medido** | a decisão do **alfabeto** (dono por verbete ou da modalidade) · o **expurgo** da breu, que ela não pediu agora · o contrato (C8) · a chave `plano` · a fase 3 e a aula pronta |
 
-**O que ainda não está feito.** (a) **A fotografia é derivada** — a pendência está declarada e deixa
-de ser impeditivo, mas continua a **não** ser a data do contrato: no dia em que C8 existir, há que
-voltar aqui e trocar a string pela data e versão contratadas. (b) **A fase 1 fica pela metade**, e é
-honesto dizê-lo: o critério 5 passa na substância (A não contamina B) e **não** ao pé da letra (o
-ficheiro é um). (c) **O `ESCOLA.conf` não existe** — e não é um ficheiro, é uma intenção: a C11
-decidiu o **sítio** (o repositório, nunca o KV) e falta decidir **onde a chave entra**. (d) **A aula
-pronta** não foi começada; a **fase 3** (âncora do produto) e a **5** (índice) continuam por fazer.
-(e) **O conteúdo** dos três campos e o mapa nível→termos são dela. (f) **O remoto foi conferido
-depois de o token ser lido**: `git fetch origin` com o `GITHUB_TOKEN` de `.dev.vars` (via
-`GIT_ASKPASS` — a variável que faltava) deu `origin/main` em **`885a2ad`**, **zero** commits atrás e
-**um** à frente (`4e1593a`).
+**O que ainda não está feito.** (a) **O alfabeto continua sem dono** — o verbete de uma escola é
+publicado a todas, e é o buraco que resta da fase 1. (b) **A `breu` continua no ar**, com o termo e
+o verbete já retirados do catálogo; o expurgo está calculado e à espera da palavra dela. (c) O resto
+do caminho crítico é o da véspera: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula
+pronta**, **fase 3** e **a chave `plano`**.
 
 ## O que está pendente
-
-## 01/11/2026 — A aula deixa de afirmar o que ninguém escreveu: cinco secções, cinco origens
-
-
-- **O bloco de musicalidade continua sem pergunta nos formulários.** O `porta/plano/conteudo/plano.json`
-  não tem campo de musicalidade — o texto de ajuda da `distribuicao-de-volume` até promete «A
-  musicalidade não entra aqui: ela tem o bloco dela», e o bloco dela nunca teve campo. A §4 agora
-  declara a lacuna em vez de a disfarçar com um rótulo; o campo é que falta, e é decisão de desenho.
-
-  **Correção de 02/11/2026 — a premissa estava errada, e o «campo que falta» não falta.** «Não tem
-  que existir uma pergunta. Isso já está elaborado pelo professor lá na produção (…) automaticamente
-  isso já é respondido.» O professor declara, no VERBETE, a grade das contagens de cada exercício
-  (por música: `8|4/4` → cada célula com a sua contagem), e no PLANO os tempos e o compasso de cada
-  linha da sequência. Os dois juntos são o trabalho musical — pulso é a contagem, acento é o tempo
-  do compasso em que ela cai, frase é o exercício inteiro sobre a música. O que faltava não era uma
-  pergunta: era a secção **consolidar** o que já existe. Ver a entrada de 02/11/2026.
-- **`provar-aula-prosa` e `provar-escopo-da-aula` estão vermelhas por fixture, não por código.** A
-  primeira aponta para `professores/perna-boa/ciclos/ciclo-01-batata-…`, a segunda para
-  `escola/batata/envelopes/plano-20261027-1025.json` — ambos apagados por expurgos anteriores. Já
-  falhavam em `HEAD`, e não foram corrigidas aqui: uma prova que aponta para uma escola expurgada é
-  uma pergunta que se responde escolhendo outra fixture, não um defeito do gerador.
 
 ## 02/11/2026 — A segunda passagem sobre a mesma tela: rótulos, travões e o «Apagar» fora do passo 6
 
@@ -404,6 +353,14 @@ pronta** não foi começada; a **fase 3** (âncora do produto) e a **5** (índic
 (e) **O conteúdo** dos três campos e o mapa nível→termos são dela. (f) **O remoto foi conferido
 depois de o token ser lido**: `git fetch origin` com o `GITHUB_TOKEN` de `.dev.vars` (via
 `GIT_ASKPASS` — a variável que faltava) deu `origin/main` em **`885a2ad`**, **zero** commits atrás e
+
+## 03/11/2026 — O termo que a Produção criou, o alfabeto que não tem dono, e o deploy que não disparava
+
+(a) **O alfabeto continua sem dono** — o verbete de uma escola é
+publicado a todas, e é o buraco que resta da fase 1. (b) **A `breu` continua no ar**, com o termo e
+o verbete já retirados do catálogo; o expurgo está calculado e à espera da palavra dela. (c) O resto
+do caminho crítico é o da véspera: **conteúdo** (11 níveis vazios, 0 dos três campos), **aula
+pronta**, **fase 3** e **a chave `plano`**.
 
 ## Pendências anteriores (índice)
 
@@ -731,6 +688,7 @@ depois de o token ser lido**: `git fetch origin` com o `GITHUB_TOKEN` de `.dev.v
 - **01/11/2026** — A seta sobe ao título, os passos descem para a linha… → `REGISTRO.md` L29669
 - **01/11/2026** — O molde dos schemas ficou atrás, e a geração de um ciclo… → `REGISTRO.md` L29765
 - **01/11/2026** — O molde dos schemas passa a ter um leitor só → `REGISTRO.md` L29837
+- **01/11/2026** — A aula deixa de afirmar o que ninguém escreveu: cinco… → `REGISTRO.md` L29904
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
