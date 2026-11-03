@@ -4994,7 +4994,14 @@ function musicasDoExercicio(nome) {
   const lista = (nome && MUSICAS_DO_TERMO.get(String(nome))) || [];
   const pares = [];
   for (const m of lista) {
-    const partes = String(m).split('|');
+    // O DONO DA MÚSICA NÃO É COMPASSO (03/11/2026). A chave de um verbete de escola é
+    // `8|2/4@breu`: o `@breu` é o dono do registo, e existe para o catálogo e a escola poderem
+    // declarar a mesma música sem colidir. O servidor já o tira (`musicasDosExercicios`, que usa
+    // `musicaDaChave` do núcleo); esta linha é a mesma regra do lado de quem MOSTRA — a coluna do
+    // plano exibia «2/4@breu», e um identificador de escola dentro de uma fórmula de compasso é
+    // ruído para quem ensina. Sem esta limpeza, um adaptador que sirva o alfabeto em cru (uma
+    // bancada, um servidor antigo) volta a pôr o slug no ecrã.
+    const partes = String(m).split('@')[0].split('|');
     if (partes[0] && partes[1]) pares.push({ tempos: partes[0], compasso: partes[1] });
   }
   return pares;

@@ -562,3 +562,8 @@ experimentos/modelo-formulario/*
 # exercícios com verbete e decomposição, os oito rótulos do formulário vestem a mesma peça, e as
 # instruções e os estados vazios escritos por palavras saem. Citada no `REGISTRO.md`.
 !experimentos/provar-curadoria-e-limpeza.js
+
+# O DONO DA MÚSICA NÃO É COMPASSO (03/11/2026). A coluna «Compasso» do plano mostrava `2/4@breu`;
+# o sufixo é armazenamento. Limpo na fonte (a rota do vocabulário) e na tela, e o dado fica como
+# está. Citada no `REGISTRO.md`.
+!experimentos/provar-compasso-limpo.js
