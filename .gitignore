@@ -557,3 +557,8 @@ experimentos/modelo-formulario/*
 # segunda ganhava, e o plano deixou de ler a turma e o conteúdo curado. A prova mede a cadeia e, na
 # §E, a CLASSE do defeito (nenhum bloco declara a mesma função duas vezes). Citada no `REGISTRO.md`.
 !experimentos/provar-plano-e-curadoria.js
+
+# A CURADORIA SÓ OFERECE O QUE TEM NOTAÇÃO (03/11/2026). O menu de conteúdos passa a refletir os
+# exercícios com verbete e decomposição, os oito rótulos do formulário vestem a mesma peça, e as
+# instruções e os estados vazios escritos por palavras saem. Citada no `REGISTRO.md`.
+!experimentos/provar-curadoria-e-limpeza.js

@@ -477,6 +477,44 @@ function musicasDosExercicios() {
   return mapa;
 }
 
+/**
+ * OS EXERCÍCIOS QUE TÊM NOTAÇÃO — `Set(nome)`, e é o que a CURADORIA oferece (03/11/2026).
+ *
+ * O PEDIDO DELA: «a lista de conteúdos disponíveis na curadoria não deve ser estática ou
+ * excessiva; ela deve crescer e refletir dinamicamente apenas os passos/verbetes que de fato
+ * possuem notação/conteúdo cadastrado». O menu oferecia o vocabulário inteiro — 93 palavras,
+ * das quais duas tinham decomposição —, e uma lista que promete 93 e entrega 2 ensina a
+ * desconfiar dela.
+ *
+ * O QUE CONTA COMO «TEM NOTAÇÃO»: um verbete com, ao menos, UMA música e UM trecho escrito
+ * dentro dela. Só a música não chega — um verbete criado e ainda sem células tem a chave da
+ * música e nada lá dentro, e oferecê-lo seria prometer uma decomposição que não existe. É a
+ * mesma leitura que a página do verbete faz para dizer «coberto».
+ *
+ * O VOCABULÁRIO NÃO PERDE NADA: ele continua a ser a lista do dicionário e do produto. O que
+ * esta função responde é outra pergunta — «o que já se pode ENSINAR com notação» —, e são
+ * perguntas diferentes com listas diferentes por natureza.
+ */
+function exerciciosComNotacao() {
+  const { alfabetos } = require('../nucleo/notacao.js');
+  const nomes = new Set();
+  for (const { alfabeto } of alfabetos()) {
+    const verbetes = (alfabeto && alfabeto.verbetes) || {};
+    for (const nome of Object.keys(verbetes)) {
+      if (nome.startsWith('_')) continue;
+      const musicas = verbetes[nome] || {};
+      const temTrecho = Object.keys(musicas)
+        .filter((k) => /^\d+\|/.test(k))
+        .some((k) => {
+          const celulas = (musicas[k] && musicas[k].celulas) || {};
+          return Object.keys(celulas).some((d) => (celulas[d] || []).length > 0);
+        });
+      if (temTrecho) nomes.add(nome);
+    }
+  }
+  return nomes;
+}
+
 /** A relação turma↔termo: um MAPA `{ turmaId: [termoId, ...] }`. Um termo pode estar em
  *  várias turmas; uma turma tem vários termos. `lerLista` não serve aqui (não é array). */
 async function relacoes(kv, escola) {
@@ -1247,8 +1285,12 @@ function escolhedor(id, opcoes) {
     valor: String(o && o.valor != null ? o.valor : ''),
     rotulo: String((o && (o.rotulo || o.valor)) || ''),
   })).filter((o) => o.valor);
+  // SEM «(nada escolhido ainda)» (03/11/2026). O bloco vazio dizia por palavras o que a caixa
+  // vazia já diz, e a regra da casa é a mesma dos formulários: rótulo, campo e nada mais. A
+  // caixa mantém a altura (`min-height`) para o formulário não saltar quando a primeira ficha
+  // entra — é espaço, não texto.
   return '<div class="escolhedor" id="' + esc(id) + '">' +
-    '<div class="escolhidos"><span class="vazio">(nada escolhido ainda)</span></div>' +
+    '<div class="escolhidos"></div>' +
     '<div class="entrada">' +
     '<select class="opcoes"><option value="">— escolher —</option>' +
     lista.map((o) => '<option value="' + esc(o.valor) + '">' + esc(o.rotulo) + '</option>').join('') +
@@ -2109,10 +2151,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // é o NOME do termo, não o id: a lista é para o professor LER. O id sai dele por `idDe`, que é
   // a mesma regra com que o mapa antigo sempre gravou — `motor/nucleo/conteudos.js` normaliza os
   // dois lados antes de os unir, e é isso que faz os dois mapas falarem a mesma língua.
-  const escolarConteudosCuradoria = escolhedor('esc-conteudos', listaTermos.map((t) => ({
-    valor: t.termo,
-    rotulo: t.termo + (t.categoria ? ' — ' + rotuloDaCategoria(t.categoria) : ''),
-  })));
+  //
+  // A LISTA É A DOS EXERCÍCIOS QUE TÊM NOTAÇÃO (03/11/2026, pedido dela): «deve crescer e
+  // refletir dinamicamente apenas os passos/verbetes que de fato possuem notação». Oferecia o
+  // vocabulário inteiro — 93 palavras — e duas tinham decomposição; a lista cresce sozinha
+  // quando um verbete passa a ter trechos, e encolhe quando o último sai. Nada se apaga do
+  // vocabulário: ele continua a ser o do dicionário e o dos produtos.
+  //
+  // O QUE JÁ ESTÁ GRAVADO CONTINUA A LER-SE. As fichas de uma curadoria antiga vêm de
+  // `c.repertorio` e são desenhadas pelo cliente sem passar pelo menu — um termo que perdeu a
+  // notação não desaparece do registo (P-03/P-04: a memória não se apaga).
+  const comNotacao = exerciciosComNotacao();
+  const escolarConteudosCuradoria = escolhedor('esc-conteudos',
+    listaTermos.filter((t) => comNotacao.has(t.termo)).map((t) => ({
+      valor: t.termo,
+      rotulo: t.termo + (t.categoria ? ' — ' + rotuloDaCategoria(t.categoria) : ''),
+    })));
 
   // A RÉGUA DE CADA TURMA, JÁ RESOLVIDA (vínculo → própria → padrão). O cartão da turma
   // recebe este mapa para desenhar a escala sem resolver nada: ele mostra o que o servidor
@@ -3029,8 +3083,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.hora-do-dia:disabled{opacity:.4;background:var(--fundo-faixa);cursor:not-allowed;}' +
     // O ESCOLHEDOR: escolhe no menu, «Adicionar», e o escolhido vira ficha com o «×».
     '.escolhedor{margin:.3rem 0 .8rem;}' +
+    // A CAIXA VAZIA MANTÉM A ALTURA, e não um texto: sem o `min-height` o formulário saltava
+    // quando a primeira ficha entrava (03/11/2026, quando o «(nada escolhido ainda)» saiu).
     '.escolhedor .escolhidos{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
-    '.escolhedor .escolhidos .vazio{color:var(--texto-suave);font-size:.85rem;line-height:1.9rem;}' +
     '.escolhido{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--marca);background:var(--fundo-faixa);border-radius:var(--raio-pilula);font-size:.86rem;color:var(--texto);line-height:1.5;}' +
     '.escolhido button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--marca);font:700 .95rem/1 var(--ui);cursor:pointer;}' +
     '.escolhedor .entrada{display:flex;gap:.4rem;align-items:center;}' +
@@ -3364,7 +3419,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<form id="form-habilitacao">' +
     '<label class="campo-rotulo" for="hab-professor">Professor</label>' +
     '<select id="hab-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
-    '<label>Modalidades que este professor declara ensinar</label>' +
+    '<label class="campo-rotulo">Modalidades que este professor declara ensinar</label>' +
     '<div class="escolhas" id="hab-modalidades">' +
     MODALIDADES.modalidades.map((m) =>
       '<label class="escolha"><input type="checkbox" name="hab-modalidade" value="' + esc(m.id) + '">' +
@@ -3506,7 +3561,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Agora a frequência não se digita: ela é a CONTAGEM dos dias marcados, mostrada aqui
     // como leitura. O campo continua no JSON (`frequencia`), porque o plano e a listagem o
     // leem — o que saiu foi a pergunta, não o dado.
-    '<label>Dias da semana e a hora de início de cada um</label>' +
+    '<label class="campo-rotulo">Dias da semana e a hora de início de cada um</label>' +
     '<div class="escolhas" id="tdias">' + DIAS_DA_SEMANA.map((d) =>
       '<span class="dia-hora">' + pilula('dia', d, esc(d)) +
       '<input type="time" class="hora-do-dia" data-dia="' + esc(d) + '" ' +
@@ -3553,7 +3608,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input type="hidden" id="rubr-id">' +
     '<label class="campo-rotulo" for="rubr-nome">Nome da rubrica</label>' +
     '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Padrão">' +
-    '<label>Níveis</label>' +
+    '<label class="campo-rotulo">Níveis</label>' +
     // OS NÍVEIS NASCEM VAZIOS (18/10/2026). Antes o editor vinha com os quatro níveis padrão
     // («Satisfatório · Razoável · Em desenvolvimento · Não se aplica») já escritos — e isso
     // tinha dois efeitos, os dois indesejados:
@@ -3911,7 +3966,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * documento, e o validador continua a conferi-lo quando existe. O que sai é a TELA que pedia
      * uma segunda resposta para uma pergunta que os sinais já respondem.
      */
-    '<p class="nota">A posição de cada trecho escreve-se nos sinais dele — passo 4, para onde, e passo 5, os sinais.</p>' +
     // O MÉTODO DESTE VERBETE (02/11/2026) — e ele HERDA, não duplica.
     //
     // O plano já declara «Metodologia de referência» e é obrigatório: o ciclo inteiro tem um
@@ -3982,7 +4036,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<fieldset class="escolhas" id="vb-dir">' +
     // A DIREÇÃO É OPCIONAL (01/11/2026) — e a legenda diz que é, no mesmo desenho da orientação,
     // que já era. Sem isto, a ausência de escolha lia-se como campo por preencher.
-    '<legend class="campo-rotulo">Direção do membro <span class="nota">— opcional; sem escolha, o trecho não tem direção</span></legend>' +
+    '<legend class="campo-rotulo">Direção do membro</legend>' +
     '</fieldset>' +
     // A ORIENTAÇÃO É O OUTRO EIXO, e é opcional: sem escolha, o corpo está DE FRENTE. Ela
     // existe porque «battement tendu à frente» não diz se o corpo está de frente ou em relação
@@ -3995,7 +4049,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // no `title` da pílula: quem ensina ballet continua a reconhecê-lo, e quem não ensina
     // ballet percebe o que se está a dizer. Ver `orientacoesDoCorpo` no alfabeto.
     '<fieldset class="escolhas" id="vb-orient">' +
-    '<legend class="campo-rotulo">Orientação do corpo <span class="nota">— opcional; sem escolha, de frente</span></legend>' +
+    '<legend class="campo-rotulo">Orientação do corpo</legend>' +
     '</fieldset>' +
     '<fieldset class="escolhas" id="vb-categoria">' +
     '<legend class="campo-rotulo">Categoria — que parte do corpo se move</legend>' +
@@ -4027,10 +4081,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ---- PASSO 4: COMO O TRECHO SE ESCREVE (31/10/2026 — passo 4 desde 01/11/2026) -----
     '<div class="passo-painel" data-passo="5" hidden>' +
     '<fieldset class="escolhas" id="vb-sinais">' +
-    '<legend class="campo-rotulo">Sinais, pela ordem em que acontecem <span class="nota">— clique para acrescentar ao fim; clique outra vez para tirar</span></legend>' +
+    '<legend class="campo-rotulo">Sinais, pela ordem em que acontecem</legend>' +
     '</fieldset>' +
     '<p class="campo-rotulo">Sinais Benesh deste trecho</p>' +
-    '<p id="vb-chips" class="par-associar"><span class="nota">Escolha a categoria e os sinais.</span></p>' +
+    '<p id="vb-chips" class="par-associar"></p>' +
     '</div>' +
     // ---- PASSO 5: A DECOMPOSIÇÃO (31/10/2026 — passo 5 desde 01/11/2026) ---------------
     // A tabela deixou de estar ao lado das escolhas que a alimentam — ela respondia «não vai à
@@ -4178,12 +4232,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * impedida de atribuir uma turma. Sem nível declarado, o que a turma antiga guarda continua a
      * ler-se (`nivelEfetivo`, no núcleo). */
     '<label class="campo-rotulo" for="cugrau">Grau</label>' +
-    '<select id="cugrau"><option value="">— sem grau —</option></select>' +
+    // A OPÇÃO VAZIA NÃO SE EXPLICA (03/11/2026): «— sem grau —» dizia por palavras o que a opção
+    // em branco já diz, e a regra da casa é rótulo, campo e nada mais. O `value=""` continua a
+    // ser o que o servidor lê como «não declarado».
+    '<select id="cugrau"><option value=""></option></select>' +
     '<label class="campo-rotulo" for="cunivel">Nível</label>' +
     '<input id="cunivel" name="cunivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
     '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
-    '<label>Alunas</label>' +
+    '<label class="campo-rotulo">Alunas</label>' +
     escolarAlunasCuradoria +
     // O «REPERTÓRIO» VOLTOU A ESTE FORMULÁRIO A 03/11/2026 — e não é a reversão que parece.
     //
@@ -4195,7 +4252,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // SÓ O RÓTULO, SEM EXPLICAÇÃO (a regra da casa: nenhum formulário traz parágrafo
     // explicativo — rótulo, campo e placeholder, e nada mais). O que a lista significa diz-se
     // onde ela é LIDA, não onde é preenchida.
-    '<label>Conteúdos desta curadoria</label>' +
+    '<label class="campo-rotulo">Conteúdos desta curadoria</label>' +
     escolarConteudosCuradoria +
     // O «CANCELAR» AO LADO DO BOTÃO, E SÓ NA EDIÇÃO (18/10/2026) — a mesma regra dos três
     // passos da turma. Ele não tem texto de aviso, e nasce escondido: sem edição em curso não
@@ -5280,7 +5337,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `<select>` (`selSinal.innerHTML = opSinal.join("")`). Além de mais curto, não depende de
     // uma API de DOM que as bancadas têm de simular — e uma bancada que finge metade do DOM
     // mede a metade que fingiu.
-    '  var op = ["<option value=\'\'>" + (graus.length ? "— sem grau —" : "— esta tradição não usa grau —") + "</option>"];' +
+    // A PRIMEIRA OPÇÃO É VAZIA E MUDA: sem grau declarado o campo fica em branco, e «— esta
+    // tradição não usa grau —» era um aviso dentro de um `<select>` (03/11/2026).
+    '  var op = ["<option value=\'\'></option>"];' +
     '  graus.forEach(function(g){' +
     '    op.push("<option value=\'" + g + "\'>" + g + "</option>");' +
     '  });' +
@@ -5300,11 +5359,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!el || !el.querySelectorAll) return [];' +
     '  return Array.prototype.slice.call(el.querySelectorAll(".escolhido")).map(function(f){ return f.getAttribute("data-valor"); });' +
     '}' +
-    'function mostrarVazio(el) {' +
-    '  var vazio = el.querySelector(".escolhidos .vazio");' +
-    '  if (!vazio) return;' +
-    '  vazio.hidden = !!el.querySelector(".escolhido");' +
-    '}' +
     'function adicionarFicha(el, valor) {' +
     '  valor = String(valor || "").trim();' +
     '  if (!valor) return false;' +
@@ -5317,7 +5371,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  b.type = "button"; b.className = "tirar icone"; b.title = "Tirar " + valor; b.textContent = "×";' +
     '  f.appendChild(b);' +
     '  el.querySelector(".escolhidos").appendChild(f);' +
-    '  mostrarVazio(el);' +
     '  return true;' +
     '}' +
     // O «Adicionar» do escolhedor: pega o item do menu, vira ficha. A validação de valor
@@ -5336,7 +5389,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (t) {' +
     '    var ficha = t.closest(".escolhido");' +
     '    var dono = t.closest(".escolhedor");' +
-    '    if (ficha && dono) { ficha.parentElement.removeChild(ficha); mostrarVazio(dono); }' +
+    '    if (ficha && dono) { ficha.parentElement.removeChild(ficha); }' +
     '  }' +
     '});' +
     // O `aoOk` É O QUE FAZ A PASSAGEM ENTRE PASSOS (18/10/2026). Ele roda quando o servidor
@@ -5568,7 +5621,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      f.parentElement.removeChild(f);' +
     '    }' +
     '  });' +
-    '  mostrarVazio(el);' +
     '  var sel = el.querySelector("select.opcoes");' +
     '  if (sel && sel.options) {' +
     '    while (sel.options.length > 1) sel.remove(1);' +
@@ -5644,7 +5696,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var chave = bloco.lista[i];' +
     '    partes.push("<option value=\u0027" + chave + "\u0027>" + (ROTULOS_DE_TRADICAO[chave] || chave) + "</option>");' +
     '  }' +
-    '  if (!partes.length) partes.push("<option value=\u0027\u0027>— esta modalidade ainda não tem tradições —</option>");' +
+    // SEM OPÇÃO VAZIA COM TEXTO (03/11/2026): quando a modalidade não tem tradições próprias a
+    // lista vem da compartilhada, e são as opções dela que se mostram. Se não houver nenhuma, o
+    // `<select>` fica com uma opção em branco — e a nota abaixo dele diz porquê, que é o sítio de
+    // o dizer.
+    '  if (!partes.length) partes.push("<option value=\u0027\u0027></option>");' +
     '  sel.innerHTML = partes.join("");' +
     '  var aindaVale = false;' +
     '  for (var j = 0; j < bloco.lista.length; j++) { if (bloco.lista[j] === antes) aindaVale = true; }' +
@@ -5773,7 +5829,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var el = document.getElementById(par[0]);' +
     '    if (!el) return;' +
     '    Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
-    '    mostrarVazio(el);' +
     '    par[1].forEach(function(v){ adicionarFicha(el, v); });' +
     '  });' +
     '  var hoje = new Date();' +
@@ -5798,7 +5853,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      var el = document.getElementById(par[0]);' +
     '      if (!el) return;' +
     '      Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
-    '      mostrarVazio(el);' +
     '    });' +
     // As alunas voltam todas a poder ser escolhidas: a modalidade foi reposta. Os conteúdos
     // também se limpam — `reset()` não toca em fichas, porque elas não são campos de formulário.
@@ -6272,7 +6326,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var nomes = document.getElementById("vbnome");' +
     '  var nome = nomes ? nomes.value : "";' +
     '  if (!nome) {' +
-    '    alvo.innerHTML = "<p class=\\"nota\\">Escolha o exercício para ver e escrever a decomposição dele.</p>";' +
+    // SEM FRASE DE INSTRUÇÃO (03/11/2026). Aqui e abaixo dizia-se o que fazer — «escolha o
+    // exercício…», «escreva o primeiro no botão abaixo, a direção, no passo 3, é opcional» —, e
+    // a regra da casa é a dos formulários: rótulo, campo e nada mais. O botão que acrescenta o
+    // trecho está à vista, e a tela vazia já diz que está vazia.
+    '    alvo.innerHTML = "";' +
     '    document.getElementById("vb-cobertura").textContent = "";' +
     '    pintarFica();' +
     '    return;' +
@@ -6284,10 +6342,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '  if (!linhas.length) {' +
     // SEM TRECHOS, NÃO HÁ DECOMPOSIÇÃO A MOSTRAR. É o estado de um exercício que ainda não foi
-    // decomposto — e é o que a pesquisadora pediu: a decomposição «nem aparece». Uma linha diz
-    // porquê; três tabelas a dizer «não vai» era a tela a inventar três factos.
-    '    alvo.innerHTML = "<p class=\\"nota\\">Ainda sem trechos. Escreva o primeiro no botão abaixo — ' +
-    '      a direção, no passo 3, é opcional.</p>";' +
+    // decomposto — a decomposição «nem aparece», e a partir de 03/11/2026 nem a frase que dizia
+    // porquê: o botão que acrescenta o trecho está logo abaixo, e a linha era uma instrução
+    // onde já há um botão.
+    '    alvo.innerHTML = "";' +
     '    pintarCobertura();' +
     '    pintarFica();' +
     '    return;' +
@@ -6510,17 +6568,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  } else {' +
     '    b.removeAttribute("title");' +
     '  }' +
-    // A NOTA DO RODAPÉ JÁ DIZ OUTRA COISA (a substituição da música), e por isso o aviso de «sem
-    // trechos» vai para a nota do passo 6, que é onde os trechos se escrevem.
-    '  var alvo = document.getElementById("vb-gravar-nota");' +
-    '  if (alvo && trechos === 0 && !substituiMusica()) {' +
-    '    alvo.textContent = "Ainda não há nenhum trecho. Escreva ao menos um na decomposição — é ' +
-    '      ele que a página da aula mostra.";' +
-    '  } else if (alvo && trechos === 0) {' +
-    '    alvo.textContent = "Ainda não há nenhum trecho — e sem ele o verbete não existe.";' +
-    '  } else {' +
-    '    pintarComoNova();' +
-    '  }' +
+    // A NOTA DO RODAPÉ DIZ OUTRA COISA — a substituição da música (03/11/2026). Havia aqui um
+    // segundo texto para o caso de «sem trechos» («Ainda não há nenhum trecho. Escreva ao menos
+    // um na decomposição…»), e ele saiu: o botão desactivado e o `title` dizem o mesmo, e um
+    // formulário não ensina o que fazer — tem os campos e o botão que faz.
+    '  pintarComoNova();' +
     '}' +
     'function pintarDuplicar(){' +
     '  var b = document.getElementById("vb-cel-duplicar");' +
@@ -6728,7 +6780,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = document.getElementById("vb-chips");' +
     '  if (!alvo) return;' +
     '  if (!SINAIS.length) {' +
-    '    alvo.innerHTML = "<span class=\\"nota\\">Escolha a categoria e os sinais.</span>";' +
+    '    alvo.innerHTML = "";' +
     '  } else {' +
     // A FICHA INTEIRA É CLICÁVEL, E O «×» CONTINUA A SER O «×» (02/11/2026). Clicar na ficha
     // marca-a para troca; clicar no «×» tira-a. São duas acções no mesmo sítio, e a distinção é o
