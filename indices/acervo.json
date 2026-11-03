@@ -83,13 +83,13 @@
         "ciclo:coqui-de-redinha/01/breu"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-11-02T16:59:08.409473+00:00",
       "expurgada": false,
@@ -102,7 +102,9 @@
       "professores": [
         "coqui-de-redinha"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261103-1626"
+      ],
       "slug": "breu"
     },
     {
@@ -287,7 +289,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -459,13 +467,19 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "0e8d256"
+    "commit": "204f806"
   },
-  "gerado_em": "2026-11-02T16:59",
+  "gerado_em": "2026-11-03T19:27",
   "nao_indexado": [
     {
       "familia": "conteudo",
