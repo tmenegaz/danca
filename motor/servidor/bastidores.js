@@ -32,8 +32,12 @@ const { numeroDoTeste } = require('./teste-fixtures.js');
 // O catálogo INICIAL de turmas e vocabulário técnico (conteúdo, não código). Carregado
 // sob demanda pela Produção (`POST /api/bastidores/semear-catalogo`), idempotente.
 const CATALOGO = require('./catalogo-seed.js');
-// A FORMA DO NÍVEL, por tradição (03/11/2026) — o núcleo puro que a turma usa.
-const { normalizarNivel, estruturaDaTradicao } = require('../nucleo/niveis-da-turma.js');
+// A FORMA DO NÍVEL, por tradição (03/11/2026) — o núcleo puro que a CURADORIA usa. O nome do
+// ficheiro deixou de dizer «da turma» no mesmo dia em que o nível mudou de casa: a turma é o
+// ritmo, a curadoria é o ensino (ver `motor/nucleo/enquadramento.js`).
+const { normalizarNivel, estruturaDaTradicao } = require('../nucleo/niveis.js');
+// O ENQUADRAMENTO — quem ensina o quê, em que nível, e que turmas ficaram sem quem as ensine.
+const enquadramento = require('../nucleo/enquadramento.js');
 // A HABILITAÇÃO DO PROFESSOR (03/11/2026) — o núcleo puro que diz quem ensina o quê.
 const perfilNucleo = require('../nucleo/perfil-do-professor.js');
 // A COMPOSIÇÃO catálogo × escola é a dos produtos, e é a única (02/11/2026).
@@ -977,39 +981,27 @@ function normalizarTurma(corpo) {
     const h = String(crus[d] == null ? '' : crus[d]).trim();
     if (/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(h)) horarios[d] = h;
   }
-  /* O NÍVEL TEM A FORMA DA TRADIÇÃO (03/11/2026) — ver `motor/nucleo/niveis-da-turma.js`.
+  /* A TURMA É O RITMO, E NADA MAIS (03/11/2026, a segunda decisão do dia).
    *
-   * `grau` e `nivel` são os dois campos que a decisão dela pede («incluir no cadastro/criação da
-   * turma os seletores de nível e grau»), e `nivelReferencia` passa a ser **composto** deles: é o
-   * rótulo que o plano e o PO imprimem. Compor em vez de pedir duas vezes é a regra da casa — e a
-   * turma antiga que só tem o texto livre continua a lê-lo, porque o `normalizarNivel` cai nele
-   * quando não há nada declarado.
+   * O `programaReferencia`, o `nivelReferencia`, o `grau`, o `nivel`, a `modalidade` e o
+   * `professor` SAÍRAM DAQUI. Eles estavam aqui desde a entrega anterior — e a pesquisadora
+   * reviu: «a turma deixa de ser carregada com definições rígidas de nível pedagógico»; o
+   * cadastro dela fica «estritamente no que lhe é inerente (dias, horários e rotina)», e o
+   * enquadramento (professor, modalidade, tradição e nível) passa a ser da **curadoria**, para
+   * a escola poder mover uma turma de nível sem destruir a estrutura operacional dela.
    *
-   * O `programaReferencia` é lido ANTES, porque é ele que escolhe a forma: «Grade 3» na RAD,
-   * «Intermediário 2» numa tradição por graus. */
-  const programaReferencia = String(corpo.programaReferencia || '').trim();
-  const niveis = normalizarNivel(CATALOGO.TRADICOES_JSON, {
-    programaReferencia,
-    grau: corpo.grau,
-    nivel: corpo.nivel,
-    nivelReferencia: corpo.nivelReferencia,
-  });
+   * O QUE ACONTECE AOS REGISTOS ANTIGOS: nada. `turma-editar` e `turma-derivar` copiam só os
+   * campos de uma LISTA (`CAMPOS_DO_FORMULARIO`), e sobrepõem-nos ao registo anterior — os
+   * campos que saíram da lista deixam de ser tocados, e ficam onde estão. **A memória não se
+   * apaga** (P-03/P-04), e `enquadramento.nivelEfetivo` lê-a quando a curadoria não declara
+   * nível. O que se deixa de fazer é PEDIR e REESCREVER.
+   *
+   * Ver `motor/nucleo/enquadramento.js` para a regra inteira — e para as três leituras que
+   * ficariam ambíguas sem ela. */
   return {
     id: idDe(nome),
     nome: nome,
     ordem: ordem,
-    programaReferencia: programaReferencia,
-    // O NÍVEL EM DOIS CAMPOS, e o rótulo composto ao lado. Um `nivelReferencia` escrito à mão
-    // depois disto seria a segunda declaração do mesmo facto.
-    grau: niveis.grau,
-    nivel: niveis.nivel,
-    nivelReferencia: niveis.nivelReferencia,
-    // A MODALIDADE E O PROFESSOR RESPONSÁVEL (03/11/2026). São os dois elos que a decisão dela
-    // precisa: a modalidade é o que a escola oferece, e o professor é quem a declara saber
-    // ensinar. Sem eles, «a turma cuja modalidade o professor deixou de ter» não tem como ser
-    // respondida — não há o que comparar.
-    modalidade: String(corpo.modalidade || '').trim(),
-    professor: String(corpo.professor || '').trim(),
     descricao: String(corpo.descricao || '').trim(),
     // O RITMO DA TURMA — decisão da DIREÇÃO, não da cena (IDEIA-PAINEL-ESCOLA §8.3: «não
     // tem frequência semanal — vem do contrato»). É o que desce para o plano de ensino:
@@ -1099,27 +1091,28 @@ async function marcarTurmasSemHabilitacao(kv, escola, professor, perfil, quando)
   const alvo = String(professor || '').trim();
   if (!alvo) return { mudadas: [], descontinuadas: [] };
   const lista = await turmas(kv, escola);
+  // A MODALIDADE E O PROFESSOR SAÍRAM DA TURMA (03/11/2026) e passaram para a CURADORIA. Esta
+  // leitura era `t.professor`/`t.modalidade` — campos que o cadastro novo já não tem. Lida
+  // assim, ela devolveria `undefined`, a comparação daria `false` e a marca deixava de acender
+  // **sem erro nenhum**: o pior modo de falha, e o que motivou o módulo `enquadramento`.
+  const curs = await curadorias(kv, escola);
   const hoje = String(quando || new Date().toISOString().slice(0, 10));
+  const semQuemEnsine = enquadramento.turmasSemHabilitacao(lista, curs, perfil, { professor: alvo });
+  const porId = new Map(semQuemEnsine.map((x) => [x.id, x]));
   const mudadas = [];
   let mexeu = false;
   const nova = lista.map((t) => {
-    if (!t || String(t.professor || '').trim() !== alvo) return t;
-    const modalidade = String(t.modalidade || '').trim();
-    // UMA TURMA SEM MODALIDADE NÃO SE DESCONTINUA: não há o que comparar, e a ausência de um
-    // dado não é a negação dele. É a mesma distinção do `cobre` nos verbetes antigos.
-    if (!modalidade) return t;
-    const deveEstar = perfilNucleo.estadoDaHabilitacao(perfil, modalidade) === 'perdeu';
-    if (deveEstar === Boolean(t.descontinuada)) return t;
+    if (!t || typeof t !== 'object') return t;
+    // DE QUEM É ESTA TURMA: a curadoria que a enquadra. Sem enquadramento não há a quem
+    // atribuir a perda — e a turma fica como está.
+    const enq = enquadramento.enquadramentoDaTurma(t, curs);
+    if (!enq.professor || enq.professor !== alvo) return t;
+    const perdeu = porId.get(String(t.id || '')) || null;
+    if (Boolean(perdeu) === Boolean(t.descontinuada)) return t;
     mexeu = true;
     mudadas.push(String(t.nome || t.id || ''));
-    if (deveEstar) {
-      return Object.assign({}, t, {
-        descontinuada: {
-          em: hoje,
-          motivo: 'o professor já não declara «' + perfilNucleo.nomeDaModalidade(modalidade)
-            + '» nas habilitações dele',
-        },
-      });
+    if (perdeu) {
+      return Object.assign({}, t, { descontinuada: { em: hoje, motivo: perdeu.motivo } });
     }
     const semMarca = Object.assign({}, t);
     delete semMarca.descontinuada;
@@ -1128,7 +1121,8 @@ async function marcarTurmasSemHabilitacao(kv, escola, professor, perfil, quando)
   if (mexeu) await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(nova));
   return {
     mudadas,
-    descontinuadas: nova.filter((t) => t && String(t.professor || '').trim() === alvo && t.descontinuada),
+    descontinuadas: nova.filter((t) => t && t.descontinuada
+      && enquadramento.enquadramentoDaTurma(t, curs).professor === alvo),
   };
 }
 
@@ -1822,6 +1816,16 @@ function paginaEstudio(escola, contexto, aparencia) {
 }
 
 function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco) {
+  /* TODAS AS CURADORIAS, declaradas UMA VEZ e no TOPO da página (03/11/2026).
+   *
+   * O cartão da TURMA passou a ler o enquadramento dela (`enquadramento.resumoDoEnquadramento`)
+   * — quem ensina, que modalidade, que nível —, e esse laço corre ANTES do bloco das curadorias.
+   * Uma declaração `const` lá em baixo deixaria o laço em TDZ, e o erro apareceria como «cannot
+   * access before initialization» a quem abrisse a página.
+   *
+   * São TODAS, inclusive as substituídas: o enquadramento de hoje pode ser o de uma curadoria
+   * que já foi derivada, e `curadoriaDaTurma` prefere a vigente e recorre à anterior. */
+  const todasAsCuradorias = (curs || []).slice();
   // A APARÊNCIA DA ESCOLA (18/10/2026). Vem do KV e é aplicada no SERVIDOR: os dois atributos
   // entram no `<html>` da página, e o `data-modo-fonte` diz de quem é a decisão — é ele que faz
   // o `assets/nav.js` **não** tentar aplicar a escolha antiga do navegador por cima.
@@ -2106,7 +2110,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             ? 'termo ' + dataBr(t.periodoInicio || '?') + '–' + dataBr(t.periodoFim || '?')
             : '',
         ].filter(Boolean).join(' · ');
-        const detalhe = [t.nivelReferencia, t.programaReferencia, ritmo].filter(Boolean).join(' · ');
+        /* O CARTAO DA TURMA PERDEU O NIVEL E A TRADICAO, E GANHOU O ENQUADRAMENTO (03/11/2026).
+         *
+         * Eles sairam do cadastro da turma — entao nao e aqui que se mostram como se fossem
+         * dela. O que aparece no lugar e «quem ensina o que, em que nivel», lido da
+         * CURADORIA que enquadra esta turma (`enquadramento.resumoDoEnquadramento`). Uma
+         * turma sem curadoria diz «sem curadoria atribuida», e nao um vazio: a ausencia e um
+         * estado operacional, e um espaco em branco le-se como esquecimento.
+         *
+         * O `nivelReferencia` que uma turma antiga guarda NAO se perde: se a curadoria nao
+         * declara nivel, o resumo mostra o que estava — com a origem dita
+         * (`nivelEfetivo.de`). */
+        const enq = enquadramento.resumoDoEnquadramento(t, todasAsCuradorias);
+        const detalhe = [enq.texto, ritmo].filter(Boolean).join(' · ');
         // A TURMA INCOMPLETA SE ANUNCIA. O ritmo é o que o plano lê — e uma turma sem ele
         // não pode ser atribuída na curadoria. Dizer isto no cadastro é o que faz a direção
         // saber o que falta antes de tentar atribuir (16/10/2026).
@@ -2336,27 +2352,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   }).join('');
   const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })));
 
-  // OS NÍVEIS que o seletor da turma oferece: os do catálogo MAIS os que alguma turma já
-  // declara — um nível que a escola já usa não desaparece do formulário por não estar no
-  // catálogo (é o caso de quem já cadastrou «Vaganova 3», por exemplo).
-  const niveisOferecidos = niveisDoCatalogo();
-  for (const t of listaTurmas) {
-    for (const parte of String((t && t.nivelReferencia) || '').split(',')) {
-      const limpo = parte.trim();
-      if (limpo && niveisOferecidos.indexOf(limpo) === -1) niveisOferecidos.push(limpo);
-    }
-  }
-
-  // TODAS as curadorias, para o histórico; as VIGENTES são as que se listam e se operam.
-  const todasAsCuradorias = (curs || []).slice();
+  // A LISTA DE NÍVEIS SAIU DAQUI (03/11/2026). Ela alimentava o escolhedor `esc-niveis` do
+  // formulário da TURMA — que deixou de ter nível. O nível passou a ser dois campos da
+  // CURADORIA com a forma da tradição (`#cugrau` e `#cunivel`), e as opções do grau vêm de
+  // `tradicoes.json` → `estruturaDeNiveis`, não de uma enumeração de turmas. Manter a
+  // enumeração seria uma segunda lista de níveis, a divergir da primeira.
+  //
+  // `todasAsCuradorias` SUBIU PARA O TOPO da página (ver o início de `paginaProducao`): o cartão
+  // da turma passou a ler o enquadramento, e o laço dos cartões corre antes deste bloco.
   const itensCuradorias = listaCuradorias.length
     ? listaCuradorias.map((c) => {
         const rotuloProfessor = (profsParaCuradoria.find((p) => p.valor === c.professor) || {}).rotulo || c.professor;
         const turmas = turmasDaCuradoria(c);
+        /* O NÍVEL ENTRA NO RESUMO DA CURADORIA (03/11/2026) — e é aqui que ele se lê, porque foi
+         * aqui que ele passou a viver. A ordem é a da pergunta que a escola faz ao olhar a lista:
+         * em que linha se ensina (a tradição), em que grau (o nível), a que turma, e a quem. */
+        const nivelDaCuradoria = enquadramento.nivelEfetivo(null, c);
         const resumo = [
           // O RÓTULO, e não a chave crua (02/11/2026). Antes lia-se «francesa · 8A · 12 aluna(s)»;
           // agora lê-se «FRANCESA · 8A · 12 aluna(s)», que é a mesma padronização dos selectores.
           rotuloDaTradicao(c.tradicao),
+          nivelDaCuradoria.rotulo,
           turmas.length ? turmas.join(' · ') : '',
           (c.alunas || []).length ? (c.alunas.length + ' aluna(s)') : '',
         ].filter(Boolean).join(' · ');
@@ -3381,52 +3397,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // turma nova no TOPO, e a ordem das antigas não se mexe.
     // O PROGRAMA PASSOU A SER LISTA (18/10/2026), como a tradição da curadoria: a referência
     // é uma tradição, não um texto. O rótulo diz isso mesmo — «(tradição)».
-    '<label class="campo-rotulo" for="tprograma">Programa de referência (tradição)</label>' +
-    '<select id="tprograma">' +
-    '<option value="">— nenhum —</option>' +
-    opcoesProgramaDaTurma +
-    '</select>' +
-    /* A MODALIDADE E O PROFESSOR RESPONSÁVEL (03/11/2026).
+    /* O ENQUADRAMENTO SAIU DESTE FORMULÁRIO (03/11/2026) — e o cadastro ficou com o que lhe é
+     * inerente.
      *
-     * São os dois elos da decisão dela: a modalidade é o que a ESCOLA oferece, e o professor é
-     * quem a declara saber ensinar. Com os dois, a pergunta «esta turma ainda tem quem a ensine?»
-     * passa a ter resposta — sem eles não havia o que comparar.
+     * Aqui estavam «Programa de referência (tradição)», «Modalidade da turma», «Professor
+     * responsável», «Grau», «Nível» e «Equivalência pedagógica». A pesquisadora reviu a decisão
+     * do mesmo dia: «o cadastro da turma foca estritamente no que lhe é inerente (dias, horários
+     * e rotina), enquanto a inteligência de ensino flui inteiramente para a camada de
+     * curadoria».
      *
-     * A LISTA DE MODALIDADES é a do catálogo, e a de professores é a da escola. Nenhuma delas se
-     * filtra pela habilitação: quem escolhe é a direção, e uma modalidade que o professor não
-     * declara não é recusada — é MARCADA (a regra dela: descontinuada, nunca apagada). Esconder
-     * a opção obrigaria a adivinhar por que ela não está lá. */
-    '<label class="campo-rotulo" for="tmodalidade">Modalidade da turma</label>' +
-    '<select id="tmodalidade">' +
-    '<option value="">— nenhuma —</option>' +
-    MODALIDADES.modalidades.map((m) =>
-      '<option value="' + esc(m.id) + '">' + esc(m.nome) + '</option>').join('') +
-    '</select>' +
-    '<label class="campo-rotulo" for="tprofessor">Professor responsável</label>' +
-    '<select id="tprofessor">' +
-    '<option value="">— nenhum —</option>' +
-    opcoesDeProfessorDaTurma +
-    '</select>' +
-    /* O NÍVEL, EM DOIS CAMPOS, COM A FORMA DA TRADIÇÃO (03/11/2026).
+     * E a razão é de operação, dita por ela: mover uma turma de nível deixou de obrigar a
+     * destruir e recriar a estrutura operacional — muda-se a CURADORIA, e o calendário, a
+     * frequência e os lançamentos da turma não são tocados.
      *
-     * O GRAU é um `select` cujas opções são as da tradição escolhida em «Programa de referência»
-     * — Básico/Intermediário/Avançado no caso geral, e nenhum na RAD (que numera em fila). O
-     * NÍVEL é um número: o «N» de «Nível 1 a N» é de cada escola, e um limite escrito aqui seria
-     * escolher por quem ensina.
+     * O QUE FICA: o nome, as notas, os dias com a hora, a duração e o período. É o ritmo.
+     * O QUE VAI PARA A CURADORIA: professor, modalidade, tradição e nível.
      *
-     * A troca de tradição REPOVOA o grau (script abaixo) — senão uma turma de RAD ficaria com um
-     * grau «Básico» que aquela tradição não tem. */
-    '<label class="campo-rotulo" for="tgrau">Grau</label>' +
-    '<select id="tgrau"><option value="">— sem grau —</option></select>' +
-    '<label class="campo-rotulo" for="tnivel">Nível</label>' +
-    '<input id="tnivel" name="nivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
-    // O NÍVEL é ESCOLHEDOR: escolhe no menu, «Adicionar», e o nível fica em ficha com o «×».
-    // A lista são os níveis do catálogo MAIS os que alguma turma já declara — um nível que a
-    // escola já usa não desaparece do formulário por não estar no catálogo. O que sai daqui
-    // continua a ser UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não
-    // mudam.
-    '<label>Equivalência pedagógica</label>' +
-    escolhedor('esc-niveis', niveisOferecidos.map((n) => ({ valor: n }))) +
+     * A «EQUIVALÊNCIA PEDAGÓGICA» também saiu — ela era o mesmo nível escrito de outra maneira, e
+     * o nível passou a ter dois campos com a forma da tradição, na curadoria. Manter as duas
+     * seria pedir o mesmo facto em dois sítios com dois formatos.
+     */
     '<label class="campo-rotulo" for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
     // OS DIAS VÊM ANTES DA FREQUÊNCIA, e a ordem é a da causa (18/10/2026): é dos dias que
@@ -4078,6 +4068,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // quem editar um registo antigo sem tradição escolhe uma (P-03: a proveniência acrescenta,
     // e a versão nova fica completa).
     '<select id="cutradicao">' + opcoesTradicaoCuradoria + '</select>' +
+    /* O NÍVEL É AQUI, E NÃO NA TURMA (03/11/2026).
+     *
+     * A eleição dela: «a curadoria passa a ser o núcleo inteligente de gestão pedagógica da
+     * escola, garantindo mobilidade total (permitindo transitar turmas entre modalidades e
+     * níveis conforme a necessidade estratégica da escola)». Mover uma turma de nível passa a ser
+     * editar esta linha — o calendário, os conteúdos e os lançamentos da turma não são tocados.
+     *
+     * A FORMA VEM DA TRADIÇÃO escolhida acima: a RAD numera em fila («Grade»), as outras agrupam
+     * em graus. O `<select>` do grau é repovoado pelo script quando a tradição muda.
+     *
+     * NÃO É OBRIGATÓRIO, e a decisão é declarada: uma escola que não usa níveis não pode ficar
+     * impedida de atribuir uma turma. Sem nível declarado, o que a turma antiga guarda continua a
+     * ler-se (`nivelEfetivo`, no núcleo). */
+    '<label class="campo-rotulo" for="cugrau">Grau</label>' +
+    '<select id="cugrau"><option value="">— sem grau —</option></select>' +
+    '<label class="campo-rotulo" for="cunivel">Nível</label>' +
+    '<input id="cunivel" name="cunivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
     '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label>Alunas</label>' +
@@ -4489,10 +4496,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (x.type === "checkbox") { if (x.checked) t["dia:" + x.value] = true; }' +
     '      else if (x.name) t[x.name] = x.value;' +
     '    });' +
-    '    t.__niveis = fichasDe("esc-niveis");' +
-    // O programa é um `<select>` sem `name` (a posição também saiu), e por isso não entra na
-    // captura por `[name]` — vai à mão, como os níveis e os horários.
-    '    t.__programa = (document.getElementById("tprograma") || {}).value || "";' +
+    // OS NÍVEIS E O PROGRAMA SAÍRAM DA CAPTURA (03/11/2026): eles deixaram de estar no
+    // formulário da turma, e capturar um elemento ausente gravaria `""` no rascunho — que na
+    // volta apagaria o que a turma antiga tem.
     '    t.__horarios = {};' +
     '    Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
     '      var d = x.getAttribute("data-dia"); if (d) t.__horarios[d] = x.value;' +
@@ -4535,12 +4541,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    Array.prototype.slice.call(document.querySelectorAll("input[name=\\\"dia\\\"]")).forEach(function(p){' +
     '      p.checked = !!t["dia:" + p.value];' +
     '    });' +
-    '    var esc = document.getElementById("esc-niveis");' +
-    '    if (esc) {' +
-    '      Array.prototype.slice.call(esc.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
-    '      (t.__niveis || []).forEach(function(n){ adicionarFicha(esc, n); });' +
-    '      mostrarVazio(esc);' +
-    '    }' +
     '    document.getElementById("tderivar").value = t.__derivar || "";' +
     '    document.getElementById("tmodo").value = t.__modo || "";' +
     '    document.getElementById("tvigencia").value = t.__vigencia || "";' +
@@ -4553,7 +4553,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (nome) nome.readOnly = String(t.__modo || "") === "derivar";' +
     '    var botao = document.getElementById("t-enviar");' +
     '    if (botao) botao.textContent = "Avançar";' +
-    '    if (typeof t.__programa === "string") selecionarPrograma(t.__programa);' +
     '    sincronizarHoras();' +
     // `sincronizarHoras` limpa a hora de um dia não marcado — e é por isso que as horas são
     // repostas DEPOIS dele, só nas que ficaram habilitadas.
@@ -5145,42 +5144,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o servidor a calcula e a listagem e o plano a mostram. Enquanto havia uma linha
     // «Frequência semanal», ela parecia um campo e pedia um número mesmo quando o número já
     // estava decidido; sem ela, os dias são a única declaração possível.
-    // O PROGRAMA DE REFERÊNCIA É UMA LISTA. Um valor antigo (texto livre) entra como opção
-    // própria, porque o que a turma já declara não se perde ao reabri-la.
-    'function selecionarPrograma(valor) {' +
-    '  var sel = document.getElementById("tprograma");' +
-    '  if (!sel) return;' +
-    '  var v = String(valor == null ? "" : valor);' +
-    '  var existe = false;' +
-    '  for (var i = 0; i < sel.options.length; i++) {' +
-    '    if (sel.options[i].value === v) { existe = true; break; }' +
-    '  }' +
-    '  if (v && !existe) {' +
-    '    var o = document.createElement("option");' +
-    '    o.value = v; o.textContent = v;' +
-    '    sel.appendChild(o);' +
-    '  }' +
-    '  sel.value = v;' +
-    '}' +
+    // `selecionarPrograma` SAIU COM O CAMPO (03/11/2026). Ela enchia o `#tprograma`, que deixou
+    // de existir quando a tradição passou para a curadoria. Um bloco que enche um elemento
+    // ausente é código que ninguém executa — e faz o próximo leitor procurar o elemento. É a
+    // mesma limpeza que o `<select>` da posição sofreu a 02/11.
     'document.addEventListener("change", function(e){' +
     '  var alvo = e.target;' +
     '  if (alvo && alvo.name === "dia") sincronizarHoras();' +
     '});' +
     // No arranque, o formulário nasce com as sete horas desabilitadas — nenhum dia escolhido.
     'sincronizarHoras();' +
-    /* O GRAU TEM A FORMA DA TRADIÇÃO (03/11/2026).
+    /* O GRAU TEM A FORMA DA TRADIÇÃO (03/11/2026) — E AGORA SERVE A CURADORIA.
      *
      * A RAD numera em fila (Grade 1…8, Vocational…) e não tem graus; as outras agrupam em
      * Básico/Intermediário/Avançado. Repovoar o `<select>` ao mudar a tradição é o que impede
-     * uma turma de RAD de ficar com um grau «Básico» que aquela tradição não tem.
+     * uma curadoria de RAD de ficar com um grau «Básico» que aquela tradição não tem.
+     *
+     * O NÍVEL MUDOU DE FORMULÁRIO NO MESMO DIA em que este bloco nasceu: era `#tgrau`/`#tnivel`
+     * (a turma), e passou a `#cugrau`/`#cunivel` (a curadoria). O `trad` deixou de vir do
+     * `#tprograma` e vem do `#cutradicao` — os ids vão por parâmetro, e não escritos aqui dentro:
+     * um bloco que sabe o nome dos campos de um formulário não serve no outro.
      *
      * O VALOR QUE JÁ ESTAVA É PRESERVADO quando ainda existe na lista nova: mudar de Vaganova
      * para francesa não pode apagar um grau «Intermediário» que as duas declaram.
      */
-    'function pintarGraus(manter) {' +
-    '  var sel = document.getElementById("tgrau");' +
+    'function pintarGraus(manter, idTrad, idGrau, idNivel) {' +
+    '  var t = idTrad || "cutradicao", gId = idGrau || "cugrau", nId = idNivel || "cunivel";' +
+    '  var sel = document.getElementById(gId);' +
     '  if (!sel) return;' +
-    '  var trad = (document.getElementById("tprograma") || {}).value || "";' +
+    '  var trad = (document.getElementById(t) || {}).value || "";' +
     '  var bloco = NIVEIS_POR_TRADICAO[trad] || NIVEIS_POR_TRADICAO.padrao || {};' +
     '  var graus = (bloco.tipo === "numerada") ? [] : (bloco.graus || []);' +
     '  var antes = (manter === undefined) ? sel.value : manter;' +
@@ -5197,11 +5189,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  sel.value = (graus.indexOf(antes) !== -1) ? antes : "";' +
     // O RÓTULO DO NÍVEL muda com a tradição: «Grade» na RAD, «Nível» nas outras. É uma DICA no
     // `placeholder`, e não um texto a substituir o rótulo — o campo é o mesmo nos dois casos.
-    '  var rot = document.getElementById("tnivel");' +
+    '  var rot = document.getElementById(nId);' +
     '  if (rot) rot.setAttribute("placeholder", "ex.: 3" + (bloco.rotulo ? " (" + bloco.rotulo + ")" : ""));' +
     '}' +
-    'var selTrad = document.getElementById("tprograma");' +
-    'if (selTrad) selTrad.addEventListener("change", function(){ pintarGraus(""); });' +
+    'var selTradCu = document.getElementById("cutradicao");' +
+    'if (selTradCu) selTradCu.addEventListener("change", function(){ pintarGraus(""); });' +
     'pintarGraus();' +
     // AS FICHAS de um escolhedor — o que foi escolhido, na ordem em que se escolheu.
     'function fichasDe(id) {' +
@@ -5282,14 +5274,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A POSIÇÃO NÃO SE ENVIA (18/10/2026): quem a decide é o servidor, pondo a turma nova no
     // topo. Enviar o campo vazio obrigaria o servidor a distinguir «não quis dizer nada» de
     // «quer no fim» — e o fim nunca é o que a direção quer ao criar uma turma.
-    '    programaReferencia: document.getElementById("tprograma").value,' +
-    // O NÍVEL EM DOIS CAMPOS (03/11/2026): o grau e o número. O `nivelReferencia` deixa de ser
-    // escrito à mão — o servidor compõe-no («Grade 3», «Intermediário 2») em `normalizarNivel`.
-    '    grau: (document.getElementById("tgrau") || {}).value || "",' +
-    '    nivel: (document.getElementById("tnivel") || {}).value || "",' +
-    '    modalidade: (document.getElementById("tmodalidade") || {}).value || "",' +
-    '    professor: (document.getElementById("tprofessor") || {}).value || "",' +
-    '    nivelReferencia: fichasDe("esc-niveis").join(", "),' +
+    // O ENQUADRAMENTO NÃO SE MANDA DAQUI (03/11/2026): professor, modalidade, tradição e nível
+    // saíram do formulário da turma e passaram para a curadoria. Mandá-los em branco apagaria o
+    // que uma turma antiga guarda — e é a lista de campos do servidor que os preserva. Ver
+    // `motor/nucleo/enquadramento.js`.
     '    descricao: document.getElementById("tdescricao").value,' +
     // A frequência NÃO se envia mais do formulário: o servidor a calcula a partir dos
     // dias. O campo continua a existir no JSON — só deixou de vir de um `<input>`.
@@ -5358,15 +5346,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  nome.value = t.nome || ""; nome.readOnly = derivar;' +
     // O PROGRAMA É UMA LISTA: se o valor gravado for de uma época anterior (texto livre), ele
     // entra como opção própria — abrir a turma não pode perder a referência que ela declara.
-    '  selecionarPrograma(t.programaReferencia || "");' +
-    // O QUE A TURMA JÁ DECLARA (03/11/2026): a modalidade, o professor responsável, o grau e o
-    // nível. O grau é reposto DEPOIS de a tradição estar escolhida — a lista dele depende dela.
-    '  pintarGraus(t.grau || "");' +
-    '  (function(){' +
-    '    var m = document.getElementById("tmodalidade"); if (m) m.value = t.modalidade || "";' +
-    '    var pr = document.getElementById("tprofessor"); if (pr) pr.value = t.professor || "";' +
-    '    var nv = document.getElementById("tnivel"); if (nv) nv.value = t.nivel || "";' +
-    '  })();' +
+    // O ENQUADRAMENTO NÃO SE PREENCHE AQUI (03/11/2026): ele vive na curadoria. O que a turma
+    // antiga guarda continua no registo dela, intocado — não é este formulário que o reescreve.
     '  document.getElementById("tdescricao").value = t.descricao || "";' +
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
     '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
@@ -5374,14 +5355,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // OS CONTEÚDOS NÃO ESTÃO MAIS AQUI (18/10/2026): eles vivem no passo 3, «Associar», e
     // são preenchidos por `sincronizarAssociacao()` a partir do `select` de turma. Este
     // formulário ficou com o que é da turma — e nada mais.
-    // OS NÍVEIS e OS DIAS são fichas e pílulas: limpam e voltam a marcar, para o ajuste não
-    // herdar o que se escolheu para outra turma.
-    '  var esc = document.getElementById("esc-niveis");' +
-    '  if (esc) {' +
-    '    Array.prototype.slice.call(esc.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
-    '    mostrarVazio(esc);' +
-    '    String(t.nivelReferencia || "").split(",").forEach(function(n){ n = n.trim(); if (n) adicionarFicha(esc, n); });' +
-    '  }' +
+    // OS NÍVEIS SAÍRAM DAQUI (03/11/2026): não se ajustam no cadastro da turma — o nível é da
+    // curadoria. O que a turma antiga guarda fica no registo dela, e não é este formulário que
+    // o reescreve.
     '  Array.prototype.slice.call(document.querySelectorAll("input[name=\\"dia\\"]")).forEach(function(p){ p.checked = false; });' +
     '  (t.dias || []).forEach(function(d){' +
     '    var p = document.querySelector("input[name=\\"dia\\"][value=\\"" + d + "\\"]");' +
@@ -5522,7 +5498,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("cumodalidade").value = c.modalidade;' +
     '  document.getElementById("cumodalidade").disabled = true;' +
     '  document.getElementById("cutradicao").value = c.tradicao || "";' +
+    // O NÍVEL VEM DA CURADORIA (03/11/2026). O grau é reposto DEPOIS de a tradição estar
+    // escolhida — a lista dele depende dela —, e o que a curadoria não declarar cai no que a
+    // turma guarda de antes: é o mesmo `nivelEfetivo` do núcleo, aplicado à mão aqui porque a
+    // tela já tem os dois objectos à mão (`c` e `TURMAS`).
+    '  var turmaDesta = null;' +
     '  var turmas = turmasDeUma(c);' +
+    '  for (var ti = 0; ti < TURMAS.length; ti++) {' +
+    '    if (TURMAS[ti] && TURMAS[ti].nome === turmas[0]) { turmaDesta = TURMAS[ti]; break; }' +
+    '  }' +
+    '  var grauDe = c.grau || (turmaDesta && turmaDesta.grau) || "";' +
+    '  var nivelDe = c.nivel || (turmaDesta && turmaDesta.nivel) || "";' +
+    '  pintarGraus(grauDe);' +
+    '  document.getElementById("cunivel").value = nivelDe;' +
     '  document.getElementById("cuturma").value = turmas.length ? turmas[0] : "";' +
     // PRIMEIRO o refiltro, DEPOIS as fichas: a lista de alunas oferecidas depende do par
     // (modalidade, turma) que acabou de ser posto, e as alunas DESTA curadoria não estão
@@ -8266,10 +8254,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      "campos são obrigatórios.");' +
     '    return;' +
     '  }' +
+    // O NÍVEL VAI NO CORPO (03/11/2026), e vai SEMPRE — mesmo vazio. É o que distingue «não
+    // declarei nível» de «não mexi neste campo»: ao derivar, o servidor herda o nível da
+    // curadoria anterior quando o corpo o não traz; e limpar o campo é uma declaração, não uma
+    // omissão. Vazio entra, e o `normalizarNivel` compõe o rótulo a partir do que houver.
     '  var campos = {' +
     '    professor: document.getElementById("cuprofessor").value,' +
     '    modalidade: document.getElementById("cumodalidade").value,' +
     '    tradicao: document.getElementById("cutradicao").value,' +
+    '    grau: document.getElementById("cugrau").value,' +
+    '    nivel: document.getElementById("cunivel").value,' +
     '    turmas: umaTurma ? [umaTurma] : [],' +
     '    alunas: fichasDe("esc-alunas")' +
     '  };' +
@@ -8567,8 +8561,12 @@ async function fetch(request, env) {
     // a direcção ver o efeito de desligar uma modalidade ANTES de gravar; a lista de turmas
     // também as marca, e é a mesma regra (`turmasDescontinuadas`, no núcleo).
     const perfilNucleo = require('../nucleo/perfil-do-professor.js');
+    // A PERGUNTA PASSOU A SER FEITA AO ENQUADRAMENTO (03/11/2026): a modalidade e o professor
+    // estão na curadoria, não no cadastro da turma. `turmasDescontinuadas` lia os campos da
+    // turma e, depois da mudança de casa, responderia sempre «nenhuma» — sem erro.
     const descontinuadas = lido.existe
-      ? perfilNucleo.turmasDescontinuadas(await turmas(kv, escola), lido.perfil, { professor: alvo })
+      ? enquadramento.turmasSemHabilitacao(
+        await turmas(kv, escola), await curadorias(kv, escola), lido.perfil, { professor: alvo })
       : [];
     return json(200, {
       ok: true,
@@ -9332,7 +9330,12 @@ async function fetch(request, env) {
     // Só os campos do formulário mudam; a régua (`rubricaId`) fica com quem a ligou.
     // «ORDEM» SAIU DA LISTA (18/10/2026): a posição não é mais um campo do formulário, e
     // mandá-la em branco aqui apagaria a que a turma já tinha. A que existir fica.
-    const CAMPOS_DO_FORMULARIO = ['nome', 'programaReferencia', 'nivelReferencia',
+    // O ENQUADRAMENTO SAIU DESTA LISTA (03/11/2026), e o que sai da lista NÃO É APAGADO: os
+    // campos são copiados do registo anterior (`Object.assign({}, alvo, ajustado)`), e um campo
+    // que já não se copia fica onde está. É o que preserva o `nivelReferencia` de uma turma
+    // cadastrada antes desta decisão — a memória não se reescreve (P-03/P-04). Ver
+    // `motor/nucleo/enquadramento.js`.
+    const CAMPOS_DO_FORMULARIO = ['nome',
       'descricao', 'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
@@ -9393,7 +9396,12 @@ async function fetch(request, env) {
     const declarado = normalizarTurma(Object.assign({}, corpo, { nome: anterior.nome }));
     // A POSIÇÃO NÃO SE DECLARA (18/10/2026): o elo novo herda a ordem do anterior — uma
     // derivação troca o ritmo da turma, não o lugar dela na lista.
-    const CAMPOS_DO_FORMULARIO = ['nome', 'programaReferencia', 'nivelReferencia',
+    // O ENQUADRAMENTO SAIU DESTA LISTA (03/11/2026), e o que sai da lista NÃO É APAGADO: os
+    // campos são copiados do registo anterior (`Object.assign({}, alvo, ajustado)`), e um campo
+    // que já não se copia fica onde está. É o que preserva o `nivelReferencia` de uma turma
+    // cadastrada antes desta decisão — a memória não se reescreve (P-03/P-04). Ver
+    // `motor/nucleo/enquadramento.js`.
+    const CAMPOS_DO_FORMULARIO = ['nome',
       'descricao', 'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
@@ -10270,6 +10278,27 @@ async function fetch(request, env) {
       });
     }
 
+    /* O NÍVEL PASSOU A SER DA CURADORIA (03/11/2026) — ver `motor/nucleo/enquadramento.js`.
+     *
+     * A eleição dela: «a curadoria passa a ser o núcleo inteligente de gestão pedagógica da
+     * escola, garantindo mobilidade total», e o nível é «definição dinâmica» dela. A forma do
+     * nível continua a vir da TRADIÇÃO — é por isso que o `normalizarNivel` recebe
+     * `programaReferencia`, e é a tradição da curadoria que se lhe passa.
+     *
+     * NÃO É OBRIGATÓRIO, e a decisão é declarada: uma escola que não usa níveis não pode ficar
+     * impedida de atribuir uma turma. O que a curadoria declara quando declara; quando não, o
+     * nível efetivo cai no que a turma guardou de antes (`nivelEfetivo`, no núcleo).
+     *
+     * O `nivelReferencia` é COMPOSTO («Grade 3», «Intermediário 2») — o mesmo rótulo que o plano
+     * e o PO imprimem —, e não escrito à mão: compor em vez de pedir duas vezes é a regra da
+     * casa. */
+    const tradicao = String(corpo.tradicao || '').trim();
+    const niveis = normalizarNivel(CATALOGO.TRADICOES_JSON, {
+      programaReferencia: tradicao,
+      grau: corpo.grau,
+      nivel: corpo.nivel,
+      nivelReferencia: corpo.nivelReferencia,
+    });
     const nova = {
       // O id é o do registo que já existe, quando existe — e quando a turma NÃO mudou: um id
       // antigo (sem a turma) não se renomeia por baixo de quem já o referencia. Mudando a
@@ -10277,7 +10306,12 @@ async function fetch(request, env) {
       id,
       professor: slugificar(professor),
       modalidade,
-      tradicao: String(corpo.tradicao || '').trim(),
+      tradicao,
+      // O NÍVEL DA RELAÇÃO, e não da turma: mover a turma de nível é editar isto, e o calendário,
+      // os conteúdos e os lançamentos dela não são tocados.
+      grau: niveis.grau,
+      nivel: niveis.nivel,
+      nivelReferencia: niveis.nivelReferencia,
       turmas: turmasPedidas,
       // O REPERTÓRIO NÃO SE PEDE MAIS (19/10/2026) — e por isso não se escreve. Se o corpo
       // não o traz, a curadoria que está a ser editada FICA COM O QUE TINHA: a regra é a
@@ -10384,13 +10418,27 @@ async function fetch(request, env) {
         alunas: repetidasDeriv.map((a) => ({ aluna: a, turma: ocupadasDeriv[a] })),
       });
     }
+    /* O NÍVEL ACOMPANHA A DERIVAÇÃO (03/11/2026). Derivar é ajustar o enquadramento sem tocar no
+     * passado: a versão nova herda o nível da anterior QUANDO o corpo não o manda, e a tradição
+     * nova — se mudou — recompõe o rótulo. Mudar a tradição de «Grade 3» (RAD) para uma tradição
+     * por graus não pode deixar «Grade 3» colado: o rótulo é derivado, e deriva-se outra vez. */
+    const tradicaoFinal = corpo.tradicao === undefined ? anterior.tradicao : String(corpo.tradicao || '').trim();
+    const niveisDeriv = normalizarNivel(CATALOGO.TRADICOES_JSON, {
+      programaReferencia: tradicaoFinal,
+      grau: corpo.grau === undefined ? anterior.grau : corpo.grau,
+      nivel: corpo.nivel === undefined ? anterior.nivel : corpo.nivel,
+      nivelReferencia: corpo.nivelReferencia === undefined ? anterior.nivelReferencia : corpo.nivelReferencia,
+    });
     const nova = Object.assign({}, anterior, {
       // O id do derivado parte do id do par (professor, modalidade, turma) — não do id antigo,
       // que pode não ter a turma. Assim a versão nova nasce já com a identidade completa.
       id: idCuradoriaDerivado(
         idCuradoria(anterior.professor, String(anterior.modalidade || ''), turmaFinal) || anterior.id,
         vigencia, lista),
-      tradicao: corpo.tradicao === undefined ? anterior.tradicao : String(corpo.tradicao || '').trim(),
+      tradicao: tradicaoFinal,
+      grau: niveisDeriv.grau,
+      nivel: niveisDeriv.nivel,
+      nivelReferencia: niveisDeriv.nivelReferencia,
       turmas: turmaFinal ? [turmaFinal] : [],
       repertorio: Array.isArray(corpo.repertorio)
         ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)

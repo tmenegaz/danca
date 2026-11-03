@@ -38,7 +38,7 @@ const path = require('path');
 
 const RAIZ = path.resolve(__dirname, '..');
 const nucleo = require(path.join(RAIZ, 'motor/nucleo/perfil-do-professor.js'));
-const niveis = require(path.join(RAIZ, 'motor/nucleo/niveis-da-turma.js'));
+const niveis = require(path.join(RAIZ, 'motor/nucleo/niveis.js'));
 const perfilRepo = require(path.join(RAIZ, 'motor/servidor/perfil-professor.js'));
 const repoEscola = require(path.join(RAIZ, 'motor/servidor/repo-escola.js'));
 const bastidores = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
@@ -380,17 +380,21 @@ function oNivel() {
   checar('um grau que a tradição não declara é descartado, e o nível fica',
     fora.grau === '' && fora.nivel === '2', fora);
 
-  // A PÁGINA TEM OS CAMPOS. Sem eles, a decisão existe no servidor e não chega a quem cadastra.
+  /* OS CAMPOS DO NÍVEL MUDARAM DE FORMULÁRIO NO MESMO DIA (03/11/2026), e esta asserção mudou
+   * com eles: eram `#tgrau`/`#tnivel` (a turma) e passaram a `#cugrau`/`#cunivel` (a curadoria).
+   * A prova mede o que a decisão pede — que o nível se possa declarar — e não o id de um
+   * formulário; se um dia mudar outra vez, é esta linha que diz onde ele está. */
   const html = bastidores.paginaProducao('x', { professor: 'x', ciclo: '01', query: '' },
     [], [], '', '', [], [], [], [], [], []);
   for (const [campo, oque] of [
-    ['id="tmodalidade"', 'a modalidade da turma'],
-    ['id="tprofessor"', 'o professor responsável'],
-    ['id="tgrau"', 'o grau'],
-    ['id="tnivel"', 'o nível'],
+    ['id="cugrau"', 'o grau, na curadoria'],
+    ['id="cunivel"', 'o nível, na curadoria'],
   ]) {
-    checar('o formulário da turma traz ' + oque, html.indexOf(campo) !== -1);
+    checar('o formulário da curadoria traz ' + oque, html.indexOf(campo) !== -1);
   }
+  checar('…e o formulário da TURMA já não traz nenhum deles (o enquadramento saiu do cadastro)',
+    html.indexOf('id="tgrau"') === -1 && html.indexOf('id="tnivel"') === -1
+      && html.indexOf('id="tmodalidade"') === -1 && html.indexOf('id="tprograma"') === -1);
   checar('…e o grau é repovoado pela tradição escolhida (o dado vai para o cliente)',
     html.indexOf('NIVEIS_POR_TRADICAO') !== -1 && html.indexOf('function pintarGraus') !== -1);
 

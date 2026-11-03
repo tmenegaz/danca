@@ -1,11 +1,22 @@
 /**
- * niveis-da-turma.js — O NÍVEL TEM A FORMA DA TRADIÇÃO (03/11/2026).
+ * niveis.js — O NÍVEL TEM A FORMA DA TRADIÇÃO, E VIVE NA CURADORIA (03/11/2026).
  *
  * A DECISÃO DELA, com as palavras dela: «os níveis são definidos no momento em que a turma
  * nasce, associando-se ao conhecimento do professor e à tradição metodológica adotada. Para
  * tradições estruturadas por números (como a escola inglesa RAD), a turma contará com um seletor
  * de número para indicar o nível. Para outras tradições (como Vaganova ou geral), a estrutura
  * segue por graus/fases.»
+ *
+ * O NOME DESTE FICHEIRO MUDOU NO MESMO DIA, e a segunda decisão dela é a razão: o nível deixou de
+ * ser da TURMA e passou a ser da CURADORIA — a turma é o ritmo e o calendário; o enquadramento
+ * pedagógico (professor, modalidade, tradição e nível) é da curadoria, para a escola poder mover
+ * uma turma de nível sem destruir a estrutura dela. Um ficheiro chamado `niveis-da-turma` mentiria
+ * a partir daí, e o nome de um módulo é a primeira coisa que se lê.
+ *
+ * O QUE MUDA NA REGRA: nada. A forma do nível continua a vir da tradição (`tradicoes.json` →
+ * `estruturaDeNiveis`), o rótulo continua a ser composto («Grade 3», «Intermediário 2»), e o texto
+ * antigo de um registo antigo continua a ler-se. O que muda é ONDE o par `grau`+`nivel` é gravado:
+ * na curadoria, e não no cadastro da turma.
  *
  * O QUE ESTE MÓDULO **NÃO** INVENTA. O «N» de «Nível 1 a N» é de cada escola: uma escola de
  * bairro tem três níveis, um conservatório tem doze. Escrever um limite aqui seria escolher por
@@ -16,12 +27,14 @@
  *   · a tradição por GRAUS recebe do dado apenas os **nomes dos graus** (Básico, Intermediário,
  *     Avançado — declarados pela pesquisadora), e o nível é um número que se escreve.
  *
- * E o rótulo que sai daqui — «Grade 3», «Básico 2» — é o que o plano de ensino e o PO já
- * imprimem em `nivelReferencia`. Ele passa a ser **composto**, e não escrito à mão: é a mesma
- * regra do «lê-se» da notação — o que se pode derivar do dado não se pede duas vezes.
+ * E o rótulo que sai daqui — «Grade 3», «Básico 2» — é o que o plano de ensino e o PO imprimem
+ * em `nivelReferencia`. Ele é **composto**, e não escrito à mão: é a mesma regra do «lê-se» da
+ * notação — o que se pode derivar do dado não se pede duas vezes.
  *
- * A COMPATIBILIDADE FICA DITA: uma turma antiga que só tem `nivelReferencia` (o texto livre de
- * antes) continua a ler-se, e o texto dela **não** é reescrito por este módulo.
+ * A COMPATIBILIDADE FICA DITA: um registo antigo que só tem `nivelReferencia` (o texto livre de
+ * antes, gravado na turma) continua a ler-se, e o texto dele **não** é reescrito nem apagado por
+ * este módulo. Quem lê o nível efetivo de uma turma deve ler o da curadoria e, quando não há,
+ * o da turma — é o que faz `nivelEfetivo`, em `motor/nucleo/enquadramento.js`.
  */
 
 /** A estrutura de uma tradição: a declarada em `tradicoes.json` ou o `padrao` (o «geral»). */
@@ -65,6 +78,10 @@ function rotuloDoNivel(estrutura, { grau, nivel, nivelReferencia } = {}) {
 
 /**
  * NORMALIZA O QUE A TELA MANDA, e devolve também o `nivelReferencia` composto.
+ *
+ * Recebe `programaReferencia` no corpo porque é a TRADIÇÃO que decide a forma — e no corpo de
+ * uma CURADORIA o campo chama-se `tradicao`. O chamador resolve isso; este módulo não sabe o
+ * nome do campo em cada formulário, e não deve saber.
  *
  * UM GRAU QUE A TRADIÇÃO NÃO DECLARA É DESCARTADO, e não recusado: a tela já só oferece os
  * graus daquela tradição, e um valor que não os conhece veio de um registo antigo ou de uma

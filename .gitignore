@@ -543,3 +543,7 @@ experimentos/modelo-formulario/*
 # A HABILITAÇÃO É DA PESSOA (03/11/2026). O perfil do professor nasce com a escola, a turma sem
 # quem a ensine fica marcada, e o expurgo não leva a competência de ninguém. Citada no `REGISTRO.md`.
 !experimentos/provar-habilitacao-do-professor.js
+
+# A TURMA É O RITMO, A CURADORIA É O ENSINO (03/11/2026). O nível, a modalidade, a tradição e o
+# professor saíram do cadastro da turma; a memória não se apaga. Citada no `REGISTRO.md`.
+!experimentos/provar-enquadramento-da-turma.js

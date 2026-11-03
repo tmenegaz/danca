@@ -134,10 +134,20 @@ function estadoDaHabilitacao(perfil, modalidade) {
 }
 
 /**
- * AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — marcadas, nunca apagadas.
+ * AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — **SUBSTITUÍDA a 03/11/2026**, e fica por história.
  *
- * A REGRA DELA: «a turma não é apagada, respeitando estritamente a regra da proveniência e a
- * imutabilidade do histórico. O sistema deve apenas marcar a turma como descontinuada.»
+ * A modalidade e o professor deixaram de estar no cadastro da turma: passaram para a **curadoria**
+ * (ver `motor/nucleo/enquadramento.js`). Esta função lia `t.modalidade` e `t.professor`, e depois
+ * da mudança de casa responderia sempre «nenhuma» — sem erro, que é o pior modo de falha.
+ *
+ * Quem responde agora é `enquadramento.turmasSemHabilitacao`, que lê a curadoria e cai na memória
+ * da turma quando ela existe. A função fica aqui porque é chamada pela prova da entrega anterior
+ * (§A de `provar-habilitacao-do-professor`), e essa prova mede a regra — que não mudou. Apagar
+ * uma função que uma prova mede para «limpar» deixaria a prova a falar de código inexistente.
+ *
+ * A REGRA DELA, que continua a ser a regra: «a turma não é apagada, respeitando estritamente a
+ * regra da proveniência e a imutabilidade do histórico. O sistema deve apenas marcar a turma como
+ * descontinuada.»
  *
  * Três condições, e todas importam:
  *   · a turma declara uma `modalidade` (sem ela não há o que comparar — e uma turma antiga, que

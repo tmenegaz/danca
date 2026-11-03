@@ -678,14 +678,28 @@ async function principal() {
   conferir('…e nenhum dos dois é um campo de texto',
     /<input id="vncategoria"|<input id="vntradicao"/.test(formExercicio), false);
 
-  // A TURMA: PROGRAMA EM LISTA, SEM POSIÇÃO E SEM FREQUÊNCIA (18/10/2026).
+  /* A TURMA: RITMO E SÓ RITMO (03/11/2026, a decisão que reviu a do mesmo dia).
+   *
+   * As duas asserções sobre o «Programa de referência (tradição)» SAÍRAM, e não por falharem: o
+   * campo deixou de existir na turma — a tradição passou para a curadoria. Uma prova que
+   * afirmasse «a turma tem a tradição em lista» estaria a afirmar o contrário da decisão, e
+   * corrigi-la-ia para o lado errado. O que se mede agora é o que a decisão pede. */
   const formTurma = (html.match(/<form id="form-turma">[\s\S]*?<\/form>/) || [''])[0];
-  const opcoesDoPrograma = [...((formTurma.match(/<select id="tprograma">([\s\S]*?)<\/select>/) || ['', ''])[1]
-    .matchAll(/<option value="([^"]*)"/g))].map((m) => m[1]);
-  conferir('o programa de referência é uma lista de tradições (e não texto livre)',
-    opcoesDoPrograma, ['', 'RAD', 'francesa', 'Vaganova']);
-  conferir('…e o rótulo diz «(tradição)»',
-    formTurma.includes('Programa de referência (tradição)'), true);
+  conferir('o formulário da turma já não traz o programa de referência (foi para a curadoria)',
+    formTurma.includes('tprograma'), false);
+  conferir('…nem a modalidade, o professor, o grau ou o nível',
+    ['tmodalidade', 'tprofessor', 'tgrau', 'tnivel', 'esc-niveis']
+      .filter((x) => formTurma.includes(x)), []);
+  // A LISTA ESPERADA É DERIVADA DO CATÁLOGO, e não escrita aqui (03/11/2026). Era
+  // `['RAD','francesa','Vaganova']`, e ficou vermelha quando a `cubana` entrou em
+  // `tradicoes.json` — a prova estava a medir a data em que foi escrita, não a regra. A regra é
+  // «a lista é a das tradições adotáveis»; `compartilhada` descreve um TERMO, e não se adota.
+  const tradicoesAdotaveis = require('../biblioteca/modalidades/bale-classico/tradicoes.json')
+    .tradicoes.filter((t) => t !== 'compartilhada');
+  conferir('…e a tradição continua em lista, mas na CURADORIA (e não texto livre)',
+    [...((html.match(/<select id="cutradicao">([\s\S]*?)<\/select>/) || ['', ''])[1]
+      .matchAll(/<option value="([^"]*)"/g))].map((m) => m[1]),
+    tradicoesAdotaveis);
   conferir('…a POSIÇÃO NA LISTA saiu do formulário',
     formTurma.includes('tordem') || formTurma.includes('name="ordem"'), false);
   conferir('…e a FREQUÊNCIA não tem campo nem linha na tela',
@@ -891,11 +905,16 @@ async function principal() {
   //    formas convivem de propósito, e o critério está dito no código.
   conferir('nos dias da semana há 7 pílulas clicáveis',
     (html.match(/class="escolha"><input type="checkbox" name="dia"/g) || []).length, 7);
-  conferir('o nível da turma NÃO é um select múltiplo (exigia Ctrl+clique)',
+  /* O NÍVEL DO ESCOLHEDOR SAIU (03/11/2026). Ele era `esc-niveis` na TURMA, e o nível passou a
+   * ser dois campos da CURADORIA com a forma da tradição. As três asserções que o mediam
+   * afirmavam uma peça que já não existe; o que se mede agora é que ela não voltou e que o nível
+   * tem ali a forma certa. */
+  conferir('o nível já não é um escolhedor de fichas na turma (saiu com o campo)',
+    html.includes('esc-niveis'), false);
+  conferir('…e o nível da curadoria tem os dois campos, com a forma da tradição',
+    /<select id="cugrau">/.test(html) && /<input id="cunivel"/.test(html), true);
+  conferir('…e nenhum sinal de `select` múltiplo para o nível',
     html.includes('name="nivelReferencia" multiple'), false);
-  conferir('…e sim um escolhedor', html.includes('id="esc-niveis" class="escolhedor"') ||
-    html.includes('class="escolhedor" id="esc-niveis"'), true);
-  conferir('…que continua a sair como UM texto', script.includes('fichasDe("esc-niveis").join'), true);
   // A TURMA DA CURADORIA VIROU `select` DE UMA (16/10/2026). Era um escolhedor de várias, e a
   // lista MENTIA: quem marcava duas turmas dizia que as alunas de uma são as da outra. O que
   // esta prova trava agora é o contrário do que travava antes — e é de propósito.
