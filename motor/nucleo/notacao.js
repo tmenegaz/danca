@@ -417,27 +417,98 @@ function estadoDoVerbete(registro, data) {
 }
 
 /**
+ * DE QUEM É UM REGISTO DO ALFABETO — o campo `escola`, como no vocabulário (03/11/2026).
+ *
+ * A DECISÃO DELA: «o dono do alfabeto é a escola, e deve ser dado o campo `escola` como no
+ * vocabulário». A chave de um verbete continua a ser a música (`8|4/4`); o registo de uma escola
+ * leva a mesma música **com o dono ao lado** — `8|4/4@breu` —, e o do catálogo fica `8|4/4`. É a
+ * mesma forma do termo: a identidade é (conteúdo, dono), e não o conteúdo sozinho.
+ *
+ * PORQUÊ NA CHAVE E NÃO SÓ NUM CAMPO. No vocabulário o termo é um item de uma LISTA, e dois donos
+ * podem declarar o mesmo `id` lado a lado. Aqui o verbete é o membro de um OBJETO indexado pela
+ * música: dois registos da mesma música colidiriam no primeiro `set`. O dono entra na chave por
+ * isso, e não por gosto — é o que permite à escola ter a sua versão do mesmo exercício sem apagar
+ * a do catálogo.
+ *
+ * `escola` ausente ou vazia é o CATÁLOGO. Um ficheiro antigo — sem `@` em chave nenhuma — lê-se
+ * exactamente como antes: tudo é do catálogo, e nenhuma escola perde o que tinha.
+ */
+const SEPARADOR_DO_DONO = '@';
+
+/** A chave com que um registo é gravado: a música, e o dono quando não é o catálogo. */
+function chaveDoVerbete(musica, escola) {
+  const m = String(musica || '').trim();
+  const e = String(escola || '').trim();
+  return e ? m + SEPARADOR_DO_DONO + e : m;
+}
+
+/** O dono de um registo, lido da chave. Vazio = catálogo. */
+function escolaDoRegisto(chave) {
+  const k = String(chave || '');
+  const i = k.indexOf(SEPARADOR_DO_DONO);
+  return i === -1 ? '' : k.slice(i + 1).trim();
+}
+
+/** A música de um registo, sem o dono: `8|4/4@breu` → `8|4/4`. */
+function musicaDaChave(chave) {
+  const k = String(chave || '');
+  const i = k.indexOf(SEPARADOR_DO_DONO);
+  return i === -1 ? k : k.slice(0, i);
+}
+
+/**
+ * OS REGISTOS QUE UMA ESCOLA VÊ — o catálogo mais os dela, com os dela a vencer.
+ *
+ * A precedência é a da `compor` do vocabulário, e pela mesma razão: o catálogo é o que se vende e
+ * a escola é quem está a usar. Devolve `{ musica → registo }`, e o valor de cada música é o
+ * registo escolhido — sem `@` no nome, que é detalhe de armazenamento.
+ */
+function registosDaEscola(musicas, escola) {
+  const alvo = String(escola || '').trim();
+  const mapa = {};
+  const dono = {};
+  for (const chave of Object.keys(musicas || {})) {
+    if (!/^\d+\|/.test(chave)) continue;
+    const musica = musicaDaChave(chave);
+    const de = escolaDoRegisto(chave);
+    // Um registo de OUTRA escola não entra: não é do catálogo nem desta escola.
+    if (de && de !== alvo) continue;
+    // A escola vence o catálogo; entre dois do mesmo dono, o primeiro é o declarado.
+    if (dono[musica] && !(de && !dono[musica])) continue;
+    mapa[musica] = musicas[chave];
+    dono[musica] = de;
+  }
+  return mapa;
+}
+
+/**
  * A ESCOLHA DO VERBETE para uma música. Preferência pela música exacta; na falta dela, pelo
  * verbete da MESMA métrica que cobre menos tempos — o que se compõe é o que ele explica, e o
  * resto fica declarado. Nunca se estica um verbete para caber.
  *
  * O `data` é opcional e só serve para o versionamento: quando um verbete foi ajustado, é ele que
  * diz QUAL dos estados se compõe. Sem `data`, compõe-se o corrente — o comportamento de sempre.
+ *
+ * O `escola` também é opcional (03/11/2026), e a omissão é o catálogo: quem compõe um documento de
+ * uma escola passa o slug, e a versão dela vence a do catálogo — a mesma regra do termo.
  */
-function verbetePara(alfabeto, exercicio, musica, data) {
+function verbetePara(alfabeto, exercicio, musica, data, escola) {
   const doExercicio = (alfabeto && alfabeto.verbetes && alfabeto.verbetes[exercicio]) || null;
   if (!doExercicio) return { estado: 'sem-verbete' };
+  // A vista já é a da escola: o catálogo mais o dela, com o dela a vencer. A chave que sai é a da
+  // MÚSICA, e é ela que o documento escreve.
+  const vistos = registosDaEscola(doExercicio, escola);
   const chave = musica.tempos + '|' + musica.compasso;
-  if (doExercicio[chave]) {
-    const lido = estadoDoVerbete(doExercicio[chave], data);
+  if (vistos[chave]) {
+    const lido = estadoDoVerbete(vistos[chave], data);
     return { estado: 'exacto', musica: chave, verbete: lido.estado, versao: lido.versao };
   }
 
   // O mesmo compasso, com menos tempos: compõe-se o que ele cobre e declara-se o resto.
-  const candidatos = Object.keys(doExercicio)
+  const candidatos = Object.keys(vistos)
     .map((k) => {
       const [tempos, compasso] = k.split('|');
-      return { chave: k, tempos: Number(tempos), compasso, verbete: doExercicio[k] };
+      return { chave: k, tempos: Number(tempos), compasso, verbete: vistos[k] };
     })
     .filter((c) => c.compasso === musica.compasso && c.tempos < musica.tempos)
     .sort((a, b) => b.tempos - a.tempos);
@@ -449,7 +520,7 @@ function verbetePara(alfabeto, exercicio, musica, data) {
     const lido = estadoDoVerbete(candidatos[0].verbete, data);
     return { estado: 'parcial', musica: candidatos[0].chave, verbete: lido.estado, versao: lido.versao };
   }
-  const cobertas = Object.keys(doExercicio)
+  const cobertas = Object.keys(vistos)
     .map((k) => k.replace('|', ' em '))
     .join(', ');
   return { estado: 'musica-nao-coberta', cobertas: cobertas || '(nenhuma)' };
@@ -525,7 +596,7 @@ function segmentosDe(verbete, numerador) {
  * Compasso}`), e o retorno diz o que o documento deve escrever — segmentos ou lacuna, nunca as
  * duas coisas ao mesmo tempo sem o dizer.
  */
-function compor(linha, alfabeto, data) {
+function compor(linha, alfabeto, data, escola) {
   const campo = (...nomes) => {
     for (const n of nomes) {
       if (linha && linha[n] != null && String(linha[n]).trim()) return String(linha[n]).trim();
@@ -551,7 +622,7 @@ function compor(linha, alfabeto, data) {
       detalhe: 'os tempos e o compasso ainda não estão declarados no plano — sem eles não há grade' });
   }
 
-  const escolhido = verbetePara(alfabeto, exercicio, musica, data);
+  const escolhido = verbetePara(alfabeto, exercicio, musica, data, escola);
   if (escolhido.estado === 'sem-verbete') {
     return Object.assign(base, { estado: 'lacuna', motivo: 'sem-verbete', segmentos: [], restoTempos: 0,
       detalhe: 'o alfabeto não tem verbete para «' + exercicio + '» — um exercício entra no registro '
@@ -671,9 +742,9 @@ function compor(linha, alfabeto, data) {
 }
 
 /** A composição de todas as linhas da sequência, na ordem do plano. */
-function comporTodas(linhas, alfabeto, data) {
+function comporTodas(linhas, alfabeto, data, escola) {
   const lista = Array.isArray(linhas) ? linhas.filter((l) => l && typeof l === 'object') : [];
-  return lista.map((linha) => compor(linha, alfabeto, data));
+  return lista.map((linha) => compor(linha, alfabeto, data, escola));
 }
 
 /**
@@ -751,6 +822,12 @@ module.exports = {
   maiorContagem,
   verbetePara,
   estadoDoVerbete,
+  // O DONO DO ALFABETO (03/11/2026) — as três funções que compõem a chave de um registo e leem o
+  // seu dono. O servidor e as provas usam-nas; nenhuma regra de dono se escreve fora daqui.
+  chaveDoVerbete,
+  escolaDoRegisto,
+  musicaDaChave,
+  registosDaEscola,
   compor,
   comporTodas,
   sinaisUsados,

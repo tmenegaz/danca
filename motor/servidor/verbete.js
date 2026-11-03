@@ -126,11 +126,35 @@ function ondeEsta(direcao) {
 // mesmo dia em que a conta dos tempos pagou caro por estar em quatro sítios: a fronteira do núcleo
 // proíbe o motor de depender do servidor, mas não o contrário — o servidor pode e deve ler o
 // núcleo. Uma regra, um sítio.
-const { semBaldesVazios } = require('../nucleo/notacao.js');
+const nucleo = require('../nucleo/notacao.js');
+const { semBaldesVazios } = nucleo;
+/* O DONO DO VERBETE (03/11/2026). As quatro funções que compõem a chave de um registo, leem o seu
+ * dono e dão a vista de uma escola vêm do NÚCLEO — e não se reescrevem aqui. A regra de precedência
+ * (a escola vence o catálogo) é a mesma que a composição do documento usa, e uma segunda cópia
+ * dela divergiria à primeira correcção.
+ *
+ * «O dono do alfabeto é a escola», nas palavras dela — e o mecanismo é o do vocabulário: o registo
+ * do catálogo fica com a chave da música (`8|4/4`), o de uma escola leva o dono ao lado
+ * (`8|4/4@breu`). O `@` é a única forma de dois donos declararem a mesma música num objecto
+ * indexado por ela; no vocabulário, que é uma lista, o dono é só um campo. */
+const { chaveDoVerbete, escolaDoRegisto, musicaDaChave, registosDaEscola } = nucleo;
 
 function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
   const erros = [];
-  if (!verbete || typeof verbete !== 'object') return { ok: false, erros: ['o verbete não é um objeto'] };
+  /* O DESACORDO ENTRE A MÚSICA E A DECOMPOSIÇÃO NÃO RECUSA — AVISA (03/11/2026).
+   *
+   * Era `erros.push`, e o efeito era o oposto do pedido: ela mudou a música de um verbete que já
+   * tinha trechos e a gravação recusou com «sobram 8 tempos» — o trabalho da decomposição ficava
+   * preso entre uma música que já não é a dela e uma gravação que não passa. A regra nova, nas
+   * palavras dela: a música edita-se sempre; se divergir da decomposição, **o sistema não apaga
+   * o trabalho** — mostra um alerta e deixa a decisão a quem ensina.
+   *
+   * O que continua a RECUSAR é o que é do verbete consigo mesmo: a célula sem sinais, o `cobre`
+   * que não bate com a soma das pistas, a direção que não existe na gramática. Isso é erro de
+   * dado; a divergência com a música é uma decisão pedagógica em aberto.
+   */
+  const avisos = [];
+  if (!verbete || typeof verbete !== 'object') return { ok: false, erros: ['o verbete não é um objeto'], avisos: [] };
   // O BALDE VAZIO SAI ANTES DE SE CONTAR SEJA O QUE FOR. Ver `semBaldesVazios`.
   verbete = semBaldesVazios(verbete);
 
@@ -204,26 +228,30 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
         + (somaLinear !== soma ? ' (a soma em linha daria ' + somaLinear + ')' : ''));
     }
 
-    /* AS CÉLULAS TÊM DE FECHAR A MÚSICA (02/11/2026).
+    /* AS CÉLULAS TÊM DE FECHAR A MÚSICA — E DESDE 03/11/2026 ISSO É UM AVISO, NÃO UMA RECUSA.
      *
-     * DEFEITO MEDIDO, e é ele que a pesquisadora viu na Aula 01: o `Battement fondu` está gravado
-     * em «2|4/4» com células que somam 6 tempos, e o `Plié` em «8|4/4» com células que somam 12.
-     * Os dois passaram a gravação porque a única igualdade que se conferia era `cobre` contra a
-     * soma das células — uma conta que o formulário faz de si para si. A MÚSICA, que é a chave do
-     * verbete, não era comparada com nada; e a notação do exercício seguia sem fechar em compasso
-     * nenhum, com a §4 da aula a dizer `conferir` sem nomear o que estava torto.
+     * DEFEITO MEDIDO (02/11/2026), e é ele que a pesquisadora viu na Aula 01: o `Battement fondu`
+     * está gravado em «2|4/4» com células que somam 6 tempos, e o `Plié` em «8|4/4» com células
+     * que somam 12. Os dois passaram a gravação porque a única igualdade que se conferia era
+     * `cobre` contra a soma das células — uma conta que o formulário faz de si para si. A MÚSICA,
+     * que é a chave do verbete, não era comparada com nada.
      *
-     * A recusa NOMEIA as duas hipóteses, porque são as duas que existem: ou a música declarada é
+     * A CORRECÇÃO DE 02/11 FOI RECUSAR, E ERA DEMAIS (03/11/2026). Ela pediu para mudar a música
+     * de um verbete que já tinha trechos, e a gravação recusou: o trabalho da decomposição ficava
+     * preso entre uma música que já não é a dele e uma gravação que não passa. A regra nova é a
+     * dela: a música edita-se sempre; quando diverge, o sistema **não apaga nada** e mostra um
+     * alerta — quem decide como resolver é quem ensina.
+     *
+     * O aviso NOMEIA as duas hipóteses, porque são as duas que existem: ou a música declarada é
      * outra, ou falta (ou sobra) um trecho. Não escolhe por quem grava — e não diz «passo 2» nem
-     * «passo 3»: os números dos passos são da TELA, e este módulo não os conhece. Quem os diz é a
-     * página, que os lê de `PASSOS_DO_VERBETE`.
+     * «passo 3»: os números dos passos são da TELA, e este módulo não os conhece.
      *
      * `musicaDeclarada` é opcional: as provas chamam `validarVerbete` sem ela, e o que já está
-     * gravado continua a ler-se. É a GRAVAÇÃO que passa a exigir. */
+     * gravado continua a ler-se. */
     if (musicaDeclarada) {
       const tempos = Number(String(musicaDeclarada).split('|')[0]);
       if (Number.isFinite(tempos) && tempos > 0 && soma !== tempos) {
-        erros.push('as células somam ' + soma + ' tempos e a música «' + musicaDeclarada
+        avisos.push('as células somam ' + soma + ' tempos e a música «' + musicaDeclarada
           + '» declara ' + tempos + ' — '
           + (soma < tempos ? 'faltam ' + (tempos - soma) : 'sobram ' + (soma - tempos))
           + '. Ou a música está errada, ou falta um trecho.');
@@ -284,7 +312,7 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
   // `somaTempos` —, que não decidia nada mas informava quem lia a resposta: o `Plié` de pernas 8 e
   // braços 4 respondia «soma: 12» e era aceite com 8. É a mesma família do número em quatro
   // sítios; a diferença é que este não bloqueava, só mentia. Saiu.
-  return { ok: erros.length === 0, erros, soma: coberturaDe((verbete && verbete.celulas) || {}) };
+  return { ok: erros.length === 0, erros, avisos, soma: coberturaDe((verbete && verbete.celulas) || {}) };
 }
 
 
@@ -434,7 +462,7 @@ async function lerProgressao({ f, token, dono, repo, ref, modalidade }) {
  *  `trechos` conta as células, `direcoes` diz por onde o exercício passa, e `compassos` resume as
  *  músicas num só «4/4». É o que responde, de relance, «do que se trata».
  */
-function listarVerbetes(dados) {
+function listarVerbetes(dados, escola) {
   const verbetes = (dados && dados.verbetes) || {};
   return Object.keys(verbetes)
     .filter((nome) => !nome.startsWith('_'))
@@ -444,13 +472,13 @@ function listarVerbetes(dados) {
       musicas: Object.keys(verbetes[nome] || {}),
       // A MARCA DE DESCONTINUADO VIVE EM CADA MÚSICA (31/10/2026). Ela era lida no topo do
       // verbete, onde nunca está — e por isso um verbete descontinuado nunca aparecia como tal.
-      descontinuado: musicasDoVerbete(verbetes[nome])
-        .some((k) => Boolean(verbetes[nome] && verbetes[nome][k] && verbetes[nome][k].descontinuado)),
-      posicao: primeiraPosicao(verbetes[nome]),
-      trechos: contarTrechos(verbetes[nome]),
-      direcoes: direcoesDoVerbete(verbetes[nome]),
-      compassos: compassosDoVerbete(verbetes[nome]),
-      porMusica: detalhePorMusica(nome, verbetes[nome]),
+      descontinuado: Object.values(registosDaEscola(verbetes[nome], escola))
+        .some((v) => Boolean(v && v.descontinuado)),
+      posicao: primeiraPosicao(verbetes[nome], escola),
+      trechos: contarTrechos(verbetes[nome], escola),
+      direcoes: direcoesDoVerbete(verbetes[nome], escola),
+      compassos: compassosDoVerbete(verbetes[nome], escola),
+      porMusica: detalhePorMusica(nome, verbetes[nome], escola),
     }));
 }
 
@@ -468,9 +496,10 @@ function listarVerbetes(dados) {
  * tempos, o compasso, os trechos, as direções e as categorias. Tudo derivado: não há um segundo
  * dado a manter ao lado do alfabeto.
  */
-function detalhePorMusica(nome, musicas) {
-  return musicasDoVerbete(musicas).map((chave) => {
-    const m = musicas[chave] || {};
+function detalhePorMusica(nome, musicas, escola) {
+  const vistos = registosDaEscola(musicas, escola);
+  return musicasDoVerbete(musicas, escola).map((chave) => {
+    const m = vistos[chave] || {};
     const celulas = m.celulas || {};
     const direcoes = [];
     const orientacoes = [];
@@ -497,6 +526,12 @@ function detalhePorMusica(nome, musicas) {
     const [tempos, compasso] = String(chave).split('|');
     return {
       chave: chave,
+      // DE QUEM É ESTA VERSÃO: vazio = catálogo, um slug = a escola. A tela mostra-o para ninguém
+      // confundir a edição da escola com o catálogo que se vende.
+      // …e a chave de ARMAZENAMENTO, com o dono: é ela que a edição e o apagar têm de usar para
+      // não tocar na versão do catálogo quando a da escola é que está à vista.
+      chaveGravada: musicas[chaveDoVerbete(chave, escola)] ? chaveDoVerbete(chave, escola) : chave,
+      escola: (musicas[chaveDoVerbete(chave, escola)] ? escola : '') || null,
       tempos: Number(tempos) || 0,
       compasso: compasso || '',
       cobre: Number(m.cobre) || 0,
@@ -551,15 +586,28 @@ function linhasPorTrecho(nome, chave) {
 }
 
 
-/** As chaves de música de um verbete — o que tem a forma «<tempos>|<compasso>». */
-function musicasDoVerbete(musicas) {
-  return Object.keys(musicas || {}).filter((k) => /^\d+\|/.test(k));
+/**
+ * AS MÚSICAS QUE UMA ESCOLA VÊ — uma por música, já sem o dono (03/11/2026).
+ *
+ * Era `Object.keys(musicas).filter(/^\d+\|/)`, e com o dono na chave passaria a devolver duas
+ * entradas para a mesma música (`8|4/4` e `8|4/4@breu`). A vista é a de `registosDaEscola`: o
+ * catálogo mais o que é da escola, com o dela a vencer — é o que a listagem mostra e o que a conta
+ * dos trechos soma.
+ */
+function musicasDoVerbete(musicas, escola) {
+  return Object.keys(registosDaEscola(musicas, escola)).sort((a, b) => {
+    const [ta, ca] = a.split('|');
+    const [tb, cb] = b.split('|');
+    if (ca !== cb) return String(ca).localeCompare(String(cb));
+    return Number(ta) - Number(tb);
+  });
 }
 
-function contarTrechos(musicas) {
+function contarTrechos(musicas, escola) {
   let total = 0;
-  for (const chave of musicasDoVerbete(musicas)) {
-    const celulas = (musicas[chave] && musicas[chave].celulas) || {};
+  const vistos = registosDaEscola(musicas, escola);
+  for (const chave of musicasDoVerbete(musicas, escola)) {
+    const celulas = (vistos[chave] && vistos[chave].celulas) || {};
     for (const dir of Object.keys(celulas)) {
       if (Array.isArray(celulas[dir])) total += celulas[dir].length;
     }
@@ -567,10 +615,11 @@ function contarTrechos(musicas) {
   return total;
 }
 
-function direcoesDoVerbete(musicas) {
+function direcoesDoVerbete(musicas, escola) {
   const ordem = [];
-  for (const chave of musicasDoVerbete(musicas)) {
-    const celulas = (musicas[chave] && musicas[chave].celulas) || {};
+  const vistos = registosDaEscola(musicas, escola);
+  for (const chave of musicasDoVerbete(musicas, escola)) {
+    const celulas = (vistos[chave] && vistos[chave].celulas) || {};
     for (const dir of Object.keys(celulas)) {
       // O TRECHO SEM DIREÇÃO NÃO ENTRA NA LISTA DE DIREÇÕES (01/11/2026): a lista é o que a
       // etiqueta da listagem escreve («à frente · ao lado»), e uma direção vazia escreveria
@@ -582,18 +631,19 @@ function direcoesDoVerbete(musicas) {
   return ordem;
 }
 
-function compassosDoVerbete(musicas) {
+function compassosDoVerbete(musicas, escola) {
   const vistos = [];
-  for (const chave of musicasDoVerbete(musicas)) {
+  for (const chave of musicasDoVerbete(musicas, escola)) {
     const compasso = String(chave).split('|')[1] || '';
     if (compasso && vistos.indexOf(compasso) === -1) vistos.push(compasso);
   }
   return vistos;
 }
 
-function primeiraPosicao(musicas) {
-  for (const chave of Object.keys(musicas || {})) {
-    const v = musicas[chave];
+function primeiraPosicao(musicas, escola) {
+  const vistos = registosDaEscola(musicas, escola);
+  for (const chave of Object.keys(vistos)) {
+    const v = vistos[chave];
     if (v && v.posicao) return v.posicao;
   }
   return null;
@@ -608,7 +658,7 @@ function primeiraPosicao(musicas) {
  * publicado foi escrito.
  */
 async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musica, musicaAnterior,
-  verbete, acao, vinculado, vigenteDe, motivo }) {
+  verbete, acao, vinculado, vigenteDe, motivo, escola }) {
   if (!token) return { ok: false, status: 401, erro: 'sem token do repositório' };
   const nomeLimpo = String(nome || '').trim();
   if (!nomeLimpo) return { ok: false, status: 400, erro: 'informe o nome do exercício' };
@@ -622,9 +672,11 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
   dados.verbetes = dados.verbetes || {};
   const existe = Object.prototype.hasOwnProperty.call(dados.verbetes, nomeLimpo);
 
-  if (acaoLimpa === 'criar' && existe) {
-    return { ok: false, status: 409, erro: '«' + nomeLimpo + '» já existe — edite o verbete existente' };
-  }
+  /* CRIAR RECUSA O QUE JÁ EXISTE — DO MESMO DONO (03/11/2026). Era por EXERCÍCIO, e com o alfabeto
+   * a guardar a versão de cada escola isso impedia o que a decisão quer: a escola declarar o seu
+   * verbete de um exercício que o catálogo já decompõe — que é o caso normal, porque o vocabulário
+   * é o do catálogo. A guarda passa a ser (dono, música), e é feita lá em baixo, onde a chave já
+   * se conhece. */
   if (acaoLimpa !== 'criar' && !existe) {
     return { ok: false, status: 404, erro: '«' + nomeLimpo + '» não existe' };
   }
@@ -634,11 +686,21 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
   // o bloco e a resposta não o podia dizer — um `let` de bloco não dá erro de sintaxe, dá
   // `ReferenceError` em execução, e só na resposta.
   let ajustou = null;
+  // OS AVISOS DA VALIDAÇÃO (03/11/2026) — o que não impede a gravação mas tem de chegar à tela.
+  // Declarado ao lado de `ajustou` e pela mesma razão: um `let` de bloco morre com o bloco, e a
+  // resposta é construída fora dele.
+  let avisosGravacao = [];
   if (acaoLimpa === 'descontinuar' || acaoLimpa === 'retomar') {
     const marcar = acaoLimpa === 'descontinuar';
     // A MARCA VALE PARA O EXERCÍCIO INTEIRO, em todas as músicas que ele declara: o exercício é
     // um só, e o que se descontinua é ele, não uma das suas durações.
+    //
+    // MAS SÓ NOS REGISTOS DO MESMO DONO (03/11/2026). Com o alfabeto a guardar o verbete de cada
+    // escola, marcar todas as chaves descontinuaria também a versão do catálogo — e o catálogo que
+    // se vende passaria a dizer que um exercício acabou por causa de uma escola.
+    const meuDono = String(escola || '').trim();
     for (const chave of Object.keys(dados.verbetes[nomeLimpo] || {})) {
+      if (escolaDoRegisto(chave) !== meuDono) continue;
       const v = dados.verbetes[nomeLimpo][chave];
       if (v && typeof v === 'object') v.descontinuado = marcar;
     }
@@ -651,6 +713,7 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     }
     const conferido = validarVerbete(verbete, dados, lido.vocabulario, chaveMusica);
     if (!conferido.ok) return { ok: false, status: 400, erro: 'verbete inválido', erros: conferido.erros };
+    avisosGravacao = conferido.avisos || [];
 
     // O QUE SE GRAVA NÃO LEVA `direcoes` (28/10/2026). Se um pedido antigo — ou uma página em
     // cache — o enviar, ele não entra no ficheiro: o campo deixou de existir no dado, e o que o
@@ -668,6 +731,18 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     // para guardar.
     delete limpo.versoes;
     dados.verbetes[nomeLimpo] = dados.verbetes[nomeLimpo] || {};
+    /* A CHAVE LEVA O DONO (03/11/2026). `escola` vazia grava na chave do catálogo (`8|4/4`); um
+     * slug grava ao lado (`8|4/4@breu`). É o que impede a edição de uma escola de sobrescrever o
+     * catálogo — e o que faz a `compor` da escola preferir a dela. O campo `escola` vai também
+     * DENTRO do registo, como no vocabulário: a chave é a identidade, o campo é a leitura. */
+    const minhaEscola = String(escola || '').trim();
+    const chaveGravada = chaveDoVerbete(chaveMusica, minhaEscola);
+    if (acaoLimpa === 'criar' && Object.prototype.hasOwnProperty.call(dados.verbetes[nomeLimpo], chaveGravada)) {
+      return { ok: false, status: 409,
+        erro: '«' + nomeLimpo + '» (' + chaveMusica + ') já está no alfabeto'
+          + (minhaEscola ? ' desta escola' : ' do catálogo') + ' — edite o verbete existente' };
+    }
+    if (minhaEscola) limpo.escola = minhaEscola; else delete limpo.escola;
 
     /* A MÚSICA DE ONDE SE VEIO SAI — E É ISSO QUE FAZ DO «GRAVAR» UMA SUBSTITUIÇÃO (02/11/2026).
      *
@@ -691,9 +766,11 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
      */
     let substituiu = '';
     const anterior = String(musicaAnterior || '').trim();
+    const anteriorGravada = chaveDoVerbete(anterior, minhaEscola);
     if (acaoLimpa !== 'criar' && anterior && anterior !== chaveMusica && MUSICA.test(anterior)
-      && dados.verbetes[nomeLimpo] && Object.prototype.hasOwnProperty.call(dados.verbetes[nomeLimpo], anterior)) {
-      delete dados.verbetes[nomeLimpo][anterior];
+      && dados.verbetes[nomeLimpo]
+      && Object.prototype.hasOwnProperty.call(dados.verbetes[nomeLimpo], anteriorGravada)) {
+      delete dados.verbetes[nomeLimpo][anteriorGravada];
       substituiu = anterior;
     }
 
@@ -716,7 +793,7 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
      * `bastidores.js`, que já faz essa leitura para a guarda do `DELETE`. O `verbete.js` não fala
      * com o acervo, e não passa a falar.
      */
-    const anteriorRegisto = dados.verbetes[nomeLimpo] && dados.verbetes[nomeLimpo][chaveMusica];
+    const anteriorRegisto = dados.verbetes[nomeLimpo] && dados.verbetes[nomeLimpo][chaveGravada];
     if (vinculado && anteriorRegisto && typeof anteriorRegisto === 'object'
       && anteriorRegisto.celulas && Object.keys(anteriorRegisto.celulas).length) {
       const quando = String(vigenteDe || '').trim() || new Date().toISOString().slice(0, 10);
@@ -735,7 +812,7 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
       ajustou = quando;
     }
 
-    dados.verbetes[nomeLimpo][chaveMusica] = limpo;
+    dados.verbetes[nomeLimpo][chaveGravada] = limpo;
     mensagem = (acaoLimpa === 'criar' ? 'feat(notacao): declarar «' : 'docs(notacao): editar «')
       + nomeLimpo + '» (' + chaveMusica + ') no alfabeto ' + modalidade;
     if (substituiu) mensagem += ' — substitui a música ' + substituiu;
@@ -760,7 +837,11 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
     /* O AJUSTE VAI NA RESPOSTA (02/11/2026). A tela tem de o DIZER: quem corrigiu um verbete que
      * já compõe um plano precisa de saber que a correcção não reescreveu o passado — se não, ou
      * pensa que o documento antigo mudou, ou pensa que a correcção não pegou. */
-    ajustou: ajustou || null };
+    ajustou: ajustou || null,
+    /* E OS AVISOS TAMBÉM (03/11/2026). O desacordo entre a música e a decomposição grava-se, mas
+     * não se cala: a tela mostra o alerta e a listagem passa a marcar o verbete. Uma gravação que
+     * aceita em silêncio o que depois recusa no documento é a pior das duas. */
+    avisos: (typeof avisosGravacao !== 'undefined' ? avisosGravacao : []) };
 }
 
 /**
@@ -780,7 +861,7 @@ async function gravarVerbete({ f, token, dono, repo, ref, modalidade, nome, musi
  * exercício é um termo do dicionário, com a sua definição e a sua fonte, e apagá-lo é outra
  * operação (a rota do vocabulário) com outras guardas. Aqui sai a notação; a palavra fica.
  */
-async function apagarVerbete({ f, token, dono, repo, ref, modalidade, nome }) {
+async function apagarVerbete({ f, token, dono, repo, ref, modalidade, nome, escola }) {
   if (!token) return { ok: false, status: 401, erro: 'sem token do repositório' };
   const nomeLimpo = String(nome || '').trim();
   if (!nomeLimpo) return { ok: false, status: 400, erro: 'informe o nome do exercício' };
@@ -794,10 +875,26 @@ async function apagarVerbete({ f, token, dono, repo, ref, modalidade, nome }) {
   if (!Object.prototype.hasOwnProperty.call(verbetes, nomeLimpo)) {
     return { ok: false, status: 404, erro: '«' + nomeLimpo + '» não tem verbete' };
   }
-  delete verbetes[nomeLimpo];
+  /* APAGA-SE O QUE É DE QUEM APAGA (03/11/2026). O `DELETE` apaga o EXERCÍCIO — todas as músicas
+   * dele —, e com o alfabeto a guardar a versão de cada escola isso deixaria de ser verdade: um
+   * clique na Produção de uma escola apagaria também o verbete do catálogo, que é o que se vende.
+   * A regra é a do dono: a escola apaga os registos dela; o catálogo, os do catálogo. Se depois
+   * de apagar sobrar alguma música — de outro dono —, o exercício CONTINUA, e a resposta di-lo.
+   */
+  const meuDono = String(escola || '').trim();
+  const minhas = Object.keys(verbetes[nomeLimpo] || {}).filter((k) => escolaDoRegisto(k) === meuDono);
+  if (!minhas.length) {
+    return { ok: false, status: 409,
+      erro: '«' + nomeLimpo + '» não tem verbete deste lado — o que existe é '
+        + (meuDono ? 'do catálogo, e não se apaga pela escola' : 'de uma escola, e não se apaga pelo catálogo') };
+  }
+  for (const chave of minhas) delete verbetes[nomeLimpo][chave];
+  const sobraram = Object.keys(verbetes[nomeLimpo] || {}).length;
+  if (!sobraram) delete verbetes[nomeLimpo];
   dados.versao = Number(dados.versao || 1) + 1;
 
-  const mensagem = 'chore(notacao): apagar o verbete «' + nomeLimpo + '» no alfabeto ' + modalidade;
+  const mensagem = 'chore(notacao): apagar o verbete «' + nomeLimpo + '» no alfabeto ' + modalidade
+    + (meuDono ? ' — edição da escola «' + meuDono + '»' : '');
   const h = cabecalhos(token);
   const raiz = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/';
   const escrita = await gravarNoRepo({
@@ -809,7 +906,11 @@ async function apagarVerbete({ f, token, dono, repo, ref, modalidade, nome }) {
   if (!escrita.ok) {
     return { ok: false, status: escrita.status, erro: 'o repositório recusou a gravação (HTTP ' + escrita.status + ')' };
   }
-  return { ok: true, status: 200, versao: dados.versao, commit: escrita.commit, mensagem: mensagem };
+  return { ok: true, status: 200, versao: dados.versao, commit: escrita.commit, mensagem: mensagem,
+    // O QUE FICOU: zero = o exercício saiu; mais = ainda há música de outro dono, e a tela diz de
+    // quem. Sem isto, a escola apagava a sua versão e continuava a ver o exercício — a pensar que
+    // o apagar não pegou.
+    sobraram: sobraram };
 }
 
 module.exports = {

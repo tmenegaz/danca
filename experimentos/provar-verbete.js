@@ -350,10 +350,19 @@ async function aEscrita() {
     !('direcoes' in gravado.verbetes['Battement fondu']['8|4/4']),
     Object.keys(gravado.verbetes['Battement fondu']['8|4/4']));
 
+  /* CRIAR RECUSA O QUE JÁ EXISTE — DO MESMO DONO E DA MESMA MÚSICA (03/11/2026). Era por
+   * exercício, e isso impedia o que a decisão do dono quer: a escola declarar o seu verbete de um
+   * exercício que o catálogo já decompõe, e o exercício ganhar uma segunda música. O que não pode
+   * repetir-se é a IDENTIDADE — (dono, exercício, música). */
   const deNovo = await verbete.gravarVerbete(Object.assign({}, base, {
-    nome: 'Battement fondu', musica: '4|4/4', verbete: verbeteBom(), acao: 'criar',
+    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'criar',
   }));
   checar('criar o que já existe é recusado com 409', !deNovo.ok && deNovo.status === 409, deNovo);
+  const outraMusica = await verbete.gravarVerbete(Object.assign({}, base, {
+    nome: 'Battement fondu', musica: '16|4/4', verbete: verbeteDeOitoTempos(), acao: 'criar',
+  }));
+  checar('…mas o MESMO exercício com OUTRA música entra — são dois registos',
+    outraMusica.ok === true, outraMusica.erros || outraMusica.erro);
 
   const editar = await verbete.gravarVerbete(Object.assign({}, base, {
     nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'atualizar',
@@ -469,24 +478,45 @@ async function aEscrita() {
   checar('apagar o que não existe responde 404, e di-lo pelo nome',
     !naoExiste.ok && naoExiste.status === 404 && /Pas assemblé/.test(naoExiste.erro || ''), naoExiste);
 
+  /* CADA DONO APAGA O QUE É SEU (03/11/2026). O alfabeto passou a guardar o verbete de cada
+   * escola ao lado do catálogo (`8|4/4@breu`), e o `DELETE` deixou de poder apagar o exercício
+   * inteiro: apagar o do catálogo pela tela de uma escola tirá-lo-ia a todas. A prova mede as
+   * duas metades — a escola não toca no catálogo, e apaga o que é dela. */
+  const doCatalogo = await verbete.apagarVerbete(Object.assign({}, base,
+    { nome: 'Battement fondu', escola: 'batata' }));
+  checar('a escola NÃO apaga o verbete do catálogo — e a recusa di-lo',
+    !doCatalogo.ok && doCatalogo.status === 409 && /catálogo/.test(doCatalogo.erro || ''), doCatalogo);
+
+  const propria = await verbete.gravarVerbete(Object.assign({}, base, {
+    nome: 'Battement fondu', musica: '8|4/4', verbete: verbeteDeOitoTempos(), acao: 'criar',
+    escola: 'batata',
+  }));
+  checar('a escola grava a sua versão do exercício', propria.ok === true, propria.erros || propria.erro);
+
   const versaoAntesDeApagar = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo).versao;
-  const apagado = await verbete.apagarVerbete(Object.assign({}, base, { nome: 'Battement fondu' }));
+  const apagado = await verbete.apagarVerbete(Object.assign({}, base,
+    { nome: 'Battement fondu', escola: 'batata' }));
   checar('apagar um verbete que existe é aceito', apagado.ok, apagado);
   checar('…e a versão do alfabeto sobe — apagar também é um elo da cadeia',
     apagado.versao === Number(versaoAntesDeApagar) + 1, { antes: versaoAntesDeApagar, depois: apagado.versao });
 
   const semOVerbete = JSON.parse(repo.arquivos.get(CAlfabeto).conteudo);
-  checar('o exercício sai do alfabeto, com todas as músicas dele',
-    !('Battement fondu' in semOVerbete.verbetes), Object.keys(semOVerbete.verbetes));
+  checar('a versão da escola sai, com todas as músicas dela',
+    !Object.keys(semOVerbete.verbetes['Battement fondu'] || {}).some((k) => /@batata$/.test(k)),
+    Object.keys(semOVerbete.verbetes['Battement fondu'] || {}));
+  checar('…e a do catálogo fica, porque não era dela',
+    Boolean(semOVerbete.verbetes['Battement fondu']['8|4/4']),
+    Object.keys(semOVerbete.verbetes['Battement fondu'] || {}));
   checar('…e os OUTROS verbetes ficam onde estavam',
     Boolean(semOVerbete.verbetes['Battement tendu']), Object.keys(semOVerbete.verbetes));
   checar('a mensagem do commit diz o que foi apagado e onde',
     /^chore\(notacao\): apagar o verbete «Battement fondu» no alfabeto bale-classico/.test(
       String(repo.arquivos.get(CAlfabeto).mensagem || '').split('\n')[0]),
     repo.arquivos.get(CAlfabeto).mensagem);
-  checar('e a lista deixa de o mostrar',
-    verbete.listarVerbetes(semOVerbete).every((x) => x.nome !== 'Battement fondu'),
-    verbete.listarVerbetes(semOVerbete).map((x) => x.nome));
+  checar('e a lista da escola deixa de mostrar a versão dela',
+    (verbete.listarVerbetes(semOVerbete, 'batata').find((x) => x.nome === 'Battement fondu') || { porMusica: [] })
+      .porMusica.every((m) => m.escola !== 'batata'),
+    verbete.listarVerbetes(semOVerbete, 'batata').map((x) => x.nome));
   // O QUE NÃO SE TOCA: o ficheiro do VOCABULÁRIO. Uma notação apagada não é uma palavra apagada.
   checar('o vocabulário não é escrito nem apagado por este verbo',
     !repo.pedidos.some((p) => p.metodo === 'DELETE')
@@ -1079,8 +1109,8 @@ async function aGuardaDeProveniencia() {
   } finally {
     globalThis.fetch = original2;
   }
-  checar('um verbete que nenhum plano usa é apagado — a guarda não recusa tudo',
-    livre.status === 200 && corpoLivre.ok === true, corpoLivre);
+  checar('o verbete do CATÁLOGO não se apaga pela tela de uma escola (409)',
+    livre.status === 409 && /catálogo/.test(corpoLivre.erro || ''), corpoLivre);
 
   /* A CURADORIA É A OUTRA PORTA (02/11/2026) — §3.A.2 do pedido dela. O repertório da curadoria
    * deixou de se pedir em 19/10/2026, mas o que está gravado FICA (P-03/P-04), e uma referência

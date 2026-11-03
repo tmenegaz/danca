@@ -520,3 +520,10 @@ experimentos/modelo-formulario/*
 # confere.
 !experimentos/provar-forca-e-flexibilidade.js
 
+
+# A MÚSICA EDITA-SE, E A DECOMPOSIÇÃO NÃO SE APAGA (03/11/2026). A prova mede os três defeitos do
+# relatório dela na tela de verdade (jsdom sobre a página da Produção): duplicar não multiplica a
+# duração, o campo da música não está bloqueado, e mudar a música não apaga os trechos. O
+# `REGISTRO.md` cita-a — uma prova citada que não existe no clone é uma afirmação que ninguém
+# confere.
+!experimentos/provar-musica-do-verbete.js

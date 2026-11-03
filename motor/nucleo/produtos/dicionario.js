@@ -29,9 +29,12 @@ const comum = require('./comum.js');
 const notacao = require('../notacao.js');
 
 /** Os termos de um exercício no alfabeto, por música — sem a chave de comentário. */
-function musicasDoExercicio(alfabeto, nomeDoExercicio) {
+function musicasDoExercicio(alfabeto, nomeDoExercicio, escola) {
   const verbetes = (alfabeto && alfabeto.verbetes) || {};
-  const doExercicio = comum.semComentario(verbetes[nomeDoExercicio] || {});
+  // A VISTA É A DA ESCOLA (03/11/2026): o catálogo mais o que é dela, com o dela a vencer. Sem o
+  // parâmetro, é o catálogo — e é o que a edição que se vende tem de ser.
+  const doExercicio = comum.semComentario(
+    notacao.registosDaEscola(verbetes[nomeDoExercicio] || {}, escola));
   const chaves = Object.keys(doExercicio)
     .map((k) => comum.chaveDaMusica(k))
     .filter(Boolean)
@@ -117,7 +120,7 @@ function gerar(entrada) {
         'a origem da definição (a licença não a pode cobrir)'));
     }
 
-    const musicas = musicasDoExercicio(alfabeto, t.termo);
+    const musicas = musicasDoExercicio(alfabeto, t.termo, e.escola);
     if (musicas.length) comVerbete.push(t.id || t.termo);
     else if (t.categoria === 'passo' || t.categoria === 'salto' || t.categoria === 'ligacao'
       || t.categoria === 'giro') {
@@ -249,7 +252,7 @@ function gerar(entrada) {
         : '**Origem.** [Preencher: de onde vem esta definição — sem isso, ela não entra na edição paga]');
       linhas.push('');
 
-      const musicas = musicasDoExercicio(alfabeto, t.termo);
+      const musicas = musicasDoExercicio(alfabeto, t.termo, e.escola);
       if (musicas.length) {
         linhas.push('#### Decomposição');
         linhas.push('');

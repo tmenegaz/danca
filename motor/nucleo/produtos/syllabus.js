@@ -88,9 +88,12 @@ function termoDaUnidade(porId, porNome, relacao) {
 }
 
 /** As músicas de um exercício, com a integridade de cada uma — a mesma leitura do dicionário. */
-function musicasDoExercicio(alfabeto, nomeDoExercicio) {
+function musicasDoExercicio(alfabeto, nomeDoExercicio, escola) {
   const verbetes = (alfabeto && alfabeto.verbetes) || {};
-  const doExercicio = comum.semComentario(verbetes[nomeDoExercicio] || {});
+  // A VISTA É A DA ESCOLA (03/11/2026): o catálogo mais o que é dela, com o dela a vencer. Sem o
+  // parâmetro, é o catálogo — e é o que a edição que se vende tem de ser.
+  const doExercicio = comum.semComentario(
+    notacao.registosDaEscola(verbetes[nomeDoExercicio] || {}, escola));
   return Object.keys(doExercicio)
     .map((k) => comum.chaveDaMusica(k))
     .filter(Boolean)
@@ -294,7 +297,7 @@ function gerar(entrada) {
         lacunas.push(comum.lacuna('relacao-orfa', String(turma.id) + ' · ' + String(relacao.termo),
           'o termo no vocabulário'));
       }
-      const musicas = termo ? musicasDoExercicio(alfabeto, termo.termo) : [];
+      const musicas = termo ? musicasDoExercicio(alfabeto, termo.termo, e.escola) : [];
       const camada = camadaDaUnidade(termo, relacao);
       const completa = camadaCompleta(camada);
       if (!completa) {

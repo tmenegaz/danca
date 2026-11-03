@@ -34,6 +34,10 @@ const { numeroDoTeste } = require('./teste-fixtures.js');
 const CATALOGO = require('./catalogo-seed.js');
 // A COMPOSIÇÃO catálogo × escola é a dos produtos, e é a única (02/11/2026).
 const COMUM = require('../nucleo/produtos/comum.js');
+// E a do ALFABETO é a do núcleo (03/11/2026): `registosDaEscola` decide o que uma escola vê de
+// cada exercício — a mesma precedência que a composição do documento usa. Uma segunda cópia da
+// regra aqui divergiria da primeira à primeira correcção.
+const { registosDaEscola } = require('../nucleo/notacao.js');
 
 /**
  * AS CATEGORIAS E AS TRADIÇÕES DO VOCABULÁRIO (18/10/2026). O formulário do termo deixou de
@@ -3676,6 +3680,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       .map((c) => '<option value="' + c + '">' + c + '</option>').join('') +
     '</select>' +
     '<p class="nota" id="vb-musica-nota"></p>' +
+    /* O DESACORDO ENTRE A MÚSICA E A DECOMPOSIÇÃO (03/11/2026). A música edita-se sempre; o que
+       não pode acontecer é o trabalho da decomposição desaparecer por causa disso. Quando os
+       tempos declarados deixam de bater com o que os trechos ocupam, este selo aparece — e é um
+       ESTADO do dado, não um erro de preenchimento: quem decide como resolver é quem ensina.
+       A peça é o `.selo` da folha, no estado `alerta` que já existe (IDENTIDADE-VISUAL §«um
+       estado ou atributo do dado»). */
+    '<p class="nota" id="vb-musica-desacordo" hidden>' +
+    '<span class="selo alerta">Os tempos da música estão em desacordo com a decomposição</span>' +
+    '</p>' +
     '</div>' +
 
     // ---- O FORMULÁRIO DE UM TRECHO -------------------------------------------------------
@@ -5791,7 +5804,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '  html += "</tbody></table>";' +
     '  alvo.innerHTML = html;' +
-    '  bloquearMusica();' +
+    '  pintarDesacordo();' +
     '  pintarCobertura();' +
     '  pintarDuplicar();' +
     // A PRÉVIA DO QUE FICA ESCRITO ACOMPANHA A TABELA: as duas leem as mesmas células, e uma
@@ -5800,21 +5813,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // A COBERTURA é uma frase só, e vale a pena tê-la à parte: a tabela e a cobertura mudam
     // juntas, e a cobertura também se lê quando ainda não há trechos.
-    /* A MÚSICA NÃO SE EDITA DEPOIS DE HAVER TRECHOS (02/11/2026).
+    /* A MÚSICA EDITA-SE SEMPRE, E A DECOMPOSIÇÃO NÃO SE APAGA POR CAUSA DISSO (03/11/2026).
      *
-     * O DEFEITO, medido antes de escrever: com as quatro células do `Plié`, mudar os tempos de 8
-     * para 16 deixava `CELULAS` em **0** e a cobertura em **0**. Meio segundo, sem aviso: o campo
-     * mudava e a decomposição ficava vazia. A causa é a chave — a música É `<tempos>|<compasso>`,
-     * e o rascunho carrega-se dela; uma chave nova não tem células, e as da tela não são as dela.
+     * O DEFEITO, medido em 02/11: com as quatro células do `Plié`, mudar os tempos de 8 para 16
+     * deixava `CELULAS` em **0** e a cobertura em **0**. Meio segundo, sem aviso. A causa é a
+     * chave — a música É `<tempos>|<compasso>`, e o rascunho carregava-se dela; uma chave nova não
+     * tem células, e as da tela não eram as dela.
      *
-     * A SAÍDA DELA, e é a certa: **bloquear o campo**. Uma coisa que apaga trabalho não se deixa
-     * ao alcance de um clique acidental; e a música não é um campo que se afine — é a identidade
-     * da decomposição. Quem quer a mesma decomposição noutra duração tem o «Duplicar o exercício»,
-     * que escreve os tempos e as células na mesma acção e passa por cima disto de propósito. Quem
-     * quer outra música começa outra («Limpar», ou «Apagar» e escrever de novo).
+     * A SAÍDA DE 02/11 FOI BLOQUEAR O CAMPO, E ELA REVERTEU-A (03/11/2026): «Remover o bloqueio
+     * da música. O usuário deve ter total liberdade para editar as informações da música a
+     * qualquer momento.» A regra que fica é a dela, e é melhor do que a trava: **a música muda, os
+     * trechos ficam**. Quem mudou a música vê o desacordo no selo ao lado, e decide — corrige a
+     * música, corrige os sinais, ou acrescenta o trecho que falta.
      *
-     * O CAMPO FICA À VISTA E APAGADO, e não escondido: esconder faria o professor procurá-lo.
-     * `readOnly` no número e `disabled` na lista — um `<select>` não conhece `readOnly`.
+     * QUEM GARANTE QUE OS TRECHOS NÃO SOMEM É `musicaMudou`, e não este comentário: ele NÃO chama
+     * `carregarRascunho` (que recomeça a decomposição a partir da chave), repinta o que depende da
+     * música — a cobertura, a tabela, o selo, a nota de substituição — e deixa `CELULAS` como
+     * está. Trocar de EXERCÍCIO continua a recomeçar, e é outra coisa: outro exercício é outra
+     * decomposição.
      */
     /* O QUE É DO TRECHO, E SÓ ISSO (02/11/2026). A `descricao` guardada é
      * `frase do exercício` + `\n` + `lê-se: …`. A primeira metade é do EXERCÍCIO e repete-se em
@@ -5829,14 +5845,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var l = t.split("\\n");' +
     '  return l.length > 1 ? l.slice(1).join("\\n") : "";' +
     '}' +
-    'function bloquearMusica(){' +
-    '  var t = document.getElementById("vbtempos");' +
-    '  var c = document.getElementById("vbcompasso");' +
-    '  var trava = Object.keys(CELULAS).some(function(d){ return (CELULAS[d] || []).length > 0; });' +
-    '  if (t) { t.readOnly = trava; t.setAttribute("aria-readonly", trava ? "true" : "false"); }' +
-    '  if (c) { c.disabled = trava; }' +
-    '  var nota = document.getElementById("vb-musica-nota");' +
-    '  if (nota) nota.setAttribute("data-travada", trava ? "sim" : "nao");' +
+    /* O SELO DO DESACORDO (03/11/2026) — a peça que ela pediu, e o único sítio que decide quando
+     * ela aparece. As três condições, e todas importam:
+     *  · há música declarada (sem ela não há conta a fazer);
+     *  · há ao menos um trecho (sem decomposição não há desacordo — «ainda não escrevi» não é o
+     *    mesmo que «escrevi a mais», e um selo que aparece no formulário em branco assusta sem
+     *    dizer nada);
+     *  · e os tempos não batem.
+     * A conta é `cobertura()`, a MESMA da tabela e da gravação: uma conta, um sítio.
+     */
+    'function pintarDesacordo(){' +
+    '  var alvo = document.getElementById("vb-musica-desacordo");' +
+    '  if (!alvo) return;' +
+    '  var t = temposTotais(), c = cobertura();' +
+    '  var temTrecho = Object.keys(CELULAS).some(function(d){ return (CELULAS[d] || []).length > 0; });' +
+    '  alvo.hidden = !(t > 0 && temTrecho && c !== t);' +
+    '}' +
+    /* A MÚSICA MUDOU — E OS TRECHOS FICAM (03/11/2026).
+     *
+     * É a alternativa a `carregarRascunho`, que é quem recomeça a decomposição a partir da chave
+     * da música. Este NÃO lê o alfabeto: actualiza a chave em foco, repinta o que depende dela e
+     * deixa `CELULAS` exactamente como estava. Quem quer recomeçar tem o «Limpar» e a troca de
+     * exercício; quem está a corrigir a música tem este.
+     *
+     * `EM_EDICAO` NÃO SE CANCELA, ao contrário do que fazia a troca de compasso: as células são as
+     * mesmas, e cancelar a correcção a meio faria o «Guardar» seguinte acrescentar em vez de
+     * substituir — um trecho duplicado sem ninguém o pedir.
+     */
+    'function musicaMudou(){' +
+    '  var tempos = (document.getElementById("vbtempos") || {}).value || "";' +
+    '  var compasso = (document.getElementById("vbcompasso") || {}).value || "";' +
+    '  var nome = (document.getElementById("vbnome") || {}).value || "";' +
+    '  MUSICA_EM_FOCO = (nome && tempos && compasso) ? tempos + "|" + compasso : "";' +
+    '  pintarTabela();' +
+    '  pintarDesacordo();' +
+    '  pintarContagens();' +
+    '  pintarTira();' +
+    '  pintarPassos();' +
+    '  pintarComoNova();' +
     '}' +
     'function pintarCobertura(){' +
     '  var t = temposTotais(), c = cobertura();' +
@@ -6558,11 +6604,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var notaM = document.getElementById("vb-musica-nota");' +
     '  if (notaM) {' +
     '    var t = Number(tempos) || 0;' +
+    // A NOTA JÁ NÃO DIZ QUE O CAMPO ESTÁ TRAVADO (03/11/2026) — ele não está. O que ela diz é o
+    // que muda com a música: quantos compassos ela tem, e — quando os trechos não batem — que o
+    // desacordo é uma decisão a tomar, e não um erro que a tela vai recusar.
     '    var base = t ? (t + " tempos em " + compasso + " — " + Math.ceil(t / numeradorDoCompasso()) + " compasso(s) de " + numeradorDoCompasso() + ".") : "";' +
-    // O BLOQUEIO DIZ-SE, e diz para onde ir. Um campo apagado sem explicação lê-se como avaria.
-    '    var travada = Object.keys(CELULAS).some(function(d){ return (CELULAS[d] || []).length > 0; });' +
-    '    notaM.textContent = base + (travada' +
-    '      ? " Já tem trechos escritos, e a música não se muda por baixo deles — use «Duplicar o exercício» para a mesma decomposição noutra duração." : "");' +
+    '    var c = cobertura();' +
+    '    var temTrecho = Object.keys(CELULAS).some(function(d){ return (CELULAS[d] || []).length > 0; });' +
+    '    notaM.textContent = base + ((t > 0 && temTrecho && c !== t)' +
+    '      ? " Os trechos ocupam " + c + " — ajuste a música ou os trechos, à sua escolha: gravar não recusa." : "");' +
     '  }' +
     '}' +
     // ================= O MODO DE EDIÇÃO (31/10/2026) ================================
@@ -6857,7 +6906,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (campoFrase) campoFrase.value = FRASE;' +
     '  pintarNotaDaFrase();' +
     '  pintarTrecho();' +
-    '  bloquearMusica();' +
+    '  pintarDesacordo();' +
     '  pintarTabela();' +
     '  pintarTira();' +
     '  pintarPassos();' +
@@ -7069,17 +7118,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        var alvoDeMusica = "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" +' +
     '          x.nome + "\\" data-musica=\\"" + m.chave +' +
     '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button>";' +
+    /* A LISTAGEM MARCA O DESACORDO (03/11/2026), e é o que torna a regra utilizável: a tela aceita
+     * gravar uma música que não fecha, portanto tem de haver onde se ver QUAIS ficaram por
+     * resolver — senão o professor teria de abrir os verbetes um a um para descobrir. A conta é a
+     * que a API já devolve (`cobre` e os `tempos` da chave), e o `> 0` protege os verbetes antigos,
+     * que não declaravam `cobre`: nesses a ausência não é desacordo, é dado que falta. */
+    '        var desacordo = (Number(m.cobre) > 0 && Number(m.tempos) > 0 && Number(m.cobre) !== Number(m.tempos))' +
+    '          ? " <span class=\\"selo alerta\\" title=\\"os trechos ocupam " + m.cobre + " tempos e a música declara " + m.tempos + "\\">tempos em desacordo</span>"' +
+    '          : "";' +
+    /* DE QUEM É A VERSÃO QUE SE ESTÁ A VER (03/11/2026). O alfabeto guarda o verbete do catálogo e
+     * o de cada escola; a listagem mostra um por música, e sem esta marca a escola não distinguiria
+     * a sua edição do que veio do catálogo. É um selo discreto — atributo do dado, não alarme. */
+    '        desacordo += m.escola' +
+    '          ? " <span class=\\"selo discreto\\" title=\\"esta versão é da escola; o catálogo mantém a dele\\">edição da escola</span>"' +
+    '          : " <span class=\\"selo dim\\" title=\\"esta versão é do catálogo — não se apaga pela escola\\">do catálogo</span>";' +
     '        linhas.push("<li class=\\"turma\\" data-verbete=\\"" + x.nome + "\\">" +' +
     '          "<div class=\\"linha-turma\\"><span class=\\"nome\\">" + alvoDeMusica +' +
     '          " " + selos + "</span>" +' +
     // O «APAGAR» É DO EXERCÍCIO, E ESTÁ UMA VEZ SÓ NA PRIMEIRA MÚSICA (02/11/2026). Repeti-lo em
     // cada linha daria dois botões para o mesmo gesto — e um deles pareceria apagar só aquela
     // música. Fica ao lado do nome, no sítio onde as outras listas põem as acções.
-    '          (i === 0 ? "<span class=\\"acoes\\">" +' +
+    //
+    // E SÓ SE APAGA O QUE É DESTA ESCOLA (03/11/2026). O alfabeto guarda o verbete do catálogo e o
+    // de cada escola; apagar o do catálogo pela tela de uma escola tirá-lo-ia a todas. A versão do
+    // catálogo mostra o selo «do catálogo» e não tem botão — um botão que recusa é pior do que a
+    // ausência dele, porque parece avaria.
+    '          (i === 0 && m.escola ? "<span class=\\"acoes\\">" +' +
     '            "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-verbete=\\"" +' +
     '            x.nome + "\\" title=\\"apagar o verbete deste exercício\\">Apagar</button></span>" : "") +' +
     '          "</div>" +' +
-    '          "<div class=\\"dono\\">" + detalhe.join(" · ") + "</div>" +' +
+    '          "<div class=\\"dono\\">" + detalhe.join(" · ") + desacordo + "</div>" +' +
     '          "<div class=\\"trio\\">" +' +
     '          metricaDoVerbete("Música", (m.tempos || "—") + " tempos", "musica",' +
     '            "ver a música deste exercício") +' +
@@ -7262,18 +7330,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    recado("erro", "Falta o que acontece em: " + mudos.join(", ") + " — é a frase que a página da aula mostra.");' +
     '    return;' +
     '  }' +
-    /* AS CÉLULAS TÊM DE FECHAR A MÚSICA (02/11/2026) — e é aqui que se mede, não depois.
+    /* O DESACORDO ENTRE A MÚSICA E AS CÉLULAS NÃO RECUSA — GRAVA E AVISA (03/11/2026).
      *
-     * DEFEITO MEDIDO, e é o que a pesquisadora viu na Aula 01: o verbo do `Battement fondu` está
-     * gravado em «2|4/4» com células que somam 6 tempos, e o do `Plié` em «8|4/4» com células que
-     * somam 12. Os dois passaram a gravação, porque a única coisa que se conferia era `cobre`
-     * contra a soma das células — uma igualdade que o formulário calcula de si para si. A música
-     * não era comparada com nada.
+     * ERA UMA RECUSA, e a recusa tinha o defeito de prender o trabalho: ela mudou a música de um
+     * verbete que já tinha trechos (o caso do §1 do relatório dela) e a gravação parou com
+     * «sobram N tempos» — a decomposição ficava entre uma música que já não é a dela e uma
+     * gravação que não passa. A regra que fica é a dela, escrita na mesma mensagem: a música
+     * edita-se sempre; se divergir, **não se apaga nada**, aparece um alerta, e quem decide como
+     * resolver é quem ensina.
      *
-     * O documento é que pagava: a notação do exercício não fechava em compasso nenhum e a §4 saía
-     * com `conferir` sem dizer a quem. Agora a gravação recusa, e diz ONDE se corrige — a música
-     * (passo 2) ou os trechos (passo 3) — porque são as duas únicas hipóteses: ou a música
-     * declarada é outra, ou falta (ou sobra) um trecho.
+     * O QUE A GRAVAÇÃO CONTINUA A RECUSAR é o que é do verbete consigo mesmo e o que impede o
+     * documento de existir: trecho sem sinais, `cobre` que não bate com as pistas, célula sem
+     * descrição, exercício sem música. Isso é dado inválido, não decisão em aberto.
+     *
+     * O AVISO DIZ ONDE SE CORRIGE — a música (passo 3) ou os trechos (passo 4) —, porque são as
+     * duas únicas hipóteses: ou a música declarada é outra, ou falta (ou sobra) um trecho. E diz
+     * que gravar não recusa, senão a mensagem lê-se como a recusa que deixou de existir.
      *
      * O NÚMERO DOS PASSOS NÃO SE ESCREVE À MÃO: sai de `PASSOS_TITULOS`, que é a mesma lista que
      * desenha a tira. Uma renumeração futura leva a mensagem consigo.
@@ -7292,7 +7364,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * maior. */
     '  var soma = cobertura();' +
     '  var temposDaMusica = Number(tempos) || 0;' +
-    '  if (soma !== temposDaMusica) {' +
+    '  var desacordo = "";' +
+    '  if (temposDaMusica > 0 && soma !== temposDaMusica) {' +
     '    var nM = passoPorRotulo("a música"), nO = passoPorRotulo("para onde");' +
     // AS PISTAS VÃO NA MENSAGEM quando há mais do que uma: sem elas, «a maior pista tem 8» é um
     // número que o professor não tem como conferir a olho — e foi exactamente a incompreensão que
@@ -7301,14 +7374,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var onde = pistasDaVez.ordem.length > 1' +
     '      ? " (pistas: " + pistasDaVez.ordem.map(function(k){ return k.toLowerCase() + " " + pistasDaVez.pistas[k]; }).join(" · ") + " — vale a maior, porque correm ao mesmo tempo)"' +
     '      : "";' +
-    '    recado("erro", "Este verbete não fecha a música: as células ocupam " + soma + " tempos e a música declara " + temposDaMusica + " — " +' +
+    '    desacordo = "As células ocupam " + soma + " tempos e a música declara " + temposDaMusica + " — " +' +
     '      (soma < temposDaMusica ? "faltam " + (temposDaMusica - soma) : "sobram " + (soma - temposDaMusica)) + " tempos" + onde + ". " +' +
-    '      "Corrija no passo " + nM + " («" + rotuloDoPasso(nM) + "») se a música é outra, ou no passo " + nO + " («" + rotuloDoPasso(nO) + "») se falta — ou sobra — um trecho.");' +
-    // A RECUSA NÃO NAVEGA (02/11/2026). Era `irParaPasso(...)`, e o efeito era o relatado: o
-    // utilizador era atirado para o passo 3 sem poder ler a mensagem no sítio onde estava. O
-    // professor é quem decide quando e para onde vai — a mensagem diz onde se corrige, e o botão
-    // de ir continua a fazer o que sempre fez.
-    '    return;' +
+    '      "Gravar não recusa: corrija no passo " + nM + " («" + rotuloDoPasso(nM) + "») se a música é outra, ou no passo " + nO + " («" + rotuloDoPasso(nO) + "») se falta — ou sobra — um trecho.";' +
     '  }' +
     /* A POSIÇÃO NÃO VAI MAIS NO CORPO (02/11/2026): o campo saiu do formulário. `null` é a
      * resposta honesta — «este verbete não declara posição» —, e o validador só confere a posição
@@ -7354,6 +7422,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '         "de valer (" + d.ajustou + "), e os documentos dessa data continuam a ler-se como " +' +
     '         "foram escritos.")' +
     '      : ("gravado — versão " + d.versao));' +
+    /* O DESACORDO NÃO SE CALA DEPOIS DE GRAVAR (03/11/2026). O servidor aceitou — é a regra nova —
+     * e devolve os avisos; a tela mostra-os em vez de dizer só «gravado». Uma gravação que aceita
+     * em silêncio e depois sai em `conferir` no documento é a pior das duas: o professor pensa que
+     * está resolvido. */
+    '    if (d.avisos && d.avisos.length) {' +
+    '      recado("erro", "gravado — versão " + d.versao + ", mas há um desacordo por resolver: " + d.avisos.join(" "));' +
+    '    }' +
+    '    pintarDesacordo();' +
     '    carregarVerbetes();' +
     '  });' +
     '});' +
@@ -7401,15 +7477,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '["vbnome", "vbcompasso"].forEach(function(id){' +
     '  var el = document.getElementById(id);' +
     '  if (el) el.addEventListener("change", function(){' +
-    // TROCAR DE EXERCÍCIO OU DE MÚSICA CANCELA A EDIÇÃO (31/10/2026): as células são outras, e
-    // o trecho que se estava a corrigir deixou de existir neste verbete.
+    // O COMPASSO NÃO RECOMECE A DECOMPOSIÇÃO (03/11/2026): a música edita-se e os trechos ficam.
+    // Quem recomeça é `carregarRascunho`, e ele só corre quando o EXERCÍCIO muda. Por isso este
+    // caso sai antes de tudo o resto — inclusive antes de limpar a correcção em curso, que
+    // continua a ser a mesma célula.
+    '    if (this && this.id === "vbcompasso") { musicaMudou(); return; }' +
+    // TROCAR DE EXERCÍCIO CANCELA A EDIÇÃO (31/10/2026): as células são outras, e o trecho que se
+    // estava a corrigir deixou de existir neste verbete.
     '    EM_EDICAO = null;' +
     // E TROCAR DE EXERCÍCIO ESQUECE A MÚSICA QUE SE TINHA ABERTO (02/11/2026). `MUSICA_ABERTA` é
     // «o registo que estou a editar»; mudar de exercício é deixar de o editar. Sem isto, quem
     // editasse o Plié e depois fosse criar outro exercício levava consigo a memória do Plié — e a
     // gravação seguinte apagava uma música que não tinha nada que ver com o que estava na tela.
-    // O COMPASSO NÃO A ESQUECE: mudar de 4/4 para 3/4 é mudar a música do MESMO exercício, e é
-    // exactamente o caso que tem de substituir.
     '    if (this && this.id === "vbnome") { MUSICA_ABERTA = ""; sugerirMetodo(); }' +
     '    carregarRascunho();' +
     // O PASSO 1 LÊ O EXERCÍCIO ESCOLHIDO (02/11/2026). Depois de carregar o rascunho — que é
@@ -7424,11 +7503,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var el = document.getElementById(id);' +
     '  if (el) el.addEventListener("change", pintarNavegacao);' +
     '});' +
-    // O `input` dos tempos recarrega também: mudar de 8 para 12 tempos muda a MÚSICA, e com ela
-    // o verbete — não é uma repintura da mesma coisa.
+    // O `input` DOS TEMPOS NÃO RECOMECE A DECOMPOSIÇÃO (03/11/2026). Era `carregarRascunho`, e o
+    // efeito era o relatado por ela: mudar os tempos apagava os trechos que estavam na tela. A
+    // música edita-se; o que muda é o aviso — a cobertura, a nota e o selo do desacordo. Quem
+    // recomeça a decomposição a partir do alfabeto é `carregarRascunho`, que só corre quando o
+    // EXERCÍCIO muda ou quando um verbete é aberto para edição.
     '(function(){' +
     '  var t = document.getElementById("vbtempos");' +
-    '  if (t) t.addEventListener("input", carregarRascunho);' +
+    '  if (t) t.addEventListener("input", musicaMudou);' +
     '})();' +
     // A FRASE DO VERBETE (31/10/2026). O campo é do exercício e não do trecho: escrevê-lo não
     // repinta a decomposição que já está gravada (o que está escrito não se reescreve) — só a
@@ -7634,41 +7716,45 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * no «Editar» do trecho, onde vê o que está a mudar.
      *
      * A CÓPIA ENTRA NO FIM DE CADA DIREÇÃO, e é o que se quer: o compasso é derivado da ORDEM
-     * dentro da pista, portanto as cópias caem nos compassos seguintes — 8 tempos viram 16, com
-     * os compassos 3 e 4 a repetir a estrutura dos compassos 1 e 2.
+     * dentro da pista, portanto as cópias caem nos compassos seguintes.
      *
-     * OS TEMPOS SOBEM, e o campo é escrito AQUI, não pelo utilizador: duplicar um bloco de 8
-     * numa música de 8 deixaria a música a declarar 8 e as células a cobrir 16 — a gravação
-     * recusaria com «sobram 8 tempos» o resultado de uma acção que a própria tela ofereceu.
-     * `MUSICA_EM_FOCO` acompanha, senão o envio recarregava o rascunho da música antiga e
-     * apagava o que se acabou de duplicar.
+     * OS TEMPOS NÃO SOBEM (03/11/2026) — E ERA O CONTRÁRIO ATÉ AQUI. O campo `vbtempos` era
+     * escrito por esta função (`declarado + bloco`), com o argumento de que a gravação recusaria
+     * «sobram 8 tempos» o resultado de uma acção que a própria tela ofereceu. O argumento partia
+     * de uma premissa que ela reverteu: o desacordo **não** recusa. E a escrita tinha um defeito
+     * próprio, medido: duplicar um bloco de 4 numa música de 8 dava 12, e a duplicação seguinte
+     * somava outra vez — o tempo musical crescia por cada gesto, o que não é duplicar um trecho,
+     * é reescrever a música sem ninguém pedir. A música é a base rítmica do exercício e define-se
+     * no passo 3; o que a cópia muda é o que a decomposição OCUPA, e isso o selo declara.
      */
     'function duplicarExercicio(){' +
     '  limparBaldesVazios();' +
     '  var bloco = cobertura();' +
     '  if (!bloco) { recado("erro", "Ainda não há trechos para duplicar."); return; }' +
-    '  var declarado = temposTotais();' +
-    '  var novo = (declarado > 0 ? declarado : bloco) + bloco;' +
     '  var alvo = {};' +
     '  Object.keys(CELULAS).forEach(function(d){' +
     '    var lista = CELULAS[d] || [];' +
     '    alvo[d] = lista.concat(JSON.parse(JSON.stringify(lista)));' +
     '  });' +
     '  CELULAS = alvo;' +
-    '  var campo = document.getElementById("vbtempos");' +
-    '  if (campo) campo.value = String(novo);' +
-    '  var compasso = (document.getElementById("vbcompasso") || {}).value || "";' +
-    '  MUSICA_EM_FOCO = novo + "|" + compasso;' +
+    // A MÚSICA NÃO SE TOCA (03/11/2026). Era `novo = declarado + bloco` escrito no campo, e o
+    // efeito é o que ela relatou: uma música de 8 tempos ia a 12 ao duplicar um bloco de 4, e a
+    // cada duplicação somava outra vez. A música é a BASE RÍTMICA do exercício — quem a define é
+    // o passo 3 —, e duplicar um trecho não a reescreve. O que a cópia faz é ocupar mais tempos,
+    // e isso é um estado declarado (o selo do desacordo), não um número inventado.
     '  pintarTabela();' +
     '  pintarContagens();' +
     '  pintarTira();' +
-    // E A NOTA DA SUBSTITUIÇÃO, que é a consequência de duplicar dentro de uma edição (02/11/2026).
-    // A duplicação muda os tempos, portanto muda a música — e gravar passa a substituir a de onde
-    // se veio. Isso tem de estar à vista ANTES de gravar, não depois. Sem esta chamada, a caixa
-    // ficava escondida e o aviso vazio, e o corpo enviado já levava `musicaAnterior`: a tela
-    // apagava a música antiga sem o ter dito.
+    // A NOTA DA SUBSTITUIÇÃO continua a ser repintada, mas já não por esta acção mudar a música:
+    // quem a mudou foi ela, no passo 3, e `musicaMudou` já a pôs à vista. Fica aqui porque a
+    // tabela repinta o resto e esta nota faz parte do que se vê antes de gravar.
     '  pintarComoNova();' +
-    '  recado("ok", "exercício duplicado — a música passa a " + novo + " tempos. Mude a posição na cópia com «Editar».");' +
+    '  var t = temposTotais(), c = cobertura();' +
+    '  var aviso = (t > 0 && c !== t)' +
+    '    ? ", e a música declara " + t + ". O desacordo está marcado — ajuste a música ou os trechos."' +
+    '    : ".";' +
+    '  recado("ok", "trechos duplicados — a decomposição passa a ocupar " + c + " tempos" + aviso +' +
+    '    " Mude a posição na cópia com «Editar».");' +
     '}' +
     '["vb-cel-duplicar"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
@@ -9066,9 +9152,21 @@ async function fetch(request, env) {
       // que é o mesmo de onde sai o «conteúdo do nível» do plano — e é isso que faz o verbete
       // casar com o exercício em vez de quase casar.
       exerciciosDoVocabulario: podeSerExercicio,
-      exercicios: listarVerbetes(lido.dados),
-      verbetes: Object.fromEntries(Object.entries(lido.dados.verbetes || {})
-        .filter(([k]) => !k.startsWith('_'))),
+      // A VISTA É A DA ESCOLA (03/11/2026). O alfabeto guarda o verbete do catálogo e o de cada
+      // escola (`8|4/4` e `8|4/4@breu`), e o que esta resposta serve é o que ESTA escola vê: o
+      // catálogo mais o dela, com o dela a vencer. Sem isto, a Produção da `breu` abria com duas
+      // músicas iguais e o `editar` de cada uma — duas linhas para o mesmo exercício.
+      exercicios: listarVerbetes(lido.dados, escola),
+      verbetes: (function () {
+        const porExercicio = (lido.dados && lido.dados.verbetes) || {};
+        const saida = {};
+        for (const nome of Object.keys(porExercicio)) {
+          if (nome.startsWith('_')) continue;
+          const vistos = registosDaEscola(porExercicio[nome], escola);
+          if (Object.keys(vistos).length) saida[nome] = vistos;
+        }
+        return saida;
+      })(),
       posicoes: (lido.vocabulario || [])
         .filter((t) => t && t.categoria === 'posicao')
         // `nome` É A ETIQUETA LOCALIZADA (02/11/2026). O `termo` é o nome na língua da
@@ -9174,6 +9272,10 @@ async function fetch(request, env) {
       vinculado: vinculado,
       vigenteDe: corpo.vigenteDe,
       motivo: corpo.motivo,
+      // O DONO VAI NO VERBETE (03/11/2026): é o `ESCOLA_SLUG` do Worker, e não o parâmetro do
+      // pedido — o dono de um verbete não se escolhe na tela. Sem isto, a escola de teste
+      // escreveria no verbete do catálogo, que é o que se vende.
+      escola: escola,
     });
     return json(r.ok ? 200 : (r.status || 400), r);
   }
@@ -9270,6 +9372,9 @@ async function fetch(request, env) {
       dono: 'tmenegaz', repo: 'danca', ref: 'main',
       modalidade: String(corpo.modalidade || 'bale-classico'),
       nome: nome,
+      // APAGA-SE O QUE É DESTA ESCOLA (03/11/2026). O apagar do catálogo passa pelo mesmo caminho,
+      // com `escola` vazia — e é a rota que não deixa uma escola apagar o que se vende.
+      escola: escola,
     });
     return json(r.ok ? 200 : (r.status || 400), r);
   }

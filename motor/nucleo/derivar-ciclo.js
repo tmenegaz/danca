@@ -80,6 +80,20 @@ function dataDoEnvelope(envelope) {
   return achado ? achado[1] : '';
 }
 
+/**
+ * A ESCOLA DO ENVELOPE (03/11/2026) — o dono que a composição consulta.
+ *
+ * O alfabeto passou a guardar o verbete de cada escola com o dono na chave (`8|4/4@breu`), e quem
+ * compõe o documento de uma aula tem de saber de quem é: a versão da escola vence a do catálogo,
+ * como no vocabulário. O `contexto` do envelope é a fonte — `contexto.escola` —, e o `contexto`
+ * do ciclo é o mesmo campo, com outro caminho. Sem nenhum dos dois, devolve vazio: catálogo.
+ */
+function escolaDoEnvelope(envelope, contexto) {
+  const doContexto = String((contexto && contexto.escola) || '').trim();
+  if (doContexto) return doContexto;
+  return String(((envelope && envelope.contexto) || {}).escola || '').trim();
+}
+
 /** A resposta de um id no envelope (alias curto do `respostaDo` do irmão). */
 function resp(envelope, id) {
   return respostaDo(envelope, id);
@@ -441,7 +455,7 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     const notacao = notacaoEscolhida(plano);
     const alfabeto = notacao ? moduloNotacao.paraNotacao(notacao) : null;
     const composicoes = sequencia && alfabeto
-      ? moduloNotacao.comporTodas(sequencia, alfabeto, dataDoEnvelope(plano))
+      ? moduloNotacao.comporTodas(sequencia, alfabeto, dataDoEnvelope(plano), escolaDoEnvelope(plano, contexto))
       : null;
 
     if (!composicoes) {
@@ -843,7 +857,7 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('');
 
   const composicoes = linhas
-    ? moduloNotacao.comporTodas(linhas, alfabetoDoCiclo, dataDoEnvelope(plano))
+    ? moduloNotacao.comporTodas(linhas, alfabetoDoCiclo, dataDoEnvelope(plano), escolaDoEnvelope(plano, contexto))
     : null;
 
   if (!composicoes) {
@@ -987,7 +1001,7 @@ function derivarGlossario({ plano, contexto }) {
   const alfabeto = moduloNotacao.paraNotacao(notacao);
   const linhas = sequenciaComoObjetos(plano);
   const composicoes = linhas && alfabeto
-    ? moduloNotacao.comporTodas(linhas, alfabeto, dataDoEnvelope(plano))
+    ? moduloNotacao.comporTodas(linhas, alfabeto, dataDoEnvelope(plano), escolaDoEnvelope(plano, contexto))
     : null;
   const usados = composicoes ? moduloNotacao.sinaisUsados(composicoes, alfabeto) : new Map();
 

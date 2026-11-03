@@ -224,7 +224,9 @@ function integridadeDoVerbete(celulas, cobre, temposDaMusica, coberturaDe) {
 
 /** A chave de uma música é `tempos|compasso` — a mesma do alfabeto, escrita uma vez. */
 function chaveDaMusica(chave) {
-  const partes = String(chave == null ? '' : chave).split('|');
+  // O DONO NA CHAVE NÃO É MÚSICA (03/11/2026). Um verbete de escola é gravado em `8|4/4@breu`;
+  // sem esta limpeza o compasso sairia «4/4@breu» e a música deixaria de casar com a do plano.
+  const partes = String(chave == null ? '' : chave).split('@')[0].split('|');
   if (partes.length !== 2) return null;
   const tempos = partes[0].trim();
   const compasso = partes[1].trim();
