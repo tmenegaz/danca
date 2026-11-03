@@ -4,7 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `49fb3e6`, árvore limpa). Nesta entrega, **o dono da
+> **Última fotografia:** 03/11/2026 (base `cbd9b18`, árvore limpa). Nesta entrega, **a metodologia
+> deixou de se perguntar duas vezes**. O Bloco 1 do plano pedia-a em dois itens — «Metodologia de
+> referência» e «Quem escolhe a metodologia» («Eu escolho · A escola impõe») — e os dois já estavam
+> respondidos na **curadoria**. **(1) O item 5 deixou de existir**: a premissa passou a ser do
+> domínio e é permanente — **o professor escolhe, a metodologia pertence ao professor**, como a
+> modalidade. Um facto que não varia com o ciclo não se pergunta ciclo a ciclo. **(2) O item 4
+> passou a leitura do cabeçalho** (`noCabecalho` + `daCuradoria: 'tradicao'`), com o **rótulo** do
+> catálogo («Francesa», e não a chave `francesa`). **(3) O envelope continua a levar o valor
+> semeado** — é dele que o `.md` do plano e o PO o extraem; sem isso o documento passaria a dizer
+> «[a decidir]» sobre um dado que a curadoria declara. Dois defeitos apanhados pelo caminho:
+> `daCuradoria()` lia uma string **caractere a caractere** (a tradição chegava como `f`), e os
+> rótulos das tradições não chegavam à porta — passaram a vir na mesma resposta da curadoria. Prova
+> nova: `provar-metodologia-no-cabecalho`, **20 asserções em 5 secções**, com controlo negativo.
+>
+> **Entrega anterior** (base `49fb3e6`, árvore limpa). Nesta entrega, **o dono da
 > música deixou de aparecer no compasso**. A coluna «Compasso» da sequência do plano mostrava
 > `2/4 @breu`: o sufixo é o **dono do registo do alfabeto** (`8|2/4@breu`), que existe para o
 > catálogo e a escola poderem declarar a mesma música sem colidir — armazenamento, e não fórmula.
@@ -16,7 +30,7 @@
 > `provar-compasso-limpo`, **16 asserções em 4 secções**, com o controlo da §C a provar primeiro
 > que a bancada serve mesmo o sufixo.
 >
-> **Entrega anterior** (base `85ff724`, árvore limpa). Nesta entrega, **o formulário
+> **Entrega anterior a essa** (base `85ff724`, árvore limpa). Nesta entrega, **o formulário
 > da curadoria passou a prometer só o que existe**. **(1) A lista de conteúdos** oferecia o
 > vocabulário inteiro — 93 palavras — e duas tinham decomposição; passa a oferecer os exercícios
 > que **têm notação** (um verbete com música e, dentro dela, ao menos um trecho), por
@@ -1496,6 +1510,28 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**A metodologia deixou de se perguntar dentro do plano (03/11/2026).** O Bloco 1 pedia duas coisas
+que a curadoria já responde: «Metodologia de referência» (campo obrigatório) e «Quem escolhe a
+metodologia» («Eu escolho · A escola impõe»). **O segundo deixou de existir**, e a razão não é
+limpeza de tela: a resposta passou a ser **premissa do domínio** — **o professor escolhe, a
+metodologia pertence ao professor**, como a modalidade —, e um facto que não varia com o ciclo não
+se pergunta ciclo a ciclo. Perguntá-lo sugeria que podia variar. **O primeiro passou a leitura do
+cabeçalho** (`noCabecalho: true` + `daCuradoria: 'tradicao'`), junto da escola, da turma e do
+ritmo: **DECIDIDO**, e a maquinaria era a mesma que já existia — faltava a **origem**, porque havia
+`daTurma` e não havia `daCuradoria`. O valor continua a ser **semeado no envelope**, e é a parte que
+uma limpeza apressada teria perdido: é dele que o `.md` do plano e o PO o extraem. **CONFIRMADO** por
+`provar-metodologia-no-cabecalho` (20 asserções, 5 secções, com controlo negativo: sem curadoria
+não se inventa nada).
+
+**Duas coisas que a tela mostrava e ninguém tinha visto.** `daCuradoria()` só sabia percorrer
+listas — e o `for…of` de uma **string** percorre os **caracteres**: a tradição `francesa` chegava
+como `f`, e o cabeçalho diria «Metodologia de referência: f». Estava latente desde que a curadoria
+existe; nenhum leitor lia um campo escalar até esta volta. E os **rótulos** das tradições
+(`francesa` → «Francesa») vivem em `tradicoes.json` e não chegavam à porta: passaram a vir na
+**mesma resposta** de `/api/bastidores/curadoria-professor` (`rotulos`), e não numa rota nova — é o
+mesmo ficheiro, é o mesmo pedido, e uma segunda leitura seria uma segunda cópia do mesmo mapa a
+divergir.
+
 **O formulário da curadoria promete só o que existe (03/11/2026).** A lista de conteúdos passou a
 ser a dos **exercícios com notação** — um verbete com música e, dentro dela, ao menos um trecho —,
 e não o vocabulário inteiro: eram **93** palavras para **duas** decomposições, e a lista cresce ou
@@ -1991,7 +2027,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — o compasso sem o dono da música)
+### Executado nesta fotografia (03/11/2026 — a metodologia é do professor)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-metodologia-no-cabecalho.js` (novo) | **TUDO CERTO — 20 asserções em 5 secções**. **§A** o conteúdo: o nó é do **cabeçalho**, declara `daCuradoria: 'tradicao'`, deixou de ser obrigatório e perdeu `forma`/`aberto`; o «Quem escolhe a metodologia» **não existe** em sítio nenhum, e a frase «A escola impõe» desapareceu. **§B** sem campo no corpo e sem degrau no roteiro. **§C** a barra mostra **«Francesa»** (o rótulo, não a chave), e a leitura do corpo diz de onde vem e que ali não se preenche. **§D** o `.md` publica a metodologia e deixou de publicar a autoria. **§E** o **controlo negativo**: sem curadoria não se semeia, não se mostra e o documento declara a lacuna |
+| `provar-teste` | **45 verificações, TODAS verdes** — estava vermelho, e por uma razão que importa: afirmava «os nós do cabeçalho não são 7» em dois sítios e escrevia `- 7` num terceiro. A metodologia entrou no cabeçalho, a conta passou a **8**. O número passou a ser **derivado do mapa**: o que a asserção guarda é a igualdade entre os nós marcados e os que o roteiro salta |
+| `provar-plano-e-curadoria` · `provar-compasso-limpo` · `provar-curadoria-e-limpeza` · `provar-aula-e-plano-legiveis` | **TUDO CERTO** nas quatro |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o caminho do schema aponta para `professores/leticia/`, que já não existe) · `provar-derivados-da-sequencia` (2 falhas) — medidos com o motor de HEAD, não tocados |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
+
+### Executado na fotografia anterior (03/11/2026 — o compasso sem o dono da música)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2829,6 +2876,16 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **A metodologia é do professor, e não se pergunta duas vezes.** O Bloco 1 do
+  plano pedia «Metodologia de referência» e «Quem escolhe a metodologia» («Eu escolho · A escola
+  impõe»), e os dois já estavam respondidos na curadoria. O **item 5 deixou de existir** (a
+  premissa é do domínio e é permanente: o professor escolhe), e o **item 4 passou a leitura do
+  cabeçalho** (`noCabecalho` + `daCuradoria: 'tradicao'`), com o rótulo do catálogo. O **envelope
+  continua a levar o valor semeado** — é dele que o `.md` e o PO o extraem. Dois defeitos
+  apanhados pelo caminho: `daCuradoria()` lia uma string caractere a caractere, e os rótulos das
+  tradições não chegavam à porta. Prova nova: `provar-metodologia-no-cabecalho`, 20 asserções.
+  `provar-teste` voltou a verde (45) ao deixar de escrever à mão o número de nós do cabeçalho.
 
 - **03/11/2026** — **O dono da música não é compasso.** A coluna «Compasso» da sequência do plano
   mostrava `2/4@breu`; o sufixo é o dono do registo do alfabeto (armazenamento). Limpo na **fonte**

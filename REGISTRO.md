@@ -33378,3 +33378,80 @@ mostra usa `porMusica` (limpo) com a `chaveGravada` ao lado. Fica escrito para a
 a «corrigir» por engano. (b) Fora do plano, a Produção mostra a música no cartão do verbete a partir
 de `porMusica`, que já vinha limpo — não havia segundo sítio a corrigir. (c) O caminho crítico
 continua o de sempre: plano e PO por gravar (token morto), e o conteúdo.
+
+## 03/11/2026 — A metodologia é do professor, e não se pergunta duas vezes
+
+**O que motivou.** A pesquisadora: «a metodologia de referência e sua respectiva escolha já vêm
+pré-definidas e vinculadas estruturalmente no processo de Curadoria […]. Exigir que o professor
+preencha isso novamente dentro do preenchimento do Plano de Ensino gera redundância operacional».
+Os dois itens do Bloco 1 — **4. Metodologia de referência** e **5. Quem escolhe a metodologia** —
+pediam ao professor, ciclo a ciclo, um facto que a escola já registou ao habilitá-lo.
+
+**A direção de domínio, e é ela que fica decidida.** Entre «eu escolho» e «a escola impõe», o
+sistema adopta **permanentemente** a primeira: **o professor escolhe / a metodologia pertence ao
+professor**. A justificativa é a mesma da modalidade — a competência técnica é de quem ensina, e a
+escola a oferece por reflexo (derivação das habilitações). É por isso que o item 5 **deixa de
+existir** em vez de mudar de sítio: uma pergunta cuja resposta passa a ser uma premissa do domínio
+não se pergunta ciclo a ciclo, e perguntá-la sugeria que podia variar.
+
+**O que saiu, e o que passou a ler-se.**
+
+| Item | Antes | Agora |
+|:--|:--|:--|
+| 4. Metodologia de referência | campo obrigatório do Bloco 1 (`forma` + `aberto`) | `noCabecalho: true` + `daCuradoria: 'tradicao'` — **lê-se**, não se escreve |
+| 5. Quem escolhe a metodologia | campo obrigatório («Eu escolho · A escola impõe») | **removido** — premissa do domínio |
+
+A maquinaria do cabeçalho já existia (é a mesma da escola, da turma e do ritmo: um nó `noCabecalho`
+não é degrau do roteiro e desenha-se em leitura). O que faltava era a **origem**: havia `daTurma`
+para o ritmo e não havia `daCuradoria` para o que a direção curou.
+
+**O envelope continua a levar o valor, e essa é a parte que uma limpeza apressada teria perdido.**
+É dele que o documento do plano — e o PO, que lê a metodologia no plano referenciado — a extraem. A
+semente grava o **rótulo** («Francesa»), não a chave (`francesa`): este campo sempre foi texto
+humano, e é ele que se publica. Sem a semente, o `## Contexto` do `.md` passaria a dizer
+«[a decidir]» sobre um dado que a curadoria declara — a limpeza a degradar o documento.
+
+**Dois defeitos apanhados pelo caminho, e nenhum dos dois era o pedido.**
+
+1. **`daCuradoria()` só sabia ler listas.** O `for…of` de uma string percorre os **caracteres**: a
+   tradição `francesa` chegava à tela como `f`, e o cabeçalho mostrava «Metodologia de referência:
+   f». O defeito estava latente desde que a curadoria existe — mas nenhum leitor lia um campo
+   escalar até hoje. Passa a tratar lista e escalar na mesma leitura.
+2. **Os rótulos das tradições não chegavam à porta.** Vivem em `tradicoes.json` (`francesa` →
+   «Francesa»), e a porta só os conhecia pela chave. Vão na **mesma resposta** da curadoria
+   (`/api/bastidores/curadoria-professor` → `rotulos`), e não numa rota nova: é o mesmo ficheiro, é
+   o mesmo pedido, e uma segunda leitura seria uma segunda cópia do mesmo mapa a divergir.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-metodologia-no-cabecalho` (novo) | **TUDO CERTO — 20 asserções, 5 secções**. **§A** o conteúdo (o nó é do cabeçalho, `daCuradoria: tradicao`, sem `forma`; o «quem escolhe» não existe, e «A escola impõe» não aparece em sítio nenhum). **§B** sem campo no corpo e sem degrau no roteiro. **§C** a barra mostra «Francesa» — o rótulo, não a chave —, e a leitura do corpo diz de onde vem e que ali não se preenche. **§D** o `.md` publica a metodologia e deixou de publicar a autoria. **§E** o **controlo negativo**: sem curadoria não se semeia, não se mostra e o documento declara a lacuna |
+| `provar-teste` | **45 verificações, TODAS verdes** — e estava vermelho: afirmava «os nós do cabeçalho não são 7» em dois sítios e escrevia `- 7` num terceiro. A metodologia entrou no cabeçalho, a conta passou a 8. O número passou a ser **derivado do mapa** (o que a asserção guarda é a igualdade entre os nós marcados e os que o roteiro salta) |
+| `provar-plano-e-curadoria` · `provar-compasso-limpo` · `provar-curadoria-e-limpeza` · `provar-aula-e-plano-legiveis` | **TUDO CERTO** nas quatro |
+| `check-identidade` · `check-indices` · `check-schemas` | **20/20** (a cópia da porta no pacote foi regerada) · **14/14** · **TUDO CERTO** |
+| **vermelhos, e de antes** | `provar-plano-completo` · `provar-po-completo` (o `leticia` do caminho do schema já não existe) · `provar-derivados-da-sequencia` (2) — medidos com o motor de HEAD, não tocados |
+| **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
+`porta/plano/conteudo/plano.json` é conteúdo, e a folha não mudou.
+
+**Com o quê.** `porta/plano/conteudo/plano.json` (os dois itens) · `porta/index.html`
+(`valorDaCuradoria`, `textoDaCuradoria`, `rotuloDaTradicao`, `daCuradoria` com os dois tipos, a
+leitura no cabeçalho e na barra, a semente) · `motor/nucleo/derivar-plano-ciclo.js` (o grupo do
+contexto) · `motor/nucleo/derivar-po.js` (a composição da metodologia e o mapa de rótulos) ·
+`motor/servidor/bastidores.js` (os rótulos na resposta da curadoria) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/` (a cópia, regerada) ·
+`experimentos/provar-metodologia-no-cabecalho.js` (novo) · `experimentos/provar-teste.js` ·
+`.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**Referências.** A especificação dela de 03/11/2026 · `ARQUITETURA-GERAL.md` §2.2 e §2.3 (a
+modalidade e o ensino pertencem ao professor) · P-03/P-04, P-16 · `tradicoes.json` (o rótulo vive no
+dado).
+
+**O que ainda não está feito.** (a) **O PO deixou de publicar «Quem escolhe a metodologia»** — a
+linha sai do documento dele na próxima geração; um PO antigo continua a lê-la do plano antigo, e
+nada se reescreve (P-03/P-04). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se:
+não é a mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a
+decisão é dela. (c) O caminho crítico é o de sempre: plano e PO por gravar (token morto) e o
+conteúdo.
