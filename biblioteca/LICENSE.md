@@ -30,6 +30,18 @@ Cada uma existe por uma razão medida neste projeto, e não por fórmula.
    regra da C5a, do lado do conteúdo: o que a escola contratou tem data, e a data é o que se pode
    conferir depois.
 
+   > **De onde vem a data, enquanto não há contrato (02/11/2026).** A data do **contrato** é um acto
+   > de negócio (C8) e ainda não existe. Até existir, o produto cita a **fotografia derivada** — a
+   > data do último commit que tocou o catálogo, mais o `commit`, a mesma técnica que tornou o PDF
+   > reprodutível (`SOURCE_DATE_EPOCH`). Ela é **verdadeira e conferível por máquina**, e é
+   > reproduzível: duas gerações do mesmo catálogo dão a mesma data.
+   >
+   > **Ela é derivada, e não é o mesmo objecto.** Diz «esta é a versão do catálogo nesta data»; não
+   > diz «esta é a versão que esta escola comprou». **No dia em que o contrato existir, a data dele
+   > vence** e esta passa a ser só o que o gerador sabe dizer sozinho. Até lá a cláusula 1 vale
+   > **pela metade** — e é essa metade que está declarada como pendência no `REGISTRO.md`, não como
+   > cumprimento.
+
 2. **Perpétua para a versão contratada.** O que a escola pagou **não lhe é retirado** quando o
    catálogo evolui. Correcções e acrescentos posteriores chegam como **versão nova**, e a escola
    decide se os recebe. É a L9 aplicada ao produto: a trava não pode ser punição ao dado.
