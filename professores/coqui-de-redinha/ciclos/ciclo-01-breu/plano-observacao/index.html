@@ -5907,8 +5907,20 @@ function botaoDasAnamneses(no) {
     '<div class="detalhe oculto" data-turma-aviso="' + escapar(no.id) + '"></div>';
 }
 
-/* A turma do plano, como lista de apelidos. `contexto-turma` pode ser texto ou lista. */
-function turmaDoPlano() {
+/* OS NOMES das turmas do plano, como lista. `contexto-turma` pode ser texto ou lista.
+ *
+ * O NOME MUDOU A 03/11/2026, E NÃO É COSMÉTICA. Esta função nasceu a 02/11/2026 chamada
+ * `turmaDoPlano` — o mesmo nome de uma função que já existia (a que devolve a TURMA, para o ritmo
+ * e o conteúdo descerem dela). Duas declarações de função no mesmo escopo: a SEGUNDA ganha para
+ * todos os chamadores, por hoisting. Quem esperava a turma passou a receber um array — e um array
+ * não dá erro: `t.periodoInicio` era `undefined`, `Number(t.frequencia)` era `NaN`, e
+ * `termosDaTurma(t.id)` era `termosDaTurma(undefined)`, que devolve `[]`.
+ *
+ * O efeito era o pior possível: o plano deixou de ler a turma (frequência, duração, calendário,
+ * total de aulas) e a coluna «Conteúdo do nível» deixou de mostrar o que a direção curou — sem uma
+ * palavra na tela. Medido por `experimentos/provar-plano-e-curadoria.js`, que compara os dois nomes
+ * e reprova se voltarem a colidir. */
+function nomesDasTurmasDoPlano() {
   const cru = RESPOSTAS.get('contexto-turma');
   const lista = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
   return lista.map((v) => String(v).trim()).filter(Boolean);
@@ -5923,7 +5935,7 @@ async function derivarDasAnamnesesDaTurma(botao, no) {
     aviso.innerHTML = '<p class="' + (tipo || 'sub') + '">' + escapar(texto) + '</p>';
   };
 
-  const turma = turmaDoPlano();
+  const turma = nomesDasTurmasDoPlano();
   const professor = (($('ctx-professor') || {}).value || '').trim();
   if (!turma.length) {
     return dica('Escolha a turma no começo do plano — a sugestão vem das anamneses das alunas '

@@ -7226,11 +7226,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // dela. Sem esta chamada, entrar na edição mudava o aviso e o «!» e deixava a linha igual.
     '  pintarTabela();' +
     '}' +
-    'function cancelarEdicao(){' +
+    'function cancelarEdicaoDoVerbete(){' +
     // CANCELAR SAI DA CORRECÇÃO E NÃO MEXE NO PASSO (02/11/2026) — é o comportamento que ela
     // marcou como CORRECTO e pediu para preservar. Antes ele saltava para o último passo, o que
     // dava o mesmo resultado por acidente (a edição começava nos passos do trecho); agora que ela
     // começa na tabela, «não mexer» é a regra explícita.
+    //
+    // O NOME TEM «DoVerbete» DESDE 03/11/2026, e o sufixo não é estilo. Esta função chamava-se
+    // `cancelarEdicao`, como a da TURMA (a que apaga a memória e volta ao passo 1). Duas
+    // declarações no mesmo IIFE: a última ganhava, e o «Cancelar» da turma passou a correr ESTA —
+    // limpando o estado do verbete em vez de sair da edição da turma. Medido por
+    // `experimentos/provar-plano-e-curadoria.js` §E e por `provar-cartao-da-turma`.
     '  EM_EDICAO = null;' +
     '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = []; SINAL_EM_TROCA = null; REPETICOES = 1;' +
     '  var selRepX = document.getElementById("vb-repeticoes"); if (selRepX) selRepX.value = "1";' +
@@ -7844,7 +7850,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  irParaPasso(1);' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
-    'function temposDaContagem(c){' +
+    // ESTA CONTA NUNCA CORREU (03/11/2026). Ela chamava-se `temposDaContagem` — o mesmo nome da que
+    // está acima, junto de `temposDaCelula` —, e num mesmo escopo a segunda declaração ganha: a de
+    // cima é que valia. Ninguém a chamava; o nome só servia para trocar a conta que corria por esta.
+    // O nome passou a dizer o que é, e a conta de cima voltou a ser a única.
+    'function temposDaContagemPelaMusica(c){' +
     '  var n = String(c || "").match(/\\d+/g);' +
     '  if (!n) return 0;' +
     '  if (n.length === 1) return 1;' +
@@ -8212,7 +8222,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     '["vb-cancelar-edicao", "vb-cancelar-edicao-2"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
-    '  if (b) b.addEventListener("click", cancelarEdicao);' +
+    '  if (b) b.addEventListener("click", cancelarEdicaoDoVerbete);' +
     '});' +
     // O «EDITAR» E O «×» DA TABELA. O «Editar» carrega o trecho nos passos do trecho e abre o modo de
     // edição; o «×» tira-o. Em edição, o «×» **não** aparece: apagar o trecho que se está a
@@ -8227,7 +8237,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      return;' +
     '    }' +
     '    var can = e.target.closest ? e.target.closest("button[data-cancelar-edicao]") : null;' +
-    '    if (can) { cancelarEdicao(); return; }' +
+    '    if (can) { cancelarEdicaoDoVerbete(); return; }' +
     '  });' +
     '}' +
     // ACRESCENTAR O TRECHO. A recusa diz O QUE FALTA, campo a campo — e nunca «faltam campos».
