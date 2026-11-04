@@ -1,0 +1,145 @@
+{
+  "contexto": {
+    "frequenciaSemanal": "2x semanal — qua e sex",
+    "duracaoPorAula": "45 minutos",
+    "calendario": "2027-03-03 → 2027-06-30",
+    "numeroTotalDeAulas": "35",
+    "professorResponsavel": "coqui-de-redinha",
+    "turmaObservada": "Balé Nível 1 — Teste 3",
+    "volumeDeTrabalho": "3–6 séries",
+    "condicaoDeRegistro": "Na sala: professor, alunas da turma · observa: o próprio professor.",
+    "metodologiaDeReferencia": "RAD",
+    "notacaoDominada": "Benesh"
+  },
+  "objetivoGeral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+  "objetivosEspecificos": [
+    {
+      "n": "01",
+      "objetivo": "reconhecer o apoio e alinhar o eixo vertical",
+      "blocos": "Barra · Centro · Musicalidade · Expressão"
+    },
+    {
+      "n": "02",
+      "objetivo": "transferir o peso entre os pés sem perder o alinhamento",
+      "blocos": "Barra · Centro · Musicalidade · Expressão"
+    }
+  ],
+  "marcosPorAula": [
+    {
+      "n": "01",
+      "objetivos": "01",
+      "marco": "reconhecer o apoio e alinhar o eixo vertical"
+    },
+    {
+      "n": "02",
+      "objetivos": "02",
+      "marco": "transferir o peso entre os pés sem perder o alinhamento"
+    }
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "Barra",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Apoio e alinhamento."
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Transferência e sequência."
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo": "10%",
+      "justificativa": "Pulso e frase."
+    },
+    {
+      "bloco": "Expressão",
+      "proporcaoAlvo": "[a decidir]",
+      "justificativa": "Braços"
+    }
+  ],
+  "condicoesPreliminares": [
+    "Sala com barra, espelho e aparelho de som; piso adequado."
+  ],
+  "reguaDaRubrica": [
+    "Ótimo",
+    "Bom",
+    "Regular",
+    "Insuficiente"
+  ],
+  "criterioDeExtensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
+  "aspectoFisico": [
+    {
+      "aspecto": "Flexibilidade dos isquiotibiais",
+      "comoEstaATurma": "1 de 1 em «Baixa (\"dura\")» — ponto de atenção"
+    },
+    {
+      "aspecto": "Flexibilidade anteroposterior (grand écart)",
+      "comoEstaATurma": "1 de 1 em «Parcial (elevação do quadril)» — ponto de atenção"
+    },
+    {
+      "aspecto": "Mobilidade das costas e tronco (cambre)",
+      "comoEstaATurma": "1 de 1 em «Dor/desconforto» — ponto de atenção"
+    },
+    {
+      "aspecto": "Mobilidade de quadril (en dehors de origem)",
+      "comoEstaATurma": "1 de 1 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção"
+    },
+    {
+      "aspecto": "Mobilidade de flexão/extensão do tornozelo",
+      "comoEstaATurma": "1 de 1 em «Moderada» — ponto de atenção"
+    },
+    {
+      "aspecto": "Força excêntrica / recuo na flexão de tronco",
+      "comoEstaATurma": "1 de 1 em «Retorna enrolando (roll-up)» — ponto de atenção"
+    },
+    {
+      "aspecto": "Sustentação ativa de MMII (força de adágio)",
+      "comoEstaATurma": "1 de 1 em «Incapacidade por colapso» — ponto de atenção"
+    },
+    {
+      "aspecto": "Força de empurrar (push-ups)",
+      "comoEstaATurma": "1 de 1 em «Incapacidade» — ponto de atenção"
+    },
+    {
+      "aspecto": "Resistência de MMSS (port de bras prolongado)",
+      "comoEstaATurma": "1 de 1 em «Fadiga rápida com queda» — ponto de atenção"
+    },
+    {
+      "aspecto": "Flexibilidade dos adutores",
+      "comoEstaATurma": "1 de 1 em «Abertura completa (180°+)»"
+    },
+    {
+      "aspecto": "Rotação e amplitude dos ombros",
+      "comoEstaATurma": "1 de 1 em «Completa e fluida»"
+    },
+    {
+      "aspecto": "Controle de carga no demi/grand plié",
+      "comoEstaATurma": "1 de 1 em «Controla fluido, sem perda de eixo»"
+    },
+    {
+      "aspecto": "Equilíbrio unipodal",
+      "comoEstaATurma": "1 de 1 em «Mantém > 5 s sem oscilação severa»"
+    },
+    {
+      "aspecto": "Força de puxar (tração)",
+      "comoEstaATurma": "1 de 1 em «Tração completa»"
+    },
+    {
+      "aspecto": "Articulação e força intrínseca dos dedos",
+      "comoEstaATurma": "1 de 1 em «Flexíveis e articulados»"
+    },
+    "O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha por aluna, e sim o que elas têm em comum. É um **ponto de atenção** do ciclo: o que se vai olhar, e não uma avaliação de ninguém."
+  ],
+  "musicasVideos": [
+    "Battement tendu — 8 tempos em 2/4",
+    "Plié — 4 tempos em 2/4",
+    "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste."
+  ],
+  "repertorio": [
+    "Battement tendu",
+    "Plié"
+  ],
+  "proveniencia": "Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado de literatura de apoio sobre corpo e aula",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]"
+}

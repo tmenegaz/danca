@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 16,
+      "documentos": 19,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:coqui-de-redinha/01/breu",
@@ -491,9 +491,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "edfc1ca"
+    "commit": "6675487"
   },
-  "gerado_em": "2026-11-04T01:43",
+  "gerado_em": "2026-11-04T01:44",
   "nao_indexado": [
     {
       "familia": "conteudo",

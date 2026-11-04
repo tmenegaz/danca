@@ -81,6 +81,9 @@
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
@@ -98,6 +101,7 @@
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -173,6 +177,15 @@
     },
     {
       "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -188,6 +201,15 @@
       "id": "documento:harmonizacao:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
       "professor": "coqui-de-redinha",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
+      "escola": "breu",
+      "id": "documento:indice:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
@@ -242,6 +264,15 @@
       "id": "documento:referencias:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
       "professor": "coqui-de-redinha",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
@@ -365,9 +396,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "edfc1ca"
+    "commit": "6675487"
   },
-  "gerado_em": "2026-11-04T01:43",
+  "gerado_em": "2026-11-04T01:44",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -34,14 +34,17 @@
     "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
     "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
     "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+    "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
     "documento:glossario:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
     "documento:harmonizacao:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+    "documento:indice:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
     "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
     "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
     "documento:notacao:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
     "documento:plano:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
     "documento:po:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
     "documento:referencias:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
+    "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
@@ -59,7 +62,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -72,6 +75,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -99,7 +107,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -107,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "edfc1ca"
+    "commit": "6675487"
   },
-  "gerado_em": "2026-11-04T01:43",
+  "gerado_em": "2026-11-04T01:44",
   "id": "ciclo:coqui-de-redinha/01/breu",
   "professor": "coqui-de-redinha",
   "versao": 6
