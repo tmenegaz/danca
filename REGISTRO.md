@@ -34846,3 +34846,92 @@ não se reescreve; P-12 — apelidos estáveis) · `CONGELAMENTO.md`.
    captura continua com os quatro blocos de dimensão mais a linha de base. Pôr lá o corpo é desenho
    novo, e não foi pedido.
 3. **A prova do PO mede a tela em JSDOM**, com a anamnese stubada — não foi aberta no ar.
+
+## 04/11/2026 — O cabeçalho do ato cabe no telefone, as três asserções de produção, e a §2.2 deixa de mentir
+
+**O que motivou.** Quatro coisas, e a primeira é um defeito de ecrã: «ao clicar para colapsar/expandir
+o contexto do ato, os campos de texto e informações do cabeçalho (escola, professor, ciclo, turma
+observada, frequência semanal, duração) ficam **totalmente acavalados e sobrepostos**, impedindo a
+leitura e a usabilidade em telas móveis». A segunda: o `provar-producao` falhava **3 de 156** e isso
+tinha sido arquivado como «pré-existente». A terceira: o §2.2 da `ARQUITETURA-GERAL.md` ainda dizia
+que a lista de verbos do composto é à mão — contra o §5.7, escrito no mesmo dia. E a quarta: uma
+projecção de capacidade que o §7.1 não tinha.
+
+**O que se mediu.**
+
+1. **As 3 asserções eram duas lacunas da bancada e duas expectativas obsoletas** — e nenhuma delas
+   «pré-existente» no sentido de «não é nossa»:
+   - **O DOM falso não conhecia o seletor que a produção usa.** O menu deixou de escrever
+     `className` e passou a usar `classList` (26/10/2026), e a bancada respondia a `.lateral a`
+     quando o código pergunta `.lateral a[data-secao]`. A lista saía vazia e a asserção «o item do
+     menu fica marcado» **não podia passar por construção**. Corrigido o `querySelectorAll` e
+     acrescentado `classList` ao elemento falso.
+   - **A lista das tradições tinha cópia à mão na bancada**, com quatro entradas e `compartilhada`
+     à frente. Hoje são **cinco** (a Cubana entrou a 02/11/2026, a pedido dela) e a compartilhada
+     fica no **fim** — é o próprio `tradicoes.json` que o diz. A bancada passa a ler a fonte.
+   - **A contagem de pílulas estava em 23, não em 16** — e as duas diferenças eram legítimas pelo
+     critério que a própria asserção declara: as categorias do bloco de notação passaram de quatro a
+     **cinco** (entrou «Perna»), e entraram duas listas curtas novas (as cinco modalidades do
+     catálogo na Habilitação, e a caixa «guardar como música nova»). O número passa a ser **somado
+     das fontes declaradas**, com um limite por lista — se aparecer uma pílula que não venha de uma
+     delas, a conta não fecha.
+   Resultado: **158 de 158**.
+2. **O cabeçalho acavalado, reproduzido e localizado.** Nenhuma bancada o via porque a
+   `provar-celular` mede a folha da **Produção** e a `provar-contexto-do-ato` mede a **lógica** num
+   DOM falso — que não calcula layout. A bancada nova mede no Chrome, e com o **envelope
+   verdadeiro** da `breu`. O que ela encontrou, a 360px: o campo «Frequência semanal» saía com o
+   **rótulo a 0px** de largura e o valor com 129px. A causa: as cinco leituras do cabeçalho **não
+   são `<label>`** — são um `.ctx-rotulo` e um `.ctx-inscricao` —, e a regra que punha o rótulo na
+   linha inteira (`grid-column: 1 / -1`) cobria só o `label`. Sem ela, a grelha do campo
+   (`minmax(0,1fr) auto`) dava a coluna elástica ao rótulo e o `auto` ao valor; como o valor é uma
+   **frase** («qua e sex · 2x/semana»), o que cedia era a coluna do rótulo — até zero. O texto
+   continuava lá, com largura nenhuma, empilhado por cima do valor.
+   **A armadilha do método**: a primeira versão da bancada passou em tudo — mas estava a medir a
+   **anamnese**, e não o PO. Sem curadoria, o port recusa preencher e faz `location.replace` para a
+   lista; no caminho canónico (`/area-do-professor/plano-de-observacao/`) o `FONTE` deixa de ser
+   `po`. Um falso verde é pior do que um vermelho.
+3. **A §2.2 dizia o contrário da §5.7.** Corrigida: o composto não tem lista, é um `Proxy` que
+   encaminha, e a armadilha que isso fecha está dita com os dois verbos que ela engoliu.
+4. **A capacidade, calculada.** O tecto que manda é o `PUT` (uma criação de conteúdo) e não a
+   requisição: **26 criações ou 80 edições por minuto**, **166 ou 500 por hora**. Em escolas: 5 em
+   hora de ponta, 17 em uso corrente, 62 pequenas. E a nota de método que o pedido exigia: são
+   **projecções** das bancadas e dos limites documentados, não um ensaio de carga.
+
+**E a pergunta sobre a anamnese, que tem resposta e não tem código a mudar.** O encadeamento é de
+**instantâneos**, e é de propósito: a anamnese alimenta o **`aspecto-fisico` do plano** por um botão
+(«Carregar das anamneses da turma», que a professora corrige) e informa o **`linha-de-base` do PO**,
+que ela escreve por palavras. Nenhuma derivação lê a anamnese: `derivar-plano-ciclo.js` lê a tabela
+já consolidada, e diz em prosa que ela é «lida das anamneses — não uma linha por aluna». Logo,
+alterar uma anamnese **não** regenera o ciclo, e **não deve** regenerá-lo sozinha: o instantâneo é o
+que a professora **corrigiu**, e uma regeneração silenciosa desfaria a correção. Duas notas ficam
+ditas: (a) o `corpo.fonte === 'anamnese'` está na condição da cadeia em `rotas.js` **sem ramo que o
+atenda** — é uma promessa na lista que nenhum código cumpre; (b) o instantâneo **não guarda de que
+anamneses nasceu**, e por isso ninguém consegue dizer que está velho. Nenhum dos dois é corrigido
+aqui: o primeiro é limpeza, o segundo é desenho novo, e ambos pedem decisão.
+
+**Onde entrou.**
+
+- `experimentos/provar-faixa-do-ato-no-celular.js` — **novo**, 40 asserções, mede no Chrome.
+- `porta/index.html` — `.ctx-rotulo` e `.ctx-inscricao` na regra do `grid-column: 1 / -1`; as cópias
+  nos dois pacotes refrescadas.
+- `experimentos/provar-producao.js` — `classList` e o seletor `[data-secao]` no DOM falso; a lista
+  das tradições e a contagem das pílulas lidas das fontes.
+- `ARQUITETURA-GERAL.md` — §2.2 corrigida (o composto encaminha) e **§7.2** nova (capacidade).
+- `experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
+
+**Com o quê.** `porta/index.html` · `experimentos/provar-faixa-do-ato-no-celular.js` ·
+`experimentos/provar-producao.js` · `ARQUITETURA-GERAL.md` §2.2 e §7.2 · `biblioteca/modalidades/…`
+(lido, não alterado).
+
+**Referências.** `ARQUITETURA-GERAL.md` §5.1, §5.7, §7.1 · `REGISTRO.md` 02/11/2026 (o mapa dos
+eixos e a Cubana) · a documentação do GitHub sobre *rate limits* · `IDENTIDADE-VISUAL.md` (a peça da
+inscrição).
+
+**O que ainda não está feito.**
+
+1. **Nada disto foi medido no ar.** A bancada corre contra um servidor local com respostas stubadas;
+   o ar custa uma carga por escola, no fim.
+2. **A projecção do §7.2 não é um ensaio de carga.** Os números são aritmética sobre o custo medido
+   e os limites documentados; um ensaio a sério gasta cota e não foi feito.
+3. **O instantâneo do `aspecto-fisico` não guarda proveniência** (de que anamneses nasceu), e por
+   isso a divergência entre a anamnese e o plano não se detecta — só se descobre por acaso.

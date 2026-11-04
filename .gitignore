@@ -671,3 +671,11 @@ experimentos/modelo-formulario/*
 # certo; mede o documento do PO nos três eixos com o Fenómeno sob o título; e mede a TELA — o
 # sujeito escolhido antes das dimensões, e o corpo a carregar da anamnese de quem se observa.
 !experimentos/provar-eixos-do-po.js
+
+# A FAIXA DO ATO NO TELEFONE (04/11/2026). O cabeçalho «Contexto do ato», aberto, acavalava-se no
+# celular: as cinco LEITURAS (frequência, duração, calendário, volume, condição de registo) não
+# são `<label>`, são um `.ctx-rotulo` + `.ctx-inscricao`, e a regra que punha o rótulo na linha
+# inteira só cobria o `label`. O rótulo encolhia até 0px e o valor tomava a coluna. Esta prova
+# MEDE a geometria no Chrome (o jsdom não calcula layout): sobreposição entre campos, rótulo com
+# largura para ser lido, valor dentro do campo, e transbordo horizontal — a 320, 360, 390 e 414px.
+!experimentos/provar-faixa-do-ato-no-celular.js

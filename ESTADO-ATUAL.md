@@ -4,7 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `a749ace`, árvore limpa). Nesta entrega, **o Plano de
+> **Última fotografia:** 04/11/2026 (base `a90058f`, árvore limpa). Nesta entrega, **o cabeçalho
+> do ato cabe num telefone, as 156 asserções de produção passam, e a capacidade tem número**.
+> (1) As cinco **leituras** do cabeçalho (frequência, duração, calendário, volume, condição de
+> registo) **não são `<label>`** — são `.ctx-rotulo` + `.ctx-inscricao` —, e a regra que punha o
+> rótulo na linha inteira cobria só o `label`. A grelha dava a coluna elástica ao rótulo e o `auto`
+> ao valor; como o valor é uma **frase**, o rótulo encolhia até **0px** e o texto empilhava-se por
+> cima — «totalmente acavalados», que é o que ela viu. Medido a 360px: rótulo 0px, valor 129px.
+> (2) O `provar-producao` passou de **153/156** para **158/158**: duas falhas eram **lacunas da
+> bancada** (o DOM falso não conhecia o selector `[data-secao]` nem `classList`; a lista das
+> tradições e a contagem das pílulas estavam escritas à mão) e nenhuma era «pré-existente» no
+> sentido de «não é nossa». (3) O **§2.2** da arquitetura deixou de dizer que o composto tem lista
+> de verbos à mão — contra o §5.7 escrito no mesmo dia. (4) Nova **§7.2**: **26 criações ou 80
+> edições por minuto**, e **5 a 62 escolas** conforme o cenário — projecções declaradas como tais.
+> Prova nova: `provar-faixa-do-ato-no-celular`, **40 asserções**, a medir geometria no Chrome.
+>
+> **Entrega anterior** (base `a749ace`, árvore limpa). Nesta entrega, **o Plano de
 > Observação passa a ter os três eixos, o corpo vem da anamnese de quem se observa, e o «Port de
 > bras» sai do §1 da aula**. (1) As dimensões chamavam-se «Técnica — Musicalidade» e «Técnica —
 > Expressão» porque o eixo estava **escrito no conteúdo** e concatenado a todos os blocos; são
@@ -1912,6 +1927,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     (milhares de gravações por hora por escola) ou se o `80/min` for tocado no uso normal.
     **DECIDIDO e documentado** em `ARQUITETURA-GERAL.md` §7.1, 04/11/2026.
 
+96. **O CABEÇALHO DO ATO EMPILHA NO TELEFONE — OS RÓTULOS DAS LEITURAS INCLUÍDOS.** As cinco
+    leituras do cabeçalho (frequência, duração, calendário, volume, condição de registo) **não são
+    `<label>`**: são um `.ctx-rotulo` e um `.ctx-inscricao`, porque não se preenchem. A regra que
+    punha o rótulo na linha inteira cobria só o `label`, e a grelha do campo dava a coluna elástica
+    ao rótulo e o `auto` ao valor — como o valor é uma **frase**, o rótulo encolhia até **0px** e o
+    texto empilhava-se por cima dele. Medido a 360px: rótulo 0px, valor 129px. Agora ambos ocupam a
+    linha inteira, na ordem em que se lê. **DECIDIDO e implementado** 04/11/2026.
+
+97. **A CAPACIDADE É CALCULADA, E O TECTO QUE MANDA É O `PUT`.** Não a requisição: um `PUT` é uma
+    criação de conteúdo. **26 criações ou 80 edições por minuto**; **166 ou 500 por hora**. Em
+    escolas, com metade das gravações a serem criações: **5** em hora de ponta, **17** em uso
+    corrente, **62** pequenas. São **projecções** — do custo medido nas bancadas e dos limites
+    documentados do GitHub —, e **não** um ensaio de carga. O critério de revisão do §7.1 fica com
+    número: a escrita passar a lote, o `80/min` tocado no uso normal, ou uma ordem de grandeza a
+    mais de escolas (e aí a resposta é **outro repositório**, não um banco). **DECIDIDO e
+    documentado** em `ARQUITETURA-GERAL.md` §7.2, 04/11/2026.
+
+98. **A ANAMNESE NÃO REGENERA O CICLO — E NÃO DEVE.** O encadeamento é de **instantâneos**: a
+    anamnese alimenta o `aspecto-fisico` do plano por um botão («Carregar das anamneses da turma»,
+    que a professora **corrige**) e informa o `linha-de-base` do PO, que ela escreve por palavras.
+    Nenhuma derivação lê a anamnese — `derivar-plano-ciclo.js` lê a tabela já consolidada. Regenerar
+    sozinho desfaria a correção dela. Ficam duas notas **abertas**: o `fonte === 'anamnese'` está na
+    condição da cadeia em `rotas.js` **sem ramo que o atenda**, e o instantâneo **não guarda de que
+    anamneses nasceu** — a divergência não se detecta. **DECIDIDO (o comportamento está certo) e
+    documentado** 04/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -2558,7 +2599,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — os três eixos do PO, o corpo da anamnese, e o §1 sem «Port de bras»)
+### Executado nesta fotografia (04/11/2026 — a faixa no telefone, as 3 asserções, e a capacidade)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-faixa-do-ato-no-celular` (**nova**) | **TUDO CERTO — 40 asserções** a 320, 360, 390 e 414px, no Chrome, com o **envelope verdadeiro** da `breu`: nenhum par de campos se sobrepõe, todo campo cabe na faixa, o controle cabe no campo, **todo rótulo tem ≥ 40px de largura**, rótulo e valor não se sobrepõem, e a página não transborda. **Reprovou antes da correção** (rótulo a 0px, valor a 129px a 360px) e passa depois |
+| `provar-producao` | **158 de 158** (era 153/156). As três: o DOM falso passou a responder a `.lateral a[data-secao]` e a ter `classList`; a lista das tradições e a contagem das pílulas passaram a ser **lidas das fontes** (5 tradições, não 4; 23 pílulas, não 16) |
+| `ARQUITETURA-GERAL.md` | §2.2 corrigida (o composto **encaminha**, não enumera) · **§7.2 nova** · conferido: as **17 referências `§` resolvem**, as **14 cercas** emparelhadas |
+| Regressão | `provar-celular` · `provar-contexto-do-ato` · `provar-eixos-do-po` · `provar-eixos-e-tempo-da-aula` · `provar-cartao-da-aula` · `provar-sequencia-que-acompanha` · `provar-colunas-da-aula` · `provar-verbos-do-armazenamento` · `provar-fusao-da-edicao` · `provar-corrida-da-escrita` · `provar-cadeia-do-ajuste` · `provar-acervo-envelopes` · `provar-publicacao-da-escola` · `provar-habilitacao-do-professor` · `provar-po-completo` · `provar-plano-completo` · `provar-indice-de-envelopes` — **todos verdes** |
+| `check-identidade` · `check-indices` | **20/20** · **14/14** |
+| **o que NÃO mede** | a faixa foi medida num servidor local com respostas **stubadas** (não no ar) · a capacidade do §7.2 é **projecção aritmética**, não ensaio de carga · o instantâneo do `aspecto-fisico` não guarda proveniência, e a divergência com a anamnese não se detecta |
+
+### Executado na fotografia anterior (04/11/2026 — os três eixos do PO, o corpo da anamnese, e o §1 sem «Port de bras»)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3591,6 +3643,14 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **A faixa no telefone, as 3 asserções, e a capacidade.** As cinco leituras do
+  cabeçalho são `.ctx-rotulo` + `.ctx-inscricao` (não `<label>`), e a regra do `grid-column` cobria
+  só o `label`: o rótulo encolhia até 0px e o valor tomava a coluna — «totalmente acavalados». O
+  `provar-producao` foi de 153/156 a **158/158**, e as três falhas eram duas lacunas da bancada e
+  duas expectativas obsoletas (nada era «pré-existente» no sentido de alheio). A **§2.2** deixou de
+  contradizer a §5.7, e há **§7.2** nova: **26 criações ou 80 edições por minuto**, 5 a 62 escolas,
+  declarado como projecção. Prova nova: `provar-faixa-do-ato-no-celular`, 40 asserções.
 
 - **04/11/2026** — **Os três eixos do PO, o corpo da anamnese, e o §1 sem «Port de bras».** O
   Plano de Observação listava «Técnica — Musicalidade» porque o eixo estava escrito no **conteúdo** e

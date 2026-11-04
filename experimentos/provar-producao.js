@@ -91,6 +91,31 @@ function criarDomFalso(html) {
         textContent: '',
         atributos: {},
         ouvintes: {},
+        /* O `classList` (04/11/2026). O menu deixou de escrever `className` e passou a usar
+         * `classList.add`/`remove` — para não apagar a classe de um `<a>` que não é destino de
+         * secção. Sem isto aqui, ou o script morria neste ponto, ou a classe nunca aparecia e a
+         * asserção «o item do menu fica marcado» estava condenada a falhar para sempre. */
+        get classList() {
+          const el = this;
+          const sincronizar = () => {
+            const lista = String(el._classes || '').split(/\s+/).filter(Boolean);
+            el.className = lista.join(' ');
+          };
+          return {
+            add(c) {
+              const lista = String(el._classes || '').split(/\s+/).filter(Boolean);
+              if (lista.indexOf(c) === -1) lista.push(c);
+              el._classes = lista.join(' ');
+              sincronizar();
+            },
+            remove(c) {
+              const lista = String(el._classes || '').split(/\s+/).filter((x) => x && x !== c);
+              el._classes = lista.join(' ');
+              sincronizar();
+            },
+            contains(c) { return String(el.className || '').split(/\s+/).indexOf(c) !== -1; },
+          };
+        },
         addEventListener(tipo, fn) {
           (this.ouvintes[tipo] = this.ouvintes[tipo] || []).push(fn);
         },
@@ -151,6 +176,11 @@ function criarDomFalso(html) {
     querySelectorAll(seletor) {
       if (seletor === '.secao') return secoes;
       if (seletor === '.lateral a') return links;
+      /* O SELETOR QUE A PRODUÇÃO USA HOJE (26/10/2026): `.lateral a[data-secao]`. O menu passou a
+       * marcar SÓ os destinos de secção — para não apagar a classe do «← Sistema Lastro», que é um
+       * `<a>` sem `data-secao`. O DOM falso ficou a responder ao seletor ANTIGO, a lista saía
+       * vazia, e a asserção do item marcado não podia passar por construção. */
+      if (seletor === '.lateral a[data-secao]') return links;
       return [];
     },
     querySelector(seletor) {
@@ -673,8 +703,17 @@ async function principal() {
     /id="vtermo"|id="vcategoria"|id="vtradicao"/.test(html), false);
   conferir('o exercício novo tem UMA lista de categorias (e não um campo de texto)',
     opcoesDe('vncategoria'), ['passo', 'salto', 'ligacao', 'giro']);
+  /* A LISTA LÊ-SE DA FONTE, e não de uma cópia (04/11/2026). Estava escrita à mão com quatro
+   * tradições e `compartilhada` à frente; hoje são CINCO (a Cubana entrou a 02/11/2026, a pedido
+   * dela, e o próprio `tradicoes.json` declara que `compartilhada` fica no FIM por não ser uma
+   * tradição que se adopta). Uma segunda lista aqui é uma segunda verdade — e a primeira coisa
+   * que ela faz é divergir. O que se guarda: a página mostra TODAS as tradições declaradas, na
+   * ordem declarada, e a compartilhada está entre elas. */
+  const tradicoes = require('../biblioteca/modalidades/bale-classico/tradicoes.json').tradicoes;
   conferir('…e uma lista de tradições, com a compartilhada',
-    opcoesDe('vntradicao'), ['compartilhada', 'RAD', 'francesa', 'Vaganova']);
+    opcoesDe('vntradicao'), tradicoes);
+  conferir('…e a compartilhada fica no fim (não é tradição que se adopta)',
+    tradicoes[tradicoes.length - 1], 'compartilhada');
   conferir('…e nenhum dos dois é um campo de texto',
     /<input id="vncategoria"|<input id="vntradicao"/.test(formExercicio), false);
 
@@ -1005,15 +1044,39 @@ async function principal() {
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',
     script.includes('turmas: umaTurma ? [umaTurma] : []'), true);
   conferir('não sobrou nenhuma caixa com rolagem no formulário', html.includes('cb-grupo'), false);
-  // DOZE, e não sete: as sete dos dias da semana, as DUAS da variante e as TRÊS das famílias
-  // (18/10/2026). O que esta asserção guarda não é o número — é o CRITÉRIO: a pílula existe
-  // só para lista curta, fechada e fixa. Um tapete de pílulas longas (o de 84 termos, que o
-  // dono do produto recusou) voltaria como um número grande aqui, e é por isso que é contado.
-  // DEZASSEIS desde 28/10/2026, e o acrescento é legítimo pelo CRITÉRIO: as quatro CATEGORIAS do
-  // bloco de notação (Pé · Peso · Plié · Braço) são uma lista curta, fechada e fixa — a mesma
-  // razão que autoriza os sete dias. O que este número guarda não é a contagem: é o critério.
-  conferir('as pílulas continuam a ser só as listas curtas: 7 dias + 2 variantes + 3 famílias + 4 categorias',
-    (html.match(/class="escolha"/g) || []).length, 16);
+  /* AS PÍLULAS — O CRITÉRIO, E NÃO O NÚMERO (04/11/2026).
+   *
+   * O QUE ESTA ASSERÇÃO GUARDA: a pílula existe só para lista **curta, fechada e fixa**. Um
+   * tapete de pílulas longas (o de 84 termos do vocabulário, que o dono do produto recusou)
+   * voltaria aqui como um número grande.
+   *
+   * PORQUE É QUE O NÚMERO ESCRITO À MÃO DEIXOU DE SERVIR. Ele era 12 → 16, e estava em 23. As
+   * duas diferenças eram legítimas pelo próprio critério: as CATEGORIAS do bloco de notação
+   * passaram de quatro a CINCO (entrou «Perna», e a lista vem do alfabeto), e entraram duas
+   * listas curtas novas — as cinco modalidades do catálogo na Habilitação (03/11/2026) e a
+   * caixa «guardar como música nova». Um número fixo transforma cada lista nova numa falha, e a
+   * falha deixa de dizer o que interessa. Passa a ser SOMADO das fontes **declaradas**: se
+   * aparecer uma pílula que não venha de uma destas, a conta não fecha e a asserção falha — que
+   * é exactamente o que se quer saber. */
+  const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
+  const variantes = ['clara', 'noturna'];
+  const familias = require('../motor/servidor/bastidores.js').PALETAS || [];
+  const categorias = (require('../motor/nucleo/notacao.js').ALFABETOS[
+    require('../motor/nucleo/notacao.js').MODALIDADE_PADRAO] || {}).categorias || [];
+  const modalidades = require('../biblioteca/modalidades/modalidades.json').modalidades;
+  const declaradas = dias.length + variantes.length + familias.length + categorias.length
+    + modalidades.length + 1; // +1 = a caixa «guardar como música nova»
+  conferir('as pílulas são as listas curtas declaradas: ' + dias.length + ' dias + '
+    + variantes.length + ' variantes + ' + familias.length + ' famílias + '
+    + categorias.length + ' categorias + ' + modalidades.length + ' modalidades + 1 caixa',
+    (html.match(/class="escolha"/g) || []).length, declaradas);
+  /* E O QUE A CONTA NÃO PODE DEIXAR PASSAR: nenhuma dessas listas pode ser LONGA. O limite é o
+   * do critério (uma lista que se lê de relance), e não uma contagem exacta — se um dia uma
+   * passar disto, é sinal de que virou tapete. */
+  const maiorLista = Math.max(dias.length, variantes.length, familias.length, categorias.length,
+    modalidades.length);
+  conferir('…e nenhuma delas passa de 8 — acima disso seria tapete, não pílula',
+    maiorLista <= 8, true);
 
   // 9. A PÁGINA INTERMEDIÁRIA SAIU — e o caminho antigo continua respondendo.
   conferir('o Estúdio também carrega o menu do ciclo',

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T20:28:50-0300`
-Commit atual: `a749ace7` — fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
+Gerado em: `2026-11-04T20:46:52-0300`
+Commit atual: `a90058f2` — fix(po): o plano de observacao tem tres eixos, e o corpo vem da anamnese
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+a90058f2 fix(po): o plano de observacao tem tres eixos, e o corpo vem da anamnese
 a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
 7cf8122e fix(campo): as colunas da aula têm a largura do que levam, e a notação sai da música
 d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
@@ -104,7 +105,6 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 3738b266 chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
 2c2238f1 chore(estrutura): regerar os índices derivados
 e7ec02f9 chore(estrutura): reancorar a cadeia das fontes alteradas
-c394e879 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -230,124 +230,96 @@ c394e879 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — O PO passa a ter três eixos, o corpo vem da anamnese, e o «Port de bras» sai do §1
+## 04/11/2026 — O cabeçalho do ato cabe no telefone, as três asserções de produção, e a §2.2 deixa de mentir
 
-**O que motivou.** Três pedidos que chegaram juntos, e o terceiro era um defeito vivo: «o plano de
-observação ainda apresenta itens classificados incorrectamente sob a óptica puramente técnica (ex.:
-técnica centro, técnica musicalidade, técnica expressão)»; «a dimensão do corpo é alimentada
-directamente por dados do documento de anamnese daquele sujeito — deve carregar e posicionar-se
-dinamicamente assim que o aluno for seleccionado»; e «na Aula 1, no Parâmetro de medição, o sistema
-está a exibir um elemento que não existe na curadoria: o *port de bras*».
+**O que motivou.** Quatro coisas, e a primeira é um defeito de ecrã: «ao clicar para colapsar/expandir
+o contexto do ato, os campos de texto e informações do cabeçalho (escola, professor, ciclo, turma
+observada, frequência semanal, duração) ficam **totalmente acavalados e sobrepostos**, impedindo a
+leitura e a usabilidade em telas móveis». A segunda: o `provar-producao` falhava **3 de 156** e isso
+tinha sido arquivado como «pré-existente». A terceira: o §2.2 da `ARQUITETURA-GERAL.md` ainda dizia
+que a lista de verbos do composto é à mão — contra o §5.7, escrito no mesmo dia. E a quarta: uma
+projecção de capacidade que o §7.1 não tinha.
 
-**O que se mediu — e o terceiro era a MESMA porta que já tinha sido fechada.**
+**O que se mediu.**
 
-1. **O `Port de bras` não vinha da curadoria: vinha da matriz do parâmetro.** O envelope
-   `plano-20261104-1732` guarda `aula-1-parametro` com `marcados: ["Battement tendu", "Plié",
-   "Port de bras"]` no objetivo 2, e o `repertorio` do mesmo envelope é **exactamente**
-   `["Battement tendu", "Plié"]`. A 03/11/2026 a sequência foi blindada (`linhasDoRepertorio`) e a
-   matriz do §1 **não** — de modo que o termo saiu do exercício e continuou a aparecer no parágrafo
-   acima, na mesma aula. **Duas cópias da mesma régua, e uma delas esqueceu-se.** Medido: §1 com
-   `Port de bras` antes, sem ele depois, e a voltar quando o repertório o declara.
-2. **A mesma janela estava aberta na ficha do plano** (`ficha-do-plano.js`, `porObjetivo`), que
-   imprime a mesma matriz noutro documento.
-3. **O eixo estava escrito no CONTEÚDO, e não lido do bloco.** `porta/po/conteudo/po.json` declarava
-   `doPlano.eixo: "Técnica"` e o formulário concatenava-o a todos os blocos — daí «Técnica —
-   Musicalidade». O comentário do gerador já dizia que o mapa era **candidato** («quando ela decidir
-   a taxonomia…»); ela decidiu.
-4. **A cópia do mapa dos eixos era DUPLA** — uma em `motor/nucleo/derivar-ciclo.js`, outra em
-   `tools/montar-publicacao.js` —, e eu estava a caminho da terceira. E a segunda tinha um defeito
-   próprio: tudo o que não fosse musicalidade/expressão caía em «técnica», o que punha o **corpo** no
-   eixo errado.
-5. **Dois defeitos meus, apanhados pela prova que escrevi**: `camposDoCorpo` era um `const` avaliado
-   no carregamento (o `MAPA` ainda é `null` nesse instante → a lista saía **sempre vazia**, e o corpo
-   nunca apareceria); e o painel procurava as anamneses pela chave nua (`api/anamneses`), quando a
-   chave real leva parâmetros (`?plano=…&professor=…`) — o painel dizia «sem anamnese» de uma aluna
-   cuja anamnese estava carregada.
+1. **As 3 asserções eram duas lacunas da bancada e duas expectativas obsoletas** — e nenhuma delas
+   «pré-existente» no sentido de «não é nossa»:
+   - **O DOM falso não conhecia o seletor que a produção usa.** O menu deixou de escrever
+     `className` e passou a usar `classList` (26/10/2026), e a bancada respondia a `.lateral a`
+     quando o código pergunta `.lateral a[data-secao]`. A lista saía vazia e a asserção «o item do
+     menu fica marcado» **não podia passar por construção**. Corrigido o `querySelectorAll` e
+     acrescentado `classList` ao elemento falso.
+   - **A lista das tradições tinha cópia à mão na bancada**, com quatro entradas e `compartilhada`
+     à frente. Hoje são **cinco** (a Cubana entrou a 02/11/2026, a pedido dela) e a compartilhada
+     fica no **fim** — é o próprio `tradicoes.json` que o diz. A bancada passa a ler a fonte.
+   - **A contagem de pílulas estava em 23, não em 16** — e as duas diferenças eram legítimas pelo
+     critério que a própria asserção declara: as categorias do bloco de notação passaram de quatro a
+     **cinco** (entrou «Perna»), e entraram duas listas curtas novas (as cinco modalidades do
+     catálogo na Habilitação, e a caixa «guardar como música nova»). O número passa a ser **somado
+     das fontes declaradas**, com um limite por lista — se aparecer uma pílula que não venha de uma
+     delas, a conta não fecha.
+   Resultado: **158 de 158**.
+2. **O cabeçalho acavalado, reproduzido e localizado.** Nenhuma bancada o via porque a
+   `provar-celular` mede a folha da **Produção** e a `provar-contexto-do-ato` mede a **lógica** num
+   DOM falso — que não calcula layout. A bancada nova mede no Chrome, e com o **envelope
+   verdadeiro** da `breu`. O que ela encontrou, a 360px: o campo «Frequência semanal» saía com o
+   **rótulo a 0px** de largura e o valor com 129px. A causa: as cinco leituras do cabeçalho **não
+   são `<label>`** — são um `.ctx-rotulo` e um `.ctx-inscricao` —, e a regra que punha o rótulo na
+   linha inteira (`grid-column: 1 / -1`) cobria só o `label`. Sem ela, a grelha do campo
+   (`minmax(0,1fr) auto`) dava a coluna elástica ao rótulo e o `auto` ao valor; como o valor é uma
+   **frase** («qua e sex · 2x/semana»), o que cedia era a coluna do rótulo — até zero. O texto
+   continuava lá, com largura nenhuma, empilhado por cima do valor.
+   **A armadilha do método**: a primeira versão da bancada passou em tudo — mas estava a medir a
+   **anamnese**, e não o PO. Sem curadoria, o port recusa preencher e faz `location.replace` para a
+   lista; no caminho canónico (`/area-do-professor/plano-de-observacao/`) o `FONTE` deixa de ser
+   `po`. Um falso verde é pior do que um vermelho.
+3. **A §2.2 dizia o contrário da §5.7.** Corrigida: o composto não tem lista, é um `Proxy` que
+   encaminha, e a armadilha que isso fecha está dita com os dois verbos que ela engoliu.
+4. **A capacidade, calculada.** O tecto que manda é o `PUT` (uma criação de conteúdo) e não a
+   requisição: **26 criações ou 80 edições por minuto**, **166 ou 500 por hora**. Em escolas: 5 em
+   hora de ponta, 17 em uso corrente, 62 pequenas. E a nota de método que o pedido exigia: são
+   **projecções** das bancadas e dos limites documentados, não um ensaio de carga.
 
-**O que foi decidido.**
-
-- **Uma declaração só dos eixos: `motor/nucleo/eixos.js`.** `Corpo · Técnica · Poiesis`, com
-  `blocoDaDimensao`, `eixoDoBloco` (devolve o **id**, não o rótulo) e `rotuloDoEixo`. O gerador, o
-  montador da publicação e o PO leem daqui. O Corpo é eixo próprio — não uma técnica.
-- **A régua do repertório é uma só, e serve as duas formas de dado**: `termoForaDoRepertorio` e
-  `termosDoRepertorio` em `motor/nucleo/sequencia.js`, aplicadas à linha de tabela (a sequência) e
-  ao termo solto (a matriz do parâmetro, no §1 da aula e na ficha do plano). Sem repertório não se
-  julga nada — apagar o que não se pode conferir seria a limpeza a destruir o dado.
-- **Nada é renomeado no dado gravado (P-03).** Os POs que já existem continuam com «Técnica —
-  Musicalidade» lá dentro; o que muda é a **leitura**. E o que se gravar de novo nasce sem prefixo:
-  a dimensão é o **bloco**, e o eixo é uma coluna, não um rótulo.
-- **O documento do PO**: `Dimensões observadas` lista os blocos; `Itens de cada dimensão` passa a
-  ter a coluna **Eixo**; o **Corpo** tem linha própria e **aponta** para a «Linha de base» em vez de
-  a copiar (a segunda cópia é a que fica para trás quando a primeira é corrigida); e a linha sob o
-  título é o **Fenómeno** — a mesma posição que a Aula 01 usa para «O que esta aula deixa de fora».
-- **O seletor do sujeito passou a ser o PRIMEIRO BLOCO**, antes das dimensões (decisão dela, entre as
-  duas arrumações possíveis). É o que faz a cascata chegar a tempo: quando a lista das dimensões se
-  desenha, as anamneses já estão carregadas.
-- **O corpo carrega-se da anamnese, e não de uma lista escrita à mão**: os campos vêm de
-  `registroDaAnamnese.grupos[].campos` — a declaração que o «Ponto de partida» já fazia. O painel lê
-  o `detalhe` de cada sujeito escolhido, mostra o nome do campo (do mapa da anamnese) e o valor, e
-  **não inventa** o que a anamnese não respondeu.
+**E a pergunta sobre a anamnese, que tem resposta e não tem código a mudar.** O encadeamento é de
+**instantâneos**, e é de propósito: a anamnese alimenta o **`aspecto-fisico` do plano** por um botão
+(«Carregar das anamneses da turma», que a professora corrige) e informa o **`linha-de-base` do PO**,
+que ela escreve por palavras. Nenhuma derivação lê a anamnese: `derivar-plano-ciclo.js` lê a tabela
+já consolidada, e diz em prosa que ela é «lida das anamneses — não uma linha por aluna». Logo,
+alterar uma anamnese **não** regenera o ciclo, e **não deve** regenerá-lo sozinha: o instantâneo é o
+que a professora **corrigiu**, e uma regeneração silenciosa desfaria a correção. Duas notas ficam
+ditas: (a) o `corpo.fonte === 'anamnese'` está na condição da cadeia em `rotas.js` **sem ramo que o
+atenda** — é uma promessa na lista que nenhum código cumpre; (b) o instantâneo **não guarda de que
+anamneses nasceu**, e por isso ninguém consegue dizer que está velho. Nenhum dos dois é corrigido
+aqui: o primeiro é limpeza, o segundo é desenho novo, e ambos pedem decisão.
 
 **Onde entrou.**
 
-- `motor/nucleo/eixos.js` — **novo**: a declaração única dos três eixos.
-- `motor/nucleo/sequencia.js` — `termosAcordados`, `termoForaDoRepertorio`, `termosDoRepertorio`;
-  `linhaForaDoRepertorio` passa a delegar (uma régua, não duas).
-- `motor/nucleo/derivar-plano-ciclo.js` · `motor/nucleo/derivar-ciclo.js` ·
-  `motor/nucleo/ficha-do-plano.js` — o parâmetro de medição filtrado pelo repertório.
-- `motor/nucleo/derivar-po.js` — os três eixos no documento, a coluna do eixo, o corpo a apontar, e
-  a linha do Fenómeno sob o título.
-- `motor/nucleo/derivar-ciclo.js` — `porEixo` com chaves de id, o corpo como eixo próprio, e a
-  leitura do mapa unificado.
-- `porta/po/conteudo/po.json` — o bloco dos sujeitos passa a ser o primeiro; `doPlano.eixo` sai e
-  entra `eixoDoBloco` + `eixoPadrao`; as explicações deixam de afirmar «todas sob o eixo TÉCNICA».
-- `porta/index.html` — a lista derivada agrupada pelo eixo, sem prefixo no nome; o painel do corpo
-  com as três correcções (lista lida na hora, fonte das anamneses procurada pela declaração, e a
-  espera do carregamento feita no próprio painel).
-- `tools/montar-publicacao.js` — lê o mapa unificado; a linha do cartão passa a ser «Plano de
-  Observação — <objetivo geral>» (o `horizonte` do PO), e a síntese por eixo deixa de se repetir na
-  listagem.
-- `professores/coqui-de-redinha/ciclos/…-po.md` e `…-aula-01.md` — **regerados da mesma função e do
-  mesmo envelope**; o diff é exactamente a mudança (confirmado antes de gravar). `.fipp` regerada,
-  `--check` verde, pacote regerado e `check-pacote` **0 erro(s), 0 aviso(s)**.
-- `experimentos/provar-eixos-do-po.js` — **novo**, 34 asserções.
+- `experimentos/provar-faixa-do-ato-no-celular.js` — **novo**, 40 asserções, mede no Chrome.
+- `porta/index.html` — `.ctx-rotulo` e `.ctx-inscricao` na regra do `grid-column: 1 / -1`; as cópias
+  nos dois pacotes refrescadas.
+- `experimentos/provar-producao.js` — `classList` e o seletor `[data-secao]` no DOM falso; a lista
+  das tradições e a contagem das pílulas lidas das fontes.
+- `ARQUITETURA-GERAL.md` — §2.2 corrigida (o composto encaminha) e **§7.2** nova (capacidade).
+- `experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
 
-**Com o quê.** `motor/nucleo/{eixos,sequencia,derivar-po,derivar-ciclo,derivar-plano-ciclo,ficha-do-plano}.js` ·
-`porta/index.html` · `porta/po/conteudo/po.json` · `tools/montar-publicacao.js` ·
-`professores/coqui-de-redinha/ciclos/…` (fontes regeneradas, `.fipp`, pacote) · `indices/` (regerados) ·
-`experimentos/provar-eixos-do-po.js` · `experimentos/provar-eixos-e-tempo-da-aula.js` ·
-`experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
+**Com o quê.** `porta/index.html` · `experimentos/provar-faixa-do-ato-no-celular.js` ·
+`experimentos/provar-producao.js` · `ARQUITETURA-GERAL.md` §2.2 e §7.2 · `biblioteca/modalidades/…`
+(lido, não alterado).
 
-**Referências.** `ARQUITETURA-GERAL.md` §2.3 e §5.7 · `REGISTRO.md` 02/11/2026 (o mapa dos eixos era
-candidato) e 03/11/2026 (a segunda porta do mesmo defeito) · `PROTOCOLO.md` (P-03 — a proveniência
-não se reescreve; P-12 — apelidos estáveis) · `CONGELAMENTO.md`.
+**Referências.** `ARQUITETURA-GERAL.md` §5.1, §5.7, §7.1 · `REGISTRO.md` 02/11/2026 (o mapa dos
+eixos e a Cubana) · a documentação do GitHub sobre *rate limits* · `IDENTIDADE-VISUAL.md` (a peça da
+inscrição).
 
 **O que ainda não está feito.**
 
-1. **Os POs já gravados nas outras escolas continuam com «Técnica — Musicalidade» dentro do
-   envelope.** É a decisão (P-03), e a leitura corrige-o — mas quem abrir o `.json` cru verá o rótulo
-   antigo. Uma migração de dados seria uma reescrita da proveniência, e não se faz sem decisão dela.
-2. **A captura não ganhou bloco de corpo.** O eixo do Corpo existe no PO e na aula; a folha de
-   captura continua com os quatro blocos de dimensão mais a linha de base. Pôr lá o corpo é desenho
-   novo, e não foi pedido.
-3. **A prova do PO mede a tela em JSDOM**, com a anamnese stubada — não foi aberta no ar.
+1. **Nada disto foi medido no ar.** A bancada corre contra um servidor local com respostas stubadas;
+   o ar custa uma carga por escola, no fim.
+2. **A projecção do §7.2 não é um ensaio de carga.** Os números são aritmética sobre o custo medido
+   e os limites documentados; um ensaio a sério gasta cota e não foi feito.
+3. **O instantâneo do `aspecto-fisico` não guarda proveniência** (de que anamneses nasceu), e por
+   isso a divergência entre a anamnese e o plano não se detecta — só se descobre por acaso.
 
 ## O que está pendente
-
-## 04/11/2026 — A fusão das edições (decisão 84) e o espelho da verdade na arquitetura
-
-
-1. **Dois professores da mesma escola continuam a escrever os mesmos arquivos.** A fusão resolve o
-   *conteúdo*; o **acervo continua sem professor no caminho** (`escola/<escola>/envelopes/`). Pôr o
-   professor no caminho seria outra decisão — e ela muda o endereço de tudo o que já está gravado.
-2. **A fusão não foi medida com dois browsers reais contra o Worker publicado.** As bancadas correm
-   sobre um GitHub falso; o que se mediu contra o real foi só o 422 do `criar` (num ramo
-   descartável).
-3. **`provar-listas-do-acervo` segue NÃO FEITO** — a única escola viva não tem ciclo publicado para
-   servir.
-4. **A ordem de serviço pedia entropia no id.** O que existe é a criação condicional mais o sufixo
-   sequencial, e o motivo está declarado acima. Se a entropia for mesmo requisito, é uma decisão
-   nova — e ela custa a legibilidade e a derivação do id.
 
 ## 04/11/2026 — O cartão da aula é três dados do professor, e o guia são três eixos de verdade
 
@@ -397,6 +369,16 @@ não se reescreve; P-12 — apelidos estáveis) · `CONGELAMENTO.md`.
    captura continua com os quatro blocos de dimensão mais a linha de base. Pôr lá o corpo é desenho
    novo, e não foi pedido.
 3. **A prova do PO mede a tela em JSDOM**, com a anamnese stubada — não foi aberta no ar.
+
+## 04/11/2026 — O cabeçalho do ato cabe no telefone, as três asserções de produção, e a §2.2 deixa de mentir
+
+
+1. **Nada disto foi medido no ar.** A bancada corre contra um servidor local com respostas stubadas;
+   o ar custa uma carga por escola, no fim.
+2. **A projecção do §7.2 não é um ensaio de carga.** Os números são aritmética sobre o custo medido
+   e os limites documentados; um ensaio a sério gasta cota e não foi feito.
+3. **O instantâneo do `aspecto-fisico` não guarda proveniência** (de que anamneses nasceu), e por
+   isso a divergência entre a anamnese e o plano não se detecta — só se descobre por acaso.
 
 ## Pendências anteriores (índice)
 
@@ -748,6 +730,7 @@ não se reescreve; P-12 — apelidos estáveis) · `CONGELAMENTO.md`.
 - **04/11/2026** — A fatia de tempo vem do plano pela coluna certa, e o guia… → `REGISTRO.md` L34115
 - **04/11/2026** — O ajuste do plano de ensino arrasta o PO, e o cartão da… → `REGISTRO.md` L34204
 - **04/11/2026** — Dois «Guardar» no mesmo minuto não perdem mais um documento → `REGISTRO.md` L34301
+- **04/11/2026** — A fusão das edições (decisão 84) e o espelho da verdade na… → `REGISTRO.md` L34387
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

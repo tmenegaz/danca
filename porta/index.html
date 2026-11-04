@@ -195,7 +195,27 @@
     align-items: center; gap: 2px 4px;
   }
   .barra details.ctx-ato .ctx-campos > .campo > label,
+  .barra details.ctx-ato .ctx-campos > .campo > .ctx-rotulo,
   .barra details.ctx-ato .ctx-campos > .campo > .senha-status { grid-column: 1 / -1; }
+  /* O RÓTULO DE UMA LEITURA OCUPA A LINHA INTEIRA — E A AUSÊNCIA DESTA LINHA ERA O DEFEITO
+     QUE SE VIA NO TELEFONE (04/11/2026).
+     ------------------------------------------------------------------------------------------
+     As CINCO LEITURAS do cabeçalho (frequência, duração, calendário, volume, condição de
+     registo) não são `<label>`: são um `.ctx-rotulo` e um `.ctx-inscricao` — porque não são um
+     campo que se preenche, são o que o sistema já declara. A regra acima cobria o `<label>` e
+     deixava estas de fora, e a grelha do campo (`minmax(0,1fr) auto`) punha o rótulo na coluna
+     elástica e o valor na coluna `auto`. O valor de uma leitura é uma FRASE («qua e sex ·
+     2x/semana», «03/03/2027 a 30/06/2027», «Na sala: professor, alunas da turma»), e o `auto`
+     dá-lhe o min-content dela; o que cede é a coluna do rótulo, que encolhe até **zero**. O
+     texto do rótulo continuava lá, com largura nenhuma, empilhado por cima do valor — «os campos
+     ficam totalmente acavalados e sobrepostos», que é exactamente o que ela descreveu.
+     Medido (`experimentos/provar-faixa-do-ato-no-celular.js`, com o envelope verdadeiro): a
+     360px, «Frequência semanal» saía com **0px** de largura e o valor com 129. Agora o rótulo
+     ocupa a linha inteira e o valor desce para a sua, a largura toda — sem colunas a competir,
+     não há nada que possa ser esmagado. */
+  .barra details.ctx-ato .ctx-campos > .campo > .ctx-inscricao {
+    grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere;
+  }
   /* O CICLO É `01`. Sem largura declarada, o `<input>` de texto nasce com ~214px — o
      triplo do que o dado precisa, e o que empurrava a senha para a segunda linha. */
   #ctx-ciclo { width: 4.5rem; }

@@ -124,13 +124,18 @@ O núcleo (validar, derivar, elicitar, fundir) **nunca lê nem escreve em lugar 
 que precisa e devolve o que produz. Quem persiste é o **adaptador**. Trocar de provedor é trocar de
 adaptador, não reescrever o motor.
 
-**A lista de verbos do armazenamento composto é à mão.** `combinar(acervo, resto)` — em
+**O composto não tem lista de verbos — ele encaminha.** `combinar(acervo, resto)` — em
 `acervo-envelopes.js`, montado por `criarArmazenamento` — decide por família de chave quem atende:
-`envelope/*` vai ao acervo, o resto vai ao KV. **Verbo novo no acervo tem de ser acrescentado
-lá**, e essa é uma armadilha medida: em 04/11/2026 o `criar` e o `anexar` ficaram de fora, e a
-blindagem existia no adaptador sem nunca chegar ao motor — as bancadas não o viram porque montavam
-o acervo direto. Hoje as bancadas que provam a escrita passam pelo `combinar`
-(`experimentos/provar-fusao-da-edicao.js`, secção A).
+`envelope/*` vai ao acervo, o resto vai ao KV. A decisão de **quem** atende é dele; a de **quais
+verbos existem** é do contrato, e o composto não a repete: é um `Proxy` que encaminha qualquer
+verbo para quem atende aquela chave, de modo que **um verbo novo no contrato flui sozinho** (§5.7).
+
+> **A armadilha que isto fecha, e ela foi medida.** Até 04/11/2026 o composto **enumerava** os
+> verbos à mão, e o que ficava fora da lista desaparecia em silêncio: o `criar` (a escrita
+> condicional da §5.1) e o `anexar` nunca chegavam ao motor, e as bancadas não o viam porque
+> montavam o acervo **directo** em vez do composto que a produção monta. Hoje as bancadas que
+> provam a escrita passam pelo `criarArmazenamento`, e a que lê os verbos lê-os **do ficheiro do
+> contrato** (`experimentos/provar-verbos-do-armazenamento.js`).
 
 ### 2.3 A modalidade pertence ao professor — a escola a oferece por reflexo
 
@@ -656,6 +661,84 @@ acontecer, o banco é custo sem requisito.
 > **Não se mede no ar.** As bancadas correm sobre memória e sobre um GitHub falso
 > (`experimentos/provar-*.js`), e o KV tem cota diária. Ir ao ar custa uma carga por escola, no
 > fim — nunca durante a exploração.
+
+### 7.2 Até onde isto aguenta: capacidade e número de escolas
+
+A pergunta que se segue ao §7.1 é de aritmética: **quantas operações simultâneas** e **quantas
+escolas** cabem nestes limites. A resposta é calculada, e a origem de cada número está dita — não
+há aqui nenhuma medição de carga com centenas de escolas a correr.
+
+> **O QUE ESTES NÚMEROS SÃO, E O QUE NÃO SÃO.** São **projecções matemáticas** derivadas de duas
+> fontes: (a) o custo por operação **medido** nas bancadas (`experimentos/provar-corrida-da-escrita.js`
+> e `provar-um-commit-por-guardar.js`, que contam as chamadas contra o GitHub falso), e (b) os
+> limites **oficiais documentados** do GitHub (§7.1). **Não** são o resultado de um ensaio de
+> carga: nada aqui foi provocado contra o ar, porque a cota é escassa e o teste é da pesquisadora.
+> Quem quiser o número medido em vez do projectado tem de o pedir — e paga-o em cota.
+
+**As três constantes** (todas já estabelecidas acima):
+
+| Constante | Valor | De onde vem |
+|:--|:--|:--|
+| Custo de **criar** um envelope | 3 `PUT` + 3 `GET` | medido |
+| Custo de **editar** um envelope | 1 `PUT` + 2 `GET` | medido |
+| Tecto de **criação de conteúdo** | 500/h e **80/min** | documentação do GitHub |
+| Tecto de **requisições** | 1 000/h (token de Actions) · 5 000/h (autenticado) | documentação do GitHub |
+
+**O tecto que manda é o `PUT`, e não a requisição.** Um `PUT` é uma criação de conteúdo; um `GET`
+é barato. Como criar custa 3 `PUT` e editar custa 1, a conta faz-se em `PUT`:
+
+| Janela | Criações de envelope | Edições de envelope |
+|:--|--:|--:|
+| **por minuto** (o `80/min`) | **26** | **80** |
+| **por hora** (o `500/h`) | **166** | **500** |
+| por hora, pelo tecto de requisições (1 000/h) | 166 (6 req cada) | 333 (3 req cada) |
+
+**Traduzido em simultaneidade.** «Simultâneo» aqui não é um número de utilizadores ligados — é
+quantos podem **premir «Guardar» no mesmo minuto**. São **26 criações** ou **80 edições por
+minuto**; acima disso o GitHub começa a responder `403`/`429`, e a escrita devolve `{ok:false}`
+sem ter gravado nada (portanto sem perda — a operação repete-se). Duas escritas no **mesmo**
+documento não se atropelam: o `409` sela a corrida e a fusão da §5.2 resolve o conteúdo.
+
+**Traduzido em escolas.** O cenário operacional é uma escola com docentes a gravar, e a conta é
+feita **com metade das gravações a serem criações** — a hipótese pessimista, porque criar custa o
+triplo de editar:
+
+| Cenário | Docentes | Gravações/h cada | Criações (×3 `PUT`) | Edições (×1 `PUT`) | `PUT`/h | Escolas nos 500/h |
+|:--|--:|--:|--:|--:|--:|--:|
+| **Hora de ponta** (a fechar planos) | 5 | 10 | 25 → 75 | 25 → 25 | **100** | **5** |
+| **Uso corrente** | 5 | 3 | 7,5 → 22,5 | 7,5 → 7,5 | **30** | **17** |
+| **Escola pequena** | 2 | 2 | 2 → 6 | 2 → 2 | **8** | **62** |
+
+**Qual dos dois tectos morde depende de quem escreve.** As escritas do **Worker** usam o token da
+pesquisadora (5 000 req/h) e é o `PUT` que as limita — 500/h. As escritas dos **workflows** usam o
+`GITHUB_TOKEN` de Actions (1 000 req/h), e aí a requisição pode morder primeiro: na hora de ponta,
+25 criações × 6 req + 25 edições × 3 req = **225 req/h**, o que dá ~4 escolas por essa via. É mais
+um motivo para a geração ser **CI e não runtime**: ela é o caminho apertado, e é a única parte que
+não precisa de ser interactiva.
+
+E há uma folga que a tabela não mostra: **500 `PUT`/h não é um limite diário**. A janela repõe-se
+de hora a hora, e o dia de um professor não é uma hora de ponta contínua — a média diária fica uma
+ordem de grandeza abaixo do pico. O que a tabela mede são as **escolas activas na mesma hora de
+ponta** (5 a 17); as escolas *existentes* podem ser muitas mais, porque nenhuma delas escreve
+quando ninguém a usa.
+
+**As três coisas que fariam estes números mudarem** — e é por elas que o critério do §7.1 é
+verificável, e não retórico:
+
+1. **A escrita passar a ser em lote.** Hoje o expurgo de uma escola é **um** commit; uma migração
+   que escrevesse arquivo a arquivo gastaria 70 a 80 `PUT` de uma vez, e a rajada deixava de ser
+   teórica.
+2. **O `80/min` ser tocado no uso normal.** Não é: 26 criações por minuto é mais do que o
+   «Guardar» de 26 pessoas ao mesmo tempo, e uma escola não tem 26 docentes a criar envelopes no
+   mesmo minuto.
+3. **O número de escolas crescer uma ordem de grandeza.** A 40 escolas em hora de ponta, a conta
+   passa a apertar; a resposta então não é um banco, é **outro repositório** (o limite é por
+   repositório), que é uma operação de configuração e não uma migração de dados.
+
+> **A honestidade do método, dita uma vez.** Uma projecção não substitui um ensaio de carga, e este
+> documento não finge que substitui. O que ela faz é dizer **onde** o sistema quebra primeiro
+> (o `PUT` por minuto), **quanto** falta para lá (uma ordem de grandeza no uso corrente) e **o que**
+> medir no dia em que a dúvida voltar, com um número concreto em vez de uma impressão.
 
 ---
 
