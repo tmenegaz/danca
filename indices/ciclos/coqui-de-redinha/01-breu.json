@@ -19,9 +19,18 @@
   "documentos": [
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+    "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+    "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+    "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
+    "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+    "documento:glossario:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+    "documento:harmonizacao:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
     "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
     "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+    "documento:notacao:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
     "documento:plano:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+    "documento:po:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+    "documento:referencias:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
     "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
@@ -35,13 +44,48 @@
       },
       {
         "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
+      },
+      {
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       },
       {
         "contagem": 1,
@@ -52,9 +96,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "80dd28e"
+    "commit": "2f4d629"
   },
-  "gerado_em": "2026-11-04T01:00",
+  "gerado_em": "2026-11-04T01:02",
   "id": "ciclo:coqui-de-redinha/01/breu",
   "professor": "coqui-de-redinha",
   "versao": 6
