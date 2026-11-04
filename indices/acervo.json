@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "6edb8232c56c7c4011d3866daa3113734d3fa644f3e27a6d3d156db376b52582",
+        "hash": "a68fc15e0222208db774ceba7f1acb7fff9ef93be41575e43f9c72acc25bca54",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 15,
+      "aulas": 1,
+      "documentos": 16,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:coqui-de-redinha/01/breu",
@@ -84,7 +84,7 @@
       ],
       "contagens": {
         "anamneses": 1,
-        "aulas": 0,
+        "aulas": 1,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 1,
@@ -489,9 +489,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2f4d629"
+    "commit": "b690d1d"
   },
-  "gerado_em": "2026-11-04T01:02",
+  "gerado_em": "2026-11-04T01:03",
   "nao_indexado": [
     {
       "familia": "conteudo",

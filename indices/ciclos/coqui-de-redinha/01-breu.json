@@ -4,19 +4,30 @@
     "ancorado_em": "2026-11-04",
     "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "cobertura": [
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
       "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
       "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
       "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
     ],
-    "hash": "6edb8232c56c7c4011d3866daa3113734d3fa644f3e27a6d3d156db376b52582",
-    "hash_conteudo": "5f5a443af67662c7482b456d123bed0e4a3a06dbe5afd64e3f624f758e7e7ef3",
+    "hash": "a68fc15e0222208db774ceba7f1acb7fff9ef93be41575e43f9c72acc25bca54",
+    "hash_conteudo": "37cd0abbf931b311da4f3269b6b7ee7be70d63d2766be8d47026db9ad3352074",
     "id": "ciclo-01-breu-bale-nivel-1-teste-3",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:coqui-de-redinha/01/breu/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
     "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
@@ -38,7 +49,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
       },
@@ -96,9 +107,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2f4d629"
+    "commit": "b690d1d"
   },
-  "gerado_em": "2026-11-04T01:02",
+  "gerado_em": "2026-11-04T01:03",
   "id": "ciclo:coqui-de-redinha/01/breu",
   "professor": "coqui-de-redinha",
   "versao": 6
