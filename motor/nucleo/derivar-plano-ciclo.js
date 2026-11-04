@@ -738,8 +738,14 @@ function derivarPlano(envelope) {
    * própria página. A regra é a do `motor/nucleo/sequencia.js`, e é a MESMA que a tela usa; se as
    * duas divergirem, o `provar-sequencia-que-acompanha` reprova. */
   const objetivosVivos = marcosEmTexto(respostaDo(envelope, 'marcos-por-aula'));
+  /* E O EXERCÍCIO É O QUE A CURADORIA ACORDOU (03/11/2026). A segunda porta do mesmo defeito: a
+   * linha cujo «Conteúdo do nível» está fora do repertório do envelope não é exercício desta aula
+   * — ela entrou por uma medida marcada na matriz do parâmetro, e medir não é curar. Publicá-la
+   * punha na música uma peça que o próprio «Repertório», duas linhas abaixo, não lista. */
   lista('Música e vídeo de referência',
-    musicasDaSequencia(sequenciaDoPlano.linhasVivas(respostaDo(envelope, 'aula-1-sequencia'), objetivosVivos))
+    musicasDaSequencia(sequenciaDoPlano.linhasDoRepertorio(
+      sequenciaDoPlano.linhasVivas(respostaDo(envelope, 'aula-1-sequencia'), objetivosVivos),
+      respostaDo(envelope, 'repertorio')))
       .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
   lista('Repertório', respostaDo(envelope, 'repertorio'));
 

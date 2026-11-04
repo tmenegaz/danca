@@ -4322,6 +4322,8 @@ function grelhaDaTabela(no) {
   // que a aula tem) e as derivadas da marcação também não — o que o professor acrescentou
   // por cima dos blocos, esse sim. `quantasDerivadas` conta as que vieram da marcação.
   let quantasDerivadas = 0;
+  // O QUE A MATRIZ GUARDAVA E NÃO É DO REPERTÓRIO — dito no rodapé, não sumido (03/11/2026).
+  let foraDoRepertorio = [];
   // O `removivel: false` do conteúdo é ORDEM, não sugestão (16/10/2026): a sequência de
   // exercícios não tem coluna de ✕ — a linha dela é derivada, não digitada, e o professor não
   // remove o que o sistema montou. O `undefined` continua sendo o padrão herdado (removível).
@@ -4386,8 +4388,25 @@ function grelhaDaTabela(no) {
     if (chave) {
       linhas = linhas.filter((l) => !objetivoForaDaSequencia(l[chave], marcos.length));
     }
-    // OS TERMOS MARCADOS, por objetivo — a fonte da coluna derivada. Ela é a MESMA matriz do
-    // «Parâmetro de medição»: o que ele marcou lá como medida é o conteúdo de cada exercício.
+    /* OS TERMOS MARCADOS, por objetivo — a fonte da coluna derivada. É a MESMA matriz do
+     * «Parâmetro de medição»: o que ele marcou lá como medida é o conteúdo de cada exercício.
+     *
+     * MAS A MEDIDA NÃO É O REPERTÓRIO (03/11/2026). Aqui estava `l.marcados` inteiro, e por esta
+     * porta entrava tudo o que a matriz guardasse — inclusive o que foi escrito no campo
+     * «…ou declare outra coisa», que existe para uma MEDIDA fora do nível, e valores que ficaram
+     * de uma sessão anterior. Medido: a curadoria da turma tinha «Battement tendu» e «Plié», a
+     * matriz do objetivo 2 tinha «Port de bras», e a sequência gerava TRÊS linhas de «Port de
+     * bras» — uma por bloco. A pesquisadora: «a curadoria ativa deste teste possui estritamente
+     * apenas dois verbetes… o sistema injetou automaticamente um conteúdo chamado Port de Bras».
+     * Não era injeção: era o conteúdo da aula a sair de onde não devia.
+     *
+     * A REGRA: o conteúdo de um exercício da aula é do REPERTÓRIO CURADO da turma. Uma medida
+     * marcada fora dele não vira exercício — ela é a medida de um exercício que já existe, e o
+     * sítio de a corrigir é a curadoria. O que sai é contado e DITO (ver `foraDoRepertorio`), e
+     * não sumido em silêncio: um valor que desaparece sem uma palavra faz o professor concluir
+     * que o sistema não o ouve. */
+    const repertorioCurado = new Set(termosDaTurma((turmaDoPlano() || {}).id));
+    foraDoRepertorio = [];
     const termosPorMarco = new Map();
     if (colunaDerivada && noDaDerivada) {
       const origem = RESPOSTAS.get(noDaDerivada);
@@ -4395,7 +4414,17 @@ function grelhaDaTabela(no) {
         if (!l || !Array.isArray(l.marcados)) continue;
         const n = Number(l.marco);
         if (!Number.isFinite(n)) continue;
-        const termos = l.marcados.map((v) => String(v).trim()).filter(Boolean);
+        const marcados = l.marcados.map((v) => String(v).trim()).filter(Boolean);
+        const termos = [];
+        for (const t of marcados) {
+          /* Sem repertório carregado não se julga: apagar o que não se pode conferir seria a
+           * limpeza a destruir o dado. Com repertório, só passa quem está nele. */
+          if (repertorioCurado.size && !repertorioCurado.has(t)) {
+            if (foraDoRepertorio.indexOf(t) === -1) foraDoRepertorio.push(t);
+            continue;
+          }
+          termos.push(t);
+        }
         if (termos.length) termosPorMarco.set(n, termos);
       }
     }
@@ -4405,8 +4434,14 @@ function grelhaDaTabela(no) {
         for (const linha of Array.isArray(RESPOSTAS.get(cfg.no)) ? RESPOSTAS.get(cfg.no) : []) {
           if (!linha || !Array.isArray(linha.marcados) || linha.marcados.indexOf(bloco) === -1) continue;
           const n = Number(linha.marco);
-          const texto = marcos[n - 1] || '';
-          pares.push({ bloco: bloco, marco: rotuloDoMarco(n, texto), n: n });
+          /* O OBJETIVO TEM DE EXISTIR (03/11/2026). Aqui estava `marcos[n - 1] || ''`, e uma linha
+           * de bloco guardada para um objetivo que já não existe — sobra de uma sessão em que ele
+           * existia — gerava uma semente com o rótulo «3» e SEM texto de objetivo. Medido: a
+           * tabela mostrava uma linha «Expressão | 3» e o conteúdo dela saía `undefined`. A
+           * pesquisadora viu exactamente isso: «há menção ou comportamento residual envolvendo um
+           * suposto Objetivo 3». A regra é a mesma da linha órfã: sem sujeito, não é linha. */
+          if (!Number.isFinite(n) || n < 1 || n > marcos.length) continue;
+          pares.push({ bloco: bloco, marco: rotuloDoMarco(n, marcos[n - 1]), n: n });
         }
       }
     }
@@ -4622,6 +4657,11 @@ function grelhaDaTabela(no) {
    * sequência passou a ser derivada por inteiro. Quem quer mais exercícios não os acrescenta
    * nesta tabela: acrescenta-os à curadoria, ou marca-os como parâmetro. A frase aponta o sítio,
    * porque um campo sem saída é pior do que um campo a menos. */
+  const foraDoRepertorioTexto = () => (foraDoRepertorio.length
+    ? ' ' + foraDoRepertorio.map((t) => '\u00ab' + escapar(t) + '\u00bb').join(', ') +
+      (foraDoRepertorio.length === 1 ? ' n\u00e3o est\u00e1' : ' n\u00e3o est\u00e3o') +
+      ' no repert\u00f3rio desta turma \u2014 o s\u00edtio de o acrescentar \u00e9 a Curadoria.'
+    : '');
   const rodape = podeAcrescentar
     ? '<p class="linha-acao"><button type="button" data-grelha-add="1">Adicionar linha</button></p>'
     : (no.tabela && no.tabela.linhasDe
@@ -4631,7 +4671,8 @@ function grelhaDaTabela(no) {
         ? '<p class="sub">As linhas vêm das suas decisões — o bloco e o objetivo de ' +
           citacao(campoDoNo(no.tabela.linhasDe.no)) + ', o exercício e o objetivo dos ' +
           citacao(campoDoNo(no.tabela.linhasDe.de)) + ', e a música do verbete. Para a aula ' +
-          'ter mais ou menos exercícios, quem se muda é o repertório da turma, na Curadoria.</p>'
+          'ter mais ou menos exercícios, quem se muda é o repertório da turma, na Curadoria.' +
+          foraDoRepertorioTexto() + '</p>'
         // A DISTRIBUIÇÃO DO VOLUME — uma linha por bloco marcado, e nada mais.
         : '<p class="sub">As linhas vêm dos blocos que você marcou em ' +
           citacao(campoDoNo(no.tabela.linhasDe.no)) + ' — aqui você preenche a proporção de cada um.</p>')
@@ -6372,7 +6413,16 @@ function renderPergunta() {
   // também são da turma: é decisão da direção, e o plano LÊ da Produção. O cadastro
   // precisa estar carregado antes de pintar — sem ele, a primeira pintura ficaria sem o
   // dado (e a régua, sem os níveis).
-  const precisaDaTurma = !!(no.daTurma || no.porMarco || (no.escala && !Array.isArray(no.escala)));
+  /* A TABELA CUJA COLUNA DERIVADA VEM DO PARÂMETRO TAMBÉM PRECISA DA TURMA (03/11/2026). A
+   * sequência de exercícios não declara `porMarco` nem `daTurma`: o que ela declara é uma coluna
+   * `derivadaDe` o parâmetro, e o parâmetro é o CONTEÚDO DA TURMA. Sem esta linha, a tabela podia
+   * desenhar-se antes de o repertório curado chegar — e a coluna «Conteúdo do nível» saía com o
+   * que estava gravado, sem ter contra o que o conferir. */
+  const derivadaDoConteudo = !!(no.tabela && no.tabela.selecoes
+    && Object.keys(no.tabela.selecoes).some((c) => no.tabela.selecoes[c]
+      && (no.tabela.selecoes[c].derivadaDe || no.tabela.selecoes[c].fonte === 'termosDaTurma')));
+  const precisaDaTurma = !!(no.daTurma || no.porMarco || derivadaDoConteudo
+    || (no.escala && !Array.isArray(no.escala)));
   if (precisaDaTurma && TURMAS_DA_ESCOLA === null) {
     carregarTurmasDaEscola().then(() => {
       if (MAPA.nos[INDICE] === no) renderPergunta();

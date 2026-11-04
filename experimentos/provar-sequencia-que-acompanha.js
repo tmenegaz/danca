@@ -27,6 +27,10 @@
  *   3. o que NÃO é órfão não se toca: a linha acrescentada à mão, a prosa de um plano antigo, e o
  *      plano cujos objetivos ainda estão vazios (sem lista contra a qual medir, não há órfão).
  *
+ * E A QUINTA (03/11/2026): o conteúdo do exercício é o REPERTÓRIO CURADO da turma. Medir não é
+ * curar — a matriz do parâmetro aceita qualquer termo, e um termo marcado fora da curadoria
+ * entrava na aula como exercício («Port de bras», que existia na matriz e não no repertório).
+ *
  * E A QUARTA, que é da tela e não da regra: o ✕ só remove a linha que a pessoa acrescentou. Nas
  * derivadas ele nasce apagado — e ficava aceso no instante em que ela digitava a senha, porque a
  * trava da senha reescrevia `disabled` em todos os controles do formulário.
@@ -101,6 +105,11 @@ const SEQUENCIA_GUARDADA = [
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
   '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml' };
 
+/* O REPERTÓRIO DA TURMA — a curadoria, servida por esta prova. É variável de módulo porque a
+ * secção 7 o estreita de propósito: o defeito que ela mede é o de uma medida marcada FORA do
+ * repertório curado, e para o reproduzir a curadoria tem de deixar de a conter. */
+let REPERTORIO = ['battement-tendu', 'plie', 'port-de-bras'];
+
 function servir() {
   const srv = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://local');
@@ -123,7 +132,7 @@ function servir() {
       return json({ ok: true, termos: TERMOS, opcoes: TERMOS.map((t) => ({ valor: t.id, rotulo: t.termo })) });
     }
     if (rel === 'api/bastidores/turma-conteudos') {
-      return json({ ok: true, relacoes: { [TURMA.id]: ['battement-tendu', 'plie', 'port-de-bras'] } });
+      return json({ ok: true, relacoes: { [TURMA.id]: REPERTORIO.slice() } });
     }
     if (rel.startsWith('api/bastidores/curadoria-professor')) {
       return json({ ok: true, curadorias: [{ id: 'c1', professor: 'prova',
@@ -214,6 +223,13 @@ const bloco = (titulo) => console.log('\n' + titulo);
     sequenciaDoPlano.numeroDoObjetivo(ROTULO_3) === 3);
   provar('e «Barra» não tem número nenhum',
     Number.isNaN(sequenciaDoPlano.numeroDoObjetivo('Barra')));
+  provar('«Battement tendu» está no repertório e «Port de bras» não',
+    sequenciaDoPlano.linhaForaDoRepertorio({ 'Conteúdo do nível': 'Port de bras' },
+      ['Battement tendu', 'Plié']) === true
+    && sequenciaDoPlano.linhaForaDoRepertorio({ 'Conteúdo do nível': 'Plié' },
+      ['Battement tendu', 'Plié']) === false);
+  provar('a linha vazia não é violação do repertório (a lacuna não se pune)',
+    sequenciaDoPlano.linhaForaDoRepertorio({ Bloco: 'Barra' }, ['Plié']) === false);
   provar('a linha do objetivo 2 é órfã quando só existe um objetivo',
     sequenciaDoPlano.linhaOrfa(SEQUENCIA_GUARDADA[6], ['um só']) === true);
   provar('…e não é órfã quando o objetivo 2 existe',
@@ -259,6 +275,35 @@ const bloco = (titulo) => console.log('\n' + titulo);
    * asserção acima passaria mesmo que a música tivesse deixado de ser publicada por completo. */
   provar('CONTROLE: com os três objetivos, o Port de bras volta',
     /Port de bras — 16 tempos em 3\/4/.test(musica(mdTres)), musica(mdTres));
+
+  /* A OUTRA PORTA DO MESMO DEFEITO (03/11/2026): o exercício que a curadoria não acordou. Aqui o
+   * objetivo EXISTE e a linha não é órfã — o que não existe é o exercício no repertório do
+   * envelope. Publicá-lo punha na música uma peça que o «Repertório», duas secções abaixo, não
+   * lista: a contradição dentro da própria página. */
+  const sequenciaComPort = [
+    { Bloco: 'Barra', 'Objetivo específico': ROTULO_1, 'Conteúdo do nível': 'Battement tendu' },
+    { Bloco: 'Centro', 'Objetivo específico': ROTULO_1, 'Conteúdo do nível': 'Port de bras' },
+  ];
+  const envelopeCom = (repertorio) => {
+    const e = envelope([OBJETIVO_1], sequenciaComPort);
+    e.respostas.repertorio = { valor: repertorio };
+    return e;
+  };
+  const mdFora = derivarPlano(envelopeCom(['Battement tendu', 'Plié'])).markdown;
+  const mdDentro = derivarPlano(envelopeCom(['Battement tendu', 'Plié', 'Port de bras'])).markdown;
+  provar('o exercício fora do repertório do envelope não entra na música',
+    !/Port de bras/.test(musica(mdFora)), musica(mdFora));
+  provar('…e o que está no repertório continua publicado',
+    /Battement tendu —/.test(musica(mdFora)), musica(mdFora));
+  provar('CONTROLE: no repertório, o mesmo exercício publica-se',
+    /Port de bras —/.test(musica(mdDentro)), musica(mdDentro));
+  const mdSemRepertorio = derivarPlano((() => {
+    const e = envelope([OBJETIVO_1], sequenciaComPort);
+    delete e.respostas.repertorio;
+    return e;
+  })()).markdown;
+  provar('sem repertório declarado não se julga (não se apaga o que não se pode conferir)',
+    /Port de bras —/.test(musica(mdSemRepertorio)), musica(mdSemRepertorio));
 
   /* --------------------------------------------------------------------------------------- */
   bloco('3. A TELA — o caso medido no envelope dela');
@@ -410,10 +455,93 @@ const bloco = (titulo) => console.log('\n' + titulo);
   provar('nenhum erro de JavaScript na página', problemas.length === 0, problemas);
 
   srv.close();
+
+  /* --------------------------------------------------------------------------------------- */
+  bloco('7. O CONTEÚDO É O DA CURADORIA — a medida fora do repertório não vira exercício');
+  /* --------------------------------------------------------------------------------------- */
+  /* O QUE ELA RELATOU. «A curadoria ativa deste teste possui estritamente apenas dois verbetes
+   * cadastrados (Battement Tendu e Plié). No entanto, o sistema injetou automaticamente um
+   * conteúdo chamado Port de Bras vinculado ao Objetivo 2.» E acrescentou a suspeita, que era
+   * razoável: «há uma forte evidência de que os dados de teste (mock data)… estão injetando
+   * valores fixos».
+   *
+   * NÃO HÁ MOCK. O que havia era uma porta: a «Conteúdo do nível» da sequência lia os termos
+   * marcados na matriz do «Parâmetro de medição» sem os conferir contra o repertório curado. Uma
+   * medida marcada fora dele — e a matriz aceita qualquer termo, porque medir não é curar —
+   * entrava na aula como exercício. A medida não é o repertório (03/11/2026): agora só passa
+   * quem a curadoria acordou, e o que fica de fora é DITO no rodapé, não sumido.
+   *
+   * O mesmo vale para a coluna do objetivo: uma linha da matriz de BLOCOS guardada para um
+   * objetivo que já não existe gerava uma semente com o rótulo «3» e sem texto — a «menção
+   * residual a um suposto Objetivo 3». Sem sujeito, não é linha. */
+  const DOIS = ['reconhecer o apoio', 'transferir o peso'];
+  const ESTRUTURA_DOIS = [{ marco: 1, marcados: ['Barra'] },
+    { marco: 2, marcados: ['Barra', 'Centro', 'Expressão'] }];
+  const PARAMETRO_COM_PORT = [{ marco: 1, marcados: ['Battement tendu', 'Plié'] },
+    { marco: 2, marcados: ['Port de bras'] }];
+
+  REPERTORIO = ['battement-tendu', 'plie'];
+  const estreita = await abrir();
+  estreita.w.eval(semear(DOIS, ESTRUTURA_DOIS, PARAMETRO_COM_PORT, []));
+  await new Promise((r) => setTimeout(r, 400));
+  const comPortFora = abrirASequencia(estreita.w);
+  const textosFora = comPortFora.map((l) => l.celulas[2].texto);
+
+  provar('a medida fora do repertório não vira exercício',
+    textosFora.every((t) => !/port de bras/i.test(t)), textosFora);
+  provar('a aula fica com os exercícios curados (dois no objetivo 1)',
+    textosFora.filter((t) => t !== '\u2014').length === 2, textosFora);
+  provar('e o objetivo 2, sem exercício curado, aparece como lacuna e não como invenção',
+    comPortFora.filter((l) => /^2 —/.test(l.celulas[1].texto)).every((l) => l.celulas[2].texto === '\u2014'),
+    textosFora);
+  const rodapeFora = estreita.w.eval("(function(){ var q = document.getElementById('pergunta');"
+    + " var p = q.querySelectorAll('.sub'); var t = '';"
+    + " for (var i = 0; i < p.length; i++) t += p[i].textContent; return t; })()");
+  provar('…e o rodapé nomeia o que ficou de fora, em vez de o sumir',
+    /Port de bras/.test(rodapeFora) && /Curadoria/.test(rodapeFora), rodapeFora.slice(0, 240));
+
+  /* CONTROLE NEGATIVO: com o «Port de bras» DENTRO da curadoria, os mesmos dados produzem os
+   * exercícios dele. Sem este controlo, a asserção acima passaria mesmo que a coluna tivesse
+   * deixado de ler a matriz por completo. */
+  REPERTORIO = ['battement-tendu', 'plie', 'port-de-bras'];
+  const larga = await abrir();
+  larga.w.eval(semear(DOIS, ESTRUTURA_DOIS, PARAMETRO_COM_PORT, []));
+  await new Promise((r) => setTimeout(r, 400));
+  const comPortDentro = abrirASequencia(larga.w);
+  provar('CONTROLE: curado o «Port de bras», ele aparece nos três blocos do objetivo 2',
+    comPortDentro.filter((l) => /port de bras/i.test(l.celulas[2].texto)).length === 3,
+    comPortDentro.map((l) => l.celulas[2].texto));
+
+  /* O OBJETIVO 3, e as duas metades da mesma regra: uma linha de bloco para ele não pode gerar
+   * semente, e com o objetivo de volta na lista tem de gerar. */
+  larga.w.eval("(function(){ RESPOSTAS.set('estrutura-de-cada-aula',"
+    + " [{ marco: 1, marcados: ['Barra'] }, { marco: 2, marcados: ['Centro'] },"
+    + "  { marco: 3, marcados: ['Expressão'] }]); pintarRoteiro(); return true; })()");
+  await new Promise((r) => setTimeout(r, 300));
+  const comMarcoTres = abrirASequencia(larga.w);
+  provar('um bloco guardado para o objetivo 3 não gera linha',
+    comMarcoTres.every((l) => !/^3(\D|$)/.test(l.celulas[1].texto)),
+    comMarcoTres.map((l) => l.celulas[1].texto));
+  provar('…nem deixa a coluna do objetivo sem texto',
+    comMarcoTres.every((l) => l.celulas[1].texto.trim().length > 0),
+    comMarcoTres.map((l) => l.celulas[1].texto));
+  larga.w.eval(semear(DOIS.concat(['sustentar a transferência']), [{ marco: 3, marcados: ['Expressão'] }],
+    PARAMETRO_COM_PORT, []));
+  await new Promise((r) => setTimeout(r, 300));
+  const comObjetivoTres = abrirASequencia(larga.w);
+  provar('CONTROLE: com o terceiro objetivo na lista, o bloco dele produz a linha',
+    comObjetivoTres.some((l) => /^3 —/.test(l.celulas[1].texto)),
+    comObjetivoTres.map((l) => l.celulas[1].texto));
+  provar('nenhum erro de JavaScript nas duas páginas',
+    estreita.problemas.length === 0 && larga.problemas.length === 0,
+    { estreita: estreita.problemas, larga: larga.problemas });
+
+  estreita.srv.close();
+  larga.srv.close();
   console.log('');
   console.log((falhas ? 'FALHOU' : 'TUDO CERTO') + ' — ' + total + ' asserção(ões), ' + falhas + ' falha(s).');
   console.log(falhas
     ? 'A sequência não acompanha os objetivos.'
-    : 'A sequência acompanha os objetivos: a linha órfã sai, a viva fica, e a chave é o número.');
+    : 'A sequência acompanha os objetivos — e só o que a curadoria acordou.');
   process.exit(falhas ? 1 : 0);
 })();

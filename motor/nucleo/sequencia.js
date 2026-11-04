@@ -102,4 +102,48 @@ function linhasVivas(sequencia, objetivos) {
   return vivas;
 }
 
-module.exports = { COLUNAS_DO_OBJETIVO, numeroDoObjetivo, objetivoDaLinha, linhaOrfa, linhasVivas };
+/**
+ * O CONTEÚDO QUE A CURADORIA NÃO ACORDOU (03/11/2026) — a segunda porta do mesmo defeito.
+ *
+ * A pesquisadora: «a curadoria ativa deste teste possui estritamente apenas dois verbetes
+ * cadastrados (Battement Tendu e Plié). No entanto, o sistema injetou automaticamente um conteúdo
+ * chamado Port de Bras vinculado ao Objetivo 2» — e suspeitou, com razão, de dados de teste. Não
+ * havia mock: havia uma medida marcada fora do repertório. A matriz do «Parâmetro de medição»
+ * aceita qualquer termo, porque MEDIR NÃO É CURAR; o que se mede num exercício pode ser uma
+ * qualidade que a curadoria não previu como exercício. Mas o conteúdo da aula é o repertório
+ * curado, e só ele — o resto é a medida de um exercício que já existe.
+ *
+ * `repertorio` é a lista ACORDADA (a do envelope, ou a da curadoria); vazia, não se julga nada —
+ * apagar o que não se pode conferir seria a limpeza a destruir o dado.
+ */
+const COLUNAS_DO_CONTEUDO = ['Conteúdo do nível', 'Conteúdo', 'Exercício'];
+
+/** O valor que a linha traz na coluna do conteúdo — qualquer um dos nomes que ela já teve. */
+function conteudoDaLinha(linha) {
+  if (!linha || typeof linha !== 'object' || Array.isArray(linha)) return '';
+  for (const coluna of COLUNAS_DO_CONTEUDO) {
+    const v = linha[coluna];
+    if (v !== null && v !== undefined && String(v).trim()) return String(v).trim();
+  }
+  return '';
+}
+
+/** A linha cujo exercício está FORA do repertório acordado — a que não se publica. */
+function linhaForaDoRepertorio(linha, repertorio) {
+  const acordado = (Array.isArray(repertorio) ? repertorio : [])
+    .map((t) => String((t && t.termo) || t || '').trim())
+    .filter(Boolean);
+  if (!acordado.length) return false;       // sem repertório não há contra o que medir
+  const conteudo = conteudoDaLinha(linha);
+  if (!conteudo) return false;              // a lacuna não é violação
+  return acordado.indexOf(conteudo) === -1;
+}
+
+/** As linhas cujo exercício a curadoria acordou — o que a `aula-01.md` compõe. */
+function linhasDoRepertorio(sequencia, repertorio) {
+  const lista = Array.isArray(sequencia) ? sequencia : [];
+  return lista.filter((linha) => !linhaForaDoRepertorio(linha, repertorio));
+}
+
+module.exports = { COLUNAS_DO_OBJETIVO, COLUNAS_DO_CONTEUDO, numeroDoObjetivo, objetivoDaLinha,
+  conteudoDaLinha, linhaOrfa, linhaForaDoRepertorio, linhasVivas, linhasDoRepertorio };

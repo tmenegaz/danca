@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T21:20:55-0300`
-Commit atual: `1e29007f` — fix(experimentos): as bancadas passam a medir o documento e o alfabeto de HOJE
+Gerado em: `2026-11-03T21:51:30-0300`
+Commit atual: `5ae2ea50` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,10 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+5ae2ea50 chore(estrutura): regerar os índices derivados
+278478ad feat(acervo): envelope/.indice.json
+6509cb55 chore(acervo): apagar envelope/plano-20261103-1644.json
+68798368 docs(registro): a correção da minha explicação — não eram três decisões de produto
 1e29007f fix(experimentos): as bancadas passam a medir o documento e o alfabeto de HOJE
 428f6df8 docs(registro): as bancadas do plano e do PO medem outra vez — e a pergunta «apagar o plano resolve?» teve não
 38b13c10 fix(experimentos): as bancadas do plano e do PO medem outra vez — o fixture é que tinha morrido
@@ -101,10 +105,6 @@ f841cb8b feat(acervo): envelope/plano-20261103-1644.json
 904a3271 feat(acervo): envelope/plano-20261103-1644.json
 7b4cba59 feat(acervo): envelope/.indice.json
 f6fd2eb3 docs(registro): a sequência acompanha os objetivos — e a pergunta 'é mock?' teve resposta medida
-53e82350 fix(campo): a sequência acompanha os objetivos — a linha órfã sai, e a chave é o número
-d36ab2d6 chore(estrutura): regerar os índices derivados
-8b049f60 docs(registro): o plano foi gravado — corrigir a frase que dizia o contrário
-5aea425d docs(registro): a metodologia é do professor, e não se pergunta duas vezes
 ```
 
 ## Por professor
@@ -230,67 +230,70 @@ d36ab2d6 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — Uma correção minha: não eram «três decisões de produto»
+## 03/11/2026 — A medida não é o repertório, e o objetivo 3 não tinha sujeito
 
-**O que motivou.** A pesquisadora leu a minha explicação e não a entendeu — e tinha razão para não
-entender. Eu tinha escrito que três campos «não chegam ao documento» e que a decisão era dela.
-**Estava errado, e a frase era má por duas razões**: chamava «decisão» ao que era bancada velha, e
-dava-lhe um problema que não estava no produto. A pergunta dela — «isso também é lixo que tem de ser
-excluído?» — é a pergunta certa, e a resposta é **não**: nada se apaga, nem no sistema nem no acervo.
+**O que ela relatou.** Depois de apagar o plano anterior e começar outro com **dois** objetivos, a
+tabela «Sequência de Exercícios por Bloco» mostrou um conteúdo que a curadoria não tem — «*Port de
+Bras*, vinculado ao Objetivo 2» —, replicado em três blocos; e uma menção residual a um «suposto
+Objetivo 3», que ela nunca preencheu. E fez a pergunta certa, com a hipótese certa para o sintoma:
+«há uma forte evidência de que os dados de teste (*mock data*)… estão injetando valores fixos
+predefinidos que ignoram a seleção real da curadoria».
 
-**O que se mediu, campo a campo.** Nenhum dos três é uma perda; cada um tem uma razão, e as razões
-são de datas diferentes.
+**Não havia mock nenhum. Havia duas portas abertas na mesma derivação.**
 
-| O campo | O que a bancada exigia | O que o documento tem hoje, e desde quando |
+| O que aparecia | De onde vinha | Por que passava |
 |:--|:--|:--|
-| **Escola** | uma linha «Escola / espaço: …» no `## Contexto` | **saiu a 28/10/2026**, por decisão: era o mesmo dado escrito pela terceira vez (o `title` e o `escola:` do cabeçalho já o levam), e a secção passou a agrupar «onde» e «para quem/como» sem o repetir |
-| **Critério da rubrica** | uma tabela «Critério × níveis» | **mudou a 26/10/2026**: o plano declara a **régua** (os níveis que a escola adotou), e o critério de cada aula nasce no lançamento da aula dada. O título passou a «Régua da rubrica» e o validador dá-lhe chave própria (`reguaDaRubrica`) — a bancada ainda apontava para `rubrica`, a chave do documento antigo |
-| **Aula de cada objetivo** | o valor dentro da tabela dos objetivos | **chega, na direção contrária**: a relação publica-se na tabela «Marcos parciais por aula» (por aula, quais objetivos), que é exactamente o trabalho dela. A bancada exigia-a na tabela dos objetivos, onde o documento — de propósito — não a põe |
+| «Port de bras» em três blocos | da matriz do **«Parâmetro de medição»**, marcada no objetivo 2 | a coluna «Conteúdo do nível» lia `l.marcados` **sem o conferir contra o repertório curado**. A matriz aceita qualquer termo, porque **medir não é curar** — o que se mede num exercício pode ser uma qualidade que a curadoria não previu como exercício |
+| uma linha de «objetivo 3» | de uma linha da matriz de **blocos** guardada para um objetivo que já não existe | a poda existente era sobre a lista de objetivos; a matriz que produz as sementes **não era filtrada**, e `marcos[n-1] \|\| ''` deixava passar um `marco` fora de `1..total` com o rótulo «3» e **sem texto de objetivo** |
 
-**E a bancada da sequência media-se a si mesma.** Ela dizia que o «Battement fondu» declara `2|4/4`
-e que o tendu tem três músicas. O alfabeto do repositório declara **Plié** (`4|2/4`) e **Battement
-tendu** (`8|2/4@breu`) e mais nada: o fondu existe no **vocabulário** (a lista de termos) e **não
-tem verbete** (o registo com a música). O sistema dizia a verdade — «tempos e compasso por declarar
-no verbete» — e a **fixture** é que mentia sobre o que o alfabeto tem. **Criar o verbete do fondu é
-acto de conteúdo, e é dela (P-16)**; a prova não o pode inventar.
+**Não é «lixo de teste», e vale escrevê-lo: o estado dela está a sobreviver em dois sítios que não
+são ficheiros.** O rascunho do plano vivia no `localStorage` do navegador; um plano novo, no mesmo
+navegador, herda as respostas do anterior — inclusive a matriz do parâmetro. E a matriz do parâmetro
+é uma grade de caixas: o que se marcou uma vez fica marcado até alguém desmarcar. Um valor
+«fantasma» é, quase sempre, **um valor que ela própria marcou numa sessão anterior** e que a tela
+não distingue de uma decisão de agora. Foi por isso que o remédio não foi «limpar o mock»: foi
+**filtrar na derivação**, que é o único sítio por onde todos os valores passam.
 
-**A distinção, escrita para não se perder.** *Fixture* é o dado que a própria prova inventa para
-medir um mecanismo — uma turma de mentira, três exercícios de mentira. *Sistema* é o que a
-pesquisadora usa. Quando a prova reprova, há duas perguntas, e a ordem importa: **(1) a fixture
-ainda descreve o mundo?** (2) o sistema faz o que promete? Nas duas bancadas de hoje a resposta foi
-(1) não e (2) sim — e é por isso que o remédio foi na prova, não no sistema.
+**A regra, e é uma frase:** *o conteúdo de um exercício da aula é o **repertório curado** da turma, e
+só ele; uma medida marcada fora dele é a medida de um exercício que já existe, e o sítio de a
+acordar é a Curadoria.* Escrita uma vez em `motor/nucleo/sequencia.js` (`linhaForaDoRepertorio`,
+`linhasDoRepertorio`) e consumida nos três lugares que publicam a aula: a tela (`porta/index.html`),
+o `.md` do plano (`derivar-plano-ciclo.js`) e a `aula-01.md` (`derivar-ciclo.js`). E a segunda
+metade: **sem sujeito não é linha** — a semente de um `marco` fora da lista viva não se cria
+(a mesma regra de `linhaOrfa`, agora aplicada à matriz dos blocos, que era a que faltava).
 
-**O que mudou nas duas bancadas** (e é prova, não produto): a identificação do ciclo passou a ser
-medida no `## Contexto` com a reserva do guia (`tools/lib-vistas.js` → `duracaoDaAula`); a régua
-passou a ser lida na chave `reguaDaRubrica`; a sequência passou a ser lida no documento da
-**notação**, onde vive desde 26/10; a música passou a admitir as duas origens (o exercício e o
-campo); a **escola** passou a estar declarada como **omissão com motivo** (`OMISSOES`) em vez de
-exigida de volta — e qualquer OUTRO campo que suma continua a reprovar; a relação objetivo ↔ aula
-passou a ser provada na tabela dos marcos, com asserção dedicada nas duas direções; o fixture do
-`marcos-por-aula` passou da prosa legada para a lista (na prosa, a coluna «Objetivos» sai da
-posição e a relação declarada era ignorada — medido); e a fonte publicada da Maria, que morreu com
-o professor `tiago`, deu lugar à do Marau (que existe de propósito com o cabeçalho antigo), com
-`NÃO MEDE` nomeado se ela faltar.
+**Três decisões de escrita, e as três são para não repetir o erro de sumir com o dado:**
+
+1. **sem repertório carregado não se julga.** Apagar o que não se pode conferir seria a limpeza a
+   destruir o dado — a mesma reserva que o `linhasVivas` já tinha para os objetivos vazios;
+2. **o que fica de fora é DITO.** O rodapé da tabela passa a nomear o termo que não entrou, e diz
+   onde ele se acrescenta («o sítio de o acrescentar é a Curadoria»). Um valor que desaparece sem
+   uma palavra faz concluir que o sistema não ouve — e a frase é da família da que já lá estava;
+3. **a lacuna não se pune.** O objetivo sem exercício curado mostra `—` e **não** um campo para
+   escrever: a coluna continua travada, e o caminho legítimo de ter mais é a marcação no parâmetro
+   (ou a curadoria). Foi a decisão de `9547aaec`, agora com o filtro a fechar a última porta.
 
 **O que se mediu.**
 
 | Verificação | Antes | Depois |
 |:--|:--|:--|
-| `provar-plano-completo` | exceção na §5 (o `ciclo` ausente) | **OK — 18 verificações** |
-| `provar-derivados-da-sequencia` | 2 falhas | **TUDO CERTO — 26 asserções** |
-| `provar-plano-matriz` · `provar-po-completo` · `provar-teste` | verde (entrada anterior) | 52 · 17 · 45 — verdes |
-| `provar-sequencia-que-acompanha` · `provar-metodologia-no-cabecalho` · `provar-aula-e-plano-legiveis` · `provar-apagar-da-listagem` | — | **TUDO CERTO** nas quatro |
-| `check-identidade` · `check-indices` | — | **20/20** · **14/14** |
+| `provar-sequencia-que-acompanha` | 33 asserções | **48 — TUDO CERTO** (secção 7 nova: a medida fora do repertório, o objetivo 3, e os dois controles negativos) |
+| «Port de bras» na sequência, com a curadoria em dois verbetes | **3 linhas** | **0** — e o rodapé nomeia-o |
+| linha a nomear o objetivo 3, com um `marco: 3` na matriz dos blocos | **aparecia** | **não aparece** — e sem objetivo, a coluna não sai vazia |
+| `provar-plano-matriz` · `provar-plano-completo` · `provar-derivados-da-sequencia` · `provar-po-completo` · `provar-teste` · `provar-apagar-da-listagem` · `provar-metodologia-no-cabecalho` | verde | **52/52 · 18 · 26 · 17 · 45 · 31 · TUDO CERTO** |
+| `check-identidade` | 20/20 | **20/20** (o pacote do `ciclo-01-breu` foi regerado a partir de `porta/`) |
+
+**Os controlos negativos são a prova de que o filtro não é o silêncio.** Com «Port de bras» dentro
+da curadoria, os mesmos dados produzem os três exercícios dele; com o terceiro objetivo na lista, a
+linha do bloco dele volta a existir. Sem os dois, a bancada passaria mesmo que a coluna tivesse
+deixado de ler a matriz por completo.
 
 **Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
 
-**Com o quê.** `experimentos/provar-plano-completo.js` · `experimentos/provar-derivados-da-
-sequencia.js` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
-
-**A pergunta que sobra, e é uma só.** No **corpo** do plano o nome da escola não aparece: o
-cabeçalho leva `escola:` (o *slug*, `breu`), e o nome de exibição vive na página e no PO. Num plano
-impresso, o leitor vê «breu». **PENDENTE**, e é de produto: uma linha devolve o nome ao corpo. Não
-é defeito — é escolha, e hoje a escolha é a de 28/10/2026.
+**Com o quê.** `motor/nucleo/sequencia.js` · `motor/nucleo/derivar-plano-ciclo.js` ·
+`motor/nucleo/derivar-ciclo.js` · `porta/index.html` ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (regerado) ·
+`experimentos/provar-sequencia-que-acompanha.js` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
 
 ## O que está pendente
 

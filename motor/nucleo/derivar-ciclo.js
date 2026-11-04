@@ -782,7 +782,11 @@ function sequenciaComoObjetos(plano) {
    * existia. Compô-la punha na `aula-01.md` um exercício cujo objetivo a mesma página não lista.
    * A regra é a do `motor/nucleo/sequencia.js`, a mesma da tela e do plano. */
   const objetivos = marcosEmTexto(resp(plano, 'marcos-por-aula'));
-  return sequenciaDoPlano.linhasVivas(valor, objetivos)
+  /* E O EXERCÍCIO TEM DE SER O QUE A CURADORIA ACORDOU (03/11/2026) — a segunda porta do mesmo
+   * defeito: a linha cujo conteúdo está fora do repertório entrou por uma medida marcada na
+   * matriz do parâmetro, e medir não é curar. A regra é a de `motor/nucleo/sequencia.js`. */
+  return sequenciaDoPlano.linhasDoRepertorio(
+    sequenciaDoPlano.linhasVivas(valor, objetivos), resp(plano, 'repertorio'))
     .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
 }
 

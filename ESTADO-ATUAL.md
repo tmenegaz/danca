@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `1e29007`, árvore limpa). Nesta entrega, **a correção de
+> **Última fotografia:** 03/11/2026 (base `5ae2ea5`, árvore limpa). Nesta entrega, **a medida não é
+> o repertório**. Ela relatou que a sequência mostrava «*Port de Bras*, vinculado ao Objetivo 2» com
+> a curadoria em dois verbetes, e uma menção residual a um «Objetivo 3» que nunca preencheu — e
+> suspeitou de *mock*, com razão para suspeitar. **Não havia mock**: havia duas portas abertas na
+> mesma derivação. A coluna «Conteúdo do nível» lia os termos marcados na matriz do «Parâmetro de
+> medição» **sem os conferir contra o repertório curado** — e medir não é curar; e a matriz dos
+> **blocos**, que produz as sementes, não era filtrada pelos objetivos vivos, pelo que um `marco: 3`
+> guardado gerava uma linha com o rótulo «3» e **sem texto de objetivo**. A regra passou a ser uma e
+> está escrita em `motor/nucleo/sequencia.js`: **o conteúdo do exercício é o repertório curado da
+> turma**, e sem sujeito não é linha. O que fica de fora é **dito** no rodapé, e a lacuna não se
+> pune. `provar-sequencia-que-acompanha` **48 asserções** (eram 33), com **dois controlos negativos**;
+> as outras sete bancadas e o `check-identidade` (20/20) verdes.
+>
+> **Entrega anterior** (base `1e29007`, árvore limpa). Nesta entrega, **a correção de
 > uma explicação minha**: eu disse que três campos «não chegavam ao documento» e que a decisão era
 > dela — e **estava errado**. Nenhum dos três é perda: a linha da **escola** saiu do corpo a
 > 28/10/2026 (está no `title` e no `escola:` do cabeçalho); a **rubrica** deixou de ser a tabela
@@ -1579,6 +1592,38 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
 
 ## 7. Trabalho em andamento
 
+**A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
+novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
+nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
+**não havia fixture**: o `wiring` da publicação não alcança a pasta de testes. O que havia eram duas
+portas abertas na mesma derivação. (1) A coluna «Conteúdo do nível» lia `l.marcados` da matriz do
+«Parâmetro de medição» **sem o conferir contra a curadoria** — e essa matriz aceita **qualquer**
+termo, porque **medir não é curar**: o que se mede num exercício pode ser uma qualidade que a
+curadoria não previu como exercício. (2) A matriz dos **blocos**, que produz as sementes, não era
+filtrada pelos objetivos vivos: `marcos[n - 1] || ''` deixava passar um `marco` fora de `1..total` e
+desenhava a linha com o rótulo «3» e **sem texto de objetivo**. **CONFIRMADO** por reprodução em
+JSDOM, com a curadoria da turma reduzida a **Battement tendu** e **Plié**. **DECIDIDO**: *o conteúdo
+de um exercício da aula é o repertório curado da turma, e só ele*; uma medida fora dele é a medida de
+um exercício que já existe, e o sítio de a acordar é a **Curadoria**. A regra é uma e mora em
+`motor/nucleo/sequencia.js` (`linhaForaDoRepertorio`, `linhasDoRepertorio`), consumida pelos **três**
+sítios que publicam a aula: a tela, o `.md` do plano e a `aula-01.md`. A segunda metade — **sem
+sujeito não é linha** — é a de `linhaOrfa`, agora aplicada também à matriz dos blocos.
+
+**Três reservas, e as três são para não repetir o erro de sumir com o dado.** Sem repertório
+carregado **não se julga** (apagar o que não se pode conferir seria a limpeza a destruir o dado); o
+que fica de fora é **dito** — o rodapé nomeia o termo e aponta a Curadoria —; e a **lacuna não se
+pune**: o objetivo sem exercício curado mostra `—`, a coluna continua travada, e o caminho legítimo
+de ter mais é a marcação no parâmetro ou a curadoria. **CONFIRMADO** pela §7 da prova, que tem os
+**dois controlos negativos**: curado o «Port de bras», os três exercícios dele aparecem; de volta o
+terceiro objetivo, a linha do bloco dele volta.
+
+**E o estado dela sobrevive em dois sítios que não são ficheiros** — vale escrevê-lo, porque é a
+explicação provável de metade dos «fantasmas». O rascunho do plano vive no `localStorage` do
+navegador (um plano novo, no mesmo navegador, herda as respostas do anterior) e a matriz do parâmetro
+é uma grade de caixas: o que se marcou uma vez fica marcado até alguém desmarcar. **HIPÓTESE** — não
+confirmada com ela. É a razão pela qual o remédio foi **filtrar na derivação**: é o único sítio por
+onde todos os valores passam.
+
 **O registo SOLTO edita-se e apaga-se; o VINCULADO só se ajusta (03/11/2026).** O «Apagar» tinha
 sumido da listagem do plano — a estante antiga da porta tinha-o, e a migração para a página da Área
 do Professor trouxe o «Editar» e deixou-o para trás. **CONFIRMADO** na página publicada da `breu`:
@@ -2173,7 +2218,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — as bancadas passam a medir o documento de hoje)
+### Executado nesta fotografia (03/11/2026 — a medida não é o repertório)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-sequencia-que-acompanha` | **TUDO CERTO — 48 asserções** (eram 33). Secção 7 nova: a medida marcada fora do repertório curado não vira exercício, o `marco` fora da lista não gera linha, e **dois controlos negativos** (curado o termo, ele aparece; de volta o objetivo, a linha volta) |
+| «Port de bras» na sequência, com a curadoria em dois verbetes | **3 linhas → 0**, e o rodapé nomeia o termo que ficou de fora |
+| linha a nomear «objetivo 3», com um `marco: 3` na matriz dos blocos | **aparecia → não aparece** — e a coluna do objetivo não sai vazia |
+| o mesmo exercício no `.md` do plano | não entra na música quando está fora do `repertorio` do envelope; entra quando está dentro; **sem repertório declarado não se julga** |
+| `provar-plano-matriz` · `provar-plano-completo` · `provar-derivados-da-sequencia` · `provar-po-completo` · `provar-teste` · `provar-apagar-da-listagem` · `provar-metodologia-no-cabecalho` | **52/52** · **18** · **26** · **17** · **45** · **31** · **TUDO CERTO** |
+| `check-identidade` | **20/20** (o `plano-observacao/` do `ciclo-01-breu` foi regerado a partir de `porta/`) |
+| **o que NÃO mede** | `provar-listas-do-acervo` · `provar-dimensoes-plano` · `provar-janela-do-lancamento` · `provar-lancamento` · `provar-geracao` — apontam a pastas de escolas expurgadas (`batata`, `calando-teste-1`) ou a professores que já não existem (`tiago`) |
+| **de antes** | `check-pacote` no `ciclo-01-breu`: 11 erros (o pacote-zero não tem PDF, nem aulas, nem dados) |
+
+### Executado na fotografia anterior (03/11/2026 — as bancadas passam a medir o documento de hoje)
 
 | Verificação | Resultado |
 |:--|:--|
