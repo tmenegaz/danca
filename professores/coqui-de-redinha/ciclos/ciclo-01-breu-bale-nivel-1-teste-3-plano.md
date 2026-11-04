@@ -57,7 +57,7 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 | **Barra** | **30%** | **Apoio e alinhamento.** |
 | **Centro** | **30%** | **Transferência e sequência.** |
 | **Musicalidade** | **10%** | **Pulso e frase.** |
-| **Expressão** | [a decidir] | **Braços** |
+| **Expressão** | **30%** | **Braços** |
 
 > **Unidade: percentual.** A proporção alvo é a fatia da aula — a soma fecha em 100%.
 
