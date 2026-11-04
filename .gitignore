@@ -649,3 +649,11 @@ experimentos/modelo-formulario/*
 # Mede também o que não pode voltar: a frase de arquitetura. Roda a montagem de verdade e lê o
 # HTML que ela escreve (`publicacao/` é saída, e por isso a prova a pode reescrever).
 !experimentos/provar-cartao-da-aula.js
+
+# AS COLUNAS DA AULA (04/11/2026). O pandoc calcula a largura de cada coluna pela PROPORÇÃO DOS
+# TRAÇOS da linha de separação — e só quando ela passa dos 72 caracteres. Com traços iguais as
+# quatro colunas saíam a 28/28/21/21, e era a descrição que encolhia. Esta prova mede a proporção,
+# o comprimento da linha, e (quando há pandoc) as percentagens que ele escreve no HTML. Mede
+# também o que saiu: a notação Benesh não está no bloco de musicalidade da aula — ela vive no
+# documento dela, e é lá que o botão «notação» a vai buscar.
+!experimentos/provar-colunas-da-aula.js

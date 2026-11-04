@@ -41,8 +41,8 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 | Compasso | Exercício | Tempos | Contagem |
 |:--|:--|--:|:--|
-| 2/4 | Battement tendu | 8 | 1–2 `[Perna: ED 1ª ○ - ● 1ª]` |
-| 2/4 | Plié | 4 | 1–2 `[Perna: ED 1ª ↓ ↑]` |
+| 2/4 | Battement tendu | 8 | 1–2 |
+| 2/4 | Plié | 4 | 1–2 |
 
 Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício.
 

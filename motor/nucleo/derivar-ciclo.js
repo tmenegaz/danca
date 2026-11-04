@@ -726,11 +726,25 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
            * sem a notação — deitava fora exactamente o que a tabela anterior mostrava e que ela
            * nomeou: «o que cai em cada contagem». O `1–2` do fim é outra coisa do pé que o `1–2`
            * do princípio, e a repetição sobre o segundo compasso é a frase, não redundância. */
+          /* A NOTAÇÃO SAI DESTA TABELA (04/11/2026). A pesquisadora: «o bloco de musicalidade
+           * exibe a notação Benesh junto à contagem — remover; a notação só deve ser carregada e
+           * exibida quando o utilizador acionar explicitamente a opção de abrir a notação».
+           *
+           * E ela tinha razão por duas: esta vista é a MÚSICA da aula (compasso, exercício,
+           * tempos e contagem), e a notação não é música — é o código em que a música se escreve,
+           * e tem documento próprio (`-notacao.md`, «Exercícios da Aula 01», onde cada exercício
+           * tem a sua tabela com a coluna «Notação»). Repeti-la aqui punha um `[Perna: ED 1ª ○ - ●
+           * 1ª]` de 24 caracteres numa coluna de «1–2», a espremer as outras três — e obrigava
+           * quem lê a música a atravessar o código.
+           *
+           * A dedução continua a ser pela CONTAGEM, e agora só por ela: dois segmentos com a
+           * mesma contagem e blocos diferentes passam a ser a mesma célula, que é o que a tabela
+           * passou a mostrar. */
           const vistas = new Set();
           const contagens = [];
           for (const sg of c.segmentos || []) {
-            const celula = sg.contagem + (sg.bloco ? ' `' + sg.bloco + '`' : '');
-            if (vistas.has(celula)) continue;
+            const celula = sg.contagem;
+            if (!celula || vistas.has(celula)) continue;
             vistas.add(celula);
             contagens.push(celula);
           }
@@ -1252,7 +1266,23 @@ function derivarNotacao({ plano, contexto }) {
       }
 
       saida.push('| Compasso | Contagem | Notação | Descrição |');
-      saida.push('|:--:|:--:|:--|:--|');
+      /* AS LARGURAS SÃO AS DA LINHA DE SEPARAÇÃO (04/11/2026), e não uma preferência de estilo.
+       * O pandoc calcula a largura relativa de cada coluna a partir da PROPORÇÃO DOS TRAÇOS desta
+       * linha, e só quando ela passa dos 72 caracteres (o `--columns` por omissão, e o
+       * `gerar-ciclo.sh` não o muda). Com todos os traços iguais — que era o caso — as quatro
+       * colunas saíam a 28/28/21/21: o «1» do compasso e o «1–2» da contagem ficavam com a mesma
+       * largura que o parágrafo da descrição, e era a descrição que encolhia. A pesquisadora:
+       * «todas as colunas estão com o mesmo tamanho, espremendo os textos descritivos».
+       *
+       * A proporção daqui dá, medido no HTML gerado: **12 / 12 / 23 / 52**. As duas numéricas
+       * descem a mais de metade do que tinham (28 → 12), e o espaço vai para a descrição
+       * (21 → 52) e para a notação (21 → 23) — que precisa dele, porque `[Perna: ED 1ª ○ - ● 1ª]`
+       * são 24 caracteres numa coluna.
+       *
+       * NÃO ponha traços mais curtos do que estes: abaixo de 72 caracteres de linha o pandoc
+       * desiste das larguras e volta a distribuir por igual, que é o defeito. A prova
+       * (`experimentos/provar-colunas-da-aula.js`) mede a linha e as percentagens. */
+      saida.push('|:----------:|:----------:|:----------------------|:---------------------------------------------------|');
 
       if (c.estado === 'lacuna') {
         // A LACUNA NÃO ESCONDE O MOTIVO. Uma célula vazia diria «não sei»; a frase diz o que falta.

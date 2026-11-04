@@ -24,7 +24,119 @@
     },
     "Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício."
   ],
-  "proveniencia": "**[Plano de Observação](/plano-observacao/?professor=coqui-de-redinha&escola=breu&ciclo=01&fonte=po)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/?professor=coqui-de-redinha&escola=breu&ciclo=01&fonte=plano)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+  "guiaDeObservacao": {
+    "Corpo": [
+      {
+        "criterio": "Flexibilidade dos isquiotibiais",
+        "oQueSeObserva": "1 de 1 em «Baixa (\"dura\")» — ponto de atenção"
+      },
+      {
+        "criterio": "Flexibilidade anteroposterior (grand écart)",
+        "oQueSeObserva": "1 de 1 em «Parcial (elevação do quadril)» — ponto de atenção"
+      },
+      {
+        "criterio": "Mobilidade das costas e tronco (cambre)",
+        "oQueSeObserva": "1 de 1 em «Dor/desconforto» — ponto de atenção"
+      },
+      {
+        "criterio": "Mobilidade de quadril (en dehors de origem)",
+        "oQueSeObserva": "1 de 1 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção"
+      },
+      {
+        "criterio": "Mobilidade de flexão/extensão do tornozelo",
+        "oQueSeObserva": "1 de 1 em «Moderada» — ponto de atenção"
+      },
+      {
+        "criterio": "Força excêntrica / recuo na flexão de tronco",
+        "oQueSeObserva": "1 de 1 em «Retorna enrolando (roll-up)» — ponto de atenção"
+      },
+      {
+        "criterio": "Sustentação ativa de MMII (força de adágio)",
+        "oQueSeObserva": "1 de 1 em «Incapacidade por colapso» — ponto de atenção"
+      },
+      {
+        "criterio": "Força de empurrar (push-ups)",
+        "oQueSeObserva": "1 de 1 em «Incapacidade» — ponto de atenção"
+      },
+      {
+        "criterio": "Resistência de MMSS (port de bras prolongado)",
+        "oQueSeObserva": "1 de 1 em «Fadiga rápida com queda» — ponto de atenção"
+      },
+      {
+        "criterio": "Flexibilidade dos adutores",
+        "oQueSeObserva": "1 de 1 em «Abertura completa (180°+)»"
+      },
+      {
+        "criterio": "Rotação e amplitude dos ombros",
+        "oQueSeObserva": "1 de 1 em «Completa e fluida»"
+      },
+      {
+        "criterio": "Controle de carga no demi/grand plié",
+        "oQueSeObserva": "1 de 1 em «Controla fluido, sem perda de eixo»"
+      },
+      {
+        "criterio": "Equilíbrio unipodal",
+        "oQueSeObserva": "1 de 1 em «Mantém > 5 s sem oscilação severa»"
+      },
+      {
+        "criterio": "Força de puxar (tração)",
+        "oQueSeObserva": "1 de 1 em «Tração completa»"
+      },
+      {
+        "criterio": "Articulação e força intrínseca dos dedos",
+        "oQueSeObserva": "1 de 1 em «Flexíveis e articulados»"
+      },
+      {
+        "criterio": "Aluna A — o que traz",
+        "oQueSeObserva": "prática anterior: mais de 5 anos"
+      },
+      {
+        "criterio": "Aluna A — a desenvolver",
+        "oQueSeObserva": "saída do calcanhar no tendu; passé sem perder o eixo"
+      },
+      {
+        "criterio": "Restrições",
+        "oQueSeObserva": "sem restrições declaradas"
+      }
+    ],
+    "Técnica": [
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "saída do calcanhar no tendu"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "quadril sem subir no en dehors"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "transferência de peso sem perder a verticalidade"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "braço junto do movimento"
+      }
+    ],
+    "Poiesis": [
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "resposta ao pulso na marcação"
+      },
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "frase até o fim da música"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "olhar acompanha o braço"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "presença sem rigidez de rosto"
+      }
+    ]
+  },
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261104-1811?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261104-1732?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",

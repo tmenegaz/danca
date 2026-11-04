@@ -48,7 +48,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 > **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
@@ -57,7 +57,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 *4 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
 
 ### 3. Barra — Battement tendu
@@ -67,7 +67,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 > **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
@@ -76,7 +76,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 *4 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
 
 ### 5. Centro — Battement tendu
@@ -86,7 +86,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 > **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
@@ -95,7 +95,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 *4 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
 
 ### 7. Centro — Battement tendu
@@ -105,7 +105,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 > **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
@@ -114,7 +114,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 *4 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
 
 ### 9. Expressão — Battement tendu
@@ -124,7 +124,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 > **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
@@ -133,7 +133,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 *4 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
 
 ### 11. Expressão — Battement tendu
@@ -143,7 +143,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 > **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
@@ -152,7 +152,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 *4 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
 | Compasso | Contagem | Notação | Descrição |
-|:--:|:--:|:--|:--|
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
 
 > **Sobre os símbolos:** os sinais deste código são digitáveis e legíveis numa folha

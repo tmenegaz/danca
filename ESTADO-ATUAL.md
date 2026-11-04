@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `6ede613`, árvore limpa). Nesta entrega, **o cartão da
+> **Última fotografia:** 04/11/2026 (base `d3b623c`, árvore limpa). Nesta entrega, **as colunas da
+> aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade**. (1) As doze
+> tabelas de exercício saíam a **28/28/21/21** — o «1» do compasso com a mesma largura que o
+> parágrafo da descrição. A causa **não era CSS**: o pandoc calcula a largura relativa de cada
+> coluna pela **proporção dos traços** da linha de separação, e só quando ela **passa dos 72
+> caracteres** (o `--columns` por omissão). Com traços iguais, colunas iguais; e uma linha
+> proporcional mas curta é desfeita em silêncio — as duas coisas foram medidas. A proporção passou a
+> `12/12/23/52`, e o espaço foi repartido **a favor de quem tem texto** (não em metade exacta: a
+> repartição igual daria 14/14/35/35, e a descrição — 150 a 300 caracteres — ficaria com um terço).
+> (2) A §4 da aula deixou de trazer a notação Benesh na célula da contagem: ela é o **código** em que
+> a música se escreve, tem documento próprio (`-notacao.md`) e é lá que o botão «notação» a vai
+> buscar. Prova nova: `provar-colunas-da-aula`, **23 asserções**.
+>
+> **Entrega anterior** (base `6ede613`, árvore limpa). Nesta entrega, **o cartão da
 > aula diz os três dados do professor, e o guia são três eixos de verdade**. (1) Saiu o «Ciclo 01»
 > da caixa da **Turma** — «o ciclo não é um atributo estrutural da turma» —, e ficou o operacional:
 > turma, «aula N de M», dia, início, fim, duração e a Sala dita «não declarada». (2) O bloco do
@@ -1783,6 +1796,29 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     `formato=html` viaja porque sem ele a rota devolve MARKDOWN. **Sem `id`** — envelope ainda não
     gravado — cai-se na porta, e não num link quebrado. **DECIDIDO por ela e implementado**
     04/11/2026.
+88. **A LARGURA DE UMA COLUNA É A DO CONTEÚDO — E ELA MORA NA LINHA DE SEPARAÇÃO.** «Todas as
+    colunas estão com o mesmo tamanho, espremendo os textos descritivos» era literal: as doze
+    tabelas de exercício saíam a **28/28/21/21**, com o «1» do compasso tão largo como o parágrafo
+    da descrição. **A causa não era CSS** (o `table { width: 100% }` da folha está certo, e o
+    browser distribui por conteúdo quando não há largura declarada): era o `<colgroup>` que o
+    pandoc escreve, e ele calcula a largura relativa pela **proporção dos traços** da linha de
+    separação — **e só quando essa linha passa dos 72 caracteres** (`--columns` por omissão, que o
+    `gerar-ciclo.sh` não muda). Uma linha proporcional mas curta é desfeita em silêncio; as duas
+    condições foram medidas (67 caracteres → sem `colgroup`; 104 → larguras). **DECIDIDO**: a
+    correção mora na linha de separação, e não numa regra de CSS por tabela — uma segunda fonte de
+    verdade para uma decisão que o gerador já toma, e o PDF (LaTeX) lê a mesma proporção, de modo
+    que o que se corrige vale nos dois suportes. A proporção passou a **12/12/23/52**. **A divisão
+    não é a metade exacta do pedido**, e o motivo é medido: repartir o ganho igualmente entre
+    notação e descrição daria 14/14/35/35, e a descrição — 150 a 300 caracteres — ficaria com um
+    terço da tabela; o ganho vai a favor de quem tem texto. **DECIDIDO por ela e implementado**
+    04/11/2026.
+89. **A NOTAÇÃO NÃO ESTÁ NA MÚSICA — ESTÁ NO DOCUMENTO DELA.** O bloco de musicalidade da aula
+    trazia, na célula da contagem, o bloco Benesh (`1–2 `[Perna: ED 1ª ○ - ● 1ª]``). Saiu. O bloco
+    de musicalidade é a **música** da aula (compasso, exercício, tempos, contagem), e a notação é o
+    **código** em que a música se escreve: tem documento próprio (`-notacao.md`, «Exercícios da Aula
+    01») e é lá que o botão «notação» do cabeçalho da aula a vai buscar. Repeti-la aqui punha 24
+    caracteres numa coluna de «1–2», a espremer as outras três. A dedução da contagem passa a ser
+    **só pela contagem** (era contagem + bloco). **DECIDIDO por ela e implementado** 04/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -2410,7 +2446,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — o cartão da aula, os três eixos e os links)
+### Executado nesta fotografia (04/11/2026 — as colunas da aula e a notação fora da música)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-colunas-da-aula` (**nova**) | **TUDO CERTO — 23 asserções**: a §4 do bloco de musicalidade sem **uma única** célula com `[Perna` e sem crase, a contagem reduzida a `1–2`, e o compasso/exercício ainda lá; a notação **no documento dela** e **ausente** da aula; a linha de separação **acima de 72 caracteres** (o gatilho do pandoc); a proporção **12/12/23/52** (compasso e contagem ≤ 15%, descrição > 45%, notação ≥ 20%); e o **pandoc a concordar** no `colgroup` que escreve, com tolerância de um ponto de arredondamento. Mede ainda a aula em prosa: três colunas, descrição > 55%, numéricas ≤ 20% |
+| `gerar-ciclo` + `check-pacote` | **0 erro(s), 0 aviso(s)** — a §4 saiu `2/4 · Battement tendu · 8 · 1–2`, e as doze tabelas de exercício do documento de notação com as larguras novas |
+| O HTML gerado | `notacao.html`: as **12** tabelas de exercício a **12/12/23/52** (eram 28/28/21/21) · `aula-01.html`: as 12 tabelas de prosa a **15/15/68** (eram 36/36/27), e **nenhuma** ocorrência de `Perna:` na página da aula |
+| `validar-aula-ciclo` + extracção | o `-aula-01.md` passa, com **zero avisos** |
+| `check-indices` · `check-identidade` | **14/14** · **20/20** |
+| `provar-cartao-da-aula` · `provar-eixos-e-tempo-da-aula` · `provar-cadeia-do-ajuste` · `provar-fusao-da-edicao` · `provar-publicacao-da-escola` · `provar-um-commit-por-guardar` | **25 · 38 · 34 · 29 · 63 · 21** — verdes |
+| **o que NÃO mede** | as percentagens foram medidas no HTML que o pandoc escreve **localmente** — nada foi medido no ar · as outras tabelas de duas colunas (§1, eixo do Corpo, auditoria) continuam **50/50**: têm o mesmo defeito, e não foram tocadas porque foram aprovadas |
+
+### Executado na fotografia anterior (04/11/2026 — o cartão da aula, os três eixos e os links)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3403,6 +3451,14 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **As colunas da aula e a notação fora da música.** As doze tabelas de exercício
+  saíam a 28/28/21/21 — número com a largura de parágrafo. A causa não era CSS: o pandoc calcula a
+  largura relativa pela **proporção dos traços** da linha de separação, e só quando ela passa dos 72
+  caracteres; com traços iguais, colunas iguais. A proporção passou a **12/12/23/52**, com o ganho a
+  favor de quem tem texto. E a §4 da aula deixou de trazer a notação Benesh na contagem — ela vive no
+  documento dela (`-notacao.md`), que é onde o botão «notação» a vai buscar. Prova nova:
+  `provar-colunas-da-aula`, 23 asserções.
 
 - **04/11/2026** — **O cartão da aula, os três eixos e os links da proveniência.** Saíram o «Ciclo»
   da caixa da Turma e o identificador do bloco do Professor, que passou a mostrar **nome**,

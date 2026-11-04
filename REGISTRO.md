@@ -34567,3 +34567,79 @@ regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados
 3. **Os links da proveniência apontam para o id do envelope desta geração.** Se o PO for ajustado e
    a aula não for regerada, o link continua a abrir a versão que a aula cita — o que é o correcto
    (a aula deriva daquele elo), mas é bom que se saiba.
+
+## 04/11/2026 — As colunas da aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade
+
+**O que motivou.** Duas coisas que a pesquisadora viu na aula, e a primeira vinha com um diagnóstico
+já feito por ela: «todas as colunas estão com o mesmo tamanho, espremendo os textos descritivos
+enquanto sobra espaço em colunas que exibem apenas números curtos». A segunda: «o bloco de
+musicalidade exibe a notação Benesh junto à contagem — remover; a notação só deve ser carregada e
+exibida quando o utilizador acionar explicitamente a opção de abrir a notação».
+
+**O que se mediu — e a causa não era CSS.** As doze tabelas de exercício saíam a **28/28/21/21**: o
+`1` do compasso e o `1–2` da contagem com a mesma largura que o parágrafo da descrição. O
+`table { width: 100% }` da folha está certo, e o browser distribui por conteúdo **quando não há
+largura declarada** — havia um `<colgroup>` com as quatro colunas iguais.
+
+Quem o escrevia era o **pandoc**, e a regra dele é esta: a largura relativa de cada coluna vem da
+**proporção dos traços** da linha de separação da tabela Markdown — e, com todos os traços iguais
+(`|:--:|:--:|:--|:--|`), saem todos iguais. **E há uma segunda condição, que é a que se perde num
+teste apressado: o pandoc só usa essas proporções quando a linha de separação passa dos 72
+caracteres** (o `--columns` por omissão, que o `gerar-ciclo.sh` não muda). Uma linha proporcional
+mas curta é desfeita — e o defeito volta sem que nada no ficheiro pareça errado. Medido nas duas
+direções: a 67 caracteres o `colgroup` desaparecia; a 104, as larguras apareciam.
+
+**O que foi decidido.**
+
+- **A largura mora na linha de separação**, e é lá que se corrige — não no CSS e não no template.
+  Uma regra de CSS por tabela seria uma segunda fonte de verdade para uma decisão que o gerador já
+  toma, e o PDF (LaTeX) lê a MESMA proporção: o que se corrige aqui corrige-se nos dois suportes.
+- **A proporção é a do conteúdo**: `12 / 12 / 23 / 52` (era `28 / 28 / 21 / 21`). As duas numéricas
+  descem a menos de metade do que tinham, e o espaço vai para a descrição (21 → 52) e para a notação
+  (21 → 23), que precisa dele — `[Perna: ED 1ª ○ - ● 1ª]` são 24 caracteres numa coluna.
+  **A divisão não é a metade exacta que o pedido sugere**, e o motivo é medido: repartir o ganho
+  igualmente entre notação e descrição daria 14/14/35/35, e a descrição — que leva 150 a 300
+  caracteres — ficaria com um terço da tabela. O ganho é repartido a favor de quem tem texto.
+- **A notação sai da §4 da aula.** A contagem passa a ser só a contagem (`1–2`). O bloco de
+  musicalidade é a MÚSICA da aula (compasso, exercício, tempos, contagem), e a notação não é música:
+  é o código em que a música se escreve, e tem documento próprio (`-notacao.md`, «Exercícios da Aula
+  01»), a que o botão «notação» do cabeçalho da aula leva. Repeti-la aqui punha 24 caracteres numa
+  coluna de «1–2», a espremer as outras três — e obrigava quem lê a música a atravessar o código.
+- **A dedução da contagem passa a ser só pela contagem.** Era pela contagem + bloco; sem o bloco na
+  célula, dois segmentos com a mesma contagem são a mesma célula, que é o que a tabela mostra.
+
+**O que NÃO mudou.** A §4 continua com as quatro colunas da música; a aula em prosa
+(`gerar-aula-prosa.js`) já descartava a coluna da notação nas tabelas de exercício e continua a
+descartá-la; a fórmula da âncora, a cobertura do `.fipp`, os validadores e o `check-pacote` estão
+como estavam. Nada de `CONGELAMENTO.md` foi tocado.
+
+**Reancoragem.** A `-aula-01.md` e a `-notacao.md` mudaram, e as duas estão na cobertura da âncora:
+a `.fipp` foi regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados foram
+regerados, e o `check-indices` passa 14/14.
+
+**Onde entrou.**
+
+- `motor/nucleo/derivar-ciclo.js` — a célula da contagem do §4 deixa de levar o bloco de notação; a
+  linha de separação da tabela do documento de notação passa a ter a proporção das colunas, com o
+  comprimento mínimo que a faz valer.
+- `professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-{aula-01,notacao}.md`,
+  `.fipp` e o pacote — regerados.
+- `experimentos/provar-colunas-da-aula.js` — **novo**, 23 asserções.
+
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` · `professores/coqui-de-redinha/ciclos/…` (fontes,
+`.fipp`, pacote) · `indices/` (regerados) · `experimentos/provar-colunas-da-aula.js` ·
+`experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (a folha e a tabela) · documentação do pandoc sobre pipe
+tables (`--columns` e a proporção dos separadores) · `CONGELAMENTO.md`.
+
+**O que ainda não está feito.**
+
+1. **As outras tabelas de duas colunas continuam 50/50** — a §1 (`Item | Definição`), a do eixo do
+   Corpo (`Critério | O que se observa`) e a da auditoria. Têm o mesmo defeito, e não foram tocadas
+   porque a pesquisadora as aprovou («legíveis e com bom comportamento visual»). Se a mesma régua
+   passar a valer para elas, é a mesma linha de separação — e a prova já sabe medi-la.
+2. **A largura é do gerador, não do documento antigo.** As aulas já publicadas noutras escolas não
+   foram regeradas; elas só ganham a correção quando forem geradas de novo.
+3. **Nada disto foi medido no ar** — as percentagens foram medidas no HTML que o pandoc escreve,
+   localmente.

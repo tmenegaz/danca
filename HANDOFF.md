@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T19:16:31-0300`
-Commit atual: `6ede6131` — feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
+Gerado em: `2026-11-04T19:36:00-0300`
+Commit atual: `d3b623cb` — fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
 6ede6131 feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
 edcd8a00 fix(estrutura): o nome do documento não se decide antes de gravar — quem decide é a gravação
 bd32839c chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
@@ -104,7 +105,6 @@ e7ec02f9 chore(estrutura): reancorar a cadeia das fontes alteradas
 c394e879 chore(estrutura): regerar os índices derivados
 6dd3ffb8 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
 f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
-11962279 feat(acervo): envelope/po-20261104-1733.json
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `26a14c9e1f76` | (vazio) | Input_PO_Aguardando |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `9f5c162b9dad` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,117 +230,83 @@ f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — O cartão da aula é três dados do professor, e o guia são três eixos de verdade
+## 04/11/2026 — As colunas da aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade
 
-**O que motivou.** Três coisas que a pesquisadora viu na listagem e na aula, e as três são a mesma
-pergunta: *o documento diz o que o dado tem?*
+**O que motivou.** Duas coisas que a pesquisadora viu na aula, e a primeira vinha com um diagnóstico
+já feito por ela: «todas as colunas estão com o mesmo tamanho, espremendo os textos descritivos
+enquanto sobra espaço em colunas que exibem apenas números curtos». A segunda: «o bloco de
+musicalidade exibe a notação Benesh junto à contagem — remover; a notação só deve ser carregada e
+exibida quando o utilizador acionar explicitamente a opção de abrir a notação».
 
-1. O cartão da aula mostrava **«Ciclo 01» dentro da caixa da Turma** — e «o ciclo não é um atributo
-   estrutural da turma». Ao mesmo tempo, o bloco do **Professor** mostrava uma linha só, e mostrava
-   o **identificador** (`coqui-de-redinha`), que não é o nome de ninguém.
-2. O **guia de observação** chamava tudo de «técnica» e, na aula, era **uma tabela com uma coluna
-   «Eixo»** a repetir o rótulo linha a linha. O eixo do **Corpo** existia como uma frase de
-   contagem e **não tinha uma única linha** — os 15 aspectos físicos declarados no plano não
-   entravam no guia.
-3. Os links da **proveniência consolidada** abriam a **porta** — o formulário de elicitação. Quem
-   clicava para reler o que tinha decidido caía dentro do formulário que ia reescrever o documento.
+**O que se mediu — e a causa não era CSS.** As doze tabelas de exercício saíam a **28/28/21/21**: o
+`1` do compasso e o `1–2` da contagem com a mesma largura que o parágrafo da descrição. O
+`table { width: 100% }` da folha está certo, e o browser distribui por conteúdo **quando não há
+largura declarada** — havia um `<colgroup>` com as quatro colunas iguais.
+
+Quem o escrevia era o **pandoc**, e a regra dele é esta: a largura relativa de cada coluna vem da
+**proporção dos traços** da linha de separação da tabela Markdown — e, com todos os traços iguais
+(`|:--:|:--:|:--|:--|`), saem todos iguais. **E há uma segunda condição, que é a que se perde num
+teste apressado: o pandoc só usa essas proporções quando a linha de separação passa dos 72
+caracteres** (o `--columns` por omissão, que o `gerar-ciclo.sh` não muda). Uma linha proporcional
+mas curta é desfeita — e o defeito volta sem que nada no ficheiro pareça errado. Medido nas duas
+direções: a 67 caracteres o `colgroup` desaparecia; a 104, as larguras apareciam.
 
 **O que foi decidido.**
 
-- **O ciclo sai da turma, o operacional fica.** A caixa da Turma diz a turma, «Aula N de M», o dia,
-  a hora de início, a de fim, a duração e a sala (que continua dita «não declarada»: ela só existe
-  no modelo com o `PLANO-TABELA-DE-ATIVIDADES`, e inventá-la seria mentir).
-- **O professor são três dados**, e cada um vem do seu sítio, nenhum deduzido: o **nome** e a
-  **modalidade** do perfil da PESSOA (`professores/<slug>/perfil.json` — a habilitação é dela, não
-  do tenant, decisão de 03/11/2026), e a **tradição de referência** do **plano**, que é quem a
-  declara (`metodologiaDeReferencia`: «RAD»). Pôr a tradição no perfil diria que a pessoa só
-  trabalha numa tradição — mais do que o dado afirma. O rótulo da modalidade sai do catálogo
-  (`biblioteca/modalidades/modalidades.json`), não de uma capitalização do id.
-- **O guia são TRÊS tabelas, uma por eixo**, e o eixo é o **bloco** do documento (`### Corpo`,
-  `### Técnica`, `### Poiesis`). Não é decoração: o contrato de extração lê **uma tabela por
-  bloco**, e três tabelas num bloco só perderiam a segunda e a terceira **com aviso** — o remédio
-  que o próprio contrato declara («dê à tabela o seu bloco»). A coluna «Eixo» sai; o que fica é a
-  coluna que responde à pergunta («o que se observa»).
-- **O Corpo passa a ter linhas**: os aspectos físicos do plano (com o «como está a turma» que o
-  plano gravou), o ponto de partida de cada aluna e as restrições declaradas no PO. É o que a
-  pesquisadora pediu — «os 15 aspectos declarados no plano preenchem o eixo do corpo» — e nada é
-  inventado: quando o PO não declara restrição, a linha **diz isso**, que é diferente de não ter
-  linha.
-- **O link da proveniência abre a LEITURA**: `/plano-observacao/api/po-preenchido.<id>?formato=html`,
-  que é a **mesma folha** que o título abre na Área do Professor (o mesmo `fichaDeLeitura`). Sem
-  `id` — um envelope que ainda não foi gravado — cai-se na porta, e não num link quebrado.
+- **A largura mora na linha de separação**, e é lá que se corrige — não no CSS e não no template.
+  Uma regra de CSS por tabela seria uma segunda fonte de verdade para uma decisão que o gerador já
+  toma, e o PDF (LaTeX) lê a MESMA proporção: o que se corrige aqui corrige-se nos dois suportes.
+- **A proporção é a do conteúdo**: `12 / 12 / 23 / 52` (era `28 / 28 / 21 / 21`). As duas numéricas
+  descem a menos de metade do que tinham, e o espaço vai para a descrição (21 → 52) e para a notação
+  (21 → 23), que precisa dele — `[Perna: ED 1ª ○ - ● 1ª]` são 24 caracteres numa coluna.
+  **A divisão não é a metade exacta que o pedido sugere**, e o motivo é medido: repartir o ganho
+  igualmente entre notação e descrição daria 14/14/35/35, e a descrição — que leva 150 a 300
+  caracteres — ficaria com um terço da tabela. O ganho é repartido a favor de quem tem texto.
+- **A notação sai da §4 da aula.** A contagem passa a ser só a contagem (`1–2`). O bloco de
+  musicalidade é a MÚSICA da aula (compasso, exercício, tempos, contagem), e a notação não é música:
+  é o código em que a música se escreve, e tem documento próprio (`-notacao.md`, «Exercícios da Aula
+  01»), a que o botão «notação» do cabeçalho da aula leva. Repeti-la aqui punha 24 caracteres numa
+  coluna de «1–2», a espremer as outras três — e obrigava quem lê a música a atravessar o código.
+- **A dedução da contagem passa a ser só pela contagem.** Era pela contagem + bloco; sem o bloco na
+  célula, dois segmentos com a mesma contagem são a mesma célula, que é o que a tabela mostra.
 
-**O que mudou de forma, e por que se pode.** O campo `guiaDeObservacao` do schema da aula passa de
-**array** a **objeto com três arrays** (`Corpo`, `Técnica`, `Poiesis`). É a consequência directa do
-ponto acima: o bloco do documento é o eixo, e o contrato escreve cada bloco como uma chave. O
-schema de cada ciclo é versionado e viaja com os dados (P-08); as 20 cópias do molde foram
-actualizadas, e o `modelo/` também. O campo **não tem consumidor** — nenhum renderizador o lê —, e
-é por isso que esta mudança de tipo não quebra página nenhuma.
+**O que NÃO mudou.** A §4 continua com as quatro colunas da música; a aula em prosa
+(`gerar-aula-prosa.js`) já descartava a coluna da notação nas tabelas de exercício e continua a
+descartá-la; a fórmula da âncora, a cobertura do `.fipp`, os validadores e o `check-pacote` estão
+como estavam. Nada de `CONGELAMENTO.md` foi tocado.
 
-**Motivo declarado — os congelados.** `tools/montar-publicacao.js` está em `CONGELAMENTO.md`
-(«`tools/` — geradores, validadores, hooks»). Motivo: **o cartão da listagem é o único sítio onde o
-professor vê o guia e o professor sem abrir a aula**, e as três mudanças foram pedidas por ela
-(remover o ciclo, mostrar nome/modalidade/tradição, resumir o guia por eixo). Não muda o que a
-ferramenta gera — muda o DADO que cada cartão leva, e nenhuma outra página é afectada. Nada de
-`PROTOCOLO.md`, `REGRAS.md`, `tools/templates/`, `prompts/` ou `METODO.md` foi tocado, e a fórmula
-da âncora, a cobertura do `.fipp` e os validadores não mudaram.
-
-**Reancoragem.** A `-aula-01.md` mudou (§5 e §6), e ela está na cobertura da âncora: a `.fipp` foi
-regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados foram regerados, e o
-`check-indices` passa 14/14.
+**Reancoragem.** A `-aula-01.md` e a `-notacao.md` mudaram, e as duas estão na cobertura da âncora:
+a `.fipp` foi regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados foram
+regerados, e o `check-indices` passa 14/14.
 
 **Onde entrou.**
 
-- `motor/nucleo/derivar-ciclo.js` — `eixosDaObservacao` passa a devolver `linhas` para o corpo;
-  a §5 vira três blocos `### <Eixo>` com tabela própria; a §6 passa a construir o endereço de
-  leitura (`enderecoDeLeitura`).
-- `professores/*/ciclos/ciclo-01-aula-schema.json` (20) e `modelo/ciclos/ciclo-01-aula-schema.json`
-  — `guiaDeObservacao` de array a objecto com os três eixos.
-- `tools/montar-publicacao.js` — `perfilDoProfessor`, `rotuloDaModalidade`, `tradicaoDaTurma`;
-  o painel da Turma sem o ciclo; o painel do Professor com os três dados; `guiaDoCartao` a contar
-  os aspectos do plano e a dar um par por eixo.
-- `professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-*` — fontes derivadas,
-  âncora e pacote regerados.
-- `experimentos/provar-cartao-da-aula.js` — **novo**, 25 asserções.
-- `experimentos/provar-eixos-e-tempo-da-aula.js` — 27 → **38**: as três tabelas, o corpo com linhas,
-  os links da proveniência e o contrato de extração.
+- `motor/nucleo/derivar-ciclo.js` — a célula da contagem do §4 deixa de levar o bloco de notação; a
+  linha de separação da tabela do documento de notação passa a ter a proporção das colunas, com o
+  comprimento mínimo que a faz valer.
+- `professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-{aula-01,notacao}.md`,
+  `.fipp` e o pacote — regerados.
+- `experimentos/provar-colunas-da-aula.js` — **novo**, 23 asserções.
 
-**Com o quê.** `motor/nucleo/derivar-ciclo.js` · 21 schemas de aula (20 professores + `modelo/`) ·
-`tools/montar-publicacao.js` · `professores/coqui-de-redinha/ciclos/…` (fontes, `.fipp`, pacote) ·
-`indices/` (regerados) · `experimentos/provar-cartao-da-aula.js` ·
-`experimentos/provar-eixos-e-tempo-da-aula.js` · `experimentos/README.md` · `.gitignore` ·
-`REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md` (regenerado).
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` · `professores/coqui-de-redinha/ciclos/…` (fontes,
+`.fipp`, pacote) · `indices/` (regerados) · `experimentos/provar-colunas-da-aula.js` ·
+`experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
 
-**Referências.** `REGRAS.md` (Regra 9), `PROTOCOLO.md` (P-08: o schema viaja com os dados),
-`CONGELAMENTO.md`, `tools/lib-extracao-md.js` (a regra de «uma tabela por bloco»),
-`IDENTIDADE-VISUAL.md` (as peças do cartão).
+**Referências.** `IDENTIDADE-VISUAL.md` (a folha e a tabela) · documentação do pandoc sobre pipe
+tables (`--columns` e a proporção dos separadores) · `CONGELAMENTO.md`.
 
 **O que ainda não está feito.**
 
-1. **A tradição de referência aparece no cartão, mas não é um campo do perfil** — ela vem do plano
-   da turma. Se a pesquisadora quiser a tradição como atributo da PESSOA (como a modalidade), é
-   outra decisão, e outra migração.
-2. **O bloco do Corpo lista os 15 aspectos com o valor agregado do formulário** («1 de 1 em
-   «Baixa ("dura")» — ponto de atenção»). É fiel ao dado e é verboso para 15 linhas; encurtar seria
-   interpretar o que o formulário quis dizer.
-3. **Os links da proveniência apontam para o id do envelope desta geração.** Se o PO for ajustado e
-   a aula não for regerada, o link continua a abrir a versão que a aula cita — o que é o correcto
-   (a aula deriva daquele elo), mas é bom que se saiba.
+1. **As outras tabelas de duas colunas continuam 50/50** — a §1 (`Item | Definição`), a do eixo do
+   Corpo (`Critério | O que se observa`) e a da auditoria. Têm o mesmo defeito, e não foram tocadas
+   porque a pesquisadora as aprovou («legíveis e com bom comportamento visual»). Se a mesma régua
+   passar a valer para elas, é a mesma linha de separação — e a prova já sabe medi-la.
+2. **A largura é do gerador, não do documento antigo.** As aulas já publicadas noutras escolas não
+   foram regeradas; elas só ganham a correção quando forem geradas de novo.
+3. **Nada disto foi medido no ar** — as percentagens foram medidas no HTML que o pandoc escreve,
+   localmente.
 
 ## O que está pendente
-
-## 04/11/2026 — A fatia de tempo vem do plano pela coluna certa, e o guia passa a ler as três frentes
-
-
-1. **A proporção do Expressão no plano da `breu`** — não está declarada, e o sistema não a inventa.
-   O caminho está dito nos dois documentos; quem preenche é ela, e a soma fecha em 100%.
-2. **A taxonomia dos eixos** — o mapa é candidato. Se ela quiser os três como eixos de primeira
-   classe (com campo próprio no PO), isso muda a taxonomia das dimensões e o mapa muda de sítio.
-3. **A explicação do formulário do PO** ainda diz «todas sob o eixo TÉCNICA»
-   (`porta/po/conteudo/po.json`, `dimensoes-de-observacao`). Continua verdadeira sobre o **rótulo**
-   e passou a ser uma segunda leitura ao lado do guia; corrigir a redação é conteúdo, e é dela.
-4. **O corpo ligado ao exercício** — a costura que a medição de 02/11 nomeou continua em falta: o
-   guia diz o que a turma mostra no corpo, e não o que cada movimento exige dele.
 
 ## 04/11/2026 — O ajuste do plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa
 
@@ -400,6 +366,18 @@ regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados
 3. **Os links da proveniência apontam para o id do envelope desta geração.** Se o PO for ajustado e
    a aula não for regerada, o link continua a abrir a versão que a aula cita — o que é o correcto
    (a aula deriva daquele elo), mas é bom que se saiba.
+
+## 04/11/2026 — As colunas da aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade
+
+
+1. **As outras tabelas de duas colunas continuam 50/50** — a §1 (`Item | Definição`), a do eixo do
+   Corpo (`Critério | O que se observa`) e a da auditoria. Têm o mesmo defeito, e não foram tocadas
+   porque a pesquisadora as aprovou («legíveis e com bom comportamento visual»). Se a mesma régua
+   passar a valer para elas, é a mesma linha de separação — e a prova já sabe medi-la.
+2. **A largura é do gerador, não do documento antigo.** As aulas já publicadas noutras escolas não
+   foram regeradas; elas só ganham a correção quando forem geradas de novo.
+3. **Nada disto foi medido no ar** — as percentagens foram medidas no HTML que o pandoc escreve,
+   localmente.
 
 ## Pendências anteriores (índice)
 
@@ -748,6 +726,7 @@ regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados
 - **03/11/2026** — O PDF do ciclo compila outra vez: dois glifos do alfabeto… → `REGISTRO.md` L33904
 - **03/11/2026** — O elo em `historico/` não é documento do acervo, e a… → `REGISTRO.md` L33984
 - **03/11/2026** — A estante mostra um por documento: a proveniência fica… → `REGISTRO.md` L34034
+- **04/11/2026** — A fatia de tempo vem do plano pela coluna certa, e o guia… → `REGISTRO.md` L34115
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
