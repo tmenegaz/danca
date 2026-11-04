@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T21:54:54-0300`
-Commit atual: `dac284ff` — fix(campo): a medida não é o repertório — e o objetivo 3 não tinha sujeito
+Gerado em: `2026-11-03T23:03:57-0300`
+Commit atual: `2d017730` — fix(estrutura): o elo em historico/ é exceção declarada, não documento do acervo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,26 +85,26 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-dac284ff fix(campo): a medida não é o repertório — e o objetivo 3 não tinha sujeito
-5ae2ea50 chore(estrutura): regerar os índices derivados
-278478ad feat(acervo): envelope/.indice.json
-6509cb55 chore(acervo): apagar envelope/plano-20261103-1644.json
-68798368 docs(registro): a correção da minha explicação — não eram três decisões de produto
-1e29007f fix(experimentos): as bancadas passam a medir o documento e o alfabeto de HOJE
-428f6df8 docs(registro): as bancadas do plano e do PO medem outra vez — e a pergunta «apagar o plano resolve?» teve não
-38b13c10 fix(experimentos): as bancadas do plano e do PO medem outra vez — o fixture é que tinha morrido
-c8832eb4 docs(registro): o «Apagar» do registo solto volta à listagem — e é botão
-93a1dc14 fix(campo): o «Apagar» do registo solto volta à listagem — e é botão, não link
-8b6452d8 docs(registro): a sequência não inventa linha — e a correção é de uma decisão minha, de horas antes
-9547aaec fix(campo): a sequência não inventa linha — o repertório nasce na curadoria, e é lá que se muda
-af280726 chore(estrutura): reancorar a cadeia das fontes alteradas
-c13cfffa feat(plano): o plano elicitado vira a fonte do ciclo
-f841cb8b feat(acervo): envelope/plano-20261103-1644.json
-10523fe1 feat(acervo): envelope/.indice.json
-25d39e48 chore(estrutura): reancorar a cadeia das fontes alteradas
-33f38dc7 feat(plano): o plano elicitado vira a fonte do ciclo
-904a3271 feat(acervo): envelope/plano-20261103-1644.json
-7b4cba59 feat(acervo): envelope/.indice.json
+2d017730 fix(estrutura): o elo em historico/ é exceção declarada, não documento do acervo
+bf17a628 fix(entrega): ○ e ↻ — os dois glifos do alfabeto que o pdflatex não trazia
+1f7086c7 chore(estrutura): reancorar a cadeia das fontes alteradas
+445ef707 chore(estrutura): regerar os índices derivados
+dd94a919 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
+e458ce63 feat(po): o PO elicitado vira a fonte do ciclo
+c0dafd22 feat(acervo): envelope/po-20261103-2221.json
+eaa6bd79 feat(acervo): envelope/.indice.json
+b9c7e714 chore(estrutura): regerar os índices derivados
+b690d1db chore(estrutura): reancorar a cadeia das fontes alteradas
+d13b5b83 chore(estrutura): regerar os índices derivados
+2f4d629a feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
+432c67a7 feat(po): o PO elicitado vira a fonte do ciclo
+18e16003 feat(acervo): envelope/po-20261103-2202.json
+e20fe831 feat(acervo): envelope/.indice.json
+d91122fc chore(estrutura): regerar os índices derivados
+80dd28e8 chore(estrutura): reancorar a cadeia das fontes alteradas
+fe949b1c chore(estrutura): regerar os índices derivados
+47641799 feat(plano): o plano elicitado vira a fonte do ciclo
+98724756 feat(acervo): envelope/plano-20261103-2200.json
 ```
 
 ## Por professor
@@ -120,12 +120,12 @@ f841cb8b feat(acervo): envelope/plano-20261103-1644.json
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
-| breu-bale-nivel-1-teste-3 | (sem PO) | — | — |
+| breu | ciclo-01-breu-bale-nivel-1-teste-3-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `434fa8ca6347` | (vazio) | — |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `08d81e7e4322` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,93 +230,88 @@ f841cb8b feat(acervo): envelope/plano-20261103-1644.json
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A medida não é o repertório, e o objetivo 3 não tinha sujeito
+## 03/11/2026 — A estante mostra um por documento: a proveniência fica inteira, e não se empilha no ecrã
 
-**O que ela relatou.** Depois de apagar o plano anterior e começar outro com **dois** objetivos, a
-tabela «Sequência de Exercícios por Bloco» mostrou um conteúdo que a curadoria não tem — «*Port de
-Bras*, vinculado ao Objetivo 2» —, replicado em três blocos; e uma menção residual a um «suposto
-Objetivo 3», que ela nunca preencheu. E fez a pergunta certa, com a hipótese certa para o sintoma:
-«há uma forte evidência de que os dados de teste (*mock data*)… estão injetando valores fixos
-predefinidos que ignoram a seleção real da curadoria».
+**O que motivou.** A pesquisadora ajustou o Plano de Observação três vezes até a geração passar. Do
+lado dela foi **uma** coisa — «ajustei e salvei» —, mas a Área do Professor passou a mostrar **três
+linhas com o mesmo nome**, «Plano de Observação — Balé Nível 1 — Teste 3». Cada gravação nasce um
+envelope, e a listagem era uma linha por envelope: o mecanismo de proveniência — que existe para o
+trabalho não se perder — a aparecer onde ninguém o pediu. A frase dela é a regra: *o professor não
+tem por que entender os bastidores; ele deve ver o estado final*.
 
-**Não havia mock nenhum. Havia duas portas abertas na mesma derivação.**
+**O que foi decidido — uma regra, no núcleo, com duas metades.** `porta.vigentesDaFamilia` (puro,
+sem `fs`) devolve os registos **vigentes** e, por id do vigente, os que ele substituiu:
 
-| O que aparecia | De onde vinha | Por que passava |
+1. **A CADEIA.** Um envelope que outro aponta em `ajuste_de` está substituído. É a proveniência a
+   declarar o sucessor — não é inferência, e é o caso do «ajustar» da tela.
+2. **O CONTEXTO.** Duas tentativas **irmãs** (ambas derivadas do mesmo original, nenhuma sucessora
+   da outra) são a mesma coisa vista duas vezes: fica a mais recente. Era o caso real — cada
+   «ajustar» criava um irmão do primeiro.
+
+**O que NÃO se agrupa, e o teste é que o decidiu.** A chave exige o campo que **identifica** o
+documento. **PO**: o plano observado — e o ciclo vem com ele, porque o plano é de um ciclo. Duas
+observações do mesmo plano são versões (o sistema até recusa um segundo PO para o mesmo plano).
+**Anamnese**: a aluna, e **não** o ciclo — o sistema já a trata como a linha de base do sujeito,
+uma só (`anamneses` e `estadosDasAnamneses` derivam o vigente pelo apelido); pôr o ciclo na chave
+daria duas verdades sobre quem é a aluna. Registos **sem** o campo identificador não se agrupam:
+juntar desconhecidos é a maneira mais fácil de esconder o que é outro.
+
+**O plano de ensino ficou SEM chave de contexto, e a razão é medida — não é desenho.** A primeira
+versão agrupava-o por (professor, ciclo, turma), e `provar-apagar-da-listagem` ficou **vermelha**
+contra o dado que ela própria monta: dois planos da **mesma** turma e do **mesmo** ciclo, um deles
+observado por um PO e o outro não, são **dois documentos** — e o plano observado desaparecia da
+estante. O plano é identificado pelo que ele **ensina** (o objetivo), e não pela turma; quem o
+substitui é a derivação. Para o plano, a metade 1 basta, e é a única que não esconde nada que o
+professor não tenha substituído.
+
+**Nada se perde, e a linha diz o que escondeu.** Os envelopes escondidos continuam no acervo,
+legíveis pelo id, com o `ajuste_de` intacto; o índice continua a listá-los; os **estados** do plano
+continuam a derivar de todos (`legado`, `substituido_por`); e a regra de proveniência dos Bastidores
+— que precisa de ver **tudo** — não passou por esta função. A linha que ficou ganha um facto:
+«1 versão anterior guardada» / «2 versões anteriores guardadas». Uma linha que aparece sozinha onde
+havia três, sem uma palavra, faz concluir que o sistema apagou o trabalho.
+
+**O que se mediu**, no banco e não no ar (`provar-vigente-na-listagem`, 21 asserções, fixture com o
+caso real):
+
+| O que | Antes | Depois |
 |:--|:--|:--|
-| «Port de bras» em três blocos | da matriz do **«Parâmetro de medição»**, marcada no objetivo 2 | a coluna «Conteúdo do nível» lia `l.marcados` **sem o conferir contra o repertório curado**. A matriz aceita qualquer termo, porque **medir não é curar** — o que se mede num exercício pode ser uma qualidade que a curadoria não previu como exercício |
-| uma linha de «objetivo 3» | de uma linha da matriz de **blocos** guardada para um objetivo que já não existe | a poda existente era sobre a lista de objetivos; a matriz que produz as sementes **não era filtrada**, e `marcos[n-1] \|\| ''` deixava passar um `marco` fora de `1..total` com o rótulo «3» e **sem texto de objetivo** |
+| Os 4 envelopes do PO da `breu` (1 original + 2 irmãos + 1 derivado), na Área do Professor | **3 linhas** com o mesmo nome | **1 linha**, com «2 versões anteriores guardadas» |
+| Outro plano observado | 1 linha | **1 linha** — e não se junta à anterior |
+| Duas anamneses da mesma aluna | 2 linhas | **1** (a mais recente); as **sem sujeito** continuam separadas |
+| Um plano e a sua derivação | 2 linhas | **1** (a derivada) |
+| Dois planos da mesma turma e ciclo, objetivos diferentes | 2 linhas | **2** — a decisão acima, medida |
+| O envelope substituído | — | **continua legível** pelo id, e no índice |
+| `provar-apagar-da-listagem` · `provar-ficha-na-listagem` · `provar-lista-que-falha` · `provar-sujeitos-da-turma` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-indice-de-proveniencia` | verdes | **31 · 35 · 39 · 30 · 48 · 44 · 60**, verdes |
+| `check-identidade` · `check-indices` | 20/20 · 14/14 | **20/20 · 14/14** |
+| `provar-listas-sem-repeticao` | **1 falha** (asserção `api/envelopes` pedido uma vez — a estante saiu da porta a 26/10 e a prova não acompanhou) | **a mesma falha**, e é pré-existente: medida na árvore de `HEAD` sem estas alterações |
 
-**Não é «lixo de teste», e vale escrevê-lo: o estado dela está a sobreviver em dois sítios que não
-são ficheiros.** O rascunho do plano vivia no `localStorage` do navegador; um plano novo, no mesmo
-navegador, herda as respostas do anterior — inclusive a matriz do parâmetro. E a matriz do parâmetro
-é uma grade de caixas: o que se marcou uma vez fica marcado até alguém desmarcar. Um valor
-«fantasma» é, quase sempre, **um valor que ela própria marcou numa sessão anterior** e que a tela
-não distingue de uma decisão de agora. Foi por isso que o remédio não foi «limpar o mock»: foi
-**filtrar na derivação**, que é o único sítio por onde todos os valores passam.
+**O que NÃO mudou.** Nenhum envelope é apagado, movido ou reescrito; a fórmula do hash e a cadeia de
+proveniência; os validadores do pacote; as 17 regras e as 22 pétreas; e `porta.resumosDeEnvelopes`,
+que é o que a regra de proveniência dos Bastidores lê — ela continua a ver os planos substituídos,
+que é o lado seguro (recusar apagar o que está vinculado).
 
-**A regra, e é uma frase:** *o conteúdo de um exercício da aula é o **repertório curado** da turma, e
-só ele; uma medida marcada fora dele é a medida de um exercício que já existe, e o sítio de a
-acordar é a Curadoria.* Escrita uma vez em `motor/nucleo/sequencia.js` (`linhaForaDoRepertorio`,
-`linhasDoRepertorio`) e consumida nos três lugares que publicam a aula: a tela (`porta/index.html`),
-o `.md` do plano (`derivar-plano-ciclo.js`) e a `aula-01.md` (`derivar-ciclo.js`). E a segunda
-metade: **sem sujeito não é linha** — a semente de um `marco` fora da lista viva não se cria
-(a mesma regra de `linhaOrfa`, agora aplicada à matriz dos blocos, que era a que faltava).
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: `motor/`
+não está na lista congelada, e `experimentos/` é bancada (a prova nova entra por `!` no
+`.gitignore`, uma a uma, como as outras).
 
-**Três decisões de escrita, e as três são para não repetir o erro de sumir com o dado:**
+**Com o quê.** `motor/nucleo/porta.js` (`vigentesDaFamilia`, `chaveDoContexto`) ·
+`motor/servidor/listas-do-acervo.js` (a estante filtra e diz o histórico) ·
+`experimentos/provar-vigente-na-listagem.js` · `experimentos/README.md` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md`.
 
-1. **sem repertório carregado não se julga.** Apagar o que não se pode conferir seria a limpeza a
-   destruir o dado — a mesma reserva que o `linhasVivas` já tinha para os objetivos vazios;
-2. **o que fica de fora é DITO.** O rodapé da tabela passa a nomear o termo que não entrou, e diz
-   onde ele se acrescenta («o sítio de o acrescentar é a Curadoria»). Um valor que desaparece sem
-   uma palavra faz concluir que o sistema não ouve — e a frase é da família da que já lá estava;
-3. **a lacuna não se pune.** O objetivo sem exercício curado mostra `—` e **não** um campo para
-   escrever: a coluna continua travada, e o caminho legítimo de ter mais é a marcação no parâmetro
-   (ou a curadoria). Foi a decisão de `9547aaec`, agora com o filtro a fechar a última porta.
-
-**O que se mediu.**
-
-| Verificação | Antes | Depois |
-|:--|:--|:--|
-| `provar-sequencia-que-acompanha` | 33 asserções | **49 — TUDO CERTO** (secção 7 nova: a medida fora do repertório, o objetivo 3, os dois controlos negativos, e a frase do rodapé medida inteira) |
-| «Port de bras» na sequência, com a curadoria em dois verbetes | **3 linhas** | **0** — e o rodapé nomeia-o |
-| linha a nomear o objetivo 3, com um `marco: 3` na matriz dos blocos | **aparecia** | **não aparece** — e sem objetivo, a coluna não sai vazia |
-| `provar-plano-matriz` · `provar-plano-completo` · `provar-derivados-da-sequencia` · `provar-po-completo` · `provar-teste` · `provar-apagar-da-listagem` · `provar-metodologia-no-cabecalho` | verde | **52/52 · 18 · 26 · 17 · 45 · 31 · TUDO CERTO** |
-| `check-identidade` | 20/20 | **20/20** (o pacote do `ciclo-01-breu` foi regerado a partir de `porta/`) |
-
-**Os controlos negativos são a prova de que o filtro não é o silêncio.** Com «Port de bras» dentro
-da curadoria, os mesmos dados produzem os três exercícios dele; com o terceiro objetivo na lista, a
-linha do bloco dele volta a existir. Sem os dois, a bancada passaria mesmo que a coluna tivesse
-deixado de ler a matriz por completo.
-
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
-
-**Com o quê.** `motor/nucleo/sequencia.js` · `motor/nucleo/derivar-plano-ciclo.js` ·
-`motor/nucleo/derivar-ciclo.js` · `porta/index.html` ·
-`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (regerado) ·
-`experimentos/provar-sequencia-que-acompanha.js` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+**O que ainda não está feito, e é dela.** (1) A **estante morta** da porta (`porta/index.html`):
+`pintarFichas`/`carregarFichas` continuam lá e continuam a mostrar uma linha por envelope, mas já
+não desenham nada — o `#lista-fichas` saiu da página a 26/10. Mexer na rota `/api/envelopes` para um
+consumidor que não existe seria superfície sem uso, e por isso não se mexeu; no dia em que a estante
+voltar, a regra é a mesma função. (2) **Sem «ver versões anteriores»**: as versões guardadas só se
+alcançam pelo id do envelope — a lista diz que existem e quantas, e não oferece o caminho. É uma
+decisão de produto, e o desenho (um `details` por linha, ou um selo que abre) não se inventa aqui.
+(3) O **nome** da linha do plano não leva o ciclo: a mesma turma em dois ciclos dá duas linhas de
+nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vigente-na-listagem`). Não
+é defeito desta regra — é de antes —, e corrigi-lo mexe na identidade do cartão.
 
 ## O que está pendente
-
-## 03/11/2026 — A curadoria chegou ao plano, e o que a travava era um nome repetido
-
-(a) **Guardar o plano** (e depois o PO) — depende do token e é o
-próximo passo dela. (b) **As quatro provas vermelhas** do parágrafo acima. (c) O caminho
-`plano → .md → pacote` só se prova com um plano a sério: hoje mede-se em bancada, não ao vivo.
-(d) O caminho crítico continua a ser conteúdo: 11 níveis vazios, 0 dos três campos, a aula pronta.
-
-## 03/11/2026 — A curadoria só oferece o que tem notação, os rótulos ficaram um só, e o formulário deixou de explicar
-
-(a) **Um exercício passa a aparecer no menu no instante em que
-ganha o primeiro trecho** — mas a página é servida pelo Worker, e o verbete é lido do alfabeto
-
-## 03/11/2026 — O dono da música não é compasso
-
-(a) `listarVerbetes` continua a devolver a lista **crua** em
-`musicas` — e está certo assim: não é superfície de exibição, é a lista de armazenamento, e quem
-mostra usa `porMusica` (limpo) com a `chaveGravada` ao lado. Fica escrito para a próxima sessão não
-a «corrigir» por engano. (b) Fora do plano, a Produção mostra a música no cartão do verbete a partir
-de `porMusica`, que já vinha limpo — não havia segundo sítio a corrigir. (c) O caminho crítico
-continua o de sempre: plano e PO por gravar (token morto), e o conteúdo.
 
 ## 03/11/2026 — A metodologia é do professor, e não se pergunta duas vezes
 
@@ -335,6 +330,35 @@ as deixa de escrever. Quem quiser o envelope limpo **antes** disso abre a sequê
 (b) A `aula-01.md` desse ciclo, se for regerada, perde o exercício do objetivo 3 — e é o correcto,
 mas é uma mudança no documento que vale a pena ler depois de gerada. (c) O conteúdo pedagógico
 continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-16).
+
+## 03/11/2026 — O PDF do ciclo compila outra vez: dois glifos do alfabeto não estavam declarados
+
+(1) A **guarda**: não existe verificação que reprove, **antes** do
+pandoc, quando um sinal novo do alfabeto entra sem tradução para LaTeX — a quebra só aparece na
+geração, e aparece **um glifo de cada vez**, porque o `pdflatex` pára no primeiro. A varredura glifo a
+glifo que fez esta entrada é um script de bancada, e não está no repositório; pô-la em `tools/` é
+alteração de comportamento e é decisão dela. (2) O pacote da `breu` foi **regerado localmente** e não
+está commitado — quem fecha o ciclo é a workflow `gerar-ciclo`, que ainda não foi disparada de novo.
+
+## 03/11/2026 — O elo em `historico/` não é documento do acervo, e a verificação 8 exigia casa
+
+O elo entra no repositório por um caminho que **nenhuma verificação
+antecede**: quem o escreve é o Worker, e o «Guardar» não roda o `check-indices` antes de commitar — a
+falha só apareceu na geração seguinte. Rodar o `check-indices` **depois** da escrita, no sítio que
+regera os índices, fecharia o intervalo; é alteração de fluxo e é decisão dela.
+
+## 03/11/2026 — A estante mostra um por documento: a proveniência fica inteira, e não se empilha no ecrã
+
+(1) A **estante morta** da porta (`porta/index.html`):
+`pintarFichas`/`carregarFichas` continuam lá e continuam a mostrar uma linha por envelope, mas já
+não desenham nada — o `#lista-fichas` saiu da página a 26/10. Mexer na rota `/api/envelopes` para um
+consumidor que não existe seria superfície sem uso, e por isso não se mexeu; no dia em que a estante
+voltar, a regra é a mesma função. (2) **Sem «ver versões anteriores»**: as versões guardadas só se
+alcançam pelo id do envelope — a lista diz que existem e quantas, e não oferece o caminho. É uma
+decisão de produto, e o desenho (um `details` por linha, ou um selo que abre) não se inventa aqui.
+(3) O **nome** da linha do plano não leva o ciclo: a mesma turma em dois ciclos dá duas linhas de
+nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vigente-na-listagem`). Não
+é defeito desta regra — é de antes —, e corrigi-lo mexe na identidade do cartão.
 
 ## Pendências anteriores (índice)
 
@@ -675,7 +699,11 @@ continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-1
 - **03/11/2026** — A habilitação é da pessoa, a turma fica marcada, e o nível… → `REGISTRO.md` L32891
 - **03/11/2026** — A turma é o ritmo, e o ensino é da curadoria → `REGISTRO.md` L32986
 - **03/11/2026** — A auditoria da turma, o conteúdo na curadoria, e o… → `REGISTRO.md` L33069
-- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **03/11/2026** — A curadoria chegou ao plano, e o que a travava era um nome… → `REGISTRO.md` L33165
+- **03/11/2026** — A curadoria só oferece o que tem notação, os rótulos… → `REGISTRO.md` L33235
+- **03/11/2026** — O dono da música não é compasso → `REGISTRO.md` L33320
+- PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

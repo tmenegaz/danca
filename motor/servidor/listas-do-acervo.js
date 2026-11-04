@@ -1251,11 +1251,21 @@ function eschave(texto) {
  *   · plano de ensino — a TURMA está no próprio registo (`turmaDoEnvelope`);
  *   · PO — a turma vem do plano de ensino que ele observa.
  */
-function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerados) {
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerados, historico) {
+  /* AS VERSÕES QUE A LINHA GUARDOU (03/11/2026). A estante mostra o documento vigente; o que ele
+   * substituiu continua no acervo, com a cadeia inteira. Dizer quantas são é o mínimo: uma linha
+   * que aparece sozinha onde havia três, sem uma palavra, faz concluir que o sistema apagou o
+   * trabalho — e não apagou nada. */
+  const versoesAnteriores = (id) => {
+    const ids = (historico && historico.get(id)) || [];
+    if (!ids.length) return '';
+    return ids.length + (ids.length === 1 ? ' versão anterior guardada' : ' versões anteriores guardadas');
+  };
   return registos.map((r) => {
     const estado = estados[r.id] || {};
     const quem = nomeDoProfessor(r);
     const quando = dia(r.gerado_em);
+    const anteriores = versoesAnteriores(r.id);
     if (familia === 'anamnese') {
       const turma = turmasDaAluna.get(r.aluna) || '';
       return {
@@ -1285,6 +1295,7 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerad
         professor: quem,
         contexto: turma ? 'vinculada à turma ' + turma : 'aluna nova — sem turma',
         acoes: acoesDaLinha('anamnese', r, estado),
+        ...(anteriores ? { fatos: [anteriores] } : {}),
         caixas: [
           { rotulo: 'Turma', valor: turma || 'sem turma',
             painel: listaDePares([
@@ -1323,13 +1334,13 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerad
      * O QUE SE LE E O QUE ESTA GRAVADO: o ciclo, quantos documentos derivaram e quando. Nao e
      * promessa nem deducao: sem registo, nao ha selo. */
     const gerado = (familia === 'plano-de-observacao' && gerados) ? gerados.get(r.id) : null;
-    const fatos = gerado
+    const fatos = (gerado
       ? [
         'ciclo ' + (gerado.ciclo || r.ciclo || '—'),
         (gerado.documentos ? gerado.documentos.length : 0) + ' documento(s) gerados',
         gerado.em ? 'em ' + dia(gerado.em) : '',
       ].filter(Boolean)
-      : [];
+      : []).concat(anteriores ? [anteriores] : []);
     return {
       nome: (familia === 'plano-de-ensino' ? 'Plano de ensino — ' : 'Plano de Observação — ')
         + (turma || 'turma não declarada'),
@@ -1403,9 +1414,23 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
     ? await porta.estadosDasAnamneses(armazenamento)
     : chave === 'plano-de-ensino' ? await porta.estadosDosPlanos(armazenamento) : {};
 
-  const registos = resumos
+  const todosOsRegistos = resumos
     .map(({ nome, resumo }) => Object.assign({}, resumo, { id: resumo.id || nome.replace(/\.json$/, '') }))
     .sort((a, b) => String(b.gerado_em || b.id).localeCompare(String(a.gerado_em || a.id)));
+
+  /* UMA LINHA POR DOCUMENTO, E NÃO POR ENVELOPE (03/11/2026). Depois de três ajustes do PO, a
+   * listagem mostrava três linhas com o mesmo nome — o mecanismo de proveniência a aparecer onde
+   * não deve. A regra é do núcleo (`porta.vigentesDaFamilia`), e não desta página: a porta e esta
+   * lista têm de dizer o mesmo sobre o que está vigente. O que fica de fora NÃO se perde — os
+   * envelopes continuam no acervo, com a cadeia inteira, e a linha diz quantas versões guardou. */
+  const FAMILIA_DA_LISTA = {
+    anamnese: 'anamnese',
+    'plano-de-ensino': 'plano',
+    'plano-de-observacao': 'po',
+  };
+  const vigentes = porta.vigentesDaFamilia(todosOsRegistos, FAMILIA_DA_LISTA[chave]);
+  const registos = vigentes.vigentes;
+  const historico = vigentes.historico;
 
   /* O MAPA plano → turma. O PO referencia o plano de ensino, e a turma do PO é a do plano. Sai do
    * MESMO índice que já foi lido — não é uma segunda leitura. */
@@ -1444,7 +1469,7 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
     }
   }
 
-  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano, gerados);
+  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano, gerados, historico);
   const titulo = familia.titulo;
   const pedido = caminho.endsWith('/') ? caminho : caminho + '/';
 

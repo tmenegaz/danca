@@ -602,3 +602,10 @@ experimentos/modelo-formulario/*
 # hoje, e a terceira declara as omissões com motivo. Citadas no `REGISTRO.md`.
 !experimentos/provar-plano-completo.js
 !experimentos/provar-derivados-da-sequencia.js
+
+# A ESTANTE MOSTRA UM POR DOCUMENTO (03/11/2026). O professor ajustou o PO três vezes até a geração
+# passar, e a listagem da Área do Professor passou a mostrar três linhas com o mesmo nome. A regra
+# — a cadeia (`ajuste_de`) e o contexto, o que se agrupa e o que NÃO se agrupa, e o histórico que a
+# linha diz que guardou — é medida aqui, e é ela que fixa que nada se perde: os envelopes escondidos
+# continuam legíveis e o índice continua a listá-los. Citada no `REGISTRO.md`.
+!experimentos/provar-vigente-na-listagem.js

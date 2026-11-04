@@ -517,6 +517,138 @@ function listaDeResposta(envelope, id) {
     .map(String);
 }
 
+/*
+ * O VIGENTE DE CADA DOCUMENTO — a estante mostra o topo, e o histórico fica na proveniência
+ * (03/11/2026).
+ *
+ * O QUE ACONTECEU. O professor ajustou o Plano de Observação três vezes até a geração passar, e a
+ * listagem da Área do Professor passou a mostrar três linhas com o MESMO nome («Plano de
+ * Observação — Balé Nível 1 — Teste 3»): uma por envelope. Do lado de quem dá a aula, ele fez UMA
+ * coisa — ajustou e salvou —, e o empilhamento é o mecanismo de proveniência a aparecer onde não
+ * deve. O registo e a cadeia continuam inteiros (é o lastro, e é a razão de o sistema existir); o
+ * que muda é o que a ESTANTE mostra.
+ *
+ * A REGRA TEM DUAS METADES, porque há dois modos de nascer uma versão nova:
+ *
+ *   1. A CADEIA — um envelope que algum outro aponta em `ajuste_de` está SUBSTITUÍDO. É a
+ *      proveniência a dizê-lo: quem derivou declarou de quem, e não há inferência nenhuma.
+ *   2. O CONTEXTO — dois envelopes do MESMO documento sem cadeia entre eles (duas tentativas
+ *      irmãs, ambas derivadas do mesmo original, ou duas gravações independentes) são a mesma
+ *      coisa vista duas vezes. Fica o mais recente, e o outro é declarado no histórico.
+ *
+ * O QUE NÃO SE AGRUPA. A chave de contexto exige o campo que IDENTIFICA o documento — a aluna, o
+ * plano observado —, e um registo que não o tenha **não é agrupado**: juntar desconhecidos é a
+ * maneira mais fácil de esconder um documento que é outro. E o ciclo faz parte da chave do PO,
+ * como a pesquisadora pediu: o mesmo documento noutro ciclo é outro documento, e continua com a
+ * sua linha.
+ *
+ * O PLANO DE ENSINO NÃO TEM CHAVE DE CONTEXTO, e a razão é MEDIDA. A primeira versão desta regra
+ * agrupava-o por (professor, ciclo, turma) — e a bancada `provar-apagar-da-listagem` ficou vermelha
+ * com o dado que ela própria monta: dois planos da MESMA turma e do MESMO ciclo, um deles
+ * observado por um PO e o outro não, são dois documentos de verdade, e o plano observado
+ * desaparecia da estante. O plano é identificado pelo que ele ENSINA (o objetivo), e não pela
+ * turma; o que o substitui é a derivação, e quem a declara é o `ajuste_de`. Para o plano, a
+ * metade 1 da regra basta — e é a única que não esconde nada que o professor não tenha
+ * substituído.
+ *
+ * A ANAMNESE É A OUTRA EXCEPÇÃO DECLARADA, e ela vem do sistema, não desta função: a anamnese já
+ * é uma só por aluna (`anamneses` e `estadosDasAnamneses` derivam o vigente pelo apelido, sem
+ * olhar o ciclo). Pôr o ciclo na chave aqui faria a estante mostrar duas linhas da mesma aluna
+ * enquanto a lista de sujeitos do PO mostrava uma — duas verdades sobre quem é a aluna.
+ *
+ * O QUE VOLTA. `{ vigentes, historico }`: os registos que a estante mostra, e — por id do vigente —
+ * os ids que ele substituiu. O `historico` existe para a linha PODER DIZER que há versões
+ * anteriores: esconder sem o dizer é a família de defeito que este repositório mais evita.
+ */
+const CONTEXTO_DO_REGISTO = {
+  anamnese: (r) => (r.aluna ? ['aluna', r.escola || '', r.aluna] : null),
+  // `plano` fica SEM chave, de propósito: ver o parágrafo acima. A derivação (`ajuste_de`) é o que
+  // o substitui, e dois planos da mesma turma e ciclo são dois documentos.
+  plano: () => null,
+  po: (r) => {
+    const planos = (Array.isArray(r.plano) ? r.plano : []).map(String).filter(Boolean).sort();
+    return planos.length ? ['po', r.escola || '', planos.join('+')] : null;
+  },
+};
+
+/** A chave de contexto do registo — `null` quando ele não se agrupa (campo identificador ausente). */
+function chaveDoContexto(resumo, familia) {
+  const doContexto = CONTEXTO_DO_REGISTO[familia];
+  if (!doContexto) return null;
+  const partes = doContexto(resumo || {});
+  return Array.isArray(partes) ? partes.join('\u0000') : null;
+}
+
+/** A ordem do registo: o `gerado_em` e, quando ele falta, o carimbo do próprio id. */
+function ordemDoRegisto(resumo) {
+  return String((resumo && (resumo.gerado_em || resumo.id)) || '');
+}
+
+/**
+ * OS REGISTOS VIGENTES de uma família, e o histórico que cada um substituiu.
+ *
+ * `resumos` são os do índice (ou objetos com os mesmos campos: `id`, `fonte`, `escola`,
+ * `professor`, `ciclo`, `ajuste_de`, `gerado_em`, e o identificador da família — `aluna`, `turma`
+ * ou `plano`). Nada é lido do armazenamento: a regra é derivada de metadado, como todas as listas.
+ */
+function vigentesDaFamilia(resumos, familia) {
+  const lista = (Array.isArray(resumos) ? resumos : []).filter((r) => r && r.id);
+  const porId = new Map(lista.map((r) => [String(r.id), r]));
+
+  // 1. Quem tem SUCESSOR está substituído. Um id repetido no `ajuste_de` (duas tentativas irmãs)
+  //    fica com o sucessor mais recente — é ele que a estante mostra.
+  const substituidoPor = new Map();
+  for (const r of lista) {
+    const anterior = r.ajuste_de ? String(r.ajuste_de) : '';
+    if (!anterior || anterior === String(r.id) || !porId.has(anterior)) continue;
+    const atual = substituidoPor.get(anterior);
+    if (!atual || ordemDoRegisto(r) > ordemDoRegisto(porId.get(atual))) {
+      substituidoPor.set(anterior, String(r.id));
+    }
+  }
+
+  // 2. Do mais recente para o mais antigo: o primeiro de cada contexto fica, os outros são
+  //    histórico. A ordem é a mesma que a listagem já usa (`gerado_em`, e o id a desempatar).
+  const ordenados = lista.slice().sort((a, b) => {
+    const oa = ordemDoRegisto(a);
+    const ob = ordemDoRegisto(b);
+    if (oa !== ob) return oa < ob ? 1 : -1;
+    return String(a.id) < String(b.id) ? 1 : -1;
+  });
+
+  const vigenteDaChave = new Map();
+  const escondido = new Map();      // id escondido → id que o substituiu (o DIRECT imediato)
+  const vigentes = [];
+  const guardar = (id, vigente) => {
+    if (id === vigente) return;
+    escondido.set(id, vigente);
+  };
+
+  for (const r of ordenados) {
+    const id = String(r.id);
+    if (substituidoPor.has(id)) { guardar(id, substituidoPor.get(id)); continue; }
+    const chave = chaveDoContexto(r, familia);
+    if (chave && vigenteDaChave.has(chave)) { guardar(id, vigenteDaChave.get(chave)); continue; }
+    if (chave) vigenteDaChave.set(chave, id);
+    vigentes.push(r);
+  }
+
+  // 3. O histórico resolve-se ATÉ AO VIGENTE FINAL: numa cadeia de três, os dois elos escondidos
+  //    pertencem à mesma linha, e é essa linha que diz «2 versões anteriores guardadas».
+  const historico = new Map();
+  for (const [id, direto] of escondido) {
+    let alvo = direto;
+    let voltas = 0;
+    while (escondido.has(alvo) && voltas <= escondido.size) { alvo = escondido.get(alvo); voltas += 1; }
+    if (alvo === id) continue;   // um ciclo de `ajuste_de`: não se esconde nada por engano
+    if (!historico.has(alvo)) historico.set(alvo, []);
+    historico.get(alvo).push(id);
+  }
+  for (const ids of historico.values()) ids.sort();
+
+  return { vigentes, historico };
+}
+
 /**
  * O ÍNDICE: o rol dos nomes dos envelopes, lido como UM arquivo.
  *
@@ -1417,6 +1549,8 @@ module.exports = {
   VERSAO_DO_RESUMO,
   resumoDoEnvelope,
   resumosDeEnvelopes,
+  chaveDoContexto,
+  vigentesDaFamilia,
   ENDERECOS,
   registro,
   linhasDoRelatorio,

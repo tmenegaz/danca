@@ -34030,3 +34030,84 @@ admitia a exceção declarada, e o que faltava era a exceção.
 antecede**: quem o escreve é o Worker, e o «Guardar» não roda o `check-indices` antes de commitar — a
 falha só apareceu na geração seguinte. Rodar o `check-indices` **depois** da escrita, no sítio que
 regera os índices, fecharia o intervalo; é alteração de fluxo e é decisão dela.
+
+## 03/11/2026 — A estante mostra um por documento: a proveniência fica inteira, e não se empilha no ecrã
+
+**O que motivou.** A pesquisadora ajustou o Plano de Observação três vezes até a geração passar. Do
+lado dela foi **uma** coisa — «ajustei e salvei» —, mas a Área do Professor passou a mostrar **três
+linhas com o mesmo nome**, «Plano de Observação — Balé Nível 1 — Teste 3». Cada gravação nasce um
+envelope, e a listagem era uma linha por envelope: o mecanismo de proveniência — que existe para o
+trabalho não se perder — a aparecer onde ninguém o pediu. A frase dela é a regra: *o professor não
+tem por que entender os bastidores; ele deve ver o estado final*.
+
+**O que foi decidido — uma regra, no núcleo, com duas metades.** `porta.vigentesDaFamilia` (puro,
+sem `fs`) devolve os registos **vigentes** e, por id do vigente, os que ele substituiu:
+
+1. **A CADEIA.** Um envelope que outro aponta em `ajuste_de` está substituído. É a proveniência a
+   declarar o sucessor — não é inferência, e é o caso do «ajustar» da tela.
+2. **O CONTEXTO.** Duas tentativas **irmãs** (ambas derivadas do mesmo original, nenhuma sucessora
+   da outra) são a mesma coisa vista duas vezes: fica a mais recente. Era o caso real — cada
+   «ajustar» criava um irmão do primeiro.
+
+**O que NÃO se agrupa, e o teste é que o decidiu.** A chave exige o campo que **identifica** o
+documento. **PO**: o plano observado — e o ciclo vem com ele, porque o plano é de um ciclo. Duas
+observações do mesmo plano são versões (o sistema até recusa um segundo PO para o mesmo plano).
+**Anamnese**: a aluna, e **não** o ciclo — o sistema já a trata como a linha de base do sujeito,
+uma só (`anamneses` e `estadosDasAnamneses` derivam o vigente pelo apelido); pôr o ciclo na chave
+daria duas verdades sobre quem é a aluna. Registos **sem** o campo identificador não se agrupam:
+juntar desconhecidos é a maneira mais fácil de esconder o que é outro.
+
+**O plano de ensino ficou SEM chave de contexto, e a razão é medida — não é desenho.** A primeira
+versão agrupava-o por (professor, ciclo, turma), e `provar-apagar-da-listagem` ficou **vermelha**
+contra o dado que ela própria monta: dois planos da **mesma** turma e do **mesmo** ciclo, um deles
+observado por um PO e o outro não, são **dois documentos** — e o plano observado desaparecia da
+estante. O plano é identificado pelo que ele **ensina** (o objetivo), e não pela turma; quem o
+substitui é a derivação. Para o plano, a metade 1 basta, e é a única que não esconde nada que o
+professor não tenha substituído.
+
+**Nada se perde, e a linha diz o que escondeu.** Os envelopes escondidos continuam no acervo,
+legíveis pelo id, com o `ajuste_de` intacto; o índice continua a listá-los; os **estados** do plano
+continuam a derivar de todos (`legado`, `substituido_por`); e a regra de proveniência dos Bastidores
+— que precisa de ver **tudo** — não passou por esta função. A linha que ficou ganha um facto:
+«1 versão anterior guardada» / «2 versões anteriores guardadas». Uma linha que aparece sozinha onde
+havia três, sem uma palavra, faz concluir que o sistema apagou o trabalho.
+
+**O que se mediu**, no banco e não no ar (`provar-vigente-na-listagem`, 21 asserções, fixture com o
+caso real):
+
+| O que | Antes | Depois |
+|:--|:--|:--|
+| Os 4 envelopes do PO da `breu` (1 original + 2 irmãos + 1 derivado), na Área do Professor | **3 linhas** com o mesmo nome | **1 linha**, com «2 versões anteriores guardadas» |
+| Outro plano observado | 1 linha | **1 linha** — e não se junta à anterior |
+| Duas anamneses da mesma aluna | 2 linhas | **1** (a mais recente); as **sem sujeito** continuam separadas |
+| Um plano e a sua derivação | 2 linhas | **1** (a derivada) |
+| Dois planos da mesma turma e ciclo, objetivos diferentes | 2 linhas | **2** — a decisão acima, medida |
+| O envelope substituído | — | **continua legível** pelo id, e no índice |
+| `provar-apagar-da-listagem` · `provar-ficha-na-listagem` · `provar-lista-que-falha` · `provar-sujeitos-da-turma` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-indice-de-proveniencia` | verdes | **31 · 35 · 39 · 30 · 48 · 44 · 60**, verdes |
+| `check-identidade` · `check-indices` | 20/20 · 14/14 | **20/20 · 14/14** |
+| `provar-listas-sem-repeticao` | **1 falha** (asserção `api/envelopes` pedido uma vez — a estante saiu da porta a 26/10 e a prova não acompanhou) | **a mesma falha**, e é pré-existente: medida na árvore de `HEAD` sem estas alterações |
+
+**O que NÃO mudou.** Nenhum envelope é apagado, movido ou reescrito; a fórmula do hash e a cadeia de
+proveniência; os validadores do pacote; as 17 regras e as 22 pétreas; e `porta.resumosDeEnvelopes`,
+que é o que a regra de proveniência dos Bastidores lê — ela continua a ver os planos substituídos,
+que é o lado seguro (recusar apagar o que está vinculado).
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: `motor/`
+não está na lista congelada, e `experimentos/` é bancada (a prova nova entra por `!` no
+`.gitignore`, uma a uma, como as outras).
+
+**Com o quê.** `motor/nucleo/porta.js` (`vigentesDaFamilia`, `chaveDoContexto`) ·
+`motor/servidor/listas-do-acervo.js` (a estante filtra e diz o histórico) ·
+`experimentos/provar-vigente-na-listagem.js` · `experimentos/README.md` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**O que ainda não está feito, e é dela.** (1) A **estante morta** da porta (`porta/index.html`):
+`pintarFichas`/`carregarFichas` continuam lá e continuam a mostrar uma linha por envelope, mas já
+não desenham nada — o `#lista-fichas` saiu da página a 26/10. Mexer na rota `/api/envelopes` para um
+consumidor que não existe seria superfície sem uso, e por isso não se mexeu; no dia em que a estante
+voltar, a regra é a mesma função. (2) **Sem «ver versões anteriores»**: as versões guardadas só se
+alcançam pelo id do envelope — a lista diz que existem e quantas, e não oferece o caminho. É uma
+decisão de produto, e o desenho (um `details` por linha, ou um selo que abre) não se inventa aqui.
+(3) O **nome** da linha do plano não leva o ciclo: a mesma turma em dois ciclos dá duas linhas de
+nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vigente-na-listagem`). Não
+é defeito desta regra — é de antes —, e corrigi-lo mexe na identidade do cartão.

@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `5ae2ea5`, árvore limpa). Nesta entrega, **a medida não é
+> **Última fotografia:** 03/11/2026 (base `2d01773`, árvore limpa). Nesta entrega, **a estante mostra
+> um documento por linha**. O professor ajustou o Plano de Observação três vezes até a geração
+> passar, e a Área do Professor passou a mostrar **três linhas com o mesmo nome** — uma por envelope,
+> que é o mecanismo de proveniência a aparecer no ecrã. A regra passou a ser **uma, do núcleo**
+> (`porta.vigentesDaFamilia`): um envelope que outro aponta em `ajuste_de` está **substituído**, e as
+> tentativas **irmãs** do mesmo documento (o plano observado, para o PO; a aluna, para a anamnese)
+> colapsam na mais recente. **O plano de ensino não se agrupa por contexto** — dois planos da mesma
+> turma e ciclo com objetivos diferentes são dois documentos, e foi a bancada
+> `provar-apagar-da-listagem` que o mostrou, ao ficar vermelha. **Nada se perde**: os envelopes
+> escondidos continuam no acervo, legíveis pelo id e no índice; os estados continuam a derivar de
+> todos; e a linha diz «2 versões anteriores guardadas». Prova nova: `provar-vigente-na-listagem`,
+> **21 asserções**.
+>
+> **Entrega anterior** (base `5ae2ea5`, árvore limpa). Nesta entrega, **a medida não é
 > o repertório**. Ela relatou que a sequência mostrava «*Port de Bras*, vinculado ao Objetivo 2» com
 > a curadoria em dois verbetes, e uma menção residual a um «Objetivo 3» que nunca preencheu — e
 > suspeitou de *mock*, com razão para suspeitar. **Não havia mock**: havia duas portas abertas na
@@ -1589,6 +1602,16 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     exercício — nome novo **ou** escolhido no passo 2. A segunda metade da condição não estava no
     pedido e é obrigatória: sem ela, corrigir um verbete que já existe fecharia a frase a quem a veio
     corrigir. **DECIDIDO por ela e implementado** 02/11/2026.
+79. **A ESTANTE MOSTRA UM POR DOCUMENTO; A PROVENIÊNCIA NÃO SE EMPILHA NO ECRÃ.** Três ajustes do
+    PO viravam três linhas com o mesmo nome. A regra é do núcleo (`porta.vigentesDaFamilia`) e tem
+    duas metades: a **cadeia** (`ajuste_de` — quem derivou declarou de quem) e o **contexto** — duas
+    tentativas irmãs do mesmo documento (o plano observado, para o PO; a aluna, para a anamnese)
+    colapsam na mais recente. **O plano de ensino fica só com a cadeia**: dois planos da mesma turma
+    e ciclo com objetivos diferentes são dois documentos, e agrupá-los escondia o plano que um PO
+    observa — medido, é a bancada `provar-apagar-da-listagem` a dizê-lo. Os envelopes escondidos não
+    se apagam nem se movem: continuam legíveis, no índice, e os **estados** e a regra de proveniência
+    dos Bastidores continuam a derivar de todos. A linha diz quantas versões guardou. **DECIDIDO por
+    ela** («o professor não tem por que entender os bastidores») **e implementado** 03/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -2218,7 +2241,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a medida não é o repertório)
+### Executado nesta fotografia (03/11/2026 — a estante mostra um por documento)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-vigente-na-listagem` (**nova**) | **TUDO CERTO — 21 asserções**: as 4 gravações do PO do caso real (1 original + 2 irmãos + 1 derivado) dão **1 linha** com «2 versões anteriores guardadas»; outro plano observado dá a sua; as anamneses da mesma aluna colapsam (e as **sem sujeito** não); a derivação do plano substitui; e os envelopes escondidos **continuam legíveis e no índice** |
+| O mesmo, sobre o **índice real da `breu`** | **2 envelopes de PO → 1 linha** (`po-20261103-2221`, histórico `po-20261103-2202`); anamnese 1 → 1; plano 1 → 1 |
+| `provar-apagar-da-listagem` | **31 asserções, 0 falhas** — e foi ela que **reprovou** a primeira versão da regra: agrupar o plano por (turma, ciclo) escondia o plano que um PO observa |
+| `provar-ficha-na-listagem` · `provar-lista-que-falha` · `provar-sujeitos-da-turma` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-indice-de-proveniencia` | **35 · 39 · 30 · 48 · 44 · 60** — verdes |
+| `check-identidade` · `check-indices` | **20/20** · **14/14** |
+| `provar-listas-sem-repeticao` | **1 falha pré-existente** — a asserção «`api/envelopes` é pedido uma vez» mede uma estante que saiu da porta a 26/10; reproduzida na árvore de `HEAD` **sem** estas alterações, e por isso não é regressão desta entrega |
+| **o que NÃO mede** | `provar-listas-do-acervo` — segue **NÃO FEITO**: a única escola viva (`breu`) não tem ciclo publicado para servir |
+
+### Executado na fotografia anterior (03/11/2026 — a medida não é o repertório)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3140,6 +3175,16 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **A estante mostra um por documento.** Três ajustes do Plano de Observação viravam
+  três linhas com o mesmo nome na Área do Professor — uma por envelope. A regra passou a ser uma, do
+  núcleo (`porta.vigentesDaFamilia`): a **cadeia** (`ajuste_de`) substitui, e as tentativas **irmãs**
+  do mesmo documento colapsam na mais recente. O **plano de ensino** fica só com a cadeia: dois
+  planos da mesma turma e ciclo com objetivos diferentes são dois documentos, e a primeira versão da
+  regra escondia o plano que um PO observa — foi `provar-apagar-da-listagem` que o apanhou, ao ficar
+  vermelha. Nada se perde: os envelopes escondidos continuam no acervo e no índice, os **estados**
+  derivam de todos, e a regra de proveniência dos Bastidores não passou por esta função. A linha diz
+  quantas versões guardou. Prova nova: `provar-vigente-na-listagem`, 21 asserções.
 
 - **03/11/2026** — **Uma correção minha: não eram «três decisões de produto».** Nenhum dos três
   campos é perda: a linha da escola saiu do corpo a 28/10 (está no `title` e no `escola:`); a
