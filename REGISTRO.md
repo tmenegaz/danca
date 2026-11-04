@@ -33700,3 +33700,76 @@ gerado — e é a bancada com mais cobertura da listagem; quando a `breu` tiver 
 mede o que sempre mediu. (b) A **senha só é conferida no cliente**: a rota `DELETE` não a pede (nem
 antes desta mudança), e o Worker não tem sessão — a área é protegida pelo endereço, não por
 credencial. Fica nomeado, porque é uma fronteira de segurança e não uma decisão de tela.
+
+## 03/11/2026 — As bancadas do plano e do PO medem outra vez (o fixture é que tinha morrido)
+
+**O que motivou, e a pergunta era a certa.** Ela, sobre o `provar-plano-matriz` vermelho: «Se eu
+excluir esse plano de ensino e criar de novo, aí passa no teste? […] Eu acho que é essa a solução.»
+**Não é**, e a resposta importa porque a acção proposta custava um registo: a prova não lê plano
+nenhum. Ela monta o mapa e o documento a partir de um **pacote em disco**, e o pacote que servia
+— `professores/leticia/ciclos/ciclo-01-barra` — **deixou de existir** quando a escola `barra` foi
+expurgada em **15/10/2026**. Medido: `professores/leticia` não existe, e o registo diz «barra
+(expurgada em 2026-10-15)». O `ASSETS` de mentira respondia 404 a tudo, então o `/api/mapa` não
+tinha conteúdo nem esquema — e a mensagem, «/api/mapa responde», fala de uma rota que está boa.
+Um plano novo na `breu` nunca povoaria aquela pasta.
+
+**E o vermelho escondia cinco asserções que mediam o dia em que foram escritas.** As duas bancadas
+morriam na primeira linha, portanto **nunca tinham corrido** depois das mudanças de 26/10 — e
+descreviam um documento que já não existe. É a mesma família do «os nós do cabeçalho não são 7», que
+o `provar-teste` tinha.
+
+| Asserção (como estava) | O que mede agora |
+|:--|:--|
+| `mapa.nos.length === 25` | a **invariante**: todo campo declarado no conteúdo chega ao mapa, e o único nó sem declaração é o objetivo do cabeçalho — mais forte, e verdadeira amanhã |
+| «a estrutura sai como LISTA, uma linha por bloco» | a secção saiu (lia-se como «esta aula só tem este bloco»); o par objetivo × bloco vive na 3.ª coluna dos objetivos específicos, **na ordem canónica**, com a lacuna declarada |
+| «a rubrica sai com a tabela Critério × níveis» | o plano declara a **régua**; o critério nasce no lançamento da aula |
+| «a sequência derivada nomeia o bloco…» lida da `derivarAula01` | os exercícios são a §«Exercícios da Aula 01» do documento da **notação** — mesma asserção, endereço novo |
+| no PO: «Quem escolhe a metodologia» · bloco «Linha de base revisitada (P-10)» | a primeira **saiu hoje** (é premissa do domínio); a segunda perdeu o «(P-10)» do título |
+
+**O fixture passa a ser o que não envelhece.** `porta/` (servida debaixo de `plano-observacao/`, que
+é o que o gerador faz: `cp -R porta/. <pacote>/plano-observacao/`) e `modelo/ciclos/` para os
+schemas — o molde de onde `criar-escola.sh` copia o de cada professor. **DECIDIDO**: uma prova que
+mede o CONTRATO não se ancora na pasta de uma escola, porque a pasta dura menos do que o contrato.
+
+**E UM DEFEITO DE VERDADE, apanhado por uma dessas asserções antigas.** O rótulo do contexto dizia
+**«Turmas observadas»** no PO e **«Turma observada»** no formulário — o plano é de **uma** turma, e
+o professor lia um nome no formulário e outro no documento. É exactamente o que a verificação 10 do
+`provar-po-completo` existe para travar, e ela estava vermelha havia tempo: **o vermelho de cima
+escondia-a**. A fonte é o conteúdo (`porta/plano/conteudo/plano.json`); o PO alinhou.
+
+**As duas bancadas estavam fora do Git.** `provar-plano-matriz` e `provar-po-completo` existiam só no
+worktree — `.gitignore` fecha `experimentos/*` e cada bancada ganha a sua excepção quando passa a
+fazer parte de uma decisão. Sem isto, a reparação vivia num só disco. Entram agora, com a razão
+escrita ao lado.
+
+**O que se mediu.**
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-plano-matriz` | **52 de 52** — era vermelho na primeira asserção |
+| `provar-po-completo` | **OK — 17 verificações** |
+| `provar-teste` · `provar-metodologia-no-cabecalho` · `provar-aula-e-plano-legiveis` · `provar-sequencia-que-acompanha` | **45** · TUDO CERTO · TUDO CERTO · TUDO CERTO |
+| `check-identidade` · `check-schemas` · `check-indices` | **20/20** · TUDO CERTO · **14/14** |
+| `provar-derivados-da-sequencia` | **as mesmas 2 de antes** — e agora sabe-se por quê: o alfabeto não tem «Battement fondu» nem «Jeté», que o fixture dela usa. É fixture, não sistema |
+
+**O que continua vermelho, com nome.** `provar-plano-completo` acusa **três campos respondidos que
+não chegam ao documento**: `contexto-escola` (a tabela do contexto imprime o título «Escola e
+espaço» mas não a linha com o valor), o **critério** da `rubrica` (o documento imprime só a régua) e
+`aula-de-cada-objetivo` (a relação objetivo ↔ aula não sai em lado nenhum). **PENDENTE** — são três
+decisões de produto, não três esquecimentos de código, e a decisão é dela.
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
+`derivar-po.js` e o `derivar-plano-ciclo.js` são código; o rótulo é dado do conteúdo.
+
+**Com o quê.** `experimentos/provar-plano-matriz.js` · `experimentos/provar-po-completo.js` ·
+`motor/nucleo/derivar-po.js` (`ROTULOS_DO_CONTEXTO`) · `motor/nucleo/derivar-plano-ciclo.js`
+(o comentário) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**Referências.** A pergunta dela de 03/11/2026 · a entrada de 27/10/2026 (a publicação deixa de se
+nomear) · `experimentos/lib-pacote.js` (`relatorioDePacotes`).
+
+**O que a decisão deixa por fazer.** As **três bancadas irmãs** continuam com fixtures de pastas
+expurgadas e por isso não medem nada: `provar-dimensoes-plano` e `provar-janela-do-lancamento`
+(apontam a `perna-boa/…/ciclo-01-batata*`, expurgada), `provar-lancamento` (`professores/tiago/…`) e
+`provar-geracao` (`sapo-bailarino/…/calando-teste-1`, expurgada). O remédio é o mesmo desta entrada,
+e não foi feito para não alargar o passo.

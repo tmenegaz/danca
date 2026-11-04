@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `93a1dc1`, árvore limpa). Nesta entrega, **o registo
+> **Última fotografia:** 03/11/2026 (base `38b13c1`, árvore limpa). Nesta entrega, **duas bancadas
+> voltaram a medir** — e a resposta à pergunta que as destravou é um **não**. O `provar-plano-matriz`
+> estava vermelho em «/api/mapa responde», e a mensagem aponta para a rota; a rota está boa. A prova
+> servia `professores/leticia/ciclos/…`, e **a escola `barra` foi expurgada em 15/10/2026** — a pasta
+> do professor com ela. Nenhum plano novo povoaria aquela pasta. Sob o vermelho havia **cinco
+> asserções que mediam o dia em que foram escritas** (o número de nós, a secção «Estrutura de cada
+> aula», a tabela da rubrica, o endereço da sequência, o bloco «(P-10)») — as bancadas morriam na
+> primeira linha, portanto **nunca tinham corrido** desde 26/10. O fixture passa a ser `porta/` e o
+> molde `modelo/ciclos/`, que não envelhecem com um expurgo. **E um defeito de verdade**: o rótulo
+> «Turmas observadas» no documento × «Turma observada» no formulário — o plano é de UMA turma; o
+> vermelho de cima escondia a asserção que o travava. As duas bancadas estavam **fora do Git** e
+> entram agora. `provar-plano-matriz` **52/52**, `provar-po-completo` **17**.
+>
+> **Entrega anterior** (base `93a1dc1`, árvore limpa). Nesta entrega, **o registo
 > solto voltou a poder ser apagado** — e o gesto passou a ser **botão**, não link. O «Apagar» sumiu
 > da listagem do plano quando ela passou a ser a página da Área do Professor (a estante antiga da
 > porta tinha-o); e na anamnese ele era um `<a>` para o **mesmo endereço** do «Editar» — dois
@@ -2147,7 +2160,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — o «Apagar» do registo solto)
+### Executado nesta fotografia (03/11/2026 — as bancadas do plano e do PO voltam a medir)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-plano-matriz` | **52 de 52** — era vermelho na PRIMEIRA asserção («/api/mapa responde»), e a causa era o fixture: servia a pasta de uma escola expurgada em 15/10/2026 |
+| `provar-po-completo` | **OK — 17 verificações** |
+| `provar-teste` · `provar-metodologia-no-cabecalho` · `provar-aula-e-plano-legiveis` · `provar-sequencia-que-acompanha` | **45** · TUDO CERTO · TUDO CERTO · TUDO CERTO |
+| `check-identidade` · `check-schemas` · `check-indices` | **20/20** · TUDO CERTO · **14/14** |
+| `provar-derivados-da-sequencia` | **as mesmas 2 de antes** — e agora sabe-se por quê: o alfabeto não tem «Battement fondu» nem «Jeté», que o fixture dela usa |
+| **vermelhos, e de antes** | `provar-plano-completo` — **três campos respondidos não chegam ao documento** (`contexto-escola`, o critério da `rubrica`, `aula-de-cada-objetivo`). É achado, não remendo: são três decisões de produto. · `check-pacote` no `ciclo-01-breu` (o pacote-zero não tem PDF nem aulas) |
+| `provar-listas-do-acervo` · `provar-dimensoes-plano` · `provar-janela-do-lancamento` · `provar-lancamento` · `provar-geracao` | **NÃO MEDEM** — apontam a pastas de escolas expurgadas (`batata`, `calando-teste-1`) ou a professores que já não existem (`tiago`). O remédio é o desta entrega, e não foi aplicado a elas |
+
+### Executado na fotografia anterior (03/11/2026 — o «Apagar» do registo solto)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2160,7 +2185,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `check-pacote` no `ciclo-01-breu`: 11 erros (o pacote-zero não tem PDF, nem aulas, nem dados — nunca gerado aqui) |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado na fotografia anterior (03/11/2026 — a sequência não inventa linha)
+### Executado duas fotografias atrás (03/11/2026 — a sequência não inventa linha)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -2171,7 +2196,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | **vermelhos, e de antes** | `provar-plano-matriz` — a bancada não serve `/api/mapa` e a prova **não corre**; as duas asserções que ela guarda (reescritas hoje para a regra nova) ficam medidas pela §5 do `provar-sequencia-que-acompanha` · `provar-derivados-da-sequencia` (as mesmas 2) · `provar-plano-completo` · `provar-po-completo` · `provar-notacao` |
 | **o que NÃO foi medido** | a página **ao vivo** depois do deploy: o caminho mede-se em JSDOM e no derivador |
 
-### Executado duas fotografias atrás (03/11/2026 — a sequência acompanha os objetivos)
+### Executado três fotografias atrás (03/11/2026 — a sequência acompanha os objetivos)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3032,6 +3057,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **Duas bancadas voltam a medir, e o fixture é que tinha morrido.** O
+  `provar-plano-matriz` servia a pasta de uma escola expurgada em 15/10/2026 e morria na primeira
+  asserção; sob o vermelho havia cinco asserções que mediam o dia em que foram escritas (o número
+  de nós, a secção «Estrutura de cada aula», a tabela da rubrica, o endereço da sequência, o bloco
+  «(P-10)»). O fixture passa a ser `porta/` e o molde `modelo/ciclos/`. E um defeito de verdade:
+  «Turmas observadas» no documento × «Turma observada» no formulário — o plano é de uma turma. As
+  duas bancadas estavam fora do Git e entram agora. `provar-plano-matriz` 52/52,
+  `provar-po-completo` 17.
 
 - **03/11/2026** — **O «Apagar» do registo solto volta à listagem, e é botão.** Sumiu na migração
   para a página da Área do Professor, e na anamnese era um link para o formulário de edição. A regra
