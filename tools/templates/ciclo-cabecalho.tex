@@ -87,14 +87,27 @@
 % ---------------------------------------------------------------------------
 % Compatibilidade Unicode: símbolos que o pdflatex não traz por padrão.
 % Sem isto, o PDF falha com "Unicode character ... not set up for use with LaTeX"
-% (foi o caso de ≠, ✓, ●, ↺ e ⌒ usados nos documentos do ciclo).
+% (foi o caso de ≠, ✓, ●, ○, ↺, ↻ e ⌒ usados nos documentos do ciclo).
+%
+% A lista é medida, não adivinhada: cada caractere não-ASCII que aparece nas
+% fontes do ciclo foi compilado sozinho contra este cabeçalho, e só os que
+% falham entram aqui. Faltavam dois a 03/11/2026 — `○` e `↻` —, e a geração do
+% ciclo da `breu` parava no primeiro deles, na notação do battement tendu.
 % ---------------------------------------------------------------------------
 \usepackage{amssymb}
+% ○ é o par de ● no alfabeto (abre/fecha) e tem de se parecer com ele no papel:
+% o `\textopenbullet` é o irmão do `\textbullet` na mesma família — medido, os
+% dois caem na mesma caixa (5,44 × 4,78 pt) —, enquanto o `\bigcirc` do amssymb
+% tem o dobro da largura. O textcomp vem explícito: o template do pandoc já o
+% carrega no pdflatex, mas é desta linha que o `\textopenbullet` depende.
+\usepackage{textcomp}
 \usepackage{newunicodechar}
 \newunicodechar{≠}{\ensuremath{\neq}}
 \newunicodechar{✓}{\ensuremath{\checkmark}}
 \newunicodechar{●}{\textbullet}
+\newunicodechar{○}{\textopenbullet}
 \newunicodechar{↺}{\ensuremath{\circlearrowleft}}
+\newunicodechar{↻}{\ensuremath{\circlearrowright}}
 \newunicodechar{⌒}{\ensuremath{\frown}}
 % Caixa de marcação da folha de captura (Aula 01): o pdflatex não traz ☐ (U+2610).
 \newunicodechar{☐}{\ensuremath{\square}}

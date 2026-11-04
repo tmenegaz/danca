@@ -33900,3 +33900,84 @@ deixado de ler a matriz por completo.
 `motor/nucleo/derivar-ciclo.js` · `porta/index.html` ·
 `professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (regerado) ·
 `experimentos/provar-sequencia-que-acompanha.js` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+## 03/11/2026 — O PDF do ciclo compila outra vez: dois glifos do alfabeto não estavam declarados
+
+**O que motivou.** A geração do ciclo `01` da `breu` (run 41751257267) morreu no passo do PDF, depois
+de todos os HTML saírem certos:
+
+```
+! LaTeX Error: Unicode character ○ (U+25CB) not set up for use with LaTeX.
+l.296 ...{{[}Perna:\ ED\ 1ª\ ○\ -\ ●\ 1ª{]}}
+```
+
+O `○` não é um ornamento: é um **sinal do alfabeto** que a modalidade declarou a 02/11/2026 (`○` abre,
+o par de `●` fecha — `biblioteca/modalidades/bale-classico/notacao.json`), e é a **notação derivada**
+de `notacao.js` que o põe na linha do battement tendu. O HTML sempre o mostrou; o PDF não compila
+porque o `pdflatex` não traz o glifo, e o cabeçalho `tools/templates/ciclo-cabecalho.tex` é o único
+sítio que o pode declarar.
+
+**O que se mediu, e não se adivinhou.** Cada caractere não-ASCII das fontes deste ciclo (os `.md` da
+variante, mais o `biblioteca/guia-do-professor.md`) — **35 ao todo** — foi compilado **sozinho** por
+um documento mínimo com o **cabeçalho real**, nas mesmas opções do gerador. Resultado: **dois falham**,
+e os outros 33 passam.
+
+| Glifo | Onde aparece | Estado antes | Estado depois |
+|:--|:--|:--|:--|
+| `○` U+25CB | a notação do tendu, o glossário | **falha** — lia-se «WHITE CIRCLE not set up» | `\textopenbullet` |
+| `↻` U+21BB | a lista «declarados e não usados» do glossário | **falha** — e seria o erro seguinte, invisível atrás do primeiro | `\ensuremath{\circlearrowright}` |
+
+Os 33 que passam já estavam cobertos por duas vias: o `inputenc` do `pdflatex` resolve `↑ → ↓`, as
+aspas, as meias-riscas e os acentos, e o bloco de compatibilidade do cabeçalho já declarava `≠`, `✓`,
+`●`, `↺`, `⌒` e `☐`. **Nenhum outro glifo precisou de entrar** — é a razão de a verificação ter sido
+feita glifo a glifo, e não por estimativa.
+
+**A varredura foi depois alargada, e o alargamento mudou uma decisão.** Medir só o ciclo de hoje
+protege do erro de hoje. Varrendo também o **catálogo inteiro** (`biblioteca/modalidades/**`, 112
+arquivos, mais as fontes e o guia) saem **50** caracteres distintos; compilados um a um contra o
+mesmo cabeçalho, **47 passam e 3 falham** — `↔` (U+2194), `⚠` (U+26A0) e o seletor de variação
+`️` (U+FE0F). **Nenhum dos três foi declarado**, e a razão é medida: eles vivem nas `description`
+dos `-schema.json` e nos `_comentario` do catálogo, e **não há caminho** que os leve a um documento —
+os schemas não entram no pacote e o comentário não é texto publicado. Declarar um `⚠` seria
+**inventar um glifo para um emoji**: o PDF diria outra coisa, e em silêncio. Fica a falha **alta**,
+que é o modo de falha que este repositório prefere — a alternativa é passar sem ter verificado.
+
+**A escolha do `○`, e é de geometria.** O par `○`/`●` tem de se ler como par no papel. Medido com o
+`\settowidth`/`\settoheight` no mesmo tamanho: `\textbullet` e `\textopenbullet` caem na **mesma
+caixa** (5,44 × 4,78 pt); o `\bigcirc` do `amssymb` tem **o dobro da largura** (10,95 × 7,60 pt); o
+`\circ` é um anel fino (5,48 × 4,87 pt) e serve, mas não é da família do `\textbullet`. Ficou o
+`\textopenbullet`, e o `textcomp` passou a ser carregado **explicitamente** no cabeçalho: o template
+do pandoc já o traz no `pdflatex`, mas é desta linha que o `\textopenbullet` depende — e uma
+dependência que só existe porque outra pessoa a carrega é a que se parte sem aviso.
+
+**O que NÃO mudou.** A fórmula do hash e a cadeia de proveniência (confirmado com `hash-ciclo.sh …
+--check`: «cadeia intacta», o mesmo `a68fc15e`), a cobertura dos validadores, o `check-pacote`, as 17
+regras e as 22 pétreas, a lógica de geração e a lista de pacotes de `.github/actions/preparar-tex`
+(o `textcomp.sty` já lá estava, no `kpsewhich`). A alteração é **de compatibilidade do preâmbulo**,
+não de comportamento do gerador.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo-cabecalho.tex` está em
+`CONGELAMENTO.md` («`tools/templates/` — CSS, HTML, JS da navbar»; o `.tex` está na mesma pasta e é
+infraestrutura de geração). Motivo: **sem estas duas linhas o pacote não se gera** — o PDF é a metade
+da entrega, e a falha é de declaração, não de desenho. Não se acrescentou glifo nenhum por gosto: só
+os dois que a medição reprovou.
+
+**Com o quê.** `tools/templates/ciclo-cabecalho.tex` · `REGISTRO.md`.
+
+**O que se mediu ao fim.**
+
+| Verificação | Antes | Depois |
+|:--|:--|:--|
+| `gerar-ciclo.sh coqui-de-redinha 01 breu-bale-nivel-1-teste-3` | `Error producing PDF` (exit 43) | **completa** |
+| `check-pacote` (no fim do gerador) | não chegava a correr | **OK — 0 erro(s), 0 aviso(s)**; PDF de 29 páginas, bookmarks, 104 links internos, rodapé nas 29 |
+| Os 35 glifos compilados um a um | **2 falham** | **0 falham** |
+| `hash-ciclo.sh … --check` | — | **cadeia intacta** |
+| `check-identidade` | — | **20/20** |
+
+**O que ainda não está feito.** (1) A **guarda**: não existe verificação que reprove, **antes** do
+pandoc, quando um sinal novo do alfabeto entra sem tradução para LaTeX — a quebra só aparece na
+geração, e aparece **um glifo de cada vez**, porque o `pdflatex` pára no primeiro. A varredura glifo a
+glifo que fez esta entrada é um script de bancada, e não está no repositório; pô-la em `tools/` é
+alteração de comportamento e é decisão dela. (2) O pacote da `breu` foi **regerado localmente** e não
+está commitado — quem fecha o ciclo é a workflow `gerar-ciclo`, que ainda não foi disparada de novo.
+
