@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T21:03:44-0300`
-Commit atual: `38b13c10` — fix(experimentos): as bancadas do plano e do PO medem outra vez — o fixture é que tinha morrido
+Gerado em: `2026-11-03T21:20:55-0300`
+Commit atual: `1e29007f` — fix(experimentos): as bancadas passam a medir o documento e o alfabeto de HOJE
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+1e29007f fix(experimentos): as bancadas passam a medir o documento e o alfabeto de HOJE
+428f6df8 docs(registro): as bancadas do plano e do PO medem outra vez — e a pergunta «apagar o plano resolve?» teve não
 38b13c10 fix(experimentos): as bancadas do plano e do PO medem outra vez — o fixture é que tinha morrido
 c8832eb4 docs(registro): o «Apagar» do registo solto volta à listagem — e é botão
 93a1dc14 fix(campo): o «Apagar» do registo solto volta à listagem — e é botão, não link
@@ -103,8 +105,6 @@ f6fd2eb3 docs(registro): a sequência acompanha os objetivos — e a pergunta '�
 d36ab2d6 chore(estrutura): regerar os índices derivados
 8b049f60 docs(registro): o plano foi gravado — corrigir a frase que dizia o contrário
 5aea425d docs(registro): a metodologia é do professor, e não se pergunta duas vezes
-b3e822eb feat(experimentos): a prova da metodologia que deixou de se perguntar
-c92f2af2 feat(campo): a metodologia é da curadoria — sai do formulário e lê-se no cabeçalho
 ```
 
 ## Por professor
@@ -230,78 +230,67 @@ c92f2af2 feat(campo): a metodologia é da curadoria — sai do formulário e lê
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — As bancadas do plano e do PO medem outra vez (o fixture é que tinha morrido)
+## 03/11/2026 — Uma correção minha: não eram «três decisões de produto»
 
-**O que motivou, e a pergunta era a certa.** Ela, sobre o `provar-plano-matriz` vermelho: «Se eu
-excluir esse plano de ensino e criar de novo, aí passa no teste? […] Eu acho que é essa a solução.»
-**Não é**, e a resposta importa porque a acção proposta custava um registo: a prova não lê plano
-nenhum. Ela monta o mapa e o documento a partir de um **pacote em disco**, e o pacote que servia
-— `professores/leticia/ciclos/ciclo-01-barra` — **deixou de existir** quando a escola `barra` foi
-expurgada em **15/10/2026**. Medido: `professores/leticia` não existe, e o registo diz «barra
-(expurgada em 2026-10-15)». O `ASSETS` de mentira respondia 404 a tudo, então o `/api/mapa` não
-tinha conteúdo nem esquema — e a mensagem, «/api/mapa responde», fala de uma rota que está boa.
-Um plano novo na `breu` nunca povoaria aquela pasta.
+**O que motivou.** A pesquisadora leu a minha explicação e não a entendeu — e tinha razão para não
+entender. Eu tinha escrito que três campos «não chegam ao documento» e que a decisão era dela.
+**Estava errado, e a frase era má por duas razões**: chamava «decisão» ao que era bancada velha, e
+dava-lhe um problema que não estava no produto. A pergunta dela — «isso também é lixo que tem de ser
+excluído?» — é a pergunta certa, e a resposta é **não**: nada se apaga, nem no sistema nem no acervo.
 
-**E o vermelho escondia cinco asserções que mediam o dia em que foram escritas.** As duas bancadas
-morriam na primeira linha, portanto **nunca tinham corrido** depois das mudanças de 26/10 — e
-descreviam um documento que já não existe. É a mesma família do «os nós do cabeçalho não são 7», que
-o `provar-teste` tinha.
+**O que se mediu, campo a campo.** Nenhum dos três é uma perda; cada um tem uma razão, e as razões
+são de datas diferentes.
 
-| Asserção (como estava) | O que mede agora |
-|:--|:--|
-| `mapa.nos.length === 25` | a **invariante**: todo campo declarado no conteúdo chega ao mapa, e o único nó sem declaração é o objetivo do cabeçalho — mais forte, e verdadeira amanhã |
-| «a estrutura sai como LISTA, uma linha por bloco» | a secção saiu (lia-se como «esta aula só tem este bloco»); o par objetivo × bloco vive na 3.ª coluna dos objetivos específicos, **na ordem canónica**, com a lacuna declarada |
-| «a rubrica sai com a tabela Critério × níveis» | o plano declara a **régua**; o critério nasce no lançamento da aula |
-| «a sequência derivada nomeia o bloco…» lida da `derivarAula01` | os exercícios são a §«Exercícios da Aula 01» do documento da **notação** — mesma asserção, endereço novo |
-| no PO: «Quem escolhe a metodologia» · bloco «Linha de base revisitada (P-10)» | a primeira **saiu hoje** (é premissa do domínio); a segunda perdeu o «(P-10)» do título |
+| O campo | O que a bancada exigia | O que o documento tem hoje, e desde quando |
+|:--|:--|:--|
+| **Escola** | uma linha «Escola / espaço: …» no `## Contexto` | **saiu a 28/10/2026**, por decisão: era o mesmo dado escrito pela terceira vez (o `title` e o `escola:` do cabeçalho já o levam), e a secção passou a agrupar «onde» e «para quem/como» sem o repetir |
+| **Critério da rubrica** | uma tabela «Critério × níveis» | **mudou a 26/10/2026**: o plano declara a **régua** (os níveis que a escola adotou), e o critério de cada aula nasce no lançamento da aula dada. O título passou a «Régua da rubrica» e o validador dá-lhe chave própria (`reguaDaRubrica`) — a bancada ainda apontava para `rubrica`, a chave do documento antigo |
+| **Aula de cada objetivo** | o valor dentro da tabela dos objetivos | **chega, na direção contrária**: a relação publica-se na tabela «Marcos parciais por aula» (por aula, quais objetivos), que é exactamente o trabalho dela. A bancada exigia-a na tabela dos objetivos, onde o documento — de propósito — não a põe |
 
-**O fixture passa a ser o que não envelhece.** `porta/` (servida debaixo de `plano-observacao/`, que
-é o que o gerador faz: `cp -R porta/. <pacote>/plano-observacao/`) e `modelo/ciclos/` para os
-schemas — o molde de onde `criar-escola.sh` copia o de cada professor. **DECIDIDO**: uma prova que
-mede o CONTRATO não se ancora na pasta de uma escola, porque a pasta dura menos do que o contrato.
+**E a bancada da sequência media-se a si mesma.** Ela dizia que o «Battement fondu» declara `2|4/4`
+e que o tendu tem três músicas. O alfabeto do repositório declara **Plié** (`4|2/4`) e **Battement
+tendu** (`8|2/4@breu`) e mais nada: o fondu existe no **vocabulário** (a lista de termos) e **não
+tem verbete** (o registo com a música). O sistema dizia a verdade — «tempos e compasso por declarar
+no verbete» — e a **fixture** é que mentia sobre o que o alfabeto tem. **Criar o verbete do fondu é
+acto de conteúdo, e é dela (P-16)**; a prova não o pode inventar.
 
-**E UM DEFEITO DE VERDADE, apanhado por uma dessas asserções antigas.** O rótulo do contexto dizia
-**«Turmas observadas»** no PO e **«Turma observada»** no formulário — o plano é de **uma** turma, e
-o professor lia um nome no formulário e outro no documento. É exactamente o que a verificação 10 do
-`provar-po-completo` existe para travar, e ela estava vermelha havia tempo: **o vermelho de cima
-escondia-a**. A fonte é o conteúdo (`porta/plano/conteudo/plano.json`); o PO alinhou.
+**A distinção, escrita para não se perder.** *Fixture* é o dado que a própria prova inventa para
+medir um mecanismo — uma turma de mentira, três exercícios de mentira. *Sistema* é o que a
+pesquisadora usa. Quando a prova reprova, há duas perguntas, e a ordem importa: **(1) a fixture
+ainda descreve o mundo?** (2) o sistema faz o que promete? Nas duas bancadas de hoje a resposta foi
+(1) não e (2) sim — e é por isso que o remédio foi na prova, não no sistema.
 
-**As duas bancadas estavam fora do Git.** `provar-plano-matriz` e `provar-po-completo` existiam só no
-worktree — `.gitignore` fecha `experimentos/*` e cada bancada ganha a sua excepção quando passa a
-fazer parte de uma decisão. Sem isto, a reparação vivia num só disco. Entram agora, com a razão
-escrita ao lado.
+**O que mudou nas duas bancadas** (e é prova, não produto): a identificação do ciclo passou a ser
+medida no `## Contexto` com a reserva do guia (`tools/lib-vistas.js` → `duracaoDaAula`); a régua
+passou a ser lida na chave `reguaDaRubrica`; a sequência passou a ser lida no documento da
+**notação**, onde vive desde 26/10; a música passou a admitir as duas origens (o exercício e o
+campo); a **escola** passou a estar declarada como **omissão com motivo** (`OMISSOES`) em vez de
+exigida de volta — e qualquer OUTRO campo que suma continua a reprovar; a relação objetivo ↔ aula
+passou a ser provada na tabela dos marcos, com asserção dedicada nas duas direções; o fixture do
+`marcos-por-aula` passou da prosa legada para a lista (na prosa, a coluna «Objetivos» sai da
+posição e a relação declarada era ignorada — medido); e a fonte publicada da Maria, que morreu com
+o professor `tiago`, deu lugar à do Marau (que existe de propósito com o cabeçalho antigo), com
+`NÃO MEDE` nomeado se ela faltar.
 
 **O que se mediu.**
 
-| Verificação | Resultado |
-|:--|:--|
-| `provar-plano-matriz` | **52 de 52** — era vermelho na primeira asserção |
-| `provar-po-completo` | **OK — 17 verificações** |
-| `provar-teste` · `provar-metodologia-no-cabecalho` · `provar-aula-e-plano-legiveis` · `provar-sequencia-que-acompanha` | **45** · TUDO CERTO · TUDO CERTO · TUDO CERTO |
-| `check-identidade` · `check-schemas` · `check-indices` | **20/20** · TUDO CERTO · **14/14** |
-| `provar-derivados-da-sequencia` | **as mesmas 2 de antes** — e agora sabe-se por quê: o alfabeto não tem «Battement fondu» nem «Jeté», que o fixture dela usa. É fixture, não sistema |
+| Verificação | Antes | Depois |
+|:--|:--|:--|
+| `provar-plano-completo` | exceção na §5 (o `ciclo` ausente) | **OK — 18 verificações** |
+| `provar-derivados-da-sequencia` | 2 falhas | **TUDO CERTO — 26 asserções** |
+| `provar-plano-matriz` · `provar-po-completo` · `provar-teste` | verde (entrada anterior) | 52 · 17 · 45 — verdes |
+| `provar-sequencia-que-acompanha` · `provar-metodologia-no-cabecalho` · `provar-aula-e-plano-legiveis` · `provar-apagar-da-listagem` | — | **TUDO CERTO** nas quatro |
+| `check-identidade` · `check-indices` | — | **20/20** · **14/14** |
 
-**O que continua vermelho, com nome.** `provar-plano-completo` acusa **três campos respondidos que
-não chegam ao documento**: `contexto-escola` (a tabela do contexto imprime o título «Escola e
-espaço» mas não a linha com o valor), o **critério** da `rubrica` (o documento imprime só a régua) e
-`aula-de-cada-objetivo` (a relação objetivo ↔ aula não sai em lado nenhum). **PENDENTE** — são três
-decisões de produto, não três esquecimentos de código, e a decisão é dela.
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado. O
-`derivar-po.js` e o `derivar-plano-ciclo.js` são código; o rótulo é dado do conteúdo.
+**Com o quê.** `experimentos/provar-plano-completo.js` · `experimentos/provar-derivados-da-
+sequencia.js` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
 
-**Com o quê.** `experimentos/provar-plano-matriz.js` · `experimentos/provar-po-completo.js` ·
-`motor/nucleo/derivar-po.js` (`ROTULOS_DO_CONTEXTO`) · `motor/nucleo/derivar-plano-ciclo.js`
-(o comentário) · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
-
-**Referências.** A pergunta dela de 03/11/2026 · a entrada de 27/10/2026 (a publicação deixa de se
-nomear) · `experimentos/lib-pacote.js` (`relatorioDePacotes`).
-
-**O que a decisão deixa por fazer.** As **três bancadas irmãs** continuam com fixtures de pastas
-expurgadas e por isso não medem nada: `provar-dimensoes-plano` e `provar-janela-do-lancamento`
-(apontam a `perna-boa/…/ciclo-01-batata*`, expurgada), `provar-lancamento` (`professores/tiago/…`) e
-`provar-geracao` (`sapo-bailarino/…/calando-teste-1`, expurgada). O remédio é o mesmo desta entrada,
-e não foi feito para não alargar o passo.
+**A pergunta que sobra, e é uma só.** No **corpo** do plano o nome da escola não aparece: o
+cabeçalho leva `escola:` (o *slug*, `breu`), e o nome de exibição vive na página e no PO. Num plano
+impresso, o leitor vê «breu». **PENDENTE**, e é de produto: uma linha devolve o nome ao corpo. Não
+é defeito — é escolha, e hoje a escolha é a de 28/10/2026.
 
 ## O que está pendente
 

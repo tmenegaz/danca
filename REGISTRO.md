@@ -33773,3 +33773,65 @@ expurgadas e por isso não medem nada: `provar-dimensoes-plano` e `provar-janela
 (apontam a `perna-boa/…/ciclo-01-batata*`, expurgada), `provar-lancamento` (`professores/tiago/…`) e
 `provar-geracao` (`sapo-bailarino/…/calando-teste-1`, expurgada). O remédio é o mesmo desta entrada,
 e não foi feito para não alargar o passo.
+
+## 03/11/2026 — Uma correção minha: não eram «três decisões de produto»
+
+**O que motivou.** A pesquisadora leu a minha explicação e não a entendeu — e tinha razão para não
+entender. Eu tinha escrito que três campos «não chegam ao documento» e que a decisão era dela.
+**Estava errado, e a frase era má por duas razões**: chamava «decisão» ao que era bancada velha, e
+dava-lhe um problema que não estava no produto. A pergunta dela — «isso também é lixo que tem de ser
+excluído?» — é a pergunta certa, e a resposta é **não**: nada se apaga, nem no sistema nem no acervo.
+
+**O que se mediu, campo a campo.** Nenhum dos três é uma perda; cada um tem uma razão, e as razões
+são de datas diferentes.
+
+| O campo | O que a bancada exigia | O que o documento tem hoje, e desde quando |
+|:--|:--|:--|
+| **Escola** | uma linha «Escola / espaço: …» no `## Contexto` | **saiu a 28/10/2026**, por decisão: era o mesmo dado escrito pela terceira vez (o `title` e o `escola:` do cabeçalho já o levam), e a secção passou a agrupar «onde» e «para quem/como» sem o repetir |
+| **Critério da rubrica** | uma tabela «Critério × níveis» | **mudou a 26/10/2026**: o plano declara a **régua** (os níveis que a escola adotou), e o critério de cada aula nasce no lançamento da aula dada. O título passou a «Régua da rubrica» e o validador dá-lhe chave própria (`reguaDaRubrica`) — a bancada ainda apontava para `rubrica`, a chave do documento antigo |
+| **Aula de cada objetivo** | o valor dentro da tabela dos objetivos | **chega, na direção contrária**: a relação publica-se na tabela «Marcos parciais por aula» (por aula, quais objetivos), que é exactamente o trabalho dela. A bancada exigia-a na tabela dos objetivos, onde o documento — de propósito — não a põe |
+
+**E a bancada da sequência media-se a si mesma.** Ela dizia que o «Battement fondu» declara `2|4/4`
+e que o tendu tem três músicas. O alfabeto do repositório declara **Plié** (`4|2/4`) e **Battement
+tendu** (`8|2/4@breu`) e mais nada: o fondu existe no **vocabulário** (a lista de termos) e **não
+tem verbete** (o registo com a música). O sistema dizia a verdade — «tempos e compasso por declarar
+no verbete» — e a **fixture** é que mentia sobre o que o alfabeto tem. **Criar o verbete do fondu é
+acto de conteúdo, e é dela (P-16)**; a prova não o pode inventar.
+
+**A distinção, escrita para não se perder.** *Fixture* é o dado que a própria prova inventa para
+medir um mecanismo — uma turma de mentira, três exercícios de mentira. *Sistema* é o que a
+pesquisadora usa. Quando a prova reprova, há duas perguntas, e a ordem importa: **(1) a fixture
+ainda descreve o mundo?** (2) o sistema faz o que promete? Nas duas bancadas de hoje a resposta foi
+(1) não e (2) sim — e é por isso que o remédio foi na prova, não no sistema.
+
+**O que mudou nas duas bancadas** (e é prova, não produto): a identificação do ciclo passou a ser
+medida no `## Contexto` com a reserva do guia (`tools/lib-vistas.js` → `duracaoDaAula`); a régua
+passou a ser lida na chave `reguaDaRubrica`; a sequência passou a ser lida no documento da
+**notação**, onde vive desde 26/10; a música passou a admitir as duas origens (o exercício e o
+campo); a **escola** passou a estar declarada como **omissão com motivo** (`OMISSOES`) em vez de
+exigida de volta — e qualquer OUTRO campo que suma continua a reprovar; a relação objetivo ↔ aula
+passou a ser provada na tabela dos marcos, com asserção dedicada nas duas direções; o fixture do
+`marcos-por-aula` passou da prosa legada para a lista (na prosa, a coluna «Objetivos» sai da
+posição e a relação declarada era ignorada — medido); e a fonte publicada da Maria, que morreu com
+o professor `tiago`, deu lugar à do Marau (que existe de propósito com o cabeçalho antigo), com
+`NÃO MEDE` nomeado se ela faltar.
+
+**O que se mediu.**
+
+| Verificação | Antes | Depois |
+|:--|:--|:--|
+| `provar-plano-completo` | exceção na §5 (o `ciclo` ausente) | **OK — 18 verificações** |
+| `provar-derivados-da-sequencia` | 2 falhas | **TUDO CERTO — 26 asserções** |
+| `provar-plano-matriz` · `provar-po-completo` · `provar-teste` | verde (entrada anterior) | 52 · 17 · 45 — verdes |
+| `provar-sequencia-que-acompanha` · `provar-metodologia-no-cabecalho` · `provar-aula-e-plano-legiveis` · `provar-apagar-da-listagem` | — | **TUDO CERTO** nas quatro |
+| `check-identidade` · `check-indices` | — | **20/20** · **14/14** |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado.
+
+**Com o quê.** `experimentos/provar-plano-completo.js` · `experimentos/provar-derivados-da-
+sequencia.js` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**A pergunta que sobra, e é uma só.** No **corpo** do plano o nome da escola não aparece: o
+cabeçalho leva `escola:` (o *slug*, `breu`), e o nome de exibição vive na página e no PO. Num plano
+impresso, o leitor vê «breu». **PENDENTE**, e é de produto: uma linha devolve o nome ao corpo. Não
+é defeito — é escolha, e hoje a escolha é a de 28/10/2026.

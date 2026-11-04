@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `38b13c1`, árvore limpa). Nesta entrega, **duas bancadas
+> **Última fotografia:** 03/11/2026 (base `1e29007`, árvore limpa). Nesta entrega, **a correção de
+> uma explicação minha**: eu disse que três campos «não chegavam ao documento» e que a decisão era
+> dela — e **estava errado**. Nenhum dos três é perda: a linha da **escola** saiu do corpo a
+> 28/10/2026 (está no `title` e no `escola:` do cabeçalho); a **rubrica** deixou de ser a tabela
+> Critério × níveis a 26/10 (o plano declara a **régua**, e o critério nasce no lançamento da
+> aula); e a **relação objetivo ↔ aula** chega, na direção contrária — na tabela «Marcos parciais
+> por aula», que é o trabalho dela. O que estava velho eram as **bancadas**, que descreviam o
+> documento de antes dessas decisões. E a da sequência media-se a si mesma: dizia que o «Battement
+> fondu» declara `2|4/4`, e o alfabeto só tem **Plié** (`4|2/4`) e **Battement tendu**
+> (`8|2/4@breu`) — o fondu existe no vocabulário e **não tem verbete**, e criá-lo é acto de
+> **conteúdo**. `provar-plano-completo` **18 verificações**, `provar-derivados-da-sequencia` **26
+> asserções** — as duas verdes. **Nada se apaga**: nem no sistema, nem no acervo.
+>
+> **Entrega anterior** (base `38b13c1`, árvore limpa). Nesta entrega, **duas bancadas
 > voltaram a medir** — e a resposta à pergunta que as destravou é um **não**. O `provar-plano-matriz`
 > estava vermelho em «/api/mapa responde», e a mensagem aponta para a rota; a rota está boa. A prova
 > servia `professores/leticia/ciclos/…`, e **a escola `barra` foi expurgada em 15/10/2026** — a pasta
@@ -2160,7 +2173,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — as bancadas do plano e do PO voltam a medir)
+### Executado nesta fotografia (03/11/2026 — as bancadas passam a medir o documento de hoje)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-plano-completo` | **OK — 18 verificações** (antes: exceção na §5). Mede o documento de HOJE: a identificação no `## Contexto` com a reserva do guia, a **régua** na chave `reguaDaRubrica`, a sequência no documento da **notação**, a música nas duas origens, a **omissão da escola declarada com motivo**, e a relação objetivo ↔ aula na tabela dos marcos (nas duas direções) |
+| `provar-derivados-da-sequencia` | **TUDO CERTO — 26 asserções** (antes: 2 falhas). A fixture passou a usar o alfabeto que existe (Plié, Battement tendu, Jeté sem verbete) |
+| `provar-plano-matriz` · `provar-po-completo` · `provar-teste` | **52** · **17** · **45** — verdes |
+| `provar-sequencia-que-acompanha` · `provar-metodologia-no-cabecalho` · `provar-aula-e-plano-legiveis` · `provar-apagar-da-listagem` | **TUDO CERTO** nas quatro |
+| `check-identidade` · `check-indices` | **20/20** · **14/14** |
+| **o que NÃO mede** | `provar-listas-do-acervo` · `provar-dimensoes-plano` · `provar-janela-do-lancamento` · `provar-lancamento` · `provar-geracao` — apontam a pastas de escolas expurgadas (`batata`, `calando-teste-1`) ou a professores que já não existem (`tiago`). O remédio é o desta entrega, e não lhes foi aplicado |
+| **de antes** | `check-pacote` no `ciclo-01-breu`: 11 erros (o pacote-zero não tem PDF, nem aulas, nem dados) |
+
+### Executado na fotografia anterior (03/11/2026 — as bancadas do plano e do PO voltam a medir)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3057,6 +3082,14 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **03/11/2026** — **Uma correção minha: não eram «três decisões de produto».** Nenhum dos três
+  campos é perda: a linha da escola saiu do corpo a 28/10 (está no `title` e no `escola:`); a
+  rubrica deixou de ser tabela de critérios a 26/10 (o plano declara a régua); e a relação
+  objetivo ↔ aula chega invertida, na tabela dos marcos. As **bancadas** é que descreviam o
+  documento de antes. E a da sequência media-se a si mesma (pedia um verbete que o alfabeto não
+  tem). `provar-plano-completo` 18 verificações; `provar-derivados-da-sequencia` 26 asserções.
+  Nada se apaga.
 
 - **03/11/2026** — **Duas bancadas voltam a medir, e o fixture é que tinha morrido.** O
   `provar-plano-matriz` servia a pasta de uma escola expurgada em 15/10/2026 e morria na primeira
