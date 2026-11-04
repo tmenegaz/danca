@@ -24,7 +24,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Item | Valor |
 |:------------------------|:--------------------------------------------------------|
 | **Professor responsável** | coqui-de-redinha |
-| **Turmas observadas** | Balé Nível 1 — Teste 3 |
+| **Turma observada** | Balé Nível 1 — Teste 3 |
 | **Volume de trabalho** | 3–6 séries |
 | **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
 | **Metodologia de referência** | RAD |
@@ -39,12 +39,14 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 | N | Objetivo específico | Blocos onde é trabalhado |
 |:--|:--|:--|
 | **01** | reconhecer o apoio e alinhar o eixo vertical | Barra · Centro · Musicalidade · Expressão |
+| **02** | transferir o peso entre os pés sem perder o alinhamento | Barra · Centro · Musicalidade · Expressão |
 
 ## Marcos parciais por aula
 
 | Aula | Objetivos | Marco |
 |:--|:--|:--|
 | **01** | 01 | reconhecer o apoio e alinhar o eixo vertical |
+| **02** | 02 | transferir o peso entre os pés sem perder o alinhamento |
 
 <!-- CALENDARIO -->
 
@@ -55,7 +57,7 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 | **Barra** | **30%** | **Apoio e alinhamento.** |
 | **Centro** | **30%** | **Transferência e sequência.** |
 | **Musicalidade** | **10%** | **Pulso e frase.** |
-| **Expressão** | **30%** | **Braços suaves** |
+| **Expressão** | [a decidir] | **Braços** |
 
 > **Unidade: percentual.** A proporção alvo é a fatia da aula — a soma fecha em 100%.
 
@@ -123,7 +125,7 @@ O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha 
 
 - Battement tendu — 8 tempos em 2/4
 - Plié — 4 tempos em 2/4
-- vídeo de referência de teste.
+- Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.
 
 ## Repertório
 
