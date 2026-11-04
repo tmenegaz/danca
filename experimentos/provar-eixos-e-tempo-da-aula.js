@@ -46,7 +46,7 @@ const path = require('path');
 
 const RAIZ = path.resolve(__dirname, '..');
 const {
-  derivarAula01, dimensoesEItens, eixosDaObservacao, blocoDaDimensao, eixoDoBloco,
+  derivarAula01, dimensoesEItens, eixosDaObservacao, blocoDaDimensao, eixoDoBloco, rotuloDoEixo,
 } = require(path.join(RAIZ, 'motor/nucleo/derivar-ciclo.js'));
 
 let provas = 0;
@@ -279,12 +279,24 @@ console.log('\nD. OS EIXOS: O BLOCO DECIDE, E NÃO O PREFIXO DO RÓTULO');
 {
   const dims = dimensoesEItens(poCom());
   provar('«Técnica — Barra» lê-se como Barra', blocoDaDimensao('Técnica — Barra') === 'Barra');
-  provar('Barra e Centro são Técnica',
-    eixoDoBloco('Barra') === 'Técnica' && eixoDoBloco('Centro') === 'Técnica');
-  provar('Musicalidade e Expressão são Poiesis',
-    eixoDoBloco('Musicalidade') === 'Poiesis' && eixoDoBloco('Expressão') === 'Poiesis');
+  /* O EIXO PASSOU A SER UM ID (`tecnica`/`poiesis`/`corpo`) a 04/11/2026, e não o rótulo: o id
+   * não tem acento, é chave de objecto em três módulos e não muda se o rótulo mudar de língua. O
+   * rótulo sai de `rotuloDoEixo`. */
+  provar('Barra e Centro são do eixo técnico',
+    eixoDoBloco('Barra') === 'tecnica' && eixoDoBloco('Centro') === 'tecnica');
+  provar('Musicalidade e Expressão são da poiesis',
+    eixoDoBloco('Musicalidade') === 'poiesis' && eixoDoBloco('Expressão') === 'poiesis');
   provar('o prefixo «Técnica —» do rótulo NÃO decide o eixo (o defeito medido)',
-    eixoDoBloco(blocoDaDimensao('Técnica — Expressão')) === 'Poiesis');
+    eixoDoBloco(blocoDaDimensao('Técnica — Expressão')) === 'poiesis');
+  /* O CORPO É EIXO PRÓPRIO (04/11/2026). Antes, tudo o que não fosse musicalidade/expressão caía
+   * em «Técnica» — e o corpo do plano ia para o eixo errado. */
+  provar('o Corpo é eixo próprio, e não uma técnica',
+    eixoDoBloco('Corpo') === 'corpo' && eixoDoBloco(blocoDaDimensao('Corpo')) === 'corpo');
+  provar('…e um bloco de outro eixo não é arrastado para o corpo',
+    eixoDoBloco('Alongamento') === 'tecnica');
+  provar('e o rótulo de cada eixo sai da declaração, não de uma capitalização',
+    rotuloDoEixo('corpo') === 'Corpo' && rotuloDoEixo('poiesis') === 'Poiesis'
+    && rotuloDoEixo('tecnica') === 'Técnica');
   const eixos = eixosDaObservacao(dims, planoCom(volumeCompleto), poCom());
   provar('as três frentes existem, e nesta ordem: Corpo, Técnica, Poiesis',
     eixos.map((e) => e.id).join(',') === 'corpo,tecnica,poiesis', eixos.map((e) => e.id));
@@ -333,7 +345,7 @@ console.log('\nF. NADA SE PERDE: TODO ITEM CONTINUA, E O BLOCO DESCONHECIDO NÃO
     g.eixos.join(',') === 'Corpo,Técnica,Poiesis', g.eixos);
   const linhasDaTecnica = (g.tabelas['Técnica'] || []).slice(1).length;
   const linhasDaPoiesis = (g.tabelas['Poiesis'] || []).slice(1).length;
-  const doPo = dimensoesEItens(po).filter((d) => eixoDoBloco(blocoDaDimensao(d.dimensao)) === 'Técnica')
+  const doPo = dimensoesEItens(po).filter((d) => eixoDoBloco(blocoDaDimensao(d.dimensao)) === 'tecnica')
     .reduce((soma, d) => soma + d.itens.length, 0);
   provar('a tabela da Técnica tem uma linha por item daquele eixo (' + doPo + ')',
     linhasDaTecnica === doPo, linhasDaTecnica);

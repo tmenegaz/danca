@@ -1624,8 +1624,15 @@ async function carregarDimensoesDoPlano() {
   DIMENSOES_CARREGANDO = true;
   const decl = no.doPlano;
   const canonico = Array.isArray(decl.blocos) ? decl.blocos.slice() : [];
-  const eixo = decl.eixo || '';
-  const sep = decl.separador == null ? ' — ' : decl.separador;
+  /* O EIXO DEIXOU DE SER UM PREFIXO ÚNICO (04/11/2026). Era `decl.eixo` — um só valor, «Técnica»,
+   * concatenado a todos os blocos, e era por isso que o documento listava «Técnica —
+   * Musicalidade». Agora o conteúdo declara o eixo POR BLOCO (`eixoDoBloco`), com um padrão
+   * (`eixoPadrao`) para o que ele não nomear. A DIMENSÃO passou a ser o BLOCO: o eixo é
+   * apresentação, e junta-se-lhe no ecrã — não no nome gravado. */
+  const eixoDe = (bloco) => {
+    const mapa = decl.eixoDoBloco || {};
+    return String(mapa[bloco] || decl.eixo || decl.eixoPadrao || '').trim();
+  };
   let marcados = [];
   try {
     if (carimbo) {
@@ -1650,8 +1657,14 @@ async function carregarDimensoesDoPlano() {
   // A ORDEM é a canónica (a do conteúdo); o plano decide QUAIS entram.
   const escolhidos = canonico.filter((b) => marcados.includes(b));
   const base = escolhidos.length ? escolhidos : canonico;
-  const lista = base.map((b) => (eixo ? eixo + sep + b : b));
-  DIMENSOES_DO_PLANO = { carimbo, lista, deOnde: escolhidos.length ? 'plano' : 'canonico' };
+  /* O NOME GRAVADO É O BLOCO — sem prefixo. O eixo vive no ecrã (agrupado) e no documento (a
+   * coluna «Eixo»), e não dentro do nome: um rótulo que carrega o eixo é uma segunda declaração
+   * do mesmo facto, e foi ela que ficou errada para musicalidade e expressão. */
+  const lista = base.slice();
+  DIMENSOES_DO_PLANO = {
+    carimbo, lista, eixoDe,
+    deOnde: escolhidos.length ? 'plano' : 'canonico',
+  };
   // O `RESPOSTAS` guarda o valor CRU (como qualquer resposta): é ele que a repetição dos
   // itens lê (`repetirPor`) e que a derivação do documento encontra.
   RESPOSTAS.set(no.id, lista);
@@ -1671,12 +1684,159 @@ function mostrarDoPlano(no) {
   const derivadas = no.doPlano ? DIMENSOES_DO_PLANO : null;
   const lista = (derivadas && derivadas.lista) || [];
   const deOnde = derivadas && derivadas.deOnde === 'plano'
-    ? 'Vêm do plano de ensino escolhido: um bloco da aula que ele marca, sob o eixo «' +
-      md(no.doPlano.eixo || '') + '».'
+    ? 'Vêm do plano de ensino escolhido: um bloco da aula que ele marca.'
     : 'O plano escolhido não marca bloco nenhum — valem os blocos da aula declarados no sistema.';
-  const itens = lista.map((d) => '<li>' + md(d) + '</li>').join('');
-  return '<p class="sub">' + deOnde + '</p><ul class="derivadas">' + itens + '</ul>' +
-    '<p class="sub">Escreva, no campo abaixo, os itens que você observa em cada uma.</p>';
+  /* A LISTA SAI AGRUPADA PELO EIXO (04/11/2026). Antes era uma lista corrida de rótulos com
+   * «Técnica —» à frente de todos, inclusive dos que são poiésis. Agora o eixo é o CABEÇALHO do
+   * grupo, e a dimensão é o bloco — a mesma arrumação que a §5 da aula e o documento do PO usam,
+   * para que a mesma coisa não se leia de três maneiras.
+   *
+   * O CORPO APARECE AQUI, e ele não vem do plano: vem da anamnese dos sujeitos escolhidos, e é
+   * por isso que o campo dos sujeitos passou a vir ANTES deste bloco — quando esta lista se
+   * desenha, as anamneses já estão em cascata. */
+  const porEixo = new Map();
+  for (const d of lista) {
+    const eixo = (derivadas && derivadas.eixoDe ? derivadas.eixoDe(d) : '') || 'Outros';
+    if (!porEixo.has(eixo)) porEixo.set(eixo, []);
+    porEixo.get(eixo).push(d);
+  }
+  const grupos = [...porEixo.entries()].map(([eixo, blocos]) =>
+    '<li><b>' + md(eixo) + '</b>' + (blocos.length > 1 ? ' — ' + blocos.length + ' dimensões' : '') +
+    '<ul>' + blocos.map((d) => '<li>' + md(d) + '</li>').join('') + '</ul></li>').join('');
+  return '<p class="sub">' + deOnde + '</p><ul class="derivadas">' + grupos + '</ul>' +
+    '<p class="sub">Escreva, no campo abaixo, os itens que você observa em cada uma. O eixo do ' +
+    '<b>Corpo</b> não tem dimensão aqui: ele vem da anamnese de cada sujeito, no «Ponto de ' +
+    'partida».</p>' + painelDoCorpo();
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * O CORPO VEM DA ANAMNESE DO SUJEITO ESCOLHIDO (04/11/2026).
+ *
+ * A pesquisadora: «como a dimensão do corpo é alimentada diretamente por dados do documento de
+ * anamnese daquele sujeito, ela deve carregar e se posicionar dinamicamente assim que o
+ * aluno/sujeito for selecionado no formulário. É um dado vivo».
+ *
+ * OS CAMPOS NÃO SE ESCREVEM AQUI. Eles já estão declarados no conteúdo, no nó do «Ponto de
+ * partida» (`registroDaAnamnese.grupos[].campos`) — os mesmos de que a anamnese se alimenta e que
+ * o plano consolida por turma. Uma segunda lista divergiria ao primeiro campo renomeado, e o
+ * sintoma seria o corpo a mostrar aspectos que a anamnese já não pergunta.
+ *
+ * O QUE ELE FAZ: para cada sujeito escolhido, lê o `detalhe` da anamnese dele (o endereço vem na
+ * opção, e a leitura é a mesma que o «ver o registro» já faz), e mostra o valor de cada campo.
+ * O QUE ELE NÃO FAZ: preencher nada, nem resumir por conta própria. O professor lê e escreve o
+ * «Ponto de partida» nas palavras dele.
+ * ------------------------------------------------------------------------------------------- */
+/* A LISTA É LIDA NA HORA, E NÃO NO CARREGAMENTO — e isto é um defeito medido (04/11/2026).
+ *
+ * Era um `const` avaliado quando o script carrega, e nesse instante o `MAPA` ainda é `null`
+ * (chega depois, pelo `api/mapa`). Resultado: a lista saía SEMPRE vazia, o painel caía no ramo
+ * «não há campos» e o corpo nunca aparecia — em produção, silenciosamente, porque uma lista vazia
+ * não faz barulho. A prova apanhou-o ao afirmar o nome do primeiro campo. */
+function camposDoCorpo() {
+  const no = (MAPA && MAPA.nos ? MAPA.nos : []).find((n) => n && n.registroDaAnamnese);
+  const grupos = (no && no.registroDaAnamnese && no.registroDaAnamnese.grupos) || [];
+  const campos = [];
+  for (const g of grupos) for (const c of (g.campos || [])) if (campos.indexOf(c) === -1) campos.push(c);
+  return campos;
+}
+
+function painelDoCorpo() {
+  return '<div class="corpo-do-sujeito" data-corpo-do-sujeito="1"></div>';
+}
+
+/* Desenha (ou apaga) o painel do corpo. Chamado quando os sujeitos mudam e quando o bloco abre. */
+/* A fonte das anamneses já chegou? — lido do próprio `OPCOES`, sem estado paralelo. */
+function anamnesesCarregadas() {
+  for (const chave of OPCOES.keys()) {
+    if (String(chave).split('?')[0] === 'api/anamneses') return true;
+  }
+  return false;
+}
+
+async function pintarCorpoDoSujeito() {
+  const alvo = document.querySelector('.corpo-do-sujeito');
+  if (!alvo) return;
+  const cru = RESPOSTAS.get('sujeitos');
+  const escolhidos = Array.isArray(cru) ? cru.slice() : (cru ? [cru] : []);
+  const campos = camposDoCorpo();
+  if (!escolhidos.length || !campos.length) {
+    alvo.innerHTML = escolhidos.length
+      ? ''
+      : '<p class="sub">Escolha os sujeitos observados — o eixo do <b>Corpo</b> vem da anamnese ' +
+        'de cada um, e sem sujeito não há corpo a observar.</p>';
+    return;
+  }
+  /* A CHAVE DAS OPÇÕES LEVA PARÂMETROS (`api/anamneses?turma=…&plano=…`), e por isso NÃO se
+   * procura pelo endereço nu: procura-se por qualquer entrada daquela fonte. Procurar pelo nu
+   * dava sempre a lista vazia — e o painel dizia «sem anamnese neste sistema» de uma aluna cuja
+   * anamnese estava carregada. Foi a prova que o apanhou, ao afirmar o nome do primeiro campo. */
+  const porValor = new Map();
+  for (const chave of OPCOES.keys()) {
+    if (String(chave).split('?')[0] !== 'api/anamneses') continue;
+    for (const o of (OPCOES.get(chave) || [])) if (!porValor.has(o.valor)) porValor.set(o.valor, o);
+  }
+  /* AS ANAMNESES PODEM AINDA NÃO ESTAR CARREGADAS — e o painel não pode depender de o professor
+   * ter passado pelo campo dos sujeitos nesta sessão. O endereço é o DO CAMPO DOS SUJEITOS (é ele
+   * que declara `opcoesDe`, e com os parâmetros do recorte); carrega-se pela mesma porta, e
+   * repinta-se quando chegar. */
+  if (!porValor.size) {
+    alvo.innerHTML = '<p class="sub">carregando as anamneses de quem se observa…</p>';
+    /* O CAMPO QUE DECLARA OS SUJEITOS — e não o primeiro nó com `opcoesDe`, que é o do PLANO.
+     * A ligação está no CONTEÚDO: o nó que lê a anamnese (`registroDaAnamnese`) repete pela lista
+     * dos sujeitos (`repetirPor`), e é esse nó que tem o endereço certo. Procurar pelo primeiro
+     * `opcoesDe` carregava os planos outra vez e o painel ficava em «carregando» para sempre. */
+    const declaracao = (MAPA && MAPA.nos ? MAPA.nos : []).find((n) => n && n.registroDaAnamnese);
+    const idDaFonte = declaracao && declaracao.repetirPor;
+    const noSujeitos = (MAPA && MAPA.nos ? MAPA.nos : [])
+      .find((n) => n && n.opcoesDe && (!idDaFonte || n.id === idDaFonte));
+    const endereco = noSujeitos ? enderecoDeOpcoes(noSujeitos) : '';
+    if (!endereco) return;
+    /* A ESPERA É FEITA AQUI, e não num `then` que pode não existir. `carregarOpcoesDe` devolve
+     * `undefined` quando o pedido já está em curso — quem chegasse depois ficava sem gancho de
+     * repintura, e o painel parava em «carregando» para sempre (medido na prova). Como esta
+     * função é `async`, esperar é o caminho simples: ou o pedido que se iniciou agora, ou a
+     * fonte que já vinha a caminho. */
+    if (!CARREGANDO.has(endereco)) await carregarOpcoesDe(endereco).catch(() => null);
+    else for (let i = 0; i < 40 && !anamnesesCarregadas(); i++) await new Promise((r) => setTimeout(r, 100));
+    if (document.querySelector('.corpo-do-sujeito')) pintarCorpoDoSujeito();
+    return;
+  }
+  alvo.innerHTML = '<p class="sub">carregando o corpo de quem se observa…</p>';
+  /* OS NOMES DOS CAMPOS vêm do mapa da anamnese — pela mesma leitura que o «ver o registro» já
+   * faz. Sem ela o painel mostraria `flexibilidade-dos-isquiotibiais`, que é identificador e não
+   * nome de nada. A falha é silenciosa de propósito: o painel continua útil com os ids. */
+  try { await carregarRotulosDaAnamnese(); } catch (erro) { /* fica com os ids */ }
+  const partes = [];
+  for (const sujeito of escolhidos) {
+    const opcao = porValor.get(sujeito);
+    if (!opcao) {
+      partes.push('<p class="sumiu"><b>' + md(sujeito) + '</b> — sem anamnese neste sistema.</p>');
+      continue;
+    }
+    let envelope = null;
+    try {
+      envelope = await carregarDetalhe({ carimbo: opcao.carimbo, detalhe: opcao.detalhe });
+    } catch (erro) {
+      envelope = null;
+    }
+    const respostas = (envelope && envelope.respostas) || {};
+    const linhas = campos.map((id) => {
+      const bruto = respostas[id];
+      const valor = bruto && (bruto.valor !== undefined ? bruto.valor : bruto);
+      const texto = Array.isArray(valor) ? valor.join('; ') : String(valor == null ? '' : valor).trim();
+      const rotulo = (ROTULOS_DA_ANAMNESE && ROTULOS_DA_ANAMNESE.get
+        ? ROTULOS_DA_ANAMNESE.get(id) : '') || id;
+      return texto ? '<li><b>' + md(rotulo) + '</b>: ' + md(texto) + '</li>' : '';
+    }).filter(Boolean);
+    partes.push('<div class="item-repeticao"><h4>' + md(sujeito) + '</h4>' +
+      (linhas.length
+        ? '<ul class="derivadas">' + linhas.join('') + '</ul>'
+        : '<p class="sumiu">A anamnese de ' + md(sujeito) + ' ainda não declarou os aspectos ' +
+          'físicos — abra o registro completo e preencha-a.</p>') +
+      '</div>');
+  }
+  alvo.innerHTML = '<p class="sub">O eixo do <b>Corpo</b>, lido da anamnese de cada sujeito ' +
+    'escolhido. É referência: o «Ponto de partida» escreve-se nas suas palavras.</p>' + partes.join('');
 }
 
 /* A turma escolhida no plano. Um professor pode observar mais de uma turma, mas o
@@ -6402,6 +6562,12 @@ function renderCarregando(no) {
 function renderPergunta() {
   const no = MAPA.nos[INDICE];
   if (!no) return;
+  /* MUDAR OS SUJEITOS MUDA O CORPO — e ele tem de mudar AGORA, não na próxima visita ao bloco
+   * (04/11/2026). O painel do corpo mora no bloco das dimensões, e o campo dos sujeitos vem
+   * antes dele; quando o professor volta ao bloco, o painel já se desenha com o que escolheu.
+   * O que este gancho garante é o caso simétrico: um painel JÁ desenhado que fica desactualizado
+   * se a resposta mudar por baixo (o «voltar» do roteiro, ou a cascata de opções). */
+  if (document.querySelector('.corpo-do-sujeito')) pintarCorpoDoSujeito();
 
   // As fontes de opções que ESTE nó precisa: a própria (`opcoesDe`) e a do nó
   // que ele repete (`repetirPor` → fonte.opcoesDe). Só se busca aqui (Frente 5):
@@ -6640,6 +6806,11 @@ function renderPergunta() {
 
   $('pergunta').innerHTML = blocos.join('');
   marcarTravadosDeOrigem();
+  /* O CORPO CARREGA-SE DEPOIS DE PINTAR (04/11/2026) — e só no bloco das dimensões, que é o
+   * único que desenha o painel. A PRIMEIRA tentativa pôs esta linha no `renderCarregando` (o
+   * mesmo par de instruções aparece lá, e o painel ainda não existe): a prova apanhou-o, porque
+   * o painel ficava sempre vazio. Sem o `catch`, uma anamnese ilegível apagaria a pergunta toda. */
+  if (no.doPlano) pintarCorpoDoSujeito();
   $('anterior').disabled = INDICE === 0;
   $('proxima').disabled = INDICE >= MAPA.nos.length - 1;
   $('proxima').textContent = INDICE >= MAPA.nos.length - 1 ? 'Fim do roteiro' : 'Próxima →';

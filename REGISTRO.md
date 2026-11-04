@@ -34744,3 +34744,105 @@ pior do que ele.**
    desta casa é não gastar a cota para saber o que a documentação já diz.
 3. **Os três adaptadores sabem `criar`, mas só o `node` é atómico de verdade.** O KV não tem
    operação condicional — a ressalva está dita no código, e é o melhor que o meio permite.
+
+## 04/11/2026 — O PO passa a ter três eixos, o corpo vem da anamnese, e o «Port de bras» sai do §1
+
+**O que motivou.** Três pedidos que chegaram juntos, e o terceiro era um defeito vivo: «o plano de
+observação ainda apresenta itens classificados incorrectamente sob a óptica puramente técnica (ex.:
+técnica centro, técnica musicalidade, técnica expressão)»; «a dimensão do corpo é alimentada
+directamente por dados do documento de anamnese daquele sujeito — deve carregar e posicionar-se
+dinamicamente assim que o aluno for seleccionado»; e «na Aula 1, no Parâmetro de medição, o sistema
+está a exibir um elemento que não existe na curadoria: o *port de bras*».
+
+**O que se mediu — e o terceiro era a MESMA porta que já tinha sido fechada.**
+
+1. **O `Port de bras` não vinha da curadoria: vinha da matriz do parâmetro.** O envelope
+   `plano-20261104-1732` guarda `aula-1-parametro` com `marcados: ["Battement tendu", "Plié",
+   "Port de bras"]` no objetivo 2, e o `repertorio` do mesmo envelope é **exactamente**
+   `["Battement tendu", "Plié"]`. A 03/11/2026 a sequência foi blindada (`linhasDoRepertorio`) e a
+   matriz do §1 **não** — de modo que o termo saiu do exercício e continuou a aparecer no parágrafo
+   acima, na mesma aula. **Duas cópias da mesma régua, e uma delas esqueceu-se.** Medido: §1 com
+   `Port de bras` antes, sem ele depois, e a voltar quando o repertório o declara.
+2. **A mesma janela estava aberta na ficha do plano** (`ficha-do-plano.js`, `porObjetivo`), que
+   imprime a mesma matriz noutro documento.
+3. **O eixo estava escrito no CONTEÚDO, e não lido do bloco.** `porta/po/conteudo/po.json` declarava
+   `doPlano.eixo: "Técnica"` e o formulário concatenava-o a todos os blocos — daí «Técnica —
+   Musicalidade». O comentário do gerador já dizia que o mapa era **candidato** («quando ela decidir
+   a taxonomia…»); ela decidiu.
+4. **A cópia do mapa dos eixos era DUPLA** — uma em `motor/nucleo/derivar-ciclo.js`, outra em
+   `tools/montar-publicacao.js` —, e eu estava a caminho da terceira. E a segunda tinha um defeito
+   próprio: tudo o que não fosse musicalidade/expressão caía em «técnica», o que punha o **corpo** no
+   eixo errado.
+5. **Dois defeitos meus, apanhados pela prova que escrevi**: `camposDoCorpo` era um `const` avaliado
+   no carregamento (o `MAPA` ainda é `null` nesse instante → a lista saía **sempre vazia**, e o corpo
+   nunca apareceria); e o painel procurava as anamneses pela chave nua (`api/anamneses`), quando a
+   chave real leva parâmetros (`?plano=…&professor=…`) — o painel dizia «sem anamnese» de uma aluna
+   cuja anamnese estava carregada.
+
+**O que foi decidido.**
+
+- **Uma declaração só dos eixos: `motor/nucleo/eixos.js`.** `Corpo · Técnica · Poiesis`, com
+  `blocoDaDimensao`, `eixoDoBloco` (devolve o **id**, não o rótulo) e `rotuloDoEixo`. O gerador, o
+  montador da publicação e o PO leem daqui. O Corpo é eixo próprio — não uma técnica.
+- **A régua do repertório é uma só, e serve as duas formas de dado**: `termoForaDoRepertorio` e
+  `termosDoRepertorio` em `motor/nucleo/sequencia.js`, aplicadas à linha de tabela (a sequência) e
+  ao termo solto (a matriz do parâmetro, no §1 da aula e na ficha do plano). Sem repertório não se
+  julga nada — apagar o que não se pode conferir seria a limpeza a destruir o dado.
+- **Nada é renomeado no dado gravado (P-03).** Os POs que já existem continuam com «Técnica —
+  Musicalidade» lá dentro; o que muda é a **leitura**. E o que se gravar de novo nasce sem prefixo:
+  a dimensão é o **bloco**, e o eixo é uma coluna, não um rótulo.
+- **O documento do PO**: `Dimensões observadas` lista os blocos; `Itens de cada dimensão` passa a
+  ter a coluna **Eixo**; o **Corpo** tem linha própria e **aponta** para a «Linha de base» em vez de
+  a copiar (a segunda cópia é a que fica para trás quando a primeira é corrigida); e a linha sob o
+  título é o **Fenómeno** — a mesma posição que a Aula 01 usa para «O que esta aula deixa de fora».
+- **O seletor do sujeito passou a ser o PRIMEIRO BLOCO**, antes das dimensões (decisão dela, entre as
+  duas arrumações possíveis). É o que faz a cascata chegar a tempo: quando a lista das dimensões se
+  desenha, as anamneses já estão carregadas.
+- **O corpo carrega-se da anamnese, e não de uma lista escrita à mão**: os campos vêm de
+  `registroDaAnamnese.grupos[].campos` — a declaração que o «Ponto de partida» já fazia. O painel lê
+  o `detalhe` de cada sujeito escolhido, mostra o nome do campo (do mapa da anamnese) e o valor, e
+  **não inventa** o que a anamnese não respondeu.
+
+**Onde entrou.**
+
+- `motor/nucleo/eixos.js` — **novo**: a declaração única dos três eixos.
+- `motor/nucleo/sequencia.js` — `termosAcordados`, `termoForaDoRepertorio`, `termosDoRepertorio`;
+  `linhaForaDoRepertorio` passa a delegar (uma régua, não duas).
+- `motor/nucleo/derivar-plano-ciclo.js` · `motor/nucleo/derivar-ciclo.js` ·
+  `motor/nucleo/ficha-do-plano.js` — o parâmetro de medição filtrado pelo repertório.
+- `motor/nucleo/derivar-po.js` — os três eixos no documento, a coluna do eixo, o corpo a apontar, e
+  a linha do Fenómeno sob o título.
+- `motor/nucleo/derivar-ciclo.js` — `porEixo` com chaves de id, o corpo como eixo próprio, e a
+  leitura do mapa unificado.
+- `porta/po/conteudo/po.json` — o bloco dos sujeitos passa a ser o primeiro; `doPlano.eixo` sai e
+  entra `eixoDoBloco` + `eixoPadrao`; as explicações deixam de afirmar «todas sob o eixo TÉCNICA».
+- `porta/index.html` — a lista derivada agrupada pelo eixo, sem prefixo no nome; o painel do corpo
+  com as três correcções (lista lida na hora, fonte das anamneses procurada pela declaração, e a
+  espera do carregamento feita no próprio painel).
+- `tools/montar-publicacao.js` — lê o mapa unificado; a linha do cartão passa a ser «Plano de
+  Observação — <objetivo geral>» (o `horizonte` do PO), e a síntese por eixo deixa de se repetir na
+  listagem.
+- `professores/coqui-de-redinha/ciclos/…-po.md` e `…-aula-01.md` — **regerados da mesma função e do
+  mesmo envelope**; o diff é exactamente a mudança (confirmado antes de gravar). `.fipp` regerada,
+  `--check` verde, pacote regerado e `check-pacote` **0 erro(s), 0 aviso(s)**.
+- `experimentos/provar-eixos-do-po.js` — **novo**, 34 asserções.
+
+**Com o quê.** `motor/nucleo/{eixos,sequencia,derivar-po,derivar-ciclo,derivar-plano-ciclo,ficha-do-plano}.js` ·
+`porta/index.html` · `porta/po/conteudo/po.json` · `tools/montar-publicacao.js` ·
+`professores/coqui-de-redinha/ciclos/…` (fontes regeneradas, `.fipp`, pacote) · `indices/` (regerados) ·
+`experimentos/provar-eixos-do-po.js` · `experimentos/provar-eixos-e-tempo-da-aula.js` ·
+`experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
+
+**Referências.** `ARQUITETURA-GERAL.md` §2.3 e §5.7 · `REGISTRO.md` 02/11/2026 (o mapa dos eixos era
+candidato) e 03/11/2026 (a segunda porta do mesmo defeito) · `PROTOCOLO.md` (P-03 — a proveniência
+não se reescreve; P-12 — apelidos estáveis) · `CONGELAMENTO.md`.
+
+**O que ainda não está feito.**
+
+1. **Os POs já gravados nas outras escolas continuam com «Técnica — Musicalidade» dentro do
+   envelope.** É a decisão (P-03), e a leitura corrige-o — mas quem abrir o `.json` cru verá o rótulo
+   antigo. Uma migração de dados seria uma reescrita da proveniência, e não se faz sem decisão dela.
+2. **A captura não ganhou bloco de corpo.** O eixo do Corpo existe no PO e na aula; a folha de
+   captura continua com os quatro blocos de dimensão mais a linha de base. Pôr lá o corpo é desenho
+   novo, e não foi pedido.
+3. **A prova do PO mede a tela em JSDOM**, com a anamnese stubada — não foi aberta no ar.

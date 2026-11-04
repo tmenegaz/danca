@@ -14,13 +14,13 @@
       "compasso": "2/4",
       "exercicio": "Battement tendu",
       "tempos": "8",
-      "contagem": "1–2 `[Perna: ED 1ª ○ - ● 1ª]`"
+      "contagem": "1–2"
     },
     {
       "compasso": "2/4",
       "exercicio": "Plié",
       "tempos": "4",
-      "contagem": "1–2 `[Perna: ED 1ª ↓ ↑]`"
+      "contagem": "1–2"
     },
     "Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício."
   ],

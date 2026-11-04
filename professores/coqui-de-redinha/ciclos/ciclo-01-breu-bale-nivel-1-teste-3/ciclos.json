@@ -1,6 +1,6 @@
 {
   "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\". O `aulas[]` e o INDICE POR AULA: a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o instante-limite de lancamento da aula, calculado do calendario. `estado` (§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois re-deriva com o proprio relogio.",
-  "gerado_em": "2026-11-04T19:17",
+  "gerado_em": "2026-11-04T19:36",
   "ciclos": [
     {
       "id": "01",

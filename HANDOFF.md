@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T19:48:49-0300`
-Commit atual: `7cf8122e` — fix(campo): as colunas da aula têm a largura do que levam, e a notação sai da música
+Gerado em: `2026-11-04T20:28:50-0300`
+Commit atual: `a749ace7` — fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
 7cf8122e fix(campo): as colunas da aula têm a largura do que levam, e a notação sai da música
 d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
 6ede6131 feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
@@ -104,7 +105,6 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 2c2238f1 chore(estrutura): regerar os índices derivados
 e7ec02f9 chore(estrutura): reancorar a cadeia das fontes alteradas
 c394e879 chore(estrutura): regerar os índices derivados
-6dd3ffb8 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ c394e879 chore(estrutura): regerar os índices derivados
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `9f5c162b9dad` | (vazio) | Input_PO_Aguardando |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `abb4aee0c24e` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,124 +230,109 @@ c394e879 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — O composto deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter número
+## 04/11/2026 — O PO passa a ter três eixos, o corpo vem da anamnese, e o «Port de bras» sai do §1
 
-**O que motivou.** Uma pauta de quatro pontos, e os três primeiros chegaram como diagnóstico: «o
-custo zero de servidores precisa de ser blindado, e quero os riscos reais nomeados»; «o manuseio das
-modalidades está codificado manualmente em 10 pontos espalhados pelo motor»; «verbos novos no
-adaptador de acervo ficaram de fora do `combinar`, fazendo com que a blindagem existisse no
-adaptador isolado e nunca alcançasse o motor»; e, por fim, «que outras falhas ocultas existem».
+**O que motivou.** Três pedidos que chegaram juntos, e o terceiro era um defeito vivo: «o plano de
+observação ainda apresenta itens classificados incorrectamente sob a óptica puramente técnica (ex.:
+técnica centro, técnica musicalidade, técnica expressão)»; «a dimensão do corpo é alimentada
+directamente por dados do documento de anamnese daquele sujeito — deve carregar e posicionar-se
+dinamicamente assim que o aluno for seleccionado»; e «na Aula 1, no Parâmetro de medição, o sistema
+está a exibir um elemento que não existe na curadoria: o *port de bras*».
 
-**O que se mediu — os três primeiros pontos não eram o que o diagnóstico dizia, e o quarto era
-pior do que ele.**
+**O que se mediu — e o terceiro era a MESMA porta que já tinha sido fechada.**
 
-1. **A modalidade não estava em 10 sítios: eram 29 ocorrências em 8 ficheiros.** A diferença tem
-   método: o número de 03/11 contou **sítios** (blocos de código), e um só sítio da página da
-   Produção continha dois literais. Contar sítios subestima o acoplamento; contar literais não. Das
-   29, **6 decidiam comportamento**; as outras eram comentários e `require`s legítimos.
-2. **O `combinar` já tinha sido corrigido** — mas o defeito estava **uma camada abaixo**: os dois
-   adaptadores de base (`node.js`, `cloudflare.js`) **não implementavam `criar`**, que o contrato
-   declara. O composto encaminhava para quem não sabia fazer.
-3. **Faltava um terceiro verbo, e este ninguém tinha visto:** o **`anexar`** não existia no acervo.
-   A bancada nova apanhou-o na primeira execução.
-4. **A causa comum não era nenhum dos três verbos: era a LISTA.** O composto enumerava os verbos à
-   mão, e o que fica de fora de uma lista desaparece sem aviso — foi assim com o `criar`, foi assim
-   com o `anexar`, e seria assim com o próximo.
+1. **O `Port de bras` não vinha da curadoria: vinha da matriz do parâmetro.** O envelope
+   `plano-20261104-1732` guarda `aula-1-parametro` com `marcados: ["Battement tendu", "Plié",
+   "Port de bras"]` no objetivo 2, e o `repertorio` do mesmo envelope é **exactamente**
+   `["Battement tendu", "Plié"]`. A 03/11/2026 a sequência foi blindada (`linhasDoRepertorio`) e a
+   matriz do §1 **não** — de modo que o termo saiu do exercício e continuou a aparecer no parágrafo
+   acima, na mesma aula. **Duas cópias da mesma régua, e uma delas esqueceu-se.** Medido: §1 com
+   `Port de bras` antes, sem ele depois, e a voltar quando o repertório o declara.
+2. **A mesma janela estava aberta na ficha do plano** (`ficha-do-plano.js`, `porObjetivo`), que
+   imprime a mesma matriz noutro documento.
+3. **O eixo estava escrito no CONTEÚDO, e não lido do bloco.** `porta/po/conteudo/po.json` declarava
+   `doPlano.eixo: "Técnica"` e o formulário concatenava-o a todos os blocos — daí «Técnica —
+   Musicalidade». O comentário do gerador já dizia que o mapa era **candidato** («quando ela decidir
+   a taxonomia…»); ela decidiu.
+4. **A cópia do mapa dos eixos era DUPLA** — uma em `motor/nucleo/derivar-ciclo.js`, outra em
+   `tools/montar-publicacao.js` —, e eu estava a caminho da terceira. E a segunda tinha um defeito
+   próprio: tudo o que não fosse musicalidade/expressão caía em «técnica», o que punha o **corpo** no
+   eixo errado.
+5. **Dois defeitos meus, apanhados pela prova que escrevi**: `camposDoCorpo` era um `const` avaliado
+   no carregamento (o `MAPA` ainda é `null` nesse instante → a lista saía **sempre vazia**, e o corpo
+   nunca apareceria); e o painel procurava as anamneses pela chave nua (`api/anamneses`), quando a
+   chave real leva parâmetros (`?plano=…&professor=…`) — o painel dizia «sem anamnese» de uma aluna
+   cuja anamnese estava carregada.
 
 **O que foi decidido.**
 
-- **O composto deixa de enumerar.** `combinar` passa a devolver um `Proxy` que encaminha **qualquer**
-  verbo para quem atende aquela família de chave (`envelope/*` → repositório; o resto → KV). Só dois
-  verbos mantêm regra própria, e por motivos que não são de roteamento: o `criar` (tem uma degradação
-  declarada para armazenamento de bancada) e o `gravarComFusao` (exige o `sha`, e fora do acervo
-  responde `{semFusao:true}`). **Um verbo novo no contrato passa a fluir sozinho.** A armadilha do
-  `Proxy` foi medida e fechada: responder a tudo faria dele uma *thenable*, e o `await` sobre o
-  armazenamento ficaria pendurado — o `then` está explicitamente de fora, e a bancada afirma-o.
-- **A regra fica verificável:** *verbo no contrato ⇒ verbo nos dois adaptadores de base + no acervo
-  + no composto*. A bancada lê os verbos **do ficheiro do contrato**, não de uma lista — e passa pelo
-  `criarArmazenamento`, que é o que a produção monta. As bancadas antigas montavam o acervo directo;
-  a distância entre os dois era exactamente o furo.
-- **A modalidade passa a ter um único ponto de derivação.** `modalidadePrincipal()` devolve a
-  primeira modalidade do catálogo com `temConteudo`, e `MODALIDADE_PADRAO` passa a ser **derivada**
-  dela em vez de escrita. A página da Produção ganha `modalidadeDoCatalogo()`, que serve as seis
-  chamadas que tinham literal. **O acoplamento está a zero**: nenhum literal de modalidade decide
-  comportamento em `motor/` nem em `tools/`.
-- **O custo da API passa a ter número, e não adjectivo.** Um «Guardar» de envelope novo custa
-  **3 `GET` + 3 `PUT` = 18 pontos**; uma edição, **7**. Os limites reais (documentação do GitHub,
-  conferida hoje): 5 000 req/h autenticado, **1 000/h com o `GITHUB_TOKEN` de Actions**, **500/h e
-  80/min de criação de conteúdo**, 900 pontos/min. O que morde é a **rajada**, não a média — e é por
-  isso que o expurgo é um commit e não 76 escritas. A decisão de não adoptar banco relacional fica
-  blindada com um critério de revisão explícito, e não com uma preferência.
-
-**A varredura (o quarto ponto), com o que encontrou e o que ficou por fazer.**
-
-| Achado | Estado |
-|:--|:--|
-| `criar` fora do composto, `anexar` fora do composto, `criar` fora dos dois adaptadores de base, `anexar` fora do acervo | **corrigidos** — e a classe fechada pelo `Proxy` |
-| Expurgo de escola sem as 3 tentativas do expurgo de professor | **já corrigido** antes desta entrada (`repo-escola.js`) |
-| O `○`/`●` da notação quebravam o PDF no pdflatex (`Unicode character ○ not set up`) | **já corrigido** — `\newunicodechar` no `ciclo-cabecalho.tex`, com `textcomp` explícito |
-| **O `check-pacote` só corre DENTRO do gerador** — nunca sobre o que está versionado | **aberto**: `professores/coqui-de-redinha/ciclos/ciclo-01-breu` está no repo com **11 erros** (sem PDF, sem aulas, sem `-dados.json`) e ninguém sabe, porque nada valida o que já lá está |
-| `tools/lib-tokens.js` exporta `ciclogoldborda` e `colorido` sem consumidor | aberto, menor |
-| As tabelas de duas colunas continuam 50/50 (§1, eixo do Corpo, auditoria) | aberto, declarado na entrada anterior |
-| `provar-producao` falha 3 asserções (menu, tradições, pílulas) | **pré-existente**, confirmado por `git stash` comparativo — 153/156 antes e depois |
-| `provar-listas-do-acervo` continua NÃO FEITO (a escola viva não tem ciclo publicado) | aberto, declarado |
+- **Uma declaração só dos eixos: `motor/nucleo/eixos.js`.** `Corpo · Técnica · Poiesis`, com
+  `blocoDaDimensao`, `eixoDoBloco` (devolve o **id**, não o rótulo) e `rotuloDoEixo`. O gerador, o
+  montador da publicação e o PO leem daqui. O Corpo é eixo próprio — não uma técnica.
+- **A régua do repertório é uma só, e serve as duas formas de dado**: `termoForaDoRepertorio` e
+  `termosDoRepertorio` em `motor/nucleo/sequencia.js`, aplicadas à linha de tabela (a sequência) e
+  ao termo solto (a matriz do parâmetro, no §1 da aula e na ficha do plano). Sem repertório não se
+  julga nada — apagar o que não se pode conferir seria a limpeza a destruir o dado.
+- **Nada é renomeado no dado gravado (P-03).** Os POs que já existem continuam com «Técnica —
+  Musicalidade» lá dentro; o que muda é a **leitura**. E o que se gravar de novo nasce sem prefixo:
+  a dimensão é o **bloco**, e o eixo é uma coluna, não um rótulo.
+- **O documento do PO**: `Dimensões observadas` lista os blocos; `Itens de cada dimensão` passa a
+  ter a coluna **Eixo**; o **Corpo** tem linha própria e **aponta** para a «Linha de base» em vez de
+  a copiar (a segunda cópia é a que fica para trás quando a primeira é corrigida); e a linha sob o
+  título é o **Fenómeno** — a mesma posição que a Aula 01 usa para «O que esta aula deixa de fora».
+- **O seletor do sujeito passou a ser o PRIMEIRO BLOCO**, antes das dimensões (decisão dela, entre as
+  duas arrumações possíveis). É o que faz a cascata chegar a tempo: quando a lista das dimensões se
+  desenha, as anamneses já estão carregadas.
+- **O corpo carrega-se da anamnese, e não de uma lista escrita à mão**: os campos vêm de
+  `registroDaAnamnese.grupos[].campos` — a declaração que o «Ponto de partida» já fazia. O painel lê
+  o `detalhe` de cada sujeito escolhido, mostra o nome do campo (do mapa da anamnese) e o valor, e
+  **não inventa** o que a anamnese não respondeu.
 
 **Onde entrou.**
 
-- `motor/servidor/acervo-envelopes.js` — `anexar` implementado (ler-modificar-gravar com `sha` e as
-  3 tentativas do 409); `combinar` deixa de enumerar e passa a `Proxy`.
-- `motor/adaptadores/node.js` — `criar` com `flag: 'wx'` (`O_EXCL`, atómico de verdade).
-- `motor/adaptadores/cloudflare.js` — `criar` com `get`+`put`, e a **ressalva dita**: o KV não tem
-  operação condicional.
-- `motor/nucleo/perfil-do-professor.js` — `modalidadePrincipal()`; `MODALIDADE_PADRAO` derivada.
-- `motor/servidor/bastidores.js` — `modalidadeDoCatalogo()` e os 6 literais substituídos.
-- `motor/nucleo/notacao.js`, `motor/servidor/catalogo-seed.js`, `motor/servidor/termo-repo.js`,
-  `motor/produtos.js` — leem a derivação; a segunda cópia do literal saiu.
-- `ARQUITETURA-GERAL.md` — nova **§5.7** (a composição dos verbos), nova **§7.1** (o preço da
-  escrita, com os limites medidos) e a **§2.3** corrigida (o acoplamento era 29, não 10 — e está a
-  zero).
-- `experimentos/provar-verbos-do-armazenamento.js` — **novo**, 29 asserções.
+- `motor/nucleo/eixos.js` — **novo**: a declaração única dos três eixos.
+- `motor/nucleo/sequencia.js` — `termosAcordados`, `termoForaDoRepertorio`, `termosDoRepertorio`;
+  `linhaForaDoRepertorio` passa a delegar (uma régua, não duas).
+- `motor/nucleo/derivar-plano-ciclo.js` · `motor/nucleo/derivar-ciclo.js` ·
+  `motor/nucleo/ficha-do-plano.js` — o parâmetro de medição filtrado pelo repertório.
+- `motor/nucleo/derivar-po.js` — os três eixos no documento, a coluna do eixo, o corpo a apontar, e
+  a linha do Fenómeno sob o título.
+- `motor/nucleo/derivar-ciclo.js` — `porEixo` com chaves de id, o corpo como eixo próprio, e a
+  leitura do mapa unificado.
+- `porta/po/conteudo/po.json` — o bloco dos sujeitos passa a ser o primeiro; `doPlano.eixo` sai e
+  entra `eixoDoBloco` + `eixoPadrao`; as explicações deixam de afirmar «todas sob o eixo TÉCNICA».
+- `porta/index.html` — a lista derivada agrupada pelo eixo, sem prefixo no nome; o painel do corpo
+  com as três correcções (lista lida na hora, fonte das anamneses procurada pela declaração, e a
+  espera do carregamento feita no próprio painel).
+- `tools/montar-publicacao.js` — lê o mapa unificado; a linha do cartão passa a ser «Plano de
+  Observação — <objetivo geral>» (o `horizonte` do PO), e a síntese por eixo deixa de se repetir na
+  listagem.
+- `professores/coqui-de-redinha/ciclos/…-po.md` e `…-aula-01.md` — **regerados da mesma função e do
+  mesmo envelope**; o diff é exactamente a mudança (confirmado antes de gravar). `.fipp` regerada,
+  `--check` verde, pacote regerado e `check-pacote` **0 erro(s), 0 aviso(s)**.
+- `experimentos/provar-eixos-do-po.js` — **novo**, 34 asserções.
 
-**Com o quê.** `motor/nucleo/armazenamento.js` (o contrato, lido pela bancada) ·
-`motor/servidor/acervo-envelopes.js` · `motor/adaptadores/{node,cloudflare}.js` ·
-`motor/nucleo/{perfil-do-professor,notacao}.js` · `motor/servidor/{bastidores,catalogo-seed,termo-repo}.js` ·
-`motor/produtos.js` · `ARQUITETURA-GERAL.md` · `experimentos/provar-verbos-do-armazenamento.js` ·
+**Com o quê.** `motor/nucleo/{eixos,sequencia,derivar-po,derivar-ciclo,derivar-plano-ciclo,ficha-do-plano}.js` ·
+`porta/index.html` · `porta/po/conteudo/po.json` · `tools/montar-publicacao.js` ·
+`professores/coqui-de-redinha/ciclos/…` (fontes regeneradas, `.fipp`, pacote) · `indices/` (regerados) ·
+`experimentos/provar-eixos-do-po.js` · `experimentos/provar-eixos-e-tempo-da-aula.js` ·
 `experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
 
-**Referências.** Documentação do GitHub sobre *rate limits* (5 000/h autenticado, 1 000/h para o
-`GITHUB_TOKEN` de Actions, 500/h e 80/min de criação de conteúdo, 900 pontos/min) ·
-`ARQUITETURA-GERAL.md` §2.3, §5.1, §5.7, §7.1 · `PROTOCOLO.md` (P-12, os apelidos estáveis) ·
-`CONGELAMENTO.md`.
+**Referências.** `ARQUITETURA-GERAL.md` §2.3 e §5.7 · `REGISTRO.md` 02/11/2026 (o mapa dos eixos era
+candidato) e 03/11/2026 (a segunda porta do mesmo defeito) · `PROTOCOLO.md` (P-03 — a proveniência
+não se reescreve; P-12 — apelidos estáveis) · `CONGELAMENTO.md`.
 
 **O que ainda não está feito.**
 
-1. **Nada valida os pacotes que já estão no repositório.** O `check-pacote` corre no fim do gerador;
-   um pacote antigo com 11 erros vive no `main` sem que nenhum workflow olhe para ele. Um passo que
-   varra `professores/*/ciclos/ciclo-01-*/` e reporte seria barato — e teria de começar por decidir
-   o que fazer com o `ciclo-01-breu`: regerar, arquivar, ou aceitar como legado declarado.
-2. **O `80/min` de criação de conteúdo não foi tocado por medição real** — os números vêm da
-   documentação, não de uma rajada provocada. Uma prova que o provoque custaria cota no ar, e a regra
-   desta casa é não gastar a cota para saber o que a documentação já diz.
-3. **Os três adaptadores sabem `criar`, mas só o `node` é atómico de verdade.** O KV não tem
-   operação condicional — a ressalva está dita no código, e é o melhor que o meio permite.
+1. **Os POs já gravados nas outras escolas continuam com «Técnica — Musicalidade» dentro do
+   envelope.** É a decisão (P-03), e a leitura corrige-o — mas quem abrir o `.json` cru verá o rótulo
+   antigo. Uma migração de dados seria uma reescrita da proveniência, e não se faz sem decisão dela.
+2. **A captura não ganhou bloco de corpo.** O eixo do Corpo existe no PO e na aula; a folha de
+   captura continua com os quatro blocos de dimensão mais a linha de base. Pôr lá o corpo é desenho
+   novo, e não foi pedido.
+3. **A prova do PO mede a tela em JSDOM**, com a anamnese stubada — não foi aberta no ar.
 
 ## O que está pendente
-
-## 04/11/2026 — Dois «Guardar» no mesmo minuto não perdem mais um documento
-
-
-1. **As duas pessoas na mesma escola continuam a não ver uma à outra.** O `.indice.json` tem um
-   `responsavel` e uma lista `professores[]`, mas o acervo **não tem professor no caminho**
-   (`escola/<escola>/envelopes/`): dois professores da mesma escola escrevem os mesmos arquivos. A
-   corrida do *nome* está fechada; **a edição simultânea do MESMO documento continua a ser
-   last-write-wins** — e isso é decisão de produto (avisar? bloquear? mostrar as duas versões?),
-   não de motor. Não foi inventada.
-2. **A janela do minuto é de um minuto.** Dois pedidos no mesmo minuto agora convivem; o carimbo
-   continua a ter resolução de minuto, e cinco pedidos no mesmo minuto esgotam os sufixos (a
-   gravação responde «não entrou» e a tela diz).
-3. **Nada disto foi medido por dois browsers reais contra o Worker publicado** — as provas correm
-   sobre a memória do núcleo e sobre um GitHub falso; o único contacto com o real foi o teste do
-   422, num ramo descartável.
 
 ## 04/11/2026 — A fusão das edições (decisão 84) e o espelho da verdade na arquitetura
 
@@ -401,6 +386,17 @@ pior do que ele.**
    desta casa é não gastar a cota para saber o que a documentação já diz.
 3. **Os três adaptadores sabem `criar`, mas só o `node` é atómico de verdade.** O KV não tem
    operação condicional — a ressalva está dita no código, e é o melhor que o meio permite.
+
+## 04/11/2026 — O PO passa a ter três eixos, o corpo vem da anamnese, e o «Port de bras» sai do §1
+
+
+1. **Os POs já gravados nas outras escolas continuam com «Técnica — Musicalidade» dentro do
+   envelope.** É a decisão (P-03), e a leitura corrige-o — mas quem abrir o `.json` cru verá o rótulo
+   antigo. Uma migração de dados seria uma reescrita da proveniência, e não se faz sem decisão dela.
+2. **A captura não ganhou bloco de corpo.** O eixo do Corpo existe no PO e na aula; a folha de
+   captura continua com os quatro blocos de dimensão mais a linha de base. Pôr lá o corpo é desenho
+   novo, e não foi pedido.
+3. **A prova do PO mede a tela em JSDOM**, com a anamnese stubada — não foi aberta no ar.
 
 ## Pendências anteriores (índice)
 
@@ -751,6 +747,7 @@ pior do que ele.**
 - **03/11/2026** — A estante mostra um por documento: a proveniência fica… → `REGISTRO.md` L34034
 - **04/11/2026** — A fatia de tempo vem do plano pela coluna certa, e o guia… → `REGISTRO.md` L34115
 - **04/11/2026** — O ajuste do plano de ensino arrasta o PO, e o cartão da… → `REGISTRO.md` L34204
+- **04/11/2026** — Dois «Guardar» no mesmo minuto não perdem mais um documento → `REGISTRO.md` L34301
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

@@ -8,26 +8,40 @@
   "field": "Escola / espaço: breu · Turma observada: Balé Nível 1 — Teste 3 · Frequência semanal: 2x semanal — qua e sex · Duração por aula: 45 minutos",
   "context": "Calendário: 2027-03-03 → 2027-06-30 · Volume de trabalho: 3–6 séries · Condição de registro: Na sala: professor, alunas da turma · observa: o próprio professor.",
   "dimensoesObservadas": [
-    "Técnica — Barra",
-    "Técnica — Centro",
-    "Técnica — Musicalidade",
-    "Técnica — Expressão"
+    "Barra",
+    "Centro",
+    "Musicalidade",
+    "Expressão"
   ],
   "itensPorDimensao": [
     {
-      "dimensao": "Técnica — Barra",
+      "eixo": "Corpo",
+      "dimensao": "Ponto de partida",
+      "itens": "1 sujeito — o registo está em «Linha de base», e vem da anamnese de cada um"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Restrições",
+      "itens": "sem restrições declaradas"
+    },
+    {
+      "eixo": "Técnica",
+      "dimensao": "Barra",
       "itens": "saída do calcanhar no tendu; quadril sem subir no en dehors"
     },
     {
-      "dimensao": "Técnica — Centro",
+      "eixo": "Técnica",
+      "dimensao": "Centro",
       "itens": "transferência de peso sem perder a verticalidade; braço junto do movimento"
     },
     {
-      "dimensao": "Técnica — Musicalidade",
+      "eixo": "Poiesis",
+      "dimensao": "Musicalidade",
       "itens": "resposta ao pulso na marcação; frase até o fim da música"
     },
     {
-      "dimensao": "Técnica — Expressão",
+      "eixo": "Poiesis",
+      "dimensao": "Expressão",
       "itens": "olhar acompanha o braço; presença sem rigidez de rosto"
     }
   ],

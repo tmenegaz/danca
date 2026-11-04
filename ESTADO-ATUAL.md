@@ -4,7 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `7cf8122`, árvore limpa). Nesta entrega, **o composto
+> **Última fotografia:** 04/11/2026 (base `a749ace`, árvore limpa). Nesta entrega, **o Plano de
+> Observação passa a ter os três eixos, o corpo vem da anamnese de quem se observa, e o «Port de
+> bras» sai do §1 da aula**. (1) As dimensões chamavam-se «Técnica — Musicalidade» e «Técnica —
+> Expressão» porque o eixo estava **escrito no conteúdo** e concatenado a todos os blocos; são
+> **poiésis**, e o mapa dos eixos passou a ser **um só** (`motor/nucleo/eixos.js` — havia duas
+> cópias, e uma punha o corpo no eixo técnico). O eixo decide-se pelo **bloco**, e **nada é
+> renomeado no dado** (P-03). (2) O **Corpo** é eixo próprio e carrega da **anamnese de cada
+> sujeito**, pelos campos que o «Ponto de partida» já declarava; o seletor do sujeito passou a ser o
+> **primeiro bloco**, antes das dimensões, para a cascata chegar a tempo. (3) O **«Port de bras»**
+> que ela viu no §1 vinha da **matriz do parâmetro** e não da curadoria: a régua do repertório
+> (`linhasDoRepertorio`) tinha blindado a sequência a 03/11 e **não** o parâmetro. Agora é uma régua
+> só, e vale nos dois documentos. (4) A linha do cartão deixou de repetir a síntese por eixo (que já
+> está no guia) e passou a dizer `Plano de Observação — <objetivo geral>`. Prova nova:
+> `provar-eixos-do-po`, **34 asserções**.
+>
+> **Entrega anterior** (base `7cf8122`, árvore limpa). Nesta entrega, **o composto
 > deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter
 > número**. (1) O armazenamento que o Worker monta (`combinar`) **listava os verbos um por um**, e o
 > que ficava fora da lista sumia sem aviso: o `criar` nunca chegou ao motor — a blindagem da decisão
@@ -1837,6 +1852,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     caracteres numa coluna de «1–2», a espremer as outras três. A dedução da contagem passa a ser
     **só pela contagem** (era contagem + bloco). **DECIDIDO por ela e implementado** 04/11/2026.
 
+93. **O PLANO DE OBSERVAÇÃO TEM OS TRÊS EIXOS — E O CORPO VEM DA ANAMNESE.** As dimensões nascem do
+    plano como `<eixo> — <bloco>`, com o eixo **escrito no conteúdo** (`doPlano.eixo: "Técnica"`), e
+    por isso o documento listava «Técnica — Musicalidade» e «Técnica — Expressão». Musicalidade e
+    expressão são **poiésis**, e o rótulo era uma afirmação falsa sobre o que se mede. O mapa passou
+    a ser **um só** (`motor/nucleo/eixos.js` — havia duas cópias), o eixo decide-se pelo **bloco** (o
+    prefixo gravado não manda), e **nada é renomeado no dado** (P-03): o que muda é a leitura. O
+    **Corpo** é eixo próprio — não uma técnica — e alimenta-se da **anamnese de cada sujeito**, pelos
+    campos que o «Ponto de partida» já declara (`registroDaAnamnese.grupos[].campos`). O seletor do
+    sujeito passou a ser o **primeiro bloco**, antes das dimensões: é o que faz a cascata chegar a
+    tempo. **DECIDIDO e implementado** 04/11/2026.
+
+94. **A RÉGUA DO REPERTÓRIO É UMA SÓ — E ELA VALE EM TODOS OS DOCUMENTOS.** O «Port de bras» saiu do
+    exercício da aula a 03/11/2026 (`linhasDoRepertorio`) e continuou a aparecer no **§1 da mesma
+    aula**, na matriz do «Parâmetro de medição» — porque a régua foi aplicada a uma porta e não à
+    outra. Agora `termoForaDoRepertorio`/`termosDoRepertorio` servem as duas formas de dado (a linha
+    de tabela e o termo solto), e valem no §1 da aula, na ficha do plano e na sequência. Sem
+    repertório declarado não se julga nada. **DECIDIDO e implementado** 04/11/2026.
+
+95. **A LINHA DO CARTÃO É O OBJETIVO GERAL, E A SÍNTESE POR EIXO FICA NO GUIA.** «A linha de resumo
+    (que lista os eixos e contagens) já está perfeitamente posicionada dentro do Guia de Observação,
+    tornando redundante a sua exibição na listagem.» Entra o **objetivo geral do Plano de
+    Observação** — o `horizonte`, que o próprio conteúdo do PO chama «Horizonte (objetivo geral de
+    conjunto)» —, com o prefixo `Plano de Observação — `. A hierarquia fica completa: o título do
+    cartão é o objetivo **específico** da aula, a linha é o **geral** do ciclo. **DECIDIDO e
+    implementado** 04/11/2026.
+
 90. **O COMPOSTO NÃO ENUMERA VERBOS — ELE ENCAMINHA.** O armazenamento que o Worker monta
     (`combinar`) listava os verbos um por um, e o que ficava de fora da lista desaparecia **sem
     aviso**: o `criar` nasceu no acervo e nunca chegou ao motor, de modo que a escrita condicional —
@@ -2517,7 +2558,22 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — os verbos, a modalidade e o custo da API)
+### Executado nesta fotografia (04/11/2026 — os três eixos do PO, o corpo da anamnese, e o §1 sem «Port de bras»)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-eixos-do-po` (**nova**) | **TUDO CERTO — 34 asserções**: o sujeito vem **antes** das dimensões (e o bloco dos sujeitos é o primeiro do roteiro); o eixo decide-se pelo **bloco** («Técnica — Musicalidade» lê-se **Poiesis**, e o Corpo é eixo próprio); o documento traz a coluna **Eixo** com Musicalidade e Expressão na Poiesis e **nenhuma** na Técnica; o Corpo aponta a «Linha de base» e diz as restrições; a linha sob o título é o **Fenómeno** (e não o horizonte nem a pergunta); e na tela (JSDOM) o painel do corpo **carrega da anamnese**, com o **nome** do campo, o **valor**, e sem inventar o que ela não respondeu |
+| O §1 da aula, no envelope real | a matriz do parâmetro tinha `Port de bras` no objetivo 2 e o `repertorio` do **mesmo** envelope é `["Battement tendu","Plié"]` → o §1 sai sem ele; **controlo negativo**: sem repertório ele volta (não se julga o que não se pode conferir), e com o repertório a declará-lo ele volta também |
+| A mesma régua na ficha do plano | `ficha-do-plano.js` passa a filtrar pelo repertório — era a segunda porta aberta da mesma janela |
+| `gerar-ciclo` + `check-pacote` do ciclo da `breu` | **0 erro(s), 0 aviso(s)** — e a `-aula-01.md` foi regerada da mesma função e do mesmo envelope: o **diff é exactamente** a linha do parâmetro |
+| A `-po.md` regerada | o diff são **as três mudanças pedidas** e nada mais: a linha do Fenómeno, os blocos sem prefixo, e a tabela com a coluna do eixo — validada contra o `ciclo-01-po-schema.json` (13 campos) |
+| O HTML e o PDF gerados | `aula-01.html` e `aula-01.pdf` com **zero** ocorrências de «Port de bras» |
+| A âncora | `.fipp` regerada e `--check` verde; `indices/` regerados; `check-indices` **14/14** |
+| `check-identidade` | **20/20** (a cópia da porta nos dois pacotes refrescada) |
+| Regressão | `provar-cartao-da-aula` · `provar-eixos-e-tempo-da-aula` · `provar-sequencia-que-acompanha` · `provar-colunas-da-aula` · `provar-verbos-do-armazenamento` · `provar-fusao-da-edicao` · `provar-corrida-da-escrita` · `provar-cadeia-do-ajuste` · `provar-acervo-envelopes` · `provar-carimbo-da-edicao` · `provar-um-commit-por-guardar` · `provar-publicacao-da-escola` · `provar-habilitacao-do-professor` · `provar-sinais-da-modalidade` · `provar-professor-secundario` · `provar-plano-da-turma` · `provar-contexto-do-ato` · `provar-po-completo` · `provar-plano-completo` · `provar-indice-de-envelopes` — **todos verdes** |
+| **o que NÃO mede** | a tela foi medida em JSDOM com a anamnese **stubada** (não no ar) · os POs já gravados noutras escolas continuam com «Técnica — …» **dentro do envelope** (P-03: a leitura corrige, o dado não se reescreve) · a captura **não** ganhou bloco de corpo |
+
+### Executado na fotografia anterior (04/11/2026 — os verbos, a modalidade e o custo da API)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3535,6 +3591,15 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **Os três eixos do PO, o corpo da anamnese, e o §1 sem «Port de bras».** O
+  Plano de Observação listava «Técnica — Musicalidade» porque o eixo estava escrito no **conteúdo** e
+  concatenado a todos os blocos; o mapa dos eixos passou a ser **um só** (`motor/nucleo/eixos.js`) e
+  o eixo decide-se pelo **bloco**. O Corpo é eixo próprio e carrega da **anamnese de cada sujeito**;
+  o seletor do sujeito passou a ser o primeiro bloco, antes das dimensões. E o «Port de bras» do §1
+  vinha da **matriz do parâmetro**, não da curadoria: a régua do repertório tinha blindado a sequência
+  e não o parâmetro — agora é uma régua só. A linha do cartão passou a ser o **objetivo geral** do
+  PO. Prova nova: `provar-eixos-do-po`, 34 asserções.
 
 - **04/11/2026** — **O composto não enumera verbos, a modalidade tem uma só origem, e o custo da API
   tem número.** O `combinar` — o armazenamento que o Worker monta — listava os verbos à mão, e o

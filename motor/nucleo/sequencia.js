@@ -128,15 +128,41 @@ function conteudoDaLinha(linha) {
   return '';
 }
 
-/** A linha cujo exercício está FORA do repertório acordado — a que não se publica. */
-function linhaForaDoRepertorio(linha, repertorio) {
-  const acordado = (Array.isArray(repertorio) ? repertorio : [])
+/** A lista ACORDADA — o repertório do envelope, na forma `[{termo}]` ou `['termo']`. */
+function termosAcordados(repertorio) {
+  return (Array.isArray(repertorio) ? repertorio : [])
     .map((t) => String((t && t.termo) || t || '').trim())
     .filter(Boolean);
+}
+
+/**
+ * O TERMO fora do repertório — a régua sobre um nome SOLTO, e não sobre uma linha de tabela.
+ *
+ * A mesma regra serve a duas formas de dado, e é por isso que ela mora aqui e não em quem a lê:
+ * a linha da sequência traz o exercício numa COLUNA (`conteudoDaLinha`), e a matriz do «Parâmetro
+ * de medição» traz os termos numa LISTA (`marcados`). Duas cópias da comparação divergiriam ao
+ * primeiro caso — e já divergiram: a sequência ficou blindada em 03/11/2026 e o parâmetro não,
+ * de modo que o «Port de bras» saiu do exercício e continuou a aparecer no §1 da MESMA aula.
+ */
+function termoForaDoRepertorio(termo, repertorio) {
+  const acordado = termosAcordados(repertorio);
   if (!acordado.length) return false;       // sem repertório não há contra o que medir
+  const nome = String(termo == null ? '' : termo).trim();
+  if (!nome) return false;                  // a lacuna não é violação
+  return acordado.indexOf(nome) === -1;
+}
+
+/** Os termos que a curadoria acordou — o que a aula pode publicar. */
+function termosDoRepertorio(termos, repertorio) {
+  const lista = Array.isArray(termos) ? termos : [];
+  return lista.filter((t) => !termoForaDoRepertorio(t, repertorio));
+}
+
+/** A linha cujo exercício está FORA do repertório acordado — a que não se publica. */
+function linhaForaDoRepertorio(linha, repertorio) {
   const conteudo = conteudoDaLinha(linha);
   if (!conteudo) return false;              // a lacuna não é violação
-  return acordado.indexOf(conteudo) === -1;
+  return termoForaDoRepertorio(conteudo, repertorio);
 }
 
 /** As linhas cujo exercício a curadoria acordou — o que a `aula-01.md` compõe. */
@@ -146,4 +172,5 @@ function linhasDoRepertorio(sequencia, repertorio) {
 }
 
 module.exports = { COLUNAS_DO_OBJETIVO, COLUNAS_DO_CONTEUDO, numeroDoObjetivo, objetivoDaLinha,
-  conteudoDaLinha, linhaOrfa, linhaForaDoRepertorio, linhasVivas, linhasDoRepertorio };
+  conteudoDaLinha, linhaOrfa, termosAcordados, termoForaDoRepertorio, termosDoRepertorio,
+  linhaForaDoRepertorio, linhasVivas, linhasDoRepertorio };

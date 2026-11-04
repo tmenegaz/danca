@@ -17,7 +17,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Item | Definição |
 |:--|:--|
 | **Objetivo específico** | reconhecer o apoio e alinhar o eixo vertical |
-| **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Battement tendu · Plié · Port de bras |
+| **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Battement tendu · Plié |
 | **Duração** | 45 minutos (Pré-requisito 4) |
 | **Volume ativo** | 90 tempos (faixa 80–100 da duração de 45 min — Regra 9, etapa 1) |
 

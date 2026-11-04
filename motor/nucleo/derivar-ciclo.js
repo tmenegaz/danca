@@ -206,27 +206,19 @@ function numeroEmPortugues(n) {
  * `itens-por-dimensao` já gravados referenciam esses rótulos pelo nome). O que muda é a LEITURA:
  * o guia mostra o eixo que corresponde ao bloco e a dimensão pelo nome do bloco.
  *
- * O MAPA É CANDIDATO, E ESTÁ DECLARADO COMO TAL. Ela ainda não decidiu a taxonomia («transformar
- * os três em eixos de primeira classe é da pesquisadora», `REGISTRO.md` 02/11/2026). O que este
- * código faz é o mínimo que a leitura exige, com o menor compromisso possível: dois blocos que
- * não são lugares da sala (Musicalidade, Expressão) vão para Poiesis; todo o resto fica em
- * Técnica — que é exactamente o que o sistema já fazia com o prefixo. Não há terceira caixa, não
- * há bloco «desconhecido», e nenhum dado é tocado. Quando ela decidir a taxonomia, o mapa muda
- * de sítio (para o conteúdo) e esta função lê-o de lá.
+ * A TAXONOMIA DEIXOU DE SER CANDIDATA (04/11/2026). A 02/11/2026 o mapa era declarado provisório
+ * («transformar os três em eixos de primeira classe é da pesquisadora»). Ela decidiu: são três
+ * eixos de primeira classe, e musicalidade e expressão **nunca** se agrupam sob o técnico. O mapa
+ * saiu daqui para `motor/nucleo/eixos.js` — uma declaração só, lida por este gerador, pelo
+ * montador da publicação e pelo Plano de Observação.
  * ========================================================================== */
-const BLOCOS_DA_POIESIS = ['musicalidade', 'expressao'];
-
-/** O bloco de uma dimensão: o rótulo depois do separador («Técnica — Barra» → «Barra»). */
-function blocoDaDimensao(rotulo) {
-  const partes = String(rotulo == null ? '' : rotulo)
-    .split(/\s+[—–-]\s+/).map((p) => p.trim()).filter(Boolean);
-  return partes.length > 1 ? partes[partes.length - 1] : (partes[0] || '');
-}
-
-/** O eixo de um bloco — Técnica por omissão, que é o que o prefixo do conteúdo declara hoje. */
-function eixoDoBloco(bloco) {
-  return BLOCOS_DA_POIESIS.indexOf(chaveNormalizada(bloco)) !== -1 ? 'Poiesis' : 'Técnica';
-}
+/* A DECLARAÇÃO MUDOU DE SÍTIO (04/11/2026). O mapa dos eixos era um candidato aqui dentro —
+ * e havia uma SEGUNDA cópia dele em `tools/montar-publicacao.js`, com o mesmo mapa escrito outra
+ * vez. Uma taxonomia em duas cópias divergiria ao primeiro bloco novo, e o sintoma seria a mesma
+ * dimensão no eixo técnico na aula e na poiesis no cartão. Agora é `motor/nucleo/eixos.js`, lido
+ * pelos dois — e pelos três, com o Plano de Observação. */
+const eixosDaDanca = require('./eixos.js');
+const { blocoDaDimensao, eixoDoBloco, rotuloDoEixo } = eixosDaDanca;
 
 /**
  * AS TRÊS FRENTES DA OBSERVAÇÃO, tiradas do que os documentos JÁ têm.
@@ -244,7 +236,10 @@ function eixoDoBloco(bloco) {
  */
 function eixosDaObservacao(dims, plano, po) {
   const dimensoes = Array.isArray(dims) ? dims : [];
-  const porEixo = { Técnica: [], Poiesis: [] };
+  /* AS CHAVES SÃO OS IDs DOS EIXOS (`tecnica`, `poiesis`, `corpo`) — desde 04/11/2026, quando o
+   * mapa passou a devolver o id e não o rótulo. O rótulo é de apresentação: um dia pode ser
+   * «Técnica» noutra língua, e o id não muda. */
+  const porEixo = { tecnica: [], poiesis: [], corpo: [] };
   for (const d of dimensoes) {
     const bloco = blocoDaDimensao(d.dimensao);
     const eixo = eixoDoBloco(bloco);
@@ -332,13 +327,15 @@ function eixosDaObservacao(dims, plano, po) {
       : 'o PO ainda não declarou dimensões';
   };
 
-  const tecnica = eixo('tecnica', 'Técnica', porEixo['Técnica'], resumoDoEixo(porEixo['Técnica']));
-  const poiesis = eixo('poiesis', 'Poiesis', porEixo['Poiesis'], resumoDoEixo(porEixo['Poiesis']));
-
+  /* O CORPO É EIXO PRÓPRIO, e não uma técnica — desde 04/11/2026, quando a taxonomia deixou de
+   * ser candidata. Antes, `eixoDoBloco` devolvia «Técnica» para tudo o que não fosse
+   * musicalidade/expressão, e o corpo do plano caía no eixo errado. Nenhuma dimensão do PO cai
+   * no corpo (o PO não declara dimensões de corpo): o que ele leva são as LINHAS, lidas do plano
+   * e do PO — e é isso que `porEixo.corpo` guarda, vazio, para a soma fechar nos três eixos. */
   return [
-    eixo('corpo', 'Corpo', [], resumoDoCorpo, linhasDoCorpo),
-    tecnica,
-    poiesis,
+    eixo('corpo', 'Corpo', porEixo.corpo, resumoDoCorpo, linhasDoCorpo),
+    eixo('tecnica', 'Técnica', porEixo.tecnica, resumoDoEixo(porEixo.tecnica)),
+    eixo('poiesis', 'Poiesis', porEixo.poiesis, resumoDoEixo(porEixo.poiesis)),
   ];
 }
 
@@ -467,8 +464,11 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   // O PARÂMETRO DE MEDIÇÃO vem da matriz objetivo × o que se observa (a forma que o formulário
   // grava: `{marco, marcados}`), e a prosa antiga segue valendo. Sem a composição, a matriz
   // chegava ao documento como `[object Object]`.
+  /* A régua é a do repertório ACORDADO do envelope — a mesma da sequência (04/11/2026). Sem
+   * ela, a matriz do parâmetro publicava «observa: … · Port de bras» numa aula cuja curadoria
+   * tem dois verbetes (ver `motor/nucleo/sequencia.js`). */
   const parametroLinhas = parametroEmLinhas(resp(plano, 'aula-1-parametro'),
-    marcosEmTexto(resp(plano, 'marcos-por-aula')));
+    marcosEmTexto(resp(plano, 'marcos-por-aula')), resp(plano, 'repertorio'));
   /*
    * UMA LINHA, NÃO VÁRIAS (20/10/2026). O parâmetro vira uma CÉLULA de tabela, e uma célula de
    * tabela Markdown não atravessa linhas: escrita com `\n`, a linha partia-se em três, o parser
@@ -1960,5 +1960,6 @@ module.exports = {
   eixosDaObservacao,
   blocoDaDimensao,
   eixoDoBloco,
+  rotuloDoEixo,
   varrerJuizo,
 };

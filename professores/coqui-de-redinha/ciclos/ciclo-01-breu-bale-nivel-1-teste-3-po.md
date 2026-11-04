@@ -10,6 +10,8 @@ state: Input_PO_Aguardando
 envelope: po-20261104-1811
 ---
 
+**Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
+
 ## Plano de ensino
 
 plano-20261104-1732
@@ -36,19 +38,21 @@ Calendário: 2027-03-03 → 2027-06-30 · Volume de trabalho: 3–6 séries · C
 
 ## Dimensões observadas
 
-- Técnica — Barra
-- Técnica — Centro
-- Técnica — Musicalidade
-- Técnica — Expressão
+- Barra
+- Centro
+- Musicalidade
+- Expressão
 
 ## Itens de cada dimensão
 
-| Dimensão | Itens |
-|:--|:--|
-| **Técnica — Barra** | saída do calcanhar no tendu; quadril sem subir no en dehors |
-| **Técnica — Centro** | transferência de peso sem perder a verticalidade; braço junto do movimento |
-| **Técnica — Musicalidade** | resposta ao pulso na marcação; frase até o fim da música |
-| **Técnica — Expressão** | olhar acompanha o braço; presença sem rigidez de rosto |
+| Eixo | Dimensão | Itens |
+|:--|:--|:--|
+| Corpo | **Ponto de partida** | 1 sujeito — o registo está em «Linha de base», e vem da anamnese de cada um |
+| Corpo | **Restrições** | sem restrições declaradas |
+| Técnica | **Barra** | saída do calcanhar no tendu; quadril sem subir no en dehors |
+| Técnica | **Centro** | transferência de peso sem perder a verticalidade; braço junto do movimento |
+| Poiesis | **Musicalidade** | resposta ao pulso na marcação; frase até o fim da música |
+| Poiesis | **Expressão** | olhar acompanha o braço; presença sem rigidez de rosto |
 
 ## Metodologia e notação
 

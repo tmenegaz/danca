@@ -664,3 +664,10 @@ experimentos/modelo-formulario/*
 # prova LÊ os verbos do ficheiro do contrato (não de uma lista) e testa os três adaptadores de
 # base, o acervo e o COMPOSTO montado como a produção o monta — e prova que ele deixou de enumerar.
 !experimentos/provar-verbos-do-armazenamento.js
+
+# OS EIXOS DO PO (04/11/2026). O Plano de Observação listava «Técnica — Musicalidade» e «Técnica —
+# Expressão» porque o conteúdo concatenava um eixo fixo a todos os blocos. Esta prova mede as duas
+# pontas: o rótulo GRAVADO lido certo (o bloco decide o eixo, não o prefixo) e o rótulo NOVO nascido
+# certo; mede o documento do PO nos três eixos com o Fenómeno sob o título; e mede a TELA — o
+# sujeito escolhido antes das dimensões, e o corpo a carregar da anamnese de quem se observa.
+!experimentos/provar-eixos-do-po.js

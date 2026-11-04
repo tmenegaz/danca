@@ -31,6 +31,7 @@ const {
   comporData,
   condicaoDeRegistroEmTexto,
 } = require('./derivar-po.js');
+const sequenciaDoPlano = require('./sequencia.js');
 
 const LACUNA = '[a decidir]';
 
@@ -92,15 +93,19 @@ function tabela(linhas, colunas) {
  * objetivo, com o que foi marcado nele. Grava-se `[{marco: N, marcados: [...]}]`, e o número é
  * do OBJETIVO — a leitura por linha é a única que não repete o nome do bloco uma vez por
  * objetivo (com vinte parâmetros e três objetivos, a matriz do avesso teria sessenta nomes). */
-function porObjetivo(valor, objetivos) {
+function porObjetivo(valor, objetivos, repertorio) {
   const linhas = (Array.isArray(valor) ? valor : [])
     .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
   if (!linhas.length) return null;
   const saida = [];
   for (const linha of linhas) {
     const n = Number(linha.marco);
-    const marcados = (Array.isArray(linha.marcados) ? linha.marcados : [])
-      .map((v) => String(v).trim()).filter(Boolean);
+    /* A MESMA RÉGUA DO §1 DA AULA, e aqui é a ficha do PLANO (04/11/2026): o termo que a
+     * curadoria não acordou não se publica. Uma segunda cópia da comparação divergiria da
+     * primeira — é a regra de `motor/nucleo/sequencia.js`, e a razão de ela estar lá. */
+    const marcados = sequenciaDoPlano.termosDoRepertorio(
+      (Array.isArray(linha.marcados) ? linha.marcados : [])
+        .map((v) => String(v).trim()).filter(Boolean), repertorio);
     if (!Number.isFinite(n) && !marcados.length) continue;
     const qual = Number.isFinite(n) ? (objetivos[n - 1] || '') : '';
     const rotulo = 'Objetivo ' + (Number.isFinite(n) ? n : '?')
@@ -138,7 +143,7 @@ function corpoDoCampo(campo, envelope, contexto) {
 
   if (campo.porMarco) {
     const marcos = contexto && contexto.objetivos ? contexto.objetivos : [];
-    return porObjetivo(valor, marcos);
+    return porObjetivo(valor, marcos, contexto && contexto.repertorio);
   }
   if (campo.tabela) {
     const linhas = Array.isArray(valor) ? valor : (valor && valor.linhas) || [];
@@ -282,7 +287,7 @@ function renderizar(conteudo, envelope) {
     return null;
   };
 
-  const contexto = { objetivos, daTurma };
+  const contexto = { objetivos, daTurma, repertorio: respostaDo(envelope, 'repertorio') };
 
   const escreverCampo = (campo) => {
     const corpo = corpoDoCampo(campo, envelope, contexto);

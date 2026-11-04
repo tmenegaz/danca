@@ -1,5 +1,8 @@
 'use strict';
 
+/* A DECLARAÇÃO DOS EIXOS — uma só, partilhada com o gerador e com o cartão (04/11/2026). */
+const { EIXOS, blocoDaDimensao, eixoDoBloco } = require('./eixos.js');
+
 /**
  * derivar-po.js — o envelope elicitado vira a FONTE do PO (`ciclo-XX-<escola>-po.md`).
  *
@@ -488,6 +491,32 @@ function derivarPO(envelope, plano, opcoes) {
   saida.push('---');
   saida.push('');
 
+  /* A LINHA DO TÍTULO É O FENÓMENO (04/11/2026).
+   *
+   * A pesquisadora: «na linha logo abaixo do título principal do plano de observação (seguindo a
+   * mesma lógica que estamos a estruturar para as aulas), o elemento a ser exibido não deve ser
+   * tratado como horizonte ou pergunta, mas sim denominado formalmente como Fenómeno».
+   *
+   * É a MESMA POSIÇÃO que a Aula 01 já usa para «O que esta aula deixa de fora»: um parágrafo em
+   * negrito, imediatamente sob o título, que diz o recorte de uma frase. No PO o recorte é o
+   * FENÓMENO — o que se vai OLHAR —, e não o horizonte (a intenção de fim de ano) nem a pergunta
+   * (o que se quer entender). São três coisas diferentes, e a que encabeça o documento é a
+   * observável.
+   *
+   * UMA LINHA, e não uma lista: a lista do fenómeno continua na secção dela («## Fenómeno»), que
+   * é o que o contrato extrai. Aqui é o resumo de leitura — com a lacuna dita quando não há
+   * fenómeno declarado, porque um Plano de Observação sem ele não tem o que observar. */
+  {
+    /* Sem filtro de «gabarito vazado»: este ficheiro não o tem, e a secção «## Fenómeno» também
+     * não — a coerência entre a linha e a secção vale mais do que uma limpeza que só metade do
+     * documento faria. */
+    const fenomeno = emLista(respostaDo(envelope, 'fenomeno')).map((v) => String(v).trim()).filter(Boolean);
+    saida.push(fenomeno.length
+      ? '**Fenómeno.** ' + fenomeno.join(' · ')
+      : '**Fenómeno.** [Preencher: o que se vai olhar — comportamentos observáveis, não impressões.]');
+    saida.push('');
+  }
+
   const secao = (titulo, corpo) => {
     saida.push('## ' + titulo);
     saida.push('');
@@ -519,14 +548,79 @@ function derivarPO(envelope, plano, opcoes) {
   // colunas» — e o PO é a NORMA do que se observa: sem esta seção, o escopo existia só na folha
   // derivada e o documento que o professor assina não dizia o que observa. Os ITENS saem em
   // TABELA (dimensão ↔ itens), que é a forma chave-valor do par.
-  lista('Dimensões observadas', respostaDo(envelope, 'dimensoes-de-observacao'));
+  /* AS DIMENSÕES SÃO TRÊS EIXOS, E NÃO UMA LISTA SOB «TÉCNICA» (04/11/2026).
+   *
+   * O QUE ESTAVA ERRADO, e era de leitura. As dimensões nascem do plano como `<eixo> — <bloco>`,
+   * com o eixo ESCRITO no conteúdo (`doPlano.eixo: "Técnica"`) — de modo que o documento listava
+   * «Técnica — Musicalidade» e «Técnica — Expressão». O conteúdo delas («resposta ao pulso na
+   * marcação», «olhar acompanha o braço») é **poiésis**, e o rótulo era uma afirmação falsa sobre
+   * o que se mede. A pesquisadora: «elementos como musicalidade e expressão pertencem estritamente
+   * ao eixo da poiesis e jamais devem ser rotulados ou agrupados sob o eixo técnico».
+   *
+   * NADA É RENOMEADO NO DADO (P-03). Os rótulos gravados nos POs continuam a ser os que lá estão,
+   * e os `itens-por-dimensao` referenciam-nos pelo nome. O que muda é a LEITURA — a mesma regra da
+   * §5 da aula, e a mesma declaração (`motor/nucleo/eixos.js`): o prefixo sai, e o bloco fica.
+   *
+   * O CORPO É UM EIXO E NÃO TEM DIMENSÕES NO PO: o que ele leva é o PONTO DE PARTIDA de cada
+   * sujeito e as RESTRIÇÕES declaradas — que é o que o professor consolidou da anamnese, e é o
+   * mesmo par que a §5 da aula publica. Sem sujeito escolhido, o eixo DIZ que falta. */
+  const dimensoesDoPo = emLista(respostaDo(envelope, 'dimensoes-de-observacao'));
+  const porEixo = new Map();
+  for (const d of dimensoesDoPo) {
+    const bloco = blocoDaDimensao(d);
+    const eixo = eixoDoBloco(bloco);
+    if (!porEixo.has(eixo)) porEixo.set(eixo, []);
+    porEixo.get(eixo).push(bloco);
+  }
+  /* A LISTA continua a ser a declaração do professor — mas lida pelo BLOCO, e não pelo rótulo com
+   * o eixo errado à frente. É ela que a listagem e o cartão leem. */
+  const declaradas = [];
+  for (const d of dimensoesDoPo) {
+    const bloco = blocoDaDimensao(d);
+    if (bloco && declaradas.indexOf(bloco) === -1) declaradas.push(bloco);
+  }
+  lista('Dimensões observadas', declaradas);
   {
     const itens = itensPorDimensao(respostaDo(envelope, 'itens-por-dimensao'),
       emLista(respostaDo(envelope, 'dimensoes-de-observacao')));
-    secao('Itens de cada dimensão', itens.length
-      ? ['| Dimensão | Itens |', '|:--|:--|',
-        ...itens.map((i) => '| **' + i.dimensao + '** | ' + (i.itens.join('; ') || '[a decidir]') + ' |')]
-      : ['| Dimensão | Itens |', '|:--|:--|']);
+    /* A COLUNA DO EIXO É DECLARADA, e não deduzida por quem lê o documento. É o que impede a
+     * reincidência: o eixo deixa de ser um prefixo dentro do nome e passa a ser um campo. */
+    const linhasPorEixo = { corpo: [], tecnica: [], poiesis: [] };
+    for (const i of itens) {
+      const eixo = eixoDoBloco(blocoDaDimensao(i.dimensao));
+      if (!linhasPorEixo[eixo]) linhasPorEixo[eixo] = [];
+      linhasPorEixo[eixo].push(['**' + blocoDaDimensao(i.dimensao) + '**', i.itens.join('; ') || '[a decidir]']);
+    }
+    /* O CORPO: APONTA, NÃO COPIA. O ponto de partida de cada sujeito já está na secção «Linha de
+     * base», e repeti-lo aqui punha a mesma afirmação duas vezes no mesmo documento — a segunda
+     * cópia é a que fica para trás quando a primeira é corrigida. O eixo diz ONDE o corpo se
+     * observa e QUANTOS sujeitos estão declarados; o registo fica no sítio dele. É a mesma
+     * disciplina da §5 da aula, onde o corpo aponta para o plano e para o PO em vez de os repetir. */
+    const base = (Array.isArray(respostaDo(envelope, 'linha-de-base'))
+      ? respostaDo(envelope, 'linha-de-base') : [])
+      .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
+    const sujeitosDoPo = emLista(respostaDo(envelope, 'sujeitos'));
+    const quantos = base.length || sujeitosDoPo.length;
+    linhasPorEixo.corpo.push(['**Ponto de partida**',
+      quantos
+        ? quantos + (quantos === 1 ? ' sujeito' : ' sujeitos')
+          + ' — o registo está em «Linha de base», e vem da anamnese de cada um'
+        : '[a decidir: escolha os sujeitos observados — sem eles não há corpo a observar]']);
+    const restricoes = String(respostaDo(envelope, 'restricoes') || '').trim();
+    linhasPorEixo.corpo.push(['**Restrições**', restricoes || 'sem restrições declaradas']);
+
+    const corpo = ['| Eixo | Dimensão | Itens |', '|:--|:--|:--|'];
+    for (const e of EIXOS) {
+      for (const [rotulo, valor] of linhasPorEixo[e.id] || []) {
+        corpo.push('| ' + e.rotulo + ' | ' + rotulo + ' | ' + valor + ' |');
+      }
+    }
+    /* Nenhuma dimensão caiu em eixo nenhum — e isso não se cala: a tabela diz que o PO declarou
+     * dimensões e nenhuma foi classificada. */
+    if (corpo.length === 2 && itens.length) {
+      for (const i of itens) corpo.push('| — | **' + i.dimensao + '** | ' + (i.itens.join('; ') || '[a decidir]') + ' |');
+    }
+    secao('Itens de cada dimensão', corpo);
   }
   // A metodologia e a notação vêm do PLANO referenciado (declaradas, nunca deduzidas — P-16).
   // Sem plano, a lacuna sai declarada; o PO não as re-coleta.

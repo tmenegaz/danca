@@ -116,17 +116,32 @@ function tabelaDeMarcos(valor, objetivos) {
 // Existe porque a matriz `porMarco` do formulário chega como OBJETO (`{marco, marcados}`): sem
 // esta composição, o `prosa()` do derivador da aula fazia `String([{…}])` e o documento publicado
 // dizia `[object Object]` — o dado estava certo e o documento, mudo.
-function parametroEmLinhas(valor, marcos) {
+/* …E O TERMO QUE A CURADORIA NÃO ACORDOU TAMBÉM NÃO SE PUBLICA (04/11/2026).
+ *
+ * A MESMA JANELA, deixada aberta. A sequência foi blindada em 03/11/2026 (`linhasDoRepertorio`),
+ * e a matriz do «Parâmetro de medição» não — de modo que o «Port de bras», que saiu do exercício,
+ * continuou a aparecer no §1 da MESMA aula, como «observa: Battement tendu · Plié · Port de
+ * bras». A pesquisadora voltou a vê-lo, agora no §1, e o pedido é o mesmo: «em nenhum lugar da
+ * aula pode existir algo que não esteja definido na curadoria».
+ *
+ * A régua é a de `motor/nucleo/sequencia.js` — uma só, para as duas formas de dado. `repertorio`
+ * é a lista ACORDADA do envelope; sem ela, não se julga nada (apagar o que não se pode conferir
+ * seria a limpeza a destruir o dado).
+ */
+function parametroEmLinhas(valor, marcos, repertorio) {
   const objetos = Array.isArray(valor)
     ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
     : [];
-  if (!objetos.length) return emLista(valor).filter(Boolean);
+  if (!objetos.length) {
+    return sequenciaDoPlano.termosDoRepertorio(emLista(valor).filter(Boolean), repertorio);
+  }
   const linhas = [];
   for (const linha of objetos) {
     const n = Number(linha.marco);
     const texto = Number.isFinite(n) ? (marcos[n - 1] || '') : '';
-    const itens = (Array.isArray(linha.marcados) ? linha.marcados : [])
-      .map((v) => String(v).trim()).filter(Boolean);
+    const itens = sequenciaDoPlano.termosDoRepertorio(
+      (Array.isArray(linha.marcados) ? linha.marcados : [])
+        .map((v) => String(v).trim()).filter(Boolean), repertorio);
     if (!Number.isFinite(n) && !itens.length) continue;
     linhas.push('**' + (Number.isFinite(n) ? n : '') + '**' + (texto ? ' ' + texto : '')
       + (itens.length ? ' — observa: ' + itens.join(' · ') : ''));

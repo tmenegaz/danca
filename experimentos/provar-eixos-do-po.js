@@ -1,0 +1,352 @@
+#!/usr/bin/env node
+'use strict';
+
+/**
+ * provar-eixos-do-po.js — o Plano de Observação passou a ter os três eixos, o corpo vem da
+ * anamnese do sujeito escolhido, e o sujeito escolhe-se antes das dimensões (04/11/2026).
+ *
+ * O QUE A PESQUISADORA PEDIU, e são três coisas:
+ *
+ *   1. «O plano de observação ainda apresenta itens classificados incorretamente sob a óptica
+ *      puramente técnica (ex.: técnica centro, técnica musicalidade, técnica expressão)» — e a
+ *      reclassificação: «musicalidade e expressão pertencem estritamente ao eixo da poiesis e
+ *      jamais devem ser rotulados ou agrupados sob o eixo técnico»;
+ *   2. «a dimensão do corpo é alimentada diretamente por dados do documento de anamnese daquele
+ *      sujeito — deve carregar e se posicionar dinamicamente assim que o aluno for selecionado»;
+ *   3. «o seletor do aluno deve ser reposicionado para logo abaixo da seleção do plano de
+ *      ensino — os arquivos JSON são carregados em cascata de forma antecipada».
+ *
+ * O QUE ELA NÃO PEDIU, E QUE ESTA PROVA TAMBÉM GUARDA: renomear o dado gravado. Os POs que já
+ * existem têm «Técnica — Musicalidade» escrito lá dentro, e a proveniência não se reescreve
+ * (P-03). O que muda é a LEITURA — e é por isso que a prova mede as duas pontas: o rótulo ANTIGO
+ * lido certo (Poiesis), e o rótulo NOVO nascido certo (o bloco, sem prefixo).
+ *
+ *   node experimentos/provar-eixos-do-po.js
+ */
+
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const { JSDOM, VirtualConsole } = require('jsdom');
+
+const RAIZ = path.resolve(__dirname, '..');
+const PORTA = path.join(RAIZ, 'porta');
+const { mapa } = require(path.join(RAIZ, 'motor/nucleo/porta.js'));
+const { derivarPO } = require(path.join(RAIZ, 'motor/nucleo/derivar-po.js'));
+const eixosDaDanca = require(path.join(RAIZ, 'motor/nucleo/eixos.js'));
+
+const CONTEUDO = JSON.parse(fs.readFileSync(path.join(PORTA, 'po', 'conteudo', 'po.json'), 'utf8'));
+const MAPA = mapa(CONTEUDO);
+
+let total = 0;
+let falhas = 0;
+function provar(rotulo, condicao, detalhe) {
+  total += 1;
+  if (condicao) { console.log('  ok    ' + rotulo); return; }
+  falhas += 1;
+  console.log('  FALHA ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
+}
+function bloco(titulo) { console.log('\n' + titulo); }
+
+const MIME = {
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+};
+
+/* ---------------------------------------------------------------- o PO de prova
+ *
+ * Um PO com as dimensões na forma que os envelopes GUARDADOS têm («Técnica — Barra»,
+ * «Técnica — Musicalidade»), porque é essa a forma que a leitura tem de saber corrigir. Só as
+ * dimensões e os itens variam; o resto é o mínimo que o documento exige para não sair em lacuna.
+ */
+const DIMENSOES_ANTIGAS = ['Técnica — Barra', 'Técnica — Centro', 'Técnica — Musicalidade', 'Técnica — Expressão'];
+const PO = {
+  id: 'po-20261103-2242',
+  contexto: { escola: 'breu', professor: 'coqui-de-redinha', ciclo: '01' },
+  respostas: {
+    professor: { valor: 'Coqui de Redinha' },
+    escola: { valor: 'breu' },
+    horizonte: { valor: 'Ao fim do ano, sustentar o en dehors a partir do quadril.' },
+    question: { valor: ['Como se observa o en dehors sair do quadril?'] },
+    fenomeno: { valor: ['A rotação externa visível na 1ª posição: o joelho acompanha o pé sem forçar.'] },
+    'plano-de-ensino': { valor: 'plano-20261104-1732' },
+    sujeitos: { valor: ['Aluna A'] },
+    'dimensoes-de-observacao': { valor: DIMENSOES_ANTIGAS },
+    'itens-por-dimensao': { valor: [
+      { sujeito: 'Técnica — Barra', itens: 'saída do calcanhar no tendu; quadril sem subir no en dehors' },
+      { sujeito: 'Técnica — Centro', itens: 'transferência de peso sem perder a verticalidade' },
+      { sujeito: 'Técnica — Musicalidade', itens: 'resposta ao pulso na marcação' },
+      { sujeito: 'Técnica — Expressão', itens: 'olhar acompanha o braço' },
+    ] },
+    'linha-de-base': { valor: [{ sujeito: 'Aluna A', traz: 'prática anterior', precisaDesenvolver: 'saída do calcanhar' }] },
+    restricoes: { valor: '' },
+  },
+};
+
+/* O PLANO referenciado — só o que a composição do PO lê. */
+const PLANO = {
+  id: 'plano-20261104-1732',
+  contexto: { escola: 'breu', professor: 'coqui-de-redinha', ciclo: '01', turma: 'Balé Nível 1' },
+  respostas: {
+    'contexto-turma': { valor: 'Balé Nível 1' },
+    'contexto-frequencia': { valor: '2x semanal' },
+    'contexto-duracao': { valor: '45 min' },
+    'contexto-calendario': { valor: { inicio: '2027-03-03', fim: '2027-06-30' } },
+    'contexto-registro': { valor: { quem: 'o próprio professor', onde: 'Na sala' } },
+    'aspecto-fisico': { valor: [
+      { Aspecto: 'Flexibilidade dos isquiotibiais', 'Como está a turma': '1 de 1 em «Baixa»' },
+    ] },
+  },
+};
+
+/* A ANAMNESE da Aluna A — com os campos que `registroDaAnamnese` declara. */
+const CARIMBO_DA_ANAMNESE = 'anamnese-20261103-1626';
+const ANAMNESE = {
+  id: CARIMBO_DA_ANAMNESE,
+  respostas: {
+    'flexibilidade-dos-isquiotibiais': { valor: 'Baixa ("dura")' },
+    'flexibilidade-dos-adutores': { valor: 'Parcial' },
+    'controle-de-carga-no-demi-grand-plie': { valor: 'Sustenta' },
+  },
+};
+/* Um campo que a anamnese NÃO declarou, para a prova medir o que o painel faz com ele. */
+const CAMPO_SEM_RESPOSTA = 'resistencia-de-mmss-port-de-bras-prolongado';
+
+function servir() {
+  const srv = http.createServer((req, res) => {
+    const u = new URL(req.url, 'http://local');
+    const rel = u.pathname.replace(/^\/+/, '').replace(/^plano-observacao\//, '');
+    const envia = (tipo, corpo) => {
+      res.writeHead(200, { 'content-type': tipo, 'cache-control': 'no-store' });
+      res.end(corpo);
+    };
+    const json = (o) => envia(MIME['.json'], JSON.stringify(o));
+
+    /* O MAPA DA ANAMNESE é outra fonte (`?fonte=anamnese`), e é dele que saem os NOMES dos
+     * campos — sem ele o painel mostraria os identificadores, que é o que mostrava antes. */
+    if (rel === 'api/mapa' && u.searchParams.get('fonte') === 'anamnese') {
+      return json({ ok: true, nos: [
+        { id: 'flexibilidade-dos-isquiotibiais', campo: 'Flexibilidade dos isquiotibiais' },
+        { id: 'flexibilidade-dos-adutores', campo: 'Flexibilidade dos adutores' },
+        { id: 'controle-de-carga-no-demi-grand-plie', campo: 'Controle de carga no demi-plié' },
+        { id: CAMPO_SEM_RESPOSTA, campo: 'Resistência de MMSS' },
+      ] });
+    }
+    if (rel === 'api/mapa') return json(MAPA);
+    if (rel === 'api/anamneses') {
+      return json({ ok: true, opcoes: [{ valor: 'Aluna A', rotulo: 'Aluna A', carimbo: CARIMBO_DA_ANAMNESE,
+        detalhe: 'api/envelope/' + CARIMBO_DA_ANAMNESE }] });
+    }
+    if (rel === 'api/envelope/' + CARIMBO_DA_ANAMNESE) return json(ANAMNESE);
+    if (rel === 'api/planos') {
+      return json({ ok: true, opcoes: [{ valor: PLANO.id, rotulo: 'Plano de teste', carimbo: PLANO.id,
+        detalhe: 'api/envelope/' + PLANO.id }] });
+    }
+    if (rel === 'api/envelope/' + PLANO.id) return json(PLANO);
+    if (rel.startsWith('api/bastidores/')) return json({ ok: true, opcoes: [] });
+    if (rel.startsWith('api/')) return json({ ok: true, opcoes: [], nos: [] });
+
+    if (rel === 'assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
+    if (rel === 'assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
+    const alvo = rel ? path.join(PORTA, rel) : path.join(PORTA, 'index.html');
+    if (alvo.startsWith(PORTA) && fs.existsSync(alvo) && fs.statSync(alvo).isFile()) {
+      return envia(MIME[path.extname(alvo)] || 'application/octet-stream', fs.readFileSync(alvo));
+    }
+    return envia(MIME['.html'], fs.readFileSync(path.join(PORTA, 'index.html')));
+  });
+  return new Promise((pronto) => srv.listen(0, '127.0.0.1', () =>
+    pronto({ srv, base: 'http://127.0.0.1:' + srv.address().port })));
+}
+
+async function abrir() {
+  const { srv, base } = await servir();
+  const caminho = 'plano-observacao/?professor=prova&escola=prova&ciclo=01';
+  const problemas = [];
+  const vc = new VirtualConsole();
+  vc.on('jsdomError', (e) => { if (!/Not implemented/.test(e.message)) problemas.push(e.message); });
+  const dom = await JSDOM.fromURL(base + '/' + caminho, {
+    runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true, virtualConsole: vc,
+    beforeParse(w) {
+      w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+        addListener() {}, removeListener() {} });
+      w.fetch = (u, i) => fetch(new URL(String(u), base + '/' + caminho), i);
+      w.CSS = w.CSS || {};
+      if (!w.CSS.escape) w.CSS.escape = (v) => String(v).replace(/[^a-zA-Z0-9_-]/g, (c) => '\\' + c);
+      w.confirm = () => true;
+      w.alert = () => {};
+      w.addEventListener('unhandledrejection', (e) => {
+        problemas.push('REJEIÇÃO: ' + ((e.reason && e.reason.message) || e.reason));
+      });
+      w.addEventListener('error', (e) => problemas.push('ERRO: ' + e.message));
+    },
+  });
+  const w = dom.window;
+  await new Promise((r) => setTimeout(r, 900));
+  return { w, srv, base, problemas };
+}
+
+async function main() {
+  // ------------------------------------------------------------------ A. a ordem
+  bloco('A. O SUJEITO ESCOLHE-SE ANTES DAS DIMENSÕES (a cascata)');
+  {
+    const ids = MAPA.nos.map((n) => n.id);
+    const iSujeitos = ids.indexOf('sujeitos');
+    const iDimensoes = ids.indexOf('dimensoes-de-observacao');
+    const iPlano = ids.indexOf('plano-de-ensino');
+    provar('o sujeito vem DEPOIS do plano de ensino', iSujeitos > iPlano, { iPlano, iSujeitos });
+    provar('…e ANTES das dimensões — é o que faz a cascata chegar a tempo',
+      iSujeitos < iDimensoes, { iSujeitos, iDimensoes });
+    const blocoDosSujeitos = CONTEUDO.blocos[0];
+    provar('o bloco dos sujeitos é o PRIMEIRO bloco do roteiro',
+      blocoDosSujeitos.titulo === 'Sujeitos e ponto de partida', blocoDosSujeitos.titulo);
+    provar('…e as dimensões passaram a ser o segundo',
+      CONTEUDO.blocos[1].titulo === 'Dimensões e itens observados', CONTEUDO.blocos[1].titulo);
+    const noDims = MAPA.nos.find((n) => n.id === 'dimensoes-de-observacao');
+    provar('o eixo deixou de ser um prefixo único no conteúdo',
+      noDims.doPlano && noDims.doPlano.eixo === undefined, noDims.doPlano && noDims.doPlano.eixo);
+    provar('…e passou a ser declarado por bloco',
+      Boolean(noDims.doPlano.eixoDoBloco && noDims.doPlano.eixoDoBloco.Musicalidade === 'Poiesis'),
+      noDims.doPlano.eixoDoBloco);
+  }
+
+  // ------------------------------------------------------- B. a leitura do rótulo
+  bloco('B. O RÓTULO GRAVADO NÃO DECIDE O EIXO — O BLOCO DECIDE');
+  {
+    provar('«Técnica — Barra» é técnica',
+      eixosDaDanca.eixoDoBloco(eixosDaDanca.blocoDaDimensao('Técnica — Barra')) === 'tecnica');
+    provar('«Técnica — Musicalidade» NÃO é técnica (o defeito medido)',
+      eixosDaDanca.eixoDoBloco(eixosDaDanca.blocoDaDimensao('Técnica — Musicalidade')) === 'poiesis');
+    provar('«Técnica — Expressão» NÃO é técnica',
+      eixosDaDanca.eixoDoBloco(eixosDaDanca.blocoDaDimensao('Técnica — Expressão')) === 'poiesis');
+    provar('e um rótulo JÁ sem prefixo lê-se igual',
+      eixosDaDanca.eixoDoBloco('Musicalidade') === 'poiesis'
+      && eixosDaDanca.eixoDoBloco('Barra') === 'tecnica');
+    provar('o Corpo é eixo próprio, e não uma técnica',
+      eixosDaDanca.eixoDoBloco('Corpo') === 'corpo');
+  }
+
+  // ----------------------------------------------------------- C. o documento
+  bloco('C. O DOCUMENTO DO PO: TRÊS EIXOS, E O FENÓMENO SOB O TÍTULO');
+  let md = '';
+  {
+    const r = derivarPO(PO, PLANO, {});
+    md = r.markdown || r;
+    const iTitulo = md.indexOf('**Fenómeno.**');
+    const iPrimeira = md.indexOf('\n## ');
+    provar('há a linha do Fenómeno logo abaixo do cabeçalho',
+      iTitulo !== -1 && iTitulo < iPrimeira, { iTitulo, iPrimeira });
+    provar('…e ela diz o FENÓMENO, não o horizonte nem a pergunta',
+      /\*\*Fenómeno\.\*\* A rotação externa visível/.test(md), md.slice(iTitulo, iTitulo + 120));
+    provar('…sem a pergunta colada', !/\*\*Fenómeno\.\*\*.*Como se observa/.test(md));
+
+    const secaoItens = md.slice(md.indexOf('## Itens de cada dimensão'));
+    const tabela = secaoItens.slice(0, secaoItens.indexOf('\n\n', secaoItens.indexOf('|:')));
+    provar('a tabela dos itens declara a coluna do eixo', /\| Eixo \| Dimensão \| Itens \|/.test(tabela), tabela);
+    provar('a Barra está no eixo Técnica', /\| Técnica \| \*\*Barra\*\* \|/.test(tabela), tabela);
+    provar('a Musicalidade está no eixo Poiesis',
+      /\| Poiesis \| \*\*Musicalidade\*\* \|/.test(tabela), tabela);
+    provar('a Expressão está no eixo Poiesis', /\| Poiesis \| \*\*Expressão\*\*/.test(tabela), tabela);
+    provar('NENHUMA linha põe Musicalidade ou Expressão na Técnica',
+      !/\| Técnica \| \*\*(Musicalidade|Expressão)\*\*/.test(tabela), tabela);
+    provar('o Corpo tem linha própria, e aponta para a linha de base',
+      /\| Corpo \| \*\*Ponto de partida\*\* \|.*Linha de base/i.test(tabela), tabela);
+    provar('…e diz as restrições, mesmo quando não há nenhuma',
+      /\| Corpo \| \*\*Restrições\*\* \| sem restrições declaradas/.test(tabela), tabela);
+
+    const lista = md.slice(md.indexOf('## Dimensões observadas'), md.indexOf('## Itens de cada dimensão'));
+    provar('a lista das dimensões já não traz o prefixo «Técnica —»',
+      !/Técnica —/.test(lista), lista);
+    provar('…e traz os blocos por nome', /- Barra[\s\S]*- Musicalidade/.test(lista), lista);
+  }
+
+  // --------------------------------------------------------------- D. a tela
+  bloco('D. A TELA: O CORPO CARREGA-SE QUANDO O SUJEITO É ESCOLHIDO');
+  {
+    const { w, srv, problemas } = await abrir();
+    try {
+      /* O bloco das dimensões só desenha com o PLANO escolhido — é dele que a lista deriva. A
+       * derivação é assíncrona: o primeiro `renderPergunta` agenda o trabalho e pinta o
+       * «carregando»; o segundo, depois dela, desenha o painel. */
+      /* RENDERIZAR E LER SÃO COISAS DISTINTAS. Repintar a cada leitura reiniciava o painel do
+       * corpo («carregando…») antes de a leitura assíncrona chegar — a prova, ao medir, estava a
+       * desfazer o que ia medir. Renderiza-se; depois lê-se. */
+      const renderizarDimensoes = () => w.eval(`(function(){
+        var i = MAPA.nos.findIndex(function(n){ return n.id === 'dimensoes-de-observacao'; });
+        INDICE = i; renderPergunta();
+        return true;
+      })()`);
+      const lerCorpo = () => w.eval(`(function(){
+        var el = document.querySelector('.corpo-do-sujeito');
+        return el ? el.textContent : '';
+      })()`);
+      let semSujeito = '';
+      for (let tentativa = 0; tentativa < 30 && !semSujeito; tentativa++) {
+        renderizarDimensoes();
+        await new Promise((r) => setTimeout(r, 100));
+        semSujeito = lerCorpo();
+      }
+      provar('há um painel do corpo no bloco das dimensões', Boolean(semSujeito), semSujeito);
+      provar('sem sujeito escolhido, o corpo DIZ que falta — não inventa',
+        /Escolha os sujeitos observados/.test(semSujeito), semSujeito);
+
+      w.eval(`(function(){ RESPOSTAS.set('sujeitos', ['Aluna A']); return true; })()`);
+      renderizarDimensoes();
+      let texto = '';
+      for (let tentativa = 0; tentativa < 40; tentativa++) {
+        texto = lerCorpo();
+        if (texto && !/carregando|Escolha os sujeitos/.test(texto)) break;
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      provar('o painel do corpo aparece com o sujeito escolhido', /Aluna A/.test(texto), texto);
+      provar('…e traz o NOME do campo da anamnese, e não o identificador',
+        /Flexibilidade dos isquiotibiais/.test(texto), texto);
+      provar('…com o valor que a anamnese declarou', /Baixa/.test(texto), texto);
+      provar('…e não inventa um campo que a anamnese não respondeu',
+        !new RegExp(CAMPO_SEM_RESPOSTA + '|port de bras', 'i').test(texto), texto);
+
+      const grupos = JSON.parse(w.eval(`(function(){
+        var el = document.querySelector('ul.derivadas');
+        if (!el) return '[]';
+        return JSON.stringify([].map.call(el.children, function(li){
+          var rotulo = li.querySelector('b');
+          var itens = [].map.call(li.querySelectorAll('li'), function(x){ return x.textContent; });
+          return { eixo: rotulo ? rotulo.textContent : '', dimensoes: itens };
+        }));
+      })()`));
+      const eixoDe = (nome) => {
+        const g = grupos.find((x) => x.dimensoes.indexOf(nome) !== -1);
+        return g ? g.eixo : '';
+      };
+      provar('a lista das dimensões é agrupada pelo eixo (o eixo é o cabeçalho do grupo)',
+        grupos.map((g) => g.eixo).join(',').indexOf('Técnica') !== -1
+        && grupos.map((g) => g.eixo).join(',').indexOf('Poiesis') !== -1,
+        grupos.map((g) => g.eixo));
+      provar('…Barra e Centro no grupo da Técnica',
+        eixoDe('Barra') === 'Técnica' && eixoDe('Centro') === 'Técnica', grupos);
+      provar('…e Musicalidade e Expressão no grupo da Poiesis',
+        eixoDe('Musicalidade') === 'Poiesis' && eixoDe('Expressão') === 'Poiesis', grupos);
+      provar('…e o nome da dimensão vai sem o prefixo do eixo',
+        !JSON.stringify(grupos).includes('Técnica — Musicalidade'), grupos);
+
+      provar('nenhum erro de JavaScript na página', problemas.length === 0, problemas.slice(0, 3));
+    } finally {
+      try { w.close(); } catch (erro) { /* já fechada */ }
+      srv.close();
+    }
+  }
+
+  console.log('');
+  if (falhas) {
+    console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
+    process.exit(1);
+  }
+  console.log('TUDO CERTO — ' + total + ' asserções: o sujeito escolhe-se antes das dimensões, o '
+    + 'eixo decide-se pelo BLOCO (e não pelo prefixo gravado), o documento do PO mostra os três '
+    + 'eixos com o Fenómeno sob o título, e o corpo carrega-se da anamnese de quem se observa.');
+}
+
+main().catch((erro) => {
+  console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
+  process.exit(1);
+});

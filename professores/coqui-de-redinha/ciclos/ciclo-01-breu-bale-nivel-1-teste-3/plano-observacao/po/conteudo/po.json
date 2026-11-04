@@ -179,52 +179,6 @@
   "blocos": [
     {
       "bloco": 2,
-      "titulo": "Dimensões e itens observados",
-      "objetivo": "declarar, para cada dimensão, os itens que serão marcados por aluno",
-      "campos": [
-        {
-          "id": "dimensoes-de-observacao",
-          "campo": "Dimensões observadas",
-          "obrigatorio": true,
-          "explicacao": {
-            "oQueE": "As dimensões em que você observa cada aluno. Elas NÃO se escolhem aqui: nascem do plano de ensino — uma por bloco da aula que o plano marca (solo, barra, centro, musicalidade, expressão), e todas sob o eixo TÉCNICA, porque é a técnica que se trabalha através de cada bloco.",
-            "preencher": "Nada a marcar: a lista vem do plano. Se um bloco não aparece e você o trabalha, marque-o primeiro no plano de ensino, no campo «Blocos da aula», e volte aqui.",
-            "porQue": "A dimensão organiza a folha de captura: cada dimensão vira um bloco, e os itens dela viram as colunas. Ela é DERIVADA do plano porque o PO observa a aula que o plano fixou — o eixo (técnica) é o mesmo para todos os blocos, e o que muda entre eles é o que se olha."
-          },
-          "doPlano": {
-            "no": "estrutura-de-cada-aula",
-            "eixo": "Técnica",
-            "blocos": [
-              "Solo",
-              "Barra",
-              "Centro",
-              "Musicalidade",
-              "Expressão"
-            ],
-            "separador": " — "
-          }
-        },
-        {
-          "id": "itens-por-dimensao",
-          "campo": "Itens de cada dimensão",
-          "obrigatorio": true,
-          "repetirPor": "dimensoes-de-observacao",
-          "camposDoItem": [
-            {
-              "id": "itens",
-              "campo": "Itens observados"
-            }
-          ],
-          "explicacao": {
-            "oQueE": "O que exatamente você marca, por aluno, em cada dimensão — um item por linha.",
-            "preencher": "Uma repetição aparece para cada dimensão que veio do plano; escreva os itens dela, um por linha ou separados por ponto e vírgula (;). Ex. (Técnica — Solo): «alinhamento do pé de apoio; eixo do corpo na preparação» são DOIS itens, e cada um vira uma coluna da folha.",
-            "porQue": "É o que vira a coluna da folha de captura — uma coluna por critério, porque cada um se mede sozinho. Observável é o que outra pessoa também veria."
-          }
-        }
-      ]
-    },
-    {
-      "bloco": 3,
       "titulo": "Sujeitos e ponto de partida",
       "dimensao": null,
       "objetivo": "declarar quem é observado e o ponto de partida de cada um",
@@ -316,6 +270,59 @@
             "oQueE": "Lesão, dor, limitação médica ou restrição que afeta o movimento de alguma aluna — declarada, nunca avaliada.",
             "preencher": "Se houver, descreva por aluna (apelido, restrição, quem declarou). Se não houver, escreva «nenhuma» — a ausência também é informação.",
             "porQue": "A restrição não é avaliada: é registrada e, se necessário, comunicada à coordenação. Sem a declaração, não se distingue o que é limite físico do que é o recorte."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 3,
+      "titulo": "Dimensões e itens observados",
+      "objetivo": "declarar, para cada dimensão, os itens que serão marcados por aluno",
+      "campos": [
+        {
+          "id": "dimensoes-de-observacao",
+          "campo": "Dimensões observadas",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "As dimensões em que você observa cada aluno. Elas NÃO se escolhem aqui: nascem do plano de ensino — uma por bloco da aula que o plano marca (solo, barra, centro, musicalidade, expressão). Cada bloco pertence a um dos TRÊS EIXOS: Barra e Centro são TÉCNICA, Musicalidade e Expressão são POIESIS, e o CORPO é eixo próprio — ele vem da anamnese de cada aluno, e não de um bloco da sala.",
+            "preencher": "Nada a marcar: a lista vem do plano. Se um bloco não aparece e você o trabalha, marque-o primeiro no plano de ensino, no campo «Blocos da aula», e volte aqui.",
+            "porQue": "A dimensão organiza a folha de captura: cada dimensão vira um bloco, e os itens dela viram as colunas. Ela é DERIVADA do plano porque o PO observa a aula que o plano fixou. O eixo NÃO é o mesmo para todos os blocos: musicalidade e expressão são poiésis, e chamá-las de técnica é uma afirmação falsa sobre o que se mede."
+          },
+          "doPlano": {
+            "no": "estrutura-de-cada-aula",
+            "blocos": [
+              "Solo",
+              "Barra",
+              "Centro",
+              "Musicalidade",
+              "Expressão"
+            ],
+            "separador": " — ",
+            "eixoDoBloco": {
+              "Musicalidade": "Poiesis",
+              "Expressão": "Poiesis",
+              "Solo": "Técnica",
+              "Barra": "Técnica",
+              "Centro": "Técnica"
+            },
+            "eixoPadrao": "Técnica"
+          }
+        },
+        {
+          "id": "itens-por-dimensao",
+          "campo": "Itens de cada dimensão",
+          "obrigatorio": true,
+          "repetirPor": "dimensoes-de-observacao",
+          "camposDoItem": [
+            {
+              "id": "itens",
+              "campo": "Itens observados"
+            }
+          ],
+          "explicacao": {
+            "oQueE": "O que exatamente você marca, por aluno, em cada dimensão — um item por linha.",
+            "preencher": "Uma repetição aparece para cada dimensão que veio do plano; escreva os itens dela, um por linha ou separados por ponto e vírgula (;). Ex. (no Solo): «alinhamento do pé de apoio; eixo do corpo na preparação» são DOIS itens, e cada um vira uma coluna da folha.",
+            "porQue": "É o que vira a coluna da folha de captura — uma coluna por critério, porque cada um se mede sozinho. Observável é o que outra pessoa também veria."
           }
         }
       ]

@@ -635,10 +635,25 @@ function itemDaAula(t, a, indice, total) {
     contexto: 'Ciclo ' + p.ciclo + ' · aula ' + Number(a.n) + ' de ' + total,
     turma: p.turma,
     professor: p.professor,
-    /* A LINHA DE APOIO DO CARTÃO — a síntese do guia, quando há guia. É o «à mão» que a
-     * pesquisadora pediu: quem passa os olhos pela lista vê o que se observa naquela aula, e o
-     * detalhe critério a critério está na caixa ao lado (e na §5 da aula). */
-    ...(guia.resumo ? { fatos: [guia.resumo] } : {}),
+    /* A LINHA DE APOIO DO CARTÃO É O OBJETIVO GERAL DO PO (04/11/2026).
+     *
+     * A pesquisadora: «a linha de resumo exibida atualmente abaixo do título da aula e acima das
+     * informações de ciclo/aula (que lista os eixos e contagens…) — essa informação já está
+     * perfeitamente posicionada e detalhada dentro do Guia de Observação, tornando redundante a
+     * sua exibição na listagem principal». E o que entra no lugar é o OBJETIVO GERAL do Plano de
+     * Observação, com o prefixo que ela fixou.
+     *
+     * A HIERARQUIA FICA COMPLETA: o título do cartão é o objetivo ESPECÍFICO da aula (o marco), e
+     * esta linha diz o objetivo GERAL do ciclo. Duas escalas, cada uma no seu lugar — e a síntese
+     * por eixo continua na caixa do guia, que é onde ela se lê sem repetir.
+     *
+     * A FONTE É O PO CONSOLIDADO no pacote (`po-01.json`), e o campo é `horizonte` — o mesmo que
+     * a capa do PO chama «Horizonte (objetivo geral de conjunto)». Sem ele, a linha DIZ que falta:
+     * um cartão em branco leria como «este ciclo não tem objetivo geral», que é uma afirmação
+     * sobre o trabalho de alguém. */
+    ...(guia.objetivoGeral
+      ? { fatos: ['Plano de Observação — ' + guia.objetivoGeral] }
+      : {}),
     caixas: [
       /* A «TURMA» CONCENTRA O QUE ESTAVA EM DUAS CAIXAS (04/11/2026). O horário tinha caixa
        * própria ao lado da turma, e são a mesma pergunta: «que aula é esta, e quando». A contagem
@@ -707,17 +722,15 @@ const EIXOS_DO_GUIA = [
   { id: 'tecnica', rotulo: 'Técnica' },
   { id: 'poiesis', rotulo: 'Poiesis' },
 ];
-const BLOCOS_DA_POIESIS_NO_CARTAO = ['musicalidade', 'expressao'];
-const semAcento = (t) => String(t == null ? '' : t)
-  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
-/** O bloco de uma dimensão: o que vem depois do separador («Técnica — Barra» → «Barra»). */
-const blocoDaDimensaoNoCartao = (rotulo) => {
-  const partes = String(rotulo == null ? '' : rotulo).split(/\s+[—–-]\s+/).map((x) => x.trim()).filter(Boolean);
-  return partes.length > 1 ? partes[partes.length - 1] : (partes[0] || '');
-};
-/** O eixo de um bloco — o mesmo mapa do gerador, e declarado como candidato lá. */
-const eixoDoBlocoNoCartao = (bloco) =>
-  (BLOCOS_DA_POIESIS_NO_CARTAO.indexOf(semAcento(bloco)) !== -1 ? 'poiesis' : 'tecnica');
+/* O MAPA DOS EIXOS ERA UMA SEGUNDA CÓPIA (04/11/2026). Estava escrito aqui e outra vez em
+ * `motor/nucleo/derivar-ciclo.js` — duas declarações da mesma taxonomia, que divergiriam ao
+ * primeiro bloco novo (a mesma dimensão no eixo técnico na aula e na poiesis no cartão). Agora é
+ * uma só, em `motor/nucleo/eixos.js`. E ela trouxe a correcção que faltava: o CORPO é eixo
+ * próprio, e não uma técnica — aqui qualquer bloco que não fosse musicalidade/expressão caía em
+ * «tecnica», e o corpo do plano ia para o eixo errado. */
+const eixosDaDanca = require(path.join(__dirname, '..', 'motor', 'nucleo', 'eixos.js'));
+const blocoDaDimensaoNoCartao = eixosDaDanca.blocoDaDimensao;
+const eixoDoBlocoNoCartao = eixosDaDanca.eixoDoBloco;
 
 /**
  * O PERFIL DO PROFESSOR — nome e modalidade, do ficheiro da PESSOA.
@@ -784,10 +797,14 @@ function tradicaoDaTurma(t) {
 /**
  * O GUIA DE UMA AULA, PARA O CARTÃO — lido da cópia do PO no pacote.
  *
- * Devolve `{valor, resumo, pares}`:
+ * Devolve `{valor, resumo, pares, objetivoGeral}`:
  *   · `valor` — a conta, que é o que a caixa mostra fechada («8 critérios · 3 dimensões»);
- *   · `resumo` — a linha do cartão, por eixo («Técnica — Barra, Centro · Poiesis — Musicalidade»);
- *   · `pares` — `[dimensão, itens]`, um por dimensão, para o painel.
+ *   · `resumo` — a síntese por eixo («Técnica — Barra, Centro · Poiesis — Musicalidade»), que
+ *     ficou SEM consumidor no cartão em 04/11/2026 (a linha passou a ser o objetivo geral) e se
+ *     mantém porque é o que a caixa fechada do guia resume;
+ *   · `pares` — `[dimensão, itens]`, um por dimensão, para o painel;
+ *   · `objetivoGeral` — o `horizonte` do PO, que é o OBJETIVO GERAL de conjunto. É ele que a
+ *     linha do cartão publica agora.
  *
  * Sem PO no pacote, tudo sai vazio e a caixa DIZ porquê — um cartão em branco leria como «não há
  * nada a observar», que é uma afirmação sobre a aula de alguém.
@@ -858,12 +875,19 @@ function guiaDoCartao(t, a) {
     })
     .filter(Boolean);
   const resumo = pares.map(([rotulo, valorDoEixo]) => rotulo + ' — ' + valorDoEixo).join(' · ');
+  /* O OBJETIVO GERAL VEM DO PO, e é o `horizonte` (04/11/2026). O conteúdo do PO chama-lhe
+   * literalmente «Horizonte (objetivo geral de conjunto)» — não há um segundo campo a inventar.
+   * Sem horizonte, `''`: o cartão diz que falta, e não põe lá a pergunta nem o fenómeno, que
+   * dizem outra coisa. */
+  const declarado = po && (po.horizonte !== undefined ? po.horizonte : po.horizonteDoConjunto);
+  const objetivoGeral = String(declarado == null ? ''
+    : (Array.isArray(declarado) ? declarado.join(' ') : declarado)).trim();
   const valor = (total || nomes.length)
     ? total + (total === 1 ? ' critério' : ' critérios') + ' · '
       + EIXOS_DO_GUIA.filter((e) => (porEixo.get(e.id) || []).length).length
       + ((EIXOS_DO_GUIA.filter((e) => (porEixo.get(e.id) || []).length).length === 1) ? ' eixo' : ' eixos')
     : 'sem dimensões no PO';
-  return { valor, resumo, pares };
+  return { valor, resumo, pares, objetivoGeral };
 }
 
 /**
