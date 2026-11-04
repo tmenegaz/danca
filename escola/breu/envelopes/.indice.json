@@ -3,7 +3,8 @@
   "nomes": [
     "anamnese-20261103-1626.json",
     "plano-20261103-2200.json",
-    "po-20261103-2202.json"
+    "po-20261103-2202.json",
+    "po-20261103-2221.json"
   ],
   "resumos": {
     "anamnese-20261103-1626.json": {
@@ -40,6 +41,21 @@
       "ciclo": "01",
       "ajuste_de": null,
       "gerado_em": "2026-11-03T22:02",
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261103-2200"
+      ]
+    },
+    "po-20261103-2221.json": {
+      "id": "po-20261103-2221",
+      "fonte": "po",
+      "escola": "breu",
+      "professor": "coqui-de-redinha",
+      "ciclo": "01",
+      "ajuste_de": "po-20261103-2202",
+      "gerado_em": "2026-11-03T22:21",
       "sujeitos": [
         "Aluna A"
       ],
