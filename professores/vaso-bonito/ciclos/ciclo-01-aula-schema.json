@@ -23,17 +23,40 @@
     },
     "blocoDeMusicalidade": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "A §4 — a tabela do bloco de musicalidade (`| Item | Trabalho |`): uma linha de dados por objeto. ⚠️ LIMITAÇÃO DECLARADA: o TÍTULO da seção traz a percentagem CALCULADA como texto — `4. Bloco de musicalidade (8 tempos · 9%)` nas aulas 01/02/03 e `(8 tempos · 10%)` nas 04/05. O MAPA_SECOES enumera as DUAS formas medidas; uma aula futura com outra percentagem traria um título fora do mapa, e o contrato, não o reconhecendo, ignorava-o EM SILÊNCIO (ver a nota do modo de falha por omissão em tools/validar-aula-ciclo.js). Se isso acontecer, o valor certo é acrescentar a variante ao mapa — é a razão por que o mapa é explícito e não um padrão que adivinhe o número. O dialeto C não tem esta seção."
     },
     "guiaDeObservacao": {
-      "type": "array",
-      "items": { "type": "object" },
-      "description": "A §5 — a tabela do guia de observação do professor: uma linha de dados por objeto. As colunas divergem (o `fokini` abre com `Dimensão`, o `tiago` com `Critério`), e é por isso que os `items` ficam em `object` sem `properties` — fixar uma das formas seria eleger um dialeto como canon. O dialeto C não tem esta seção."
+      "type": "object",
+      "description": "A §5 — o guia de observação do professor, nas TRÊS FRENTES (04/11/2026): uma tabela por eixo, e o eixo é o BLOCO do documento (`### Corpo`, `### Técnica`, `### Poiesis`). O contrato de extração lê uma tabela por bloco, e é essa a razão de o campo ser um objeto com três arrays em vez de um array só: três tabelas num bloco só perderiam a segunda e a terceira em silêncio. As colunas divergem (o corpo é `Critério | O que se observa`, a técnica e a poiesis são `Bloco | O que se observa`), e é por isso que os `items` ficam em `object` sem `properties` — fixar uma das formas seria eleger um dialeto como canon. O corpo vem do plano (`aspecto-fisico`) e do PO (`linha-de-base`, `restricoes`); a técnica e a poiesis vêm das dimensões do PO, classificadas pelo bloco.",
+      "properties": {
+        "Corpo": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "Técnica": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "Poiesis": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
     },
     "distribuicaoDoVolume": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "A tabela da distribuição do volume físico (`| Bloco | Tempos | Fatia |`): uma linha de dados por objeto. A seção é a §6 no dialeto A e a §4 no dialeto C — e o MAPA_SECOES mapeia as duas chaves para este mesmo campo. A segunda tabela da seção no dialeto A (`| Exercício | Tempos |`) é DESCARTADA com aviso pelo contrato, que só aceita uma tabela por bloco (tools/lib-extracao-md.js:185-190); é o aviso medido em todas as fontes do `fokini`."
     },
     "musicalidade": {
@@ -46,7 +69,9 @@
     },
     "distribuicaoPelosBlocos": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "A §7 das aulas 04/05 do dialeto A (`Distribuição do volume pelos blocos (comparação com o ciclo)`) — a comparação da aula com o ciclo. As colunas variam com a aula (4 na 04, 5 na 05) e os `items` ficam em `object` sem `properties`, pela mesma razão do guia de observação. Só existe no dialeto A."
     },
     "notacaoEmBenesh": {
@@ -55,7 +80,9 @@
     },
     "auditoria": {
       "type": "array",
-      "items": { "type": "object" },
+      "items": {
+        "type": "object"
+      },
       "description": "A tabela do registo de auditoria da aula (`| Verificação | Resultado |` no dialeto A, `| Regra | Como esta aula a cumpre |` no B): uma linha de dados por objeto. É a §8 no dialeto A, a §9 nas aulas 04/05, e não existe no dialeto C."
     },
     "proximoPasso": {
@@ -63,7 +90,9 @@
       "description": "A última seção (§9 no dialeto A, §10 nas aulas 04/05) — o próximo passo, em prosa. Não existe no dialeto C."
     }
   },
-  "required": ["identificacao"],
+  "required": [
+    "identificacao"
+  ],
   "_nota_escopo_02-10-2026": "Nota de escopo (02/10/2026). Os ciclos-protótipo Duo, Ritmos e Tiago foram removidos do repositório nesta data; o ciclo ativo é o Diaghilev (fokini). As description que citam `duo`, `ritmos` e `tiago` são MEDIÇÃO — os casos medidos que justificam a tolerância declarada neste schema — e ficam como evidência, não como exemplo de forma. As enumerações de forma foram atualizadas para o corpus vivo (`diaghilev`).",
   "additionalProperties": true
 }

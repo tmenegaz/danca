@@ -646,9 +646,13 @@ function itemDaAula(t, a, indice, total) {
        * estar, e a caixa do horário deixa de existir — três caixas continuam a ser o limite, e
        * agora são turma · professor · guia. */
       { rotulo: 'Turma', valor: p.turmaCurta,
+        /* O CICLO NÃO É ATRIBUTO DA TURMA (04/11/2026). A pesquisadora: «remover a informação de
+         * "ciclo 01", pois o ciclo não é um atributo estrutural da turma». É a mesma leitura que
+         * a listagem da Área do Professor já faz — lá o ciclo aparece onde é o ciclo (na geração,
+         * nos índices), e não como se fosse um dado da turma. O cartão continua a dizer a turma,
+         * a aula («Aula 1 de 35»), o dia, as horas, a duração e a sala. */
         painel: listas.painelDoCartao([
           ['Turma', p.turma],
-          ['Ciclo', p.ciclo],
           ['Aula', Number(a.n) + ' de ' + total],
           ['Dia', data(a.data) || '—'],
           ['Começa às', a.inicio || '—'],
@@ -661,12 +665,27 @@ function itemDaAula(t, a, indice, total) {
           ['Sala', 'não declarada']],
           'A sala entra no modelo com o PLANO-TABELA-DE-ATIVIDADES. Até lá, a listagem diz que '
           + 'não a tem — não inventa um sítio.') },
-      /* O PROFESSOR SEM A NOTA DE BASTIDOR (04/11/2026). Aqui estava, por baixo do painel, «A
-       * aula não tem professor próprio: quem o tem é a turma, e é a curadoria que a liga» — uma
-       * explicação de arquitetura a quem só quer saber quem dá a aula. Ela era verdadeira e não
-       * era do professor: saiu. O que fica é o dado, e nada mais. */
-      { rotulo: 'Professor', valor: p.professor,
-        painel: listas.painelDoCartao([['Professor da turma', p.professor || '—']]) },
+      /* O PROFESSOR É TRÊS DADOS, E NÃO UM SLUG (04/11/2026). A pesquisadora: o bloco «deve
+       * exibir obrigatoriamente três informações que já existem na base — nome do professor,
+       * modalidade que ele ensina, tradição de referência». O painel dizia uma linha só, e dizia
+       * o IDENTIFICADOR (`coqui-de-redinha`), que não é o nome de ninguém.
+       *
+       * AS TRÊS VÊM DO DADO, cada uma do seu sítio, e nenhuma é deduzida:
+       *   · o NOME e a MODALIDADE são da PESSOA — `professores/<slug>/perfil.json` (a habilitação
+       *     é dela, não do tenant; decisão de 03/11/2026). O rótulo da modalidade sai da lista do
+       *     catálogo (`biblioteca/modalidades/modalidades.json`), não de uma capitalização;
+       *   · a TRADIÇÃO é do PLANO — é ele que declara `metodologiaDeReferencia` («RAD»), e é a
+       *     tradição com que ESTA turma é ensinada. Pô-la no perfil seria dizer que a pessoa só
+       *     trabalha numa tradição, que é mais do que o dado afirma.
+       *
+       * O QUE FALTA É DITO, e não inventado: sem perfil, o painel mostra o professor que o
+       * `.conf` declara e escreve «não declarada» nas duas linhas que dependem dele. */
+      { rotulo: 'Professor', valor: perfilDoProfessor(t).nome || p.professor || '—',
+        painel: listas.painelDoCartao([
+          ['Professor', perfilDoProfessor(t).nome || p.professor || '—'],
+          ['Modalidade', perfilDoProfessor(t).modalidade || 'não declarada'],
+          ['Tradição de referência', tradicaoDaTurma(t) || 'não declarada'],
+        ]) },
       /* O GUIA — a caixa nova. O valor é a conta (quantos critérios, em quantas dimensões); o
        * painel, um par por dimensão com os itens. A §5 da aula continua a ser o documento, e o
        * nome da aula é o link para lá. */
@@ -699,6 +718,68 @@ const blocoDaDimensaoNoCartao = (rotulo) => {
 /** O eixo de um bloco — o mesmo mapa do gerador, e declarado como candidato lá. */
 const eixoDoBlocoNoCartao = (bloco) =>
   (BLOCOS_DA_POIESIS_NO_CARTAO.indexOf(semAcento(bloco)) !== -1 ? 'poiesis' : 'tecnica');
+
+/**
+ * O PERFIL DO PROFESSOR — nome e modalidade, do ficheiro da PESSOA.
+ *
+ * `professores/<slug>/perfil.json` é o sítio da habilitação (03/11/2026: a modalidade nasce da
+ * competência de quem ensina, não do edifício). O cartão mostra o NOME, e não o slug: um
+ * identificador não é o nome de ninguém.
+ *
+ * Sem perfil — escola antiga, professor que ainda não declarou — devolve vazio, e quem mostra diz
+ * «não declarada». Nada é capitalizado a partir do slug para parecer um nome.
+ */
+function perfilDoProfessor(t) {
+  const slug = String((t && (t.professor || (t.resumo && t.resumo.professor))) || '').trim();
+  if (!slug) return { nome: '', modalidade: '' };
+  const arquivo = path.join(RAIZ, 'professores', slug, 'perfil.json');
+  let perfil = null;
+  if (fs.existsSync(arquivo)) {
+    try { perfil = JSON.parse(fs.readFileSync(arquivo, 'utf8')); } catch (erro) { perfil = null; }
+  }
+  const lista = (perfil && Array.isArray(perfil.modalidades)) ? perfil.modalidades.map(String) : [];
+  return {
+    nome: String((perfil && perfil.nome) || '').trim(),
+    // O RÓTULO VEM DO CATÁLOGO, e não de uma transformação do id: `bale-classico` → «Balé
+    // clássico» está escrito em `biblioteca/modalidades/modalidades.json`. Sem entrada lá, mostra
+    // o próprio id — que é feio mas é verdade, e diz onde ir declarar.
+    modalidade: lista.map(rotuloDaModalidade).filter(Boolean).join(', '),
+  };
+}
+
+/** O nome de uma modalidade, do catálogo. Sem catálogo legível, o id fica como está. */
+function rotuloDaModalidade(id) {
+  const arquivo = path.join(RAIZ, 'biblioteca', 'modalidades', 'modalidades.json');
+  let lista = [];
+  if (fs.existsSync(arquivo)) {
+    try {
+      const dados = JSON.parse(fs.readFileSync(arquivo, 'utf8'));
+      lista = Array.isArray(dados) ? dados : (Array.isArray(dados.modalidades) ? dados.modalidades : []);
+    } catch (erro) { lista = []; }
+  }
+  const achada = lista.find((m) => m && (m.id === id || m.slug === id));
+  return (achada && (achada.nome || achada.rotulo)) || String(id || '').trim();
+}
+
+/**
+ * A TRADIÇÃO DE REFERÊNCIA DA TURMA — do PLANO, que é quem a declara.
+ *
+ * A fonte é a cópia do plano no pacote (`plano-01.json`), no campo `contexto.metodologiaDeReferencia`
+ * — que é o que o professor respondeu no formulário («RAD»). Nada é deduzido do nome da turma nem
+ * do catálogo: uma turma de balé clássico pode ser RAD ou Vaganova, e é o plano que diz qual.
+ */
+function tradicaoDaTurma(t) {
+  for (const nome of ['plano-01.json', 'plano-aula-01.json']) {
+    const arquivo = path.join(t.pasta, nome);
+    if (!fs.existsSync(arquivo)) continue;
+    let plano = null;
+    try { plano = JSON.parse(fs.readFileSync(arquivo, 'utf8')); } catch (erro) { plano = null; }
+    const ctx = plano && plano.contexto;
+    const tradicao = ctx && (ctx.metodologiaDeReferencia || ctx.tradicao);
+    if (tradicao) return String(tradicao).trim();
+  }
+  return '';
+}
 
 /**
  * O GUIA DE UMA AULA, PARA O CARTÃO — lido da cópia do PO no pacote.
@@ -741,22 +822,46 @@ function guiaDoCartao(t, a) {
     porEixo.get(eixo).push({ dimensao: nome, bloco, itens: porDimensao.get(nome) || [] });
   }
 
-  const total = nomes.reduce((s, n) => s + (porDimensao.get(n) || []).length, 0);
-  const pares = nomes.map((nome) => {
-    const itens = porDimensao.get(nome) || [];
-    return [nome, itens.length ? itens.join(' · ') : 'a preencher no PO'];
-  });
-  const resumo = EIXOS_DO_GUIA
+  /* O CORPO DO PLANO (04/11/2026). O eixo do corpo não tem dimensões no PO: tem os aspectos
+   * físicos que o PLANO declara. Até aqui a caixa contava só as dimensões do PO, e o corpo
+   * aparecia como uma frente sem uma linha — «o guia contempla as três dimensões» era verdade no
+   * documento e mentira no cartão. A fonte é a cópia do plano no pacote, e o que se lê são as
+   * duas primeiras células de cada linha: o aspecto e como está a turma. */
+  const aspectos = (() => {
+    const arquivo = path.join(t.pasta, 'plano-01.json');
+    if (!fs.existsSync(arquivo)) return [];
+    let plano = null;
+    try { plano = JSON.parse(fs.readFileSync(arquivo, 'utf8')); } catch (erro) { plano = null; }
+    const linhas = plano && Array.isArray(plano.aspectoFisico) ? plano.aspectoFisico : [];
+    return linhas.map((l) => {
+      if (!l || typeof l !== 'object') return '';
+      const celulas = Object.keys(l).map((k) => String(l[k] == null ? '' : l[k]).trim()).filter(Boolean);
+      return celulas.length ? celulas[0] : '';
+    }).filter(Boolean);
+  })();
+  if (aspectos.length) porEixo.get('corpo').push({ dimensao: 'Corpo', bloco: 'Corpo', itens: aspectos });
+
+  const total = nomes.reduce((soma, n) => soma + (porDimensao.get(n) || []).length, 0) + aspectos.length;
+  /* OS PARES SÃO UM POR EIXO, e não um por dimensão (04/11/2026). A caixa é a mesma peça em toda
+   * a listagem, e o que ela diz tem de ser o que o documento passou a mostrar: três frentes. Um
+   * par por dimensão repetia «Técnica — Barra», «Técnica — Centro» — a leitura que ela recusou
+   * («o guia não pode chamar tudo de técnica»). */
+  const pares = EIXOS_DO_GUIA
     .map((e) => {
       const lista = porEixo.get(e.id) || [];
-      if (!lista.length) return '';
-      return e.rotulo + ' — ' + lista.map((d) => d.bloco).join(', ');
+      if (!lista.length) return null;
+      const quantos = lista.reduce((soma, d) => soma + d.itens.length, 0);
+      const blocos = lista.map((d) => d.bloco).join(', ');
+      // O CORPO NÃO REPETE O PRÓPRIO NOME: o eixo já se chama «Corpo», e o grupo dele também —
+      // «Corpo 15 · Corpo» lê-se como um erro. Fica a contagem.
+      return [e.rotulo, blocos && blocos !== e.rotulo ? quantos + ' · ' + blocos : String(quantos)];
     })
-    .filter(Boolean)
-    .join(' · ');
-  const valor = nomes.length
-    ? total + (total === 1 ? ' critério' : ' critérios') + ' · ' + nomes.length
-      + (nomes.length === 1 ? ' dimensão' : ' dimensões')
+    .filter(Boolean);
+  const resumo = pares.map(([rotulo, valorDoEixo]) => rotulo + ' — ' + valorDoEixo).join(' · ');
+  const valor = (total || nomes.length)
+    ? total + (total === 1 ? ' critério' : ' critérios') + ' · '
+      + EIXOS_DO_GUIA.filter((e) => (porEixo.get(e.id) || []).length).length
+      + ((EIXOS_DO_GUIA.filter((e) => (porEixo.get(e.id) || []).length).length === 1) ? ' eixo' : ' eixos')
     : 'sem dimensões no PO';
   return { valor, resumo, pares };
 }

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T18:54:37-0300`
-Commit atual: `edcd8a00` — fix(estrutura): o nome do documento não se decide antes de gravar — quem decide é a gravação
+Gerado em: `2026-11-04T19:16:31-0300`
+Commit atual: `6ede6131` — feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+6ede6131 feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
 edcd8a00 fix(estrutura): o nome do documento não se decide antes de gravar — quem decide é a gravação
 bd32839c chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
 548510eb chore(estrutura): regerar os índices derivados
@@ -104,7 +105,6 @@ c394e879 chore(estrutura): regerar os índices derivados
 6dd3ffb8 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
 f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
 11962279 feat(acervo): envelope/po-20261104-1733.json
-7338e17d feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `34ca4f76ed92` | (vazio) | Input_PO_Aguardando |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `26a14c9e1f76` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,107 +230,104 @@ f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — A fusão das edições (decisão 84) e o espelho da verdade na arquitetura
+## 04/11/2026 — O cartão da aula é três dados do professor, e o guia são três eixos de verdade
 
-**O que motivou.** Duas coisas do mesmo dia. A primeira: a decisão 84 ficou aberta na entrada
-anterior — «a edição simultânea do mesmo documento continua a ser *last-write-wins*, e isso é
-decisão de produto». A pesquisadora decidiu: **unificar por diff e por tempo**. A segunda: o
-`ARQUITETURA-GERAL.md` dava o acervo como vivendo no KV e sob
-`professores/<professor>/escolas/<escola>/` — **nenhuma das duas é verdade**, e o documento que
-existe para ser consultado em revisão de código estava a mentir sobre onde o dado mora.
+**O que motivou.** Três coisas que a pesquisadora viu na listagem e na aula, e as três são a mesma
+pergunta: *o documento diz o que o dado tem?*
 
-**O que foi decidido — a fusão.**
+1. O cartão da aula mostrava **«Ciclo 01» dentro da caixa da Turma** — e «o ciclo não é um atributo
+   estrutural da turma». Ao mesmo tempo, o bloco do **Professor** mostrava uma linha só, e mostrava
+   o **identificador** (`coqui-de-redinha`), que não é o nome de ninguém.
+2. O **guia de observação** chamava tudo de «técnica» e, na aula, era **uma tabela com uma coluna
+   «Eixo»** a repetir o rótulo linha a linha. O eixo do **Corpo** existia como uma frase de
+   contagem e **não tinha uma única linha** — os 15 aspectos físicos declarados no plano não
+   entravam no guia.
+3. Os links da **proveniência consolidada** abriam a **porta** — o formulário de elicitação. Quem
+   clicava para reler o que tinha decidido caía dentro do formulário que ia reescrever o documento.
 
-- **Campos diferentes unificam.** Se uma edição mexeu no objetivo e a outra no repertório, o
-  documento fica com as duas. Nada se perde.
-- **O mesmo campo decide pela recência, ao milissegundo.** Vence o `escrito_em` mais recente. No
-  empate vence a gravação que está a correr — o único desempate que não depende de relógios
-  externos nem da ordem de chegada.
-- **A unidade de «local» é a chave de `respostas`.** Um campo é uma resposta inteira; meio `valor`
-  de um e meio `origem` de outro não é uma resposta.
-- **Sem base não se adivinha.** A fusão a três vias precisa do que o professor leu; sem ele grava-se
-  como sempre se gravou.
-- **A fusão nunca é silenciosa.** A resposta da gravação traz `fundido` e `fusao: { unidos,
-  conflitos }`.
-- **Onde mora o quê.** A regra é do núcleo (`motor/nucleo/fusao.js`, função pura, sem IO); a
-  repetição do 409 é do adaptador (`gravarComFusao`). O adaptador não conhece a regra; o núcleo não
-  conhece o `sha`.
+**O que foi decidido.**
 
-**O que foi decidido — o documento.** `ARQUITETURA-GERAL.md` reescrito de ponta a ponta: o mapa de
-caminhos conferido contra a árvore, a §5 nova («Concorrência, corrida e integridade de dados»,
-medida e não desenhada), o diagrama de fluxo corrigido (o envelope vai para o repositório, não para
-o KV), e a §5.6 a separar explicitamente o que cada mecanismo responde — o **Git** guarda as
-versões; a **`.fipp`** encadeia **ciclo a ciclo**.
+- **O ciclo sai da turma, o operacional fica.** A caixa da Turma diz a turma, «Aula N de M», o dia,
+  a hora de início, a de fim, a duração e a sala (que continua dita «não declarada»: ela só existe
+  no modelo com o `PLANO-TABELA-DE-ATIVIDADES`, e inventá-la seria mentir).
+- **O professor são três dados**, e cada um vem do seu sítio, nenhum deduzido: o **nome** e a
+  **modalidade** do perfil da PESSOA (`professores/<slug>/perfil.json` — a habilitação é dela, não
+  do tenant, decisão de 03/11/2026), e a **tradição de referência** do **plano**, que é quem a
+  declara (`metodologiaDeReferencia`: «RAD»). Pôr a tradição no perfil diria que a pessoa só
+  trabalha numa tradição — mais do que o dado afirma. O rótulo da modalidade sai do catálogo
+  (`biblioteca/modalidades/modalidades.json`), não de uma capitalização do id.
+- **O guia são TRÊS tabelas, uma por eixo**, e o eixo é o **bloco** do documento (`### Corpo`,
+  `### Técnica`, `### Poiesis`). Não é decoração: o contrato de extração lê **uma tabela por
+  bloco**, e três tabelas num bloco só perderiam a segunda e a terceira **com aviso** — o remédio
+  que o próprio contrato declara («dê à tabela o seu bloco»). A coluna «Eixo» sai; o que fica é a
+  coluna que responde à pergunta («o que se observa»).
+- **O Corpo passa a ter linhas**: os aspectos físicos do plano (com o «como está a turma» que o
+  plano gravou), o ponto de partida de cada aluna e as restrições declaradas no PO. É o que a
+  pesquisadora pediu — «os 15 aspectos declarados no plano preenchem o eixo do corpo» — e nada é
+  inventado: quando o PO não declara restrição, a linha **diz isso**, que é diferente de não ter
+  linha.
+- **O link da proveniência abre a LEITURA**: `/plano-observacao/api/po-preenchido.<id>?formato=html`,
+  que é a **mesma folha** que o título abre na Área do Professor (o mesmo `fichaDeLeitura`). Sem
+  `id` — um envelope que ainda não foi gravado — cai-se na porta, e não num link quebrado.
 
-**Um defeito vivo, encontrado ao documentar.** O `combinar` — o armazenamento que o Worker monta —
-lista os verbos à mão. Ontem o `criar` nasceu no acervo e **ficou de fora**: a blindagem contra
-dois «Guardar» no mesmo minuto existia no adaptador e nunca chegava ao motor, e as bancadas não o
-viram porque montavam o acervo direto. Hoje, ao documentar a lista, apareceu o segundo: o
-**`anexar`** também faltava, e o registro de custo da IA é acrescentado por ele em `rotas.js` — a
-rota chamava `armazenamento.anexar` e recebia «não é uma função». Os dois foram corrigidos, e a
-bancada passou a passar **pelo `combinar`**: é isso que faz a asserção valer em produção.
+**O que mudou de forma, e por que se pode.** O campo `guiaDeObservacao` do schema da aula passa de
+**array** a **objeto com três arrays** (`Corpo`, `Técnica`, `Poiesis`). É a consequência directa do
+ponto acima: o bloco do documento é o eixo, e o contrato escreve cada bloco como uma chave. O
+schema de cada ciclo é versionado e viaja com os dados (P-08); as 20 cópias do molde foram
+actualizadas, e o `modelo/` também. O campo **não tem consumidor** — nenhum renderizador o lê —, e
+é por isso que esta mudança de tipo não quebra página nenhuma.
 
-**Sobre o sufixo aleatório, e por que NÃO foi adotado.** A ordem de serviço pedia «entropia/sufixo
-aleatório combinado ao timestamp». **Não é o que o código faz, e não foi por omissão**: a solução
-adotada é a **criação condicional** (o store responde pela existência, com o 422 do GitHub) mais o
-**sufixo sequencial** (`-2`, `-3`). Um sufixo aleatório pagaria três custos que o projeto não quer:
-o id deixaria de ser legível (a estante mostra o carimbo), deixaria de ser derivável (a reconstrução
-do índice e as provas que fixam nomes como `anamnese-20261016-1351` deixariam de valer) e a
-unicidade passaria a depender de um gerador em vez de uma condição **verificada pelo store**. O
-`-2` é determinístico e auditável; a entropia não é nem uma coisa nem outra. **Fica registado como
-divergência declarada da ordem de serviço**, e não como cumprimento.
+**Motivo declarado — os congelados.** `tools/montar-publicacao.js` está em `CONGELAMENTO.md`
+(«`tools/` — geradores, validadores, hooks»). Motivo: **o cartão da listagem é o único sítio onde o
+professor vê o guia e o professor sem abrir a aula**, e as três mudanças foram pedidas por ela
+(remover o ciclo, mostrar nome/modalidade/tradição, resumir o guia por eixo). Não muda o que a
+ferramenta gera — muda o DADO que cada cartão leva, e nenhuma outra página é afectada. Nada de
+`PROTOCOLO.md`, `REGRAS.md`, `tools/templates/`, `prompts/` ou `METODO.md` foi tocado, e a fórmula
+da âncora, a cobertura do `.fipp` e os validadores não mudaram.
+
+**Reancoragem.** A `-aula-01.md` mudou (§5 e §6), e ela está na cobertura da âncora: a `.fipp` foi
+regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados foram regerados, e o
+`check-indices` passa 14/14.
 
 **Onde entrou.**
 
-- `motor/nucleo/fusao.js` — **novo**: `igual`, `instante`, `carimbarInstante`,
-  `quandoDoEnvelope`, `podeFundir`, `fundirRespostas`, `fundirEnvelopes`.
-- `motor/nucleo/porta.js` — a base da edição em `elicitar` (do cliente, ou lida do acervo),
-  `fundirTextosDeEnvelope`, `escrito_em` em toda a gravação, e `fundido`/`fusao` na resposta.
-- `motor/servidor/acervo-envelopes.js` — `gravarComFusao` (ler, fundir, gravar com `sha`, repetir
-  no 409) e o `combinar` a encaminhar `criar`, `anexar` e `gravarComFusao`.
-- `motor/servidor/rotas.js` — a base nas rotas da anamnese, e o id/base que ficaram gravados.
-- `porta/index.html` — `BASE_DA_EDICAO`: o registo que o professor abriu, enviado com a gravação.
-- `ARQUITETURA-GERAL.md` — **reescrito**: §1, §2 (mapa e §2.1 nova, §2.2 reescrita), §3 (fluxo
-  corrigido), §4.1 (a âncora vs. o Git), **§5 nova** (5.1 a 5.6), §6–§10 renumerados e
-  corrigidos, §11 (licença) preservado com as referências renumeradas.
-- `experimentos/provar-fusao-da-edicao.js` — **novo**, 29 asserções.
+- `motor/nucleo/derivar-ciclo.js` — `eixosDaObservacao` passa a devolver `linhas` para o corpo;
+  a §5 vira três blocos `### <Eixo>` com tabela própria; a §6 passa a construir o endereço de
+  leitura (`enderecoDeLeitura`).
+- `professores/*/ciclos/ciclo-01-aula-schema.json` (20) e `modelo/ciclos/ciclo-01-aula-schema.json`
+  — `guiaDeObservacao` de array a objecto com os três eixos.
+- `tools/montar-publicacao.js` — `perfilDoProfessor`, `rotuloDaModalidade`, `tradicaoDaTurma`;
+  o painel da Turma sem o ciclo; o painel do Professor com os três dados; `guiaDoCartao` a contar
+  os aspectos do plano e a dar um par por eixo.
+- `professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-*` — fontes derivadas,
+  âncora e pacote regerados.
+- `experimentos/provar-cartao-da-aula.js` — **novo**, 25 asserções.
+- `experimentos/provar-eixos-e-tempo-da-aula.js` — 27 → **38**: as três tabelas, o corpo com linhas,
+  os links da proveniência e o contrato de extração.
 
-**Com o quê.** `motor/nucleo/fusao.js` · `motor/nucleo/porta.js` ·
-`motor/servidor/acervo-envelopes.js` · `motor/servidor/rotas.js` · `porta/index.html` ·
-`ARQUITETURA-GERAL.md` · `experimentos/provar-fusao-da-edicao.js` · `experimentos/README.md` ·
-`.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md` (regenerado).
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` · 21 schemas de aula (20 professores + `modelo/`) ·
+`tools/montar-publicacao.js` · `professores/coqui-de-redinha/ciclos/…` (fontes, `.fipp`, pacote) ·
+`indices/` (regerados) · `experimentos/provar-cartao-da-aula.js` ·
+`experimentos/provar-eixos-e-tempo-da-aula.js` · `experimentos/README.md` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md` (regenerado).
 
-**Referências.** `REGRAS.md` (P-03, P-04, P-08), `PROTOCOLO.md` (P-10),
-`CONGELAMENTO.md` (nada congelado foi tocado), `ARQUITETURA-AULA.md` §5.2 (a reancoragem por aula).
+**Referências.** `REGRAS.md` (Regra 9), `PROTOCOLO.md` (P-08: o schema viaja com os dados),
+`CONGELAMENTO.md`, `tools/lib-extracao-md.js` (a regra de «uma tabela por bloco»),
+`IDENTIDADE-VISUAL.md` (as peças do cartão).
 
 **O que ainda não está feito.**
 
-1. **Dois professores da mesma escola continuam a escrever os mesmos arquivos.** A fusão resolve o
-   *conteúdo*; o **acervo continua sem professor no caminho** (`escola/<escola>/envelopes/`). Pôr o
-   professor no caminho seria outra decisão — e ela muda o endereço de tudo o que já está gravado.
-2. **A fusão não foi medida com dois browsers reais contra o Worker publicado.** As bancadas correm
-   sobre um GitHub falso; o que se mediu contra o real foi só o 422 do `criar` (num ramo
-   descartável).
-3. **`provar-listas-do-acervo` segue NÃO FEITO** — a única escola viva não tem ciclo publicado para
-   servir.
-4. **A ordem de serviço pedia entropia no id.** O que existe é a criação condicional mais o sufixo
-   sequencial, e o motivo está declarado acima. Se a entropia for mesmo requisito, é uma decisão
-   nova — e ela custa a legibilidade e a derivação do id.
+1. **A tradição de referência aparece no cartão, mas não é um campo do perfil** — ela vem do plano
+   da turma. Se a pesquisadora quiser a tradição como atributo da PESSOA (como a modalidade), é
+   outra decisão, e outra migração.
+2. **O bloco do Corpo lista os 15 aspectos com o valor agregado do formulário** («1 de 1 em
+   «Baixa ("dura")» — ponto de atenção»). É fiel ao dado e é verboso para 15 linhas; encurtar seria
+   interpretar o que o formulário quis dizer.
+3. **Os links da proveniência apontam para o id do envelope desta geração.** Se o PO for ajustado e
+   a aula não for regerada, o link continua a abrir a versão que a aula cita — o que é o correcto
+   (a aula deriva daquele elo), mas é bom que se saiba.
 
 ## O que está pendente
-
-## 03/11/2026 — A estante mostra um por documento: a proveniência fica inteira, e não se empilha no ecrã
-
-(1) A **estante morta** da porta (`porta/index.html`):
-`pintarFichas`/`carregarFichas` continuam lá e continuam a mostrar uma linha por envelope, mas já
-não desenham nada — o `#lista-fichas` saiu da página a 26/10. Mexer na rota `/api/envelopes` para um
-consumidor que não existe seria superfície sem uso, e por isso não se mexeu; no dia em que a estante
-voltar, a regra é a mesma função. (2) **Sem «ver versões anteriores»**: as versões guardadas só se
-alcançam pelo id do envelope — a lista diz que existem e quantas, e não oferece o caminho. É uma
-decisão de produto, e o desenho (um `details` por linha, ou um selo que abre) não se inventa aqui.
-(3) O **nome** da linha do plano não leva o ciclo: a mesma turma em dois ciclos dá duas linhas de
-nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vigente-na-listagem`). Não
-é defeito desta regra — é de antes —, e corrigi-lo mexe na identidade do cartão.
 
 ## 04/11/2026 — A fatia de tempo vem do plano pela coluna certa, e o guia passa a ler as três frentes
 
@@ -390,6 +387,19 @@ nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vig
 4. **A ordem de serviço pedia entropia no id.** O que existe é a criação condicional mais o sufixo
    sequencial, e o motivo está declarado acima. Se a entropia for mesmo requisito, é uma decisão
    nova — e ela custa a legibilidade e a derivação do id.
+
+## 04/11/2026 — O cartão da aula é três dados do professor, e o guia são três eixos de verdade
+
+
+1. **A tradição de referência aparece no cartão, mas não é um campo do perfil** — ela vem do plano
+   da turma. Se a pesquisadora quiser a tradição como atributo da PESSOA (como a modalidade), é
+   outra decisão, e outra migração.
+2. **O bloco do Corpo lista os 15 aspectos com o valor agregado do formulário** («1 de 1 em
+   «Baixa ("dura")» — ponto de atenção»). É fiel ao dado e é verboso para 15 linhas; encurtar seria
+   interpretar o que o formulário quis dizer.
+3. **Os links da proveniência apontam para o id do envelope desta geração.** Se o PO for ajustado e
+   a aula não for regerada, o link continua a abrir a versão que a aula cita — o que é o correcto
+   (a aula deriva daquele elo), mas é bom que se saiba.
 
 ## Pendências anteriores (índice)
 
@@ -737,6 +747,7 @@ nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vig
 - **03/11/2026** — A sequência acompanha os objetivos, e a pergunta era a certa → `REGISTRO.md` L33467
 - **03/11/2026** — O PDF do ciclo compila outra vez: dois glifos do alfabeto… → `REGISTRO.md` L33904
 - **03/11/2026** — O elo em `historico/` não é documento do acervo, e a… → `REGISTRO.md` L33984
+- **03/11/2026** — A estante mostra um por documento: a proveniência fica… → `REGISTRO.md` L34034
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

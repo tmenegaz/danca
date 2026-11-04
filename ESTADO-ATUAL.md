@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `edcd8a0`, árvore limpa). Nesta entrega, **duas edições
+> **Última fotografia:** 04/11/2026 (base `6ede613`, árvore limpa). Nesta entrega, **o cartão da
+> aula diz os três dados do professor, e o guia são três eixos de verdade**. (1) Saiu o «Ciclo 01»
+> da caixa da **Turma** — «o ciclo não é um atributo estrutural da turma» —, e ficou o operacional:
+> turma, «aula N de M», dia, início, fim, duração e a Sala dita «não declarada». (2) O bloco do
+> **Professor** deixou de mostrar o identificador e passou a mostrar os três dados que já existiam:
+> **nome** e **modalidade** do perfil da pessoa, **tradição de referência** do plano («RAD») — e o
+> rótulo da modalidade vem do catálogo, não de uma capitalização. (3) O **guia de observação** da
+> aula deixou de ser uma tabela com uma coluna «Eixo» a repetir o rótulo: são **três tabelas, uma
+> por eixo**, e o eixo é o **bloco** do documento (`### Corpo`, `### Técnica`, `### Poiesis`) — o
+> contrato de extração lê uma tabela por bloco, e é por isso que o campo do schema passa de array a
+> objecto com os três. E o **Corpo**, que existia só como frase de contagem, passa a ter linhas: os
+> **15 aspectos físicos** do plano, o ponto de partida de cada aluna e as restrições declaradas.
+> (4) Os links da **proveniência consolidada** deixaram de abrir a **porta** (o formulário) e passam
+> a abrir a **folha** do documento — a mesma que o título abre na Área do Professor. Provas:
+> `provar-cartao-da-aula` (**nova**, 25) e `provar-eixos-e-tempo-da-aula` (27 → **38**).
+>
+> **Entrega anterior** (base `edcd8a0`, árvore limpa). Nesta entrega, **duas edições
 > do mesmo documento não se apagam** — a decisão 84, que estava aberta, foi decidida e
 > implementada: quando duas pessoas (ou duas abas) gravam o mesmo plano/PO, os **campos
 > diferentes unificam** (nada se perde), e o **mesmo campo decide pela recência ao milissegundo**
@@ -1745,6 +1761,28 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     e a unicidade passaria a depender de um **gerador** em vez de uma **condição verificada pelo
     store**. O `-2` é determinístico e auditável. **DECIDIDO** 04/11/2026 — **divergência
     declarada** da ordem de serviço, não cumprimento.
+86. **O CARTÃO DA AULA MOSTRA O QUE O DADO TEM — E O GUIA É O EIXO, NÃO O RÓTULO.** Três decisões
+    dela, de 04/11/2026, e as três são a mesma: *o documento diz o que o dado tem.* (a) **O ciclo
+    sai da caixa da Turma** — «o ciclo não é um atributo estrutural da turma» — e o operacional
+    fica (aula N de M, dia, início, fim, duração, e a Sala dita «não declarada», porque ela só
+    existe com o `PLANO-TABELA-DE-ATIVIDADES`). (b) **O professor são três dados**: nome e
+    modalidade do **perfil da pessoa** (a habilitação é dela, não do tenant), e a **tradição de
+    referência** do **plano**, que é quem a declara — pô-la no perfil diria que a pessoa só
+    trabalha numa tradição, mais do que o dado afirma. O identificador deixa de ser o nome de
+    ninguém. (c) **O guia são três tabelas, uma por eixo**, e o eixo é o **bloco** do documento
+    (`### Corpo`, `### Técnica`, `### Poiesis`) — não por gosto: o contrato de extração lê **uma
+    tabela por bloco**, e três tabelas num bloco só perderiam a segunda e a terceira. O eixo do
+    **Corpo** passa a ter **linhas** (os aspectos físicos do plano, o ponto de partida de cada
+    aluna, as restrições do PO); até aqui era uma frase de contagem, e uma tabela que salta um eixo
+    dos três ensina que ele não se observa. **DECIDIDO por ela e implementado** 04/11/2026.
+87. **A PROVENIÊNCIA LEVA À LEITURA, NÃO AO FORMULÁRIO.** Os dois links da §6 da aula abriam a
+    **porta** (`/plano-observacao/?…&fonte=po`) — o formulário de elicitação. Quem clicava para
+    reler o que tinha decidido caía dentro do formulário que ia reescrever esse documento. Passam a
+    abrir a **folha** do documento (`api/po-preenchido.<id>?formato=html`), que é **a mesma** que o
+    título abre na Área do Professor (o mesmo `fichaDeLeitura`), com o `id` do envelope. O
+    `formato=html` viaja porque sem ele a rota devolve MARKDOWN. **Sem `id`** — envelope ainda não
+    gravado — cai-se na porta, e não num link quebrado. **DECIDIDO por ela e implementado**
+    04/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -2372,7 +2410,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — a fusão das edições, e a arquitetura como espelho)
+### Executado nesta fotografia (04/11/2026 — o cartão da aula, os três eixos e os links)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-cartao-da-aula` (**nova**) | **TUDO CERTO — 25 asserções**: a Turma **sem «Ciclo»** e com o operacional (aula N de M, dia, início, fim, duração, Sala «não declarada»); o Professor com **nome**, **modalidade** («Balé clássico», rótulo do catálogo) e **tradição** («RAD», do plano) — e **nunca o slug**; a caixa do guia fechada a dizer «23 critérios · 3 eixos»; e o painel com Corpo 15 · Técnica 4 · Barra, Centro · Poiesis 4 · Musicalidade, Expressão. Mede também o que **não pode voltar**: a frase de arquitetura |
+| `provar-eixos-e-tempo-da-aula` | **38** (eram 27): três blocos de eixo **nesta ordem**, uma linha por item em cada eixo, **a coluna «Eixo» ausente**, o **corpo com linhas próprias**, os **links da proveniência** a abrirem a folha com o `id` e o `formato=html` (e a caírem na porta quando não há `id`), e o **contrato de extração** a ler os três blocos **sem aviso de segunda tabela** |
+| `gerar-ciclo` + `check-pacote` do ciclo da `breu` | **0 erro(s), 0 aviso(s)** — a §5 saiu com as três tabelas e o Corpo com 18 linhas (15 aspectos + 2 da linha de base + a restrição); a §6 com os dois links para as folhas |
+| A extracção do `-aula-01.md`, com o contrato real | `guiaDeObservacao` com **Corpo 18 · Técnica 4 · Poiesis 4**, e **zero avisos** |
+| `check-indices` · `check-identidade` | **14/14** · **20/20** (a cópia da porta no pacote-zero refrescada) |
+| `provar-cadeia-do-ajuste` · `provar-fusao-da-edicao` · `provar-corrida-da-escrita` · `provar-publicacao-da-escola` · `provar-um-commit-por-guardar` | **34 · 29 · 30 · 63 · 21** — verdes |
+| **o que NÃO mede** | a folha de leitura **não foi aberta no ar** (a prova mede o endereço que o documento escreve, não a resposta do Worker) · `provar-listas-do-acervo` segue **NÃO FEITO** |
+
+### Executado na fotografia anterior (04/11/2026 — a fusão das edições, e a arquitetura como espelho)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3353,6 +3403,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **O cartão da aula, os três eixos e os links da proveniência.** Saíram o «Ciclo»
+  da caixa da Turma e o identificador do bloco do Professor, que passou a mostrar **nome**,
+  **modalidade** e **tradição de referência** — cada um do seu sítio, nenhum deduzido. O guia da
+  aula deixou de ser uma tabela com coluna «Eixo» e passou a **três tabelas**, uma por eixo, com o
+  eixo como **bloco** do documento (o contrato lê uma tabela por bloco — foi o que decidiu o
+  desenho); o **Corpo**, que era uma frase, passou a ter as linhas dos 15 aspectos do plano, da
+  linha de base e das restrições. E os links da proveniência deixaram de abrir a **porta** e passam
+  a abrir a **folha** do documento. `guiaDeObservacao` passou de array a objecto com os três eixos
+  (21 schemas: 20 professores e o `modelo/`). Provas: `provar-cartao-da-aula` (nova, 25) e
+  `provar-eixos-e-tempo-da-aula` (27 → 38).
 
 - **04/11/2026** — **A fusão das edições (decisão 84) e o `ARQUITETURA-GERAL.md` como espelho.** Duas
   pessoas no mesmo documento passam a unificar: campos diferentes ficam os dois, o mesmo campo

@@ -128,15 +128,40 @@ function tabelaDoTempo(md) {
 }
 
 /** Onde começa cada parte do guia: as linhas do resumo e as do detalhe. */
+/**
+ * O GUIA DA §5, LIDO COMO O DOCUMENTO O ESCREVE AGORA (04/11/2026).
+ *
+ * A forma mudou com a decisão dela: «tabelas/seções distintas para cada eixo». Antes era UMA
+ * tabela com uma coluna «Eixo» repetindo o rótulo linha a linha — e uma lista de resumo acima.
+ * Agora são TRÊS blocos `### <Eixo>`, cada um com a sua tabela, e é por isso que este leitor
+ * devolve `eixos` (o bloco de cada um) em vez de uma tabela só. O `### <Eixo>` não é decoração:
+ * é o que o contrato de extração chama de BLOCO, e é o que permite três tabelas na mesma secção
+ * (ele lê uma tabela por bloco).
+ */
 function guia(md) {
   const linhas = String(md).split('\n');
   const inicio = linhas.findIndex((l) => /^## 5\. Guia de observação/.test(l));
   const fim = linhas.findIndex((l, i) => i > inicio && /^## /.test(l));
   const corpo = linhas.slice(inicio, fim === -1 ? undefined : fim);
-  const resumo = corpo.filter((l) => /^- \*\*/.test(l));
-  const tabela = corpo.filter((l) => /^\|/.test(l) && !/^\|:?--/.test(l))
-    .map((l) => l.split('|').slice(1, -1).map((c) => c.trim()));
-  return { corpo, resumo: resumo.map((l) => l.replace(/^- /, '')), tabela };
+  const eixos = [];
+  let atual = null;
+  for (const l of corpo) {
+    const h3 = /^###\s+(\S+)\s*$/.exec(l);
+    if (h3) {
+      atual = { nome: h3[1], linhas: [] };
+      eixos.push(atual);
+      continue;
+    }
+    if (atual) atual.linhas.push(l);
+  }
+  const tabelas = {};
+  for (const e of eixos) {
+    tabelas[e.nome] = e.linhas
+      .filter((l) => /^\|/.test(l) && !/^\|:?--/.test(l))
+      .map((l) => l.split('|').slice(1, -1).map((c) => c.trim()));
+  }
+  const todas = Object.keys(tabelas).reduce((acc, k) => acc.concat(tabelas[k].slice(1)), []);
+  return { corpo, eixos: eixos.map((e) => e.nome), tabelas, tabela: todas };
 }
 
 // ---------------------------------------------------------------- A e B: o tempo
@@ -302,15 +327,24 @@ console.log('\nF. NADA SE PERDE: TODO ITEM CONTINUA, E O BLOCO DESCONHECIDO NÃO
   const md = derivarAula01({ plano: planoCom(volumeCompleto), po, contexto: CONTEXTO, calibracao: CALIBRACAO });
   const g = guia(md);
   const itensDoPo = dimensoesEItens(po).reduce((s, d) => s + d.itens.length, 0);
-  const linhasDoDetalhe = g.tabela.filter((c) => c[0] !== 'Eixo');
-  provar('a tabela do detalhe tem uma linha por item do PO (' + itensDoPo + ')',
-    linhasDoDetalhe.length === itensDoPo, linhasDoDetalhe.length);
+  /* TRÊS BLOCOS, NESTA ORDEM — é o desenho que ela pediu: o eixo é o bloco, e cada bloco tem a
+   * sua tabela. Um bloco que falte é um eixo que desapareceu do guia. */
+  provar('o guia tem três blocos de eixo, e nesta ordem: Corpo, Técnica, Poiesis',
+    g.eixos.join(',') === 'Corpo,Técnica,Poiesis', g.eixos);
+  const linhasDaTecnica = (g.tabelas['Técnica'] || []).slice(1).length;
+  const linhasDaPoiesis = (g.tabelas['Poiesis'] || []).slice(1).length;
+  const doPo = dimensoesEItens(po).filter((d) => eixoDoBloco(blocoDaDimensao(d.dimensao)) === 'Técnica')
+    .reduce((soma, d) => soma + d.itens.length, 0);
+  provar('a tabela da Técnica tem uma linha por item daquele eixo (' + doPo + ')',
+    linhasDaTecnica === doPo, linhasDaTecnica);
+  provar('e a da Poiesis também (' + (itensDoPo - doPo) + ')',
+    linhasDaPoiesis === itensDoPo - doPo, linhasDaPoiesis);
+  provar('cada tabela de eixo diz o que se observa (não tem a coluna «Eixo» a repetir o rótulo)',
+    (g.tabelas['Técnica'] || []).every((c) => c.length === 2 && c[0] !== 'Eixo'), g.tabelas['Técnica']);
+  provar('o corpo tem linhas próprias — o eixo não é só um resumo',
+    (g.tabelas['Corpo'] || []).slice(1).length > 0, g.tabelas['Corpo']);
   provar('e cada item do PO aparece no documento',
     dimensoesEItens(po).every((d) => d.itens.every((i) => g.corpo.join('\n').indexOf(i) !== -1)));
-  provar('o resumo vem antes da tabela (é a versão sintetizada, e não a única)',
-    g.corpo.findIndex((l) => /^- \*\*Corpo\*\*/.test(l)) < g.corpo.findIndex((l) => /^\| Eixo \|/.test(l)));
-  provar('o resumo tem as três frentes, uma linha cada',
-    ['Corpo', 'Técnica', 'Poiesis'].every((n) => g.resumo.some((l) => l.indexOf('**' + n + '**') !== -1)), g.resumo);
 
   const poComBlocoNovo = poCom({
     'dimensoes-de-observacao': r(['Técnica — Barra', 'Técnica — Repertório']),
@@ -323,6 +357,68 @@ console.log('\nF. NADA SE PERDE: TODO ITEM CONTINUA, E O BLOCO DESCONHECIDO NÃO
   const g2 = guia(md2);
   provar('um bloco fora do mapa cai em Técnica (como o prefixo já fazia) e CONTINUA no documento',
     g2.corpo.join('\n').indexOf('memória da sequência') !== -1, g2.tabela);
+}
+
+// ---------------------------------------------------------------- G: os links da proveniência
+
+console.log('\nG. A PROVENIÊNCIA ABRE A LEITURA, E NÃO O FORMULÁRIO');
+{
+  /* O DEFEITO, nas palavras dela: «ao clicar nos links do Plano de Observação ou do Plano de
+   * ensino, o sistema está a direcionar para o modo de edição». Era literal — o endereço era a
+   * PORTA (`/plano-observacao/?professor=…&fonte=po`), o formulário de elicitação. A leitura é a
+   * folha da estante, a mesma que o TÍTULO abre na Área do Professor. */
+  const po = poCom();                      // o id da fixture: `po-prova`
+  const plano = planoCom(volumeCompleto);  // o id da fixture: `plano-prova`
+  const md = derivarAula01({ plano, po, contexto: CONTEXTO, calibracao: CALIBRACAO });
+  const linkDoPo = /\[Plano de Observação\]\(([^)]+)\)/.exec(md);
+  const linkDoPlano = /\[Plano de ensino\]\(([^)]+)\)/.exec(md);
+  provar('há um link para o Plano de Observação, e um para o plano de ensino',
+    Boolean(linkDoPo) && Boolean(linkDoPlano), md.slice(-800));
+  provar('o do PO abre a FOLHA do documento, com o id dele',
+    Boolean(linkDoPo) && linkDoPo[1] === '/plano-observacao/api/po-preenchido.po-prova?formato=html',
+    linkDoPo && linkDoPo[1]);
+  provar('o do plano abre a FOLHA, com o id dele',
+    Boolean(linkDoPlano) && linkDoPlano[1] === '/plano-ensino/api/plano-preenchido.plano-prova?formato=html',
+    linkDoPlano && linkDoPlano[1]);
+  provar('e nenhum dos dois cai na PORTA (o formulário de edição)',
+    Boolean(linkDoPo) && Boolean(linkDoPlano)
+      && linkDoPo[1].indexOf('fonte=po') === -1 && linkDoPlano[1].indexOf('fonte=plano') === -1,
+    [linkDoPo && linkDoPo[1], linkDoPlano && linkDoPlano[1]]);
+  provar('o `formato=html` viaja (sem ele a rota devolve MARKDOWN, que o browser mostra como texto)',
+    Boolean(linkDoPo) && linkDoPo[1].indexOf('?formato=html') !== -1);
+
+  // SEM ID não há folha: cai-se na porta, que é o endereço que ainda leva a algum lado.
+  const poSemId = poCom();
+  delete poSemId.id;
+  const semId = derivarAula01({ plano: planoCom(volumeCompleto), po: poSemId, contexto: CONTEXTO, calibracao: CALIBRACAO });
+  const semIdPo = /\[Plano de Observação\]\(([^)]+)\)/.exec(semId);
+  provar('um envelope sem id cai na porta, e não num link quebrado',
+    Boolean(semIdPo) && semIdPo[1].indexOf('/plano-observacao/?') === 0, semIdPo && semIdPo[1]);
+}
+
+// ---------------------------------------------------------------- H: o contrato de extração
+
+console.log('\nH. O CONTRATO LÊ AS TRÊS TABELAS — E NÃO PERDE A SEGUNDA EM SILÊNCIO');
+{
+  /* O contrato lê UMA tabela por BLOCO (`tools/lib-extracao-md.js`): uma segunda tabela no mesmo
+   * bloco fica de fora COM AVISO. Foi o que decidiu o desenho da §5 — cada eixo é um bloco
+   * `### <Eixo>`, e é por isso que o número de tabelas não é indiferente. */
+  const { extrair } = require(path.join(RAIZ, 'tools/lib-extracao-md.js'));
+  const fs = require('fs');
+  const esquema = JSON.parse(fs.readFileSync(path.join(RAIZ,
+    'professores/coqui-de-redinha/ciclos/ciclo-01-aula-schema.json'), 'utf8'));
+  const md = derivarAula01({ plano: planoCom(volumeCompleto), po: poCom(),
+    contexto: CONTEXTO, calibracao: CALIBRACAO });
+  const r = extrair(md.split('\n'), esquema, {
+    secoes: { '5. guia de observação do professor': 'guiaDeObservacao' }, colunas: {}, pares: {},
+  });
+  const guia = r.campos.guiaDeObservacao;
+  provar('o campo do guia tem os três eixos', Boolean(guia)
+    && ['Corpo', 'Técnica', 'Poiesis'].every((k) => Array.isArray(guia[k])), guia && Object.keys(guia));
+  provar('nenhuma tabela ficou de fora (o aviso de «segunda tabela» não aparece)',
+    !r.avisos.some((a) => /SEGUNDA tabela/.test(a)), r.avisos);
+  provar('o Corpo chega com as linhas dele', Boolean(guia) && guia.Corpo.length > 0,
+    guia && guia.Corpo && guia.Corpo.length);
 }
 
 console.log('\n' + (falhas

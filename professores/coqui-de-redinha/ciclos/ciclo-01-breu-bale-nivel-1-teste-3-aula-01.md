@@ -48,33 +48,56 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 5. Guia de observação do professor
 
-Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor
-registra cada item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não
-aconteceu · ? não vi · vazio = não observei.
+> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que o
+> plano e o PO já declaram sobre a turma. O professor registra cada item por aluna na
+> Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não
+> observei.
 
-**O que se olha, em três frentes.** O corpo é o que a turma mostra de força e flexibilidade
-e o ponto de partida de cada aluna; a técnica e a poiésis são as dimensões do PO, pelo
-bloco da aula em que se observam. O detalhe, um critério por linha, vem na tabela abaixo.
+### Corpo
 
-- **Corpo** — 15 aspectos físicos declarados no plano · ponto de partida de 1 aluna · sem restrições declaradas.
-- **Técnica** — Barra, Centro (2 dimensões · 4 itens).
-- **Poiesis** — Musicalidade, Expressão (2 dimensões · 4 itens).
+| Critério | O que se observa |
+|:--|:--|
+| Flexibilidade dos isquiotibiais | 1 de 1 em «Baixa ("dura")» — ponto de atenção |
+| Flexibilidade anteroposterior (grand écart) | 1 de 1 em «Parcial (elevação do quadril)» — ponto de atenção |
+| Mobilidade das costas e tronco (cambre) | 1 de 1 em «Dor/desconforto» — ponto de atenção |
+| Mobilidade de quadril (en dehors de origem) | 1 de 1 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção |
+| Mobilidade de flexão/extensão do tornozelo | 1 de 1 em «Moderada» — ponto de atenção |
+| Força excêntrica / recuo na flexão de tronco | 1 de 1 em «Retorna enrolando (roll-up)» — ponto de atenção |
+| Sustentação ativa de MMII (força de adágio) | 1 de 1 em «Incapacidade por colapso» — ponto de atenção |
+| Força de empurrar (push-ups) | 1 de 1 em «Incapacidade» — ponto de atenção |
+| Resistência de MMSS (port de bras prolongado) | 1 de 1 em «Fadiga rápida com queda» — ponto de atenção |
+| Flexibilidade dos adutores | 1 de 1 em «Abertura completa (180°+)» |
+| Rotação e amplitude dos ombros | 1 de 1 em «Completa e fluida» |
+| Controle de carga no demi/grand plié | 1 de 1 em «Controla fluido, sem perda de eixo» |
+| Equilíbrio unipodal | 1 de 1 em «Mantém > 5 s sem oscilação severa» |
+| Força de puxar (tração) | 1 de 1 em «Tração completa» |
+| Articulação e força intrínseca dos dedos | 1 de 1 em «Flexíveis e articulados» |
+| Aluna A — o que traz | prática anterior: mais de 5 anos |
+| Aluna A — a desenvolver | saída do calcanhar no tendu; passé sem perder o eixo |
+| Restrições | sem restrições declaradas |
 
-| Eixo | Bloco | O que se observa |
-|:--|:--|:--|
-| Técnica | Barra | saída do calcanhar no tendu |
-| Técnica | Barra | quadril sem subir no en dehors |
-| Técnica | Centro | transferência de peso sem perder a verticalidade |
-| Técnica | Centro | braço junto do movimento |
-| Poiesis | Musicalidade | resposta ao pulso na marcação |
-| Poiesis | Musicalidade | frase até o fim da música |
-| Poiesis | Expressão | olhar acompanha o braço |
-| Poiesis | Expressão | presença sem rigidez de rosto |
+### Técnica
+
+| Bloco | O que se observa |
+|:--|:--|
+| Barra | saída do calcanhar no tendu |
+| Barra | quadril sem subir no en dehors |
+| Centro | transferência de peso sem perder a verticalidade |
+| Centro | braço junto do movimento |
+
+### Poiesis
+
+| Bloco | O que se observa |
+|:--|:--|
+| Musicalidade | resposta ao pulso na marcação |
+| Musicalidade | frase até o fim da música |
+| Expressão | olhar acompanha o braço |
+| Expressão | presença sem rigidez de rosto |
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/?professor=coqui-de-redinha&escola=breu&ciclo=01&fonte=po)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/?professor=coqui-de-redinha&escola=breu&ciclo=01&fonte=plano)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261104-1811?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261104-1732?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 ## 7. Registro de auditoria da aula
 

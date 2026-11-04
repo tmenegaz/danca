@@ -642,3 +642,10 @@ experimentos/modelo-formulario/*
 # monta —, e mede também que ele encaminha os verbos novos (`criar`, `anexar`, `gravarComFusao`):
 # foi por não os encaminhar que a blindagem anterior existia no adaptador sem chegar ao motor.
 !experimentos/provar-fusao-da-edicao.js
+
+# O CARTÃO DA AULA (04/11/2026). A turma sem «Ciclo» (não é atributo dela) e com o operacional
+# (dia, horas, duração, sala «não declarada»); o professor com NOME, MODALIDADE e TRADIÇÃO — e
+# nenhum deles é o slug; e o guia em TRÊS FRENTES, com o Corpo a contar os aspectos do plano.
+# Mede também o que não pode voltar: a frase de arquitetura. Roda a montagem de verdade e lê o
+# HTML que ela escreve (`publicacao/` é saída, e por isso a prova a pode reescrever).
+!experimentos/provar-cartao-da-aula.js

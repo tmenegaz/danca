@@ -278,12 +278,45 @@ function eixosDaObservacao(dims, plano, po) {
 
   const resumoDoCorpo = partesDoCorpo.join(' · ');
 
-  const eixo = (id, rotulo, lista, resumo) => ({
+  /* AS LINHAS DO CORPO — o que a tabela do eixo mostra, e de onde cada linha vem.
+   *
+   * A pesquisadora, 04/11/2026: «os aspectos físicos (como os 15 aspectos declarados no plano)
+   * preenchem o eixo do corpo». Até aqui o eixo existia com um resumo e NENHUMA linha: a tabela
+   * do guia só tinha Técnica e Poiesis, e o corpo — que é um dos três eixos — aparecia como uma
+   * frase de contagem. Uma tabela que salta um eixo dos três ensina que ele não se observa.
+   *
+   * A LINHA É `[critério, o que se observa]`, e nada é inventado: o aspecto é o rótulo que o
+   * PLANO declara (`aspecto-fisico`), o «como está a turma» é o valor que ele mesmo gravou, o
+   * ponto de partida é o que o PO declara por aluna (`linha-de-base`), e a restrição é a que o PO
+   * declarar — quando ele não declara nenhuma, a linha diz isso, que é diferente de não ter linha.
+   *
+   * AS COLUNAS SÃO LIDAS POR POSIÇÃO, e é o único sítio deste ficheiro onde isso se faz de
+   * propósito: a tabela do `aspecto-fisico` é escrita pelo professor no formulário, e as duas
+   * primeiras células são sempre «o aspecto» e «como está». O `linha-de-base` tem nome de coluna
+   * estável (`sujeito`, `traz`, `precisaDesenvolver`), e esse lê-se pelo nome. */
+  const linhasDoCorpo = [];
+  for (const l of aspectos) {
+    const celulas = Object.keys(l).map((k) => String(l[k] == null ? '' : l[k]).trim()).filter(Boolean);
+    if (!celulas.length) continue;
+    linhasDoCorpo.push([celulas[0], celulas.slice(1).join(' · ') || 'sem avaliação declarada']);
+  }
+  for (const l of base) {
+    const sujeito = String(l.sujeito || l.aluna || '').trim();
+    const traz = String(l.traz || '').trim();
+    const desenvolver = String(l.precisaDesenvolver || '').trim();
+    const quem = sujeito ? sujeito + ' — ' : '';
+    if (traz) linhasDoCorpo.push([quem + 'o que traz', traz]);
+    if (desenvolver) linhasDoCorpo.push([quem + 'a desenvolver', desenvolver]);
+  }
+  linhasDoCorpo.push(['Restrições', restricoes || 'sem restrições declaradas']);
+
+  const eixo = (id, rotulo, lista, resumo, linhas) => ({
     id,
     rotulo,
     dimensoes: lista,
     itens: conta(lista),
     resumo,
+    linhas: Array.isArray(linhas) ? linhas : [],
   });
 
   /* O RESUMO DE UM EIXO DE DIMENSÕES. Sem dimensão nenhuma no PO, a frase diz o que falta; com
@@ -303,7 +336,7 @@ function eixosDaObservacao(dims, plano, po) {
   const poiesis = eixo('poiesis', 'Poiesis', porEixo['Poiesis'], resumoDoEixo(porEixo['Poiesis']));
 
   return [
-    eixo('corpo', 'Corpo', [], resumoDoCorpo),
+    eixo('corpo', 'Corpo', [], resumoDoCorpo, linhasDoCorpo),
     tecnica,
     poiesis,
   ];
@@ -772,42 +805,68 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     const dims = dimensoesEItens(po);
     const eixos = eixosDaObservacao(dims, plano, po);
     const corpo = [
-      'Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor',
-      'registra cada item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não',
-      'aconteceu · ? não vi · vazio = não observei.',
-      '',
-      '**O que se olha, em três frentes.** O corpo é o que a turma mostra de força e flexibilidade',
-      'e o ponto de partida de cada aluna; a técnica e a poiésis são as dimensões do PO, pelo',
-      'bloco da aula em que se observam. O detalhe, um critério por linha, vem na tabela abaixo.',
+      '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que o',
+      '> plano e o PO já declaram sobre a turma. O professor registra cada item por aluna na',
+      '> Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não',
+      '> observei.',
       '',
     ];
+    /* AS TRÊS FRENTES SÃO TRÊS TABELAS (04/11/2026).
+     *
+     * A pesquisadora: «o guia não pode chamar tudo de "técnica" — tem de ser dividido pelos três
+     * eixos», com «tabelas/seções distintas para cada eixo». Antes havia UMA tabela com uma coluna
+     * «Eixo» repetindo o mesmo rótulo linha a linha — o que se lê como uma tabela de técnica com
+     * etiquetas, e não como três coisas.
+     *
+     * O `### <Eixo>` NÃO É DECORAÇÃO: é o que o contrato de extração chama de BLOCO, e é o que
+     * permite três tabelas na mesma secção. O contrato lê UMA tabela por bloco — uma segunda
+     * tabela no mesmo bloco fica de fora, com aviso (`lib-extracao-md.js`, «dê à tabela o seu
+     * bloco»). O bloco é o título `### Corpo`, um token só, que é a forma que o PO já usa para os
+     * subcampos. E o título fica legível no documento: é o nome do eixo, e não um código.
+     *
+     * O CORPO TEM LINHAS PRÓPRIAS (ver `eixosDaObservacao`): os aspectos físicos do plano, o ponto
+     * de partida de cada aluna e as restrições declaradas. Sem elas o eixo existia como resumo e
+     * a tabela saltava-o — e uma tabela que salta um eixo dos três ensina que ele não se observa. */
     for (const e of eixos) {
-      corpo.push('- **' + e.rotulo + '** — ' + e.resumo + '.');
-    }
-    corpo.push('');
-    corpo.push('| Eixo | Bloco | O que se observa |');
-    corpo.push('|:--|:--|:--|');
-    if (dims.length) {
-      for (const e of eixos) {
-        for (const d of e.dimensoes) {
-          if (!d.itens.length) {
-            corpo.push('| ' + e.rotulo + ' | ' + d.bloco +
-              ' | [Preencher: os itens desta dimensão no PO] |');
-            continue;
-          }
-          for (const item of d.itens) corpo.push('| ' + e.rotulo + ' | ' + d.bloco + ' | ' + item + ' |');
+      corpo.push('### ' + e.rotulo, '');
+      if (e.linhas.length) {
+        corpo.push('| Critério | O que se observa |');
+        corpo.push('|:--|:--|');
+        for (const [criterio, observa] of e.linhas) {
+          corpo.push('| ' + criterio + ' | ' + observa + ' |');
         }
+        corpo.push('');
+        continue;
       }
-      /* A DIMENSÃO QUE NÃO CASOU NENHUM EIXO NÃO DESAPARECE. Hoje `eixosDaObservacao` cobre todos
-       * os blocos (Técnica por omissão), mas a conta abaixo é a que garante que uma dimensão nova
-       * — ou um rótulo noutra forma — não seja engolida em silêncio: o que sobrar é dito. */
-      const mostradas = eixos.reduce((s, e) => s + e.dimensoes.length, 0);
-      if (mostradas < dims.length) {
-        corpo.push('', 'Sem eixo classificado: ' + (dims.length - mostradas) +
-          ' dimensão(ões) do PO — classifique o bloco no mapa dos eixos.');
+      if (!dims.length) {
+        corpo.push('| Bloco | O que se observa |');
+        corpo.push('|:--|:--|');
+        corpo.push('| [Preencher] | [Preencher] |');
+        corpo.push('');
+        continue;
       }
-    } else {
-      corpo.push('| [Preencher] | [Preencher] | [Preencher] |');
+      if (!e.dimensoes.length) {
+        corpo.push('Nenhuma dimensão do Plano de Observação cai neste eixo.', '');
+        continue;
+      }
+      corpo.push('| Bloco | O que se observa |');
+      corpo.push('|:--|:--|');
+      for (const d of e.dimensoes) {
+        if (!d.itens.length) {
+          corpo.push('| ' + d.bloco + ' | [Preencher: os itens desta dimensão no PO] |');
+          continue;
+        }
+        for (const item of d.itens) corpo.push('| ' + d.bloco + ' | ' + item + ' |');
+      }
+      corpo.push('');
+    }
+    /* A DIMENSÃO QUE NÃO CASOU NENHUM EIXO NÃO DESAPARECE. Hoje `eixosDaObservacao` cobre todos
+     * os blocos (Técnica por omissão), mas a conta abaixo é a que garante que uma dimensão nova
+     * — ou um rótulo noutra forma — não seja engolida em silêncio: o que sobrar é dito. */
+    const mostradas = eixos.reduce((soma, e) => soma + e.dimensoes.length, 0);
+    if (dims.length && mostradas < dims.length) {
+      corpo.push('Sem eixo classificado: ' + (dims.length - mostradas) +
+        ' dimensão(ões) do PO — classifique o bloco no mapa dos eixos.', '');
     }
     secao('5. Guia de observação do professor', corpo);
   }
@@ -864,14 +923,45 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
       escola ? 'escola=' + encodeURIComponent(escola) : '',
       ciclo ? 'ciclo=' + encodeURIComponent(ciclo) : ''].filter(Boolean).join('&');
 
+    /*
+     * O LINK DA PROVENIÊNCIA VAI PARA A LEITURA, NÃO PARA O FORMULÁRIO (04/11/2026).
+     *
+     * O defeito, nas palavras da pesquisadora: «ao clicar nos links do Plano de Observação ou do
+     * Plano de ensino, o sistema está a direcionar para o modo de edição». Era literal — o
+     * endereço era `/plano-observacao/?professor=…&fonte=po`, que é a PORTA, o formulário de
+     * elicitação. Quem clicava em «Proveniência consolidada» para reler o que decidiu caía dentro
+     * do formulário que ia reescrever esse mesmo documento.
+     *
+     * A LEITURA É A MESMA FOLHA DA ESTANTE. A Área do Professor abre um registo pelo TÍTULO, e é
+     * `api/po-preenchido.<id>?formato=html` (o mesmo `fichaDeLeitura` de `listas-do-acervo.js`,
+     * com a mesma rota e o mesmo `formato=html` — sem ele a rota devolve MARKDOWN, que o
+     * navegador mostra como texto corrido). O `id` vem do envelope, e é o que identifica o
+     * documento: o PO desta aula, não «o PO mais recente».
+     *
+     * SEM ID CAI-SE NA PORTA, e não num link quebrado: um envelope que ainda não foi gravado não
+     * tem folha, e inventar-lhe um endereço prometeria um documento que não existe. O `barra`
+     * (professor, escola, ciclo) continua a ser o contexto que a porta precisa.
+     */
+    const enderecoDeLeitura = (qual) => {
+      const id = q(qual === 'po' ? (po && po.id) : (plano && plano.id));
+      if (!id) {
+        return qual === 'po'
+          ? '/plano-observacao/?' + barra + '&fonte=po'
+          : '/plano-ensino/?' + barra + '&fonte=plano';
+      }
+      return qual === 'po'
+        ? '/plano-observacao/api/po-preenchido.' + encodeURIComponent(id) + '?formato=html'
+        : '/plano-ensino/api/plano-preenchido.' + encodeURIComponent(id) + '?formato=html';
+    };
+
     const objetivoDoPo = q(resp(po, 'question') || resp(po, 'pergunta'));
     const objetivoDoPlano = q(resp(plano, 'objetivo-geral'));
 
-    corpo6.push('- **[Plano de Observação](/plano-observacao/?' + barra + '&fonte=po)** — '
+    corpo6.push('- **[Plano de Observação](' + enderecoDeLeitura('po') + ')** — '
       + (objetivoDoPo
         ? encurtar(objetivoDoPo, 160)
         : '[Preencher: o PO não declara a pergunta que se propõe responder]'));
-    corpo6.push('- **[Plano de ensino](/plano-ensino/?' + barra + '&fonte=plano)** — '
+    corpo6.push('- **[Plano de ensino](' + enderecoDeLeitura('plano') + ')** — '
       + (objetivoDoPlano
         ? encurtar(objetivoDoPlano, 160)
         : '[Preencher: o plano não declara o objetivo geral do ciclo]'));
