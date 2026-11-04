@@ -10,9 +10,9 @@ type: Ciclo
 professor: coqui-de-redinha
 ciclo: 01
 variante: breu-bale-nivel-1-teste-3
-hash_conteudo: 8b47edee749220b07503922daceed169bdf3b2525de5bfb8dfd97d836cc5d9de
+hash_conteudo: d3bbe58dbd9a0e5af9ca134209334b37a006246bdbd9264c69cc0a02751005d9
 parentHash: 
-hash: 08d81e7e4322579e09feb8fe3224b48ab692a61fc38c41944ea71ee85fbff285
+hash: c30cf756060d2bd557def5fd00369dec733d02befb064fbd173c0ce413926113
 algoritmo: SHA-256
 po: professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
 po_state: Input_PO_Aguardando
