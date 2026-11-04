@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "a68fc15e0222208db774ceba7f1acb7fff9ef93be41575e43f9c72acc25bca54",
+        "hash": "08d81e7e4322579e09feb8fe3224b48ab692a61fc38c41944ea71ee85fbff285",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
@@ -490,7 +490,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "dd94a91"
+    "commit": "448cf35"
   },
   "gerado_em": "2026-11-04T01:21",
   "nao_indexado": [
