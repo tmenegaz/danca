@@ -40,8 +40,8 @@
           "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
           "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
         ],
-        "hash": "c30cf756060d2bd557def5fd00369dec733d02befb064fbd173c0ce413926113",
-        "hash_conteudo": "d3bbe58dbd9a0e5af9ca134209334b37a006246bdbd9264c69cc0a02751005d9",
+        "hash": "38c82c53114ccc3ecb42d261adf0c1eee2598a01716307328c791bc934bd0021",
+        "hash_conteudo": "0079781be61ad99691173b5ffa1e4cf729a5a06f2401f05c797dc2cb9d2d6c49",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
@@ -293,9 +293,9 @@
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 1,
+      "planos": 2,
       "pos": 3,
-      "registros": 5
+      "registros": 6
     },
     "criada_em": "2026-11-02T16:59:08.409473+00:00",
     "expurgada": false,
@@ -311,6 +311,7 @@
     "registros": [
       "anamnese:anamnese-20261103-1626",
       "plano:plano-20261103-2200",
+      "plano:plano-20261104-1732",
       "po:po-20261103-2202",
       "po:po-20261103-2221",
       "po:po-20261103-2242"
@@ -320,10 +321,11 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "ids": [
           "anamnese:anamnese-20261103-1626",
           "plano:plano-20261103-2200",
+          "plano:plano-20261104-1732",
           "po:po-20261103-2202",
           "po:po-20261103-2221",
           "po:po-20261103-2242"
@@ -344,11 +346,12 @@
     ],
     "professores": [
       {
-        "contagem": 6,
+        "contagem": 7,
         "ids": [
           "anamnese:anamnese-20261103-1626",
           "ciclo:coqui-de-redinha/01/breu",
           "plano:plano-20261103-2200",
+          "plano:plano-20261104-1732",
           "po:po-20261103-2202",
           "po:po-20261103-2221",
           "po:po-20261103-2242"
@@ -375,9 +378,10 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "plano:plano-20261103-2200"
+          "plano:plano-20261103-2200",
+          "plano:plano-20261104-1732"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
@@ -396,9 +400,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6675487"
+    "commit": "bd8d05e"
   },
-  "gerado_em": "2026-11-04T01:44",
+  "gerado_em": "2026-11-04T20:33",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -439,6 +443,18 @@
       "ciclo": "01",
       "data": "2026-11-03T22:00",
       "id": "plano:plano-20261103-2200",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "coqui-de-redinha",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 3"
+    },
+    {
+      "ajuste_de": "plano-20261103-2200",
+      "ano": "2026",
+      "carimbo": "plano-20261104-1732",
+      "ciclo": "01",
+      "data": "2026-11-04T17:32",
+      "id": "plano:plano-20261104-1732",
       "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
       "professor": "coqui-de-redinha",
       "tipo": "plano",
