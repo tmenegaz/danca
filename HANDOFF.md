@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T17:24:00-0300`
-Commit atual: `72436a94` — fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
+Gerado em: `2026-11-04T18:04:06-0300`
+Commit atual: `4aec51f5` — fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,26 +85,26 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-72436a94 fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
-2d017730 fix(estrutura): o elo em historico/ é exceção declarada, não documento do acervo
-bf17a628 fix(entrega): ○ e ↻ — os dois glifos do alfabeto que o pdflatex não trazia
-1f7086c7 chore(estrutura): reancorar a cadeia das fontes alteradas
-445ef707 chore(estrutura): regerar os índices derivados
-dd94a919 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
-e458ce63 feat(po): o PO elicitado vira a fonte do ciclo
-c0dafd22 feat(acervo): envelope/po-20261103-2221.json
-eaa6bd79 feat(acervo): envelope/.indice.json
-b9c7e714 chore(estrutura): regerar os índices derivados
-b690d1db chore(estrutura): reancorar a cadeia das fontes alteradas
-d13b5b83 chore(estrutura): regerar os índices derivados
-2f4d629a feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
-432c67a7 feat(po): o PO elicitado vira a fonte do ciclo
-18e16003 feat(acervo): envelope/po-20261103-2202.json
-e20fe831 feat(acervo): envelope/.indice.json
-d91122fc chore(estrutura): regerar os índices derivados
-80dd28e8 chore(estrutura): reancorar a cadeia das fontes alteradas
-fe949b1c chore(estrutura): regerar os índices derivados
-47641799 feat(plano): o plano elicitado vira a fonte do ciclo
+4aec51f5 fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
+355a1a4e fix(campo): a fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes
+c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
+3738b266 chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
+2c2238f1 chore(estrutura): regerar os índices derivados
+e7ec02f9 chore(estrutura): reancorar a cadeia das fontes alteradas
+c394e879 chore(estrutura): regerar os índices derivados
+6dd3ffb8 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
+f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
+11962279 feat(acervo): envelope/po-20261104-1733.json
+7338e17d feat(acervo): envelope/.indice.json
+e7456b2c chore(estrutura): regerar os índices derivados
+2b22b073 chore(estrutura): reancorar a cadeia das fontes alteradas
+bd8d05eb feat(plano): o plano elicitado vira a fonte do ciclo
+2be24e46 feat(acervo): envelope/plano-20261104-1732.json
+2097dd1f feat(acervo): envelope/.indice.json
+1ee88096 chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
+1114de90 chore(estrutura): regerar os índices derivados
+edfc1ca7 chore(estrutura): reancorar a cadeia das fontes alteradas
+635e9c44 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ fe949b1c chore(estrutura): regerar os índices derivados
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `08d81e7e4322` | (vazio) | Input_PO_Aguardando |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `a5408b459b0e` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,105 +230,104 @@ fe949b1c chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — A fatia de tempo vem do plano pela coluna certa, e o guia passa a ler as três frentes
+## 04/11/2026 — O ajuste do plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa
 
-**O que motivou.** Duas coisas que a pesquisadora viu no ciclo da `breu`, e as duas do mesmo lado —
-o documento a dizer menos do que o dado tem:
+**O que motivou, e é a frase dela.** «O usuário entrou para fazer um ajuste pontual em um Plano de
+Ensino (…) Sob a ótica do professor, ele realizou apenas um ajuste (…). No entanto, o sistema gerou
+um novo Plano de Ensino solto, rompendo o vínculo automático com o Plano de Observação.» Medido no
+acervo: `plano-20261104-1732` (`ajuste_de: plano-20261103-2200`, com os 30% do Expressão) e, ao
+lado, `po-20261104-1733` — derivado de `po-20261103-2242` e a declarar **`plano-de-ensino:
+plano-20261103-2200`**, o plano que o próprio sistema já tinha substituído. Duas cadeias paralelas
+e nada entre elas: o plano novo saía «livre» na estante, o PO continuava a observar o antigo, e a
+aula lia a proporção de antes.
 
-1. **A fatia do bloco Expressão saía `[Preencher]`.** Ela dizia tê-la preenchido no plano, e a aula
-   mostrava lacuna. Medido no envelope real (`escola/breu/envelopes/plano-20261103-2200.json`):
-   a linha do Expressão foi gravada **sem «Proporção alvo»** — `{Bloco: "Expressão",
-   Justificativa: "Braços"}` —, e as outras três fecham 70% dos 100%. O valor não está lá; **e mesmo
-   que estivesse, a aula não o lia.**
-2. **O guia de observação só falava de técnica.** Todas as dimensões saíam com o prefixo
-   «Técnica —», inclusive Musicalidade e Expressão, cujo conteúdo é poiésis — a medição de
-   02/11/2026 já o tinha dito («poiésis medida com o rótulo da técnica por cima»).
+**A regra, e é de leitura.** O PO observa **o plano que vale**, e o que vale é o topo da cadeia.
+Três funções novas, todas derivadas do `ajuste_de` — nenhuma grava nada:
 
-**O que se mediu no motor, e são dois defeitos de verdade.** O primeiro é de **posição**: a
-proporção era lida por `Object.values(linha)[1]`, e a gravação **não escreve célula vazia** — quando
-«Proporção alvo» falta, a coluna seguinte encolhe para o lugar dela e a aula imprime a
-**justificativa** como fatia. Provado com o dado trocado de ordem: a linha `{Bloco, Justificativa,
-"Proporção alvo"}` saía `| Expressão | [Preencher] | Braços |`. O segundo é de **unidade**: o
-conteúdo declara `minutos` como opção (e `percentual` como padrão), e o leitor só conhecia `%` —
-uma tabela em minutos saía com `[Preencher]` em **todos** os tempos, com a fatia certa ao lado.
-Medido: 14 min × 3 blocos davam três lacunas e uma fatia.
+| Peça | O que faz |
+|:--|:--|
+| `planosDaCadeia` | sobe e desce a cadeia de um plano (o ancestral e os sucessores) |
+| `planoVigenteDaCadeia` | devolve o topo — o que nenhum sucessor substituiu |
+| `poDoPlano` | o PO que observa qualquer elo da cadeia, e que não foi ele próprio substituído |
 
-**O que foi feito, e é correção de leitura, não de dado.**
+**O que mudou no fluxo.**
 
-- **A coluna é procurada pelo NOME**, tolerante a acentos (`Bloco` / `Proporção alvo`), com o
-  conteúdo como autoridade — a ordem deixou de importar. Sem coluna de proporção identificável, a
-  célula é lacuna; não se adivinha pela posição.
-- **As duas unidades convertem**: percentual × volume-alvo ÷ 100; minutos ÷ duração da aula ×
-  volume-alvo. A fatia em minutos diz a unidade («13,5 min»), para o número não se ler como erro de
-  conta vizinho dos tempos.
-- **A lacuna nomeia o bloco e o sítio**: `[Preencher: proporção do bloco Expressão no plano]` — o
-  genérico escondia de quem era a decisão. E o **plano** passou a dizer a mesma coisa ao pé da
-  tabela («Sem proporção alvo: Expressão. A Aula 01 sai com a fatia e os tempos desse bloco em
-  lacuna»), porque é lá que se corrige.
-- **O guia lê as três frentes**: um **resumo** curto por eixo (Corpo · Técnica · Poiesis) e, logo
-  abaixo, a tabela **item a item** — o detalhe que a folha de captura pede. A síntese é uma LISTA e
-  não uma tabela de propósito: o contrato extrai **uma** tabela por secção (a primeira), e a dos
-  critérios — que é o dado — desaparecia em silêncio.
-- **Nada foi renomeado no dado.** Os rótulos gravados nos POs continuam «Técnica — …», e os
-  `itens-por-dimensao` já gravados referenciam-nos por esse nome (P-03). O guia mostra o **eixo que
-  corresponde ao bloco** e a dimensão pelo **nome do bloco**; a tabela ganha a coluna «Eixo».
+1. **O «Guardar» de um plano vinculado deriva o PO em cadeia.** O motor já derivava o elo do plano
+   (é a regra da proveniência); o que faltava era o passo seguinte. Agora, quando o plano gravado
+   traz `ajuste_de`, a rota procura o PO daquela cadeia, copia as respostas dele e deriva **um elo
+   novo do PO**, com `ajuste_de` a apontar o anterior e a referência já corrigida para o plano
+   vigente. Depois corre o caminho normal — `-po.md`, ciclo e disparo —, que é o que faz a aula
+   ler a proporção nova. **Nada é reescrito:** o PO anterior fica de pé, com a sua linha de base.
+2. **A referência de um PO segue o topo.** Um PO gravado a declarar um plano substituído (o caso
+   do `po-20261104-1733`, que já está no repositório) passa a apontar o vigente na gravação
+   seguinte, e a correção **vai declarada na resposta** (`planoRetargetado`) — uma correção em
+   silêncio é a que ninguém audita depois.
+3. **Sem PO, nada se inventa.** Um plano livre que é ajustado ganha o elo do plano e **nenhum PO**:
+   criar-lhe uma linha de base seria inventar observação que ninguém declarou.
 
-**O mapa dos eixos é CANDIDATO, e está declarado como tal.** Barra, Centro e Solo → **Técnica**;
-Musicalidade e Expressão → **Poiesis**; e o resto cai em Técnica, que é exactamente o que o prefixo
-do conteúdo já fazia (nenhuma caixa nova, nenhum «desconhecido»). A taxonomia é **dela** — o
-`REGISTRO.md` de 02/11/2026 di-lo («transformar os três em eixos de primeira classe é da
-pesquisadora») —, e por isso o mapa vive numa constante documentada, não no conteúdo: no dia em que
-ela decidir, o mapa muda de sítio e a função lê-o de lá.
+**O cartão da aula — a listagem deixa de mostrar bastidor e passa a mostrar o guia.** Quatro
+ajustes, e três são remoção de ruído:
 
-**O corpo, e é o que a medição de 02/11 chamou «a costura que falta».** O guia passou a dizer o que a
-turma mostra: os **aspectos físicos** declarados no plano (`aspecto-fisico`, 15 na `breu`), o **ponto
-de partida** de cada aluna (`linha-de-base`) e as **restrições** (`restricoes`). Nada é inventado, e
-o que não existe é dito. **A ligação do corpo ao exercício continua a não existir** — nenhum verbete
-diz o que o movimento exige do corpo —, e o guia não a finge.
+- **A frase de arquitetura saiu.** «A aula não tem professor próprio: quem o tem é a turma, e é a
+  curadoria que a liga» era verdadeira e não era do professor. O painel fica com o dado: quem dá a
+  aula.
+- **A caixa «Horário» foi absorvida pela «Turma»**. Eram duas caixas para a mesma pergunta — «que
+  aula é esta, e quando». A Turma passa a concentrar a identificação, o ciclo, a contagem («aula 1
+  de 35»), o dia, a hora de início e de fim e a duração. A **Sala** continua dita como «não
+  declarada»: ela só existe no modelo com o `PLANO-TABELA-DE-ATIVIDADES`, e inventar um sítio
+  seria pior do que dizer que falta.
+- **O guia de observação entra no cartão** (a caixa nova). Ela lê a cópia do PO do pacote
+  (`po-01.json`) — a mesma que a porta lê — e mostra a conta («8 critérios · 4 dimensões») e, no
+  painel, um par por dimensão com os itens. Ao lado do nome da aula, uma **linha de síntese** por
+  eixo («Técnica — Barra, Centro · Poiesis — Musicalidade»): é o «à mão» que ela pediu, sem abrir a
+  aula. A §5 da aula continua a ser o documento, e o nome da aula é o link.
+- **O que não mudou:** o link «Aula N — objetivo» e os três botões (Lançar · Captura para
+  impressão · PDF da aula).
 
 **O que se mediu.**
 
 | Verificação | Antes | Depois |
 |:--|:--|:--|
-| `provar-eixos-e-tempo-da-aula` (**nova**) | — | **TUDO CERTO — 27 asserções** (a coluna pelo nome, as duas unidades, a lacuna nomeada, a prosa não convertida, os três eixos, o corpo, e nenhum item perdido) |
-| A fatia do Expressão na aula da `breu` | `[Preencher] \| Braços` | `[Preencher] \| [Preencher: proporção do bloco Expressão no plano]` — a justificativa deixou de vazar |
-| O plano da `breu` | a célula vazia calada | `> **Sem proporção alvo: Expressão.** … Preencha a coluna «Proporção alvo» acima` |
-| O guia da `breu` | 8 linhas «Técnica — …» | 3 frentes no resumo · 8 linhas no detalhe com a coluna «Eixo» (Técnica 4 · Poiesis 4) |
-| `provar-plano-matriz` · `provar-plano-completo` · `provar-aula-e-plano-legiveis` · `provar-derivados-da-sequencia` | verdes | **52/52 · 18 · 12 · 26** |
-| `gerar-ciclo.sh coqui-de-redinha 01 breu-bale-nivel-1-teste-3` | — | **0 erro(s), 0 aviso(s)**; PDF de 29 páginas com as duas correções dentro (medido no `pdftotext`) |
-| `validar-aula-ciclo` na aula regerada | — | **ok** (9 campos extraídos; 2 provisórios) |
+| O elo do PO ao ajustar o plano | **não nascia** (duas cadeias paralelas) | **nasce**, com `ajuste_de` do PO anterior e `plano-de-ensino` do plano novo |
+| O PO a declarar um plano substituído | ficava a apontar o antigo (`po-20261104-1733`) | passa ao **vigente** na gravação seguinte, e o ajuste é **dito** |
+| A estante do plano ajustado | «livre» (nenhum PO o referenciava) | **vinculada** — o elo do PO fecha o circuito |
+| A Aula 01 com o envelope real do `plano-20261104-1732` | `Expressão \| [Preencher] \| [Preencher…]` | **`Expressão \| 27 \| 30%`** — medido no `derivarAula01`, com o plano e o PO do repositório |
+| `provar-cadeia-do-ajuste` (**nova**) | — | **TUDO CERTO — 34 asserções** |
+| `provar-cadeia-do-ajuste` · `provar-vigente-na-listagem` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-apagar-da-listagem` · `provar-publicacao-da-escola` | verdes | **34 · 21 · 48 · 44 · 31 · 63** |
+| `montar-publicacao` numa árvore de prova | o cartão com a frase de bastidor e três caixas técnicas | **Turma (com o horário) · Professor (só o nome) · Guia de observação**; a linha de síntese por eixo; a Sala dita «não declarada» |
+| `check-identidade` | 20/20 | **20/20** (a cópia da porta no pacote-zero foi refrescada) |
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado (`motor/`
-não está na lista). As fontes do ciclo foram **regeradas localmente** para medir e **restauradas**
-depois: quem as escreve é o «Guardar» do PO, e a âncora não muda por esta entrega.
+**Motivo declarado — os congelados.** `tools/montar-publicacao.js` está em `CONGELAMENTO.md`
+(«`tools/` — geradores, validadores, hooks»). Motivo: **o cartão da listagem de aulas é o único
+sítio onde o professor vê o guia sem abrir a aula**, e as quatro mudanças foram pedidas por ela
+(remover a nota de arquitetura, juntar o horário à turma, pôr o guia à mão, manter a sala como «não
+declarada»). Não muda o que a ferramenta gera — muda o DADO que cada cartão leva, e nenhuma outra
+página é afectada. `motor/` não está em `CONGELAMENTO.md`; `porta/index.html` é a fonte da porta
+(refrescada na cópia do pacote-zero, como o `check-identidade` exige).
 
-**Com o quê.** `motor/nucleo/derivar-ciclo.js` (`distribuicaoDoTempo`, `eixosDaObservacao`,
-`blocoDaDimensao`, `eixoDoBloco`, §3 e §5) · `motor/nucleo/derivar-plano-ciclo.js` (a lacuna dita no
-plano) · `experimentos/provar-eixos-e-tempo-da-aula.js` · `experimentos/README.md` · `.gitignore` ·
-`REGISTRO.md` · `ESTADO-ATUAL.md`.
+**Com o quê.** `motor/nucleo/porta.js` (`planosDaCadeia`, `planoVigenteDaCadeia`, `poDoPlano`, o
+retarget em `elicitar`) · `motor/servidor/rotas.js` (`concluirPO` extraído, e o encadeamento do
+ajuste do plano) · `porta/index.html` (as duas linhas de aviso: cadeia e referência corrigida) ·
+`tools/montar-publicacao.js` (`itemDaAula`, `guiaDoCartao`) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (cópia refrescada) ·
+`experimentos/provar-cadeia-do-ajuste.js` · `experimentos/README.md` · `.gitignore` · `REGISTRO.md` ·
+`ESTADO-ATUAL.md`.
 
 **O que ainda não está feito, e é dela.**
 
-1. **A proporção do Expressão no plano da `breu`** — não está declarada, e o sistema não a inventa.
-   O caminho está dito nos dois documentos; quem preenche é ela, e a soma fecha em 100%.
-2. **A taxonomia dos eixos** — o mapa é candidato. Se ela quiser os três como eixos de primeira
-   classe (com campo próprio no PO), isso muda a taxonomia das dimensões e o mapa muda de sítio.
-3. **A explicação do formulário do PO** ainda diz «todas sob o eixo TÉCNICA»
-   (`porta/po/conteudo/po.json`, `dimensoes-de-observacao`). Continua verdadeira sobre o **rótulo**
-   e passou a ser uma segunda leitura ao lado do guia; corrigir a redação é conteúdo, e é dela.
-4. **O corpo ligado ao exercício** — a costura que a medição de 02/11 nomeou continua em falta: o
-   guia diz o que a turma mostra no corpo, e não o que cada movimento exige dele.
+1. **O PO que já está no repositório a apontar o plano antigo (`po-20261104-1733`) só se corrige na
+   próxima gravação.** A correção é automática a partir de agora, mas este elo em concreto foi
+   gravado antes — abrir o PO na porta e «derivar» (ou «corrigir») passa a referência ao plano
+   vigente, e o caminho já está medido.
+2. **A cadeia gera e dispara a cada ajuste.** Ajustar o plano de ensino volta a gerar o pacote; é
+   o que a frase dela pede («garantindo que o ciclo seja atualizado de ponta a ponta»), e é também
+   uma execução de GitHub Actions por ajuste. Se o custo incomodar, o passo a cortar é o disparo —
+   não o elo.
+3. **O guia no cartão é o mesmo para todas as aulas da turma** (o PO é do ciclo, não da aula). Não
+   há, hoje, um «o que observar nesta aula» que mude de aula para aula: seria outro dado, e não
+   foi inventado.
 
 ## O que está pendente
-
-## 03/11/2026 — A sequência acompanha os objetivos, e a pergunta era a certa
-
-(a) **O plano já gravado não se reescreve**: o envelope dela
-continua com as oito linhas — a tela e o documento deixam de as publicar, e a próxima gravação do nó
-as deixa de escrever. Quem quiser o envelope limpo **antes** disso abre a sequência e grava.
-(b) A `aula-01.md` desse ciclo, se for regerada, perde o exercício do objetivo 3 — e é o correcto,
-mas é uma mudança no documento que vale a pena ler depois de gerada. (c) O conteúdo pedagógico
-continua a **0 dos 9 campos** — a forma está pronta, o conteúdo é dela (P-16).
 
 ## 03/11/2026 — O PDF do ciclo compila outra vez: dois glifos do alfabeto não estavam declarados
 
@@ -371,6 +370,21 @@ nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vig
    e passou a ser uma segunda leitura ao lado do guia; corrigir a redação é conteúdo, e é dela.
 4. **O corpo ligado ao exercício** — a costura que a medição de 02/11 nomeou continua em falta: o
    guia diz o que a turma mostra no corpo, e não o que cada movimento exige dele.
+
+## 04/11/2026 — O ajuste do plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa
+
+
+1. **O PO que já está no repositório a apontar o plano antigo (`po-20261104-1733`) só se corrige na
+   próxima gravação.** A correção é automática a partir de agora, mas este elo em concreto foi
+   gravado antes — abrir o PO na porta e «derivar» (ou «corrigir») passa a referência ao plano
+   vigente, e o caminho já está medido.
+2. **A cadeia gera e dispara a cada ajuste.** Ajustar o plano de ensino volta a gerar o pacote; é
+   o que a frase dela pede («garantindo que o ciclo seja atualizado de ponta a ponta»), e é também
+   uma execução de GitHub Actions por ajuste. Se o custo incomodar, o passo a cortar é o disparo —
+   não o elo.
+3. **O guia no cartão é o mesmo para todas as aulas da turma** (o PO é do ciclo, não da aula). Não
+   há, hoje, um «o que observar nesta aula» que mude de aula para aula: seria outro dado, e não
+   foi inventado.
 
 ## Pendências anteriores (índice)
 
@@ -715,6 +729,7 @@ nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vig
 - **03/11/2026** — A curadoria só oferece o que tem notação, os rótulos… → `REGISTRO.md` L33235
 - **03/11/2026** — O dono da música não é compasso → `REGISTRO.md` L33320
 - **03/11/2026** — A metodologia é do professor, e não se pergunta duas vezes → `REGISTRO.md` L33382
+- **03/11/2026** — A sequência acompanha os objetivos, e a pergunta era a certa → `REGISTRO.md` L33467
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

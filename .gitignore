@@ -618,3 +618,11 @@ experimentos/modelo-formulario/*
 # «Técnica —». Esta prova fixa as duas correções e a regra de que nada se perde — todo item do PO
 # continua na tabela, uma linha cada. Citada no `REGISTRO.md`.
 !experimentos/provar-eixos-e-tempo-da-aula.js
+
+# O AJUSTE DO PLANO ARRASTA O PO (04/11/2026). A pesquisadora corrigiu a proporção do Expressão no
+# plano de ensino; o «Guardar» criou o elo novo (a proveniência manda) e o PO continuou a observar o
+# plano de ANTES — duas cadeias paralelas, e a aula a ler a proporção antiga. Esta prova fixa a
+# cadeia: o `ajuste_de` do plano liga os elos, o vigente é o topo, o PO passa a apontar o plano
+# vigente, o ajuste deriva o elo do PO (e escreve a fonte, o ciclo e dispara) — e um plano sem
+# observação continua a não ter PO. Mede também a ponta: a Aula 01 com os 30% do Expressão.
+!experimentos/provar-cadeia-do-ajuste.js

@@ -4,7 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `72436a9`, árvore limpa). Nesta entrega, **a fatia de tempo
+> **Última fotografia:** 04/11/2026 (base `bff42d8`, árvore limpa). Nesta entrega, **o ajuste do
+> plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa**. (1) A pesquisadora
+> corrigiu a proporção do Expressão no plano, e o «Guardar» fez o que a proveniência manda — um elo
+> novo —, mas o **PO continuou a observar o plano substituído**: `po-20261104-1733` declara
+> `plano-de-ensino: plano-20261103-2200`, medido no envelope real. Duas cadeias paralelas, e a aula
+> a ler a proporção antiga. Agora a rota deriva **um elo do PO** quando o plano é ajustado (com
+> `ajuste_de` do PO anterior e a referência do plano vigente), corre o caminho normal — `-po.md`,
+> ciclo e disparo —, e **a referência de um PO segue o topo** da cadeia, com a correção declarada
+> (`planoRetargetado`). A Aula 01 do envelope real passa a sair com **Expressão 27 · 30%**. (2) O
+> **cartão da listagem de aulas** perde a frase de arquitetura («a aula não tem professor próprio»),
+> concentra o horário na caixa **Turma** (com a Sala dita «não declarada»), e ganha a caixa **Guia
+> de observação** — a conta, os itens por dimensão e uma linha de síntese por eixo, à mão, sem abrir
+> a aula. Prova nova: `provar-cadeia-do-ajuste`, **34 asserções**.
+>
+> **Entrega anterior** (base `72436a9`, árvore limpa). Nesta entrega, **a fatia de tempo
 > de cada bloco vem do plano pela coluna certa, e o guia lê as três frentes**. Duas coisas que a
 > pesquisadora viu no ciclo da `breu`. (1) A fatia do bloco **Expressão** saía `[Preencher]` — e o
 > motor tinha dois defeitos medidos: a proporção era lida pela **posição** da coluna, e a gravação
@@ -1641,6 +1655,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     dela, e o mapa vive numa constante documentada até ela decidir o lugar definitivo. **DECIDIDO
     por ela** («o guia contempla as três dimensões»; «a fatia está no plano») **e implementado**
     04/11/2026.
+81. **O AJUSTE DO PLANO ARRASTA O PO — E O PO OBSERVA O PLANO QUE VALE.** A pesquisadora ajustou a
+    proporção do Expressão no plano de ensino; o «Guardar» criou o elo novo (a proveniência manda) e
+    o **PO continuou a apontar o plano substituído** — medido: `po-20261104-1733` declara
+    `plano-de-ensino: plano-20261103-2200`. Para o professor foi «um ajuste»; o que ele viu foi um
+    plano «livre» e uma aula com a proporção antiga. A regra passa a ser uma e derivada do
+    `ajuste_de` (nada é inferido): a **cadeia** do plano tem um **topo** (`planoVigenteDaCadeia`), o
+    PO do plano é o que observa qualquer elo e não foi substituído (`poDoPlano`), e ao gravar um
+    plano ajustado a rota **deriva um elo do PO** com a referência nova e corre o caminho normal
+    (fonte, ciclo, disparo). Um PO gravado a declarar um plano substituído **passa a apontar o
+    vigente**, e o ajuste é **dito** na resposta. **Sem PO nada se inventa** — um plano livre
+    ajustado continua sem observação. **DECIDIDO por ela** («o usuário sente que está apenas
+    editando o plano que já possui, e a alteração deve reverberar de forma natural e integrada»)
+    **e implementado** 04/11/2026.
+82. **O CARTÃO DA AULA DIZ O QUE SE OBSERVA, E NÃO COMO O SISTEMA É FEITO.** Três mudanças na
+    listagem: a frase «a aula não tem professor próprio: quem o tem é a turma…» **saiu** (é
+    arquitetura, e o painel fica com o dado); a caixa **Horário** foi **absorvida** pela **Turma**
+    (identificação, ciclo, «aula N de M», dia, início, fim, duração — e a **Sala** dita «não
+    declarada», porque ela só existe no modelo com o `PLANO-TABELA-DE-ATIVIDADES`); e o **Guia de
+    observação** entra como caixa — a conta, os itens por dimensão e uma **linha de síntese por
+    eixo** ao lado do nome, para se ter à mão sem abrir a aula. O link «Aula N — objetivo» e os três
+    botões (Lançar · Captura · PDF) ficam. **DECIDIDO por ela e implementado** 04/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -2270,7 +2305,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — a fatia de tempo e as três frentes do guia)
+### Executado nesta fotografia (04/11/2026 — o ajuste arrasta o PO, e o cartão mostra o guia)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-cadeia-do-ajuste` (**nova**) | **TUDO CERTO — 34 asserções**: a cadeia do `ajuste_de` e o vigente, o PO achado por qualquer elo, a referência que segue o topo (com `planoRetargetado`), o elo do PO criado pelo «Guardar» do plano vinculado — fonte, ciclo e disparo —, a repetição que não multiplica elos, e o plano sem PO que não inventa observação |
+| A ponta, com o **envelope real** `plano-20261104-1732` + o PO | a Aula 01 sai com **`Expressão \| 27 \| 30%`** — era `[Preencher]` |
+| `montar-publicacao` numa árvore de prova (pacote-zero + uma turma) | o cartão passa a ter **Turma** (com o dia, as horas, a duração e a Sala «não declarada»), **Professor** sem a nota de arquitetura e **Guia de observação** («8 critérios · 4 dimensões», um par por dimensão), com a linha de síntese «Técnica — Solo, Barra, Centro · Poiesis — Musicalidade» |
+| `provar-vigente-na-listagem` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-apagar-da-listagem` · `provar-publicacao-da-escola` | **21 · 48 · 44 · 31 · 63** — verdes |
+| `check-identidade` · `check-indices` | **20/20** (a cópia da porta no pacote-zero foi refrescada) · **14/14** |
+| **o que NÃO mede** | `provar-listas-do-acervo` — segue **NÃO FEITO**: a única escola viva (`breu`) não tem ciclo publicado para servir |
+
+### Executado na fotografia anterior (04/11/2026 — a fatia de tempo e as três frentes do guia)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3217,6 +3263,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **O ajuste do plano arrasta o PO, e o cartão da aula mostra o guia.** O PO
+  continuava a observar o plano substituído (`po-20261104-1733` → `plano-de-ensino:
+  plano-20261103-2200`, medido), e o plano novo ficava «livre» na estante. Três funções derivadas do
+  `ajuste_de` — `planosDaCadeia`, `planoVigenteDaCadeia`, `poDoPlano` — dizem qual é o topo; a rota
+  deriva **um elo do PO** ao gravar o plano ajustado (e corre fonte, ciclo e disparo); e um PO a
+  declarar um plano substituído passa a apontar o vigente, com a correção **dita**. A Aula 01 do
+  envelope real passa a sair com **Expressão 27 · 30%**. Na listagem, a frase de arquitetura saiu, o
+  horário foi para dentro da caixa **Turma**, e o **Guia de observação** entrou como caixa — com a
+  conta, os itens por dimensão e uma linha de síntese por eixo. Prova nova:
+  `provar-cadeia-do-ajuste`, 34 asserções.
 
 - **04/11/2026** — **A fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes.**
   Dois defeitos medidos no motor: a proporção era lida pela **posição** da coluna — e a gravação não

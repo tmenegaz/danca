@@ -7019,7 +7019,9 @@ function bastidoresDaGeracao(dados) {
   const ciclo = dados.ciclo;
   const disparo = dados.disparo;
   const fonte = dados.fonte;
-  if (!ciclo && !disparo && !fonte) return '';
+  const cadeia = dados.cadeia;
+  const retarget = dados.planoRetargetado;
+  if (!ciclo && !disparo && !fonte && !cadeia && !retarget) return '';
 
   const partes = ['<p><b>Nos bastidores, o «Gerar»</b></p>'];
 
@@ -7058,6 +7060,28 @@ function bastidoresDaGeracao(dados) {
     partes.push(disparo.ok
       ? '<p class="sub">a geração do pacote foi disparada (GitHub Actions).</p>'
       : '<p class="erro">a geração do pacote NÃO foi disparada: ' + escapar(disparo.erro || 'erro') + '</p>');
+  }
+
+  /* A REFERÊNCIA CORRIGIDA — quando o plano que o PO declarava já tinha sido substituído
+   * (04/11/2026). Sem esta linha, a correção acontecia em silêncio: o PO passava a observar outro
+   * documento e o professor não tinha como saber que a ligação tinha sido refeita. */
+  if (retarget) {
+    partes.push('<p class="sub">este Plano de Observação passou a observar a versão mais recente ' +
+      'do plano de ensino — a que ele declarava tinha sido substituída.</p>');
+  }
+
+  /* A CADEIA — o ajuste do plano levou o PO com ele (04/11/2026). É uma linha, e não uma
+   * tabela: para o professor, o que aconteceu foi «gravei e o resto acompanhou». O que ele NÃO
+   * precisa de ler é a mecânica dos elos — mas precisa de saber que existe um registo novo, e
+   * que o anterior não se perdeu. */
+  if (cadeia) {
+    if (cadeia.erro) {
+      partes.push('<p class="erro">o Plano de Observação não acompanhou o ajuste: ' +
+        escapar(cadeia.erro) + '</p>');
+    } else if (cadeia.po && cadeia.po.para) {
+      partes.push('<p class="ok">o Plano de Observação ligado a este plano foi atualizado em ' +
+        'cadeia — a aula passa a ler a versão nova. O registo anterior fica guardado.</p>');
+    }
   }
 
   return partes.join('');

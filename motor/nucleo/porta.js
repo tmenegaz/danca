@@ -1145,6 +1145,91 @@ async function poPrimarioDoEscopo(armazenamento, contexto, jaLido) {
 }
 
 /*
+ * A CADEIA DO PLANO, E O PO QUE A ACOMPANHA (04/11/2026).
+ *
+ * O QUE ACONTECEU. A pesquisadora entrou para corrigir a proporção do bloco Expressão no plano
+ * de ensino, e o «Guardar» fez o que a proveniência manda: criou um **elo novo**
+ * (`plano-20261104-1732`, com `ajuste_de: plano-20261103-2200`). Do lado dela foi um ajuste; do
+ * lado do sistema nasceu um segundo plano — e o PO continuou a observar o PRIMEIRO. O plano novo
+ * apareceu na estante como «livre», o PO continuou «ligado» ao antigo, e a aula continuou a ler a
+ * proporção de antes. A cadeia tinha dois elos e nenhum elo entre eles.
+ *
+ * A REGRA, e é de leitura: o PO observa **o plano que vale**, e o que vale é o topo da cadeia. Duas
+ * funções, as duas derivadas do `ajuste_de` — nenhuma grava nada:
+ *
+ *   · `planosDaCadeia` sobe e desce a cadeia de um plano de ensino (o ancestral e os sucessores);
+ *   · `planoVigenteDaCadeia` devolve o topo — o que não foi substituído por ninguém.
+ *
+ * `poDoPlano` procura o PO **vigente** que observa qualquer elo da cadeia. É ele que a rota usa
+ * para dizer «o PO daquele plano é este», e é ele que o ajuste em cadeia tem de derivar.
+ */
+async function planosDaCadeia(armazenamento, planoId, jaLido) {
+  const alvo = String(planoId || '').trim();
+  if (!alvo) return [];
+  const resumos = (await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, jaLido))
+    .map(({ nome, resumo }) => Object.assign({}, resumo, { id: resumo.id || nome.replace(/\.json$/, '') }));
+  const porId = new Map(resumos.map((r) => [String(r.id), r]));
+  const vistos = new Set([alvo]);
+  const fila = [alvo];
+  while (fila.length) {
+    const atual = fila.shift();
+    const registro = porId.get(atual);
+    // Para cima: o pai declarado. Para baixo: quem declara este como pai.
+    const vizinhos = [registro && registro.ajuste_de]
+      .concat(resumos.filter((r) => String(r.ajuste_de || '') === atual).map((r) => r.id))
+      .filter(Boolean).map(String);
+    for (const v of vizinhos) {
+      if (vistos.has(v)) continue;
+      vistos.add(v);
+      fila.push(v);
+    }
+  }
+  return [...vistos].filter((id) => porId.has(id));
+}
+
+/** O TOPO da cadeia de um plano — o que nenhum sucessor substituiu. Devolve o id, ou o próprio. */
+async function planoVigenteDaCadeia(armazenamento, planoId, jaLido) {
+  const alvo = String(planoId || '').trim();
+  if (!alvo) return null;
+  const resumos = (await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, jaLido))
+    .map(({ nome, resumo }) => Object.assign({}, resumo, { id: resumo.id || nome.replace(/\.json$/, '') }));
+  const temSucessor = new Set(resumos.map((r) => String(r.ajuste_de || '')).filter(Boolean));
+  const daCadeia = new Set(await planosDaCadeia(armazenamento, alvo, jaLido));
+  const tops = resumos.filter((r) => daCadeia.has(String(r.id)) && !temSucessor.has(String(r.id)));
+  if (!tops.length) return alvo;
+  // Mais de um topo só acontece com irmãos (duas ramificações da mesma origem): fica o mais novo.
+  tops.sort((a, b) => {
+    const oa = String(a.gerado_em || a.id);
+    const ob = String(b.gerado_em || b.id);
+    return oa === ob ? (String(a.id) < String(b.id) ? 1 : -1) : (oa < ob ? 1 : -1);
+  });
+  return String(tops[0].id);
+}
+
+/**
+ * O PO VIGENTE de um plano de ensino — o que observa qualquer elo da cadeia e não foi, ele
+ * próprio, substituído. `null` quando nenhum PO observa aquele plano.
+ */
+async function poDoPlano(armazenamento, planoId) {
+  const alvo = String(planoId || '').trim();
+  if (!alvo) return null;
+  const daCadeia = new Set(await planosDaCadeia(armazenamento, alvo));
+  const pos = (await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/))
+    .map(({ nome, resumo }) => Object.assign({}, resumo, { id: resumo.id || nome.replace(/\.json$/, '') }))
+    .filter((r) => (r.plano || []).some((p) => daCadeia.has(String(p))));
+  if (!pos.length) return null;
+  const substituidos = new Set(pos.map((r) => String(r.ajuste_de || '')).filter(Boolean));
+  const vigentes = pos.filter((r) => !substituidos.has(String(r.id)));
+  const lista = vigentes.length ? vigentes : pos;
+  lista.sort((a, b) => {
+    const oa = String(a.gerado_em || a.id);
+    const ob = String(b.gerado_em || b.id);
+    return oa === ob ? (String(a.id) < String(b.id) ? 1 : -1) : (oa < ob ? 1 : -1);
+  });
+  return String(lista[0].id);
+}
+
+/*
  * O VÍNCULO do PLANO — o PO referencia o plano no nó `plano-de-ensino` (o id do
  * envelope). É DERIVADO, como o da anamnese: varre-se os envelopes de PO e vê-se
  * quem declara qual plano; não se grava nada no plano.
@@ -1452,12 +1537,39 @@ async function elicitar(armazenamento, corpo, dados) {
    * vez, em silêncio, sobrescrevendo a fonte) era pior do que o «não».
    */
   if (fonte === 'po') {
+    /*
+     * O PO OBSERVA O PLANO QUE VALE — e não o elo que já foi substituído (04/11/2026).
+     *
+     * O que aconteceu, medido: a pesquisadora ajustou o plano de ensino (o elo
+     * `plano-20261103-2200` → `plano-20261104-1732`), e o PO derivado continuou a declarar
+     * `plano-de-ensino: plano-20261103-2200`. A observação passou a apontar para o documento
+     * que o próprio sistema já tinha substituído — a cadeia existia nos dois lados e não se
+     * tocava no meio. Sem esta linha, o professor podia derivar o PO quantas vezes quisesse e
+     * ele nunca veria a correção do plano.
+     *
+     * O que se troca é a REFERÊNCIA, não o conteúdo: o PO continua a dizer o que o professor
+     * escreveu; o que passa a ser verdade é «este PO observa a versão vigente do plano». E o
+     * ajuste é DITO na resposta (`planoRetargetado`), para a tela poder contá-lo em vez de o
+     * fazer em silêncio.
+     */
+    const alvo = respostas['plano-de-ensino'];
+    const planoDeclarado = alvo && alvo.valor !== undefined ? alvo.valor : alvo;
+    const planoId = String(planoDeclarado == null ? '' : planoDeclarado).trim();
+    if (planoId) {
+      const vigente = await planoVigenteDaCadeia(armazenamento, planoId);
+      if (vigente && vigente !== planoId) {
+        respostas['plano-de-ensino'] = {
+          valor: vigente, origem: 'perguntado', respondente: 'professor', nota: null,
+        };
+        opcoes.planoRetargetado = { de: planoId, para: vigente };
+      }
+    }
     if (corpo && corpo.ajuste_de) {
       opcoes.ajuste = { de: String(corpo.ajuste_de), motivo: (corpo && corpo.motivo) || null };
       delete opcoes.id;
     } else if (!opcoes.id) {
-      const alvo = respostas['plano-de-ensino'];
-      const planoId = alvo && alvo.valor !== undefined ? alvo.valor : alvo;
+      /* A BUSCA DO PO EXISTENTE USA A REFERÊNCIA JÁ CORRIGIDA: se o plano foi substituído, o
+       * PO primário do plano NOVO é procurado pelo id vigente — o mesmo que vai ser gravado. */
       const existente = (planoId && String(planoId).trim())
         ? await poPrimarioDoPlano(armazenamento, String(planoId).trim())
         : await poPrimarioDoEscopo(armazenamento, (corpo && corpo.contexto) || {});
@@ -1539,6 +1651,10 @@ async function elicitar(armazenamento, corpo, dados) {
     recusadas,
     linhas: gravacao.linhas,
     documento,
+    // O AJUSTE DA REFERÊNCIA (04/11/2026): quando o plano declarado já tinha sido substituído, o
+    // PO passa a observar o topo da cadeia. Vai na resposta para a tela o poder dizer — uma
+    // correção em silêncio é a que ninguém consegue auditar depois.
+    ...(opcoes.planoRetargetado ? { planoRetargetado: opcoes.planoRetargetado } : {}),
   };
 }
 
@@ -1550,6 +1666,9 @@ module.exports = {
   resumoDoEnvelope,
   resumosDeEnvelopes,
   chaveDoContexto,
+  planosDaCadeia,
+  planoVigenteDaCadeia,
+  poDoPlano,
   vigentesDaFamilia,
   ENDERECOS,
   registro,

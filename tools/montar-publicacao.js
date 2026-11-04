@@ -611,6 +611,22 @@ function itemDaAula(t, a, indice, total) {
   if (fs.existsSync(path.join(t.pasta, pdfAula))) {
     acoes.push(['PDF da aula', '/' + t.variante + '/' + pdfAula, 'secundario']);
   }
+
+  /*
+   * O GUIA DE OBSERVAÇÃO À MÃO, NO CARTÃO (04/11/2026).
+   *
+   * A pesquisadora: «o professor precisa de ter acesso rápido e prático ao seu Guia de
+   * Observação — o que observar durante aquela aula — sem forçar a entrar na tela interna da aula
+   * apenas para conferir o que deve observar». O guia está na §5 da aula, e chegava lá só por
+   * dentro; no cartão, a linha dizia três caixas técnicas (turma, professor, horário) e nada do
+   * que se observa. É o único dado pedagógico da listagem, e era o que faltava.
+   *
+   * A FONTE É A CÓPIA DO PO NO PACOTE (`po-01.json`) — a mesma que a porta lê. Ela traz as
+   * dimensões e os itens já na forma do documento (`{dimensao, itens}`), e NADA aqui é deduzido:
+   * dimensão sem item sai dita, como no `.md`.
+   */
+  const guia = guiaDoCartao(t, a);
+
   return {
     nome: 'Aula ' + a.n + (a.marco ? ' — ' + a.marco : ''),
     ler,
@@ -619,24 +635,130 @@ function itemDaAula(t, a, indice, total) {
     contexto: 'Ciclo ' + p.ciclo + ' · aula ' + Number(a.n) + ' de ' + total,
     turma: p.turma,
     professor: p.professor,
+    /* A LINHA DE APOIO DO CARTÃO — a síntese do guia, quando há guia. É o «à mão» que a
+     * pesquisadora pediu: quem passa os olhos pela lista vê o que se observa naquela aula, e o
+     * detalhe critério a critério está na caixa ao lado (e na §5 da aula). */
+    ...(guia.resumo ? { fatos: [guia.resumo] } : {}),
     caixas: [
+      /* A «TURMA» CONCENTRA O QUE ESTAVA EM DUAS CAIXAS (04/11/2026). O horário tinha caixa
+       * própria ao lado da turma, e são a mesma pergunta: «que aula é esta, e quando». A contagem
+       * («Aula 1 de 35») e a identificação já estavam aqui; o dia, a hora e a duração passam a
+       * estar, e a caixa do horário deixa de existir — três caixas continuam a ser o limite, e
+       * agora são turma · professor · guia. */
       { rotulo: 'Turma', valor: p.turmaCurta,
         painel: listas.painelDoCartao([
-          ['Turma', p.turma], ['Ciclo', p.ciclo], ['Aula', Number(a.n) + ' de ' + total]]) },
-      { rotulo: 'Professor', valor: p.professor,
-        painel: listas.painelDoCartao([['Professor da turma', p.professor]],
-          'A aula não tem professor próprio: quem o tem é a turma, e é a curadoria que a liga.') },
-      { rotulo: 'Horário', valor: quando || '—',
-        painel: listas.painelDoCartao([
+          ['Turma', p.turma],
+          ['Ciclo', p.ciclo],
+          ['Aula', Number(a.n) + ' de ' + total],
           ['Dia', data(a.data) || '—'],
           ['Começa às', a.inicio || '—'],
           ['Termina às', a.fim || '—'],
           ['Duração', duracao || '—'],
+          /* A SALA NÃO EXISTE NO MODELO, E A LISTAGEM DIZ ISSO. A turma tem dias, hora de
+           * início por dia e duração; sala não tem. A caixa diz «não declarada» em vez de
+           * inventar um sítio — e o campo entra com o PLANO-TABELA-DE-ATIVIDADES, que é quando a
+           * sala passa a ser um dado e não uma suposição. */
           ['Sala', 'não declarada']],
           'A sala entra no modelo com o PLANO-TABELA-DE-ATIVIDADES. Até lá, a listagem diz que '
           + 'não a tem — não inventa um sítio.') },
+      /* O PROFESSOR SEM A NOTA DE BASTIDOR (04/11/2026). Aqui estava, por baixo do painel, «A
+       * aula não tem professor próprio: quem o tem é a turma, e é a curadoria que a liga» — uma
+       * explicação de arquitetura a quem só quer saber quem dá a aula. Ela era verdadeira e não
+       * era do professor: saiu. O que fica é o dado, e nada mais. */
+      { rotulo: 'Professor', valor: p.professor,
+        painel: listas.painelDoCartao([['Professor da turma', p.professor || '—']]) },
+      /* O GUIA — a caixa nova. O valor é a conta (quantos critérios, em quantas dimensões); o
+       * painel, um par por dimensão com os itens. A §5 da aula continua a ser o documento, e o
+       * nome da aula é o link para lá. */
+      { rotulo: 'Guia de observação', valor: guia.valor,
+        painel: listas.painelDoCartao(
+          guia.pares.length ? guia.pares : [['Guia', 'o Plano de Observação ainda não declarou dimensões']],
+          guia.pares.length
+            ? 'O guia completo está na Aula ' + Number(a.n) + ', na secção «Guia de observação do '
+              + 'professor» — aqui fica o que se observa, para se ter à mão sem abrir a aula.'
+            : 'As dimensões vêm do Plano de Observação desta turma. Sem elas, não há o que '
+              + 'observar — e a lista não inventa critérios.') },
     ],
   };
+}
+
+/** As três frentes do guia, na ordem em que o documento as apresenta (ver `derivar-ciclo.js`). */
+const EIXOS_DO_GUIA = [
+  { id: 'corpo', rotulo: 'Corpo' },
+  { id: 'tecnica', rotulo: 'Técnica' },
+  { id: 'poiesis', rotulo: 'Poiesis' },
+];
+const BLOCOS_DA_POIESIS_NO_CARTAO = ['musicalidade', 'expressao'];
+const semAcento = (t) => String(t == null ? '' : t)
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+/** O bloco de uma dimensão: o que vem depois do separador («Técnica — Barra» → «Barra»). */
+const blocoDaDimensaoNoCartao = (rotulo) => {
+  const partes = String(rotulo == null ? '' : rotulo).split(/\s+[—–-]\s+/).map((x) => x.trim()).filter(Boolean);
+  return partes.length > 1 ? partes[partes.length - 1] : (partes[0] || '');
+};
+/** O eixo de um bloco — o mesmo mapa do gerador, e declarado como candidato lá. */
+const eixoDoBlocoNoCartao = (bloco) =>
+  (BLOCOS_DA_POIESIS_NO_CARTAO.indexOf(semAcento(bloco)) !== -1 ? 'poiesis' : 'tecnica');
+
+/**
+ * O GUIA DE UMA AULA, PARA O CARTÃO — lido da cópia do PO no pacote.
+ *
+ * Devolve `{valor, resumo, pares}`:
+ *   · `valor` — a conta, que é o que a caixa mostra fechada («8 critérios · 3 dimensões»);
+ *   · `resumo` — a linha do cartão, por eixo («Técnica — Barra, Centro · Poiesis — Musicalidade»);
+ *   · `pares` — `[dimensão, itens]`, um por dimensão, para o painel.
+ *
+ * Sem PO no pacote, tudo sai vazio e a caixa DIZ porquê — um cartão em branco leria como «não há
+ * nada a observar», que é uma afirmação sobre a aula de alguém.
+ */
+function guiaDoCartao(t, a) {
+  const arquivo = path.join(t.pasta, 'po-' + a.n + '.json');
+  const doPo = fs.existsSync(arquivo) ? arquivo : path.join(t.pasta, 'po-01.json');
+  let po = null;
+  if (fs.existsSync(doPo)) {
+    try { po = JSON.parse(fs.readFileSync(doPo, 'utf8')); } catch (erro) { po = null; }
+  }
+  const dimensoes = (po && Array.isArray(po.dimensoesObservadas)) ? po.dimensoesObservadas.map(String) : [];
+  const cru = (po && Array.isArray(po.itensPorDimensao)) ? po.itensPorDimensao : [];
+  const porDimensao = new Map();
+  for (const registro of cru) {
+    if (!registro || typeof registro !== 'object') continue;
+    const nome = String(registro.dimensao || registro.sujeito || '').trim();
+    if (!nome) continue;
+    // O `;` separa itens (a regra do gerador, desde 01/11/2026); a linha quebrada também.
+    const itens = []
+      .concat(Array.isArray(registro.itens) ? registro.itens : String(registro.itens == null ? '' : registro.itens).split(/[;\n]+/))
+      .map((x) => String(x == null ? '' : x).trim())
+      .filter(Boolean);
+    porDimensao.set(nome, itens);
+  }
+  const nomes = dimensoes.length ? dimensoes : [...porDimensao.keys()];
+  const porEixo = new Map(EIXOS_DO_GUIA.map((e) => [e.id, []]));
+  for (const nome of nomes) {
+    const bloco = blocoDaDimensaoNoCartao(nome);
+    const eixo = eixoDoBlocoNoCartao(bloco);
+    if (!porEixo.has(eixo)) porEixo.set(eixo, []);
+    porEixo.get(eixo).push({ dimensao: nome, bloco, itens: porDimensao.get(nome) || [] });
+  }
+
+  const total = nomes.reduce((s, n) => s + (porDimensao.get(n) || []).length, 0);
+  const pares = nomes.map((nome) => {
+    const itens = porDimensao.get(nome) || [];
+    return [nome, itens.length ? itens.join(' · ') : 'a preencher no PO'];
+  });
+  const resumo = EIXOS_DO_GUIA
+    .map((e) => {
+      const lista = porEixo.get(e.id) || [];
+      if (!lista.length) return '';
+      return e.rotulo + ' — ' + lista.map((d) => d.bloco).join(', ');
+    })
+    .filter(Boolean)
+    .join(' · ');
+  const valor = nomes.length
+    ? total + (total === 1 ? ' critério' : ' critérios') + ' · ' + nomes.length
+      + (nomes.length === 1 ? ' dimensão' : ' dimensões')
+    : 'sem dimensões no PO';
+  return { valor, resumo, pares };
 }
 
 /**

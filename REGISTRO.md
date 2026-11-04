@@ -34200,3 +34200,100 @@ plano) · `experimentos/provar-eixos-e-tempo-da-aula.js` · `experimentos/README
    e passou a ser uma segunda leitura ao lado do guia; corrigir a redação é conteúdo, e é dela.
 4. **O corpo ligado ao exercício** — a costura que a medição de 02/11 nomeou continua em falta: o
    guia diz o que a turma mostra no corpo, e não o que cada movimento exige dele.
+
+## 04/11/2026 — O ajuste do plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa
+
+**O que motivou, e é a frase dela.** «O usuário entrou para fazer um ajuste pontual em um Plano de
+Ensino (…) Sob a ótica do professor, ele realizou apenas um ajuste (…). No entanto, o sistema gerou
+um novo Plano de Ensino solto, rompendo o vínculo automático com o Plano de Observação.» Medido no
+acervo: `plano-20261104-1732` (`ajuste_de: plano-20261103-2200`, com os 30% do Expressão) e, ao
+lado, `po-20261104-1733` — derivado de `po-20261103-2242` e a declarar **`plano-de-ensino:
+plano-20261103-2200`**, o plano que o próprio sistema já tinha substituído. Duas cadeias paralelas
+e nada entre elas: o plano novo saía «livre» na estante, o PO continuava a observar o antigo, e a
+aula lia a proporção de antes.
+
+**A regra, e é de leitura.** O PO observa **o plano que vale**, e o que vale é o topo da cadeia.
+Três funções novas, todas derivadas do `ajuste_de` — nenhuma grava nada:
+
+| Peça | O que faz |
+|:--|:--|
+| `planosDaCadeia` | sobe e desce a cadeia de um plano (o ancestral e os sucessores) |
+| `planoVigenteDaCadeia` | devolve o topo — o que nenhum sucessor substituiu |
+| `poDoPlano` | o PO que observa qualquer elo da cadeia, e que não foi ele próprio substituído |
+
+**O que mudou no fluxo.**
+
+1. **O «Guardar» de um plano vinculado deriva o PO em cadeia.** O motor já derivava o elo do plano
+   (é a regra da proveniência); o que faltava era o passo seguinte. Agora, quando o plano gravado
+   traz `ajuste_de`, a rota procura o PO daquela cadeia, copia as respostas dele e deriva **um elo
+   novo do PO**, com `ajuste_de` a apontar o anterior e a referência já corrigida para o plano
+   vigente. Depois corre o caminho normal — `-po.md`, ciclo e disparo —, que é o que faz a aula
+   ler a proporção nova. **Nada é reescrito:** o PO anterior fica de pé, com a sua linha de base.
+2. **A referência de um PO segue o topo.** Um PO gravado a declarar um plano substituído (o caso
+   do `po-20261104-1733`, que já está no repositório) passa a apontar o vigente na gravação
+   seguinte, e a correção **vai declarada na resposta** (`planoRetargetado`) — uma correção em
+   silêncio é a que ninguém audita depois.
+3. **Sem PO, nada se inventa.** Um plano livre que é ajustado ganha o elo do plano e **nenhum PO**:
+   criar-lhe uma linha de base seria inventar observação que ninguém declarou.
+
+**O cartão da aula — a listagem deixa de mostrar bastidor e passa a mostrar o guia.** Quatro
+ajustes, e três são remoção de ruído:
+
+- **A frase de arquitetura saiu.** «A aula não tem professor próprio: quem o tem é a turma, e é a
+  curadoria que a liga» era verdadeira e não era do professor. O painel fica com o dado: quem dá a
+  aula.
+- **A caixa «Horário» foi absorvida pela «Turma»**. Eram duas caixas para a mesma pergunta — «que
+  aula é esta, e quando». A Turma passa a concentrar a identificação, o ciclo, a contagem («aula 1
+  de 35»), o dia, a hora de início e de fim e a duração. A **Sala** continua dita como «não
+  declarada»: ela só existe no modelo com o `PLANO-TABELA-DE-ATIVIDADES`, e inventar um sítio
+  seria pior do que dizer que falta.
+- **O guia de observação entra no cartão** (a caixa nova). Ela lê a cópia do PO do pacote
+  (`po-01.json`) — a mesma que a porta lê — e mostra a conta («8 critérios · 4 dimensões») e, no
+  painel, um par por dimensão com os itens. Ao lado do nome da aula, uma **linha de síntese** por
+  eixo («Técnica — Barra, Centro · Poiesis — Musicalidade»): é o «à mão» que ela pediu, sem abrir a
+  aula. A §5 da aula continua a ser o documento, e o nome da aula é o link.
+- **O que não mudou:** o link «Aula N — objetivo» e os três botões (Lançar · Captura para
+  impressão · PDF da aula).
+
+**O que se mediu.**
+
+| Verificação | Antes | Depois |
+|:--|:--|:--|
+| O elo do PO ao ajustar o plano | **não nascia** (duas cadeias paralelas) | **nasce**, com `ajuste_de` do PO anterior e `plano-de-ensino` do plano novo |
+| O PO a declarar um plano substituído | ficava a apontar o antigo (`po-20261104-1733`) | passa ao **vigente** na gravação seguinte, e o ajuste é **dito** |
+| A estante do plano ajustado | «livre» (nenhum PO o referenciava) | **vinculada** — o elo do PO fecha o circuito |
+| A Aula 01 com o envelope real do `plano-20261104-1732` | `Expressão \| [Preencher] \| [Preencher…]` | **`Expressão \| 27 \| 30%`** — medido no `derivarAula01`, com o plano e o PO do repositório |
+| `provar-cadeia-do-ajuste` (**nova**) | — | **TUDO CERTO — 34 asserções** |
+| `provar-cadeia-do-ajuste` · `provar-vigente-na-listagem` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-apagar-da-listagem` · `provar-publicacao-da-escola` | verdes | **34 · 21 · 48 · 44 · 31 · 63** |
+| `montar-publicacao` numa árvore de prova | o cartão com a frase de bastidor e três caixas técnicas | **Turma (com o horário) · Professor (só o nome) · Guia de observação**; a linha de síntese por eixo; a Sala dita «não declarada» |
+| `check-identidade` | 20/20 | **20/20** (a cópia da porta no pacote-zero foi refrescada) |
+
+**Motivo declarado — os congelados.** `tools/montar-publicacao.js` está em `CONGELAMENTO.md`
+(«`tools/` — geradores, validadores, hooks»). Motivo: **o cartão da listagem de aulas é o único
+sítio onde o professor vê o guia sem abrir a aula**, e as quatro mudanças foram pedidas por ela
+(remover a nota de arquitetura, juntar o horário à turma, pôr o guia à mão, manter a sala como «não
+declarada»). Não muda o que a ferramenta gera — muda o DADO que cada cartão leva, e nenhuma outra
+página é afectada. `motor/` não está em `CONGELAMENTO.md`; `porta/index.html` é a fonte da porta
+(refrescada na cópia do pacote-zero, como o `check-identidade` exige).
+
+**Com o quê.** `motor/nucleo/porta.js` (`planosDaCadeia`, `planoVigenteDaCadeia`, `poDoPlano`, o
+retarget em `elicitar`) · `motor/servidor/rotas.js` (`concluirPO` extraído, e o encadeamento do
+ajuste do plano) · `porta/index.html` (as duas linhas de aviso: cadeia e referência corrigida) ·
+`tools/montar-publicacao.js` (`itemDaAula`, `guiaDoCartao`) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (cópia refrescada) ·
+`experimentos/provar-cadeia-do-ajuste.js` · `experimentos/README.md` · `.gitignore` · `REGISTRO.md` ·
+`ESTADO-ATUAL.md`.
+
+**O que ainda não está feito, e é dela.**
+
+1. **O PO que já está no repositório a apontar o plano antigo (`po-20261104-1733`) só se corrige na
+   próxima gravação.** A correção é automática a partir de agora, mas este elo em concreto foi
+   gravado antes — abrir o PO na porta e «derivar» (ou «corrigir») passa a referência ao plano
+   vigente, e o caminho já está medido.
+2. **A cadeia gera e dispara a cada ajuste.** Ajustar o plano de ensino volta a gerar o pacote; é
+   o que a frase dela pede («garantindo que o ciclo seja atualizado de ponta a ponta»), e é também
+   uma execução de GitHub Actions por ajuste. Se o custo incomodar, o passo a cortar é o disparo —
+   não o elo.
+3. **O guia no cartão é o mesmo para todas as aulas da turma** (o PO é do ciclo, não da aula). Não
+   há, hoje, um «o que observar nesta aula» que mude de aula para aula: seria outro dado, e não
+   foi inventado.

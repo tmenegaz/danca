@@ -696,104 +696,200 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
           }
         }
 
-        // O PLANO DE ENSINO referenciado (nó `plano-de-ensino` do PO) é resolvido UMA vez,
-        // antes de escrever o PO e o ciclo: o PO o lê para compor o campo empírico e o
-        // contexto (não duplica a dose/calendário/volume/registro), e o ciclo o lê para
-        // derivar aula/captura/harmonização. Sem referência, cai no plano mais recente do
-        // mesmo contexto — retrocompatibilidade. Falha na resolução degrada (o PO sai com
-        // lacuna declarada), nunca 500: o envelope já foi gravado.
-        let plano = null;
-        const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
-        if (corpo.fonte === 'po') {
+        /*
+         * O PO CONCLUÍDO VIRA FONTE, GERA O CICLO E DISPARA — a MESMA função para os dois
+         * caminhos (04/11/2026).
+         *
+         * Ela existia dentro de um `if (corpo.fonte === 'po')`, e por isso o ajuste do plano de
+         * ensino não a alcançava: o plano ajustado era gravado, e o PO que o observa ficava como
+         * estava. Com a função à parte, o ajuste em cadeia (§ abaixo) usa exactamente o mesmo
+         * caminho — escrever o `-po.md`, derivar o ciclo e disparar a geração —, em vez de uma
+         * segunda cópia que envelheceria à primeira correção.
+         *
+         * Devolve `{plano, fonte, ciclo, disparo, geracao}`; o chamador decide onde os campos
+         * ficam (`resultado.*` para o PO do formulário, `resultado.cadeia` para o elo que o
+         * ajuste do plano criou).
+         */
+        const concluirPO = async (envelope, contexto) => {
+          const saida = { plano: null };
+
+          // O PLANO DE ENSINO referenciado (nó `plano-de-ensino` do PO) é resolvido UMA vez,
+          // antes de escrever o PO e o ciclo: o PO o lê para compor o campo empírico e o
+          // contexto (não duplica a dose/calendário/volume/registro), e o ciclo o lê para
+          // derivar aula/captura/harmonização. Sem referência, cai no plano mais recente do
+          // mesmo contexto — retrocompatibilidade. Falha na resolução degrada (o PO sai com
+          // lacuna declarada), nunca 500: o envelope já foi gravado.
           try {
             const ref = envelope && envelope.respostas && envelope.respostas['plano-de-ensino'];
             const planoId = ref && ref.valor !== undefined ? ref.valor : ref;
-            plano = planoId ? await porta.lerEnvelope(armazenamento, String(planoId)) : null;
-            if (!plano) {
+            saida.plano = planoId ? await porta.lerEnvelope(armazenamento, String(planoId)) : null;
+            if (!saida.plano) {
               const nomes = await porta.nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
-              for (let i = nomes.length - 1; i >= 0 && !plano; i--) {
+              for (let i = nomes.length - 1; i >= 0 && !saida.plano; i--) {
                 const env = await porta.lerArquivo(armazenamento, nomes[i]);
                 const c = env && env.contexto;
                 if (c && c.escola === contexto.escola && c.professor === contexto.professor &&
-                    String(c.ciclo) === String(contexto.ciclo)) plano = env;
+                    String(c.ciclo) === String(contexto.ciclo)) saida.plano = env;
               }
             }
           } catch (erro) {
-            resultado.plano = { ok: false, erro: erro.message };
+            saida.planoErro = erro.message;
           }
-        }
 
-        if (corpo.fonte === 'po' && escreverPO) {
-          try {
-            // OS RÓTULOS vêm do CONTEÚDO (o mesmo `conteudoPO` que a rota serve ao formulário):
-            // o nome de cada folha do checklist é dado, não código — e é o nome que o professor
-            // leu ao marcar. Sem esta passagem, o documento já assinou «Fronteiras claras» onde
-            // o formulário diz «Fronteiras do escopo claras».
-            resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo',
-              plano, {
-                rotulos: rotulosDoChecklist(conteudoPO),
-                derivados: derivadosDoChecklist(conteudoPO),
-              });
-          } catch (erro) {
-            resultado.fonte = { ok: false, erro: erro.message };
-          }
-        }
-
-        if (corpo.fonte === 'po' && escreverCiclo) {
-          try {
-            resultado.ciclo = await escreverCiclo({ plano, po: envelope, contexto });
-          } catch (erro) {
-            resultado.ciclo = { ok: false, erro: erro.message };
-          }
-        }
-
-        /*
-         * O DISPARO SÓ ACONTECE COM AS FONTES PRONTAS (19/10/2026).
-         *
-         * O `escrever-ciclo.js` grava as fontes uma a uma e COMPÕE o `.conf` da turma —
-         * é dele que o gerador lê os `DOCS`. Quando uma escrita falhava (uma fonte que
-         * não casou, a rede), o disparo partia assim mesmo: o workflow arrancava,
-         * não achava fonte nenhuma e morria com «DOCS está vazio». Pior que o erro era o
-         * silêncio — a tela dizia «gravado», e o professor só descobria no GitHub.
-         *
-         * Agora o disparo é CONDICIONADO. Não disparar é um resultado explícito, que a
-         * tela mostra com o motivo; e o envelope continua gravado, porque a gravação
-         * nunca dependeu disto.
-         */
-        if (corpo.fonte === 'po' && disparar) {
-          const prontas = fontesDoCicloProntas(resultado.ciclo);
-          if (!prontas) {
-            resultado.disparo = {
-              ok: false,
-              naoDisparado: true,
-              motivo: 'as fontes do ciclo não ficaram prontas',
-            };
-          } else {
+          if (escreverPO) {
             try {
-              resultado.disparo = await disparar(contexto);
+              // OS RÓTULOS vêm do CONTEÚDO (o mesmo `conteudoPO` que a rota serve ao formulário):
+              // o nome de cada folha do checklist é dado, não código — e é o nome que o professor
+              // leu ao marcar. Sem esta passagem, o documento já assinou «Fronteiras claras» onde
+              // o formulário diz «Fronteiras do escopo claras».
+              saida.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo',
+                saida.plano, {
+                  rotulos: rotulosDoChecklist(conteudoPO),
+                  derivados: derivadosDoChecklist(conteudoPO),
+                });
             } catch (erro) {
-              resultado.disparo = { ok: false, erro: erro.message };
+              saida.fonte = { ok: false, erro: erro.message };
             }
           }
+
+          if (escreverCiclo) {
+            try {
+              saida.ciclo = await escreverCiclo({ plano: saida.plano, po: envelope, contexto });
+            } catch (erro) {
+              saida.ciclo = { ok: false, erro: erro.message };
+            }
+          }
+
+          /*
+           * O DISPARO SÓ ACONTECE COM AS FONTES PRONTAS (19/10/2026).
+           *
+           * O `escrever-ciclo.js` grava as fontes uma a uma e COMPÕE o `.conf` da turma —
+           * é dele que o gerador lê os `DOCS`. Quando uma escrita falhava (uma fonte que
+           * não casou, a rede), o disparo partia assim mesmo: o workflow arrancava,
+           * não achava fonte nenhuma e morria com «DOCS está vazio». Pior que o erro era o
+           * silêncio — a tela dizia «gravado», e o professor só descobria no GitHub.
+           *
+           * Agora o disparo é CONDICIONADO. Não disparar é um resultado explícito, que a
+           * tela mostra com o motivo; e o envelope continua gravado, porque a gravação
+           * nunca dependeu disto.
+           */
+          if (disparar) {
+            const prontas = fontesDoCicloProntas(saida.ciclo);
+            if (!prontas) {
+              saida.disparo = {
+                ok: false,
+                naoDisparado: true,
+                motivo: 'as fontes do ciclo não ficaram prontas',
+              };
+            } else {
+              try {
+                saida.disparo = await disparar(contexto);
+              } catch (erro) {
+                saida.disparo = { ok: false, erro: erro.message };
+              }
+            }
+          }
+
+          /*
+           * O REGISTRO do que foi pedido — e a primeira leitura do estado. É por ele que a
+           * tela sabe o que está a ser gerado depois de recarregar: o contexto e os
+           * documentos derivados ficam no KV da escola, não na memória do navegador.
+           * Best-effort absoluto: sem KV, a gravação continua válida.
+           */
+          if (geracao) {
+            try {
+              const registro = await geracao.registrar(contexto, {
+                disparo: saida.disparo,
+                ciclo: saida.ciclo,
+              });
+              saida.geracao = registro.ok
+                ? { ok: true, chave: registro.chave, registro: registro.registro }
+                : { ok: false, erro: registro.erro, ignorado: registro.ignorado === true };
+            } catch (erro) {
+              saida.geracao = { ok: false, erro: erro.message };
+            }
+          }
+          return saida;
+        };
+
+        const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
+
+        if (corpo.fonte === 'po') {
+          Object.assign(resultado, await concluirPO(envelope, contexto));
         }
 
         /*
-         * O REGISTRO do que foi pedido — e a primeira leitura do estado. É por ele que a
-         * tela sabe o que está a ser gerado depois de recarregar: o contexto e os
-         * documentos derivados ficam no KV da escola, não na memória do navegador.
-         * Best-effort absoluto: sem KV, a gravação continua válida.
+         * O AJUSTE DO PLANO ARRASTA O PO — e é isto que faltava (04/11/2026).
+         *
+         * A pesquisadora corrigiu a proporção do bloco Expressão no plano de ensino. O
+         * «Guardar» fez o que a proveniência manda — um elo novo, porque o plano está
+         * vinculado a um PO —, e o resultado, do lado dela, foi um plano «livre» na estante e
+         * um PO a observar o plano de antes: duas cadeias paralelas, sem nada entre elas. A
+         * frase dela: «ele está apenas editando o plano que já possui, e a alteração deve
+         * reverberar de forma natural e integrada».
+         *
+         * O que se faz: quando um plano é AJUSTADO (`ajuste_de` — o mesmo caminho do «Guardar»
+         * num plano vinculado), procura-se o PO que observa qualquer elo daquela cadeia e
+         * deriva-se um **elo novo do PO** com `ajuste_de` a apontar o anterior e a referência
+         * já corrigida para o plano vigente. Nada é reescrito: o PO anterior fica de pé, com a
+         * sua linha de base, e o novo diz o mesmo sobre o plano novo. Depois corre o caminho
+         * normal — `-po.md`, ciclo e disparo —, que é o que faz a aula ler a proporção nova.
+         *
+         * SEM PO, NADA ACONTECE — e é o correcto: um plano sem observação é um plano livre, e
+         * criar-lhe um PO seria inventar uma linha de base que ninguém declarou.
          */
-        if (corpo.fonte === 'po' && geracao) {
-          try {
-            const registro = await geracao.registrar(contexto, {
-              disparo: resultado.disparo,
-              ciclo: resultado.ciclo,
-            });
-            resultado.geracao = registro.ok
-              ? { ok: true, chave: registro.chave, registro: registro.registro }
-              : { ok: false, erro: registro.erro, ignorado: registro.ignorado === true };
-          } catch (erro) {
-            resultado.geracao = { ok: false, erro: erro.message };
+        if (corpo.fonte === 'plano') {
+          const anterior = envelope && envelope.ajuste_de;
+          const novoId = envelope && envelope.id;
+          if (anterior && novoId && anterior !== novoId) {
+            try {
+              const poId = await porta.poDoPlano(armazenamento, String(anterior));
+              if (poId) {
+                const poAnterior = await porta.lerEnvelope(armazenamento, poId);
+                if (poAnterior) {
+                  const respostasDoPo = Object.assign({}, poAnterior.respostas, {
+                    'plano-de-ensino': {
+                      valor: novoId, origem: 'perguntado', respondente: 'professor', nota: null,
+                    },
+                  });
+                  const elo = await porta.elicitar(armazenamento, {
+                    respostas: respostasDoPo,
+                    contexto: (poAnterior.contexto || contexto),
+                    fonte: 'po',
+                    ajuste_de: poId,
+                    motivo: 'o plano de ensino ' + anterior + ' foi ajustado para ' + novoId,
+                  }, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
+
+                  if (elo && elo.gravado) {
+                    /* O `plano` do `concluirPO` é o ENVELOPE que o PO observa — e aqui o nome
+                     * colidiria com o descritor do elo. Ele sai do resultado da cadeia: quem lê
+                     * `cadeia.plano.de` quer saber DE que plano se veio, não o objeto inteiro. */
+                    const saida = await concluirPO(
+                      elo.documento, (elo.documento && elo.documento.contexto) || contexto);
+                    delete saida.plano;
+                    delete saida.planoErro;
+                    resultado.cadeia = Object.assign({
+                      plano: { de: String(anterior), para: String(novoId) },
+                      po: { de: poId, para: elo.id },
+                    }, saida);
+                  } else {
+                    resultado.cadeia = {
+                      plano: { de: String(anterior), para: String(novoId) },
+                      po: { de: poId, para: elo && elo.id ? elo.id : null },
+                      erro: (elo && (elo.erroDaGravacao || (elo.recusa && elo.recusa.motivo)))
+                        || 'o elo do PO não foi gravado',
+                    };
+                  }
+                }
+              }
+            } catch (erro) {
+              // O PLANO JÁ ESTÁ GRAVADO. A cadeia é o passo seguinte, e uma falha aqui não o
+              // desfaz — mas também não se cala: a tela diz que o PO não acompanhou.
+              resultado.cadeia = {
+                plano: { de: String(anterior), para: String(novoId) },
+                erro: erro.message,
+              };
+            }
           }
         }
       }
