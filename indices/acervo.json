@@ -88,8 +88,8 @@
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 2,
-        "pos": 4,
-        "registros": 7
+        "pos": 5,
+        "registros": 8
       },
       "criada_em": "2026-11-02T16:59:08.409473+00:00",
       "expurgada": false,
@@ -109,7 +109,8 @@
         "po:po-20261103-2202",
         "po:po-20261103-2221",
         "po:po-20261103-2242",
-        "po:po-20261104-1733"
+        "po:po-20261104-1733",
+        "po:po-20261104-1811"
       ],
       "slug": "breu"
     },
@@ -297,7 +298,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 7,
+        "contagem": 8,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -485,7 +486,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -493,9 +494,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1803f57"
+    "commit": "d62b819"
   },
-  "gerado_em": "2026-11-04T20:35",
+  "gerado_em": "2026-11-04T21:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
