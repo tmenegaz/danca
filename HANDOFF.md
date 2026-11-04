@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T18:04:06-0300`
-Commit atual: `4aec51f5` — fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
+Gerado em: `2026-11-04T18:34:19-0300`
+Commit atual: `7091587e` — fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,7 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-4aec51f5 fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
+7091587e fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
 355a1a4e fix(campo): a fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes
 c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
 3738b266 chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
@@ -230,113 +230,93 @@ edfc1ca7 chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — O ajuste do plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa
+## 04/11/2026 — Dois «Guardar» no mesmo minuto não perdem mais um documento
 
-**O que motivou, e é a frase dela.** «O usuário entrou para fazer um ajuste pontual em um Plano de
-Ensino (…) Sob a ótica do professor, ele realizou apenas um ajuste (…). No entanto, o sistema gerou
-um novo Plano de Ensino solto, rompendo o vínculo automático com o Plano de Observação.» Medido no
-acervo: `plano-20261104-1732` (`ajuste_de: plano-20261103-2200`, com os 30% do Expressão) e, ao
-lado, `po-20261104-1733` — derivado de `po-20261103-2242` e a declarar **`plano-de-ensino:
-plano-20261103-2200`**, o plano que o próprio sistema já tinha substituído. Duas cadeias paralelas
-e nada entre elas: o plano novo saía «livre» na estante, o PO continuava a observar o antigo, e a
-aula lia a proporção de antes.
+**O que motivou.** A pesquisadora pediu a auditoria da concorrência — o que acontece quando o
+professor faz um **Ajuste A** e, sem esperar, um **Ajuste B**; e o que acontece quando duas pessoas
+trabalham a mesma escola ao mesmo tempo. A auditoria respondeu quase tudo pela negativa (**não** há
+condição de corrida nos pipelines: as gerações do mesmo ciclo são enfileiradas pelo
+`concurrency` do `gerar-ciclo.yml`, o `.fipp` é recomputado depois do rebase e cobre o ciclo, e a
+escrita em lote é **um commit só**, com a referência como último passo) — com **uma excepção
+medida**.
 
-**A regra, e é de leitura.** O PO observa **o plano que vale**, e o que vale é o topo da cadeia.
-Três funções novas, todas derivadas do `ajuste_de` — nenhuma grava nada:
+O id de um envelope é um **carimbo de minuto** (`plano-20261104-1810`), e `identificar` o escolhe
+perguntando ao armazenamento se o nome já existe. Entre essa pergunta e a gravação há uma janela:
+dois pedidos que perguntem **antes de qualquer escrita** recebem o mesmo nome, e o segundo grava
+por cima do primeiro. Medido com dois `identificar` e duas gravações: `plano-20261104-1810` nos
+dois, **os dois a responder «gravado»**, e **um** documento no acervo. O Ajuste A evaporava sem
+erro, sem 409 e sem rastro — e o `.indice.json` ficava a descrever o documento do B sob o nome que
+o A devia ter.
 
-| Peça | O que faz |
-|:--|:--|
-| `planosDaCadeia` | sobe e desce a cadeia de um plano (o ancestral e os sucessores) |
-| `planoVigenteDaCadeia` | devolve o topo — o que nenhum sucessor substituiu |
-| `poDoPlano` | o PO que observa qualquer elo da cadeia, e que não foi ele próprio substituído |
+**O que foi decidido.**
 
-**O que mudou no fluxo.**
+- **Quem fecha a janela é o armazenamento, não o motor.** Novo verbo `criar(chave, valor)` no
+  contrato: grava **só se a chave não existir** e devolve `{ criado: false, jaExiste: true }`
+  quando alguém chegou primeiro. Não é um verbo novo da persistência — é a mesma gravação com a
+  pergunta feita no instante da escrita.
+- **No repositório, quem responde pela existência é o GitHub**: a escrita vai **sem `sha`** e a
+  recusa é **422 «"sha" wasn't supplied.»**. **Medido contra a API real** (num ramo descartável,
+  apagado a seguir; nada foi escrito no `main`). Um 422 por **outro** motivo é erro, e não «já
+  existe» — tratá-lo como «já existe» faria pedir sufixos sem fim.
+- **A intenção é declarada, não adivinhada.** `gravarEnvelope(…, { substituir })`: `true` quando o
+  id foi **dado** (a edição em sítio, a correção do mesmo documento — grava por cima, como sempre);
+  `false` quando o id foi **inventado agora** (o elo novo, o registo solto — cede o nome e tenta o
+  sufixo). O omisso é `true`: nenhum chamador muda de comportamento por esquecimento.
+- **O índice passa a descrever o ARQUIVO.** Perdida a corrida, a entrada já escrita com o nosso
+  resumo é reparada a partir do envelope que lá está — o índice é projeção, quem manda é o dado.
+- **A resposta diz o id que FICOU.** `POST /api/anamnese-ajuste` e `PUT /api/anamnese-editar` devolviam o id
+  pedido; passam a devolver o gravado (é o mesmo, excepto na corrida).
+- **O expurgo repete a corrida que perdeu.** Era o **único** escrito em lote sem repetição: o
+  `apagarProfessorDoRepo` ao lado já tinha três tentativas. Perder a corrida lançava — e o expurgo
+  chegava ali com a metade do Cloudflare **já feita** (subdomínio, Worker e chaves apagados), a
+  escola fora do ar e no repositório. Agora a corrida (422 «not a fast forward») refaz base, árvore
+  e commit; a falha definitiva é resultado (`{ ok: false, erro }`), não excepção.
 
-1. **O «Guardar» de um plano vinculado deriva o PO em cadeia.** O motor já derivava o elo do plano
-   (é a regra da proveniência); o que faltava era o passo seguinte. Agora, quando o plano gravado
-   traz `ajuste_de`, a rota procura o PO daquela cadeia, copia as respostas dele e deriva **um elo
-   novo do PO**, com `ajuste_de` a apontar o anterior e a referência já corrigida para o plano
-   vigente. Depois corre o caminho normal — `-po.md`, ciclo e disparo —, que é o que faz a aula
-   ler a proporção nova. **Nada é reescrito:** o PO anterior fica de pé, com a sua linha de base.
-2. **A referência de um PO segue o topo.** Um PO gravado a declarar um plano substituído (o caso
-   do `po-20261104-1733`, que já está no repositório) passa a apontar o vigente na gravação
-   seguinte, e a correção **vai declarada na resposta** (`planoRetargetado`) — uma correção em
-   silêncio é a que ninguém audita depois.
-3. **Sem PO, nada se inventa.** Um plano livre que é ajustado ganha o elo do plano e **nenhum PO**:
-   criar-lhe uma linha de base seria inventar observação que ninguém declarou.
+**O que NÃO mudou — e é o essencial.** A fórmula da âncora (SHA-256 de
+`id:type:parentHash:conteudo`), a cobertura do `.fipp`, a unidade da cadeia (ciclo→ciclo, não
+versão→versão), os validadores e o `check-pacote`. Nenhuma fonte de ciclo foi tocada, nenhum
+pacote gerado: **não há reancoragem nesta entrada**.
 
-**O cartão da aula — a listagem deixa de mostrar bastidor e passa a mostrar o guia.** Quatro
-ajustes, e três são remoção de ruído:
+**Onde entrou.**
 
-- **A frase de arquitetura saiu.** «A aula não tem professor próprio: quem o tem é a turma, e é a
-  curadoria que a liga» era verdadeira e não era do professor. O painel fica com o dado: quem dá a
-  aula.
-- **A caixa «Horário» foi absorvida pela «Turma»**. Eram duas caixas para a mesma pergunta — «que
-  aula é esta, e quando». A Turma passa a concentrar a identificação, o ciclo, a contagem («aula 1
-  de 35»), o dia, a hora de início e de fim e a duração. A **Sala** continua dita como «não
-  declarada»: ela só existe no modelo com o `PLANO-TABELA-DE-ATIVIDADES`, e inventar um sítio
-  seria pior do que dizer que falta.
-- **O guia de observação entra no cartão** (a caixa nova). Ela lê a cópia do PO do pacote
-  (`po-01.json`) — a mesma que a porta lê — e mostra a conta («8 critérios · 4 dimensões») e, no
-  painel, um par por dimensão com os itens. Ao lado do nome da aula, uma **linha de síntese** por
-  eixo («Técnica — Barra, Centro · Poiesis — Musicalidade»): é o «à mão» que ela pediu, sem abrir a
-  aula. A §5 da aula continua a ser o documento, e o nome da aula é o link.
-- **O que não mudou:** o link «Aula N — objetivo» e os três botões (Lançar · Captura para
-  impressão · PDF da aula).
+- `motor/nucleo/armazenamento.js` — o verbo `criar` no contrato e na memória de teste.
+- `motor/servidor/acervo-envelopes.js` — `criar`: escrita sem `sha`, 422 «sha» → `jaExiste`, 409
+  de corrida → repete, falha da memória antiga → `legado`.
+- `motor/nucleo/porta.js` — `gravarEnvelope` com o sufixo da corrida, `{ substituir }`, o
+  `documento.id` a viajar com o nome do arquivo, `repararResumoDoIndice`, e `idDeDocumentoQueExiste`
+  a decidir a intenção em `elicitar`.
+- `motor/servidor/rotas.js` — as duas rotas da anamnese a usar o id gravado; `substituir: false` no
+  ajuste, `!recarimba` na edição.
+- `motor/servidor/repo-escola.js` — `apagarEscolaDoRepo` embrulhado em três tentativas
+  (`apagarEscolaDoRepoUmaVez`), com `force: false` explícito e a corrida como resultado.
+- `experimentos/provar-corrida-da-escrita.js` — a prova (**27 asserções**), com a gravação cega ao
+  lado a perder um: o defeito medido fica fixado.
 
-**O que se mediu.**
+**Com o quê.** `motor/nucleo/armazenamento.js` · `motor/servidor/acervo-envelopes.js` ·
+`motor/nucleo/porta.js` · `motor/servidor/rotas.js` · `motor/servidor/repo-escola.js` ·
+`experimentos/provar-corrida-da-escrita.js` · `experimentos/README.md` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md` (regenerado).
 
-| Verificação | Antes | Depois |
-|:--|:--|:--|
-| O elo do PO ao ajustar o plano | **não nascia** (duas cadeias paralelas) | **nasce**, com `ajuste_de` do PO anterior e `plano-de-ensino` do plano novo |
-| O PO a declarar um plano substituído | ficava a apontar o antigo (`po-20261104-1733`) | passa ao **vigente** na gravação seguinte, e o ajuste é **dito** |
-| A estante do plano ajustado | «livre» (nenhum PO o referenciava) | **vinculada** — o elo do PO fecha o circuito |
-| A Aula 01 com o envelope real do `plano-20261104-1732` | `Expressão \| [Preencher] \| [Preencher…]` | **`Expressão \| 27 \| 30%`** — medido no `derivarAula01`, com o plano e o PO do repositório |
-| `provar-cadeia-do-ajuste` (**nova**) | — | **TUDO CERTO — 34 asserções** |
-| `provar-cadeia-do-ajuste` · `provar-vigente-na-listagem` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-apagar-da-listagem` · `provar-publicacao-da-escola` | verdes | **34 · 21 · 48 · 44 · 31 · 63** |
-| `montar-publicacao` numa árvore de prova | o cartão com a frase de bastidor e três caixas técnicas | **Turma (com o horário) · Professor (só o nome) · Guia de observação**; a linha de síntese por eixo; a Sala dita «não declarada» |
-| `check-identidade` | 20/20 | **20/20** (a cópia da porta no pacote-zero foi refrescada) |
+**Referências.** `REGRAS.md` (P-03, P-04), `PROTOCOLO.md` (P-10, um PO por plano),
+`CONGELAMENTO.md` (nada congelado foi tocado), `PLANO-PRODUTOS-DO-MOTOR.md` (a auditoria que
+motivou a sessão).
 
-**Motivo declarado — os congelados.** `tools/montar-publicacao.js` está em `CONGELAMENTO.md`
-(«`tools/` — geradores, validadores, hooks»). Motivo: **o cartão da listagem de aulas é o único
-sítio onde o professor vê o guia sem abrir a aula**, e as quatro mudanças foram pedidas por ela
-(remover a nota de arquitetura, juntar o horário à turma, pôr o guia à mão, manter a sala como «não
-declarada»). Não muda o que a ferramenta gera — muda o DADO que cada cartão leva, e nenhuma outra
-página é afectada. `motor/` não está em `CONGELAMENTO.md`; `porta/index.html` é a fonte da porta
-(refrescada na cópia do pacote-zero, como o `check-identidade` exige).
+**O que ainda não está feito.**
 
-**Com o quê.** `motor/nucleo/porta.js` (`planosDaCadeia`, `planoVigenteDaCadeia`, `poDoPlano`, o
-retarget em `elicitar`) · `motor/servidor/rotas.js` (`concluirPO` extraído, e o encadeamento do
-ajuste do plano) · `porta/index.html` (as duas linhas de aviso: cadeia e referência corrigida) ·
-`tools/montar-publicacao.js` (`itemDaAula`, `guiaDoCartao`) ·
-`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html` (cópia refrescada) ·
-`experimentos/provar-cadeia-do-ajuste.js` · `experimentos/README.md` · `.gitignore` · `REGISTRO.md` ·
-`ESTADO-ATUAL.md`.
-
-**O que ainda não está feito, e é dela.**
-
-1. **O PO que já está no repositório a apontar o plano antigo (`po-20261104-1733`) só se corrige na
-   próxima gravação.** A correção é automática a partir de agora, mas este elo em concreto foi
-   gravado antes — abrir o PO na porta e «derivar» (ou «corrigir») passa a referência ao plano
-   vigente, e o caminho já está medido.
-2. **A cadeia gera e dispara a cada ajuste.** Ajustar o plano de ensino volta a gerar o pacote; é
-   o que a frase dela pede («garantindo que o ciclo seja atualizado de ponta a ponta»), e é também
-   uma execução de GitHub Actions por ajuste. Se o custo incomodar, o passo a cortar é o disparo —
-   não o elo.
-3. **O guia no cartão é o mesmo para todas as aulas da turma** (o PO é do ciclo, não da aula). Não
-   há, hoje, um «o que observar nesta aula» que mude de aula para aula: seria outro dado, e não
-   foi inventado.
+1. **As duas pessoas na mesma escola continuam a não ver uma à outra.** O `.indice.json` tem um
+   `responsavel` e uma lista `professores[]`, mas o acervo **não tem professor no caminho**
+   (`escola/<escola>/envelopes/`): dois professores da mesma escola escrevem os mesmos arquivos. A
+   corrida do *nome* está fechada; **a edição simultânea do MESMO documento continua a ser
+   last-write-wins** — e isso é decisão de produto (avisar? bloquear? mostrar as duas versões?),
+   não de motor. Não foi inventada.
+2. **A janela do minuto é de um minuto.** Dois pedidos no mesmo minuto agora convivem; o carimbo
+   continua a ter resolução de minuto, e cinco pedidos no mesmo minuto esgotam os sufixos (a
+   gravação responde «não entrou» e a tela diz).
+3. **Nada disto foi medido por dois browsers reais contra o Worker publicado** — as provas correm
+   sobre a memória do núcleo e sobre um GitHub falso; o único contacto com o real foi o teste do
+   422, num ramo descartável.
 
 ## O que está pendente
-
-## 03/11/2026 — O PDF do ciclo compila outra vez: dois glifos do alfabeto não estavam declarados
-
-(1) A **guarda**: não existe verificação que reprove, **antes** do
-pandoc, quando um sinal novo do alfabeto entra sem tradução para LaTeX — a quebra só aparece na
-geração, e aparece **um glifo de cada vez**, porque o `pdflatex` pára no primeiro. A varredura glifo a
-glifo que fez esta entrada é um script de bancada, e não está no repositório; pô-la em `tools/` é
-alteração de comportamento e é decisão dela. (2) O pacote da `breu` foi **regerado localmente** e não
-está commitado — quem fecha o ciclo é a workflow `gerar-ciclo`, que ainda não foi disparada de novo.
 
 ## 03/11/2026 — O elo em `historico/` não é documento do acervo, e a verificação 8 exigia casa
 
@@ -385,6 +365,22 @@ nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vig
 3. **O guia no cartão é o mesmo para todas as aulas da turma** (o PO é do ciclo, não da aula). Não
    há, hoje, um «o que observar nesta aula» que mude de aula para aula: seria outro dado, e não
    foi inventado.
+
+## 04/11/2026 — Dois «Guardar» no mesmo minuto não perdem mais um documento
+
+
+1. **As duas pessoas na mesma escola continuam a não ver uma à outra.** O `.indice.json` tem um
+   `responsavel` e uma lista `professores[]`, mas o acervo **não tem professor no caminho**
+   (`escola/<escola>/envelopes/`): dois professores da mesma escola escrevem os mesmos arquivos. A
+   corrida do *nome* está fechada; **a edição simultânea do MESMO documento continua a ser
+   last-write-wins** — e isso é decisão de produto (avisar? bloquear? mostrar as duas versões?),
+   não de motor. Não foi inventada.
+2. **A janela do minuto é de um minuto.** Dois pedidos no mesmo minuto agora convivem; o carimbo
+   continua a ter resolução de minuto, e cinco pedidos no mesmo minuto esgotam os sufixos (a
+   gravação responde «não entrou» e a tela diz).
+3. **Nada disto foi medido por dois browsers reais contra o Worker publicado** — as provas correm
+   sobre a memória do núcleo e sobre um GitHub falso; o único contacto com o real foi o teste do
+   422, num ramo descartável.
 
 ## Pendências anteriores (índice)
 
@@ -730,6 +726,7 @@ nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vig
 - **03/11/2026** — O dono da música não é compasso → `REGISTRO.md` L33320
 - **03/11/2026** — A metodologia é do professor, e não se pergunta duas vezes → `REGISTRO.md` L33382
 - **03/11/2026** — A sequência acompanha os objetivos, e a pergunta era a certa → `REGISTRO.md` L33467
+- **03/11/2026** — O PDF do ciclo compila outra vez: dois glifos do alfabeto… → `REGISTRO.md` L33904
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

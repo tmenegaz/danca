@@ -34297,3 +34297,89 @@ ajuste do plano) · `porta/index.html` (as duas linhas de aviso: cadeia e refer�
 3. **O guia no cartão é o mesmo para todas as aulas da turma** (o PO é do ciclo, não da aula). Não
    há, hoje, um «o que observar nesta aula» que mude de aula para aula: seria outro dado, e não
    foi inventado.
+
+## 04/11/2026 — Dois «Guardar» no mesmo minuto não perdem mais um documento
+
+**O que motivou.** A pesquisadora pediu a auditoria da concorrência — o que acontece quando o
+professor faz um **Ajuste A** e, sem esperar, um **Ajuste B**; e o que acontece quando duas pessoas
+trabalham a mesma escola ao mesmo tempo. A auditoria respondeu quase tudo pela negativa (**não** há
+condição de corrida nos pipelines: as gerações do mesmo ciclo são enfileiradas pelo
+`concurrency` do `gerar-ciclo.yml`, o `.fipp` é recomputado depois do rebase e cobre o ciclo, e a
+escrita em lote é **um commit só**, com a referência como último passo) — com **uma excepção
+medida**.
+
+O id de um envelope é um **carimbo de minuto** (`plano-20261104-1810`), e `identificar` o escolhe
+perguntando ao armazenamento se o nome já existe. Entre essa pergunta e a gravação há uma janela:
+dois pedidos que perguntem **antes de qualquer escrita** recebem o mesmo nome, e o segundo grava
+por cima do primeiro. Medido com dois `identificar` e duas gravações: `plano-20261104-1810` nos
+dois, **os dois a responder «gravado»**, e **um** documento no acervo. O Ajuste A evaporava sem
+erro, sem 409 e sem rastro — e o `.indice.json` ficava a descrever o documento do B sob o nome que
+o A devia ter.
+
+**O que foi decidido.**
+
+- **Quem fecha a janela é o armazenamento, não o motor.** Novo verbo `criar(chave, valor)` no
+  contrato: grava **só se a chave não existir** e devolve `{ criado: false, jaExiste: true }`
+  quando alguém chegou primeiro. Não é um verbo novo da persistência — é a mesma gravação com a
+  pergunta feita no instante da escrita.
+- **No repositório, quem responde pela existência é o GitHub**: a escrita vai **sem `sha`** e a
+  recusa é **422 «"sha" wasn't supplied.»**. **Medido contra a API real** (num ramo descartável,
+  apagado a seguir; nada foi escrito no `main`). Um 422 por **outro** motivo é erro, e não «já
+  existe» — tratá-lo como «já existe» faria pedir sufixos sem fim.
+- **A intenção é declarada, não adivinhada.** `gravarEnvelope(…, { substituir })`: `true` quando o
+  id foi **dado** (a edição em sítio, a correção do mesmo documento — grava por cima, como sempre);
+  `false` quando o id foi **inventado agora** (o elo novo, o registo solto — cede o nome e tenta o
+  sufixo). O omisso é `true`: nenhum chamador muda de comportamento por esquecimento.
+- **O índice passa a descrever o ARQUIVO.** Perdida a corrida, a entrada já escrita com o nosso
+  resumo é reparada a partir do envelope que lá está — o índice é projeção, quem manda é o dado.
+- **A resposta diz o id que FICOU.** `POST /api/anamnese-ajuste` e `PUT /api/anamnese-editar` devolviam o id
+  pedido; passam a devolver o gravado (é o mesmo, excepto na corrida).
+- **O expurgo repete a corrida que perdeu.** Era o **único** escrito em lote sem repetição: o
+  `apagarProfessorDoRepo` ao lado já tinha três tentativas. Perder a corrida lançava — e o expurgo
+  chegava ali com a metade do Cloudflare **já feita** (subdomínio, Worker e chaves apagados), a
+  escola fora do ar e no repositório. Agora a corrida (422 «not a fast forward») refaz base, árvore
+  e commit; a falha definitiva é resultado (`{ ok: false, erro }`), não excepção.
+
+**O que NÃO mudou — e é o essencial.** A fórmula da âncora (SHA-256 de
+`id:type:parentHash:conteudo`), a cobertura do `.fipp`, a unidade da cadeia (ciclo→ciclo, não
+versão→versão), os validadores e o `check-pacote`. Nenhuma fonte de ciclo foi tocada, nenhum
+pacote gerado: **não há reancoragem nesta entrada**.
+
+**Onde entrou.**
+
+- `motor/nucleo/armazenamento.js` — o verbo `criar` no contrato e na memória de teste.
+- `motor/servidor/acervo-envelopes.js` — `criar`: escrita sem `sha`, 422 «sha» → `jaExiste`, 409
+  de corrida → repete, falha da memória antiga → `legado`.
+- `motor/nucleo/porta.js` — `gravarEnvelope` com o sufixo da corrida, `{ substituir }`, o
+  `documento.id` a viajar com o nome do arquivo, `repararResumoDoIndice`, e `idDeDocumentoQueExiste`
+  a decidir a intenção em `elicitar`.
+- `motor/servidor/rotas.js` — as duas rotas da anamnese a usar o id gravado; `substituir: false` no
+  ajuste, `!recarimba` na edição.
+- `motor/servidor/repo-escola.js` — `apagarEscolaDoRepo` embrulhado em três tentativas
+  (`apagarEscolaDoRepoUmaVez`), com `force: false` explícito e a corrida como resultado.
+- `experimentos/provar-corrida-da-escrita.js` — a prova (**27 asserções**), com a gravação cega ao
+  lado a perder um: o defeito medido fica fixado.
+
+**Com o quê.** `motor/nucleo/armazenamento.js` · `motor/servidor/acervo-envelopes.js` ·
+`motor/nucleo/porta.js` · `motor/servidor/rotas.js` · `motor/servidor/repo-escola.js` ·
+`experimentos/provar-corrida-da-escrita.js` · `experimentos/README.md` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md` (regenerado).
+
+**Referências.** `REGRAS.md` (P-03, P-04), `PROTOCOLO.md` (P-10, um PO por plano),
+`CONGELAMENTO.md` (nada congelado foi tocado), `PLANO-PRODUTOS-DO-MOTOR.md` (a auditoria que
+motivou a sessão).
+
+**O que ainda não está feito.**
+
+1. **As duas pessoas na mesma escola continuam a não ver uma à outra.** O `.indice.json` tem um
+   `responsavel` e uma lista `professores[]`, mas o acervo **não tem professor no caminho**
+   (`escola/<escola>/envelopes/`): dois professores da mesma escola escrevem os mesmos arquivos. A
+   corrida do *nome* está fechada; **a edição simultânea do MESMO documento continua a ser
+   last-write-wins** — e isso é decisão de produto (avisar? bloquear? mostrar as duas versões?),
+   não de motor. Não foi inventada.
+2. **A janela do minuto é de um minuto.** Dois pedidos no mesmo minuto agora convivem; o carimbo
+   continua a ter resolução de minuto, e cinco pedidos no mesmo minuto esgotam os sufixos (a
+   gravação responde «não entrou» e a tela diz).
+3. **Nada disto foi medido por dois browsers reais contra o Worker publicado** — as provas correm
+   sobre a memória do núcleo e sobre um GitHub falso; o único contacto com o real foi o teste do
+   422, num ramo descartável.

@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `bff42d8`, árvore limpa). Nesta entrega, **o ajuste do
+> **Última fotografia:** 04/11/2026 (base `7091587`, árvore limpa). Nesta entrega, **dois
+> «Guardar» no mesmo minuto não perdem mais um documento**. A auditoria da concorrência que a
+> pesquisadora pediu respondeu «não» a quase tudo — as gerações do mesmo ciclo são **enfileiradas**
+> (`concurrency` do `gerar-ciclo.yml`, `cancel-in-progress: false`), o `.fipp` é recomputado depois
+> do rebase, e a escrita em lote é **um commit só** com a referência como último passo —, com **uma
+> excepção medida**: o id de um envelope é um **carimbo de minuto**, e `identificar` perguntava
+> «existe?» antes de gravar. Dois pedidos que perguntassem antes de qualquer escrita recebiam o
+> **mesmo nome**, o segundo gravava por cima, **os dois respondiam «gravado»** e um documento
+> evaporava sem erro. Agora o armazenamento tem `criar` (grava só se a chave não existir — no
+> repositório, a escrita vai **sem `sha`** e o **422 «"sha" wasn't supplied»** do GitHub é o «já
+> existe», **medido contra a API real**), o nome cedido passa ao sufixo seguinte, o índice passa a
+> descrever o **arquivo** e não a tentativa perdida, a intenção é **declarada** (`substituir`) — a
+> edição em sítio continua a reescrever o mesmo nome —, e o **expurgo**, que era o único escrito em
+> lote sem repetição, passa a refazer a corrida que perdeu (chegava lá com o Cloudflare já
+> apagado). Prova nova: `provar-corrida-da-escrita`, **27 asserções**.
+>
+> **Entrega anterior** (base `bff42d8`, árvore limpa). Nesta entrega, **o ajuste do
 > plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa**. (1) A pesquisadora
 > corrigiu a proporção do Expressão no plano, e o «Guardar» fez o que a proveniência manda — um elo
 > novo —, mas o **PO continuou a observar o plano substituído**: `po-20261104-1733` declara
@@ -1676,8 +1692,31 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     observação** entra como caixa — a conta, os itens por dimensão e uma **linha de síntese por
     eixo** ao lado do nome, para se ter à mão sem abrir a aula. O link «Aula N — objetivo» e os três
     botões (Lançar · Captura · PDF) ficam. **DECIDIDO por ela e implementado** 04/11/2026.
-
-## 7. Trabalho em andamento
+83. **O NOME DE UM DOCUMENTO NÃO SE DECIDE ANTES DE GRAVAR — QUEM DECIDE É A GRAVAÇÃO.** O id de um
+    envelope é um carimbo de minuto, e `identificar` perguntava «existe?» para o escolher. Entre a
+    pergunta e a gravação há uma janela; dois pedidos que perguntassem antes de qualquer escrita
+    recebiam o **mesmo nome**, o segundo gravava por cima do primeiro, **os dois respondiam
+    «gravado»** — e um ajuste evaporava. **MEDIDO** (04/11/2026, núcleo sobre a memória): dois
+    `identificar`, duas gravações, **um** documento no acervo, e o índice a descrever o documento do
+    B sob o nome que o A devia ter. **DECIDIDO**: (a) o contrato de armazenamento ganha `criar`
+    (grava só se a chave não existir) — no repositório a escrita vai **sem `sha`** e o **422
+    «"sha" wasn't supplied»** do GitHub é o «já existe», **medido contra a API real** num ramo
+    descartável; um 422 por outro motivo é **erro**, e não «já existe». (b) Perdida a corrida, o
+    nome cede ao sufixo seguinte — o mesmo `-2` que o `identificar` daria se tivesse visto a outra
+    escrita —, e o `documento.id` viaja com o nome do arquivo. (c) **A intenção é declarada, não
+    adivinhada**: `substituir: true` quando o id foi **dado** (edição em sítio, correção — grava por
+    cima, como sempre), `false` quando foi **inventado agora** (elo novo, registo solto) —, e o
+    omisso é `true` para nenhum chamador mudar por esquecimento. (d) O índice é **projeção**: o
+    resumo do nome cedido passa a descrever o **arquivo**. (e) O **expurgo** — o único escrito em
+    lote sem repetição — passa a refazer a corrida que perdeu, porque chegava lá com a metade do
+    Cloudflare **já apagada**. **DECIDIDO por ela** («as duas correções») **e implementado**
+    04/11/2026.
+84. **A EDIÇÃO SIMULTÂNEA DO MESMO DOCUMENTO CONTINUA A SER LAST-WRITE-WINS — E ISSO É DECISÃO DE
+    PRODUTO, NÃO DE MOTOR.** Fechada a corrida do *nome*, sobra o caso de **duas pessoas** na mesma
+    escola a gravar **o mesmo** plano/PO: a segunda gravação vence, em silêncio. Não há, hoje,
+    versionamento otimista no conteúdo (só na existência). **PENDENTE — decisão dela**: avisar,
+    bloquear, ou mostrar as duas versões são três comportamentos diferentes, e nenhum foi
+    inventado.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -2305,7 +2344,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — o ajuste arrasta o PO, e o cartão mostra o guia)
+### Executado nesta fotografia (04/11/2026 — a corrida da escrita e o expurgo)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-corrida-da-escrita` (**nova**) | **TUDO CERTO — 27 asserções**: o mesmo carimbo pedido por dois pedidos (a janela existe), as duas gravações a ficarem (nenhum documento evaporado), o índice a descrever o **arquivo** e não a tentativa perdida, a edição em sítio a reescrever o **mesmo** nome, o **422 «"sha" wasn't supplied»** como «já existe» (e um 422 por outro motivo como **erro**), o 409 de corrida a repetir, e o **expurgo** a publicar à segunda tentativa — com a **gravação cega ao lado, a perder um**, para o defeito medido ficar fixado |
+| O **422 do GitHub** | **medido contra a API real**, num ramo descartável (`teste-corrida-do-carimbo`, criado e apagado no mesmo minuto): criar sem `sha` → `201`; criar sem `sha` sobre caminho existente → **`422 "Invalid request. \"sha\" wasn't supplied."`**. **Nada foi escrito no `main`** |
+| `provar-acervo-envelopes` · `provar-carimbo-da-edicao` · `provar-indice-de-envelopes` | **48 · 55 · 44** — verdes. As duas primeiras foram as que **apanharam** a primeira versão da correção: a escrita condicional aplicada à edição em sítio inventava um `-2` a cada «Guardar» |
+| `provar-cadeia-do-ajuste` · `provar-vigente-na-listagem` · `provar-eixos-e-tempo-da-aula` · `provar-publicacao-da-escola` · `check-identidade` · `check-indices` | **34 · 21 · 27 · 63 · 20/20 · 14/14** — verdes |
+| **o que NÃO mede** | `provar-listas-do-acervo` segue **NÃO FEITO** (a única escola viva não tem ciclo publicado para servir) · o caso «duas pessoas no mesmo documento» **não tem prova**: é a decisão 84, em aberto |
+| **regressões** | 13 bancadas comparadas com o `HEAD` limpo (`git stash`), **resultado idêntico asserção a asserção** — as falhas delas são pré-existentes (pacotes de escolas expurgadas, Puppeteer) |
+
+### Executado na fotografia anterior (04/11/2026 — o ajuste arrasta o PO, e o cartão mostra o guia)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3263,6 +3313,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **A corrida da escrita: dois «Guardar» no mesmo minuto não perdem um documento.**
+  A auditoria da concorrência deu «não» a quase tudo (gerações enfileiradas, um commit por
+  gravação, a referência como último passo, o `.fipp` reancorado depois do rebase) e **uma excepção
+  medida**: o id do envelope é um carimbo de minuto escolhido por «existe?» antes da gravação, e
+  dois pedidos no mesmo minuto ficavam com o mesmo nome — o segundo gravava por cima, os dois
+  diziam «gravado», um documento evaporava. O contrato ganhou `criar` (condicional), o nome cede ao
+  sufixo, o índice passa a descrever o arquivo, a intenção é declarada (`substituir`), e o
+  **expurgo** — único escrito em lote sem repetição — passa a refazer a corrida que perdeu. O 422
+  do GitHub foi medido contra a API real, num ramo descartável. Prova nova:
+  `provar-corrida-da-escrita`, 27 asserções.
 
 - **04/11/2026** — **O ajuste do plano arrasta o PO, e o cartão da aula mostra o guia.** O PO
   continuava a observar o plano substituído (`po-20261104-1733` → `plano-de-ensino:

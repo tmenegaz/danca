@@ -548,8 +548,28 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando,
  *
  * `confirmacao` repete o slug: é a trava de quem clica no botão — o expurgo não aceita um
  * slug de parâmetro sozinho, porque ele é irreversível do lado de quem usa.
+ *
+ * A CORRIDA PERDIDA NÃO É UM ERRO AQUI TAMBÉM (04/11/2026). Era: o expurgo montava a árvore e
+ * o commit sobre a `main` que tinha lido, e era o ÚNICO escrito em lote sem repetição — o
+ * `apagarProfessorDoRepo` ao lado já tinha as três tentativas. Perder a corrida lançava, e o
+ * expurgo chegava a este ponto com a metade do Cloudflare JÁ FEITA (subdomínio, Worker e
+ * chaves apagados): a escola saía do ar e ficava no repositório, num estado que só se resolvia
+ * à mão. O laço é o mesmo dos outros: a corrida refaz o caminho inteiro — base nova, árvore
+ * nova, commit novo —, e o que sobe na última tentativa já viu o `main` de agora.
  */
-async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, motivo, quando, kv, fetchImpl }) {
+async function apagarEscolaDoRepo(opcoes) {
+  let ultimo = null;
+  for (let intento = 1; intento <= 3; intento += 1) {
+    const r = await apagarEscolaDoRepoUmaVez(opcoes);
+    if (r.ok) return Object.assign(r, { intentos: intento });
+    ultimo = r.motivo || r.erro;
+    if (!r.corrida) return Object.assign(r, { intentos: intento });
+    await ESPERA_DO_INTENTO(intento);
+  }
+  return { ok: false, erro: ultimo, expurgoNoRepositorio: 'não entrou depois de 3 tentativas' };
+}
+
+async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirmacao, motivo, quando, kv, fetchImpl }) {
   const f = fetchImpl || fetch;
   if (!slug) throw new Error('informe a escola');
   if (String(confirmacao) !== slug) {
@@ -617,6 +637,10 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     body: JSON.stringify({ base_tree: treeSha, tree }),
   });
   if (!novaArvore.ok) {
+    // 409 aqui é a `base_tree` que deixou de valer: alguém escreveu no `main` no meio.
+    if (novaArvore.status === 409 || novaArvore.status === 422) {
+      return { ok: false, corrida: true, motivo: 'árvore do expurgo: HTTP ' + novaArvore.status };
+    }
     throw new Error('não montei a árvore do expurgo: HTTP ' + novaArvore.status + ' ' +
       JSON.stringify((novaArvore.corpo && novaArvore.corpo.message) || ''));
   }
@@ -663,9 +687,17 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
   const avancou = await pedir(f, raizApi + '/git/refs/heads/' + ref, token, {
     method: 'PATCH',
     headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
-    body: JSON.stringify({ sha: novoCommit.corpo.sha }),
+    // `force: false` explícito: o `main` só avança se este commit DESCENDE dele. É esta
+    // recusa que transforma uma escrita concorrente em corrida, e não em sobrescrita.
+    body: JSON.stringify({ sha: novoCommit.corpo.sha, force: false }),
   });
   if (!avancou.ok) {
+    // 422 aqui é «not a fast forward»: o `main` andou enquanto montávamos o commit. Nada foi
+    // publicado — os blobs e o commit não ficaram pendurados em nada, e a árvore é refeita do
+    // zero sobre a base nova.
+    if (avancou.status === 422 || avancou.status === 409) {
+      return { ok: false, corrida: true, motivo: 'referência do expurgo: HTTP ' + avancou.status };
+    }
     throw new Error('não avancei ' + ref + ' para o commit do expurgo: HTTP ' + avancou.status);
   }
 

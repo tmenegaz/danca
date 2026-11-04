@@ -905,34 +905,108 @@ async function identificar(armazenamento, documento, agora) {
  * A FALHA DA GRAVAÇÃO É RESULTADO, NÃO EXCEPÇÃO. Desde que o envelope passou a viver no
  * repositório, gravar é uma chamada de rede que pode falhar; o professor tem de ler «não
  * gravou», com o motivo, e a memória do navegador segura o rascunho até a próxima tentativa.
+ *
+ * A CORRIDA DO CARIMBO (04/11/2026) — e por que o nome se resolve AQUI, e não em `identificar`.
+ * O id de um envelope é um carimbo de minuto (`plano-20261104-1810`), e `identificar` o escolhe
+ * perguntando ao armazenamento se o nome já existe. Entre essa pergunta e esta gravação há uma
+ * janela: dois pedidos que perguntem antes de qualquer escrita recebem o MESMO nome, e o
+ * segundo gravaria por cima do primeiro — os dois a responder «gravado», um documento a
+ * desaparecer, nenhum erro. Medido em 04/11/2026, com dois `identificar` e duas gravações:
+ * sobrava o segundo, e a estante mostrava um registo só.
+ *
+ * Quem fecha a janela é o armazenamento: `criar` grava só se a chave não existir, e a
+ * existência é perguntada pelo próprio GitHub no instante da escrita (a gravação vai sem
+ * `sha`, e a recusa 422 «"sha" wasn't supplied» é o «já existe»). Perdida a corrida, tenta-se
+ * o sufixo seguinte — o mesmo `-2` que o `identificar` daria se a leitura tivesse visto a
+ * outra escrita. O `documento.id` viaja junto: o id é o nome do arquivo E um campo do
+ * envelope, e deixá-los divergir seria pior do que a corrida.
  */
-async function gravarEnvelope(armazenamento, documento, relatorio) {
+const SUFIXOS_DA_CORRIDA = 5;
+
+/** O id com o sufixo da n-ésima tentativa: `plano-20261104-1810` → `…-2`. */
+function comSufixoDaCorrida(id, n) {
+  return id + '-' + n;
+}
+
+/**
+ * O RESUMO DO NOME QUE A CORRIDA DEU A OUTRO. A entrada do índice já foi escrita com o NOSSO
+ * documento antes de sabermos que o arquivo é de outro; o resumo passa a descrever o arquivo
+ * que lá está — que é o dado —, e não o que tentámos gravar. O índice é projeção: quem manda é
+ * o envelope.
+ */
+async function repararResumoDoIndice(armazenamento, nome) {
+  const vencedor = await lerArquivo(armazenamento, nome);
+  if (!vencedor) return false;
+  await registrarNoIndice(armazenamento, nome, vencedor);
+  return true;
+}
+
+/**
+ * `opcoes.substituir` diz o que a gravação QUER, e não se adivinha:
+ *
+ *   · `true` (o omisso) — o id foi DADO, e o documento que lá está é este mesmo, numa versão
+ *     anterior: a edição em sítio, a correção do erro de digitação. Grava por cima, como
+ *     sempre gravou. É o omisso para nenhum chamador mudar de comportamento por esquecimento.
+ *   · `false` — o id foi INVENTADO agora (`identificar`, um elo novo): ninguém revisou aquele
+ *     nome, e se ele já estiver tomado é porque outro pedido o tomou. Aí sim vale a escrita
+ *     condicional e o sufixo.
+ */
+async function gravarEnvelope(armazenamento, documento, relatorio, opcoes) {
   if (relatorio.errosDoDocumento.length) {
     return { ok: false, erro: 'o documento não passou na validação', linhas: linhasDoRelatorio(relatorio) };
   }
-  const chave = ARQUIVO_DE(relatorio.id);
-  const linhas = linhasDoRelatorio(relatorio, chave);
+  // SEM `criar` NÃO HÁ COMO FECHAR A JANELA — e então grava-se como sempre se gravou. É o
+  // caminho do armazenamento antigo (o KV), que não tem escrita condicional.
+  const substituir = !opcoes || opcoes.substituir !== false;
+  const condicional = !substituir && typeof armazenamento.criar === 'function';
 
-  try {
-    await registrarNoIndice(armazenamento, relatorio.id + '.json', documento);
-  } catch (erro) {
-    // Sem índice o registro continua a valer: a leitura de um nome que não está no rol só
-    // aparece na enumeração (que é a reconstrução). Gravar não depende de indexar.
-  }
+  let id = relatorio.id;
+  let linhas = linhasDoRelatorio(relatorio, ARQUIVO_DE(id));
+  const tentativas = condicional ? SUFIXOS_DA_CORRIDA : 1;
+  for (let tentativa = 1; tentativa <= tentativas; tentativa++) {
+    const chave = ARQUIVO_DE(id);
+    const corpo = id === relatorio.id ? documento : Object.assign({}, documento, { id });
 
-  try {
-    const r = await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
-    // O CAMINHO ONDE O REGISTO FICOU, quando o armazenamento o sabe (o acervo sabe: é o
-    // repositório). Quem mostra ao professor tem de mostrar o endereço que existe: o carimbo
-    // sozinho é um nome, e um nome não se procura.
-    const caminho = r && typeof r === 'object' ? (r.caminho || null) : null;
-    const antigo = r && typeof r === 'object' ? r.noArmazenamentoAntigo === true : false;
-    return { ok: true, linhas, caminho, noArmazenamentoAntigo: antigo };
-  } catch (erro) {
-    // O nome ficou órfão no índice; tira-se, sem que a falha da limpeza esconda a de origem.
-    try { await esquecerDoIndice(armazenamento, relatorio.id + '.json'); } catch (e) { /* já falhou o que importa */ }
-    return { ok: false, erro: (erro && erro.message) || String(erro), linhas };
+    try {
+      await registrarNoIndice(armazenamento, id + '.json', corpo);
+    } catch (erro) {
+      // Sem índice o registro continua a valer: a leitura de um nome que não está no rol só
+      // aparece na enumeração (que é a reconstrução). Gravar não depende de indexar.
+    }
+
+    try {
+      const texto = JSON.stringify(corpo, null, 2) + '\n';
+      const r = condicional
+        ? await armazenamento.criar(chave, texto)
+        : await armazenamento.guardar(chave, texto);
+
+      if (condicional && r && r.jaExiste) {
+        // O NOME É DE OUTRO. Repõe-se o resumo dele no índice e tenta-se o sufixo seguinte.
+        try { await repararResumoDoIndice(armazenamento, id + '.json'); } catch (e) { /* o índice se reconstrói */ }
+        id = comSufixoDaCorrida(relatorio.id, tentativa + 1);
+        linhas = linhasDoRelatorio(relatorio, ARQUIVO_DE(id));
+        continue;
+      }
+      if (condicional && r && r.criado === false && r.erro) throw new Error(r.erro);
+
+      // O CAMINHO ONDE O REGISTO FICOU, quando o armazenamento o sabe (o acervo sabe: é o
+      // repositório). Quem mostra ao professor tem de mostrar o endereço que existe: o carimbo
+      // sozinho é um nome, e um nome não se procura.
+      const caminho = r && typeof r === 'object' ? (r.caminho || null) : null;
+      const antigo = r && typeof r === 'object' ? r.noArmazenamentoAntigo === true : false;
+      return { ok: true, linhas, caminho, noArmazenamentoAntigo: antigo, id };
+    } catch (erro) {
+      // O nome ficou órfão no índice; tira-se, sem que a falha da limpeza esconda a de origem.
+      try { await esquecerDoIndice(armazenamento, id + '.json'); } catch (e) { /* já falhou o que importa */ }
+      return { ok: false, erro: (erro && erro.message) || String(erro), linhas };
+    }
   }
+  return {
+    ok: false,
+    erro: 'a corrida do carimbo não deu um nome livre depois de ' + SUFIXOS_DA_CORRIDA +
+      ' tentativas — outro pedido está a gravar o mesmo minuto',
+    linhas,
+  };
 }
 
 /** Apaga um envelope; `false` se não existia. */
@@ -1498,7 +1572,12 @@ async function elicitar(armazenamento, corpo, dados) {
   }
 
   const opcoes = { esquema: dados.esquema };
-  if (corpo && corpo.id) opcoes.id = String(corpo.id);
+  // O ID FOI DADO OU INVENTADO? (04/11/2026) Um id que veio do chamador — `corpo.id`, o
+  // carimbo de um registo que já está na estante — é o mesmo documento a ser reescrito: grava
+  // por cima. Um id que nasce do carimbo agora é um nome livre que ninguém revisou: grava só
+  // se ainda estiver livre, e cede o lugar ao pedido que chegou primeiro.
+  let idDeDocumentoQueExiste = false;
+  if (corpo && corpo.id) { opcoes.id = String(corpo.id); idDeDocumentoQueExiste = true; }
   if (corpo && corpo.geradoEm) opcoes.geradoEm = String(corpo.geradoEm);
 
   // O PLANO espelha a regra da anamnese, mas sem sujeito único: a edição e a
@@ -1605,6 +1684,7 @@ async function elicitar(armazenamento, corpo, dados) {
       opcoes.ajuste = { de: vigente.carimbo, motivo: (corpo && corpo.motivo) || null };
     } else if (vigente) {
       opcoes.id = vigente.carimbo;
+      idDeDocumentoQueExiste = true;
     }
   }
 
@@ -1617,6 +1697,7 @@ async function elicitar(armazenamento, corpo, dados) {
       dados.agora,
     );
     opcoes.id = id;
+    idDeDocumentoQueExiste = false;
     if (!opcoes.geradoEm) opcoes.geradoEm = geradoEm;
   }
 
@@ -1626,7 +1707,7 @@ async function elicitar(armazenamento, corpo, dados) {
   const simular = Boolean(corpo && corpo.simular);
   const gravacao = simular
     ? { ok: true, linhas: linhasDoRelatorio(relatorio) }
-    : await gravarEnvelope(armazenamento, documento, relatorio);
+    : await gravarEnvelope(armazenamento, documento, relatorio, { substituir: idDeDocumentoQueExiste });
 
   return {
     ok: relatorio.errosDoDocumento.length === 0,
@@ -1640,7 +1721,9 @@ async function elicitar(armazenamento, corpo, dados) {
     caminhoNoAcervo: gravacao.ok ? (gravacao.caminho || null) : null,
     noArmazenamentoAntigo: gravacao.noArmazenamentoAntigo === true,
     estado,
-    id: relatorio.id,
+    // O ID QUE FICOU NO ACERVO. É `relatorio.id` quase sempre; difere quando o minuto do
+    // carimbo foi disputado e a gravação teve de usar o sufixo seguinte (04/11/2026).
+    id: (gravacao && gravacao.id) || relatorio.id,
     contagem: relatorio.contagem,
     gatilho: relatorio.gatilho,
     elos: relatorio.elos,

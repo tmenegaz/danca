@@ -365,6 +365,80 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
     },
 
     /**
+     * GRAVA SÓ SE A CHAVE NÃO EXISTIR — a corrida do carimbo, fechada do lado da escrita
+     * (04/11/2026).
+     *
+     * `guardar` lê o `sha` e grava por cima dele. É o certo para EDITAR o mesmo documento —
+     * o «Guardar» de uma correção —, e é o errado para CRIAR um nome novo: o nome foi
+     * decidido antes da leitura, e dois pedidos que decidam o mesmo nome perdem um dos
+     * documentos sem erro nenhum. `escrever` não pode resolver isto, porque a pergunta tem
+     * de ser feita no instante da escrita.
+     *
+     * A escrita vai SEM `sha`, e é o GitHub que responde pela existência: criado → 2xx;
+     * já existe → **422 «"sha" wasn't supplied.»**. MEDIDO contra a API real em 04/11/2026,
+     * num ramo descartável (apagado a seguir, e nada foi escrito no `main`). O 422 só conta
+     * como «já existe» quando o recado fala do `sha`: um 422 por outro motivo (caminho
+     * inválido, por exemplo) é um erro, e tratá-lo como «já existe» faria quem chama pedir
+     * sufixos sem fim.
+     */
+    async criar(chave, texto, mensagem) {
+      if (!token || !slug) {
+        // SEM ACERVO NÃO HÁ CRIAR: quem não escreve no repositório grava onde sempre gravou.
+        if (legado && typeof legado.guardar === 'function') {
+          const existia = typeof legado.existe === 'function' ? await legado.existe(chave) : false;
+          if (existia) return { criado: false, jaExiste: true };
+          await legado.guardar(chave, texto);
+          return { criado: true, noArmazenamentoAntigo: true };
+        }
+        exigirToken();
+      }
+      const nome = String(chave || '');
+      let corpo = texto;
+      if (ehAnamnese(nome)) {
+        corpo = await montarArquivoCifrado(JSON.parse(texto), senhaCripto, cifrar);
+      }
+      const url = base + '/contents/' + caminhoDaChave(slug, nome);
+      let ultimo = 'não se tentou';
+      for (let tentativa = 1; tentativa <= 3; tentativa++) {
+        const resposta = await f(url, {
+          method: 'PUT',
+          headers: cabecalhos,
+          body: JSON.stringify({
+            message: mensagem || ('feat(acervo): ' + nome),
+            content: base64De(corpo),
+            branch: ramo,
+          }),
+        });
+        if (resposta.status >= 200 && resposta.status < 300) {
+          const dados = await resposta.json().catch(() => null);
+          lidos.delete(nome);
+          if (Array.isArray(indice) && indice.indexOf(nome) === -1) indice.push(nome);
+          return {
+            criado: true,
+            caminho: caminhoDaChave(slug, nome),
+            commit: dados && dados.commit && dados.commit.sha ? dados.commit.sha : null,
+          };
+        }
+        const corpoDoRecado = await resposta.json().catch(() => null);
+        const recado = corpoDoRecado && corpoDoRecado.message ? ' — ' + corpoDoRecado.message : '';
+        // «JÁ EXISTE» TEM NOME PRÓPRIO: não é falha — é a resposta que faz quem chama
+        // escolher outro nome.
+        if (resposta.status === 422 && /sha/i.test(recado)) {
+          lidos.delete(nome);   // o cache deste pedido envelheceu: a chave existe
+          return { criado: false, jaExiste: true, status: 422 };
+        }
+        ultimo = 'HTTP ' + resposta.status + recado;
+        // Uma corrida do índice (o `.indice.json` mudou no meio) não impede este arquivo:
+        // repetir é o certo, e o 422 já saiu por cima.
+        if (resposta.status !== 409) {
+          return { criado: false, status: resposta.status, erro: 'o GitHub recusou a escrita: ' + ultimo };
+        }
+        await new Promise((s) => setTimeout(s, tentativa * 300));
+      }
+      return { criado: false, erro: 'a criação de ' + nome + ' não entrou depois de 3 tentativas — ' + ultimo };
+    },
+
+    /**
      * LER-MODIFICAR-GRAVAR, com a mutação reaplicada sobre a versão que ganhou a corrida.
      *
      * É o que o índice precisa: dois isolates gravando ao mesmo tempo perderiam uma entrada se

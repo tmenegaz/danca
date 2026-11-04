@@ -626,3 +626,12 @@ experimentos/modelo-formulario/*
 # vigente, o ajuste deriva o elo do PO (e escreve a fonte, o ciclo e dispara) — e um plano sem
 # observação continua a não ter PO. Mede também a ponta: a Aula 01 com os 30% do Expressão.
 !experimentos/provar-cadeia-do-ajuste.js
+
+# A CORRIDA DA ESCRITA (04/11/2026). O id de um envelope é um carimbo de minuto, e era
+# escolhido perguntando «existe?» antes de gravar — dois pedidos no mesmo minuto recebiam o
+# mesmo nome, e o segundo gravava por cima do primeiro. Medido: sobrava um documento, a estante
+# mostrava um registo, e os dois pedidos diziam «gravado». Esta prova fixa a janela fechada (o
+# `criar` condicional cede o nome, o índice descreve o arquivo e não a tentativa perdida), a
+# edição em sítio a reescrever o MESMO nome, o 422 «"sha" wasn't supplied» do GitHub como o
+# «já existe», e o expurgo a refazer a corrida que perdeu. Citada no `REGISTRO.md`.
+!experimentos/provar-corrida-da-escrita.js

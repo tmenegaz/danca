@@ -444,9 +444,13 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       return recusar('o ajuste não passou na validação: ' +
         relatorio.errosDoDocumento.map((e) => e.caminho + ' — ' + e.mensagem).join('; '), 422);
     }
-    await porta.gravarEnvelope(armazenamento, documento, relatorio);
+    // O ID QUE FICOU. Normalmente é o que se pediu; quando o minuto é disputado por outro
+    // pedido, `gravarEnvelope` grava no sufixo seguinte — e quem responde diz o nome que existe
+    // (04/11/2026: a corrida do carimbo perdia um ajuste em silêncio).
+    const gravacao = await porta.gravarEnvelope(armazenamento, documento, relatorio, { substituir: false });
+    if (!gravacao.ok) return recusar(gravacao.erro || 'o ajuste não foi gravado', 500);
     return {
-      ok: true, ajuste: novoId, de: params.id, motivo: opcoes.ajuste.motivo,
+      ok: true, ajuste: gravacao.id || novoId, de: params.id, motivo: opcoes.ajuste.motivo,
       linhas: porta.linhasDoRelatorio(relatorio),
     };
   });
@@ -489,13 +493,15 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     if (!porta.mudouDeFato(anterior, documento)) {
       return { ok: true, editada: params.id, mudou: false, linhas: porta.linhasDoRelatorio(relatorio) };
     }
-    await porta.gravarEnvelope(armazenamento, documento, relatorio);
+    const gravacao = await porta.gravarEnvelope(armazenamento, documento, relatorio, { substituir: !recarimba });
+    if (!gravacao.ok) return recusar(gravacao.erro || 'a edição não foi gravada', 500);
+    const editada = gravacao.id || documento.id;
     // O anterior só cai DEPOIS de o novo estar gravado: a ordem importa — se a escrita
     // falhasse, o registro antigo continua de pé em vez de virar ausência.
-    if (documento.id !== params.id) await porta.apagarEnvelope(armazenamento, params.id);
+    if (editada !== params.id) await porta.apagarEnvelope(armazenamento, params.id);
     return {
       ok: true,
-      editada: documento.id,
+      editada,
       mudou: true,
       anterior: params.id,
       recarimbada: recarimba,
