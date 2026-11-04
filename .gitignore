@@ -584,3 +584,13 @@ experimentos/modelo-formulario/*
 # edição — dois botões, um destino, o segundo a prometer o que não fazia. Voltou como botão, com a
 # senha e a confirmação, e o servidor a decidir. Citada no `REGISTRO.md`.
 !experimentos/provar-apagar-da-listagem.js
+
+# A BANCADA DO PLANO E A DO PO VOLTAM A MEDIR (03/11/2026). As duas estavam fora do Git, e as duas
+# morriam na PRIMEIRA linha por um fixture que já não existe: `professores/leticia/…`, a pasta do
+# professor de uma escola expurgada em 15/10/2026. As mensagens («/api/mapa responde», «não consegui
+# ler o schema») falavam de rotas e de esquemas, e o problema era o fixture — quem lê conclui que a
+# rota está partida, e a rota está boa. Passam a servir `porta/` (a fonte de onde o gerador copia o
+# pacote) e o molde dos schemas (`modelo/ciclos/`), que não envelhecem com um expurgo. Citadas no
+# `REGISTRO.md`.
+!experimentos/provar-plano-matriz.js
+!experimentos/provar-po-completo.js

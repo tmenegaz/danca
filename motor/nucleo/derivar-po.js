@@ -312,14 +312,14 @@ function condicaoDeRegistroEmTexto(valor) {
 //
 // Eles estavam escritos à mão em DOIS derivadores (`derivar-po.js` e `derivar-plano-ciclo.js`,
 // que derivam o PO e o plano), e três já tinham derivado do rótulo que o formulário mostra
-// (`Turmas` onde o campo é «Turmas observadas», `Escola` onde é «Escola / espaço»): o professor
+// (`Turmas` onde o campo é «Turma observada», `Escola` onde é «Escola / espaço»): o professor
 // lia um nome no formulário e outro no documento. Aqui eles são declarados UMA vez, e a prova
 // (`experimentos/provar-po-completo.js`) confere cada um contra o `campo` declarado no conteúdo
 // do plano (`porta/plano/conteudo/plano.json`) — que é onde o formulário os lê.
 const ROTULOS_DO_CONTEXTO = {
   'contexto-escola': 'Escola / espaço',
   'contexto-professor': 'Professor responsável',
-  'contexto-turma': 'Turmas observadas',
+  'contexto-turma': 'Turma observada',
   'contexto-frequencia': 'Frequência semanal',
   'contexto-duracao': 'Duração por aula',
   'contexto-calendario': 'Calendário',

@@ -487,7 +487,7 @@ function tabelaDeContexto(envelope) {
   // O RÓTULO e a COMPOSIÇÃO de cada par vêm da fonte única de `derivar-po.js`
   // (`ROTULOS_DO_CONTEXTO` + `COMPOR_DO_CONTEXTO`): o plano e o PO leem O MESMO plano
   // referenciado e escrevem os mesmos nomes, e três deles já tinham derivado aqui
-  // («Turmas» onde o campo é «Turmas observadas»). A ordem é a do formulário.
+  // («Turmas» onde o campo é «Turma observada»). A ordem é a do formulário.
   const par = (id) => {
     const compor = COMPOR_DO_CONTEXTO[id];
     const valor = compor ? compor(respostaDo(envelope, id)) : respostaDo(envelope, id);
