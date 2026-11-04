@@ -35,6 +35,33 @@ function criarNode(raiz) {
       await fs.promises.mkdir(path.dirname(alvo), { recursive: true });
       await fs.promises.writeFile(alvo, String(valor), 'utf8');
     },
+    /**
+     * GRAVA SÓ SE NÃO EXISTIR — e no disco isto é ATÓMICO de verdade (04/11/2026).
+     *
+     * O `flag: 'wx'` é o `O_CREAT | O_EXCL` do sistema de ficheiros: o kernel cria o arquivo ou
+     * falha com `EEXIST`, e entre a verificação e a criação não há janela nenhuma. É a única
+     * implementação deste contrato que pode prometer isso sem ressalva — as outras duas
+     * (o GitHub e o KV) perguntam e escrevem em dois passos, e o que as salva é a condição do
+     * lado do servidor.
+     *
+     * O CONTRATO FALTAVA AQUI, e o furo era real: `motor/nucleo/armazenamento.js` declara
+     * `criar` desde 04/11/2026, o acervo implementou-o, e os DOIS adaptadores de base ficaram
+     * sem ele — de modo que `gravarEnvelope` (que o sonda com `typeof`) caía sempre no
+     * `guardar`, e a corrida do nome não estava fechada nem no CLI nem no KV. A bancada não o
+     * viu porque montava o acervo direto; hoje ela monta o composto (ver
+     * `experimentos/provar-verbos-do-armazenamento.js`).
+     */
+    async criar(chave, valor) {
+      const alvo = absoluto(chave);
+      await fs.promises.mkdir(path.dirname(alvo), { recursive: true });
+      try {
+        await fs.promises.writeFile(alvo, String(valor), { encoding: 'utf8', flag: 'wx' });
+        return { criado: true };
+      } catch (erro) {
+        if (erro && erro.code === 'EEXIST') return { criado: false, jaExiste: true };
+        throw erro;
+      }
+    },
     async anexar(chave, linha) {
       const alvo = absoluto(chave);
       await fs.promises.mkdir(path.dirname(alvo), { recursive: true });

@@ -47,8 +47,16 @@ const VOCABULARIOS = {
   'bale-classico': require('../../biblioteca/modalidades/bale-classico/vocabulario.json'),
 };
 
-/** A modalidade quando o chamador não a declara. Só há uma publicada — e é declarada, não suposta. */
-const MODALIDADE_PADRAO = 'bale-classico';
+/**
+ * A MODALIDADE PRINCIPAL VEM DO CATÁLOGO, POR UM SÍTIO SÓ (04/11/2026).
+ *
+ * Aqui havia uma segunda cópia do literal `'bale-classico'`, igual à de
+ * `perfil-do-professor.js`. Duas cópias da mesma decisão divergem quando a primeira muda — e a
+ * primeira muda no dia em que houver uma segunda modalidade com conteúdo. A derivação mora
+ * naquele módulo (`modalidadePrincipal`), e este importa-a: `perfil-do-professor.js` não importa
+ * nada daqui, de modo que não há ciclo.
+ */
+const { MODALIDADE_PADRAO } = require('./perfil-do-professor.js');
 
 function slug(texto) {
   return String(texto || '')

@@ -16,6 +16,17 @@
  * botão «Carregar catálogo inicial» saem. O `id` é derivado do nome (slug), como sempre.
  */
 
+/**
+ * A MODALIDADE QUE ESTE CATÁLOGO SEMEIA — dita UMA vez, e derivada do catálogo (04/11/2026).
+ *
+ * Os quatro `require` abaixo têm o `bale-classico` no CAMINHO, e isso é correcto: o `require` é
+ * literal porque o empacotador precisa de o seguir em tempo de build. O que estava errado era o
+ * resto do sistema ter de saber o mesmo nome — `bastidores.js` tinha seis literais iguais, e
+ * duplicava a suposição em vez de a perguntar. Este módulo passa a reexportá-la, e quem precisa
+ * dela pergunta-lhe.
+ */
+const { MODALIDADE_PADRAO: MODALIDADE } = require('../nucleo/perfil-do-professor.js');
+
 const vocabulario = require('../../biblioteca/modalidades/bale-classico/vocabulario.json');
 const progressao = require('../../biblioteca/modalidades/bale-classico/progressao.json');
 const tradicoes = require('../../biblioteca/modalidades/bale-classico/tradicoes.json');
@@ -117,6 +128,7 @@ function rotuloDaTradicao(t) {
 const DESCRICOES = descricoes.descricoes || {};
 
 module.exports = {
+  MODALIDADE,
   TURMAS, TERMOS, RELACOES, CATEGORIAS, TRADICOES, ROTULOS, DESCRICOES, rotuloDaTradicao,
   // A FORMA DO NÍVEL, por tradição (03/11/2026). Vai inteira porque quem a lê — o formulário da
   // turma e o `normalizarNivel` — precisam da mesma: `tipo`, `graus` e o `rotulo` do nível.

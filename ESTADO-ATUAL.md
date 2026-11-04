@@ -4,7 +4,24 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `d3b623c`, árvore limpa). Nesta entrega, **as colunas da
+> **Última fotografia:** 04/11/2026 (base `7cf8122`, árvore limpa). Nesta entrega, **o composto
+> deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter
+> número**. (1) O armazenamento que o Worker monta (`combinar`) **listava os verbos um por um**, e o
+> que ficava fora da lista sumia sem aviso: o `criar` nunca chegou ao motor — a blindagem da decisão
+> 85 era **inerte em produção** — e o `anexar` faltava, o que fazia a rota do registro de custo da IA
+> chamar uma função inexistente. Uma camada abaixo havia um terceiro furo: os dois adaptadores de
+> **base** não implementavam `criar`, que o contrato declara. A correção não foi acrescentar os que
+> faltavam (deixaria a armadilha armada para o próximo): o composto passou a ser um **`Proxy`** que
+> encaminha **qualquer** verbo, e só `criar` e `gravarComFusao` mantêm regra própria. (2) A
+> **modalidade** estava em **29 ocorrências e 8 ficheiros** (os «10 sítios» de 03/11 contavam blocos,
+> e um bloco continha dois literais); agora há **um único ponto de derivação** —
+> `modalidadePrincipal()` — e `MODALIDADE_PADRAO` é derivada dela. (3) O **custo da escrita** ganhou
+> número: **18 pontos** para criar um envelope, **7** para o editar, contra limites de 1 000 req/h
+> (Actions) e 500/h · 80/min de criação de conteúdo — o que morde é a **rajada**, e é por isso que o
+> expurgo é um commit só. Prova nova: `provar-verbos-do-armazenamento`, **29 asserções**, a ler os
+> verbos **do ficheiro do contrato** e a passar pelo `criarArmazenamento`.
+>
+> **Entrega anterior** (base `d3b623c`, árvore limpa). Nesta entrega, **as colunas da
 > aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade**. (1) As doze
 > tabelas de exercício saíam a **28/28/21/21** — o «1» do compasso com a mesma largura que o
 > parágrafo da descrição. A causa **não era CSS**: o pandoc calcula a largura relativa de cada
@@ -1820,6 +1837,40 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     caracteres numa coluna de «1–2», a espremer as outras três. A dedução da contagem passa a ser
     **só pela contagem** (era contagem + bloco). **DECIDIDO por ela e implementado** 04/11/2026.
 
+90. **O COMPOSTO NÃO ENUMERA VERBOS — ELE ENCAMINHA.** O armazenamento que o Worker monta
+    (`combinar`) listava os verbos um por um, e o que ficava de fora da lista desaparecia **sem
+    aviso**: o `criar` nasceu no acervo e nunca chegou ao motor, de modo que a escrita condicional —
+    a blindagem da decisão 85 — era inerte em produção; o `anexar` faltava, e a rota do registro de
+    custo da IA chamava uma função que não existia. E havia um terceiro furo, mais fundo: os dois
+    adaptadores de **base** não implementavam `criar`, que o contrato declara. A correção não foi
+    acrescentar os verbos que faltavam — isso deixaria a armadilha armada para o próximo. O composto
+    passou a ser um `Proxy` que encaminha **qualquer** verbo para quem atende a família da chave; só
+    `criar` (degradação declarada) e `gravarComFusao` (exige o `sha`) mantêm regra própria. A regra
+    fica verificável — *verbo no contrato ⇒ verbo nos dois adaptadores de base + no acervo + no
+    composto* — e a bancada lê os verbos **do ficheiro do contrato**, passando pelo
+    `criarArmazenamento`, que é o que a produção monta. **DECIDIDO e implementado** 04/11/2026.
+
+91. **A MODALIDADE TEM UM ÚNICO PONTO DE DERIVAÇÃO.** O motor tratava a modalidade como constante
+    em 8 ficheiros, e o número medido (**29 ocorrências**, das quais **6 decidiam comportamento**) é
+    maior do que os «10 sítios» contados a 03/11 — a diferença é de método: contar sítios subestima o
+    acoplamento, contar literais não. Agora `modalidadePrincipal()` é **a única derivação** (a primeira
+    modalidade do catálogo com `temConteudo`, e `''` se não houver catálogo), `MODALIDADE_PADRAO` é
+    **derivada** dela em vez de escrita, e a página da Produção lê `modalidadeDoCatalogo()`. **Um
+    literal de modalidade não se escreve em `motor/`**: quem precisa do padrão chama a constante;
+    quem precisa de *outra* modalidade recebe-a do perfil, do plano ou da query. **DECIDIDO e
+    implementado** 04/11/2026.
+
+92. **O CUSTO DA ESCRITA É EM REQUISIÇÕES, E O LIMITE MORDE A RAJADA — NÃO A MÉDIA.** Não é um
+    gosto: é a aritmética que sustenta a decisão de nunca adoptar banco relacional. Medido: um
+    «Guardar» de envelope novo custa **3 `GET` + 3 `PUT` = 18 pontos**; uma edição, **7**. Limites
+    reais (documentação do GitHub): 5 000 req/h autenticado, **1 000/h com o `GITHUB_TOKEN` de
+    Actions**, **500/h e 80/min de criação de conteúdo**, 900 pontos/min. A 7 pontos por edição, 500
+    `PUT`/h dão ~70 edições por hora — mais do que um professor faz num mês. O que morde é a
+    **rajada**, e é por isso que o expurgo é **um** commit e não 76 escritas. **O critério de
+    revisão é explícito, e não é conforto:** a escolha só se revê se a escrita passar a ser *volume*
+    (milhares de gravações por hora por escola) ou se o `80/min` for tocado no uso normal.
+    **DECIDIDO e documentado** em `ARQUITETURA-GERAL.md` §7.1, 04/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -2139,12 +2190,32 @@ e a marca é **revogável**; e os níveis são **da turma**, com a forma da **tr
 `nivel`, RAD numerada, as outras por graus). A análise completa está na **§2.2 da
 `ARQUITETURA-GERAL.md`**.
 
-**O que ainda falta, e não é decisão — é trabalho declarado:** a modalidade continua escrita **à mão
-em 10 sítios de `motor/`**. O dado passou a existir, mas **ainda não é ele que escolhe o alfabeto**:
-`ALFABETOS['bale-classico']` continua a ser `require`-ado, e a página manda `modalidade:
-"bale-classico"` em cinco sítios. Enquanto assim for, o sistema tem **uma** modalidade com
-repertório, e um professor habilitado em «jazz» não vê o repertório de jazz — porque ele não existe.
-O número é a linha de base de `provar-sinais-da-modalidade` §D, e o alvo é zero.
+**O acoplamento do código está a ZERO (04/11/2026).** Os literais de modalidade saíram: há **um único
+ponto de derivação** (`modalidadePrincipal()`, em `motor/nucleo/perfil-do-professor.js`), do qual
+`MODALIDADE_PADRAO` é **derivada**; a página da Produção lê `modalidadeDoCatalogo()`; e o CLI, o
+`termo-repo` e o `notacao` leem a mesma origem. O número medido foi **29 ocorrências em 8 ficheiros**
+— e não os «10 sítios» de 03/11: contavam-se blocos de código, e um só bloco da Produção continha
+dois literais. Dos 29, **6 decidiam comportamento**; os outros eram comentários e `require`s.
+
+**O que ainda falta — e não é acoplamento, é CONTEÚDO:** o sistema tem **uma** modalidade com
+repertório (`biblioteca/modalidades/bale-classico/`). Um professor habilitado em «jazz» **vê** a
+habilitação, e a escola **oferece-a** por derivação, mas não há repertório de jazz para oferecer —
+porque nenhum foi escrito. O que resta não é refactor: é escrever o alfabeto de cada modalidade. A
+regra que impede a recaída está dita no `ARQUITETURA-GERAL.md` §2.3 — *um literal de modalidade não
+se escreve em `motor/`*.
+
+### Nada valida os pacotes que já estão no repositório (04/11/2026)
+
+**O `check-pacote` corre no FIM do gerador — nunca sobre o que está versionado.** Um pacote entra no
+`main` quando é gerado, e a partir daí nenhum workflow olha para ele. O resultado, medido hoje:
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu` (12 ficheiros, versionados) reprova com **11
+erros** — sem PDF, sem aulas (`aula-NN.html`), sem `-dados.json`, e com cinco ligações do
+`index.html` para ficheiros que não existem. É um pacote de um formato anterior ao schema atual, e
+ninguém sabe porque nada o pergunta.
+
+**O que falta decidir, e é dela:** regerar (perde o que o pacote antigo guarda), **arquivar**
+(tirar do caminho e dizer porquê), ou **aceitar como legado declarado** (uma lista de excepções com
+data). O que não serve é o estado actual — um validador que só valida o que acabou de nascer.
 
 ### A decisão original, como foi tomada (contexto)
 
@@ -2446,7 +2517,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — as colunas da aula e a notação fora da música)
+### Executado nesta fotografia (04/11/2026 — os verbos, a modalidade e o custo da API)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-verbos-do-armazenamento` (**nova**) | **TUDO CERTO — 29 asserções**: os **7 verbos lidos do ficheiro do contrato** chegam aos dois adaptadores de base, ao acervo e ao **composto**; o `criar` **funciona** nos três (a segunda criação sabe que o nome é de outro e **não** sobrescreve, e o `guardar` continua a gravar por cima); o motor vê o `criar` **pelo `criarArmazenamento`**, que é o que a produção monta; e o composto **deixou de enumerar** — um verbo inventado na hora atravessa-o, um que ninguém implementa é **recusado** (não devolvido vazio), e o `Proxy` **não** o torna uma *thenable* |
+| O `criar` no adaptador `node` | 1.ª → `{criado:true}` · 2.ª → `{jaExiste:true}` · o conteúdo continua `um` · e o `guardar` ainda sobrescreve |
+| A modalidade derivada | `MODALIDADE_PADRAO` = `bale-classico` **derivada do catálogo** · `modalidadePrincipal([])` → `''` · `modalidadePrincipal([{id:'jazz',temConteudo:false}])` → `'jazz'` · e **restam 7** ocorrências do literal, todas em caminhos de `require` ou comentário |
+| `ARQUITETURA-GERAL.md` | conferido contra a árvore: **34 secções**, as **17 referências `§` resolvem**, as **14 cercas** emparelhadas, as **8 ligações internas** existem · novas **§5.7** (os verbos) e **§7.1** (o preço da escrita) |
+| Regressão | `provar-acervo-envelopes` · `provar-carimbo-da-edicao` · `provar-fusao-da-edicao` · `provar-corrida-da-escrita` · `provar-cadeia-do-ajuste` · `provar-cartao-da-aula` · `provar-eixos-e-tempo-da-aula` · `provar-colunas-da-aula` · `provar-um-commit-por-guardar` · `provar-publicacao-da-escola` · `provar-habilitacao-do-professor` · `provar-sinais-da-modalidade` · `provar-professor-secundario` · `provar-plano-da-turma` · `provar-contexto-do-ato` — **todos verdes** |
+| `check-indices` · `check-identidade` | **14/14** · **20/20** |
+| `check-pacote` do ciclo da `breu` | **0 erro(s), 0 aviso(s)** |
+| **o que NÃO mede** | os limites da API vêm da **documentação** do GitHub, não de uma rajada provocada (provocá-la custaria cota no ar) · o KV **não** tem escrita condicional (a ressalva está dita no código) · e **nada valida os pacotes que já estão no repositório** — o `check-pacote` só corre dentro do gerador, e o `ciclo-01-breu` está no `main` com **11 erros** |
+
+### Executado na fotografia anterior (04/11/2026 — as colunas da aula e a notação fora da música)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3451,6 +3535,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **O composto não enumera verbos, a modalidade tem uma só origem, e o custo da API
+  tem número.** O `combinar` — o armazenamento que o Worker monta — listava os verbos à mão, e o
+  `criar` ficou de fora: a escrita condicional existia no acervo e **nunca chegava ao motor**. O
+  `anexar` faltava pela mesma razão. Uma camada abaixo, os dois adaptadores de **base** também não
+  tinham `criar`. A classe ficou fechada ao tirar a lista: o composto é um **`Proxy`** que encaminha
+  qualquer verbo. A **modalidade** estava em **29 ocorrências e 8 ficheiros** (não 10 sítios: contar
+  blocos subestima) e passou a ter **um único ponto de derivação**, com `MODALIDADE_PADRAO`
+  derivada. O **custo da escrita** ganhou número medido — **18 pontos** para criar um envelope, **7**
+  para o editar — e a decisão de não adoptar banco relacional passa a ter critério de revisão
+  explícito. Prova nova: `provar-verbos-do-armazenamento`, 29 asserções.
 
 - **04/11/2026** — **As colunas da aula e a notação fora da música.** As doze tabelas de exercício
   saíam a 28/28/21/21 — número com a largura de parágrafo. A causa não era CSS: o pandoc calcula a

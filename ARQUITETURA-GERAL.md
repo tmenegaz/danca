@@ -168,10 +168,36 @@ o acervo direto. Hoje as bancadas que provam a escrita passam pelo `combinar`
    continua a ser uma constante em 10 sítios de `motor/` — é o acoplamento medido abaixo.
 
 **O acoplamento, medido a 03/11/2026** (`experimentos/provar-sinais-da-modalidade.js`, §D): a
-modalidade está escrita **à mão em 10 sítios de `motor/`** — dois mapas e o padrão no núcleo, dois
+modalidade estava escrita **à mão em 10 sítios de `motor/`** — dois mapas e o padrão no núcleo, dois
 no CLI dos produtos, e **cinco na página da Produção** (o `POST` do verbete, o `DELETE`, a rota que
-serve o alfabeto e os dois corpos que a tela monta). Este número é a **linha de base**: o trabalho de
-médio prazo é levá-lo a zero, e a prova passa a afirmar o zero.
+serve o alfabeto e os dois corpos que a tela monta). Este número era a **linha de base**, e o
+trabalho de médio prazo era levá-lo a zero.
+
+> **CORRIGIDO a 04/11/2026 — e o número era maior do que o medido.** A varredura fina encontrou
+> **29 ocorrências em 8 ficheiros**, das quais **6 eram literais de facto** que decidiam
+> comportamento; as outras eram comentários, `require`s com o caminho da modalidade padrão (legítimos)
+> e o próprio catálogo. A diferença importa: o número de 03/11 contava **sítios** (blocos de código),
+> e um único sítio da página da Produção continha dois literais. Contar sítios subestima o
+> acoplamento; contar literais não.
+>
+> **O acoplamento está a zero.** Nenhum literal de modalidade decide comportamento em `motor/` nem
+> em `tools/`. Um único ponto de derivação, e todos os outros leem dele:
+
+| Onde | O que faz agora | Antes |
+|:--|:--|:--|
+| `motor/nucleo/perfil-do-professor.js` → `modalidadePrincipal()` | **a única derivação**: a primeira modalidade do catálogo com `temConteudo`; sem catálogo, `''` | literal `'bale-classico'` |
+| `… → MODALIDADE_PADRAO` | constante **derivada** de `modalidadePrincipal()`, não escrita | literal |
+| `motor/servidor/bastidores.js` → `modalidadeDoCatalogo()` | lê o catálogo, cai no perfil, cai em `''`; serve as **6** chamadas da Produção (`TRADICOES_POR_MODALIDADE`, as 3 rotas do verbete, os 2 corpos de JS embebido) | 6 literais |
+| `motor/produtos.js` | `--modalidade` do CLI, por omissão a derivada | 2 literais |
+| `motor/servidor/termo-repo.js` | o caminho do verbete composto a partir de `MODALIDADE_PADRAO` | literal concatenado |
+| `motor/servidor/catalogo-seed.js` | **reexporta** `MODALIDADE` do perfil, não a redeclara | alias literal |
+| `motor/nucleo/notacao.js` | importa `MODALIDADE_PADRAO` (a segunda cópia saiu) | segunda cópia do literal |
+
+**A regra que fica, e é a que impede a recaída:** um literal de modalidade **não se escreve em
+`motor/`**. Quem precisa do padrão chama `MODALIDADE_PADRAO`; quem precisa de *outra* modalidade
+recebe-a do perfil (`modalidades`), do plano (`contexto-metodologia`) ou da query — nunca de uma
+constante. A direcção do `require` é segura: `perfil-do-professor.js` não importa `notacao.js`, pelo
+que o `notacao.js → perfil-do-professor.js` não fecha ciclo.
 
 **As três perguntas que ficaram abertas a 03/11/2026, e as respostas dela no mesmo dia:**
 
@@ -498,8 +524,40 @@ A fórmula é `SHA-256(id : type : parentHash : conteúdo)`, e o `parentHash` é
 sobrescreve o **mesmo** `.fipp`: não há cadeia a «absorver», porque a unidade do encadeamento é o
 **ciclo**, não a versão do documento. Quem guarda as versões intermédias é o Git.
 
-## 6. Por que é mais barato
+### 5.7 A composição dos verbos — o furo que existia por construção
 
+O Worker não usa o acervo directamente: usa um **composto** (`combinar`, em
+`motor/servidor/acervo-envelopes.js`), que decide quem atende pela **família da chave** —
+`envelope/*` vai para o repositório, o resto (o lançamento cifrado, os cadastros dos Bastidores, o
+cartão da geração) fica no KV. É uma linha de composição, e é ali que a fronteira «registro vs.
+estado» se declara.
+
+**O defeito, e ele era estrutural.** O composto **enumerava** os verbos um por um. Duas
+consequências, as duas medidas em produção e nenhuma detectada por bancada:
+
+| Verbo | O que acontecia | Gravidade |
+|:--|:--|:--|
+| `criar` | existia no acervo, **não** no composto → o motor via «não sei criar» e gravava por cima. **Toda a blindagem da §5.1 era inerte** | a corrida do nome voltava a ser silenciosa |
+| `anexar` | existia no KV, **não** no composto → a rota do registro de custo da IA chamava «não é uma função» | erro em produção, não perda de dado |
+
+**A correção certa não era acrescentar os dois que faltavam** — isso deixaria a armadilha armada
+para o terceiro. O composto passou a ser um `Proxy` que **encaminha qualquer verbo** para quem
+atende aquela família de chave; só `criar` (que tem uma degradação declarada para armazenamento de
+bancada) e `gravarComFusao` (que exige o `sha`, e por isso responde `{semFusao:true}` fora do
+acervo) têm regra própria. **Um verbo novo no contrato flui sozinho.**
+
+**A regra que fica, e ela é verificável:** *verbo no contrato ⇒ verbo nos dois adaptadores de base
++ no acervo + no composto.* A bancada (`experimentos/provar-verbos-do-armazenamento.js`) **lê os
+verbos do ficheiro do contrato** — não de uma lista escrita à mão — e testa os três adaptadores de
+base, o acervo e o composto montado como o Worker o monta. E prova a propriedade, não só a
+existência: um verbo inventado na hora atravessa o composto, e um que ninguém implementa é
+**recusado** em vez de devolvido vazio.
+
+> **A lição, e é de método.** As bancadas que existiam montavam o **acervo directo**, e a produção
+> monta o **composto**. A distância entre os dois era exactamente o furo — e é o motivo de a bancada
+> nova passar pelo `criarArmazenamento` e não pelo adaptador.
+
+## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|
 | 1 | **Sem servidor de banco** | Não há instância paga, nem licença, nem DBA, nem réplica de backup. O storage é o próprio Git. |
@@ -523,11 +581,81 @@ páginas estáticas no CDN — não uma instância de banco provisionada por cli
 | 3 | **Pré-computado** | O HTML não é renderizado por request; é gerado no build. |
 | 4 | **Reancoragem cirúrgica** | A âncora **por aula** permite reancorar só a aula afetada (`ARQUITETURA-AULA.md` §5.2). |
 
-**O preço, e ele existe.** A escrita vai ao GitHub Contents API — uma chamada por arquivo, com o
-`sha` lido antes. Um «Guardar» de envelope custa **duas** escritas (índice e envelope) e, quando
-dispara a geração, uma execução de Actions. É o custo de ter o Git como store, e é o que se paga
-de bom grado pela cadeia de custódia. O que **não** se faz é medir no ar: as bancadas correm sobre
-memória e sobre um GitHub falso (`experimentos/`), e o KV tem cota diária.
+### 7.1 O preço da escolha: a escrita vai à API do GitHub
+
+O §4 argumenta por que não há banco. Esta secção é o outro lado, e ela é obrigatória: **a escrita
+custa requisições a um serviço de terceiro**. Não é um risco teórico — é o que o código faz em
+cada «Guardar», e é o número que decide se a decisão se sustenta.
+
+**O que um «Guardar» custa** (medido, não estimado — `provar-corrida-da-escrita` e
+`provar-um-commit-por-guardar` contam as chamadas contra o GitHub falso):
+
+| Operação | Chamadas | Pontos |
+|:--|:--|:--|
+| Primeira gravação de um envelope | 3 `GET` (índice, existência) + 3 `PUT` (envelope, índice, `.fipp`) | **18** |
+| Edição de um envelope que já existe | 2 `GET` (o documento, com o `sha`) + 1 `PUT` | **7** |
+| Uma aula lançada (envelope + índice + carimbo) | ≈ 10 | **~30** |
+
+**Os limites reais** (documentação do GitHub, conferida em 04/11/2026):
+
+| Limite | Valor | Onde morde aqui |
+|:--|:--|:--|
+| Requisições autenticadas | **5 000/h** por utilizador | O tráfego de um `GITHUB_TOKEN` de Actions |
+| Requisições com o `GITHUB_TOKEN` de Actions | **1 000/h** por repositório | O teto efectivo do pipeline |
+| Criação de conteúdo (a `PUT` do Contents) | **500/h** e **80/min** | O gargalo real: são `PUT`, não `GET` |
+| Pontuação por operação | 900 pontos/min | A `PUT` do Contents pesa mais que a leitura |
+| Ligações simultâneas | 100 | Irrelevante a esta escala |
+
+**O que isso quer dizer, em escolas.** A 7 pontos por edição, 500 `PUT`/h dão para ~**70 edições
+por hora** — mais do que um professor faz num mês, e muito mais do que a segunda-feira de uma
+secretaria. O gargalo não é a média: é a **rajada**. O `80/min` de criação de conteúdo é o que
+importa quando o expurgo de uma escola apaga 76 arquivos num commit só (§5.4) — e é por isso que
+o expurgo é **um** commit, e não 76 escritas.
+
+**Os riscos, nomeados um por um:**
+
+1. **Rate limit** → o adaptador recebe `403`/`429` com `X-RateLimit-Remaining: 0`. **Estado hoje:**
+   a escrita devolve `{ok:false}` e a página mostra o erro; não há espera automática até à janela
+   seguinte. É aceitável porque a cota se repõe em uma hora e a operação é repetível à mão — não
+   há perda, porque **nada foi gravado**. Vira dívida no dia em que houver escrita em lote.
+2. **Latência** → a `PUT` do Contents faz o commit do lado do servidor do GitHub: **centenas de
+   milissegundos**, contra os ~10 ms de um `UPDATE` local. O §7 continua verdadeiro porque **a
+   leitura** é que é o caminho quente, e ela é CDN. A escrita é rara por natureza: um professor
+   grava dezenas de vezes por dia, não milhares.
+3. **Falha do provedor externo** → o GitHub em baixo é o sistema em baixo, sem plano B. É o preço
+   de não ter infraestrutura: **a disponibilidade é herdada**, não construída. Em contrapartida,
+   não há um servidor nosso para cair às 3h da manhã, e o que existe publicado (as páginas
+   estáticas) **continua a ser servido pelo CDN** mesmo com a API fora — o que quebra é a escrita,
+   não a leitura. A própria memória da aula continua legível.
+4. **Conflito de `sha` (`409`) e *non-fast-forward* (`422`)** → cobertos no §5.1–§5.3, com
+   releitura, repetição e reconstrução de base/árvore/commit.
+
+**E por que, apesar disto, um banco relacional seria pior.** Não é preferência: é aritmética de
+requisitos.
+
+- **A proveniência é o produto.** O que a escola compra é a cadeia — quem mudou, quando, e o que
+  mudou. Num banco isso é uma tabela de auditoria que alguém tem de escrever, manter e **nunca
+  deixar dessincronizar** da tabela principal. No Git a cadeia **é** o mecanismo de escrita: não há
+  como gravar sem deixar rastro, porque gravar *é* commitar (§5.3).
+- **O diff é a unidade de merge** (decisão 84). Um banco exigiria versionamento optimista com
+  carimbo de milissegundos por **campo**, e a fusão por campo diferente seria código nosso a
+  manter. Aqui o `409` do Git já é a detecção, e o `motor/nucleo/fusao.js` é a política.
+- **Um banco teria de ser hospedado, pago e vigiado** — e é exactamente a linha de custo que o §6
+  elimina. Trocar 500 `PUT`/h (que não se gastam) por uma instância 24/7 (que se paga sempre) é
+  trocar um limite que não morde por uma factura que morde todos os meses.
+- **O dado deixaria de ser legível.** A escola sai levando os arquivos (§9). Num banco, sair é um
+  `pg_dump` que ninguém sabe ler.
+
+**Conclusão, e ela é uma decisão e não um gosto:** o GitHub é o *store*, o custo é em requisições,
+e o limite morde apenas a rajada — que o desenho já evita (um commit por gravação, um commit por
+expurgo). **Não se adopta um backend com banco relacional tradicional**, e o critério para rever
+isto não é conforto: é a escrita passar a ser *volume* (milhares de gravações por hora por escola)
+ou o `80/min` de criação de conteúdo passar a ser tocado no uso normal. Enquanto nenhum dos dois
+acontecer, o banco é custo sem requisito.
+
+> **Não se mede no ar.** As bancadas correm sobre memória e sobre um GitHub falso
+> (`experimentos/provar-*.js`), e o KV tem cota diária. Ir ao ar custa uma carga por escola, no
+> fim — nunca durante a exploração.
 
 ---
 

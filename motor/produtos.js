@@ -22,6 +22,7 @@
  */
 
 const fs = require('fs');
+const { MODALIDADE_PADRAO } = require('./nucleo/perfil-do-professor.js');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
@@ -39,7 +40,7 @@ function lerJson(rel) {
 function uso() {
   console.log('uso: node motor/produtos.js <dicionario|syllabus> [opções]');
   console.log('');
-  console.log('  --modalidade <slug>   modalidade do catálogo (por omissão, bale-classico)');
+  console.log('  --modalidade <slug>   modalidade do catálogo (por omissão, ' + MODALIDADE_PADRAO + ')');
   console.log('  --escola <slug>       a edição de uma escola: o catálogo + os termos dela, com a');
   console.log('                        dela a vencer. Sem isto, o produto é o do CATÁLOGO');
   console.log('  --nivel <id>          só um nível do syllabus (id de progressao.json)');
@@ -54,7 +55,7 @@ function uso() {
 }
 
 function argumentos(argv) {
-  const opts = { tipo: '', modalidade: 'bale-classico', nivel: '', versao: '0.1.0',
+  const opts = { tipo: '', modalidade: MODALIDADE_PADRAO, nivel: '', versao: '0.1.0',
     licenca: '', edicao: 'interna', escola: '', out: '', doRepo: false, json: false };
   const resto = [];
   for (let i = 0; i < argv.length; i += 1) {
@@ -109,7 +110,7 @@ function catalogoDoDisco(modalidade) {
  * `sem-fotografia`. É a diferença entre «não sei a data» e «inventei a data».
  */
 function fotografiaDoCatalogo(modalidade) {
-  const pasta = 'biblioteca/modalidades/' + String(modalidade || 'bale-classico');
+  const pasta = 'biblioteca/modalidades/' + String(modalidade || MODALIDADE_PADRAO);
   const git = (args) => execFileSync('git', args, { cwd: RAIZ, stdio: 'pipe' }).toString().trim();
   let data = '';
   let commit = '';

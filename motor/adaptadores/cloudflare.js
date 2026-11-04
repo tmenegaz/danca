@@ -167,6 +167,34 @@ function criarCloudflare(env) {
       await kv.put(escolar(chave), String(valor));
       await registrarChave(escolar(chave));
     },
+    /**
+     * GRAVA SÓ SE NÃO EXISTIR (04/11/2026) — com a ressalva DITA, porque ela é verdadeira.
+     *
+     * O CONTRATO FALTAVA AQUI. `motor/nucleo/armazenamento.js` declara `criar` desde 04/11/2026,
+     * o acervo implementou-o, e os DOIS adaptadores de base ficaram sem ele — de modo que
+     * `gravarEnvelope` (que o sonda com `typeof`) caía sempre no `guardar`, e a corrida do nome
+     * não estava fechada nem no CLI nem no KV do Worker. Não é um detalhe: era a blindagem a
+     * existir no sítio errado.
+     *
+     * **O KV NÃO TEM OPERAÇÃO CONDICIONAL.** Não há `put-if-absent`, e não há como pedir ao
+     * servidor que decida — `get` seguido de `put` tem uma janela. O que este verbo faz é o
+     * melhor que o meio permite: pergunta, e grava se o nome estiver livre; dois pedidos
+     * simultâneos no MESMO isolate não se cruzam (não há `await` entre a pergunta e a decisão
+     * do primeiro, e o segundo vê o resultado), e dois isolates diferentes ainda podem perder
+     * um. **Dizer isto é o ponto**: prometer atomicidade que o KV não tem seria pior do que não
+     * a ter, porque quem lê o código deixaria de procurar a proteção onde ela existe — hoje, no
+     * acervo do repositório, que é onde os envelopes vivem desde 19/10/2026. O KV é o legado.
+     */
+    async criar(chave, valor) {
+      if (!kv || typeof kv.put !== 'function' || typeof kv.get !== 'function') {
+        throw new Error('PADD_KV ausente: não há onde criar ' + chave);
+      }
+      const fisica = escolar(chave);
+      if ((await kv.get(fisica)) !== null) return { criado: false, jaExiste: true };
+      await kv.put(fisica, String(valor));
+      await registrarChave(fisica);
+      return { criado: true };
+    },
     async anexar(chave, linha) {
       if (!kv || typeof kv.put !== 'function' || typeof kv.get !== 'function') {
         throw new Error('PADD_KV ausente: não há onde anexar a ' + chave);

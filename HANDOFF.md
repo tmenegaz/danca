@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T19:36:00-0300`
-Commit atual: `d3b623cb` — fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
+Gerado em: `2026-11-04T19:48:49-0300`
+Commit atual: `7cf8122e` — fix(campo): as colunas da aula têm a largura do que levam, e a notação sai da música
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+7cf8122e fix(campo): as colunas da aula têm a largura do que levam, e a notação sai da música
 d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
 6ede6131 feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
 edcd8a00 fix(estrutura): o nome do documento não se decide antes de gravar — quem decide é a gravação
@@ -104,7 +105,6 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 e7ec02f9 chore(estrutura): reancorar a cadeia das fontes alteradas
 c394e879 chore(estrutura): regerar os índices derivados
 6dd3ffb8 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
-f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -230,98 +230,108 @@ f8b03630 feat(po): o PO elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — As colunas da aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade
+## 04/11/2026 — O composto deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter número
 
-**O que motivou.** Duas coisas que a pesquisadora viu na aula, e a primeira vinha com um diagnóstico
-já feito por ela: «todas as colunas estão com o mesmo tamanho, espremendo os textos descritivos
-enquanto sobra espaço em colunas que exibem apenas números curtos». A segunda: «o bloco de
-musicalidade exibe a notação Benesh junto à contagem — remover; a notação só deve ser carregada e
-exibida quando o utilizador acionar explicitamente a opção de abrir a notação».
+**O que motivou.** Uma pauta de quatro pontos, e os três primeiros chegaram como diagnóstico: «o
+custo zero de servidores precisa de ser blindado, e quero os riscos reais nomeados»; «o manuseio das
+modalidades está codificado manualmente em 10 pontos espalhados pelo motor»; «verbos novos no
+adaptador de acervo ficaram de fora do `combinar`, fazendo com que a blindagem existisse no
+adaptador isolado e nunca alcançasse o motor»; e, por fim, «que outras falhas ocultas existem».
 
-**O que se mediu — e a causa não era CSS.** As doze tabelas de exercício saíam a **28/28/21/21**: o
-`1` do compasso e o `1–2` da contagem com a mesma largura que o parágrafo da descrição. O
-`table { width: 100% }` da folha está certo, e o browser distribui por conteúdo **quando não há
-largura declarada** — havia um `<colgroup>` com as quatro colunas iguais.
+**O que se mediu — os três primeiros pontos não eram o que o diagnóstico dizia, e o quarto era
+pior do que ele.**
 
-Quem o escrevia era o **pandoc**, e a regra dele é esta: a largura relativa de cada coluna vem da
-**proporção dos traços** da linha de separação da tabela Markdown — e, com todos os traços iguais
-(`|:--:|:--:|:--|:--|`), saem todos iguais. **E há uma segunda condição, que é a que se perde num
-teste apressado: o pandoc só usa essas proporções quando a linha de separação passa dos 72
-caracteres** (o `--columns` por omissão, que o `gerar-ciclo.sh` não muda). Uma linha proporcional
-mas curta é desfeita — e o defeito volta sem que nada no ficheiro pareça errado. Medido nas duas
-direções: a 67 caracteres o `colgroup` desaparecia; a 104, as larguras apareciam.
+1. **A modalidade não estava em 10 sítios: eram 29 ocorrências em 8 ficheiros.** A diferença tem
+   método: o número de 03/11 contou **sítios** (blocos de código), e um só sítio da página da
+   Produção continha dois literais. Contar sítios subestima o acoplamento; contar literais não. Das
+   29, **6 decidiam comportamento**; as outras eram comentários e `require`s legítimos.
+2. **O `combinar` já tinha sido corrigido** — mas o defeito estava **uma camada abaixo**: os dois
+   adaptadores de base (`node.js`, `cloudflare.js`) **não implementavam `criar`**, que o contrato
+   declara. O composto encaminhava para quem não sabia fazer.
+3. **Faltava um terceiro verbo, e este ninguém tinha visto:** o **`anexar`** não existia no acervo.
+   A bancada nova apanhou-o na primeira execução.
+4. **A causa comum não era nenhum dos três verbos: era a LISTA.** O composto enumerava os verbos à
+   mão, e o que fica de fora de uma lista desaparece sem aviso — foi assim com o `criar`, foi assim
+   com o `anexar`, e seria assim com o próximo.
 
 **O que foi decidido.**
 
-- **A largura mora na linha de separação**, e é lá que se corrige — não no CSS e não no template.
-  Uma regra de CSS por tabela seria uma segunda fonte de verdade para uma decisão que o gerador já
-  toma, e o PDF (LaTeX) lê a MESMA proporção: o que se corrige aqui corrige-se nos dois suportes.
-- **A proporção é a do conteúdo**: `12 / 12 / 23 / 52` (era `28 / 28 / 21 / 21`). As duas numéricas
-  descem a menos de metade do que tinham, e o espaço vai para a descrição (21 → 52) e para a notação
-  (21 → 23), que precisa dele — `[Perna: ED 1ª ○ - ● 1ª]` são 24 caracteres numa coluna.
-  **A divisão não é a metade exacta que o pedido sugere**, e o motivo é medido: repartir o ganho
-  igualmente entre notação e descrição daria 14/14/35/35, e a descrição — que leva 150 a 300
-  caracteres — ficaria com um terço da tabela. O ganho é repartido a favor de quem tem texto.
-- **A notação sai da §4 da aula.** A contagem passa a ser só a contagem (`1–2`). O bloco de
-  musicalidade é a MÚSICA da aula (compasso, exercício, tempos, contagem), e a notação não é música:
-  é o código em que a música se escreve, e tem documento próprio (`-notacao.md`, «Exercícios da Aula
-  01»), a que o botão «notação» do cabeçalho da aula leva. Repeti-la aqui punha 24 caracteres numa
-  coluna de «1–2», a espremer as outras três — e obrigava quem lê a música a atravessar o código.
-- **A dedução da contagem passa a ser só pela contagem.** Era pela contagem + bloco; sem o bloco na
-  célula, dois segmentos com a mesma contagem são a mesma célula, que é o que a tabela mostra.
+- **O composto deixa de enumerar.** `combinar` passa a devolver um `Proxy` que encaminha **qualquer**
+  verbo para quem atende aquela família de chave (`envelope/*` → repositório; o resto → KV). Só dois
+  verbos mantêm regra própria, e por motivos que não são de roteamento: o `criar` (tem uma degradação
+  declarada para armazenamento de bancada) e o `gravarComFusao` (exige o `sha`, e fora do acervo
+  responde `{semFusao:true}`). **Um verbo novo no contrato passa a fluir sozinho.** A armadilha do
+  `Proxy` foi medida e fechada: responder a tudo faria dele uma *thenable*, e o `await` sobre o
+  armazenamento ficaria pendurado — o `then` está explicitamente de fora, e a bancada afirma-o.
+- **A regra fica verificável:** *verbo no contrato ⇒ verbo nos dois adaptadores de base + no acervo
+  + no composto*. A bancada lê os verbos **do ficheiro do contrato**, não de uma lista — e passa pelo
+  `criarArmazenamento`, que é o que a produção monta. As bancadas antigas montavam o acervo directo;
+  a distância entre os dois era exactamente o furo.
+- **A modalidade passa a ter um único ponto de derivação.** `modalidadePrincipal()` devolve a
+  primeira modalidade do catálogo com `temConteudo`, e `MODALIDADE_PADRAO` passa a ser **derivada**
+  dela em vez de escrita. A página da Produção ganha `modalidadeDoCatalogo()`, que serve as seis
+  chamadas que tinham literal. **O acoplamento está a zero**: nenhum literal de modalidade decide
+  comportamento em `motor/` nem em `tools/`.
+- **O custo da API passa a ter número, e não adjectivo.** Um «Guardar» de envelope novo custa
+  **3 `GET` + 3 `PUT` = 18 pontos**; uma edição, **7**. Os limites reais (documentação do GitHub,
+  conferida hoje): 5 000 req/h autenticado, **1 000/h com o `GITHUB_TOKEN` de Actions**, **500/h e
+  80/min de criação de conteúdo**, 900 pontos/min. O que morde é a **rajada**, não a média — e é por
+  isso que o expurgo é um commit e não 76 escritas. A decisão de não adoptar banco relacional fica
+  blindada com um critério de revisão explícito, e não com uma preferência.
 
-**O que NÃO mudou.** A §4 continua com as quatro colunas da música; a aula em prosa
-(`gerar-aula-prosa.js`) já descartava a coluna da notação nas tabelas de exercício e continua a
-descartá-la; a fórmula da âncora, a cobertura do `.fipp`, os validadores e o `check-pacote` estão
-como estavam. Nada de `CONGELAMENTO.md` foi tocado.
+**A varredura (o quarto ponto), com o que encontrou e o que ficou por fazer.**
 
-**Reancoragem.** A `-aula-01.md` e a `-notacao.md` mudaram, e as duas estão na cobertura da âncora:
-a `.fipp` foi regerada com `tools/hash-ciclo.sh` e o `--check` confirma. Os índices derivados foram
-regerados, e o `check-indices` passa 14/14.
+| Achado | Estado |
+|:--|:--|
+| `criar` fora do composto, `anexar` fora do composto, `criar` fora dos dois adaptadores de base, `anexar` fora do acervo | **corrigidos** — e a classe fechada pelo `Proxy` |
+| Expurgo de escola sem as 3 tentativas do expurgo de professor | **já corrigido** antes desta entrada (`repo-escola.js`) |
+| O `○`/`●` da notação quebravam o PDF no pdflatex (`Unicode character ○ not set up`) | **já corrigido** — `\newunicodechar` no `ciclo-cabecalho.tex`, com `textcomp` explícito |
+| **O `check-pacote` só corre DENTRO do gerador** — nunca sobre o que está versionado | **aberto**: `professores/coqui-de-redinha/ciclos/ciclo-01-breu` está no repo com **11 erros** (sem PDF, sem aulas, sem `-dados.json`) e ninguém sabe, porque nada valida o que já lá está |
+| `tools/lib-tokens.js` exporta `ciclogoldborda` e `colorido` sem consumidor | aberto, menor |
+| As tabelas de duas colunas continuam 50/50 (§1, eixo do Corpo, auditoria) | aberto, declarado na entrada anterior |
+| `provar-producao` falha 3 asserções (menu, tradições, pílulas) | **pré-existente**, confirmado por `git stash` comparativo — 153/156 antes e depois |
+| `provar-listas-do-acervo` continua NÃO FEITO (a escola viva não tem ciclo publicado) | aberto, declarado |
 
 **Onde entrou.**
 
-- `motor/nucleo/derivar-ciclo.js` — a célula da contagem do §4 deixa de levar o bloco de notação; a
-  linha de separação da tabela do documento de notação passa a ter a proporção das colunas, com o
-  comprimento mínimo que a faz valer.
-- `professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-{aula-01,notacao}.md`,
-  `.fipp` e o pacote — regerados.
-- `experimentos/provar-colunas-da-aula.js` — **novo**, 23 asserções.
+- `motor/servidor/acervo-envelopes.js` — `anexar` implementado (ler-modificar-gravar com `sha` e as
+  3 tentativas do 409); `combinar` deixa de enumerar e passa a `Proxy`.
+- `motor/adaptadores/node.js` — `criar` com `flag: 'wx'` (`O_EXCL`, atómico de verdade).
+- `motor/adaptadores/cloudflare.js` — `criar` com `get`+`put`, e a **ressalva dita**: o KV não tem
+  operação condicional.
+- `motor/nucleo/perfil-do-professor.js` — `modalidadePrincipal()`; `MODALIDADE_PADRAO` derivada.
+- `motor/servidor/bastidores.js` — `modalidadeDoCatalogo()` e os 6 literais substituídos.
+- `motor/nucleo/notacao.js`, `motor/servidor/catalogo-seed.js`, `motor/servidor/termo-repo.js`,
+  `motor/produtos.js` — leem a derivação; a segunda cópia do literal saiu.
+- `ARQUITETURA-GERAL.md` — nova **§5.7** (a composição dos verbos), nova **§7.1** (o preço da
+  escrita, com os limites medidos) e a **§2.3** corrigida (o acoplamento era 29, não 10 — e está a
+  zero).
+- `experimentos/provar-verbos-do-armazenamento.js` — **novo**, 29 asserções.
 
-**Com o quê.** `motor/nucleo/derivar-ciclo.js` · `professores/coqui-de-redinha/ciclos/…` (fontes,
-`.fipp`, pacote) · `indices/` (regerados) · `experimentos/provar-colunas-da-aula.js` ·
+**Com o quê.** `motor/nucleo/armazenamento.js` (o contrato, lido pela bancada) ·
+`motor/servidor/acervo-envelopes.js` · `motor/adaptadores/{node,cloudflare}.js` ·
+`motor/nucleo/{perfil-do-professor,notacao}.js` · `motor/servidor/{bastidores,catalogo-seed,termo-repo}.js` ·
+`motor/produtos.js` · `ARQUITETURA-GERAL.md` · `experimentos/provar-verbos-do-armazenamento.js` ·
 `experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
 
-**Referências.** `IDENTIDADE-VISUAL.md` (a folha e a tabela) · documentação do pandoc sobre pipe
-tables (`--columns` e a proporção dos separadores) · `CONGELAMENTO.md`.
+**Referências.** Documentação do GitHub sobre *rate limits* (5 000/h autenticado, 1 000/h para o
+`GITHUB_TOKEN` de Actions, 500/h e 80/min de criação de conteúdo, 900 pontos/min) ·
+`ARQUITETURA-GERAL.md` §2.3, §5.1, §5.7, §7.1 · `PROTOCOLO.md` (P-12, os apelidos estáveis) ·
+`CONGELAMENTO.md`.
 
 **O que ainda não está feito.**
 
-1. **As outras tabelas de duas colunas continuam 50/50** — a §1 (`Item | Definição`), a do eixo do
-   Corpo (`Critério | O que se observa`) e a da auditoria. Têm o mesmo defeito, e não foram tocadas
-   porque a pesquisadora as aprovou («legíveis e com bom comportamento visual»). Se a mesma régua
-   passar a valer para elas, é a mesma linha de separação — e a prova já sabe medi-la.
-2. **A largura é do gerador, não do documento antigo.** As aulas já publicadas noutras escolas não
-   foram regeradas; elas só ganham a correção quando forem geradas de novo.
-3. **Nada disto foi medido no ar** — as percentagens foram medidas no HTML que o pandoc escreve,
-   localmente.
+1. **Nada valida os pacotes que já estão no repositório.** O `check-pacote` corre no fim do gerador;
+   um pacote antigo com 11 erros vive no `main` sem que nenhum workflow olhe para ele. Um passo que
+   varra `professores/*/ciclos/ciclo-01-*/` e reporte seria barato — e teria de começar por decidir
+   o que fazer com o `ciclo-01-breu`: regerar, arquivar, ou aceitar como legado declarado.
+2. **O `80/min` de criação de conteúdo não foi tocado por medição real** — os números vêm da
+   documentação, não de uma rajada provocada. Uma prova que o provoque custaria cota no ar, e a regra
+   desta casa é não gastar a cota para saber o que a documentação já diz.
+3. **Os três adaptadores sabem `criar`, mas só o `node` é atómico de verdade.** O KV não tem
+   operação condicional — a ressalva está dita no código, e é o melhor que o meio permite.
 
 ## O que está pendente
-
-## 04/11/2026 — O ajuste do plano de ensino arrasta o PO, e o cartão da aula mostra o que se observa
-
-
-1. **O PO que já está no repositório a apontar o plano antigo (`po-20261104-1733`) só se corrige na
-   próxima gravação.** A correção é automática a partir de agora, mas este elo em concreto foi
-   gravado antes — abrir o PO na porta e «derivar» (ou «corrigir») passa a referência ao plano
-   vigente, e o caminho já está medido.
-2. **A cadeia gera e dispara a cada ajuste.** Ajustar o plano de ensino volta a gerar o pacote; é
-   o que a frase dela pede («garantindo que o ciclo seja atualizado de ponta a ponta»), e é também
-   uma execução de GitHub Actions por ajuste. Se o custo incomodar, o passo a cortar é o disparo —
-   não o elo.
-3. **O guia no cartão é o mesmo para todas as aulas da turma** (o PO é do ciclo, não da aula). Não
-   há, hoje, um «o que observar nesta aula» que mude de aula para aula: seria outro dado, e não
-   foi inventado.
 
 ## 04/11/2026 — Dois «Guardar» no mesmo minuto não perdem mais um documento
 
@@ -378,6 +388,19 @@ tables (`--columns` e a proporção dos separadores) · `CONGELAMENTO.md`.
    foram regeradas; elas só ganham a correção quando forem geradas de novo.
 3. **Nada disto foi medido no ar** — as percentagens foram medidas no HTML que o pandoc escreve,
    localmente.
+
+## 04/11/2026 — O composto deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter número
+
+
+1. **Nada valida os pacotes que já estão no repositório.** O `check-pacote` corre no fim do gerador;
+   um pacote antigo com 11 erros vive no `main` sem que nenhum workflow olhe para ele. Um passo que
+   varra `professores/*/ciclos/ciclo-01-*/` e reporte seria barato — e teria de começar por decidir
+   o que fazer com o `ciclo-01-breu`: regerar, arquivar, ou aceitar como legado declarado.
+2. **O `80/min` de criação de conteúdo não foi tocado por medição real** — os números vêm da
+   documentação, não de uma rajada provocada. Uma prova que o provoque custaria cota no ar, e a regra
+   desta casa é não gastar a cota para saber o que a documentação já diz.
+3. **Os três adaptadores sabem `criar`, mas só o `node` é atómico de verdade.** O KV não tem
+   operação condicional — a ressalva está dita no código, e é o melhor que o meio permite.
 
 ## Pendências anteriores (índice)
 
@@ -727,6 +750,7 @@ tables (`--columns` e a proporção dos separadores) · `CONGELAMENTO.md`.
 - **03/11/2026** — O elo em `historico/` não é documento do acervo, e a… → `REGISTRO.md` L33984
 - **03/11/2026** — A estante mostra um por documento: a proveniência fica… → `REGISTRO.md` L34034
 - **04/11/2026** — A fatia de tempo vem do plano pela coluna certa, e o guia… → `REGISTRO.md` L34115
+- **04/11/2026** — O ajuste do plano de ensino arrasta o PO, e o cartão da… → `REGISTRO.md` L34204
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

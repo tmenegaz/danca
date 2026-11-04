@@ -22,7 +22,12 @@
 const ACEITE = 'application/vnd.github+json';
 const API_VERSAO = '2022-11-28';
 
-const CAMINHO = 'biblioteca/modalidades/bale-classico/vocabulario.json';
+/* O CAMINHO DERIVA DA MODALIDADE PRINCIPAL (04/11/2026), e não de um literal. O ficheiro é um
+ * só — a razão está em `comum.js` → `separarPorEscola`, e é o `require` do bundle —, mas QUAL é
+ * esse ficheiro é decisão do catálogo: no dia em que a modalidade principal mudar, este caminho
+ * acompanha em vez de apontar para um vocabulário que já não é o principal. */
+const CAMINHO = 'biblioteca/modalidades/' + require('../nucleo/perfil-do-professor.js').MODALIDADE_PADRAO
+  + '/vocabulario.json';
 
 /**
  * DE QUEM É O TERMO, GRAVADO NO TERMO (02/11/2026).

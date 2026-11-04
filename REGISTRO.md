@@ -34643,3 +34643,104 @@ tables (`--columns` e a proporção dos separadores) · `CONGELAMENTO.md`.
    foram regeradas; elas só ganham a correção quando forem geradas de novo.
 3. **Nada disto foi medido no ar** — as percentagens foram medidas no HTML que o pandoc escreve,
    localmente.
+
+## 04/11/2026 — O composto deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter número
+
+**O que motivou.** Uma pauta de quatro pontos, e os três primeiros chegaram como diagnóstico: «o
+custo zero de servidores precisa de ser blindado, e quero os riscos reais nomeados»; «o manuseio das
+modalidades está codificado manualmente em 10 pontos espalhados pelo motor»; «verbos novos no
+adaptador de acervo ficaram de fora do `combinar`, fazendo com que a blindagem existisse no
+adaptador isolado e nunca alcançasse o motor»; e, por fim, «que outras falhas ocultas existem».
+
+**O que se mediu — os três primeiros pontos não eram o que o diagnóstico dizia, e o quarto era
+pior do que ele.**
+
+1. **A modalidade não estava em 10 sítios: eram 29 ocorrências em 8 ficheiros.** A diferença tem
+   método: o número de 03/11 contou **sítios** (blocos de código), e um só sítio da página da
+   Produção continha dois literais. Contar sítios subestima o acoplamento; contar literais não. Das
+   29, **6 decidiam comportamento**; as outras eram comentários e `require`s legítimos.
+2. **O `combinar` já tinha sido corrigido** — mas o defeito estava **uma camada abaixo**: os dois
+   adaptadores de base (`node.js`, `cloudflare.js`) **não implementavam `criar`**, que o contrato
+   declara. O composto encaminhava para quem não sabia fazer.
+3. **Faltava um terceiro verbo, e este ninguém tinha visto:** o **`anexar`** não existia no acervo.
+   A bancada nova apanhou-o na primeira execução.
+4. **A causa comum não era nenhum dos três verbos: era a LISTA.** O composto enumerava os verbos à
+   mão, e o que fica de fora de uma lista desaparece sem aviso — foi assim com o `criar`, foi assim
+   com o `anexar`, e seria assim com o próximo.
+
+**O que foi decidido.**
+
+- **O composto deixa de enumerar.** `combinar` passa a devolver um `Proxy` que encaminha **qualquer**
+  verbo para quem atende aquela família de chave (`envelope/*` → repositório; o resto → KV). Só dois
+  verbos mantêm regra própria, e por motivos que não são de roteamento: o `criar` (tem uma degradação
+  declarada para armazenamento de bancada) e o `gravarComFusao` (exige o `sha`, e fora do acervo
+  responde `{semFusao:true}`). **Um verbo novo no contrato passa a fluir sozinho.** A armadilha do
+  `Proxy` foi medida e fechada: responder a tudo faria dele uma *thenable*, e o `await` sobre o
+  armazenamento ficaria pendurado — o `then` está explicitamente de fora, e a bancada afirma-o.
+- **A regra fica verificável:** *verbo no contrato ⇒ verbo nos dois adaptadores de base + no acervo
+  + no composto*. A bancada lê os verbos **do ficheiro do contrato**, não de uma lista — e passa pelo
+  `criarArmazenamento`, que é o que a produção monta. As bancadas antigas montavam o acervo directo;
+  a distância entre os dois era exactamente o furo.
+- **A modalidade passa a ter um único ponto de derivação.** `modalidadePrincipal()` devolve a
+  primeira modalidade do catálogo com `temConteudo`, e `MODALIDADE_PADRAO` passa a ser **derivada**
+  dela em vez de escrita. A página da Produção ganha `modalidadeDoCatalogo()`, que serve as seis
+  chamadas que tinham literal. **O acoplamento está a zero**: nenhum literal de modalidade decide
+  comportamento em `motor/` nem em `tools/`.
+- **O custo da API passa a ter número, e não adjectivo.** Um «Guardar» de envelope novo custa
+  **3 `GET` + 3 `PUT` = 18 pontos**; uma edição, **7**. Os limites reais (documentação do GitHub,
+  conferida hoje): 5 000 req/h autenticado, **1 000/h com o `GITHUB_TOKEN` de Actions**, **500/h e
+  80/min de criação de conteúdo**, 900 pontos/min. O que morde é a **rajada**, não a média — e é por
+  isso que o expurgo é um commit e não 76 escritas. A decisão de não adoptar banco relacional fica
+  blindada com um critério de revisão explícito, e não com uma preferência.
+
+**A varredura (o quarto ponto), com o que encontrou e o que ficou por fazer.**
+
+| Achado | Estado |
+|:--|:--|
+| `criar` fora do composto, `anexar` fora do composto, `criar` fora dos dois adaptadores de base, `anexar` fora do acervo | **corrigidos** — e a classe fechada pelo `Proxy` |
+| Expurgo de escola sem as 3 tentativas do expurgo de professor | **já corrigido** antes desta entrada (`repo-escola.js`) |
+| O `○`/`●` da notação quebravam o PDF no pdflatex (`Unicode character ○ not set up`) | **já corrigido** — `\newunicodechar` no `ciclo-cabecalho.tex`, com `textcomp` explícito |
+| **O `check-pacote` só corre DENTRO do gerador** — nunca sobre o que está versionado | **aberto**: `professores/coqui-de-redinha/ciclos/ciclo-01-breu` está no repo com **11 erros** (sem PDF, sem aulas, sem `-dados.json`) e ninguém sabe, porque nada valida o que já lá está |
+| `tools/lib-tokens.js` exporta `ciclogoldborda` e `colorido` sem consumidor | aberto, menor |
+| As tabelas de duas colunas continuam 50/50 (§1, eixo do Corpo, auditoria) | aberto, declarado na entrada anterior |
+| `provar-producao` falha 3 asserções (menu, tradições, pílulas) | **pré-existente**, confirmado por `git stash` comparativo — 153/156 antes e depois |
+| `provar-listas-do-acervo` continua NÃO FEITO (a escola viva não tem ciclo publicado) | aberto, declarado |
+
+**Onde entrou.**
+
+- `motor/servidor/acervo-envelopes.js` — `anexar` implementado (ler-modificar-gravar com `sha` e as
+  3 tentativas do 409); `combinar` deixa de enumerar e passa a `Proxy`.
+- `motor/adaptadores/node.js` — `criar` com `flag: 'wx'` (`O_EXCL`, atómico de verdade).
+- `motor/adaptadores/cloudflare.js` — `criar` com `get`+`put`, e a **ressalva dita**: o KV não tem
+  operação condicional.
+- `motor/nucleo/perfil-do-professor.js` — `modalidadePrincipal()`; `MODALIDADE_PADRAO` derivada.
+- `motor/servidor/bastidores.js` — `modalidadeDoCatalogo()` e os 6 literais substituídos.
+- `motor/nucleo/notacao.js`, `motor/servidor/catalogo-seed.js`, `motor/servidor/termo-repo.js`,
+  `motor/produtos.js` — leem a derivação; a segunda cópia do literal saiu.
+- `ARQUITETURA-GERAL.md` — nova **§5.7** (a composição dos verbos), nova **§7.1** (o preço da
+  escrita, com os limites medidos) e a **§2.3** corrigida (o acoplamento era 29, não 10 — e está a
+  zero).
+- `experimentos/provar-verbos-do-armazenamento.js` — **novo**, 29 asserções.
+
+**Com o quê.** `motor/nucleo/armazenamento.js` (o contrato, lido pela bancada) ·
+`motor/servidor/acervo-envelopes.js` · `motor/adaptadores/{node,cloudflare}.js` ·
+`motor/nucleo/{perfil-do-professor,notacao}.js` · `motor/servidor/{bastidores,catalogo-seed,termo-repo}.js` ·
+`motor/produtos.js` · `ARQUITETURA-GERAL.md` · `experimentos/provar-verbos-do-armazenamento.js` ·
+`experimentos/README.md` · `.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md`.
+
+**Referências.** Documentação do GitHub sobre *rate limits* (5 000/h autenticado, 1 000/h para o
+`GITHUB_TOKEN` de Actions, 500/h e 80/min de criação de conteúdo, 900 pontos/min) ·
+`ARQUITETURA-GERAL.md` §2.3, §5.1, §5.7, §7.1 · `PROTOCOLO.md` (P-12, os apelidos estáveis) ·
+`CONGELAMENTO.md`.
+
+**O que ainda não está feito.**
+
+1. **Nada valida os pacotes que já estão no repositório.** O `check-pacote` corre no fim do gerador;
+   um pacote antigo com 11 erros vive no `main` sem que nenhum workflow olhe para ele. Um passo que
+   varra `professores/*/ciclos/ciclo-01-*/` e reporte seria barato — e teria de começar por decidir
+   o que fazer com o `ciclo-01-breu`: regerar, arquivar, ou aceitar como legado declarado.
+2. **O `80/min` de criação de conteúdo não foi tocado por medição real** — os números vêm da
+   documentação, não de uma rajada provocada. Uma prova que o provoque custaria cota no ar, e a regra
+   desta casa é não gastar a cota para saber o que a documentação já diz.
+3. **Os três adaptadores sabem `criar`, mas só o `node` é atómico de verdade.** O KV não tem
+   operação condicional — a ressalva está dita no código, e é o melhor que o meio permite.

@@ -1164,6 +1164,21 @@ function tradicoesAdotaveis() {
 }
 
 /**
+ * A MODALIDADE QUE O CATÁLOGO SEMEADO COBRE — lida do próprio catálogo (04/11/2026).
+ *
+ * Era o literal `'bale-classico'` a fazer de chave de `TRADICOES_POR_MODALIDADE`, e havia mais
+ * cinco literais iguais espalhados por este ficheiro (as rotas do verbete, com
+ * `corpo.modalidade || 'bale-classico'`). Seis cópias da mesma suposição: «só há o clássico».
+ *
+ * O `catalogo-seed.js` já sabe a resposta — ele lê `biblioteca/modalidades/bale-classico/*.json`,
+ * e o caminho está lá escrito UMA vez. Derivar daqui é o que impede a sétima cópia no dia em que
+ * uma segunda modalidade ganhar conteúdo: muda o seed, e estas seis linhas acompanham.
+ */
+function modalidadeDoCatalogo() {
+  return String((CATALOGO.MODALIDADE || perfilNucleo.modalidadePrincipal() || '')).trim();
+}
+
+/**
  * AS TRADIÇÕES, POR MODALIDADE (03/11/2026).
  *
  * O catálogo tem hoje UMA lista, e ela vive dentro de `biblioteca/modalidades/bale-classico/
@@ -1179,7 +1194,7 @@ function tradicoesAdotaveis() {
  * ficheiros por `require`. O dia em que houver duas modalidades com conteúdo, o mapa passa a ter
  * duas entradas e mais nada muda.
  */
-const TRADICOES_POR_MODALIDADE = { 'bale-classico': tradicoesAdotaveis() };
+const TRADICOES_POR_MODALIDADE = { [modalidadeDoCatalogo()]: tradicoesAdotaveis() };
 
 /**
  * AS TURMAS QUE FICARAM SEM QUEM AS ENSINE — marcadas no sítio onde elas vivem (03/11/2026).
@@ -7949,7 +7964,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!certo) return;' +
     '  fetch("/api/bastidores/verbete", {' +
     '    method: "DELETE", headers: {"Content-Type": "application/json"},' +
-    '    body: JSON.stringify({token: TOKEN, nome: qual, modalidade: "bale-classico"})' +
+    '    body: JSON.stringify({token: TOKEN, nome: qual, modalidade: ' +
+      JSON.stringify(modalidadeDoCatalogo()) + '})' +
     '  }).then(lerResposta).then(function(d){' +
     '    if (!d.ok) { recado("erro", d.erro || "não foi possível apagar"); return; }' +
     '    recado("ok", "verbete de «" + qual + "» apagado — versão " + d.versao);' +
@@ -8093,7 +8109,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var manterAsDuas = Boolean(comoNova && comoNova.checked);' +
     '  var corpo = {' +
     '    acao: document.getElementById("vbacao").value,' +
-    '    modalidade: "bale-classico",' +
+    '    modalidade: ' + JSON.stringify(modalidadeDoCatalogo()) + ',' +
     '    nome: nome,' +
     '    musica: tempos + "|" + compasso,' +
     // A MÚSICA DE ONDE SE VEIO VAI JUNTO, E É O QUE FAZ DO «GRAVAR» UMA SUBSTITUIÇÃO
@@ -9918,7 +9934,7 @@ async function fetch(request, env) {
   // A guarda é a MESMA das outras rotas de administração (senha ou bilhete da direção), e a
   // validação é a do servidor — a tela é conveniência.
   if (path === '/api/bastidores/verbete' && request.method === 'GET') {
-    const modalidade = String(url.searchParams.get('modalidade') || 'bale-classico');
+    const modalidade = String(url.searchParams.get('modalidade') || modalidadeDoCatalogo());
     const { lerModalidade, listarVerbetes } = require('./verbete.js');
     const lido = await lerModalidade({
       f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
@@ -10064,7 +10080,7 @@ async function fetch(request, env) {
     const r = await gravarVerbete({
       f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
       dono: 'tmenegaz', repo: 'danca', ref: 'main',
-      modalidade: String(corpo.modalidade || 'bale-classico'),
+      modalidade: String(corpo.modalidade || modalidadeDoCatalogo()),
       nome: corpo.nome,
       musica: corpo.musica,
       // A MÚSICA QUE SAI, quando a edição mudou os tempos (02/11/2026). Vazia quer dizer «ficam as
@@ -10175,7 +10191,7 @@ async function fetch(request, env) {
     const r = await apagarVerbete({
       f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
       dono: 'tmenegaz', repo: 'danca', ref: 'main',
-      modalidade: String(corpo.modalidade || 'bale-classico'),
+      modalidade: String(corpo.modalidade || modalidadeDoCatalogo()),
       nome: nome,
       // APAGA-SE O QUE É DESTA ESCOLA (03/11/2026). O apagar do catálogo passa pelo mesmo caminho,
       // com `escola` vazia — e é a rota que não deixa uma escola apagar o que se vende.

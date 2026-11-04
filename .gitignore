@@ -657,3 +657,10 @@ experimentos/modelo-formulario/*
 # também o que saiu: a notação Benesh não está no bloco de musicalidade da aula — ela vive no
 # documento dela, e é lá que o botão «notação» a vai buscar.
 !experimentos/provar-colunas-da-aula.js
+
+# OS VERBOS DO ARMAZENAMENTO (04/11/2026). O composto que o Worker monta (`combinar`) ENUMERAVA os
+# verbos à mão, e por isso o `criar` — a escrita condicional, isto é, a blindagem da corrida do
+# nome — existia no acervo e nunca chegava ao motor. O `anexar` faltava pela mesma razão. Esta
+# prova LÊ os verbos do ficheiro do contrato (não de uma lista) e testa os três adaptadores de
+# base, o acervo e o COMPOSTO montado como a produção o monta — e prova que ele deixou de enumerar.
+!experimentos/provar-verbos-do-armazenamento.js

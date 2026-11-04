@@ -565,6 +565,72 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
       return { ok: false, erro: 'a gravação com fusão não entrou depois de 3 tentativas — ' + ultimo };
     },
 
+    /**
+     * ACRESCENTA UMA LINHA AO ARQUIVO — o verbo do contrato que faltava aqui (04/11/2026).
+     *
+     * O acervo nasceu para a família `envelope/`, e nada no sistema anexa a um envelope — foi por
+     * isso que o `anexar` passou ao lado. Mas o contrato é o contrato: um adaptador que não
+     * implementa um verbo é exactamente o defeito que esta rodada está a fechar, e o `combinar`
+     * tornava-o **silencioso** (quem pedisse `anexar('envelope/…')` caía no KV, porque a guarda
+     * pergunta `typeof acervo.anexar === 'function'` e a resposta era «não»).
+     *
+     * A escrita é ler-modificar-gravar com o `sha`, com a repetição do 409 — a mesma disciplina
+     * do `gravarComFusao`. No repositório acrescentar não é atómico do lado do Git, e é por isso
+     * que a repetição existe: dois isolates a anexar ao mesmo tempo são dois commits, e o segundo
+     * perde a corrida e relê.
+     */
+    async anexar(chave, linha) {
+      if (!token || !slug) {
+        if (legado && typeof legado.anexar === 'function') return legado.anexar(chave, linha);
+        if (legado && typeof legado.guardar === 'function') {
+          const atual = await legado.ler(chave);
+          return legado.guardar(chave, (atual || '') + String(linha));
+        }
+        exigirToken();
+      }
+      const nome = String(chave || '');
+      const url = base + '/contents/' + caminhoDaChave(slug, nome);
+      let ultimo = 'não se tentou';
+      for (let tentativa = 1; tentativa <= 3; tentativa++) {
+        let sha = null;
+        let atual = '';
+        const leitura = await f(comRamo(url), { method: 'GET', headers: cabecalhos });
+        if (leitura.status === 200) {
+          const dados = await leitura.json().catch(() => null);
+          sha = (dados && dados.sha) || null;
+          atual = dados && dados.content
+            ? Buffer.from(String(dados.content).replace(/\s/g, ''), 'base64').toString('utf8')
+            : '';
+        } else if (leitura.status !== 404) {
+          return { ok: false, status: leitura.status, erro: 'leitura para anexar: HTTP ' + leitura.status };
+        }
+        const resposta = await f(url, {
+          method: 'PUT',
+          headers: cabecalhos,
+          body: JSON.stringify({
+            message: 'feat(acervo): anexar a ' + nome,
+            content: base64De(atual + String(linha)),
+            branch: ramo,
+            ...(sha ? { sha } : {}),
+          }),
+        });
+        if (resposta.status >= 200 && resposta.status < 300) {
+          lidos.delete(nome);
+          if (Array.isArray(indice) && indice.indexOf(nome) === -1) indice.push(nome);
+          return { ok: true, status: resposta.status, caminho: caminhoDaChave(slug, nome) };
+        }
+        const corpoDoRecado = await resposta.json().catch(() => null);
+        ultimo = 'HTTP ' + resposta.status +
+          (corpoDoRecado && corpoDoRecado.message ? ' — ' + corpoDoRecado.message : '');
+        if (resposta.status !== 409) {
+          return { ok: false, status: resposta.status, erro: 'o GitHub recusou a escrita: ' + ultimo };
+        }
+        lidos.delete(nome);
+        await new Promise((s) => setTimeout(s, tentativa * 300));
+      }
+      return { ok: false, erro: 'o anexar a ' + nome + ' não entrou depois de 3 tentativas — ' + ultimo };
+    },
+
     /** APAGA. Devolve `true` se existia (a mesma resposta do adaptador do KV). */
     async apagar(chave) {
       const nome = String(chave || '');
@@ -656,56 +722,74 @@ function doAmbiente(env, { legado, escola, cifrar } = {}) {
  * É UMA linha de composição, e é de propósito: a fronteira entre «registro» e «estado» passa a
  * ser a FAMÍLIA da chave, não o módulo que a lê.
  *
- * UM VERBO NOVO NO ACERVO TEM DE PASSAR POR AQUI (04/11/2026). Esta função é o que o Worker usa
- * (`criarArmazenamento`), e ela lista os verbos à mão: o `criar` nasceu no acervo e ficou de
- * fora, de modo que a escrita condicional — a blindagem contra dois «Guardar» no mesmo minuto —
- * existia no adaptador e nunca chegava ao motor, que via «não sei criar» e gravava por cima como
- * sempre. As bancadas não apanharam porque montavam o acervo direto. O que segue é a regra: quem
- * acrescentar um verbo ao acervo acrescenta-o aqui, e a bancada que o prova tem de passar pelo
- * `combinar`, não pelo acervo.
+ * A LISTA DE VERBOS À MÃO JÁ FALHOU DUAS VEZES — E FOI POR ISSO QUE ELA SAIU (04/11/2026).
+ * Esta função é o que o Worker usa (`criarArmazenamento`), e ela enumerava os verbos um por um.
+ * O `criar` nasceu no acervo e ficou de fora: a escrita condicional — que é a blindagem contra
+ * dois «Guardar» no mesmo minuto — existia no adaptador e nunca chegava ao motor, que via «não sei
+ * criar» e gravava por cima como sempre. O `anexar` faltava pela mesma razão, e a rota do registro
+ * de custo da IA chamava uma função que não existia. As bancadas não apanhavam porque montavam o
+ * acervo directo, e não o composto que o Worker monta.
+ *
+ * A correção não é acrescentar os dois que faltavam — isso deixa a armadilha armada para o
+ * terceiro. É **deixar de enumerar**: o que segue é um `Proxy` que encaminha QUALQUER verbo para
+ * quem atende aquela família de chave. Um verbo novo no contrato passa a fluir sozinho, e a
+ * bancada que o prova lê os verbos do contrato (`provar-verbos-do-armazenamento`), não daqui.
+ *
+ * Só dois verbos têm regra própria, e por motivos que não são de roteamento:
+ *   · `criar` — tem uma degradação declarada (um armazenamento de bancada sem `criar` cai em
+ *     `existe`+`guardar`), e esconder isso atrás do `Proxy` seria pior do que mostrá-lo;
+ *   · `gravarComFusao` — precisa do `sha` para ler-modificar-gravar, e o KV não o tem; fora do
+ *     acervo a resposta é `{semFusao: true}`, que diz ao chamador para gravar como sempre.
  */
 function combinar(acervo, resto) {
   const ehDoAcervo = (chave) => String(chave || '').startsWith('envelope/');
-  return {
-    ler: (chave) => (ehDoAcervo(chave) ? acervo.ler(chave) : resto.ler(chave)),
-    guardar: (chave, texto, mensagem) => (ehDoAcervo(chave)
-      ? acervo.guardar(chave, texto, mensagem)
-      : resto.guardar(chave, texto)),
-    // A CRIAÇÃO CONDICIONAL SÓ EXISTE NO ACERVO. Para o resto, `guardar` é o que há — e o KV
-    // nunca teve a janela do carimbo, porque não é ele que decide nomes de documento.
-    criar: (chave, texto, mensagem) => (ehDoAcervo(chave) && typeof acervo.criar === 'function'
-      ? acervo.criar(chave, texto, mensagem)
-      : Promise.resolve(resto && typeof resto.existe === 'function'
-        ? resto.existe(chave).then((existe) => (existe
-          ? { criado: false, jaExiste: true }
-          : resto.guardar(chave, texto).then(() => ({ criado: true, noArmazenamentoAntigo: true }))))
-        : { criado: false, erro: 'este armazenamento não sabe criar' })),
+  const quemAtende = (chave) => (ehDoAcervo(chave) ? acervo : resto);
+
+  const proprio = {
+    /* O `criar` DELEGA — não reimplementa (04/11/2026). A primeira versão perguntava
+     * `resto.existe` e chamava `resto.guardar`, o que fazia do `combinar` uma SEGUNDA
+     * implementação da mesma regra, e é por isso que ela podia divergir da primeira. Agora os
+     * dois adaptadores de base sabem criar (o `fs` com `O_EXCL`, o KV como o meio permite), e o
+     * composto só escolhe quem atende — que é o trabalho dele. */
+    criar: (chave, texto, mensagem) => {
+      const destino = quemAtende(chave);
+      if (destino && typeof destino.criar === 'function') return destino.criar(chave, texto, mensagem);
+      if (!destino || typeof destino.guardar !== 'function') {
+        return Promise.resolve({ criado: false, erro: 'este armazenamento não sabe criar: ' + chave });
+      }
+      const existia = typeof destino.existe === 'function' ? destino.existe(chave) : Promise.resolve(false);
+      return Promise.resolve(existia).then((existe) => (existe
+        ? { criado: false, jaExiste: true }
+        : Promise.resolve(destino.guardar(chave, texto)).then(() => ({ criado: true }))));
+    },
+
     // A GRAVAÇÃO COM FUSÃO TAMBÉM É DO ACERVO: ela precisa de ler-modificar-gravar com o `sha`,
     // que é o que o KV não tem.
     gravarComFusao: (chave, base, novo, fundir, mensagem) => (ehDoAcervo(chave)
       && typeof acervo.gravarComFusao === 'function'
       ? acervo.gravarComFusao(chave, base, novo, fundir, mensagem)
       : Promise.resolve({ semFusao: true })),
-    apagar: (chave) => (ehDoAcervo(chave) ? acervo.apagar(chave) : resto.apagar(chave)),
-    /* O `anexar` FALTAVA, e isso era um defeito vivo (04/11/2026). O registro de custo da IA
-     * (`ia-registro/registro.jsonl`) é acrescentado em `rotas.js` — e não é envelope, logo vai
-     * para o `resto`. O `combinar` não o encaminhava: a rota chamava `armazenamento.anexar` e
-     * recebia «não é uma função». É a mesma classe de erro do `criar`, e a razão de o comentário
-     * acima existir: a lista de verbos é à mão, e o que fica de fora desaparece sem aviso. */
-    anexar: (chave, linha) => (ehDoAcervo(chave) && typeof acervo.anexar === 'function'
-      ? acervo.anexar(chave, linha)
-      : (resto && typeof resto.anexar === 'function'
-        ? resto.anexar(chave, linha)
-        : Promise.reject(new Error('este armazenamento não sabe anexar: ' + chave)))),
-    existe: (chave) => (ehDoAcervo(chave) ? acervo.existe(chave) : resto.existe(chave)),
-    listar: (prefixo) => (String(prefixo || '').startsWith('envelope/')
-      ? acervo.listar(prefixo)
-      : resto.listar(prefixo)),
-    // `mutar` só existe no acervo (o índice é dele); o KV é escrito por cima, como sempre.
-    mutar: (chave, mutacao, mensagem) => (ehDoAcervo(chave)
-      ? acervo.mutar(chave, mutacao, mensagem)
-      : (typeof resto.mutar === 'function' ? resto.mutar(chave, mutacao) : null)),
   };
+
+  return new Proxy(proprio, {
+    get(alvo, verbo) {
+      if (verbo in alvo) return alvo[verbo];
+      // `then`, símbolos e a maquinaria de introspecção não são verbos do armazenamento: devolver
+      // uma função para eles faria do composto uma *thenable*, e o `await` nunca resolveria.
+      if (typeof verbo !== 'string' || verbo === 'then' || verbo === 'constructor') return undefined;
+      return (...args) => {
+        const destino = quemAtende(args[0]);
+        if (destino && typeof destino[verbo] === 'function') return destino[verbo](...args);
+        return Promise.reject(new Error('este armazenamento não sabe ' + verbo + ': ' + args[0]));
+      };
+    },
+    has(alvo, verbo) {
+      if (verbo in alvo) return true;
+      if (typeof verbo !== 'string') return false;
+      return Boolean((acervo && typeof acervo[verbo] === 'function')
+        || (resto && typeof resto[verbo] === 'function'));
+    },
+  });
 }
 
 /**

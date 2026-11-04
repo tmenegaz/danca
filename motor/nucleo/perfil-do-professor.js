@@ -23,8 +23,32 @@ const MODALIDADES = require('../../biblioteca/modalidades/modalidades.json');
 /** A lista de modalidades que o sistema oferece — a mesma que o catálogo publica. */
 const LISTA_DE_MODALIDADES = (MODALIDADES && MODALIDADES.modalidades) || [];
 
-/** A modalidade quando o chamador não a declara. Só há uma com conteúdo — e é declarada. */
-const MODALIDADE_PADRAO = 'bale-classico';
+/**
+ * A MODALIDADE PRINCIPAL — DERIVADA DO CATÁLOGO, E NÃO ESCRITA À MÃO (04/11/2026).
+ *
+ * Era `const MODALIDADE_PADRAO = 'bale-classico'`, e havia uma SEGUNDA cópia igual em
+ * `notacao.js`. Duas cópias da mesma decisão divergem no dia em que a primeira mudar — e a
+ * primeira muda no dia em que houver uma segunda modalidade com conteúdo, que é precisamente o
+ * que o catálogo foi feito para receber.
+ *
+ * A REGRA, e ela é do catálogo: **a principal é a primeira modalidade que declara ter conteúdo**.
+ * Não é «a primeira da lista» (uma modalidade sem repertório não pode ser a principal de
+ * ninguém), e não é um id fixo. Hoje o resultado é o mesmo — `bale-classico` —, e é por isso que
+ * a mudança não tem custo; o que muda é de onde ele vem.
+ *
+ * O catálogo vazio não é um caso de produção (o `require` falharia antes), mas a derivação
+ * devolve `''` em vez de lançar: quem chama já sabe dizer «não declarada».
+ */
+function modalidadePrincipal(lista) {
+  const modalidades = Array.isArray(lista) ? lista : LISTA_DE_MODALIDADES;
+  const comConteudo = modalidades.find((m) => m && m.temConteudo && m.id);
+  if (comConteudo) return String(comConteudo.id);
+  const primeira = modalidades.find((m) => m && m.id);
+  return primeira ? String(primeira.id) : '';
+}
+
+/** A modalidade quando o chamador não a declara — ver `modalidadePrincipal`. */
+const MODALIDADE_PADRAO = modalidadePrincipal();
 
 /** Os ids válidos. Um id que não está aqui é um erro de dado, não uma modalidade nova. */
 function idsDeModalidade() {
@@ -183,6 +207,7 @@ function turmasDescontinuadas(turmas, perfil, { professor } = {}) {
 module.exports = {
   LISTA_DE_MODALIDADES,
   MODALIDADE_PADRAO,
+  modalidadePrincipal,
   idsDeModalidade,
   nomeDaModalidade,
   modalidadeTemConteudo,
