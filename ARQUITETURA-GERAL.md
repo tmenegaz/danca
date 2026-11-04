@@ -16,55 +16,123 @@
 > aula), [ARQUITETURA-ANAMNESE.md](./ARQUITETURA-ANAMNESE.md) (a anamnese),
 > [IDEIA-PAINEL-ESCOLA.md](./IDEIA-PAINEL-ESCOLA.md) (os Bastidores), [PROTOCOLO.md](./PROTOCOLO.md)
 > (as 22 pétreas) e [CONGELAMENTO.md](./CONGELAMENTO.md) (a infraestrutura congelada).
+>
+> **A §5 é medida, não desenhada** (04/11/2026): descreve o que o código faz quando duas escritas
+> se cruzam, com o resultado das bancadas de `experimentos/`. Ela substitui a versão anterior
+> deste documento, que dava o acervo como vivendo no KV e sob `professores/<professor>/escolas/`.
 
 ---
 
 ## 1. A ideia em uma frase
 
-**As fontes de verdade são arquivos Markdown/JSON/`.conf` versionados no Git; o Git é o banco de
-dados; o Cloudflare (Workers + KV + CDN) é só a vitrine que serve esses arquivos. O que é
-dinâmico e precisa ser escrito em runtime é guardado num cofre chave-valor (KV) e, quando vira
-conteúdo de verdade, **volta a ser arquivo no Git**.**
+**As fontes de verdade são arquivos versionados no Git, e o Git é o banco de dados.** Isso vale
+para as duas coisas que o sistema guarda, e é o ponto que a versão anterior deste documento errava:
+as **fontes do ciclo** (`professores/<prof>/ciclos/`, Markdown e `.conf`) e o **acervo
+operacional** (`escola/<escola>/envelopes/`, JSON — planos, POs, anamneses). O Cloudflare é a
+vitrine e a borda: um Worker por escola para `/api/*`, e o CDN para o que já está pronto.
 
-Não há `INSERT`/`UPDATE` num servidor de banco. Há um `commit`. A cadeia de custódia do projeto
-**é** o histórico do Git, e a "consulta" mais comum — abrir a página de um ciclo — **é um GET de
-arquivo estático no CDN**, não uma query.
+Não há `INSERT`/`UPDATE` num servidor de banco. Há um `commit` — e **um commit por gravação**, com
+a referência do ramo como último passo. A cadeia de custódia do projeto **é** o histórico do Git,
+e a "consulta" mais comum — abrir a página de um ciclo — **é um GET de arquivo estático no CDN**,
+não uma query.
+
+O **KV** ainda existe, e já não é onde o registro mora: é a reserva de leitura do que não migrou e
+o estado que nunca foi registro (§7, §8).
 
 ---
 
 ## 2. Onde cada coisa vive (o mapa de componentes)
 
+Cada caminho abaixo foi conferido na árvore do código; a coluna «verificado em» diz onde.
+
 | Componente | Onde está | Tecnologia |
 |:--|:--|:--|
-| **Fontes de verdade** | `professores/*/ciclos/*.md`, `*.conf`, `*.json` | Markdown, `.conf`, JSON |
-| **Schema de cada ciclo** | `ciclo-XX-schema.json` (P-08) | JSON versionado |
-| **Âncora de proveniência** | `ciclo-XX-<escola>.fipp` | SHA-256 encadeado (`parentHash`) |
+| **Fontes de verdade do ciclo** | `professores/<prof>/ciclos/ciclo-NN-<escola>.md` e `.conf` | Markdown, `.conf` |
+| **Schema de cada ciclo** | `ciclo-NN-schema.json` (P-08) | JSON versionado |
+| **Âncora de proveniência** | `ciclo-NN-<escola>.fipp` | SHA-256 encadeado (`parentHash`) |
+| **Acervo operacional — os envelopes** | `escola/<escola>/envelopes/<id>.json` | JSON versionado (planos, POs, anamneses) |
+| **Acervo operacional — o índice** | `escola/<escola>/envelopes/.indice.json` | JSON derivado (`nomes` + `resumos`) |
+| **Inventário da escola** | `escola/<escola>/indice.json` | JSON: `professor` (responsável) + `professores[]` |
+| **Elo de expurgo** | `escola/<escola>/indice.json` → `expurgo[]` | JSON; a proveniência acrescenta |
+| **Estados e vínculos dos envelopes** | derivados em `motor/nucleo/porta.js` | nenhum campo «estado» gravado |
 | **Gerador de pacote** | `tools/gerar-ciclo.sh` | pandoc (MD→HTML) + pdflatex (MD→PDF) |
-| **Validação** | `tools/validar-*.js`, `tools/check-pacote.js` | Node, rodado nos hooks de commit |
-| **Núcleo (lógica pura)** | `motor/nucleo/*` | JavaScript **sem IO** — recebe/ devolve dados |
-| **Adaptadores de armazenamento** | `motor/adaptadores/*` | `fs` (Node) ↔ `cloudflare` (KV/ASSETS) |
+| **Validação** | `tools/validar-*.js`, `tools/check-pacote.js`, `tools/check-indices.js` | Node, nos hooks de commit |
+| **Núcleo (lógica pura, sem IO)** | `motor/nucleo/*` | JavaScript: recebe e devolve dados |
+| **Adaptadores de armazenamento** | `motor/adaptadores/*` (`node.js`, `cloudflare.js`) | `fs` ↔ KV/ASSETS |
+| **Adaptador do acervo** | `motor/servidor/acervo-envelopes.js` | GitHub Contents API (Git como store) |
 | **Servidor (rotas)** | `motor/servidor/*` | Web Standards (`Request`/`Response`), roteador único |
-| **Worker da raiz** | `workers/raiz.js` | Cloudflare Worker (porta de entrada) |
-| **Worker por escola** | `workers/principal.js` / `motor/servidor/producao.js` | Cloudflare Worker (assets + API) |
-| **Cofre de escrita em runtime** | KV `ciclos-escolas` (binding `PADD_KV`) | Cloudflare KV (key-value) |
-| **Cifra de dados sensíveis** | `tools/lib-cifra.js` (uma definição só: Node + navegador) | PBKDF2 + AES-GCM 256 (mesmo esquema do PageCrypt dos acompanhamentos) |
-| **Deploy e geração** | `.github/workflows/` (`gerar-ciclo.yml`, `reancorar.yml`) | GitHub Actions, disparado no push |
+| **Worker da raiz** | `workers/raiz.js` | Cloudflare Worker (porta de entrada, Bastidores) |
+| **Worker por escola** | `motor/servidor/producao.js` | Cloudflare Worker (assets + `/api/*`) |
+| **Cifra de dados sensíveis** | `tools/lib-cifra.js` (uma definição: Node e navegador) | PBKDF2 + AES-GCM 256 |
+| **Deploy e geração** | `.github/workflows/*.yml` | GitHub Actions |
+| **KV (legado)** | binding `PADD_KV` | **só leitura** desde 19/10/2026 — ver §8 |
 
-### 2.1 A peça-chave: o núcleo não tem banco
+### 2.1 O acervo operacional: onde os documentos de facto vivem
 
-O contrato de armazenamento — `motor/nucleo/armazenamento.js` — define **seis verbos** e nada mais:
+> **Correção de premissa (04/11/2026).** Uma versão anterior deste documento dizia que planos, POs
+> e anamneses viviam no KV e, noutra passagem, que viviam sob
+> `professores/<professor>/escolas/<escola>/`. **Nenhuma das duas é verdade.**
+> `professores/<professor>/escolas/` não existe na árvore. O acervo vive **no repositório**, no
+> escopo da **escola**.
 
 ```
-ler(chave) · guardar(chave, valor) · anexar(chave, linha)
-listar(prefixo) · existe(chave) · apagar(chave)
+escola/<escola>/envelopes/<id>.json      ← plano-…, po-…, anamnese-…
+escola/<escola>/envelopes/.indice.json   ← o rol: nomes + resumos (derivado)
+escola/<escola>/indice.json              ← inventário: professor responsável + professores[]
+professores/<prof>/ciclos/…              ← as FONTES do ciclo e o pacote gerado
+professores/<prof>/perfil.json           ← a habilitação (a pessoa, não o tenant)
 ```
 
-O núcleo (validar, derivar, elicitar) **nunca lê nem escreve em lugar nenhum**: recebe o que
-precisa e devolve o que produz. Quem persiste é o **adaptador** — em desenvolvimento é o sistema
-de arquivos; no Worker é o KV. Trocar de provedor é trocar de adaptador, não reescrever o motor.
-Ou seja: **"banco" é um detalhe de adaptador, não o centro do desenho.**
+O caminho é montado por `caminhoDaChave(escola, chave)` em `motor/servidor/acervo-envelopes.js`:
+`envelope/<nome>.json` → `escola/<escola>/envelopes/<nome>.json`. **O caminho não contém a
+professora.**
 
-### 2.2 A modalidade pertence ao professor — a escola a oferece por reflexo
+**Qual é o isolamento, então — e qual não é.**
+
+| Fronteira | Isolada? | Onde se vê |
+|:--|:--|:--|
+| Escola (subdomínio) | **Sim** | um Worker por escola, um `wrangler.<slug>.jsonc`, uma pasta `escola/<slug>/` |
+| Professor, nas **fontes** do ciclo | **Sim** | `professores/<prof>/ciclos/` — nenhum caminho cruza professor |
+| Professor, no **acervo** | **Não** | `escola/<escola>/envelopes/` é compartilhado pelos professores da escola |
+| Professor, no **histórico** do ciclo | **Sim** | o `.fipp` é por ciclo e por variante, dentro de `professores/<prof>/` |
+
+O `escola/<escola>/indice.json` declara **um** responsável (`professor`, no singular) e **uma
+lista** de professores habilitados (`professores[]`, `comProfessor` em
+`motor/servidor/repo-escola.js`, escrito por `registrarProfessorNaEscola`). Duas professoras da
+mesma escola **escrevem os mesmos arquivos de envelope** — é por isso que a §5 existe.
+
+### 2.2 A peça-chave: o núcleo não tem banco
+
+O contrato — `motor/nucleo/armazenamento.js` — define os verbos e nada mais:
+
+| Verbo | Contrato | Para quê |
+|:--|:--|:--|
+| `ler(chave)` | `string \| null` | `null` é «não existe», e nunca lança |
+| `guardar(chave, valor)` | — | grava **por cima**; é a edição do mesmo documento |
+| `criar(chave, valor)` | `{ criado }` | grava **só se não existir** — a corrida do nome (§5.1) |
+| `anexar(chave, linha)` | — | acrescenta; o registro de custo da IA é um JSONL |
+| `listar(prefixo)` | `string[]` | enumera |
+| `existe(chave)` | `boolean` | — |
+| `apagar(chave)` | `boolean` | idempotente: apagar o que não existe devolve `false` |
+
+O **acervo** (`acervo-envelopes.js`) acrescenta dois verbos que só ele sabe fazer, porque precisa
+de ler-modificar-gravar com o `sha` do Git: **`mutar(chave, mutacao)`** (o índice: relê e reaplica
+a mutação sobre a versão que ganhou a corrida) e **`gravarComFusao(chave, base, novo, fundir)`**
+(a edição que unifica duas escritas — §5.2).
+
+O núcleo (validar, derivar, elicitar, fundir) **nunca lê nem escreve em lugar nenhum**: recebe o
+que precisa e devolve o que produz. Quem persiste é o **adaptador**. Trocar de provedor é trocar de
+adaptador, não reescrever o motor.
+
+**A lista de verbos do armazenamento composto é à mão.** `combinar(acervo, resto)` — em
+`acervo-envelopes.js`, montado por `criarArmazenamento` — decide por família de chave quem atende:
+`envelope/*` vai ao acervo, o resto vai ao KV. **Verbo novo no acervo tem de ser acrescentado
+lá**, e essa é uma armadilha medida: em 04/11/2026 o `criar` e o `anexar` ficaram de fora, e a
+blindagem existia no adaptador sem nunca chegar ao motor — as bancadas não o viram porque montavam
+o acervo direto. Hoje as bancadas que provam a escrita passam pelo `combinar`
+(`experimentos/provar-fusao-da-edicao.js`, secção A).
+
+### 2.3 A modalidade pertence ao professor — a escola a oferece por reflexo
 
 > **DECIDIDO pela pesquisadora a 03/11/2026.** A pergunta era onde vive a modalidade — se na escola,
 > que é a unidade que se vende, ou no professor. A resposta é o **professor**, e a razão é de domínio,
@@ -119,7 +187,7 @@ guarda (`semPerfisNaLista`) que **recusa antes de apagar** se alguma regra de ca
 lá. Sem essa guarda a preservação dependeria de o caminho não casar com um padrão alheio — e uma
 garantia que depende de um acidente revoga-se sem avisar.
 
-### 2.3 A turma é o ritmo, a curadoria é o ensino
+### 2.4 A turma é o ritmo, a curadoria é o ensino
 
 > **DECIDIDO pela pesquisadora a 03/11/2026**, revendo a arrumação do mesmo dia. O nível, a
 > modalidade, a tradição e o professor tinham sido postos na **turma** de manhã; à tarde ela
@@ -186,47 +254,66 @@ porque dizia «da turma» e deixou de ser verdade.
 
 ```mermaid
 flowchart TB
-    AN["Anamnese<br/>(cifrada no cliente)"] --> PO["PO — linha de base<br/>ciclo-XX-escola-po.md"]
-    PL["Plano da aula<br/>aula-NN.md"] --> AD["Aula dada"]
-    AD --> LC["Lançamento<br/>formulário → envelope JSON"]
-    LC --> KV[("KV — cofre<br/>envelopes, anamnese cifrada")]
-    PL --> GIT[("Git — fontes versionadas")]
-    PO -->|"escrever-po.js<br/>(GitHub Contents API)"| GIT
+    AN["Anamnese<br/>(cifrada antes de subir)"] --> ENV
+    PO["PO — linha de base<br/>ciclo-XX-escola-po.md"] --> ENV
+    PL["Plano de ensino<br/>plano-….json"] --> ENV
+    ENV[("Acervo — o repositório<br/>escola/&lt;escola&gt;/envelopes/")]
+    ENV -->|"escrever-po.js / escrever-plano.js<br/>(GitHub Contents API)"| GIT[("Git — fontes do ciclo")]
     GIT --> GEN["gerar-ciclo.sh<br/>pandoc + pdflatex"]
     GEN --> PAC["Pacote HTML + PDF"]
     PAC --> CDN[("Cloudflare CDN<br/>assets estáticos")]
-    GIT --> ANC["hash-ciclo.sh → .fipp<br/>âncora encadeada"]
+    GIT --> ANC["hash-ciclo.sh → .fipp<br/>âncora encadeada ciclo→ciclo"]
     GH["GitHub Actions<br/>workflow_dispatch"] --> GEN
 ```
 
 **ASCII** (mesma estrutura, para o PDF):
 
 ```
-   anamnese (cifrada no cliente) ──► PO ciclo-XX-escola-po.md ──► escrever-po.js ──► Git
-   plano aula-NN.md ──► aula dada ──► lançamento (envelope JSON) ──► KV (cofre, em runtime)
+   anamnese (cifrada) ─┐
+   plano de ensino ────┼─► acervo (escola/<escola>/envelopes/*.json) ─► escrever-*.js ─► Git
+   PO ─────────────────┘                                        (um commit por gravação)
 
    Git ──► gerar-ciclo.sh (pandoc + pdflatex) ──► pacote HTML + PDF ──► Cloudflare CDN
-   Git ──► hash-ciclo.sh ──► .fipp (âncora encadeada)
+   Git ──► hash-ciclo.sh ──► .fipp (âncora encadeada, ciclo → ciclo)
 ```
+
+**A ordem de uma gravação de envelope**, e ela importa (§5.3):
+
+```
+1. o ÍNDICE  (escola/<escola>/envelopes/.indice.json) — o rol ganha o nome
+2. o ENVELOPE (escola/<escola>/envelopes/<id>.json)   — o documento
+```
+
+O índice vem primeiro de propósito: se a segunda escrita falhar, sobra um **nome órfão**, e quem
+lista salta os nomes cujo arquivo não abre. Na ordem contrária sobraria o pior dos dois mundos —
+o documento gravado e invisível na estante.
 
 ### 3.2 O deploy (como o código vira página)
 
 ```
-push para main ──► GitHub Actions (gerar-ciclo.yml / reancorar.yml)
-                        │
-                        ├── gerar/validar o pacote
-                        ├── reancorar a âncora (.fipp)
+push para main ──► GitHub Actions
+                        ├── reancorar.yml    → a cadeia .fipp
+                        ├── regerar-indices.yml → indices/*.json
+                        ├── deploy-escolas.yml  → um Worker por escola
+                        └── deploy-raiz.yml     → o Worker da raiz
                         │
                         ▼
                Cloudflare — um Worker por escola + ASSETS no CDN
-               (deploy automático no push, ligado ao repositório pelo painel)
 ```
 
 O Worker serve **primeiro o asset estático**; só o que não casa com um arquivo chega ao script.
-Por isso a página sai do CDN (sem custo de Worker) e a rota `/api/*` é atendida pelo script. A
-geração (pandoc/pdflatex) **não roda no Worker** — roda no GitHub Actions, porque o runtime
-`workerd` não tem pandoc nem LaTeX. O Worker **dispara** a geração (`workflow_dispatch`) em vez
-de gerar.
+A geração (pandoc/pdflatex) **não roda no Worker** — roda no GitHub Actions, porque o runtime
+`workerd` não tem pandoc nem LaTeX. O Worker **dispara** a geração (`workflow_dispatch`).
+
+**As quatro escritas de `main` que não passam por um worktree local** — e que fazem do «o meu
+`git status` está limpo» uma frase que não responde à pergunta «o repositório mudou?»:
+
+| Quem escreve | Como |
+|:--|:--|
+| `gerar-ciclo.yml` | Action, depois de um `workflow_dispatch` |
+| `reancorar.yml` | Action, a cada push de `professores/**` |
+| `regerar-indices.yml` | Action, a cada push das fontes do acervo |
+| Bastidores · Produção | API do GitHub, direto (`motor/servidor/repo-escola.js`) |
 
 ---
 
@@ -244,6 +331,12 @@ caminho seguiu").
 Em cima do Git, o `hash-ciclo.sh` acrescenta a **âncora encadeada**: `SHA-256(id : tipo :
 parentHash : hash_das_fontes)`. Cada ciclo carrega o hash do ciclo anterior na mesma escola.
 O `.fipp` é **versionado** — é a âncora, não uma saída reconstruível.
+
+**E a âncora não substitui o Git — ela faz outra pergunta.** `git log` responde «que versões este
+documento teve e o que mudou entre elas»; o `.fipp` responde «este ciclo é a continuação legítima
+do anterior desta escola, e o conteúdo dele mudou desde a última ancoragem». O encadeamento é
+**ciclo → ciclo**, e não versão → versão: uma série de ajustes ao mesmo ciclo sobrescreve o mesmo
+`.fipp`, e é o Git que guarda as versões intermédias (§5.6).
 
 ### 4.2 A imutabilidade é o requisito, não uma feature extra
 
@@ -281,94 +374,240 @@ proveniência, que são os problemas reais.
 
 ---
 
-## 5. Por que é mais barato
+## 5. Concorrência, corrida e integridade de dados
+
+> **Esta secção é medição, não desenho** (04/11/2026). Cada linha foi verificada no código e, onde
+> diz «medido», numa bancada que corre em `experimentos/`. O que não tem prova está dito como
+> tal.
+
+### 5.1 A corrida do NOME — fechada
+
+O id de um envelope é um carimbo de minuto (`plano-20261104-1810`). Escolhê-lo perguntando
+«existe?» e gravar depois é um `check-then-act`: entre a pergunta e a escrita há uma janela, e dois
+pedidos que perguntem **antes de qualquer escrita** recebem o mesmo nome.
+
+**Medido** (o defeito, antes da correção):
+
+```
+id do Ajuste A: plano-20261104-1810
+id do Ajuste B: plano-20261104-1810     ← o mesmo nome
+A gravou: true · B gravou: true          ← os dois dizem «gravado»
+o que sobrou no arquivo: AJUSTE B        ← o Ajuste A não existe
+```
+
+**A correção adotada — e a que NÃO foi adotada.** A pergunta «existe?» passou a ser feita **pelo
+próprio armazenamento, no instante da escrita**: `criar(chave, valor)` grava só se a chave não
+existir. No repositório a escrita vai **sem `sha`**, e é o GitHub que responde pela existência —
+**422 `"sha" wasn't supplied.`** significa «já existe» (medido contra a API real, num ramo
+descartável). Perdida a corrida, o nome cede ao sufixo seguinte (`-2`, `-3`, …), que é **o mesmo
+sufixo que a leitura daria** se tivesse visto a outra escrita.
+
+**Um sufixo aleatório (entropia) NÃO foi adotado, e é decisão declarada.** Ele resolveria a
+colisão com uma linha de código, mas pagaria três custos que o projeto não quer: o id deixaria de
+ser **legível** (a estante mostra o carimbo, e o professor o reconhece); deixaria de ser
+**derivável** (a reconstrução do índice e as provas que fixam nomes como
+`anamnese-20261016-1351` deixariam de valer); e a unicidade passaria a depender de um gerador
+aleatório em vez de uma **condição verificada pelo store**. O `-2` é determinístico e auditável;
+a entropia não é nem uma coisa nem outra.
+
+### 5.2 A corrida do CONTEÚDO — unificada por diff e recência (decisão 84)
+
+Duas pessoas (ou duas abas) a gravar **o mesmo** documento é um problema diferente: o nome é um
+só, e o que está em jogo é não perder o que a outra escreveu.
+
+| Situação | O que acontece |
+|:--|:--|
+| A e B mexeram em **campos diferentes** | **As duas edições ficam.** A fusão preserva o campo de cada uma; nada se perde |
+| A e B mexeram no **mesmo campo**, com valores diferentes | Vence a edição **mais recente**, comparada ao **milissegundo** (`escrito_em`) |
+| Empate ao milissegundo | Vence a gravação que está a correr — o único desempate que não depende de relógios externos |
+| Os dois gravaram **o mesmo valor** | Não há o que escolher: é a mesma edição |
+| **Sem base** (não se sabe de onde o professor partiu) | **Não se adivinha**: grava-se como sempre se gravou |
+
+**A unidade de «local» é a chave de `respostas`.** `objetivo-geral` é um local; o `valor` dentro
+dele não é um segundo local, porque uma resposta é uma unidade — meio `valor` de um e meio
+`origem` de outro não é uma resposta.
+
+**As três versões.** Uma fusão a três vias precisa da base (o que o professor **leu**), da minha
+(o que ele **gravou**) e da atual (o que **está no acervo**). A terceira o adaptador lê; a
+primeira vem do cliente (`POST /api/elicitar` → `base`, só em edição) ou, quando ele não a manda,
+do que o acervo tinha no início do pedido. **A fusão nunca é silenciosa**: a resposta da gravação
+traz `fundido` e `fusao: { unidos, conflitos }`.
+
+**Onde vive a regra:** `motor/nucleo/fusao.js` — função pura, sem IO. **Onde vive a repetição:**
+`gravarComFusao` em `motor/servidor/acervo-envelopes.js` — lê, funde, grava com o `sha`, e repete
+no 409. O adaptador não conhece a regra; o núcleo não conhece o `sha`.
+
+### 5.3 A escrita: um commit por gravação, e a referência por último
+
+Um envelope é gravado com **um** commit, e a ordem é sempre:
+
+```
+base (ref → commit → tree) → blobs → árvore sobre a base_tree → commit → PATCH da referência
+```
+
+A **referência é o último passo** — antes dele, nada existe. É o equivalente, num sistema sem
+disco, do «arquivo temporário e depois `rename`»: o estado intermédio (com metade dos arquivos)
+nunca é publicável, porque o `main` só avança quando o conjunto está completo. E há uma segunda
+razão: com N commits, o repositório guardaria N estados em que o ciclo está **incompleto** — um
+deles é «o `-dados.json` existe e o `.conf` ainda não o declara».
+
+| Conflito | HTTP | O que o código faz |
+|:--|:--|:--|
+| O `sha` mudou entre a leitura e a escrita (`contents`) | **409** | relê o `sha` e grava de novo — até 3 tentativas, com espera crescente |
+| A `base_tree` deixou de valer | **409** | refaz base, árvore e commit |
+| A referência não é descendente do `main` | **422** *not a fast forward* | refaz o caminho inteiro sobre a base nova; os blobs já criados não ficam pendurados em nada |
+| O caminho já existe, e a escrita foi sem `sha` | **422** *`"sha" wasn't supplied`* | «já existe»: é o `criar` a ceder o nome |
+
+Nada disso usa `force: true`. A recusa do Git é o **mecanismo** de deteção de escrita
+concorrente; forçá-la seria desligá-lo.
+
+### 5.4 O expurgo — a mesma rotina de 3 tentativas
+
+`apagarEscolaDoRepo` apaga 70–80 arquivos num commit só. Era o **único** escrito em lote sem
+repetição: perdia a corrida e **lançava** — e chegava a esse ponto com a metade do Cloudflare
+**já feita** (subdomínio, Worker e chaves apagados), deixando a escola fora do ar e dentro do
+repositório. Hoje ele é embrulhado como o `apagarProfessorDoRepo` ao lado: a corrida refaz árvore
+e commit, e a falha definitiva é **resultado** (`{ ok: false, erro }`), não excepção.
+
+### 5.5 Os pipelines não se atropelam
+
+| Mecanismo | Onde | Efeito |
+|:--|:--|:--|
+| `concurrency` por (professor, ciclo, variante), `cancel-in-progress: false` | `gerar-ciclo.yml` | duas gerações do mesmo ciclo **enfileiram**; a segunda corre sobre o `main` novo |
+| `concurrency: reancorar-<ref>`, `cancel-in-progress: true` | `reancorar.yml` | reancoragens se substituem — só interessa a última |
+| `concurrency: regerar-indices`, `cancel-in-progress: true` | `regerar-indices.yml` | os índices são derivados: só vale o último |
+| `concurrency: deploy-escolas`, `cancel-in-progress: false` | `deploy-escolas.yml` | deploys não se cancelam a meio |
+| `concurrency: deploy-raiz`, `cancel-in-progress: false` | `deploy-raiz.yml` | idem, para a raiz |
+| Rebase + reancoragem **depois** do rebase | `gerar-ciclo.yml`, `reancorar.yml` | a âncora é recomputada sobre as fontes que o rebase deixou |
+| Conflito em **derivado** (`.fipp`, `indices/`) | idem | concilia-se e recompõe-se |
+| Conflito em **material** | idem | **falha dita** — dois donos do mesmo arquivo não se adivinham |
+
+### 5.6 A âncora `.fipp` NÃO é o histórico de versões — o Git é
+
+Esta distinção é a que mais se presta a confusão, e é explícita:
+
+| Pergunta | Quem responde |
+|:--|:--|
+| Qual foi a versão do plano de ontem, e o que mudou? | **o Git** (`git log`, `git diff`, `git blame` no envelope) |
+| Este ciclo é a continuação legítima do anterior desta escola? | **a `.fipp`** |
+| O conteúdo deste ciclo mudou desde a última ancoragem? | **a `.fipp`** (`hash_conteudo`) |
+| O ciclo anterior mudou, partindo a cadeia? | **a `.fipp`** (`parentHash`) |
+
+A fórmula é `SHA-256(id : type : parentHash : conteúdo)`, e o `parentHash` é o hash da âncora do
+**ciclo anterior da mesma variante** — vazio no ciclo 01. Uma **série de ajustes** ao mesmo ciclo
+sobrescreve o **mesmo** `.fipp`: não há cadeia a «absorver», porque a unidade do encadeamento é o
+**ciclo**, não a versão do documento. Quem guarda as versões intermédias é o Git.
+
+## 6. Por que é mais barato
 
 | # | Motivo | Detalhe |
 |:--|:--|:--|
-| 1 | **Sem servidor de banco** | Não há instância paga, nem licença, nem DBA, nem replica de backup. O storage é o próprio Git. |
-| 2 | **Static-first** | O HTML/PDF pronto é servido do CDN do Cloudflare; a maior parte do tráfego **não aciona Worker**. |
-| 3 | **Worker só para o dinâmico** | Cobrança por invocação real (`/api/*`, senha); o resto é asset estático gratuito. |
-| 4 | **KV é pay-per-op** | O cofre de escrita em runtime cobra por leitura/escrita, não um servidor sempre ligado. |
-| 5 | **Geração é CI** | pandoc/pdflatex rodam no GitHub Actions (gratuito para este uso), não num servidor de build pago. |
-| 6 | **Deploy é push** | Publicar é `git push` + auto-deploy do painel; não há pipeline paga nem servidor de entrega. |
+| 1 | **Sem servidor de banco** | Não há instância paga, nem licença, nem DBA, nem réplica de backup. O storage é o próprio Git. |
+| 2 | **Static-first** | O HTML/PDF pronto é servido do CDN; a maior parte do tráfego **não aciona Worker**. |
+| 3 | **Worker só para o dinâmico** | Cobrança por invocação real (`/api/*`, senha); o resto é asset estático. |
+| 4 | **KV só como legado de leitura** | Desde 19/10/2026 o acervo é o repositório; o KV já não recebe escrita nova (§7). |
+| 5 | **Geração é CI** | pandoc/pdflatex rodam no GitHub Actions, não num servidor de build pago. |
+| 6 | **Deploy é push** | Publicar é `git push` + auto-deploy; não há pipeline paga nem servidor de entrega. |
 
-O custo marginal de uma **escola nova** é um Worker a mais (que fica ocioso quando ninguém acessa)
-+ as páginas estáticas no CDN — não uma instância de banco provisionada por cliente.
+O custo marginal de uma **escola nova** é um Worker a mais (ocioso quando ninguém acessa) + as
+páginas estáticas no CDN — não uma instância de banco provisionada por cliente.
 
 ---
 
-## 6. Por que é mais rápido
+## 7. Por que é mais rápido
 
 | # | Motivo | Detalhe |
 |:--|:--|:--|
-| 1 | **Latência de CDN** | A página já está pronta e distribuída na borda; o usuário baixa do edge mais próximo. |
+| 1 | **Latência de CDN** | A página já está pronta e distribuída na borda; baixa-se do edge mais próximo. |
 | 2 | **Sem round-trip de banco** | A leitura mais comum é um `GET` de arquivo estático (cacheável), não uma query com join. |
-| 3 | **Pré-computado** | O HTML não é renderizado por request; é gerado no build e servido como está. |
-| 4 | **Reancoragem cirúrgica** | A âncora **por aula** permite reancorar só a aula afetada — lançar a aula 03 não reancora o ciclo inteiro (`ARQUITETURA-AULA.md` §5.2). |
+| 3 | **Pré-computado** | O HTML não é renderizado por request; é gerado no build. |
+| 4 | **Reancoragem cirúrgica** | A âncora **por aula** permite reancorar só a aula afetada (`ARQUITETURA-AULA.md` §5.2). |
+
+**O preço, e ele existe.** A escrita vai ao GitHub Contents API — uma chamada por arquivo, com o
+`sha` lido antes. Um «Guardar» de envelope custa **duas** escritas (índice e envelope) e, quando
+dispara a geração, uma execução de Actions. É o custo de ter o Git como store, e é o que se paga
+de bom grado pela cadeia de custódia. O que **não** se faz é medir no ar: as bancadas correm sobre
+memória e sobre um GitHub falso (`experimentos/`), e o KV tem cota diária.
 
 ---
 
-## 7. E onde ainda existe "banco"? (a parte honesta)
+## 8. E onde ainda existe "banco"? (a parte honesta)
 
-O sistema **não é 100% sem persistência em runtime**. Há duas coisas que precisam ser escritas
-**no navegador, no momento do uso**, e que ainda não viraram arquivo no Git:
+**Quase em lado nenhum — e o que sobrou é legado.**
 
-1. **Os envelopes da elicitação** (o PO sendo respondido) e a **anamnese** — guardados no
-   **Cloudflare KV**, que é um *key-value store*, não um banco relacional: não tem schema, não tem
-   `JOIN`, não tem migração. É um "sistema de arquivos na nuvem" com `get`/`put`/`list`.
-2. **A anamnese é cifrada no cliente** (`tools/lib-cifra.js`, no navegador) **antes** de subir —
-   o cofre guarda o texto cifrado, e a chave nunca passa pelo servidor. O KV é só o cofre; a
-   senha é do usuário.
+1. **Os envelopes** (planos, POs, anamneses) **vivem no repositório**, em
+   `escola/<escola>/envelopes/`. Não é o KV. O KV deixou de ser o destino da escrita em
+   19/10/2026; hoje ele é **reserva de leitura** do que ainda não migrou — `legado` em
+   `doAmbiente`, presente na `listar` (como **união**: um nome que só existe lá não desaparece) e
+   ausente da escrita.
+2. **O que continua no KV** é o **estado**, não o registro: o lançamento cifrado da aula, os
+   cadastros dos Bastidores, o cartão da geração. A fronteira é a **família da chave**, e ela está
+   numa linha de composição (`combinar`): `envelope/*` → acervo; o resto → KV.
+3. **A anamnese é cifrada antes de subir** (`tools/lib-cifra.js`, no navegador). Quem a lê é o
+   adaptador, que a decifra — o núcleo nunca soube que ela é cifrada.
 
-E o ponto que fecha o argumento: **assim que esses dados viram conteúdo de verdade, eles voltam a
-ser arquivo.** O PO, ao ser gravado, é derivado para Markdown e escrito **no repositório** via
-GitHub Contents API (`motor/servidor/escrever-po.js`) — o que dispara a geração e a âncora. O KV é
-o **rascunho/cofre de runtime**; o Git é a **fonte de verdade e o histórico**.
+E o ponto que fecha o argumento: **quando o dado vira conteúdo de verdade, ele já está no Git** —
+o PO gravado é derivado para Markdown (`motor/servidor/escrever-po.js`) e o ciclo é gerado a
+partir daí. O KV não é «o rascunho que vira arquivo»: é o que nunca foi registro.
 
 ---
 
-## 8. O mesmo sistema, "se fosse um banco tradicional"
+## 9. O mesmo sistema, "se fosse um banco tradicional"
 
 | Preocupação | Backend + banco tradicional | Aqui |
 |:--|:--|:--|
 | Fonte de verdade | linhas em tabelas | arquivos Markdown/JSON/`.conf` no Git |
-| Histórico / auditoria | trigger + log manual | Git (`commit`, `blame`, `diff`) + âncora `.fipp` |
-| Versionamento | coluna de versão / migração | Git (branch/commit) + `parentHash` |
-| Schema | DDL e migrações | `ciclo-XX-schema.json` versionado (P-08) |
+| Onde vive o dado operacional | uma tabela `envelopes` | `escola/<escola>/envelopes/<id>.json` |
+| Isolamento por cliente | coluna `tenant_id` + RLS | **uma pasta por escola** + um Worker por escola |
+| Histórico / auditoria | trigger + audit-log | Git (`commit`, `blame`, `diff`) + âncora `.fipp` |
+| Versionamento | coluna de versão / migração | Git (commit/branch) + `parentHash` entre ciclos |
+| Escrita concorrente | transação + *row lock* | **`sha` do Git**: 409 → relê; 422 → refaz; `criar` condicional para o nome |
+| Edição concorrente do mesmo documento | *last-write-wins* ou *optimistic lock* | **fusão a três vias** (campos diferentes unem; o mesmo campo decide pela recência) |
+| Schema | DDL e migrações | `ciclo-NN-schema.json` versionado (P-08) |
 | Renderização | template-engine no servidor | pandoc/pdflatex no build (CI) |
 | Entrega | servidor que consulta o banco | CDN serve HTML/PDF estático |
-| Escrita em runtime | `INSERT`/`UPDATE` | KV (`get`/`put`) → depois vira arquivo no Git |
 | Custo | servidor + banco sempre ligados | CDN + Worker sob demanda + CI |
 
----
-
-## 9. Resumo
-
-- **Fonte de verdade = arquivos + Git** (a proveniência **é** o histórico do Git, reforçado pela
-  âncora `.fipp`).
-- **Núcleo sem banco** — o armazenamento é um contrato de seis verbos, e o adaptador troca
-  `fs` ↔ `KV` sem tocar a lógica.
-- **Build no lugar de runtime** — a página é pré-computada por pandoc/pdflatex e servida estática
-  do CDN.
-- **Runtime mínimo** — Cloudflare Worker (um por escola) só para a API e a senha; o resto é asset.
-- **Cofre de runtime** — KV (key-value) para o que ainda não virou arquivo, e que **volta a ser
-  arquivo no Git** quando vira conteúdo.
-- **Mais barato** porque não há banco nem servidor sempre ligado; **mais rápido** porque a leitura
-  é cache de CDN, não query.
+A diferença que a tabela esconde: no banco, cada uma dessas garantias é **código que se escreve e
+se mantém**; aqui, as duas primeiras linhas (histórico e versionamento) são **propriedades do
+meio**, e as garantias de escrita concorrente são **recusas do próprio Git** — não regras que
+alguém possa esquecer de aplicar.
 
 ---
 
-## 10. A licença — três camadas, e uma condição de conteúdo
+## 10. Resumo
+
+- **Fonte de verdade = arquivos + Git.** A proveniência **é** o histórico do Git, reforçado pela
+  âncora `.fipp` — que encadeia **ciclo a ciclo**, não versão a versão (§5.6).
+- **O acervo operacional é o repositório**, em `escola/<escola>/envelopes/`. O isolamento estrito
+  é por **escola**; por professor, existe nas fontes e no histórico do ciclo, não nos envelopes
+  (§2.1).
+- **Núcleo sem banco**: o armazenamento é um contrato de verbos, e o adaptador troca `fs` ↔ KV
+  ↔ GitHub sem tocar a lógica.
+- **Escrita é um commit, e a referência é o último passo** — o estado intermédio nunca é
+  publicável (§5.3).
+- **Duas corridas, duas respostas**: o **nome** cede o lugar (`criar` condicional + sufixo); o
+  **conteúdo** unifica (fusão por diff, e recência ao milissegundo no mesmo campo) (§5.1, §5.2).
+- **Build no lugar de runtime**: a página é pré-computada por pandoc/pdflatex e servida do CDN.
+- **Runtime mínimo**: um Worker por escola, só para `/api/*` e assets não casados.
+- **Mais barato** porque não há banco nem servidor sempre ligado; **mais rápido** na leitura porque
+  é cache de CDN — e **mais caro na escrita**, que é uma chamada ao GitHub por arquivo (§7).
+
+---
+
+---
+
+## 11. A licença — três camadas, e uma condição de conteúdo
 
 > **Decidida em 02/11/2026.** A questão estava **aberta desde 18/09/2026**, onde o `REGISTRO.md`
 > a registou pela primeira vez («Licença do repositório (a definir)», na entrada da publicação do
 > repositório no GitHub). O que se segue é a decisão.
 >
 > **O texto que a formaliza já existe, e são dois ficheiros** (escritos a 02/11/2026): [`LICENSE.md`](LICENSE.md)
-> na raiz para **a máquina** (§10.1, camada A) e [`biblioteca/LICENSE.md`](biblioteca/LICENSE.md)
-> para **o catálogo** (§10.2, camada B). São dois porque as duas camadas dizem o contrário uma da
+> na raiz para **a máquina** (§11.1, camada A) e [`biblioteca/LICENSE.md`](biblioteca/LICENSE.md)
+> para **o catálogo** (§11.2, camada B). São dois porque as duas camadas dizem o contrário uma da
 > outra — «não se licencia» e «licencia-se com limites» —, e um ficheiro só não consegue dizê-lo.
-> A camada C (§10.3) fica dentro do `biblioteca/LICENSE.md` porque o regime dela **só existe** se o
+> A camada C (§11.3) fica dentro do `biblioteca/LICENSE.md` porque o regime dela **só existe** se o
 > da B existir. O contrato com a escola **cita** estes ficheiros; não os substitui.
 >
 > **Nota de correção (02/11/2026).** Esta secção dizia «o texto que a formaliza é um `LICENSE.md` na
@@ -377,7 +616,7 @@ o **rascunho/cofre de runtime**; o Git é a **fonte de verdade e o histórico**.
 > nome reconhecido (`LICENSE.md`, `LICENSE`, `COPYING`) — `licenca.md`, que o
 > `PLANO-PRODUTOS-DO-MOTOR` citava, seria um ficheiro comum, sem a licença aparecer no repositório.
 
-### 10.1 Por que três camadas, e não uma
+### 11.1 Por que três camadas, e não uma
 
 O repositório guarda três coisas de **donos diferentes**: a **máquina** (o motor e as ferramentas), o
 **catálogo** (o que se vende) e o que **cada escola acrescenta** (que é dela). Uma licença só teria
@@ -387,8 +626,8 @@ catálogo **entrega-se com limites**, e o que a escola constrói **não é do pr
 | Camada | Onde vive | Regime | Porquê |
 |:--|:--|:--|:--|
 | **A máquina** | `motor/` · `tools/` · `porta/` · `raiz/` · `.github/` | **proprietário — todos os direitos reservados**, e **não licenciado** com os produtos | é o diferencial: a escola compra o **uso do produto**, não a máquina que o produz. Entregar o motor seria entregar o negócio |
-| **O catálogo** | `biblioteca/modalidades/` | **licença comercial de uso, por escola** (§10.2) | é o que se vende — e é o que se **licencia**, não se vende em propriedade |
-| **O que a escola acrescenta** | `biblioteca/escolas/<escola>/` | **é dela**; ela concede ao projeto o uso mínimo (§10.3) | ela construiu; o projeto só precisa de o poder servir de volta |
+| **O catálogo** | `biblioteca/modalidades/` | **licença comercial de uso, por escola** (§11.2) | é o que se vende — e é o que se **licencia**, não se vende em propriedade |
+| **O que a escola acrescenta** | `biblioteca/escolas/<escola>/` | **é dela**; ela concede ao projeto o uso mínimo (§11.3) | ela construiu; o projeto só precisa de o poder servir de volta |
 
 > **Nota de correção (02/11/2026) — onde a camada C vive HOJE.** A coluna «Onde vive» declara o
 > **destino** da camada C (`biblioteca/escolas/<escola>/`), e o destino continua a ser esse. O que a
@@ -413,9 +652,9 @@ compatibilidade.
 **E não há conteúdo de terceiros a acomodar.** Medido: os SVGs são da marca do projeto
 (`tools/templates/marca/`); a tipografia é **system-ui e Georgia**, sem ficheiro de fonte embutido
 (`tools/templates/ciclo.css:76-77`); e a nomenclatura RAD/Vaganova que o catálogo usa são **nomes de
-posições**, que não são obra — as descrições é que são, e essas têm `fonte` (ou deviam ter, §10.4).
+posições**, que não são obra — as descrições é que são, e essas têm `fonte` (ou deviam ter, §11.4).
 
-### 10.2 O catálogo — a licença que a escola compra
+### 11.2 O catálogo — a licença que a escola compra
 
 Seis cláusulas, e cada uma existe por uma razão medida neste repositório:
 
@@ -433,7 +672,7 @@ Seis cláusulas, e cada uma existe por uma razão medida neste repositório:
 6. **Atribuição preservada.** Cada descrição mantém o seu `fonte`, e a licença proíbe removê-lo ou
    esvaziá-lo. É o que impede o produto de servir para apagar a origem do que não é de quem copia.
 
-### 10.3 O que a escola acrescenta — dela, com uma concessão estreita
+### 11.3 O que a escola acrescenta — dela, com uma concessão estreita
 
 Os termos, turmas e descrições que a escola cria **são dela**. A «via inversa» da **L14 (e)** — a
 escola propõe ao catálogo o que construiu — **exige** uma concessão explícita, senão o projeto fica
@@ -447,11 +686,11 @@ a usar conteúdo alheio com base numa boa intenção:
 
 Sem estas três linhas, a via inversa transforma o que é dela no que é do produto.
 
-### 10.4 A condição de conteúdo — e ela trava a venda hoje
+### 11.4 A condição de conteúdo — e ela trava a venda hoje
 
 **Uma descrição sem `fonte` declarado não entra no catálogo que se vende.** A razão não é formal: não
 se licencia o que não se declarou como seu, e um catálogo com origem omissa não tem como sustentar a
-cláusula 6 (§10.2) nem a Regra 8.
+cláusula 6 (§11.2) nem a Regra 8.
 
 **Medido a 02/11/2026, em `vocabulario.json` (93 termos, 59 com descrição):**
 

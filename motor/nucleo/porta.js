@@ -15,6 +15,7 @@
  */
 
 const motor = require('./elicitar.js');
+const fusao = require('./fusao.js');
 const ficha = require('./ficha.js');
 
 // As chaves do armazenamento. O envelope vive sob `envelope/<id>.json` — a
@@ -923,6 +924,38 @@ async function identificar(armazenamento, documento, agora) {
  */
 const SUFIXOS_DA_CORRIDA = 5;
 
+/**
+ * A FUSÃO EM TEXTO — o que o adaptador chama quando o acervo mudou debaixo da edição.
+ *
+ * Ela mora aqui, e não no adaptador, porque a REGRA é do domínio: «campos diferentes unem, o
+ * mesmo campo decide pela recência». O adaptador só sabe ler, gravar e repetir.
+ */
+function fundirTextosDeEnvelope(baseTexto, novoTexto, atualTexto) {
+  let base = null;
+  let minha = null;
+  let atual = null;
+  try { base = JSON.parse(baseTexto); } catch (e) { base = null; }
+  try { minha = JSON.parse(novoTexto); } catch (e) { minha = null; }
+  try { atual = JSON.parse(atualTexto); } catch (e) { atual = null; }
+  if (!fusao.podeFundir(base, minha, atual, fusao.quandoDoEnvelope(minha))) {
+    // Sem as três versões não se adivinha: fica o que o professor acabou de escrever. É o
+    // comportamento de sempre, e é melhor do que uma fusão inventada sobre um JSON ilegível.
+    return { texto: novoTexto, relato: { houveFusao: false, unidos: [], conflitos: [], semBase: true } };
+  }
+  const { documento, relato } = fusao.fundirEnvelopes({
+    base,
+    minha,
+    atual,
+    quandoMinha: fusao.quandoDoEnvelope(minha),
+  });
+  return { texto: JSON.stringify(documento, null, 2) + '\n', relato };
+}
+
+/** A mensagem do commit, que diz que houve fusão — o histórico é o que fica para quem audita. */
+function mensagemDaEdicao(relatorio) {
+  return 'feat(acervo): ' + relatorio.id + ' — edição';
+}
+
 /** O id com o sufixo da n-ésima tentativa: `plano-20261104-1810` → `…-2`. */
 function comSufixoDaCorrida(id, n) {
   return id + '-' + n;
@@ -959,13 +992,26 @@ async function gravarEnvelope(armazenamento, documento, relatorio, opcoes) {
   // caminho do armazenamento antigo (o KV), que não tem escrita condicional.
   const substituir = !opcoes || opcoes.substituir !== false;
   const condicional = !substituir && typeof armazenamento.criar === 'function';
+  // A FUSÃO (decisão 84, 04/11/2026): quando o documento que já lá está NÃO é o que o professor
+  // leu, há duas edições e elas são unificadas — e não escolhidas. Só a edição em sítio funde:
+  // um elo novo é um documento novo, e não tem com o que se fundir.
+  const baseDaFusao = opcoes && opcoes.base ? opcoes.base : null;
+  const comFusao = substituir && baseDaFusao && typeof armazenamento.gravarComFusao === 'function';
+  // O INSTANTE DESTA ESCRITA, ao milissegundo: é ele que a próxima fusão vai comparar. Vem do
+  // chamador quando ele o fixa (a prova), senão do relógio.
+  const instanteDaEscrita = (opcoes && opcoes.quando) || fusao.carimbarInstante();
 
   let id = relatorio.id;
   let linhas = linhasDoRelatorio(relatorio, ARQUIVO_DE(id));
   const tentativas = condicional ? SUFIXOS_DA_CORRIDA : 1;
   for (let tentativa = 1; tentativa <= tentativas; tentativa++) {
     const chave = ARQUIVO_DE(id);
-    const corpo = id === relatorio.id ? documento : Object.assign({}, documento, { id });
+    const corpo = Object.assign(
+      {},
+      documento,
+      id === relatorio.id ? {} : { id },
+      documento.escrito_em ? {} : { escrito_em: instanteDaEscrita },
+    );
 
     try {
       await registrarNoIndice(armazenamento, id + '.json', corpo);
@@ -976,6 +1022,30 @@ async function gravarEnvelope(armazenamento, documento, relatorio, opcoes) {
 
     try {
       const texto = JSON.stringify(corpo, null, 2) + '\n';
+      // A EDIÇÃO COM FUSÃO VEM PRIMEIRO. Se o adaptador não a souber fazer, ele devolve
+      // `{ semFusao: true }` e a gravação segue por baixo, como sempre — degradar, não rebentar.
+      if (comFusao) {
+        const baseTexto = typeof baseDaFusao === 'string'
+          ? baseDaFusao
+          : JSON.stringify(baseDaFusao, null, 2) + '\n';
+        const fundido = await armazenamento.gravarComFusao(
+          chave, baseTexto, texto, fundirTextosDeEnvelope, mensagemDaEdicao(relatorio),
+        );
+        if (fundido && fundido.ok) {
+          return {
+            ok: true,
+            linhas,
+            caminho: fundido.caminho || null,
+            noArmazenamentoAntigo: false,
+            id,
+            fundido: fundido.fundido === true,
+            relatoDaFusao: fundido.relato || null,
+          };
+        }
+        if (!fundido || fundido.semFusao !== true) {
+          return { ok: false, erro: (fundido && fundido.erro) || 'a gravação com fusão falhou', linhas };
+        }
+      }
       const r = condicional
         ? await armazenamento.criar(chave, texto)
         : await armazenamento.guardar(chave, texto);
@@ -1703,11 +1773,28 @@ async function elicitar(armazenamento, corpo, dados) {
 
   if (corpo && corpo.contexto) opcoes.contexto = corpo.contexto;
 
+  /*
+   * A BASE DA FUSÃO (decisão 84, 04/11/2026). Para unificar duas edições são precisas três
+   * versões: a que o professor LEU, a que ele GRAVOU e a que está no acervo. A terceira o
+   * adaptador lê; a primeira vem daqui.
+   *
+   * O cliente manda-a quando a tem (`corpo.base`) — é o caso da aba aberta há dez minutos, em
+   * que a versão lida já não é a do acervo e só o cliente sabe qual era. Sem ela, a base é o
+   * que o acervo tinha no INÍCIO deste pedido: isso já resolve o caso real da corrida (dois
+   * pedidos em voo ao mesmo tempo), mas não o da aba velha — e é por isso que o cliente a manda.
+   */
+  let baseDaEdicao = null;
+  if (idDeDocumentoQueExiste) {
+    const daBase = corpo && corpo.base && typeof corpo.base === 'object' ? corpo.base : null;
+    const doAcervo = daBase ? null : await lerEnvelope(armazenamento, opcoes.id);
+    baseDaEdicao = daBase || doAcervo;
+  }
+
   const { documento, estado, relatorio } = motor.elicitar(conteudoAtual, respostas, opcoes);
   const simular = Boolean(corpo && corpo.simular);
   const gravacao = simular
     ? { ok: true, linhas: linhasDoRelatorio(relatorio) }
-    : await gravarEnvelope(armazenamento, documento, relatorio, { substituir: idDeDocumentoQueExiste });
+    : await gravarEnvelope(armazenamento, documento, relatorio, { substituir: idDeDocumentoQueExiste, base: baseDaEdicao });
 
   return {
     ok: relatorio.errosDoDocumento.length === 0,
@@ -1720,6 +1807,10 @@ async function elicitar(armazenamento, corpo, dados) {
     // se sabe (o armazenamento antigo não tem caminho a declarar).
     caminhoNoAcervo: gravacao.ok ? (gravacao.caminho || null) : null,
     noArmazenamentoAntigo: gravacao.noArmazenamentoAntigo === true,
+    // HOUVE FUSÃO? A tela tem de o dizer: um documento que ficou com campos da outra edição
+    // não é o mesmo que um documento que a minha edição substituiu, e a diferença não se vê.
+    fusao: gravacao.relatoDaFusao || null,
+    fundido: gravacao.fundido === true,
     estado,
     // O ID QUE FICOU NO ACERVO. É `relatorio.id` quase sempre; difere quando o minuto do
     // carimbo foi disputado e a gravação teve de usar o sufixo seguinte (04/11/2026).
@@ -1762,6 +1853,7 @@ module.exports = {
   mapa,
   nomesDeEnvelopes,
   lerArquivo,
+  fundirTextosDeEnvelope,
   lerEnvelope,
   lerEnvelopeCru,
   ultimoEnvelope,

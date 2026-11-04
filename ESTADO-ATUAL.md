@@ -4,7 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `7091587`, árvore limpa). Nesta entrega, **dois
+> **Última fotografia:** 04/11/2026 (base `edcd8a0`, árvore limpa). Nesta entrega, **duas edições
+> do mesmo documento não se apagam** — a decisão 84, que estava aberta, foi decidida e
+> implementada: quando duas pessoas (ou duas abas) gravam o mesmo plano/PO, os **campos
+> diferentes unificam** (nada se perde), e o **mesmo campo decide pela recência ao milissegundo**
+> (`escrito_em`), com o empate a ir para quem está a gravar. A regra é pura e mora no núcleo
+> (`motor/nucleo/fusao.js`); a repetição do 409 mora no adaptador (`gravarComFusao`); e a resposta
+> da gravação **declara** a fusão (`fundido`, `fusao: {unidos, conflitos}`), porque uma fusão
+> silenciosa é indistinguível de uma sobrescrita. **Sem base não se adivinha** — grava-se como
+> sempre. O `ARQUITETURA-GERAL.md` foi **reescrito de ponta a ponta**: dava o acervo como vivendo
+> no KV e sob `professores/<professor>/escolas/`, e **nenhuma das duas é verdade**. Ao documentar
+> a lista de verbos do `combinar` apareceu **um defeito vivo**: o `anexar` também faltava, e o
+> registro de custo da IA é acrescentado por ele. Prova nova: `provar-fusao-da-edicao`,
+> **29 asserções**, a passar pelo armazenamento composto.
+>
+> **Entrega anterior** (base `7091587`, árvore limpa). Nesta entrega, **dois
 > «Guardar» no mesmo minuto não perdem mais um documento**. A auditoria da concorrência que a
 > pesquisadora pediu respondeu «não» a quase tudo — as gerações do mesmo ciclo são **enfileiradas**
 > (`concurrency` do `gerar-ciclo.yml`, `cancel-in-progress: false`), o `.fipp` é recomputado depois
@@ -1711,12 +1725,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     lote sem repetição — passa a refazer a corrida que perdeu, porque chegava lá com a metade do
     Cloudflare **já apagada**. **DECIDIDO por ela** («as duas correções») **e implementado**
     04/11/2026.
-84. **A EDIÇÃO SIMULTÂNEA DO MESMO DOCUMENTO CONTINUA A SER LAST-WRITE-WINS — E ISSO É DECISÃO DE
-    PRODUTO, NÃO DE MOTOR.** Fechada a corrida do *nome*, sobra o caso de **duas pessoas** na mesma
-    escola a gravar **o mesmo** plano/PO: a segunda gravação vence, em silêncio. Não há, hoje,
-    versionamento otimista no conteúdo (só na existência). **PENDENTE — decisão dela**: avisar,
-    bloquear, ou mostrar as duas versões são três comportamentos diferentes, e nenhum foi
-    inventado.
+84. **A EDIÇÃO SIMULTÂNEA DO MESMO DOCUMENTO UNIFICA POR DIFF — E O MESMO CAMPO DECIDE PELA
+    RECÊNCIA.** Fechada a corrida do *nome* (83), faltava o caso de **duas pessoas** na mesma escola
+    a gravar **o mesmo** plano/PO: a segunda vencia em silêncio. **DECIDIDO por ela** (04/11/2026):
+    (a) se as edições mexeram em **campos diferentes**, as duas ficam — nada se perde; (b) se
+    mexeram no **mesmo campo**, vence a edição **mais recente, ao milissegundo** (`escrito_em`);
+    (c) no empate vence a gravação que está a correr, que é o único desempate que não depende de
+    relógios externos; (d) o **local** é a chave de `respostas` — uma resposta é uma unidade; (e)
+    **sem base não se adivinha**: a fusão a três vias precisa do que o professor leu, e faltando
+    ele grava-se como sempre. A regra é **pura e do núcleo** (`motor/nucleo/fusao.js`); a repetição
+    do 409 é do adaptador (`gravarComFusao`). A fusão **nunca é silenciosa**: a resposta traz
+    `fundido` e `fusao: { unidos, conflitos }`. **Implementado** 04/11/2026.
+85. **O ID NÃO GANHA ENTROPIA — A UNICIDADE É UMA CONDIÇÃO VERIFICADA PELO STORE.** A ordem de
+    serviço de 04/11/2026 pedia «sufixo aleatório combinado ao timestamp». **Não foi o que se
+    adotou, e o motivo está declarado**: a solução é a **criação condicional** (o GitHub responde
+    pela existência, com o 422) mais o **sufixo sequencial** (`-2`, `-3`). A entropia custaria três
+    coisas que o projeto não quer — o id deixaria de ser **legível** (a estante mostra o carimbo),
+    de ser **derivável** (a reconstrução do índice e as provas que fixam `anamnese-20261016-1351`)
+    e a unicidade passaria a depender de um **gerador** em vez de uma **condição verificada pelo
+    store**. O `-2` é determinístico e auditável. **DECIDIDO** 04/11/2026 — **divergência
+    declarada** da ordem de serviço, não cumprimento.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -2344,7 +2372,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — a corrida da escrita e o expurgo)
+### Executado nesta fotografia (04/11/2026 — a fusão das edições, e a arquitetura como espelho)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-fusao-da-edicao` (**nova**) | **TUDO CERTO — 29 asserções**: o `combinar` a encaminhar `criar`, `anexar` e `gravarComFusao`; **campos diferentes a unificar** (o objetivo de um e o repertório do outro, ambos no arquivo); o **mesmo campo** a decidir pela recência nos dois sentidos (900 ms de diferença, cada lado a vencer uma vez); o empate a ir para quem grava, e a repetir igual; sem base a não adivinhar; o **409 dentro da fusão** a repetir e a sair fundido; e o carimbo a preferir `escrito_em` sobre `gerado_em` |
+| `provar-corrida-da-escrita` | **30** (eram 27) — duas asserções novas: a corrida do nome provada **pelo `combinar`**, e não pelo acervo direto |
+| `provar-acervo-envelopes` · `provar-carimbo-da-edicao` · `provar-indice-de-envelopes` | **48 · 55 · 44** — verdes |
+| `provar-cadeia-do-ajuste` · `provar-vigente-na-listagem` · `provar-eixos-e-tempo-da-aula` | **34 · 21 · 27** — verdes |
+| `provar-um-commit-por-guardar` · `provar-expurgo-sem-listagem` · `provar-apagar-professor-livre` · `provar-publicacao-da-escola` · `provar-porta-sem-contexto` · `provar-po-unico` · `provar-sujeitos-da-turma` | **21 · 49 · 56 · 63 · 44 · 18 · 30** — verdes |
+| `ARQUITETURA-GERAL.md` | conferido contra a árvore: **14 caminhos citados, todos existem** · **as 14 referências `§` resolvem** para secções existentes · as **7 cercas de código** emparelhadas · **6 ligações internas**, nenhuma em falta |
+| **o que NÃO mede** | a fusão **não foi medida com dois browsers reais contra o Worker publicado** (as bancadas correm sobre um GitHub falso) · `provar-listas-do-acervo` segue **NÃO FEITO** |
+
+### Executado na fotografia anterior (04/11/2026 — a corrida da escrita e o expurgo)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3313,6 +3353,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **A fusão das edições (decisão 84) e o `ARQUITETURA-GERAL.md` como espelho.** Duas
+  pessoas no mesmo documento passam a unificar: campos diferentes ficam os dois, o mesmo campo
+  decide pela recência ao milissegundo, o empate vai para quem grava, e sem base não se adivinha. A
+  regra é pura (`motor/nucleo/fusao.js`), a repetição do 409 é do adaptador, e a resposta declara a
+  fusão. O documento de arquitetura foi reescrito — dava o acervo no KV e sob
+  `professores/<professor>/escolas/`, e nenhuma das duas é verdade —, com a **§5** nova
+  («Concorrência, corrida e integridade»), medida e não desenhada. Ao documentar a lista de verbos
+  do `combinar` apareceu **um defeito vivo**: o `anexar` faltava, e o registro de custo da IA é
+  acrescentado por ele. Prova nova: `provar-fusao-da-edicao`, 29 asserções, pelo armazenamento
+  composto.
 
 - **04/11/2026** — **A corrida da escrita: dois «Guardar» no mesmo minuto não perdem um documento.**
   A auditoria da concorrência deu «não» a quase tudo (gerações enfileiradas, um commit por

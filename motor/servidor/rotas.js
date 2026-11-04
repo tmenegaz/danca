@@ -493,7 +493,15 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     if (!porta.mudouDeFato(anterior, documento)) {
       return { ok: true, editada: params.id, mudou: false, linhas: porta.linhasDoRelatorio(relatorio) };
     }
-    const gravacao = await porta.gravarEnvelope(armazenamento, documento, relatorio, { substituir: !recarimba });
+    // A BASE É O QUE O PROFESSOR LEU — o `anterior`, que esta rota já carregou. É com ele que a
+    // fusão sabe o que ELE mudou (decisão 84).
+    const baseDaFusao = (!recarimba && corpo.base && typeof corpo.base === 'object')
+      ? corpo.base
+      : (recarimba ? null : anterior);
+    const gravacao = await porta.gravarEnvelope(armazenamento, documento, relatorio, {
+      substituir: !recarimba,
+      base: baseDaFusao,
+    });
     if (!gravacao.ok) return recusar(gravacao.erro || 'a edição não foi gravada', 500);
     const editada = gravacao.id || documento.id;
     // O anterior só cai DEPOIS de o novo estar gravado: a ordem importa — se a escrita

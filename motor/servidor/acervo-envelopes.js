@@ -485,6 +485,86 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
       return ultimo;
     },
 
+    /**
+     * GRAVA COM FUSÃO — ler, fundir, gravar com o `sha`, e repetir se a corrida se perder.
+     *
+     * É a escrita da EDIÇÃO do mesmo documento (decisão 84, 04/11/2026). Sem ela, a segunda
+     * gravação de duas pessoas vencia em silêncio; com ela, o que a outra escreveu em campos
+     * diferentes é preservado, e o desacordo no mesmo campo é resolvido pela recência — declarada
+     * no relato, para a fusão não ser indistinguível de uma sobrescrita.
+     *
+     * A regra da fusão NÃO mora aqui: chega como `fundir`, uma função pura do núcleo. Este
+     * adaptador só sabe ler, gravar e repetir — que é a divisão de sempre (o núcleo pensa, o
+     * adaptador faz IO).
+     *
+     * `base` é o texto que o professor LEU. Quando ele é igual ao que está no acervo, ninguém
+     * escreveu no meio e a gravação é direta; quando não, há duas edições e a fusão acontece.
+     */
+    async gravarComFusao(chave, textoDaBase, novo, fundir, mensagem) {
+      if (!token || !slug || typeof fundir !== 'function') return { semFusao: true };
+      const nome = String(chave || '');
+      const url = base + '/contents/' + caminhoDaChave(slug, nome);
+      let ultimo = 'não se tentou';
+      for (let tentativa = 1; tentativa <= 3; tentativa++) {
+        let sha = null;
+        let atual = null;
+        const leitura = await f(comRamo(url), { method: 'GET', headers: cabecalhos });
+        if (leitura.status === 200) {
+          const dados = await leitura.json().catch(() => null);
+          sha = (dados && dados.sha) || null;
+          atual = dados && dados.content
+            ? Buffer.from(String(dados.content).replace(/\s/g, ''), 'base64').toString('utf8')
+            : '';
+        } else if (leitura.status !== 404) {
+          return { ok: false, status: leitura.status, erro: 'leitura para a fusão: HTTP ' + leitura.status };
+        }
+
+        let texto = novo;
+        let relato = null;
+        // Ninguém escreveu desde que o professor leu: grava-se o que ele escreveu, sem tocar.
+        const limpo = atual === null || textoDaBase == null || atual === textoDaBase;
+        if (!limpo) {
+          const fundido = fundir(textoDaBase, novo, atual);
+          texto = fundido.texto;
+          relato = fundido.relato || null;
+        }
+
+        const resposta = await f(url, {
+          method: 'PUT',
+          headers: cabecalhos,
+          body: JSON.stringify({
+            message: mensagem || ('feat(acervo): ' + nome),
+            content: base64De(texto),
+            branch: ramo,
+            ...(sha ? { sha } : {}),
+          }),
+        });
+        if (resposta.status >= 200 && resposta.status < 300) {
+          const dados = await resposta.json().catch(() => null);
+          lidos.delete(nome);
+          if (Array.isArray(indice) && indice.indexOf(nome) === -1) indice.push(nome);
+          return {
+            ok: true,
+            fundido: Boolean(relato && relato.houveFusao),
+            relato,
+            caminho: caminhoDaChave(slug, nome),
+            commit: dados && dados.commit && dados.commit.sha ? dados.commit.sha : null,
+          };
+        }
+        const corpoDoRecado = await resposta.json().catch(() => null);
+        const recado = corpoDoRecado && corpoDoRecado.message ? ' — ' + corpoDoRecado.message : '';
+        ultimo = 'HTTP ' + resposta.status + recado;
+        // A CORRIDA: o `sha` mudou entre a leitura e a escrita. É exatamente o caso da fusão —
+        // relê e funde de novo, com o que agora lá está.
+        if (resposta.status !== 409) {
+          return { ok: false, status: resposta.status, erro: 'o GitHub recusou a escrita: ' + ultimo };
+        }
+        lidos.delete(nome);
+        await new Promise((s) => setTimeout(s, tentativa * 300));
+      }
+      return { ok: false, erro: 'a gravação com fusão não entrou depois de 3 tentativas — ' + ultimo };
+    },
+
     /** APAGA. Devolve `true` se existia (a mesma resposta do adaptador do KV). */
     async apagar(chave) {
       const nome = String(chave || '');
@@ -575,6 +655,14 @@ function doAmbiente(env, { legado, escola, cifrar } = {}) {
  *
  * É UMA linha de composição, e é de propósito: a fronteira entre «registro» e «estado» passa a
  * ser a FAMÍLIA da chave, não o módulo que a lê.
+ *
+ * UM VERBO NOVO NO ACERVO TEM DE PASSAR POR AQUI (04/11/2026). Esta função é o que o Worker usa
+ * (`criarArmazenamento`), e ela lista os verbos à mão: o `criar` nasceu no acervo e ficou de
+ * fora, de modo que a escrita condicional — a blindagem contra dois «Guardar» no mesmo minuto —
+ * existia no adaptador e nunca chegava ao motor, que via «não sei criar» e gravava por cima como
+ * sempre. As bancadas não apanharam porque montavam o acervo direto. O que segue é a regra: quem
+ * acrescentar um verbo ao acervo acrescenta-o aqui, e a bancada que o prova tem de passar pelo
+ * `combinar`, não pelo acervo.
  */
 function combinar(acervo, resto) {
   const ehDoAcervo = (chave) => String(chave || '').startsWith('envelope/');
@@ -583,7 +671,32 @@ function combinar(acervo, resto) {
     guardar: (chave, texto, mensagem) => (ehDoAcervo(chave)
       ? acervo.guardar(chave, texto, mensagem)
       : resto.guardar(chave, texto)),
+    // A CRIAÇÃO CONDICIONAL SÓ EXISTE NO ACERVO. Para o resto, `guardar` é o que há — e o KV
+    // nunca teve a janela do carimbo, porque não é ele que decide nomes de documento.
+    criar: (chave, texto, mensagem) => (ehDoAcervo(chave) && typeof acervo.criar === 'function'
+      ? acervo.criar(chave, texto, mensagem)
+      : Promise.resolve(resto && typeof resto.existe === 'function'
+        ? resto.existe(chave).then((existe) => (existe
+          ? { criado: false, jaExiste: true }
+          : resto.guardar(chave, texto).then(() => ({ criado: true, noArmazenamentoAntigo: true }))))
+        : { criado: false, erro: 'este armazenamento não sabe criar' })),
+    // A GRAVAÇÃO COM FUSÃO TAMBÉM É DO ACERVO: ela precisa de ler-modificar-gravar com o `sha`,
+    // que é o que o KV não tem.
+    gravarComFusao: (chave, base, novo, fundir, mensagem) => (ehDoAcervo(chave)
+      && typeof acervo.gravarComFusao === 'function'
+      ? acervo.gravarComFusao(chave, base, novo, fundir, mensagem)
+      : Promise.resolve({ semFusao: true })),
     apagar: (chave) => (ehDoAcervo(chave) ? acervo.apagar(chave) : resto.apagar(chave)),
+    /* O `anexar` FALTAVA, e isso era um defeito vivo (04/11/2026). O registro de custo da IA
+     * (`ia-registro/registro.jsonl`) é acrescentado em `rotas.js` — e não é envelope, logo vai
+     * para o `resto`. O `combinar` não o encaminhava: a rota chamava `armazenamento.anexar` e
+     * recebia «não é uma função». É a mesma classe de erro do `criar`, e a razão de o comentário
+     * acima existir: a lista de verbos é à mão, e o que fica de fora desaparece sem aviso. */
+    anexar: (chave, linha) => (ehDoAcervo(chave) && typeof acervo.anexar === 'function'
+      ? acervo.anexar(chave, linha)
+      : (resto && typeof resto.anexar === 'function'
+        ? resto.anexar(chave, linha)
+        : Promise.reject(new Error('este armazenamento não sabe anexar: ' + chave)))),
     existe: (chave) => (ehDoAcervo(chave) ? acervo.existe(chave) : resto.existe(chave)),
     listar: (prefixo) => (String(prefixo || '').startsWith('envelope/')
       ? acervo.listar(prefixo)

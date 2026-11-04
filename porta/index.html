@@ -6835,6 +6835,8 @@ async function enviar(simular, carimbo) {
       // A derivação do plano: o elo novo aponta para o plano-origem.
       ajuste_de: DERIVANDO || undefined,
       motivo: MOTIVO_DERIVACAO || undefined,
+      // A BASE DA FUSÃO — o registo que o professor abriu, e só quando é o mesmo que se grava.
+      base: (EDITANDO && BASE_DA_EDICAO && BASE_DA_EDICAO.id === EDITANDO) ? BASE_DA_EDICAO : undefined,
       simular: Boolean(simular),
       fonte: FONTE,
     }),
@@ -7560,6 +7562,7 @@ function editarAnamnese(id) {
         RESPOSTAS.set(k, valor);
         if (v && v.nota) NOTAS.set(k, v.nota);
       }
+      BASE_DA_EDICAO = envelope;
       EDITANDO = id;
       // O CONTEXTO vem do envelope, não da URL: é o que faz o campo «aluna» abrir
       // preenchido em vez de vazio.
@@ -7594,8 +7597,14 @@ let EDITANDO = null;
  */
 let DERIVANDO = null;
 let MOTIVO_DERIVACAO = null;
+/* O QUE O PROFESSOR LEU (04/11/2026). A edição em sítio pode encontrar o documento já mudado
+ * por outra pessoa ou por outra aba, e o servidor só consegue unificar as duas edições se souber
+ * de onde eu parti. Não é o formulário que se manda — é o registo tal como ele o abriu.
+ * Só vale em EDIÇÃO: derivar cria um documento novo, e um documento novo não se funde. */
+let BASE_DA_EDICAO = null;
 
 function carregarPlanoNaConducao(envelope) {
+  BASE_DA_EDICAO = EDITANDO && envelope && envelope.id === EDITANDO ? envelope : null;
   RESPOSTAS.clear();
   NOTAS.clear();
   SUGERIDAS.clear();

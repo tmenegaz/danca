@@ -34383,3 +34383,90 @@ motivou a sessão).
 3. **Nada disto foi medido por dois browsers reais contra o Worker publicado** — as provas correm
    sobre a memória do núcleo e sobre um GitHub falso; o único contacto com o real foi o teste do
    422, num ramo descartável.
+
+## 04/11/2026 — A fusão das edições (decisão 84) e o espelho da verdade na arquitetura
+
+**O que motivou.** Duas coisas do mesmo dia. A primeira: a decisão 84 ficou aberta na entrada
+anterior — «a edição simultânea do mesmo documento continua a ser *last-write-wins*, e isso é
+decisão de produto». A pesquisadora decidiu: **unificar por diff e por tempo**. A segunda: o
+`ARQUITETURA-GERAL.md` dava o acervo como vivendo no KV e sob
+`professores/<professor>/escolas/<escola>/` — **nenhuma das duas é verdade**, e o documento que
+existe para ser consultado em revisão de código estava a mentir sobre onde o dado mora.
+
+**O que foi decidido — a fusão.**
+
+- **Campos diferentes unificam.** Se uma edição mexeu no objetivo e a outra no repertório, o
+  documento fica com as duas. Nada se perde.
+- **O mesmo campo decide pela recência, ao milissegundo.** Vence o `escrito_em` mais recente. No
+  empate vence a gravação que está a correr — o único desempate que não depende de relógios
+  externos nem da ordem de chegada.
+- **A unidade de «local» é a chave de `respostas`.** Um campo é uma resposta inteira; meio `valor`
+  de um e meio `origem` de outro não é uma resposta.
+- **Sem base não se adivinha.** A fusão a três vias precisa do que o professor leu; sem ele grava-se
+  como sempre se gravou.
+- **A fusão nunca é silenciosa.** A resposta da gravação traz `fundido` e `fusao: { unidos,
+  conflitos }`.
+- **Onde mora o quê.** A regra é do núcleo (`motor/nucleo/fusao.js`, função pura, sem IO); a
+  repetição do 409 é do adaptador (`gravarComFusao`). O adaptador não conhece a regra; o núcleo não
+  conhece o `sha`.
+
+**O que foi decidido — o documento.** `ARQUITETURA-GERAL.md` reescrito de ponta a ponta: o mapa de
+caminhos conferido contra a árvore, a §5 nova («Concorrência, corrida e integridade de dados»,
+medida e não desenhada), o diagrama de fluxo corrigido (o envelope vai para o repositório, não para
+o KV), e a §5.6 a separar explicitamente o que cada mecanismo responde — o **Git** guarda as
+versões; a **`.fipp`** encadeia **ciclo a ciclo**.
+
+**Um defeito vivo, encontrado ao documentar.** O `combinar` — o armazenamento que o Worker monta —
+lista os verbos à mão. Ontem o `criar` nasceu no acervo e **ficou de fora**: a blindagem contra
+dois «Guardar» no mesmo minuto existia no adaptador e nunca chegava ao motor, e as bancadas não o
+viram porque montavam o acervo direto. Hoje, ao documentar a lista, apareceu o segundo: o
+**`anexar`** também faltava, e o registro de custo da IA é acrescentado por ele em `rotas.js` — a
+rota chamava `armazenamento.anexar` e recebia «não é uma função». Os dois foram corrigidos, e a
+bancada passou a passar **pelo `combinar`**: é isso que faz a asserção valer em produção.
+
+**Sobre o sufixo aleatório, e por que NÃO foi adotado.** A ordem de serviço pedia «entropia/sufixo
+aleatório combinado ao timestamp». **Não é o que o código faz, e não foi por omissão**: a solução
+adotada é a **criação condicional** (o store responde pela existência, com o 422 do GitHub) mais o
+**sufixo sequencial** (`-2`, `-3`). Um sufixo aleatório pagaria três custos que o projeto não quer:
+o id deixaria de ser legível (a estante mostra o carimbo), deixaria de ser derivável (a reconstrução
+do índice e as provas que fixam nomes como `anamnese-20261016-1351` deixariam de valer) e a
+unicidade passaria a depender de um gerador em vez de uma condição **verificada pelo store**. O
+`-2` é determinístico e auditável; a entropia não é nem uma coisa nem outra. **Fica registado como
+divergência declarada da ordem de serviço**, e não como cumprimento.
+
+**Onde entrou.**
+
+- `motor/nucleo/fusao.js` — **novo**: `igual`, `instante`, `carimbarInstante`,
+  `quandoDoEnvelope`, `podeFundir`, `fundirRespostas`, `fundirEnvelopes`.
+- `motor/nucleo/porta.js` — a base da edição em `elicitar` (do cliente, ou lida do acervo),
+  `fundirTextosDeEnvelope`, `escrito_em` em toda a gravação, e `fundido`/`fusao` na resposta.
+- `motor/servidor/acervo-envelopes.js` — `gravarComFusao` (ler, fundir, gravar com `sha`, repetir
+  no 409) e o `combinar` a encaminhar `criar`, `anexar` e `gravarComFusao`.
+- `motor/servidor/rotas.js` — a base nas rotas da anamnese, e o id/base que ficaram gravados.
+- `porta/index.html` — `BASE_DA_EDICAO`: o registo que o professor abriu, enviado com a gravação.
+- `ARQUITETURA-GERAL.md` — **reescrito**: §1, §2 (mapa e §2.1 nova, §2.2 reescrita), §3 (fluxo
+  corrigido), §4.1 (a âncora vs. o Git), **§5 nova** (5.1 a 5.6), §6–§10 renumerados e
+  corrigidos, §11 (licença) preservado com as referências renumeradas.
+- `experimentos/provar-fusao-da-edicao.js` — **novo**, 29 asserções.
+
+**Com o quê.** `motor/nucleo/fusao.js` · `motor/nucleo/porta.js` ·
+`motor/servidor/acervo-envelopes.js` · `motor/servidor/rotas.js` · `porta/index.html` ·
+`ARQUITETURA-GERAL.md` · `experimentos/provar-fusao-da-edicao.js` · `experimentos/README.md` ·
+`.gitignore` · `REGISTRO.md` · `ESTADO-ATUAL.md` · `HANDOFF.md` (regenerado).
+
+**Referências.** `REGRAS.md` (P-03, P-04, P-08), `PROTOCOLO.md` (P-10),
+`CONGELAMENTO.md` (nada congelado foi tocado), `ARQUITETURA-AULA.md` §5.2 (a reancoragem por aula).
+
+**O que ainda não está feito.**
+
+1. **Dois professores da mesma escola continuam a escrever os mesmos arquivos.** A fusão resolve o
+   *conteúdo*; o **acervo continua sem professor no caminho** (`escola/<escola>/envelopes/`). Pôr o
+   professor no caminho seria outra decisão — e ela muda o endereço de tudo o que já está gravado.
+2. **A fusão não foi medida com dois browsers reais contra o Worker publicado.** As bancadas correm
+   sobre um GitHub falso; o que se mediu contra o real foi só o 422 do `criar` (num ramo
+   descartável).
+3. **`provar-listas-do-acervo` segue NÃO FEITO** — a única escola viva não tem ciclo publicado para
+   servir.
+4. **A ordem de serviço pedia entropia no id.** O que existe é a criação condicional mais o sufixo
+   sequencial, e o motivo está declarado acima. Se a entropia for mesmo requisito, é uma decisão
+   nova — e ela custa a legibilidade e a derivação do id.

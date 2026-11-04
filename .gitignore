@@ -635,3 +635,10 @@ experimentos/modelo-formulario/*
 # edição em sítio a reescrever o MESMO nome, o 422 «"sha" wasn't supplied» do GitHub como o
 # «já existe», e o expurgo a refazer a corrida que perdeu. Citada no `REGISTRO.md`.
 !experimentos/provar-corrida-da-escrita.js
+
+# A FUSÃO DAS EDIÇÕES (04/11/2026, decisão 84). Duas pessoas no mesmo documento: os campos
+# diferentes unificam, o mesmo campo decide pela recência ao milissegundo, o empate vai para quem
+# grava, e sem base não se adivinha. A prova passa pelo `combinar` — o armazenamento que o Worker
+# monta —, e mede também que ele encaminha os verbos novos (`criar`, `anexar`, `gravarComFusao`):
+# foi por não os encaminhar que a blindagem anterior existia no adaptador sem chegar ao motor.
+!experimentos/provar-fusao-da-edicao.js

@@ -112,6 +112,47 @@ async function main() {
     const cegos = (await cego.listar('envelope/')).filter((k) => k.indexOf('.indice') === -1);
     checar('e a gravação CEGA (o `substituir: true`, que era o único caminho) perde um — é o defeito medido',
       cegos.length === 1, cegos);
+
+    /* E PELO ARMAZENAMENTO COMPOSTO (04/11/2026). O `combinar` é o que o Worker monta, e ele
+     * lista os verbos à mão: em 04/11/2026 o `criar` nasceu no acervo e ficou de fora, de modo
+     * que a blindagem existia no adaptador e nunca chegava ao motor — e esta prova, montando o
+     * acervo direto, não o viu. Passar por aqui é o que faz a asserção valer em produção. */
+    const acervo = require('../motor/servidor/acervo-envelopes.js');
+    const arquivos = new Map();
+    const falso = async (url, opcoes) => {
+      const metodo = (opcoes && opcoes.method) || 'GET';
+      const m = /\/contents\/(.+)$/.exec(new URL(url).pathname);
+      if (!m) return new Response(JSON.stringify({ tree: [] }), { status: 200 });
+      const caminho = decodeURIComponent(m[1]);
+      if (metodo === 'GET') {
+        if (!arquivos.has(caminho)) return new Response('nf', { status: 404 });
+        return new Response(JSON.stringify({
+          sha: 'sha-' + caminho, content: Buffer.from(arquivos.get(caminho), 'utf8').toString('base64'),
+        }), { status: 200 });
+      }
+      if (metodo === 'PUT') {
+        const corpo = JSON.parse(opcoes.body);
+        if (arquivos.has(caminho) && !corpo.sha) {
+          return new Response(JSON.stringify({ message: 'Invalid request.\n\n"sha" wasn\'t supplied.' }), { status: 422 });
+        }
+        arquivos.set(caminho, Buffer.from(corpo.content, 'base64').toString('utf8'));
+        return new Response(JSON.stringify({ commit: { sha: 'c' } }), { status: 201 });
+      }
+      return new Response('{}', { status: 405 });
+    };
+    const kvVazio = { ler: async () => null, guardar: async () => {}, existe: async () => false, apagar: async () => false, listar: async () => [] };
+    const composto = acervo.combinar(acervo.criarAcervoDeEnvelopes({
+      token: 't', dono: 'd', repo: 'r', ref: 'main', escola: 'e', senhaCripto: 's', fetchImpl: falso,
+    }), kvVazio);
+    checar('o armazenamento de produção (o `combinar`) sabe criar condicionalmente',
+      typeof composto.criar === 'function', typeof composto.criar);
+    const p1 = await porta.identificar(composto, 'plano', () => CARIMBO);
+    const p2 = await porta.identificar(composto, 'plano', () => CARIMBO);
+    const g1 = await porta.gravarEnvelope(composto, Object.assign(documento('AJUSTE A'), { id: p1.id }), relatorioDe(p1.id), { substituir: false });
+    const g2 = await porta.gravarEnvelope(composto, Object.assign(documento('AJUSTE B'), { id: p2.id }), relatorioDe(p2.id), { substituir: false });
+    checar('e por ele as duas gravações do mesmo minuto ficam as duas', g1.ok && g2.ok && g1.id !== g2.id, { g1: g1.id, g2: g2.id });
+    const doComposto = [...arquivos.keys()].filter((k) => k.indexOf('.indice') === -1);
+    checar('sem nenhum documento perdido', doComposto.length === 2, doComposto);
   }
 
   // =========================================================== B
