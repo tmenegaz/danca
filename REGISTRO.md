@@ -33883,7 +33883,7 @@ metade: **sem sujeito não é linha** — a semente de um `marco` fora da lista 
 
 | Verificação | Antes | Depois |
 |:--|:--|:--|
-| `provar-sequencia-que-acompanha` | 33 asserções | **48 — TUDO CERTO** (secção 7 nova: a medida fora do repertório, o objetivo 3, e os dois controles negativos) |
+| `provar-sequencia-que-acompanha` | 33 asserções | **49 — TUDO CERTO** (secção 7 nova: a medida fora do repertório, o objetivo 3, os dois controlos negativos, e a frase do rodapé medida inteira) |
 | «Port de bras» na sequência, com a curadoria em dois verbetes | **3 linhas** | **0** — e o rodapé nomeia-o |
 | linha a nomear o objetivo 3, com um `marco: 3` na matriz dos blocos | **aparecia** | **não aparece** — e sem objetivo, a coluna não sai vazia |
 | `provar-plano-matriz` · `provar-plano-completo` · `provar-derivados-da-sequencia` · `provar-po-completo` · `provar-teste` · `provar-apagar-da-listagem` · `provar-metodologia-no-cabecalho` | verde | **52/52 · 18 · 26 · 17 · 45 · 31 · TUDO CERTO** |

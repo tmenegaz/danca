@@ -499,6 +499,12 @@ const bloco = (titulo) => console.log('\n' + titulo);
     + " for (var i = 0; i < p.length; i++) t += p[i].textContent; return t; })()");
   provar('…e o rodapé nomeia o que ficou de fora, em vez de o sumir',
     /Port de bras/.test(rodapeFora) && /Curadoria/.test(rodapeFora), rodapeFora.slice(0, 240));
+  /* A FRASE INTEIRA, e não só as duas palavras: o texto é escrito com escapes Unicode (a
+   * página gera-se por template, e a acentuação atravessa duas linguagens). Se o escape não for
+   * interpretado, a frase aparece com «\u00e9» no meio — e isso é pior do que não a ter. */
+  provar('…e a frase sai acentuada, sem escape à vista',
+    /não está no repertório desta turma — o sítio de o acrescentar é a Curadoria\./.test(rodapeFora),
+    rodapeFora.slice(0, 240));
 
   /* CONTROLE NEGATIVO: com o «Port de bras» DENTRO da curadoria, os mesmos dados produzem os
    * exercícios dele. Sem este controlo, a asserção acima passaria mesmo que a coluna tivesse

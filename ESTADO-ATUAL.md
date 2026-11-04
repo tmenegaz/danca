@@ -14,7 +14,7 @@
 > guardado gerava uma linha com o rótulo «3» e **sem texto de objetivo**. A regra passou a ser uma e
 > está escrita em `motor/nucleo/sequencia.js`: **o conteúdo do exercício é o repertório curado da
 > turma**, e sem sujeito não é linha. O que fica de fora é **dito** no rodapé, e a lacuna não se
-> pune. `provar-sequencia-que-acompanha` **48 asserções** (eram 33), com **dois controlos negativos**;
+> pune. `provar-sequencia-que-acompanha` **49 asserções** (eram 33), com **dois controlos negativos**;
 > as outras sete bancadas e o `check-identidade` (20/20) verdes.
 >
 > **Entrega anterior** (base `1e29007`, árvore limpa). Nesta entrega, **a correção de
@@ -2222,7 +2222,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 | Verificação | Resultado |
 |:--|:--|
-| `provar-sequencia-que-acompanha` | **TUDO CERTO — 48 asserções** (eram 33). Secção 7 nova: a medida marcada fora do repertório curado não vira exercício, o `marco` fora da lista não gera linha, e **dois controlos negativos** (curado o termo, ele aparece; de volta o objetivo, a linha volta) |
+| `provar-sequencia-que-acompanha` | **TUDO CERTO — 49 asserções** (eram 33). Secção 7 nova: a medida marcada fora do repertório curado não vira exercício, o `marco` fora da lista não gera linha, e **dois controlos negativos** (curado o termo, ele aparece; de volta o objetivo, a linha volta) |
 | «Port de bras» na sequência, com a curadoria em dois verbetes | **3 linhas → 0**, e o rodapé nomeia o termo que ficou de fora |
 | linha a nomear «objetivo 3», com um `marco: 3` na matriz dos blocos | **aparecia → não aparece** — e a coluna do objetivo não sai vazia |
 | o mesmo exercício no `.md` do plano | não entra na música quando está fora do `repertorio` do envelope; entra quando está dentro; **sem repertório declarado não se julga** |

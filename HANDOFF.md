@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T21:51:30-0300`
-Commit atual: `5ae2ea50` — chore(estrutura): regerar os índices derivados
+Gerado em: `2026-11-03T21:54:54-0300`
+Commit atual: `dac284ff` — fix(campo): a medida não é o repertório — e o objetivo 3 não tinha sujeito
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+dac284ff fix(campo): a medida não é o repertório — e o objetivo 3 não tinha sujeito
 5ae2ea50 chore(estrutura): regerar os índices derivados
 278478ad feat(acervo): envelope/.indice.json
 6509cb55 chore(acervo): apagar envelope/plano-20261103-1644.json
@@ -104,7 +105,6 @@ f841cb8b feat(acervo): envelope/plano-20261103-1644.json
 33f38dc7 feat(plano): o plano elicitado vira a fonte do ciclo
 904a3271 feat(acervo): envelope/plano-20261103-1644.json
 7b4cba59 feat(acervo): envelope/.indice.json
-f6fd2eb3 docs(registro): a sequência acompanha os objetivos — e a pergunta 'é mock?' teve resposta medida
 ```
 
 ## Por professor
@@ -277,7 +277,7 @@ metade: **sem sujeito não é linha** — a semente de um `marco` fora da lista 
 
 | Verificação | Antes | Depois |
 |:--|:--|:--|
-| `provar-sequencia-que-acompanha` | 33 asserções | **48 — TUDO CERTO** (secção 7 nova: a medida fora do repertório, o objetivo 3, e os dois controles negativos) |
+| `provar-sequencia-que-acompanha` | 33 asserções | **49 — TUDO CERTO** (secção 7 nova: a medida fora do repertório, o objetivo 3, os dois controlos negativos, e a frase do rodapé medida inteira) |
 | «Port de bras» na sequência, com a curadoria em dois verbetes | **3 linhas** | **0** — e o rodapé nomeia-o |
 | linha a nomear o objetivo 3, com um `marco: 3` na matriz dos blocos | **aparecia** | **não aparece** — e sem objetivo, a coluna não sai vazia |
 | `provar-plano-matriz` · `provar-plano-completo` · `provar-derivados-da-sequencia` · `provar-po-completo` · `provar-teste` · `provar-apagar-da-listagem` · `provar-metodologia-no-cabecalho` | verde | **52/52 · 18 · 26 · 17 · 45 · 31 · TUDO CERTO** |
