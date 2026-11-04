@@ -263,8 +263,8 @@
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
-      "pos": 1,
-      "registros": 3
+      "pos": 2,
+      "registros": 4
     },
     "criada_em": "2026-11-02T16:59:08.409473+00:00",
     "expurgada": false,
@@ -280,18 +280,20 @@
     "registros": [
       "anamnese:anamnese-20261103-1626",
       "plano:plano-20261103-2200",
-      "po:po-20261103-2202"
+      "po:po-20261103-2202",
+      "po:po-20261103-2221"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261103-1626",
           "plano:plano-20261103-2200",
-          "po:po-20261103-2202"
+          "po:po-20261103-2202",
+          "po:po-20261103-2221"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -309,12 +311,13 @@
     ],
     "professores": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261103-1626",
           "ciclo:coqui-de-redinha/01/breu",
           "plano:plano-20261103-2200",
-          "po:po-20261103-2202"
+          "po:po-20261103-2202",
+          "po:po-20261103-2221"
         ],
         "rotulo": "coqui-de-redinha",
         "valor": "coqui-de-redinha"
@@ -346,9 +349,10 @@
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "po:po-20261103-2202"
+          "po:po-20261103-2202",
+          "po:po-20261103-2221"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -357,9 +361,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b690d1d"
+    "commit": "dd94a91"
   },
-  "gerado_em": "2026-11-04T01:03",
+  "gerado_em": "2026-11-04T01:21",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -412,6 +416,16 @@
       "ciclo": "01",
       "data": "2026-11-03T22:02",
       "id": "po:po-20261103-2202",
+      "professor": "coqui-de-redinha",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261103-2202",
+      "ano": "2026",
+      "carimbo": "po-20261103-2221",
+      "ciclo": "01",
+      "data": "2026-11-03T22:21",
+      "id": "po:po-20261103-2221",
       "professor": "coqui-de-redinha",
       "tipo": "po"
     }
