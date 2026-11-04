@@ -65,20 +65,34 @@ for (const nome of Object.keys(ALFABETO.verbetes || {})) {
   if (lista.length) MUSICAS[nome] = lista;
 }
 
-/* A TURMA DA PROVA: um exercício com UMA música (o fondu, `2|4/4`), um com TRÊS (o tendu) e um
- * sem verbete nenhum (o jeté) — os três casos que a derivação tem de distinguir. */
+/* A TURMA DA PROVA, com o ALFABETO QUE EXISTE (03/11/2026).
+ *
+ * AQUI ESTAVA «um exercício com UMA música (o fondu, `2|4/4`), um com TRÊS (o tendu) e um sem
+ * verbete nenhum (o jeté)». Nenhum dos três era verdade no alfabeto do repositório, e a bancada
+ * media a si mesma: hoje `biblioteca/modalidades/bale-classico/notacao.json` declara **Plié**
+ * (`4|2/4`) e **Battement tendu** (`8|2/4@breu`), e mais nada — o fondu existe no VOCABULÁRIO
+ * (a lista de termos) e não tem VERBETE (o registo com a música). Por isso a asserção «o fondu é
+ * 2|4/4» reprovava: o sistema dizia a verdade («tempos e compasso por declarar no verbete») e a
+ * fixture é que estava a mentir sobre o que o alfabeto tem.
+ *
+ * Os três casos que a derivação distingue continuam a ser três, com o dado de hoje:
+ *   · **Plié** — um verbete com UMA música (`4|2/4`), e é dela que saem os tempos e o compasso;
+ *   · **Battement tendu** — outro verbete (`8|2/4`), marcado em DOIS objetivos: a linha não pode
+ *     repetir-se por isso;
+ *   · **Jeté** — existe no vocabulário e NÃO tem verbete: a lacuna é dita por palavras.
+ * Criar o verbete do fondu é acto de CONTEÚDO (é dela, P-16), não desta prova. */
 const TERMOS = VOCABULARIO.map((t) => ({
   id: t.id, termo: t.termo, categoria: t.categoria,
   descricao: t.descricao || '', fonte: t.fonte || '',
   musicas: MUSICAS[t.termo] || [],
 }));
-const CONTEUDO_DA_TURMA = ['battement-fondu', 'battement-tendu', 'jete'];
+const CONTEUDO_DA_TURMA = ['plie', 'battement-tendu', 'jete'];
 const TURMA = {
   id: 't3', nome: 'Turma da prova', frequencia: 2, dias: ['ter', 'qui'], duracaoMin: 60,
   periodoInicio: '2027-02-02', periodoFim: '2027-04-29', totalAulas: 26,
 };
 const OBJETIVOS = ['Objetivo A', 'Objetivo B'];
-const EXERCICIOS = ['Battement fondu', 'Battement tendu', 'Jeté'];
+const EXERCICIOS = ['Plié', 'Battement tendu', 'Jeté'];
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
   '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml' };
@@ -221,13 +235,13 @@ const abrirNo = (w, id) => w.eval(`(async function(){
       if (l['Conteúdo do nível']) porExercicio[l['Conteúdo do nível']] = l;
     }
     provar('…e os exercícios que vieram da marcação',
-      Object.keys(porExercicio).sort().join(' | ') === ['Battement fondu', 'Battement tendu', 'Jeté'].sort().join(' | '),
+      Object.keys(porExercicio).sort().join(' | ') === ['Plié', 'Battement tendu', 'Jeté'].sort().join(' | '),
       Object.keys(porExercicio));
-    provar('…com os tempos e o compasso vindos do VERBETE (o fondu é 2|4/4)',
-      porExercicio['Battement fondu']
-        && porExercicio['Battement fondu'].Tempos === '2'
-        && porExercicio['Battement fondu'].Compasso === '4/4',
-      porExercicio['Battement fondu']);
+    provar('…com os tempos e o compasso vindos do VERBETE (o plié é 4|2/4)',
+      porExercicio['Plié']
+        && porExercicio['Plié'].Tempos === '4'
+        && porExercicio['Plié'].Compasso === '2/4',
+      porExercicio['Plié']);
 
     console.log('\n2. O repertório NÃO se escreve: é a sequência, e é leitura');
     const rep = await abrirNo(w, 'repertorio');
@@ -243,7 +257,7 @@ const abrirNo = (w, id) => w.eval(`(async function(){
       video.somenteLeitura === false, video.somenteLeitura);
     provar('…e há uma leitura acima do campo', video.leituras.length === 1, video.leituras);
     provar('…com a música de cada exercício, lida do verbete',
-      /Battement fondu — 2 tempos em 4\/4/.test(video.leituras[0] || '')
+      /Plié — 4 tempos em 2\/4/.test(video.leituras[0] || '')
         && /Battement tendu — /.test(video.leituras[0] || ''),
       video.leituras[0]);
     provar('…e um exercício sem verbete é dito por palavras, não escondido',
@@ -270,7 +284,7 @@ const abrirNo = (w, id) => w.eval(`(async function(){
       return true;
     })()`);
     await w.eval(`(function(){
-      RESPOSTAS.set('aula-1-parametro', [{ marco: 1, marcados: ['Battement fondu'] }]);
+      RESPOSTAS.set('aula-1-parametro', [{ marco: 1, marcados: ['Plié'] }]);
       pintarRoteiro();
       return true;
     })()`);
@@ -280,7 +294,7 @@ const abrirNo = (w, id) => w.eval(`(async function(){
      * ele é trabalhado. A terceira linha é a do objetivo 2 × Centro: este objetivo não tem
      * exercício marcado, e a derivação NÃO inventa um — deixa a linha vazia para ele escrever. */
     provar('desmarcar um exercício tira-lhe as linhas',
-      JSON.stringify(comExercicio) === JSON.stringify(['Battement fondu', 'Battement fondu']),
+      JSON.stringify(comExercicio) === JSON.stringify(['Plié', 'Plié']),
       comExercicio);
     provar('…e o objetivo sem exercício marcado fica com a linha vazia, sem invenção',
       Array.isArray(refeita) && refeita.length === 3
@@ -303,7 +317,7 @@ const abrirNo = (w, id) => w.eval(`(async function(){
     provar('sem as músicas na rota, a leitura não promete tempos que não existem',
       !/2 tempos em 4\/4/.test(video.leituras[0] || ''), video.leituras[0]);
     provar('…e o exercício aparece como «por declarar», que é a verdade',
-      /Battement fondu — tempos e compasso por declarar no verbete/.test(video.leituras[0] || ''),
+      /Plié — tempos e compasso por declarar no verbete/.test(video.leituras[0] || ''),
       video.leituras[0]);
     provar('…e nenhum erro de JavaScript', negativo.problemas.length === 0, negativo.problemas.slice(0, 3));
   } finally {
@@ -319,24 +333,27 @@ const abrirNo = (w, id) => w.eval(`(async function(){
   const comSequencia = derivarPlano(envelope({
     'objetivo-geral': 'Objetivo da prova',
     'aula-1-sequencia': [
-      { Bloco: 'Solo', 'Conteúdo do nível': 'Battement fondu', Tempos: '2', Compasso: '4/4' },
+      { Bloco: 'Solo', 'Conteúdo do nível': 'Plié', Tempos: '4', Compasso: '2/4' },
       { Bloco: 'Barra', 'Conteúdo do nível': 'Battement tendu', Tempos: '8', Compasso: '4/4' },
       { Bloco: 'Barra', 'Conteúdo do nível': 'Battement tendu', Tempos: '12', Compasso: '4/4' },
       { Bloco: 'Centro', 'Conteúdo do nível': 'Jeté' },
     ],
-    'musicas-videos': 'https://www.youtube.com/watch?v=prova — fondu na barra',
-    'repertorio': ['Battement fondu', 'Battement tendu', 'Jeté'],
+    'musicas-videos': 'https://www.youtube.com/watch?v=prova — o plié na barra',
+    'repertorio': ['Plié', 'Battement tendu', 'Jeté'],
   })).markdown;
-  provar('a música sai exercício por exercício', /- Battement fondu — 2 tempos em 4\/4/.test(comSequencia),
+  provar('a música sai exercício por exercício', /- Plié — 4 tempos em 2\/4/.test(comSequencia),
     (comSequencia.match(/^## Músicas e vídeos[\s\S]{0,400}/m) || [''])[0]);
-  provar('…o exercício com duas músicas sai UMA vez (a linha não se repete)',
+  /* O NOME DA ASSERÇÃO ESTAVA A PROMETER OUTRA COISA (03/11/2026). Ela dizia «o exercício com duas
+   * músicas», e nenhum verbete do alfabeto declara duas hoje. O que ela prova — e continua a
+   * provar — é a REGRA: o mesmo exercício, marcado nos dois objetivos, sai UMA vez na lista. */
+  provar('…o mesmo exercício, em duas linhas da sequência, sai UMA vez',
     (comSequencia.match(/Battement tendu — /g) || []).length === 1,
     (comSequencia.match(/Battement tendu — /g) || []).length);
   provar('…e o que o professor escreveu no campo vem depois, sem ser perdido',
     /- https:\/\/www\.youtube\.com\/watch\?v=prova/.test(comSequencia));
   provar('…e o exercício sem verbete é dito por palavras',
     /- Jeté — tempos e compasso por declarar no verbete/.test(comSequencia));
-  provar('o repertório sai como a tela o semeou', /## Repertório\n\n- Battement fondu\n- Battement tendu\n- Jeté/.test(comSequencia),
+  provar('o repertório sai como a tela o semeou', /## Repertório\n\n- Plié\n- Battement tendu\n- Jeté/.test(comSequencia),
     (comSequencia.match(/^## Repertório[\s\S]{0,200}/m) || [''])[0]);
 
   const antigo = derivarPlano(envelope({

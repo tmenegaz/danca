@@ -594,3 +594,11 @@ experimentos/modelo-formulario/*
 # `REGISTRO.md`.
 !experimentos/provar-plano-matriz.js
 !experimentos/provar-po-completo.js
+
+# AS TRÊS BANCADAS QUE FALTAVAM (03/11/2026). O `provar-plano-completo` media o documento de antes
+# de 26–28/10 (a tabela do `ciclo`, a tabela de critérios da rubrica, a sequência no `aula-01.md`,
+# a secção «Músicas e vídeos»), e a `provar-derivados-da-sequencia` media um alfabeto que o
+# repositório não tem (o fondu com `2|4/4`). As duas passam a medir o documento e o alfabeto de
+# hoje, e a terceira declara as omissões com motivo. Citadas no `REGISTRO.md`.
+!experimentos/provar-plano-completo.js
+!experimentos/provar-derivados-da-sequencia.js
