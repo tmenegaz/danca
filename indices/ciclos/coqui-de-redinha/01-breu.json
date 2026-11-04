@@ -1,15 +1,15 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-03",
+    "ancorado_em": "2026-11-04",
     "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "cobertura": [
       "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
       "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
       "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
     ],
-    "hash": "434fa8ca6347790cce98c0a8252f67a5f419e296d1ec84256a99b47ec513d53e",
-    "hash_conteudo": "b5146e242709adacacf35b650091a6b545a0293d1d4dc048aec0b7ef83f08c4b",
+    "hash": "6edb8232c56c7c4011d3866daa3113734d3fa644f3e27a6d3d156db376b52582",
+    "hash_conteudo": "5f5a443af67662c7482b456d123bed0e4a3a06dbe5afd64e3f624f758e7e7ef3",
     "id": "ciclo-01-breu-bale-nivel-1-teste-3",
     "lida": true,
     "parent_hash": ""
