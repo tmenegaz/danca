@@ -34111,3 +34111,92 @@ decisão de produto, e o desenho (um `details` por linha, ou um selo que abre) n
 (3) O **nome** da linha do plano não leva o ciclo: a mesma turma em dois ciclos dá duas linhas de
 nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vigente-na-listagem`). Não
 é defeito desta regra — é de antes —, e corrigi-lo mexe na identidade do cartão.
+
+## 04/11/2026 — A fatia de tempo vem do plano pela coluna certa, e o guia passa a ler as três frentes
+
+**O que motivou.** Duas coisas que a pesquisadora viu no ciclo da `breu`, e as duas do mesmo lado —
+o documento a dizer menos do que o dado tem:
+
+1. **A fatia do bloco Expressão saía `[Preencher]`.** Ela dizia tê-la preenchido no plano, e a aula
+   mostrava lacuna. Medido no envelope real (`escola/breu/envelopes/plano-20261103-2200.json`):
+   a linha do Expressão foi gravada **sem «Proporção alvo»** — `{Bloco: "Expressão",
+   Justificativa: "Braços"}` —, e as outras três fecham 70% dos 100%. O valor não está lá; **e mesmo
+   que estivesse, a aula não o lia.**
+2. **O guia de observação só falava de técnica.** Todas as dimensões saíam com o prefixo
+   «Técnica —», inclusive Musicalidade e Expressão, cujo conteúdo é poiésis — a medição de
+   02/11/2026 já o tinha dito («poiésis medida com o rótulo da técnica por cima»).
+
+**O que se mediu no motor, e são dois defeitos de verdade.** O primeiro é de **posição**: a
+proporção era lida por `Object.values(linha)[1]`, e a gravação **não escreve célula vazia** — quando
+«Proporção alvo» falta, a coluna seguinte encolhe para o lugar dela e a aula imprime a
+**justificativa** como fatia. Provado com o dado trocado de ordem: a linha `{Bloco, Justificativa,
+"Proporção alvo"}` saía `| Expressão | [Preencher] | Braços |`. O segundo é de **unidade**: o
+conteúdo declara `minutos` como opção (e `percentual` como padrão), e o leitor só conhecia `%` —
+uma tabela em minutos saía com `[Preencher]` em **todos** os tempos, com a fatia certa ao lado.
+Medido: 14 min × 3 blocos davam três lacunas e uma fatia.
+
+**O que foi feito, e é correção de leitura, não de dado.**
+
+- **A coluna é procurada pelo NOME**, tolerante a acentos (`Bloco` / `Proporção alvo`), com o
+  conteúdo como autoridade — a ordem deixou de importar. Sem coluna de proporção identificável, a
+  célula é lacuna; não se adivinha pela posição.
+- **As duas unidades convertem**: percentual × volume-alvo ÷ 100; minutos ÷ duração da aula ×
+  volume-alvo. A fatia em minutos diz a unidade («13,5 min»), para o número não se ler como erro de
+  conta vizinho dos tempos.
+- **A lacuna nomeia o bloco e o sítio**: `[Preencher: proporção do bloco Expressão no plano]` — o
+  genérico escondia de quem era a decisão. E o **plano** passou a dizer a mesma coisa ao pé da
+  tabela («Sem proporção alvo: Expressão. A Aula 01 sai com a fatia e os tempos desse bloco em
+  lacuna»), porque é lá que se corrige.
+- **O guia lê as três frentes**: um **resumo** curto por eixo (Corpo · Técnica · Poiesis) e, logo
+  abaixo, a tabela **item a item** — o detalhe que a folha de captura pede. A síntese é uma LISTA e
+  não uma tabela de propósito: o contrato extrai **uma** tabela por secção (a primeira), e a dos
+  critérios — que é o dado — desaparecia em silêncio.
+- **Nada foi renomeado no dado.** Os rótulos gravados nos POs continuam «Técnica — …», e os
+  `itens-por-dimensao` já gravados referenciam-nos por esse nome (P-03). O guia mostra o **eixo que
+  corresponde ao bloco** e a dimensão pelo **nome do bloco**; a tabela ganha a coluna «Eixo».
+
+**O mapa dos eixos é CANDIDATO, e está declarado como tal.** Barra, Centro e Solo → **Técnica**;
+Musicalidade e Expressão → **Poiesis**; e o resto cai em Técnica, que é exactamente o que o prefixo
+do conteúdo já fazia (nenhuma caixa nova, nenhum «desconhecido»). A taxonomia é **dela** — o
+`REGISTRO.md` de 02/11/2026 di-lo («transformar os três em eixos de primeira classe é da
+pesquisadora») —, e por isso o mapa vive numa constante documentada, não no conteúdo: no dia em que
+ela decidir, o mapa muda de sítio e a função lê-o de lá.
+
+**O corpo, e é o que a medição de 02/11 chamou «a costura que falta».** O guia passou a dizer o que a
+turma mostra: os **aspectos físicos** declarados no plano (`aspecto-fisico`, 15 na `breu`), o **ponto
+de partida** de cada aluna (`linha-de-base`) e as **restrições** (`restricoes`). Nada é inventado, e
+o que não existe é dito. **A ligação do corpo ao exercício continua a não existir** — nenhum verbete
+diz o que o movimento exige do corpo —, e o guia não a finge.
+
+**O que se mediu.**
+
+| Verificação | Antes | Depois |
+|:--|:--|:--|
+| `provar-eixos-e-tempo-da-aula` (**nova**) | — | **TUDO CERTO — 27 asserções** (a coluna pelo nome, as duas unidades, a lacuna nomeada, a prosa não convertida, os três eixos, o corpo, e nenhum item perdido) |
+| A fatia do Expressão na aula da `breu` | `[Preencher] \| Braços` | `[Preencher] \| [Preencher: proporção do bloco Expressão no plano]` — a justificativa deixou de vazar |
+| O plano da `breu` | a célula vazia calada | `> **Sem proporção alvo: Expressão.** … Preencha a coluna «Proporção alvo» acima` |
+| O guia da `breu` | 8 linhas «Técnica — …» | 3 frentes no resumo · 8 linhas no detalhe com a coluna «Eixo» (Técnica 4 · Poiesis 4) |
+| `provar-plano-matriz` · `provar-plano-completo` · `provar-aula-e-plano-legiveis` · `provar-derivados-da-sequencia` | verdes | **52/52 · 18 · 12 · 26** |
+| `gerar-ciclo.sh coqui-de-redinha 01 breu-bale-nivel-1-teste-3` | — | **0 erro(s), 0 aviso(s)**; PDF de 29 páginas com as duas correções dentro (medido no `pdftotext`) |
+| `validar-aula-ciclo` na aula regerada | — | **ok** (9 campos extraídos; 2 provisórios) |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado (`motor/`
+não está na lista). As fontes do ciclo foram **regeradas localmente** para medir e **restauradas**
+depois: quem as escreve é o «Guardar» do PO, e a âncora não muda por esta entrega.
+
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` (`distribuicaoDoTempo`, `eixosDaObservacao`,
+`blocoDaDimensao`, `eixoDoBloco`, §3 e §5) · `motor/nucleo/derivar-plano-ciclo.js` (a lacuna dita no
+plano) · `experimentos/provar-eixos-e-tempo-da-aula.js` · `experimentos/README.md` · `.gitignore` ·
+`REGISTRO.md` · `ESTADO-ATUAL.md`.
+
+**O que ainda não está feito, e é dela.**
+
+1. **A proporção do Expressão no plano da `breu`** — não está declarada, e o sistema não a inventa.
+   O caminho está dito nos dois documentos; quem preenche é ela, e a soma fecha em 100%.
+2. **A taxonomia dos eixos** — o mapa é candidato. Se ela quiser os três como eixos de primeira
+   classe (com campo próprio no PO), isso muda a taxonomia das dimensões e o mapa muda de sítio.
+3. **A explicação do formulário do PO** ainda diz «todas sob o eixo TÉCNICA»
+   (`porta/po/conteudo/po.json`, `dimensoes-de-observacao`). Continua verdadeira sobre o **rótulo**
+   e passou a ser uma segunda leitura ao lado do guia; corrigir a redação é conteúdo, e é dela.
+4. **O corpo ligado ao exercício** — a costura que a medição de 02/11 nomeou continua em falta: o
+   guia diz o que a turma mostra no corpo, e não o que cada movimento exige dele.

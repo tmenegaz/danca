@@ -123,29 +123,192 @@ function nomeDoBloco(bloco) {
   return String(bloco || '').split(/\s+[—–-]\s+/)[0].trim();
 }
 
-/** A proporção declarada como percentagem simples («35%» → 35). O que não for uma
- *  percentagem numérica («um terço», «conforme a turma») NÃO se converte: ler prosa não
- *  é derivar. Devolve `null`, e a célula fica lacuna. */
-function percentagemDaProporcao(valor) {
-  const m = /^\s*(\d+(?:[.,]\d+)?)\s*%/.exec(String(valor == null ? '' : valor));
+/** O primeiro número de um texto, com vírgula ou ponto decimal («14 min» → 14; «30,5%» → 30,5). */
+function numeroDoTexto(valor) {
+  const m = /(-?\d+(?:[.,]\d+)?)/.exec(String(valor == null ? '' : valor));
   return m ? Number(m[1].replace(',', '.')) : null;
 }
+
+/** O nome de uma coluna sem acentos e em minúsculas — para casar «Proporção alvo» e
+ *  «Proporcao Alvo» sem uma segunda lista de nomes. */
+function chaveNormalizada(chave) {
+  return String(chave == null ? '' : chave)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .trim().toLowerCase();
+}
+
+// AS COLUNAS DA GRELHA DO VOLUME, PROCURADAS POR NOME E NÃO POR POSIÇÃO (04/11/2026).
+//
+// A leitura era `Object.values(linha)[1]`, e o modo de falha apareceu no ciclo da `breu`: a
+// linha do bloco Expressão foi gravada sem «Proporção alvo» (a célula ficou vazia, e a gravação
+// não escreve célula vazia), então a posição 1 passou a ser a JUSTIFICATIVA — e a aula imprimiu
+// `| Expressão | [Preencher] | Braços |`. O professor leu «a fatia de Expressão está vazia»
+// quando o que estava vazio era OUTRA coluna. Duas colunas em posições trocadas produzem o mesmo
+// sintoma sem que nada falhe: por isso a coluna é procurada pelo NOME que o conteúdo declara.
+const COLUNA_DO_BLOCO = /^(bloco|blocos|momento|parte)$/;
+const COLUNA_DA_PROPORCAO = /(propor|fatia|percent|porcent|tempo|minuto|duracao)/;
+
+/** O valor da coluna cujo nome casa o padrão; `undefined` quando a linha não a tem. */
+function valorDaColuna(linha, padrao) {
+  if (!linha || typeof linha !== 'object') return undefined;
+  for (const chave of Object.keys(linha)) {
+    if (String(chave).startsWith('_')) continue;
+    if (padrao.test(chaveNormalizada(chave))) return linha[chave];
+  }
+  return undefined;
+}
+
+/**
+ * A PROPORÇÃO DE UMA CÉLULA, NA UNIDADE DA TABELA. Devolve `{valor, unidade}` ou `null`.
+ *
+ * A unidade é da TABELA (o conteúdo declara `minutos` ou `percentual`), não de cada linha — e é
+ * ela que dá sentido a um número sem sinal. Sem unidade declarada (a forma antiga, um array de
+ * linhas), só o `%` explícito é uma percentagem: ler «30» como 30% seria inventar a unidade.
+ *
+ * O `minutos` ERA O BURACO (04/11/2026). O conteúdo declara `percentual` como padrão, mas deixa
+ * `minutos` como opção — e a derivação só sabia ler `%`. Uma tabela em minutos saía com
+ * `[Preencher]` em TODOS os tempos, com a fatia certa ao lado: o professor via a lacuna e o dado
+ * estava lá. Agora os minutos convertem-se nos tempos pela duração da aula.
+ */
+function proporcaoDaCelula(celula, unidade) {
+  const texto = String(celula == null ? '' : celula).trim();
+  if (!texto) return null;
+  const numero = numeroDoTexto(texto);
+  if (numero === null) return null;
+  const temPercento = /%/.test(texto);
+  const temMinuto = /\bmin(?:uto)?s?\b/i.test(texto);
+  if (temPercento) return { valor: numero, unidade: 'percentual' };
+  if (temMinuto) return { valor: numero, unidade: 'minutos' };
+  if (unidade === 'minutos') return { valor: numero, unidade: 'minutos' };
+  if (unidade === 'percentual') return { valor: numero, unidade: 'percentual' };
+  return null;                       // forma antiga e sem sinal: não se adivinha a unidade
+}
+
 
 /** Um número em português, sem zeros à direita: 13.5 → «13,5»; 45 → «45». */
 function numeroEmPortugues(n) {
   return String(Math.round(n * 100) / 100).replace('.', ',');
 }
 
-/**
- * As linhas da «Distribuição do tempo da aula» (§3 da Aula 01). O BLOCO vem da estrutura
- * declarada no plano; a FATIA e os TEMPOS vêm das proporções da «Distribuição do volume»,
- * casadas pelo nome curto do bloco.
+/* ============================================================================
+ * OS TRÊS EIXOS DO QUE SE OBSERVA EM DANÇA — Corpo, Técnica e Poiesis (04/11/2026).
  *
- * Nada se inventa: a Fatia é a proporção declarada, verbatim, e os Tempos são a aritmética
- * dela com o volume-alvo (proporção × total ÷ 100) — o produto exacto, para as partes
- * fecharem no total. Sem bloco correspondente, ou sem percentagem declarada, a célula sai
- * como lacuna, e não como um número adivinhado.
+ * O QUE ESTAVA ERRADO, e é de leitura, não de dado. O guia de observação (§5 da Aula 01) imprimia
+ * TODAS as dimensões com o prefixo «Técnica —», porque o rótulo é montado por concatenação no
+ * conteúdo do PO (`doPlano.eixo` + separador + o bloco). O prefixo é verdadeiro para Barra e
+ * Centro — são lugares da sala e é técnica que se trabalha neles — e é falso para Musicalidade e
+ * Expressão, cujo conteúdo («resposta ao pulso na marcação», «olhar acompanha o braço») é
+ * **poiésis** medida com o rótulo da técnica por cima. Medido no `REGISTRO.md` a 02/11/2026 e
+ * confirmado por ela («nós temos a perspectiva da poiésis e a perspectiva do corpo»).
+ *
+ * O TEXTO DO GUIA PASSA A TER AS TRÊS FRENTES, e NADA é renomeado no dado: os rótulos gravados
+ * nos POs continuam a ser os que estão lá (P-03 — a proveniência não se reescreve, e os
+ * `itens-por-dimensao` já gravados referenciam esses rótulos pelo nome). O que muda é a LEITURA:
+ * o guia mostra o eixo que corresponde ao bloco e a dimensão pelo nome do bloco.
+ *
+ * O MAPA É CANDIDATO, E ESTÁ DECLARADO COMO TAL. Ela ainda não decidiu a taxonomia («transformar
+ * os três em eixos de primeira classe é da pesquisadora», `REGISTRO.md` 02/11/2026). O que este
+ * código faz é o mínimo que a leitura exige, com o menor compromisso possível: dois blocos que
+ * não são lugares da sala (Musicalidade, Expressão) vão para Poiesis; todo o resto fica em
+ * Técnica — que é exactamente o que o sistema já fazia com o prefixo. Não há terceira caixa, não
+ * há bloco «desconhecido», e nenhum dado é tocado. Quando ela decidir a taxonomia, o mapa muda
+ * de sítio (para o conteúdo) e esta função lê-o de lá.
+ * ========================================================================== */
+const BLOCOS_DA_POIESIS = ['musicalidade', 'expressao'];
+
+/** O bloco de uma dimensão: o rótulo depois do separador («Técnica — Barra» → «Barra»). */
+function blocoDaDimensao(rotulo) {
+  const partes = String(rotulo == null ? '' : rotulo)
+    .split(/\s+[—–-]\s+/).map((p) => p.trim()).filter(Boolean);
+  return partes.length > 1 ? partes[partes.length - 1] : (partes[0] || '');
+}
+
+/** O eixo de um bloco — Técnica por omissão, que é o que o prefixo do conteúdo declara hoje. */
+function eixoDoBloco(bloco) {
+  return BLOCOS_DA_POIESIS.indexOf(chaveNormalizada(bloco)) !== -1 ? 'Poiesis' : 'Técnica';
+}
+
+/**
+ * AS TRÊS FRENTES DA OBSERVAÇÃO, tiradas do que os documentos JÁ têm.
+ *
+ *   · **Técnica** e **Poiesis** — as dimensões do PO e os itens de cada uma (a mesma fonte da
+ *     folha de captura, para o guia e a captura não divergirem);
+ *   · **Corpo** — não é uma dimensão do PO: é o que a turma mostra de força e flexibilidade (o
+ *     plano, `aspecto-fisico`), o ponto de partida de cada aluna (o PO, `linha-de-base`) e as
+ *     restrições declaradas (`restricoes`). O `REGISTRO.md` de 02/11/2026 mediu exactamente
+ *     isto: o corpo existe em três sítios e **falta a ligação ao exercício** — que é o que este
+ *     agregador NÃO inventa; ele lê o que há e diz o que há.
+ *
+ * O que volta é a lista dos eixos com `{id, rotulo, dimensoes, itens, resumo}` — `resumo` é a
+ * frase CURTA que a listagem mostra; o detalhe fica na tabela item a item, logo abaixo.
  */
+function eixosDaObservacao(dims, plano, po) {
+  const dimensoes = Array.isArray(dims) ? dims : [];
+  const porEixo = { Técnica: [], Poiesis: [] };
+  for (const d of dimensoes) {
+    const bloco = blocoDaDimensao(d.dimensao);
+    const eixo = eixoDoBloco(bloco);
+    porEixo[eixo].push({
+      dimensao: d.dimensao,
+      bloco: bloco,
+      itens: Array.isArray(d.itens) ? d.itens : [],
+    });
+  }
+
+  const conta = (lista) => lista.reduce((s, d) => s + d.itens.length, 0);
+  const nomes = (lista) => lista.map((d) => d.bloco).filter(Boolean);
+
+  // O CORPO — três fontes, nenhuma inventada.
+  const aspectos = linhasDaTabela(resp(plano, 'aspecto-fisico'))
+    .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
+  const base = linhasDaTabela(resp(po, 'linha-de-base'))
+    .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
+  const restricoes = String(resp(po, 'restricoes') || '').trim();
+
+  const partesDoCorpo = [];
+  if (aspectos.length) {
+    partesDoCorpo.push(aspectos.length + (aspectos.length === 1 ? ' aspecto físico declarado' : ' aspectos físicos declarados') + ' no plano');
+  }
+  if (base.length) {
+    const comPonto = base.filter((l) => String(l.precisaDesenvolver || l.traz || '').trim()).length;
+    partesDoCorpo.push('ponto de partida de ' + base.length + (base.length === 1 ? ' aluna' : ' alunas')
+      + (comPonto === base.length ? '' : ' (' + comPonto + ' com ponto a desenvolver)'));
+  }
+  partesDoCorpo.push(restricoes ? 'restrições declaradas' : 'sem restrições declaradas');
+
+  const resumoDoCorpo = partesDoCorpo.join(' · ');
+
+  const eixo = (id, rotulo, lista, resumo) => ({
+    id,
+    rotulo,
+    dimensoes: lista,
+    itens: conta(lista),
+    resumo,
+  });
+
+  /* O RESUMO DE UM EIXO DE DIMENSÕES. Sem dimensão nenhuma no PO, a frase diz o que falta; com
+   * dimensões e nenhuma neste eixo, diz que nenhuma caiu aqui — as duas são verdade, e a primeira
+   * é a que evita ler «não caiu aqui» como «o eixo não existe». */
+  const resumoDoEixo = (lista) => {
+    if (nomes(lista).length) {
+      return nomes(lista).join(', ') + ' (' + lista.length
+        + (lista.length === 1 ? ' dimensão' : ' dimensões') + ' · '
+        + conta(lista) + (conta(lista) === 1 ? ' item)' : ' itens)');
+    }
+    return dimensoes.length ? 'nenhuma dimensão do PO cai neste eixo'
+      : 'o PO ainda não declarou dimensões';
+  };
+
+  const tecnica = eixo('tecnica', 'Técnica', porEixo['Técnica'], resumoDoEixo(porEixo['Técnica']));
+  const poiesis = eixo('poiesis', 'Poiesis', porEixo['Poiesis'], resumoDoEixo(porEixo['Poiesis']));
+
+  return [
+    eixo('corpo', 'Corpo', [], resumoDoCorpo),
+    tecnica,
+    poiesis,
+  ];
+}
+
 /**
  * A DESCRIÇÃO DE UMA CÉLULA, PARTIDA EM DUAS (02/11/2026).
  *
@@ -167,34 +330,74 @@ function partirDescricao(texto) {
   return { fixa: t.slice(0, m.index).replace(/\s*\n\s*/g, ' ').trim(), lida: m[1].replace(/\s*\n\s*/g, ' ').trim() };
 }
 
-function distribuicaoDoTempo(estrutura, volume, volumeTotal) {
-  // A distribuição declarada chega na forma da grelha — array de objetos, um por linha.
-  // As duas primeiras colunas são o bloco e a proporção, na ordem em que foram gravadas.
+/**
+ * As linhas da «Distribuição do tempo da aula» (§3 da Aula 01). O BLOCO vem da estrutura
+ * declarada no plano; a FATIA e os TEMPOS vêm das proporções da «Distribuição do volume»,
+ * casadas pelo nome curto do bloco.
+ *
+ * Nada se inventa: a Fatia é a proporção declarada, verbatim, e os Tempos são a aritmética
+ * dela com o volume-alvo (proporção × total ÷ 100) — o produto exacto, para as partes
+ * fecharem no total. Sem bloco correspondente, ou sem percentagem declarada, a célula sai
+ * como lacuna, e não como um número adivinhado.
+ */
+function distribuicaoDoTempo(estrutura, volume, volumeTotal, duracaoMin) {
+  /* A FORMA NOVA (`{unidade, linhas}`) TRAZ A UNIDADE; a antiga é um array de linhas. A unidade
+   * é o que dá sentido a um número sem sinal, e é ela que decide a aritmética dos tempos. */
+  const registado = (volume && !Array.isArray(volume) && typeof volume === 'object') ? volume : null;
+  const unidade = registado && registado.unidade ? String(registado.unidade).trim().toLowerCase() : null;
+  const linhasDoVolume = Array.isArray(volume) ? volume
+    : (registado && Array.isArray(registado.linhas)) ? registado.linhas : [];
+
+  /* AS COLUNAS SÃO PROCURADAS PELO NOME (04/11/2026) — ver `COLUNA_DO_BLOCO`. A posição deixou de
+   * servir no dia em que uma célula vazia encolheu a linha: a coluna seguinte passou a ocupar o
+   * lugar da proporção, e a aula imprimiu a justificativa como fatia. */
   const porBloco = new Map();
-  if (Array.isArray(volume)) {
-    for (const linha of volume) {
-      if (!linha || typeof linha !== 'object' || Array.isArray(linha)) continue;
-      const valores = Object.values(linha);
-      const nome = String(valores[0] == null ? '' : valores[0]).trim();
-      if (!nome) continue;
-      porBloco.set(nome.toLowerCase(), valores[1]);
-    }
+  for (const linha of linhasDoVolume) {
+    if (!linha || typeof linha !== 'object' || Array.isArray(linha)) continue;
+    const celulaDoNome = valorDaColuna(linha, COLUNA_DO_BLOCO);
+    const nome = String(celulaDoNome === undefined
+      ? (Object.values(linha)[0] == null ? '' : Object.values(linha)[0])
+      : celulaDoNome).trim();
+    if (!nome) continue;
+    const celula = valorDaColuna(linha, COLUNA_DA_PROPORCAO);
+    porBloco.set(chaveNormalizada(nome), celula);
   }
+
   const linhas = [];
   for (const bloco of estrutura) {
-    const proporcao = porBloco.get(nomeDoBloco(bloco).toLowerCase());
-    const percentagem = percentagemDaProporcao(proporcao);
-    const tempos = percentagem !== null && volumeTotal
-      ? numeroEmPortugues((percentagem / 100) * volumeTotal)
+    const nome = nomeDoBloco(bloco);
+    const celula = porBloco.get(chaveNormalizada(nome));
+    const proporcao = proporcaoDaCelula(celula, unidade);
+
+    /* OS TEMPOS, segundo a unidade: uma percentagem é do volume-alvo; uns minutos são da duração
+     * da aula. Sem uma das duas âncoras, o número existe mas os tempos não se podem calcular — e
+     * é a lacuna que o diz, com o motivo, em vez de um número inventado. */
+    let tempos = null;
+    if (proporcao && proporcao.unidade === 'percentual' && volumeTotal) {
+      tempos = numeroEmPortugues((proporcao.valor / 100) * volumeTotal);
+    } else if (proporcao && proporcao.unidade === 'minutos' && duracaoMin && volumeTotal) {
+      tempos = numeroEmPortugues((proporcao.valor / duracaoMin) * volumeTotal);
+    }
+
+    /* A FATIA DIZ A UNIDADE QUE FOI DECLARADA. Em percentual é o que o plano escreveu; em minutos
+     * é o mesmo número com «min» — sem isso, «14» na coluna da fatia ao lado de «27» na dos tempos
+     * lê-se como erro de conta. */
+    const fatia = proporcao
+      ? (proporcao.unidade === 'percentual'
+        ? numeroEmPortugues(proporcao.valor) + '%'
+        : numeroEmPortugues(proporcao.valor) + ' min')
       : null;
-    const fatia = proporcao === null || proporcao === undefined || String(proporcao).trim() === ''
-      ? null
-      : String(proporcao).trim();
-    linhas.push('| ' + bloco.replace(/—.*$/, '').trim() + ' | ' +
-      (tempos || '[Preencher]') + ' | ' + (fatia || '[Preencher]') + ' |');
+
+    /* A LACUNA É ESPECÍFICA, E É DO BLOCO (04/11/2026). O `[Preencher]` genérico escondia de quem
+     * era a decisão: a linha do Expressão sai vazia porque a PROPORÇÃO não foi declarada no plano,
+     * e é lá que se corrige — não na aula. */
+    const falta = '[Preencher: proporção do bloco ' + nome + ' no plano]';
+    linhas.push('| ' + String(bloco).replace(/—.*$/, '').trim() + ' | ' +
+      (tempos || '[Preencher]') + ' | ' + (fatia || falta) + ' |');
   }
   return linhas;
 }
+
 
 
 /**
@@ -382,7 +585,11 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
        * título que passou a dizer o mesmo — dois nomes para a mesma tabela, na mesma secção. */
       corpo.push('| Bloco | Tempos | Fatia |');
       corpo.push('|:--|--:|--:|');
-      for (const linha of distribuicaoDoTempo(estrutura, linhasDaTabela(resp(plano, 'distribuicao-de-volume')), volumeTotal)) {
+      /* A UNIDADE VAI JUNTO (04/11/2026). Aqui passava-se `linhasDaTabela(...)`, que devolve
+       * só as LINHAS — e a unidade é da TABELA, não da linha. Sem ela, uma tabela em minutos não
+       * se distinguia de uma em percentagem, e os tempos não se podiam calcular. A função aceita
+       * as duas formas (o array antigo e o `{unidade, linhas}` de hoje). */
+      for (const linha of distribuicaoDoTempo(estrutura, resp(plano, 'distribuicao-de-volume'), volumeTotal, duracaoMin)) {
         corpo.push(linha);
       }
       corpo.push('| **Total** | **' + (volumeTotal || '[Preencher]') + '** | **100%** |');
@@ -553,27 +760,54 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
    * desfazer. O documento mostra o que a folha vai pedir, um a um.
    *
    * A FONTE É A MESMA DA FOLHA (`dimensoesEItens`): o guia e a captura não podem divergir,
-   * porque são duas leituras do mesmo par dimensão × item. */
+   * porque são duas leituras do mesmo par dimensão × item.
+   *
+   * AS TRÊS FRENTES SÃO A LEITURA (04/11/2026). O guia mostrava todas as dimensões com o prefixo
+   * «Técnica —», inclusive Musicalidade e Expressão, cujo conteúdo é poiésis. O resumo por eixo
+   * (Corpo · Técnica · Poiesis) vem antes, CURTO — é o que a pessoa lê de relance —, e a tabela
+   * item a item fica logo abaixo, que é o detalhe que a folha de captura pede. A síntese é uma
+   * LISTA e não uma tabela de propósito: o contrato extrai UMA tabela por secção (a primeira),
+   * e a segunda — a dos critérios, que é o dado — desaparecia em silêncio. */
   {
     const dims = dimensoesEItens(po);
+    const eixos = eixosDaObservacao(dims, plano, po);
     const corpo = [
       'Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O professor',
       'registra cada item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não',
       'aconteceu · ? não vi · vazio = não observei.',
       '',
-      '| Dimensão | O que se observa |',
-      '|:--|:--|',
+      '**O que se olha, em três frentes.** O corpo é o que a turma mostra de força e flexibilidade',
+      'e o ponto de partida de cada aluna; a técnica e a poiésis são as dimensões do PO, pelo',
+      'bloco da aula em que se observam. O detalhe, um critério por linha, vem na tabela abaixo.',
+      '',
     ];
+    for (const e of eixos) {
+      corpo.push('- **' + e.rotulo + '** — ' + e.resumo + '.');
+    }
+    corpo.push('');
+    corpo.push('| Eixo | Bloco | O que se observa |');
+    corpo.push('|:--|:--|:--|');
     if (dims.length) {
-      for (const d of dims) {
-        if (!d.itens.length) {
-          corpo.push('| ' + d.dimensao + ' | [Preencher: os itens desta dimensão no PO] |');
-          continue;
+      for (const e of eixos) {
+        for (const d of e.dimensoes) {
+          if (!d.itens.length) {
+            corpo.push('| ' + e.rotulo + ' | ' + d.bloco +
+              ' | [Preencher: os itens desta dimensão no PO] |');
+            continue;
+          }
+          for (const item of d.itens) corpo.push('| ' + e.rotulo + ' | ' + d.bloco + ' | ' + item + ' |');
         }
-        for (const item of d.itens) corpo.push('| ' + d.dimensao + ' | ' + item + ' |');
+      }
+      /* A DIMENSÃO QUE NÃO CASOU NENHUM EIXO NÃO DESAPARECE. Hoje `eixosDaObservacao` cobre todos
+       * os blocos (Técnica por omissão), mas a conta abaixo é a que garante que uma dimensão nova
+       * — ou um rótulo noutra forma — não seja engolida em silêncio: o que sobrar é dito. */
+      const mostradas = eixos.reduce((s, e) => s + e.dimensoes.length, 0);
+      if (mostradas < dims.length) {
+        corpo.push('', 'Sem eixo classificado: ' + (dims.length - mostradas) +
+          ' dimensão(ões) do PO — classifique o bloco no mapa dos eixos.');
       }
     } else {
-      corpo.push('| [Preencher] | [Preencher] |');
+      corpo.push('| [Preencher] | [Preencher] | [Preencher] |');
     }
     secao('5. Guia de observação do professor', corpo);
   }
@@ -1603,5 +1837,8 @@ module.exports = {
   derivarHarmonizacao,
   notacaoEscolhida,
   dimensoesEItens,
+  eixosDaObservacao,
+  blocoDaDimensao,
+  eixoDoBloco,
   varrerJuizo,
 };

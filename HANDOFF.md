@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-03T23:03:57-0300`
-Commit atual: `2d017730` — fix(estrutura): o elo em historico/ é exceção declarada, não documento do acervo
+Gerado em: `2026-11-04T17:24:00-0300`
+Commit atual: `72436a94` — fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+72436a94 fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
 2d017730 fix(estrutura): o elo em historico/ é exceção declarada, não documento do acervo
 bf17a628 fix(entrega): ○ e ↻ — os dois glifos do alfabeto que o pdflatex não trazia
 1f7086c7 chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -104,7 +105,6 @@ d91122fc chore(estrutura): regerar os índices derivados
 80dd28e8 chore(estrutura): reancorar a cadeia das fontes alteradas
 fe949b1c chore(estrutura): regerar os índices derivados
 47641799 feat(plano): o plano elicitado vira a fonte do ciclo
-98724756 feat(acervo): envelope/plano-20261103-2200.json
 ```
 
 ## Por professor
@@ -230,97 +230,96 @@ fe949b1c chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 03/11/2026 — A estante mostra um por documento: a proveniência fica inteira, e não se empilha no ecrã
+## 04/11/2026 — A fatia de tempo vem do plano pela coluna certa, e o guia passa a ler as três frentes
 
-**O que motivou.** A pesquisadora ajustou o Plano de Observação três vezes até a geração passar. Do
-lado dela foi **uma** coisa — «ajustei e salvei» —, mas a Área do Professor passou a mostrar **três
-linhas com o mesmo nome**, «Plano de Observação — Balé Nível 1 — Teste 3». Cada gravação nasce um
-envelope, e a listagem era uma linha por envelope: o mecanismo de proveniência — que existe para o
-trabalho não se perder — a aparecer onde ninguém o pediu. A frase dela é a regra: *o professor não
-tem por que entender os bastidores; ele deve ver o estado final*.
+**O que motivou.** Duas coisas que a pesquisadora viu no ciclo da `breu`, e as duas do mesmo lado —
+o documento a dizer menos do que o dado tem:
 
-**O que foi decidido — uma regra, no núcleo, com duas metades.** `porta.vigentesDaFamilia` (puro,
-sem `fs`) devolve os registos **vigentes** e, por id do vigente, os que ele substituiu:
+1. **A fatia do bloco Expressão saía `[Preencher]`.** Ela dizia tê-la preenchido no plano, e a aula
+   mostrava lacuna. Medido no envelope real (`escola/breu/envelopes/plano-20261103-2200.json`):
+   a linha do Expressão foi gravada **sem «Proporção alvo»** — `{Bloco: "Expressão",
+   Justificativa: "Braços"}` —, e as outras três fecham 70% dos 100%. O valor não está lá; **e mesmo
+   que estivesse, a aula não o lia.**
+2. **O guia de observação só falava de técnica.** Todas as dimensões saíam com o prefixo
+   «Técnica —», inclusive Musicalidade e Expressão, cujo conteúdo é poiésis — a medição de
+   02/11/2026 já o tinha dito («poiésis medida com o rótulo da técnica por cima»).
 
-1. **A CADEIA.** Um envelope que outro aponta em `ajuste_de` está substituído. É a proveniência a
-   declarar o sucessor — não é inferência, e é o caso do «ajustar» da tela.
-2. **O CONTEXTO.** Duas tentativas **irmãs** (ambas derivadas do mesmo original, nenhuma sucessora
-   da outra) são a mesma coisa vista duas vezes: fica a mais recente. Era o caso real — cada
-   «ajustar» criava um irmão do primeiro.
+**O que se mediu no motor, e são dois defeitos de verdade.** O primeiro é de **posição**: a
+proporção era lida por `Object.values(linha)[1]`, e a gravação **não escreve célula vazia** — quando
+«Proporção alvo» falta, a coluna seguinte encolhe para o lugar dela e a aula imprime a
+**justificativa** como fatia. Provado com o dado trocado de ordem: a linha `{Bloco, Justificativa,
+"Proporção alvo"}` saía `| Expressão | [Preencher] | Braços |`. O segundo é de **unidade**: o
+conteúdo declara `minutos` como opção (e `percentual` como padrão), e o leitor só conhecia `%` —
+uma tabela em minutos saía com `[Preencher]` em **todos** os tempos, com a fatia certa ao lado.
+Medido: 14 min × 3 blocos davam três lacunas e uma fatia.
 
-**O que NÃO se agrupa, e o teste é que o decidiu.** A chave exige o campo que **identifica** o
-documento. **PO**: o plano observado — e o ciclo vem com ele, porque o plano é de um ciclo. Duas
-observações do mesmo plano são versões (o sistema até recusa um segundo PO para o mesmo plano).
-**Anamnese**: a aluna, e **não** o ciclo — o sistema já a trata como a linha de base do sujeito,
-uma só (`anamneses` e `estadosDasAnamneses` derivam o vigente pelo apelido); pôr o ciclo na chave
-daria duas verdades sobre quem é a aluna. Registos **sem** o campo identificador não se agrupam:
-juntar desconhecidos é a maneira mais fácil de esconder o que é outro.
+**O que foi feito, e é correção de leitura, não de dado.**
 
-**O plano de ensino ficou SEM chave de contexto, e a razão é medida — não é desenho.** A primeira
-versão agrupava-o por (professor, ciclo, turma), e `provar-apagar-da-listagem` ficou **vermelha**
-contra o dado que ela própria monta: dois planos da **mesma** turma e do **mesmo** ciclo, um deles
-observado por um PO e o outro não, são **dois documentos** — e o plano observado desaparecia da
-estante. O plano é identificado pelo que ele **ensina** (o objetivo), e não pela turma; quem o
-substitui é a derivação. Para o plano, a metade 1 basta, e é a única que não esconde nada que o
-professor não tenha substituído.
+- **A coluna é procurada pelo NOME**, tolerante a acentos (`Bloco` / `Proporção alvo`), com o
+  conteúdo como autoridade — a ordem deixou de importar. Sem coluna de proporção identificável, a
+  célula é lacuna; não se adivinha pela posição.
+- **As duas unidades convertem**: percentual × volume-alvo ÷ 100; minutos ÷ duração da aula ×
+  volume-alvo. A fatia em minutos diz a unidade («13,5 min»), para o número não se ler como erro de
+  conta vizinho dos tempos.
+- **A lacuna nomeia o bloco e o sítio**: `[Preencher: proporção do bloco Expressão no plano]` — o
+  genérico escondia de quem era a decisão. E o **plano** passou a dizer a mesma coisa ao pé da
+  tabela («Sem proporção alvo: Expressão. A Aula 01 sai com a fatia e os tempos desse bloco em
+  lacuna»), porque é lá que se corrige.
+- **O guia lê as três frentes**: um **resumo** curto por eixo (Corpo · Técnica · Poiesis) e, logo
+  abaixo, a tabela **item a item** — o detalhe que a folha de captura pede. A síntese é uma LISTA e
+  não uma tabela de propósito: o contrato extrai **uma** tabela por secção (a primeira), e a dos
+  critérios — que é o dado — desaparecia em silêncio.
+- **Nada foi renomeado no dado.** Os rótulos gravados nos POs continuam «Técnica — …», e os
+  `itens-por-dimensao` já gravados referenciam-nos por esse nome (P-03). O guia mostra o **eixo que
+  corresponde ao bloco** e a dimensão pelo **nome do bloco**; a tabela ganha a coluna «Eixo».
 
-**Nada se perde, e a linha diz o que escondeu.** Os envelopes escondidos continuam no acervo,
-legíveis pelo id, com o `ajuste_de` intacto; o índice continua a listá-los; os **estados** do plano
-continuam a derivar de todos (`legado`, `substituido_por`); e a regra de proveniência dos Bastidores
-— que precisa de ver **tudo** — não passou por esta função. A linha que ficou ganha um facto:
-«1 versão anterior guardada» / «2 versões anteriores guardadas». Uma linha que aparece sozinha onde
-havia três, sem uma palavra, faz concluir que o sistema apagou o trabalho.
+**O mapa dos eixos é CANDIDATO, e está declarado como tal.** Barra, Centro e Solo → **Técnica**;
+Musicalidade e Expressão → **Poiesis**; e o resto cai em Técnica, que é exactamente o que o prefixo
+do conteúdo já fazia (nenhuma caixa nova, nenhum «desconhecido»). A taxonomia é **dela** — o
+`REGISTRO.md` de 02/11/2026 di-lo («transformar os três em eixos de primeira classe é da
+pesquisadora») —, e por isso o mapa vive numa constante documentada, não no conteúdo: no dia em que
+ela decidir, o mapa muda de sítio e a função lê-o de lá.
 
-**O que se mediu**, no banco e não no ar (`provar-vigente-na-listagem`, 21 asserções, fixture com o
-caso real):
+**O corpo, e é o que a medição de 02/11 chamou «a costura que falta».** O guia passou a dizer o que a
+turma mostra: os **aspectos físicos** declarados no plano (`aspecto-fisico`, 15 na `breu`), o **ponto
+de partida** de cada aluna (`linha-de-base`) e as **restrições** (`restricoes`). Nada é inventado, e
+o que não existe é dito. **A ligação do corpo ao exercício continua a não existir** — nenhum verbete
+diz o que o movimento exige do corpo —, e o guia não a finge.
 
-| O que | Antes | Depois |
+**O que se mediu.**
+
+| Verificação | Antes | Depois |
 |:--|:--|:--|
-| Os 4 envelopes do PO da `breu` (1 original + 2 irmãos + 1 derivado), na Área do Professor | **3 linhas** com o mesmo nome | **1 linha**, com «2 versões anteriores guardadas» |
-| Outro plano observado | 1 linha | **1 linha** — e não se junta à anterior |
-| Duas anamneses da mesma aluna | 2 linhas | **1** (a mais recente); as **sem sujeito** continuam separadas |
-| Um plano e a sua derivação | 2 linhas | **1** (a derivada) |
-| Dois planos da mesma turma e ciclo, objetivos diferentes | 2 linhas | **2** — a decisão acima, medida |
-| O envelope substituído | — | **continua legível** pelo id, e no índice |
-| `provar-apagar-da-listagem` · `provar-ficha-na-listagem` · `provar-lista-que-falha` · `provar-sujeitos-da-turma` · `provar-acervo-envelopes` · `provar-indice-de-envelopes` · `provar-indice-de-proveniencia` | verdes | **31 · 35 · 39 · 30 · 48 · 44 · 60**, verdes |
-| `check-identidade` · `check-indices` | 20/20 · 14/14 | **20/20 · 14/14** |
-| `provar-listas-sem-repeticao` | **1 falha** (asserção `api/envelopes` pedido uma vez — a estante saiu da porta a 26/10 e a prova não acompanhou) | **a mesma falha**, e é pré-existente: medida na árvore de `HEAD` sem estas alterações |
+| `provar-eixos-e-tempo-da-aula` (**nova**) | — | **TUDO CERTO — 27 asserções** (a coluna pelo nome, as duas unidades, a lacuna nomeada, a prosa não convertida, os três eixos, o corpo, e nenhum item perdido) |
+| A fatia do Expressão na aula da `breu` | `[Preencher] \| Braços` | `[Preencher] \| [Preencher: proporção do bloco Expressão no plano]` — a justificativa deixou de vazar |
+| O plano da `breu` | a célula vazia calada | `> **Sem proporção alvo: Expressão.** … Preencha a coluna «Proporção alvo» acima` |
+| O guia da `breu` | 8 linhas «Técnica — …» | 3 frentes no resumo · 8 linhas no detalhe com a coluna «Eixo» (Técnica 4 · Poiesis 4) |
+| `provar-plano-matriz` · `provar-plano-completo` · `provar-aula-e-plano-legiveis` · `provar-derivados-da-sequencia` | verdes | **52/52 · 18 · 12 · 26** |
+| `gerar-ciclo.sh coqui-de-redinha 01 breu-bale-nivel-1-teste-3` | — | **0 erro(s), 0 aviso(s)**; PDF de 29 páginas com as duas correções dentro (medido no `pdftotext`) |
+| `validar-aula-ciclo` na aula regerada | — | **ok** (9 campos extraídos; 2 provisórios) |
 
-**O que NÃO mudou.** Nenhum envelope é apagado, movido ou reescrito; a fórmula do hash e a cadeia de
-proveniência; os validadores do pacote; as 17 regras e as 22 pétreas; e `porta.resumosDeEnvelopes`,
-que é o que a regra de proveniência dos Bastidores lê — ela continua a ver os planos substituídos,
-que é o lado seguro (recusar apagar o que está vinculado).
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado (`motor/`
+não está na lista). As fontes do ciclo foram **regeradas localmente** para medir e **restauradas**
+depois: quem as escreve é o «Guardar» do PO, e a âncora não muda por esta entrega.
 
-**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado: `motor/`
-não está na lista congelada, e `experimentos/` é bancada (a prova nova entra por `!` no
-`.gitignore`, uma a uma, como as outras).
-
-**Com o quê.** `motor/nucleo/porta.js` (`vigentesDaFamilia`, `chaveDoContexto`) ·
-`motor/servidor/listas-do-acervo.js` (a estante filtra e diz o histórico) ·
-`experimentos/provar-vigente-na-listagem.js` · `experimentos/README.md` · `.gitignore` ·
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` (`distribuicaoDoTempo`, `eixosDaObservacao`,
+`blocoDaDimensao`, `eixoDoBloco`, §3 e §5) · `motor/nucleo/derivar-plano-ciclo.js` (a lacuna dita no
+plano) · `experimentos/provar-eixos-e-tempo-da-aula.js` · `experimentos/README.md` · `.gitignore` ·
 `REGISTRO.md` · `ESTADO-ATUAL.md`.
 
-**O que ainda não está feito, e é dela.** (1) A **estante morta** da porta (`porta/index.html`):
-`pintarFichas`/`carregarFichas` continuam lá e continuam a mostrar uma linha por envelope, mas já
-não desenham nada — o `#lista-fichas` saiu da página a 26/10. Mexer na rota `/api/envelopes` para um
-consumidor que não existe seria superfície sem uso, e por isso não se mexeu; no dia em que a estante
-voltar, a regra é a mesma função. (2) **Sem «ver versões anteriores»**: as versões guardadas só se
-alcançam pelo id do envelope — a lista diz que existem e quantas, e não oferece o caminho. É uma
-decisão de produto, e o desenho (um `details` por linha, ou um selo que abre) não se inventa aqui.
-(3) O **nome** da linha do plano não leva o ciclo: a mesma turma em dois ciclos dá duas linhas de
-nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vigente-na-listagem`). Não
-é defeito desta regra — é de antes —, e corrigi-lo mexe na identidade do cartão.
+**O que ainda não está feito, e é dela.**
+
+1. **A proporção do Expressão no plano da `breu`** — não está declarada, e o sistema não a inventa.
+   O caminho está dito nos dois documentos; quem preenche é ela, e a soma fecha em 100%.
+2. **A taxonomia dos eixos** — o mapa é candidato. Se ela quiser os três como eixos de primeira
+   classe (com campo próprio no PO), isso muda a taxonomia das dimensões e o mapa muda de sítio.
+3. **A explicação do formulário do PO** ainda diz «todas sob o eixo TÉCNICA»
+   (`porta/po/conteudo/po.json`, `dimensoes-de-observacao`). Continua verdadeira sobre o **rótulo**
+   e passou a ser uma segunda leitura ao lado do guia; corrigir a redação é conteúdo, e é dela.
+4. **O corpo ligado ao exercício** — a costura que a medição de 02/11 nomeou continua em falta: o
+   guia diz o que a turma mostra no corpo, e não o que cada movimento exige dele.
 
 ## O que está pendente
-
-## 03/11/2026 — A metodologia é do professor, e não se pergunta duas vezes
-
-(a) **O PO deixou de publicar «Quem escolhe a metodologia»** — a
-linha sai do documento dele na próxima geração; o **plano já gravado** continua a tê-la, porque foi
-elicitado antes desta mudança, e **não se reescreve** (P-03/P-04: acrescenta-se ajuste, não se
-corrige o passado). (b) **«Notação dominada» ficou** no Bloco 1 e continua a perguntar-se: não é a
-mesma coisa que a tradição, e a spec não a nomeia — mas é o próximo candidato natural, e a decisão é
-dela. (c) O que trava agora é só o **PO**, e o conteúdo (0 dos 9 campos).
 
 ## 03/11/2026 — A sequência acompanha os objetivos, e a pergunta era a certa
 
@@ -359,6 +358,19 @@ decisão de produto, e o desenho (um `details` por linha, ou um selo que abre) n
 (3) O **nome** da linha do plano não leva o ciclo: a mesma turma em dois ciclos dá duas linhas de
 nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vigente-na-listagem`). Não
 é defeito desta regra — é de antes —, e corrigi-lo mexe na identidade do cartão.
+
+## 04/11/2026 — A fatia de tempo vem do plano pela coluna certa, e o guia passa a ler as três frentes
+
+
+1. **A proporção do Expressão no plano da `breu`** — não está declarada, e o sistema não a inventa.
+   O caminho está dito nos dois documentos; quem preenche é ela, e a soma fecha em 100%.
+2. **A taxonomia dos eixos** — o mapa é candidato. Se ela quiser os três como eixos de primeira
+   classe (com campo próprio no PO), isso muda a taxonomia das dimensões e o mapa muda de sítio.
+3. **A explicação do formulário do PO** ainda diz «todas sob o eixo TÉCNICA»
+   (`porta/po/conteudo/po.json`, `dimensoes-de-observacao`). Continua verdadeira sobre o **rótulo**
+   e passou a ser uma segunda leitura ao lado do guia; corrigir a redação é conteúdo, e é dela.
+4. **O corpo ligado ao exercício** — a costura que a medição de 02/11 nomeou continua em falta: o
+   guia diz o que a turma mostra no corpo, e não o que cada movimento exige dele.
 
 ## Pendências anteriores (índice)
 
@@ -702,6 +714,7 @@ nome igual, distinguidas só no painel da caixa «Turma» (medido no `provar-vig
 - **03/11/2026** — A curadoria chegou ao plano, e o que a travava era um nome… → `REGISTRO.md` L33165
 - **03/11/2026** — A curadoria só oferece o que tem notação, os rótulos… → `REGISTRO.md` L33235
 - **03/11/2026** — O dono da música não é compasso → `REGISTRO.md` L33320
+- **03/11/2026** — A metodologia é do professor, e não se pergunta duas vezes → `REGISTRO.md` L33382
 - PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

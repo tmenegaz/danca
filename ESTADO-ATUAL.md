@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 03/11/2026 (base `2d01773`, árvore limpa). Nesta entrega, **a estante mostra
+> **Última fotografia:** 04/11/2026 (base `72436a9`, árvore limpa). Nesta entrega, **a fatia de tempo
+> de cada bloco vem do plano pela coluna certa, e o guia lê as três frentes**. Duas coisas que a
+> pesquisadora viu no ciclo da `breu`. (1) A fatia do bloco **Expressão** saía `[Preencher]` — e o
+> motor tinha dois defeitos medidos: a proporção era lida pela **posição** da coluna, e a gravação
+> não escreve célula vazia, de modo que a **justificativa** escorregava para o lugar da fatia quando
+> «Proporção alvo» faltava; e a unidade **`minutos`** não se sabia ler (saía lacuna em todos os
+> tempos, com a fatia certa ao lado). Agora a coluna é procurada pelo **nome**, as duas unidades
+> convertem, e a lacuna **nomeia o bloco e o sítio** («proporção do bloco Expressão no plano») — e o
+> próprio plano diz o mesmo ao pé da tabela. Sobre o valor: **ele não está no envelope** — a linha foi
+> gravada sem proporção, e o sistema não a inventa. (2) O **guia de observação** imprimia tudo com o
+> prefixo «Técnica —», inclusive Musicalidade e Expressão, que são poiésis. Passa a ter um **resumo
+> por eixo** — **Corpo** (aspectos físicos do plano, ponto de partida e restrições), **Técnica**
+> (Barra, Centro) e **Poiesis** (Musicalidade, Expressão) — e, abaixo, a tabela **item a item**, o
+> detalhe que a folha de captura pede. **Nada foi renomeado no dado** (P-03), e o mapa dos eixos é
+> **candidato**, declarado como tal. Prova nova: `provar-eixos-e-tempo-da-aula`, **27 asserções**.
+>
+> **Entrega anterior** (base `2d01773`, árvore limpa). Nesta entrega, **a estante mostra
 > um documento por linha**. O professor ajustou o Plano de Observação três vezes até a geração
 > passar, e a Área do Professor passou a mostrar **três linhas com o mesmo nome** — uma por envelope,
 > que é o mecanismo de proveniência a aparecer no ecrã. A regra passou a ser **uma, do núcleo**
@@ -1612,6 +1628,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     se apagam nem se movem: continuam legíveis, no índice, e os **estados** e a regra de proveniência
     dos Bastidores continuam a derivar de todos. A linha diz quantas versões guardou. **DECIDIDO por
     ela** («o professor não tem por que entender os bastidores») **e implementado** 03/11/2026.
+80. **A FATIA DE TEMPO LÊ-SE PELA COLUNA, E O GUIA TEM AS TRÊS FRENTES.** Duas correções de leitura.
+    (1) A proporção de cada bloco era lida por `Object.values(linha)[1]`, e a gravação não escreve
+    célula vazia — quando «Proporção alvo» falta, a justificativa ocupa o lugar dela e a aula
+    imprime «Braços» como fatia. A coluna passa a ser procurada pelo **nome** (tolerante a acentos),
+    as unidades **percentual** e **minutos** convertem nos mesmos tempos, a fatia em minutos diz a
+    unidade, e a lacuna **nomeia o bloco e o sítio** — e o plano diz o mesmo ao pé da tabela. (2) O
+    guia de observação lia tudo como «Técnica —»; passa a ter o **resumo por eixo** — **Corpo**
+    (aspectos físicos do plano, ponto de partida, restrições), **Técnica** (Barra, Centro) e
+    **Poiesis** (Musicalidade, Expressão) — com a tabela **item a item** logo abaixo. Nenhum rótulo
+    do dado foi renomeado (P-03), e **o mapa dos eixos é candidato**, não taxonomia decidida: ele é
+    dela, e o mapa vive numa constante documentada até ela decidir o lugar definitivo. **DECIDIDO
+    por ela** («o guia contempla as três dimensões»; «a fatia está no plano») **e implementado**
+    04/11/2026.
 
 ## 7. Trabalho em andamento
 
@@ -2241,7 +2270,20 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (03/11/2026 — a estante mostra um por documento)
+### Executado nesta fotografia (04/11/2026 — a fatia de tempo e as três frentes do guia)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-eixos-e-tempo-da-aula` (**nova**) | **TUDO CERTO — 27 asserções**: a coluna da proporção lida pelo NOME (a linha com as colunas trocadas dá a mesma fatia), `minutos` e `percentual` com os mesmos tempos, a lacuna a nomear o bloco, a prosa não convertida, os três eixos (o prefixo «Técnica —» não decide), o corpo das três fontes e **nenhum item do PO perdido** |
+| Aula da `breu`, regerada com o motor de hoje | `Expressão \| [Preencher] \| [Preencher: proporção do bloco Expressão no plano]` — a justificativa deixou de vazar para a fatia |
+| Plano da `breu`, regerado | `> **Sem proporção alvo: Expressão.** … Preencha a coluna «Proporção alvo» acima` |
+| Guia da `breu` | resumo de 3 frentes (Corpo 15 aspectos · Técnica 2 dimensões/4 itens · Poiesis 2 dimensões/4 itens) + tabela de 8 linhas com a coluna «Eixo» |
+| `gerar-ciclo.sh coqui-de-redinha 01 breu-bale-nivel-1-teste-3` | **0 erro(s), 0 aviso(s)**; PDF de 29 páginas com as duas correções dentro (`pdftotext`) |
+| `validar-aula-ciclo` na aula regerada | **ok** — 9 campos extraídos, 2 provisórios |
+| `provar-plano-matriz` · `provar-plano-completo` · `provar-aula-e-plano-legiveis` · `provar-derivados-da-sequencia` | **52/52 · 18 · 12 · 26** — verdes |
+| **o que NÃO mede** | `provar-aula-prosa` · `provar-escopo-da-aula` · `provar-cabecalho-do-documento` — a primeira e a segunda apontam fixturas de escolas expurgadas (`batata`); a terceira exige um pacote gerado, que o repositório não guarda. As três falham na árvore de `HEAD` sem estas alterações |
+
+### Executado na fotografia anterior (03/11/2026 — a estante mostra um por documento)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3175,6 +3217,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **A fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes.**
+  Dois defeitos medidos no motor: a proporção era lida pela **posição** da coluna — e a gravação não
+  escreve célula vazia, de modo que a **justificativa** ocupava o lugar da fatia quando «Proporção
+  alvo» faltava —, e a unidade **`minutos`** não se sabia ler (lacuna em todos os tempos, com a
+  fatia certa ao lado). A coluna passa a ser procurada pelo **nome**, as duas unidades convertem, e
+  a lacuna **nomeia o bloco e o sítio**; o plano diz o mesmo ao pé da tabela. O valor do Expressão
+  **não está no envelope da `breu`** — a linha foi gravada sem proporção, e o sistema não a inventa.
+  O **guia de observação** passa a ter o resumo por eixo (**Corpo** · **Técnica** · **Poiesis**) e a
+  tabela item a item logo abaixo; nenhum rótulo do dado foi renomeado, e o mapa dos eixos é
+  **candidato**. Prova nova: `provar-eixos-e-tempo-da-aula`, 27 asserções.
 
 - **03/11/2026** — **A estante mostra um por documento.** Três ajustes do Plano de Observação viravam
   três linhas com o mesmo nome na Área do Professor — uma por envelope. A regra passou a ser uma, do

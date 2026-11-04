@@ -609,3 +609,12 @@ experimentos/modelo-formulario/*
 # linha diz que guardou — é medida aqui, e é ela que fixa que nada se perde: os envelopes escondidos
 # continuam legíveis e o índice continua a listá-los. Citada no `REGISTRO.md`.
 !experimentos/provar-vigente-na-listagem.js
+
+# AS TRÊS FRENTES DO GUIA E A FATIA DE TEMPO (04/11/2026). A fatia do bloco Expressão saía
+# `[Preencher]` por duas razões medidas: a proporção era lida pela POSIÇÃO da coluna — e uma célula
+# vazia encolhe a linha, fazendo a justificativa ocupar o lugar da fatia —, e a unidade `minutos`
+# não se sabia ler (saía lacuna em todos os tempos, com a fatia certa ao lado). E o guia de
+# observação só falava de técnica: Musicalidade e Expressão, que são poiésis, saíam com o prefixo
+# «Técnica —». Esta prova fixa as duas correções e a regra de que nada se perde — todo item do PO
+# continua na tabela, uma linha cada. Citada no `REGISTRO.md`.
+!experimentos/provar-eixos-e-tempo-da-aula.js

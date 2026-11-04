@@ -613,13 +613,33 @@ function derivarPlano(envelope) {
         ? 'A proporção alvo é a fatia da aula — a soma fecha em 100%.'
         : 'A proporção alvo é o tempo de aula na unidade declarada — a soma fecha com a duração da aula.')]
     : [];
+  /* OS BLOCOS SEM PROPORÇÃO DECLARADA, DITOS NO PLANO (04/11/2026). A linha do Expressão da `breu`
+   * foi gravada sem «Proporção alvo», e a lacuna só aparecia — genérica — na Aula 01. O plano é o
+   * sítio onde se corrige, e é aqui que ela é nomeada: uma célula vazia numa tabela de seis colunas
+   * passa despercebida, e a aula não sabe inventar o número. As colunas vêm do próprio dado (a
+   * grelha grava a chave de cada uma), e não de uma posição. */
+  const semProporcao = [];
+  for (const linha of linhasDaTabela(volume)) {
+    if (!linha || typeof linha !== 'object' || Array.isArray(linha)) continue;
+    const chaves = Object.keys(linha).filter((k) => !String(k).startsWith('_'));
+    const doBloco = chaves.find((k) => /^bloco/i.test(String(k).trim()));
+    const daProporcao = chaves.find((k) => /propor|fatia|percent|porcent/i.test(String(k)));
+    const bloco = String(doBloco === undefined ? (Object.values(linha)[0] || '') : linha[doBloco]).trim();
+    if (!bloco || daProporcao === undefined) { if (bloco) semProporcao.push(bloco); continue; }
+    if (!String(linha[daProporcao] == null ? '' : linha[daProporcao]).trim()) semProporcao.push(bloco);
+  }
+  const notarLacuna = semProporcao.length
+    ? ['', '> **Sem proporção alvo: ' + semProporcao.join(', ') + '.** '
+      + 'A Aula 01 sai com a fatia e os tempos desse bloco em lacuna — e não com um número '
+      + 'adivinhado. Preencha a coluna «Proporção alvo» acima, no bloco indicado.']
+    : [];
   secao(
     'Blocos da aula e distribuição do volume',
     tabelaDeLista(
       linhasDaTabela(volume),
       '| Bloco | Proporção alvo | Justificativa |',
       '|:--|:--|:--|',
-    ).concat(notarUnidade).concat([
+    ).concat(notarUnidade).concat(notarLacuna).concat([
       '',
       '> **A estrutura da aula — e o padrão do ciclo.** Estes são os blocos que a AULA tem e a',
       '> fatia de cada um. O plano declara o padrão de onde cada aula parte; a aula que tiver',
