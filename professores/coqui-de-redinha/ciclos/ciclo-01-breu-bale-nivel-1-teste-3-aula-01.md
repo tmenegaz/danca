@@ -32,7 +32,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Barra | 27 | 30% |
 | Centro | 27 | 30% |
 | Musicalidade | 9 | 10% |
-| Expressão | [Preencher] | Braços |
+| Expressão | 27 | 30% |
 | **Total** | **90** | **100%** |
 
 ## 4. Bloco de musicalidade
@@ -52,16 +52,24 @@ Os itens abaixo vêm de **Itens de cada dimensão** no Plano de Observação. O 
 registra cada item por aluna na Captura para impressão: ✓ aconteceu · ~ parcial · X não
 aconteceu · ? não vi · vazio = não observei.
 
-| Dimensão | O que se observa |
-|:--|:--|
-| Técnica — Barra | saída do calcanhar no tendu |
-| Técnica — Barra | quadril sem subir no en dehors |
-| Técnica — Centro | transferência de peso sem perder a verticalidade |
-| Técnica — Centro | braço junto do movimento |
-| Técnica — Musicalidade | resposta ao pulso na marcação |
-| Técnica — Musicalidade | frase até o fim da música |
-| Técnica — Expressão | olhar acompanha o braço |
-| Técnica — Expressão | presença sem rigidez de rosto |
+**O que se olha, em três frentes.** O corpo é o que a turma mostra de força e flexibilidade
+e o ponto de partida de cada aluna; a técnica e a poiésis são as dimensões do PO, pelo
+bloco da aula em que se observam. O detalhe, um critério por linha, vem na tabela abaixo.
+
+- **Corpo** — 15 aspectos físicos declarados no plano · ponto de partida de 1 aluna · sem restrições declaradas.
+- **Técnica** — Barra, Centro (2 dimensões · 4 itens).
+- **Poiesis** — Musicalidade, Expressão (2 dimensões · 4 itens).
+
+| Eixo | Bloco | O que se observa |
+|:--|:--|:--|
+| Técnica | Barra | saída do calcanhar no tendu |
+| Técnica | Barra | quadril sem subir no en dehors |
+| Técnica | Centro | transferência de peso sem perder a verticalidade |
+| Técnica | Centro | braço junto do movimento |
+| Poiesis | Musicalidade | resposta ao pulso na marcação |
+| Poiesis | Musicalidade | frase até o fim da música |
+| Poiesis | Expressão | olhar acompanha o braço |
+| Poiesis | Expressão | presença sem rigidez de rosto |
 
 ## 6. Proveniência consolidada
 
