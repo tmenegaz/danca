@@ -33981,3 +33981,52 @@ glifo que fez esta entrada é um script de bancada, e não está no repositório
 alteração de comportamento e é decisão dela. (2) O pacote da `breu` foi **regerado localmente** e não
 está commitado — quem fecha o ciclo é a workflow `gerar-ciclo`, que ainda não foi disparada de novo.
 
+## 03/11/2026 — O elo em `historico/` não é documento do acervo, e a verificação 8 exigia casa
+
+**O que motivou.** O «Guardar» do PO da `breu` (03/11/2026, 22:21) fez o que sempre fez quando o PO
+muda: as fontes derivadas foram regeradas e **a versão substituída virou elo**, em `historico/`, com
+o carimbo de quem a substituiu no nome — `…-dados.antes-de-po-20261103-2221.json`. O elo foi
+commitado, e a geração seguinte (`gerar-ciclo`, run 41753495922) morreu **antes** de gerar:
+
+```
+✗  8. Declaração — 1 falha(s)
+     …/ciclos/historico/ciclo-01-breu-bale-nivel-1-teste-3-dados.antes-de-po-20261103-2221.json:
+     sem tipo declarado
+FALHOU — 1 falha(s) em 1 verificação(ões).
+```
+
+**Não era defeito do elo — era o vocabulário que não o conhecia.** `escrever-ciclo.js` escreve-o
+**de propósito** fora do alcance de quem varre a pasta (dois scripts derivam NÚMERO do nome, e um
+`…-aula-01.antes-de-po-…md` leria a aula 1108), e a proveniência que ele guarda **não é a do acervo**:
+ele não entra na âncora nem no pacote. A verificação 8, porém, é do tipo tudo-ou-nada — todo arquivo
+sob `professores/` casa um tipo declarado **ou uma exceção declarada**, e o elo não era nenhum dos
+dois. Era o único arquivo do acervo sem casa.
+
+**O que foi decidido — e por que `ignorados[]`, e não um tipo novo.** Um tipo `elo` poria o arquivo a
+aparecer em `ciclos[].documentos` e em `ciclos[].tipos`, o que **publica como entregável uma versão
+vencida** — o contrário do que o escritor documenta. O índice descreve o ESTADO; um elo é aquilo que
+o estado deixou de ser, e a cadeia dele é o `git log` (e a âncora, que certifica o que ele
+substituiu). `ignorados[]` existe exactamente para isto: «o que o índice **não** descreve, cada um com
+o motivo declarado». O padrão é estreito de propósito — `/ciclos/historico/[^/]+$` —, e não uma
+varredura por nome de arquivo.
+
+**O que se mediu, no banco e não no ar.**
+
+| Verificação | Antes | Depois |
+|:--|:--|:--|
+| `check-indices`, com o elo da `breu` no lugar | **FALHOU — 1 falha (§8)** | **TUDO CERTO — 14 verificações, 0 falhas** |
+| Controle negativo: o mesmo arquivo **fora** de `historico/` (`…-dados.antes-de-po-…-9999.json` ao lado das fontes) | — | **continua a falhar** «sem tipo declarado» — a exceção é do sítio, não do nome |
+| `indices/` regenerado com o elo presente | — | **o elo não entra**: zero ocorrências de `historico` nos três índices, e só os voláteis (`gerado_em`, `fonte.commit`) mudam |
+| `check-indices` na árvore de `HEAD`, sem o elo | **TUDO CERTO** | **TUDO CERTO** — nenhuma regressão |
+
+**Motivo declarado — os congelados.** **Nenhum** ficheiro de `CONGELAMENTO.md` foi tocado:
+`indices/esquema/tipos.json` é FONTE escrita à mão (o `PLANO-INDICES.md` §4.1 diz-o), e não está na
+lista congelada. `tools/check-indices.js` — que está — **não foi alterado**: a verificação 8 já
+admitia a exceção declarada, e o que faltava era a exceção.
+
+**Com o quê.** `indices/esquema/tipos.json` · `REGISTRO.md`.
+
+**O que ainda não está feito.** O elo entra no repositório por um caminho que **nenhuma verificação
+antecede**: quem o escreve é o Worker, e o «Guardar» não roda o `check-indices` antes de commitar — a
+falha só apareceu na geração seguinte. Rodar o `check-indices` **depois** da escrita, no sítio que
+regera os índices, fecharia o intervalo; é alteração de fluxo e é decisão dela.

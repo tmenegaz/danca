@@ -143,6 +143,11 @@
   ],
   "ignorados": [
     {
+      "id": "elo-de-proveniencia",
+      "padrao": "/ciclos/historico/[^/]+$",
+      "motivo": "o ELO de uma fonte substituída — a versão que o «Guardar» do PO (ou do plano) arquivou em `historico/`, com o carimbo de quem a substituiu no nome (`…-dados.antes-de-po-20261103-2221.json`, `…-aula-01.antes-de-po-20261022-1108.md`). Não é FONTE: `motor/servidor/escrever-ciclo.js` põe-no fora do alcance de quem varre a pasta, e ele não entra na âncora nem no pacote. Nem é documento do acervo: o índice descreve o ESTADO, e um elo é aquilo que o estado deixou de ser — a cadeia dele é o `git log`, e a âncora já certifica o que ele substituiu. Declará-lo documento faria o índice publicar uma versão VENCIDA como se fosse entregável. Medido a 03/11/2026: o primeiro elo commitado (o do «Guardar» do PO da `breu`) deixou a verificação 8 vermelha com «sem tipo declarado», e era o único arquivo do acervo sem casa"
+    },
+    {
       "id": "readme",
       "padrao": "/README\\.md$",
       "motivo": "texto de orientação de pasta, não documento do acervo"
