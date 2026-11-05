@@ -20,6 +20,31 @@
   var navbar = document.querySelector('.topnav');
   var botao = document.querySelector('.hamburger');
 
+  /* A FOLHA EXISTE — DIZ-SE NO `<html>`, SEM `:has()` (04/11/2026).
+   *
+   * O LAYOUT DA COLUNA DEPENDE HOJE DE `body:has(> .coluna)`, e `:has()` não existe em todo o
+   * lado: Firefox só a teve na 121 (Dez/2023), e o ESR 115 — que muitas instituições ainda
+   * correm — não a tem. Num desses navegadores as três regras que fazem a página caber ao lado da
+   * coluna NÃO se aplicam, e o resultado foi medido: a barra fica em `left: 0`, a coluna
+   * (`z-index: 21`) cobre-lhe os primeiros 248px, e **o primeiro item do menu deixa de receber o
+   * clique** — o `elementFromPoint` devolve a marca da coluna em vez do link. É o «os cliques não
+   * respondem» que a pesquisadora descreveu, igual nas três telas de formulário.
+   *
+   * A correção não pode depender de `:has()` para existir. O JS já corre em todas estas páginas
+   * (é ele que publica o `--header-height`, abre o ☰ e guarda o tema), e a coluna é marcação
+   * estática: quando ela está no documento, escreve-se o atributo e o CSS tem um segundo caminho.
+   * O `:has()` fica — para quem o tem, a regra vale antes deste script correr, e não há salto.
+   */
+  if (document.querySelector('aside.coluna')) {
+    document.documentElement.setAttribute('data-tem-coluna', 'sim');
+  }
+  /* E O MESMO PARA A `lateral` DA PRODUÇÃO: onde ela existe, a coluna do sistema sai de cena e a
+   * barra volta a `left: 0`. Sem `:has()`, essa regra também não valeria — e ficariam duas colunas
+   * lado a lado, que é o defeito que a regra existe para evitar. */
+  if (document.querySelector('.lateral')) {
+    document.body.setAttribute('data-tem-lateral', 'sim');
+  }
+
   /* ------------------------------------------------------------------
    * O TEMA. A escolha é EXPLÍCITA e fica no NAVEGADOR (`localStorage`), entre
    * sessões. Isto é PROVISÓRIO e declarado: a decisão C15 — de quem é a

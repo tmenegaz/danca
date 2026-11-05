@@ -12,10 +12,14 @@
 > referencia um PO — o ciclo gerado guarda a sua cópia —, por isso não existe aqui a trava «está
 > vinculado». (2) Bancada nova `provar-menu-do-formulario` (**36**, Chrome): a primeira a medir a
 > barra e a coluna **com o menu aplicado** — as outras servem a porta crua, sem `<nav>`, e é por isso
-> que nunca viram o defeito. (3) **Os dois sintomas de menu esbatido e de conteúdo a rolar por cima
-> do cabeçalho NÃO se reproduziram** em 1280px nem em 390px, com o formulário aberto e a página
-> rolada; fica declarado, e a bancada fica para os apanhar quando aparecerem. Prova nova:
-> `provar-apagar-da-listagem` **43** e `provar-menu-do-formulario` **36**.
+> que nunca viram o defeito. (3) **A causa dos dois sintomas de menu: `:has()`.** O layout da coluna
+> dependia de `body:has(> .coluna)`, e o Firefox só a teve na 121 — o ESR 115 não a tem. Sem ela, a
+> barra fica em `left: 0`, a coluna (`z-index: 21`) cobre-lhe os primeiros 248px e **o primeiro item
+> do menu deixa de receber o clique** (medido: o `elementToPoint` devolve a marca da coluna). O
+> `nav.js` passa a escrever `data-tem-coluna="sim"` no `<html>`, e a folha ganha as mesmas regras em
+> **regras separadas** — pô-las na mesma lista de seletores faria o navegador sem `:has()` descartar
+> a lista inteira, remendo incluído. Prova: `provar-menu-do-formulario` **40** (secção E, com
+> controlo negativo: removido o atributo, o defeito volta) e `provar-apagar-da-listagem` **43**.
 >
 > **Entrega anterior** (árvore limpa). Nesta entrega, **os dois planos passam a ter
 > dois nomes**: o do ciclo é «Plano do Ciclo NN» e o de cada aula é **«Plano para a Aula NN —
@@ -2069,6 +2073,14 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      referencia um PO** — o ciclo gerado guarda a sua própria cópia (`po-01.json`, `-po.md`) —, e é
      por isso que a trava «está vinculado», que o plano de ensino tem, não existe aqui. **DECIDIDO e
      implementado** 04/11/2026.
+
+107. **O LAYOUT DA COLUNA NÃO DEPENDE SÓ DE `:has()`.** As cinco regras que põem a barra ao lado da
+     coluna, dão os 248px de margem ao `body` e trocam a lista pelo ☰ existem **duas vezes**: com
+     `body:has(> .coluna)` e com `[data-tem-coluna="sim"]`, escrito pelo `assets/nav.js`. `:has()`
+     não existe no Firefox ESR 115, e sem ela o menu deixa de receber cliques (a coluna cobre os
+     primeiros 248px da barra) — medido. **As duas versões ficam em REGRAS SEPARADAS**: um seletor
+     inválido numa lista descarta a lista inteira, e o remendo cairia com ela. `:has()` mantém-se
+     onde existe, para a regra valer antes de o script correr. **DECIDIDO e implementado** 04/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

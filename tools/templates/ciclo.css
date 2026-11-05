@@ -878,8 +878,21 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 @media (max-width: 1140px) {
   body:has(> .coluna) .topnav .hamburger { display: block; }
   body:has(> .coluna) .topnav .nav-links { display: none; }
+  /* AS MESMAS DUAS, EM REGRAS SEPARADAS — e a separação é o ponto. Um navegador que não conhece
+     `:has()` **descarta a lista de seletores inteira** quando um dos membros é inválido, e a
+     alternativa `[data-tem-coluna="sim"]` cairia com ela. Duas regras é a forma de o segundo
+     caminho sobreviver a um navegador que não entende o primeiro. */
+  [data-tem-coluna="sim"] .topnav .hamburger { display: block; }
+  [data-tem-coluna="sim"] .topnav .nav-links { display: none; }
 }
 
+/* A COLUNA, QUANDO ELA EXISTE — POR DUAS PORTAS (04/11/2026).
+   O `body:has(> .coluna)` responde «esta página tem folha?», e é a pergunta certa. Mas `:has()`
+   não existe em todo o lado — Firefox só a teve na 121 (Dez/2023), e o ESR 115 não a tem —, e
+   num desses navegadores estas regras simplesmente não valem: a barra fica em `left: 0`, a coluna
+   cobre-lhe os primeiros 248px, e o menu deixa de receber cliques (medido: o `elementFromPoint`
+   devolve a marca da coluna). O `assets/nav.js` escreve `data-tem-coluna="sim"` no `<html>` quando
+   encontra a coluna, e o seletor ao lado é o mesmo contrato sem depender de `:has()`. */
 /* A COLUNA, NO COMPUTADOR. O corte é o de 1140 — o mesmo em que o `.conteudo` deixa de ter as
    duas colunas —, e não um número novo: abaixo dele a página é estreita de mais para pagar
    248 px sem espremer o texto. */
@@ -942,6 +955,9 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
      menu lateral (a ficha, um estado) ficaria com 248 px de margem vazia. */
   body:has(> .coluna) { padding-left: 248px; }
   body:has(> .coluna) .topnav { left: 248px; }
+  /* em regras separadas, pelo mesmo motivo do ☰ (ver acima) */
+  [data-tem-coluna="sim"] body { padding-left: 248px; }
+  [data-tem-coluna="sim"] .topnav { left: 248px; }
 
   /* ONDE A PÁGINA TEM A SUA PRÓPRIA COLUNA, A DO SISTEMA NÃO SE MOSTRA (23/10/2026).
    *
@@ -962,8 +978,13 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
    * pendurada no `body`. Com `> .lateral` a regra não pegava em nada — e o sintoma era o pior
    * possível, porque silencioso: duas colunas à vista e 248px de margem, sem erro nenhum. */
   body:has(.lateral) > .coluna { display: none; }
+  body[data-tem-lateral="sim"] > .coluna { display: none; }
   body:has(.lateral) { padding-left: 0; }
   body:has(.lateral) .topnav { left: 0; }
+  /* o mesmo par, sem `:has()` — e DEPOIS dele: a especificidade é igual, e quem decide é a ordem.
+   * Sem estas duas, um navegador antigo escondia a coluna mas deixava os 248px de margem vazia. */
+  body[data-tem-lateral="sim"] { padding-left: 0; }
+  body[data-tem-lateral="sim"] .topnav { left: 0; }
 }
 
 /* ---------- cabeçalho, conteúdo e títulos ---------- */

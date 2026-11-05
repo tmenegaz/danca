@@ -489,6 +489,64 @@ function servirPorta(base) {
       const fora = (rolado.sondaDaFaixa || []).filter((p) => p.dentroDaBarra !== true);
       provar('os cinco pontos da faixa da barra são da barra (nada pinta por cima do cabeçalho)',
         fora.length === 0, fora);
+
+      /* A COLUNA SÓ EXISTE AO LADO DA BARRA ACIMA DE 1140 — abaixo disso ela é a folha, e a
+       * barra ocupa a largura toda. A simulação mede o caso em que o defeito aparece. */
+      if (largura >= 1141) {
+    /* ----------------------------------------------------------------------------------- */
+    console.log('\nE. UM NAVEGADOR SEM `:has()` — o menu continua a responder?');
+    /* ----------------------------------------------------------------------------------- */
+    /* O DEFEITO REPRODUZIDO, e a razão de ele passar por todas as bancadas.
+     *
+     * O layout da coluna dependia de `body:has(> .coluna)`, e `:has()` não existe em todo o lado
+     * — Firefox só a teve na 121 (Dez/2023), e o ESR 115 não a tem. Sem ela, a barra fica em
+     * `left: 0`, a coluna (`z-index: 21`) cobre-lhe os primeiros 248px, e **o primeiro item do
+     * menu deixa de receber o clique**: o `elementFromPoint` devolve a marca da coluna. É o «os
+     * cliques não respondem», igual nas três telas de formulário.
+     *
+     * A simulação é FIEL: as regras com `:has(` são desactivadas no próprio CSSOM (troca-se o
+     * `selectorText` por um que não casa), e não sobrepostas com `!important` — sobrepor seria uma
+     * segunda diferença, inventada por quem mede. */
+      const semHas = await page.evaluate(() => {
+      let n = 0;
+      const andar = (regras) => {
+        for (let i = regras.length - 1; i >= 0; i--) {
+          const r = regras[i];
+          if (r.cssRules) andar(r.cssRules);
+          if (r.selectorText && r.selectorText.indexOf(':has(') !== -1) {
+            r.selectorText = '.nao-casa-' + i;
+            n++;
+          }
+        }
+      };
+      for (let i = 0; i < document.styleSheets.length; i++) {
+        try { andar(document.styleSheets[i].cssRules); } catch (e) { /* folha opaca */ }
+      }
+      return n;
+    });
+      provar('havia regras com `:has()` a desactivar (senão não se está a medir nada)',
+      semHas > 0, semHas);
+      await new Promise((r) => setTimeout(r, 200));
+      const mSemHas = await page.evaluate(MEDIR);
+      provar('sem `:has()`, a barra continua ao lado da coluna (left = 248)',
+      mSemHas.barra.x === 248, mSemHas.barra.x);
+      provar('sem `:has()`, o primeiro link do menu CONTINUA a receber o clique',
+      Boolean(mSemHas.linkDaBarra) && mSemHas.linkDaBarra.acertaOAlvo === true,
+      mSemHas.linkDaBarra);
+
+    /* O CONTROLO NEGATIVO: sem o atributo que o `nav.js` escreve, o caminho alternativo também
+     * não existe — e o defeito volta. Sem esta asserção, o «passou» acima podia ser do `:has()`
+     * que eu não consegui desactivar, e não do remendo. */
+      await page.evaluate(() => document.documentElement.removeAttribute('data-tem-coluna'));
+      await new Promise((r) => setTimeout(r, 150));
+      const semNada = await page.evaluate(MEDIR);
+      provar('…e sem o atributo do `nav.js` o defeito VOLTA (o remendo é que salva, não o acaso)',
+      semNada.barra.x === 0 && Boolean(semNada.linkDaBarra) && semNada.linkDaBarra.acertaOAlvo === false,
+      { x: semNada.barra.x, link: semNada.linkDaBarra });
+
+
+      }
+
     }
     /* ----------------------------------------------------------------------------------- */
     console.log('\nA PÁGINA DO FORMULÁRIO (a porta), com o menu aplicado');

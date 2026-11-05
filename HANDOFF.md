@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T00:05:15-0300`
-Commit atual: `69b6ccae` — fix(estrutura): os dois planos passam a ter dois nomes
+Gerado em: `2026-11-05T00:19:44-0300`
+Commit atual: `37c1fbfe` — feat(estrutura): o PO apaga-se, e o menu dos formularios ganha bancada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+37c1fbfe feat(estrutura): o PO apaga-se, e o menu dos formularios ganha bancada
 69b6ccae fix(estrutura): os dois planos passam a ter dois nomes
 73ef1683 fix(estrutura): a aula deriva do plano, e a origem do corpo fica provada no envelope real
 af0e8267 fix(estrutura): o corpo tem uma fonte so — o detalhe na Aula 1, o ponteiro no plano
@@ -104,7 +105,6 @@ d62b8195 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-t
 2fdc5deb feat(po): o PO elicitado vira a fonte do ciclo
 dfe16d78 feat(acervo): envelope/po-20261104-1811.json
 fbd0756c feat(acervo): envelope/.indice.json
-7091587e fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
 ```
 
 ## Por professor
@@ -292,6 +292,50 @@ rolar por cima do cabeçalho) **não se reproduziram** em nenhum estado que a ba
 construir. Fica registado o que falta para os apanhar: a URL exacta e a largura da janela em que
 acontecem. Sem isso, mexer no CSS seria adivinhar — e um `z-index` mudado às cegas parte o que está
 medido.
+
+**A causa dos dois sintomas, encontrada depois de os procurar a sério: `:has()`.**
+
+O layout da coluna dependia de **`body:has(> .coluna)`** em cinco regras — as que põem a barra ao
+lado da coluna (`left: 248px`), dão ao `body` os 248px de margem, e trocam a lista da barra pelo ☰.
+E `:has()` **não existe em todo o lado**: o Firefox só a teve na **121 (Dez/2023)**, e o **ESR 115** —
+que muitas instituições ainda correm — não a tem.
+
+Num desses navegadores as regras não se aplicam, e o resultado foi **medido** (simulação fiel:
+desactivar no CSSOM as regras com `:has(`, trocando-lhes o `selectorText`, sem sobrepor nada com
+`!important`):
+
+| | com `:has()` | sem `:has()` |
+|:--|:--|:--|
+| Barra (`left`) | 248 | **0** |
+| Margem do `body` | 248px | **0px** |
+| Clique no 1.º link do menu | acerta no link | **acerta em `a.coluna-marca`** — a coluna (`z-index: 21`) cobre os primeiros 248px da barra (`z-index: 20`) |
+
+É o **«os cliques não respondem»**, igual nas três telas de formulário — e a barra por baixo da
+coluna lê-se como uma faixa esbatida, que é a «cor extremamente clara» da queixa.
+
+**A correção, e o erro que quase a estragou.** O `assets/nav.js` passa a escrever
+`data-tem-coluna="sim"` no `<html>` quando encontra a coluna (e `data-tem-lateral="sim"` no `body`
+onde existe a `lateral` da Produção), e a folha ganha as **mesmas declarações em regras separadas**,
+chaveadas por esse atributo.
+
+> **A separação é o ponto, não estilo.** A primeira versão pôs os dois seletores na **mesma lista**
+> (`body:has(> .coluna), [data-tem-coluna="sim"] body`). Num navegador sem `:has()`, um membro
+> inválido **descarta a lista inteira** — o remendo cairia junto com o que ele veio substituir, e a
+> bancada daria verde no Chrome (que entende `:has()`) e o defeito continuaria no Firefox ESR. A
+> simulação apanhou-o porque testa o caminho, não a intenção.
+
+O `:has()` fica: onde ele existe, a regra vale antes de o script correr, e não há salto de layout.
+
+**A prova, e o controlo negativo.** A secção **E** da `provar-menu-do-formulario` (40 asserções)
+desactiva as regras com `:has()` e exige que a barra continue em `left: 248` e o link continue a
+receber o clique — e depois **remove o atributo** e exige que o defeito **volte** (`left: 0` e o
+clique a cair na marca da coluna). Sem esse controlo, o «passou» podia ser do `:has()` que não se
+conseguiu desactivar, e não do remendo.
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/templates/ciclo.css` e `tools/templates/nav.js` estão
+na lista congelada. A mudança entra por **defeito medido** — um menu que não responde num navegador
+suportado —, com prova em dois sentidos, e sem tocar em cor, medida ou peça: só o caminho alternativo
+para a mesma regra de layout.
 
 ## O que está pendente
 
