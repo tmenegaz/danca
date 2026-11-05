@@ -322,6 +322,40 @@
         ],
         "em": "2026-11-01T21:09:01.197Z"
       }
+    },
+    {
+      "em": "2026-11-05T12:08:38.221Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/breu/envelopes/.indice.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/assets/favicon.svg",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/assets/lib-cifra.js",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/assets/nav.js",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/assets/style.css",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/index.html",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/assets/markdown.js",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/conteudo/anamnese.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/index.html",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/po/conteudo/po.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/prompts/elicitar-ciclo.md",
+        "wrangler.breu.jsonc",
+        "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 7,
+        "restantes": 0,
+        "namespaceId": "2ee331c7a5bc446ca86c8f2cb039ec16",
+        "prefixos": [
+          "breu/",
+          "bastidores/breu/"
+        ],
+        "em": "2026-11-05T12:08:38.221Z"
+      }
     }
   ],
   "recriacao": [
