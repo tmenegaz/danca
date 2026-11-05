@@ -74,9 +74,9 @@
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 1,
+      "planos": 0,
       "pos": 0,
-      "registros": 2
+      "registros": 1
     },
     "criada_em": "2026-11-02T16:59:08.409473+00:00",
     "expurgada": false,
@@ -90,18 +90,16 @@
       "coqui-de-redinha"
     ],
     "registros": [
-      "anamnese:anamnese-20261103-1626",
-      "plano:plano-20261103-2200"
+      "anamnese:anamnese-20261103-1626"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 1,
         "ids": [
-          "anamnese:anamnese-20261103-1626",
-          "plano:plano-20261103-2200"
+          "anamnese:anamnese-20261103-1626"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -119,11 +117,10 @@
     ],
     "professores": [
       {
-        "contagem": 3,
+        "contagem": 2,
         "ids": [
           "anamnese:anamnese-20261103-1626",
-          "ciclo:coqui-de-redinha/01/breu",
-          "plano:plano-20261103-2200"
+          "ciclo:coqui-de-redinha/01/breu"
         ],
         "rotulo": "coqui-de-redinha",
         "valor": "coqui-de-redinha"
@@ -145,22 +142,14 @@
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "plano:plano-20261103-2200"
-        ],
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "9f254a7"
+    "commit": "7d5f273"
   },
-  "gerado_em": "2026-11-05T12:00",
+  "gerado_em": "2026-11-05T12:02",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -193,18 +182,6 @@
       "id": "anamnese:anamnese-20261103-1626",
       "professor": "coqui-de-redinha",
       "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "plano-20261103-2200",
-      "ciclo": "01",
-      "data": "2026-11-03T22:00",
-      "id": "plano:plano-20261103-2200",
-      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
-      "professor": "coqui-de-redinha",
-      "tipo": "plano",
-      "turma": "Balé Nível 1 — Teste 3"
     }
   ],
   "versao": 6

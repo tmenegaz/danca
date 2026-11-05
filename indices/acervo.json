@@ -87,9 +87,9 @@
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
-        "planos": 1,
+        "planos": 0,
         "pos": 0,
-        "registros": 2
+        "registros": 1
       },
       "criada_em": "2026-11-02T16:59:08.409473+00:00",
       "expurgada": false,
@@ -103,8 +103,7 @@
         "coqui-de-redinha"
       ],
       "registros": [
-        "anamnese:anamnese-20261103-1626",
-        "plano:plano-20261103-2200"
+        "anamnese:anamnese-20261103-1626"
       ],
       "slug": "breu"
     },
@@ -292,7 +291,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -473,19 +472,14 @@
         "contagem": 1,
         "rotulo": "Anamnese",
         "valor": "anamnese"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "9f254a7"
+    "commit": "7d5f273"
   },
-  "gerado_em": "2026-11-05T12:00",
+  "gerado_em": "2026-11-05T12:02",
   "nao_indexado": [
     {
       "familia": "conteudo",
