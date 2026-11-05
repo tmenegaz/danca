@@ -70,13 +70,13 @@
       "ciclo:coqui-de-redinha/01/breu"
     ],
     "contagens": {
-      "anamneses": 1,
+      "anamneses": 0,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 1
+      "registros": 0
     },
     "criada_em": "2026-11-02T16:59:08.409473+00:00",
     "expurgada": false,
@@ -89,22 +89,11 @@
     "professores": [
       "coqui-de-redinha"
     ],
-    "registros": [
-      "anamnese:anamnese-20261103-1626"
-    ],
+    "registros": [],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "anamnese:anamnese-20261103-1626"
-        ],
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "estados": [
       {
         "contagem": 1,
@@ -117,9 +106,8 @@
     ],
     "professores": [
       {
-        "contagem": 2,
+        "contagem": 1,
         "ids": [
-          "anamnese:anamnese-20261103-1626",
           "ciclo:coqui-de-redinha/01/breu"
         ],
         "rotulo": "coqui-de-redinha",
@@ -127,14 +115,6 @@
       }
     ],
     "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "anamnese:anamnese-20261103-1626"
-        ],
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
       {
         "contagem": 1,
         "ids": [
@@ -147,9 +127,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "7d5f273"
+    "commit": "c9de0a8"
   },
-  "gerado_em": "2026-11-05T12:02",
+  "gerado_em": "2026-11-05T12:06",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -172,17 +152,6 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261103-1626",
-      "ciclo": "01",
-      "data": "2026-11-03T16:26",
-      "id": "anamnese:anamnese-20261103-1626",
-      "professor": "coqui-de-redinha",
-      "tipo": "anamnese"
-    }
-  ],
+  "registros": [],
   "versao": 6
 }
