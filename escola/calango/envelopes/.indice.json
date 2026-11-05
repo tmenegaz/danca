@@ -1,21 +1,10 @@
 {
   "versao": 4,
   "nomes": [
-    "anamnese-20261105-1910.json",
     "anamnese-20261105-2014.json",
     "anamnese-20261105-2015.json"
   ],
   "resumos": {
-    "anamnese-20261105-1910.json": {
-      "id": "anamnese-20261105-1910",
-      "fonte": "anamnese",
-      "escola": "calango",
-      "professor": "rabo-gramde",
-      "ciclo": null,
-      "ajuste_de": null,
-      "gerado_em": "2026-11-05T19:10",
-      "aluna": "Aluna A"
-    },
     "anamnese-20261105-2014.json": {
       "id": "anamnese-20261105-2014",
       "fonte": "anamnese",
