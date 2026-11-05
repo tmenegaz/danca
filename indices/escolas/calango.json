@@ -1,48 +1,135 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-05",
+        "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
+        "cobertura": [
+          "professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
+          "professores/rabo-gramde/ciclos/ciclo-01.conf"
+        ],
+        "hash": "31de8f74677082e075a863ba712fed355423e0bf3b605ad3b7b724326ccc781c",
+        "hash_conteudo": "29b75b833a585c5fb9b16c16cc31f3b1188d50f086618f544e0b22025fdcd92e",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
+        "professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
+        "professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:rabo-gramde/01/calango",
+      "numero": "01",
+      "pacote": null,
+      "professor": "rabo-gramde",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
+      "professor": "rabo-gramde",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
+      "professor": "rabo-gramde",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "rabo-gramde",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:rabo-gramde/01/calango"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-01T18:52:13.679717+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-05T13:06:46.674863+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-01T19:00:27.721Z",
     "expurgos": 9,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:calango",
     "nome": "calango",
-    "professor": "meia-ponta",
+    "professor": "rabo-gramde",
     "professores": [
-      "meia-ponta",
-      "murisoca-baiana",
-      "oculos-redondo",
-      "perna-boa",
-      "sapo-bailarino",
-      "tiago-menegaz"
+      "rabo-gramde"
     ],
     "registros": [],
     "slug": "calango"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:rabo-gramde/01/calango"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:rabo-gramde/01/calango"
+        ],
+        "rotulo": "rabo-gramde",
+        "valor": "rabo-gramde"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:rabo-gramde/01/calango"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "9b28ddd"
+    "commit": "cc9f390"
   },
-  "gerado_em": "2026-11-05T12:08",
+  "gerado_em": "2026-11-05T13:06",
   "nao_indexado": [
     {
       "familia": "conteudo",

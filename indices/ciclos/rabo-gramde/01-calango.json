@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-05",
+    "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
+    "cobertura": [
+      "professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
+      "professores/rabo-gramde/ciclos/ciclo-01.conf"
+    ],
+    "hash": "31de8f74677082e075a863ba712fed355423e0bf3b605ad3b7b724326ccc781c",
+    "hash_conteudo": "29b75b833a585c5fb9b16c16cc31f3b1188d50f086618f544e0b22025fdcd92e",
+    "id": "ciclo-01-calango",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
+    "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
+    "documento:schema:professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "calango",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "cc9f390"
+  },
+  "gerado_em": "2026-11-05T13:06",
+  "id": "ciclo:rabo-gramde/01/calango",
+  "professor": "rabo-gramde",
+  "versao": 6
+}

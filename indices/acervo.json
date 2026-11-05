@@ -1,5 +1,22 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "hash": "31de8f74677082e075a863ba712fed355423e0bf3b605ad3b7b724326ccc781c",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:rabo-gramde/01/calango",
+      "numero": "01",
+      "professor": "rabo-gramde",
+      "sem_ancora": false
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -118,31 +135,28 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:rabo-gramde/01/calango"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
-      "criada_em": "2026-11-01T18:52:13.679717+00:00",
-      "expurgada": true,
+      "criada_em": "2026-11-05T13:06:46.674863+00:00",
+      "expurgada": false,
       "expurgada_em": "2026-11-01T19:00:27.721Z",
       "expurgos": 9,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:calango",
       "nome": "calango",
-      "professor": "meia-ponta",
+      "professor": "rabo-gramde",
       "professores": [
-        "meia-ponta",
-        "murisoca-baiana",
-        "oculos-redondo",
-        "perna-boa",
-        "sapo-bailarino",
-        "tiago-menegaz"
+        "rabo-gramde"
       ],
       "registros": [],
       "slug": "calango"
@@ -327,7 +341,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -370,18 +390,18 @@
         "valor": "meia-cortada"
       },
       {
-        "contagem": 1,
-        "rotulo": "Meia Ponta",
+        "contagem": 0,
+        "rotulo": "meia-ponta",
         "valor": "meia-ponta"
       },
       {
-        "contagem": 1,
-        "rotulo": "Murisoca Baiana",
+        "contagem": 0,
+        "rotulo": "murisoca-baiana",
         "valor": "murisoca-baiana"
       },
       {
-        "contagem": 1,
-        "rotulo": "Oculos Redondo",
+        "contagem": 0,
+        "rotulo": "oculos-redondo",
         "valor": "oculos-redondo"
       },
       {
@@ -395,7 +415,7 @@
         "valor": "pe-torto"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "Perna Boa",
         "valor": "perna-boa"
       },
@@ -405,7 +425,12 @@
         "valor": "pirueta-aberta"
       },
       {
-        "contagem": 4,
+        "contagem": 1,
+        "rotulo": "Rabo Gramde",
+        "valor": "rabo-gramde"
+      },
+      {
+        "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -430,7 +455,7 @@
         "valor": "tiago"
       },
       {
-        "contagem": 5,
+        "contagem": 4,
         "rotulo": "Tiago",
         "valor": "tiago-menegaz"
       },
@@ -444,9 +469,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9b28ddd"
+    "commit": "cc9f390"
   },
-  "gerado_em": "2026-11-05T12:08",
+  "gerado_em": "2026-11-05T13:06",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -545,29 +570,23 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
+      "escolas": [],
       "id": "professor:meia-ponta",
-      "nome": "Meia Ponta",
+      "nome": null,
       "slug": "meia-ponta"
     },
     {
       "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
+      "escolas": [],
       "id": "professor:murisoca-baiana",
-      "nome": "Murisoca Baiana",
+      "nome": null,
       "slug": "murisoca-baiana"
     },
     {
       "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
+      "escolas": [],
       "id": "professor:oculos-redondo",
-      "nome": "Oculos Redondo",
+      "nome": null,
       "slug": "oculos-redondo"
     },
     {
@@ -592,8 +611,7 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata",
-        "calango"
+        "batata"
       ],
       "id": "professor:perna-boa",
       "nome": "Perna Boa",
@@ -607,12 +625,22 @@
       "slug": "pirueta-aberta"
     },
     {
+      "ciclos": [
+        "ciclo:rabo-gramde/01/calango"
+      ],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:rabo-gramde",
+      "nome": "Rabo Gramde",
+      "slug": "rabo-gramde"
+    },
+    {
       "ciclos": [],
       "escolas": [
         "batata",
         "breu",
-        "calando-teste-1",
-        "calango"
+        "calando-teste-1"
       ],
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
@@ -658,7 +686,6 @@
       "escolas": [
         "batata",
         "breu",
-        "calango",
         "fita",
         "valse"
       ],

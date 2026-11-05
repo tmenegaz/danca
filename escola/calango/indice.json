@@ -3,10 +3,10 @@
   "worker": "calango",
   "criado_em": "2026-10-19T18:18:57.289485+00:00",
   "professor": {
-    "slug": "meia-ponta",
-    "nome": "Meia Ponta"
+    "slug": "rabo-gramde",
+    "nome": "Rabo Gramde"
   },
-  "responsavel": "Meia Ponta",
+  "responsavel": "Rabo Gramde",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -625,6 +625,20 @@
       "professor_anterior": {
         "slug": "murisoca-baiana",
         "nome": "Murisoca Baiana"
+      }
+    },
+    {
+      "em": "2026-11-05T13:06:46.674863+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "rabo-gramde",
+        "nome": "Rabo Gramde"
+      },
+      "responsavel": "Rabo Gramde",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "meia-ponta",
+        "nome": "Meia Ponta"
       }
     }
   ],
