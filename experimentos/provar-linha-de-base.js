@@ -950,6 +950,27 @@ async function chamar(env, caminho, opcoes) {
     assert.ok(/1 não medido/.test(item.texto), 'e o texto não esconde a abstenção: ' + item.texto);
   });
 
+  ok('«o que já é bom» é o que ALGUMA tem de bom, e não o que todas acertaram', () => {
+    /* DECISÃO DELA, 05/11/2026, ao ler a tela: «esse aqui é para colocar o que é individual de cada
+     * uma […] é o que já é bom de cada aluna. Eu vou listar o aspecto, o eixo e como está o grupo».
+     * A definição anterior era «todas no melhor nível», e o efeito medido foi o contrário: numa
+     * turma em que as duas diferem em quase tudo, o bloco ficava vazio — e a aluna com o tendu bom
+     * «por consciência própria» não aparecia em sítio nenhum com esse mérito. */
+    const c = lb.classificar(DISPONIVEIS, [
+      { aluna: 'Aluna A', respostas: { tendu: ['precisa desenvolver', 'com-toque'] } },
+      { aluna: 'Aluna B', respostas: { tendu: ['Bom', 'consciencia-propria'] } },
+    ]);
+    const noBom = c.excelencia.find((x) => x.id === 'tendu');
+    const noAtencao = c.atencao.find((x) => x.id === 'tendu');
+    assert.ok(noBom, 'o tendu bom da Aluna B tem de estar em «o que já é bom»');
+    assert.ok(noAtencao, 'e o mesmo aspecto continua a ser ponto de atenção — as listas não se excluem');
+    assert.strictEqual(noBom.noMelhorNivel, false,
+      'não é «todas bem» — e o item declara isso, para a tela poder distinguir');
+    assert.deepStrictEqual(noBom.noMelhor, ['Aluna B'], 'e diz quem (a tela ainda não nomeia)');
+    assert.strictEqual(noBom.texto, '1 de 2 em «Bom» (por consciência própria) · 1 de 2 em «precisa desenvolver» (com toque)',
+      'o texto diz o nível de cada uma, com o apoio em português: ' + noBom.texto);
+  });
+
   ok('a etiqueta NOVO: primeira vez, depois de lida, e com anamnese nova', () => {
     /* OS TRÊS ESTADOS, e é a razão de a função existir. A regra é de proveniência: compara-se a
      * anamnese vigente com o carimbo que alguma linha de base registou ao ler. */

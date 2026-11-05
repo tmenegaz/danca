@@ -9441,7 +9441,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  html += blocoDeAchados("O que precisa de ser trabalhado", c.atencao,' +
     '    "nenhum aspecto abaixo do melhor nível — o grupo está bem em tudo o que respondeu.");' +
     '  html += blocoDeAchados("O que já é bom", c.excelencia,' +
-    '    "nenhum aspecto com o grupo todo no melhor nível.");' +
+    '    "nenhum aspecto com alguma aluna no melhor nível.");' +
     '  html += blocoDeAchados("Musicalidade", c.musicalidade,' +
     '    "a anamnese não tem os campos de musicalidade preenchidos para estas alunas.");' +
     '  html += blocoDeAchados("O que o grupo tem em comum", c.comuns,' +

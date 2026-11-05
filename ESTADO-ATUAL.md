@@ -4,10 +4,9 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **«o que já é bom» passou a ler o
-> NÍVEL e não a resposta inteira** — o apoio da observação inicial (`[escala, apoio]`) deixou de ser
-> confundido com o nível. (Ver as passagens de 05/11/2026 mais abaixo, na ordem em que foram
-> escritas.)
+> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **«o que já é bom» passou a ser o
+> que ALGUMA aluna tem de bom** (era «todas»), e o apoio da observação inicial deixou de ser lido
+> como nível. (Ver as passagens de 05/11/2026 mais abaixo, na ordem em que foram escritas.)
 >
 > **Fotografia anterior (04/11/2026).** Nesta entrega, **o Plano de Observação passa a
 > poder apagar-se**, e **o menu dos formulários ganha bancada**. (1) A linha do PO oferecia só
@@ -3949,6 +3948,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **05/11/2026** — **«O que já é bom» passou a ser o que ALGUMA aluna tem de bom.** Depois da
+  correcção do apoio, ela leu a tela e disse o que faltava: «a aluna B tem o tendu bom e faz por
+  consciência própria — não achei em lugar nenhum o que ela já tem de bom». A definição era «todas
+  no melhor nível», e numa turma em que as duas diferem em quase tudo o bloco ficava vazio. Passa a
+  ser **alguma**: é o mérito individual, sem nomear quem (a linha diz o aspecto, o eixo e como está
+  o grupo). A leitura «todas bem» não se perde — o item continua a declarar `noMelhorNivel`, e o
+  `soExcelente` do recorte continua a usá-la. Nos dados dela: **36** aspectos em «o que já é bom»,
+  entre eles o `tendu` e a `musicalidade`; **9** campos sem ninguém no melhor nível. Medido:
+  **104/104 · 159/159 · 26/26**, `check-identidade` **0 erros**. **PENDENTE:** refazer a leitura no
+  passo 3 (é um gesto, não acontece sozinho).
 
 - **05/11/2026** — **«O que já é bom» ficava vazio porque o apoio da observação inicial era lido como
   nível.** A definição de excelência é de **grupo** («todas no melhor nível») e está documentada em

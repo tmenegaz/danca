@@ -892,9 +892,12 @@ nasce `disabled` **no markup**, não por JavaScript depois de pintar — um bot�
 durante o instante entre o pintar e o primeiro `fetch` é um defeito que não se vê.
 
 **A régua é a da anamnese, não um juízo do sistema.** «Ponto de atenção» é o que **não** está na
-primeira opção declarada; a turma toda no melhor nível é **excelência**, e a distinção existe porque
-a pesquisadora deu ao professor autonomia para incluir um aspecto excelente no escopo («quero vigiar
-para que todos mantenham a excelência neste ponto»).
+primeira opção declarada; **alguma** aluna no melhor nível já é **excelência** — o que cada uma tem
+de bom —, e a distinção existe porque a pesquisadora deu ao professor autonomia para incluir um
+aspecto excelente no escopo («quero vigiar para que todos mantenham a excelência neste ponto»).
+*(Correção de 05/11/2026: a definição era «a turma toda no melhor nível». Ela leu a tela e disse o
+que faltava — «é o que já é bom de cada aluna»; ver a entrada de hoje no `REGISTRO.md`. A redação
+anterior não se apaga.)*
 
 **O NÍVEL É A ESCALA, E O APOIO NÃO É UM NÍVEL (05/11/2026).** A observação inicial grava a resposta
 como uma lista — `[escala, apoio]`, «Bom» e «com a barra como apoio» —, e a leitura da linha de base
@@ -938,8 +941,10 @@ a quatro perguntas **diferentes sobre o mesmo dado** — um aspecto pode estar e
 gavetas que se excluem:
 
 - **o que precisa de ser trabalhado** — alguma aluna fora do melhor nível;
-- **o que já é bom** — todas no melhor nível (a autonomia que ela deu ao professor para manter um
-  aspecto sob vigilância precisa desta lista separada);
+- **o que já é bom** — **alguma** no melhor nível: o que cada uma já tem de bom, e não só o que a
+  turma inteira acertou (a autonomia que ela deu ao professor para manter um aspecto sob vigilância
+  precisa desta lista separada — e ler só «todas» deixava de fora a aluna que já está bem num
+  aspecto em que a outra ainda não chegou);
 - **a musicalidade** — o eixo completo, porque a decisão pedagógica que ele informa é outra;
 - **o que o grupo tem em comum** — a mesma resposta em todas, seja boa ou má. É o «todos têm o arco
   do pé semelhante», e não é um juízo: é o que o professor precisa de reconhecer na turma que vai ter

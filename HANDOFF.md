@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T20:24:10-0300`
-Commit atual: `08b41241` — fix(po): a linha de base le os 45 campos que a anamnese mede, e a Curadoria oferece so o que a escola compoe
+Gerado em: `2026-11-05T20:36:03-0300`
+Commit atual: `93924701` — fix(po): o nivel e a ESCALA, e o apoio da observacao inicial deixa de ser lido como nivel
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,18 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+93924701 fix(po): o nivel e a ESCALA, e o apoio da observacao inicial deixa de ser lido como nivel
+d7776497 chore(estrutura): regerar os índices derivados
+20001867 chore(estrutura): regerar os índices derivados
+43ca3c14 feat(acervo): envelope/.indice.json
+2ed9304d chore(acervo): apagar envelope/anamnese-20261105-1910.json
+88ff28fe feat(acervo): envelope/anamnese-20261105-2015.json
+c576e9ca feat(acervo): envelope/.indice.json
+e0f3b0fd chore(estrutura): regerar os índices derivados
+45eb07d4 feat(acervo): envelope/.indice.json
+80b31fea chore(acervo): apagar envelope/anamnese-20261105-1910-2.json
+acfa2f81 feat(acervo): envelope/anamnese-20261105-2014.json
+e03c5506 feat(acervo): envelope/.indice.json
 08b41241 fix(po): a linha de base le os 45 campos que a anamnese mede, e a Curadoria oferece so o que a escola compoe
 95fcd9ef chore(estrutura): regerar os índices derivados
 f991b422 feat(acervo): envelope/.indice.json
@@ -94,18 +106,6 @@ a86105c5 feat(acervo): envelope/anamnese-20261105-1910-2.json
 0ec522e8 feat(acervo): envelope/.indice.json
 14bc40f4 chore(estrutura): regerar os índices derivados
 abe62168 feat(acervo): envelope/.indice.json
-b48f35e7 chore(acervo): apagar envelope/anamnese-20261105-1240.json
-2358c384 feat(acervo): envelope/anamnese-20261105-1910.json
-18d8f4c7 feat(acervo): envelope/.indice.json
-d0e82ef8 chore(estrutura): regerar os índices derivados
-471f2160 feat(acervo): envelope/anamnese-20261105-1907.json
-58023c59 feat(acervo): envelope/.indice.json
-18ee67de fix(experimentos): o jsdom passa a devDependency — a bancada corre no deploy
-5604a07f fix(experimentos): o passo do deploy constroi tambem a proposta da linha de base
-e4e306e0 fix(po): o passo 5 sem turma diz o que falta, a curadoria deixa de escolher alunas, e a listagem passa a ser o cartao da casa
-449dc3dc fix(po): a tira grava, o Ler grava, e a lista da linha de base passa a ser a da casa
-5ee66fef fix(po): o Ler as anamneses acende, e a folha nao recebe a moldura
-021a2c8f fix(po): a recusa do recorte vazio distingue a aba antiga da edicao sem recorte
 ```
 
 ## Por professor
@@ -231,85 +231,66 @@ e4e306e0 fix(po): o passo 5 sem turma diz o que falta, a curadoria deixa de esco
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — «O que já é bom» ficava vazio porque o apoio da observação inicial era lido como nível
+## 05/11/2026 — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom, e não o que todas acertaram
 
-**O que motivou.** Ela olhou o passo 3 e disse: «as duas alunas têm aspectos bons no melhor nível, e o
-bloco diz que nenhum aspecto com o grupo todo no melhor nível — isso está estranho». E fez a pergunta
-certa antes de decidir: «o que a documentação fala a respeito desta etapa?».
+**O que motivou.** Depois da correcção do apoio (entrada anterior), ela leu a tela e disse o que
+esperava do bloco, com o caso concreto à frente: «a aluna B tem o tendu bom e faz por consciência
+própria. Aí eu não tenho isso aqui, pelo menos eu não achei em lugar nenhum o que ela já tem de
+bom». E descreveu o que quer: «esse aqui é o que já é bom de cada aluna. Eu vou listar o aspecto, o
+eixo e como está o grupo».
 
-**O que a documentação diz — e é decisão, não acidente.** A definição é de **grupo**, e está escrita
-em três sítios: `ARQUITETURA-GERAL.md` §5.13 («o que já é bom — **todas** no melhor nível»), o
-parágrafo da régua («a turma toda no melhor nível é excelência»), e a entrada de 05/11/2026 do
-`REGISTRO.md` («o que já é bom (todas no melhor nível)»). As quatro listas são perguntas ao mesmo
-dado: *alguma fora do melhor* (atenção), *todas no melhor* (excelência), *o eixo musical inteiro*, e
-*a mesma resposta em todas* (comum). Nenhuma delas responde «a aluna A está bem aqui» — e é essa a
-lacuna de desenho que o relato dela expõe, não um defeito de implementação.
-
-**Mas havia um defeito de implementação, e ele produz exactamente o sintoma.** A observação inicial
-grava a resposta como **lista**: `[escala]` ou `[escala, apoio]` — «Bom» e «com a barra como apoio»
-são duas perguntas da mesma resposta, e a `ficha.js` já as separava pelo pool de desdobramentos. A
-leitura da linha de base juntava as duas com `join(' · ')` e tratava o resultado como **nível**. Assim
-«Bom · com-barra» nunca é igual ao melhor nível («Bom»).
-
-Medido nos dados reais da `calango` (as duas linhas de base guardadas no KV), sem tocar em nada:
-
-    cinco-posicoes-2a-pes    → «2 de 2 em «Bom · consciencia-propria»»    (as DUAS no melhor nível)
-    cinco-posicoes-2a-bracos → «1 de 2 em «Bom · consciencia-propria» · 1 de 2 em «Bom · com-toque»»
-
-Os dois iam para «o que precisa de ser trabalhado», e «o que já é bom» ficava em **zero** — com
-`atenção = 45 de 45`. Depois da correcção seriam `atenção = 43`, `excelência = 2`, `comuns = 2`.
+**O que estava errado, e não era a implementação.** A definição de «o que já é bom» era «**todas** no
+melhor nível», e ela é de 05/11 (a primeira entrada do dia), com a razão escrita: a autonomia para
+manter um aspecto sob vigilância *para todos*. Só que, lida na tela, a definição diz o contrário do
+que a frase sugere: numa turma em que as duas alunas diferem em quase tudo, «todas bem» é vazio — e
+o mérito individual não tem onde se ler. A tensão não é de código: é de desenho, e ela resolveu-a.
 
 **O que foi decidido.**
 
-- **O nível é a ESCALA**, e o apoio não é nível: a leitura passou a ser a da `ficha.js`
-  (`valoresRespondidos`) — o primeiro elemento que não pertence ao pool de apoios —, e não uma segunda
-  regra escrita aqui. Apoios diferentes no mesmo nível **não fragmentam a contagem** (é o mesmo
-  estado, observado de duas maneiras), e o apoio aparece em português entre parênteses quando é um só.
-- **«Não foi medido» não é ponto de atenção.** É a abstenção declarada: contava como «abaixo do
-  melhor» e punha no corpo da aluna uma falta que ninguém observou. Passa a ser contada à parte, e o
-  texto diz quantos.
-- **Cada aspecto passa a dizer QUEM está no melhor nível** (`noMelhor`). É preparação, e é declarado:
-  ainda não se desenha na tela — o que a tela mostra é a decisão seguinte, que fica **pendente** dela.
-- A **definição de excelência não muda**: continua a ser «todas no melhor nível». O que muda é que
-  ela passa a ser calculada sobre o nível.
+- «O que já é bom» = **aspectos em que ALGUMA aluna está no melhor nível**. É o que cada uma tem de
+  bom, e é o que o professor precisa de ver para decidir o que preservar no recorte. Sem nomear
+  quem — a linha diz o aspecto, o eixo e como está o grupo («1 de 2 em «Bom» (por consciência
+  própria) · 1 de 2 em «precisa desenvolver» (com toque)»), e é isso que ela pediu.
+- A leitura «**todas** bem» **não se perde**: o item continua a declarar `noMelhorNivel`, e o
+  `agregar` do recorte continua a contar `soExcelente` por ele. O que muda é qual das duas alimenta
+  a lista da tela.
+- As listas continuam a **não ser gavetas**: um aspecto em que uma está bem e a outra não aparece
+  em «o que precisa de ser trabalhado» **e** em «o que já é bom». É o mesmo dado, duas perguntas.
+- A frase do estado vazio passou a dizer «nenhum aspecto com alguma aluna no melhor nível» — a
+  anterior («com o grupo todo») descrevia a definição antiga e era exactamente o que a confundiu.
 
-**Onde entrou.** `motor/nucleo/linha-de-base.js` — `apoios` em `camposDaObservacaoInicial`,
-`nivelDaResposta`, `rotuloDoApoio`, `textoDosNiveis`; `agregar` e `classificar` deixam de juntar a
-resposta e passam a ler o nível; `naoMedidos` e `noMelhor` no item; `NAO_MEDIDO`. `ARQUITETURA-GERAL.md`
-— §5.12/§5.13: o parágrafo do nível contra o apoio, os números passam de 24/30 para 45, e a prova de
-49 para 103 asserções. `experimentos/provar-linha-de-base.js` — três asserções novas.
+**O que isto dá nos dados dela** (as duas anamneses da `calango`, contadas nos 45 campos): «o que já
+é bom» passa a **36** aspectos — entre eles o `tendu` («Bom», por consciência própria) e a
+`musicalidade` («Domina»), os dois que ela não encontrava —, e **9** campos ficam sem ninguém no
+melhor nível (por exemplo «Flexibilidade dos adutores»: «Abertura parcial» e «Rigidez acentuada»).
+«Atenção» fica em 43 e «comum» em 2.
 
-**Medido.** `provar-linha-de-base` **103/103** (era 100); `provar-producao` **159/159**;
-`provar-curadoria-e-limpeza` **26/26**; `provar-conteudos-e-estado-da-turma`;
-`provar-plano-e-curadoria`; `check-identidade` **0 erros**. A prova dos apoios usa os dois casos
-reais (mesmo apoio e apoios diferentes) e o do «não foi medido».
+**Sobre a dúvida dela na «2ª posição — braços»:** as duas estão em «Bom», e o que difere é o **apoio**
+(uma com toque, uma por consciência própria). Antes da correcção do apoio o texto dizia
+«1 de 2 em «Bom · com-toque» · 1 de 2 em «Bom · consciencia-propria»», que se lê como dois níveis
+diferentes; agora diz «2 de 2 em «Bom»», e a dúvida fica respondida pela própria linha.
 
-**Correcção de 05/11/2026 (mesmo dia, à tarde).** A entrada anterior desta data dizia que a leitura
-cruzava «os trinta campos». **Está incompleta**: são **quarenta e cinco** desde a correcção da
-observação inicial, publicada no `08b41241`. A redação anterior não se apaga: é o elo que registra o
-que se pensou antes.
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `algumNoMelhor` no item, e é ele que alimenta
+`excelencia` (`noMelhorNivel` fica declarado para quem quer a outra leitura); o comentário dos quatro
+eixos regista a decisão. `motor/servidor/bastidores.js` — a frase do estado vazio.
+`ARQUITETURA-GERAL.md` §5.12/§5.13 — a régua e o bullet, com nota de correcção datada.
+`experimentos/provar-linha-de-base.js` — a asserção do tendu (aparece nos **dois** blocos, e
+`noMelhorNivel` falso).
+
+**Medido.** `provar-linha-de-base` **104/104** (era 103); `provar-producao` **159/159**;
+`provar-curadoria-e-limpeza` **26/26**; `check-identidade` **0 erros**.
 
 **O que ainda não está feito.**
 
-- **A leitura guardada no KV é a antiga.** O que está gravado em `bastidores/<escola>/linhas-de-base`
-  foi calculado pelo código anterior: depois do deploy, é preciso **reler** (passo 3 → «Ler as
-  anamneses») para os números passarem a ser os correctos. Ler é um gesto, e não se refaz sozinho.
-- **A excelência de cada aluna não tem onde se ler como LISTA.** A definição documentada é de grupo, e
-  a informação individual existe só dentro do texto de cada linha («1 de 2 em «Bom»»). O que fazer
-  com ela — frase, coluna «quem já está bem», ou bloco por aluna — é decisão dela, e está em aberto.
+- **A leitura guardada no KV tem de ser refeita** («Ler as anamneses», no passo 3): os números
+  acima só aparecem depois desse gesto.
+- O bloco **não diz qual aluna** tem o aspecto bom — é o que ela pediu hoje. Se um dia quiser o
+  nome, o dado já lá está (`noMelhor`), e é só desenhá-lo.
+- A «2ª posição — pés» e a «2ª posição — braços» passam a aparecer em **dois** blocos («o que já é
+  bom» e «o que o grupo tem em comum»), e é de propósito: o primeiro diz que é bom, o segundo que é
+  de todas. Se a repetição incomodar, é uma decisão de tela, não de dados.
 
 ## O que está pendente
-
-## 05/11/2026 — O «Ler as anamneses» acende, e a folha de impressão deixa de receber a moldura
-
-
-- `provar-menu-do-formulario` **não corre**: lê `escola/breu/envelopes/plano-20261104-1732.json`, e
-  esse envelope foi apagado do repositório em `76f29779` (`chore(acervo): apagar envelope/…`). É
-  **pré-existente** e alheio a esta mudança — a bancada depende de um dado que já não existe, e fica
-  por decidir se passa a montar o seu próprio envelope.
-- `provar-listas-do-acervo` responde **NÃO FEITO**: nenhuma escola tem ciclo gerado nesta árvore, e
-  a bancada exige uma publicação. Também não é desta mudança.
-- A conferência **no ar** faz-se depois do deploy, pedindo as três folhas uma vez cada.
 
 ## 05/11/2026 — A tira grava, o «Ler» grava, o excluir fecha o formulário — e a lista passa a ser a da casa
 
@@ -351,6 +332,17 @@ que se pensou antes.
 - **A excelência de cada aluna não tem onde se ler como LISTA.** A definição documentada é de grupo, e
   a informação individual existe só dentro do texto de cada linha («1 de 2 em «Bom»»). O que fazer
   com ela — frase, coluna «quem já está bem», ou bloco por aluna — é decisão dela, e está em aberto.
+
+## 05/11/2026 — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom, e não o que todas acertaram
+
+
+- **A leitura guardada no KV tem de ser refeita** («Ler as anamneses», no passo 3): os números
+  acima só aparecem depois desse gesto.
+- O bloco **não diz qual aluna** tem o aspecto bom — é o que ela pediu hoje. Se um dia quiser o
+  nome, o dado já lá está (`noMelhor`), e é só desenhá-lo.
+- A «2ª posição — pés» e a «2ª posição — braços» passam a aparecer em **dois** blocos («o que já é
+  bom» e «o que o grupo tem em comum»), e é de propósito: o primeiro diz que é bom, o segundo que é
+  de todas. Se a repetição incomodar, é uma decisão de tela, não de dados.
 
 ## Pendências anteriores (índice)
 
@@ -711,6 +703,7 @@ que se pensou antes.
 - **04/11/2026** — O ciclo apaga-se de trás para a frente, a sequência é… → `REGISTRO.md` L34939
 - **05/11/2026** — A secção do corpo nasceu fora do `</section>`, e sessenta e… → `REGISTRO.md` L35967
 - **05/11/2026** — O elenco muda na linha de base, a cascata desce até ao PO,… → `REGISTRO.md` L36054
+- **05/11/2026** — O «Ler as anamneses» acende, e a folha de impressão deixa… → `REGISTRO.md` L36123
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

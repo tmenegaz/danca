@@ -36515,3 +36515,62 @@ que se pensou antes.
 - **A excelência de cada aluna não tem onde se ler como LISTA.** A definição documentada é de grupo, e
   a informação individual existe só dentro do texto de cada linha («1 de 2 em «Bom»»). O que fazer
   com ela — frase, coluna «quem já está bem», ou bloco por aluna — é decisão dela, e está em aberto.
+
+## 05/11/2026 — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom, e não o que todas acertaram
+
+**O que motivou.** Depois da correcção do apoio (entrada anterior), ela leu a tela e disse o que
+esperava do bloco, com o caso concreto à frente: «a aluna B tem o tendu bom e faz por consciência
+própria. Aí eu não tenho isso aqui, pelo menos eu não achei em lugar nenhum o que ela já tem de
+bom». E descreveu o que quer: «esse aqui é o que já é bom de cada aluna. Eu vou listar o aspecto, o
+eixo e como está o grupo».
+
+**O que estava errado, e não era a implementação.** A definição de «o que já é bom» era «**todas** no
+melhor nível», e ela é de 05/11 (a primeira entrada do dia), com a razão escrita: a autonomia para
+manter um aspecto sob vigilância *para todos*. Só que, lida na tela, a definição diz o contrário do
+que a frase sugere: numa turma em que as duas alunas diferem em quase tudo, «todas bem» é vazio — e
+o mérito individual não tem onde se ler. A tensão não é de código: é de desenho, e ela resolveu-a.
+
+**O que foi decidido.**
+
+- «O que já é bom» = **aspectos em que ALGUMA aluna está no melhor nível**. É o que cada uma tem de
+  bom, e é o que o professor precisa de ver para decidir o que preservar no recorte. Sem nomear
+  quem — a linha diz o aspecto, o eixo e como está o grupo («1 de 2 em «Bom» (por consciência
+  própria) · 1 de 2 em «precisa desenvolver» (com toque)»), e é isso que ela pediu.
+- A leitura «**todas** bem» **não se perde**: o item continua a declarar `noMelhorNivel`, e o
+  `agregar` do recorte continua a contar `soExcelente` por ele. O que muda é qual das duas alimenta
+  a lista da tela.
+- As listas continuam a **não ser gavetas**: um aspecto em que uma está bem e a outra não aparece
+  em «o que precisa de ser trabalhado» **e** em «o que já é bom». É o mesmo dado, duas perguntas.
+- A frase do estado vazio passou a dizer «nenhum aspecto com alguma aluna no melhor nível» — a
+  anterior («com o grupo todo») descrevia a definição antiga e era exactamente o que a confundiu.
+
+**O que isto dá nos dados dela** (as duas anamneses da `calango`, contadas nos 45 campos): «o que já
+é bom» passa a **36** aspectos — entre eles o `tendu` («Bom», por consciência própria) e a
+`musicalidade` («Domina»), os dois que ela não encontrava —, e **9** campos ficam sem ninguém no
+melhor nível (por exemplo «Flexibilidade dos adutores»: «Abertura parcial» e «Rigidez acentuada»).
+«Atenção» fica em 43 e «comum» em 2.
+
+**Sobre a dúvida dela na «2ª posição — braços»:** as duas estão em «Bom», e o que difere é o **apoio**
+(uma com toque, uma por consciência própria). Antes da correcção do apoio o texto dizia
+«1 de 2 em «Bom · com-toque» · 1 de 2 em «Bom · consciencia-propria»», que se lê como dois níveis
+diferentes; agora diz «2 de 2 em «Bom»», e a dúvida fica respondida pela própria linha.
+
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `algumNoMelhor` no item, e é ele que alimenta
+`excelencia` (`noMelhorNivel` fica declarado para quem quer a outra leitura); o comentário dos quatro
+eixos regista a decisão. `motor/servidor/bastidores.js` — a frase do estado vazio.
+`ARQUITETURA-GERAL.md` §5.12/§5.13 — a régua e o bullet, com nota de correcção datada.
+`experimentos/provar-linha-de-base.js` — a asserção do tendu (aparece nos **dois** blocos, e
+`noMelhorNivel` falso).
+
+**Medido.** `provar-linha-de-base` **104/104** (era 103); `provar-producao` **159/159**;
+`provar-curadoria-e-limpeza` **26/26**; `check-identidade` **0 erros**.
+
+**O que ainda não está feito.**
+
+- **A leitura guardada no KV tem de ser refeita** («Ler as anamneses», no passo 3): os números
+  acima só aparecem depois desse gesto.
+- O bloco **não diz qual aluna** tem o aspecto bom — é o que ela pediu hoje. Se um dia quiser o
+  nome, o dado já lá está (`noMelhor`), e é só desenhá-lo.
+- A «2ª posição — pés» e a «2ª posição — braços» passam a aparecer em **dois** blocos («o que já é
+  bom» e «o que o grupo tem em comum»), e é de propósito: o primeiro diz que é bom, o segundo que é
+  de todas. Se a repetição incomodar, é uma decisão de tela, não de dados.

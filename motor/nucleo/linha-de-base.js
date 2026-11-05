@@ -568,10 +568,13 @@ function envelheceu(linha, carimbos) {
  *   · `atencao` — «o que precisa de ser trabalhado». Aspectos em que ALGUMA aluna não está no
  *     melhor nível que a anamnese conhece. É o que ela descreveu como «o que precisa melhorar e o
  *     que está ruim»: um só corpo fora do melhor nível já é motivo para olhar.
- *   · `excelencia` — «o que já é bom». Aspectos em que TODAS as que responderam estão no melhor
- *     nível. A pesquisadora deu ao professor autonomia para os incluir na observação («quero
- *     vigiar para que todos mantenham a excelência neste ponto»), e por isso eles não são
- *     escondidos: são uma lista própria.
+ *   · `excelencia` — «o que já é bom». Aspectos em que **ALGUMA** aluna está no melhor nível que a
+ *     anamnese conhece — o que cada uma já tem de bom, e não o que a turma inteira acertou.
+ *     (05/11/2026, decisão dela: «esse aqui é para colocar o que é individual de cada uma […] é o
+ *     que já é bom de cada aluna». A definição anterior era «todas», e numa turma em que as duas
+ *     diferem em quase tudo o bloco ficava vazio — a aluna com o tendu bom não aparecia em sítio
+ *     nenhum com esse mérito. Quem quer a leitura «todos bem» lê `noMelhorNivel`, que o item
+ *     continua a declarar.)
  *   · `musicalidade` — o panorama completo dos campos do eixo da poiesis. Separado porque ela o
  *     pediu separado («e sobre o ponto de vista da musicalidade também»), e porque a decisão
  *     pedagógica que ele informa é outra: uma lacuna musical não se corrige com a mesma aula que
@@ -642,6 +645,19 @@ function classificar(disponiveis, anamneses) {
       // turma em que as duas estão «Bom» está bem nas duas — o apoio diz como se viu, não quanto.
       noMelhorNivel: melhor !== null && [...niveis.keys()].every((n) => n === melhor),
       temAbaixoDoMelhor: melhor !== null && [...niveis.keys()].some((n) => n !== melhor),
+      // «JÁ É BOM» QUER DIZER **ALGUMA** NO MELHOR NÍVEL (05/11/2026, decisão dela).
+      //
+      // A definição era «todas», e o efeito medido foi o contrário do que ela esperava: numa turma
+      // em que as duas diferem em quase tudo, o bloco ficava vazio — e a aluna que tinha o tendu
+      // bom «por consciência própria» não aparecia em sítio nenhum com esse mérito. Ela, ao ler a
+      // tela: «esse aqui é para colocar o que é individual de cada uma. […] é o que já é bom de
+      // cada aluna. Eu vou listar o aspecto, o eixo e como está o grupo».
+      //
+      // O bloco passa a responder «onde há algo bom para preservar», e não «onde o grupo está
+      // inteiro bem». As duas leituras continuam a existir: `noMelhorNivel` guarda a segunda, e
+      // `noMelhor` diz QUEM — a tela mostra a primeira sem nomear ninguém.
+      algumNoMelhor: melhor !== null && [...niveis.keys()].some((n) => n === melhor),
+      noMelhorNivel: melhor !== null && [...niveis.keys()].every((n) => n === melhor),
       // QUEM ESTÁ NO MELHOR NÍVEL, NOMEADO — a leitura individual que a lista do grupo não dava.
       // Vive dentro de cada aspecto porque é aí que ela se lê: «a Ana está bem aqui» sem sair da
       // linha que diz que a turma tem um ponto de atenção neste aspecto.
@@ -654,7 +670,7 @@ function classificar(disponiveis, anamneses) {
     // é um traço comum E, se o arco for o melhor nível, é excelência. As quatro listas são quatro
     // PERGUNTAS ao mesmo dado, não quatro gavetas que se excluem.
     if (item.temAbaixoDoMelhor) atencao.push(item);
-    if (item.noMelhorNivel) excelencia.push(item);
+    if (item.algumNoMelhor) excelencia.push(item);
     if (item.dimensao === 'musicalidade') musicalidade.push(item);
     if (item.unanimidade) comuns.push(item);
   }
