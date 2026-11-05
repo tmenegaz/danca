@@ -497,10 +497,114 @@ console.log('\nI. O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA, O PONTEIRO NO PL
     vazioPlano && vazioPlano.corpo);
 }
 
+// ------------------------------------------------- J: a origem do corpo, no envelope real
+
+console.log('\nJ. O CORPO DA AULA VEM DO ENVELOPE — E DE MAIS NADA');
+{
+  /* A DECISÃO DELA (04/11/2026, à noite): «não se deve alterar o sentido clássico do vínculo — a
+   * aula continua derivando do plano, e não o inverso»; e «o gerador da aula deve buscar a
+   * informação onde ela é preenchida de origem». O sentido está certo desde sempre; o que faltava
+   * era PROVAR que é dele que o dado vem.
+   *
+   * A prova não pode ser sobre um fixture, porque fixture é uma segunda verdade. É sobre o
+   * envelope REAL do ciclo (versionado em `escola/<slug>/envelopes/`): ele é a origem que o
+   * professor preencheu, e é dele que a aula tem de sair, linha por linha.
+   *
+   * TRÊS ASSERÇÕES, e a segunda é a que vale:
+   *   1. as linhas da aula são EXACTAMENTE os rótulos do envelope (conjunto, não contagem);
+   *   2. trocado o envelope, a aula segue o envelope — e nenhum dos quinze rótulos reais sobra.
+   *      É o controlo negativo do «hardcoded»: um único aspecto inventado no código reprovava aqui;
+   *   3. o plano macro tem a CONTAGEM e não os rótulos — e as duas contas batem, porque as duas
+   *      leem a mesma chave. */
+  const fs = require('fs');
+  const { calibracaoDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
+  const caminhoEnvelope = path.join(RAIZ, 'escola/breu/envelopes/plano-20261104-1732.json');
+  const caminhoPo = path.join(RAIZ, 'escola/breu/envelopes/po-20261104-1811.json');
+  const caminhoConf = path.join(RAIZ,
+    'professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf');
+  const temEnvelopes = fs.existsSync(caminhoEnvelope) && fs.existsSync(caminhoPo);
+
+  if (!temEnvelopes) {
+    provar('o envelope real do ciclo está no repositório (sem ele esta prova não mede)',
+      false, 'escola/breu/envelopes — a escola foi expurgada?');
+  } else {
+    const doPlano = JSON.parse(fs.readFileSync(caminhoEnvelope, 'utf8'));
+    const doPo = JSON.parse(fs.readFileSync(caminhoPo, 'utf8'));
+    const calibracao = calibracaoDoConf(fs.readFileSync(caminhoConf, 'utf8'));
+    const contexto = { ciclo: '01', escola: 'breu', escolaNome: 'Breu' };
+
+    const rotulosDoEnvelope = (doPlano.respostas['aspecto-fisico'].valor || [])
+      .map((l) => String(Object.values(l)[0] || '').trim()).filter(Boolean);
+    const aula = derivarAula01({ plano: doPlano, po: doPo, contexto: contexto, calibracao: calibracao });
+    const linhasDaAula = (guia(aula).tabelas['Corpo'] || []).slice(1).map((c) => c[0]);
+    const mesmos = linhasDaAula.length === rotulosDoEnvelope.length
+      && rotulosDoEnvelope.every((r, i) => linhasDaAula[i] === r);
+    provar('as linhas da aula são EXACTAMENTE os rótulos do envelope (' + rotulosDoEnvelope.length + ')',
+      mesmos, { envelope: rotulosDoEnvelope.slice(0, 3), aula: linhasDaAula.slice(0, 3) });
+    provar('os quinze aspectos do ciclo real chegam à aula',
+      rotulosDoEnvelope.length === 15 && linhasDaAula.length === 15, linhasDaAula.length);
+
+    // 2. o controlo negativo: trocado o envelope, a aula segue-o — e não guarda cópia de nada.
+    const inventado = JSON.parse(JSON.stringify(doPlano));
+    inventado.respostas['aspecto-fisico'].valor = [
+      { Aspecto: 'Aspecto que só o envelope conhece', 'Como está a turma': 'declarado' },
+    ];
+    const trocada = (guia(derivarAula01({ plano: inventado, po: doPo, contexto: contexto,
+      calibracao: calibracao })).tabelas['Corpo'] || []).slice(1);
+    provar('trocado o envelope, a aula mostra só o que ele declara (nada é hardcoded)',
+      trocada.length === 1 && trocada[0][0] === 'Aspecto que só o envelope conhece', trocada);
+    provar('…e nenhum dos quinze rótulos reais sobra na aula',
+      rotulosDoEnvelope.every((r) => trocada.every((c) => c[0] !== r)));
+
+    // 3. o plano macro: a contagem, e não os rótulos — e as duas contas batem.
+    const { derivarPlano } = require(path.join(RAIZ, 'motor/nucleo/derivar-plano-ciclo.js'));
+    const macro = (() => {
+      const linhas = String(derivarPlano(doPlano).markdown).split('\n');
+      const i = linhas.findIndex((l) => /^## Aspecto físico/.test(l));
+      const j = linhas.findIndex((l, k) => k > i && /^## /.test(l));
+      return linhas.slice(i, j === -1 ? undefined : j).join('\n');
+    })();
+    provar('o plano macro conta os quinze («15 aspectos físicos de referência»)',
+      /\*\*15 aspectos físicos de referência\*\*/.test(macro), macro.split('\n')[2]);
+    provar('…e NÃO repete os rótulos (o micro-detalhe não sobrecarrega a visão macro)',
+      rotulosDoEnvelope.every((r) => macro.indexOf(r) === -1), macro);
+    provar('…e a conta do plano bate com as linhas da aula (a mesma chave, duas vistas)',
+      Number((/\*\*(\d+) aspectos físicos de referência\*\*/.exec(macro) || [])[1])
+        === linhasDaAula.length, { plano: (/\*\*(\d+) aspectos/.exec(macro) || [])[1], aula: linhasDaAula.length });
+
+    /* 3b. A RESTRIÇÃO FÍSICA VOLTA AO DOCUMENTO, e não à tabela (04/11/2026, à noite). Ela saiu
+     * junto com as linhas por aluna, e a tabela ficou com os aspectos e só eles — é o que a
+     * asserção 1 exige. Mas o PO escreve que «a ausência também é informação», e a restrição é
+     * lesão/dor/limitação: o documento que o professor leva para a sala não a pode omitir. Vem
+     * numa linha, escrita por ele, fora da tabela — o que saiu foi a enumeração da máquina. */
+    provar('sem restrição declarada, a aula diz isso — e a ausência é informação',
+      /Sem restrições físicas declaradas\*\* no Plano de Observação\./.test(aula),
+      aula.split('\n').filter((l) => /restrições/i.test(l)));
+    const comRestricao = JSON.parse(JSON.stringify(doPo));
+    comRestricao.respostas.restricoes = { valor: 'Aluna A — sem saltos até a avaliação (declarado pela aluna).' };
+    const aulaComRestricao = derivarAula01({ plano: doPlano, po: comRestricao, contexto: contexto,
+      calibracao: calibracao });
+    provar('declarada, a restrição chega à aula com o texto do professor',
+      aulaComRestricao.indexOf('Aluna A — sem saltos até a avaliação') !== -1,
+      aulaComRestricao.split('\n').filter((l) => /restrições/i.test(l)));
+    provar('…e ela NÃO entra na tabela do corpo (a tabela é dos aspectos)',
+      (guia(aulaComRestricao).tabelas['Corpo'] || []).length === linhasDaAula.length + 1);
+
+    // 4. o sentido do vínculo: o plano NÃO lê a aula. Sem `aspecto-fisico`, o macro declara a
+    //    lacuna em vez de ir buscá-lo a outro lado — que é o que distingue derivar de adivinhar.
+    const semAspecto = JSON.parse(JSON.stringify(doPlano));
+    delete semAspecto.respostas['aspecto-fisico'];
+    const macroVazio = String(derivarPlano(semAspecto).markdown);
+    provar('sem a chave, o plano declara a lacuna — não vai buscá-la à aula (o sentido é plano → aula)',
+      /Preencher: carregue a sugestão a partir das anamneses/.test(macroVazio)
+        && rotulosDoEnvelope.every((r) => macroVazio.indexOf(r) === -1));
+  }
+}
+
 console.log('\n' + (falhas
   ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
   : 'TUDO CERTO — ' + provas + ' asserções: a fatia de cada bloco vem do plano pela coluna certa '
     + '(em percentagem ou em minutos), a lacuna diz qual bloco, o guia lê as três frentes — '
     + 'Corpo, Técnica e Poiesis — sem perder um item, e o corpo tem uma fonte só (o detalhe '
-    + 'na aula, o ponteiro no plano).'));
+    + 'na aula, o ponteiro no plano) — e essa origem está provada no envelope real.'));
 process.exit(falhas ? 1 : 0);

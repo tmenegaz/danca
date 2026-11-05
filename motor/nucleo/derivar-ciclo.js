@@ -339,12 +339,23 @@ function eixosDaObservacao(dims, plano, po) {
    * ser candidata. Antes, `eixoDoBloco` devolvia «Técnica» para tudo o que não fosse
    * musicalidade/expressão, e o corpo do plano caía no eixo errado. Nenhuma dimensão do PO cai
    * no corpo (o PO não declara dimensões de corpo): o que ele leva são as LINHAS, lidas do plano
-   * e do PO — e é isso que `porEixo.corpo` guarda, vazio, para a soma fechar nos três eixos. */
-  return [
+   * — e é isso que `porEixo.corpo` guarda, vazio, para a soma fechar nos três eixos.
+   *
+   * A RESTRIÇÃO FÍSICA VAI NO EIXO, e não fica só no resumo (04/11/2026, à noite). Ela saiu da
+   * tabela com as linhas por aluna — e a tabela fica com os aspectos e só eles, que é o que a
+   * bancada exige («as linhas da aula são EXACTAMENTE os rótulos do envelope»). Mas ela não pode
+   * desaparecer do documento: o PO a declara como «lesão, dor, limitação médica ou restrição que
+   * afeta o movimento de alguma aluna» e escreve que «a ausência também é informação». Um
+   * documento que o professor imprime e leva para a sala não pode omitir isto — e é uma linha só,
+   * escrita por ele, não uma enumeração da máquina: o que saiu foi a tabela por aluna, não a
+   * palavra dele. */
+  const eixos = [
     eixo('corpo', 'Corpo', porEixo.corpo, resumoDoCorpo, linhasDoCorpo),
     eixo('tecnica', 'Técnica', porEixo.tecnica, resumoDoEixo(porEixo.tecnica)),
     eixo('poiesis', 'Poiesis', porEixo.poiesis, resumoDoEixo(porEixo.poiesis)),
   ];
+  eixos[0].restricoes = restricoes;
+  return eixos;
 }
 
 /**
@@ -846,18 +857,30 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
      * bloco»). O bloco é o título `### Corpo`, um token só, que é a forma que o PO já usa para os
      * subcampos. E o título fica legível no documento: é o nome do eixo, e não um código.
      *
-     * O CORPO TEM LINHAS PRÓPRIAS (ver `eixosDaObservacao`): os aspectos físicos do plano, o ponto
-     * de partida de cada aluna e as restrições declaradas. Sem elas o eixo existia como resumo e
-     * a tabela saltava-o — e uma tabela que salta um eixo dos três ensina que ele não se observa. */
+     * O CORPO TEM LINHAS PRÓPRIAS (ver `eixosDaObservacao`): os aspectos físicos que o plano
+     * consolidou. Sem elas o eixo existia como resumo e a tabela saltava-o — e uma tabela que
+     * salta um eixo dos três ensina que ele não se observa. A restrição física vem DEPOIS da
+     * tabela, numa linha só: ela não é um aspecto, e a tabela fica com os aspectos e só eles. */
     for (const e of eixos) {
       corpo.push('### ' + e.rotulo, '');
-      if (e.linhas.length) {
-        corpo.push('| Critério | O que se observa |');
+      const tabelaDe = (cabecalho, linhas) => {
+        corpo.push(cabecalho);
         corpo.push('|:--|:--|');
-        for (const [criterio, observa] of e.linhas) {
-          corpo.push('| ' + criterio + ' | ' + observa + ' |');
-        }
+        for (const [criterio, observa] of linhas) corpo.push('| ' + criterio + ' | ' + observa + ' |');
         corpo.push('');
+      };
+      if (e.linhas.length) {
+        tabelaDe('| Critério | O que se observa |', e.linhas);
+        /* A NOTA É CITAÇÃO, e não parágrafo — por uma razão de CONTRATO, medida: o extrator lê
+         * UMA tabela por bloco, e o texto que vem DEPOIS dela, num subcampo de lista, substitui o
+         * array pelo parágrafo (o `guiaDeObservacao.Corpo` do `plano-aula-01.json` virava a frase
+         * das restrições, e o cartão perdia os quinze). A linha `>` é o que o contrato chama de
+         * comentário do documento: fica visível para quem lê e não entra no dado. */
+        if (e.restricoes !== undefined) {
+          corpo.push(e.restricoes
+            ? '> **Restrições físicas**, declaradas no Plano de Observação: ' + e.restricoes
+            : '> **Sem restrições físicas declaradas** no Plano de Observação.', '');
+        }
         continue;
       }
       if (!dims.length) {

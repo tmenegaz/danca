@@ -73,6 +73,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 | Força de puxar (tração) | 1 de 1 em «Tração completa» |
 | Articulação e força intrínseca dos dedos | 1 de 1 em «Flexíveis e articulados» |
 
+> **Sem restrições físicas declaradas** no Plano de Observação.
+
 ### Técnica
 
 | Bloco | O que se observa |

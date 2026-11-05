@@ -666,6 +666,34 @@ três alunas o documento tem de ter o **mesmo** número de linhas que com uma.
 > e nomeá-la no plano prometia a tabela que saiu. O alias antigo fica em
 > `tools/validar-plano-ciclo.js`: há plano escrito com o título comprido, e ele continua a extrair.
 
+**O sentido do vínculo não mudou, e é a decisão (04/11/2026).** A aula deriva do plano, e não o
+inverso: o **Plano de Ensino** e o **Plano de Observação** são a origem (é lá que o professor
+escreve), e a aula é a vista que desce ao detalhe. O que a mudança arrumou foi **onde cada vista
+mora**, não quem manda em quem:
+
+| Nível | O que declara | Escala |
+|:--|:--|:--|
+| **Plano de Ensino** | a visão macro: *que* o corpo tem N aspectos de referência, e um link | O(1) — não cresce com o número de alunas |
+| **Aula NN** | o detalhe: os N aspectos, um por linha, com o que esta turma mostra em cada um | O(N aspectos) — nunca O(alunas) |
+| **Plano de Observação** | o ponto de partida de **cada** sujeito, e as restrições físicas | O(alunas) — é o documento do sujeito |
+
+**A origem está provada, e não afirmada.** A bancada (`provar-eixos-e-tempo-da-aula`, secção J) lê o
+**envelope real** do ciclo — está versionado em `escola/<slug>/envelopes/` — e exige três coisas:
+(a) as linhas da aula são **exactamente** os rótulos do envelope, na ordem; (b) **trocado o
+envelope**, a aula segue-o e nenhum dos quinze rótulos reais sobra — é o controlo negativo do
+*hardcoded*, e um único aspecto inventado no código reprova em quatro asserções; (c) a contagem do
+plano **bate** com as linhas da aula, porque as duas leem a mesma chave: duas vistas, um dado.
+
+**A restrição física voltou, e não à tabela.** Ela saiu com as linhas por aluna, e a tabela ficou
+com os aspectos e só eles. Mas o PO escreve, sobre este campo, que «a ausência também é informação»
+e que a restrição é «lesão, dor, limitação médica»: um documento que o professor imprime e leva para
+a sala não a pode omitir. Ela vem numa **citação** (`>`), depois da tabela — uma linha, escrita por
+ele, não uma enumeração da máquina. A forma não é estética: o contrato de extracção lê **uma tabela
+por bloco**, e o texto que vem depois dela num subcampo de lista **substitui o array pelo
+parágrafo** — medido: o `guiaDeObservacao.Corpo` do `plano-aula-01.json` virava a frase das
+restrições, e o cartão perdia os quinze. A citação é o que o contrato chama de comentário do
+documento: fica visível para quem lê e não entra no dado.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

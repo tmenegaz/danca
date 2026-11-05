@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T21:37:04-0300`
-Commit atual: `e199a85e` — feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estrita, e a anamnese e datada
+Gerado em: `2026-11-04T21:49:56-0300`
+Commit atual: `af0e8267` — fix(estrutura): o corpo tem uma fonte so — o detalhe na Aula 1, o ponteiro no plano
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+af0e8267 fix(estrutura): o corpo tem uma fonte so — o detalhe na Aula 1, o ponteiro no plano
 e199a85e feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estrita, e a anamnese e datada
 b9722672 fix(campo): o cabecalho do ato cabe no telefone, e as tres assercoes eram da bancada
 a90058f2 fix(po): o plano de observacao tem tres eixos, e o corpo vem da anamnese
@@ -104,7 +105,6 @@ fbd0756c feat(acervo): envelope/.indice.json
 7091587e fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
 355a1a4e fix(campo): a fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes
 c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
-3738b266 chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `e2b3386b3c67` | (vazio) | Input_PO_Aguardando |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `0caaac7956c8` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -302,6 +302,52 @@ tabela» — reprova com a secção antiga. As duas foram escritas depois de ver
 É o segundo dia seguido em que uma mudança de documento revela um consumidor escondido: o
 `plano-aula-01.json` já trazia o guia extraído e ninguém o lia; e o cartão lia a cópia errada sem
 nunca falhar.
+
+**A resposta dela, e o que ela fixa.** «Não se deve alterar o sentido clássico do vínculo — a aula
+continua derivando do plano, e não o inverso»; e «o gerador da aula deve buscar a informação onde
+ela é preenchida de origem». O sentido estava certo desde sempre; o que faltava era **prová-lo**, e
+uma coisa que se perdeu com a limpeza de ontem: a **restrição física**.
+
+1. **A origem passou a estar provada, e não afirmada.** A secção J da bancada lê o **envelope real**
+   do ciclo (`escola/breu/envelopes/plano-20261104-1732.json`, versionado) e exige: as linhas da
+   aula são **exactamente** os rótulos do envelope, na ordem; **trocado o envelope**, a aula
+   segue-o e nenhum dos quinze rótulos reais sobra; a contagem do plano **bate** com as linhas da
+   aula. O controlo negativo foi feito a sério — com **um** aspecto inventado no código (`Port de
+   bras`, a ironia é o nome do bug de ontem), **quatro** asserções reprovam, incluindo a que compara
+   a conta do plano com a da aula (15 contra 16).
+
+2. **A restrição física voltou ao documento, e não à tabela.** Ela saiu ontem junto com as linhas
+   por aluna — e era remoção a mais. A tabela fica com os aspectos e só eles; a restrição vem numa
+   linha depois, citada. A razão de ela ter de voltar não é gosto: o próprio PO escreve, sobre este
+   campo, que é «lesão, dor, limitação médica ou restrição que afeta o movimento de alguma aluna» e
+   que «a ausência também é informação». Um documento que se imprime e se leva para a sala não a
+   pode omitir. E o que saiu foi a **enumeração da máquina** (duas linhas por aluna, sessenta e uma
+   com trinta alunas), não a **palavra do professor** — que é uma linha, e é dele.
+
+3. **A forma da nota é contrato, não estética.** Escrita como parágrafo, ela **substituía o array**
+   no `guiaDeObservacao.Corpo` do `plano-aula-01.json`: o contrato de extracção lê uma tabela por
+   bloco, e o texto que vem depois dela num subcampo de lista toma o lugar do array. Medido: o
+   cartão perdia os quinze e dizia «sem dimensões». Como **citação** (`>`), o contrato a trata como
+   comentário do documento — visível para quem lê, fora do dado — e o `Corpo` voltou a ser a lista
+   de 15. Está na bancada: «a restrição não entra na tabela do corpo».
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`eixosDaObservacao` → `eixos[0].restricoes`; a
+emissão em §5) · `ARQUITETURA-GERAL.md` §5.8 (a tabela dos três níveis e a prova da origem) ·
+`experimentos/provar-eixos-e-tempo-da-aula.js` secção J (8 asserções novas: 50 → 61, com o controlo
+negativo do aspecto inventado) · as fontes derivadas e o pacote do
+`ciclo-01-breu-bale-nivel-1-teste-3`, regerados, e a âncora refeita com `--check` a passar.
+
+**Com o quê.** `provar-eixos-e-tempo-da-aula` (61) · `provar-cartao-da-aula` (25) ·
+`provar-plano-completo` (18) · `provar-plano-matriz` (52) · `provar-eixos-do-po` (34) ·
+`provar-publicacao-da-escola` (63) · `provar-forca-e-flexibilidade` (17) ·
+`provar-aula-e-plano-legiveis` (12) · `check-pacote` · `check-indices` 14/14 ·
+`hash-ciclo --check`.
+
+**O que NÃO se fez, e é de propósito.** O guia da aula **não** liga cada um dos quinze aspectos a um
+objetivo específico daquela aula. Ligá-los exigiria um par (aspecto × objetivo) que **nenhum
+formulário declara** — e inventá-lo seria exactamente o defeito do «Port de bras» outra vez. Os
+objetivos ligam-se ao que se mede em «Parâmetro de medição» (§1), e essa ligação existe porque o
+professor a marcou.
 
 ## O que está pendente
 

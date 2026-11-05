@@ -4,16 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **o corpo tem uma fonte só: o
-> detalhe na Aula 1, o ponteiro no plano**. (1) O **aspecto físico** era impresso **duas vezes** —
-> plano do ciclo e aula 01 — a partir da **mesma** chave do envelope; a tabela dos aspectos fica na
-> **aula** (secção «Corpo» do guia) e o plano publica a contagem e um **link** para
-> `aula-01.html#corpo`. O ponto de partida de cada aluna fica no **PO**, que é do sujeito. (2) **A
-> linha por aluna saiu da aula**: o `linha-de-base` dava duas linhas por sujeito, e trinta alunas
-> davam sessenta e uma linhas antes da primeira marca. (3) O título da secção do plano perdeu
-> «força e flexibilidade» — declara o **eixo**, não a lista, que é a da aula; o alias antigo fica no
-> validador. Prova: `provar-eixos-e-tempo-da-aula`, **50 asserções** (a escala é o controlo
-> negativo: com três alunas o documento não cresce).
+> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **o corpo tem uma fonte só — e a
+> origem está provada no envelope real**. (1) **O sentido do vínculo não mudou**: a aula deriva do
+> plano, e o PE/PO são a origem; o que se arrumou foi onde cada **vista** mora — o plano declara a
+> visão macro (N aspectos + link), a aula o detalhe (os N, um por linha), o PO o ponto de partida de
+> cada sujeito. (2) A tabela dos aspectos fica na **aula** (secção «Corpo»); o plano publica a
+> contagem e um **link** para `aula-01.html#corpo`. (3) **A linha por aluna saiu da aula**: com
+> trinta alunas eram sessenta e uma linhas antes da primeira marca. (4) **A restrição física
+> voltou** — numa citação, fora da tabela: é lesão/dor/limitação, e o próprio PO diz que «a
+> ausência também é informação». (5) O título da secção do plano perdeu «força e flexibilidade».
+> Prova: `provar-eixos-e-tempo-da-aula`, **61 asserções**, com a secção J a medir o **envelope real**
+> do ciclo e o controlo negativo do aspecto inventado (reprova em quatro).
 >
 > **Entrega anterior** (base `b972267`, árvore limpa). Nesta entrega, **o ciclo
 > apaga-se de trás para a frente, a sequência é estrita, e a anamnese é datada**. (1) **Apagar o
@@ -2015,7 +2016,12 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      aula) — já são calculados pelo calendário e são a referência natural, se a escola quiser usá-la.
      **DECIDIDO** 04/11/2026.
 
-104. **O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA 1, O PONTEIRO NO PLANO.** O aspecto físico (o
+104. **O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA 1, O PONTEIRO NO PLANO — E O VÍNCULO NÃO SE
+     INVERTE.** A aula continua a derivar do plano: o PE e o PO são a origem (onde o professor
+     escreve), e a aula é a vista que desce ao detalhe. O que a regra fixa é a **escala de cada
+     vista** — o plano declara O(1) (a contagem e o link), a aula O(aspectos), o PO O(alunas) —
+     nunca O(alunas) num documento de leitura. A **restrição física** fica na aula, citada e fora
+     da tabela: é lesão/dor/limitação, e o PO declara que «a ausência também é informação». O aspecto físico (o
      eixo do corpo) era impresso **duas vezes** — no plano do ciclo e na aula 01 — a partir da
      **mesma** chave do envelope. Duas cópias do mesmo dado são duas versões à espera de divergir. A
      tabela dos aspectos fica na **Aula 1** (secção «Corpo» do guia), o plano publica a contagem e
