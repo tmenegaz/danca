@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T07:57:49-0300`
-Commit atual: `2d587842` — feat(estrutura): a relacao PE -> PO passa a ser do servidor, e nao do menu suspenso
+Gerado em: `2026-11-05T08:18:11-0300`
+Commit atual: `5b7c8c10` — fix(estrutura): apagar um registo leva o ciclo que ele produziu — em cascata, e so o dele
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,8 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+5b7c8c10 fix(estrutura): apagar um registo leva o ciclo que ele produziu — em cascata, e so o dele
+edb1d243 chore(estrutura): regerar o HANDOFF depois da regra PE -> PO
 2d587842 feat(estrutura): a relacao PE -> PO passa a ser do servidor, e nao do menu suspenso
 3c21a631 fix(estrutura): a ponte enquadra toda pagina, e a bancada do menu deixa de arranjar a pagina que mede
 cde67100 feat(estrutura): a moldura passa a ser um enquadramento, e a escola nova nasce com os tres formularios
@@ -103,8 +105,6 @@ e199a85e feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estr
 b9722672 fix(campo): o cabecalho do ato cabe no telefone, e as tres assercoes eram da bancada
 a90058f2 fix(po): o plano de observacao tem tres eixos, e o corpo vem da anamnese
 a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
-7cf8122e fix(campo): as colunas da aula têm a largura do que levam, e a notação sai da música
-d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
 ```
 
 ## Por professor
@@ -230,89 +230,92 @@ d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — A relação PE → PO passa a ser do servidor: o PO não nasce sobre um plano que não existe
+## 05/11/2026 — Apagar um registo leva o ciclo que ele produziu: a cascata passa a estar ligada ao gesto da listagem
 
-**A entrega anterior era metade, e ela notou.** Na ronda da sequência estrita, o campo do ciclo do
-Plano de Observação passou a ser um menu suspenso com os ciclos que têm plano (`GET /api/ciclos` →
-`comPlano`). Isso é a **conveniência**. A **regra** — «o PO só pode ser criado se houver
-estritamente um Plano de Ensino pré-existente e válido para aquele mesmo ciclo… impedindo qualquer
-órfão ou inconsistência relacional» — não estava em lugar nenhum: um `POST` à mão, com a página
-aberta de ontem ou sem ela, escrevia o que quisesse.
+**Três sintomas, três causas independentes.** A pesquisadora descreveu-os em cadeia: apagou o
+Plano de Observação, depois o Plano de Ensino, e o resultado foi «o plano de observação ainda está
+aqui. Ele não sumiu. Posso acessá-lo. E os documentos que ele gerou também estão aqui… as aulas
+ainda estão aqui», com o plano de ensino a dizer-se «vinculado» depois disso.
 
-**Medido, antes (dois `POST` diretos à rota, com o acervo de prova):**
+### 1. O gesto de apagar era SÓ o envelope
 
-| Escrita | Antes | Depois |
-|:--|:--|:--|
-| `{fonte:'po', ciclo:'07', 'plano-de-ensino':'plano-20990101-0000'}` | **200** — o órfão | **409** |
-| `{fonte:'plano', ciclo:'07'}` sem 01..06 | **200** — a sequência quebrada | **409** |
+`DELETE /api/po-vinculo/:id` apagava o registo do acervo e mais nada — o comentário da rota até o
+dizia: «apagar o envelope do acervo não toca no que já foi gerado». O produto do ciclo (o
+`index.html` que o menu lista, o `plano.html`, o `aula-01.html`, o `lancamento.html`, a
+`captura-aula-01.html`, os PDF, as referências, a notação, as listagens) ficava inteiro, e o menu
+também — a montagem o deriva dos pacotes.
 
-A primeira gravou um PO que observa um plano que não existe, num ciclo que não tem plano nenhum. A
-segunda abriu o ciclo 07 sem 01..06 — e a âncora do ciclo N encadeia com a do N-1.
+A CASCATA JÁ EXISTIA: `apagarCicloDoRepo`, a mesma que a Produção usa, com a guarda do último
+ciclo. O que faltava era **estar ligada ao gesto da listagem**.
 
-### A correção: três conferências, antes de qualquer gravação
+### 2. A cadeia devolvia o elo anterior, e o gesto lia-se como mentira
 
-`recusaDaRelacaoDoCiclo` em `motor/servidor/rotas.js`, no `POST /api/elicitar`:
+Apagar o vigente de uma cadeia faz o elo de trás voltar a ser o vigente: a linha da lista **não
+desaparece**, muda de carimbo. Sem uma palavra, isso é «não apagou». Agora a exclusão leva a
+**cadeia do ciclo** — os POs dele —, e a linha desaparece mesmo; e quando um elo anterior volta a
+ser o vigente (o caso do plano), a resposta diz **qual** (`anteriorVigente`) e a lista mostra o
+recado uma vez, por `sessionStorage`.
 
-1. **o plano declarado existe** no acervo (o carimbo inventado não é um plano);
-2. **o ciclo do PO é o ciclo do plano** (um PO de outro ciclo é a inconsistência relacional);
-3. **sem plano declarado, o ciclo tem de ter plano** (o órfão por construção).
+### 3. O plano «vinculado a nada»
 
-E do lado do plano, a **sequência estrita**: um plano novo só pode ser do **próximo** ciclo, ou de
-um ciclo que **já existe**. A edição (`id`) e o elo novo (`ajuste_de`) não criam ciclo — e o `id`
-só isenta a conferência se o documento existir de facto, senão seria a porta de serviço da regra.
+Era vinculado a três POs antigos que o gesto não tinha apagado — cada clique apagava um elo e
+revelava o seguinte. Com a cadeia levada, o plano fica **livre**: apagados os POs, não há quem
+declare o vínculo. É o modelo da curadoria — apagar o vínculo liberta o que estava preso.
 
-As recusas **nomeiam o que impede e o que fazer**: dizem o carimbo que não existe e mandam criar o
-plano primeiro; dizem os dois ciclos quando eles divergem; dizem qual é o próximo da sequência e
-quais os ciclos que têm plano.
+### A ordem, e é ela a garantia
 
-**Duas disciplinas, e a segunda é da casa.** Sem leitor do acervo (uma bancada, um adaptador sem
-índice) a rota **segue** em vez de recusar: uma guarda que devolvesse «o plano não existe» quando
-não conseguiu ler coisa nenhuma estaria a acusar o professor por uma limitação de quem mede. E a
-**simulação** passa — ela não escreve, e uma prévia não é um documento.
+1. a **cascata do produto**; se ela recusar, **nada** é apagado (nem o envelope, que antes
+   desaparecia deixando o ciclo de pé sem o registo que o justificava);
+2. os **envelopes dos POs do ciclo**, pelo **acervo** — e só depois de a cascata ter passado. Quem
+   mantém o `.indice.json` é o acervo, e uma segunda escrita do mesmo índice divergiria; é por isso
+   que a cascata passou a ter o modo `soOProduto`;
+3. o envelope pedido, idempotente.
 
-### Na tela, dois ajustes que a regra exigiu
+**Sem acesso ao repositório** a cascata não acontece, e a rota **diz isso** em vez de prometer o
+que não fez: o envelope sai, o ciclo fica, e a resposta nomeia o motivo.
 
-- **O ciclo sem plano, quando aparece na lista, diz-se.** Ele só entra se for o valor que o
-  documento já tinha (um PO que ficou órfão quando o plano dele foi apagado), e a opção sai como
-  «02 — sem plano de ensino»: escolhê-la não é como escolher as outras, e a pessoa tem de saber
-  antes do «Guardar».
-- **Sem nenhum ciclo com plano, o campo fica travado** — um campo de escolha sem escolhas não é
-  uma pergunta —, e a nota diz por onde começar.
+### A guarda, e o isolamento
 
-### Um verde falso que caiu junto
+A guarda é a da cadeia de âncoras e continua a ser a do núcleo: só o **último** ciclo da sequência
+se apaga, porque o `parentHash` do N+1 aponta para a âncora do N. A recusa nomeia o caminho
+(«apague de trás para a frente»), e **nada** é tocado. O isolamento é medido nos dois sentidos:
+apagar o ciclo 02 não deixa **nenhum** caminho do 01 na lista de apagados, e apagar o 01 com o 02
+vivo é recusado.
 
-A `provar-novo-registo-e-ciclo` media a lista do PO com um fixture cujo plano vinha da `breu`
-(`contexto.escola: 'breu'`) enquanto o Worker da prova era `prova`. `GET /api/ciclos` recorta por
-escola: `comPlano` vinha **vazio**, e o `01` aparecia na lista pelo **fallback** («o valor que o
-documento já tinha»), não porque o servidor dissesse que o ciclo tinha plano. A asserção passava a
-medir outra coisa — e a «não mostra o 02» passava por não haver lista nenhuma.
+> **A sequência é da TURMA, não da escola.** Dois ciclos de variantes diferentes são sequências
+> independentes, e a guarda não os vê um ao outro. Foi preciso corrigir o fixture da bancada para
+> o provar: com duas variantes, a guarda não dispara — e o teste passaria sem medir nada.
 
-O fixture passa a trocar a escola do contexto (o documento é o mesmo, o dono é que é o do Worker),
-a secção passou a **medir a fonte** (`fetch('api/ciclos')` → `comPlano` tem o `01`) e ganhou o par
-que faltava: o PO órfão abre no ciclo dele, a opção anuncia-se, e o ciclo que tem plano continua
-sem a marca (29 asserções, de 24).
+### O «ponto de exclamação» no Actions: não era falha
+
+O gesto de apagar não é um workflow — é um commit que o Worker faz pela API. O que ela viu com o
+título «apagar envelope» foi o **`Regerar os índices`** disparado por esse commit, e ele aparece
+**cancelado** (2 segundos depois), não falhado: o próprio commit de índice que ele produz dispara
+uma nova execução, e o `concurrency: cancel-in-progress: true` cancela a anterior. É de propósito —
+a derivação é idempotente e sem estado —, e o estado final converge: verificado no remoto, os dois
+envelopes apagados saíram, e o `.indice.json` ficou sem eles. **Não há nada a corrigir ali**; o que
+faltava era o passo seguinte, que é esta cascata.
 
 ### A prova
 
-`experimentos/provar-relacoes-do-ciclo.js` (**nova**, 22 asserções), com **controlo negativo em
-cada secção** — a escrita válida da mesma família tem de continuar a entrar, senão uma guarda que
-recusasse tudo passaria na primeira metade:
+`experimentos/provar-apagar-o-ciclo.js` (**nova**, 33 asserções), com um repositório falso
+**inteiro** — API Contents e API Git —, porque em produção o **acervo também mora no repositório**
+(a primeira versão da bancada só falsificava a API Git e as leituras iam ao GitHub verdadeiro:
+`HTTP 401`, medido).
 
-| Secção | Recusa | Controlo (tem de entrar) |
-|:--|:--|:--|
-| 1 | plano inventado → 409, e **nada é gravado** | o plano real do mesmo ciclo → 200 |
-| 2 | plano do ciclo 01 num PO do ciclo 02 → 409, com os dois ciclos ditos | o plano do ciclo certo → 200 |
-| 3 | ciclo sem plano nenhum → 409 | no ciclo que tem plano, o PO sem plano declarado → 200 |
-| 4 | plano no ciclo 07 sem 02..06 → 409, com o próximo dito | o próximo ciclo → 200; o elo novo → 200; a correção → 200; `id` inventado → **409** |
-| 5 | — | sem leitor, a recusa **não** vem da regra; a simulação passa e não grava |
-| 6 | — | a anamnese continua a gravar sem ciclo nenhum (é do sujeito) |
+| Secção | O que exige |
+|:--|:--|
+| 1 | o pacote, o plano, a referência, a notação, o PDF do ciclo, a aula, o lançamento, a captura, o PDF da aula, a porta, o `.conf` e as duas âncoras do 02 saem — e **nenhum** caminho do 01 |
+| 2 | com o 02 vivo, apagar o PO do 01 é **409** com o caminho escrito, e **nada** é apagado — nem produto, nem envelope |
+| 3 | sem repositório: o envelope sai, a resposta diz que o ciclo ficou, com o motivo |
+| 4 | a cadeia inteira do ciclo sai (o elo anterior não volta à lista) |
+| 5 | o plano livre apaga-se e não toca no ciclo vizinho |
 
-**O A/B contra o commit anterior reprova em 12 das 22 asserções.**
+**O A/B sem a cascata reprova em 17 das 33.**
 
-**Fixtures que tiveram de dizer a verdade.** Três bancadas criavam POs a observar planos que não
-existiam — era possível, e por isso passavam: `provar-po-unico` (semeia agora `PLANO_A`/`PLANO_B`),
-`provar-carimbo-da-edicao` (cria o plano antes do PO) e `provar-geracao` (idem). As asserções delas
-não mudaram de sentido: o que mudou foi o cenário, que agora é o do produto.
+**Motivo declarado (CONGELAMENTO.md):** `tools/` está congelado e **não foi tocado** nesta
+mudança — a cascata é a rotina que já existia (`motor/servidor/repo-escola.js`), e o que mudou foi
+o ponto de chamada (`rotas.js`, `cloudflare.js`) e a listagem (`listas-do-acervo.js`).
 
 ## O que está pendente
 
