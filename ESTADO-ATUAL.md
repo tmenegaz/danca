@@ -105,6 +105,15 @@
 > expurgo é um commit só. Prova nova: `provar-verbos-do-armazenamento`, **29 asserções**, a ler os
 > verbos **do ficheiro do contrato** e a passar pelo `criarArmazenamento`.
 >
+> **Publicado e confirmado no ar (05/11/2026).** O commit `aac98600` esteve no `main` sem deploy: o
+> evento de `push` **não chegou ao Actions** (zero runs para o SHA, fila vazia, e os dois workflows
+> cujos `paths` casavam — `deploy-escolas` por `motor/**` e `deploy-raiz` por `motor/servidor/**` — sem
+> execução). O Worker da `calango` servia `d60baced`. Publicado por `workflow_dispatch` (run
+> 42063204458, `success`) e **verificado ao vivo**: os cinco passos estão na página de Produção, e o
+> `<script>` servido difere do motor local em **uma linha** — o `ALUNAS_TODAS`, que é dado da escola.
+> Regra que fica: depois de um push que mexa em `motor/`, `tools/templates/` ou `porta/`, confirmar
+> **no ar** o marcador que a mudança introduziu; se a run não existir, disparar o `workflow_dispatch`.
+>
 > **A linha de base passou a ser um fluxo de cinco passos (05/11/2026, quarta passagem).** A
 > secção era um formulário só; ela organizou-a como o verbete da notação: **1 Identificação · 2
 > Alunas · 3 Leitura · 4 Recorte · 5 Turma**, com a mesma trava (não se chega a um passo com falta

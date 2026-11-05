@@ -35921,3 +35921,45 @@ comprimento.
 
 **Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**. A rolagem das alunas nasce no
 estilo desta página, e não na folha congelada — a checagem 4 permite, e a 8 exige que a peça exista.
+
+## 05/11/2026 — O commit estava no `main` e o Worker servia a versão anterior: o evento de `push` não chegou
+
+A pesquisadora: «não apareceu aqui e eu já recarreguei a página. Tem certeza que fez o commit, o push
+e o deploy do que precisa ser feito?» A resposta honesta é **commit sim, push sim, deploy não** — e a
+pergunta dela é a que faltava eu fazer a mim mesmo.
+
+**O que se mediu.** O `git ls-remote` deu `aac98600` — o push chegou. A API do GitHub, filtrada por
+`head_sha=aac98600`, devolveu **zero runs**; a fila estava vazia; e a última execução de qualquer
+workflow era a do commit anterior (`eaacdee1`, 15:53). Os dois workflows cujos `paths` casavam com o
+que o commit mudou — `deploy-escolas.yml` (`motor/**`) e `deploy-raiz.yml`
+(`motor/servidor/**`) — não tiveram execução nenhuma. Não é o filtro: ele contém os dois padrões, e o
+commit mudou `motor/nucleo/linha-de-base.js` e `motor/servidor/bastidores.js`.
+
+**O que estava no ar, e o que está.** Antes: a página de Produção da `calango` tinha `lb-alunas` e
+**não tinha `lb-tira`** — era a versão de `d60baced`. Depois de um `workflow_dispatch` explícito
+(run 42063204458, `success`, 1 minuto): os cinco passos estão lá — *Identificação · Alunas · Leitura ·
+Recorte · Turma*. E o `<script>` da Produção ao vivo é **o do motor deste commit**: o diff contra o
+que `paginaProducao` produz aqui dá **uma linha**, e é o `ALUNAS_TODAS`, que é dado da escola
+(`["Aluna A","Aluna B","Aluna C"]`) e não motor — exactamente o que a `provar-ambiente` neutraliza.
+
+**A forma nova de uma falha velha.** A 17/10/2026 o mesmo sintoma — «commit novo, Worker velho» — teve
+outra causa: um `grep` que deixou de casar e punha o job `skipped` em todos os runs. Está documentado
+no cabeçalho do `deploy-escolas.yml`, e foi o que fez nascer aquele workflow. Desta vez não há filtro
+a corrigir: **o evento não chegou ao Actions**. Não há nada no repositório que o explique, e as duas
+correções possíveis são de processo, não de código.
+
+**A regra que fica, e é minha.** «Publiquei» é uma afirmação sobre **o que o Worker devolve**, e só se
+prova pedindo a página. O projeto já tem a prova para isso — `provar-ambiente`, «a única prova que vai
+mesmo ao ar» — e ela está fixa em duas escolas que já não existem (`fita`, `valse`), de modo que não
+correu. Um `curl` de uma linha e um `grep` do marcador novo teriam dado a resposta em segundos, e não
+foram feitos. A partir daqui: depois de cada push que mexa em `motor/`, `tools/templates/` ou `porta/`,
+confirmar **no ar** o marcador que a mudança introduziu — e se a run não existir, disparar o
+`workflow_dispatch`, que é o caminho previsto.
+
+**Nota sobre a curadoria.** Ela estranhou que a curadoria continuasse com a selecção de alunos. Está
+como foi desenhado — o passo 5 grava o vínculo na linha de base e a curadoria **acrescenta** o elenco
+ao escolher a turma (`herdarAlunasDaTurma`, com a nota `cu-elenco-nota`) —, mas o pedido dela pode
+querer dizer mais: que o campo deixe de existir quando a turma já tem elenco. Fica em aberto, e é
+pergunta, não decisão.
+
+**Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado.
