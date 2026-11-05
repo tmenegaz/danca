@@ -4,10 +4,10 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **a linha de base passou a ler
-> os 45 campos que a anamnese mede — os 15 da observação inicial incluídos —, e a Curadoria passou
-> a oferecer os exercícios que ESTA escola pode compor**. (Ver as passagens de 05/11/2026 mais
-> abaixo, na ordem em que foram escritas.)
+> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **«o que já é bom» passou a ler o
+> NÍVEL e não a resposta inteira** — o apoio da observação inicial (`[escala, apoio]`) deixou de ser
+> confundido com o nível. (Ver as passagens de 05/11/2026 mais abaixo, na ordem em que foram
+> escritas.)
 >
 > **Fotografia anterior (04/11/2026).** Nesta entrega, **o Plano de Observação passa a
 > poder apagar-se**, e **o menu dos formulários ganha bancada**. (1) A linha do PO oferecia só
@@ -3949,6 +3949,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **05/11/2026** — **«O que já é bom» ficava vazio porque o apoio da observação inicial era lido como
+  nível.** A definição de excelência é de **grupo** («todas no melhor nível») e está documentada em
+  `ARQUITETURA-GERAL.md` §5.13 e no `REGISTRO.md` — **CONFIRMADO** no código. O defeito era outro: a
+  observação inicial grava `[escala, apoio]`, e a leitura juntava os dois com `join(' · ')`, tratando
+  «Bom · com-barra» como nível — que nunca é igual a «Bom». Medido nos dados reais da `calango`:
+  «2ª posição — pés» dava «2 de 2 em «Bom · consciencia-propria»» e ia para atenção; «o que já é bom»
+  ficava em **zero**, com `atenção = 45/45`. Passa a ler a escala pela mesma regra da `ficha.js`, o
+  apoio vai em português e entre parênteses quando é um só, «não foi medido» deixa de ser ponto de
+  atenção, e cada aspecto passa a dizer `noMelhor` (quem está bem). Medido: **103/103 · 159/159 ·
+  26/26**, `check-identidade` **0 erros**. **PENDENTE:** (a) a leitura guardada no KV é a antiga — é
+  preciso **reler** no passo 3 depois do deploy; (b) a excelência de **cada aluna** como lista não
+  tem onde se ler, e o que fazer com ela é decisão dela, em aberto.
 
 - **05/11/2026** — **A linha de base lia 30 dos 49 nós, e a Curadoria prometia o verbete de outra
   escola.** Dois relatos da mesma sessão, e as duas causas eram de **leitura** — não havia cache.

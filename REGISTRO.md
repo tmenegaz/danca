@@ -36448,3 +36448,70 @@ anterior, e não foi tocada.
   conjunto de promessas por outro. Fica declarado, e não corrigido.
 - A anamnese **não** foi alterada: `porta/conteudo/anamnese.json` é a norma, e o que estava errado
   era quem a lia.
+
+## 05/11/2026 — «O que já é bom» ficava vazio porque o apoio da observação inicial era lido como nível
+
+**O que motivou.** Ela olhou o passo 3 e disse: «as duas alunas têm aspectos bons no melhor nível, e o
+bloco diz que nenhum aspecto com o grupo todo no melhor nível — isso está estranho». E fez a pergunta
+certa antes de decidir: «o que a documentação fala a respeito desta etapa?».
+
+**O que a documentação diz — e é decisão, não acidente.** A definição é de **grupo**, e está escrita
+em três sítios: `ARQUITETURA-GERAL.md` §5.13 («o que já é bom — **todas** no melhor nível»), o
+parágrafo da régua («a turma toda no melhor nível é excelência»), e a entrada de 05/11/2026 do
+`REGISTRO.md` («o que já é bom (todas no melhor nível)»). As quatro listas são perguntas ao mesmo
+dado: *alguma fora do melhor* (atenção), *todas no melhor* (excelência), *o eixo musical inteiro*, e
+*a mesma resposta em todas* (comum). Nenhuma delas responde «a aluna A está bem aqui» — e é essa a
+lacuna de desenho que o relato dela expõe, não um defeito de implementação.
+
+**Mas havia um defeito de implementação, e ele produz exactamente o sintoma.** A observação inicial
+grava a resposta como **lista**: `[escala]` ou `[escala, apoio]` — «Bom» e «com a barra como apoio»
+são duas perguntas da mesma resposta, e a `ficha.js` já as separava pelo pool de desdobramentos. A
+leitura da linha de base juntava as duas com `join(' · ')` e tratava o resultado como **nível**. Assim
+«Bom · com-barra» nunca é igual ao melhor nível («Bom»).
+
+Medido nos dados reais da `calango` (as duas linhas de base guardadas no KV), sem tocar em nada:
+
+    cinco-posicoes-2a-pes    → «2 de 2 em «Bom · consciencia-propria»»    (as DUAS no melhor nível)
+    cinco-posicoes-2a-bracos → «1 de 2 em «Bom · consciencia-propria» · 1 de 2 em «Bom · com-toque»»
+
+Os dois iam para «o que precisa de ser trabalhado», e «o que já é bom» ficava em **zero** — com
+`atenção = 45 de 45`. Depois da correcção seriam `atenção = 43`, `excelência = 2`, `comuns = 2`.
+
+**O que foi decidido.**
+
+- **O nível é a ESCALA**, e o apoio não é nível: a leitura passou a ser a da `ficha.js`
+  (`valoresRespondidos`) — o primeiro elemento que não pertence ao pool de apoios —, e não uma segunda
+  regra escrita aqui. Apoios diferentes no mesmo nível **não fragmentam a contagem** (é o mesmo
+  estado, observado de duas maneiras), e o apoio aparece em português entre parênteses quando é um só.
+- **«Não foi medido» não é ponto de atenção.** É a abstenção declarada: contava como «abaixo do
+  melhor» e punha no corpo da aluna uma falta que ninguém observou. Passa a ser contada à parte, e o
+  texto diz quantos.
+- **Cada aspecto passa a dizer QUEM está no melhor nível** (`noMelhor`). É preparação, e é declarado:
+  ainda não se desenha na tela — o que a tela mostra é a decisão seguinte, que fica **pendente** dela.
+- A **definição de excelência não muda**: continua a ser «todas no melhor nível». O que muda é que
+  ela passa a ser calculada sobre o nível.
+
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `apoios` em `camposDaObservacaoInicial`,
+`nivelDaResposta`, `rotuloDoApoio`, `textoDosNiveis`; `agregar` e `classificar` deixam de juntar a
+resposta e passam a ler o nível; `naoMedidos` e `noMelhor` no item; `NAO_MEDIDO`. `ARQUITETURA-GERAL.md`
+— §5.12/§5.13: o parágrafo do nível contra o apoio, os números passam de 24/30 para 45, e a prova de
+49 para 103 asserções. `experimentos/provar-linha-de-base.js` — três asserções novas.
+
+**Medido.** `provar-linha-de-base` **103/103** (era 100); `provar-producao` **159/159**;
+`provar-curadoria-e-limpeza` **26/26**; `provar-conteudos-e-estado-da-turma`;
+`provar-plano-e-curadoria`; `check-identidade` **0 erros**. A prova dos apoios usa os dois casos
+reais (mesmo apoio e apoios diferentes) e o do «não foi medido».
+
+**Correcção de 05/11/2026 (mesmo dia, à tarde).** A entrada anterior desta data dizia que a leitura
+cruzava «os trinta campos». **Está incompleta**: são **quarenta e cinco** desde a correcção da
+observação inicial, publicada no `08b41241`. A redação anterior não se apaga: é o elo que registra o
+que se pensou antes.
+
+**O que ainda não está feito.**
+
+- **A leitura guardada no KV é a antiga.** O que está gravado em `bastidores/<escola>/linhas-de-base`
+  foi calculado pelo código anterior: depois do deploy, é preciso **reler** (passo 3 → «Ler as
+  anamneses») para os números passarem a ser os correctos. Ler é um gesto, e não se refaz sozinho.
+- **A excelência de cada aluna não tem onde se ler como LISTA.** A definição documentada é de grupo, e
+  a informação individual existe só dentro do texto de cada linha («1 de 2 em «Bom»»). O que fazer
+  com ela — frase, coluna «quem já está bem», ou bloco por aluna — é decisão dela, e está em aberto.

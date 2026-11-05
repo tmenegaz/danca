@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T19:41:13-0300`
-Commit atual: `95fcd9ef` — chore(estrutura): regerar os índices derivados
+Gerado em: `2026-11-05T20:24:10-0300`
+Commit atual: `08b41241` — fix(po): a linha de base le os 45 campos que a anamnese mede, e a Curadoria oferece so o que a escola compoe
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+08b41241 fix(po): a linha de base le os 45 campos que a anamnese mede, e a Curadoria oferece so o que a escola compoe
 95fcd9ef chore(estrutura): regerar os índices derivados
 f991b422 feat(acervo): envelope/.indice.json
 ab1cb22e chore(acervo): apagar envelope/anamnese-20261105-1907.json
@@ -105,7 +106,6 @@ e4e306e0 fix(po): o passo 5 sem turma diz o que falta, a curadoria deixa de esco
 449dc3dc fix(po): a tira grava, o Ler grava, e a lista da linha de base passa a ser a da casa
 5ee66fef fix(po): o Ler as anamneses acende, e a folha nao recebe a moldura
 021a2c8f fix(po): a recusa do recorte vazio distingue a aba antiga da edicao sem recorte
-e66a1d75 fix(po): o passo 1 grava rascunho, e o elenco que muda desce a cascata ate ao PO
 ```
 
 ## Por professor
@@ -231,118 +231,74 @@ e66a1d75 fix(po): o passo 1 grava rascunho, e o elenco que muda desce a cascata 
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o verbete de outra escola
+## 05/11/2026 — «O que já é bom» ficava vazio porque o apoio da observação inicial era lido como nível
 
-**O que motivou.** Dois relatos dela, na mesma sessão de uso e em dois ecrãs diferentes.
+**O que motivou.** Ela olhou o passo 3 e disse: «as duas alunas têm aspectos bons no melhor nível, e o
+bloco diz que nenhum aspecto com o grupo todo no melhor nível — isso está estranho». E fez a pergunta
+certa antes de decidir: «o que a documentação fala a respeito desta etapa?».
 
-1. «A Curadoria mostra `battement tendu` e `plié`; os Verbetes de notação mostram `demi plié` e
-   não mostram `battement tendu`.» — o mesmo vocabulário com dois conjuntos, em dois sítios que
-   deviam dizer a mesma coisa.
-2. «Marquei as duas alunas como excelentes na segunda posição de pés, voltei à linha de base e
-   refiz todo o processo — continua a dizer que não têm nada de bom nem nada em comum.»
+**O que a documentação diz — e é decisão, não acidente.** A definição é de **grupo**, e está escrita
+em três sítios: `ARQUITETURA-GERAL.md` §5.13 («o que já é bom — **todas** no melhor nível»), o
+parágrafo da régua («a turma toda no melhor nível é excelência»), e a entrada de 05/11/2026 do
+`REGISTRO.md` («o que já é bom (todas no melhor nível)»). As quatro listas são perguntas ao mesmo
+dado: *alguma fora do melhor* (atenção), *todas no melhor* (excelência), *o eixo musical inteiro*, e
+*a mesma resposta em todas* (comum). Nenhuma delas responde «a aluna A está bem aqui» — e é essa a
+lacuna de desenho que o relato dela expõe, não um defeito de implementação.
 
-As duas causas são de **leitura**, não de cache: não havia estado velho parado em lado nenhum, e
-procurá-lo teria dado a correcção errada.
+**Mas havia um defeito de implementação, e ele produz exactamente o sintoma.** A observação inicial
+grava a resposta como **lista**: `[escala]` ou `[escala, apoio]` — «Bom» e «com a barra como apoio»
+são duas perguntas da mesma resposta, e a `ficha.js` já as separava pelo pool de desdobramentos. A
+leitura da linha de base juntava as duas com `join(' · ')` e tratava o resultado como **nível**. Assim
+«Bom · com-barra» nunca é igual ao melhor nível («Bom»).
 
-**O diagnóstico — Curadoria × Verbetes.** As duas listas respondiam «que exercícios têm notação?»,
-e respondiam **de fontes diferentes e com regras diferentes**:
+Medido nos dados reais da `calango` (as duas linhas de base guardadas no KV), sem tocar em nada:
 
-- a **listagem do verbete** lê o alfabeto do **repositório** a cada abertura e aplica a vista da
-  escola (`listarVerbetes` → `registosDaEscola`, com o `.filter(x => x.porMusica.length > 0)`);
-- o **menu da Curadoria** (`exerciciosComNotacao`) lia o alfabeto **empacotado no Worker** — a
-  vista do dia do deploy — e **não** aplicava a vista da escola.
+    cinco-posicoes-2a-pes    → «2 de 2 em «Bom · consciencia-propria»»    (as DUAS no melhor nível)
+    cinco-posicoes-2a-bracos → «1 de 2 em «Bom · consciencia-propria» · 1 de 2 em «Bom · com-toque»»
 
-O alfabeto guarda o verbete do catálogo e o de cada escola (`8|2/4` e `8|2/4@breu`). O
-«Battement tendu» existe **só** na versão da `breu`. Medido no arranque, sem tocar em nada:
-
-    calango · curadoria: [ 'Battement tendu', 'Plié' ]   verbetes: [ 'Plié' ]
-    breu    · curadoria: [ 'Plié', 'Battement tendu' ]  verbetes: [ 'Battement tendu', 'Plié' ]
-
-Ou seja: **H1 do relato** — a Curadoria listava um termo a mais. A composição da notação também
-passa por `registosDaEscola`, portanto o exercício oferecido à `calango` cairia em lacuna na hora
-de escrever. A lista não prometia o que não existe; prometia o que não existe **para aquela
-escola** — que é a mesma mentira, um passo adiante.
-
-**Sobre o `demi plié`.** O alfabeto **nunca** conteve esse nome: `git log --all -S"demi plié" --
-biblioteca/` não devolve um único commit, e o alfabeto de hoje tem dois verbetes, «Plié» e
-«Battement tendu». «Demi-plié» existe no **vocabulário** como `alternativos` do termo `plie`, e
-aparece na descrição do verbete («subtipos, demi-plié, grand plié…»). O nome lido na listagem do
-verbete é «Plié» — o relato não distingue, e agora deixa de importar: as duas listas passam a ler
-o mesmo.
-
-**O diagnóstico — linha de base.** A anamnese tem **49 nós respondíveis** (4 de identificação, 15
-da observação inicial, 30 dos blocos 2 a 9), e `camposDisponiveis` lia **só** `conteudo.blocos` —
-os trinta últimos. O campo que ela marcou, `cinco-posicoes-2a-pes` («2ª posição — pés»), vive em
-`conteudo.observacaoInicial.elementos[].subitens[]`, fora do que a linha de base lia. Ela
-respondeu, a leitura não podia ver, e **nada falhou** — o pior dos três desfechos. O módulo dizia,
-por escrito, «o recorte é sobre TODA a anamnese»; a frase era verdadeira para a musicalidade e
-falsa para a porta de entrada.
-
-Não era cache, e prova-se por A/B: a rota `linha-de-base/leitura` relê os envelopes a cada gesto;
-com o mesmo percurso (criar as duas anamneses → ler → editar a «2ª posição — pés» da Aluna A →
-ler de novo), a leitura 1 dá `excelência 44 · comuns 45` e a leitura 2 dá `excelência 43 ·
-comuns 44`, com o aspecto a mudar de «O que já é bom» para «O que precisa de ser trabalhado»
-(«1 de 2 em «Bom» · 1 de 2 em «precisa desenvolver»»). O que mudou foi **o que se lê**, não
-quando se lê.
+Os dois iam para «o que precisa de ser trabalhado», e «o que já é bom» ficava em **zero** — com
+`atenção = 45 de 45`. Depois da correcção seriam `atenção = 43`, `excelência = 2`, `comuns = 2`.
 
 **O que foi decidido.**
 
-- A Curadoria passa a oferecer **o que a escola pode compor**: `exerciciosComNotacao(escola)`
-  aplica `registosDaEscola`, a mesma função que a composição e a listagem já usavam.
-- O menu da Curadoria passa a ser **preenchido pelo mesmo payload que desenha a listagem do
-  verbete** (`/api/bastidores/verbete` → `d.exercicios`), no cliente. Duas fontes do mesmo facto
-  divergem no primeiro verbete criado; uma só, não.
-- A linha de base passa a oferecer **45 campos**: os 15 da observação inicial (5 elementos e os 10
-  em que «as cinco posições» se desmembra) e os 30 dos blocos 2 a 9. A régua vem da `forma` que a
-  anamnese declara, e não de uma segunda lista escrita no código.
-- Os **4 campos da identificação ficam de fora**, e é declarado: uma data de nascimento não se mede
-  em «Bom · razoável · precisa desenvolver».
+- **O nível é a ESCALA**, e o apoio não é nível: a leitura passou a ser a da `ficha.js`
+  (`valoresRespondidos`) — o primeiro elemento que não pertence ao pool de apoios —, e não uma segunda
+  regra escrita aqui. Apoios diferentes no mesmo nível **não fragmentam a contagem** (é o mesmo
+  estado, observado de duas maneiras), e o apoio aparece em português entre parênteses quando é um só.
+- **«Não foi medido» não é ponto de atenção.** É a abstenção declarada: contava como «abaixo do
+  melhor» e punha no corpo da aluna uma falta que ninguém observou. Passa a ser contada à parte, e o
+  texto diz quantos.
+- **Cada aspecto passa a dizer QUEM está no melhor nível** (`noMelhor`). É preparação, e é declarado:
+  ainda não se desenha na tela — o que a tela mostra é a decisão seguinte, que fica **pendente** dela.
+- A **definição de excelência não muda**: continua a ser «todas no melhor nível». O que muda é que
+  ela passa a ser calculada sobre o nível.
 
-**Onde entrou.** `motor/nucleo/linha-de-base.js` — `camposDaObservacaoInicial` e `opcoesDaForma`
-novos; `camposDisponiveis` passa a começar por eles; o cabeçalho do módulo regista o corte e o que
-fica fora. `motor/servidor/bastidores.js` — `exerciciosComNotacao(escola)` com a vista da escola; o
-`sincronizarConteudosDaCuradoria` no script da página, chamado por `carregarVerbetes`.
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `apoios` em `camposDaObservacaoInicial`,
+`nivelDaResposta`, `rotuloDoApoio`, `textoDosNiveis`; `agregar` e `classificar` deixam de juntar a
+resposta e passam a ler o nível; `naoMedidos` e `noMelhor` no item; `NAO_MEDIDO`. `ARQUITETURA-GERAL.md`
+— §5.12/§5.13: o parágrafo do nível contra o apoio, os números passam de 24/30 para 45, e a prova de
+49 para 103 asserções. `experimentos/provar-linha-de-base.js` — três asserções novas.
 
-**Com o quê.** `experimentos/provar-linha-de-base.js` — a asserção do recorte passou de 30 para 45
-(com a conta da norma escrita ao lado), uma asserção nova para a observação inicial (incluindo o
-que **não** entra: o elemento que desmembra e a identificação), e a da rota de 30 para 45.
-`experimentos/provar-curadoria-e-limpeza.js` — a expectativa do menu pela `registosDaEscola`, mais
-três asserções: o menu e a listagem são a mesma lista, o verbete da outra escola não é oferecido, e
-na escola que o declarou aparece nas duas. `experimentos/provar-producao.js` — a expectativa do
-menu deixa de contar o verbete de outra escola.
+**Medido.** `provar-linha-de-base` **103/103** (era 100); `provar-producao` **159/159**;
+`provar-curadoria-e-limpeza` **26/26**; `provar-conteudos-e-estado-da-turma`;
+`provar-plano-e-curadoria`; `check-identidade` **0 erros**. A prova dos apoios usa os dois casos
+reais (mesmo apoio e apoios diferentes) e o do «não foi medido».
 
-**Medido.** `provar-linha-de-base` **100/100** (era 99); `provar-producao` **159/159** (era
-158/159 — a asserção do menu dobrava-se sobre o defeito); `provar-curadoria-e-limpeza` **26/26**
-(era 24); `provar-conteudos-e-estado-da-turma`, `provar-plano-e-curadoria`, `provar-cadeia-do-ajuste`
-(34/34), `provar-anamnese-por-aluna` (15/15), `provar-vao-do-botao` (50/50) e `check-identidade`
-(**0 erros**) passam. O A/B da linha de base foi feito ao contrário, contra o `HEAD`: a função
-anterior devolve **30** campos e **não tem** `cinco-posicoes-2a-pes`.
-
-**Uma reprovação que NÃO é desta entrega.** `provar-teste` falha em «a dimensão saiu sem o eixo».
-Mediu-se no `HEAD` limpo (num *worktree* descartável) e falha lá exactamente da mesma maneira: é
-anterior, e não foi tocada.
+**Correcção de 05/11/2026 (mesmo dia, à tarde).** A entrada anterior desta data dizia que a leitura
+cruzava «os trinta campos». **Está incompleta**: são **quarenta e cinco** desde a correcção da
+observação inicial, publicada no `08b41241`. A redação anterior não se apaga: é o elo que registra o
+que se pensou antes.
 
 **O que ainda não está feito.**
 
-- **A conferência no ar** — o percurso Curadoria → Cont. públicos e Verbetes → listagem, na
-  `calango`, depois do deploy.
-- O **menu de músicas do plano** (`musicasDosExercicios`, em `/api/bastidores/termos`) continua a
-  oferecer a música de outra escola para o mesmo exercício. É a **mesma família** de defeito, mas é
-  outro ecrã, com outra bancada (`provar-plano-*`) — e mudá-lo sem essa bancada seria trocar um
-  conjunto de promessas por outro. Fica declarado, e não corrigido.
-- A anamnese **não** foi alterada: `porta/conteudo/anamnese.json` é a norma, e o que estava errado
-  era quem a lia.
+- **A leitura guardada no KV é a antiga.** O que está gravado em `bastidores/<escola>/linhas-de-base`
+  foi calculado pelo código anterior: depois do deploy, é preciso **reler** (passo 3 → «Ler as
+  anamneses») para os números passarem a ser os correctos. Ler é um gesto, e não se refaz sozinho.
+- **A excelência de cada aluna não tem onde se ler como LISTA.** A definição documentada é de grupo, e
+  a informação individual existe só dentro do texto de cada linha («1 de 2 em «Bom»»). O que fazer
+  com ela — frase, coluna «quem já está bem», ou bloco por aluna — é decisão dela, e está em aberto.
 
 ## O que está pendente
-
-## 05/11/2026 — O elenco muda na linha de base, a cascata desce até ao PO, e o passo 1 deixa de ser um beco sem saída
-
-
-- A conferência **no ar** (a página da escola) fica para o deploy — e faz-se pedindo a página, não
-  assumindo que a run correu.
-- O elenco de uma linha de base pertence a **uma** turma: mover uma aluna de A para C são duas
-  edições (tirar da linha de A, pôr na de C), cada uma com a sua cascata. O modelo não tem hoje um
-  «enviar para outra turma» no mesmo acto.
 
 ## 05/11/2026 — O «Ler as anamneses» acende, e a folha de impressão deixa de receber a moldura
 
@@ -385,6 +341,16 @@ anterior, e não foi tocada.
   conjunto de promessas por outro. Fica declarado, e não corrigido.
 - A anamnese **não** foi alterada: `porta/conteudo/anamnese.json` é a norma, e o que estava errado
   era quem a lia.
+
+## 05/11/2026 — «O que já é bom» ficava vazio porque o apoio da observação inicial era lido como nível
+
+
+- **A leitura guardada no KV é a antiga.** O que está gravado em `bastidores/<escola>/linhas-de-base`
+  foi calculado pelo código anterior: depois do deploy, é preciso **reler** (passo 3 → «Ler as
+  anamneses») para os números passarem a ser os correctos. Ler é um gesto, e não se refaz sozinho.
+- **A excelência de cada aluna não tem onde se ler como LISTA.** A definição documentada é de grupo, e
+  a informação individual existe só dentro do texto de cada linha («1 de 2 em «Bom»»). O que fazer
+  com ela — frase, coluna «quem já está bem», ou bloco por aluna — é decisão dela, e está em aberto.
 
 ## Pendências anteriores (índice)
 
@@ -744,6 +710,7 @@ anterior, e não foi tocada.
 - **04/11/2026** — O cabeçalho do ato cabe no telefone, as três asserções de… → `REGISTRO.md` L34850
 - **04/11/2026** — O ciclo apaga-se de trás para a frente, a sequência é… → `REGISTRO.md` L34939
 - **05/11/2026** — A secção do corpo nasceu fora do `</section>`, e sessenta e… → `REGISTRO.md` L35967
+- **05/11/2026** — O elenco muda na linha de base, a cascata desce até ao PO,… → `REGISTRO.md` L36054
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

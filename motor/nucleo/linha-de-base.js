@@ -136,6 +136,15 @@ function opcoesDaForma(forma) {
 function camposDaObservacaoInicial(conteudo) {
   const observacao = conteudo && conteudo.observacaoInicial;
   const elementos = (observacao && Array.isArray(observacao.elementos)) ? observacao.elementos : [];
+  /* OS APOIOS SÃO DA OBSERVAÇÃO INICIAL, E NÃO DE CADA ELEMENTO. A anamnese declara-os uma vez
+   * (`desdobramentos`: «com toque», «com a barra como apoio», «por consciência própria»), e um
+   * elemento pode recusá-los (`semDesdobramentos` — «a musicalidade»). Sem esta lista, a leitura
+   * não sabe distinguir a ESCALA do APOIO dentro da resposta, e junta os dois num só nível —
+   * ver `nivelDaResposta`. */
+  const apoios = (observacao && Array.isArray(observacao.desdobramentos))
+    ? observacao.desdobramentos.filter((d) => d && d.id)
+      .map((d) => ({ id: String(d.id), rotulo: String(d.forma || d.id) }))
+    : [];
   const saida = [];
   const vistos = new Set();
   for (const elemento of elementos) {
@@ -160,6 +169,7 @@ function camposDaObservacaoInicial(conteudo) {
         eixo: ROTULO_DA_DIMENSAO[dimensao] || '',
         opcoes: opcoes.map(String),
         referencia: opcoes[0],
+        apoios: elemento.semDesdobramentos ? [] : apoios,
       });
     }
   }
@@ -214,10 +224,67 @@ function camposDisponiveis(conteudo) {
         // conteúdo declara `referencia` onde a ordem não é bom→mau, e a ausência dela quer dizer
         // «é a primeira».
         referencia: campo.referencia ? String(campo.referencia) : (opcoes.length ? String(opcoes[0]) : null),
+        // Os campos dos blocos não têm desdobramento: a resposta deles é o valor, e só.
+        apoios: [],
       });
     }
   }
   return saida;
+}
+
+/** O SENTINEL da terceira via da escala, escrito pela porta: «não foi medido». */
+const NAO_MEDIDO = 'não foi medido';
+
+/**
+ * O NÍVEL DE UMA RESPOSTA — a ESCALA, e não a resposta inteira (05/11/2026).
+ *
+ * O DEFEITO QUE ISTO FECHA, medido nos dados dela. A observação inicial grava a resposta como uma
+ * LISTA: `[escala]` ou `[escala, apoio]` — «Bom» e «com a barra como apoio» são duas perguntas
+ * diferentes da mesma resposta (a `porta/index.html` grava as duas no mesmo `valor`, e a `ficha.js`
+ * já as separa pelo pool de desdobramentos). A leitura da linha de base juntava as duas com
+ * `join(' · ')` e tratava o resultado como NÍVEL. Assim, «Bom · com-barra» nunca é igual ao melhor
+ * nível («Bom»), e um aspecto em que TODAS estavam no melhor nível entrava como ponto de atenção.
+ *
+ * Medido no `calango`, 05/11/2026, com as duas alunas:
+ *
+ *   cinco-posicoes-2a-pes   → «2 de 2 em «Bom · consciencia-propria»»   (as duas no melhor nível!)
+ *   cinco-posicoes-2a-bracos→ «1 de 2 em «Bom · consciencia-propria» · 1 de 2 em «Bom · com-toque»»
+ *
+ * Os dois iam para «o que precisa de ser trabalhado», e «o que já é bom» ficava vazio. Não era a
+ * definição de excelência a falhar — era o nível a estar poluído.
+ *
+ * A REGRA É A MESMA DA `ficha.js` (`valoresRespondidos`), e não uma segunda: a escala é o primeiro
+ * elemento que NÃO pertence ao pool de apoios. Duas leituras da mesma resposta divergem no primeiro
+ * apoio novo, e a que fica a mentir é a que se lê no ecrã.
+ *
+ * `não foi medido` NÃO É UM NÍVEL. É a declaração de que aquele aspecto não se mediu, e contá-lo
+ * como «abaixo do melhor» transformava uma abstenção declarada num ponto de atenção — o professor
+ * diz «não medi» e o sistema responde «precisa de ser trabalhado». Vai contado à parte, e o texto
+ * diz quantos não foram medidos.
+ */
+function nivelDaResposta(registo, campo) {
+  const cru = (registo && typeof registo === 'object' && !Array.isArray(registo) && 'valor' in registo)
+    ? registo.valor : registo;
+  if (cru === undefined || cru === null) return { nivel: null, apoios: [], naoMedido: false };
+  const lista = Array.isArray(cru) ? cru : [cru];
+  const textos = lista
+    .map((v) => (v == null ? '' : String(v).trim()))
+    .filter(Boolean);
+  if (!textos.length) return { nivel: null, apoios: [], naoMedido: false };
+  if (textos.indexOf(NAO_MEDIDO) !== -1) return { nivel: null, apoios: [], naoMedido: true };
+
+  const pool = new Map(((campo && campo.apoios) || []).map((a) => [String(a.id), String(a.rotulo)]));
+  const apoios = textos.filter((t) => pool.has(t));
+  // A escala é o que NÃO é apoio. Um registo sem escala (só apoio, ou texto livre) não tem nível:
+  // quem o lê não pode classificá-lo, e inventar «o primeiro que aparecer» seria adivinhar.
+  const nivel = textos.find((t) => !pool.has(t)) || null;
+  return { nivel, apoios, naoMedido: false };
+}
+
+/** O rótulo de um apoio, para a tela não mostrar o slug (`com-barra` → «com a barra como apoio»). */
+function rotuloDoApoio(campo, id) {
+  const achado = ((campo && campo.apoios) || []).find((a) => String(a.id) === String(id));
+  return achado ? String(achado.rotulo) : String(id);
 }
 
 /**
@@ -337,6 +404,39 @@ function normalizar(entrada, disponiveis, quando) {
 }
 
 /**
+ * A FRASE QUE DIZ COMO O GRUPO ESTÁ NUM ASPECTO — «2 de 3 em «Bom»», e mais nada inventado.
+ *
+ * O APOIO ENTRA QUANDO É UM SÓ, e é a diferença entre «Bom» e «Bom com a barra como apoio»: as
+ * duas observações têm o mesmo nível e não são a mesma coisa. Ele entra como PARÊNTESE porque não
+ * é um nível — é o modo como se observou, e por isso não fragmenta a contagem (é o defeito que a
+ * 05/11/2026 corrigiu: `com-barra` juntava-se ao nível com `join(' · ')` e o slug ia para o ecrã).
+ * Quando os apoios diferem dentro do mesmo nível, não se escolhe um: mostra-se o nível, e a
+ * diferença não é do grupo.
+ *
+ * «NÃO MEDIDO» FECHA A FRASE, e não é um nível: é a abstenção declarada, contada à parte.
+ */
+function textoDosNiveis(niveis, opcoes, quantas, campo, naoMedidos) {
+  const partes = [...niveis.entries()]
+    .sort((a, b) => {
+      const ia = opcoes.indexOf(a[0]);
+      const ib = opcoes.indexOf(b[0]);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    })
+    .map(([nivel, d]) => {
+      const apoios = [...d.apoios];
+      let apoio = '';
+      if (apoios.length === 1) {
+        const rotulo = rotuloDoApoio(campo, apoios[0]);
+        const minusculo = rotulo.charAt(0).toLowerCase() + rotulo.slice(1);
+        apoio = ' (' + minusculo + ')';
+      }
+      return d.quantas + ' de ' + quantas + ' em «' + nivel + '»' + apoio;
+    });
+  if (naoMedidos) partes.push(naoMedidos + (naoMedidos === 1 ? ' não medido' : ' não medidos'));
+  return partes.join(' · ');
+}
+
+/**
  * A LEITURA DO QUE A TURMA MOSTRA EM CADA CAMPO ESCOLHIDO — a agregação que a Produção exibe.
  *
  * `anamneses` é uma lista de `{ aluna, respostas }`, onde `respostas` é o mapa id → valor do
@@ -371,14 +471,17 @@ function agregar(linha, disponiveis, anamneses) {
 
     const niveis = new Map();
     let quantas = 0;
+    let naoMedidos = 0;
     for (const aluno of alunos) {
-      const registo = aluno.respostas[escolhido.id];
-      const valor = (registo && typeof registo === 'object' && !Array.isArray(registo) && 'valor' in registo)
-        ? registo.valor : registo;
-      const texto = Array.isArray(valor) ? valor.join(' · ') : valor;
-      if (texto === undefined || texto === null || String(texto).trim() === '') continue;
-      const chave = String(texto).trim();
-      niveis.set(chave, (niveis.get(chave) || 0) + 1);
+      const lido = nivelDaResposta(aluno.respostas[escolhido.id], campo);
+      if (lido.naoMedido) { naoMedidos += 1; continue; }
+      // SEM NÍVEL NÃO SE CLASSIFICA: um registo sem escala não é «abaixo do melhor» nem «no
+      // melhor» — é um dado que não diz o que se procura.
+      if (lido.nivel === null) continue;
+      const atual = niveis.get(lido.nivel) || { quantas: 0, apoios: new Set() };
+      atual.quantas += 1;
+      for (const a of lido.apoios) atual.apoios.add(a);
+      niveis.set(lido.nivel, atual);
       quantas += 1;
     }
     if (!quantas) { semRegisto.push(nome); continue; }
@@ -394,21 +497,15 @@ function agregar(linha, disponiveis, anamneses) {
       // diz coisas diferentes conforme o aspecto seja do corpo, da técnica ou da poiesis.
       eixo: String((campo && campo.eixo) || escolhido.eixo || ''),
       quantas,
+      naoMedidos,
       // A ORDEM DAS ENTRADAS é a das opções (melhor primeiro), e não a da contagem: a leitura é
       // «3 em Alta · 1 em Média», que se lê de cima para baixo como a régua.
       niveis: [...niveis.entries()].sort((a, b) => {
         const ia = opcoes.indexOf(a[0]);
         const ib = opcoes.indexOf(b[0]);
         return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-      }).map(([nivel, n]) => ({ nivel, quantas: n })),
-      texto: [...niveis.entries()]
-        .sort((a, b) => {
-          const ia = opcoes.indexOf(a[0]);
-          const ib = opcoes.indexOf(b[0]);
-          return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-        })
-        .map(([nivel, n]) => n + ' de ' + quantas + ' em «' + nivel + '»')
-        .join(' · '),
+      }).map(([nivel, d]) => ({ nivel, quantas: d.quantas, apoios: [...d.apoios] })),
+      texto: textoDosNiveis(niveis, opcoes, quantas, campo, naoMedidos),
       excelente,
       atencao,
     });
@@ -506,14 +603,15 @@ function classificar(disponiveis, anamneses) {
       : (opcoes.length ? String(opcoes[0]).trim() : null);
     const niveis = new Map();
     let quantas = 0;
+    let naoMedidos = 0;
     for (const aluno of alunos) {
-      const registo = aluno.respostas[campo.id];
-      const valor = (registo && typeof registo === 'object' && !Array.isArray(registo) && 'valor' in registo)
-        ? registo.valor : registo;
-      const texto = Array.isArray(valor) ? valor.join(' · ') : valor;
-      if (texto === undefined || texto === null || String(texto).trim() === '') continue;
-      const chave = String(texto).trim();
-      niveis.set(chave, (niveis.get(chave) || 0) + 1);
+      const lido = nivelDaResposta(aluno.respostas[campo.id], campo);
+      if (lido.naoMedido) { naoMedidos += 1; continue; }
+      if (lido.nivel === null) continue;
+      const atual = niveis.get(lido.nivel) || { quantas: 0, apoios: new Set() };
+      atual.quantas += 1;
+      for (const a of lido.apoios) atual.apoios.add(a);
+      niveis.set(lido.nivel, atual);
       quantas += 1;
     }
     if (!quantas) { semRegisto.push({ id: campo.id, nome: campo.nome }); continue; }
@@ -533,13 +631,23 @@ function classificar(disponiveis, anamneses) {
       grupo: campo.grupo || '',
       dimensao: campo.dimensao || '',
       quantas,
+      naoMedidos,
       // O TEXTO diz quantas em cada nível. Sem ele, «ponto de atenção» numa turma de trinta e numa
       // de uma seriam a mesma frase — e não são a mesma coisa.
-      texto: ordenados.map(([nivel, n]) => n + ' de ' + quantas + ' em «' + nivel + '»').join(' · '),
+      texto: textoDosNiveis(niveis, opcoes, quantas, campo, naoMedidos),
       unanimidade: niveis.size === 1,
       nivelUnico: niveis.size === 1 ? ordenados[0][0] : null,
+      // O MESMO NÍVEL EM TODAS, e é isto que «em comum» quer dizer: a ESTADO, não o modo de
+      // observação. «Bom com a barra» e «Bom por consciência própria» são o mesmo nível, e uma
+      // turma em que as duas estão «Bom» está bem nas duas — o apoio diz como se viu, não quanto.
       noMelhorNivel: melhor !== null && [...niveis.keys()].every((n) => n === melhor),
       temAbaixoDoMelhor: melhor !== null && [...niveis.keys()].some((n) => n !== melhor),
+      // QUEM ESTÁ NO MELHOR NÍVEL, NOMEADO — a leitura individual que a lista do grupo não dava.
+      // Vive dentro de cada aspecto porque é aí que ela se lê: «a Ana está bem aqui» sem sair da
+      // linha que diz que a turma tem um ponto de atenção neste aspecto.
+      noMelhor: alunos
+        .filter((al) => nivelDaResposta(al.respostas[campo.id], campo).nivel === melhor)
+        .map((al) => String(al.aluna || '')),
     };
 
     // Um campo pode estar em MAIS de um eixo, e isso é de propósito: «todos com o arco do pé igual»

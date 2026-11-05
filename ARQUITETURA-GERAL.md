@@ -885,7 +885,7 @@ no navegador, seriam trinta pedidos por clique — e o KV tem cota **diária**: 
 na linha de base. Quem decidiu não relê: a data de decisão (`atualizada_em`) só muda no «Gravar» —
 ler não é decidir —, e é ela que a cascata compara com as anamneses.
 
-**Sem anamnese não há linha de base, e a tela diz isso em vez de fingir.** As caixas dos 24 campos
+**Sem anamnese não há linha de base, e a tela diz isso em vez de fingir.** As caixas dos campos
 só aparecem quando há pelo menos um retrato: antes disso a secção mostra o motivo («a linha de base é
 um recorte do CORPO lido dos retratos das alunas — sem retrato não há o que recortar») e o «Gravar»
 nasce `disabled` **no markup**, não por JavaScript depois de pintar — um botão que grava sobre nada
@@ -896,15 +896,26 @@ primeira opção declarada; a turma toda no melhor nível é **excelência**, e 
 a pesquisadora deu ao professor autonomia para incluir um aspecto excelente no escopo («quero vigiar
 para que todos mantenham a excelência neste ponto»).
 
-**O que ficou de fora, e é declarado.** As *anotações textuais* das anamneses: nenhum dos 24 campos
+**O NÍVEL É A ESCALA, E O APOIO NÃO É UM NÍVEL (05/11/2026).** A observação inicial grava a resposta
+como uma lista — `[escala, apoio]`, «Bom» e «com a barra como apoio» —, e a leitura da linha de base
+juntava as duas com `join(' · ')` e tratava o resultado como nível. «Bom · com-barra» nunca é igual a
+«Bom», e por isso um aspecto em que **todas** estavam no melhor nível entrava como ponto de atenção:
+medido no `calango` com as duas alunas, «2ª posição — pés» dava «2 de 2 em «Bom ·
+consciencia-propria»» e «o que já é bom» ficava vazio. A regra passou a ser a da `ficha.js` — a
+escala é o elemento que não pertence ao pool de apoios —, o apoio aparece em português e entre
+parênteses quando é um só, e não fragmenta a contagem. E o sentinel «não foi medido» deixou de ser
+um nível: é abstenção declarada, contada à parte, e não um ponto de atenção.
+
+**O que ficou de fora, e é declarado.** As *anotações textuais* das anamneses: nenhum dos campos
 é texto livre — todos são lista de opções —, e por isso o pedido «exibir obrigatoriamente as
 ressalvas registadas nas anamneses» não tem hoje de onde as ler. As ressalvas vivem no nó
 `restricoes` do **PO**. Fica como pendência, por decisão dela («depois»).
 
-**A prova:** `experimentos/provar-linha-de-base.js` (49 asserções): o recorte (30, nas três
-dimensões, e com o controle positivo dos campos do bloco 9 que mistura duas delas), a
-recusa de um campo que a anamnese não tem, a agregação pela ordem das opções, as rotas com KV falso,
-e a cascata de três passos. O **A/B** desliga o passo 1 e a bancada reprova.
+**A prova:** `experimentos/provar-linha-de-base.js` (**103** asserções): o recorte (**45** — os 15 da
+observação inicial e os 30 dos blocos —, nas três dimensões, e com o controle positivo dos campos do
+bloco 9 que mistura duas delas), a recusa de um campo que a anamnese não tem, a agregação pela ordem
+das opções, o apoio da observação inicial a não ser confundido com o nível, as rotas com KV falso, e
+a cascata de três passos. O **A/B** desliga o passo 1 e a bancada reprova.
 
 ### 5.13 A linha de base em cinco passos, e a leitura que vem antes da escolha
 
@@ -922,9 +933,9 @@ técnica dos verbetes da notação: `faltasDoPassoLb(n)` devolve o que **este** 
 
 **A leitura vem ANTES da escolha, e isso decidiu o desenho.** Ela lembrou que o professor lê o
 panorama e só depois decide; uma leitura que lesse o recorte daria uma tabela vazia exactamente na
-primeira vez, que é quando ela é necessária. `classificar` lê os **trinta** campos e responde a quatro
-perguntas **diferentes sobre o mesmo dado** — um aspecto pode estar em mais de uma, e não são gavetas
-que se excluem:
+primeira vez, que é quando ela é necessária. `classificar` lê os **quarenta e cinco** campos e responde
+a quatro perguntas **diferentes sobre o mesmo dado** — um aspecto pode estar em mais de uma, e não são
+gavetas que se excluem:
 
 - **o que precisa de ser trabalhado** — alguma aluna fora do melhor nível;
 - **o que já é bom** — todas no melhor nível (a autonomia que ela deu ao professor para manter um

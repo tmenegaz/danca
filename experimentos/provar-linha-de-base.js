@@ -894,6 +894,62 @@ async function chamar(env, caminho, opcoes) {
     assert.strictEqual(c.excelencia.some((x) => x.id === 'mobilidade-da-coluna-cervical-e-cabeca'), true);
   });
 
+  ok('o APOIO da observação inicial não é o NÍVEL — «Bom com a barra» é «Bom»', () => {
+    /* O DEFEITO, medido no `calango` a 05/11/2026, com as duas alunas reais. A porta grava a
+     * resposta da observação inicial como uma lista — `[escala, apoio]` —, e a leitura juntava as
+     * duas com `join(' · ')`, tratando o resultado como nível. «Bom · consciencia-propria» nunca é
+     * igual a «Bom», e por isso um aspecto em que as duas estavam no MELHOR nível entrava como
+     * ponto de atenção e «o que já é bom» ficava vazio. A frase que ela leu — «nenhum aspecto com o
+     * grupo todo no melhor nível» — é o sintoma, não a definição. A regra é a da `ficha.js`: a
+     * escala é o elemento que NÃO pertence ao pool de apoios. */
+    const c = lb.classificar(DISPONIVEIS, [
+      { aluna: 'Aluna A', respostas: { 'cinco-posicoes-2a-pes': ['Bom', 'consciencia-propria'] } },
+      { aluna: 'Aluna B', respostas: { 'cinco-posicoes-2a-pes': ['Bom', 'consciencia-propria'] } },
+    ]);
+    const noAtencao = c.atencao.find((x) => x.id === 'cinco-posicoes-2a-pes');
+    const noBom = c.excelencia.find((x) => x.id === 'cinco-posicoes-2a-pes');
+    assert.strictEqual(noAtencao, undefined,
+      'as duas estão no melhor nível — não é ponto de atenção');
+    assert.ok(noBom, 'tem de estar em «o que já é bom»');
+    assert.ok(/em «Bom»/.test(noBom.texto) && !/com-barra|consciencia-propria/.test(noBom.texto),
+      'o texto diz o NÍVEL, e não o slug do apoio: ' + noBom.texto);
+    assert.ok(/por consciência própria/.test(noBom.texto),
+      'e o apoio aparece em português quando é um só: ' + noBom.texto);
+    assert.deepStrictEqual(noBom.noMelhor, ['Aluna A', 'Aluna B'],
+      'e diz QUEM está no melhor nível — a leitura individual que a lista do grupo não dava');
+  });
+
+  ok('apoios DIFERENTES no mesmo nível: continua o mesmo nível, e continua comum', () => {
+    /* «Bom com toque» e «Bom por consciência própria» são o mesmo ESTADO observado de duas
+     * maneiras. O apoio diz como se viu, não quanto — e por isso não fragmenta a contagem. Este é
+     * o outro caso dos dados dela: «2ª posição — braços». */
+    const c = lb.classificar(DISPONIVEIS, [
+      { aluna: 'A', respostas: { 'cinco-posicoes-2a-bracos': ['Bom', 'com-toque'] } },
+      { aluna: 'B', respostas: { 'cinco-posicoes-2a-bracos': ['Bom', 'com-barra'] } },
+    ]);
+    const item = c.excelencia.find((x) => x.id === 'cinco-posicoes-2a-bracos');
+    assert.ok(item, 'as duas estão no melhor nível');
+    assert.strictEqual(item.texto, '2 de 2 em «Bom»',
+      'sem eleger um apoio quando os dois diferem: ' + item.texto);
+    assert.ok(c.comuns.some((x) => x.id === 'cinco-posicoes-2a-bracos'),
+      'e é comum: o nível é o mesmo');
+  });
+
+  ok('«não foi medido» NÃO é ponto de atenção — é abstenção declarada, e diz-se', () => {
+    /* O professor diz «não medi» e o sistema respondia «precisa de ser trabalhado». As duas coisas
+     * não são a mesma, e a segunda põe no corpo da aluna uma falta que ninguém observou. */
+    const c = lb.classificar(DISPONIVEIS, [
+      { aluna: 'A', respostas: { 'equilibrio-unipodal': 'Mantém > 5 s sem oscilação severa' } },
+      { aluna: 'B', respostas: { 'equilibrio-unipodal': ['não foi medido'] } },
+    ]);
+    const item = c.excelencia.find((x) => x.id === 'equilibrio-unipodal');
+    assert.strictEqual(c.atencao.some((x) => x.id === 'equilibrio-unipodal'), false,
+      'o que não se mediu não está abaixo do melhor — está por medir');
+    assert.ok(item, 'a que se mediu está no melhor nível');
+    assert.strictEqual(item.naoMedidos, 1);
+    assert.ok(/1 não medido/.test(item.texto), 'e o texto não esconde a abstenção: ' + item.texto);
+  });
+
   ok('a etiqueta NOVO: primeira vez, depois de lida, e com anamnese nova', () => {
     /* OS TRÊS ESTADOS, e é a razão de a função existir. A regra é de proveniência: compara-se a
      * anamnese vigente com o carimbo que alguma linha de base registou ao ler. */
