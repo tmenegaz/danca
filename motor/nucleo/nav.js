@@ -574,8 +574,59 @@ function aplicar(html, menu, pedido) {
   return limpo.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, () => nav);
 }
 
+/**
+ * A MOLDURA — e a diferença para `aplicar` é a que faltava (05/11/2026).
+ *
+ * `aplicar` é um SUBSTITUIDOR: exige uma `<nav class="topnav">` já na página e troca-a. A porta
+ * não tem uma — ela traz o marcador `<!-- NAV -->`, que a GERAÇÃO substitui. Isso quer dizer que
+ * a moldura da porta dependia de o pacote ter sido gerado com o menu do dia, e o que se mediu na
+ * tela foi o contrário: `/anamnese/` servida com o marcador cru, sem barra e sem coluna.
+ *
+ * A pesquisadora: «não pode, em momento nenhum que eu abra qualquer página do sistema Lastro,
+ * não existir o menu lateral e não existir o menu do topo». Uma garantia dessa forma não se dá
+ * com um substituto — dá-se com uma função que ENQUADRA: se a barra existe, substitui; se há
+ * marcador, injeta ali; se não há nem um nem outro, injeta depois do `<body>`.
+ *
+ * É IDEMPOTENTE, e é isso que a torna segura para correr em toda resposta: depois de enquadrada,
+ * a página tem `<nav class="topnav">` e a passagem seguinte cai no primeiro ramo.
+ *
+ * AS TRÊS FORMAS, e o que cada uma serve:
+ *
+ *   1. `<nav class="topnav">` — as páginas geradas (pacotes, listas, apresentação, Bastidores).
+ *      O caminho de sempre: `aplicar`, que também repõe a coluna.
+ *   2. `<!-- NAV -->` — o `porta/index.html` e tudo o que dele é copiado. É o caso que estava
+ *      partido: o desenho inteiro (coluna + barra) ocupa o lugar do marcador.
+ *   3. documento sem moldura nenhuma — uma página montada sem menu (o pacote-zero de uma escola
+ *      recém-criada, uma página antiga). O desenho entra no início do `<body>`, que é onde a
+ *      barra vive em todas as outras.
+ *
+ * O QUE NÃO FAZ: não mexe num fragmento (sem `<body>` e sem marcador) e não inventa menu sem
+ * `menu` — devolve `null`, e quem chama fica com a página que tinha. Estragar uma página por não
+ * conseguir desenhar a moldura seria pior do que a moldura que falta.
+ */
+const MARCADOR_DA_MOLDURA = '<!-- NAV -->';
+
+function enquadrar(html, menu, pedido) {
+  const texto = String(html == null ? '' : html);
+  if (!menu) return null;
+  if (/<nav class="topnav"/.test(texto)) return aplicar(texto, menu, pedido);
+  /* A COLUNA SEM BARRA NÃO EXISTE no que este sistema gera, mas uma página editada à mão pode
+   * trazê-la. Nesse caso o `<nav>` é o que falta, e injetá-lo ao lado da coluna que já lá está
+   * seria a segunda moldura. Trata-se como «já tem moldura»: não se acrescenta nada. */
+  if (/<aside class="coluna/.test(texto)) return null;
+  const desenho = desenhar(menu, pedido, { titulo: tituloDaPagina(texto) });
+  if (!desenho) return null;
+  if (texto.indexOf(MARCADOR_DA_MOLDURA) !== -1) {
+    return texto.replace(MARCADOR_DA_MOLDURA, () => desenho);
+  }
+  const corpo = /<body[^>]*>/i.exec(texto);
+  if (!corpo) return null;
+  const corte = corpo.index + corpo[0].length;
+  return texto.slice(0, corte) + '\n' + desenho + texto.slice(corte);
+}
+
 module.exports = {
-  desenhar, aplicar, absoluto, caminhoDe, ehAtivo, extrasDaBarra,
+  desenhar, aplicar, enquadrar, absoluto, caminhoDe, ehAtivo, extrasDaBarra,
   grupoAtual, tituloDaPagina, desenharColuna, chaveDoGrupo, caminhoDaPagina, TRILHA_DO_DOCUMENTO,
   listaDoDocumento,
 };

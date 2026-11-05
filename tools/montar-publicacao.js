@@ -430,21 +430,45 @@ function menuDaEscola({ turmas, blocos }) {
    * Sem turma curada o grupo não entra: não há ato para preencher, e quatro itens a levar a três
    * listas vazias seriam um menu a mentir com educação.
    */
+  /* OS TRÊS FORMULÁRIOS SÃO MOLDURA, E NÃO CONTEÚDO (05/11/2026) — e a condição que os guardava
+   * era o que faltava numa escola recém-criada.
+   *
+   * A regra era `if (turmas.length)`, com o motivo escrito abaixo: «sem turma curada não há ato
+   * para preencher, e quatro itens a levar a três listas vazias seriam um menu a mentir com
+   * educação». O motivo é honesto e a decisão estava errada, e a pesquisadora viu o resultado na
+   * tela: «quando é criada a escola nova, ela está nascendo sem os menus, que são os de plano de
+   * ensino e de plano de observação e do plano da anamnese».
+   *
+   * TRÊS RAZÕES, e a primeira é de domínio:
+   *
+   *   1. A ANAMNESE VEM ANTES DA TURMA. Ela é o instrumento de ENTRADA — a aluna nova é
+   *      entrevistada antes de haver turma para a pôr. Esconder o item até haver turma esconde a
+   *      porta exactamente de quem ainda não tem nada.
+   *   2. O PLANO DE ENSINO É O QUE CRIA A TURMA (é ele que abre o ciclo). Sem o item, a escola
+   *      nova não tem por onde começar — o menu fica a apontar só para os Bastidores.
+   *   3. A MOLDURA É INEGOCIÁVEL. «Em hipótese alguma, independentemente da rota, a página pode
+   *      perder o menu lateral esquerdo e o menu superior.» Um menu que muda de forma conforme o
+   *      acervo não é moldura: é conteúdo.
+   *
+   * As listas existem sempre — a ponte as serve, e vazias dizem o que fazer («ainda não há…»).
+   * «AULAS» FICA DE FORA ATÉ HAVER TURMA, e essa distinção é a que a pesquisadora fez: «os demais
+   * itens de menu só vão existir quando for gerado o plano de ensino… eles são criados
+   * dinamicamente». Aula é documento de ciclo; sem ciclo não há aula nenhuma para listar. */
+  const itensDaArea = [
+    { rotulo: 'Anamnese do aluno', href: AREA_DO_PROFESSOR.anamnese },
+    { rotulo: 'Plano de ensino', href: AREA_DO_PROFESSOR.plano },
+    { rotulo: 'Plano de Observação', href: AREA_DO_PROFESSOR.po },
+  ];
   if (turmas.length) {
-    const itensDaArea = [
-      { rotulo: 'Anamnese do aluno', href: AREA_DO_PROFESSOR.anamnese },
-      { rotulo: 'Plano de ensino', href: AREA_DO_PROFESSOR.plano },
-      { rotulo: 'Plano de Observação', href: AREA_DO_PROFESSOR.po },
-      /* «AULAS», E NÃO «LANÇAMENTO DE AULA» (24/10/2026). O item abre a LISTA das aulas — as
-         mesmas que a captura para impressão e o lançamento servem, uma linha de cada vez. O
-         nome antigo prometia um formulário e entregava uma lista; e, com o destino do topo da
-         coluna removido, «Aulas» é também o nome que diz onde as aulas estão. O formulário
-         `lancamento.html` continua a chamar-se «Lançamento de aula — formulário eletrônico»:
-         ele é o documento, e o documento diz o que é. */
-      { rotulo: 'Aulas', href: '/aulas/' },
-    ];
-    coluna.push({ tipo: 'menu', rotulo: 'Área do Professor', itens: itensDaArea });
+    /* «AULAS», E NÃO «LANÇAMENTO DE AULA» (24/10/2026). O item abre a LISTA das aulas — as
+       mesmas que a captura para impressão e o lançamento servem, uma linha de cada vez. O
+       nome antigo prometia um formulário e entregava uma lista; e, com o destino do topo da
+       coluna removido, «Aulas» é também o nome que diz onde as aulas estão. O formulário
+       `lancamento.html` continua a chamar-se «Lançamento de aula — formulário eletrônico»:
+       ele é o documento, e o documento diz o que é. */
+    itensDaArea.push({ rotulo: 'Aulas', href: '/aulas/' });
   }
+  coluna.push({ tipo: 'menu', rotulo: 'Área do Professor', itens: itensDaArea });
 
   /* A BARRA. Os blocos do sistema vinham do pacote-zero, e o `Bastidores` vinha lá dentro com os
      dois destinos dele. O que se usa é só esse grupo: a Área do Professor deixou de vir de lá,
@@ -1133,8 +1157,24 @@ function principal() {
   const apresentacaoAlvo = path.join(destino, 'sistema.html');
   if (fs.existsSync(apresentacaoAlvo)) {
     const html = fs.readFileSync(apresentacaoAlvo, 'utf8');
-    const trocado = nav.aplicar(html, menu, '/sistema');
+    const trocado = nav.enquadrar(html, menu, '/sistema');
     if (trocado && trocado !== html) fs.writeFileSync(apresentacaoAlvo, trocado, 'utf8');
+  }
+
+  /* A PORTA TAMBÉM NASCE ENQUADRADA (05/11/2026), e não só ao servir.
+   *
+   * Ela vinha do pacote-zero com o marcador `<!-- NAV -->` — que a GERAÇÃO substitui, mas que a
+   * cópia não. O resultado medido ao vivo: `/anamnese/` servida com o marcador cru, sem barra e
+   * sem coluna, enquanto a listagem ao lado tinha as duas. A ponte passou a enquadrar toda
+   * resposta, e isso já cobre o que está no ar hoje; escrever também aqui faz o ARTEFACTO estar
+   * completo por si — quem o abrir do disco, ou o servir um CDN sem Worker, vê a mesma moldura.
+   *
+   * É `enquadrar`, e não `aplicar`, porque a porta não tem `<nav>`: tem o marcador. */
+  const portaPublicada = path.join(destino, 'plano-observacao', 'index.html');
+  if (fs.existsSync(portaPublicada)) {
+    const html = fs.readFileSync(portaPublicada, 'utf8');
+    const trocado = nav.enquadrar(html, menu, '/plano-observacao/');
+    if (trocado && trocado !== html) fs.writeFileSync(portaPublicada, trocado, 'utf8');
   }
 
   /*
