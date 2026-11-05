@@ -35,6 +35,7 @@ const path = require('path');
 
 const { criarRotas } = require('../motor/servidor/rotas.js');
 const { criarMemoria } = require('../motor/nucleo/armazenamento.js');
+const porta = require('../motor/nucleo/porta.js');
 
 const RAIZ = path.join(__dirname, '..');
 const PORTA = path.join(RAIZ, 'porta');
@@ -59,8 +60,29 @@ const CONTEXTO = { escola: 'batata', professor: 'acucar-branco', ciclo: '01', tu
 const PLANO_A = 'plano-20261022-1036';
 const PLANO_B = 'plano-20261022-1124';
 
-function bancada() {
+/* O RELATÓRIO é o mínimo que o `gravarEnvelope` pede — a prova não olha para ele. */
+const relatorio = (id) => ({ id, estado: 'prova', contagem: { respondidos: 0, obrigatorios: 0 },
+  elos: [], paradas: [], idsDesconhecidos: [], validacao: { resultado: 'aceite', contrato: 'prova' },
+  errosDoDocumento: [], linhas: [] });
+
+/* OS DOIS PLANOS EXISTEM DE VERDADE (05/11/2026).
+ *
+ * Antes, `PLANO_A` e `PLANO_B` eram só strings: o servidor aceitava um PO a observar um plano que
+ * não estava no acervo, e a bancada passava — a medir um órfão. A regra PE → PO passou a ser
+ * imposta na rota, e o fixture tem de dizer a verdade que o produto exige: o plano existe antes
+ * de existir o PO que o observa. */
+async function semearPlanos(armazenamento) {
+  for (const id of [PLANO_A, PLANO_B]) {
+    await porta.gravarEnvelope(armazenamento, {
+      id, contexto: Object.assign({}, CONTEXTO), respostas: {}, ajuste_de: null,
+      gerado_em: '2026-10-22T10:00',
+    }, relatorio(id));
+  }
+}
+
+async function bancada() {
   const armazenamento = criarMemoria();
+  await semearPlanos(armazenamento);
   const relogio = { valor: '2026-10-22T10:39' };
   const rotas = criarRotas({
     armazenamento,
@@ -118,7 +140,7 @@ async function nomesDePO(armazenamento) {
 async function principais() {
   // ── 1. o PRIMEIRO PO do plano é aceite ────────────────────────────────────
   {
-    const { armazenamento, rotas } = bancada();
+    const { armazenamento, rotas } = await bancada();
     const r = await guardar(rotas, poDe(PLANO_A, 'H1'));
     checar('o primeiro PO de um plano é aceite', r.status === 200, r.status);
     const pos = await nomesDePO(armazenamento);
@@ -165,7 +187,7 @@ async function principais() {
 
   // ── 6. a regra é por PLANO, não por escola ───────────────────────────────
   {
-    const { armazenamento, rotas } = bancada();
+    const { armazenamento, rotas } = await bancada();
     await guardar(rotas, poDe(PLANO_A, 'H1'));
     const r = await guardar(rotas, poDe(PLANO_B, 'HB'));
     checar('outro plano de ensino pode ter o SEU PO', r.status === 200, {
@@ -177,7 +199,7 @@ async function principais() {
 
   // ── 7. sem plano declarado, a regra cai no ESCOPO ────────────────────────
   {
-    const { armazenamento, rotas } = bancada();
+    const { armazenamento, rotas } = await bancada();
     const semPlano = { fonte: 'po', contexto: CONTEXTO, respostas: { horizonte: 'H1' } };
     const r1 = await guardar(rotas, semPlano);
     checar('sem plano declarado, o primeiro PO é aceite', r1.status === 200, r1.status);

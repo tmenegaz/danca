@@ -35484,3 +35484,87 @@ exigindo barra, coluna e os três formulários em cada uma. Inclui:
 A mudança entra por **defeito medido na tela** — páginas servidas sem a moldura que a identidade
 exige —, e é de uma linha de aplicação por página publicada, mais a condição do grupo de menu. Não
 toca em hash, validação, geração de documento, nem em peça alguma da folha.
+
+## 05/11/2026 — A relação PE → PO passa a ser do servidor: o PO não nasce sobre um plano que não existe
+
+**A entrega anterior era metade, e ela notou.** Na ronda da sequência estrita, o campo do ciclo do
+Plano de Observação passou a ser um menu suspenso com os ciclos que têm plano (`GET /api/ciclos` →
+`comPlano`). Isso é a **conveniência**. A **regra** — «o PO só pode ser criado se houver
+estritamente um Plano de Ensino pré-existente e válido para aquele mesmo ciclo… impedindo qualquer
+órfão ou inconsistência relacional» — não estava em lugar nenhum: um `POST` à mão, com a página
+aberta de ontem ou sem ela, escrevia o que quisesse.
+
+**Medido, antes (dois `POST` diretos à rota, com o acervo de prova):**
+
+| Escrita | Antes | Depois |
+|:--|:--|:--|
+| `{fonte:'po', ciclo:'07', 'plano-de-ensino':'plano-20990101-0000'}` | **200** — o órfão | **409** |
+| `{fonte:'plano', ciclo:'07'}` sem 01..06 | **200** — a sequência quebrada | **409** |
+
+A primeira gravou um PO que observa um plano que não existe, num ciclo que não tem plano nenhum. A
+segunda abriu o ciclo 07 sem 01..06 — e a âncora do ciclo N encadeia com a do N-1.
+
+### A correção: três conferências, antes de qualquer gravação
+
+`recusaDaRelacaoDoCiclo` em `motor/servidor/rotas.js`, no `POST /api/elicitar`:
+
+1. **o plano declarado existe** no acervo (o carimbo inventado não é um plano);
+2. **o ciclo do PO é o ciclo do plano** (um PO de outro ciclo é a inconsistência relacional);
+3. **sem plano declarado, o ciclo tem de ter plano** (o órfão por construção).
+
+E do lado do plano, a **sequência estrita**: um plano novo só pode ser do **próximo** ciclo, ou de
+um ciclo que **já existe**. A edição (`id`) e o elo novo (`ajuste_de`) não criam ciclo — e o `id`
+só isenta a conferência se o documento existir de facto, senão seria a porta de serviço da regra.
+
+As recusas **nomeiam o que impede e o que fazer**: dizem o carimbo que não existe e mandam criar o
+plano primeiro; dizem os dois ciclos quando eles divergem; dizem qual é o próximo da sequência e
+quais os ciclos que têm plano.
+
+**Duas disciplinas, e a segunda é da casa.** Sem leitor do acervo (uma bancada, um adaptador sem
+índice) a rota **segue** em vez de recusar: uma guarda que devolvesse «o plano não existe» quando
+não conseguiu ler coisa nenhuma estaria a acusar o professor por uma limitação de quem mede. E a
+**simulação** passa — ela não escreve, e uma prévia não é um documento.
+
+### Na tela, dois ajustes que a regra exigiu
+
+- **O ciclo sem plano, quando aparece na lista, diz-se.** Ele só entra se for o valor que o
+  documento já tinha (um PO que ficou órfão quando o plano dele foi apagado), e a opção sai como
+  «02 — sem plano de ensino»: escolhê-la não é como escolher as outras, e a pessoa tem de saber
+  antes do «Guardar».
+- **Sem nenhum ciclo com plano, o campo fica travado** — um campo de escolha sem escolhas não é
+  uma pergunta —, e a nota diz por onde começar.
+
+### Um verde falso que caiu junto
+
+A `provar-novo-registo-e-ciclo` media a lista do PO com um fixture cujo plano vinha da `breu`
+(`contexto.escola: 'breu'`) enquanto o Worker da prova era `prova`. `GET /api/ciclos` recorta por
+escola: `comPlano` vinha **vazio**, e o `01` aparecia na lista pelo **fallback** («o valor que o
+documento já tinha»), não porque o servidor dissesse que o ciclo tinha plano. A asserção passava a
+medir outra coisa — e a «não mostra o 02» passava por não haver lista nenhuma.
+
+O fixture passa a trocar a escola do contexto (o documento é o mesmo, o dono é que é o do Worker),
+a secção passou a **medir a fonte** (`fetch('api/ciclos')` → `comPlano` tem o `01`) e ganhou o par
+que faltava: o PO órfão abre no ciclo dele, a opção anuncia-se, e o ciclo que tem plano continua
+sem a marca (29 asserções, de 24).
+
+### A prova
+
+`experimentos/provar-relacoes-do-ciclo.js` (**nova**, 22 asserções), com **controlo negativo em
+cada secção** — a escrita válida da mesma família tem de continuar a entrar, senão uma guarda que
+recusasse tudo passaria na primeira metade:
+
+| Secção | Recusa | Controlo (tem de entrar) |
+|:--|:--|:--|
+| 1 | plano inventado → 409, e **nada é gravado** | o plano real do mesmo ciclo → 200 |
+| 2 | plano do ciclo 01 num PO do ciclo 02 → 409, com os dois ciclos ditos | o plano do ciclo certo → 200 |
+| 3 | ciclo sem plano nenhum → 409 | no ciclo que tem plano, o PO sem plano declarado → 200 |
+| 4 | plano no ciclo 07 sem 02..06 → 409, com o próximo dito | o próximo ciclo → 200; o elo novo → 200; a correção → 200; `id` inventado → **409** |
+| 5 | — | sem leitor, a recusa **não** vem da regra; a simulação passa e não grava |
+| 6 | — | a anamnese continua a gravar sem ciclo nenhum (é do sujeito) |
+
+**O A/B contra o commit anterior reprova em 12 das 22 asserções.**
+
+**Fixtures que tiveram de dizer a verdade.** Três bancadas criavam POs a observar planos que não
+existiam — era possível, e por isso passavam: `provar-po-unico` (semeia agora `PLANO_A`/`PLANO_B`),
+`provar-carimbo-da-edicao` (cria o plano antes do PO) e `provar-geracao` (idem). As asserções delas
+não mudaram de sentido: o que mudou foi o cenário, que agora é o do produto.

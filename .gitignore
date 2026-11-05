@@ -702,3 +702,10 @@ experimentos/modelo-formulario/*
 # uma publicação de verdade sobre uma árvore que reproduz o defeito e serve as 16 telas pela ponte
 # — sem aplicar menu à mão, que foi como a bancada anterior deu 40/40 sobre uma página nua.
 !experimentos/provar-a-moldura-em-todas-as-telas.js
+
+# A RELAÇÃO PE → PO NO SERVIDOR (05/11/2026). O menu suspenso com os ciclos que têm plano era a
+# metade de cima; a regra — o PO só nasce sobre um plano existente e do mesmo ciclo, e um plano
+# novo só abre o próximo ciclo — não estava em lugar nenhum, e dois POST à mão criavam o órfão
+# (plano inventado) e a sequência quebrada (ciclo 07 sem 01..06). A bancada exige o 409 nas duas,
+# e o controlo negativo em cada secção: a escrita válida tem de continuar a entrar.
+!experimentos/provar-relacoes-do-ciclo.js

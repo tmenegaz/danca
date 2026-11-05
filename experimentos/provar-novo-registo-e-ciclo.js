@@ -154,6 +154,22 @@ const relatorio = (id) => ({ id, estado: 'prova', contagem: { respondidos: 0, ob
   elos: [], paradas: [], idsDesconhecidos: [], validacao: { resultado: 'aceite', contrato: 'prova' },
   errosDoDocumento: [], linhas: [] });
 
+/* A ESCOLA DO FIXTURE É A DO WORKER (05/11/2026), e isto estava a dar um verde falso.
+ *
+ * O plano real que se lê da `breu` traz `contexto.escola: 'breu'`. O Worker desta prova é
+ * `prova`, e `GET /api/ciclos` recorta por escola: o plano da `breu` não contava, `comPlano`
+ * vinha vazio, e a lista do PO mostrava o `01` pelo FALLBACK («o valor que o documento já
+ * tinha»), não porque o servidor dissesse que o ciclo tem plano. A asserção «a lista mostra o
+ * 01» passava a medir a coisa errada — e a «não mostra o 02» passava por não haver lista.
+ *
+ * Trocar a escola do contexto é o que torna o fixture verdadeiro: o documento é o mesmo, o dono
+ * é que passa a ser o deste Worker. */
+function daEscolaDoWorker(envelope, escola) {
+  return Object.assign({}, envelope, {
+    contexto: Object.assign({}, envelope.contexto, { escola }),
+  });
+}
+
 async function ambiente(dir) {
   const env = {
     ESCOLA_SLUG: 'prova', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', SENHA_PROFESSOR: 'p',
@@ -165,10 +181,11 @@ async function ambiente(dir) {
   ]));
   const armazenamento = producao.__armazenamento(env);
   for (const d of [PLANO, ANAMNESE, PO_ORFAO]) {
+    const dono = daEscolaDoWorker(d, 'prova');
     await porta.gravarEnvelope(armazenamento, {
-      id: d.id, contexto: d.contexto, respostas: d.respostas,
-      ajuste_de: d.ajuste_de === undefined ? null : d.ajuste_de, gerado_em: d.gerado_em,
-    }, relatorio(d.id));
+      id: dono.id, contexto: dono.contexto, respostas: dono.respostas,
+      ajuste_de: dono.ajuste_de === undefined ? null : dono.ajuste_de, gerado_em: dono.gerado_em,
+    }, relatorio(dono.id));
   }
   return env;
 }
@@ -238,6 +255,8 @@ const LER = () => {
       readonly: campoCiclo.readOnly === true,
       opcoes: campoCiclo.tagName === 'SELECT'
         ? [...campoCiclo.options].map((o) => o.value) : null,
+      rotulos: campoCiclo.tagName === 'SELECT'
+        ? [...campoCiclo.options].map((o) => String(o.textContent || '').trim()) : null,
     },
     respostasNoFormulario: [...document.querySelectorAll('input, select, textarea')]
       .filter((c) => /pratica anterior|dehors/.test(String(c.value || ''))).length,
@@ -340,12 +359,47 @@ const LER = () => {
     /* A LISTA TEM O 01 E NÃO TEM O 02 — o 02 existe no acervo (o `PO_ORFAO`) e não tem plano de
      * ensino. É esta a diferença entre «os ciclos que existem» e «os ciclos que se podem observar».
      */
+    /* A FONTE DA LISTA, medida diretamente: sem isto, «o 01 aparece» não diz de onde veio. */
+    const doServidor = await page.evaluate(async () => {
+      const r = await fetch('/plano-observacao/api/ciclos');
+      const d = await r.json();
+      return { status: r.status, comPlano: d.comPlano, proximo: d.proximo };
+    });
+    provar('o servidor diz que o ciclo 01 tem plano (é daqui que a lista vem)',
+      Boolean(doServidor.comPlano) && doServidor.comPlano.indexOf('01') !== -1, doServidor);
     provar('…e a lista mostra o ciclo 01, que tem plano de ensino',
       Boolean(noPo.ciclo && noPo.ciclo.opcoes) && noPo.ciclo.opcoes.indexOf('01') !== -1, noPo.ciclo);
     provar('…e NÃO mostra o ciclo 02, que não tem plano de ensino',
       Boolean(noPo.ciclo && noPo.ciclo.opcoes) && noPo.ciclo.opcoes.indexOf('02') === -1, noPo.ciclo);
+    /* O CICLO QUE NÃO TEM PLANO, QUANDO APARECE, DIZ-SE. Ele só entra na lista se for o valor que
+     * o documento já tinha (o PO ficou órfão quando o plano dele foi apagado) — e nesse caso a
+     * opção tem de anunciar que gravar vai ser recusado, em vez de o professor descobrir no
+     * «Guardar». Aqui o campo está no 01, que TEM plano: nenhuma opção leva a marca. */
+    provar('…e nenhuma opção se anuncia «sem plano de ensino» quando não há órfão',
+      Boolean(noPo.ciclo && noPo.ciclo.rotulos)
+        && noPo.ciclo.rotulos.every((r) => !/sem plano de ensino/.test(r)),
+      noPo.ciclo && noPo.ciclo.rotulos);
     provar('…com o ciclo do documento escolhido', Boolean(noPo.ciclo) && noPo.ciclo.valor === '01',
       noPo.ciclo && noPo.ciclo.valor);
+
+    /* O ÓRFÃO, NAS DUAS DIREÇÕES. O `PO_ORFAO` está no ciclo 02, que não tem plano: é o estado que
+     * o servidor passou a recusar criar, e que só existe no acervo por escrita direta. Ao abri-lo
+     * para ajustar, a lista tem de (a) deixá-lo abrir no ciclo DELE — um registo que existe não
+     * pode ficar ilegível — e (b) dizer que aquele ciclo não tem plano, para o «Guardar» não ser
+     * uma surpresa. */
+    await page.goto(base + '/plano-observacao/?fonte=po&professor=coqui-de-redinha&ciclo=02'
+      + '&ajustar=' + PO_ORFAO.id, { waitUntil: 'load' });
+    await new Promise((r) => setTimeout(r, 1400));
+    const noOrfao = await page.evaluate(LER);
+    provar('o PO órfão abre no ciclo DELE, e não some',
+      Boolean(noOrfao.ciclo) && noOrfao.ciclo.valor === '02', noOrfao.ciclo && noOrfao.ciclo.valor);
+    provar('…e a opção do ciclo sem plano ANUNCIA-SE («sem plano de ensino»)',
+      Boolean(noOrfao.ciclo && noOrfao.ciclo.rotulos)
+        && noOrfao.ciclo.rotulos.some((r) => /^02 — sem plano de ensino$/.test(r)),
+      noOrfao.ciclo && noOrfao.ciclo.rotulos);
+    provar('…e o ciclo que TEM plano continua sem a marca',
+      Boolean(noOrfao.ciclo && noOrfao.ciclo.rotulos)
+        && noOrfao.ciclo.rotulos.indexOf('01') !== -1, noOrfao.ciclo && noOrfao.ciclo.rotulos);
 
     /* E O PLANO DE ENSINO CONTINUA TRAVADO NO PRÓXIMO — a lista é do PO, não das três fontes. */
     await page.goto(base + '/plano-ensino/?fonte=plano&professor=coqui-de-redinha&ciclo=01',

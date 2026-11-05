@@ -2122,6 +2122,16 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      sobre uma página sem moldura em produção. Passou a servir a porta pela ponte
      (`producao.fetch`). A regra: **quem aplica a moldura é quem serve, e é isso que se mede**.
      **DECIDIDO e implementado** 05/11/2026.
+114. **A RELAÇÃO PE → PO É DO SERVIDOR, E NÃO DO MENU.** O menu suspenso com os ciclos que têm plano
+     (`GET /api/ciclos` → `comPlano`) é conveniência; a REGRA — «o PO só nasce sobre um plano
+     existente e do mesmo ciclo» — passou a ser imposta em `POST /api/elicitar`
+     (`recusaDaRelacaoDoCiclo`), antes de qualquer gravação: (1) o plano declarado existe;
+     (2) o ciclo do PO é o ciclo do plano; (3) sem plano declarado, o ciclo tem de ter plano. E a
+     sequência estrita do plano: um plano novo só é do PRÓXIMO ciclo ou de um ciclo que já existe
+     — a edição e o elo novo continuam um ciclo, e o `id` só isenta se o documento existir.
+     Medido antes: os dois casos davam **200**. Sem leitor do acervo a rota SEGUE (não acusa o
+     professor por uma limitação de quem mede), e a simulação passa. **DECIDIDO e implementado**
+     05/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

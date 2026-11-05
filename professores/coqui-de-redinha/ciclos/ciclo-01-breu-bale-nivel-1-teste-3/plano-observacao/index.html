@@ -1849,19 +1849,27 @@ function listarCiclosDoPo() {
    * ilegível — e o que se está a ver é um registo que existe. */
   if (atual && elegiveis.indexOf(atual) === -1) elegiveis.push(atual);
   elegiveis.sort();
+  const comPlano = (dados && Array.isArray(dados.comPlano)) ? dados.comPlano : [];
   campo.textContent = '';
   for (const ciclo of elegiveis) {
     const opcao = document.createElement('option');
     opcao.value = ciclo;
-    opcao.textContent = ciclo;
+    /* O CICLO QUE NÃO TEM PLANO DIZ-SE (05/11/2026). Ele só aparece quando é o valor que o
+     * documento já tinha — um PO que ficou num ciclo cujo plano foi apagado. Escolhê-lo não é
+     * uma opção como as outras: o servidor recusa gravar, e a opção tem de o anunciar em vez de
+     * deixar a pessoa descobrir no «Guardar». */
+    opcao.textContent = comPlano.indexOf(ciclo) === -1
+      ? ciclo + ' — sem plano de ensino' : ciclo;
     campo.appendChild(opcao);
   }
   if (elegiveis.length) {
     campo.value = elegiveis.indexOf(atual) !== -1 ? atual : elegiveis[0];
   } else {
     /* NENHUM CICLO TEM PLANO. A lista fica vazia e o campo DIZ porquê — o silêncio é o defeito
-     * que se está a corrigir, e um campo vazio sem explicação parece uma avaria. */
+     * que se está a corrigir, e um campo vazio sem explicação parece uma avaria. E fica travado:
+     * um campo de escolha sem escolhas não é uma pergunta. */
     campo.value = atual;
+    campo.disabled = true;
   }
   const nota = document.getElementById('ctx-ciclo-nota');
   if (nota) {

@@ -38,6 +38,7 @@ const {
 const { SCRIPT: SCRIPT_DO_CARTAO } = require('../motor/servidor/geracao-cliente.js');
 const { criarRotas } = require('../motor/servidor/rotas.js');
 const { criarMemoria } = require('../motor/nucleo/armazenamento.js');
+const porta = require('../motor/nucleo/porta.js');
 
 let n = 0;
 let falhas = 0;
@@ -358,9 +359,28 @@ const BASE_PO = {
   respostas: {},
 };
 
-function bancada({ ciclo, disparar, geracao }) {
+/* O PLANO DE ENSINO DO CICLO EXISTE ANTES DE EXISTIR O PO (05/11/2026).
+ *
+ * A rota passou a impor a relação: um PO observa um plano que existe, do mesmo ciclo. Esta bancada
+ * mede a GERAÇÃO, não a relação — mas o PO que ela grava tem de poder existir, ou a primeira
+ * asserção falharia por um motivo que não é o dela. Semeia-se o plano, que é o que o professor faz
+ * antes de observar. */
+async function semearPlano(armazenamento) {
+  await porta.gravarEnvelope(armazenamento, {
+    id: 'plano-20261019-1200',
+    contexto: { escola: ESCOLA, professor: CONTEXTO.professor, ciclo: CONTEXTO.ciclo,
+      turma: CONTEXTO.turma },
+    respostas: {}, ajuste_de: null, gerado_em: '2026-10-19T12:00',
+  }, { id: 'plano-20261019-1200', estado: 'prova', contagem: { respondidos: 0, obrigatorios: 0 },
+    elos: [], paradas: [], idsDesconhecidos: [],
+    validacao: { resultado: 'aceite', contrato: 'prova' }, errosDoDocumento: [], linhas: [] });
+}
+
+async function bancada({ ciclo, disparar, geracao }) {
+  const armazenamento = criarMemoria();
+  await semearPlano(armazenamento);
   return criarRotas({
-    armazenamento: criarMemoria(),
+    armazenamento,
     conteudo: PORTA('conteudo/anamnese.json'),
     esquema: PORTA('envelope/elicitacao-schema.json'),
     conteudoPO: PORTA('po/conteudo/po.json'),
@@ -385,7 +405,7 @@ async function aRota() {
   const kv = kvFalso();
   const geracao = criarGeracao({ kv, escola: ESCOLA, token: 'token',
     fetchImpl: githubFalso({ execucoes: [execucao({ status: 'queued' })] }).fetch });
-  const rotas = bancada({
+  const rotas = await bancada({
     ciclo: CICLO_BOM,
     disparar: async (c) => { pedidos.push(c); return { ok: true, status: 204 }; },
     geracao,
@@ -412,7 +432,7 @@ async function aRota() {
   // --- fontes que NÃO ficaram prontas: não dispara, e diz porquê
   const pedidos2 = [];
   const kv2 = kvFalso();
-  const rotas2 = bancada({
+  const rotas2 = await bancada({
     ciclo: { conf: { ok: false, pendencia: 'a hora de início da turma' }, escritas: [{ ok: true }] },
     disparar: async (c) => { pedidos2.push(c); return { ok: true, status: 204 }; },
     geracao: criarGeracao({ kv: kv2, escola: ESCOLA, token: 'token', fetchImpl: githubFalso({}).fetch }),
@@ -425,13 +445,13 @@ async function aRota() {
   ok('fontes incompletas: NÃO dispara, e a tela recebe o motivo em vez de silêncio');
 
   // --- o roteador sem o serviço de estado
-  const semServico = await pedir(bancada({ ciclo: CICLO_BOM, disparar: null, geracao: null }),
+  const semServico = await pedir(await bancada({ ciclo: CICLO_BOM, disparar: null, geracao: null }),
     'GET', '/api/geracao?professor=x&ciclo=01');
   assert.equal(semServico.status, 404);
   ok('instância sem serviço de estado recusa a rota (não inventa resposta)');
 
   // --- pedido sem professor/ciclo
-  const semContexto = await pedir(bancada({ ciclo: CICLO_BOM, disparar: null, geracao }),
+  const semContexto = await pedir(await bancada({ ciclo: CICLO_BOM, disparar: null, geracao }),
     'GET', '/api/geracao?ciclo=01');
   assert.equal(semContexto.status, 400);
   ok('pedido sem professor e ciclo é recusado com 400');

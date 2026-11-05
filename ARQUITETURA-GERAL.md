@@ -726,6 +726,50 @@ condições preliminares), e as outras são o mesmo dado lido de sítios diferen
 diferentes. Objectivos específicos, marcos, volume e repertório **ficam no plano**: são a régua
 que a Regra 9, a Regra 10 e os validadores exigem, e o envelope é onde a curadoria os declara.
 
+### 5.10 A relação PE → PO é do servidor, e não do menu
+
+O **Plano de Ensino** é o documento macro do ciclo; o **Plano de Observação** observa uma aula que
+tem plano. A regra dita pela pesquisadora: *«o PO só pode ser criado se houver estritamente um
+Plano de Ensino pré-existente e válido para aquele mesmo ciclo… impedindo qualquer órfão ou
+inconsistência relacional.»*
+
+**A primeira entrega foi a metade de cima.** O campo do ciclo no PO passou a ser um **menu
+suspenso** com os ciclos que têm plano (`GET /api/ciclos` → `comPlano`, derivado do índice de
+envelopes). Um dropdown, porém, é **conveniência**: quem manda um `POST` à mão — ou quem tem a
+página aberta de ontem — escreve o que quiser. Medido, com um `POST` direto à rota:
+
+| Escrita | Antes | Depois |
+|:--|:--|:--|
+| PO no ciclo 07, a observar `plano-20990101-0000` (inventado) | **200** | **409** |
+| PE no ciclo 07, sem 01..06 | **200** | **409** |
+
+As duas escreveram documento no acervo. A primeira é o **órfão**: um PO que observa um plano que
+não existe, num ciclo que não tem plano nenhum. A segunda é a **sequência quebrada**: a âncora do
+ciclo N encadeia com a do N-1, e o ciclo 07 que aparece do nada não tem de onde encadear.
+
+**As três conferências**, em `motor/servidor/rotas.js` (`recusaDaRelacaoDoCiclo`), antes de
+qualquer gravação:
+
+1. o plano declarado pelo PO **existe** no acervo;
+2. o ciclo do PO é o ciclo **do plano** (senão o documento diria «ciclo 02» e observaria o plano
+   do 01);
+3. sem plano declarado, o **ciclo tem de ter plano**.
+
+E do lado do plano, a **sequência estrita**: um plano novo só pode ser do **próximo** ciclo ou de
+um ciclo que já existe. A edição (`id`) e o elo novo (`ajuste_de`) não criam ciclo — continuam um,
+e o `id` só isenta a conferência se o documento **existir de facto** (senão seria a porta de
+serviço da regra).
+
+**Duas disciplinas que a bancada mede, porque uma recusa a mais é um defeito:** sem leitor do
+acervo (uma bancada, um adaptador sem índice) a rota **segue** em vez de acusar o professor por
+uma limitação de quem mede; e a **simulação** passa — ela não escreve, e uma prévia não é um
+documento.
+
+**A prova:** `experimentos/provar-relacoes-do-ciclo.js` (22 asserções), com **controlo negativo em
+cada secção** — a escrita válida da mesma família tem de continuar a entrar. Sem ele, uma guarda
+que recusasse tudo passaria na primeira metade. O A/B contra o commit anterior reprova em 12 das
+22.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

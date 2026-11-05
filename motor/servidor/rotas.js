@@ -665,6 +665,131 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     return recusar('envelope não encontrado: ' + params.id, 404);
   });
 
+/**
+ * AS RELAÇÕES DO CICLO — e a regra é do SERVIDOR, não do menu suspenso (05/11/2026).
+ *
+ * A especificação: «o Plano de Ensino (PE) é o documento base/macro gerado a partir do ciclo; o
+ * Plano de Observação (PO) só pode ser criado se houver estritamente um Plano de Ensino
+ * pré-existente e válido para aquele mesmo ciclo… impedindo qualquer órfão ou inconsistência
+ * relacional.»
+ *
+ * O QUE ESTAVA FEITO, e era metade. O campo do ciclo no PO passou a ser uma LISTA com os ciclos
+ * que têm plano (`GET /api/ciclos` → `comPlano`). Mas um dropdown é CONVENIÊNCIA: quem manda um
+ * `POST` à mão — ou quem tem a página aberta de ontem — escreve o que quiser, e o servidor
+ * aceitava. Medido, antes desta função:
+ *
+ *   POST /api/elicitar { fonte:'po', ciclo:'07', plano-de-ensino:'plano-20990101-0000' } → 200
+ *   POST /api/elicitar { fonte:'plano', ciclo:'07' }   (sem 01..06)                   → 200
+ *
+ * As duas escreveram documento. A primeira é o ÓRFÃO: um PO que observa um plano que não existe,
+ * num ciclo que não tem plano nenhum. A segunda é a SEQUÊNCIA QUEBRADA: o ciclo 07 nasce sem
+ * 01..06, e a cadeia de proveniência não tem a que encadear — o `parentHash` do ciclo N aponta
+ * para a âncora do N-1, e um ciclo que aparece do nada não tem N-1.
+ *
+ * TRÊS CONFERÊNCIAS, e cada uma nomeia o que impede:
+ *
+ *   1. o plano declarado pelo PO tem de EXISTIR no acervo;
+ *   2. o ciclo do PO tem de ser o ciclo DO PLANO (um PO de outro ciclo é a inconsistência
+ *      relacional — o documento diria «ciclo 02» e observaria o plano do 01);
+ *   3. sem plano declarado, o ciclo tem de ter plano — senão o PO nasce órfão por construção.
+ *
+ * E a SEQUÊNCIA ESTRITA do plano: um plano novo só pode ser do PRÓXIMO ciclo, ou de um ciclo que
+ * já existe (o ajuste e o elo novo continuam a valer — eles não criam ciclo, continuam um).
+ *
+ * DEGRADA, NÃO REBENTA — a mesma disciplina da curadoria (ver o bloco da turma, abaixo). Sem
+ * `armazenamento` legível (uma bancada, um adaptador sem índice) não há como conferir, e a rota
+ * segue como sempre foi. O que não se faz é RECUSAR por falta de leitor: isso transformaria uma
+ * limitação de bancada numa proibição de gravar. E a SIMULAÇÃO também passa: ela não escreve, e
+ * uma prévia não é um documento.
+ */
+async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola }) {
+  const fonte = corpo && corpo.fonte;
+  if (fonte !== 'po' && fonte !== 'plano') return null;
+  if (corpo && corpo.simular) return null;
+  const contexto = (corpo && corpo.contexto) || {};
+  const respostas = corpo && corpo.respostas && typeof corpo.respostas === 'object'
+    ? corpo.respostas : {};
+  const valorDe = (id) => {
+    const r = respostas[id];
+    const v = r && typeof r === 'object' && r.valor !== undefined ? r.valor : r;
+    return String(v == null ? '' : v).trim();
+  };
+  const ciclo = String(contexto.ciclo || '').trim();
+  const professor = String(contexto.professor || '').trim();
+  const daEscola = String(escola || contexto.escola || '').trim();
+
+  let ciclos = null;
+  try {
+    ciclos = await porta.ciclosDaEscola(armazenamento, { escola: daEscola, professor });
+  } catch (erro) { ciclos = null; }
+
+  if (fonte === 'po') {
+    const planoId = valorDe('plano-de-ensino');
+    let ids = null;
+    try {
+      const resumos = await porta.resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+      ids = resumos.map(({ nome, resumo }) => (resumo && resumo.id) || nome.replace(/\.json$/, ''));
+    } catch (erro) { ids = null; }
+
+    if (planoId && ids) {
+      if (ids.indexOf(planoId) === -1) {
+        return { status: 409, motivo: 'o plano de ensino «' + planoId + '» não existe neste '
+          + 'acervo: o Plano de Observação observa um plano que existe, e um carimbo inventado '
+          + 'não é um plano. Plano de Observação sem plano de ensino é um documento órfão — '
+          + 'crie o plano primeiro (é ele que fixa o objetivo e os marcos do ciclo) e volte aqui.' };
+      }
+      let cicloDoPlano = '';
+      try {
+        const envelope = await porta.lerEnvelope(armazenamento, planoId);
+        cicloDoPlano = String((envelope && envelope.contexto && envelope.contexto.ciclo) || '').trim();
+      } catch (erro) { cicloDoPlano = ''; }
+      if (ciclo && cicloDoPlano && ciclo !== cicloDoPlano) {
+        return { status: 409, motivo: 'o plano «' + planoId + '» é do ciclo ' + cicloDoPlano
+          + ', e este Plano de Observação está no ciclo ' + ciclo + ': um PO observa o plano do '
+          + 'SEU ciclo. O ciclo do documento e o ciclo do plano têm de ser o mesmo — escolha o '
+          + 'plano deste ciclo, ou mude o ciclo.' };
+      }
+    }
+
+    if (!planoId && ciclos && ciclo) {
+      const alvo = ciclos.find((c) => String(c.ciclo) === ciclo);
+      if (!alvo || !alvo.temPlano) {
+        const comPlano = ciclos.filter((c) => c.temPlano).map((c) => String(c.ciclo));
+        return { status: 409, motivo: 'o ciclo ' + ciclo + ' não tem plano de ensino: o Plano de '
+          + 'Observação observa uma aula que TEM plano, e é o plano que fixa o objetivo e os '
+          + 'marcos do ciclo. ' + (comPlano.length
+            ? 'Nesta escola há plano nos ciclos ' + comPlano.join(', ') + '.'
+            : 'Nenhum ciclo desta escola tem plano ainda — ele é o primeiro documento do ciclo.') };
+      }
+    }
+  }
+
+  if (fonte === 'plano' && ciclos && ciclo) {
+    const existentes = ciclos.map((c) => String(c.ciclo));
+    const proximo = String(porta.proximoCiclo(ciclos) || '');
+    /* A EDIÇÃO E O ELO NOVO NÃO CRIAM CICLO: um documento que já existe mantém a posição dele na
+     * cadeia (mudar o ciclo de um documento é mudar de cadeia, e isso é um documento novo).
+     *
+     * O `id` SÓ CONTA SE O DOCUMENTO EXISTE — e a precisão não é zelo: `elicitar` grava sob o id
+     * que recebe, e um id inventado num ciclo inexistente seria a porta de serviço da regra. */
+    let continua = Boolean(corpo && corpo.ajuste_de);
+    if (!continua && corpo && corpo.id) {
+      try {
+        continua = Boolean(await porta.lerEnvelope(armazenamento, String(corpo.id)));
+      } catch (erro) { continua = false; }
+    }
+    if (!continua && existentes.indexOf(ciclo) === -1 && ciclo !== proximo) {
+      return { status: 409, motivo: 'os ciclos são ESTRITAMENTE sequenciais (1, 2, 3 … N): '
+        + 'o ciclo ' + ciclo + ' não existe e o próximo é ' + (proximo || '—') + '. '
+        + (existentes.length
+          ? 'Esta escola tem ' + existentes.join(', ') + '.'
+          : 'Esta escola ainda não tem ciclo nenhum: o primeiro é o 01.') };
+    }
+  }
+
+  return null;
+}
+
   // 14. POST /api/elicitar — a elicitação inteira.
   roteador.rota('POST', '/api/elicitar', async ({ request }) => {
     let corpo = {};
@@ -729,6 +854,12 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         } catch (erro) { /* sem leitor de curadorias, a rota segue: ver o comentário acima */ }
       }
     }
+
+    /* A REGRA PE → PO E A SEQUÊNCIA ESTRITA — antes de qualquer gravação, e com o acervo à mão. */
+    const recusaDeRelacao = await recusaDaRelacaoDoCiclo({
+      armazenamento, corpo, escola: escolaDoWorker || (corpo.contexto && corpo.contexto.escola),
+    });
+    if (recusaDeRelacao) return recusar(recusaDeRelacao.motivo, recusaDeRelacao.status);
 
     try {
       const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
