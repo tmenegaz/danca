@@ -35818,3 +35818,47 @@ id no título, reprova 1.
 
 **Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**. A porta mudou (o campo do ciclo
 e a conferência do bilhete) e o pacote da `calango` foi sincronizado; a âncora é recarimbada.
+
+## 05/11/2026 — A musicalidade estava de fora da linha de base, e não devia: eram trinta, não vinte e quatro
+
+Correcção de um corte meu, e o segundo erro de desenho no mesmo dia. A linha de base passou a
+oferecer **30** campos da anamnese em vez de 24, e o que faltava eram exactamente os **seis de
+musicalidade**.
+
+**O raciocínio que eu fiz, e porque não se sustenta.** Eu tinha lido «o aspecto técnico e a poiesis já
+são tratados nos verbetes da notação; o novo eixo é o corpo» e programei um filtro: entram os campos
+de dimensão `tecnica` ou `funcional`, fica fora a `musicalidade`. Ela desmontou-o com um argumento
+pedagógico, e é ele que fica registado:
+
+> «se eu tenho uma aluna que vai entrar numa determinada turma e eu vejo na anamnese que ela não tem
+> musicalidade, eu preciso trabalhar a musicalidade. A musicalidade não nasce por geração espontânea,
+> ela é trabalhada, nem tampouco acontece por osmose. […] O cuidado que eu vou ter na hora de elaborar
+> a parte musical, que é lá no verbete, é parte a partir do meu olhar sobre a aluna na anamnese.»
+
+O verbete é onde a musicalidade se **ensina**; a anamnese é onde ela se **mede**. São complementares,
+não alternativas — e cortar a segunda por causa da primeira é tirar do professor a informação de que
+ele precisa para decidir o que ensinar. Uma lacuna musical é precisamente o tipo de coisa que a linha
+de base tem de poder registar, e era a única que ela não podia.
+
+**O que fica de pé, e é o que não se confunde.** A anamnese continua a ser a norma dos campos que
+**existem** — nenhum se inventa, e um id desconhecido continua a ser recusado na gravação. E a linha
+de base continua a ser um **recorte**: o professor escolhe entre os trinta, e não é obrigado a querer
+todos. O que não se faz é cortar antes dele escolher.
+
+**O que mudou no código.** `DIMENSOES_DO_CORPO` (que excluía) passou a `DIMENSOES_DA_ANAMNESE` (que
+declara as três), e a linha do filtro saiu. A dimensão continua a viajar com cada campo — é ela que
+diz em que eixo do que se observa o aspecto cai —, e agora leva também o **rótulo do eixo**
+(`Técnica`, `Funcional`, `Musicalidade`), porque o número «2 de 3 em Precisa desenvolver» quer dizer
+coisas diferentes conforme o eixo. Na tela, o rótulo do recorte deixou de dizer «aspectos do **corpo**»
+e passou a dizer «aspectos **da anamnese**» — chamar-lhe corpo era o mesmo erro, na etiqueta.
+
+**A asserção foi INVERTIDA, e não apagada.** A bancada exigia a ausência dos seis campos musicais —
+estava a prender o defeito ao repositório. Agora exige a presença, com o controle positivo do outro
+lado (os funcionais do bloco 9, que mistura duas dimensões). **A/B por reversão controlada:** reposto
+o filtro, a bancada reprova em **5** das 49 asserções — o número, a presença da musicalidade, a
+distribuição por dimensão, o eixo e a rota.
+
+**Medido:** `provar-linha-de-base` passou de 47 a **49 asserções**, todas a passar. `check-identidade`
+0 erros; `check-indices` 14/14.
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**.

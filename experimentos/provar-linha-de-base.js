@@ -3,21 +3,27 @@
 /**
  * provar-linha-de-base.js — A LINHA DE BASE DO CORPO (05/11/2026).
  *
- * A DECISÃO QUE ESTA BANCADA GUARDA. A anamnese recolhe **24** aspectos do corpo (blocos 2 a 9, sem
- * os seis de musicalidade). O plano lia sempre os MESMOS **quinze**, escritos à mão no conteúdo
- * (`lidoDasAnamneses`) desde 02/11/2026 — a mesma lista para todos os professores, todas as turmas
- * e todos os ciclos. Ficavam de fora «Formato anatômico dos joelhos», «Arquitetura do arco
- * plantar», «Impulsão e absorção (allegro)», «Mobilidade e estabilidade da escápula», «Mobilidade
- * da coluna cervical» — que em balé clássico não são acessórios.
+ * A DECISÃO QUE ESTA BANCADA GUARDA. A anamnese recolhe **30** aspectos (blocos 2 a 9). O plano lia
+ * sempre os MESMOS **quinze**, escritos à mão no conteúdo (`lidoDasAnamneses`) desde 02/11/2026 — a
+ * mesma lista para todos os professores, todas as turmas e todos os ciclos. Ficavam de fora «Formato
+ * anatômico dos joelhos», «Arquitetura do arco plantar», «Impulsão e absorção (allegro)»,
+ * «Mobilidade e estabilidade da escápula», «Mobilidade da coluna cervical» — que em balé clássico
+ * não são acessórios.
+ *
+ * E A PRIMEIRA VERSÃO DESTA ENTREGA CORTOU OUTRA COISA: os seis campos de **musicalidade**, com o
+ * argumento de que «já são tratados nos verbetes da notação». Ela desmontou-o — «a musicalidade não
+ * nasce por geração espontânea, ela é trabalhada, nem tampouco acontece por osmose» — e a bancada
+ * passou a exigir os seis, e não a sua ausência. Uma asserção que exigisse a falta deles estaria a
+ * prender o defeito ao repositório.
  *
  * A pesquisadora, 05/11/2026: «a definição do que compõe a Linha de Base do Corpo para um
  * determinado trabalho passa a ser uma escolha ativa e customizada do professor».
  *
  * O QUE SE PROVA, e por que cada coisa:
  *
- *   1. O RECORTE. Vinte e quatro campos, e a musicalidade de fora — porque ela é dos verbetes da
- *      notação, como a pesquisadora declarou. Se este número mudar sem que a anamnese mude, ou o
- *      filtro partiu, ou alguém voltou a escrever a lista à mão.
+ *   1. O RECORTE. Trinta campos, nas três dimensões — técnica, funcional e musicalidade. Se este
+ *      número mudar sem que a anamnese mude, ou o recorte partiu, ou alguém voltou a escrever a
+ *      lista à mão.
  *   2. A RECUSA. Um id que a anamnese não tem é RECUSADO na gravação, com o nome do campo. Um
  *      documento a apontar para um campo inexistente imprimiria uma linha vazia sem falhar.
  *   3. A AGREGAÇÃO. «Ponto de atenção» é o que NÃO está na primeira opção da anamnese — a régua é
@@ -54,31 +60,51 @@ async function okAsync(titulo, fn) {
   catch (erro) { falhas.push({ titulo, erro }); console.log('  FALHA ' + titulo + '\n        ' + erro.message); }
 }
 
-console.log('\n1. O RECORTE DO CORPO — o que a anamnese oferece à escolha');
+console.log('\n1. O RECORTE — o que a anamnese oferece à escolha');
 
 const DISPONIVEIS = lb.camposDisponiveis(ANAMNESE);
 
-ok('vinte e quatro campos de corpo, e não os quinze fixos de antes', () => {
-  assert.strictEqual(DISPONIVEIS.length, 24,
-    'a anamnese tem 24 campos de dimensão tecnica/funcional; veio ' + DISPONIVEIS.length);
+ok('TRINTA campos — todos os da anamnese, e não os quinze fixos de antes', () => {
+  assert.strictEqual(DISPONIVEIS.length, 30,
+    'a anamnese tem 30 campos nos blocos 2 a 9; veio ' + DISPONIVEIS.length);
 });
 
-ok('a MUSICALIDADE fica de fora — ela é dos verbetes da notação', () => {
+ok('a MUSICALIDADE ENTRA — o corte anterior era erro meu, e o argumento é pedagógico', () => {
+  /* A PRIMEIRA VERSÃO EXCLUÍA ESTES SEIS, e a bancada EXIGIA a exclusão. Ela corrigiu:
+   * «a musicalidade não nasce por geração espontânea, ela é trabalhada, nem tampouco acontece por
+   * osmose». O verbete é onde ela se ENSINA; a anamnese é onde ela se MEDE. Uma asserção que
+   * exigisse a ausência destes campos estaria a prender o defeito ao repositório — e é por isso
+   * que ela foi invertida, e não apagada. */
   const musicais = ['musicalidade-e-pulsacao-ritmica', 'coordenacao-motora-e-dissociacao',
     'memoria-e-retencao-de-sequencias', 'discriminacao-de-lateralidade',
     'orientacao-espacial-basica', 'espiral-rotacao-de-tronco'];
   for (const id of musicais) {
-    assert.strictEqual(DISPONIVEIS.some((c) => c.id === id), false,
-      'o campo de musicalidade «' + id + '» não pertence ao eixo do corpo');
+    assert.strictEqual(DISPONIVEIS.some((c) => c.id === id), true,
+      'o campo de musicalidade «' + id + '» tem de estar: é um aspecto que se trabalha');
   }
-  // E o controle positivo, no mesmo bloco 9 que mistura as duas dimensões: o vestibular e as
-  // cócoras são funcionais, e TÊM de estar. Sem esta metade, um filtro que devolvesse zero
-  // campos também passaria.
+  // E o controle positivo do outro lado, no mesmo bloco 9 que mistura as duas dimensões: se um
+  // filtro inverso passasse a excluir o funcional, esta metade reprovava.
   for (const id of ['estabilidade-vestibular-e-deslocamento', 'cocoras-profundas-squat',
     'coordenacao-fina-dedo-nariz']) {
     assert.strictEqual(DISPONIVEIS.some((c) => c.id === id), true,
-      '«' + id + '» é funcional e tem de estar no corpo');
+      '«' + id + '» é funcional e tem de estar também');
   }
+});
+
+ok('as três dimensões estão representadas, e a soma fecha nos trinta', () => {
+  const por = {};
+  for (const c of DISPONIVEIS) por[c.dimensao] = (por[c.dimensao] || 0) + 1;
+  assert.deepStrictEqual(por, { tecnica: 9, funcional: 15, musicalidade: 6 },
+    'nove de técnica, quinze de funcional e seis de musicalidade: ' + JSON.stringify(por));
+});
+
+ok('cada campo declara o seu EIXO — a dimensão não filtra, mas diz onde o aspecto cai', () => {
+  const musical = DISPONIVEIS.find((c) => c.id === 'musicalidade-e-pulsacao-ritmica');
+  assert.strictEqual(musical.eixo, 'Musicalidade');
+  const funcional = DISPONIVEIS.find((c) => c.id === 'equilibrio-unipodal');
+  assert.strictEqual(funcional.eixo, 'Funcional');
+  const tecnico = DISPONIVEIS.find((c) => c.id === 'arquitetura-do-arco-plantar');
+  assert.strictEqual(tecnico.eixo, 'Técnica');
 });
 
 ok('os campos que o recorte fixo deixava de fora passam a estar disponíveis', () => {
@@ -303,11 +329,13 @@ async function chamar(env, caminho, opcoes) {
 }
 
 (async () => {
-  await okAsync('GET /api/bastidores/campos-do-corpo — vinte e quatro, com os grupos', async () => {
+  await okAsync('GET /api/bastidores/campos-do-corpo — trinta, com os grupos', async () => {
     const env = envFalso(kvFalso());
     const r = await chamar(env, '/api/bastidores/campos-do-corpo');
     assert.strictEqual(r.status, 200, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 200));
-    assert.strictEqual(r.corpo.campos.length, 24);
+    assert.strictEqual(r.corpo.campos.length, 30, 'os trinta campos da anamnese');
+    assert.ok(r.corpo.campos.some((c) => c.dimensao === 'musicalidade'),
+      'e a musicalidade tem de vir na resposta da rota, não só na do núcleo');
     assert.ok(Array.isArray(r.corpo.grupos) && r.corpo.grupos.length >= 5,
       'os grupos vêm na ordem da anamnese, para a tela não os reordenar');
   });

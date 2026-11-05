@@ -1,11 +1,12 @@
 'use strict';
 
 /**
- * A LINHA DE BASE DO CORPO — o recorte que o PROFESSOR escolhe (05/11/2026).
+ * A LINHA DE BASE — o recorte que o PROFESSOR escolhe (05/11/2026).
  *
- * O QUE ELA SUBSTITUI, E PORQUÊ. A anamnese sempre recolheu o corpo inteiro: 24 campos, em seis
- * blocos (estrutura óssea, flexibilidade, complexo escapulo-umeral, pés e tornozelos, força,
- * equilíbrio). O que o plano lia deles eram **quinze**, escolhidos a 02/11/2026 e escritos à mão
+ * O QUE ELA SUBSTITUI, E PORQUÊ. A anamnese recolhe o corpo inteiro: **30** campos, em oito
+ * blocos (estrutura óssea, flexibilidade, complexo escapulo-umeral, pés e tornozelos, aptidões
+ * cognitivo-musicais, força activa, equilíbrio e sustentação, sistema vestibular). O que o plano
+ * lia deles eram **quinze**, escolhidos a 02/11/2026 e escritos à mão
  * dentro do conteúdo (`lidoDasAnamneses`, em `plano/conteudo/plano.json`) — a mesma lista para
  * todos os professores, todas as turmas e todos os ciclos. A pesquisadora, 05/11/2026:
  *
@@ -21,12 +22,17 @@
  * anamnese, e a anamnese é norma (`ARQUITETURA-ANAMNESE.md`). A linha de base escolhe **entre**
  * eles; não inventa nenhum, e um id que não exista é recusado na gravação (ver `normalizar`).
  *
- * O CORPO É UM RECORTE DA ANAMNESE, E O RECORTE TEM CRITÉRIO: entram os campos de dimensão
- * `tecnica` ou `funcional`; ficam fora os de `musicalidade` — pulsação, coordenação
- * cognitivo-musical, memória de sequências, lateralidade, orientação espacial. Esses já são
- * tratados nos **verbetes da notação** (é a divisão que a pesquisadora declarou em 05/11/2026:
- * «aspecto técnico e poiesis já são tratados nos verbetes; o novo eixo é o corpo»). Duas listas
- * do mesmo campo divergiriam; esta não é uma segunda lista, é um FILTRO sobre a única que há.
+ * O RECORTE É SOBRE **TODA** A ANAMNESE — e a primeira versão disto cortava a musicalidade. Foi um
+ * erro meu, e vale registá-lo porque o raciocínio era plausível e estava errado: eu li «o aspecto
+ * técnico e a poiesis já são tratados nos verbetes; o novo eixo é o corpo» e concluí que a
+ * musicalidade não pertencia ao recorte. Ela corrigiu: «a musicalidade não nasce por geração
+ * espontânea, ela é trabalhada, nem tampouco acontece por osmose». O verbete é onde a musicalidade
+ * se ENSINA; a anamnese é onde ela se MEDE — complementares, não alternativas. Cortar a segunda por
+ * causa do primeiro é tirar do professor a informação de que ele precisa para decidir o que ensinar.
+ *
+ * Hoje entram os **trinta** campos dos blocos 2 a 9: nove de `tecnica`, quinze de `funcional` e seis
+ * de `musicalidade`. A dimensão viaja com cada um (é ela que diz em que eixo do que se observa o
+ * aspecto cai), mas **não filtra**.
  *
  * A SELEÇÃO É GRAVADA COM O NOME, e não só com o id. É deliberado: a linha de base é um registo
  * do que o professor escolheu **naquele momento**, e o passado não se reescreve (P-03). Se a
@@ -37,8 +43,39 @@
  * argumento — quem o lê do disco é o servidor.
  */
 
-/** As dimensões que o eixo do CORPO cobre. `musicalidade` está fora, e a razão está no cabeçalho. */
-const DIMENSOES_DO_CORPO = ['tecnica', 'funcional'];
+/**
+ * AS DIMENSÕES DA ANAMNESE — e são TODAS. O nome antigo desta constante era `DIMENSOES_DO_CORPO`,
+ * e ela excluía a `musicalidade`. Foi um corte meu, e estava errado (05/11/2026, segunda passagem).
+ *
+ * O RACIOCÍNIO QUE EU FIZ, E PORQUE NÃO SE SUSTENTA. Eu li a divisão de 05/11 — «o aspecto técnico
+ * e a poiesis já são tratados nos verbetes da notação; o novo eixo é o corpo» — e concluí que a
+ * musicalidade não pertencia ao recorte. Ela corrigiu, e o argumento é pedagógico:
+ *
+ *   «se eu tenho uma aluna que vai entrar numa determinada turma e eu vejo na anamnese que ela não
+ *    tem musicalidade, eu preciso trabalhar a musicalidade. A musicalidade não nasce por geração
+ *    espontânea, ela é trabalhada, nem tampouco acontece por osmose. […] O cuidado que eu vou ter
+ *    na hora de elaborar a parte musical, que é lá no verbete, é parte a partir do meu olhar sobre
+ *    a aluna na anamnese.»
+ *
+ * Ou seja: o verbete é onde a musicalidade SE ENSINA; a anamnese é onde ela se MEDE. As duas coisas
+ * são complementares, não alternativas — e cortar a segunda por causa da primeira é tirar do
+ * professor a informação de que ele precisa para decidir o que ensinar. Uma lacuna musical é
+ * exactamente o tipo de coisa que a linha de base tem de poder registrar.
+ *
+ * O QUE FICA DE PÉ: a anamnese é a norma dos campos que existem (nenhum se inventa), e a linha de
+ * base continua a ser um RECORTE — o professor escolhe entre os trinta, e não é obrigado a querer
+ * todos. O que não se faz é cortar antes dele escolher.
+ */
+const DIMENSOES_DA_ANAMNESE = ['tecnica', 'funcional', 'musicalidade'];
+
+/** O rótulo do eixo, para a tela poder agrupar. Vem de `eixos.js` — uma taxonomia só no projecto,
+ *  e o corpo/técnica/poiesis é a mesma dos documentos. Repetida aqui em forma mínima porque o
+ *  núcleo não deve depender do módulo dos eixos para uma etiqueta. */
+const ROTULO_DA_DIMENSAO = {
+  tecnica: 'Técnica',
+  funcional: 'Funcional',
+  musicalidade: 'Musicalidade',
+};
 
 /** O id a partir do nome — a mesma regra do `slugificar`/`idDe`, repetida porque o núcleo não
  *  conhece o servidor (e uma dependência invertida partiria essa fronteira). */
@@ -75,8 +112,10 @@ function camposDisponiveis(conteudo) {
       // A dimensão é DO CAMPO quando ele a declara (o bloco 9 mistura funcional e musicalidade) e
       // do bloco quando não. Ler só a do bloco poria «Estabilidade vestibular» fora do corpo e
       // «Espiral / rotação de tronco» dentro — os dois errados, e os dois em silêncio.
+      // A DIMENSÃO É DO CAMPO QUANDO ELE A DECLARA (o bloco 9 mistura `funcional` e `musicalidade`)
+      // e do bloco quando não. Ler só a do bloco poria «Estabilidade vestibular» fora do corpo e
+      // «Espiral / rotação de tronco» dentro — os dois errados, e os dois em silêncio.
       const dimensao = String(campo.dimensao || bloco.dimensao || '');
-      if (DIMENSOES_DO_CORPO.indexOf(dimensao) === -1) continue;
       const opcoes = Array.isArray(campo.opcoes) ? campo.opcoes
         : Array.isArray(campo.valores) ? campo.valores : [];
       saida.push({
@@ -84,7 +123,11 @@ function camposDisponiveis(conteudo) {
         nome: String(campo.campo || campo.id),
         bloco: bloco.bloco == null ? null : bloco.bloco,
         grupo: String(bloco.titulo || ''),
+        // A DIMENSÃO VAI JUNTO, e não é etiqueta decorativa: é ela que diz ao professor em que eixo
+        // do que se observa cada aspecto cai — o corpo, a técnica ou a poiesis. A tela agrupa por
+        // ela, e o documento do plano imprime-a. O que ela NÃO faz é excluir.
         dimensao: dimensao,
+        eixo: ROTULO_DA_DIMENSAO[dimensao] || '',
         opcoes: opcoes.map(String),
       });
     }
@@ -235,6 +278,9 @@ function agregar(linha, disponiveis, anamneses) {
       id: escolhido.id,
       nome,
       grupo: String((campo && campo.grupo) || escolhido.grupo || ''),
+      // O EIXO vai junto porque é ele que dá sentido ao número: «2 de 3 em «Precisa desenvolver»»
+      // diz coisas diferentes conforme o aspecto seja do corpo, da técnica ou da poiesis.
+      eixo: String((campo && campo.eixo) || escolhido.eixo || ''),
       quantas,
       // A ORDEM DAS ENTRADAS é a das opções (melhor primeiro), e não a da contagem: a leitura é
       // «3 em Alta · 1 em Média», que se lê de cima para baixo como a régua.
@@ -300,7 +346,8 @@ function envelheceu(linha, carimbos) {
 }
 
 module.exports = {
-  DIMENSOES_DO_CORPO,
+  DIMENSOES_DA_ANAMNESE,
+  ROTULO_DA_DIMENSAO,
   idDe,
   semAcento,
   camposDisponiveis,

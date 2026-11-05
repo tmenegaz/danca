@@ -119,7 +119,7 @@ const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
 const acervo = require('./acervo-envelopes.js');
 const porta = require('../nucleo/porta.js');
 const paginacao = require('../nucleo/paginacao.js');
-/* A LINHA DE BASE (05/11/2026) — o recorte do corpo que o professor escolhe. O núcleo decide o
+/* A LINHA DE BASE (05/11/2026) — o recorte da anamnese que o professor escolhe. O núcleo diz o
  * que é «corpo» e o que é musicalidade; o `corpo-seed` traz os campos da anamnese para dentro do
  * bundle, porque o Worker não tem `fs`. A regra fica no núcleo, o dado vem do `require`. */
 const linhaDeBaseNucleo = require('../nucleo/linha-de-base.js');
@@ -402,7 +402,7 @@ function normalizarRubrica(corpo) {
 }
 
 /**
- * AS LINHAS DE BASE DA ESCOLA (05/11/2026) — o recorte do corpo, por professor.
+ * AS LINHAS DE BASE DA ESCOLA (05/11/2026) — o recorte da anamnese, por professor.
  *
  * MORA NO KV, ao lado das turmas e das rubricas, e a chave tem a mesma forma — `linhas-de-base`.
  * A razão é a de sempre: é dado de PRODUÇÃO (a escola administra), não de proveniência (isso é o
@@ -4374,7 +4374,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</section>' +
     /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
      *
-     * PORQUE ESTA SECÇÃO EXISTE. A anamnese recolhe vinte e quatro aspectos do corpo. O plano
+     * PORQUE ESTA SECÇÃO EXISTE. A anamnese recolhe trinta aspectos — corpo, técnica e poiesis. O plano
      * lia sempre os MESMOS quinze, escritos à mão no conteúdo (`lidoDasAnamneses`) desde
      * 02/11/2026 — a mesma lista para todos os professores, todas as turmas e todos os ciclos.
      * Ficavam de fora «Formato anatômico dos joelhos», «Arquitetura do arco plantar», «Impulsão
@@ -4420,11 +4420,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub">A linha de base é de quem avalia: é o professor que observa a turma. ' +
     'As de outros professores ficam visíveis na lista — quem assume lê o que estava antes, ' +
     'e faz a sua.</p>' +
-    '<label class="campo-rotulo">Aspectos do corpo que este trabalho observa</label>' +
+    // «DO CORPO» SAIU DO RÓTULO (05/11/2026). A lista tem os trinta campos da anamnese — corpo,
+    // técnica e poiesis —, e a primeira versão chamava-lhe só corpo porque cortava a musicalidade.
+    // O rótulo passou a dizer o que a lista é, e a nota abaixo diz o resto.
+    '<label class="campo-rotulo">Aspectos da anamnese que este trabalho observa</label>' +
+    '<p class="sub">São os trinta campos que a anamnese recolhe, em três eixos: técnica, funcional ' +
+    'e musicalidade. A musicalidade entra porque ela também se trabalha — uma lacuna musical é ' +
+    'motivo para a turma trabalhar esse aspecto, e o professor precisa de a ver aqui para o ' +
+    'decidir. Escolha os que este ciclo vai olhar.</p>' +
     // AS CAIXAS SÃO DESENHADAS PELO CLIENTE, a partir dos campos que o servidor lê da anamnese.
     // Escrevê-las no HTML seria uma segunda lista dos mesmos campos — e é exactamente o defeito
     // que esta secção vem corrigir.
-    '<div id="lb-campos"><p class="sub">carregando os aspectos do corpo…</p></div>' +
+    '<div id="lb-campos"><p class="sub">carregando os aspectos da anamnese…</p></div>' +
     '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
     '<div class="res" data-res="linha-base"></div>' +
     '<span class="par-botoes">' +
@@ -8943,7 +8950,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = document.getElementById("lb-campos");' +
     '  if (!alvo) return;' +
     '  if (!CAMPOS_DO_CORPO.length) {' +
-    '    alvo.innerHTML = "<p class=\\"aviso\\">Não consegui ler os aspectos do corpo agora.</p>";' +
+    '    alvo.innerHTML = "<p class=\\"aviso\\">Não consegui ler os aspectos da anamnese agora.</p>";' +
     '    return;' +
     '  }' +
     // SEM ANAMNESE NAO HA O QUE ESCOLHER. A primeira versao desenhava as 24 caixas sempre, e a
@@ -8952,8 +8959,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // cruzamento que nao existe.
     '  if (!haAnamnese()) {' +
     '    alvo.innerHTML = "<p class=\\"aviso\\">Ainda não há nenhuma anamnese registada. A linha ' +
-    'de base é um recorte do CORPO lido dos retratos das alunas — sem retrato não há o que ' +
-    'recortar. Faça primeiro a anamnese de pelo menos uma aluna, em «Anamnese do aluno».</p>";' +
+    'de base é um recorte lido dos retratos das alunas — sem retrato não há o que recortar. ' +
+    'Faça primeiro a anamnese de pelo menos uma aluna, em «Anamnese do aluno».</p>";' +
     '    TRAVADO = true;' +
     '    travarFormulario();' +
     '    return;' +
@@ -9056,7 +9063,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!alvo) return;' +
     '  if (!LINHAS_DE_BASE.length) {' +
     '    alvo.innerHTML = "<li>Nenhuma linha de base ainda. A primeira nasce " +' +
-    '      "quando o professor escolher os aspectos do corpo que o trabalho dele observa.</li>";' +
+    '      "quando o professor escolher os aspectos da anamnese que o trabalho dele observa.</li>";' +
     '    return;' +
     '  }' +
     '  alvo.innerHTML = LINHAS_DE_BASE.map(function(l){' +

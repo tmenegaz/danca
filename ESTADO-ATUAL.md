@@ -105,6 +105,16 @@
 > expurgo é um commit só. Prova nova: `provar-verbos-do-armazenamento`, **29 asserções**, a ler os
 > verbos **do ficheiro do contrato** e a passar pelo `criarArmazenamento`.
 >
+> **A linha de base oferece os TRINTA campos, musicalidade incluída (05/11/2026, terceira passagem).**
+> Segundo erro de desenho meu no mesmo dia: eu tinha cortado os **seis campos de musicalidade** com o
+> argumento de que «já são tratados nos verbetes da notação». Ela desmontou-o — «a musicalidade não
+> nasce por geração espontânea, ela é trabalhada, nem tampouco acontece por osmose». O verbete é onde
+> ela se **ensina**; a anamnese é onde ela se **mede**. São complementares, e cortar a segunda é tirar
+> do professor o que ele precisa para decidir o que ensinar. O recorte passa a **30 campos** (9 de
+> técnica, 15 de funcional, 6 de musicalidade); a dimensão viaja com cada um — com o rótulo do eixo —
+> mas **não filtra**. Continua a ser um recorte: o professor escolhe entre os trinta. A asserção da
+> bancada foi **invertida**, e não apagada; o A/B repõe o filtro e reprova em 5 de 49.
+>
 > **A linha de base é sobre ALUNAS, e a anamnese perdeu o ciclo (05/11/2026, segunda passagem).**
 > Quatro correcções da mesma sessão de uso. (1) O campo **ciclo** continuava na barra e no painel da
 > anamnese — e era ele que fechava o formulário: entrava na lista de obrigatórios e no bilhete do

@@ -829,13 +829,25 @@ determinado trabalho passa a ser uma **escolha ativa e customizada do professor*
 
 **O que passou a existir.** Uma entidade **Linha de Base**, guardada no KV da escola
 (`bastidores/<escola>/linhas-de-base`, ao lado das turmas e das rubricas), com nome, professor e a
-lista de campos escolhidos. A secção nova é **Bastidores → Pedagogia → Corpo — linha de base**.
+lista de campos escolhidos. A secção nova é **Bastidores → Pedagogia → Corpo — linha de base** (o rótulo do recorte diz
+«aspectos **da anamnese**»: chamar-lhe «do corpo» era o mesmo erro que excluía a musicalidade).
 
-O recorte não inventa campos: ele escolhe **entre** os da anamnese, que é norma. Entram os de
-dimensão `tecnica` ou `funcional`; ficam fora os de `musicalidade` — pulsação, coordenação
-cognitivo-musical, memória de sequências, lateralidade, orientação espacial —, que já são tratados
-nos **verbetes da notação**. A distinção é a que a pesquisadora declarou: «o aspecto técnico e a
-poiesis já são tratados nos verbetes; o novo eixo é o corpo».
+O recorte não inventa campos: ele escolhe **entre** os da anamnese, que é norma — e são **todos os
+trinta** dos blocos 2 a 9: nove de `tecnica`, quinze de `funcional` e seis de `musicalidade`.
+
+**A musicalidade entra, e a primeira versão cortou-a — foi erro meu.** Eu li «o aspecto técnico e a
+poiesis já são tratados nos verbetes da notação» e concluí que os seis campos musicais não pertenciam
+ao recorte. Ela desmontou-o: *«a musicalidade não nasce por geração espontânea, ela é trabalhada, nem
+tampouco acontece por osmose»*. O verbete é onde a musicalidade se **ensina**; a anamnese é onde ela
+se **mede** — são complementares, não alternativas, e cortar a segunda por causa do primeiro é tirar
+do professor a informação de que ele precisa para decidir o que ensinar. Uma lacuna musical é
+exactamente o tipo de coisa que a linha de base tem de poder registar.
+
+O que continua verdadeiro: a anamnese é a norma dos campos que **existem** (**não** se inventa
+nenhum, e um id desconhecido é recusado na gravação), e a linha de base é um **recorte** — o professor
+escolhe entre os trinta, e não é obrigado a querer todos. O que não se faz é cortar antes dele
+escolher. A dimensão viaja com cada campo (é ela que diz em que eixo do que se observa o aspecto
+cai), mas **não filtra**.
 
 **Sobre QUEM é a linha de base: as ALUNAS, nunca a turma.** A primeira versão lia «turma», e ela
 desmontou-a com um argumento de tempo: *«a turma não nasce com alunas; a turma só vai ter alunas
@@ -889,8 +901,8 @@ para que todos mantenham a excelência neste ponto»).
 ressalvas registadas nas anamneses» não tem hoje de onde as ler. As ressalvas vivem no nó
 `restricoes` do **PO**. Fica como pendência, por decisão dela («depois»).
 
-**A prova:** `experimentos/provar-linha-de-base.js` (37 asserções): o recorte (24, sem a
-musicalidade, e com o controle positivo dos campos do bloco 9 que mistura as duas dimensões), a
+**A prova:** `experimentos/provar-linha-de-base.js` (49 asserções): o recorte (30, nas três
+dimensões, e com o controle positivo dos campos do bloco 9 que mistura duas delas), a
 recusa de um campo que a anamnese não tem, a agregação pela ordem das opções, as rotas com KV falso,
 e a cascata de três passos. O **A/B** desliga o passo 1 e a bancada reprova.
 
