@@ -70,13 +70,13 @@
       "ciclo:rabo-gramde/01/calango"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-05T13:06:46.674863+00:00",
     "expurgada": false,
@@ -89,11 +89,22 @@
     "professores": [
       "rabo-gramde"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261105-1240"
+    ],
     "slug": "calango"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261105-1240"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -106,8 +117,9 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261105-1240",
           "ciclo:rabo-gramde/01/calango"
         ],
         "rotulo": "rabo-gramde",
@@ -115,6 +127,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261105-1240"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -127,9 +147,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "cc9f390"
+    "commit": "82de370"
   },
-  "gerado_em": "2026-11-05T13:06",
+  "gerado_em": "2026-11-05T15:40",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -152,6 +172,17 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261105-1240",
+      "ciclo": null,
+      "data": "2026-11-05T12:40",
+      "id": "anamnese:anamnese-20261105-1240",
+      "professor": "rabo-gramde",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }
