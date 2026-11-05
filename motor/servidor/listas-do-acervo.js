@@ -206,6 +206,10 @@ function acaoDaPagina(chave) {
 const ROTA_DE_APAGAR = {
   anamnese: '/anamnese/api/anamnese-vinculo/',
   'plano-de-ensino': '/plano-ensino/api/plano-vinculo/',
+  /* O PO FALTAVA AQUI, e era o único dos três (04/11/2026). A pesquisadora: «o botão ou a opção de
+   * deletar o plano de observação não está aparecendo». Não aparecia porque não existia: nem rota,
+   * nem estado, nem botão. As três peças entram juntas — uma sem as outras é um botão que mente. */
+  'plano-de-observacao': '/plano-observacao/api/po-vinculo/',
 };
 
 function acoesDaLinha(chave, registo, estado) {
@@ -308,6 +312,28 @@ function acoesDaLinha(chave, registo, estado) {
     plano: doPlano,
     aluna: chave === 'anamnese' ? registo.aluna : '',
   });
+  /* O PO, QUE NÃO TINHA O GESTO (04/11/2026). A linha do Plano de Observação oferecia «Ajustar» e
+   * mais nada — e o pedido foi explícito: «inspecionar o componente do Plano de Observação e
+   * disponibilizar a ação de exclusão».
+   *
+   * A REGRA É A DAS OUTRAS DUAS FAMÍLIAS: solto apaga-se; DERIVADO (tem sucessor, `ajuste_de`)
+   * não se apaga — acrescenta-se um elo. E há uma assimetria que é do domínio, não da tela: nada
+   * referencia um PO (o ciclo gerado guarda a sua própria cópia), por isso não há aqui a trava
+   * «está vinculado» que o plano de ensino tem.
+   *
+   * O «Ajustar» continua, e primeiro: é o gesto que se usa no dia a dia. O «Apagar» é o que se
+   * usa quando o registo foi criado por engano. */
+  if (chave === 'plano-de-observacao') {
+    const acoes = [['Ajustar', f.porta + contexto, 'secundario',
+      'abre o registo para acrescentar um elo — o anterior permanece']];
+    if (!(estado && estado.derivado)) {
+      acoes.push({ rotulo: 'Apagar', apagar: registo.id, rota: ROTA_DE_APAGAR[chave],
+        nome: 'o plano de observação ' + registo.id,
+        dica: 'apaga de vez — e só é possível porque ele não foi derivado: o ciclo já gerado '
+          + 'guarda a sua própria cópia, e não é tocado' });
+    }
+    return acoes;
+  }
   return [['Ajustar', f.porta + contexto, 'secundario',
     'abre o registo para acrescentar um elo — o anterior permanece']];
 }
@@ -1274,6 +1300,44 @@ function eschave(texto) {
  * objecto nomeado, quem acrescenta um derivado novo acrescenta-o num sítio onde o nome o diz, e
  * quem esquece um vê `undefined` no sítio certo em vez de rebentar no meio.
  */
+/**
+ * O ESTADO DE CADA PO, numa passagem (04/11/2026).
+ *
+ * A regra é a do núcleo (`porta.estadoDoPo`) e NÃO se repete aqui: o que esta função faz é
+ * aplicá-la à lista já lida, para não varrer o acervo uma vez por registo. Duas derivações da
+ * mesma regra divergiriam, e a que ficasse para trás seria a do ecrã — o mesmo motivo escrito na
+ * escolha dos `estados` do plano.
+ *
+ * O que se procura é o SUCESSOR: um PO cujo `ajuste_de` aponta para este. Não há aqui a trava
+ * «está vinculado» do plano, porque nada referencia um PO — o ciclo gerado guarda a sua cópia.
+ */
+async function estadosDosPos(armazenamento, resumos) {
+  const sucessores = new Map();
+  for (const { nome, resumo } of resumos) {
+    const pai = String(resumo.ajuste_de || '');
+    if (!pai) continue;
+    if (!sucessores.has(pai)) sucessores.set(pai, []);
+    sucessores.get(pai).push(resumo.id || nome.replace(/\.json$/, ''));
+  }
+  const estados = {};
+  for (const { nome, resumo } of resumos) {
+    const carimbo = resumo.id || nome.replace(/\.json$/, '');
+    const substituido_por = sucessores.get(carimbo) || [];
+    /* SEM `estado`, DE PROPÓSITO (04/11/2026). O `linhasDe` usa `estado.estado` para o SELO da
+     * linha — e um PO nunca teve selo de estado: ele ganhou «gerado» quando gerou o ciclo, e nada
+     * mais. Emitir `solta` aqui punha uma etiqueta nova em todas as linhas do PO sem ninguém a ter
+     * pedido, e a `provar-listas-do-acervo` reprovou («sem registo de geração, a linha do PO não
+     * leva selo»). O que esta lista precisa de saber é só uma coisa: tem sucessor ou não. */
+    estados[carimbo] = {
+      carimbo,
+      ajuste_de: resumo.ajuste_de || null,
+      substituido_por,
+      derivado: substituido_por.length > 0,
+    };
+  }
+  return estados;
+}
+
 function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados) {
   const { gerados, historico, revalidar } = derivados || {};
   /* AS VERSÕES QUE A LINHA GUARDOU (03/11/2026). A estante mostra o documento vigente; o que ele
@@ -1446,9 +1510,14 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
   const resumos = await porta.resumosDeEnvelopes(armazenamento, familia.padrao);
   /* O ESTADO é derivado, e vem de quem o deriva — não é recalculado aqui. Duas derivações da
    * mesma regra divergiriam, e a que ficasse para trás seria a do ecrã. */
+  /* O PO PASSOU A TER ESTADO (04/11/2026). Ele era `{}` aqui — e por isso a linha não sabia se o
+   * registo tinha sucessor, e o «Apagar» não tinha como existir sem prometer o que o servidor
+   * recusaria. O estado é derivado no núcleo (`porta.estadoDoPo`), um por registo. */
   const estados = chave === 'anamnese'
     ? await porta.estadosDasAnamneses(armazenamento)
-    : chave === 'plano-de-ensino' ? await porta.estadosDosPlanos(armazenamento) : {};
+    : chave === 'plano-de-ensino' ? await porta.estadosDosPlanos(armazenamento)
+      : chave === 'plano-de-observacao'
+        ? await estadosDosPos(armazenamento, resumos) : {};
 
   const todosOsRegistos = resumos
     .map(({ nome, resumo }) => Object.assign({}, resumo, { id: resumo.id || nome.replace(/\.json$/, '') }))

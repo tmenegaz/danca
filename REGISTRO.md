@@ -35221,3 +35221,66 @@ reprovam neste ambiente, e reprovavam **antes** desta entrega: `provar-navegacao
 `provar-listas-do-acervo` (8 de 109: espera os caminhos `/area-do-professor/…`, que o menu deixou
 de usar). Nenhuma delas toca no nome dos documentos; a comparação foi feita com `git worktree add`
 sobre o mesmo `HEAD`, e não por memória.
+
+## 04/11/2026 — O PO passa a poder apagar-se, e o menu dos formulários ganha bancada
+
+**O que motivou.** Três queixas da pesquisadora, na mesma ronda: (1) nos formulários de anamnese,
+plano de ensino e plano de observação «o menu de navegação lateral e o cabeçalho aparecem com uma
+cor extremamente clara… e perdem a funcionalidade (cliques não respondem)»; (2) «ao rolar, o
+conteúdo do formulário rola por cima do cabeçalho»; (3) «o botão ou a opção de deletar o plano de
+observação não está aparecendo».
+
+**O que se mediu — e o resultado divide as três em duas famílias.**
+
+1. **A bancada que faltava.** `experimentos/provar-menu-do-formulario.js`, nova, **36 asserções** no
+   Chrome. Ela serve a página a sério por `producao.fetch` (a lista) e a porta com o menu aplicado
+   pelo **mesmo** módulo da ponte (`motor/nucleo/nav.js`), com o `nav.json` da escola viva.
+   **Porque é que nenhuma bancada apanhava isto:** as bancadas da porta servem `porta/index.html`
+   **cru**, e essa página não tem `<nav>` — o marcador `<!-- NAV -->` é substituído na geração. A
+   página que se media **não tinha menu**, e o que não existe não se pode ver esbatido.
+2. **Os dois primeiros sintomas NÃO se reproduzem** nos estados que a bancada constrói: a 1280px e
+   a 390px, com o formulário aberto e a página rolada, a barra está `fixed` no topo, com opacidade
+   **1**, contraste **AA**, o centro de cada link devolve o link, e os cinco pontos da faixa da
+   barra pertencem à barra. Fica **declarado como não reproduzido** — e é por isso que a bancada
+   fica no repositório: quando o defeito aparecer, é ela que o apanha.
+3. **O terceiro era real, e era uma ausência.** A linha do Plano de Observação oferecia **só
+   «Ajustar»**: não havia estado, não havia botão, e **não havia rota** que apagasse um PO. O plano
+   de ensino e a anamnese tinham o trio (estado → botão → rota); o PO ficou de fora quando a
+   listagem passou a ser a página da Área do Professor.
+
+**O que foi implementado.**
+
+- `motor/nucleo/porta.js` — **`estadoDoPo`**: o PO é `solta` ou `legado` conforme tenha, ou não, um
+  sucessor (`ajuste_de`). **A assimetria com o plano é do domínio**: nada referencia um PO — o ciclo
+  gerado guarda a sua própria cópia (`po-01.json`, `-po.md`) —, e por isso não existe aqui a trava
+  «está vinculado» que o plano tem. O que existe é a do sucessor.
+- `motor/servidor/rotas.js` — **`DELETE /api/po-vinculo/:id`**, com **409** quando derivado, e a
+  recusa a nomear o sucessor.
+- `motor/servidor/listas-do-acervo.js` — a rota entra no `ROTA_DE_APAGAR`; a linha do PO ganha
+  **«Apagar»** (botão, com senha e confirmação, como as outras duas) quando não é derivada, e
+  mantém «Ajustar» em primeiro lugar.
+
+**Dois defeitos meus, apanhados a correr as bancadas.** (1) `estadosDosPos` emitia
+`estado: 'solta'`, e o `linhasDe` usa `estado.estado` para o **selo** — o PO ganhou uma etiqueta
+«solta» que ninguém pediu, e a `provar-listas-do-acervo` reprovou («sem registo de geração, a linha
+do PO não leva selo»). O estado derivado passou a dizer só o que a lista precisa de saber:
+`derivado`. (2) Os POs novos do fixture observavam o plano **solto** e o sujeito **Aluna B** — o que
+tornou o plano vinculado e a anamnese da Aluna B vinculada, e derrubou sete asserções de outras
+secções. Passaram a observar o plano já vinculado e a **Aluna C**.
+
+**Onde entrou.** `motor/nucleo/porta.js` · `motor/servidor/rotas.js` ·
+`motor/servidor/listas-do-acervo.js` · `experimentos/provar-menu-do-formulario.js` (**novo**, 36) ·
+`experimentos/provar-apagar-da-listagem.js` (32 → **43**: a §3b mede o botão, a rota e a recusa).
+
+**Com o quê.** `provar-apagar-da-listagem` (43, com **controlo negativo**: desligado o botão, duas
+asserções reprovam) · `provar-menu-do-formulario` (36) · `provar-listas-do-acervo` (101 de 109 —
+as 8 falhas são **pré-existentes**, verificadas por A/B num `git worktree` limpo: esperam os
+caminhos `/area-do-professor/…`, que o menu deixou de usar) · `provar-eixos-do-po` (34) ·
+`provar-ciclos-e-anamnese` (34) · `provar-contexto-do-ato` (39) · `provar-publicacao-da-escola`
+(63) · `provar-cartao-da-aula` (31) · `check-identidade` 20/20.
+
+**O que NÃO está feito, e é a pergunta em aberto.** Os sintomas 1 e 2 (menu esbatido e conteúdo a
+rolar por cima do cabeçalho) **não se reproduziram** em nenhum estado que a bancada consiga
+construir. Fica registado o que falta para os apanhar: a URL exacta e a largura da janela em que
+acontecem. Sem isso, mexer no CSS seria adivinhar — e um `z-index` mudado às cegas parte o que está
+medido.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T22:18:13-0300`
-Commit atual: `73ef1683` — fix(estrutura): a aula deriva do plano, e a origem do corpo fica provada no envelope real
+Gerado em: `2026-11-05T00:05:15-0300`
+Commit atual: `69b6ccae` — fix(estrutura): os dois planos passam a ter dois nomes
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+69b6ccae fix(estrutura): os dois planos passam a ter dois nomes
 73ef1683 fix(estrutura): a aula deriva do plano, e a origem do corpo fica provada no envelope real
 af0e8267 fix(estrutura): o corpo tem uma fonte so — o detalhe na Aula 1, o ponteiro no plano
 e199a85e feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estrita, e a anamnese e datada
@@ -104,7 +105,6 @@ d62b8195 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-t
 dfe16d78 feat(acervo): envelope/po-20261104-1811.json
 fbd0756c feat(acervo): envelope/.indice.json
 7091587e fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
-355a1a4e fix(campo): a fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes
 ```
 
 ## Por professor
@@ -230,72 +230,68 @@ fbd0756c feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — Os dois planos passam a ter dois nomes
+## 04/11/2026 — O PO passa a poder apagar-se, e o menu dos formulários ganha bancada
 
-**O que motivou.** O pesquisador olhou a navegação e viu sobreposição: «a nomenclatura genérica
-(ex: chamando tudo de "ciclo 1" ou com títulos repetidos) gera estranheza e sensação de
-sobreposição na navegação. Os documentos gerados dentro do plano devem ser explicitamente
-identificados por nó e aula correspondente: **"Plano para a Aula 1"**, seguido de **"Plano para a
-Aula 2"**».
+**O que motivou.** Três queixas da pesquisadora, na mesma ronda: (1) nos formulários de anamnese,
+plano de ensino e plano de observação «o menu de navegação lateral e o cabeçalho aparecem com uma
+cor extremamente clara… e perdem a funcionalidade (cliques não respondem)»; (2) «ao rolar, o
+conteúdo do formulário rola por cima do cabeçalho»; (3) «o botão ou a opção de deletar o plano de
+observação não está aparecendo».
 
-**O que se mediu antes de mexer — e o pedido de uma refatoração maior não se confirmou.**
+**O que se mediu — e o resultado divide as três em duas famílias.**
 
-1. **O documento mestre já existe.** É o `plano.md`/`plano.html`: a lista «Ciclos · Planos» abre-o
-   **direto** (`itemDoPlano` → `hrefPlano`), sem listagem encadeada por aula. Não havia documento
-   a criar; havia um nome a corrigir.
-2. **A redundância entre plano e aula é, na quase totalidade, DERIVAÇÃO.** Das linhas com conteúdo
-   (>25 caracteres) presentes nos dois documentos, **uma** é cópia literal — o *bullet* das
-   condições preliminares (`- Sala com barra, espelho e aparelho de som; piso adequado.`). As
-   outras — duração, fatia de cada bloco, exercícios da música — são o mesmo dado **lido** de
-   sítios com papéis diferentes: o plano declara, a aula executa. O pesquisador confirmou esta
-   leitura: «o que parecia ser uma redundância incômoda na leitura é, na verdade, um mecanismo de
-   derivação estrutural».
-3. **Objectivos específicos, marcos, volume e repertório NÃO saem do plano.** São a régua que a
-   Regra 9, a Regra 10 e `tools/validar-plano-ciclo.js` exigem, e o envelope é onde a curadoria os
-   declara. Movê-los para a aula quebraria a validação do ciclo e a filtragem da sequência.
+1. **A bancada que faltava.** `experimentos/provar-menu-do-formulario.js`, nova, **36 asserções** no
+   Chrome. Ela serve a página a sério por `producao.fetch` (a lista) e a porta com o menu aplicado
+   pelo **mesmo** módulo da ponte (`motor/nucleo/nav.js`), com o `nav.json` da escola viva.
+   **Porque é que nenhuma bancada apanhava isto:** as bancadas da porta servem `porta/index.html`
+   **cru**, e essa página não tem `<nav>` — o marcador `<!-- NAV -->` é substituído na geração. A
+   página que se media **não tinha menu**, e o que não existe não se pode ver esbatido.
+2. **Os dois primeiros sintomas NÃO se reproduzem** nos estados que a bancada constrói: a 1280px e
+   a 390px, com o formulário aberto e a página rolada, a barra está `fixed` no topo, com opacidade
+   **1**, contraste **AA**, o centro de cada link devolve o link, e os cinco pontos da faixa da
+   barra pertencem à barra. Fica **declarado como não reproduzido** — e é por isso que a bancada
+   fica no repositório: quando o defeito aparecer, é ela que o apanha.
+3. **O terceiro era real, e era uma ausência.** A linha do Plano de Observação oferecia **só
+   «Ajustar»**: não havia estado, não havia botão, e **não havia rota** que apagasse um PO. O plano
+   de ensino e a anamnese tinham o trio (estado → botão → rota); o PO ficou de fora quando a
+   listagem passou a ser a página da Área do Professor.
 
-**O que foi decidido e implementado.**
+**O que foi implementado.**
 
-- **O documento de cada aula chama-se «Plano para a Aula NN — <objetivo específico>».** O par passa
-  a ler-se pelo que cada um É: «Plano do Ciclo 01» (o mestre) e «Plano para a Aula 01» (a entrega).
-- **O nome muda em TRÊS superfícies, e as três dizem o mesmo**: o `title:` do front-matter
-  (`motor/nucleo/derivar-ciclo.js`, que alimenta o `<h1>`, o menu do pacote e o marcador do PDF), o
-  cartão da listagem (`tools/montar-publicacao.js`, `itemDaAula`) e o registo da geração
-  (`motor/servidor/geracao.js`, `NOMES_DOS_DOCUMENTOS`). Neste último, o documento do ciclo deixou
-  de se chamar «Plano de ensino» — que era também o rótulo do **formulário** no menu, duas coisas
-  diferentes com o mesmo nome — e passou a «Plano do ciclo».
-- **O nome do ARQUIVO não mudou** (`aula-01.md`, `aula-01.html`). Ele é endereço: entra na âncora
-  `.fipp`, no `DOCS` do `.conf`, nos links entre páginas e nos 110 links internos do PDF. O que se
-  lia mal era o rótulo.
-- **O número fica com dois dígitos** (`Aula 01`, não `Aula 1`): é a convenção do pacote inteiro, e
-  o exemplo do pesquisador é a forma falada.
-- **A bancada passou a exigir a concordância entre a lista e a página** (`provar-cartao-da-aula`,
-  secção 4b, 5 asserções novas): o nome do cartão tem de ser **prefixo** do `<h1>` do documento que
-  ele abre. Era essa a divergência real — o cartão dizia «Aula 01» e abria outro nome.
+- `motor/nucleo/porta.js` — **`estadoDoPo`**: o PO é `solta` ou `legado` conforme tenha, ou não, um
+  sucessor (`ajuste_de`). **A assimetria com o plano é do domínio**: nada referencia um PO — o ciclo
+  gerado guarda a sua própria cópia (`po-01.json`, `-po.md`) —, e por isso não existe aqui a trava
+  «está vinculado» que o plano tem. O que existe é a do sucessor.
+- `motor/servidor/rotas.js` — **`DELETE /api/po-vinculo/:id`**, com **409** quando derivado, e a
+  recusa a nomear o sucessor.
+- `motor/servidor/listas-do-acervo.js` — a rota entra no `ROTA_DE_APAGAR`; a linha do PO ganha
+  **«Apagar»** (botão, com senha e confirmação, como as outras duas) quando não é derivada, e
+  mantém «Ajustar» em primeiro lugar.
 
-**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (o `title:` e o comentário que explica por que o
-endereço não muda) · `motor/servidor/geracao.js` · `tools/montar-publicacao.js` ·
-`ARQUITETURA-GERAL.md` §5.9 (a tabela dos dois nomes e o que NÃO se mexeu) ·
-`experimentos/provar-cartao-da-aula.js` (31, com a secção 4b) · `provar-barra-e-caminho` (o nome
-curto do degrau) · `provar-geracao` (os dois nomes no registo) · `provar-publicacao-da-escola` (o
-cartão da lista) · o pacote e a âncora do `ciclo-01-breu-bale-nivel-1-teste-3`, regerados.
+**Dois defeitos meus, apanhados a correr as bancadas.** (1) `estadosDosPos` emitia
+`estado: 'solta'`, e o `linhasDe` usa `estado.estado` para o **selo** — o PO ganhou uma etiqueta
+«solta» que ninguém pediu, e a `provar-listas-do-acervo` reprovou («sem registo de geração, a linha
+do PO não leva selo»). O estado derivado passou a dizer só o que a lista precisa de saber:
+`derivado`. (2) Os POs novos do fixture observavam o plano **solto** e o sujeito **Aluna B** — o que
+tornou o plano vinculado e a anamnese da Aluna B vinculada, e derrubou sete asserções de outras
+secções. Passaram a observar o plano já vinculado e a **Aluna C**.
 
-**Com o quê.** `provar-cartao-da-aula` (31) · `provar-publicacao-da-escola` (63) ·
-`provar-eixos-e-tempo-da-aula` (61) · `provar-eixos-do-po` (34) · `provar-ciclos-e-anamnese` (34) ·
-`provar-cadeia-do-ajuste` (34) · `provar-apagar-da-listagem` (32) · `provar-contexto-do-ato` (39) ·
-`provar-colunas-da-aula` (23) · `provar-verbos-do-armazenamento` (29) · `provar-fusao-da-edicao`
-(29) · `provar-faixa-do-ato-no-celular` (40) · `provar-plano-completo` (18) · `provar-plano-matriz`
-(52) · `provar-indice-de-envelopes` (44) · `check-pacote` 0/0 · `check-indices` 14/14 ·
-`check-identidade` 20/20 · `hash-ciclo --check`.
+**Onde entrou.** `motor/nucleo/porta.js` · `motor/servidor/rotas.js` ·
+`motor/servidor/listas-do-acervo.js` · `experimentos/provar-menu-do-formulario.js` (**novo**, 36) ·
+`experimentos/provar-apagar-da-listagem.js` (32 → **43**: a §3b mede o botão, a rota e a recusa).
 
-**Bancadas que já falhavam — verificado por A/B num worktree limpo em `HEAD`.** Cinco bancadas
-reprovam neste ambiente, e reprovavam **antes** desta entrega: `provar-navegacao` e
-`provar-painel-do-ato` (pedem o pacote gerado de «calango», que não está neste worktree),
-`provar-geracao` (1 de 45: a ponte do cartão precisa do pacote de «calando-teste-1»),
-`provar-barra-e-caminho` (47 de 48: mede o `lancamento.html` da «batata», expurgada) e
-`provar-listas-do-acervo` (8 de 109: espera os caminhos `/area-do-professor/…`, que o menu deixou
-de usar). Nenhuma delas toca no nome dos documentos; a comparação foi feita com `git worktree add`
-sobre o mesmo `HEAD`, e não por memória.
+**Com o quê.** `provar-apagar-da-listagem` (43, com **controlo negativo**: desligado o botão, duas
+asserções reprovam) · `provar-menu-do-formulario` (36) · `provar-listas-do-acervo` (101 de 109 —
+as 8 falhas são **pré-existentes**, verificadas por A/B num `git worktree` limpo: esperam os
+caminhos `/area-do-professor/…`, que o menu deixou de usar) · `provar-eixos-do-po` (34) ·
+`provar-ciclos-e-anamnese` (34) · `provar-contexto-do-ato` (39) · `provar-publicacao-da-escola`
+(63) · `provar-cartao-da-aula` (31) · `check-identidade` 20/20.
+
+**O que NÃO está feito, e é a pergunta em aberto.** Os sintomas 1 e 2 (menu esbatido e conteúdo a
+rolar por cima do cabeçalho) **não se reproduziram** em nenhum estado que a bancada consiga
+construir. Fica registado o que falta para os apanhar: a URL exacta e a largura da janela em que
+acontecem. Sem isso, mexer no CSS seria adivinhar — e um `z-index` mudado às cegas parte o que está
+medido.
 
 ## O que está pendente
 

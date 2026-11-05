@@ -177,6 +177,21 @@ function cartoesDe(html) {
     /* A ANAMNESE SOLTA, e a que o PO usa (vinculada). */
     envelope({ id: 'anamnese-20261102', aluna: 'Aluna B', geradoEm: '2026-11-02T10:00' }),
     envelope({ id: 'anamnese-20261020', aluna: 'Aluna A', geradoEm: '2026-10-20T10:00' }),
+    /* DOIS POs (04/11/2026): um SOLTO, que a linha tem de saber apagar, e um DERIVADO (outro PO
+     * aponta-lhe como `ajuste_de`), que não se apaga — acrescenta-se um elo. */
+    /* Eles observam o plano que JÁ é vinculado (`plano-20261022`), e não o solto: um PO novo a
+     * observar o solto torná-lo-ia vinculado, e o «Apagar» do plano — que a §1 mede — deixaria de
+     * existir. Foi o que aconteceu na primeira versão desta secção, e as falhas caíram todas em
+     * cascata, a começar pelo botão do plano.
+     *
+     * E o sujeito é a «Aluna C», que não tem anamnese no fixture: um PO a observar a «Aluna B»
+     * vinculava a anamnese dela, e a §3 — que mede a anamnese SOLTA — ficava vermelha por um
+     * motivo que não era o dela. */
+    envelope({ id: 'po-20261103', professor: 'coqui', geradoEm: '2026-11-03T10:00',
+      respostas: { sujeitos: resp(['Aluna C']), 'plano-de-ensino': resp(['plano-20261022']) } }),
+    envelope({ id: 'po-20261104', professor: 'coqui', ajusteDe: 'po-20261103',
+      geradoEm: '2026-11-04T10:00',
+      respostas: { sujeitos: resp(['Aluna C']), 'plano-de-ensino': resp(['plano-20261022']) } }),
   ];
   for (const d of documentos) await porta.gravarEnvelope(armazenamento, d, relatorio(d.id));
 
@@ -260,6 +275,46 @@ function cartoesDe(html) {
     vinculada.links.indexOf('Ajustar') === -1, vinculada.links);
 
   /* --------------------------------------------------------------------------------------- */
+  console.log('\n3b · O PO — o gesto que não existia (04/11/2026)');
+  /* --------------------------------------------------------------------------------------- */
+  /* A PESQUISADORA: «o botão ou a opção de deletar o plano de observação não está aparecendo ou
+   * não está disponível». Não estava porque não existia: a linha do PO oferecia só «Ajustar», e
+   * não havia rota que o apagasse. A regra é a das outras duas famílias — solto apaga-se,
+   * derivado não —, e o servidor é quem decide. */
+  const pos = await pedir('/area-do-professor/plano-de-observacao/');
+  const cartoesDoPo = cartoesDe(pos.html);
+  const poDe = (t) => cartoesDoPo.find((c) => new RegExp(t).test(c.html))
+    || { links: [], apagar: [], apagarComoLink: [] };
+
+  provar('a listagem do PO responde 200', pos.status === 200, pos.status);
+  provar('há linhas de PO a medir', cartoesDoPo.length > 0, cartoesDoPo.length);
+  const poSolto = poDe('Aluna C');
+  provar('o PO oferece «Apagar»', poSolto.apagar.length === 1, poSolto.apagar);
+  provar('…pela rota do PO, com o prefixo da porta',
+    (poSolto.apagar[0] || {}).rota === '/plano-observacao/api/po-vinculo/', poSolto.apagar);
+  provar('…e continua a oferecer «Ajustar»', poSolto.links.indexOf('Ajustar') !== -1, poSolto.links);
+  provar('«Apagar» NÃO é um link para o formulário', poSolto.apagarComoLink.length === 0,
+    poSolto.apagarComoLink);
+
+  /* O SERVIDOR DECIDE — e a recusa é do registo DERIVADO, com o nome do sucessor. */
+  const tentativaPo = await producao.fetch(new Request(
+    'https://prova.tmenegaz77.workers.dev/plano-observacao/api/po-vinculo/po-20261103',
+    { method: 'DELETE' }), env);
+  provar('o DELETE do PO DERIVADO é RECUSADO (409)', tentativaPo.status === 409, tentativaPo.status);
+  const corpoPo = await tentativaPo.json().catch(() => ({}));
+  provar('…e a recusa nomeia o sucessor', /po-20261104/.test(String(corpoPo.erro || '')), corpoPo.erro);
+
+  /* E O PO SOLTO APAGA-SE — com uma prova de que o ciclo já gerado não é tocado: o pacote
+   * publicado tem a sua própria cópia (`po-01.json`), e é dela que a aula vive. */
+  const apagarSolto = await producao.fetch(new Request(
+    'https://prova.tmenegaz77.workers.dev/plano-observacao/api/po-vinculo/po-20261104',
+    { method: 'DELETE' }), env);
+  provar('o DELETE do PO sem sucessor é aceite', apagarSolto.status === 200, apagarSolto.status);
+  const depois = await producao.fetch(new Request(
+    'https://prova.tmenegaz77.workers.dev/api/envelope/po-20261104'), env);
+  provar('…e o envelope sai do acervo', depois.status === 404, depois.status);
+
+  /* --------------------------------------------------------------------------------------- */
   console.log('\n4 · O CLIQUE — a senha manda, e o carimbo é o da linha');
   /* --------------------------------------------------------------------------------------- */
   const problemas = [];
@@ -311,12 +366,22 @@ function cartoesDe(html) {
   console.log('\n5 · CONTROLO NEGATIVO — a página que não tem o botão também não o inventa');
   /* --------------------------------------------------------------------------------------- */
   /* Se o `acoesDaLinha` voltasse a devolver só o «Editar», a §1 ficava vermelha — mas estas duas
-   * guardam o outro lado: a LISTA VAZIA não pode desenhar um botão, e o PO (que não tem estado
-   * solto) nunca o tem. Sem elas, um `data-apagar` emitido em todos os cartões passaria. */
-  const po = await pedir('/area-do-professor/plano-de-observacao/');
-  const cartoesDoPo = cartoesDe(po.html);
-  provar('a lista do PO não tem «Apagar» em cartão nenhum',
-    cartoesDoPo.every((c) => c.apagar.length === 0), cartoesDoPo.map((c) => c.apagar));
+   * guardam o outro lado: a LISTA VAZIA não pode desenhar um botão, e nenhum cartão pode levar um
+   * `data-apagar` para uma rota que o servidor recusaria.
+   *
+   * O PO PASSOU A TER O BOTÃO (04/11/2026), e a asserção antiga — «a lista do PO não tem Apagar em
+   * cartão nenhum» — passou a ser o retrato do defeito: era ela que fixava a ausência que a
+   * pesquisadora reportou. O que se mede agora é a REGRA: o cartão do PO **vigente** (o topo da
+   * cadeia, que não tem sucessor) tem o botão; o que tem sucessor não está na lista e o servidor
+   * recusa-o com 409 — provado na §3b. */
+  const listaDoPo = await pedir('/area-do-professor/plano-de-observacao/');
+  const cartoesDaListaDoPo = cartoesDe(listaDoPo.html);
+  provar('o botão do PO leva a rota da PORTA do PO, e não a do plano',
+    cartoesDaListaDoPo.every((c) => c.apagar.every((a) => a.rota === '/plano-observacao/api/po-vinculo/')),
+    cartoesDaListaDoPo.map((c) => c.apagar.map((a) => a.rota)));
+  provar('…e nenhum cartão leva a rota de OUTRA família',
+    cartoesDaListaDoPo.every((c) => c.apagar.every((a) => !/plano-vinculo|anamnese-vinculo/.test(a.rota))),
+    cartoesDaListaDoPo.map((c) => c.apagar.map((a) => a.rota)));
 
   /* --------------------------------------------------------------------------------------- */
   console.log('\n6 · A ROTA APAGA MESMO — e o registo sai da lista');

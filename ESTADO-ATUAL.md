@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **os dois planos passam a ter
+> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **o Plano de Observação passa a
+> poder apagar-se**, e **o menu dos formulários ganha bancada**. (1) A linha do PO oferecia só
+> «Ajustar»: não havia estado, nem botão, nem rota. Agora há o trio — `estadoDoPo` no núcleo (o PO é
+> `solta` ou `legado` conforme tenha sucessor), `DELETE /api/po-vinculo/:id` com **409** quando
+> derivado, e o botão «Apagar» na listagem. **A assimetria com o plano é do domínio**: nada
+> referencia um PO — o ciclo gerado guarda a sua cópia —, por isso não existe aqui a trava «está
+> vinculado». (2) Bancada nova `provar-menu-do-formulario` (**36**, Chrome): a primeira a medir a
+> barra e a coluna **com o menu aplicado** — as outras servem a porta crua, sem `<nav>`, e é por isso
+> que nunca viram o defeito. (3) **Os dois sintomas de menu esbatido e de conteúdo a rolar por cima
+> do cabeçalho NÃO se reproduziram** em 1280px nem em 390px, com o formulário aberto e a página
+> rolada; fica declarado, e a bancada fica para os apanhar quando aparecerem. Prova nova:
+> `provar-apagar-da-listagem` **43** e `provar-menu-do-formulario` **36**.
+>
+> **Entrega anterior** (árvore limpa). Nesta entrega, **os dois planos passam a ter
 > dois nomes**: o do ciclo é «Plano do Ciclo NN» e o de cada aula é **«Plano para a Aula NN —
 > objetivo»**, nas três superfícies que o mostram (o `<h1>` do documento, o cartão da listagem e o
 > registo da geração). O documento mestre **já existia** — «Ciclos · Planos» abre-o direto, sem
@@ -2048,6 +2061,14 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      medir uma superfície só deixaria viva a divergência entre a lista e o documento que ela abre.
      **O nome do arquivo não muda**: `aula-01.md` é endereço, e entra na âncora `.fipp`, no `DOCS`
      do `.conf` e nos links internos. **DECIDIDO e implementado** 04/11/2026.
+
+106. **O PO APAGA-SE — E O QUE O TRAVA É O SUCESSOR, NÃO O VÍNCULO.** A linha do Plano de
+     Observação oferecia só «Ajustar» porque nunca houve estado, botão nem rota que o apagasse. O
+     trio entrou: `estadoDoPo` (o PO é `solta` ou `legado` conforme tenha sucessor), `DELETE
+     /api/po-vinculo/:id` (409 quando derivado, nomeando o sucessor) e o botão na listagem. **Nada
+     referencia um PO** — o ciclo gerado guarda a sua própria cópia (`po-01.json`, `-po.md`) —, e é
+     por isso que a trava «está vinculado», que o plano de ensino tem, não existe aqui. **DECIDIDO e
+     implementado** 04/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

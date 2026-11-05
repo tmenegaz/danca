@@ -467,6 +467,29 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     return { ok: true, apagada: params.id };
   });
 
+  /* 9.1 DELETE /api/po-vinculo/:id — apagar, SÓ o PO que não foi derivado (04/11/2026).
+   *
+   * O PO ERA O ÚNICO DOS TRÊS REGISTOS SEM GESTO DE APAGAR, e a pesquisadora deu por isso: «o
+   * botão ou a opção de deletar o plano de observação não está aparecendo». A regra é a mesma das
+   * outras duas famílias — solto, apaga-se; derivado, não —, e a recusa diz o que impede.
+   *
+   * O QUE ELE **NÃO** TRAVA, e é a diferença para o plano: nada referencia um PO. O ciclo gerado
+   * guarda a sua própria cópia (`po-01.json`, `-po.md`), e é dela que a aula e a âncora vivem —
+   * apagar o envelope do acervo não toca no que já foi gerado. A prova disso é a bancada
+   * (`provar-apagar-da-listagem`), que apaga um PO e continua a ler o ciclo.
+   */
+  roteador.rota('DELETE', '/api/po-vinculo/:id', async ({ params }) => {
+    const envelope = await porta.lerEnvelope(armazenamento, params.id);
+    if (!envelope) return recusar('plano de observação não encontrado: ' + params.id, 404);
+    const estado = await porta.estadoDoPo(armazenamento, envelope);
+    if (estado.derivado) {
+      return recusar('o plano de observação já foi DERIVADO (' + estado.substituido_por.join(', ')
+        + ') e a proveniência não o apaga — ajuste-o, que acrescenta um elo.', 409);
+    }
+    await porta.apagarEnvelope(armazenamento, params.id);
+    return { ok: true, apagado: params.id };
+  });
+
   // 10. POST /api/anamnese-ajuste/:id — ACRESCENTAR um elo (sempre permitido).
   roteador.rota('POST', '/api/anamnese-ajuste/:id', async ({ request, params }) => {
     const anterior = await porta.lerEnvelope(armazenamento, params.id);

@@ -584,6 +584,9 @@ experimentos/modelo-formulario/*
 # edição — dois botões, um destino, o segundo a prometer o que não fazia. Voltou como botão, com a
 # senha e a confirmação, e o servidor a decidir. Citada no `REGISTRO.md`.
 !experimentos/provar-apagar-da-listagem.js
+# A bancada do MENU NO FORMULÁRIO (04/11/2026): foi a primeira a medir a barra e a coluna COM o
+# menu aplicado — as outras servem a porta crua, sem `<nav>`, e por isso nunca viram o defeito.
+!experimentos/provar-menu-do-formulario.js
 
 # A BANCADA DO PLANO E A DO PO VOLTAM A MEDIR (03/11/2026). As duas estavam fora do Git, e as duas
 # morriam na PRIMEIRA linha por um fixture que já não existe: `professores/leticia/…`, a pasta do

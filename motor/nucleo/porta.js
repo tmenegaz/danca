@@ -1638,6 +1638,42 @@ async function estadosDosPlanos(armazenamento) {
   return estados;
 }
 
+/**
+ * O ESTADO de um PO, derivado — e a regra que decide se ele se pode apagar (04/11/2026).
+ *
+ * O PO NÃO TINHA ESTADO NENHUM, e a consequência era a que a pesquisadora viu: «o botão de
+ * deletar o plano de observação não está aparecendo». Ele não aparecia porque **não existia** —
+ * a linha do PO oferecia só «Ajustar», e não havia rota que o apagasse. O plano de ensino e a
+ * anamnese tinham o par (estado → botão → rota); o PO ficou de fora quando a listagem passou a
+ * ser a página da Área do Professor.
+ *
+ * A REGRA É A DAS OUTRAS DUAS FAMÍLIAS, e não uma nova: **enquanto o registo está solto, o
+ * professor tem liberdade operacional sobre ele; depois de derivado, não se apaga — deriva-se.**
+ * Um PO que já foi ajustado tem um sucessor que o referencia (`ajuste_de`), e apagá-lo deixaria o
+ * sucessor a apontar para um pai que já não existe — o mesmo defeito do ciclo intermédio apagado,
+ * noutra escala.
+ *
+ * O QUE O PO **NÃO** PRECISA DE TRAVA, e é uma diferença real em relação ao plano: nada aponta
+ * para um PO. O ciclo gerado guarda a **sua própria** cópia do PO no pacote (`po-01.json` e o
+ * `-po.md`), e é dela que a aula, a captura e a âncora vivem — apagar o envelope do acervo não
+ * toca em nada do que já foi gerado. A trava do plano existe porque o PO o referencia; a do PO
+ * existiria só contra o sucessor, e é essa que está aqui.
+ */
+async function estadoDoPo(armazenamento, envelope) {
+  const carimbo = envelope.id || null;
+  const lista = await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/);
+  const sucessores = lista
+    .filter(({ resumo }) => String(resumo.ajuste_de || '') === String(carimbo))
+    .map(({ nome, resumo }) => resumo.id || nome.replace(/\.json$/, ''));
+  return {
+    estado: sucessores.length ? 'legado' : 'solta',
+    carimbo,
+    ajuste_de: envelope.ajuste_de || null,
+    substituido_por: sucessores,
+    derivado: sucessores.length > 0,
+  };
+}
+
 /** O ESTADO de um plano, derivado — reusa a derivação da lista de gestão. */
 async function estadoDoPlano(armazenamento, envelope) {
   const carimbo = envelope.id || null;
@@ -2036,6 +2072,7 @@ module.exports = {
   planos,
   estadosDosPlanos,
   estadoDoPlano,
+  estadoDoPo,
   anamneses,
   vigenteDoSujeito,
   estadosDasAnamneses,
