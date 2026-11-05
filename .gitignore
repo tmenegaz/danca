@@ -717,3 +717,12 @@ experimentos/modelo-formulario/*
 # da listagem. A bancada tem um repositório falso inteiro — porque em produção o ACERVO também
 # mora nele — e exige o isolamento entre ciclos nos dois sentidos.
 !experimentos/provar-apagar-o-ciclo.js
+
+# A LINHA DE BASE DO CORPO (05/11/2026). A anamnese recolhe 24 aspectos do corpo; o plano lia
+# sempre os MESMOS quinze, escritos à mão no conteúdo desde 02/11/2026 — a mesma lista para todos
+# os professores, todas as turmas e todos os ciclos, e sem caminho na tela para a mudar. Ficavam de
+# fora «Formato anatômico dos joelhos», «Arquitetura do arco plantar» e «Impulsão e absorção
+# (allegro)», que em balé clássico não são acessórios. A bancada prova o recorte (24, sem a
+# musicalidade), a recusa de um campo que a anamnese não tem, a agregação pela ordem das opções, e
+# a cascata de três passos — com o A/B que a desliga.
+!experimentos/provar-linha-de-base.js

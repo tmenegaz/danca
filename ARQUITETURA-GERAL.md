@@ -814,6 +814,72 @@ resposta passou a dizer **qual** elo volta (`anteriorVigente`), e a lista mostra
 **inteiro** — Contents e Git, porque em produção o acervo mora nele. O A/B sem a cascata reprova em
 17.
 
+### 5.12 A linha de base do corpo é uma ESCOLHA, e não uma constante
+
+**O que estava errado.** A anamnese recolhe **24** aspectos do corpo — estrutura óssea, flexibilidade,
+complexo escapulo-umeral, pés e tornozelos, força, equilíbrio. O plano lia sempre os **mesmos
+quinze**, escritos à mão dentro do conteúdo (`lidoDasAnamneses`, em `porta/plano/conteudo/plano.json`)
+desde 02/11/2026. Era a mesma lista para todos os professores, todas as turmas e todos os ciclos, e
+**não havia caminho na tela para a mudar**. Ficavam de fora, entre outros, «Formato anatômico dos
+joelhos», «Arquitetura do arco plantar», «Impulsão e absorção (allegro)», «Mobilidade e estabilidade
+da escápula» e «Mobilidade da coluna cervical» — que em balé clássico não são acessórios.
+
+A decisão é dela, por escrito: «a definição do que compõe a Linha de Base do Corpo para um
+determinado trabalho passa a ser uma **escolha ativa e customizada do professor**».
+
+**O que passou a existir.** Uma entidade **Linha de Base**, guardada no KV da escola
+(`bastidores/<escola>/linhas-de-base`, ao lado das turmas e das rubricas), com nome, professor e a
+lista de campos escolhidos. A secção nova é **Bastidores → Pedagogia → Corpo — linha de base**.
+
+O recorte não inventa campos: ele escolhe **entre** os da anamnese, que é norma. Entram os de
+dimensão `tecnica` ou `funcional`; ficam fora os de `musicalidade` — pulsação, coordenação
+cognitivo-musical, memória de sequências, lateralidade, orientação espacial —, que já são tratados
+nos **verbetes da notação**. A distinção é a que a pesquisadora declarou: «o aspecto técnico e a
+poiesis já são tratados nos verbetes; o novo eixo é o corpo».
+
+**De quem é a linha de base.** Do **professor** — «é o professor quem avalia o aluno, porque o corpo
+do aluno se modifica a cada instante; a anamnese é uma fotografia». Mas a **leitura atravessa** os
+professores: «quando um outro professor assume, é bom que ele possa olhar essa anamnese e ter uma
+percepção de como era o corpo daquela pessoa no passado». Por isso a lista é da **escola** e cada
+item declara o seu professor: quem chega vê o que estava, e **cria a sua** — não herda uma avaliação
+que não fez. **Nada é herdado**: os POs antigos ficam com o que têm gravado no envelope, e um plano
+novo sem escolha diz «escolha a linha de base», em vez de voltar aos quinze.
+
+**O que o motor mudou, e o que não mudou.** O gerador **já não injetava** os quinze: lia a tabela
+consolidada do envelope (`aspecto-fisico`), e essa parte fica. O que mudou é de onde vêm os CAMPOS
+que o botão «Carregar das anamneses da turma» pede — antes do conteúdo (`lidoDasAnamneses`), agora
+da linha de base apontada por um nó novo, `linha-de-base-alvo`, cujas opções vêm de
+`api/linhas-de-base`. A declaração nova chama-se `lidoDaLinhaDeBase`, e o `aspecto-fisico` trocou
+uma pela outra.
+
+**A cascata passou a ter três passos.** A ordem é **Produção → Plano de Ensino → Plano de
+Observação**, e é de dependência, não de arrumação: o PO observa o que o PE fixou, e o PE fixa um
+recorte do corpo. `porta.revalidacaoPendente` ganhou o passo 1, com a mesma forma derivada do
+passo 2 — «há alguma anamnese mais recente do que a decisão desta linha de base?». Sem linhas de
+base, a cascata fica a de antes (duas), e é assim que as escolas que ainda não têm nenhuma não vêem
+um aviso que não podem resolver.
+
+**Porque a agregação é do servidor, e guardada.** Ela abre **uma anamnese por aluna da turma**. Feita
+no navegador, seriam trinta pedidos por clique — e o KV tem cota **diária**: foi assim que, em
+18/10/2026, as fichas ficaram sem nome. Aqui é um pedido, um cálculo, e o resultado vai **gravado**
+na linha de base. Quem decidiu não relê: a data de decisão (`atualizada_em`) só muda no «Gravar» —
+ler não é decidir —, e é ela que a cascata compara com as anamneses.
+
+**A régua é a da anamnese, não um juízo do sistema.** «Ponto de atenção» é o que **não** está na
+primeira opção declarada; a turma toda no melhor nível é **excelência**, e a distinção existe porque
+a pesquisadora deu ao professor autonomia para incluir um aspecto excelente no escopo («quero vigiar
+para que todos mantenham a excelência neste ponto»).
+
+**O que ficou de fora, e é declarado.** As *anotações textuais* das anamneses: nenhum dos 24 campos
+é texto livre — todos são lista de opções —, e por isso o pedido «exibir obrigatoriamente as
+ressalvas registadas nas anamneses» não tem hoje de onde as ler. As ressalvas vivem no nó
+`restricoes` do **PO**. Fica como pendência, por decisão dela («depois»).
+
+**A prova:** `experimentos/provar-linha-de-base.js` (37 asserções): o recorte (24, sem a
+musicalidade, e com o controle positivo dos campos do bloco 9 que mistura as duas dimensões), a
+recusa de um campo que a anamnese não tem, a agregação pela ordem das opções, as rotas com KV falso,
+e a cascata de três passos. O **A/B** desliga o passo 1 e a bancada reprova.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

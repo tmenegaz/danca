@@ -68,7 +68,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
   const roteador = criarRoteador();
 
   /*
@@ -391,19 +391,67 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   });
 
   /*
+   * 6.2 GET /api/linhas-de-base — as linhas de base do corpo, para o plano de ensino ESCOLHER
+   * (05/11/2026).
+   *
+   * O QUE MUDOU, E PORQUÊ. O plano lia sempre os MESMOS quinze aspectos do corpo, escritos à mão
+   * no conteúdo (`lidoDasAnamneses`). A pesquisadora, 05/11: «a definição do que compõe a Linha
+   * de Base do Corpo para um determinado trabalho passa a ser uma escolha ativa e customizada do
+   * professor». A escolha faz-se em Bastidores → Corpo, e esta rota é o que a traz para aqui.
+   *
+   * A LEITURA É ABERTA, e é decisão dela: «quando um outro professor assume, é bom que ele possa
+   * olhar essa anamnese e ter uma percepção de como era o corpo daquela pessoa no passado». Quem
+   * chega vê o que estava; a linha que ele GRAVA é dele (a rota de escrita é a da Produção, e
+   * exige a senha da direção).
+   *
+   * A LISTA VAI INTEIRA, com os campos de cada uma. Sem os campos, a tela do plano não saberia o
+   * que pedir às anamneses — e pedir-lhos numa segunda chamada por linha de base seria uma
+   * leitura a mais por abertura de página.
+   */
+  roteador.rota('GET', '/api/linhas-de-base', async ({ url }) => {
+    try {
+      const params = (url && url.searchParams) || new URLSearchParams();
+      const escola = String(escolaDoWorker || params.get('escola') || '').trim();
+      const lista = typeof lerLinhasDeBase === 'function' ? await lerLinhasDeBase(escola) : [];
+      const linhas = Array.isArray(lista) ? lista : [];
+      /* `opcoes` É O QUE A TELA LÊ (05/11/2026). O mecanismo de `opcoesDe` do formulário pede
+       * sempre `{valor, rotulo}` — é o que alimenta um `<select>` sem a tela saber o que há
+       * atrás. Devolver só `linhas` obrigaria o cliente a conhecer um segundo formato para este
+       * campo, e um formato a mais é uma divergência à espera de acontecer. `linhas` vai também
+       * porque é dela que o cliente tira os CAMPOS de cada uma — e esses não cabem num rótulo. */
+      return {
+        ok: true,
+        escola,
+        linhas,
+        opcoes: linhas.map((l) => ({
+          valor: l.id,
+          rotulo: l.nome,
+          detalhe: (l.campos || []).length + ((l.campos || []).length === 1 ? ' aspecto' : ' aspectos')
+            + (l.professor ? ' · ' + l.professor : ''),
+        })),
+      };
+    } catch (erro) { return falhaDaLista(erro); }
+  });
+
+  /*
    * 6.3 GET /api/revalidacao — o que precisa de revisão depois de um retrato físico novo.
    *
    * A regra é do núcleo (`revalidacaoPendente`) e é DERIVADA: «a anamnese de algum sujeito é mais
    * recente do que este documento?». Não há campo a limpar, e o sinal cai sozinho quando o
    * documento é gravado de novo.
    *
-   * A resposta traz `ordem` — `['plano-de-ensino','plano-de-observacao']` — porque a ordem é a
-   * regra e não uma arrumação de ecrã: o PO observa o que o PE fixou, e revalidar o PO sobre um
-   * PE velho é consolidar uma linha de base sobre um plano que já não vale.
+   * A resposta traz `ordem` — `['linha-de-base','plano-de-ensino','plano-de-observacao']` quando a
+   * escola tem linhas de base — porque a ordem é a regra e não uma arrumação de ecrã: o PO
+   * observa o que o PE fixou, o PE fixa um recorte do corpo, e revalidar o PO sobre um recorte
+   * decidido com retratos que já não valem é consolidar uma linha de base sobre o que não se
+   * mediu (05/11/2026).
    */
   roteador.rota('GET', '/api/revalidacao', async () => {
     try {
-      const r = await porta.revalidacaoPendente(armazenamento);
+      const escolaDaRevalidacao = String(escolaDoWorker || '').trim();
+      const linhasDaEscola = typeof lerLinhasDeBase === 'function' && escolaDaRevalidacao
+        ? await lerLinhasDeBase(escolaDaRevalidacao) : [];
+      const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola);
       return {
         ok: true,
         ordem: r.ordem,

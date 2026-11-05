@@ -6479,7 +6479,7 @@ function botaoDaDerivacao(no) {
 /*
  * AS ANAMNESES DA TURMA, CONSOLIDADAS (02/11/2026).
  *
- * O plano declara, no bloco «Aspecto físico — força e flexibilidade», o que a TURMA mostra no
+ * O plano declara, no bloco «Aspecto físico», o que a TURMA mostra no
  * corpo — e isso não é uma linha por aluna: é o que elas mostram JUNTAS. A pesquisadora: «você
  * não vai fazer por aluno, aluna A, aluna B, aluna C. Você vai reunir todas aquelas que são
  * comuns às alunas da turma».
@@ -6495,12 +6495,22 @@ function botaoDaDerivacao(no) {
  * corrigir linha a linha (o que não se corrige aqui é o nível: esse vive na anamnese).
  */
 function botaoDasAnamneses(no) {
-  const cfg = no.lidoDasAnamneses || {};
-  const quantos = (cfg.grupos || []).reduce((t, g) => t + (g.campos || []).length, 0);
+  const cfg = no.lidoDaLinhaDeBase || {};
+  const alvo = String(cfg.alvo || 'linha-de-base-alvo');
+  /* A LISTA DE ONDE VÊM OS CAMPOS É A LINHA DE BASE (05/11/2026). Até aqui o botão lia uma lista
+   * fixa de quinze campos que o CONTEÚDO declarava — a mesma para toda a escola e todo o ciclo.
+   * Agora a lista é a que o professor escolheu em Bastidores → Corpo, e ela está num nó anterior
+   * deste mesmo formulário (`linha-de-base-alvo`). Sem escolha, não há o que ler: o botão diz
+   * isso em vez de carregar uma lista que já não existe.
+   *
+   * O NÚMERO NÃO SE ESCREVE AQUI: ele vem da linha de base, e é o `derivarDasAnamnesesDaTurma`
+   * que o mostra ao carregar. Escrevê-lo no rótulo obrigaria a esta função a buscar a linha de
+   * base só para desenhar um parágrafo — uma leitura por abertura do nó. */
   return '<p class="linha-acao folgada"><button class="derivar-da-turma" data-turma-de="' +
-    escapar(no.id) + '">Carregar das anamneses da turma</button> ' +
+    escapar(no.id) + '" data-lb-alvo="' + escapar(alvo) + '">' +
+    'Carregar das anamneses da turma</button> ' +
     '<span class="sub">— lê as anamneses das alunas desta turma e mostra o que elas têm em comum ' +
-    'nos ' + quantos + ' aspectos de força e flexibilidade; você corrige.</span></p>' +
+    'nos aspectos que a <b>linha de base</b> escolheu; você corrige.</span></p>' +
     '<div class="detalhe oculto" data-turma-aviso="' + escapar(no.id) + '"></div>';
 }
 
@@ -6523,14 +6533,54 @@ function nomesDasTurmasDoPlano() {
   return lista.map((v) => String(v).trim()).filter(Boolean);
 }
 
+/*
+ * A LINHA DE BASE ESCOLHIDA NESTE PLANO (05/11/2026) — com os campos dela.
+ *
+ * PORQUE É UMA FUNÇÃO, E NÃO UM `cfg` NO CONTEÚDO. A lista fixa de quinze campos vivia no
+ * conteúdo (`lidoDasAnamneses`), e o cliente limitava-se a lê-la. Agora a lista é uma ESCOLHA,
+ * viva, que a escola cria e edita em Bastidores → Corpo — não há nada no conteúdo para ler. O que
+ * o nó declara é o ENDEREÇO da escolha (`lidoDaLinhaDeBase.alvo`) e a rota de onde as linhas vêm.
+ *
+ * A LEITURA É UMA SÓ POR PÁGINA: `LINHAS_DE_BASE` guarda a resposta, e carregar o botão duas
+ * vezes não volta a pedir. É a mesma razão do `OPCOES` — e a mesma cota do KV.
+ */
+let LINHAS_DE_BASE = null;
+async function linhasDeBaseDaEscola() {
+  if (LINHAS_DE_BASE) return LINHAS_DE_BASE;
+  try {
+    const resposta = await buscarJSON('api/linhas-de-base');
+    const dados = resposta.dados;
+    LINHAS_DE_BASE = (dados && Array.isArray(dados.linhas)) ? dados.linhas : [];
+  } catch (erro) {
+    LINHAS_DE_BASE = [];
+  }
+  return LINHAS_DE_BASE;
+}
+
 async function derivarDasAnamnesesDaTurma(botao, no) {
-  const cfg = no.lidoDasAnamneses;
+  const cfg = no.lidoDaLinhaDeBase || {};
   const aviso = document.querySelector('[data-turma-aviso="' + CSS.escape(no.id) + '"]');
   const dica = (texto, tipo) => {
     if (!aviso) return;
     aviso.classList.remove('oculto');
     aviso.innerHTML = '<p class="' + (tipo || 'sub') + '">' + escapar(texto) + '</p>';
   };
+
+  // 1. QUAL É O RECORTE. Sem escolha não há o que ler — e o aviso diz onde se escolhe, em vez de
+  //    carregar uma lista que já não existe.
+  const alvo = String(cfg.alvo || 'linha-de-base-alvo');
+  const cru = RESPOSTAS.get(alvo);
+  const escolhida = String(Array.isArray(cru) ? (cru[0] || '') : (cru || '')).trim();
+  if (!escolhida) {
+    return dica('Escolha a linha de base do corpo neste bloco, logo acima. É ela que diz quais '
+      + 'aspectos do corpo este ciclo observa — e é deles que a sugestão sai.', 'aviso');
+  }
+  const catalogo = await linhasDeBaseDaEscola();
+  const linha = catalogo.find((l) => l && l.id === escolhida);
+  if (!linha) {
+    return dica('A linha de base «' + escolhida + '» já não existe na escola. Escolha outra — ou '
+      + 'crie-a em Bastidores → Corpo.', 'aviso');
+  }
 
   const turma = nomesDasTurmasDoPlano();
   const professor = (($('ctx-professor') || {}).value || '').trim();
@@ -6573,10 +6623,10 @@ async function derivarDasAnamnesesDaTurma(botao, no) {
 
   const linhas = [];
   const semRegisto = [];
-  for (const grupo of cfg.grupos || []) {
-    for (const id of grupo.campos || []) {
+  for (const escolhido of linha.campos || []) {
+      const id = escolhido.id;
       const noDaAnamnese = nos.get(id);
-      const nome = String((noDaAnamnese && noDaAnamnese.campo) || id);
+      const nome = String((noDaAnamnese && noDaAnamnese.campo) || escolhido.nome || id);
       const niveis = new Map();
       let quantas = 0;
       for (const aluno of porAluna) {
@@ -6603,17 +6653,18 @@ async function derivarDasAnamnesesDaTurma(botao, no) {
         'Como está a turma': comoEsta + (atencao ? ' — ponto de atenção' : ''),
         atencao,
       });
-    }
   }
 
   // OS PONTOS DE ATENÇÃO PRIMEIRO: é o que o plano precisa de ver. A ordem dentro de cada
-  // metade é a do conteúdo (flexibilidade, depois força), e o `sort` é estável.
+  // metade é a da LINHA DE BASE (que já a herdou da anamnese, bloco a bloco), e o `sort` é
+  // estável.
   linhas.sort((a, b) => (b.atencao ? 1 : 0) - (a.atencao ? 1 : 0));
   const paraATabela = linhas.map((l) => ({ Aspecto: l.Aspecto, 'Como está a turma': l['Como está a turma'] }));
 
   if (!paraATabela.length) {
-    return dica('As anamneses não têm nenhum dos aspectos de força e flexibilidade preenchido. '
-      + 'Sem eles não há o que consolidar.', 'aviso');
+    return dica('As anamneses não têm nenhum dos aspectos desta linha de base preenchido. '
+      + 'Sem eles não há o que consolidar — e o recorte da linha de base pode ser largo demais '
+      + 'para o que a anamnese já respondeu.', 'aviso');
   }
 
   RESPOSTAS.set(no.id, paraATabela);
@@ -6624,10 +6675,10 @@ async function derivarDasAnamnesesDaTurma(botao, no) {
   const falta = semRegisto.length
     ? ' Sem registo em ' + semRegisto.length + ' aspecto(s) — a anamnese não os preencheu.'
     : '';
-  const alvo = document.querySelector('[data-turma-aviso="' + CSS.escape(no.id) + '"]');
-  if (alvo) {
-    alvo.classList.remove('oculto');
-    alvo.innerHTML = '<p class="aviso">' + escapar(linhas.length + ' aspecto(s) lidos das anamneses de '
+  const caixaDoAviso = document.querySelector('[data-turma-aviso="' + CSS.escape(no.id) + '"]');
+  if (caixaDoAviso) {
+    caixaDoAviso.classList.remove('oculto');
+    caixaDoAviso.innerHTML = '<p class="aviso">' + escapar(linhas.length + ' aspecto(s) lidos das anamneses de '
       + (porAluna.length === 1 ? '1 aluna' : porAluna.length + ' alunas') + ', '
       + pontos + ' como ponto de atenção.' + falta + ' Edite o que quiser — o nível corrige-se '
       + 'na anamnese.') + '</p>';
@@ -6894,7 +6945,7 @@ function renderPergunta() {
   } else if (no.opcoesDe) {
     blocos.push(gradeDeOpcoesDinamicas(no));
   } else if (no.tabela) {
-    if (no.lidoDasAnamneses) blocos.push(botaoDasAnamneses(no));
+    if (no.lidoDaLinhaDeBase) blocos.push(botaoDasAnamneses(no));
     blocos.push(grelhaDaTabela(no));
   } else if (no.lista) {
     blocos.push(listaNumerada(no));

@@ -295,13 +295,19 @@ function descritores(campo) {
     // linha a chave morreria aqui — a lista é fechada, e o sintoma é sempre mudo (a tela
     // mostra os primeiros campos crus, que foi o que aconteceu).
     registroDaAnamnese: campo.registroDaAnamnese || null,
-    // O QUE A TURMA MOSTRA NO CORPO, LIDO DAS ANAMNESES (02/11/2026). O nó `aspecto-fisico` do
-    // plano declara os campos da anamnese que o alimentam — força e flexibilidade, o primeiro dos
-    // três eixos do que se observa em dança. A tela carrega as anamneses das alunas da TURMA (não
-    // de uma aluna) e consolida: o que interessa ao plano é o que a turma mostra em cada aspecto.
-    // O motor não escolhe os campos nem interpreta os níveis: repassa a declaração. Sem esta
-    // linha a chave morreria aqui — `descritores()` é uma lista fechada, e o sintoma é mudo.
-    lidoDasAnamneses: campo.lidoDasAnamneses || null,
+    // O QUE A TURMA MOSTRA NO CORPO, LIDO DAS ANAMNESES (02/11/2026; recortado pela linha de base
+    // a 05/11/2026). O nó `aspecto-fisico` do plano declara o que o alimenta. Até 05/11 eram os
+    // campos fixos (`lidoDasAnamneses`) — a mesma lista de quinze para toda a escola e todo o
+    // ciclo. Agora é `lidoDaLinhaDeBase`: o recorte que o professor escolheu na Produção, e que a
+    // tela vai buscar à linha de base apontada por `linha-de-base-alvo`. O motor não escolhe os
+    // campos nem interpreta os níveis: repassa a declaração. Sem esta linha a chave morreria
+    // aqui — `descritores()` é uma lista fechada, e o sintoma é mudo (a tela mostra os primeiros
+    // campos crus, que foi o que aconteceu).
+    lidoDaLinhaDeBase: campo.lidoDaLinhaDeBase || null,
+    // A LISTA DE ONDE VÊM AS OPÇÕES (05/11/2026). Um `<select>` cujas escolhas não são fixas — a
+    // linha de base é criada pela escola, não pelo conteúdo — declara a ROTA, e é a tela que a
+    // chama. Sem este repasse o campo saía como texto livre, e o professor escrevia um id à mão.
+    opcoesDe: campo.opcoesDe || null,
   };
 }
 

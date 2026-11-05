@@ -84,7 +84,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -125,6 +125,7 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     // envelope, são o cadastro da turma. Sem esta leitura o documento declará-los-ia em lacuna
     // sobre um dado que a escola declarou.
     lerTurmas,
+    lerLinhasDeBase,
   });
   return (request) => roteador.responder(request);
 }
@@ -230,6 +231,33 @@ function lerTurmasDoEnv(env) {
   };
 }
 
+/**
+ * AS LINHAS DE BASE DA ESCOLA — para a porta do professor (05/11/2026).
+ *
+ * A MESMA CHAVE QUE A PRODUÇÃO ESCREVE (`bastidores/<escola>/linhas-de-base`), lida pela mesma
+ * forma que as turmas: uma segunda leitura da mesma chave divergiria no dia em que uma das duas
+ * mudasse, e o sintoma seria a tela do plano a oferecer uma linha de base que a Produção já não
+ * tem — sem falhar.
+ *
+ * Devolve a lista inteira, com os campos e a leitura que a Produção gravou. O recorte por
+ * professor é do CLIENTE, e de propósito: a decisão dela é que «quem assume lê o que estava
+ * antes» — esconder no servidor o que a regra manda mostrar seria decidir por ela.
+ */
+function lerLinhasDeBaseDoEnv(env) {
+  return async (escola) => {
+    const kv = env && env.PADD_KV;
+    const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
+    if (!kv || !slug) return [];
+    try {
+      const bruto = await kv.get('bastidores/' + slug + '/linhas-de-base');
+      const lista = bruto ? JSON.parse(bruto) : [];
+      return Array.isArray(lista) ? lista.filter((l) => l && l.id && Array.isArray(l.campos)) : [];
+    } catch (erro) {
+      return [];
+    }
+  };
+}
+
 function passosDeGeracao(env) {
   const token = (env && env.GITHUB_TOKEN) || null;
   const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
@@ -244,6 +272,7 @@ function passosDeGeracao(env) {
     // leitura da mesma chave divergiria no dia em que uma das duas mudasse, e o sintoma seria
     // uma turma que a Produção mostra e o documento não vê.
     lerTurmas: lerTurmasDoEnv(env),
+    lerLinhasDeBase: lerLinhasDeBaseDoEnv(env),
   });
   const escreverCiclo = criarEscritorDeCiclo({
     token,
@@ -353,6 +382,7 @@ async function fetch(request, env, opcoes) {
     // que a Produção atribui e o PO não mostra — ou o contrário, que é o vazamento de hoje.
     lerCuradorias: lerCuradoriasDoEnv(env),
     lerTurmas: lerTurmasDoEnv(env),
+    lerLinhasDeBase: lerLinhasDeBaseDoEnv(env),
     // O ÍNDICE (fase 4). O cache vive no KV da escola — é derivado, e a perda dele não perde
     // dado nenhum. `comApelido` é verdadeiro aqui porque quem serve é o Worker da ESCOLA.
     indice: criarIndice(env, { kv: criarCloudflare(env), escola: (env && env.ESCOLA_SLUG) || '' }),

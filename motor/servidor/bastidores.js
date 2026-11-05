@@ -119,6 +119,11 @@ const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
 const acervo = require('./acervo-envelopes.js');
 const porta = require('../nucleo/porta.js');
 const paginacao = require('../nucleo/paginacao.js');
+/* A LINHA DE BASE (05/11/2026) — o recorte do corpo que o professor escolhe. O núcleo decide o
+ * que é «corpo» e o que é musicalidade; o `corpo-seed` traz os campos da anamnese para dentro do
+ * bundle, porque o Worker não tem `fs`. A regra fica no núcleo, o dado vem do `require`. */
+const linhaDeBaseNucleo = require('../nucleo/linha-de-base.js');
+const { conteudo: ANAMNESE } = require('./corpo-seed.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
 // `tools/gerar-ciclo.sh` consome. Uma definição, dois consumidores.
@@ -394,6 +399,64 @@ function normalizarRubrica(corpo) {
   const nome = String(corpo.nome || '').trim();
   const id = String(corpo.id || '').trim() || idDe(nome);
   return { id: id, nome: nome, niveis: niveisLimpos(corpo.niveis) };
+}
+
+/**
+ * AS LINHAS DE BASE DA ESCOLA (05/11/2026) — o recorte do corpo, por professor.
+ *
+ * MORA NO KV, ao lado das turmas e das rubricas, e a chave tem a mesma forma — `linhas-de-base`.
+ * A razão é a de sempre: é dado de PRODUÇÃO (a escola administra), não de proveniência (isso é o
+ * acervo dos envelopes), e a escola inteira são algumas dezenas de linhas.
+ *
+ * A LINHA DE BASE É DO PROFESSOR — decisão dela, e com fundamento: «é o professor quem avalia o
+ * aluno, porque o corpo do aluno se modifica a cada instante; a anamnese é uma fotografia». Um
+ * corpo que outro professor observou noutro dia é uma fotografia de outro dia, e por isso a
+ * selecção é de quem avalia — não da escola, e não do ciclo.
+ *
+ * MAS A LEITURA ATRAVESSA OS PROFESSORES, e isso também é dela: «quando um outro professor
+ * assume, é bom que ele possa olhar essa anamnese e ter uma percepção de como era o corpo
+ * daquela pessoa no passado». Por isso a lista é da ESCOLA e cada item declara o seu professor:
+ * quem chega vê o que estava, e cria a sua — em vez de herdar uma avaliação que não fez.
+ */
+async function linhasDeBase(kv, escola) {
+  const lista = await lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base');
+  return lista.filter((l) => l && l.id && Array.isArray(l.campos));
+}
+
+/** Os campos do corpo que a anamnese oferece à escolha — calculados do conteúdo, nunca escritos
+ *  à mão. Ver `motor/nucleo/linha-de-base.js` para o recorte (a musicalidade está fora). */
+function camposDoCorpo() {
+  return linhaDeBaseNucleo.camposDisponiveis(ANAMNESE);
+}
+
+/**
+ * QUANTOS PLANOS APONTAM PARA UMA LINHA DE BASE — a resposta ao apagar.
+ *
+ * Não bloqueia a exclusão (o professor manda no que é dele), mas DIZ-SE: apagar uma linha de base
+ * não apaga o que os planos já consolidaram — esse dado vive no envelope do plano e é proveniência
+ * (P-03) —, e é isso que o número mostra. Sem ele, o gesto pareceria não ter consequência.
+ *
+ * Sem acervo não há resposta, e o `null` diz exactamente isso: não se afirma «nenhum plano usa»
+ * quando não se conseguiu olhar. Um zero inventado seria uma promessa em nome do repositório.
+ */
+async function linhasDeBaseEmUso(env, escola, id) {
+  const legado = criarCloudflare(env);
+  const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+  try {
+    const lista = await porta.resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+    let quantos = 0;
+    for (const { nome } of lista) {
+      try {
+        const envelope = await porta.lerEnvelope(armazenamento, String(nome).replace(/\.json$/, ''));
+        const valor = envelope && envelope.respostas && envelope.respostas['linha-de-base-alvo'];
+        const escolhida = valor && typeof valor === 'object' && 'valor' in valor ? valor.valor : valor;
+        if (String(escolhida || '').trim() === id) quantos += 1;
+      } catch (erro) { /* ver a nota acima: uma ilegível não inventa um zero nem um um */ }
+    }
+    return quantos;
+  } catch (e) {
+    return null;
+  }
 }
 /**
  * O VOCABULÁRIO TÉCNICO (28/10/2026) — e ele JÁ NÃO VIVE NO KV.
@@ -3319,6 +3382,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     grupoDoMenu('Pessoas', [['#professores', 'professores', 'Professores'],
       ['#alunas', 'alunas', 'Alunas']]) +
     grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Turmas'],
+      // A LINHA DE BASE ENTRA AQUI, E NÃO EM «PRODUÇÃO» (05/11/2026). Ela não é operação nem
+      // configuração da casa: é a RÉGUA DO CORPO com que se lê a turma, ao lado da régua de
+      // rubrica (que vive dentro de Turmas). Duas réguas, dois assuntos, o mesmo grupo.
+      ['#corpo', 'corpo', 'Corpo — linha de base'],
       ['#verbetes', 'verbetes', 'Verbetes da notação'],
       ['#curadorias', 'curadorias', 'Curadorias']]) +
     '</div>' +
@@ -4302,6 +4369,83 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Curadorias atribuídas</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensCuradorias + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
+    '</section>' +
+    /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
+     *
+     * PORQUE ESTA SECÇÃO EXISTE. A anamnese recolhe vinte e quatro aspectos do corpo. O plano
+     * lia sempre os MESMOS quinze, escritos à mão no conteúdo (`lidoDasAnamneses`) desde
+     * 02/11/2026 — a mesma lista para todos os professores, todas as turmas e todos os ciclos.
+     * Ficavam de fora «Formato anatômico dos joelhos», «Arquitetura do arco plantar», «Impulsão
+     * e absorção (allegro)» — que em balé clássico não são acessórios. A pesquisadora, 05/11:
+     * «a definição do que compõe a Linha de Base do Corpo para um determinado trabalho passa a
+     * ser uma escolha ativa e customizada do professor».
+     *
+     * O QUE A SECÇÃO NÃO É. Não é um cadastro de campos: os campos são os da anamnese, e a
+     * anamnese é norma. Ela escolhe ENTRE eles — e o servidor recusa um id que a anamnese não
+     * tenha (`linhaDeBaseNucleo.normalizar`), para um documento nunca apontar para o nada.
+     *
+     * A ESTRUTURA É A DAS OUTRAS SECÇÕES SEM PASSOS (Professores, Alunas): o formulário à
+     * esquerda, a lista à direita, o mesmo `tituloComAcordeao`, as mesmas peças. Nada de desenho
+     * novo — a checagem 8 (Peça) reprova o que inventar, e é a folha que manda.
+     *
+     * A LEITURA DA TURMA É UM SEGUNDO BLOCO, e não o formulário: ler não é decidir. O professor
+     * lê o que a turma mostra, e depois marca o que o trabalho dele vai observar. */
+    '<section class="secao" id="sec-corpo" hidden>' +
+    tituloComAcordeao('sec-corpo', 'Corpo — linha de base', 'corpo-miolo', 'corpo-alternar-form') +
+    '<div class="col-form" id="corpo-miolo">' +
+    '<form id="form-linha-base">' +
+    // O MODO É DECLARADO NO FORMULÁRIO, e não numa variável solta — o mesmo padrão do
+    // `prof-modo`: vazio = criar; `id` = editar aquela. O estado que a tela mostra está na tela.
+    '<input type="hidden" id="lb-modo" value="">' +
+    '<label class="campo-rotulo" for="lb-nome">Nome da linha de base</label>' +
+    '<input id="lb-nome" name="nome" autocomplete="off" ' +
+    'placeholder="ex.: Nível 1 — mobilidade e pés">' +
+    '<p class="sub">O nome é como o plano de ensino a vai referir. Use um nome que diga para que ' +
+    'serve: a mesma turma pode ter mais de uma ao longo do ano.</p>' +
+    '<label class="campo-rotulo" for="lb-professor">Professor</label>' +
+    '<select id="lb-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
+    '<p class="sub">A linha de base é de quem avalia: é o professor que observa a turma. ' +
+    'As de outros professores ficam visíveis na lista — quem assume lê o que estava antes, ' +
+    'e faz a sua.</p>' +
+    '<label class="campo-rotulo">Aspectos do corpo que este trabalho observa</label>' +
+    // AS CAIXAS SÃO DESENHADAS PELO CLIENTE, a partir dos campos que o servidor lê da anamnese.
+    // Escrevê-las no HTML seria uma segunda lista dos mesmos campos — e é exactamente o defeito
+    // que esta secção vem corrigir.
+    '<div id="lb-campos"><p class="sub">carregando os aspectos do corpo…</p></div>' +
+    '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
+    '<div class="res" data-res="linha-base"></div>' +
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao grande" id="lb-enviar">Gravar a linha de base</button>' +
+    '<button type="button" class="acao secundario" id="lb-cancelar" hidden>Cancelar</button>' +
+    '</span>' +
+    '</form>' +
+    // A LEITURA DA TURMA — o que a turma mostra em cada aspecto ESCOLHIDO. É ela que informa a
+    // escolha, e é sob demanda: cada leitura abre uma anamnese por aluna, e o KV tem cota diária.
+    '<details class="bloco-lista" id="lb-leitura-bloco">' +
+    '<summary class="bloco-cabeca">' +
+    '<span class="bloco-titulo">O que a turma mostra — ler as anamneses</span>' +
+    '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
+    '</summary>' +
+    '<div class="bloco-corpo">' +
+    '<label class="campo-rotulo" for="lb-turma">Turma</label>' +
+    '<select id="lb-turma">' + listaTurmas.map((t) =>
+      '<option value="' + esc(t.nome) + '">' + esc(t.nome) + '</option>').join('') + '</select>' +
+    '<span class="par-botoes">' +
+    '<button type="button" class="acao" id="lb-ler">Ler as anamneses desta turma</button>' +
+    '</span>' +
+    '<p class="sub">Cada leitura abre a anamnese mais recente de cada aluna da turma. O ' +
+    'resultado fica guardado com a linha de base — reabrir a secção não relê nada.</p>' +
+    '<div id="lb-leitura"></div>' +
+    '</div>' +
+    '</details>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
+    '<h3>Linhas de base</h3>' +
+    '<div class="rolagem"><ul class="lista" id="lb-lista">' +
+    '<li>carregando…</li>' +
+    '</ul></div>' +
     rodapePaginacao() +
     '</div>' +
     '</section>' +
@@ -8733,6 +8877,253 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    });' +
     '  }' +
     '});' +
+    /* ------------------------------------------------------------------ A LINHA DE BASE
+     *
+     * O desenho das caixas vem do SERVIDOR (`/api/bastidores/campos-do-corpo`), e não de uma
+     * lista escrita aqui: a lista dos campos é a da anamnese, e uma cópia no cliente divergiria
+     * no primeiro campo novo — em silêncio, que é o pior modo. O servidor também é quem decide
+     * o que é «corpo» (a musicalidade fica de fora, e vai para os verbetes).
+     *
+     * A LEITURA DAS ANAMNESES NÃO ACONTECE AO ABRIR A PÁGINA. Ela abre uma anamnese por aluna, e
+     * o KV tem cota diária — foi assim que, em 18/10/2026, as fichas ficaram sem nome. Aqui ela é
+     * um botão, e o resultado fica guardado com a linha de base.
+     */
+    'function escHtml(s) {' +
+    '  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")' +
+    '    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");' +
+    '}' +
+    'var CAMPOS_DO_CORPO = [];' +
+    'var LINHAS_DE_BASE = [];' +
+    'function corpoRes(estado, texto) {' +
+    '  var alvo = document.querySelector("[data-res=\\"linha-base\\"]");' +
+    '  if (!alvo) return;' +
+    '  alvo.className = "res " + (estado || "");' +
+    '  alvo.textContent = texto || "";' +
+    '}' +
+    // AS CAIXAS, AGRUPADAS PELO BLOCO DA ANAMNESE. A ordem dos grupos é a do formulário da
+    // anamnese: o professor reconhece o percurso, e não procura duas vezes o mesmo campo.
+    'function pintarCampos(escolhidos) {' +
+    '  var alvo = document.getElementById("lb-campos");' +
+    '  if (!alvo) return;' +
+    '  if (!CAMPOS_DO_CORPO.length) {' +
+    '    alvo.innerHTML = "<p class=\\"aviso\\">Não consegui ler os aspectos do corpo agora.</p>";' +
+    '    return;' +
+    '  }' +
+    '  var grupos = [];' +
+    '  CAMPOS_DO_CORPO.forEach(function(c){' +
+    '    if (grupos.indexOf(c.grupo) === -1) grupos.push(c.grupo);' +
+    '  });' +
+    '  var html = "";' +
+    '  grupos.forEach(function(g){' +
+    '    var doGrupo = CAMPOS_DO_CORPO.filter(function(c){ return c.grupo === g; });' +
+    '    html += "<details class=\\"bloco-lista\\"><summary class=\\"bloco-cabeca\\">" +' +
+    '      "<span class=\\"bloco-titulo\\">" + escHtml(g) + " (" + doGrupo.length + ")</span>" +' +
+    '      "<span class=\\"seta-do-ato\\" aria-hidden=\\"true\\">\\u25be</span></summary>" +' +
+    '      "<div class=\\"bloco-corpo\\"><div class=\\"escolhas\\">";' +
+    '    doGrupo.forEach(function(c){' +
+    '      var marcado = escolhidos.indexOf(c.id) !== -1 ? " checked" : "";' +
+    '      html += "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"lb-campo\\" value=\\"" +' +
+    '        escHtml(c.id) + "\\"" + marcado + "><span>" + escHtml(c.nome) + "</span></label>";' +
+    '    });' +
+    '    html += "</div></div></details>";' +
+    '  });' +
+    '  alvo.innerHTML = html;' +
+    '  Array.prototype.slice.call(alvo.querySelectorAll("input")).forEach(function(x){' +
+    '    x.addEventListener("change", contarCampos);' +
+    '  });' +
+    '  contarCampos();' +
+    '}' +
+    'function contarCampos() {' +
+    '  var n = marcados("lb-campo").length;' +
+    '  var alvo = document.getElementById("lb-contagem");' +
+    '  if (!alvo) return;' +
+    '  alvo.textContent = n === 0 ? "nenhum aspecto escolhido"' +
+    '    : (n === 1 ? "1 aspecto escolhido" : n + " aspectos escolhidos");' +
+    '}' +
+    'function camposDoCorpo() {' +
+    '  return fetch("/api/bastidores/campos-do-corpo")' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      CAMPOS_DO_CORPO = (d && d.campos) || [];' +
+    '      pintarCampos(marcados("lb-campo"));' +
+    '      return CAMPOS_DO_CORPO;' +
+    '    })' +
+    '    .catch(function(){ pintarCampos([]); return []; });' +
+    '}' +
+    'function pintarLinhas() {' +
+    '  var alvo = document.getElementById("lb-lista");' +
+    '  if (!alvo) return;' +
+    '  if (!LINHAS_DE_BASE.length) {' +
+    '    alvo.innerHTML = "<li>Nenhuma linha de base ainda. A primeira nasce " +' +
+    '      "quando o professor escolher os aspectos do corpo que o trabalho dele observa.</li>";' +
+    '    return;' +
+    '  }' +
+    '  alvo.innerHTML = LINHAS_DE_BASE.map(function(l){' +
+    '    var n = (l.campos || []).length;' +
+    '    var leitura = l.leitura' +
+    '      ? " · lida da turma " + escHtml(l.leitura.turma || "") + " em " +' +
+    '        escHtml(String(l.leitura.em || "").slice(0, 10))' +
+    '      : "";' +
+    '    return "<li><div class=\\"linha-titulo\\">" + escHtml(l.nome) + "</div>" +' +
+    '      "<div class=\\"linha-sub\\">" + (n === 1 ? "1 aspecto" : n + " aspectos") +' +
+    '      (l.professor ? " · " + escHtml(l.professor) : " · sem professor declarado") +' +
+    '      leitura + "</div>" +' +
+    '      "<span class=\\"par-botoes\\">" +' +
+    '      "<button type=\\"button\\" class=\\"acao pequeno\\" data-lb-editar=\\"" +' +
+    '      escHtml(l.id) + "\\">Editar</button>" +' +
+    '      "<button type=\\"button\\" class=\\"acao pequeno secundario\\" data-lb-apagar=\\"" +' +
+    '      escHtml(l.id) + "\\">Apagar</button></span></li>";' +
+    '  }).join("");' +
+    '  Array.prototype.slice.call(alvo.querySelectorAll("[data-lb-editar]")).forEach(function(b){' +
+    '    b.addEventListener("click", function(){ editarLinha(this.getAttribute("data-lb-editar")); });' +
+    '  });' +
+    '  Array.prototype.slice.call(alvo.querySelectorAll("[data-lb-apagar]")).forEach(function(b){' +
+    '    b.addEventListener("click", function(){ apagarLinha(this.getAttribute("data-lb-apagar")); });' +
+    '  });' +
+    '}' +
+    'function carregarLinhas() {' +
+    '  return fetch("/api/bastidores/linhas-de-base")' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){ LINHAS_DE_BASE = (d && d.linhas) || []; pintarLinhas(); })' +
+    '    .catch(function(){ LINHAS_DE_BASE = []; pintarLinhas(); });' +
+    '}' +
+    'function limparForm() {' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  var nome = document.getElementById("lb-nome");' +
+    '  var enviar = document.getElementById("lb-enviar");' +
+    '  var cancelar = document.getElementById("lb-cancelar");' +
+    '  var leitura = document.getElementById("lb-leitura");' +
+    '  if (modo) modo.value = "";' +
+    '  if (nome) nome.value = "";' +
+    '  if (enviar) enviar.textContent = "Gravar a linha de base";' +
+    '  if (cancelar) cancelar.hidden = true;' +
+    '  if (leitura) leitura.innerHTML = "";' +
+    '  pintarCampos([]);' +
+    '}' +
+    'function editarLinha(id) {' +
+    '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === id; })[0];' +
+    '  if (!alvo) return;' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  var nome = document.getElementById("lb-nome");' +
+    '  var prof = document.getElementById("lb-professor");' +
+    '  var enviar = document.getElementById("lb-enviar");' +
+    '  var cancelar = document.getElementById("lb-cancelar");' +
+    '  if (modo) modo.value = alvo.id;' +
+    '  if (nome) nome.value = alvo.nome || "";' +
+    '  if (prof && alvo.professor) prof.value = alvo.professor;' +
+    '  if (enviar) enviar.textContent = "Salvar as mudanças";' +
+    '  if (cancelar) cancelar.hidden = false;' +
+    '  pintarCampos((alvo.campos || []).map(function(c){ return c.id; }));' +
+    '  pintarLeitura(alvo);' +
+    '}' +
+    // A LEITURA GUARDADA — o que a turma mostrava na última vez que se leu, com os pontos de
+    // atenção primeiro. Nada aqui é recalculado: o número que se mostra é o que foi medido.
+    'function pintarLeitura(linha) {' +
+    '  var alvo = document.getElementById("lb-leitura");' +
+    '  if (!alvo) return;' +
+    '  var l = linha && linha.leitura;' +
+    '  if (!l) {' +
+    '    alvo.innerHTML = "<p class=\\"sub\\">Esta linha de base ainda não foi lida da turma. " +' +
+    '      "Grave-a e use «Ler as anamneses desta turma».</p>";' +
+    '    return;' +
+    '  }' +
+    '  var html = "<p class=\\"sub\\">" + escHtml(String(l.alunos || 0)) +' +
+    '    " anamnese(s) lida(s) da turma " +' +
+    '    escHtml(l.turma || "") + " · " + escHtml(String(l.atencao || 0)) + " ponto(s) de atenção" +' +
+    '    ((l.semRegisto && l.semRegisto.length) ? " · sem registo em " + l.semRegisto.length +' +
+    '      " aspecto(s)" : "") + "</p>";' +
+    '  if (l.linhas && l.linhas.length) {' +
+    '    html += "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr>" +' +
+    '      "<th>Aspecto</th><th>Como está a turma</th></tr></thead><tbody>" +' +
+    '      l.linhas.map(function(x){' +
+    '        return "<tr><td>" + escHtml(x.nome) + "</td><td>" + escHtml(x.texto) + "</td></tr>";' +
+    '      }).join("") + "</tbody></table></div>";' +
+    '  }' +
+    '  alvo.innerHTML = html;' +
+    '}' +
+    'function apagarLinha(id) {' +
+    '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === id; })[0];' +
+    '  if (!alvo) return;' +
+    '  if (!confirm("Apagar a linha de base «" + alvo.nome + "»? Os planos que já a usaram " +' +
+    '    "mantêm o que consolidaram — o dado é proveniência e não se reescreve.")) return;' +
+    '  fetch("/api/bastidores/linha-de-base", {method: "DELETE",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({id: id, token: TOKEN})})' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      if (d && d.ok) {' +
+    '        corpoRes("ok", "linha de base apagada" +' +
+    '          (d.planosQueAUsavam ? " — " + d.planosQueAUsavam + " plano(s) apontavam para ela" : "") + ".");' +
+    '        carregarLinhas();' +
+    '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
+    '    })' +
+    '    .catch(function(err){ corpoRes("erro", "Erro: " + err.message); });' +
+    '}' +
+    'var formLB = document.getElementById("form-linha-base");' +
+    'if (formLB) formLB.addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  var nome = document.getElementById("lb-nome");' +
+    '  var prof = document.getElementById("lb-professor");' +
+    '  var corpo = {' +
+    '    nome: nome ? nome.value : "",' +
+    '    professor: prof ? prof.value : "",' +
+    '    campos: marcados("lb-campo"),' +
+    '    token: TOKEN' +
+    '  };' +
+    '  if (modo && modo.value) corpo.id = modo.value;' +
+    '  var antes = ocuparBotao(formLB, "gravando...");' +
+    '  fetch("/api/bastidores/linha-de-base", {method: "POST",' +
+    '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      liberarBotao(antes);' +
+    '      if (d && d.ok) {' +
+    '        corpoRes("ok", "linha de base gravada — " + (d.linha.campos || []).length + " aspecto(s).");' +
+    '        carregarLinhas();' +
+    '        var id = d.linha.id;' +
+    '        var modo2 = document.getElementById("lb-modo");' +
+    '        if (modo2) modo2.value = id;' +
+    '        var enviar = document.getElementById("lb-enviar");' +
+    '        var cancelar = document.getElementById("lb-cancelar");' +
+    '        if (enviar) enviar.textContent = "Salvar as mudanças";' +
+    '        if (cancelar) cancelar.hidden = false;' +
+    '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
+    '    })' +
+    '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); });' +
+    '});' +
+    'var cancelarLB = document.getElementById("lb-cancelar");' +
+    'if (cancelarLB) cancelarLB.addEventListener("click", function(){ corpoRes("", ""); limparForm(); });' +
+    'var lerLB = document.getElementById("lb-ler");' +
+    'if (lerLB) lerLB.addEventListener("click", function(){' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  var turma = document.getElementById("lb-turma");' +
+    '  var prof = document.getElementById("lb-professor");' +
+    '  if (!modo || !modo.value) {' +
+    '    corpoRes("aviso", "Grave a linha de base primeiro — a leitura fica guardada nela.");' +
+    '    return;' +
+    '  }' +
+    '  var antes = ocuparBotao(this, "lendo...", "button");' +
+    '  var q = "?id=" + encodeURIComponent(modo.value) +' +
+    '    "&turma=" + encodeURIComponent(turma ? turma.value : "") +' +
+    '    "&professor=" + encodeURIComponent(prof ? prof.value : "");' +
+    '  fetch("/api/bastidores/linha-de-base/agregacao" + q)' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      liberarBotao(antes);' +
+    '      if (d && d.ok) {' +
+    '        pintarLeitura(d.linha);' +
+    '        carregarLinhas();' +
+    '        corpoRes("ok", "lida a turma " + (turma ? turma.value : "") + " — " +' +
+    '          d.leitura.alunos + " anamnese(s).");' +
+    '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
+    '    })' +
+    '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); });' +
+    '});' +
+    'if (document.getElementById("lb-campos")) {' +
+    '  camposDoCorpo();' +
+    '  carregarLinhas();' +
+    '}' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o
@@ -9994,6 +10385,138 @@ async function fetch(request, env) {
     }
     if (desvinculadas) await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(listaTurmas));
     return json(200, { ok: true, rubrica: removida.nome, turmasDesvinculadas: desvinculadas });
+  }
+
+  // ------------------------------------------------ a LINHA DE BASE DO CORPO (05/11/2026)
+  //
+  // O QUE ELA É. A anamnese recolhe 24 campos do corpo; o plano lia sempre os MESMOS quinze,
+  // escritos à mão no conteúdo desde 02/11/2026. A pesquisadora, 05/11/2026: «a definição do que
+  // compõe a Linha de Base do Corpo para um determinado trabalho passa a ser uma escolha ativa e
+  // customizada do professor». Estas quatro rotas são essa escolha — e a leitura que a informa.
+  //
+  // PORQUE A AGREGAÇÃO É ROTA E NÃO CLIENTE. Ela lê UMA anamnese por aluna da turma. Fazer isso
+  // no navegador obrigaria a página a disparar trinta pedidos, e o KV tem cota DIÁRIA — foi assim
+  // que, a 18/10/2026, a lista de fichas ficou sem nome («sem apelido» em todas). Aqui é um
+  // pedido, um cálculo, e o resultado vai GRAVADO na linha de base: reabrir a secção não relê
+  // nada, e a próxima leitura é um gesto explícito do professor.
+  if (path === '/api/bastidores/campos-do-corpo') {
+    const campos = camposDoCorpo();
+    return json(200, {
+      ok: true,
+      campos,
+      // Os grupos na ordem em que a anamnese os tem, para a tela não os reordenar por conta
+      // própria: a ordem é a do formulário que o professor percorre, e é a mesma do documento.
+      grupos: [...new Set(campos.map((c) => c.grupo))],
+    });
+  }
+
+  if (path === '/api/bastidores/linhas-de-base') {
+    const lista = await linhasDeBase(kv, escola);
+    return json(200, { ok: true, escola, linhas: lista });
+  }
+
+  // POST /api/bastidores/linha-de-base — criar ou salvar. Com `id`, salva aquela (renomear não
+  // perde o vínculo do plano); sem `id`, o identificador é o slug do nome.
+  if (path === '/api/bastidores/linha-de-base' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const decidido = linhaDeBaseNucleo.normalizar(corpo, camposDoCorpo(), new Date().toISOString());
+    if (!decidido.ok) return json(400, { ok: false, erro: decidido.erros.join(' · '), erros: decidido.erros });
+    const lista = await linhasDeBase(kv, escola);
+    const idx = lista.findIndex((l) => l && l.id === decidido.linha.id);
+    // A LEITURA ANTERIOR SOBREVIVE À GRAVAÇÃO quando os campos não mudaram: reabrir, corrigir o
+    // nome e gravar não pode obrigar a reler trinta anamneses. Quando os campos MUDAM, a leitura
+    // antiga descreve outro recorte e é descartada — um número que já não corresponde ao que se
+    // mostra é pior do que nenhum.
+    if (idx !== -1) {
+      const antes = lista[idx];
+      const mesmos = JSON.stringify((antes.campos || []).map((c) => c.id))
+        === JSON.stringify((decidido.linha.campos || []).map((c) => c.id));
+      if (mesmos && antes.leitura) decidido.linha.leitura = antes.leitura;
+    }
+    if (idx === -1) lista.push(decidido.linha); else lista[idx] = decidido.linha;
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+    return json(idx === -1 ? 201 : 200, { ok: true, linha: decidido.linha, criada: idx === -1 });
+  }
+
+  // DELETE /api/bastidores/linha-de-base — apagar. Os planos que a referem NÃO são tocados: o
+  // que eles já consolidaram está no envelope do plano (é dado, e não se reescreve — P-03). O
+  // número sai na resposta para não ser surpresa: quem apaga vê quantos planos apontavam para ela.
+  if (path === '/api/bastidores/linha-de-base' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = String(corpo.id || idDe(String(corpo.nome || '')) || '').trim();
+    if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
+    const lista = await linhasDeBase(kv, escola);
+    const idx = lista.findIndex((l) => l && l.id === id);
+    if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
+    const [removida] = lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+    const usos = await linhasDeBaseEmUso(env, escola, id);
+    return json(200, { ok: true, linha: removida.nome, planosQueAUsavam: usos });
+  }
+
+  // GET /api/bastidores/linha-de-base/agregacao?id=<id>&turma=<nome>&professor=<slug>
+  // A LEITURA DAS ANAMNESES DA TURMA, para o professor decidir o recorte. Grava o resultado na
+  // linha de base (a tela relê de lá) e devolve-o.
+  if (path === '/api/bastidores/linha-de-base/agregacao') {
+    const pedido = url && url.searchParams;
+    const id = String((pedido && pedido.get('id')) || '').trim();
+    const turma = String((pedido && pedido.get('turma')) || '').trim();
+    const professor = String((pedido && pedido.get('professor')) || '').trim();
+    if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
+    const lista = await linhasDeBase(kv, escola);
+    const idx = lista.findIndex((l) => l && l.id === id);
+    if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
+    if (!turma) return json(400, { ok: false, erro: 'informe a turma — a leitura é o que a turma mostra' });
+
+    const todas = await curadorias(kv, escola);
+    const alunas = porta.alunasDaTurma(todas, { turma, professor }) || [];
+    const legado = criarCloudflare(env);
+    const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+    const estados = await porta.estadosDasAnamneses(armazenamento);
+    const anamneses = [];
+    const carimbos = [];
+    for (const [carimbo, estado] of Object.entries(estados || {})) {
+      if (!estado || !estado.vigente || !estado.apelido) continue;
+      if (alunas.length && alunas.indexOf(estado.apelido) === -1) continue;
+      try {
+        const envelope = await porta.lerEnvelope(armazenamento, carimbo);
+        anamneses.push({ aluna: estado.apelido, respostas: (envelope && envelope.respostas) || {} });
+        carimbos.push(String(estado.carimbo || carimbo));
+      } catch (erro) {
+        /* Uma anamnese ilegível não impede a leitura das outras — e o resumo diz com quantas se
+         * contou. Deter tudo por causa de uma seria perder o que existe. */
+      }
+    }
+    const resultado = linhaDeBaseNucleo.agregar(lista[idx], camposDoCorpo(), anamneses);
+    const velha = linhaDeBaseNucleo.envelheceu(lista[idx], carimbos);
+    lista[idx].leitura = {
+      em: new Date().toISOString(),
+      turma,
+      professor: professor || null,
+      alunos: resultado.alunos,
+      atencao: resultado.atencao,
+      soExcelente: resultado.soExcelente,
+      semRegisto: resultado.semRegisto,
+      linhas: resultado.linhas,
+    };
+    // A DATA DA DECISÃO NÃO MUDA AO LER: ler não é decidir. Quem decide é o «Gravar», e é ele que
+    // põe `atualizada_em` — é essa data que a cascata de revalidação compara com as anamneses.
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+    return json(200, {
+      ok: true,
+      linha: lista[idx],
+      leitura: lista[idx].leitura,
+      anamneseMaisRecente: velha,
+      velha: Boolean(velha),
+    });
   }
 
   // ---------------------------------------------------------------- o VERBETE (28/10/2026)

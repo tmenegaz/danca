@@ -105,6 +105,18 @@
 > expurgo é um commit só. Prova nova: `provar-verbos-do-armazenamento`, **29 asserções**, a ler os
 > verbos **do ficheiro do contrato** e a passar pelo `criarArmazenamento`.
 >
+> **A linha de base do corpo é uma escolha do professor (05/11/2026).** A anamnese recolhe **24**
+> aspectos do corpo; o plano lia **quinze**, escritos à mão no conteúdo desde 02/11/2026 e iguais
+> para toda a escola e todo o ciclo — e sem caminho na tela para os mudar. Ficavam de fora o
+> formato anatómico dos joelhos, a arquitetura do arco plantar e a impulsão do allegro. Agora há
+> uma entidade **Linha de Base** (`bastidores/<escola>/linhas-de-base`), gerida em Bastidores →
+> Pedagogia → Corpo, e o plano importa-a como importa a turma. Ela é **do professor** (é ele quem
+> avalia, e a anamnese é uma fotografia), mas a leitura atravessa os professores — quem assume lê o
+> que estava e cria a sua; **nada é herdado**. A cascata de revalidação passou a **três passos**,
+> Produção → PE → PO, e o primeiro é derivado como os outros. Prova:
+> `provar-linha-de-base`, **37 asserções**, com o A/B que desliga o passo 1. Pendente por decisão
+> dela: as anotações textuais das anamneses — nenhum dos 24 campos é texto livre.
+>
 > **Correcção de 05/11/2026 — o validador cobrava um ficheiro chamado `.html`.** `DOCS=""`
 > (o que `tools/criar-escola.sh` escreve em **toda** variante nova) virava `['']` — um array
 > *truthy* com uma entrada vazia — e `tools/check-pacote.js` exigia o ficheiro `.html`. Medido na

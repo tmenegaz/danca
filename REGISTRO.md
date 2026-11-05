@@ -35697,3 +35697,72 @@ HEAD limpo: 1 de 14 antes, 1 de 15 depois — a nova passa.
 `tools/check-pacote.js`, com comentário a explicar o porquê e o número medido. É correcção de
 defeito, não mudança de regra: nenhum ficheiro passa a ser exigido que não fosse antes, e o
 ciclo-zero passa a ser exigido do que de facto existe.
+
+## 05/11/2026 — A linha de base do corpo deixa de ser uma constante: o professor escolhe, e a cascata ganha o primeiro passo
+
+A anamnese sempre recolheu o corpo inteiro — **24** aspectos, em seis blocos. O plano lia **quinze**,
+escolhidos a 02/11/2026 e escritos à mão dentro do conteúdo (`lidoDasAnamneses`, em
+`porta/plano/conteudo/plano.json`): a mesma lista para todos os professores, todas as turmas e todos
+os ciclos, e **sem caminho na tela para a mudar**. O que ficava de fora mede-se: «Formato anatômico
+dos joelhos», «Arquitetura do arco plantar», «Impulsão e absorção (allegro)», «Mobilidade e
+estabilidade da escápula», «Mobilidade da coluna cervical e cabeça», entre outros nove — que em balé
+clássico não são acessórios.
+
+A decisão é dela, por escrito: «a definição do que compõe a Linha de Base do Corpo para um
+determinado trabalho passa a ser uma escolha ativa e customizada do professor».
+
+**O que existe agora.** Uma entidade **Linha de Base** no KV da escola
+(`bastidores/<escola>/linhas-de-base`), com nome, professor e os campos escolhidos, gerida em
+**Bastidores → Pedagogia → Corpo — linha de base**. O recorte não inventa nada: escolhe **entre** os
+campos da anamnese, que é norma — entram os de dimensão `tecnica` ou `funcional`, fica fora a
+`musicalidade` (pulsação, coordenação cognitivo-musical, memória de sequências, lateralidade,
+orientação espacial), que já é tratada nos verbetes da notação. Um id que a anamnese não tenha é
+**recusado na gravação**, com o nome do campo: um documento a apontar para o nada imprimiria uma
+linha vazia sem falhar.
+
+**De quem é.** Do professor — «é o professor quem avalia o aluno, porque o corpo do aluno se modifica
+a cada instante; a anamnese é uma fotografia». Mas a leitura **atravessa** os professores: «quando um
+outro professor assume, é bom que ele possa olhar essa anamnese e ter uma percepção de como era o
+corpo daquela pessoa no passado». Por isso a lista é da escola e cada linha declara o seu professor:
+quem chega lê o que estava e **cria a sua**; não herda a avaliação de outro. **Nada é herdado** — os
+envelopes antigos ficam com o que têm gravado, e um plano novo sem escolha diz «escolha a linha de
+base» em vez de voltar aos quinze de antes.
+
+**O que o motor mudou.** Menos do que parecia: o gerador **já não injetava** os quinze — lia a tabela
+consolidada do envelope, e isso fica. O que mudou é de onde vêm os campos que o botão «Carregar das
+anamneses da turma» pede: antes de `lidoDasAnamneses` (conteúdo), agora de `lidoDaLinhaDeBase`
+apontado pelo nó novo `linha-de-base-alvo`, cujas opções vêm de `api/linhas-de-base`. O título do
+bloco perdeu «força e flexibilidade», que prometia a lista fixa que já não existe.
+
+**A cascata passou a três passos**, e a ordem é de dependência: **Produção → PE → PO**. O PO observa
+o que o PE fixou, e o PE fixa um recorte do corpo. `porta.revalidacaoPendente` ganhou o passo 1 com a
+forma derivada do passo 2 — «há alguma anamnese mais recente do que a decisão desta linha de base?».
+Sem linhas de base, a cascata fica a de antes: a escola que ainda não tem nenhuma não vê um aviso que
+não pode resolver.
+
+**A agregação é do servidor, e fica guardada.** Ela abre uma anamnese por aluna da turma; feita no
+navegador seriam trinta pedidos por clique, e o KV tem cota **diária** — foi assim que, em
+18/10/2026, as fichas ficaram sem nome. Aqui é um pedido e um cálculo, e o resultado vai gravado com
+a linha de base. Ler **não** é decidir: a data que a cascata compara (`atualizada_em`) só muda no
+«Gravar».
+
+**A régua é a da anamnese.** «Ponto de atenção» é o que não está na primeira opção declarada; a turma
+toda no melhor nível é **excelência** — e a distinção existe porque ela deu ao professor autonomia
+para incluir um aspecto excelente no escopo («quero vigiar para que todos mantenham a excelência
+neste ponto»).
+
+**Fica declarado o que NÃO entrou.** As anotações textuais das anamneses: nenhum dos 24 campos é
+texto livre — todos são lista de opções —, e o pedido «exibir obrigatoriamente as ressalvas
+registadas nas anamneses» não tem hoje de onde as ler. As ressalvas vivem no nó `restricoes` do PO.
+Pendente por decisão dela («depois»).
+
+**Medido:** `experimentos/provar-linha-de-base.js`, **37 asserções** — o recorte (24, com o controle
+positivo dos campos do bloco 9, que mistura as duas dimensões), a recusa, a agregação pela ordem das
+opções, as rotas com KV falso, e a cascata. O **A/B** desliga o passo 1 e reprova. As bancadas que
+tocam o conteúdo do plano foram corridas antes e depois: `provar-forca-e-flexibilidade` 17/17,
+`provar-eixos-do-po` 34/34, `provar-plano-e-curadoria` e `provar-publicacao-da-escola` 63/63; e as
+duas que falham (`provar-dimensoes-plano` e `provar-manifesto-do-plano`, 2 falhas) falham **igual no
+HEAD limpo**, medido em worktree separado.
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**. O pacote da `calango` foi
+regenerado (a porta mudou) e a âncora foi recarimbada — `hash: 31de8f74…`, cadeia intacta.

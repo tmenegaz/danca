@@ -1609,7 +1609,17 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
   let revalidar = null;
   if (chave === 'plano-de-ensino' || chave === 'plano-de-observacao') {
     try {
-      const r = await porta.revalidacaoPendente(armazenamento);
+      /* AS LINHAS DE BASE ENTRAM NA CASCATA (05/11/2026). O primeiro passo é o recorte do corpo,
+       * e sem ele a lista mostraria o plano a pedir revisão sem dizer que o recorte que ele fixou
+       * já não corresponde ao retrato. A leitura é do KV da Produção, e uma só por página. */
+      let linhasDaEscola = [];
+      try {
+        const bruto = await env.PADD_KV.get('bastidores/' + String(env.ESCOLA_SLUG || escola || '').trim()
+          + '/linhas-de-base');
+        const lista = bruto ? JSON.parse(bruto) : [];
+        linhasDaEscola = Array.isArray(lista) ? lista.filter((l) => l && l.id) : [];
+      } catch (erro) { linhasDaEscola = []; }
+      const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola);
       revalidar = r && r.pendentes ? r.pendentes : null;
     } catch (erro) {
       /* Sem o sinal, a lista fica como estava — e não se inventa um estado. Um selo «precisa de

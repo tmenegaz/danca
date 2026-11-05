@@ -662,7 +662,7 @@ function proximoCiclo(ciclos) {
  * anamnese está velha». O controlo de quando se refaz o retrato é política da escola, e um motor
  * que a impusesse estaria a decidir pedagogia por conta própria.
  */
-async function revalidacaoPendente(armazenamento, jaLido) {
+async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase) {
   const indice = jaLido || (await lerIndice(armazenamento));
 
   // 1. A DATA DE CADA SUJEITO — a da anamnese mais recente. A chave é a aluna, não o ciclo: a
@@ -726,10 +726,56 @@ async function revalidacaoPendente(armazenamento, jaLido) {
     }
   }
 
+  /* 4. AS LINHAS DE BASE — o PRIMEIRO passo da cascata (05/11/2026).
+   *
+   * A ORDEM, decidida por ela: **Produção (o recorte do corpo) → Plano de Ensino → Plano de
+   * Observação**. E é uma ordem de DEPENDÊNCIA, não de arrumação de ecrã: o PO observa o que o
+   * PE fixou, e o PE fixa um recorte do corpo. Revalidar o PO sobre um recorte decidido com
+   * retratos que já não valem é consolidar uma linha de base sobre o que não se mediu. Por isso
+   * o passo 1 vem primeiro, e só aparece quando há linhas de base — sem elas, a cascata é a de
+   * antes, e é assim que as escolas que ainda não têm nenhuma não vêem um aviso que não podem
+   * resolver.
+   *
+   * A REGRA É A MESMA DO PO, e é derivada: «há alguma anamnese mais recente do que a decisão
+   * desta linha de base?». Nada se marca com um campo — um sinal que se esquece de apagar é um
+   * sinal que mente, e um campo a limpar à mão é uma segunda declaração do mesmo facto.
+   *
+   * COMPARA-SE COM AS ANAMNESES DA ESCOLA, e não só com as da turma. A linha de base não
+   * declara turma — é do professor, e pode servir a mais de uma («Nível 1 — mobilidade e
+   * pés»). Recortar por turma exigiria uma curadoria que esta função não tem, e escolher uma
+   * turma ao acaso daria um falso negativo — o pior dos dois erros: a linha de base pareceria
+   * actual sobre um retrato que já mudou. Um falso positivo custa um clique ao professor.
+   */
+  const linhas = Array.isArray(linhasDeBase) ? linhasDeBase : [];
+  if (linhas.length) {
+    const retratos = [...anamneseDe.values()].map((d) => String(d.quando || '')).filter(Boolean).sort();
+    const maisRecente = retratos.length ? retratos[retratos.length - 1] : null;
+    for (const lb of linhas) {
+      if (!lb || !lb.id) continue;
+      const decidida = String(lb.atualizada_em || '').trim();
+      if (!decidida || !maisRecente || maisRecente <= decidida) continue;
+      pendentes.set('linha-de-base:' + lb.id, {
+        familia: 'linha-de-base',
+        motivo: 'Há uma anamnese mais recente (' + maisRecente.slice(0, 10) + ') do que a decisão '
+          + 'desta linha de base (' + decidida.slice(0, 10) + ') — reavalie o recorte do corpo '
+          + 'antes de revalidar o plano.',
+        // O PRIMEIRO LUGAR é a Produção, e o motivo di-lo: o recorte do corpo é uma decisão da
+        // Produção, e é lá que ele se refaz — não no formulário do plano.
+        onde: 'producao',
+        linha: lb.id,
+        nome: lb.nome || lb.id,
+        decisao: decidida,
+        anamnese: maisRecente,
+      });
+    }
+  }
+
   return {
     pendentes,
     /* A ORDEM, dita uma vez para quem mostra: é a regra, não uma sugestão de arrumação. */
-    ordem: ['plano-de-ensino', 'plano-de-observacao'],
+    ordem: linhas.length
+      ? ['linha-de-base', 'plano-de-ensino', 'plano-de-observacao']
+      : ['plano-de-ensino', 'plano-de-observacao'],
     anamneses: Object.fromEntries([...anamneseDe.entries()].map(([a, d]) => [a, d.quando])),
   };
 }
