@@ -2103,6 +2103,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      defeito. **DECIDIDO e implementado** 05/11/2026, com peça nova na folha
      (`[data-apagando="sim"]`: véu, fio «apagando…» e spinner) e motivo declarado em
      `CONGELAMENTO.md`.
+111. **A MOLDURA NUNCA FALTA — E ELA É UM ENQUADRAMENTO, NÃO UM SUBSTITUTO.** A barra e a coluna
+     existem em 100% das telas que o Worker serve. A causa do desaparecimento era de mecanismo:
+     `nav.aplicar` SUBSTITUI uma `<nav class="topnav">` que já exista, e a porta traz o marcador
+     `<!-- NAV -->` (que a GERAÇÃO substitui — mas a porta é copiada). Num pacote que ficou com o
+     marcador, `aplicar` devolvia `null` e a ponte servia a página nua: medido ao vivo, a porta com
+     0 barra e 0 coluna, a listagem ao lado com as duas. `nav.enquadrar` cobre as três formas
+     (barra existente, marcador, documento sem moldura) e é **idempotente**; a ponte
+     (`comAparencia`) usa-o em toda resposta HTML e a montagem (`montar-publicacao.js`) enquadra a
+     porta ao publicar. **DECIDIDO e implementado** 05/11/2026.
+112. **OS TRÊS FORMULÁRIOS SÃO MOLDURA, E NÃO CONTEÚDO.** «Anamnese do aluno», «Plano de ensino» e
+     «Plano de Observação» entram no menu de TODA escola, inclusive na recém-criada, sem turma
+     nenhuma (era `if (turmas.length)`): a anamnese é o instrumento de ENTRADA (vem antes de haver
+     turma) e o plano de ensino é o que CRIA o ciclo. O que continua dinâmico é o resto — «Aulas» e
+     os documentos do ciclo nascem com o ciclo. **DECIDIDO e implementado** 05/11/2026.
+113. **UMA BANCADA QUE CONSTRÓI O QUE DEVIA ENCONTRAR NÃO MEDE NADA.** A `provar-menu-do-formulario`
+     media as telas de formulário aplicando o menu à mão (o mesmo `aplicar` da ponte) e dava 40/40
+     sobre uma página sem moldura em produção. Passou a servir a porta pela ponte
+     (`producao.fetch`). A regra: **quem aplica a moldura é quem serve, e é isso que se mede**.
+     **DECIDIDO e implementado** 05/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

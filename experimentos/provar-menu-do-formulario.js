@@ -296,65 +296,19 @@ const MEDIR = () => {
   };
 };
 
-/**
- * A PÁGINA DO FORMULÁRIO (a porta), COM O MENU APLICADO.
+/*
+ * A PORTA NÃO TEM SERVIDOR PRÓPRIO (05/11/2026) — e este é o reparo que importa.
  *
- * As outras bancadas da porta servem `porta/index.html` **cru**, e essa página não tem barra
- * nenhuma: o marcador `<!-- NAV -->` é substituído na geração. Aqui ele é substituído pelo MESMO
- * módulo que a ponte usa, e é essa a única diferença — o suficiente para o menu poder ser medido
- * no sítio onde ela diz que ele falha.
+ * Havia um `servirPorta` que lia `porta/index.html` e aplicava o menu À MÃO, com o mesmo
+ * `navModulo.aplicar` que a ponte usa. A bancada dava 40/40 sobre uma página que ela própria
+ * tinha arranjado — enquanto a produção servia a porta com o marcador `<!-- NAV -->` cru, sem
+ * barra e sem coluna. O defeito que a pesquisadora viu («eu perco completamente a identidade
+ * visual») estava a salvo de uma bancada verde.
+ *
+ * A LIÇÃO É A DE SEMPRE: quem aplica a moldura é quem SERVE, e é isso que se mede. A porta vai
+ * pela ponte (`producao.fetch`), como a lista — mesmo servidor, mesmo `nav.json`, mesmo
+ * `enquadrar`. Uma bancada que constrói o que devia encontrar não mede nada.
  */
-function servirPorta(base) {
-  let html = fs.readFileSync(path.join(PORTA, 'index.html'), 'utf8');
-  if (html.indexOf('<nav class="topnav"') === -1) {
-    html = html.replace('<!-- NAV -->', '<nav class="topnav" aria-label="Navegação do ciclo"></nav>');
-  }
-  html = navModulo.aplicar(html, MENU, '/area-do-professor/plano-de-observacao/') || html;
-  const srv = http.createServer((req, res) => {
-    const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '')
-      .replace(/^area-do-professor\//, '')
-      .replace(/^plano-de-observacao\//, '')
-      .replace(/^plano-de-ensino\//, '')
-      .replace(/^plano-observacao\//, '')
-      .replace(/^plano-ensino\//, '')
-      .replace(/^anamnese\//, '') || 'index.html';
-    const json = (o) => {
-      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
-      res.end(JSON.stringify(o));
-    };
-    if (rel === 'api/mapa') return json(MAPA);
-    if (rel.startsWith('api/envelope/')) {
-      return json({ id: PLANO.id, contexto: PLANO.contexto, respostas: PLANO.respostas });
-    }
-    if (rel === 'api/planos') {
-      return json({ ok: true, opcoes: [{ valor: PLANO.id, rotulo: 'Plano', carimbo: PLANO.id,
-        detalhe: 'api/envelope/' + PLANO.id }] });
-    }
-    if (rel.startsWith('api/bastidores/curadoria-professor')) {
-      return json({ ok: true, curadorias: [{ id: 'c1', professor: 'coqui-de-redinha',
-        modalidade: 'Balé clássico', turmas: [TURMA.nome], alunas: ['Aluna A'] }] });
-    }
-    if (rel.startsWith('api/bastidores/turmas')) {
-      return json({ ok: true, turmas: [TURMA], opcoes: [{ valor: TURMA.nome, rotulo: TURMA.nome }] });
-    }
-    if (rel.startsWith('api/')) return json({ ok: true, opcoes: [], turmas: [TURMA] });
-    const mapaDeAssets = {
-      'assets/style.css': path.join('tools', 'templates', 'ciclo.css'),
-      'assets/nav.js': path.join('tools', 'templates', 'nav.js'),
-    };
-    if (mapaDeAssets[rel]) {
-      const alvo = path.join(RAIZ, mapaDeAssets[rel]);
-      res.writeHead(200, { 'content-type': rel.endsWith('.css') ? 'text/css' : 'text/javascript',
-        'cache-control': 'no-store' });
-      return res.end(fs.readFileSync(alvo));
-    }
-    if (rel.startsWith('assets/')) { res.writeHead(404); res.end('nao'); return; }
-    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-    res.end(html);
-  });
-  return new Promise((ok) => srv.listen(0, '127.0.0.1',
-    () => ok({ srv, base: base + srv.address().port })));
-}
 
 (async () => {
   const executablePath = process.env.CHROME_PATH
@@ -549,19 +503,17 @@ function servirPorta(base) {
 
     }
     /* ----------------------------------------------------------------------------------- */
-    console.log('\nA PÁGINA DO FORMULÁRIO (a porta), com o menu aplicado');
+    console.log('\nA PÁGINA DO FORMULÁRIO (a porta) — servida pela ponte, sem truque');
     /* ----------------------------------------------------------------------------------- */
-    /* É a página onde «Novo registo» e «Ajustar» aterram. Sem esta secção, a bancada media só a
-     * lista — e a lista é o sítio de onde se sai, não aquele onde se preenche. */
-    const paginaDaPorta = await servirPorta('http://127.0.0.1:');
-    try {
+    /* É a página onde «Novo registo» e «Ajustar» aterram, e é a que estava sem moldura. Aqui ela
+     * vai pelo MESMO `servir` da lista: nada de aplicar menu à mão. */
+    {
       const p2 = await browser.newPage();
       for (const largura of LARGURAS) {
         console.log('\n' + largura + 'px — a porta do Plano de Observação, com o menu da escola');
         await p2.setViewport({ width: largura, height: 520 });
-        await p2.goto(paginaDaPorta.base + '/area-do-professor/plano-de-observacao/?professor='
-          + 'coqui-de-redinha&escola=prova&ciclo=01&plano=' + encodeURIComponent(PLANO.id)
-          + '&fonte=po', { waitUntil: 'load' });
+        await p2.goto(base + '/plano-observacao/?professor=coqui-de-redinha&escola=prova'
+          + '&ciclo=01&plano=' + encodeURIComponent(PLANO.id) + '&fonte=po', { waitUntil: 'load' });
         await new Promise((r) => setTimeout(r, 900));
         const m2 = await p2.evaluate(MEDIR);
         if (m2.erro) { provar('a porta abriu com a barra do sistema', false, m2.erro); continue; }
@@ -584,8 +536,6 @@ function servirPorta(base) {
           + 'ela é medida na lista, com a mesma barra e a mesma coluna');
       }
       await p2.close();
-    } finally {
-      paginaDaPorta.srv.close();
     }
   } finally {
     await browser.close();

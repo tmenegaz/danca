@@ -1101,6 +1101,46 @@ dois controles passaram a ficar **empilhados**: o círculo sobe para cima da bar
 altura, o que está debaixo do «⋯», o empilhamento com a barra aberta, o esconder e o voltar, o
 desktop intacto e o sem-JavaScript.
 
+## A moldura nunca falta — em nenhuma tela *(05/11/2026)*
+
+**A regra, e é inegociável:** a barra do topo e a coluna da esquerda existem em **100% das telas**
+— lista, formulário, documento, Bastidores. Não há rota em que a página apareça «nua».
+
+O sintoma que a criou: ao entrar num formulário (criar, editar ou ajustar uma anamnese, um plano de
+ensino, um plano de observação) a moldura **desaparecia**, e a página virava «só um formulário com
+um roteiro ao lado e um cabeçalho em cima que pede a senha». A pesquisadora: «parece que ele foi
+levado para um outro lugar… não pode ser assim».
+
+**A causa foi de mecanismo, não de desenho.** Havia um único desenho (`motor/nucleo/nav.js`), mas
+duas formas de o aplicar: a **geração** substituía o marcador `<!-- NAV -->` do `porta/index.html`
+(uma vez, no dia em que o pacote nasceu) e a **ponte** substituía uma `<nav class="topnav">` que já
+existisse. Uma página cujo pacote ficou com o marcador — e a porta fica, porque é copiada — não era
+substituída por ninguém: a ponte via um marcador, não uma barra, e seguia com a página intacta.
+
+**A correção é o que esta norma passa a exigir:** a moldura não é um *substituto*, é um
+**enquadramento** (`nav.enquadrar`). Ele cobre as três formas — barra existente (substitui), o
+marcador (injeta ali o desenho inteiro, coluna + barra) e documento sem moldura nenhuma (injeta no
+início do `<body>`). É idempotente, e é por isso que pode correr em **toda** resposta HTML da ponte
+sem risco de duplicar.
+
+| Quem | Quando | O que garante |
+| --- | --- | --- |
+| `motor/servidor/producao.js` (`comAparencia`) | ao **servir**, toda resposta HTML | a moldura certa mesmo num pacote velho, ou num que nunca será regerado |
+| `tools/montar-publicacao.js` | ao **montar** | o artefacto está completo por si (aberto do disco, ou servido por um CDN sem Worker) |
+
+**E o menu de uma escola recém-criada já leva os três formulários.** «Anamnese do aluno», «Plano de
+ensino» e «Plano de Observação» são **moldura**, não conteúdo: a anamnese é o instrumento de
+*entrada* (vem antes de existir turma) e o plano de ensino é o que *cria* o ciclo. O que continua
+dinâmico é o resto — «Aulas» e os documentos do ciclo nascem com o ciclo, e o menu cresce com ele.
+
+**A prova** (`experimentos/provar-a-moldura-em-todas-as-telas.js`): monta uma publicação de verdade
+sobre uma árvore que reproduz o defeito (a porta com o marcador) e percorre as 16 telas pela ponte,
+exigindo barra, coluna e os três formulários em cada uma — mais o controlo que mostra `aplicar` a
+devolver `null` onde `enquadrar` devolve a página enquadrada.
+
+*Uma exceção declarada:* a **raiz do sistema** (`danca`, a página de criar escola) não tem coluna —
+ela não é de escola nenhuma e não há para onde navegar; o que ela tem é o cabeçalho do documento.
+
 ## Onde estou — o caminho na barra e a marca no menu *(26/10/2026)*
 
 **Aprofundar não é sair.** Quem está a meio de um plano, a preencher uma anamnese ou a ler uma

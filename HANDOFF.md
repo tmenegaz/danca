@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T00:42:20-0300`
-Commit atual: `2f5294ce` — fix(template): o layout da coluna nao depende so de :has(), e o menu volta a responder
+Gerado em: `2026-11-05T07:39:48-0300`
+Commit atual: `581742f7` — fix(experimentos): a prova do corpo não depende de um elo do PO que o acervo pode expurgar
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,12 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+581742f7 fix(experimentos): a prova do corpo não depende de um elo do PO que o acervo pode expurgar
+4309a18a fix(estrutura): o Novo registo deixa de voltar a lista, e o ciclo muda de forma com a fonte
+24f40d5a feat(template): a linha a apagar ganha veu, fio e spinner — e a folha ganha a peca
+5c844c3d chore(estrutura): regerar os índices derivados
+ad141e24 feat(acervo): envelope/.indice.json
+5b94a840 chore(acervo): apagar envelope/po-20261104-1811.json
 2f5294ce fix(template): o layout da coluna nao depende so de :has(), e o menu volta a responder
 37c1fbfe feat(estrutura): o PO apaga-se, e o menu dos formularios ganha bancada
 69b6ccae fix(estrutura): os dois planos passam a ter dois nomes
@@ -99,12 +105,6 @@ d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são
 6ede6131 feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
 edcd8a00 fix(estrutura): o nome do documento não se decide antes de gravar — quem decide é a gravação
 bd32839c chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
-548510eb chore(estrutura): regerar os índices derivados
-4cc5f11a chore(estrutura): reancorar a cadeia das fontes alteradas
-c65c4bb9 chore(estrutura): regerar os índices derivados
-d62b8195 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
-2fdc5deb feat(po): o PO elicitado vira a fonte do ciclo
-dfe16d78 feat(acervo): envelope/po-20261104-1811.json
 ```
 
 ## Por professor
@@ -230,82 +230,84 @@ dfe16d78 feat(acervo): envelope/po-20261104-1811.json
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — O «Novo registo» deixava de ser um registo novo, o ciclo mudou de forma em cada fonte, e a linha apagada fica trancada
+## 05/11/2026 — A moldura nunca falta: a ponte passa a enquadrar toda página, e a escola nova nasce com os três formulários
 
-Quatro queixas num só relatório, e três delas com a mesma assinatura: **uma lista de permissões a
-que faltava o membro mais recente.**
+Duas queixas, e as duas causas eram independentes — uma de mecanismo, outra de dados.
 
-### 1. O «Novo registo» piscava e voltava à listagem
+### 1. A moldura desaparecia nos formulários, e a razão é que ela era um substituto
 
-O sintoma, dela: «a página pisca, trava momentaneamente e retorna de imediato para a listagem,
-impedindo o preenchimento.»
+Ela: «quando eu vou criar uma anamnese, ou editar, ou ajustar… eu estou numa página que não tem
+identidade visual. Ela é só um formulário… Não pode, em momento nenhum que eu abra qualquer página
+do sistema Lastro, não existir o menu lateral e não existir o menu do topo.»
 
-O gesto nasceu em 04/11/2026 com o `?novo=<carimbo>`: `duplicarAnamnese` copia o retrato anterior
-para a condução e abre o formulário. Ele corre **antes** da trava de entrada, e a trava —
-`podePreencher` — isenta de senha a edição e a derivação (`emEdicao = EDITANDO || DERIVANDO`),
-porque a senha é pré-requisito de GRAVAR, não de abrir. O `DUPLICANDO` **não estava nessa lista**, e
-é o terceiro gesto da mesma família. Resultado: o formulário era pintado e, um instante depois, a
-mesma trava via senha vazia (ninguém a tinha digitado — a pessoa acabou de clicar) e chamava
-`voltarParaALista()`. Duas pinturas, e a segunda é a lista: o «pisca e volta» é literalmente isso.
+**Medido ao vivo, uma carga por página:**
 
-A correção é uma linha — `emEdicao = !!(EDITANDO || DERIVANDO || DUPLICANDO)` —, e a mesma omissão
-existia **no servidor**: `PARAMS_DO_ATO` (a lista de permissão do `302` que devolve à lista os
-endereços sem contexto) tinha `editar` e `ajustar` e não tinha `novo`. Um link que levasse só o
-carimbo era redireccionado antes de qualquer byte de formulário. Entram os dois.
+| | `<nav class="topnav">` | `<aside class="coluna…">` |
+|:--|:--|:--|
+| `/area-do-professor/anamnese/` (listagem) | 1 | 1 |
+| `/anamnese/?novo=…&professor=…&aluna=…` (porta) | **0** | **0** |
 
-**A bancada anterior não podia ter visto isto**, e é a lição: ela servia `api/…` com stubs de JSON,
-o arranque rebentava a meio, e o formulário ficava em branco — em branco ele não devolve ninguém à
-lista, e a primeira asserção dava verde. A `provar-novo-registo-e-ciclo` serve a página pela ponte a
-sério (`producao.fetch`, os envelopes no KV falso) e o acervo é o verdadeiro.
+E a porta servida trazia `<!-- NAV -->` — o **marcador**, à vista, no HTML.
 
-### 2. O ciclo, em cada fonte, tem a forma do que a fonte faz
+**A causa.** Há um desenho só (`motor/nucleo/nav.js`), mas duas formas de o aplicar: a **geração**
+substitui o marcador `<!-- NAV -->` do `porta/index.html`, e a **ponte** chama `navModulo.aplicar`,
+que procura uma `<nav class="topnav">` e a **substitui**. A porta não tem uma — tem o marcador. E
+`aplicar` não injeta: devolve `null`, e `comAparencia` seguia com a página que tinha. Numa palavra:
+**a moldura dependia de o pacote ter sido gerado com o menu do dia**, e a porta é copiada, não
+gerada. O pacote-zero da `breu` estava com o marcador, e por isso a porta servida não tinha nem
+barra nem coluna.
 
-- **Anamnese: não tem ciclo.** O campo era escondido com `display: none` no `.campo` — e ela voltou
-  a vê-lo. Um campo escondido por CSS continua no documento (basta o estilo não chegar) e continua
-  a ser lido por leitor de ecrã. Passa a **sair da página**: quem não pertence a esta fonte não fica
-  escondido, não fica.
-- **Plano de ensino: número travado no próximo.** Fica como estava — ele vai CRIAR um ciclo.
-- **Plano de Observação: lista, e só com os ciclos que têm plano de ensino.** A regra é dela: «não
-  é permitido criar um Plano de Observação para um ciclo que ainda não possui um Plano de Ensino
-  consolidado». O campo trava no PRÓXIMO era exactamente o contrário disso — o próximo é o ciclo que
-  ainda não tem plano nenhum. Quem diz quais são é o servidor (`GET /api/ciclos` → `comPlano`); a
-  tela não conta ciclos, e uma segunda cópia da regra divergiria dela.
+**A correção.** `nav.enquadrar` substitui `aplicar` no caminho de servir, e cobre as três formas:
+barra existente (substitui), marcador (injeta ali o desenho inteiro — coluna + barra) e documento
+sem moldura nenhuma (injeta no início do `<body>`). É **idempotente**, e é isso que permite correr
+em toda resposta sem duplicar. E `tools/montar-publicacao.js` passa a enquadrar a porta ao montar —
+o artefacto fica completo por si, não só quando o Worker o serve.
 
-O `<input>` é trocado por um `<select>` em tempo de execução (o ficheiro é um só para as três
-fontes), e o valor que o campo já tinha é transferido: no `?ajustar=` o contexto chega do envelope
-antes dessa troca. Um PO cujo plano tenha sido apagado **continua a abrir no ciclo dele** — retirar
-a opção escolhida deixaria o campo vazio e o documento ilegível.
+> **A bancada que devia ter visto isto dava 40/40.** A `provar-menu-do-formulario` tinha um
+> `servirPorta` que lia `porta/index.html` e aplicava o menu **à mão**, com o mesmo `aplicar`. Ela
+> media uma página que ela própria arranjava. Foi substituída: a porta passa pela ponte
+> (`producao.fetch`), como a lista. **Quem aplica a moldura é quem serve, e é isso que se mede** —
+> uma bancada que constrói o que devia encontrar não mede nada.
 
-### 3. O registo condenado não se lê enquanto a rota responde
+### 2. A escola nova nascia sem os três formulários
 
-«O item continua visível e interativo na listagem enquanto o processo roda. Isso permite que o
-usuário abra, leia ou tente ajustar um documento que está sendo destruído.» A Action do GitHub corre
-em segundo plano: entre o clique e a resposta há segundos em que a linha já está condenada e ainda
-obedece.
+Ela: «quando é criada a escola nova, ela está nascendo sem os menus, que são os de plano de ensino
+e de plano de observação e do plano da anamnese.»
 
-A trava é em **três camadas**, e as três são precisas: `data-apagando` (o estado, que a folha
-desenha), `inert` (tira a linha do ponteiro, do teclado e do leitor de ecrã — `pointer-events`
-sozinho deixa o Tab entrar) e `aria-busy`. Só saem na falha; no sucesso a página recarrega e a linha
-desaparece. A recusa (409) **destranca**: um registo que existe e não se pode abrir é pior do que o
-defeito.
+O grupo «Área do Professor» só entrava no menu `if (turmas.length)`, com um motivo que estava
+escrito e que era honesto («sem turma curada não há ato para preencher»). A decisão, porém, estava
+errada, e por três razões — a primeira é de domínio:
 
-**Motivo declarado (CONGELAMENTO.md):** `tools/templates/ciclo.css` está na lista congelada. Entra
-uma **peça nova** — `.trio-plano[data-apagando="sim"]` —, nascida inteira: o desenho na folha com
-todos os estados, as duas linhas no catálogo (`IDENTIDADE-VISUAL.md`, Quadros 1 e 2), a geometria
-medida no Chrome e a cópia nas superfícies. O véu é o papel do fundo a 82%, e não um `opacity` na
-linha: baixar a opacidade do conteúdo deixa o texto ilegível e ainda a prometer que se lê.
+1. **A anamnese vem antes da turma.** É o instrumento de ENTRADA: a aluna nova é entrevistada antes
+   de haver turma onde a pôr. Esconder o item até haver turma esconde a porta de quem ainda não tem
+   nada.
+2. **O plano de ensino é o que cria a turma** — é ele que abre o ciclo. Sem o item, a escola nova
+   não tem por onde começar.
+3. **A moldura é inegociável.** Um menu que muda de forma conforme o acervo não é moldura, é
+   conteúdo.
+
+Os três passam a entrar sempre. **«Aulas» continua a depender da turma** — e essa é a distinção que
+ela própria fez: «os demais itens de menu só vão existir quando for gerado o plano de ensino… eles
+são criados dinamicamente». Aula é documento de ciclo; sem ciclo não há aula para listar.
 
 ### A prova
 
-- `experimentos/provar-novo-registo-e-ciclo.js` (**nova**, 24 asserções, Chrome): o `?novo=` fica no
-  formulário e traz o retrato anterior no campo do nó que o guarda; a anamnese não pede ciclo nem no
-  texto do cabeçalho nem na marcação; o PO lista `01` e não `02` (o `02` existe no acervo, sem
-  plano — é a única fixture que separa «lista dos que têm plano» de «trava no próximo»); o plano
-  continua travado; e o véu cobre a linha (mesma altura e largura), diz «apagando…» e o spinner gira.
-- `experimentos/provar-apagar-da-listagem.js` (§4b, 51 asserções): com a resposta ADIADA, a linha
-  ganha `data-apagando`, `inert` e `aria-busy`, o botão desliga, e um 409 destranca com o motivo
-  escrito. Com um `fetch` que resolve na hora não há instante nenhum para medir — o teste passaria
-  sem ver o lock.
+`experimentos/provar-a-moldura-em-todas-as-telas.js` (**nova**, 95 asserções): monta uma publicação
+de verdade (`montar-publicacao.js --raiz <temp>`) sobre uma árvore que reproduz o defeito — a porta
+do pacote-zero **com o marcador**, como está no repositório — e percorre **16 telas** pela ponte,
+exigindo barra, coluna e os três formulários em cada uma. Inclui:
+
+- o **controlo da causa**: sobre o mesmo HTML com o marcador, `aplicar` devolve `null` e `enquadrar`
+  devolve a página enquadrada — e a segunda passagem devolve exactamente o mesmo (idempotência);
+- o **controlo negativo** do fragmento: sem `<body>` e sem marcador, `enquadrar` não inventa nada;
+- o **menu da escola sem turma**: os três formulários presentes, «Aulas» ausente, e o desenho já
+  com barra e coluna;
+- e o **A/B contra o commit anterior**, que reprova exactamente nas duas causas (5 de 95).
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/montar-publicacao.js` está em `tools/` (congelado).
+A mudança entra por **defeito medido na tela** — páginas servidas sem a moldura que a identidade
+exige —, e é de uma linha de aplicação por página publicada, mais a condição do grupo de menu. Não
+toca em hash, validação, geração de documento, nem em peça alguma da folha.
 
 ## O que está pendente
 

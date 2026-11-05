@@ -696,3 +696,9 @@ experimentos/modelo-formulario/*
 # não tem), o do PO (lista dos ciclos com plano) e o do plano (travado no próximo), e a geometria do
 # véu e do spinner da linha a apagar. Citada no `REGISTRO.md`.
 !experimentos/provar-novo-registo-e-ciclo.js
+
+# A MOLDURA EM TODAS AS TELAS (05/11/2026). A porta era servida com o marcador `<!-- NAV -->` cru:
+# a listagem ao lado tinha barra e coluna, o formulário não tinha nenhuma das duas. A bancada monta
+# uma publicação de verdade sobre uma árvore que reproduz o defeito e serve as 16 telas pela ponte
+# — sem aplicar menu à mão, que foi como a bancada anterior deu 40/40 sobre uma página nua.
+!experimentos/provar-a-moldura-em-todas-as-telas.js

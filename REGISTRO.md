@@ -35405,3 +35405,82 @@ linha: baixar a opacidade do conteúdo deixa o texto ilegível e ainda a promete
   ganha `data-apagando`, `inert` e `aria-busy`, o botão desliga, e um 409 destranca com o motivo
   escrito. Com um `fetch` que resolve na hora não há instante nenhum para medir — o teste passaria
   sem ver o lock.
+
+## 05/11/2026 — A moldura nunca falta: a ponte passa a enquadrar toda página, e a escola nova nasce com os três formulários
+
+Duas queixas, e as duas causas eram independentes — uma de mecanismo, outra de dados.
+
+### 1. A moldura desaparecia nos formulários, e a razão é que ela era um substituto
+
+Ela: «quando eu vou criar uma anamnese, ou editar, ou ajustar… eu estou numa página que não tem
+identidade visual. Ela é só um formulário… Não pode, em momento nenhum que eu abra qualquer página
+do sistema Lastro, não existir o menu lateral e não existir o menu do topo.»
+
+**Medido ao vivo, uma carga por página:**
+
+| | `<nav class="topnav">` | `<aside class="coluna…">` |
+|:--|:--|:--|
+| `/area-do-professor/anamnese/` (listagem) | 1 | 1 |
+| `/anamnese/?novo=…&professor=…&aluna=…` (porta) | **0** | **0** |
+
+E a porta servida trazia `<!-- NAV -->` — o **marcador**, à vista, no HTML.
+
+**A causa.** Há um desenho só (`motor/nucleo/nav.js`), mas duas formas de o aplicar: a **geração**
+substitui o marcador `<!-- NAV -->` do `porta/index.html`, e a **ponte** chama `navModulo.aplicar`,
+que procura uma `<nav class="topnav">` e a **substitui**. A porta não tem uma — tem o marcador. E
+`aplicar` não injeta: devolve `null`, e `comAparencia` seguia com a página que tinha. Numa palavra:
+**a moldura dependia de o pacote ter sido gerado com o menu do dia**, e a porta é copiada, não
+gerada. O pacote-zero da `breu` estava com o marcador, e por isso a porta servida não tinha nem
+barra nem coluna.
+
+**A correção.** `nav.enquadrar` substitui `aplicar` no caminho de servir, e cobre as três formas:
+barra existente (substitui), marcador (injeta ali o desenho inteiro — coluna + barra) e documento
+sem moldura nenhuma (injeta no início do `<body>`). É **idempotente**, e é isso que permite correr
+em toda resposta sem duplicar. E `tools/montar-publicacao.js` passa a enquadrar a porta ao montar —
+o artefacto fica completo por si, não só quando o Worker o serve.
+
+> **A bancada que devia ter visto isto dava 40/40.** A `provar-menu-do-formulario` tinha um
+> `servirPorta` que lia `porta/index.html` e aplicava o menu **à mão**, com o mesmo `aplicar`. Ela
+> media uma página que ela própria arranjava. Foi substituída: a porta passa pela ponte
+> (`producao.fetch`), como a lista. **Quem aplica a moldura é quem serve, e é isso que se mede** —
+> uma bancada que constrói o que devia encontrar não mede nada.
+
+### 2. A escola nova nascia sem os três formulários
+
+Ela: «quando é criada a escola nova, ela está nascendo sem os menus, que são os de plano de ensino
+e de plano de observação e do plano da anamnese.»
+
+O grupo «Área do Professor» só entrava no menu `if (turmas.length)`, com um motivo que estava
+escrito e que era honesto («sem turma curada não há ato para preencher»). A decisão, porém, estava
+errada, e por três razões — a primeira é de domínio:
+
+1. **A anamnese vem antes da turma.** É o instrumento de ENTRADA: a aluna nova é entrevistada antes
+   de haver turma onde a pôr. Esconder o item até haver turma esconde a porta de quem ainda não tem
+   nada.
+2. **O plano de ensino é o que cria a turma** — é ele que abre o ciclo. Sem o item, a escola nova
+   não tem por onde começar.
+3. **A moldura é inegociável.** Um menu que muda de forma conforme o acervo não é moldura, é
+   conteúdo.
+
+Os três passam a entrar sempre. **«Aulas» continua a depender da turma** — e essa é a distinção que
+ela própria fez: «os demais itens de menu só vão existir quando for gerado o plano de ensino… eles
+são criados dinamicamente». Aula é documento de ciclo; sem ciclo não há aula para listar.
+
+### A prova
+
+`experimentos/provar-a-moldura-em-todas-as-telas.js` (**nova**, 95 asserções): monta uma publicação
+de verdade (`montar-publicacao.js --raiz <temp>`) sobre uma árvore que reproduz o defeito — a porta
+do pacote-zero **com o marcador**, como está no repositório — e percorre **16 telas** pela ponte,
+exigindo barra, coluna e os três formulários em cada uma. Inclui:
+
+- o **controlo da causa**: sobre o mesmo HTML com o marcador, `aplicar` devolve `null` e `enquadrar`
+  devolve a página enquadrada — e a segunda passagem devolve exactamente o mesmo (idempotência);
+- o **controlo negativo** do fragmento: sem `<body>` e sem marcador, `enquadrar` não inventa nada;
+- o **menu da escola sem turma**: os três formulários presentes, «Aulas» ausente, e o desenho já
+  com barra e coluna;
+- e o **A/B contra o commit anterior**, que reprova exactamente nas duas causas (5 de 95).
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/montar-publicacao.js` está em `tools/` (congelado).
+A mudança entra por **defeito medido na tela** — páginas servidas sem a moldura que a identidade
+exige —, e é de uma linha de aplicação por página publicada, mais a condição do grupo de menu. Não
+toca em hash, validação, geração de documento, nem em peça alguma da folha.

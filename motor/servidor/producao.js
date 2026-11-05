@@ -153,9 +153,14 @@ async function comAparencia(resposta, aparencia, extras) {
    * dentro do pacote (onde `plano.html` seria relativo à turma) e na porta (onde seria relativo
    * à porta). A relativa é a razão de ter havido barras diferentes por página.
    */
+  /* A MOLDURA, E NÃO SÓ A BARRA (05/11/2026). Era `aplicar`, que SUBSTITUI uma `<nav>` que já
+   * exista — e a porta não tem uma: ela traz o marcador `<!-- NAV -->`. Medido ao vivo:
+   * `/anamnese/` servida com o marcador cru, sem barra e sem coluna, enquanto a listagem ao lado
+   * tinha as duas. `enquadrar` cobre as três formas (barra existente, marcador, documento sem
+   * moldura) e é idempotente, que é o que permite correr em TODA resposta sem risco. */
   if (menu) {
-    const comBarra = navModulo.aplicar(texto, menu, (extras && extras.pedido) || '/');
-    if (comBarra) texto = comBarra;
+    const comMoldura = navModulo.enquadrar(texto, menu, (extras && extras.pedido) || '/');
+    if (comMoldura) texto = comMoldura;
   }
 
   // O SLOT DA MARCA, PREENCHIDO AO SERVIR (18/10/2026).
