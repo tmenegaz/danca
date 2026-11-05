@@ -280,9 +280,12 @@ function principal() {
       !/Balé Nível|nivel-1|nivel-2/.test(coluna), coluna.length);
 
     const listaAulas = ler(pub, 'aulas/index.html');
+    /* O NOME DO DOCUMENTO DA AULA (04/11/2026): «Aula 01» passou a «Plano para a Aula 01 — …».
+     * A asserção continua a medir o mesmo — o nome abre a leitura em prosa numa nova aba —, e
+     * passa a exigir o nome novo: o cartão e a página dizem o mesmo. */
     checar('o nome da Aula 01 abre sua leitura em prosa numa nova aba',
-      /<a href="\/nivel-1\/aula-01\.html" target="_blank" rel="noopener" title="abrir a versão em prosa da aula">Aula 01<\/a>/.test(listaAulas),
-      (listaAulas.match(/<a[^>]+>Aula 01<\/a>/g) || []));
+      /<a href="\/nivel-1\/aula-01\.html" target="_blank" rel="noopener" title="abrir a versão em prosa da aula">Plano para a Aula 01/.test(listaAulas),
+      (listaAulas.match(/<a[^>]+>Aula 01[^<]*<\/a>/g) || []));
     /* «ABRIR NOTAÇÃO» SAIU DA LISTA (28/10/2026): é botão do cabeçalho da AULA. A lista abre o
      * documento; a leitura em notação procura-se lá dentro, onde o professor já sabe o que está
      * a ler. A prova passou a exigir o contrário do que exigia: o rótulo NÃO aparece aqui. */

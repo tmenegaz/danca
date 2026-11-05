@@ -189,9 +189,14 @@ async function oEstado() {
   const guardado = JSON.parse(kv.dados.get(chaveDoRegistro(ESCOLA, CONTEXTO)));
   assert.equal(guardado.variante, VARIANTE);
   assert.equal(guardado.rotulo, rotuloDaGeracao(CONTEXTO));
+  /* OS DOIS PLANOS DISTINGUEM-SE PELO NOME (04/11/2026). Antes o registo dizia «Plano de ensino»
+   * e «Aula 01» — e «Plano de ensino» era também o rótulo do FORMULÁRIO no menu, o que fazia
+   * duas coisas diferentes aparecerem com o mesmo nome. O par passa a ler-se: o mestre é o
+   * «Plano do ciclo», e a entrega é o «Plano para a Aula 01». */
   assert.deepEqual(guardado.documentos.map((d) => d.nome),
-    ['Plano de ensino', 'Aula 01', 'Glossário Benesh']);
-  ok('o registro guarda a variante, o rótulo e os documentos com nomes legíveis');
+    ['Plano do ciclo', 'Plano para a Aula 01', 'Glossário Benesh']);
+  ok('o registro guarda a variante, o rótulo e os documentos com nomes legíveis — '
+    + 'e os dois planos não se confundem');
 
   // --- O PONTEIRO DO ÚLTIMO REGISTRO (20/10/2026). A tela pergunta pelo endereço da porta, que
   //     não traz a turma: para responder «o que esta escola pediu por último» era preciso
@@ -401,7 +406,7 @@ async function aRota() {
   assert.equal(estado.dados.fase, 'enfileirada');
   assert.equal(estado.dados.registro.turma, CONTEXTO.turma);
   assert.deepEqual(estado.dados.registro.documentos.map((d) => d.nome),
-    ['Plano de ensino', 'Aula 01']);
+    ['Plano do ciclo', 'Plano para a Aula 01']);
   ok('GET /api/geracao devolve a fila, a turma e os documentos a gerar');
 
   // --- fontes que NÃO ficaram prontas: não dispara, e diz porquê

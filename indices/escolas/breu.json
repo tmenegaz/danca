@@ -9,8 +9,8 @@
           "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
           "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md"
         ],
-        "hash": "b3fe6578eb0961f88e95d67a7392cca38ea296b0a3a8d58da187fe41bf609d8a",
-        "hash_conteudo": "6ba2eaf81d6079eb4098a5bc1884ab83cc43471287394a29b8583c9f07076ae6",
+        "hash": "73affd8f7aa10eb4ffb60a6948fd2c3daf0b17af75ae123b9f9317651629cd8d",
+        "hash_conteudo": "0ec58c69d69f06e00e6480f331931c845ed9f0f20be7c511a2e7dce7eab57ac5",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -40,8 +40,8 @@
           "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
           "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
         ],
-        "hash": "0caaac7956c802dc3eaf235f5b7e21b4f50c061a6f2f11f8cba9eb5662d94e61",
-        "hash_conteudo": "57af3269fdefd212d08a044a27922ea0e8cd7b2299ca1aa29c4013fe4d4f7cdd",
+        "hash": "356e51b7c920128b10fefdc00e7a047b52121a5d931db0c61098e961b35064bf",
+        "hash_conteudo": "2911e68270c21bc2e6cf31c560c5700d5386133199fceeddd878ff9385578722",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
@@ -56,8 +56,8 @@
               "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
               "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md"
             ],
-            "hash": "b3fe6578eb0961f88e95d67a7392cca38ea296b0a3a8d58da187fe41bf609d8a",
-            "hash_conteudo": "6ba2eaf81d6079eb4098a5bc1884ab83cc43471287394a29b8583c9f07076ae6",
+            "hash": "73affd8f7aa10eb4ffb60a6948fd2c3daf0b17af75ae123b9f9317651629cd8d",
+            "hash_conteudo": "0ec58c69d69f06e00e6480f331931c845ed9f0f20be7c511a2e7dce7eab57ac5",
             "id": "ciclo-01-breu-bale-nivel-1-teste-3-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -408,9 +408,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "af0e8267"
+    "commit": "73ef1683"
   },
-  "gerado_em": "2026-11-05T00:49",
+  "gerado_em": "2026-11-05T01:16",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -3,7 +3,7 @@ projeto: Formação em Balé Clássico
 frente: Aula
 ciclo: "01"
 aula: "01"
-title: "Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
+title: "Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
 objetivo-especifico: "reconhecer o apoio e alinhar o eixo vertical"
 duracao: "45 minutos"
 volume-total: "90 tempos"

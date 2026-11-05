@@ -628,7 +628,11 @@ function itemDaAula(t, a, indice, total) {
   const guia = guiaDoCartao(t, a);
 
   return {
-    nome: 'Aula ' + a.n + (a.marco ? ' — ' + a.marco : ''),
+    /* O CARTÃO NOMEIA O DOCUMENTO PELO QUE ELE É (04/11/2026). Era «Aula 01 — <marco>», e o
+     * documento que ele abre chama-se «Plano para a Aula 01 — <objetivo>»: o cartão e a página
+     * diziam nomes diferentes para a mesma coisa. O cartão passa a usar a mesma família — o
+     * marco continua a discriminar, como no título. */
+    nome: 'Plano para a Aula ' + a.n + (a.marco ? ' — ' + a.marco : ''),
     ler,
     lerDica: 'abrir a versão em prosa da aula',
     acoes,

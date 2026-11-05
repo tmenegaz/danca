@@ -542,8 +542,20 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   // O título é o próprio objetivo específico — sem truncar com reticências: o
   // `check-pacote.js` compara o <h1> da página com o texto do PDF, e o «…» não
   // atravessa o pandoc→LaTeX como um único caractere (quebrava a conferência).
-  const tituloDaAula = objetivo && !objetivo.startsWith('[Preencher') ? objetivo : 'Aula 01';
-  saida.push('title: "Aula 01 — ' + tituloDaAula + '"');
+  //
+  // ELE DIZ QUE ESTE DOCUMENTO É UM PLANO (04/11/2026). O pesquisador: «a nomenclatura genérica
+  // — «Aula 01» — gera estranheza e sensação de sobreposição na navegação; os documentos gerados
+  // dentro do plano devem ser explicitamente identificados por nó e aula: «Plano para a Aula 1»,
+  // «Plano para a Aula 2»…». O par passa a ler-se pelo que cada um É: o mestre é «Plano do
+  // Ciclo 01», e cada entrega é «Plano para a Aula 01». O nome do ARQUIVO (`aula-01.md`,
+  // `aula-01.html`) não muda: ele é endereço — entra na âncora, no DOCS do `.conf`, nos links
+  // entre páginas e no PDF. Renomear o endereço por causa do rótulo partiria a cadeia sem
+  // ganhar nada: o que se lia mal era o rótulo, e é ele que muda.
+  //
+  // O NÚMERO FICA COM DOIS DÍGITOS, e é a convenção do pacote inteiro (`aula-01`, «Ciclo 01»);
+  // o exemplo do pesquisador («Aula 1») é a forma falada, não a do arquivo.
+  const tituloDaAula = objetivo && !objetivo.startsWith('[Preencher') ? objetivo : '';
+  saida.push('title: "Plano para a Aula 01' + (tituloDaAula ? ' — ' + tituloDaAula : '') + '"');
   saida.push('objetivo-especifico: "' + (objetivoDaAula1(plano) || '[Preencher]') + '"');
   saida.push('duracao: "' + duracaoMin + ' minutos"');
   if (volumeTotal) saida.push('volume-total: "' + volumeTotal + ' tempos"');

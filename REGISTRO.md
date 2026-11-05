@@ -35154,3 +35154,70 @@ objetivo específico daquela aula. Ligá-los exigiria um par (aspecto × objetiv
 formulário declara** — e inventá-lo seria exactamente o defeito do «Port de bras» outra vez. Os
 objetivos ligam-se ao que se mede em «Parâmetro de medição» (§1), e essa ligação existe porque o
 professor a marcou.
+
+## 04/11/2026 — Os dois planos passam a ter dois nomes
+
+**O que motivou.** O pesquisador olhou a navegação e viu sobreposição: «a nomenclatura genérica
+(ex: chamando tudo de "ciclo 1" ou com títulos repetidos) gera estranheza e sensação de
+sobreposição na navegação. Os documentos gerados dentro do plano devem ser explicitamente
+identificados por nó e aula correspondente: **"Plano para a Aula 1"**, seguido de **"Plano para a
+Aula 2"**».
+
+**O que se mediu antes de mexer — e o pedido de uma refatoração maior não se confirmou.**
+
+1. **O documento mestre já existe.** É o `plano.md`/`plano.html`: a lista «Ciclos · Planos» abre-o
+   **direto** (`itemDoPlano` → `hrefPlano`), sem listagem encadeada por aula. Não havia documento
+   a criar; havia um nome a corrigir.
+2. **A redundância entre plano e aula é, na quase totalidade, DERIVAÇÃO.** Das linhas com conteúdo
+   (>25 caracteres) presentes nos dois documentos, **uma** é cópia literal — o *bullet* das
+   condições preliminares (`- Sala com barra, espelho e aparelho de som; piso adequado.`). As
+   outras — duração, fatia de cada bloco, exercícios da música — são o mesmo dado **lido** de
+   sítios com papéis diferentes: o plano declara, a aula executa. O pesquisador confirmou esta
+   leitura: «o que parecia ser uma redundância incômoda na leitura é, na verdade, um mecanismo de
+   derivação estrutural».
+3. **Objectivos específicos, marcos, volume e repertório NÃO saem do plano.** São a régua que a
+   Regra 9, a Regra 10 e `tools/validar-plano-ciclo.js` exigem, e o envelope é onde a curadoria os
+   declara. Movê-los para a aula quebraria a validação do ciclo e a filtragem da sequência.
+
+**O que foi decidido e implementado.**
+
+- **O documento de cada aula chama-se «Plano para a Aula NN — <objetivo específico>».** O par passa
+  a ler-se pelo que cada um É: «Plano do Ciclo 01» (o mestre) e «Plano para a Aula 01» (a entrega).
+- **O nome muda em TRÊS superfícies, e as três dizem o mesmo**: o `title:` do front-matter
+  (`motor/nucleo/derivar-ciclo.js`, que alimenta o `<h1>`, o menu do pacote e o marcador do PDF), o
+  cartão da listagem (`tools/montar-publicacao.js`, `itemDaAula`) e o registo da geração
+  (`motor/servidor/geracao.js`, `NOMES_DOS_DOCUMENTOS`). Neste último, o documento do ciclo deixou
+  de se chamar «Plano de ensino» — que era também o rótulo do **formulário** no menu, duas coisas
+  diferentes com o mesmo nome — e passou a «Plano do ciclo».
+- **O nome do ARQUIVO não mudou** (`aula-01.md`, `aula-01.html`). Ele é endereço: entra na âncora
+  `.fipp`, no `DOCS` do `.conf`, nos links entre páginas e nos 110 links internos do PDF. O que se
+  lia mal era o rótulo.
+- **O número fica com dois dígitos** (`Aula 01`, não `Aula 1`): é a convenção do pacote inteiro, e
+  o exemplo do pesquisador é a forma falada.
+- **A bancada passou a exigir a concordância entre a lista e a página** (`provar-cartao-da-aula`,
+  secção 4b, 5 asserções novas): o nome do cartão tem de ser **prefixo** do `<h1>` do documento que
+  ele abre. Era essa a divergência real — o cartão dizia «Aula 01» e abria outro nome.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (o `title:` e o comentário que explica por que o
+endereço não muda) · `motor/servidor/geracao.js` · `tools/montar-publicacao.js` ·
+`ARQUITETURA-GERAL.md` §5.9 (a tabela dos dois nomes e o que NÃO se mexeu) ·
+`experimentos/provar-cartao-da-aula.js` (31, com a secção 4b) · `provar-barra-e-caminho` (o nome
+curto do degrau) · `provar-geracao` (os dois nomes no registo) · `provar-publicacao-da-escola` (o
+cartão da lista) · o pacote e a âncora do `ciclo-01-breu-bale-nivel-1-teste-3`, regerados.
+
+**Com o quê.** `provar-cartao-da-aula` (31) · `provar-publicacao-da-escola` (63) ·
+`provar-eixos-e-tempo-da-aula` (61) · `provar-eixos-do-po` (34) · `provar-ciclos-e-anamnese` (34) ·
+`provar-cadeia-do-ajuste` (34) · `provar-apagar-da-listagem` (32) · `provar-contexto-do-ato` (39) ·
+`provar-colunas-da-aula` (23) · `provar-verbos-do-armazenamento` (29) · `provar-fusao-da-edicao`
+(29) · `provar-faixa-do-ato-no-celular` (40) · `provar-plano-completo` (18) · `provar-plano-matriz`
+(52) · `provar-indice-de-envelopes` (44) · `check-pacote` 0/0 · `check-indices` 14/14 ·
+`check-identidade` 20/20 · `hash-ciclo --check`.
+
+**Bancadas que já falhavam — verificado por A/B num worktree limpo em `HEAD`.** Cinco bancadas
+reprovam neste ambiente, e reprovavam **antes** desta entrega: `provar-navegacao` e
+`provar-painel-do-ato` (pedem o pacote gerado de «calango», que não está neste worktree),
+`provar-geracao` (1 de 45: a ponte do cartão precisa do pacote de «calando-teste-1»),
+`provar-barra-e-caminho` (47 de 48: mede o `lancamento.html` da «batata», expurgada) e
+`provar-listas-do-acervo` (8 de 109: espera os caminhos `/area-do-professor/…`, que o menu deixou
+de usar). Nenhuma delas toca no nome dos documentos; a comparação foi feita com `git worktree add`
+sobre o mesmo `HEAD`, e não por memória.

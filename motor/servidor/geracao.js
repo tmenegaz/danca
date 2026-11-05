@@ -75,9 +75,13 @@ function chaveDoRegistro(escola, contexto) {
  * técnicos (`aula-01`, `glossario-benesh`); a tela mostra o que a pessoa reconhece.
  */
 const NOMES_DOS_DOCUMENTOS = {
-  'plano': 'Plano de ensino',
+  /* OS DOIS PLANOS TÊM NOMES QUE SE DISTINGUEM (04/11/2026). Antes: «Plano de ensino» e «Aula
+   * 01» — dois nomes que não diziam que são a MESMA família (um plano do ciclo, um plano da
+   * aula), e «Plano de ensino» era ainda o rótulo do FORMULÁRIO no menu, o que fazia duas coisas
+   * diferentes aparecerem com o mesmo nome. Agora o registo diz o que cada documento é. */
+  'plano': 'Plano do ciclo',
   'harmonizacao': 'Harmonização',
-  'aula-01': 'Aula 01',
+  'aula-01': 'Plano para a Aula 01',
   'captura-aula-01': 'Captura da aula 01',
   'notacao': 'Notação',
   'glossario-benesh': 'Glossário Benesh',

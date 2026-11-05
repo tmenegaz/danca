@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **o corpo tem uma fonte só — e a
+> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **os dois planos passam a ter
+> dois nomes**: o do ciclo é «Plano do Ciclo NN» e o de cada aula é **«Plano para a Aula NN —
+> objetivo»**, nas três superfícies que o mostram (o `<h1>` do documento, o cartão da listagem e o
+> registo da geração). O documento mestre **já existia** — «Ciclos · Planos» abre-o direto, sem
+> listagem encadeada —, e a redundância que parecia haver entre plano e aula é, medidamente,
+> **derivação**: uma só linha era cópia literal (o *bullet* das condições preliminares). Objetivos,
+> marcos, volume e repertório **ficam no plano** (Regras 9 e 10 e os validadores). O nome do
+> ARQUIVO não mudou: é endereço, e entra na âncora. Prova: `provar-cartao-da-aula`, **31
+> asserções**, com a secção 4b a exigir que o cartão seja prefixo do título da página.
+>
+> **Entrega anterior** (árvore limpa). Nesta entrega, **o corpo tem uma fonte só — e a
 > origem está provada no envelope real**. (1) **O sentido do vínculo não mudou**: a aula deriva do
 > plano, e o PE/PO são a origem; o que se arrumou foi onde cada **vista** mora — o plano declara a
 > visão macro (N aspectos + link), a aula o detalhe (os N, um por linha), o PO o ponto de partida de
@@ -2030,6 +2040,14 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      eram sessenta e uma linhas antes da primeira marca. O título da secção do plano perdeu «força e
      flexibilidade» — declara o **eixo**, não a lista de capacidades, que é a da aula. **DECIDIDO e
      implementado** 04/11/2026.
+
+105. **OS DOIS PLANOS TÊM DOIS NOMES — E AS TRÊS SUPERFÍCIES DIZEM O MESMO.** O documento do ciclo é
+     «Plano do Ciclo NN»; o de cada aula é «Plano para a Aula NN — objetivo». O nome muda no
+     `title:` do front-matter (que alimenta `<h1>`, menu e PDF), no cartão da listagem e no registo
+     da geração — e a bancada exige que o nome do cartão seja **prefixo** do título da página:
+     medir uma superfície só deixaria viva a divergência entre a lista e o documento que ela abre.
+     **O nome do arquivo não muda**: `aula-01.md` é endereço, e entra na âncora `.fipp`, no `DOCS`
+     do `.conf` e nos links internos. **DECIDIDO e implementado** 04/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

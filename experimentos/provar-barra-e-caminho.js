@@ -311,7 +311,11 @@ console.log('\n7 · O título é o do `<h1>` da PÁGINA, e não o que está num 
   for (const [bruto, nome] of [
     ['Lançamento de aula — formulário eletrônico', 'Lançamento de aula'],
     ['Plano do Ciclo 01 — batata', 'Plano do Ciclo 01'],
-    ['Aula 01 — reconhecer o apoio e alinhar o eixo vertical', 'Aula 01'],
+    /* O NOME CURTO DO DOCUMENTO DA AULA (04/11/2026): ele passou a chamar-se «Plano para a Aula
+     * 01 — …», porque o documento é um plano e a barra dizia só «Aula 01», que se confundia com a
+     * listagem das aulas. O corte no travessão continua a valer — o degrau é um nome, não uma
+     * ficha. */
+    ['Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical', 'Plano para a Aula 01'],
     ['Referências Bibliográficas', 'Referências Bibliográficas'],
     ['Notação em Benesh', 'Notação em Benesh'],
   ]) {

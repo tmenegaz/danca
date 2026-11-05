@@ -694,6 +694,38 @@ parágrafo** — medido: o `guiaDeObservacao.Corpo` do `plano-aula-01.json` vira
 restrições, e o cartão perdia os quinze. A citação é o que o contrato chama de comentário do
 documento: fica visível para quem lê e não entra no dado.
 
+### 5.9 Os dois planos, e os dois nomes
+
+O pacote de um ciclo tem **dois documentos que são planos**, e até 04/11/2026 só um deles o dizia:
+o do ciclo chamava-se «Plano do Ciclo 01», e o de cada aula chamava-se «Aula 01» — um nome que o
+confundia com a **listagem** das aulas e não dizia que o documento é um plano. O pesquisador:
+*«a nomenclatura genérica gera estranheza e sensação de sobreposição na navegação; os documentos
+gerados dentro do plano devem ser explicitamente identificados por nó e aula: «Plano para a
+Aula 1», «Plano para a Aula 2»…»*.
+
+| Documento | Nome, depois | Escala do que publica |
+|:--|:--|:--|
+| `plano.md` / `plano.html` | **Plano do Ciclo NN** | o ciclo: contexto, objetivo geral, marcos, volume alvo, régua, horizonte, condições, proveniência |
+| `aula-NN.md` / `aula-NN.html` | **Plano para a Aula NN — objetivo específico** | a entrega: o objetivo daquele dia, a fatia de tempo, a música, o guia de observação |
+
+**O nome muda em três superfícies, e as três têm de dizer o mesmo** — o `<h1>` do documento, o
+cartão da listagem e o registo da geração. Medir uma só deixaria viva a divergência entre a lista
+e a página que ela abre, que era exactamente o defeito do cartão (dizia «Aula 01» e abria «Plano
+para a Aula 01»). A bancada mede as três (`provar-cartao-da-aula`, secção 4b) e exige que o nome
+do cartão seja **prefixo** do título da página.
+
+**O nome do ARQUIVO não muda** — `aula-01.md`, `aula-01.html`. Ele é **endereço**, e o endereço
+entra na âncora `.fipp` (o `DOCS` do `.conf`), nos links entre páginas, no PDF e no índice do
+lançamento. Renomear o endereço por causa do rótulo partiria a cadeia e os 110 links internos do
+PDF sem ganhar nada: o que se lia mal era o rótulo.
+
+**O que NÃO se mexeu, e porquê.** A redundância que parecia haver entre o plano e a aula é, na
+maior parte, **derivação** — a aula lê do plano a duração, a fatia de cada bloco, os exercícios da
+sequência. Medido: das linhas com conteúdo em comum, **uma** era cópia literal (o *bullet* das
+condições preliminares), e as outras são o mesmo dado lido de sítios diferentes com papéis
+diferentes. Objectivos específicos, marcos, volume e repertório **ficam no plano**: são a régua
+que a Regra 9, a Regra 10 e os validadores exigem, e o envelope é onde a curadoria os declara.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

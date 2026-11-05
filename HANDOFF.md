@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T21:49:56-0300`
-Commit atual: `af0e8267` — fix(estrutura): o corpo tem uma fonte so — o detalhe na Aula 1, o ponteiro no plano
+Gerado em: `2026-11-04T22:18:13-0300`
+Commit atual: `73ef1683` — fix(estrutura): a aula deriva do plano, e a origem do corpo fica provada no envelope real
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+73ef1683 fix(estrutura): a aula deriva do plano, e a origem do corpo fica provada no envelope real
 af0e8267 fix(estrutura): o corpo tem uma fonte so — o detalhe na Aula 1, o ponteiro no plano
 e199a85e feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estrita, e a anamnese e datada
 b9722672 fix(campo): o cabecalho do ato cabe no telefone, e as tres assercoes eram da bancada
@@ -104,7 +105,6 @@ dfe16d78 feat(acervo): envelope/po-20261104-1811.json
 fbd0756c feat(acervo): envelope/.indice.json
 7091587e fix(campo): o ajuste do plano de ensino arrasta o PO — e o cartão da aula mostra o guia
 355a1a4e fix(campo): a fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes
-c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `0caaac7956c8` | (vazio) | Input_PO_Aguardando |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `356e51b7c920` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,124 +230,72 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — O corpo tem uma fonte só: o detalhe na Aula 1, o ponteiro no plano
+## 04/11/2026 — Os dois planos passam a ter dois nomes
 
-**O que motivou.** A pesquisadora: «o bloco detalhado de força e flexibilidade deve residir
-exclusivamente dentro da Aula 1, substituindo as linhas genéricas/individuais por aluna; o Plano de
-Ciclo passa a tratar o aspecto físico de forma macro — um texto curto e um link para a secção
-correspondente do corpo na Aula 1». E o diagnóstico que a levou lá: «a listagem individualizada
-(`aluna A: o que traz, a desenvolver, restrições`) é inviável para larga escala — com dezenas de
-alunas, a interface e a lógica quebram».
+**O que motivou.** O pesquisador olhou a navegação e viu sobreposição: «a nomenclatura genérica
+(ex: chamando tudo de "ciclo 1" ou com títulos repetidos) gera estranheza e sensação de
+sobreposição na navegação. Os documentos gerados dentro do plano devem ser explicitamente
+identificados por nó e aula correspondente: **"Plano para a Aula 1"**, seguido de **"Plano para a
+Aula 2"**».
 
-**O que se mediu.** A duplicação era real e vinha da **mesma** chave do envelope: `aspecto-fisico`
-era impresso no plano (`derivar-plano-ciclo.js`, tabela de quinze linhas) e na aula
-(`derivar-ciclo.js`, eixo do corpo). A escala também: o guia lia o `linha-de-base` do PO — uma linha
-por sujeito, **duas** por sujeito («o que traz» e «a desenvolver») mais a restrição da turma. Com
-trinta alunas, sessenta e uma linhas antes da primeira marca. Nada disso falhava: eram duas cópias
-certas, e uma linha por aluna que o documento não tinha como sustentar.
+**O que se mediu antes de mexer — e o pedido de uma refatoração maior não se confirmou.**
+
+1. **O documento mestre já existe.** É o `plano.md`/`plano.html`: a lista «Ciclos · Planos» abre-o
+   **direto** (`itemDoPlano` → `hrefPlano`), sem listagem encadeada por aula. Não havia documento
+   a criar; havia um nome a corrigir.
+2. **A redundância entre plano e aula é, na quase totalidade, DERIVAÇÃO.** Das linhas com conteúdo
+   (>25 caracteres) presentes nos dois documentos, **uma** é cópia literal — o *bullet* das
+   condições preliminares (`- Sala com barra, espelho e aparelho de som; piso adequado.`). As
+   outras — duração, fatia de cada bloco, exercícios da música — são o mesmo dado **lido** de
+   sítios com papéis diferentes: o plano declara, a aula executa. O pesquisador confirmou esta
+   leitura: «o que parecia ser uma redundância incômoda na leitura é, na verdade, um mecanismo de
+   derivação estrutural».
+3. **Objectivos específicos, marcos, volume e repertório NÃO saem do plano.** São a régua que a
+   Regra 9, a Regra 10 e `tools/validar-plano-ciclo.js` exigem, e o envelope é onde a curadoria os
+   declara. Movê-los para a aula quebraria a validação do ciclo e a filtragem da sequência.
 
 **O que foi decidido e implementado.**
 
-- **A aula fica com a tabela dos aspectos** — um por linha, chave/valor —, e **perde as linhas por
-  aluna**. O retrato de cada sujeito não se perde: ele vive no PO, e o §6 da aula (`Proveniência
-  consolidada`) aponta para lá. O resumo do eixo continua a contar as alunas (é O(1), e é o que a
-  pessoa lê de relance).
-- **Sem aspecto consolidado, o eixo declara a lacuna e o caminho de volta.** Era a linha das
-  restrições que garantia uma linha ao corpo; fora ela, um plano por consolidar faria o eixo dizer
-  «nenhuma dimensão do PO cai neste eixo» — que é falso, e manda procurar no sítio errado.
-- **O plano publica o ponteiro:** a contagem («15 aspectos físicos de referência»), uma frase, e
-  `[Aula 01 — Corpo](aula-01.html#corpo)`. **O link só existe porque a página e o âncora existem** —
-  a regra de `tools/tabela-objetivos.js`: a aula 01 é um dos documentos que a geração sempre produz,
-  e o `#corpo` nasce do `### Corpo` que a derivação emite para os três eixos.
-- **O título perdeu «força e flexibilidade»** e passou a «Aspecto físico». O que a secção declara é o
-  **eixo** do corpo, não a lista de capacidades que o compõem — essa é a da aula, e nomeá-la no plano
-  prometia a tabela que saiu. O alias antigo fica em `tools/validar-plano-ciclo.js` (o `tools/` está
-  congelado, e é por isso que a linha entra com motivo declarado): há plano escrito com o título
-  comprido e ele continua a extrair.
+- **O documento de cada aula chama-se «Plano para a Aula NN — <objetivo específico>».** O par passa
+  a ler-se pelo que cada um É: «Plano do Ciclo 01» (o mestre) e «Plano para a Aula 01» (a entrega).
+- **O nome muda em TRÊS superfícies, e as três dizem o mesmo**: o `title:` do front-matter
+  (`motor/nucleo/derivar-ciclo.js`, que alimenta o `<h1>`, o menu do pacote e o marcador do PDF), o
+  cartão da listagem (`tools/montar-publicacao.js`, `itemDaAula`) e o registo da geração
+  (`motor/servidor/geracao.js`, `NOMES_DOS_DOCUMENTOS`). Neste último, o documento do ciclo deixou
+  de se chamar «Plano de ensino» — que era também o rótulo do **formulário** no menu, duas coisas
+  diferentes com o mesmo nome — e passou a «Plano do ciclo».
+- **O nome do ARQUIVO não mudou** (`aula-01.md`, `aula-01.html`). Ele é endereço: entra na âncora
+  `.fipp`, no `DOCS` do `.conf`, nos links entre páginas e nos 110 links internos do PDF. O que se
+  lia mal era o rótulo.
+- **O número fica com dois dígitos** (`Aula 01`, não `Aula 1`): é a convenção do pacote inteiro, e
+  o exemplo do pesquisador é a forma falada.
+- **A bancada passou a exigir a concordância entre a lista e a página** (`provar-cartao-da-aula`,
+  secção 4b, 5 asserções novas): o nome do cartão tem de ser **prefixo** do `<h1>` do documento que
+  ele abre. Era essa a divergência real — o cartão dizia «Aula 01» e abria outro nome.
 
-**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`eixosDaObservacao` e a nota do §5) ·
-`motor/nucleo/derivar-plano-ciclo.js` (a secção) · `tools/validar-plano-ciclo.js` (o alias) ·
-`ARQUITETURA-GERAL.md` §5.8 · `experimentos/provar-eixos-e-tempo-da-aula.js` (secção I, 9 asserções
-novas: 41 → 50) · as fontes derivadas do `ciclo-01-breu-bale-nivel-1-teste-3`, regeradas com
-`tools/regerar-derivados.js` (2 ficheiros, diff lido antes de gravar) e o pacote regerado.
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (o `title:` e o comentário que explica por que o
+endereço não muda) · `motor/servidor/geracao.js` · `tools/montar-publicacao.js` ·
+`ARQUITETURA-GERAL.md` §5.9 (a tabela dos dois nomes e o que NÃO se mexeu) ·
+`experimentos/provar-cartao-da-aula.js` (31, com a secção 4b) · `provar-barra-e-caminho` (o nome
+curto do degrau) · `provar-geracao` (os dois nomes no registo) · `provar-publicacao-da-escola` (o
+cartão da lista) · o pacote e a âncora do `ciclo-01-breu-bale-nivel-1-teste-3`, regerados.
 
-**Com o quê.** `node experimentos/provar-eixos-e-tempo-da-aula.js` (50) · `provar-eixos-do-po` (34) ·
-`provar-forca-e-flexibilidade` (17) · `provar-aula-e-plano-legiveis` (12) · `provar-plano-matriz`
-(52) · `tools/check-pacote.js` · `tools/hash-ciclo.sh … --check` (cadeia intacta).
+**Com o quê.** `provar-cartao-da-aula` (31) · `provar-publicacao-da-escola` (63) ·
+`provar-eixos-e-tempo-da-aula` (61) · `provar-eixos-do-po` (34) · `provar-ciclos-e-anamnese` (34) ·
+`provar-cadeia-do-ajuste` (34) · `provar-apagar-da-listagem` (32) · `provar-contexto-do-ato` (39) ·
+`provar-colunas-da-aula` (23) · `provar-verbos-do-armazenamento` (29) · `provar-fusao-da-edicao`
+(29) · `provar-faixa-do-ato-no-celular` (40) · `provar-plano-completo` (18) · `provar-plano-matriz`
+(52) · `provar-indice-de-envelopes` (44) · `check-pacote` 0/0 · `check-indices` 14/14 ·
+`check-identidade` 20/20 · `hash-ciclo --check`.
 
-**Referências.** `ARQUITETURA-GERAL.md` §5.8, §5.4.2 (o corpo é do sujeito) · `tools/tabela-objetivos.js`
-(a regra do link que só existe quando a página existe) · `REGISTRO.md` 02/11/2026 e 04/11/2026 (o
-aspecto físico como primeiro dos três eixos) · `REGRAS.md` (Regra 4) · `CONGELAMENTO.md` (o motivo
-declarado para tocar em `tools/`).
-
-**O controlo negativo.** A asserção que mede a escala — «com três alunas o documento não cresce» —
-reprova com a regra anterior (8 linhas contra 2), e a que mede a duplicação — «o plano não repete a
-tabela» — reprova com a secção antiga. As duas foram escritas depois de ver o documento antigo.
-
-**Dois consumidores que a mudança pôs a descoberto — e os dois eram falhas silenciosas.**
-
-1. **O cartão da listagem lia a tabela do plano.** `tools/montar-publicacao.js` montava a frente
-   «Corpo» a partir de `plano-01.json` (`aspectoFisico`), e com a secção a virar ponteiro essa
-   leitura devolvia **zero** aspectos: o «Corpo 15» virava «sem dimensões no PO». O cartão passa a
-   ler `plano-aula-NN.json` (`guiaDeObservacao.Corpo`) — o mesmo dado, no lugar onde ele passou a
-   ser impresso — e mantém a leitura do plano **como recurso** para os pacotes gerados antes desta
-   data (P-04: o passado não se reescreve para caber no presente). `provar-cartao-da-aula` (25)
-   passou a nomear a fonte, e continua a exigir os 15.
-2. **A prova «cada resposta no seu destino» apontava para o destino antigo.** `provar-plano-completo`
-   exigia o marcador do aspecto físico no `plano-XX.json`; com o plano a publicar o ponteiro, o
-   marcador deixou mesmo de lá chegar — e a prova reprovou com razão. O destino passou a ser o
-   `aula-01.md`, e ficou uma asserção que exige o marcador **na aula**: é o destino que mudou, não
-   o dado. (18 verificações, verdes.)
-
-É o segundo dia seguido em que uma mudança de documento revela um consumidor escondido: o
-`plano-aula-01.json` já trazia o guia extraído e ninguém o lia; e o cartão lia a cópia errada sem
-nunca falhar.
-
-**A resposta dela, e o que ela fixa.** «Não se deve alterar o sentido clássico do vínculo — a aula
-continua derivando do plano, e não o inverso»; e «o gerador da aula deve buscar a informação onde
-ela é preenchida de origem». O sentido estava certo desde sempre; o que faltava era **prová-lo**, e
-uma coisa que se perdeu com a limpeza de ontem: a **restrição física**.
-
-1. **A origem passou a estar provada, e não afirmada.** A secção J da bancada lê o **envelope real**
-   do ciclo (`escola/breu/envelopes/plano-20261104-1732.json`, versionado) e exige: as linhas da
-   aula são **exactamente** os rótulos do envelope, na ordem; **trocado o envelope**, a aula
-   segue-o e nenhum dos quinze rótulos reais sobra; a contagem do plano **bate** com as linhas da
-   aula. O controlo negativo foi feito a sério — com **um** aspecto inventado no código (`Port de
-   bras`, a ironia é o nome do bug de ontem), **quatro** asserções reprovam, incluindo a que compara
-   a conta do plano com a da aula (15 contra 16).
-
-2. **A restrição física voltou ao documento, e não à tabela.** Ela saiu ontem junto com as linhas
-   por aluna — e era remoção a mais. A tabela fica com os aspectos e só eles; a restrição vem numa
-   linha depois, citada. A razão de ela ter de voltar não é gosto: o próprio PO escreve, sobre este
-   campo, que é «lesão, dor, limitação médica ou restrição que afeta o movimento de alguma aluna» e
-   que «a ausência também é informação». Um documento que se imprime e se leva para a sala não a
-   pode omitir. E o que saiu foi a **enumeração da máquina** (duas linhas por aluna, sessenta e uma
-   com trinta alunas), não a **palavra do professor** — que é uma linha, e é dele.
-
-3. **A forma da nota é contrato, não estética.** Escrita como parágrafo, ela **substituía o array**
-   no `guiaDeObservacao.Corpo` do `plano-aula-01.json`: o contrato de extracção lê uma tabela por
-   bloco, e o texto que vem depois dela num subcampo de lista toma o lugar do array. Medido: o
-   cartão perdia os quinze e dizia «sem dimensões». Como **citação** (`>`), o contrato a trata como
-   comentário do documento — visível para quem lê, fora do dado — e o `Corpo` voltou a ser a lista
-   de 15. Está na bancada: «a restrição não entra na tabela do corpo».
-
-**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`eixosDaObservacao` → `eixos[0].restricoes`; a
-emissão em §5) · `ARQUITETURA-GERAL.md` §5.8 (a tabela dos três níveis e a prova da origem) ·
-`experimentos/provar-eixos-e-tempo-da-aula.js` secção J (8 asserções novas: 50 → 61, com o controlo
-negativo do aspecto inventado) · as fontes derivadas e o pacote do
-`ciclo-01-breu-bale-nivel-1-teste-3`, regerados, e a âncora refeita com `--check` a passar.
-
-**Com o quê.** `provar-eixos-e-tempo-da-aula` (61) · `provar-cartao-da-aula` (25) ·
-`provar-plano-completo` (18) · `provar-plano-matriz` (52) · `provar-eixos-do-po` (34) ·
-`provar-publicacao-da-escola` (63) · `provar-forca-e-flexibilidade` (17) ·
-`provar-aula-e-plano-legiveis` (12) · `check-pacote` · `check-indices` 14/14 ·
-`hash-ciclo --check`.
-
-**O que NÃO se fez, e é de propósito.** O guia da aula **não** liga cada um dos quinze aspectos a um
-objetivo específico daquela aula. Ligá-los exigiria um par (aspecto × objetivo) que **nenhum
-formulário declara** — e inventá-lo seria exactamente o defeito do «Port de bras» outra vez. Os
-objetivos ligam-se ao que se mede em «Parâmetro de medição» (§1), e essa ligação existe porque o
-professor a marcou.
+**Bancadas que já falhavam — verificado por A/B num worktree limpo em `HEAD`.** Cinco bancadas
+reprovam neste ambiente, e reprovavam **antes** desta entrega: `provar-navegacao` e
+`provar-painel-do-ato` (pedem o pacote gerado de «calango», que não está neste worktree),
+`provar-geracao` (1 de 45: a ponte do cartão precisa do pacote de «calando-teste-1»),
+`provar-barra-e-caminho` (47 de 48: mede o `lancamento.html` da «batata», expurgada) e
+`provar-listas-do-acervo` (8 de 109: espera os caminhos `/area-do-professor/…`, que o menu deixou
+de usar). Nenhuma delas toca no nome dos documentos; a comparação foi feita com `git worktree add`
+sobre o mesmo `HEAD`, e não por memória.
 
 ## O que está pendente
 

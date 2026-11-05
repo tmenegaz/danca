@@ -10,9 +10,9 @@ professor: coqui-de-redinha
 ciclo: 01
 variante: breu-bale-nivel-1-teste-3
 aula: 01
-hash_conteudo: 6ba2eaf81d6079eb4098a5bc1884ab83cc43471287394a29b8583c9f07076ae6
+hash_conteudo: 0ec58c69d69f06e00e6480f331931c845ed9f0f20be7c511a2e7dce7eab57ac5
 parentHash: 
-hash: b3fe6578eb0961f88e95d67a7392cca38ea296b0a3a8d58da187fe41bf609d8a
+hash: 73affd8f7aa10eb4ffb60a6948fd2c3daf0b17af75ae123b9f9317651629cd8d
 algoritmo: SHA-256
 ancorado_em: 2026-11-04
 cobertura:

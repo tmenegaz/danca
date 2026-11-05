@@ -136,6 +136,43 @@ function main() {
   checar('o corpo conta os 15 aspectos da aula (a fonte única)',
     /Corpo 15/.test(guia) && !/sem dimensões/.test(valorDoGuia), { guia: guia, valor: valorDoGuia });
 
+  // ------------------------------------------------- 4b. o nome: dois planos, dois nomes
+  console.log('\n4b. O cartão nomeia o documento pelo que ele é');
+  /* A NOMENCLATURA (04/11/2026). O pesquisador: «a nomenclatura genérica gera estranheza e
+   * sensação de sobreposição na navegação; os documentos gerados dentro do plano devem ser
+   * explicitamente identificados por nó e aula: «Plano para a Aula 1», «Plano para a Aula 2»».
+   *
+   * O que se mede aqui são TRÊS superfícies, e as três têm de dizer o mesmo: o CARTÃO da
+   * listagem, o `<h1>` do documento da aula, e o `<h1>` do documento do ciclo. Medir só o
+   * cartão deixaria a divergência viva entre a lista e a página que ela abre — que é o defeito
+   * que o cartão tinha (dizia «Aula 01» e abria «Plano para a Aula 01»). */
+  const nomeDoCartao = (/<span class="trio-nome"><b>(?:<a[^>]*>)?([^<]+)/.exec(html) || [])[1] || '';
+  checar('o cartão diz «Plano para a Aula NN»', /^Plano para a Aula \d\d/.test(nomeDoCartao.trim()),
+    nomeDoCartao);
+  checar('…e não o genérico «Aula NN»', !/^Aula \d\d/.test(nomeDoCartao.trim()), nomeDoCartao);
+
+  const paginaDaAula = path.join(RAIZ, 'publicacao', ESCOLA, 'bale-nivel-1-teste-3', 'aula-01.html');
+  const paginaDoCiclo = path.join(RAIZ, 'publicacao', ESCOLA, 'bale-nivel-1-teste-3', 'plano.html');
+  /* O `<h1>` do documento é o título, que o gerador parte em DUAS linhas no `<h1>` (o template
+   * quebra no travessão para caber). O nome é o MESMO texto — normaliza-se o espaço, senão a
+   * comparação reprova por causa da quebra de linha, e não por causa do nome. */
+  const h1De = (caminho) => (fs.existsSync(caminho)
+    ? ((/<h1[^>]*>([\s\S]*?)<\/h1>/.exec(fs.readFileSync(caminho, 'utf8')) || [])[1] || '')
+      .replace(/\s+/g, ' ').trim()
+    : '');
+  const tituloDaAula = h1De(paginaDaAula);
+  const tituloDoCiclo = h1De(paginaDoCiclo);
+  checar('o documento da aula chama-se «Plano para a Aula 01 — …»',
+    /^Plano para a Aula 01 — /.test(tituloDaAula), tituloDaAula);
+  checar('o documento do ciclo continua a chamar-se «Plano do Ciclo NN»',
+    /^Plano do Ciclo \d\d/.test(tituloDoCiclo), tituloDoCiclo);
+  checar('a lista e a página dizem o MESMO nome (o cartão abre o que anuncia)',
+    Boolean(nomeDoCartao) && tituloDaAula.indexOf(nomeDoCartao.trim()) === 0,
+    { cartao: nomeDoCartao, pagina: tituloDaAula });
+  checar('os dois planos não se confundem: um é do CICLO, o outro é PARA a AULA',
+    /^Plano do Ciclo/.test(tituloDoCiclo) && /^Plano para a Aula/.test(tituloDaAula),
+    { ciclo: tituloDoCiclo, aula: tituloDaAula });
+
   // ------------------------------------------------- 5. o que já estava, e fica
   console.log('\n5. O que já estava certo, e continua');
   checar('o nome da aula é o link para ela', /<a href="\/bale-nivel-1-teste-3\/aula-01\.html"/.test(html));
@@ -150,7 +187,8 @@ function main() {
   }
   console.log('TUDO CERTO — ' + n + ' asserções: a turma sem o ciclo e com o operacional, o professor '
     + 'com nome, modalidade e tradição (nenhum é o slug), e o guia em três frentes — Corpo com os '
-    + 'aspectos da aula, Técnica e Poiesis com os blocos do PO.');
+    + 'aspectos da aula, Técnica e Poiesis com os blocos do PO — e os dois planos nomeados pelo '
+    + 'que são: «Plano do Ciclo» e «Plano para a Aula».');
 }
 
 main();
