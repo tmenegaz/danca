@@ -156,8 +156,10 @@ function camposDisponiveis(conteudo) {
  *   · sem nome — a linha de base é referida por nome no plano de ensino («importe a linha de
  *     base X»), e uma sem nome não se pode importar;
  *   · sem campos — uma linha de base vazia produz um aspecto físico vazio, e o professor
- *     carregaria o botão para não ver nada. O vazio é o estado de quem ainda não criou; não é um
- *     estado que se possa gravar;
+ *     carregaria o botão para não ver nada. **Excepto em RASCUNHO** (05/11/2026): o passo 1 da
+ *     tela grava a identificação antes de o recorte existir (o recorte é o passo 4), e a leitura
+ *     do passo 3 precisa de um registo onde ficar. O rascunho é o estado declarado de quem ainda
+ *     não escolheu — e não se confunde com a linha pronta: `enviar` recusa-o;
  *   · campo desconhecido — a anamnese é a norma, e um id que não está nela é um erro de quem
  *     montou o pedido (ou uma anamnese que mudou por baixo). Recusa-se com a lista dos que não
  *     casaram.
@@ -192,7 +194,12 @@ function normalizar(entrada, disponiveis, quando) {
   if (desconhecidos.length) {
     erros.push('campo(s) que a anamnese não tem: ' + desconhecidos.join(', '));
   }
-  if (!campos.length) erros.push('escolha pelo menos um aspecto do corpo');
+  /* O RASCUNHO É DECLARADO, E NÃO DEDUZIDO DO VAZIO (05/11/2026). Um pedido sem campos e sem
+   * `rascunho: true` continua a ser recusado: a ausência do recorte pode ser um cliente que se
+   * enganou, e aceitá-la em silêncio daria uma linha de base que parece pronta. Quem grava o passo
+   * 1 diz que está a gravar um rascunho; quem grava o passo 4 não o diz, e aí o recorte é exigido. */
+  const rascunho = corpo.rascunho === true;
+  if (!campos.length && !rascunho) erros.push('escolha pelo menos um aspecto do corpo');
 
   const id = String(corpo.id == null ? '' : corpo.id).trim() || idDe(nome);
   if (!id) erros.push('o nome da linha de base não produz um identificador válido');
@@ -235,6 +242,9 @@ function normalizar(entrada, disponiveis, quando) {
     campos,
     atualizada_em: String(quando == null ? '' : quando) || null,
   };
+  /* O SELO SÓ EXISTE ENQUANTO FALTA O RECORTE. Uma linha que já tem campos é uma linha pronta, e
+   * arrastar o selo antigo faria a tela dizer «rascunho» sobre um recorte que já se decidiu. */
+  if (rascunho && !campos.length) linha.rascunho = true;
   return { ok: true, erros: [], linha };
 }
 
@@ -500,6 +510,62 @@ function marcarNovas(linhasDeBase, alunasComAnamnese) {
   });
 }
 
+/**
+ * O ELENCO DE UMA TURMA — derivado das linhas de base que a ela foram enviadas (05/11/2026).
+ *
+ * PORQUE É DERIVADO, E NÃO GUARDADO. A turma é o RITMO e não guarda alunos — decisão de
+ * 03/11/2026, e não se reverte. O que declara «estas alunas estão nesta turma» são as linhas de
+ * base enviadas para ela (passo 5), cada uma com a sua data. Duas listas do mesmo facto divergem
+ * na primeira correcção, e a que fica para trás é a que o plano lê.
+ *
+ * A UNIÃO, E NÃO A ÚLTIMA. Duas linhas de base podem ir para a mesma turma ao longo do ano («Nível
+ * 1 — mobilidade e pés», depois «Nível 1 — allegro»): a segunda não apaga as alunas da primeira, e
+ * é isso que faz uma aluna que chegou na quinta aula continuar na turma. Quem sai não sai por uma
+ * linha de base nova aparecer — sai por ser retirado da linha de base que a declarava, e é essa a
+ * diferença que a cascata mede.
+ */
+function elencoDaTurma(linhas, turma) {
+  const alvo = String(turma == null ? '' : turma).trim();
+  const vistas = [];
+  if (!alvo) return vistas;
+  for (const l of (Array.isArray(linhas) ? linhas : [])) {
+    if (!l || String(l.turma == null ? '' : l.turma).trim() !== alvo) continue;
+    for (const a of (Array.isArray(l.alunas) ? l.alunas : [])) {
+      const nome = String(a == null ? '' : a).trim();
+      if (nome && vistas.indexOf(nome) === -1) vistas.push(nome);
+    }
+  }
+  return vistas;
+}
+
+/**
+ * O QUE MUDOU ENTRE O ELENCO QUE UM DOCUMENTO DECLARA E O QUE A TURMA HOJE TEM (05/11/2026).
+ *
+ * É a MESMA FORMA da revalidação e da etiqueta «novo»: nada se marca com um campo, tudo se
+ * pergunta de novo. O professor retira uma aluna da linha de base — porque ela já não pode naquele
+ * horário, porque mudou de nível, porque saiu —, e a partir daí o que a curadoria declara e o que a
+ * turma tem deixam de coincidir. É essa diferença, e não um sinal a limpar à mão, que obriga a
+ * passar outra vez pela curadoria, pelo plano de ensino e pelo plano de observação.
+ *
+ * PORQUE É PRECISO OBRIGAR. A pesquisadora, 05/11/2026: «se eu trocar a menina, ela vai com outras
+ * características para a turma. Então eu preciso refazer a anamnese dela para ver se ela realmente
+ * vai para aquela turma ou para qual turma ela vai». O elenco não é uma lista de presença: é a
+ * composição de corpos que a turma vai observar, e mexer nele muda o que o PE fixa e o que o PO
+ * mede.
+ *
+ * `saiu` e `entrou` são nomes, e não contagens, porque o motivo escrito na tela tem de dizer QUEM —
+ * «o elenco mudou» não dá ao professor o que ele precisa de decidir.
+ */
+function elencoDiferente(declarado, derivado) {
+  const lista = (v) => (Array.isArray(v) ? v : [])
+    .map((a) => String(a == null ? '' : a).trim()).filter(Boolean);
+  const de = lista(declarado);
+  const para = lista(derivado);
+  const saiu = de.filter((a) => para.indexOf(a) === -1);
+  const entrou = para.filter((a) => de.indexOf(a) === -1);
+  return { saiu, entrou, mudou: saiu.length > 0 || entrou.length > 0 };
+}
+
 module.exports = {
   DIMENSOES_DA_ANAMNESE,
   ROTULO_DA_DIMENSAO,
@@ -511,4 +577,6 @@ module.exports = {
   classificar,
   marcarNovas,
   envelheceu,
+  elencoDaTurma,
+  elencoDiferente,
 };

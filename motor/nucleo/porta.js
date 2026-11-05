@@ -17,6 +17,10 @@
 const motor = require('./elicitar.js');
 const fusao = require('./fusao.js');
 const ficha = require('./ficha.js');
+/* O ELENCO DA TURMA É DERIVADO DA LINHA DE BASE (05/11/2026), e a conta é dela — não se repete
+ * aqui a união das alunas nem a diferença entre o declarado e o derivado. Duas cópias da mesma
+ * regra divergem na primeira correcção, e a que ficasse para trás seria a que marca o «rever». */
+const recorte = require('./linha-de-base.js');
 
 // As chaves do armazenamento. O envelope vive sob `envelope/<id>.json` — a
 // MESMA notação que o disco sempre usou, para o adaptador Node ser o motor de
@@ -662,7 +666,7 @@ function proximoCiclo(ciclos) {
  * anamnese está velha». O controlo de quando se refaz o retrato é política da escola, e um motor
  * que a impusesse estaria a decidir pedagogia por conta própria.
  */
-async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase) {
+async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase, curadorias) {
   const indice = jaLido || (await lerIndice(armazenamento));
 
   // 1. A DATA DE CADA SUJEITO — a da anamnese mais recente. A chave é a aluna, não o ciclo: a
@@ -770,11 +774,114 @@ async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase) {
     }
   }
 
+  /* 5. O ELENCO DA TURMA — o segundo passo, e o que a 05/11/2026 veio acrescentar.
+   *
+   * A pesquisadora: «tenho uma turma A com dez meninas, e há uma menina que não pode mais naquele
+   * horário; ela precisa agora ir para a turma C. […] eu não vou fazer a edição lá na turma, também
+   * não vou fazer na curadoria. Eu vou fazer a edição na linha de base, porque se eu trocar a
+   * menina, ela vai com outras características para a turma.»
+   *
+   * O ELENCO NÃO É UMA LISTA DE PRESENÇA. É a composição de corpos que a turma vai observar — e
+   * mexer nele muda o recorte que o plano de ensino fixa e o que o plano de observação mede. Por
+   * isso a troca não é um ajuste local: é o começo de uma cascata, e a cascata é o OLHAR do
+   * professor, não um botão que dispara tudo.
+   *
+   * A REGRA É DERIVADA, e é a mesma forma do resto desta função: comparam-se duas listas que já
+   * existem — **o que a curadoria declara** (`alunas`) e **o que a turma tem hoje** (a união das
+   * alunas das linhas de base enviadas para ela). Nada se marca com um campo; o sinal cai sozinho
+   * quando a curadoria é gravada de novo com o elenco novo. Um campo a limpar à mão seria uma
+   * segunda declaração do mesmo facto, e o primeiro gesto que o esquecesse de limpar faria o
+   * «rever» mentir para sempre.
+   *
+   * SEM LINHA DE BASE ENVIADA NÃO SE AFIRMA NADA. Uma turma cujo elenco não vem de linha de base
+   * nenhuma (a curadoria foi preenchida à mão) não tem derivado contra que comparar — e inventar
+   * um «está vazio» marcaria toda a curadoria antiga para sempre.
+   */
+  const linhasEnviadas = linhas.filter((l) => l && l.id && String(l.turma || '').trim());
+  const curadoriasVigentes = (Array.isArray(curadorias) ? curadorias : [])
+    .filter((c) => c && c.id && !c.substituidaPor);
+  const turmasComElencoPendente = new Set();
+  if (linhasEnviadas.length && curadoriasVigentes.length) {
+    for (const c of curadoriasVigentes) {
+      const turmasDaCuradoria = Array.isArray(c.turmas) && c.turmas.length
+        ? c.turmas : (c.turma ? [c.turma] : []);
+      for (const t of turmasDaCuradoria) {
+        const nome = String(t || '').trim();
+        if (!nome) continue;
+        const derivado = recorte.elencoDaTurma(linhasEnviadas, nome);
+        if (!derivado.length) continue;
+        const diferenca = recorte.elencoDiferente(c.alunas, derivado);
+        if (!diferenca.mudou) continue;
+        const partes = [];
+        if (diferenca.saiu.length) partes.push('saiu ' + diferenca.saiu.join(', '));
+        if (diferenca.entrou.length) partes.push('entrou ' + diferenca.entrou.join(', '));
+        pendentes.set('curadoria:' + c.id, {
+          familia: 'curadoria',
+          motivo: 'O elenco da turma «' + nome + '» mudou na linha de base — ' + partes.join('; ')
+            + '. Reveja a curadoria: é dela que o plano de ensino e o plano de observação recebem '
+            + 'quem observam.',
+          onde: 'bastidores',
+          curadoria: c.id,
+          turma: nome,
+          saiu: diferenca.saiu,
+          entrou: diferenca.entrou,
+        });
+        turmasComElencoPendente.add(nome);
+      }
+    }
+  }
+
+  /* 6. E A CASCATA DESCE — da curadoria para o plano de ensino, e do plano para o PO.
+   *
+   * A ORDEM É DE DEPENDÊNCIA, e o motivo escrito di-lo em cada passo: a curadoria declara quem está
+   * na turma; o plano de ensino fixa o que se ensina a esses corpos; o plano de observação mede o
+   * que o plano fixou. Quem revalida o PO antes da curadoria está a consolidar uma observação sobre
+   * um elenco que já não é o da turma.
+   *
+   * Nada aqui é automático, e é decisão dela: «a gente não vai deixar um botão automático que
+   * dispara tudo em cadeia porque precisa do olhar do professor para tomar as decisões e as medidas
+   * que ele julga pertinente». O que a função faz é dizer ONDE passar e EM QUE ORDEM — o gesto é
+   * de quem ensina.
+   */
+  if (turmasComElencoPendente.size) {
+    const planos = [];
+    for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, indice)) {
+      const id = resumo.id || nome.replace(/\.json$/, '');
+      planos.push({ id, turma: String(resumo.turma || '').trim() });
+    }
+    const planosPendentes = new Set();
+    for (const p of planos) {
+      if (!p.turma || !turmasComElencoPendente.has(p.turma)) continue;
+      if (!pendentes.has(p.id)) {
+        pendentes.set(p.id, {
+          familia: 'plano',
+          motivo: 'O elenco da turma «' + p.turma + '» mudou na linha de base, e a curadoria '
+            + 'ainda não foi revista. Reveja a CURADORIA primeiro; este plano vem depois, porque '
+            + 'fixa o que se ensina a quem ela declara.',
+          dependenteDe: 'curadoria',
+          turma: p.turma,
+        });
+      }
+      planosPendentes.add(p.id);
+    }
+    for (const p of pos) {
+      if (pendentes.has(p.id)) continue;
+      const planoPendente = (p.plano || []).find((id) => planosPendentes.has(id));
+      if (!planoPendente) continue;
+      pendentes.set(p.id, {
+        familia: 'po',
+        motivo: 'O elenco da turma mudou na linha de base. O plano de ensino (' + planoPendente
+          + ') tem de ser revalidado primeiro — este plano de observação observa o que ele fixou.',
+        dependenteDe: planoPendente,
+      });
+    }
+  }
+
   return {
     pendentes,
     /* A ORDEM, dita uma vez para quem mostra: é a regra, não uma sugestão de arrumação. */
     ordem: linhas.length
-      ? ['linha-de-base', 'plano-de-ensino', 'plano-de-observacao']
+      ? ['linha-de-base', 'curadoria', 'plano-de-ensino', 'plano-de-observacao']
       : ['plano-de-ensino', 'plano-de-observacao'],
     anamneses: Object.fromEntries([...anamneseDe.entries()].map(([a, d]) => [a, d.quando])),
   };

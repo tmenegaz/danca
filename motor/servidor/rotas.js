@@ -451,7 +451,14 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       const escolaDaRevalidacao = String(escolaDoWorker || '').trim();
       const linhasDaEscola = typeof lerLinhasDeBase === 'function' && escolaDaRevalidacao
         ? await lerLinhasDeBase(escolaDaRevalidacao) : [];
-      const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola);
+      /* AS CURADORIAS ENTRAM NA CASCATA (05/11/2026). O elenco de uma turma é derivado das linhas
+       * de base enviadas para ela, e é contra o que a CURADORIA declara que ele se compara: tirar
+       * uma aluna do recorte muda o elenco da turma, e a curadoria passa a declarar um corpo que já
+       * não existe. Sem esta leitura, a cascata começava no plano de ensino — e o professor era
+       * mandado ao segundo passo sem nunca lhe ter sido dito que o primeiro estava por fazer. */
+      const curadoriasDaEscola = typeof lerCuradorias === 'function' && escolaDaRevalidacao
+        ? await lerCuradorias(escolaDaRevalidacao) : [];
+      const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola, curadoriasDaEscola);
       return {
         ok: true,
         ordem: r.ordem,

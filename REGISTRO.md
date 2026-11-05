@@ -36050,3 +36050,58 @@ anamnese` **126/126**; `provar-acordeoes` e `provar-menu-da-producao` **55/55**;
 
 **Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado. As correcções de contagem e a
 isenção declarada vivem em `experimentos/`, que não é congelado; a página é `motor/servidor/`.
+
+## 05/11/2026 — O elenco muda na linha de base, a cascata desce até ao PO, e o passo 1 deixa de ser um beco sem saída
+
+**O que motivou.** A pesquisadora fechou o desenho do elenco e, ao tentar percorrer a linha de base,
+bateu num muro: *«quando tentei seguir do passo 1 para o 2»* — `POST /api/bastidores/linha-de-base`
+devolvia **400**, «escolha pelo menos um aspecto do corpo». A causa era de ordem: o passo 1 gravava a
+identificação, mas o recorte é o passo 4; o servidor exigia o recorte na primeira gravação, e o
+formulário não saía do passo 1.
+
+Ela fixou também o que faltava ao elenco: ele **pode ser modificado**, e a edição faz-se **na linha
+de base** — «eu não vou fazer a edição lá na turma, também não vou fazer na curadoria». Uma aluna que
+já não pode num horário muda de turma, e a troca **não é um ajuste local**: ela leva outras
+características para a turma, e obriga a refazer a leitura. Se a linha de base já está vinculada, a
+mudança percorre a cadeia — *«ele vai ter que passar na curadoria, da curadoria ele vai ter que ir
+para o plano de ensino, do plano de ensino ele vai ter que ir para o plano de observação das duas
+turmas»* —, e não por um botão que dispara tudo: *«precisa do olhar do professor»*.
+
+**O que foi decidido.**
+
+- **O rascunho é declarado, e não deduzido do vazio.** O passo 1 manda `rascunho: true`; o servidor
+  aceita a linha sem campos e marca-a (`rascunho: true`). Um pedido sem campos e sem o selo continua
+  a ser recusado — a ausência do recorte pode ser um cliente enganado. O selo cai quando o recorte é
+  escolhido, e a rota `enviar` **recusa** um rascunho: o recorte é o passo 4, e a linha não viaja
+  sem ele.
+- **A leitura sobrevive ao recorte e cai quando o elenco muda.** A regra anterior descartava a
+  leitura quando os campos mudavam — fazia sentido quando a leitura lia o recorte. Desde o passo 3,
+  `classificar` lê os **trinta** campos antes de a escolha existir: o que a leitura descreve são os
+  **corpos** das alunas. Ela é comparada com o que diz ter lido (`leitura.alunas`), não com a lista
+  antiga — e a leitura feita já sobre o elenco novo sobrevive ao «Gravar» que o declara.
+- **O aviso da cascata diz a travessia inteira.** O PO não tem turma: tem o plano de que depende. O
+  aviso puxa-o por `dependenteDe`, e a frase passa a ser «a curadoria, depois o plano de ensino,
+  depois o plano de observação» — na ordem da dependência, e sem o PO de outra turma.
+- **A lista mostra o rascunho como rascunho**, e não como «0 aspectos»: uma linha por terminar não se
+  confunde com um recorte vazio decidido.
+
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `normalizar` aceita o rascunho declarado e só
+marca a linha quando falta o recorte. `motor/servidor/bastidores.js` — a gravação do passo 1 manda o
+selo; a leitura é preservada pela comparação com `leitura.alunas`; `enviar` recusa o rascunho; o
+aviso da cascata inclui o PO; a lista diz «rascunho — falta o recorte no passo 4».
+`experimentos/provar-linha-de-base.js` — o teste do corpo do pedido do passo 1 (jsdom), o rascunho e
+a recusa do envio, a leitura que sobrevive ao recorte e cai com o elenco, e o aviso com o PO.
+
+**Medido.** `provar-linha-de-base` **86/86**; `provar-producao` **159/159**;
+`provar-curadoria-e-limpeza` **23/23**; `check-identidade` **0 erros**.
+
+**O que ainda não está feito.**
+
+- A conferência **no ar** (a página da escola) fica para o deploy — e faz-se pedindo a página, não
+  assumindo que a run correu.
+- O elenco de uma linha de base pertence a **uma** turma: mover uma aluna de A para C são duas
+  edições (tirar da linha de A, pôr na de C), cada uma com a sua cascata. O modelo não tem hoje um
+  «enviar para outra turma» no mesmo acto.
+
+**Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado; as provas vivem em
+`experimentos/` e a página em `motor/servidor/`.

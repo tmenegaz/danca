@@ -1637,7 +1637,17 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
         const lista = bruto ? JSON.parse(bruto) : [];
         linhasDaEscola = Array.isArray(lista) ? lista.filter((l) => l && l.id) : [];
       } catch (erro) { linhasDaEscola = []; }
-      const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola);
+      /* E AS CURADORIAS, PELA MESMA RAZÃO (05/11/2026). O elenco da turma vem das linhas de base;
+       * o que a curadoria DECLARA é o outro lado da comparação. Uma leitura mais, da mesma chave
+       * pequena, e o `rever` passa a aparecer no passo certo. */
+      let curadoriasDaEscola = [];
+      try {
+        const bruto = await env.PADD_KV.get('bastidores/' + String(env.ESCOLA_SLUG || escola || '').trim()
+          + '/curadorias');
+        const lista = bruto ? JSON.parse(bruto) : [];
+        curadoriasDaEscola = Array.isArray(lista) ? lista : [];
+      } catch (erro) { curadoriasDaEscola = []; }
+      const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola, curadoriasDaEscola);
       revalidar = r && r.pendentes ? r.pendentes : null;
     } catch (erro) {
       /* Sem o sinal, a lista fica como estava — e não se inventa um estado. Um selo «precisa de

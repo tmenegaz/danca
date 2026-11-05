@@ -2669,7 +2669,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // subiu para a segunda linha porque na primeira ela competia com o nome — e era
         // ela que fazia a linha oscilar de altura entre uma curadoria e outra.
         const complemento = [c.modalidade].concat(resumo ? [resumo] : []).filter(Boolean).join(' · ');
-        return '<li><span class="nome">' + linhaDoNome(rotuloProfessor, seloEstado + (seloVigencia ? seloVigencia : ''), urlDoPlanoDaCuradoria) +
+        return '<li data-curadoria="' + esc(c.id) + '"><span class="nome">' + linhaDoNome(rotuloProfessor, seloEstado + (seloVigencia ? seloVigencia : ''), urlDoPlanoDaCuradoria) +
           (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
           '<span class="acoes">' + botaoAjuste +
           (vinculada
@@ -4377,8 +4377,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="cunivel" name="cunivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
     '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
+    /* O ESCOLHEDOR DE ALUNAS SAI DA CRIAÇÃO QUANDO A TURMA JÁ TRAZ ELENCO (05/11/2026).
+     *
+     * A pesquisadora: «quando eu termino a linha de base, eu digo: ah, essas alunas vão para a
+     * turma X. […] lá na curadoria eu apenas digo qual é a turma, e a turma já carrega junto quais
+     * são as alunas dela». Perguntada sobre o que fazer ao escolhedor manual, respondeu: **na
+     * criação ele desaparece, na edição aparece pré-preenchido.**
+     *
+     * A CAIXA (`cu-alunas-campo`) existe para isso, e a nota fica FORA dela: quando o campo some,
+     * o que sobra é a razão escrita — um formulário em que uma linha evapora sem explicação lê-se
+     * como defeito. Em edição a caixa volta, com as fichas que a curadoria já declarava mais as que
+     * a turma trouxe: quem está a corrigir uma curadoria antiga vê tudo o que ela tem.
+     */
+    '<div id="cu-alunas-campo">' +
     '<label class="campo-rotulo">Alunas</label>' +
     escolarAlunasCuradoria +
+    '</div>' +
     // A NOTA DO ELENCO HERDADO (05/11/2026). Só aparece quando a turma escolhida tem alunas de
     // uma linha de base — e diz QUANTAS e de QUE linha, porque «apareceram umas fichas» sem
     // explicação se lê como um defeito.
@@ -4417,7 +4431,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Curadorias atribuídas</h3>' +
-    '<div class="rolagem"><ul class="lista">' + itensCuradorias + '</ul></div>' +
+    '<div class="rolagem"><ul class="lista" id="cu-lista">' + itensCuradorias + '</ul></div>' +
     rodapePaginacao() +
     '</div>' +
     '</section>' +
@@ -5885,24 +5899,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // este recorte, foram para esta turma neste dia» —, e é de lá que esta função o lê.
     'function herdarAlunasDaTurma(turma) {' +
     '  var el = document.getElementById("esc-alunas");' +
+    '  var caixa = document.getElementById("cu-alunas-campo");' +
+    '  var nota = document.getElementById("cu-elenco-nota");' +
+    '  if (caixa) caixa.hidden = false;' +
+    '  if (nota) { nota.hidden = true; nota.textContent = ""; }' +
     '  if (!el || !turma) return;' +
     '  fetch("/api/bastidores/alunas-da-turma?turma=" + encodeURIComponent(turma))' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      if (!d || !d.ok) return;' +
-    '      (d.alunas || []).forEach(function(a){ adicionarFicha(el, a); });' +
+    '      var criando = !((document.getElementById("cuderivar") || {}).value || "");' +
+    /* AS FICHAS SÓ ENTRAM NA CRIAÇÃO (05/11/2026). Em EDIÇÃO a lista é a que a curadoria declara:
+     * acrescentar-lhe as da turma mudaria o elenco de um documento já gravado sem que ninguém o
+     * tivesse decidido — e, se a curadoria estiver mesmo desactualizada, a diferença é exactamente
+     * o que a cascata tem de mostrar ao professor, e não algo a apagar por baixo. */
+    '      if (criando) (d.alunas || []).forEach(function(a){ adicionarFicha(el, a); });' +
     '      refiltrarAlunas();' +
-    '      var nota = document.getElementById("cu-elenco-nota");' +
     '      if (!nota) return;' +
     '      if (!(d.alunas || []).length) {' +
     '        nota.hidden = true;' +
     '        nota.textContent = "";' +
     '        return;' +
     '      }' +
+    /* NA CRIAÇÃO O ESCOLHEDOR SOME (05/11/2026). Não é decoração: se o elenco vem da linha de
+     * base, deixá-lo à mão em cima convida a duas listas do mesmo facto — e a que ficasse para
+     * trás seria a que o plano lê. Em EDIÇÃO ele volta, com tudo o que a curadoria declara, porque
+     * corrigir uma curadoria antiga é um acto declarado e não uma escolha nova.
+     *
+     * O CAMPO SAI, AS FICHAS FICAM. O `hidden` esconde a caixa; as fichas continuam no DOM e são
+     * elas que a gravação lê. Esconder e esvaziar daria uma curadoria sem alunas — e a falta de
+     * aluna trava o envio, sem que nada no ecrã explicasse porquê. */
+    '      if (criando && caixa) caixa.hidden = true;' +
     '      nota.hidden = false;' +
     '      nota.textContent = "A turma «" + d.turma + "» recebeu " + d.alunas.length +' +
     '        (d.alunas.length === 1 ? " aluna" : " alunas") + " da linha de base «" +' +
-    '        ((d.linhaDeBase && d.linhaDeBase.nome) || "—") + "». Elas entraram já nesta lista.";' +
+    '        ((d.linhaDeBase && d.linhaDeBase.nome) || "—") + "»." +' +
+    '        (criando' +
+    '          ? " O elenco vem de lá: para o mudar, edite a linha de base."' +
+    '          : " Elas entraram já nesta lista.");' +
     '    })' +
     '    .catch(function(){});' +
     '}' +
@@ -6144,6 +6178,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var hoje = new Date();' +
     '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
     '  document.getElementById("cuvigencia").value = iso;' +
+    // A NOTA DO ELENCO TAMBÉM SE REPÕE (05/11/2026): quem abre uma curadoria para a corrigir tem
+    // de ver que a turma trouxe alunas — e a caixa tem de voltar, porque em edição a lista é dele.
+    '  herdarAlunasDaTurma(document.getElementById("cuturma").value || "");' +
     '  document.getElementById("form-curadoria").scrollIntoView({block: "start"});' +
     '  (derivar ? document.getElementById("cuvigencia") : document.getElementById("cu-enviar")).focus();' +
     '}' +
@@ -6172,6 +6209,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // as opções que o script escreveu.
     '    pintarModalidades(listaDoCatalogo(), "");' +
     '    filtrarPorHabilitacao();' +
+    // E O CAMPO DAS ALUNAS VOLTA A SER O DA CRIAÇÃO (05/11/2026): sem edição em curso, se a turma
+    // trouxer elenco da linha de base, o escolhedor some outra vez — o cancelamento não pode
+    // deixar o formulário num estado que a criação não tem.
+    '    herdarAlunasDaTurma(document.getElementById("cuturma").value || "");' +
     '  }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
@@ -9387,8 +9428,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var n = (l.campos || []).length;' +
     '    var m = (l.alunas || []).length;' +
     '    var onde = l.turma ? " · enviada para " + escHtml(l.turma) : "";' +
+    /* O RASCUNHO DIZ-SE (05/11/2026). O passo 1 grava a identificação antes de o recorte existir;
+     * uma linha que aparecesse na lista como as outras — «0 aspectos» — parecia um recorte vazio
+     * decidido pelo professor, e não um passo por terminar. */
+    '    var recorte = n ? (n === 1 ? "1 aspecto" : n + " aspectos")' +
+    '      : "rascunho — falta o recorte no passo 4";' +
     '    return "<li><div class=\\"linha-titulo\\">" + escHtml(l.nome) + "</div>" +' +
-    '      "<div class=\\"linha-sub\\">" + (n === 1 ? "1 aspecto" : n + " aspectos") + " · " +' +
+    '      "<div class=\\"linha-sub\\">" + recorte + " · " +' +
     '      (m === 1 ? "1 aluna" : m + " alunas") +' +
     '      (l.professor ? " · " + escHtml(l.professor) : " · sem professor declarado") +' +
     '      onde + "</div>" +' +
@@ -9408,8 +9454,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function carregarLinhas() {' +
     '  return fetch("/api/bastidores/linhas-de-base")' +
     '    .then(function(r){ return r.json(); })' +
-    '    .then(function(d){ LINHAS_DE_BASE = (d && d.linhas) || []; pintarLinhas(); })' +
+    '    .then(function(d){' +
+    '      LINHAS_DE_BASE = (d && d.linhas) || [];' +
+    '      pintarLinhas();' +
+    // A CURADORIA É O PRIMEIRO PASSO DA CASCATA, e tem de o dizer na lista onde ela se abre. O
+    // servidor já fez a conta (`divergentes` — o elenco da turma contra o que a curadoria declara);
+    // aqui só se marca a linha, sem repetir a regra.
+    '      marcarCuradoriasDivergentes((d && d.divergentes) || []);' +
+    '    })' +
     '    .catch(function(){ LINHAS_DE_BASE = []; pintarLinhas(); });' +
+    '}' +
+    'function marcarCuradoriasDivergentes(lista) {' +
+    '  var porId = {};' +
+    '  for (var i = 0; i < lista.length; i++) if (lista[i]) porId[lista[i].curadoria] = lista[i].turma;' +
+    '  var nos = document.querySelectorAll("#cu-lista li[data-curadoria]");' +
+    '  for (var j = 0; j < nos.length; j++) {' +
+    '    var li = nos[j];' +
+    '    var antigo = li.querySelector(".selo-rever");' +
+    '    if (antigo && antigo.parentNode) antigo.parentNode.removeChild(antigo);' +
+    '    var id = li.getAttribute("data-curadoria");' +
+    '    if (!porId[id]) continue;' +
+    '    var nome = li.querySelector(".nome");' +
+    '    if (!nome) continue;' +
+    '    var selo = document.createElement("span");' +
+    '    selo.className = "selo discreto selo-rever";' +
+    '    selo.title = "O elenco da turma «" + porId[id] + "» mudou na linha de base: esta curadoria "' +
+    '      + "declara um corpo que a turma já não tem. Reveja-a antes do plano de ensino.";' +
+    '    selo.textContent = "rever";' +
+    '    nome.insertBefore(selo, nome.firstChild);' +
+    '  }' +
     '}' +
     // ------------------------------------------------------------------ EDITAR E APAGAR
     'function limparForm() {' +
@@ -9480,6 +9553,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    professor: professorDoFormulario(),' +
     '    alunas: alunasMarcadas(),' +
     '    campos: marcados("lb-campo"),' +
+    /* O PASSO 1 GRAVA UM RASCUNHO, e di-lo (05/11/2026). O recorte é o passo 4, mas a linha de
+     * base tem de existir antes dele: é na linha que a leitura do passo 3 fica guardada. Sem este
+     * sinal o servidor recusava a primeira gravação («escolha pelo menos um aspecto do corpo»), e
+     * o formulário não passava do passo 1. O rascunho não se envia para a turma — a rota `enviar`
+     * recusa-o —, e o selo cai quando o recorte é escolhido. */
+    '    rascunho: LB_PASSO === 1,' +
     '    token: TOKEN' +
     '  };' +
     '  if (modo && modo.value) corpo.id = modo.value;' +
@@ -9496,9 +9575,58 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      }' +
     '      if (modo) modo.value = d.linha.id;' +
     '      carregarLinhas();' +
+    /* A CASCATA ABRE-SE À FRENTE, E DIZ-SE ONDE (05/11/2026). Se esta linha de base já foi enviada
+     * para uma turma, mexer-lhe no elenco muda a composição de corpos que a turma observa — e o que
+     * a curadoria declara deixa de coincidir com o que a turma tem. O aviso é lido do motor
+     * (`/api/revalidacao`), que é quem sabe a ordem: nada aqui é um segundo juízo sobre o mesmo
+     * dado. NÃO se navega por ele: quem decide se o ajuste é pertinente é o professor. */
+    '      if (d.linha && d.linha.turma) avisarCascata(d.linha.turma);' +
     '      return true;' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); return false; });' +
+    '}' +
+    // A ORDEM É A DO MOTOR, traduzida para o que se lê: a curadoria declara quem está na turma, o
+    // plano de ensino fixa o que se ensina a esses corpos, e o plano de observação mede o que o
+    // plano fixou. Um aviso que dissesse só «reveja» mandaria o professor ao segundo passo.
+    'var FAMILIA_DA_ORDEM = {"curadoria": "curadoria", "plano-de-ensino": "plano",' +
+    '  "plano-de-observacao": "po"};' +
+    'var ROTULO_DO_PASSO = {"curadoria": "a curadoria", "plano": "o plano de ensino",' +
+    '  "po": "o plano de observação"};' +
+    'function avisarCascata(turma) {' +
+    '  if (!turma) return;' +
+    '  fetch("/api/revalidacao")' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      if (!d || !d.ok) return;' +
+    '      var daTurma = (d.pendentes || []).filter(function(p){ return p.turma === turma; });' +
+    /* O PLANO DE OBSERVAÇÃO NÃO TEM TURMA — ele tem o PLANO de que depende (05/11/2026). O núcleo
+     * marca-o com `dependenteDe`, e o aviso que dissesse só «curadoria, plano de ensino» deixaria
+     * de fora o último passo da travessia que ela pediu. Puxa-se pelo plano: o PO que observa um
+     * plano desta turma entra na fila. */
+    '      var planosDaTurma = {};' +
+    '      daTurma.forEach(function(p){ if (p.familia === "plano") planosDaTurma[p.id] = true; });' +
+    '      (d.pendentes || []).forEach(function(p){' +
+    '        if (p.familia === "po" && p.dependenteDe && planosDaTurma[p.dependenteDe]) daTurma.push(p);' +
+    '      });' +
+    '      if (!daTurma.length) return;' +
+    '      var fila = [];' +
+    '      var ordem = d.ordem || [];' +
+    '      for (var i = 0; i < ordem.length; i++) {' +
+    '        var familia = FAMILIA_DA_ORDEM[ordem[i]];' +
+    '        if (!familia) continue;' +
+    '        for (var j = 0; j < daTurma.length; j++) {' +
+    '          if (daTurma[j].familia === familia) {' +
+    '            if (fila.indexOf(ROTULO_DO_PASSO[familia]) === -1) fila.push(ROTULO_DO_PASSO[familia]);' +
+    '            break;' +
+    '          }' +
+    '        }' +
+    '      }' +
+    '      if (!fila.length) return;' +
+    '      corpoRes("ok", "gravado. O elenco de «" + turma + "» mudou: passe por " +' +
+    '        fila.join(", depois por ") + " — por essa ordem, e com o seu olhar em cada um. " +' +
+    '        "O sistema não faz essa travessia sozinho: é a decisão que ele não toma.");' +
+    '    })' +
+    '    .catch(function(){});' +
     '}' +
     'function concluirEnvio() {' +
     '  var modo = document.getElementById("lb-modo");' +
@@ -10896,7 +11024,37 @@ async function fetch(request, env) {
 
   if (path === '/api/bastidores/linhas-de-base') {
     const lista = await linhasDeBase(kv, escola);
-    return json(200, { ok: true, escola, linhas: lista });
+    /* QUAIS CURADORIAS FICARAM COM UM ELENCO QUE JÁ NÃO É O DA TURMA (05/11/2026).
+     *
+     * É a conta do núcleo (`elencoDaTurma` + `elencoDiferente`), e não uma segunda regra: o que a
+     * turma tem hoje derivado das linhas de base enviadas, contra o que a curadoria declara. Corre
+     * aqui — e não em `/api/revalidacao` — porque NÃO precisa de ler envelope nenhum: são as duas
+     * listas do KV, e a página da Produção já pede esta rota no arranque. Uma leitura cara para
+     * dizer cinco palavras no sítio certo não se paga.
+     *
+     * Sem curadoria, ou sem linha de base enviada, a lista sai vazia: não se afirma que um elenco
+     * está errado quando não há contra que o comparar. */
+    let divergentes = [];
+    try {
+      const enviadas = lista.filter((l) => l && l.id && String(l.turma || '').trim());
+      const todas = enviadas.length ? await curadorias(kv, escola) : [];
+      for (const c of (Array.isArray(todas) ? todas : [])) {
+        if (!c || !c.id || c.substituidaPor) continue;
+        const turmasDaCuradoria = Array.isArray(c.turmas) && c.turmas.length
+          ? c.turmas : (c.turma ? [c.turma] : []);
+        for (const t of turmasDaCuradoria) {
+          const nome = String(t || '').trim();
+          if (!nome) continue;
+          const derivado = linhaDeBaseNucleo.elencoDaTurma(enviadas, nome);
+          if (!derivado.length) continue;
+          if (linhaDeBaseNucleo.elencoDiferente(c.alunas, derivado).mudou) {
+            divergentes.push({ curadoria: c.id, turma: nome });
+            break;
+          }
+        }
+      }
+    } catch (erro) { divergentes = []; }
+    return json(200, { ok: true, escola, linhas: lista, divergentes });
   }
 
   // POST /api/bastidores/linha-de-base — criar ou salvar. Com `id`, salva aquela (renomear não
@@ -10911,21 +11069,35 @@ async function fetch(request, env) {
     if (!decidido.ok) return json(400, { ok: false, erro: decidido.erros.join(' · '), erros: decidido.erros });
     const lista = await linhasDeBase(kv, escola);
     const idx = lista.findIndex((l) => l && l.id === decidido.linha.id);
-    // A LEITURA ANTERIOR SOBREVIVE À GRAVAÇÃO quando os campos não mudaram: reabrir, corrigir o
-    // nome e gravar não pode obrigar a reler trinta anamneses. Quando os campos MUDAM, a leitura
-    // antiga descreve outro recorte e é descartada — um número que já não corresponde ao que se
-    // mostra é pior do que nenhum.
+    // A LEITURA ANTERIOR SOBREVIVE À GRAVAÇÃO enquanto o ELENCO não muda: reabrir, corrigir o nome
+    // ou escolher o recorte não pode obrigar a reler trinta anamneses. Quando o elenco MUDA, a
+    // leitura antiga descreve outros corpos e é descartada — um número que já não corresponde ao
+    // que se mostra é pior do que nenhum.
     if (idx !== -1) {
       const antes = lista[idx];
-      const mesmos = JSON.stringify((antes.campos || []).map((c) => c.id))
-        === JSON.stringify((decidido.linha.campos || []).map((c) => c.id));
-      /* O QUE JÁ FOI LIDO NÃO SE PERDE (05/11/2026). `lida` é PROVENIÊNCIA — os carimbos das
-       * anamneses que esta linha de base leu —, e é dela que a etiqueta «novo» de cada aluna se
-       * deriva. Sobrevive a tudo: mudar o nome, mudar o recorte, mudar as alunas. Perdê-la faria
-       * todas as alunas voltarem a «novo» só por se corrigir uma vírgula. */
+      /* A LEITURA SOBREVIVE AO RECORTE, E CAI QUANDO O ELENCO MUDA (05/11/2026).
+       *
+       * A regra anterior comparava os CAMPOS — fazia sentido enquanto a leitura lia o recorte.
+       * Desde o passo 3, `classificar` lê os trinta campos, ANTES de o recorte existir: o que a
+       * leitura descreve são os CORPOS das alunas escolhidas, não os aspectos que se vão observar.
+       * Comparar campos fazia a leitura desaparecer exactamente no «Gravar» que decide o recorte —
+       * e o professor reabria a linha de base sem a leitura que tinha acabado de fazer.
+       *
+       * Quem invalida a leitura é a mudança de ELENCO: ler a Ana e depois trocar a Ana pela Carla
+       * descreve outros corpos. O conjunto compara-se (ordem não é facto) e a leitura guardada diz
+       * de quem ela é (`leitura.alunas`). */
+      /* O QUE JÁ FOI LIDO NÃO SE PERDE. `lida` é PROVENIÊNCIA — os carimbos das anamneses que esta
+       * linha de base leu —, e é dela que a etiqueta «novo» de cada aluna se deriva. Sobrevive a
+       * tudo: mudar o nome, mudar o recorte, mudar as alunas. */
       if (antes.lida) decidido.linha.lida = Object.assign({}, antes.lida, decidido.linha.lida || {});
-      // A LEITURA (a tabela) é que é descartada quando o recorte muda: descreveria outro recorte.
-      if (mesmos && antes.leitura) decidido.linha.leitura = antes.leitura;
+      const conjunto = (v) => (Array.isArray(v) ? v.map(String).sort() : []);
+      /* COMPARA-SE COM O QUE A LEITURA DIZ TER LIDO, e não com a lista antiga. Numa edição, o
+       * elenco novo só chega ao registo neste «Gravar»; a leitura do passo 3, essa, já foi feita
+       * sobre ele e diz de quem é (`leitura.alunas`). Comparar com `antes.alunas` apagaria a
+       * leitura acabada de fazer só porque o registo ainda guardava o elenco anterior. */
+      const lidas = antes.leitura && Array.isArray(antes.leitura.alunas) ? antes.leitura.alunas : antes.alunas;
+      const mesmasAlunas = JSON.stringify(conjunto(lidas)) === JSON.stringify(conjunto(decidido.linha.alunas));
+      if (mesmasAlunas && antes.leitura) decidido.linha.leitura = antes.leitura;
       // O VÍNCULO À TURMA é um facto datado e não se apaga ao regravar: quem já mandou esta linha
       // de base para uma turma continua a tê-la lá.
       if (antes.turma) { decidido.linha.turma = antes.turma; decidido.linha.enviada_em = antes.enviada_em; }
@@ -11059,6 +11231,14 @@ async function fetch(request, env) {
     const alunas = Array.isArray(lista[idx].alunas) ? lista[idx].alunas.map(String) : [];
     if (!alunas.length) {
       return json(400, { ok: false, erro: 'esta linha de base ainda não tem alunas — escolha-as no passo 2' });
+    }
+    /* O RASCUNHO NÃO VIAJA (05/11/2026). A linha de base em cinco passos é gravada no passo 1 sem
+     * recorte (para a leitura do passo 3 ter onde ficar); enviá-la agora levaria à turma um recorte
+     * vazio — e o plano de ensino importaria um aspecto físico sem aspectos. A falta é do passo 4,
+     * e a recusa di-lo por essa ordem: primeiro o elenco, depois o recorte, só então a turma. */
+    const campos = Array.isArray(lista[idx].campos) ? lista[idx].campos : [];
+    if (!campos.length) {
+      return json(400, { ok: false, erro: 'esta linha de base ainda não tem recorte — escolha pelo menos um aspecto no passo 4' });
     }
     const todas = await turmas(kv, escola);
     if (!todas.some((t) => t && t.nome === turma)) {

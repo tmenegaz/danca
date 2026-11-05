@@ -412,42 +412,141 @@ async function chamar(env, caminho, opcoes) {
     assert.strictEqual(lista.corpo.linhas[0].campos.length, 2);
   });
 
-  await okAsync('a leitura guardada é DESCARTADA quando os campos mudam', async () => {
+  await okAsync('a leitura SOBREVIVE ao recorte e CAI quando o elenco muda', async () => {
     const chave = 'bastidores/' + ESCOLA + '/linhas-de-base';
     const kv = kvFalso({
       [chave]: JSON.stringify([{
-        id: 'nivel-1', nome: 'Nível 1', professor: null,
+        id: 'nivel-1', nome: 'Nível 1', professor: null, alunas: ['Ana', 'Bia'],
         campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal', grupo: 'x' }],
         atualizada_em: '2026-11-01T10:00:00Z',
-        leitura: { em: '2026-11-01T11:00:00Z', turma: 'Infantil', alunos: 3, linhas: [] },
+        leitura: { em: '2026-11-01T11:00:00Z', alunas: ['Ana', 'Bia'], alunos: 2, linhas: [] },
       }]),
     });
     const env = envFalso(kv);
-    // (a) gravar sem mudar os campos PRESERVA a leitura — reabrir e corrigir o nome não obriga a
-    //     reler trinta anamneses.
+    // (a) gravar sem mudar nada PRESERVA a leitura.
     await chamar(env, '/api/bastidores/linha-de-base', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        id: 'nivel-1', nome: 'Nível 1 (novo nome)',
+        id: 'nivel-1', nome: 'Nível 1 (novo nome)', alunas: ['Bia', 'Ana'],
         campos: ['equilibrio-unipodal'], senhaDirecao: 'senha-de-prova',
       }),
     });
     let guardado = JSON.parse(kv.mapa.get(chave))[0];
-    assert.ok(guardado.leitura, 'com os mesmos campos, a leitura tem de sobreviver');
-    // (b) mudar os campos DESCARTA-A — um número que já não corresponde ao recorte é pior do que
-    //     nenhum.
+    assert.ok(guardado.leitura,
+      'a leitura é dos CORPOS, não do recorte: corrigir o nome ou reordenar as alunas não a invalida');
+    /* (b) MUDAR O RECORTE TAMBÉM A PRESERVA (05/11/2026). A leitura do passo 3 lê os TRINTA campos
+     * antes de a escolha existir — logo, ela não descreve o recorte. Foi a regra antiga (descartar
+     * quando os campos mudavam) que fez a leitura desaparecer no «Gravar» do passo 4. */
     await chamar(env, '/api/bastidores/linha-de-base', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        id: 'nivel-1', nome: 'Nível 1',
+        id: 'nivel-1', nome: 'Nível 1', alunas: ['Ana', 'Bia'],
+        campos: ['equilibrio-unipodal', 'cocoras-profundas-squat'], senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    guardado = JSON.parse(kv.mapa.get(chave))[0];
+    assert.ok(guardado.leitura, 'escolher o recorte não apaga a leitura que veio antes dele');
+    // (c) mudar o ELENCO descarta-a — a leitura dizia de quem era, e essas já não são as alunas.
+    await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: 'nivel-1', nome: 'Nível 1', alunas: ['Ana', 'Bia', 'Carla'],
         campos: ['equilibrio-unipodal', 'cocoras-profundas-squat'], senhaDirecao: 'senha-de-prova',
       }),
     });
     guardado = JSON.parse(kv.mapa.get(chave))[0];
     assert.strictEqual(guardado.leitura, undefined,
-      'com campos novos, a leitura antiga descrevia outro recorte');
+      'com elenco novo, a leitura antiga descrevia outros corpos');
+
+    /* (d) E A LEITURA FEITA DEPOIS DA TROCA SOBREVIVE AO «GRAVAR» DO PASSO 4. O registo ainda tem
+     * o elenco antigo; a leitura do passo 3 já é do elenco novo. Comparar com `antes.alunas`
+     * apagaria exactamente a leitura que o professor acabou de fazer sobre a aluna que entrou. */
+    guardado.leitura = { em: '2026-11-05T11:00:00Z', alunas: ['Ana', 'Bia', 'Carla'], linhas: [] };
+    kv.mapa.set(chave, JSON.stringify([guardado]));
+    await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: 'nivel-1', nome: 'Nível 1', alunas: ['Ana', 'Bia', 'Carla'],
+        campos: ['equilibrio-unipodal'], senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    guardado = JSON.parse(kv.mapa.get(chave))[0];
+    assert.ok(guardado.leitura,
+      'a leitura do elenco novo tem de sobreviver ao Gravar que o declara');
+  });
+
+  await okAsync('o RASCUNHO do passo 1 grava sem recorte — e só ele', async () => {
+    /* O DEFEITO QUE ISTO FECHA (05/11/2026, reportado em produção): «Seguir» do passo 1 chamava
+     * `gravarLinha`, que mandava `campos: []`; o servidor recusava com «escolha pelo menos um
+     * aspecto do corpo», e o formulário não saía do passo 1. O recorte é o passo 4, mas a linha de
+     * base tem de existir antes dele — é nela que a leitura do passo 3 fica guardada. */
+    const kv = kvFalso();
+    const env = envFalso(kv);
+    const semSelo = await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: 'Nível 1', professor: 'rabo-gramde', alunas: [], campos: [],
+        senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    assert.strictEqual(semSelo.status, 400,
+      'sem o selo de rascunho a ausência de recorte continua a ser recusada');
+    assert.ok(/aspecto do corpo/.test(semSelo.corpo.erro), semSelo.corpo.erro);
+
+    const rascunho = await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: 'Nível 1', professor: 'rabo-gramde', alunas: [], campos: [],
+        rascunho: true, senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    assert.strictEqual(rascunho.status, 201, 'HTTP ' + rascunho.status + ': ' + rascunho.texto.slice(0, 200));
+    assert.strictEqual(rascunho.corpo.linha.rascunho, true, 'a linha guardada diz que é rascunho');
+    assert.strictEqual(rascunho.corpo.linha.campos.length, 0);
+  });
+
+  await okAsync('o rascunho NÃO se envia para a turma — o recorte é o passo 4', async () => {
+    const kv = kvFalso({
+      ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([{ id: 'infantil', nome: 'Infantil' }]),
+    });
+    const env = envFalso(kv);
+    await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: 'Rascunho', alunas: ['Aluna A'], campos: [],
+        rascunho: true, senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    const envio = await chamar(env, '/api/bastidores/linha-de-base/enviar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'rascunho', turma: 'Infantil', senhaDirecao: 'senha-de-prova' }),
+    });
+    assert.strictEqual(envio.status, 400, 'HTTP ' + envio.status + ': ' + envio.texto.slice(0, 200));
+    assert.ok(/recorte/i.test(envio.corpo.erro), 'a recusa diz o que falta: ' + envio.corpo.erro);
+  });
+
+  await okAsync('o selo de rascunho CAI quando o recorte é escolhido', async () => {
+    const kv = kvFalso();
+    const env = envFalso(kv);
+    await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: 'Nível 1', campos: [], rascunho: true, senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    const completo = await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: 'nivel-1', nome: 'Nível 1', campos: ['equilibrio-unipodal'], senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    assert.strictEqual(completo.status, 200, 'HTTP ' + completo.status + ': ' + completo.texto.slice(0, 200));
+    assert.strictEqual(completo.corpo.linha.rascunho, undefined,
+      'com recorte, a linha já não é rascunho');
   });
 
   await okAsync('DELETE apaga, e diz quantos planos apontavam para ela', async () => {
@@ -479,7 +578,7 @@ async function chamar(env, caminho, opcoes) {
       'as escolas que ainda não têm linha de base não podem ver um passo que não resolvem');
   });
 
-  await okAsync('com uma linha de base velha, a ordem tem TRÊS passos e ela entra nas pendências', async () => {
+  await okAsync('com uma linha de base velha, a ordem tem QUATRO passos e ela entra nas pendências', async () => {
     const armazenamento = armazenamentoFalso([
       { id: 'anamnese-20261104-1000', aluna: 'Aluna A', gerado_em: '2026-11-04T10:00:00Z' },
     ]);
@@ -488,8 +587,12 @@ async function chamar(env, caminho, opcoes) {
       campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal' }],
     }];
     const r = await porta.revalidacaoPendente(armazenamento, null, linhas);
+    /* QUATRO, e não três (05/11/2026). A curadoria entrou entre o recorte e o plano de ensino
+     * porque o ELENCO da turma deriva da linha de base: mudar quem está na turma muda o que o
+     * plano fixa, e quem declara quem está na turma é a curadoria. A ordem continua a ser de
+     * dependência — e a ordem é a regra, não a arrumação do ecrã. */
     assert.deepStrictEqual(r.ordem,
-      ['linha-de-base', 'plano-de-ensino', 'plano-de-observacao'],
+      ['linha-de-base', 'curadoria', 'plano-de-ensino', 'plano-de-observacao'],
       'Produção vem primeiro: o recorte do corpo é o que o PE fixa');
     const entrada = r.pendentes.get('linha-de-base:nivel-1');
     assert.ok(entrada, 'a linha de base velha tem de estar nas pendências');
@@ -992,6 +1095,63 @@ async function chamar(env, caminho, opcoes) {
     dom.window.close();
   });
 
+  /* 12.1 O «SEGUIR» DO PASSO 1 GRAVA UM RASCUNHO — o defeito que ela viu em produção (05/11/2026).
+   *
+   * O SINTOMA: «quando tentei seguir do passo 1 para o 2» — `POST /api/bastidores/linha-de-base`
+   * devolvia 400, «escolha pelo menos um aspecto do corpo». O recorte é o passo 4; o passo 1 não
+   * tem nenhum para mandar. A prova mede o CORPO do pedido, e não só a marcação: um teste que
+   * olhasse apenas para a página passaria com o pedido errado. */
+  await okAsync('o «Seguir» do passo 1 pede RASCUNHO ao servidor — e só então avança', async () => {
+    let JSDOM, VirtualConsole;
+    ({ JSDOM, VirtualConsole } = require('jsdom'));
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', () => {}); vc.on('error', () => {});
+    const pedidos = [];
+    const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      pretendToBeVisual: true, virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+          addListener() {}, removeListener() {} });
+        w.confirm = () => true; w.alert = () => {};
+        w.fetch = (u, opcoes) => {
+          const url = String(u);
+          const metodo = (opcoes && opcoes.method) || 'GET';
+          if (metodo === 'POST' && url.indexOf('linha-de-base') !== -1) {
+            pedidos.push(JSON.parse((opcoes && opcoes.body) || '{}'));
+            return Promise.resolve({ ok: true, status: 201,
+              json: () => Promise.resolve({ ok: true, criada: true,
+                linha: { id: 'recorte-de-prova', nome: 'Recorte de prova', campos: [], alunas: [], rascunho: true } }),
+              text: () => Promise.resolve('') });
+          }
+          const corpo = url.indexOf('alunas-com-anamnese') !== -1
+            ? { ok: true, alunas: [{ aluna: 'Aluna A', carimbo: 'anamnese-20261105-1240', novo: true }] }
+            : url.indexOf('campos-do-corpo') !== -1
+              ? { ok: true, campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal', grupo: 'g', eixo: 'Funcional', dimensao: 'funcional', opcoes: ['A', 'B'] }], grupos: ['g'] }
+              : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [], divergentes: [] } : { ok: true };
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+        };
+      },
+    });
+    const win = dom.window;
+    await new Promise((r) => win.setTimeout(r, 250));
+    assert.strictEqual(win.LB_PASSO, 1);
+
+    win.document.getElementById('lb-nome').value = 'Recorte de prova';
+    const sel = win.document.getElementById('lb-professor');
+    if (sel && !sel.value) { sel.innerHTML = '<option value="rabo-gramde">rabo-gramde</option>'; sel.value = 'rabo-gramde'; }
+    win.pintarTravasLb();
+    win.document.getElementById('lb-seguir').click();
+    await new Promise((r) => win.setTimeout(r, 50));
+
+    assert.strictEqual(pedidos.length, 1, 'o «Seguir» do passo 1 faz UM pedido de gravação');
+    assert.strictEqual(pedidos[0].rascunho, true,
+      'e declara rascunho — sem isso o servidor recusa a linha ainda sem recorte');
+    assert.strictEqual(pedidos[0].campos.length, 0, 'o passo 1 não manda campos: o recorte é o passo 4');
+    assert.strictEqual(win.LB_PASSO, 2, 'e só depois de gravar é que avança');
+    dom.window.close();
+  });
+
   /* 13. A SECÇÃO É A DONA DO CONTEÚDO — a asserção que faltava (05/11/2026).
    *
    * O DEFEITO QUE ELA NÃO APANHOU. A tira dos cinco passos, o formulário e a lista da linha de base
@@ -1058,6 +1218,312 @@ async function chamar(env, caminho, opcoes) {
     dom.window.close();
   }
 
+  /* 14. O ELENCO MUDA, E A CASCATA DESCE (05/11/2026).
+   *
+   * O PEDIDO DELA, POR PALAVRAS: «tenho uma turma A com dez meninas, e há uma menina que não pode
+   * mais naquele horário; ela precisa agora ir para a turma C. […] eu não vou fazer a edição lá na
+   * turma, também não vou fazer na curadoria. Eu vou fazer a edição na linha de base, porque se eu
+   * trocar a menina, ela vai com outras características para a turma.» E, sobre a travessia: «é
+   * obrigatório esse processo […] a gente não vai deixar um botão automático que dispara tudo em
+   * cadeia porque precisa do olhar do professor».
+   *
+   * O QUE SE MEDE, E PORQUE É AQUI. A regra é DERIVADA — compara-se o que a curadoria DECLARA com
+   * o que a turma TEM HOJE (a união das alunas das linhas de base enviadas para ela). Não há campo
+   * a limpar, e o sinal cai sozinho quando a curadoria é gravada de novo. Medir só a marcação não
+   * provaria isso; por isso a prova corre a função contra envelopes de verdade.
+   */
+  console.log('\n14. O ELENCO MUDA, E A CASCATA DESCE — curadoria → plano de ensino → plano de observação');
+  {
+    /* A TURMA «Balé 1» RECEBEU DUAS ALUNAS da linha de base. A curadoria dela declara TRÊS — a
+     * Carla saiu da linha de base (mudou de horário) e a curadoria ainda não sabe. */
+    const cenario = () => armazenamentoFalso({
+      anamneses: [{ id: 'anamnese-20261101-1000', aluna: 'Ana', gerado_em: '2026-11-01T10:00:00Z' }],
+      planos: [{ id: 'plano-20261101-1100', turma: 'Balé 1', gerado_em: '2026-11-01T11:00:00Z' }],
+      pos: [{ id: 'po-20261101-1200', gerado_em: '2026-11-01T12:00:00Z',
+        sujeitos: ['Ana'], planos: ['plano-20261101-1100'] }],
+    });
+
+    const LINHAS = [{
+      id: 'nivel-1', nome: 'Nível 1', atualizada_em: '2026-11-04T10:00:00Z',
+      turma: 'Balé 1', alunas: ['Ana', 'Bia'],
+      campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal' }],
+    }];
+    const curadoriasDe = (alunas) => [{ id: 'cu-1', turmas: ['Balé 1'], alunas }];
+
+    await okAsync('a aluna que saiu da linha de base marca a CURADORIA da turma, e diz quem', async () => {
+      const armazenamento = cenario();
+      const r = await porta.revalidacaoPendente(armazenamento, null, LINHAS, curadoriasDe(['Ana', 'Bia', 'Carla']));
+      const entrada = r.pendentes.get('curadoria:cu-1');
+      assert.ok(entrada, 'a curadoria tem de estar nas pendências');
+      assert.strictEqual(entrada.familia, 'curadoria');
+      assert.strictEqual(entrada.turma, 'Balé 1', 'o motivo tem de dizer de QUE turma se fala');
+      assert.deepStrictEqual([...entrada.saiu], ['Carla'], 'e QUEM saiu — «o elenco mudou» não decide nada');
+      assert.deepStrictEqual([...entrada.entrou], []);
+      assert.ok(/Carla/.test(entrada.motivo), 'o nome tem de estar no motivo escrito: ' + entrada.motivo);
+    });
+
+    await okAsync('e desce: o plano de ensino da turma, e depois o plano de observação', async () => {
+      const armazenamento = cenario();
+      const r = await porta.revalidacaoPendente(armazenamento, null, LINHAS, curadoriasDe(['Ana', 'Bia', 'Carla']));
+      const plano = r.pendentes.get('plano-20261101-1100');
+      const po = r.pendentes.get('po-20261101-1200');
+      assert.ok(plano, 'o plano de ensino da mesma turma tem de ser marcado');
+      assert.strictEqual(plano.familia, 'plano');
+      assert.strictEqual(plano.turma, 'Balé 1');
+      assert.ok(/CURADORIA/i.test(plano.motivo), 'e o motivo diz que a curadoria vem PRIMEIRO: ' + plano.motivo);
+      assert.ok(po, 'e o plano de observação que observa esse plano também');
+      assert.strictEqual(po.familia, 'po');
+      assert.ok(po.motivo.indexOf('plano-20261101-1100') !== -1,
+        'o motivo do PO nomeia o plano que tem de vir antes: ' + po.motivo);
+      /* A ORDEM QUE SE DIZ É A QUE SE PRATICA: se a curadoria vem antes do plano de ensino, e o
+       * plano antes do PO, a lista tem de os apresentar por essa ordem. */
+      assert.deepStrictEqual(r.ordem,
+        ['linha-de-base', 'curadoria', 'plano-de-ensino', 'plano-de-observacao']);
+    });
+
+    await okAsync('CONTROLE NEGATIVO: com o elenco igual, ninguém é marcado', async () => {
+      const armazenamento = cenario();
+      const r = await porta.revalidacaoPendente(armazenamento, null, LINHAS, curadoriasDe(['Ana', 'Bia']));
+      assert.strictEqual(r.pendentes.get('curadoria:cu-1'), undefined);
+      assert.strictEqual(r.pendentes.get('plano-20261101-1100'), undefined,
+        'sem diferença não há cascata — um aviso que nunca cai deixa de se ler');
+      assert.strictEqual(r.pendentes.get('po-20261101-1200'), undefined);
+    });
+
+    await okAsync('CONTROLE NEGATIVO A/B: sem as curadorias, o passo 5 não marca nada', async () => {
+      const armazenamento = cenario();
+      // A MESMA chamada, sem o quarto argumento. Se a marcação não dependesse dele, esta prova
+      // passaria — e estaria a medir o nada.
+      const r = await porta.revalidacaoPendente(armazenamento, null, LINHAS);
+      assert.strictEqual(r.pendentes.get('curadoria:cu-1'), undefined,
+        'sem curadorias não há declarado contra que comparar');
+      assert.strictEqual(r.pendentes.get('plano-20261101-1100'), undefined);
+    });
+
+    await okAsync('a curadoria SUBSTITUÍDA não é marcada — quem se revê é a vigente', async () => {
+      const armazenamento = cenario();
+      const antigas = [
+        { id: 'cu-0', turmas: ['Balé 1'], alunas: ['Ana', 'Bia', 'Carla'], substituidaPor: 'cu-1' },
+        { id: 'cu-1', turmas: ['Balé 1'], alunas: ['Ana', 'Bia', 'Carla'] },
+      ];
+      const r = await porta.revalidacaoPendente(armazenamento, null, LINHAS, antigas);
+      assert.strictEqual(r.pendentes.get('curadoria:cu-0'), undefined,
+        'a que já foi substituída não se revalida: o histórico não se reescreve (P-03)');
+      assert.ok(r.pendentes.get('curadoria:cu-1'), 'a vigente é que se revê');
+    });
+
+    await okAsync('uma turma sem linha de base enviada não é comparada com nada', async () => {
+      const armazenamento = cenario();
+      const curadorias = [{ id: 'cu-2', turmas: ['Balé 9'], alunas: ['Zefa'] }];
+      const r = await porta.revalidacaoPendente(armazenamento, null, LINHAS, curadorias);
+      assert.strictEqual(r.pendentes.get('curadoria:cu-2'), undefined,
+        'sem elenco derivado, um «está vazio» marcaria toda a curadoria antiga para sempre');
+    });
+
+    /* E O AVISO NA TELA DIZ A TRAVESSIA INTEIRA — curadoria, plano de ensino e plano de
+     * observação. O PO não tem turma (tem o plano de que depende); sem o puxar por ali, o último
+     * passo da ordem que ela pediu ficava de fora da frase. */
+    await okAsync('o aviso da cascata inclui o PO, que se puxa pelo plano da turma', async () => {
+      let JSDOM, VirtualConsole;
+      ({ JSDOM, VirtualConsole } = require('jsdom'));
+      const vc = new VirtualConsole();
+      vc.on('jsdomError', () => {}); vc.on('error', () => {});
+      const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+        pretendToBeVisual: true, virtualConsole: vc,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.confirm = () => true; w.alert = () => {};
+          w.fetch = (u) => {
+            const url = String(u);
+            if (url.indexOf('revalidacao') !== -1) {
+              return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({
+                ok: true,
+                ordem: ['linha-de-base', 'curadoria', 'plano-de-ensino', 'plano-de-observacao'],
+                pendentes: [
+                  { id: 'curadoria:cu-1', familia: 'curadoria', turma: 'Balé 1' },
+                  { id: 'plano-1', familia: 'plano', turma: 'Balé 1' },
+                  { id: 'po-1', familia: 'po', dependenteDe: 'plano-1' },
+                  { id: 'po-2', familia: 'po', dependenteDe: 'plano-de-outra-turma' },
+                ],
+              }), text: () => Promise.resolve('') });
+            }
+            return Promise.resolve({ ok: true, status: 200,
+              json: () => Promise.resolve({ ok: true, linhas: [], divergentes: [], campos: [], alunas: [] }),
+              text: () => Promise.resolve('') });
+          };
+        },
+      });
+      const win = dom.window;
+      await new Promise((r) => win.setTimeout(r, 250));
+      win.avisarCascata('Balé 1');
+      await new Promise((r) => win.setTimeout(r, 50));
+      const alvo = win.document.querySelector('[data-res="linha-base"]');
+      const texto = (alvo && alvo.textContent) || '';
+      assert.ok(/a curadoria/.test(texto), 'a curadoria entra: ' + texto);
+      assert.ok(/o plano de ensino/.test(texto), 'o plano de ensino entra: ' + texto);
+      assert.ok(/o plano de observação/.test(texto), 'e o PO também: ' + texto);
+      assert.ok(texto.indexOf('a curadoria') < texto.indexOf('o plano de ensino')
+        && texto.indexOf('o plano de ensino') < texto.indexOf('o plano de observação'),
+        'na ORDEM da dependência, não na ordem do mapa: ' + texto);
+      assert.ok(texto.indexOf('po-2') === -1 && texto.indexOf('plano-de-outra-turma') === -1,
+        'o PO de outra turma não entra na travessia desta');
+      dom.window.close();
+    });
+  }
+
+  /* 15. A CRIAÇÃO NÃO ESCOLHE ALUNAS À MÃO — e a edição mostra o que lá está (05/11/2026).
+   *
+   * A pergunta foi feita e a resposta foi seca: «na criação ele desaparece, na edição aparece
+   * pré-preenchido». A prova corre a página em jsdom e chama a função VERDADEIRA, com o `fetch`
+   * substituído: é a única forma de medir um comportamento que depende de onde se está (criar ou
+   * editar) e de uma resposta de rede.
+   */
+  console.log('\n15. A CRIAÇÃO NÃO ESCOLHE ALUNAS À MÃO — e a edição mostra o que lá está');
+  {
+    const carregarComTurma = async (cuderivar) => {
+      let JSDOM, VirtualConsole;
+      ({ JSDOM, VirtualConsole } = require('jsdom'));
+      const vc = new VirtualConsole();
+      vc.on('jsdomError', () => {}); vc.on('error', () => {});
+      const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+        pretendToBeVisual: true, virtualConsole: vc,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.confirm = () => true; w.alert = () => {};
+          w.fetch = (u) => {
+            const url = String(u);
+            const corpo = url.indexOf('alunas-da-turma') !== -1
+              ? { ok: true, turma: 'Balé 1', alunas: ['Ana', 'Bia'], linhaDeBase: { id: 'nivel-1', nome: 'Nível 1' } }
+              : url.indexOf('alunas-com-anamnese') !== -1 ? { ok: true, alunas: [] }
+              : url.indexOf('campos-do-corpo') !== -1 ? { ok: true, campos: [], grupos: [] }
+              : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [] } : { ok: true };
+            return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+          };
+        },
+      });
+      const win = dom.window;
+      await new Promise((r) => win.setTimeout(r, 250));
+      // O MODO É O QUE SEPARA CRIAR DE EDITAR: `cuderivar` vazio é criação; preenchido é edição.
+      win.document.getElementById('cuderivar').value = cuderivar;
+      win.herdarAlunasDaTurma('Balé 1');
+      await new Promise((r) => win.setTimeout(r, 250));
+      return { win, dom };
+    };
+
+    await okAsync('na CRIAÇÃO, o escolhedor sai — e a razão fica escrita', async () => {
+      const { win, dom } = await carregarComTurma('');
+      const caixa = win.document.getElementById('cu-alunas-campo');
+      assert.ok(caixa, '#cu-alunas-campo tem de existir — é ela que se esconde');
+      assert.strictEqual(caixa.hidden, true, 'criando, o elenco vem da linha de base e não se escolhe à mão');
+      const nota = win.document.getElementById('cu-elenco-nota');
+      assert.strictEqual(nota.hidden, false, 'a nota tem de ficar VISÍVEL: um campo que evapora sem razão lê-se como defeito');
+      assert.ok(/Balé 1/.test(nota.textContent) && /2 alunas/.test(nota.textContent), nota.textContent);
+      assert.ok(/edite a linha de base/.test(nota.textContent), nota.textContent);
+      dom.window.close();
+    });
+
+    await okAsync('e as FICHAS FICAM — o campo sai, o elenco não', async () => {
+      const { win, dom } = await carregarComTurma('');
+      const fichas = win.document.querySelectorAll('#esc-alunas .escolhido');
+      assert.strictEqual(fichas.length, 2,
+        'as alunas herdadas entram na lista mesmo com o campo escondido — senão a curadoria nasce sem elenco');
+      dom.window.close();
+    });
+
+    await okAsync('na EDIÇÃO, o escolhedor volta, com o que a curadoria declara', async () => {
+      const { win, dom } = await carregarComTurma('cu-1');
+      const caixa = win.document.getElementById('cu-alunas-campo');
+      assert.strictEqual(caixa.hidden, false, 'editando, a lista é dele');
+      const nota = win.document.getElementById('cu-elenco-nota');
+      assert.strictEqual(nota.hidden, false);
+      assert.ok(/entraram já nesta lista/.test(nota.textContent), nota.textContent);
+      dom.window.close();
+    });
+
+    await okAsync('e na edição as fichas NÃO são injectadas — a lista é a que está gravada', async () => {
+      const { win, dom } = await carregarComTurma('cu-1');
+      const fichas = win.document.querySelectorAll('#esc-alunas .escolhido');
+      assert.strictEqual(fichas.length, 0,
+        'acrescentar as da turma a uma curadoria gravada mudava o elenco sem ninguém decidir — e é '
+        + 'exactamente a diferença que a cascata tem de mostrar');
+      dom.window.close();
+    });
+  }
+
+  /* 16. A CURADORIA AVISA NA LISTA — o primeiro passo da cascata tem de ser visível (05/11/2026).
+   *
+   * Ela: «ele vai ter que passar na curadoria, da curadoria ele vai ter que ir para o plano de
+   * ensino, do plano de ensino ele vai ter que ir para o plano de observação». Um passo que não se
+   * vê não se percorre — e o plano de ensino já tinha o seu «rever» na lista dele. Faltava o
+   * primeiro. A conta corre na rota das linhas de base porque NÃO precisa de envelope nenhum: são
+   * duas listas do KV, e a página da Produção já pede essa rota no arranque.
+   */
+  console.log('\n16. A CURADORIA AVISA NA LISTA — o primeiro passo da cascata fica visível');
+  {
+    const semear = async (alunasDaCuradoria) => {
+      const kv = kvFalso();
+      const env = envFalso(kv);
+      await chamar(env, '/api/bastidores/linha-de-base', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: 'Nível 1', campos: ['equilibrio-unipodal'],
+          alunas: ['Ana', 'Bia'], senhaDirecao: 'senha-de-prova',
+        }),
+      });
+      // O CADASTRO DA TURMA é uma escrita direta ao KV: a rota de turmas tem as suas próprias
+      // regras, e o que se mede aqui é o ENVIO, não o cadastro.
+      kv.mapa.set('bastidores/' + ESCOLA + '/turmas', JSON.stringify([{ nome: 'Balé 1' }]));
+      kv.mapa.set('bastidores/' + ESCOLA + '/curadorias', JSON.stringify([
+        { id: 'cu-1', turmas: ['Balé 1'], alunas: alunasDaCuradoria },
+      ]));
+      const envio = await chamar(env, '/api/bastidores/linha-de-base/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'nivel-1', turma: 'Balé 1', senhaDirecao: 'senha-de-prova' }),
+      });
+      assert.strictEqual(envio.status, 200, 'HTTP ' + envio.status + ': ' + envio.texto.slice(0, 200));
+      const r = await chamar(env, '/api/bastidores/linhas-de-base');
+      return r.corpo;
+    };
+
+    await okAsync('a curadoria cujo elenco já não é o da turma vem na lista de divergentes', async () => {
+      const corpo = await semear(['Ana', 'Bia', 'Carla']);
+      assert.ok(Array.isArray(corpo.divergentes), 'a rota tem de devolver `divergentes`');
+      assert.strictEqual(corpo.divergentes.length, 1);
+      assert.strictEqual(corpo.divergentes[0].curadoria, 'cu-1');
+      assert.strictEqual(corpo.divergentes[0].turma, 'Balé 1');
+    });
+
+    await okAsync('CONTROLE NEGATIVO: com o elenco igual, a lista vem vazia', async () => {
+      const corpo = await semear(['Ana', 'Bia']);
+      assert.deepStrictEqual([...corpo.divergentes], [],
+        'sem diferença não há aviso — um selo que nunca cai deixa de se ler');
+    });
+
+    await okAsync('e a lista das curadorias tem o gancho onde o selo entra', async () => {
+      const corpo = await semear(['Ana', 'Bia', 'Carla']);
+      assert.ok(corpo.linhas.length === 1);
+      /* O GANCHO MORA NA MARCAÇÃO, e a marcação é uma string do servidor. Mede-se o que o
+       * `paginaProducao` emite com uma curadoria: a lista com id e cada linha com o seu
+       * `data-curadoria` — sem eles o script não tem onde escrever, e o aviso nunca apareceria.
+       * A página sem curadorias não serve para esta medida: sem linhas, o gancho não se vê. */
+      const b = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
+      const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
+      const html = b.paginaProducao('calango', { nome: 'Calango', modalidade: 'bale-classico' },
+        [], ['Ana', 'Bia', 'Carla'], 'Dono', 'dono', [], [], {}, [
+          { id: 'cu-1', turma: 'Balé 1', alunas: ['Ana', 'Bia', 'Carla'] },
+        ], [], [], usos, { modo: 'clara', paleta: 'bordo' }, '');
+      assert.ok(html.indexOf('id="cu-lista"') !== -1, 'a lista das curadorias tem de ter id');
+      assert.ok(/<li data-curadoria="cu-1"/.test(html),
+        'e cada linha tem de dizer de que curadoria é');
+    });
+  }
+
   console.log('\n' + (falhas.length ? falhas.length + ' de ' + (passou + falhas.length)
     : 'TUDO CERTO — ' + passou) + (falhas.length ? ' verificações FALHARAM' : ' asserções, 0 falha(s).'));
   if (falhas.length) {
@@ -1074,7 +1540,15 @@ async function chamar(env, caminho, opcoes) {
  * adaptador (esse mede-se em `provar-apagar-o-ciclo`).
  */
 function armazenamentoFalso(anamneses) {
-  const lista = Array.isArray(anamneses) ? anamneses : [];
+  /* ACEITA OS TRÊS — anamneses, planos e POs (05/11/2026). A cascata do elenco precisa de medir a
+   * DESCIDA (curadoria → plano de ensino → plano de observação), e para isso os envelopes têm de
+   * existir no acervo falso. O formato antigo (um array de anamneses) continua válido: as doze
+   * asserções anteriores chamam-no assim, e mudá-las para caber no formato novo seria reescrever a
+   * prova para acomodar a bancada. */
+  const entrada = Array.isArray(anamneses) ? { anamneses } : (anamneses || {});
+  const lista = Array.isArray(entrada.anamneses) ? entrada.anamneses : [];
+  const planos = Array.isArray(entrada.planos) ? entrada.planos : [];
+  const pos = Array.isArray(entrada.pos) ? entrada.pos : [];
   const arquivos = new Map();
   for (const a of lista) {
     arquivos.set('envelope/' + a.id + '.json', JSON.stringify({
@@ -1085,6 +1559,31 @@ function armazenamentoFalso(anamneses) {
       // que a produção não (o sintoma seria um `undefined` silencioso em `anamneseDe`).
       contexto: { escola: 'calango', professor: 'rabo-gramde', aluna: a.aluna },
       respostas: { sujeitos: { valor: [a.aluna] } },
+    }));
+  }
+  /* A TURMA DO PLANO VEM DE `contexto-turma` (é a resposta, não o contexto do envelope): quem a lê
+   * é `turmaDoEnvelope`, e um fixture com `contexto.turma` daria um plano sem turma — e uma cascata
+   * que nunca desce, sem falhar. */
+  for (const p of planos) {
+    arquivos.set('envelope/' + p.id + '.json', JSON.stringify({
+      id: p.id,
+      gerado_em: p.gerado_em,
+      contexto: { escola: 'calango', professor: p.professor || 'rabo-gramde', ciclo: '01' },
+      respostas: {
+        'objetivo-geral': { valor: p.objetivo || 'objetivo de prova' },
+        'contexto-turma': { valor: p.turma },
+      },
+    }));
+  }
+  for (const o of pos) {
+    arquivos.set('envelope/' + o.id + '.json', JSON.stringify({
+      id: o.id,
+      gerado_em: o.gerado_em,
+      contexto: { escola: 'calango', professor: o.professor || 'rabo-gramde', ciclo: '01' },
+      respostas: {
+        sujeitos: { valor: o.sujeitos || [] },
+        'plano-de-ensino': { valor: o.planos || [] },
+      },
     }));
   }
   return {
