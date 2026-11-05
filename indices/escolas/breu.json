@@ -1,89 +1,23 @@
 {
-  "aulas": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-04",
-        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
-        "cobertura": [
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md"
-        ],
-        "hash": "73affd8f7aa10eb4ffb60a6948fd2c3daf0b17af75ae123b9f9317651629cd8d",
-        "hash_conteudo": "0ec58c69d69f06e00e6480f331931c845ed9f0f20be7c511a2e7dce7eab57ac5",
-        "id": "ciclo-01-breu-bale-nivel-1-teste-3-aula-01",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "documento": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-      "id": "ciclo:coqui-de-redinha/01/breu/aula-01",
-      "numero": "01"
-    }
-  ],
+  "aulas": [],
   "ciclos": [
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-04",
-        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+        "ancorado_em": "2026-11-02",
+        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
         "cobertura": [
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
+          "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
           "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
         ],
-        "hash": "356e51b7c920128b10fefdc00e7a047b52121a5d931db0c61098e961b35064bf",
-        "hash_conteudo": "2911e68270c21bc2e6cf31c560c5700d5386133199fceeddd878ff9385578722",
-        "id": "ciclo-01-breu-bale-nivel-1-teste-3",
+        "hash": "984c97ffc7a14d042982beca72a9febc4d3092ba799b5a6450be976e832b4e35",
+        "hash_conteudo": "caacf74291a57dde3bf5dced923bd15179de1865e4fb4c77814cf03597ac0bc9",
+        "id": "ciclo-01-breu",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [
-        {
-          "ancora": {
-            "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-04",
-            "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
-            "cobertura": [
-              "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-              "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md"
-            ],
-            "hash": "73affd8f7aa10eb4ffb60a6948fd2c3daf0b17af75ae123b9f9317651629cd8d",
-            "hash_conteudo": "0ec58c69d69f06e00e6480f331931c845ed9f0f20be7c511a2e7dce7eab57ac5",
-            "id": "ciclo-01-breu-bale-nivel-1-teste-3-aula-01",
-            "lida": true,
-            "parent_hash": ""
-          },
-          "documento": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-          "id": "ciclo:coqui-de-redinha/01/breu/aula-01",
-          "numero": "01"
-        }
-      ],
+      "aulas": [],
       "documentos": [
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
         "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
@@ -97,41 +31,14 @@
       "sem_ancora": false,
       "tipos": [
         "ancora",
-        "aula",
-        "dados",
-        "glossario",
-        "harmonizacao",
-        "indice",
         "manifesto",
-        "notacao",
-        "plano",
-        "po",
-        "referencias",
         "schema"
       ]
     }
   ],
   "documentos": [
     {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
-      "professor": "coqui-de-redinha",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
-      "professor": "coqui-de-redinha",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -140,88 +47,7 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
-      "professor": "coqui-de-redinha",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
-      "professor": "coqui-de-redinha",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
-      "professor": "coqui-de-redinha",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:glossario:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "glossario"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:harmonizacao:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "harmonizacao"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:indice:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
-      "professor": "coqui-de-redinha",
-      "tipo": "indice"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
-      "professor": "coqui-de-redinha",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -230,52 +56,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:notacao:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "notacao"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:plano:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "plano"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:po:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "po"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:referencias:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
-      "professor": "coqui-de-redinha",
-      "tipo": "referencias"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "coqui-de-redinha",
-      "tipo": "schema"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
       "escola": "breu",
@@ -290,12 +71,12 @@
     ],
     "contagens": {
       "anamneses": 1,
-      "aulas": 1,
+      "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
-      "pos": 3,
-      "registros": 5
+      "pos": 0,
+      "registros": 2
     },
     "criada_em": "2026-11-02T16:59:08.409473+00:00",
     "expurgada": false,
@@ -310,23 +91,17 @@
     ],
     "registros": [
       "anamnese:anamnese-20261103-1626",
-      "plano:plano-20261103-2200",
-      "po:po-20261103-2202",
-      "po:po-20261103-2221",
-      "po:po-20261103-2242"
+      "plano:plano-20261103-2200"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 2,
         "ids": [
           "anamnese:anamnese-20261103-1626",
-          "plano:plano-20261103-2200",
-          "po:po-20261103-2202",
-          "po:po-20261103-2221",
-          "po:po-20261103-2242"
+          "plano:plano-20261103-2200"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -344,14 +119,11 @@
     ],
     "professores": [
       {
-        "contagem": 6,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261103-1626",
           "ciclo:coqui-de-redinha/01/breu",
-          "plano:plano-20261103-2200",
-          "po:po-20261103-2202",
-          "po:po-20261103-2221",
-          "po:po-20261103-2242"
+          "plano:plano-20261103-2200"
         ],
         "rotulo": "coqui-de-redinha",
         "valor": "coqui-de-redinha"
@@ -381,24 +153,14 @@
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
-      },
-      {
-        "contagem": 3,
-        "ids": [
-          "po:po-20261103-2202",
-          "po:po-20261103-2221",
-          "po:po-20261103-2242"
-        ],
-        "rotulo": "Plano de observação",
-        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "f339618"
+    "commit": "9f254a7"
   },
-  "gerado_em": "2026-11-05T11:06",
+  "gerado_em": "2026-11-05T12:00",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -443,36 +205,6 @@
       "professor": "coqui-de-redinha",
       "tipo": "plano",
       "turma": "Balé Nível 1 — Teste 3"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "po-20261103-2202",
-      "ciclo": "01",
-      "data": "2026-11-03T22:02",
-      "id": "po:po-20261103-2202",
-      "professor": "coqui-de-redinha",
-      "tipo": "po"
-    },
-    {
-      "ajuste_de": "po-20261103-2202",
-      "ano": "2026",
-      "carimbo": "po-20261103-2221",
-      "ciclo": "01",
-      "data": "2026-11-03T22:21",
-      "id": "po:po-20261103-2221",
-      "professor": "coqui-de-redinha",
-      "tipo": "po"
-    },
-    {
-      "ajuste_de": "po-20261103-2221",
-      "ano": "2026",
-      "carimbo": "po-20261103-2242",
-      "ciclo": "01",
-      "data": "2026-11-03T22:42",
-      "id": "po:po-20261103-2242",
-      "professor": "coqui-de-redinha",
-      "tipo": "po"
     }
   ],
   "versao": 6
