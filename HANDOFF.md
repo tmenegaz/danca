@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T07:39:48-0300`
-Commit atual: `581742f7` — fix(experimentos): a prova do corpo não depende de um elo do PO que o acervo pode expurgar
+Gerado em: `2026-11-05T07:57:49-0300`
+Commit atual: `2d587842` — feat(estrutura): a relacao PE -> PO passa a ser do servidor, e nao do menu suspenso
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,9 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+2d587842 feat(estrutura): a relacao PE -> PO passa a ser do servidor, e nao do menu suspenso
+3c21a631 fix(estrutura): a ponte enquadra toda pagina, e a bancada do menu deixa de arranjar a pagina que mede
+cde67100 feat(estrutura): a moldura passa a ser um enquadramento, e a escola nova nasce com os tres formularios
 581742f7 fix(experimentos): a prova do corpo não depende de um elo do PO que o acervo pode expurgar
 4309a18a fix(estrutura): o Novo registo deixa de voltar a lista, e o ciclo muda de forma com a fonte
 24f40d5a feat(template): a linha a apagar ganha veu, fio e spinner — e a folha ganha a peca
@@ -102,9 +105,6 @@ a90058f2 fix(po): o plano de observacao tem tres eixos, e o corpo vem da anamnes
 a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
 7cf8122e fix(campo): as colunas da aula têm a largura do que levam, e a notação sai da música
 d3b623cb fix(campo): o cartão mostra os três dados do professor, e o guia são três eixos
-6ede6131 feat(campo): duas edições do mesmo documento unificam — e a arquitetura passa a ser o espelho
-edcd8a00 fix(estrutura): o nome do documento não se decide antes de gravar — quem decide é a gravação
-bd32839c chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
 ```
 
 ## Por professor
@@ -230,84 +230,89 @@ bd32839c chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — A moldura nunca falta: a ponte passa a enquadrar toda página, e a escola nova nasce com os três formulários
+## 05/11/2026 — A relação PE → PO passa a ser do servidor: o PO não nasce sobre um plano que não existe
 
-Duas queixas, e as duas causas eram independentes — uma de mecanismo, outra de dados.
+**A entrega anterior era metade, e ela notou.** Na ronda da sequência estrita, o campo do ciclo do
+Plano de Observação passou a ser um menu suspenso com os ciclos que têm plano (`GET /api/ciclos` →
+`comPlano`). Isso é a **conveniência**. A **regra** — «o PO só pode ser criado se houver
+estritamente um Plano de Ensino pré-existente e válido para aquele mesmo ciclo… impedindo qualquer
+órfão ou inconsistência relacional» — não estava em lugar nenhum: um `POST` à mão, com a página
+aberta de ontem ou sem ela, escrevia o que quisesse.
 
-### 1. A moldura desaparecia nos formulários, e a razão é que ela era um substituto
+**Medido, antes (dois `POST` diretos à rota, com o acervo de prova):**
 
-Ela: «quando eu vou criar uma anamnese, ou editar, ou ajustar… eu estou numa página que não tem
-identidade visual. Ela é só um formulário… Não pode, em momento nenhum que eu abra qualquer página
-do sistema Lastro, não existir o menu lateral e não existir o menu do topo.»
-
-**Medido ao vivo, uma carga por página:**
-
-| | `<nav class="topnav">` | `<aside class="coluna…">` |
+| Escrita | Antes | Depois |
 |:--|:--|:--|
-| `/area-do-professor/anamnese/` (listagem) | 1 | 1 |
-| `/anamnese/?novo=…&professor=…&aluna=…` (porta) | **0** | **0** |
+| `{fonte:'po', ciclo:'07', 'plano-de-ensino':'plano-20990101-0000'}` | **200** — o órfão | **409** |
+| `{fonte:'plano', ciclo:'07'}` sem 01..06 | **200** — a sequência quebrada | **409** |
 
-E a porta servida trazia `<!-- NAV -->` — o **marcador**, à vista, no HTML.
+A primeira gravou um PO que observa um plano que não existe, num ciclo que não tem plano nenhum. A
+segunda abriu o ciclo 07 sem 01..06 — e a âncora do ciclo N encadeia com a do N-1.
 
-**A causa.** Há um desenho só (`motor/nucleo/nav.js`), mas duas formas de o aplicar: a **geração**
-substitui o marcador `<!-- NAV -->` do `porta/index.html`, e a **ponte** chama `navModulo.aplicar`,
-que procura uma `<nav class="topnav">` e a **substitui**. A porta não tem uma — tem o marcador. E
-`aplicar` não injeta: devolve `null`, e `comAparencia` seguia com a página que tinha. Numa palavra:
-**a moldura dependia de o pacote ter sido gerado com o menu do dia**, e a porta é copiada, não
-gerada. O pacote-zero da `breu` estava com o marcador, e por isso a porta servida não tinha nem
-barra nem coluna.
+### A correção: três conferências, antes de qualquer gravação
 
-**A correção.** `nav.enquadrar` substitui `aplicar` no caminho de servir, e cobre as três formas:
-barra existente (substitui), marcador (injeta ali o desenho inteiro — coluna + barra) e documento
-sem moldura nenhuma (injeta no início do `<body>`). É **idempotente**, e é isso que permite correr
-em toda resposta sem duplicar. E `tools/montar-publicacao.js` passa a enquadrar a porta ao montar —
-o artefacto fica completo por si, não só quando o Worker o serve.
+`recusaDaRelacaoDoCiclo` em `motor/servidor/rotas.js`, no `POST /api/elicitar`:
 
-> **A bancada que devia ter visto isto dava 40/40.** A `provar-menu-do-formulario` tinha um
-> `servirPorta` que lia `porta/index.html` e aplicava o menu **à mão**, com o mesmo `aplicar`. Ela
-> media uma página que ela própria arranjava. Foi substituída: a porta passa pela ponte
-> (`producao.fetch`), como a lista. **Quem aplica a moldura é quem serve, e é isso que se mede** —
-> uma bancada que constrói o que devia encontrar não mede nada.
+1. **o plano declarado existe** no acervo (o carimbo inventado não é um plano);
+2. **o ciclo do PO é o ciclo do plano** (um PO de outro ciclo é a inconsistência relacional);
+3. **sem plano declarado, o ciclo tem de ter plano** (o órfão por construção).
 
-### 2. A escola nova nascia sem os três formulários
+E do lado do plano, a **sequência estrita**: um plano novo só pode ser do **próximo** ciclo, ou de
+um ciclo que **já existe**. A edição (`id`) e o elo novo (`ajuste_de`) não criam ciclo — e o `id`
+só isenta a conferência se o documento existir de facto, senão seria a porta de serviço da regra.
 
-Ela: «quando é criada a escola nova, ela está nascendo sem os menus, que são os de plano de ensino
-e de plano de observação e do plano da anamnese.»
+As recusas **nomeiam o que impede e o que fazer**: dizem o carimbo que não existe e mandam criar o
+plano primeiro; dizem os dois ciclos quando eles divergem; dizem qual é o próximo da sequência e
+quais os ciclos que têm plano.
 
-O grupo «Área do Professor» só entrava no menu `if (turmas.length)`, com um motivo que estava
-escrito e que era honesto («sem turma curada não há ato para preencher»). A decisão, porém, estava
-errada, e por três razões — a primeira é de domínio:
+**Duas disciplinas, e a segunda é da casa.** Sem leitor do acervo (uma bancada, um adaptador sem
+índice) a rota **segue** em vez de recusar: uma guarda que devolvesse «o plano não existe» quando
+não conseguiu ler coisa nenhuma estaria a acusar o professor por uma limitação de quem mede. E a
+**simulação** passa — ela não escreve, e uma prévia não é um documento.
 
-1. **A anamnese vem antes da turma.** É o instrumento de ENTRADA: a aluna nova é entrevistada antes
-   de haver turma onde a pôr. Esconder o item até haver turma esconde a porta de quem ainda não tem
-   nada.
-2. **O plano de ensino é o que cria a turma** — é ele que abre o ciclo. Sem o item, a escola nova
-   não tem por onde começar.
-3. **A moldura é inegociável.** Um menu que muda de forma conforme o acervo não é moldura, é
-   conteúdo.
+### Na tela, dois ajustes que a regra exigiu
 
-Os três passam a entrar sempre. **«Aulas» continua a depender da turma** — e essa é a distinção que
-ela própria fez: «os demais itens de menu só vão existir quando for gerado o plano de ensino… eles
-são criados dinamicamente». Aula é documento de ciclo; sem ciclo não há aula para listar.
+- **O ciclo sem plano, quando aparece na lista, diz-se.** Ele só entra se for o valor que o
+  documento já tinha (um PO que ficou órfão quando o plano dele foi apagado), e a opção sai como
+  «02 — sem plano de ensino»: escolhê-la não é como escolher as outras, e a pessoa tem de saber
+  antes do «Guardar».
+- **Sem nenhum ciclo com plano, o campo fica travado** — um campo de escolha sem escolhas não é
+  uma pergunta —, e a nota diz por onde começar.
+
+### Um verde falso que caiu junto
+
+A `provar-novo-registo-e-ciclo` media a lista do PO com um fixture cujo plano vinha da `breu`
+(`contexto.escola: 'breu'`) enquanto o Worker da prova era `prova`. `GET /api/ciclos` recorta por
+escola: `comPlano` vinha **vazio**, e o `01` aparecia na lista pelo **fallback** («o valor que o
+documento já tinha»), não porque o servidor dissesse que o ciclo tinha plano. A asserção passava a
+medir outra coisa — e a «não mostra o 02» passava por não haver lista nenhuma.
+
+O fixture passa a trocar a escola do contexto (o documento é o mesmo, o dono é que é o do Worker),
+a secção passou a **medir a fonte** (`fetch('api/ciclos')` → `comPlano` tem o `01`) e ganhou o par
+que faltava: o PO órfão abre no ciclo dele, a opção anuncia-se, e o ciclo que tem plano continua
+sem a marca (29 asserções, de 24).
 
 ### A prova
 
-`experimentos/provar-a-moldura-em-todas-as-telas.js` (**nova**, 95 asserções): monta uma publicação
-de verdade (`montar-publicacao.js --raiz <temp>`) sobre uma árvore que reproduz o defeito — a porta
-do pacote-zero **com o marcador**, como está no repositório — e percorre **16 telas** pela ponte,
-exigindo barra, coluna e os três formulários em cada uma. Inclui:
+`experimentos/provar-relacoes-do-ciclo.js` (**nova**, 22 asserções), com **controlo negativo em
+cada secção** — a escrita válida da mesma família tem de continuar a entrar, senão uma guarda que
+recusasse tudo passaria na primeira metade:
 
-- o **controlo da causa**: sobre o mesmo HTML com o marcador, `aplicar` devolve `null` e `enquadrar`
-  devolve a página enquadrada — e a segunda passagem devolve exactamente o mesmo (idempotência);
-- o **controlo negativo** do fragmento: sem `<body>` e sem marcador, `enquadrar` não inventa nada;
-- o **menu da escola sem turma**: os três formulários presentes, «Aulas» ausente, e o desenho já
-  com barra e coluna;
-- e o **A/B contra o commit anterior**, que reprova exactamente nas duas causas (5 de 95).
+| Secção | Recusa | Controlo (tem de entrar) |
+|:--|:--|:--|
+| 1 | plano inventado → 409, e **nada é gravado** | o plano real do mesmo ciclo → 200 |
+| 2 | plano do ciclo 01 num PO do ciclo 02 → 409, com os dois ciclos ditos | o plano do ciclo certo → 200 |
+| 3 | ciclo sem plano nenhum → 409 | no ciclo que tem plano, o PO sem plano declarado → 200 |
+| 4 | plano no ciclo 07 sem 02..06 → 409, com o próximo dito | o próximo ciclo → 200; o elo novo → 200; a correção → 200; `id` inventado → **409** |
+| 5 | — | sem leitor, a recusa **não** vem da regra; a simulação passa e não grava |
+| 6 | — | a anamnese continua a gravar sem ciclo nenhum (é do sujeito) |
 
-**Motivo declarado (CONGELAMENTO.md):** `tools/montar-publicacao.js` está em `tools/` (congelado).
-A mudança entra por **defeito medido na tela** — páginas servidas sem a moldura que a identidade
-exige —, e é de uma linha de aplicação por página publicada, mais a condição do grupo de menu. Não
-toca em hash, validação, geração de documento, nem em peça alguma da folha.
+**O A/B contra o commit anterior reprova em 12 das 22 asserções.**
+
+**Fixtures que tiveram de dizer a verdade.** Três bancadas criavam POs a observar planos que não
+existiam — era possível, e por isso passavam: `provar-po-unico` (semeia agora `PLANO_A`/`PLANO_B`),
+`provar-carimbo-da-edicao` (cria o plano antes do PO) e `provar-geracao` (idem). As asserções delas
+não mudaram de sentido: o que mudou foi o cenário, que agora é o do produto.
 
 ## O que está pendente
 
