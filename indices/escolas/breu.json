@@ -294,8 +294,8 @@
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 2,
-      "pos": 4,
-      "registros": 7
+      "pos": 3,
+      "registros": 6
     },
     "criada_em": "2026-11-02T16:59:08.409473+00:00",
     "expurgada": false,
@@ -314,23 +314,21 @@
       "plano:plano-20261104-1732",
       "po:po-20261103-2202",
       "po:po-20261103-2221",
-      "po:po-20261103-2242",
-      "po:po-20261104-1733"
+      "po:po-20261103-2242"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 7,
+        "contagem": 6,
         "ids": [
           "anamnese:anamnese-20261103-1626",
           "plano:plano-20261103-2200",
           "plano:plano-20261104-1732",
           "po:po-20261103-2202",
           "po:po-20261103-2221",
-          "po:po-20261103-2242",
-          "po:po-20261104-1733"
+          "po:po-20261103-2242"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -348,7 +346,7 @@
     ],
     "professores": [
       {
-        "contagem": 8,
+        "contagem": 7,
         "ids": [
           "anamnese:anamnese-20261103-1626",
           "ciclo:coqui-de-redinha/01/breu",
@@ -356,8 +354,7 @@
           "plano:plano-20261104-1732",
           "po:po-20261103-2202",
           "po:po-20261103-2221",
-          "po:po-20261103-2242",
-          "po:po-20261104-1733"
+          "po:po-20261103-2242"
         ],
         "rotulo": "coqui-de-redinha",
         "valor": "coqui-de-redinha"
@@ -390,12 +387,11 @@
         "valor": "plano"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "ids": [
           "po:po-20261103-2202",
           "po:po-20261103-2221",
-          "po:po-20261103-2242",
-          "po:po-20261104-1733"
+          "po:po-20261103-2242"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -404,9 +400,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ad141e2"
+    "commit": "f82dab7"
   },
-  "gerado_em": "2026-11-05T03:28",
+  "gerado_em": "2026-11-05T11:04",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -491,16 +487,6 @@
       "ciclo": "01",
       "data": "2026-11-03T22:42",
       "id": "po:po-20261103-2242",
-      "professor": "coqui-de-redinha",
-      "tipo": "po"
-    },
-    {
-      "ajuste_de": "po-20261103-2242",
-      "ano": "2026",
-      "carimbo": "po-20261104-1733",
-      "ciclo": "01",
-      "data": "2026-11-04T17:33",
-      "id": "po:po-20261104-1733",
       "professor": "coqui-de-redinha",
       "tipo": "po"
     }
