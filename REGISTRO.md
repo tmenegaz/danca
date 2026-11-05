@@ -36119,3 +36119,60 @@ sistema: recarregue-a (Ctrl+Shift+R)». Edição sem campos → «escolha pelo m
 Nada se aceita em silêncio: o rascunho continua a ser **declarado**, e a rota `enviar` continua a
 recusá-lo. `provar-linha-de-base` **87/87** (a asserção que media a mensagem antiga foi reescrita, e
 nasceu a do caso em edição).
+
+## 05/11/2026 — O «Ler as anamneses» acende, e a folha de impressão deixa de receber a moldura
+
+**O que motivou.** Dois defeitos encontrados no mesmo percurso, no mesmo dia, na secção «Corpo —
+linha de base»: *«agora eu estou no step 3 e aí ler a anamnese destas alunas está bloqueado, eu não
+consigo clicar em lugar nenhum»* — com a anamnese da aluna A já pronta; e *«a página de abrir a
+anamnese, quando eu clico no link para abrir a anamnese, está toda quebrada, que é para eu poder
+imprimir»*, com o aviso certo de que o mesmo podia estar a acontecer no plano de ensino e no plano de
+observação.
+
+**O botão morto do passo 3, e porquê.** Não era o dado. O botão nasce `disabled` na marcação, o
+`travarTudo` também o desligava, e **nenhuma função o voltava a ligar**: o `pintarTravasLb` governava
+a tira, o «Seguir» e o «Concluir», e do `lb-ler` não sabia nada. Ficava fechado para sempre, inclusive
+numa escola com trinta retratos — e o texto ao lado prometia uma leitura que não se podia pedir. A
+regra passou a viver onde as outras vivem: falta a anamnese de alguém, ou falta escolher **quem** se
+lê; o `title` diz qual das duas coisas falta. É a mesma regra do passo 3, não uma nova.
+
+**A folha quebrada, e a causa é de CSS, não de desenho.** Em 05/11/2026 a ponte passou de `aplicar`
+para `enquadrar`, para a moldura chegar ao que já estava publicado — e «toda resposta» passou a
+incluir a **folha**. A folha declara os seus próprios tokens e **não carrega `/assets/style.css`**,
+que é onde a barra e a coluna se vestem; o resultado foi o mark-up cru da navegação no topo do
+documento de impressão. Inserir-lhe a moldura é vestir uma peça de outra folha.
+
+As **três** folhas são a mesma função (`folha()`, no `ficha-html.js`): `paginaDaFicha`,
+`paginaDoPlano`, `paginaDoPO`. É por isso que o plano de ensino e o plano de observação estavam
+partidos do mesmo modo, **mesmo sem ninguém os ter aberto ainda** — a suspeita dela estava certa, e o
+defeito era um só. A marca de quem é folha é `data-tela="ficha"`, e a ponte passou a não enquadrar
+quem a traz. O `data-modo`/`data-paleta` continuam a entrar: é a identidade da escola, declarada
+inline, e não depende da folha de estilos.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `pintarTravasLb` governa o `lb-ler`, com o motivo
+escrito no `title` (e o comentário que regista que o botão era imortalmente `disabled`).
+`motor/servidor/producao.js` — `ehFolha` exclui a folha da moldura, com a razão de CSS escrita por
+inteiro. `experimentos/provar-linha-de-base.js` — o bloco 12.2, que mede o **estado** do botão (fechado
+sem aluna, aberto com ela, fechado sem anamnese) e não a sua presença.
+`experimentos/provar-a-moldura-em-todas-as-telas.js` — a secção 3 nova, que pede as três folhas à
+ponte e exige em cada uma: nenhuma barra, nenhuma coluna, `data-tela="ficha"`, identidade de escola
+declarada — e o **controlo positivo** na mesma execução (a lista ao lado continua enquadrada).
+
+**Medido.** `provar-linha-de-base` **88/88**; `provar-a-moldura-em-todas-as-telas` **111** (era 95);
+`provar-ficha-na-listagem` **35/35**; `provar-producao` **159/159**; `provar-acordeoes` **ok**;
+`check-identidade` **0 erros**. O A/B foi feito a sério nas duas correcções: desligado o `ehFolha`, a
+bancada reprova **6** — exactamente as seis asserções de barra/coluna das três folhas; reposto o
+`pintarTravasLb` antigo, reprova a do botão. Sem o A/B, uma prova pode passar por não medir nada.
+
+**O que ainda não está feito.**
+
+- `provar-menu-do-formulario` **não corre**: lê `escola/breu/envelopes/plano-20261104-1732.json`, e
+  esse envelope foi apagado do repositório em `76f29779` (`chore(acervo): apagar envelope/…`). É
+  **pré-existente** e alheio a esta mudança — a bancada depende de um dado que já não existe, e fica
+  por decidir se passa a montar o seu próprio envelope.
+- `provar-listas-do-acervo` responde **NÃO FEITO**: nenhuma escola tem ciclo gerado nesta árvore, e
+  a bancada exige uma publicação. Também não é desta mudança.
+- A conferência **no ar** faz-se depois do deploy, pedindo as três folhas uma vez cada.
+
+**Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado; a ponte é `motor/servidor/` e as
+provas são `experimentos/`.

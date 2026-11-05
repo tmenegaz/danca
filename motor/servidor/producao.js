@@ -157,8 +157,24 @@ async function comAparencia(resposta, aparencia, extras) {
    * exista — e a porta não tem uma: ela traz o marcador `<!-- NAV -->`. Medido ao vivo:
    * `/anamnese/` servida com o marcador cru, sem barra e sem coluna, enquanto a listagem ao lado
    * tinha as duas. `enquadrar` cobre as três formas (barra existente, marcador, documento sem
-   * moldura) e é idempotente, que é o que permite correr em TODA resposta sem risco. */
-  if (menu) {
+   * moldura) e é idempotente, que é o que permite correr em TODA resposta sem risco.
+   *
+   * EXCEPTO NA FOLHA, E ISSO CUSTOU UMA REGRESSÃO (05/11/2026). «Toda resposta» passou a incluir a
+   * ficha da anamnese — e a pesquisadora viu-a «toda quebrada»: a barra e a coluna entraram no topo
+   * do documento de impressão, em mark-up cru, sem um único estilo. Não é um defeito de desenho: é
+   * de CSS. A moldura veste-se com `/assets/style.css`, e a folha NÃO a carrega — ela é servida
+   * sozinha e declara os seus próprios tokens, de propósito, para sair certa no papel. Inserir-lhe
+   * um `<nav>` é vestir uma peça de outra folha.
+   *
+   * A MARCA DE QUEM É FOLHA É `data-tela="ficha"` — a mesma nas TRÊS (`paginaDaFicha`,
+   * `paginaDoPlano`, `paginaDoPO`, todas pelo `folha()` do `ficha-html.js`). Por isso o plano de
+   * ensino e o plano de observação estavam quebrados do mesmo modo, mesmo sem ninguém os ter aberto
+   * ainda. Quem acrescentar uma folha nova diz que é folha, e não recebe moldura.
+   *
+   * O `data-modo`/`data-paleta` CONTINUAM a entrar: é a identidade da escola, e ela é declarada
+   * inline — não depende da folha de estilos. */
+  const ehFolha = /data-tela="ficha"/.test(texto);
+  if (menu && !ehFolha) {
     const comMoldura = navModulo.enquadrar(texto, menu, (extras && extras.pedido) || '/');
     if (comMoldura) texto = comMoldura;
   }

@@ -1167,6 +1167,60 @@ async function chamar(env, caminho, opcoes) {
     dom.window.close();
   });
 
+  /* 12.2 O «LER AS ANAMNESES» ACENDE — o botão morto do passo 3 (05/11/2026).
+   *
+   * O RELATO DELA: «agora eu estou no step 3 e aí ler a anamnese destas alunas está bloqueado, eu
+   * não consigo clicar em lugar nenhum», com a anamnese da aluna A já pronta. Não era o dado: o
+   * botão nasce `disabled` na marcação, o `travarTudo` também o desligava, e NENHUMA função o
+   * voltava a ligar — ficava fechado para sempre, inclusive numa escola com trinta retratos.
+   *
+   * A prova mede o ESTADO DO BOTÃO, e não a marcação: um teste de presença passaria com ele morto. */
+  await okAsync('o «Ler as anamneses» acende quando há anamnese e uma aluna escolhida', async () => {
+    let JSDOM, VirtualConsole;
+    ({ JSDOM, VirtualConsole } = require('jsdom'));
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', () => {}); vc.on('error', () => {});
+    const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      pretendToBeVisual: true, virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+          addListener() {}, removeListener() {} });
+        w.confirm = () => true; w.alert = () => {};
+        w.fetch = (u) => {
+          const url = String(u);
+          const corpo = url.indexOf('alunas-com-anamnese') !== -1
+            ? { ok: true, alunas: [{ aluna: 'Aluna A', carimbo: 'anamnese-20261105-1240', novo: false }] }
+            : url.indexOf('campos-do-corpo') !== -1 ? { ok: true, campos: [], grupos: [] }
+              : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [], divergentes: [] } : { ok: true };
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+        };
+      },
+    });
+    const win = dom.window;
+    await new Promise((r) => win.setTimeout(r, 250));
+
+    const ler = win.document.getElementById('lb-ler');
+    assert.ok(ler, 'o botão do passo 3 tem de estar na página');
+    /* (1) SEM ALUNA ESCOLHIDA, ele está fechado — e DIZ porquê. Fechado sem razão é o defeito. */
+    assert.strictEqual(ler.disabled, true, 'sem aluna marcada não há a quem ler');
+    assert.ok(/aluna/i.test(ler.title || ''), 'e o title diz que falta escolher: ' + ler.title);
+    /* (2) ESCOLHIDA UMA ALUNA, ele abre. É isto que estava a faltar. */
+    const caixa = win.document.querySelector('input[name="lb-aluna"]');
+    assert.ok(caixa, 'a caixa da aluna tem de estar na página');
+    caixa.checked = true;
+    win.pintarTravasLb();
+    assert.strictEqual(ler.disabled, false,
+      'com anamnese e uma aluna escolhida, o «Ler as anamneses» tem de estar clicável');
+    assert.ok(!ler.title, 'e sem title de falta — não falta nada');
+    /* (3) O CONTROLO NEGATIVO: sem anamnese nenhuma, ele fecha outra vez e diz o que falta. */
+    win.ALUNAS_COM_ANAMNESE = [];
+    win.pintarTravasLb();
+    assert.strictEqual(ler.disabled, true, 'sem anamnese na escola, não há o que ler');
+    assert.ok(/anamnese/i.test(ler.title || ''), 'e o title diz isso: ' + ler.title);
+    dom.window.close();
+  });
+
   /* 13. A SECÇÃO É A DONA DO CONTEÚDO — a asserção que faltava (05/11/2026).
    *
    * O DEFEITO QUE ELA NÃO APANHOU. A tira dos cinco passos, o formulário e a lista da linha de base

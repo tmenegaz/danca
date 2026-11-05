@@ -9175,6 +9175,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    seguir.setAttribute("aria-disabled", faltas.length ? "true" : "false");' +
     '    seguir.title = faltas.length ? "Para seguir, falta " + faltas.join(", ") + "." : "";' +
     '  }' +
+    /* O «LER AS ANAMNESES» TAMBÉM É GOVERNADO AQUI (05/11/2026).
+     *
+     * O DEFEITO QUE ELA VIU: o passo 3 abria com o botão morto — «está bloqueado, eu não consigo
+     * clicar em lugar nenhum» — e havia anamnese pronta. A causa não era o dado: o botão nasce
+     * `disabled` na marcação, e nenhuma função o voltava a ligar. O `travarTudo` desligava-o, o
+     * `mostrarPassoLb` não lhe tocava, e ele ficava fechado para sempre — inclusive numa escola com
+     * trinta retratos.
+     *
+     * A REGRA É A DO PASSO 3, e não uma nova: falta a anamnese de alguém, ou falta escolher QUEM se
+     * lê. A leitura é o que o corpo DELAS mostra (`/linha-de-base/leitura`), e o botão não pode
+     * prometer uma tabela sobre ninguém. O `title` diz qual das duas coisas falta. */
+    '  var ler = document.getElementById("lb-ler");' +
+    '  if (ler) {' +
+    '    var faltaLer = semNada ? "sem anamnese nesta escola não há o que ler"' +
+    '      : (!alunasMarcadas().length ? "escolha pelo menos uma aluna no passo 2"' +
+    '        : "");' +
+    '    ler.disabled = !!faltaLer;' +
+    '    ler.setAttribute("aria-disabled", faltaLer ? "true" : "false");' +
+    '    if (faltaLer) ler.title = faltaLer + "."; else ler.removeAttribute("title");' +
+    '  }' +
     '  var enviar = document.getElementById("lb-enviar");' +
     '  if (enviar) {' +
     '    var faltaEnvio = faltasAntesDeLb(LB_TOTAL + 1);' +

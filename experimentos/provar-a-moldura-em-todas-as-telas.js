@@ -301,8 +301,45 @@ const MOLdura = (html) => ({
   }
 
   /* -------------------------------------------------------------------------------------- */
-  console.log('\n3 · O MENU DA ESCOLA NOVA — os três formulários antes de existir turma');
+  console.log('\n3 · A FOLHA NÃO RECEBE MOLDURA — a regressão do documento de impressão');
   /* -------------------------------------------------------------------------------------- */
+  /* O DEFEITO QUE ELA VIU (05/11/2026): «a página de abrir a anamnese […] está toda quebrada, que é
+   * para eu poder imprimir». A causa não foi o desenho da folha — foi o `enquadrar` a entrar em
+   * TODA resposta. A folha declara os seus próprios tokens e NÃO carrega `/assets/style.css`; a
+   * moldura veste-se com essa folha. Resultado: a barra e a coluna em mark-up cru no topo do
+   * documento, e o documento destruído.
+   *
+   * AS TRÊS FOLHAS SÃO A MESMA (`folha()`), e é por isso que o plano de ensino e o plano de
+   * observação estavam partidos do mesmo modo — mesmo sem ninguém os ter aberto ainda. A prova
+   * mede as três pela ponte, e exige em cada uma o que a torna uma folha: NENHUMA moldura, o
+   * `data-tela="ficha"`, o estilo inline, e a identidade de escola ainda declarada. */
+  const FOLHAS = [
+    ['a ficha da anamnese', '/anamnese/api/ficha-preenchida.' + ANAMNESE.id + '?formato=html'],
+    ['a folha do plano de ensino',
+      '/plano-ensino/api/plano-preenchido.' + PLANO.id + '?formato=html'],
+    ['a folha do plano de observação',
+      '/plano-observacao/api/po-preenchido.' + PO.id + '?formato=html'],
+  ];
+  for (const [rotulo, caminho] of FOLHAS) {
+    const r = await pedir(caminho);
+    provar(rotulo + ' responde HTML', r.status === 200 && /<html/i.test(r.html), r.status);
+    const m = MOLdura(r.html);
+    provar('…e NÃO leva a barra do topo (a folha não carrega a folha de estilos da moldura)',
+      m.barra === false);
+    provar('…nem a coluna da esquerda', m.coluna === false);
+    provar('…e diz que é folha (`data-tela="ficha"`)',
+      r.html.indexOf('data-tela="ficha"') !== -1);
+    provar('…e leva a identidade da escola declarada inline (o papel não herda tema)',
+      /data-paleta="[a-z]+"/.test(r.html) && /data-modo="[a-z]+"/.test(r.html));
+  }
+  /* O CONTROLO POSITIVO, na mesma execução: a lista ao lado — que CARREGA `/assets/style.css` — é
+   * enquadrada. Sem isto, um `enquadrar` desligado por engano passaria esta secção inteira. */
+  const listaDaAnamnese = await pedir('/area-do-professor/anamnese/');
+  provar('CONTROLO: a LISTA (que carrega a folha de estilos) continua enquadrada',
+    MOLdura(listaDaAnamnese.html).barra === true && MOLdura(listaDaAnamnese.html).coluna === true);
+
+  /* -------------------------------------------------------------------------------------- */
+  console.log('\n4 · O MENU DA ESCOLA NOVA — os três formulários antes de existir turma');
   /* A outra causa, e ela é de DADOS: `menuDaEscola` com zero turmas. A anamnese é o instrumento
    * de ENTRADA (vem antes da turma) e o plano de ensino é o que CRIA o ciclo — esconder os dois
    * até haver turma esconde a porta de quem ainda não tem nada. */
