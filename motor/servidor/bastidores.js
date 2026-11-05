@@ -9227,6 +9227,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (enviar) enviar.hidden = n < LB_TOTAL;' +
     '  pintarTravasLb();' +
     '}' +
+    /* A PASSAGEM GRAVA — E É AQUI, NUM SÍTIO SÓ (05/11/2026).
+     *
+     * O SINTOMA QUE ISTO FECHA. A tira dos cinco passos chamava `mostrarPassoLb` directamente;
+     * `gravarLinha` só corria no «Seguir» do passo 1 e no fim do 4. Quem clicasse «3» na tira
+     * chegava à leitura com `lb-modo` vazio — a linha existia na lista e o formulário não sabia
+     * dela. A resposta era «grave a linha de base primeiro», e não havia onde clicar.
+     *
+     * A REGRA. Antes de mostrar um passo À FRENTE, o que está no ecrã vai para o servidor — se
+     * houver nome e professor, que é o que toda a gravação exige. Sem eles a trava já impede a
+     * passagem, e não se gasta um pedido para receber a recusa. Ir PARA TRÁS nunca grava: voltar
+     * não é decidir.
+     *
+     * Falhar a gravação NÃO AVANÇA. O `corpoRes` diz o motivo, e o professor fica no passo onde
+     * está com o que escreveu — em vez de seguir para uma leitura que não poderia ser guardada. */
+    'function irParaPasso(qual) {' +
+    '  var alvo = Number(qual) || 1;' +
+    '  if (alvo <= LB_PASSO) { mostrarPassoLb(alvo); return; }' +
+    '  if (!nomeDoFormulario() || !professorDoFormulario()) { mostrarPassoLb(alvo); return; }' +
+    '  gravarLinha().then(function(ok){ if (ok) mostrarPassoLb(alvo); });' +
+    '}' +
     // ------------------------------------------------------------------ PASSO 2 — AS ALUNAS
     //
     // DEZ DE CADA VEZ (05/11/2026). A lista é feita de blocos, e o «Carregar mais alunas»
@@ -9351,8 +9371,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function lerAnamneses() {' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var escolhidas = alunasMarcadas();' +
+    /* LER GRAVA PRIMEIRO, SE AINDA NÃO HÁ REGISTO (05/11/2026).
+     *
+     * A MENSAGEM QUE ELA VIU — «grave a linha de base primeiro; a leitura fica guardada nela» — era
+     * verdadeira e inútil: não havia botão de gravar naquele passo, e a linha que existia na lista
+     * estava aberta no formulário sem o formulário saber dela. A leitura precisa de onde ficar; em
+     * vez de mandar gravar, grava-se. Um passo que pede uma coisa que a tela não oferece manda
+     * procurar um defeito que não existe — e o defeito era este. */
     '  if (!modo || !modo.value) {' +
-    '    corpoRes("aviso", "Grave a linha de base primeiro — a leitura fica guardada nela.");' +
+    '    if (!escolhidas.length) {' +
+    '      corpoRes("aviso", "Escolha pelo menos uma aluna — a leitura é o que o corpo DELAS mostra.");' +
+    '      return;' +
+    '    }' +
+    '    gravarLinha().then(function(ok){ if (ok) lerAnamneses(); });' +
     '    return;' +
     '  }' +
     '  if (!escolhidas.length) {' +
@@ -9440,29 +9471,47 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = document.getElementById("lb-lista");' +
     '  if (!alvo) return;' +
     '  if (!LINHAS_DE_BASE.length) {' +
-    '    alvo.innerHTML = "<li>Nenhuma linha de base ainda. A primeira nasce quando o professor " +' +
-    '      "escolher os aspectos da anamnese que o trabalho dele observa.</li>";' +
+    '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhuma linha de base ainda — a primeira nasce ' +
+    'no formulário, no passo 1)</li>";' +
     '    return;' +
     '  }' +
+    /* A LISTA É A DA CASA (05/11/2026), e a primeira versão não era.
+     *
+     * O RELATO DELA: «você também não seguiu o padrão visual […] as listagens são iguais». Estava
+     * certo: a linha da linha de base saía com `linha-titulo` e `linha-sub`, duas classes que não
+     * existem nem na folha nem em gancho nenhum — texto solto, sem o `<li>` da turma, sem o
+     * `<b>` do nome, sem `.acoes` a alinhar os botões à direita. As outras listas desta página
+     * (Turmas, Alunas, Curadorias) são todas `.linha-turma › .nome + .acoes`, com o complemento em
+     * `.dono` e o estado num `.selo`. Uma lista com a mesma informação e outra forma lê-se como
+     * um sítio diferente do sistema — e não é.
+     *
+     * O ESTADO FALA A LÍNGUA DAS OUTRAS LISTAS, e não a dos passos. «rascunho — falta o recorte no
+     * passo 4» expunha o maquinário de quem está a preencher: um selo e uma frase dizem o mesmo
+     * sem obrigar a saber em que passo se está. `livre` enquanto nada derivou dela; `vinculada`
+     * depois de ir para uma turma — a mesma distinção de Turmas e Curadorias. */
     '  alvo.innerHTML = LINHAS_DE_BASE.map(function(l){' +
     '    var n = (l.campos || []).length;' +
     '    var m = (l.alunas || []).length;' +
-    '    var onde = l.turma ? " · enviada para " + escHtml(l.turma) : "";' +
-    /* O RASCUNHO DIZ-SE (05/11/2026). O passo 1 grava a identificação antes de o recorte existir;
-     * uma linha que aparecesse na lista como as outras — «0 aspectos» — parecia um recorte vazio
-     * decidido pelo professor, e não um passo por terminar. */
-    '    var recorte = n ? (n === 1 ? "1 aspecto" : n + " aspectos")' +
-    '      : "rascunho — falta o recorte no passo 4";' +
-    '    return "<li><div class=\\"linha-titulo\\">" + escHtml(l.nome) + "</div>" +' +
-    '      "<div class=\\"linha-sub\\">" + recorte + " · " +' +
-    '      (m === 1 ? "1 aluna" : m + " alunas") +' +
-    '      (l.professor ? " · " + escHtml(l.professor) : " · sem professor declarado") +' +
-    '      onde + "</div>" +' +
-    '      "<span class=\\"par-botoes\\">" +' +
-    '      "<button type=\\"button\\" class=\\"acao pequeno\\" data-lb-editar=\\"" + escHtml(l.id) +' +
-    '      "\\">Editar</button>" +' +
-    '      "<button type=\\"button\\" class=\\"acao pequeno secundario\\" data-lb-apagar=\\"" +' +
-    '      escHtml(l.id) + "\\">Apagar</button></span></li>";' +
+    '    var selo = l.turma' +
+    '      ? "<span class=\\"selo vinculada\\" title=\\"já foi enviada para uma turma: a curadoria e ' +
+    'os planos leem-na a partir daí\\">vinculada</span>"' +
+    '      : (n' +
+    '        ? "<span class=\\"selo livre\\" title=\\"ainda não foi enviada para nenhuma turma\\">livre</span>"' +
+    '        : "<span class=\\"selo alerta\\" title=\\"ainda não tem os aspectos escolhidos — sem eles ' +
+    'o plano de ensino não tem corpo para importar\\">por completar</span>");' +
+    '    var detalhe = [n ? (n === 1 ? "1 aspecto" : n + " aspectos") : "sem aspectos escolhidos",' +
+    '      (m === 1 ? "1 aluna" : m + " alunas"),' +
+    '      (l.professor || "sem professor declarado"),' +
+    '      (l.turma ? "enviada para " + l.turma : "")].filter(Boolean).join(" · ");' +
+    '    return "<li><div class=\\"linha-turma\\">" +' +
+    '      "<span class=\\"nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + "</span>" +' +
+    '      "<span class=\\"acoes\\">" +' +
+    '      "<button type=\\"button\\" class=\\"acao pequena\\" data-lb-editar=\\"" + escHtml(l.id) +' +
+    '      "\\" title=\\"Abrir esta linha de base para corrigir\\">Editar</button>" +' +
+    '      "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-lb-apagar=\\"" +' +
+    '      escHtml(l.id) + "\\" data-nome=\\"" + escHtml(l.nome) +' +
+    '      "\\" title=\\"Excluir esta linha de base\\">Excluir</button></span></div>" +' +
+    '      "<div class=\\"dono\\">" + escHtml(detalhe) + "</div></li>";' +
     '  }).join("");' +
     '  Array.prototype.slice.call(alvo.querySelectorAll("[data-lb-editar]")).forEach(function(b){' +
     '    b.addEventListener("click", function(){ editarLinha(this.getAttribute("data-lb-editar")); });' +
@@ -9506,10 +9555,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // ------------------------------------------------------------------ EDITAR E APAGAR
     'function limparForm() {' +
-    '  ["lb-modo", "lb-nome"].forEach(function(id){' +
+    '  ["lb-modo", "lb-nome", "lb-turma-destino"].forEach(function(id){' +
     '    var e = document.getElementById(id);' +
     '    if (e) e.value = "";' +
     '  });' +
+    '  var vinculo = document.getElementById("lb-vinculo");' +
+    '  if (vinculo) vinculo.innerHTML = "";' +
     '  var leitura = document.getElementById("lb-leitura");' +
     '  if (leitura) leitura.innerHTML = "<p class=\\"sub\\">ainda sem leitura.</p>";' +
     '  LB_MOSTRADAS = 10;' +
@@ -9526,34 +9577,77 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var prof = document.getElementById("lb-professor");' +
     '  if (modo) modo.value = alvo.id;' +
     '  if (nome) nome.value = alvo.nome || "";' +
-    '  if (prof && alvo.professor) prof.value = alvo.professor;' +
+    /* O PROFESSOR GRAVADO TEM DE SER UMA OPÇÃO VÁLIDA (05/11/2026), e este era um defeito medido:
+     * atribuir `prof.value = alvo.professor` a um `<select>` que já não tem esse valor não deixa o
+     * campo vazio — deixa-o no valor ANTERIOR. A linha era do professor A, a lista mostrada era a
+     * de hoje, e o formulário passava a dizer outro professor; ou, quando nada casava, ficava sem
+     * professor e a trava mandava o professor para o passo 1 sem explicação. A opção é acrescentada
+     * quando falta: o professor de uma linha de base antiga continua a ser um facto dela. */
+    '  if (prof && alvo.professor) {' +
+    '    var existe = Array.prototype.some.call(prof.options || [], function(o){' +
+    '      return o.value === alvo.professor; });' +
+    '    if (!existe) {' +
+    '      var op = document.createElement("option");' +
+    '      op.value = alvo.professor;' +
+    '      op.textContent = alvo.professor;' +
+    '      prof.appendChild(op);' +
+    '    }' +
+    '    prof.value = alvo.professor;' +
+    '  }' +
     // AS ALUNAS VOLTAM MARCADAS, e as que estão fora da primeira fornada também: sem isto, o
     // «Gravar» seguinte apagava o recorte que estava lá.
     '  var escolhidas = (alvo.alunas || []).map(String);' +
     '  if (escolhidas.length > LB_MOSTRADAS) LB_MOSTRADAS = escolhidas.length;' +
     '  pintarAlunas(escolhidas);' +
     '  pintarCampos((alvo.campos || []).map(function(c){ return c.id; }));' +
+    /* A LEITURA DO QUE SE ABRE É A DESTA LINHA — e não a da anterior que estivesse no ecrã. Sem o
+     * `else`, editar uma linha por ler depois de ter lido outra deixava a tabela da outra à vista,
+     * com o passo 3 a dizer «lida» sobre um corpo que nunca foi lido. */
     '  if (alvo.leitura && alvo.leitura.classificacao) {' +
     '    LEITURA_FEITA = true;' +
     '    pintarClassificacao(alvo.leitura.classificacao);' +
+    '  } else {' +
+    '    LEITURA_FEITA = false;' +
+    '    pintarClassificacao(null);' +
     '  }' +
     '  var destino = document.getElementById("lb-turma-destino");' +
-    '  if (destino && alvo.turma) destino.value = alvo.turma;' +
-    '  corpoRes("", "A editar «" + (alvo.nome || alvo.id) + "».");' +
-    '  mostrarPassoLb(2);' +
+    '  if (destino) destino.value = alvo.turma || "";' +
+    '  var vinculo = document.getElementById("lb-vinculo");' +
+    '  if (vinculo) {' +
+    '    vinculo.innerHTML = alvo.turma' +
+    '      ? "<p class=\\"aviso\\">Enviada para «" + escHtml(alvo.turma) + "». Mudar o elenco " +' +
+    '        "aqui obriga a passar pela curadoria, pelo plano de ensino e pelo plano de " +' +
+    '        "observação — o sistema diz-lhe onde, e não o faz sozinho.</p>"' +
+    '      : "";' +
+    '  }' +
+    /* ABRE NO PRINCÍPIO, COMO UM REGISTO QUE SE EDITA (05/11/2026). Ia para o passo 2 — e o passo
+     * 2, num registo ainda sem alunas, mostrava a lista por marcar, o que se lia como «perdi a
+     * aluna que tinha escolhido». A edição começa onde a criação começa: identificação, e a tira
+     * diz o que já está decidido nos outros. */
+    '  corpoRes("", "A editar «" + (alvo.nome || alvo.id) + "». Ande pelos passos, ou salte " +' +
+    '    "pela tira em cima.");' +
+    '  mostrarPassoLb(1);' +
     '}' +
     'function apagarLinha(id) {' +
     '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === id; })[0];' +
     '  if (!alvo) return;' +
-    '  if (!confirm("Apagar a linha de base «" + alvo.nome + "»? Os planos que já a usaram " +' +
+    '  if (!confirm("Excluir a linha de base «" + alvo.nome + "»? Os planos que já a usaram " +' +
     '    "mantêm o que consolidaram — o dado é proveniência e não se reescreve.")) return;' +
+    /* O FORMULÁRIO FECHA-SE COM A LINHA (05/11/2026), e este era o erro que ela viu: «se eu clico
+     * em apagar, ele apaga aqui da listagem e continua no step dois e não elimina o nome do step
+     * um», e a seguir «linha de base não encontrada: teste». O `lb-modo` continuava a apontar para
+     * o registo apagado, e o gesto seguinte (ler, ou gravar) ia procurá-lo ao servidor. Um
+     * formulário aberto sobre um registo que já não existe não é um formulário — é uma promessa
+     * quebrada. Se a linha apagada é a que está aberta, limpa-se tudo e volta-se ao passo 1. */
+    '  var aberta = ((document.getElementById("lb-modo") || {}).value || "") === id;' +
     '  fetch("/api/bastidores/linha-de-base", {method: "DELETE",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({id: id, token: TOKEN})})' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      if (d && d.ok) {' +
-    '        corpoRes("ok", "linha de base apagada" +' +
+    '        if (aberta) limparForm();' +
+    '        corpoRes("ok", "linha de base excluída" +' +
     '          (d.planosQueAUsavam ? " — " + d.planosQueAUsavam + " plano(s) apontavam para ela" : "") + ".");' +
     '        carregarLinhas();' +
     '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
@@ -9562,10 +9656,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // ------------------------------------------------------------------ A GRAVAÇÃO
     //
-    // GRAVAR ACONTECE NO «SEGUIR» DO PASSO 1 E NO FIM DO PASSO 4 — os dois momentos em que o que
-    // está decidido muda o que o servidor precisa de saber. Gravar sempre era um pedido por
-    // clique; não gravar nunca deixava a leitura do passo 3 sem onde ficar (ela é gravada na
-    // linha de base, e a linha de base tem de existir).
+    // GRAVAR ACONTECE A CADA PASSAGEM (05/11/2026), e a primeira versão gravava só no «Seguir» do
+    // passo 1 e no fim do 4. O defeito mediu-se na tela: a tira dos cinco passos levava ao 3 sem
+    // gravar nada, o `lb-modo` continuava vazio, e o «Ler as anamneses» respondia «grave a linha de
+    // base primeiro — a leitura fica guardada nela» a quem já tinha gravado e não tinha onde
+    // gravar. Pior: a lista dizia «0 alunas» de uma linha cuja aluna estava marcada no ecrã, porque
+    // o passo 2 nunca chegava ao servidor.
+    //
+    // O QUE NÃO SE FAZ É GRAVAR A CADA CLIQUE. Um pedido por mudança de campo gastaria o KV a olho
+    // e encheria a lista enquanto se escreve um nome. Grava-se no INSTANTE EM QUE O ESTADO VAI SER
+    // USADO: ao mudar de passo, ao ler as anamneses, ao concluir. É o mesmo princípio dos outros
+    // formulários — o que a tela mostra é o que o servidor tem.
     'function gravarLinha(seguir) {' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var corpo = {' +
@@ -9573,12 +9674,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    professor: professorDoFormulario(),' +
     '    alunas: alunasMarcadas(),' +
     '    campos: marcados("lb-campo"),' +
-    /* O PASSO 1 GRAVA UM RASCUNHO, e di-lo (05/11/2026). O recorte é o passo 4, mas a linha de
-     * base tem de existir antes dele: é na linha que a leitura do passo 3 fica guardada. Sem este
-     * sinal o servidor recusava a primeira gravação («escolha pelo menos um aspecto do corpo»), e
-     * o formulário não passava do passo 1. O rascunho não se envia para a turma — a rota `enviar`
-     * recusa-o —, e o selo cai quando o recorte é escolhido. */
-    '    rascunho: LB_PASSO === 1,' +
+    /* O RASCUNHO DECLARA-SE ENQUANTO FALTA O RECORTE (05/11/2026). O recorte é o passo 4, mas a
+     * linha de base tem de existir antes dele: é nela que a leitura do passo 3 fica guardada. Sem
+     * este sinal o servidor recusava a gravação («escolha pelo menos um aspecto do corpo») e o
+     * formulário não passava do passo 1. A regra passou a ser a do CONTEÚDO — e não a do passo em
+     * que se está: quem grava sem aspectos está a gravar um rascunho, venha do passo 1, do 2 ou do
+     * 3. O rascunho não se envia para a turma (a rota `enviar` recusa-o) e o selo cai quando o
+     * recorte é escolhido. */
+    '    rascunho: !marcados("lb-campo").length,' +
     '    token: TOKEN' +
     '  };' +
     '  if (modo && modo.value) corpo.id = modo.value;' +
@@ -9687,22 +9790,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest && e.target.closest("#lb-tira button.passo");' +
     '  if (!b || b.disabled) return;' +
-    '  mostrarPassoLb(b.getAttribute("data-passo"));' +
+    /* A TIRA PASSA PELO `irParaPasso`, e não pelo `mostrarPassoLb` (05/11/2026). Era esta a
+     * porta por onde se chegava ao passo 3 sem nada estar gravado: a tira trocava de painel e
+     * mais nada, e o «Ler as anamneses» respondia «grave a linha de base primeiro» a quem tinha
+     * acabado de preencher os passos 1 e 2. Quem grava é o `irParaPasso`, e é um sítio só. */
+    '  irParaPasso(b.getAttribute("data-passo"));' +
     '});' +
     'var lbSeguir = document.getElementById("lb-seguir");' +
     'if (lbSeguir) lbSeguir.addEventListener("click", function(){' +
-    // O PASSO 1 GRAVA antes de avançar — a linha de base tem de existir para a leitura do passo 3
-    // ter onde ficar. O PASSO 4 também, porque é ele que decide o recorte. Os outros dois não
-    // mudam nada que o servidor precise de saber.
-    '  if (LB_PASSO === 1) {' +
-    '    gravarLinha().then(function(ok){ if (ok) mostrarPassoLb(2); });' +
-    '    return;' +
-    '  }' +
-    '  if (LB_PASSO === 4) {' +
-    '    gravarLinha().then(function(ok){ if (ok) mostrarPassoLb(5); });' +
-    '    return;' +
-    '  }' +
-    '  mostrarPassoLb(LB_PASSO + 1);' +
+    // O «SEGUIR» PASSA PELO MESMO SÍTIO (05/11/2026). Antes ele gravava no 1 e no 4 e nos outros
+    // dois não gravava nada — a regra vivia em dois `if` e faltava nos três passos onde também é
+    // precisa. Agora há uma passagem, e ela grava antes de avançar.
+    '  irParaPasso(LB_PASSO + 1);' +
     '});' +
     'var lbVoltar = document.getElementById("lb-voltar");' +
     'if (lbVoltar) lbVoltar.addEventListener("click", function(){ mostrarPassoLb(LB_PASSO - 1); });' +

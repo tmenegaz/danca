@@ -36176,3 +36176,66 @@ bancada reprova **6** — exactamente as seis asserções de barra/coluna das tr
 
 **Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado; a ponte é `motor/servidor/` e as
 provas são `experimentos/`.
+
+## 05/11/2026 — A tira grava, o «Ler» grava, o excluir fecha o formulário — e a lista passa a ser a da casa
+
+**O que motivou.** O percurso dela, contado passo a passo: preencheu o passo 1 («teste»), marcou a
+Aluna A (com a etiqueta «novo», que estava certa) no passo 2, foi ao passo 3 — e o botão respondeu
+*«grave a linha de base primeiro — a leitura fica guardada nela»* sem haver, naquele ecrã, nada para
+gravar. A lista dizia **«0 alunas»** de uma linha cuja aluna estava marcada à frente dos olhos. Ao
+carregar em «Apagar», o item saía da lista, a tela continuava no passo 2 com o nome «teste» no passo
+1, e o gesto seguinte dava **«a linha de base não encontrada: teste»**. E a listagem — «linhas de
+base teste», «rascunho — falta o recorte no passo 4», «0 alunas», professor — não era a das outras
+listas: *«não seguiu o padrão visual […] as listagens são iguais»*.
+
+**A causa era uma só, e era de fluxo.** A tira dos cinco passos chamava `mostrarPassoLb` directamente.
+`gravarLinha` só corria no «Seguir» do passo 1 e no fim do 4 — **os passos 2 e 3 nunca chegavam ao
+servidor**. O `lb-modo` ficava vazio (o «Ler» procura-o), a aluna escolhida não saía do ecrã (a lista
+contava zero), e o id apagado continuava no formulário (o «não encontrada»). Três sintomas, um
+defeito: o estado do ecrã e o estado do servidor deixaram de ser o mesmo.
+
+**O que foi decidido.**
+
+- **Grava-se na passagem, e num sítio só.** `irParaPasso(n)` grava antes de mostrar um passo à frente;
+  a tira, o «Seguir» e o passo lembrado passam todos por ele. Ir para trás nunca grava — voltar não é
+  decidir. Falhar a gravação não avança: o motivo fica escrito e o professor não segue para uma
+  leitura que não poderia ser guardada.
+- **O «Ler as anamneses» grava em vez de mandar gravar.** A mensagem era verdadeira e inútil: pedia
+  uma coisa que a tela não oferecia. Um passo que pede o que não existe manda procurar um defeito
+  que não existe.
+- **O rascunho passou a ser do CONTEÚDO, e não do passo.** Quem grava sem aspectos está a gravar um
+  rascunho — venha do passo 1, do 2 ou do 3. A regra anterior («`rascunho: LB_PASSO === 1`») recusava
+  o passo 2 → 3 numa linha ainda sem recorte.
+- **Excluir a linha aberta fecha o formulário.** O `lb-modo` continuava a apontar para o registo
+  apagado, e o gesto seguinte ia procurá-lo ao servidor. Um formulário aberto sobre um registo que
+  já não existe não é um formulário — é uma promessa quebrada.
+- **«Editar» abre no princípio, e não perde o elenco.** Ia para o passo 2 — e num registo ainda sem
+  alunas o passo 2 aparecia por marcar, o que se lia como «perdi a aluna que tinha escolhido». Além
+  disso, o professor gravado era atribuído a um `<select>` que podia já não ter esse valor: o campo
+  ficava no valor anterior, ou vazio, e a trava devolvia ao passo 1 sem explicação. A opção em falta
+  passa a ser acrescentada — o professor de uma linha antiga é um facto dela.
+- **A lista é a da casa.** `.linha-turma › .nome (b) + .acoes`, o complemento em `.dono`, o estado num
+  `.selo` — a mesma forma de Turmas, Alunas e Curadorias. `linha-titulo` e `linha-sub` **não existiam
+  na folha nem em gancho nenhum**: eram texto solto, e é por isso que a lista parecia de outro
+  sistema. O estado deixou de falar de passos: `por completar` / `livre` / `vinculada`, e a falta
+  diz-se pelo nome («sem aspectos escolhidos»), não pelo número do passo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `irParaPasso`; a tira e o «Seguir» por ele;
+`lerAnamneses` grava; `rascunho` pelo conteúdo; `apagarLinha` limpa quando a linha está aberta;
+`editarLinha` acrescenta a opção do professor, repõe a leitura certa e abre no passo 1; `pintarLinhas`
+na forma da casa. `experimentos/provar-linha-de-base.js` — a secção 17 (5 asserções, em jsdom, a
+medir o PEDIDO e o ESTADO: a tira grava e leva a aluna, o «Ler» grava, o excluir limpa, a lista usa
+as peças da casa, o «Editar» não perde o elenco).
+
+**Medido.** `provar-linha-de-base` **93/93** (era 88); `provar-producao` **159/159**;
+`provar-curadoria-e-limpeza` **ok**; `provar-acordeoes` **ok**; `check-identidade` **0 erros**. O A/B
+foi feito: reposta a tira a chamar `mostrarPassoLb`, reprovam **2** — exactamente as duas asserções
+que dependem de a passagem gravar.
+
+**O que ainda não está feito.**
+
+- O **passo 3 continua a não explicar-se a si mesmo** para quem chega de fora: o texto diz o que ele
+  faz («abre a anamnese mais recente de cada aluna e cruza o que elas mostram; o resultado fica
+  guardado»), mas a dúvida dela — «não sei para que serve o leitura / por ler» — é sobre o LUGAR do
+  passo no percurso, e isso é decisão de desenho, não de texto. Fica em aberto, para ela dizer.
+- A conferência **no ar** faz-se depois do deploy, no mesmo percurso: passo 1 → 2 → 3 → ler.

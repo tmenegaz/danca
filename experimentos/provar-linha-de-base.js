@@ -1593,6 +1593,196 @@ async function chamar(env, caminho, opcoes) {
     });
   }
 
+  /* 17. A TIRA GRAVA, O LER GRAVA, O APAGAR LIMPA E A LISTA É A DA CASA (05/11/2026).
+   *
+   * O PERCURSO DELA, tal como o contou: preencheu o passo 1 («teste»), marcou a Aluna A no passo 2,
+   * foi ao passo 3 e o botão respondeu «grave a linha de base primeiro — a leitura fica guardada
+   * nela» — sem haver onde gravar. A lista mostrava «0 alunas» de uma linha cuja aluna estava
+   * marcada no ecrã, e depois de «Apagar» a tela continuava no passo 2 com o nome do passo 1 e o
+   * erro «a linha de base não encontrada: teste».
+   *
+   * A CAUSA ERA UMA SÓ, e é de fluxo: a tira chamava `mostrarPassoLb` directamente. Só o «Seguir»
+   * do passo 1 e o fim do 4 gravavam; o 2 e o 3 nunca chegavam ao servidor. Estas asserções medem
+   * o PEDIDO e o ESTADO, não a marcação — uma prova de presença passaria com tudo isto partido. */
+  console.log('\n17. A TIRA GRAVA — o passo 2 chega ao servidor, e o apagar fecha o formulário');
+  {
+    const montar = async () => {
+      let JSDOM, VirtualConsole;
+      ({ JSDOM, VirtualConsole } = require('jsdom'));
+      const vc = new VirtualConsole();
+      vc.on('jsdomError', () => {}); vc.on('error', () => {});
+      const pedidos = [];
+      let linhas = [];
+      const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+        pretendToBeVisual: true, virtualConsole: vc,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.confirm = () => true; w.alert = () => {};
+          w.fetch = (u, opcoes) => {
+            const url = String(u);
+            const metodo = (opcoes && opcoes.method) || 'GET';
+            const responder = (corpo, status) => Promise.resolve({
+              ok: true, status: status || 200,
+              json: () => Promise.resolve(corpo), text: () => Promise.resolve(''),
+            });
+            if (metodo === 'POST' && url.indexOf('/linha-de-base/enviar') !== -1) {
+              return responder({ ok: true, turma: 'Balé 1', alunas: [] });
+            }
+            if (metodo === 'POST' && url.indexOf('linha-de-base') !== -1) {
+              const corpo = JSON.parse((opcoes && opcoes.body) || '{}');
+              pedidos.push(corpo);
+              const linha = {
+                id: corpo.id || 'teste', nome: corpo.nome, professor: corpo.professor,
+                alunas: corpo.alunas || [], campos: (corpo.campos || []).map((id) => ({ id })),
+                rascunho: !(corpo.campos || []).length,
+              };
+              const i = linhas.findIndex((l) => l.id === linha.id);
+              linhas = i === -1 ? linhas.concat([linha]) : linhas.map((l, k) => (k === i ? linha : l));
+              return responder({ ok: true, criada: i === -1, linha }, i === -1 ? 201 : 200);
+            }
+            if (metodo === 'DELETE' && url.indexOf('linha-de-base') !== -1) {
+              const corpo = JSON.parse((opcoes && opcoes.body) || '{}');
+              linhas = linhas.filter((l) => l.id !== corpo.id);
+              return responder({ ok: true, linha: corpo.id, planosQueAUsavam: 0 });
+            }
+            if (url.indexOf('linha-de-base/leitura') !== -1) {
+              return responder({ ok: true, leitura: { alunas: ['Aluna A'] },
+                classificacao: { alunos: 1, atencao: [], excelencia: [], musicalidade: [], comuns: [], semRegisto: [] } });
+            }
+            const corpo = url.indexOf('alunas-com-anamnese') !== -1
+              ? { ok: true, alunas: [{ aluna: 'Aluna A', carimbo: 'anamnese-20261105-1240', novo: true }] }
+              : url.indexOf('campos-do-corpo') !== -1
+                ? { ok: true, campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal', grupo: 'g', eixo: 'Funcional', dimensao: 'funcional', opcoes: ['A', 'B'] }], grupos: ['g'] }
+                : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas, divergentes: [] } : { ok: true };
+            return responder(corpo);
+          };
+        },
+      });
+      const win = dom.window;
+      await new Promise((r) => win.setTimeout(r, 250));
+      return { win, pedidos, lerLinhas: () => linhas };
+    };
+
+    await okAsync('clicar no passo 3 da TIRA grava o passo 2 — e leva a aluna no pedido', async () => {
+      const { win, pedidos, lerLinhas } = await montar();
+      win.document.getElementById('lb-nome').value = 'teste';
+      const sel = win.document.getElementById('lb-professor');
+      if (sel && !sel.value) { sel.innerHTML = '<option value="rabo-gramde">rabo-gramde</option>'; sel.value = 'rabo-gramde'; }
+      win.document.querySelector('input[name="lb-aluna"]').checked = true;
+      win.pintarTravasLb();
+      win.document.querySelector('#lb-tira button[data-passo="3"]').click();
+      await new Promise((r) => win.setTimeout(r, 120));
+
+      assert.ok(pedidos.length >= 1, 'a tira tem de gravar antes de mostrar o passo');
+      const ultimo = pedidos[pedidos.length - 1];
+      assert.strictEqual(ultimo.nome, 'teste');
+      assert.strictEqual(ultimo.alunas.length, 1,
+        'a aluna marcada no passo 2 vai no pedido — era o que faltava para a lista dizer «0 alunas»');
+      assert.strictEqual(ultimo.alunas[0], 'Aluna A');
+      assert.strictEqual(win.document.getElementById('lb-modo').value, 'teste',
+        'e o formulário passa a saber o id: é isso que o «Ler» procura');
+      assert.strictEqual(win.LB_PASSO, 3, 'só depois de gravar é que o passo 3 abre');
+      assert.strictEqual(lerLinhas()[0].alunas.length, 1,
+        'e o que ficou gravado é o que está no ecrã');
+      win.close();
+    });
+
+    await okAsync('o «Ler as anamneses» grava em vez de mandar gravar', async () => {
+      const { win, pedidos } = await montar();
+      win.document.getElementById('lb-nome').value = 'teste';
+      const sel = win.document.getElementById('lb-professor');
+      if (sel && !sel.value) { sel.innerHTML = '<option value="rabo-gramde">rabo-gramde</option>'; sel.value = 'rabo-gramde'; }
+      win.document.querySelector('input[name="lb-aluna"]').checked = true;
+      /* Chega-se ao passo 3 e LIMPA-SE o id — é o estado exacto do relato: a linha existia na
+       * lista, o formulário não sabia dela, e a leitura respondia «grave primeiro». */
+      win.mostrarPassoLb(3);
+      win.document.getElementById('lb-modo').value = '';
+      pedidos.length = 0;
+      win.document.getElementById('lb-ler').click();
+      await new Promise((r) => win.setTimeout(r, 200));
+
+      assert.ok(pedidos.length >= 1, 'o «Ler» grava primeiro — o passo que pede não pode ser o que não existe');
+      const alvo = win.document.querySelector('[data-res="linha-base"]');
+      assert.ok(!/grave a linha de base primeiro/i.test((alvo && alvo.textContent) || ''),
+        'e a mensagem «grave primeiro» desaparece: ' + (alvo && alvo.textContent));
+      assert.strictEqual(win.LEITURA_FEITA, true, 'a leitura corre depois de gravar');
+      win.close();
+    });
+
+    await okAsync('excluir a linha ABERTA limpa o formulário — o «não encontrada» não volta', async () => {
+      const { win, lerLinhas } = await montar();
+      win.document.getElementById('lb-nome').value = 'teste';
+      const sel = win.document.getElementById('lb-professor');
+      if (sel && !sel.value) { sel.innerHTML = '<option value="rabo-gramde">rabo-gramde</option>'; sel.value = 'rabo-gramde'; }
+      win.pintarTravasLb();
+      win.document.getElementById('lb-seguir').click();
+      await new Promise((r) => win.setTimeout(r, 120));
+      assert.strictEqual(win.document.getElementById('lb-modo').value, 'teste');
+
+      const excluir = win.document.querySelector('[data-lb-apagar="teste"]');
+      assert.ok(excluir, 'a lista tem de oferecer o «Excluir» da linha aberta');
+      excluir.click();
+      await new Promise((r) => win.setTimeout(r, 150));
+
+      assert.strictEqual(lerLinhas().length, 0, 'a linha saiu do servidor');
+      assert.strictEqual(win.document.getElementById('lb-modo').value, '',
+        'e o formulário deixa de apontar para ela — era daqui que vinha «não encontrada: teste»');
+      assert.strictEqual(win.document.getElementById('lb-nome').value, '',
+        'o nome do passo 1 também sai, como ela pediu');
+      assert.strictEqual(win.LB_PASSO, 1, 'e a tela volta ao princípio');
+      win.close();
+    });
+
+    await okAsync('a listagem usa a LINHA DA CASA — e não classes que ninguém desenhou', async () => {
+      const { win, lerLinhas } = await montar();
+      win.document.getElementById('lb-nome').value = 'teste';
+      const sel = win.document.getElementById('lb-professor');
+      if (sel && !sel.value) { sel.innerHTML = '<option value="rabo-gramde">rabo-gramde</option>'; sel.value = 'rabo-gramde'; }
+      win.pintarTravasLb();
+      win.document.getElementById('lb-seguir').click();
+      await new Promise((r) => win.setTimeout(r, 120));
+      assert.strictEqual(lerLinhas().length, 1);
+
+      const li = win.document.querySelector('#lb-lista li');
+      assert.ok(li.querySelector('.linha-turma'), 'a linha tem de ser a das Turmas/Curadorias');
+      assert.ok(li.querySelector('.linha-turma .nome b'), 'o nome é o <b> dentro de .nome');
+      assert.ok(li.querySelector('.linha-turma .acoes'), 'e os botões vivem em .acoes, à direita');
+      assert.ok(li.querySelector('.dono'), 'o complemento desce para .dono, como nas outras listas');
+      assert.ok(li.querySelector('.selo'), 'e o estado é um selo — não uma frase sobre passos');
+      assert.strictEqual(li.querySelectorAll('.linha-titulo, .linha-sub').length, 0,
+        'linha-titulo/linha-sub não existem na folha nem em gancho nenhum: eram texto solto');
+      assert.ok(/por completar/.test(li.textContent),
+        'sem recorte, o estado diz-se em português de lista: ' + li.textContent);
+      assert.ok(!/passo 4/.test(li.textContent),
+        'a lista não fala de passos — quem está a preencher é que sabe em que passo está: '
+        + li.textContent);
+      win.close();
+    });
+
+    await okAsync('«Editar» abre no princípio e não perde as alunas que lá estão', async () => {
+      const { win, lerLinhas } = await montar();
+      win.document.getElementById('lb-nome').value = 'teste';
+      const sel = win.document.getElementById('lb-professor');
+      if (sel && !sel.value) { sel.innerHTML = '<option value="rabo-gramde">rabo-gramde</option>'; sel.value = 'rabo-gramde'; }
+      win.document.querySelector('input[name="lb-aluna"]').checked = true;
+      win.pintarTravasLb();
+      win.document.querySelector('#lb-tira button[data-passo="2"]').click();
+      await new Promise((r) => win.setTimeout(r, 120));
+      assert.strictEqual(lerLinhas()[0].alunas.length, 1, 'o passo 2 gravou a aluna');
+
+      win.document.querySelector('[data-lb-editar="teste"]').click();
+      await new Promise((r) => win.setTimeout(r, 80));
+      assert.strictEqual(win.LB_PASSO, 1,
+        'a edição começa onde a criação começa — os outros passos abrem-se pela tira');
+      assert.strictEqual(win.document.getElementById('lb-nome').value, 'teste');
+      const marcadas = win.document.querySelectorAll('input[name="lb-aluna"]:checked');
+      assert.strictEqual(marcadas.length, 1, 'e as alunas voltam marcadas: não se perde o elenco');
+      win.close();
+    });
+  }
+
   console.log('\n' + (falhas.length ? falhas.length + ' de ' + (passou + falhas.length)
     : 'TUDO CERTO — ' + passou) + (falhas.length ? ' verificações FALHARAM' : ' asserções, 0 falha(s).'));
   if (falhas.length) {
