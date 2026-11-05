@@ -36331,3 +36331,11 @@ A/B que o disse.
 
 **Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado; a página é `motor/servidor/` e as
 bancadas são `experimentos/`.
+
+**Correção de 05/11/2026 (mesmo dia, depois do deploy).** A proposta viajou para o `main` como
+**fonte** e não apareceu no ar: `/propostas/proposta-linha-de-base.html` respondia **404**. A causa
+não era o `montar-publicacao.js` — ele copia o que houver —, era o passo do workflow: só corria
+`node experimentos/propostas/construir.js`, e o construtor da lista da linha de base é outro
+(`propor-linha-de-base.js`), porque mede a página da Produção e não um pacote de ciclo. O passo passou
+a correr os dois. A lição é a que o próprio workflow já tinha escrito noutro sítio: um gerador que não
+está no passo do deploy é um ficheiro, não uma bancada — e o sintoma é um 404 silencioso.

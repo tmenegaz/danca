@@ -197,6 +197,12 @@ jobs:
         run: |
           set -euo pipefail
           node experimentos/propostas/construir.js
+          # A PROPOSTA DA LISTAGEM DA LINHA DE BASE (05/11/2026) tem o seu construtor porque lê a
+          # página da Produção (montada pelo servidor) em jsdom — não mede um pacote de ciclo, e
+          # por isso não depende de existir escola com ciclo gerado. Sem esta linha, a proposta é
+          # versionada, viaja para `/propostas/` como fonte e nunca aparece no ar: medido neste
+          # deploy, 404 nas três páginas.
+          node experimentos/propostas/propor-linha-de-base.js
 
       - name: Montar o site de ${{ matrix.escola }}
         shell: bash
