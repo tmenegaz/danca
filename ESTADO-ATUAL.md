@@ -2132,6 +2132,24 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      Medido antes: os dois casos davam **200**. Sem leitor do acervo a rota SEGUE (não acusa o
      professor por uma limitação de quem mede), e a simulação passa. **DECIDIDO e implementado**
      05/11/2026.
+115. **APAGAR UM REGISTO LEVA O CICLO QUE ELE PRODUZIU — EM CASCATA, E SÓ O DELE.** O `DELETE` do PO
+     apagava o **envelope** e mais nada: o pacote do ciclo (o `index.html` que o menu lista, o
+     plano, a aula, o lançamento, a captura, os PDF, as referências), o `.conf` da variante e as
+     âncoras ficavam inteiros, e a cadeia devolvia o elo anterior à lista — «não sumiu». A cascata
+     é a rotina da Produção (`apagarCicloDoRepo`, guarda do último ciclo), agora ligada ao gesto da
+     listagem, com a **ordem** como garantia: cascata primeiro (se recusa, nada é apagado), os
+     envelopes dos POs do ciclo pelo acervo depois (modo `soOProduto`, porque o `.indice.json` tem
+     um dono só), e o envelope pedido por último. A anamnese e o plano de ensino não vão atrás — o
+     plano fica **livre**. Sem repositório, o envelope sai e a resposta **diz** que o ciclo ficou.
+     A sequência é da TURMA (a variante): dois ciclos de variantes diferentes são sequências
+     independentes. **DECIDIDO e implementado** 05/11/2026.
+116. **O «PONTO DE EXCLAMAÇÃO» NO ACTIONS NÃO ERA FALHA.** Apagar um registo não é um workflow: é
+     um commit que o Worker faz pela API. O que aparece com o título do commit é o `Regerar os
+     índices`, e o estado é **cancelado** — o commit de índice que ele próprio produz dispara uma
+     execução nova, e o `concurrency: cancel-in-progress: true` cancela a anterior. A derivação é
+     idempotente e sem estado, e o estado final converge (verificado no remoto: os envelopes
+     saíram e o índice ficou sem eles). **Não se muda** o workflow: mudar um mecanismo justificado
+     para o ícone ficar verde é tratar o sintoma. **CONFIRMADO** 05/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

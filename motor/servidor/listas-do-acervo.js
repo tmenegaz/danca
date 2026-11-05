@@ -585,6 +585,24 @@ function scriptDoPainel(chave, escola) {
         /* A LISTA É DO SERVIDOR. Apagar a linha do DOM sem repintar deixaria a contagem, os
          * filtros e a paginação a falar de um registo que já não existe; recarregar é a única
          * resposta que não mente — e o contexto do ato sobrevive, porque está no localStorage. */
+        /* O RECADO ATRAVESSA O RECARREGAMENTO (05/11/2026), e é o que faltava para o gesto não
+         * parecer mentira: apagar o vigente de uma cadeia faz o elo de TRÁS voltar a ser o
+         * vigente, e a linha da lista reaparece com outro carimbo. Sem uma palavra, isso lê-se
+         * como «não apagou» — foi assim que a pesquisadora o descreveu. O «sessionStorage» é o
+         * único canal que sobrevive a um recarregamento e não suja o endereço. */
+        var feito = (r.dados && r.dados.ciclo) || {};
+        var partes = ['Apaguei ' + nome + '.'];
+        if (feito.apagado) {
+          partes.push('O ciclo ' + (feito.ciclo || '') + ' gerado saiu com ele — o pacote, as '
+            + 'aulas, o lançamento, a captura e os PDF — e o menu deixa de o listar.');
+        } else if (feito.motivo) {
+          partes.push('O ciclo gerado NÃO foi apagado: ' + feito.motivo + '.');
+        }
+        if (r.dados && r.dados.anteriorVigente) {
+          partes.push('O elo anterior (' + r.dados.anteriorVigente + ') volta a ser o vigente: é a '
+            + 'proveniência — o passado não se reescreve. Apague-o também se quiser limpar a cadeia.');
+        }
+        try { window.sessionStorage.setItem('aviso-do-apagar', partes.join(' ')); } catch (e) {}
         window.location.reload();
       })
       .catch(function (erro) {
@@ -744,7 +762,18 @@ function scriptDoPainel(chave, escola) {
     /* O ESTADO DIZ O QUE FALTA — na porta isto é só o title do botão, e um title não se lê no
      * telemóvel. */
     var estado = $('[data-estado]');
-    if (estado) {
+    /* O RECADO DO «APAGAR», lido uma vez e apagado: ele vem de um recarregamento, e um recado que
+     * fica para sempre é um recado que mente na visita seguinte. */
+    var avisoDoApagar = null;
+    try {
+      avisoDoApagar = window.sessionStorage.getItem('aviso-do-apagar');
+      window.sessionStorage.removeItem('aviso-do-apagar');
+    } catch (e) { avisoDoApagar = null; }
+    if (estado && avisoDoApagar) {
+      estado.hidden = false;
+      estado.setAttribute('data-falta', 'nao');
+      estado.textContent = avisoDoApagar;
+    } else if (estado) {
       if (mem) {
         estado.hidden = false;
         estado.setAttribute('data-falta', 'nao');

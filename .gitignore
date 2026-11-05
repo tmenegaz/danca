@@ -709,3 +709,11 @@ experimentos/modelo-formulario/*
 # (plano inventado) e a sequência quebrada (ciclo 07 sem 01..06). A bancada exige o 409 nas duas,
 # e o controlo negativo em cada secção: a escrita válida tem de continuar a entrar.
 !experimentos/provar-relacoes-do-ciclo.js
+
+# A CASCATA DO CICLO (05/11/2026). Apagar o PO levava só o ENVELOPE: o pacote do ciclo — o index
+# que o menu lista, o plano, a aula, o lançamento, a captura, os PDF, as referências — ficava
+# inteiro, e a cadeia devolvia o elo anterior na linha seguinte («não sumiu»). A rotina da cascata
+# já existia (a da Produção, com a guarda do último ciclo); o que faltava era estar ligada ao gesto
+# da listagem. A bancada tem um repositório falso inteiro — porque em produção o ACERVO também
+# mora nele — e exige o isolamento entre ciclos nos dois sentidos.
+!experimentos/provar-apagar-o-ciclo.js

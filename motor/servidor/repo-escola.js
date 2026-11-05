@@ -1213,10 +1213,10 @@ function ciclosDaVariante(caminhos, professor, variante) {
  * o elo perdido não se reconstitui (P-03). Apagar o ÚLTIMO não parte nada: o ciclo anterior
  * volta a ser o topo. A guarda é a mesma nos dois sentidos e não se contorna por parâmetro.
  */
-async function apagarCicloDoRepo({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl }) {
+async function apagarCicloDoRepo({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl, soOProduto }) {
   let ultimo = null;
   for (let intento = 1; intento <= 3; intento += 1) {
-    const r = await apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl });
+    const r = await apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl, soOProduto });
     if (r.ok) return Object.assign(r, { intentos: intento });
     ultimo = r.motivo || r.erro;
     if (!r.corrida) return Object.assign(r, { intentos: intento });
@@ -1225,7 +1225,20 @@ async function apagarCicloDoRepo({ token, dono, repo, ref, escola, professor, va
   return { ok: false, erro: ultimo, apagadoNoRepositorio: 'não entrou depois de 3 tentativas' };
 }
 
-async function apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl }) {
+/**
+ * O `soOProduto` — QUEM É O DONO DOS ENVELOPES (05/11/2026).
+ *
+ * Esta rotina nasceu para a Produção, e ali ela apaga o ciclo INTEIRO: o produto gerado E os POs
+ * do ciclo. Quando a mesma cascata passou a ser chamada pela listagem da Área do Professor, havia
+ * dois escritores para o mesmo dado — o acervo (`porta.apagarEnvelope`, que também mantém o
+ * `.indice.json`) e esta função, com a sua própria cópia da lógica do índice. Duas cópias divergem
+ * no dia em que uma mudar, e o sintoma seria um envelope que existe no ficheiro e não no índice.
+ *
+ * Com `soOProduto`, esta função leva só o que é DERIVADO — o pacote, o `.conf` da variante e as
+ * âncoras `.fipp` —, e os envelopes saem pelo acervo, que é quem sabe onde eles moram. A guarda do
+ * último fica, e fica aqui, porque ela é sobre a CADEIA de âncoras, não sobre os envelopes.
+ */
+async function apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl, soOProduto }) {
   const f = fetchImpl || fetch;
   const slugProfessor = String(professor || '').trim();
   const var_ = String(variante || '').trim();
@@ -1281,7 +1294,7 @@ async function apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, profess
   const envelopesDoCiclo = [];
   let indiceDoAcervo = null;
   const caminhoIndice = 'escola/' + escola + '/envelopes/.indice.json';
-  if (escola && caminhos.indexOf(caminhoIndice) !== -1) {
+  if (!soOProduto && escola && caminhos.indexOf(caminhoIndice) !== -1) {
     const lido = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl: f });
     let indice = null;
     try { indice = lido ? JSON.parse(lido) : null; } catch (erro) { indice = null; }
@@ -1328,7 +1341,9 @@ async function apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, profess
     'chore(estrutura): apagar o ciclo ' + nn + ' de ' + var_,
     '',
     'O ciclo gerado sai inteiro: as fontes derivadas, o .conf da variante, o pacote, as âncoras',
-    'e os POs do ciclo (' + envelopesDoCiclo.length + ' envelope(s)). É o «pacote completo e integrado» na',
+    (soOProduto
+      ? 'e — pelo acervo, não por aqui — os POs do ciclo. É o «pacote completo e integrado» na'
+      : 'e os POs do ciclo (' + envelopesDoCiclo.length + ' envelope(s)). É o «pacote completo e integrado» na'),
     'definição dela — menu, planos, aulas, formulários, fichas, PDF, referências e listagens.',
     '',
     'O QUE FICA, E PORQUÊ: a anamnese é do SUJEITO e não do ciclo (04/11/2026), e o plano de',

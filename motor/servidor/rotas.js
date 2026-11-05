@@ -26,6 +26,8 @@ const nucleo = require('../nucleo/elicitar.js');
 const ia = require('../nucleo/ia.js');
 const ficha = require('../nucleo/ficha.js');
 const porta = require('../nucleo/porta.js');
+// A variante de um contexto (`escola-turma`) — a MESMA que o gerador usa no nome do pacote.
+const { varianteDoContexto } = require('./escrever-po.js');
 const lancamento = require('../nucleo/lancamento.js');
 // Os rótulos do checklist do PO — a fonte é o CONTEÚDO, não a derivação.
 const { rotulosDoChecklist, derivadosDoChecklist, derivarPO } = require('../nucleo/derivar-po.js');
@@ -66,7 +68,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
   const roteador = criarRoteador();
 
   /*
@@ -425,6 +427,101 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     } catch (erro) { return falhaDaLista(erro); }
   });
 
+  /**
+   * O CICLO INTEIRO QUE UM DOCUMENTO PRODUZIU — e o dono de cada escrita (05/11/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA, medido na tela e no repositório: apagar o Plano de Observação
+   * apagava o REGISTO e mais nada. O pacote do ciclo — o `index.html` que o menu lista, o
+   * `plano.html`, o `aula-01.html`, o `lancamento.html`, a `captura-aula-01.html`, os PDF, as
+   * referências, a notação — ficava inteiro, e o menu (que a montagem deriva dos pacotes) também.
+   * A pesquisadora: «Ele não sumiu. Posso acessá-lo. E os documentos que ele gerou também estão
+   * aqui… quando eu apagar o plano de observação, ele tem que levar consigo os ciclos do menu com
+   * tudo que está dentro dele.»
+   *
+   * TRÊS COISAS, nesta ordem, e a ordem é a garantia:
+   *
+   *   1. a cascata do PRODUTO (`apagarCiclo`, a mesma rotina da Produção) — o pacote, o `.conf` da
+   *      variante e as âncoras `.fipp`. A GUARDA do último ciclo é dela: apagar o ciclo 01 com o
+   *      02 vivo partiria a cadeia (o `parentHash` do 02 aponta para a âncora do 01), e a recusa
+   *      diz o caminho;
+   *   2. os ENVELOPES dos POs daquele ciclo, pelo ACERVO — que é quem mantém o `.indice.json`. A
+   *      cadeia inteira sai: apagar só o vigente fazia o elo de trás voltar a aparecer na lista, e
+   *      o gesto lia-se como «não funcionou»;
+   *   3. o envelope pedido, idempotente (`apagarEnvelope` devolve `false` se já não existe).
+   *
+   * A GUARDA VEM ANTES DE TUDO. Se a cascata recusa, NADA é apagado — nem o envelope, que hoje
+   * desaparecia e deixava o ciclo de pé sem o registo que o justificava. Se ela falha (rede,
+   * commit), também nada; a rota responde 502 e o estado fica o de antes.
+   *
+   * SEM ACESSO AO REPOSITÓRIO a cascata não acontece, e a rota DIZ isso (`ciclo.apagado: false`
+   * com o motivo) em vez de prometer o que não fez. O envelope sai na mesma — é o gesto que ela
+   * pediu, e a parte dele que não depende da rede.
+   */
+  async function apagarOCicloDoDocumento({ envelope }) {
+    const vazio = { apagado: false, arquivos: 0, envelopes: [], motivo: null };
+    const ctx = (envelope && envelope.contexto) || {};
+    const escola = String(escolaDoWorker || ctx.escola || '').trim();
+    const professor = String(ctx.professor || '').trim();
+    const ciclo = String(ctx.ciclo || '').trim().padStart(2, '0');
+    if (/^0+$/.test(ciclo)) return Object.assign(vazio, { motivo: 'o documento não declara ciclo' });
+    const variante = varianteDoContexto(Object.assign({}, ctx, { escola }));
+    if (!escola || !professor || !variante) {
+      return Object.assign(vazio, { motivo: 'o documento não declara escola, professor e ciclo' });
+    }
+
+    let produto = null;
+    if (typeof apagarCiclo === 'function') {
+      try {
+        produto = await apagarCiclo({ escola, professor, ciclo, variante });
+      } catch (erro) {
+        return Object.assign(vazio, { falha: true,
+          motivo: 'o ciclo ' + ciclo + ' não foi apagado: ' + ((erro && erro.message) || String(erro)) });
+      }
+      if (produto && produto.guarda) {
+        return Object.assign(vazio, { recusa: true, guarda: produto.guarda,
+          posteriores: produto.posteriores || [], motivo: produto.erro });
+      }
+      if (produto && produto.ok === false && !produto.jaNaoExistia) {
+        return Object.assign(vazio, { falha: true,
+          motivo: produto.erro || 'o ciclo ' + ciclo + ' não foi apagado' });
+      }
+    }
+
+    /* OS POs DO CICLO, pelo acervo — e SÓ DEPOIS DE A CASCATA TER PASSADO.
+     *
+     * A ordem não é zelo: a cadeia dos POs é do ciclo, e o ciclo só pode ir embora se for o ÚLTIMO
+     * da sequência (o `parentHash` do seguinte aponta para a âncora deste). Quem sabe isso é a
+     * cascata. Levar os envelopes antes de ela responder — ou quando ela nem existe, por não haver
+     * acesso ao repositório — seria apagar o registo de um ciclo que continua de pé, e deixar a
+     * lista sem o documento que o justificava. Sem cascata, sai só o envelope pedido. */
+    const envelopes = [];
+    if (produto && produto.ok) {
+      try {
+        const resumos = await porta.resumosDeEnvelopes(armazenamento, /^po-.*\.json$/);
+        for (const { nome, resumo } of resumos) {
+          const r = resumo || {};
+          if (String(r.ciclo || '').padStart(2, '0') !== ciclo) continue;
+          if (String(r.professor || '') !== professor) continue;
+          if (escola && String(r.escola || '') !== escola) continue;
+          const id = String(r.id || nome.replace(/\.json$/, ''));
+          if (await porta.apagarEnvelope(armazenamento, id)) envelopes.push(id);
+        }
+      } catch (erro) { /* sem lista, o envelope pedido sai na mesma: ver o fim da função */ }
+    }
+
+    return {
+      apagado: Boolean(produto && produto.ok),
+      arquivos: (produto && produto.apagados ? produto.apagados.length : 0),
+      envelopes,
+      variante,
+      ciclo,
+      commit: (produto && produto.commit) || null,
+      motivo: !produto
+        ? 'esta instância não tem acesso ao repositório: o registo saiu, o ciclo gerado não'
+        : (produto.jaNaoExistia ? 'o ciclo ' + ciclo + ' não tem produto gerado' : null),
+    };
+  }
+
   // 7.2 DELETE /api/plano-vinculo/:id — apagar, SÓ o plano LIVRE (solta).
   // Espelha o 9 da anamnese: a proveniência não apaga o que está ligado nem o que já foi
   // derivado. O plano vinculado a um Plano de Observação é a linha de base da observação, e
@@ -442,8 +539,17 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
           : 'já foi DERIVADO') +
         ' e a proveniência não o apaga — derive uma versão nova.', 409);
     }
+    /* O PLANO TAMBÉM LEVA O PRODUTO DO CICLO (05/11/2026). Um plano LIVRE pode ter deixado um
+     * pacote gerado para trás — o caso real: apagado o PO, o plano fica livre e o ciclo gerado
+     * continua no repositório sem nada que o justifique. Apagar o plano é o último gesto possível
+     * sobre aquele ciclo, e é ele que fecha a conta. A guarda do último ciclo vale igual: apagar o
+     * plano do ciclo 01 com o 02 vivo partiria a cadeia, e a recusa diz o caminho. */
+    const ciclo = await apagarOCicloDoDocumento({ envelope });
+    if (ciclo.recusa) return recusar(ciclo.motivo, 409);
+    if (ciclo.falha) return recusar(ciclo.motivo, 502);
     await porta.apagarEnvelope(armazenamento, params.id);
-    return { ok: true, apagado: params.id };
+    return { ok: true, apagado: params.id, ciclo,
+      anteriorVigente: String(envelope.ajuste_de || '') || null };
   });
 
   // 8. /api/anamnese-estado/:id — o estado de UMA anamnese.
@@ -486,8 +592,22 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       return recusar('o plano de observação já foi DERIVADO (' + estado.substituido_por.join(', ')
         + ') e a proveniência não o apaga — ajuste-o, que acrescenta um elo.', 409);
     }
+    /* O GESTO PASSOU A SER «APAGAR O CICLO», e não «esquecer o registo» (05/11/2026).
+     *
+     * O comentário acima dizia o contrário — «o ciclo gerado guarda a sua própria cópia, e apagar
+     * o envelope não toca no que já foi gerado» —, e era essa a leitura que produzia o defeito:
+     * um PO apagado, o pacote do ciclo vivo, o menu a listar um ciclo que já não tem observação,
+     * e a cadeia a devolver o elo anterior na linha seguinte. Medido na tela pela pesquisadora.
+     *
+     * Agora o PO leva o produto do ciclo e a CADEIA do ciclo. A anamnese não é tocada (é do
+     * sujeito) e o plano de ensino também não: ele é a declaração que deu origem ao ciclo, e
+     * fica LIVRE — apagados os POs, não há quem declare o vínculo. */
+    const ciclo = await apagarOCicloDoDocumento({ envelope });
+    if (ciclo.recusa) return recusar(ciclo.motivo, 409);
+    if (ciclo.falha) return recusar(ciclo.motivo, 502);
     await porta.apagarEnvelope(armazenamento, params.id);
-    return { ok: true, apagado: params.id };
+    return { ok: true, apagado: params.id, ciclo,
+      anteriorVigente: String(envelope.ajuste_de || '') || null };
   });
 
   // 10. POST /api/anamnese-ajuste/:id — ACRESCENTAR um elo (sempre permitido).

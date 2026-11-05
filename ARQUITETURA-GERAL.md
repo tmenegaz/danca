@@ -770,6 +770,50 @@ cada secção** — a escrita válida da mesma família tem de continuar a entra
 que recusasse tudo passaria na primeira metade. O A/B contra o commit anterior reprova em 12 das
 22.
 
+### 5.11 Apagar um registo leva o que ele produziu — em cascata, e só o dele
+
+A exclusão tem duas famílias, e a fronteira é a **posse**:
+
+| O que se apaga | O que vai atrás | O que NÃO vai |
+|:--|:--|:--|
+| **Plano de Observação** (o vigente do ciclo) | o produto gerado do ciclo — pacote, plano, aula, lançamento, captura, PDF, referências, notação —, o `.conf` da variante, as âncoras `.fipp` e **os POs daquele ciclo** | a anamnese (é do sujeito) e o plano de ensino (é a declaração que originou o ciclo — fica **livre**) |
+| **Plano de Ensino** livre | idem, quando o ciclo gerado ficou órfão | a anamnese |
+
+**A cascata não é nova.** `apagarCicloDoRepo` já a fazia para a Produção, com a guarda do último
+ciclo. O que faltava era estar ligada ao gesto da listagem: o `DELETE` do PO apagava o **envelope**
+e mais nada, e o comentário da rota até o dizia («apagar o envelope não toca no que já foi gerado»).
+O efeito medido na tela: o PO «não sumia» (a cadeia devolvia o elo anterior à lista), o menu
+continuava a listar o ciclo, e as aulas, o lançamento, a captura e os PDF seguiam acessíveis.
+
+**A ordem é a garantia, e são três passos:**
+
+1. a **cascata do produto** — e, se ela recusar, **nada** é apagado. A guarda é a da cadeia de
+   âncoras: o `parentHash` do ciclo N+1 aponta para a âncora do N, e apagar o N com o N+1 vivo
+   partiria a cadeia (P-03). A recusa **nomeia o caminho** («apague de trás para a frente: 02 e
+   depois 01»);
+2. os **envelopes dos POs do ciclo**, pelo **acervo** — e só depois de a cascata ter passado. Quem
+   mantém o `.indice.json` é o acervo; uma segunda escrita do mesmo índice divergiria. É por isso
+   que a cascata corre em modo `soOProduto`;
+3. o envelope pedido, idempotente.
+
+**O ISOLAMENTO é medido nos dois sentidos**, e é o que a pesquisadora pediu por nome: apagar o 02
+não deixa **nenhum** caminho do 01 na lista de apagados; e apagar o 01 com o 02 vivo é recusado
+sem tocar em nada. A sequência é da **turma** (a variante) — dois ciclos de variantes diferentes
+são sequências independentes, e a guarda não os vê um ao outro.
+
+**Sem acesso ao repositório** a cascata não acontece, e a resposta **diz isso** (`ciclo.apagado:
+false` com o motivo) em vez de prometer o que não fez. O envelope sai na mesma — é a parte do gesto
+que não depende da rede.
+
+**E a linha que reaparece.** Apagar o vigente de uma cadeia faz o elo de trás voltar a ser o
+vigente: a linha da lista permanece, com outro carimbo, e o gesto lia-se como «não funcionou». A
+resposta passou a dizer **qual** elo volta (`anteriorVigente`), e a lista mostra esse recado uma vez
+(`sessionStorage`, que sobrevive ao recarregamento sem sujar o endereço).
+
+**A prova:** `experimentos/provar-apagar-o-ciclo.js` (33 asserções), com um repositório falso
+**inteiro** — Contents e Git, porque em produção o acervo mora nele. O A/B sem a cascata reprova em
+17.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

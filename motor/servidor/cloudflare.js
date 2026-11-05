@@ -24,6 +24,8 @@ const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
+// A CASCATA DO CICLO — a mesma rotina da Produção (05/11/2026).
+const repoEscola = require('./repo-escola.js');
 const acervo = require('./acervo-envelopes.js');
 // O ÍNDICE DO ACERVO (20/10/2026, fase 4): a camada de I/O de `nucleo/indices.js`.
 const { criarIndice } = require('./indice-acervo.js');
@@ -82,7 +84,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, lerTurmas, geracao, indice }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -103,6 +105,8 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     escreverPO,
     escreverPlano,
     escreverCiclo,
+    // A CASCATA DO CICLO (05/11/2026). Apagar um PO leva o produto gerado — e só o dele.
+    apagarCiclo,
     lerDados,
     lancamentoSeguro,
     geracao,
@@ -258,7 +262,25 @@ function passosDeGeracao(env) {
     dono: 'tmenegaz',
     repo: 'danca',
   });
-  return { disparar, escreverPO, escreverPlano, escreverCiclo, geracao };
+  /* A CASCATA DO CICLO — a MESMA rotina da Produção, em modo «só o produto» (05/11/2026).
+   *
+   * A pesquisadora: «quando eu apagar o plano de observação, ele tem que levar consigo os ciclos do
+   * menu com tudo que está dentro dele… as aulas, o lançar aula, o captura para impressão da aula e
+   * o PDF da aula.» A rotina já existia e já fazia isso, com a guarda do último ciclo; o que
+   * faltava era estar ligada ao gesto da listagem.
+   *
+   * `soOProduto` porque os ENVELOPES saem pelo acervo (`porta.apagarEnvelope`), que é quem mantém o
+   * `.indice.json`. Duas cópias da mesma escrita divergiriam.
+   *
+   * Sem token não há cascata — e não há promessa: a rota diz que o ciclo não foi apagado, e o
+   * envelope sai na mesma. */
+  const apagarCiclo = token
+    ? ({ escola, professor, ciclo, variante }) => repoEscola.apagarCicloDoRepo({
+      token, dono: 'tmenegaz', repo: 'danca', ref: 'main',
+      escola, professor, variante, ciclo, soOProduto: true,
+    })
+    : null;
+  return { disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, geracao };
 }
 
 /**
@@ -297,7 +319,7 @@ async function fetch(request, env, opcoes) {
     carregarEstatico(env, 'assets/style.css', ''),
   ]);
 
-  const { disparar, escreverPO, escreverPlano, escreverCiclo, geracao } = passosDeGeracao(env);
+  const { disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, geracao } = passosDeGeracao(env);
   // O PREFIXO DO LEITOR É VAZIO, e não o da porta: o `-dados.json` do ciclo mora na RAIZ do
   // pacote (é lá que o formulário de lançamento o busca, ao lado do `ciclos.json`), enquanto o
   // CONTEÚDO da porta vive sob o `prefixo` (`plano-observacao/`). Trocar os dois faz o leitor
@@ -317,6 +339,7 @@ async function fetch(request, env, opcoes) {
     escreverPO,
     escreverPlano,
     escreverCiclo,
+    apagarCiclo,
     lerDados,
     lancamentoSeguro,
     geracao,
