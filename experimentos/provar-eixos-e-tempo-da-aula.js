@@ -519,7 +519,16 @@ console.log('\nJ. O CORPO DA AULA VEM DO ENVELOPE — E DE MAIS NADA');
   const fs = require('fs');
   const { calibracaoDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
   const caminhoEnvelope = path.join(RAIZ, 'escola/breu/envelopes/plano-20261104-1732.json');
-  const caminhoPo = path.join(RAIZ, 'escola/breu/envelopes/po-20261104-1811.json');
+  /* O PO NÃO É ESCOLHIDO POR NOME, e é a segunda vez que um fixture do acervo morre debaixo desta
+   * prova (05/11/2026: o `po-20261104-1811` foi expurgado, e a secção J passou a falhar a dizer
+   * «a escola foi expurgada?» — uma asserção VERMELHA sobre a prova que existe, por causa de um
+   * ficheiro que é dado e não fonte). O acervo é expurgável por desenho; a prova do corpo não
+   * pode depender de UM elo. Toma-se o elo mais recente da cadeia do PO que ainda exista: todos
+   * são da mesma turma e do mesmo ciclo, e é isso que a prova precisa. */
+  const pastaDosPos = path.join(RAIZ, 'escola/breu/envelopes');
+  const eloDoPo = fs.existsSync(pastaDosPos)
+    ? fs.readdirSync(pastaDosPos).filter((f) => /^po-.*\.json$/.test(f)).sort().pop() : '';
+  const caminhoPo = eloDoPo ? path.join(pastaDosPos, eloDoPo) : '';
   const caminhoConf = path.join(RAIZ,
     'professores/coqui-de-redinha/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf');
   const temEnvelopes = fs.existsSync(caminhoEnvelope) && fs.existsSync(caminhoPo);
