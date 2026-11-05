@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T20:36:03-0300`
-Commit atual: `93924701` — fix(po): o nivel e a ESCALA, e o apoio da observacao inicial deixa de ser lido como nivel
+Gerado em: `2026-11-05T20:52:42-0300`
+Commit atual: `1ed80c0d` — fix(po): «o que ja e bom» passa a ser o que ALGUMA aluna tem de bom, e nao o que todas acertaram
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,12 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+1ed80c0d fix(po): «o que ja e bom» passa a ser o que ALGUMA aluna tem de bom, e nao o que todas acertaram
+55038263 chore(estrutura): regerar os índices derivados
+b3deb0dd feat(acervo): envelope/.indice.json
+cd63510c chore(acervo): apagar envelope/anamnese-20261105-2014.json
+2d3d4656 feat(acervo): envelope/anamnese-20261105-2031.json
+d37ca8fa feat(acervo): envelope/.indice.json
 93924701 fix(po): o nivel e a ESCALA, e o apoio da observacao inicial deixa de ser lido como nivel
 d7776497 chore(estrutura): regerar os índices derivados
 20001867 chore(estrutura): regerar os índices derivados
@@ -100,12 +106,6 @@ acfa2f81 feat(acervo): envelope/anamnese-20261105-2014.json
 e03c5506 feat(acervo): envelope/.indice.json
 08b41241 fix(po): a linha de base le os 45 campos que a anamnese mede, e a Curadoria oferece so o que a escola compoe
 95fcd9ef chore(estrutura): regerar os índices derivados
-f991b422 feat(acervo): envelope/.indice.json
-ab1cb22e chore(acervo): apagar envelope/anamnese-20261105-1907.json
-a86105c5 feat(acervo): envelope/anamnese-20261105-1910-2.json
-0ec522e8 feat(acervo): envelope/.indice.json
-14bc40f4 chore(estrutura): regerar os índices derivados
-abe62168 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -231,75 +231,84 @@ abe62168 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom, e não o que todas acertaram
+## 05/11/2026 — O índice do recorte: o que os professores olham no corpo, e o que não olham
 
-**O que motivou.** Depois da correcção do apoio (entrada anterior), ela leu a tela e disse o que
-esperava do bloco, com o caso concreto à frente: «a aluna B tem o tendu bom e faz por consciência
-própria. Aí eu não tenho isso aqui, pelo menos eu não achei em lugar nenhum o que ela já tem de
-bom». E descreveu o que quer: «esse aqui é o que já é bom de cada aluna. Eu vou listar o aspecto, o
-eixo e como está o grupo».
+**O que motivou.** Dois pedidos, e o segundo reordena os outros três. (1) «Preciso que você leia a
+documentação que a gente tem para os índices que a gente cria, porque vamos precisar fazer o índice
+disso». (2) «No step quatro, nós temos aqui o recorte que a gente escolhe. Então, esse índice é para
+a gente poder fazer um filtro rápido […] identificar quais são os aspectos do recorte mais usados e
+os menos usados, os que nunca foram usados, os que são usados parcialmente […] e assim a gente vai
+saber o que o professor está preocupado no corpo de uma bailarina ou de uma turma, e a gente pode
+aprimorar a nossa anamnese ou até identificar problemas que ocorrem por não olhar alguns dos
+aspectos». E o alcance: «os outros steps são coisas de configuração e organização, é coisa
+burocrática administrativa» — o passo 4 é o elemento-chave.
 
-**O que estava errado, e não era a implementação.** A definição de «o que já é bom» era «**todas** no
-melhor nível», e ela é de 05/11 (a primeira entrada do dia), com a razão escrita: a autonomia para
-manter um aspecto sob vigilância *para todos*. Só que, lida na tela, a definição diz o contrário do
-que a frase sugere: numa turma em que as duas alunas diferem em quase tudo, «todas bem» é vazio — e
-o mérito individual não tem onde se ler. A tensão não é de código: é de desenho, e ela resolveu-a.
+**O que a documentação já decidia, e não foi contrariada.** O `PLANO-INDICES.md` §3 separa três
+famílias — ACERVO (Git, derivada, determinística), VIVO (KV, autenticada) e PUBLICADO. O recorte mora
+no KV (`bastidores/<escola>/linhas-de-base`), **não** em ficheiro do repositório: o gerador do §5.1
+não o alcança, e pô-lo em `indices/` seria pedir-lhe uma segunda fonte, que o §2.1 proíbe. Foi
+implementado na família certa — o índice **VIVO** do §4.5.
 
 **O que foi decidido.**
 
-- «O que já é bom» = **aspectos em que ALGUMA aluna está no melhor nível**. É o que cada uma tem de
-  bom, e é o que o professor precisa de ver para decidir o que preservar no recorte. Sem nomear
-  quem — a linha diz o aspecto, o eixo e como está o grupo («1 de 2 em «Bom» (por consciência
-  própria) · 1 de 2 em «precisa desenvolver» (com toque)»), e é isso que ela pediu.
-- A leitura «**todas** bem» **não se perde**: o item continua a declarar `noMelhorNivel`, e o
-  `agregar` do recorte continua a contar `soExcelente` por ele. O que muda é qual das duas alimenta
-  a lista da tela.
-- As listas continuam a **não ser gavetas**: um aspecto em que uma está bem e a outra não aparece
-  em «o que precisa de ser trabalhado» **e** em «o que já é bom». É o mesmo dado, duas perguntas.
-- A frase do estado vazio passou a dizer «nenhum aspecto com alguma aluna no melhor nível» — a
-  anterior («com o grupo todo») descrevia a definição antiga e era exactamente o que a confundiu.
+- Um índice com **três perguntas e não uma**: o **ranque** (aspecto → em quantos recortes foi
+  escolhido, em quantos chegou a uma turma, quando apareceu pela primeira e última vez), os **nunca
+  escolhidos**, e os **pontos cegos** — aspectos que a leitura do passo 3 marcou como atenção e que
+  recorte nenhum olhou. É o cruzamento entre o passo 3 e o passo 4, e é a única das três listas que
+  aponta trabalho em vez de descrever.
+- **O universo entra por argumento.** «Nunca usado» só tem sentido contra os 45 aspectos que a
+  anamnese mede — sem isso, um aspecto com zero escolhas é indistinguível de um aspecto que não
+  existe. É a razão de a anamnese ser lida na construção, e não de haver uma lista de campos escrita
+  à mão em lado nenhum (§7.4).
+- **`cobertura`** (`todos` / `alguns` / `nenhum`) é o «usado parcialmente» da pergunta, como dado e
+  não como adjectivo. O **rascunho** do passo 1 fica fora do denominador; o **aplicado** só conta
+  quem foi para uma turma.
+- **A escolha órfã não se apaga.** Um id que a anamnese já não declara vai para `desconhecidos`, com
+  o nome que o registo guardou — é o passado a dizer que o recorte foi decidido sobre outra anamnese
+  (P-03).
+- **Uma leitura, não duas.** A página da Produção já pede `/api/bastidores/linhas-de-base`; o índice
+  vai na mesma resposta, e a conta é do servidor (§7.2 — a interface não recalcula). A rota própria
+  (`/api/bastidores/indice/recorte`) existe para quem quer o índice sozinho e com escopo
+  (`?professor=`, `?turma=`), e chama a **mesma** função.
+- **`professor` é escopo e não eixo** (§4.11): a resposta traz as linhas do professor pedido, e nunca
+  uma linha por professor. A prova recusa as três palavras (`por_professor`, `ranking`, `desempenho`)
+  no corpo.
+- **Privacidade**: `alunas` é uma contagem; nenhum apelido, resposta ou texto. O nome do aspecto é
+  vocabulário da anamnese — norma, não dado de pessoa.
 
-**O que isto dá nos dados dela** (as duas anamneses da `calango`, contadas nos 45 campos): «o que já
-é bom» passa a **36** aspectos — entre eles o `tendu` («Bom», por consciência própria) e a
-`musicalidade` («Domina»), os dois que ela não encontrava —, e **9** campos ficam sem ninguém no
-melhor nível (por exemplo «Flexibilidade dos adutores»: «Abertura parcial» e «Rigidez acentuada»).
-«Atenção» fica em 43 e «comum» em 2.
+**Onde entrou.** `motor/nucleo/indice-do-recorte.js` — novo, puro (sem `fs`, rede nem relógio
+próprio), com `construir`. `motor/servidor/bastidores.js` — `indiceDoRecorte()` (entrega o universo e
+chama o núcleo), o `indice` na resposta da lista, a rota `/api/bastidores/indice/recorte`, a caixa
+«O que os recortes olham» dentro da secção do corpo, e `pintarIndiceDoRecorte`/`chipsDeAspectos` no
+script. `indices/esquema/campos.json` — a entidade `recorte`, `prevista` (é o índice vivo que a
+emite) e `acesso: escola`, com a nota do que ela não guarda. `PLANO-INDICES.md` §4.12 — a família
+documentada, com as duas limitações declaradas. `experimentos/provar-indice-do-recorte.js` — novo.
+`experimentos/README.md` — a linha da bancada.
 
-**Sobre a dúvida dela na «2ª posição — braços»:** as duas estão em «Bom», e o que difere é o **apoio**
-(uma com toque, uma por consciência própria). Antes da correcção do apoio o texto dizia
-«1 de 2 em «Bom · com-toque» · 1 de 2 em «Bom · consciencia-propria»», que se lê como dois níveis
-diferentes; agora diz «2 de 2 em «Bom»», e a dúvida fica respondida pela própria linha.
+**Medido.** `provar-indice-do-recorte` **24/24** (com o desenho a correr em jsdom, e não só a
+marcação); `provar-linha-de-base` **104/104**; `provar-producao` **159/159**;
+`check-identidade` **0 erros**; `check-indices` **14 verificações, 0 falhas**, e as **10
+contraprovas** reprovam como deviam. Nos dados reais da `calango` (uma linha, dois aspectos): 45
+oferecidos, 2 escolhidos, 42 nunca, 1 enviada para turma.
 
-**Onde entrou.** `motor/nucleo/linha-de-base.js` — `algumNoMelhor` no item, e é ele que alimenta
-`excelencia` (`noMelhorNivel` fica declarado para quem quer a outra leitura); o comentário dos quatro
-eixos regista a decisão. `motor/servidor/bastidores.js` — a frase do estado vazio.
-`ARQUITETURA-GERAL.md` §5.12/§5.13 — a régua e o bullet, com nota de correcção datada.
-`experimentos/provar-linha-de-base.js` — a asserção do tendu (aparece nos **dois** blocos, e
-`noMelhorNivel` falso).
+**Duas limitações declaradas, e nenhuma é técnica.**
 
-**Medido.** `provar-linha-de-base` **104/104** (era 103); `provar-producao` **159/159**;
-`provar-curadoria-e-limpeza` **26/26**; `check-identidade` **0 erros**.
+1. **Não há série temporal.** O «Gravar» do passo 4 **sobrescreve** a linha (`lista[idx] = linha`):
+   o que existia antes desaparece, e só a `atualizada_em` sobrevive. O índice lê o estado de hoje.
+   Para «olhar para o passado» — que é o que ela pediu com a palavra «proveniência» — o recorte tem
+   de passar a **append-only**, com um elo novo por decisão, como o `ajuste_de` dos documentos. É uma
+   decisão de desenho e fica **pendente dela**; não foi feita por conta própria porque mudar a
+   gravação mexe no plano que aponta a linha de base e na cascata.
+2. **Uma escola.** O recorte está no KV de cada escola e só a `calango` tem Worker. Um ranque entre
+   escolas exige que os KV sejam alcançáveis pela mesma leitura — hoje não são.
 
-**O que ainda não está feito.**
-
-- **A leitura guardada no KV tem de ser refeita** («Ler as anamneses», no passo 3): os números
-  acima só aparecem depois desse gesto.
-- O bloco **não diz qual aluna** tem o aspecto bom — é o que ela pediu hoje. Se um dia quiser o
-  nome, o dado já lá está (`noMelhor`), e é só desenhá-lo.
-- A «2ª posição — pés» e a «2ª posição — braços» passam a aparecer em **dois** blocos («o que já é
-  bom» e «o que o grupo tem em comum»), e é de propósito: o primeiro diz que é bom, o segundo que é
-  de todas. Se a repetição incomodar, é uma decisão de tela, não de dados.
+**O que ainda não está feito.** (a) A decisão sobre o append-only, acima. (b) O índice **não** tem
+filtro na tela: mostra o ranque, os nunca e os cegos, e a rota aceita escopo. Um filtro por eixo ou
+por turma na própria caixa é a próxima conveniência, e não foi feita porque ela não a pediu ainda.
+(c) A fotografia do índice ao longo do tempo — um espelho em Git, como o §4.6 prevê para o índice
+publicado — depende de (a).
 
 ## O que está pendente
-
-## 05/11/2026 — A tira grava, o «Ler» grava, o excluir fecha o formulário — e a lista passa a ser a da casa
-
-
-- O **passo 3 continua a não explicar-se a si mesmo** para quem chega de fora: o texto diz o que ele
-  faz («abre a anamnese mais recente de cada aluna e cruza o que elas mostram; o resultado fica
-  guardado»), mas a dúvida dela — «não sei para que serve o leitura / por ler» — é sobre o LUGAR do
-  passo no percurso, e isso é decisão de desenho, não de texto. Fica em aberto, para ela dizer.
-- A conferência **no ar** faz-se depois do deploy, no mesmo percurso: passo 1 → 2 → 3 → ler.
 
 ## 05/11/2026 — O passo 5 sem turma diz o que falta, a curadoria deixa de escolher alunas, e a listagem é o cartão da casa
 
@@ -343,6 +352,14 @@ eixos regista a decisão. `motor/servidor/bastidores.js` — a frase do estado v
 - A «2ª posição — pés» e a «2ª posição — braços» passam a aparecer em **dois** blocos («o que já é
   bom» e «o que o grupo tem em comum»), e é de propósito: o primeiro diz que é bom, o segundo que é
   de todas. Se a repetição incomodar, é uma decisão de tela, não de dados.
+
+## 05/11/2026 — O índice do recorte: o que os professores olham no corpo, e o que não olham
+
+(a) A decisão sobre o append-only, acima. (b) O índice **não** tem
+filtro na tela: mostra o ranque, os nunca e os cegos, e a rota aceita escopo. Um filtro por eixo ou
+por turma na própria caixa é a próxima conveniência, e não foi feita porque ela não a pediu ainda.
+(c) A fotografia do índice ao longo do tempo — um espelho em Git, como o §4.6 prevê para o índice
+publicado — depende de (a).
 
 ## Pendências anteriores (índice)
 
@@ -704,6 +721,7 @@ eixos regista a decisão. `motor/servidor/bastidores.js` — a frase do estado v
 - **05/11/2026** — A secção do corpo nasceu fora do `</section>`, e sessenta e… → `REGISTRO.md` L35967
 - **05/11/2026** — O elenco muda na linha de base, a cascata desce até ao PO,… → `REGISTRO.md` L36054
 - **05/11/2026** — O «Ler as anamneses» acende, e a folha de impressão deixa… → `REGISTRO.md` L36123
+- **05/11/2026** — A tira grava, o «Ler» grava, o excluir fecha o formulário —… → `REGISTRO.md` L36180
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

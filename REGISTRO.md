@@ -36574,3 +36574,80 @@ eixos regista a decisão. `motor/servidor/bastidores.js` — a frase do estado v
 - A «2ª posição — pés» e a «2ª posição — braços» passam a aparecer em **dois** blocos («o que já é
   bom» e «o que o grupo tem em comum»), e é de propósito: o primeiro diz que é bom, o segundo que é
   de todas. Se a repetição incomodar, é uma decisão de tela, não de dados.
+
+## 05/11/2026 — O índice do recorte: o que os professores olham no corpo, e o que não olham
+
+**O que motivou.** Dois pedidos, e o segundo reordena os outros três. (1) «Preciso que você leia a
+documentação que a gente tem para os índices que a gente cria, porque vamos precisar fazer o índice
+disso». (2) «No step quatro, nós temos aqui o recorte que a gente escolhe. Então, esse índice é para
+a gente poder fazer um filtro rápido […] identificar quais são os aspectos do recorte mais usados e
+os menos usados, os que nunca foram usados, os que são usados parcialmente […] e assim a gente vai
+saber o que o professor está preocupado no corpo de uma bailarina ou de uma turma, e a gente pode
+aprimorar a nossa anamnese ou até identificar problemas que ocorrem por não olhar alguns dos
+aspectos». E o alcance: «os outros steps são coisas de configuração e organização, é coisa
+burocrática administrativa» — o passo 4 é o elemento-chave.
+
+**O que a documentação já decidia, e não foi contrariada.** O `PLANO-INDICES.md` §3 separa três
+famílias — ACERVO (Git, derivada, determinística), VIVO (KV, autenticada) e PUBLICADO. O recorte mora
+no KV (`bastidores/<escola>/linhas-de-base`), **não** em ficheiro do repositório: o gerador do §5.1
+não o alcança, e pô-lo em `indices/` seria pedir-lhe uma segunda fonte, que o §2.1 proíbe. Foi
+implementado na família certa — o índice **VIVO** do §4.5.
+
+**O que foi decidido.**
+
+- Um índice com **três perguntas e não uma**: o **ranque** (aspecto → em quantos recortes foi
+  escolhido, em quantos chegou a uma turma, quando apareceu pela primeira e última vez), os **nunca
+  escolhidos**, e os **pontos cegos** — aspectos que a leitura do passo 3 marcou como atenção e que
+  recorte nenhum olhou. É o cruzamento entre o passo 3 e o passo 4, e é a única das três listas que
+  aponta trabalho em vez de descrever.
+- **O universo entra por argumento.** «Nunca usado» só tem sentido contra os 45 aspectos que a
+  anamnese mede — sem isso, um aspecto com zero escolhas é indistinguível de um aspecto que não
+  existe. É a razão de a anamnese ser lida na construção, e não de haver uma lista de campos escrita
+  à mão em lado nenhum (§7.4).
+- **`cobertura`** (`todos` / `alguns` / `nenhum`) é o «usado parcialmente» da pergunta, como dado e
+  não como adjectivo. O **rascunho** do passo 1 fica fora do denominador; o **aplicado** só conta
+  quem foi para uma turma.
+- **A escolha órfã não se apaga.** Um id que a anamnese já não declara vai para `desconhecidos`, com
+  o nome que o registo guardou — é o passado a dizer que o recorte foi decidido sobre outra anamnese
+  (P-03).
+- **Uma leitura, não duas.** A página da Produção já pede `/api/bastidores/linhas-de-base`; o índice
+  vai na mesma resposta, e a conta é do servidor (§7.2 — a interface não recalcula). A rota própria
+  (`/api/bastidores/indice/recorte`) existe para quem quer o índice sozinho e com escopo
+  (`?professor=`, `?turma=`), e chama a **mesma** função.
+- **`professor` é escopo e não eixo** (§4.11): a resposta traz as linhas do professor pedido, e nunca
+  uma linha por professor. A prova recusa as três palavras (`por_professor`, `ranking`, `desempenho`)
+  no corpo.
+- **Privacidade**: `alunas` é uma contagem; nenhum apelido, resposta ou texto. O nome do aspecto é
+  vocabulário da anamnese — norma, não dado de pessoa.
+
+**Onde entrou.** `motor/nucleo/indice-do-recorte.js` — novo, puro (sem `fs`, rede nem relógio
+próprio), com `construir`. `motor/servidor/bastidores.js` — `indiceDoRecorte()` (entrega o universo e
+chama o núcleo), o `indice` na resposta da lista, a rota `/api/bastidores/indice/recorte`, a caixa
+«O que os recortes olham» dentro da secção do corpo, e `pintarIndiceDoRecorte`/`chipsDeAspectos` no
+script. `indices/esquema/campos.json` — a entidade `recorte`, `prevista` (é o índice vivo que a
+emite) e `acesso: escola`, com a nota do que ela não guarda. `PLANO-INDICES.md` §4.12 — a família
+documentada, com as duas limitações declaradas. `experimentos/provar-indice-do-recorte.js` — novo.
+`experimentos/README.md` — a linha da bancada.
+
+**Medido.** `provar-indice-do-recorte` **24/24** (com o desenho a correr em jsdom, e não só a
+marcação); `provar-linha-de-base` **104/104**; `provar-producao` **159/159**;
+`check-identidade` **0 erros**; `check-indices` **14 verificações, 0 falhas**, e as **10
+contraprovas** reprovam como deviam. Nos dados reais da `calango` (uma linha, dois aspectos): 45
+oferecidos, 2 escolhidos, 42 nunca, 1 enviada para turma.
+
+**Duas limitações declaradas, e nenhuma é técnica.**
+
+1. **Não há série temporal.** O «Gravar» do passo 4 **sobrescreve** a linha (`lista[idx] = linha`):
+   o que existia antes desaparece, e só a `atualizada_em` sobrevive. O índice lê o estado de hoje.
+   Para «olhar para o passado» — que é o que ela pediu com a palavra «proveniência» — o recorte tem
+   de passar a **append-only**, com um elo novo por decisão, como o `ajuste_de` dos documentos. É uma
+   decisão de desenho e fica **pendente dela**; não foi feita por conta própria porque mudar a
+   gravação mexe no plano que aponta a linha de base e na cascata.
+2. **Uma escola.** O recorte está no KV de cada escola e só a `calango` tem Worker. Um ranque entre
+   escolas exige que os KV sejam alcançáveis pela mesma leitura — hoje não são.
+
+**O que ainda não está feito.** (a) A decisão sobre o append-only, acima. (b) O índice **não** tem
+filtro na tela: mostra o ranque, os nunca e os cegos, e a rota aceita escopo. Um filtro por eixo ou
+por turma na própria caixa é a próxima conveniência, e não foi feita porque ela não a pediu ainda.
+(c) A fotografia do índice ao longo do tempo — um espelho em Git, como o §4.6 prevê para o índice
+publicado — depende de (a).

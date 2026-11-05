@@ -4,9 +4,9 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **«o que já é bom» passou a ser o
-> que ALGUMA aluna tem de bom** (era «todas»), e o apoio da observação inicial deixou de ser lido
-> como nível. (Ver as passagens de 05/11/2026 mais abaixo, na ordem em que foram escritas.)
+> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **nasceu o índice do recorte** —
+> o ranque do que os professores olham no corpo, os aspectos que ninguém escolhe, e os **pontos
+> cegos** do olhar. (Ver as passagens de 05/11/2026 mais abaixo, na ordem em que foram escritas.)
 >
 > **Fotografia anterior (04/11/2026).** Nesta entrega, **o Plano de Observação passa a
 > poder apagar-se**, e **o menu dos formulários ganha bancada**. (1) A linha do PO oferecia só
@@ -3948,6 +3948,22 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **05/11/2026** — **Nasceu o índice do recorte (o passo 4), e com ele os pontos cegos do olhar.** O
+  recorte mora no KV, e por isso o índice é da família **VIVA** (`PLANO-INDICES.md` §4.5 e a nova
+  §4.12), não de `indices/`: o gerador do acervo não alcança o KV, e pô-lo lá seria uma segunda fonte.
+  Três perguntas, um dado: o **ranque** (aspecto → em quantos recortes, em quantos chegou à turma), os
+  **nunca escolhidos** — contra o **universo de 45** da anamnese, sem o qual «nunca» não existiria —,
+  e os **pontos cegos**: aspecto que a leitura do passo 3 marcou como atenção e que recorte nenhum
+  olhou. `cobertura` diz `todos`/`alguns`/`nenhum` (o «usado parcialmente»), rascunho fica fora do
+  denominador, a escolha órfã vai para `desconhecidos` sem se apagar. O índice vai na resposta da
+  lista que a página já pede (zero leituras extra) e tem rota própria com escopo por professor/turma —
+  **escopo, nunca eixo**. Medido: **24/24** (desenho a correr em jsdom) · **104/104** · **159/159** ·
+  `check-identidade` **0 erros** · `check-indices` **14/14** e **10/10** contraprovas.
+  **PENDENTE, e é decisão dela:** (a) o «Gravar» do passo 4 **sobrescreve** a linha, portanto **não
+  há série temporal** — «olhar para o passado» exige que o recorte passe a append-only (elo novo por
+  decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
+  pela mesma leitura, e hoje só a `calango` tem Worker.
 
 - **05/11/2026** — **«O que já é bom» passou a ser o que ALGUMA aluna tem de bom.** Depois da
   correcção do apoio, ela leu a tela e disse o que faltava: «a aluna B tem o tendu bom e faz por

@@ -430,6 +430,25 @@ function camposDoCorpo() {
 }
 
 /**
+ * O ÍNDICE DO RECORTE, a partir das linhas já lidas (05/11/2026).
+ *
+ * PORQUE É UMA FUNÇÃO DAQUI E NÃO UMA LEITURA. O universo da comparação é `camposDoCorpo()` — os
+ * 45 aspectos que a anamnese mede, derivados do CONTEÚDO. Sem ele, «nunca usado» não existiria: um
+ * aspecto com zero escolhas seria indistinguível de um aspecto que não existe. A conta é do núcleo
+ * (`motor/nucleo/indice-do-recorte.js`, puro e provável sem KV); aqui só se lhe entrega o universo
+ * e o instante, para as duas rotas que o servem darem o mesmo número.
+ *
+ * e o instante. Uma segunda conta escrita na rota divergiria desta ao primeiro campo novo. */
+function indiceDoRecorte(linhas) {
+  const indice = require('../nucleo/indice-do-recorte.js');
+  return indice.construir({
+    universo: camposDoCorpo(),
+    linhas: Array.isArray(linhas) ? linhas : [],
+    agora: null,
+  });
+}
+
+/**
  * QUANTOS PLANOS APONTAM PARA UMA LINHA DE BASE — a resposta ao apagar.
  *
  * Não bloqueia a exclusão (o professor manda no que é dele), mas DIZ-SE: apagar uma linha de base
@@ -4593,6 +4612,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="rolagem"><ul class="lb-cartoes" id="lb-lista"><li>carregando…</li></ul></div>' +
     rodapePaginacao() +
     '</div>' +
+    '</div>' +
+    /* O ÍNDICE DO RECORTE — o que os professores olham no corpo (05/11/2026).
+     *
+     * FICA ABAIXO DA LISTA, e não num passo novo: o índice não é uma etapa do trabalho, é a
+     * LEITURA do que as etapas produziram. O passo 4 é a decisão; isto é o retrato de todas as
+     * decisões da escola juntas — e é por isso que não tem trava nem «Seguir».
+     *
+     * O conteúdo é desenhado pelo script, a partir de `d.indice` (a MESMA resposta da lista, para
+     * não custar uma segunda leitura do KV). A caixa `.caixa` é a peça de bloco de leitura; a
+     * tabela e os chips são as da casa. */
+    '<div class="caixa">' +
+    '<h3>O que os recortes olham</h3>' +
+    '<div id="lb-indice"><p class="sub">carregando…</p></div>' +
     '</div>' +
     '</section>' +
     '<script>' +
@@ -9664,12 +9696,86 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(d){' +
     '      LINHAS_DE_BASE = (d && d.linhas) || [];' +
     '      pintarLinhas();' +
+    '      pintarIndiceDoRecorte(d && d.indice);' +
     // A CURADORIA É O PRIMEIRO PASSO DA CASCATA, e tem de o dizer na lista onde ela se abre. O
     // servidor já fez a conta (`divergentes` — o elenco da turma contra o que a curadoria declara);
     // aqui só se marca a linha, sem repetir a regra.
     '      marcarCuradoriasDivergentes((d && d.divergentes) || []);' +
     '    })' +
     '    .catch(function(){ LINHAS_DE_BASE = []; pintarLinhas(); });' +
+    '}' +
+    /* O ÍNDICE DO RECORTE (05/11/2026) — o que os professores olham no corpo, e o que não olham.
+     *
+     * A CONTA É DO SERVIDOR. Aqui só se desenha o que `d.indice` traz: o ranque dos aspectos pela
+     * frequência com que são escolhidos no passo 4, os que ninguém escolheu, e os pontos cegos —
+     * aspectos que a LEITURA do passo 3 marcou como ponto de atenção e que recorte nenhum olhou.
+     * Recalcular isto no cliente seria uma segunda implementação da mesma regra.
+     *
+     * AS TRÊS LISTAS RESPONDEM A TRÊS PERGUNTAS, e a ordem é a do valor: primeiro o que pede
+     * decisão (o ponto cego), depois o que pede revisão da anamnese (o nunca escolhido), e só no
+     * fim o ranque — que é leitura, não trabalho.
+     */
+    /* OS CHIPS, COM UM LIMITE DITO. Uma lista de 43 aspectos não se lê, e esconder o resto sem o
+     * dizer seria a pior das duas coisas. Mostram-se os quinze primeiros — a ordem é a da atenção,
+     * então os que importam vêm à frente —, e a frase diz quantos ficaram e onde está a lista
+     * inteira. Não é um corte de dados: é o mesmo `indice` que a rota serve.
+     *
+     * A contagem entre parênteses é a ATENÇÃO vista na leitura, e não a escolha: é ela que diz
+     * quanto pesa um aspecto que ninguém escolheu. */
+    'function chipsDeAspectos(lista){' +
+    '  var LIMITE = 15;' +
+    '  var vistos = (lista || []).slice(0, LIMITE).map(function(a){' +
+    '    return "<span>" + escHtml(a.nome) +' +
+    '      (a.atencao_em ? " (" + a.atencao_em + ")" : "") + "</span>";' +
+    '  }).join("");' +
+    '  var resto = (lista || []).length - LIMITE;' +
+    '  if (resto <= 0) return vistos;' +
+    '  return vistos + "<span class=\\"dono\\">e mais " + resto + " — a lista inteira em " +' +
+    '    "<code>api/bastidores/indice/recorte</code></span>";' +
+    '}' +
+    'function pintarIndiceDoRecorte(indice){' +
+    '  var alvo = document.getElementById("lb-indice");' +
+    '  if (!alvo) return;' +
+    '  if (!indice || !indice.panorama || !indice.panorama.linhas) {' +
+    // SEM LINHAS NÃO HÁ O QUE CONTAR. Dizer «nada» aqui seria afirmar um resultado que não houve.
+    '    alvo.innerHTML = "";' +
+    '    return;' +
+    '  }' +
+    '  var p = indice.panorama;' +
+    '  var html = "<p class=\\"sub\\">" + p.linhas + (p.linhas === 1 ? " linha de base" : " linhas de base") +' +
+    '    (p.com_recorte !== p.linhas ? " (" + p.com_recorte + " com recorte, " + p.rascunhos + " por concluir)" : "") +' +
+    '    " · " + p.escolhas + (p.escolhas === 1 ? " escolha" : " escolhas") +' +
+    '    " em " + p.aspectos_oferecidos + " aspectos que a anamnese mede." +' +
+    '    (p.linhas_com_leitura ? "" : " Nenhuma tem leitura guardada — o cruzamento com o passo 3 aparece depois de ler.") +' +
+    '    "</p>";' +
+    // 1. OS PONTOS CEGOS — o corpo mostrou, o recorte não olhou.
+    '  if (indice.cegos && indice.cegos.length) {' +
+    '    html += "<h4>Pontos cegos (" + indice.cegos.length + ")</h4>" +' +
+    '      "<p class=\\"sub\\">A leitura marcou como ponto de atenção e nenhum recorte os escolheu.</p>" +' +
+    '      "<div class=\\"trio-chips\\">" + chipsDeAspectos(indice.cegos) + "</div>";' +
+    '  }' +
+    // 2. OS NUNCA ESCOLHIDOS.
+    '  if (indice.nunca && indice.nunca.length) {' +
+    '    html += "<h4>Nunca escolhidos (" + indice.nunca.length + ")</h4>" +' +
+    '      "<p class=\\"sub\\">A anamnese mede e nenhum recorte olhou: ou não interessam, ou são um " +' +
+    '      "ponto cego do olhar.</p>" +' +
+    '      "<div class=\\"trio-chips\\">" + chipsDeAspectos(indice.nunca) + "</div>";' +
+    '  }' +
+    // 3. O RANQUE — só os escolhidos, e só os que aparecem mais de uma vez ou em todas.
+    '  var usados = (indice.aspectos || []).filter(function(a){ return a.recortes > 0; });' +
+    '  if (usados.length) {' +
+    '    html += "<h4>Mais escolhidos</h4>" +' +
+    '      "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr>" +' +
+    '      "<th scope=\\"col\\">aspecto</th><th scope=\\"col\\">eixo</th>" +' +
+    '      "<th scope=\\"col\\">recortes</th></tr></thead><tbody>" +' +
+    '      usados.slice(0, 12).map(function(a){' +
+    '        return "<tr><td>" + escHtml(a.nome) + "</td><td>" + escHtml(a.eixo || "") + "</td><td>" +' +
+    '          a.recortes + " de " + p.com_recorte +' +
+    '          (a.aplicados && a.aplicados !== a.recortes ? " (" + a.aplicados + " na turma)" : "") +' +
+    '          "</td></tr>";' +
+    '      }).join("") + "</tbody></table></div>";' +
+    '  }' +
+    '  alvo.innerHTML = html;' +
     '}' +
     'function marcarCuradoriasDivergentes(lista) {' +
     '  var porId = {};' +
@@ -11311,7 +11417,50 @@ async function fetch(request, env) {
         }
       }
     } catch (erro) { divergentes = []; }
-    return json(200, { ok: true, escola, linhas: lista, divergentes });
+    /* O ÍNDICE DO RECORTE VAI JUNTO (05/11/2026), e não numa segunda rota só para ele.
+     *
+     * A página da Produção JÁ pede esta rota no arranque, e a lista que ela traz é a matéria-prima
+     * inteira do índice: as linhas, com os campos escolhidos e a leitura do passo 3. Devolvê-lo
+     * daqui custa ZERO leituras — e uma rota separada custaria uma segunda leitura da mesma chave
+     * do KV a cada abertura do gabinete. O índice é DERIVADO daquilo que já está na resposta, e a
+     * conta faz-se no servidor (nunca no cliente): a tela lê `filtros` prontos, como o §7.2 manda.
+     *
+     * A rota própria (`/api/bastidores/indice/recorte`) existe na mesma — para quem quiser o
+     * índice SEM a lista, e com o recorte por professor ou por turma. As duas chamam a MESMA
+     * função: uma segunda implementação divergiria da primeira ao primeiro campo novo. */
+    return json(200, {
+      ok: true, escola, linhas: lista, divergentes,
+      indice: indiceDoRecorte(lista),
+    });
+  }
+
+  /*
+   * GET /api/bastidores/indice/recorte — O ÍNDICE DO PASSO 4, SOZINHO (05/11/2026).
+   *
+   * É a família **VIVA** do `PLANO-INDICES.md` (§4.5): o recorte está no KV, e por isso o índice
+   * não vai para `indices/` — essa pasta é derivada do repositório na construção, e o gerador não
+   * alcança o KV. Aqui ele é calculado num pedido, a partir de uma leitura só.
+   *
+   * `?professor=` e `?turma=` são ESCOPO, e não eixo (§7.1 e §4.11): a resposta traz as linhas
+   * daquele professor ou daquela turma, e nunca uma linha por professor. `ranking` também não
+   * aparece por pessoa nenhuma — o ranque é de ASPECTOS do corpo.
+   */
+  if (path === '/api/bastidores/indice/recorte') {
+    const lista = await linhasDeBase(kv, escola);
+    const professor = String(url.searchParams.get('professor') || '').trim();
+    const turma = String(url.searchParams.get('turma') || '').trim();
+    const recortadas = lista.filter((l) => {
+      if (!l) return false;
+      if (professor && String(l.professor || '') !== professor) return false;
+      if (turma && String(l.turma || '') !== turma) return false;
+      return true;
+    });
+    return json(200, {
+      ok: true,
+      escola,
+      escopo: { professor: professor || null, turma: turma || null },
+      ...indiceDoRecorte(recortadas),
+    });
   }
 
   // POST /api/bastidores/linha-de-base — criar ou salvar. Com `id`, salva aquela (renomear não

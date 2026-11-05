@@ -190,6 +190,23 @@
         "versoes": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
         "vigente": { "tipo": "boolean", "obrigatorio": true, "acesso": "interno" }
       }
+    },
+    "recorte": {
+      "estado": "prevista",
+      "id": "recorte:<id-da-linha-de-base>",
+      "$nota": "O RECORTE DO CORPO — O PASSO 4 DA LINHA DE BASE (05/11/2026). É a decisão que dá sentido ao resto do ciclo: «o que ESTE trabalho vai observar», escolhida entre os 45 aspectos que a anamnese mede. A pesquisadora: «é para a gente poder fazer um filtro rápido […] identificar quais são os aspectos do recorte mais usados e os menos usados, os que nunca foram usados, os que são usados parcialmente […] e assim a gente vai saber o que o professor está preocupado no corpo de uma bailarina ou de uma turma». PORQUE `prevista`: o recorte mora no KV (`bastidores/<escola>/linhas-de-base`) e não em ficheiro nenhum do repositório — o gerador do acervo não o alcança. Quem o emite é o índice VIVO (§4.5), num pedido; a declaração aqui serve para o vocabulário dos campos ser um só (§7.4: um campo entra nesta lista antes de entrar em qualquer rota). O QUE ELE NÃO GUARDA, e é a regra do §4.8: nenhum apelido de aluna, nenhuma resposta, nenhum texto — `alunas` é uma CONTAGEM. O nome do aspecto não é dado de pessoa: é vocabulário da anamnese, que é norma (`porta/conteudo/anamnese.json`). O índice que ele alimenta é `motor/nucleo/indice-do-recorte.js`, e responde a três perguntas com este mesmo dado: o RANQUE dos mais escolhidos, os NUNCA escolhidos (contra o UNIVERSO da anamnese, e não contra as linhas que existem) e os PONTOS CEGOS (aspectos que a leitura do passo 3 marcou como atenção e que recorte nenhum olhou).",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "escola" },
+        "nome": { "tipo": "string", "obrigatorio": false, "acesso": "escola" },
+        "professor": { "tipo": "string", "obrigatorio": false, "acesso": "escola" },
+        "turma": { "tipo": "string", "obrigatorio": false, "acesso": "escola" },
+        "atualizada_em": { "tipo": "string", "obrigatorio": false, "acesso": "escola" },
+        "enviada_em": { "tipo": "string", "obrigatorio": false, "acesso": "escola" },
+        "aspectos": { "tipo": "array<string>", "obrigatorio": true, "acesso": "escola" },
+        "alunas": { "tipo": "number", "obrigatorio": false, "acesso": "escola" },
+        "leitura": { "tipo": "object", "obrigatorio": false, "acesso": "escola" },
+        "uso": { "tipo": "object", "obrigatorio": false, "acesso": "escola" }
+      }
     }
   },
   "proibidos": [

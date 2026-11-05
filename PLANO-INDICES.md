@@ -670,6 +670,67 @@ no **agrupamento**, não no filtro.
 
 ---
 
+### 4.12 Índice do recorte — `GET /api/bastidores/indice/recorte` (**IMPLEMENTADO** 05/11/2026)
+
+O **passo 4** da linha de base é a decisão que dá sentido ao ciclo: «o que ESTE trabalho vai
+observar», escolhida entre os 45 aspectos que a anamnese mede. O índice responde a três perguntas
+sobre o conjunto dessas decisões na escola — e é a única lista do projecto que aponta o que o
+professor **não** olha.
+
+```json
+{
+  "ok": true, "escola": "calango", "escopo": { "professor": null, "turma": null },
+  "versao": 1, "gerado_em": null,
+  "panorama": {
+    "linhas": 4, "com_recorte": 3, "rascunhos": 1, "enviadas": 2,
+    "escolhas": 9, "aspectos_oferecidos": 45, "aspectos_usados": 7, "aspectos_nunca": 38,
+    "linhas_com_leitura": 3
+  },
+  "aspectos": [
+    { "id": "equilibrio-unipodal", "nome": "Equilíbrio unipodal", "eixo": "Funcional",
+      "recortes": 2, "aplicados": 1, "cobertura": "todos",
+      "atencao_em": 2, "excelencia_em": 0, "leituras": 3, "nao_medidos": 0, "cego": false }
+  ],
+  "nunca": [], "cegos": [], "por_eixo": [], "por_grupo": [], "desconhecidos": []
+}
+```
+
+- **`panorama.aspectos_oferecidos` é o UNIVERSO**, e não as linhas que existem. Sem ele, «nunca
+  escolhido» não teria sentido: um aspecto com zero escolhas seria indistinguível de um aspecto que
+  não existe. É o que obriga a ler a anamnese na construção (§7.4: o vocabulário é um só).
+- **`cobertura`** distingue `todos` / `alguns` / `nenhum` — é o «usado parcialmente» da pergunta, e
+  não um rótulo: `alguns` quer dizer «em algum recorte, mas não em todos».
+- **`cegos`** é o cruzamento com o passo 3: aspecto que a **leitura** marcou como ponto de atenção e
+  que **nenhum** recorte escolheu. O corpo mostrou, e o recorte não olhou. É a única destas listas
+  que aponta trabalho — as outras duas são leitura.
+- **`desconhecidos`** guarda a escolha que aponta para um aspecto que a anamnese já não declara, com
+  o nome com que foi escolhida. Não se apaga (P-03) e não entra no ranque do universo.
+
+**Porque é o índice VIVO e não o de ACERVO.** O recorte mora no KV
+(`bastidores/<escola>/linhas-de-base`), não em ficheiro do repositório — o gerador do §5.1 não o
+alcança, e pô-lo em `indices/` seria pedir-lhe uma segunda fonte (§2.1). A rota calcula-o num
+pedido, a partir de uma leitura só. **A lista da linha de base já o devolve** em `indice`, e essa é
+a razão de o painel não custar leitura nenhuma: a página já pede as linhas, e o índice é derivado
+delas no servidor (§7.2 — a interface não recalcula).
+
+**Privacidade (§4.8).** `alunas` é uma **contagem**; não há apelido, resposta nem texto. O nome do
+aspecto não é dado de pessoa: é o vocabulário da anamnese, que é norma.
+
+**Duas limitações declaradas, e nenhuma é técnica.**
+
+1. **Não há série temporal.** O «Gravar» do passo 4 **sobrescreve** a linha (`lista[idx] = linha`), e
+   o que existia antes desaparece — só a `atualizada_em` sobrevive. O índice lê o estado de hoje. Para
+   «olhar para o passado» seria preciso que o recorte fosse **append-only** (um elo novo por decisão,
+   como o `ajuste_de` dos documentos), e essa é uma decisão de desenho, não uma correcção.
+2. **Uma escola.** O recorte está no KV de cada escola, e só a `calango` tem Worker. Um ranque entre
+   escolas exige que todos os KV sejam alcançáveis pela mesma leitura — hoje não são.
+
+**A prova:** `experimentos/provar-indice-do-recorte.js` (24 asserções): o universo, o ranque, a
+cobertura, o rascunho fora do denominador, o aplicado, o ponto cego com o A/B, a escolha órfã, a
+privacidade com o controle positivo, o determinismo, as três rotas e o desenho a correr em jsdom.
+
+---
+
 ## 5. Geração
 
 ### 5.1 O gerador — `tools/gerar-indices.js`
