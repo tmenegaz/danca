@@ -36339,3 +36339,10 @@ não era o `montar-publicacao.js` — ele copia o que houver —, era o passo do
 (`propor-linha-de-base.js`), porque mede a página da Produção e não um pacote de ciclo. O passo passou
 a correr os dois. A lição é a que o próprio workflow já tinha escrito noutro sítio: um gerador que não
 está no passo do deploy é um ficheiro, não uma bancada — e o sintoma é um 404 silencioso.
+
+**Segunda correção, e a causa era a mesma família.** O passo passou a correr o construtor, e o deploy
+falhou: `Cannot find module 'jsdom'`. O `jsdom` estava em `node_modules` como **extraneous** — vinha
+instalado à mão nas bancadas e nunca foi declarado; o `npm ci` do CI não o instala, e o construtor
+rebentou com `set -euo pipefail`. Passou a `devDependencies` (`jsdom@^29.1.1`), com o `package-lock`
+regenerado. É a mesma lição do parágrafo anterior, um passo adiante: **uma bancada que corre no deploy
+tem de ter as suas dependências declaradas**; o que só existe na máquina de quem a escreveu não existe.
