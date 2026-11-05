@@ -1555,7 +1555,44 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
    ficava com o que sobrava e quebrava em quatro linhas ao lado dos botões. Com `flex-basis` de
    14rem o nome PEDE 224px; se a linha não couber, as ações descem inteiras (o `flex-wrap`) em
    vez de espremer o texto. Quem decide é o espaço que existe, não um breakpoint novo. */
-.trio-plano { display: block; margin-bottom: .6rem; }
+/* A LINHA QUE ESTÁ A SER APAGADA (05/11/2026) — a peça do LOCK.
+ *
+ * O DEFEITO, dito por ela: «quando o usuário clica em apagar um Plano de Observação, a Action do
+ * GitHub é disparada em background, mas o item continua visível e interativo na listagem enquanto
+ * o processo roda. Isso permite que o usuário abra, leia ou tente ajustar um documento que está
+ * sendo destruído.»
+ *
+ * A REGRA: a linha apagada é um estado da linha, não um aviso ao lado dela. Enquanto a rota não
+ * responde, a peça faz três coisas — cobre (o véu), diz (o fio de texto) e tranca (nada nela
+ * responde ao ponteiro). O `inert` que o cliente põe fecha também o teclado e o leitor de ecrã;
+ * `pointer-events` é o que segura o ponteiro onde `inert` ainda não existe.
+ *
+ * O VÉU NÃO É UM `opacity` NA LINHA: baixar a opacidade do conteúdo deixa o texto a 55% de
+ * contraste — ilegível, e ainda a prometer que se lê. O que se cobre é o conteúdo, com o papel do
+ * fundo; o que se lê é o estado.
+ *
+ * `data-apagando` é o atributo porque é ESTADO, e não classe (proibição 3): a classe do elemento é
+ * o que ele é (`trio-plano`), e o atributo é o que está a acontecer com ele.
+ */
+.trio-plano { display: block; margin-bottom: .6rem; position: relative; }
+.trio-plano[data-apagando="sim"] { pointer-events: none; }
+.trio-plano[data-apagando="sim"]::after {
+  content: 'apagando…'; position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--fundo); opacity: .82;
+  color: var(--texto-suave); font-size: .85rem; letter-spacing: .02em;
+}
+.trio-plano[data-apagando="sim"]::before {
+  content: ''; position: absolute; z-index: 2; left: 50%; top: 50%;
+  width: 14px; height: 14px; margin: -20px 0 0 -7px;
+  border: 2px solid var(--borda); border-top-color: var(--marca-texto);
+  border-radius: 50%; animation: apagando-gira 900ms linear infinite;
+}
+@keyframes apagando-gira { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .trio-plano[data-apagando="sim"]::before { animation: none; }
+}
+
 .trio-linha { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 .trio-nome { flex: 1 1 14rem; min-width: 0; }
 .trio-acoes { margin-left: auto; display: inline-flex; gap: .3rem; flex-wrap: wrap; }
