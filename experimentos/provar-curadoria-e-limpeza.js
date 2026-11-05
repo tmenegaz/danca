@@ -145,15 +145,23 @@ function servir(html) {
       adicionar: /class="adicionar acao pequena">Adicionar</.test(bloco),
     };
   };
-  provar('o escolhedor dos conteúdos é a MESMA peça do das alunas (menu, «Adicionar», fichas)',
-    JSON.stringify(formaDe('esc-conteudos')) === JSON.stringify(formaDe('esc-alunas')), {
-      conteudos: formaDe('esc-conteudos'), alunas: formaDe('esc-alunas'),
-    });
+  /* A ASSERÇÃO FOI INVERTIDA, E NÃO APAGADA (05/11/2026). Ela media que o escolhedor dos
+   * conteúdos era a MESMA peça do das alunas. A pesquisadora tirou o campo das alunas da
+   * curadoria — «ele vai ser embutido dentro da turma por meio da linha de base» —, e a pergunta
+   * mudou de sujeito: agora mede-se que o dos conteúdos continua a ser a peça da casa, e que o
+   * das alunas JÁ NÃO EXISTE aqui. Sem esta inversão, a prova exigiria de volta o campo que ela
+   * mandou remover. */
+  provar('o escolhedor dos conteúdos continua a ser a peça da casa (menu, «Adicionar», fichas)',
+    JSON.stringify(formaDe('esc-conteudos')) ===
+      JSON.stringify({ escolhidos: true, menu: true, adicionar: true }), formaDe('esc-conteudos'));
+  provar('…e o escolhedor de ALUNAS saiu da curadoria — o elenco vem da linha de base',
+    formaDe('esc-alunas').escolhidos === false && formaDe('esc-alunas').menu === false,
+    formaDe('esc-alunas'));
 
   // ===================================================================================
-  // B. OS RÓTULOS — os oito com a MESMA pele (medido no browser)
+  // B. OS RÓTULOS — os sete com a MESMA pele (medido no browser)
   // ===================================================================================
-  console.log('\nB. OS RÓTULOS — «Alunas» e «Conteúdos» vestem o que os outros seis já vestiam');
+  console.log('\nB. OS RÓTULOS — «Conteúdos» veste o que os outros seis já vestiam');
   const executavel = process.env.CHROME_PATH
     || ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'].find((p) => fs.existsSync(p));
   let puppeteer = null;
@@ -178,8 +186,9 @@ function servir(html) {
         grau: 'label[for="cugrau"]',
         nivel: 'label[for="cunivel"]',
         turma: 'label[for="cuturma"]',
-        // Os dois que estavam fora da regra: são os `<label>` que antecedem cada escolhedor.
-        alunas: '#esc-alunas',
+        /* O `<label>` que antecede cada escolhedor. O das ALUNAS saiu com o campo (05/11/2026);
+         * ficam os conteúdos, que é o único escolhedor do formulário — e o rótulo dele tem de
+         * vestir o que os outros seis vestem. */
         conteudos: '#esc-conteudos',
       };
       const saida = {};
@@ -214,9 +223,10 @@ function servir(html) {
     const referencia = peleDe('professor');
     provar('os seis rótulos de sempre têm todos a mesma pele',
       seis.every((n) => peleDe(n) === referencia), seis.map((n) => [n, peleDe(n)]));
-    provar('«Alunas» veste o mesmo que eles (era um `<label>` nu)',
-      peleDe('alunas') === referencia, { alunas: pele.alunas, professor: pele.professor });
-    provar('«Conteúdos desta curadoria» também',
+    /* «ALUNAS» SAIU DA LISTA (05/11/2026), e não por a asserção ter falhado: o campo deixou de
+     * existir na curadoria. O que fica é a regra — todo o rótulo que existe veste o mesmo —, e ela
+     * continua a ser medida no único escolhedor que sobrou. */
+    provar('«Conteúdos desta curadoria» veste o mesmo que os seis',
       peleDe('conteudos') === referencia, { conteudos: pele.conteudos, professor: pele.professor });
     provar('…e são todos do tipo `label` — a peça é a mesma, não um `span` a imitá-la',
       Object.values(pele).every((p) => p && p.tag === 'label'), Object.values(pele).map((p) => p && p.tag));
@@ -254,8 +264,12 @@ function servir(html) {
   const conteudosVazios = opcoesDe(vazio, 'esc-conteudos');
   provar('sem nenhum termo com verbete, o menu de conteúdos fica vazio',
     conteudosVazios.length === 0, conteudosVazios.map((o) => o.valor));
-  provar('…e as alunas continuam a ser oferecidas (o filtro é dos conteúdos, e só deles)',
-    opcoesDe(vazio, 'esc-alunas').length === ALUNAS.length, opcoesDe(vazio, 'esc-alunas'));
+  /* O CONTROLE POSITIVO MUDOU DE SUJEITO (05/11/2026). Ele media «as alunas continuam a ser
+   * oferecidas» — e já não há escolhedor de alunas na curadoria. O que continua a valer é a
+   * REGRA que a asserção guardava: o filtro é dos conteúdos e só deles. Mede-se no escolhedor
+   * que ficou: com o vocabulário sem verbete, o menu fica vazio e nada mais é afectado. */
+  provar('…e o formulário continua inteiro (o fim do filtro é o menu de conteúdos)',
+    /id="esc-conteudos"/.test(vazio) && /id="cuturma"/.test(vazio), 'formulário da curadoria');
 
   // ===================================================================================
   // E. O QUE NÃO SAI — o feedback que informa
@@ -278,7 +292,7 @@ function servir(html) {
     /Gravar substitui a música de /.test(script));
 
   console.log('\n' + (falhas === 0
-    ? 'TUDO CERTO — a lista promete só o que existe, os oito rótulos vestem o mesmo, e o formulário '
+    ? 'TUDO CERTO — a lista promete só o que existe, os sete rótulos vestem o mesmo, e o formulário '
       + 'ficou com rótulos e feedback, sem instruções.'
     : 'FALHARAM ' + falhas + ' de ' + total + ' asserções.'));
   process.exit(falhas ? 1 : 0);

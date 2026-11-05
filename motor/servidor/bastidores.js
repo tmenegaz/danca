@@ -1468,15 +1468,18 @@ async function curadorias(kv, escola) {
  * olhar para o formulário sem saber qual. Quando o que falta é uma ALUNA ou uma TURMA, o
  * caminho é outro sítio da Produção, e a frase diz qual.
  */
-function faltaNaCuradoria({ professor, modalidade, tradicao, turmas, alunas }) {
+function faltaNaCuradoria({ professor, modalidade, tradicao, turmas }) {
   const falta = [];
   if (!String(professor || '').trim()) falta.push(['professor', 'o professor']);
   if (!String(modalidade || '').trim()) falta.push(['modalidade', 'a modalidade']);
   if (!String(tradicao || '').trim()) falta.push(['tradicao', 'a tradição']);
   const t = (Array.isArray(turmas) ? turmas : [turmas]).map((x) => String(x || '').trim()).filter(Boolean);
   if (!t.length) falta.push(['turma', 'a turma']);
-  const a = (Array.isArray(alunas) ? alunas : [alunas]).map((x) => String(x || '').trim()).filter(Boolean);
-  if (!a.length) falta.push(['aluna', 'pelo menos uma aluna']);
+  /* AS ALUNAS SAÍRAM DA LISTA (05/11/2026). A pesquisadora: «tem que tirar o campo alunas,
+   * porque agora ele não faz mais parte da curadoria. Ele vai ser embutido dentro da turma por
+   * meio da linha de base.» Exigir aqui uma aluna que já não se escolhe neste formulário era
+   * pedir ao professor o que ele não pode dar — e a rota responderia 400 para sempre. Quem
+   * declara o elenco é a linha de base; a curadoria escolhe a turma. */
   return falta;
 }
 
@@ -1488,10 +1491,9 @@ function fraseDaCuradoriaIncompleta(falta) {
   if (falta.some(([campo]) => campo === 'modalidade')) onde.push('na Modalidade');
   if (falta.some(([campo]) => campo === 'tradicao')) onde.push('na Tradição');
   if (falta.some(([campo]) => campo === 'turma')) onde.push('em Turma (aba Turmas)');
-  if (falta.some(([campo]) => campo === 'aluna')) onde.push('nas Alunas (secção Alunas, ou a curadoria anterior)');
   return 'a curadoria não se atribui incompleta — falta ' + nomes.join(', ') + '. ' +
-    'A curadoria é o que autoriza o plano de uma turma e declara quem está nela, e por isso ' +
-    'os cinco campos são obrigatórios. Preencha ' + onde.join(', ') + ', e atribua depois.';
+    'A curadoria é o que autoriza o plano de uma turma. Preencha ' + onde.join(', ') +
+    ', e atribua depois.';
 }
 
 /**
@@ -3070,6 +3072,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       'font-size:.85rem;line-height:1.5;color:var(--texto);}' +
     '.filtro-turmas .limpar-filtro{margin:0 0 0 .35rem;}' +
     '.lista li.vazia{color:var(--texto-suave);font-size:.9rem;}' +
+    // A LISTA DOS CARTÕES (05/11/2026) — sem `flex` nas linhas, porque o cartão é uma coluna.
+    // Só o reset da lista: a forma de cada cartão vem de `.trio-plano`, na folha.
+    '.lb-cartoes{list-style:none;margin:0;padding:0;}' +
+    '.lb-cartoes>li{margin:0;padding:0;border-bottom:0;}' +
     // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
     'form{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:var(--raio-3);padding:1rem 1.1rem;margin:0 0 1rem;}' +
 
@@ -4377,31 +4383,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="cunivel" name="cunivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
     '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
-    /* O ESCOLHEDOR DE ALUNAS SAI DA CRIAÇÃO QUANDO A TURMA JÁ TRAZ ELENCO (05/11/2026).
+    /* A NOTA DIZ DE ONDE VEM O ELENCO — e não há campo para o escolher (05/11/2026).
      *
-     * A pesquisadora: «quando eu termino a linha de base, eu digo: ah, essas alunas vão para a
-     * turma X. […] lá na curadoria eu apenas digo qual é a turma, e a turma já carrega junto quais
-     * são as alunas dela». Perguntada sobre o que fazer ao escolhedor manual, respondeu: **na
-     * criação ele desaparece, na edição aparece pré-preenchido.**
+     * A pesquisadora: «tem que tirar o campo alunas, porque agora ele não faz mais parte da
+     * curadoria. Ele vai ser embutido dentro da turma por meio da linha de base.» A ordem é a
+     * dela: o elenco nasce na linha de base (passo 5 — «estas alunas, com este recorte, vão para
+     * esta turma»), e a curadoria escolhe a TURMA, não as pessoas.
      *
-     * A CAIXA (`cu-alunas-campo`) existe para isso, e a nota fica FORA dela: quando o campo some,
-     * o que sobra é a razão escrita — um formulário em que uma linha evapora sem explicação lê-se
-     * como defeito. Em edição a caixa volta, com as fichas que a curadoria já declarava mais as que
-     * a turma trouxe: quem está a corrigir uma curadoria antiga vê tudo o que ela tem.
-     */
-    '<div id="cu-alunas-campo">' +
-    '<label class="campo-rotulo">Alunas</label>' +
-    escolarAlunasCuradoria +
-    '</div>' +
-    // A NOTA DO ELENCO HERDADO (05/11/2026). Só aparece quando a turma escolhida tem alunas de
-    // uma linha de base — e diz QUANTAS e de QUE linha, porque «apareceram umas fichas» sem
-    // explicação se lê como um defeito.
-    //
-    // ELA VEM DEPOIS DO ESCOLHEDOR, e não antes (05/11/2026). A primeira versão pôs-se entre o
-    // rótulo e o campo, e partiu uma regra que a prova do formulário mede: o rótulo é o irmão
-    // ANTERIOR do seu campo (`#esc-alunas`), e quem o lê é a asserção da pele dos rótulos. Uma
-    // nota no meio do par transforma «Alunas» num parágrafo escondido — e o rótulo deixa de
-    // vestir o que os outros seis vestem. O que explica o estado fica DEPOIS do que o produziu.
+     * A NOTA FICA, e é o que impede a mudança de ser um silêncio: sem o campo, quem chega aqui
+     * precisa de saber QUE a turma já traz gente, de QUE linha de base, e que para mudar o elenco
+     * se vai à linha de base — não a este formulário. Não é um parágrafo explicativo de
+     * formulário (a regra da casa); é o estado do dado escolhido, e muda com ele.
+     *
+     * O QUE ACONTECE ÀS CURADORIAS ANTIGAS, e é o que impede a mudança de partir o que já existe:
+     * elas continuam a guardar `alunas` no registo — o passado não se reescreve (P-03) —, e é
+     * delas que a cascata do «rever» continua a comparar. O SERVIDOR passa a carimbar essa lista a
+     * partir do elenco derivado da turma no momento em que a curadoria é gravada (ver
+     * `POST /api/bastidores/curadoria`): a curadoria deixa de DECLARAR quem está na turma e passa
+     * a REGISTAR quem lá estava quando foi atribuída. Sem esse carimbo a comparação não teria
+     * contra o que diferir, e o aviso de cascata — que ela pediu — desapareceria em silêncio. */
     '<p class="nota" id="cu-elenco-nota" hidden></p>' +
     // O «REPERTÓRIO» VOLTOU A ESTE FORMULÁRIO A 03/11/2026 — e não é a reversão que parece.
     //
@@ -4535,13 +4535,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
     '</div>' +
     '<div class="passo-painel" data-passo="5" hidden>' +
-    '<label class="campo-rotulo" for="lb-turma-destino">Turma de destino</label>' +
-    '<select id="lb-turma-destino"><option value="">— escolher —</option>' +
-    listaTurmas.map((t) => '<option value="' + esc(t.nome) + '">' + esc(t.nome) + '</option>').join('') +
-    '</select>' +
-    '<p class="sub">Ao concluir, estas alunas passam a ser as alunas desta turma — e a curadoria ' +
-    'deixa de as pedir uma a uma: escolhe a turma e recebe o elenco e a linha de base. A turma ' +
-    'continua a ser o ritmo; o vínculo fica registado aqui, com a data.</p>' +
+    /* SEM TURMA CADASTRADA, O PASSO 5 NÃO PEDE — DIZ O QUE FALTA (05/11/2026).
+     *
+     * A pesquisadora, numa escola recém-criada: «eu não tenho nenhuma turma. […] ele tem que
+     * mostrar uma mensagem dizendo: olha, ainda não existe nenhuma turma. Crie uma turma antes de
+     * definir a linha de base.» Um `select` com uma única opção («— escolher —») não diz isso:
+     * diz que o professor não escolheu, quando o que falta é o cadastro. São estados diferentes, e
+     * confundi-los manda procurar um defeito que não existe.
+     *
+     * O AVISO ENTRA NO LUGAR DO CAMPO, e não ao lado dele: um campo que não se pode preencher é
+     * ruído. O caminho para resolver fica escrito e é um link — a secção Turmas é a mesma página,
+     * e o gesto é o que ela pediu («crie uma turma antes»). O «Concluir» continua travado, e a
+     * falta dele diz o mesmo na tira e no `title`. */
+    (listaTurmas.length
+      ? '<label class="campo-rotulo" for="lb-turma-destino">Turma de destino</label>' +
+        '<select id="lb-turma-destino"><option value="">— escolher —</option>' +
+        listaTurmas.map((t) => '<option value="' + esc(t.nome) + '">' + esc(t.nome) + '</option>').join('') +
+        '</select>' +
+        '<p class="sub">Ao concluir, estas alunas passam a ser as alunas desta turma — e a ' +
+        'curadoria deixa de as pedir uma a uma: escolhe a turma e recebe o elenco e a linha de ' +
+        'base. A turma continua a ser o ritmo; o vínculo fica registado aqui, com a data.</p>'
+      : '<p class="aviso" id="lb-sem-turma">Ainda não existe nenhuma turma cadastrada. ' +
+        'Crie uma turma antes de definir a linha de base — é para lá que estas alunas vão, e é ' +
+        'aí que a curadoria as encontra. <a href="#sec-turmas" data-ir-para-turmas>Ir a Turmas</a>' +
+        '.</p>' +
+        '<input type="hidden" id="lb-turma-destino" value="">') +
     '<div id="lb-vinculo"></div>' +
     '</div>' +
     '<div class="res" data-res="linha-base"></div>' +
@@ -4557,7 +4575,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Linhas de base</h3>' +
-    '<div class="rolagem"><ul class="lista" id="lb-lista"><li>carregando…</li></ul></div>' +
+    /* O CONTENTOR NÃO É `.lista` (05/11/2026), e a razão é de contentor, não de gosto:
+     * `.lista li` é `display:flex` — as linhas simples do gabinete são UMA fita, e o cartão é
+     * uma COLUNA. Medido com o contentor antigo: as três caixas ficavam com 110px numa coluna
+     * de 1200px, porque eram itens de uma fita que as encolhia. Declarar `.lista > li.trio-plano`
+     * resolvia e foi recusado pela checagem «Forma» — com razão: o desenho de `trio-plano` mora
+     * na folha, e uma página não o reescreve. O que muda é o DONO da lista, que é desta página. */
+    '<div class="rolagem"><ul class="lb-cartoes" id="lb-lista"><li>carregando…</li></ul></div>' +
     rodapePaginacao() +
     '</div>' +
     '</div>' +
@@ -4768,6 +4792,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'for (var sec = 0; sec < SECOES_COM_ACORDEAO.length; sec++) {' +
     '  definirSecaoRecolhida(SECOES_COM_ACORDEAO[sec], secaoRecolhida(SECOES_COM_ACORDEAO[sec]));' +
     '}' +
+    /* O ATALHO PARA TURMAS, a partir do passo 5 sem turma (05/11/2026).
+     *
+     * A mensagem diz «crie uma turma antes» e o link leva lá: é o gesto que ela pediu. Abrir a
+     * secção é o mesmo `definirSecaoRecolhida` de sempre — não há segunda forma de abrir uma
+     * secção, e a que existe é a que o resto da página usa. */
+    'var atalhoTurmas = document.querySelector("[data-ir-para-turmas]");' +
+    'if (atalhoTurmas) atalhoTurmas.addEventListener("click", function(e){' +
+    '  e.preventDefault();' +
+    '  definirSecaoRecolhida("sec-turmas", false);' +
+    '  var secao = document.getElementById("sec-turmas");' +
+    '  if (secao && secao.scrollIntoView) secao.scrollIntoView({block: "start"});' +
+    '});' +
     // OS PASSOS da secção Turmas. Três coisas mudaram em relação às abas (18/10/2026):
     //
     //  1. NÃO É MAIS UM MENU, É UMA SEQUÊNCIA — o que se mostra é o passo, e o resto continua
@@ -5896,47 +5932,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //
     // A TURMA NÃO GUARDA ALUNAS: ela é o ritmo (decisão de 03/11/2026), e pôr-lhe um campo
     // `alunas` seria reverter essa decisão. O vínculo mora na LINHA DE BASE — «estas alunas, com
-    // este recorte, foram para esta turma neste dia» —, e é de lá que esta função o lê.
+    // este recorte, foram para esta turma neste dia» —, e é de lá que esta leitura sai.
+    //
+    // A PARTIR DE 05/11/2026 ELA SÓ ESCREVE A NOTA. Havia aqui um escolhedor de alunas que as
+    // fichas preenchiam; o campo saiu da curadoria por decisão dela («ele vai ser embutido dentro
+    // da turma por meio da linha de base»), e transportar fichas para dentro de um campo que já
+    // não existe seria trabalho para o vazio. O que fica é o que sempre devia ter sido: dizer de
+    // ONDE vem o elenco e quantos são, para quem está a atribuir a curadoria saber que a turma
+    // não está vazia — e que para a mudar se vai à linha de base.
     'function herdarAlunasDaTurma(turma) {' +
-    '  var el = document.getElementById("esc-alunas");' +
-    '  var caixa = document.getElementById("cu-alunas-campo");' +
     '  var nota = document.getElementById("cu-elenco-nota");' +
-    '  if (caixa) caixa.hidden = false;' +
     '  if (nota) { nota.hidden = true; nota.textContent = ""; }' +
-    '  if (!el || !turma) return;' +
+    '  if (!nota || !turma) return;' +
     '  fetch("/api/bastidores/alunas-da-turma?turma=" + encodeURIComponent(turma))' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      if (!d || !d.ok) return;' +
-    '      var criando = !((document.getElementById("cuderivar") || {}).value || "");' +
-    /* AS FICHAS SÓ ENTRAM NA CRIAÇÃO (05/11/2026). Em EDIÇÃO a lista é a que a curadoria declara:
-     * acrescentar-lhe as da turma mudaria o elenco de um documento já gravado sem que ninguém o
-     * tivesse decidido — e, se a curadoria estiver mesmo desactualizada, a diferença é exactamente
-     * o que a cascata tem de mostrar ao professor, e não algo a apagar por baixo. */
-    '      if (criando) (d.alunas || []).forEach(function(a){ adicionarFicha(el, a); });' +
-    '      refiltrarAlunas();' +
-    '      if (!nota) return;' +
     '      if (!(d.alunas || []).length) {' +
-    '        nota.hidden = true;' +
-    '        nota.textContent = "";' +
+    /* A TURMA SEM ELENCO DIZ-SE, e não fica em branco. É o estado exacto de quem ainda não mandou
+     * nenhuma linha de base para esta turma: a curadoria pode ser atribuída, mas ninguém está lá
+     * — e quem for fazer o plano precisa de o saber antes, não depois. */
+    '        nota.hidden = false;' +
+    '        nota.textContent = "Esta turma ainda não recebeu nenhuma aluna — o elenco nasce na " +' +
+    '          "linha de base (Corpo → passo 5).";' +
     '        return;' +
     '      }' +
-    /* NA CRIAÇÃO O ESCOLHEDOR SOME (05/11/2026). Não é decoração: se o elenco vem da linha de
-     * base, deixá-lo à mão em cima convida a duas listas do mesmo facto — e a que ficasse para
-     * trás seria a que o plano lê. Em EDIÇÃO ele volta, com tudo o que a curadoria declara, porque
-     * corrigir uma curadoria antiga é um acto declarado e não uma escolha nova.
-     *
-     * O CAMPO SAI, AS FICHAS FICAM. O `hidden` esconde a caixa; as fichas continuam no DOM e são
-     * elas que a gravação lê. Esconder e esvaziar daria uma curadoria sem alunas — e a falta de
-     * aluna trava o envio, sem que nada no ecrã explicasse porquê. */
-    '      if (criando && caixa) caixa.hidden = true;' +
     '      nota.hidden = false;' +
     '      nota.textContent = "A turma «" + d.turma + "» recebeu " + d.alunas.length +' +
     '        (d.alunas.length === 1 ? " aluna" : " alunas") + " da linha de base «" +' +
-    '        ((d.linhaDeBase && d.linhaDeBase.nome) || "—") + "»." +' +
-    '        (criando' +
-    '          ? " O elenco vem de lá: para o mudar, edite a linha de base."' +
-    '          : " Elas entraram já nesta lista.");' +
+    '        ((d.linhaDeBase && d.linhaDeBase.nome) || "—") + "». Para mudar o elenco, edite " +' +
+    '        "a linha de base.";' +
     '    })' +
     '    .catch(function(){});' +
     '}' +
@@ -6164,12 +6189,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarGraus(grauDe);' +
     '  document.getElementById("cunivel").value = nivelDe;' +
     '  document.getElementById("cuturma").value = turmas.length ? turmas[0] : "";' +
-    // PRIMEIRO o refiltro, DEPOIS as fichas: a lista de alunas oferecidas depende do par
-    // (modalidade, turma) que acabou de ser posto, e as alunas DESTA curadoria não estão
-    // ocupadas (o `cuderivar` já está preenchido, e `alunasOcupadas` exclui-a).
-    '  refiltrarAlunas();' +
-    // As ALUNAS são fichas: limpam e voltam a marcar.
-    '  [["esc-alunas", c.alunas || []], ["esc-conteudos", c.repertorio || []]].forEach(function(par){' +
+    /* SÓ O REPERTÓRIO VOLTA A SER MARCADO (05/11/2026). As alunas saíram do formulário — o elenco
+     * vem da turma, pela linha de base — e continuar a preencher um escolhedor que já não existe
+     * seria código a falar com um campo ausente. A `c.alunas` da curadoria antiga não se perde: ela
+     * fica no registo (P-03) e é dela que a cascata compara. */
+    '  [["esc-conteudos", c.repertorio || []]].forEach(function(par){' +
     '    var el = document.getElementById(par[0]);' +
     '    if (!el) return;' +
     '    Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
@@ -8875,20 +8899,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A TURMA é UMA (um `select`, como a modalidade): vai como lista de um, que é o formato
     // que o plano já lê. As ALUNAS e o REPERTÓRIO continuam múltiplos.
     '  var umaTurma = document.getElementById("cuturma").value;' +
-    // OS CINCO CAMPOS SÃO OBRIGATÓRIOS, E O FORMULÁRIO DIZ QUAIS FALTAM (23/10/2026). A
-    // mesma regra do servidor (`faltaNaCuradoria`), aqui para a recusa chegar antes de a
-    // pessoa esperar por uma ida à rede. Um `alert` que diz «faltam campos» não serve: a
-    // pessoa fica a olhar para o formulário sem saber qual.
+    // OS CAMPOS SÃO OBRIGATÓRIOS, E O FORMULÁRIO DIZ QUAIS FALTAM (23/10/2026). A mesma regra do
+    // servidor (`faltaNaCuradoria`), aqui para a recusa chegar antes de a pessoa esperar por uma
+    // ida à rede. Um `alert` que diz «faltam campos» não serve: a pessoa fica a olhar para o
+    // formulário sem saber qual.
+    //
+    // AS ALUNAS SAÍRAM DA CONFERÊNCIA (05/11/2026): o campo deixou de existir — o elenco vem da
+    // turma, pela linha de base — e exigir aqui uma coisa que já não se escolhe era a receita para
+    // um formulário que nunca envia.
     '  var faltando = [];' +
     '  if (!document.getElementById("cuprofessor").value) faltando.push("o professor");' +
     '  if (!document.getElementById("cumodalidade").value) faltando.push("a modalidade");' +
     '  if (!document.getElementById("cutradicao").value) faltando.push("a tradição");' +
     '  if (!umaTurma) faltando.push("a turma");' +
-    '  if (!fichasDe("esc-alunas").length) faltando.push("pelo menos uma aluna");' +
     '  if (faltando.length) {' +
     '    alert("A curadoria não se atribui incompleta — falta " + faltando.join(", ") + ". " +' +
-    '      "Ela é o que autoriza o plano de uma turma e declara quem está nela; os cinco " +' +
-    '      "campos são obrigatórios.");' +
+    '      "Ela é o que autoriza o plano de uma turma; os quatro campos são obrigatórios.");' +
     '    return;' +
     '  }' +
     // O NÍVEL VAI NO CORPO (03/11/2026), e vai SEMPRE — mesmo vazio. É o que distingue «não
@@ -8902,7 +8928,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    grau: document.getElementById("cugrau").value,' +
     '    nivel: document.getElementById("cunivel").value,' +
     '    turmas: umaTurma ? [umaTurma] : [],' +
-    '    alunas: fichasDe("esc-alunas"),' +
+    /* AS ALUNAS NÃO VÃO NO CORPO (05/11/2026). Quem as declara é a linha de base enviada para a
+     * turma; o servidor carimba na curadoria o elenco derivado do momento, para a cascata ter
+     * contra o que comparar depois. Mandar daqui uma lista que o formulário já não mostra seria
+     * aceitar do cliente uma declaração que ninguém fez no ecrã. */
     // OS CONTEÚDOS VÃO NO CORPO (03/11/2026) — são eles a associação, e não um segundo mapa.
     // Vai SEMPRE, mesmo vazio: o servidor distingue «não trouxe» de «trouxe nenhum», e limpar a
     // lista é uma declaração (tirar o último conteúdo), não uma omissão.
@@ -8945,7 +8974,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (b.getAttribute("aria-expanded") !== "true") continue;' +
     '    b.setAttribute("aria-expanded", "false");' +
     '    var alvo = b.getAttribute("data-balao");' +
-    '    var ps = b.closest("li.turma").querySelectorAll(".trio-painel");' +
+    // O DONO DO PAINEL É O `<li>` DA LINHA, seja qual for a lista (05/11/2026). Era `li.turma`, e
+    // o cartão da linha de base nasceu na mesma forma (`li.trio-plano`): preso à turma, os três
+    // painéis dele abririam o painel de outra linha.
+    '    var dono = b.closest("li");' +
+    '    var ps = dono ? dono.querySelectorAll(".trio-painel") : [];' +
     '    for (var j = 0; j < ps.length; j++) {' +
     '      if (ps[j].getAttribute("data-painel") === alvo) ps[j].hidden = true;' +
     '    }' +
@@ -8957,7 +8990,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = q.getAttribute("data-balao");' +
     '  var abertoAgora = q.getAttribute("aria-expanded") === "true";' +
     '  fecharPaineis(q);' +
-    '  var li = q.closest("li.turma");' +
+    '  var li = q.closest("li");' +
     '  var ps = li ? li.querySelectorAll(".trio-painel") : [];' +
     '  for (var i = 0; i < ps.length; i++) {' +
     '    if (ps[i].getAttribute("data-painel") !== alvo) continue;' +
@@ -9075,6 +9108,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o mesmo desenho do verbete, e é o que faz a tira e o «Seguir» responderem à mesma verdade.
     'var LB_PASSO = 1;' +
     'var LB_TOTAL = ' + LB_PASSOS.length + ';' +
+    /* A ESCOLA TEM TURMA? (05/11/2026). É o servidor que sabe, e a tela não adivinha: sem nenhuma
+     * turma cadastrada, o passo 5 não pede uma escolha — diz que falta o cadastro e leva lá. O
+     * passo 1 continua a pedir o nome (a regra dela: «enquanto não colocar um nome, tudo está
+     * bloqueado»), mas o último passo não fica à espera de uma opção que não existe. */
+    'var LB_TEM_TURMA = ' + (listaTurmas.length ? 'true' : 'false') + ';' +
     // QUANTAS ALUNAS SE MOSTRAM — dez de cada vez, e cresce. A escola pode ter quatrocentos
     // alunos; uma lista de quatrocentas caixas não se lê, e a rolagem resolve o resto.
     'var LB_POR_VEZ = 10;' +
@@ -9120,7 +9158,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  } else if (n === 4) {' +
     '    if (!marcados("lb-campo").length) faltas.push("pelo menos um aspecto");' +
     '  } else if (n === 5) {' +
-    '    if (!turmaDeDestino()) faltas.push("a turma de destino");' +
+    /* SEM TURMA CADASTRADA, A FALTA NÃO É «A TURMA DE DESTINO» (05/11/2026). Era a mesma frase
+     * para dois estados diferentes: «não escolhi a turma» e «não há turma nenhuma para escolher».
+     * A segunda não se resolve no passo 5 — resolve-se na secção Turmas —, e é isso que a frase
+     * tem de dizer, aqui e no `title` do «Concluir». O `LB_TEM_TURMA` vem do servidor: é ele que
+     * sabe quantas turmas a escola tem, e a tela não adivinha. */
+    '    if (!LB_TEM_TURMA) faltas.push("uma turma cadastrada (secção Turmas)");' +
+    '    else if (!turmaDeDestino()) faltas.push("a turma de destino");' +
     '  }' +
     '  return faltas;' +
     '}' +
@@ -9475,21 +9519,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'no formulário, no passo 1)</li>";' +
     '    return;' +
     '  }' +
-    /* A LISTA É A DA CASA (05/11/2026), e a primeira versão não era.
+    /* A LISTA É A DA CASA — O CARTÃO, E NÃO UMA LINHA (05/11/2026).
      *
-     * O RELATO DELA: «você também não seguiu o padrão visual […] as listagens são iguais». Estava
-     * certo: a linha da linha de base saía com `linha-titulo` e `linha-sub`, duas classes que não
-     * existem nem na folha nem em gancho nenhum — texto solto, sem o `<li>` da turma, sem o
-     * `<b>` do nome, sem `.acoes` a alinhar os botões à direita. As outras listas desta página
-     * (Turmas, Alunas, Curadorias) são todas `.linha-turma › .nome + .acoes`, com o complemento em
-     * `.dono` e o estado num `.selo`. Uma lista com a mesma informação e outra forma lê-se como
-     * um sítio diferente do sistema — e não é.
+     * O RELATO DELA, duas vezes: «você também não seguiu o padrão visual […] as listagens são
+     * iguais», e depois, com o exemplo à frente: «olhe lá na anamnese, a aluna A. Nós temos o
+     * nome, tem uma etiqueta, aí tem dois botões e aí tem três blocos aqui que eu expando ou
+     * colapso e que tem informações. E tem também uma outra linha abaixo do nome que também traz
+     * informações.»
      *
-     * O ESTADO FALA A LÍNGUA DAS OUTRAS LISTAS, e não a dos passos. «rascunho — falta o recorte no
-     * passo 4» expunha o maquinário de quem está a preencher: um selo e uma frase dizem o mesmo
-     * sem obrigar a saber em que passo se está. `livre` enquanto nada derivou dela; `vinculada`
-     * depois de ir para uma turma — a mesma distinção de Turmas e Curadorias. */
-    '  alvo.innerHTML = LINHAS_DE_BASE.map(function(l){' +
+     * A FORMA É A DO `motor/nucleo/lista-html.js` (o `cartaoDaLista`), que é quem desenha as três
+     * listas do acervo. Ela não se copia aqui à mão: copiada, divergiria no primeiro dia — e é a
+     * mesma razão pela qual a barra deixou de ser escrita em quatro sítios. O que se reproduz são
+     * as PEÇAS, que já estão na folha:
+     *
+     *   `.trio-plano`           o cartão;
+     *   `.trio-linha`           o nome (no `<b>`), o selo e as acções, na mesma linha;
+     *   `.fatos`                a linha abaixo do nome — o que se lê sem abrir nada;
+     *   `.trio-dono`            o contexto (de quem é a linha de base);
+     *   `.trio` + `.trio-item`  as três caixas, cada uma com o seu `?`;
+     *   `.trio-painel`          o que cada caixa abre.
+     *
+     * A ORDEM DAS TRÊS CAIXAS É A DO PERCURSO, não a do gosto: **Alunas** (de quem é o corpo),
+     * **Recorte** (o que se observa nele) e **Turma** (para onde já foi). É a mesma pergunta que
+     * o formulário faz, pela mesma ordem — e quem abre o cartão reconhece o caminho.
+     *
+     * O ESTADO FALA A LÍNGUA DAS OUTRAS LISTAS. `por completar` enquanto não há recorte (o passo
+     * 4 é o que o plano importa), `livre` enquanto nada derivou dela, `vinculada` depois de ir
+     * para uma turma. Nenhum dos três diz «passo 4»: a lista não é o formulário, e o professor que
+     * abre uma linha antiga não tem de saber em que passo ela parou. */
+    '  alvo.innerHTML = LINHAS_DE_BASE.map(function(l, indice){' +
     '    var n = (l.campos || []).length;' +
     '    var m = (l.alunas || []).length;' +
     '    var selo = l.turma' +
@@ -9499,19 +9557,58 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        ? "<span class=\\"selo livre\\" title=\\"ainda não foi enviada para nenhuma turma\\">livre</span>"' +
     '        : "<span class=\\"selo alerta\\" title=\\"ainda não tem os aspectos escolhidos — sem eles ' +
     'o plano de ensino não tem corpo para importar\\">por completar</span>");' +
-    '    var detalhe = [n ? (n === 1 ? "1 aspecto" : n + " aspectos") : "sem aspectos escolhidos",' +
-    '      (m === 1 ? "1 aluna" : m + " alunas"),' +
-    '      (l.professor || "sem professor declarado"),' +
-    '      (l.turma ? "enviada para " + l.turma : "")].filter(Boolean).join(" · ");' +
-    '    return "<li><div class=\\"linha-turma\\">" +' +
-    '      "<span class=\\"nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + "</span>" +' +
-    '      "<span class=\\"acoes\\">" +' +
+    '    var fatos = [n ? (n === 1 ? "1 aspecto" : n + " aspectos") : "sem recorte",' +
+    '      (m === 1 ? "1 aluna" : m + " alunas")].map(function(f){' +
+    '        return "<span>" + escHtml(f) + "</span>"; }).join("");' +
+    /* A CAIXA «RECORTE» É A LISTA DOS NOMES, e não a contagem outra vez: quem abre o cartão
+     * quer saber QUAIS aspectos, não quantos — o quantos já está na linha de cima. Vazia, diz o
+     * que falta em palavras, sem inventar uma lista. */
+    '    var painelRecorte = n' +
+    '      ? "<div class=\\"trio-chips\\">" + l.campos.map(function(c){' +
+    '          return "<span>" + escHtml(c.nome || c.id) + "</span>"; }).join("") + "</div>"' +
+    '      : "<p class=\\"trio-nota\\">Nenhum aspecto escolhido ainda — é o recorte que o plano de ' +
+    'ensino importa.</p>";' +
+    '    var painelAlunas = m' +
+    '      ? "<div class=\\"trio-chips\\">" + l.alunas.map(function(a){' +
+    '          return "<span>" + escHtml(a) + "</span>"; }).join("") + "</div>"' +
+    '      : "<p class=\\"trio-nota\\">Nenhuma aluna neste recorte — o corpo que se observa é o ' +
+    'DELAS.</p>";' +
+    '    var painelTurma = l.turma' +
+    '      ? "<div class=\\"trio-grade\\"><div><span class=\\"trio-k\\">Turma</span>" +' +
+    '        "<span class=\\"trio-v\\">" + escHtml(l.turma) + "</span></div>" +' +
+    '        (l.enviada_em ? "<div><span class=\\"trio-k\\">Enviada em</span><span class=\\"trio-v\\">" +' +
+    '          escHtml(String(l.enviada_em).slice(0, 10)) + "</span></div>" : "") + "</div>"' +
+    '      : "<p class=\\"trio-nota\\">Ainda não foi enviada para nenhuma turma — é por este envio ' +
+    'que a curadoria recebe o elenco sem o pedir aluna a aluna.</p>";' +
+    '    var id = String(indice + 1);' +
+    '    var caixa = function(rotulo, valor, dica){' +
+    '      var chave = rotulo.toLowerCase();' +
+    '      return "<button type=\\"button\\" class=\\"trio-item\\" data-balao=\\"" + chave + "\\" " +' +
+    '        "aria-expanded=\\"false\\" aria-controls=\\"lb-p-" + chave + "-" + id + "\\" " +' +
+    '        "aria-label=\\"" + dica + "\\"><span class=\\"trio-k\\">" + rotulo + "</span>" +' +
+    '        "<span class=\\"trio-v\\">" + escHtml(valor) + "</span>" +' +
+    '        "<span class=\\"trio-q\\" aria-hidden=\\"true\\">?</span></button>";' +
+    '    };' +
+    '    return "<li class=\\"trio-plano\\">" +' +
+    '      "<div class=\\"trio-linha\\">" +' +
+    '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + "</span>" +' +
+    '      "<span class=\\"trio-acoes\\">" +' +
     '      "<button type=\\"button\\" class=\\"acao pequena\\" data-lb-editar=\\"" + escHtml(l.id) +' +
     '      "\\" title=\\"Abrir esta linha de base para corrigir\\">Editar</button>" +' +
     '      "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-lb-apagar=\\"" +' +
     '      escHtml(l.id) + "\\" data-nome=\\"" + escHtml(l.nome) +' +
     '      "\\" title=\\"Excluir esta linha de base\\">Excluir</button></span></div>" +' +
-    '      "<div class=\\"dono\\">" + escHtml(detalhe) + "</div></li>";' +
+    '      "<div class=\\"fatos\\">" + fatos + "</div>" +' +
+    '      "<div class=\\"trio-dono\\">" + escHtml(l.professor || "sem professor declarado") + "</div>" +' +
+    '      "<div class=\\"trio\\">" +' +
+    '        caixa("Alunas", String(m), "ver as alunas desta linha de base") +' +
+    '        caixa("Recorte", String(n), "ver os aspectos observados") +' +
+    '        caixa("Turma", l.turma || "—", "ver a turma de destino") +' +
+    '      "</div>" +' +
+    '      "<div class=\\"trio-painel\\" data-painel=\\"alunas\\" id=\\"lb-p-alunas-" + id + "\\" hidden>" + painelAlunas + "</div>" +' +
+    '      "<div class=\\"trio-painel\\" data-painel=\\"recorte\\" id=\\"lb-p-recorte-" + id + "\\" hidden>" + painelRecorte + "</div>" +' +
+    '      "<div class=\\"trio-painel\\" data-painel=\\"turma\\" id=\\"lb-p-turma-" + id + "\\" hidden>" + painelTurma + "</div>" +' +
+    '      "</li>";' +
     '  }).join("");' +
     '  Array.prototype.slice.call(alvo.querySelectorAll("[data-lb-editar]")).forEach(function(b){' +
     '    b.addEventListener("click", function(){ editarLinha(this.getAttribute("data-lb-editar")); });' +
@@ -11983,14 +12080,14 @@ async function fetch(request, env) {
     const turmasPedidas = Array.isArray(corpo.turmas)
       ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
       : [String(corpo.turma || '').trim()].filter(Boolean);
-    const alunasDoCorpo = Array.isArray(corpo.alunas)
-      ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [];
-    /* OS CINCO CAMPOS SÃO OBRIGATÓRIOS, E A ROTA É QUEM OS GUARDA (23/10/2026). O formulário
+    /* OS QUATRO CAMPOS SÃO OBRIGATÓRIOS, E A ROTA É QUEM OS GUARDA (23/10/2026). O formulário
        também os confere (para a recusa não esperar por uma ida ao servidor), mas uma regra que
        só existe no cliente não é uma regra: a rota é pública para quem tem a senha da direção,
-       e é ela que escreve. A mensagem diz o que falta e onde se resolve. */
+       e é ela que escreve. A mensagem diz o que falta e onde se resolve.
+       O QUINTO — «pelo menos uma aluna» — SAIU a 05/11/2026: o campo deixou de existir no
+       formulário, e o elenco passa a vir da linha de base enviada para a turma (ver adiante). */
     const falta = faltaNaCuradoria({
-      professor, modalidade, tradicao: corpo.tradicao, turmas: turmasPedidas, alunas: alunasDoCorpo,
+      professor, modalidade, tradicao: corpo.tradicao, turmas: turmasPedidas,
     });
     if (falta.length) {
       return json(400, { ok: false, erro: fraseDaCuradoriaIncompleta(falta), falta: falta.map(([c]) => c) });
@@ -12067,8 +12164,25 @@ async function fetch(request, env) {
       }
     }
 
-    // Já lidas acima, para a conferência dos cinco campos: uma leitura só.
-    const alunasPedidas = alunasDoCorpo;
+    /* O ELENCO DO MOMENTO, CARIMBADO NA CURADORIA (05/11/2026).
+     *
+     * A pesquisadora tirou o campo das alunas: «ele vai ser embutido dentro da turma por meio da
+     * linha de base». Mas o registo da curadoria continua a GUARDAR `alunas` — e não é teimosia:
+     * é dele que a cascata do «rever» compara. A regra que ela pediu («se eu trocar a menina […]
+     * ele vai ter que passar na curadoria, do plano de ensino, do plano de observação») só se
+     * pode medir comparando o elenco de agora com um elenco de antes; sem o carimbo, não há
+     * «antes», e o aviso desaparecia em silêncio.
+     *
+     * O QUE MUDA É A ORIGEM DO DADO. Antes vinha do formulário (a curadoria DECLARAVA quem estava
+     * na turma); agora vem da linha de base enviada para ela (a curadoria REGISTA quem lá estava
+     * quando foi atribuída). O `corpo.alunas` é ignorado de propósito: aceitá-lo deixaria um
+     * cliente escrever um elenco que ninguém vê no ecrã.
+     *
+     * TURMA SEM ELENCO: guarda-se o que a curadoria já tinha (ou nada). Atribuir uma curadoria a
+     * uma turma a que ninguém foi enviado é legítimo — é a ordem natural numa escola nova —, e
+     * inventar alunas seria pior do que ficar sem elas. */
+    const elencoAgora = linhaDeBaseNucleo.elencoDaTurma(await linhasDeBase(kv, escola), turmasPedidas[0] || '');
+    const alunasPedidas = elencoAgora.length ? elencoAgora : ((atual && atual.alunas) || []);
     // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE (16/10/2026). Se ela já está noutra turma desta
     // modalidade, pô-la aqui faria os dois planos dizerem as mesmas alunas — e só uma turma é a
     // dela. A recusa diz ONDE ela está; o caminho é tirá-la de lá (ou não a pôr aqui).
@@ -12192,9 +12306,17 @@ async function fetch(request, env) {
       }
     }
     const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
-    const alunasFinais = Array.isArray(corpo.alunas)
-      ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean)
-      : (anterior.alunas || []);
+    /* O ELENCO DO MOMENTO, CARIMBADO — e não declarado por quem edita (05/11/2026).
+     *
+     * As alunas saíram do formulário da curadoria: quem as declara é a linha de base enviada para
+     * a turma. Mas a cascata do «rever» precisa de comparar duas listas, e a do derivado tem de
+     * nascer com o elenco de HOJE — sem isso, derivar uma curadoria antiga voltaria a marcá-la
+     * como divergente no minuto seguinte, e o aviso nunca cairia. Lê-se do mesmo sítio que a
+     * curadoria lê (`alunas-da-turma`), e quando a turma ainda não recebeu ninguém herda-se o que
+     * a anterior tinha: o passado não se inventa nem se apaga. */
+    const elencoDerivado = linhaDeBaseNucleo.elencoDaTurma(
+      await linhasDeBase(kv, escola), turmaFinal);
+    const alunasFinais = elencoDerivado.length ? elencoDerivado : (anterior.alunas || []);
     /* A VERSÃO NOVA TAMBÉM NASCE COMPLETA (23/10/2026). O que se confere é o que VAI FICAR
        escrito — `turmaFinal` e `alunasFinais` já resolvem o que não veio no corpo a partir da
        curadoria anterior. Conferir o corpo em vez do resultado deixaria passar uma derivada

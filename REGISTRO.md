@@ -36239,3 +36239,95 @@ que dependem de a passagem gravar.
   guardado»), mas a dúvida dela — «não sei para que serve o leitura / por ler» — é sobre o LUGAR do
   passo no percurso, e isso é decisão de desenho, não de texto. Fica em aberto, para ela dizer.
 - A conferência **no ar** faz-se depois do deploy, no mesmo percurso: passo 1 → 2 → 3 → ler.
+
+## 05/11/2026 — O passo 5 sem turma diz o que falta, a curadoria deixa de escolher alunas, e a listagem é o cartão da casa
+
+**O que motivou.** Três coisas no mesmo percurso, ditas de uma vez. A primeira, factual: *«eu fui até
+o step cinco, a hora de escolher a turma. Acontece que eu não tenho nenhuma turma. […] ele tem que
+mostrar uma mensagem dizendo: olha, ainda não existe nenhuma turma. Crie uma turma antes de definir a
+linha de base.»* A segunda, de desenho: *«na curadoria, você não tirou as alunas. Tem que tirar o
+campo alunas, porque agora ele não faz mais parte da curadoria. Ele vai ser embutido dentro da turma
+por meio da linha de base.»* A terceira, repetida pela terceira vez: *«a listagem […] está muito
+estranha, não está alinhada ao padrão […] as listagens são iguais»* — e desta vez com o modelo
+apontado: *«olhe lá na anamnese, a aluna A. Nós temos o nome, tem uma etiqueta, aí tem dois botões e
+aí tem três blocos que eu expando ou colapso.»*
+
+**O passo 5 sem turma.** Um `select` com uma única opção («— escolher —») diz que o professor não
+escolheu, quando o que falta é o **cadastro** — e são estados diferentes. Sem turma, o campo sai e
+entra o aviso, com o caminho: «Ainda não existe nenhuma turma cadastrada. Crie uma turma antes de
+definir a linha de base», e o link abre a secção Turmas pelo mesmo `definirSecaoRecolhida` que o
+resto da página usa. A falta do passo passou a nomear o cadastro («uma turma cadastrada (secção
+Turmas)») e não «a turma de destino», que era a frase para um estado que não existe numa escola nova.
+O «Concluir» continua travado, e diz porquê no `title`.
+
+**A curadoria sem alunas.** O campo saiu, com o escolhedor; a nota ficou, e agora diz **de onde vem**
+o elenco e que para o mudar se vai à linha de base. No servidor, `faltaNaCuradoria` deixa de exigir
+aluna, e a rota **carimba** `alunas` a partir do elenco derivado da turma no momento da atribuição.
+
+O carimbo não é teimosia: é o que mantém viva a cascata que ela pediu dois turnos antes («se eu trocar
+a menina […] ele vai ter que passar na curadoria, do plano de ensino, do plano de observação»). Sem
+um «antes» gravado não há diferença para medir, e o aviso cairia em silêncio para sempre. A origem do
+dado mudou — antes a curadoria **declarava** quem estava na turma, agora **regista** quem lá estava
+quando foi atribuída —, e o `corpo.alunas` é ignorado de propósito: aceitá-lo deixaria um cliente
+escrever um elenco que ninguém vê no ecrã. O derivado herda o mesmo carimbo, senão nasceria divergente
+no minuto seguinte.
+
+**A listagem.** Saiu `linha-titulo`/`linha-sub` — duas classes que **não existem** na folha nem em
+gancho nenhum, e é por isso que a lista parecia de outro sistema — e entrou o cartão do acervo:
+`.trio-plano › .trio-linha` (nome em `<b>` + selo, botões em `.trio-acoes`), `.fatos` na linha de
+baixo, `.trio-dono` com o contexto, e **três caixas** que abrem o detalhe — **Alunas**, **Recorte**,
+**Turma**, na ordem do percurso. O estado fala a língua das outras listas (`por completar`, `livre`,
+`vinculada`) e a lista deixou de falar de passos.
+
+**Um defeito de contentor, medido.** Com o cartão dentro de `.lista`, as três caixas ficavam com
+**110px** numa coluna de 1200px: `.lista li` é `display:flex` — as linhas simples do gabinete são uma
+fita, e o cartão é uma coluna. Declarar `.lista > li.trio-plano{display:block}` resolvia e a checagem
+**Forma** recusou, com razão: o desenho de `trio-plano` mora na folha, e uma página não o reescreve.
+O que mudou foi o **dono da lista**: `<ul class="lb-cartoes">`, desenhado no `<style>` da página, com
+o reset e nada mais. Medido depois: **397px** por caixa a 1240, três colunas.
+
+**A proposta, no experimento.** `experimentos/propostas/propor-linha-de-base.js` gera três páginas
+(`proposta-linha-de-base.html` + as duas larguras). Não redesenha nada: monta a página da Produção
+pelo servidor, carrega-a em jsdom e lê o `innerHTML` de `#lb-lista` **depois** de `pintarLinhas()`
+correr. As duas larguras são **iframes**, e não duas `<div>` — as regras de telemóvel da folha são
+`@media (max-width)`, que respondem à janela; numa `<div>` de 390px dentro de um ecrã de 1280px elas
+não disparavam e a proposta mentiria sobre o telemóvel. O handler das caixas é **extraído da própria
+página** por marcador: a primeira versão não o levava, e mostrava quatro caixas e nenhuma que abrisse.
+
+**Medido, e é geometria.** A 1240px: três colunas de **397px**, caixas de 48px (o alvo de toque), a
+linha do nome em **31px** (uma linha só). A 390px: sem transbordo, três colunas de 114px. A 360px e
+320px: **uma coluna**, sem transbordo. `provar-proposta-da-linha-de-base` **16/16** — e ela carrega
+cada largura na **sua** página, porque a primeira versão media a página do telemóvel a 1240px e
+chamava-lhe «desktop» (as duas asserções de largura reprovaram, e com razão).
+
+**Onde entrou.** `motor/servidor/bastidores.js` — o passo 5 condicional com o atalho para Turmas e o
+`LB_TEM_TURMA`; `faltaNaCuradoria` sem aluna; o carimbo do elenco nas duas rotas; o campo das alunas
+fora do formulário e a nota reescrita; `pintarLinhas` no cartão do acervo; `.lb-cartoes` no `<style>`;
+o handler dos painéis solto de `li.turma` para o `<li>` da linha. `experimentos/propostas/propor-
+linha-de-base.js` — o construtor da proposta. `experimentos/provar-proposta-da-linha-de-base.js` — a
+bancada de geometria. `experimentos/provar-linha-de-base.js` — a secção 15 reescrita (o campo saiu), a
+17 (o cartão, os três painéis, o clique) e a 18 (o passo 5 sem turma, com o A/B da falta).
+`experimentos/provar-producao.js` — **quatro asserções invertidas**, não apagadas: o escolhedor de
+alunas já não existe, o pedido já não leva fichas, a gravação sem alunas é aceite, e grava quatro
+campos mais o elenco carimbado. `experimentos/provar-curadoria-e-limpeza.js` — a mesma inversão no
+«mesmo escolhedor das alunas» e no rótulo «Alunas».
+
+**Medido.** `provar-linha-de-base` **99/99** (era 93); `provar-producao` **159/159**;
+`provar-curadoria-e-limpeza` **24/24**; `provar-proposta-da-linha-de-base` **16/16**;
+`provar-acordeoes` **ok**; `check-identidade` **0 erros**. A/B feito três vezes: desligado o
+`irParaPasso`, reprovam 2; reposta a tira a chamar `mostrarPassoLb`, idem; desligada a falta do passo
+5, reprova a asserção que a chama — e a primeira versão dessa asserção **passava com o defeito lá**,
+porque procurava no texto da página uma frase que é código (`<script>`) e está sempre presente. Foi o
+A/B que o disse.
+
+**O que ainda não está feito.**
+
+- A **proposta** não é a página real: mostra a listagem fora do gabinete (sem barra e sem o
+  formulário ao lado), que é o palco certo para a pergunta «como fica no celular e no desktop», e o
+  errado para responder «e ao lado do formulário?». Se ela quiser essa segunda vista, é outra bancada.
+- A curadoria **antiga** continua a guardar as alunas que declarava. Não se migra: o passado não se
+  reescreve (P-03), e é ele que a cascata compara.
+- A conferência **no ar** faz-se depois do deploy, no percurso: passo 1 → 2 → 3 → ler → 4 → 5.
+
+**Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado; a página é `motor/servidor/` e as
+bancadas são `experimentos/`.

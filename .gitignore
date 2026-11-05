@@ -152,6 +152,10 @@ experimentos/propostas/*
 # acções com botões normais ocupava 97px em duas filas a 390px, e 29px numa fila com os
 # secundários pequenos — 68px que decidiram a forma da proposta.
 !experimentos/propostas/medir-acervo.js
+# O CONSTRUTOR DA PROPOSTA DA LISTAGEM DA LINHA DE BASE (05/11/2026). Ele é FONTE, não saída: lê a
+# página da Produção pelo servidor, carrega-a em jsdom e escreve as três páginas que se abrem em
+# `/propostas/`. Sem esta linha, a proposta viajava para o ar e a forma de a refazer perdia-se.
+!experimentos/propostas/propor-linha-de-base.js
 # A prova do CAMPO DA SENHA no lançamento (20/10/2026): o campo existia onde a página o pedia?
 !experimentos/provar-senha-do-lancamento.js
 # A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
@@ -726,3 +730,8 @@ experimentos/modelo-formulario/*
 # musicalidade), a recusa de um campo que a anamnese não tem, a agregação pela ordem das opções, e
 # a cascata de três passos — com o A/B que a desliga.
 !experimentos/provar-linha-de-base.js
+# A PROPOSTA DA LISTAGEM, MEDIDA (05/11/2026). A bancada constrói a proposta, serve-a em 127.0.0.1 e
+# mede a geometria nas quatro larguras — 1240, 390, 360 e 320 —, incluindo o alvo de toque de cada
+# caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a
+# primeira versão a medir a página do telemóvel a 1240px e a chamar-lhe desktop.
+!experimentos/provar-proposta-da-linha-de-base.js

@@ -1003,8 +1003,12 @@ async function principal() {
      turma sem dizer em que linha o professor ensina. */
   conferir('…e a tradição já NÃO oferece «— nenhuma —» (o campo passou a ser obrigatório)',
     /<select id="cutradicao">\s*<option value="RAD">/.test(html), true);
-  conferir('…e as ALUNAS continuam múltiplas (escolhedor)',
-    html.includes('class="escolhedor" id="esc-alunas"'), true);
+  /* O ESCOLHEDOR DE ALUNAS SAIU DA CURADORIA (05/11/2026). A asserção foi INVERTIDA, e não
+     apagada: ela exigia o campo que a pesquisadora mandou remover — «ele vai ser embutido dentro
+     da turma por meio da linha de base» —, e uma prova que exige de volta o que se removeu prende
+     o defeito ao repositório. Agora mede o contrário, para o campo não voltar por descuido. */
+  conferir('…e o escolhedor de ALUNAS já NÃO existe (o elenco vem da linha de base)',
+    html.includes('id="esc-alunas"'), false);
   // O «REPERTÓRIO» SAIU DA CURADORIA (19/10/2026). Ele era um segundo lugar para digitar os
   // mesmos 84 termos que a TURMA declara no passo «Associar» — e ninguém o lia: o plano, o
   // PO e a captura derivam da turma, e nenhum nó do conteúdo declara
@@ -1069,8 +1073,8 @@ async function principal() {
     (menuDosTermos.match(/<option /g) || []).length, comNotacao.length + 1);
   conferir('…e são MENOS do que o vocabulário — a lista não promete o que não existe',
     comNotacao.length < vocabularioDaModalidade.length, true);
-  conferir('…e o formulário entrega as fichas que o servidor espera',
-    script.includes('fichasDe("esc-alunas")'), true);
+  conferir('…e o formulário já não manda fichas de alunas (o servidor carimba o elenco da turma)',
+    script.includes('fichasDe("esc-alunas")'), false);
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',
     script.includes('turmas: umaTurma ? [umaTurma] : []'), true);
   conferir('não sobrou nenhuma caixa com rolagem no formulário', html.includes('cb-grupo'), false);
@@ -1266,22 +1270,37 @@ async function principal() {
        (`professor+modalidade`) — a colisão que a turma entrou no id para corrigir. O
        comentário da função dizia «a turma é obrigatória»; o código não a exigia. */
     conferir('…e a recusa diz que falta a turma', semTurma.falta, ['turma']);
+    /* A ALUNA DEIXOU DE SER CAMPO OBRIGATÓRIO (05/11/2026), e a asserção foi invertida.
+     *
+     * O QUE ELA GUARDAVA: «a curadoria sem ALUNA é recusada». Era verdade enquanto o formulário
+     * pedia as alunas. Desde que o campo saiu — o elenco vem da linha de base enviada para a
+     * turma —, exigir uma aluna no corpo pediria ao professor o que ele já não pode dar, e a rota
+     * responderia 400 para sempre. O que se mede agora é que ela GRAVA, e que o registo sai com o
+     * elenco carimbado da turma (vazio, quando a turma ainda não recebeu ninguém). */
     const semAluna = await semCampo('alunas');
-    conferir('a curadoria sem ALUNA é recusada', semAluna.status, 400);
-    conferir('…e a recusa diz que falta pelo menos uma aluna', semAluna.falta, ['aluna']);
+    conferir('a curadoria SEM o campo alunas é aceita (o elenco vem da linha de base)',
+      semAluna.status, 201);
     conferir('a recusa nomeia os campos em português, e não em código',
-      /falta a tradição/.test(semTradicao.erro) && /pelo menos uma aluna/.test(semAluna.erro), true);
+      /falta a tradição/.test(semTradicao.erro), true);
     conferir('…e diz onde se resolve o que falta',
-      /aba Turmas/.test(semTurma.erro) && /secção Alunas/.test(semAluna.erro), true);
-    conferir('nenhuma curadoria incompleta foi gravada',
-      ((await (await pedir(envC, '/api/bastidores/curadorias')).json()).curadorias || []).length, 0);
+      /aba Turmas/.test(semTurma.erro), true);
+    /* A CONTAGEM MUDOU COM A REGRA: a gravação «sem alunas» é agora LEGÍTIMA — e por isso a
+     * lista tem uma curadoria a mais, não zero. O que continua a valer é o fundo da asserção:
+     * as três recusas de cima (professor, modalidade, tradição, turma) não gravaram nada. */
+    const depoisDasRecusas = ((await (await pedir(envC, '/api/bastidores/curadorias')).json()).curadorias || []);
+    conferir('as recusas não gravaram nada — só a gravação legítima está lá',
+      depoisDasRecusas.length, 1);
 
     const ok = await postar('/api/bastidores/curadoria', completa);
     conferir('a curadoria COMPLETA é aceita', ok.status, 201);
     const gravada = ((await (await pedir(envC, '/api/bastidores/curadorias')).json()).curadorias || [])[0] || {};
-    conferir('…e grava os cinco campos',
-      [gravada.professor, gravada.modalidade, gravada.tradicao, (gravada.turmas || [])[0], (gravada.alunas || [])[0]],
-      ['curador', 'Balé clássico', 'RAD', 'Turma da Curadoria', 'Aluna Um']);
+    conferir('…e grava os quatro campos da curadoria',
+      [gravada.professor, gravada.modalidade, gravada.tradicao, (gravada.turmas || [])[0]],
+      ['curador', 'Balé clássico', 'RAD', 'Turma da Curadoria']);
+    /* O ELENCO É CARIMBADO, e neste cenário não há linha de base nenhuma: sai vazio. É o estado
+     * honesto de uma escola que atribui a curadoria antes de mandar alunos para a turma. */
+    conferir('…e o elenco vem carimbado da turma (vazio, sem linha de base enviada)',
+      (gravada.alunas || []).length, 0);
 
     /* E A VERSÃO DERIVADA TAMBÉM NASCE COMPLETA: o que se confere é o que vai FICAR escrito,
        não o que veio no corpo — uma derivada de uma curadoria antiga sem tradição não pode
@@ -1296,8 +1315,8 @@ async function principal() {
        antes de chamar `enviar`. */
     const scriptCuradoria = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
       .map((m) => m[1]).sort((a, b) => b.length - a.length)[0] || '';
-    conferir('o script do formulário confere os cinco campos antes de enviar',
-      /fichasDe\("esc-alunas"\)\.length/.test(scriptCuradoria) &&
+    conferir('o script do formulário confere os quatro campos antes de enviar',
+      !/fichasDe\("esc-alunas"\)/.test(scriptCuradoria) &&
       /falta " \+ faltando\.join/.test(scriptCuradoria), true);
     void kv;
   }

@@ -1449,79 +1449,93 @@ async function chamar(env, caminho, opcoes) {
    * substituído: é a única forma de medir um comportamento que depende de onde se está (criar ou
    * editar) e de uma resposta de rede.
    */
-  console.log('\n15. A CRIAÇÃO NÃO ESCOLHE ALUNAS À MÃO — e a edição mostra o que lá está');
-  {
-    const carregarComTurma = async (cuderivar) => {
-      let JSDOM, VirtualConsole;
-      ({ JSDOM, VirtualConsole } = require('jsdom'));
-      const vc = new VirtualConsole();
-      vc.on('jsdomError', () => {}); vc.on('error', () => {});
-      const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
-        pretendToBeVisual: true, virtualConsole: vc,
-        beforeParse(w) {
-          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
-            addListener() {}, removeListener() {} });
-          w.confirm = () => true; w.alert = () => {};
-          w.fetch = (u) => {
-            const url = String(u);
-            const corpo = url.indexOf('alunas-da-turma') !== -1
-              ? { ok: true, turma: 'Balé 1', alunas: ['Ana', 'Bia'], linhaDeBase: { id: 'nivel-1', nome: 'Nível 1' } }
-              : url.indexOf('alunas-com-anamnese') !== -1 ? { ok: true, alunas: [] }
-              : url.indexOf('campos-do-corpo') !== -1 ? { ok: true, campos: [], grupos: [] }
-              : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [] } : { ok: true };
-            return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
-          };
-        },
-      });
-      const win = dom.window;
-      await new Promise((r) => win.setTimeout(r, 250));
-      // O MODO É O QUE SEPARA CRIAR DE EDITAR: `cuderivar` vazio é criação; preenchido é edição.
-      win.document.getElementById('cuderivar').value = cuderivar;
-      win.herdarAlunasDaTurma('Balé 1');
-      await new Promise((r) => win.setTimeout(r, 250));
-      return { win, dom };
-    };
+  /* 15. A CURADORIA NÃO ESCOLHE ALUNAS — o campo saiu, e o elenco vem da linha de base
+   *      (05/11/2026).
+   *
+   * A DECISÃO, nas palavras dela: «tem que tirar o campo alunas, porque agora ele não faz mais
+   * parte da curadoria. Ele vai ser embutido dentro da turma por meio da linha de base.» A versão
+   * anterior desta secção media a criação-versus-edição de um campo que agora não existe: foi
+   * reescrita, e não apagada — a asserção que envelhece sem ser invertida mente a favor de um
+   * código que já não existe.
+   *
+   * O QUE SE MEDE AGORA, e porquê:
+   *
+   *   · o CAMPO não existe na página (nem a caixa, nem o escolhedor de alunas da curadoria);
+   *   · a NOTA existe e diz de onde vem o elenco — sem ela, o campo desaparecia em silêncio e
+   *     quem atribui a curadoria não saberia que a turma já traz gente;
+   *   · o SERVIDOR aceita uma curadoria sem alunas e CARIMBA o elenco derivado da turma. É este
+   *     carimbo que mantém viva a cascata do «rever» que ela pediu: sem «antes» gravado não há
+   *     diferença para medir, e o aviso cairia em silêncio para sempre.
+   */
+  console.log('\n15. A CURADORIA NÃO ESCOLHE ALUNAS — o campo saiu, o elenco vem da linha de base');
+  ok('o formulário da curadoria já não tem escolhedor de alunas', () => {
+    assert.strictEqual(PAGINA.indexOf('id="cu-alunas-campo"'), -1,
+      'a caixa do escolhedor saiu — o campo não faz parte da curadoria');
+    assert.ok(PAGINA.indexOf('id="cu-elenco-nota"') !== -1,
+      'a nota fica: é ela que diz de onde vem o elenco');
+    const inicio = PAGINA.indexOf('id="form-curadoria"');
+    const fim = PAGINA.indexOf('id="cu-elenco-nota"', inicio);
+    const trecho = PAGINA.slice(inicio, fim);
+    assert.ok(trecho.indexOf('id="cuturma"') !== -1, 'a turma continua a ser o campo da curadoria');
+    assert.strictEqual(/esc-alunas/.test(trecho), false,
+      'e entre a abertura do formulário e a nota não há escolhedor de alunas');
+  });
 
-    await okAsync('na CRIAÇÃO, o escolhedor sai — e a razão fica escrita', async () => {
-      const { win, dom } = await carregarComTurma('');
-      const caixa = win.document.getElementById('cu-alunas-campo');
-      assert.ok(caixa, '#cu-alunas-campo tem de existir — é ela que se esconde');
-      assert.strictEqual(caixa.hidden, true, 'criando, o elenco vem da linha de base e não se escolhe à mão');
-      const nota = win.document.getElementById('cu-elenco-nota');
-      assert.strictEqual(nota.hidden, false, 'a nota tem de ficar VISÍVEL: um campo que evapora sem razão lê-se como defeito');
-      assert.ok(/Balé 1/.test(nota.textContent) && /2 alunas/.test(nota.textContent), nota.textContent);
-      assert.ok(/edite a linha de base/.test(nota.textContent), nota.textContent);
-      dom.window.close();
-    });
+  ok('o pedido da curadoria já não leva `alunas`', () => {
+    const inicio = PAGINA.indexOf('var campos = {');
+    const fim = PAGINA.indexOf('repertorio:', inicio);
+    const trecho = PAGINA.slice(inicio, fim);
+    assert.ok(trecho.indexOf('alunas:') === -1,
+      'o corpo do pedido não declara alunas: o servidor carimba o elenco da turma');
+  });
 
-    await okAsync('e as FICHAS FICAM — o campo sai, o elenco não', async () => {
-      const { win, dom } = await carregarComTurma('');
-      const fichas = win.document.querySelectorAll('#esc-alunas .escolhido');
-      assert.strictEqual(fichas.length, 2,
-        'as alunas herdadas entram na lista mesmo com o campo escondido — senão a curadoria nasce sem elenco');
-      dom.window.close();
+  await okAsync('o SERVIDOR aceita a curadoria sem alunas e carimba o elenco da turma', async () => {
+    const chaveLB = 'bastidores/' + ESCOLA + '/linhas-de-base';
+    const kv = kvFalso({
+      [chaveLB]: JSON.stringify([{
+        id: 'nivel-1', nome: 'Nível 1', turma: 'Balé 1', enviada_em: '2026-11-05T10:00:00Z',
+        alunas: ['Ana', 'Bia'],
+        campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal' }],
+      }]),
+      ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([{
+        id: 'bale-1', nome: 'Balé 1', dias: ['segunda'], frequencia: 2, duracaoMin: 60,
+        periodoInicio: '2026-10-20', periodoFim: '2026-12-17',
+      }]),
     });
+    const env = envFalso(kv);
+    const r = await chamar(env, '/api/bastidores/curadoria', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        professor: 'rabo-gramde', modalidade: 'bale-classico', tradicao: 'francesa',
+        turmas: ['Balé 1'], senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    assert.ok(r.status === 200 || r.status === 201, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 300));
+    const guardada = JSON.parse(kv.mapa.get('bastidores/' + ESCOLA + '/curadorias'))[0];
+    assert.deepStrictEqual([...guardada.alunas], ['Ana', 'Bia'],
+      'o elenco é o da turma, carimbado no momento da atribuição');
+  });
 
-    await okAsync('na EDIÇÃO, o escolhedor volta, com o que a curadoria declara', async () => {
-      const { win, dom } = await carregarComTurma('cu-1');
-      const caixa = win.document.getElementById('cu-alunas-campo');
-      assert.strictEqual(caixa.hidden, false, 'editando, a lista é dele');
-      const nota = win.document.getElementById('cu-elenco-nota');
-      assert.strictEqual(nota.hidden, false);
-      assert.ok(/entraram já nesta lista/.test(nota.textContent), nota.textContent);
-      dom.window.close();
+  await okAsync('e a cascata do «rever» continua a funcionar com esse carimbo', async () => {
+    /* O A/B do carimbo: com o elenco da curadoria igual ao derivado, ninguém é marcado; tirando
+     * uma aluna da linha de base, a curadoria daquela turma entra nas pendências. É exactamente
+     * o que ela pediu — «ele vai ter que passar na curadoria» —, e sem o carimbo esta prova não
+     * teria contra o que comparar. */
+    const armazenamento = armazenamentoFalso({
+      anamneses: [{ id: 'anamnese-20261101-1000', aluna: 'Ana', gerado_em: '2026-11-01T10:00:00Z' }],
+      planos: [], pos: [],
     });
-
-    await okAsync('e na edição as fichas NÃO são injectadas — a lista é a que está gravada', async () => {
-      const { win, dom } = await carregarComTurma('cu-1');
-      const fichas = win.document.querySelectorAll('#esc-alunas .escolhido');
-      assert.strictEqual(fichas.length, 0,
-        'acrescentar as da turma a uma curadoria gravada mudava o elenco sem ninguém decidir — e é '
-        + 'exactamente a diferença que a cascata tem de mostrar');
-      dom.window.close();
-    });
-  }
+    const linhas = [{
+      id: 'nivel-1', nome: 'Nível 1', turma: 'Balé 1', alunas: ['Ana'],
+      atualizada_em: '2026-11-04T10:00:00Z',
+      campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal' }],
+    }];
+    const carimbada = [{ id: 'cu-1', turmas: ['Balé 1'], alunas: ['Ana', 'Bia'] }];
+    const r = await porta.revalidacaoPendente(armazenamento, null, linhas, carimbada);
+    const entrada = r.pendentes.get('curadoria:cu-1');
+    assert.ok(entrada, 'a aluna que saiu do elenco tem de marcar a curadoria');
+    assert.deepStrictEqual([...entrada.saiu], ['Bia'], 'e dizer QUEM saiu');
+  });
 
   /* 16. A CURADORIA AVISA NA LISTA — o primeiro passo da cascata tem de ser visível (05/11/2026).
    *
@@ -1746,11 +1760,17 @@ async function chamar(env, caminho, opcoes) {
       assert.strictEqual(lerLinhas().length, 1);
 
       const li = win.document.querySelector('#lb-lista li');
-      assert.ok(li.querySelector('.linha-turma'), 'a linha tem de ser a das Turmas/Curadorias');
-      assert.ok(li.querySelector('.linha-turma .nome b'), 'o nome é o <b> dentro de .nome');
-      assert.ok(li.querySelector('.linha-turma .acoes'), 'e os botões vivem em .acoes, à direita');
-      assert.ok(li.querySelector('.dono'), 'o complemento desce para .dono, como nas outras listas');
-      assert.ok(li.querySelector('.selo'), 'e o estado é um selo — não uma frase sobre passos');
+      /* A FORMA É A DO CARTÃO DO ACERVO, e ela deu o exemplo por palavras: «o nome, tem uma
+       * etiqueta, aí tem dois botões e aí tem três blocos que eu expando ou colapso».
+       * `.trio-plano` é o cartão; `.trio-linha` a linha do nome; `.fatos` a linha abaixo dele;
+       * `.trio` as caixas; `.trio-painel` o que cada uma abre. */
+      assert.ok(li.classList.contains('trio-plano'), 'o cartão é o da lista do acervo');
+      assert.ok(li.querySelector('.trio-linha .trio-nome b'), 'o nome é o <b> dentro de .trio-nome');
+      assert.ok(li.querySelector('.trio-linha .trio-acoes'),
+        'e os botões vivem em .trio-acoes, à direita');
+      assert.ok(li.querySelector('.fatos'), 'a linha abaixo do nome traz o que se lê sem abrir');
+      assert.ok(li.querySelector('.trio-dono'), 'e o contexto desce para .trio-dono');
+      assert.ok(li.querySelector('.selo'), 'o estado é um selo — não uma frase sobre passos');
       assert.strictEqual(li.querySelectorAll('.linha-titulo, .linha-sub').length, 0,
         'linha-titulo/linha-sub não existem na folha nem em gancho nenhum: eram texto solto');
       assert.ok(/por completar/.test(li.textContent),
@@ -1758,6 +1778,23 @@ async function chamar(env, caminho, opcoes) {
       assert.ok(!/passo 4/.test(li.textContent),
         'a lista não fala de passos — quem está a preencher é que sabe em que passo está: '
         + li.textContent);
+      /* AS TRÊS CAIXAS, com o «?» que promete o que está lá dentro, e um painel para cada. */
+      const caixas = li.querySelectorAll('.trio .trio-item');
+      assert.strictEqual(caixas.length, 3,
+        'o cartão tem as três caixas do percurso: ' + caixas.length);
+      const rotulos = [...caixas].map((c) => c.getAttribute('data-balao'));
+      assert.deepStrictEqual([...rotulos], ['alunas', 'recorte', 'turma'],
+        'na ordem do percurso, não na do gosto: ' + rotulos.join(', '));
+      assert.strictEqual(li.querySelectorAll('.trio-painel').length, 3,
+        'e um painel para cada caixa');
+      /* E AS CAIXAS ABREM: o handler é o mesmo das Turmas, e foi solto de `li.turma` para o
+       * `<li>` da linha — sem isso, abrir o painel de um cartão fecharia o de outro. */
+      caixas[1].click();
+      await new Promise((r) => win.setTimeout(r, 30));
+      const recorte = li.querySelector('.trio-painel[data-painel="recorte"]');
+      assert.strictEqual(recorte.hidden, false, 'a caixa «Recorte» abre o painel dela');
+      assert.strictEqual(caixas[1].getAttribute('aria-expanded'), 'true',
+        'e o estado fica no aria-expanded, que é o que o leitor de ecrã anuncia');
       win.close();
     });
 
@@ -1780,6 +1817,100 @@ async function chamar(env, caminho, opcoes) {
       const marcadas = win.document.querySelectorAll('input[name="lb-aluna"]:checked');
       assert.strictEqual(marcadas.length, 1, 'e as alunas voltam marcadas: não se perde o elenco');
       win.close();
+    });
+  }
+
+  /* 18. SEM TURMA CADASTRADA, O PASSO 5 NÃO PEDE — DIZ O QUE FALTA (05/11/2026).
+   *
+   * O RELATO DELA: «eu não tenho nenhuma turma. […] ele tem que mostrar uma mensagem dizendo: olha,
+   * ainda não existe nenhuma turma. Crie uma turma antes de definir a linha de base.» Um `select`
+   * com uma única opção («— escolher —») diz que o professor não escolheu, quando o que falta é o
+   * CADASTRO. São estados diferentes, e confundi-los manda procurar um defeito que não existe.
+   *
+   * A prova mede a página EMITIDA com zero turmas: o aviso, o caminho para as Turmas, e o
+   * «Concluir» travado com o motivo certo — «uma turma cadastrada», e não «a turma de destino». */
+  console.log('\n18. SEM TURMA CADASTRADA — o passo 5 diz o que falta e leva às Turmas');
+  {
+    const semTurmas = (() => {
+      const b = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
+      const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
+      return b.paginaProducao('calango', { nome: 'Calango', modalidade: 'bale-classico' },
+        [], ['Aluna A'], 'Dono', 'dono', [], [], {}, [], [], [], usos,
+        { modo: 'clara', paleta: 'bordo' }, '');
+    })();
+
+    ok('a escola sem turma recebe a MENSAGEM, e não um select de uma opção', () => {
+      assert.ok(/id="lb-sem-turma"/.test(semTurmas),
+        'o aviso do estado vazio tem de estar na marcação');
+      assert.ok(/Ainda não existe nenhuma turma cadastrada/.test(semTurmas),
+        'e tem de dizer o que falta, por palavras');
+      assert.ok(/antes de definir a linha de base/.test(semTurmas),
+        'e quando é que se resolve: antes');
+    });
+
+    ok('e o caminho para resolver está escrito — um link para as Turmas', () => {
+      assert.ok(/data-ir-para-turmas/.test(semTurmas),
+        'o aviso leva à secção Turmas; um aviso sem caminho é um beco');
+      assert.ok(/Ir a Turmas/.test(semTurmas), 'com um rótulo que diz para onde vai');
+    });
+
+    ok('o «Concluir» fica travado', () => {
+      assert.ok(/id="lb-enviar"[^>]*disabled/.test(semTurmas),
+        'sem turma não há para onde enviar');
+    });
+
+    /* A FALTA DO PASSO 5 TEM DE NOMEAR O CADASTRO, e isto mede-se a CORRER, não na marcação:
+     * a frase «uma turma cadastrada (secção Turmas)» está escrita no `<script>` em qualquer caso —
+     * é código —, e procurá-la na página passava com o `LB_TEM_TURMA` desligado. Foi o A/B que o
+     * disse: a asserção anterior dava verde com o defeito lá. Agora a função é chamada. */
+    await okAsync('a falta do passo 5 diz «uma turma cadastrada», e não «a turma de destino»', async () => {
+      let JSDOM, VirtualConsole;
+      ({ JSDOM, VirtualConsole } = require('jsdom'));
+      const vc = new VirtualConsole();
+      vc.on('jsdomError', () => {}); vc.on('error', () => {});
+      const dom = new JSDOM(semTurmas.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+        pretendToBeVisual: true, virtualConsole: vc,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.confirm = () => true; w.alert = () => {};
+          w.fetch = () => Promise.resolve({ ok: true, status: 200,
+            json: () => Promise.resolve({ ok: true, linhas: [], divergentes: [], campos: [],
+              grupos: [], alunas: [{ aluna: 'Aluna A', carimbo: 'anamnese-20260801-1000', novo: true }] }),
+            text: () => Promise.resolve('') });
+        },
+      });
+      const win = dom.window;
+      await new Promise((r) => win.setTimeout(r, 250));
+      assert.strictEqual(win.LB_TEM_TURMA, false, 'sem turma na escola, a flag diz que não há');
+      const falta = [...win.faltasDoPassoLb(5)].join(' ');
+      assert.ok(/turma cadastrada/i.test(falta),
+        'a falta é do CADASTRO: ' + falta);
+      assert.strictEqual(/turma de destino/.test(falta), false,
+        'e não é «escolher uma turma que não existe»: ' + falta);
+      dom.window.close();
+    });
+
+    ok('e o formulário do passo 5 continua completo (um input escondido, não um campo morto)', () => {
+      assert.ok(/id="lb-turma-destino"/.test(semTurmas),
+        'a função que envia continua a ter o que ler — sem valor');
+      assert.strictEqual(/<select id="lb-turma-destino">/.test(semTurmas), false,
+        'e não há um select que não se pode preencher');
+    });
+
+    /* O CONTROLE POSITIVO, na outra ponta: com turma, o select volta e o aviso não existe. Sem
+     * isto, um `if` trocado deixaria as duas escolas iguais e esta secção passaria. */
+    await okAsync('CONTROLE: com turma cadastrada, o select volta e o aviso desaparece', async () => {
+      const b = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
+      const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
+      const comTurma = b.paginaProducao('calango', { nome: 'Calango', modalidade: 'bale-classico' },
+        [], ['Aluna A'], 'Dono', 'dono', [{ nome: 'Balé 1' }], [], {}, [], [], [], usos,
+        { modo: 'clara', paleta: 'bordo' }, '');
+      assert.ok(/<select id="lb-turma-destino">/.test(comTurma), 'com turma, há o que escolher');
+      assert.strictEqual(comTurma.indexOf('id="lb-sem-turma"'), -1,
+        'e o aviso do vazio não aparece');
+      assert.ok(/Balé 1/.test(comTurma), 'a turma da escola está na lista');
     });
   }
 
