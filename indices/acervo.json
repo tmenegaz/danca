@@ -1,22 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "984c97ffc7a14d042982beca72a9febc4d3092ba799b5a6450be976e832b4e35",
-        "id": "ciclo-01-breu",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 3,
-      "escola": "breu",
-      "estado": "ancorado",
-      "id": "ciclo:coqui-de-redinha/01/breu",
-      "numero": "01",
-      "professor": "coqui-de-redinha",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -79,28 +62,32 @@
       "slug": "batata"
     },
     {
-      "ciclos": [
-        "ciclo:coqui-de-redinha/01/breu"
-      ],
+      "ciclos": [],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-11-02T16:59:08.409473+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-11-01T21:09:01.197Z",
-      "expurgos": 5,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-11-05T12:08:38.221Z",
+      "expurgos": 6,
+      "habilitada": false,
       "id": "escola:breu",
       "nome": "breu",
       "professor": "coqui-de-redinha",
       "professores": [
-        "coqui-de-redinha"
+        "cafe-no-bule",
+        "coqui-de-redinha",
+        "luz-azul",
+        "pe-torto",
+        "sapo-bailarino",
+        "tiago-menegaz",
+        "vaso-bonito"
       ],
       "registros": [],
       "slug": "breu"
@@ -340,13 +327,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -354,7 +335,7 @@
         "valor": "acucar-branco"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Cafe No Bule",
         "valor": "cafe-no-bule"
       },
@@ -374,8 +355,8 @@
         "valor": "leticia"
       },
       {
-        "contagem": 0,
-        "rotulo": "luz-azul",
+        "contagem": 1,
+        "rotulo": "Luz Azul",
         "valor": "luz-azul"
       },
       {
@@ -409,7 +390,7 @@
         "valor": "pe-junto"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Pe Torto",
         "valor": "pe-torto"
       },
@@ -424,7 +405,7 @@
         "valor": "pirueta-aberta"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -449,12 +430,12 @@
         "valor": "tiago"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Tiago",
         "valor": "tiago-menegaz"
       },
       {
-        "contagem": 0,
+        "contagem": 1,
         "rotulo": "vaso-bonito",
         "valor": "vaso-bonito"
       }
@@ -463,9 +444,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "c9de0a8"
+    "commit": "9b28ddd"
   },
-  "gerado_em": "2026-11-05T12:06",
+  "gerado_em": "2026-11-05T12:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -501,16 +482,15 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata"
+        "batata",
+        "breu"
       ],
       "id": "professor:cafe-no-bule",
       "nome": "Cafe No Bule",
       "slug": "cafe-no-bule"
     },
     {
-      "ciclos": [
-        "ciclo:coqui-de-redinha/01/breu"
-      ],
+      "ciclos": [],
       "escolas": [
         "breu"
       ],
@@ -538,9 +518,11 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "breu"
+      ],
       "id": "professor:luz-azul",
-      "nome": null,
+      "nome": "Luz Azul",
       "slug": "luz-azul"
     },
     {
@@ -600,7 +582,8 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata"
+        "batata",
+        "breu"
       ],
       "id": "professor:pe-torto",
       "nome": "Pe Torto",
@@ -627,6 +610,7 @@
       "ciclos": [],
       "escolas": [
         "batata",
+        "breu",
         "calando-teste-1",
         "calango"
       ],
@@ -673,6 +657,7 @@
       "ciclos": [],
       "escolas": [
         "batata",
+        "breu",
         "calango",
         "fita",
         "valse"
@@ -683,7 +668,9 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "breu"
+      ],
       "id": "professor:vaso-bonito",
       "nome": null,
       "slug": "vaso-bonito"

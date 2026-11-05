@@ -1,135 +1,49 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-02",
-        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
-        "cobertura": [
-          "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
-          "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
-        ],
-        "hash": "984c97ffc7a14d042982beca72a9febc4d3092ba799b5a6450be976e832b4e35",
-        "hash_conteudo": "caacf74291a57dde3bf5dced923bd15179de1865e4fb4c77814cf03597ac0bc9",
-        "id": "ciclo-01-breu",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
-        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "breu",
-      "estado": "ancorado",
-      "id": "ciclo:coqui-de-redinha/01/breu",
-      "numero": "01",
-      "pacote": null,
-      "professor": "coqui-de-redinha",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
-      "professor": "coqui-de-redinha",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
-      "professor": "coqui-de-redinha",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
-      "escola": "breu",
-      "id": "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "coqui-de-redinha",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:coqui-de-redinha/01/breu"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-11-02T16:59:08.409473+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-01T21:09:01.197Z",
-    "expurgos": 5,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-05T12:08:38.221Z",
+    "expurgos": 6,
+    "habilitada": false,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "coqui-de-redinha",
     "professores": [
-      "coqui-de-redinha"
+      "cafe-no-bule",
+      "coqui-de-redinha",
+      "luz-azul",
+      "pe-torto",
+      "sapo-bailarino",
+      "tiago-menegaz",
+      "vaso-bonito"
     ],
     "registros": [],
     "slug": "breu"
   },
   "filtros": {
     "anos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:coqui-de-redinha/01/breu"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:coqui-de-redinha/01/breu"
-        ],
-        "rotulo": "coqui-de-redinha",
-        "valor": "coqui-de-redinha"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:coqui-de-redinha/01/breu"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "c9de0a8"
+    "commit": "9b28ddd"
   },
-  "gerado_em": "2026-11-05T12:06",
+  "gerado_em": "2026-11-05T12:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
