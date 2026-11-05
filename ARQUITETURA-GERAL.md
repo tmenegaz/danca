@@ -906,6 +906,65 @@ dimensões, e com o controle positivo dos campos do bloco 9 que mistura duas del
 recusa de um campo que a anamnese não tem, a agregação pela ordem das opções, as rotas com KV falso,
 e a cascata de três passos. O **A/B** desliga o passo 1 e a bancada reprova.
 
+### 5.13 A linha de base em cinco passos, e a leitura que vem antes da escolha
+
+A secção de Bastidores que gere a linha de base passou a ser um **fluxo de cinco passos** — a mesma
+técnica dos verbetes da notação: `faltasDoPassoLb(n)` devolve o que **este** passo exige,
+`podeIrPara(n)` fecha os passos à frente, e nenhum caminho chega a um passo com falta nos anteriores.
+
+| Passo | O que faz | O que o trava |
+|:--|:--|:--|
+| 1 Identificação | o nome e o professor responsável | os dois campos |
+| 2 Alunas | quem entra no recorte, **10 de cada vez** com rolagem | pelo menos uma aluna |
+| 3 Leitura | o cruzamento das anamneses em **quatro eixos** | a leitura feita |
+| 4 Recorte | o que **este ciclo** vai observar | pelo menos um aspecto |
+| 5 Turma | para onde vão as alunas com esta linha de base | a turma escolhida |
+
+**A leitura vem ANTES da escolha, e isso decidiu o desenho.** Ela lembrou que o professor lê o
+panorama e só depois decide; uma leitura que lesse o recorte daria uma tabela vazia exactamente na
+primeira vez, que é quando ela é necessária. `classificar` lê os **trinta** campos e responde a quatro
+perguntas **diferentes sobre o mesmo dado** — um aspecto pode estar em mais de uma, e não são gavetas
+que se excluem:
+
+- **o que precisa de ser trabalhado** — alguma aluna fora do melhor nível;
+- **o que já é bom** — todas no melhor nível (a autonomia que ela deu ao professor para manter um
+  aspecto sob vigilância precisa desta lista separada);
+- **a musicalidade** — o eixo completo, porque a decisão pedagógica que ele informa é outra;
+- **o que o grupo tem em comum** — a mesma resposta em todas, seja boa ou má. É o «todos têm o arco
+  do pé semelhante», e não é um juízo: é o que o professor precisa de reconhecer na turma que vai ter
+  à frente.
+
+**O «melhor nível» passou a ser DECLARADO.** O código supunha que a primeira opção de cada campo era
+o melhor estado, e supunha-o por escrito. É verdade em 29 dos 30 — e é falso em «Mobilidade da coluna
+cervical e cabeça», cuja lista começa por «Rotação/flexão/extensão lateral limitada». Com a suposição,
+uma aluna com a coluna perfeita entrava como ponto de atenção. O conteúdo passou a declarar
+`referencia` nesse campo, e o núcleo lê a referência declarada antes de recorrer à posição: o que é
+convenção declara-se, não se deduz.
+
+**A etiqueta «novo» é derivada, como a revalidação.** Uma aluna é nova quando a anamnese vigente dela
+é mais recente do que o carimbo que alguma linha de base registou ao lê-la. O carimbo vive no topo da
+linha de base (`lida`), e não dentro da leitura: a leitura é descartada quando o recorte muda, mas o
+que **se leu** é um facto do acto — corrigir uma vírgula não pode voltar a marcar todas as alunas como
+novas.
+
+**O passo 5 não escreve na turma.** «Estas alunas, com este recorte, foram para esta turma neste dia»
+é um facto datado, e mora na **linha de base** (`turma`, `enviada_em`). A turma continua a ser o
+ritmo — a decisão de 03/11 não se reverte —, e o elenco dela é **derivado** por `alunas-da-turma`. A
+curadoria, ao escolher a turma, acrescenta as fichas que vieram e diz de que linha de base vieram; as
+que o professor tinha posto à mão ficam, porque quem edita uma curadoria antiga não pode perder o que
+lá estava.
+
+**A prova é a correr, e não só a marcação.** `provar-linha-de-base` (63 asserções) carrega a página
+em **jsdom**, substitui o `fetch` e chama `mostrarPassoLb` de fora. Ela apanhou dois defeitos reais: a
+falta do passo 1 estava declarada como «o que falta nos anteriores» — de modo que o passo 1 nunca
+tinha falta e tudo passava —, e a tira era reaberta por `pintarTravasLb` depois de um `travarTudo` à
+parte. **O A/B confirma-o:** reposta a exigência do passo 1, reprova 1; reposta a tira sem a trava,
+reprova 2. A prova anterior, só de marcação, passava com a trava desligada — media a presença dos
+elementos, não a regra.
+
+**Sem anamnese, nada se abre.** A trava é de todos os passos, e a secção diz porquê em vez de mostrar
+um formulário que não leva a lado nenhum.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

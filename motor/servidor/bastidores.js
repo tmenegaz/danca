@@ -1748,6 +1748,20 @@ const PASSOS_DO_VERBETE = [
   ['6', 'A decomposição'],
 ];
 
+/**
+ * OS CINCO PASSOS DA LINHA DE BASE (05/11/2026). A ordem é a do RACIOCÍNIO, não a de arrumação:
+ * identificar → escolher os corpos → ler o que eles mostram juntos → decidir o recorte → mandar
+ * para a turma. Cada um tem uma falta declarada em `faltasDoPassoLb`, e é essa lista que trava a
+ * tira — a mesma técnica do verbete.
+ */
+const LB_PASSOS = [
+  [1, 'Identificação'],
+  [2, 'Alunas'],
+  [3, 'Leitura'],
+  [4, 'Recorte'],
+  [5, 'Turma'],
+];
+
 /* OS DOIS PASSOS POR ONDE A CORRECÇÃO DE UM TRECHO PASSA. É neles que o «!» de edição acende —
  * e são eles, e não outros, porque um trecho se corrige na direção, na contagem, na orientação e
  * nos sinais. A fusão de 01/11/2026 puxou-os de 5 e 6 para 3 e 4: os números são estes, e não os
@@ -2916,6 +2930,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'background:var(--superficie);border-radius:var(--raio-3);padding:.9rem 1rem .6rem;}' +
     '.col-lista h3{margin:0 0 .5rem;}' +
     '.col-lista .rolagem{overflow-y:auto;min-height:0;flex:1 1 auto;}' +
+    /* ---------------------------------------------- A ROLAGEM DAS ALUNAS (05/11/2026)
+     *
+     * A LISTA DE ALUNAS DO PASSO 2 PODE TER QUATROCENTOS NOMES. A pesquisadora: «se eu tiver,
+     * por exemplo, todos os alunos da escola, 400 alunos, mas eu preciso selecionar somente 15
+     * (…) coloca que eu carregue 10 a 10 (…) e você coloca ali um scroll vertical na medida em
+     * que eu aumento». As duas coisas: dez de cada vez (o botão, no cliente) e uma caixa que
+     * cresce até um teto e passa a rolar.
+     *
+     * PORQUE A PEÇA NASCE AQUI E NÃO NA FOLHA. `tools/templates/ciclo.css` é congelado e a regra
+     * desta página é a da checagem 4: a superfície que declara o que usa está no seu próprio
+     * regime. Os `.col-lista .rolagem` logo acima são a mesma decisão, tomada antes.
+     *
+     * O TETO É EM `rem` E NÃO EM `vh`: numa janela baixa, 60vh cabe pouca coisa e a lista fica
+     * com três linhas; em `rem` a caixa tem sempre o mesmo tamanho de texto — treze ou catorze
+     * alunas à vista, que é o que se lê de uma vez. */
+    '.rolagem-de-alunas{overflow-y:auto;max-height:22rem;min-height:6rem;padding-right:.4rem;' +
+    'border:1px solid var(--borda);border-radius:.4rem;padding:.5rem;}' +
+    '.rolagem-de-alunas .escolhas{margin:0;}' +
     '.lista li{display:flex;align-items:center;gap:.5rem;padding:.35rem .1rem;margin:0;border-bottom:1px dotted var(--borda-campo);color:var(--texto);}' +
     // O NOME DAS LINHAS SIMPLES, e só delas: `> li > .nome`. Era `.lista li .nome`, um
     // seletor descendente que VAZAVA para dentro da turma (`li.turma > .linha-turma >
@@ -4339,6 +4371,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label class="campo-rotulo">Alunas</label>' +
+    // A NOTA DO ELENCO HERDADO (05/11/2026). Só aparece quando a turma escolhida tem alunas de
+    // uma linha de base — e diz QUANTAS e de QUE linha, porque «apareceram umas fichas» sem
+    // explicação se lê como um defeito.
+    '<p class="nota" id="cu-elenco-nota" hidden></p>' +
     escolarAlunasCuradoria +
     // O «REPERTÓRIO» VOLTOU A ESTE FORMULÁRIO A 03/11/2026 — e não é a reversão que parece.
     //
@@ -4392,96 +4428,109 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A LEITURA DA TURMA É UM SEGUNDO BLOCO, e não o formulário: ler não é decidir. O professor
      * lê o que a turma mostra, e depois marca o que o trabalho dele vai observar. */
+    /* ---------------------------------------------- A LINHA DE BASE, EM CINCO PASSOS
+     *
+     * (05/11/2026, terceira passagem.) A secção nasceu como um formulário só, e ela organizou-a:
+     * «ele vai ser por steps, assim como a gente fez no verbete da anotação». A ORDEM dos passos
+     * não é arrumação de ecrã — é a ordem em que o professor PENSA:
+     *
+     *   1. Identificação — que linha de base é esta, e de quem.
+     *   2. Alunas — de quem é o corpo que se vai olhar. É antes do resto porque sem corpos não há
+     *      o que cruzar. Dez de cada vez, com rolagem: a escola pode ter quatrocentos alunos, e
+     *      uma lista de quatrocentas caixas não se lê.
+     *   3. Leitura — o que o grupo mostra, cruzado nas quatro perguntas que ela fez: o que precisa
+     *      de ser trabalhado, o que já é bom, a musicalidade, e o que o grupo tem em comum.
+     *   4. Recorte — o que ESTE ciclo vai observar. Depois da leitura, e é isso que dá sentido à
+     *      escolha: antes de ver, escolher seria adivinhar.
+     *   5. Turma — para onde vão estas alunas com esta linha de base.
+     *
+     * A TRAVA É A DO VERBETE, com outro nome: `faltasDoPasso(n)` devolve o que falta,
+     * `podeIrPara(n)` fecha os passos à frente, e a tira pinta. Nenhum caminho chega a um passo
+     * com falta nos anteriores — nem o clique na tira, nem o «Seguir», nem o passo lembrado ao
+     * reabrir a página.
+     *
+     * SEM NENHUMA ANAMNESE NADA DISTO EXISTE. O estado vazio é o único que não tem passo nenhum a
+     * que se chegar: sem retratos não há alunas para escolher, e a secção diz isso em vez de
+     * mostrar um formulário que não leva a lado nenhum.
+     */
+    '<ol class="passos" id="lb-tira" aria-label="Passos da linha de base" data-editando="nao">' +
+    LB_PASSOS.map(([n, t]) =>
+      '<li><button type="button" class="passo" data-passo="' + n + '">' +
+        '<span class="passo-n">' + n + '</span> ' +
+        '<span class="passo-t">' + t + '</span>' +
+        ' <span class="passo-t" id="lb-v' + n + '">—</span>' +
+        '</button></li>').join('') +
+    '</ol>' +
+    '<div class="col-form" id="corpo-miolo">' +
+    '<p class="aviso" id="lb-sem-anamnese" hidden></p>' +
+    '<form id="form-linha-base">' +
+    '<input type="hidden" id="lb-modo" value="">' +
+    '<div class="passo-painel" data-passo="1">' +
+    '<label class="campo-rotulo" for="lb-nome">Nome da linha de base</label>' +
+    '<input id="lb-nome" name="nome" autocomplete="off" placeholder="ex.: Nível 1 — mobilidade e pés">' +
+    '<p class="sub">O nome é como o plano de ensino a vai referir. Use um nome que diga para que ' +
+    'serve: a mesma turma pode ter mais de uma ao longo do ano.</p>' +
+    '<label class="campo-rotulo" for="lb-professor">Professor responsável</label>' +
+    '<select id="lb-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
+    '<p class="sub">A linha de base é de quem avalia: é o professor que observa estas alunas. As de ' +
+    'outros professores ficam visíveis na lista — quem assume lê o que estava antes, e faz a sua.</p>' +
+    '</div>' +
+    '<div class="passo-painel" data-passo="2" hidden>' +
+    '<label class="campo-rotulo">Alunas deste recorte</label>' +
+    '<p class="sub" id="lb-alunas-nota">—</p>' +
+    '<div id="lb-alunas" class="rolagem rolagem-de-alunas"><p class="sub">carregando…</p></div>' +
+    '<p class="par-botoes"><button type="button" class="acao secundario pequena" id="lb-mais" hidden>' +
+    'Carregar mais alunas</button> <span class="sub" id="lb-mais-nota"></span></p>' +
+    '</div>' +
+    '<div class="passo-painel" data-passo="3" hidden>' +
+    '<p class="sub">A leitura abre a anamnese mais recente de cada aluna escolhida e cruza o que ' +
+    'elas mostram. O resultado fica guardado — reabrir a secção não relê nada.</p>' +
+    '<p class="par-botoes"><button type="button" class="acao" id="lb-ler" disabled>Ler as anamneses ' +
+    'destas alunas</button></p>' +
+    '<div id="lb-leitura"><p class="sub">ainda sem leitura.</p></div>' +
+    '</div>' +
+    '<div class="passo-painel" data-passo="4" hidden>' +
+    '<p class="sub">Estes são os aspectos que a anamnese recolhe. Marque os que <b>este ciclo</b> ' +
+    'vai observar — é o recorte que o plano de ensino importa e que a aula imprime. A leitura do ' +
+    'passo 3 serve para decidir; não é ela que fica.</p>' +
+    '<div id="lb-campos"><p class="sub">carregando os aspectos da anamnese…</p></div>' +
+    '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
+    '</div>' +
+    '<div class="passo-painel" data-passo="5" hidden>' +
+    '<label class="campo-rotulo" for="lb-turma-destino">Turma de destino</label>' +
+    '<select id="lb-turma-destino"><option value="">— escolher —</option>' +
+    listaTurmas.map((t) => '<option value="' + esc(t.nome) + '">' + esc(t.nome) + '</option>').join('') +
+    '</select>' +
+    '<p class="sub">Ao concluir, estas alunas passam a ser as alunas desta turma — e a curadoria ' +
+    'deixa de as pedir uma a uma: escolhe a turma e recebe o elenco e a linha de base. A turma ' +
+    'continua a ser o ritmo; o vínculo fica registado aqui, com a data.</p>' +
+    '<div id="lb-vinculo"></div>' +
+    '</div>' +
+    '<div class="res" data-res="linha-base"></div>' +
+    '<span class="par-botoes" id="lb-nav">' +
+    '<button type="button" class="acao secundario" id="lb-voltar" hidden>← Voltar</button>' +
+    '<button type="button" class="acao" id="lb-seguir">Seguir →</button>' +
+    '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>Concluir e enviar ' +
+    'para a turma</button>' +
+    '</span>' +
+    '<p class="par-botoes" id="lb-linha-cancelar" hidden><button type="button" ' +
+    'class="acao secundario pequena" id="lb-cancelar">Cancelar</button></p>' +
+    '</form>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
+    '<h3>Linhas de base</h3>' +
+    '<div class="rolagem"><ul class="lista" id="lb-lista"><li>carregando…</li></ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
+    '</section>' +
     '<section class="secao" id="sec-corpo" hidden>' +
     /* O 4.º ARGUMENTO NÃO SE PASSA AQUI (05/11/2026) — e passar um foi o defeito.
      *
      * `tituloComAcordeao(a, b, c, d)` usa `d` como o **id** do botão; sem `d`, o botão nasce com
-     * `data-acordeao="<secção>"`. O handler do clique bifurca exactamente por esse atributo: com
-     * `data-acordeao` recolhe a SECÇÃO (que tem o `.col-form`); sem ele cai no
-     * `definirFormularioRecolhido`, que é o recolhedor DAS TURMAS (`turmas-form`/`turmas-paineis`).
-     *
-     * A secção do corpo nasceu com `'corpo-alternar-form'` — um id, logo sem `data-acordeao` — e
-     * por isso o clique mandava recolher as turmas, que não estavam lá. A seta não fazia nada, e
-     * era isso que a pesquisadora via. A regra é a das outras quatro secções: sem id, a seta é
-     * da própria secção. */
+     * `data-acordeao="<secção>"`. O handler do clique bifurca por esse atributo: com ele recolhe a
+     * SECÇÃO (que tem o `.col-form`); sem ele cai no recolhedor DAS TURMAS, que não está aqui — e
+     * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
     tituloComAcordeao('sec-corpo', 'Corpo — linha de base', 'corpo-miolo') +
-    '<div class="col-form" id="corpo-miolo">' +
-    '<form id="form-linha-base">' +
-    // O MODO É DECLARADO NO FORMULÁRIO, e não numa variável solta — o mesmo padrão do
-    // `prof-modo`: vazio = criar; `id` = editar aquela. O estado que a tela mostra está na tela.
-    '<input type="hidden" id="lb-modo" value="">' +
-    '<label class="campo-rotulo" for="lb-nome">Nome da linha de base</label>' +
-    '<input id="lb-nome" name="nome" autocomplete="off" ' +
-    'placeholder="ex.: Nível 1 — mobilidade e pés">' +
-    '<p class="sub">O nome é como o plano de ensino a vai referir. Use um nome que diga para que ' +
-    'serve: a mesma turma pode ter mais de uma ao longo do ano.</p>' +
-    '<label class="campo-rotulo" for="lb-professor">Professor</label>' +
-    '<select id="lb-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
-    '<p class="sub">A linha de base é de quem avalia: é o professor que observa a turma. ' +
-    'As de outros professores ficam visíveis na lista — quem assume lê o que estava antes, ' +
-    'e faz a sua.</p>' +
-    // «DO CORPO» SAIU DO RÓTULO (05/11/2026). A lista tem os trinta campos da anamnese — corpo,
-    // técnica e poiesis —, e a primeira versão chamava-lhe só corpo porque cortava a musicalidade.
-    // O rótulo passou a dizer o que a lista é, e a nota abaixo diz o resto.
-    '<label class="campo-rotulo">Aspectos da anamnese que este trabalho observa</label>' +
-    '<p class="sub">São os trinta campos que a anamnese recolhe, em três eixos: técnica, funcional ' +
-    'e musicalidade. A musicalidade entra porque ela também se trabalha — uma lacuna musical é ' +
-    'motivo para a turma trabalhar esse aspecto, e o professor precisa de a ver aqui para o ' +
-    'decidir. Escolha os que este ciclo vai olhar.</p>' +
-    // AS CAIXAS SÃO DESENHADAS PELO CLIENTE, a partir dos campos que o servidor lê da anamnese.
-    // Escrevê-las no HTML seria uma segunda lista dos mesmos campos — e é exactamente o defeito
-    // que esta secção vem corrigir.
-    '<div id="lb-campos"><p class="sub">carregando os aspectos da anamnese…</p></div>' +
-    '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
-    '<div class="res" data-res="linha-base"></div>' +
-    '<span class="par-botoes">' +
-    // NASCE TRAVADO (05/11/2026). O `travarFormulario` desabilita-o assim que as alunas chegam —
-    // mas entre o pintar e o primeiro `fetch` há um instante em que ele estaria clicável, e um
-    // botão que grava um recorte sobre nada nesse instante é um defeito que não se vê. O
-    // `disabled` no MARKUP é a garantia: o estado seguro é o de partida, e o JS só o levanta
-    // quando há retrato para ler.
-    '<button type="submit" class="acao grande" id="lb-enviar" disabled>Gravar a linha de base</button>' +
-    '<button type="button" class="acao secundario" id="lb-cancelar" hidden>Cancelar</button>' +
-    '</span>' +
-    '</form>' +
-    /* AS ALUNAS DO RECORTE — a correcção de 05/11/2026, e ela é de FUNDAMENTO.
-     *
-     * A primeira versão lia «turma», e a pesquisadora desmontou-a: «a turma não nasce com alunas;
-     * a turma só vai ter alunas quando eu fizer isso na curadoria». O caso que ela descreve é
-     * concreto — um ciclo já em curso, com plano e PO, e chega uma aluna nova na quinta aula. Essa
-     * aluna precisa de entrar no corpo observado ANTES de a curadoria a atribuir a uma turma; se a
-     * linha de base apontasse para a turma, ela não tinha onde caber.
-     *
-     * São caixas, e não um `<select multiple>`: escolher quatro alunas de trinta com Ctrl não é um
-     * gesto que se faça de pé, num tablet, dentro de uma sala. */
-    '<label class="campo-rotulo">Alunas deste recorte</label>' +
-    '<p class="sub" id="lb-alunas-nota">—</p>' +
-    '<div id="lb-alunas"><p class="sub">carregando as alunas com anamnese…</p></div>' +
-    // A LEITURA — o que as anamneses DESTAS alunas mostram em cada aspecto ESCOLHIDO. Sob demanda:
-    // cada leitura abre uma anamnese por aluna, e o KV tem cota diária.
-    '<details class="bloco-lista" id="lb-leitura-bloco">' +
-    '<summary class="bloco-cabeca">' +
-    '<span class="bloco-titulo">O que estas alunas mostram — ler as anamneses</span>' +
-    '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
-    '</summary>' +
-    '<div class="bloco-corpo">' +
-    '<span class="par-botoes">' +
-    '<button type="button" class="acao" id="lb-ler" disabled>Ler as anamneses destas alunas</button>' +
-    '</span>' +
-    '<p class="sub">Cada leitura abre a anamnese mais recente de cada aluna escolhida. O ' +
-    'resultado fica guardado com a linha de base — reabrir a secção não relê nada.</p>' +
-    '<div id="lb-leitura"></div>' +
-    '</div>' +
-    '</details>' +
-    '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Linhas de base</h3>' +
-    '<div class="rolagem"><ul class="lista" id="lb-lista">' +
-    '<li>carregando…</li>' +
-    '</ul></div>' +
-    rodapePaginacao() +
-    '</div>' +
-    '</section>' +
     '</div>' +
     '</div>' +
     '</div>' +
@@ -5815,6 +5864,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // O REFILTRO: reconstrói o menu das alunas com o que está livre, e TIRA as fichas que
     // passaram a estar ocupadas (trocar a modalidade depois de escolher é o caso que as cria).
+    // O ELENCO DA TURMA, lido das linhas de base que a ela foram enviadas.
+    //
+    // A TURMA NÃO GUARDA ALUNAS: ela é o ritmo (decisão de 03/11/2026), e pôr-lhe um campo
+    // `alunas` seria reverter essa decisão. O vínculo mora na LINHA DE BASE — «estas alunas, com
+    // este recorte, foram para esta turma neste dia» —, e é de lá que esta função o lê.
+    'function herdarAlunasDaTurma(turma) {' +
+    '  var el = document.getElementById("esc-alunas");' +
+    '  if (!el || !turma) return;' +
+    '  fetch("/api/bastidores/alunas-da-turma?turma=" + encodeURIComponent(turma))' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      if (!d || !d.ok) return;' +
+    '      (d.alunas || []).forEach(function(a){ adicionarFicha(el, a); });' +
+    '      refiltrarAlunas();' +
+    '      var nota = document.getElementById("cu-elenco-nota");' +
+    '      if (!nota) return;' +
+    '      if (!(d.alunas || []).length) {' +
+    '        nota.hidden = true;' +
+    '        nota.textContent = "";' +
+    '        return;' +
+    '      }' +
+    '      nota.hidden = false;' +
+    '      nota.textContent = "A turma «" + d.turma + "» recebeu " + d.alunas.length +' +
+    '        (d.alunas.length === 1 ? " aluna" : " alunas") + " da linha de base «" +' +
+    '        ((d.linhaDeBase && d.linhaDeBase.nome) || "—") + "». Elas entraram já nesta lista.";' +
+    '    })' +
+    '    .catch(function(){});' +
+    '}' +
     'function refiltrarAlunas() {' +
     '  var el = document.getElementById("esc-alunas");' +
     '  if (!el || !el.querySelector || !el.querySelectorAll) return;' +
@@ -5983,6 +6060,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.addEventListener("change", function(e){' +
     '  var alvo = e.target;' +
     '  if (alvo && (alvo.id === "cumodalidade" || alvo.id === "cuturma")) refiltrarAlunas();' +
+    // A CURADORIA HERDA O ELENCO DA TURMA (05/11/2026).
+    //
+    // A pesquisadora: «quando eu termino a linha de base, aí eu vou dizer: ah, esses alunos então
+    // vão para a turma X. […] lá na curadoria eu apenas digo qual é a turma, e a turma já carrega
+    // junto quais são os alunos dela». O passo 5 da linha de base gravou esse vínculo (com data,
+    // porque é um acto); aqui ele é LIDO.
+    //
+    // O QUE ACONTECE ÀS FICHAS QUE JÁ ESTAVAM: nada é retirado. As que vieram da turma são
+    // ACRESCENTADAS, e as que o professor tinha posto à mão ficam — quem está a editar uma
+    // curadoria antiga não perde o que lá estava por a turma agora declarar outra coisa.
+    '  if (alvo && alvo.id === "cuturma") herdarAlunasDaTurma(alvo.value);' +
     '});' +
     'refiltrarAlunas();' +
     // O BOTÃO DE UMA CURADORIA — a MESMA regra e o MESMO desenho da turma: «Editar» quando
@@ -8928,41 +9016,313 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var CAMPOS_DO_CORPO = [];' +
     'var LINHAS_DE_BASE = [];' +
     'var ALUNAS_COM_ANAMNESE = [];' +
-    // O TRAVADO E UM ESTADO SO, e e ele que responde a «sem anamnese nao ha o que escolher». Um
-    // disabled espalhado por cinco sitios divergiria no primeiro deles a ser esquecido.
-    'var TRAVADO = true;' +
-    'function haAnamnese() { return ALUNAS_COM_ANAMNESE.length > 0; }' +
-    'function travarFormulario() {' +
-    '  var enviar = document.getElementById("lb-enviar");' +
-    '  var ler = document.getElementById("lb-ler");' +
-    '  if (enviar) { enviar.disabled = TRAVADO; }' +
-    '  if (ler) { ler.disabled = TRAVADO || !marcados("lb-aluna").length; }' +
-    '}' +
+    // O PASSO EM QUE SE ESTÁ, e as faltas de cada passo. Uma variável, não um atributo no DOM: é
+    // o mesmo desenho do verbete, e é o que faz a tira e o «Seguir» responderem à mesma verdade.
+    'var LB_PASSO = 1;' +
+    'var LB_TOTAL = ' + LB_PASSOS.length + ';' +
+    // QUANTAS ALUNAS SE MOSTRAM — dez de cada vez, e cresce. A escola pode ter quatrocentos
+    // alunos; uma lista de quatrocentas caixas não se lê, e a rolagem resolve o resto.
+    'var LB_POR_VEZ = 10;' +
+    'var LB_MOSTRADAS = 10;' +
     'function corpoRes(estado, texto) {' +
     '  var alvo = document.querySelector("[data-res=\\"linha-base\\"]");' +
     '  if (!alvo) return;' +
     '  alvo.className = "res " + (estado || "");' +
     '  alvo.textContent = texto || "";' +
     '}' +
-    // AS CAIXAS, AGRUPADAS PELO BLOCO DA ANAMNESE. A ordem dos grupos é a do formulário da
-    // anamnese: o professor reconhece o percurso, e não procura duas vezes o mesmo campo.
+    // ------------------------------------------------------------------ O ESTADO
+    //
+    // O QUE CADA PASSO EXIGE, e é esta lista que trava tudo. Um passo está completo quando a sua
+    // falta é vazia — e não se chega a um passo com falta nos anteriores.
+    'function haAnamnese() { return ALUNAS_COM_ANAMNESE.length > 0; }' +
+    'function nomeDoFormulario() {' +
+    '  return String((document.getElementById("lb-nome") || {}).value || "").trim();' +
+    '}' +
+    'function professorDoFormulario() {' +
+    '  return String((document.getElementById("lb-professor") || {}).value || "").trim();' +
+    '}' +
+    'function alunasMarcadas() { return marcados("lb-aluna"); }' +
+    'function turmaDeDestino() {' +
+    '  return String((document.getElementById("lb-turma-destino") || {}).value || "").trim();' +
+    '}' +
+    // O QUE **ESTE** PASSO EXIGE. A primeira versão respondia «o que falta nos passos anteriores», e
+    // o passo 1 nunca tinha falta nenhuma — de modo que `podeIrPara(2)` era verdadeiro sempre, e o
+    // formulário deixava avançar sem nome nem professor. A prova a correr apanhou-o: a marcação
+    // estava certa e a regra não. Agora cada passo declara a SUA falta, e quem quer saber o que
+    // falta antes de N soma as de todos os anteriores (`faltasAntesDeLb`).
+    'function faltasDoPassoLb(n) {' +
+    // SEM ANAMNESE NADA SE PODE FAZER. A falta é de TODOS os passos: sem retratos não há aluna
+    // para escolher, e um formulário que avança para uma lista vazia é pior do que um fechado.
+    '  if (!haAnamnese()) return ["a anamnese de pelo menos uma aluna"];' +
+    '  var faltas = [];' +
+    '  if (n === 1) {' +
+    '    if (!nomeDoFormulario()) faltas.push("o nome");' +
+    '    if (!professorDoFormulario()) faltas.push("o professor");' +
+    '  } else if (n === 2) {' +
+    '    if (!alunasMarcadas().length) faltas.push("pelo menos uma aluna");' +
+    '  } else if (n === 3) {' +
+    '    if (!LEITURA_FEITA) faltas.push("a leitura das anamneses");' +
+    '  } else if (n === 4) {' +
+    '    if (!marcados("lb-campo").length) faltas.push("pelo menos um aspecto");' +
+    '  } else if (n === 5) {' +
+    '    if (!turmaDeDestino()) faltas.push("a turma de destino");' +
+    '  }' +
+    '  return faltas;' +
+    '}' +
+    'var LEITURA_FEITA = false;' +
+    // CHEGAR AO PASSO `n` EXIGE TODOS OS ANTERIORES COMPLETOS.
+    'function podeIrPara(n) { return faltasAntesDeLb(Number(n) || 1).length === 0; }' +
+    'function faltasAntesDeLb(n) {' +
+    '  var todas = [];' +
+    '  for (var i = 1; i < n; i++) todas = todas.concat(faltasDoPassoLb(i));' +
+    '  return todas;' +
+    '}' +
+    // A TINTA DA TIRA. Cada passo diz o que já está decidido — a tira que só diz onde se está não
+    // serve a quem está no fim e quer saber para onde vai.
+    'function pintarTiraLb() {' +
+    '  var nome = nomeDoFormulario();' +
+    '  var prof = professorDoFormulario();' +
+    '  var quantas = alunasMarcadas().length;' +
+    '  var campos = marcados("lb-campo").length;' +
+    '  var valores = {' +
+    '    1: nome || "a nomear",' +
+    '    2: quantas ? (quantas === 1 ? "1 aluna" : quantas + " alunas") : "a escolher",' +
+    '    3: LEITURA_FEITA ? "lida" : "por ler",' +
+    '    4: campos ? (campos === 1 ? "1 aspecto" : campos + " aspectos") : "a escolher",' +
+    '    5: turmaDeDestino() || "a escolher"' +
+    '  };' +
+    '  Object.keys(valores).forEach(function(n){' +
+    '    var el = document.getElementById("lb-v" + n);' +
+    '    if (el) el.textContent = valores[n];' +
+    '  });' +
+    '}' +
+    // A TINTA DAS TRAVAS. É a única que decide o que está clicável; o `mostrarPassoLb` chama-a, e
+    // o `input`/`change` da página também — senão quem preenche o nome via o botão continuar
+    // apagado, e quem apagava um campo via-o continuar aceso.
+    'function pintarTravasLb() {' +
+    '  var semNada = !haAnamnese();' +
+    '  Array.prototype.slice.call(document.querySelectorAll("#lb-tira button.passo")).forEach(function(b){' +
+    '    var n = Number(b.getAttribute("data-passo")) || 0;' +
+    // SEM ANAMNESE, TODOS OS PASSOS FECHADOS — e é AQUI que isso se decide, não numa função à
+    // parte. A primeira versão tinha um `travarTudo` que esta função desfazia na linha seguinte: o
+    // sintoma era uma tira clicável numa escola sem retratos.
+    '    var fechado = semNada || ((n > LB_PASSO) && !podeIrPara(n));' +
+    '    b.disabled = fechado;' +
+    '    b.setAttribute("aria-disabled", fechado ? "true" : "false");' +
+    '    if (fechado) b.setAttribute("title", semNada ? "Sem anamnese não há o que recortar."' +
+    '      : "Falta " + faltasAntesDeLb(n).join(", ") + ".");' +
+    '    else b.removeAttribute("title");' +
+    '  });' +
+    '  var faltas = faltasDoPassoLb(LB_PASSO);' +
+    '  var seguir = document.getElementById("lb-seguir");' +
+    '  if (seguir) {' +
+    '    seguir.disabled = faltas.length > 0;' +
+    '    seguir.setAttribute("aria-disabled", faltas.length ? "true" : "false");' +
+    '    seguir.title = faltas.length ? "Para seguir, falta " + faltas.join(", ") + "." : "";' +
+    '  }' +
+    '  var enviar = document.getElementById("lb-enviar");' +
+    '  if (enviar) {' +
+    '    var faltaEnvio = faltasAntesDeLb(LB_TOTAL + 1);' +
+    '    enviar.disabled = faltaEnvio.length > 0;' +
+    '    enviar.setAttribute("aria-disabled", faltaEnvio.length ? "true" : "false");' +
+    '    enviar.title = faltaEnvio.length ? "Para concluir, falta " + faltaEnvio.join(", ") + "." : "";' +
+    '  }' +
+    '  pintarTiraLb();' +
+    '}' +
+    // TROCAR DE PASSO É SÓ TROCAR DE PAINEL — e a trava vale para TODOS os caminhos: a tira, o
+    // «Seguir», o passo lembrado ao reabrir. Quem tenta chegar a um passo com falta nos anteriores
+    // fica onde está.
+    'function mostrarPassoLb(qual) {' +
+    '  var n = Number(qual) || 1;' +
+    '  if (n > 1 && faltasAntesDeLb(n).length) n = LB_PASSO;' +
+    '  LB_PASSO = n;' +
+    '  Array.prototype.slice.call(document.querySelectorAll("#lb-tira button.passo")).forEach(function(b){' +
+    '    var ativo = Number(b.getAttribute("data-passo")) === n;' +
+    '    b.className = ativo ? "passo ativo" : "passo";' +
+    '    if (ativo) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");' +
+    '  });' +
+    '  Array.prototype.slice.call(document.querySelectorAll("#corpo-miolo .passo-painel")).forEach(function(p){' +
+    '    p.hidden = Number(p.getAttribute("data-passo")) !== n;' +
+    '  });' +
+    '  var voltar = document.getElementById("lb-voltar");' +
+    '  if (voltar) voltar.hidden = n <= 1;' +
+    '  var seguir = document.getElementById("lb-seguir");' +
+    '  if (seguir) seguir.hidden = n >= LB_TOTAL;' +
+    '  var enviar = document.getElementById("lb-enviar");' +
+    '  if (enviar) enviar.hidden = n < LB_TOTAL;' +
+    '  pintarTravasLb();' +
+    '}' +
+    // ------------------------------------------------------------------ PASSO 2 — AS ALUNAS
+    //
+    // DEZ DE CADA VEZ (05/11/2026). A lista é feita de blocos, e o «Carregar mais alunas»
+    // acrescenta dez. As JÁ MARCADAS contam sempre para o corte — senão, ao carregar mais, uma
+    // aluna escolhida na primeira fornada desapareceria da vista e o professor perderia o fio.
+    'function pintarAlunas(escolhidas) {' +
+    '  var alvo = document.getElementById("lb-alunas");' +
+    '  var nota = document.getElementById("lb-alunas-nota");' +
+    '  if (!alvo) return;' +
+    '  if (!ALUNAS_COM_ANAMNESE.length) {' +
+    '    alvo.innerHTML = "<p class=\\"sub\\">— nenhuma aluna com anamnese.</p>";' +
+    '    return;' +
+    '  }' +
+    '  var visiveis = ALUNAS_COM_ANAMNESE.filter(function(a, i){' +
+    '    return i < LB_MOSTRADAS || escolhidas.indexOf(a.aluna) !== -1;' +
+    '  });' +
+    '  alvo.innerHTML = "<div class=\\"escolhas\\">" + visiveis.map(function(a){' +
+    '    var marcada = escolhidas.indexOf(a.aluna) !== -1 ? " checked" : "";' +
+    // A ETIQUETA «NOVO» AO LADO DO NOME: uma aluna cuja anamnese ainda não foi lida por nenhuma
+    // linha de base. É proveniência, e o servidor é quem a decide — a tela só a mostra.
+    '    var selo = a.novo' +
+    '      ? "<span class=\\"selo\\" title=\\"Anamnese ainda não lida por nenhuma linha de base\\">novo</span>"' +
+    '      : "";' +
+    '    return "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"lb-aluna\\" value=\\"" +' +
+    '      escHtml(a.aluna) + "\\"" + marcada + "><span>" + escHtml(a.aluna) + " " + selo +' +
+    '      "</span></label>";' +
+    '  }).join("") + "</div>";' +
+    '  var mais = document.getElementById("lb-mais");' +
+    '  var maisNota = document.getElementById("lb-mais-nota");' +
+    '  var restantes = ALUNAS_COM_ANAMNESE.length - visiveis.length;' +
+    '  if (mais) mais.hidden = restantes <= 0;' +
+    '  if (maisNota) {' +
+    '    maisNota.textContent = ALUNAS_COM_ANAMNESE.length === 1' +
+    '      ? "1 aluna com anamnese registada."' +
+    '      : (restantes > 0' +
+    '        ? visiveis.length + " de " + ALUNAS_COM_ANAMNESE.length + " — " + restantes + " por mostrar."' +
+    '        : ALUNAS_COM_ANAMNESE.length + " alunas com anamnese registada.");' +
+    '  }' +
+    '  if (nota) {' +
+    '    var novas = ALUNAS_COM_ANAMNESE.filter(function(a){ return a.novo; }).length;' +
+    '    nota.textContent = novas' +
+    '      ? novas + (novas === 1 ? " aluna tem anamnese nova" : " alunas têm anamnese nova") +' +
+    '        " — marcada com «novo». Escolha de quem é o corpo que este trabalho observa."' +
+    '      : "Escolha de quem é o corpo que este trabalho observa. Nenhuma anamnese nova por ler.";' +
+    '  }' +
+    '  Array.prototype.slice.call(alvo.querySelectorAll("input")).forEach(function(x){' +
+    '    x.addEventListener("change", function(){ pintarTravasLb(); });' +
+    '  });' +
+    '}' +
+    'function carregarAlunasComAnamnese() {' +
+    '  return fetch("/api/bastidores/alunas-com-anamnese")' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      ALUNAS_COM_ANAMNESE = (d && d.alunas) || [];' +
+    '      pintarAlunas(alunasMarcadas());' +
+    '      var aviso = document.getElementById("lb-sem-anamnese");' +
+    '      if (aviso) {' +
+    '        aviso.hidden = ALUNAS_COM_ANAMNESE.length > 0;' +
+    '        aviso.textContent = ALUNAS_COM_ANAMNESE.length ? "" :' +
+    '          "Ainda não há nenhuma anamnese registada nesta escola. A linha de base é um recorte ' +
+    'lido dos retratos das alunas — sem retrato não há o que recortar, e nenhum passo se abre. ' +
+    'Faça primeiro a anamnese de pelo menos uma aluna, em «Anamnese do aluno».";' +
+    '      }' +
+    '      if (!ALUNAS_COM_ANAMNESE.length) { travarTudo(); }' +
+    '      pintarTravasLb();' +
+    '    })' +
+    '    .catch(function(){' +
+    '      ALUNAS_COM_ANAMNESE = [];' +
+    '      travarTudo();' +
+    '    });' +
+    '}' +
+    // SEM ANAMNESE, TUDO FECHADO: a tira, os botões, o formulário. Não é um aviso — é o estado.
+    'function travarTudo() {' +
+    '  ["lb-seguir", "lb-enviar", "lb-ler", "lb-mais"].forEach(function(id){' +
+    '    var e = document.getElementById(id);' +
+    '    if (e) e.disabled = true;' +
+    '  });' +
+    '  ["lb-nome", "lb-professor"].forEach(function(id){' +
+    '    var e = document.getElementById(id);' +
+    '    if (e) e.disabled = true;' +
+    '  });' +
+    '}' +
+    // ------------------------------------------------------------------ PASSO 3 — A LEITURA
+    //
+    // OS QUATRO EIXOS, e a ordem é a da leitura: primeiro o que pede trabalho, depois o que está
+    // bem, depois a musicalidade (que ela quis ver em separado), e por fim o que o grupo tem em
+    // comum. Os pontos de atenção vêm primeiro porque são o que se lê para decidir.
+    'function blocoDeAchados(titulo, itens, nota) {' +
+    '  if (!itens || !itens.length) {' +
+    '    return "<h4>" + escHtml(titulo) + "</h4><p class=\\"sub\\">" + escHtml(nota || "nada a registar.") + "</p>";' +
+    '  }' +
+    '  return "<h4>" + escHtml(titulo) + " (" + itens.length + ")</h4>" +' +
+    '    "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr><th>Aspecto</th>" +' +
+    '    "<th>Eixo</th><th>Como está o grupo</th></tr></thead><tbody>" +' +
+    '    itens.map(function(x){' +
+    '      return "<tr><td>" + escHtml(x.nome) + "</td><td>" + escHtml(x.eixo || "") + "</td><td>" +' +
+    '        escHtml(x.texto) + "</td></tr>";' +
+    '    }).join("") + "</tbody></table></div>";' +
+    '}' +
+    'function pintarClassificacao(c) {' +
+    '  var alvo = document.getElementById("lb-leitura");' +
+    '  if (!alvo) return;' +
+    '  if (!c) { alvo.innerHTML = "<p class=\\"sub\\">ainda sem leitura.</p>"; return; }' +
+    '  var html = "<p class=\\"sub\\">" + escHtml(String(c.alunos)) + " anamnese(s) cruzada(s). " +' +
+    '    "As quatro leituras são quatro perguntas ao MESMO dado — um aspecto pode estar em " +' +
+    '      "mais de uma." + "</p>";' +
+    '  html += blocoDeAchados("O que precisa de ser trabalhado", c.atencao,' +
+    '    "nenhum aspecto abaixo do melhor nível — o grupo está bem em tudo o que respondeu.");' +
+    '  html += blocoDeAchados("O que já é bom", c.excelencia,' +
+    '    "nenhum aspecto com o grupo todo no melhor nível.");' +
+    '  html += blocoDeAchados("Musicalidade", c.musicalidade,' +
+    '    "a anamnese não tem os campos de musicalidade preenchidos para estas alunas.");' +
+    '  html += blocoDeAchados("O que o grupo tem em comum", c.comuns,' +
+    '    "nenhum aspecto com a mesma resposta em todas as alunas.");' +
+    '  if (c.semRegisto && c.semRegisto.length) {' +
+    '    html += "<p class=\\"sub\\">Sem registo em " + c.semRegisto.length + " aspecto(s): " +' +
+    '      escHtml(c.semRegisto.slice(0, 8).map(function(x){ return x.nome || x; }).join(", ")) +' +
+    '      (c.semRegisto.length > 8 ? " …" : "") + ". A anamnese não os preencheu." + "</p>";' +
+    '  }' +
+    '  alvo.innerHTML = html;' +
+    '}' +
+    'function lerAnamneses() {' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  var escolhidas = alunasMarcadas();' +
+    '  if (!modo || !modo.value) {' +
+    '    corpoRes("aviso", "Grave a linha de base primeiro — a leitura fica guardada nela.");' +
+    '    return;' +
+    '  }' +
+    '  if (!escolhidas.length) {' +
+    '    corpoRes("aviso", "Escolha pelo menos uma aluna — a leitura é o que o corpo DELAS mostra.");' +
+    '    return;' +
+    '  }' +
+    '  var botao = document.getElementById("lb-ler");' +
+    '  var antes = ocuparBotao(botao, "lendo...", "button");' +
+    '  var q = "?id=" + encodeURIComponent(modo.value) +' +
+    '    "&alunas=" + encodeURIComponent(escolhidas.join(","));' +
+    '  fetch("/api/bastidores/linha-de-base/leitura" + q)' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      liberarBotao(antes);' +
+    '      if (d && d.ok && d.semAnamneses) {' +
+    '        LEITURA_FEITA = false;' +
+    '        pintarClassificacao(null);' +
+    '        corpoRes("aviso", d.erro || "Não há anamnese para ler.");' +
+    '        pintarTravasLb();' +
+    '        return;' +
+    '      }' +
+    '      if (d && d.ok) {' +
+    '        LEITURA_FEITA = true;' +
+    '        pintarClassificacao(d.classificacao);' +
+    '        carregarLinhas();' +
+    '        corpoRes("ok", "lidas " + (d.leitura.alunas || []).length + " anamnese(s). Agora escolha ' +
+    'o recorte no passo 4.");' +
+    '        pintarTravasLb();' +
+    '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
+    '    })' +
+    '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); });' +
+    '}' +
+    // ------------------------------------------------------------------ PASSO 4 — O RECORTE
+    'function contarCampos() {' +
+    '  var n = marcados("lb-campo").length;' +
+    '  var alvo = document.getElementById("lb-contagem");' +
+    '  if (alvo) alvo.textContent = n === 0 ? "nenhum aspecto escolhido"' +
+    '    : (n === 1 ? "1 aspecto escolhido" : n + " aspectos escolhidos");' +
+    '  pintarTravasLb();' +
+    '}' +
     'function pintarCampos(escolhidos) {' +
     '  var alvo = document.getElementById("lb-campos");' +
     '  if (!alvo) return;' +
     '  if (!CAMPOS_DO_CORPO.length) {' +
     '    alvo.innerHTML = "<p class=\\"aviso\\">Não consegui ler os aspectos da anamnese agora.</p>";' +
-    '    return;' +
-    '  }' +
-    // SEM ANAMNESE NAO HA O QUE ESCOLHER. A primeira versao desenhava as 24 caixas sempre, e a
-    // pesquisadora viu o absurdo: «nao tenho nenhum aluno com anamnese feita, e todos os campos
-    // estao disponiveis para mim». Uma caixa que se pode marcar sem retrato por tras promete um
-    // cruzamento que nao existe.
-    '  if (!haAnamnese()) {' +
-    '    alvo.innerHTML = "<p class=\\"aviso\\">Ainda não há nenhuma anamnese registada. A linha ' +
-    'de base é um recorte lido dos retratos das alunas — sem retrato não há o que recortar. ' +
-    'Faça primeiro a anamnese de pelo menos uma aluna, em «Anamnese do aluno».</p>";' +
-    '    TRAVADO = true;' +
-    '    travarFormulario();' +
     '    return;' +
     '  }' +
     '  var grupos = [];' +
@@ -8978,10 +9338,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      "<div class=\\"bloco-corpo\\"><div class=\\"escolhas\\">";' +
     '    doGrupo.forEach(function(c){' +
     '      var marcado = escolhidos.indexOf(c.id) !== -1 ? " checked" : "";' +
-    '      var bloqueado = TRAVADO ? " disabled" : "";' +
     '      html += "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"lb-campo\\" value=\\"" +' +
-    '        escHtml(c.id) + "\\"" + marcado + bloqueado + "><span>" + escHtml(c.nome) +' +
-    '        "</span></label>";' +
+    '        escHtml(c.id) + "\\"" + marcado + "><span>" + escHtml(c.nome) + " <span class=\\"sub\\">" +' +
+    '        escHtml(c.eixo || "") + "</span></span></label>";' +
     '    });' +
     '    html += "</div></div></details>";' +
     '  });' +
@@ -8990,63 +9349,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    x.addEventListener("change", contarCampos);' +
     '  });' +
     '  contarCampos();' +
-    '}' +
-    'function contarCampos() {' +
-    '  var n = marcados("lb-campo").length;' +
-    '  var alvo = document.getElementById("lb-contagem");' +
-    '  if (!alvo) return;' +
-    '  alvo.textContent = n === 0 ? "nenhum aspecto escolhido"' +
-    '    : (n === 1 ? "1 aspecto escolhido" : n + " aspectos escolhidos");' +
-    '}' +
-    // AS ALUNAS QUE TEM ANAMNESE — a lista de onde se escolhe o recorte. Sem nenhuma, e o
-    // formulario inteiro que fica travado (ver pintarCampos e travarFormulario).
-    'function pintarAlunas(escolhidas) {' +
-    '  var alvo = document.getElementById("lb-alunas");' +
-    '  var nota = document.getElementById("lb-alunas-nota");' +
-    '  if (!alvo) return;' +
-    '  if (!ALUNAS_COM_ANAMNESE.length) {' +
-    '    alvo.innerHTML = "<p class=\\"sub\\">— nenhuma aluna com anamnese.</p>";' +
-    '    if (nota) nota.textContent = "A linha de base lê-se dos retratos das alunas. Sem retrato, " +' +
-    '      "não há corpo para recortar.";' +
-    '    return;' +
-    '  }' +
-    '  alvo.innerHTML = "<div class=\\"escolhas\\">" + ALUNAS_COM_ANAMNESE.map(function(a){' +
-    '    var marcada = escolhidas.indexOf(a.aluna) !== -1 ? " checked" : "";' +
-    '    return "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"lb-aluna\\" ' +
-    'value=\\"" + escHtml(a.aluna) + "\\"" + marcada + "><span>" + escHtml(a.aluna) +' +
-    '      "</span></label>";' +
-    '  }).join("") + "</div>";' +
-    '  if (nota) nota.textContent = ALUNAS_COM_ANAMNESE.length === 1' +
-    '    ? "1 aluna com anamnese registada."' +
-    '    : ALUNAS_COM_ANAMNESE.length + " alunas com anamnese registada. Escolha de quem é o corpo " +' +
-    '      "que este trabalho observa.";' +
-    '  Array.prototype.slice.call(alvo.querySelectorAll("input")).forEach(function(x){' +
-    '    x.addEventListener("change", function(){' +
-    '      TRAVADO = !haAnamnese();' +
-    '      travarFormulario();' +
-    '      pintarCampos(marcados("lb-campo"));' +
-    '    });' +
-    '  });' +
-    '  travarFormulario();' +
-    '}' +
-    'function carregarAlunasComAnamnese() {' +
-    '  return fetch("/api/bastidores/alunas-com-anamnese")' +
-    '    .then(function(r){ return r.json(); })' +
-    '    .then(function(d){' +
-    '      ALUNAS_COM_ANAMNESE = (d && d.alunas) || [];' +
-    // QUEM NAO TEM RETRATO NAO PODE SER ESCOLHIDO, e por isso o formulario fica travado — mas so
-    // isso: as caixas dos ALUNOS nao se desabilitam, porque sao elas que, marcadas, devolvem o
-    // recorte. Sem ninguem para marcar, o "Gravar" e que nao pode estar activo.
-    '      TRAVADO = !ALUNAS_COM_ANAMNESE.length;' +
-    '      pintarAlunas(marcados("lb-aluna"));' +
-    '      pintarCampos(marcados("lb-campo"));' +
-    '    })' +
-    '    .catch(function(){' +
-    '      ALUNAS_COM_ANAMNESE = [];' +
-    '      TRAVADO = true;' +
-    '      pintarAlunas([]);' +
-    '      pintarCampos([]);' +
-    '    });' +
     '}' +
     'function camposDoCorpo() {' +
     '  return fetch("/api/bastidores/campos-do-corpo")' +
@@ -9058,27 +9360,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    })' +
     '    .catch(function(){ pintarCampos([]); return []; });' +
     '}' +
+    // ------------------------------------------------------------------ A LISTA
     'function pintarLinhas() {' +
     '  var alvo = document.getElementById("lb-lista");' +
     '  if (!alvo) return;' +
     '  if (!LINHAS_DE_BASE.length) {' +
-    '    alvo.innerHTML = "<li>Nenhuma linha de base ainda. A primeira nasce " +' +
-    '      "quando o professor escolher os aspectos da anamnese que o trabalho dele observa.</li>";' +
+    '    alvo.innerHTML = "<li>Nenhuma linha de base ainda. A primeira nasce quando o professor " +' +
+    '      "escolher os aspectos da anamnese que o trabalho dele observa.</li>";' +
     '    return;' +
     '  }' +
     '  alvo.innerHTML = LINHAS_DE_BASE.map(function(l){' +
     '    var n = (l.campos || []).length;' +
-    '    var leitura = l.leitura' +
-    '      ? " · lida da turma " + escHtml(l.leitura.turma || "") + " em " +' +
-    '        escHtml(String(l.leitura.em || "").slice(0, 10))' +
-    '      : "";' +
+    '    var m = (l.alunas || []).length;' +
+    '    var onde = l.turma ? " · enviada para " + escHtml(l.turma) : "";' +
     '    return "<li><div class=\\"linha-titulo\\">" + escHtml(l.nome) + "</div>" +' +
-    '      "<div class=\\"linha-sub\\">" + (n === 1 ? "1 aspecto" : n + " aspectos") +' +
+    '      "<div class=\\"linha-sub\\">" + (n === 1 ? "1 aspecto" : n + " aspectos") + " · " +' +
+    '      (m === 1 ? "1 aluna" : m + " alunas") +' +
     '      (l.professor ? " · " + escHtml(l.professor) : " · sem professor declarado") +' +
-    '      leitura + "</div>" +' +
+    '      onde + "</div>" +' +
     '      "<span class=\\"par-botoes\\">" +' +
-    '      "<button type=\\"button\\" class=\\"acao pequeno\\" data-lb-editar=\\"" +' +
-    '      escHtml(l.id) + "\\">Editar</button>" +' +
+    '      "<button type=\\"button\\" class=\\"acao pequeno\\" data-lb-editar=\\"" + escHtml(l.id) +' +
+    '      "\\">Editar</button>" +' +
     '      "<button type=\\"button\\" class=\\"acao pequeno secundario\\" data-lb-apagar=\\"" +' +
     '      escHtml(l.id) + "\\">Apagar</button></span></li>";' +
     '  }).join("");' +
@@ -9095,18 +9397,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(d){ LINHAS_DE_BASE = (d && d.linhas) || []; pintarLinhas(); })' +
     '    .catch(function(){ LINHAS_DE_BASE = []; pintarLinhas(); });' +
     '}' +
+    // ------------------------------------------------------------------ EDITAR E APAGAR
     'function limparForm() {' +
-    '  var modo = document.getElementById("lb-modo");' +
-    '  var nome = document.getElementById("lb-nome");' +
-    '  var enviar = document.getElementById("lb-enviar");' +
-    '  var cancelar = document.getElementById("lb-cancelar");' +
+    '  ["lb-modo", "lb-nome"].forEach(function(id){' +
+    '    var e = document.getElementById(id);' +
+    '    if (e) e.value = "";' +
+    '  });' +
     '  var leitura = document.getElementById("lb-leitura");' +
-    '  if (modo) modo.value = "";' +
-    '  if (nome) nome.value = "";' +
-    '  if (enviar) enviar.textContent = "Gravar a linha de base";' +
-    '  if (cancelar) cancelar.hidden = true;' +
-    '  if (leitura) leitura.innerHTML = "";' +
+    '  if (leitura) leitura.innerHTML = "<p class=\\"sub\\">ainda sem leitura.</p>";' +
+    '  LB_MOSTRADAS = 10;' +
+    '  LEITURA_FEITA = false;' +
+    '  pintarAlunas([]);' +
     '  pintarCampos([]);' +
+    '  mostrarPassoLb(1);' +
     '}' +
     'function editarLinha(id) {' +
     '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === id; })[0];' +
@@ -9114,49 +9417,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var modo = document.getElementById("lb-modo");' +
     '  var nome = document.getElementById("lb-nome");' +
     '  var prof = document.getElementById("lb-professor");' +
-    '  var enviar = document.getElementById("lb-enviar");' +
-    '  var cancelar = document.getElementById("lb-cancelar");' +
     '  if (modo) modo.value = alvo.id;' +
     '  if (nome) nome.value = alvo.nome || "";' +
     '  if (prof && alvo.professor) prof.value = alvo.professor;' +
-    '  if (enviar) enviar.textContent = "Salvar as mudanças";' +
-    '  if (cancelar) cancelar.hidden = false;' +
-    // AS ALUNAS DO RECORTE VOLTAM MARCADAS. Sem isto, editar uma linha de base mostrava os campos
-    // certos e as alunas erradas — e o «Gravar» seguinte apagava o recorte que estava lá.
-    '  pintarAlunas((alvo.alunas || []).map(String));' +
-    '  TRAVADO = !haAnamnese();' +
-    '  travarFormulario();' +
+    // AS ALUNAS VOLTAM MARCADAS, e as que estão fora da primeira fornada também: sem isto, o
+    // «Gravar» seguinte apagava o recorte que estava lá.
+    '  var escolhidas = (alvo.alunas || []).map(String);' +
+    '  if (escolhidas.length > LB_MOSTRADAS) LB_MOSTRADAS = escolhidas.length;' +
+    '  pintarAlunas(escolhidas);' +
     '  pintarCampos((alvo.campos || []).map(function(c){ return c.id; }));' +
-    '  pintarLeitura(alvo);' +
-    '}' +
-    // A LEITURA GUARDADA — o que a turma mostrava na última vez que se leu, com os pontos de
-    // atenção primeiro. Nada aqui é recalculado: o número que se mostra é o que foi medido.
-    'function pintarLeitura(linha) {' +
-    '  var alvo = document.getElementById("lb-leitura");' +
-    '  if (!alvo) return;' +
-    '  var l = linha && linha.leitura;' +
-    '  if (!l) {' +
-    '    alvo.innerHTML = "<p class=\\"sub\\">" + (haAnamnese()' +
-    '      ? "Esta linha de base ainda não foi lida. Escolha as alunas e use «Ler as anamneses ' +
-    'destas alunas»."' +
-    '      : "Ainda não há anamnese registada nesta escola. A linha de base é um recorte do ' +
-    'corpo lido dos retratos das alunas — sem retratos não há o que cruzar.") + "</p>";' +
-    '    return;' +
+    '  if (alvo.leitura && alvo.leitura.classificacao) {' +
+    '    LEITURA_FEITA = true;' +
+    '    pintarClassificacao(alvo.leitura.classificacao);' +
     '  }' +
-    '  var html = "<p class=\\"sub\\">" + escHtml(String((l.alunas || []).length)) +' +
-    '    ((l.alunas || []).length === 1 ? " anamnese lida — " : " anamneses lidas — ") +' +
-    '    escHtml((l.alunas || []).join(", ")) + " · " + escHtml(String(l.atencao || 0)) +' +
-    '    " ponto(s) de atenção" +' +
-    '    ((l.semRegisto && l.semRegisto.length) ? " · sem registo em " + l.semRegisto.length +' +
-    '      " aspecto(s)" : "") + "</p>";' +
-    '  if (l.linhas && l.linhas.length) {' +
-    '    html += "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr>" +' +
-    '      "<th>Aspecto</th><th>Como está a turma</th></tr></thead><tbody>" +' +
-    '      l.linhas.map(function(x){' +
-    '        return "<tr><td>" + escHtml(x.nome) + "</td><td>" + escHtml(x.texto) + "</td></tr>";' +
-    '      }).join("") + "</tbody></table></div>";' +
-    '  }' +
-    '  alvo.innerHTML = html;' +
+    '  var destino = document.getElementById("lb-turma-destino");' +
+    '  if (destino && alvo.turma) destino.value = alvo.turma;' +
+    '  corpoRes("", "A editar «" + (alvo.nome || alvo.id) + "».");' +
+    '  mostrarPassoLb(2);' +
     '}' +
     'function apagarLinha(id) {' +
     '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === id; })[0];' +
@@ -9176,82 +9453,112 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    })' +
     '    .catch(function(err){ corpoRes("erro", "Erro: " + err.message); });' +
     '}' +
-    'var formLB = document.getElementById("form-linha-base");' +
-    'if (formLB) formLB.addEventListener("submit", function(e){' +
-    '  e.preventDefault();' +
+    // ------------------------------------------------------------------ A GRAVAÇÃO
+    //
+    // GRAVAR ACONTECE NO «SEGUIR» DO PASSO 1 E NO FIM DO PASSO 4 — os dois momentos em que o que
+    // está decidido muda o que o servidor precisa de saber. Gravar sempre era um pedido por
+    // clique; não gravar nunca deixava a leitura do passo 3 sem onde ficar (ela é gravada na
+    // linha de base, e a linha de base tem de existir).
+    'function gravarLinha(seguir) {' +
     '  var modo = document.getElementById("lb-modo");' +
-    '  var nome = document.getElementById("lb-nome");' +
-    '  var prof = document.getElementById("lb-professor");' +
     '  var corpo = {' +
-    '    nome: nome ? nome.value : "",' +
-    '    professor: prof ? prof.value : "",' +
-    '    alunas: marcados("lb-aluna"),' +
+    '    nome: nomeDoFormulario(),' +
+    '    professor: professorDoFormulario(),' +
+    '    alunas: alunasMarcadas(),' +
     '    campos: marcados("lb-campo"),' +
     '    token: TOKEN' +
     '  };' +
     '  if (modo && modo.value) corpo.id = modo.value;' +
-    '  var antes = ocuparBotao(formLB, "gravando...");' +
-    '  fetch("/api/bastidores/linha-de-base", {method: "POST",' +
+    '  var botao = document.getElementById("lb-seguir");' +
+    '  var antes = ocuparBotao(botao, "gravando...", "button");' +
+    '  return fetch("/api/bastidores/linha-de-base", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      liberarBotao(antes);' +
-    '      if (d && d.ok) {' +
-    '        corpoRes("ok", "linha de base gravada — " + (d.linha.campos || []).length + " aspecto(s).");' +
-    '        carregarLinhas();' +
-    '        var id = d.linha.id;' +
-    '        var modo2 = document.getElementById("lb-modo");' +
-    '        if (modo2) modo2.value = id;' +
-    '        var enviar = document.getElementById("lb-enviar");' +
-    '        var cancelar = document.getElementById("lb-cancelar");' +
-    '        if (enviar) enviar.textContent = "Salvar as mudanças";' +
-    '        if (cancelar) cancelar.hidden = false;' +
-    '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
+    '      if (!d || !d.ok) {' +
+    '        corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido"));' +
+    '        return false;' +
+    '      }' +
+    '      if (modo) modo.value = d.linha.id;' +
+    '      carregarLinhas();' +
+    '      return true;' +
     '    })' +
-    '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); });' +
-    '});' +
-    'var cancelarLB = document.getElementById("lb-cancelar");' +
-    'if (cancelarLB) cancelarLB.addEventListener("click", function(){ corpoRes("", ""); limparForm(); });' +
-    'var lerLB = document.getElementById("lb-ler");' +
-    'if (lerLB) lerLB.addEventListener("click", function(){' +
+    '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); return false; });' +
+    '}' +
+    'function concluirEnvio() {' +
     '  var modo = document.getElementById("lb-modo");' +
-    '  var escolhidas = marcados("lb-aluna");' +
-    /* A LEITURA E DAS ALUNAS, E NAO DE UMA TURMA (05/11/2026) — a correccao de desenho que a
-       pesquisadora fez. «A turma nao nasce com alunas: a turma so vai ter alunas quando eu
-       fizer isso na curadoria.» Uma aluna nova chega a meio do ciclo e precisa de entrar no
-       recorte antes de ser curada; se isto apontasse para a turma, ela nao tinha onde caber. */
-    '  if (!modo || !modo.value) {' +
-    '    corpoRes("aviso", "Grave a linha de base primeiro — a leitura fica guardada nela.");' +
-    '    return;' +
-    '  }' +
-    '  if (!escolhidas.length) {' +
-    '    corpoRes("aviso", "Escolha pelo menos uma aluna — a leitura é o que o corpo DELAS mostra.");' +
-    '    return;' +
-    '  }' +
-    '  var antes = ocuparBotao(this, "lendo...", "button");' +
-    '  var q = "?id=" + encodeURIComponent(modo.value) +' +
-    '    "&alunas=" + encodeURIComponent(escolhidas.join(","));' +
-    '  fetch("/api/bastidores/linha-de-base/agregacao" + q)' +
+    '  var turma = turmaDeDestino();' +
+    '  if (!modo || !modo.value) { corpoRes("aviso", "Grave a linha de base antes de a enviar."); return; }' +
+    '  var botao = document.getElementById("lb-enviar");' +
+    '  var antes = ocuparBotao(botao, "enviando...", "button");' +
+    '  fetch("/api/bastidores/linha-de-base/enviar", {method: "POST",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({id: modo.value, turma: turma, token: TOKEN})})' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      liberarBotao(antes);' +
-    '      if (d && d.ok && d.semAnamneses) {' +
-    '        pintarLeitura(null);' +
-    '        corpoRes("aviso", d.erro || "Não há anamnese para ler.");' +
-    '        return;' +
-    '      }' +
     '      if (d && d.ok) {' +
-    '        pintarLeitura(d.linha);' +
+    '        corpoRes("ok", "concluído — " + (d.alunas || []).length + " aluna(s) e a linha de base " +' +
+    '          "foram para «" + d.turma + "». A curadoria já não as pede uma a uma.");' +
+    '        var vinculo = document.getElementById("lb-vinculo");' +
+    '        if (vinculo) {' +
+    '          vinculo.innerHTML = "<p class=\\"aviso\\">Enviada para «" + escHtml(d.turma) + "» com " +' +
+    '            (d.alunas || []).length + " aluna(s). Abra a Curadoria e escolha essa " +' +
+    '            "turma — o elenco vem com ela.</p>";' +
+    '        }' +
     '        carregarLinhas();' +
-    '        corpoRes("ok", "lidas " + (d.leitura.alunas || []).length + " anamnese(s).");' +
+    '        carregarAlunasComAnamnese();' +
     '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); });' +
+    '}' +
+    // ------------------------------------------------------------------ O ARRANQUE
+    'var formLB = document.getElementById("form-linha-base");' +
+    'if (formLB) formLB.addEventListener("submit", function(e){ e.preventDefault(); });' +
+    'document.addEventListener("input", function(e){' +
+    '  if (e.target && e.target.id && e.target.id.indexOf("lb-") === 0) pintarTravasLb();' +
     '});' +
+    'document.addEventListener("change", function(e){' +
+    '  if (e.target && e.target.id && e.target.id.indexOf("lb-") === 0) pintarTravasLb();' +
+    '});' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest && e.target.closest("#lb-tira button.passo");' +
+    '  if (!b || b.disabled) return;' +
+    '  mostrarPassoLb(b.getAttribute("data-passo"));' +
+    '});' +
+    'var lbSeguir = document.getElementById("lb-seguir");' +
+    'if (lbSeguir) lbSeguir.addEventListener("click", function(){' +
+    // O PASSO 1 GRAVA antes de avançar — a linha de base tem de existir para a leitura do passo 3
+    // ter onde ficar. O PASSO 4 também, porque é ele que decide o recorte. Os outros dois não
+    // mudam nada que o servidor precise de saber.
+    '  if (LB_PASSO === 1) {' +
+    '    gravarLinha().then(function(ok){ if (ok) mostrarPassoLb(2); });' +
+    '    return;' +
+    '  }' +
+    '  if (LB_PASSO === 4) {' +
+    '    gravarLinha().then(function(ok){ if (ok) mostrarPassoLb(5); });' +
+    '    return;' +
+    '  }' +
+    '  mostrarPassoLb(LB_PASSO + 1);' +
+    '});' +
+    'var lbVoltar = document.getElementById("lb-voltar");' +
+    'if (lbVoltar) lbVoltar.addEventListener("click", function(){ mostrarPassoLb(LB_PASSO - 1); });' +
+    'var lbLer = document.getElementById("lb-ler");' +
+    'if (lbLer) lbLer.addEventListener("click", lerAnamneses);' +
+    'var lbMais = document.getElementById("lb-mais");' +
+    'if (lbMais) lbMais.addEventListener("click", function(){' +
+    '  LB_MOSTRADAS += LB_POR_VEZ;' +
+    '  pintarAlunas(alunasMarcadas());' +
+    '});' +
+    'var lbEnviar = document.getElementById("lb-enviar");' +
+    'if (lbEnviar) lbEnviar.addEventListener("click", concluirEnvio);' +
+    'var lbCancelar = document.getElementById("lb-cancelar");' +
+    'if (lbCancelar) lbCancelar.addEventListener("click", function(){ corpoRes("", ""); limparForm(); });' +
     'if (document.getElementById("lb-campos")) {' +
     '  camposDoCorpo();' +
     '  carregarLinhas();' +
-    '  carregarAlunasComAnamnese();' +
+    '  carregarAlunasComAnamnese().then(function(){ mostrarPassoLb(1); });' +
     '}' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
@@ -10555,13 +10862,17 @@ async function fetch(request, env) {
         if (!estado || !estado.vigente || !estado.apelido) continue;
         porAluna.set(String(estado.apelido), String(estado.carimbo || carimbo));
       }
-      return json(200, {
-        ok: true,
-        escola,
-        alunas: [...porAluna.entries()]
-          .map(([aluna, carimbo]) => ({ aluna, carimbo }))
-          .sort((a, b) => a.aluna.localeCompare(b.aluna, 'pt')),
-      });
+      /* A ETIQUETA «NOVO» É DE PROVENIÊNCIA (05/11/2026), e é o núcleo que a decide: uma aluna é
+       * nova quando a anamnese vigente dela é mais recente do que o carimbo que alguma linha de
+       * base registou ao lê-la. Primeira vez (ninguém a leu) → nova; já lida → não; anamnese nova
+       * → nova outra vez. Nada se marca com um campo: o sinal é derivado de cada vez, e por isso
+       * não há como mentir. */
+      const linhas = await linhasDeBase(kv, escola);
+      const alunas = linhaDeBaseNucleo.marcarNovas(
+        linhas,
+        [...porAluna.entries()].map(([aluna, carimbo]) => ({ aluna, carimbo })),
+      ).sort((a, b) => a.aluna.localeCompare(b.aluna, 'pt'));
+      return json(200, { ok: true, escola, alunas });
     } catch (erro) {
       /* Não se inventa uma lista vazia: uma falha de leitura e «ninguém tem anamnese» são coisas
        * diferentes, e a tela tem de as distinguir para poder dizer a verdade. */
@@ -10594,7 +10905,16 @@ async function fetch(request, env) {
       const antes = lista[idx];
       const mesmos = JSON.stringify((antes.campos || []).map((c) => c.id))
         === JSON.stringify((decidido.linha.campos || []).map((c) => c.id));
+      /* O QUE JÁ FOI LIDO NÃO SE PERDE (05/11/2026). `lida` é PROVENIÊNCIA — os carimbos das
+       * anamneses que esta linha de base leu —, e é dela que a etiqueta «novo» de cada aluna se
+       * deriva. Sobrevive a tudo: mudar o nome, mudar o recorte, mudar as alunas. Perdê-la faria
+       * todas as alunas voltarem a «novo» só por se corrigir uma vírgula. */
+      if (antes.lida) decidido.linha.lida = Object.assign({}, antes.lida, decidido.linha.lida || {});
+      // A LEITURA (a tabela) é que é descartada quando o recorte muda: descreveria outro recorte.
       if (mesmos && antes.leitura) decidido.linha.leitura = antes.leitura;
+      // O VÍNCULO À TURMA é um facto datado e não se apaga ao regravar: quem já mandou esta linha
+      // de base para uma turma continua a tê-la lá.
+      if (antes.turma) { decidido.linha.turma = antes.turma; decidido.linha.enviada_em = antes.enviada_em; }
     }
     if (idx === -1) lista.push(decidido.linha); else lista[idx] = decidido.linha;
     await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
@@ -10621,17 +10941,21 @@ async function fetch(request, env) {
     return json(200, { ok: true, linha: removida.nome, planosQueAUsavam: usos });
   }
 
-  // GET /api/bastidores/linha-de-base/agregacao?id=<id>&turma=<nome>&professor=<slug>
-  // A LEITURA DAS ANAMNESES DA TURMA, para o professor decidir o recorte. Grava o resultado na
-  // linha de base (a tela relê de lá) e devolve-o.
-  if (path === '/api/bastidores/linha-de-base/agregacao') {
+  // GET /api/bastidores/linha-de-base/leitura?id=<id>&alunas=<a,b,c>
+  //
+  // O PASSO 3 — O CRUZAMENTO DAS ANAMNESES (05/11/2026).
+  //
+  // LÊ OS TRINTA CAMPOS, e não o recorte: esta leitura vem ANTES da escolha (o passo 4 é que
+  // decide o que se observa). Uma função que lesse o recorte daria uma tabela vazia na primeira
+  // vez — exactamente quando ela é necessária.
+  //
+  // O QUE SE GRAVA: os CARIMBOS lidos (`lida`), que são proveniência — é deles que a etiqueta
+  // «novo» de cada aluna se deriva. E a leitura (`leitura`), que é o que a tela mostra: ela é
+  // descartada quando o recorte muda, porque um número que já não corresponde ao que se mostra é
+  // pior do que nenhum. Ler NÃO é decidir: `atualizada_em` só muda no «Gravar».
+  if (path === '/api/bastidores/linha-de-base/leitura') {
     const pedido = url && url.searchParams;
     const id = String((pedido && pedido.get('id')) || '').trim();
-    /* AS ALUNAS DO RECORTE, NÃO A TURMA (05/11/2026). A linha de base é sobre ALUNAS — a turma só
-     * nasce na curadoria, e uma aluna nova chega a meio de um ciclo (ver a nota em
-     * `motor/nucleo/linha-de-base.js`). A lista vem da própria linha de base (`l.alunas`), gravada
-     * no «Gravar»; o parâmetro `alunas` existe para a tela poder reler um recorte antes de gravar.
-     * Sem lista nenhuma, lê-se todas as anamneses da escola — e o resumo DIZ quantas foram. */
     const pedidas = String((pedido && pedido.get('alunas')) || '')
       .split(',').map((a) => a.trim()).filter(Boolean);
     if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
@@ -10641,58 +10965,121 @@ async function fetch(request, env) {
 
     const alunas = pedidas.length ? pedidas
       : (Array.isArray(lista[idx].alunas) ? lista[idx].alunas.map(String) : []);
+    if (!alunas.length) {
+      return json(400, { ok: false, erro: 'escolha pelo menos uma aluna — a leitura é o que o corpo DELAS mostra' });
+    }
+
     const legado = criarCloudflare(env);
     const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
     const estados = await porta.estadosDasAnamneses(armazenamento);
     const anamneses = [];
-    const carimbos = [];
+    const lida = {};
     for (const [carimbo, estado] of Object.entries(estados || {})) {
       if (!estado || !estado.vigente || !estado.apelido) continue;
-      if (alunas.length && alunas.indexOf(estado.apelido) === -1) continue;
+      if (alunas.indexOf(estado.apelido) === -1) continue;
       try {
         const envelope = await porta.lerEnvelope(armazenamento, carimbo);
         anamneses.push({ aluna: estado.apelido, respostas: (envelope && envelope.respostas) || {} });
-        carimbos.push(String(estado.carimbo || carimbo));
+        lida[estado.apelido] = String(estado.carimbo || carimbo);
       } catch (erro) {
         /* Uma anamnese ilegível não impede a leitura das outras — e o resumo diz com quantas se
          * contou. Deter tudo por causa de uma seria perder o que existe. */
       }
     }
-    /* NENHUMA ANAMNESE NÃO É UM RESULTADO VAZIO: é um estado que se DIZ. Devolver `{linhas: []}`
-     * deixaria a tela a mostrar uma tabela sem linhas, e o professor sem saber se o problema é o
-     * recorte ou a falta de retratos. */
+    /* NENHUMA ANAMNESE NÃO É UM RESULTADO VAZIO: é um estado que se DIZ — «não há retratos» e «o
+     * recorte não casou» são coisas diferentes, e a tela tem de as distinguir. */
     if (!anamneses.length) {
       return json(200, {
-        ok: true,
-        linha: lista[idx],
-        leitura: null,
-        semAnamneses: true,
-        erro: alunas.length
-          ? 'Nenhuma das alunas escolhidas tem anamnese registada.'
-          : 'Ainda não há anamnese registada nesta escola — a linha de base lê-se dos retratos '
-            + 'das alunas, e sem eles não há o que cruzar.',
+        ok: true, linha: lista[idx], leitura: null, semAnamneses: true,
+        erro: 'Nenhuma das alunas escolhidas tem anamnese registada.',
       });
     }
-    const resultado = linhaDeBaseNucleo.agregar(lista[idx], camposDoCorpo(), anamneses);
-    const velha = linhaDeBaseNucleo.envelheceu(lista[idx], carimbos);
+
+    const resultado = linhaDeBaseNucleo.classificar(camposDoCorpo(), anamneses);
+    const carimbos = Object.values(lida).sort();
+    lista[idx].lida = Object.assign({}, lista[idx].lida || {}, lida);
     lista[idx].leitura = {
       em: new Date().toISOString(),
       alunas: anamneses.map((a) => a.aluna),
       alunos: resultado.alunos,
-      atencao: resultado.atencao,
-      soExcelente: resultado.soExcelente,
-      semRegisto: resultado.semRegisto,
-      linhas: resultado.linhas,
+      atencao: resultado.atencao.length,
+      excelencia: resultado.excelencia.length,
+      musicais: resultado.musicalidade.length,
+      comuns: resultado.comuns.length,
+      semRegisto: resultado.semRegisto.map((x) => x.nome),
+      classificacao: resultado,
     };
-    // A DATA DA DECISÃO NÃO MUDA AO LER: ler não é decidir. Quem decide é o «Gravar», e é ele que
-    // põe `atualizada_em` — é essa data que a cascata de revalidação compara com as anamneses.
     await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
     return json(200, {
       ok: true,
       linha: lista[idx],
       leitura: lista[idx].leitura,
-      anamneseMaisRecente: velha,
-      velha: Boolean(velha),
+      classificacao: resultado,
+      anamneseMaisRecente: carimbos.length ? carimbos[carimbos.length - 1] : null,
+    });
+  }
+
+  // POST /api/bastidores/linha-de-base/enviar — o PASSO 5: a linha de base e as suas alunas vão
+  // para uma TURMA (05/11/2026).
+  //
+  // PORQUE O VÍNCULO VIVE AQUI, E NÃO NA TURMA. A turma é o RITMO e nada mais — decisão dela de
+  // 03/11 («a turma deixa-se de ser carregada com definições rígidas»). Pôr `alunas` na turma
+  // seria reverter essa decisão. O vínculo é um facto datado — «estas alunas, com este recorte,
+  // foram para esta turma neste dia» — e é por isso que ele mora na LINHA DE BASE, que é o registo
+  // do acto. A curadoria lê-o de lá (`alunas-da-turma`) e não volta a perguntar.
+  if (path === '/api/bastidores/linha-de-base/enviar' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = String(corpo.id || '').trim();
+    const turma = String(corpo.turma || '').trim();
+    if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
+    if (!turma) return json(400, { ok: false, erro: 'informe a turma de destino' });
+    const lista = await linhasDeBase(kv, escola);
+    const idx = lista.findIndex((l) => l && l.id === id);
+    if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
+    /* A ORDEM DAS CONFERÊNCIAS É A DO PASSO: as alunas vêm do 2, a turma é a do 5. Recusar pela
+     * turma primeiro mandaria o professor ao sítio errado — o que falta é o elenco. */
+    const alunas = Array.isArray(lista[idx].alunas) ? lista[idx].alunas.map(String) : [];
+    if (!alunas.length) {
+      return json(400, { ok: false, erro: 'esta linha de base ainda não tem alunas — escolha-as no passo 2' });
+    }
+    const todas = await turmas(kv, escola);
+    if (!todas.some((t) => t && t.nome === turma)) {
+      return json(404, { ok: false, erro: 'turma não encontrada: ' + turma });
+    }
+    lista[idx].turma = turma;
+    lista[idx].enviada_em = new Date().toISOString();
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+    return json(200, { ok: true, linha: lista[idx], turma, alunas });
+  }
+
+  // GET /api/bastidores/alunas-da-turma?turma=<nome> — as alunas que uma turma recebeu.
+  //
+  // DERIVADO DAS LINHAS DE BASE, e não de uma lista na turma: «estas alunas foram para esta
+  // turma» é o que uma linha de base enviada declara. Duas listas do mesmo facto divergiriam, e a
+  // que ficasse para trás seria a que o plano lê. Devolve as alunas e a linha de base vigente (a
+  // enviada mais recentemente), para a curadoria poder dizer de onde vêm.
+  if (path === '/api/bastidores/alunas-da-turma') {
+    const turma = String((url.searchParams.get('turma') || '')).trim();
+    if (!turma) return json(400, { ok: false, erro: 'informe a turma' });
+    const lista = await linhasDeBase(kv, escola);
+    const enviadas = lista
+      .filter((l) => l && String(l.turma || '') === turma)
+      .sort((a, b) => String(a.enviada_em || '').localeCompare(String(b.enviada_em || '')));
+    const vistas = [];
+    for (const l of enviadas) {
+      for (const a of (Array.isArray(l.alunas) ? l.alunas : [])) {
+        const nome = String(a || '').trim();
+        if (nome && vistas.indexOf(nome) === -1) vistas.push(nome);
+      }
+    }
+    const vigente = enviadas.length ? enviadas[enviadas.length - 1] : null;
+    return json(200, {
+      ok: true, escola, turma, alunas: vistas,
+      linhaDeBase: vigente ? { id: vigente.id, nome: vigente.nome, em: vigente.enviada_em } : null,
     });
   }
 

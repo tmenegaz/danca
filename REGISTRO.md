@@ -35862,3 +35862,62 @@ distribuição por dimensão, o eixo e a rota.
 0 erros; `check-indices` 14/14.
 
 **Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**.
+
+## 05/11/2026 — A linha de base em cinco passos, a leitura cruzada em quatro eixos, e a etiqueta «novo» por proveniência
+
+A secção nasceu como um formulário só; ela organizou-a: «ele vai ser por steps, assim como a gente
+fez no verbete da anotação». E a ordem dos passos não é arrumação de ecrã — é a ordem em que o
+professor **pensa**.
+
+**Os cinco passos.** 1 Identificação (nome e professor) · 2 Alunas · 3 Leitura · 4 Recorte ·
+5 Turma. A trava é a do verbete: `faltasDoPassoLb(n)` devolve o que **este** passo exige,
+`podeIrPara(n)` fecha os passos à frente, e nenhum caminho chega a um passo com falta nos
+anteriores — nem a tira, nem o «Seguir», nem o passo lembrado ao reabrir.
+
+**A leitura passou a ser de TODOS os campos, e em quatro eixos.** Ela lembrou o que o primeiro
+desenho não tinha: a leitura acontece **antes** da escolha, e por isso não pode ler o recorte — leria
+uma tabela vazia exactamente na primeira vez. `classificar` lê os trinta e devolve as quatro
+perguntas que ela fez: **o que precisa de ser trabalhado** (alguma aluna fora do melhor nível), **o
+que já é bom** (todas no melhor nível), **a musicalidade** (o eixo completo) e **o que o grupo tem
+em comum** (a mesma resposta em todas). As quatro são perguntas ao MESMO dado, e um aspecto pode
+estar em mais de uma — não são gavetas que se excluem.
+
+**Um achado nos dados, e uma correcção que não se adivinha.** O código supunha que a primeira opção
+de cada campo era o melhor nível, e supunha-o por escrito. É verdade em 29 dos 30 — e é **falso** em
+«Mobilidade da coluna cervical e cabeça», cuja lista começa por «Rotação/flexão/extensão lateral
+limitada». Com a suposição, uma aluna com a coluna **perfeita** entrava como ponto de atenção. O
+conteúdo passou a declarar `referencia` nesse campo, e o núcleo passou a ler a referência declarada
+antes de recorrer à posição. É a mesma regra da casa: o que é convenção declara-se, não se deduz.
+
+**A etiqueta «novo» é de proveniência, e é derivada.** Uma aluna é nova quando a anamnese vigente
+dela é mais recente do que o carimbo que alguma linha de base registou ao lê-la. Primeira vez
+(ninguém a leu) → novo; já lida → não; anamnese nova → novo outra vez. Nada se marca com um campo:
+um sinal que se esquece de apagar é um sinal que mente. O carimbo lido vive no **topo** da linha de
+base (`lida`), e não dentro da leitura — a leitura é descartada quando o recorte muda, mas o que se
+leu é um facto do acto, e corrigir uma vírgula não pode voltar a marcar todas as alunas.
+
+**O passo 5, e a curadoria a herdar.** Ela: «quando eu termino a linha de base, eu vou dizer: esses
+alunos então vão para a turma X. […] lá na curadoria eu apenas digo qual é a turma, e a turma já
+carrega junto quais são os alunos dela». O vínculo **não se escreve na turma** — a turma é o ritmo, e
+essa decisão é de 03/11. Ele mora na linha de base, datado (`turma`, `enviada_em`), e é **derivado**
+por `alunas-da-turma`; a curadoria, ao escolher a turma, acrescenta as fichas que vieram e diz de que
+linha de base vieram. As que o professor tinha posto à mão ficam.
+
+**Sem anamnese, nada.** A trava é de TODOS os passos, e é o `pintarTravasLb` que a decide — a
+primeira versão tinha um `travarTudo` separado que essa função desfazia na linha seguinte, e o
+sintoma era uma tira clicável numa escola sem retratos.
+
+**Medido:** `provar-linha-de-base` passou de 49 a **63 asserções**. As novas incluem a classificação
+nos quatro eixos, a referência declarada do campo invertido, os três estados da etiqueta, as recusas
+do envio, e — a que mais importa — **a trava a correr em jsdom**: a página é carregada, o `fetch`
+substituído, e `mostrarPassoLb` chamado de fora. **Ela apanhou dois defeitos reais**, e o A/B
+confirma-o: reposta a exigência do passo 1, reprova 1; reposta a tira sem a trava, reprova 2. A prova
+anterior (só de marcação) passava com a trava desligada — estava a medir a presença dos elementos, não
+a regra.
+
+**Nota de método:** os arrays que vêm do jsdom são de outro `Array.prototype`, e o `deepStrictEqual`
+compara o protótipo — dois `[]` de mundos diferentes não são iguais para ele. Compara-se o
+comprimento.
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**. A rolagem das alunas nasce no
+estilo desta página, e não na folha congelada — a checagem 4 permite, e a 8 exige que a peça exista.

@@ -105,6 +105,20 @@
 > expurgo é um commit só. Prova nova: `provar-verbos-do-armazenamento`, **29 asserções**, a ler os
 > verbos **do ficheiro do contrato** e a passar pelo `criarArmazenamento`.
 >
+> **A linha de base passou a ser um fluxo de cinco passos (05/11/2026, quarta passagem).** A
+> secção era um formulário só; ela organizou-a como o verbete da notação: **1 Identificação · 2
+> Alunas · 3 Leitura · 4 Recorte · 5 Turma**, com a mesma trava (não se chega a um passo com falta
+> nos anteriores, e sem anamnese nenhuma nada se abre). A **leitura cruza os trinta campos em quatro
+> eixos** — o que precisa de ser trabalhado, o que já é bom, a musicalidade, e o que o grupo tem em
+> comum —, e vem **antes** da escolha do recorte, que é o que lhe dá sentido. A lista de alunas é de
+> **10 em 10** com rolagem, e cada aluna leva a etiqueta **«novo»** quando a anamnese dela é mais
+> recente do que a última leitura — derivada, não guardada. O passo 5 **não escreve na turma** (a
+> turma é o ritmo, decisão de 03/11): grava na linha de base que aquelas alunas foram para aquela
+> turma, e a curadoria herda o elenco ao escolher a turma. **Achado nos dados:** o «melhor nível» era
+> deduzido da primeira opção, e há um campo cuja lista começa pela limitação — passou a ser
+> declarado. Prova: `provar-linha-de-base`, **63 asserções**, com a trava a correr em jsdom e dois A/B
+> por reversão.
+>
 > **A linha de base oferece os TRINTA campos, musicalidade incluída (05/11/2026, terceira passagem).**
 > Segundo erro de desenho meu no mesmo dia: eu tinha cortado os **seis campos de musicalidade** com o
 > argumento de que «já são tratados nos verbetes da notação». Ela desmontou-o — «a musicalidade não

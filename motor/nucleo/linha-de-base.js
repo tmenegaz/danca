@@ -129,6 +129,16 @@ function camposDisponiveis(conteudo) {
         dimensao: dimensao,
         eixo: ROTULO_DA_DIMENSAO[dimensao] || '',
         opcoes: opcoes.map(String),
+        // A REFERÊNCIA é o BOM ESTADO declarado — e NÃO se deduz da posição (05/11/2026).
+        //
+        // O código supunha que a primeira opção era sempre o melhor nível, e supunha-o por
+        // escrito: «a primeira é o melhor estado, e quem não está nela é o que se vai olhar».
+        // É verdade em 29 dos 30 campos — e é FALSO em «Mobilidade da coluna cervical e cabeça»,
+        // cuja lista começa por «Rotação/flexão/extensão lateral limitada». Com a suposição, uma
+        // aluna com a coluna PERFEITA era contada como ponto de atenção. Não se adivinha: o
+        // conteúdo declara `referencia` onde a ordem não é bom→mau, e a ausência dela quer dizer
+        // «é a primeira».
+        referencia: campo.referencia ? String(campo.referencia) : (opcoes.length ? String(opcoes[0]) : null),
       });
     }
   }
@@ -255,7 +265,11 @@ function agregar(linha, disponiveis, anamneses) {
     const campo = porId.get(String(escolhido.id)) || null;
     const nome = String((campo && campo.nome) || escolhido.nome || escolhido.id);
     const opcoes = campo ? campo.opcoes : [];
-    const melhor = opcoes.length ? String(opcoes[0]).trim() : null;
+    // A MESMA REGRA da `classificar`: o bom estado é o declarado, e só na falta dele o primeiro.
+    const melhor = campo
+      ? (campo.referencia ? String(campo.referencia).trim()
+        : (opcoes.length ? String(opcoes[0]).trim() : null))
+      : null;
 
     const niveis = new Map();
     let quantas = 0;
@@ -345,6 +359,147 @@ function envelheceu(linha, carimbos) {
   return maisRecente > decidida ? maisRecente : null;
 }
 
+/**
+ * A CLASSIFICAÇÃO DO QUE O GRUPO MOSTRA — os quatro eixos do passo 3 (05/11/2026).
+ *
+ * PORQUE É UMA FUNÇÃO NOVA E NÃO `agregar`. `agregar` lê o RECORTE já escolhido (os campos da
+ * linha de base). Isto lê **todos** os campos que as anamneses têm resposta — e tem de ser assim
+ * porque vem ANTES da escolha: o professor lê o panorama, e só depois decide o recorte. Uma função
+ * que lesse o recorte aqui daria uma tabela vazia na primeira vez, que é exactamente quando ela é
+ * necessária.
+ *
+ * OS QUATRO EIXOS, e cada um responde a uma pergunta diferente:
+ *
+ *   · `atencao` — «o que precisa de ser trabalhado». Aspectos em que ALGUMA aluna não está no
+ *     melhor nível que a anamnese conhece. É o que ela descreveu como «o que precisa melhorar e o
+ *     que está ruim»: um só corpo fora do melhor nível já é motivo para olhar.
+ *   · `excelencia` — «o que já é bom». Aspectos em que TODAS as que responderam estão no melhor
+ *     nível. A pesquisadora deu ao professor autonomia para os incluir na observação («quero
+ *     vigiar para que todos mantenham a excelência neste ponto»), e por isso eles não são
+ *     escondidos: são uma lista própria.
+ *   · `musicalidade` — o panorama completo dos campos do eixo da poiesis. Separado porque ela o
+ *     pediu separado («e sobre o ponto de vista da musicalidade também»), e porque a decisão
+ *     pedagógica que ele informa é outra: uma lacuna musical não se corrige com a mesma aula que
+ *     uma lacuna de força.
+ *   · `comuns` — os traços PARTILHADOS: aspectos em que todas as que responderam deram a MESMA
+ *     resposta, seja ela boa ou má. É o «todos têm o arco do pé semelhante». Não é um juízo: é o
+ *     que o grupo tem em comum, e serve para o professor reconhecer a turma que vai ter à frente.
+ *
+ * O QUE NÃO ENTRA EM NENHUM: os campos que ninguém respondeu. Vão para `semRegisto`, com o nome,
+ * porque um aspecto que a anamnese não preencheu não é um aspecto que está bem.
+ */
+function classificar(disponiveis, anamneses) {
+  const lista = Array.isArray(disponiveis) ? disponiveis : [];
+  const alunos = (Array.isArray(anamneses) ? anamneses : [])
+    .filter((a) => a && a.respostas && typeof a.respostas === 'object');
+
+  const atencao = [];
+  const excelencia = [];
+  const musicalidade = [];
+  const comuns = [];
+  const semRegisto = [];
+
+  for (const campo of lista) {
+    const opcoes = Array.isArray(campo.opcoes) ? campo.opcoes : [];
+    /* O MELHOR NÍVEL É O DECLARADO, e só na falta dele é o primeiro. Ver `camposDisponiveis`: há
+     * um campo cuja lista começa pela limitação, e deduzi-lo da posição classificava uma aluna
+     * saudável como ponto de atenção. */
+    const melhor = campo.referencia ? String(campo.referencia).trim()
+      : (opcoes.length ? String(opcoes[0]).trim() : null);
+    const niveis = new Map();
+    let quantas = 0;
+    for (const aluno of alunos) {
+      const registo = aluno.respostas[campo.id];
+      const valor = (registo && typeof registo === 'object' && !Array.isArray(registo) && 'valor' in registo)
+        ? registo.valor : registo;
+      const texto = Array.isArray(valor) ? valor.join(' · ') : valor;
+      if (texto === undefined || texto === null || String(texto).trim() === '') continue;
+      const chave = String(texto).trim();
+      niveis.set(chave, (niveis.get(chave) || 0) + 1);
+      quantas += 1;
+    }
+    if (!quantas) { semRegisto.push({ id: campo.id, nome: campo.nome }); continue; }
+
+    // A ORDEM DAS ENTRADAS É A DAS OPÇÕES (melhor primeiro), e não a da contagem: a leitura corre
+    // de cima para baixo como a régua.
+    const ordenados = [...niveis.entries()].sort((a, b) => {
+      const ia = opcoes.indexOf(a[0]);
+      const ib = opcoes.indexOf(b[0]);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+
+    const item = {
+      id: campo.id,
+      nome: campo.nome,
+      eixo: campo.eixo || '',
+      grupo: campo.grupo || '',
+      dimensao: campo.dimensao || '',
+      quantas,
+      // O TEXTO diz quantas em cada nível. Sem ele, «ponto de atenção» numa turma de trinta e numa
+      // de uma seriam a mesma frase — e não são a mesma coisa.
+      texto: ordenados.map(([nivel, n]) => n + ' de ' + quantas + ' em «' + nivel + '»').join(' · '),
+      unanimidade: niveis.size === 1,
+      nivelUnico: niveis.size === 1 ? ordenados[0][0] : null,
+      noMelhorNivel: melhor !== null && [...niveis.keys()].every((n) => n === melhor),
+      temAbaixoDoMelhor: melhor !== null && [...niveis.keys()].some((n) => n !== melhor),
+    };
+
+    // Um campo pode estar em MAIS de um eixo, e isso é de propósito: «todos com o arco do pé igual»
+    // é um traço comum E, se o arco for o melhor nível, é excelência. As quatro listas são quatro
+    // PERGUNTAS ao mesmo dado, não quatro gavetas que se excluem.
+    if (item.temAbaixoDoMelhor) atencao.push(item);
+    if (item.noMelhorNivel) excelencia.push(item);
+    if (item.dimensao === 'musicalidade') musicalidade.push(item);
+    if (item.unanimidade) comuns.push(item);
+  }
+
+  // OS PONTOS DE ATENÇÃO PRIMEIRO DENTRO DE CADA LISTA — é o que se lê para decidir.
+  const porAtencao = (a, b) => (b.temAbaixoDoMelhor ? 1 : 0) - (a.temAbaixoDoMelhor ? 1 : 0);
+  atencao.sort(porAtencao);
+
+  return { atencao, excelencia, musicalidade, comuns, semRegisto, alunos: alunos.length };
+}
+
+/**
+ * A ETIQUETA «NOVO» — e ela é de PROVENIÊNCIA, não de estado (05/11/2026).
+ *
+ * A REGRA, nas palavras dela: a etiqueta aparece quando há uma anamnese que ainda não foi lida por
+ * nenhuma linha de base; sai quando a aluna é incluída numa linha de base gravada; e volta a
+ * aparecer quando chega uma anamnese nova.
+ *
+ * É a MESMA FORMA da revalidação (`revalidacaoPendente`): nada se marca com um campo, tudo se
+ * pergunta de novo. «A anamnese vigente desta aluna é mais recente do que o carimbo que a linha de
+ * base registou?» — se for, é nova. Um campo `novo: true` seria uma segunda declaração do mesmo
+ * facto, e o primeiro gesto que o esquecesse de limpar fazia a etiqueta mentir para sempre.
+ *
+ * O CARIMBO LIDO VIVE NO TOPO DA LINHA DE BASE (`lida`), e não dentro da leitura. A leitura é
+ * descartada quando o recorte muda (descreveria outro recorte); o que se LEU é um facto do acto, e
+ * esse não se perde — senão corrigir um nome numa linha de base voltava a marcar todas as alunas
+ * como novas.
+ *
+ * `alunasComAnamnese` é `[{ aluna, carimbo }]` — o carimbo da anamnese VIGENTE de cada uma.
+ * Devolve o mesmo array com `novo: true|false` e o `lidaEm` (o carimbo que a linha de base leu, se
+ * alguma leu), para a tela poder dizer «lida em …» a quem não tem a etiqueta.
+ */
+function marcarNovas(linhasDeBase, alunasComAnamnese) {
+  const linhas = Array.isArray(linhasDeBase) ? linhasDeBase : [];
+  const alunas = Array.isArray(alunasComAnamnese) ? alunasComAnamnese : [];
+  return alunas.map((a) => {
+    const nome = String((a && a.aluna) || '').trim();
+    const carimbo = String((a && a.carimbo) || '').trim();
+    let lidaEm = null;
+    for (const l of linhas) {
+      if (!l || !l.lida || typeof l.lida !== 'object') continue;
+      if (!Object.prototype.hasOwnProperty.call(l.lida, nome)) continue;
+      const lido = String(l.lida[nome] || '');
+      // O MAIOR carimbo entre as linhas de base que a incluíram: uma leitura antiga não apaga o
+      // facto de uma leitura nova.
+      if (lido && (!lidaEm || lido > lidaEm)) lidaEm = lido;
+    }
+    return { aluna: nome, carimbo, lidaEm, novo: !lidaEm || carimbo > lidaEm };
+  });
+}
+
 module.exports = {
   DIMENSOES_DA_ANAMNESE,
   ROTULO_DA_DIMENSAO,
@@ -353,5 +508,7 @@ module.exports = {
   camposDisponiveis,
   normalizar,
   agregar,
+  classificar,
+  marcarNovas,
   envelheceu,
 };

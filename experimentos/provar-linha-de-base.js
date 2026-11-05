@@ -586,7 +586,7 @@ async function chamar(env, caminho, opcoes) {
       'a turma NÃO pertence a este registo: a turma nasce na curadoria');
   });
 
-  await okAsync('a agregação lê as anamneses das ALUNAS escolhidas', async () => {
+  await okAsync('a LEITURA do passo 3 lê as anamneses das ALUNAS escolhidas', async () => {
     const chave = 'bastidores/' + ESCOLA + '/linhas-de-base';
     const kv = kvFalso({
       [chave]: JSON.stringify([{
@@ -600,7 +600,7 @@ async function chamar(env, caminho, opcoes) {
     /* Sem acervo (o KV falso não tem envelopes), a resposta é o estado vazio DITO — e é isso que
      * se mede aqui: a rota não inventa uma tabela. A leitura real das anamneses está provada na
      * secção 3, com envelopes. */
-    const r = await chamar(env, '/api/bastidores/linha-de-base/agregacao?id=recorte-a&alunas=Aluna%20A');
+    const r = await chamar(env, '/api/bastidores/linha-de-base/leitura?id=recorte-a&alunas=Aluna%20A');
     assert.strictEqual(r.status, 200, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 200));
     assert.strictEqual(r.corpo.semAnamneses, true,
       'sem retratos, a resposta DIZ que não há — em vez de devolver uma tabela vazia');
@@ -687,6 +687,309 @@ async function chamar(env, caminho, opcoes) {
     const porta = fs.readFileSync(path.join(RAIZ, 'porta/index.html'), 'utf8');
     assert.ok(/id="ctx-ciclo-campo"\$\{FONTE === 'anamnese' \? ' hidden' : ''\}/.test(porta),
       'escondido no markup, e não por JavaScript depois de pintar — senão aparece por um instante');
+  });
+
+  console.log('\n10. OS CINCO PASSOS — a trava, a classificação e a etiqueta NOVO');
+
+  ok('as quatro leituras do passo 3, e cada uma responde a uma pergunta diferente', () => {
+    const c = lb.classificar(DISPONIVEIS, [
+      { aluna: 'A', respostas: {
+        'arquitetura-do-arco-plantar': 'Normal/curvo',
+        'musicalidade-e-pulsacao-ritmica': 'Precisa desenvolver',
+        'equilibrio-unipodal': 'Perda rápida',
+      } },
+      { aluna: 'B', respostas: {
+        'arquitetura-do-arco-plantar': 'Normal/curvo',
+        'musicalidade-e-pulsacao-ritmica': 'Precisa desenvolver',
+        'equilibrio-unipodal': 'Perda rápida',
+      } },
+    ]);
+    // 1. O QUE PRECISA DE SER TRABALHADO: a musicalidade está abaixo do melhor nível.
+    assert.ok(c.atencao.some((x) => x.id === 'musicalidade-e-pulsacao-ritmica'),
+      'a musicalidade abaixo do melhor nível é um ponto de atenção');
+    // 2. O QUE JÁ É BOM: o arco plantar está no melhor nível nas duas.
+    assert.ok(c.excelencia.some((x) => x.id === 'arquitetura-do-arco-plantar'),
+      'o arco plantar no melhor nível é excelência');
+    assert.strictEqual(c.atencao.some((x) => x.id === 'arquitetura-do-arco-plantar'), false,
+      'e não é atenção — as duas listas são perguntas diferentes ao mesmo dado');
+    // 3. A MUSICALIDADE: o eixo completo, e não só o que está bem ou mal.
+    assert.ok(c.musicalidade.length >= 1, 'o eixo musical tem de vir inteiro');
+    assert.ok(c.musicalidade.every((x) => x.dimensao === 'musicalidade'));
+    // 4. O QUE O GRUPO TEM EM COMUM: as duas deram a mesma resposta nos três.
+    assert.strictEqual(c.comuns.length, 3, 'os três campos são unânimes');
+    assert.ok(c.comuns.every((x) => x.unanimidade === true));
+  });
+
+  ok('o campo com a lista invertida não é contado como atenção quando está bem', () => {
+    /* «Mobilidade da coluna cervical e cabeça» tem as opções na ordem INVERSa — a primeira
+     * descreve uma limitação. O código supunha que a primeira era sempre o melhor nível, e com a
+     * suposição uma aluna com a coluna perfeita entrava como ponto de atenção. O conteúdo passou
+     * a declarar `referencia` neste campo, e é isso que se mede aqui. */
+    const cerv = DISPONIVEIS.find((c) => c.id === 'mobilidade-da-coluna-cervical-e-cabeca');
+    assert.strictEqual(cerv.referencia, 'Flexão/extensão/rotação livre',
+      'o bom estado é DECLARADO, e não deduzido da posição');
+    const c = lb.classificar(DISPONIVEIS, [
+      { aluna: 'A', respostas: { 'mobilidade-da-coluna-cervical-e-cabeca': 'Flexão/extensão/rotação livre' } },
+    ]);
+    assert.strictEqual(c.atencao.some((x) => x.id === 'mobilidade-da-coluna-cervical-e-cabeca'), false,
+      'uma aluna com a coluna livre NÃO é ponto de atenção');
+    assert.strictEqual(c.excelencia.some((x) => x.id === 'mobilidade-da-coluna-cervical-e-cabeca'), true);
+  });
+
+  ok('a etiqueta NOVO: primeira vez, depois de lida, e com anamnese nova', () => {
+    /* OS TRÊS ESTADOS, e é a razão de a função existir. A regra é de proveniência: compara-se a
+     * anamnese vigente com o carimbo que alguma linha de base registou ao ler. */
+    const alunas = [{ aluna: 'Aluna A', carimbo: 'anamnese-20261105-1240' }];
+    // (1) ninguém a leu — NOVA.
+    assert.strictEqual(lb.marcarNovas([], alunas)[0].novo, true, 'sem leitura, é nova');
+    // (2) uma linha de base leu exactamente este carimbo — não é nova.
+    const lida = [{ id: 'lb1', alunas: ['Aluna A'], lida: { 'Aluna A': 'anamnese-20261105-1240' } }];
+    const depois = lb.marcarNovas(lida, alunas)[0];
+    assert.strictEqual(depois.novo, false, 'lida, deixa de ser nova');
+    assert.strictEqual(depois.lidaEm, 'anamnese-20261105-1240', 'e diz quando foi lida');
+    // (3) chegou uma anamnese NOVA — volta a ser nova.
+    const novaFoto = [{ aluna: 'Aluna A', carimbo: 'anamnese-20261106-0900' }];
+    assert.strictEqual(lb.marcarNovas(lida, novaFoto)[0].novo, true,
+      'uma anamnese mais recente volta a marcar a aluna');
+  });
+
+  ok('a etiqueta olha para TODAS as linhas de base, e fica com a leitura mais recente', () => {
+    const lidas = [
+      { id: 'lb1', lida: { 'Aluna A': 'anamnese-20261101-1000' } },
+      { id: 'lb2', lida: { 'Aluna A': 'anamnese-20261104-1000' } },
+    ];
+    const r = lb.marcarNovas(lidas, [{ aluna: 'Aluna A', carimbo: 'anamnese-20261103-1000' }])[0];
+    assert.strictEqual(r.lidaEm, 'anamnese-20261104-1000', 'o maior carimbo entre as linhas');
+    assert.strictEqual(r.novo, false, 'uma leitura posterior cobre a anterior');
+  });
+
+  await okAsync('o servidor recusa enviar para a turma sem alunas', async () => {
+    const env = envFalso(kvFalso());
+    // Cria uma linha de base sem alunas e tenta enviá-la.
+    await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: 'Sem alunas', campos: ['equilibrio-unipodal'], senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    const r = await chamar(env, '/api/bastidores/linha-de-base/enviar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'sem-alunas', turma: 'Infantil', senhaDirecao: 'senha-de-prova' }),
+    });
+    assert.strictEqual(r.status, 400, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 200));
+    assert.ok(/alunas/i.test(r.corpo.erro), 'a recusa diz o que falta: ' + r.corpo.erro);
+  });
+
+  await okAsync('o servidor recusa enviar para uma turma que não existe', async () => {
+    const kv = kvFalso();
+    const env = envFalso(kv);
+    await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: 'Com alunas', alunas: ['Aluna A'], campos: ['equilibrio-unipodal'],
+        senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    const r = await chamar(env, '/api/bastidores/linha-de-base/enviar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'com-alunas', turma: 'Turma Fantasma', senhaDirecao: 'senha-de-prova' }),
+    });
+    assert.strictEqual(r.status, 404, 'uma turma inventada não recebe ninguém');
+  });
+
+  await okAsync('o envio grava a turma e a data, e a turma passa a declarar o elenco', async () => {
+    const chaveLB = 'bastidores/' + ESCOLA + '/linhas-de-base';
+    const chaveT = 'bastidores/' + ESCOLA + '/turmas';
+    const kv = kvFalso({
+      [chaveLB]: JSON.stringify([{
+        id: 'lb-1', nome: 'Recorte 1', professor: 'rabo-gramde',
+        alunas: ['Aluna A', 'Aluna B'],
+        campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal' }],
+        atualizada_em: '2026-11-05T10:00:00Z',
+      }]),
+      [chaveT]: JSON.stringify([{ id: 'infantil', nome: 'Infantil', dias: ['segunda'], ativo: true }]),
+    });
+    const env = envFalso(kv);
+    const r = await chamar(env, '/api/bastidores/linha-de-base/enviar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'lb-1', turma: 'Infantil', senhaDirecao: 'senha-de-prova' }),
+    });
+    assert.strictEqual(r.status, 200, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 200));
+    const guardada = JSON.parse(kv.mapa.get(chaveLB))[0];
+    assert.strictEqual(guardada.turma, 'Infantil');
+    assert.ok(guardada.enviada_em, 'a data do acto vai gravada — o vínculo é datado');
+
+    // E a turma passa a declarar o elenco — DERIVADO da linha de base, não guardado nela.
+    const elenco = await chamar(env, '/api/bastidores/alunas-da-turma?turma=Infantil');
+    assert.strictEqual(elenco.status, 200);
+    assert.deepStrictEqual(elenco.corpo.alunas, ['Aluna A', 'Aluna B']);
+    assert.strictEqual(elenco.corpo.linhaDeBase.id, 'lb-1',
+      'a curadoria tem de poder dizer DE QUE linha de base vem o elenco');
+    const daTurma = JSON.parse(kv.mapa.get(chaveT))[0];
+    assert.strictEqual(daTurma.alunas, undefined,
+      'a TURMA continua a ser o ritmo: o vínculo não se escreve nela');
+  });
+
+  await okAsync('a leitura do passo 3 não exige o recorte — vem antes de ele ser escolhido', async () => {
+    const mapa = {};
+    mapa['bastidores/' + ESCOLA + '/linhas-de-base'] = JSON.stringify([{
+      id: 'lb-novo', nome: 'Recém-criada', alunas: ['Aluna A'], campos: [],
+      atualizada_em: '2026-11-05T10:00:00Z',
+    }]);
+    const env = envFalso(kvFalso(mapa));
+    const r = await chamar(env, '/api/bastidores/linha-de-base/leitura?id=lb-novo&alunas=Aluna%20A');
+    assert.strictEqual(r.status, 200, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 200));
+    // Sem acervo não há anamneses; o que se prova é que a rota NÃO recusa por `campos` vazio.
+    assert.strictEqual(r.corpo.semAnamneses, true,
+      'a rota aceita uma linha de base ainda sem recorte — é o passo 3, antes do 4');
+  });
+
+  console.log('\n11. A TELA — os cinco passos, a trava e a rolagem');
+
+  ok('a secção tem a tira de cinco passos e os cinco painéis', () => {
+    assert.ok(/id="lb-tira"/.test(PAGINA), 'a tira dos passos tem de estar');
+    for (const n of [1, 2, 3, 4, 5]) {
+      assert.ok(new RegExp('class="passo-painel" data-passo="' + n + '"').test(PAGINA),
+        'o painel do passo ' + n + ' tem de existir');
+    }
+  });
+
+  ok('a navegação é a do verbete: Seguir, Voltar e o Concluir só no último', () => {
+    assert.ok(/id="lb-seguir"/.test(PAGINA) && /id="lb-voltar"/.test(PAGINA));
+    assert.ok(/id="lb-enviar"[^>]*hidden[^>]*disabled/.test(PAGINA),
+      'o «Concluir» nasce escondido e desabilitado: só existe no passo 5');
+  });
+
+  ok('a lista de alunas tem rolagem própria e um botão de carregar mais', () => {
+    assert.ok(/id="lb-alunas"[^>]*rolagem-de-alunas/.test(PAGINA),
+      'a caixa das alunas tem de rolar — a escola pode ter quatrocentos nomes');
+    assert.ok(/id="lb-mais"/.test(PAGINA), 'e o «Carregar mais alunas» tem de existir');
+    assert.ok(/\.rolagem-de-alunas\{[^}]*max-height/.test(PAGINA),
+      'a peça é desenhada nesta página, com um teto — a checagem 4 permite, a peça 8 exige');
+  });
+
+  ok('a secção diz o que fazer quando não há anamnese nenhuma', () => {
+    assert.ok(/id="lb-sem-anamnese"/.test(PAGINA), 'o aviso do estado vazio tem de estar na marcação');
+  });
+
+  /*
+   * 12. A TRAVA A CORRER — em jsdom, na página de verdade.
+   *
+   * PORQUE NÃO BASTA A MARCAÇÃO. A prova anterior dizia que os painéis e os botões existem; o A/B
+   * mostrou que ela PASSAVA com a trava desligada — estava a medir a presença dos elementos, não a
+   * regra. Aqui a página é carregada, o `fetch` é substituído por um que devolve uma anamnese, e
+   * as funções de trava são chamadas de fora. Se a regra cair, isto cai.
+   */
+  await okAsync('a trava dos passos, a correr: não se chega ao 2 sem nome e professor', async () => {
+    let JSDOM, VirtualConsole;
+    try { ({ JSDOM, VirtualConsole } = require('jsdom')); } catch (e) { throw new Error('jsdom ausente: ' + e.message); }
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', () => {});
+    vc.on('error', () => {});
+    const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      pretendToBeVisual: true, virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+          addListener() {}, removeListener() {} });
+        w.confirm = () => true;
+        w.alert = () => {};
+        // O QUE O SERVIDOR RESPONDERIA, para a página poder arrancar.
+        w.fetch = (u) => {
+          const url = String(u);
+          const corpo = url.indexOf('alunas-com-anamnese') !== -1
+            ? { ok: true, alunas: [{ aluna: 'Aluna A', carimbo: 'anamnese-20261105-1240', novo: true, lidaEm: null }] }
+            : url.indexOf('campos-do-corpo') !== -1
+              ? { ok: true, campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal', grupo: 'g', eixo: 'Funcional', dimensao: 'funcional', opcoes: ['A', 'B'] }], grupos: ['g'] }
+              : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [] } : { ok: true };
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+        };
+      },
+    });
+    const win = dom.window;
+    await new Promise((r) => win.setTimeout(r, 250));
+
+    // A PÁGINA ARRANCOU: há uma aluna e a tira está no passo 1.
+    assert.strictEqual(win.ALUNAS_COM_ANAMNESE.length, 1, 'a lista de alunas veio do servidor');
+    assert.strictEqual(win.LB_PASSO, 1);
+
+    // (1) SEM NOME E SEM PROFESSOR, O PASSO 2 ESTÁ FECHADO.
+    assert.ok(win.faltasDoPassoLb(2).length > 0, 'falta o nome e o professor');
+    win.mostrarPassoLb(2);
+    assert.strictEqual(win.LB_PASSO, 1, 'a página NÃO avança para o 2 com o passo 1 incompleto');
+
+    // (2) COM NOME E PROFESSOR, AVANÇA.
+    win.document.getElementById('lb-nome').value = 'Recorte de prova';
+    const sel = win.document.getElementById('lb-professor');
+    if (sel && sel.options.length) sel.value = sel.options[sel.options.length - 1].value;
+    if (sel && !sel.value) { sel.innerHTML = '<option value="rabo-gramde">rabo-gramde</option>'; sel.value = 'rabo-gramde'; }
+    /* ATENÇÃO AO `realm`: os arrays que vêm do jsdom são de OUTRO `Array.prototype`, e o
+     * `deepStrictEqual` compara o protótipo — dois `[]` de mundos diferentes NÃO são iguais para
+     * ele. Compara-se o comprimento, que é o que a regra quer dizer. */
+    assert.strictEqual(win.faltasDoPassoLb(1).length, 0,
+      'o passo 1 está completo; faltas: ' + JSON.stringify(win.faltasDoPassoLb(1)));
+    win.mostrarPassoLb(2);
+    assert.strictEqual(win.LB_PASSO, 2, 'avança quando o passo 1 está completo; '
+      + 'faltas antes: ' + JSON.stringify(win.faltasAntesDeLb(2)));
+
+    // (3) O PASSO 3 CONTINUA FECHADO — falta escolher uma aluna.
+    win.mostrarPassoLb(3);
+    assert.strictEqual(win.LB_PASSO, 2, 'sem aluna escolhida não se chega à leitura');
+
+    // (4) ESCOLHIDA UMA ALUNA, O 3 ABRE — e o 4 não, porque falta a leitura.
+    const caixa = win.document.querySelector('input[name="lb-aluna"]');
+    assert.ok(caixa, 'a caixa da aluna tem de estar na página');
+    caixa.checked = true;
+    assert.strictEqual(win.faltasDoPassoLb(2).length, 0, 'com uma aluna, o passo 2 está completo');
+    win.mostrarPassoLb(3);
+    assert.strictEqual(win.LB_PASSO, 3);
+    win.mostrarPassoLb(4);
+    assert.strictEqual(win.LB_PASSO, 3, 'sem a leitura feita não se chega ao recorte');
+
+    // (5) O «SEGUIR» ESTÁ DESABILITADO ENQUANTO FALTA ALGO, e a tira diz o mesmo.
+    const seguir = win.document.getElementById('lb-seguir');
+    win.pintarTravasLb();
+    assert.strictEqual(seguir.disabled, true, 'o Seguir está desabilitado com falta');
+    const passo5 = win.document.querySelector('#lb-tira button[data-passo="5"]');
+    assert.strictEqual(passo5.disabled, true, 'e o passo 5 está fechado na tira');
+
+    dom.window.close();
+  });
+
+  await okAsync('sem anamnese nenhuma, a página fecha tudo e diz porquê', async () => {
+    let JSDOM, VirtualConsole;
+    ({ JSDOM, VirtualConsole } = require('jsdom'));
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', () => {}); vc.on('error', () => {});
+    const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      pretendToBeVisual: true, virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+          addListener() {}, removeListener() {} });
+        w.confirm = () => true; w.alert = () => {};
+        w.fetch = (u) => {
+          const url = String(u);
+          const corpo = url.indexOf('alunas-com-anamnese') !== -1 ? { ok: true, alunas: [] }
+            : url.indexOf('campos-do-corpo') !== -1 ? { ok: true, campos: [], grupos: [] }
+            : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [] } : { ok: true };
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+        };
+      },
+    });
+    const win = dom.window;
+    await new Promise((r) => win.setTimeout(r, 250));
+    assert.strictEqual(win.ALUNAS_COM_ANAMNESE.length, 0);
+    const aviso = win.document.getElementById('lb-sem-anamnese');
+    assert.strictEqual(aviso.hidden, false, 'o aviso do estado vazio tem de aparecer');
+    assert.ok(/anamnese/i.test(aviso.textContent), 'e tem de dizer que falta a anamnese');
+    for (const n of [1, 2, 3, 4, 5]) {
+      const b = win.document.querySelector('#lb-tira button[data-passo="' + n + '"]');
+      assert.strictEqual(b.disabled, true, 'o passo ' + n + ' fica fechado');
+    }
+    assert.strictEqual(win.document.getElementById('lb-seguir').disabled, true);
+    assert.ok(win.faltasDoPassoLb(1).length > 0, 'todos os passos têm falta declarada');
+    dom.window.close();
   });
 
   console.log('\n' + (falhas.length ? falhas.length + ' de ' + (passou + falhas.length)
