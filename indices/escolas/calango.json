@@ -90,8 +90,8 @@
       "rabo-gramde"
     ],
     "registros": [
-      "anamnese:anamnese-20261105-1907",
-      "anamnese:anamnese-20261105-1910"
+      "anamnese:anamnese-20261105-1910",
+      "anamnese:anamnese-20261105-1910-2"
     ],
     "slug": "calango"
   },
@@ -100,8 +100,8 @@
       {
         "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261105-1907",
-          "anamnese:anamnese-20261105-1910"
+          "anamnese:anamnese-20261105-1910",
+          "anamnese:anamnese-20261105-1910-2"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -121,8 +121,8 @@
       {
         "contagem": 3,
         "ids": [
-          "anamnese:anamnese-20261105-1907",
           "anamnese:anamnese-20261105-1910",
+          "anamnese:anamnese-20261105-1910-2",
           "ciclo:rabo-gramde/01/calango"
         ],
         "rotulo": "rabo-gramde",
@@ -133,8 +133,8 @@
       {
         "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261105-1907",
-          "anamnese:anamnese-20261105-1910"
+          "anamnese:anamnese-20261105-1910",
+          "anamnese:anamnese-20261105-1910-2"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -151,7 +151,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "abe6216"
+    "commit": "f991b42"
   },
   "gerado_em": "2026-11-05T22:10",
   "nao_indexado": [
@@ -180,20 +180,20 @@
     {
       "ajuste_de": null,
       "ano": "2026",
-      "carimbo": "anamnese-20261105-1907",
+      "carimbo": "anamnese-20261105-1910",
       "ciclo": null,
-      "data": "2026-11-05T19:07",
-      "id": "anamnese:anamnese-20261105-1907",
+      "data": "2026-11-05T19:10",
+      "id": "anamnese:anamnese-20261105-1910",
       "professor": "rabo-gramde",
       "tipo": "anamnese"
     },
     {
       "ajuste_de": null,
       "ano": "2026",
-      "carimbo": "anamnese-20261105-1910",
+      "carimbo": "anamnese-20261105-1910-2",
       "ciclo": null,
       "data": "2026-11-05T19:10",
-      "id": "anamnese:anamnese-20261105-1910",
+      "id": "anamnese:anamnese-20261105-1910-2",
       "professor": "rabo-gramde",
       "tipo": "anamnese"
     }
