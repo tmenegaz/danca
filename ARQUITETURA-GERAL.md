@@ -837,6 +837,14 @@ cognitivo-musical, memória de sequências, lateralidade, orientação espacial 
 nos **verbetes da notação**. A distinção é a que a pesquisadora declarou: «o aspecto técnico e a
 poiesis já são tratados nos verbetes; o novo eixo é o corpo».
 
+**Sobre QUEM é a linha de base: as ALUNAS, nunca a turma.** A primeira versão lia «turma», e ela
+desmontou-a com um argumento de tempo: *«a turma não nasce com alunas; a turma só vai ter alunas
+quando eu fizer isso na curadoria»*. O caso é concreto — um ciclo já em curso, com plano e PO, e
+chega uma aluna nova na quinta aula. Ela precisa de entrar no corpo observado **antes** de a
+curadoria a atribuir a uma turma; se a linha de base apontasse para a turma, não tinha onde caber.
+O recorte guarda a lista de **apelidos** (`alunas`), é dela que a agregação lê as anamneses, e a
+turma entra depois, na curadoria.
+
 **De quem é a linha de base.** Do **professor** — «é o professor quem avalia o aluno, porque o corpo
 do aluno se modifica a cada instante; a anamnese é uma fotografia». Mas a **leitura atravessa** os
 professores: «quando um outro professor assume, é bom que ele possa olhar essa anamnese e ter uma
@@ -864,6 +872,12 @@ no navegador, seriam trinta pedidos por clique — e o KV tem cota **diária**: 
 18/10/2026, as fichas ficaram sem nome. Aqui é um pedido, um cálculo, e o resultado vai **gravado**
 na linha de base. Quem decidiu não relê: a data de decisão (`atualizada_em`) só muda no «Gravar» —
 ler não é decidir —, e é ela que a cascata compara com as anamneses.
+
+**Sem anamnese não há linha de base, e a tela diz isso em vez de fingir.** As caixas dos 24 campos
+só aparecem quando há pelo menos um retrato: antes disso a secção mostra o motivo («a linha de base é
+um recorte do CORPO lido dos retratos das alunas — sem retrato não há o que recortar») e o «Gravar»
+nasce `disabled` **no markup**, não por JavaScript depois de pintar — um botão que grava sobre nada
+durante o instante entre o pintar e o primeiro `fetch` é um defeito que não se vê.
 
 **A régua é a da anamnese, não um juízo do sistema.** «Ponto de atenção» é o que **não** está na
 primeira opção declarada; a turma toda no melhor nível é **excelência**, e a distinção existe porque

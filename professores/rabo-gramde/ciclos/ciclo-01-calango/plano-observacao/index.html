@@ -857,7 +857,13 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
            qual é o próximo número válido (`GET /api/ciclos`): a numeração é a POSIÇÃO na cadeia
            de proveniência, e um número escrito à mão não tem cadeia nenhuma. A nota fica ao lado
            e diz PORQUÊ — um campo travado sem razão parece uma avaria. -->
-      <span class="campo"><label for="ctx-ciclo">ciclo</label>
+      <!-- NA ANAMNESE O CAMPO NÃO EXISTE (05/11/2026). A anamnese é do SUJEITO e é atemporal —
+           é um retrato do corpo, e o corpo não tem número de ciclo (decisão de 04/11/2026, que
+           esta entrega veio cumprir: o campo continuava aqui, só não era travado). O `hidden` é
+           do SERVIDOR e não do cliente: um campo escondido por JavaScript depois de a página
+           pintar aparece por um instante, e um campo que aparece e desaparece parece avaria. -->
+      <span class="campo" id="ctx-ciclo-campo"${FONTE === 'anamnese' ? ' hidden' : ''}>
+        <label for="ctx-ciclo">ciclo</label>
         <input type="text" id="ctx-ciclo" value="" inputmode="numeric" maxlength="2" readonly>
         <span class="sub" id="ctx-ciclo-nota" hidden></span></span>
       <!-- A TURMA OBSERVADA no CABEÇALHO (16/10/2026). No PLANO DE ENSINO o professor a
@@ -9168,9 +9174,15 @@ async function iniciar() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ato: bilhete }),
     }).then((x) => x.json()).catch(() => ({}));
+    /* A ANAMNESE NÃO TEM CICLO, E A CONFERÊNCIA SABE DISSO (05/11/2026). Ela comparava o ciclo do
+     * bilhete com o do campo — e na anamnese o campo não é preenchido (não há ciclo a preencher).
+     * O bilhete levava o ciclo que a lista tinha escrito, a comparação falhava, e a página
+     * devolvia a pessoa à lista: «abre o formulário e fecha, voltando para a listagem». Cada ato
+     * confere o contexto que TEM; pedir-lhe um que não tem é recusar todos. */
     const autorizado = r && r.ok && r.ato && String(r.ato.fonte || '') === FONTE
       && String(r.ato.professor || '') === String(($('ctx-professor') || {}).value || '').trim()
-      && String(r.ato.ciclo || '') === String(($('ctx-ciclo') || {}).value || '').trim()
+      && (FONTE === 'anamnese'
+        || String(r.ato.ciclo || '') === String(($('ctx-ciclo') || {}).value || '').trim())
       && (FONTE !== 'anamnese'
         || String(r.ato.aluna || '') === String(($('ctx-aluna') || {}).value || '').trim());
     if (autorizado) {

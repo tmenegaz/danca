@@ -4393,7 +4393,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * A LEITURA DA TURMA É UM SEGUNDO BLOCO, e não o formulário: ler não é decidir. O professor
      * lê o que a turma mostra, e depois marca o que o trabalho dele vai observar. */
     '<section class="secao" id="sec-corpo" hidden>' +
-    tituloComAcordeao('sec-corpo', 'Corpo — linha de base', 'corpo-miolo', 'corpo-alternar-form') +
+    /* O 4.º ARGUMENTO NÃO SE PASSA AQUI (05/11/2026) — e passar um foi o defeito.
+     *
+     * `tituloComAcordeao(a, b, c, d)` usa `d` como o **id** do botão; sem `d`, o botão nasce com
+     * `data-acordeao="<secção>"`. O handler do clique bifurca exactamente por esse atributo: com
+     * `data-acordeao` recolhe a SECÇÃO (que tem o `.col-form`); sem ele cai no
+     * `definirFormularioRecolhido`, que é o recolhedor DAS TURMAS (`turmas-form`/`turmas-paineis`).
+     *
+     * A secção do corpo nasceu com `'corpo-alternar-form'` — um id, logo sem `data-acordeao` — e
+     * por isso o clique mandava recolher as turmas, que não estavam lá. A seta não fazia nada, e
+     * era isso que a pesquisadora via. A regra é a das outras quatro secções: sem id, a seta é
+     * da própria secção. */
+    tituloComAcordeao('sec-corpo', 'Corpo — linha de base', 'corpo-miolo') +
     '<div class="col-form" id="corpo-miolo">' +
     '<form id="form-linha-base">' +
     // O MODO É DECLARADO NO FORMULÁRIO, e não numa variável solta — o mesmo padrão do
@@ -4417,25 +4428,40 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
     '<div class="res" data-res="linha-base"></div>' +
     '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande" id="lb-enviar">Gravar a linha de base</button>' +
+    // NASCE TRAVADO (05/11/2026). O `travarFormulario` desabilita-o assim que as alunas chegam —
+    // mas entre o pintar e o primeiro `fetch` há um instante em que ele estaria clicável, e um
+    // botão que grava um recorte sobre nada nesse instante é um defeito que não se vê. O
+    // `disabled` no MARKUP é a garantia: o estado seguro é o de partida, e o JS só o levanta
+    // quando há retrato para ler.
+    '<button type="submit" class="acao grande" id="lb-enviar" disabled>Gravar a linha de base</button>' +
     '<button type="button" class="acao secundario" id="lb-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
-    // A LEITURA DA TURMA — o que a turma mostra em cada aspecto ESCOLHIDO. É ela que informa a
-    // escolha, e é sob demanda: cada leitura abre uma anamnese por aluna, e o KV tem cota diária.
+    /* AS ALUNAS DO RECORTE — a correcção de 05/11/2026, e ela é de FUNDAMENTO.
+     *
+     * A primeira versão lia «turma», e a pesquisadora desmontou-a: «a turma não nasce com alunas;
+     * a turma só vai ter alunas quando eu fizer isso na curadoria». O caso que ela descreve é
+     * concreto — um ciclo já em curso, com plano e PO, e chega uma aluna nova na quinta aula. Essa
+     * aluna precisa de entrar no corpo observado ANTES de a curadoria a atribuir a uma turma; se a
+     * linha de base apontasse para a turma, ela não tinha onde caber.
+     *
+     * São caixas, e não um `<select multiple>`: escolher quatro alunas de trinta com Ctrl não é um
+     * gesto que se faça de pé, num tablet, dentro de uma sala. */
+    '<label class="campo-rotulo">Alunas deste recorte</label>' +
+    '<p class="sub" id="lb-alunas-nota">—</p>' +
+    '<div id="lb-alunas"><p class="sub">carregando as alunas com anamnese…</p></div>' +
+    // A LEITURA — o que as anamneses DESTAS alunas mostram em cada aspecto ESCOLHIDO. Sob demanda:
+    // cada leitura abre uma anamnese por aluna, e o KV tem cota diária.
     '<details class="bloco-lista" id="lb-leitura-bloco">' +
     '<summary class="bloco-cabeca">' +
-    '<span class="bloco-titulo">O que a turma mostra — ler as anamneses</span>' +
+    '<span class="bloco-titulo">O que estas alunas mostram — ler as anamneses</span>' +
     '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
     '</summary>' +
     '<div class="bloco-corpo">' +
-    '<label class="campo-rotulo" for="lb-turma">Turma</label>' +
-    '<select id="lb-turma">' + listaTurmas.map((t) =>
-      '<option value="' + esc(t.nome) + '">' + esc(t.nome) + '</option>').join('') + '</select>' +
     '<span class="par-botoes">' +
-    '<button type="button" class="acao" id="lb-ler">Ler as anamneses desta turma</button>' +
+    '<button type="button" class="acao" id="lb-ler" disabled>Ler as anamneses destas alunas</button>' +
     '</span>' +
-    '<p class="sub">Cada leitura abre a anamnese mais recente de cada aluna da turma. O ' +
+    '<p class="sub">Cada leitura abre a anamnese mais recente de cada aluna escolhida. O ' +
     'resultado fica guardado com a linha de base — reabrir a secção não relê nada.</p>' +
     '<div id="lb-leitura"></div>' +
     '</div>' +
@@ -4629,7 +4655,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // decisão da página inteira. `sessionStorage` pela razão de sempre: a página recarrega a
     // cada operação, e um formulário que se reabre sozinho desfaria o que a pessoa acabou de
     // pedir — sem ser preferência para amanhã.
-    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-verbetes","sec-curadorias"];' +
+    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-verbetes","sec-curadorias","sec-corpo"];' +
     'function chaveDaSecao(id){ return "producao:recolhido:" + id; }' +
     'function secaoRecolhida(id){' +
     '  try { return sessionStorage.getItem(chaveDaSecao(id)) === "sim"; } catch (err) { return false; }' +
@@ -8894,6 +8920,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'var CAMPOS_DO_CORPO = [];' +
     'var LINHAS_DE_BASE = [];' +
+    'var ALUNAS_COM_ANAMNESE = [];' +
+    // O TRAVADO E UM ESTADO SO, e e ele que responde a «sem anamnese nao ha o que escolher». Um
+    // disabled espalhado por cinco sitios divergiria no primeiro deles a ser esquecido.
+    'var TRAVADO = true;' +
+    'function haAnamnese() { return ALUNAS_COM_ANAMNESE.length > 0; }' +
+    'function travarFormulario() {' +
+    '  var enviar = document.getElementById("lb-enviar");' +
+    '  var ler = document.getElementById("lb-ler");' +
+    '  if (enviar) { enviar.disabled = TRAVADO; }' +
+    '  if (ler) { ler.disabled = TRAVADO || !marcados("lb-aluna").length; }' +
+    '}' +
     'function corpoRes(estado, texto) {' +
     '  var alvo = document.querySelector("[data-res=\\"linha-base\\"]");' +
     '  if (!alvo) return;' +
@@ -8909,6 +8946,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    alvo.innerHTML = "<p class=\\"aviso\\">Não consegui ler os aspectos do corpo agora.</p>";' +
     '    return;' +
     '  }' +
+    // SEM ANAMNESE NAO HA O QUE ESCOLHER. A primeira versao desenhava as 24 caixas sempre, e a
+    // pesquisadora viu o absurdo: «nao tenho nenhum aluno com anamnese feita, e todos os campos
+    // estao disponiveis para mim». Uma caixa que se pode marcar sem retrato por tras promete um
+    // cruzamento que nao existe.
+    '  if (!haAnamnese()) {' +
+    '    alvo.innerHTML = "<p class=\\"aviso\\">Ainda não há nenhuma anamnese registada. A linha ' +
+    'de base é um recorte do CORPO lido dos retratos das alunas — sem retrato não há o que ' +
+    'recortar. Faça primeiro a anamnese de pelo menos uma aluna, em «Anamnese do aluno».</p>";' +
+    '    TRAVADO = true;' +
+    '    travarFormulario();' +
+    '    return;' +
+    '  }' +
     '  var grupos = [];' +
     '  CAMPOS_DO_CORPO.forEach(function(c){' +
     '    if (grupos.indexOf(c.grupo) === -1) grupos.push(c.grupo);' +
@@ -8922,8 +8971,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      "<div class=\\"bloco-corpo\\"><div class=\\"escolhas\\">";' +
     '    doGrupo.forEach(function(c){' +
     '      var marcado = escolhidos.indexOf(c.id) !== -1 ? " checked" : "";' +
+    '      var bloqueado = TRAVADO ? " disabled" : "";' +
     '      html += "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"lb-campo\\" value=\\"" +' +
-    '        escHtml(c.id) + "\\"" + marcado + "><span>" + escHtml(c.nome) + "</span></label>";' +
+    '        escHtml(c.id) + "\\"" + marcado + bloqueado + "><span>" + escHtml(c.nome) +' +
+    '        "</span></label>";' +
     '    });' +
     '    html += "</div></div></details>";' +
     '  });' +
@@ -8939,6 +8990,56 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!alvo) return;' +
     '  alvo.textContent = n === 0 ? "nenhum aspecto escolhido"' +
     '    : (n === 1 ? "1 aspecto escolhido" : n + " aspectos escolhidos");' +
+    '}' +
+    // AS ALUNAS QUE TEM ANAMNESE — a lista de onde se escolhe o recorte. Sem nenhuma, e o
+    // formulario inteiro que fica travado (ver pintarCampos e travarFormulario).
+    'function pintarAlunas(escolhidas) {' +
+    '  var alvo = document.getElementById("lb-alunas");' +
+    '  var nota = document.getElementById("lb-alunas-nota");' +
+    '  if (!alvo) return;' +
+    '  if (!ALUNAS_COM_ANAMNESE.length) {' +
+    '    alvo.innerHTML = "<p class=\\"sub\\">— nenhuma aluna com anamnese.</p>";' +
+    '    if (nota) nota.textContent = "A linha de base lê-se dos retratos das alunas. Sem retrato, " +' +
+    '      "não há corpo para recortar.";' +
+    '    return;' +
+    '  }' +
+    '  alvo.innerHTML = "<div class=\\"escolhas\\">" + ALUNAS_COM_ANAMNESE.map(function(a){' +
+    '    var marcada = escolhidas.indexOf(a.aluna) !== -1 ? " checked" : "";' +
+    '    return "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"lb-aluna\\" ' +
+    'value=\\"" + escHtml(a.aluna) + "\\"" + marcada + "><span>" + escHtml(a.aluna) +' +
+    '      "</span></label>";' +
+    '  }).join("") + "</div>";' +
+    '  if (nota) nota.textContent = ALUNAS_COM_ANAMNESE.length === 1' +
+    '    ? "1 aluna com anamnese registada."' +
+    '    : ALUNAS_COM_ANAMNESE.length + " alunas com anamnese registada. Escolha de quem é o corpo " +' +
+    '      "que este trabalho observa.";' +
+    '  Array.prototype.slice.call(alvo.querySelectorAll("input")).forEach(function(x){' +
+    '    x.addEventListener("change", function(){' +
+    '      TRAVADO = !haAnamnese();' +
+    '      travarFormulario();' +
+    '      pintarCampos(marcados("lb-campo"));' +
+    '    });' +
+    '  });' +
+    '  travarFormulario();' +
+    '}' +
+    'function carregarAlunasComAnamnese() {' +
+    '  return fetch("/api/bastidores/alunas-com-anamnese")' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      ALUNAS_COM_ANAMNESE = (d && d.alunas) || [];' +
+    // QUEM NAO TEM RETRATO NAO PODE SER ESCOLHIDO, e por isso o formulario fica travado — mas so
+    // isso: as caixas dos ALUNOS nao se desabilitam, porque sao elas que, marcadas, devolvem o
+    // recorte. Sem ninguem para marcar, o "Gravar" e que nao pode estar activo.
+    '      TRAVADO = !ALUNAS_COM_ANAMNESE.length;' +
+    '      pintarAlunas(marcados("lb-aluna"));' +
+    '      pintarCampos(marcados("lb-campo"));' +
+    '    })' +
+    '    .catch(function(){' +
+    '      ALUNAS_COM_ANAMNESE = [];' +
+    '      TRAVADO = true;' +
+    '      pintarAlunas([]);' +
+    '      pintarCampos([]);' +
+    '    });' +
     '}' +
     'function camposDoCorpo() {' +
     '  return fetch("/api/bastidores/campos-do-corpo")' +
@@ -9013,6 +9114,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (prof && alvo.professor) prof.value = alvo.professor;' +
     '  if (enviar) enviar.textContent = "Salvar as mudanças";' +
     '  if (cancelar) cancelar.hidden = false;' +
+    // AS ALUNAS DO RECORTE VOLTAM MARCADAS. Sem isto, editar uma linha de base mostrava os campos
+    // certos e as alunas erradas — e o «Gravar» seguinte apagava o recorte que estava lá.
+    '  pintarAlunas((alvo.alunas || []).map(String));' +
+    '  TRAVADO = !haAnamnese();' +
+    '  travarFormulario();' +
     '  pintarCampos((alvo.campos || []).map(function(c){ return c.id; }));' +
     '  pintarLeitura(alvo);' +
     '}' +
@@ -9023,13 +9129,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!alvo) return;' +
     '  var l = linha && linha.leitura;' +
     '  if (!l) {' +
-    '    alvo.innerHTML = "<p class=\\"sub\\">Esta linha de base ainda não foi lida da turma. " +' +
-    '      "Grave-a e use «Ler as anamneses desta turma».</p>";' +
+    '    alvo.innerHTML = "<p class=\\"sub\\">" + (haAnamnese()' +
+    '      ? "Esta linha de base ainda não foi lida. Escolha as alunas e use «Ler as anamneses ' +
+    'destas alunas»."' +
+    '      : "Ainda não há anamnese registada nesta escola. A linha de base é um recorte do ' +
+    'corpo lido dos retratos das alunas — sem retratos não há o que cruzar.") + "</p>";' +
     '    return;' +
     '  }' +
-    '  var html = "<p class=\\"sub\\">" + escHtml(String(l.alunos || 0)) +' +
-    '    " anamnese(s) lida(s) da turma " +' +
-    '    escHtml(l.turma || "") + " · " + escHtml(String(l.atencao || 0)) + " ponto(s) de atenção" +' +
+    '  var html = "<p class=\\"sub\\">" + escHtml(String((l.alunas || []).length)) +' +
+    '    ((l.alunas || []).length === 1 ? " anamnese lida — " : " anamneses lidas — ") +' +
+    '    escHtml((l.alunas || []).join(", ")) + " · " + escHtml(String(l.atencao || 0)) +' +
+    '    " ponto(s) de atenção" +' +
     '    ((l.semRegisto && l.semRegisto.length) ? " · sem registo em " + l.semRegisto.length +' +
     '      " aspecto(s)" : "") + "</p>";' +
     '  if (l.linhas && l.linhas.length) {' +
@@ -9068,6 +9178,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var corpo = {' +
     '    nome: nome ? nome.value : "",' +
     '    professor: prof ? prof.value : "",' +
+    '    alunas: marcados("lb-aluna"),' +
     '    campos: marcados("lb-campo"),' +
     '    token: TOKEN' +
     '  };' +
@@ -9097,25 +9208,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var lerLB = document.getElementById("lb-ler");' +
     'if (lerLB) lerLB.addEventListener("click", function(){' +
     '  var modo = document.getElementById("lb-modo");' +
-    '  var turma = document.getElementById("lb-turma");' +
-    '  var prof = document.getElementById("lb-professor");' +
+    '  var escolhidas = marcados("lb-aluna");' +
+    /* A LEITURA E DAS ALUNAS, E NAO DE UMA TURMA (05/11/2026) — a correccao de desenho que a
+       pesquisadora fez. «A turma nao nasce com alunas: a turma so vai ter alunas quando eu
+       fizer isso na curadoria.» Uma aluna nova chega a meio do ciclo e precisa de entrar no
+       recorte antes de ser curada; se isto apontasse para a turma, ela nao tinha onde caber. */
     '  if (!modo || !modo.value) {' +
     '    corpoRes("aviso", "Grave a linha de base primeiro — a leitura fica guardada nela.");' +
     '    return;' +
     '  }' +
+    '  if (!escolhidas.length) {' +
+    '    corpoRes("aviso", "Escolha pelo menos uma aluna — a leitura é o que o corpo DELAS mostra.");' +
+    '    return;' +
+    '  }' +
     '  var antes = ocuparBotao(this, "lendo...", "button");' +
     '  var q = "?id=" + encodeURIComponent(modo.value) +' +
-    '    "&turma=" + encodeURIComponent(turma ? turma.value : "") +' +
-    '    "&professor=" + encodeURIComponent(prof ? prof.value : "");' +
+    '    "&alunas=" + encodeURIComponent(escolhidas.join(","));' +
     '  fetch("/api/bastidores/linha-de-base/agregacao" + q)' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      liberarBotao(antes);' +
+    '      if (d && d.ok && d.semAnamneses) {' +
+    '        pintarLeitura(null);' +
+    '        corpoRes("aviso", d.erro || "Não há anamnese para ler.");' +
+    '        return;' +
+    '      }' +
     '      if (d && d.ok) {' +
     '        pintarLeitura(d.linha);' +
     '        carregarLinhas();' +
-    '        corpoRes("ok", "lida a turma " + (turma ? turma.value : "") + " — " +' +
-    '          d.leitura.alunos + " anamnese(s).");' +
+    '        corpoRes("ok", "lidas " + (d.leitura.alunas || []).length + " anamnese(s).");' +
     '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); });' +
@@ -9123,6 +9244,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'if (document.getElementById("lb-campos")) {' +
     '  camposDoCorpo();' +
     '  carregarLinhas();' +
+    '  carregarAlunasComAnamnese();' +
     '}' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
@@ -10410,6 +10532,36 @@ async function fetch(request, env) {
     });
   }
 
+  // GET /api/bastidores/alunas-com-anamnese — as alunas que têm retrato, e quando.
+  //
+  // A LINHA DE BASE LÊ-SE DOS RETRATOS (05/11/2026), e é esta a lista de onde se escolhem as
+  // alunas do recorte. Não são «as alunas da escola»: uma aluna sem anamnese não tem corpo
+  // registado, e escolhê-la daria uma linha no vazio. O carimbo vai junto porque é ele que a
+  // cascata compara com a decisão da linha de base — e mostrá-lo aqui poupa uma segunda leitura.
+  if (path === '/api/bastidores/alunas-com-anamnese') {
+    const legado = criarCloudflare(env);
+    const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+    try {
+      const estados = await porta.estadosDasAnamneses(armazenamento);
+      const porAluna = new Map();
+      for (const [carimbo, estado] of Object.entries(estados || {})) {
+        if (!estado || !estado.vigente || !estado.apelido) continue;
+        porAluna.set(String(estado.apelido), String(estado.carimbo || carimbo));
+      }
+      return json(200, {
+        ok: true,
+        escola,
+        alunas: [...porAluna.entries()]
+          .map(([aluna, carimbo]) => ({ aluna, carimbo }))
+          .sort((a, b) => a.aluna.localeCompare(b.aluna, 'pt')),
+      });
+    } catch (erro) {
+      /* Não se inventa uma lista vazia: uma falha de leitura e «ninguém tem anamnese» são coisas
+       * diferentes, e a tela tem de as distinguir para poder dizer a verdade. */
+      return json(200, { ok: false, escola, alunas: [], erro: 'não consegui ler o acervo agora' });
+    }
+  }
+
   if (path === '/api/bastidores/linhas-de-base') {
     const lista = await linhasDeBase(kv, escola);
     return json(200, { ok: true, escola, linhas: lista });
@@ -10468,16 +10620,20 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/linha-de-base/agregacao') {
     const pedido = url && url.searchParams;
     const id = String((pedido && pedido.get('id')) || '').trim();
-    const turma = String((pedido && pedido.get('turma')) || '').trim();
-    const professor = String((pedido && pedido.get('professor')) || '').trim();
+    /* AS ALUNAS DO RECORTE, NÃO A TURMA (05/11/2026). A linha de base é sobre ALUNAS — a turma só
+     * nasce na curadoria, e uma aluna nova chega a meio de um ciclo (ver a nota em
+     * `motor/nucleo/linha-de-base.js`). A lista vem da própria linha de base (`l.alunas`), gravada
+     * no «Gravar»; o parâmetro `alunas` existe para a tela poder reler um recorte antes de gravar.
+     * Sem lista nenhuma, lê-se todas as anamneses da escola — e o resumo DIZ quantas foram. */
+    const pedidas = String((pedido && pedido.get('alunas')) || '')
+      .split(',').map((a) => a.trim()).filter(Boolean);
     if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
     const lista = await linhasDeBase(kv, escola);
     const idx = lista.findIndex((l) => l && l.id === id);
     if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
-    if (!turma) return json(400, { ok: false, erro: 'informe a turma — a leitura é o que a turma mostra' });
 
-    const todas = await curadorias(kv, escola);
-    const alunas = porta.alunasDaTurma(todas, { turma, professor }) || [];
+    const alunas = pedidas.length ? pedidas
+      : (Array.isArray(lista[idx].alunas) ? lista[idx].alunas.map(String) : []);
     const legado = criarCloudflare(env);
     const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
     const estados = await porta.estadosDasAnamneses(armazenamento);
@@ -10495,12 +10651,26 @@ async function fetch(request, env) {
          * contou. Deter tudo por causa de uma seria perder o que existe. */
       }
     }
+    /* NENHUMA ANAMNESE NÃO É UM RESULTADO VAZIO: é um estado que se DIZ. Devolver `{linhas: []}`
+     * deixaria a tela a mostrar uma tabela sem linhas, e o professor sem saber se o problema é o
+     * recorte ou a falta de retratos. */
+    if (!anamneses.length) {
+      return json(200, {
+        ok: true,
+        linha: lista[idx],
+        leitura: null,
+        semAnamneses: true,
+        erro: alunas.length
+          ? 'Nenhuma das alunas escolhidas tem anamnese registada.'
+          : 'Ainda não há anamnese registada nesta escola — a linha de base lê-se dos retratos '
+            + 'das alunas, e sem eles não há o que cruzar.',
+      });
+    }
     const resultado = linhaDeBaseNucleo.agregar(lista[idx], camposDoCorpo(), anamneses);
     const velha = linhaDeBaseNucleo.envelheceu(lista[idx], carimbos);
     lista[idx].leitura = {
       em: new Date().toISOString(),
-      turma,
-      professor: professor || null,
+      alunas: anamneses.map((a) => a.aluna),
       alunos: resultado.alunos,
       atencao: resultado.atencao,
       soExcelente: resultado.soExcelente,

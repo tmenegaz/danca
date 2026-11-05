@@ -430,8 +430,17 @@ function painelDoAto(chave, escola) {
     <div class="campos-do-ato">
       <span class="campo"><label class="campo-rotulo" for="ato-professor">professor</label>
         <select id="ato-professor" data-ato="professor"><option value="">— escolher —</option></select></span>
-      <span class="campo"><label class="campo-rotulo" for="ato-ciclo">ciclo</label>
-        <input type="text" id="ato-ciclo" data-ato="ciclo" value="" inputmode="numeric"></span>
+      <!-- O CICLO NÃO SE PEDE NA ANAMNESE (05/11/2026). A anamnese é do SUJEITO e é
+           atemporal: ela é uma fotografia do corpo, e o corpo não tem número de ciclo. O campo
+           existia aqui desde que este painel nasceu, e custava caro em três sítios: (1) pedia um
+           número que não quer dizer nada; (2) entrava na lista dos campos obrigatórios, e o
+           «Fazer anamnese» ficava travado à espera dele; (3) ia no BILHETE do ato — e a porta,
+           que não pede ciclo na anamnese, comparava «r.ato.ciclo» com um campo vazio, não
+           casava, e devolvia a pessoa à lista. Era esse o «abre e fecha de imediato».
+           Nos Planos (de ensino e de observação) o campo FICA: ali o ciclo é a posição na
+           cadeia de proveniência, e é ele que a ancora. -->
+      ${ehAnamnese ? '' : `<span class="campo"><label class="campo-rotulo" for="ato-ciclo">ciclo</label>
+        <input type="text" id="ato-ciclo" data-ato="ciclo" value="" inputmode="numeric"></span>`}
       ${ehAnamnese ? `<span class="campo"><label class="campo-rotulo" for="ato-aluna">aluna</label>
         <select id="ato-aluna" data-ato="aluna"><option value="">— nenhuma —</option></select></span>` : ''}
       ${ehPlano ? `<span class="campo"><label class="campo-rotulo" for="ato-turma">turma</label>
@@ -725,7 +734,10 @@ function scriptDoPainel(chave, escola) {
   function faltam() {
     var falta = [];
     if (!valor('professor')) falta.push('professor');
-    if (!valor('ciclo')) falta.push('ciclo');
+    /* O CICLO SÓ É OBRIGATÓRIO ONDE ELE EXISTE. Na anamnese o campo não está na página — exigir
+     * um campo que não se vê é a pior das travas: o botão nunca habilita e não há nada a
+     * preencher que o desabilite. */
+    if (!CFG.ehAnamnese && !valor('ciclo')) falta.push('ciclo');
     if (CFG.ehAnamnese && !valor('aluna')) falta.push('aluna');
     if (CFG.ehPlano && !valor('turma')) falta.push('turma');
     /* O PO NAO PEDE TURMA: pede o PLANO. A turma observada e a do plano escolhido, e por isso
@@ -1066,7 +1078,9 @@ function scriptDoPainel(chave, escola) {
   function endereco() {
     var q = [];
     if (valor('professor')) q.push('professor=' + encodeURIComponent(valor('professor')));
-    if (valor('ciclo')) q.push('ciclo=' + encodeURIComponent(valor('ciclo')));
+    /* O CICLO NÃO VAI NO ENDEREÇO DA ANAMNESE. Ele não é do ato, e um parâmetro a mais é um
+     * valor a mais para a porta interpretar (e a mais para o bilhete ter de casar). */
+    if (!CFG.ehAnamnese && valor('ciclo')) q.push('ciclo=' + encodeURIComponent(valor('ciclo')));
     if (CFG.ehAnamnese && valor('aluna')) q.push('aluna=' + encodeURIComponent(valor('aluna')));
     if (CFG.fonte !== 'anamnese') q.push('fonte=' + CFG.fonte);
     /* O PLANO VAI NO ENDEREÇO. Sem ele a porta escolhe o PRIMEIRO da estante — e o professor
@@ -1095,7 +1109,11 @@ function scriptDoPainel(chave, escola) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         senha: valor('senha'), professor: valor('professor'), fonte: CFG.fonte,
-        ciclo: valor('ciclo'), aluna: valor('aluna'), plano: valor('plano'),
+        /* O BILHETE LEVA O QUE O ATO TEM. Na anamnese não há ciclo — e mandá-lo (mesmo vazio)
+         * fazia a porta comparar um campo que ela própria esconde. O bilhete descreve o ato; um
+         * acto sem ciclo não declara ciclo. */
+        ciclo: CFG.ehAnamnese ? '' : valor('ciclo'),
+        aluna: valor('aluna'), plano: valor('plano'),
       }),
     }).then(function (r) {
       var d = r.dados || {};
@@ -1698,4 +1716,13 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
   };
 }
 
-module.exports = { pagina, FAMILIAS, listaDaPorta, turmaDaAluna, nomeDoProfessor, dia, acoesDaLinha };
+/* `painelDoAto` SAI TAMBÉM, e não é conveniência de teste (05/11/2026).
+ *
+ * O painel é a única superfície onde os campos do ato são decididos, e ele é PURO: recebe a chave
+ * da família e a escola, e devolve marcação. Devolvê-lo permite provar, sem navegador, que a
+ * anamnese não desenha o campo «ciclo» e que o plano de ensino continua a desenhá-lo — que é
+ * exactamente o par que a correcção de 05/11 tinha de garantir. Um `regex` sobre o ficheiro
+ * provaria a condição; isto prova o RESULTADO dela. */
+module.exports = {
+  pagina, FAMILIAS, listaDaPorta, turmaDaAluna, nomeDoProfessor, dia, acoesDaLinha, painelDoAto,
+};

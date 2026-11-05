@@ -537,6 +537,130 @@ async function chamar(env, caminho, opcoes) {
       'sem este repasse o campo saía como texto livre');
   });
 
+  console.log('\n8. AS ALUNAS, E NÃO A TURMA — a correcção de desenho de 05/11/2026');
+
+  await okAsync('a linha de base guarda as ALUNAS do recorte, e não uma turma', async () => {
+    const kv = kvFalso();
+    const env = envFalso(kv);
+    const r = await chamar(env, '/api/bastidores/linha-de-base', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: 'Recorte da Aluna A', professor: 'rabo-gramde',
+        alunas: ['Aluna A', 'Aluna B'], campos: ['equilibrio-unipodal'],
+        senhaDirecao: 'senha-de-prova',
+      }),
+    });
+    assert.strictEqual(r.status, 201, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 300));
+    assert.deepStrictEqual(r.corpo.linha.alunas, ['Aluna A', 'Aluna B'],
+      'a lista de alunas tem de ir gravada — é ela que decide de quem é o corpo');
+    assert.strictEqual(r.corpo.linha.turma, undefined,
+      'a turma NÃO pertence a este registo: a turma nasce na curadoria');
+  });
+
+  await okAsync('a agregação lê as anamneses das ALUNAS escolhidas', async () => {
+    const chave = 'bastidores/' + ESCOLA + '/linhas-de-base';
+    const kv = kvFalso({
+      [chave]: JSON.stringify([{
+        id: 'recorte-a', nome: 'Recorte A', professor: null,
+        alunas: ['Aluna A'],
+        campos: [{ id: 'equilibrio-unipodal', nome: 'Equilíbrio unipodal', grupo: 'x' }],
+        atualizada_em: '2026-11-05T10:00:00Z',
+      }]),
+    });
+    const env = envFalso(kv);
+    /* Sem acervo (o KV falso não tem envelopes), a resposta é o estado vazio DITO — e é isso que
+     * se mede aqui: a rota não inventa uma tabela. A leitura real das anamneses está provada na
+     * secção 3, com envelopes. */
+    const r = await chamar(env, '/api/bastidores/linha-de-base/agregacao?id=recorte-a&alunas=Aluna%20A');
+    assert.strictEqual(r.status, 200, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 200));
+    assert.strictEqual(r.corpo.semAnamneses, true,
+      'sem retratos, a resposta DIZ que não há — em vez de devolver uma tabela vazia');
+    assert.ok(/anamnese/i.test(r.corpo.erro || ''), 'a mensagem fala de anamnese: ' + r.corpo.erro);
+  });
+
+  /* A TELA. O que se prova aqui é o que ela EMITE: a secção nova tem a lista de alunas e não a de
+   * turmas, o botão de gravar nasce travado, e a seta do título é a da secção (data-acordeao) e não
+   * um id solto — que era o defeito que fazia o clique não fazer nada. */
+  const PAGINA = (() => {
+    const b = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
+    const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
+    return b.paginaProducao('calango', { nome: 'Calango', modalidade: 'bale-classico' },
+      [], [], 'Dono', 'dono', [], [], {}, [], [], [], usos,
+      { modo: 'clara', paleta: 'bordo' }, '');
+  })();
+
+  ok('a secção escolhe ALUNAS, e já não pede turma', () => {
+    assert.ok(PAGINA.indexOf('id="lb-alunas"') !== -1, 'a lista de alunas tem de estar na tela');
+    assert.strictEqual(PAGINA.indexOf('id="lb-turma"'), -1,
+      'o campo de turma saiu: a turma nasce na curadoria, não aqui');
+  });
+
+  ok('sem anamnese o botão de gravar nasce DESABILITADO', () => {
+    assert.ok(/id="lb-enviar"[^>]*disabled/.test(PAGINA),
+      'o «Gravar» não pode estar activo quando não há retrato nenhum');
+    assert.ok(/id="lb-ler"[^>]*disabled/.test(PAGINA),
+      'e o «Ler as anamneses» também não');
+  });
+
+  ok('a seta do título recolhe a PRÓPRIA secção (data-acordeao), e não um id solto', () => {
+    /* O defeito medido: `tituloComAcordeao(..., 'corpo-alternar-form')` dava ao botão um `id` e
+     * NENHUM `data-acordeao`; o handler cai então no ramo do recolhedor das TURMAS, que não está
+     * na página, e o clique não faz nada. A seta tem de declarar a secção. */
+    assert.ok(/data-acordeao="sec-corpo"/.test(PAGINA),
+      'sem data-acordeao a seta não recolhe nada');
+    assert.ok(/SECOES_COM_ACORDEAO = \[[^\]]*"sec-corpo"/.test(PAGINA),
+      'e a secção tem de estar na lista que o arranque aplica');
+  });
+
+  console.log('\n9. O CICLO SAIU DA ANAMNESE — e era ele que fechava o formulário');
+
+  const LISTA = (() => {
+    const l = require(path.join(RAIZ, 'motor/servidor/listas-do-acervo.js'));
+    return l;
+  })();
+
+  /* O PAR QUE IMPORTA, e é o RESULTADO e não a condição: o painel é renderizado nos dois sentidos.
+   * Um `regex` sobre o ficheiro provaria que a condição existe; isto prova que ela produz o que se
+   * quer. O controle positivo — o plano de ensino continua a pedir o ciclo — impede que uma
+   * correcção que apagasse o campo de todos os atos passasse. */
+  ok('o painel da ANAMNESE já não desenha o campo ciclo, e o do PLANO continua a desenhá-lo', () => {
+    assert.ok(typeof LISTA.painelDoAto === 'function', 'o painel tem de ser renderizável fora da página');
+    const daAnamnese = LISTA.painelDoAto('anamnese', 'calango');
+    const doPlano = LISTA.painelDoAto('plano-de-ensino', 'calango');
+    assert.strictEqual(/id="ato-ciclo"/.test(daAnamnese), false,
+      'a anamnese é do sujeito e atemporal: não pede ciclo');
+    assert.strictEqual(/id="ato-ciclo"/.test(doPlano), true,
+      'no plano o ciclo é a posição na cadeia — o campo fica');
+    assert.strictEqual(/id="ato-aluna"/.test(daAnamnese), true,
+      'e a anamnese continua a pedir a aluna, que é o sujeito do ato');
+  });
+
+  ok('nenhum campo da anamnese exige ciclo (o botão não pode ficar travado para sempre)', () => {
+    const fonte = fs.readFileSync(path.join(RAIZ, 'motor/servidor/listas-do-acervo.js'), 'utf8');
+    assert.ok(/if \(!CFG\.ehAnamnese && !valor\('ciclo'\)\) falta\.push\('ciclo'\)/
+      .test(fonte), 'exigir um campo que não se vê é a pior das travas: nunca habilita');
+  });
+
+  ok('o bilhete do ato não leva ciclo quando o ato é a anamnese', () => {
+    const fonte = fs.readFileSync(path.join(RAIZ, 'motor/servidor/listas-do-acervo.js'), 'utf8');
+    assert.ok(/ciclo: CFG\.ehAnamnese \? '' : valor\('ciclo'\)/.test(fonte),
+      'um ato sem ciclo não declara ciclo');
+  });
+
+  ok('a porta não confere o ciclo do bilhete quando a fonte é a anamnese', () => {
+    const porta = fs.readFileSync(path.join(RAIZ, 'porta/index.html'), 'utf8');
+    assert.ok(/FONTE === 'anamnese'\s*\n?\s*\|\| String\(r\.ato\.ciclo/.test(porta),
+      'a conferência do bilhete tem de ser por ato: pedir à anamnese um ciclo que ela não tem '
+      + 'recusa todos os bilhetes, e a página volta à lista');
+  });
+
+  ok('a porta esconde o campo do ciclo na anamnese (e o `hidden` vem do servidor)', () => {
+    const porta = fs.readFileSync(path.join(RAIZ, 'porta/index.html'), 'utf8');
+    assert.ok(/id="ctx-ciclo-campo"\$\{FONTE === 'anamnese' \? ' hidden' : ''\}/.test(porta),
+      'escondido no markup, e não por JavaScript depois de pintar — senão aparece por um instante');
+  });
+
   console.log('\n' + (falhas.length ? falhas.length + ' de ' + (passou + falhas.length)
     : 'TUDO CERTO — ' + passou) + (falhas.length ? ' verificações FALHARAM' : ' asserções, 0 falha(s).'));
   if (falhas.length) {

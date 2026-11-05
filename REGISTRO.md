@@ -35766,3 +35766,55 @@ HEAD limpo**, medido em worktree separado.
 
 **Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**. O pacote da `calango` foi
 regenerado (a porta mudou) e a âncora foi recarimbada — `hash: 31de8f74…`, cadeia intacta.
+
+## 05/11/2026 — A linha de base é sobre ALUNAS e não sobre turmas; e o ciclo que fechava a anamnese
+
+Quatro correcções, todas da mesma sessão de uso, e a primeira delas desmonta um desenho meu — está
+registado como correcção, não como melhoria.
+
+**1. A ANAMNESE NÃO TEM CICLO, E O CAMPO ESTAVA LÁ.** A decisão era de 04/11 — a anamnese é do
+sujeito e é atemporal —, e a entrega dessa data tirou o campo do **corpo** do formulário. Ele
+continuava na **barra de contexto** e no **painel da listagem**, e o custo não era estético: (a)
+pedia um número que não quer dizer nada; (b) entrava na lista de campos obrigatórios, e o «Fazer
+anamnese» ficava travado à espera dele; (c) ia no **bilhete do ato**, e a porta — que não pede ciclo
+na anamnese — comparava `r.ato.ciclo` com um campo vazio, não casava, e devolvia a pessoa à lista.
+Era esse o **«abre o formulário e fecha voltando para a listagem»**. Os três sítios caem juntos: o
+campo não se desenha, não é exigido, não entra no endereço nem no bilhete, e a porta deixa de o
+conferir (cada ato confere o contexto que **tem** — pedir-lhe um que não tem é recusar todos). Nos
+Planos o campo fica: ali o ciclo é a posição na cadeia de proveniência.
+
+**2. A LINHA DE BASE É SOBRE ALUNAS, NÃO SOBRE TURMAS — e o erro era meu.** A primeira versão
+pedia «turma» e lia «o que a turma mostra». Ela desmontou-o: *«a turma não nasce com alunas; a turma
+só vai ter alunas quando eu fizer isso na curadoria»*. O argumento é de tempo e é decisivo: um ciclo
+já em curso, com plano e PO, e chega uma aluna nova na **quinta aula** — ela tem de entrar no corpo
+observado antes de a curadoria a atribuir a uma turma. Com a linha de base presa à turma, não tinha
+onde caber. O recorte passa a guardar a lista de **apelidos** (`alunas`), e é dela que a agregação lê
+as anamneses; a turma entra depois, na curadoria — e é a curadoria que dirá qual linha de base a
+turma curada trata.
+
+**3. SEM ANAMNESE NÃO HÁ O QUE ESCOLHER, E ISSO DIZ-SE.** Ela viu o absurdo antes de eu o ver: «não
+tenho nenhum aluno com anamnese feita, e todos os campos estão disponíveis para mim». Uma caixa que
+se marca sem retrato por trás promete um cruzamento que não existe. Agora, sem nenhuma anamnese: os
+24 campos não são desenhados, a secção mostra o motivo, o «Ler as anamneses» e o «Gravar» nascem
+`disabled` — **no markup**, e não por JavaScript, porque entre o pintar e o primeiro `fetch` há um
+instante em que o botão estaria clicável. A agregação também deixou de devolver uma tabela vazia:
+responde `semAnamneses: true` com o motivo escrito, porque «não há retratos» e «o recorte não casou»
+são coisas diferentes.
+
+**4. A SETA DO TÍTULO NÃO FAZIA NADA.** `tituloComAcordeao(a, b, c, d)` usa `d` como **id** do
+botão; sem `d`, o botão nasce com `data-acordeao="<secção>"`. O handler do clique bifurca por esse
+atributo: com ele recolhe a secção; sem ele cai no recolhedor **das turmas**. A secção do corpo
+nasceu com um id (`corpo-alternar-form`) e sem `data-acordeao`, e por isso o clique mandava recolher
+as turmas, que não estavam lá. É a mesma peça das outras quatro secções: sem id, a seta é da própria
+secção — e a secção entra na lista que o arranque aplica.
+
+**Medido:** `provar-linha-de-base` passou de 37 a **47 asserções**. As dez novas provam o par que
+importa, e nos dois sentidos: o painel da anamnese **renderizado** já não tem o campo ciclo e o do
+plano de ensino continua a ter (o `painelDoAto` passou a ser exportado justamente para isto — um
+regex sobre o ficheiro provaria a condição, não o resultado); a linha de base guarda as alunas e não
+tem `turma`; a secção escolhe alunas; o «Gravar» nasce desabilitado; a seta declara `data-acordeao`.
+**Dois A/B por reversão controlada:** reposta a conferência antiga do bilhete, reprova 1; reposto o
+id no título, reprova 1.
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/` **não foi tocado**. A porta mudou (o campo do ciclo
+e a conferência do bilhete) e o pacote da `calango` foi sincronizado; a âncora é recarimbada.

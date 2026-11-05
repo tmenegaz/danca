@@ -105,12 +105,25 @@
 > expurgo é um commit só. Prova nova: `provar-verbos-do-armazenamento`, **29 asserções**, a ler os
 > verbos **do ficheiro do contrato** e a passar pelo `criarArmazenamento`.
 >
+> **A linha de base é sobre ALUNAS, e a anamnese perdeu o ciclo (05/11/2026, segunda passagem).**
+> Quatro correcções da mesma sessão de uso. (1) O campo **ciclo** continuava na barra e no painel da
+> anamnese — e era ele que fechava o formulário: entrava na lista de obrigatórios e no bilhete do
+> ato, e a porta, que não pede ciclo na anamnese, não o fazia casar; cada ato confere o contexto que
+> **tem**. (2) O desenho da linha de base estava **errado**: pedia **turma**, e a turma não nasce com
+> alunas — a turma só as tem depois da curadoria, e uma aluna nova chega na quinta aula de um ciclo
+> em curso. Passa a guardar a lista de **alunas**. (3) Sem anamnese não há o que escolher: os campos
+> não se desenham, o «Gravar» nasce `disabled` **no markup**, e a agregação responde
+> `semAnamneses` com o motivo em vez de uma tabela vazia. (4) A seta do título não fazia nada —
+> `tituloComAcordeao` com um **id** em vez do `data-acordeao` cai no recolhedor das turmas. Prova:
+> `provar-linha-de-base`, **47 asserções**, com dois A/B por reversão controlada.
+>
 > **A linha de base do corpo é uma escolha do professor (05/11/2026).** A anamnese recolhe **24**
 > aspectos do corpo; o plano lia **quinze**, escritos à mão no conteúdo desde 02/11/2026 e iguais
 > para toda a escola e todo o ciclo — e sem caminho na tela para os mudar. Ficavam de fora o
 > formato anatómico dos joelhos, a arquitetura do arco plantar e a impulsão do allegro. Agora há
 > uma entidade **Linha de Base** (`bastidores/<escola>/linhas-de-base`), gerida em Bastidores →
-> Pedagogia → Corpo, e o plano importa-a como importa a turma. Ela é **do professor** (é ele quem
+> Pedagogia → Corpo, e o plano importa-a como importa a turma. O recorte é sobre **alunas** — a turma entra na curadoria,
+e é a curadoria que diz qual linha de base a turma curada trata. Ela é **do professor** (é ele quem
 > avalia, e a anamnese é uma fotografia), mas a leitura atravessa os professores — quem assume lê o
 > que estava e cria a sua; **nada é herdado**. A cascata de revalidação passou a **três passos**,
 > Produção → PE → PO, e o primeiro é derivado como os outros. Prova:

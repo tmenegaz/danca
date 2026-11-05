@@ -156,10 +156,29 @@ function normalizar(entrada, disponiveis, quando) {
   if (erros.length) return { ok: false, erros, linha: null };
 
   const professor = String(corpo.professor == null ? '' : corpo.professor).trim();
+  /* AS ALUNAS, E NÃO A TURMA (05/11/2026) — a correcção de desenho que a pesquisadora fez.
+   *
+   * «Quando eu vou olhar o corpo da linha de base, eu tenho que saber de quais ALUNAS eu estou
+   * olhando esse corpo. E não da turma. Porque a turma não nasce com alunas: a turma só vai ter
+   * alunas quando eu fizer isso na curadoria.»
+   *
+   * Ela está certa, e o argumento é de tempo, não de gosto: uma aluna NOVA chega na quinta aula de
+   * um ciclo já em curso, e precisa de entrar no recorte antes de a curadoria a atribuir a uma
+   * turma. Se a linha de base apontasse para a turma, essa aluna não teria onde caber — e o
+   * professor ficaria sem poder dizer «o corpo que eu vou observar inclui esta».
+   *
+   * A lista é de APELIDOS, e é ela que decide QUAIS anamneses a agregação lê. A turma entra depois,
+   * na curadoria. */
+  const alunas = (Array.isArray(corpo.alunas) ? corpo.alunas : [])
+    .map((a) => String(a == null ? '' : a).trim()).filter(Boolean);
+  const semRepetir = [];
+  for (const a of alunas) if (semRepetir.indexOf(a) === -1) semRepetir.push(a);
+
   const linha = {
     id,
     nome,
     professor: professor || null,
+    alunas: semRepetir,
     campos,
     atualizada_em: String(quando == null ? '' : quando) || null,
   };
