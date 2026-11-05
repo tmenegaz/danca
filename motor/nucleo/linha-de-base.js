@@ -197,9 +197,22 @@ function normalizar(entrada, disponiveis, quando) {
   /* O RASCUNHO É DECLARADO, E NÃO DEDUZIDO DO VAZIO (05/11/2026). Um pedido sem campos e sem
    * `rascunho: true` continua a ser recusado: a ausência do recorte pode ser um cliente que se
    * enganou, e aceitá-la em silêncio daria uma linha de base que parece pronta. Quem grava o passo
-   * 1 diz que está a gravar um rascunho; quem grava o passo 4 não o diz, e aí o recorte é exigido. */
+   * 1 diz que está a gravar um rascunho; quem grava o passo 4 não o diz, e aí o recorte é exigido.
+   *
+   * A RECUSA MUDA DE TEXTO CONFORME A ORIGEM, e a distinção é factual: em EDIÇÃO o pedido traz
+   * `id` (a linha de base já existe), e em CRIAÇÃO não traz. Uma criação sem campos e sem o selo é
+   * a assinatura de uma ABA ANTIGA — a página carregada antes de uma actualização do sistema manda
+   * o corpo de ontem, e o professor vê «escolha pelo menos um aspecto do corpo» num passo que não
+   * tem aspectos para escolher. Dizer-lhe «recarregue» custa uma linha e poupa a caça ao defeito
+   * que não existe (medido a 05/11/2026, minutos depois do deploy). */
   const rascunho = corpo.rascunho === true;
-  if (!campos.length && !rascunho) erros.push('escolha pelo menos um aspecto do corpo');
+  const pedidoTrazId = String(corpo.id == null ? '' : corpo.id).trim() !== '';
+  if (!campos.length && !rascunho) {
+    erros.push(pedidoTrazId
+      ? 'escolha pelo menos um aspecto do corpo'
+      : 'esta página é anterior a uma actualização do sistema: recarregue-a (Ctrl+Shift+R) e grave '
+        + 'outra vez — o primeiro passo grava um rascunho, e este pedido não o declara');
+  }
 
   const id = String(corpo.id == null ? '' : corpo.id).trim() || idDe(nome);
   if (!id) erros.push('o nome da linha de base não produz um identificador válido');

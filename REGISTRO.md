@@ -36105,3 +36105,17 @@ a recusa do envio, a leitura que sobrevive ao recorte e cai com o elenco, e o av
 
 **Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado; as provas vivem em
 `experimentos/` e a página em `motor/servidor/`.
+
+**Correção de 05/11/2026 (mesmo dia, minutos depois do deploy).** A entrada acima resolvia o passo
+1 → 2, mas a primeira tentativa da pesquisadora **depois** do deploy voltou a dar 400. O corpo do
+pedido que ela colou não trazia `rascunho`: era a **aba aberta antes do deploy** — a página é
+`no-store`, mas uma aba já carregada não se actualiza sozinha, e o JavaScript de ontem mandou o corpo
+de ontem. O servidor estava certo; a recusa é que mandava procurar um defeito inexistente, com o
+texto «escolha pelo menos um aspecto do corpo» num passo que **não tem aspectos para escolher**.
+
+A recusa passou a distinguir as duas origens por um facto do próprio pedido: **em edição vem `id`,
+em criação não vem**. Criação sem campos e sem o selo → «esta página é anterior a uma actualização do
+sistema: recarregue-a (Ctrl+Shift+R)». Edição sem campos → «escolha pelo menos um aspecto do corpo».
+Nada se aceita em silêncio: o rascunho continua a ser **declarado**, e a rota `enviar` continua a
+recusá-lo. `provar-linha-de-base` **87/87** (a asserção que media a mensagem antiga foi reescrita, e
+nasceu a do caso em edição).

@@ -139,10 +139,22 @@ ok('sem nome é recusado', () => {
   assert.ok(/nome/i.test(r.erros.join(' ')), 'a recusa tem de dizer que falta o nome');
 });
 
-ok('sem campos é recusado — o vazio é o estado de quem ainda não criou', () => {
+ok('sem campos e sem rascunho é recusado — e a recusa diz que a página é antiga', () => {
+  /* A CRIAÇÃO SEM CAMPOS E SEM O SELO é a assinatura de uma ABA ANTERIOR ao deploy (05/11/2026:
+   * o professor viu «escolha pelo menos um aspecto do corpo» no passo 1, minutos depois de o
+   * sistema já estar corrigido — a página aberta mandava o corpo de ontem). A recusa tem de o
+   * dizer, senão manda procurar um defeito que não existe. */
   const r = lb.normalizar({ nome: 'Turma infantil' }, DISPONIVEIS, '2026-11-05T10:00:00Z');
   assert.strictEqual(r.ok, false);
-  assert.ok(/pelo menos um/i.test(r.erros.join(' ')));
+  assert.ok(/recarregue/i.test(r.erros.join(' ')), 'a recusa manda recarregar: ' + r.erros.join(' '));
+});
+
+ok('em EDIÇÃO (com id) a recusa fala do RECORTE, e não de página antiga', () => {
+  const r = lb.normalizar({ id: 'nivel-1', nome: 'Nível 1' }, DISPONIVEIS, '2026-11-05T10:00:00Z');
+  assert.strictEqual(r.ok, false);
+  assert.ok(/pelo menos um aspecto/i.test(r.erros.join(' ')), r.erros.join(' '));
+  assert.ok(!/recarregue/i.test(r.erros.join(' ')),
+    'quem está a editar não tem a página errada: tem o recorte vazio');
 });
 
 ok('um campo que a anamnese não tem é recusado, e o nome dele aparece', () => {
@@ -495,7 +507,10 @@ async function chamar(env, caminho, opcoes) {
     });
     assert.strictEqual(semSelo.status, 400,
       'sem o selo de rascunho a ausência de recorte continua a ser recusada');
-    assert.ok(/aspecto do corpo/.test(semSelo.corpo.erro), semSelo.corpo.erro);
+    /* O CORPO EXACTO DO RELATO DELA (05/11/2026): nome, professor, alunas vazias, campos vazios e
+     * token — sem `rascunho`. Era a aba aberta antes do deploy. A recusa nomeia a causa. */
+    assert.ok(/recarregue/i.test(semSelo.corpo.erro),
+      'a recusa de uma criação sem selo diz que a página é anterior: ' + semSelo.corpo.erro);
 
     const rascunho = await chamar(env, '/api/bastidores/linha-de-base', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
