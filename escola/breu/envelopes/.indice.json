@@ -3,7 +3,6 @@
   "nomes": [
     "anamnese-20261103-1626.json",
     "plano-20261103-2200.json",
-    "plano-20261104-1732.json",
     "po-20261103-2202.json",
     "po-20261103-2221.json",
     "po-20261103-2242.json"
@@ -27,22 +26,6 @@
       "ciclo": "01",
       "ajuste_de": null,
       "gerado_em": "2026-11-03T22:00",
-      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
-      "turma": "Balé Nível 1 — Teste 3",
-      "repertorio": [
-        "Battement tendu",
-        "Plié"
-      ],
-      "professorNome": "coqui-de-redinha"
-    },
-    "plano-20261104-1732.json": {
-      "id": "plano-20261104-1732",
-      "fonte": "plano",
-      "escola": "breu",
-      "professor": "coqui-de-redinha",
-      "ciclo": "01",
-      "ajuste_de": "plano-20261103-2200",
-      "gerado_em": "2026-11-04T17:32",
       "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
       "turma": "Balé Nível 1 — Teste 3",
       "repertorio": [
