@@ -566,7 +566,13 @@ const LI = 'li.turma[data-turma="tu1"]';
     noCadastro.temBlocoNoPasso3 === false, noCadastro);
 
   // OS TRÊS PASSOS: o rótulo, a ordem e o nome semântico.
-  const passos = await pg.evaluate(() => [...document.querySelectorAll('button.passo')].map((b) => ({
+  //
+  // A CONSULTA É DA SECÇÃO DAS TURMAS, e não da página (05/11/2026). Ela era `document.
+  // querySelectorAll('button.passo')` — a peça, e não o dono —, e passava porque só as Turmas
+  // tinham passos. Quando a Linha de Base (e o verbete da anotação) chegaram à mesma página com
+  // a MESMA peça, a prova passou a ler catorze botões e a chamar-lhes «três». O que ela quer
+  // medir são os três passos DA TURMA; a peça ser partilhada é o desenho, e é bom que seja.
+  const passos = await pg.evaluate(() => [...document.querySelectorAll('#sec-turmas button.passo')].map((b) => ({
     qual: b.getAttribute('data-passo'),
     rotulo: b.textContent.replace(/[!]/g, '').replace(/\s+/g, ' ').trim(),
     atual: b.getAttribute('aria-current'),
@@ -580,8 +586,8 @@ const LI = 'li.turma[data-turma="tu1"]';
   // PASSOS, e só aparece quando se está a editar — fora da edição não há «!» nenhum. É o
   // que separa «navegar» de «editar».
   const semEdicao = await pg.evaluate(() => {
-    const ol = document.querySelector('ol.passos');
-    const alertas = [...document.querySelectorAll('.passo .passo-alerta')];
+    const ol = document.querySelector('#sec-turmas ol.passos');
+    const alertas = [...document.querySelectorAll('#sec-turmas .passo .passo-alerta')];
     return {
       editando: ol ? ol.getAttribute('data-editando') : null,
       quantos: alertas.length,

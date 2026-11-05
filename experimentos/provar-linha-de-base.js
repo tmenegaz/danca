@@ -992,6 +992,72 @@ async function chamar(env, caminho, opcoes) {
     dom.window.close();
   });
 
+  /* 13. A SECÇÃO É A DONA DO CONTEÚDO — a asserção que faltava (05/11/2026).
+   *
+   * O DEFEITO QUE ELA NÃO APANHOU. A tira dos cinco passos, o formulário e a lista da linha de base
+   * foram montados DEPOIS do `'</section>'` das Curadorias: ficaram soltos no `<main>`, e a
+   * `<section id="sec-corpo">` ficou com o título e três `</div>` órfãos — vazia. No ecrã, «Corpo —
+   * linha de base» abria em branco, e os cinco passos apareciam fora do menu.
+   *
+   * PORQUE PASSOU. As outras doze secções procuram os elementos por `id`, e `getElementById`
+   * atravessa a árvore: `#lb-tira` existia, tinha os cinco passos, e a prova dizia que sim. O que
+   * nunca se perguntou foi «de QUEM é este elemento?». Uma secção vazia e uma secção cheia dão a
+   * mesma resposta a todas as perguntas menos a essa.
+   *
+   * É a mesma família do `if` que filtrava o título vazio no `check-pacote.js`: «está aqui?» e
+   * «existe?» não são a mesma pergunta. Agora a prova pergunta pela PERTENÇA — e o jsdom resolve a
+   * árvore como o navegador, incluindo os `</div>` a mais.
+   */
+  console.log('\n13. A SECÇÃO É A DONA — o conteúdo do corpo vive dentro de #sec-corpo');
+  {
+    let JSDOM;
+    try { ({ JSDOM } = require('jsdom')); } catch (e) { throw new Error('jsdom ausente: ' + e.message); }
+    const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''));
+    const d = dom.window.document;
+
+    const corpo = d.getElementById('sec-corpo');
+    const curadorias = d.getElementById('sec-curadorias');
+    ok('a secção Corpo existe e não está vazia', () => {
+      assert.ok(corpo, '#sec-corpo tem de existir');
+      assert.strictEqual(corpo.querySelectorAll('.passo-painel').length, 5,
+        'os cinco painéis têm de ser filhos de #sec-corpo');
+    });
+    ok('a tira, o formulário e a lista estão DENTRO de #sec-corpo', () => {
+      for (const id of ['lb-tira', 'corpo-miolo', 'lb-lista', 'form-linha-base', 'lb-campos']) {
+        const el = d.getElementById(id);
+        assert.ok(el, 'falta #' + id);
+        assert.ok(corpo.contains(el), '#' + id + ' tem de viver dentro de #sec-corpo');
+      }
+    });
+    ok('e NÃO estão dentro das Curadorias', () => {
+      for (const id of ['lb-tira', 'corpo-miolo', 'lb-lista']) {
+        assert.strictEqual(curadorias.contains(d.getElementById(id)), false,
+          '#' + id + ' não pertence às Curadorias');
+      }
+    });
+    /* A SETA RECOLHE O FORMULÁRIO DESTA SECÇÃO. `definirSecaoRecolhida` procura `.col-form` dentro
+     * da secção: quando o miolo estava fora, `querySelector` devolvia `null`, o `if (miolo)` não
+     * fazia nada e a seta mudava de glifo sem esconder coisa nenhuma — o «não faz nada» relatado. */
+    ok('a seta do título encontra o miolo que manda recolher', () => {
+      const seta = corpo.querySelector('.secao-titulo .alternar-form');
+      assert.ok(seta, 'a seta tem de estar no título');
+      assert.strictEqual(seta.getAttribute('data-acordeao'), 'sec-corpo',
+        'sem id, a seta é da secção — e o handler recolhe pelo data-acordeao');
+      const alvo = corpo.querySelector('#' + seta.getAttribute('aria-controls'));
+      assert.ok(alvo, 'o aria-controls tem de apontar para um id que exista na secção');
+      assert.ok(corpo.querySelector('.col-form'), 'o recolhedor procura `.col-form` na secção');
+    });
+    ok('a grade é a peça das Turmas, com a faixa por cima', () => {
+      assert.ok(corpo.querySelector('.turmas-corpo'), 'a grade tem de ser a peça da casa');
+      assert.ok(corpo.querySelector('.turmas-faixa #lb-tira'),
+        'a tira vive na faixa, e a faixa é a primeira linha da grade');
+      const css = PAGINA;
+      assert.ok(css.indexOf('.secao[data-recolhido="sim"] .turmas-corpo>') !== -1,
+        'recolhido, o col-form da grade tem de sair (não é filho directo da .secao)');
+    });
+    dom.window.close();
+  }
+
   console.log('\n' + (falhas.length ? falhas.length + ' de ' + (passou + falhas.length)
     : 'TUDO CERTO — ' + passou) + (falhas.length ? ' verificações FALHARAM' : ' asserções, 0 falha(s).'));
   if (falhas.length) {

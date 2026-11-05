@@ -395,7 +395,20 @@ function main() {
   });
   provar('a escola é pré-preenchida', dom.porId.get('ctx-escola').value === 'fita');
   provar('o professor é pré-preenchido no select', dom.porId.get('ctx-professor').value === 'tiago-menegaz');
-  provar('o ciclo é pré-preenchido', dom.porId.get('ctx-ciclo').value === '01');
+  /* O CICLO NÃO É DA ANAMNESE — e a asserção foi INVERTIDA, não apagada (05/11/2026).
+   *
+   * Ela dizia «o ciclo é pré-preenchido», e era verdade enquanto a anamnese pedia ciclo. Desde
+   * 04/11/2026 ele saiu dos campos do ato (a anamnese é do sujeito, não do ciclo): `CAMPOS_DO_
+   * CONTEXTO`, na anamnese, é `escola`, `professor` e `aluna`. Aplicar o contexto passou a
+   * IGNORAR o ciclo que o envelope traga — e é isso que se mede aqui. A metade do plano
+   * (onde o ciclo continua a ser identidade do ato) é provada mais abaixo, noutra página.
+   *
+   * A asserção antiga ficou a falhar em silêncio desde a remoção: o campo existe no HTML (o
+   * `hidden` esconde-o na anamnese), e o valor vazio lia-se como «a prova é que está errada».
+   * Uma prova que envelhece sem ser invertida mente para o lado do código que já não existe. */
+  provar('o ciclo NÃO entra na anamnese, mesmo quando o envelope o traz',
+    porta.camposDoContexto.indexOf('ciclo') === -1 && dom.porId.get('ctx-ciclo').value === '',
+    'campos=' + porta.camposDoContexto.join(',') + ' ciclo=' + dom.porId.get('ctx-ciclo').value);
   provar('a ALUNA é pré-preenchida (era o campo que abria vazio)', dom.porId.get('ctx-aluna').value === 'Vavá');
   const caixaAluna = dom.porId.get('caixa-ctx-aluna');
   provar('o campo da aluna deixa de estar marcado como faltante', caixaAluna.classList.contains('falta') === false);
@@ -514,7 +527,9 @@ function main() {
     const porContexto = () => {
       boot.porId('ctx-escola').value = 'fita';
       boot.porId('ctx-professor').value = 'tiago-menegaz';
-      boot.porId('ctx-ciclo').value = '01';
+      // O CICLO NÃO ESTÁ AQUI (05/11/2026). Ele saiu do contexto da anamnese em 04/11/2026, e
+      // preenchê-lo na prova simulava um estado que a página já não tem: a porta fechava por
+      // outro motivo e a prova atribuía-o a um campo que não conta.
       boot.porId('ctx-aluna').value = 'Vavá';
     };
     porContexto();

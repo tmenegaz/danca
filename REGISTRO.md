@@ -35963,3 +35963,90 @@ querer dizer mais: que o campo deixe de existir quando a turma já tem elenco. F
 pergunta, não decisão.
 
 **Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado.
+
+## 05/11/2026 — A secção do corpo nasceu fora do `</section>`, e sessenta e três asserções não o notaram
+
+A pesquisadora abriu a página e disse o que via: «não tem nenhum step, tá tudo exatamente igual», «a
+seta de expandir o corpo linha de base não mostra nada», «o título está no lugar errado — tem de estar
+em cima, como o das Turmas». Três sintomas, uma causa.
+
+**A causa.** Ao substituir o corpo da secção eu montei a tira dos cinco passos, o formulário e a lista
+**depois** do `'</section>'` das Curadorias. O que sobrava dentro de `<section id="sec-corpo">` era o
+título e três `</div>` órfãos — uma secção **vazia**. Os cinco passos ficaram soltos no `<main>`, e por
+isso apareciam fora do menu; a seta mudava de glifo e não escondia nada, porque `definirSecaoRecolhida`
+procura o `.col-form` **dentro** da secção e não encontrava nenhum.
+
+**Porque é que a prova passou.** As doze asserções anteriores procuravam os elementos por `id`, e o
+`getElementById` **atravessa a árvore**: `#lb-tira` existia, tinha os cinco passos, e a prova dizia que
+sim. O que nunca se perguntou foi *de quem* é o elemento. Uma secção vazia e uma secção cheia dão a
+mesma resposta a todas as perguntas menos a essa — é a mesma família do `if` que filtrava o título
+vazio no `check-pacote.js`, onde «está aqui?» e «existe?» também não eram a mesma pergunta.
+
+**O que foi decidido.**
+
+- A secção passou a ser **dona** do seu conteúdo: `<section id="sec-corpo">` → `.turmas-corpo` →
+  `.turmas-faixa` (#lb-tira) + `.col-form#corpo-miolo` + `.col-lista`, com o `</section>` no fim. É a
+  forma das Turmas, e a peça é a mesma de propósito.
+- Recolhida, a grade passa a uma coluna e o `.col-form` sai — duas regras novas em `.secao[data-
+  recolhido="sim"] .turmas-corpo`. Sem elas, o `hidden` escondia o formulário mas a coluna da esquerda
+  ficava vazia a ocupar metade da tela: o `.col-form` **não** é filho directo da `.secao`, e as regras
+  antigas não lhe chegavam.
+- A prova ganhou o **bloco 13 — a pertença**: `#lb-tira`, `#corpo-miolo`, `#lb-lista`, `#form-linha-
+  de-base` e `#lb-campos` têm de estar `contains` de `#sec-corpo` **e** fora de `#sec-curadorias`, e a
+  seta tem de encontrar o `.col-form` que manda recolher.
+
+**E as bancadas antigas.** A regressão não era só a que ela viu: `provar-producao` tinha caído de
+**158/158** (medido em `c748e461`) para **154/158**, e eu não voltei a correr esta bancada depois de
+acrescentar a oitava secção. As quatro reprovações diziam a verdade sobre uma página que cresceu:
+
+- as secções passaram de **sete** a **oito**;
+- os `.col-form` de **oito** a **nove** (seis secções + as três abas de Turmas);
+- as listas de sete-em-sete de **cinco** a **seis** (a das linhas de base já gravadas);
+- e a regra «nenhum formulário traz explicação» deixou de valer para a secção nova.
+
+**Sobre a última, e é a única que afrouxa uma regra.** A regra de 16/10/2026 («só rótulo, campo e
+placeholder — quem preenche um cadastro já conhece o sistema») não chega a um **percurso**: ninguém
+conhece os cinco passos de uma linha de base que ainda não existia, e a pesquisadora já disse, por
+palavras, «não entendi para que serve» sobre a lista dos aspectos. A isenção ficou **nominal e com
+motivo escrito** — `FORA_DA_REGRA = { 'sec-aparencia': …, 'sec-corpo': … }` —, com uma asserção nova a
+exigir que as secções isentas **existam mesmo** na página (uma isenção que nomeia uma secção
+inexistente é uma regra a menos dada sem nada em troca) e que sejam só aquelas duas.
+
+**Dois defeitos mais, apanhados pelas bancadas antigas.** `provar-curadoria-e-limpeza` reprovava
+««Alunas» veste o mesmo que eles»: a nota do elenco herdado (`cu-elenco-nota`) tinha sido posta
+**entre o rótulo e o escolhedor**, e o rótulo é o irmão *anterior* do seu campo — o par partiu-se e
+«Alunas» virou um parágrafo escondido. A nota passou para **depois** do escolhedor. E
+`provar-cartao-da-turma` lia `document.querySelectorAll('button.passo')` — a peça, e não o dono —, o
+que passou a devolver catorze botões (os três das Turmas, os seis do verbete, os cinco da linha de
+base) e a chamar-lhes «três»; a consulta passou a ser `#sec-turmas button.passo`.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — a secção `sec-corpo` inteira dentro do seu
+`</section>`, com `.turmas-corpo`/`.turmas-faixa`; as duas regras de recolhimento; `cu-elenco-nota`
+depois de `esc-alunas`. `experimentos/provar-linha-de-base.js` — o bloco 13 (68 asserções).
+`experimentos/provar-producao.js` — as três contagens e a isenção declarada (159 asserções).
+`experimentos/provar-cartao-da-turma.js` — a consulta com dono. `experimentos/provar-ajustes-anamnese.js`
+— a asserção do ciclo **invertida** (ver abaixo).
+
+**A asserção que envelheceu ao contrário.** `provar-ajustes-anamnese` reprovava «o ciclo é pré-
+preenchido» desde 04/11/2026, quando o ciclo saiu do contexto da anamnese. A asserção não foi
+apagada: foi **invertida** — agora mede que o ciclo **não** entra na anamnese, mesmo quando o envelope
+o traz, e que continua a ser identidade do ato no plano (onde tem asserção própria). Uma prova que
+envelhece sem ser invertida mente a favor de um código que já não existe.
+
+**Medido.** `provar-linha-de-base` **68/68**; `provar-producao` **159/159** (era 154/158 em `1512c2cb`
+e 158/158 em `c748e461`); `provar-curadoria-e-limpeza` **23/23** (era 2 reprovações); `provar-ajustes-
+anamnese` **126/126**; `provar-acordeoes` e `provar-menu-da-producao` **55/55**; `check-identidade` e
+`check-indices` **0 erros**. O A/B foi feito em worktrees destacados (`/tmp/danca-ab` em `1512c2cb`,
+`/tmp/danca-ab2` em `c748e461`) para separar o que era meu do que já vinha de antes.
+
+**O que ainda não está feito.**
+
+- `provar-cartao-da-turma` fica com **1 reprovação pré-existente**, e ela não é desta mudança: «o termo
+  mostra TODAS as turmas que o usam» procura a linha do termo «plié» numa lista de **Termos** que a
+  página deixou de ter a 01/11/2026, quando o «Vocabulário Técnico do Balé» saiu. Já reprovava em
+  `c748e461`. Fica por decidir se a asserção se apaga (o dado mudou de sítio) ou se muda de fonte.
+- O deploy: a confirmação **no ar** é o passo seguinte a este commit, e pela regra do registo de
+  `1512c2cb` ela faz-se pedindo a página — não assumindo que a run correu.
+
+**Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado. As correcções de contagem e a
+isenção declarada vivem em `experimentos/`, que não é congelado; a página é `motor/servidor/`.

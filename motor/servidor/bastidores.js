@@ -2829,6 +2829,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // pela mesma regra das outras quatro secções (`.secao[data-recolhido="sim"]>.secao-titulo`).
     '.turmas-corpo[data-recolhido="sim"]{grid-template-columns:minmax(0,1fr);}' +
     '.turmas-corpo[data-recolhido="sim"] .passos{margin:.2rem 0 .45rem;}' +
+    // A MESMA COISA PARA A SECÇÃO CORPO (05/11/2026). Ela usa o `.turmas-corpo` como grade — é
+    // a peça que dá `grid-column:1/-1` e as duas colunas —, e por isso o `col-form` NÃO é filho
+    // directo da `.secao`: as regras de cima não lhe chegam. Sem estas duas, recolher escondia
+    // o formulário pelo `hidden` do script mas a grade continuava de duas colunas, com a coluna
+    // da esquerda vazia. Recolhido, a listagem ocupa a largura toda — como em todas as outras.
+    '.secao[data-recolhido="sim"] .turmas-corpo{grid-template-columns:minmax(0,1fr);}' +
+    '.secao[data-recolhido="sim"] .turmas-corpo>.col-form{display:none;}' +
     // NO TELEFONE, O CONECTOR SAI (18/10/2026). O traço entre os passos custa 1.1rem cada e
     // é ornamento: com ele, três passos e a seta não cabem em 320px de jeito nenhum. Sem ele,
     // o espaçamento entre os passos passa a fazer o mesmo trabalho — e mais nada muda.
@@ -4371,11 +4378,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label class="campo-rotulo">Alunas</label>' +
+    escolarAlunasCuradoria +
     // A NOTA DO ELENCO HERDADO (05/11/2026). Só aparece quando a turma escolhida tem alunas de
     // uma linha de base — e diz QUANTAS e de QUE linha, porque «apareceram umas fichas» sem
     // explicação se lê como um defeito.
+    //
+    // ELA VEM DEPOIS DO ESCOLHEDOR, e não antes (05/11/2026). A primeira versão pôs-se entre o
+    // rótulo e o campo, e partiu uma regra que a prova do formulário mede: o rótulo é o irmão
+    // ANTERIOR do seu campo (`#esc-alunas`), e quem o lê é a asserção da pele dos rótulos. Uma
+    // nota no meio do par transforma «Alunas» num parágrafo escondido — e o rótulo deixa de
+    // vestir o que os outros seis vestem. O que explica o estado fica DEPOIS do que o produziu.
     '<p class="nota" id="cu-elenco-nota" hidden></p>' +
-    escolarAlunasCuradoria +
     // O «REPERTÓRIO» VOLTOU A ESTE FORMULÁRIO A 03/11/2026 — e não é a reversão que parece.
     //
     // Ele saiu daqui a 19/10/2026 com uma razão que continua verdadeira: era o SEGUNDO lugar
@@ -4408,6 +4421,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     rodapePaginacao() +
     '</div>' +
     '</section>' +
+    '<section class="secao" id="sec-corpo" hidden>' +
+    /* O 4.º ARGUMENTO NÃO SE PASSA AQUI (05/11/2026) — e passar um foi o defeito.
+     *
+     * `tituloComAcordeao(a, b, c, d)` usa `d` como o **id** do botão; sem `d`, o botão nasce com
+     * `data-acordeao="<secção>"`. O handler do clique bifurca por esse atributo: com ele recolhe a
+     * SECÇÃO (que tem o `.col-form`); sem ele cai no recolhedor DAS TURMAS, que não está aqui — e
+     * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
+    tituloComAcordeao('sec-corpo', 'Corpo — linha de base', 'corpo-miolo') +
+    '<div class="turmas-corpo">' +
+    '<div class="turmas-faixa">' +
     /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
      *
      * PORQUE ESTA SECÇÃO EXISTE. A anamnese recolhe trinta aspectos — corpo, técnica e poiesis. O plano
@@ -4461,6 +4484,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         ' <span class="passo-t" id="lb-v' + n + '">—</span>' +
         '</button></li>').join('') +
     '</ol>' +
+    '</div>' +
     '<div class="col-form" id="corpo-miolo">' +
     '<p class="aviso" id="lb-sem-anamnese" hidden></p>' +
     '<form id="form-linha-base">' +
@@ -4522,18 +4546,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="rolagem"><ul class="lista" id="lb-lista"><li>carregando…</li></ul></div>' +
     rodapePaginacao() +
     '</div>' +
+    '</div>' +
     '</section>' +
-    '<section class="secao" id="sec-corpo" hidden>' +
-    /* O 4.º ARGUMENTO NÃO SE PASSA AQUI (05/11/2026) — e passar um foi o defeito.
-     *
-     * `tituloComAcordeao(a, b, c, d)` usa `d` como o **id** do botão; sem `d`, o botão nasce com
-     * `data-acordeao="<secção>"`. O handler do clique bifurca por esse atributo: com ele recolhe a
-     * SECÇÃO (que tem o `.col-form`); sem ele cai no recolhedor DAS TURMAS, que não está aqui — e
-     * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
-    tituloComAcordeao('sec-corpo', 'Corpo — linha de base', 'corpo-miolo') +
-    '</div>' +
-    '</div>' +
-    '</div>' +
     '<script>' +
     'var TOKEN = "";' +
     /* A FORMA DO NÍVEL, POR TRADIÇÃO (03/11/2026), DECLARADA ANTES DE SER USADA.

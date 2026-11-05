@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T08:18:11-0300`
-Commit atual: `5b7c8c10` — fix(estrutura): apagar um registo leva o ciclo que ele produziu — em cascata, e so o dele
+Gerado em: `2026-11-05T13:45:57-0300`
+Commit atual: `1512c2cb` — docs(registro): o commit estava no main e o Worker servia a versao anterior
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -62,13 +62,14 @@ pe-junto
 pe-torto
 perna-boa
 pirueta-aberta
+rabo-gramde
 sapo-bailarino
 so-para-direita
 teclado-abnt
 tela-de-celular
 tiago-menegaz
-vaso-bonito (19)
-- **Ciclos com manifesto:** 2 variante(s)
+vaso-bonito (20)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -85,26 +86,26 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
-5b7c8c10 fix(estrutura): apagar um registo leva o ciclo que ele produziu — em cascata, e so o dele
-edb1d243 chore(estrutura): regerar o HANDOFF depois da regra PE -> PO
-2d587842 feat(estrutura): a relacao PE -> PO passa a ser do servidor, e nao do menu suspenso
-3c21a631 fix(estrutura): a ponte enquadra toda pagina, e a bancada do menu deixa de arranjar a pagina que mede
-cde67100 feat(estrutura): a moldura passa a ser um enquadramento, e a escola nova nasce com os tres formularios
-581742f7 fix(experimentos): a prova do corpo não depende de um elo do PO que o acervo pode expurgar
-4309a18a fix(estrutura): o Novo registo deixa de voltar a lista, e o ciclo muda de forma com a fonte
-24f40d5a feat(template): a linha a apagar ganha veu, fio e spinner — e a folha ganha a peca
-5c844c3d chore(estrutura): regerar os índices derivados
-ad141e24 feat(acervo): envelope/.indice.json
-5b94a840 chore(acervo): apagar envelope/po-20261104-1811.json
-2f5294ce fix(template): o layout da coluna nao depende so de :has(), e o menu volta a responder
-37c1fbfe feat(estrutura): o PO apaga-se, e o menu dos formularios ganha bancada
-69b6ccae fix(estrutura): os dois planos passam a ter dois nomes
-73ef1683 fix(estrutura): a aula deriva do plano, e a origem do corpo fica provada no envelope real
-af0e8267 fix(estrutura): o corpo tem uma fonte so — o detalhe na Aula 1, o ponteiro no plano
-e199a85e feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estrita, e a anamnese e datada
-b9722672 fix(campo): o cabecalho do ato cabe no telefone, e as tres assercoes eram da bancada
-a90058f2 fix(po): o plano de observacao tem tres eixos, e o corpo vem da anamnese
-a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
+1512c2cb docs(registro): o commit estava no main e o Worker servia a versao anterior
+aac98600 feat(po): a linha de base em cinco passos, e a leitura que vem antes da escolha
+eaacdee1 fix(po): a linha de base oferece os trinta campos, musicalidade incluida
+c7499c37 chore(estrutura): regerar os índices derivados
+82de370e feat(acervo): envelope/anamnese-20261105-1240.json
+e539d047 feat(acervo): envelope/.indice.json
+d60baced fix(po): a linha de base e sobre ALUNAS e nao sobre turmas, e o ciclo sai da anamnese
+2700dc0f feat(po): a linha de base do corpo passa a ser uma escolha do professor
+c748e461 fix(tools): o ciclo-zero deixa de exigir um ficheiro chamado .html
+9b90bc31 feat(estrutura): habilitar rabo-gramde em bale-classico, contemporaneo
+abcf03cc feat(escola): o professor rabo-gramde passa a chamar-se «Rabo Grande»
+1f016613 feat(acervo): envelope/.indice.json
+8a89bac8 feat(estrutura): criar a escola calango (motor completo)
+cc9f3906 chore(estrutura): regerar os índices derivados
+9b28ddd8 chore(estrutura): expurgar a escola breu
+7795f6ee chore(estrutura): regerar os índices derivados
+c9de0a81 feat(acervo): envelope/.indice.json
+1fbd2ba8 chore(acervo): apagar envelope/anamnese-20261103-1626.json
+50a52540 chore(estrutura): regerar os índices derivados
+7d5f273a feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -113,19 +114,7 @@ a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade
 
 ### cafe-no-bule — 0 ciclo(s)
 
-### coqui-de-redinha — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): breu, breu-bale-nivel-1-teste-3
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-| breu | ciclo-01-breu-bale-nivel-1-teste-3-po.md | Input_PO_Aguardando | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `356e51b7c920` | (vazio) | Input_PO_Aguardando |
+### coqui-de-redinha — 0 ciclo(s)
 
 ### luz-azul — 0 ciclo(s)
 
@@ -154,6 +143,18 @@ a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade
 ### perna-boa — 0 ciclo(s)
 
 ### pirueta-aberta — 0 ciclo(s)
+
+### rabo-gramde — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): calango
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| calango | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| calango | ciclo-01-calango.fipp | `31de8f746770` | (vazio) | — |
 
 ### sapo-bailarino — 1 ciclo(s)
 
@@ -230,106 +231,94 @@ a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — Apagar um registo leva o ciclo que ele produziu: a cascata passa a estar ligada ao gesto da listagem
+## 05/11/2026 — A secção do corpo nasceu fora do `</section>`, e sessenta e três asserções não o notaram
 
-**Três sintomas, três causas independentes.** A pesquisadora descreveu-os em cadeia: apagou o
-Plano de Observação, depois o Plano de Ensino, e o resultado foi «o plano de observação ainda está
-aqui. Ele não sumiu. Posso acessá-lo. E os documentos que ele gerou também estão aqui… as aulas
-ainda estão aqui», com o plano de ensino a dizer-se «vinculado» depois disso.
+A pesquisadora abriu a página e disse o que via: «não tem nenhum step, tá tudo exatamente igual», «a
+seta de expandir o corpo linha de base não mostra nada», «o título está no lugar errado — tem de estar
+em cima, como o das Turmas». Três sintomas, uma causa.
 
-### 1. O gesto de apagar era SÓ o envelope
+**A causa.** Ao substituir o corpo da secção eu montei a tira dos cinco passos, o formulário e a lista
+**depois** do `'</section>'` das Curadorias. O que sobrava dentro de `<section id="sec-corpo">` era o
+título e três `</div>` órfãos — uma secção **vazia**. Os cinco passos ficaram soltos no `<main>`, e por
+isso apareciam fora do menu; a seta mudava de glifo e não escondia nada, porque `definirSecaoRecolhida`
+procura o `.col-form` **dentro** da secção e não encontrava nenhum.
 
-`DELETE /api/po-vinculo/:id` apagava o registo do acervo e mais nada — o comentário da rota até o
-dizia: «apagar o envelope do acervo não toca no que já foi gerado». O produto do ciclo (o
-`index.html` que o menu lista, o `plano.html`, o `aula-01.html`, o `lancamento.html`, a
-`captura-aula-01.html`, os PDF, as referências, a notação, as listagens) ficava inteiro, e o menu
-também — a montagem o deriva dos pacotes.
+**Porque é que a prova passou.** As doze asserções anteriores procuravam os elementos por `id`, e o
+`getElementById` **atravessa a árvore**: `#lb-tira` existia, tinha os cinco passos, e a prova dizia que
+sim. O que nunca se perguntou foi *de quem* é o elemento. Uma secção vazia e uma secção cheia dão a
+mesma resposta a todas as perguntas menos a essa — é a mesma família do `if` que filtrava o título
+vazio no `check-pacote.js`, onde «está aqui?» e «existe?» também não eram a mesma pergunta.
 
-A CASCATA JÁ EXISTIA: `apagarCicloDoRepo`, a mesma que a Produção usa, com a guarda do último
-ciclo. O que faltava era **estar ligada ao gesto da listagem**.
+**O que foi decidido.**
 
-### 2. A cadeia devolvia o elo anterior, e o gesto lia-se como mentira
+- A secção passou a ser **dona** do seu conteúdo: `<section id="sec-corpo">` → `.turmas-corpo` →
+  `.turmas-faixa` (#lb-tira) + `.col-form#corpo-miolo` + `.col-lista`, com o `</section>` no fim. É a
+  forma das Turmas, e a peça é a mesma de propósito.
+- Recolhida, a grade passa a uma coluna e o `.col-form` sai — duas regras novas em `.secao[data-
+  recolhido="sim"] .turmas-corpo`. Sem elas, o `hidden` escondia o formulário mas a coluna da esquerda
+  ficava vazia a ocupar metade da tela: o `.col-form` **não** é filho directo da `.secao`, e as regras
+  antigas não lhe chegavam.
+- A prova ganhou o **bloco 13 — a pertença**: `#lb-tira`, `#corpo-miolo`, `#lb-lista`, `#form-linha-
+  de-base` e `#lb-campos` têm de estar `contains` de `#sec-corpo` **e** fora de `#sec-curadorias`, e a
+  seta tem de encontrar o `.col-form` que manda recolher.
 
-Apagar o vigente de uma cadeia faz o elo de trás voltar a ser o vigente: a linha da lista **não
-desaparece**, muda de carimbo. Sem uma palavra, isso é «não apagou». Agora a exclusão leva a
-**cadeia do ciclo** — os POs dele —, e a linha desaparece mesmo; e quando um elo anterior volta a
-ser o vigente (o caso do plano), a resposta diz **qual** (`anteriorVigente`) e a lista mostra o
-recado uma vez, por `sessionStorage`.
+**E as bancadas antigas.** A regressão não era só a que ela viu: `provar-producao` tinha caído de
+**158/158** (medido em `c748e461`) para **154/158**, e eu não voltei a correr esta bancada depois de
+acrescentar a oitava secção. As quatro reprovações diziam a verdade sobre uma página que cresceu:
 
-### 3. O plano «vinculado a nada»
+- as secções passaram de **sete** a **oito**;
+- os `.col-form` de **oito** a **nove** (seis secções + as três abas de Turmas);
+- as listas de sete-em-sete de **cinco** a **seis** (a das linhas de base já gravadas);
+- e a regra «nenhum formulário traz explicação» deixou de valer para a secção nova.
 
-Era vinculado a três POs antigos que o gesto não tinha apagado — cada clique apagava um elo e
-revelava o seguinte. Com a cadeia levada, o plano fica **livre**: apagados os POs, não há quem
-declare o vínculo. É o modelo da curadoria — apagar o vínculo liberta o que estava preso.
+**Sobre a última, e é a única que afrouxa uma regra.** A regra de 16/10/2026 («só rótulo, campo e
+placeholder — quem preenche um cadastro já conhece o sistema») não chega a um **percurso**: ninguém
+conhece os cinco passos de uma linha de base que ainda não existia, e a pesquisadora já disse, por
+palavras, «não entendi para que serve» sobre a lista dos aspectos. A isenção ficou **nominal e com
+motivo escrito** — `FORA_DA_REGRA = { 'sec-aparencia': …, 'sec-corpo': … }` —, com uma asserção nova a
+exigir que as secções isentas **existam mesmo** na página (uma isenção que nomeia uma secção
+inexistente é uma regra a menos dada sem nada em troca) e que sejam só aquelas duas.
 
-### A ordem, e é ela a garantia
+**Dois defeitos mais, apanhados pelas bancadas antigas.** `provar-curadoria-e-limpeza` reprovava
+««Alunas» veste o mesmo que eles»: a nota do elenco herdado (`cu-elenco-nota`) tinha sido posta
+**entre o rótulo e o escolhedor**, e o rótulo é o irmão *anterior* do seu campo — o par partiu-se e
+«Alunas» virou um parágrafo escondido. A nota passou para **depois** do escolhedor. E
+`provar-cartao-da-turma` lia `document.querySelectorAll('button.passo')` — a peça, e não o dono —, o
+que passou a devolver catorze botões (os três das Turmas, os seis do verbete, os cinco da linha de
+base) e a chamar-lhes «três»; a consulta passou a ser `#sec-turmas button.passo`.
 
-1. a **cascata do produto**; se ela recusar, **nada** é apagado (nem o envelope, que antes
-   desaparecia deixando o ciclo de pé sem o registo que o justificava);
-2. os **envelopes dos POs do ciclo**, pelo **acervo** — e só depois de a cascata ter passado. Quem
-   mantém o `.indice.json` é o acervo, e uma segunda escrita do mesmo índice divergiria; é por isso
-   que a cascata passou a ter o modo `soOProduto`;
-3. o envelope pedido, idempotente.
+**Onde entrou.** `motor/servidor/bastidores.js` — a secção `sec-corpo` inteira dentro do seu
+`</section>`, com `.turmas-corpo`/`.turmas-faixa`; as duas regras de recolhimento; `cu-elenco-nota`
+depois de `esc-alunas`. `experimentos/provar-linha-de-base.js` — o bloco 13 (68 asserções).
+`experimentos/provar-producao.js` — as três contagens e a isenção declarada (159 asserções).
+`experimentos/provar-cartao-da-turma.js` — a consulta com dono. `experimentos/provar-ajustes-anamnese.js`
+— a asserção do ciclo **invertida** (ver abaixo).
 
-**Sem acesso ao repositório** a cascata não acontece, e a rota **diz isso** em vez de prometer o
-que não fez: o envelope sai, o ciclo fica, e a resposta nomeia o motivo.
+**A asserção que envelheceu ao contrário.** `provar-ajustes-anamnese` reprovava «o ciclo é pré-
+preenchido» desde 04/11/2026, quando o ciclo saiu do contexto da anamnese. A asserção não foi
+apagada: foi **invertida** — agora mede que o ciclo **não** entra na anamnese, mesmo quando o envelope
+o traz, e que continua a ser identidade do ato no plano (onde tem asserção própria). Uma prova que
+envelhece sem ser invertida mente a favor de um código que já não existe.
 
-### A guarda, e o isolamento
+**Medido.** `provar-linha-de-base` **68/68**; `provar-producao` **159/159** (era 154/158 em `1512c2cb`
+e 158/158 em `c748e461`); `provar-curadoria-e-limpeza` **23/23** (era 2 reprovações); `provar-ajustes-
+anamnese` **126/126**; `provar-acordeoes` e `provar-menu-da-producao` **55/55**; `check-identidade` e
+`check-indices` **0 erros**. O A/B foi feito em worktrees destacados (`/tmp/danca-ab` em `1512c2cb`,
+`/tmp/danca-ab2` em `c748e461`) para separar o que era meu do que já vinha de antes.
 
-A guarda é a da cadeia de âncoras e continua a ser a do núcleo: só o **último** ciclo da sequência
-se apaga, porque o `parentHash` do N+1 aponta para a âncora do N. A recusa nomeia o caminho
-(«apague de trás para a frente»), e **nada** é tocado. O isolamento é medido nos dois sentidos:
-apagar o ciclo 02 não deixa **nenhum** caminho do 01 na lista de apagados, e apagar o 01 com o 02
-vivo é recusado.
+**O que ainda não está feito.**
 
-> **A sequência é da TURMA, não da escola.** Dois ciclos de variantes diferentes são sequências
-> independentes, e a guarda não os vê um ao outro. Foi preciso corrigir o fixture da bancada para
-> o provar: com duas variantes, a guarda não dispara — e o teste passaria sem medir nada.
+- `provar-cartao-da-turma` fica com **1 reprovação pré-existente**, e ela não é desta mudança: «o termo
+  mostra TODAS as turmas que o usam» procura a linha do termo «plié» numa lista de **Termos** que a
+  página deixou de ter a 01/11/2026, quando o «Vocabulário Técnico do Balé» saiu. Já reprovava em
+  `c748e461`. Fica por decidir se a asserção se apaga (o dado mudou de sítio) ou se muda de fonte.
+- O deploy: a confirmação **no ar** é o passo seguinte a este commit, e pela regra do registo de
+  `1512c2cb` ela faz-se pedindo a página — não assumindo que a run correu.
 
-### O «ponto de exclamação» no Actions: não era falha
-
-O gesto de apagar não é um workflow — é um commit que o Worker faz pela API. O que ela viu com o
-título «apagar envelope» foi o **`Regerar os índices`** disparado por esse commit, e ele aparece
-**cancelado** (2 segundos depois), não falhado: o próprio commit de índice que ele produz dispara
-uma nova execução, e o `concurrency: cancel-in-progress: true` cancela a anterior. É de propósito —
-a derivação é idempotente e sem estado —, e o estado final converge: verificado no remoto, os dois
-envelopes apagados saíram, e o `.indice.json` ficou sem eles. **Não há nada a corrigir ali**; o que
-faltava era o passo seguinte, que é esta cascata.
-
-### A prova
-
-`experimentos/provar-apagar-o-ciclo.js` (**nova**, 33 asserções), com um repositório falso
-**inteiro** — API Contents e API Git —, porque em produção o **acervo também mora no repositório**
-(a primeira versão da bancada só falsificava a API Git e as leituras iam ao GitHub verdadeiro:
-`HTTP 401`, medido).
-
-| Secção | O que exige |
-|:--|:--|
-| 1 | o pacote, o plano, a referência, a notação, o PDF do ciclo, a aula, o lançamento, a captura, o PDF da aula, a porta, o `.conf` e as duas âncoras do 02 saem — e **nenhum** caminho do 01 |
-| 2 | com o 02 vivo, apagar o PO do 01 é **409** com o caminho escrito, e **nada** é apagado — nem produto, nem envelope |
-| 3 | sem repositório: o envelope sai, a resposta diz que o ciclo ficou, com o motivo |
-| 4 | a cadeia inteira do ciclo sai (o elo anterior não volta à lista) |
-| 5 | o plano livre apaga-se e não toca no ciclo vizinho |
-
-**O A/B sem a cascata reprova em 17 das 33.**
-
-**Motivo declarado (CONGELAMENTO.md):** `tools/` está congelado e **não foi tocado** nesta
-mudança — a cascata é a rotina que já existia (`motor/servidor/repo-escola.js`), e o que mudou foi
-o ponto de chamada (`rotas.js`, `cloudflare.js`) e a listagem (`listas-do-acervo.js`).
+**Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado. As correcções de contagem e a
+isenção declarada vivem em `experimentos/`, que não é congelado; a página é `motor/servidor/`.
 
 ## O que está pendente
-
-## 04/11/2026 — As colunas da aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade
-
-
-1. **As outras tabelas de duas colunas continuam 50/50** — a §1 (`Item | Definição`), a do eixo do
-   Corpo (`Critério | O que se observa`) e a da auditoria. Têm o mesmo defeito, e não foram tocadas
-   porque a pesquisadora as aprovou («legíveis e com bom comportamento visual»). Se a mesma régua
-   passar a valer para elas, é a mesma linha de separação — e a prova já sabe medi-la.
-2. **A largura é do gerador, não do documento antigo.** As aulas já publicadas noutras escolas não
-   foram regeradas; elas só ganham a correção quando forem geradas de novo.
-3. **Nada disto foi medido no ar** — as percentagens foram medidas no HTML que o pandoc escreve,
-   localmente.
 
 ## 04/11/2026 — O composto deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter número
 
@@ -377,6 +366,16 @@ o ponto de chamada (`rotas.js`, `cloudflare.js`) e a listagem (`listas-do-acervo
    e ela não foi feita.
 3. **Nada disto foi exercitado contra o GitHub a sério.** A exclusão mediu-se num GitHub falso, com
    as três respostas que a rotina usa.
+
+## 05/11/2026 — A secção do corpo nasceu fora do `</section>`, e sessenta e três asserções não o notaram
+
+
+- `provar-cartao-da-turma` fica com **1 reprovação pré-existente**, e ela não é desta mudança: «o termo
+  mostra TODAS as turmas que o usam» procura a linha do termo «plié» numa lista de **Termos** que a
+  página deixou de ter a 01/11/2026, quando o «Vocabulário Técnico do Balé» saiu. Já reprovava em
+  `c748e461`. Fica por decidir se a asserção se apaga (o dado mudou de sítio) ou se muda de fonte.
+- O deploy: a confirmação **no ar** é o passo seguinte a este commit, e pela regra do registo de
+  `1512c2cb` ela faz-se pedindo a página — não assumindo que a run correu.
 
 ## Pendências anteriores (índice)
 
@@ -730,9 +729,9 @@ o ponto de chamada (`rotas.js`, `cloudflare.js`) e a listagem (`listas-do-acervo
 - **04/11/2026** — Dois «Guardar» no mesmo minuto não perdem mais um documento → `REGISTRO.md` L34301
 - **04/11/2026** — A fusão das edições (decisão 84) e o espelho da verdade na… → `REGISTRO.md` L34387
 - **04/11/2026** — O cartão da aula é três dados do professor, e o guia são… → `REGISTRO.md` L34474
-- PO de **coqui-de-redinha · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **04/11/2026** — As colunas da aula têm a largura do que levam dentro, e a… → `REGISTRO.md` L34571
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 

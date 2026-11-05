@@ -4,7 +4,11 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **o Plano de Observação passa a
+> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **a linha de base chegou a
+> Bastidores em cinco passos, e a secção do corpo passou a ser dona do seu conteúdo**. (Ver as
+> passagens de 05/11/2026 mais abaixo, na ordem em que foram escritas.)
+>
+> **Fotografia anterior (04/11/2026).** Nesta entrega, **o Plano de Observação passa a
 > poder apagar-se**, e **o menu dos formulários ganha bancada**. (1) A linha do PO oferecia só
 > «Ajustar»: não havia estado, nem botão, nem rota. Agora há o trio — `estadoDoPo` no núcleo (o PO é
 > `solta` ou `legado` conforme tenha sucessor), `DELETE /api/po-vinculo/:id` com **409** quando
@@ -171,6 +175,27 @@ e é a curadoria que diz qual linha de base a turma curada trata. Ela é **do pr
 > verificação 15 da `provar-geracao-do-ciclo` prova-o por comportamento (pacote sintético em
 > diretório temporário, lista exacta dos ficheiros cobrados) **e** pelo negativo: com `DOCS="plano"`
 > o validador continua a reprovar. `tools/` é congelado → motivo declarado no `REGISTRO.md`.
+>
+> **A secção do corpo nasceu fora do `</section>`, e as bancadas não o notaram (05/11/2026, quinta
+> passagem).** Ela relatou três sintomas — «não tem nenhum step», «a seta de expandir não mostra
+> nada», «o título está no lugar errado» — e era **uma** causa: a tira dos cinco passos, o formulário
+> e a lista foram montados **depois** do `</section>` das Curadorias, e a `<section id="sec-corpo">`
+> ficou com o título e três `</div>` órfãos. As asserções passavam porque perguntavam «está aqui?»
+> por `getElementById`, que atravessa a árvore — **nunca perguntaram «de quem é este elemento?»**. O
+> bloco 13 da `provar-linha-de-base` passou a medir a **pertença** (`contains`), e recolhida a secção
+> a grade passa a uma coluna (o `.col-form` não é filho directo da `.secao`). **A regressão não era
+> só a que ela viu:** a `provar-producao` tinha caído de 158/158 (em `c748e461`) para 154/158 quando
+> a oitava secção entrou — três contagens (secções, `.col-form`, listas de sete) e a regra «nenhum
+> formulário traz explicação», que passou a ter **duas secções isentas nomeadas e com motivo**, e uma
+> asserção nova a exigir que as isentas **existam e sejam só aquelas**. Duas bancadas antigas
+> apanharam ainda dois defeitos reais: a nota do elenco herdado partia o par rótulo ↔ escolhedor
+> («Alunas» deixava de vestir o que os outros seis vestem), e `provar-cartao-da-turma` lia
+> `button.passo` **sem dono** (passou a devolver catorze botões e a chamar-lhes «três»). Provas:
+> `provar-linha-de-base` **68/68**, `provar-producao` **159/159**, `provar-curadoria-e-limpeza`
+> **23/23**, `provar-ajustes-anamnese` **126/126** (a asserção do ciclo foi **invertida**, não
+> apagada), `check-identidade` e `check-indices` **0 erros**. **PENDENTE:** `provar-cartao-da-turma`
+> fica com 1 reprovação **pré-existente** (a lista de Termos saiu da página a 01/11 e a asserção
+> ainda a procura), alheia a esta entrega.
 >
 > **Entrega anterior** (base `d3b623c`, árvore limpa). Nesta entrega, **as colunas da
 > aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade**. (1) As doze
@@ -3920,6 +3945,20 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **05/11/2026** — **A secção do corpo nasceu fora do `</section>`, e 63 asserções não o notaram.**
+  A tira dos cinco passos, o formulário e a lista ficaram montados **depois** do `</section>` das
+  Curadorias: `#sec-corpo` era uma casca com título e três `</div>` órfãos. A prova passava porque
+  perguntava «está aqui?» por `getElementById`, que atravessa a árvore — a pergunta que faltava era
+  **«de quem é este elemento?»**. O bloco 13 da `provar-linha-de-base` passou a medir a pertença.
+  A regressão era maior do que o ecrã: `provar-producao` caíra de **158/158** (em `c748e461`) para
+  **154/158** com a oitava secção — três contagens e a regra «nenhum formulário traz explicação», que
+  agora tem **duas secções isentas nomeadas e com motivo**, mais uma asserção a exigir que as isentas
+  existam e sejam só aquelas. E duas bancadas antigas apanharam defeitos reais: a nota do elenco
+  herdado partia o par rótulo ↔ escolhedor, e `provar-cartao-da-turma` lia `button.passo` sem dono.
+  Medido: **68/68 · 159/159 · 23/23 · 126/126**, `check-identidade` e `check-indices` **0 erros**.
+  **PENDENTE:** uma reprovação **pré-existente** em `provar-cartao-da-turma` (a lista de Termos saiu
+  da página a 01/11/2026 e a asserção ainda a procura).
 
 - **04/11/2026** — **O ciclo apaga-se de trás para a frente, a sequência é estrita, e a anamnese é
   datada.** A exclusão guarda o **último** ciclo (o `parentHash` do seguinte aponta para a âncora

@@ -954,7 +954,7 @@ curadoria, ao escolher a turma, acrescenta as fichas que vieram e diz de que lin
 que o professor tinha posto à mão ficam, porque quem edita uma curadoria antiga não pode perder o que
 lá estava.
 
-**A prova é a correr, e não só a marcação.** `provar-linha-de-base` (63 asserções) carrega a página
+**A prova é a correr, e não só a marcação.** `provar-linha-de-base` (68 asserções) carrega a página
 em **jsdom**, substitui o `fetch` e chama `mostrarPassoLb` de fora. Ela apanhou dois defeitos reais: a
 falta do passo 1 estava declarada como «o que falta nos anteriores» — de modo que o passo 1 nunca
 tinha falta e tudo passava —, e a tira era reaberta por `pintarTravasLb` depois de um `travarTudo` à
@@ -964,6 +964,18 @@ elementos, não a regra.
 
 **Sem anamnese, nada se abre.** A trava é de todos os passos, e a secção diz porquê em vez de mostrar
 um formulário que não leva a lado nenhum.
+
+**A secção é DONA do seu conteúdo, e a prova passou a perguntá-lo.** Na primeira montagem a tira, o
+formulário e a lista ficaram **depois** do `</section>` das Curadorias: `#sec-corpo` era uma casca com
+título e três `</div>` órfãos, os cinco passos apareciam soltos no `<main>`, e a seta mudava de glifo
+sem esconder nada — `definirSecaoRecolhida` procura o `.col-form` **dentro** da secção e não encontrava
+nenhum. As 63 asserções de então passavam porque todas perguntavam «está aqui?» por `getElementById`, que
+**atravessa a árvore**; nenhuma perguntava «de quem é este elemento?». A secção passou à forma das
+Turmas (`<section>` → `.turmas-corpo` → `.turmas-faixa` + `.col-form` + `.col-lista`), o recolhimento
+ganhou duas regras próprias (o `.col-form` não é filho directo da `.secao`, e sem elas a coluna da
+esquerda ficava vazia a ocupar metade da tela), e a prova ganhou um bloco de **pertença** (`contains`)
+além das asserções de presença. É a mesma família do `if` que filtrava o título vazio no
+`check-pacote.js`: **«está aqui?» e «existe?» não são a mesma pergunta.**
 
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |

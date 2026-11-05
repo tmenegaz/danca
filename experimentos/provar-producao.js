@@ -521,11 +521,14 @@ async function principal() {
   // C15 deu a preferência à ESCOLA — e o controlo tem de viver onde só a escola e o professor
   // principal entram. Não é pedagogia nem pessoa: é a forma da casa, e por isso ganhou grupo
   // próprio no menu.
-  // OITO desde 28/10/2026: a sétima era a última antes de «Verbetes da notação» entrar.
   // SETE desde 01/11/2026: «Vocabulário Técnico do Balé» saiu — o verbete passou a ser o sítio
   // onde o exercício se cadastra, e duas portas para a mesma rota eram a redundância que a
   // pesquisadora apontou. A lista e o formulário saíram; o DADO não (vive no repositório).
-  conferir('as sete secções estão na página', dom.secoes.length, 7);
+  //
+  // OITO desde 05/11/2026: «Corpo — linha de base» é a oitava. Ela não é pedagogia nem pessoa
+  // nem a forma da casa — é o RECORTE da anamnese, e vai para Bastidores porque é ali que o
+  // professor produz: escolhe as alunas, lê as anamneses delas e diz o que este ciclo observa.
+  conferir('as oito secções estão na página', dom.secoes.length, 8);
   conferir('…e a do vocabulário não está entre elas',
     dom.secoes.some((sec) => (sec.getAttribute('id') || '') === 'sec-vocabulario'), false);
   conferir('só o Painel inicial nasce visível', visiveis(dom.secoes), ['sec-painel']);
@@ -648,9 +651,35 @@ async function principal() {
   // necessária: sem ela, quem a vê assume que está a mudar a sua própria aparência e não a de
   // todos. Por isso a contagem é feita com a secção retirada, em vez de afrouxar a regra para
   // toda a página.
-  const semAparencia = html.replace(/<section class="secao" id="sec-aparencia"[\s\S]*?<\/section>/, '');
+  //
+  // A SEGUNDA EXCEÇÃO, E ELA É DE OUTRA NATUREZA (05/11/2026): «Corpo — linha de base» é um
+  // PERCURSO de cinco passos, e cada passo faz uma pergunta diferente — de quem é o corpo, o que
+  // o grupo mostra, o que este ciclo observa, para onde vão as alunas. A regra do cadastro
+  // («quem preenche já conhece o sistema») não chega aqui: ninguém conhece um percurso que ainda
+  // não existia, e a pesquisadora disse-o por palavras — «não entendi para que serve», sobre a
+  // lista dos aspectos. Uma frase por passo é o que separa um percurso de cinco caixas sem nome.
+  //
+  // O QUE NÃO SE AFROUXOU: continua a ser ZERO em todas as outras secções, e a exceção é uma
+  // lista nominal de secções, com o motivo escrito — não um `includes` que aceita o que vier.
+  const FORA_DA_REGRA = {
+    'sec-aparencia': 'ajuste da casa: a frase diz de QUEM é a escolha (18/10/2026)',
+    'sec-corpo': 'percurso de cinco passos: uma frase por pergunta, e o passo não se adivinha (05/11/2026)',
+  };
+  const semAparencia = Object.keys(FORA_DA_REGRA).reduce(
+    (acc, id) => acc.replace(new RegExp('<section class="secao" id="' + id + '"[\\s\\S]*?</section>'), ''),
+    html);
   conferir('nenhum formulário traz explicação (só rótulo, campo e placeholder)',
     (semAparencia.match(/class="dica"|<p class="nota">|<p class="sub">/g) || []).length, 0);
+  // E A EXCEÇÃO NÃO PODE CRESCER SEM QUE ALGUÉM LEIA O MOTIVO: as secções isentas têm de existir
+  // na página. Uma isenção que nomeia uma secção inexistente é uma regra a menos dada sem nada
+  // em troca. A leitura é do HTML, e não do DOM falso: `dom.secoes` são nós sem `getAttribute`
+  // útil para isto (o `id` vem vazio), e uma lista de isenções medida contra vazios passaria
+  // sempre — que é o defeito que esta asserção existe para travar.
+  conferir('as secções isentas da regra existem mesmo, e são as duas declaradas',
+    (html.match(/<section class="secao" id="([a-z-]+)"/g) || [])
+      .map((s) => s.replace(/^[\s\S]*id="|"$/g, ''))
+      .filter((id) => FORA_DA_REGRA[id]),
+    ['sec-aparencia', 'sec-corpo']);
   // O comentário que VAZOU: três linhas `//` escritas dentro da concatenação, com `\n`, iam
   // parar ao HTML como texto da página. A página não pode conter `// ` no corpo.
   conferir('nenhum comentário de fonte vazou para o corpo da página',
@@ -937,11 +966,12 @@ async function principal() {
     conferir('a lista de ' + s + ' fica na coluna da direita, paginada',
       corpo.includes('class="col-lista"') && corpo.includes('data-paginar') && corpo.includes('class="paginas"'), true);
   }
-  // CINCO secções de formulário desde 01/11/2026 (professores, alunas, verbetes, curadorias,
-  // aparência) mais as três abas de Turmas — o vocabulário saiu com a secção dele. As listas
-  // ficam à direita; a Aparência não tem lista — são dois botões e o que está em vigor.
-  conferir('o formulário fica na coluna da esquerda (5 secções + as 3 abas de Turmas)',
-    (html.match(/class="col-form"/g) || []).length, 8);
+  // SEIS secções de formulário desde 05/11/2026 (professores, alunas, verbetes, curadorias,
+  // aparência e a linha de base) mais as três abas de Turmas — o vocabulário saiu com a secção
+  // dele. As listas ficam à direita; a Aparência não tem lista — são dois botões e o que está em
+  // vigor, e a linha de base tem a das linhas já gravadas.
+  conferir('o formulário fica na coluna da esquerda (6 secções + as 3 abas de Turmas)',
+    (html.match(/class="col-form"/g) || []).length, 9);
   conferir('o script pagina as listas', script.includes('function paginar()') && script.includes('data-paginar'), true);
 
   // 8. AS ESCOLHAS: SETE dias em pílulas (lista curta, fechada, fixa — tudo à vista), e o
@@ -1115,9 +1145,11 @@ async function principal() {
     /max-width/.test(corpo), false);
   conferir('o formulário ficou uniforme nas cinco secções (34rem, intacto)',
     /grid-template-columns:minmax\(0,34rem\)/.test(casa(/\.secao\{[^}]*\}/)), true);
-  // CINCO desde 01/11/2026 — o vocabulário levou a sexta.
-  conferir('as listas mostram 7 linhas por página (4 secções + Turmas, que agora é uma só)',
-    (html.match(/data-por-pagina="7"/g) || []).length, 5);
+  // SEIS desde 05/11/2026 — a linha de base trouxe a sua lista (as linhas já gravadas), e ela
+  // pagina como as outras. As listas de alunas dentro do passo 2 NÃO contam aqui: elas crescem
+  // de dez em dez, que é outra régua (a escola pode ter quatrocentas).
+  conferir('as listas mostram 7 linhas por página (5 secções + Turmas, que agora é uma só)',
+    (html.match(/data-por-pagina="7"/g) || []).length, 6);
 
   // 11. AS PEÇAS INTERATIVAS, EXECUTADAS. Medir o HTML não basta: o escolhedor e a paginação
   //     são código que roda no navegador, e foi código assim que já deixou botões mortos
