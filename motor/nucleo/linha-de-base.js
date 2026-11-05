@@ -30,9 +30,25 @@
  * se ENSINA; a anamnese é onde ela se MEDE — complementares, não alternativas. Cortar a segunda por
  * causa do primeiro é tirar do professor a informação de que ele precisa para decidir o que ensinar.
  *
- * Hoje entram os **trinta** campos dos blocos 2 a 9: nove de `tecnica`, quinze de `funcional` e seis
- * de `musicalidade`. A dimensão viaja com cada um (é ela que diz em que eixo do que se observa o
- * aspecto cai), mas **não filtra**.
+ * Hoje entram os **trinta** campos dos blocos 2 a 9 — nove de `tecnica`, quinze de `funcional` e seis
+ * de `musicalidade` — **e os quinze da observação inicial** (05/11/2026). A dimensão viaja com cada
+ * um (é ela que diz em que eixo do que se observa o aspecto cai), mas **não filtra**.
+ *
+ * A OBSERVAÇÃO INICIAL FICOU DE FORA, E ERA O SÍTIO ONDE ELA MEDIA (05/11/2026). A anamnese tem 49
+ * nós respondíveis: os 4 da identificação, os 15 da observação inicial (5 elementos e os 10 em que
+ * «as cinco posições» se desmembra) e os 30 dos blocos 2 a 9. Este módulo lia os últimos trinta, e
+ * só — e a observação inicial é a **porta de entrada**: «a versão rápida do que os nove blocos
+ * investigam em detalhe. Não é ensino — verifica o que já existe. Dá o Norte.»
+ *
+ * O efeito foi medido na tela, e não era cosmético: a pesquisadora marcou «2ª posição — pés» como
+ * excelente nas duas alunas, voltou ao passo 3 e a leitura não mudou — porque `cinco-posicoes-2a-pes`
+ * vive em `observacaoInicial`, e a linha de base nunca o lia. Um campo que a anamnese pergunta e a
+ * linha de base ignora é a pior das duas coisas: o professor responde, o sistema não lê, e nada falha.
+ *
+ * O QUE CONTINUA DE FORA, e é deliberado: os quatro campos da identificação (`idade`,
+ * `conhecimentoPrevio`, `categoria-etaria`, `historico-de-praticas-corporais`). Eles não são aspectos
+ * do corpo que se observa — são o contexto do sujeito, e já chegam ao documento pelo envelope. O
+ * recorte é sobre o que se MEDE, e uma data de nascimento não se mede em quatro níveis.
  *
  * A SELEÇÃO É GRAVADA COM O NOME, e não só com o id. É deliberado: a linha de base é um registo
  * do que o professor escolheu **naquele momento**, e o passado não se reescreve (P-03). Se a
@@ -92,11 +108,70 @@ const semAcento = (t) => String(t == null ? '' : t)
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 
 /**
+ * AS OPÇÕES QUE A ANAMNESE DECLARA NUMA FRASE — `forma: "Bom · razoável · precisa desenvolver"`.
+ *
+ * A observação inicial não tem `opcoes`: ela declara a RÉGUA como texto, e é a mesma régua para
+ * todos os elementos. Ler a frase em vez de a repetir num segundo sítio é o que impede as duas
+ * listas de divergirem quando o conteúdo mudar — a mesma regra do `referencia` do bloco 3.
+ */
+function opcoesDaForma(forma) {
+  return String(forma == null ? '' : forma)
+    .split('·')
+    .map((o) => o.trim())
+    .filter(Boolean);
+}
+
+/**
+ * OS CAMPOS DA OBSERVAÇÃO INICIAL — a «porta de entrada» da anamnese, e ela é MEDÍVEL.
+ *
+ * Um elemento que DESMEMBRA («as cinco posições agrupa e desmembra, e por isso não responde por si»,
+ * §3.1 do `ARQUITETURA-ANAMNESE.md`) não entra: entram os dez subitens dele. Os outros cinco entram
+ * por si. São quinze, e é a conta da norma (`5 + 10`).
+ *
+ * A dimensão vem da própria anamnese quando ela a declara; onde não declara, é da musicalidade o
+ * elemento que a anamnese chama «a musicalidade», e o resto é técnica — o corpo e a sua mecânica,
+ * que é o que esta porta mede. A `forma` é a régua; a primeira opção é o melhor estado, como nos
+ * blocos.
+ */
+function camposDaObservacaoInicial(conteudo) {
+  const observacao = conteudo && conteudo.observacaoInicial;
+  const elementos = (observacao && Array.isArray(observacao.elementos)) ? observacao.elementos : [];
+  const saida = [];
+  const vistos = new Set();
+  for (const elemento of elementos) {
+    if (!elemento || !elemento.id) continue;
+    const opcoes = opcoesDaForma(elemento.forma);
+    // Um elemento sem régua declarada não se mede, e medi-lo seria inventar-lhe níveis.
+    if (!opcoes.length) continue;
+    const dimensao = String(elemento.dimensao || (elemento.id === 'musicalidade' ? 'musicalidade' : 'tecnica'));
+    const grupo = String(elemento.elemento || elemento.id);
+    const subitens = Array.isArray(elemento.subitens) ? elemento.subitens : [];
+    const itens = subitens.length ? subitens : [elemento];
+    for (const item of itens) {
+      if (!item || !item.id || vistos.has(String(item.id))) continue;
+      vistos.add(String(item.id));
+      saida.push({
+        id: String(item.id),
+        nome: String(item.elemento || item.campo || item.id),
+        // A observação inicial não é um bloco: é a porta que os nove blocos aprofundam.
+        bloco: null,
+        grupo: grupo,
+        dimensao: dimensao,
+        eixo: ROTULO_DA_DIMENSAO[dimensao] || '',
+        opcoes: opcoes.map(String),
+        referencia: opcoes[0],
+      });
+    }
+  }
+  return saida;
+}
+
+/**
  * OS CAMPOS DO CORPO QUE A ANAMNESE OFERECE — a lista de onde o professor escolhe.
  *
- * A ordem é a da anamnese (bloco a bloco), e não alfabética: é a ordem em que o professor
- * percorre o formulário, e uma lista que muda de ordem entre a anamnese e a produção obriga a
- * procurar duas vezes o mesmo campo.
+ * A ORDEM É A DA ANAMNESE, e não alfabética: a observação inicial primeiro (é a porta de entrada),
+ * depois os blocos 2 a 9 na ordem em que o professor os percorre. Uma lista que muda de ordem entre
+ * a anamnese e a produção obriga a procurar duas vezes o mesmo campo.
  *
  * `opcoes` vem junto porque é a RÉGUA: a primeira opção é o melhor estado que a anamnese
  * conhece, e é por ela que a agregação distingue «ponto de atenção» de «excelência». Sem as
@@ -104,7 +179,7 @@ const semAcento = (t) => String(t == null ? '' : t)
  */
 function camposDisponiveis(conteudo) {
   const blocos = (conteudo && Array.isArray(conteudo.blocos)) ? conteudo.blocos : [];
-  const saida = [];
+  const saida = camposDaObservacaoInicial(conteudo);
   for (const bloco of blocos) {
     if (!bloco || !Array.isArray(bloco.campos)) continue;
     for (const campo of bloco.campos) {

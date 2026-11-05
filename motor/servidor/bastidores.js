@@ -557,7 +557,8 @@ function musicasDosExercicios() {
 }
 
 /**
- * OS EXERCÍCIOS QUE TÊM NOTAÇÃO — `Set(nome)`, e é o que a CURADORIA oferece (03/11/2026).
+ * OS EXERCÍCIOS QUE TÊM NOTAÇÃO **NESTA ESCOLA** — `Set(nome)`, e é o que a CURADORIA oferece
+ * (03/11/2026; a vista da escola entrou a 05/11/2026).
  *
  * O PEDIDO DELA: «a lista de conteúdos disponíveis na curadoria não deve ser estática ou
  * excessiva; ela deve crescer e refletir dinamicamente apenas os passos/verbetes que de fato
@@ -566,22 +567,30 @@ function musicasDosExercicios() {
  * desconfiar dela.
  *
  * O QUE CONTA COMO «TEM NOTAÇÃO»: um verbete com, ao menos, UMA música e UM trecho escrito
- * dentro dela. Só a música não chega — um verbete criado e ainda sem células tem a chave da
- * música e nada lá dentro, e oferecê-lo seria prometer uma decomposição que não existe. É a
- * mesma leitura que a página do verbete faz para dizer «coberto».
+ * dentro dela, **na vista desta escola**. Só a música não chega — um verbete criado e ainda sem
+ * células tem a chave da música e nada lá dentro, e oferecê-lo seria prometer uma decomposição
+ * que não existe. É a mesma leitura que a página do verbete faz para dizer «coberto».
+ *
+ * A VISTA DA ESCOLA É O QUE FALTAVA (05/11/2026), e o defeito foi medido na tela: a Curadoria do
+ * `calango` oferecia «Battement tendu» e a lista de Verbetes da mesma escola não o mostrava. O
+ * alfabeto guarda o verbete do catálogo e o de cada escola (`8|2/4` e `8|2/4@breu`), e sem
+ * `registosDaEscola` esta função contava o verbete da `breu` como disponível para todas — a
+ * curadoria prometia um exercício que a escola não vê, não edita e não consegue compor (a
+ * composição também passa por `registosDaEscola`, e cairia em lacuna). Duas listas do mesmo
+ * facto divergem no primeiro verbete de escola, e a que fica a prometer é a que mente.
  *
  * O VOCABULÁRIO NÃO PERDE NADA: ele continua a ser a lista do dicionário e do produto. O que
  * esta função responde é outra pergunta — «o que já se pode ENSINAR com notação» —, e são
  * perguntas diferentes com listas diferentes por natureza.
  */
-function exerciciosComNotacao() {
-  const { alfabetos } = require('../nucleo/notacao.js');
+function exerciciosComNotacao(escola) {
+  const { alfabetos, registosDaEscola } = require('../nucleo/notacao.js');
   const nomes = new Set();
   for (const { alfabeto } of alfabetos()) {
     const verbetes = (alfabeto && alfabeto.verbetes) || {};
     for (const nome of Object.keys(verbetes)) {
       if (nome.startsWith('_')) continue;
-      const musicas = verbetes[nome] || {};
+      const musicas = registosDaEscola(verbetes[nome] || {}, escola);
       const temTrecho = Object.keys(musicas)
         .filter((k) => /^\d+\|/.test(k))
         .some((k) => {
@@ -2271,7 +2280,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // O QUE JÁ ESTÁ GRAVADO CONTINUA A LER-SE. As fichas de uma curadoria antiga vêm de
   // `c.repertorio` e são desenhadas pelo cliente sem passar pelo menu — um termo que perdeu a
   // notação não desaparece do registo (P-03/P-04: a memória não se apaga).
-  const comNotacao = exerciciosComNotacao();
+  const comNotacao = exerciciosComNotacao(escola);
   const escolarConteudosCuradoria = escolhedor('esc-conteudos',
     listaTermos.filter((t) => comNotacao.has(t.termo)).map((t) => ({
       valor: t.termo,
@@ -7938,12 +7947,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  return "";' +
     '}' +
+    /* A CURADORIA LÊ A MESMA LISTA DA PÁGINA DO VERBETE (05/11/2026).
+     *
+     * O DEFEITO, medido na tela: a Curadoria oferecia «Battement tendu» e a lista de Verbetes da
+     * MESMA escola não o mostrava. Eram duas fontes — o menu saía do alfabeto EMPACOTADO no Worker
+     * (a vista do dia do deploy) e a lista saía do repositório, lida a cada abertura —, e duas
+     * fontes do mesmo facto divergem no primeiro verbete criado ou na primeira escola que declare
+     * o seu. A regra da casa é uma peça só para a mesma pergunta; aqui a pergunta é «o que se pode
+     * ensinar com notação nesta escola», e quem a responde é `d.exercicios` — o MESMO array que
+     * desenha a listagem do verbete, com o filtro da escola já aplicado no servidor.
+     *
+     * O QUE ISTO **NÃO** FAZ: não apaga o que está gravado. As fichas de uma curadoria antiga são
+     * desenhadas de `c.repertorio` pelo servidor e não passam por este menu (P-03/P-04). Um termo
+     * que perdeu a notação sai da OFERTA e continua a LER-SE no registo.
+     */
+    'function sincronizarConteudosDaCuradoria(nomes){' +
+    '  var sel = document.querySelector("#esc-conteudos select.opcoes");' +
+    '  if (!sel) return;' +
+    // O rótulo de cada exercício é o que o servidor desenhou («Plié — Passo»). Aproveita-se, para
+    // a lista não mudar de feitio conforme a fonte: o que muda é SÓ o conjunto de nomes.
+    '  var rotulos = {};' +
+    '  Array.prototype.slice.call(sel.options).forEach(function(o){' +
+    '    if (o.value) rotulos[o.value] = o.textContent;' +
+    '  });' +
+    '  var antes = sel.value;' +
+    '  var html = "<option value=\\"\\">— escolher —</option>";' +
+    '  (nomes || []).forEach(function(n){' +
+    '    html += "<option value=\\"" + escHtml(n) + "\\">" + escHtml(rotulos[n] || n) + "</option>";' +
+    '  });' +
+    '  sel.innerHTML = html;' +
+    '  if (antes && (nomes || []).indexOf(antes) !== -1) sel.value = antes;' +
+    '}' +
     'function carregarVerbetes(){' +
     '  var lista = document.getElementById("lista-verbetes");' +
     '  if (!lista) return;' +
     '  fetch("/api/bastidores/verbete").then(lerResposta).then(function(d){' +
     '    if (!d.ok) { lista.innerHTML = "<li>Erro: " + (d.erro || "desconhecido") + "</li>"; return; }' +
     '    VERBETES = d;' +
+    '    sincronizarConteudosDaCuradoria((d.exercicios || []).map(function(x){ return x.nome; }));' +
     // O EXERCÍCIO: um `select` agrupado por categoria. A ordem das categorias é a do dia de
     // aula — barra e centro saem do mesmo vocabulário, a categoria é que os separa.
     '    var nomes = document.getElementById("vbnome");' +

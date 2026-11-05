@@ -64,9 +64,43 @@ console.log('\n1. O RECORTE — o que a anamnese oferece à escolha');
 
 const DISPONIVEIS = lb.camposDisponiveis(ANAMNESE);
 
-ok('TRINTA campos — todos os da anamnese, e não os quinze fixos de antes', () => {
-  assert.strictEqual(DISPONIVEIS.length, 30,
-    'a anamnese tem 30 campos nos blocos 2 a 9; veio ' + DISPONIVEIS.length);
+ok('QUARENTA E CINCO campos — os 30 dos blocos 2 a 9 e os 15 da observação inicial', () => {
+  /* A CONTA DA NORMA (`ARQUITETURA-ANAMNESE.md` §3): 4 da identificação + 15 da observação
+   * inicial + 30 dos blocos. A linha de base lê os 45 que se MEDEM — a identificação fica de fora,
+   * porque uma data de nascimento não se mede em três níveis.
+   *
+   * AOS TRINTA ANTERIORES FALTAM OS QUINZE DA OBSERVAÇÃO INICIAL (05/11/2026), e a falta foi
+   * medida na tela: a pesquisadora marcou «2ª posição — pés» como excelente nas duas alunas, voltou
+   * ao passo 3, e nada mudou — `cinco-posicoes-2a-pes` vive em `observacaoInicial`, e o módulo só
+   * lia `blocos`. */
+  assert.strictEqual(DISPONIVEIS.length, 45,
+    'a anamnese tem 45 campos que se medem (15 da observação inicial + 30 dos blocos); veio '
+    + DISPONIVEIS.length);
+});
+
+ok('a OBSERVAÇÃO INICIAL entra — é a porta de entrada, e era o que faltava', () => {
+  /* «Não é um bloco à parte: é a versão rápida do que os nove blocos investigam em detalhe. Não é
+   * ensino — verifica o que já existe. Dá o Norte.» Um aspecto que a anamnese pergunta e a linha de
+   * base ignora é o pior dos dois mundos: o professor responde, o sistema não lê, e nada falha. */
+  for (const id of ['cinco-posicoes-2a-pes', 'cinco-posicoes-1a-bracos', 'en-dehors', 'tendu',
+    'passe', 'meia-ponta', 'musicalidade']) {
+    assert.strictEqual(DISPONIVEIS.some((c) => c.id === id), true,
+      '«' + id + '» é da observação inicial e tem de ser escolhível');
+  }
+  // O elemento que DESMEMBRA não responde por si (§3.1): entram os dez subitens, não o pai.
+  assert.strictEqual(DISPONIVEIS.some((c) => c.id === 'cinco-posicoes'), false,
+    '«as cinco posições» agrupa e desmembra — quem se marca são os dez subitens');
+  // E os quatro da identificação continuam de fora: não são aspectos do corpo que se observa.
+  for (const id of ['idade', 'conhecimentoPrevio', 'categoria-etaria',
+    'historico-de-praticas-corporais']) {
+    assert.strictEqual(DISPONIVEIS.some((c) => c.id === id), false,
+      '«' + id + '» é identificação, não é medida do corpo');
+  }
+  const pes = DISPONIVEIS.find((c) => c.id === 'cinco-posicoes-2a-pes');
+  assert.strictEqual(pes.nome, '2ª posição — pés');
+  assert.deepStrictEqual(pes.opcoes, ['Bom', 'razoável', 'precisa desenvolver'],
+    'a régua é a `forma` que a anamnese declara — não uma segunda lista escrita aqui');
+  assert.strictEqual(pes.referencia, 'Bom', 'o melhor nível é o primeiro da forma');
 });
 
 ok('a MUSICALIDADE ENTRA — o corte anterior era erro meu, e o argumento é pedagógico', () => {
@@ -91,11 +125,15 @@ ok('a MUSICALIDADE ENTRA — o corte anterior era erro meu, e o argumento é ped
   }
 });
 
-ok('as três dimensões estão representadas, e a soma fecha nos trinta', () => {
+ok('as três dimensões estão representadas, e a soma fecha nos quarenta e cinco', () => {
+  /* 9 de técnica + 15 de funcional + 6 de musicalidade (os blocos 2 a 9) e, da observação
+   * inicial, 14 de técnica e 1 de musicalidade («a musicalidade», que a anamnese declara nesta
+   * porta). A observação inicial não declara `dimensao` em nenhum elemento: a leitura é do núcleo,
+   * e está escrita lá. */
   const por = {};
   for (const c of DISPONIVEIS) por[c.dimensao] = (por[c.dimensao] || 0) + 1;
-  assert.deepStrictEqual(por, { tecnica: 9, funcional: 15, musicalidade: 6 },
-    'nove de técnica, quinze de funcional e seis de musicalidade: ' + JSON.stringify(por));
+  assert.deepStrictEqual(por, { tecnica: 23, funcional: 15, musicalidade: 7 },
+    'vinte e três de técnica, quinze de funcional e sete de musicalidade: ' + JSON.stringify(por));
 });
 
 ok('cada campo declara o seu EIXO — a dimensão não filtra, mas diz onde o aspecto cai', () => {
@@ -341,13 +379,15 @@ async function chamar(env, caminho, opcoes) {
 }
 
 (async () => {
-  await okAsync('GET /api/bastidores/campos-do-corpo — trinta, com os grupos', async () => {
+  await okAsync('GET /api/bastidores/campos-do-corpo — quarenta e cinco, com os grupos', async () => {
     const env = envFalso(kvFalso());
     const r = await chamar(env, '/api/bastidores/campos-do-corpo');
     assert.strictEqual(r.status, 200, 'HTTP ' + r.status + ': ' + r.texto.slice(0, 200));
-    assert.strictEqual(r.corpo.campos.length, 30, 'os trinta campos da anamnese');
+    assert.strictEqual(r.corpo.campos.length, 45, 'os quarenta e cinco campos que se medem');
     assert.ok(r.corpo.campos.some((c) => c.dimensao === 'musicalidade'),
       'e a musicalidade tem de vir na resposta da rota, não só na do núcleo');
+    assert.ok(r.corpo.campos.some((c) => c.id === 'cinco-posicoes-2a-pes'),
+      'a observação inicial tem de chegar à TELA — é ela que a escolher');
     assert.ok(Array.isArray(r.corpo.grupos) && r.corpo.grupos.length >= 5,
       'os grupos vêm na ordem da anamnese, para a tela não os reordenar');
   });

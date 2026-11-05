@@ -4,9 +4,10 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **a linha de base chegou a
-> Bastidores em cinco passos, e a secção do corpo passou a ser dona do seu conteúdo**. (Ver as
-> passagens de 05/11/2026 mais abaixo, na ordem em que foram escritas.)
+> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **a linha de base passou a ler
+> os 45 campos que a anamnese mede — os 15 da observação inicial incluídos —, e a Curadoria passou
+> a oferecer os exercícios que ESTA escola pode compor**. (Ver as passagens de 05/11/2026 mais
+> abaixo, na ordem em que foram escritas.)
 >
 > **Fotografia anterior (04/11/2026).** Nesta entrega, **o Plano de Observação passa a
 > poder apagar-se**, e **o menu dos formulários ganha bancada**. (1) A linha do PO oferecia só
@@ -123,7 +124,10 @@
 > Alunas · 3 Leitura · 4 Recorte · 5 Turma**, com a mesma trava (não se chega a um passo com falta
 > nos anteriores, e sem anamnese nenhuma nada se abre). A **leitura cruza os trinta campos em quatro
 > eixos** — o que precisa de ser trabalhado, o que já é bom, a musicalidade, e o que o grupo tem em
-> comum —, e vem **antes** da escolha do recorte, que é o que lhe dá sentido. A lista de alunas é de
+> comum —, e vem **antes** da escolha do recorte, que é o que lhe dá sentido. **(Correcção de
+> 05/11/2026: passaram a ser 45 — os 30 dos blocos e os 15 da observação inicial; ver a entrada de
+> hoje na §11 e no `REGISTRO.md`. A redação anterior não se apaga: é o elo que registra o que se
+> pensou antes.)** A lista de alunas é de
 > **10 em 10** com rolagem, e cada aluna leva a etiqueta **«novo»** quando a anamnese dela é mais
 > recente do que a última leitura — derivada, não guardada. O passo 5 **não escreve na turma** (a
 > turma é o ritmo, decisão de 03/11): grava na linha de base que aquelas alunas foram para aquela
@@ -3945,6 +3949,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **05/11/2026** — **A linha de base lia 30 dos 49 nós, e a Curadoria prometia o verbete de outra
+  escola.** Dois relatos da mesma sessão, e as duas causas eram de **leitura** — não havia cache.
+  (1) `exerciciosComNotacao` lia o alfabeto **empacotado no Worker** e **não** aplicava a vista da
+  escola; a listagem do verbete lê o **repositório** e aplica (`registosDaEscola`). O «Battement
+  tendu» existe só na versão da `breu` (`8|2/4@breu`): a Curadoria da `calango` oferecia-o e a
+  listagem não o mostrava — **CONFIRMADO** ao arranque. O menu da Curadoria passou a ser preenchido
+  pelo **mesmo payload** que desenha a listagem (`/api/bastidores/verbete` → `d.exercicios`).
+  (2) `camposDisponiveis` lia só `conteudo.blocos` (30 campos), e o campo que ela marcou —
+  `cinco-posicoes-2a-pes`, «2ª posição — pés» — vive em `observacaoInicial`, que nunca era lida: o
+  professor respondia, o sistema não via, e nada falhava. Passa a ler os **45** que se medem (15 da
+  observação inicial + 30 dos blocos); os 4 da identificação ficam de fora, declarado. A/B contra o
+  `HEAD`: a função anterior devolve 30 e não tem o campo. Medido: **100/100 · 159/159 · 26/26 ·
+  50/50**, `check-identidade` **0 erros**. **PENDENTE:** a conferência no ar, e o menu de músicas do
+  plano (mesma família, outro ecrã) — que fica declarado e **não** corrigido.
 
 - **05/11/2026** — **A secção do corpo nasceu fora do `</section>`, e 63 asserções não o notaram.**
   A tira dos cinco passos, o formulário e a lista ficaram montados **depois** do `</section>` das

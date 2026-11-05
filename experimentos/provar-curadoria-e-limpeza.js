@@ -72,20 +72,35 @@ function pagina(termos) {
     TURMAS, termos, {}, [], [], []);
 }
 
-/* OS EXERCÍCIOS QUE TÊM NOTAÇÃO, derivados do alfabeto publicado — a expectativa da §A sai
- * daqui, e não de um número. Um exercício conta quando tem uma música (`<tempos>|<compasso>`) com
- * pelo menos um trecho dentro. */
-function comNotacao() {
+/* OS EXERCÍCIOS QUE TÊM NOTAÇÃO NESTA ESCOLA, derivados do alfabeto publicado — a expectativa da
+ * §A sai daqui, e não de um número. Um exercício conta quando tem uma música (`<tempos>|<compasso>`)
+ * com pelo menos um trecho dentro **na vista da escola**.
+ *
+ * A VISTA DA ESCOLA ENTROU A 05/11/2026, e é a regra que a tela passou a seguir: o alfabeto guarda
+ * o verbete do catálogo e o de cada escola (`8|2/4` e `8|2/4@breu`), e o verbete de OUTRA escola
+ * não é oferecível — a composição também o recusa (`verbetePara` → `registosDaEscola`), e cairia
+ * em lacuna. A expectativa usa a MESMA função que a produção usa: uma segunda regra escrita aqui
+ * divergiria dela ao primeiro verbete de escola. */
+function comNotacao(escola) {
   const alfabeto = JSON.parse(fs.readFileSync(
     path.join(raiz, 'biblioteca/modalidades/bale-classico/notacao.json'), 'utf8'));
+  const { registosDaEscola } = require(path.join(raiz, 'motor/nucleo/notacao.js'));
   return Object.keys(alfabeto.verbetes || {}).filter((nome) => {
     if (nome.startsWith('_')) return false;
-    const musicas = alfabeto.verbetes[nome] || {};
+    const musicas = registosDaEscola(alfabeto.verbetes[nome] || {}, escola);
     return Object.keys(musicas).filter((k) => /^\d+\|/.test(k)).some((k) => {
       const celulas = (musicas[k] && musicas[k].celulas) || {};
       return Object.keys(celulas).some((d) => (celulas[d] || []).length > 0);
     });
   }).sort();
+}
+
+/** A LISTA DA PÁGINA DO VERBETE — a outra metade da mesma pergunta (05/11/2026). */
+function listaDeVerbetes(escola) {
+  const alfabeto = JSON.parse(fs.readFileSync(
+    path.join(raiz, 'biblioteca/modalidades/bale-classico/notacao.json'), 'utf8'));
+  const { listarVerbetes } = require(path.join(raiz, 'motor/servidor/verbete.js'));
+  return listarVerbetes(alfabeto, escola).map((x) => x.nome).sort();
 }
 
 const opcoesDe = (html, id) => {
@@ -121,7 +136,7 @@ function servir(html) {
   // ===================================================================================
   console.log('\nA. A LISTA DE CONTEÚDOS — o que já se pode ENSINAR, e não o dicionário inteiro');
   const html = pagina(TERMOS_COM_VERBETE);
-  const esperado = comNotacao();
+  const esperado = comNotacao('fita');
   const conteudos = opcoesDe(html, 'esc-conteudos');
   const alunas = opcoesDe(html, 'esc-alunas');
 
@@ -130,6 +145,19 @@ function servir(html) {
   provar('o menu oferece exactamente esses — nem um a mais, nem um a menos',
     JSON.stringify(conteudos.map((o) => o.valor).sort()) === JSON.stringify(esperado),
     { menu: conteudos.map((o) => o.valor), alfabeto: esperado });
+  /* A DIVERGÊNCIA QUE ISTO FECHA (05/11/2026). A Curadoria oferecia «Battement tendu» e a lista de
+   * Verbetes da MESMA escola não o mostrava — o verbete existe no alfabeto, mas só na versão da
+   * `breu` (`8|2/4@breu`). Duas listas da mesma pergunta, e a que prometia era a que mentia. */
+  provar('a lista do verbete e o menu da curadoria são a MESMA lista, para a mesma escola',
+    JSON.stringify(conteudos.map((o) => o.valor).sort()) === JSON.stringify(listaDeVerbetes('fita')),
+    { menu: conteudos.map((o) => o.valor), verbetes: listaDeVerbetes('fita') });
+  provar('…e o exercício que só a outra escola declarou não é oferecido a esta',
+    !conteudos.some((o) => o.valor === 'Battement tendu'),
+    { menu: conteudos.map((o) => o.valor), verbetes: listaDeVerbetes('fita') });
+  provar('…mas na escola que o declarou ele aparece nas duas listas',
+    comNotacao('breu').indexOf('Battement tendu') !== -1
+      && listaDeVerbetes('breu').indexOf('Battement tendu') !== -1,
+    { breu: listaDeVerbetes('breu') });
   provar('…e o vocabulário da prova tem MAIS termos do que o menu mostra (a lista filtra)',
     conteudos.length < TERMOS_COM_VERBETE.length, { menu: conteudos.length, termos: TERMOS_COM_VERBETE.length });
   provar('…o «Jeté», que é termo e não tem verbete, não é oferecido',

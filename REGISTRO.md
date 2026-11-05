@@ -36346,3 +36346,105 @@ instalado à mão nas bancadas e nunca foi declarado; o `npm ci` do CI não o in
 rebentou com `set -euo pipefail`. Passou a `devDependencies` (`jsdom@^29.1.1`), com o `package-lock`
 regenerado. É a mesma lição do parágrafo anterior, um passo adiante: **uma bancada que corre no deploy
 tem de ter as suas dependências declaradas**; o que só existe na máquina de quem a escreveu não existe.
+
+## 05/11/2026 — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o verbete de outra escola
+
+**O que motivou.** Dois relatos dela, na mesma sessão de uso e em dois ecrãs diferentes.
+
+1. «A Curadoria mostra `battement tendu` e `plié`; os Verbetes de notação mostram `demi plié` e
+   não mostram `battement tendu`.» — o mesmo vocabulário com dois conjuntos, em dois sítios que
+   deviam dizer a mesma coisa.
+2. «Marquei as duas alunas como excelentes na segunda posição de pés, voltei à linha de base e
+   refiz todo o processo — continua a dizer que não têm nada de bom nem nada em comum.»
+
+As duas causas são de **leitura**, não de cache: não havia estado velho parado em lado nenhum, e
+procurá-lo teria dado a correcção errada.
+
+**O diagnóstico — Curadoria × Verbetes.** As duas listas respondiam «que exercícios têm notação?»,
+e respondiam **de fontes diferentes e com regras diferentes**:
+
+- a **listagem do verbete** lê o alfabeto do **repositório** a cada abertura e aplica a vista da
+  escola (`listarVerbetes` → `registosDaEscola`, com o `.filter(x => x.porMusica.length > 0)`);
+- o **menu da Curadoria** (`exerciciosComNotacao`) lia o alfabeto **empacotado no Worker** — a
+  vista do dia do deploy — e **não** aplicava a vista da escola.
+
+O alfabeto guarda o verbete do catálogo e o de cada escola (`8|2/4` e `8|2/4@breu`). O
+«Battement tendu» existe **só** na versão da `breu`. Medido no arranque, sem tocar em nada:
+
+    calango · curadoria: [ 'Battement tendu', 'Plié' ]   verbetes: [ 'Plié' ]
+    breu    · curadoria: [ 'Plié', 'Battement tendu' ]  verbetes: [ 'Battement tendu', 'Plié' ]
+
+Ou seja: **H1 do relato** — a Curadoria listava um termo a mais. A composição da notação também
+passa por `registosDaEscola`, portanto o exercício oferecido à `calango` cairia em lacuna na hora
+de escrever. A lista não prometia o que não existe; prometia o que não existe **para aquela
+escola** — que é a mesma mentira, um passo adiante.
+
+**Sobre o `demi plié`.** O alfabeto **nunca** conteve esse nome: `git log --all -S"demi plié" --
+biblioteca/` não devolve um único commit, e o alfabeto de hoje tem dois verbetes, «Plié» e
+«Battement tendu». «Demi-plié» existe no **vocabulário** como `alternativos` do termo `plie`, e
+aparece na descrição do verbete («subtipos, demi-plié, grand plié…»). O nome lido na listagem do
+verbete é «Plié» — o relato não distingue, e agora deixa de importar: as duas listas passam a ler
+o mesmo.
+
+**O diagnóstico — linha de base.** A anamnese tem **49 nós respondíveis** (4 de identificação, 15
+da observação inicial, 30 dos blocos 2 a 9), e `camposDisponiveis` lia **só** `conteudo.blocos` —
+os trinta últimos. O campo que ela marcou, `cinco-posicoes-2a-pes` («2ª posição — pés»), vive em
+`conteudo.observacaoInicial.elementos[].subitens[]`, fora do que a linha de base lia. Ela
+respondeu, a leitura não podia ver, e **nada falhou** — o pior dos três desfechos. O módulo dizia,
+por escrito, «o recorte é sobre TODA a anamnese»; a frase era verdadeira para a musicalidade e
+falsa para a porta de entrada.
+
+Não era cache, e prova-se por A/B: a rota `linha-de-base/leitura` relê os envelopes a cada gesto;
+com o mesmo percurso (criar as duas anamneses → ler → editar a «2ª posição — pés» da Aluna A →
+ler de novo), a leitura 1 dá `excelência 44 · comuns 45` e a leitura 2 dá `excelência 43 ·
+comuns 44`, com o aspecto a mudar de «O que já é bom» para «O que precisa de ser trabalhado»
+(«1 de 2 em «Bom» · 1 de 2 em «precisa desenvolver»»). O que mudou foi **o que se lê**, não
+quando se lê.
+
+**O que foi decidido.**
+
+- A Curadoria passa a oferecer **o que a escola pode compor**: `exerciciosComNotacao(escola)`
+  aplica `registosDaEscola`, a mesma função que a composição e a listagem já usavam.
+- O menu da Curadoria passa a ser **preenchido pelo mesmo payload que desenha a listagem do
+  verbete** (`/api/bastidores/verbete` → `d.exercicios`), no cliente. Duas fontes do mesmo facto
+  divergem no primeiro verbete criado; uma só, não.
+- A linha de base passa a oferecer **45 campos**: os 15 da observação inicial (5 elementos e os 10
+  em que «as cinco posições» se desmembra) e os 30 dos blocos 2 a 9. A régua vem da `forma` que a
+  anamnese declara, e não de uma segunda lista escrita no código.
+- Os **4 campos da identificação ficam de fora**, e é declarado: uma data de nascimento não se mede
+  em «Bom · razoável · precisa desenvolver».
+
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `camposDaObservacaoInicial` e `opcoesDaForma`
+novos; `camposDisponiveis` passa a começar por eles; o cabeçalho do módulo regista o corte e o que
+fica fora. `motor/servidor/bastidores.js` — `exerciciosComNotacao(escola)` com a vista da escola; o
+`sincronizarConteudosDaCuradoria` no script da página, chamado por `carregarVerbetes`.
+
+**Com o quê.** `experimentos/provar-linha-de-base.js` — a asserção do recorte passou de 30 para 45
+(com a conta da norma escrita ao lado), uma asserção nova para a observação inicial (incluindo o
+que **não** entra: o elemento que desmembra e a identificação), e a da rota de 30 para 45.
+`experimentos/provar-curadoria-e-limpeza.js` — a expectativa do menu pela `registosDaEscola`, mais
+três asserções: o menu e a listagem são a mesma lista, o verbete da outra escola não é oferecido, e
+na escola que o declarou aparece nas duas. `experimentos/provar-producao.js` — a expectativa do
+menu deixa de contar o verbete de outra escola.
+
+**Medido.** `provar-linha-de-base` **100/100** (era 99); `provar-producao` **159/159** (era
+158/159 — a asserção do menu dobrava-se sobre o defeito); `provar-curadoria-e-limpeza` **26/26**
+(era 24); `provar-conteudos-e-estado-da-turma`, `provar-plano-e-curadoria`, `provar-cadeia-do-ajuste`
+(34/34), `provar-anamnese-por-aluna` (15/15), `provar-vao-do-botao` (50/50) e `check-identidade`
+(**0 erros**) passam. O A/B da linha de base foi feito ao contrário, contra o `HEAD`: a função
+anterior devolve **30** campos e **não tem** `cinco-posicoes-2a-pes`.
+
+**Uma reprovação que NÃO é desta entrega.** `provar-teste` falha em «a dimensão saiu sem o eixo».
+Mediu-se no `HEAD` limpo (num *worktree* descartável) e falha lá exactamente da mesma maneira: é
+anterior, e não foi tocada.
+
+**O que ainda não está feito.**
+
+- **A conferência no ar** — o percurso Curadoria → Cont. públicos e Verbetes → listagem, na
+  `calango`, depois do deploy.
+- O **menu de músicas do plano** (`musicasDosExercicios`, em `/api/bastidores/termos`) continua a
+  oferecer a música de outra escola para o mesmo exercício. É a **mesma família** de defeito, mas é
+  outro ecrã, com outra bancada (`provar-plano-*`) — e mudá-lo sem essa bancada seria trocar um
+  conjunto de promessas por outro. Fica declarado, e não corrigido.
+- A anamnese **não** foi alterada: `porta/conteudo/anamnese.json` é a norma, e o que estava errado
+  era quem a lia.

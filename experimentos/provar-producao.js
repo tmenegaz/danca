@@ -1057,13 +1057,20 @@ async function principal() {
    * entregava 2), e a asserção media esse número — era a MEDIDA de uma decisão que já não vale.
    *
    * A EXPECTATIVA É DERIVADA do alfabeto publicado, e não escrita à mão: um verbete conta quando
-   * tem, ao menos, uma música com um trecho dentro. Escrever `2` aqui seria medir o dia em que o
-   * texto foi escrito, que é o defeito que a asserção das tradições já corrigiu uma vez.
+   * tem, ao menos, uma música com um trecho dentro **na vista desta escola**. Escrever `2` aqui
+   * seria medir o dia em que o texto foi escrito, que é o defeito que a asserção das tradições já
+   * corrigiu uma vez.
+   *
+   * A VISTA DA ESCOLA ENTROU A 05/11/2026: o alfabeto guarda o verbete do catálogo e o de cada
+   * escola (`8|2/4` e `8|2/4@breu`), e o de OUTRA escola não é oferecível — a composição também o
+   * recusa. Sem este filtro a expectativa continuaria a contar um exercício que o menu deixou, com
+   * razão, de prometer.
    */
   const alfabeto = require('../biblioteca/modalidades/bale-classico/notacao.json');
+  const { registosDaEscola } = require('../motor/nucleo/notacao.js');
   const comNotacao = Object.keys(alfabeto.verbetes || {}).filter((nome) => {
     if (nome.startsWith('_')) return false;
-    const musicas = alfabeto.verbetes[nome] || {};
+    const musicas = registosDaEscola(alfabeto.verbetes[nome] || {}, env.ESCOLA_SLUG);
     return Object.keys(musicas).filter((k) => /^\d+\|/.test(k)).some((k) => {
       const celulas = (musicas[k] && musicas[k].celulas) || {};
       return Object.keys(celulas).some((d) => (celulas[d] || []).length > 0);

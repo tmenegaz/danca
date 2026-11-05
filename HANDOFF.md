@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T13:45:57-0300`
-Commit atual: `1512c2cb` — docs(registro): o commit estava no main e o Worker servia a versao anterior
+Gerado em: `2026-11-05T19:41:13-0300`
+Commit atual: `95fcd9ef` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,26 +86,26 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
-1512c2cb docs(registro): o commit estava no main e o Worker servia a versao anterior
-aac98600 feat(po): a linha de base em cinco passos, e a leitura que vem antes da escolha
-eaacdee1 fix(po): a linha de base oferece os trinta campos, musicalidade incluida
-c7499c37 chore(estrutura): regerar os índices derivados
-82de370e feat(acervo): envelope/anamnese-20261105-1240.json
-e539d047 feat(acervo): envelope/.indice.json
-d60baced fix(po): a linha de base e sobre ALUNAS e nao sobre turmas, e o ciclo sai da anamnese
-2700dc0f feat(po): a linha de base do corpo passa a ser uma escolha do professor
-c748e461 fix(tools): o ciclo-zero deixa de exigir um ficheiro chamado .html
-9b90bc31 feat(estrutura): habilitar rabo-gramde em bale-classico, contemporaneo
-abcf03cc feat(escola): o professor rabo-gramde passa a chamar-se «Rabo Grande»
-1f016613 feat(acervo): envelope/.indice.json
-8a89bac8 feat(estrutura): criar a escola calango (motor completo)
-cc9f3906 chore(estrutura): regerar os índices derivados
-9b28ddd8 chore(estrutura): expurgar a escola breu
-7795f6ee chore(estrutura): regerar os índices derivados
-c9de0a81 feat(acervo): envelope/.indice.json
-1fbd2ba8 chore(acervo): apagar envelope/anamnese-20261103-1626.json
-50a52540 chore(estrutura): regerar os índices derivados
-7d5f273a feat(acervo): envelope/.indice.json
+95fcd9ef chore(estrutura): regerar os índices derivados
+f991b422 feat(acervo): envelope/.indice.json
+ab1cb22e chore(acervo): apagar envelope/anamnese-20261105-1907.json
+a86105c5 feat(acervo): envelope/anamnese-20261105-1910-2.json
+0ec522e8 feat(acervo): envelope/.indice.json
+14bc40f4 chore(estrutura): regerar os índices derivados
+abe62168 feat(acervo): envelope/.indice.json
+b48f35e7 chore(acervo): apagar envelope/anamnese-20261105-1240.json
+2358c384 feat(acervo): envelope/anamnese-20261105-1910.json
+18d8f4c7 feat(acervo): envelope/.indice.json
+d0e82ef8 chore(estrutura): regerar os índices derivados
+471f2160 feat(acervo): envelope/anamnese-20261105-1907.json
+58023c59 feat(acervo): envelope/.indice.json
+18ee67de fix(experimentos): o jsdom passa a devDependency — a bancada corre no deploy
+5604a07f fix(experimentos): o passo do deploy constroi tambem a proposta da linha de base
+e4e306e0 fix(po): o passo 5 sem turma diz o que falta, a curadoria deixa de escolher alunas, e a listagem passa a ser o cartao da casa
+449dc3dc fix(po): a tira grava, o Ler grava, e a lista da linha de base passa a ser a da casa
+5ee66fef fix(po): o Ler as anamneses acende, e a folha nao recebe a moldura
+021a2c8f fix(po): a recusa do recorte vazio distingue a aba antiga da edicao sem recorte
+e66a1d75 fix(po): o passo 1 grava rascunho, e o elenco que muda desce a cascata ate ao PO
 ```
 
 ## Por professor
@@ -231,151 +231,160 @@ c9de0a81 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — A secção do corpo nasceu fora do `</section>`, e sessenta e três asserções não o notaram
+## 05/11/2026 — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o verbete de outra escola
 
-A pesquisadora abriu a página e disse o que via: «não tem nenhum step, tá tudo exatamente igual», «a
-seta de expandir o corpo linha de base não mostra nada», «o título está no lugar errado — tem de estar
-em cima, como o das Turmas». Três sintomas, uma causa.
+**O que motivou.** Dois relatos dela, na mesma sessão de uso e em dois ecrãs diferentes.
 
-**A causa.** Ao substituir o corpo da secção eu montei a tira dos cinco passos, o formulário e a lista
-**depois** do `'</section>'` das Curadorias. O que sobrava dentro de `<section id="sec-corpo">` era o
-título e três `</div>` órfãos — uma secção **vazia**. Os cinco passos ficaram soltos no `<main>`, e por
-isso apareciam fora do menu; a seta mudava de glifo e não escondia nada, porque `definirSecaoRecolhida`
-procura o `.col-form` **dentro** da secção e não encontrava nenhum.
+1. «A Curadoria mostra `battement tendu` e `plié`; os Verbetes de notação mostram `demi plié` e
+   não mostram `battement tendu`.» — o mesmo vocabulário com dois conjuntos, em dois sítios que
+   deviam dizer a mesma coisa.
+2. «Marquei as duas alunas como excelentes na segunda posição de pés, voltei à linha de base e
+   refiz todo o processo — continua a dizer que não têm nada de bom nem nada em comum.»
 
-**Porque é que a prova passou.** As doze asserções anteriores procuravam os elementos por `id`, e o
-`getElementById` **atravessa a árvore**: `#lb-tira` existia, tinha os cinco passos, e a prova dizia que
-sim. O que nunca se perguntou foi *de quem* é o elemento. Uma secção vazia e uma secção cheia dão a
-mesma resposta a todas as perguntas menos a essa — é a mesma família do `if` que filtrava o título
-vazio no `check-pacote.js`, onde «está aqui?» e «existe?» também não eram a mesma pergunta.
+As duas causas são de **leitura**, não de cache: não havia estado velho parado em lado nenhum, e
+procurá-lo teria dado a correcção errada.
+
+**O diagnóstico — Curadoria × Verbetes.** As duas listas respondiam «que exercícios têm notação?»,
+e respondiam **de fontes diferentes e com regras diferentes**:
+
+- a **listagem do verbete** lê o alfabeto do **repositório** a cada abertura e aplica a vista da
+  escola (`listarVerbetes` → `registosDaEscola`, com o `.filter(x => x.porMusica.length > 0)`);
+- o **menu da Curadoria** (`exerciciosComNotacao`) lia o alfabeto **empacotado no Worker** — a
+  vista do dia do deploy — e **não** aplicava a vista da escola.
+
+O alfabeto guarda o verbete do catálogo e o de cada escola (`8|2/4` e `8|2/4@breu`). O
+«Battement tendu» existe **só** na versão da `breu`. Medido no arranque, sem tocar em nada:
+
+    calango · curadoria: [ 'Battement tendu', 'Plié' ]   verbetes: [ 'Plié' ]
+    breu    · curadoria: [ 'Plié', 'Battement tendu' ]  verbetes: [ 'Battement tendu', 'Plié' ]
+
+Ou seja: **H1 do relato** — a Curadoria listava um termo a mais. A composição da notação também
+passa por `registosDaEscola`, portanto o exercício oferecido à `calango` cairia em lacuna na hora
+de escrever. A lista não prometia o que não existe; prometia o que não existe **para aquela
+escola** — que é a mesma mentira, um passo adiante.
+
+**Sobre o `demi plié`.** O alfabeto **nunca** conteve esse nome: `git log --all -S"demi plié" --
+biblioteca/` não devolve um único commit, e o alfabeto de hoje tem dois verbetes, «Plié» e
+«Battement tendu». «Demi-plié» existe no **vocabulário** como `alternativos` do termo `plie`, e
+aparece na descrição do verbete («subtipos, demi-plié, grand plié…»). O nome lido na listagem do
+verbete é «Plié» — o relato não distingue, e agora deixa de importar: as duas listas passam a ler
+o mesmo.
+
+**O diagnóstico — linha de base.** A anamnese tem **49 nós respondíveis** (4 de identificação, 15
+da observação inicial, 30 dos blocos 2 a 9), e `camposDisponiveis` lia **só** `conteudo.blocos` —
+os trinta últimos. O campo que ela marcou, `cinco-posicoes-2a-pes` («2ª posição — pés»), vive em
+`conteudo.observacaoInicial.elementos[].subitens[]`, fora do que a linha de base lia. Ela
+respondeu, a leitura não podia ver, e **nada falhou** — o pior dos três desfechos. O módulo dizia,
+por escrito, «o recorte é sobre TODA a anamnese»; a frase era verdadeira para a musicalidade e
+falsa para a porta de entrada.
+
+Não era cache, e prova-se por A/B: a rota `linha-de-base/leitura` relê os envelopes a cada gesto;
+com o mesmo percurso (criar as duas anamneses → ler → editar a «2ª posição — pés» da Aluna A →
+ler de novo), a leitura 1 dá `excelência 44 · comuns 45` e a leitura 2 dá `excelência 43 ·
+comuns 44`, com o aspecto a mudar de «O que já é bom» para «O que precisa de ser trabalhado»
+(«1 de 2 em «Bom» · 1 de 2 em «precisa desenvolver»»). O que mudou foi **o que se lê**, não
+quando se lê.
 
 **O que foi decidido.**
 
-- A secção passou a ser **dona** do seu conteúdo: `<section id="sec-corpo">` → `.turmas-corpo` →
-  `.turmas-faixa` (#lb-tira) + `.col-form#corpo-miolo` + `.col-lista`, com o `</section>` no fim. É a
-  forma das Turmas, e a peça é a mesma de propósito.
-- Recolhida, a grade passa a uma coluna e o `.col-form` sai — duas regras novas em `.secao[data-
-  recolhido="sim"] .turmas-corpo`. Sem elas, o `hidden` escondia o formulário mas a coluna da esquerda
-  ficava vazia a ocupar metade da tela: o `.col-form` **não** é filho directo da `.secao`, e as regras
-  antigas não lhe chegavam.
-- A prova ganhou o **bloco 13 — a pertença**: `#lb-tira`, `#corpo-miolo`, `#lb-lista`, `#form-linha-
-  de-base` e `#lb-campos` têm de estar `contains` de `#sec-corpo` **e** fora de `#sec-curadorias`, e a
-  seta tem de encontrar o `.col-form` que manda recolher.
+- A Curadoria passa a oferecer **o que a escola pode compor**: `exerciciosComNotacao(escola)`
+  aplica `registosDaEscola`, a mesma função que a composição e a listagem já usavam.
+- O menu da Curadoria passa a ser **preenchido pelo mesmo payload que desenha a listagem do
+  verbete** (`/api/bastidores/verbete` → `d.exercicios`), no cliente. Duas fontes do mesmo facto
+  divergem no primeiro verbete criado; uma só, não.
+- A linha de base passa a oferecer **45 campos**: os 15 da observação inicial (5 elementos e os 10
+  em que «as cinco posições» se desmembra) e os 30 dos blocos 2 a 9. A régua vem da `forma` que a
+  anamnese declara, e não de uma segunda lista escrita no código.
+- Os **4 campos da identificação ficam de fora**, e é declarado: uma data de nascimento não se mede
+  em «Bom · razoável · precisa desenvolver».
 
-**E as bancadas antigas.** A regressão não era só a que ela viu: `provar-producao` tinha caído de
-**158/158** (medido em `c748e461`) para **154/158**, e eu não voltei a correr esta bancada depois de
-acrescentar a oitava secção. As quatro reprovações diziam a verdade sobre uma página que cresceu:
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `camposDaObservacaoInicial` e `opcoesDaForma`
+novos; `camposDisponiveis` passa a começar por eles; o cabeçalho do módulo regista o corte e o que
+fica fora. `motor/servidor/bastidores.js` — `exerciciosComNotacao(escola)` com a vista da escola; o
+`sincronizarConteudosDaCuradoria` no script da página, chamado por `carregarVerbetes`.
 
-- as secções passaram de **sete** a **oito**;
-- os `.col-form` de **oito** a **nove** (seis secções + as três abas de Turmas);
-- as listas de sete-em-sete de **cinco** a **seis** (a das linhas de base já gravadas);
-- e a regra «nenhum formulário traz explicação» deixou de valer para a secção nova.
+**Com o quê.** `experimentos/provar-linha-de-base.js` — a asserção do recorte passou de 30 para 45
+(com a conta da norma escrita ao lado), uma asserção nova para a observação inicial (incluindo o
+que **não** entra: o elemento que desmembra e a identificação), e a da rota de 30 para 45.
+`experimentos/provar-curadoria-e-limpeza.js` — a expectativa do menu pela `registosDaEscola`, mais
+três asserções: o menu e a listagem são a mesma lista, o verbete da outra escola não é oferecido, e
+na escola que o declarou aparece nas duas. `experimentos/provar-producao.js` — a expectativa do
+menu deixa de contar o verbete de outra escola.
 
-**Sobre a última, e é a única que afrouxa uma regra.** A regra de 16/10/2026 («só rótulo, campo e
-placeholder — quem preenche um cadastro já conhece o sistema») não chega a um **percurso**: ninguém
-conhece os cinco passos de uma linha de base que ainda não existia, e a pesquisadora já disse, por
-palavras, «não entendi para que serve» sobre a lista dos aspectos. A isenção ficou **nominal e com
-motivo escrito** — `FORA_DA_REGRA = { 'sec-aparencia': …, 'sec-corpo': … }` —, com uma asserção nova a
-exigir que as secções isentas **existam mesmo** na página (uma isenção que nomeia uma secção
-inexistente é uma regra a menos dada sem nada em troca) e que sejam só aquelas duas.
+**Medido.** `provar-linha-de-base` **100/100** (era 99); `provar-producao` **159/159** (era
+158/159 — a asserção do menu dobrava-se sobre o defeito); `provar-curadoria-e-limpeza` **26/26**
+(era 24); `provar-conteudos-e-estado-da-turma`, `provar-plano-e-curadoria`, `provar-cadeia-do-ajuste`
+(34/34), `provar-anamnese-por-aluna` (15/15), `provar-vao-do-botao` (50/50) e `check-identidade`
+(**0 erros**) passam. O A/B da linha de base foi feito ao contrário, contra o `HEAD`: a função
+anterior devolve **30** campos e **não tem** `cinco-posicoes-2a-pes`.
 
-**Dois defeitos mais, apanhados pelas bancadas antigas.** `provar-curadoria-e-limpeza` reprovava
-««Alunas» veste o mesmo que eles»: a nota do elenco herdado (`cu-elenco-nota`) tinha sido posta
-**entre o rótulo e o escolhedor**, e o rótulo é o irmão *anterior* do seu campo — o par partiu-se e
-«Alunas» virou um parágrafo escondido. A nota passou para **depois** do escolhedor. E
-`provar-cartao-da-turma` lia `document.querySelectorAll('button.passo')` — a peça, e não o dono —, o
-que passou a devolver catorze botões (os três das Turmas, os seis do verbete, os cinco da linha de
-base) e a chamar-lhes «três»; a consulta passou a ser `#sec-turmas button.passo`.
-
-**Onde entrou.** `motor/servidor/bastidores.js` — a secção `sec-corpo` inteira dentro do seu
-`</section>`, com `.turmas-corpo`/`.turmas-faixa`; as duas regras de recolhimento; `cu-elenco-nota`
-depois de `esc-alunas`. `experimentos/provar-linha-de-base.js` — o bloco 13 (68 asserções).
-`experimentos/provar-producao.js` — as três contagens e a isenção declarada (159 asserções).
-`experimentos/provar-cartao-da-turma.js` — a consulta com dono. `experimentos/provar-ajustes-anamnese.js`
-— a asserção do ciclo **invertida** (ver abaixo).
-
-**A asserção que envelheceu ao contrário.** `provar-ajustes-anamnese` reprovava «o ciclo é pré-
-preenchido» desde 04/11/2026, quando o ciclo saiu do contexto da anamnese. A asserção não foi
-apagada: foi **invertida** — agora mede que o ciclo **não** entra na anamnese, mesmo quando o envelope
-o traz, e que continua a ser identidade do ato no plano (onde tem asserção própria). Uma prova que
-envelhece sem ser invertida mente a favor de um código que já não existe.
-
-**Medido.** `provar-linha-de-base` **68/68**; `provar-producao` **159/159** (era 154/158 em `1512c2cb`
-e 158/158 em `c748e461`); `provar-curadoria-e-limpeza` **23/23** (era 2 reprovações); `provar-ajustes-
-anamnese` **126/126**; `provar-acordeoes` e `provar-menu-da-producao` **55/55**; `check-identidade` e
-`check-indices` **0 erros**. O A/B foi feito em worktrees destacados (`/tmp/danca-ab` em `1512c2cb`,
-`/tmp/danca-ab2` em `c748e461`) para separar o que era meu do que já vinha de antes.
+**Uma reprovação que NÃO é desta entrega.** `provar-teste` falha em «a dimensão saiu sem o eixo».
+Mediu-se no `HEAD` limpo (num *worktree* descartável) e falha lá exactamente da mesma maneira: é
+anterior, e não foi tocada.
 
 **O que ainda não está feito.**
 
-- `provar-cartao-da-turma` fica com **1 reprovação pré-existente**, e ela não é desta mudança: «o termo
-  mostra TODAS as turmas que o usam» procura a linha do termo «plié» numa lista de **Termos** que a
-  página deixou de ter a 01/11/2026, quando o «Vocabulário Técnico do Balé» saiu. Já reprovava em
-  `c748e461`. Fica por decidir se a asserção se apaga (o dado mudou de sítio) ou se muda de fonte.
-- O deploy: a confirmação **no ar** é o passo seguinte a este commit, e pela regra do registo de
-  `1512c2cb` ela faz-se pedindo a página — não assumindo que a run correu.
-
-**Motivo declarado (CONGELAMENTO.md):** nada em `tools/` foi tocado. As correcções de contagem e a
-isenção declarada vivem em `experimentos/`, que não é congelado; a página é `motor/servidor/`.
+- **A conferência no ar** — o percurso Curadoria → Cont. públicos e Verbetes → listagem, na
+  `calango`, depois do deploy.
+- O **menu de músicas do plano** (`musicasDosExercicios`, em `/api/bastidores/termos`) continua a
+  oferecer a música de outra escola para o mesmo exercício. É a **mesma família** de defeito, mas é
+  outro ecrã, com outra bancada (`provar-plano-*`) — e mudá-lo sem essa bancada seria trocar um
+  conjunto de promessas por outro. Fica declarado, e não corrigido.
+- A anamnese **não** foi alterada: `porta/conteudo/anamnese.json` é a norma, e o que estava errado
+  era quem a lia.
 
 ## O que está pendente
 
-## 04/11/2026 — O composto deixou de enumerar verbos, a modalidade deixou de ser constante, e o custo da API passou a ter número
+## 05/11/2026 — O elenco muda na linha de base, a cascata desce até ao PO, e o passo 1 deixa de ser um beco sem saída
 
 
-1. **Nada valida os pacotes que já estão no repositório.** O `check-pacote` corre no fim do gerador;
-   um pacote antigo com 11 erros vive no `main` sem que nenhum workflow olhe para ele. Um passo que
-   varra `professores/*/ciclos/ciclo-01-*/` e reporte seria barato — e teria de começar por decidir
-   o que fazer com o `ciclo-01-breu`: regerar, arquivar, ou aceitar como legado declarado.
-2. **O `80/min` de criação de conteúdo não foi tocado por medição real** — os números vêm da
-   documentação, não de uma rajada provocada. Uma prova que o provoque custaria cota no ar, e a regra
-   desta casa é não gastar a cota para saber o que a documentação já diz.
-3. **Os três adaptadores sabem `criar`, mas só o `node` é atómico de verdade.** O KV não tem
-   operação condicional — a ressalva está dita no código, e é o melhor que o meio permite.
+- A conferência **no ar** (a página da escola) fica para o deploy — e faz-se pedindo a página, não
+  assumindo que a run correu.
+- O elenco de uma linha de base pertence a **uma** turma: mover uma aluna de A para C são duas
+  edições (tirar da linha de A, pôr na de C), cada uma com a sua cascata. O modelo não tem hoje um
+  «enviar para outra turma» no mesmo acto.
 
-## 04/11/2026 — O PO passa a ter três eixos, o corpo vem da anamnese, e o «Port de bras» sai do §1
+## 05/11/2026 — O «Ler as anamneses» acende, e a folha de impressão deixa de receber a moldura
 
 
-1. **Os POs já gravados nas outras escolas continuam com «Técnica — Musicalidade» dentro do
-   envelope.** É a decisão (P-03), e a leitura corrige-o — mas quem abrir o `.json` cru verá o rótulo
-   antigo. Uma migração de dados seria uma reescrita da proveniência, e não se faz sem decisão dela.
-2. **A captura não ganhou bloco de corpo.** O eixo do Corpo existe no PO e na aula; a folha de
-   captura continua com os quatro blocos de dimensão mais a linha de base. Pôr lá o corpo é desenho
-   novo, e não foi pedido.
-3. **A prova do PO mede a tela em JSDOM**, com a anamnese stubada — não foi aberta no ar.
+- `provar-menu-do-formulario` **não corre**: lê `escola/breu/envelopes/plano-20261104-1732.json`, e
+  esse envelope foi apagado do repositório em `76f29779` (`chore(acervo): apagar envelope/…`). É
+  **pré-existente** e alheio a esta mudança — a bancada depende de um dado que já não existe, e fica
+  por decidir se passa a montar o seu próprio envelope.
+- `provar-listas-do-acervo` responde **NÃO FEITO**: nenhuma escola tem ciclo gerado nesta árvore, e
+  a bancada exige uma publicação. Também não é desta mudança.
+- A conferência **no ar** faz-se depois do deploy, pedindo as três folhas uma vez cada.
 
-## 04/11/2026 — O cabeçalho do ato cabe no telefone, as três asserções de produção, e a §2.2 deixa de mentir
-
-
-1. **Nada disto foi medido no ar.** A bancada corre contra um servidor local com respostas stubadas;
-   o ar custa uma carga por escola, no fim.
-2. **A projecção do §7.2 não é um ensaio de carga.** Os números são aritmética sobre o custo medido
-   e os limites documentados; um ensaio a sério gasta cota e não foi feito.
-3. **O instantâneo do `aspecto-fisico` não guarda proveniência** (de que anamneses nasceu), e por
-   isso a divergência entre a anamnese e o plano não se detecta — só se descobre por acaso.
-
-## 04/11/2026 — O ciclo apaga-se de trás para a frente, a sequência é estrita, e a anamnese é datada
+## 05/11/2026 — A tira grava, o «Ler» grava, o excluir fecha o formulário — e a lista passa a ser a da casa
 
 
-1. **A interface de exclusão de ciclo não existe ainda.** A rota (`DELETE /api/bastidores/ciclo`) e
-   a guarda estão prontas e provadas; o botão na Produção não. Uma secção «Ciclos» no grupo
-   Pedagogia é o passo seguinte, e é desenho novo — com prova de geometria, como a da faixa.
-2. **A listagem da anamnese ainda não está em acordeão por aluna.** Hoje a estante mostra o
-   **vigente** de cada aluna e diz quantas versões guardou (é o que `vigentesDaFamilia` dá). Para
-   ver os retratos anteriores todos, lado a lado com as datas, é preciso a estrutura de acordeão —
-   e ela não foi feita.
-3. **Nada disto foi exercitado contra o GitHub a sério.** A exclusão mediu-se num GitHub falso, com
-   as três respostas que a rotina usa.
+- O **passo 3 continua a não explicar-se a si mesmo** para quem chega de fora: o texto diz o que ele
+  faz («abre a anamnese mais recente de cada aluna e cruza o que elas mostram; o resultado fica
+  guardado»), mas a dúvida dela — «não sei para que serve o leitura / por ler» — é sobre o LUGAR do
+  passo no percurso, e isso é decisão de desenho, não de texto. Fica em aberto, para ela dizer.
+- A conferência **no ar** faz-se depois do deploy, no mesmo percurso: passo 1 → 2 → 3 → ler.
 
-## 05/11/2026 — A secção do corpo nasceu fora do `</section>`, e sessenta e três asserções não o notaram
+## 05/11/2026 — O passo 5 sem turma diz o que falta, a curadoria deixa de escolher alunas, e a listagem é o cartão da casa
 
 
-- `provar-cartao-da-turma` fica com **1 reprovação pré-existente**, e ela não é desta mudança: «o termo
-  mostra TODAS as turmas que o usam» procura a linha do termo «plié» numa lista de **Termos** que a
-  página deixou de ter a 01/11/2026, quando o «Vocabulário Técnico do Balé» saiu. Já reprovava em
-  `c748e461`. Fica por decidir se a asserção se apaga (o dado mudou de sítio) ou se muda de fonte.
-- O deploy: a confirmação **no ar** é o passo seguinte a este commit, e pela regra do registo de
-  `1512c2cb` ela faz-se pedindo a página — não assumindo que a run correu.
+- A **proposta** não é a página real: mostra a listagem fora do gabinete (sem barra e sem o
+  formulário ao lado), que é o palco certo para a pergunta «como fica no celular e no desktop», e o
+  errado para responder «e ao lado do formulário?». Se ela quiser essa segunda vista, é outra bancada.
+- A curadoria **antiga** continua a guardar as alunas que declarava. Não se migra: o passado não se
+  reescreve (P-03), e é ele que a cascata compara.
+- A conferência **no ar** faz-se depois do deploy, no percurso: passo 1 → 2 → 3 → ler → 4 → 5.
+
+## 05/11/2026 — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o verbete de outra escola
+
+
+- **A conferência no ar** — o percurso Curadoria → Cont. públicos e Verbetes → listagem, na
+  `calango`, depois do deploy.
+- O **menu de músicas do plano** (`musicasDosExercicios`, em `/api/bastidores/termos`) continua a
+  oferecer a música de outra escola para o mesmo exercício. É a **mesma família** de defeito, mas é
+  outro ecrã, com outra bancada (`provar-plano-*`) — e mudá-lo sem essa bancada seria trocar um
+  conjunto de promessas por outro. Fica declarado, e não corrigido.
+- A anamnese **não** foi alterada: `porta/conteudo/anamnese.json` é a norma, e o que estava errado
+  era quem a lia.
 
 ## Pendências anteriores (índice)
 
@@ -730,6 +739,11 @@ isenção declarada vivem em `experimentos/`, que não é congelado; a página �
 - **04/11/2026** — A fusão das edições (decisão 84) e o espelho da verdade na… → `REGISTRO.md` L34387
 - **04/11/2026** — O cartão da aula é três dados do professor, e o guia são… → `REGISTRO.md` L34474
 - **04/11/2026** — As colunas da aula têm a largura do que levam dentro, e a… → `REGISTRO.md` L34571
+- **04/11/2026** — O composto deixou de enumerar verbos, a modalidade deixou… → `REGISTRO.md` L34647
+- **04/11/2026** — O PO passa a ter três eixos, o corpo vem da anamnese, e o… → `REGISTRO.md` L34748
+- **04/11/2026** — O cabeçalho do ato cabe no telefone, as três asserções de… → `REGISTRO.md` L34850
+- **04/11/2026** — O ciclo apaga-se de trás para a frente, a sequência é… → `REGISTRO.md` L34939
+- **05/11/2026** — A secção do corpo nasceu fora do `</section>`, e sessenta e… → `REGISTRO.md` L35967
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
