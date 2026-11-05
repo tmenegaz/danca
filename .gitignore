@@ -679,3 +679,9 @@ experimentos/modelo-formulario/*
 # MEDE a geometria no Chrome (o jsdom não calcula layout): sobreposição entre campos, rótulo com
 # largura para ser lido, valor dentro do campo, e transbordo horizontal — a 320, 360, 390 e 414px.
 !experimentos/provar-faixa-do-ato-no-celular.js
+
+# OS CICLOS E A ANAMNESE (04/11/2026). Mede a sequência estrita (e o buraco, que não se tapa), os
+# ciclos lidos do documento, a GUARDA da exclusão (só o último — o parentHash do seguinte aponta
+# para a âncora deste), a corrida que refaz o caminho, o padrão que não come a variante vizinha, e
+# a anamnese como documento do SUJEITO — datado, imutável, com «Novo registo» em vez de «Ajustar».
+!experimentos/provar-ciclos-e-anamnese.js

@@ -247,32 +247,37 @@ async function main() {
   });
   provar('FONTE é anamnese no caminho /anamnese/', porta.FONTE === 'anamnese', porta.FONTE);
 
+  /* A ANAMNESE NÃO PEDE CICLO (04/11/2026). «A anamnese pertence ao ALUNO, não ao ciclo» — uma
+   * aluna que entra no ciclo 50 não fez os 49 anteriores. O contexto dela são TRÊS campos, e o
+   * que falta aqui é o que se deixa vazio de propósito: a ALUNA. */
   preencher(dom, {
     'ctx-escola': 'fita',
     'ctx-professor': { opcoes: ['tiago-menegaz'], escolhido: 'tiago-menegaz' },
     'ctx-ciclo': '',
-    'ctx-aluna': { opcoes: ['Mari'], escolhido: 'Mari' },
+    'ctx-aluna': { opcoes: ['Mari'], escolhido: '' },
   });
 
-  provar('o contexto faltante é exatamente [ciclo]',
-    JSON.stringify(porta.contextoFaltando()) === JSON.stringify(['ciclo']),
+  provar('o contexto da anamnese não inclui o ciclo — falta só a aluna',
+    JSON.stringify(porta.contextoFaltando()) === JSON.stringify(['aluna']),
     JSON.stringify(porta.contextoFaltando()));
 
   porta.marcarContextoFaltando();
   const caixa = (id) => dom.porId.get(id)._pai;
-  provar('a barra MARCA a caixa do ciclo', caixa('ctx-ciclo').classList._tem('falta'));
+  provar('a barra MARCA a caixa da aluna', caixa('ctx-aluna').classList._tem('falta'));
+  provar('e NÃO marca a do ciclo — ele não é campo desta fonte',
+    !caixa('ctx-ciclo').classList._tem('falta'));
   provar('e não marca a da escola', !caixa('ctx-escola').classList._tem('falta'));
   provar('nem a do professor', !caixa('ctx-professor').classList._tem('falta'));
   provar('o resumo da barra nomeia o que falta',
-    /falta ciclo para fechar/.test(dom.resumo.innerHTML), dom.resumo.innerHTML);
-  provar('e o resumo mostra os quatro campos do ato',
-    /escola/.test(dom.resumo.innerHTML) && /aluna/.test(dom.resumo.innerHTML),
-    dom.resumo.innerHTML);
+    /falta aluna para fechar/.test(dom.resumo.innerHTML), dom.resumo.innerHTML);
+  provar('e o resumo mostra os campos do ato — sem ciclo',
+    /escola/.test(dom.resumo.innerHTML) && /aluna/.test(dom.resumo.innerHTML)
+    && !/·\s*ciclo/.test(dom.resumo.innerHTML), dom.resumo.innerHTML);
 
-  // Preencher o ciclo limpa a marca — a barra não fica acusando o que já está lá.
-  dom.porId.get('ctx-ciclo').value = '01';
+  // Preencher a aluna limpa a marca — a barra não fica acusando o que já está lá.
+  dom.porId.get('ctx-aluna').value = 'Mari';
   porta.marcarContextoFaltando();
-  provar('preenchido o ciclo, a marca sai', !caixa('ctx-ciclo').classList._tem('falta'));
+  provar('preenchida a aluna, a marca sai', !caixa('ctx-aluna').classList._tem('falta'));
 
   // ------------------------------------------ 3) o «Começar» usa a MESMA regra
   porta.atualizarComecar();
@@ -281,15 +286,22 @@ async function main() {
   provar('e o botão diz o que falta (a senha)',
     /senha/i.test(dom.porId.get('comecar').title), dom.porId.get('comecar').title);
 
-  dom.porId.get('ctx-ciclo').value = '';
+  dom.porId.get('ctx-aluna').value = '';
   porta.atualizarComecar();
-  provar('sem o ciclo, o Começar fica travado mesmo com a senha dada',
+  provar('sem a aluna, o Começar fica travado mesmo com a senha dada',
     dom.porId.get('comecar').disabled === true);
   provar('e o title nomeia o campo que falta',
-    /desde o ciclo|falta|contexto do ato/i.test(dom.porId.get('comecar').title),
+    /desde a aluna|falta|contexto do ato/i.test(dom.porId.get('comecar').title),
     dom.porId.get('comecar').title);
-  provar('o title cita «ciclo»',
-    /ciclo/.test(dom.porId.get('comecar').title), dom.porId.get('comecar').title);
+  provar('o title cita «aluna»',
+    /aluna/.test(dom.porId.get('comecar').title), dom.porId.get('comecar').title);
+  /* CONTROLE NEGATIVO: o CICLO vazio já não trava nada nesta fonte. Se travasse, a anamnese
+   * continuaria a pedir um campo que deixou de ter. */
+  dom.porId.get('ctx-aluna').value = 'Mari';
+  dom.porId.get('ctx-ciclo').value = '';
+  porta.atualizarComecar();
+  provar('CONTROLE: com a aluna escolhida, o ciclo vazio NÃO trava o Começar',
+    !/falta ciclo/i.test(dom.porId.get('comecar').title), dom.porId.get('comecar').title);
 }
 
 // ------------------------------------ 2) o fecho recusa, e APONTA o campo
@@ -302,39 +314,41 @@ async function main() {
     'ctx-escola': 'fita',
     'ctx-professor': { opcoes: ['tiago-menegaz'], escolhido: 'tiago-menegaz' },
     'ctx-ciclo': '',
-    'ctx-aluna': { opcoes: ['Mari'], escolhido: 'Mari' },
+    'ctx-aluna': { opcoes: ['Mari'], escolhido: '' },
   });
 
   let mensagem = '';
   try { porta.contextoDaBarra(); } catch (erro) { mensagem = erro.message; }
 
-  provar('o fecho RECUSA com o ciclo vazio', mensagem !== '');
-  provar('a mensagem nomeia o campo vazio', /ciclo/.test(mensagem), mensagem);
+  provar('o fecho RECUSA com a aluna vazia', mensagem !== '');
+  provar('a mensagem nomeia o campo vazio', /aluna/.test(mensagem), mensagem);
   provar('a mensagem diz ONDE fica o campo',
     /barra/i.test(mensagem) && /alto/i.test(mensagem), mensagem);
-  provar('a mensagem EXPLICA por que a anamnese pede um ciclo',
-    /não é conteúdo deste formulário/.test(mensagem), mensagem);
+  provar('a mensagem EXPLICA o que é o contexto — e nomeia os campos DESTA fonte',
+    /não é conteúdo deste formulário/.test(mensagem) && /a aluna/.test(mensagem)
+    && !/e ciclo/.test(mensagem), mensagem);
   provar('a mensagem diz que o que já foi respondido está guardado',
     /guardado/i.test(mensagem), mensagem);
   provar('a mensagem NÃO é a antiga', !/^preencha o contexto na barra/.test(mensagem), mensagem);
   provar('e o acordeão foi ABERTO — o campo pode estar recolhido',
     dom.acc.open === true);
-  provar('a caixa do ciclo ficou marcada depois da recusa',
-    dom.porId.get('ctx-ciclo')._pai.classList._tem('falta'));
+  provar('a caixa da aluna ficou marcada depois da recusa',
+    dom.porId.get('ctx-aluna')._pai.classList._tem('falta'));
   provar('e o foco foi para o campo que falta',
-    dom.porId.get('ctx-ciclo')._focado === true);
+    dom.porId.get('ctx-aluna')._focado === true);
   provar('a barra foi levada à vista (scrollIntoView)',
-    dom.porId.get('ctx-ciclo')._rolou === true);
+    dom.porId.get('ctx-aluna')._rolou === true);
 
-  // Com tudo preenchido, o contexto sai — e sai o valor de cada campo.
+  /* Com tudo preenchido, o contexto sai — e NÃO leva ciclo: o envelope da anamnese deixou de o
+   * declarar, e é isso que a torna atemporal (e o que impede que ela crie um ciclo na lista). */
+  dom.porId.get('ctx-aluna').value = 'Mari';
   dom.porId.get('ctx-ciclo').value = '01';
   const ctx = porta.contextoDaBarra();
-  provar('com o ciclo preenchido, o contexto sai inteiro',
-    ctx.escola === 'fita' && ctx.professor === 'tiago-menegaz' &&
-    ctx.ciclo === '01' && ctx.aluna === 'Mari',
+  provar('com a aluna escolhida, o contexto sai inteiro',
+    ctx.escola === 'fita' && ctx.professor === 'tiago-menegaz' && ctx.aluna === 'Mari',
     JSON.stringify(ctx));
-  provar('CONTROLE NEGATIVO — sem o ciclo o contexto NÃO sairia',
-    Object.prototype.hasOwnProperty.call(ctx, 'ciclo'));
+  provar('CONTROLE NEGATIVO — o ciclo NÃO entra no contexto da anamnese, mesmo preenchido',
+    !Object.prototype.hasOwnProperty.call(ctx, 'ciclo'), JSON.stringify(ctx));
 }
 
 // ------------------------- 4) o `?aluna=` que o PO manda SOBREVIVE à lista

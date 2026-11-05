@@ -9765,6 +9765,77 @@ async function fetch(request, env) {
   }
 
   // DELETE /api/bastidores/turma — excluir turma (e limpar a relação).
+  /*
+   * APAGAR O CICLO GERADO — `DELETE /api/bastidores/ciclo` (04/11/2026).
+   *
+   * O QUE O CICLO É, na definição dela: «o pacote completo e integrado gerado a partir da
+   * conclusão do plano de observação» — o menu, os planos, a área do professor, as aulas, os
+   * formulários, as fichas, o PDF, as referências e as listagens. Sai tudo o que está em
+   * `ciclo-NN-<variante>` e os POs do ciclo.
+   *
+   * O QUE **NÃO** SAI: a anamnese (é do sujeito, e não do ciclo) e o plano de ensino (é a
+   * declaração que deu origem ao ciclo). E o plano fica LIVRE sem se lhe tocar, porque o vínculo
+   * PO ↔ PE é DERIVADO: apagados os POs, não há quem o declare. É o modelo da curadoria, que ela
+   * invocou — apagar o vínculo liberta o que estava preso, e não reescreve o que ficou.
+   *
+   * A GUARDA É DO NÚCLEO (`apagarCicloDoRepo`), e não desta rota: só o ÚLTIMO ciclo da sequência
+   * se apaga, porque o `parentHash` do seguinte aponta para a âncora deste e apagá-lo partiria a
+   * cadeia sem remédio (P-03). A rota não repete a regra — entrega o `409` que o núcleo devolve,
+   * com o motivo que ele escreveu. Uma segunda cópia da guarda divergiria da primeira.
+   */
+  if (path === '/api/bastidores/ciclo' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const variante = String(corpo.variante || '').trim();
+    const ciclo = String(corpo.ciclo || '').trim().padStart(2, '0');
+    if (!variante || !/^[0-9]{2}$/.test(ciclo)) {
+      return json(400, { ok: false, erro: 'informe a variante e o ciclo (dois dígitos)' });
+    }
+    /* A CONFIRMAÇÃO É O NOME DO CICLO, como no expurgo da escola é o slug: apagar 40 ficheiros
+     * de uma vez não se faz com um clique distraído. */
+    if (String(corpo.confirmacao || '').trim() !== 'ciclo-' + ciclo + '-' + variante) {
+      return json(400, {
+        ok: false,
+        erro: 'a confirmação tem de ser «ciclo-' + ciclo + '-' + variante + '» — nada foi apagado',
+        esperado: 'ciclo-' + ciclo + '-' + variante,
+      });
+    }
+    const { apagarCicloDoRepo } = require('./repo-escola.js');
+    let r;
+    try {
+      r = await apagarCicloDoRepo({
+        token: env && env.GITHUB_TOKEN,
+        dono: 'tmenegaz',
+        repo: 'danca',
+        ref: 'main',
+        escola,
+        professor: String(corpo.professor || '').trim(),
+        variante,
+        ciclo,
+      });
+    } catch (err) {
+      return json(502, {
+        ok: false,
+        erro: 'o ciclo não foi apagado: ' + ((err && err.message) || String(err)) + '. Nada foi '
+          + 'tocado.',
+      });
+    }
+    if (!r.ok) {
+      /* A GUARDA DEVOLVE 409, e a recusa NOMEIA o que impede — uma recusa sem nome obriga a
+       * adivinhar. O `400` fica para o pedido malformado, que é outra coisa. */
+      return json(r.guarda ? 409 : 502, {
+        ok: false,
+        erro: r.erro,
+        guarda: r.guarda || null,
+        posteriores: r.posteriores || null,
+      });
+    }
+    return json(200, { ok: true, ...r });
+  }
+
   if (path === '/api/bastidores/turma' && request.method === 'DELETE') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }

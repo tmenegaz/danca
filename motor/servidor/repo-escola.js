@@ -1157,7 +1157,228 @@ function comProfessorRemovido(indiceTexto, { professor }) {
   return JSON.stringify(indice, null, 2) + '\n';
 }
 
+/**
+ * OS CICLOS DE UMA VARIANTE, em ordem crescente — lidos dos caminhos, não de um cadastro.
+ *
+ * NÃO HÁ REGISTO DE CICLOS no repositório (nem tabela, nem campo): um ciclo existe porque tem
+ * ficheiros em `professores/<prof>/ciclos/ciclo-NN-<variante>…`. Contá-los pelos ficheiros é o
+ * que mantém a regra alinhada com a realidade — um cadastro à parte divergiria no dia em que um
+ * ficheiro fosse apagado à mão, e a guarda do `parentHash` passaria a proteger um ciclo que já
+ * não existe.
+ *
+ * O PADRÃO É MAIS APERTADO DO QUE O DA ESCOLA, E A RAZÃO É MEDIDA. `ehArquivoDaEscola` aceita
+ * traço depois do slug, porque para o expurgo da ESCOLA o que interessa é a família. Aqui não
+ * serve: a variante `breu` casaria `ciclo-01-breu-bale-nivel-1-teste-3.md` — o ficheiro de
+ * OUTRA variante —, e a exclusão apagaria o ciclo de um vizinho. Os seguidores legítimos são
+ * três e só três: fim, ponto/barra (`.md`, `.conf`, `.fipp`, `/pacote/…`) e `-aula-NN` (a âncora
+ * e a fonte da aula). Qualquer outro traço é o nome de outra coisa.
+ */
+function ciclosDaVariante(caminhos, professor, variante) {
+  const pasta = 'professores/' + professor + '/ciclos/';
+  const re = new RegExp('^' + pasta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    + 'ciclo-([0-9]{2})-' + String(variante).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    + '(?=$|[/.]|-aula-[0-9]{2}[./]|-aula-[0-9]{2}$)');
+  const vistos = new Set();
+  for (const c of (Array.isArray(caminhos) ? caminhos : [])) {
+    const m = re.exec(c);
+    if (m) vistos.add(m[1]);
+  }
+  return [...vistos].sort();
+}
+
+/**
+ * APAGAR UM CICLO — o pacote gerado inteiro, e só ele (04/11/2026).
+ *
+ * O QUE É «UM CICLO», na definição da pesquisadora: «o ciclo não é apenas um arquivo isolado,
+ * mas sim o pacote completo e integrado gerado a partir da conclusão do plano de observação» —
+ * o menu, os planos, a área do professor, as aulas, os formulários, as fichas de captura, o PDF,
+ * as referências e as listagens. É tudo o que está em `ciclo-NN-<variante>`: as fontes
+ * derivadas, o `.conf`, o pacote e as âncoras.
+ *
+ * O QUE FICA: as FONTES DE ORIGEM. A anamnese é do sujeito e não do ciclo (decisão de
+ * 04/11/2026), e o plano de ensino é uma declaração do professor — nenhum dos dois é «gerado».
+ * Apagá-los junto seria confundir o produto com o que lhe deu origem.
+ *
+ * E O PLANO DE ENSINO FICA **LIVRE**, sem se lhe tocar: o vínculo PO ↔ PE é DERIVADO (o PO
+ * declara o plano no nó `plano-de-ensino`; `poDoPlano` responde varrendo os POs). Apagados os
+ * POs do ciclo, não há quem declare o plano, e ele volta a estar disponível — que é exactamente
+ * o modelo da curadoria, invocado por ela: apagar o vínculo liberta o que estava preso, e não
+ * reescreve o que ficou. Um campo «livre: sim» no plano seria uma SEGUNDA declaração do mesmo
+ * facto, e a primeira gravação de um PO novo deixaria as duas a divergir.
+ *
+ * A GUARDA — SÓ O ÚLTIMO CICLO DA SEQUÊNCIA. O `parentHash` de um ciclo é o `hash` da âncora do
+ * ANTERIOR (`tools/hash-ciclo.sh`, §4). Apagar o ciclo 01 quando existem 02 e 03 deixa o
+ * `parentHash` do 02 a apontar para um hash que já não existe em sítio nenhum: a cadeia fica
+ * partida, e nenhuma regeneração a remenda — o `--check` do 03 passaria a falhar para sempre, e
+ * o elo perdido não se reconstitui (P-03). Apagar o ÚLTIMO não parte nada: o ciclo anterior
+ * volta a ser o topo. A guarda é a mesma nos dois sentidos e não se contorna por parâmetro.
+ */
+async function apagarCicloDoRepo({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl }) {
+  let ultimo = null;
+  for (let intento = 1; intento <= 3; intento += 1) {
+    const r = await apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl });
+    if (r.ok) return Object.assign(r, { intentos: intento });
+    ultimo = r.motivo || r.erro;
+    if (!r.corrida) return Object.assign(r, { intentos: intento });
+    await ESPERA_DO_INTENTO(intento);
+  }
+  return { ok: false, erro: ultimo, apagadoNoRepositorio: 'não entrou depois de 3 tentativas' };
+}
+
+async function apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, professor, variante, ciclo, fetchImpl }) {
+  const f = fetchImpl || fetch;
+  const slugProfessor = String(professor || '').trim();
+  const var_ = String(variante || '').trim();
+  const nn = String(ciclo || '').padStart(2, '0');
+  if (!slugProfessor || !var_) throw new Error('informe o professor e a variante');
+  if (!/^[0-9]{2}$/.test(nn)) throw new Error('o ciclo tem de ser dois dígitos');
+
+  const caminhos = await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl: f });
+  const ciclos = ciclosDaVariante(caminhos, slugProfessor, var_);
+  if (ciclos.indexOf(nn) === -1) {
+    return { ok: false, jaNaoExistia: true, erro: 'o ciclo ' + nn + ' de ' + var_ + ' não existe' };
+  }
+
+  /* A GUARDA, E O QUE ELA DIZ QUANDO RECUSA. Uma recusa sem nome do que a impede obriga a
+   * adivinhar; o elo seguinte é a informação que resolve. */
+  const posteriores = ciclos.filter((c) => c > nn);
+  if (posteriores.length) {
+    return {
+      ok: false,
+      guarda: 'ultimo',
+      posteriores,
+      erro: 'o ciclo ' + nn + ' não é o último da sequência — existem ' + posteriores.join(', ')
+        + '. O parentHash de ' + posteriores[0] + ' aponta para a âncora deste, e apagá-lo '
+        + 'partiria a cadeia sem remédio. Apague de trás para a frente: '
+        + posteriores.slice().reverse().join(', ') + ' e depois ' + nn + '.',
+    };
+  }
+
+  const daVariante = caminhos.filter((c) => ehArquivoDaEscola(c, var_, nn)
+    && c.indexOf('professores/' + slugProfessor + '/ciclos/') === 0);
+  if (!daVariante.length) {
+    return { ok: false, jaNaoExistia: true, erro: 'o ciclo ' + nn + ' não tem ficheiros' };
+  }
+
+  /* O MANIFESTO BASE (`ciclos/ciclo-NN.conf`) é do PROFESSOR e serve todas as escolas dele
+   * naquele ciclo: sai só quando não sobra variante nenhuma. A regra é a mesma de
+   * `SO_MANIFESTO_BASE` no expurgo da escola, e a razão também: levar o manifesto de uma escola
+   * que fica seria apagar a configuração de outra. */
+  const outrasVariantes = ciclosDaVariante(
+    caminhos.filter((c) => c.indexOf('ciclo-' + nn + '.' + 'conf') === -1),
+    slugProfessor,
+    var_.replace(/\..*$/, ''));
+  const outrasDoCiclo = caminhos.some((c) => new RegExp('^professores/' + slugProfessor
+    + '/ciclos/ciclo-' + nn + '-').test(c) && !ehArquivoDaEscola(c, var_, nn));
+  const manifestoBase = 'professores/' + slugProfessor + '/ciclos/ciclo-' + nn + '.conf';
+  const apagados = daVariante.slice();
+  if (!outrasDoCiclo && caminhos.indexOf(manifestoBase) !== -1) apagados.push(manifestoBase);
+
+  /* OS ENVELOPES DO CICLO — só os POs. A anamnese é do sujeito e o plano é a declaração que deu
+   * origem ao ciclo; nenhum dos dois é produto dele. O filtro é pelo CONTEXTO do envelope
+   * (escola + professor + ciclo), e não pelo nome: um `po-…json` sem contexto não se apaga às
+   * cegas, porque não se pode provar de quem é. */
+  const envelopesDoCiclo = [];
+  let indiceDoAcervo = null;
+  const caminhoIndice = 'escola/' + escola + '/envelopes/.indice.json';
+  if (escola && caminhos.indexOf(caminhoIndice) !== -1) {
+    const lido = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl: f });
+    let indice = null;
+    try { indice = lido ? JSON.parse(lido) : null; } catch (erro) { indice = null; }
+    const nomes = (indice && Array.isArray(indice.envelopes)) ? indice.envelopes
+      : ((indice && Array.isArray(indice.nomes)) ? indice.nomes : []);
+    for (const nome of nomes) {
+      if (!/^po-.*\.json$/.test(String(nome))) continue;
+      const caminho = 'escola/' + escola + '/envelopes/' + nome;
+      if (caminhos.indexOf(caminho) === -1) continue;
+      const texto = await lerArquivo({ token, dono, repo, ref, caminho, fetchImpl: f });
+      let env = null;
+      try { env = texto ? JSON.parse(texto) : null; } catch (erro) { env = null; }
+      const ctx = (env && env.contexto) || {};
+      const doCiclo = String(ctx.ciclo || '') === nn
+        && String(ctx.professor || '') === slugProfessor
+        && (!ctx.variante || String(ctx.variante) === var_);
+      if (doCiclo) envelopesDoCiclo.push({ nome: String(nome), caminho });
+    }
+    if (envelopesDoCiclo.length) {
+      const saida = JSON.parse(JSON.stringify(indice));
+      const tirar = new Set(envelopesDoCiclo.map((e) => e.nome));
+      if (Array.isArray(saida.envelopes)) saida.envelopes = saida.envelopes.filter((n) => !tirar.has(String(n)));
+      if (Array.isArray(saida.nomes)) saida.nomes = saida.nomes.filter((n) => !tirar.has(String(n)));
+      indiceDoAcervo = JSON.stringify(saida, null, 2) + '\n';
+    }
+  }
+
+  const { commitSha, treeSha } = await baseDoGit({ token, dono, repo, ref, fetchImpl: f });
+  const raizApi = 'https://api.github.com/repos/' + dono + '/' + repo;
+  const tree = apagados.map((path) => ({ path, mode: '100644', type: 'blob', sha: null }));
+  for (const e of envelopesDoCiclo) tree.push({ path: e.caminho, mode: '100644', type: 'blob', sha: null });
+  if (indiceDoAcervo) tree.push({ path: caminhoIndice, mode: '100644', type: 'blob', content: indiceDoAcervo });
+
+  const novaArvore = await pedir(f, raizApi + '/git/trees', token, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
+    body: JSON.stringify({ base_tree: treeSha, tree }),
+  });
+  if (!novaArvore.ok) {
+    return { ok: false, corrida: novaArvore.status === 409, motivo: 'não montei a árvore do ciclo: HTTP ' + novaArvore.status };
+  }
+
+  const mensagem = [
+    'chore(estrutura): apagar o ciclo ' + nn + ' de ' + var_,
+    '',
+    'O ciclo gerado sai inteiro: as fontes derivadas, o .conf da variante, o pacote, as âncoras',
+    'e os POs do ciclo (' + envelopesDoCiclo.length + ' envelope(s)). É o «pacote completo e integrado» na',
+    'definição dela — menu, planos, aulas, formulários, fichas, PDF, referências e listagens.',
+    '',
+    'O QUE FICA, E PORQUÊ: a anamnese é do SUJEITO e não do ciclo (04/11/2026), e o plano de',
+    'ensino é a declaração que deu origem ao ciclo — nenhum dos dois é produto dele. O plano',
+    'fica LIVRE sem se lhe tocar: o vínculo PO ↔ PE é derivado, e apagados os POs não há quem o',
+    'declare. É o modelo da curadoria: apagar o vínculo liberta o que estava preso.',
+    '',
+    'A GUARDA: só o último ciclo da sequência. O parentHash do seguinte aponta para a âncora',
+    'deste, e apagá-lo partiria a cadeia sem remédio (P-03). Aqui não havia posteriores.',
+    '',
+    'Refs: professores/' + slugProfessor + '/ciclos/ciclo-' + nn + '-' + var_ + '*, escola/' + escola + '/envelopes/',
+    'Regras: P-03, P-04, P-17',
+    'Auditoria: apagados ' + (apagados.length + envelopesDoCiclo.length) + ' arquivo(s); 3 tentativas; '
+      + 'fontes de origem preservadas',
+  ].join('\n');
+
+  const novoCommit = await pedir(f, raizApi + '/git/commits', token, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
+    body: JSON.stringify({ message: mensagem, tree: novaArvore.corpo.sha, parents: [commitSha] }),
+  });
+  if (!novoCommit.ok) {
+    return { ok: false, corrida: novoCommit.status === 409, motivo: 'não criei o commit do ciclo: HTTP ' + novoCommit.status };
+  }
+  const sha = novoCommit.corpo && novoCommit.corpo.sha;
+  const atualizar = await pedir(f, raizApi + '/git/refs/heads/' + ref, token, {
+    method: 'PATCH',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
+    body: JSON.stringify({ sha, force: false }),
+  });
+  if (!atualizar.ok) {
+    return {
+      ok: false,
+      corrida: atualizar.status === 422 || atualizar.status === 409,
+      motivo: 'não avancei ' + ref + ' para o commit do ciclo: HTTP ' + atualizar.status,
+    };
+  }
+  return {
+    ok: true,
+    commit: sha,
+    apagados,
+    envelopes: envelopesDoCiclo.map((e) => e.nome),
+    planoLibertado: true,
+    variantesRestantes: outrasDoCiclo,
+  };
+}
+
 module.exports = {
+  ciclosDaVariante,
+  apagarCicloDoRepo,
   registrarNomeDoProfessor,
   comNomeDoProfessor,
   apagarProfessorDoRepo,

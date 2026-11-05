@@ -500,6 +500,76 @@ repetição: perdia a corrida e **lançava** — e chegava a esse ponto com a me
 repositório. Hoje ele é embrulhado como o `apagarProfessorDoRepo` ao lado: a corrida refaz árvore
 e commit, e a falha definitiva é **resultado** (`{ ok: false, erro }`), não excepção.
 
+### 5.4.1 Apagar um ciclo — e porque só se apaga o último
+
+Um ciclo é **o pacote gerado**: o menu, os planos, as aulas, os formulários, as fichas, o PDF, as
+referências e as listagens. Apagá-lo leva tudo o que está em `ciclo-NN-<variante>` e os **POs** do
+ciclo. **Não** leva a anamnese (é do sujeito, §5.4.2) nem o plano de ensino (é a declaração que deu
+origem ao ciclo).
+
+**E o plano fica livre sem se lhe tocar.** O vínculo PO ↔ PE é **derivado** — o PO declara o plano
+no nó `plano-de-ensino`, e `poDoPlano` responde varrendo os POs. Apagados os POs, não há quem o
+declare, e o plano volta a estar disponível. É o modelo da curadoria: *apagar o vínculo liberta o
+que estava preso, e não reescreve o que ficou.* Um campo `livre: sim` no plano seria uma segunda
+declaração do mesmo facto, e a primeira gravação de um PO novo deixaria as duas a divergir.
+
+**A guarda: só o último ciclo da sequência.** O `parentHash` de um ciclo é o `hash` da âncora do
+anterior (`tools/hash-ciclo.sh` §4). Apagar o 01 quando existem 02 e 03 deixa o `parentHash` do 02
+a apontar para um hash que já não existe em sítio nenhum: a cadeia fica partida e nenhuma
+regeneração a remenda — o `--check` do 03 falharia para sempre, e o elo perdido não se reconstitui
+(P-03). Apagar o **último** não parte nada: o anterior volta a ser o topo.
+
+| Gesture | Permitido | Porquê |
+|:--|:--|:--|
+| apagar o **último** (02 de 01, 02) | sim | não há posteriores a quem falte o pai |
+| apagar um **intermédio** (01 de 01, 02) | **não — 409** | o `parentHash` do 02 apontaria para o vazio |
+| apagar o **único** (01 de 01) | sim | é o último por definição |
+
+A recusa **nomeia o que impede** e **diz o que fazer** («apague de trás para a frente: 02 e depois
+01») — uma recusa sem nome obriga a adivinhar, e a adivinhação num gesto destrutivo é o pior
+sítio para a deixar.
+
+E a rotina é a mesma das outras exclusões: **três tentativas**, porque o `PATCH` da referência
+recusa um commit que não descende do `main` actual (422), e a resposta certa é refazer base, árvore
+e commit.
+
+### 5.4.2 A anamnese é do sujeito, e é datada
+
+Duas decisões que se sustentam uma à outra:
+
+1. **A anamnese não tem ciclo.** Uma aluna que entra quando a turma está no ciclo 50 não passou
+   pelos 49 anteriores: o documento é dela, e é consumido pelo PO de **qualquer** ciclo em que ela
+   seja alocada. A chave da estante já o dizia (`aluna + escola`, sem ciclo); o envelope passou a
+   não declarar um.
+2. **A anamnese é imutável e não se «ajusta».** Se ela é o retrato físico do corpo num momento,
+   ela é **historicamente datada**. Uma aluna que evoluiu — ou que se lesionou — não teve um
+   «ajuste» do passado: tem um **novo estado no tempo**. O gesto é **Novo registo**: o formulário
+   abre preenchido com o retrato anterior (só se altera o que mudou), e grava-se um documento
+   **novo, com data nova e sem `ajuste_de`** — porque um retrato novo não *substitui* o anterior;
+   os dois aconteceram. O «Ajustar» gravava um elo que marcava o anterior como substituído, e é
+   essa a diferença que o gesto novo corrige.
+
+**O que o sistema NÃO faz, e é decisão:** não julga se a anamnese está «velha». Não há
+periodicidade, nem validade, nem prazo. Quando se refaz o retrato é **política da escola**, e um
+motor que a impusesse estaria a decidir pedagogia por conta própria. O que existe são os **marcos
+do ciclo** que o calendário já calcula — a avaliação formativa (aula N/2) e a somativa (última
+aula) —, e são eles que a escola usa como referência natural, se quiser.
+
+---
+
+### 5.4.3 O que precisa de revalidação, depois de um retrato novo
+
+Quando entra uma anamnese mais recente, o PE e o PO desse ciclo podem já não valer — e o sinal é
+**derivado**, não um campo: *a anamnese de algum sujeito é mais recente do que este documento?*
+(`revalidacaoPendente`). Não há nada a limpar, e o sinal cai sozinho na primeira gravação.
+
+**A ordem é estrita: primeiro o Plano de Ensino, depois o Plano de Observação.** O PO observa o
+que o PE fixou; revalidar o PO sobre um PE velho é consolidar uma linha de base sobre um plano que
+já não vale. É por isso que os dois são marcados, e por isso a resposta traz a ordem.
+
+A quem pertence o julgamento: **ao professor**. O sistema não altera nada sozinho — ele diz o que
+está desactualizado e em que ordem se resolve.
+
 ### 5.5 Os pipelines não se atropelam
 
 | Mecanismo | Onde | Efeito |

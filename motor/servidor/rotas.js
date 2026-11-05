@@ -355,6 +355,62 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     } catch (erro) { return falhaDaLista(erro); }
   });
 
+  /*
+   * 6.2 GET /api/ciclos — os ciclos desta escola, e o PRÓXIMO ciclo válido (04/11/2026).
+   *
+   * A REGRA QUE ELE SERVE: «os ciclos devem ser estritamente sequenciais (1, 2, 3, … N)», e o
+   * campo do ciclo não pode ser texto livre. Para travar o campo no próximo número é preciso
+   * saber quais existem — e a resposta vem dos DOCUMENTOS (o índice dos envelopes), não de um
+   * cadastro. Um ciclo existe porque tem plano ou PO dentro; um número escrito num campo não é
+   * um ciclo.
+   *
+   * `proximo` a `null` NÃO É ERRO: é um buraco na sequência (01 e 03 sem o 02), e nesse caso não
+   * há próximo honesto a sugerir. Quem mostra diz a lacuna em vez de inventar o número que a
+   * taparia.
+   *
+   * `comPlano` é a lista que o Plano de Observação consome: não se observa um ciclo sem plano de
+   * ensino, e é o servidor que o diz — uma segunda cópia da regra na tela divergiria dela.
+   */
+  roteador.rota('GET', '/api/ciclos', async ({ url }) => {
+    try {
+      const params = (url && url.searchParams) || new URLSearchParams();
+      const professor = params.get('professor') || '';
+      const escola = String(escolaDoWorker || params.get('escola') || '').trim();
+      const ciclos = await porta.ciclosDaEscola(armazenamento, { escola, professor });
+      return {
+        ok: true,
+        escola,
+        professor,
+        ciclos,
+        proximo: porta.proximoCiclo(ciclos),
+        comPlano: ciclos.filter((c) => c.temPlano).map((c) => c.ciclo),
+      };
+    } catch (erro) { return falhaDaLista(erro); }
+  });
+
+  /*
+   * 6.3 GET /api/revalidacao — o que precisa de revisão depois de um retrato físico novo.
+   *
+   * A regra é do núcleo (`revalidacaoPendente`) e é DERIVADA: «a anamnese de algum sujeito é mais
+   * recente do que este documento?». Não há campo a limpar, e o sinal cai sozinho quando o
+   * documento é gravado de novo.
+   *
+   * A resposta traz `ordem` — `['plano-de-ensino','plano-de-observacao']` — porque a ordem é a
+   * regra e não uma arrumação de ecrã: o PO observa o que o PE fixou, e revalidar o PO sobre um
+   * PE velho é consolidar uma linha de base sobre um plano que já não vale.
+   */
+  roteador.rota('GET', '/api/revalidacao', async () => {
+    try {
+      const r = await porta.revalidacaoPendente(armazenamento);
+      return {
+        ok: true,
+        ordem: r.ordem,
+        anamneses: r.anamneses,
+        pendentes: [...r.pendentes.entries()].map(([id, v]) => Object.assign({ id }, v)),
+      };
+    } catch (erro) { return falhaDaLista(erro); }
+  });
+
   // 7. /api/anamnese-estados — a lista de gestão (todas, inclusive sem sujeito).
   roteador.rota('GET', '/api/anamnese-estados', async () => {
     try {

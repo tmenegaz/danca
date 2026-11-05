@@ -247,7 +247,17 @@ function cartoesDe(html) {
   const vinculada = daAluna('Aluna A');
   provar('a anamnese usada por um PO não oferece «Apagar»', vinculada.apagar.length === 0, vinculada.apagar);
   provar('…nem «Editar»', vinculada.links.indexOf('Editar') === -1, vinculada.links);
-  provar('…e oferece «Ajustar»', vinculada.links.indexOf('Ajustar') !== -1, vinculada.links);
+  /* «AJUSTAR» DEIXOU DE EXISTIR NA ANAMNESE (04/11/2026) — o gesto é «Novo registo».
+   *
+   * A pesquisadora: «Se a anamnese é o retrato clínico/físico do corpo do sujeito num determinado
+   * momento, ela é historicamente datada. Se a aluna evoluiu ou sofreu uma alteração física, isso
+   * NÃO é um ajuste ou edição secreta do passado: é um novo estado físico no tempo.» O «Ajustar»
+   * gravava `ajuste_de`, o que fazia o registo anterior passar a SUBSTITUÍDO — e um retrato físico
+   * novo não substitui o anterior: os dois aconteceram. */
+  provar('…e oferece «Novo registo» (era «Ajustar»)', vinculada.links.indexOf('Novo registo') !== -1,
+    vinculada.links);
+  provar('…e NÃO oferece «Ajustar» — a edição retroativa saiu',
+    vinculada.links.indexOf('Ajustar') === -1, vinculada.links);
 
   /* --------------------------------------------------------------------------------------- */
   console.log('\n4 · O CLIQUE — a senha manda, e o carimbo é o da linha');
@@ -343,6 +353,6 @@ function cartoesDe(html) {
   console.log((falhas ? 'FALHOU' : 'TUDO CERTO') + ' — ' + total + ' asserção(ões), ' + falhas + ' falha(s).');
   console.log(falhas
     ? 'O gesto de apagar não está onde a regra manda.'
-    : 'O registo solto edita-se e apaga-se; o vinculado só se ajusta — e quem decide é o servidor.');
+    : 'O registo solto edita-se e apaga-se; o vinculado só ganha um registo novo — e quem decide é o servidor.');
   process.exit(falhas ? 1 : 0);
 })();

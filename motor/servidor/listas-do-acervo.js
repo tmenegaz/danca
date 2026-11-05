@@ -257,13 +257,26 @@ function acoesDaLinha(chave, registo, estado) {
    * aqui faria a tela prometer uma coisa que o servidor não conhece. */
   if (chave === 'anamnese') {
     if (estado && estado.vinculada) {
-      /* O CARIMBO VAI NO ENDEREÇO (26/10/2026). Sem ele a porta abria um formulário vazio com o
-       * contexto: quem clicava «Ajustar» não via o registo que ia ajustar, e a barra não tinha
-       * como dizer o que se estava a fazer. Com `ajustar=<id>`, a porta carrega o envelope e
-       * marca o gesto (`DERIVANDO`), que é o `ajuste_de` do elo novo. */
-      return [['Ajustar', f.porta + consulta({ fonte: f.fonte, ajustar: registo.id,
-        professor: registo.professor, ciclo: registo.ciclo, aluna: registo.aluna }), 'secundario',
-        'acrescenta um elo novo; o registo anterior permanece']];
+      /* «AJUSTAR» DEIXOU DE EXISTIR NA ANAMNESE (04/11/2026) — é «NOVO REGISTO».
+       *
+       * A REGRA DE DOMÍNIO, dela: «Se a anamnese é o retrato clínico/físico do corpo do sujeito
+       * num determinado momento, ela é historicamente datada. Se a aluna evoluiu, ou se sofreu
+       * uma alteração física, isso NÃO é um ajuste ou edição secreta do passado: é um NOVO ESTADO
+       * FÍSICO NO TEMPO.»
+       *
+       * A diferença não é de nome, é de dado. O «Ajustar» gravava um elo com `ajuste_de` — o
+       * registo anterior passava a SUBSTITUÍDO, e a estante mostrava um só. Um novo retrato
+       * físico, porém, não substitui o anterior: os dois aconteceram, em datas diferentes, e é a
+       * série que diz se o corpo mudou. Por isso o gesto novo NÃO leva `ajuste_de` e nasce com o
+       * seu próprio carimbo.
+       *
+       * O CARIMBO VAI NO ENDEREÇO (`novo=<id>`), e não é enfeite: é o que faz o formulário abrir
+       * PREENCHIDO com o retrato anterior (o «duplicar» que ela pediu — «poupa o tempo do
+       * professor, permitindo que ele altere apenas o que mudou no corpo»). */
+      return [['Novo registo', f.porta + consulta({ fonte: f.fonte, novo: registo.id,
+        professor: registo.professor, aluna: registo.aluna }), 'secundario',
+        'abre um retrato novo, datado de hoje, com os dados do anterior já preenchidos — o '
+          + 'registo de ' + registo.id + ' não é tocado']];
     }
     /* «APAGAR» ERA UM LINK PARA O FORMULÁRIO (03/11/2026). Ele e o «Editar» apontavam para o
      * MESMO endereço — dois botões, um destino, e o segundo a prometer uma coisa que não fazia
@@ -1251,7 +1264,18 @@ function eschave(texto) {
  *   · plano de ensino — a TURMA está no próprio registo (`turmaDoEnvelope`);
  *   · PO — a turma vem do plano de ensino que ele observa.
  */
-function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerados, historico) {
+/**
+ * AS LINHAS DE UMA FAMÍLIA.
+ *
+ * OS DERIVADOS VÃO NUM OBJECTO, e não em mais posições (04/11/2026). A assinatura já tinha sete
+ * parâmetros posicionais; acrescentar o oitavo (`revalidar`) seria mais um `undefined` a passar
+ * despercebido — e foi exactamente esse o defeito que apareceu: a função usava `revalidar` e o
+ * chamador não o passava, e a lista caía em `ReferenceError` na primeira linha com PO. Com um
+ * objecto nomeado, quem acrescenta um derivado novo acrescenta-o num sítio onde o nome o diz, e
+ * quem esquece um vê `undefined` no sítio certo em vez de rebentar no meio.
+ */
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados) {
+  const { gerados, historico, revalidar } = derivados || {};
   /* AS VERSÕES QUE A LINHA GUARDOU (03/11/2026). A estante mostra o documento vigente; o que ele
    * substituiu continua no acervo, com a cadeia inteira. Dizer quantas são é o mínimo: uma linha
    * que aparece sozinha onde havia três, sem uma palavra, faz concluir que o sistema apagou o
@@ -1334,7 +1358,13 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerad
      * O QUE SE LE E O QUE ESTA GRAVADO: o ciclo, quantos documentos derivaram e quando. Nao e
      * promessa nem deducao: sem registo, nao ha selo. */
     const gerado = (familia === 'plano-de-observacao' && gerados) ? gerados.get(r.id) : null;
-    const fatos = (gerado
+    /* O SINAL DE REVALIDAÇÃO VEM PRIMEIRO, e é o único facto que PEDE uma acção (04/11/2026). Os
+     * outros dizem o que o documento é; este diz o que é preciso fazer — e um aviso enterrado no
+     * fim de uma lista de factos não se lê. */
+    const precisaRever = (revalidar && revalidar.get(r.id)) || null;
+    const fatos = (precisaRever
+      ? ['precisa de revisão — ' + precisaRever.motivo]
+      : []).concat(gerado
       ? [
         'ciclo ' + (gerado.ciclo || r.ciclo || '—'),
         (gerado.documentos ? gerado.documentos.length : 0) + ' documento(s) gerados',
@@ -1347,10 +1377,16 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, gerad
       /* A MESMA PORTA PARA LER, nas três famílias (27/10/2026). O PO passou a ter folha hoje —
        * até aqui não tinha nenhuma, e a estante abria o JSON. */
       ler: fichaDeLeitura(familia, r),
-      selo: estado.estado || (gerado ? 'gerado' : ''),
-      seloClasse: estado.estado === 'vinculada' ? 'vinculada'
-        : estado.estado === 'legado' ? 'discreto'
-          : gerado ? 'vigente' : 'livre',
+      /* O SELO DIZ O QUE EXIGE GESTO, e a precedência é essa: um documento que precisa de revisão
+       * não é «vinculada» nem «gerado» para quem o vai abrir — é «rever». A CLASSE não é uma cor
+       * nova na folha: usa a do aviso que já existe (`discreto`), porque a cor do catálogo é
+       * limitada e um estado de selo novo seria desenho a mais para a mesma ideia. O TEXTO é o
+       * que distingue, e é lá que está o que a pessoa precisa de saber. */
+      selo: precisaRever ? 'rever' : (estado.estado || (gerado ? 'gerado' : '')),
+      seloClasse: precisaRever ? 'discreto'
+        : estado.estado === 'vinculada' ? 'vinculada'
+          : estado.estado === 'legado' ? 'discreto'
+            : gerado ? 'vigente' : 'livre',
       fatos: fatos,
       turma: turma,
       professor: quem,
@@ -1432,6 +1468,28 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
   const registos = vigentes.vigentes;
   const historico = vigentes.historico;
 
+  /* O QUE PRECISA DE REVALIDAÇÃO (04/11/2026) — e a lista DIZ, em vez de deixar descobrir.
+   *
+   * A pesquisadora: «o sistema deve sinalizar de forma evidente que o Plano de Ensino e o Plano
+   * de Observação precisam de ser revisados/ajustados após a inserção de uma nova anamnese
+   * vinculada ao ciclo». O sinal é DERIVADO (`porta.revalidacaoPendente`): a anamnese de um
+   * sujeito é mais recente do que o documento? Não há campo a limpar, e o selo cai sozinho na
+   * primeira gravação.
+   *
+   * Só se calcula para as duas famílias que ele marca — a anamnese não se revalida a si mesma, e
+   * o custo é uma leitura por PO, que é a mesma que a linha já faria. */
+  let revalidar = null;
+  if (chave === 'plano-de-ensino' || chave === 'plano-de-observacao') {
+    try {
+      const r = await porta.revalidacaoPendente(armazenamento);
+      revalidar = r && r.pendentes ? r.pendentes : null;
+    } catch (erro) {
+      /* Sem o sinal, a lista fica como estava — e não se inventa um estado. Um selo «precisa de
+       * revisão» que aparecesse por falha de leitura seria pior do que a sua ausência. */
+      revalidar = null;
+    }
+  }
+
   /* O MAPA plano → turma. O PO referencia o plano de ensino, e a turma do PO é a do plano. Sai do
    * MESMO índice que já foi lido — não é uma segunda leitura. */
   let turmaDoPlano = null;
@@ -1469,7 +1527,8 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
     }
   }
 
-  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano, gerados, historico);
+  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano,
+    { gerados, historico, revalidar });
   const titulo = familia.titulo;
   const pedido = caminho.endsWith('/') ? caminho : caminho + '/';
 
@@ -1501,4 +1560,4 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
   };
 }
 
-module.exports = { pagina, FAMILIAS, listaDaPorta, turmaDaAluna, nomeDoProfessor, dia };
+module.exports = { pagina, FAMILIAS, listaDaPorta, turmaDaAluna, nomeDoProfessor, dia, acoesDaLinha };

@@ -34935,3 +34935,103 @@ inscrição).
    e os limites documentados; um ensaio a sério gasta cota e não foi feito.
 3. **O instantâneo do `aspecto-fisico` não guarda proveniência** (de que anamneses nasceu), e por
    isso a divergência entre a anamnese e o plano não se detecta — só se descobre por acaso.
+
+## 04/11/2026 — O ciclo apaga-se de trás para a frente, a sequência é estrita, e a anamnese é datada
+
+**O que motivou.** Quatro frentes que a pesquisadora enunciou como regra de negócio, e uma delas
+com uma consequência de domínio que ainda não estava no código: «os ciclos devem ser estritamente
+sequenciais (1, 2, 3 … N)»; «não é permitido criar um Plano de Observação para um ciclo que ainda
+não possui Plano de Ensino»; «a Anamnese pertence ao ALUNO, não ao ciclo»; e «não pode existir um
+botão de ajustar uma anamnese já registada e vinculada — qualquer alteração gera um NOVO registo,
+com uma nova data».
+
+**O que se mediu — e o que já estava certo, e por isso não se mexeu.**
+
+1. **A anamnese já era atemporal na chave da estante.** `CONTEXTO_DO_REGISTO.anamnese` agrupa por
+   `aluna + escola`, sem ciclo, e `estadosDasAnamneses` deriva o vigente pelo apelido. O que
+   faltava era o **envelope** declarar um ciclo, e o **formulário** pedi-lo. Medido num envelope
+   real: `{escola, professor, ciclo: "01", aluna}`.
+2. **O vínculo PO ↔ PE é derivado**, e é isso que faz a exclusão ser simples: o PO declara o plano
+   no nó `plano-de-ensino`, e `poDoPlano` responde varrendo os POs. Apagados os POs, o plano fica
+   livre **sem se lhe tocar** — o modelo da curadoria que ela invocou.
+3. **Os marcos formativa/somativa já são derivados** do calendário (`calendario.py`: formativa =
+   aula N/2, somativa = última aula), e **não há** nenhuma regra de validade da anamnese. O pedido
+   confirma o que existe: o controlo de quando se refaz o retrato é política da escola.
+4. **Não havia rotina de apagar ciclo** — só escola e professor —, nem rota que listasse ciclos, e
+   o campo `#ctx-ciclo` era `<input type="text">` livre nas três fontes.
+
+**O que foi decidido e implementado.**
+
+- **Apagar o ciclo gerado** (`apagarCicloDoRepo`): leva o pacote, as fontes derivadas, o `.conf` da
+  variante, as âncoras e os POs do ciclo; deixa a anamnese e o plano de ensino. **Três
+  tentativas**, como o expurgo.
+- **A guarda: só o último.** O `parentHash` do ciclo seguinte aponta para a âncora deste, e apagá-lo
+  partiria a cadeia sem remédio (P-03). A recusa diz **o que impede** e **o que fazer** («apague de
+  trás para a frente: 02 e depois 01»), e a rota devolve `409` sem repetir a regra — a guarda é do
+  núcleo, e uma segunda cópia divergiria.
+- **O padrão do ciclo é apertado.** `ehArquivoDaEscola` aceita traço depois do slug (serve ao
+  expurgo da escola); para apagar um ciclo isso é perigoso: a variante `breu` casaria
+  `ciclo-01-breu-bale-nivel-1-teste-3.md` — o ficheiro de OUTRA variante — e a exclusão apagaria o
+  ciclo do vizinho. `ciclosDaVariante` aceita três seguidores e só três (fim, `.`/`/`, `-aula-NN`).
+  Medido nos dois sentidos.
+- **A sequência é estrita, e é o servidor que a diz.** `GET /api/ciclos` deriva os ciclos do
+  índice dos envelopes — **um ciclo existe porque tem documento** —, e `proximoCiclo` devolve `01`
+  numa escola nova, o seguinte ao maior quando a sequência está inteira, e **`null` quando há um
+  buraco**: não há próximo honesto a sugerir, e inventar o número que taparia a lacuna esconderia o
+  problema. O campo passa a `readOnly` com a nota do motivo. Doze ciclos → `11` (a ordem é
+  numérica; em texto, `'10'` ordenaria antes de `'2'`).
+- **O ciclo sai da anamnese.** `CAMPOS_DO_CONTEXTO` daquela fonte passa a `escola · professor ·
+  aluna`, o campo é escondido, e o envelope deixa de declarar ciclo — o que tem uma consequência
+  boa e verificada: **uma anamnese já não cria um ciclo na lista**.
+- **«Ajustar» deu lugar a «Novo registo».** O formulário abre **preenchido** com o retrato
+  anterior (o «duplicar» que ela pediu), e o que se grava é um documento novo, com data nova e
+  **sem `ajuste_de`** — porque um retrato novo não substitui o anterior: os dois aconteceram. O
+  «Editar» continua só para a anamnese **solta** (é rascunho), e a vinculada não tem edição.
+- **O sinal de revalidação é derivado** (`revalidacaoPendente`): «a anamnese de algum sujeito é
+  mais recente do que este documento?». Marca o **PO** e, pela cadeia, o **plano** que ele observa —
+  e o motivo do plano diz a **ordem**: «Revalide ESTE plano PRIMEIRO; o plano de observação vem
+  depois, porque observa o que este plano fixou.» Não há campo no envelope: um `revalidar: true`
+  seria uma segunda declaração do mesmo facto, e um sinal que se esquece de apagar é um sinal que
+  mente.
+
+**Dois defeitos meus, apanhados pelas bancadas.** (1) `linhasDe` ganhou um oitavo parâmetro
+posicional e o chamador não o passava: a listagem caía em `ReferenceError` na primeira linha com
+PO — a assinatura passou a receber os derivados **num objecto nomeado**. (2) Escrevi duas classes
+novas na porta (`campo-ciclo`, `ctx-ciclo-nota`) e a **checagem 8** reprovou-as: a peça vem do
+catálogo, e as duas foram substituídas por `.campo` e `.sub`.
+
+**Onde entrou.**
+
+- `motor/servidor/repo-escola.js` — `ciclosDaVariante`, `apagarCicloDoRepo` (+ guarda, 3 tentativas).
+- `motor/nucleo/porta.js` — `ciclosDaEscola`, `proximoCiclo`, `revalidacaoPendente`.
+- `motor/servidor/rotas.js` — `GET /api/ciclos`, `GET /api/revalidacao`.
+- `motor/servidor/bastidores.js` — `DELETE /api/bastidores/ciclo` (confirmação = nome do ciclo).
+- `motor/servidor/listas-do-acervo.js` — «Novo registo» na anamnese vinculada; o selo «rever»; os
+  derivados de `linhasDe` num objecto nomeado.
+- `porta/index.html` — o ciclo travado no próximo válido, escondido na anamnese; `duplicarAnamnese`
+  (`?novo=`); `CONTEXTO_EXPLICACAO` derivada dos campos da fonte.
+- `ARQUITETURA-GERAL.md` — §5.4.1 (apagar um ciclo), §5.4.2 (a anamnese é do sujeito e é datada),
+  §5.4.3 (o que precisa de revalidação, e a ordem).
+- `experimentos/provar-ciclos-e-anamnese.js` — **novo**, 34 asserções.
+- `experimentos/provar-contexto-do-ato.js` e `provar-apagar-da-listagem.js` — atualizadas à regra
+  nova, com **controlo negativo** (com a regra antiga voltam a reprovar).
+
+**Com o quê.** `motor/servidor/repo-escola.js` · `motor/nucleo/porta.js` ·
+`motor/servidor/{rotas,bastidores,listas-do-acervo}.js` · `porta/index.html` ·
+`ARQUITETURA-GERAL.md` §5.4.1–5.4.3 · `experimentos/provar-ciclos-e-anamnese.js`.
+
+**Referências.** `tools/hash-ciclo.sh` §4 (o `parentHash`) · `ARQUITETURA-GERAL.md` §5.1, §5.3,
+§5.4 · `REGISTRO.md` 04/11/2026 (o composto que encaminha; a anamnese atemporal na chave) ·
+`PROTOCOLO.md` (P-03 — a proveniência não se reescreve) · `IDENTIDADE-VISUAL.md` (as peças).
+
+**O que ainda não está feito.**
+
+1. **A interface de exclusão de ciclo não existe ainda.** A rota (`DELETE /api/bastidores/ciclo`) e
+   a guarda estão prontas e provadas; o botão na Produção não. Uma secção «Ciclos» no grupo
+   Pedagogia é o passo seguinte, e é desenho novo — com prova de geometria, como a da faixa.
+2. **A listagem da anamnese ainda não está em acordeão por aluna.** Hoje a estante mostra o
+   **vigente** de cada aluna e diz quantas versões guardou (é o que `vigentesDaFamilia` dá). Para
+   ver os retratos anteriores todos, lado a lado com as datas, é preciso a estrutura de acordeão —
+   e ela não foi feita.
+3. **Nada disto foi exercitado contra o GitHub a sério.** A exclusão mediu-se num GitHub falso, com
+   as três respostas que a rotina usa.

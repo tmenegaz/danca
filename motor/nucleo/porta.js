@@ -572,6 +572,168 @@ const CONTEXTO_DO_REGISTO = {
   },
 };
 
+/**
+ * OS CICLOS DE UMA ESCOLA — quantos planos e quantos POs cada um tem (04/11/2026).
+ *
+ * A PERGUNTA QUE ISTO RESPONDE, e ela é de negócio e não de arrumação: «os ciclos são
+ * estritamente sequenciais; o campo do ciclo não pode ser texto livre». Para travar o campo no
+ * próximo número válido é preciso saber **quais existem** — e a resposta não pode ser um cadastro
+ * à parte: um segundo registo dos ciclos divergiria do primeiro no dia em que um documento fosse
+ * apagado, e a tela passaria a oferecer um ciclo que já não tem nada dentro.
+ *
+ * A FONTE É O ÍNDICE DOS ENVELOPES (o mesmo que a estante lê), e é o que torna a regra
+ * verificável: **um ciclo existe porque tem documento**. Um `ciclo-02` sem plano e sem PO não é
+ * um ciclo — é um número que alguém escreveu.
+ *
+ * O QUE VOLTA: `[{ ciclo, planos, pos, temPlano }]` em ordem NUMÉRICA. `temPlano` é o que o
+ * Plano de Observação precisa: não se observa um ciclo que não tem plano de ensino, e o seletor
+ * do PO mostra só os que têm. A ordem é numérica e não alfabética porque `'10'` ordena antes de
+ * `'2'` como texto — o mesmo defeito de contar texto que este repositório já pagou nas aulas.
+ */
+async function ciclosDaEscola(armazenamento, { escola, professor, jaLido } = {}) {
+  const { nomes, resumos } = jaLido || (await lerIndice(armazenamento));
+  const doProfessor = String(professor || '').trim();
+  const daEscola = String(escola || '').trim();
+  const porCiclo = new Map();
+  for (const nome of nomes) {
+    const r = resumos[nome];
+    if (!r || !r.ciclo) continue;
+    if (daEscola && String(r.escola || '') !== daEscola) continue;
+    if (doProfessor && String(r.professor || '') !== doProfessor) continue;
+    const chave = String(r.ciclo);
+    if (!porCiclo.has(chave)) porCiclo.set(chave, { ciclo: chave, planos: 0, pos: 0 });
+    const alvo = porCiclo.get(chave);
+    if (String(r.fonte) === 'plano') alvo.planos += 1;
+    if (String(r.fonte) === 'po') alvo.pos += 1;
+  }
+  return [...porCiclo.values()]
+    .map((c) => Object.assign(c, { temPlano: c.planos > 0 }))
+    .sort((a, b) => Number(a.ciclo) - Number(b.ciclo));
+}
+
+/**
+ * O PRÓXIMO CICLO VÁLIDO: `01` quando não há nenhum, e o seguinte ao maior quando há.
+ *
+ * É o que trava o campo. Não é «o último + 1» por conveniência: é a definição de sequência
+ * estrita (1, 2, 3, … N) — um ciclo 50 sem os anteriores não é um ciclo, é um número, e a
+ * numeração é a posição na cadeia (a âncora encadeia `NN-1` → `NN`).
+ *
+ * `null` quando há um BURACO na sequência (01 e 03 sem o 02): aí não há próximo válido a sugerir,
+ * e inventar um número por cima do buraco esconderia o problema em vez de o dizer. Quem mostra
+ * decide dizer a lacuna — o silêncio é a família de defeito que esta casa mais evita.
+ */
+function proximoCiclo(ciclos) {
+  const lista = (Array.isArray(ciclos) ? ciclos : [])
+    .map((c) => Number(typeof c === 'object' ? c.ciclo : c))
+    .filter((n) => Number.isFinite(n) && n > 0)
+    .sort((a, b) => a - b);
+  if (!lista.length) return '01';
+  for (let i = 0; i < lista.length; i += 1) {
+    if (lista[i] !== i + 1) return null;      // buraco: 1, 3 → não há «próximo» honesto
+  }
+  return String(lista[lista.length - 1] + 1).padStart(2, '0');
+}
+
+/**
+ * O QUE PRECISA DE REVALIDAÇÃO, depois de entrar um retrato físico novo (04/11/2026).
+ *
+ * A REGRA, dita pela pesquisadora: «a anamnese alimenta o aspecto físico do plano através de uma
+ * acção de carregar no Plano de Observação, onde a professora edita e consolida a linha de base.
+ * Quando há alteração, os documentos gerados anteriormente precisam de ser revalidados: cabe ao
+ * professor abrir os documentos, avaliar os impactos no aspecto físico, realizar os ajustes e
+ * solicitar uma nova geração.»
+ *
+ * A ORDEM É ESTRITA E NÃO É NEGOCIÁVEL: **primeiro o Plano de Ensino, depois o Plano de
+ * Observação**. O PO observa o que o PE fixou — revalidar o PO sobre um PE velho é consolidar
+ * uma linha de base sobre um plano que já não vale. É por isso que os dois são marcados, e é por
+ * isso que a resposta traz a ordem: quem mostra diz «comece por aqui».
+ *
+ * PORQUE É DERIVADO E NÃO UM CAMPO NO ENVELOPE. Um campo `revalidar: true` seria uma SEGUNDA
+ * declaração do mesmo facto — e a primeira gravação deixaria as duas a divergir; pior, alguém
+ * teria de o limpar à mão, e um sinal que se esquece de apagar é um sinal que mente. Aqui a
+ * pergunta é refeita de cada vez: «a anamnese de algum sujeito é mais recente do que este
+ * documento?». Quando o documento é gravado de novo, ele fica mais novo e o sinal cai sozinho.
+ *
+ * O QUE ENTRAM COMO SUJEITO: o que o PO declara em `sujeitos`. O plano não nomeia alunas — o
+ * `aspecto-fisico` dele é consolidado por turma —, e por isso o plano é marcado pela CADEIA: se
+ * o PO que o observa está pendente, o plano que ele fixou também está, e vem primeiro.
+ *
+ * O QUE **NÃO** SE FAZ AQUI, e é decisão dela: não há periodicidade, nem validade, nem «a
+ * anamnese está velha». O controlo de quando se refaz o retrato é política da escola, e um motor
+ * que a impusesse estaria a decidir pedagogia por conta própria.
+ */
+async function revalidacaoPendente(armazenamento, jaLido) {
+  const indice = jaLido || (await lerIndice(armazenamento));
+
+  // 1. A DATA DE CADA SUJEITO — a da anamnese mais recente. A chave é a aluna, não o ciclo: a
+  //    anamnese é do sujeito (decisão de 04/11/2026), e uma do ciclo 07 conta para o ciclo 03.
+  const anamneseDe = new Map();
+  for (const { resumo } of await resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/, indice)) {
+    const aluna = String(resumo.aluna || '').trim();
+    if (!aluna) continue;
+    const quando = ordemDoRegisto(resumo);
+    const atual = anamneseDe.get(aluna);
+    if (!atual || quando > atual.quando) anamneseDe.set(aluna, { quando, id: resumo.id });
+  }
+
+  // 2. OS POs — quem declara sujeitos, e quando foi gravado.
+  const pendentes = new Map();
+  const pos = [];
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, indice)) {
+    const id = resumo.id || nome.replace(/\.json$/, '');
+    const envelope = await lerArquivo(armazenamento, nome);
+    const bruto = envelope && envelope.respostas && envelope.respostas.sujeitos;
+    const sujeitos = bruto ? (bruto.valor !== undefined ? bruto.valor : bruto) : null;
+    const lista = Array.isArray(sujeitos) ? sujeitos.map(String) : (sujeitos ? [String(sujeitos)] : []);
+    const quando = ordemDoRegisto(resumo);
+    const novos = [];
+    for (const aluna of lista) {
+      const a = anamneseDe.get(aluna.trim());
+      if (a && a.quando > quando) novos.push({ aluna: aluna.trim(), anamnese: a.id, quando: a.quando });
+    }
+    const plano = Array.isArray(resumo.plano) ? resumo.plano.map(String) : [];
+    pos.push({ id, novos, plano });
+    if (novos.length) {
+      pendentes.set(id, {
+        familia: 'po',
+        motivo: novos.length === 1
+          ? 'Há uma anamnese de ' + novos[0].aluna + ' mais recente do que este plano de observação ('
+            + novos[0].quando + ').'
+          : 'Há anamneses mais recentes do que este plano de observação: '
+            + novos.map((n) => n.aluna + ' (' + n.quando + ')').join(', ') + '.',
+        anamneses: novos,
+      });
+    }
+  }
+
+  /* 3. OS PLANOS dos POs pendentes — e o motivo deles diz o LUGAR na ordem, não o do vizinho.
+   *
+   * A primeira versão escrevia «o plano de observação precisa de revisão primeiro: …», que é o
+   * contrário da regra. O plano é o PRIMEIRO; o que ele tem de dizer é que o PO vem depois. */
+  for (const p of pos) {
+    if (!pendentes.has(p.id)) continue;
+    const doPo = pendentes.get(p.id);
+    const quando = (doPo.anamneses || []).map((n) => n.quando).sort().pop() || '';
+    for (const plano of p.plano) {
+      if (pendentes.has(plano)) continue;
+      pendentes.set(plano, {
+        familia: 'plano',
+        motivo: 'O retrato físico mais recente é de ' + quando + ', e este plano é anterior. '
+          + 'Revalide ESTE plano PRIMEIRO; o plano de observação (' + p.id + ') vem depois, '
+          + 'porque observa o que este plano fixou.',
+        dependenteDe: p.id,
+      });
+    }
+  }
+
+  return {
+    pendentes,
+    /* A ORDEM, dita uma vez para quem mostra: é a regra, não uma sugestão de arrumação. */
+    ordem: ['plano-de-ensino', 'plano-de-observacao'],
+    anamneses: Object.fromEntries([...anamneseDe.entries()].map(([a, d]) => [a, d.quando])),
+  };
+}
+
 /** A chave de contexto do registo — `null` quando ele não se agrupa (campo identificador ausente). */
 function chaveDoContexto(resumo, familia) {
   const doContexto = CONTEXTO_DO_REGISTO[familia];
@@ -1833,6 +1995,9 @@ async function elicitar(armazenamento, corpo, dados) {
 }
 
 module.exports = {
+  revalidacaoPendente,
+  ciclosDaEscola,
+  proximoCiclo,
   PREFIXO_ENVELOPES,
   ARQUIVO_DE,
   INDICE_DOS_ENVELOPES,

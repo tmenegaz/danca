@@ -827,8 +827,13 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
     <div class="ctx-campos">
       <span class="campo"><label for="ctx-professor">professor</label>
         <select id="ctx-professor"><option value="">— escolher —</option></select></span>
+      <!-- O CICLO NÃO SE ESCREVE (04/11/2026). O campo nasce travado e é o servidor que diz
+           qual é o próximo número válido (`GET /api/ciclos`): a numeração é a POSIÇÃO na cadeia
+           de proveniência, e um número escrito à mão não tem cadeia nenhuma. A nota fica ao lado
+           e diz PORQUÊ — um campo travado sem razão parece uma avaria. -->
       <span class="campo"><label for="ctx-ciclo">ciclo</label>
-        <input type="text" id="ctx-ciclo" value=""></span>
+        <input type="text" id="ctx-ciclo" value="" inputmode="numeric" maxlength="2" readonly>
+        <span class="sub" id="ctx-ciclo-nota" hidden></span></span>
       <!-- A TURMA OBSERVADA no CABEÇALHO (16/10/2026). No PLANO DE ENSINO o professor a
            ESCOLHE — um SELECT como o do professor, uma turma por plano. No PLANO DE
            OBSERVAÇÃO ela é LEITURA, vinda do plano de ensino referenciado (não pode divergir
@@ -1087,8 +1092,7 @@ function chaveDaMemoria() {
    * `porta-anamnese-<escola>-1`, que não existe: a porta não encontrava o preenchimento
    * interrompido do próprio professor e nascia como rascunho novo. */
   const daUrl = new URLSearchParams(location.search);
-  const nomes = ['escola', 'professor', 'ciclo'];
-  if (FONTE === 'anamnese') nomes.push('aluna');
+  const nomes = FONTE === 'anamnese' ? ['escola', 'professor', 'aluna'] : ['escola', 'professor', 'ciclo'];
   for (const nome of nomes) {
     /* O VALOR CRU DO CAMPO, e não o rótulo: o `value` do professor é o slug («cafe-no-bule») e
      * o do `select` da aluna já é o apelido limpo (a marca «— nova» vive no texto da opção).
@@ -1650,6 +1654,102 @@ async function carregarDimensoesDoPlano() {
   RESPOSTAS.set(no.id, lista);
   DERIVADOS.add(no.id);
   DIMENSOES_CARREGANDO = false;
+}
+
+/* ============================================================================================
+ * OS CICLOS DESTA ESCOLA — e eles não se escrevem à mão (04/11/2026).
+ *
+ * A REGRA É DE NEGÓCIO, dita pela pesquisadora: «os ciclos devem ser estritamente sequenciais
+ * (1, 2, 3, … N). O campo de ciclo não deve ser um texto livre, mas sim um campo dinâmico
+ * calculado, que sugere e trava automaticamente no próximo número válido da sequência».
+ *
+ * E ela tem uma consequência de domínio, não de formulário: a numeração do ciclo é a POSIÇÃO na
+ * cadeia de proveniência (a âncora do ciclo N encadeia com a do N-1). Um «ciclo 50» escrito num
+ * campo seria um número sem cadeia nenhuma.
+ *
+ * QUEM SABE QUAIS EXISTEM é o servidor (`GET /api/ciclos`), e a fonte é o índice dos envelopes:
+ * um ciclo existe porque tem documento. A tela não conta ficheiros nem adivinha — pede.
+ *
+ * E NA ANAMNESE O CAMPO NÃO EXISTE. A anamnese é do SUJEITO e não do ciclo: uma aluna que entra
+ * quando a turma está no ciclo 50 faz a anamnese dela ali, e ela serve a qualquer ciclo em que a
+ * aluna seja alocada. Pedir-lhe um ciclo seria pedir-lhe os outros 49 que ela nunca fez.
+ * ========================================================================================== */
+let CICLOS_DA_ESCOLA = null;    // { ciclos: [...], proximo, comPlano: [...] }
+let CARREGANDO_CICLOS = null;
+
+async function carregarCiclos() {
+  if (CICLOS_DA_ESCOLA) return CICLOS_DA_ESCOLA;
+  if (!CARREGANDO_CICLOS) {
+    CARREGANDO_CICLOS = (async () => {
+      const professor = (($('ctx-professor') || {}).value || '').trim();
+      const parametros = new URLSearchParams();
+      if (professor) parametros.set('professor', professor);
+      try {
+        const resposta = await fetch('api/ciclos' + (parametros.toString() ? '?' + parametros : ''));
+        if (!resposta.ok) throw new Error('HTTP ' + resposta.status);
+        const dados = await resposta.json();
+        CICLOS_DA_ESCOLA = {
+          ciclos: Array.isArray(dados.ciclos) ? dados.ciclos : [],
+          proximo: dados.proximo === undefined ? null : dados.proximo,
+          comPlano: Array.isArray(dados.comPlano) ? dados.comPlano : [],
+        };
+      } catch (erro) {
+        /* Sem a lista, o campo volta a aceitar o que a pessoa escrever — nunca fica travado num
+         * número inventado por falta de resposta. É a mesma disciplina das outras listas. */
+        CICLOS_DA_ESCOLA = null;
+      }
+      return CICLOS_DA_ESCOLA;
+    })().finally(() => { CARREGANDO_CICLOS = null; });
+  }
+  return CARREGANDO_CICLOS;
+}
+
+/**
+ * O CAMPO DO CICLO: TRAVADO NO PRÓXIMO VÁLIDO.
+ *
+ * · sem ciclos (escola nova) → `01`;
+ * · com 01 e 02 → `03`;
+ * · a editar/ajustar um documento que já existe → o ciclo DELE, que não muda (mudar o ciclo de um
+ *   documento é mudar de cadeia, e isso é um documento novo);
+ * · com um BURACO na sequência → o campo DIZ que há lacuna, e não sugere número nenhum.
+ *
+ * O valor vai para o `value` do `<input>` e o campo fica `readOnly`. Não é `disabled`: um campo
+ * desligado não é lido por leitor de ecrã como informação, e este valor é informação.
+ */
+function travarCicloNoProximo() {
+  const campo = $('ctx-ciclo');
+  if (!campo || FONTE === 'anamnese') return;
+  const dados = CICLOS_DA_ESCOLA;
+  const jaTem = String(campo.value || '').trim();
+  if (!dados) { campo.readOnly = false; campo.title = ''; return; }
+  let valor = '';
+  let motivo = '';
+  if (jaTem && dados.ciclos.some((c) => String(c.ciclo) === jaTem)) {
+    /* O DOCUMENTO JÁ TEM CICLO: ele não muda. O campo mostra o dele, e o título explica porquê —
+     * quem está a ajustar acha que pode corrigir o número, e não pode: o ciclo é a posição na
+     * cadeia, e trocá-lo faria o documento saltar para outra. */
+    valor = jaTem;
+    motivo = 'O ciclo deste documento é o ' + jaTem + ' e não muda: ele é a posição na cadeia de '
+      + 'proveniência. Para outro ciclo, um documento novo.';
+  } else if (dados.proximo) {
+    valor = String(dados.proximo);
+    motivo = dados.ciclos.length
+      ? 'Próximo ciclo da sequência: depois de ' + dados.ciclos.map((c) => c.ciclo).join(', ') + '.'
+      : 'Primeiro ciclo desta escola.';
+  } else {
+    valor = jaTem;
+    motivo = 'A sequência tem uma lacuna (' + dados.ciclos.map((c) => c.ciclo).join(', ')
+      + ') — não há um próximo ciclo válido. Corrija a sequência antes de abrir outro.';
+  }
+  if (valor) campo.value = valor;
+  campo.readOnly = true;
+  campo.title = motivo;
+  campo.setAttribute('aria-describedby', 'ctx-ciclo-nota');
+  const nota = document.getElementById('ctx-ciclo-nota');
+  if (nota) {
+    nota.textContent = motivo;
+    nota.hidden = !motivo;
+  }
 }
 
 /* A leitura das dimensões derivadas — o mesmo `{valor, nota}` das respostas. */
@@ -2260,8 +2360,17 @@ async function validarSenha() {
  * esta trava um contexto incompleto sairia como envelope sem identidade, e nada
  * avisaria. O que falta é dito antes de o envelope nascer.
  */
+/* O CICLO SAIU DA ANAMNESE (04/11/2026). Ele estava aqui porque a chave do depósito local e a
+ * conferência do bilhete o pediam — mas a anamnese é do SUJEITO, não do ciclo (uma aluna que
+ * entra no ciclo 50 não fez os 49 anteriores), e exigir o campo era pedir uma informação que não
+ * existe. PO e plano continuam a pedi-lo; na anamnese ele não é pergunta nem chave.
+ *
+ * CONSEQUÊNCIA DECLARADA: o depósito local de uma anamnese em rascunho muda de chave
+ * (`porta-anamnese-<escola>-<professor>-<aluna>`, sem o ciclo). Um rascunho antigo não é
+ * encontrado — e é o comportamento certo: ele estava indexado por um ciclo que deixou de fazer
+ * parte do documento. */
 const CAMPOS_DO_CONTEXTO = FONTE === 'anamnese'
-  ? ['escola', 'professor', 'ciclo', 'aluna']
+  ? ['escola', 'professor', 'aluna']
   : ['escola', 'professor', 'ciclo'];   // PO e plano são de TODAS — não se copia `aluna` (ARQUITETURA-PE §5)
 
 /*
@@ -2274,9 +2383,18 @@ const CAMPOS_DO_CONTEXTO = FONTE === 'anamnese'
  * professor tem de entender é que a falta é DA IDENTIDADE DO ATO, não do
  * conteúdo que ele acabou de responder.
  */
-const CONTEXTO_EXPLICACAO =
-  'O contexto do ato não é conteúdo deste formulário: escola, professor e ciclo são a identidade ' +
-  'da resposta — é com eles que a chave em que ela é guardada é montada.';
+/* A FRASE ACOMPANHA OS CAMPOS, e por isso é derivada deles (04/11/2026). Ela dizia «escola,
+ * professor e ciclo» a TODAS as fontes — e a anamnese deixou de ter ciclo: a frase passaria a
+ * nomear um campo que já não existe naquela barra, e a explicação de um campo ausente é ruído
+ * que faz duvidar do resto. */
+const CONTEXTO_EXPLICACAO = (() => {
+  const nomes = CAMPOS_DO_CONTEXTO.map((c) => (c === 'aluna' ? 'a aluna' : c));
+  const lista = nomes.length > 1
+    ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1]
+    : nomes[0];
+  return 'O contexto do ato não é conteúdo deste formulário: ' + lista + ' são a identidade da '
+    + 'resposta — é com eles que a chave em que ela é guardada é montada.';
+})();
 
 /*
  * O contexto do ato QUE FALTA, na ordem em que a barra o mostra. É a MESMA conta
@@ -7773,6 +7891,53 @@ function editarAnamnese(id) {
     });
 }
 
+/*
+ * O «NOVO REGISTO» DA ANAMNESE — duplicar, e não ajustar (04/11/2026).
+ *
+ * A pesquisadora: «Uma anamnese consolidada e vinculada nunca é editada ou ajustada
+ * retroativamente. Quando há alteração física, o professor clica em "Novo Registro": o
+ * formulário carrega previamente os dados da anamnese anterior para facilitar o preenchimento
+ * (funcionando como um duplicar), e o sistema grava um registo TOTALMENTE NOVO com uma nova
+ * data, sem sobrescrever o anterior. O novo registro passa a ser o vigente.»
+ *
+ * O QUE ELE FAZ, e é a diferença para `editarAnamnese` em duas linhas:
+ *   · carrega as RESPOSTAS — para o professor só mexer no que mudou;
+ *   · NÃO põe `EDITANDO` (não se está a editar nada) e NÃO põe `DERIVANDO` (o registo novo não
+ *     substitui o anterior: `ajuste_de` vazio é o que faz os dois aparecerem na estante, cada um
+ *     com a sua data).
+ * O contexto passa a incluir o `aluno`/`aluna` do registo anterior — a anamnese é do sujeito, e
+ * duplicar para «ninguém» não faria sentido.
+ */
+function duplicarAnamnese(id) {
+  return fetch('api/envelope/' + encodeURIComponent(id))
+    .then((r) => r.json())
+    .then((envelope) => {
+      RESPOSTAS.clear();
+      NOTAS.clear();
+      SUGERIDAS.clear();
+      SOCRATICA_VISTA.clear();
+      for (const [k, v] of Object.entries(envelope.respostas || {})) {
+        const valor = v && v.valor !== undefined ? v.valor : v;
+        RESPOSTAS.set(k, valor);
+        if (v && v.nota) NOTAS.set(k, v.nota);
+        // O que veio do anterior é SUGESTÃO editável, não resposta dada: a marca é a mesma da
+        // semeadura, e é ela que impede o «não vi / não medido» de herdar um valor por engano.
+        SUGERIDAS.add(k);
+      }
+      DUPLICANDO = id;
+      aplicarContextoDoEnvelope(envelope);
+      atualizarBarra();
+      pintarRoteiro();
+      abrirFormulario(0);
+      if (!SENHA_VALIDA) apontarSenhaFaltando();
+    })
+    .catch((erro) => { avisarNaFicha(id, erro.message, 'erro'); });
+}
+
+/* O CARIMBO DE ORIGEM DO «NOVO REGISTO» — declarado aqui, ao lado do `EDITANDO`, e lido pela
+ * barra para dizer o que se está a fazer. `null` = não se está a duplicar nada. */
+let DUPLICANDO = null;
+
 /* O CARIMBO EM EDIÇÃO, DECLARADO ANTES DE QUEM O LÊ. Estava depois do `editarAnamnese`, que o
  * escreve — e `let` não sobe: a escrita acontecia antes da declaração, e o `EDITANDO` do
  * arranque era sempre `null` (que é o mesmo que dizer «não estou a editar»). A ordem de
@@ -8651,6 +8816,21 @@ async function iniciar() {
     const campoSenha = document.getElementById('senha');
     if (campoSenha && campoSenha.parentElement) campoSenha.parentElement.style.display = 'none';
   }
+  /* A ANAMNESE NÃO TEM CICLO (04/11/2026). «A anamnese pertence ao ALUNO, não ao ciclo»: uma
+   * aluna que entra quando a turma já está no ciclo 50 não passou pelos 49 anteriores, e
+   * pedir-lhe um ciclo seria pedir-lhe os que ela nunca fez. O documento é vivo e atemporal, e é
+   * consumido pelo Plano de Observação de QUALQUER ciclo onde a aluna for alocada.
+   * Esconde-se o CAMPO inteiro (o `.campo` da barra), e não o `<input>`: um rótulo «ciclo» ao
+   * lado de um vazio continua a fazer a pergunta. */
+  if (FONTE === 'anamnese') {
+    const campoCiclo = document.getElementById('ctx-ciclo');
+    if (campoCiclo && campoCiclo.parentElement) campoCiclo.parentElement.style.display = 'none';
+  }
+  /* E O CICLO TRAVA-SE NO PRÓXIMO VÁLIDO nas outras duas — a lista chega depois, e é ela que
+   * decide o número. */
+  if (FONTE !== 'anamnese') {
+    carregarCiclos().then(() => { travarCicloNoProximo(); marcarContextoFaltando(); });
+  }
   // A senha do PLANO só aparece em EDIÇÃO/DERIVAÇÃO (16/10/2026): criar é pela curadoria.
   ajustarSenhaDoPlano();
 
@@ -9013,6 +9193,15 @@ async function iniciar() {
   {
     const alvo = new URLSearchParams(location.search).get('ajustar');
     if (alvo) await ajustarRegisto(alvo);
+  }
+
+  /* O «NOVO REGISTO» DA ANAMNESE — `?novo=<carimbo>` (04/11/2026). Substitui o `?ajustar=` nesta
+   * fonte: o retrato anterior é COPIADO para o formulário e o registo que se grava é novo, com
+   * data nova e sem `ajuste_de`. Vem depois do `ajustar` porque os dois não coexistem — e se
+   * vierem os dois no endereço, o `novo` manda, que é o gesto que a lista oferece hoje. */
+  if (FONTE === 'anamnese') {
+    const alvo = new URLSearchParams(location.search).get('novo');
+    if (alvo) await duplicarAnamnese(alvo);
   }
 
   /* A TRAVA, AGORA DEPOIS DO ATALHO DE EDIÇÃO (26/10/2026).

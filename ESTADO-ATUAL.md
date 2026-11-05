@@ -4,7 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `a90058f`, árvore limpa). Nesta entrega, **o cabeçalho
+> **Última fotografia:** 04/11/2026 (base `b972267`, árvore limpa). Nesta entrega, **o ciclo
+> apaga-se de trás para a frente, a sequência é estrita, e a anamnese é datada**. (1) **Apagar o
+> ciclo gerado** leva o pacote, as fontes derivadas, o `.conf` e as âncoras — e os **POs** do ciclo
+> —, e deixa a **anamnese** (é do sujeito) e o **plano de ensino**, que fica **livre sem se lhe
+> tocar** (o vínculo PO ↔ PE é derivado, modelo da curadoria). A guarda: **só o último**, porque o
+> `parentHash` do seguinte aponta para a âncora deste — a recusa diz o que impede e o que fazer.
+> (2) A **sequência é estrita**: o campo do ciclo passa a `readOnly`, com o **próximo número
+> válido** vindo de `GET /api/ciclos` (um ciclo existe porque tem documento), e **`null` quando há
+> um buraco** — não se inventa o número que taparia a lacuna. (3) O **ciclo sai da anamnese**: ela é
+> do sujeito, e uma aluna que entra no ciclo 50 não fez os 49 anteriores. (4) **«Ajustar» deu lugar
+> a «Novo registo»**: o formulário abre preenchido com o retrato anterior e grava um documento
+> **novo, com data nova e sem `ajuste_de`** — porque um retrato novo não substitui o anterior.
+> (5) O **sinal de revalidação é derivado**, e a ordem é **PE e depois PO**. Prova nova:
+> `provar-ciclos-e-anamnese`, **34 asserções**.
+>
+> **Entrega anterior** (base `a90058f`, árvore limpa). Nesta entrega, **o cabeçalho
 > do ato cabe num telefone, as 156 asserções de produção passam, e a capacidade tem número**.
 > (1) As cinco **leituras** do cabeçalho (frequência, duração, calendário, volume, condição de
 > registo) **não são `<label>`** — são `.ctx-rotulo` + `.ctx-inscricao` —, e a regra que punha o
@@ -1953,6 +1968,42 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     anamneses nasceu** — a divergência não se detecta. **DECIDIDO (o comportamento está certo) e
     documentado** 04/11/2026.
 
+99. **UM CICLO APAGA-SE DE TRÁS PARA A FRENTE — E SÓ O ÚLTIMO.** O `parentHash` de um ciclo é o
+    `hash` da âncora do anterior; apagar um intermédio deixa o `parentHash` do seguinte a apontar
+    para um hash que já não existe, e a cadeia fica partida **sem remédio** (P-03). A rotina leva o
+    pacote gerado, o `.conf` da variante, as âncoras e os **POs** do ciclo; **não** leva a anamnese
+    (é do sujeito) nem o plano de ensino (é a declaração que deu origem ao ciclo). E o plano fica
+    **livre sem se lhe tocar**, porque o vínculo PO ↔ PE é derivado: apagados os POs, não há quem o
+    declare — é o modelo da curadoria. **DECIDIDO e implementado** 04/11/2026.
+
+100. **A SEQUÊNCIA DOS CICLOS É ESTRITA, E O CAMPO NÃO SE ESCREVE.** Um ciclo existe porque tem
+     documento, e a lista vem do índice dos envelopes — não de um cadastro. `proximoCiclo` devolve
+     `01` numa escola nova, o seguinte ao maior quando a sequência está inteira, e **`null` quando
+     há um buraco**: inventar o número que taparia a lacuna esconderia o problema. O campo
+     `#ctx-ciclo` passa a `readOnly` com a nota do motivo, e **desaparece da anamnese**. Nada é
+     renomeado no dado. **DECIDIDO e implementado** 04/11/2026.
+
+101. **A ANAMNESE É DATADA E IMUTÁVEL — O GESTO É «NOVO REGISTO».** Se ela é o retrato físico do
+     corpo num momento, é historicamente datada; uma aluna que evoluiu ou se lesionou não teve um
+     «ajuste» do passado, tem um **novo estado no tempo**. O «Ajustar» gravava `ajuste_de` e
+     marcava o anterior como substituído — e um retrato novo não substitui o anterior: os dois
+     aconteceram. O formulário abre **preenchido** com o retrato anterior e grava um documento
+     novo, com data nova e sem `ajuste_de`. O «Editar» fica só para a anamnese **solta** (rascunho).
+     **DECIDIDO e implementado** 04/11/2026.
+
+102. **O QUE PRECISA DE REVALIDAÇÃO É DERIVADO — E A ORDEM É PE, DEPOIS PO.** «A anamnese de algum
+     sujeito é mais recente do que este documento?» marca o PO e, pela cadeia, o plano que ele
+     observa; o motivo do plano diz a ordem («Revalide ESTE plano PRIMEIRO»). Não há campo no
+     envelope: um `revalidar: true` seria uma segunda declaração do mesmo facto, e um sinal que se
+     esquece de apagar é um sinal que mente. O julgamento é do professor — o sistema não altera
+     nada sozinho. **DECIDIDO e implementado** 04/11/2026.
+
+103. **NÃO HÁ VALIDADE NEM PERIODICIDADE DA ANAMNESE.** Não se julga se ela está «velha»: quando
+     se refaz o retrato é **política da escola**, e um motor que a impusesse estaria a decidir
+     pedagogia por conta própria. Os **marcos do ciclo** — formativa (aula N/2) e somativa (última
+     aula) — já são calculados pelo calendário e são a referência natural, se a escola quiser usá-la.
+     **DECIDIDO** 04/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -2599,7 +2650,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — a faixa no telefone, as 3 asserções, e a capacidade)
+### Executado nesta fotografia (04/11/2026 — os ciclos apagam-se de trás para a frente, a sequência, e a anamnese datada)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-ciclos-e-anamnese` (**nova**) | **TUDO CERTO — 34 asserções**: o próximo ciclo é `01`/o seguinte, e **um buraco (01, 03) não tem próximo honesto**; a ordem é **numérica** (doze ciclos → 11); os ciclos vêm do índice (e a **anamnese sem ciclo não inventa um**); apagar um **intermédio é recusado** com o nome do que impede, e **nada é escrito no GitHub**; o **último** apaga, leva só o gerado e **não toca no ciclo 01**; um **422** refaz o caminho e entra à segunda; o padrão da variante **não come** `breu-bale-nivel-1-teste-3`; a chave da anamnese **não tem ciclo** (duas datas, um sujeito, uma linha vigente); e o gesto é **«Novo registo»**, não «Ajustar» |
+| `provar-contexto-do-ato` | **39 asserções**, atualizadas à regra nova — a anamnese pede `escola · professor · aluna` e **não** ciclo; a explicação nomeia os campos DESTA fonte. **Controlo negativo**: com a regra antiga reintroduzida, a bancada volta a reprovar nos dez pontos que a medem |
+| `provar-apagar-da-listagem` | **32** — a anamnese vinculada oferece «Novo registo» e **não** «Ajustar» |
+| `ARQUITETURA-GERAL.md` | §5.4.1 (apagar um ciclo), §5.4.2 (a anamnese é do sujeito e é datada), §5.4.3 (revalidação e a ordem) — as **17 referências `§` resolvem**, as **14 cercas** emparelhadas |
+| Regressão | `provar-faixa-do-ato-no-celular` · `provar-sequencia-que-acompanha` · `provar-eixos-do-po` · `provar-producao` · `provar-cartao-da-aula` · `provar-eixos-e-tempo-da-aula` · `provar-colunas-da-aula` · `provar-verbos-do-armazenamento` · `provar-fusao-da-edicao` · `provar-corrida-da-escrita` · `provar-cadeia-do-ajuste` · `provar-acervo-envelopes` · `provar-publicacao-da-escola` · `provar-habilitacao-do-professor` · `provar-po-completo` · `provar-plano-completo` · `provar-indice-de-envelopes` — **todos verdes** |
+| `check-identidade` · `check-indices` | **20/20** · **14/14** |
+| **o que NÃO mede** | a exclusão foi exercitada num **GitHub falso** (as três respostas que a rotina usa), não contra o ar · **a interface de exclusão não existe ainda** (a rota e a guarda estão prontas) · a listagem da anamnese **não** está em acordeão por aluna — mostra o vigente e diz quantas versões guardou |
+
+### Executado na fotografia anterior (04/11/2026 — a faixa no telefone, as 3 asserções, e a capacidade)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3643,6 +3706,14 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **04/11/2026** — **O ciclo apaga-se de trás para a frente, a sequência é estrita, e a anamnese é
+  datada.** A exclusão guarda o **último** ciclo (o `parentHash` do seguinte aponta para a âncora
+  deste) e leva só o **gerado** — o plano de ensino fica **livre sem se lhe tocar**, porque o
+  vínculo PO ↔ PE é derivado. O campo do ciclo passa a `readOnly` com o próximo número válido, e
+  **desaparece da anamnese**: ela é do sujeito, não do ciclo. «Ajustar» deu lugar a **«Novo
+  registo»** — documento novo, data nova, sem `ajuste_de`. E o sinal de revalidação é derivado, com
+  a ordem **PE e depois PO**. Prova nova: `provar-ciclos-e-anamnese`, 34 asserções.
 
 - **04/11/2026** — **A faixa no telefone, as 3 asserções, e a capacidade.** As cinco leituras do
   cabeçalho são `.ctx-rotulo` + `.ctx-inscricao` (não `<label>`), e a regra do `grid-column` cobria
