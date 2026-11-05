@@ -492,8 +492,13 @@ let ESCOLA = 'escola';
       && !!params.get('aluna'), linkEditar);
 
     provar('a linha da Aluna A leva a porta da anamnese', linkA.indexOf('/anamnese/?') === 0, linkA);
-    provar('…com o professor e o ciclo daquele registo',
-      /professor=cafe-no-bule/.test(linkA) && /ciclo=01/.test(linkA), linkA);
+    /* O CICLO SAIU DAQUI (05/11/2026), e a asserção antiga pedia-o: ela exigia `ciclo=01` no link
+     * do ato da anamnese. A anamnese é do SUJEITO e atemporal — não tem ciclo, e o campo deixou de
+     * existir na página. O que o link leva é o CARIMBO do retrato que se vai copiar («Novo
+     * registo», que é o gesto de uma anamnese vinculada) e a identidade do ato. A asserção passou
+     * a exigir o que a regra manda, em vez de exigir o que a regra proibiu. */
+    provar('…com o professor e o carimbo do registo, e SEM ciclo (a anamnese é do sujeito)',
+      /professor=cafe-no-bule/.test(linkA) && /novo=/.test(linkA) && !/ciclo=/.test(linkA), linkA);
     provar('…e com a aluna, que a porta semeia (e filtra pela curadoria)',
       /aluna=Aluna(\+|%20)A/.test(linkA), linkA);
 

@@ -2081,6 +2081,28 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      primeiros 248px da barra) — medido. **As duas versões ficam em REGRAS SEPARADAS**: um seletor
      inválido numa lista descarta a lista inteira, e o remendo cairia com ela. `:has()` mantém-se
      onde existe, para a regra valer antes de o script correr. **DECIDIDO e implementado** 04/11/2026.
+108. **A SENHA É PRÉ-REQUISITO DE GRAVAR, NÃO DE ENTRAR — E «NOVO REGISTO» FALTAVA NA LISTA.** O
+     `podePreencher` isenta de senha a edição e a derivação (`emEdicao = EDITANDO || DERIVANDO`),
+     porque entrar não escreve nada. O `?novo=` da anamnese (`DUPLICANDO`) é o terceiro gesto da
+     mesma família e ficou de fora: o formulário era pintado e a mesma trava, um instante depois,
+     devolvia a pessoa à lista — «pisca e trava e volta». A mesma omissão existia no servidor
+     (`PARAMS_DO_ATO` tinha `editar` e `ajustar`, não tinha `novo`). **DECIDIDO e implementado**
+     05/11/2026: `emEdicao` inclui `DUPLICANDO`, e `novo` entra na lista de permissão do `302`.
+109. **O CICLO TEM A FORMA DO QUE A FONTE FAZ.** A anamnese **não tem** campo de ciclo (ele sai da
+     página, não fica escondido: um campo com `display: none` continua no documento e no leitor de
+     ecrã); o plano de ensino trava no **próximo** número (ele cria um ciclo); e o PO é uma **lista
+     dos ciclos que já têm plano de ensino** (`GET /api/ciclos` → `comPlano`), porque não se observa
+     um ciclo sem plano. O `<input>` do PO é trocado por um `<select>` na fonte, com o valor do
+     documento transferido; um PO cujo plano foi apagado continua a abrir no ciclo dele.
+     **DECIDIDO e implementado** 05/11/2026.
+110. **O REGISTO CONDENADO NÃO SE LÊ ENQUANTO A ROTA RESPONDE.** Apagar dispara uma Action no
+     GitHub, e entre o clique e a resposta a linha continuava visível e interactiva — dava para
+     abrir, ler e tentar ajustar um documento que estava a ser destruído. A linha passa a ficar
+     **trancada** (`data-apagando` + `inert` + `aria-busy`) até a resposta chegar, e um 409
+     **destranca** com o motivo escrito: um registo que existe e não se pode abrir é pior do que o
+     defeito. **DECIDIDO e implementado** 05/11/2026, com peça nova na folha
+     (`[data-apagando="sim"]`: véu, fio «apagando…» e spinner) e motivo declarado em
+     `CONGELAMENTO.md`.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

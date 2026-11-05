@@ -217,8 +217,11 @@
     grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere;
   }
   /* O CICLO É `01`. Sem largura declarada, o `<input>` de texto nasce com ~214px — o
-     triplo do que o dado precisa, e o que empurrava a senha para a segunda linha. */
+     triplo do que o dado precisa, e o que empurrava a senha para a segunda linha.
+     No PO o campo é uma LISTA (`listarCiclosDoPo`), e uma lista mostra o texto escolhido:
+     4.5rem corta-o quando o número tem dois dígitos e a seta ocupa a direita. */
   #ctx-ciclo { width: 4.5rem; }
+  select#ctx-ciclo { width: auto; min-width: 5.5rem; }
   /* A INSCRIÇÃO AO LADO DE UM CONTROLE OCUPA A MESMA CAIXA DE LINHA. Os campos se alinham
      pela BASE (`align-items: flex-end`), e a turma do PO — que é inscrição — tem a altura
      do texto, enquanto um `<select>` tem 32px: os rótulos ficavam 10px desencontrados, e
@@ -1263,7 +1266,19 @@ function podePreencher(retomando) {
    * A regra é a mesma da edição, e é a que o pedido descreve: a senha é pré-requisito de
    * GRAVAÇÃO, não de entrada. Quem tem um depósito guardado entra e continua a responder; a
    * senha é pedida onde ela serve — no «Guardar». */
-  const emEdicao = !!(EDITANDO || DERIVANDO);
+  /* «NOVO REGISTO» TAMBÉM ENTRA SEM SENHA (05/11/2026) — e é a terceira vez que a mesma lista
+   * fica curta.
+   *
+   * O `DUPLICANDO` nasceu em 04/11/2026 e não entrou aqui. Ele é o `?novo=<carimbo>` da anamnese:
+   * `duplicarAnamnese` copia o retrato anterior para a condução e abre o formulário — e, como ele
+   * corre ANTES desta trava, o formulário chegava a ser pintado. Um instante depois, a trava via
+   * senha vazia (ninguém a tinha digitado ainda: a pessoa acabou de clicar no botão) e chamava
+   * `voltarParaALista()`. A pesquisadora descreveu o sintoma com precisão: «a página pisca, trava
+   * momentaneamente e retorna de imediato para a listagem». Duas pinturas — a segunda é a lista.
+   *
+   * A semântica é a MESMA da edição, e é por isso que a lista é esta: entrar não escreve nada. A
+   * senha continua a ser exigida onde ela serve, no «Guardar» (o servidor recusa sem ela). */
+  const emEdicao = !!(EDITANDO || DERIVANDO || DUPLICANDO);
   const senhaOk = FONTE === 'anamnese'
     ? (SENHA_VALIDA || ATO_AUTORIZADO || emEdicao || retomando) : true;
   if (!senhaOk) return false;
@@ -1758,7 +1773,9 @@ async function carregarCiclos() {
  */
 function travarCicloNoProximo() {
   const campo = $('ctx-ciclo');
-  if (!campo || FONTE === 'anamnese') return;
+  /* NO PO NÃO SE TRAVA NO PRÓXIMO: o campo é uma LISTA dos ciclos que já têm plano
+   * (`listarCiclosDoPo`), e «o próximo» seria o ciclo que ainda não tem plano nenhum. */
+  if (!campo || FONTE === 'anamnese' || FONTE === 'po') return;
   const dados = CICLOS_DA_ESCOLA;
   const jaTem = String(campo.value || '').trim();
   if (!dados) { campo.readOnly = false; campo.title = ''; return; }
@@ -1790,6 +1807,73 @@ function travarCicloNoProximo() {
     nota.textContent = motivo;
     nota.hidden = !motivo;
   }
+}
+
+/* O CICLO DO PO É UMA LISTA — e só dos ciclos que têm plano de ensino (05/11/2026).
+ *
+ * A REGRA, dita por ela: «Não é permitido criar um Plano de Observação para um ciclo que ainda
+ * não possui um Plano de Ensino consolidado. O seletor de ciclo no formulário do Plano de
+ * Observação deve ser um menu suspenso, exibindo apenas os ciclos que já possuem Plano de Ensino
+ * criado e ativo.»
+ *
+ * PORQUE NÃO É A TRAVA DO PLANO. No plano de ensino o campo trava no PRÓXIMO número da sequência
+ * (`travarCicloNoProximo`): ele vai CRIAR um ciclo. O PO não cria nada — ele observa um plano que
+ * já existe, e «o próximo» seria exactamente o ciclo que ainda não tem plano nenhum. São duas
+ * perguntas diferentes, e por isso dois comportamentos: uma lista para escolher, um número para
+ * continuar.
+ *
+ * QUEM DIZ QUAIS SÃO é o servidor (`GET /api/ciclos` → `comPlano`), não a tela: uma segunda cópia
+ * da regra divergiria dela, e a lista passaria a oferecer ciclos que o servidor recusa.
+ *
+ * O `<input>` do markup é TROCADO por um `<select>` aqui — o ficheiro é o mesmo para as três
+ * fontes, e é a fonte que decide a forma do campo (como já acontece com o `select` da aluna).
+ * O valor que o campo já tinha é TRANSFERIDO: no `?ajustar=` o contexto chega do envelope antes
+ * desta função, e trocar o nó sem passar o valor apagaria o ciclo do documento que se está a
+ * ajustar.
+ */
+function listarCiclosDoPo() {
+  let campo = $('ctx-ciclo');
+  if (!campo || FONTE !== 'po') return null;
+  const atual = String(campo.value || '').trim();
+  if (campo.tagName !== 'SELECT') {
+    const lista = document.createElement('select');
+    lista.id = 'ctx-ciclo';
+    lista.setAttribute('aria-describedby', 'ctx-ciclo-nota');
+    campo.parentNode.replaceChild(lista, campo);
+    campo = lista;
+  }
+  const dados = CICLOS_DA_ESCOLA;
+  const elegiveis = dados && Array.isArray(dados.comPlano) ? dados.comPlano.slice() : [];
+  /* O CICLO QUE O DOCUMENTO JÁ TEM NÃO DESAPARECE. Um PO cujo plano foi apagado continua a
+   * abrir no ciclo dele: retirar-lhe a opção escolhida deixaria o campo vazio e o documento
+   * ilegível — e o que se está a ver é um registo que existe. */
+  if (atual && elegiveis.indexOf(atual) === -1) elegiveis.push(atual);
+  elegiveis.sort();
+  campo.textContent = '';
+  for (const ciclo of elegiveis) {
+    const opcao = document.createElement('option');
+    opcao.value = ciclo;
+    opcao.textContent = ciclo;
+    campo.appendChild(opcao);
+  }
+  if (elegiveis.length) {
+    campo.value = elegiveis.indexOf(atual) !== -1 ? atual : elegiveis[0];
+  } else {
+    /* NENHUM CICLO TEM PLANO. A lista fica vazia e o campo DIZ porquê — o silêncio é o defeito
+     * que se está a corrigir, e um campo vazio sem explicação parece uma avaria. */
+    campo.value = atual;
+  }
+  const nota = document.getElementById('ctx-ciclo-nota');
+  if (nota) {
+    nota.textContent = elegiveis.length
+      ? 'Só os ciclos com plano de ensino consolidado podem ser observados. '
+        + (dados && dados.comPlano.length ? 'Com plano: ' + dados.comPlano.join(', ') + '.'
+          : 'Este ciclo ainda não tem plano: o PO observa um plano que já existe.')
+      : 'Nenhum ciclo desta escola tem plano de ensino consolidado — o Plano de Observação observa '
+        + 'um plano que já existe. Crie o plano de ensino antes de observar.';
+    nota.hidden = false;
+  }
+  return campo;
 }
 
 /* A leitura das dimensões derivadas — o mesmo `{valor, nota}` das respostas. */
@@ -8860,15 +8944,22 @@ async function iniciar() {
    * aluna que entra quando a turma já está no ciclo 50 não passou pelos 49 anteriores, e
    * pedir-lhe um ciclo seria pedir-lhe os que ela nunca fez. O documento é vivo e atemporal, e é
    * consumido pelo Plano de Observação de QUALQUER ciclo onde a aluna for alocada.
-   * Esconde-se o CAMPO inteiro (o `.campo` da barra), e não o `<input>`: um rótulo «ciclo» ao
-   * lado de um vazio continua a fazer a pergunta. */
+   *
+   * O CAMPO NÃO SE ESCONDE — SAI DA PÁGINA (05/11/2026). Escondia-se com `display: none` no
+   * `.campo`, e ela voltou a ver «ciclo» no formulário da anamnese: um campo escondido por CSS
+   * continua no documento (basta o CSS não chegar, ou o `style` ser substituído) e continua a ser
+   * lido por leitor de ecrã. Quem não pertence a esta fonte não fica escondido: não fica. */
   if (FONTE === 'anamnese') {
     const campoCiclo = document.getElementById('ctx-ciclo');
-    if (campoCiclo && campoCiclo.parentElement) campoCiclo.parentElement.style.display = 'none';
+    const caixa = campoCiclo && campoCiclo.closest ? campoCiclo.closest('.campo') : null;
+    if (caixa && caixa.parentNode) caixa.parentNode.removeChild(caixa);
   }
-  /* E O CICLO TRAVA-SE NO PRÓXIMO VÁLIDO nas outras duas — a lista chega depois, e é ela que
-   * decide o número. */
-  if (FONTE !== 'anamnese') {
+  /* E O CICLO, NAS OUTRAS DUAS. No plano trava-se no PRÓXIMO VÁLIDO; no PO é uma LISTA dos
+   * ciclos que já têm plano. A lista chega depois (o servidor é que sabe quais existem), e é ela
+   * que decide o que o campo mostra. */
+  if (FONTE === 'po') {
+    carregarCiclos().then(() => { listarCiclosDoPo(); marcarContextoFaltando(); });
+  } else if (FONTE === 'plano') {
     carregarCiclos().then(() => { travarCicloNoProximo(); marcarContextoFaltando(); });
   }
   // A senha do PLANO só aparece em EDIÇÃO/DERIVAÇÃO (16/10/2026): criar é pela curadoria.

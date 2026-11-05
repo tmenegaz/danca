@@ -35328,3 +35328,80 @@ conseguiu desactivar, e não do remendo.
 na lista congelada. A mudança entra por **defeito medido** — um menu que não responde num navegador
 suportado —, com prova em dois sentidos, e sem tocar em cor, medida ou peça: só o caminho alternativo
 para a mesma regra de layout.
+
+## 05/11/2026 — O «Novo registo» deixava de ser um registo novo, o ciclo mudou de forma em cada fonte, e a linha apagada fica trancada
+
+Quatro queixas num só relatório, e três delas com a mesma assinatura: **uma lista de permissões a
+que faltava o membro mais recente.**
+
+### 1. O «Novo registo» piscava e voltava à listagem
+
+O sintoma, dela: «a página pisca, trava momentaneamente e retorna de imediato para a listagem,
+impedindo o preenchimento.»
+
+O gesto nasceu em 04/11/2026 com o `?novo=<carimbo>`: `duplicarAnamnese` copia o retrato anterior
+para a condução e abre o formulário. Ele corre **antes** da trava de entrada, e a trava —
+`podePreencher` — isenta de senha a edição e a derivação (`emEdicao = EDITANDO || DERIVANDO`),
+porque a senha é pré-requisito de GRAVAR, não de abrir. O `DUPLICANDO` **não estava nessa lista**, e
+é o terceiro gesto da mesma família. Resultado: o formulário era pintado e, um instante depois, a
+mesma trava via senha vazia (ninguém a tinha digitado — a pessoa acabou de clicar) e chamava
+`voltarParaALista()`. Duas pinturas, e a segunda é a lista: o «pisca e volta» é literalmente isso.
+
+A correção é uma linha — `emEdicao = !!(EDITANDO || DERIVANDO || DUPLICANDO)` —, e a mesma omissão
+existia **no servidor**: `PARAMS_DO_ATO` (a lista de permissão do `302` que devolve à lista os
+endereços sem contexto) tinha `editar` e `ajustar` e não tinha `novo`. Um link que levasse só o
+carimbo era redireccionado antes de qualquer byte de formulário. Entram os dois.
+
+**A bancada anterior não podia ter visto isto**, e é a lição: ela servia `api/…` com stubs de JSON,
+o arranque rebentava a meio, e o formulário ficava em branco — em branco ele não devolve ninguém à
+lista, e a primeira asserção dava verde. A `provar-novo-registo-e-ciclo` serve a página pela ponte a
+sério (`producao.fetch`, os envelopes no KV falso) e o acervo é o verdadeiro.
+
+### 2. O ciclo, em cada fonte, tem a forma do que a fonte faz
+
+- **Anamnese: não tem ciclo.** O campo era escondido com `display: none` no `.campo` — e ela voltou
+  a vê-lo. Um campo escondido por CSS continua no documento (basta o estilo não chegar) e continua
+  a ser lido por leitor de ecrã. Passa a **sair da página**: quem não pertence a esta fonte não fica
+  escondido, não fica.
+- **Plano de ensino: número travado no próximo.** Fica como estava — ele vai CRIAR um ciclo.
+- **Plano de Observação: lista, e só com os ciclos que têm plano de ensino.** A regra é dela: «não
+  é permitido criar um Plano de Observação para um ciclo que ainda não possui um Plano de Ensino
+  consolidado». O campo trava no PRÓXIMO era exactamente o contrário disso — o próximo é o ciclo que
+  ainda não tem plano nenhum. Quem diz quais são é o servidor (`GET /api/ciclos` → `comPlano`); a
+  tela não conta ciclos, e uma segunda cópia da regra divergiria dela.
+
+O `<input>` é trocado por um `<select>` em tempo de execução (o ficheiro é um só para as três
+fontes), e o valor que o campo já tinha é transferido: no `?ajustar=` o contexto chega do envelope
+antes dessa troca. Um PO cujo plano tenha sido apagado **continua a abrir no ciclo dele** — retirar
+a opção escolhida deixaria o campo vazio e o documento ilegível.
+
+### 3. O registo condenado não se lê enquanto a rota responde
+
+«O item continua visível e interativo na listagem enquanto o processo roda. Isso permite que o
+usuário abra, leia ou tente ajustar um documento que está sendo destruído.» A Action do GitHub corre
+em segundo plano: entre o clique e a resposta há segundos em que a linha já está condenada e ainda
+obedece.
+
+A trava é em **três camadas**, e as três são precisas: `data-apagando` (o estado, que a folha
+desenha), `inert` (tira a linha do ponteiro, do teclado e do leitor de ecrã — `pointer-events`
+sozinho deixa o Tab entrar) e `aria-busy`. Só saem na falha; no sucesso a página recarrega e a linha
+desaparece. A recusa (409) **destranca**: um registo que existe e não se pode abrir é pior do que o
+defeito.
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/templates/ciclo.css` está na lista congelada. Entra
+uma **peça nova** — `.trio-plano[data-apagando="sim"]` —, nascida inteira: o desenho na folha com
+todos os estados, as duas linhas no catálogo (`IDENTIDADE-VISUAL.md`, Quadros 1 e 2), a geometria
+medida no Chrome e a cópia nas superfícies. O véu é o papel do fundo a 82%, e não um `opacity` na
+linha: baixar a opacidade do conteúdo deixa o texto ilegível e ainda a prometer que se lê.
+
+### A prova
+
+- `experimentos/provar-novo-registo-e-ciclo.js` (**nova**, 24 asserções, Chrome): o `?novo=` fica no
+  formulário e traz o retrato anterior no campo do nó que o guarda; a anamnese não pede ciclo nem no
+  texto do cabeçalho nem na marcação; o PO lista `01` e não `02` (o `02` existe no acervo, sem
+  plano — é a única fixture que separa «lista dos que têm plano» de «trava no próximo»); o plano
+  continua travado; e o véu cobre a linha (mesma altura e largura), diz «apagando…» e o spinner gira.
+- `experimentos/provar-apagar-da-listagem.js` (§4b, 51 asserções): com a resposta ADIADA, a linha
+  ganha `data-apagando`, `inert` e `aria-busy`, o botão desliga, e um 409 destranca com o motivo
+  escrito. Com um `fetch` que resolve na hora não há instante nenhum para medir — o teste passaria
+  sem ver o lock.

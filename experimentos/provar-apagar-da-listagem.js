@@ -363,6 +363,74 @@ function cartoesDe(html) {
     apagamentos[0] === '/plano-ensino/api/plano-vinculo/plano-20261101 DELETE', apagamentos[0]);
 
   /* --------------------------------------------------------------------------------------- */
+  console.log('\n4b · A LINHA TRANCADA — o registo condenado não se lê enquanto a rota responde');
+  /* --------------------------------------------------------------------------------------- */
+  /* O DEFEITO, dito por ela: «o item continua visível e interativo na listagem enquanto o processo
+   * roda. Isso permite que o usuário abra, leia ou tente ajustar um documento que está sendo
+   * destruído.» A Action do GitHub corre em segundo plano: entre o clique e a resposta há segundos
+   * em que a linha já está condenada e ainda obedece.
+   *
+   * O QUE SE MEDE AQUI É O ESTADO, e não o desenho: o véu e o spinner são da folha (a peça
+   * `[data-apagando]` de `ciclo.css`, medida em navegador em `provar-menu-do-formulario`). O que o
+   * cliente promete é o ATRIBUTO — `data-apagando` (a folha desenha por ele), `inert` (tira a
+   * linha do ponteiro, do teclado e do leitor de ecrã) e `aria-busy` (diz que a linha está a
+   * mudar). Sem eles, a peça é um desenho que ninguém acende.
+   *
+   * A RESPOSTA É ADIADA DE PROPÓSITO: com um `fetch` que resolve na hora não há instante nenhum
+   * para medir — o teste passaria sem ver o lock. */
+  const domTranca = new JSDOM(planos.html, {
+    runScripts: 'dangerously', url: 'https://prova.tmenegaz77.workers.dev/area-do-professor/plano-de-ensino/',
+    virtualConsole: vc,
+    beforeParse(w2) {
+      w2.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+        addListener() {}, removeListener() {} });
+      w2.CSS = w2.CSS || {};
+      if (!w2.CSS.escape) w2.CSS.escape = (v) => String(v).replace(/[^a-zA-Z0-9_-]/g, (c) => '\\' + c);
+    },
+  });
+  const w2 = domTranca.window;
+  let responder = null;
+  w2.fetch = () => new Promise((ok) => { responder = ok; });
+  w2.confirm = () => true;
+  await new Promise((r) => setTimeout(r, 250));
+  const seloTranca = w2.document.querySelector('[data-senha-status]');
+  if (seloTranca) seloTranca.hidden = false;
+  const botaoTranca = w2.document.querySelector('[data-apagar]');
+  const linhaTranca = botaoTranca.closest('.trio-plano');
+
+  botaoTranca.click();
+  await new Promise((r) => setTimeout(r, 150));
+  provar('a linha do registo apagado ganha o estado `data-apagando` (a folha desenha por ele)',
+    linhaTranca.getAttribute('data-apagando') === 'sim', linhaTranca.getAttribute('data-apagando'));
+  provar('…e fica `inert`: sai do ponteiro, do teclado e do leitor de ecrã',
+    linhaTranca.hasAttribute('inert'), linhaTranca.outerHTML.slice(0, 120));
+  provar('…e diz que está ocupada (`aria-busy`)',
+    linhaTranca.getAttribute('aria-busy') === 'true', linhaTranca.getAttribute('aria-busy'));
+  provar('…e o botão fica desligado (não se pede duas vezes a mesma morte)',
+    botaoTranca.disabled === true, botaoTranca.disabled);
+  /* A AFIRMAÇÃO ÚTIL sobre as outras ações: elas EXISTEM na linha, e estão debaixo de um `inert`.
+   * (Uma asserção que comparasse a lista consigo própria passaria sempre — e um verde que não
+   * mede nada é pior do que um vermelho.) */
+  const outrasAcoes = linhaTranca.querySelectorAll('a.acao[href], button.acao');
+  provar('…e as outras ações da linha (o «Ajustar») existem, mas dentro do `inert`',
+    outrasAcoes.length > 0 && linhaTranca.hasAttribute('inert'),
+    { acoes: outrasAcoes.length, inert: linhaTranca.hasAttribute('inert') });
+
+  /* A RECUSA DESTRANCA. Um 409 significa que o registo EXISTE e não se apaga — e uma linha que
+   * ficasse trancada depois disso seria um documento que existe e não se pode abrir. */
+  if (typeof responder === 'function') {
+    responder(new Response(JSON.stringify({ erro: 'vinculado a um plano de observação' }),
+      { status: 409, headers: { 'Content-Type': 'application/json' } }));
+  }
+  await new Promise((r) => setTimeout(r, 250));
+  provar('depois da recusa, a linha VOLTA a responder (o estado sai)',
+    !linhaTranca.hasAttribute('data-apagando') && !linhaTranca.hasAttribute('inert'),
+    linhaTranca.outerHTML.slice(0, 120));
+  provar('…e o botão volta a poder ser clicado', botaoTranca.disabled === false, botaoTranca.disabled);
+  const recadoDaTranca = (w2.document.querySelector('[data-estado]') || {}).textContent || '';
+  provar('…com o motivo escrito no painel', /Não apaguei/.test(recadoDaTranca), recadoDaTranca);
+
+  /* --------------------------------------------------------------------------------------- */
   console.log('\n5 · CONTROLO NEGATIVO — a página que não tem o botão também não o inventa');
   /* --------------------------------------------------------------------------------------- */
   /* Se o `acoesDaLinha` voltasse a devolver só o «Editar», a §1 ficava vermelha — mas estas duas

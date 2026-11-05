@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T00:19:44-0300`
-Commit atual: `37c1fbfe` — feat(estrutura): o PO apaga-se, e o menu dos formularios ganha bancada
+Gerado em: `2026-11-05T00:42:20-0300`
+Commit atual: `2f5294ce` — fix(template): o layout da coluna nao depende so de :has(), e o menu volta a responder
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+2f5294ce fix(template): o layout da coluna nao depende so de :has(), e o menu volta a responder
 37c1fbfe feat(estrutura): o PO apaga-se, e o menu dos formularios ganha bancada
 69b6ccae fix(estrutura): os dois planos passam a ter dois nomes
 73ef1683 fix(estrutura): a aula deriva do plano, e a origem do corpo fica provada no envelope real
@@ -104,7 +105,6 @@ c65c4bb9 chore(estrutura): regerar os índices derivados
 d62b8195 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
 2fdc5deb feat(po): o PO elicitado vira a fonte do ciclo
 dfe16d78 feat(acervo): envelope/po-20261104-1811.json
-fbd0756c feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -230,112 +230,82 @@ fbd0756c feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — O PO passa a poder apagar-se, e o menu dos formulários ganha bancada
+## 05/11/2026 — O «Novo registo» deixava de ser um registo novo, o ciclo mudou de forma em cada fonte, e a linha apagada fica trancada
 
-**O que motivou.** Três queixas da pesquisadora, na mesma ronda: (1) nos formulários de anamnese,
-plano de ensino e plano de observação «o menu de navegação lateral e o cabeçalho aparecem com uma
-cor extremamente clara… e perdem a funcionalidade (cliques não respondem)»; (2) «ao rolar, o
-conteúdo do formulário rola por cima do cabeçalho»; (3) «o botão ou a opção de deletar o plano de
-observação não está aparecendo».
+Quatro queixas num só relatório, e três delas com a mesma assinatura: **uma lista de permissões a
+que faltava o membro mais recente.**
 
-**O que se mediu — e o resultado divide as três em duas famílias.**
+### 1. O «Novo registo» piscava e voltava à listagem
 
-1. **A bancada que faltava.** `experimentos/provar-menu-do-formulario.js`, nova, **36 asserções** no
-   Chrome. Ela serve a página a sério por `producao.fetch` (a lista) e a porta com o menu aplicado
-   pelo **mesmo** módulo da ponte (`motor/nucleo/nav.js`), com o `nav.json` da escola viva.
-   **Porque é que nenhuma bancada apanhava isto:** as bancadas da porta servem `porta/index.html`
-   **cru**, e essa página não tem `<nav>` — o marcador `<!-- NAV -->` é substituído na geração. A
-   página que se media **não tinha menu**, e o que não existe não se pode ver esbatido.
-2. **Os dois primeiros sintomas NÃO se reproduzem** nos estados que a bancada constrói: a 1280px e
-   a 390px, com o formulário aberto e a página rolada, a barra está `fixed` no topo, com opacidade
-   **1**, contraste **AA**, o centro de cada link devolve o link, e os cinco pontos da faixa da
-   barra pertencem à barra. Fica **declarado como não reproduzido** — e é por isso que a bancada
-   fica no repositório: quando o defeito aparecer, é ela que o apanha.
-3. **O terceiro era real, e era uma ausência.** A linha do Plano de Observação oferecia **só
-   «Ajustar»**: não havia estado, não havia botão, e **não havia rota** que apagasse um PO. O plano
-   de ensino e a anamnese tinham o trio (estado → botão → rota); o PO ficou de fora quando a
-   listagem passou a ser a página da Área do Professor.
+O sintoma, dela: «a página pisca, trava momentaneamente e retorna de imediato para a listagem,
+impedindo o preenchimento.»
 
-**O que foi implementado.**
+O gesto nasceu em 04/11/2026 com o `?novo=<carimbo>`: `duplicarAnamnese` copia o retrato anterior
+para a condução e abre o formulário. Ele corre **antes** da trava de entrada, e a trava —
+`podePreencher` — isenta de senha a edição e a derivação (`emEdicao = EDITANDO || DERIVANDO`),
+porque a senha é pré-requisito de GRAVAR, não de abrir. O `DUPLICANDO` **não estava nessa lista**, e
+é o terceiro gesto da mesma família. Resultado: o formulário era pintado e, um instante depois, a
+mesma trava via senha vazia (ninguém a tinha digitado — a pessoa acabou de clicar) e chamava
+`voltarParaALista()`. Duas pinturas, e a segunda é a lista: o «pisca e volta» é literalmente isso.
 
-- `motor/nucleo/porta.js` — **`estadoDoPo`**: o PO é `solta` ou `legado` conforme tenha, ou não, um
-  sucessor (`ajuste_de`). **A assimetria com o plano é do domínio**: nada referencia um PO — o ciclo
-  gerado guarda a sua própria cópia (`po-01.json`, `-po.md`) —, e por isso não existe aqui a trava
-  «está vinculado» que o plano tem. O que existe é a do sucessor.
-- `motor/servidor/rotas.js` — **`DELETE /api/po-vinculo/:id`**, com **409** quando derivado, e a
-  recusa a nomear o sucessor.
-- `motor/servidor/listas-do-acervo.js` — a rota entra no `ROTA_DE_APAGAR`; a linha do PO ganha
-  **«Apagar»** (botão, com senha e confirmação, como as outras duas) quando não é derivada, e
-  mantém «Ajustar» em primeiro lugar.
+A correção é uma linha — `emEdicao = !!(EDITANDO || DERIVANDO || DUPLICANDO)` —, e a mesma omissão
+existia **no servidor**: `PARAMS_DO_ATO` (a lista de permissão do `302` que devolve à lista os
+endereços sem contexto) tinha `editar` e `ajustar` e não tinha `novo`. Um link que levasse só o
+carimbo era redireccionado antes de qualquer byte de formulário. Entram os dois.
 
-**Dois defeitos meus, apanhados a correr as bancadas.** (1) `estadosDosPos` emitia
-`estado: 'solta'`, e o `linhasDe` usa `estado.estado` para o **selo** — o PO ganhou uma etiqueta
-«solta» que ninguém pediu, e a `provar-listas-do-acervo` reprovou («sem registo de geração, a linha
-do PO não leva selo»). O estado derivado passou a dizer só o que a lista precisa de saber:
-`derivado`. (2) Os POs novos do fixture observavam o plano **solto** e o sujeito **Aluna B** — o que
-tornou o plano vinculado e a anamnese da Aluna B vinculada, e derrubou sete asserções de outras
-secções. Passaram a observar o plano já vinculado e a **Aluna C**.
+**A bancada anterior não podia ter visto isto**, e é a lição: ela servia `api/…` com stubs de JSON,
+o arranque rebentava a meio, e o formulário ficava em branco — em branco ele não devolve ninguém à
+lista, e a primeira asserção dava verde. A `provar-novo-registo-e-ciclo` serve a página pela ponte a
+sério (`producao.fetch`, os envelopes no KV falso) e o acervo é o verdadeiro.
 
-**Onde entrou.** `motor/nucleo/porta.js` · `motor/servidor/rotas.js` ·
-`motor/servidor/listas-do-acervo.js` · `experimentos/provar-menu-do-formulario.js` (**novo**, 36) ·
-`experimentos/provar-apagar-da-listagem.js` (32 → **43**: a §3b mede o botão, a rota e a recusa).
+### 2. O ciclo, em cada fonte, tem a forma do que a fonte faz
 
-**Com o quê.** `provar-apagar-da-listagem` (43, com **controlo negativo**: desligado o botão, duas
-asserções reprovam) · `provar-menu-do-formulario` (36) · `provar-listas-do-acervo` (101 de 109 —
-as 8 falhas são **pré-existentes**, verificadas por A/B num `git worktree` limpo: esperam os
-caminhos `/area-do-professor/…`, que o menu deixou de usar) · `provar-eixos-do-po` (34) ·
-`provar-ciclos-e-anamnese` (34) · `provar-contexto-do-ato` (39) · `provar-publicacao-da-escola`
-(63) · `provar-cartao-da-aula` (31) · `check-identidade` 20/20.
+- **Anamnese: não tem ciclo.** O campo era escondido com `display: none` no `.campo` — e ela voltou
+  a vê-lo. Um campo escondido por CSS continua no documento (basta o estilo não chegar) e continua
+  a ser lido por leitor de ecrã. Passa a **sair da página**: quem não pertence a esta fonte não fica
+  escondido, não fica.
+- **Plano de ensino: número travado no próximo.** Fica como estava — ele vai CRIAR um ciclo.
+- **Plano de Observação: lista, e só com os ciclos que têm plano de ensino.** A regra é dela: «não
+  é permitido criar um Plano de Observação para um ciclo que ainda não possui um Plano de Ensino
+  consolidado». O campo trava no PRÓXIMO era exactamente o contrário disso — o próximo é o ciclo que
+  ainda não tem plano nenhum. Quem diz quais são é o servidor (`GET /api/ciclos` → `comPlano`); a
+  tela não conta ciclos, e uma segunda cópia da regra divergiria dela.
 
-**O que NÃO está feito, e é a pergunta em aberto.** Os sintomas 1 e 2 (menu esbatido e conteúdo a
-rolar por cima do cabeçalho) **não se reproduziram** em nenhum estado que a bancada consiga
-construir. Fica registado o que falta para os apanhar: a URL exacta e a largura da janela em que
-acontecem. Sem isso, mexer no CSS seria adivinhar — e um `z-index` mudado às cegas parte o que está
-medido.
+O `<input>` é trocado por um `<select>` em tempo de execução (o ficheiro é um só para as três
+fontes), e o valor que o campo já tinha é transferido: no `?ajustar=` o contexto chega do envelope
+antes dessa troca. Um PO cujo plano tenha sido apagado **continua a abrir no ciclo dele** — retirar
+a opção escolhida deixaria o campo vazio e o documento ilegível.
 
-**A causa dos dois sintomas, encontrada depois de os procurar a sério: `:has()`.**
+### 3. O registo condenado não se lê enquanto a rota responde
 
-O layout da coluna dependia de **`body:has(> .coluna)`** em cinco regras — as que põem a barra ao
-lado da coluna (`left: 248px`), dão ao `body` os 248px de margem, e trocam a lista da barra pelo ☰.
-E `:has()` **não existe em todo o lado**: o Firefox só a teve na **121 (Dez/2023)**, e o **ESR 115** —
-que muitas instituições ainda correm — não a tem.
+«O item continua visível e interativo na listagem enquanto o processo roda. Isso permite que o
+usuário abra, leia ou tente ajustar um documento que está sendo destruído.» A Action do GitHub corre
+em segundo plano: entre o clique e a resposta há segundos em que a linha já está condenada e ainda
+obedece.
 
-Num desses navegadores as regras não se aplicam, e o resultado foi **medido** (simulação fiel:
-desactivar no CSSOM as regras com `:has(`, trocando-lhes o `selectorText`, sem sobrepor nada com
-`!important`):
+A trava é em **três camadas**, e as três são precisas: `data-apagando` (o estado, que a folha
+desenha), `inert` (tira a linha do ponteiro, do teclado e do leitor de ecrã — `pointer-events`
+sozinho deixa o Tab entrar) e `aria-busy`. Só saem na falha; no sucesso a página recarrega e a linha
+desaparece. A recusa (409) **destranca**: um registo que existe e não se pode abrir é pior do que o
+defeito.
 
-| | com `:has()` | sem `:has()` |
-|:--|:--|:--|
-| Barra (`left`) | 248 | **0** |
-| Margem do `body` | 248px | **0px** |
-| Clique no 1.º link do menu | acerta no link | **acerta em `a.coluna-marca`** — a coluna (`z-index: 21`) cobre os primeiros 248px da barra (`z-index: 20`) |
+**Motivo declarado (CONGELAMENTO.md):** `tools/templates/ciclo.css` está na lista congelada. Entra
+uma **peça nova** — `.trio-plano[data-apagando="sim"]` —, nascida inteira: o desenho na folha com
+todos os estados, as duas linhas no catálogo (`IDENTIDADE-VISUAL.md`, Quadros 1 e 2), a geometria
+medida no Chrome e a cópia nas superfícies. O véu é o papel do fundo a 82%, e não um `opacity` na
+linha: baixar a opacidade do conteúdo deixa o texto ilegível e ainda a prometer que se lê.
 
-É o **«os cliques não respondem»**, igual nas três telas de formulário — e a barra por baixo da
-coluna lê-se como uma faixa esbatida, que é a «cor extremamente clara» da queixa.
+### A prova
 
-**A correção, e o erro que quase a estragou.** O `assets/nav.js` passa a escrever
-`data-tem-coluna="sim"` no `<html>` quando encontra a coluna (e `data-tem-lateral="sim"` no `body`
-onde existe a `lateral` da Produção), e a folha ganha as **mesmas declarações em regras separadas**,
-chaveadas por esse atributo.
-
-> **A separação é o ponto, não estilo.** A primeira versão pôs os dois seletores na **mesma lista**
-> (`body:has(> .coluna), [data-tem-coluna="sim"] body`). Num navegador sem `:has()`, um membro
-> inválido **descarta a lista inteira** — o remendo cairia junto com o que ele veio substituir, e a
-> bancada daria verde no Chrome (que entende `:has()`) e o defeito continuaria no Firefox ESR. A
-> simulação apanhou-o porque testa o caminho, não a intenção.
-
-O `:has()` fica: onde ele existe, a regra vale antes de o script correr, e não há salto de layout.
-
-**A prova, e o controlo negativo.** A secção **E** da `provar-menu-do-formulario` (40 asserções)
-desactiva as regras com `:has()` e exige que a barra continue em `left: 248` e o link continue a
-receber o clique — e depois **remove o atributo** e exige que o defeito **volte** (`left: 0` e o
-clique a cair na marca da coluna). Sem esse controlo, o «passou» podia ser do `:has()` que não se
-conseguiu desactivar, e não do remendo.
-
-**Motivo declarado (CONGELAMENTO.md):** `tools/templates/ciclo.css` e `tools/templates/nav.js` estão
-na lista congelada. A mudança entra por **defeito medido** — um menu que não responde num navegador
-suportado —, com prova em dois sentidos, e sem tocar em cor, medida ou peça: só o caminho alternativo
-para a mesma regra de layout.
+- `experimentos/provar-novo-registo-e-ciclo.js` (**nova**, 24 asserções, Chrome): o `?novo=` fica no
+  formulário e traz o retrato anterior no campo do nó que o guarda; a anamnese não pede ciclo nem no
+  texto do cabeçalho nem na marcação; o PO lista `01` e não `02` (o `02` existe no acervo, sem
+  plano — é a única fixture que separa «lista dos que têm plano» de «trava no próximo»); o plano
+  continua travado; e o véu cobre a linha (mesma altura e largura), diz «apagando…» e o spinner gira.
+- `experimentos/provar-apagar-da-listagem.js` (§4b, 51 asserções): com a resposta ADIADA, a linha
+  ganha `data-apagando`, `inert` e `aria-busy`, o botão desliga, e um 409 destranca com o motivo
+  escrito. Com um `fetch` que resolve na hora não há instante nenhum para medir — o teste passaria
+  sem ver o lock.
 
 ## O que está pendente
 

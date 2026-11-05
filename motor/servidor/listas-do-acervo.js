@@ -546,6 +546,33 @@ function scriptDoPainel(chave, escola) {
     if (!window.confirm('Apagar ' + nome + '?\\n\\nÉ definitivo — e só é possível porque ele não '
       + 'está vinculado a nenhum Plano de Observação nem foi derivado.')) return;
     b.disabled = true;
+    /* A LINHA FICA TRANCADA ENQUANTO A ROTA NÃO RESPONDE (05/11/2026).
+     *
+     * O DEFEITO: «o item continua visível e interativo na listagem enquanto o processo roda. Isso
+     * permite que o usuário abra, leia ou tente ajustar um documento que está sendo destruído.»
+     * A Action do GitHub corre em segundo plano, e a exclusão não é instantânea: entre o clique e
+     * a resposta há segundos em que a linha já está condenada e ainda obedece.
+     *
+     * A TRAVA É EM TRÊS CAMADAS, e as três são precisas: o ATRIBUTO «data-apagando» (o estado,
+     * que a folha desenha com véu, fio e spinner), o «inert» (tira a linha do ponteiro, do
+     * teclado e do leitor de ecrã — «pointer-events» sozinho deixa o Tab entrar) e o
+     * «aria-busy» (diz ao leitor de ecrã que a linha está a mudar). Só sai quando a resposta
+     * chega, e só no caso de falha — no sucesso a página recarrega e a linha desaparece.
+     */
+    var linha = b.closest ? (b.closest('.trio-plano') || b.closest('li') || b.parentNode) : b.parentNode;
+    function trancar(trancada) {
+      if (!linha || !linha.setAttribute) return;
+      if (trancada) {
+        linha.setAttribute('data-apagando', 'sim');
+        linha.setAttribute('aria-busy', 'true');
+        try { linha.setAttribute('inert', ''); } catch (e) {}
+      } else {
+        linha.removeAttribute('data-apagando');
+        linha.removeAttribute('aria-busy');
+        try { linha.removeAttribute('inert'); } catch (e) {}
+      }
+    }
+    trancar(true);
     fetch(rota + encodeURIComponent(id), { method: 'DELETE' })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) {
         return { ok: r.ok, status: r.status, dados: d };
@@ -561,6 +588,9 @@ function scriptDoPainel(chave, escola) {
         window.location.reload();
       })
       .catch(function (erro) {
+        /* A FALHA DESTRANCA, e a linha volta a responder com o motivo escrito ao lado. Uma linha
+         * que ficasse trancada depois de um 409 seria um registo que existe e não se pode abrir. */
+        trancar(false);
         b.disabled = false;
         dizerNoPainel('Não apaguei ' + nome + ': ' + erro.message);
       });

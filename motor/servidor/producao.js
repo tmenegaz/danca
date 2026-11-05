@@ -439,7 +439,14 @@ async function fetch(request, env) {
      * A lista é a de `porta/index.html` (ver `consulta()` em `listas-do-acervo.js`), e é uma lista
      * de PERMISSÃO — na dúvida, deixa passar. Servir a porta a mais é o que já acontecia; servir
      * a menos quebraria o ato. */
-    const PARAMS_DO_ATO = ['professor', 'ciclo', 'aluna', 'plano', 'editar', 'ajustar', 'ato'];
+    /* O `novo` FALTAVA (05/11/2026), e é o terceiro da mesma família: `editar` abre um registo
+     * para escrita em sítio, `ajustar` abre-o para derivar, e `novo` abre-o para duplicar — os
+     * três carregam o CARIMBO, e o contexto vem do envelope. Sem ele aqui, o endereço
+     * `?novo=<carimbo>` sozinho era um 302 para a lista: o «Novo registo» voltava ao ponto de
+     * partida no SERVIDOR, antes de qualquer byte de formulário. A lista de hoje leva também
+     * `professor` e `aluna` — e é por isso que o defeito não apareceu por aí —, mas um link que
+     * leve só o carimbo tem de funcionar como os outros dois. */
+    const PARAMS_DO_ATO = ['professor', 'ciclo', 'aluna', 'plano', 'editar', 'ajustar', 'novo', 'ato'];
     const ehAPaginaDaPorta = rel === '/' || rel === '/index.html';
     const temContexto = PARAMS_DO_ATO.some((chave) => (url.searchParams.get(chave) || '').trim());
     if (ehAPaginaDaPorta && !temContexto) {
