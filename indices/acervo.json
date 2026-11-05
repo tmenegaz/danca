@@ -139,13 +139,13 @@
         "ciclo:rabo-gramde/01/calango"
       ],
       "contagens": {
-        "anamneses": 1,
+        "anamneses": 2,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 1
+        "registros": 2
       },
       "criada_em": "2026-11-05T13:06:46.674863+00:00",
       "expurgada": false,
@@ -159,7 +159,8 @@
         "rabo-gramde"
       ],
       "registros": [
-        "anamnese:anamnese-20261105-1240"
+        "anamnese:anamnese-20261105-1240",
+        "anamnese:anamnese-20261105-1907"
       ],
       "slug": "calango"
     },
@@ -292,7 +293,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -475,7 +476,7 @@
     ],
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       }
@@ -483,9 +484,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "82de370"
+    "commit": "471f216"
   },
-  "gerado_em": "2026-11-05T15:40",
+  "gerado_em": "2026-11-05T22:07",
   "nao_indexado": [
     {
       "familia": "conteudo",
