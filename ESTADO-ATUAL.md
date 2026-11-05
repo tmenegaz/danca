@@ -105,6 +105,15 @@
 > expurgo é um commit só. Prova nova: `provar-verbos-do-armazenamento`, **29 asserções**, a ler os
 > verbos **do ficheiro do contrato** e a passar pelo `criarArmazenamento`.
 >
+> **Correcção de 05/11/2026 — o validador cobrava um ficheiro chamado `.html`.** `DOCS=""`
+> (o que `tools/criar-escola.sh` escreve em **toda** variante nova) virava `['']` — um array
+> *truthy* com uma entrada vazia — e `tools/check-pacote.js` exigia o ficheiro `.html`. Medido na
+> `calango`: **11 → 10 erros**, e o que sai é o único que não existia. `filter(Boolean)` faz `""`
+> virar `[]`, e o ciclo-zero passa a ser exigido só do `index.html`, como já era no shell. A
+> verificação 15 da `provar-geracao-do-ciclo` prova-o por comportamento (pacote sintético em
+> diretório temporário, lista exacta dos ficheiros cobrados) **e** pelo negativo: com `DOCS="plano"`
+> o validador continua a reprovar. `tools/` é congelado → motivo declarado no `REGISTRO.md`.
+>
 > **Entrega anterior** (base `d3b623c`, árvore limpa). Nesta entrega, **as colunas da
 > aula têm a largura do que levam dentro, e a notação sai do bloco de musicalidade**. (1) As doze
 > tabelas de exercício saíam a **28/28/21/21** — o «1» do compasso com a mesma largura que o

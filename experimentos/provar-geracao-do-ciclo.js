@@ -343,10 +343,83 @@ function aDeclaracaoAcompanhaOPo() {
   ok('a declaração acompanha o PO, e a chave de uma coluna que permaneceu não muda');
 }
 
+/**
+ * O VALIDADOR DIZ A VERDADE SOBRE UM CICLO-ZERO (05/11/2026).
+ *
+ * O DEFEITO, medido na `calango` recém-criada: `DOCS=""` virava `''.split(/\s+/)` = `['']`, um
+ * array de UM elemento vazio que é TRUTHY. O validador entrava no ramo «o manifesto declara
+ * documentos» e exigia um ficheiro chamado `.html`:
+ *
+ *     ERRO  arquivo ausente ou vazio: .html
+ *
+ * Toda escola nova nascia com esse erro falso à frente de dez verdadeiros — e quem lê um «erro»
+ * inexistente desconfia dos outros dez. `filter(Boolean)` faz `""` virar `[]`, que é FALSY, e o
+ * ciclo-zero passa a ser exigido só do `index.html`.
+ *
+ * A PROVA É DE COMPORTAMENTO, e tem as duas metades. Sem o controlo negativo, uma correcção que
+ * simplesmente DESLIGASSE a exigência do DOCS também passaria — e o validador deixaria de cobrar
+ * os documentos que um ciclo com conteúdo declara.
+ */
+function oValidadorDoCicloZero() {
+  const os = require('node:os');
+  const { execFileSync } = require('node:child_process');
+  const FERRAMENTA = path.join(RAIZ, 'tools/check-pacote.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ciclo-zero-'));
+
+  /* O MÍNIMO QUE UM CICLO-ZERO TEM: o `index.html` que a apresentação gera, a folha e o PDF do
+   * pacote. O resto (plano, aulas, dados) nasce do PO, e é por isso que não existe aqui. A
+   * variante é «prova», e o `.conf` tem de estar ao lado do pacote — é de lá que o DOCS vem. */
+  const pacote = path.join(dir, 'ciclo-01-prova');
+  fs.mkdirSync(path.join(pacote, 'assets'), { recursive: true });
+  fs.writeFileSync(path.join(pacote, 'index.html'), '<!DOCTYPE html><html><body></body></html>\n');
+  fs.writeFileSync(path.join(pacote, 'assets', 'style.css'), 'body{}\n');
+  fs.writeFileSync(path.join(pacote, 'ciclo-01-prova.pdf'), '%PDF-1.4\n');
+  const conf = path.join(dir, 'ciclo-01-prova.conf');
+
+  /* O QUE O VALIDADOR COBROU, lido da própria saída dele — não de um regex sobre o texto todo.
+   * É a lista exacta dos ficheiros que ele disse faltarem, e é isso que se compara. */
+  const cobrados = (saida) => (saida.match(/arquivo ausente ou vazio: (.*)$/gm) || [])
+    .map((l) => l.replace('arquivo ausente ou vazio: ', '').trim());
+
+  const correr = () => {
+    try {
+      return execFileSync(process.execPath, [FERRAMENTA, pacote],
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (erro) {
+      return String(erro.stdout || '') + String(erro.stderr || '');
+    }
+  };
+
+  fs.writeFileSync(conf, 'DOCS=""\n');
+  const zero = correr();
+  assert.deepEqual(cobrados(zero), [],
+    'o ciclo-zero voltou a exigir ficheiros: DOCS="" não é uma lista com um nome vazio');
+  assert.equal(/arquivo: index\.html/.test(zero), true,
+    'o index.html continua a ser exigido');
+  assert.equal(/manifesto do ciclo não encontrado/.test(zero), false,
+    'o manifesto FOI encontrado — o que ele declara é que não há documentos');
+
+  /* O CONTROLADO NEGATIVO, e a razão de ele existir: uma correcção que simplesmente DESLIGASSE a
+   * exigência do DOCS também passaria na metade de cima. Com nomes declarados, o validador tem de
+   * continuar a cobrar — e a lista exacta é a que o manifesto pede. */
+  fs.writeFileSync(conf, 'DOCS="plano"\n');
+  assert.deepEqual(cobrados(correr()), ['plano.html'],
+    'com DOCS="plano" e sem plano.html, o validador TEM de reprovar');
+
+  /* Dois espaços entre os nomes: `\s+` colapsa. É o mesmo ponto do código, e um dia alguém troca
+   * o `\s+` por `' '` — esta linha é o que impede que essa troca passe despercebida. */
+  fs.writeFileSync(conf, 'DOCS="plano  aula-01"\n');
+  assert.deepEqual(cobrados(correr()), ['plano.html', 'aula-01.html'],
+    'espaços a mais no DOCS não podem inventar um nome vazio');
+
+  fs.rmSync(dir, { recursive: true, force: true });
+}
+
 (async () => {
   await provaAsync('o disparo leva a variante', oDisparo);
   prova('o acordo com o workflow', oAcordo);
   prova('a declaração acompanha o PO', aDeclaracaoAcompanhaOPo);
+  prova('o validador diz a verdade sobre um ciclo-zero', oValidadorDoCicloZero);
 
   console.log('');
   if (falhas) {

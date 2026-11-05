@@ -35655,3 +35655,45 @@ faltava era o passo seguinte, que é esta cascata.
 **Motivo declarado (CONGELAMENTO.md):** `tools/` está congelado e **não foi tocado** nesta
 mudança — a cascata é a rotina que já existia (`motor/servidor/repo-escola.js`), e o que mudou foi
 o ponto de chamada (`rotas.js`, `cloudflare.js`) e a listagem (`listas-do-acervo.js`).
+
+## 05/11/2026 — «arquivo ausente ou vazio: .html»: o ciclo-zero exigia um ficheiro sem nome
+
+Toda escola nova nasce com dez erros do validador — e com um décimo primeiro que não existe. O
+`.conf` do ciclo-zero declara `DOCS=""`, e o `tools/check-pacote.js` lia isso como uma **lista com
+um nome vazio**: `'DOCS=""'.match(...)[1]` é `''`, `''.split(/\s+/)` é `['']` — um array de **um**
+elemento cuja única entrada é a string vazia. Um array — logo *truthy* — e a linha seguinte faz
+`` `${d}.html` ``:
+
+```
+ERRO  arquivo ausente ou vazio: .html
+```
+
+O erro é falso, e aparecia **antes** dos dez verdadeiros. Quem lê um erro inexistente desconfia dos
+outros; e o primeiro contacto com uma escola recém-criada era esse. O bug foi medido na `calango`,
+mas não é dela: `DOCS=""` é o que `tools/criar-escola.sh` escreve em **toda** variante nova, e o
+validador passou a mentir em todas desde que o ciclo-zero passou a ser gerável.
+
+**A correcção é uma chamada.** `m[1].trim().split(/\s+/).filter(Boolean)` faz `""` virar `[]`, que
+é *falsy*, e o validador entra no ramo que já existia para «o manifesto não declara documentos» —
+o `index.html` e mais nada, que é o estado verdadeiro de um ciclo-zero. Os dez erros legítimos
+continuam a ser ditos (o pacote sem plano, sem aula, sem dados e sem PDF de verdade).
+
+O shell nunca teve o defeito: `for doc in ${DOCS:-}` não itera uma palavra vazia. Era só o
+validador, e só na linha que traduz o manifesto em obrigações.
+
+**Medido, A/B, no mesmo HEAD:** `check-pacote` sobre `ciclo-01-calango` — **11 → 10 erros**, e o
+erro falso desaparece. A bancada `experimentos/provar-geracao-do-ciclo.js` ganhou a verificação 15,
+que é de **comportamento** e não de código: monta um pacote sintético num diretório temporário e lê
+do validador a lista exacta dos ficheiros que ele cobrou. Metade positiva (`DOCS=""` → nenhum
+ficheiro cobrado, e o `index.html` ainda exigido); metade negativa, que é a razão de ela existir —
+com `DOCS="plano"` e sem `plano.html` o validador **tem** de reprovar, senão uma correcção que
+simplesmente desligasse a exigência do `DOCS` teria passado; e com dois espaços entre os nomes a
+lista continua exacta (`plano.html`, `aula-01.html`), que é o que impede a troca de `\s+` por `' '`
+de passar despercebida. A falha pré-existente 12 («o acordo com o workflow», procura no
+`gerar-ciclo.yml` um `git diff --diff-filter=U` que já lá não está) permanece, medida com A/B no
+HEAD limpo: 1 de 14 antes, 1 de 15 depois — a nova passa.
+
+**Motivo declarado (CONGELAMENTO.md):** `tools/` está congelado e **foi tocado** — uma expressão em
+`tools/check-pacote.js`, com comentário a explicar o porquê e o número medido. É correcção de
+defeito, não mudança de regra: nenhum ficheiro passa a ser exigido que não fosse antes, e o
+ciclo-zero passa a ser exigido do que de facto existe.

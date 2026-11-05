@@ -63,7 +63,25 @@ const docsDoCiclo = (() => {
     const p = path.join(dirFontes, conf);
     if (!fs.existsSync(p)) continue;
     const m = fs.readFileSync(p, 'utf8').match(/^\s*DOCS="([^"]*)"/m);
-    if (m) docs = m[1].trim().split(/\s+/);   // a variante sobrescreve o manifesto base
+    /* `""` NÃO É UMA LISTA COM UM NOME VAZIO (05/11/2026).
+     *
+     * `'DOCS=""'.match(...)[1]` é `''`, e `''.split(/\s+/)` devolve `['']` — um array de um
+     * elemento vazio, que é TRUTHY. O ciclo-zero (o scaffold de toda a escola nova) declara
+     * `DOCS=""`, e o validador passava a exigir um ficheiro chamado **`.html`**:
+     *
+     *     ERRO  arquivo ausente ou vazio: .html
+     *
+     * O erro é falso, e é o primeiro de uma lista de onze — quem lê conclui que o scaffold está
+     * partido, e os dez que são verdade é o que ele devia ler primeiro. Medido na `calango`
+     * recém-criada.
+     *
+     * O `filter(Boolean)` diz o que o manifesto quer dizer: nenhum documento. `""` fica `[]`, que
+     * é FALSY, e o ramo de baixo exige só o `index.html` — o estado verdadeiro de um ciclo-zero.
+     * Os espaços internos não precisam de nada: `\s+` já colapsa `"plano  aula-01"`.
+     *
+     * O shell nunca teve este defeito (`for doc in ${DOCS:-}` não itera uma palavra vazia); era
+     * só aqui. */
+    if (m) docs = m[1].trim().split(/\s+/).filter(Boolean);   // a variante sobrescreve a base
   }
   return docs;
 })();
