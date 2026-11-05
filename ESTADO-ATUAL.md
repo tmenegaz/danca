@@ -4,7 +4,18 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 04/11/2026 (base `b972267`, árvore limpa). Nesta entrega, **o ciclo
+> **Última fotografia:** 04/11/2026 (árvore limpa). Nesta entrega, **o corpo tem uma fonte só: o
+> detalhe na Aula 1, o ponteiro no plano**. (1) O **aspecto físico** era impresso **duas vezes** —
+> plano do ciclo e aula 01 — a partir da **mesma** chave do envelope; a tabela dos aspectos fica na
+> **aula** (secção «Corpo» do guia) e o plano publica a contagem e um **link** para
+> `aula-01.html#corpo`. O ponto de partida de cada aluna fica no **PO**, que é do sujeito. (2) **A
+> linha por aluna saiu da aula**: o `linha-de-base` dava duas linhas por sujeito, e trinta alunas
+> davam sessenta e uma linhas antes da primeira marca. (3) O título da secção do plano perdeu
+> «força e flexibilidade» — declara o **eixo**, não a lista, que é a da aula; o alias antigo fica no
+> validador. Prova: `provar-eixos-e-tempo-da-aula`, **50 asserções** (a escala é o controlo
+> negativo: com três alunas o documento não cresce).
+>
+> **Entrega anterior** (base `b972267`, árvore limpa). Nesta entrega, **o ciclo
 > apaga-se de trás para a frente, a sequência é estrita, e a anamnese é datada**. (1) **Apagar o
 > ciclo gerado** leva o pacote, as fontes derivadas, o `.conf` e as âncoras — e os **POs** do ciclo
 > —, e deixa a **anamnese** (é do sujeito) e o **plano de ensino**, que fica **livre sem se lhe
@@ -2003,6 +2014,16 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      pedagogia por conta própria. Os **marcos do ciclo** — formativa (aula N/2) e somativa (última
      aula) — já são calculados pelo calendário e são a referência natural, se a escola quiser usá-la.
      **DECIDIDO** 04/11/2026.
+
+104. **O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA 1, O PONTEIRO NO PLANO.** O aspecto físico (o
+     eixo do corpo) era impresso **duas vezes** — no plano do ciclo e na aula 01 — a partir da
+     **mesma** chave do envelope. Duas cópias do mesmo dado são duas versões à espera de divergir. A
+     tabela dos aspectos fica na **Aula 1** (secção «Corpo» do guia), o plano publica a contagem e
+     um **link** para `aula-01.html#corpo`, e o ponto de partida de cada aluna fica no **PO** — que é
+     do sujeito, e é onde a Captura o pede. **A linha por aluna saiu da aula**: com trinta alunas
+     eram sessenta e uma linhas antes da primeira marca. O título da secção do plano perdeu «força e
+     flexibilidade» — declara o **eixo**, não a lista de capacidades, que é a da aula. **DECIDIDO e
+     implementado** 04/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

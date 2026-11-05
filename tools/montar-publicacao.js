@@ -842,13 +842,31 @@ function guiaDoCartao(t, a) {
   /* O CORPO DO PLANO (04/11/2026). O eixo do corpo não tem dimensões no PO: tem os aspectos
    * físicos que o PLANO declara. Até aqui a caixa contava só as dimensões do PO, e o corpo
    * aparecia como uma frente sem uma linha — «o guia contempla as três dimensões» era verdade no
-   * documento e mentira no cartão. A fonte é a cópia do plano no pacote, e o que se lê são as
-   * duas primeiras células de cada linha: o aspecto e como está a turma. */
+   * documento e mentira no cartão.
+   *
+   * A FONTE PASSOU A SER A AULA (04/11/2026, à noite), e a razão é a regra nova: o detalhe do
+   * corpo vive na AULA 01 e o plano publica o ponteiro. O cartão lia a tabela do `plano-01.json`,
+   * que deixou de a ter — e ler um ponteiro como se fosse a tabela dava **zero** aspectos, em
+   * silêncio («Corpo 15» viraria «sem dimensões»). O que se lê agora é a cópia extraída da aula
+   * (`plano-aula-NN.json`, `guiaDeObservacao.Corpo`), que é o MESMO dado no lugar onde ele passou
+   * a ser impresso. O plano fica como **retrocompatível**: um pacote gerado antes desta data tem a
+   * tabela no `plano-NN.json` e continua a contar — a leitura antiga vale como recurso, e não
+   * como primeira escolha (P-04: o passado não se reescreve para caber no presente). */
   const aspectos = (() => {
-    const arquivo = path.join(t.pasta, 'plano-01.json');
-    if (!fs.existsSync(arquivo)) return [];
-    let plano = null;
-    try { plano = JSON.parse(fs.readFileSync(arquivo, 'utf8')); } catch (erro) { plano = null; }
+    const doCaminho = (nome) => {
+      const arquivo = path.join(t.pasta, nome);
+      if (!fs.existsSync(arquivo)) return null;
+      try { return JSON.parse(fs.readFileSync(arquivo, 'utf8')); } catch (erro) { return null; }
+    };
+    const daAula = doCaminho('plano-aula-' + a.n + '.json') || doCaminho('plano-aula-01.json');
+    const linhasDaAula = daAula && daAula.guiaDeObservacao && Array.isArray(daAula.guiaDeObservacao.Corpo)
+      ? daAula.guiaDeObservacao.Corpo
+      : [];
+    const daAulaLimpas = linhasDaAula
+      .map((l) => (l && typeof l === 'object' ? String(l.criterio || '').trim() : ''))
+      .filter(Boolean);
+    if (daAulaLimpas.length) return daAulaLimpas;
+    const plano = doCaminho('plano-' + a.n + '.json') || doCaminho('plano-01.json');
     const linhas = plano && Array.isArray(plano.aspectoFisico) ? plano.aspectoFisico : [];
     return linhas.map((l) => {
       if (!l || typeof l !== 'object') return '';

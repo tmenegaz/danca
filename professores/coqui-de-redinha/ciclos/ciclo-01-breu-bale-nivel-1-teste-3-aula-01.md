@@ -48,10 +48,10 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 5. Guia de observação do professor
 
-> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que o
-> plano e o PO já declaram sobre a turma. O professor registra cada item por aluna na
-> Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não
-> observei.
+> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem dos
+> aspectos físicos que o plano do ciclo consolidou. O ponto de partida de cada aluna fica no
+> Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a aluna:
+> ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
 
 ### Corpo
 
@@ -72,9 +72,6 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 | Equilíbrio unipodal | 1 de 1 em «Mantém > 5 s sem oscilação severa» |
 | Força de puxar (tração) | 1 de 1 em «Tração completa» |
 | Articulação e força intrínseca dos dedos | 1 de 1 em «Flexíveis e articulados» |
-| Aluna A — o que traz | prática anterior: mais de 5 anos |
-| Aluna A — a desenvolver | saída do calcanhar no tendu; passé sem perder o eixo |
-| Restrições | sem restrições declaradas |
 
 ### Técnica
 

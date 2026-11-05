@@ -135,7 +135,13 @@ const DESTINO = {
    * documento (de propósito) não o põe, e chamava-lhe «campo perdido». O dado chega, na direção
    * contrária; a asserção dedicada (§2b, mais abaixo) prova as duas direções. */
   'aula-de-cada-objetivo': 'marcosPorAula',
-  'aspecto-fisico': 'aspectoFisico',
+  /* O ASPECTO FÍSICO MUDOU DE DOCUMENTO (04/11/2026). Ele chegava a `aspectoFisico` do
+   * `plano-XX.json`, e a secção do plano imprimia a tabela dos quinze aspectos. A regra nova dá-lhe
+   * UMA fonte: o detalhe vive na Aula 1 (secção «Corpo» do guia) e o plano publica o ponteiro —
+   * «o corpo tem de ter uma única fonte de verdade; o detalhe fica na Aula 1». Sem esta linha a
+   * prova reprovava com razão: o marcador deixou mesmo de chegar ao PLANO, e passa a chegar à
+   * AULA. É o destino que muda, não o dado — e por isso o marcador continua a ser procurado. */
+  'aspecto-fisico': 'aula-01.md',
   'aula-1-parametro': 'aula-01.md',       // a Aula 1 vive no documento da aula
   'aula-1-sequencia': 'aula-01.md',
 };
@@ -501,7 +507,12 @@ const daNotacao = String(derivarNotacao({
 assert.ok(daNotacao.includes(mk('sequencia')),
   'a sequência de exercícios «' + mk('sequencia') + '» chega ao documento da NOTAÇÃO — '
   + (daNotacao ? 'não a achei na secção dos exercícios' : 'o documento nem foi derivado'));
-ok('o parâmetro de medição chega composto ao `aula-01.md`, e a sequência ao documento da notação');
+/* O ASPECTO FÍSICO CHEGA À AULA, e é lá que ele se lê desde 04/11/2026 (a fonte única). */
+assert.ok(aula01.includes(mk('aspecto')),
+  'o aspecto físico «' + mk('aspecto') + '» tem de aparecer no aula-01.md — '
+  + 'é o eixo do corpo, e o plano passou a publicar o ponteiro');
+ok('o parâmetro de medição chega composto ao `aula-01.md`, a sequência ao documento da notação, '
+  + 'e o aspecto físico à aula (a fonte única do corpo)');
 
 // 15. O compositor do parâmetro tem os três caminhos: a matriz, a prosa antiga e o vazio.
 assert.deepEqual(parametroEmLinhas([{ marco: 1, marcados: ['Plié', 'Tendu'] }], ['Isolar o eixo']),

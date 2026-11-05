@@ -281,29 +281,37 @@ function eixosDaObservacao(dims, plano, po) {
    * frase de contagem. Uma tabela que salta um eixo dos três ensina que ele não se observa.
    *
    * A LINHA É `[critério, o que se observa]`, e nada é inventado: o aspecto é o rótulo que o
-   * PLANO declara (`aspecto-fisico`), o «como está a turma» é o valor que ele mesmo gravou, o
-   * ponto de partida é o que o PO declara por aluna (`linha-de-base`), e a restrição é a que o PO
-   * declarar — quando ele não declara nenhuma, a linha diz isso, que é diferente de não ter linha.
+   * PLANO declara (`aspecto-fisico`) e o «como está a turma» é o valor que ele mesmo gravou.
+   *
+   * O QUE É DO SUJEITO NÃO ENTRA AQUI (04/11/2026, à noite). A pesquisadora: «a listagem
+   * individualizada por aluna é inviável para larga escala — com dezenas de alunas o documento
+   * quebra». Ela está certa, e a conta é simples: o `linha-de-base` do PO é uma linha por sujeito,
+   * cada sujeito dava DUAS linhas («o que traz» e «a desenvolver») mais a restrição da turma, e
+   * trinta alunas davam sessenta e uma linhas para ler antes da primeira marca. O corpo do guia
+   * passa a ser o que é do CICLO — os aspectos físicos que o plano consolidou —, e o que é do
+   * SUJEITO vive no Plano de Observação, que é onde se declara e onde a Captura o pede, aluna a
+   * aluna. O documento da aula APONTA para lá (§6, Proveniência); não copia.
    *
    * AS COLUNAS SÃO LIDAS POR POSIÇÃO, e é o único sítio deste ficheiro onde isso se faz de
    * propósito: a tabela do `aspecto-fisico` é escrita pelo professor no formulário, e as duas
-   * primeiras células são sempre «o aspecto» e «como está». O `linha-de-base` tem nome de coluna
-   * estável (`sujeito`, `traz`, `precisaDesenvolver`), e esse lê-se pelo nome. */
+   * primeiras células são sempre «o aspecto» e «como está». */
   const linhasDoCorpo = [];
   for (const l of aspectos) {
     const celulas = Object.keys(l).map((k) => String(l[k] == null ? '' : l[k]).trim()).filter(Boolean);
     if (!celulas.length) continue;
     linhasDoCorpo.push([celulas[0], celulas.slice(1).join(' · ') || 'sem avaliação declarada']);
   }
-  for (const l of base) {
-    const sujeito = String(l.sujeito || l.aluna || '').trim();
-    const traz = String(l.traz || '').trim();
-    const desenvolver = String(l.precisaDesenvolver || '').trim();
-    const quem = sujeito ? sujeito + ' — ' : '';
-    if (traz) linhasDoCorpo.push([quem + 'o que traz', traz]);
-    if (desenvolver) linhasDoCorpo.push([quem + 'a desenvolver', desenvolver]);
+  /* SEM ASPECTO CONSOLIDADO, O EIXO DIZ A LACUNA E O CAMINHO DE VOLTA. Antes era a linha das
+   * restrições que garantia uma linha ao corpo — e com ela fora, um plano por consolidar deixava
+   * o eixo a dizer «nenhuma dimensão do PO cai neste eixo», que é falso: o corpo é o eixo, o que
+   * falta é a leitura das anamneses. */
+  if (!linhasDoCorpo.length) {
+    linhasDoCorpo.push([
+      'Aspecto físico — o que a turma mostra',
+      '[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico» '
+        + 'do plano de ensino.]',
+    ]);
   }
-  linhasDoCorpo.push(['Restrições', restricoes || 'sem restrições declaradas']);
 
   const eixo = (id, rotulo, lista, resumo, linhas) => ({
     id,
@@ -819,10 +827,10 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
     const dims = dimensoesEItens(po);
     const eixos = eixosDaObservacao(dims, plano, po);
     const corpo = [
-      '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que o',
-      '> plano e o PO já declaram sobre a turma. O professor registra cada item por aluna na',
-      '> Captura para impressão: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não',
-      '> observei.',
+      '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem dos',
+      '> aspectos físicos que o plano do ciclo consolidou. O ponto de partida de cada aluna fica no',
+      '> Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a aluna:',
+      '> ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.',
       '',
     ];
     /* AS TRÊS FRENTES SÃO TRÊS TABELAS (04/11/2026).

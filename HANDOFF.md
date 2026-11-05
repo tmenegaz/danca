@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-04T21:26:21-0300`
-Commit atual: `b9722672` — fix(campo): o cabecalho do ato cabe no telefone, e as tres assercoes eram da bancada
+Gerado em: `2026-11-04T21:37:04-0300`
+Commit atual: `e199a85e` — feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estrita, e a anamnese e datada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -85,6 +85,7 @@ vaso-bonito (19)
 ## Últimos commits
 
 ```
+e199a85e feat(campo): o ciclo apaga-se de tras para a frente, a sequencia e estrita, e a anamnese e datada
 b9722672 fix(campo): o cabecalho do ato cabe no telefone, e as tres assercoes eram da bancada
 a90058f2 fix(po): o plano de observacao tem tres eixos, e o corpo vem da anamnese
 a749ace7 fix(estrutura): o composto encaminha em vez de enumerar, e a modalidade tem uma só origem
@@ -104,7 +105,6 @@ fbd0756c feat(acervo): envelope/.indice.json
 355a1a4e fix(campo): a fatia de tempo vem do plano pela coluna certa, e o guia lê as três frentes
 c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência não se empilha no ecrã
 3738b266 chore(entrega): gerar o pacote de coqui-de-redinha/01/breu-bale-nivel-1-teste-3
-2c2238f1 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -125,7 +125,7 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `984c97ffc7a1` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `abb4aee0c24e` | (vazio) | Input_PO_Aguardando |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `e2b3386b3c67` | (vazio) | Input_PO_Aguardando |
 
 ### luz-azul — 0 ciclo(s)
 
@@ -230,105 +230,78 @@ c314f7e0 fix(campo): a estante mostra um por documento — e a proveniência nã
 
 ## Última entrada do REGISTRO
 
-## 04/11/2026 — O ciclo apaga-se de trás para a frente, a sequência é estrita, e a anamnese é datada
+## 04/11/2026 — O corpo tem uma fonte só: o detalhe na Aula 1, o ponteiro no plano
 
-**O que motivou.** Quatro frentes que a pesquisadora enunciou como regra de negócio, e uma delas
-com uma consequência de domínio que ainda não estava no código: «os ciclos devem ser estritamente
-sequenciais (1, 2, 3 … N)»; «não é permitido criar um Plano de Observação para um ciclo que ainda
-não possui Plano de Ensino»; «a Anamnese pertence ao ALUNO, não ao ciclo»; e «não pode existir um
-botão de ajustar uma anamnese já registada e vinculada — qualquer alteração gera um NOVO registo,
-com uma nova data».
+**O que motivou.** A pesquisadora: «o bloco detalhado de força e flexibilidade deve residir
+exclusivamente dentro da Aula 1, substituindo as linhas genéricas/individuais por aluna; o Plano de
+Ciclo passa a tratar o aspecto físico de forma macro — um texto curto e um link para a secção
+correspondente do corpo na Aula 1». E o diagnóstico que a levou lá: «a listagem individualizada
+(`aluna A: o que traz, a desenvolver, restrições`) é inviável para larga escala — com dezenas de
+alunas, a interface e a lógica quebram».
 
-**O que se mediu — e o que já estava certo, e por isso não se mexeu.**
-
-1. **A anamnese já era atemporal na chave da estante.** `CONTEXTO_DO_REGISTO.anamnese` agrupa por
-   `aluna + escola`, sem ciclo, e `estadosDasAnamneses` deriva o vigente pelo apelido. O que
-   faltava era o **envelope** declarar um ciclo, e o **formulário** pedi-lo. Medido num envelope
-   real: `{escola, professor, ciclo: "01", aluna}`.
-2. **O vínculo PO ↔ PE é derivado**, e é isso que faz a exclusão ser simples: o PO declara o plano
-   no nó `plano-de-ensino`, e `poDoPlano` responde varrendo os POs. Apagados os POs, o plano fica
-   livre **sem se lhe tocar** — o modelo da curadoria que ela invocou.
-3. **Os marcos formativa/somativa já são derivados** do calendário (`calendario.py`: formativa =
-   aula N/2, somativa = última aula), e **não há** nenhuma regra de validade da anamnese. O pedido
-   confirma o que existe: o controlo de quando se refaz o retrato é política da escola.
-4. **Não havia rotina de apagar ciclo** — só escola e professor —, nem rota que listasse ciclos, e
-   o campo `#ctx-ciclo` era `<input type="text">` livre nas três fontes.
+**O que se mediu.** A duplicação era real e vinha da **mesma** chave do envelope: `aspecto-fisico`
+era impresso no plano (`derivar-plano-ciclo.js`, tabela de quinze linhas) e na aula
+(`derivar-ciclo.js`, eixo do corpo). A escala também: o guia lia o `linha-de-base` do PO — uma linha
+por sujeito, **duas** por sujeito («o que traz» e «a desenvolver») mais a restrição da turma. Com
+trinta alunas, sessenta e uma linhas antes da primeira marca. Nada disso falhava: eram duas cópias
+certas, e uma linha por aluna que o documento não tinha como sustentar.
 
 **O que foi decidido e implementado.**
 
-- **Apagar o ciclo gerado** (`apagarCicloDoRepo`): leva o pacote, as fontes derivadas, o `.conf` da
-  variante, as âncoras e os POs do ciclo; deixa a anamnese e o plano de ensino. **Três
-  tentativas**, como o expurgo.
-- **A guarda: só o último.** O `parentHash` do ciclo seguinte aponta para a âncora deste, e apagá-lo
-  partiria a cadeia sem remédio (P-03). A recusa diz **o que impede** e **o que fazer** («apague de
-  trás para a frente: 02 e depois 01»), e a rota devolve `409` sem repetir a regra — a guarda é do
-  núcleo, e uma segunda cópia divergiria.
-- **O padrão do ciclo é apertado.** `ehArquivoDaEscola` aceita traço depois do slug (serve ao
-  expurgo da escola); para apagar um ciclo isso é perigoso: a variante `breu` casaria
-  `ciclo-01-breu-bale-nivel-1-teste-3.md` — o ficheiro de OUTRA variante — e a exclusão apagaria o
-  ciclo do vizinho. `ciclosDaVariante` aceita três seguidores e só três (fim, `.`/`/`, `-aula-NN`).
-  Medido nos dois sentidos.
-- **A sequência é estrita, e é o servidor que a diz.** `GET /api/ciclos` deriva os ciclos do
-  índice dos envelopes — **um ciclo existe porque tem documento** —, e `proximoCiclo` devolve `01`
-  numa escola nova, o seguinte ao maior quando a sequência está inteira, e **`null` quando há um
-  buraco**: não há próximo honesto a sugerir, e inventar o número que taparia a lacuna esconderia o
-  problema. O campo passa a `readOnly` com a nota do motivo. Doze ciclos → `11` (a ordem é
-  numérica; em texto, `'10'` ordenaria antes de `'2'`).
-- **O ciclo sai da anamnese.** `CAMPOS_DO_CONTEXTO` daquela fonte passa a `escola · professor ·
-  aluna`, o campo é escondido, e o envelope deixa de declarar ciclo — o que tem uma consequência
-  boa e verificada: **uma anamnese já não cria um ciclo na lista**.
-- **«Ajustar» deu lugar a «Novo registo».** O formulário abre **preenchido** com o retrato
-  anterior (o «duplicar» que ela pediu), e o que se grava é um documento novo, com data nova e
-  **sem `ajuste_de`** — porque um retrato novo não substitui o anterior: os dois aconteceram. O
-  «Editar» continua só para a anamnese **solta** (é rascunho), e a vinculada não tem edição.
-- **O sinal de revalidação é derivado** (`revalidacaoPendente`): «a anamnese de algum sujeito é
-  mais recente do que este documento?». Marca o **PO** e, pela cadeia, o **plano** que ele observa —
-  e o motivo do plano diz a **ordem**: «Revalide ESTE plano PRIMEIRO; o plano de observação vem
-  depois, porque observa o que este plano fixou.» Não há campo no envelope: um `revalidar: true`
-  seria uma segunda declaração do mesmo facto, e um sinal que se esquece de apagar é um sinal que
-  mente.
+- **A aula fica com a tabela dos aspectos** — um por linha, chave/valor —, e **perde as linhas por
+  aluna**. O retrato de cada sujeito não se perde: ele vive no PO, e o §6 da aula (`Proveniência
+  consolidada`) aponta para lá. O resumo do eixo continua a contar as alunas (é O(1), e é o que a
+  pessoa lê de relance).
+- **Sem aspecto consolidado, o eixo declara a lacuna e o caminho de volta.** Era a linha das
+  restrições que garantia uma linha ao corpo; fora ela, um plano por consolidar faria o eixo dizer
+  «nenhuma dimensão do PO cai neste eixo» — que é falso, e manda procurar no sítio errado.
+- **O plano publica o ponteiro:** a contagem («15 aspectos físicos de referência»), uma frase, e
+  `[Aula 01 — Corpo](aula-01.html#corpo)`. **O link só existe porque a página e o âncora existem** —
+  a regra de `tools/tabela-objetivos.js`: a aula 01 é um dos documentos que a geração sempre produz,
+  e o `#corpo` nasce do `### Corpo` que a derivação emite para os três eixos.
+- **O título perdeu «força e flexibilidade»** e passou a «Aspecto físico». O que a secção declara é o
+  **eixo** do corpo, não a lista de capacidades que o compõem — essa é a da aula, e nomeá-la no plano
+  prometia a tabela que saiu. O alias antigo fica em `tools/validar-plano-ciclo.js` (o `tools/` está
+  congelado, e é por isso que a linha entra com motivo declarado): há plano escrito com o título
+  comprido e ele continua a extrair.
 
-**Dois defeitos meus, apanhados pelas bancadas.** (1) `linhasDe` ganhou um oitavo parâmetro
-posicional e o chamador não o passava: a listagem caía em `ReferenceError` na primeira linha com
-PO — a assinatura passou a receber os derivados **num objecto nomeado**. (2) Escrevi duas classes
-novas na porta (`campo-ciclo`, `ctx-ciclo-nota`) e a **checagem 8** reprovou-as: a peça vem do
-catálogo, e as duas foram substituídas por `.campo` e `.sub`.
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`eixosDaObservacao` e a nota do §5) ·
+`motor/nucleo/derivar-plano-ciclo.js` (a secção) · `tools/validar-plano-ciclo.js` (o alias) ·
+`ARQUITETURA-GERAL.md` §5.8 · `experimentos/provar-eixos-e-tempo-da-aula.js` (secção I, 9 asserções
+novas: 41 → 50) · as fontes derivadas do `ciclo-01-breu-bale-nivel-1-teste-3`, regeradas com
+`tools/regerar-derivados.js` (2 ficheiros, diff lido antes de gravar) e o pacote regerado.
 
-**Onde entrou.**
+**Com o quê.** `node experimentos/provar-eixos-e-tempo-da-aula.js` (50) · `provar-eixos-do-po` (34) ·
+`provar-forca-e-flexibilidade` (17) · `provar-aula-e-plano-legiveis` (12) · `provar-plano-matriz`
+(52) · `tools/check-pacote.js` · `tools/hash-ciclo.sh … --check` (cadeia intacta).
 
-- `motor/servidor/repo-escola.js` — `ciclosDaVariante`, `apagarCicloDoRepo` (+ guarda, 3 tentativas).
-- `motor/nucleo/porta.js` — `ciclosDaEscola`, `proximoCiclo`, `revalidacaoPendente`.
-- `motor/servidor/rotas.js` — `GET /api/ciclos`, `GET /api/revalidacao`.
-- `motor/servidor/bastidores.js` — `DELETE /api/bastidores/ciclo` (confirmação = nome do ciclo).
-- `motor/servidor/listas-do-acervo.js` — «Novo registo» na anamnese vinculada; o selo «rever»; os
-  derivados de `linhasDe` num objecto nomeado.
-- `porta/index.html` — o ciclo travado no próximo válido, escondido na anamnese; `duplicarAnamnese`
-  (`?novo=`); `CONTEXTO_EXPLICACAO` derivada dos campos da fonte.
-- `ARQUITETURA-GERAL.md` — §5.4.1 (apagar um ciclo), §5.4.2 (a anamnese é do sujeito e é datada),
-  §5.4.3 (o que precisa de revalidação, e a ordem).
-- `experimentos/provar-ciclos-e-anamnese.js` — **novo**, 34 asserções.
-- `experimentos/provar-contexto-do-ato.js` e `provar-apagar-da-listagem.js` — atualizadas à regra
-  nova, com **controlo negativo** (com a regra antiga voltam a reprovar).
+**Referências.** `ARQUITETURA-GERAL.md` §5.8, §5.4.2 (o corpo é do sujeito) · `tools/tabela-objetivos.js`
+(a regra do link que só existe quando a página existe) · `REGISTRO.md` 02/11/2026 e 04/11/2026 (o
+aspecto físico como primeiro dos três eixos) · `REGRAS.md` (Regra 4) · `CONGELAMENTO.md` (o motivo
+declarado para tocar em `tools/`).
 
-**Com o quê.** `motor/servidor/repo-escola.js` · `motor/nucleo/porta.js` ·
-`motor/servidor/{rotas,bastidores,listas-do-acervo}.js` · `porta/index.html` ·
-`ARQUITETURA-GERAL.md` §5.4.1–5.4.3 · `experimentos/provar-ciclos-e-anamnese.js`.
+**O controlo negativo.** A asserção que mede a escala — «com três alunas o documento não cresce» —
+reprova com a regra anterior (8 linhas contra 2), e a que mede a duplicação — «o plano não repete a
+tabela» — reprova com a secção antiga. As duas foram escritas depois de ver o documento antigo.
 
-**Referências.** `tools/hash-ciclo.sh` §4 (o `parentHash`) · `ARQUITETURA-GERAL.md` §5.1, §5.3,
-§5.4 · `REGISTRO.md` 04/11/2026 (o composto que encaminha; a anamnese atemporal na chave) ·
-`PROTOCOLO.md` (P-03 — a proveniência não se reescreve) · `IDENTIDADE-VISUAL.md` (as peças).
+**Dois consumidores que a mudança pôs a descoberto — e os dois eram falhas silenciosas.**
 
-**O que ainda não está feito.**
+1. **O cartão da listagem lia a tabela do plano.** `tools/montar-publicacao.js` montava a frente
+   «Corpo» a partir de `plano-01.json` (`aspectoFisico`), e com a secção a virar ponteiro essa
+   leitura devolvia **zero** aspectos: o «Corpo 15» virava «sem dimensões no PO». O cartão passa a
+   ler `plano-aula-NN.json` (`guiaDeObservacao.Corpo`) — o mesmo dado, no lugar onde ele passou a
+   ser impresso — e mantém a leitura do plano **como recurso** para os pacotes gerados antes desta
+   data (P-04: o passado não se reescreve para caber no presente). `provar-cartao-da-aula` (25)
+   passou a nomear a fonte, e continua a exigir os 15.
+2. **A prova «cada resposta no seu destino» apontava para o destino antigo.** `provar-plano-completo`
+   exigia o marcador do aspecto físico no `plano-XX.json`; com o plano a publicar o ponteiro, o
+   marcador deixou mesmo de lá chegar — e a prova reprovou com razão. O destino passou a ser o
+   `aula-01.md`, e ficou uma asserção que exige o marcador **na aula**: é o destino que mudou, não
+   o dado. (18 verificações, verdes.)
 
-1. **A interface de exclusão de ciclo não existe ainda.** A rota (`DELETE /api/bastidores/ciclo`) e
-   a guarda estão prontas e provadas; o botão na Produção não. Uma secção «Ciclos» no grupo
-   Pedagogia é o passo seguinte, e é desenho novo — com prova de geometria, como a da faixa.
-2. **A listagem da anamnese ainda não está em acordeão por aluna.** Hoje a estante mostra o
-   **vigente** de cada aluna e diz quantas versões guardou (é o que `vigentesDaFamilia` dá). Para
-   ver os retratos anteriores todos, lado a lado com as datas, é preciso a estrutura de acordeão —
-   e ela não foi feita.
-3. **Nada disto foi exercitado contra o GitHub a sério.** A exclusão mediu-se num GitHub falso, com
-   as três respostas que a rotina usa.
+É o segundo dia seguido em que uma mudança de documento revela um consumidor escondido: o
+`plano-aula-01.json` já trazia o guia extraído e ninguém o lia; e o cartão lia a cópia errada sem
+nunca falhar.
 
 ## O que está pendente
 

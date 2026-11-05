@@ -749,21 +749,43 @@ function derivarPlano(envelope) {
    * música e do repertório, e imediatamente antes: é o que se lê a seguir às condições do espaço,
    * porque é da MESMA família — o que a aula precisa para acontecer.
    *
-   * A tabela sai do que o formulário consolidou a partir das anamneses das alunas da turma — o
-   * que elas mostram JUNTAS, nunca uma linha por aluna. Sem a leitura, a secção declara a lacuna
-   * com o caminho de volta, e não inventa um ponto de atenção que ninguém viu. */
+   * A tabela saía do que o formulário consolidou a partir das anamneses das alunas da turma — o
+   * que elas mostram JUNTAS, nunca uma linha por aluna. Sem a leitura, a secção declarava a
+   * lacuna com o caminho de volta, e não inventava um ponto de atenção que ninguém viu.
+   *
+   * O DETALHE MIGROU PARA A AULA (04/11/2026, à noite). A pesquisadora: «o corpo tem de ter uma
+   * única fonte de verdade; o detalhe fica na Aula 1, e o plano do ciclo trata o aspecto físico de
+   * forma macro — um texto curto e um link para a secção do corpo na aula». Ela está certa, e o
+   * defeito era de DUPLICAÇÃO: o plano e a aula imprimiam a mesma tabela de quinze linhas, lado a
+   * lado, a partir da MESMA chave do envelope. Duas cópias do mesmo dado são duas versões à espera
+   * de divergir — e a que se lê primeiro é a do plano, que é o documento de leitura.
+   *
+   * E o TÍTULO perdeu «força e flexibilidade». A nomenclatura passa a ser estrutural — «Aspecto
+   * físico» —, porque o que a secção declara é o eixo do corpo, e não a lista de capacidades que
+   * o compõem: essa lista é a da aula, e nomeá-la aqui prometia a tabela que saiu.
+   *
+   * O LINK SÓ EXISTE QUANDO A PÁGINA EXISTE — a regra de `tools/tabela-objetivos.js`, e a mesma
+   * razão: âncora morta é pior do que âncora nenhuma. A aula 01 é um dos documentos que a geração
+   * sempre produz (`DOCS`, em `escrever-ciclo.js`), e o âncora `#corpo` nasce do título `### Corpo`
+   * que `derivar-ciclo.js` emite em todos os eixos; a bancada confere os dois. */
   {
     const linhas = linhasDaTabela(respostaDo(envelope, 'aspecto-fisico'))
       .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
-    const corpo = linhas.length
-      ? tabelaDeLista(linhas, '| Aspecto | Como está a turma |', '|:--|:--|')
+    const quantos = linhas.length;
+    const corpo = quantos
+      ? ['**' + quantos + (quantos === 1 ? ' aspecto físico de referência' : ' aspectos físicos de referência')
+        + '** — o eixo do CORPO, o primeiro dos três do que se observa em dança. O detalhe, aspecto a'
+        + ' aspecto e com o que esta turma mostra em cada um, está na **Aula 01**:']
       : ['[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto '
-        + 'físico — força e flexibilidade» do plano de ensino.]'];
+        + 'físico» do plano de ensino. O detalhe aparece então na Aula 01, secção «Corpo» do guia '
+        + 'de observação.]'];
     corpo.push('');
-    corpo.push('O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha por '
-      + 'aluna, e sim o que elas têm em comum. É um **ponto de atenção** do ciclo: o que se vai '
-      + 'olhar, e não uma avaliação de ninguém.');
-    secao('Aspecto físico — força e flexibilidade', corpo);
+    corpo.push('[Aula 01 — Corpo](aula-01.html#corpo)');
+    corpo.push('');
+    corpo.push('O que a turma mostra no corpo, lido das anamneses das alunas, é um **ponto de '
+      + 'atenção** do ciclo: o que se vai olhar, e não uma avaliação de ninguém. Aqui fica o '
+      + 'ponteiro — a tabela vive num lugar só, e o Plano de Observação é quem a mede aluna a aluna.');
+    secao('Aspecto físico', corpo);
   }
 
   /* A MÚSICA É A DOS EXERCÍCIOS QUE AINDA EXISTEM (03/11/2026). A sequência guarda uma linha por

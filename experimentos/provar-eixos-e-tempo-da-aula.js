@@ -433,9 +433,74 @@ console.log('\nH. O CONTRATO LÊ AS TRÊS TABELAS — E NÃO PERDE A SEGUNDA EM 
     guia && guia.Corpo && guia.Corpo.length);
 }
 
+// ------------------------------------------------- I: uma fonte, um lugar
+
+console.log('\nI. O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA, O PONTEIRO NO PLANO');
+{
+  /* A REGRA (04/11/2026, à noite). A pesquisadora: «o corpo tem de ter uma única fonte de verdade;
+   * o detalhe fica na Aula 1 e o plano do ciclo trata o aspecto físico de forma macro — um texto
+   * curto e um link para a secção do corpo na aula». O que estava errado era a DUPLICAÇÃO: as duas
+   * páginas imprimiam a mesma tabela, lida da mesma chave do envelope.
+   *
+   * E a razão de ela ter pedido: «a listagem individualizada por aluna é inviável para larga
+   * escala — com dezenas de alunas o documento quebra». A asserção 2 é o controlo negativo dessa
+   * frase: com TRÊS alunas o documento tem de ter o mesmo número de linhas que com uma. */
+  const { derivarPlano } = require(path.join(RAIZ, 'motor/nucleo/derivar-plano-ciclo.js'));
+  const envelopeDoPlano = (respostas) => ({ id: 'plano-prova', contexto: {}, respostas });
+  const secaoDoPlano = (md) => {
+    const linhas = String(md).split('\n');
+    const i = linhas.findIndex((l) => /^## Aspecto físico/.test(l));
+    if (i === -1) return null;
+    const j = linhas.findIndex((l, k) => k > i && /^## /.test(l));
+    return { titulo: linhas[i], corpo: linhas.slice(i, j === -1 ? undefined : j).join('\n') };
+  };
+
+  const comUma = guia(derivarAula01({ plano: planoCom(volumeCompleto), po: poCom(),
+    contexto: CONTEXTO, calibracao: CALIBRACAO }));
+  const corpoUma = (comUma.tabelas['Corpo'] || []).slice(1);
+  provar('a tabela do corpo tem uma linha por aspecto, e só isso', corpoUma.length === 2, corpoUma);
+
+  const tresAlunas = poCom({
+    'linha-de-base': r([
+      { sujeito: 'Aluna A', traz: 'prática anterior', precisaDesenvolver: 'saída do calcanhar' },
+      { sujeito: 'Aluna B', traz: 'sem prática anterior', precisaDesenvolver: 'apoio do pé' },
+      { sujeito: 'Aluna C', traz: 'prática em jazz', precisaDesenvolver: 'en dehors' },
+    ]),
+  });
+  const mdTres = derivarAula01({ plano: planoCom(volumeCompleto), po: tresAlunas,
+    contexto: CONTEXTO, calibracao: CALIBRACAO });
+  const corpoTres = (guia(mdTres).tabelas['Corpo'] || []).slice(1);
+  provar('com três alunas, o número de linhas NÃO cresce (é o defeito que ela viu)',
+    corpoTres.length === corpoUma.length, corpoTres);
+  provar('e nenhuma linha do corpo é o retrato de uma aluna',
+    !/o que traz|a desenvolver|Aluna A|Restrições/.test(mdTres), corpoTres);
+
+  const planoSemAspecto = secaoDoPlano(derivarPlano(envelopeDoPlano(planoCom(volumeCompleto).respostas)).markdown);
+  provar('o plano mantém a secção, e ela já não se chama «força e flexibilidade»',
+    Boolean(planoSemAspecto) && planoSemAspecto.titulo === '## Aspecto físico', planoSemAspecto && planoSemAspecto.titulo);
+  provar('o plano aponta para a secção do corpo da Aula 01',
+    /\]\(aula-01\.html#corpo\)/.test(planoSemAspecto.corpo), planoSemAspecto.corpo);
+  provar('e o plano NÃO repete a tabela dos aspectos',
+    !/Flexibilidade dos isquiotibiais/.test(planoSemAspecto.corpo), planoSemAspecto.corpo);
+  provar('o âncora do link existe do lado da aula (`### Corpo` → `#corpo`)',
+    /^### Corpo$/m.test(derivarAula01({ plano: planoCom(volumeCompleto), po: poCom(),
+      contexto: CONTEXTO, calibracao: CALIBRACAO })));
+
+  const planoVazio = planoCom(volumeCompleto);
+  delete planoVazio.respostas['aspecto-fisico'];
+  const vazioAula = derivarAula01({ plano: planoVazio, po: poCom(), contexto: CONTEXTO, calibracao: CALIBRACAO });
+  provar('sem aspecto consolidado, a aula declara a lacuna e o caminho de volta',
+    /Preencher: carregue a sugestão a partir das anamneses/.test(vazioAula), vazioAula.split('\n').filter((l) => /Preencher/.test(l)));
+  const vazioPlano = secaoDoPlano(derivarPlano(envelopeDoPlano(planoVazio.respostas)).markdown);
+  provar('e o plano também — e continua a apontar para a aula',
+    Boolean(vazioPlano) && /Preencher/.test(vazioPlano.corpo) && /aula-01\.html#corpo/.test(vazioPlano.corpo),
+    vazioPlano && vazioPlano.corpo);
+}
+
 console.log('\n' + (falhas
   ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
   : 'TUDO CERTO — ' + provas + ' asserções: a fatia de cada bloco vem do plano pela coluna certa '
-    + '(em percentagem ou em minutos), a lacuna diz qual bloco, e o guia lê as três frentes — '
-    + 'Corpo, Técnica e Poiesis — sem perder um item.'));
+    + '(em percentagem ou em minutos), a lacuna diz qual bloco, o guia lê as três frentes — '
+    + 'Corpo, Técnica e Poiesis — sem perder um item, e o corpo tem uma fonte só (o detalhe '
+    + 'na aula, o ponteiro no plano).'));
 process.exit(falhas ? 1 : 0);

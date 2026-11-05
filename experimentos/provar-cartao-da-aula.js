@@ -128,7 +128,13 @@ function main() {
   checar('…e a Poiesis, com os blocos dela', /Poiesis \d+ · Musicalidade, Expressão/.test(guia), guia);
   checar('o Corpo não repete o próprio nome («Corpo 15 · Corpo» seria um erro)',
     !/Corpo \d+ · Corpo/.test(guia), guia);
-  checar('o corpo conta os 15 aspectos do plano', /Corpo 15/.test(guia), guia);
+  /* O CORPO CONTA QUINZE — e a fonte mudou com a regra de 04/11/2026: o detalhe do corpo vive na
+   * AULA 01, e o plano publica o ponteiro. O cartão lia a tabela do `plano-01.json`, que deixou de
+   * existir; lê agora `plano-aula-01.json` (`guiaDeObservacao.Corpo`), e o plano serve de recurso
+   * para os pacotes gerados antes da mudança. Sem esta troca, o «Corpo 15» virava «sem dimensões»
+   * — em silêncio, que é o modo de falhar desta família. */
+  checar('o corpo conta os 15 aspectos da aula (a fonte única)',
+    /Corpo 15/.test(guia) && !/sem dimensões/.test(valorDoGuia), { guia: guia, valor: valorDoGuia });
 
   // ------------------------------------------------- 5. o que já estava, e fica
   console.log('\n5. O que já estava certo, e continua');
@@ -144,7 +150,7 @@ function main() {
   }
   console.log('TUDO CERTO — ' + n + ' asserções: a turma sem o ciclo e com o operacional, o professor '
     + 'com nome, modalidade e tradição (nenhum é o slug), e o guia em três frentes — Corpo com os '
-    + 'aspectos do plano, Técnica e Poiesis com os blocos do PO.');
+    + 'aspectos da aula, Técnica e Poiesis com os blocos do PO.');
 }
 
 main();

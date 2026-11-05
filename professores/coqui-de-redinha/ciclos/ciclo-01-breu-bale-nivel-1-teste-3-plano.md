@@ -99,27 +99,13 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 > Calendário é conta do gerador a partir das datas e da frequência; se o horizonte
 > declarado aqui for outro, é este que vale.
 
-## Aspecto físico — força e flexibilidade
+## Aspecto físico
 
-| Aspecto | Como está a turma |
-|:--|:--|
-| **Flexibilidade dos isquiotibiais** | **1 de 1 em «Baixa ("dura")» — ponto de atenção** |
-| **Flexibilidade anteroposterior (grand écart)** | **1 de 1 em «Parcial (elevação do quadril)» — ponto de atenção** |
-| **Mobilidade das costas e tronco (cambre)** | **1 de 1 em «Dor/desconforto» — ponto de atenção** |
-| **Mobilidade de quadril (en dehors de origem)** | **1 de 1 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção** |
-| **Mobilidade de flexão/extensão do tornozelo** | **1 de 1 em «Moderada» — ponto de atenção** |
-| **Força excêntrica / recuo na flexão de tronco** | **1 de 1 em «Retorna enrolando (roll-up)» — ponto de atenção** |
-| **Sustentação ativa de MMII (força de adágio)** | **1 de 1 em «Incapacidade por colapso» — ponto de atenção** |
-| **Força de empurrar (push-ups)** | **1 de 1 em «Incapacidade» — ponto de atenção** |
-| **Resistência de MMSS (port de bras prolongado)** | **1 de 1 em «Fadiga rápida com queda» — ponto de atenção** |
-| **Flexibilidade dos adutores** | **1 de 1 em «Abertura completa (180°+)»** |
-| **Rotação e amplitude dos ombros** | **1 de 1 em «Completa e fluida»** |
-| **Controle de carga no demi/grand plié** | **1 de 1 em «Controla fluido, sem perda de eixo»** |
-| **Equilíbrio unipodal** | **1 de 1 em «Mantém > 5 s sem oscilação severa»** |
-| **Força de puxar (tração)** | **1 de 1 em «Tração completa»** |
-| **Articulação e força intrínseca dos dedos** | **1 de 1 em «Flexíveis e articulados»** |
+**15 aspectos físicos de referência** — o eixo do CORPO, o primeiro dos três do que se observa em dança. O detalhe, aspecto a aspecto e com o que esta turma mostra em cada um, está na **Aula 01**:
 
-O que a turma mostra no corpo, lido das anamneses das alunas — não uma linha por aluna, e sim o que elas têm em comum. É um **ponto de atenção** do ciclo: o que se vai olhar, e não uma avaliação de ninguém.
+[Aula 01 — Corpo](aula-01.html#corpo)
+
+O que a turma mostra no corpo, lido das anamneses das alunas, é um **ponto de atenção** do ciclo: o que se vai olhar, e não uma avaliação de ninguém. Aqui fica o ponteiro — a tabela vive num lugar só, e o Plano de Observação é quem a mede aluna a aluna.
 
 ## Música e vídeo de referência
 

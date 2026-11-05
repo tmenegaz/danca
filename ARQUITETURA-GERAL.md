@@ -632,6 +632,40 @@ existência: um verbo inventado na hora atravessa o composto, e um que ninguém 
 > monta o **composto**. A distância entre os dois era exactamente o furo — e é o motivo de a bancada
 > nova passar pelo `criarArmazenamento` e não pelo adaptador.
 
+### 5.8 Duas cópias do mesmo dado são duas versões à espera de divergir
+
+A duplicação é um defeito de **integridade**, e não de estética — e é o mais silencioso da família,
+porque as duas cópias nascem certas. O caso medido: o **aspecto físico** da turma (o eixo do corpo,
+o primeiro dos três do que se observa em dança) era impresso **duas vezes**, no plano do ciclo e na
+aula 01, a partir da **mesma** chave do envelope (`aspecto-fisico`). Enquanto o envelope não mudasse,
+as duas concordavam; mudando, uma delas ficava para trás — e a que se lê primeiro é a do plano, que
+é o documento de leitura do ciclo.
+
+A regra que fecha o caso:
+
+| Onde | O que fica | Porquê |
+|:--|:--|:--|
+| **Aula 01**, secção «Corpo» do guia | a tabela dos aspectos, um por linha — chave/valor | é na aula que o corpo se observa, e é a Captura que o pede, aluna a aluna |
+| **Plano do ciclo**, secção «Aspecto físico» | uma frase com a contagem, e **um link** para `aula-01.html#corpo` | o ciclo declara *que* o corpo é olhado; o detalhe tem um lugar só |
+| **Plano de Observação** | o ponto de partida de cada aluna (`linha-de-base`) | é do **sujeito**, e é onde se declara |
+
+**O que saiu da aula: a linha por aluna.** O guia listava «Aluna A — o que traz», «Aluna A — a
+desenvolver» e as restrições. Com uma aluna é uma linha; com trinta são sessenta e uma, antes da
+primeira marca — o documento quebra exactamente onde tem de ser operável. O retrato de cada sujeito
+não se perdeu: ele vive no PO, e o §6 da aula aponta para lá (`Proveniência consolidada`).
+
+**O link só existe quando a página existe** — a mesma regra de `tools/tabela-objetivos.js`, e a
+mesma razão: âncora morta é pior do que âncora nenhuma. A aula 01 é um dos documentos que a geração
+sempre produz (`DOCS`, em `motor/servidor/escrever-ciclo.js`), e o âncora `#corpo` nasce do título
+`### Corpo` que `motor/nucleo/derivar-ciclo.js` emite para os três eixos. A bancada confere os dois
+lados (`provar-eixos-e-tempo-da-aula`, secção I), e o controlo negativo é o que mede a escala: com
+três alunas o documento tem de ter o **mesmo** número de linhas que com uma.
+
+> **O título perdeu «força e flexibilidade».** A secção passou a chamar-se «Aspecto físico» porque o
+> que ela declara é o **eixo**, e não a lista de capacidades que o compõem — essa lista é a da aula,
+> e nomeá-la no plano prometia a tabela que saiu. O alias antigo fica em
+> `tools/validar-plano-ciclo.js`: há plano escrito com o título comprido, e ele continua a extrair.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

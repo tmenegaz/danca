@@ -94,7 +94,11 @@ const MAPA_SECOES = {
   // O ASPECTO FÍSICO — FORÇA E FLEXIBILIDADE (02/11/2026): o primeiro dos três eixos do que se
   // observa em dança, e o que a Regra 4 pede. Sem esta linha a secção não era extraída, e o
   // mapa documenta que um título fora dele descarta a secção INTEIRA, em silêncio.
+  // «Aspecto físico» (04/11/2026): o título perdeu «força e flexibilidade» e o detalhe migrou
+  // para a Aula 1 — o plano passa a publicar o ponteiro. O alias antigo fica: há plano escrito
+  // com o título comprido, e ele continua a extrair.
   'aspecto físico — força e flexibilidade': 'aspectoFisico',
+  'aspecto físico': 'aspectoFisico',
   'música e vídeo de referência': 'musicasVideos',
   'músicas e vídeos': 'musicasVideos',
   'repertório': 'repertorio',
