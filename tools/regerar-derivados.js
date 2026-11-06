@@ -44,6 +44,7 @@ const {
   slugDe,
 } = require(path.join(RAIZ, 'motor/nucleo/derivar-ciclo.js'));
 const { varianteDoContexto } = require(path.join(RAIZ, 'motor/servidor/escrever-po.js'));
+const { linhaDeBaseDaTurma } = require(path.join(RAIZ, 'motor/nucleo/linha-de-base.js'));
 const { calibracaoDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
 
 const argv = process.argv.slice(2);
@@ -122,13 +123,40 @@ const plano = doPlano.envelope;
 const po = doPo.envelope;
 const aulas = (pegarDoConf('DOCS').match(/aula-\d+/g) || []).map((d) => d.slice(5));
 
+/*
+ * A LINHA DE BASE DA TURMA — a mesma escolha que o Worker faz (06/11/2026).
+ *
+ * O eixo do Corpo da Aula 01 e a secção «Aspecto físico» do plano passaram a ler o recorte do
+ * passo 4 e a leitura do passo 3. Se esta ferramenta não a lesse, regerar um ciclo APAGARIA a
+ * derivação — o `--escrever` trocaria as linhas do corpo por uma lacuna, e o dano só apareceria no
+ * documento impresso. Os actos moram em `escola/<slug>/linhas-de-base/`, uma versão por ficheiro
+ * (`<id>--<carimbo>.json`), e `linhaDeBaseDaTurma` escolhe a enviada mais recentemente para a
+ * turma. Sem pasta (escola expurgada, ciclo antigo), degrada para `null` e a lacuna diz-se.
+ */
+function linhaDeBaseDaTurmaDoCiclo() {
+  const pasta = path.join(RAIZ, 'escola', escolaSlug, 'linhas-de-base');
+  if (!fs.existsSync(pasta)) return null;
+  const linhas = [];
+  for (const nome of fs.readdirSync(pasta)) {
+    if (!nome.endsWith('.json') || nome.startsWith('.')) continue;
+    try { linhas.push(JSON.parse(fs.readFileSync(path.join(pasta, nome), 'utf8'))); } catch { /* ficheiro ilegível não derruba a leitura */ }
+  }
+  const turma = (plano.respostas && plano.respostas['contexto-turma']);
+  const nome = String((turma && (turma.valor !== undefined ? turma.valor : turma)) || '').trim();
+  return linhaDeBaseDaTurma(linhas, nome);
+}
+const linhaDeBase = linhaDeBaseDaTurmaDoCiclo();
+console.log('linha de base: ' + (linhaDeBase
+  ? linhaDeBase.nome + ' — ' + linhaDeBase.recorte.length + ' aspecto(s) do corpo'
+  : 'nenhuma enviada para esta turma (o corpo declara a lacuna)'));
+
 const fontes = [
   /* O `-plano.md` TAMBÉM É DERIVADO DO ENVELOPE — não é fonte escrita, apesar de se chamar
    * «plano». Quem se escreve são o `-po.md` e o `.conf`. Ele entra aqui porque um título de
    * secção do plano muda no DERIVADOR, e sem esta linha o ciclo já gerado continuaria com o
    * título antigo enquanto o formulário mostrava o novo. */
-  { sufixo: '-plano.md', texto: derivarPlano(plano).markdown },
-  { sufixo: '-aula-01.md', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal }) },
+  { sufixo: '-plano.md', texto: derivarPlano(plano, { linhaDeBase }).markdown },
+  { sufixo: '-aula-01.md', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal, linhaDeBase }) },
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },
   { sufixo: '-captura-aula-01.md', texto: derivarCaptura({ po, plano, contexto }) },
   { sufixo: '-harmonizacao.md', texto: derivarHarmonizacao({ plano, po, contexto }) },

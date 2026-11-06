@@ -4107,6 +4107,22 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-po-completo` **20/20**, `provar-derivados-do-po` **16/16**, `provar-cadeia-do-ajuste`
   **34/34**, `check-identidade` **0 erros**, `check-indices` **16/16**.
 
+- **06/11/2026** — **O corpo da turma atravessa a cadeia até ao plano e à Aula 01.** Ela gerou o PO,
+  abriu o plano e clicou no link para a Aula 01: nos dois documentos, a secção do corpo dizia
+  `[Preencher: carregue a sugestão a partir das anamneses da turma…]`, e o plano ainda acrescentava
+  «aqui fica o ponteiro — a tabela vive num lugar só». **Duas faltas, nenhuma de dado:** a **língua**
+  (instrução de formulário e raciocínio de arquitectura impressos num documento que se lê) e a
+  **ligação** (o recorte do passo 4 e a leitura do passo 3 não chegavam ao derivador, que só lia
+  `aspecto-fisico`, campo do plano que se preenche à mão). `linhaDeBaseDaTurma` passa a devolver
+  `mostra` — a frase que o passo 3 gravou, filtrada pelo recorte —, o **plano** dá o macro (nomes +
+  link) e a **Aula 01** o detalhe linha a linha; `aspecto-fisico` continua a mandar quando existe, e
+  toda a ligação é opcional (sem ela, a lacuna declara-se). `rotas.js` faz **uma** leitura para os
+  dois documentos, e `regerar-derivados` lê-a do disco — sem isso, regerar um ciclo apagaria a
+  derivação. Medido: `provar-corpo-da-linha-de-base` (nova) **31/31**, contraprova contra `HEAD`
+  **13/31**; `provar-eixos-e-tempo-da-aula` **47/51** (4 já vermelhas em `HEAD`); `provar-eixos-do-po`
+  **42/42**; `provar-po-completo` **20/20**; `provar-linha-de-base` **104/104**; `check-pacote` do
+  ciclo **0/0**; `check-identidade` **0 erros**; `check-indices` **16/16**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

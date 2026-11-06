@@ -489,11 +489,19 @@ console.log('\nI. O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA, O PONTEIRO NO PL
   const planoVazio = planoCom(volumeCompleto);
   delete planoVazio.respostas['aspecto-fisico'];
   const vazioAula = derivarAula01({ plano: planoVazio, po: poCom(), contexto: CONTEXTO, calibracao: CALIBRACAO });
+  /* A FRASE DA LACUNA MUDOU A 06/11/2026 — asserção CORRIGIDA, não apagada.
+   *
+   * Ela media `/Preencher: carregue a sugestão a partir das anamneses/`, que era uma instrução de
+   * FORMULÁRIO impressa num documento. A pesquisadora leu-a no ciclo gerado e perguntou por ela
+   * («por que que você colocou essa mensagem aqui?»). O que a asserção guarda — e o que continua a
+   * ser verdade — é o que importa: sem aspecto nenhum, o documento DECLARA a lacuna em vez de
+   * inventar, e diz onde é que a escolha se faz. */
   provar('sem aspecto consolidado, a aula declara a lacuna e o caminho de volta',
-    /Preencher: carregue a sugestão a partir das anamneses/.test(vazioAula), vazioAula.split('\n').filter((l) => /Preencher/.test(l)));
+    /\[A decidir:/.test(vazioAula) && /linha de base/.test(vazioAula),
+    vazioAula.split('\n').filter((l) => /A decidir/.test(l)));
   const vazioPlano = secaoDoPlano(derivarPlano(envelopeDoPlano(planoVazio.respostas)).markdown);
   provar('e o plano também — e continua a apontar para a aula',
-    Boolean(vazioPlano) && /Preencher/.test(vazioPlano.corpo) && /aula-01\.html#corpo/.test(vazioPlano.corpo),
+    Boolean(vazioPlano) && /\[A decidir:/.test(vazioPlano.corpo) && /aula-01\.html#corpo/.test(vazioPlano.corpo),
     vazioPlano && vazioPlano.corpo);
 }
 

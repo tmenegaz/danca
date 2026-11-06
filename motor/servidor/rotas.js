@@ -1167,7 +1167,14 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
 
         if (corpo.fonte === 'plano' && escreverPlano) {
           try {
-            resultado.fonte = await escreverPlano(envelope, 'feat(plano): o plano elicitado vira a fonte do ciclo');
+            /* A LINHA DE BASE DA TURMA VAI COM O PLANO (06/11/2026). O plano é o documento que
+             * consolida «o aspecto físico da turma», e esse consolidado deixou de ser uma escrita
+             * nova: são os aspectos do recorte do passo 4. Sem esta leitura, a secção «Aspecto
+             * físico» saía com uma lacuna a pedir que se carregasse a sugestão — num documento
+             * que se imprime. Mesma leitura, mesma escolha de acto, que o PO usa abaixo. */
+            resultado.fonte = await escreverPlano(
+              envelope, 'feat(plano): o plano elicitado vira a fonte do ciclo',
+              { linhaDeBase: await linhaDeBaseDaTurma(porta.turmaDoEnvelope(envelope)) });
           } catch (erro) {
             resultado.fonte = { ok: false, erro: erro.message };
           }
@@ -1235,7 +1242,14 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
 
           if (escreverCiclo) {
             try {
-              saida.ciclo = await escreverCiclo({ plano: saida.plano, po: envelope, contexto });
+              /* E A MESMA LINHA DE BASE VAI AO CICLO (06/11/2026): o eixo do Corpo da Aula 01
+               * imprime o que a turma mostra em cada aspecto, e essa é a leitura do passo 3. Uma
+               * leitura só, dois documentos — senão o guia e o plano podiam arrumar o mesmo dado
+               * de duas maneiras. */
+              saida.ciclo = await escreverCiclo({
+                plano: saida.plano, po: envelope, contexto,
+                linhaDeBase: await linhaDeBaseDaTurma(porta.turmaDoEnvelope(saida.plano) || contexto.turma),
+              });
             } catch (erro) {
               saida.ciclo = { ok: false, erro: erro.message };
             }

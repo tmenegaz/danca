@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T10:58:40-0300`
-Commit atual: `0cd933be` — feat(po): os objetivos do plano entram como criterios, e o campo fica com o criterio
+Gerado em: `2026-11-06T11:29:47-0300`
+Commit atual: `d75da485` — chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,15 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+d75da485 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+aa05fdc6 chore(estrutura): regerar os índices derivados
+a1a1fc4c chore(estrutura): reancorar a cadeia das fontes alteradas
+fe0481c2 chore(estrutura): regerar os índices derivados
+6ef324eb feat(ciclo): o «Guardar» do PO grava as fontes de calango-bale-nivel-1-teste-1 num commit só
+54e1bfa1 feat(po): o PO elicitado vira a fonte do ciclo
+ad157a58 feat(acervo): envelope/po-20261106-1108.json
+46eaacb4 feat(acervo): envelope/.indice.json
+d8ca4c52 fix(po): o texto do professor nao se perde — e duas maneiras de o perder em silencio
 0cd933be feat(po): os objetivos do plano entram como criterios, e o campo fica com o criterio
 63d6290b feat(po): os itens de cada dimensao mostram o que o plano ja decide do bloco
 438cc267 fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
@@ -97,15 +106,6 @@ b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
 61b0d1b7 chore(estrutura): regerar os índices derivados
 b3024c5b feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 0dd03467 feat(plano): o plano elicitado vira a fonte do ciclo
-808a38f0 feat(acervo): envelope/plano-20261106-0744.json
-265f57c6 feat(acervo): envelope/.indice.json
-67e4b10f chore(estrutura): regerar os índices derivados
-2aa9e76d feat(linha de base): índice — teste 20261106-0202
-e42791c4 feat(linha de base): teste → Balé Nível 1 — Teste 1
-9f7a9978 chore(estrutura): regerar os índices derivados
-ce0f6fd7 feat(acervo): envelope/.indice.json
-7b1bf1b0 chore(acervo): apagar envelope/anamnese-20261105-2015.json
-0e6f9171 feat(acervo): envelope/anamnese-20261105-2301.json
 ```
 
 ## Por professor
@@ -151,12 +151,12 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | calango | (sem PO) | — | — |
-| calango-bale-nivel-1-teste-1 | (sem PO) | — | — |
+| calango | ciclo-01-calango-bale-nivel-1-teste-1-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `31de8f746770` | (vazio) | — |
-| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `20554e1c9f0a` | (vazio) | — |
+| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `276d0e364588` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 1 ciclo(s)
 
@@ -233,70 +233,78 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — «Não vai se perder o que o professor escrever?» — a auditoria da persistência, e os dois modos de perder
+## 06/11/2026 — O corpo da turma atravessa a cadeia até ao plano e à Aula 01 — e o documento deixa de falar em nome do código
 
-**A pergunta.** Depois de aprovar o híbrido (entrada anterior), ela perguntou o que faltava: *«eu
-preciso ter certeza de que quando o professor escrever alguma observação aqui, ela vai ser
-acrescentada. […] É algo que não vai se perder o que o professor escrever?»* A pergunta é mais
-exigente do que parece: ao tornar o campo **opcional**, o sistema passou a ter uma caixa que
-ninguém é obrigado a preencher — e um campo opcional que se perde em silêncio é pior do que um
-obrigatório, porque ninguém dá pela falta.
+**O que ela leu.** Gerou o PO do ciclo 01 da `calango`, abriu o plano e clicou no link para a Aula 01.
+No plano, a secção «Aspecto físico» dizia `[Preencher: carregue a sugestão a partir das anamneses da
+turma…]`, e por baixo «Aqui fica o ponteiro — a tabela vive num lugar só, e o Plano de Observação é
+quem a mede aluna a aluna». Na Aula 01, `### Corpo`, uma tabela de uma linha com o mesmo
+`[Preencher: carregue a sugestão…]`. E ela: *«por que que você colocou essa mensagem aqui?»* · *«você
+não trouxe de onde deveria trazer»* · *«os aspectos escolhidos foram a primeira posição de braço, a
+estabilidade vestibular e deslocamento, a resistência de MMSS e a sustentação ativa de MMII… Esses são
+os elementos que estão escolhidos e não aparecem lá na aula um.»*
 
-**O caminho, medido.** O texto escrito na dimensão entra em `itens-por-dimensao` (forma canónica
-`[{sujeito, itens}]`) e chega a **cinco** leitores: o documento `-po.md` (`derivarPO`), a folha de
-captura (`derivarCaptura`), a declaração `porVariante` (`declaracaoDeCaptura`), o guia da aula
-(`derivarAula01`) e o `po-01.json` da extração verdadeira. Traçado de ponta a ponta com uma marca
-sentinel, antes e depois de cada correção.
+**Eram duas faltas, e nenhuma era de dado.**
 
-**Os dois modos de perder, e os dois eram calados.**
+- **A LÍNGUA.** Instrução de formulário («carregue a sugestão…») e raciocínio de arquitectura («a
+  tabela vive num lugar só») impressos num documento que se lê e se imprime. As duas frases saíram; o
+  que entrou no lugar delas é o que o professor precisa de saber — que o corpo do ciclo é o que a
+  turma mostra, lido das anamneses, e que as marcas se fazem no Plano de Observação.
+- **A LIGAÇÃO.** O dado existia a montante: o passo 4 escolheu os aspectos, o passo 3 leu o que a
+  turma mostra em cada um. A cadeia é linha de base → turma → plano → PO → aula, e o motor só a
+  andava até ao plano: o eixo do Corpo do guia lia `aspecto-fisico`, campo do plano que se preenche à
+  mão (o botão «Carregar das anamneses da turma»). Sem esse clique, o derivador declarava a lacuna
+  sobre um dado que já existia.
 
-- **`GABARITO_VAZADO` comia texto dela.** O padrão servia para descartar o exemplo que o conteúdo
-  escreve entre « » (`Ex.: «alinhamento da pelve…»`), mas casava com a **palavra** `Exemplo` no
-  início da linha: um critério escrito «Exemplo prático do apoio na barra» **desaparecia da folha e
-  da declaração**, e o documento continuava a mostrá-lo — o PO e a folha a discordar sem um erro em
-  lado nenhum. O padrão passou a exigir a **citação** (`Ex\.:\s*[«"“]`): o gabarito é sempre aspeado
-  no conteúdo, o texto dela nunca é.
-- **A descrição depois dos dois pontos sumia do papel.** `rotuloDoItem` corta no primeiro `:` — e é
-  o certo, a frase inteira como cabeçalho estoura a margem do PDF —, mas «Alinhamento do pé: o arco
-  não cede» virava a coluna «Alinhamento do pé» e a metade que ela escreveu não estava em lado
-  nenhum da folha impressa. Agora cada bloco leva, por baixo da tabela, uma legenda em prosa
-  (`*O que cada critério pede:* **rótulo** — descrição`), e só quando há descrições. É prosa e não
-  tabela de propósito: o `validar-captura-ciclo.js` lê as linhas `|` e os `###`, e uma frase entre
-  eles não entra em nenhum dos dois.
+**O que se construiu.**
 
-**E um terceiro, que não era perda mas era mentira.** O `escrever-ciclo.js` derivava a folha **sem
-o plano** e a declaração **com** ele: a folha ficava com as colunas que o professor escreveu, a
-declaração com essas **mais** as que os objetivos do plano acrescentam — e a folha impressa deixava
-de pedir metade do que o sistema ia guardar. **Nenhum validador o via**, e a razão é uma assimetria
-que vale registar: o `validar-captura-ciclo.js` reprova a coluna que está na folha e não está
-declarada, e **não** reprova a coluna declarada e ausente da folha. O sentido que faltava era
-exatamente o que falhava. Corrigido na chamada, e a invariante folha↔declaração passou a ter prova
-própria, com o contra-exemplo ao lado.
+- `linhaDeBaseDaTurma` passa a devolver também `mostra` — o que a turma tem em cada aspecto, **como o
+  passo 3 o leu** (`leitura.classificacao`), filtrado pelo recorte. Não é uma segunda conta: a frase
+  já estava gravada no acto, e uma segunda versão divergiria no dia em que a anamnese fosse corrigida.
+- O **plano** trata o corpo macro: «N aspectos do corpo em observação» + os nomes + o link para a
+  aula. É a decisão de 04/11 (o detalhe vive na Aula 01) — o que muda é que macro passou a ser o NOME
+  dos aspectos, e não uma lacuna.
+- A **Aula 01**, `### Corpo`, traz o detalhe linha a linha, com o texto do passo 3 e a marca de ponto
+  de atenção, na mesma ordem que a sugestão da tela produz.
+- `aspecto-fisico` **continua a mandar quando existe**: o trabalho do professor não é sobreposto pelo
+  recorte.
+- A ligação é **opcional** em toda a linha (`derivarPlano(envelope, opcoes)`,
+  `derivarAula01({ …, linhaDeBase })`): sem ela o documento deriva na mesma, com a lacuna declarada —
+  é o que mantém o adaptador local e as bancadas a funcionar.
+- `rotas.js` faz **uma** leitura para os dois documentos (`linhaDeBaseDaTurma`, a que o PO já usava), e
+  `escrever-plano.js`/`escrever-ciclo.js` passam-na.
+- `tools/regerar-derivados.js` lê-a do disco. Sem isso, o `--escrever` **apagaria** a derivação ao
+  regerar um ciclo, e o dano só apareceria no documento impresso.
 
-**Com o quê.** `experimentos/provar-observacao-do-professor.js` (**20**), nova. A secção **A** mede
-o **gesto** e não a função: o texto é escrito no `textarea` e o evento `input` corre — quem o lê é o
-ouvinte delegado da página —, e depois lê-se o `pacoteParaEnviar()` e o **corpo do POST** do
-«Guardar» (a bancada serve o `api/elicitar` e guarda o que passou pelo fio). A secção **B** lê os
-cinco destinos **a partir do envelope que a própria página enviou**, com a extração a correr a
-ferramenta a sério. A secção **C** mede os dois modos de perder, cada um com a sua **negativa** (o
-gabarito vazado continua descartado; a legenda não aparece quando não há descrição). A secção **D**
-mede a invariante folha↔declaração e mostra que a folha derivada sem o plano perde a coluna do
-objetivo.
+**Com o quê.** `experimentos/provar-corpo-da-linha-de-base.js` (**31**), nova. Secção **A**, o
+transporte — com a negativa que impede o documento de despejar a anamnese inteira (um aspecto
+classificado **fora** do recorte não atravessa) e o caso da linha de base sem leitura. **B**, o plano:
+contagem, nomes, link, as duas frases recusadas ausentes, e o campo do plano a vencer quando existe.
+**C**, a aula: uma linha por aspecto, a ordem dos pontos de atenção, o aspecto sem leitura a dizer-se
+em vez de ficar vazio, e a lacuna sem instrução de formulário. **D**, a invariante que fecha a classe
+de defeito: **o plano e a aula têm de dizer o mesmo conjunto de aspectos**. **E**, o que já estava
+certo: a secção «Linha de base» do PO continua a imprimir o recorte.
 
-**Contraprova.** Corrida contra o núcleo de `HEAD`, a prova **reprova 2 de 20** — precisamente as
-duas que medem os dois modos de perder.
+**Contraprova.** Contra o núcleo de `HEAD`, a prova **reprova 18 de 31** (as que passam são as que não
+dependem da ligação).
 
-**Medido.** `provar-observacao-do-professor` **20/20** (contraprova **18/20**); `provar-eixos-do-po`
-**42/42**; `provar-po-completo` **20/20**; `provar-derivados-do-po` **16/16**; `provar-cadeia-do-ajuste`
-**34/34**; `provar-relacoes-do-ciclo` **23/23**; `provar-etiqueta-da-aluna` **20/20**;
-`provar-sujeitos-semeados` **22/22**; `provar-ciclo-herdado-do-plano` **20/20**;
-`provar-ciclo-do-painel-do-po` **27/27**; `check-identidade` **0 erros** (as 20); `check-indices`
-**16/16**. `provar-geracao-do-ciclo` **14/15** — a verificação 12 («o acordo com o workflow») já
-reprovava em `HEAD`, medido com `git stash`: não é desta entrega.
+**Uma asserção corrigida, e não apagada.** `provar-eixos-e-tempo-da-aula` media
+`/Preencher: carregue a sugestão a partir das anamneses/` — a frase que saiu. O que ela guardava
+(o documento declara a lacuna em vez de inventar, e diz onde a escolha se faz) continua a ser medido,
+agora contra `[A decidir: …]`. `provar-eixos-e-tempo-da-aula` fica em **47 de 51** — as quatro falhas
+que restam já reprovavam em `HEAD`, medidas com `git stash` (o «ponto de partida» que deixou de ser
+campo do PO, duas contagens de linhas que o híbrido de ontem mudou, e uma escola expurgada).
 
-**Aberto, e é decisão dela.** A legenda é prosa dentro do bloco. Se ela preferir noutro sítio — nota
-de pé no fim da folha, ou rótulos completos quando o bloco transpõe —, é uma escolha de leitura, não
-um defeito.
+**Medido.** `provar-corpo-da-linha-de-base` **31/31** (contraprova **13/31**);
+`provar-eixos-e-tempo-da-aula` **47/51** (4 já vermelhas em `HEAD`); `provar-eixos-do-po` **42/42**;
+`provar-po-completo` **20/20**; `provar-derivados-do-po` **16/16**; `provar-cadeia-do-ajuste`
+**34/34**; `provar-observacao-do-professor` **20/20**; `provar-linha-de-base` **104/104**;
+`provar-linha-de-base-no-repo` **39/39**; `provar-recorte-no-indice` **42/42**;
+`provar-indice-do-recorte` **24/24**; `check-pacote` do ciclo **0 erro(s), 0 aviso(s)**;
+`check-identidade` **0 erros**; `check-indices` **16/16**.
+
+**Regenerado.** `regerar-derivados --escrever` reescreveu as duas fontes do ciclo existente
+(`-plano.md` e `-aula-01.md`), e a geração do pacote corre depois — é ela que refaz HTML e PDF.
 
 ## O que está pendente
 
@@ -714,7 +722,8 @@ máquina — «nenhuma publicação para servir», porque a escola publicada foi
 - **05/11/2026** — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom,… → `REGISTRO.md` L36519
 - **05/11/2026** — O índice do recorte: o que os professores olham no corpo, e… → `REGISTRO.md` L36578
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
-- **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- PO de **rabo-gramde · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 

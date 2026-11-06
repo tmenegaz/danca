@@ -316,7 +316,7 @@ async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fet
  */
 function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas, fetchImpl }) {
   if (!token) return null;
-  return async (envelope, mensagem) => {
+  return async (envelope, mensagem, opcoes) => {
     const contexto = (envelope && envelope.contexto) || {};
     const caminho = caminhoDoPlano(contexto);
 
@@ -330,7 +330,13 @@ function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas, fetchImpl }) 
       professor: contexto.professor, ciclo: contexto.ciclo,
     });
 
-    const { markdown } = derivarPlano(envelope);
+    /* A LINHA DE BASE DA TURMA VAI AO PLANO (06/11/2026) — e é `opcoes` que a traz. A secção
+     * «Aspecto físico» do plano é macro de propósito (o detalhe vive na Aula 01), e o macro são
+     * os NOMES dos aspectos que o professor escolheu no passo 4. Sem esta passagem, o documento
+     * declarava a lacuna sobre um dado que já existia, com uma frase de formulário («carregue a
+     * sugestão…») que num documento impresso não diz nada. Opcional: sem ela o plano deriva na
+     * mesma, com a lacuna declarada. */
+    const { markdown } = derivarPlano(envelope, { linhaDeBase: opcoes && opcoes.linhaDeBase });
     const escrita = await escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem, fetchImpl });
     const manifesto = await atualizarManifesto({ token, dono, repo, ref, contexto, plano: envelope, lerTurmas, fetchImpl });
     return Object.assign({}, escrita, { docs: manifesto, schemas });

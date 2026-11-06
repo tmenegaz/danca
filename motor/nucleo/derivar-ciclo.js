@@ -242,7 +242,7 @@ const { blocoDaDimensao, eixoDoBloco, rotuloDoEixo } = eixosDaDanca;
  * O que volta é a lista dos eixos com `{id, rotulo, dimensoes, itens, resumo}` — `resumo` é a
  * frase CURTA que a listagem mostra; o detalhe fica na tabela item a item, logo abaixo.
  */
-function eixosDaObservacao(dims, plano, po) {
+function eixosDaObservacao(dims, plano, po, linhaDeBase) {
   const dimensoes = Array.isArray(dims) ? dims : [];
   /* AS CHAVES SÃO OS IDs DOS EIXOS (`tecnica`, `poiesis`, `corpo`) — desde 04/11/2026, quando o
    * mapa passou a devolver o id e não o rótulo. O rótulo é de apresentação: um dia pode ser
@@ -265,6 +265,25 @@ function eixosDaObservacao(dims, plano, po) {
   const aspectos = linhasDaTabela(resp(plano, 'aspecto-fisico'))
     .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
   const restricoes = String(resp(po, 'restricoes') || '').trim();
+  /* O RECORTE DA LINHA DE BASE — a quarta fonte, e a que faltava (06/11/2026).
+   *
+   * A pesquisadora, a olhar a Aula 01 gerada: «os aspectos escolhidos foram a primeira posição de
+   * braço, a estabilidade vestibular e deslocamento, a resistência de MMSS e a sustentação ativa de
+   * MMII… esses são os elementos que estão escolhidos e não aparecem lá na aula um».
+   *
+   * Estavam escolhidos, e o guia não os via — porque só lia `aspecto-fisico`, o campo do PLANO, que
+   * ela não tinha preenchido (o formulário pede que se carregue a sugestão à mão). O dado não
+   * faltava: ele estava no passo 3 e no passo 4 da linha de base da turma, que é a montante do
+   * plano na cadeia — linha de base → turma → plano → PO → aula. O que faltava era a LIGAÇÃO, e
+   * ela é do motor: o documento é derivado, e um derivado que pede ao professor para copiar à mão
+   * o que o sistema já sabe não está derivado.
+   *
+   * A ORDEM É A DA LEITURA, e os pontos de atenção vêm primeiro — é a mesma ordem que a sugestão
+   * da tela do plano produz, para os dois documentos não arrumarem o mesmo dado de duas maneiras. */
+  const recorte = ((linhaDeBase && Array.isArray(linhaDeBase.recorte)) ? linhaDeBase.recorte : [])
+    .filter((c) => c && String(c.nome || '').trim());
+  const mostra = new Map((((linhaDeBase && linhaDeBase.mostra) || [])
+    .filter((m) => m && m.id)).map((m) => [String(m.id), m]));
 
   /* O «PONTO DE PARTIDA» DEIXOU DE SER UM CAMPO DO PO (06/11/2026): ele é o recorte do passo 4 da
    * linha de base. O que o resumo do corpo diz é o que existe — os aspectos que o plano declara, o
@@ -273,6 +292,10 @@ function eixosDaObservacao(dims, plano, po) {
   const partesDoCorpo = [];
   if (aspectos.length) {
     partesDoCorpo.push(aspectos.length + (aspectos.length === 1 ? ' aspecto físico declarado' : ' aspectos físicos declarados') + ' no plano');
+  } else if (recorte.length) {
+    partesDoCorpo.push(recorte.length + (recorte.length === 1
+      ? ' aspecto do corpo escolhido na linha de base'
+      : ' aspectos do corpo escolhidos na linha de base'));
   }
   if (elenco.length) {
     partesDoCorpo.push('elenco de ' + elenco.length + (elenco.length === 1 ? ' aluna' : ' alunas')
@@ -314,11 +337,30 @@ function eixosDaObservacao(dims, plano, po) {
    * restrições que garantia uma linha ao corpo — e com ela fora, um plano por consolidar deixava
    * o eixo a dizer «nenhuma dimensão do PO cai neste eixo», que é falso: o corpo é o eixo, o que
    * falta é a leitura das anamneses. */
+  if (!linhasDoCorpo.length && recorte.length) {
+    /* O RECORTE, LINHA A LINHA — com o que a turma mostra em cada aspecto, que o passo 3 leu. E
+     * não a frase de formulário que aqui estava («carregue a sugestão a partir das anamneses da
+     * turma»): ela mandava o professor fazer à mão o que o motor passou a fazer, e num guia que se
+     * imprime é uma instrução para dentro de outra tela. */
+    const doRecorte = recorte.map((aspecto) => {
+      const lido = mostra.get(String(aspecto.id || ''));
+      const texto = lido && lido.texto
+        ? lido.texto + (lido.atencao ? ' — ponto de atenção' : '')
+        : 'sem registo na anamnese';
+      return { nome: String(aspecto.nome).trim(), texto, atencao: Boolean(lido && lido.atencao) };
+    });
+    // OS PONTOS DE ATENÇÃO PRIMEIRO — a ordem da sugestão da tela, e a que o plano também dá à
+    // lista. O `sort` é estável: dentro de cada metade, a ordem é a da linha de base.
+    doRecorte.sort((a, b) => (b.atencao ? 1 : 0) - (a.atencao ? 1 : 0));
+    for (const r of doRecorte) linhasDoCorpo.push([r.nome, r.texto]);
+  }
   if (!linhasDoCorpo.length) {
+    /* SEM RECORTE NÃO SE INVENTA NADA, e a lacuna DIZ-SE com o caminho de volta — mas em língua de
+     * professor: onde é que se escolhe, não o que é que se carrega. */
     linhasDoCorpo.push([
       'Aspecto físico — o que a turma mostra',
-      '[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico» '
-        + 'do plano de ensino.]',
+      '[A decidir: esta turma ainda não tem aspectos do corpo escolhidos. A escolha faz-se na linha '
+        + 'de base do Corpo, e o que se observa em cada aspecto aparece aqui.]',
     ]);
   }
 
@@ -480,7 +522,7 @@ function notacaoEscolhida(plano) {
  * (`contexto-volume`), mas o contrato da aula pede «duração em minutos» e «volume em tempos»
  * (Regra 9) — e quem tem essas duas faixas é o `.conf`.
  */
-function derivarAula01({ plano, po, contexto, calibracao }) {
+function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase }) {
   const cal = calibracao || {};
   const duracaoMin = Number(cal.duracaoMinutos) || 60;
   const volMin = Number(cal.volumeMin) || 0;
@@ -857,12 +899,17 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
    * e a segunda — a dos critérios, que é o dado — desaparecia em silêncio. */
   {
     const dims = dimensoesEItens(po, plano);
-    const eixos = eixosDaObservacao(dims, plano, po);
+    /* A LINHA DE BASE VAI AO EIXO DO CORPO (06/11/2026). O guia é o documento que o professor
+     * leva para a sala, e o corpo é um dos três eixos: deixá-lo a depender de um campo que se
+     * preenche à mão no plano era deixar o eixo a dizer «[Preencher]» sobre dados que o passo 3 e
+     * o passo 4 da linha de base já tinham resolvido. Opcional, como no `derivarPlano` — sem ela,
+     * o eixo declara a lacuna em vez de inventar. */
+    const eixos = eixosDaObservacao(dims, plano, po, linhaDeBase);
     const corpo = [
-      '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem dos',
-      '> aspectos físicos que o plano do ciclo consolidou. O ponto de partida de cada aluna fica no',
-      '> Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a aluna:',
-      '> ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.',
+      '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que a',
+      '> turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada aluna',
+      '> fica no Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a',
+      '> aluna: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.',
       '',
     ];
     /* AS TRÊS FRENTES SÃO TRÊS TABELAS (04/11/2026).

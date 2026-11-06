@@ -396,7 +396,7 @@ function docsGerados({ plano }) {
  */
 function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }) {
   if (!token) return null;
-  return async ({ plano, po, contexto }) => {
+  return async ({ plano, po, contexto, linhaDeBase }) => {
     const ctx = contexto || {};
     const escolaNome = ctx.escolaNome || ctx.escola;
     const relatorio = { conf: null, escritas: [], puladas: [], elos: [], docs: null, schema: null };
@@ -443,8 +443,15 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       .map((m) => m[1]);
 
     const fontes = [
+      /* A LINHA DE BASE DA TURMA VAI AO GUIA (06/11/2026). O eixo do Corpo da Aula 01 é o
+       * recorte do passo 4 e a leitura do passo 3, e este escritor não os passava: o guia só
+       * sabia o que o campo `aspecto-fisico` do PLANO tivesse — e esse campo pede que se carregue
+       * a sugestão à mão. Resultado medido no ciclo-01 da calango: quatro aspectos escolhidos na
+       * linha de base, e a Aula 01 a imprimir «[Preencher: carregue a sugestão…]». Opcional, para
+       * o adaptador local e as bancadas continuarem a derivar sem ela. */
       { sufixo: '-aula-01.md',
-        md: derivarAula01({ plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }), calibracao: cal }) },
+        md: derivarAula01({ plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }),
+          calibracao: cal, linhaDeBase }) },
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },
       /* O `plano` VAI (06/11/2026) — e faltava aqui. A declaração `porVariante` passou a recebê-lo
        * (é dela que saem as colunas do schema), e a FOLHA não o recebia: o schema declarava as

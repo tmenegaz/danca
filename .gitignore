@@ -810,3 +810,11 @@ experimentos/modelo-formulario/*
 # comer um critério que começava por «Exemplo», e a descrição depois dos dois pontos a sumir da
 # folha — com o gabarito vazado ainda descartado e a legenda ausente quando não há descrição.
 !experimentos/provar-observacao-do-professor.js
+# O CORPO DA TURMA ATRAVESSA A CADEIA (06/11/2026). A pesquisadora gerou o ciclo, abriu o plano e
+# clicou no link para a Aula 01 — e encontrou «[Preencher: carregue a sugestão a partir das
+# anamneses da turma]» nos dois documentos, com os quatro aspectos do recorte escolhidos e lidos na
+# linha de base. Eram duas faltas: a LÍNGUA (instruções de formulário e raciocínio de arquitectura
+# impressos num documento que se lê) e a LIGAÇÃO (o derivador só andava até ao plano; o recorte do
+# passo 4 e a leitura do passo 3 não chegavam à aula). A prova mede as duas, mais a invariante que
+# fecha a divergência: o plano e a aula têm de dizer o MESMO conjunto de aspectos.
+!experimentos/provar-corpo-da-linha-de-base.js

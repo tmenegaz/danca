@@ -531,8 +531,15 @@ function tabelaDeContexto(envelope) {
  * A derivação: o envelope elicitado do plano vira o Markdown da fonte.
  * Devolve `{ markdown, meta }` — `meta` é o cabeçalho YAML.
  */
-function derivarPlano(envelope) {
+function derivarPlano(envelope, opcoes) {
   const contexto = (envelope && envelope.contexto) || {};
+  /* A LINHA DE BASE DA TURMA, quando quem deriva a tem (06/11/2026). O `derivarPlano` nasceu
+   * como uma função de um argumento só — o envelope —, e o plano é o documento que MAIS depende
+   * do acto: a turma, o elenco e o recorte do corpo vêm de lá. Sem ela, a secção «Aspecto físico»
+   * declarava uma lacuna sobre um dado que já existia (ver o bloco dessa secção). Opcional, e não
+   * obrigatória: um plano derivado fora do Worker (uma bancada, o adaptador local) continua a
+   * sair — com a lacuna declarada, que é o honesto quando a linha de base não é alcançável. */
+  const linhaDeBase = (opcoes && opcoes.linhaDeBase) || null;
   const saida = [];
 
   const referencias = emLista(respostaDo(envelope, 'referencias')).join('; ');
@@ -772,19 +779,46 @@ function derivarPlano(envelope) {
     const linhas = linhasDaTabela(respostaDo(envelope, 'aspecto-fisico'))
       .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
     const quantos = linhas.length;
-    const corpo = quantos
-      ? ['**' + quantos + (quantos === 1 ? ' aspecto físico de referência' : ' aspectos físicos de referência')
+    /* O QUE ESTA SECÇÃO DIZ QUANDO O CAMPO ESTÁ VAZIO (06/11/2026). Ela dizia uma INSTRUÇÃO DE
+     * FORMULÁRIO — «carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto
+     * físico»…» —, e a pesquisadora leu-a no documento e perguntou por ela: «por que que você
+     * colocou essa mensagem aqui?». É uma frase que só faz sentido dentro do formulário; num
+     * documento que se lê e se imprime, ela não diz nada a quem lê.
+     *
+     * E O DADO JÁ EXISTIA. Os aspectos do corpo deste ciclo não são uma escrita nova: são os que
+     * o professor escolheu no passo 4 da linha de base da turma, e o que a turma mostra em cada um
+     * já foi lido no passo 3. O plano é macro de propósito desde 04/11 (o detalhe vive na aula), e
+     * macro é o NOME deles — não uma lacuna a pedir que se copie à mão o que o sistema já sabe. */
+    const recorte = ((linhaDeBase && Array.isArray(linhaDeBase.recorte)) ? linhaDeBase.recorte : [])
+      .map((c) => String((c && c.nome) || '').trim()).filter(Boolean);
+    const corpo = [];
+    if (quantos) {
+      corpo.push('**' + quantos + (quantos === 1 ? ' aspecto físico de referência' : ' aspectos físicos de referência')
         + '** — o eixo do CORPO, o primeiro dos três do que se observa em dança. O detalhe, aspecto a'
-        + ' aspecto e com o que esta turma mostra em cada um, está na **Aula 01**:']
-      : ['[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto '
-        + 'físico» do plano de ensino. O detalhe aparece então na Aula 01, secção «Corpo» do guia '
-        + 'de observação.]'];
+        + ' aspecto e com o que esta turma mostra em cada um, está na **Aula 01**:');
+    } else if (recorte.length) {
+      corpo.push('**' + recorte.length
+        + (recorte.length === 1 ? ' aspecto do corpo em observação' : ' aspectos do corpo em observação')
+        + '** — os que a linha de base desta turma escolheu. O que a turma mostra em cada um, e o '
+        + 'que se marca aluna a aluna, está na **Aula 01**:');
+      corpo.push('');
+      for (const nome of recorte) corpo.push('- ' + nome);
+    } else {
+      corpo.push('[A decidir: esta turma ainda não tem aspectos do corpo escolhidos. A escolha '
+        + 'faz-se na linha de base do Corpo — é ela que diz o que este ciclo observa —, e a lista '
+        + 'aparece então aqui e na Aula 01.]');
+    }
     corpo.push('');
     corpo.push('[Aula 01 — Corpo](aula-01.html#corpo)');
     corpo.push('');
+    /* A FRASE QUE EXPLICA O QUE É O CORPO DO CICLO FICA; a que explicava COMO O CÓDIGO O ARRUMAVA
+     * sai. «Aqui fica o ponteiro — a tabela vive num lugar só» era raciocínio de arquitectura, e
+     * a pesquisadora disse-o por palavras: «essa informação que você colocou aqui também é uma
+     * informação para a gente, para programador e para você». O que se põe no lugar é o que o
+     * professor precisa de saber: onde é que as marcas se fazem. */
     corpo.push('O que a turma mostra no corpo, lido das anamneses das alunas, é um **ponto de '
-      + 'atenção** do ciclo: o que se vai olhar, e não uma avaliação de ninguém. Aqui fica o '
-      + 'ponteiro — a tabela vive num lugar só, e o Plano de Observação é quem a mede aluna a aluna.');
+      + 'atenção** do ciclo — o que se vai olhar, e não uma avaliação de ninguém. O que se marca '
+      + 'em cada aula, aluna a aluna, está no Plano de Observação.');
     secao('Aspecto físico', corpo);
   }
 

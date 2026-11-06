@@ -1330,6 +1330,79 @@ coluna do objetivo.
 que medem os dois modos de perder. É o que separa «acrescentei uma prova» de «acrescentei uma prova
 que guarda alguma coisa».
 
+### 5.17 O corpo da turma atravessa a cadeia — e o documento deixou de falar em nome do código
+
+A pesquisadora gerou o PO do ciclo 01 da `calango` e leu os dois documentos. No plano, a secção
+«Aspecto físico» dizia:
+
+> `[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico» do
+> plano de ensino. O detalhe aparece então na Aula 01, secção «Corpo» do guia de observação.]`
+>
+> `[Aula 01 — Corpo](aula-01.html#corpo)`
+>
+> O que a turma mostra no corpo… Aqui fica o ponteiro — a tabela vive num lugar só, e o Plano de
+> Observação é quem a mede aluna a aluna.
+
+E na Aula 01, `### Corpo`, uma tabela de uma linha: «Aspecto físico — o que a turma mostra» →
+`[Preencher: carregue a sugestão…]`. As palavras dela: *«por que que você colocou essa mensagem
+aqui?»* e *«você não trouxe de onde deveria trazer… os aspectos escolhidos foram a primeira posição
+de braço, a estabilidade vestibular e deslocamento, a resistência de MMSS e a sustentação ativa de
+MMII… Esses são os elementos que estão escolhidos e não aparecem lá na aula um.»*
+
+**Eram duas faltas, e nenhuma delas era de dado.**
+
+1. **A língua.** O documento imprimia uma instrução de FORMULÁRIO («carregue a sugestão…») e um
+   raciocínio de ARQUITECTURA («aqui fica o ponteiro — a tabela vive num lugar só»). Nenhuma das duas
+   frases diz nada a quem lê o documento: a primeira manda fazer noutra tela o que o sistema devia
+   fazer, a segunda explica ao leitor como o código está arrumado. Um documento derivado fala com
+   quem o assina.
+2. **A ligação.** O dado existia, e a montante: o passo 4 da linha de base escolheu os aspectos, o
+   passo 3 leu o que a turma mostra em cada um. A cadeia é declarada — linha de base → turma → plano
+   → PO → aula —, mas o motor só a andava até ao plano: o eixo do Corpo do guia lia
+   `aspecto-fisico`, um campo do PLANO que se preenche à mão no formulário (o botão «Carregar das
+   anamneses da turma»). Sem esse clique, o derivador declarava a lacuna **sobre um dado que já
+   existia**. Um derivado que pede ao professor para copiar o que o sistema sabe não está derivado.
+
+**O que passou a acontecer.** `linhaDeBaseDaTurma` transporta, além do `recorte` (os nomes
+escolhidos no passo 4), o `mostra` — o que a turma tem em cada aspecto, **como o passo 3 o leu**
+(`leitura.classificacao`), filtrado pelo recorte. Não é uma segunda conta: é a frase que a Produção
+já gravou no acto, e por isso não há duas versões do mesmo número a divergir quando a anamnese for
+corrigida.
+
+| Documento | O que passa a dizer | Porquê assim |
+|:--|:--|:--|
+| **plano**, `## Aspecto físico` | **N aspectos do corpo em observação** + os nomes, e o link para a aula | macro, como decidido a 04/11: o detalhe é da aula e não se duplica |
+| **aula 01**, `### Corpo` | uma linha por aspecto, com o que a turma mostra em cada um e a marca de **ponto de atenção** | é o documento que se leva para a sala |
+| **sem linha de base** | `[A decidir: … A escolha faz-se na linha de base do Corpo…]` | a lacuna declara-se, com o caminho de volta — e em língua de professor |
+
+O `aspecto-fisico` do plano **continua a mandar quando existe**: se o professor carregou a sugestão
+e a corrigiu, é o trabalho dele que o documento imprime, e o recorte não se lhe sobrepõe. A ordem dos
+pontos de atenção é a mesma da sugestão da tela (atenção primeiro, e dentro de cada metade a ordem do
+recorte), para os dois sítios não arrumarem o mesmo dado de duas maneiras.
+
+**A ligação no código**, e é toda opcional — um plano derivado fora do Worker (bancada, adaptador
+local, `regerar-derivados` sem a pasta) continua a sair, com a lacuna declarada:
+
+- `derivarPlano(envelope, opcoes)` e `derivarAula01({ …, linhaDeBase })` recebem a linha de base;
+- `escrever-plano.js` e `escrever-ciclo.js` passam-na, e `rotas.js` faz **uma** leitura para os dois
+  (`linhaDeBaseDaTurma`, a mesma que o PO já usava);
+- `tools/regerar-derivados.js` lê-a do disco — sem isso, o `--escrever` **apagaria** a derivação ao
+  regerar um ciclo, e o dano só apareceria no documento impresso.
+
+**A prova.** `provar-corpo-da-linha-de-base` **31**. A secção **A** mede o transporte — e a negativa
+que impede o documento de despejar a anamnese inteira: um aspecto classificado **fora** do recorte
+não atravessa. A **B** mede o plano (contagem, nomes, link, e as duas frases recusadas ausentes) e
+mostra que o campo do plano vence quando existe. A **C** mede a aula linha a linha, a ordem dos pontos
+de atenção, o aspecto sem leitura a dizer-se em vez de ficar vazio, e a lacuna sem instrução de
+formulário. A **D** mede a invariante que fecha a classe de defeito: **o plano e a aula têm de dizer
+o mesmo conjunto de aspectos**. A **E** guarda o que já estava certo — a secção «Linha de base» do PO.
+
+**Contraprova.** Contra o núcleo de `HEAD`, a prova **reprova 18 de 31** — e as que passam são as que
+não dependem da ligação. E a asserção antiga de `provar-eixos-e-tempo-da-aula` que media a frase
+`Preencher: carregue a sugestão…` foi **corrigida, não apagada**: o que ela guarda (o documento
+declara a lacuna em vez de inventar, e diz onde se escolhe) continua a ser verdade; a frase que ela
+media é a que foi retirada.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

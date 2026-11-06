@@ -737,6 +737,50 @@ function marcarNovas(linhasDeBase, alunasComAnamnese) {
  * diferença que a cascata mede.
  */
 /**
+ * O QUE A TURMA MOSTRA EM CADA ASPECTO — a leitura do passo 3, lida tal como foi gravada.
+ *
+ * PORQUE É UMA LEITURA E NÃO UMA CONTA (06/11/2026). O passo 3 já cruzou as anamneses e escreveu,
+ * por aspecto, a frase que o professor lê («1 de 2 em «Bom» (com a barra como apoio)»). Essa frase
+ * fica gravada no acto (`leitura.classificacao`), e é ela que o documento do ciclo imprime. Contá-la
+ * outra vez no derivador seria uma segunda versão do mesmo facto — e a segunda é a que fica para
+ * trás no dia em que a anamnese for corrigida.
+ *
+ * O `atencao` é o que o passo 3 já decidiu: alguém abaixo do melhor estado que a anamnese conhece.
+ * Um aspecto pode aparecer em DUAS listas (é ponto de atenção **e** tem quem esteja no melhor
+ * nível); a marca de atenção vence, porque é ela que ordena o que se olha primeiro.
+ */
+function mostraDaLeitura(leitura) {
+  const c = leitura && leitura.classificacao;
+  if (!c || typeof c !== 'object') return [];
+  const vistos = new Map();
+  for (const chave of ['atencao', 'excelencia', 'comuns', 'musicalidade']) {
+    for (const it of (Array.isArray(c[chave]) ? c[chave] : [])) {
+      if (!it || typeof it !== 'object') continue;
+      const id = String(it.id || it.nome || '').trim();
+      if (!id) continue;
+      const texto = String(it.texto || '').trim();
+      const anterior = vistos.get(id);
+      if (anterior) {
+        if (!anterior.texto && texto) anterior.texto = texto;
+        if (chave === 'atencao') anterior.atencao = true;
+        continue;
+      }
+      vistos.set(id, {
+        id,
+        nome: String(it.nome || id).trim(),
+        grupo: String(it.grupo || '').trim(),
+        eixo: String(it.eixo || '').trim(),
+        texto,
+        atencao: chave === 'atencao' || it.temAbaixoDoMelhor === true,
+        quantas: Number(it.quantas) || 0,
+        naoMedidos: Number(it.naoMedidos) || 0,
+      });
+    }
+  }
+  return [...vistos.values()];
+}
+
+/**
  * A LINHA DE BASE DA TURMA — o ACTO, com o elenco e o RECORTE (06/11/2026).
  *
  * PORQUE ESTA FUNÇÃO EXISTE. Três leitores passaram a depender do mesmo facto: o cabeçalho do PO
@@ -750,9 +794,16 @@ function marcarNovas(linhasDeBase, alunasComAnamnese) {
  * pelo `carimbo` do nome, que é a mesma regra do resto do sistema: o relógio de uma máquina não
  * reordena o passado.
  *
- * O QUE VOLTA: `{ id, nome, em, turma, alunas, recorte }`, com `recorte` = `[{id, nome, grupo}]`
- * — os campos do passo 4, na ordem em que o professor os escolheu. `null` quando a turma não tem
- * nenhuma linha de base enviada: e aí a lacuna DIZ-SE, em vez de se desenhar uma tabela vazia.
+ * O QUE VOLTA: `{ id, nome, em, turma, alunas, recorte, mostra }`, com `recorte` = `[{id, nome,
+ * grupo}]` — os campos do passo 4, na ordem em que o professor os escolheu — e `mostra` = o que a
+ * turma tem em cada um deles, como o passo 3 o leu (ver `mostraDaLeitura`). `null` quando a turma
+ * não tem nenhuma linha de base enviada: e aí a lacuna DIZ-SE, em vez de se desenhar uma tabela
+ * vazia.
+ *
+ * O `mostra` ENTROU A 06/11/2026, e o pedido foi dela: «esses elementos já estão todos prontos…
+ * e não aparecem lá na aula um». Sem ele, o documento derivado só sabia os NOMES dos aspectos
+ * escolhidos; o que a turma mostrava em cada um ficava preso à tela do passo 3 — e o plano, sem a
+ * sugestão carregada à mão, declarava a lacuna sobre um dado que já existia.
  */
 function linhaDeBaseDaTurma(linhas, turma) {
   const alvo = String(turma == null ? '' : turma).trim();
@@ -769,6 +820,14 @@ function linhaDeBaseDaTurma(linhas, turma) {
     return String(b.carimbo || '') < String(a.carimbo || '') ? 1 : -1;
   })[0];
   const campos = Array.isArray(maisRecente.campos) ? maisRecente.campos : [];
+  const recorte_ = campos
+    .filter((c) => c && typeof c === 'object')
+    .map((c) => ({
+      id: String(c.id || ''),
+      nome: String(c.nome || c.id || ''),
+      grupo: String(c.grupo || ''),
+    }))
+    .filter((c) => c.id || c.nome);
   return {
     id: maisRecente.id || null,
     nome: maisRecente.nome || maisRecente.id || null,
@@ -776,14 +835,12 @@ function linhaDeBaseDaTurma(linhas, turma) {
     turma: alvo,
     alunas: (Array.isArray(maisRecente.alunas) ? maisRecente.alunas : [])
       .map((a) => String(a == null ? '' : a).trim()).filter(Boolean),
-    recorte: campos
-      .filter((c) => c && typeof c === 'object')
-      .map((c) => ({
-        id: String(c.id || ''),
-        nome: String(c.nome || c.id || ''),
-        grupo: String(c.grupo || ''),
-      }))
-      .filter((c) => c.id || c.nome),
+    recorte: recorte_,
+    /* SÓ OS ASPECTOS DO RECORTE, e não os quarenta e nove da anamnese: o documento imprime os que
+     * o professor escolheu olhar, e carregar os outros seria transportar para o derivador um dado
+     * que ele não usa. */
+    mostra: mostraDaLeitura(maisRecente.leitura)
+      .filter((m) => recorte_.some((c) => c.id === m.id)),
   };
 }
 
@@ -901,6 +958,7 @@ module.exports = {
   normalizar,
   agregar,
   classificar,
+  mostraDaLeitura,
   marcarNovas,
   envelheceu,
   elencoDaTurma,
