@@ -38258,3 +38258,102 @@ ajuste forçado a «sim» e a leitura da marca voltada a fazer-se por `id`, repr
 legenda→intro 20px, intro→primeiro eixo 12px, eixo→dimensões 8px, dimensões→tabela 8px,
 «observado»→«depois» 16px, rótulo→campo do ajuste 6px — nada encostado, e nenhum estouro
 horizontal em nenhuma das duas larguras.
+
+## 06/11/2026 — A matriz do lançamento: as alunas por linha, os aspectos por coluna
+
+**O pedido, e é de desenho.** Depois de ver o formulário já dentro da identidade, ela olhou a tela
+e disse o que faltava:
+
+> «a gente tem que elaborar um outro modelo onde a parte de cima a gente tem por linha os alunos e
+> por coluna a gente precisa acrescentar outras colunas, que daí vão ter esses elementos que estão
+> na linha de base […] Eu não tenho essa linha de base orientada por aluno e eu preciso ter isso.»
+
+E, sobre duas perguntas do mesmo bloco: *«me parece que estão redundantes, eu não sei dizer»*. E,
+sobre a forma: *«tava pensando aqui, talvez se fosse por acordeon, fosse mais enxuto isso, fosse
+melhor»*.
+
+### 1. Três blocos para a mesma coisa, e dois deles errados
+
+| O que havia | O que era, na verdade |
+|:--|:--|
+| cinco tabelas, uma por dimensão | cada uma com as **mesmas duas colunas** do plano: Solo, Barra e Centro pedem os mesmos dois objectivos; Musicalidade e Expressão, os mesmos outros dois — **seis perguntas iguais** por aluna |
+| «o que se observou», nos três eixos | os **mesmos objectivos outra vez**, e **sem aluna** — não podia responder a nenhuma pergunta do catálogo, que é sempre sobre uma aluna |
+| «linha de base revisitada» | **nunca funcionou**: procurava no PO uma lista por aluna (`precisaDesenvolver`) que o PO não tem, e imprimia «o PO não declara linha de base dela» para **toda a gente** |
+
+O terceiro é o que dói. Os quatro aspectos que ela escolheu no recorte do passo 4 — 1ª posição de
+braços, adágio, port de bras, estabilidade vestibular — **não tinham coluna nenhuma em lugar
+nenhum**. A leitura do passo 3 e o recorte do passo 4 atravessavam a cadeia até ao documento (§5.17
+e §5.18 do `ARQUITETURA-GERAL.md`) e paravam à porta do formulário.
+
+### 2. A matriz
+
+As linhas são as alunas, as colunas são os aspectos — e as colunas **não se inventam**: cada uma é
+uma coluna da folha de captura, no bloco da dimensão a que pertence. É a mesma tríade que o índice
+de lançamentos já exigia ([§4.9](/home/mti/bibTex/danca/PLANO-INDICES.md:560): aula, data, **aluna**,
+**coluna**, bloco, marca) e que as perguntas `AL03`/`AL04`/`OB01` pedem.
+
+| Eixo | Forma | Células por aluna |
+|:--|:--|:--:|
+| Corpo | uma tabela, e as colunas são os quatro aspectos do recorte | 4 |
+| Técnica | uma tabela por objectivo, e as colunas são Solo · Barra · Centro | 6 |
+| Poiesis | uma tabela por objectivo, e as colunas são Musicalidade · Expressão | 4 |
+
+A inversão da Técnica é o que mata a repetição: o objectivo, que estava escrito como **coluna** em
+cinco tabelas, passa a ser o **título** de uma tabela; as dimensões, que estavam escritas como
+**títulos**, passam a ser as **colunas**. Nenhuma informação se perde — as três espaços continuam a
+ser medidos, e agora uma vez cada.
+
+**A escolha dela, e o número honesto:** ela decidiu manter os espaços como colunas. Isso quer dizer
+que a matriz **não reduz as marcas** — reduz as vezes que a mesma pergunta se repete, e dá casa aos
+quatro do corpo. São 14 marcas por aluna, e **todas com dono** (antes eram 20, e 8 sem dono).
+
+### 3. O acordeão, e o que ele diz
+
+Cada eixo é um `<details>`, e o sumário diz o nome **e quantas marcas tem lá dentro** («Técnica — 0
+de 12 marcados»). O Corpo abre aberto — é a âncora da aula — e os outros abrem quando já têm marca:
+um eixo fechado não esconde trabalho feito nem trabalho por fazer.
+
+**Altura: 3 876px → 2 209px.** Tabelas: 8 → 5. Controles: 29 → 28 (e os 8 que não tinham dono
+desapareceram).
+
+### 4. Uma pergunta em vez de duas
+
+«Plano seguido?» (*select* sim/parcial/não + campo do «o que mudou») e «Precisou de ajuste?»
+(sim/não + outro campo) diziam a mesma coisa — «em parte» e «precisou de ajuste = sim» são a mesma
+frase dita duas vezes. Ficou **uma pergunta de três estados**, porque nenhum dos dois vocabulários
+sozinho sabe dizer a diferença entre *segui o plano e mexi num detalhe* e *não segui o plano*:
+
+| Estado | `plano_seguido` | `mudou` |
+|:--|:--|:--|
+| sim | `sim` | vazio — e vazio quer dizer «nada mudou» |
+| em parte | `parcial` | o texto, obrigatório |
+| não | `nao` | o texto, obrigatório |
+
+`relatorio.ajustes` recebe **o mesmo texto** — dois leitores (a §4.1 exige `mudou`; o caderno
+imprime `ajustes` em «O que decidi»), um escritor só.
+
+**E a data e a duração já vinham de onde deviam** — medido, não suposto: a data do `aulas[].data` do
+índice do ciclo (`2026-11-05`) e a duração do `duracao_min` do ciclo, que vem do plano (`60`). Não
+havia valor duro em nenhum dos dois.
+
+### 5. O validador passou a olhar os blocos de itens
+
+`{aluna: [{item, marca}]}` era dado por «forma conferida pelo schema» — que só confere que é um
+objecto —, e uma marca fora do vocabulário passava em claro. Agora confere o apelido (não se
+inventa gente), o texto do item e a marca. E a **lacuna declarada** do `linha_de_base` («a chave é
+do PO, não deste JSON») deixou de ser verdade: ela **é** escrita. Fica declarada a peça que falta —
+dar a cada item um slug estável, que é o que o índice de lançamentos precisa.
+
+**Contraprova.** Com três mutações — o corpo a ler as linhas vazias da folha, o plano seguido a
+valor duro, e o validador sem olhar os itens — a `provar-formulario-da-aula` **reprova 7 de 34**.
+
+**Medido.** `provar-formulario-da-aula` **34/34**; `provar-elenco-derivado` **12/12**;
+`provar-ar-das-paginas` **14/14**; `provar-proveniencia-e-turma` **53/53**;
+`provar-corpo-da-linha-de-base` **31/31**; `check-identidade` **0 erros**; `check-schemas` ok;
+`gerar-ciclo.sh` **0 erro(s)**; `check-pacote` **0 erro(s), 0 aviso(s)**. O ar, a 1280 e a 390:
+sumário→tabela **12px**, eixo→eixo **16px**, entre as perguntas do «depois» **12px** — nada
+encostado, e nenhum estouro horizontal.
+
+**O que fica para a etapa seguinte.** Os itens da linha de base são gravados pelo **texto**, não por
+um slug — é o que falta para o índice de lançamentos contar «em quantas aulas a aluna X demorou a
+estabilizar o adágio». É a Etapa 3, e ela decide se avança.

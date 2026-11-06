@@ -177,16 +177,16 @@ Aula ───┘                       ├──> Vistas (calculadas em memóri
     }
   },
   "musicalidade": { },
-  "linha_de_base": { },
+  "linha_de_base": {
+    "ceci": [
+      { "item": "1ª posição — braços", "marca": "ok" },
+      { "item": "Sustentação ativa de MMII (força de adágio)", "marca": "parcial" }
+    ]
+  },
   "relatorio": {
     "texto": "...",
     "surpresas": "sim",
     "ajustes": ""
-  },
-  "observado": {
-    "corpo": [{ "item": "1ª posição — braços", "marca": "ok" }],
-    "tecnica": [{ "item": "reconhecer o apoio e alinhar o eixo vertical", "marca": "parcial" }],
-    "poiesis": [{ "item": "reconhecer o apoio e alinhar o eixo vertical", "marca": "nao_vi" }]
   },
   "materiais": [],
   "ultimo_lancamento": "2026-09-20T14:30"
@@ -221,6 +221,20 @@ de gravação **daquela aula**.
 > itens de cada eixo são exactamente os do PO, as duas marcas têm os padrões que ela pediu, o
 > payload que o formulário monta **passa** no `tools/validar-dados-ciclo.js`, e a página não
 > estoura a 1280 nem a 390.
+>
+> **Nota datada — 06/11/2026, segunda volta. `observado` foi reformado no mesmo dia, e a pergunta
+> do plano foi fundida.** A pesquisadora viu o formulário pronto e disse o que faltava: *«a gente
+> tem que elaborar um outro modelo onde a parte de cima a gente tem por linha os alunos e por
+> coluna a gente precisa acrescentar outras colunas […] Eu não tenho essa linha de base orientada
+> por aluno e eu preciso ter isso»*. O `observado` acima **não tinha aluna e não tinha chave de
+> coluna** — e por isso não podia responder a nenhuma pergunta do catálogo, que é sempre sobre uma
+> aluna (§4.9 do `PLANO-INDICES.md`). Foi retirado; o «por aluna» é agora a **matriz**, e ela não
+> inventa dados: as colunas são as colunas da folha de captura, nos blocos das dimensões. O bloco
+> `linha_de_base` — que existia e nunca funcionou, porque procurava no PO uma lista por aluna que
+> o PO não tem — passa a ser escrito: os itens são os do eixo do corpo do PO, uma marca por aluna
+> e por aspecto. E «Plano seguido?» + «Precisou de ajuste?», que diziam a mesma coisa, passaram a
+> uma pergunta de três estados com um texto. A forma final está no exemplo acima; a medida, em
+> `experimentos/provar-formulario-da-aula.js` (**34** asserções).
 >
 > **Nota datada — 27/09/2026. A redação acima envelheceu.** Ela dizia, e não diz mais,
 > *"é o que ancora o prazo do ajuste (§5.1)"*. Desde o `B7`, o prazo é **declarado pelo

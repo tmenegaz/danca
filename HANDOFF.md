@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T14:00:28-0300`
-Commit atual: `11bf28c9` — fix(tools): o lancamento entra na identidade, e o que se marca sai do PO
+Gerado em: `2026-11-06T14:49:22-0300`
+Commit atual: `1d75cc7f` — fix(tools): a matriz do lancamento — as alunas por linha, os aspectos por coluna
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,11 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+1d75cc7f fix(tools): a matriz do lancamento — as alunas por linha, os aspectos por coluna
+ac97436e fix(estrutura): a escola nao e a variante, e a conferencia corre antes de gerar
+75a542db chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+d4c6c2fc chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+f439eaba docs(registro): o lancamento marcado, com a prova e a contraprova
 11bf28c9 fix(tools): o lancamento entra na identidade, e o que se marca sai do PO
 9b608179 fix(po): o elenco da aula vem da linha de base, e nao do PO
 7c7007cd chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
@@ -101,11 +106,6 @@ c7cbe796 docs(registro): o HANDOFF aponta para a peca da fileira da §6
 97c0cdf6 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 401c707c fix(ciclo-01): a §6 vira selector do elenco, e o elenco passa a vir da linha de base
 acc78228 fix(tools): um bloco declarado para outro alvo nao e conteudo do campo
-10e760ad chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-fc73fd17 chore(estrutura): regerar os índices derivados
-8f6ba7b4 feat(ciclo-01): a turma no alto dos documentos, e a anamnese de cada aluna na proveniencia
-308a3a85 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-8cf894d8 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -233,106 +233,104 @@ fc73fd17 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O lançamento: a turma que não existe, a página que não era da casa, e os três textos que viram marcação
+## 06/11/2026 — A matriz do lançamento: as alunas por linha, os aspectos por coluna
 
-**O pedido.** Três coisas numa só fala, e as três sobre o **formulário do lançamento** — o documento
-que o professor abre depois de dar a aula:
+**O pedido, e é de desenho.** Depois de ver o formulário já dentro da identidade, ela olhou a tela
+e disse o que faltava:
 
-> «Nós precisamos ajustá-lo para ter a identidade visual adequada com o nosso plano de identidade, com
-> a nossa identidade visual do projeto, né? Que nós já temos uma definida, só que ele está
-> completamente alheio a isso. E aí precisamos também verificar o que que deriva aqui de verdade,
-> porque, por exemplo, acionando agora aqui o documento lançamento de aula, aqui diz que tem presentes
-> aluno A, B e C. Não é verdade.»
->
-> «Essa forma como é apresentada aqui não é fácil para o professor responder, ela é complexa. Quando
-> tem aqui três campos de texto, né, relatório, o que aconteceu, o que surpreendeu e o que foi
-> ajustado, a gente vai colocar isso como elementos de marcação […]. E aí ele vai simplesmente marcar
-> o que aconteceu de novo e isso, de fato, ele tem que escrever, não tem para onde correr. Agora, o
-> que surpreendeu vai ser só marcar, surpreendeu? Sim. Precisou de ajuste? Sim. Daí ele escreve se
-> precisou de ajuste. Precisou de ajuste tem como valor padrão não.»
+> «a gente tem que elaborar um outro modelo onde a parte de cima a gente tem por linha os alunos e
+> por coluna a gente precisa acrescentar outras colunas, que daí vão ter esses elementos que estão
+> na linha de base […] Eu não tenho essa linha de base orientada por aluno e eu preciso ter isso.»
 
-### 1. «Presentes: Aluna A, B e C» — a aluna que o PO declarava e a turma não tem
+E, sobre duas perguntas do mesmo bloco: *«me parece que estão redundantes, eu não sei dizer»*. E,
+sobre a forma: *«tava pensando aqui, talvez se fosse por acordeon, fosse mais enxuto isso, fosse
+melhor»*.
 
-A turma tem **duas** alunas. A linha de base da turma fixa o elenco no acto do passo 2, e é ela que
-manda. Mas `derivarDados` — de onde o formulário tira os «Presentes» — e `derivarCaptura` — de onde
-a folha tira as linhas das tabelas — **liam o PO cada uma por sua conta**, e o PO do ciclo ainda
-declarava três, herança de um envelope anterior à regra. Foi o mesmo defeito já corrigido no
-`derivarPO` na §6 da Aula 01, sobrevivendo em duas outras derivações.
+### 1. Três blocos para a mesma coisa, e dois deles errados
 
-A correção é uma função só, `elencoDoCiclo(po, linhaDeBase)`, com a linha de base como fonte e o PO
-como **reserva** (um ciclo antigo, sem linha de base, continua a derivar). **`alunas: []` não é
-resposta** — uma linha de base sem elenco cai na reserva, porque *vazio* e *não sei* não são a mesma
-coisa.
+| O que havia | O que era, na verdade |
+|:--|:--|
+| cinco tabelas, uma por dimensão | cada uma com as **mesmas duas colunas** do plano: Solo, Barra e Centro pedem os mesmos dois objectivos; Musicalidade e Expressão, os mesmos outros dois — **seis perguntas iguais** por aluna |
+| «o que se observou», nos três eixos | os **mesmos objectivos outra vez**, e **sem aluna** — não podia responder a nenhuma pergunta do catálogo, que é sempre sobre uma aluna |
+| «linha de base revisitada» | **nunca funcionou**: procurava no PO uma lista por aluna (`precisaDesenvolver`) que o PO não tem, e imprimia «o PO não declara linha de base dela» para **toda a gente** |
 
-### 2. A página estava fora da identidade, e não era só o CSS
+O terceiro é o que dói. Os quatro aspectos que ela escolheu no recorte do passo 4 — 1ª posição de
+braços, adágio, port de bras, estabilidade vestibular — **não tinham coluna nenhuma em lugar
+nenhum**. A leitura do passo 3 e o recorte do passo 4 atravessavam a cadeia até ao documento (§5.17
+e §5.18 do `ARQUITETURA-GERAL.md`) e paravam à porta do formulário.
 
-O formulário estava a **redeclarar a base da casa**: `body` a 15px/1.5 com `max-width: 1000px`,
-`h1` a 1.6rem, tabelas a .92rem, `th,td` com `padding: 6px 8px`. Nenhuma classe inventada — e por
-isso a checagem **8 «Peça»** passava verde: ela olha **classes**, e o que escapava era a
-redeclaração de **elementos**. É a mesma família de buraco que a checagem «Respiro» veio tapar.
+### 2. A matriz
 
-| | Antes | Depois |
+As linhas são as alunas, as colunas são os aspectos — e as colunas **não se inventam**: cada uma é
+uma coluna da folha de captura, no bloco da dimensão a que pertence. É a mesma tríade que o índice
+de lançamentos já exigia ([§4.9](/home/mti/bibTex/danca/PLANO-INDICES.md:560): aula, data, **aluna**,
+**coluna**, bloco, marca) e que as perguntas `AL03`/`AL04`/`OB01` pedem.
+
+| Eixo | Forma | Células por aluna |
+|:--|:--|:--:|
+| Corpo | uma tabela, e as colunas são os quatro aspectos do recorte | 4 |
+| Técnica | uma tabela por objectivo, e as colunas são Solo · Barra · Centro | 6 |
+| Poiesis | uma tabela por objectivo, e as colunas são Musicalidade · Expressão | 4 |
+
+A inversão da Técnica é o que mata a repetição: o objectivo, que estava escrito como **coluna** em
+cinco tabelas, passa a ser o **título** de uma tabela; as dimensões, que estavam escritas como
+**títulos**, passam a ser as **colunas**. Nenhuma informação se perde — as três espaços continuam a
+ser medidos, e agora uma vez cada.
+
+**A escolha dela, e o número honesto:** ela decidiu manter os espaços como colunas. Isso quer dizer
+que a matriz **não reduz as marcas** — reduz as vezes que a mesma pergunta se repete, e dá casa aos
+quatro do corpo. São 14 marcas por aluna, e **todas com dono** (antes eram 20, e 8 sem dono).
+
+### 3. O acordeão, e o que ele diz
+
+Cada eixo é um `<details>`, e o sumário diz o nome **e quantas marcas tem lá dentro** («Técnica — 0
+de 12 marcados»). O Corpo abre aberto — é a âncora da aula — e os outros abrem quando já têm marca:
+um eixo fechado não esconde trabalho feito nem trabalho por fazer.
+
+**Altura: 3 876px → 2 209px.** Tabelas: 8 → 5. Controles: 29 → 28 (e os 8 que não tinham dono
+desapareceram).
+
+### 4. Uma pergunta em vez de duas
+
+«Plano seguido?» (*select* sim/parcial/não + campo do «o que mudou») e «Precisou de ajuste?»
+(sim/não + outro campo) diziam a mesma coisa — «em parte» e «precisou de ajuste = sim» são a mesma
+frase dita duas vezes. Ficou **uma pergunta de três estados**, porque nenhum dos dois vocabulários
+sozinho sabe dizer a diferença entre *segui o plano e mexi num detalhe* e *não segui o plano*:
+
+| Estado | `plano_seguido` | `mudou` |
 |:--|:--|:--|
-| corpo | 15px/1.5, coluna de 1000px | **17px/1.65**, a coluna de leitura da casa |
-| `h1` | 1.6rem | **31px**, o da casa |
-| cabeçalho | `<div class="titulo-fixo">` | **`<header class="doc">`**, igual às outras páginas |
-| conteúdo | direto no `body` | **`<main><div class="conteudo">`** |
-| raio dos campos | 4px (fora da escala) | **`--raio-2`** |
+| sim | `sim` | vazio — e vazio quer dizer «nada mudou» |
+| em parte | `parcial` | o texto, obrigatório |
+| não | `nao` | o texto, obrigatório |
 
-### 3. Três textos viram uma escrita e duas marcas
+`relatorio.ajustes` recebe **o mesmo texto** — dois leitores (a §4.1 exige `mudou`; o caderno
+imprime `ajustes` em «O que decidi»), um escritor só.
 
-O que existia eram três áreas de texto — relatório, o que surpreendeu, o que foi ajustado. O que
-passa a existir, e por quê:
+**E a data e a duração já vinham de onde deviam** — medido, não suposto: a data do `aulas[].data` do
+índice do ciclo (`2026-11-05`) e a duração do `duracao_min` do ciclo, que vem do plano (`60`). Não
+havia valor duro em nenhum dos dois.
 
-- **«O que se observou nesta aula»** — uma marca por item, nos **três eixos** (`corpo`, `técnica`,
-  `poiesis`). Os itens **não nascem no formulário**: são o «Itens de cada dimensão» do PO, que já
-  compõe os objectivos específicos do plano com o recorte da linha de base. Medido no ciclo da
-  calango: o Corpo traz os quatro aspectos escolhidos no passo 4, e a Técnica e a Poiesis trazem os
-  dois objectivos do plano. **Um vocabulário só**, e o formulário a ler o documento em vez de o
-  reinventar.
-- **«Surpreendeu?»** — duas marcas, e **nenhuma escolhida** ao abrir. Em branco quer dizer «não
-  respondi»; um «não» que o professor não deu seria palavra posta na boca dele.
-- **«Precisou de ajuste?»** — duas marcas com **padrão não**, como ela pediu. O campo do texto do
-  ajuste só aparece no «sim», e aí é obrigatório.
+### 5. O validador passou a olhar os blocos de itens
 
-Duas decisões de leitura, e as duas sobre o que **não** se inventa:
+`{aluna: [{item, marca}]}` era dado por «forma conferida pelo schema» — que só confere que é um
+objecto —, e uma marca fora do vocabulário passava em claro. Agora confere o apelido (não se
+inventa gente), o texto do item e a marca. E a **lacuna declarada** do `linha_de_base` («a chave é
+do PO, não deste JSON») deixou de ser verdade: ela **é** escrita. Fica declarada a peça que falta —
+dar a cada item um slug estável, que é o que o índice de lançamentos precisa.
 
-- **Item que o PO declara como ausência não é item observável.** A dimensão «Restrições» traz
-  «sem restrições declaradas» — é uma declaração de ausência, não algo que se marque ✓/X. Sai da
-  tabela de marcas e continua no PO, que é onde pertence.
-- **O mesmo item não se repete dentro do eixo.** Na calango, Solo, Barra e Centro declaram os mesmos
-  dois objectivos; a tabela os mostra **uma vez** e nomeia as dimensões sob o título do eixo.
+**Contraprova.** Com três mutações — o corpo a ler as linhas vazias da folha, o plano seguido a
+valor duro, e o validador sem olhar os itens — a `provar-formulario-da-aula` **reprova 7 de 34**.
 
-O JSON ganhou `observado` (por eixo, com o texto do item verbatim e a marca), e o `relatorio`
-encolheu: `texto` é «o que aconteceu de novo» e continua obrigatório, `surpresas` é marca
-(`sim`/`nao`), `ajustes` é vazio ou o texto. A prosa de um lançamento anterior **não se apaga**: é
-impressa verbatim, e só uma marca nova a substitui.
+**Medido.** `provar-formulario-da-aula` **34/34**; `provar-elenco-derivado` **12/12**;
+`provar-ar-das-paginas` **14/14**; `provar-proveniencia-e-turma` **53/53**;
+`provar-corpo-da-linha-de-base` **31/31**; `check-identidade` **0 erros**; `check-schemas` ok;
+`gerar-ciclo.sh` **0 erro(s)**; `check-pacote` **0 erro(s), 0 aviso(s)**. O ar, a 1280 e a 390:
+sumário→tabela **12px**, eixo→eixo **16px**, entre as perguntas do «depois» **12px** — nada
+encostado, e nenhum estouro horizontal.
 
-### 4. O validador do próprio projecto recusava o lançamento do próprio projecto
-
-Achado de raspão, e é o mais grave dos quatro. O `tools/validar-dados-ciclo.js` exigia `tecnica` e
-`funcional` em **toda** aula — os dois blocos do ciclo **Duo**. O ciclo da calango declara `solo`,
-`barra`, `centro`, `musicalidade`, `expressao` e `linha_de_base`, e o formulário escreve esses. O
-resultado: o lançamento de um ciclo real era **reprovado pelo validador do projecto**, e ninguém
-tinha lançado ainda para descobrir.
-
-A exigência contradizia a regra escrita no próprio ficheiro («as CHAVES DE BLOCO VARIAM por
-variante»). Os dois nomes saíram do `required`, e entrou a regra que eles tentavam garantir e
-garantiam só no Duo: **com gente presente, ao menos um bloco por pessoa** — senão o lançamento não
-observou ninguém, e isso é erro em qualquer variante.
-
-**Contraprova.** Com o `required` de `HEAD`, a `provar-formulario-da-aula` reprova o item D no
-`validar-dados-ciclo.js` («campo ausente: tecnica», «campo ausente: funcional»); e com o padrão do
-ajuste forçado a «sim» e a leitura da marca voltada a fazer-se por `id`, reprova **4 de 27**.
-
-**Medido.** `provar-formulario-da-aula` **27/27** (contraprova **4/27**); `provar-elenco-derivado`
-**12/12** (contraprova **6/12**); `provar-ar-das-paginas` **14/14**; `provar-corpo-da-linha-de-base`
-**31/31**; `provar-proveniencia-e-turma` **53/53**; `check-identidade` **0 erros**; `check-indices`
-**16/16**; `check-schemas` ok; `check-pacote` **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo
-**0 erro(s)**. O vão entre os blocos novos, medido a 1280 e a 390:
-legenda→intro 20px, intro→primeiro eixo 12px, eixo→dimensões 8px, dimensões→tabela 8px,
-«observado»→«depois» 16px, rótulo→campo do ajuste 6px — nada encostado, e nenhum estouro
-horizontal em nenhuma das duas larguras.
+**O que fica para a etapa seguinte.** Os itens da linha de base são gravados pelo **texto**, não por
+um slug — é o que falta para o índice de lançamentos contar «em quantas aulas a aluna X demorou a
+estabilizar o adágio». É a Etapa 3, e ela decide se avança.
 
 ## O que está pendente
 

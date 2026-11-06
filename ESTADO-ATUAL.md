@@ -4205,6 +4205,31 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   distância. Medido: `provar-titulo-e-barra` **31/31**, contraprova contra `HEAD` **4/31** (as quatro
   novas); `check-identidade` **0 erros**.
 
+- **06/11/2026** — **A matriz do lançamento: as alunas por linha, os aspectos por coluna.** Ela
+  viu o formulário pronto e disse o que faltava: *«a gente tem que elaborar um outro modelo onde a
+  parte de cima a gente tem por linha os alunos e por coluna a gente precisa acrescentar outras
+  colunas […] Eu não tenho essa linha de base orientada por aluno e eu preciso ter isso»*. Eram
+  **três blocos** para a mesma coisa, e dois errados: cinco tabelas com as mesmas duas colunas
+  repetidas (seis perguntas iguais por aluna), um bloco «o que se observou» com os mesmos
+  objectivos e **sem aluna**, e um bloco «linha de base revisitada» que **nunca funcionou** —
+  procurava no PO uma lista por aluna que o PO não tem e imprimia a lacuna para toda a gente. Os
+  quatro aspectos do recorte do passo 4 não tinham coluna nenhuma. Agora: o Corpo é uma tabela com
+  os quatro aspectos como colunas; a Técnica tem uma tabela por objectivo com **Solo · Barra ·
+  Centro** como colunas; a Poiesis, uma por objectivo com **Musicalidade · Expressão**. As colunas
+  não se inventam — são as da folha de captura, a mesma tríade do índice (§4.9: aula, data,
+  aluna, coluna, bloco, marca). Cada eixo é um `<details>` que diz no sumário quantas marcas tem
+  dentro, e o Corpo abre aberto. **Altura 3 876 → 2 209px**; tabelas 8 → 5; 14 marcas por aluna, e
+  todas com dono (antes 20, e 8 sem dono). **A pergunta do plano foi fundida:** «plano seguido» +
+  «precisou de ajuste» diziam a mesma coisa e passaram a uma pergunta de três estados com um texto
+  (`parcial`/`nao` → `mudou` e `relatorio.ajustes` recebem o mesmo texto). A data e a duração já
+  vinham do índice e do plano — medido: `2026-11-05` e `60`. **O validador passou a olhar os blocos
+  de itens** (`{aluna: [{item, marca}]}`), que passavam por «forma conferida pelo schema». Falta a
+  Etapa 3: o slug estável de cada item, para o índice contar «em quantas aulas». Medido:
+  `provar-formulario-da-aula` **34/34** (contraprova **7/34**), `provar-elenco-derivado` **12/12**,
+  `provar-ar-das-paginas` **14/14**, `provar-proveniencia-e-turma` **53/53**,
+  `provar-corpo-da-linha-de-base` **31/31**, `check-identidade` **0 erros**, `check-schemas` ok,
+  `gerar-ciclo.sh` **0 erro(s)**, `check-pacote` **0/0**.
+
 - **06/11/2026** — **O lançamento: a aluna que não existe, a página fora da casa, e os três textos
   que viram marcação.** Três coisas numa fala, e as três no **formulário do lançamento**. (a) *«aqui
   diz que tem presentes aluno A, B e C. Não é verdade»* — a turma tem **duas**; `derivarDados` e

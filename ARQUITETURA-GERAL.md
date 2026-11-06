@@ -1589,6 +1589,57 @@ da folha, e o cabeçalho é `<header class="doc">` como nas outras páginas. Foi
 mostrou o buraco da checagem **8 «Peça»**: ela olha **classes**, e o que escapava era a redeclaração
 de **elementos**.
 
+### 5.22 A matriz do lançamento — as alunas por linha, e o dado que o índice já exigia
+
+A §5.15 fez o «Item 7» do PO herdar os objectivos do plano e o recorte da linha de base, e a §5.21
+pôs o lançamento a escrever marcas em vez de prosa. Faltava o **por aluna**: ela viu o formulário
+pronto e disse *«Eu não tenho essa linha de base orientada por aluno e eu preciso ter isso»*.
+
+**O que estava errado era o desenho da tela, e o diagnóstico dela foi exacto.** As cinco tabelas da
+folha repetiam as mesmas duas colunas do plano em cada dimensão — seis perguntas iguais por aluna —,
+o bloco dos três eixos repetia os mesmos objectivos **sem aluna**, e o bloco da linha de base
+revisitada **nunca funcionou** (procurava no PO uma lista por aluna, `precisaDesenvolver`, que o PO
+não tem; o campo aparecia como «o PO não declara linha de base dela» para toda a gente). Resultado:
+os quatro aspectos que ela escolheu no recorte do passo 4 não tinham coluna em lugar nenhum.
+
+**A matriz, e porque é a forma certa e não uma preferência.** As linhas são as alunas, as colunas
+são os aspectos, e cada coluna é uma coluna da folha de captura — no bloco da dimensão a que
+pertence. É exactamente a tríade que o [§4.9 do `PLANO-INDICES.md`](/home/mti/bibTex/danca/PLANO-INDICES.md:560)
+declarava antes de haver formulário que a produzisse: **aula, data, aluna, coluna, bloco, marca**.
+E é o que `AL03`, `AL04` e `OB01` contam («contagem por coluna × aula»).
+
+| Eixo | Forma | Por aluna |
+|:--|:--|:--:|
+| Corpo | uma tabela, colunas = os quatro aspectos do recorte | 4 |
+| Técnica | uma tabela por objectivo, colunas = Solo · Barra · Centro | 6 |
+| Poiesis | uma tabela por objectivo, colunas = Musicalidade · Expressão | 4 |
+
+O objectivo, que era **coluna** em cinco tabelas, passa a ser o **título** de uma tabela; as
+dimensões, que eram **títulos**, passam a ser as **colunas**. Nada se perde e nada se repete.
+
+**A decisão dela, e a consequência que se diz em voz alta.** Ela escolheu manter os espaços como
+colunas (a alternativa colapsava-os e perdia «alinhou na barra e não no centro»). Com essa escolha a
+matriz **não reduz o número de marcas** — 14 por aluna em vez de 20 —; o que ela reduz é a repetição,
+e o que ela acrescenta são os quatro do corpo, agora com dono. Em troca, 8 marcas que não tinham
+aluna deixaram de existir.
+
+**A forma da tela.** Cada eixo é um `<details>` cujo sumário diz quantas marcas tem lá dentro («0 de
+12 marcados»), e abre quando já tem alguma — o Corpo abre sempre, porque é a âncora da aula. Um eixo
+fechado não esconde trabalho feito nem trabalho por fazer. Altura: 3 876px → 2 209px.
+
+**A pergunta que se fazia duas vezes.** «Plano seguido?» (com o campo do «o que mudou») e «Precisou
+de ajuste?» (com outro campo) diziam a mesma coisa; ficou uma pergunta de três estados — `sim`,
+`parcial`, `nao` — com um texto obrigatório fora do `sim`. O `condicoes_contorno.mudou` e o
+`relatorio.ajustes` recebem o mesmo texto: dois leitores, um escritor.
+
+**O que fica em aberto, e é a peça seguinte.** Os itens da linha de base são gravados pelo **texto**,
+não por um slug. Sem uma chave estável, o índice de lançamentos não consegue encadear a mesma marca
+em aulas diferentes — e a pergunta que ela fez («em quantas aulas ela demorou para estabilizar o
+adágio?») fica sem resposta. É a Etapa 3.
+
+**Contraprova.** Com o corpo a ler as linhas vazias da folha, o plano seguido a valor duro e o
+validador sem olhar os blocos de itens, a `provar-formulario-da-aula` reprova **7 de 34**.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|
