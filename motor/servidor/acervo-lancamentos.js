@@ -286,7 +286,19 @@ async function consolidarDoKv({ armazenamento, acervo, senhaCripto, escola, prof
       const partes = partesDaChave('lancamento/' + chave);
       if (!partes) { falhas.push({ chave, erro: 'não sei ler esta chave' }); continue; }
       const r = await acervo.guardar('lancamento/' + chave, texto);
-      feitos.push({ chave, caminho: r.caminho, aulas: r.aulas, semMudanca: Boolean(r.semMudanca) });
+      /* A VARIANTE VAI NA RESPOSTA (06/11/2026). Quem chamou precisa dela para pedir a geração
+       * do pacote certo — sem isso o resgate grava a fonte e o site continua a mostrar a versão
+       * anterior, que é o mesmo sintoma uma camada abaixo. Ela sai do NOME do ficheiro, como em
+       * todo o resto deste módulo. */
+      feitos.push({
+        chave,
+        caminho: r.caminho,
+        aulas: r.aulas,
+        semMudanca: Boolean(r.semMudanca),
+        professor: partes.professor,
+        ciclo: partes.ciclo,
+        variante: varianteDoNome(partes.nome),
+      });
     } catch (erro) {
       falhas.push({ chave, erro: erro.message });
     }

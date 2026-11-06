@@ -31,6 +31,10 @@
  *   F. O MESMO CARIMBO DUAS VEZES é o mesmo acto — não se escreve de novo.
  *   G. O DISPARO LEVA A VARIANTE, não a escola: o contexto do lançamento não tem `turma`, e a
  *      variante vem inteira no nome do ficheiro. É o rótulo da execução que a tela procura.
+ *   H. O RESGATE ESTÁ LIGADO À PORTA: a rota `/api/lancamentos/consolidar` chega ao acto — e a
+ *      contraprova é a mesma porta sem ele, a dizer «não está disponível».
+ *   I. O RESGATE DEVOLVE A VARIANTE: é o que deixa pedir a geração do pacote certo. A repetição
+ *      do acto não escreve de novo (idempotente).
  *
  *   node experimentos/provar-familia-do-lancamento.js
  */
@@ -334,6 +338,42 @@ async function main() {
     const d2 = await r2.json();
     provar('…e sem o acto ligado a porta diz que não está disponível — o defeito, a correr',
       d2 && d2.ok === false && /não está disponível/.test(String(d2.erro)), d2);
+  }
+
+  // -------------------------------------------------------------------------------------------
+  console.log('\nI. O resgate devolve a VARIANTE — e é ela que deixa pedir a geração certa');
+  {
+    /* A MESMA METADE DO DEFEITO, agora no remédio. O resgate grava a fonte; o site serve o
+     * PACOTE. Quem chama o acto precisa da variante para pedir a geração do pacote certo —
+     * sem ela, o resgate repetiria o sintoma que veio corrigir. A variante sai do NOME do
+     * ficheiro resgatado, como em todo o resto do módulo. */
+    const chaveVelha = 'calango/rabo-gramde/01-2026-11-06T1537/' + NOME;
+    const kv = {
+      async listar(prefixo) { return String(prefixo) === 'calango/rabo-gramde/' ? [chaveVelha] : []; },
+      async ler(chave) { return chave === chaveVelha ? JSON.stringify(DADOS_DEPOIS) : null; },
+    };
+    const gh = githubFalso({});
+    const r = await lanc.consolidarDoKv({
+      armazenamento: kv,
+      acervo: lanc.criarAcervoDeLancamentos({ token: 'x', fetchImpl: gh.fetchImpl }),
+      senhaCripto: null,
+      escola: 'calango',
+      professor: 'rabo-gramde',
+    });
+    provar('o resgate grava a fonte no caminho canónico', gh.arquivos.has(VALOR_DADOS),
+      [...gh.arquivos.keys()]);
+    provar('…e devolve a variante, o professor e o ciclo do que resgatou',
+      r.consolidados.length === 1
+        && r.consolidados[0].variante === 'calango-bale-nivel-1-teste-1'
+        && r.consolidados[0].professor === 'rabo-gramde'
+        && r.consolidados[0].ciclo === '01',
+      r.consolidados);
+    provar('…e a repetição do acto não volta a escrever (é idempotente)',
+      (await lanc.consolidarDoKv({
+        armazenamento: kv,
+        acervo: lanc.criarAcervoDeLancamentos({ token: 'x', fetchImpl: gh.fetchImpl }),
+        senhaCripto: null, escola: 'calango', professor: 'rabo-gramde',
+      })).consolidados[0].semMudanca === true);
   }
 
   console.log('');

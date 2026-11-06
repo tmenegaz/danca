@@ -392,13 +392,44 @@ async function fetch(request, env, opcoes) {
   /* A CONSOLIDAÇÃO DO QUE FICOU NO KV (06/11/2026) — o acto que resgata os lançamentos gravados
    * antes de a família `lancamento/` existir. Lê o armazenamento antigo (o KV), decifra com a
    * `SENHA_CRIPTO` e grava na fonte. Ver `acervo-lancamentos.js`. */
-  const consolidarLancamentos = (opcoes) => consolidarDoKv(Object.assign({
-    armazenamento: acervo.doAmbiente(env, { legado: criarCloudflare(env) }),
-    acervo: criarAcervoDeLancamentos({ token: (env && env.GITHUB_TOKEN) || null }),
-    senhaCripto: (env && env.SENHA_CRIPTO) || null,
-    escola: (env && env.ESCOLA_SLUG) || '',
-    Cifra,
-  }, opcoes || {}));
+  const consolidarLancamentos = async (opcoes) => {
+    const resultado = await consolidarDoKv(Object.assign({
+      armazenamento: acervo.doAmbiente(env, { legado: criarCloudflare(env) }),
+      acervo: criarAcervoDeLancamentos({ token: (env && env.GITHUB_TOKEN) || null }),
+      senhaCripto: (env && env.SENHA_CRIPTO) || null,
+      escola: (env && env.ESCOLA_SLUG) || '',
+      Cifra,
+    }, opcoes || {}));
+    /* O ACTO TERMINA NA GERAÇÃO (06/11/2026). Gravar a fonte é metade: o site serve o PACOTE, e
+     * o pacote muda quando a geração corre. Sem este passo, o resgate gravaria o dado certo e o
+     * professor continuaria a ver a aula por lançar — o defeito a repetir-se no próprio remédio.
+     * Dispara-se uma vez por variante que MUDOU (o `semMudanca` evita re-dispatch numa repetição
+     * do acto), e a falha do disparo não desfaz o resgate — ela vem na resposta. */
+    const mudaram = ((resultado && resultado.consolidados) || []).filter((c) => !c.semMudanca && c.variante);
+    if (mudaram.length && typeof disparar === 'function') {
+      const alvos = [];
+      for (const c of mudaram) {
+        const chave = c.professor + '/' + c.ciclo + '/' + c.variante;
+        if (!alvos.some((a) => a.chave === chave)) {
+          alvos.push({ chave, professor: c.professor, ciclo: c.ciclo, variante: c.variante });
+        }
+      }
+      resultado.disparos = [];
+      for (const a of alvos) {
+        try {
+          resultado.disparos.push(await disparar({
+            professor: a.professor,
+            ciclo: a.ciclo,
+            escola: (env && env.ESCOLA_SLUG) || '',
+            variante: a.variante,
+          }));
+        } catch (erro) {
+          resultado.disparos.push({ ok: false, erro: erro.message });
+        }
+      }
+    }
+    return resultado;
+  };
   const responder = montarPorta({
     armazenamento: criarArmazenamento(env),
     conteudoTexto,

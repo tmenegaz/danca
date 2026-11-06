@@ -38688,14 +38688,17 @@ lançamentos é o do Git — apagar o KV deixa de apagar nada.
 antigo, decifra com a `SENHA_CRIPTO` do Worker e grava na fonte. É um **acto, e não um serviço**:
 corre quando alguém o pede, diz o que consolidou, e não apaga as chaves de origem — uma migração que
 apaga não pode ser repetida, e é a repetição que garante que um erro de percurso não custou o dado.
+E o acto **termina na geração**: por cada variante que mudou, ele dispara o `gerar-ciclo`. Sem isso,
+o resgate gravaria a fonte certa e o ecrã continuaria a mostrar a aula por lançar — o defeito a
+repetir-se no próprio remédio. A repetição do acto (`semMudanca`) não volta a disparar.
 
-**A prova:** `experimentos/provar-familia-do-lancamento.js`, **32 asserções**. Mede que a chave tem
+**A prova:** `experimentos/provar-familia-do-lancamento.js`, **35 asserções**. Mede que a chave tem
 família e que o composto real (`combinar`) a entrega ao repositório **e não ao KV** (com um KV de
 mentira que registra o que lhe tentam escrever), que o destino é o caminho do `fonte_dados()` — lido
 do próprio `lib-fontes.sh`, não repetido à mão —, que a fusão preserva a aula que já estava, que o
 `depois` recebe a **variante** (sem ela o disparo não sabe que pacote gerar), que um disparo falhado
 não desfaz a gravação, que o `ciclos.json` do cliente **não** vai para o repositório (é gerado), e
-que o mesmo carimbo duas vezes não escreve duas. **Contraprova: 6 de 32** — tirar a família da chave
+que o mesmo carimbo duas vezes não escreve duas. **Contraprova: 6 de 35** — tirar a família da chave
 (o estado de antes) reprova a secção A inteira, e o KV volta a engolir o lançamento.
 
 **A segunda metade do mesmo defeito, apanhada pela prova e não pelo relato.** Gravar na fonte é
@@ -38723,7 +38726,7 @@ contrato e não confere senha nenhuma (o `wrangler.<escola>.jsonc` aponta para `
 → `producao.js`). O comentário dele diz que é ele que atende `/api/receber` em produção, e não é. Fica
 registado; apagá-lo é um passo próprio, com a prova do `recredenciamento` da escola a correr antes.
 
-**Validação:** `provar-familia-do-lancamento` **32/32**, contraprova **6/32**; `check-identidade`
+**Validação:** `provar-familia-do-lancamento` **35/35**, contraprova **6/35**; `check-identidade`
 **0 erros** (e `--sem-pacotes` **0 erros**); `check-indices` **16/16**; `check-github-headers`
 **5/5**; `check-pacote` **0 erro(s), 0 aviso(s)**; `provar-senha-do-lancamento` **19/19**;
 `provar-relacoes` **35/35**; `provar-indice-de-lancamentos` **24/24**; `provar-formulario-da-aula`
