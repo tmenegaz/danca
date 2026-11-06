@@ -137,6 +137,35 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-novo-registo-e-ciclo.js` | **o «Novo registo» da anamnese, o ciclo de cada fonte e a linha a apagar**: o `?novo=` abre o formulário e NÃO volta à lista (a travava de entrada não conhecia o `DUPLICANDO`), o retrato anterior chega preenchido ao campo do nó que o guarda, a anamnese não pede ciclo (nem no texto do cabeçalho, nem na marcação), o ciclo do PO é uma LISTA com os ciclos que têm plano de ensino (o 02 sem plano não aparece) e o do plano continua travado no próximo; e o véu/spinner da linha apagada, medidos no Chrome (24 asserções). O acervo é o verdadeiro: `producao.fetch` com os envelopes no KV falso — um stub incompleto faz o arranque rebentar a meio e dá um verde falso à primeira asserção | **sim** (Chrome) |
 | `provar-logo-volta-ao-inicio.js` | a **marca da barra** é um link para a raiz do domínio: o `href` absoluto (e não `index.html`, que é três destinos), o nome acessível, os três consumidores — abertura do pacote, barra do sistema e a ponte —, o slot vazio **e** o preenchido dos pacotes já gerados, e a idempotência (22 asserções) | não |
 
+## A publicação que a bancada serve (06/11/2026) — o critério é o do DEPLOY
+
+As bancadas que medem uma página servida precisam de uma **publicação montada**
+(`publicacao/<escola>`), e `lib-pacote.publicacaoDeUmaEscolaComCiclo()` é quem a prepara. Ela
+exigia um pacote com **páginas geradas** (`aula-01.html`, `plano.html`), e passou a exigir o que o
+`deploy-escolas.yml` exige: **o pacote-zero existe e a escola está viva**.
+
+A razão foi medida. Depois do expurgo da `batata`, a única escola viva é a **`calango`**, e o
+pacote dela é um **esqueleto** — `ciclo-01-calango/` tem `index.html`, `plano-observacao/` e
+`assets/`, e mais nada, porque o ciclo ainda não foi gerado. O resultado era **quatro bancadas
+paradas** a dizer «nenhuma publicação para servir», que se lê como «não há nada a medir» quando há
+uma escola **a funcionar** em produção. A pesquisadora: *«está funcionando o calango, é essa que eu
+estou usando para teste… você tem que olhar o que está ativo.»* Duas definições de «esta escola tem
+o que publicar» divergiriam — e a que ficasse para trás seria a do ecrã.
+
+A função devolve agora `{ dir, escola, paginas }`, e `paginas` distingue um ciclo **gerado** de um
+**esqueleto**. Quem mede o documento pergunta por ela e diz **NÃO FEITO** quando não há; quem mede
+o painel, a barra ou a caixinha do ato não precisa dela e **corre na mesma**. Foi o que aconteceu
+com `provar-painel-do-ato`: **130 asserções verdes** na `calango`, com as secções 17 e 18 (o
+documento acende a lista, o caminho do documento) declaradas NÃO FEITAS pelo nome — em vez de a
+prova inteira morrer num `process.exit(2)` que levava consigo dezasseis secções boas.
+
+**A lição que custou três defeitos de bancada no mesmo dia:** o nome de uma escola escrito à mão
+apodrece. `provar-painel-do-ato` levava `publicacao/batata` no diretório dos assets, `'batata'` na
+resposta do stub, `https://batata.…workers.dev` no `Request` que alimenta a ponte e `01` a mais na
+chave da memória da anamnese (que não tem ciclo desde 05/11). Com a ponte a comparar o subdomínio
+com o `ESCOLA_SLUG`, o resultado era um **500** e uma página em branco — que a prova lia como «a
+caixinha do ato não existe». Nada disso era o desenho: era o fixture.
+
 ## Escolas de teste (19/10/2026) — o fixture não mora aqui
 
 Uma escola cujo **nome** traz `Calango`, `Batata` ou `Breu` recebe, nos formulários, os

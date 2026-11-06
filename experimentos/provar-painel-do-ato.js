@@ -55,7 +55,15 @@ function kvDeMentira(inicial) {
 const rel = (id) => ({ id, estado: 'x', contagem: { respondidos: 0, obrigatorios: 0 }, elos: [], paradas: [],
   idsDesconhecidos: [], validacao: { resultado: 'aceite', contrato: 'prova' }, errosDoDocumento: [], linhas: [] });
 
-const DIR = path.join(raiz, 'publicacao', 'batata');
+/* A ESCOLA E O DIRETÓRIO SÃO DESCOBERTOS, E NÃO ESCRITOS À MÃO (06/11/2026).
+   Aqui esteve `publicacao/batata`, e o `Request` que alimenta a ponte levava
+   `https://batata.tmenegaz77.workers.dev`. Quando a `batata` foi expurgada e a única escola viva
+   passou a ser a `calango`, a bancada continuou a pedir o subdomínio da `batata` — e a ponte, que
+   compara o subdomínio com o `ESCOLA_SLUG`, respondia 500 «Configuração incorreta do Worker». A
+   prova lia um documento VAZIO e dizia que a caixinha do ato não existia. Não era o desenho: era
+   o nome. Ficam `let` porque quem os preenche é a descoberta, dentro do arranque. */
+let ESCOLA = '';
+let DIR = '';
 const ALUNAS = ['Aluna A', 'Aluna B', 'Aluna C'];
 const PROFS = [{ nome: 'Cafe No Bule', slug: 'cafe-no-bule' }, { nome: 'Manga Curta', slug: 'manga-curta' }];
 /* O cofre dos bilhetes da bancada, e o registo do que o painel pediu ao emiti-los: é por este
@@ -86,7 +94,7 @@ const servidor = http.createServer(async (req, res) => {
        salto direto, que respeita a trava, nunca acontecia. O defeito era da bancada, e ele
        escondia exactamente o que a secção 10 queria medir. */
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, escola: 'batata', professores: PROFS }));
+    return res.end(JSON.stringify({ ok: true, escola: ESCOLA, professores: PROFS }));
   }
   if (u.pathname === '/api/bastidores/alunas') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -143,7 +151,7 @@ const servidor = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({
         id: decodeURIComponent(m[2]),
-        contexto: { escola: 'batata', professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' },
+        contexto: { escola: ESCOLA, professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' },
         respostas: {
           idade: { valor: '32' },
           'contexto-turma': { valor: 'Balé Nível 2' },
@@ -198,7 +206,7 @@ const servidor = http.createServer(async (req, res) => {
   }
   // o resto → a ponte real
   const env = global.ENV;
-  const r = await producao.fetch(new Request('https://batata.tmenegaz77.workers.dev' + req.url), env);
+  const r = await producao.fetch(new Request('https://' + ESCOLA + '.tmenegaz77.workers.dev' + req.url), env);
   const texto = await r.text();
   res.writeHead(r.status, { 'Content-Type': r.headers.get('content-type') || 'text/html; charset=utf-8' });
   res.end(texto);
@@ -222,7 +230,13 @@ const servidor = http.createServer(async (req, res) => {
     process.exit(2);
   }
   const dir = montada.dir;
-  const ESCOLA = montada.escola;
+  ESCOLA = montada.escola;
+  DIR = dir;
+  /* `TEM_PAGINAS` distingue um ciclo GERADO de um ESQUELETO. A escola viva de hoje (a `calango`) é
+     um esqueleto: tem a porta, os assets e o `index.html`, e não tem `plano.html` nem
+     `aula-01.html` porque o ciclo ainda não foi gerado. As secções que medem o DOCUMENTO dizem
+     NÃO FEITO por isso — as que medem o PAINEL, a BARRA e a CAIXINHA correm na mesma. */
+  const TEM_PAGINAS = montada.paginas !== false;
   const kv = kvDeMentira({
     ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([{ id: 'c', professor: 'cafe-no-bule',
       modalidade: 'balé', tradicao: 'clássico', turmas: ['Balé Nível 1'], alunas: ['Aluna A'] }]),
@@ -246,33 +260,72 @@ const servidor = http.createServer(async (req, res) => {
   const b = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
     args: ['--no-sandbox'] });
   const p = await b.newPage();
+  /* A ESCOLA CHEGA À JANELA EM TODO DOCUMENTO NOVO, e não numa injeção por navegação: as chaves
+   * da memória (`porta-anamnese-<escola>-<prof>-<ciclo>-<aluna>-1`, `ato-<escola>-anamnese-1`) são
+   * as que a PÁGINA calcula a partir do `ESCOLA_SLUG` do Worker. A bancada tem de as escrever
+   * iguais — e escrevê-las à mão com o nome de outra escola foi o que a deixou a medir o vazio
+   * depois do expurgo. `evaluateOnNewDocument` corre antes de qualquer script da página e
+   * sobrevive ao `reload()`, que é onde a injeção simples se perderia. */
+  await p.evaluateOnNewDocument((escola) => { window.ESCOLA = escola; }, ESCOLA);
   const erros = []; p.on('pageerror', (e) => erros.push(e.message));
   let falhas = 0;
-  const ok = (t, c, d) => { if (c) console.log('  ok    ' + t);
+  let passadas = 0;
+  /* AS SECÇÕES QUE NÃO SE PODEM MEDIR, e não são falhas. Uma escola viva pode ser um ESQUELETO —
+     `ciclo-01-calango/` tem a porta e mais nada, porque o ciclo ainda não foi gerado —, e nesse
+     estado as secções que navegam para `/ciclos/<variante>/plano.html` não têm onde ir. Antes
+     disto o `process.exit(2)` matava a PROVA INTEIRA, e com ela 16 secções que nada têm a ver com
+     o documento: medir o que existe passou a ser possível, e o que falta diz-se pelo nome. */
+  const naoFeitas = [];
+  const naoFeito = (seccao, motivo) => {
+    naoFeitas.push(seccao + ' — ' + motivo);
+    console.log('  NÃO FEITO ' + seccao + ' — ' + motivo);
+  };
+  const ok = (t, c, d) => { if (c) { passadas += 1; console.log('  ok    ' + t); }
     else { falhas += 1; console.log('  FALHOU ' + t + (d === undefined ? '' : ' → ' + JSON.stringify(d))); } };
 
   /* `limpar` É UM PARÂMETRO, e não um hábito. A prova grava um preenchimento interrompido no
      `localStorage` e recarrega para o ver; um `clear()` escondido dentro do `abrir()` apagava-o
      e a secção media a ausência do que ela própria tinha acabado de criar. */
+  /* A PÁGINA PODE NAVEGAR SOZINHA — e a bancada tem de a esperar (06/11/2026).
+   *
+   * O `?abrir=1` da porta, o bilhete que redirecciona, a página que se reescreve no histórico:
+   * todos acontecem DEPOIS do `load`, e um `evaluate` que caia nesse instante morre com
+   * «Execution context was destroyed» — que se lê como defeito da página e é pressa da prova. Já
+   * matou a secção 13 depois de 129 asserções verdes.
+   *
+   * `seguro` espera que a rede sossegue e tenta outra vez; o que ele NÃO faz é engolir um erro que
+   * não seja esse. Um `evaluate` que falhe por outra razão continua a falhar alto. */
+  const seguro = async (fn) => {
+    for (let i = 0; i < 3; i += 1) {
+      try { return await p.evaluate(fn); } catch (e) {
+        if (!/context was destroyed|Execution context|detached/i.test(String(e && e.message))) throw e;
+        await p.waitForNetworkIdle({ idleTime: 250, timeout: 4000 }).catch(() => {});
+        await new Promise((r) => setTimeout(r, 250));
+      }
+    }
+    return p.evaluate(fn);
+  };
+  const sossegar = () => p.waitForNetworkIdle({ idleTime: 300, timeout: 5000 }).catch(() => {});
   const abrir = async (caminho, largura, opcoes) => {
     const limpar = !opcoes || opcoes.limpar !== false;
     await p.setViewport({ width: largura, height: 900 });
     await p.goto(base + caminho, { waitUntil: 'load' });
-    if (limpar) await p.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
-    if (limpar) await p.reload({ waitUntil: 'load' });
+    await sossegar();
+    if (limpar) await seguro(() => { try { localStorage.clear(); } catch (e) {} });
+    if (limpar) { await p.reload({ waitUntil: 'load' }); await sossegar(); }
     /* O MENU «AÇÕES» (25/10/2026, segunda leitura). No telemóvel ele é a única porta para os
        três espaços: escolher «criar» abre o bloco do ato com o contexto JÁ EXPANDIDO — e é isso
        que se chama aqui, porque sem esse passo o painel está fechado e a medição diria «não
        existe» sobre o que existe. No computador o botão não se vê e os blocos estão à vista; a
        escolha não faz nada. */
-    await p.evaluate(() => {
+    await seguro(() => {
       const bloco = document.getElementById('bloco-ato');
       const b = document.getElementById('botao-acoes');
       const item = document.querySelector('[data-abrir="ato"]');
       if (bloco && bloco.hidden && b && item) { b.click(); item.click(); }
       else if (bloco && bloco.hidden) bloco.hidden = false;
     });
-    await p.evaluate(() => new Promise((r) => setTimeout(r, 350)));
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 350))).catch(() => {});
   };
   const estado = () => p.evaluate(() => {
     /* UM `summary` É VISÍVEL COM O `details` FECHADO — é ele que o abre. A guarda do
@@ -320,7 +373,7 @@ const servidor = http.createServer(async (req, res) => {
   ok('«gerar ficha» está no menu, como as outras duas acções',
     e.itensDoMenu.indexOf('Gerar ficha') !== -1, e.itensDoMenu);
 
-  console.log('\n2 · Escolher professor, ciclo, aluna e a senha certa');
+  console.log('\n2 · Escolher professor, aluna e a senha certa');
   await p.evaluate(() => {
     const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
     pr.dispatchEvent(new Event('change'));
@@ -338,8 +391,11 @@ const servidor = http.createServer(async (req, res) => {
   });
   await p.evaluate(() => new Promise((r) => setTimeout(r, 900)));
   e = await estado();
-  ok('o resumo da caixinha diz o contexto inteiro',
-    /Cafe No Bule/.test(e.resumo) && /ciclo 01/.test(e.resumo) && /Aluna A/.test(e.resumo), e.resumo);
+  /* A ANAMNESE NÃO TEM CICLO (05/11/2026), e o resumo reflecte-o: quem/nome e aluna, e mais nada.
+     A asserção antiga exigia «ciclo 01» — media o formulário de antes, e passou a exigir de uma
+     página aquilo que se lhe tirou de propósito. Invertida, não apagada. */
+  ok('o resumo da caixinha diz o contexto da anamnese — quem e aluna, SEM ciclo',
+    /Cafe No Bule/.test(e.resumo) && /Aluna A/.test(e.resumo) && !/ciclo/.test(e.resumo), e.resumo);
   ok('com o contexto e a senha, «Nova» fica habilitado', e.novaDesab === false, e.novaDesab);
   ok('e o aviso do que falta desaparece', !/Falta o contexto/.test(e.estado || ''), e.estado);
 
@@ -352,16 +408,18 @@ const servidor = http.createServer(async (req, res) => {
     if (document.getElementById('ato-aluna').value) q.push('aluna=' + encodeURIComponent(document.getElementById('ato-aluna').value));
     return '/anamnese/' + (q.length ? '?' + q.join('&') : '');
   });
-  ok('o destino tem professor, ciclo e aluna',
-    /professor=cafe-no-bule/.test(destino) && /ciclo=01/.test(destino) && /aluna=Aluna(\+|%20)A/.test(destino),
-    destino);
+  ok('o destino tem professor e aluna — e NÃO leva ciclo, que a anamnese não tem',
+    /professor=cafe-no-bule/.test(destino) && /aluna=Aluna(\+|%20)A/.test(destino)
+    && !/ciclo=/.test(destino), destino);
 
   /* Simular um preenchimento interrompido: gravar na chave da PORTA. A CHAVE LEVA A ALUNA
      (26/10/2026) — sem ela, o depósito de uma aluna era restaurado no ato de outra, e as
      respostas de uma iam para o documento da outra. Esta prova escreve a chave à mão, e por
-     isso tem de a escrever como a porta a escreve: `…-<ciclo>-<aluna>-1`. */
+     isso tem de a escrever como a porta a escreve — e a ANAMNESE NÃO TEM CICLO (05/11/2026), por
+     isso aqui esteve um `01` a mais e a chave não casava. É `porta-anamnese-<escola>-<professor>
+     -<aluna>-1`. */
   await p.evaluate(() => {
-    localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
+    localStorage.setItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1',
       /* Com uma RESPOSTA da pessoa: «há o que continuar» é isso, e não o depósito (26/10/2026). */
       JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00.000Z', indice: 7,
         respostas: [['idade', '32']], notas: [], sugeridas: [] }));
@@ -387,7 +445,7 @@ const servidor = http.createServer(async (req, res) => {
   ok('«Nova» volta', e.nova === true, e.nova);
   ok('«continuar» desaparece', e.continuar === false);
   ok('«recomeçar» desaparece', e.recomecar === false);
-  const mem = await p.evaluate(() => localStorage.getItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1'));
+  const mem = await p.evaluate(() => localStorage.getItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1'));
   ok('a memória foi mesmo apagada', mem === null, mem);
 
   console.log('\n5 · O PO: sem curadoria, a trava da direção');
@@ -425,7 +483,7 @@ const servidor = http.createServer(async (req, res) => {
      * que corrigir. A porta diz «✗ senha não reconhecida»; aqui o estado passa a dizê-lo também. */
     await abrir('/area-do-professor/anamnese/', 390);
     await p.evaluate(() => {
-      localStorage.setItem('ato-batata-anamnese-1',
+      localStorage.setItem('ato-' + window.ESCOLA + '-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
     });
     await p.reload({ waitUntil: 'load' });
@@ -469,10 +527,10 @@ const servidor = http.createServer(async (req, res) => {
      * forma das acções: com `.acao` em todas, as mesmas duas pediam 97px e duas filas. */
     await abrir('/area-do-professor/anamnese/', 390);
     await p.evaluate(() => {
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
+      localStorage.setItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z',
           indice: 3, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
-      localStorage.setItem('ato-batata-anamnese-1',
+      localStorage.setItem('ato-' + window.ESCOLA + '-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
     });
     /* AQUI A ORDEM IMPORTA: grava-se, RECARREGA-SE e é o `abrir()` que escolhe «criar». Um
@@ -797,9 +855,12 @@ const servidor = http.createServer(async (req, res) => {
       p.evaluate(() => document.querySelector('[data-acao="nova"]').click()),
     ]).then(() => p.url());
     const pedido = LASTRO_DO_ATO[LASTRO_DO_ATO.length - 1] || {};
+    /* O BILHETE LEVA O QUE O ATO TEM — e a anamnese não tem ciclo (05/11/2026). A asserção
+       exigia `ciclo: '01'` e passou a exigir de um ato um campo que se lhe tirou de propósito;
+       o que ela mede agora é a REGRA: o ciclo vai VAZIO, e a aluna vai. */
     ok('o painel pediu o bilhete ao servidor, com a senha e o ato',
       pedido.senha === 'certa' && pedido.professor === 'cafe-no-bule'
-      && pedido.fonte === 'anamnese' && pedido.ciclo === '01' && pedido.aluna === 'Aluna A', pedido);
+      && pedido.fonte === 'anamnese' && pedido.ciclo === '' && pedido.aluna === 'Aluna A', pedido);
     ok('…e a senha NÃO vai no endereço', !/senha=/.test(destino || ''), destino);
     ok('…o bilhete vai', /ato=a{32}/.test(destino || ''), destino);
 
@@ -855,10 +916,10 @@ const servidor = http.createServer(async (req, res) => {
       /* UMA RESPOSTA DA PESSOA, e não um depósito qualquer: «há o que continuar» é uma resposta
          que ela deu à mão. As sugestões da semeadura viajam em `sugeridas` e não contam — é o que
          impede o botão de aparecer a quem só abriu o formulário. */
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
+      localStorage.setItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z',
           indice: 2, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
-      localStorage.setItem('ato-batata-anamnese-1',
+      localStorage.setItem('ato-' + window.ESCOLA + '-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
     });
     await abrir('/area-do-professor/anamnese/', 1280, { limpar: false });
@@ -906,7 +967,7 @@ const servidor = http.createServer(async (req, res) => {
        — o que a semeadura deixa atrás de si a quem apenas abriu o formulário — não é trabalho
        nenhum, e não pode produzir «continuar». */
     await p.evaluate(() => {
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
+      localStorage.setItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1',
         JSON.stringify({ respondidos: 3, total: 53, quando: '2026-10-26T09:00:00Z',
           indice: 0, respostas: [['idade', '30'], ['formacao', 'ballet']],
           notas: [], sugeridas: ['idade', 'formacao'] }));
@@ -924,7 +985,7 @@ const servidor = http.createServer(async (req, res) => {
 
     /* E AGORA COM UMA RESPOSTA DA PESSOA, e SEM senha. */
     await p.evaluate(() => {
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
+      localStorage.setItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-26T09:05:00Z',
           indice: 2, respostas: [['idade', '32']], notas: [], sugeridas: [] }));
     });
@@ -975,7 +1036,7 @@ const servidor = http.createServer(async (req, res) => {
      * dele continua no `localStorage` depois de a página arrancar. */
     const sobreviveu = await p.evaluate(() => {
       try {
-        const d = JSON.parse(localStorage.getItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1') || 'null');
+        const d = JSON.parse(localStorage.getItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1') || 'null');
         return d && Array.isArray(d.respostas)
           ? d.respostas.some((par) => Array.isArray(par) && par[0] === 'idade') : false;
       } catch (e) { return false; }
@@ -1005,7 +1066,19 @@ const servidor = http.createServer(async (req, res) => {
     });
     const ctx = '?professor=cafe-no-bule&ciclo=01&aluna=Aluna+A';
 
-    await abrir('/anamnese/' + ctx + '&abrir=1', 1280);
+    /* A PORTA DA ANAMNESE NÃO SE ABRE SEM AUTORIZAÇÃO (06/11/2026) — e a bancada estava a pedir
+     * uma página que, sem senha e sem bilhete, devolve à lista: `podePreencher` exige
+     * `SENHA_VALIDA || ATO_AUTORIZADO || emEdicao || retomando`. O caminho de PRODUÇÃO é o
+     * bilhete que a lista emite ao clicar «Nova anamnese», e é esse que se usa aqui — sem ele, o
+     * que se media era a barra da LISTA, e as duas asserções do caminho reprovavam sobre uma
+     * página que nunca chegou a abrir.
+     *
+     * `limpar: false` porque o bilhete é de UM USO: um `reload()` a seguir encontrá-lo-ia gasto e
+     * voltaria à lista — o mesmo defeito de «abre e fecha» que a página já corrigiu uma vez. */
+    const bilheteCriar = 'b'.repeat(32);
+    BILHETES.set(bilheteCriar, { fonte: 'anamnese', professor: 'cafe-no-bule', ciclo: '',
+      aluna: 'Aluna A', plano: '', expira: Date.now() + 600000 });
+    await abrir('/anamnese/' + ctx + '&abrir=1&ato=' + bilheteCriar, 1280, { limpar: false });
     const criar = await caminho();
     ok('a anamnese nova diz «Fazer anamnese» na barra', criar && criar.agora === 'Fazer anamnese', criar);
     ok('…e o degrau do meio é a lista de onde se veio, clicável',
@@ -1103,9 +1176,9 @@ const servidor = http.createServer(async (req, res) => {
     const semear = (comDeposito) => p.evaluate((com) => {
       localStorage.clear();
       if (!com) return;
-      localStorage.setItem('ato-batata-anamnese-1',
+      localStorage.setItem('ato-' + window.ESCOLA + '-anamnese-1',
         JSON.stringify({ professor: 'cafe-no-bule', ciclo: '01', aluna: 'Aluna A' }));
-      localStorage.setItem('porta-anamnese-batata-cafe-no-bule-01-Aluna A-1',
+      localStorage.setItem('porta-anamnese-' + window.ESCOLA + '-cafe-no-bule-Aluna A-1',
         JSON.stringify({ respondidos: 7, total: 53, quando: '2026-10-25T13:05:00Z', indice: 2,
           respostas: [['idade', '32']], notas: [], sugeridas: [] }));
     }, comDeposito);
@@ -1383,197 +1456,211 @@ const servidor = http.createServer(async (req, res) => {
     return achadas.length ? achadas[0] : '';
   })();
   if (!VAR) {
-    console.error('provar-painel-do-ato: a montagem de ' + ESCOLA + ' não tem pasta de variante '
-      + '(plano.html + aula-01.html) — NÃO FEITO.');
-    process.exit(2);
+    /* O ESQUELETO FOI O CASO REAL (06/11/2026): a `calango` está viva e a funcionar, e o ciclo
+       dela ainda não foi gerado — não há `plano.html` nem `aula-01.html` para abrir. As secções
+       17 e 18 medem o DOCUMENTO; o painel do ato, a barra e a caixinha medem-se na mesma, e é isso
+       que se faz a seguir. */
+    naoFeito('17 · o documento acende a lista de onde veio',
+      'a montagem de ' + ESCOLA + ' não tem pasta de variante (plano.html + aula-01.html)');
+    naoFeito('18 · o caminho do documento', 'depende da mesma variante');
+  } else {
+    console.log('  (variante: ' + VAR + ')');
   }
-  console.log('  (variante: ' + VAR + ')');
-  const DOCUMENTOS = [
-    ['/' + VAR + '/plano.html', '/ciclos/planos/', 'Ciclos'],
-    /* AS REFERÊNCIAS ACENDEM «PLANOS» (26/10/2026): o item e a listagem «Referências» saíram do
-       menu, e o único caminho até o documento é o plano do ciclo. */
-    ['/' + VAR + '/referencias.html', '/ciclos/planos/', 'Ciclos'],
-    ['/' + VAR + '/aula-01.html', '/aulas/', 'Área do Professor'],
-    ['/' + VAR + '/lancamento.html', '/aulas/', 'Área do Professor'],
-    ['/' + VAR + '/notacao.html', '/aulas/', 'Área do Professor'],
-    ['/' + VAR + '/glossario-benesh.html', '/aulas/', 'Área do Professor'],
-  ];
-  const marcaDaColuna = () => p.evaluate(() => {
-    const c = document.querySelector('.coluna');
-    if (!c) return null;
-    const aceso = c.querySelector('.coluna-itens a[aria-current="page"]');
-    const direto = c.querySelector('a.coluna-direto.ativo');
-    const grupos = [...c.querySelectorAll('.coluna-grupo')];
-    const atual = grupos.find((g) => g.getAttribute('data-atual') === 'sim');
-    const outro = grupos.find((g) => g !== atual);
-    const titulo = atual && atual.querySelector('.coluna-titulo');
-    const cs = titulo ? getComputedStyle(titulo) : null;
-    const csOutro = (outro && outro.querySelector('.coluna-titulo'))
-      ? getComputedStyle(outro.querySelector('.coluna-titulo')) : null;
-    return {
-      acesos: [...c.querySelectorAll('a[aria-current="page"]')].map((a) => a.getAttribute('href')),
-      direto: direto ? direto.getAttribute('href') : null,
-      diretoFundo: direto ? getComputedStyle(direto).backgroundColor : null,
-      diretoDeOutro: (() => {
-        const o = [...c.querySelectorAll('a.coluna-direto')].find((a) => a !== direto);
-        return o ? getComputedStyle(o).backgroundColor : null;
-      })(),
-      /* O RÓTULO É O PRIMEIRO `<span>` DO BOTÃO. O `textContent` do botão inteiro inclui a SETA
-         (`›`), que é um segundo `<span>` e é desenho, não nome: lida assim, a asserção do grupo
-         comparava «Ciclos›» com «Ciclos» e reprovava uma coluna que estava certa. */
-      grupo: (titulo && titulo.querySelector('span')) ? titulo.querySelector('span').textContent.trim() : '',
-      tituloVisivel: !!titulo && titulo.getClientRects().length > 0,
-      corDoAtual: cs ? cs.color : null,
-      corDeOutro: csOutro ? csOutro.color : null,
-      filete: cs ? cs.boxShadow : null,
-      gruposMarcados: grupos.filter((g) => g.getAttribute('data-atual') === 'sim').length,
-    };
-  });
-
-  for (const [documento, lista, grupo] of DOCUMENTOS) {
-    await abrir(documento, 1280);
-    const m = await marcaDaColuna();
-    const nome = documento.replace('/bale-nivel-2-teste-2/', '');
-    if (!m) { ok(nome + ': a coluna existe no computador', false, null); continue; }
-    ok(nome + ': o item da lista «' + lista + '» fica aceso no computador',
-      m.acesos.length === 1 && m.acesos[0] === lista, m.acesos);
-    ok(nome + ': …e um só grupo aceso, «' + grupo + '»',
-      m.gruposMarcados === 1 && m.grupo === grupo, { grupo: m.grupo, marcados: m.gruposMarcados });
-    ok(nome + ': …com o título À VISTA, mesmo com o grupo fechado',
-      m.tituloVisivel === true, m.tituloVisivel);
-    ok(nome + ': …e distinguido pela cor, não só pelo atributo',
-      !!m.corDoAtual && m.corDoAtual !== m.corDeOutro && /inset/.test(String(m.filete)),
-      { atual: m.corDoAtual, outro: m.corDeOutro, filete: m.filete });
-  }
-  /* A CONTRAPROVA: um documento que não sai de lista nenhuma não inventa marca. Sem esta linha,
-     «acender sempre» passaria por boa regra.
-     O documento é a APRESENTAÇÃO (`/sistema.html`), e não a harmonização: a bancada serve o
-     `publicacao/batata` que existe em disco, e o pacote dele não tem `harmonizacao.html` (quem a
-     gera é a montagem da prova da barra). A apresentação serve o mesmo propósito e é real — ela
-     está no sistema e não é destino de menu nenhum, como a secção D da `provar-barra-unica`
-     também fixa. */
-  await abrir('/sistema.html', 1280);
-  const semLista = await marcaDaColuna();
-  ok('um documento que não vem de lista nenhuma não inventa marca',
-    !!semLista && semLista.acesos.length === 0 && semLista.gruposMarcados === 0
-    && !semLista.direto, semLista && { acesos: semLista.acesos, grupos: semLista.gruposMarcados });
-
-  /* NO TELEMONE. A folha não tem acordeão: abrir o ☰ mostra os itens todos, e o aceso é o que
-     tem o fundo da marca. É a mesma marca do computador no mesmo HTML — o que muda é a largura. */
-  /* AS REFERÊNCIAS ENTRAM AQUI (26/10/2026): elas são o caso novo — documento de «Planos», sem
-     item próprio no menu —, e é no telemóvel que a marca e o caminho têm menos espaço. */
-  for (const [documento, lista, grupo] of [
-    DOCUMENTOS[0], DOCUMENTOS[1], DOCUMENTOS[4], DOCUMENTOS[5],
-  ]) {
-    await abrir(documento, 390);
-    await p.evaluate(() => document.querySelector('.topnav .hamburger').click());
-    await p.evaluate(() => new Promise((r) => setTimeout(r, 450)));
-    const naFolha = await p.evaluate(() => {
+  if (VAR) {
+    const DOCUMENTOS = [
+      ['/' + VAR + '/plano.html', '/ciclos/planos/', 'Ciclos'],
+      /* AS REFERÊNCIAS ACENDEM «PLANOS» (26/10/2026): o item e a listagem «Referências» saíram do
+         menu, e o único caminho até o documento é o plano do ciclo. */
+      ['/' + VAR + '/referencias.html', '/ciclos/planos/', 'Ciclos'],
+      ['/' + VAR + '/aula-01.html', '/aulas/', 'Área do Professor'],
+      ['/' + VAR + '/lancamento.html', '/aulas/', 'Área do Professor'],
+      ['/' + VAR + '/notacao.html', '/aulas/', 'Área do Professor'],
+      ['/' + VAR + '/glossario-benesh.html', '/aulas/', 'Área do Professor'],
+    ];
+    const marcaDaColuna = () => p.evaluate(() => {
       const c = document.querySelector('.coluna');
       if (!c) return null;
-      const aceso = c.querySelector('a[aria-current="page"]') || c.querySelector('a.coluna-direto.ativo');
-      const outro = [...c.querySelectorAll('.coluna-itens a, a.coluna-direto')].find((a) => a !== aceso);
-      const grupoMarcado = c.querySelector('.coluna-grupo[data-atual="sim"] .coluna-titulo');
-      const r = aceso ? aceso.getBoundingClientRect() : null;
+      const aceso = c.querySelector('.coluna-itens a[aria-current="page"]');
+      const direto = c.querySelector('a.coluna-direto.ativo');
+      const grupos = [...c.querySelectorAll('.coluna-grupo')];
+      const atual = grupos.find((g) => g.getAttribute('data-atual') === 'sim');
+      const outro = grupos.find((g) => g !== atual);
+      const titulo = atual && atual.querySelector('.coluna-titulo');
+      const cs = titulo ? getComputedStyle(titulo) : null;
+      const csOutro = (outro && outro.querySelector('.coluna-titulo'))
+        ? getComputedStyle(outro.querySelector('.coluna-titulo')) : null;
       return {
-        folhaAberta: c.getAttribute('data-aberta'),
-        href: aceso ? aceso.getAttribute('href') : null,
-        fundo: aceso ? getComputedStyle(aceso).backgroundColor : null,
-        fundoDeOutro: outro ? getComputedStyle(outro).backgroundColor : null,
-        visivel: !!r && r.height > 0 && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight,
-        grupo: (grupoMarcado && grupoMarcado.querySelector('span'))
-          ? grupoMarcado.querySelector('span').textContent.trim() : '',
-        corDoGrupo: grupoMarcado ? getComputedStyle(grupoMarcado).color : null,
-        transbordo: document.documentElement.scrollWidth - window.innerWidth,
+        acesos: [...c.querySelectorAll('a[aria-current="page"]')].map((a) => a.getAttribute('href')),
+        direto: direto ? direto.getAttribute('href') : null,
+        diretoFundo: direto ? getComputedStyle(direto).backgroundColor : null,
+        diretoDeOutro: (() => {
+          const o = [...c.querySelectorAll('a.coluna-direto')].find((a) => a !== direto);
+          return o ? getComputedStyle(o).backgroundColor : null;
+        })(),
+        /* O RÓTULO É O PRIMEIRO `<span>` DO BOTÃO. O `textContent` do botão inteiro inclui a SETA
+           (`›`), que é um segundo `<span>` e é desenho, não nome: lida assim, a asserção do grupo
+           comparava «Ciclos›» com «Ciclos» e reprovava uma coluna que estava certa. */
+        grupo: (titulo && titulo.querySelector('span')) ? titulo.querySelector('span').textContent.trim() : '',
+        tituloVisivel: !!titulo && titulo.getClientRects().length > 0,
+        corDoAtual: cs ? cs.color : null,
+        corDeOutro: csOutro ? csOutro.color : null,
+        filete: cs ? cs.boxShadow : null,
+        gruposMarcados: grupos.filter((g) => g.getAttribute('data-atual') === 'sim').length,
       };
     });
-    const nome = documento.replace('/bale-nivel-2-teste-2/', '');
-    ok('no telemóvel, ' + nome + ': a folha abre com o item aceso «' + lista + '» à vista',
-      !!naFolha && naFolha.folhaAberta === 'sim' && naFolha.href === lista && naFolha.visivel === true,
-      naFolha && { aberta: naFolha.folhaAberta, href: naFolha.href, visivel: naFolha.visivel });
-    ok('…pintado com o fundo da marca, e não só com o atributo',
-      !!naFolha && !!naFolha.fundo && naFolha.fundo !== naFolha.fundoDeOutro,
-      naFolha && { aceso: naFolha.fundo, apagado: naFolha.fundoDeOutro });
-    ok('…e o grupo «' + grupo + '» diz onde se está pelo título',
-      !!naFolha && naFolha.grupo === grupo && !!naFolha.corDoGrupo,
-      naFolha && { grupo: naFolha.grupo, cor: naFolha.corDoGrupo });
-    ok('…e nada estoura na horizontal', !!naFolha && naFolha.transbordo === 0, naFolha && naFolha.transbordo);
 
-    /* E O CAMINHO DA BARRA CONTINUA A DIZER ONDE SE ESTÁ, NO TELEMÓVEL. A marca do menu é uma
-       das duas metades da norma; a outra é o caminho ao lado da logomarca.
-       MEDIDO ANTES DA DECISÃO (26/10/2026): com os três degraus, a 390 o caminho era CORTADO em
-       «Notação em Benesh» e no glossário, e a 320 em quatro dos seis documentos — e o corte come
-       o FIM, que é o nome do documento. A decisão foi a mesma que a porta já tomava: abaixo de
-       768 fica só o último degrau. Aqui mede-se que assim é, e que ele cabe. */
-    const caminhoNoTelefone = await p.evaluate(() => {
-      const d = document.querySelector('.topnav .doc-atual');
-      if (!d) return null;
-      const aVista = (el) => !!el && getComputedStyle(el).display !== 'none';
-      const b = d.querySelector('b');
-      const h1 = document.querySelector('h1');
-      return {
-        /* O TEXTO QUE SE VÊ, e não o `textContent`: os dois degraus escondidos continuam no DOM
-           (é a mesma marcação para todas as larguras) e o `textContent` lê-os à mesma. */
-        texto: [...d.children].filter((el) => el.getClientRects().length > 0)
-          .map((el) => el.textContent.replace(/\s+/g, ' ').trim()).join(''),
-        esperado: h1 ? h1.textContent.replace(/\s+/g, ' ').split(/\s+[—–]\s+/)[0].trim() : '',
-        grupo: aVista(d.querySelector('small')),
-        lista: aVista(d.querySelector('a')),
-        separador: b ? getComputedStyle(b, '::before').content : '',
-        cortado: d.scrollWidth > d.clientWidth + 1,
-        sobra: document.documentElement.scrollWidth - window.innerWidth,
-        visivel: d.getClientRects().length > 0,
-      };
-    });
-    ok('no telemóvel, ' + nome + ': o caminho fica SÓ com o nome do documento',
-      !!caminhoNoTelefone && caminhoNoTelefone.visivel === true
-      && caminhoNoTelefone.texto === caminhoNoTelefone.esperado
-      && caminhoNoTelefone.grupo === false && caminhoNoTelefone.lista === false
-      && caminhoNoTelefone.separador === 'none',
-      caminhoNoTelefone);
-    ok('…e cabe: sem reticências e sem empurrar a barra para fora da tela',
-      !!caminhoNoTelefone && caminhoNoTelefone.cortado === false
-      && caminhoNoTelefone.sobra === 0, caminhoNoTelefone);
+    for (const [documento, lista, grupo] of DOCUMENTOS) {
+      await abrir(documento, 1280);
+      const m = await marcaDaColuna();
+      const nome = documento.replace('/bale-nivel-2-teste-2/', '');
+      if (!m) { ok(nome + ': a coluna existe no computador', false, null); continue; }
+      ok(nome + ': o item da lista «' + lista + '» fica aceso no computador',
+        m.acesos.length === 1 && m.acesos[0] === lista, m.acesos);
+      ok(nome + ': …e um só grupo aceso, «' + grupo + '»',
+        m.gruposMarcados === 1 && m.grupo === grupo, { grupo: m.grupo, marcados: m.gruposMarcados });
+      ok(nome + ': …com o título À VISTA, mesmo com o grupo fechado',
+        m.tituloVisivel === true, m.tituloVisivel);
+      ok(nome + ': …e distinguido pela cor, não só pelo atributo',
+        !!m.corDoAtual && m.corDoAtual !== m.corDeOutro && /inset/.test(String(m.filete)),
+        { atual: m.corDoAtual, outro: m.corDeOutro, filete: m.filete });
+    }
+    /* A CONTRAPROVA: um documento que não sai de lista nenhuma não inventa marca. Sem esta linha,
+       «acender sempre» passaria por boa regra.
+       O documento é a APRESENTAÇÃO (`/sistema.html`), e não a harmonização: a bancada serve o
+       `publicacao/batata` que existe em disco, e o pacote dele não tem `harmonizacao.html` (quem a
+       gera é a montagem da prova da barra). A apresentação serve o mesmo propósito e é real — ela
+       está no sistema e não é destino de menu nenhum, como a secção D da `provar-barra-unica`
+       também fixa. */
+    await abrir('/sistema.html', 1280);
+    const semLista = await marcaDaColuna();
+    ok('um documento que não vem de lista nenhuma não inventa marca',
+      !!semLista && semLista.acesos.length === 0 && semLista.gruposMarcados === 0
+      && !semLista.direto, semLista && { acesos: semLista.acesos, grupos: semLista.gruposMarcados });
+
+    /* NO TELEMONE. A folha não tem acordeão: abrir o ☰ mostra os itens todos, e o aceso é o que
+       tem o fundo da marca. É a mesma marca do computador no mesmo HTML — o que muda é a largura. */
+    /* AS REFERÊNCIAS ENTRAM AQUI (26/10/2026): elas são o caso novo — documento de «Planos», sem
+       item próprio no menu —, e é no telemóvel que a marca e o caminho têm menos espaço. */
+    for (const [documento, lista, grupo] of [
+      DOCUMENTOS[0], DOCUMENTOS[1], DOCUMENTOS[4], DOCUMENTOS[5],
+    ]) {
+      await abrir(documento, 390);
+      await p.evaluate(() => document.querySelector('.topnav .hamburger').click());
+      await p.evaluate(() => new Promise((r) => setTimeout(r, 450)));
+      const naFolha = await p.evaluate(() => {
+        const c = document.querySelector('.coluna');
+        if (!c) return null;
+        const aceso = c.querySelector('a[aria-current="page"]') || c.querySelector('a.coluna-direto.ativo');
+        const outro = [...c.querySelectorAll('.coluna-itens a, a.coluna-direto')].find((a) => a !== aceso);
+        const grupoMarcado = c.querySelector('.coluna-grupo[data-atual="sim"] .coluna-titulo');
+        const r = aceso ? aceso.getBoundingClientRect() : null;
+        return {
+          folhaAberta: c.getAttribute('data-aberta'),
+          href: aceso ? aceso.getAttribute('href') : null,
+          fundo: aceso ? getComputedStyle(aceso).backgroundColor : null,
+          fundoDeOutro: outro ? getComputedStyle(outro).backgroundColor : null,
+          visivel: !!r && r.height > 0 && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight,
+          grupo: (grupoMarcado && grupoMarcado.querySelector('span'))
+            ? grupoMarcado.querySelector('span').textContent.trim() : '',
+          corDoGrupo: grupoMarcado ? getComputedStyle(grupoMarcado).color : null,
+          transbordo: document.documentElement.scrollWidth - window.innerWidth,
+        };
+      });
+      const nome = documento.replace('/bale-nivel-2-teste-2/', '');
+      ok('no telemóvel, ' + nome + ': a folha abre com o item aceso «' + lista + '» à vista',
+        !!naFolha && naFolha.folhaAberta === 'sim' && naFolha.href === lista && naFolha.visivel === true,
+        naFolha && { aberta: naFolha.folhaAberta, href: naFolha.href, visivel: naFolha.visivel });
+      ok('…pintado com o fundo da marca, e não só com o atributo',
+        !!naFolha && !!naFolha.fundo && naFolha.fundo !== naFolha.fundoDeOutro,
+        naFolha && { aceso: naFolha.fundo, apagado: naFolha.fundoDeOutro });
+      ok('…e o grupo «' + grupo + '» diz onde se está pelo título',
+        !!naFolha && naFolha.grupo === grupo && !!naFolha.corDoGrupo,
+        naFolha && { grupo: naFolha.grupo, cor: naFolha.corDoGrupo });
+      ok('…e nada estoura na horizontal', !!naFolha && naFolha.transbordo === 0, naFolha && naFolha.transbordo);
+
+      /* E O CAMINHO DA BARRA CONTINUA A DIZER ONDE SE ESTÁ, NO TELEMÓVEL. A marca do menu é uma
+         das duas metades da norma; a outra é o caminho ao lado da logomarca.
+         MEDIDO ANTES DA DECISÃO (26/10/2026): com os três degraus, a 390 o caminho era CORTADO em
+         «Notação em Benesh» e no glossário, e a 320 em quatro dos seis documentos — e o corte come
+         o FIM, que é o nome do documento. A decisão foi a mesma que a porta já tomava: abaixo de
+         768 fica só o último degrau. Aqui mede-se que assim é, e que ele cabe. */
+      const caminhoNoTelefone = await p.evaluate(() => {
+        const d = document.querySelector('.topnav .doc-atual');
+        if (!d) return null;
+        const aVista = (el) => !!el && getComputedStyle(el).display !== 'none';
+        const b = d.querySelector('b');
+        const h1 = document.querySelector('h1');
+        return {
+          /* O TEXTO QUE SE VÊ, e não o `textContent`: os dois degraus escondidos continuam no DOM
+             (é a mesma marcação para todas as larguras) e o `textContent` lê-os à mesma. */
+          texto: [...d.children].filter((el) => el.getClientRects().length > 0)
+            .map((el) => el.textContent.replace(/\s+/g, ' ').trim()).join(''),
+          esperado: h1 ? h1.textContent.replace(/\s+/g, ' ').split(/\s+[—–]\s+/)[0].trim() : '',
+          grupo: aVista(d.querySelector('small')),
+          lista: aVista(d.querySelector('a')),
+          separador: b ? getComputedStyle(b, '::before').content : '',
+          cortado: d.scrollWidth > d.clientWidth + 1,
+          sobra: document.documentElement.scrollWidth - window.innerWidth,
+          visivel: d.getClientRects().length > 0,
+        };
+      });
+      ok('no telemóvel, ' + nome + ': o caminho fica SÓ com o nome do documento',
+        !!caminhoNoTelefone && caminhoNoTelefone.visivel === true
+        && caminhoNoTelefone.texto === caminhoNoTelefone.esperado
+        && caminhoNoTelefone.grupo === false && caminhoNoTelefone.lista === false
+        && caminhoNoTelefone.separador === 'none',
+        caminhoNoTelefone);
+      ok('…e cabe: sem reticências e sem empurrar a barra para fora da tela',
+        !!caminhoNoTelefone && caminhoNoTelefone.cortado === false
+        && caminhoNoTelefone.sobra === 0, caminhoNoTelefone);
+    }
+
+    console.log('\nD3. O glossário permanece acessível no cabeçalho da Notação');
+    for (const largura of [1280, 390]) {
+      await abrir('/' + VAR + '/notacao.html', largura);
+      const acesso = await p.evaluate(() => {
+        const cabecalho = document.querySelector('header.doc');
+        const link = cabecalho && cabecalho.querySelector('a[href="glossario-benesh.html"]');
+        return {
+          existe: !!link,
+          href: link ? link.getAttribute('href') : '',
+          target: link ? link.getAttribute('target') : '',
+          rel: link ? link.getAttribute('rel') : '',
+        };
+      });
+      ok(largura + 'px: o cabeçalho oferece o Glossário em nova aba',
+        acesso.existe && acesso.href === 'glossario-benesh.html'
+        && acesso.target === '_blank' && /noopener/.test(acesso.rel), acesso);
+
+      const visivelAoRolar = await p.evaluate(async () => {
+        window.scrollTo(0, document.documentElement.scrollHeight);
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        const cabecalho = document.querySelector('header.doc');
+        const link = cabecalho && cabecalho.querySelector('a[href="glossario-benesh.html"]');
+        const caixa = link && link.getBoundingClientRect();
+        return {
+          rolou: window.scrollY > 0,
+          posicao: cabecalho ? getComputedStyle(cabecalho).position : '',
+          visivel: !!caixa && caixa.width > 0 && caixa.height > 0
+            && caixa.top >= 0 && caixa.bottom <= window.innerHeight,
+        };
+      });
+      ok(largura + 'px: o atalho do Glossário continua visível após a rolagem',
+        visivelAoRolar.rolou && visivelAoRolar.posicao === 'sticky' && visivelAoRolar.visivel,
+        visivelAoRolar);
+    }
+
   }
-
-  console.log('\nD3. O glossário permanece acessível no cabeçalho da Notação');
-  for (const largura of [1280, 390]) {
-    await abrir('/' + VAR + '/notacao.html', largura);
-    const acesso = await p.evaluate(() => {
-      const cabecalho = document.querySelector('header.doc');
-      const link = cabecalho && cabecalho.querySelector('a[href="glossario-benesh.html"]');
-      return {
-        existe: !!link,
-        href: link ? link.getAttribute('href') : '',
-        target: link ? link.getAttribute('target') : '',
-        rel: link ? link.getAttribute('rel') : '',
-      };
-    });
-    ok(largura + 'px: o cabeçalho oferece o Glossário em nova aba',
-      acesso.existe && acesso.href === 'glossario-benesh.html'
-      && acesso.target === '_blank' && /noopener/.test(acesso.rel), acesso);
-
-    const visivelAoRolar = await p.evaluate(async () => {
-      window.scrollTo(0, document.documentElement.scrollHeight);
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      const cabecalho = document.querySelector('header.doc');
-      const link = cabecalho && cabecalho.querySelector('a[href="glossario-benesh.html"]');
-      const caixa = link && link.getBoundingClientRect();
-      return {
-        rolou: window.scrollY > 0,
-        posicao: cabecalho ? getComputedStyle(cabecalho).position : '',
-        visivel: !!caixa && caixa.width > 0 && caixa.height > 0
-          && caixa.top >= 0 && caixa.bottom <= window.innerHeight,
-      };
-    });
-    ok(largura + 'px: o atalho do Glossário continua visível após a rolagem',
-      visivelAoRolar.rolou && visivelAoRolar.posicao === 'sticky' && visivelAoRolar.visivel,
-      visivelAoRolar);
-  }
-
   ok('nenhum erro de JavaScript', erros.length === 0, erros);
 
   await b.close(); servidor.close();
-  console.log('\n' + (falhas ? 'FALHOU — ' + falhas : 'TUDO CERTO'));
+  /* O FECHO DIZ AS TRÊS COISAS: o que passou, o que falhou, e o que não se pôde medir. Uma prova
+   * que só dissesse «TUDO CERTO» sobre 16 secções esconderia que duas ficaram por medir — e quem a
+   * lê concluiria que o documento também está bem. */
+  console.log('\n' + (falhas ? 'FALHOU — ' + falhas + ' de ' + (passadas + falhas)
+    : 'TUDO CERTO — ' + passadas + ' asserções')
+    + ', na publicação de ' + ESCOLA + ' (pacote ' + (TEM_PAGINAS ? 'com documentos gerados'
+      : 'esqueleto: a porta e mais nada') + ')');
+  for (const n of naoFeitas) console.log('  NÃO FEITO ' + n);
   process.exit(falhas ? 1 : 0);
 })();

@@ -4034,8 +4034,28 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-ciclo-do-painel-do-po` **27/27** (novo, jsdom; controle negativo a reprovar **4 de 7** no
   `listas-do-acervo.js` de HEAD), `provar-ciclo-herdado-do-plano` **20/20**,
   `provar-linha-de-base` **104/104**, `provar-producao` **159/159**, `check-identidade` **0 erros**,
-  `check-indices` **16/16**. **NÃO FEITO:** `provar-painel-do-ato` continua a exigir Chrome e uma
-  publicação, e esta máquina não tem nenhuma — a bancada foi atualizada e **não foi corrida**.
+  `check-indices` **16/16**. **NÃO FEITO na altura:** `provar-painel-do-ato` exigia Chrome e uma
+  publicação — ver a entrada seguinte, que o resolveu.
+
+- **06/11/2026** — **«Está funcionando o calango»: a bancada serve-se da escola VIVA, e o critério
+  é o do deploy.** Ela corrigiu a premissa: *«está funcionando o calango, é essa que eu estou usando
+  para teste… você tem que olhar o que está ativo.»* A `provar-painel-do-ato` — a que mede a
+  caixinha do ato, a barra e o menu — nunca corria desde o expurgo da `batata`, e não por não haver
+  escola: por a bancada procurar uma que já não existe. Eram **quatro nomes escritos à mão** no
+  mesmo ficheiro: o diretório dos assets, a resposta do stub, o subdomínio do `Request` (que a ponte
+  recusa com **500** ao comparar com o `ESCOLA_SLUG` — e a bancada lia o documento vazio como «a
+  caixinha não existe»), e um `01` a mais na chave da memória da anamnese, que não tem ciclo desde
+  05/11. **DECIDIDO:** `lib-pacote.publicacaoDeUmaEscolaComCiclo()` passa a usar o critério do
+  `deploy-escolas.yml` — o pacote-zero existe e a escola está viva — e devolve
+  `{ dir, escola, paginas }`; quem mede um documento pergunta por `paginas` e diz **NÃO FEITO**,
+  quem mede o painel corre na mesma. Uma secção sem fixture deixa de matar a prova inteira (o
+  `process.exit(2)` levava dezasseis secções boas), a página que navega sozinha passa a ser esperada
+  (`seguro`), e a porta da anamnese passa a ser aberta com o bilhete que a lista emite, como em
+  produção. Medido: `provar-painel-do-ato` **130 asserções verdes** com **2 secções NÃO FEITAS pelo
+  nome**, `provar-listas-do-acervo` **109/109** (era «NÃO FEITO», depois 1 falha — a asserção «o PO
+  não pede senha» media o script em vez da marcação), `provar-ciclos-e-anamnese` **34/34**,
+  `provar-ficha-na-listagem` **35/35**, `provar-producao` **159/159**. **Continua por medir:**
+  `provar-navegacao`, que precisa de um ciclo **gerado** — a `calango` é um esqueleto.
 
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que

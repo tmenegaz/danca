@@ -37430,3 +37430,83 @@ valor à mão e passou a medir a leitura, e as secções da anamnese ganharam gu
 não existe) — mas **não foi corrida**, e não se afirma que passa. (2) `provar-navegacao` falha
 (`Cannot read properties of undefined`) **também no HEAD** — medido com `git stash`: preexistente,
 por falta de publicação.
+
+---
+
+## 06/11/2026 — «Está funcionando o calango»: a bancada servia-se de um nome que já não existe
+
+**De onde veio.** Dela, e é uma correção de premissa minha: *«você disse que a bancada do Chrome
+desta página continua a responder nenhuma publicação para servir. É o seguinte, está funcionando o
+calango, é essa que eu estou usando para teste… eu acho que você tem que olhar o que está lá no
+GitHub, o que está ativo.»* Estava certo: a `calango` **está viva e a funcionar**, e a bancada
+`provar-painel-do-ato` — a que mede a caixinha do ato, a barra e o menu — **nunca correu** desde o
+expurgo da `batata`. Não porque não houvesse escola: porque a bancada procurava uma que já não
+existe.
+
+**O DEFEITO, e eram quatro nomes escritos à mão no mesmo ficheiro.**
+
+1. `lib-pacote.publicacaoDeUmaEscolaComCiclo()` exigia um pacote com **páginas geradas**
+   (`aula-01.html`, `plano.html`). A única escola viva é a `calango`, e o pacote dela é um
+   **esqueleto** (`index.html`, `plano-observacao/`, `assets/`) — o ciclo ainda não foi gerado. A
+   função devolvia `null` e **quatro bancadas** diziam «nenhuma publicação para servir».
+2. `const DIR = publicacao/batata` — o diretório dos assets, apagado com a escola.
+3. `escola: 'batata'` no stub de `/api/bastidores/professores`, e `escola: 'batata'` no envelope.
+4. `new Request('https://batata.tmenegaz77.workers.dev' + req.url)` — e este é o que **matava** a
+   prova: a ponte compara o subdomínio com o `ESCOLA_SLUG` e devolvia **500 «Configuração
+   incorreta do Worker»**. A bancada lia um documento vazio e concluía que a caixinha do ato não
+   existia. **Este defeito estava escondido pelo primeiro**: enquanto a função devolvia `null`, o
+   `500` nunca chegava a acontecer.
+5. `'porta-anamnese-batata-cafe-no-bule-01-Aluna A-1'` — a chave da memória, que a **anamnese não
+   tem ciclo** desde 05/11/2026. A chave certa é `porta-anamnese-<escola>-<professor>-<aluna>-1`.
+   O `01` a mais fazia dez asserções de «continuar de onde parei» medirem o vazio.
+
+**A decisão: o critério é o do DEPLOY.** O `deploy-escolas.yml` decide publicar por «o pacote-zero
+existe, e a escola está viva» — o mesmo que a rota `/escolas-vivas` mostra. A bancada passou a usar
+esse critério e a devolver `{ dir, escola, paginas }`, onde `paginas` distingue ciclo **gerado** de
+**esqueleto**. Quem mede um documento pergunta por ela e diz **NÃO FEITO**; quem mede o painel, a
+barra ou a caixinha corre na mesma. Duas definições de «esta escola tem o que publicar» divergiriam,
+e a que ficasse para trás seria a do ecrã.
+
+**O que a bancada fazia de errado por conta própria, e passou a fazer certo.**
+
+- **Uma secção sem fixture não mata a prova.** As secções 17 e 18 (o documento acende a lista, o
+  caminho do documento) navegam para `/ciclos/<variante>/plano.html`, que o esqueleto não tem. O
+  `process.exit(2)` levava consigo **dezasseis secções boas**. Passam a dizer NÃO FEITO **pelo
+  nome**, e o fecho da prova diz as três coisas: o que passou, o que falhou, e o que não se pôde
+  medir.
+- **A página pode navegar sozinha.** O `?abrir=1`, o bilhete, o `replaceState`: um `evaluate` que
+  caia nesse instante morria com «Execution context was destroyed» — que se lê como defeito da
+  página e é pressa da prova. Um `seguro()` espera que a rede sossegue e tenta outra vez; **não
+  engole** um erro que não seja esse.
+- **A porta da anamnese não se abre sem autorização** (`podePreencher` exige senha, bilhete, edição
+  ou retomada). A secção 13 abria `/anamnese/?…&abrir=1` sem nenhum dos quatro, e media a barra da
+  **lista** — a página nunca chegou a abrir. Passa a usar o bilhete que a lista emite, com
+  `limpar: false` (o bilhete é de um uso, e um `reload()` a seguir voltaria à lista).
+- **Três asserções que mediam o formulário de ontem, invertidas e não apagadas:** o resumo da
+  caixinha e o destino deixam de exigir `ciclo` na anamnese (05/11), e o bilhete passa a exigir
+  `ciclo: ''`.
+
+**Onde entrou.** `experimentos/lib-pacote.js` — `pacoteZeroDaEscola` (a mesma pergunta do deploy) e
+`publicacaoDeUmaEscolaComCiclo` a devolver `{ dir, escola, paginas }`, com as escolas de documentos
+gerados primeiro. `experimentos/provar-painel-do-ato.js` — a escola e o diretório descobertos
+(`let`, preenchidos no arranque), o `Request` com o subdomínio da escola, os stubs com a escola
+descoberta, `evaluateOnNewDocument` a levar a escola à janela (as chaves da memória), a chave da
+anamnese sem ciclo, `naoFeito`/`seguro`/`sossegar`, as secções 17-18 sob a guarda de `VAR`, e o
+fecho com as três contas. `experimentos/provar-listas-do-acervo.js` — a asserção «o PO não pede
+senha» passou a medir a **marcação** (`div.campos-do-ato`) e não o documento inteiro: ela
+encontrava `data-ato="senha"` dentro do próprio script (`apontarSenha`), ou seja, media o código
+que procura o campo em vez do campo.
+
+**Medido.** `provar-painel-do-ato` **130 asserções verdes, 0 falhas**, na publicação da `calango`
+(esqueleto), com **2 secções NÃO FEITAS** pelo nome (17 e 18 — precisam de um ciclo gerado);
+`provar-listas-do-acervo` **109/109** (era «NÃO FEITO» e depois 1 falha); `provar-ficha-na-listagem`
+**35/35**; `provar-vigente-na-listagem` **21/21**; `provar-ciclos-e-anamnese` **34/34**;
+`provar-ciclo-do-painel-do-po` **27/27**; `provar-ciclo-herdado-do-plano` **20/20**;
+`provar-linha-de-base` **104/104**; `provar-producao` **159/159**; `check-identidade` **0 erros**;
+`check-indices` **16/16**.
+
+**O que continua por medir, e é honesto dizê-lo.** `provar-navegacao` reprova nas secções 3 e 5 e
+morre numa página em falta: ela mede o menu **nas páginas do documento** (`/ciclos/<variante>/
+plano.html`), e o esqueleto da `calango` não as tem. Não é regressão desta mudança — é a mesma
+ausência de ciclo gerado. Fica registada, e passa a correr no dia em que o ciclo 01 da `calango`
+for gerado.

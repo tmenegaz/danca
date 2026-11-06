@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T09:07:34-0300`
-Commit atual: `10f22048` — refactor(po): o plano de observacao deixa de reperguntar o que ja esta decidido
+Gerado em: `2026-11-06T09:39:12-0300`
+Commit atual: `04d7adf2` — fix(po): o ciclo do PO tambem nao se escreve na Area do Professor
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+04d7adf2 fix(po): o ciclo do PO tambem nao se escreve na Area do Professor
 10f22048 refactor(po): o plano de observacao deixa de reperguntar o que ja esta decidido
 b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
 77903696 chore(estrutura): regerar os índices derivados
@@ -105,7 +106,6 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 12e47f25 feat(acervo): envelope/.indice.json
 61b19782 fix(tools): o .indice.json da pasta nao e um recorte
 90e9eb9d docs(registro): o envio da linha de base confirmado em producao
-c1f86f60 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -233,66 +233,83 @@ c1f86f60 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O ciclo do PO também não se escreve NA ÁREA DO PROFESSOR (e era o sítio que faltava)
+## 06/11/2026 — «Está funcionando o calango»: a bancada servia-se de um nome que já não existe
 
-**De onde veio.** Dela, e em três frases que não deixam dúvida: *«O plano de observação ainda está
-com o campo ciclo livre. Eu posso digitar qualquer ciclo ali. Você não fez o ajuste que eu pedi.»*
-Ela tinha razão, e o defeito é de leitura minha: a entrega de `b23013af` mudou **um** sítio — o
-formulário (`porta/index.html`) — e deu a regra por cumprida.
+**De onde veio.** Dela, e é uma correção de premissa minha: *«você disse que a bancada do Chrome
+desta página continua a responder nenhuma publicação para servir. É o seguinte, está funcionando o
+calango, é essa que eu estou usando para teste… eu acho que você tem que olhar o que está lá no
+GitHub, o que está ativo.»* Estava certo: a `calango` **está viva e a funcionar**, e a bancada
+`provar-painel-do-ato` — a que mede a caixinha do ato, a barra e o menu — **nunca correu** desde o
+expurgo da `batata`. Não porque não houvesse escola: porque a bancada procurava uma que já não
+existe.
 
-**O segundo sítio, e porque não era alcançável pelo primeiro.** O **painel do ato** que abre dentro
-da **Área do Professor** (`/area-do-professor/plano-de-observacao/`) é o caminho por onde ela
-**entra**. Vive noutro ficheiro (`motor/servidor/listas-do-acervo.js`), noutra função
-(`painelDoAto`) e noutro script (`scriptDoPainel`). Ali o ciclo era um `<input type="text">` ao lado
-do «plano de ensino observado»: escrever «20» e escolher o plano do 01 dava um PO do ciclo 20 a
-observar o plano do 01. No formulário o número era sobrescrito pelo do plano e a divergência morria
-em silêncio — mas a lista já a tinha levado no **endereço** e na **chave da memória**. Um sítio
-corrigido e o outro não é o pior estado: um dos dois *parece* certo.
+**O DEFEITO, e eram quatro nomes escritos à mão no mesmo ficheiro.**
 
-**A correção.** A mesma regra, no segundo sítio: o plano escolhe-se primeiro, o ciclo passa a
-**leitura** (`[data-ciclo-leitura]`, a peça da «turma observada» ao lado), e o `<input>` fica
-**oculto** — porque é ele que a chave da memória, o endereço e o resumo leem. Uma regra, um leitor.
-`pintarDoPlano()` pinta os dois (turma e ciclo) do plano escolhido, e é chamada **antes** de
-`pintar()`: o estado do botão lê aquele valor, e pintar depois seria decidir sobre um quadro de
-atraso. O plano de ensino **não** foi tocado — ali o ciclo nasce —, e a anamnese continua sem ciclo
-nenhum.
+1. `lib-pacote.publicacaoDeUmaEscolaComCiclo()` exigia um pacote com **páginas geradas**
+   (`aula-01.html`, `plano.html`). A única escola viva é a `calango`, e o pacote dela é um
+   **esqueleto** (`index.html`, `plano-observacao/`, `assets/`) — o ciclo ainda não foi gerado. A
+   função devolvia `null` e **quatro bancadas** diziam «nenhuma publicação para servir».
+2. `const DIR = publicacao/batata` — o diretório dos assets, apagado com a escola.
+3. `escola: 'batata'` no stub de `/api/bastidores/professores`, e `escola: 'batata'` no envelope.
+4. `new Request('https://batata.tmenegaz77.workers.dev' + req.url)` — e este é o que **matava** a
+   prova: a ponte compara o subdomínio com o `ESCOLA_SLUG` e devolvia **500 «Configuração
+   incorreta do Worker»**. A bancada lia um documento vazio e concluía que a caixinha do ato não
+   existia. **Este defeito estava escondido pelo primeiro**: enquanto a função devolvia `null`, o
+   `500` nunca chegava a acontecer.
+5. `'porta-anamnese-batata-cafe-no-bule-01-Aluna A-1'` — a chave da memória, que a **anamnese não
+   tem ciclo** desde 05/11/2026. A chave certa é `porta-anamnese-<escola>-<professor>-<aluna>-1`.
+   O `01` a mais fazia dez asserções de «continuar de onde parei» medirem o vazio.
 
-**A lacuna tem nome.** Um plano antigo que não declara ciclo deixa a leitura em «—», o botão travado
-e o recado a dizer *«O plano de ensino escolhido não declara ciclo — e é dele que este Plano de
-Observação o herda.»* A alternativa — «falta o ciclo» — mandaria preencher um sítio onde nada se
-pode escrever: o nome do beco sem a saída.
+**A decisão: o critério é o do DEPLOY.** O `deploy-escolas.yml` decide publicar por «o pacote-zero
+existe, e a escola está viva» — o mesmo que a rota `/escolas-vivas` mostra. A bancada passou a usar
+esse critério e a devolver `{ dir, escola, paginas }`, onde `paginas` distingue ciclo **gerado** de
+**esqueleto**. Quem mede um documento pergunta por ela e diz **NÃO FEITO**; quem mede o painel, a
+barra ou a caixinha corre na mesma. Duas definições de «esta escola tem o que publicar» divergiriam,
+e a que ficasse para trás seria a do ecrã.
 
-**Onde entrou.** `motor/servidor/listas-do-acervo.js` — `painelDoAto` (o ciclo do PO passa a
-leitura, com o plano antes dele), `pintarDoPlano` (era `pintarLeituraDaTurma`: pinta turma **e**
-ciclo), a ordem do gesto em `change` (pintar o derivado antes de avaliar), `faltam()` (o ciclo deixa
-de ser exigência própria no PO, e passa a ser «o ciclo do plano escolhido»), e o recado do estado.
-`porta/index.html` — só o comentário que ainda dizia «no PO é uma LISTA dos ciclos»; a peça já
-estava trocada ao carregar (`iniciar` chama `mostrarCicloDoPo`). A cópia do pacote
-(`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/index.html`) regerada com o `nav`
-preservado.
+**O que a bancada fazia de errado por conta própria, e passou a fazer certo.**
 
-**Com o quê.** `experimentos/provar-ciclo-do-painel-do-po.js` (**novo, 27 asserções**): a peça nas
-três famílias (PO leitura + input oculto, plano de ensino com campo, anamnese sem nada), e a página
-a correr em jsdom — leitura «—» no arranque, escolher o plano do 01 declara 01 (leitura, valor,
-resumo e turma), trocar para o 02 troca para 02, o plano antigo deixa a lacuna nomeada, voltar atrás
-não inventa nada, a página não pede `api/ciclos`, e nenhum erro de JavaScript. Com
-`--controle-negativo` carrega o `listas-do-acervo.js` **de HEAD** num sandbox e corre as mesmas
-asserções: **4 de 7 reprovam**, e a primeira mostra o campo de texto que existia.
+- **Uma secção sem fixture não mata a prova.** As secções 17 e 18 (o documento acende a lista, o
+  caminho do documento) navegam para `/ciclos/<variante>/plano.html`, que o esqueleto não tem. O
+  `process.exit(2)` levava consigo **dezasseis secções boas**. Passam a dizer NÃO FEITO **pelo
+  nome**, e o fecho da prova diz as três coisas: o que passou, o que falhou, e o que não se pôde
+  medir.
+- **A página pode navegar sozinha.** O `?abrir=1`, o bilhete, o `replaceState`: um `evaluate` que
+  caia nesse instante morria com «Execution context was destroyed» — que se lê como defeito da
+  página e é pressa da prova. Um `seguro()` espera que a rede sossegue e tenta outra vez; **não
+  engole** um erro que não seja esse.
+- **A porta da anamnese não se abre sem autorização** (`podePreencher` exige senha, bilhete, edição
+  ou retomada). A secção 13 abria `/anamnese/?…&abrir=1` sem nenhum dos quatro, e media a barra da
+  **lista** — a página nunca chegou a abrir. Passa a usar o bilhete que a lista emite, com
+  `limpar: false` (o bilhete é de um uso, e um `reload()` a seguir voltaria à lista).
+- **Três asserções que mediam o formulário de ontem, invertidas e não apagadas:** o resumo da
+  caixinha e o destino deixam de exigir `ciclo` na anamnese (05/11), e o bilhete passa a exigir
+  `ciclo: ''`.
 
-**Medido.** `provar-ciclo-do-painel-do-po` **27/27** (e o controle negativo a reprovar 4 de 7);
-`provar-ciclo-herdado-do-plano` **20/20**; `provar-linha-de-base` **104/104** (a asserção do ciclo
-passou a exigir as duas guardas — anamnese **e** PO —, e a nomear o caso do plano sem ciclo);
-`provar-relacoes-do-ciclo` **23/23**; `provar-etiqueta-da-aluna` **20/20**; `provar-producao`
-**159/159**; `check-identidade` **0 erros** (as 20 verificações, «Circuito» incluído); `check-indices`
-**16/16**.
+**Onde entrou.** `experimentos/lib-pacote.js` — `pacoteZeroDaEscola` (a mesma pergunta do deploy) e
+`publicacaoDeUmaEscolaComCiclo` a devolver `{ dir, escola, paginas }`, com as escolas de documentos
+gerados primeiro. `experimentos/provar-painel-do-ato.js` — a escola e o diretório descobertos
+(`let`, preenchidos no arranque), o `Request` com o subdomínio da escola, os stubs com a escola
+descoberta, `evaluateOnNewDocument` a levar a escola à janela (as chaves da memória), a chave da
+anamnese sem ciclo, `naoFeito`/`seguro`/`sossegar`, as secções 17-18 sob a guarda de `VAR`, e o
+fecho com as três contas. `experimentos/provar-listas-do-acervo.js` — a asserção «o PO não pede
+senha» passou a medir a **marcação** (`div.campos-do-ato`) e não o documento inteiro: ela
+encontrava `data-ato="senha"` dentro do próprio script (`apontarSenha`), ou seja, media o código
+que procura o campo em vez do campo.
 
-**O que ainda não está feito.** (1) `provar-painel-do-ato` (Chrome) continua **NÃO FEITO** nesta
-máquina — «nenhuma publicação para servir», porque a escola publicada foi expurgada. A bancada foi
-**atualizada** na mesma (o stub da estante passou a declarar `ciclo`, o gesto do PO deixou de pôr o
-valor à mão e passou a medir a leitura, e as secções da anamnese ganharam guarda para o campo que já
-não existe) — mas **não foi corrida**, e não se afirma que passa. (2) `provar-navegacao` falha
-(`Cannot read properties of undefined`) **também no HEAD** — medido com `git stash`: preexistente,
-por falta de publicação.
+**Medido.** `provar-painel-do-ato` **130 asserções verdes, 0 falhas**, na publicação da `calango`
+(esqueleto), com **2 secções NÃO FEITAS** pelo nome (17 e 18 — precisam de um ciclo gerado);
+`provar-listas-do-acervo` **109/109** (era «NÃO FEITO» e depois 1 falha); `provar-ficha-na-listagem`
+**35/35**; `provar-vigente-na-listagem` **21/21**; `provar-ciclos-e-anamnese` **34/34**;
+`provar-ciclo-do-painel-do-po` **27/27**; `provar-ciclo-herdado-do-plano` **20/20**;
+`provar-linha-de-base` **104/104**; `provar-producao` **159/159**; `check-identidade` **0 erros**;
+`check-indices` **16/16**.
+
+**O que continua por medir, e é honesto dizê-lo.** `provar-navegacao` reprova nas secções 3 e 5 e
+morre numa página em falta: ela mede o menu **nas páginas do documento** (`/ciclos/<variante>/
+plano.html`), e o esqueleto da `calango` não as tem. Não é regressão desta mudança — é a mesma
+ausência de ciclo gerado. Fica registada, e passa a correr no dia em que o ciclo 01 da `calango`
+for gerado.
 
 ## O que está pendente
 

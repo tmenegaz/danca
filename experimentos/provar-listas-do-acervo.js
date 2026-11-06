@@ -612,8 +612,15 @@ let ESCOLA = 'escola';
     /* A SENHA NÃO EXISTE NO PO. Está escrito na porta («no PO, nunca»), e o painel punha-a nos
        três. Sem o campo, uma trava que exigisse `SENHA === 'ok'` bloquearia para sempre — por
        isso o `temSenha` também tem de vir a falso. */
-    provar('o PO não pede senha',
-      !/data-ato="senha"/.test(po.html) && /"temSenha":false/.test(po.html), null);
+    /* A MARCAÇÃO, E NÃO O DOCUMENTO INTEIRO (06/11/2026). A asserção procurava
+       `data-ato="senha"` em todo o HTML — e o SCRIPT da página contém
+       `document.querySelector('[data-ato="senha"]')` dentro de `apontarSenha()`. Ou seja: media
+       o código que procura o campo, e não o campo. Passou a medir o painel, que é o que a frase
+       diz («o PO não pede senha»), e o `temSenha` que o script declara. */
+    const camposDoPo = (/<div class="campos-do-ato">([\s\S]*?)<\/div>/.exec(po.html) || [])[1] || '';
+    provar('o PO não pede senha — nem o painel, nem o script',
+      camposDoPo.length > 0 && !/data-ato="senha"/.test(camposDoPo)
+      && /"temSenha":false/.test(po.html), camposDoPo.slice(0, 120));
     provar('a anamnese e o plano pedem',
       /data-ato="senha"/.test(anamnese.html)
       && /data-ato="senha"/.test((await pedir('/area-do-professor/plano-de-ensino/')).html), null);

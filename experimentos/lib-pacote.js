@@ -335,6 +335,7 @@ module.exports = {
   RAIZ, pacotes, umPacote, caminhoDeExemplo, paginas, umaPagina, fontesDoPacote,
   umConfDeVariante,
   estadoDasEscolas, escolaDoPacote, pacoteElegivel, relatorioDePacotes, pastasComPagina,
+  pacoteZeroDaEscola,
 };
 
 /* ------------------------------------------------------- a publicação montada, sem nomear escola
@@ -351,41 +352,95 @@ module.exports = {
  */
 
 /**
- * Monta, num diretório temporário, a publicação de UMA escola VIVA, e devolve
- * `{ dir, escola }`. Devolve `null` quando não há escola viva com pacote-zero — e aí quem chama
- * diz isso em vez de morrer num `ENOENT` que se lê como avaria.
+ * A PASTA DO PACOTE-ZERO de uma escola — `professores/<prof>/ciclos/ciclo-NN-<slug>`.
  *
- * A montagem é a de verdade (`tools/montar-publicacao.js --raiz <tmp>`), e o destino é temporário:
- * a bancada não escreve em `publicacao/`, que é saída e é de quem publica.
+ * É a MESMA pergunta que o `deploy-escolas.yml` faz para decidir se publica («o pacote-zero desta
+ * escola ainda existe?»), e é de propósito que a resposta venha de uma função só: duas definições
+ * de «esta escola tem o que publicar» divergem, e a que ficasse para trás seria a do ecrã.
+ */
+function pacoteZeroDaEscola(escola) {
+  const alvo = String(escola || '').trim();
+  if (!alvo) return null;
+  let professores = [];
+  try {
+    professores = fs.readdirSync(CICLOS, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+  } catch { return null; }
+  for (const professor of professores) {
+    const dir = path.join(CICLOS, professor, 'ciclos');
+    let entradas = [];
+    try { entradas = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+    for (const e of entradas) {
+      if (!e.isDirectory()) continue;
+      /* O SUFIXO É O DA ESCOLA, e o casamento é do `escolaDoSufixo` — a mesma função que o acervo
+       * usa. Uma segunda opinião escrita aqui perderia para `x` no dia em que existisse `x-teste-1`. */
+      if (escolaDoPacote(path.posix.join('professores', professor, 'ciclos', e.name),
+        [alvo]) !== alvo) continue;
+      return path.posix.join('professores', professor, 'ciclos', e.name);
+    }
+  }
+  return null;
+}
+
+/**
+ * Monta a publicação de UMA escola VIVA e devolve `{ dir, escola, paginas }`.
+ *
+ * `paginas` diz se o pacote tem DOCUMENTOS GERADOS (`aula-01.html`, `plano.html`, …) ou se é um
+ * ESQUELETO (só `index.html`, a porta e os assets). Quem mede um documento pergunta; quem mede a
+ * lista, a barra ou a caixinha do ato não precisa de nenhum — e era essa a confusão que deixava
+ * as bancadas paradas.
+ *
+ * `null` quando não há escola viva com pacote-zero; quem chama diz isso em vez de morrer num
+ * `ENOENT` que se lê como avaria.
+ *
+ * A ORDEM É A DO VALOR: primeiro as escolas que têm documentos gerados (é o que serve às bancadas
+ * que medem um documento), e só depois as que têm um esqueleto. A montagem é a de verdade
+ * (`tools/montar-publicacao.js <escola>`), no lugar (`publicacao/<escola>`): o `--raiz` muda a
+ * raiz das FONTES, e apontá-lo para um temporário fazia-o procurar `professores/` lá dentro e
+ * morrer num `scandir`. Montar é idempotente, e `publicacao/` é saída: não vai para o Git.
+ *
+ * PORQUE MUDOU (06/11/2026). A função exigia um pacote com páginas geradas, e a única escola viva
+ * — a `calango` — é um esqueleto: `ciclo-01-calango/` tem `index.html` e `plano-observacao/`, e
+ * mais nada, porque o ciclo ainda não foi gerado. O resultado era «nenhuma publicação para
+ * servir» — que se lê como «não há nada a medir» quando o que há é uma escola **a funcionar** e
+ * três bancadas paradas. A pesquisadora: *«está funcionando o calango, é essa que eu estou usando
+ * para teste… eu acho que você tem que olhar o que está lá no GitHub, o que está ativo.»* O
+ * critério do DEPLOY é o pacote-zero existir; o da bancada passou a ser o mesmo.
  */
 function publicacaoDeUmaEscolaComCiclo() {
   const { execFileSync } = require('child_process');
-  /* NÃO BASTA A ESCOLA ESTAR VIVA: tem de ter CICLO GERADO. O menu «Área do Professor» só nasce
-     com documentos e turmas, e um esqueleto recém-criado (antes de `gerar-ciclo.sh`) traz uma
-     barra sem esse grupo. Foi o que se mediu em 27/10: a prova das listas procurava o item do
-     menu na publicação da `calango` — viva, mas esqueleto — e não o encontrava, porque ele não
-     existe. A fonte certa é `pacotes()`, que já filtra as duas coisas: escola viva E páginas de
-     verdade. */
-  const comCiclo = pacotes()
-    .map((p) => escolaDoPacote(p))
-    .filter((e) => e);
-  const viva = [...new Set(comCiclo)].sort();
-  for (const escola of viva) {
-    /* A MONTAGEM É NO LUGAR (`publicacao/<escola>`), e não num destino à parte: o `--raiz` do
-       `montar-publicacao` muda a raiz das FONTES, não só a saída — apontá-lo para um temporário
-       fazia-o procurar `professores/` lá dentro e morrer num `scandir`. Montar é idempotente (o
-       destino é apagado e refeito), custa pouco, e `publicacao/` é saída: não vai para o Git. */
+  const registro = estadoDasEscolas();
+  const comPaginas = [...new Set(pacotes().map((p) => escolaDoPacote(p)).filter((e) => e))];
+  const vivasComPacote = [...registro.values()]
+    .filter((e) => e.viva && pacoteZeroDaEscola(e.slug))
+    .map((e) => e.slug);
+  /* As que têm documentos gerados primeiro; as outras depois, e sem repetir. */
+  const ordem = [...comPaginas.sort(), ...vivasComPacote.sort()
+    .filter((s) => comPaginas.indexOf(s) === -1)];
+  for (const escola of ordem) {
     try {
       execFileSync(process.execPath, [path.join(RAIZ, 'tools/montar-publicacao.js'), escola],
         { cwd: RAIZ, encoding: 'utf8', stdio: 'pipe' });
       const dir = path.join(RAIZ, 'publicacao', escola);
-      if (fs.existsSync(dir)) return { dir, escola };
+      if (!fs.existsSync(dir)) continue;
+      /* «TEM DOCUMENTOS?» lê-se da SAÍDA, e não da fonte: quem mede um documento navega para
+         `/ciclos/…/aula-01.html`, e é a montagem que decide se ele existe. Procura-se a forma, em
+         qualquer profundidade — a variante é `ciclo-01-<slug>` e o caminho muda com o `.conf`. */
+      let paginas = false;
+      try {
+        paginas = fs.readdirSync(path.join(dir, 'ciclos'), { withFileTypes: true })
+          .some((d) => d.isDirectory() && fs.readdirSync(path.join(dir, 'ciclos', d.name))
+            .some((n) => n.endsWith('.html') && n !== 'index.html'));
+      } catch { paginas = false; }
+      return { dir, escola, paginas };
     } catch (e) {
-      /* A escola viva não tem pacote-zero (recém-criada, antes de `gerar-ciclo.sh`): tenta a
-         seguinte. Não é erro — é o estado da escola. */
+      /* A escola viva não tem pacote-zero montável: tenta a seguinte. Não é erro — é o estado
+         da escola. */
     }
   }
   return null;
 }
 
 module.exports.publicacaoDeUmaEscolaComCiclo = publicacaoDeUmaEscolaComCiclo;
+module.exports.pacoteZeroDaEscola = pacoteZeroDaEscola;
