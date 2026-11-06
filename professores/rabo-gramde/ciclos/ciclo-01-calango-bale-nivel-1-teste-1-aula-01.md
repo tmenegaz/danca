@@ -48,16 +48,19 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 5. Guia de observação do professor
 
-> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem dos
-> aspectos físicos que o plano do ciclo consolidou. O ponto de partida de cada aluna fica no
-> Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a aluna:
-> ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
+> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que a
+> turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada aluna
+> fica no Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a
+> aluna: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
 
 ### Corpo
 
 | Critério | O que se observa |
 |:--|:--|
-| Aspecto físico — o que a turma mostra | [Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico» do plano de ensino.] |
+| 1ª posição — braços | 1 de 2 em «Bom» (com a barra como apoio) · 1 de 2 em «precisa desenvolver» (com toque) — ponto de atenção |
+| Sustentação ativa de MMII (força de adágio) | 1 de 2 em «Sustenta a perna a 90°+ sem apoio» · 1 de 2 em «Incapacidade por colapso» — ponto de atenção |
+| Resistência de MMSS (port de bras prolongado) | 1 de 2 em «Sustenta sem elevar escápulas» · 1 de 2 em «Fadiga rápida com queda» — ponto de atenção |
+| Estabilidade vestibular e deslocamento | 1 de 2 em «Caminha virando a cabeça sem desviar» · 1 de 2 em «Perde o prumo» — ponto de atenção |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 

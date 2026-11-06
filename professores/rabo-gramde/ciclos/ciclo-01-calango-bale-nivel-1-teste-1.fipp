@@ -10,9 +10,9 @@ type: Ciclo
 professor: rabo-gramde
 ciclo: 01
 variante: calango-bale-nivel-1-teste-1
-hash_conteudo: 5cbdb455f99edf2c1b0c51acd522b98c91f1be33b23a5385a77f93850e2b14ba
+hash_conteudo: f408dcd724cf39df42307858f094c9dcb17b401214519ad1cf54006abee7c642
 parentHash: 
-hash: 0755772e4501834c0d12ef985b33b3596d9102b7ae2b1fb19aaac6e7b2083b3f
+hash: 276d0e364588317e8813c18600bf0d84cae5cf6eeb04d69864912884eb8284fb
 algoritmo: SHA-256
 po: professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md
 po_state: Input_PO_Aguardando
