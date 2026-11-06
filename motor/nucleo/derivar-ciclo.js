@@ -22,7 +22,7 @@
  * exemplo de gabarito vazado) sai como lacuna declarada `[Preencher: …]`.
  */
 
-const { respostaDo, emLista, itensDaDimensao, itensComObjetivos } = require('./derivar-po.js');
+const { respostaDo, emLista, itensDaDimensao, itensComObjetivos, turmaDoDocumento } = require('./derivar-po.js');
 // O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
 const moduloNotacao = require('./notacao.js');
 const sequenciaDoPlano = require('./sequencia.js');
@@ -522,7 +522,7 @@ function notacaoEscolhida(plano) {
  * (`contexto-volume`), mas o contrato da aula pede «duração em minutos» e «volume em tempos»
  * (Regra 9) — e quem tem essas duas faixas é o `.conf`.
  */
-function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase }) {
+function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses }) {
   const cal = calibracao || {};
   const duracaoMin = Number(cal.duracaoMinutos) || 60;
   const volMin = Number(cal.volumeMin) || 0;
@@ -607,6 +607,16 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase }) {
   // o exemplo do pesquisador («Aula 1») é a forma falada, não a do arquivo.
   const tituloDaAula = objetivo && !objetivo.startsWith('[Preencher') ? objetivo : '';
   saida.push('title: "Plano para a Aula 01' + (tituloDaAula ? ' — ' + tituloDaAula : '') + '"');
+  /* A TURMA TAMBÉM AQUI (06/11/2026) — e pelo mesmo motivo do plano de ensino.
+   *
+   * A pesquisadora: «do lado de fora, nas aulas, a gente já diz qual é a turma, mas vamos dizer
+   * aqui dentro também para o professor não se perder». A aula é o documento que fica aberto
+   * mais tempo (quinze ecrãs, medido), e o título diz a aula e o objetivo — não de quem é.
+   *
+   * A turma vai procurá-la no PLANO, e não no PO: é o plano de ensino que a declara, e o PO
+   * herda-a. Ler os dois seria escolher entre duas respostas possíveis para a mesma pergunta. */
+  const turmaDaAula = turmaDoDocumento(plano);
+  if (turmaDaAula) saida.push('subtitle: "Turma: ' + turmaDaAula + '"');
   saida.push('objetivo-especifico: "' + (objetivoDaAula1(plano) || '[Preencher]') + '"');
   saida.push('duracao: "' + duracaoMin + ' minutos"');
   if (volumeTotal) saida.push('volume-total: "' + volumeTotal + ' tempos"');
@@ -1078,6 +1088,65 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase }) {
       + (objetivoDoPlano
         ? encurtar(objetivoDoPlano, 160)
         : '[Preencher: o plano não declara o objetivo geral do ciclo]'));
+
+    /* A ANAMNESE DE CADA ALUNA — a proveniência POR SUJEITO (06/11/2026).
+     *
+     * O PEDIDO DELA: «a gente vai colocar uma lista para o professor escolher de qual aluna da
+     * turma ele quer olhar a proveniência. […] vai aparecer dois links para ele, um link de
+     * edição da anamnese da aluna e um outro link que é imprimir a anamnese da aluna».
+     *
+     * PORQUE É UMA LISTA, E NÃO UM SELECTOR. O documento tem dois leitores: a página (onde um
+     * seletor faria sentido) e o PDF, que é o que se imprime e se leva para a sala. O pandoc
+     * descarta HTML cru ao gerar LaTeX — um `<select>` desapareceria do PDF, e com ele a lista
+     * inteira. Uma linha por aluna, com os dois links à vista, diz o mesmo nos dois leitores.
+     *
+     * OS DOIS LINKS SÃO OS DA LISTAGEM, e não uns inventados aqui: a porta da anamnese com o
+     * carimbo (`?editar=` ou `?novo=`, os gestos que a Área do Professor já oferece) e a folha
+     * da estante (`/anamnese/api/ficha-preenchida.<carimbo>?formato=html`). O carimbo é o
+     * VIGENTE de cada aluna — quem o resolve é quem chama (`anamneses`, opcional): o derivador
+     * não lê o acervo, e recebê-lo pronto é o que o mantém puro.
+     *
+     * SEM CARIMBO NÃO SE PROMETE FOLHA. Uma aluna do elenco que ainda não tem anamnese fica com
+     * um link só — o de a fazer. Inventar-lhe um «imprimir» seria um 404 com aparência de dado.
+     */
+    const elenco = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
+    if (elenco.length) {
+      const daBarra = [docente ? 'professor=' + encodeURIComponent(docente) : '',
+        ciclo ? 'ciclo=' + encodeURIComponent(ciclo) : ''].filter(Boolean).join('&');
+      const endereco = (aluna, extra) => '/anamnese/?' + [daBarra, extra,
+        'aluna=' + encodeURIComponent(aluna)].filter(Boolean).join('&');
+      corpo6.push('');
+      corpo6.push('**Anamnese de cada aluna**');
+      corpo6.push('');
+      corpo6.push('A origem de cada uma: **editar** abre o formulário — a senha é pedida lá, e '
+        + 'é ela que autoriza a escrita; **imprimir** abre a folha dela, para ler ou levar para '
+        + 'a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato '
+        + 'anterior fica como está, e o novo nasce com a data de hoje.');
+      corpo6.push('');
+      for (const aluna of elenco) {
+        const nome = String(aluna).trim();
+        if (!nome) continue;
+        const dado = anamneses && anamneses[nome];
+        const carimbo = String(dado && typeof dado === 'object' ? dado.carimbo : dado || '').trim();
+        /* «EDITAR» OU «NOVO REGISTO» — a regra é do projeto, não desta secção (04/11/2026): uma
+         * anamnese já vinculada ao ciclo não se reescreve, porque é o retrato datado de um corpo
+         * num dia. O gesto que a lista oferece nesse caso é «Novo registo» (`?novo=`), e é o
+         * mesmo que esta linha oferece — abrir um formulário de edição sobre um registo
+         * vinculado dava um erro na gravação, e um link que só falha no fim é o pior dos dois. */
+        const vinculada = Boolean(dado && typeof dado === 'object' && dado.vinculada);
+        if (carimbo) {
+          const gesto = vinculada
+            ? '[novo registo](' + endereco(nome, 'novo=' + encodeURIComponent(carimbo)) + ')'
+            : '[editar](' + endereco(nome, 'editar=' + encodeURIComponent(carimbo)) + ')';
+          corpo6.push('- **' + nome + '** — ' + gesto + ' · '
+            + '[imprimir](/anamnese/api/ficha-preenchida.'
+            + encodeURIComponent(carimbo) + '?formato=html)');
+        } else {
+          corpo6.push('- **' + nome + '** — sem anamnese registada · '
+            + '[fazer a anamnese](' + endereco(nome, '') + ')');
+        }
+      }
+    }
     secao('6. Proveniência consolidada', corpo6);
   }
 

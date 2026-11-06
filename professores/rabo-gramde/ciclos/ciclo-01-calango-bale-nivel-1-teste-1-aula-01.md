@@ -4,6 +4,7 @@ frente: Aula
 ciclo: "01"
 aula: "01"
 title: "Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
+subtitle: "Turma: Balé Nível 1 — Teste 1"
 objetivo-especifico: "reconhecer o apoio e alinhar o eixo vertical"
 duracao: "60 minutos"
 volume-total: "90 tempos"
@@ -88,6 +89,14 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 - **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261106-1108?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
 - **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261106-0744?formato=html)** — Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.
+
+**Anamnese de cada aluna**
+
+A origem de cada uma: **editar** abre o formulário — a senha é pedida lá, e é ela que autoriza a escrita; **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
+
+- **Aluna A** — [novo registo](/anamnese/?professor=rabo-gramde&ciclo=01&novo=anamnese-20261105-2301&aluna=Aluna%20A) · [imprimir](/anamnese/api/ficha-preenchida.anamnese-20261105-2301?formato=html)
+- **Aluna B** — [novo registo](/anamnese/?professor=rabo-gramde&ciclo=01&novo=anamnese-20261105-2031&aluna=Aluna%20B) · [imprimir](/anamnese/api/ficha-preenchida.anamnese-20261105-2031?formato=html)
+- **Aluna C** — sem anamnese registada · [fazer a anamnese](/anamnese/?professor=rabo-gramde&ciclo=01&aluna=Aluna%20C)
 
 ## 7. Registro de auditoria da aula
 

@@ -1403,6 +1403,70 @@ não dependem da ligação. E a asserção antiga de `provar-eixos-e-tempo-da-au
 declara a lacuna em vez de inventar, e diz onde se escolhe) continua a ser verdade; a frase que ela
 media é a que foi retirada.
 
+### 5.18 A turma no alto dos documentos, e a anamnese de cada aluna na proveniência
+
+Dois pedidos na mesma mensagem (06/11/2026), e os dois são de LEITURA, não de dado novo:
+
+> «Vamos acrescentar aqui no topo quando a gente abre o plano de ensino, aí qualquer plano de
+> ensino, vai ter isso. Vamos dizer qual é a turma do qual se aplica esse plano de ensino. […]
+> para o professor não se perder, para ele saber do que se trata se ele ficar muito tempo aqui.»
+>
+> «Aí em baixo a gente vai colocar proveniência. […] uma lista para o professor escolher de qual
+> aluna da turma ele quer olhar a proveniência […] vai aparecer dois links para ele, um link de
+> edição da anamnese da aluna e um outro link que é imprimir a anamnese da aluna.»
+
+**A turma no alto.** O título do documento diz o ciclo e a ESCOLA («Plano do Ciclo 01 — calango»),
+e a turma aparecia duas vezes lá em baixo — na tabela do `## Contexto`, entre sete outras linhas, e
+dentro do objetivo. Quem abre o plano para trabalhar nele tem de o saber antes de o ler. A linha
+passou a ser o `subtitle` do pandoc (`turmaDoDocumento`, em `derivar-po.js`): fica debaixo do `<h1>`
+na página e no bloco de título do PDF, e é a peça que a folha de captura e a harmonização já usavam —
+nenhuma classe nova, nenhum gancho a declarar. Duas turmas somam-se com ` · ` (um plano que vale para
+duas não é o plano de uma delas), e sem turma declarada a linha **não existe**: «Turma: —» seria
+prometer um dado inexistente.
+
+A aula também a diz, e vai procurá-la ao **plano** — não ao PO. É o plano de ensino que declara a
+turma, e o PO herda-a; ler os dois seria escolher entre duas respostas possíveis para a mesma
+pergunta.
+
+**A proveniência por sujeito, na §6.** A secção «6. Proveniência consolidada» apontava para os dois
+documentos de que a aula deriva (o PO e o plano de ensino) e parava aí. Abaixo disso passa a haver a
+**anamnese de cada aluna do elenco**, uma linha por aluna, com os dois gestos: abrir o formulário
+(a senha é pedida lá) e abrir a folha dela para ler ou imprimir.
+
+**E é uma lista, não um `select`, por uma razão de suporte.** O documento tem dois leitores: a página
+e o PDF. O pandoc **descarta HTML cru ao gerar LaTeX** — um `<select>` desapareceria do PDF, e com
+ele a secção inteira. Uma linha por aluna, com os dois links à vista, diz o mesmo nos dois leitores.
+
+**O gesto é o que o servidor aceita.** A regra de 04/11/2026 — *uma anamnese consolidada e vinculada
+nunca é editada retroativamente* — vale aqui como em toda a parte: `PUT /api/anamnese-editar/:id`
+responde **409** quando a aluna aparece no elenco de um PO. Por isso a linha não diz «editar» sempre:
+diz **«novo registo»** (`?novo=<carimbo>`, o mesmo gesto da lista da Área do Professor) quando a
+anamnese está vinculada, e **«editar»** (`?editar=<carimbo>`) quando está solta. Um link que só falha
+no fim é o pior dos dois.
+
+**O carimbo vem do sítio certo, e uma vez só.** É `porta.anamneses` que diz qual é o vigente de cada
+apelido (o carimbo mais recente) e se está vinculado — a mesma leitura que a listagem faz, para o
+documento e a lista nunca discordarem. `rotas.js` faz essa leitura no «Guardar» e passa
+`{aluna: {carimbo, vinculada}}` a `escreverCiclo`; o derivador é puro e recebe-o pronto. Sem o mapa
+(ao derivar fora do Worker), a linha degrada para o único gesto que não precisa de carimbo — fazer a
+anamnese — em vez de inventar um carimbo que não existe. E `tools/regerar-derivados.js` lê o mesmo do
+disco: sem isso, o `--escrever` **apagaria** a lista ao regerar um ciclo.
+
+**O modo de falha silencioso, e é ele que a prova fecha.** `proveniencia` é `string` no schema da
+aula. Um `###` a mais dentro da §6 faria dela um **objeto** (`{subcampo: texto}`); uma tabela a mais
+mudaria o texto. Nenhuma das duas mudanças se vê na página — quem as apanha é a validação. A secção
+**F** da prova corre o `validar-aula-ciclo.js` a sério e exige `typeof proveniencia === 'string'`.
+
+**A prova.** `provar-proveniencia-e-turma` **32**. **A**, o plano (a linha, depois do título, duas
+turmas, a reserva do contexto, e sem turma nada); **B**, a aula, e a negativa que importa (o PO com
+outra turma não sobrepõe a do plano); **C**, a §6 (uma linha por aluna, na ordem do elenco; «novo
+registo» para a vinculada e «editar» para a solta; a folha com a rota da estante; a aluna sem anamnese
+sem «imprimir»; a frase que explica o gesto, sem nomes de ficheiro nem de função); **D**, a degradação
+sem o mapa; **E**, a regra do vigente lida do acervo (`porta.anamneses` com um armazenamento em
+memória); **F**, o contrato de extração.
+
+**Contraprova.** Contra o núcleo de `HEAD`, **reprova 18 de 32**.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

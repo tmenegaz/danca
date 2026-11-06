@@ -1249,6 +1249,7 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
               saida.ciclo = await escreverCiclo({
                 plano: saida.plano, po: envelope, contexto,
                 linhaDeBase: await linhaDeBaseDaTurma(porta.turmaDoEnvelope(saida.plano) || contexto.turma),
+                anamneses: await anamnesesDaTurma(),
               });
             } catch (erro) {
               saida.ciclo = { ok: false, erro: erro.message };
@@ -1550,6 +1551,37 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
    * Degrada em silêncio: sem leitor das linhas de base (o adaptador Node não o tem) devolve
    * `null`, e o documento declara a lacuna em vez de inventar o elenco.
    */
+  /**
+   * O CARIMBO VIGENTE DE CADA ALUNA — `{aluna: carimbo}` (06/11/2026).
+   *
+   * A §6 «Proveniência consolidada» da Aula 01 passou a listar a anamnese de cada aluna do elenco,
+   * com os dois gestos: editar (a porta, com o carimbo) e imprimir (a folha da estante). O
+   * carimbo É o dado — e quem o sabe é o acervo, não o derivador.
+   *
+   * A LEITURA É A MESMA DA LISTAGEM: `porta.anamneses` devolve o VIGENTE de cada apelido (o
+   * carimbo mais recente) e se ele já está vinculado, que é a regra do projeto desde 20/10/2026. Uma segunda regra aqui
+   * daria duas respostas para a mesma pergunta, e a que ficasse para trás seria a do documento.
+   *
+   * Degrada em silêncio: sem leitura, cada aluna sai com o único link que não precisa de carimbo
+   * (fazer a anamnese). Um documento que declara a lacuna é melhor do que um que falha inteiro
+   * por causa de uma lista acessória.
+   */
+  const anamnesesDaTurma = async () => {
+    const mapa = {};
+    if (!porta || typeof porta.anamneses !== 'function') return mapa;
+    try {
+      for (const o of await porta.anamneses(armazenamento)) {
+        const aluna = String((o && o.valor) || '').trim();
+        const carimbo = String((o && o.carimbo) || '').trim();
+        /* `vinculada` VAI JUNTO (06/11/2026): decide se a linha do documento oferece «editar» ou
+         * «novo registo». É a mesma pergunta que a lista da Área do Professor faz, respondida
+         * pela mesma função — `porta.anamneses` já a traz, e a regra de 04/11 não se repete. */
+        if (aluna && carimbo) mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada) };
+      }
+    } catch (erro) { /* a §6 declara a lacuna */ }
+    return mapa;
+  };
+
   const linhaDeBaseDaTurma = async (turma) => {
     const alvo = String(turma || '').trim();
     if (!alvo || typeof lerLinhasDeBase !== 'function') return null;

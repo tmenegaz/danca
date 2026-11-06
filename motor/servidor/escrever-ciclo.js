@@ -396,7 +396,7 @@ function docsGerados({ plano }) {
  */
 function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }) {
   if (!token) return null;
-  return async ({ plano, po, contexto, linhaDeBase }) => {
+  return async ({ plano, po, contexto, linhaDeBase, anamneses }) => {
     const ctx = contexto || {};
     const escolaNome = ctx.escolaNome || ctx.escola;
     const relatorio = { conf: null, escritas: [], puladas: [], elos: [], docs: null, schema: null };
@@ -449,9 +449,14 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
        * a sugestão à mão. Resultado medido no ciclo-01 da calango: quatro aspectos escolhidos na
        * linha de base, e a Aula 01 a imprimir «[Preencher: carregue a sugestão…]». Opcional, para
        * o adaptador local e as bancadas continuarem a derivar sem ela. */
+      /* O CARIMBO VIGENTE DE CADA ALUNA VAI AO GUIA (06/11/2026) — a §6 «Proveniência
+       * consolidada» passou a ter a anamnese de cada uma, com os dois links (editar e imprimir).
+       * `anamneses` é `{aluna: carimbo}`, resolvido por quem chama (`rotas.js`), porque o
+       * derivador é puro e não lê o acervo. Opcional: sem ele, a linha de cada aluna sai com o
+       * único link que não precisa de carimbo — o de fazer a anamnese. */
       { sufixo: '-aula-01.md',
         md: derivarAula01({ plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }),
-          calibracao: cal, linhaDeBase }) },
+          calibracao: cal, linhaDeBase, anamneses }) },
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },
       /* O `plano` VAI (06/11/2026) — e faltava aqui. A declaração `porVariante` passou a recebê-lo
        * (é dela que saem as colunas do schema), e a FOLHA não o recebia: o schema declarava as

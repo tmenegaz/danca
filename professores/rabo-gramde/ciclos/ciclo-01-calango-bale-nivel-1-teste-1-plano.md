@@ -5,6 +5,7 @@ ciclo: "01"
 escola: calango
 professor: rabo-gramde
 title: "Plano do Ciclo 01 — calango"
+subtitle: "Turma: Balé Nível 1 — Teste 1"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 

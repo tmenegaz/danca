@@ -4123,6 +4123,24 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   **42/42**; `provar-po-completo` **20/20**; `provar-linha-de-base` **104/104**; `check-pacote` do
   ciclo **0/0**; `check-identidade` **0 erros**; `check-indices` **16/16**.
 
+- **06/11/2026** — **A turma no alto dos documentos, e a anamnese de cada aluna na §6.** Dois pedidos
+  na mesma frase: «vamos dizer qual é a turma do qual se aplica esse plano de ensino […] para o
+  professor não se perder» e «uma lista para o professor escolher de qual aluna da turma ele quer
+  olhar a proveniência […] dois links, um de edição da anamnese e um de imprimir». O plano de ensino
+  e a aula passam a trazer a turma no **cabeçalho** (`subtitle`, por `turmaDoDocumento()`), debaixo do
+  título na página e no PDF; a aula lê-a do **plano**, não do PO. A §6 «Proveniência consolidada»
+  ganha, abaixo dos dois links de origem, **uma linha por aluna do elenco** com dois gestos: abrir o
+  formulário e abrir a folha. **É lista e não `select`** porque o pandoc descarta HTML cru ao gerar
+  LaTeX — um selector desapareceria do PDF com a secção inteira. O gesto segue a regra de 04/11: o
+  servidor responde **409** a editar uma anamnese vinculada, por isso a linha diz **«novo registo»**
+  (`?novo=`) nesse caso e «editar» (`?editar=`) quando está solta. O carimbo vem de
+  `porta.anamneses` (o vigente de cada apelido, a mesma leitura da listagem), passado por `rotas.js`
+  e por `regerar-derivados` — sem esse mapa a linha degrada para «fazer a anamnese» em vez de
+  inventar um carimbo. Medido: `provar-proveniencia-e-turma` (nova) **32/32**, contraprova contra
+  `HEAD` **14/32**; `provar-eixos-e-tempo-da-aula` **47/51** (4 já vermelhas em `HEAD`);
+  `provar-derivados-do-po` **16/16**; `check-identidade` **0 erros**; `check-indices` **16/16**;
+  `check-pacote` do ciclo **0/0**; `gerar-ciclo.sh` completo **0 erro(s)**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

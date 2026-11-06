@@ -818,3 +818,12 @@ experimentos/modelo-formulario/*
 # passo 4 e a leitura do passo 3 não chegavam à aula). A prova mede as duas, mais a invariante que
 # fecha a divergência: o plano e a aula têm de dizer o MESMO conjunto de aspectos.
 !experimentos/provar-corpo-da-linha-de-base.js
+# A TURMA NO ALTO E A ANAMNESE DE CADA ALUNA NA PROVENIÊNCIA (06/11/2026). Dois pedidos na mesma
+# frase: «vamos dizer qual é a turma do qual se aplica esse plano de ensino […] para o professor não
+# se perder», e «a gente vai colocar uma lista para o professor escolher de qual aluna da turma ele
+# quer olhar a proveniência […] dois links, um de edição da anamnese e um de imprimir». A prova mede
+# a linha de cabeçalho nos dois documentos, uma linha por aluna com os dois gestos, o gesto que o
+# servidor aceita («novo registo» quando a anamnese já está vinculada — a regra de 04/11), a aluna
+# sem anamnese a dizer-se em vez de prometer um 404, e o contrato de extracção a continuar a ler a
+# §6 como TEXTO (o modo de falha silencioso daquela secção).
+!experimentos/provar-proveniencia-e-turma.js

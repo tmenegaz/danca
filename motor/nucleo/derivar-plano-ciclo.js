@@ -22,6 +22,7 @@
 const {
   respostaDo,
   emLista,
+  turmaDoDocumento,
   comporPeriodicidade,
   comporMedida,
   comporData,
@@ -551,6 +552,24 @@ function derivarPlano(envelope, opcoes) {
   saida.push('escola: ' + (contexto.escola || 'Escola'));
   saida.push('professor: ' + (contexto.professor || 'Professor'));
   saida.push('title: "' + tituloDoPlano(contexto) + '"');
+  /* A TURMA NO ALTO DO PLANO (06/11/2026).
+   *
+   * O pedido dela: «vamos acrescentar aqui no topo quando a gente abre o plano de ensino, aí
+   * qualquer plano de ensino, vai ter isso. Vamos dizer qual é a turma do qual se aplica esse
+   * plano de ensino. […] para o professor não se perder, para ele saber do que se trata se ele
+   * ficar muito tempo aqui».
+   *
+   * O TÍTULO JÁ NÃO BASTAVA. Ele diz o ciclo e a ESCOLA («Plano do Ciclo 01 — calango»), e a
+   * turma aparecia duas vezes lá em baixo — na tabela do `## Contexto`, entre sete outras
+   * linhas, e dentro do objetivo. Quem abre o documento para trabalhar nele tem de o saber
+   * antes de o ler, e é isso que um subtítulo faz: fica debaixo do título, no cabeçalho da
+   * página e no bloco de título do PDF.
+   *
+   * É o `subtitle` do pandoc — a peça que a folha de captura e a harmonização já usam —, e não
+   * uma linha de prosa no corpo: prosa é conteúdo, e o validador a leria como texto de um campo.
+   * Sem turma declarada não se escreve a linha: «Turma: —» seria prometer um dado inexistente. */
+  const turma = turmaDoDocumento(envelope);
+  if (turma) saida.push('subtitle: "Turma: ' + turma + '"');
   if (referencias) saida.push('referencias: "' + referencias + '"');
   saida.push('---');
   saida.push('');

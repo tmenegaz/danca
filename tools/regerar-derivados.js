@@ -145,7 +145,56 @@ function linhaDeBaseDaTurmaDoCiclo() {
   const nome = String((turma && (turma.valor !== undefined ? turma.valor : turma)) || '').trim();
   return linhaDeBaseDaTurma(linhas, nome);
 }
+/*
+ * O CARIMBO VIGENTE DE CADA ALUNA — a mesma regra do Worker, lida do disco (06/11/2026).
+ *
+ * A §6 «Proveniência consolidada» da Aula 01 lista a anamnese de cada aluna, com dois links: um
+ * que abre o formulário (`?editar=<carimbo>`) e outro que abre a folha
+ * (`/anamnese/api/ficha-preenchida.<carimbo>`). Sem este mapa, o `--escrever` APAGARIA os links
+ * ao regerar um ciclo — a regressão só apareceria no documento impresso, que é o pior sítio.
+ *
+ * A regra é a de `porta.anamneses`: o VIGENTE de cada apelido é o carimbo mais recente. Aqui ela
+ * é relida do disco (o nome do ficheiro e o `contexto.aluna` de cada envelope), porque este
+ * comando corre fora do Worker e não tem KV nem índice.
+ */
+function anamnesesVigentesDoCiclo() {
+  const pasta = path.join(RAIZ, 'escola', escolaSlug, 'envelopes');
+  const mapa = {};
+  if (!fs.existsSync(pasta)) return mapa;
+  /* `vinculada` é a MESMA regra de `porta.vinculos`: a aluna aparece no elenco de algum PO da
+   * escola. Lida aqui dos envelopes, para o documento regerado no disco dizer o mesmo que o
+   * documento gerado no Worker — «novo registo» em vez de «editar». */
+  const vinculadas = new Set();
+  for (const nome of fs.readdirSync(pasta)) {
+    if (!/^po-.*\.json$/.test(nome)) continue;
+    let env = null;
+    try { env = JSON.parse(fs.readFileSync(path.join(pasta, nome), 'utf8')); } catch { continue; }
+    const sujeitos = (env && env.respostas && env.respostas.sujeitos);
+    const lista = sujeitos && (Array.isArray(sujeitos.valor) ? sujeitos.valor : [sujeitos.valor]);
+    for (const a of (Array.isArray(lista) ? lista : [])) {
+      const nome2 = String(a == null ? '' : a).trim();
+      if (nome2) vinculadas.add(nome2);
+    }
+  }
+  for (const nome of fs.readdirSync(pasta)) {
+    if (!/^anamnese-.*\.json$/.test(nome)) continue;
+    let env = null;
+    try { env = JSON.parse(fs.readFileSync(path.join(pasta, nome), 'utf8')); } catch { continue; }
+    const aluna = String((env && env.contexto && env.contexto.aluna) || '').trim();
+    const carimbo = String((env && env.id) || nome.replace(/\.json$/, ''));
+    if (!aluna || !carimbo) continue;
+    const atual = mapa[aluna];
+    if (!atual || atual.carimbo < carimbo) {
+      mapa[aluna] = { carimbo, vinculada: vinculadas.has(aluna) };
+    }
+  }
+  return mapa;
+}
+const anamneses = anamnesesVigentesDoCiclo();
 const linhaDeBase = linhaDeBaseDaTurmaDoCiclo();
+console.log('anamneses: ' + (Object.keys(anamneses).length
+  ? Object.keys(anamneses).length + ' aluna(s) com carimbo vigente'
+  : 'nenhuma lida do disco (a §6 lista só o gesto de fazer)'));
 console.log('linha de base: ' + (linhaDeBase
   ? linhaDeBase.nome + ' — ' + linhaDeBase.recorte.length + ' aspecto(s) do corpo'
   : 'nenhuma enviada para esta turma (o corpo declara a lacuna)'));
@@ -156,7 +205,7 @@ const fontes = [
    * secção do plano muda no DERIVADOR, e sem esta linha o ciclo já gerado continuaria com o
    * título antigo enquanto o formulário mostrava o novo. */
   { sufixo: '-plano.md', texto: derivarPlano(plano, { linhaDeBase }).markdown },
-  { sufixo: '-aula-01.md', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal, linhaDeBase }) },
+  { sufixo: '-aula-01.md', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal, linhaDeBase, anamneses }) },
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },
   { sufixo: '-captura-aula-01.md', texto: derivarCaptura({ po, plano, contexto }) },
   { sufixo: '-harmonizacao.md', texto: derivarHarmonizacao({ plano, po, contexto }) },

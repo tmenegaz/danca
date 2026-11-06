@@ -50,6 +50,31 @@ function emLista(valor) {
 }
 
 /**
+ * A TURMA DE UM DOCUMENTO, por extenso — para o cabeçalho (06/11/2026).
+ *
+ * PORQUE É UMA FUNÇÃO PARTILHADA. O plano de ensino, o PO e a aula são documentos da MESMA turma,
+ * e cada um deles passou a dizê-la no alto. Escrita três vezes, a regra de «quais turmas» e de
+ * «como se escrevem juntas» divergiria à primeira correção — e o que se lia seria três documentos
+ * a discordar sobre de quem são.
+ *
+ * A ORDEM DAS FONTES: o campo `contexto-turma` manda (é a resposta do professor); o
+ * `contexto.turma` do envelope é a reserva, e existe porque uma anamnese e um envelope antigo
+ * podem trazê-lo só ali. Várias turmas somam-se com ` · `, e não se escolhe uma: um plano que vale
+ * para duas turmas não é um plano de uma delas.
+ *
+ * Devolve `''` quando não há turma — e quem chama não escreve a linha. Um cabeçalho que diz
+ * «Turma: —» é pior do que um cabeçalho sem a linha: promete um dado que não existe.
+ */
+function turmaDoDocumento(envelope) {
+  const nomear = (valor) => String(valor == null ? '' : valor)
+    .replace(/\s+/g, ' ').replace(/"/g, '').trim();
+  const doCampo = emLista(respostaDo(envelope, 'contexto-turma')).map(nomear).filter(Boolean);
+  if (doCampo.length) return doCampo.join(' · ');
+  const doContexto = nomear(((envelope && envelope.contexto) || {}).turma);
+  return doContexto;
+}
+
+/**
  * OS ITENS DE UMA DIMENSÃO — o `;` TAMBÉM SEPARA (01/11/2026).
  *
  * DEFEITO MEDIDO, e é o que faz a folha mentir. O `emLista` corta por LINHA e trata o `;` como
@@ -861,6 +886,7 @@ module.exports = {
   condicaoDeRegistroEmTexto,
   respostaDo,
   emLista,
+  turmaDoDocumento,
   itensDaDimensao,
   itensPorDimensao,
   objetivosPorBlocoDoPlano,
