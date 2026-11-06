@@ -38157,3 +38157,104 @@ todas as páginas (0px) e o texto ficava a 5px dele.
 **31/31**; `provar-vao-do-botao` **50/50**; `provar-a-moldura-em-todas-as-telas` **111/111**;
 `check-identidade` **0 erros**; `check-indices` **16/16**; `check-schemas` ok; `check-pacote`
 **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)**.
+
+## 06/11/2026 — O lançamento: a turma que não existe, a página que não era da casa, e os três textos que viram marcação
+
+**O pedido.** Três coisas numa só fala, e as três sobre o **formulário do lançamento** — o documento
+que o professor abre depois de dar a aula:
+
+> «Nós precisamos ajustá-lo para ter a identidade visual adequada com o nosso plano de identidade, com
+> a nossa identidade visual do projeto, né? Que nós já temos uma definida, só que ele está
+> completamente alheio a isso. E aí precisamos também verificar o que que deriva aqui de verdade,
+> porque, por exemplo, acionando agora aqui o documento lançamento de aula, aqui diz que tem presentes
+> aluno A, B e C. Não é verdade.»
+>
+> «Essa forma como é apresentada aqui não é fácil para o professor responder, ela é complexa. Quando
+> tem aqui três campos de texto, né, relatório, o que aconteceu, o que surpreendeu e o que foi
+> ajustado, a gente vai colocar isso como elementos de marcação […]. E aí ele vai simplesmente marcar
+> o que aconteceu de novo e isso, de fato, ele tem que escrever, não tem para onde correr. Agora, o
+> que surpreendeu vai ser só marcar, surpreendeu? Sim. Precisou de ajuste? Sim. Daí ele escreve se
+> precisou de ajuste. Precisou de ajuste tem como valor padrão não.»
+
+### 1. «Presentes: Aluna A, B e C» — a aluna que o PO declarava e a turma não tem
+
+A turma tem **duas** alunas. A linha de base da turma fixa o elenco no acto do passo 2, e é ela que
+manda. Mas `derivarDados` — de onde o formulário tira os «Presentes» — e `derivarCaptura` — de onde
+a folha tira as linhas das tabelas — **liam o PO cada uma por sua conta**, e o PO do ciclo ainda
+declarava três, herança de um envelope anterior à regra. Foi o mesmo defeito já corrigido no
+`derivarPO` na §6 da Aula 01, sobrevivendo em duas outras derivações.
+
+A correção é uma função só, `elencoDoCiclo(po, linhaDeBase)`, com a linha de base como fonte e o PO
+como **reserva** (um ciclo antigo, sem linha de base, continua a derivar). **`alunas: []` não é
+resposta** — uma linha de base sem elenco cai na reserva, porque *vazio* e *não sei* não são a mesma
+coisa.
+
+### 2. A página estava fora da identidade, e não era só o CSS
+
+O formulário estava a **redeclarar a base da casa**: `body` a 15px/1.5 com `max-width: 1000px`,
+`h1` a 1.6rem, tabelas a .92rem, `th,td` com `padding: 6px 8px`. Nenhuma classe inventada — e por
+isso a checagem **8 «Peça»** passava verde: ela olha **classes**, e o que escapava era a
+redeclaração de **elementos**. É a mesma família de buraco que a checagem «Respiro» veio tapar.
+
+| | Antes | Depois |
+|:--|:--|:--|
+| corpo | 15px/1.5, coluna de 1000px | **17px/1.65**, a coluna de leitura da casa |
+| `h1` | 1.6rem | **31px**, o da casa |
+| cabeçalho | `<div class="titulo-fixo">` | **`<header class="doc">`**, igual às outras páginas |
+| conteúdo | direto no `body` | **`<main><div class="conteudo">`** |
+| raio dos campos | 4px (fora da escala) | **`--raio-2`** |
+
+### 3. Três textos viram uma escrita e duas marcas
+
+O que existia eram três áreas de texto — relatório, o que surpreendeu, o que foi ajustado. O que
+passa a existir, e por quê:
+
+- **«O que se observou nesta aula»** — uma marca por item, nos **três eixos** (`corpo`, `técnica`,
+  `poiesis`). Os itens **não nascem no formulário**: são o «Itens de cada dimensão» do PO, que já
+  compõe os objectivos específicos do plano com o recorte da linha de base. Medido no ciclo da
+  calango: o Corpo traz os quatro aspectos escolhidos no passo 4, e a Técnica e a Poiesis trazem os
+  dois objectivos do plano. **Um vocabulário só**, e o formulário a ler o documento em vez de o
+  reinventar.
+- **«Surpreendeu?»** — duas marcas, e **nenhuma escolhida** ao abrir. Em branco quer dizer «não
+  respondi»; um «não» que o professor não deu seria palavra posta na boca dele.
+- **«Precisou de ajuste?»** — duas marcas com **padrão não**, como ela pediu. O campo do texto do
+  ajuste só aparece no «sim», e aí é obrigatório.
+
+Duas decisões de leitura, e as duas sobre o que **não** se inventa:
+
+- **Item que o PO declara como ausência não é item observável.** A dimensão «Restrições» traz
+  «sem restrições declaradas» — é uma declaração de ausência, não algo que se marque ✓/X. Sai da
+  tabela de marcas e continua no PO, que é onde pertence.
+- **O mesmo item não se repete dentro do eixo.** Na calango, Solo, Barra e Centro declaram os mesmos
+  dois objectivos; a tabela os mostra **uma vez** e nomeia as dimensões sob o título do eixo.
+
+O JSON ganhou `observado` (por eixo, com o texto do item verbatim e a marca), e o `relatorio`
+encolheu: `texto` é «o que aconteceu de novo» e continua obrigatório, `surpresas` é marca
+(`sim`/`nao`), `ajustes` é vazio ou o texto. A prosa de um lançamento anterior **não se apaga**: é
+impressa verbatim, e só uma marca nova a substitui.
+
+### 4. O validador do próprio projecto recusava o lançamento do próprio projecto
+
+Achado de raspão, e é o mais grave dos quatro. O `tools/validar-dados-ciclo.js` exigia `tecnica` e
+`funcional` em **toda** aula — os dois blocos do ciclo **Duo**. O ciclo da calango declara `solo`,
+`barra`, `centro`, `musicalidade`, `expressao` e `linha_de_base`, e o formulário escreve esses. O
+resultado: o lançamento de um ciclo real era **reprovado pelo validador do projecto**, e ninguém
+tinha lançado ainda para descobrir.
+
+A exigência contradizia a regra escrita no próprio ficheiro («as CHAVES DE BLOCO VARIAM por
+variante»). Os dois nomes saíram do `required`, e entrou a regra que eles tentavam garantir e
+garantiam só no Duo: **com gente presente, ao menos um bloco por pessoa** — senão o lançamento não
+observou ninguém, e isso é erro em qualquer variante.
+
+**Contraprova.** Com o `required` de `HEAD`, a `provar-formulario-da-aula` reprova o item D no
+`validar-dados-ciclo.js` («campo ausente: tecnica», «campo ausente: funcional»); e com o padrão do
+ajuste forçado a «sim» e a leitura da marca voltada a fazer-se por `id`, reprova **4 de 27**.
+
+**Medido.** `provar-formulario-da-aula` **27/27** (contraprova **4/27**); `provar-elenco-derivado`
+**12/12** (contraprova **6/12**); `provar-ar-das-paginas` **14/14**; `provar-corpo-da-linha-de-base`
+**31/31**; `provar-proveniencia-e-turma` **53/53**; `check-identidade` **0 erros**; `check-indices`
+**16/16**; `check-schemas` ok; `check-pacote` **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo
+**0 erro(s)**. O vão entre os blocos novos, medido a 1280 e a 390:
+legenda→intro 20px, intro→primeiro eixo 12px, eixo→dimensões 8px, dimensões→tabela 8px,
+«observado»→«depois» 16px, rótulo→campo do ajuste 6px — nada encostado, e nenhum estouro
+horizontal em nenhuma das duas larguras.

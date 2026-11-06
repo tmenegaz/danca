@@ -4205,6 +4205,30 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   distância. Medido: `provar-titulo-e-barra` **31/31**, contraprova contra `HEAD` **4/31** (as quatro
   novas); `check-identidade` **0 erros**.
 
+- **06/11/2026** — **O lançamento: a aluna que não existe, a página fora da casa, e os três textos
+  que viram marcação.** Três coisas numa fala, e as três no **formulário do lançamento**. (a) *«aqui
+  diz que tem presentes aluno A, B e C. Não é verdade»* — a turma tem **duas**; `derivarDados` e
+  `derivarCaptura` liam `po.sujeitos` cada uma por sua conta, e o PO do ciclo ainda declarava três.
+  Passaram a ler `elencoDoCiclo(po, linhaDeBase)`, com o PO como reserva (`alunas: []` cai na
+  reserva — vazio não é resposta). (b) *«ele está completamente alheio»* à identidade — a página
+  **redeclarava a base da casa** (`body` 15px/1.5 e coluna de 1000px, `h1` a 1.6rem, tabelas a
+  .92rem): sem classe inventada, e por isso a checagem **8 «Peça»** passava verde — ela olha
+  classes, e o que escapava era a redeclaração de **elementos**. Agora 17px/1.65, `h1` a 31px,
+  `<header class="doc">` e `main > .conteudo` como as outras páginas. (c) *«não é fácil para o
+  professor responder»* — os três textos passaram a **uma escrita e duas marcas**: «o que aconteceu
+  de novo» (obrigatório), «surpreendeu?» (`sim`/`nao`, em branco = não respondi) e «precisou de
+  ajuste?» com padrão **não** e o texto só no «sim». O que se **marca** são os itens do «Itens de
+  cada dimensão» do PO, nos três eixos, com o texto do item verbatim — e o JSON ganhou `observado`.
+  **O achado de raspão, e é o mais grave:** o `validar-dados-ciclo.js` exigia `tecnica` e `funcional`
+  (os blocos do **Duo**) em toda aula, e o ciclo da calango declara `solo`, `barra`, `centro`… — o
+  lançamento de um ciclo real era **reprovado pelo validador do próprio projecto**. Os dois nomes
+  saíram do `required` e entrou a regra que eles garantiam: com gente presente, ao menos um bloco
+  por pessoa. Medido: `provar-formulario-da-aula` **27/27** (contraprova **4/27**),
+  `provar-elenco-derivado` **12/12** (contraprova **6/12**), `provar-ar-das-paginas` **14/14**,
+  `provar-corpo-da-linha-de-base` **31/31**, `provar-proveniencia-e-turma` **53/53**,
+  `check-identidade` **0 erros**, `check-indices` **16/16**, `check-schemas` ok, `check-pacote`
+  **0/0**, `gerar-ciclo.sh` completo **0 erro(s)**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

@@ -1557,6 +1557,38 @@ extraído não traz marcação.
 
 **Contraprova.** Contra o núcleo de `HEAD`, **reprova 21 de 42**.
 
+### 5.21 O lançamento deixa de escrever prosa — e o validador do projecto recusava o lançamento do projecto
+
+A §5.20 corrigiu o elenco no **documento**. Faltava o terceiro sítio: o **formulário**. Ela abriu-o e
+disse «aqui diz que tem presentes aluno A, B e C. Não é verdade» — e o mesmo defeito estava em duas
+derivações que ninguém tinha medido, `derivarDados` (os «Presentes» do formulário) e `derivarCaptura`
+(as linhas das tabelas da folha). As duas liam `po.sujeitos` por sua conta. Passaram a ler
+`elencoDoCiclo(po, linhaDeBase)` — a linha de base manda, o PO fica como reserva, e `alunas: []` não é
+resposta (cai na reserva, porque *vazio* e *não sei* não são a mesma coisa).
+
+**A forma do lançamento mudou, e mudou por instrução dela.** Eram três textos — relatório, o que
+surpreendeu, o que foi ajustado. Passaram a ser **uma escrita e duas marcas**: «o que aconteceu de
+novo» (obrigatório), «surpreendeu?» (`sim`/`nao`, em branco = não respondi) e «precisou de ajuste?»
+(padrão **não**, e o texto só no «sim», aí obrigatório). O que se **marca** são os itens de cada
+dimensão do PO, nos três eixos — corpo, técnica, poiesis —, e a lista vem do documento em vez de ser
+recomposta no formulário. A forma do JSON está na nota de 06/11/2026 da §2.2 do
+`ARQUITETURA-CAPTURA.md`, e a medida em `experimentos/provar-formulario-da-aula.js`.
+
+**O achado de raspão, e é o mais grave.** O `tools/validar-dados-ciclo.js` exigia `tecnica` e
+`funcional` em toda aula — os blocos do ciclo **Duo**. O ciclo da calango declara `solo`, `barra`,
+`centro`, `musicalidade`, `expressao` e `linha_de_base`, e o formulário escreve esses: o lançamento de
+um ciclo real era **reprovado pelo validador do próprio projecto**. A exigência contradizia a regra
+escrita no mesmo ficheiro («as CHAVES DE BLOCO VARIAM por variante»). Os dois nomes saíram do
+`required` e entrou a regra que eles garantiam só no Duo: **com gente presente, ao menos um bloco por
+pessoa**.
+
+**O que fica a guardar.** Duas provas novas — `provar-elenco-derivado` (12) e
+`provar-formulario-da-aula` (27, em navegador, com o payload a passar no validador) —, e a página do
+lançamento deixou de redeclarar a base da casa: o `body`, o `h1` e a medida das tabelas passaram a vir
+da folha, e o cabeçalho é `<header class="doc">` como nas outras páginas. Foi esta a página que
+mostrou o buraco da checagem **8 «Peça»**: ela olha **classes**, e o que escapava era a redeclaração
+de **elementos**.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

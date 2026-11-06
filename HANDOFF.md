@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T13:28:09-0300`
-Commit atual: `3a0529a1` — docs(registro): a auditoria do ar das oito paginas, com a prova que a compara
+Gerado em: `2026-11-06T14:00:28-0300`
+Commit atual: `11bf28c9` — fix(tools): o lancamento entra na identidade, e o que se marca sai do PO
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,10 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+11bf28c9 fix(tools): o lancamento entra na identidade, e o que se marca sai do PO
+9b608179 fix(po): o elenco da aula vem da linha de base, e nao do PO
+7c7007cd chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+bbc45599 docs(registro): o HANDOFF aponta para a auditoria do ar das paginas
 3a0529a1 docs(registro): a auditoria do ar das oito paginas, com a prova que a compara
 1d6bef12 fix(tools): o ar das paginas e um so — a faixa, o rodape e a coluna de leitura
 6cca7b26 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
@@ -102,10 +106,6 @@ fc73fd17 chore(estrutura): regerar os índices derivados
 8f6ba7b4 feat(ciclo-01): a turma no alto dos documentos, e a anamnese de cada aluna na proveniencia
 308a3a85 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 8cf894d8 chore(estrutura): regerar os índices derivados
-bdbe61dc chore(ciclo-01): regerar as fontes do ciclo-01 da calango com o corpo da linha de base
-591375de fix(ciclo-01): o corpo da turma atravessa a cadeia ate ao plano e a Aula 01
-d75da485 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-aa05fdc6 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -156,7 +156,7 @@ aa05fdc6 chore(estrutura): regerar os índices derivados
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `31de8f746770` | (vazio) | — |
-| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `d1ba8b468e09` | (vazio) | Input_PO_Aguardando |
+| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `ad5e094cf52e` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 1 ciclo(s)
 
@@ -233,78 +233,106 @@ aa05fdc6 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — «O mesmo rigor nas demais páginas»: o ar das oito páginas, medido lado a lado
+## 06/11/2026 — O lançamento: a turma que não existe, a página que não era da casa, e os três textos que viram marcação
 
-**O pedido.** *«Uma vez que o padrão de espaçamento, margens, respiros e alinhamentos foi corrigido
-e validado no Plano de Aula 1, o mesmo rigor de identidade visual deve se estender e estar
-perfeitamente aplicado aos demais motores de geração e páginas correlatas.»* E, por página: o plano
-«sem elementos colados nas margens superior/inferior ou linhas divisórias», as referências «evitando
-qualquer aspecto visual colado ou desestruturado», e a notação com «o posicionamento correto da
-identificação da turma» e «os botões com o espaçamento adequado em relação às margens e linhas».
+**O pedido.** Três coisas numa só fala, e as três sobre o **formulário do lançamento** — o documento
+que o professor abre depois de dar a aula:
 
-**O método.** As **oito páginas de documento** do pacote — plano, aula 01, notação, referências,
-glossário, harmonização, índice e folha de captura —, a **1280** e a **390**, com o
-`assets/style.css` servido da fonte. Medi três lugares em cada uma: o ar do cabeçalho, o vão depois
-da faixa e o ar do rodapé. **Dois achados, e nenhum deles se vê numa captura de perto.**
+> «Nós precisamos ajustá-lo para ter a identidade visual adequada com o nosso plano de identidade, com
+> a nossa identidade visual do projeto, né? Que nós já temos uma definida, só que ele está
+> completamente alheio a isso. E aí precisamos também verificar o que que deriva aqui de verdade,
+> porque, por exemplo, acionando agora aqui o documento lançamento de aula, aqui diz que tem presentes
+> aluno A, B e C. Não é verdade.»
+>
+> «Essa forma como é apresentada aqui não é fácil para o professor responder, ela é complexa. Quando
+> tem aqui três campos de texto, né, relatório, o que aconteceu, o que surpreendeu e o que foi
+> ajustado, a gente vai colocar isso como elementos de marcação […]. E aí ele vai simplesmente marcar
+> o que aconteceu de novo e isso, de fato, ele tem que escrever, não tem para onde correr. Agora, o
+> que surpreendeu vai ser só marcar, surpreendeu? Sim. Precisou de ajuste? Sim. Daí ele escreve se
+> precisou de ajuste. Precisou de ajuste tem como valor padrão não.»
 
-### 1. O vão depois da faixa do cabeçalho tinha TRÊS valores
+### 1. «Presentes: Aluna A, B e C» — a aluna que o PO declarava e a turma não tem
 
-| Documento | Antes | Depois |
+A turma tem **duas** alunas. A linha de base da turma fixa o elenco no acto do passo 2, e é ela que
+manda. Mas `derivarDados` — de onde o formulário tira os «Presentes» — e `derivarCaptura` — de onde
+a folha tira as linhas das tabelas — **liam o PO cada uma por sua conta**, e o PO do ciclo ainda
+declarava três, herança de um envelope anterior à regra. Foi o mesmo defeito já corrigido no
+`derivarPO` na §6 da Aula 01, sobrevivendo em duas outras derivações.
+
+A correção é uma função só, `elencoDoCiclo(po, linhaDeBase)`, com a linha de base como fonte e o PO
+como **reserva** (um ciclo antigo, sem linha de base, continua a derivar). **`alunas: []` não é
+resposta** — uma linha de base sem elenco cai na reserva, porque *vazio* e *não sei* não são a mesma
+coisa.
+
+### 2. A página estava fora da identidade, e não era só o CSS
+
+O formulário estava a **redeclarar a base da casa**: `body` a 15px/1.5 com `max-width: 1000px`,
+`h1` a 1.6rem, tabelas a .92rem, `th,td` com `padding: 6px 8px`. Nenhuma classe inventada — e por
+isso a checagem **8 «Peça»** passava verde: ela olha **classes**, e o que escapava era a
+redeclaração de **elementos**. É a mesma família de buraco que a checagem «Respiro» veio tapar.
+
+| | Antes | Depois |
 |:--|:--|:--|
-| abre por `##` (plano, índice, glossário, referências) | 32px | **32px** |
-| abre por citação (harmonização, folha de captura) | 16px | **32px** |
-| abre por prosa (aula 01, notação) | 8px | **32px** |
+| corpo | 15px/1.5, coluna de 1000px | **17px/1.65**, a coluna de leitura da casa |
+| `h1` | 1.6rem | **31px**, o da casa |
+| cabeçalho | `<div class="titulo-fixo">` | **`<header class="doc">`**, igual às outras páginas |
+| conteúdo | direto no `body` | **`<main><div class="conteudo">`** |
+| raio dos campos | 4px (fora da escala) | **`--raio-2`** |
 
-Não eram três decisões: eram **nenhuma**. O vão não estava declarado — era o `margin-top` do que
-calhasse ser o primeiro filho (`32px` do `h2`, `16px` do `blockquote`, `8px` do `p`). Uma página
-abria a 8px da linha e a seguinte a 32px.
+### 3. Três textos viram uma escrita e duas marcas
 
-**A correção:** o vão passou a ser do **contentor**, com o valor que os documentos já tinham:
+O que existia eram três áreas de texto — relatório, o que surpreendeu, o que foi ajustado. O que
+passa a existir, e por quê:
 
-```css
-body:not([data-layout="painel"]) header.doc + main > .conteudo { padding-top: var(--esp-6); }
-body:not([data-layout="painel"]) header.doc + main > .conteudo > :first-child { margin-top: 0; }
-```
+- **«O que se observou nesta aula»** — uma marca por item, nos **três eixos** (`corpo`, `técnica`,
+  `poiesis`). Os itens **não nascem no formulário**: são o «Itens de cada dimensão» do PO, que já
+  compõe os objectivos específicos do plano com o recorte da linha de base. Medido no ciclo da
+  calango: o Corpo traz os quatro aspectos escolhidos no passo 4, e a Técnica e a Poiesis trazem os
+  dois objectivos do plano. **Um vocabulário só**, e o formulário a ler o documento em vez de o
+  reinventar.
+- **«Surpreendeu?»** — duas marcas, e **nenhuma escolhida** ao abrir. Em branco quer dizer «não
+  respondi»; um «não» que o professor não deu seria palavra posta na boca dele.
+- **«Precisou de ajuste?»** — duas marcas com **padrão não**, como ela pediu. O campo do texto do
+  ajuste só aparece no «sim», e aí é obrigatório.
 
-`--esp-6` (32px) é o mesmo valor do `main h2`: o vão não muda de valor, muda de **dono**. Em
-`.conteudo` e não em `main` porque no telemóvel o primeiro bloco do `main` é o índice dobrado, que
-é navegação; e o **painel** fica de fora porque é tela de trabalho, não documento.
+Duas decisões de leitura, e as duas sobre o que **não** se inventa:
 
-### 2. O rodapé tinha perdido o box model inteiro
+- **Item que o PO declara como ausência não é item observável.** A dimensão «Restrições» traz
+  «sem restrições declaradas» — é uma declaração de ausência, não algo que se marque ✓/X. Sai da
+  tabela de marcas e continua no PO, que é onde pertence.
+- **O mesmo item não se repete dentro do eixo.** Na calango, Solo, Barra e Centro declaram os mesmos
+  dois objectivos; a tabela os mostra **uma vez** e nomeia as dimensões sob o título do eixo.
 
-| O que | Antes | Depois |
-|:--|:--|:--|
-| do último parágrafo ao filete | **0,4px** | **40px** |
-| do filete ao texto | **5px** | **21px** |
+O JSON ganhou `observado` (por eixo, com o texto do item verbatim e a marca), e o `relatorio`
+encolheu: `texto` é «o que aconteceu de novo» e continua obrigatório, `surpresas` é marca
+(`sim`/`nao`), `ajustes` é vazio ou o texto. A prosa de um lançamento anterior **não se apaga**: é
+impressa verbatim, e só uma marca nova a substitui.
 
-A faixa declarava `header.doc, main, footer.rodape, .rodape { … padding: 0 24px }`, e
-`footer.rodape` pesa **(0,1,1)** — mais do que o `.rodape` da peça **(0,1,0)**. O rodapé saía com
-`margin-top: 0` e `padding-top: 0` **enquanto a peça declarava 40px e 16px**. É «colado na linha»
-na forma mais literal — o texto encostado ao próprio filete — e o mesmo género de erro da faixa do
-cabeçalho: a caixa é da faixa, o ar de dentro é da peça. A linha deixou de nomear `footer.rodape`.
+### 4. O validador do próprio projecto recusava o lançamento do próprio projecto
 
-### 3. A regra do vão de baixo do cabeçalho estava escrita e não funcionava
+Achado de raspão, e é o mais grave dos quatro. O `tools/validar-dados-ciclo.js` exigia `tecnica` e
+`funcional` em **toda** aula — os dois blocos do ciclo **Duo**. O ciclo da calango declara `solo`,
+`barra`, `centro`, `musicalidade`, `expressao` e `linha_de_base`, e o formulário escreve esses. O
+resultado: o lançamento de um ciclo real era **reprovado pelo validador do projecto**, e ninguém
+tinha lançado ainda para descobrir.
 
-`header.doc > :last-child { margin-bottom: 0 }` foi escrita de manhã **colada ao `padding`**, e
-ali pesa o mesmo que `header.doc .subtitulo` — que vem depois. Ganhava o subtítulo, e o vão de
-baixo saía **20px** nos três documentos que acabam nele (plano, harmonização, captura) e **12px**
-nos que acabam num botão (aula, notação). A regra passou para depois de todas as peças.
+A exigência contradizia a regra escrita no próprio ficheiro («as CHAVES DE BLOCO VARIAM por
+variante»). Os dois nomes saíram do `required`, e entrou a regra que eles tentavam garantir e
+garantiam só no Duo: **com gente presente, ao menos um bloco por pessoa** — senão o lançamento não
+observou ninguém, e isso é erro em qualquer variante.
 
-**O que fica a guardar, em dois sítios que se completam.** A checagem **10 «Respiro»** do
-`tools/check-identidade.js` passou a medir os três lugares e a reprovar a regra da faixa que voltar
-a nomear `footer.rodape`; e a **`experimentos/provar-ar-das-paginas.js`** (nova, 14 asserções)
-mede as oito páginas num navegador, em 1280 e em 390, e exige o **mesmo** vão em todas, nenhum par
-de irmãos com 0px e nenhum estouro horizontal. O `IDENTIDADE-VISUAL.md` ganhou a secção «O ar das
-páginas é o mesmo — e mede-se comparando», com as tabelas antes/depois.
+**Contraprova.** Com o `required` de `HEAD`, a `provar-formulario-da-aula` reprova o item D no
+`validar-dados-ciclo.js` («campo ausente: tecnica», «campo ausente: funcional»); e com o padrão do
+ajuste forçado a «sim» e a leitura da marca voltada a fazer-se por `id`, reprova **4 de 27**.
 
-**Contraprova.** Contra a folha de `HEAD`, a `provar-ar-das-paginas` **reprova 6 de 14** — o vão
-depois da faixa saía `[8, 16, 16, 16, 32, 8, 32, 16]`, o filete encostava no último parágrafo em
-todas as páginas (0px) e o texto ficava a 5px dele.
-
-**Medido.** `provar-ar-das-paginas` **14/14** (contraprova **6/14**); `provar-titulo-e-barra`
-**31/31**; `provar-vao-do-botao` **50/50**; `provar-a-moldura-em-todas-as-telas` **111/111**;
-`check-identidade` **0 erros**; `check-indices` **16/16**; `check-schemas` ok; `check-pacote`
-**0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)**.
+**Medido.** `provar-formulario-da-aula` **27/27** (contraprova **4/27**); `provar-elenco-derivado`
+**12/12** (contraprova **6/12**); `provar-ar-das-paginas` **14/14**; `provar-corpo-da-linha-de-base`
+**31/31**; `provar-proveniencia-e-turma` **53/53**; `check-identidade` **0 erros**; `check-indices`
+**16/16**; `check-schemas` ok; `check-pacote` **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo
+**0 erro(s)**. O vão entre os blocos novos, medido a 1280 e a 390:
+legenda→intro 20px, intro→primeiro eixo 12px, eixo→dimensões 8px, dimensões→tabela 8px,
+«observado»→«depois» 16px, rótulo→campo do ajuste 6px — nada encostado, e nenhum estouro
+horizontal em nenhuma das duas larguras.
 
 ## O que está pendente
 

@@ -180,8 +180,13 @@ Aula ───┘                       ├──> Vistas (calculadas em memóri
   "linha_de_base": { },
   "relatorio": {
     "texto": "...",
-    "surpresas": "...",
-    "ajustes": "..."
+    "surpresas": "sim",
+    "ajustes": ""
+  },
+  "observado": {
+    "corpo": [{ "item": "1ª posição — braços", "marca": "ok" }],
+    "tecnica": [{ "item": "reconhecer o apoio e alinhar o eixo vertical", "marca": "parcial" }],
+    "poiesis": [{ "item": "reconhecer o apoio e alinhar o eixo vertical", "marca": "nao_vi" }]
   },
   "materiais": [],
   "ultimo_lancamento": "2026-09-20T14:30"
@@ -192,6 +197,31 @@ Aula ───┘                       ├──> Vistas (calculadas em memóri
 armazenadas — são calculadas pelo formulário. O `ultimo_lancamento` é o carimbo
 de gravação **daquela aula**.
 
+> **Nota datada — 06/11/2026. `relatorio` deixou de ser prosa toda, e `observado` nasceu.** A
+> pesquisadora abriu o formulário do lançamento e disse duas coisas: *«aqui diz que tem presentes
+> aluno A, B e C. Não é verdade»*, e *«essa forma como é apresentada aqui não é fácil para o
+> professor responder, ela é complexa»*. A primeira era derivação (o formulário lia o PO, e o PO do
+> ciclo ainda declarava três alunas — a linha de base da turma fixa duas); a segunda era desenho.
+> O que mudou, e o motivo:
+>
+> · **`observado`** — o que se marcou ao fim da aula, por EIXO (`corpo`, `tecnica`, `poiesis`) e
+>   item a item, com o texto do item verbatim. A lista de itens **não nasce aqui**: é o «Itens de
+>   cada dimensão» do PO (§5.15 do `ARQUITETURA-GERAL.md`), que já compõe os objectivos específicos
+>   do plano com o recorte da linha de base. Um vocabulário só, e o formulário a ler o documento.
+> · **`relatorio.surpresas`** passou de prosa a **marca** (`sim`/`nao`; vazio é «não respondi», e
+>   não é «não»). A prosa de um lançamento anterior continua válida e é impressa verbatim — o que
+>   se traduz é a marca nova.
+> · **`relatorio.ajustes`** é vazio ou o texto do ajuste. Não vazio significa «precisou de ajuste,
+>   e foi este». O formulário pergunta «precisou de ajuste?» com **padrão não**, e só então abre o
+>   campo — que passa a ser obrigatório.
+> · **`relatorio.texto`** é «o que aconteceu de novo», e continua obrigatório: é a única parte que
+>   se escreve por inteiro, porque o resto já está nos itens e nas marcas.
+>
+> A medida está em `experimentos/provar-formulario-da-aula.js` (27 asserções, em navegador): os
+> itens de cada eixo são exactamente os do PO, as duas marcas têm os padrões que ela pediu, o
+> payload que o formulário monta **passa** no `tools/validar-dados-ciclo.js`, e a página não
+> estoura a 1280 nem a 390.
+>
 > **Nota datada — 27/09/2026. A redação acima envelheceu.** Ela dizia, e não diz mais,
 > *"é o que ancora o prazo do ajuste (§5.1)"*. Desde o `B7`, o prazo é **declarado pelo
 > índice** — `aulas[].prazo`, calculado do cronograma (§3.1 do `ARQUITETURA-AULA.md`) —
@@ -273,6 +303,8 @@ Professor lança os dados → formulário atualiza o JSON em memória
     ↓
 Escreve o texto do relatório → também vai para o JSON
     ↓
+Marca «surpreendeu?» e «precisou de ajuste?» → vão como marca, não como prosa (06/11/2026)
+    ↓
 Cada gravação cria um ARQUIVO novo, com carimbo no nome, e o índice passa a
 apontar para ele — o anterior permanece (ver §5.1)
     ↓
@@ -281,6 +313,16 @@ Salva o JSON novo e o índice atualizado na pasta do ciclo
 Commita no Git (repositório privado)
 ```
 
+> **Nota datada — 06/11/2026. A escrita encolheu, e ela pediu que encolhesse.** O primeiro passo
+> dizia *«escreve o texto do relatório»*, e eram três textos: relatório, o que surpreendeu, o que
+> foi ajustado. Passaram a ser um texto e duas marcas — «a gente vai colocar isso como elementos de
+> marcação […] ele vai simplesmente marcar o que aconteceu de novo e isso, de fato, ele tem que
+> escrever, não tem para onde correr. Agora, o que surpreendeu vai ser só marcar […] Precisou de
+> ajuste? Sim. Daí ele escreve se precisou de ajuste. Precisou de ajuste tem como valor padrão
+> não». O que se marca são os itens do PO nos três eixos; o que se escreve é o que nenhum item
+> previa. A forma do JSON está na nota da §2.2, e a medida em
+> `experimentos/provar-formulario-da-aula.js`.
+>
 > **Nota datada — 28/09/2026. A redação acima envelheceu.** O penúltimo passo dizia, e não
 > diz mais, *"Baixa o JSON novo e o índice atualizado"*. Desde o `Salvar`, o formulário
 > **grava os dois arquivos na pasta do ciclo** que o professor escolher, com a File System
