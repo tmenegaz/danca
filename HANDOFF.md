@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T12:48:56-0300`
-Commit atual: `06b3ffe2` — fix(tools): o cabecalho respira, e o respiro e padding
+Gerado em: `2026-11-06T13:11:19-0300`
+Commit atual: `76365919` — fix(tools): a peca .acoes-da-aluna na folha — o vao da fileira da §6
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,9 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+76365919 fix(tools): a peca .acoes-da-aluna na folha — o vao da fileira da §6
+1eb142a2 fix(ciclo-01): a turma entra na notacao, e a §6 ganha a fileira da aluna
+68417c49 docs(registro): o HANDOFF aponta para o commit do respiro do cabecalho
 06b3ffe2 fix(tools): o cabecalho respira, e o respiro e padding
 97c0cdf6 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 401c707c fix(ciclo-01): a §6 vira selector do elenco, e o elenco passa a vir da linha de base
@@ -103,9 +106,6 @@ a1a1fc4c chore(estrutura): reancorar a cadeia das fontes alteradas
 fe0481c2 chore(estrutura): regerar os índices derivados
 6ef324eb feat(ciclo): o «Guardar» do PO grava as fontes de calango-bale-nivel-1-teste-1 num commit só
 54e1bfa1 feat(po): o PO elicitado vira a fonte do ciclo
-ad157a58 feat(acervo): envelope/po-20261106-1108.json
-46eaacb4 feat(acervo): envelope/.indice.json
-d8ca4c52 fix(po): o texto do professor nao se perde — e duas maneiras de o perder em silencio
 ```
 
 ## Por professor
@@ -156,7 +156,7 @@ d8ca4c52 fix(po): o texto do professor nao se perde — e duas maneiras de o per
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `31de8f746770` | (vazio) | — |
-| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `f6c15e952d9a` | (vazio) | Input_PO_Aguardando |
+| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `d1ba8b468e09` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 1 ciclo(s)
 
@@ -233,69 +233,43 @@ d8ca4c52 fix(po): o texto do professor nao se perde — e duas maneiras de o per
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — «Os botões estão colados na margem superior»: o respiro do cabeçalho, e a distância que nenhuma checagem media
+## 06/11/2026 — «Os botões estão colados no dropdown»: a fileira das acções de uma escolha
 
-**O relato, e é literal.** *«O plano para a aula um não está seguindo o que determinamos como
-identidade visual. Os botões estão colados na margem superior e o botão Abrir notação também está
-sem espaço na margem inferior, está completamente colado na linha.»*
+**O relato.** *«Tanto na página que é celular quanto na página do desktop, quando eu escolho a
+aluna, o botão novo registro e imprimir estão colados no dropdown na lista de seleção. Não pode,
+tem que ter um respiro ali, tem que ter um espaço.»*
 
-**A medida, antes de qualquer correção.** No documento real da Aula 01, com a folha daquele dia
-(1280×900 e 390×844, Chrome headless, o `assets/style.css` servido da fonte):
+**A medida, antes.** No `aula-01.html` publicado, com a folha de antes: o `<select>` das alunas
+acabava em **3139,6px** e o `<div>` das acções começava em **3139,6px** — o botão a **1px** do
+menu, em 1280 **e** em 390. Os dois botões, entre si, ficavam a **4,3px** (o espaço de texto).
 
-| Onde | Antes | Depois |
-|:--|:--|:--|
-| do fundo da barra ao topo do `h1`, **preso**, 1280px | **0,3px** | **12px** |
-| … idem, 390px | **0px** | **12px** |
-| do fundo do botão à linha da sombra, preso | **0px** | **12px** |
-| do fundo do botão a `<main>` | 8px | 12px |
-| altura do cabeçalho preso, 1280 / 390 | 63 / 84px | 87 / 108px |
-| o mesmo, **preso**, no plano de ensino e no lançamento | 0,3px e 0,5px | 12px |
+**A causa, e é a de sempre.** A §6 emitia `<div data-prov-par="…">` **sem classe**. Um `<div>` nu
+não tem ar, e o `.acao` declara `margin: 0` (é o que o põe na linha dos outros controles). Quem
+dava vão ao botão era a **vizinhança do formulário** (`:where(form) > campo + button.acao`,
+16px) — e aqui não há formulário, os dois gestos são **ligações** (`a.acao`, para a Área do
+Professor) e há um bloco **por aluna**.
 
-**A causa não é visual, é de caixa.** O ar que existia era um `margin-top: 8px` no `header.doc`. A
-margem fica **fora** da caixa, e `position: sticky` com `top: var(--header-height)` põe a **caixa**
-encostada à barra e **descarta a margem**: o ar valia com a página no topo e desaparecia no estado em
-que o professor passa a maior parte do tempo — a rolar. Do outro lado, sem `padding-bottom` o último
-controlo acabava na aresta inferior, que é a aresta que desenha a sombra.
+**A peça nova, e as três coisas que a acompanham** (é a regra do catálogo: a peça nasce na
+folha, entra no catálogo e é provada):
 
-**A regra, na folha (`tools/templates/ciclo.css`).** O respiro é `--esp-3` (12px) acima e abaixo, e é
-**padding**, porque o padding mora dentro da caixa — que é quem se prende e quem desenha a linha.
-Uma declaração, os dois sítios que o mesmo mecanismo prende:
+| Onde | O que |
+|:--|:--|
+| `tools/templates/ciclo.css` | `.acoes-da-aluna` — `flex`, `gap: --esp-2` (8px), `margin-top: --esp-3` (12px). 12 e não 16: o `--esp-4` é o do botão que **GRAVA**, e estes dois não gravam |
+| `IDENTIDADE-VISUAL.md` | Quadro 1 (como escolher) e Quadro 2 (o inventário), e a subsecção «A fileira das acções de uma ESCOLHA — e o `<div>` nu», ao lado do «vão do botão» de 26/10 |
+| `experimentos/provar-proveniencia-e-turma.js` | secção **H**: mede em navegador o vão do menu ao primeiro botão e o vão entre os dois botões, em 1280 **e** em 390; exige **≥12px** e **≥8px**, e a peça tem de estar desenhada na folha (senão o nome é só um nome) |
 
-```css
-header.doc, .titulo-fixo { padding-top: var(--esp-3); padding-bottom: var(--esp-3); }
-header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
-```
+**Medido depois.** Vão do menu ao botão: **12px** em 1280 e **12px** em 390. Entre os dois
+botões: **8px** nas duas larguras, na mesma linha. Zero estouro horizontal.
 
-O `> :last-child` existe para o vão de baixo ter **um** responsável: com a margem do último `<p>`
-(8px) ainda lá dentro, o ar seriam 20px nuns documentos e 12px noutros, conforme o último filho.
+**O que NÃO se fez: reusar `.par-botoes`.** A fileira da Produção é a peça certa para «a acção
+do formulário», mas ela é declarada em `motor/servidor/bastidores.js` — e o `check-identidade`
+(«Forma») reprova uma página que redeclara um componente da folha. Promovê-la à folha exigiria
+apagá-la de lá, e isso é outra obra. Uma peça para este caso, com o nome da casa
+(`acoes-do-ato`, `acoes-da-lista` → `acoes-da-aluna`).
 
-**E o que se registou para não se repetir — dois sítios, e eles completam-se.**
-
-1. **`IDENTIDADE-VISUAL.md`** ganhou a secção *«O cabeçalho respira — e o respiro é padding
-   (06/11/2026)»*, com a tabela acima (antes/depois, nas duas larguras), a causa, a regra e a
-   lição. A lista do validador passou de nove para **dez** checagens.
-2. **`tools/check-identidade.js`** ganhou a checagem **10 «Respiro»**: lê a folha, resolve
-   `var(--esp-3)` em px e reprova abaixo de **12px** — e reprova também o ar posto em `margin-top`,
-   que é exactamente o erro que aqui se cometeu. Ela corre no `pre-commit` e antes dos deploys.
-
-**A lição, e é a que justifica a checagem.** As nove checagens passavam e as **27** asserções da
-`provar-titulo-e-barra` diziam todas `ok` com o título a 0,3px da barra. O que se media era
-**presença** — «está preso?», «está à vista?», «o âncora chega inteiro?». Um título colado à barra
-está preso, está à vista, e o âncora chega inteiro. **O defeito era de distância, e nada perguntava
-por distância.**
-
-**Com o quê.** `provar-titulo-e-barra` passa de **27** para **31** asserções: as duas distâncias
-medidas em navegador (barra→`h1` e último controlo→linha), em 1280 e em 390, presas e no topo. A
-régua antiga do celular («menos de 10% da tela») deixou de exprimir o que se quer — com o respiro o
-cabeçalho preso mede 108px, 12,8% — e passou a ser a **proporção entre os dois estados do mesmo
-cabeçalho** (≤ 55%), que não depende do corpo do título nem de quantas linhas ele quebra.
-
-**Contraprova.** Contra a folha de `HEAD`, a prova **reprova 4 de 31** — as quatro novas, e só elas.
-
-**Medido.** `provar-titulo-e-barra` **31/31** (contraprova **4/31**); `check-identidade` **0 erros**
-com a checagem «Respiro» a declarar `header.doc 12/12px, .titulo-fixo 12/12px`; `check-indices`
-**16/16**; `check-schemas` ok; `check-pacote` do ciclo **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh`
-completo **0 erro(s)**.
+**Medido.** `provar-proveniencia-e-turma` **53/53** (contraprova contra `HEAD`: **8 de 53**);
+`check-identidade` **0 erros**; `check-indices` **16/16**; `check-schemas` ok; `check-pacote`
+**0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)**.
 
 ## O que está pendente
 
