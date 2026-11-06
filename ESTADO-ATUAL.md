@@ -2316,7 +2316,7 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **declarada** (a que vem inteira no nome do ficheiro de dados), não a composta de
      `escola + turma` — o lançamento não traz turma, e sem esta regra o pedido pedia o
      `.conf`-esqueleto da escola e a geração morria. **CONFIRMADO** por
-     `experimentos/provar-familia-do-lancamento.js` (**35 asserções**, contraprova **6 de 35**).
+     `experimentos/provar-familia-do-lancamento.js` (**38 asserções**, contraprova **6 de 38**).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

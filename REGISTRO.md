@@ -38692,13 +38692,22 @@ E o acto **termina na geração**: por cada variante que mudou, ele dispara o `g
 o resgate gravaria a fonte certa e o ecrã continuaria a mostrar a aula por lançar — o defeito a
 repetir-se no próprio remédio. A repetição do acto (`semMudanca`) não volta a disparar.
 
-**A prova:** `experimentos/provar-familia-do-lancamento.js`, **35 asserções**. Mede que a chave tem
+**E o acto não chegava ao ar.** A rota estava declarada, a ponte do Worker a montava — e a
+**produção** (`motor/servidor/producao.js`) só entrega ao motor um punhado de caminhos; o resto vai
+para os assets. `/api/lancamentos/consolidar` não estava nessa lista. Medido no Worker vivo, depois
+do primeiro deploy: **HTTP 404, 0 bytes**. A prova passou a exercer o caminho de PRODUÇÃO, e não só
+o roteador: pede o resgate com uma senha errada e exige a recusa da conferência de senha (com um
+caminho irmão não declarado a dar 404, que é a contraprova de que a asserção mede o encaminhamento).
+Lição que se repete nesta entrega — **uma função ligada é uma função ligada nas três pontas**: a
+família no armazenamento, o parâmetro na porta, e o caminho na produção.
+
+**A prova:** `experimentos/provar-familia-do-lancamento.js`, **38 asserções**. Mede que a chave tem
 família e que o composto real (`combinar`) a entrega ao repositório **e não ao KV** (com um KV de
 mentira que registra o que lhe tentam escrever), que o destino é o caminho do `fonte_dados()` — lido
 do próprio `lib-fontes.sh`, não repetido à mão —, que a fusão preserva a aula que já estava, que o
 `depois` recebe a **variante** (sem ela o disparo não sabe que pacote gerar), que um disparo falhado
 não desfaz a gravação, que o `ciclos.json` do cliente **não** vai para o repositório (é gerado), e
-que o mesmo carimbo duas vezes não escreve duas. **Contraprova: 6 de 35** — tirar a família da chave
+que o mesmo carimbo duas vezes não escreve duas. **Contraprova: 6 de 38** — tirar a família da chave
 (o estado de antes) reprova a secção A inteira, e o KV volta a engolir o lançamento.
 
 **A segunda metade do mesmo defeito, apanhada pela prova e não pelo relato.** Gravar na fonte é
@@ -38745,7 +38754,7 @@ contrato e não confere senha nenhuma (o `wrangler.<escola>.jsonc` aponta para `
 → `producao.js`). O comentário dele diz que é ele que atende `/api/receber` em produção, e não é. Fica
 registado; apagá-lo é um passo próprio, com a prova do `recredenciamento` da escola a correr antes.
 
-**Validação:** `provar-familia-do-lancamento` **35/35**, contraprova **6/35**; `check-identidade`
+**Validação:** `provar-familia-do-lancamento` **38/38**, contraprova **6/38**; `check-identidade`
 **0 erros** (e `--sem-pacotes` **0 erros**); `check-indices` **16/16**; `check-github-headers`
 **5/5**; `check-pacote` **0 erro(s), 0 aviso(s)**; `provar-senha-do-lancamento` **19/19**;
 `provar-relacoes` **35/35**; `provar-indice-de-lancamentos` **24/24**; `provar-formulario-da-aula`
