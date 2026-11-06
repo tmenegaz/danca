@@ -1,0 +1,28 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-calango-bale-nivel-1-teste-1
+type: Ciclo
+professor: rabo-gramde
+ciclo: 01
+variante: calango-bale-nivel-1-teste-1
+hash_conteudo: 767636dacfeef534bdb53670ebde6ed6e20745225bf29e9da63548a0fe75ad2c
+parentHash: 
+hash: 20554e1c9f0a9f41d8df4c5bb560fbb5ee35a46cd2fca431904028e8a7b2ed49
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-06
+notacao: Benesh
+notacao_modalidade: bale-classico
+notacao_alfabeto: ballet-classico
+notacao_versao: 38
+notacao_sha: 7f9abec14ccacfbb35864a1f8e307518683a23794e3cb80a1fb8573e2d3e81b6
+cobertura:
+  - professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md
+  - professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf
+  - professores/rabo-gramde/ciclos/ciclo-01.conf
