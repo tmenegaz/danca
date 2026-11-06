@@ -98,8 +98,8 @@
           "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
           "professores/rabo-gramde/ciclos/ciclo-01.conf"
         ],
-        "hash": "ad5e094cf52e3c2bca825eff2b60cf52079603d55d4a6318b876926d0bbffc44",
-        "hash_conteudo": "e88dfd9e5dea11eb5328455dac20b782d41a076b03ac398a4d2087edfd71797d",
+        "hash": "8ddf9755c1a31622224aee5bd53a4ef7f0205a88ee741b9d1a053eae57b6be0c",
+        "hash_conteudo": "e521523d76f0e7fcd3631d99716f5c4853119c52aa2eebd45bc9f706de7d751e",
         "id": "ciclo-01-calango-bale-nivel-1-teste-1",
         "lida": true,
         "parent_hash": ""
@@ -485,9 +485,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "28dfacd"
+    "commit": "7f5b1be"
   },
-  "gerado_em": "2026-11-06T18:21",
+  "gerado_em": "2026-11-06T19:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
