@@ -97,6 +97,51 @@ jobs:
       # o `.cifrado.json`; o `check-pacote.js` confere a estrutura da cópia contra a fonte (a
       # garantia byte a byte fica para a máquina da pesquisadora, que tem tools/.senhas-locais).
 
+      # A ESCOLA NÃO É A VARIANTE, E A PUBLICAÇÃO É A ÚLTIMA COISA QUE ACONTECE.
+      #
+      # O CASO QUE ORIGINOU ISTO (run 48, 06/11/2026, medido). Um disparo com
+      # `escola=calango-bale-nivel-1-teste-1` gerou o pacote, reancorou a cadeia, COMMITOU e
+      # montou a publicação — e só então o `wrangler deploy` falhou, com «Could not read file:
+      # wrangler.calango-bale-nivel-1-teste-1.jsonc». O input `escola` é o WORKER (o nome do
+      # `wrangler.<escola>.jsonc`), não a turma: a turma vai em `variante`. Um valor trocado
+      # custava uma geração inteira e deixava um commit de pacote para trás.
+      #
+      # A TRACIÊNCIA É AQUI E NÃO NA PROMESSA. Não há como impedir que alguém escreva a turma no
+      # campo da escola — o que há é esta conferência, antes de gerar, que diz o que houve e lista
+      # os Workers que existem. Com ela, uma escola REAL também está coberta: o `criar-escola.sh`
+      # nomeia o ficheiro pelo WORKER (`--worker`, e por omissão a própria escola), e um Worker
+      # que não exista falha aqui em dois segundos, sem gerar nada.
+      - name: Conferir o Worker da escola
+        shell: bash
+        env:
+          ESCOLA: ${{ inputs.escola }}
+          VARIANTE: ${{ inputs.variante }}
+        run: |
+          set -euo pipefail
+          if [ -f "wrangler.$ESCOLA.jsonc" ]; then
+            echo "ok: wrangler.$ESCOLA.jsonc"
+            exit 0
+          fi
+          echo "erro: não existe wrangler.$ESCOLA.jsonc — '$ESCOLA' não é o nome de um Worker." >&2
+          echo "" >&2
+          echo "O campo «escola» é o WORKER (o nome do wrangler.<escola>.jsonc), e a TURMA vai no" >&2
+          echo "campo «variante». Exemplo, para a turma de teste da calango:" >&2
+          echo "    escola   = calango                          (o Worker)" >&2
+          echo "    variante = calango-bale-nivel-1-teste-1     (a turma)" >&2
+          if [ -n "${VARIANTE:-}" ]; then
+            echo "" >&2
+            echo "Neste disparo veio variante='$VARIANTE'." >&2
+          fi
+          echo "" >&2
+          echo "Workers que existem neste repositório:" >&2
+          for f in wrangler.*.jsonc; do
+            [ -e "$f" ] || continue
+            printf '    %s\n' "${f#wrangler.}" | sed 's/\.jsonc$//' >&2
+          done
+          echo "" >&2
+          echo "Nada foi gerado e nada foi commitado: a conferência corre antes do gerador." >&2
+          exit 1
+
       - name: Conferir os pré-requisitos do ciclo na pasta do professor
         shell: bash
         env:
