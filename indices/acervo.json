@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "31de8f74677082e075a863ba712fed355423e0bf3b605ad3b7b724326ccc781c",
-        "id": "ciclo-01-calango",
+        "hash": "20554e1c9f0a9f41d8df4c5bb560fbb5ee35a46cd2fca431904028e8a7b2ed49",
+        "id": "ciclo-01-calango-bale-nivel-1-teste-1",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 5,
+      "documentos": 6,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:rabo-gramde/01/calango",
@@ -500,7 +500,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b3024c5"
+    "commit": "097293b"
   },
   "gerado_em": "2026-11-06T10:44",
   "nao_indexado": [
