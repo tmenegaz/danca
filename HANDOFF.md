@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T12:22:18-0300`
-Commit atual: `acc78228` — fix(tools): um bloco declarado para outro alvo nao e conteudo do campo
+Gerado em: `2026-11-06T12:48:56-0300`
+Commit atual: `06b3ffe2` — fix(tools): o cabecalho respira, e o respiro e padding
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,9 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+06b3ffe2 fix(tools): o cabecalho respira, e o respiro e padding
+97c0cdf6 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+401c707c fix(ciclo-01): a §6 vira selector do elenco, e o elenco passa a vir da linha de base
 acc78228 fix(tools): um bloco declarado para outro alvo nao e conteudo do campo
 10e760ad chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 fc73fd17 chore(estrutura): regerar os índices derivados
@@ -103,9 +106,6 @@ fe0481c2 chore(estrutura): regerar os índices derivados
 ad157a58 feat(acervo): envelope/po-20261106-1108.json
 46eaacb4 feat(acervo): envelope/.indice.json
 d8ca4c52 fix(po): o texto do professor nao se perde — e duas maneiras de o perder em silencio
-0cd933be feat(po): os objetivos do plano entram como criterios, e o campo fica com o criterio
-63d6290b feat(po): os itens de cada dimensao mostram o que o plano ja decide do bloco
-438cc267 fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
 ```
 
 ## Por professor
@@ -233,62 +233,69 @@ d8ca4c52 fix(po): o texto do professor nao se perde — e duas maneiras de o per
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — A §6 vira selector, e o elenco passa a vir da linha de base
+## 06/11/2026 — «Os botões estão colados na margem superior»: o respiro do cabeçalho, e a distância que nenhuma checagem media
 
-**As duas correções, e são dela.** *«O dropdown da Proveniência Consolidada (Item 6 da Aula 1) só
-pode exibir as alunas que fazem parte do elenco oficial daquela turma específica (definido na Linha de
-Base). Alunas avulsas ou de outras turmas são rigidamente ignoradas.»* E: *«listar todas as alunas
-soltas na tela geraria uma poluição visual intransponível caso a turma possua dezenas de alunas (ex:
-50 alunas)».*
+**O relato, e é literal.** *«O plano para a aula um não está seguindo o que determinamos como
+identidade visual. Os botões estão colados na margem superior e o botão Abrir notação também está
+sem espaço na margem inferior, está completamente colado na linha.»*
 
-**A correção de dado — um defeito medido.** O elenco vinha de `po.sujeitos`, e o PO da `calango`
-listava **três** alunas (A, B, **C**) quando a linha de base daquela turma tem **duas**. O PO declara
-sujeitos, mas quem diz quem está na turma é o acto do passo 2 da linha de base; o PO herda-a, e
-quando herda mal (envelope anterior à regra, gravação antiga) é a linha de base que está certa. O
-documento punha na §6 uma aluna de fora. A fonte passou a ser `linhaDeBase.alunas`, com
-`po.sujeitos` como **reserva** — um ciclo sem linha de base legível continua a derivar.
+**A medida, antes de qualquer correção.** No documento real da Aula 01, com a folha daquele dia
+(1280×900 e 390×844, Chrome headless, o `assets/style.css` servido da fonte):
 
-**A correção de forma — uma restrição do gerador, medida.** Com o pandoc 3.1.3 do ambiente:
-
-| o que se escreve | no HTML | no PDF |
+| Onde | Antes | Depois |
 |:--|:--|:--|
-| `<select>` em Markdown (HTML cru) | aparece | as etiquetas caem e o **texto fica** — «editar imprimir editar imprimir» |
-| ` ```{=html} … ``` ` | aparece | **desaparece inteiro** |
+| do fundo da barra ao topo do `h1`, **preso**, 1280px | **0,3px** | **12px** |
+| … idem, 390px | **0px** | **12px** |
+| do fundo do botão à linha da sombra, preso | **0px** | **12px** |
+| do fundo do botão a `<main>` | 8px | 12px |
+| altura do cabeçalho preso, 1280 / 390 | 63 / 84px | 87 / 108px |
+| o mesmo, **preso**, no plano de ensino e no lançamento | 0,3px e 0,5px | 12px |
 
-HTML cru não serve: o PDF fica com o esqueleto das etiquetas como prosa. O bloco `{=html}` é o único
-mecanismo que entrega a marcação a um escritor e a **descarta** no outro — e é por isso que o PDF não
-perde proveniência: o que fica nos dois leitores é a **frase** («A anamnese de cada uma das N alunas
-do elenco desta turma está na Área do Professor»), e o selector é o conforto do ecrã.
+**A causa não é visual, é de caixa.** O ar que existia era um `margin-top: 8px` no `header.doc`. A
+margem fica **fora** da caixa, e `position: sticky` com `top: var(--header-height)` põe a **caixa**
+encostada à barra e **descarta a margem**: o ar valia com a página no topo e desaparecia no estado em
+que o professor passa a maior parte do tempo — a rolar. Do outro lado, sem `padding-bottom` o último
+controlo acabava na aresta inferior, que é a aresta que desenha a sombra.
 
-**O que o ecrã faz.** Um `<select>` com uma `<option>` por aluna, e por baixo **um bloco de acções por
-aluna**, todos escondidos menos o da escolhida. Sem JavaScript ficam todos à vista — o comportamento
-anterior; a página perde o conforto, não a função.
+**A regra, na folha (`tools/templates/ciclo.css`).** O respiro é `--esp-3` (12px) acima e abaixo, e é
+**padding**, porque o padding mora dentro da caixa — que é quem se prende e quem desenha a linha.
+Uma declaração, os dois sítios que o mesmo mecanismo prende:
 
-**As peças são as da folha.** O `<select>` não leva classe nenhuma (a folha já desenha
-`:where(… select)`, com a seta própria). As acções são `a.acao secundario pequena`, a peça do botão
-«Abrir notação». E o aviso da aluna sem anamnese é **texto solto**: a classe `sub` nasce no `<style>`
-da porta e não existe na folha dos pacotes — usá-la aqui seria a classe inventada que o
-`IDENTIDADE-VISUAL.md` proíbe.
+```css
+header.doc, .titulo-fixo { padding-top: var(--esp-3); padding-bottom: var(--esp-3); }
+header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
+```
 
-**E a extracção.** O bloco `{=html}` passou a ser saltado pelo contrato de extracção — commit
-próprio, `acc78228`, porque o `tools/` está congelado (a entrada anterior deste registo é o motivo).
+O `> :last-child` existe para o vão de baixo ter **um** responsável: com a margem do último `<p>`
+(8px) ainda lá dentro, o ar seriam 20px nuns documentos e 12px noutros, conforme o último filho.
 
-**Com o quê.** `provar-proveniencia-e-turma` passa de **32** para **42** asserções. **C**: um
-`<select>` com um `<option>` por aluna; **não** há lista markdown; com linha de base, a aluna de fora
-**desaparece**; sem ela, cai no PO; os dois gestos por aluna (vinculada → «novo registo», solta →
-«editar»); a aluna sem anamnese não ganha «imprimir»; nenhuma classe nova. **D**: o selector corre num
-DOM a sério — abre sem acção nenhuma à vista, escolhe a B, troca para a A — e sem JavaScript ficam
-todas à vista. **E2**: sem o mapa de carimbos, degrada em vez de partir.
+**E o que se registou para não se repetir — dois sítios, e eles completam-se.**
 
-**Contraprova.** Contra o núcleo de `HEAD`, a prova **reprova 21 de 42**.
+1. **`IDENTIDADE-VISUAL.md`** ganhou a secção *«O cabeçalho respira — e o respiro é padding
+   (06/11/2026)»*, com a tabela acima (antes/depois, nas duas larguras), a causa, a regra e a
+   lição. A lista do validador passou de nove para **dez** checagens.
+2. **`tools/check-identidade.js`** ganhou a checagem **10 «Respiro»**: lê a folha, resolve
+   `var(--esp-3)` em px e reprova abaixo de **12px** — e reprova também o ar posto em `margin-top`,
+   que é exactamente o erro que aqui se cometeu. Ela corre no `pre-commit` e antes dos deploys.
 
-**Medido.** `provar-proveniencia-e-turma` **42/42** (contraprova **21/42**);
-`provar-eixos-e-tempo-da-aula` **47/51** (as 4 já vermelhas em `HEAD`);
-`provar-derivados-do-po` **16/16**; `provar-observacao-do-professor` **20/20**;
-`provar-corpo-da-linha-de-base` **31/31**; `provar-cadeia-do-ajuste` **34/34**; `check-identidade`
-**0 erros** (as 20); `check-indices` **16/16**; `check-schemas` ok; `check-pacote` do ciclo
-**0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)** — e o HTML publicado tem o
-selector, o PDF não tem nenhum vestígio dele, e a frase fica nos dois.
+**A lição, e é a que justifica a checagem.** As nove checagens passavam e as **27** asserções da
+`provar-titulo-e-barra` diziam todas `ok` com o título a 0,3px da barra. O que se media era
+**presença** — «está preso?», «está à vista?», «o âncora chega inteiro?». Um título colado à barra
+está preso, está à vista, e o âncora chega inteiro. **O defeito era de distância, e nada perguntava
+por distância.**
+
+**Com o quê.** `provar-titulo-e-barra` passa de **27** para **31** asserções: as duas distâncias
+medidas em navegador (barra→`h1` e último controlo→linha), em 1280 e em 390, presas e no topo. A
+régua antiga do celular («menos de 10% da tela») deixou de exprimir o que se quer — com o respiro o
+cabeçalho preso mede 108px, 12,8% — e passou a ser a **proporção entre os dois estados do mesmo
+cabeçalho** (≤ 55%), que não depende do corpo do título nem de quantas linhas ele quebra.
+
+**Contraprova.** Contra a folha de `HEAD`, a prova **reprova 4 de 31** — as quatro novas, e só elas.
+
+**Medido.** `provar-titulo-e-barra` **31/31** (contraprova **4/31**); `check-identidade` **0 erros**
+com a checagem «Respiro» a declarar `header.doc 12/12px, .titulo-fixo 12/12px`; `check-indices`
+**16/16**; `check-schemas` ok; `check-pacote` do ciclo **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh`
+completo **0 erro(s)**.
 
 ## O que está pendente
 
