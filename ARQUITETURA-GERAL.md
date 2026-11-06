@@ -1469,11 +1469,38 @@ memória); **F**, o contrato de extração.
 
 > **Nota de 06/11/2026, 12h.** A §6 deixou de ser uma lista de linhas e passou a ser um **selector
 > do elenco** — a lista, com cinquenta alunas, é uma parede. E o elenco passou a vir da **linha de
-> base**, e não do PO. As duas coisas estão na §5.19; o que fica escrito acima é verdade quanto ao
+> base**, e não do PO. As duas coisas estão na §5.20; o que fica escrito acima é verdade quanto ao
 > que a secção passou a CONTER (a anamnese de cada aluna, com os dois gestos), e é essa a parte que
 > não mudou.
 
-### 5.19 A §6 passa a ser um selector — e o elenco passa a vir da linha de base
+### 5.19 A turma entra na notação — e a §6 ganha a fileira das acções da aluna
+
+Terceira volta do mesmo dia, e as duas correções são dela (06/11/2026):
+
+> «Você colocou no documento plano para a aula um a turma logo acima do botão abrir notação e não
+> colocou a turma dentro da notação, precisa colocar. […] Agora, tanto na página que é celular
+> quanto na página do desktop, quando eu escolho a aluna, o botão novo registro e imprimir estão
+> colados no dropdown na lista de seleção. Não pode, tem que ter um respiro ali.»
+
+**A turma na notação.** Dois documentos já a diziam no `subtitle` (§5.18); a **notação** ficou de
+fora — e é o documento que se abre **a partir do botão da aula**, a meio do trabalho. Quem segue o
+«Abrir notação» chegava a uma página que não dizia de que turma era. `derivarNotacao` passou a
+escrever a mesma linha, com a **mesma função** (`turmaDoDocumento` do envelope do plano): um valor,
+uma fonte. Sem turma declarada, a linha não existe — a regra dos outros dois.
+
+**O respiro da §6, e é um defeito de caixa.** Cada par de gestos vivia num `<div data-prov-par>`
+**sem classe**, e um `<div>` nu não tem ar — medido no documento publicado, o `<select>` acabava em
+3139,6px e o `<div>` começava em 3139,6px: **1px** entre o menu e o botão, em 1280 e em 390. O ar
+que existe na folha para «campo → botão» (`:where(form) > campo + button.acao`, 16px) não serve
+aqui: não há formulário, os dois gestos são ligações, e há um bloco **por aluna**. A peça nova é
+`.acoes-da-aluna` (`gap: --esp-2`, `margin-top: --esp-3`), e o desenho dela vive na folha, no
+catálogo (`IDENTIDADE-VISUAL.md`) e na prova (`provar-proveniencia-e-turma`, secção H, que **mede**
+o vão em navegador nas duas larguras).
+
+**Medido.** Vão do menu ao botão: **12px** em 1280 e em 390 (era 1px). Entre os dois botões: **8px**
+(era 4,3px). A notação passa a mostrar `Turma: Balé Nível 1 — Teste 1` debaixo do título.
+
+### 5.20 A §6 passa a ser um selector — e o elenco passa a vir da linha de base
 
 Segunda volta da mesma secção, no mesmo dia, e as duas correções são dela:
 

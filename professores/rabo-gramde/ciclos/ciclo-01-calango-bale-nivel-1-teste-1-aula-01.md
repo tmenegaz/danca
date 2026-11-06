@@ -100,8 +100,8 @@ A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Pr
 <option value="Aluna A">Aluna A</option>
 <option value="Aluna B">Aluna B</option>
 </select>
-<div data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=rabo-gramde&amp;ciclo=01&amp;novo=anamnese-20261105-2301&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261105-2301?formato=html">imprimir</a></div>
-<div data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=rabo-gramde&amp;ciclo=01&amp;novo=anamnese-20261105-2031&amp;aluna=Aluna%20B">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261105-2031?formato=html">imprimir</a></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=rabo-gramde&amp;ciclo=01&amp;novo=anamnese-20261105-2301&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261105-2301?formato=html">imprimir</a></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=rabo-gramde&amp;ciclo=01&amp;novo=anamnese-20261105-2031&amp;aluna=Aluna%20B">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261105-2031?formato=html">imprimir</a></div>
 <script>(function(){
 var s=document.getElementById("prov-seletor");if(!s)return;
 var p=document.querySelectorAll("[data-prov-par]");

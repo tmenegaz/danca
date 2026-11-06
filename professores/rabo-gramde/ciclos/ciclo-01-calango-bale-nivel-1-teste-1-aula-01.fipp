@@ -10,9 +10,9 @@ professor: rabo-gramde
 ciclo: 01
 variante: calango-bale-nivel-1-teste-1
 aula: 01
-hash_conteudo: 758e5937934e8fb876c908595eea9a75f30d2179f88ed825c97fc0dbbe556201
+hash_conteudo: 7d7315e55108355385f2c41aade6a51425ba0a4a5a9efce91597305ee7c32ce1
 parentHash: 
-hash: 1fc0b28d9fb441faee3637f5ecaf338371b8d2a8c4aea551372755a9f4765e93
+hash: 3ef89e3b104c05440e4748e924adf0d25c4793c721a7ae468a43a447bc514374
 algoritmo: SHA-256
 ancorado_em: 2026-11-06
 cobertura:

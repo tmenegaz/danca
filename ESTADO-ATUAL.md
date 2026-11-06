@@ -4158,6 +4158,19 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-corpo-da-linha-de-base` **31/31**; `check-identidade` **0 erros**; `check-indices`
   **16/16**; `check-pacote` do ciclo **0/0**; `gerar-ciclo.sh` completo **0 erro(s)**.
 
+- **06/11/2026** — **A turma entra na notação, e a §6 ganha a fileira das acções da aluna.**
+  *«Você colocou no documento plano para a aula um a turma … e não colocou a turma dentro da
+  notação, precisa colocar»* e *«quando eu escolho a aluna, o botão novo registro e imprimir estão
+  colados no dropdown … tem que ter um respiro»*. **A notação** passou a dizer a turma no
+  `subtitle`, com a mesma função do plano e da aula (`turmaDoDocumento` do envelope do plano) — é o
+  documento que se abre a partir do botão da aula, e chegava sem dizer de quem era. **O respiro:**
+  cada par de gestos vivia num `<div>` **sem classe**, e um `<div>` nu não tem ar — medido no
+  documento publicado, o menu acabava em 3139,6px e o botão começava em 3139,6px (**1px**), em 1280
+  e em 390. A peça nova `.acoes-da-aluna` (folha + catálogo no `IDENTIDADE-VISUAL.md` + prova que a
+  **mede** em navegador) dá **12px** do menu e **8px** entre os dois botões. Medido:
+  `provar-proveniencia-e-turma` **53/53**, contraprova contra `HEAD` **8/53**; `check-identidade`
+  **0 erros**; `check-indices` **16/16**; `check-pacote` **0/0**.
+
 - **06/11/2026** — **O cabeçalho respira, e o respiro é padding.** *«Os botões estão colados na
   margem superior e o botão Abrir notação … completamente colado na linha.»* Medido no documento
   real: no estado **preso** o `h1` começava a **0,3px** da barra (**0px** no celular) e o botão

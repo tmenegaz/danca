@@ -38015,3 +38015,72 @@ cabeçalho** (≤ 55%), que não depende do corpo do título nem de quantas linh
 com a checagem «Respiro» a declarar `header.doc 12/12px, .titulo-fixo 12/12px`; `check-indices`
 **16/16**; `check-schemas` ok; `check-pacote` do ciclo **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh`
 completo **0 erro(s)**.
+
+## 06/11/2026 — A turma entra na notação — o terceiro documento, e a mesma fonte
+
+**O relato.** *«Você colocou no documento plano para a aula um a turma logo acima do botão abrir
+notação e não colocou a turma dentro da notação, precisa colocar.»*
+
+**O que faltava.** A turma chegou ao plano de ensino e à aula no `subtitle` (a linha debaixo do
+título) em 06/11/2026 — mas a **notação** ficou de fora. E é o documento que se abre **a partir
+do botão da aula**, a meio do trabalho: quem segue o «Abrir notação» chega a uma página que não
+dizia de que turma era.
+
+**A correcção, e ela não introduz uma segunda fonte.** `derivarNotacao` passou a escrever a
+mesma linha, com a **mesma função** que o plano e a aula usam — `turmaDoDocumento` do envelope do
+**plano** (é o plano de ensino que declara a turma; o PO herda-a). Sem turma declarada não se
+escreve a linha: «Turma: —» prometeria um dado inexistente, e é a regra que já valia nos outros
+dois.
+
+| Documento | Antes | Agora |
+|:--|:--|:--|
+| plano de ensino | `Turma: Balé Nível 1 — Teste 1` | igual |
+| aula 01 | idem | igual |
+| **notação** | **nada** | `Turma: Balé Nível 1 — Teste 1` |
+
+**Medido.** A `provar-proveniencia-e-turma` ganhou a secção **G**: a notação diz a mesma turma do
+plano, di-lo no front-matter (é o que o pandoc desenha debaixo do título), não a inventa quando o
+plano não a declara, e um plano sem notação escolhida continua a não gerar documento nenhum.
+Medido no pacote gerado: o `<p class="subtitulo">` da notação existe, a 131px do topo.
+
+**Medido.** `provar-proveniencia-e-turma` **53/53** (contraprova contra `HEAD`: **8 de 53**, e
+duas delas são desta secção); `gerar-ciclo.sh` completo **0 erro(s)**; `check-pacote` **0
+erro(s), 0 aviso(s)**; `check-indices` **16/16**.
+
+## 06/11/2026 — «Os botões estão colados no dropdown»: a fileira das acções de uma escolha
+
+**O relato.** *«Tanto na página que é celular quanto na página do desktop, quando eu escolho a
+aluna, o botão novo registro e imprimir estão colados no dropdown na lista de seleção. Não pode,
+tem que ter um respiro ali, tem que ter um espaço.»*
+
+**A medida, antes.** No `aula-01.html` publicado, com a folha de antes: o `<select>` das alunas
+acabava em **3139,6px** e o `<div>` das acções começava em **3139,6px** — o botão a **1px** do
+menu, em 1280 **e** em 390. Os dois botões, entre si, ficavam a **4,3px** (o espaço de texto).
+
+**A causa, e é a de sempre.** A §6 emitia `<div data-prov-par="…">` **sem classe**. Um `<div>` nu
+não tem ar, e o `.acao` declara `margin: 0` (é o que o põe na linha dos outros controles). Quem
+dava vão ao botão era a **vizinhança do formulário** (`:where(form) > campo + button.acao`,
+16px) — e aqui não há formulário, os dois gestos são **ligações** (`a.acao`, para a Área do
+Professor) e há um bloco **por aluna**.
+
+**A peça nova, e as três coisas que a acompanham** (é a regra do catálogo: a peça nasce na
+folha, entra no catálogo e é provada):
+
+| Onde | O que |
+|:--|:--|
+| `tools/templates/ciclo.css` | `.acoes-da-aluna` — `flex`, `gap: --esp-2` (8px), `margin-top: --esp-3` (12px). 12 e não 16: o `--esp-4` é o do botão que **GRAVA**, e estes dois não gravam |
+| `IDENTIDADE-VISUAL.md` | Quadro 1 (como escolher) e Quadro 2 (o inventário), e a subsecção «A fileira das acções de uma ESCOLHA — e o `<div>` nu», ao lado do «vão do botão» de 26/10 |
+| `experimentos/provar-proveniencia-e-turma.js` | secção **H**: mede em navegador o vão do menu ao primeiro botão e o vão entre os dois botões, em 1280 **e** em 390; exige **≥12px** e **≥8px**, e a peça tem de estar desenhada na folha (senão o nome é só um nome) |
+
+**Medido depois.** Vão do menu ao botão: **12px** em 1280 e **12px** em 390. Entre os dois
+botões: **8px** nas duas larguras, na mesma linha. Zero estouro horizontal.
+
+**O que NÃO se fez: reusar `.par-botoes`.** A fileira da Produção é a peça certa para «a acção
+do formulário», mas ela é declarada em `motor/servidor/bastidores.js` — e o `check-identidade`
+(«Forma») reprova uma página que redeclara um componente da folha. Promovê-la à folha exigiria
+apagá-la de lá, e isso é outra obra. Uma peça para este caso, com o nome da casa
+(`acoes-do-ato`, `acoes-da-lista` → `acoes-da-aluna`).
+
+**Medido.** `provar-proveniencia-e-turma` **53/53** (contraprova contra `HEAD`: **8 de 53**);
+`check-identidade` **0 erros**; `check-indices` **16/16**; `check-schemas` ok; `check-pacote`
+**0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)**.

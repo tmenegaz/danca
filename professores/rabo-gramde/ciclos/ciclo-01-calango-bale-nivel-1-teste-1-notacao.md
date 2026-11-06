@@ -3,6 +3,7 @@ projeto: Formação em Balé Clássico
 frente: Documento de apoio
 ciclo: "01"
 title: "Notação em Benesh"
+subtitle: "Turma: Balé Nível 1 — Teste 1"
 glossario-href: "glossario-benesh.html"
 ---
 

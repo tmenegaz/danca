@@ -26,6 +26,13 @@
  *   D. o CONTRATO DE EXTRAÇÃO continua a ler a §6 como TEXTO — é o modo de falha silencioso desta
  *      secção: `proveniencia` é `string` no schema, e um `###` ou uma tabela a mais mudá-lo-ia
  *      para objeto sem que a página perdesse nada.
+ *   G. a TURMA NA NOTAÇÃO (06/11/2026) — a terceira volta do mesmo pedido: «você colocou no
+ *      documento plano para a aula um a turma logo acima do botão abrir notação e não colocou a
+ *      turma dentro da notação, precisa colocar»;
+ *   H. o RESPIRO entre o menu das alunas e os botões (06/11/2026): «quando eu escolho a aluna, o
+ *      botão novo registro e imprimir estão colados no dropdown … tem que ter um espaço». MEDIDO
+ *      no documento publicado: o `<select>` acabava em 3139,6px e o `<div>` começava em 3139,6px
+ *      — **1px** de vão entre o menu e o botão. Aqui mede-se em navegador, e mede-se a peça.
  *
  *   node experimentos/provar-proveniencia-e-turma.js
  */
@@ -37,7 +44,7 @@ const { spawnSync } = require('node:child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
 const { derivarPlano } = require(path.join(RAIZ, 'motor/nucleo/derivar-plano-ciclo.js'));
-const { derivarAula01 } = require(path.join(RAIZ, 'motor/nucleo/derivar-ciclo.js'));
+const { derivarAula01, derivarNotacao } = require(path.join(RAIZ, 'motor/nucleo/derivar-ciclo.js'));
 const porta = require(path.join(RAIZ, 'motor/nucleo/porta.js'));
 
 let total = 0;
@@ -162,6 +169,34 @@ console.log('\nB. A TURMA NO ALTO DA AULA — e vem do PLANO, não do PO');
 }
 
 // ---------------------------------------------------------------------------------------------
+console.log('\nG. A TURMA NA NOTAÇÃO — o terceiro documento, e a mesma fonte');
+{
+  /* «VOCÊ NÃO COLOCOU A TURMA DENTRO DA NOTAÇÃO» (06/11/2026). A notação é o documento que se
+   * abre a partir do botão da aula — a meio do trabalho —, e chegava sem dizer de que turma era.
+   * A linha é a mesma peça dos outros dois (o `subtitle`), e vem da mesma função: o envelope do
+   * PLANO. Um valor, uma fonte. */
+  const comNotacao = JSON.parse(JSON.stringify(PLANO));
+  comNotacao.respostas['contexto-notacao'] = { valor: 'benesh' };
+  const mdNot = derivarNotacao({ plano: comNotacao, contexto: CONTEXTO });
+  provar('a notação diz a mesma turma do plano e da aula',
+    mdNot && linhaDaTurma(mdNot) === 'Turma: ' + TURMA, mdNot && linhaDaTurma(mdNot));
+  provar('…e di-lo no front-matter, debaixo do título (é o que o pandoc desenha)',
+    /^title: "Notação em Benesh"\nsubtitle: "Turma: /m.test(String(mdNot).split('\n---')[0]),
+    String(mdNot).split('\n').slice(0, 8));
+  /* Sem turma não se inventa a linha — a mesma regra do plano. */
+  const semTurma = JSON.parse(JSON.stringify(comNotacao));
+  delete semTurma.respostas['contexto-turma'];
+  semTurma.contexto = { escola: 'prova', professor: 'prova', ciclo: '01' };
+  provar('sem turma declarada, a notação não inventa a linha',
+    linhaDaTurma(derivarNotacao({ plano: semTurma, contexto: CONTEXTO })) === null,
+    linhaDaTurma(derivarNotacao({ plano: semTurma, contexto: CONTEXTO })));
+  /* O CICLO SEM NOTAÇÃO NÃO PRODUZ DOCUMENTO — a guarda de antes continua a valer. */
+  provar('um plano sem notação escolhida continua a não gerar o documento',
+    derivarNotacao({ plano: PLANO, contexto: CONTEXTO }) === null,
+    derivarNotacao({ plano: PLANO, contexto: CONTEXTO }));
+}
+
+// ---------------------------------------------------------------------------------------------
 console.log('\nC. A §6 — UM SELECTOR DO ELENCO, E AS ACÇÕES DA ALUNA ESCOLHIDA');
 {
   const anamneses = {
@@ -205,9 +240,13 @@ console.log('\nC. A §6 — UM SELECTOR DO ELENCO, E AS ACÇÕES DA ALUNA ESCOLH
 
   /* O GESTO É O QUE O SERVIDOR ACEITA. */
   const b = bloco || '';
-  const daA = (b.match(/<div data-prov-par="Aluna A">[^\n]*/) || [''])[0];
-  const daB = (b.match(/<div data-prov-par="Aluna B">[^\n]*/) || [''])[0];
-  const daC = (b.match(/<div data-prov-par="Aluna C">[^\n]*/) || [''])[0];
+  /* A FILEIRA TEM CLASSE DESDE 06/11/2026 — o `div` deixou de ser nu, e a regex acompanha-o
+   * (antes ela casava `<div data-prov-par=`, e o atributo passou a ser o segundo). */
+  const daAluna = (nome) => (b.match(new RegExp('<div[^>]*data-prov-par="' + nome + '"[^\\n]*'))
+    || [''])[0];
+  const daA = daAluna('Aluna A');
+  const daB = daAluna('Aluna B');
+  const daC = daAluna('Aluna C');
   provar('anamnese VINCULADA — a acção diz «novo registo» e leva o carimbo',
     /novo=anamnese-20261105-2301/.test(daA) && />novo registo</.test(daA), daA);
   provar('anamnese SOLTA — a acção diz «editar» e leva o carimbo',
@@ -227,9 +266,21 @@ console.log('\nC. A §6 — UM SELECTOR DO ELENCO, E AS ACÇÕES DA ALUNA ESCOLH
   /* AS PEÇAS SÃO DO CATÁLOGO: o `select` é desenhado pela folha, e as acções são `a.acao`. */
   provar('as acções usam a peça de acção da folha, e não uma classe inventada',
     (b.match(/class="acao secundario pequena"/g) || []).length >= 4, b.slice(0, 120));
-  provar('…e nenhuma classe nova é inventada no documento',
-    b !== '' && !/class="(?!acao secundario pequena)[^"]*"/.test(b),
+  /* A FILEIRA TEM PEÇA, E A PEÇA É UMA SÓ (06/11/2026). A primeira versão desta secção emitia
+   * `<div data-prov-par>` sem classe nenhuma, e um `<div>` nu não tem ar: medido no documento
+   * publicado, o botão ficava 1px abaixo do menu das alunas. A classe que aqui se exige é a que
+   * a folha desenha — não uma inventada na marcação (era o que esta asserção proibia antes). */
+  provar('as acções de cada aluna vivem na fileira da folha (`.acoes-da-aluna`)',
+    (b.match(/class="acoes-da-aluna" data-prov-par=/g) || []).length >= 2,
+    (b.match(/<div[^>]*>/g) || []));
+  provar('…e nenhuma outra classe é inventada no documento',
+    b !== '' && !/class="(?!(acao secundario pequena|acoes-da-aluna))[^"]*"/.test(b),
     (b.match(/class="[^"]*"/g) || []));
+  /* A PEÇA EXISTE NA FOLHA — a classe emitida não pode ser só um nome. */
+  const folha = fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');
+  provar('…e essa fileira está DESENHADA em tools/templates/ciclo.css',
+    /^\.acoes-da-aluna\s*\{[^}]*margin:/m.test(folha),
+    (folha.match(/\.acoes-da-aluna[^{]*\{[^}]*\}/) || ['ausente'])[0]);
 
   /* O PAPEL NÃO FICA SEM PROVENIÊNCIA: o bloco some no LaTeX, mas a frase fica nos dois. */
   provar('a frase diz onde as anamneses estão — e é texto, não marcação (fica no PDF)',
@@ -346,6 +397,94 @@ console.log('\nE. O CARIMBO É O VIGENTE — a regra que alimenta a §6');
     Boolean(deA) && deA.vinculada === true, deA && deA.vinculada);
   provar('…e a que não aparece em PO nenhum vem solta',
     Boolean(deB) && deB.vinculada === false, deB && deB.vinculada);
+}
+
+// ---------------------------------------------------------------------------------------------
+console.log('\nH. O RESPIRO ENTRE O MENU DAS ALUNAS E OS BOTÕES (medido em navegador)');
+{
+  /* O RELATO: «quando eu escolho a aluna, o botão novo registro e imprimir estão colados no
+   * dropdown na lista de seleção. Não pode, tem que ter um respiro.» Medido no documento
+   * publicado, com a folha de antes: o `<select>` acabava em 3139,6px e o `<div>` das acções
+   * começava em 3139,6px — **1px** entre o menu e o botão, em 1280 E em 390.
+   *
+   * PORQUE EM NAVEGADOR. A pergunta é de DISTÂNCIA, e nenhuma leitura do CSS a responde: um
+   * `margin-top: 12px` pode ser comido pelo colapso de margens, ou o `<div>` pode trazer o
+   * `margin: 0` do `.acao` (que é o que punha os botões na linha). A lição do respiro do
+   * cabeçalho é esta mesma: o CSS dizia 8px e a tela mostrava 0,3px. */
+  const anamneses = {
+    'Aluna A': { carimbo: 'anamnese-20261105-2301', vinculada: true },
+    'Aluna B': { carimbo: 'anamnese-20261105-2031', vinculada: false },
+  };
+  const bloco = blocoHtml(secao6(comLinhaDeBase({ anamneses }))) || '';
+
+  /* A ESTÁTICA PRIMEIRO: a peça tem de existir e o vão tem de ser o do passo da escala. */
+  const folha = fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');
+  const tokens = new Map([...folha.matchAll(/(--esp-\d)\s*:\s*(\d+)px/g)].map((m) => [m[1], Number(m[2])]));
+  const regra = (/\.acoes-da-aluna\s*\{([^}]*)\}/.exec(folha) || [])[1] || '';
+  const margem = (/margin\s*:\s*var\((--esp-\d)\)/.exec(regra) || [])[1];
+  provar('a fileira separa-se do menu com um passo da ESCALA (e não com um número à mão)',
+    Boolean(margem) && tokens.get(margem) >= 12, { regra: regra.trim().slice(0, 80), margem,
+      px: margem ? tokens.get(margem) : null });
+
+  let puppeteer = null;
+  try {
+    const MARP = path.join(require('node:child_process').execSync('npm root -g').toString().trim(),
+      '@marp-team/marp-cli');
+    puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
+  } catch { /* sem navegador, a medida geométrica não se faz — e diz-se */ }
+  const executavel = process.env.CHROME_PATH
+    || ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']
+      .find((c) => fs.existsSync(c));
+
+  if (!puppeteer || !executavel) {
+    console.log('  —     a medida geométrica NÃO FOI FEITA (sem puppeteer/Chrome neste ambiente)');
+  } else {
+    /* A PÁGINA É A DO PACOTE, em ponto pequeno: a folha da FONTE (é ela que o gerador copia) e
+     * o bloco que a derivação emite. Mede-se o mesmo que se mediu na queixa. */
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'prova-respiro-'));
+    fs.mkdirSync(path.join(dir, 'assets'));
+    fs.copyFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), path.join(dir, 'assets/style.css'));
+    fs.writeFileSync(path.join(dir, 'aula.html'),
+      '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
+      + '<link rel="stylesheet" href="assets/style.css"></head><body><main>'
+      + '<p>A anamnese de cada uma das 2 alunas do elenco desta turma está na <strong>Área do '
+      + 'Professor</strong>.</p>' + bloco + '</main></body></html>');
+
+    const MEDIR = () => {
+      const s = document.getElementById('prov-seletor');
+      const visiveis = [...document.querySelectorAll('[data-prov-par]')].filter((d) => !d.hidden);
+      const acoes = visiveis.length ? [...visiveis[0].querySelectorAll('a.acao')] : [];
+      const r2 = (n) => Math.round(n * 10) / 10;
+      const cx = s ? s.getBoundingClientRect() : null;
+      return {
+        temSeletor: Boolean(s),
+        vaoDoMenu: acoes.length && cx ? r2(acoes[0].getBoundingClientRect().top - cx.bottom) : null,
+        vaoEntreAcoes: acoes.length > 1
+          ? r2(acoes[1].getBoundingClientRect().left - acoes[0].getBoundingClientRect().right) : null,
+        umaLinha: acoes.length > 1
+          ? Math.abs(acoes[0].getBoundingClientRect().top - acoes[1].getBoundingClientRect().top) < 2
+          : null,
+      };
+    };
+
+    const br = await puppeteer.launch({ executablePath: executavel,
+      args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+    try {
+      for (const [w, h] of [[1280, 900], [390, 844]]) {
+        const pg = await br.newPage();
+        await pg.setViewport({ width: w, height: h });
+        await pg.goto('file://' + path.join(dir, 'aula.html'), { waitUntil: 'load' });
+        await pg.select('#prov-seletor', 'Aluna A');
+        await new Promise((r) => setTimeout(r, 120));
+        const m = await pg.evaluate(MEDIR);
+        provar(`o menu e os botões têm respiro em ${w}px (o vão mínimo é 12px)`,
+          m.temSeletor && m.vaoDoMenu !== null && m.vaoDoMenu >= 12, { ...m, largura: w });
+        provar(`os dois botões não se encostam em ${w}px`, m.vaoEntreAcoes !== null && m.vaoEntreAcoes >= 8,
+          { ...m, largura: w });
+        await pg.close();
+      }
+    } finally { await br.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+  }
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -1208,7 +1208,8 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
            * inventada que o `IDENTIDADE-VISUAL.md` proíbe. */
           accoes = 'sem anamnese registada — ' + liga(endereco(nome, ''), 'fazer a anamnese');
         }
-        html.push('<div data-prov-par="' + escaparHtmlAtributo(nome) + '">' + accoes + '</div>');
+        html.push('<div class="acoes-da-aluna" data-prov-par="'
+          + escaparHtmlAtributo(nome) + '">' + accoes + '</div>');
       }
       /* O SCRIPT É A PEÇA MAIS FRÁGIL DESTA SECÇÃO, e por isso é uma linha por instrução: ele é
        * escrito como TEXTO dentro de uma string, e não há verificador que o leia. Mantê-lo curto e
@@ -1398,6 +1399,16 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('frente: Documento de apoio');
   saida.push('ciclo: "' + ciclo + '"');
   saida.push('title: "Notação em ' + notacao + '"');
+  /* A TURMA TAMBÉM NA NOTAÇÃO (06/11/2026). O pedido dela: «você colocou no documento plano para
+   * a aula um a turma logo acima do botão abrir notação e não colocou a turma dentro da notação,
+   * precisa colocar». A notação é um documento de APOIO — abre-se a meio da aula, e o professor
+   * que a abre a partir do botão da Aula 01 chega a uma página que não dizia de que turma era.
+   *
+   * VEM DA MESMA FONTE que o plano e a aula: `turmaDoDocumento` do envelope do PLANO — é o plano
+   * de ensino que declara a turma, e é dele que a aula a herda. Sem turma declarada não se
+   * escreve a linha, pela mesma razão do plano: «Turma: —» seria prometer um dado inexistente. */
+  const turmaDaNotacao = turmaDoDocumento(plano);
+  if (turmaDaNotacao) saida.push('subtitle: "Turma: ' + turmaDaNotacao + '"');
   saida.push('glossario-href: "glossario-' + slugDe(notacao) + '.html"');
   saida.push('---');
   saida.push('');

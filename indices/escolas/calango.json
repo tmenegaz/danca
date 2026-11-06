@@ -67,8 +67,8 @@
           "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md",
           "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md"
         ],
-        "hash": "1fc0b28d9fb441faee3637f5ecaf338371b8d2a8c4aea551372755a9f4765e93",
-        "hash_conteudo": "758e5937934e8fb876c908595eea9a75f30d2179f88ed825c97fc0dbbe556201",
+        "hash": "3ef89e3b104c05440e4748e924adf0d25c4793c721a7ae468a43a447bc514374",
+        "hash_conteudo": "7d7315e55108355385f2c41aade6a51425ba0a4a5a9efce91597305ee7c32ce1",
         "id": "ciclo-01-calango-bale-nivel-1-teste-1-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -98,8 +98,8 @@
           "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
           "professores/rabo-gramde/ciclos/ciclo-01.conf"
         ],
-        "hash": "f6c15e952d9a9bd9e56ac4b89b63319a905f471a575ea57a76f1cbc74cb22b1c",
-        "hash_conteudo": "87f2ab006d33a756c7adf92186f78a9ba4715da54294c25059f69b79947617d9",
+        "hash": "d1ba8b468e09cde9d4e07086d1cb0b626ff55a7b46476f6e3d7633702a2f5e46",
+        "hash_conteudo": "c496cc727429bfd490cbc374ff65ba140eb31df29b1094deb004dd5c6c6c4b80",
         "id": "ciclo-01-calango-bale-nivel-1-teste-1",
         "lida": true,
         "parent_hash": ""
@@ -114,8 +114,8 @@
               "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md",
               "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md"
             ],
-            "hash": "1fc0b28d9fb441faee3637f5ecaf338371b8d2a8c4aea551372755a9f4765e93",
-            "hash_conteudo": "758e5937934e8fb876c908595eea9a75f30d2179f88ed825c97fc0dbbe556201",
+            "hash": "3ef89e3b104c05440e4748e924adf0d25c4793c721a7ae468a43a447bc514374",
+            "hash_conteudo": "7d7315e55108355385f2c41aade6a51425ba0a4a5a9efce91597305ee7c32ce1",
             "id": "ciclo-01-calango-bale-nivel-1-teste-1-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -485,9 +485,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "401c707"
+    "commit": "68417c49"
   },
-  "gerado_em": "2026-11-06T15:24",
+  "gerado_em": "2026-11-06T16:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
