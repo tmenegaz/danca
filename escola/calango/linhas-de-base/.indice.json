@@ -1,0 +1,21 @@
+{
+  "versao": 1,
+  "escola": "calango",
+  "versoes": {
+    "teste--20261106-0122.json": {
+      "id": "teste",
+      "carimbo": "20261106-0122",
+      "arquivo": "escola/calango/linhas-de-base/teste--20261106-0122.json",
+      "nome": "teste",
+      "professor": "rabo-gramde",
+      "turma": "Balé Nível 1 — Teste 1",
+      "atualizada_em": "2026-11-06T01:22:44.651Z",
+      "enviada_em": "2026-11-06T01:22:46.155Z",
+      "aspectos": [
+        "formato-anatomico-dos-joelhos",
+        "arquitetura-do-arco-plantar"
+      ],
+      "alunas": 2
+    }
+  }
+}
