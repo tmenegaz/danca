@@ -37138,3 +37138,38 @@ põe o `User-Agent` à mão (o guarda confere que o põe, não que seja a mesma 
 no dia em que um deles está a ser testado ao vivo. (2) O `sondar` ainda não tem ecrã: existe como
 rota, e é por `curl` que se lê. (3) O envio **ainda não foi confirmado em produção** com o
 cabeçalho posto — é o próximo gesto dela, e é o que fecha este fio.
+
+## 06/11/2026 — O índice não é recorte: o ficheiro da casa entrou como dado do professor
+
+**O que motivou.** A primeira execução a sério do `regerar-indices` depois de os actos passarem a
+ficheiro — a que correu sozinha às 01:22, quando o envio finalmente gravou — escreveu em
+`indices/escolas/calango.json` **dois** recortes onde havia um:
+
+```
+recorte:.indice   vigente: true   alunas: 0   aspectos: []
+recorte:teste     vigente: false  alunas: 2   aspectos: [arquitetura-do-arco-plantar, …]
+```
+
+O `.indice.json` é o **somatório das versões**, mora na mesma pasta `linhas-de-base/` e tem a mesma
+forma de nome. A regra do gerador (`/^escola\/([a-z0-9-]+)\/linhas-de-base\/([^/]+)\.json$/`)
+aceitava-o, e o índice resultante apresentava ao professor um recorte que nunca existiu — com zero
+alunas e sem aspectos, o que ainda por cima o faria aparecer no fim de qualquer ranque.
+
+**O que foi decidido.** Um ficheiro que começa por `.` é **da casa**, não do professor; e um acto tem
+**sempre** `<id>--<carimbo>` — sem o separador não há carimbo, e sem carimbo não há série. As duas
+condições ficam no `lerRecortes`, e o que não passa **não entra em silêncio**: a prova exige que o
+`.indice.json` e um ficheiro sem separador fiquem de fora, com o controle positivo de que o acto
+verdadeiro continua a entrar.
+
+**Onde entrou.** `tools/gerar-indices.js` — `lerRecortes`, duas linhas de guarda. `indices/` — os
+índices derivados regerados (o `.indice` sai do `calango.json`). `experimentos/provar-recorte-no-indice.js`
+— 40 → **42** asserções.
+
+**Medido.** `provar-recorte-no-indice` **42/42**; `check-indices` **16/16**; e o índice do disco é o
+que o gerador produz (a asserção de «sem regeneração pendente» continua a passar).
+
+**O que ainda não está feito.** Os índices regerados são um commit do `chore(estrutura)`, e a
+Action volta a escrevê-los na próxima vez que alguém gravar um acto — o que é o desenho, não uma
+lacuna. E o `recorte:teste` está `vigente: false` porque a linha foi **apagada** por ela às 01:23;
+a série fica (dois actos), o ranque não conta. É o comportamento certo, e é o primeiro caso real
+da lápide num índice publicado.

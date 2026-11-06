@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T22:23:51-0300`
-Commit atual: `dce02dda` — fix(po): o envio da linha de base leva o User-Agent que o GitHub exige
+Gerado em: `2026-11-05T22:25:08-0300`
+Commit atual: `90e9eb9d` — docs(registro): o envio da linha de base confirmado em producao
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,13 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+90e9eb9d docs(registro): o envio da linha de base confirmado em producao
+c1f86f60 chore(estrutura): regerar os índices derivados
+318653d0 chore(linha de base): índice — apagar teste
+2c1c928c chore(linha de base): apagar teste
+a68f6f80 chore(estrutura): regerar os índices derivados
+77f456dc feat(linha de base): índice — teste 20261106-0122
+a9768488 feat(linha de base): teste → Balé Nível 1 — Teste 1
 dce02dda fix(po): o envio da linha de base leva o User-Agent que o GitHub exige
 b5dde88d feat(tools): guarda que reprova chamada ao GitHub sem User-Agent
 e5c81062 fix(po): o acto da linha de base nao depende da arvore do repositorio
@@ -99,13 +106,6 @@ fb95e768 feat(po): o elenco do Plano de Observacao deixa de se escolher — vem 
 1ed80c0d fix(po): «o que ja e bom» passa a ser o que ALGUMA aluna tem de bom, e nao o que todas acertaram
 55038263 chore(estrutura): regerar os índices derivados
 b3deb0dd feat(acervo): envelope/.indice.json
-cd63510c chore(acervo): apagar envelope/anamnese-20261105-2014.json
-2d3d4656 feat(acervo): envelope/anamnese-20261105-2031.json
-d37ca8fa feat(acervo): envelope/.indice.json
-93924701 fix(po): o nivel e a ESCALA, e o apoio da observacao inicial deixa de ser lido como nivel
-d7776497 chore(estrutura): regerar os índices derivados
-20001867 chore(estrutura): regerar os índices derivados
-43ca3c14 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -231,126 +231,42 @@ d7776497 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — O cabeçalho que faltava: uma lista de `User-Agent`, e um guarda que reprova
+## 06/11/2026 — O índice não é recorte: o ficheiro da casa entrou como dado do professor
 
-**O que motivou.** A pesquisadora premiu «Concluir e enviar para a turma» e recebeu:
-
-> «não consegui gravar a linha de base no repositório: leitura do sha: HTTP 403. O rascunho está
-> guardado — nada se perdeu; tente de novo.»
-
-A mensagem de ontem cumpriu o que prometia — chegou em JSON, com a razão, e o rascunho ficou
-intacto. O que ela não trazia era **a frase do GitHub**, porque o código lia `Response.texto`
-(propriedade que não existe; o método é `Response.text()`) e imprimia só o número.
-
-**O diagnóstico, e a correção do diagnóstico anterior.** O 403 **não** era da árvore do
-repositório. Medido com o mesmo token, nas duas chamadas:
+**O que motivou.** A primeira execução a sério do `regerar-indices` depois de os actos passarem a
+ficheiro — a que correu sozinha às 01:22, quando o envio finalmente gravou — escreveu em
+`indices/escolas/calango.json` **dois** recortes onde havia um:
 
 ```
-GET /repos/tmenegaz/danca/git/trees/main?recursive=1    com User-Agent → 200
-GET /repos/tmenegaz/danca/git/trees/main?recursive=1    sem User-Agent → 403
-  {"message":"Request forbidden by administrative rules. Please make sure your request has a
-   User-Agent header"}
+recorte:.indice   vigente: true   alunas: 0   aspectos: []
+recorte:teste     vigente: false  alunas: 2   aspectos: [arquitetura-do-arco-plantar, …]
 ```
 
-O GitHub recusa com **403** toda a requisição à API sem `User-Agent`, e o `fetch` do runtime dos
-Workers não o põe sozinho — o `undici` do Node põe, e é por isso que nenhuma prova local o
-apanhava. O `linhas-de-base-repo.js` foi escrito ontem com `Accept` e `X-GitHub-Api-Version` e sem
-esse campo: **todas** as suas chamadas falhavam, leitura e escrita. A conclusão de ontem — «o
-`/contents/` funciona e a árvore é que é recusada» — era falsa, e sustentou-se num facto verdadeiro
-mal lido: *o acervo dos envelopes também usa este token e funciona*. O acervo **põe** o cabeçalho.
-Era essa a diferença, e ela estava a três linhas de distância.
+O `.indice.json` é o **somatório das versões**, mora na mesma pasta `linhas-de-base/` e tem a mesma
+forma de nome. A regra do gerador (`/^escola\/([a-z0-9-]+)\/linhas-de-base\/([^/]+)\.json$/`)
+aceitava-o, e o índice resultante apresentava ao professor um recorte que nunca existiu — com zero
+alunas e sem aspectos, o que ainda por cima o faria aparecer no fim de qualquer ranque.
 
-**O que foi decidido.**
+**O que foi decidido.** Um ficheiro que começa por `.` é **da casa**, não do professor; e um acto tem
+**sempre** `<id>--<carimbo>` — sem o separador não há carimbo, e sem carimbo não há série. As duas
+condições ficam no `lerRecortes`, e o que não passa **não entra em silêncio**: a prova exige que o
+`.indice.json` e um ficheiro sem separador fiquem de fora, com o controle positivo de que o acto
+verdadeiro continua a entrar.
 
-- **Uma lista, num sítio só.** `motor/servidor/github-api.js` passa a ser o único construtor de
-  cabeçalhos: `cabecalhosDe(token, {agente, conteudo})`, com o `User-Agent` sempre, o `Authorization`
-  só quando há token, e o `Content-Type` só quando se pede. Havia **doze cópias** da lista
-  espalhadas por `motor/servidor/`; cada módulo novo era uma oportunidade de nascer sem o campo. A
-  terceira vez foi ontem, num módulo escrito por mim.
-- **A frase, e não o número.** `detalheDe(resposta)` devolve `HTTP 403 — <frase do GitHub>`, lendo
-  `text()` de uma `Response` a sério e também o `texto` dos stubs das provas, e extraindo a
-  `message` quando o corpo é JSON. Um 403 sem motivo é um 403 que manda procurar no lugar errado.
-- **A sonda, para o próximo.** `GET /api/bastidores/diagnostico/repositorio` faz quatro leituras
-  (repositório, árvore, e os dois `.indice.json`) e devolve, de cada uma, o status e a frase. O
-  diagnóstico de ontem foi feito por dedução; uma sonda que responde não se engana. Não gasta KV e
-  não expõe o token.
-- **O guarda.** `tools/check-github-headers.js` (estático, sem rede e sem cota) reprova qualquer
-  módulo de `motor/servidor/` que fale com a API do GitHub sem declarar `User-Agent` ou sem usar a
-  lista comum, e reprova um `Authorization` montado à mão cuja função não traga o cabeçalho. Entrou
-  no `pre-commit`, no passo 8, quando o stage toca em `motor/servidor/`.
-- **O índice das versões fica, mas por CUSTO.** Ele foi construído ontem sobre a premissa falsa.
-  A premissa caiu e o índice **não**: para gravar um acto não vale listar o repositório inteiro, e
-  a árvore passa a ser o último recurso por uma razão de economia, não de recusa. A justificação
-  falsa foi corrigida nos comentários do módulo, com a data.
+**Onde entrou.** `tools/gerar-indices.js` — `lerRecortes`, duas linhas de guarda. `indices/` — os
+índices derivados regerados (o `.indice` sai do `calango.json`). `experimentos/provar-recorte-no-indice.js`
+— 40 → **42** asserções.
 
-**Onde entrou.** `motor/servidor/github-api.js` (novo) — lista única, `base64De`, `textoDeBase64`,
-`detalheDe`, `sondar`. `motor/servidor/linhas-de-base-repo.js` — passa a usar a lista, e as quatro
-mensagens de erro passam a levar a frase. `motor/servidor/acervo-envelopes.js` — a cópia local sai;
-era a única certa e ficou, para não haver duas. `motor/servidor/bastidores.js` — a rota da sonda.
-`tools/check-github-headers.js` (novo) — o guarda, com `auditar()` exportada para a contraprova.
-`tools/hooks/pre-commit` — passo 8. `.gitignore` — a prova nova na lista permitida.
+**Medido.** `provar-recorte-no-indice` **42/42**; `check-indices` **16/16**; e o índice do disco é o
+que o gerador produz (a asserção de «sem regeneração pendente» continua a passar).
 
-**Com o quê.** `experimentos/provar-cabecalhos-do-github.js` (**34 asserções**) — a lista única; a
-frase lida de uma `Response` a sério, de um stub com `texto` e de um corpo JSON; a sonda a declarar
-porque é que tudo é 403 sem o cabeçalho; o store a gravar contra um GitHub que **exige** o cabeçalho,
-com o controle negativo (cabeçalhos despidos → 403 **com a frase**); a árvore a reconstruir a lista
-quando o índice não existe (fonte `arvore` — prova de que a árvore funciona); e a contraprova do
-guarda, corrida sobre ficheiros fabricados, que **reprova o defeito antigo** e aprova a correção.
-`experimentos/provar-linha-de-base-no-repo.js` — o GitHub de bolso passou a recusar sem `User-Agent`
-como o verdadeiro, e o comentário da secção G foi corrigido: aquela árvore bloqueada é uma falha
-**possível**, não a medida de ontem.
-
-**Motivo declarado — os congelados.** `tools/` é congelado (`CONGELAMENTO.md`), e esta entrada
-altera-o em dois pontos: um **guarda novo** (`tools/check-github-headers.js`) e um **passo novo** no
-`tools/hooks/pre-commit`. O motivo é o defeito que já custou três sessões: o GitHub recusa com 403
-toda a requisição sem `User-Agent`, o `fetch` do Worker não o põe sozinho, e uma prova local não o
-vê porque o `undici` do Node o põe. A trava é **estática** — lê `motor/servidor/*.js` e não faz
-pedido nenhum —, corre no `pre-commit` só quando o stage toca em `motor/servidor/`, e não altera
-nenhum ficheiro. **O que NÃO muda:** a fórmula do `hash-ciclo.sh`, a cobertura do `.fipp`, os
-validadores de ciclo, as 17 regras de `REGRAS.md` e as 22 pétreas de `PROTOCOLO.md`. O passo novo é
-um `if` a mais no fim do hook, com saída 1 e mensagem própria; nenhum passo existente mudou de
-ordem nem de alcance.
-
-**Referências.** Documentação do GitHub sobre `User-Agent` obrigatório; o comentário de 22/10/2026 em
-`repo-escola.js`, que já documentava o mesmo defeito — e que este módulo não leu.
-
-**Medido.** `provar-cabecalhos-do-github` **34/34**; `provar-linha-de-base-no-repo` **39/39**;
-`provar-escrita-do-acto` **21/21**; `provar-acervo-envelopes` **48/48**; `provar-linha-de-base`
-**104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna` **20/20**;
-`provar-sujeitos-da-turma` **41/41**; `provar-recorte-no-indice` **40/40**;
-`provar-indice-do-recorte` **24/24**; `provar-producao` **159/159**; `provar-eixos-do-po` **34/34**;
-`provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `check-identidade` **0 erros**;
-`check-indices` **16/16**; `check-github-headers` **5 verificações**.
-
-**Confirmado em produção, e a hora prova a causa (06/11/2026, 01:22 UTC).** A pesquisadora premir
-«Concluir e enviar para a turma» às **01:14** recebeu 403; o deploy com o cabeçalho entrou às
-**01:21**; às **01:22:47** o acto foi gravado — `escola/calango/linhas-de-base/teste--20261106-0122.json`,
-56906 bytes — e às **01:22:49** o índice. O mesmo gesto, o mesmo token, o mesmo caminho: o que mudou
-foi o cabeçalho. E o `apagar` também passou (01:23:11, a lápide; 01:23:12, o índice), o que fecha os
-dois caminhos que estavam partidos. A sonda nova confirma-o pelo lado de fora:
-`GET /api/bastidores/diagnostico/repositorio` → repositório **200**, árvore **200**, `.indice.json`
-**200**; e a estante passou a dizer `fonte: 'indice'`.
-
-**O que ainda não está feito.** (1) As **nove** outras cópias da lista continuam a existir — cada uma
-põe o `User-Agent` à mão (o guarda confere que o põe, não que seja a mesma lista); migrá-las para
-`github-api.js` é trabalho de outra sessão, e fazê-lo agora seria mexer em nove caminhos de escrita
-no dia em que um deles está a ser testado ao vivo. (2) O `sondar` ainda não tem ecrã: existe como
-rota, e é por `curl` que se lê. (3) O envio **ainda não foi confirmado em produção** com o
-cabeçalho posto — é o próximo gesto dela, e é o que fecha este fio.
+**O que ainda não está feito.** Os índices regerados são um commit do `chore(estrutura)`, e a
+Action volta a escrevê-los na próxima vez que alguém gravar um acto — o que é o desenho, não uma
+lacuna. E o `recorte:teste` está `vigente: false` porque a linha foi **apagada** por ela às 01:23;
+a série fica (dois actos), o ranque não conta. É o comportamento certo, e é o primeiro caso real
+da lápide num índice publicado.
 
 ## O que está pendente
-
-## 05/11/2026 — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o verbete de outra escola
-
-
-- **A conferência no ar** — o percurso Curadoria → Cont. públicos e Verbetes → listagem, na
-  `calango`, depois do deploy.
-- O **menu de músicas do plano** (`musicasDosExercicios`, em `/api/bastidores/termos`) continua a
-  oferecer a música de outra escola para o mesmo exercício. É a **mesma família** de defeito, mas é
-  outro ecrã, com outra bancada (`provar-plano-*`) — e mudá-lo sem essa bancada seria trocar um
-  conjunto de promessas por outro. Fica declarado, e não corrigido.
-- A anamnese **não** foi alterada: `porta/conteudo/anamnese.json` é a norma, e o que estava errado
-  era quem a lia.
 
 ## 05/11/2026 — «O que já é bom» ficava vazio porque o apoio da observação inicial era lido como nível
 
@@ -389,6 +305,14 @@ põe o `User-Agent` à mão (o guarda confere que o põe, não que seja a mesma 
 no dia em que um deles está a ser testado ao vivo. (2) O `sondar` ainda não tem ecrã: existe como
 rota, e é por `curl` que se lê. (3) O envio **ainda não foi confirmado em produção** com o
 cabeçalho posto — é o próximo gesto dela, e é o que fecha este fio.
+
+## 06/11/2026 — O índice não é recorte: o ficheiro da casa entrou como dado do professor
+
+Os índices regerados são um commit do `chore(estrutura)`, e a
+Action volta a escrevê-los na próxima vez que alguém gravar um acto — o que é o desenho, não uma
+lacuna. E o `recorte:teste` está `vigente: false` porque a linha foi **apagada** por ela às 01:23;
+a série fica (dois actos), o ranque não conta. É o comportamento certo, e é o primeiro caso real
+da lápide num índice publicado.
 
 ## Pendências anteriores (índice)
 
@@ -752,6 +676,7 @@ cabeçalho posto — é o próximo gesto dela, e é o que fecha este fio.
 - **05/11/2026** — O «Ler as anamneses» acende, e a folha de impressão deixa… → `REGISTRO.md` L36123
 - **05/11/2026** — A tira grava, o «Ler» grava, o excluir fecha o formulário —… → `REGISTRO.md` L36180
 - **05/11/2026** — O passo 5 sem turma diz o que falta, a curadoria deixa de… → `REGISTRO.md` L36243
+- **05/11/2026** — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o… → `REGISTRO.md` L36350
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

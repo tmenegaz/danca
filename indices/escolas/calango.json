@@ -94,7 +94,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 1,
+      "recortes": 0,
       "registros": 2
     },
     "criada_em": "2026-11-05T13:06:46.674863+00:00",
@@ -171,9 +171,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "318653d"
+    "commit": "90e9eb9d"
   },
-  "gerado_em": "2026-11-06T01:23",
+  "gerado_em": "2026-11-06T01:24",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -197,27 +197,6 @@
     }
   ],
   "recortes": [
-    {
-      "alunas": 0,
-      "aspectos": [],
-      "atualizada_em": null,
-      "enviada_em": null,
-      "id": "recorte:.indice",
-      "linha": ".indice",
-      "nome": ".indice",
-      "professor": null,
-      "turma": null,
-      "versoes": [
-        {
-          "alunas": 0,
-          "arquivo": "escola/calango/linhas-de-base/.indice.json",
-          "aspectos": [],
-          "enviada_em": null,
-          "versao": ""
-        }
-      ],
-      "vigente": true
-    },
     {
       "alunas": 2,
       "apagada": true,

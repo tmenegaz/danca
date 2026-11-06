@@ -219,6 +219,12 @@ function lerRecortes(caminhos, ler) {
     if (!achado) continue;
     const escola = achado[1];
     const chave = achado[2];
+    /* O `.indice.json` NÃO É UM ACTO (06/11/2026). Ele mora na mesma pasta e é o somatório das
+     * versões — e caiu aqui na primeira execução a sério: o índice gerado trazia
+     * `recorte:.indice`, com `vigentes: true` e zero alunas, ao lado do recorte verdadeiro. Um
+     * ficheiro que começa por `.` é da casa, não do professor. E um acto tem SEMPRE
+     * `<id>--<carimbo>`: um ficheiro sem o separador não tem carimbo, logo não é uma versão. */
+    if (chave.charAt(0) === '.' || chave.lastIndexOf('--') === -1) continue;
     const i = chave.lastIndexOf('--');
     const id = i === -1 ? chave : chave.slice(0, i);
     const carimbo = i === -1 ? '' : chave.slice(i + 2);

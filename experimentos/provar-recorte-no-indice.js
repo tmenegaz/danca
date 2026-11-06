@@ -151,6 +151,27 @@ const versoesDoCaso = () => [
     provar('um ficheiro ilegível não derruba a leitura — fica de fora',
       gerador.lerRecortes(Object.keys(ficheiros), (rel) => (rel.indexOf('linhas-de-base') !== -1 ? null : ficheiros[rel])).calango === undefined);
 
+    /* O `.indice.json` DA PASTA NÃO É UM ACTO (06/11/2026), e caiu aqui na PRIMEIRA execução a
+     * sério: o índice gerado em produção trazia `recorte:.indice` — com `vigente: true` e zero
+     * alunas — ao lado do recorte verdadeiro. É o somatório das versões, mora na mesma pasta, e
+     * tem a mesma forma de nome. Um ficheiro da casa não é dado do professor. */
+    const comIndice = Object.assign({}, ficheiros, {
+      'escola/calango/linhas-de-base/.indice.json': {
+        versao: 1, escola: 'calango',
+        versoes: { 'bale-nivel-1--20261105-2155.json': { id: 'bale-nivel-1', carimbo: '20261105-2155' } },
+      },
+    });
+    const comOIndice = gerador.lerRecortes(Object.keys(comIndice), (rel) => comIndice[rel] || null);
+    provar('o `.indice.json` da pasta NÃO entra como recorte',
+      (comOIndice.calango || []).length === 1, (comOIndice.calango || []).map((l) => l.id));
+    /* E a mesma regra pela outra ponta: um ficheiro SEM `<id>--<carimbo>` não é uma versão — não
+     * tem carimbo, e sem carimbo não há série. Controle positivo: com o separador, entra. */
+    const semCarimbo = Object.assign({}, ficheiros, {
+      'escola/calango/linhas-de-base/sobras.json': { id: 'sobras', campos: [] },
+    });
+    provar('um ficheiro sem `<id>--<carimbo>` também não entra',
+      (gerador.lerRecortes(Object.keys(semCarimbo), (rel) => semCarimbo[rel] || null).calango || []).length === 1);
+
     const construido = indices.construir(mundo({ calango: versoesDoCaso() }));
     const escola = construido.escolas.calango;
     const teste = escola.recortes.find((r) => r.linha === 'teste');
