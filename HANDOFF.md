@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T15:18:48-0300`
-Commit atual: `ca2b4055` — fix(tools): a matriz que nao cabe rola dentro de si, com as setas a dizer que ha mais
+Gerado em: `2026-11-06T15:41:12-0300`
+Commit atual: `47a861df` — chore(estrutura): regerar os indices — e o mapa de relacoes entra no mesmo commit
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,11 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+47a861df chore(estrutura): regerar os indices — e o mapa de relacoes entra no mesmo commit
+418322cd feat(experimentos): a prova do mapa de relacoes, e contraprova
+c2ba19f5 feat(tools): o mapa de relacoes do ciclo, e a ponte entre os dois vocabularios
+daf0d94a chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+28dfacde docs(registro): a arquitetura de indices, e a resposta medida a pergunta dos grafos
 ca2b4055 fix(tools): a matriz que nao cabe rola dentro de si, com as setas a dizer que ha mais
 9bc187c0 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 6c5d44be docs(registro): o indice de lancamentos, e o que fica em aberto
@@ -101,11 +106,6 @@ f439eaba docs(registro): o lancamento marcado, com a prova e a contraprova
 9b608179 fix(po): o elenco da aula vem da linha de base, e nao do PO
 7c7007cd chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 bbc45599 docs(registro): o HANDOFF aponta para a auditoria do ar das paginas
-3a0529a1 docs(registro): a auditoria do ar das oito paginas, com a prova que a compara
-1d6bef12 fix(tools): o ar das paginas e um so — a faixa, o rodape e a coluna de leitura
-6cca7b26 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-c7cbe796 docs(registro): o HANDOFF aponta para a peca da fileira da §6
-76365919 fix(tools): a peca .acoes-da-aluna na folha — o vao da fileira da §6
 ```
 
 ## Por professor
@@ -233,57 +233,86 @@ c7cbe796 docs(registro): o HANDOFF aponta para a peca da fileira da §6
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — Grafos ou índices? A pergunta, medida, e o que fica decidido
+## 06/11/2026 — O mapa de relações: as arestas deixaram de estar espalhadas
 
-**A pergunta**, com a intuição que a gerou:
+**A decisão que faltava era de calendário, e ela deu-a em duas respostas curtas:** *«1. Gerar
+`relacoes.json` agora, ou só quando houver a primeira pergunta de caminho? A minha recomendação:
+agora, pequeno e derivado — uma aresta descoberta tarde é uma ligação que ninguém testou, e o custo é
+um gerador, não um serviço. Agora. 2. O grafo é do acervo inteiro ou por ciclo? […] Por ciclo.»*
 
-> «Será que seria mais rápido se a gente tivesse uma estrutura como grafos […] Eu sei que o nosso
-> próprio arquivo de index funciona assim, ele vai criando as arestas nó a nó. Mas poderia ser mais
-> eficiente […] índices eu me lembro de um livro que existia nos anos 80 que se chamava Páginas
-> Amarelas. Então eu tenho que consultar o índice e depois ir lá passar folha a folha, folha a folha
-> até achar aquela página […] E grafos não, eu vou nó a nó, eu vou direto.»
+**A recomendação que era minha voltou como decisão dela, e está cumprida nos dois pontos.** O que
+existe agora é `tools/gerar-relacoes.js`, que escreve um mapa **por ciclo** em
+`indices/relacoes/<professor>/<NN>-<variante>.json`. O escopo é o ciclo porque a travessia que ela
+descreveu é dentro de um ciclo: «de um nó ao outro até um objetivo» atravessa aula, marco e captura,
+e os três vivem num ciclo.
 
-**A metáfora decide o resto, e ela está ao contrário.** Um índice de livro **não** é folhear: a
-entrada «adágio → p. 214» é um **salto directo** — uma operação. O que se folheia é o que **não** tem
-índice. E um grafo também não salta: andar de nó em nó é **uma operação por aresta**. As duas coisas
-são `O(1)` por passo; a diferença nunca está na velocidade do passo, e sim no **número de passos** e
-na **forma da pergunta**.
+**Medido no ciclo completo** (`01-calango-bale-nivel-1-teste-1`): **48 nós, 55 arestas, 0 lacunas**;
+por tipo, 18 aulas, 8 documentos, 6 aspectos, 4 campos, 2 anamneses, 2 âncoras, 2 marcos, 1 ciclo,
+1 escola, 1 professor, 1 turma, 1 linha de base, 1 captura. A ponte entre os dois vocabulários liga
+**4 de 4** aspectos. **Medido no scaffold** (`01-calango`): **6 nós, 5 arestas e 3 lacunas** — sem
+`contexto-turma` não há turma, sem turma não se escolhe linha de base, sem PO não há vocabulário de
+observação. As lacunas são **declaradas**, com o motivo, e não preenchidas.
 
-**O tamanho real do acervo** (medido hoje): 137 ficheiros de fonte, **1,48 MB**; `indices/` inteiro,
-**136 KB**; `acervo.json`, **15,8 KB**. Um varrimento linear disto é milissegundos. Nesta escala
-«mais rápido» não é um critério — qualquer das duas formas cabe em memória com três ordens de
-grandeza de folga. **A escolha não se decide por desempenho.**
+**Três coisas que o gerador obrigou a ver, e que eram invisíveis enquanto as arestas estavam
+espalhadas:**
 
-**O que cada estrutura responde:**
+1. **Um aspecto tem dois nomes, e a ponte é pelo nome.** O campo da anamnese é
+   `cinco-posicoes-1a-bracos` (o id do universo, com hífenes); a marca do lançamento é
+   `1_posicao_bracos` (o slug do `chaveDoItem`, com sublinhados). São o mesmo aspecto escrito por
+   duas máquinas que não se conhecem. A aresta `mesmo_aspecto` casa-os **pelo nome**, e essa é a
+   costura mais frágil da cadeia: mudar um nome de um lado **não dá erro** — a aresta desaparece e
+   no lugar dela fica uma lacuna. É o comportamento correcto. Uma ponte que se recompusesse por
+   posição ligaria a coisa errada e mentiria sem avisar.
+2. **A turma vive em duas formas, e ler só uma dá um mapa sem turma.** A derivada
+   (`plano-XX.json` → `contexto.turmaObservada`) e a crua (`respostas['contexto-turma'].valor`).
+   Lendo só a primeira, o mapa saía com **zero** arestas de elenco e aparência de completo.
+3. **O ELENCO NÃO É UM NÓ — e foi o `check-indices` a dizê-lo.** A primeira versão criava nós
+   `aluna` com o nome no rótulo, e a verificação 7 reprovou três vezes: *«campo proibido «aluna»»*.
+   A correcção não foi esconder o campo, foi perceber o que a regra protege: `indices/` é servido
+   pelo Worker, e nenhum índice do acervo nomeia aluna, **nem pelo apelido**. O elenco não é uma
+   relação — é conteúdo da linha de base — e a pessoa entra na cadeia pela **anamnese**, cujo
+   carimbo (`anamnese-20261105-2301`) já é livre de nome. A pessoa é a **porta**, não um nó do meio:
+   ela escolhe a aluna pelo nome no ecrã, o ecrã resolve o nome para o carimbo, e daí para dentro o
+   mapa anda sem nomes. **Por isso o mapa pode ser publicado sem expor o elenco.**
 
-| Pergunta | Índice | Grafo |
-|:--|:--|:--|
-| «onde está o PO deste ciclo?» | **1 salto** | precisa do mapa chave → nó **antes** de andar — e esse mapa **é** um índice |
-| «quantas marcas `parcial` teve a aluna A?» | 1 leitura + filtro | 1 leitura + filtro |
-| «em quantas aulas ela demorou a estabilizar o adágio?» | 1 leitura + agrupar por `coluna` | idem, a seguir as arestas `aula→aula` |
-| «por que caminho se chega do recorte do passo 4 à marca da aula 07?» | **não responde** | **responde** |
+**Um quarto erro, e este era meu, na bancada:** a travessia inversa usava o `de` da aresta `recorta`
+onde era o `para` — e voltava a si mesma. É a mesma família de erro dos outros dois: *a direção de
+uma aresta não se adivinha.*
 
-**E o facto deste projecto que muda a conclusão: as arestas já existem, e são derivadas.** A
-proveniência não é descoberta — é construída. Anamnese → leitura do passo 3 → recorte do passo 4 →
-turma → plano de ensino → PO → plano do ciclo → aula → lançamento: cada ligação é **um nome de
-ficheiro e uma chave de JSON** (§5.9 e §5.17). O sistema **já é um grafo**, guardado como árvore de
-pastas e campos derivados, sem motor nenhum.
+**A prova:** `experimentos/provar-relacoes.js`, **35 asserções** em seis secções. Mede que cada
+aresta **nomeia o campo que a produziu**, que nenhuma aponta para um nó inexistente nem para si
+mesma, que **nenhum conteúdo entra no mapa** e que **o nome de nenhuma aluna do elenco aparece — nem
+no rótulo, nem num id** (procura-se o **valor**, não a chave: uma regra que só olha nomes de campo
+deixava passar `rotulo: "Aluna A"`), que a ponte liga 4/4 **pelo nome** e **desaparece** quando o
+nome muda de um lado (com a lacuna a nomear o órfão), a travessia que ela descreveu **nos dois
+sentidos**, o determinismo e o `--check` a acusar uma aresta removida e a passar quando ela volta, e
+que um ciclo vazio **declara** as lacunas. **Contraprova: 2 de 35** — devolver o apelido a um nó
+reprova a lista fechada de chaves **e** a prova de privacidade; inventar a turma e deixar de nomear a
+chave reprovam **4 de 35** (medido antes da correcção do elenco, sobre 34 asserções).
 
-**Decidido, e com data.** (1) **Não se substitui o índice** — um grafo precisa do mapa `chave → nó`
-para começar a andar, e esse mapa é um índice. (2) O que falta **não é um motor de grafo: é a lista
-de arestas materializada** (`relacoes.json`, que o `PLANO-INDICES.md` já prevê como `L4`). Ela é
-**dado**, não tecnologia: `{de, para, tipo}`, gerado pelo mesmo gerador dos índices, com `--check`
-como eles. (3) **Uma aresta errada é pior do que uma aresta ausente** — a ausente faz falhar a
-travessia, a errada leva a outro sítio e mente; por isso as arestas são **derivadas**, nunca escritas
-à mão. (4) O grafo passa a valer a pena quando a pergunta for de **explicabilidade** ou quando houver
-percursos cruzados entre escolas — hoje há uma escola de teste e **nenhum lançamento**, e as arestas
-seriam calculadas sobre dados que ainda não existem.
+**A integração não é um serviço.** O mapa entra no **mesmo commit** dos índices, nos dois sítios onde
+eles já entram: `regerar-indices.yml` (o `--check` dos **dois** decide se há trabalho, e os dois
+geradores escrevem dentro de `indices/` antes do mesmo `git add`) e o commit do `gerar-ciclo.yml`,
+que usa o `GITHUB_TOKEN` e por isso não redispara o outro workflow. Um mapa atrasado aponta para um
+acervo que já mudou — é a mesma razão pela qual o índice entra lá.
 
-**O que fica escrito:** o índice é a **porta de entrada** e a fonte de verdade dos derivados; o grafo
-é um **derivado a jusante**, com o mesmo regime (JSON versionado, gerado, com `--check`), a nascer
-quando houver a primeira pergunta de caminho. **Não se adopta tecnologia de grafo — adopta-se a
-forma de grafo onde ela responde ao que o índice não responde.** Ficou no `ARQUITETURA-GERAL.md`
-§7.3 (as seis famílias de índice e a regra que as governa) e §7.4 (esta análise).
+**E os dois ficheiros congelados que tiveram de aprender isto.** `check-indices.js` passou a correr
+**os dois geradores** no mesmo laço; sem isso a verificação 1 chamava «arquivo órfão» a cada mapa, e
+um vermelho permanente é um vermelho que se aprende a ignorar. `gerar-indices.js` aprendeu que
+`indices/relacoes/` **é saída de outro gerador** (como já sabia de `indices/esquema/`), e o
+`gerarEmMemoria()` dos dois passou a devolver a mesma forma (`{ arquivos }`) para o laço do
+verificador não ter de saber qual é qual. Motivo declarado, porque `tools/` é congelado.
+
+**O que fica em aberto, e é honesto dizê-lo:** `marcas: 0`. Nenhuma aula foi lançada, portanto os nós
+de marca e a pergunta que os originou — «em quantas aulas ela demorou a estabilizar o adágio?» — ainda
+não têm dado real. O mapa está pronto para receber esse dado quando o formulário de lançamento for
+usado a sério. E o `indices/esquema/relacoes.json` continua a ser o **contrato escrito à mão** das 15
+relações (algumas ainda `prevista`): o gerador realiza as que já existem, não inventa as que faltam.
+
+**Validação:** `provar-relacoes` **35/35**, contraprova **2/35**; `gerar-relacoes.js --check`
+**passa**; `gerar-indices.js --check` **12 arquivos em dia**; `check-indices` **16/16, 0 falha(s)**
+(com contraprova: mapa apagado → verificação 1 reprova); `provar-formulario-da-aula` **48/48**;
+`provar-indice-de-lancamentos` **24/24**; `check-identidade` **0 erros**.
 
 ## O que está pendente
 

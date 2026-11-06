@@ -4,12 +4,18 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 06/11/2026 (árvore limpa, `ca2b4055`). Nesta entrega, **o lançamento de
-> aula deixou de ser um formulário de prosa e passou a ser uma MATRIZ** — as alunas por linha, os
-> aspectos por coluna, 14 marcas por aluna e todas com dono —, **o índice de lançamentos nasceu**
-> com a chave que faz a marca atravessar as aulas, e **a arquitetura de índices ficou escrita no
+> **Última fotografia:** 06/11/2026 (árvore limpa, `28dfacde`). Nesta entrega, **o mapa de relações
+> do ciclo nasceu** (`tools/gerar-relacoes.js` → `indices/relacoes/<prof>/<NN>-<variante>.json`):
+> **48 nós, 55 arestas, 0 lacunas** no ciclo real, e cada aresta **nomeia o campo que a produziu**.
+> O mapa **não nomeia aluna nenhuma** — a verificação 7 do `check-indices` obrigou a corrigir isso, e
+> a correcção foi a certa: a pessoa entra na cadeia pela **anamnese**, cujo carimbo é livre de nome.
+> A cronologia, com os dois erros de direcção que o gerador pôs a descoberto, está no `REGISTRO.md`.
+>
+> **Fotografia anterior (06/11/2026, `ca2b4055`).** Nesta entrega, **o lançamento de aula deixou de
+> ser um formulário de prosa e passou a ser uma MATRIZ** — as alunas por linha, os aspectos por
+> coluna, 14 marcas por aluna e todas com dono —, **o índice de lançamentos nasceu** com a chave que
+> faz a marca atravessar as aulas, e **a arquitetura de índices ficou escrita no
 > `ARQUITETURA-GERAL.md` (§7.3)**, junto da resposta medida à pergunta «grafos ou índices?» (§7.4).
-> A **§5.21 a §5.23** contam a história, na ordem em que aconteceu.
 >
 > **Fotografia anterior (05/11/2026).** Nesta entrega, **nasceu o índice do recorte** —
 > o ranque do que os professores olham no corpo, os aspectos que ninguém escolhe, e os **pontos
@@ -2271,6 +2277,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      idempotente e sem estado, e o estado final converge (verificado no remoto: os envelopes
      saíram e o índice ficou sem eles). **Não se muda** o workflow: mudar um mecanismo justificado
      para o ícone ficar verde é tratar o sintoma. **CONFIRMADO** 05/11/2026.
+
+117. **O MAPA DE RELAÇÕES É POR CICLO, E NÃO NOMEIA ALUNA.** `tools/gerar-relacoes.js` escreve
+     `indices/relacoes/<prof>/<NN>-<variante>.json` — a lista de arestas `{de, para, tipo, chave}`
+     que estava implícita nos nomes de ficheiro e de campo. **DECIDIDO** 05/11/2026, nas palavras
+     dela: «*agora, pequeno e derivado — uma aresta descoberta tarde é uma ligação que ninguém
+     testou, e o custo é um gerador, não um serviço*», e «*por ciclo*». Três regras que o gerador
+     obedece, e que não se negociam depois: (a) **cada aresta nomeia em `chave` o campo que a
+     produziu** — uma aresta sem origem é opinião guardada em JSON; (b) **o mapa não leva conteúdo**,
+     e o bloco cifrado da anamnese nem aparece; (c) **nenhum nome de aluna entra no mapa** — o
+     elenco não é uma relação, é conteúdo da linha de base, e a pessoa entra na cadeia pela anamnese
+     (carimbo `anamnese-AAAAMMDD-HHMM`), que não diz de quem é. A regra (c) não é preferência: é a
+     verificação 7 do `check-indices`, e a primeira versão do gerador reprovou-a. **CONFIRMADO**
+     pela prova `experimentos/provar-relacoes.js` (**35 asserções**, contraprova **2 de 35**).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

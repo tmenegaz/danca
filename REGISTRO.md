@@ -38556,3 +38556,84 @@ seriam calculadas sobre dados que ainda não existem.
 quando houver a primeira pergunta de caminho. **Não se adopta tecnologia de grafo — adopta-se a
 forma de grafo onde ela responde ao que o índice não responde.** Ficou no `ARQUITETURA-GERAL.md`
 §7.3 (as seis famílias de índice e a regra que as governa) e §7.4 (esta análise).
+
+## 06/11/2026 — O mapa de relações: as arestas deixaram de estar espalhadas
+
+**A decisão que faltava era de calendário, e ela deu-a em duas respostas curtas:** *«1. Gerar
+`relacoes.json` agora, ou só quando houver a primeira pergunta de caminho? A minha recomendação:
+agora, pequeno e derivado — uma aresta descoberta tarde é uma ligação que ninguém testou, e o custo é
+um gerador, não um serviço. Agora. 2. O grafo é do acervo inteiro ou por ciclo? […] Por ciclo.»*
+
+**A recomendação que era minha voltou como decisão dela, e está cumprida nos dois pontos.** O que
+existe agora é `tools/gerar-relacoes.js`, que escreve um mapa **por ciclo** em
+`indices/relacoes/<professor>/<NN>-<variante>.json`. O escopo é o ciclo porque a travessia que ela
+descreveu é dentro de um ciclo: «de um nó ao outro até um objetivo» atravessa aula, marco e captura,
+e os três vivem num ciclo.
+
+**Medido no ciclo completo** (`01-calango-bale-nivel-1-teste-1`): **48 nós, 55 arestas, 0 lacunas**;
+por tipo, 18 aulas, 8 documentos, 6 aspectos, 4 campos, 2 anamneses, 2 âncoras, 2 marcos, 1 ciclo,
+1 escola, 1 professor, 1 turma, 1 linha de base, 1 captura. A ponte entre os dois vocabulários liga
+**4 de 4** aspectos. **Medido no scaffold** (`01-calango`): **6 nós, 5 arestas e 3 lacunas** — sem
+`contexto-turma` não há turma, sem turma não se escolhe linha de base, sem PO não há vocabulário de
+observação. As lacunas são **declaradas**, com o motivo, e não preenchidas.
+
+**Três coisas que o gerador obrigou a ver, e que eram invisíveis enquanto as arestas estavam
+espalhadas:**
+
+1. **Um aspecto tem dois nomes, e a ponte é pelo nome.** O campo da anamnese é
+   `cinco-posicoes-1a-bracos` (o id do universo, com hífenes); a marca do lançamento é
+   `1_posicao_bracos` (o slug do `chaveDoItem`, com sublinhados). São o mesmo aspecto escrito por
+   duas máquinas que não se conhecem. A aresta `mesmo_aspecto` casa-os **pelo nome**, e essa é a
+   costura mais frágil da cadeia: mudar um nome de um lado **não dá erro** — a aresta desaparece e
+   no lugar dela fica uma lacuna. É o comportamento correcto. Uma ponte que se recompusesse por
+   posição ligaria a coisa errada e mentiria sem avisar.
+2. **A turma vive em duas formas, e ler só uma dá um mapa sem turma.** A derivada
+   (`plano-XX.json` → `contexto.turmaObservada`) e a crua (`respostas['contexto-turma'].valor`).
+   Lendo só a primeira, o mapa saía com **zero** arestas de elenco e aparência de completo.
+3. **O ELENCO NÃO É UM NÓ — e foi o `check-indices` a dizê-lo.** A primeira versão criava nós
+   `aluna` com o nome no rótulo, e a verificação 7 reprovou três vezes: *«campo proibido «aluna»»*.
+   A correcção não foi esconder o campo, foi perceber o que a regra protege: `indices/` é servido
+   pelo Worker, e nenhum índice do acervo nomeia aluna, **nem pelo apelido**. O elenco não é uma
+   relação — é conteúdo da linha de base — e a pessoa entra na cadeia pela **anamnese**, cujo
+   carimbo (`anamnese-20261105-2301`) já é livre de nome. A pessoa é a **porta**, não um nó do meio:
+   ela escolhe a aluna pelo nome no ecrã, o ecrã resolve o nome para o carimbo, e daí para dentro o
+   mapa anda sem nomes. **Por isso o mapa pode ser publicado sem expor o elenco.**
+
+**Um quarto erro, e este era meu, na bancada:** a travessia inversa usava o `de` da aresta `recorta`
+onde era o `para` — e voltava a si mesma. É a mesma família de erro dos outros dois: *a direção de
+uma aresta não se adivinha.*
+
+**A prova:** `experimentos/provar-relacoes.js`, **35 asserções** em seis secções. Mede que cada
+aresta **nomeia o campo que a produziu**, que nenhuma aponta para um nó inexistente nem para si
+mesma, que **nenhum conteúdo entra no mapa** e que **o nome de nenhuma aluna do elenco aparece — nem
+no rótulo, nem num id** (procura-se o **valor**, não a chave: uma regra que só olha nomes de campo
+deixava passar `rotulo: "Aluna A"`), que a ponte liga 4/4 **pelo nome** e **desaparece** quando o
+nome muda de um lado (com a lacuna a nomear o órfão), a travessia que ela descreveu **nos dois
+sentidos**, o determinismo e o `--check` a acusar uma aresta removida e a passar quando ela volta, e
+que um ciclo vazio **declara** as lacunas. **Contraprova: 2 de 35** — devolver o apelido a um nó
+reprova a lista fechada de chaves **e** a prova de privacidade; inventar a turma e deixar de nomear a
+chave reprovam **4 de 35** (medido antes da correcção do elenco, sobre 34 asserções).
+
+**A integração não é um serviço.** O mapa entra no **mesmo commit** dos índices, nos dois sítios onde
+eles já entram: `regerar-indices.yml` (o `--check` dos **dois** decide se há trabalho, e os dois
+geradores escrevem dentro de `indices/` antes do mesmo `git add`) e o commit do `gerar-ciclo.yml`,
+que usa o `GITHUB_TOKEN` e por isso não redispara o outro workflow. Um mapa atrasado aponta para um
+acervo que já mudou — é a mesma razão pela qual o índice entra lá.
+
+**E os dois ficheiros congelados que tiveram de aprender isto.** `check-indices.js` passou a correr
+**os dois geradores** no mesmo laço; sem isso a verificação 1 chamava «arquivo órfão» a cada mapa, e
+um vermelho permanente é um vermelho que se aprende a ignorar. `gerar-indices.js` aprendeu que
+`indices/relacoes/` **é saída de outro gerador** (como já sabia de `indices/esquema/`), e o
+`gerarEmMemoria()` dos dois passou a devolver a mesma forma (`{ arquivos }`) para o laço do
+verificador não ter de saber qual é qual. Motivo declarado, porque `tools/` é congelado.
+
+**O que fica em aberto, e é honesto dizê-lo:** `marcas: 0`. Nenhuma aula foi lançada, portanto os nós
+de marca e a pergunta que os originou — «em quantas aulas ela demorou a estabilizar o adágio?» — ainda
+não têm dado real. O mapa está pronto para receber esse dado quando o formulário de lançamento for
+usado a sério. E o `indices/esquema/relacoes.json` continua a ser o **contrato escrito à mão** das 15
+relações (algumas ainda `prevista`): o gerador realiza as que já existem, não inventa as que faltam.
+
+**Validação:** `provar-relacoes` **35/35**, contraprova **2/35**; `gerar-relacoes.js --check`
+**passa**; `gerar-indices.js --check` **12 arquivos em dia**; `check-indices` **16/16, 0 falha(s)**
+(com contraprova: mapa apagado → verificação 1 reprova); `provar-formulario-da-aula` **48/48**;
+`provar-indice-de-lancamentos` **24/24**; `check-identidade` **0 erros**.

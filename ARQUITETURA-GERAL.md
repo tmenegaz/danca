@@ -1935,8 +1935,8 @@ pastas e campos derivados, sem motor nenhum.
    que começa por perguntar onde está o primeiro nó.
 2. **O que falta não é um motor de grafo: é a lista de arestas, materializada.** O
    [`PLANO-INDICES.md`](./PLANO-INDICES.md) já a prevê (`relacoes.json`, `L4`). Ela é **dado**, não
-   tecnologia: um JSON com `{de, para, tipo}`, gerado pelo mesmo gerador que faz os índices, com
-   `--check` como eles. Um banco orientado a grafos seria a resposta para um problema que este
+   tecnologia: um JSON com `{de, para, tipo, chave}`, gerado por um gerador irmão do dos índices,
+   com `--check` como eles. Um banco orientado a grafos seria a resposta para um problema que este
    acervo não tem — 137 ficheiros — e cobraria o que este projecto recusa pagar: um serviço a mais,
    um segredo a mais, um sítio a mais onde o dado pode estar errado.
 3. **O custo real de adoptar arestas é o de manter uma segunda verdade.** Uma aresta errada é pior
@@ -1945,14 +1945,44 @@ pastas e campos derivados, sem motor nenhum.
    no Git, nunca escritas à mão, e validadas por comparação com a árvore.
 4. **Quando é que o grafo passa a valer a pena?** Quando a pergunta for de **explicabilidade**
    («mostra-me o caminho desta marca até à anamnese que a originou») ou quando houver mais de uma
-   escola com percursos cruzados. Hoje há uma escola de teste e nenhum lançamento — as arestas
-   seriam calculadas sobre dados que ainda não existem.
+   escola com percursos cruzados. Hoje há uma escola de teste e nenhum lançamento — a estrutura
+   existe e é verificável, mas as arestas que dependem de marca ainda não têm dado.
 
 **O que fica decidido, e com data:** o índice é a **porta de entrada** e continua a ser a fonte de
 verdade dos derivados; o grafo é um **derivado a jusante**, com o mesmo regime (JSON versionado,
-gerado, com `--check`), a nascer quando houver a primeira pergunta de caminho a responder. Não se
-adopta tecnologia de grafo — adopta-se a **forma** de grafo onde ela responde ao que o índice não
-responde.
+gerado, com `--check`). Não se adopta tecnologia de grafo — adopta-se a **forma** de grafo onde ela
+responde ao que o índice não responde.
+
+**E a decisão não ficou no papel (05/11/2026).** Ela respondeu às duas perguntas que estavam em
+aberto — «agora» e «por ciclo» — e o gerador existe: `tools/gerar-relacoes.js` escreve
+`indices/relacoes/<professor>/<NN>-<variante>.json`, um mapa por ciclo. O escopo é o ciclo porque a
+travessia que ela descreveu é dentro de um ciclo: «de um nó ao outro até um objetivo» atravessa
+aula, marco e captura, e todos os três vivem num ciclo. Medido em `01-calango-bale-nivel-1-teste-1`:
+**50 nós, 59 arestas, 0 lacunas**, com a ponte entre os dois vocabulários a ligar **4 de 4** aspectos
+pelo nome. No scaffold `01-calango` o mapa tem **6 nós, 5 arestas e 3 lacunas** — e é assim que se vê
+que ele não mente: sem `contexto-turma` não há turma, sem turma não se escolhe linha de base, e sem
+PO não há vocabulário de observação. As três lacunas são declaradas, não preenchidas por adivinhação.
+
+Três coisas a reter do que o gerador obrigou a separar:
+
+- **Um aspecto tem dois identificadores.** O campo da anamnese chama-se `cinco-posicoes-1a-bracos`
+  (o id do universo, com hífenes); a marca do lançamento chama-se `1_posicao_bracos` (o slug do
+  `chaveDoItem`, com sublinhados). São o mesmo aspecto escrito por duas máquinas diferentes. A
+  aresta `mesmo_aspecto` liga-os **pelo nome**, e é a costura mais frágil da cadeia: mudar o nome de
+  um lado não dá erro — faz a aresta **desaparecer**, e o que aparece no lugar é uma lacuna. É de
+  propósito. Uma ponte que se recompõe por posição ligaria a coisa errada e mentiria em silêncio.
+- **Cada aresta nomeia o campo que a produziu** (`chave`: `contexto.turmaObservada`,
+  `leitura.alunas[]`, `recorte.campos[]`, `porNome`…). Uma aresta sem origem declarada é opinião
+  guardada em JSON, e a prova reprova-a.
+- **Nada do conteúdo entra no mapa.** Só tipo, rótulo, data e vínculo. As respostas da anamnese vão
+  cifradas na fonte, e o mapa nem o bloco cifrado leva — a lista de chaves de cada nó é fechada, e a
+  prova recusa uma chave a mais.
+
+A prova é `experimentos/provar-relacoes.js` (**34 asserções**), com contraprova: inventar a turma
+quando ela falta, e deixar de nomear a chave de cada aresta, reprovam **4 de 34**. A integração não é
+um serviço nem um passo novo de operação: o mapa entra no mesmo commit dos índices, nos dois sítios
+onde eles já entram (`regerar-indices.yml` e o commit do `gerar-ciclo.yml`), porque ambos são
+derivados das mesmas fontes e um mapa atrasado aponta para um acervo que já mudou.
 
 ## 8. E onde ainda existe "banco"? (a parte honesta)
 
