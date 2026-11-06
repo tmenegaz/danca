@@ -3984,6 +3984,22 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
 
+- **05/11/2026** — **A escrita do acto não mente, e `/api/**` responde sempre JSON.** No «Concluir
+  e enviar para a turma» a consola mostrou dois erros e os dois começavam por
+  `Unexpected token '<'`: `/api/revalidacao` dava **404** (é rota da PORTA, servida só debaixo de
+  `/anamnese/`, `/plano-ensino/` e `/plano-observacao/` — na raiz caía nos assets e voltava HTML,
+  e o aviso da cascata nunca apareceu desde que foi escrito) e o `/enviar` dava **500 com uma
+  página em HTML**, porque uma excepção no store subia até ao runtime. Corrigido nos dois sítios: a
+  cascata passou a `/api/bastidores/revalidacao` (mesma função do núcleo), `concluir`/`apagar`
+  deixaram de estourar e devolvem `{ok:false, erro}` com a razão (incluindo o `message` do GitHub),
+  e `bastidores.fetch` passou a ser uma MOLDURA que responde JSON em `/api/**` mesmo quando a rota
+  falha — a página pode falhar como página, uma rota de dados não. Achado ao revisitar: o `/enviar`
+  lia a lista FUNDIDA e gravava-a no KV, copiando actos para lá; passou a `rascunhosDe`. Medido:
+  `provar-escrita-do-acto` **20/20**, `provar-linha-de-base` **104/104**, `provar-producao`
+  **159/159**, `check-identidade` **0 erros**. **PENDENTE:** a mensagem real do 500 em produção —
+  o `wrangler tail` exige credencial que este ambiente não tem; o que ficou feito é tornar o erro
+  impossível de esconder, e é a próxima tentativa que o diz.
+
 - **05/11/2026** — **O recorte entrou no índice GERADO, com a série.** A limitação 1 do §4.12 do
   `PLANO-INDICES` («não há série temporal») fechou: a entidade `recorte` passou de `prevista` a
   `produzida`, e o índice de cada escola traz `recortes[]` (a vigente de cada linha com a cadeia

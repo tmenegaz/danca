@@ -36896,3 +36896,62 @@ primeiro nasce quando a pesquisadora premir «Concluir e enviar para a turma». 
 `recortes: []`, e dizê-lo é o correcto: um índice que inventasse o passado seria pior do que um vazio.
 O registo antigo do KV (a linha `teste`) **não** tem versões porque nunca foi um acto em ficheiro; ele
 migra na primeira vez que for concluído outra vez.
+
+## 05/11/2026 — A escrita do acto não mente, e `/api/**` responde sempre JSON
+
+**O que aconteceu.** A pesquisadora premeu «Concluir e enviar para a turma» e a consola mostrou dois
+erros, ambos a começar por `Unexpected token '<', "<!DOCTYPE "… is not valid JSON`:
+
+- `GET /api/revalidacao` → **404**, com a pilha a apontar `avisarCascata`;
+- `POST /api/bastidores/linha-de-base/enviar` → **500**.
+
+**As duas causas, e nenhuma era o que o sintoma dizia.**
+
+1. **O caminho estava errado no cliente.** `/api/revalidacao` é uma rota da **porta**
+   (`motor/servidor/rotas.js`), e a porta é servida debaixo de três prefixos — `/anamnese/`,
+   `/plano-ensino/`, `/plano-observacao/`. Na **raiz** ninguém a serve: o pedido caía no serviço de
+   assets e voltava a página do site. O `r.json()` do cliente estourava a ler HTML como JSON, e o
+   aviso da cascata **nunca chegou a aparecer** — desde que foi escrito. A rota passou a existir
+   debaixo de `/api/bastidores/revalidacao`, que é onde a página que a pede mora, e chama a **mesma**
+   função do núcleo (`porta.revalidacaoPendente`).
+2. **O 500 era uma excepção sem rede.** O store do repositório fazia `throw` quando a chamada ao
+   GitHub falhava, e o `fetch` dos Bastidores não tinha um `catch` à volta: a excepção subia ao
+   runtime, que responde **uma página de erro em HTML**. Outra vez HTML onde o cliente espera JSON.
+
+**O que foi decidido.**
+
+- **Quem escreve para uma API responde JSON, sempre.** `concluir` e `apagar` deixaram de estourar:
+  devolvem `{ok:false, erro}` com a razão (a chamada que falhou, o status, e o `message` que o
+  GitHub devolve no corpo). É a promessa que este módulo já fazia **por palavras** — «a escrita
+  falhada não mente» — e que não cumpria **por código**.
+- **Uma moldura, e não um `try` por rota.** `bastidores.fetch` passou a ser a moldura: qualquer
+  excepção em `/api/**` sai como JSON com a mensagem verdadeira e a rota; a página
+  (`/bastidores/producao`) pode falhar como página. `fetchSemRede` é o corpo, e não se chama sem a
+  moldura. Trinta rotas com um `try` cada seria trinta sítios de onde o erro pode voltar a escapar.
+- **As rotas que escrevem operam só na lista do KV.** Encontrado ao revisitar o `/enviar`: ele lia a
+  lista **fundida** (actos + rascunhos) e gravava-a de volta, copiando todos os actos do repositório
+  para o KV — duas cópias do mesmo facto, e a do KV é a que fica para trás. Passou a `rascunhosDe`,
+  como as outras três.
+
+**Um erro meu dentro da prova, que vale registar.** A primeira versão media a moldura com um KV cujo
+`get` estourava — e o resultado foi 200, porque `lerLista` já apanha o erro e devolve lista vazia. A
+asserção falhou, e a lição é a mesma de sempre: **a prova tem de estourar de onde a vida estoura**. Um
+`Proxy` de `env` que explode ao ser lido é a forma do defeito real (um binding que falta), e foi ele
+que fez a moldura ser exercida de verdade.
+
+**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — `pedir()` (a chamada que não estoura),
+`concluirDeVerdade`/`apagarDeVerdade` chamadas por métodos que apanham, e o motivo do GitHub a ir na
+mensagem. `motor/servidor/bastidores.js` — `fetchComRede` (a moldura) e `fetchSemRede`, a rota
+`/api/bastidores/revalidacao`, o cliente a pedir o caminho certo, e o `/enviar` a ler a lista do KV.
+`experimentos/provar-escrita-do-acto.js` — novo.
+
+**Medido.** `provar-escrita-do-acto` **20/20**; `provar-linha-de-base-no-repo` **28/28**;
+`provar-linha-de-base` **104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna`
+**20/20**; `provar-sujeitos-da-turma` **41/41**; `provar-indice-do-recorte` **24/24**;
+`provar-recorte-no-indice` **40/40**; `provar-producao` **159/159**; `check-identidade` **0 erros**.
+
+**O que continua por saber, e digo-o em vez de o esconder.** Não consegui ler a mensagem verdadeira do
+500 em produção — o `wrangler tail` exige uma credencial que este ambiente não tem, e o corpo era uma
+página do runtime. O que fiz foi tornar o erro **impossível de esconder**: na próxima tentativa a
+resposta é JSON com o motivo, e é ele que fecha o diagnóstico. Se a escrita falhar de novo, a tela
+passa a dizer porquê em vez de «erro».

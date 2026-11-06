@@ -771,6 +771,14 @@ experimentos/modelo-formulario/*
 # `recortes`/`aspectos` não atravessam para o índice transversal, e que a contagem atravessa) e o
 # determinismo, com o controle de que a ordem dos ficheiros não muda o índice.
 !experimentos/provar-recorte-no-indice.js
+# A ESCRITA DO ACTO NAO MENTE, E /api/** RESPONDE SEMPRE JSON (05/11/2026). No «Concluir e enviar
+# para a turma» a consola mostrou `Unexpected token '<'`: `/api/revalidacao` dava 404 (o caminho so
+# existe debaixo dos prefixos da porta) e o `/enviar` dava 500 com uma PAGINA em HTML, porque uma
+# excepcao no store subia ate ao runtime. A prova mede o store a devolver a razao em vez de estourar
+# (rede caida, GitHub a recusar com o motivo do corpo), a moldura que responde JSON em `/api/**`
+# mesmo quando a rota falha, a rota da cascata no caminho que a pagina pede, e o caminho da tela de
+# ponta a ponta: 200, ficheiro no repositorio, rascunho fora do KV e nenhum acto copiado para la.
+!experimentos/provar-escrita-do-acto.js
 # A PROPOSTA DA LISTAGEM, MEDIDA (05/11/2026). A bancada constrói a proposta, serve-a em 127.0.0.1 e
 # mede a geometria nas quatro larguras — 1240, 390, 360 e 320 —, incluindo o alvo de toque de cada
 # caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a

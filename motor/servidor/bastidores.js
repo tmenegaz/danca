@@ -10031,7 +10031,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  "po": "o plano de observação"};' +
     'function avisarCascata(turma) {' +
     '  if (!turma) return;' +
-    '  fetch("/api/revalidacao")' +
+    /* O CAMINHO É O DA PRÓPRIA PÁGINA (05/11/2026). Era `/api/revalidacao`, absoluto — e na raiz
+     * não existe: só debaixo dos prefixos da porta. O aviso da cascata nunca chegou a aparecer, e
+     * a consola enchia-se de «Unexpected token '<'». Ver a rota `/api/bastidores/revalidacao`. */
+    '  fetch("/api/bastidores/revalidacao")' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      if (!d || !d.ok) return;' +
@@ -11761,8 +11764,18 @@ async function fetch(request, env) {
     const turma = String(corpo.turma || '').trim();
     if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
     if (!turma) return json(400, { ok: false, erro: 'informe a turma de destino' });
-    const lista = await linhasDeBase(kv, escola, repoLinhas);
-    const idx = lista.findIndex((l) => l && l.id === id);
+    /* AS ROTAS QUE ESCREVEM OPERAM NA LISTA DO KV, E SÓ NELA (05/11/2026). Ler a lista FUNDIDA e
+     * gravá-la de volta copiaria todos os actos do repositório para dentro do rascunho — duas
+     * cópias do mesmo facto, e a do KV é a que fica para trás. O mesmo critério de `rascunhosDe`.
+     *
+     * A LINHA PODE JÁ ESTAR CONCLUÍDA: nesse caso ela vive no repositório e não no KV. Reenviá-la
+     * é um acto novo sobre o mesmo conteúdo, e o `concluir` já sabe encadear o `anterior`. */
+    const lista = await rascunhosDe(kv, escola);
+    let idx = lista.findIndex((l) => l && l.id === id);
+    if (idx === -1 && repoLinhas.activo) {
+      const doActo = await repoLinhas.vigente(id).catch(() => null);
+      if (doActo) { lista.push(Object.assign({}, doActo)); idx = lista.length - 1; }
+    }
     if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
     /* A ORDEM DAS CONFERÊNCIAS É A DO PASSO: as alunas vêm do 2, a turma é a do 5. Recusar pela
      * turma primeiro mandaria o professor ao sítio errado — o que falta é o elenco. */
@@ -11811,8 +11824,10 @@ async function fetch(request, env) {
      * (as legadas) não pode ficar sem conseguir enviar para a turma; mas também não pode ouvir
      * «concluído» e ficar sem saber onde é que aquilo foi parar. */
     if (!repoLinhas.activo) {
-      lista[idx] = linhaDoActo;
-      await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+      /* SÓ OS RASCUNHOS VÃO PARA O KV — a linha que veio do repositório não se copia para lá. */
+      const restantes = lista.filter((l, i) => i !== idx || l.id !== id);
+      restantes.push(linhaDoActo);
+      await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(restantes));
       return json(200, {
         ok: true, linha: linhaDoActo, turma, alunas, gravado: 'kv',
         aviso: 'esta escola não tem repositório configurado (' + (repoLinhas.motivo || 'sem token')
@@ -11846,6 +11861,42 @@ async function fetch(request, env) {
       caminho: gravado.caminho,
       anterior: gravado.anterior,
     });
+  }
+
+  /*
+   * GET /api/bastidores/revalidacao — O QUE PRECISA DE REVISÃO (05/11/2026).
+   *
+   * PORQUE AQUI, E NÃO NO CAMINHO ANTIGO. O aviso da cascata vivia na página da Produção e pedia
+   * `/api/revalidacao` — um caminho ABSOLUTO, que só existe debaixo dos prefixos da porta
+   * (`/anamnese/api/…`, `/plano-observacao/api/…`). Na raiz ele não é servido por ninguém, e o
+   * pedido voltava 404 com a página do site: o `r.json()` do cliente estourava com
+   * «Unexpected token '<', "<!DOCTYPE"…» e o aviso NUNCA aparecia. Medido a 05/11/2026, na
+   * consola da Produção, com a pilha a apontar `avisarCascata`.
+   *
+   * A rota passa a viver debaixo de `/api/bastidores`, que é onde a página que a pede mora. A
+   * regra e a ordem continuam a ser as do núcleo (`porta.revalidacaoPendente`), com as mesmas
+   * duas entradas — as linhas de base (que aqui são as dos ACTOS, lidas do repositório) e as
+   * curadorias. Uma segunda derivação divergiria da primeira; esta não deriva nada, chama.
+   */
+  if (path === '/api/bastidores/revalidacao') {
+    try {
+      const legado = criarCloudflare(env);
+      const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+      const r = await porta.revalidacaoPendente(
+        armazenamento, null,
+        await linhasConcluidas(kv, escola, repoLinhas),
+        await curadorias(kv, escola),
+      );
+      return json(200, {
+        ok: true,
+        ordem: r.ordem,
+        anamneses: r.anamneses,
+        pendentes: [...r.pendentes.entries()].map(([id, v]) => Object.assign({ id }, v)),
+      });
+    } catch (erro) {
+      return json(500, { ok: false, erro: 'não consegui ler a cascata: '
+        + (erro && erro.message ? erro.message : 'erro') });
+    }
   }
 
   // GET /api/bastidores/alunas-da-turma?turma=<nome> — as alunas que uma turma recebeu.
@@ -12804,8 +12855,46 @@ async function fetch(request, env) {
   return json(404, { ok: false, erro: 'não encontrado' });
 }
 
+/**
+ * A MOLDURA DO `fetch` — e existe por um defeito medido a 05/11/2026.
+ *
+ * O QUE ACONTECEU. No «Concluir e enviar para a turma», uma excepção dentro de uma rota subia até
+ * ao runtime, que responde uma PÁGINA DE ERRO EM HTML. O cliente faz `r.json()` sobre ela e mostra
+ * `Unexpected token '<', "<!DOCTYPE"…` — o erro de leitura a esconder o erro verdadeiro. A
+ * pesquisadora viu exactamente isso, e o 500 não lhe dizia nada.
+ *
+ * A REGRA QUE FICA. `/api/**` responde SEMPRE JSON, inclusive quando o servidor falha. A página
+ * (`/bastidores/producao`) pode falhar como página — mas uma rota de dados nunca devolve marcação a
+ * quem pediu dados. O `erro` leva a mensagem verdadeira: é ela que faz a próxima correcção
+ * possível, e esconder o motivo atrás de «erro interno» é o que obriga a adivinhar.
+ *
+ * O `console.error` fica para o `wrangler tail`, que é onde a pilha se lê por inteiro.
+ */
+async function fetchComRede(request, env) {
+  const url = new URL(request.url);
+  const ehDados = url.pathname.startsWith('/api/bastidores');
+  try {
+    return await fetch(request, env);
+  } catch (erro) {
+    const mensagem = erro && erro.message ? erro.message : String(erro);
+    if (typeof console !== 'undefined' && console.error) {
+      console.error('bastidores: ' + url.pathname + ' estourou: ' + mensagem,
+        erro && erro.stack ? erro.stack : '');
+    }
+    if (!ehDados) throw erro;
+    return json(500, {
+      ok: false,
+      erro: 'o servidor falhou a responder a esta rota: ' + mensagem,
+      rota: url.pathname,
+    });
+  }
+}
+
 module.exports = {
-  fetch,
+  // O `fetch` EXPORTADO é a moldura: quem chama de fora recebe sempre JSON em `/api/**`, mesmo
+  // quando uma rota estoura. O corpo está em `fetch`, e não se chama sem a moldura.
+  fetch: fetchComRede,
+  fetchSemRede: fetch,
   temProfessor,
   senhaDaEscolaOk,
   // A PÁGINA da Produção, exportada para a prova poder abri-la num navegador de verdade

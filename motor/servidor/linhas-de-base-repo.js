@@ -136,13 +136,38 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
   const activo = Boolean(slug && token);
   const motivo = !slug ? 'sem ESCOLA_SLUG' : (!token ? 'sem GITHUB_TOKEN' : null);
 
+  /**
+   * A CHAMADA AO GITHUB QUE NÃO ESTOURA (05/11/2026).
+   *
+   * O DEFEITO QUE ISTO CORRIGE, medido a 05/11/2026 no «Concluir e enviar para a turma»: um erro
+   * de rede, um 5xx do GitHub ou um corpo ilegível atiravam uma EXCEPÇÃO para fora do módulo, e a
+   * rota — que não tem um `catch` à volta — caía na página de erro do runtime, um HTML. O cliente
+   * faz `r.json()` sobre esse HTML e mostra «Unexpected token '<', "<!DOCTYPE"…», que não é o erro:
+   * é o erro a esconder-se. Uma escrita que falha tem de dizer PORQUÊ, em JSON, e é a promessa
+   * que este módulo já fazia por palavras («a escrita falhada não mente») e não cumpria por código.
+   */
+  async function pedir(url, opcoes) {
+    try {
+      return await f(url, opcoes);
+    } catch (erro) {
+      return {
+        ok: false, status: 0,
+        texto: 'a chamada ao GitHub falhou: ' + (erro && erro.message ? erro.message : String(erro)),
+        json: async () => null,
+      };
+    }
+  }
+
   async function conteudo(chave) {
     if (lidos.has(chave)) return lidos.get(chave);
     if (!activo) { lidos.set(chave, null); return null; }
-    const r = await f(comRamo(base + '/contents/' + caminhoDaChave(slug, chave)),
+    const r = await pedir(comRamo(base + '/contents/' + caminhoDaChave(slug, chave)),
       { method: 'GET', headers: cabecalhos });
     if (r.status === 404) { lidos.set(chave, null); return null; }
-    if (!r.ok) throw new Error('linhas-de-base: leitura de ' + chave + ': HTTP ' + r.status);
+    if (!r.ok) {
+      throw new Error('linhas-de-base: leitura de ' + chave + ': '
+        + (r.texto || ('HTTP ' + r.status)));
+    }
     const dados = await r.json().catch(() => null);
     const cru = dados && dados.content ? String(dados.content) : '';
     if (!cru) throw new Error('linhas-de-base: o arquivo veio vazio: ' + chave);
@@ -154,9 +179,12 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
   async function arvore() {
     if (nomes) return nomes;
     if (!activo) { nomes = []; return nomes; }
-    const r = await f(base + '/git/trees/' + encodeURIComponent(ramo) + '?recursive=1',
+    const r = await pedir(base + '/git/trees/' + encodeURIComponent(ramo) + '?recursive=1',
       { method: 'GET', headers: cabecalhos });
-    if (!r.ok) throw new Error('linhas-de-base: não li a árvore do repositório: HTTP ' + r.status);
+    if (!r.ok) {
+      throw new Error('linhas-de-base: não li a árvore do repositório: '
+        + (r.texto || ('HTTP ' + r.status)));
+    }
     const dados = await r.json().catch(() => null);
     const achadas = [];
     for (const item of (dados && dados.tree) || []) {
@@ -175,14 +203,15 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     let ultimo = { ok: false, erro: 'não se tentou' };
     for (let tentativa = 1; tentativa <= 3; tentativa++) {
       let sha = null;
-      const atual = await f(comRamo(url), { method: 'GET', headers: cabecalhos });
+      const atual = await pedir(comRamo(url), { method: 'GET', headers: cabecalhos });
       if (atual.status === 200) {
         const dados = await atual.json().catch(() => null);
         sha = (dados && dados.sha) || null;
       } else if (atual.status !== 404) {
-        return { ok: false, status: atual.status, erro: 'leitura do sha: HTTP ' + atual.status };
+        return { ok: false, status: atual.status,
+          erro: 'leitura do sha: ' + (atual.texto || ('HTTP ' + atual.status)) };
       }
-      const resposta = await f(url, {
+      const resposta = await pedir(url, {
         method: 'PUT',
         headers: cabecalhos,
         body: JSON.stringify({
@@ -205,11 +234,60 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
         };
       }
       if (resposta.status !== 409) {
-        return { ok: false, status: resposta.status, erro: 'o GitHub recusou a escrita: HTTP ' + resposta.status };
+        let detalhe = resposta.texto || '';
+        if (!detalhe && typeof resposta.json === 'function') {
+          const corpo = await resposta.json().catch(() => null);
+          detalhe = corpo && corpo.message ? String(corpo.message) : '';
+        }
+        return { ok: false, status: resposta.status,
+          erro: 'o GitHub recusou a escrita'
+            + (resposta.status ? ' (HTTP ' + resposta.status + ')' : '')
+            + (detalhe ? ': ' + detalhe : '') };
       }
       ultimo = { ok: false, status: 409, erro: 'conflito de escrita (409) — a repetir' };
     }
     return ultimo;
+  }
+
+  /** O corpo do acto: calcula o carimbo, lê a versão anterior e grava a nova. */
+  async function concluirDeVerdade(linha, { quando, mensagem } = {}) {
+    const id = String((linha && linha.id) || '').trim();
+    if (!id) return { ok: false, erro: 'a linha de base não tem identificador' };
+    const em = String(quando || new Date().toISOString());
+    const carimbo = carimboDe(em);
+    const anterior = await this.vigente(id);
+    const chave = chaveDe(id, carimbo);
+    const corpo = Object.assign({}, linha, {
+      id,
+      carimbo,
+      enviada_em: String((linha && linha.enviada_em) || em),
+      ...(anterior ? { anterior: anterior.chave } : {}),
+      gravada_em: em,
+    });
+    const r = await escrever(chave, JSON.stringify(corpo, null, 2) + '\n', mensagem);
+    if (!r.ok) return r;
+    return Object.assign({}, r, { chave, carimbo, linha: corpo, anterior: anterior ? anterior.chave : null });
+  }
+
+  /** O corpo do apagar: uma versão que diz que a linha foi apagada, com a data e por quem. */
+  async function apagarDeVerdade(id, { quando, por } = {}) {
+    const alvo = await this.vigente(id);
+    if (!alvo) return { ok: false, erro: 'linha de base não encontrada: ' + id };
+    const em = String(quando || new Date().toISOString());
+    const carimbo = carimboDe(em);
+    const chave = chaveDe(String(id), carimbo);
+    const corpo = Object.assign({}, alvo, {
+      id: String(id),
+      carimbo,
+      apagada_em: em,
+      ...(por ? { apagada_por: String(por) } : {}),
+      anterior: alvo.chave,
+    });
+    delete corpo.chave;
+    const r = await escrever(chave, JSON.stringify(corpo, null, 2) + '\n',
+      'chore(linha de base): apagar ' + id);
+    if (!r.ok) return r;
+    return Object.assign({}, r, { chave, carimbo, apagada: corpo });
   }
 
   return {
@@ -291,44 +369,31 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
      * O `anterior` é a chave da versão vigente no momento, e vai dentro do ficheiro: é o elo
      * explícito da cadeia. Se a gravação falhar, o KV continua a ter o rascunho — e o servidor
      * responde com o erro em vez de dizer que concluiu.
+     *
+     * NÃO ESTOURA: devolve `{ok:false, erro}`. Medido a 05/11/2026 no «Concluir e enviar para a
+     * turma» — uma excepção aqui subia até ao runtime, que responde uma página de erro em HTML,
+     * e o cliente a fazer `r.json()` sobre ela mostra «Unexpected token '<', "<!DOCTYPE"…». O erro
+     * verdadeiro ficava escondido atrás do erro de leitura. Quem escreve para uma API responde
+     * JSON, sempre.
      */
     async concluir(linha, { quando, mensagem } = {}) {
-      const id = String((linha && linha.id) || '').trim();
-      if (!id) return { ok: false, erro: 'a linha de base não tem identificador' };
-      const carimbo = carimboDe(quando || new Date().toISOString());
-      const anterior = await this.vigente(id);
-      const chave = chaveDe(id, carimbo);
-      const corpo = Object.assign({}, linha, {
-        id,
-        carimbo,
-        enviada_em: String((linha && linha.enviada_em) || quando || new Date().toISOString()),
-        ...(anterior ? { anterior: anterior.chave } : {}),
-        gravada_em: String(quando || new Date().toISOString()),
-      });
-      const r = await escrever(chave, JSON.stringify(corpo, null, 2) + '\n', mensagem);
-      if (!r.ok) return r;
-      return Object.assign({}, r, { chave, carimbo, linha: corpo, anterior: anterior ? anterior.chave : null });
+      try {
+        return await concluirDeVerdade.call(this, linha, { quando, mensagem });
+      } catch (erro) {
+        return { ok: false, erro: erro && erro.message ? erro.message : String(erro) };
+      }
     },
 
-    /** APAGAR É UM ACTO: uma versão com `apagada_em`. A linha sai da lista; o rasto fica. */
+    /**
+     * APAGAR É UM ACTO: uma versão com `apagada_em`. A linha sai da lista; o rasto fica.
+     * Pela mesma razão do `concluir`, também não estoura.
+     */
     async apagar(id, { quando, por } = {}) {
-      const alvo = await this.vigente(id);
-      if (!alvo) return { ok: false, erro: 'linha de base não encontrada: ' + id };
-      const em = String(quando || new Date().toISOString());
-      const carimbo = carimboDe(em);
-      const chave = chaveDe(String(id), carimbo);
-      const corpo = Object.assign({}, alvo, {
-        id: String(id),
-        carimbo,
-        apagada_em: em,
-        ...(por ? { apagada_por: String(por) } : {}),
-        anterior: alvo.chave,
-      });
-      delete corpo.chave;
-      const r = await escrever(chave, JSON.stringify(corpo, null, 2) + '\n',
-        'chore(linha de base): apagar ' + id);
-      if (!r.ok) return r;
-      return Object.assign({}, r, { chave, carimbo, apagada: corpo });
+      try {
+        return await apagarDeVerdade.call(this, id, { quando, por });
+      } catch (erro) {
+        return { ok: false, erro: erro && erro.message ? erro.message : String(erro) };
+      }
     },
 
     /** A história de UMA linha, da mais recente para a mais antiga. */

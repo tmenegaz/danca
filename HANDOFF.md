@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T21:47:29-0300`
-Commit atual: `1f233691` — feat(po): a estante diz se o repositorio esta alcancavel
+Gerado em: `2026-11-05T22:03:03-0300`
+Commit atual: `61fcf8e0` — feat(tools): o recorte entra no indice gerado, com a serie
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+61fcf8e0 feat(tools): o recorte entra no indice gerado, com a serie
 1f233691 feat(po): a estante diz se o repositorio esta alcancavel
 a9f1f79c feat(po): a linha de base sai do KV — o acto passa a ser um ficheiro, append-only
 fb95e768 feat(po): o elenco do Plano de Observacao deixa de se escolher — vem da turma
@@ -105,7 +106,6 @@ d7776497 chore(estrutura): regerar os índices derivados
 88ff28fe feat(acervo): envelope/anamnese-20261105-2015.json
 c576e9ca feat(acervo): envelope/.indice.json
 e0f3b0fd chore(estrutura): regerar os índices derivados
-45eb07d4 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -231,61 +231,64 @@ e0f3b0fd chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — O recorte entra no índice gerado, com a série
+## 05/11/2026 — A escrita do acto não mente, e `/api/**` responde sempre JSON
 
-**O que aconteceu.** Na entrada anterior ficou declarado o que faltava: «o índice gerado em `indices/`
-ainda não olha esta família». A pesquisadora respondeu «pode fazer» — e é a segunda metade da decisão
-do dia: o acto da linha de base passou a ser um ficheiro **para que** o índice pudesse olhar para trás.
+**O que aconteceu.** A pesquisadora premeu «Concluir e enviar para a turma» e a consola mostrou dois
+erros, ambos a começar por `Unexpected token '<', "<!DOCTYPE "… is not valid JSON`:
+
+- `GET /api/revalidacao` → **404**, com a pilha a apontar `avisarCascata`;
+- `POST /api/bastidores/linha-de-base/enviar` → **500**.
+
+**As duas causas, e nenhuma era o que o sintoma dizia.**
+
+1. **O caminho estava errado no cliente.** `/api/revalidacao` é uma rota da **porta**
+   (`motor/servidor/rotas.js`), e a porta é servida debaixo de três prefixos — `/anamnese/`,
+   `/plano-ensino/`, `/plano-observacao/`. Na **raiz** ninguém a serve: o pedido caía no serviço de
+   assets e voltava a página do site. O `r.json()` do cliente estourava a ler HTML como JSON, e o
+   aviso da cascata **nunca chegou a aparecer** — desde que foi escrito. A rota passou a existir
+   debaixo de `/api/bastidores/revalidacao`, que é onde a página que a pede mora, e chama a **mesma**
+   função do núcleo (`porta.revalidacaoPendente`).
+2. **O 500 era uma excepção sem rede.** O store do repositório fazia `throw` quando a chamada ao
+   GitHub falhava, e o `fetch` dos Bastidores não tinha um `catch` à volta: a excepção subia ao
+   runtime, que responde **uma página de erro em HTML**. Outra vez HTML onde o cliente espera JSON.
 
 **O que foi decidido.**
 
-- **A entidade `recorte` passa de `prevista` a `produzida`.** A marca `prevista` existia por uma razão
-  factual — o recorte morava no KV, e o gerador do acervo não o alcança —, e a razão acabou. A troca da
-  marca **é** o registo da mudança, e o `$nota` do esquema passou a contá-la.
-- **A série vai no índice da ESCOLA, não no transversal.** `recortes[]` é a versão vigente de cada
-  linha com a cadeia `versoes[]` inteira (um elo por acto, com o arquivo, a data, os aspectos daquele
-  momento e a contagem de alunas); `aspectos[]` é a janela do tempo por aspecto. **`acesso: escola`**, e
-  o transversal leva só `contagens.recortes` — um número não é o dado.
-- **Três contas, e não uma.** `contagem` (em quantos recortes vigentes o aspecto está hoje), `versoes`
-  (em quantos actos alguma vez esteve) e a janela (`primeira`/`ultima`, carimbos). Confundi-las é o erro
-  fácil: um aspecto que se olhava em Setembro e hoje em nenhum tem `contagem: 0` e `versoes: 5`, e é
-  exactamente essa diferença que a série existe para mostrar.
-- **A lápide não apaga.** Uma linha de base apagada continua no índice com `apagada: true`, sai do
-  ranque dos vigentes e mantém os actos na série.
-- **A declaração passou a ser executável, e eram precisas duas verificações.** A **15** (Acesso
-  declarado) faz cumprir o `acesso: escola`: as chaves de `$materializa` não podem existir no acervo
-  transversal, e têm de existir no índice de cada escola quando a entidade é `produzida` — a segunda
-  metade é o que impede a primeira de passar por ausência. A **16** (Recorte coerente) exige que o
-  ranque bata com os recortes que o sustentam.
+- **Quem escreve para uma API responde JSON, sempre.** `concluir` e `apagar` deixaram de estourar:
+  devolvem `{ok:false, erro}` com a razão (a chamada que falhou, o status, e o `message` que o
+  GitHub devolve no corpo). É a promessa que este módulo já fazia **por palavras** — «a escrita
+  falhada não mente» — e que não cumpria **por código**.
+- **Uma moldura, e não um `try` por rota.** `bastidores.fetch` passou a ser a moldura: qualquer
+  excepção em `/api/**` sai como JSON com a mensagem verdadeira e a rota; a página
+  (`/bastidores/producao`) pode falhar como página. `fetchSemRede` é o corpo, e não se chama sem a
+  moldura. Trinta rotas com um `try` cada seria trinta sítios de onde o erro pode voltar a escapar.
+- **As rotas que escrevem operam só na lista do KV.** Encontrado ao revisitar o `/enviar`: ele lia a
+  lista **fundida** (actos + rascunhos) e gravava-a de volta, copiando todos os actos do repositório
+  para o KV — duas cópias do mesmo facto, e a do KV é a que fica para trás. Passou a `rascunhosDe`,
+  como as outras três.
 
-**Um erro meu, apanhado pela contraprova, e é o que vale registar.** A primeira versão da verificação
-15 procurava `acesso` **na entidade**; o dicionário declara-o **em cada campo**, e nenhuma entidade o
-tem no topo. A verificação não encontrava nada, não conferia nada, e **passava** — o pior estado
-possível. Foi a contraprova 10 («pôr `recortes` no índice transversal») que o disse: *a verificação 15
-NÃO reprovou*. A regra passou a ser a do dicionário (uma entidade é de escola quando todos os seus
-campos o são), e a contraprova passou a reprovar como devia. É a demonstração do princípio que este
-repositório já escreveu noutro sítio: **uma verificação que passa por não correr é pior do que
-nenhuma.**
+**Um erro meu dentro da prova, que vale registar.** A primeira versão media a moldura com um KV cujo
+`get` estourava — e o resultado foi 200, porque `lerLista` já apanha o erro e devolve lista vazia. A
+asserção falhou, e a lição é a mesma de sempre: **a prova tem de estourar de onde a vida estoura**. Um
+`Proxy` de `env` que explode ao ser lido é a forma do defeito real (um binding que falta), e foi ele
+que fez a moldura ser exercida de verdade.
 
-**Onde entrou.** `motor/nucleo/indices.js` — `recortesDaEscola` e `aspectosDoRecorte` (puras,
-exportadas), `recortes`/`aspectos`/`filtros.aspectos` no índice da escola, `contagens.recortes` no
-mestre. `tools/gerar-indices.js` — `lerRecortes` (com o leitor injectável, para a regra ser exercível
-sem o disco), e a passagem de `recortes` à derivação. `indices/esquema/campos.json` — `produzida`,
-`$materializa`, `vigente`, `apagada_em`, `versoes`. `tools/check-indices.js` — verificações 15 e 16 e
-as contraprovas 10 e 11. `motor/nucleo/indice-do-recorte.js` — a nota que separa o ranque do presente
-da série do passado. `PLANO-INDICES.md` — §4.12 corrigido (a limitação 1 fecha) e **§4.13** novo.
-`experimentos/provar-recorte-no-indice.js` — novo.
+**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — `pedir()` (a chamada que não estoura),
+`concluirDeVerdade`/`apagarDeVerdade` chamadas por métodos que apanham, e o motivo do GitHub a ir na
+mensagem. `motor/servidor/bastidores.js` — `fetchComRede` (a moldura) e `fetchSemRede`, a rota
+`/api/bastidores/revalidacao`, o cliente a pedir o caminho certo, e o `/enviar` a ler a lista do KV.
+`experimentos/provar-escrita-do-acto.js` — novo.
 
-**Medido.** `provar-recorte-no-indice` **40/40**; `check-indices` **16 verificações, 0 falhas** e
-**12 contraprovas, todas reprovam como deviam**; `provar-indice-do-recorte` **24/24**;
-`provar-linha-de-base-no-repo` **28/28**; `provar-linha-de-base` **104/104**; `provar-producao`
-**159/159**; `check-identidade` **0 erros**.
+**Medido.** `provar-escrita-do-acto` **20/20**; `provar-linha-de-base-no-repo` **28/28**;
+`provar-linha-de-base` **104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna`
+**20/20**; `provar-sujeitos-da-turma` **41/41**; `provar-indice-do-recorte` **24/24**;
+`provar-recorte-no-indice` **40/40**; `provar-producao` **159/159**; `check-identidade` **0 erros**.
 
-**O que continua vazio, e é a verdade.** O repositório não tem nenhum ficheiro de linha de base — o
-primeiro nasce quando a pesquisadora premir «Concluir e enviar para a turma». Até lá o índice diz
-`recortes: []`, e dizê-lo é o correcto: um índice que inventasse o passado seria pior do que um vazio.
-O registo antigo do KV (a linha `teste`) **não** tem versões porque nunca foi um acto em ficheiro; ele
-migra na primeira vez que for concluído outra vez.
+**O que continua por saber, e digo-o em vez de o esconder.** Não consegui ler a mensagem verdadeira do
+500 em produção — o `wrangler tail` exige uma credencial que este ambiente não tem, e o corpo era uma
+página do runtime. O que fiz foi tornar o erro **impossível de esconder**: na próxima tentativa a
+resposta é JSON com o motivo, e é ele que fecha o diagnóstico. Se a escrita falhar de novo, a tela
+passa a dizer porquê em vez de «erro».
 
 ## O que está pendente
 
