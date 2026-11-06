@@ -175,6 +175,10 @@ document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
      palavra: colados, o `sim` e o `não` viram um bloco só e erra-se o clique. */
   .depois label.presenca { margin-right:var(--esp-3); }
   .depois label.presenca input { margin-right:var(--esp-1); }
+  /* A LISTA DOS PRESENTES: uma caixa por aluna, que se lê em colunas e não num parágrafo corrido.
+     Com duas alunas o «· » do parágrafo chegava; com cinquenta é uma linha de texto sem fim. */
+  .presenca-lista { display:flex; flex-wrap:wrap; gap:var(--esp-2) var(--esp-4); }
+  .presenca-lista .presenca { white-space:nowrap; }
   /* CADA PERGUNTA DO «DEPOIS» É UMA PERGUNTA, e o respiro entre duas é `--esp-3` (12px). A regra
      da casa para a linha de formulário é `--esp-1` (4px) — serve entre campos do MESMO formulário,
      não entre perguntas distintas que agora trazem cinco controles cada. Nas bordas é zero: quem
@@ -194,7 +198,7 @@ document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
    completo (o botão) vive em assets/nav.js. */
 try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
 </head>
-<body id="top" data-layout="documento" data-tela="lancamento">
+<body id="top" data-layout="documento" data-largura="matriz" data-tela="lancamento">
 <!-- A barra de navegação do PACOTE entra no marcador abaixo — quem a escreve é o gerador, com a
      mesma `gerar_nav` das outras páginas: o formulário é uma página do site, não uma página fora
      dele. SEM "índice desta página" (`toc-local`): o formulário não é documento, e aquele bloco —
@@ -976,6 +980,11 @@ async function gerarMd() {
   atualizarBotaoMd();
 }
 
+// A PRESENÇA AO VIVO (06/11/2026): a lista de apelidos que os checkboxes dizem AGORA, ou `null`
+// quando vale o que está gravado. Vive no módulo e não no DOM porque quem a lê é a renderização
+// da matriz, e o DOM é reconstruído a cada render.
+let presencaAoVivo = null;
+
 // ------------------------------------------------------------------- captura
 // O §3 do IDEIA-CAPTURA — antes (monta os campos), durante (marca) e depois
 // (lança → atualiza o JSON em memória → envia ao site → é o site que guarda). O JSON é a
@@ -1413,6 +1422,50 @@ function blocoDoDepois(a) {
   </fieldset>`;
 }
 
+/**
+ * A PRESENÇA — uma caixa que abre, e não uma linha de cinquenta nomes.
+ *
+ * «se tiver aqui 50 alunos, como é que faz isso? Tem que botar também se a gente passar de 10
+ * alunos, tem que botar um carregar mais aqui ou […] coloca como um acordeon também para colapsar
+ * e expandir […] ou a gente coloca um clique para abrir um modal e nesse modal o professor já
+ * marca todos os presentes e depois fecha.»
+ *
+ * A DECISÃO, E O ARGUMENTO. Acordeão, e não modal. Um modal para uma lista de caixas de
+ * selecção custa o que a casa já resolveu noutro lugar: prender o foco, fechar no `Esc`, travar a
+ * rolagem de trás, devolver o foco a quem abriu — e nenhuma dessas coisas se vê numa captura, o
+ * que quer dizer que se partem em silêncio. E o modal não é peça desta folha: nunca foi desenhado
+ * para ela, e a regra do catálogo é que uma coisa que aparece na tela nasce de uma peça. A caixa
+ * que abre JÁ É peça (`.eixo`, nascida nos três eixos da aula), e resolve o mesmo problema de
+ * espaço: fechada custa uma linha, e é ela que diz «3 de 12».
+ *
+ * ABRE SOZINHA ATÉ DOZE. Marcar presença é o primeiro gesto da aula, e uma caixa fechada com
+ * duas alunas obrigaria a um clique para fazer o que hoje se faz sem clique nenhum. Com mais de
+ * doze, a lista é longa o bastante para valer o clique — e a caixa abre fechada, com a contagem à
+ * vista.
+ *
+ * «Marcar todos» e «desmarcar todos» existem porque marcar cinquenta caixas à mão é o trabalho
+ * que a tela tem de poupar; a contagem ao lado do título é o que confirma o que se fez sem
+ * percorrer a lista com os olhos.
+ */
+function blocoPresentes(dados, a) {
+  const todos = apelidosDoCiclo(dados);
+  const marcado = (k) => (presencaAoVivo ? presencaAoVivo.has(k)
+    : (!a || a.presentes.includes(k)));
+  const quantos = todos.filter(([k]) => marcado(k)).length;
+  const aberto = todos.length <= 12;
+  return `<details class="eixo presenca-da-turma"${aberto ? ' open' : ''}>
+    <summary>Presentes <span class="fraco" id="conta-presentes">— ${quantos} de ${todos.length}</span></summary>
+    <div class="acoes-da-aluna">
+      <button type="button" class="acao secundario pequena" data-presenca="todos">marcar todos</button>
+      <button type="button" class="acao secundario pequena" data-presenca="nenhum">desmarcar todos</button>
+      <span class="fraco">A matriz abaixo mostra só quem está marcado aqui.</span>
+    </div>
+    <p class="linha presenca-lista">${todos.map(([k, nome]) =>
+      `<label class="presenca"><input type="checkbox" id="pres-${esc(k)}"${
+        marcado(k) ? ' checked' : ''}> ${esc(nome)}</label>`).join('')}</p>
+  </details>`;
+}
+
 function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   const a = dados.aulas[id] || null;
   const ajuste = !!estadoAjuste();     // reabrindo o que já estava lançado
@@ -1499,17 +1552,27 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   };
   // QUEM APARECE: quem está presente. Uma aluna ausente numa matriz de marcas é uma linha de
   // selects que ninguém vai preencher, e «ausente» já está dito na folha de presença.
-  const presentes = apelidosDoCiclo(dados).filter(([k]) => !a || a.presentes.includes(k));
+  //
+  // E SEGUE A PRESENÇA AO VIVO (06/11/2026). «a gente tem aluno A e aluno B, e se tiver aqui 50
+  // alunos, como é que faz isso?» — o professor desmarca quem faltou e a matriz passa a ter as
+  // linhas de quem veio, sem recarregar a página e sem 50 linhas de selects para percorrer. O
+  // `presencaAoVivo` é a lista que os checkboxes dizem AGORA; sem ele (primeira renderização, ou
+  // troca de aula) vale o que está gravado.
+  const presentes = apelidosDoCiclo(dados).filter(([k]) => (presencaAoVivo
+    ? presencaAoVivo.has(k) : (!a || a.presentes.includes(k))));
 
   // A MATRIZ DE UM BLOCO: as colunas da folha são as colunas, a aluna é a linha.
-  const matrizDeBloco = (b) => `<table class="captura matriz">
+  const matrizDeBloco = (b) => {
+    const quantas = (b.colunas || []).length;
+    return comRolagem(`<table class="captura matriz" style="--colunas:${quantas}">
       <tr><th>Aluna</th>${(b.colunas || []).map((c) => `<th>${esc(c.rotulo)}</th>`).join('')}</tr>
       ${presentes.map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
         + (b.colunas || []).map((c) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo,
           doBloco(b, k)[c.chave],
           c.tipo === 'numero' ? ((a && a.duracao_min) ?? (m.duracao_min ?? '')) : '')}</td>`).join('')
         + '</tr>').join('')}
-    </table>`;
+    </table>`, quantas, b.rotulo || b.titulo || 'Matriz');
+  };
 
   // A MATRIZ DA LINHA DE BASE: as colunas são os itens do eixo do corpo, que vêm do PO — a folha
   // declara-os em branco de propósito («não se reescreve aqui: aqui anota-se o que a aula
@@ -1521,7 +1584,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
       return '<p class="fraco">[Preencher: o PO deste ciclo não declara os itens do corpo — sem'
         + ' eles não há o que revisitar. O recorte do passo 4 da linha de base é a fonte.]</p>';
     }
-    return `<table class="captura matriz">
+    return comRolagem(`<table class="captura matriz" style="--colunas:${itens.length}">
       <tr><th>Aluna</th>${itens.map((x) => `<th>${esc(x.item)}</th>`).join('')}</tr>
       ${presentes.map(([k, nome]) => {
         const lancado = Array.isArray((a && a[b.chave] || {})[k]) ? a[b.chave][k] : [];
@@ -1530,7 +1593,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
             (lancado[j] || {}).marca)}</td>`).join('')
           + '</tr>';
       }).join('')}
-    </table>`;
+    </table>`, itens.length, b.rotulo || 'Linha de base');
   };
 
   // A MATRIZ DE VÁRIOS BLOCOS NO MESMO EIXO (a Técnica tem três espaços, a Poiesis dois): uma
@@ -1549,13 +1612,13 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
         if (c) colunas.push({ b, c });
       });
       return `<p class="matriz-objectivo">${esc(o.rotulo)}</p>
-        <table class="captura matriz">
+        ${comRolagem(`<table class="captura matriz" style="--colunas:${colunas.length}">
           <tr><th>Aluna</th>${colunas.map(({ b }) => `<th>${esc(b.rotulo || b.titulo)}</th>`).join('')}</tr>
           ${presentes.map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
             + colunas.map(({ b, c }) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo,
               doBloco(b, k)[c.chave])}</td>`).join('')
             + '</tr>').join('')}
-        </table>`;
+        </table>`, colunas.length, o.rotulo)}`;
     }).join('');
   };
 
@@ -1572,6 +1635,33 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     }));
     return vals;
   };
+
+  /* ---------------------------------------- A MATRIZ QUE NÃO CABE ROLA DENTRO DE SI
+   *
+   * «tem que prever que quando ultrapassar a largura da página precisa de um scroll horizontal
+   * […] E como é que fica o layout dimensionado para celular de uma forma fácil de usar, que o
+   * usuário não se confunda e ele perceba que tem que andar para o lado? Eu pensei em colocar
+   * aqueles botãozinhos que tem geralmente para os carrosséis.»
+   *
+   * A CAIXA É A PEÇA `.rolagem` (folha + catálogo do IDENTIDADE-VISUAL). Ela existe porque um
+   * corte ao meio não diz se é o desenho ou o fim do conteúdo — e a seta é a única coisa que o
+   * diz. `--colunas` é o número de colunas da tabela, escrito aqui porque é AQUI que se sabe:
+   * com 10rem por coluna, a matriz enche o espaço quando cabe e rola quando não cabe.
+   *
+   * SEM JAVASCRIPT NÃO HÁ SETA NENHUMA (a fileira nasce escondida, e só `data-rolagem="sim"` a
+   * mostra) — e a caixa continua a rolar pelo gesto, como antes. A seta é conforto, não função.
+   */
+  const comRolagem = (tabela, colunas, rotulo) => `<div class="rolagem">
+      <div class="rolagem-setas">
+        <span class="conta fraco">${esc(rotulo)} — ${colunas} coluna(s)</span>
+        <button type="button" class="acao secundario pequena" data-seta="esq"
+          aria-label="Ver as colunas da esquerda" disabled>&#8592;</button>
+        <button type="button" class="acao secundario pequena" data-seta="dir"
+          aria-label="Ver as colunas da direita">&#8594;</button>
+      </div>
+      <div class="rolagem-caixa" tabindex="0" role="region"
+        aria-label="${esc(rotulo)} — tabela que rola na horizontal">${tabela}</div>
+    </div>`;
 
   const grupos = EIXOS_DA_CAPTURA.map(([chave, rotulo]) => ({
     chave, rotulo,
@@ -1668,9 +1758,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     <span><label class="campo-rotulo em-linha" for="captura-harmonia">Harmonia (1-5):</label>
       <input id="captura-harmonia" type="number" min="1" max="5" value="${esc(cc.harmonia ?? '')}"></span>
   </div>
-  <p class="linha"><strong>Presentes:</strong> ${apelidosDoCiclo(dados).map(([k, nome]) =>
-      `<label class="presenca"><input type="checkbox" id="pres-${esc(k)}"${
-        (a ? a.presentes.includes(k) : true) ? ' checked' : ''}> ${esc(nome)}</label>`).join(' · ')}</p>
+  ${blocoPresentes(dados, a)}
   ${tabelas}
   ${acordeoes}
   ${blocoDoDepois(a)}
@@ -1685,9 +1773,14 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
 
 // O painel existe SÓ no modo captura (o filtro numa aula sem dado). Fora disso ele sai
 // de cena: o formulário de lançamento não fica ao lado dos resultados da leitura.
-function renderCaptura() {
+function renderCaptura(opcoes) {
   const caixa = el('captura'), alvo = el('captura-campos');
   if (!caixa || !alvo) return;
+  // O `renderCaptura` também é ouvinte de `toggle`, e um ouvinte recebe o EVENTO: por isso a
+  // guarda é `=== true`, e não a veracidade do argumento. Só a re-renderização pedida pela
+  // presença mantém a lista ao vivo; qualquer outra (troca de aula, abertura do painel) volta a
+  // ler o que está gravado — senão a presença de uma aula contaminava a seguinte.
+  if (opcoes !== true) presencaAoVivo = null;
   // O painel serve aos dois casos: lançar (aula sem dado) e ajustar (aula com dado,
   // dentro do prazo). Fora deles, sai de cena — e a AULA PULADA está fora (§3.3).
   const f0 = estadoCaptura() || estadoAjuste();
@@ -1706,10 +1799,102 @@ function renderCaptura() {
   // o painel é reconstruído a cada render, e um listener por campo perder-se-ia na reconstrução.
   alvo.onchange = (ev) => {
     const t = ev.target;
+    if (t && (t.id || '').startsWith('pres-')) { presencaMudou(alvo, f0); return; }
     if (!t || t.name !== 'captura-plano') return;
     const linha = el('linha-mudou');
     if (linha) linha.hidden = t.value === 'sim';
   };
+  // OS BOTÕES DE TODOS/NENHUM vivem dentro do painel, e o painel é reconstruído: delegado.
+  alvo.onclick = (ev) => {
+    const b = ev.target && ev.target.closest ? ev.target.closest('[data-presenca]') : null;
+    if (!b) return;
+    const todos = b.dataset.presenca === 'todos';
+    alvo.querySelectorAll('input[id^="pres-"]').forEach((x) => { x.checked = todos; });
+    presencaMudou(alvo, f0);
+  };
+  ligarRolagem(alvo);
+}
+
+/**
+ * O QUE SE MARCOU NO PAINEL, POR `id` — para a matriz poder ser redesenhada sem perder nada.
+ *
+ * É o que torna possível o gesto que ela pediu sem o preço que ele teria: desmarcar uma aluna
+ * reconstrói as linhas, e o que já estava escrito nas outras continua escrito. Os `id` são
+ * estáveis por (bloco, aluna, coluna) e por (aluna, item da base), então o que volta é o mesmo
+ * campo, e não «um campo na mesma posição».
+ */
+function valoresDoPainel(raiz) {
+  const v = {};
+  raiz.querySelectorAll('input[id], select[id], textarea[id]').forEach((x) => {
+    v[x.id] = x.type === 'checkbox' ? x.checked : x.value;
+  });
+  return v;
+}
+
+function reporValores(raiz, v) {
+  raiz.querySelectorAll('input[id], select[id], textarea[id]').forEach((x) => {
+    if (!Object.prototype.hasOwnProperty.call(v, x.id)) return;
+    if (x.type === 'checkbox') x.checked = v[x.id];
+    else x.value = v[x.id];
+  });
+}
+
+/**
+ * A PRESENÇA MUDOU — a contagem, a lista ao vivo e as linhas da matriz.
+ *
+ * Sem isto, desmarcar quem faltou só mudava o JSON no fim: a matriz continuava com a linha dela,
+ * e com cinquenta alunas seriam cinquenta linhas de `select` para percorrer. Com isto, a tela diz
+ * a mesma coisa que vai ser gravada.
+ */
+function presencaMudou(raiz, f0) {
+  const todos = apelidosDoCiclo(f0.dados);
+  const marcados = new Set();
+  raiz.querySelectorAll('input[id^="pres-"]').forEach((x) => {
+    if (x.checked) marcados.add(x.id.slice(5));
+  });
+  const conta = el('conta-presentes');
+  if (conta) conta.textContent = `— ${marcados.size} de ${todos.length}`;
+  const antes = valoresDoPainel(raiz);
+  presencaAoVivo = marcados;
+  renderCaptura(true);
+  const depois = el('captura-campos');
+  if (depois) reporValores(depois, antes);
+}
+
+/**
+ * AS SETAS DA MATRIZ — só aparecem quando há para onde ir.
+ *
+ * `scrollWidth > clientWidth` é a única medida honesta de «não cabe»: não se pergunta a largura
+ * do ecrã, pergunta-se à caixa. Com as colunas a crescerem de forma dinâmica, a mesma tela pode
+ * ter e não ter sobra em duas aulas diferentes do mesmo ciclo.
+ */
+function ligarRolagem(raiz) {
+  raiz.querySelectorAll('.rolagem').forEach((bloco) => {
+    const caixa = bloco.querySelector('.rolagem-caixa');
+    if (!caixa) return;
+    const esq = bloco.querySelector('[data-seta="esq"]');
+    const dir = bloco.querySelector('[data-seta="dir"]');
+    const arrumar = () => {
+      const sobra = caixa.scrollWidth - caixa.clientWidth;
+      bloco.dataset.rolagem = sobra > 2 ? 'sim' : 'nao';
+      if (esq) esq.disabled = caixa.scrollLeft <= 2;
+      if (dir) dir.disabled = caixa.scrollLeft >= sobra - 2;
+    };
+    const andar = (sinal) => caixa.scrollBy({
+      left: sinal * Math.max(160, Math.round(caixa.clientWidth * 0.8)), behavior: 'smooth',
+    });
+    if (esq) esq.onclick = () => andar(-1);
+    if (dir) dir.onclick = () => andar(1);
+    caixa.onscroll = arrumar;
+    arrumar();
+    // A LARGURA MUDA SEM GESTO (girar o telemóvel, encolher a janela): sem o observador, as setas
+    // ficavam a dizer a verdade de um ecrã que já não é este.
+    if (typeof ResizeObserver === 'function') {
+      const ro = new ResizeObserver(arrumar);
+      ro.observe(caixa);
+      bloco._ro = ro;
+    }
+  });
 }
 
 // Depois de gerar, os campos são limpos: o que ficou salvo está no arquivo, não no

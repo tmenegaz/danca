@@ -1005,6 +1005,11 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
  * completo. Quem impede o retorno é a checagem «Respiro» de `tools/check-identidade.js`,
  * que passou a medir as duas caixas. */
 header.doc, main, .rodape { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+/* …e a matriz alarga a caixa em TODA a largura, não só a partir de 1200px: o contentor de um
+   documento é 900px (medida de leitura), e 900 é pouco para uma tabela de sete colunas. */
+[data-largura="matriz"] header.doc,
+[data-largura="matriz"] main,
+[data-largura="matriz"] .rodape { max-width: 1180px; }
 
 /* O CABEÇALHO RESPIRA, E O RESPIRO É PADDING — NÃO MARGEM (06/11/2026).
  *
@@ -1216,6 +1221,15 @@ li { margin: 4px 0; }
      o índice à direita; `data-layout="painel"` é a tela de trabalho, que usa a largura
      toda e não tem índice lateral. Quem não declara nada fica no documento. */
   header.doc, main, footer.rodape, .rodape { max-width: 1180px; }
+    /* A MATRIZ OCUPA A COLUNA DO DOCUMENTO INTEIRA (06/11/2026). «Ele pode ocupar a mesma
+     dimensão que os outros formulários ocupam somando a essa dimensão a parte do roteiro.»
+     É literal: o documento gasta 828px de texto + 32 de vão + 272 do índice = 1132. O
+     formulário não tem índice, e a coluna do índice ficava VAZIA a roubar-lhe 304px
+     (medido: 828 onde cabiam 1132). Com `data-largura="matriz"` a coluna é uma só e leva a
+     largura toda do contentor. A medida de leitura de 900px continua a valer para a prosa —
+     a matriz é que não é prosa. */
+  [data-largura="matriz"] main { display: block; }
+  [data-largura="matriz"] .conteudo { max-width: none; }
   [data-layout="painel"] header.doc,
   [data-layout="painel"] main,
   [data-layout="painel"] footer.rodape,
@@ -1238,6 +1252,9 @@ li { margin: 4px 0; }
 
 /* ---------- tabelas, citações, código ---------- */
 table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 15px; }
+/* A MATRIZ DA AULA: 10rem por coluna, no mínimo — o número vem do dado (`--colunas`), não de
+   uma contagem feita à mão no CSS. Ver «a matriz que não cabe» na secção das peças. */
+.captura.matriz { min-width: calc(var(--colunas, 4) * 10rem); }
 th, td { border: 1px solid var(--borda); padding: 8px 8px; text-align: left; vertical-align: top; }
 th { background: var(--fundo-faixa); color: var(--marca-texto); }
 /* o pandoc marca as linhas com .odd / .even e o cabeçalho com .header */
@@ -1368,6 +1385,44 @@ a.acao { border-bottom-style: solid; border-bottom-width: 1px; }
   gap: var(--esp-2); margin: var(--esp-3) 0 0;
 }
 .acoes-da-aluna .acao { margin: 0; }
+
+/* ---------- A MATRIZ QUE NÃO CABE ROLA DENTRO DE SI — e as setas dizem-no (06/11/2026) ----
+   O PEDIDO. «as colunas elas vão crescer de forma dinâmica […] tem que prever que quando
+   ultrapassar a largura da página precisa de um scroll horizontal […] E como é que fica o
+   layout dimensionado para celular de uma forma fácil de usar, que o usuário não se confunda
+   e ele perceba que tem que andar para o lado? Eu pensei em colocar aqueles botãozinhos que
+   tem geralmente para os carrosséis.»
+
+   PORQUE NÃO SE VÊ O QUE A FOLHA JÁ FAZIA. Abaixo de 900px a casa manda a `table` rolar
+   dentro de si — e isso **não se vê**: quem olha um telemóvel vê colunas cortadas ao meio e
+   não sabe se o corte é do desenho ou do fim do conteúdo. A seta é a resposta a essa
+   pergunta, e por isso ela é PEÇA, e não adorno: aparece **só quando há para onde ir**, e
+   desliga-se no fim do caminho.
+
+   AS MEDIDAS SÃO AS DA CASA: `--esp-2` entre as setas, `--esp-2` entre elas e a tabela. Não
+   há cor nova — as setas são `button.acao.secundario.pequena`, o mesmo botão de sempre.
+
+   A LARGURA MÍNIMA DA MATRIZ É DECLARADA PELO DADO. `--colunas` é escrito pelo formulário
+   quando monta a tabela (ele sabe quantas colunas tem), e a matriz fica com 10rem por
+   coluna: com poucas colunas ela enche o espaço e não rola; com muitas, rola. Sem isso, a
+   regra `table { width: 100% }` da casa ESPREMIA as colunas até caberem, que é o contrário
+   do que o professor precisa para marcar. */
+.rolagem { min-width: 0; }
+.rolagem-caixa { overflow-x: auto; overscroll-behavior-x: contain; }
+.rolagem-caixa:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+/* A tabela de dentro NÃO tem scroller próprio: quem rola é a caixa. Sem isto, no telemóvel
+   ficavam dois (o da casa, `table { display:block; overflow-x:auto }` abaixo de 900px, e o
+   da caixa), e o gesto ficava preso no de dentro. */
+.rolagem-caixa > table { display: table; overflow: visible; }
+.rolagem-setas {
+  display: none; justify-content: flex-end; align-items: center;
+  gap: var(--esp-2); margin: 0 0 var(--esp-2);
+}
+/* SÓ QUANDO HÁ PARA ONDE IR: o estado é escrito no bloco, e sem ele a fileira não ocupa
+   lugar nenhum — uma seta sempre presente seria mobília, e mobília não diz nada. */
+.rolagem[data-rolagem="sim"] .rolagem-setas { display: flex; }
+.rolagem-setas .acao { margin: 0; }
+.rolagem-setas .conta { margin-right: auto; }
 
 button.acao:hover:not(:disabled), a.acao:hover {
   background: var(--marca-fundo-hover); border-color: var(--marca-fundo-hover); color: var(--sobre-marca);
