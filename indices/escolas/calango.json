@@ -109,8 +109,8 @@
       "rabo-gramde"
     ],
     "registros": [
-      "anamnese:anamnese-20261105-2015",
-      "anamnese:anamnese-20261105-2031"
+      "anamnese:anamnese-20261105-2031",
+      "anamnese:anamnese-20261105-2301"
     ],
     "slug": "calango"
   },
@@ -119,8 +119,8 @@
       {
         "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261105-2015",
-          "anamnese:anamnese-20261105-2031"
+          "anamnese:anamnese-20261105-2031",
+          "anamnese:anamnese-20261105-2301"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -141,8 +141,8 @@
       {
         "contagem": 3,
         "ids": [
-          "anamnese:anamnese-20261105-2015",
           "anamnese:anamnese-20261105-2031",
+          "anamnese:anamnese-20261105-2301",
           "ciclo:rabo-gramde/01/calango"
         ],
         "rotulo": "rabo-gramde",
@@ -153,8 +153,8 @@
       {
         "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261105-2015",
-          "anamnese:anamnese-20261105-2031"
+          "anamnese:anamnese-20261105-2031",
+          "anamnese:anamnese-20261105-2301"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -171,9 +171,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "90e9eb9d"
+    "commit": "ce0f6fd"
   },
-  "gerado_em": "2026-11-06T01:24",
+  "gerado_em": "2026-11-06T02:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -242,20 +242,20 @@
     {
       "ajuste_de": null,
       "ano": "2026",
-      "carimbo": "anamnese-20261105-2015",
+      "carimbo": "anamnese-20261105-2031",
       "ciclo": null,
-      "data": "2026-11-05T20:15",
-      "id": "anamnese:anamnese-20261105-2015",
+      "data": "2026-11-05T20:31",
+      "id": "anamnese:anamnese-20261105-2031",
       "professor": "rabo-gramde",
       "tipo": "anamnese"
     },
     {
       "ajuste_de": null,
       "ano": "2026",
-      "carimbo": "anamnese-20261105-2031",
+      "carimbo": "anamnese-20261105-2301",
       "ciclo": null,
-      "data": "2026-11-05T20:31",
-      "id": "anamnese:anamnese-20261105-2031",
+      "data": "2026-11-05T23:01",
+      "id": "anamnese:anamnese-20261105-2301",
       "professor": "rabo-gramde",
       "tipo": "anamnese"
     }

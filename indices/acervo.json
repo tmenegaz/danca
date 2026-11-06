@@ -164,8 +164,8 @@
         "rabo-gramde"
       ],
       "registros": [
-        "anamnese:anamnese-20261105-2015",
-        "anamnese:anamnese-20261105-2031"
+        "anamnese:anamnese-20261105-2031",
+        "anamnese:anamnese-20261105-2301"
       ],
       "slug": "calango"
     },
@@ -494,9 +494,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "90e9eb9d"
+    "commit": "ce0f6fd"
   },
-  "gerado_em": "2026-11-06T01:24",
+  "gerado_em": "2026-11-06T02:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
