@@ -133,6 +133,30 @@ function escaparHtmlAtributo(texto) {
  * gabarito; «Exemplo prático do apoio» é dado.
  */
 const GABARITO_VAZADO = /^(Bloco\s*\|.*proporção alvo|ex\.:\s*[«\"“])/i;
+
+/**
+ * QUEM É A TURMA — a linha de base manda, o PO é a reserva (06/11/2026).
+ *
+ * O DEFEITO, medido no pacote da `calango` e relatado por ela: «acionando agora o documento
+ * lançamento de aula, aqui diz que tem presentes aluno A, B e C. Não é verdade. Se a gente olhar
+ * a nossa aula, a gente sabe que no elenco não tem o aluno C.»
+ *
+ * O PO DECLARA SUJEITOS, E QUEM DIZ QUEM ESTÁ NA TURMA É O ACTO DO PASSO 2 DA LINHA DE BASE. O PO
+ * herda-a, e quando herda mal — envelope anterior à regra, gravação antiga — é a linha de base que
+ * está certa. Este é o MESMO defeito que a §6 da Aula 01 já tinha corrigido (`derivarAula01`), e
+ * ele sobrevivia em DOIS sítios porque cada um lia `resp(po,'sujeitos')` por sua conta: o
+ * `-dados.json` (de onde o formulário tira os «Presentes») e a folha de captura (de onde ele tira
+ * as linhas das tabelas). Uma regra, um lugar — e quem a use não volta a decidir sozinho.
+ *
+ * Uma lista vazia NÃO é resposta: sem linha de base legível, cai no PO, e um ciclo antigo continua
+ * a derivar.
+ */
+function elencoDoCiclo(po, linhaDeBase) {
+  const daBase = emLista(((linhaDeBase && linhaDeBase.alunas) || []).map(String))
+    .map((n) => n.trim()).filter(Boolean);
+  if (daBase.length) return daBase;
+  return emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
+}
 function prosa(valor, motivo) {
   const v = valor === null || valor === undefined ? '' : String(valor).trim();
   if (!v || GABARITO_VAZADO.test(v)) return '[Preencher: ' + (motivo || 'ainda não declarado') + ']';
@@ -308,7 +332,9 @@ function eixosDaObservacao(dims, plano, po, linhaDeBase) {
   /* O «PONTO DE PARTIDA» DEIXOU DE SER UM CAMPO DO PO (06/11/2026): ele é o recorte do passo 4 da
    * linha de base. O que o resumo do corpo diz é o que existe — os aspectos que o plano declara, o
    * ELENCO que a linha de base fixou e as restrições. Nas três fontes, nenhuma inventada. */
-  const elenco = emLista(resp(po, 'sujeitos'));
+  /* O ELENCO DO RESUMO TAMBÉM É O DA LINHA DE BASE (06/11/2026) — a mesma regra de `elencoDoCiclo`,
+   * para o corpo do guia não dizer «elenco de 3 alunas» quando a turma tem duas. */
+  const elenco = elencoDoCiclo(po, linhaDeBase);
   const partesDoCorpo = [];
   if (aspectos.length) {
     partesDoCorpo.push(aspectos.length + (aspectos.length === 1 ? ' aspecto físico declarado' : ' aspectos físicos declarados') + ' no plano');
@@ -1291,8 +1317,10 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
  * lê para publicar a cópia cifrada no pacote, e o que o `check-pacote.js` exige.
  * Sem ela, um ciclo recém-gerado sairia do pacote sem o JSON de dados.
  */
-function derivarDados({ po, contexto }) {
-  const sujeitos = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
+function derivarDados({ po, contexto, linhaDeBase }) {
+  /* O ELENCO VEM DA LINHA DE BASE (06/11/2026) — ver `elencoDoCiclo`. Era o defeito que ela viu no
+   * formulário: «presentes aluno A, B e C», com a turma a ter duas. */
+  const sujeitos = elencoDoCiclo(po, linhaDeBase);
   const apelidos = {};
   for (const s of sujeitos) {
     const slug = slugDe(s);
@@ -1970,8 +1998,11 @@ function precisaGravar(anterior, nova) {
 }
 
 /** A folha de captura da Aula 01 — para impressão — derivada do PO. */
-function derivarCaptura({ po, plano, contexto }) {
-  const sujeitos = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
+function derivarCaptura({ po, plano, contexto, linhaDeBase }) {
+  /* AS LINHAS DAS TABELAS SÃO O ELENCO — e o elenco é o da linha de base (06/11/2026). Era o mesmo
+   * `resp(po,'sujeitos')`, e por isso a folha impressa e o `captura-XX.json` extraído dela também
+   * traziam a aluna de fora. A folha é a fonte do config: o que ela imprime, o formulário lê. */
+  const sujeitos = elencoDoCiclo(po, linhaDeBase);
   /* AS FLUTUANTES E O PONTO DE PARTIDA SAÍRAM DO PO (06/11/2026) — e a folha não fica mais pobre:
    * o elenco é o da linha de base da turma (todo ele, porque o professor dá aula à turma inteira),
    * e o ponto de partida de cada aluna é o recorte que ela já declarou no passo 4. O que a folha

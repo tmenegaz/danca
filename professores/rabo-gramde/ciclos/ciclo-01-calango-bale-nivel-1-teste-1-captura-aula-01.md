@@ -13,7 +13,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 > ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA
 > (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
 
-**Data:** `___/___/____` · **Presentes:** ☐ Aluna A ☐ Aluna B ☐ Aluna C · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
+**Data:** `___/___/____` · **Presentes:** ☐ Aluna A ☐ Aluna B · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
 
 ## Condições de contorno
 
@@ -27,7 +27,6 @@ subtitle: "Folha de marcação para uso durante a aula"
 |:--|:--:|:--:|
 | Aluna A |   |   |
 | Aluna B |   |   |
-| Aluna C |   |   |
 
 ## Bloco 2 — Barra
 
@@ -35,7 +34,6 @@ subtitle: "Folha de marcação para uso durante a aula"
 |:--|:--:|:--:|
 | Aluna A |   |   |
 | Aluna B |   |   |
-| Aluna C |   |   |
 
 ## Bloco 3 — Centro
 
@@ -43,7 +41,6 @@ subtitle: "Folha de marcação para uso durante a aula"
 |:--|:--:|:--:|
 | Aluna A |   |   |
 | Aluna B |   |   |
-| Aluna C |   |   |
 
 ## Bloco 4 — Musicalidade
 
@@ -51,7 +48,6 @@ subtitle: "Folha de marcação para uso durante a aula"
 |:--|:--:|:--:|
 | Aluna A |   |   |
 | Aluna B |   |   |
-| Aluna C |   |   |
 
 ## Bloco 5 — Expressão
 
@@ -59,7 +55,6 @@ subtitle: "Folha de marcação para uso durante a aula"
 |:--|:--:|:--:|
 | Aluna A |   |   |
 | Aluna B |   |   |
-| Aluna C |   |   |
 
 ## Linha de base revisitada
 
@@ -74,12 +69,6 @@ subtitle: "Folha de marcação para uso durante a aula"
 | | |
 
 ### Aluna B
-
-| O que a aula mostrou | Observado na aula |
-|:--|:--:|
-| | |
-
-### Aluna C
 
 | O que a aula mostrou | Observado na aula |
 |:--|:--:|

@@ -463,9 +463,13 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
        * colunas dos objetivos e a folha não as tinha. O validador só acusa coluna da folha NÃO
        * declarada — o contrário passa em silêncio, e o pacote sairia com uma folha mais pobre do
        * que o próprio schema. Uma classe de defeito que só se vê comparando os dois lados. */
-      { sufixo: '-captura-aula-01.md', md: derivarCaptura({ po, plano, contexto: ctx }) },
+      /* A LINHA DE BASE VAI TAMBÉM À FOLHA E AO JSON DE DADOS (06/11/2026). Sem ela, os dois
+       * liam o `sujeitos` do PO e a turma saía com uma aluna a mais — a que o PO herdou de um
+       * envelope anterior à regra. Ver `elencoDoCiclo` em `derivar-ciclo.js`. */
+      { sufixo: '-captura-aula-01.md',
+        md: derivarCaptura({ po, plano, contexto: ctx, linhaDeBase }) },
       { sufixo: '-harmonizacao.md', md: derivarHarmonizacao({ plano, po, contexto: ctx }) },
-      { sufixo: '-dados.json', md: derivarDados({ po, contexto: ctx }) },
+      { sufixo: '-dados.json', md: derivarDados({ po, contexto: ctx, linhaDeBase }) },
     ];
     const notacao = notacaoEscolhida(plano);
     if (notacao) {
@@ -573,7 +577,8 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
         relatorio.cifrado = { ok: true, caminho: caminhoCifrado, nota: 'a cópia já existia' };
       } else {
         try {
-          const envelope = await cifrarEnvelopeDeDados(derivarDados({ po, contexto: ctx }), senhaCripto);
+          const envelope = await cifrarEnvelopeDeDados(
+            derivarDados({ po, contexto: ctx, linhaDeBase }), senhaCripto);
           juntar(caminhoCifrado, JSON.stringify(envelope, null, 2) + '\n', (ok, erro) => {
             relatorio.cifrado = ok ? { ok: true, caminho: caminhoCifrado } : { ok: false, caminho: caminhoCifrado, erro };
           });

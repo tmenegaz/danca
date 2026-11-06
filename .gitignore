@@ -835,3 +835,13 @@ experimentos/modelo-formulario/*
 # próprio filete e o filete a 0px do último parágrafo. A prova mede o ar nos três lugares, compara
 # as páginas entre si, e falha se dois blocos ficarem encostados.
 !experimentos/provar-ar-das-paginas.js
+# O ELENCO DA AULA, E O QUE SE MARCA NELA (06/11/2026). Duas provas, um só dia de uso:
+#   · «aqui diz que tem presentes aluno A, B e C. Não é verdade» — o formulário lia o PO, e o PO do
+#     ciclo ainda declarava três alunas; a linha de base da turma fixa duas. As duas derivacões
+#     (o JSON de dados e a folha de captura) passam a ler a linha de base, e o PO fica como reserva;
+#   · «essa forma como é apresentada aqui não é fácil para o professor responder, ela é complexa» —
+#     os três campos de texto viram MARCAÇÃO: os itens do PO nos três eixos (corpo, técnica,
+#     poiesis), «surpreendeu» como marca, «precisou de ajuste» como marca com padrão NÃO, e uma só
+#     escrita obrigatória. A prova mede o formulário em navegador e o payload contra o validador.
+!experimentos/provar-elenco-derivado.js
+!experimentos/provar-formulario-da-aula.js

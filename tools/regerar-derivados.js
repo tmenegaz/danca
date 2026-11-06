@@ -207,7 +207,10 @@ const fontes = [
   { sufixo: '-plano.md', texto: derivarPlano(plano, { linhaDeBase }).markdown },
   { sufixo: '-aula-01.md', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal, linhaDeBase, anamneses }) },
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },
-  { sufixo: '-captura-aula-01.md', texto: derivarCaptura({ po, plano, contexto }) },
+  /* A LINHA DE BASE VAI À FOLHA (06/11/2026) — é dela que saem as LINHAS das tabelas, e sem
+   * ela a folha regerada voltaria a listar o elenco do PO (com a aluna a mais). Ver
+   * `elencoDoCiclo` em `derivar-ciclo.js`. */
+  { sufixo: '-captura-aula-01.md', texto: derivarCaptura({ po, plano, contexto, linhaDeBase }) },
   { sufixo: '-harmonizacao.md', texto: derivarHarmonizacao({ plano, po, contexto }) },
 ];
 const notacao = notacaoEscolhida(plano);
