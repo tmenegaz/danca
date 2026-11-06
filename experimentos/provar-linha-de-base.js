@@ -822,10 +822,16 @@ async function chamar(env, caminho, opcoes) {
       'e a anamnese continua a pedir a aluna, que é o sujeito do ato');
   });
 
-  ok('nenhum campo da anamnese exige ciclo (o botão não pode ficar travado para sempre)', () => {
+  ok('nem a anamnese nem o PO exigem o ciclo como campo próprio', () => {
+    /* DUAS FAMÍLIAS, E A MESMA RAZÃO (06/11/2026). Na anamnese não há ciclo nenhum a pedir; no PO
+     * o ciclo vem do plano observado, e o que existe é uma LEITURA. Exigir em qualquer das duas um
+     * valor que ninguém tem para onde escrever é a pior das travas: o botão nunca habilita e não há
+     * nada a corrigir. O PO tem, em vez disso, um recado próprio para o plano que não declara ciclo. */
     const fonte = fs.readFileSync(path.join(RAIZ, 'motor/servidor/listas-do-acervo.js'), 'utf8');
-    assert.ok(/if \(!CFG\.ehAnamnese && !valor\('ciclo'\)\) falta\.push\('ciclo'\)/
+    assert.ok(/if \(!CFG\.ehAnamnese && !CFG\.ehPo && !valor\('ciclo'\)\) falta\.push\('ciclo'\)/
       .test(fonte), 'exigir um campo que não se vê é a pior das travas: nunca habilita');
+    assert.ok(/if \(CFG\.ehPo && valor\('plano'\) && !valor\('ciclo'\)\) falta\.push\('o ciclo do plano escolhido'\)/
+      .test(fonte), 'no PO o que falta, quando falta, é o ciclo DO PLANO — e por isso tem nome');
   });
 
   ok('o bilhete do ato não leva ciclo quando o ato é a anamnese', () => {

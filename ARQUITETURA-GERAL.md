@@ -799,6 +799,53 @@ a lacuna do plano antigo tem nome. Com `--controle-negativo` a mesma medida corr
 de HEAD e **reprova em 14 das 20** — incluindo a que mostra o defeito de origem: com a estante
 vazia, a página antiga oferecia «01» mesmo sem plano nenhum.
 
+#### 5.10.1 …e há DOIS sítios onde o ciclo se escrevia
+
+A entrega acima mudou **um** sítio: o **formulário** (`porta/index.html`). Ficou o outro, e ela
+encontrou-o no dia seguinte: *«O plano de observação ainda está com o campo ciclo livre. Eu posso
+digitar qualquer ciclo ali. Você não fez o ajuste que eu pedi.»* Tinha razão.
+
+O segundo sítio é o **painel do ato** — a caixinha «Contexto do ato» que abre dentro da **Área do
+Professor** (`/area-do-professor/plano-de-observacao/`), e por onde ela **entra**. Ele é servido
+por outro ficheiro (`motor/servidor/listas-do-acervo.js`), desenhado por outra função
+(`painelDoAto`) e corre noutro script (`scriptDoPainel`). Nada no formulário o alcança: a correção
+de ontem não podia tê-lo tocado, e foi por isso que a regra ficou cumprida num sítio e violada no
+outro — o pior estado possível, porque um dos dois *parece* corrigido.
+
+Aqui o ciclo era um `<input type="text">` ao lado do «plano de ensino observado»: escrever «20» e
+escolher o plano do 01 dava um PO do ciclo 20 a observar o plano do 01 — no formulário o número era
+sobrescrito pelo do plano e a divergência morria em silêncio, mas a lista já a tinha levado no
+**endereço** e na **chave da memória**.
+
+**A correção é a mesma regra, aplicada ao segundo sítio.** O plano escolhe-se primeiro; o ciclo
+passa a ser **leitura** (`[data-ciclo-leitura]`, a peça da «turma observada» ao lado), e o `<input>`
+fica **oculto** — porque é ele que a chave da memória, o endereço e o resumo leem. Uma regra, um
+leitor. `pintarDoPlano()` pinta os dois (turma e ciclo) do plano escolhido, e é chamada **antes** de
+`pintar()`: o estado do botão lê aquele valor, e pintar depois seria decidir sobre um quadro de
+atraso.
+
+**O plano de ensino não foi tocado**, e é de propósito: ali o ciclo **nasce**, e a regra não se
+aplica. A anamnese continua sem ciclo nenhum. A bancada mede as três — se a mudança se espalhasse
+por onde não devia, ela reprovaria.
+
+**A lacuna tem nome, e não um beco.** Um plano antigo que não declara ciclo deixa a leitura em «—»,
+o botão travado, e o recado diz *«O plano de ensino escolhido não declara ciclo — e é dele que este
+Plano de Observação o herda»*. A alternativa — «falta o ciclo» — mandaria preencher um sítio onde
+nada se pode escrever: o nome do beco sem a saída.
+
+**A prova:** `experimentos/provar-ciclo-do-painel-do-po.js` (**27 asserções**) — a peça nas três
+famílias, e depois a página a correr em jsdom: a leitura começa em «—», escolher o professor não
+declara ciclo, escolher o plano do 01 declara 01 (leitura, valor guardado, resumo e turma), trocar
+para o plano do 02 troca para 02, o plano antigo deixa a lacuna nomeada, voltar atrás não inventa
+nada, a página não pede `api/ciclos`, e nenhum erro de JavaScript. Com `--controle-negativo` carrega
+o `listas-do-acervo.js` **de HEAD** num sandbox e corre as mesmas asserções: **4 de 7 reprovam**,
+e a primeira delas mostra o campo de texto que existia.
+
+**A lição, escrita para não se repetir.** «O formulário» e «a página por onde se entra no
+formulário» são **dois** sítios, com dois ficheiros e dois scripts. Uma regra de tela só está
+cumprida quando se procura o **campo** em todos os sítios onde ele existe — e a pergunta certa não
+é «corrigi o formulário?», é **«onde mais se escreve este número?»**.
+
 ### 5.11 Apagar um registo leva o que ele produziu — em cascata, e só o dele
 
 A exclusão tem duas famílias, e a fronteira é a **posse**:

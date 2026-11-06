@@ -9201,12 +9201,16 @@ async function iniciar() {
     const caixa = campoCiclo && campoCiclo.closest ? campoCiclo.closest('.campo') : null;
     if (caixa && caixa.parentNode) caixa.parentNode.removeChild(caixa);
   }
-  /* E O CICLO, NAS OUTRAS DUAS. No plano trava-se no PRÓXIMO VÁLIDO; no PO é uma LISTA dos
-   * ciclos que já têm plano. A lista chega depois (o servidor é que sabe quais existem), e é ela
-   * que decide o que o campo mostra. */
-  /* O PO já não pede a lista de ciclos: ele não escolhe nenhum (06/11/2026) — o ciclo vem do plano
-   * de ensino observado. A lista (`GET /api/ciclos`) continua a existir para o PLANO DE ENSINO, que
-   * é onde um ciclo NASCE e onde o campo trava no próximo número válido. */
+  /* E O CICLO, NAS OUTRAS DUAS — e ele não é o mesmo nas duas.
+   *
+   * No PLANO DE ENSINO trava-se no PRÓXIMO VÁLIDO: ali o ciclo nasce, a lista chega depois (o
+   * servidor é que sabe quais existem) e é ela que decide o que o campo mostra.
+   *
+   * No PO NÃO HÁ CAMPO NENHUM (06/11/2026). Ele não escolhe ciclo e já não pede a lista: o ciclo
+   * é o do plano de ensino observado, e a peça é uma INSCRIÇÃO — `mostrarCicloDoPo` troca-a aqui,
+   * ANTES de qualquer plano estar escolhido, para não haver um instante em que o cabeçalho mostre
+   * uma caixa de texto a fingir de campo. A lista (`GET /api/ciclos`) continua a existir para o
+   * Plano de Ensino, que é onde um ciclo NASCE. */
   if (FONTE === 'po') {
     mostrarCicloDoPo();
     marcarContextoFaltando();

@@ -37367,3 +37367,66 @@ registados para não passarem por regressão. (3) A
 frase do cabeçalho do PO para a turma sem linha de base diz «nenhuma — esta turma ainda não recebeu
 linha de base (Corpo → passo 5)»: com o painel do corpo a dizer o mesmo por outras palavras, as duas
 merecem unificar-se quando alguém passar por lá.
+
+---
+
+## 06/11/2026 — O ciclo do PO também não se escreve NA ÁREA DO PROFESSOR (e era o sítio que faltava)
+
+**De onde veio.** Dela, e em três frases que não deixam dúvida: *«O plano de observação ainda está
+com o campo ciclo livre. Eu posso digitar qualquer ciclo ali. Você não fez o ajuste que eu pedi.»*
+Ela tinha razão, e o defeito é de leitura minha: a entrega de `b23013af` mudou **um** sítio — o
+formulário (`porta/index.html`) — e deu a regra por cumprida.
+
+**O segundo sítio, e porque não era alcançável pelo primeiro.** O **painel do ato** que abre dentro
+da **Área do Professor** (`/area-do-professor/plano-de-observacao/`) é o caminho por onde ela
+**entra**. Vive noutro ficheiro (`motor/servidor/listas-do-acervo.js`), noutra função
+(`painelDoAto`) e noutro script (`scriptDoPainel`). Ali o ciclo era um `<input type="text">` ao lado
+do «plano de ensino observado»: escrever «20» e escolher o plano do 01 dava um PO do ciclo 20 a
+observar o plano do 01. No formulário o número era sobrescrito pelo do plano e a divergência morria
+em silêncio — mas a lista já a tinha levado no **endereço** e na **chave da memória**. Um sítio
+corrigido e o outro não é o pior estado: um dos dois *parece* certo.
+
+**A correção.** A mesma regra, no segundo sítio: o plano escolhe-se primeiro, o ciclo passa a
+**leitura** (`[data-ciclo-leitura]`, a peça da «turma observada» ao lado), e o `<input>` fica
+**oculto** — porque é ele que a chave da memória, o endereço e o resumo leem. Uma regra, um leitor.
+`pintarDoPlano()` pinta os dois (turma e ciclo) do plano escolhido, e é chamada **antes** de
+`pintar()`: o estado do botão lê aquele valor, e pintar depois seria decidir sobre um quadro de
+atraso. O plano de ensino **não** foi tocado — ali o ciclo nasce —, e a anamnese continua sem ciclo
+nenhum.
+
+**A lacuna tem nome.** Um plano antigo que não declara ciclo deixa a leitura em «—», o botão travado
+e o recado a dizer *«O plano de ensino escolhido não declara ciclo — e é dele que este Plano de
+Observação o herda.»* A alternativa — «falta o ciclo» — mandaria preencher um sítio onde nada se
+pode escrever: o nome do beco sem a saída.
+
+**Onde entrou.** `motor/servidor/listas-do-acervo.js` — `painelDoAto` (o ciclo do PO passa a
+leitura, com o plano antes dele), `pintarDoPlano` (era `pintarLeituraDaTurma`: pinta turma **e**
+ciclo), a ordem do gesto em `change` (pintar o derivado antes de avaliar), `faltam()` (o ciclo deixa
+de ser exigência própria no PO, e passa a ser «o ciclo do plano escolhido»), e o recado do estado.
+`porta/index.html` — só o comentário que ainda dizia «no PO é uma LISTA dos ciclos»; a peça já
+estava trocada ao carregar (`iniciar` chama `mostrarCicloDoPo`). A cópia do pacote
+(`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/index.html`) regerada com o `nav`
+preservado.
+
+**Com o quê.** `experimentos/provar-ciclo-do-painel-do-po.js` (**novo, 27 asserções**): a peça nas
+três famílias (PO leitura + input oculto, plano de ensino com campo, anamnese sem nada), e a página
+a correr em jsdom — leitura «—» no arranque, escolher o plano do 01 declara 01 (leitura, valor,
+resumo e turma), trocar para o 02 troca para 02, o plano antigo deixa a lacuna nomeada, voltar atrás
+não inventa nada, a página não pede `api/ciclos`, e nenhum erro de JavaScript. Com
+`--controle-negativo` carrega o `listas-do-acervo.js` **de HEAD** num sandbox e corre as mesmas
+asserções: **4 de 7 reprovam**, e a primeira mostra o campo de texto que existia.
+
+**Medido.** `provar-ciclo-do-painel-do-po` **27/27** (e o controle negativo a reprovar 4 de 7);
+`provar-ciclo-herdado-do-plano` **20/20**; `provar-linha-de-base` **104/104** (a asserção do ciclo
+passou a exigir as duas guardas — anamnese **e** PO —, e a nomear o caso do plano sem ciclo);
+`provar-relacoes-do-ciclo` **23/23**; `provar-etiqueta-da-aluna` **20/20**; `provar-producao`
+**159/159**; `check-identidade` **0 erros** (as 20 verificações, «Circuito» incluído); `check-indices`
+**16/16**.
+
+**O que ainda não está feito.** (1) `provar-painel-do-ato` (Chrome) continua **NÃO FEITO** nesta
+máquina — «nenhuma publicação para servir», porque a escola publicada foi expurgada. A bancada foi
+**atualizada** na mesma (o stub da estante passou a declarar `ciclo`, o gesto do PO deixou de pôr o
+valor à mão e passou a medir a leitura, e as secções da anamnese ganharam guarda para o campo que já
+não existe) — mas **não foi corrida**, e não se afirma que passa. (2) `provar-navegacao` falha
+(`Cannot read properties of undefined`) **também no HEAD** — medido com `git stash`: preexistente,
+por falta de publicação.

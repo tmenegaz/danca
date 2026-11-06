@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T08:26:39-0300`
-Commit atual: `b23013af` — feat(po): o ciclo do plano de observacao deixa de se escrever
+Gerado em: `2026-11-06T09:07:34-0300`
+Commit atual: `10f22048` — refactor(po): o plano de observacao deixa de reperguntar o que ja esta decidido
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+10f22048 refactor(po): o plano de observacao deixa de reperguntar o que ja esta decidido
 b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
 77903696 chore(estrutura): regerar os índices derivados
 097293bc chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -105,7 +106,6 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 61b19782 fix(tools): o .indice.json da pasta nao e um recorte
 90e9eb9d docs(registro): o envio da linha de base confirmado em producao
 c1f86f60 chore(estrutura): regerar os índices derivados
-318653d0 chore(linha de base): índice — apagar teste
 ```
 
 ## Por professor
@@ -233,117 +233,68 @@ c1f86f60 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O Plano de Observação enxuga: sete nós saem, e o recorte do corpo entra
+## 06/11/2026 — O ciclo do PO também não se escreve NA ÁREA DO PROFESSOR (e era o sítio que faltava)
 
-**O que motivou.** A pesquisadora percorreu o formulário do Plano de Observação campo a campo e
-pediu que saíssem sete nós. A razão é dela, e é uma só: *«o motivo da remoção é redundância, eles já
-estão contemplados»* — o que o PO pedia à mão passou a ser decidido em três módulos anteriores (a
-anamnese virou linha de base do corpo, o verbete fixou a notação, o plano de ensino fixou ciclo e
-turma). E deu a ordem do trabalho: *«quando você tira esses itens do PO, o que vai substituí-los…
-está já contemplado na linha de base. Se não tiver, você me sinaliza que a gente precisa ajustar.»*
+**De onde veio.** Dela, e em três frases que não deixam dúvida: *«O plano de observação ainda está
+com o campo ciclo livre. Eu posso digitar qualquer ciclo ali. Você não fez o ajuste que eu pedi.»*
+Ela tinha razão, e o defeito é de leitura minha: a entrega de `b23013af` mudou **um** sítio — o
+formulário (`porta/index.html`) — e deu a regra por cumprida.
 
-Também pediu duas coisas que não são de formulário: que o **eixo do corpo** deixasse de despejar a
-anamnese inteira de cada aluna e passasse a mostrar **só os blocos que têm aspectos escolhidos no
-passo 4** — «isso tem que ser construído de forma dinâmica» —, e que se pensasse nos
-desdobramentos: o ajuste do PO, a exclusão de um PO e o expurgo.
+**O segundo sítio, e porque não era alcançável pelo primeiro.** O **painel do ato** que abre dentro
+da **Área do Professor** (`/area-do-professor/plano-de-observacao/`) é o caminho por onde ela
+**entra**. Vive noutro ficheiro (`motor/servidor/listas-do-acervo.js`), noutra função
+(`painelDoAto`) e noutro script (`scriptDoPainel`). Ali o ciclo era um `<input type="text">` ao lado
+do «plano de ensino observado»: escrever «20» e escolher o plano do 01 dava um PO do ciclo 20 a
+observar o plano do 01. No formulário o número era sobrescrito pelo do plano e a divergência morria
+em silêncio — mas a lista já a tinha levado no **endereço** e na **chave da memória**. Um sítio
+corrigido e o outro não é o pior estado: um dos dois *parece* certo.
 
-**O que saiu, e quem passou a responder.**
+**A correção.** A mesma regra, no segundo sítio: o plano escolhe-se primeiro, o ciclo passa a
+**leitura** (`[data-ciclo-leitura]`, a peça da «turma observada» ao lado), e o `<input>` fica
+**oculto** — porque é ele que a chave da memória, o endereço e o resumo leem. Uma regra, um leitor.
+`pintarDoPlano()` pinta os dois (turma e ciclo) do plano escolhido, e é chamada **antes** de
+`pintar()`: o estado do botão lê aquele valor, e pintar depois seria decidir sobre um quadro de
+atraso. O plano de ensino **não** foi tocado — ali o ciclo nasce —, e a anamnese continua sem ciclo
+nenhum.
 
-| Nó | Quem responde agora |
-|:--|:--|
-| `campo-outro` (item 5) | o campo empírico, composto do PLANO |
-| `contexto-outro` (item 6) | idem — calendário, volume e condição de registro |
-| `flutuantes` | o elenco da linha de base da turma (a turma inteira) |
-| `linha-de-base` («Ponto de partida») | o recorte do passo 4, agrupado por bloco |
-| `inclusao` | o recorte: o que ele escolheu é o que entra |
-| `exclusao` | o recorte pelo avesso: o que a anamnese oferece e ele não escolheu |
+**A lacuna tem nome.** Um plano antigo que não declara ciclo deixa a leitura em «—», o botão travado
+e o recado a dizer *«O plano de ensino escolhido não declara ciclo — e é dele que este Plano de
+Observação o herda.»* A alternativa — «falta o ciclo» — mandaria preencher um sítio onde nada se
+pode escrever: o nome do beco sem a saída.
 
-**O que NÃO saiu, e é a sinalização que ela pediu.** As **restrições físicas** (P-22) ficam. A
-verificação é factual: a anamnese regista «Dor/desconforto» como **estado da mobilidade do cambré**
-— uma observação do corpo, não um impedimento — e **não tem campo para lesão, cirurgia ou limitação
-médica** (procurado no conteúdo), e o recorte escolhe o que se observa sem perguntar o que não se
-pode pedir. O `restricoes` é, hoje, o **único** sítio do sistema onde «lesão, dor, limitação médica»
-se declara. Tirá-lo apagaria o dado em vez de o tornar redundante. O nó fica, com a razão escrita no
-próprio conteúdo.
+**Onde entrou.** `motor/servidor/listas-do-acervo.js` — `painelDoAto` (o ciclo do PO passa a
+leitura, com o plano antes dele), `pintarDoPlano` (era `pintarLeituraDaTurma`: pinta turma **e**
+ciclo), a ordem do gesto em `change` (pintar o derivado antes de avaliar), `faltam()` (o ciclo deixa
+de ser exigência própria no PO, e passa a ser «o ciclo do plano escolhido»), e o recado do estado.
+`porta/index.html` — só o comentário que ainda dizia «no PO é uma LISTA dos ciclos»; a peça já
+estava trocada ao carregar (`iniciar` chama `mostrarCicloDoPo`). A cópia do pacote
+(`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/index.html`) regerada com o `nav`
+preservado.
 
-**E o `itens-por-dimensao` também fica — com a verificação feita, como ela pediu.** Ele **não** é
-redundante: é a única fonte das **colunas da folha de captura** (`dimensoesEItens` → `porVariante`).
-O que o plano declara são *exercícios* (`aula-1-sequencia`) e *parâmetros por objetivo*
-(`aula-1-parametro`) — não critérios de observação por bloco. Removê-lo deixaria a folha sem colunas
-e o ciclo sairia com uma captura impossível de preencher. O que é possível, e fica para decisão dela:
-**pré-preencher** a repetição a partir dos parâmetros que o plano já marcou.
+**Com o quê.** `experimentos/provar-ciclo-do-painel-do-po.js` (**novo, 27 asserções**): a peça nas
+três famílias (PO leitura + input oculto, plano de ensino com campo, anamnese sem nada), e a página
+a correr em jsdom — leitura «—» no arranque, escolher o plano do 01 declara 01 (leitura, valor,
+resumo e turma), trocar para o 02 troca para 02, o plano antigo deixa a lacuna nomeada, voltar atrás
+não inventa nada, a página não pede `api/ciclos`, e nenhum erro de JavaScript. Com
+`--controle-negativo` carrega o `listas-do-acervo.js` **de HEAD** num sandbox e corre as mesmas
+asserções: **4 de 7 reprovam**, e a primeira mostra o campo de texto que existia.
 
-**O eixo do corpo, agora dinâmico.** O painel do formulário deixou de ler a anamnese de cada sujeito
-(uma leitura de envelope por aluna, 45 campos despejados) e passou a mostrar o **recorte do passo 4**,
-agrupado pelo bloco da anamnese e **só os grupos que têm aspectos** — «3 aspectos em 2 blocos», e a
-lista. A mesma arrumação vai para o documento: no eixo Corpo, uma linha por grupo. O recorte viaja em
-`/api/bastidores/alunas-da-turma`, que o cabeçalho do PO já pedia — **uma leitura, três leitores**
-(o cabeçalho, o painel, o documento), com `porta.linhaDeBaseDaTurma` a escolher o acto (a versão
-enviada mais recente, sem lápide) num sítio só.
+**Medido.** `provar-ciclo-do-painel-do-po` **27/27** (e o controle negativo a reprovar 4 de 7);
+`provar-ciclo-herdado-do-plano` **20/20**; `provar-linha-de-base` **104/104** (a asserção do ciclo
+passou a exigir as duas guardas — anamnese **e** PO —, e a nomear o caso do plano sem ciclo);
+`provar-relacoes-do-ciclo` **23/23**; `provar-etiqueta-da-aluna` **20/20**; `provar-producao`
+**159/159**; `check-identidade` **0 erros** (as 20 verificações, «Circuito» incluído); `check-indices`
+**16/16**.
 
-**O que ficou decidido sobre os desdobramentos.**
-
-- **Um PO antigo continua a derivar.** Um envelope gravado com as chaves todas não rebenta: os nós
-  ausentes devolvem `undefined` e o documento declara a lacuna. A proveniência não se reescreve
-  (P-03) — o que se apagou foi a **pergunta**, não o registo. Provado: `provar-po-completo`, 17.
-- **A exclusão de um PO não muda.** Ela é por envelope + cascata do ciclo, e não olha nomes de
-  campo: nada do que saiu era chave de índice ou de vínculo.
-- **O EXPURGO TINHA UMA LACUNA, e foi fechada.** Os actos da linha de base moram em
-  `escola/<escola>/linhas-de-base/` desde ontem, e `escolaDosCaminhos` só reconhecia
-  `escola/<escola>/envelopes/`: uma escola expurgada deixaria para trás o elenco e o recorte do
-  corpo de todas as suas turmas — os únicos ficheiros da família que ninguém veria. Passa a
-  reconhecê-la pelo `lerCaminho` do próprio store (uma regra, não duas regex).
-- **A turma do plano passou a ter duas fontes, com ordem declarada.** `turmaDoPlanoReferenciado`
-  lia só a estante; quando a lista não chegava, tudo o que dela depende desaparecia em silêncio (o
-  painel do corpo, a linha de base do cabeçalho). Passa a cair no envelope do plano
-  (`PLANO_RESPOSTAS`), e a estante continua a mandar quando responde.
-
-**Onde entrou.** `porta/po/conteudo/po.json` — os seis nós removidos, o bloco dos critérios
-removido, o elemento `contexto` (que ficou sem subitem) removido, os blocos renumerados, e os
-títulos/notas do bloco do sujeito a dizerem a verdade. `motor/nucleo/derivar-po.js` —
-`tabelaDoRecorte`/`agruparRecorte`/`linhaDeBaseDoActo`, a secção «Linha de base» e os critérios
-lidos do acto, o eixo Corpo com um grupo por linha, e o `campo-outro`/`contexto-outro` a saírem dos
-compostos. `motor/nucleo/linha-de-base.js` — `linhaDeBaseDaTurma`. `motor/nucleo/porta.js` — a
-reexportação e `camposDoCorpo`. `motor/nucleo/derivar-ciclo.js` — a folha de captura sem flutuantes,
-a «Linha de base revisitada» a apontar para o registo em vez de o reescrever, o resumo do corpo a
-contar o elenco. `motor/servidor/rotas.js` — `linhaDeBaseDaTurma()` uma vez por pedido, passada à
-prévia e à escrita da fonte. `motor/servidor/bastidores.js` — o `recorte` na rota da turma.
-`motor/servidor/repo-escola.js` — o expurgo. `porta/index.html` — `pintarCorpoDoSujeito` reescrita,
-`turmaDoPlanoReferenciado` com as duas fontes, e dois ajudantes mortos removidos.
-`tools/lib-vistas.js` — o bullet dos flutuantes. `professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/`
-— a cópia do pacote regerada.
-
-**Com o quê.** `provar-eixos-do-po` (**35**, secção D reescrita: o painel mostra o recorte agrupado
-por bloco, só os grupos com aspectos, e nomeia a lacuna quando a turma não recebeu o acto);
-`provar-po-completo` (**17**, com o contrato nó→destino atualizado e a asserção dos flutuantes
-**invertida**, não apagada); `provar-sujeitos-semeados` (**22**, com a frase do painel atualizada);
-`provar-relacoes-do-ciclo` (**23**). E o documento derivado passa no `validar-po-ciclo` (**13 campos
-de topo**, todos os obrigatórios) e a folha no `validar-captura-ciclo` (**0 erros**).
-
-**Medido.** `provar-eixos-do-po` **35/35**; `provar-po-completo` **17**; `provar-sujeitos-semeados`
-**22/22**; `provar-relacoes-do-ciclo` **23/23**; `provar-cadeia-do-ajuste` **34/34**;
-`provar-ciclo-herdado-do-plano` **20/20**; `provar-sujeitos-da-turma` **41/41**;
-`provar-etiqueta-da-aluna` **20/20**; `provar-linha-de-base` **104/104**; `provar-escrita-do-acto`
-**21/21**; `provar-expurgo-sem-listagem` **49/49**; `provar-expurgo-leitura-atrasada` **45/45**;
-`provar-producao` **159/159**; `check-identidade` **0 erros**; `validar-po-ciclo` e
-`validar-captura-ciclo` **sem erros**.
-
-**O que ainda não está feito.** (1) O **pré-preenchimento** dos itens de cada dimensão a partir dos
-parâmetros do plano — depende de ela decidir. (2) `provar-expurgo-raiz` **explode** numa asserção
-(`local.em`) e **já explodia antes desta mudança** (medido com `git stash`); não foi tocado. (3) A
-frase do cabeçalho do PO para a turma sem linha de base diz «nenhuma — esta turma ainda não recebeu
-linha de base (Corpo → passo 5)»: com o painel do corpo a dizer o mesmo por outras palavras, as duas
-merecem unificar-se quando alguém passar por lá.
+**O que ainda não está feito.** (1) `provar-painel-do-ato` (Chrome) continua **NÃO FEITO** nesta
+máquina — «nenhuma publicação para servir», porque a escola publicada foi expurgada. A bancada foi
+**atualizada** na mesma (o stub da estante passou a declarar `ciclo`, o gesto do PO deixou de pôr o
+valor à mão e passou a medir a leitura, e as secções da anamnese ganharam guarda para o campo que já
+não existe) — mas **não foi corrida**, e não se afirma que passa. (2) `provar-navegacao` falha
+(`Cannot read properties of undefined`) **também no HEAD** — medido com `git stash`: preexistente,
+por falta de publicação.
 
 ## O que está pendente
-
-## 05/11/2026 — O índice do recorte: o que os professores olham no corpo, e o que não olham
-
-(a) A decisão sobre o append-only, acima. (b) O índice **não** tem
-filtro na tela: mostra o ranque, os nunca e os cegos, e a rota aceita escopo. Um filtro por eixo ou
-por turma na própria caixa é a próxima conveniência, e não foi feita porque ela não a pediu ainda.
-(c) A fotografia do índice ao longo do tempo — um espelho em Git, como o §4.6 prevê para o índice
-publicado — depende de (a).
 
 ## 05/11/2026 — O cabeçalho que faltava: uma lista de `User-Agent`, e um guarda que reprova
 
@@ -377,10 +328,20 @@ cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que cicl
 
 (1) O **pré-preenchimento** dos itens de cada dimensão a partir dos
 parâmetros do plano — depende de ela decidir. (2) `provar-expurgo-raiz` **explode** numa asserção
-(`local.em`) e **já explodia antes desta mudança** (medido com `git stash`); não foi tocado. (3) A
+(`local.em`), `provar-numeros-do-roteiro` reprova **6 de 29** e `provar-leituras-do-po` **nem corre**
+(lê `escola/batata/envelopes/plano-20261027-1025.json`, e a escola foi expurgada) — os três **já
+falhavam antes desta mudança** (medidos com `git stash`, no HEAD); não foram tocados, e ficam
+registados para não passarem por regressão. (3) A
 frase do cabeçalho do PO para a turma sem linha de base diz «nenhuma — esta turma ainda não recebeu
 linha de base (Corpo → passo 5)»: com o painel do corpo a dizer o mesmo por outras palavras, as duas
 merecem unificar-se quando alguém passar por lá.
+
+---
+
+## 06/11/2026 — O ciclo do PO também não se escreve NA ÁREA DO PROFESSOR (e era o sítio que faltava)
+
+(1) `provar-painel-do-ato` (Chrome) continua **NÃO FEITO** nesta
+máquina — «nenhuma publicação para servir», porque a escola publicada foi expurgada. A bancada foi
 
 ## Pendências anteriores (índice)
 
@@ -747,6 +708,7 @@ merecem unificar-se quando alguém passar por lá.
 - **05/11/2026** — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o… → `REGISTRO.md` L36350
 - **05/11/2026** — «O que já é bom» ficava vazio porque o apoio da observação… → `REGISTRO.md` L36452
 - **05/11/2026** — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom,… → `REGISTRO.md` L36519
+- **05/11/2026** — O índice do recorte: o que os professores olham no corpo, e… → `REGISTRO.md` L36578
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

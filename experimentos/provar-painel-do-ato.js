@@ -111,12 +111,16 @@ const servidor = http.createServer(async (req, res) => {
        com a turma que ele diz. Os do `manga-curta` são outros, e é isso que se mede: o PO de
        um professor não oferece o plano do outro. */
     const quem = u.searchParams.get('professor');
+    /* O `ciclo` VEM EM CADA OPÇÃO, como em `porta.planos` (06/11/2026). Sem ele o stub seria
+       mais pobre do que o servidor, e o painel do PO — que passou a LER o ciclo do plano — ficaria
+       travado sobre um plano que, na produção, o declara. Um stub que aceita menos do que a
+       produção esconde exactamente o defeito que a prova devia encontrar. */
     const todos = [{ valor: 'plano-20261020', carimbo: 'plano-20261020', rotulo: 'Balé Nível 1',
-      turma: 'Balé Nível 1', professor: 'cafe-no-bule' },
+      turma: 'Balé Nível 1', professor: 'cafe-no-bule', ciclo: '01' },
     { valor: 'plano-20261022', carimbo: 'plano-20261022', rotulo: 'Balé Nível 2',
-      turma: 'Balé Nível 2', professor: 'cafe-no-bule' },
+      turma: 'Balé Nível 2', professor: 'cafe-no-bule', ciclo: '02' },
     { valor: 'plano-20261024', carimbo: 'plano-20261024', rotulo: 'Contemporâneo',
-      turma: 'Contemporâneo', professor: 'manga-curta' }];
+      turma: 'Contemporâneo', professor: 'manga-curta', ciclo: '01' }];
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true,
       opcoes: todos.filter((x) => !quem || x.professor === quem) }));
@@ -320,7 +324,10 @@ const servidor = http.createServer(async (req, res) => {
   await p.evaluate(() => {
     const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
     pr.dispatchEvent(new Event('change'));
-    const c = document.getElementById('ato-ciclo'); c.value = '01'; c.dispatchEvent(new Event('input'));
+    /* A ANAMNESE JÁ NÃO TEM CAMPO DE CICLO (05/11/2026): a guarda existe para a bancada não
+       rebentar num `null` e para ela medir o que a página é, e não o que era. */
+    const c = document.getElementById('ato-ciclo');
+    if (c) { c.value = '01'; c.dispatchEvent(new Event('input')); }
   });
   await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
   await p.evaluate(() => {
@@ -340,7 +347,8 @@ const servidor = http.createServer(async (req, res) => {
   const destino = await p.evaluate(() => {
     const q = [];
     if (document.getElementById('ato-professor').value) q.push('professor=' + encodeURIComponent(document.getElementById('ato-professor').value));
-    if (document.getElementById('ato-ciclo').value) q.push('ciclo=' + encodeURIComponent(document.getElementById('ato-ciclo').value));
+    const ciclo = document.getElementById('ato-ciclo');
+    if (ciclo && ciclo.value) q.push('ciclo=' + encodeURIComponent(ciclo.value));
     if (document.getElementById('ato-aluna').value) q.push('aluna=' + encodeURIComponent(document.getElementById('ato-aluna').value));
     return '/anamnese/' + (q.length ? '?' + q.join('&') : '');
   });
@@ -556,10 +564,14 @@ const servidor = http.createServer(async (req, res) => {
     await p.evaluate(() => {
       const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
       pr.dispatchEvent(new Event('change'));
-      const c = document.getElementById('ato-ciclo'); c.value = '01'; c.dispatchEvent(new Event('input'));
     });
     await p.evaluate(() => new Promise((r) => setTimeout(r, 500)));
     po = await doPo();
+    /* O CICLO DO PO NÃO SE ESCREVE (06/11/2026): ele lê-se, e chega com o plano escolhido. A
+       asserção que o mede está logo abaixo, no gesto de escolher o plano. */
+    ok('o ciclo do PO é leitura, e não um campo de texto',
+      await p.evaluate(() => !document.querySelector('input[type="text"][data-ato="ciclo"]')
+        && !!document.querySelector('[data-ciclo-leitura]')));
     ok('a estante vem recortada pelo professor — dois planos, e não os três',
       po.opcoes.length === 2 && po.opcoes.indexOf('plano-20261024') === -1, po.opcoes);
     ok('sem plano escolhido, «Novo Plano de Observação» está travado e diz porquê',
@@ -572,6 +584,12 @@ const servidor = http.createServer(async (req, res) => {
     await p.evaluate(() => new Promise((r) => setTimeout(r, 300)));
     po = await doPo();
     ok('a turma observada passa a ser a do PLANO escolhido', po.leitura === 'Balé Nível 2', po.leitura);
+    const cicloLido = await p.evaluate(() => ({
+      mostra: (document.querySelector('[data-ciclo-leitura]') || {}).textContent,
+      valor: (document.getElementById('ato-ciclo') || {}).value,
+    }));
+    ok('…e o ciclo passa a ser o do plano — 02, lido e não digitado',
+      cicloLido.mostra === '02' && cicloLido.valor === '02', cicloLido);
     ok('e com o plano escolhido o botão abre', po.desab === false, po.desab);
 
     /* O DESTINO MEDE-SE A NAVEGAR, e não a reconstruir a URL no teste: uma URL montada à mão
@@ -609,7 +627,10 @@ const servidor = http.createServer(async (req, res) => {
     await p.evaluate(() => {
       const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
       pr.dispatchEvent(new Event('change'));
-      const c = document.getElementById('ato-ciclo'); c.value = '01'; c.dispatchEvent(new Event('input'));
+      /* A ANAMNESE JÁ NÃO TEM CAMPO DE CICLO (05/11/2026): a guarda existe para a bancada não
+       rebentar num `null` e para ela medir o que a página é, e não o que era. */
+    const c = document.getElementById('ato-ciclo');
+    if (c) { c.value = '01'; c.dispatchEvent(new Event('input')); }
     });
     await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
     await p.evaluate(() => {
@@ -755,7 +776,10 @@ const servidor = http.createServer(async (req, res) => {
     await p.evaluate(() => {
       const pr = document.getElementById('ato-professor'); pr.value = 'cafe-no-bule';
       pr.dispatchEvent(new Event('change'));
-      const c = document.getElementById('ato-ciclo'); c.value = '01'; c.dispatchEvent(new Event('input'));
+      /* A ANAMNESE JÁ NÃO TEM CAMPO DE CICLO (05/11/2026): a guarda existe para a bancada não
+       rebentar num `null` e para ela medir o que a página é, e não o que era. */
+    const c = document.getElementById('ato-ciclo');
+    if (c) { c.value = '01'; c.dispatchEvent(new Event('input')); }
     });
     await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
     await p.evaluate(() => {

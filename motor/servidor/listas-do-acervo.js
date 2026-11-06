@@ -450,6 +450,7 @@ function painelDoAto(chave, escola) {
   const f = FAMILIAS[chave];
   const ehAnamnese = chave === 'anamnese';
   const ehPlano = chave === 'plano-de-ensino';
+  const ehPo = chave === 'plano-de-observacao';
   /* SEM `details` E SEM CAIXINHA (25/10/2026, terceira leitura). O cabeçalho — o título, o resumo
    * e a seta — é agora o do BLOCO que contém este painel (`details.bloco-lista`, em
    * `lista-html.js`). Dois botões para abrir a mesma coisa dentro do mesmo container eram o
@@ -465,9 +466,20 @@ function painelDoAto(chave, escola) {
            «Fazer anamnese» ficava travado à espera dele; (3) ia no BILHETE do ato — e a porta,
            que não pede ciclo na anamnese, comparava «r.ato.ciclo» com um campo vazio, não
            casava, e devolvia a pessoa à lista. Era esse o «abre e fecha de imediato».
-           Nos Planos (de ensino e de observação) o campo FICA: ali o ciclo é a posição na
-           cadeia de proveniência, e é ele que a ancora. -->
-      ${ehAnamnese ? '' : `<span class="campo"><label class="campo-rotulo" for="ato-ciclo">ciclo</label>
+           No PLANO DE ENSINO o campo FICA: ali o ciclo NASCE, e é a posição na cadeia de
+           proveniência que o documento ancora. -->
+
+      <!-- O CICLO DO PO NÃO SE ESCREVE (06/11/2026). Ela foi direta: «o plano de observação ainda
+           está com o campo ciclo livre. Eu posso digitar qualquer ciclo ali.» A regra que ela
+           pediu duas vezes vale também AQUI, e este era o sítio que faltava: o ciclo do Plano de
+           Observação é o do PLANO DE ENSINO OBSERVADO, e um número digitado à mão ao lado do
+           plano podia dizer «20» e observar o plano do 01.
+           A PEÇA É A DA LEITURA, a mesma da «turma observada» ao lado — o sistema a declarar um
+           valor que não se escolhe, e não um campo. O input fica oculto porque é ele que o resto
+           do painel lê (a chave da memória, o endereço, o resumo): uma regra, um leitor. Ele é
+           preenchido com o ciclo do plano escolhido, e não com o que alguém escreve. O PLANO VEM
+           ANTES DO CICLO porque é dele que o ciclo vem — a ordem da causalidade. -->
+      ${ehAnamnese || ehPo ? '' : `<span class="campo"><label class="campo-rotulo" for="ato-ciclo">ciclo</label>
         <input type="text" id="ato-ciclo" data-ato="ciclo" value="" inputmode="numeric"></span>`}
       ${ehAnamnese ? `<span class="campo"><label class="campo-rotulo" for="ato-aluna">aluna</label>
         <select id="ato-aluna" data-ato="aluna"><option value="">— nenhuma —</option></select></span>` : ''}
@@ -475,6 +487,9 @@ function painelDoAto(chave, escola) {
         <select id="ato-turma" data-ato="turma"><option value="">— escolher —</option></select></span>` : ''}
       ${chave === 'plano-de-observacao' ? `<span class="campo"><label class="campo-rotulo" for="ato-plano">plano de ensino observado</label>
         <select id="ato-plano" data-ato="plano"><option value="">— escolher —</option></select></span>
+      <span class="campo"><span class="campo-rotulo">ciclo</span>
+        <span class="leitura" data-ciclo-leitura>—</span>
+        <input type="hidden" id="ato-ciclo" data-ato="ciclo" value=""></span>
       <span class="campo"><span class="campo-rotulo">turma observada</span>
         <span class="leitura" data-turma-leitura>—</span></span>` : ''}
       ${chave === 'plano-de-observacao' ? '' : `<span class="campo campo-senha"><label class="campo-rotulo" for="ato-senha">senha do professor</label>
@@ -765,7 +780,11 @@ function scriptDoPainel(chave, escola) {
     /* O CICLO SÓ É OBRIGATÓRIO ONDE ELE EXISTE. Na anamnese o campo não está na página — exigir
      * um campo que não se vê é a pior das travas: o botão nunca habilita e não há nada a
      * preencher que o desabilite. */
-    if (!CFG.ehAnamnese && !valor('ciclo')) falta.push('ciclo');
+    if (!CFG.ehAnamnese && !CFG.ehPo && !valor('ciclo')) falta.push('ciclo');
+    /* O CICLO DO PO VEM DO PLANO (06/11/2026), e por isso não é uma exigência à parte: só falta
+     * quando o plano escolhido o não declara — e aí o que falta é dito pelo NOME (o estado tem um
+     * recado próprio), porque não há campo nenhum onde o escrever. */
+    if (CFG.ehPo && valor('plano') && !valor('ciclo')) falta.push('o ciclo do plano escolhido');
     if (CFG.ehAnamnese && !valor('aluna')) falta.push('aluna');
     if (CFG.ehPlano && !valor('turma')) falta.push('turma');
     /* O PO NAO PEDE TURMA: pede o PLANO. A turma observada e a do plano escolhido, e por isso
@@ -832,6 +851,14 @@ function scriptDoPainel(chave, escola) {
         estado.setAttribute('data-falta', 'sim');
         estado.textContent = 'Este professor ainda não tem plano de ensino nesta escola. O Plano '
           + 'de Observação observa uma aula que tem plano — faça primeiro o plano de ensino.';
+      } else if (CFG.ehPo && valor('plano') && !valor('ciclo')) {
+        /* O PLANO ESCOLHIDO NÃO DECLARA CICLO — e o Plano de Observação herda-o dele. Sem esta
+         * linha, o botão ficava travado sobre «falta o ciclo» e não havia onde o escrever: um beco
+         * sem saída com o nome do beco. O recado diz o que corrigir, e onde. */
+        estado.hidden = false;
+        estado.setAttribute('data-falta', 'sim');
+        estado.textContent = 'O plano de ensino escolhido não declara ciclo — e é dele que este '
+          + 'Plano de Observação o herda. Abra o plano de ensino e confira o ciclo antes de observar.';
       } else if (falta.length) {
         estado.hidden = false;
         estado.setAttribute('data-falta', 'sim');
@@ -1038,7 +1065,7 @@ function scriptDoPainel(chave, escola) {
     if (!CFG.ehPo || !slug) {
       PLANOS = [];
       encher(campo('plano'), [], null, '');
-      pintarLeituraDaTurma();
+      pintarDoPlano();
       return Promise.resolve();
     }
     /* A ESTANTE VIVE SOB O PREFIXO DA PORTA, e não na raiz. O roteador das rotas só é
@@ -1053,21 +1080,39 @@ function scriptDoPainel(chave, escola) {
         var turma = p.turma ? ' · ' + p.turma : '';
         return { valor: p.carimbo || p.valor, rotulo: (p.rotulo || p.carimbo) + turma };
       }), null, valor('plano') || ATOS.plano);
-      pintarLeituraDaTurma();
+      pintarDoPlano();
     });
   }
 
-  /* A LEITURA DIZ A TURMA DO PLANO ESCOLHIDO — e é o único lugar onde ela aparece, porque é o
-   * plano que a decide. Sem plano escolhido não há turma a mostrar, e o «—» é a verdade. */
-  function pintarLeituraDaTurma() {
-    var alvo = $('[data-turma-leitura]');
-    if (!alvo) return;
+  /* O QUE O PLANO ESCOLHIDO DIZ — a TURMA e o CICLO (06/11/2026).
+   *
+   * Os dois vêm do mesmo sítio e pela mesma razão: escolher o plano é escolher a aula que se
+   * observa, e a aula já está dentro de um ciclo e de uma turma. Pedir qualquer um dos dois ao
+   * lado do plano era pedir duas vezes a mesma coisa e abrir a porta a duas respostas diferentes
+   * — e a que a tela aceitasse era a que não estava ancorada em nada.
+   *
+   * O CICLO PASSOU A SER UMA LEITURA AQUI (06/11/2026), e não um campo. O input continua a
+   * existir, oculto, porque é ele que a chave da memória, o endereço e o resumo leem — mas quem o
+   * escreve é esta função, com o ciclo do plano. Sem plano escolhido não há nem turma nem ciclo a
+   * mostrar, e o «—» é a verdade: um valor que ainda não existe não informa.
+   *
+   * O CICLO DE UM PLANO ANTIGO PODE FALTAR — e então o painel DIZ que falta, em vez de deixar o
+   * botão travado sobre um campo que ninguém tem para onde preencher. */
+  function pintarDoPlano() {
     var escolhido = valor('plano');
-    var turma = '';
+    var achado = null;
     for (var i = 0; i < PLANOS.length; i += 1) {
-      if (String(PLANOS[i].carimbo || PLANOS[i].valor) === escolhido) { turma = PLANOS[i].turma || ''; break; }
+      if (String(PLANOS[i].carimbo || PLANOS[i].valor) === escolhido) { achado = PLANOS[i]; break; }
     }
-    alvo.textContent = turma || '—';
+    var alvo = $('[data-turma-leitura]');
+    if (alvo) alvo.textContent = (achado && achado.turma) || '\u2014';
+    var ciclo = achado ? String(achado.ciclo == null ? '' : achado.ciclo).trim() : '';
+    var entrada = campo('ciclo');
+    /* O CAMPO NÃO EXISTE EM TODAS AS FAMÍLIAS: na anamnese ele não se pede, e no plano de ensino
+     * ele é um campo a sério, que se escreve — aqui só se pinta onde ele é leitura. */
+    if (entrada && CFG.ehPo) entrada.value = ciclo;
+    var mostra = $('[data-ciclo-leitura]');
+    if (mostra) mostra.textContent = ciclo || '\u2014';
   }
 
   function carregarCuradoria() {
@@ -1170,6 +1215,11 @@ function scriptDoPainel(chave, escola) {
     var e = campo(nome);
     if (!e) return;
     e.addEventListener('change', function () {
+      /* O QUE O PLANO DIZ PINTA-SE ANTES DE 'pintar()' (06/11/2026). O ciclo deixou de ser um
+       * campo e passou a ser escrito por 'pintarDoPlano()' — e o estado do botão («falta o
+       * plano», «falta o ciclo do plano») lê esse valor. Pintar depois de avaliar seria a tela a
+       * decidir sobre um valor que ainda não tinha sido escrito: um quadro de atraso. */
+      if (nome === 'plano') pintarDoPlano();
       pintar();
       gravarContexto();
       if (nome === 'professor') {
@@ -1183,7 +1233,6 @@ function scriptDoPainel(chave, escola) {
         if (sel) sel.value = '';
         carregarPlanos().then(pintar);
       }
-      if (nome === 'plano') pintarLeituraDaTurma();
     });
     e.addEventListener('input', function () { gravarContexto(); pintar(); });
   });

@@ -4019,6 +4019,24 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-relacoes-do-ciclo` **23/23** (secção 2 invertida, não apagada), `provar-producao`
   **159/159**, `check-identidade` **0 erros**.
 
+- **06/11/2026** — **…e o ciclo do PO também não se escreve no PAINEL da Área do Professor.** Ela
+  apontou-o no dia seguinte: *«O plano de observação ainda está com o campo ciclo livre. Eu posso
+  digitar qualquer ciclo ali.»* O sítio era **outro**: a entrega anterior corrigiu o **formulário**
+  (`porta/index.html`) e deixou o **painel do ato** — a caixinha «Contexto do ato» dentro da
+  listagem, e o caminho por onde se **entra** —, que vive em `motor/servidor/listas-do-acervo.js`.
+  Ali o ciclo passou a **leitura** (`[data-ciclo-leitura]`, a peça da «turma observada»), com o
+  `<input>` **oculto** — é ele que a chave da memória, o endereço e o resumo leem —, e o plano
+  escolhe-se **antes** do ciclo. `pintarDoPlano` pinta turma e ciclo juntos, e antes de `pintar()`,
+  para o estado do botão não decidir sobre um valor que ainda não foi escrito. O plano de ensino
+  **continua a escrever** o ciclo (ali ele nasce) e a anamnese continua sem ciclo nenhum. Um plano
+  antigo sem ciclo deixa a lacuna **nomeada** («o plano escolhido não declara ciclo»), em vez de
+  «falta o ciclo» sobre um sítio onde nada se pode escrever. Medido:
+  `provar-ciclo-do-painel-do-po` **27/27** (novo, jsdom; controle negativo a reprovar **4 de 7** no
+  `listas-do-acervo.js` de HEAD), `provar-ciclo-herdado-do-plano` **20/20**,
+  `provar-linha-de-base` **104/104**, `provar-producao` **159/159**, `check-identidade` **0 erros**,
+  `check-indices` **16/16**. **NÃO FEITO:** `provar-painel-do-ato` continua a exigir Chrome e uma
+  publicação, e esta máquina não tem nenhuma — a bancada foi atualizada e **não foi corrida**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código
