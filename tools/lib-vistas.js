@@ -170,7 +170,7 @@ function mdAcompanhamento(m, dados, chave, aulas, prov, captura) {
   const nome = dados.apelidos[chave] || chave;
   const l = [
     '---',
-    'projeto: Formação em Balé Clássico (experimento — dados fictícios)',
+    'projeto: Formação em Balé Clássico',
     'frente: Acompanhamento',
     `ciclo: ${mdY(m.id)}`,
     `escola: ${m.escola}`,
@@ -180,8 +180,14 @@ function mdAcompanhamento(m, dados, chave, aulas, prov, captura) {
     `# Acompanhamento — ${nome}`, '',
     ...linhasDeGeracao(prov),
     ...mdAjuste(prov && prov.ajuste),
-    '> **Material do professor.** Gerado do JSON do ciclo por um experimento — não é o',
-    '> gerador oficial, e os dados são fictícios.', '',
+    /* A NOTA DE PROVENIÊNCIA, E NÃO O AVISO DE EXPERIMENTO (06/11/2026). Aqui dizia «gerado
+     * por um experimento — não é o gerador oficial, e os dados são fictícios». Era verdade
+     * quando estas vistas nasceram no experimento; hoje quem as gera é o formulário do
+     * lançamento, a partir do ciclo publicado, e o aviso passou a mentir sobre o documento que
+     * o professor entrega. O que se declara é o que o documento é: uma vista descritiva do que
+     * foi lançado, e não uma avaliação. */
+    '> **Material do professor.** Vista descritiva do que foi lançado no ciclo — lê os dados,',
+    '> não classifica e não conclui (P-06).', '',
     '## Linha de base', '',
     '[Preencher: linha de base — vem do PO, que não está no JSON (ver §7.1 da arquitetura).]', '',
     '## Linha do tempo', '',
@@ -302,8 +308,8 @@ function mdRelatorio(m, dados, aulas, prov, captura) {
     `# Relatório pós-aula ${id} — ${m.escola}`, '',
     ...linhasDeGeracao(prov),
     ...mdAjuste(prov && prov.ajuste),
-    '> **Material do professor.** Gerado do JSON do ciclo por um experimento — não é o',
-    '> gerador oficial, e os dados são fictícios.', '',
+    '> **Material do professor.** Vista descritiva da aula, lida do que foi lançado — não',
+    '> classifica e não conclui (P-06).', '',
     `**Data:** ${dataBr(a.data)} · **Duração efetiva:** ${a.duracao_min} min · ` +
       '**início e fim:** [Preencher: o JSON guarda a duração, não o horário.]',
     `**Presentes:** ${listaNomes(dados, a.presentes)} ` +

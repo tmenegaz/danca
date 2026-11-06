@@ -144,14 +144,24 @@ function servir() {
     pagina.on('console', (m) => { if (m.type() === 'error') erros.push('console: ' + m.text()); });
     await pagina.goto(`${base}/lancamento.html`, { waitUntil: 'networkidle0' });
 
-    /* A AULA DA PROVA: a primeira `dada` sem lançamento. */
-    const aulaDaProva = (ciclo.aulas || []).find((a) => a.estado === 'dada' && !a.lancada);
+    /* A AULA DA PROVA: uma aula SEM LANÇAMENTO — é só disso que o painel precisa.
+     *
+     * Antes era «a primeira `dada`», e isso fazia a prova depender do RELÓGIO: `dada` é o
+     * intervalo entre o fim da aula e o prazo dela (24h), e um dia sem aula nessa janela deixava
+     * a prova vermelha — «o índice não declara nenhuma aula “dada”» — sem que nada tivesse
+     * mudado no formulário. Medido em 06/11/2026, com o índice regenerado. A ordem de
+     * preferência mantém o caso mais interessante primeiro (dada, depois planejada) e cai numa
+     * pulada só quando não há outra — a pulada também não tem dado, e o painel também abre. */
+    const semLancamento = (ciclo.aulas || []).filter((a) => !a.lancada);
+    const aulaDaProva = semLancamento.find((a) => a.estado === 'dada')
+      || semLancamento.find((a) => a.estado === 'planejada')
+      || semLancamento[0];
     await pagina.waitForFunction(() => document.querySelector('#aula')
       && document.querySelector('#aula').options.length > 1, { timeout: 15000 });
     const opcoes = await pagina.$$eval('#aula option', (os) => os.map((o) => o.value));
     provar('o filtro lista a aula sem dado (a da prova)', aulaDaProva && opcoes.includes(aulaDaProva.n),
       { esperada: aulaDaProva && aulaDaProva.n, opcoes });
-    if (!aulaDaProva) throw new Error('o índice não declara nenhuma aula «dada» — sem ela não há painel');
+    if (!aulaDaProva) throw new Error('o índice não declara nenhuma aula sem lançamento — sem ela não há painel');
 
     await pagina.select('#aula', aulaDaProva.n);
     await pagina.waitForFunction(() => {

@@ -303,7 +303,63 @@ function conferirParticao(aula, apelidos, onde, erros) {
   return { presentes, ausentes };
 }
 
-function conferirBlocos(aula, onde, presentes, erros, avisos) {
+/**
+ * OS TIPOS QUE A CAPTURA DECLARA — e a razão de eles entrarem aqui (06/11/2026).
+ *
+ * Este validador só conhecia UM vocabulário: as cinco marcas (`ok`, `parcial`, `nao`, `nao_vi`,
+ * vazio). Só que o formulário, desde a matriz de 06/11, escreve QUATRO tipos de coluna — a
+ * `marca`, a `rubrica` (os níveis da régua da turma: «Satisfatório», «Razoável»…), o `booleano`
+ * (verdadeiro/falso) e o `numero`. O primeiro lançamento real com rubrica foi recusado pelo
+ * hook, com dez erros do género «'Satisfatório' não é marca do formulário» — a regra estava a
+ * medir o registro errado, e o registro certo estava declarado, ao lado, no `captura-aula-NN.json`
+ * do pacote.
+ *
+ * O que este leitor devolve é `{ <bloco>: { <coluna>: <tipo> } }`, e ele é OPCIONAL: sem a
+ * captura (escola que ainda não gerou o pacote), vale o vocabulário fechado de antes — e assim
+ * nenhuma guarda antiga enfraquece por omissão.
+ */
+function tiposDaCaptura(dados, caminho) {
+  const m = /^(ciclo-\d{2}(?:-[a-z0-9][a-z0-9-]*)?)-dados\.json$/.exec(path.basename(caminho));
+  if (!m) return null;
+  const pasta = path.join(path.dirname(caminho), m[1]);
+  if (!fs.existsSync(pasta)) return null;
+  const ler = (nome) => {
+    try { return JSON.parse(fs.readFileSync(path.join(pasta, nome), 'utf8')); } catch (e) { return null; }
+  };
+  const mapaDe = (cfg) => {
+    const mapa = {};
+    (cfg.blocos || []).forEach((b) => {
+      if (!b || !b.chave || !Array.isArray(b.colunas)) return;
+      mapa[b.chave] = {};
+      b.colunas.forEach((c) => { if (c && c.chave) mapa[b.chave][c.chave] = c.tipo || 'marca'; });
+    });
+    return mapa;
+  };
+  const porAula = {};
+  let doCiclo = null;
+  fs.readdirSync(pasta).filter((n) => /^captura-(?:aula-)?\d{2}\.json$/.test(n)).sort()
+    .forEach((nome) => {
+      const cfg = ler(nome);
+      if (!cfg) return;                                     // ilegível: o vocabulário fechado responde
+      // `captura-aula-NN.json` é o config DA AULA (§4.2). O `captura-NN.json` é o do ciclo —
+      // o legado, que o formulário usa como queda quando a aula não declara o seu.
+      if (nome.startsWith('captura-aula-')) {
+        const aula = String(cfg.aula || (/(\d{2})\.json$/.exec(nome) || [])[1] || '');
+        if (aula) porAula[aula] = mapaDe(cfg);
+      } else {
+        doCiclo = mapaDe(cfg);
+      }
+    });
+  /* A QUEDA É O CONFIG DO CICLO — a mesma que o formulário faz (`capturas[aula] ?? captura`).
+   * Sem ela, a aula 06 de um ciclo cujo config é da 01 seria medida pelo vocabulário fechado, e
+   * os dez erros do primeiro lançamento com rubrica voltariam. */
+  Object.keys((dados && dados.aulas) || {}).forEach((id) => {
+    if (!porAula[id] && doCiclo) porAula[id] = doCiclo;
+  });
+  return Object.keys(porAula).length ? porAula : null;
+}
+
+function conferirBlocos(aula, onde, presentes, erros, avisos, tipos) {
   // NENHUM BLOCO POR PESSOA É ERRO (06/11/2026). Era o que a lista `required` tentava garantir ao
   // exigir `tecnica` e `funcional` — e garantia só no ciclo do Duo. Aqui a regra vale para todos:
   // se há pessoas presentes, ao menos um bloco por pessoa tem de existir. Os NOMES são do ciclo.
@@ -332,12 +388,36 @@ function conferirBlocos(aula, onde, presentes, erros, avisos) {
       }
     }
     pessoas.forEach((p) => {
-      Object.entries(bloco[p]).forEach(([chave, marca]) => {
-        if (ehString(marca) && !MARCAS.includes(marca)) {
-          erros.push(`${onde}: ${nome}.${p}.${chave} '${marca}' não é marca do formulário`
+      Object.entries(bloco[p]).forEach(([chave, valor]) => {
+        const tipo = (tipos && tipos[nome] && tipos[nome][chave]) || 'marca';
+        const rel = `${nome}.${p}.${chave}`;
+        if (valor === null) {
+          avisos.push(`${onde}: ${rel} nulo — o vazio é o estado, e ele se escreve ''`);
+          return;
+        }
+        if (tipo === 'booleano') {
+          if (typeof valor !== 'boolean') {
+            erros.push(`${onde}: ${rel} não é booleano (a captura declara 'booleano')`);
+          }
+          return;
+        }
+        if (tipo === 'numero') {
+          if (!(typeof valor === 'number' && Number.isFinite(valor))) {
+            erros.push(`${onde}: ${rel} não é número (a captura declara 'numero')`);
+          }
+          return;
+        }
+        if (!ehString(valor)) {
+          erros.push(`${onde}: ${rel} não é texto (a captura declara '${tipo}')`);
+          return;
+        }
+        /* A RÉGUA E O TEXTO SÃO DE DOMÍNIO ABERTO — quem os declara é a escola (a régua está no
+         * plano do ciclo), e fechá-los aqui seria esta ferramenta a inventar vocabulário. O que a
+         * marca tem, e os outros não, é uma lista FECHADA; é só ela que se confere. */
+        if (tipo === 'rubrica' || tipo === 'texto') return;
+        if (!MARCAS.includes(valor)) {
+          erros.push(`${onde}: ${rel} '${valor}' não é marca do formulário`
             + ` (${MARCAS.filter(Boolean).join(', ')} ou vazio)`);
-        } else if (marca === null) {
-          avisos.push(`${onde}: ${nome}.${p}.${chave} nulo — a marca ausente deveria ser ''`);
         }
       });
     });
@@ -441,7 +521,7 @@ function conferirItens(aula, onde, apelidos, erros, avisos) {
   });
 }
 
-function conferirAula(aula, id, apelidos, erros, avisos, provisorios) {
+function conferirAula(aula, id, apelidos, erros, avisos, provisorios, tipos) {
   const onde = `aula ${id}`;
   const { erros: e, avisos: a, provisorios: p } = validar(aula, SCHEMA_AULA, {});
   e.forEach((x) => erros.push(`${onde}: ${x}`));
@@ -472,7 +552,7 @@ function conferirAula(aula, id, apelidos, erros, avisos, provisorios) {
   let presentes = [];
   if (ehObjeto(apelidos)) presentes = conferirParticao(aula, apelidos, onde, erros).presentes;
 
-  conferirBlocos(aula, onde, presentes, erros, avisos);
+  conferirBlocos(aula, onde, presentes, erros, avisos, tipos);
   conferirItens(aula, onde, apelidos, erros, avisos);
   conferirObservado(aula, onde, erros, avisos);
 
@@ -537,6 +617,10 @@ function main() {
     console.error(`erro: ${path.basename(caminho)} não é um objeto JSON na raiz`);
     return 1;
   }
+
+  /* OS TIPOS DA CAPTURA, quando o pacote os declara — ver `tiposDaCaptura`. Sem eles, o
+   * vocabulário fechado das marcas responde como sempre respondeu. */
+  const tiposPorAula = tiposDaCaptura(dados, caminho);
 
   const erros = [];
   const avisos = [];
@@ -605,7 +689,8 @@ function main() {
         erros.push(`aula ${id}: não é objeto`);
         return;
       }
-      conferirAula(aula, id, dados.apelidos, erros, avisos, provisorios);
+      conferirAula(aula, id, dados.apelidos, erros, avisos, provisorios,
+        tiposPorAula && tiposPorAula[String(id)]);
     });
   }
 

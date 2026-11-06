@@ -24,6 +24,10 @@
  */
 
 const Cifra = require('../../tools/lib-cifra.js');
+// A REGRA DO NOME DE DADOS É A DO NÚCLEO — uma definição só (06/11/2026). Havia aqui uma cópia
+// que aceitava um único segmento de variante: ela recusava `ciclo-01-calango-bale-nivel-1-teste-1-
+// dados.json`, e o «Abrir» do formulário ficava sem abrir o ciclo — com a senha certa.
+const { nomeDeDadosValido } = require('../nucleo/lancamento.js');
 
 /**
  * Monta o leitor. Sem chave, sem leitor de asset ou sem conferência de senha, devolve `null` — e a
@@ -41,7 +45,7 @@ function criarLeitorDeDados({ senhaCripto, lerAsset, senhaOk }) {
     // O NOME VEM DO CLIENTE — então ele é conferido, e não confiado: só o `-dados.json` de um
     // ciclo deste pacote. Sem isto, uma travessia de caminho (`../`) leria outro arquivo do
     // ASSETS e o devolveria em claro a quem tem uma senha de professor.
-    if (!/^ciclo-[0-9]{2}(?:-[a-z0-9]+)?-dados(?:-[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{4})?\.json$/.test(nome)) {
+    if (!nomeDeDadosValido(nome)) {
       return { ok: false, erro: 'arquivo de dados inválido: ' + (nome || '(vazio)') };
     }
     if (!(await senhaOk(senha))) {

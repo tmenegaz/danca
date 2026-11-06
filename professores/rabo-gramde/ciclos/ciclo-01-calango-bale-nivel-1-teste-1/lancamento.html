@@ -561,8 +561,12 @@ function tabelaDoBloco(b, dados, a, pessoas) {
   const linhas = quem.map((k) => `<tr><th>${esc(dados.apelidos[k] || k)}</th>`
     + b.colunas.map((c) => `<td>${mdCelula(c, ((a[b.chave] || {})[k] || {})[c.chave])}</td>`).join('')
     + '</tr>').join('');
-  return `<h4>${esc(b.rotulo || b.titulo)}</h4><table><tr><th>Aluna(o)</th>`
-    + b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('') + `</tr>${linhas}</table>`;
+  /* A LINHA DE CABEÇALHO É UM `<thead>` (06/11/2026). Ela ia solta no corpo da tabela: na tela
+   * não se via, mas no papel a folha não repete o cabeçalho quando a tabela passa de página, e
+   * quem lê a segunda metade fica sem saber o que é cada coluna. É a mesma razão pela qual o
+   * documento impresso do ciclo usa `<thead>` em todas as tabelas. */
+  return `<h4>${esc(b.rotulo || b.titulo)}</h4><table><thead><tr><th>Aluna(o)</th>`
+    + b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('') + `</tr></thead><tbody>${linhas}</tbody></table>`;
 }
 
 // O grão `dupla` — o bloco do Par. A tabela tem uma linha por PAR, e o dado é uma lista
@@ -580,8 +584,8 @@ function tabelaDoPar(b, dados, a, pessoas) {
   const nome = (k) => dados.apelidos[k] || k;
   const linhas = pares.map((p) => `<tr><th>${esc(nome(p.p1))} + ${esc(nome(p.p2))}</th>`
     + b.colunas.map((c) => `<td>${mdCelula(c, p[c.chave])}</td>`).join('') + '</tr>').join('');
-  return `<h4>${esc(b.rotulo || b.titulo)}</h4><table><tr><th>Par</th>`
-    + b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('') + `</tr>${linhas}</table>`;
+  return `<h4>${esc(b.rotulo || b.titulo)}</h4><table><thead><tr><th>Par</th>`
+    + b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('') + `</tr></thead><tbody>${linhas}</tbody></table>`;
 }
 
 // A LINHA DE BASE REVISITADA: o dado é, por aluna, uma lista de marcas POR ITEM do PO
@@ -593,9 +597,10 @@ function tabelaPorSecao(b, dados, a, pessoas) {
   const tabelas = quem.map((k) => {
     const itens = Array.isArray((a[b.chave] || {})[k]) ? a[b.chave][k] : [];
     if (!itens.length) return '';                       // declarado abaixo, junto com os demais
-    return `<table><tr><th>${esc(dados.apelidos[k] || k)}</th><th>${esc(b.colunas[0].rotulo)}</th></tr>`
+    return `<table><thead><tr><th>${esc(dados.apelidos[k] || k)}</th>`
+      + `<th>${esc(b.colunas[0].rotulo)}</th></tr></thead><tbody>`
       + itens.map((x) => `<tr><th class="aluna">${esc(x.item)}</th>`
-        + `<td>${mdCelula(b.colunas[0], x.marca)}</td></tr>`).join('') + '</table>';
+        + `<td>${mdCelula(b.colunas[0], x.marca)}</td></tr>`).join('') + '</tbody></table>';
   }).join('');
   const semItens = quem.filter((k) => !(Array.isArray((a[b.chave] || {})[k]) && a[b.chave][k].length));
   if (semItens.length) {
@@ -632,7 +637,12 @@ function blocoAula(meta, dados, id, captura) {
   const a = dados.aulas[id];
   const ausentes = a.ausentes.map((k) => dados.apelidos[k]).join(', ') || 'nenhum';
   const cc = a.condicoes_contorno;
-  return `<h3>Aula ${esc(id)} — ${esc(Vistas.helpers.dataBr(a.data))} <span class="fraco">(${selo(meta)})</span></h3>
+  /* O NOME DO CICLO NÃO SE REPETE NO TÍTULO DA AULA (06/11/2026). Ele está no `<h2>` imediatamente
+   * acima — e repetido em cada bloco virava ruído: «Aula 06 — 05/11/2026 (Ciclo 01 · Calango)»
+   * debaixo de «Ciclo 01 · Calango». A meta continua a entrar por parâmetro: `selo()` é usada pelo
+   * cabeçalho, e o bloco segue a mesma forma quando a lista atravessa mais de um ciclo. */
+  void meta;
+  return `<h3>Aula ${esc(id)} — ${esc(Vistas.helpers.dataBr(a.data))}</h3>
     <p class="fraco">Duração executada: <strong>${a.duracao_min} min</strong> ·
     Plano seguido: ${esc(cc.plano_seguido)} · Ânimo ${cc.animo} · Interesse ${cc.interesse} ·
     Harmonia ${cc.harmonia} · Ausentes: ${esc(ausentes)}</p>
@@ -659,7 +669,8 @@ function blocoAluna(meta, dados, chave, soAula, captura) {
     if (a.ausentes.includes(chave)) return cab + '<p class="fraco">ausente — não há dado.</p>';
     return cab + tabelasDaAula(dados, a, captura, chave);
   }).join('');
-  return `<h3>${esc(nome)} — linha do tempo <span class="fraco">(${selo(meta)})</span></h3>
+  void meta;   // o ciclo já está no `<h2>` do bloco — ver `blocoAula`
+  return `<h3>${esc(nome)} — linha do tempo</h3>
     <p class="fraco">A mesma leitura da aula, restrita a ela — um bloco do ciclo por vez, com a
     linha dela: calculada em memória, do mesmo JSON, sem arquivo por aluna.</p>
     ${partes}`;
@@ -749,11 +760,19 @@ function diffAulas(antes, depois) {
 async function ajusteDoCiclo(f) {
   const d = f.dados;
   if (!d.ajuste_de) return null;
+  /* O ANTERIOR SÓ SE BUSCA QUANDO ELE PODE ESTAR LÁ (06/11/2026). O pacote publica UM
+   * `-dados.json` — o vigente, em nome canónico —, e o `ajuste_de` aponta para o nome
+   * CARIMBADO que nunca é publicado. O `fetch` dava 404 em todos os ajustes, e o 404 aparecia
+   * no console como se fosse defeito. O que mudou já está gravado no próprio arquivo
+   * (`ajustes`, escrito no ato); a busca só serve a um arquivo de antes dessa regra, e aí o
+   * anterior é um nome que o pacote possa ter. */
   let anterior = null;
-  try {
-    const r = await fetch(P + d.ajuste_de);
-    if (r.ok) anterior = (await r.json()).aulas || {};
-  } catch (e) { /* o anterior não está acessível: declara-se só o que o JSON diz */ }
+  if (!Array.isArray(d.ajustes)) {
+    try {
+      const r = await fetch(P + d.ajuste_de);
+      if (r.ok) anterior = (await r.json()).aulas || {};
+    } catch (e) { /* o anterior não está acessível: declara-se só o que o JSON diz */ }
+  }
   return {
     de: d.ajuste_de, em: d.ajustado_em, por: d.ajustado_por, motivo: d.motivo,
     gravadas: Array.isArray(d.ajustes) ? d.ajustes : null,
@@ -967,7 +986,26 @@ async function gerarMd() {
     dizer('<span class="erro">preencha "Gerado por" para gerar o arquivo.</span>');
     return;
   }
-  const { texto, prov, recusa } = await mdDoFiltro();
+  /* O QUE FALHA APARECE NA TELA, E NOMEIA O GESTO QUE RESOLVE (06/11/2026).
+   *
+   * Sem este `try`, um ciclo que ainda não foi aberto (JSON cifrado, sem senha) fazia o clique
+   * morrer numa promessa rejeitada: a tela não dizia nada, o arquivo não descia, e no console
+   * ficava um erro sem dono. Foi o que ela viu no celular — «o Gerar .md do caderno também não
+   * faz nada». A mensagem do erro já diz o que falta; o que faltava era mostrá-la, e dizer onde
+   * se resolve. */
+  let feito;
+  try {
+    feito = await mdDoFiltro();
+  } catch (e) {
+    const cifrado = /sem senha|não abri|arquivo de dados inválido/i.test(String(e.message));
+    dizer(`<span class="erro">não gerei o arquivo: ${esc(e.message)}.</span>` +
+      (cifrado
+        ? ' <span class="fraco">Digite a <strong>senha da escola</strong> no alto da página e ' +
+          'clique em <strong>Abrir</strong> — o entregável sai dos dados já lançados.</span>'
+        : ''));
+    return;
+  }
+  const { texto, prov, recusa } = feito;
   // O filtro pode não sustentar o entregável escolhido: recusa dizendo o que falta, em
   // vez de baixar um arquivo que não corresponde a nada.
   if (recusa) { dizer(`<span class="erro">${esc(recusa)}</span>`); return; }
@@ -2340,7 +2378,13 @@ async function render() {
   // Modo captura (o filtro numa aula sem dado): a página é o formulário. Os resultados
   // da leitura NÃO aparecem junto — quem quer ler, filtra uma aula que já tem dado.
   if (emFormulario) {
-    out.innerHTML = '';
+    /* A ÁREA DE RESULTADOS DIZ PARA ONDE IR (06/11/2026). Ela ficava VAZIA neste modo, e o
+     * vazio não se distingue de «a página não abriu»: foi esse o relato — «o Abrir não abre
+     * nada». O formulário está no bloco «Lançar uma aula», logo acima; dizê-lo custa uma linha e
+     * devolve a orientação a quem chegou aqui sem saber que o modo mudou. */
+    out.innerHTML = '<p class="vazio">Esta aula ainda não tem lançamento. O formulário está no ' +
+      'bloco <strong>«Lançar uma aula»</strong>, acima — ou filtre uma aula que já tem dado, ' +
+      'para ler.</p>';
     if (el('paginacao')) el('paginacao').innerHTML = barra(1, 0);
     return;
   }
@@ -2361,8 +2405,13 @@ async function render() {
       // O cabeçalho do ciclo e LEITURA: as datas entram em `dd/mm/aaaa` (o ISO fica no
       // JSON, no nome do arquivo e no `type=date` da captura -- que e o unico lugar em que
       // ele PRECISA ser ISO, porque e o navegador que localiza o campo).
-      const cabecalho = `<h2>${selo(m)} <span class="fraco">${esc(Vistas.helpers.dataBr(m.inicio))} .. ${esc(Vistas.helpers.dataBr(m.fim))} · ` +
-        `${m.total_aulas} aulas no ciclo · ${aulas.length} no filtro</span></h2>`;
+      /* O PERÍODO ENTRE «a», E NÃO ENTRE DOIS PONTOS (06/11/2026). Estava `20/10/2026 ..
+       * 17/12/2026` — um sinal que não existe em mais nenhum lugar do sistema, e que a folha
+       * não tem como desenhar. A casa escreve «de … a …», e é assim que o plano e o índice
+       * publicados declaram o período. */
+      const cabecalho = `<h2>${selo(m)} <span class="fraco">${esc(Vistas.helpers.dataBr(m.inicio))} a ` +
+        `${esc(Vistas.helpers.dataBr(m.fim))} · ${m.total_aulas} aulas · ` +
+        `${aulas.length} no filtro</span></h2>`;
       if (aluna) blocos.push(cabecalho + blocoAluna(m, dados, aluna, aula, captura));
       else aulas.forEach((k) => blocos.push(cabecalho + blocoAula(m, dados, k, captura)));
     }
@@ -2420,20 +2469,32 @@ function pedirSenha(c, e) {
       : 'A senha digitada foi <strong>recusada</strong> — confira e clique em <strong>Abrir</strong>.') +
     '</div><p><button id="abrir-ciclo" type="button">Abrir</button> ' +
     '<span class="fraco">detalhe: ' + esc(e.message) + '</span></p>';
+  /* O «ABRIR» É LEITURA, E NÃO O PRÓXIMO LANÇAMENTO (06/11/2026). Quem clica «Abrir» quer ver o
+   * que está lançado — e `trocarCiclo` levava o filtro para a PRIMEIRA AULA SEM DADO (é o
+   * comportamento certo ao TROCAR de ciclo, onde o trabalho está). O resultado era cair no modo
+   * captura, que esvaziava os resultados: a sensação, medida no celular dela, foi «o Abrir não
+   * abre nada». O parâmetro separa os dois gestos. */
+  const abrir = () => { trocarCiclo({ abrir: true }); };
   const botao = el('abrir-ciclo');
-  if (botao) botao.addEventListener('click', () => { trocarCiclo(); });
+  if (botao) botao.addEventListener('click', abrir);
   const campo = el('senha');
   if (campo) {
     campo.focus();
     // Enter no campo da senha também abre — quem digita uma senha espera que funcione
     if (!campo.dataset.enter) {
       campo.dataset.enter = '1';
-      campo.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') trocarCiclo(); });
+      campo.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') abrir(); });
     }
   }
 }
 
-async function trocarCiclo() {
+async function trocarCiclo(modo) {
+  /* O PARÂMETRO NÃO SE CHAMA `opcoes`: `opcoes()` é a função que repovoa os filtros logo abaixo,
+   * e um parâmetro com esse nome a escurece dentro da função — o primeiro `opcoes()` passava a
+   * lançar «opcoes is not a function», e o «Abrir» morria antes de desenhar. Medido pela prova. */
+  // `abrir: true` vem do botão «Abrir» da senha — é LEITURA, e o filtro fica como está (ou em
+  // «todas as aulas»). Sem ele, é uma troca de ciclo, e o filtro vai para a aula que falta lançar.
+  const depoisDeAbrir = Boolean(modo && modo.abrir);
   const c = indice.ciclos.find((x) => x.id === sel.ciclo.value);
   // o período é informação, não filtro: aparece só com um ciclo escolhido — e em
   // `dd/mm/aaaa`, que é o formato de quem lê (o ISO fica no JSON e nos nomes de arquivo).
@@ -2464,7 +2525,7 @@ async function trocarCiclo() {
   opcoes();
   // Trocar de ciclo leva o filtro para a aula que falta lançar nele (é onde o trabalho
   // está). Para ler, é só filtrar outra aula — ou "(todas)".
-  sel.aula.value = c ? primeiraSemDado(c, cache[c.id].dados) : '';
+  sel.aula.value = (c && !depoisDeAbrir) ? primeiraSemDado(c, cache[c.id].dados) : '';
   renderCaptura();                  // o painel de captura é do filtro escolhido
   await render();
 }

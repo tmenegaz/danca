@@ -866,3 +866,10 @@ experimentos/modelo-formulario/*
 # depois), que o `depois` pede a geração sem derrubar a gravação, e — contraprova — que a chave de
 # ANTES, sem família, continua a cair no KV.
 !experimentos/provar-familia-do-lancamento.js
+# O «ABRIR» DO FORMULÁRIO (06/11/2026). A regra que valida o nome do `-dados.json` aceitava UM
+# segmento de variante, e a variante é `<escola>-<turma>` — todo ciclo de turma era recusado, com
+# a senha certa, e o «Gerar .md» morria sem dizer nada. A prova mede a regra única (aceita a
+# variante com hífens e recusa o que sai do slug), o leitor a devolver o ciclo em claro, o «Abrir»
+# a mostrar a leitura sem saltar para o lançamento, o «Gerar .md» a DIZER quando não gera — e a
+# contraprova, com a regra de antes, a reproduzir o defeito.
+!experimentos/provar-abrir-o-ciclo.js

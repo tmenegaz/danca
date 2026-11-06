@@ -54,6 +54,23 @@ function varianteDoNomeDeDados(nome) {
   return m ? m[1] : null;
 }
 
+/**
+ * O NOME DE UM ARQUIVO DE DADOS DO CICLO — a definição, num lugar só.
+ *
+ * A VARIANTE PODE TER HIFENS (06/11/2026). Ela é `<escola>-<turma>`
+ * (`calango-bale-nivel-1-teste-1`), e a primeira versão desta regra aceitava UM segmento
+ * (`(?:-[a-z0-9]+)?`): o Worker recusava o nome verdadeiro do ficheiro com «arquivo de dados
+ * inválido», e o «Abrir» do formulário nunca abria o ciclo — nem com a senha certa. O sintoma
+ * era mudo: a tela dizia «a senha foi recusada», e a senha não tinha culpa nenhuma.
+ *
+ * O nome é também o que PROTEGE a leitura de asset no Worker (a rota `/api/dados` recebe o nome
+ * do cliente): sem `/`, sem `..` e sem nada fora do alfabeto de slug, ele não alcança outro
+ * arquivo. Por isso a conferência é aqui — junto de quem COMPÕE o nome —, e não reescrita em
+ * cada chamador.
+ */
+const RE_NOME_DE_DADOS = /^ciclo-\d{2}(?:-[a-z0-9][a-z0-9-]*)?-dados(?:-\d{4}-\d{2}-\d{2}T\d{4})?\.json$/;
+const nomeDeDadosValido = (nome) => RE_NOME_DE_DADOS.test(String(nome || ''));
+
 const slugDe = (indice, dados) => {
   const c = (indice && indice.ciclos && indice.ciclos[0]) || {};
   if (c.professor) return String(c.professor);
@@ -161,4 +178,7 @@ async function lancar(armazenamento, corpo, opcoes) {
   return resultado;
 }
 
-module.exports = { lancar, basename, RE_DADOS, slugDe, varianteDoNomeDeDados };
+module.exports = {
+  lancar, basename, RE_DADOS, slugDe, varianteDoNomeDeDados,
+  RE_NOME_DE_DADOS, nomeDeDadosValido,
+};
