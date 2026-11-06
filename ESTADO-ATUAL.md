@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 06/11/2026 (árvore limpa, `28dfacde`). Nesta entrega, **o mapa de relações
+> **Última fotografia:** 06/11/2026 (árvore limpa, `d1901268`). Nesta entrega, **o lançamento da
+> aula deixou de ir para o KV** — que ninguém lê — e passou a gravar o `-dados.json` canónico no
+> repositório, **fundindo por aula** e **disparando a geração**. A causa do relato dela («a tela
+> disse lançada, e ao recarregar não havia aula nem caderno») era de uma linha: o armazenamento
+> roteia pela FAMÍLIA da chave, e o lançamento não tinha família. O que já estava no KV não se
+> perdeu: `POST /api/lancamentos/consolidar` resgata-o. E o `deploy-raiz` deixou de ser travado
+> pelos pacotes das escolas (`check-identidade --sem-pacotes`). Ver a decisão 118.
+>
+> **Fotografia anterior (06/11/2026, `28dfacde`).** Nesta entrega, **o mapa de relações
 > do ciclo nasceu** (`tools/gerar-relacoes.js` → `indices/relacoes/<prof>/<NN>-<variante>.json`):
 > **48 nós, 55 arestas, 0 lacunas** no ciclo real, e cada aresta **nomeia o campo que a produziu**.
 > O mapa **não nomeia aluna nenhuma** — a verificação 7 do `check-indices` obrigou a corrigir isso, e
@@ -2290,6 +2298,22 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      (carimbo `anamnese-AAAAMMDD-HHMM`), que não diz de quem é. A regra (c) não é preferência: é a
      verificação 7 do `check-indices`, e a primeira versão do gerador reprovou-a. **CONFIRMADO**
      pela prova `experimentos/provar-relacoes.js` (**35 asserções**, contraprova **2 de 35**).
+
+118. **O LANÇAMENTO DA AULA GRAVA NA FONTE, E A FONTE VAI EM CLARO.** A chave é
+     `lancamento/<escola>/<professor>/<ciclo>-<carimbo>/<nome>` e o destino é o `-dados.json`
+     canónico (`motor/servidor/acervo-lancamentos.js`), não o KV. **DECIDIDO** 06/11/2026, depois
+     de o relato dela mostrar o defeito: a aula «lançada» desaparecia ao recarregar porque o KV
+     **não é lido por nada** — tudo o que o sistema mostra deriva do repositório. Quatro regras que
+     não se negociam depois: (a) **a fonte vai em claro** — `ler_lancadas()` lê `aulas` do
+     ficheiro, e um `_cifrado` não tem `aulas`; quem cifra é a geração, ao montar o pacote;
+     (b) **a gravação funde por aula** — o cliente manda o ficheiro inteiro, e um separador velho
+     apagaria as aulas lançadas depois dele; (c) **a gravação dispara a geração** — o site serve o
+     pacote, e o pacote só muda quando ela corre; (d) **o `depois` não derruba o lançamento** — o
+     que está gravado fica gravado, e a resposta diz o que falta. A variante que o disparo leva é a
+     **declarada** (a que vem inteira no nome do ficheiro de dados), não a composta de
+     `escola + turma` — o lançamento não traz turma, e sem esta regra o pedido pedia o
+     `.conf`-esqueleto da escola e a geração morria. **CONFIRMADO** por
+     `experimentos/provar-familia-do-lancamento.js` (**32 asserções**, contraprova **6 de 32**).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

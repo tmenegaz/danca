@@ -720,6 +720,41 @@ ciclo, e o formulário continua sendo HTML + JavaScript, sem backend.
 > seguinte, `tools/gerar-ciclo.sh`), e o KV **não** é servido por GET. A redação de 29/09/2026
 > **não é apagada**: fica como o elo do que se decidiu com o Netlify.
 
+> **Nota de 06/11/2026 — a §7.3 fechou, e fechou pelo lado que resolve.** A pesquisadora lançou
+> uma aula pelo celular: a tela disse «aula lançada», e ao recarregar a aula não existia, nem
+> havia caderno. O dado não se perdeu — estava no KV, com o carimbo certo. **O que faltava era
+> quem o lesse**: tudo o que este sistema mostra deriva do repositório (o pacote, o índice de
+> aulas, o caderno, o relatório), e o KV não é lido por nada. A causa era de uma linha: o
+> armazenamento composto (`acervo-envelopes.js`, `combinar`) roteia pela FAMÍLIA da chave;
+> `envelope/` migrou para o repositório em 20/10/2026, e o lançamento, que não tinha família,
+> caiu no «resto».
+>
+> A consolidação, então, **não é um passo posterior: é o destino**. A chave passou a ser
+> `lancamento/<escola>/<professor>/<ciclo>-<carimbo>/<nome>` e o adaptador novo
+> (`motor/servidor/acervo-lancamentos.js`) grava o `-dados.json` **canónico** —
+> `professores/<prof>/ciclos/ciclo-NN-<variante>-dados.json`, o arquivo que `fonte_dados()`
+> resolve e que `ler_lancadas()` lê para derivar o estado da aula. «Cada estado do JSON é um
+> commit»: o histórico dos lançamentos é o do Git, e apagar o KV não apaga nada.
+>
+> Três consequências que valem registo. (1) **A fonte vai em CLARO**, como sempre foi: `ler_lancadas()`
+> lê `aulas` do ficheiro, e um `_cifrado` não tem `aulas` — cifrar a fonte faria o índice declarar
+> «não dada» uma aula dada. Quem cifra é a geração, ao montar a cópia pública. (2) **A gravação
+> funde por aula**: o cliente manda o ficheiro inteiro montado a partir do que leu, e um separador
+> aberto há dias apagaria as aulas lançadas desde então. (3) **A gravação passou a disparar a
+> geração**, porque o site serve o PACOTE e o pacote só muda quando ela corre — sem o disparo, a
+> fonte ficaria certa e o ecrã continuaria a mentir. E o que já estava no KV dos lançamentos
+> antigos não se perde: `POST /api/lancamentos/consolidar` lê-o, decifra-o com a `SENHA_CRIPTO` e
+> grava-o na fonte — um acto, não um serviço.
+>
+> **O caderno — onde ele nasce, para não se procurar no sítio errado.** O caderno é um
+> **entregável sob demanda** (§3.5): o formulário do lançamento, na Área do Professor, o **gera a
+> partir dos dados em memória** pelo botão «Gerar .md» (`Vistas.caderno`, em `tools/lib-vistas.js`),
+> e o professor o guarda no ciclo. Ele **não entra sozinho no pacote**: o menu «Acompanhamento» do
+> pacote só mostra `caderno-*` quando existe a fonte
+> `professores/<prof>/cadernos/ciclo-NN/caderno-NN-<escola>.md` (a vista de `gerar-vista.js` só
+> cobre hoje o `guia-de-observacao`). Ou seja: sem lançamento não há dado para gerar o caderno —
+> era o defeito acima; e com lançamento, o caderno sai do botão, não de uma publicação automática.
+
 ## Referências
 
 - `IDEIA-CAPTURA.md` — conceito (o "por quê")

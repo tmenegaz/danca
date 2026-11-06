@@ -38637,3 +38637,96 @@ relações (algumas ainda `prevista`): o gerador realiza as que já existem, nã
 **passa**; `gerar-indices.js --check` **12 arquivos em dia**; `check-indices` **16/16, 0 falha(s)**
 (com contraprova: mapa apagado → verificação 1 reprova); `provar-formulario-da-aula` **48/48**;
 `provar-indice-de-lancamentos` **24/24**; `check-identidade` **0 erros**.
+
+## 06/11/2026 — O lançamento ia para o KV, e o KV não é lido por ninguém
+
+**O relato dela, e ele é preciso:** *«Pelo celular, eu preenchi o envio do formulário do lançamento
+de aula e ele carregou para mim mostrando que a aula foi lançada. […] Só que quando eu recarrego a
+página, deixa de existir esse lançamento […] e também não gerou o caderno.»*
+
+**O dado não se perdeu — faltava quem o lesse.** A primeira coisa que se fez foi *procurar*, e não
+*concluir*. O KV `ciclos-escolas` tinha as duas chaves do lançamento:
+`calango/rabo-gramde/01-2026-11-06T1537/ciclo-01-calango-bale-nivel-1-teste-1-dados-2026-11-06T1537.json`
+e o `ciclos.json`, ambas cifradas com o `SENHA_CRIPTO` do Worker. Do lado do repositório,
+`professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json` continuava com
+`"aulas": {}`. **Os dois estavam certos, e o sistema lia o segundo.** Tudo o que se mostra deriva
+do repositório — o pacote publicado, o índice de aulas, o caderno, o relatório; o KV não é lido por
+nada. E o `ARQUITETURA-CAPTURA` já o declarava desde 29/09/2026: *«a consolidação dos lançamentos de
+volta para o repositório continua não existindo»*.
+
+**A causa, e é de uma linha.** O armazenamento composto (`acervo-envelopes.js` → `combinar`) roteia
+a escrita pela FAMÍLIA da chave: `envelope/` foi para o repositório em 20/10/2026; o lançamento, que
+não tinha família, caía no «resto» — o KV. A migração do KV para o repositório tinha sido feita para
+a anamnese, para o plano e para o PO; o lançamento ficou de fora, e ficou **a escrever para um sítio
+que ninguém consulta**, sem erro nenhum. Um escritor a quem ninguém lê não falha: mente.
+
+**O que mudou, e é no sítio onde se lê.** A chave ganhou família —
+`lancamento/<escola>/<professor>/<ciclo>-<carimbo>/<nome>` —, e um adaptador novo
+(`motor/servidor/acervo-lancamentos.js`) grava o **`-dados.json` canónico**:
+`professores/<prof>/ciclos/ciclo-NN-<variante>-dados.json`. É o arquivo que `fonte_dados()` de
+`tools/lib-fontes.sh` resolve, que `ler_lancadas()` do `gerar-ciclo.sh` lê para derivar o estado da
+aula, e que o «Guardar» do PO já escrevia. «Cada estado do JSON é um commit»: o histórico dos
+lançamentos é o do Git — apagar o KV deixa de apagar nada.
+
+**Três decisões que esta correção obrigou a tomar, e as razões delas:**
+
+1. **A fonte vai em CLARO.** Enquanto o destino era o KV, o lançamento ia cifrado, e estava certo.
+   Agora o destino é a fonte, e ela tem de estar em claro — `ler_lancadas()` lê `aulas` do ficheiro,
+   e um `_cifrado` não tem `aulas`: a aula dada seria declarada «não dada» pelo índice, que é
+   exactamente o defeito que se estava a corrigir. Quem cifra é a geração, ao montar a cópia
+   pública (`cifrar-envelope.js`) — a mesma divisão do `-dados.json` desde o princípio.
+2. **A gravação funde por aula.** O cliente manda o ficheiro INTEIRO montado a partir do que leu;
+   sem fusão, lançar a aula 03 num separador aberto há três dias apagava a aula 06. A fusão é por
+   `aulas[nn]`, a que chega vence a dela (é o ajuste), e as outras ficam. Um campo da raiz em falta
+   no que chega **não é um campo apagado**: a raiz começa na que já estava e é sobreposta.
+3. **A gravação passou a DISPARAR a geração.** O site serve o PACOTE, e o pacote só muda quando a
+   geração corre (dois a três minutos). Sem o disparo, a fonte ficaria certa e o ecrã continuaria a
+   mostrar a versão anterior — o mesmo sintoma, uma camada abaixo. O `depois` não derruba o
+   lançamento: se o disparo falhar, a resposta diz isso, e o que está gravado continua gravado.
+
+**E o que já estava no KV não se perdeu.** `POST /api/lancamentos/consolidar` lê o armazenamento
+antigo, decifra com a `SENHA_CRIPTO` do Worker e grava na fonte. É um **acto, e não um serviço**:
+corre quando alguém o pede, diz o que consolidou, e não apaga as chaves de origem — uma migração que
+apaga não pode ser repetida, e é a repetição que garante que um erro de percurso não custou o dado.
+
+**A prova:** `experimentos/provar-familia-do-lancamento.js`, **32 asserções**. Mede que a chave tem
+família e que o composto real (`combinar`) a entrega ao repositório **e não ao KV** (com um KV de
+mentira que registra o que lhe tentam escrever), que o destino é o caminho do `fonte_dados()` — lido
+do próprio `lib-fontes.sh`, não repetido à mão —, que a fusão preserva a aula que já estava, que o
+`depois` recebe a **variante** (sem ela o disparo não sabe que pacote gerar), que um disparo falhado
+não desfaz a gravação, que o `ciclos.json` do cliente **não** vai para o repositório (é gerado), e
+que o mesmo carimbo duas vezes não escreve duas. **Contraprova: 6 de 32** — tirar a família da chave
+(o estado de antes) reprova a secção A inteira, e o KV volta a engolir o lançamento.
+
+**A segunda metade do mesmo defeito, apanhada pela prova e não pelo relato.** Gravar na fonte é
+metade; a outra é a geração saber **que pacote** regenerar. O contexto do lançamento não traz
+`turma`, e `varianteDoContexto` compunha só `escola + turma` — devolvia `calango`, não
+`calango-bale-nivel-1-teste-1`. O disparo pedia o `.conf`-esqueleto da escola (`DOCS=""`), a geração
+morria com «DOCS está vazio», e o ecrã continuava a mostrar a aula por lançar — exactamente o
+sintoma, uma camada abaixo. `varianteDoContexto` passou a deixar **a variante declarada vencer** a
+composição (a do lançamento vem inteira no nome do ficheiro de dados), e a secção **G** da prova
+mede os dois inputs do disparo e o rótulo da execução, que é a chave pela qual a tela acha o run.
+
+**A segunda falha do relato, e ela é independente: o «erro no `main`».** Os deploys de 06/11/2026 às
+18:19 reprovaram em «Conferir a identidade», com
+`Circuito: professores/rabo-gramde/ciclos/ciclo-01-…/assets/style.css divergiu de tools/templates/ciclo.css`.
+A conferência estava certa e a altura estava errada: o commit que o deploy tinha à frente trazia a
+folha nova e o pacote ainda velho, porque o `gerar-ciclo` concorrente só commitou o pacote regenerado
+um segundo depois — **duas escritas assíncronas, e o deploy perdeu a corrida**. Pior: o
+`deploy-raiz` publica `raiz/` e não publica pacote nenhum, e ficou impedido por um ficheiro que não
+serve, com uma mensagem a pedir a outra pessoa que regenere o pacote. `check-identidade.js` ganhou
+`--sem-pacotes`, e **só** o `deploy-raiz` o usa: quem publica pacotes (`deploy-escolas`) continua a
+conferir tudo, e o hook de pré-commit — onde o pacote é regenerado no mesmo acto — também.
+
+**Uma nota que fica, e é de dívida:** `workers/receber.js` é código morto que **duplica** este
+contrato e não confere senha nenhuma (o `wrangler.<escola>.jsonc` aponta para `workers/principal.js`
+→ `producao.js`). O comentário dele diz que é ele que atende `/api/receber` em produção, e não é. Fica
+registado; apagá-lo é um passo próprio, com a prova do `recredenciamento` da escola a correr antes.
+
+**Validação:** `provar-familia-do-lancamento` **32/32**, contraprova **6/32**; `check-identidade`
+**0 erros** (e `--sem-pacotes` **0 erros**); `check-indices` **16/16**; `check-github-headers`
+**5/5**; `check-pacote` **0 erro(s), 0 aviso(s)**; `provar-senha-do-lancamento` **19/19**;
+`provar-relacoes` **35/35**; `provar-indice-de-lancamentos` **24/24**; `provar-formulario-da-aula`
+**48/48**. Duas provas reprovam por motivo **anterior a esta entrega** e ficam declaradas:
+`provar-cartao-da-turma` (2 falhas) e `provar-declaracoes-do-indice` (`recorte.$versoes` sem
+tipo/acesso/obrigatoriedade no `indices/esquema/tipos.json`).
