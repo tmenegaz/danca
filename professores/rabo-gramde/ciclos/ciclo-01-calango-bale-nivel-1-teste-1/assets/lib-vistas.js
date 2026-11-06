@@ -80,6 +80,30 @@ function mdSim(v) { return v === true ? 'sim' : v === false ? 'não' : '—'; }
 // (`alinhamento · tempo · transferência · braço-perna` e `tônus · fadiga antes do previsto`): eram
 // os do Duo, mentiam nos outros ciclos, e não deixavam a vista ver os blocos que o ciclo declara
 // além da técnica e do funcional (a musicalidade, a linha de base, e o Par do Ritmos).
+// ------------------------------------------------------- A CHAVE DE UM ITEM (06/11/2026)
+/**
+ * A CHAVE DE UM ITEM — a forma com que o índice de lançamentos o reconhece ENTRE AULAS.
+ *
+ * PORQUE EXISTE. O `rotulo` é redação e muda quando a redação muda; a `chave` é contrato e não
+ * muda. É a mesma distinção que o schema da captura já declara à mão («a folha continua sendo a
+ * fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES»). Só que os itens da linha de
+ * base — os quatro aspectos do recorte do passo 4 — não estão nessa declaração: nascem do PO, a
+ * cada ciclo, e não há quem os declare à mão. Sem chave, `marcas` do índice não encadeia nada: a
+ * mesma marca em duas aulas seriam duas linhas sem nada em comum.
+ *
+ * A REGRA NÃO É NOVA — é a que o projeto já usa. Aplicada aos rótulos que a declaração do schema
+ * traz, ela reproduz as 11 chaves declaradas, uma por uma (medido em
+ * `experimentos/provar-indice-de-lancamentos.js`). É por isso que ela vive AQUI e não no
+ * formulário: a página e o gerador usam a mesma função, e não há duas regras a divergir.
+ *
+ * O QUE ELA NÃO É: não é um `slug` de URL, não traduz, não abrevia. Só tira o acento, baixa a
+ * caixa e troca o que não é letra nem algarismo por `_`. «1ª posição — braços» →
+ * `1_posicao_bracos`.
+ */
+const chaveDoItem = (texto) => String(texto == null ? '' : texto)
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+
 // ---------------------------------------------------------------- AS MARCAS DA AULA (06/11/2026)
 // `observado` — o que se marcou por EIXO ao fim da aula. Saem em lista porque é assim que se lê:
 // o eixo, e o que aconteceu em cada item dele. O item em BRANCO não vira «nada»: vira «não
@@ -753,6 +777,7 @@ const Vistas = {
     blocosDaCaptura,
     marcasDaPessoa,
     linhaDoBloco,
+    chaveDoItem,
     mdValor,
     estruturaDaAula,
     volumeDosBlocos,

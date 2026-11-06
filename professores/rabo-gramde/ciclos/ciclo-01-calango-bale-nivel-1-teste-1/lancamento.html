@@ -1856,11 +1856,17 @@ function coletarCaptura(dados) {
       // função. Foi a divergência entre as duas que manteve este bloco morto por meses: o
       // formulário procurava no PO uma lista por aluna (`precisaDesenvolver`) que o PO nunca teve,
       // e o campo aparecia vazio com «o PO não declara linha de base dela» para toda a gente.
+      // A CHAVE É GRAVADA UMA VEZ, AQUI, e nunca recalculada: é ela que o índice de lançamentos usa
+      // para reconhecer o MESMO aspecto em aulas diferentes («em quantas aulas ela demorou a
+      // estabilizar o adágio?»). O texto vai ao lado, porque é o que o professor leu.
       const itens = eixosDoPo(pecas.po).corpo.itens;
       const porPessoa = {};
       presentes.forEach((k) => {
-        const marcas = itens.map((x, j) => ({ item: x.item, marca: lerValor(`lb-${k}-${j}`,
-          (b.colunas[0] || {}).tipo || 'marca') }));
+        const marcas = itens.map((x, j) => ({
+          chave: Vistas.helpers.chaveDoItem(x.item),
+          item: x.item,
+          marca: lerValor(`lb-${k}-${j}`, (b.colunas[0] || {}).tipo || 'marca'),
+        }));
         if (marcas.length) porPessoa[k] = marcas;
       });
       if (Object.keys(porPessoa).length) blocosGravados[b.chave] = porPessoa;
