@@ -318,7 +318,7 @@ quer o número medido roda o validador.
 node tools/check-identidade.js
 ```
 
-## O validador, e as suas nove checagens
+## O validador, e as suas dez checagens
 
 `tools/check-identidade.js` não tem dependências externas e sai com código 1 se algo
 falhar. Ele confere:
@@ -374,6 +374,13 @@ falhar. Ele confere:
    ninguém conferia contra a fonte, e as duas podiam divergir em silêncio: a folha a dizer uma
    coisa, o validador a medir outra, e os dois a passar. É o mesmo princípio do «Declarante»,
    aplicado às famílias em vez dos tokens.
+10. **Respiro** — o cabeçalho declara o **ar** que o separa da barra e da linha da sombra, e
+   declara-o em `padding`. Lê a folha, resolve `var(--esp-3)` em px e reprova abaixo de **12px**
+   — e reprova também o ar posto em `margin-top`, porque `position: sticky` descarta a margem
+   exactamente no estado em que o professor está a ler. Nasceu em 06/11/2026, do relato «os
+   botões estão colados na margem superior»: medido, o `h1` começava a 0,3px da barra e o botão
+   acabava a 0px da linha, com as **nove** checagens anteriores em verde e **27** asserções de
+   navegador a dizer `ok`. Todas mediam **presença**; o defeito era de **distância**.
 
 ### A regra da composição — o que a «Forma» impede *(18/10/2026)*
 
@@ -1071,6 +1078,59 @@ folha própria. `nav.js` põe a classe onde ela falta; o template a declara onde
 390: nasce destravado, prende-se ao rolar, encolhe, a altura reservada é a medida, a âncora chega
 inteira, sem JS nada fica preso, a folha de captura fica de fora, no papel sai inteiro, e não há
 estouro horizontal. Contra o `HEAD` anterior, **13 falham** — as seis do título e as da barra.
+
+## O cabeçalho respira — e o respiro é padding *(06/11/2026)*
+
+A dona do produto abriu o **plano para a Aula 01** e disse duas frases: «os botões estão colados
+na margem superior» e «o botão Abrir notação está completamente colado na linha». Não era
+impressão. Medido no documento real, com a folha daquele dia:
+
+| Onde | Antes | Depois |
+| --- | --- | --- |
+| do fundo da barra ao topo do `h1`, preso, 1280px | **0,3px** | **12px** |
+| do fundo da barra ao topo do `h1`, preso, 390px | **0px** | **12px** |
+| do fundo do botão à linha da sombra, preso | **0px** | **12px** |
+| do fundo do botão a `<main>` | 8px | 12px |
+| altura do cabeçalho preso, 1280px | 63px | 87px |
+| altura do cabeçalho preso, 390px | 84px | 108px |
+| o mesmo, no plano de ensino e no lançamento, preso | 0,3px e 0,5px | 12px |
+
+**A causa não é visual — é de caixa.** O ar que existia era um `margin-top: 8px` no `header.doc`.
+Uma margem fica **fora** da caixa, e o `position: sticky` com `top: var(--header-height)` põe a
+**caixa** encostada à barra e **descarta a margem**. Ou seja: o ar valia com a página no topo e
+desaparecia exactamente no estado em que o professor passa a maior parte do tempo — a rolar. O
+mesmo raciocínio do outro lado: sem `padding-bottom`, o último controle acabava na aresta
+inferior da caixa, e é essa aresta que desenha a sombra.
+
+**A regra.** O respiro é `--esp-3` (12px) acima e abaixo, e é **padding**, porque o padding mora
+dentro da caixa — que é quem se prende e quem desenha a linha. Vale para os dois lugares que o
+mesmo mecanismo prende, numa declaração só:
+
+```css
+header.doc, .titulo-fixo { padding-top: var(--esp-3); padding-bottom: var(--esp-3); }
+header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
+```
+
+O `> :last-child { margin-bottom: 0 }` existe para o vão de baixo ter **um** responsável: com a
+margem do último `<p>` (8px) ainda lá dentro, o ar seriam 20px em uns documentos e 12px noutros,
+conforme o último filho fosse um `<p>` ou uma `.ficha`.
+
+**A lição, e é a mesma de sempre.** As nove checagens passavam, e as **27 asserções** da
+`experimentos/provar-titulo-e-barra.js` davam todas `ok` com o título a 0,3px da barra. O que a
+bancada media era **presença** — «está preso?», «está à vista?», «o alvo chega inteiro?» — e o
+defeito era de **distância**. Um título colado à barra está preso, está à vista e o alvo chega
+inteiro. Nenhuma das perguntas que se faziam podia vê-lo.
+
+**Onde passa a estar guardado, em dois sítios que se completam:**
+
+| O que | Quem | O que garante |
+| --- | --- | --- |
+| a **declaração** | checagem **10 «Respiro»** do `tools/check-identidade.js` | roda no `pre-commit` e antes de cada deploy: lê a folha, resolve o token em px e reprova abaixo de 12px — e reprova também o ar posto em `margin-top`, que é o erro que aqui se cometeu |
+| a **geometria** | `experimentos/provar-titulo-e-barra.js` (31 asserções) | mede num navegador, em 1280 e em 390, preso e no topo: as duas distâncias têm de ser ≥ 12px. Contra a folha de antes, **4 falham** — as quatro novas |
+
+A escala é a da casa e não se inventa um número: o valor é `--esp-3`, o mesmo `padding` do `.res`
+e do `.aviso`. O que muda é o que ele protege — aqui, a distância entre um controle e a linha que
+o corta.
 
 ## A barra do lançamento no celular *(21/10/2026)*
 

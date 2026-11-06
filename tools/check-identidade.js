@@ -18,6 +18,12 @@
  *   3) o circuito: o ciclo.css chegou mesmo ao pacote (assets/style.css idêntico),
  *      e o nav.js também — sem isso a página fica sem barra e sem menu.
  *
+ * …e mais sete, cada uma com o caso que a criou escrito ao lado: 4) «Declarantes»,
+ * 5) «Circuito» (as cópias), 6) «a porta de cada pacote», 7) «Forma», 8) «Peça»,
+ * 9) «Famílias», 10) «Respiro» — esta última nasceu em 06/11/2026, quando as nove
+ * anteriores passaram todas com o título do cabeçalho a 0,3px da barra: elas mediam
+ * PRESENÇA, e o defeito era de DISTÂNCIA.
+ *
  * Sai com código 1 se o contraste falhar ou se um hex solto reaparecer.
  */
 
@@ -1230,6 +1236,118 @@ function conferirArestas() {
   }
 }
 conferirArestas();
+
+// ------------------------------------------- 10) o respiro do cabeçalho
+//
+// O CASO QUE CRIOU ESTA CHECAGEM (06/11/2026). A dona do produto abriu o plano da aula 01 e
+// disse o que se lê em duas linhas: «os botões estão colados na margem superior» e «o botão
+// Abrir notação está completamente colado na linha». Medido, era literal: no estado PRESO o
+// `h1` começava a **0,3px** da barra (0px no celular) e o botão acabava a **0px** da linha
+// da sombra. A causa é uma só e não tem nada de visual: `position: sticky` + `top` põe a
+// CAIXA encostada à barra e **descarta a margem** — o `margin-top: 8px` que ali estava só
+// valia com a página no topo, e no estado que o professor mais vê (a rolar) ele desaparecia.
+// O ar tem de ser `padding`, que mora DENTRO da caixa, e é a caixa que se prende.
+//
+// PORQUE É UMA CHECAGEM, E NÃO SÓ UM COMENTÁRIO NA FOLHA. Nove checagens passavam com o
+// defeito à vista: a «Peça» pergunta se a classe é desenhada, a «Forma» se algum valor foi
+// copiado, a «Aresta» se sobra um lado de moldura — nenhuma pergunta «quanto ar tem». O
+// `experimentos/provar-titulo-e-barra.js` passou a medir a geometria num navegador (é a
+// medida que vale), mas uma bancada corre quando alguém se lembra. Esta corre a cada commit,
+// pelo `pre-commit`, e é a que impede o valor de voltar a 0 sem ninguém notar.
+//
+// A REGRA. O respiro é `--esp-3` (12px) ou mais, acima e abaixo, em dois lugares que o
+// mesmo mecanismo prende: `header.doc` (documentos pandoc) e `.titulo-fixo` (o lançamento).
+// E não pode ser margem: uma margem no `header.doc` não separa nada no estado preso — é o
+// erro que esta checagem existe para não repetir.
+const RESPIRO_MINIMO = 12;
+function conferirRespiro() {
+  const problemas = [];
+  const texto = semComentarios(fs.readFileSync(fonte, 'utf8'), 'ciclo.css');
+
+  /** Os tokens de espaço, em px — a escala é a fonte, e não se repete o número. */
+  const escala = new Map();
+  for (const m of texto.matchAll(/(--esp-\d)\s*:\s*(\d+)px/g)) escala.set(m[1], Number(m[2]));
+
+  /** Um valor de espaçamento em px, resolvido pelo token quando ele é um token. */
+  const emPx = (valor) => {
+    const v = (valor || '').trim();
+    if (!v) return null;
+    const token = /^var\(\s*(--[a-z0-9-]+)\s*\)$/.exec(v);
+    if (token) return escala.has(token[1]) ? escala.get(token[1]) : null;
+    const px = /^(\d+(?:\.\d+)?)px$/.exec(v);
+    return px ? Number(px[1]) : null;
+  };
+
+  /** O comprimento de um `padding` em shorthand: 1 a 4 valores, na ordem do CSS. */
+  const doShorthand = (valor) => {
+    const partes = (valor || '').trim().split(/\s+(?![^()]*\))/);
+    if (!partes.length) return { topo: null, fundo: null };
+    const topo = partes[0];
+    const fundo = partes.length === 1 ? partes[0]
+      : partes.length === 2 ? partes[0]
+        : partes.length === 3 ? partes[2] : partes[2];
+    return { topo, fundo };
+  };
+
+  /** A última declaração de cada propriedade nas regras cujo seletor toca o alvo. */
+  const arDoAlvo = (alvo) => {
+    const achado = { topo: null, fundo: null, margemTopo: null, de: '' };
+    for (const m of texto.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const seletores = m[1].split(',');
+      // SÓ O COMPOSTO FINAL: `header.doc h1 { padding-bottom: 8px }` não é o ar do cabeçalho —
+      // é o do título dentro dele. Medir o seletor inteiro dava 8px e 4px, e reprovava o certo.
+      if (!seletores.some((s) => new RegExp(alvo + '(?![\\w-])').test(alvoDaRegra(s)))) continue;
+      for (const d of m[2].split(';')) {
+        const i = d.indexOf(':');
+        if (i < 0) continue;
+        const prop = d.slice(0, i).trim().toLowerCase();
+        const val = d.slice(i + 1).trim();
+        if (!prop || !val) continue;
+        if (prop === 'padding') {
+          const s = doShorthand(val);
+          achado.topo = s.topo; achado.fundo = s.fundo;
+        } else if (prop === 'padding-top') achado.topo = val;
+        else if (prop === 'padding-bottom') achado.fundo = val;
+        else if (prop === 'margin-top') achado.margemTopo = val;
+        achado.de = m[1].trim().replace(/\s+/g, ' ');
+      }
+    }
+    return achado;
+  };
+
+  const medidos = [];
+  for (const [alvo, nome] of [['header\\.doc', 'header.doc'], ['\\.titulo-fixo', '.titulo-fixo']]) {
+    const ar = arDoAlvo(alvo);
+    const topo = emPx(ar.topo);
+    const fundo = emPx(ar.fundo);
+    medidos.push({ nome, topo, fundo });
+    if (topo == null || fundo == null) {
+      problemas.push(`Respiro: «${nome}» não declara o ar do cabeçalho — ` +
+        `\`padding-top\` e \`padding-bottom\` têm de ser var(--esp-3) ou mais (ver «O cabeçalho ` +
+        'respira» em IDENTIDADE-VISUAL.md)');
+      continue;
+    }
+    if (topo < RESPIRO_MINIMO || fundo < RESPIRO_MINIMO) {
+      problemas.push(`Respiro: «${nome}» guarda ${topo}px acima e ${fundo}px abaixo — o mínimo ` +
+        `é ${RESPIRO_MINIMO}px (\`--esp-3\`). Abaixo disso o título encosta na barra e o último ` +
+        'controle encosta na linha da sombra, que é o defeito de 06/11/2026');
+    }
+    // O AR NÃO PODE SER MARGEM: no estado preso o `position: sticky` descarta-a, e o
+    // cabeçalho fica colado à barra exactamente quando o professor está a ler.
+    const margem = emPx(ar.margemTopo);
+    if (margem && margem > (topo || 0)) {
+      problemas.push(`Respiro: «${nome}» separa-se da barra com \`margin-top: ${ar.margemTopo}\` e ` +
+        'não com padding — no estado preso a margem é descartada e o título encosta na barra');
+    }
+  }
+
+  for (const p of problemas) erros.push(p);
+  if (!problemas.length) {
+    ok.push('Respiro: o cabeçalho declara ' + medidos.map((m) => `${m.nome} ${m.topo}/${m.fundo}px`).join(', ')
+      + ' de ar acima e abaixo, em padding — o mínimo é ' + RESPIRO_MINIMO + 'px');
+  }
+}
+conferirRespiro();
 
 // -------------------------------------------------------------------- saída
 

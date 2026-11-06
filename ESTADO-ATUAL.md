@@ -4158,6 +4158,22 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-corpo-da-linha-de-base` **31/31**; `check-identidade` **0 erros**; `check-indices`
   **16/16**; `check-pacote` do ciclo **0/0**; `gerar-ciclo.sh` completo **0 erro(s)**.
 
+- **06/11/2026** — **O cabeçalho respira, e o respiro é padding.** *«Os botões estão colados na
+  margem superior e o botão Abrir notação … completamente colado na linha.»* Medido no documento
+  real: no estado **preso** o `h1` começava a **0,3px** da barra (**0px** no celular) e o botão
+  acabava a **0px** da linha da sombra. A causa é de caixa, não visual: o ar era um `margin-top: 8px`,
+  e `position: sticky` põe a **caixa** na barra e **descarta a margem** — o ar só existia com a
+  página no topo. O respiro passou a `padding` (`--esp-3`, 12px acima e abaixo) numa declaração para
+  os dois sítios que o mecanismo prende (`header.doc` e `.titulo-fixo`), e o último filho perde a
+  margem inferior para o vão ter um responsável só. Resultado medido: **12/12px** no plano da Aula
+  01, no plano de ensino e no lançamento, nas duas larguras. **Registado em dois sítios, como ela
+  pediu:** a secção «O cabeçalho respira» no `IDENTIDADE-VISUAL.md` (com a tabela antes/depois) e a
+  checagem **10 «Respiro»** do `tools/check-identidade.js`, que roda no `pre-commit` e reprova o ar
+  abaixo de 12px **e** o ar posto em margem. **A lição:** as nove checagens e as 27 asserções da
+  bancada davam todas `ok` com o título a 0,3px da barra — mediam presença, e o defeito era de
+  distância. Medido: `provar-titulo-e-barra` **31/31**, contraprova contra `HEAD` **4/31** (as quatro
+  novas); `check-identidade` **0 erros**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

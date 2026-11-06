@@ -37951,3 +37951,67 @@ todas à vista. **E2**: sem o mapa de carimbos, degrada em vez de partir.
 **0 erros** (as 20); `check-indices` **16/16**; `check-schemas` ok; `check-pacote` do ciclo
 **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)** — e o HTML publicado tem o
 selector, o PDF não tem nenhum vestígio dele, e a frase fica nos dois.
+
+## 06/11/2026 — «Os botões estão colados na margem superior»: o respiro do cabeçalho, e a distância que nenhuma checagem media
+
+**O relato, e é literal.** *«O plano para a aula um não está seguindo o que determinamos como
+identidade visual. Os botões estão colados na margem superior e o botão Abrir notação também está
+sem espaço na margem inferior, está completamente colado na linha.»*
+
+**A medida, antes de qualquer correção.** No documento real da Aula 01, com a folha daquele dia
+(1280×900 e 390×844, Chrome headless, o `assets/style.css` servido da fonte):
+
+| Onde | Antes | Depois |
+|:--|:--|:--|
+| do fundo da barra ao topo do `h1`, **preso**, 1280px | **0,3px** | **12px** |
+| … idem, 390px | **0px** | **12px** |
+| do fundo do botão à linha da sombra, preso | **0px** | **12px** |
+| do fundo do botão a `<main>` | 8px | 12px |
+| altura do cabeçalho preso, 1280 / 390 | 63 / 84px | 87 / 108px |
+| o mesmo, **preso**, no plano de ensino e no lançamento | 0,3px e 0,5px | 12px |
+
+**A causa não é visual, é de caixa.** O ar que existia era um `margin-top: 8px` no `header.doc`. A
+margem fica **fora** da caixa, e `position: sticky` com `top: var(--header-height)` põe a **caixa**
+encostada à barra e **descarta a margem**: o ar valia com a página no topo e desaparecia no estado em
+que o professor passa a maior parte do tempo — a rolar. Do outro lado, sem `padding-bottom` o último
+controlo acabava na aresta inferior, que é a aresta que desenha a sombra.
+
+**A regra, na folha (`tools/templates/ciclo.css`).** O respiro é `--esp-3` (12px) acima e abaixo, e é
+**padding**, porque o padding mora dentro da caixa — que é quem se prende e quem desenha a linha.
+Uma declaração, os dois sítios que o mesmo mecanismo prende:
+
+```css
+header.doc, .titulo-fixo { padding-top: var(--esp-3); padding-bottom: var(--esp-3); }
+header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
+```
+
+O `> :last-child` existe para o vão de baixo ter **um** responsável: com a margem do último `<p>`
+(8px) ainda lá dentro, o ar seriam 20px nuns documentos e 12px noutros, conforme o último filho.
+
+**E o que se registou para não se repetir — dois sítios, e eles completam-se.**
+
+1. **`IDENTIDADE-VISUAL.md`** ganhou a secção *«O cabeçalho respira — e o respiro é padding
+   (06/11/2026)»*, com a tabela acima (antes/depois, nas duas larguras), a causa, a regra e a
+   lição. A lista do validador passou de nove para **dez** checagens.
+2. **`tools/check-identidade.js`** ganhou a checagem **10 «Respiro»**: lê a folha, resolve
+   `var(--esp-3)` em px e reprova abaixo de **12px** — e reprova também o ar posto em `margin-top`,
+   que é exactamente o erro que aqui se cometeu. Ela corre no `pre-commit` e antes dos deploys.
+
+**A lição, e é a que justifica a checagem.** As nove checagens passavam e as **27** asserções da
+`provar-titulo-e-barra` diziam todas `ok` com o título a 0,3px da barra. O que se media era
+**presença** — «está preso?», «está à vista?», «o âncora chega inteiro?». Um título colado à barra
+está preso, está à vista, e o âncora chega inteiro. **O defeito era de distância, e nada perguntava
+por distância.**
+
+**Com o quê.** `provar-titulo-e-barra` passa de **27** para **31** asserções: as duas distâncias
+medidas em navegador (barra→`h1` e último controlo→linha), em 1280 e em 390, presas e no topo. A
+régua antiga do celular («menos de 10% da tela») deixou de exprimir o que se quer — com o respiro o
+cabeçalho preso mede 108px, 12,8% — e passou a ser a **proporção entre os dois estados do mesmo
+cabeçalho** (≤ 55%), que não depende do corpo do título nem de quantas linhas ele quebra.
+
+**Contraprova.** Contra a folha de `HEAD`, a prova **reprova 4 de 31** — as quatro novas, e só elas.
+
+**Medido.** `provar-titulo-e-barra` **31/31** (contraprova **4/31**); `check-identidade` **0 erros**
+com a checagem «Respiro» a declarar `header.doc 12/12px, .titulo-fixo 12/12px`; `check-indices`
+**16/16**; `check-schemas` ok; `check-pacote` do ciclo **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh`
+completo **0 erro(s)**.

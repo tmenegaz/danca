@@ -28,6 +28,10 @@
  *         passa da barra — ele está PRESO, e não apenas a caminho;
  *      3. …e ENCOLHE: o `h1` desce de corpo, o subtítulo e a ficha saem, e a altura que
  *         ele ocupa cai (medida, nos dois tamanhos de tela);
+ *      3b. …e RESPIRA, preso ou não (`06/11/2026`): há `--esp-3` (12px, medido) entre a
+ *         barra e o título e entre o último controle e a linha da sombra. Sem esta medida
+ *         as 27 asserções de então davam todas ok com o `h1` a 0,3px da barra — elas
+ *         mediam presença, e o defeito era de distância;
  *      4. `--titulo-preso` é a altura MEDIDA, e o `scroll-padding-top` passou a incluí-la —
  *         é o que impede a âncora de parar debaixo do título;
  *      5. o alvo de «Nesta página» chega INTEIRO: o topo dele fica abaixo do fundo do
@@ -150,6 +154,16 @@ const MEDIR_TITULO = () => {
       const b = botao.getBoundingClientRect();
       return b.top >= 0 && b.bottom <= window.innerHeight;
     })(),
+    /* O AR DO CABEÇALHO (06/11/2026) — a medida que faltava, e a razão de o defeito ter
+     * passado: tudo o que se media aqui era PRESENÇA (está preso? está à vista?), e nada
+     * media DISTÂNCIA. Com o `h1` a 0,3px da barra e o botão a 0px da linha da sombra, as
+     * 27 asserções anteriores davam todas ok. */
+    vaoDaBarra: Math.round(h1.getBoundingClientRect().top - (barra ? barra.getBoundingClientRect().bottom : 0)),
+    vaoDoFundo: (() => {
+      const acoes = [...cab.querySelectorAll('a.acao, button')];
+      const ultimo = acoes.length ? acoes[acoes.length - 1] : cab.lastElementChild;
+      return ultimo ? Math.round(caixa.bottom - ultimo.getBoundingClientRect().bottom) : null;
+    })(),
     posicao: getComputedStyle(cab).position,
     alturaDaTela: window.innerHeight,
     estouro: r.scrollWidth - r.clientWidth,
@@ -236,8 +250,16 @@ const MEDIR_BARRA = () => {
 
   provar('o mecanismo está ligado, e o documento NASCE sem encolher',
     topo1280.fixo === 'sim' && topo1280.encolhido === 'nao', topo1280);
-  provar('…e no topo o cabeçalho ainda não está preso (é o começo de sempre)',
-    topo1280.posicao === 'sticky' && topo1280.topoCabecalho > topo1280.barraAltura + 4, topo1280);
+  /* A CAIXA COMEÇA ONDE A BARRA ACABA, E O AR É POR DENTRO (06/11/2026). Antes esta
+   * asserção exigia `topoCabecalho > barraAltura + 4`: os 8px que separavam o cabeçalho da
+   * barra vinham de um `margin-top`, e a margem fica FORA da caixa. Só que `position: sticky`
+   * descarta a margem — no estado preso o `h1` encostava na barra (0,3px, medido). O ar
+   * passou para dentro (padding, `--esp-3`), e então a borda da caixa coincide com a barra e
+   * é o TÍTULO que guarda a distância: o que o olho mede é ele, e é ele que se prova aqui. */
+  provar('…e no topo o cabeçalho está no lugar de sempre, com o título a 12px da barra',
+    topo1280.posicao === 'sticky'
+    && Math.abs(topo1280.topoCabecalho - topo1280.barraAltura) <= 2
+    && topo1280.vaoDaBarra >= 12, topo1280);
   /* O SUBTÍTULO E A FICHA SAÍRAM DOS DOCUMENTOS (28/10/2026), e a asserção acompanha: o que se
    * prova é que, QUANDO existem, estão à vista no topo — nada é escondido sem rolar. Na aula de
    * hoje já não existem; a proposição fica verdadeira, e volta a medir no dia em que voltarem. */
@@ -259,10 +281,23 @@ const MEDIR_BARRA = () => {
   /* O CABEÇALHO PRESO CARREGA O BOTÃO DO DOCUMENTO (28/10/2026). «Abrir notação», na aula, e
    * «Abrir glossário», na notação: o botão fica preso com o título, e é isso que o mantém
    * alcançável em 15 ecrãs de documento. O teto sobe de 60px para 80px por causa dele —
-   * medido, o cabeçalho preso da aula ocupava 63px (7,5% de uma tela de 844). */
-  provar('…e a altura que ele ocupa no desktop fica abaixo de 80px',
-    preso1280.alturaCabecalho > 0 && preso1280.alturaCabecalho < 80,
+   * medido, o cabeçalho preso da aula ocupava 63px (7,5% de uma tela de 844).
+   *
+   * E SOBE OUTRA VEZ, PARA 100px, EM 06/11/2026: o cabeçalho passou a RESPIRAR (`--esp-3`
+   * acima e abaixo, medido: 12px de cada lado), e o ar entra nesta conta como entra o botão.
+   * O teto é um número de ordem — «o título preso devolve a altura à leitura» —, e o que o
+   * garante é a proporção: o encolhido tem de caber em dois terços do inteiro. */
+  provar('…e a altura que ele ocupa no desktop fica abaixo de 100px',
+    preso1280.alturaCabecalho > 0 && preso1280.alturaCabecalho < 100
+    && preso1280.alturaCabecalho < topo1280.alturaCabecalho * 0.67,
     { encolhido: preso1280.alturaCabecalho, inteiro: topo1280.alturaCabecalho });
+  /* O AR, MEDIDO (06/11/2026) — ver «O cabeçalho respira» no IDENTIDADE-VISUAL.md. Duas
+   * distâncias, e as duas eram 0: o `h1` à barra e o último controle à linha da sombra. O
+   * `position: sticky` descarta a margem, e por isso o ar tem de ser padding. */
+  provar('…e o título não encosta na barra: há o respiro de --esp-3 (12px)',
+    preso1280.vaoDaBarra >= 12, { vao: preso1280.vaoDaBarra, barra: preso1280.barraAltura });
+  provar('…nem o último controle do cabeçalho encosta na linha da sombra',
+    preso1280.vaoDoFundo >= 12, { vao: preso1280.vaoDoFundo });
   provar('…e o botão do documento continua à vista, preso com o título',
     preso1280.botaoVisivel === true && preso1280.botaoVisivelNoTopo === true, preso1280);
   provar('`--titulo-preso` é a altura MEDIDA, e não um número escrito à mão',
@@ -305,13 +340,23 @@ const MEDIR_BARRA = () => {
   // --- 390: o caso que motivou o pedido (o título ocupava 44% da tela na opção A)
   await pg.setViewport({ width: 390, height: 844 });
   await pg.goto(DOC, { waitUntil: 'load' });
+  const topo390 = await pg.evaluate(MEDIR_TITULO);
   await rolarPara(1200);
   const preso390 = await pg.evaluate(MEDIR_TITULO);
-  provar('no celular o título também fica e encolhe — e ocupa menos de 10% da tela',
+  /* A régua era «menos de 10% da tela» (84px de 844). Com o respiro de 06/11/2026 o
+   * cabeçalho preso do celular mede 108px — 12,8% —, e o número absoluto deixaria de
+   * exprimir o que se quer: que ele DEVOLVA a altura. O que se prova passa a ser a
+   * proporção entre os dois estados do mesmo cabeçalho, que não depende do corpo do título
+   * nem de quantas linhas ele quebra. */
+  provar('no celular o título também fica e encolhe — e devolve mais de um terço da altura',
     preso390.encolhido === 'sim' && preso390.alturaCabecalho > 0
-    && preso390.alturaCabecalho / preso390.alturaDaTela < 0.10,
+    && preso390.alturaCabecalho <= topo390.alturaCabecalho * 0.55,
     { altura: preso390.alturaCabecalho, tela: preso390.alturaDaTela,
+      inteiro: topo390.alturaCabecalho,
       fracao: +(preso390.alturaCabecalho / preso390.alturaDaTela).toFixed(3) });
+  provar('…e no celular o respiro é o mesmo: nem colado na barra, nem colado na linha',
+    preso390.vaoDaBarra >= 12 && preso390.vaoDoFundo >= 12,
+    { acima: preso390.vaoDaBarra, abaixo: preso390.vaoDoFundo });
   provar('…e continua a dizer de que documento se trata (o `h1` está à vista e legível)',
     preso390.corpoDoTitulo >= 15 && preso390.corpoDoTitulo < 31 && preso390.fundoCabecalho > 0,
     { corpo: preso390.corpoDoTitulo, fundo: preso390.fundoCabecalho });
