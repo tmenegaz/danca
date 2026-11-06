@@ -455,6 +455,7 @@ desenho.
 | **Um valor único de uma lista fechada, com rótulo próprio** | `select` + `.campo-rotulo` | a turma da curadoria, a tradição | `<select>` (nunca `multiple`) |
 | **Uma ORDEM** — algo que acontece ao clicar | `.acao` | gravar, excluir, voltar, avançar | `<button class="acao">`; `secundario` para o que não é a ação principal, `perigo` para o que apaga |
 | **A ação de um formulário, na fileira** | `.par-botoes` + `.acao` | o botão que grava, e o «Cancelar» ao lado quando há edição | `<span class="par-botoes"><button class="acao grande">…</button></span>`. **A fileira é declarada na página da Produção** (`motor/servidor/bastidores.js`), e não na folha — mas é uma só para os cinco formulários de lá, e é ela que dá o vão |
+| **As acções de uma ESCOLHA, na linha de baixo** | `.acoes-da-aluna` | o menu das alunas da §6 da aula, e os dois gestos da anamnese de quem se escolheu | `<div class="acoes-da-aluna" data-prov-par="…">` + `a.acao secundario pequena`. O vão é dela (12px do menu) e o `gap` é dela (8px entre os dois botões) — sem ela os botões encostam no campo, e é o defeito de 06/11/2026 |
 | **Um ESTADO ou atributo do dado** | `.selo` | «livre», «vinculada», «vigente» | `<span class="selo livre">` |
 | **Um bloco de leitura** | `.caixa` | texto que se lê, com título | `<div class="caixa">` (+ `nota`, `falta`) |
 | **O resultado de uma ação** | `.res` | «ok», «erro», «gravando…» | barra acima da lista |
@@ -487,6 +488,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.selo` | `ciclo.css` | base + um estado por significado (`ok`, `vigente`, `livre`…) |
 | `.caixa` / `.caixa.nota` / `.caixa.falta` | `ciclo.css` | — |
 | `.aviso` / `.res` / `.modal` | `ciclo.css` | `.res.ok`, `.res.erro` |
+| `.acoes-da-aluna` | `ciclo.css` | base, e a quebra da fileira no telemóvel (`flex-wrap`) |
 | `.ajuda` («?») | `porta/index.html` | base, `:hover`, `[aria-expanded="true"]`, e 30px de alvo no telefone |
 | `.explica` | `porta/index.html` | `hidden` (fechada), `aberto` (à vista; folha fixa ≤768px), e o «Fechar» que só existe dentro da folha |
 | `[hidden]` | `ciclo.css`, na base | esconde **sempre** — é a única linha da folha com `!important`, e a razão está na proibição 4 |
@@ -562,6 +564,40 @@ bordô da mesma página parecia de outra família, quatro pixels mais baixo.
 `experimentos/provar-vao-do-botao.js`: ela mede a fileira, a classe, a cor computada, a altura
 e o vão de cada ação contra o «Cadastrar professor», que é o modelo. Com o código de antes,
 os três formulários reprovam.
+
+### A fileira das acções de uma ESCOLHA — e o `<div>` nu *(06/11/2026)*
+
+A §6 «Proveniência consolidada» da aula passou a ter um menu de alunas e, por aluna, os dois
+gestos da anamnese. A primeira versão pôs cada par num `<div data-prov-par="…">` **sem classe**.
+Medido no documento publicado: o `<select>` acabava em **3139,6px** e o `<div>` começava em
+**3139,6px** — o botão **1px** abaixo do menu, em 1280 e em 390. O relato dela: *«quando eu
+escolho a aluna, o botão novo registro e imprimir estão colados no dropdown … tem que ter um
+espaço»*.
+
+**É o mesmo erro de antes, com outra roupa.** O `.acao` declara `margin: 0` — porque é isso que
+o põe na linha dos outros controles —, e um `<div>` nu não tem ar nenhum. Quem dava vão ao botão
+era a **vizinhança do formulário** (`:where(form) > campo + button.acao`, 16px); aqui não há
+formulário, os gestos são **ligações** (`a.acao`, para a Área do Professor) e há um bloco por
+aluna. Uma peça, e não um caso daquela:
+
+```css
+.acoes-da-aluna {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--esp-2); margin: var(--esp-3) 0 0;
+}
+```
+
+| O que | Por quê |
+| --- | --- |
+| `margin-top: --esp-3` (12px) | o vão que separa um controle da fileira que o segue. `--esp-4` fica para o botão que **grava**, que é o que a regra da vizinhança protege |
+| `gap: --esp-2` (8px) | dois botões separados só por um espaço de texto ficam a **4,3px** um do outro, medido — e é no telemóvel que o dedo os tem de distinguir |
+| `flex-wrap` | no telemóvel os dois descem um para baixo do outro em vez de sair da caixa |
+| o nome | `acoes-do-ato` e `acoes-da-lista` já dizem «as acções que pertencem a uma coisa»; estas pertencem a **uma aluna** |
+
+**Onde passa a estar guardado.** A peça nasce na folha, entra no catálogo (Quadro 1 e Quadro 2)
+e é provada em **navegador** pela `experimentos/provar-proveniencia-e-turma.js`, secção **H**:
+mede o vão do menu ao primeiro botão e o vão entre os dois botões, em 1280 e em 390, e exige
+≥12px e ≥8px. Contra a folha de antes, **8 das 53** asserções reprovam.
 
 ## O catálogo das PALETAS — três famílias, três implementadas *(fechado em 18/10/2026)*
 

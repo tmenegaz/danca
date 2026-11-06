@@ -1292,6 +1292,30 @@ a.acao { border-bottom-style: solid; border-bottom-width: 1px; }
    pelo pai ser ou não o formulário. */
 .par-associar > button, .escolhedor .entrada > button { margin-top: 0; }
 
+/* AS ACÇÕES DE UMA ESCOLHA, NA LINHA DE BAIXO (§6 da aula — 06/11/2026).
+ *
+ * O DEFEITO, medido no documento publicado: o `<select>` das alunas acabava em 3139,6px e o
+ * `<div>` das acções começava em 3139,6px — o botão ficava **1px** abaixo do menu, colado, em
+ * 1280 e em 390. A causa é a de sempre neste ficheiro: um `<div>` nu não tem ar nenhum. O
+ * `.acao` declara `margin: 0` (é o que o põe na linha dos outros controles), e nada lhe dava
+ * vão por cima.
+ *
+ * A VIZINHANÇA DO FORMULÁRIO NÃO SERVIA. A regra acima (`:where(form) > campo + button.acao`)
+ * mede o botão que vem DEPOIS de um campo e DENTRO do `<form>`; aqui não há formulário, os
+ * dois gestos são `a.acao` (ligações para a Área do Professor, e não botões que gravam), e há
+ * um `<div>` por aluna — porque cada aluna tem os seus. Uma peça, e não um caso daquela.
+ *
+ * O NOME É O DA CASA: `.acoes-do-ato` e `.acoes-da-lista` já dizem «as acções que pertencem a
+ * uma coisa»; estas pertencem a UMA aluna. A fileira tem `gap` porque dois botões separados só
+ * por um espaço de texto encostam no telemóvel — e é lá que o dedo os tem de distinguir.
+ * O vão é `--esp-3`, o passo do meio da escala: `--esp-4` fica para o botão que GRAVA, que é
+ * o que a regra da vizinhança protege. */
+.acoes-da-aluna {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--esp-2); margin: var(--esp-3) 0 0;
+}
+.acoes-da-aluna .acao { margin: 0; }
+
 button.acao:hover:not(:disabled), a.acao:hover {
   background: var(--marca-fundo-hover); border-color: var(--marca-fundo-hover); color: var(--sobre-marca);
   box-shadow: var(--sombra-controle-alto);
