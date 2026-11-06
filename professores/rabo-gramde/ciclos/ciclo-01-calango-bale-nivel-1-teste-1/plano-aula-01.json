@@ -21,8 +21,20 @@
   "guiaDeObservacao": {
     "Corpo": [
       {
-        "criterio": "Aspecto físico — o que a turma mostra",
-        "oQueSeObserva": "[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico» do plano de ensino.]"
+        "criterio": "1ª posição — braços",
+        "oQueSeObserva": "1 de 2 em «Bom» (com a barra como apoio) · 1 de 2 em «precisa desenvolver» (com toque) — ponto de atenção"
+      },
+      {
+        "criterio": "Sustentação ativa de MMII (força de adágio)",
+        "oQueSeObserva": "1 de 2 em «Sustenta a perna a 90°+ sem apoio» · 1 de 2 em «Incapacidade por colapso» — ponto de atenção"
+      },
+      {
+        "criterio": "Resistência de MMSS (port de bras prolongado)",
+        "oQueSeObserva": "1 de 2 em «Sustenta sem elevar escápulas» · 1 de 2 em «Fadiga rápida com queda» — ponto de atenção"
+      },
+      {
+        "criterio": "Estabilidade vestibular e deslocamento",
+        "oQueSeObserva": "1 de 2 em «Caminha virando a cabeça sem desviar» · 1 de 2 em «Perde o prumo» — ponto de atenção"
       }
     ],
     "Técnica": [

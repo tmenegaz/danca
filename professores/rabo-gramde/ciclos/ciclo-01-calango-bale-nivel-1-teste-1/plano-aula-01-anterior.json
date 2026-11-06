@@ -1,0 +1,89 @@
+{
+  "identificacao": {
+    "objetivoEspecifico": "reconhecer o apoio e alinhar o eixo vertical",
+    "parametroDeMedicao": "1 reconhecer o apoio e alinhar o eixo vertical — observa: Plié · 2 transferir o peso entre os pés sem perder o alinhamento — observa: Plié",
+    "duracao": "60 minutos (Pré-requisito 4)",
+    "volumeAtivo": "90 tempos (faixa 80–100 da duração de 60 min — Regra 9, etapa 1)",
+    "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
+  },
+  "condicoesPreliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
+  "sequenciaDaAula": "Bloco · Tempos · Fatia Solo · 27 · 30% Barra · 27 · 30% Centro · 18 · 20% Musicalidade · 9 · 10% Expressão · 9 · 10% **Total** · **90** · **100%**",
+  "blocoDeMusicalidade": [
+    "**Os compassos desta aula.** 2/4.",
+    {
+      "compasso": "2/4",
+      "exercicio": "Plié",
+      "tempos": "4",
+      "contagem": "1–2"
+    },
+    "Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício."
+  ],
+  "guiaDeObservacao": {
+    "Corpo": [
+      {
+        "criterio": "Aspecto físico — o que a turma mostra",
+        "oQueSeObserva": "[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico» do plano de ensino.]"
+      }
+    ],
+    "Técnica": [
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "reconhecer o apoio e alinhar o eixo vertical"
+      },
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "reconhecer o apoio e alinhar o eixo vertical"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "reconhecer o apoio e alinhar o eixo vertical"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      }
+    ],
+    "Poiesis": [
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "reconhecer o apoio e alinhar o eixo vertical"
+      },
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "reconhecer o apoio e alinhar o eixo vertical"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      }
+    ]
+  },
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261106-1108?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261106-0744?formato=html)** — Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.",
+  "auditoria": [
+    {
+      "verificacao": "Objetivo específico declarado",
+      "resultado": "ok"
+    },
+    {
+      "verificacao": "Duração declarada (Pré-requisito 4)",
+      "resultado": "ok — 60 minutos"
+    },
+    {
+      "verificacao": "Volume dentro da faixa (Regra 9)",
+      "resultado": "ok — 90 tempos em 80–100"
+    }
+  ],
+  "proximoPasso": "Item · Proposta **Marco da Aula 02** · transferir o peso entre os pés sem perder o alinhamento — a Aula 02 ainda não foi elaborada"
+}
