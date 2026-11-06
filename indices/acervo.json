@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 3,
+      "documentos": 5,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:rabo-gramde/01/calango",
@@ -147,10 +147,10 @@
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
-        "planos": 0,
+        "planos": 1,
         "pos": 0,
         "recortes": 1,
-        "registros": 2
+        "registros": 3
       },
       "criada_em": "2026-11-05T13:06:46.674863+00:00",
       "expurgada": false,
@@ -165,7 +165,8 @@
       ],
       "registros": [
         "anamnese:anamnese-20261105-2031",
-        "anamnese:anamnese-20261105-2301"
+        "anamnese:anamnese-20261105-2301",
+        "plano:plano-20261106-0744"
       ],
       "slug": "calango"
     },
@@ -303,7 +304,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -489,14 +490,19 @@
         "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "2aa9e76"
+    "commit": "b3024c5"
   },
-  "gerado_em": "2026-11-06T02:03",
+  "gerado_em": "2026-11-06T10:44",
   "nao_indexado": [
     {
       "familia": "conteudo",

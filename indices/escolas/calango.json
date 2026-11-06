@@ -76,6 +76,8 @@
       },
       "aulas": [],
       "documentos": [
+        "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+        "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
         "professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
         "professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
         "professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
@@ -90,6 +92,7 @@
       "tipos": [
         "ancora",
         "manifesto",
+        "plano",
         "schema"
       ]
     }
@@ -106,12 +109,30 @@
     },
     {
       "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
+      "professor": "rabo-gramde",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
       "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
       "ciclo_id": "ciclo:rabo-gramde/01/calango",
       "escola": "calango",
       "id": "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
       "professor": "rabo-gramde",
       "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:plano:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+      "professor": "rabo-gramde",
+      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-calango",
@@ -132,10 +153,10 @@
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
       "recortes": 1,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-11-05T13:06:46.674863+00:00",
     "expurgada": false,
@@ -150,17 +171,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261105-2031",
-      "anamnese:anamnese-20261105-2301"
+      "anamnese:anamnese-20261105-2301",
+      "plano:plano-20261106-0744"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261105-2031",
-          "anamnese:anamnese-20261105-2301"
+          "anamnese:anamnese-20261105-2301",
+          "plano:plano-20261106-0744"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -212,11 +235,12 @@
     ],
     "professores": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261105-2031",
           "anamnese:anamnese-20261105-2301",
-          "ciclo:rabo-gramde/01/calango"
+          "ciclo:rabo-gramde/01/calango",
+          "plano:plano-20261106-0744"
         ],
         "rotulo": "rabo-gramde",
         "valor": "rabo-gramde"
@@ -239,14 +263,22 @@
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261106-0744"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "2aa9e76"
+    "commit": "b3024c5"
   },
-  "gerado_em": "2026-11-06T02:03",
+  "gerado_em": "2026-11-06T10:44",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -343,6 +375,18 @@
       "id": "anamnese:anamnese-20261105-2301",
       "professor": "rabo-gramde",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261106-0744",
+      "ciclo": "01",
+      "data": "2026-11-06T07:44",
+      "id": "plano:plano-20261106-0744",
+      "objetivo": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.",
+      "professor": "rabo-gramde",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 1"
     }
   ],
   "versao": 6

@@ -17,7 +17,9 @@
   "ciclo": "01",
   "documentos": [
     "documento:ancora:professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
+    "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
     "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
+    "documento:plano:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
     "documento:schema:professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "calango",
@@ -30,9 +32,14 @@
         "valor": "ancora"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
       },
       {
         "contagem": 1,
@@ -43,9 +50,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2aa9e76"
+    "commit": "b3024c5"
   },
-  "gerado_em": "2026-11-06T02:03",
+  "gerado_em": "2026-11-06T10:44",
   "id": "ciclo:rabo-gramde/01/calango",
   "professor": "rabo-gramde",
   "versao": 6
