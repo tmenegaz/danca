@@ -515,6 +515,16 @@ async function fetch(request, env) {
     return portaFetch(request, env, { prefixo: PREFIXO_ASSETS });
   }
 
+  // 2.2 O RESGATE do que ficou no KV (06/11/2026) — `POST /api/lancamentos/consolidar`. É um
+  //     ACTO, não um serviço: lê o armazenamento antigo, decifra com a `SENHA_CRIPTO`, grava a
+  //     FONTE e dispara a geração. A rota existe nas rotas agnósticas, mas este ramo é a lista
+  //     de caminhos que a produção entrega ao motor — sem ele, o `fetch` do Worker devolvia o
+  //     404 dos assets, e o resgate existia no código e não no ar. A lista é explícita de
+  //     propósito (o resto é o pacote), e por isso um caminho novo tem de ser declarado aqui.
+  if (path === '/api/lancamentos/consolidar') {
+    return portaFetch(request, env, { prefixo: PREFIXO_ASSETS });
+  }
+
   // 3. O resto → o pacote. O asset-first do Cloudflare já serviu o estático que
   //    existe; este ramo cobre o `run_worker_first` (default) devolvendo o
   //    mesmo 404 que o Worker antigo devolvia.

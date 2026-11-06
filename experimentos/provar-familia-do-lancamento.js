@@ -35,6 +35,8 @@
  *      contraprova é a mesma porta sem ele, a dizer «não está disponível».
  *   I. O RESGATE DEVOLVE A VARIANTE: é o que deixa pedir a geração do pacote certo. A repetição
  *      do acto não escreve de novo (idempotente).
+ *   J. A PRODUÇÃO ENTREGA O RESGATE AO MOTOR: a rota declarada em `rotas.js` chega ao `fetch` de
+ *      `producao.js` — e não ao 404 dos assets. A contraprova é um caminho irmão não declarado.
  *
  *   node experimentos/provar-familia-do-lancamento.js
  */
@@ -374,6 +376,65 @@ async function main() {
         acervo: lanc.criarAcervoDeLancamentos({ token: 'x', fetchImpl: gh.fetchImpl }),
         senhaCripto: null, escola: 'calango', professor: 'rabo-gramde',
       })).consolidados[0].semMudanca === true);
+  }
+
+  // -------------------------------------------------------------------------------------------
+  console.log('\nJ. A PRODUÇÃO entrega o resgate ao motor — e não o 404 dos assets');
+  {
+    /* A TERCEIRA PONTA SOLTA (06/11/2026). A rota existia em `rotas.js`, e a ponte do Worker a
+     * montava — mas a PRODUÇÃO (`motor/servidor/producao.js`) só entrega ao motor um punhado de
+     * caminhos, e o resto vai para os assets. `/api/lancamentos/consolidar` não estava nessa
+     * lista: o `fetch` do Worker devolvia 404, e o acto existia no código e não no ar. Foi medido
+     * no Worker vivo antes desta correcção: HTTP 404, 0 bytes. A prova passa a exercer o caminho
+     * de produção, e não só o roteador. */
+    const producao = require(path.join(RAIZ, 'motor/servidor/producao.js'));
+    const memoria = new Map();
+    const env = {
+      ESCOLA_SLUG: 'calango', ESCOLA_HABILITADA: 'sim', GITHUB_TOKEN: null,
+      PADD_KV: {
+        async get(k) { return memoria.has(k) ? memoria.get(k) : null; },
+        async put(k, v) { memoria.set(k, String(v)); },
+        async delete(k) { memoria.delete(k); },
+        async list({ prefix = '' } = {}) {
+          return {
+            keys: [...memoria.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })),
+            list_complete: true,
+          };
+        },
+      },
+      // O mínimo que a ponte lê do ASSETS para montar a porta: os JSON vazios bastam. Os
+      // caminhos `/api/…` respondem 404 como um asset inexistente — é o que a produção faz.
+      ASSETS: {
+        async fetch(pedidoDoAsset) {
+          const caminho = pedidoDoAsset instanceof URL
+            ? pedidoDoAsset.pathname
+            : new URL(pedidoDoAsset.url).pathname;
+          if (caminho.startsWith('/api/')) {
+            return new Response('nao encontrado', { status: 404 });
+          }
+          return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+        },
+      },
+    };
+    const pedido = (caminho) => producao.fetch(new Request('https://calango.example' + caminho, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ senha: '__sonda__', professor: 'rabo-gramde' }),
+    }), env);
+
+    const r = await pedido('/api/lancamentos/consolidar');
+    const corpo = await r.json().catch(() => null);
+    provar('a produção encaminha /api/lancamentos/consolidar ao motor (não é o 404 dos assets)',
+      r.status !== 404 && corpo && typeof corpo.ok === 'boolean', { status: r.status, corpo });
+    provar('…e a recusa é a da conferência de senha, não «não encontrado»',
+      corpo && corpo.ok === false && /senha/.test(String(corpo.erro)), corpo);
+
+    /* A CONTRAPROVA: um caminho irmão que NINGUÉM declarou continua a dar 404 — o que mostra
+     * que a asserção acima mede o encaminhamento, e não «tudo responde 200». */
+    const irmao = await pedido('/api/lancamentos/inexistente');
+    const corpoIrmao = await irmao.json().catch(() => null);
+    provar('…e um caminho irmão não declarado continua 404', irmao.status === 404,
+      { status: irmao.status, corpo: corpoIrmao });
   }
 
   console.log('');
