@@ -206,6 +206,12 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — e devolve o texto em
       /<h3>Aula 06 — [^<]+<\/h3>/.test(bom.html), (bom.html.match(/<h3>[^<]*/) || [])[0]);
     provar('…e o período do ciclo sai com «a», e não com «..»',
       /a<\/span>|a \d{2}\/\d{2}\/\d{4}/.test(bom.html) && !/\.\./.test(bom.html), bom.html.slice(0, 200));
+    /* A ÚNICA MARCAÇÃO QUE A FOLHA NÃO DESENHA (06/11/2026). O registro da aula saía num `<dl>`
+     * — e o navegador o desenhava com o recuo dele (40px de `dd`), no meio de um documento que
+     * usa a escala da casa em tudo o mais. `ul`/`li` são peça da folha. */
+    provar('…e o registro da aula é uma lista da folha, não um `<dl>` do navegador',
+      !/<dl>/.test(bom.html) && /<ul><li><strong>Relatório:/.test(bom.html),
+      (bom.html.match(/<(dl|ul)[^>]*>/) || [])[0]);
     provar('…e a área de resultados não devolveu erro de página', bom.erros.length === 0, bom.erros);
 
     console.log('\nD. A contraprova: com a regra VELHA, o mesmo clique falha — o defeito, a correr');

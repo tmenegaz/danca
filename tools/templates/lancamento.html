@@ -559,7 +559,7 @@ function tabelaPorSecao(b, dados, a, pessoas) {
     if (!itens.length) return '';                       // declarado abaixo, junto com os demais
     return `<table><thead><tr><th>${esc(dados.apelidos[k] || k)}</th>`
       + `<th>${esc(b.colunas[0].rotulo)}</th></tr></thead><tbody>`
-      + itens.map((x) => `<tr><th class="aluna">${esc(x.item)}</th>`
+      + itens.map((x) => `<tr><th>${esc(x.item)}</th>`
         + `<td>${mdCelula(b.colunas[0], x.marca)}</td></tr>`).join('') + '</tbody></table>';
   }).join('');
   const semItens = quem.filter((k) => !(Array.isArray((a[b.chave] || {})[k]) && a[b.chave][k].length));
@@ -602,6 +602,12 @@ function blocoAula(meta, dados, id, captura) {
    * debaixo de «Ciclo 01 · Calango». A meta continua a entrar por parâmetro: `selo()` é usada pelo
    * cabeçalho, e o bloco segue a mesma forma quando a lista atravessa mais de um ciclo. */
   void meta;
+  /* A LISTA DE REGISTRO É UM `<ul>`, E NÃO UM `<dl>` (06/11/2026). O `<dl>` é a única marcação
+   * desta página que a folha NÃO desenha — e por isso ele saía com o recuo e as margens do
+   * navegador (40px de `dd`, 1em de `dl`), no meio de um documento que usa a escala da casa em
+   * tudo o mais. Era o pedaço «fora do padrão» da leitura. `ul`/`li` são peça da folha
+   * (`p, ul, ol { margin: 8px 0 }`, `li { margin: 4px 0 }`), e o rótulo em `<strong>` é o mesmo
+   * recurso dos outros documentos. */
   return `<h3>Aula ${esc(id)} — ${esc(Vistas.helpers.dataBr(a.data))}</h3>
     <p class="fraco">Duração executada: <strong>${a.duracao_min} min</strong> ·
     Plano seguido: ${esc(cc.plano_seguido)} · Ânimo ${cc.animo} · Interesse ${cc.interesse} ·
@@ -612,9 +618,9 @@ function blocoAula(meta, dados, id, captura) {
       : (cc.plano_seguido === 'sim'
         ? '<p class="fraco">O que mudou em relação ao plano: nada — o plano foi seguido.</p>'
         : '')}
-    <dl><dt>Relatório</dt><dd>${esc(a.relatorio.texto)}</dd>
-    <dt>O que surpreendeu</dt><dd>${esc(a.relatorio.surpresas)}</dd>
-    <dt>O que foi ajustado</dt><dd>${esc(a.relatorio.ajustes)}</dd></dl>`;
+    <ul><li><strong>Relatório:</strong> ${esc(a.relatorio.texto)}</li>
+    <li><strong>O que surpreendeu:</strong> ${esc(a.relatorio.surpresas)}</li>
+    <li><strong>O que foi ajustado:</strong> ${esc(a.relatorio.ajustes)}</li></ul>`;
 }
 
 function blocoAluna(meta, dados, chave, soAula, captura) {
