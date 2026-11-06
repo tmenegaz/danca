@@ -405,7 +405,7 @@ function conferirObservado(aula, onde, erros, avisos) {
  * redação que o professor leu), e a marca está no vocabulário do formulário. É pouco, e é
  * exactamente o que a matriz escreve.
  */
-function conferirItens(aula, onde, apelidos, erros) {
+function conferirItens(aula, onde, apelidos, erros, avisos) {
   const universo = Object.keys(apelidos || {});
   Object.keys(aula).forEach((nome) => {
     if (nome.startsWith('_') || CHAVES_ESCALARES.includes(nome)) return;
@@ -420,6 +420,16 @@ function conferirItens(aula, onde, apelidos, erros) {
       lista.forEach((x, i) => {
         if (!ehObjeto(x)) { erros.push(`${onde}: ${nome}.${p}[${i}] não é objecto`); return; }
         if (!semEspaco(x.item)) erros.push(`${onde}: ${nome}.${p}[${i}] sem o texto do item`);
+        // A CHAVE (06/11/2026). É ela que o índice de lançamentos usa para reconhecer o mesmo
+        // aspecto entre aulas; sem ela, a marca existe e não encadeia nada. Não é erro (um arquivo
+        // escrito antes dela continua válido), é aviso — e o aviso diz o que se perde.
+        if (x.chave === undefined) {
+          avisos.push(`${onde}: ${nome}.${p}[${i}] sem chave — a marca não será encadeada entre`
+            + ' aulas pelo índice de lançamentos');
+        } else if (!semEspaco(x.chave) || !/^[a-z0-9]+(_[a-z0-9]+)*$/.test(x.chave)) {
+          erros.push(`${onde}: ${nome}.${p}[${i}].chave '${x.chave}' não é um slug`
+            + ' (minúsculas, algarismos e `_`) — `Vistas.helpers.chaveDoItem` é a regra');
+        }
         if (x.marca === undefined || !ehString(x.marca)) {
           erros.push(`${onde}: ${nome}.${p}[${i}].marca não é texto`);
         } else if (!MARCAS.includes(x.marca)) {
@@ -463,7 +473,7 @@ function conferirAula(aula, id, apelidos, erros, avisos, provisorios) {
   if (ehObjeto(apelidos)) presentes = conferirParticao(aula, apelidos, onde, erros).presentes;
 
   conferirBlocos(aula, onde, presentes, erros, avisos);
-  conferirItens(aula, onde, apelidos, erros);
+  conferirItens(aula, onde, apelidos, erros, avisos);
   conferirObservado(aula, onde, erros, avisos);
 
   // A duração funcional por pessoa é do bloco; a da aula é a referência. Divergir é possível

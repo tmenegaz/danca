@@ -845,3 +845,9 @@ experimentos/modelo-formulario/*
 #     escrita obrigatória. A prova mede o formulário em navegador e o payload contra o validador.
 !experimentos/provar-elenco-derivado.js
 !experimentos/provar-formulario-da-aula.js
+# O ÍNDICE DE LANÇAMENTOS (06/11/2026). A pergunta dela — «em quantas aulas ele demorou para
+# conseguir fazer o adágio?» — não se responde com a marca guardada, e sim com a marca ENCADEADA.
+# A prova mede as cinco famílias do §4.9 do PLANO-INDICES (sem uma linha de prosa), a chave que
+# reproduz as 11 que o schema declara à mão, o `AL03` a responder «em que aulas, desde quando», o
+# determinismo do índice e o caderno a imprimir o que o formulário grava.
+!experimentos/provar-indice-de-lancamentos.js
