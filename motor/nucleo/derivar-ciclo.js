@@ -103,8 +103,16 @@ function resp(envelope, id) {
 /**
  * Prosa honesta: o valor, ou uma lacuna declarada. Um valor que é o EXEMPLO do gabarito
  * (o template vazado no campo) também vira lacuna — não se publica o exemplo como dado.
+ *
+ * O PADRÃO DO EXEMPLO PASSOU A EXIGIR AS ASPAS (06/11/2026) — e a razão é um dado perdido em
+ * silêncio. Ele era `^Ex\.:` — ou, pior, `^Exemplo` —, e isso apanhava TEXTO DO PROFESSOR: um
+ * critério escrito «Exemplo prático do apoio na barra» era descartado dos itens da dimensão, e o
+ * sintoma era o pior possível — o PO mostrava o item no documento e a FOLHA DE CAPTURA não o
+ * pedia, sem erro nenhum. O gabarito que vaza é sempre o do conteúdo, e o conteúdo escreve os
+ * exemplos entre « ». Exigir a aspa separa o exemplo vazado do critério escrito: «Ex.: «…»» é
+ * gabarito; «Exemplo prático do apoio» é dado.
  */
-const GABARITO_VAZADO = /^(Bloco\s*\|.*proporção alvo|Ex\.:|ex\.:|Exemplo)/i;
+const GABARITO_VAZADO = /^(Bloco\s*\|.*proporção alvo|ex\.:\s*[«\"“])/i;
 function prosa(valor, motivo) {
   const v = valor === null || valor === undefined ? '' : String(valor).trim();
   if (!v || GABARITO_VAZADO.test(v)) return '[Preencher: ' + (motivo || 'ainda não declarado') + ']';
@@ -1823,6 +1831,25 @@ function derivarCaptura({ po, plano, contexto }) {
     saida.push('');
     for (const linha of tabelaDeDimensao(d.itens)) saida.push(linha);
     saida.push('');
+    /* A DESCRIÇÃO DO CRITÉRIO NÃO CABE NO CABEÇALHO — e NÃO SE PERDE (06/11/2026).
+     *
+     * O cabeçalho da coluna é o rótulo curto («Alinhamento do pé: o arco não cede» → «Alinhamento
+     * do pé»), porque a frase inteira estoura a margem do PDF. Mas cortá-la em silêncio deixava a
+     * folha impressa sem a metade que o professor escreveu depois dos dois pontos — e quem mede a
+     * folha não tem como saber que existia mais. A legenda imprime-a por extenso, na ordem das
+     * colunas, e só quando há alguma: numa folha de rótulos secos não aparece nada.
+     *
+     * Ela é PROSA, não tabela — o `validar-captura-ciclo.js` lê as linhas `|` e os `###`, e uma
+     * frase entre eles não entra em nenhum dos dois. */
+    const comDescricao = (d.itens || []).filter((item) => String(item).indexOf(':') !== -1);
+    if (comDescricao.length) {
+      saida.push('*O que cada critério pede:* ' + comDescricao.map((item) => {
+        const texto = String(item);
+        const i2 = texto.indexOf(':');
+        return '**' + rotuloDoItem(texto) + '** — ' + texto.slice(i2 + 1).trim();
+      }).join(' · '));
+      saida.push('');
+    }
   });
 
   /* A «LINHA DE BASE REVISITADA» NÃO SE REESCREVE (06/11/2026). Ela imprimia, por aluna, o que o

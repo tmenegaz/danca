@@ -37654,3 +37654,70 @@ frase do bloco sem objetivo foi reescrita com ela (asserção **atualizada**, n�
 bloco (uma por objetivo), a folha de um plano com três objetivos por bloco fica mais larga — e é a
 regra que já existe (`critérios ≤ alunas` → colunas; senão, transpõe) que decide. Se a proporção
 mudar num ciclo real, mede-se então, com a folha à frente.
+
+---
+
+## 06/11/2026 — «Não vai se perder o que o professor escrever?» — a auditoria da persistência, e os dois modos de perder
+
+**A pergunta.** Depois de aprovar o híbrido (entrada anterior), ela perguntou o que faltava: *«eu
+preciso ter certeza de que quando o professor escrever alguma observação aqui, ela vai ser
+acrescentada. […] É algo que não vai se perder o que o professor escrever?»* A pergunta é mais
+exigente do que parece: ao tornar o campo **opcional**, o sistema passou a ter uma caixa que
+ninguém é obrigado a preencher — e um campo opcional que se perde em silêncio é pior do que um
+obrigatório, porque ninguém dá pela falta.
+
+**O caminho, medido.** O texto escrito na dimensão entra em `itens-por-dimensao` (forma canónica
+`[{sujeito, itens}]`) e chega a **cinco** leitores: o documento `-po.md` (`derivarPO`), a folha de
+captura (`derivarCaptura`), a declaração `porVariante` (`declaracaoDeCaptura`), o guia da aula
+(`derivarAula01`) e o `po-01.json` da extração verdadeira. Traçado de ponta a ponta com uma marca
+sentinel, antes e depois de cada correção.
+
+**Os dois modos de perder, e os dois eram calados.**
+
+- **`GABARITO_VAZADO` comia texto dela.** O padrão servia para descartar o exemplo que o conteúdo
+  escreve entre « » (`Ex.: «alinhamento da pelve…»`), mas casava com a **palavra** `Exemplo` no
+  início da linha: um critério escrito «Exemplo prático do apoio na barra» **desaparecia da folha e
+  da declaração**, e o documento continuava a mostrá-lo — o PO e a folha a discordar sem um erro em
+  lado nenhum. O padrão passou a exigir a **citação** (`Ex\.:\s*[«"“]`): o gabarito é sempre aspeado
+  no conteúdo, o texto dela nunca é.
+- **A descrição depois dos dois pontos sumia do papel.** `rotuloDoItem` corta no primeiro `:` — e é
+  o certo, a frase inteira como cabeçalho estoura a margem do PDF —, mas «Alinhamento do pé: o arco
+  não cede» virava a coluna «Alinhamento do pé» e a metade que ela escreveu não estava em lado
+  nenhum da folha impressa. Agora cada bloco leva, por baixo da tabela, uma legenda em prosa
+  (`*O que cada critério pede:* **rótulo** — descrição`), e só quando há descrições. É prosa e não
+  tabela de propósito: o `validar-captura-ciclo.js` lê as linhas `|` e os `###`, e uma frase entre
+  eles não entra em nenhum dos dois.
+
+**E um terceiro, que não era perda mas era mentira.** O `escrever-ciclo.js` derivava a folha **sem
+o plano** e a declaração **com** ele: a folha ficava com as colunas que o professor escreveu, a
+declaração com essas **mais** as que os objetivos do plano acrescentam — e a folha impressa deixava
+de pedir metade do que o sistema ia guardar. **Nenhum validador o via**, e a razão é uma assimetria
+que vale registar: o `validar-captura-ciclo.js` reprova a coluna que está na folha e não está
+declarada, e **não** reprova a coluna declarada e ausente da folha. O sentido que faltava era
+exatamente o que falhava. Corrigido na chamada, e a invariante folha↔declaração passou a ter prova
+própria, com o contra-exemplo ao lado.
+
+**Com o quê.** `experimentos/provar-observacao-do-professor.js` (**20**), nova. A secção **A** mede
+o **gesto** e não a função: o texto é escrito no `textarea` e o evento `input` corre — quem o lê é o
+ouvinte delegado da página —, e depois lê-se o `pacoteParaEnviar()` e o **corpo do POST** do
+«Guardar» (a bancada serve o `api/elicitar` e guarda o que passou pelo fio). A secção **B** lê os
+cinco destinos **a partir do envelope que a própria página enviou**, com a extração a correr a
+ferramenta a sério. A secção **C** mede os dois modos de perder, cada um com a sua **negativa** (o
+gabarito vazado continua descartado; a legenda não aparece quando não há descrição). A secção **D**
+mede a invariante folha↔declaração e mostra que a folha derivada sem o plano perde a coluna do
+objetivo.
+
+**Contraprova.** Corrida contra o núcleo de `HEAD`, a prova **reprova 2 de 20** — precisamente as
+duas que medem os dois modos de perder.
+
+**Medido.** `provar-observacao-do-professor` **20/20** (contraprova **18/20**); `provar-eixos-do-po`
+**42/42**; `provar-po-completo` **20/20**; `provar-derivados-do-po` **16/16**; `provar-cadeia-do-ajuste`
+**34/34**; `provar-relacoes-do-ciclo` **23/23**; `provar-etiqueta-da-aluna` **20/20**;
+`provar-sujeitos-semeados` **22/22**; `provar-ciclo-herdado-do-plano` **20/20**;
+`provar-ciclo-do-painel-do-po` **27/27**; `check-identidade` **0 erros** (as 20); `check-indices`
+**16/16**. `provar-geracao-do-ciclo` **14/15** — a verificação 12 («o acordo com o workflow») já
+reprovava em `HEAD`, medido com `git stash`: não é desta entrega.
+
+**Aberto, e é decisão dela.** A legenda é prosa dentro do bloco. Se ela preferir noutro sítio — nota
+de pé no fim da folha, ou rótulos completos quando o bloco transpõe —, é uma escolha de leitura, não
+um defeito.

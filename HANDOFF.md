@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T10:42:13-0300`
-Commit atual: `63d6290b` — feat(po): os itens de cada dimensao mostram o que o plano ja decide do bloco
+Gerado em: `2026-11-06T10:58:40-0300`
+Commit atual: `0cd933be` — feat(po): os objetivos do plano entram como criterios, e o campo fica com o criterio
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+0cd933be feat(po): os objetivos do plano entram como criterios, e o campo fica com o criterio
 63d6290b feat(po): os itens de cada dimensao mostram o que o plano ja decide do bloco
 438cc267 fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
 04d7adf2 fix(po): o ciclo do PO tambem nao se escreve na Area do Professor
@@ -105,7 +106,6 @@ e42791c4 feat(linha de base): teste → Balé Nível 1 — Teste 1
 ce0f6fd7 feat(acervo): envelope/.indice.json
 7b1bf1b0 chore(acervo): apagar envelope/anamnese-20261105-2015.json
 0e6f9171 feat(acervo): envelope/anamnese-20261105-2301.json
-12e47f25 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -233,57 +233,70 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O híbrido dos «itens de cada dimensão»: os objetivos entram derivados, e o campo fica com o critério
+## 06/11/2026 — «Não vai se perder o que o professor escrever?» — a auditoria da persistência, e os dois modos de perder
 
-**A decisão.** Perguntada entre os três desenhos que a auditoria da entrada anterior deixou em
-aberto — manter, derivar, ou híbrido —, ela escolheu o **híbrido**: *os objetivos específicos
-entram como critérios, derivados do plano; o campo passa a ser só o critério que o objetivo não
-nomeia, e é opcional.* É o único que não perde nada: o que o plano decide deixa de se reescrever
-(a parte redundante que a auditoria mediu) e o que é só do professor continua a ter onde ser
-escrito (a parte que não existe em mais sítio nenhum — a Expressão da `batata` é o caso real).
+**A pergunta.** Depois de aprovar o híbrido (entrada anterior), ela perguntou o que faltava: *«eu
+preciso ter certeza de que quando o professor escrever alguma observação aqui, ela vai ser
+acrescentada. […] É algo que não vai se perder o que o professor escrever?»* A pergunta é mais
+exigente do que parece: ao tornar o campo **opcional**, o sistema passou a ter uma caixa que
+ninguém é obrigado a preencher — e um campo opcional que se perde em silêncio é pior do que um
+obrigatório, porque ninguém dá pela falta.
 
-**O que se construiu.**
+**O caminho, medido.** O texto escrito na dimensão entra em `itens-por-dimensao` (forma canónica
+`[{sujeito, itens}]`) e chega a **cinco** leitores: o documento `-po.md` (`derivarPO`), a folha de
+captura (`derivarCaptura`), a declaração `porVariante` (`declaracaoDeCaptura`), o guia da aula
+(`derivarAula01`) e o `po-01.json` da extração verdadeira. Traçado de ponta a ponta com uma marca
+sentinel, antes e depois de cada correção.
 
-- `objetivosPorBlocoDoPlano(plano)`, em `motor/nucleo/derivar-po.js`: lê `marcos-por-aula` ×
-  `estrutura-de-cada-aula` e devolve, **por bloco**, os objetivos que ali se perseguem. Lê também
-  a forma legada do objetivo (`«01: reconhecer o apoio»`) e ignora um `estrutura-de-cada-aula` que
-  seja uma lista de blocos sem `{marco, marcados}` — nesse caso o resultado é **vazio**, e não
-  errado. **Não lê `aula-1-parametro`**: um exercício («plié») não é um critério («o joelho
-  acompanha o pé»), e lê-lo encheria a folha de colunas que ninguém sabe marcar.
-- `itensComObjetivos(itens, plano)`: põe os objetivos **à frente** do que o professor escreveu — a
-  ordem é a da autoridade —, resolve o **prefixo do eixo** na dimensão com `blocoDaDimensao`
-  (senão todos os POs anteriores a 04/11 perderiam os objetivos em silêncio, porque o rótulo
-  gravado é «Técnica — Barra») e **não duplica**: se o professor já escreveu o objetivo com as
-  mesmas palavras — é o que a tela lhe diz para fazer —, entra uma vez.
-- **O plano chega a três derivadores**, e é isso que faz o híbrido valer: ao documento
-  (`derivarPO`, que já o tinha), à **folha de captura** (`derivarCaptura`) e à **declaração
-  `porVariante`** (`declaracaoDeCaptura`). Os dois últimos não o recebiam — e sem ele a folha
-  ficaria com menos colunas do que o documento diz. As duas assinaturas ganharam `plano`
-  **opcional**: sem ele a lista é a que o PO tem, e nada parte (é o que mantém os POs gravados e as
-  bancadas antigas). Os dois chamadores passam-no: `tools/regerar-derivados.js` e
-  `motor/servidor/escrever-ciclo.js` (que já tinham o envelope do plano em escopo).
-- O campo passou a **opcional** no conteúdo (`obrigatorio: false`), e a explicação diz o que já não
-  se escreve: os objetivos entram sozinhos. O PO fica com **25 campos, 11 obrigatórios**.
-- Na tela, as duas frases do bloco de leitura dizem o que agora acontece: «Estes objetivos entram
-  SOZINHOS na folha de captura, como colunas — não há nada a copiar para a caixa», e, no bloco que
-  nenhum objetivo marca, «Nenhum critério entra sozinho aqui: o que você escrever abaixo é a única
-  coisa que este bloco observa».
+**Os dois modos de perder, e os dois eram calados.**
 
-**Com o quê.** `provar-po-completo` (**20**, verificações 18 a 20): o documento traz os objetivos à
-frente do que se escreveu; a folha ganha uma coluna por objetivo **e mantém** o item escrito; e o
-objetivo que o professor já escreveu não aparece duas vezes. Cada uma com a sua **negativa** — sem
-o plano, o mesmo PO fica como estava. `provar-eixos-do-po` (**42**) continua a medir a tela, e a
-frase do bloco sem objetivo foi reescrita com ela (asserção **atualizada**, não apagada).
+- **`GABARITO_VAZADO` comia texto dela.** O padrão servia para descartar o exemplo que o conteúdo
+  escreve entre « » (`Ex.: «alinhamento da pelve…»`), mas casava com a **palavra** `Exemplo` no
+  início da linha: um critério escrito «Exemplo prático do apoio na barra» **desaparecia da folha e
+  da declaração**, e o documento continuava a mostrá-lo — o PO e a folha a discordar sem um erro em
+  lado nenhum. O padrão passou a exigir a **citação** (`Ex\.:\s*[«"“]`): o gabarito é sempre aspeado
+  no conteúdo, o texto dela nunca é.
+- **A descrição depois dos dois pontos sumia do papel.** `rotuloDoItem` corta no primeiro `:` — e é
+  o certo, a frase inteira como cabeçalho estoura a margem do PDF —, mas «Alinhamento do pé: o arco
+  não cede» virava a coluna «Alinhamento do pé» e a metade que ela escreveu não estava em lado
+  nenhum da folha impressa. Agora cada bloco leva, por baixo da tabela, uma legenda em prosa
+  (`*O que cada critério pede:* **rótulo** — descrição`), e só quando há descrições. É prosa e não
+  tabela de propósito: o `validar-captura-ciclo.js` lê as linhas `|` e os `###`, e uma frase entre
+  eles não entra em nenhum dos dois.
 
-**Medido.** `provar-po-completo` **20/20**; `provar-eixos-do-po` **42/42**; `provar-sujeitos-semeados`
-**22/22**; `provar-ciclo-herdado-do-plano` **20/20**; `provar-linha-de-base` **104/104**;
-`provar-cadeia-do-ajuste` **34/34**; `provar-producao` **159/159**; `check-identidade` **0 erros**
-(as 20); `check-indices` **16/16**.
+**E um terceiro, que não era perda mas era mentira.** O `escrever-ciclo.js` derivava a folha **sem
+o plano** e a declaração **com** ele: a folha ficava com as colunas que o professor escreveu, a
+declaração com essas **mais** as que os objetivos do plano acrescentam — e a folha impressa deixava
+de pedir metade do que o sistema ia guardar. **Nenhum validador o via**, e a razão é uma assimetria
+que vale registar: o `validar-captura-ciclo.js` reprova a coluna que está na folha e não está
+declarada, e **não** reprova a coluna declarada e ausente da folha. O sentido que faltava era
+exatamente o que falhava. Corrigido na chamada, e a invariante folha↔declaração passou a ter prova
+própria, com o contra-exemplo ao lado.
 
-**O que NÃO se fez, e é de propósito.** Não se tocou na apresentação da folha: com mais colunas por
-bloco (uma por objetivo), a folha de um plano com três objetivos por bloco fica mais larga — e é a
-regra que já existe (`critérios ≤ alunas` → colunas; senão, transpõe) que decide. Se a proporção
-mudar num ciclo real, mede-se então, com a folha à frente.
+**Com o quê.** `experimentos/provar-observacao-do-professor.js` (**20**), nova. A secção **A** mede
+o **gesto** e não a função: o texto é escrito no `textarea` e o evento `input` corre — quem o lê é o
+ouvinte delegado da página —, e depois lê-se o `pacoteParaEnviar()` e o **corpo do POST** do
+«Guardar» (a bancada serve o `api/elicitar` e guarda o que passou pelo fio). A secção **B** lê os
+cinco destinos **a partir do envelope que a própria página enviou**, com a extração a correr a
+ferramenta a sério. A secção **C** mede os dois modos de perder, cada um com a sua **negativa** (o
+gabarito vazado continua descartado; a legenda não aparece quando não há descrição). A secção **D**
+mede a invariante folha↔declaração e mostra que a folha derivada sem o plano perde a coluna do
+objetivo.
+
+**Contraprova.** Corrida contra o núcleo de `HEAD`, a prova **reprova 2 de 20** — precisamente as
+duas que medem os dois modos de perder.
+
+**Medido.** `provar-observacao-do-professor` **20/20** (contraprova **18/20**); `provar-eixos-do-po`
+**42/42**; `provar-po-completo` **20/20**; `provar-derivados-do-po` **16/16**; `provar-cadeia-do-ajuste`
+**34/34**; `provar-relacoes-do-ciclo` **23/23**; `provar-etiqueta-da-aluna` **20/20**;
+`provar-sujeitos-semeados` **22/22**; `provar-ciclo-herdado-do-plano` **20/20**;
+`provar-ciclo-do-painel-do-po` **27/27**; `check-identidade` **0 erros** (as 20); `check-indices`
+**16/16**. `provar-geracao-do-ciclo` **14/15** — a verificação 12 («o acordo com o workflow») já
+reprovava em `HEAD`, medido com `git stash`: não é desta entrega.
+
+**Aberto, e é decisão dela.** A legenda é prosa dentro do bloco. Se ela preferir noutro sítio — nota
+de pé no fim da folha, ou rótulos completos quando o bloco transpõe —, é uma escolha de leitura, não
+um defeito.
 
 ## O que está pendente
 

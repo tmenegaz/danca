@@ -1267,6 +1267,69 @@ aparece duas vezes. Cada uma tem a sua **negativa**: sem o plano, o mesmo PO fic
 `provar-eixos-do-po` **42** (secção E) mede o que a tela mostra antes da caixa — o que o plano
 decide de cada bloco, recortado pelo bloco.
 
+### 5.16 O que o professor escreve não se perde — e havia duas maneiras de o perder em silêncio
+
+A pergunta dela, no mesmo dia em que aprovou o híbrido: *«eu preciso ter certeza de que quando o
+professor escrever alguma observação aqui, ela vai ser acrescentada. […] É algo que não vai se
+perder o que o professor escrever?»* A pergunta é a certa, e é mais exigente do que parece: ao
+tornar o campo **opcional** (a §5.15), o sistema passou a ter uma caixa que ninguém é obrigado a
+preencher — e um campo opcional que se perde em silêncio é pior do que um obrigatório, porque
+ninguém dá pela falta.
+
+**O caminho, e são cinco leitores do mesmo dado.** O texto escrito na dimensão entra em
+`itens-por-dimensao` (a forma canónica `[{sujeito, itens}]`), e daí chega a cinco sítios:
+
+| # | Onde | Quem escreve |
+|:--|:--|:--|
+| 1 | o documento `-po.md`, sob `## Itens de cada dimensão` | `derivarPO` |
+| 2 | a **folha de captura** — a coluna que se marca em aula | `derivarCaptura` |
+| 3 | a **declaração `porVariante`** — a chave com que a marca é guardada | `declaracaoDeCaptura` |
+| 4 | o **guia da aula** — o que o professor leva para a sala | `derivarAula01` |
+| 5 | o `po-01.json`, pela extração do `validar-po-ciclo.js` | `tools/lib-extracao-md.js` |
+
+**Os dois modos de perder, os dois reais, os dois calados.**
+
+1. **O filtro do gabarito comia texto dela.** O `GABARITO_VAZADO` existe para descartar o exemplo
+   que o conteúdo escreve entre « » (`Ex.: «alinhamento da pelve…»`) e que não é dado nenhum. Mas o
+   padrão casava com a **palavra** `Exemplo`/`Ex.:` no início da linha — e um critério escrito
+   «Exemplo prático do apoio na barra» **desaparecia da folha e da declaração**, enquanto o
+   documento continuava a mostrá-lo. O PO e a folha a discordar sem um erro em lado nenhum. A
+   correção exige a **citação** (`Ex\.:\s*[«"“]`): o gabarito é sempre aspeado no conteúdo, o texto
+   dela nunca é.
+2. **A descrição depois dos dois pontos sumia do papel.** `rotuloDoItem` corta no primeiro `:`
+   porque a frase inteira como cabeçalho de coluna estoura a margem do PDF — a decisão está certa e
+   o silêncio não estava: «Alinhamento do pé: o arco não cede» virava a coluna «Alinhamento do pé», e
+   a metade que o professor escreveu **não estava em lado nenhum da folha impressa**. Agora cada
+   bloco leva, por baixo da tabela, uma legenda em prosa — `*O que cada critério pede:* **rótulo** —
+   descrição` — e só quando há descrições: numa folha de rótulos secos não aparece nada. É prosa e
+   não tabela de propósito: o `validar-captura-ciclo.js` lê as linhas `|` e os `###`, e uma frase
+   entre eles não entra em nenhum dos dois.
+
+**E um terceiro, que não era perda mas era mentira.** O `escrever-ciclo.js` derivava a folha **sem
+o plano** e a declaração **com** ele. Resultado: a folha ficava com as colunas que o professor
+escreveu, a declaração com essas **mais** as que os objetivos do plano acrescentam (§5.15) — e a
+folha impressa deixava de pedir metade do que o sistema ia guardar. **Nenhum validador o via**, por
+uma assimetria que vale a pena registar: o `validar-captura-ciclo.js` reprova a coluna que está na
+folha e não está declarada, e **não** reprova a coluna declarada e ausente da folha. O sentido que
+faltava era exactamente o que falhava. Corrigido na chamada (a folha passa a receber o plano), e a
+invariante passou a ter prova própria — é a secção D da prova nova, com o contra-exemplo ao lado.
+
+**A prova, e o que ela mede.** `provar-observacao-do-professor` **20**. A secção **A** mede o
+**gesto**, não a função: o texto é escrito no `textarea` e o evento `input` corre, quem o lê é o
+ouvinte delegado da página; depois lê-se o `pacoteParaEnviar()` e o **corpo do POST** do «Guardar»
+(a bancada serve o `api/elicitar` e guarda o que passou pelo fio). Chamar `gravarRespostaDoNo` à mão
+provaria a função e não a ligação — e a ligação é metade do que se quer guardar. A secção **B** lê os
+cinco destinos **a partir do envelope que a própria página enviou**, e não de uma fixture; a extração
+do `po-01.json` corre a ferramenta a sério. A secção **C** mede os dois modos de perder, cada um com
+a sua **negativa**: um critério que começa por «Exemplo» sobrevive **e** o gabarito vazado continua
+descartado; a descrição sai na legenda **e** a legenda não aparece quando não há descrição. A secção
+**D** mede a invariante folha↔declaração e mostra, ao lado, que a folha derivada sem o plano perde a
+coluna do objetivo.
+
+**Contraprova.** Corrida contra a `porta` e o núcleo de `HEAD`, a prova **reprova 2 de 20** — as duas
+que medem os dois modos de perder. É o que separa «acrescentei uma prova» de «acrescentei uma prova
+que guarda alguma coisa».
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

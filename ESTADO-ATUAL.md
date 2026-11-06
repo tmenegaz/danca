@@ -4091,6 +4091,22 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   **atualizada**, não apagada), `provar-producao` **159/159**, `provar-linha-de-base` **104/104**,
   `check-identidade` **0 erros**, `check-indices` **16/16**.
 
+- **06/11/2026** — **«Não vai se perder o que o professor escrever?»** A pergunta dela depois do
+  híbrido, e a resposta foi medida, não afirmada. O texto escrito na dimensão chega a **cinco**
+  leitores (documento `-po.md`, folha de captura, declaração `porVariante`, guia da aula e o
+  `po-01.json` da extração). **Dois modos de o perder existiam, os dois calados:** o
+  `GABARITO_VAZADO` casava com a **palavra** `Exemplo` no início da linha e comia um critério
+  escrito «Exemplo prático do apoio na barra» — ficava fora da folha e da declaração e continuava
+  no documento (o padrão passou a exigir a citação: `Ex\.:\s*[«"“]`); e a descrição depois dos dois
+  pontos sumia do papel, porque `rotuloDoItem` corta no `:` — a folha passou a levar uma legenda em
+  prosa por bloco, só quando há descrições. **Um terceiro, que não era perda mas era mentira:** o
+  `escrever-ciclo.js` derivava a folha **sem** o plano e a declaração **com** ele, e nenhum
+  validador o via — o `validar-captura-ciclo.js` só reprova no sentido folha→schema. Medido:
+  `provar-observacao-do-professor` (nova) **20/20**, contraprova contra `HEAD` **18/20** (reprova
+  exatamente as duas que medem os modos de perder), `provar-eixos-do-po` **42/42**,
+  `provar-po-completo` **20/20**, `provar-derivados-do-po` **16/16**, `provar-cadeia-do-ajuste`
+  **34/34**, `check-identidade` **0 erros**, `check-indices` **16/16**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

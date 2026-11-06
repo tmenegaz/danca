@@ -800,3 +800,13 @@ experimentos/modelo-formulario/*
 # caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a
 # primeira versão a medir a página do telemóvel a 1240px e a chamar-lhe desktop.
 !experimentos/provar-proposta-da-linha-de-base.js
+# O QUE O PROFESSOR ESCREVE NÃO SE PERDE (06/11/2026). Ela perguntou-o por palavras — «é algo que
+# não vai se perder o que o professor escrever?» — e a pergunta é a certa depois de o campo passar a
+# OPCIONAL: um campo opcional que se perde em silêncio é pior do que um obrigatório, porque ninguém
+# dá pela falta. A prova mede o gesto (o texto escrito no `textarea` e o evento a correr, não a
+# função chamada à mão), o corpo que passa no POST do «Guardar», e os cinco leitores do mesmo dado:
+# o documento, a folha de captura, a declaração `porVariante`, o guia da aula e o `po-01.json` da
+# extracção verdadeira. Mede também os DOIS modos de perder que existiam — o filtro do gabarito a
+# comer um critério que começava por «Exemplo», e a descrição depois dos dois pontos a sumir da
+# folha — com o gabarito vazado ainda descartado e a legenda ausente quando não há descrição.
+!experimentos/provar-observacao-do-professor.js

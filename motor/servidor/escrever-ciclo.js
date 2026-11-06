@@ -446,7 +446,12 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       { sufixo: '-aula-01.md',
         md: derivarAula01({ plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }), calibracao: cal }) },
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },
-      { sufixo: '-captura-aula-01.md', md: derivarCaptura({ po, contexto: ctx }) },
+      /* O `plano` VAI (06/11/2026) — e faltava aqui. A declaração `porVariante` passou a recebê-lo
+       * (é dela que saem as colunas do schema), e a FOLHA não o recebia: o schema declarava as
+       * colunas dos objetivos e a folha não as tinha. O validador só acusa coluna da folha NÃO
+       * declarada — o contrário passa em silêncio, e o pacote sairia com uma folha mais pobre do
+       * que o próprio schema. Uma classe de defeito que só se vê comparando os dois lados. */
+      { sufixo: '-captura-aula-01.md', md: derivarCaptura({ po, plano, contexto: ctx }) },
       { sufixo: '-harmonizacao.md', md: derivarHarmonizacao({ plano, po, contexto: ctx }) },
       { sufixo: '-dados.json', md: derivarDados({ po, contexto: ctx }) },
     ];
