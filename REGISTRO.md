@@ -38773,3 +38773,72 @@ registado; apagá-lo é um passo próprio, com a prova do `recredenciamento` da 
 declaradas:
 `provar-cartao-da-turma` (2 falhas) e `provar-declaracoes-do-indice` (`recorte.$versoes` sem
 tipo/acesso/obrigatoriedade no `indices/esquema/tipos.json`).
+
+## 06/11/2026 — «Não sei qual é a senha que ele espera»: o ciclo abria no caminho errado
+
+**O relato, e as duas senhas estavam certas.** *«A senha digitada foi recusada. Confira e clique em
+abrir. […] eu coloco a senha (1 2 3 a da escola e 2805 a do professor), clico em abrir e ele diz que
+não abriu, o pacote não tem ciclo. Então não sei qual é a senha que ele está esperando.»* Medido no
+Worker vivo, `POST /api/dados` com o nome verdadeiro respondia **`{"ok":false,"erro":"o pacote não
+tem ciclo-01-calango-bale-nivel-1-teste-1-dados.json"}`** — e não «senha não reconhecida». A senha
+nunca foi o problema: o ficheiro que ele dizia não existir estava publicado, e a página o lia sem
+senhuma senha para mostrar o número de aulas lançadas.
+
+**A causa: o leitor procurava na raiz um ficheiro que vive dentro do pacote.** Em 15/10/2026 o
+prefixo do leitor foi deixado **vazio**, com a razão escrita no REGISTRO: *«o `-dados.json` mora na
+raiz do pacote»*. Era verdade enquanto o `assets.directory` **era** o pacote. Em 20/10/2026 ele
+passou a ser a `publicacao/<escola>/`, montada com **um subdirectório por variante** — e o
+`-dados.json` passou a estar em `<variante>/`. O leitor não mudou. Passou a responder «o pacote não
+tem …» a um ficheiro que está à vista de todos em
+`/bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json` (HTTP 200, medido).
+
+**A segunda causa está na mensagem, e é ela que custou a tarde.** `pedirSenha` tinha duas razões:
+«sem senha» e **todo o resto**. Tudo o que não fosse a falta da senha era anunciado como «a senha
+digitada foi recusada» — e o diagnóstico que ela leu era falso. Passou a ter três: sem senha, senha
+recusada, e «o ciclo não abriu, e o motivo não é a senha». Do mesmo modo, o painel «Lançar uma aula»
+dizia «Escolha um ciclo» a quem **já** o tinha escolhido — o `<details>` ficava com o texto de
+fábrica quando a leitura falhava —, e o «Enviar» repetia a mesma frase. Agora o painel diz que o
+ciclo ainda não está aberto e o que o abre.
+
+**O caminho, e porque é uma pasta e não o nome.** `partesDoCaminhoDeDados`
+(`motor/nucleo/lancamento.js`) aceita `<pacote>/<nome>` — **uma** pasta, alfabeto de slug — ou o
+nome sozinho, para o pacote servido na raiz (o modelo antigo, de um Worker por pacote). A página
+manda `caminhoNoSite(nome)`, que sai da **mesma** resolução que ela usa para ler o ficheiro
+(`P + nome`): se a página mudar de lugar, o pedido muda com ela, sem uma segunda convenção copiada.
+A guarda não afrouxa: `../`, duas pastas, ponto e maiúsculas são recusados antes de chegar ao ASSETS.
+
+**O rodapé que não tinha o que folhear.** *«Tá aparecendo um rodapé para um lugar que não tem
+paginação.»* No modo captura havia uma linha a escrever `barra(1, 0)` «para manter a forma», e o pé
+da tela anunciava **«Página 1 de 0 · 0 bloco(s) no filtro»**. A barra do rodapé é da **leitura**:
+sem resultados para folhear, ela sai de cena (`barraDeLeitura`), e a paginação é limpa para não
+ficar ali a de uma leitura anterior.
+
+**A prova também mentia, e é a lição que fica.** O banco de prova servia a página na **raiz** e o
+stub do `/api/dados` encontrava o ficheiro para **qualquer** nome: media a pergunta, não o caminho.
+Uma prova que responde «sim» a tudo não guarda nada. O banco passou a ter a **forma da publicação**
+(a raiz com o `nav.json`, o pacote com os seus documentos) e o leitor **verdadeiro** a resolver
+contra ela; a secção B usa uma árvore de verdade, e a H abre a página **dentro do pacote**, como no
+ar. Contraprovas: o leitor de antes não encontra o ficheiro (e a tela **não** culpa a senha).
+
+**Onde entrou.** `motor/nucleo/lancamento.js` (`partesDoCaminhoDeDados`) ·
+`motor/servidor/ler-dados.js` (o caminho declarado e o degrau da raiz) ·
+`tools/templates/lancamento.html` (`caminhoNoSite`, `pedirSenha` de três razões, o painel do ciclo
+não aberto, `barraDeLeitura`) · `experimentos/provar-abrir-o-ciclo.js` (A.2, B reescrita, H, H.2) ·
+o pacote regenerado.
+
+**Motivo declarado — o congelado.** `tools/templates/` está congelado (`CONGELAMENTO.md`), e a
+alteração é do mesmo tipo da de 15/10: o formulário é quem sabe **onde** o ficheiro está, porque é
+ele que o pede. Nenhum ficheiro de ciclo foi tocado como fonte; a âncora `.fipp` saiu **idêntica**
+(`a2b4b976…`), porque `tools/` e as saídas geradas não entram na cadeia — **não há reancoragem**.
+
+**Validação.** `provar-abrir-o-ciclo` **62/62** (era 38; +A.2, +B com árvore, +H/H.2);
+`provar-formulario-da-aula` **48/48**; `provar-familia-do-lancamento` **44/44**;
+`provar-barra-e-caminho` **50/50**; `check-identidade` **0 erros**; `check-pacote` **0 erro(s), 0
+aviso(s)**; `hash-ciclo --check` **cadeia intacta**; `check-indices` **16/16**. No ar, com a senha
+`2805`: `POST /api/dados` devolve o ciclo **em claro** (`ok: true`), e a página, no viewport de
+390 px, pede a senha sem falar em recusa, mostra «ainda não está aberto» no painel, **não** desenha
+paginação, e depois do «Abrir» lê a aula 06 — sem erro de página.
+
+**O que fica por decidir (dela).** Quais dos cinco entregáveis permanecem, onde vivem na Área do
+Professor, e a forma do índice que se gera com cada um. A impressão com a identidade e o download
+ficam para depois daquela decisão.
