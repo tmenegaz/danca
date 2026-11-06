@@ -37023,6 +37023,10 @@ declarar `fonte`/`aviso`, e o `/enviar` a propagar `avisoIndice`. Provas: `prova
 `check-indices` **16/16**. E o ensaio de ponta a ponta com a árvore em 403: envio **200**, `gravado:
 repositorio`, `fonte` da estante a passar de `nenhuma` para `indice`.
 
+**Nota de 06/11/2026.** O parágrafo abaixo partia da leitura errada de que o token não servia para
+a árvore. Servia: faltava o cabeçalho (entrada seguinte). Fica como estava escrito, pelo mesmo
+princípio que se aplica a tudo o resto.
+
 **O que continua por resolver, e é do token.** Se o `GITHUB_TOKEN` do Worker tiver de servir a árvore
 algum dia — o `regerar-indices` corre em CI, onde o checkout é local e não precisa dela —, isto já
 não bloqueia nada. As **escolas legadas** sem token continuam a gravar o acto no KV, e a estante
@@ -37118,6 +37122,15 @@ ordem nem de alcance.
 `provar-indice-do-recorte` **24/24**; `provar-producao` **159/159**; `provar-eixos-do-po` **34/34**;
 `provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `check-identidade` **0 erros**;
 `check-indices` **16/16**; `check-github-headers` **5 verificações**.
+
+**Confirmado em produção, e a hora prova a causa (06/11/2026, 01:22 UTC).** A pesquisadora premir
+«Concluir e enviar para a turma» às **01:14** recebeu 403; o deploy com o cabeçalho entrou às
+**01:21**; às **01:22:47** o acto foi gravado — `escola/calango/linhas-de-base/teste--20261106-0122.json`,
+56906 bytes — e às **01:22:49** o índice. O mesmo gesto, o mesmo token, o mesmo caminho: o que mudou
+foi o cabeçalho. E o `apagar` também passou (01:23:11, a lápide; 01:23:12, o índice), o que fecha os
+dois caminhos que estavam partidos. A sonda nova confirma-o pelo lado de fora:
+`GET /api/bastidores/diagnostico/repositorio` → repositório **200**, árvore **200**, `.indice.json`
+**200**; e a estante passou a dizer `fonte: 'indice'`.
 
 **O que ainda não está feito.** (1) As **nove** outras cópias da lista continuam a existir — cada uma
 põe o `User-Agent` à mão (o guarda confere que o põe, não que seja a mesma lista); migrá-las para

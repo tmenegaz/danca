@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T22:20:47-0300`
-Commit atual: `e5c81062` — fix(po): o acto da linha de base nao depende da arvore do repositorio
+Gerado em: `2026-11-05T22:23:51-0300`
+Commit atual: `dce02dda` — fix(po): o envio da linha de base leva o User-Agent que o GitHub exige
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,8 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+dce02dda fix(po): o envio da linha de base leva o User-Agent que o GitHub exige
+b5dde88d feat(tools): guarda que reprova chamada ao GitHub sem User-Agent
 e5c81062 fix(po): o acto da linha de base nao depende da arvore do repositorio
 4afae9a3 fix(po): a escrita do acto nao mente, e /api/** responde sempre JSON
 61fcf8e0 feat(tools): o recorte entra no indice gerado, com a serie
@@ -104,8 +106,6 @@ d37ca8fa feat(acervo): envelope/.indice.json
 d7776497 chore(estrutura): regerar os índices derivados
 20001867 chore(estrutura): regerar os índices derivados
 43ca3c14 feat(acervo): envelope/.indice.json
-2ed9304d chore(acervo): apagar envelope/anamnese-20261105-1910.json
-88ff28fe feat(acervo): envelope/anamnese-20261105-2015.json
 ```
 
 ## Por professor
@@ -321,6 +321,15 @@ ordem nem de alcance.
 `provar-indice-do-recorte` **24/24**; `provar-producao` **159/159**; `provar-eixos-do-po` **34/34**;
 `provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `check-identidade` **0 erros**;
 `check-indices` **16/16**; `check-github-headers` **5 verificações**.
+
+**Confirmado em produção, e a hora prova a causa (06/11/2026, 01:22 UTC).** A pesquisadora premir
+«Concluir e enviar para a turma» às **01:14** recebeu 403; o deploy com o cabeçalho entrou às
+**01:21**; às **01:22:47** o acto foi gravado — `escola/calango/linhas-de-base/teste--20261106-0122.json`,
+56906 bytes — e às **01:22:49** o índice. O mesmo gesto, o mesmo token, o mesmo caminho: o que mudou
+foi o cabeçalho. E o `apagar` também passou (01:23:11, a lápide; 01:23:12, o índice), o que fecha os
+dois caminhos que estavam partidos. A sonda nova confirma-o pelo lado de fora:
+`GET /api/bastidores/diagnostico/repositorio` → repositório **200**, árvore **200**, `.indice.json`
+**200**; e a estante passou a dizer `fonte: 'indice'`.
 
 **O que ainda não está feito.** (1) As **nove** outras cópias da lista continuam a existir — cada uma
 põe o `User-Agent` à mão (o guarda confere que o põe, não que seja a mesma lista); migrá-las para
