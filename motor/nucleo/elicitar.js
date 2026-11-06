@@ -240,6 +240,15 @@ function descritores(campo) {
     // A CHAVE É DO CONTEÚDO, e não desta lista: quem decide o que se pergunta é o plano, não o
     // motor.
     noCabecalho: campo.noCabecalho === true,
+    // O NÓ QUE SE SEMEIA DA CADEIA (05/11/2026) — `semeado: 'turma'`. Não é perguntado nem
+    // desenhado: o valor chega PRONTO de turma → linha de base → alunas, e o professor não
+    // escolhe. Continua a viajar no envelope, e é isso que mantém viva toda a derivação que lê
+    // `sujeitos` (o `## Sujeitos` do PO, a folha de captura, o `-dados.json`, o vínculo da
+    // anamnese) — uma chave que se apagasse do envelope obrigaria a reescrever os derivadores
+    // para ir buscar o elenco ao sítio onde ele nasce, e seria uma segunda resposta para a
+    // mesma pergunta. `descritores` é uma lista FECHADA: sem esta linha a chave morria aqui e
+    // a tela não sabia que o nó não se pergunta.
+    semeado: campo.semeado || null,
     // A LEMBRANÇA (27/10/2026). O nó mostra, ANTES do seu campo, a resposta de OUTRO nó —
     // `{de: 'objetivo-geral', rotulo: '...'}`. Nasceu de um pedido concreto: ao chegar aos
     // «Objetivos específicos», o professor tinha de voltar ao primeiro degrau para reler o

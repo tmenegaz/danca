@@ -188,16 +188,15 @@
           "id": "sujeitos",
           "campo": "Sujeitos observados",
           "obrigatorio": true,
-          "multipla": true,
-          "aberto": true,
+          "semeado": "turma",
           "opcoesDe": "api/anamneses",
           "recortePeloPlano": true,
           "recortePeloProfessor": true,
-          "criarEm": "?fonte=anamnese",
           "explicacao": {
-            "oQueE": "QUEM você observa — os alunos, referidos por apelidos estáveis. Nunca o nome completo.",
-            "preencher": "Marque, na lista, as alunas da TURMA DO PLANO escolhido no bloco anterior — a lista já vem recortada por ela, e traz só quem já tem LINHA DE BASE enviada para aquela turma. Se a aluna ainda não está na lista, é porque a linha de base dela não foi enviada (Corpo → passo 5); o campo aberto continua a existir para o apelido que a escola ainda não cadastrou.",
-            "porQue": "A lista vem das anamneses que já existem — a anamnese é soberana e o Plano de Observação a consome, não a cria —, mas recortada pela turma do plano e pela linha de base. A anamnese não sabe de turma (o formulário dela o diz por palavras próprias); quem sabe é a LINHA DE BASE, cujo passo 5 declara «estas alunas, com este recorte, foram para esta turma neste dia». A ordem do processo é essa e não se inverte: primeiro a anamnese, depois a linha de base, só então a observação — observar quem ainda não teve o corpo lido é observar sem ponto de partida. Sem o recorte, o PO de uma turma oferecia as alunas das outras: observar quem não é seu aluno não é escolha, é vazamento. Só com a aluna declarada aqui é que o ponto de partida dela pode aparecer no campo seguinte."
+            "oQueE": "QUEM você observa — as alunas da turma, referidas por apelidos estáveis. Nunca o nome completo. Não se escolhe: vem da turma.",
+            "preencher": "Não se preenche. A lista chega pronta de turma → linha de base → alunas: a linha de base enviada para a turma do plano (Corpo → passo 5) é a que declara quem são. Se faltar alguém, o sítio de corrigir é a linha de base; se a turma não tem linha de base enviada, a lista vem vazia — e é isso que a tela diz.",
+            "porQue": "O Plano de Observação observa a TURMA, e o professor dá aula à turma inteira: não escolhe observar 5% dela. Escolher quem observar era uma decisão que o sistema não devia pedir — e um campo aberto deixava escrever um apelido que a escola não tem, criando um registo para um corpo que ninguém leu. O elenco já está declarado, com data, pelo acto que o produziu: o passo 5 da linha de base. Lê-se de lá, e é a mesma lista que a folha de captura imprime e que o `## Sujeitos` do documento nomeia — uma fonte, três leitores.",
+            "oQueNaoE": "Não é a lista de presença: quem faltou numa aula marca-se na captura da aula, não aqui. Aqui declara-se a COMPOSIÇÃO que o ciclo observa."
           }
         },
         {

@@ -1949,10 +1949,15 @@ async function pintarCorpoDoSujeito() {
   const escolhidos = Array.isArray(cru) ? cru.slice() : (cru ? [cru] : []);
   const campos = camposDoCorpo();
   if (!escolhidos.length || !campos.length) {
+    /* A FRASE MUDOU COM O NÓ (05/11/2026). «Escolha os sujeitos observados» mandava o professor
+     * a um campo que deixou de existir: a lista vem da turma, pela linha de base enviada. Dizer
+     * «escolha» quando não há o que escolher é a tela a pedir um gesto impossível — e a causa
+     * real, que é a falta de linha de base na turma, ficava escondida atrás dele. */
     alvo.innerHTML = escolhidos.length
       ? ''
-      : '<p class="sub">Escolha os sujeitos observados — o eixo do <b>Corpo</b> vem da anamnese ' +
-        'de cada um, e sem sujeito não há corpo a observar.</p>';
+      : '<p class="sub">A turma deste plano ainda não tem linha de base enviada — e é ela que '
+        + 'declara as alunas. Sem corpo lido, não há corpo a observar: faça a linha de base em '
+        + 'Corpo e envie-a para a turma (passo 5).</p>';
     return;
   }
   /* A CHAVE DAS OPÇÕES LEVA PARÂMETROS (`api/anamneses?turma=…&plano=…`), e por isso NÃO se
@@ -3161,10 +3166,16 @@ function numerosDoMapa() {
   const numero = new Map();
   let total = 0, obrigatorios = 0;
   for (const [i, no] of ((MAPA && MAPA.nos) || []).entries()) {
-    if (no.noCabecalho) continue;
+    /* O NÓ SEMEADO NÃO É DEGRAU (05/11/2026). Ele viaja no envelope — a derivação lê-o —, mas
+     * não se pergunta: o valor chega pronto da turma. Contá-lo na numeração daria ao professor um
+     * degrau sobre o qual não há nada para fazer. Ele CONTA nos obrigatórios, e por isso o `+=`
+     * vem antes do `continue`: sem ele o fecho diria «os 16 obrigatórios» enquanto
+     * `obrigatoriosFaltando()` ainda listava o décimo sétimo — a tela a contradizer-se a si mesma
+     * sobre o que falta. */
+    if (no.obrigatorio && !no.noCabecalho) obrigatorios += 1;
+    if (no.noCabecalho || no.semeado) continue;
     total += 1;
     numero.set(i, total);
-    if (no.obrigatorio) obrigatorios += 1;
   }
   NUMEROS = { numero, total, obrigatorios };
   return NUMEROS;
@@ -3272,7 +3283,13 @@ function esquecerSujeitosDaTurma() {
   for (const chave of [...OPCOES_ERRO.keys()]) {
     if (String(chave).split('?')[0] === 'api/anamneses') OPCOES_ERRO.delete(chave);
   }
+  /* O ELENCO É DERIVADO DA TURMA (05/11/2026) — apaga-se e volta a semear-se. Antes, apagá-lo
+   * bastava: era o professor que o escrevia, e o campo aparecia vazio à espera dele. Agora quem
+   * o escreve é o sistema, e deixá-lo apagado daria um PO cuja turma mudou e cuja lista ficou a
+   * do plano anterior — o pior dos dois mundos. `semearDaTurma` não toca numa resposta que veio
+   * do envelope: só preenche o que está vazio. */
   if (RESPOSTAS.has('sujeitos')) { RESPOSTAS.delete('sujeitos'); SUGERIDAS.delete('sujeitos'); }
+  if (typeof semearDaTurma === 'function') semearDaTurma();
 }
 
 /*
@@ -6103,6 +6120,57 @@ function semearDoContexto() {
 }
 
 /*
+ * OS SUJEITOS VÊM DA TURMA (05/11/2026) — turma → linha de base → alunas.
+ *
+ * A PESQUISADORA DESMONTOU O CAMPO, e o argumento é de processo, não de gosto: «o professor dá
+ * aula para a turma. Ele tem que observar todas as alunas da turma. Ele não pode dizer: hoje eu
+ * vou observar só 5% das alunas da turma.» O `sujeitos` era a última coisa que o PO perguntava
+ * sobre QUEM — e perguntava por uma lista de anamneses, com campo aberto para escrever um apelido
+ * que a escola não tem. Escolher quem observar é uma decisão que o sistema não devia pedir: o
+ * elenco já está declarado, com data, pelo acto que o produziu — o passo 5 da linha de base.
+ *
+ * O QUE NÃO SE PERDE. O valor continua a viajar no envelope, e é isso que mantém viva toda a
+ * derivação que o lê (o `## Sujeitos`, a folha de captura, o `-dados.json`, o vínculo da
+ * anamnese). O que muda é quem o escreve: era o professor; passa a ser o sistema.
+ *
+ * A REGRA DA SEMENTE É A DE TODAS: só se semeia o que está VAZIO. Um PO já gravado traz os
+ * sujeitos do dia em que foi gravado, e re-semeá-lo inscreveria no documento de ontem uma turma
+ * que mudou hoje — a reescrita do passado que o sistema inteiro existe para não fazer. Se o
+ * elenco mudar depois, quem o diz é a cascata de revalidação, e a decisão de ajustar é do
+ * professor.
+ *
+ * A LEITURA É A MESMA DA CURADORIA (`alunas-da-turma`): uma lista de nomes, derivada da linha de
+ * base enviada para aquela turma. Não há uma segunda derivação do elenco — seria a que diverge.
+ */
+async function semearDaTurma() {
+  if (FONTE !== 'po' || !MAPA) return;
+  const no = (MAPA.nos || []).find((n) => n && n.semeado === 'turma');
+  if (!no) return;
+  const turma = turmaDoPlanoReferenciado();
+  if (!turma) {
+    /* SEM TURMA NÃO HÁ ELENCO — e a lista fica vazia, e diz-se porquê (o bloco da linha de base
+     * tem a frase). Apagar uma resposta que já existe seria pior: um PO aberto antes de o plano
+     * estar escolhido não pode perder o que já tinha. */
+    return;
+  }
+  /* A SEMENTE NÃO REESCREVE O QUE ESTÁ GRAVADO. `RESPOSTAS.has` sem `SUGERIDAS` é a assinatura de
+   * uma resposta que veio do envelope (ou que o professor deu) — e essa não se toca. */
+  if (RESPOSTAS.has(no.id) && !SUGERIDAS.has(no.id)) return;
+  try {
+    const resposta = await fetch('/api/bastidores/alunas-da-turma?turma=' + encodeURIComponent(turma));
+    const dados = await resposta.json().catch(() => null);
+    if (!dados || !dados.ok || !Array.isArray(dados.alunas)) return;
+    const antes = JSON.stringify(RESPOSTAS.get(no.id) || []);
+    if (antes === JSON.stringify(dados.alunas)) return;
+    RESPOSTAS.set(no.id, dados.alunas);
+    SUGERIDAS.add(no.id);
+    atualizarBarra();
+    pintarRoteiro();
+    salvar();
+  } catch (erro) { /* a lista fica como estava: a falha de rede não apaga um dado */ }
+}
+
+/*
  * O VALOR que a barra entrega. O controle da barra diz o IDENTIFICADOR (o professor
  * é o slug — «leticia»), e o documento diz o NOME: o que entra no plano é o rótulo
  * escolhido no seletor, nunca o slug em minúscula e sem acento. Um campo de texto
@@ -6211,6 +6279,10 @@ async function semearDoPlano() {
       SUGERIDAS.add(para);
     }
   }
+  /* O ELENCO DEPOIS DO PLANO (05/11/2026): a turma vem do plano, e é dela que sai a lista de
+   * quem se observa. Fica aqui porque é aqui que a estante está carregada — `turmaDoPlanoReferenciado`
+   * lê-a, e chamá-la antes dava uma lista vazia com a turma à frente dos olhos. */
+  await semearDaTurma();
   atualizarBarra();
   pintarRoteiro();
   salvar();
@@ -6224,15 +6296,23 @@ function blocoDaRepeticao(no) {
   // repetição dos ITENS de cada dimensão, por exemplo) o valor repetido é uma
   // dimensão, não uma aluna: procurá-la entre as anamneses dava «Sem anamnese para
   // «Técnica — Solo»» e oferecia criar a anamnese de uma dimensão.
-  const refereSujeitos = !!(fonte && fonte.opcoesDe);
+  const refereSujeitos = !!(fonte && (fonte.opcoesDe || fonte.semeado));
   const cru = RESPOSTAS.get(no.repetirPor);
   const selecionados = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
   if (!selecionados.length) {
+    /* A FRASE MUDA CONFORME O NÓ-FONTE SE PERGUNTA OU SE SEMEIA (05/11/2026). «Escolha as alunas
+     * no campo anterior» deixou de ser verdade quando o elenco passou a vir da turma: não há
+     * campo anterior nenhum, e mandar o professor a um sítio que não existe é pior do que não
+     * dizer nada. O caminho de corrigir é outro, e diz-se qual. */
+    const daTurma = fonte && fonte.semeado === 'turma';
     return '<p class="aviso">Este campo repete por ' +
       citacao(fonte ? fonte.campo : no.repetirPor) + '. ' +
-      (refereSujeitos
-        ? 'Escolha as alunas no campo anterior — um registro aparece para cada uma.'
-        : 'Preencha o campo anterior — um registro aparece para cada item dele.') + '</p>';
+      (daTurma
+        ? 'A lista vem da turma do plano de ensino: é a linha de base enviada para ela (Corpo → '
+          + 'passo 5) que declara quais alunas. Sem linha de base enviada, não há corpo a observar.'
+        : refereSujeitos
+          ? 'Escolha as alunas no campo anterior — um registro aparece para cada uma.'
+          : 'Preencha o campo anterior — um registro aparece para cada item dele.') + '</p>';
   }
 
   const opcoes = fonte && fonte.opcoesDe ? (OPCOES.get(enderecoDeOpcoes(fonte)) || []) : [];
@@ -6889,6 +6969,15 @@ function renderCarregando(no) {
 function renderPergunta() {
   const no = MAPA.nos[INDICE];
   if (!no) return;
+  /* O NÓ SEMEADO NÃO SE DESENHA (05/11/2026). `sujeitos` deixou de ser uma pergunta: o valor
+   * chega pronto da turma (turma → linha de base → alunas) e o professor não escolhe. O nó
+   * continua no mapa porque o envelope e a derivação o leem — o `## Sujeitos` do PO, a folha de
+   * captura e o `-dados.json` saem dele. Se o índice cair aqui (um PO antigo aberto, um
+   * `irPara`), salta-se para o degrau seguinte em vez de desenhar um campo que já não existe. */
+  if (no.semeado) {
+    const proximo = [...Array(MAPA.nos.length).keys()].find((i) => i > INDICE && !MAPA.nos[i].semeado);
+    if (proximo !== undefined) { irPara(proximo); return; }
+  }
   /* MUDAR OS SUJEITOS MUDA O CORPO — e ele tem de mudar AGORA, não na próxima visita ao bloco
    * (04/11/2026). O painel do corpo mora no bloco das dimensões, e o campo dos sujeitos vem
    * antes dele; quando o professor volta ao bloco, o painel já se desenha com o que escolheu.

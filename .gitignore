@@ -746,6 +746,15 @@ experimentos/modelo-formulario/*
 # prioridade (linha de base vence a curadoria, e a curadoria responde quando não há nenhuma), e a
 # página renderizada nos três estados — com o controle da aluna nova, que continua a ser «nova».
 !experimentos/provar-etiqueta-da-aluna.js
+# O ELENCO DO PO NÃO SE ESCOLHE (05/11/2026). «O professor dá aula para a turma. Ele tem que
+# observar todas as alunas da turma.» O nó `sujeitos` deixou de ser pergunta e passa a ser semeado
+# de turma → linha de base → alunas. A prova mede o conteúdo (sem `aberto`, sem `criarEm`, ainda
+# obrigatório), o MAPA (a chave `semeado` atravessa a lista fechada do motor), o roteiro (deixa de
+# ser degrau, continua a contar nos obrigatórios), a DERIVAÇÃO (o valor continua no envelope, e o
+# documento e a captura continuam a nomear as alunas) e a tela (semeia da mesma rota da curadoria
+# e não reescreve o gravado) — com o controle de que a instrução de escolher ficou presa ao ramo
+# que já não é o do elenco.
+!experimentos/provar-sujeitos-semeados.js
 # A PROPOSTA DA LISTAGEM, MEDIDA (05/11/2026). A bancada constrói a proposta, serve-a em 127.0.0.1 e
 # mede a geometria nas quatro larguras — 1240, 390, 360 e 320 —, incluindo o alvo de toque de cada
 # caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a

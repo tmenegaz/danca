@@ -36727,3 +36727,51 @@ páginas relativas que não existem no pacote. Medido no `HEAD` (`git stash` e n
 mesmos 10 erros**. Não foi corrigido aqui porque a correcção é uma geração inteira, e o `.conf` desta
 variante está com `DOCS=""` — a fonte do ciclo não está no repositório, e gerá-la exigiria eliciar o
 plano outra vez.
+
+## 05/11/2026 — O elenco do Plano de Observação deixa de se escolher
+
+**O que aconteceu.** A pesquisadora desmontou o nó `sujeitos`: «o professor dá aula para a turma. Ele
+tem que observar todas as alunas da turma. Ele não pode dizer: hoje eu vou observar só 5% das alunas
+da turma.» Pediu-o fora do roteiro e fora da página: «vamos tirar ele tanto do nosso roteiro quanto
+da página principal, ele vai deixar de existir». E deu a razão de ser possível: «através da turma a
+gente chega até a linha de base e dessa linha de base a gente chega até a quantidade de alunas que a
+gente está observando».
+
+**O que foi decidido.** O nó **deixa de ser pergunta e passa a ser semeado** — `semeado: 'turma'`,
+lido de `turma → linha de base → alunas` pela mesma rota da curadoria (`alunas-da-turma`). Perdeu
+`multipla`, `aberto` e `criarEm`: não há o que marcar, não se escreve um apelido que a escola não
+tem, e não se cria anamnese a partir do PO. Continua `obrigatorio`.
+
+**O que NÃO se fez, e porquê.** O nó **não saiu do envelope**. É a diferença entre «deixa de se
+perguntar» e «deixa de existir», e a segunda teria um custo que ninguém pediu: o `## Sujeitos` do
+PO, a folha de captura, o `-dados.json` e o vínculo da anamnese (`porta.vinculos`) leem todos
+`resp(envelope,'sujeitos')`. Tirá-lo obrigaria a reescrever quatro derivadores para irem buscar o
+elenco ao sítio onde ele nasce — e ficaria uma segunda resposta para a mesma pergunta. O que muda é
+**quem escreve o valor**: era o professor; passa a ser o sistema.
+
+**A regra da semente é a de todas: só se semeia o que está vazio.** Um PO já gravado traz os
+sujeitos do dia em que foi gravado; re-semeá-lo inscreveria no documento de ontem uma turma que
+mudou hoje — a reescrita do passado que o sistema existe para não fazer. Se o elenco mudar depois,
+quem o diz é a cascata de revalidação, e o ajuste é decisão do professor.
+
+**Duas frases mudaram, e são o defeito clássico desta casa.** «Escolha os sujeitos observados» e
+«Escolha as alunas no campo anterior» mandavam o professor a um campo que deixou de existir. Passam a
+nomear a causa real — a turma ainda não tem linha de base enviada (Corpo → passo 5) —, porque uma
+tela que pede um gesto impossível esconde o defeito atrás do pedido.
+
+**Onde entrou.** `porta/po/conteudo/po.json` — o nó, e a explicação reescrita com `oQueNaoE`.
+`motor/nucleo/elicitar.js` — `semeado` em `descritores` (a lista é fechada: sem esta linha a chave
+morria em silêncio). `porta/index.html` — `numerosDoMapa` (não é degrau, conta nos obrigatórios),
+`renderPergunta` (salta o nó), `semearDaTurma` (a sementeira, chamada no fim de `semearDoPlano`),
+`esquecerSujeitosDaTurma` (apaga e volta a semear), e as duas frases. `experimentos/provar-sujeitos-semeados.js`
+— novo; `experimentos/provar-eixos-do-po.js` — uma asserção **invertida**, não apagada.
+
+**Medido.** `provar-sujeitos-semeados` **22/22**; `provar-sujeitos-da-turma` **41/41**;
+`provar-eixos-do-po` **34/34**; `provar-po-completo` **17/17**; `provar-cadeia-do-ajuste`
+**34/34**; `provar-porta-sem-contexto` **44/44**; `provar-producao` **159/159**;
+`provar-etiqueta-da-aluna` **20/20**; `check-identidade` **0 erros**.
+
+**Pendente.** O `sujeitos` continua a ser uma **resposta obrigatória** do envelope — e é o que se
+quer: sem elenco não há corpo a observar. Mas o valor só existe depois de a turma ter linha de base
+**enviada**; uma escola que ainda não chegou ao passo 5 não consegue fechar um PO. É a ordem do
+processo, e não um defeito — fica dito para não se ler como avaria.

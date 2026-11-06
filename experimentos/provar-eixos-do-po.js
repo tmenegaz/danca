@@ -287,8 +287,14 @@ async function main() {
         semSujeito = lerCorpo();
       }
       provar('há um painel do corpo no bloco das dimensões', Boolean(semSujeito), semSujeito);
-      provar('sem sujeito escolhido, o corpo DIZ que falta — não inventa',
-        /Escolha os sujeitos observados/.test(semSujeito), semSujeito);
+      /* A ASSERÇÃO FOI INVERTIDA, E NÃO APAGADA (05/11/2026). Ela exigia «Escolha os sujeitos
+       * observados» — e o `sujeitos` deixou de ser uma escolha: o elenco vem da turma, pela linha
+       * de base enviada. O que se continua a medir é «sem sujeito, o corpo DIZ que falta e não
+       * inventa»; o que mudou é a causa que a frase nomeia. Uma tela que mandasse escolher um
+       * campo inexistente seria pior do que o silêncio. */
+      provar('sem sujeito, o corpo DIZ que falta — e nomeia a linha de base, não uma escolha',
+        /linha de base enviada/.test(semSujeito) && /Escolha os sujeitos/.test(semSujeito) === false,
+        semSujeito);
 
       w.eval(`(function(){ RESPOSTAS.set('sujeitos', ['Aluna A']); return true; })()`);
       renderizarDimensoes();
@@ -341,7 +347,7 @@ async function main() {
     console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
     process.exit(1);
   }
-  console.log('TUDO CERTO — ' + total + ' asserções: o sujeito escolhe-se antes das dimensões, o '
+  console.log('TUDO CERTO — ' + total + ' asserções: o elenco entra antes das dimensões, o '
     + 'eixo decide-se pelo BLOCO (e não pelo prefixo gravado), o documento do PO mostra os três '
     + 'eixos com o Fenómeno sob o título, e o corpo carrega-se da anamnese de quem se observa.');
 }
