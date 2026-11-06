@@ -80,6 +80,36 @@ function mdSim(v) { return v === true ? 'sim' : v === false ? 'não' : '—'; }
 // (`alinhamento · tempo · transferência · braço-perna` e `tônus · fadiga antes do previsto`): eram
 // os do Duo, mentiam nos outros ciclos, e não deixavam a vista ver os blocos que o ciclo declara
 // além da técnica e do funcional (a musicalidade, a linha de base, e o Par do Ritmos).
+// ---------------------------------------------------------------- AS MARCAS DA AULA (06/11/2026)
+// `observado` — o que se marcou por EIXO ao fim da aula. Saem em lista porque é assim que se lê:
+// o eixo, e o que aconteceu em cada item dele. O item em BRANCO não vira «nada»: vira «não
+// observei», que é exactamente o que o formulário quer dizer com o vazio — e a diferença entre
+// «não aconteceu» e «não vi» é o que separa o dado do silêncio.
+const ROTULO_DO_EIXO = { corpo: 'Corpo', tecnica: 'Técnica', poiesis: 'Poiesis', poiese: 'Poiesis' };
+const ROTULO_DA_MARCA = { ok: 'aconteceu', parcial: 'em parte', nao: 'não aconteceu',
+  nao_vi: 'não vi', '': 'não observei' };
+function linhasDoObservado(a) {
+  const o = a && a.observado;
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return [];
+  const linhas = [];
+  Object.entries(o).forEach(([eixo, lista]) => {
+    if (!Array.isArray(lista) || !lista.length) return;
+    linhas.push(`- **${ROTULO_DO_EIXO[eixo] || eixo}:** ` + lista
+      .map((x) => `${x && x.item ? x.item : '?'} — ${ROTULO_DA_MARCA[
+        x && x.marca ? x.marca : ''] || (x && x.marca) || '—'}`).join(' · '));
+  });
+  return linhas;
+}
+
+// A MARCA DO «SURPREENDEU» (06/11/2026): `sim`/`nao`. A prosa de um lançamento anterior passa
+// INTACTA, verbatim — ela é registro, e o que se traduz é a marca nova, não o que já estava dito.
+function textoDaSurpresa(v) {
+  const t = String(v == null ? '' : v).trim();
+  if (t === 'sim') return 'Sim.';
+  if (t === 'nao') return 'Não.';
+  return t || '[Nada registrado nesta aula.]';
+}
+
 const blocosDaCaptura = (captura) =>
   ((captura && Array.isArray(captura.blocos)) ? captura.blocos : [])
     .filter((b) => b && b.tipo === 'tabela' && b.chave);
@@ -139,7 +169,9 @@ function mdAcompanhamento(m, dados, chave, aulas, prov, captura) {
     const linhas = blocosDaCaptura(captura).map((b) => linhaDoBloco(a, b, chave)).filter(Boolean);
     if (linhas.length) l.push(...linhas); else l.push(SEM_CAPTURA);
     l.push(`- **Estado da aula:** ${a.relatorio.texto}`, '');
-    if (a.relatorio.surpresas) l.push(`> Surpreendeu: ${a.relatorio.surpresas}`, '');
+    if (String(a.relatorio.surpresas || '').trim()) {
+      l.push(`> Surpreendeu: ${textoDaSurpresa(a.relatorio.surpresas)}`, '');
+    }
   }
   const comDado = aulas.filter((k) => !dados.aulas[k].ausentes.includes(chave));
   const ultima = comDado[comDado.length - 1];
@@ -174,6 +206,9 @@ function mdEntradaCaderno(m, dados, id, captura) {
   l.push(`- ${a.presentes.length} presente(s) (${listaNomes(dados, a.presentes)}). ` +
     (faltas ? `Faltou: ${faltas}.` : 'Nenhuma falta.'));
   l.push(`- Duração executada: ${a.duracao_min} min (planejado: ${m.duracao_min || '—'} min).`);
+  // OS TRÊS EIXOS, logo abaixo do que aconteceu: é o mesmo olhar do formulário, e a marca de cada
+  // item é a memória curta da aula — o texto do «o que aconteceu de novo» diz o resto.
+  l.push(...linhasDoObservado(a));
   // AS COLUNAS DO CICLO, por pessoa presente: o que a aula observou (antes esta entrada não
   // registrava marca nenhuma — as do Duo ficavam nos outros documentos, e as dos outros ciclos em
   // lugar nenhum).
@@ -202,7 +237,7 @@ function mdEntradaCaderno(m, dados, id, captura) {
       : '- O que mudou em relação ao plano: [Preencher: o plano não foi seguido, e a ' +
         'mudança não foi lançada no ato.]'));
   l.push('', '### O que me surpreendeu', '');
-  l.push(`- ${a.relatorio.surpresas || '[Nada registrado nesta aula.]'}`);
+  l.push(`- ${textoDaSurpresa(a.relatorio.surpresas)}`);
   l.push('', '### Pergunta emergente', '');
   l.push('- [Preencher: a pergunta que ficou sem resposta — o JSON não tem esse campo.]');
   l.push('');
@@ -308,7 +343,7 @@ function mdRelatorio(m, dados, aulas, prov, captura) {
     'execução — o JSON não tem esse campo.]', '');
   l.push('## 4. Ruído (proto — não classificar)', '');
   l.push(`- **O que aconteceu diferente do planejado:** ${cc.mudou || 'nada.'}`);
-  l.push(`- **O que surpreendeu:** ${a.relatorio.surpresas || '[Nada registrado nesta aula.]'}`);
+  l.push(`- **O que surpreendeu:** ${textoDaSurpresa(a.relatorio.surpresas)}`);
   l.push('- **O que foi ajustado em tempo real:** ' +
     `${a.relatorio.ajustes || '[Nada registrado nesta aula.]'}`, '');
   l.push('## 5. Materiais brutos', '',

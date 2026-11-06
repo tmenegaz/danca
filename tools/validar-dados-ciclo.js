@@ -37,9 +37,12 @@
  *      do PO ("Metatarsos"), o formulário escreve as genéricas (`alinhamento`, `tempo`) e o
  *      Duo guarda `metatarsos`. As CHAVES DE BLOCO VARIAM por variante — este validador confere
  *      a FORMA de cada bloco por aluno, nunca a lista de chaves: fixá-la seria contradizer a §7.1.
- *   2. O campo `relatorio` no JSON é do CADERNO: `texto`, `surpresas` e `ajustes` são a prosa crua
- *      da aula. O nome deveria ser `caderno` (ou `notas`) — renomear é decisão do professor, e o
- *      validador apenas o registra.
+ *   2. O campo `relatorio` no JSON é do CADERNO. Desde 06/11/2026 ele NÃO é prosa toda: `texto` é
+ *      «o que aconteceu de novo» — a única escrita obrigatória —, `surpresas` é uma MARCA
+ *      (`sim`/`nao`, ou a prosa de um lançamento antigo, que não se apaga) e `ajustes` é vazio ou
+ *      o texto do ajuste (não vazio quer dizer «precisou de ajuste, e foi este»). O nome deveria
+ *      ser `caderno` (ou `notas`) — renomear é decisão do professor, e o validador apenas o
+ *      registra.
  *   3. A precedência do caderno mudou de lugar: com a janela de ajuste o texto cru é EDITÁVEL, e
  *      quem sustenta a precedência é o HISTÓRICO DO GIT (cada estado do JSON é um commit) mais a
  *      lista `ajustes`, gravada no ato. Não há carimbo dentro do JSON para provar nada disso.
@@ -47,6 +50,7 @@
  * O QUE ELE CONFERE (erro = barra o commit; aviso = reporta):
  *   · o CARIMBO por aula (§4.1: `ultimo_lancamento` DENTRO da aula, não na raiz);
  *   · o PAR `plano_seguido` × `mudou`: `mudou` vazio se e só se o plano foi seguido;
+ *   · `observado` — os eixos (`corpo`/`tecnica`/`poiesis`), o texto de cada item e a marca;
  *   · `plano_seguido ∈ {sim, parcial, nao}`, as três notas inteiras de 1 a 5, e as cinco chaves
  *     de `condicoes_contorno`, na ordem canônica;
  *   · a ORDEM DAS CHAVES — a da raiz e a da aula — contra a que o formulário constrói;
@@ -73,13 +77,19 @@ const { validar } = require('./lib-validacao-md.js');
 const ORDEM_RAIZ = ['ciclo', 'escola', 'professor', 'criado_em', 'ultimo_lancamento', 'apelidos',
   'aulas', '_nota'];
 const ORDEM_AULA = ['data', 'presentes', 'ausentes', 'duracao_min', 'condicoes_contorno', 'tecnica',
-  'funcional', 'relatorio', '_nota'];
+  'funcional', 'relatorio', 'observado', '_nota'];
 
 // As cinco condições de contorno, na ordem do formulário, e o vocabulário fechado dos três
 // campos de escolha. `plano_seguido` sai de um `<select>` e as marcas de uma lista fixa.
 const CHAVES_CONTORNO = ['plano_seguido', 'animo', 'interesse', 'harmonia', 'mudou'];
 const PLANO_SEGUIDO = ['sim', 'parcial', 'nao'];
 const MARCAS = ['', 'ok', 'parcial', 'nao', 'nao_vi'];
+
+// OS TRÊS EIXOS DA CAPTURA (06/11/2026). `observado` é o que se marcou ao fim da aula, por EIXO,
+// e os eixos são estes — a mesma tríade que o PO usa em «Itens de cada dimensão». A chave é
+// fechada porque é ela que agrupa a leitura; o TEXTO do item é livre (vem do PO, e o PO muda com
+// o ciclo). `poiesis` também aceita a grafia `poiese`, que é a que a pesquisadora usa ao falar.
+const EIXOS_DA_AULA = ['corpo', 'tecnica', 'poiesis'];
 
 // O que NÃO é pessoa nem bloco: as chaves escalares da aula. O que sobra, e é objeto de
 // objetos, é um BLOCO POR PESSOA (`tecnica`, `funcional`, `musicalidade`, `par`, `linha_de_base`
@@ -148,6 +158,10 @@ const SCHEMA_AULA = {
     // nas chaves é o PO (§7.1), e elas variam por variante.
     tecnica: { type: 'object' },
     funcional: { type: 'object' },
+    // O QUE SE MARCOU AO FIM DA AULA, POR EIXO (`corpo`, `tecnica`, `poiesis`): uma lista de
+    // `{ item, marca }` por eixo. A forma é aberta de propósito — os itens vêm do PO do ciclo, e
+    // uma lista fechada aqui seria uma segunda fonte do vocabulário (§7.1).
+    observado: { type: 'object' },
     relatorio: {
       type: 'object',
       required: ['texto'],
@@ -160,8 +174,15 @@ const SCHEMA_AULA = {
     ultimo_lancamento: { type: 'string', description: 'O carimbo da aula (§4.1), ainda em migração.' },
     _nota: { type: 'string' },
   },
-  required: ['data', 'presentes', 'ausentes', 'duracao_min', 'condicoes_contorno', 'tecnica',
-    'funcional', 'relatorio'],
+  // `tecnica` E `funcional` NÃO SÃO OBRIGATÓRIOS (06/11/2026) — e a lista os exigia. Os dois são os
+  // blocos do ciclo DUO; os blocos de cada ciclo são os que o `captura-XX.json` declara (§7.1), e o
+  // da calango declara `solo`, `barra`, `centro`, `musicalidade`, `expressao` e `linha_de_base`. A
+  // exigência fazia o lançamento de um ciclo real ser recusado pelo validador do próprio projeto —
+  // medido em `experimentos/provar-formulario-da-aula.js`, que é o JSON que o formulário monta.
+  // O que continua exigido é o que vale em TODO ciclo: a aula, quem estava, o tempo, as condições
+  // de contorno e o relatório. E a ausência de QUALQUER bloco por pessoa é erro próprio
+  // (`conferirBlocos`): sem bloco nenhum, o lançamento não observou ninguém.
+  required: ['data', 'presentes', 'ausentes', 'duracao_min', 'condicoes_contorno', 'relatorio'],
   additionalProperties: true,
 };
 
@@ -281,6 +302,15 @@ function conferirParticao(aula, apelidos, onde, erros) {
 }
 
 function conferirBlocos(aula, onde, presentes, erros, avisos) {
+  // NENHUM BLOCO POR PESSOA É ERRO (06/11/2026). Era o que a lista `required` tentava garantir ao
+  // exigir `tecnica` e `funcional` — e garantia só no ciclo do Duo. Aqui a regra vale para todos:
+  // se há pessoas presentes, ao menos um bloco por pessoa tem de existir. Os NOMES são do ciclo.
+  const nomesDeBloco = Object.keys(aula).filter((k) => !k.startsWith('_')
+    && !CHAVES_ESCALARES.includes(k) && ehBlocoPorPessoa(aula[k]));
+  if (presentes.length && !nomesDeBloco.length && Object.keys(aula).length) {
+    erros.push(`${onde}: nenhum bloco por pessoa — a aula não registrou observação de ninguém`
+      + ` (os blocos são os do captura-XX.json do ciclo)`);
+  }
   Object.keys(aula).forEach((nome) => {
     if (nome.startsWith('_') || CHAVES_ESCALARES.includes(nome)) return;
     const bloco = aula[nome];
@@ -310,6 +340,54 @@ function conferirBlocos(aula, onde, presentes, erros, avisos) {
       });
     });
   });
+}
+
+/**
+ * `observado` — as marcas dos três eixos.
+ *
+ * O QUE ELE CONFERE, E POR QUÊ: o eixo tem de ser um dos três (é a chave da leitura, e um eixo
+ * inventado some das vistas sem aviso); o item tem de ser texto não vazio (é a redação que veio
+ * do PO, e um item vazio não diz o que foi olhado); a marca tem de estar no vocabulário do
+ * formulário (é o mesmo `MARCAS` das colunas por pessoa); e o mesmo item não pode aparecer duas
+ * vezes no mesmo eixo (duas marcas para o mesmo item deixam a leitura ambígua).
+ */
+function conferirObservado(aula, onde, erros, avisos) {
+  const o = aula.observado;
+  if (o === undefined) return;
+  if (!ehObjeto(o)) { erros.push(`${onde}: observado não é objeto`); return; }
+  const fora = Object.keys(o).filter((k) => !EIXOS_DA_AULA.includes(k));
+  if (fora.length) {
+    erros.push(`${onde}: observado com eixo fora de ${EIXOS_DA_AULA.join('|')}: ${fora.join(', ')}`);
+  }
+  let total = 0;
+  Object.entries(o).forEach(([eixo, lista]) => {
+    if (!Array.isArray(lista)) { erros.push(`${onde}: observado.${eixo} não é lista`); return; }
+    const vistos = [];
+    lista.forEach((x, i) => {
+      if (!ehObjeto(x)) { erros.push(`${onde}: observado.${eixo}[${i}] não é objeto`); return; }
+      // `semEspaco` quer dizer «tem conteúdo» (é `v.trim() !== ''`) — o nome engana, e por isso a
+      // negação é que está certa aqui.
+      if (!semEspaco(x.item)) {
+        erros.push(`${onde}: observado.${eixo}[${i}] sem o texto do item`);
+        return;
+      }
+      const chave = x.item.trim().toLowerCase();
+      if (vistos.includes(chave)) {
+        erros.push(`${onde}: observado.${eixo} repete o item '${x.item.trim()}'`);
+      }
+      vistos.push(chave);
+      if (x.marca === undefined || !ehString(x.marca)) {
+        erros.push(`${onde}: observado.${eixo}[${i}].marca não é texto`);
+      } else if (!MARCAS.includes(x.marca)) {
+        erros.push(`${onde}: observado.${eixo}[${i}] '${x.marca}' não é marca do formulário`
+          + ` (${MARCAS.filter(Boolean).join(', ')} ou vazio)`);
+      }
+      total++;
+    });
+  });
+  // Zero item marcado numa aula lançada não é erro (a aula pode não ter sido observada item a
+  // item), mas é o caso que se lê errado como «nada aconteceu» — fica o aviso.
+  if (!total) avisos.push(`${onde}: observado sem nenhum item — «nada foi marcado» não é «nada aconteceu»`);
 }
 
 function conferirAula(aula, id, apelidos, erros, avisos, provisorios) {
@@ -344,6 +422,7 @@ function conferirAula(aula, id, apelidos, erros, avisos, provisorios) {
   if (ehObjeto(apelidos)) presentes = conferirParticao(aula, apelidos, onde, erros).presentes;
 
   conferirBlocos(aula, onde, presentes, erros, avisos);
+  conferirObservado(aula, onde, erros, avisos);
 
   // A duração funcional por pessoa é do bloco; a da aula é a referência. Divergir é possível
   // (a pessoa chegou depois, saiu antes) — por isso AVISO, e não erro.
