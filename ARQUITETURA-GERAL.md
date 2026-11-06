@@ -1125,9 +1125,15 @@ renumera-se sozinho (`#roteiro` numera pela caminhada, não pelo `id`).
 (`itens-por-dimensao`) **não** são redundantes: são a única fonte das **colunas da folha de
 captura** (`motor/nucleo/derivar-ciclo.js` → `dimensoesEItens` → `porVariante`). O que o plano
 declara são *exercícios* (`aula-1-sequencia`) e *parâmetros por objetivo* (`aula-1-parametro`) —
-não critérios de observação por bloco. Removê-lo deixaria a folha sem colunas. O que **é**
-possível, e fica para uma decisão dela, é **pré-preencher** a repetição a partir dos parâmetros
-que o plano já marcou, bloco a bloco.
+não critérios de observação por bloco. Removê-lo deixaria a folha sem colunas.
+
+**E a investigação que ela pediu, feita na §5.15, mudou o que esta secção dizia.** O campo
+continua a não ser derivável — mas a razão deixou de ser uma opinião minha: a auditoria reversa
+mostrou que **metade** do que ali se escreve já está no plano (os objetivos, os exercícios que os
+medem, a justificativa do volume) e que a outra metade **não está em lado nenhum** (o critério, e
+os blocos que objetivo nenhum marca). O que ficou por decidir é outra coisa, e continua a ser dela:
+se o campo passa a **derivado** dos objetivos — o que apaga o critério e o bloco da Expressão — ou
+se fica como está, agora com o plano à vista ao lado da caixa.
 
 **Como o dado chega ao documento.** `porta.linhaDeBaseDaTurma(linhas, turma)` escolhe o **acto**
 (a versão enviada, de `enviada_em` maior, sem lápide) e devolve `{id, nome, em, alunas, recorte}`.
@@ -1149,8 +1155,88 @@ próprio store — quem sabe ler a família sabe reconhecê-la, e não há uma s
 
 **As provas.** `provar-po-completo` (17 verificações: o contrato nó→destino, o documento, a folha
 de captura que passa no `validar-captura-ciclo`, e o PO no formato antigo a continuar lido);
-`provar-eixos-do-po` (35 asserções, secção D: o painel do corpo mostra o **recorte** agrupado por
-bloco, só os grupos que têm aspectos, e diz a lacuna quando a turma não recebeu o acto).
+`provar-eixos-do-po` (42 asserções: as secções A a D como antes, e a **E** — cada bloco da
+repetição mostra o que o plano decide dele, recortado pelo bloco).
+
+### 5.15 A auditoria reversa dos «itens de cada dimensão» — metade vem do plano, metade não vem de lado nenhum
+
+A pesquisadora, 06/11/2026, com a intuição que valia uma auditoria: *«eu acho que tem que investigar
+se esses valores já não estão definidos lá no plano de ensino… eu tenho a impressão que não, não é
+uma escrita nova do professor.»* E deu o método: *«olha pelo fim, lá pelo documento que gera… e vai
+andando para trás, passando pelo PO, passando pelo PE, passando pela linha de base.»*
+
+**O caminho, na ordem dela.** O documento gerado imprime `## Itens de cada dimensão` numa tabela
+`| Eixo | Dimensão | Itens |`, e a **folha de captura** usa os mesmos itens como **colunas**. Os
+dois leem `dimensoesEItens(po)`, que lê `itens-por-dimensao` do envelope do PO — e para ali não há
+derivação nenhuma: é texto escrito no formulário. A pergunta é se podia não ser.
+
+**O que o plano de ensino tem, e o que a linha de base tem.** O PE declara quatro coisas que
+interessam: os **objetivos específicos** (`marcos-por-aula`), **em que blocos cada um é trabalhado**
+(`estrutura-de-cada-aula`), **o que mede cada um** (`aula-1-parametro` — e são os *exercícios* do
+nível da turma: plié, battement tendu, port de bras), e **porque cada bloco tem o peso que tem**
+(`distribuicao-de-volume[].Justificativa` — «Pulso e frase», «Transferência e sequência»). A linha
+de base, no passo 4, dá o **recorte**: aspectos do **corpo** por aluna, agrupados por bloco da
+anamnese — e esses já alimentam o eixo Corpo desde 06/11.
+
+**A tabela que decide, com os dados reais da `batata`** (o plano dela marca Solo·Barra no objetivo
+01, Barra·Centro no 02, Solo·Centro·Musicalidade no 03 — e **nenhum** marca a Expressão):
+
+| Bloco | Objetivos que o plano ali trabalha | O que o plano marcou para medir | O que foi escrito no PO |
+|:--|:--|:--|:--|
+| Solo | 01 reconhecer o apoio e alinhar o eixo vertical (+03) | Plié · Battement tendu | «alinhamento do pé de apoio; eixo do corpo na preparação» |
+| Barra | 01 · 02 transferir o peso sem perder o alinhamento | Plié · Battement tendu · Port de bras | «saída do calcanhar no tendu; quadril sem subir no dehors» |
+| Centro | 02 · 03 sustentar a transferência com musicalidade | Plié · Port de bras · Rond de jambe | «transferência de peso sem perder a verticalidade; braço junto do movimento» |
+| Musicalidade | 03 | Battement tendu · Rond de jambe | «resposta ao pulso na marcação; frase até o fim da música» |
+| **Expressão** | **nenhum** | — | «olhar acompanha o braço; presença sem rigidez de rosto» |
+
+**O que a tabela mostra, sem opinião.**
+
+1. **A dimensão já é derivada** — não se pergunta. Vem dos blocos que o plano marca.
+2. **O objetivo, por bloco, é derivável** — `marcos-por-aula` × `estrutura-de-cada-aula`. A
+   Musicalidade tem **um** objetivo; a Barra tem **dois**. É um cruzamento, não uma escolha.
+3. **O que mede cada objetivo também está lá** — e são exercícios, não critérios. É a confusão que
+   fazia parecer que os itens vinham do plano: «saída do calcanhar **no tendu**» tem o *tendu* do
+   parâmetro e o *calcanhar* de mais nenhum sítio.
+4. **A justificativa do volume está a um passo do item** — «Pulso e frase» está no plano, e o item
+   da Musicalidade é «resposta ao pulso na marcação; frase até o fim da música». É a mesma frase,
+   escrita por extenso.
+5. **O critério não está em lado nenhum.** Medido termo a termo contra o plano **e** a linha de
+   base: dos **30 termos distintos** dos 10 itens, **16 não aparecem em nenhum campo a montante** —
+   *verticalidade*, *braço*, *olhar*, *presença*, *rigidez*, *rosto*, *resposta*, *marcação*,
+   *preparação*… Os 14 que aparecem são os que vêm do objetivo (*alinhamento*, *eixo*, *peso*,
+   *pulso*, *frase*) e do parâmetro (*tendu*) — mais três (*calcanhar*, *quadril*, *saída*) que vêm
+   da **prosa do «precisa desenvolver» por aluna**, um campo que o PO **deixou de pedir a 06/11** e
+   que o recorte do passo 4 não substitui: o recorte dá nomes de aspectos anatómicos («formato
+   anatômico dos joelhos»), não frases de critério.
+6. **E há um bloco inteiro sem fonte** — a Expressão, que nenhum objetivo marca. Os dois itens dela
+   são integralmente do professor.
+
+**A conclusão, e é ela que decide a ação.** O campo é **redundante na origem e não derivável na
+forma**. Derivá-lo dos objetivos faria o documento e a folha perderem o critério (o que se *vê*) e
+fariam **desaparecer a Expressão** — apagar dado, não enxugar redundância. O que estava errado não
+era o campo: era o professor **escrevê-lo sem ver o plano**. Palavras dela: a impressão de que «não
+é uma escrita nova» era a meia-verdade de quem redigita de memória o que decidiu duas telas acima.
+
+**O que se fez, então.** Cada repetição do campo passou a mostrar, **antes da caixa**, o que o plano
+decide daquele bloco: os objetivos que ali se trabalham (com o número, recortados **pelo bloco** —
+a Musicalidade mostra o 03 e não a lista toda), o que o plano marcou para os medir, e a
+justificativa do volume quando existe. A caixa **não se pré-enche**: um texto pré-enchido envelhece
+(o plano muda, o texto fica), e o que ali se escreve é o critério, que é outro objeto. E quando
+**nenhum** objetivo marca o bloco, a tela di-lo — «o que você escrever aqui é seu: o plano não o
+prevê» —, porque é esse o caso que prova que o campo não é redundante.
+
+**Uma leitura, três leitores, e nenhuma requisição nova.** O envelope do plano já era buscado para
+os blocos; `oQueOPlaoDizDeCadaBloco` lê dele os objetivos, os parâmetros e o volume. Pedir três
+vezes o mesmo envelope seria a leitura a mais que este ficheiro evita desde a Frente 5.
+
+**As provas.** `provar-eixos-do-po` **42** — a secção **E** mede: as cinco dimensões e o bloco de
+leitura em cada uma; a Barra com os **dois** objetivos; a Musicalidade com **só** o 03 (a asserção
+negativa é a que separa «leu» de «despejou»); os parâmetros de cada objetivo; a caixa **vazia**; e
+a frase do bloco que nenhum objetivo marca.
+
+**O que fica para ela decidir.** Se o campo passa a **derivado** dos objetivos — mais enxuto, e
+apaga o critério e a Expressão —, ou se continua escrito com o plano à vista, como está agora. A
+auditoria não decide isso: ela mostra o que se ganha e o que se perde em cada lado.
 
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |

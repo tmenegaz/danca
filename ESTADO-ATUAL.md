@@ -4057,6 +4057,26 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-ficha-na-listagem` **35/35**, `provar-producao` **159/159**. **Continua por medir:**
   `provar-navegacao`, que precisa de um ciclo **gerado** — a `calango` é um esqueleto.
 
+- **06/11/2026** — **A auditoria reversa dos «itens de cada dimensão».** Ela pediu a investigação e
+  deu o método: *«olha pelo fim, lá pelo documento que gera… e vai andando para trás, passando pelo
+  PO, passando pelo PE, passando pela linha de base»* — porque suspeitava que os itens **não** eram
+  escrita nova. **O que a auditoria achou:** o documento imprime os itens numa tabela e a folha de
+  captura usa-os como **colunas**; ambos leem `itens-por-dimensao`, que **não tinha derivação
+  nenhuma**. A montante existem os objetivos (`marcos-por-aula`), os blocos de cada objetivo
+  (`estrutura-de-cada-aula`), o que mede cada um (`aula-1-parametro` — e são **exercícios**, não
+  critérios) e a justificativa do volume por bloco. **Medido termo a termo:** dos **30 termos
+  distintos** dos 10 itens, **16 não aparecem em nenhum campo a montante**; e há um bloco inteiro
+  (a Expressão) que **nenhum objetivo marca**. **DECIDIDO:** o campo é **redundante na origem e não
+  derivável na forma** — derivá-lo perderia o critério e apagaria a Expressão. O defeito era outro:
+  escrevia-se **sem ver o plano**. Cada repetição passou a mostrar, antes da caixa, os objetivos
+  daquele bloco (recortados pelo bloco: a Musicalidade mostra só o 03), o que os mede, e a
+  justificativa do volume; a caixa **não se pré-enche**; e um bloco sem objetivo di-lo («o que você
+  escrever aqui é seu»). Uma leitura, quatro usos — o envelope já era buscado para os blocos.
+  Medido: `provar-eixos-do-po` **42/42** (secção **E** nova), `provar-po-completo` **17**,
+  `provar-linha-de-base` **104/104**, `provar-producao` **159/159**, `check-identidade` **0 erros**,
+  `check-indices` **16/16**. **PENDENTE, e é decisão dela:** derivar o campo dos objetivos (perde o
+  critério e a Expressão) ou mantê-lo escrito com o plano à vista.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

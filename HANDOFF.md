@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T09:39:12-0300`
-Commit atual: `04d7adf2` — fix(po): o ciclo do PO tambem nao se escreve na Area do Professor
+Gerado em: `2026-11-06T10:06:56-0300`
+Commit atual: `438cc267` — fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+438cc267 fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
 04d7adf2 fix(po): o ciclo do PO tambem nao se escreve na Area do Professor
 10f22048 refactor(po): o plano de observacao deixa de reperguntar o que ja esta decidido
 b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
@@ -105,7 +106,6 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 0e6f9171 feat(acervo): envelope/anamnese-20261105-2301.json
 12e47f25 feat(acervo): envelope/.indice.json
 61b19782 fix(tools): o .indice.json da pasta nao e um recorte
-90e9eb9d docs(registro): o envio da linha de base confirmado em producao
 ```
 
 ## Por professor
@@ -233,83 +233,90 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — «Está funcionando o calango»: a bancada servia-se de um nome que já não existe
+## 06/11/2026 — A auditoria reversa dos «itens de cada dimensão»: metade vem do plano, metade não vem de lado nenhum
 
-**De onde veio.** Dela, e é uma correção de premissa minha: *«você disse que a bancada do Chrome
-desta página continua a responder nenhuma publicação para servir. É o seguinte, está funcionando o
-calango, é essa que eu estou usando para teste… eu acho que você tem que olhar o que está lá no
-GitHub, o que está ativo.»* Estava certo: a `calango` **está viva e a funcionar**, e a bancada
-`provar-painel-do-ato` — a que mede a caixinha do ato, a barra e o menu — **nunca correu** desde o
-expurgo da `batata`. Não porque não houvesse escola: porque a bancada procurava uma que já não
-existe.
+**De onde veio.** Dela, com um método e uma intuição: *«eu pedi numa tarefa anterior para você
+investigar se esses valores já não estão definidos lá no plano de ensino ou lá nos bastidores…
+Aí você tem que olhar pelo fim, lá pelo documento que gera, e ir andando para trás, passando pelo
+PO, passando pelo PE, passando pela linha de base. Aí você consegue ver se é isso mesmo, se está
+tudo dentro do critério ou se realmente aqui é uma escrita nova do professor, porque eu tenho a
+impressão que não.»* E a hipótese, escrita por ela: os itens seriam os **objetivos específicos do
+PE** cruzados com os **aspectos do passo 4 da linha de base**.
 
-**O DEFEITO, e eram quatro nomes escritos à mão no mesmo ficheiro.**
+**O caminho, na ordem que ela deu.** O documento gerado imprime `## Itens de cada dimensão` numa
+tabela `| Eixo | Dimensão | Itens |`; a folha de captura usa os mesmos itens como **colunas**. Os
+dois leem `dimensoesEItens(po)` → `itens-por-dimensao` do envelope do PO. **Não havia derivação
+nenhuma** — era texto escrito no formulário, e o formulário não mostrava nada do que estava a
+montante.
 
-1. `lib-pacote.publicacaoDeUmaEscolaComCiclo()` exigia um pacote com **páginas geradas**
-   (`aula-01.html`, `plano.html`). A única escola viva é a `calango`, e o pacote dela é um
-   **esqueleto** (`index.html`, `plano-observacao/`, `assets/`) — o ciclo ainda não foi gerado. A
-   função devolvia `null` e **quatro bancadas** diziam «nenhuma publicação para servir».
-2. `const DIR = publicacao/batata` — o diretório dos assets, apagado com a escola.
-3. `escola: 'batata'` no stub de `/api/bastidores/professores`, e `escola: 'batata'` no envelope.
-4. `new Request('https://batata.tmenegaz77.workers.dev' + req.url)` — e este é o que **matava** a
-   prova: a ponte compara o subdomínio com o `ESCOLA_SLUG` e devolvia **500 «Configuração
-   incorreta do Worker»**. A bancada lia um documento vazio e concluía que a caixinha do ato não
-   existia. **Este defeito estava escondido pelo primeiro**: enquanto a função devolvia `null`, o
-   `500` nunca chegava a acontecer.
-5. `'porta-anamnese-batata-cafe-no-bule-01-Aluna A-1'` — a chave da memória, que a **anamnese não
-   tem ciclo** desde 05/11/2026. A chave certa é `porta-anamnese-<escola>-<professor>-<aluna>-1`.
-   O `01` a mais fazia dez asserções de «continuar de onde parei» medirem o vazio.
+**O que a auditoria mediu** (dados reais da `batata`; a tabela inteira está na §5.15):
 
-**A decisão: o critério é o do DEPLOY.** O `deploy-escolas.yml` decide publicar por «o pacote-zero
-existe, e a escola está viva» — o mesmo que a rota `/escolas-vivas` mostra. A bancada passou a usar
-esse critério e a devolver `{ dir, escola, paginas }`, onde `paginas` distingue ciclo **gerado** de
-**esqueleto**. Quem mede um documento pergunta por ela e diz **NÃO FEITO**; quem mede o painel, a
-barra ou a caixinha corre na mesma. Duas definições de «esta escola tem o que publicar» divergiriam,
-e a que ficasse para trás seria a do ecrã.
+| Bloco | Objetivos que o plano ali trabalha | O que o plano marcou para os medir | Escrito no PO |
+|:--|:--|:--|:--|
+| Solo | 01 reconhecer o apoio e alinhar o eixo vertical (+03) | Plié · Battement tendu | «alinhamento do pé de apoio; eixo do corpo na preparação» |
+| Barra | 01 · 02 transferir o peso sem perder o alinhamento | Plié · Battement tendu · Port de bras | «saída do calcanhar no tendu; quadril sem subir no dehors» |
+| Centro | 02 · 03 sustentar a transferência com musicalidade | Plié · Port de bras · Rond de jambe | «transferência de peso sem perder a verticalidade; braço junto do movimento» |
+| Musicalidade | 03 | Battement tendu · Rond de jambe | «resposta ao pulso na marcação; frase até o fim da música» |
+| **Expressão** | **nenhum** | — | «olhar acompanha o braço; presença sem rigidez de rosto» |
 
-**O que a bancada fazia de errado por conta própria, e passou a fazer certo.**
+**O que se concluiu, e é o que decide a ação.**
 
-- **Uma secção sem fixture não mata a prova.** As secções 17 e 18 (o documento acende a lista, o
-  caminho do documento) navegam para `/ciclos/<variante>/plano.html`, que o esqueleto não tem. O
-  `process.exit(2)` levava consigo **dezasseis secções boas**. Passam a dizer NÃO FEITO **pelo
-  nome**, e o fecho da prova diz as três coisas: o que passou, o que falhou, e o que não se pôde
-  medir.
-- **A página pode navegar sozinha.** O `?abrir=1`, o bilhete, o `replaceState`: um `evaluate` que
-  caia nesse instante morria com «Execution context was destroyed» — que se lê como defeito da
-  página e é pressa da prova. Um `seguro()` espera que a rede sossegue e tenta outra vez; **não
-  engole** um erro que não seja esse.
-- **A porta da anamnese não se abre sem autorização** (`podePreencher` exige senha, bilhete, edição
-  ou retomada). A secção 13 abria `/anamnese/?…&abrir=1` sem nenhum dos quatro, e media a barra da
-  **lista** — a página nunca chegou a abrir. Passa a usar o bilhete que a lista emite, com
-  `limpar: false` (o bilhete é de um uso, e um `reload()` a seguir voltaria à lista).
-- **Três asserções que mediam o formulário de ontem, invertidas e não apagadas:** o resumo da
-  caixinha e o destino deixam de exigir `ciclo` na anamnese (05/11), e o bilhete passa a exigir
-  `ciclo: ''`.
+1. **A dimensão já é derivada** — vem dos blocos que o plano marca. Não se pergunta.
+2. **O objetivo por bloco é derivável** — `marcos-por-aula` × `estrutura-de-cada-aula`. A
+   Musicalidade tem **um**; a Barra tem **dois**. É um cruzamento, não uma escolha.
+3. **O que mede cada objetivo está lá** — mas são **exercícios** (plié, battement tendu, port de
+   bras), não critérios. É a confusão que fazia os itens parecerem vir do plano: «saída do
+   calcanhar **no tendu**» tem o *tendu* do parâmetro e o *calcanhar* de mais nenhum sítio.
+4. **A justificativa do volume está a um passo do item** — «Pulso e frase» está no plano, e o item
+   da Musicalidade é a mesma frase por extenso.
+5. **O critério não está em lado nenhum.** Termo a termo contra o plano **e** a linha de base: dos
+   **30 termos distintos** dos 10 itens, **16 não aparecem em nenhum campo a montante**. E dos 14
+   que aparecem, três (*calcanhar*, *quadril*, *saída*) vêm da prosa do «precisa desenvolver» por
+   aluna — um campo que o PO deixou de pedir a 06/11 e que o recorte do passo 4 **não** substitui:
+   o recorte dá nomes de aspectos anatómicos, não frases de critério.
+6. **Há um bloco inteiro sem fonte** — a Expressão, que nenhum objetivo marca. Os dois itens dela
+   são integralmente do professor.
 
-**Onde entrou.** `experimentos/lib-pacote.js` — `pacoteZeroDaEscola` (a mesma pergunta do deploy) e
-`publicacaoDeUmaEscolaComCiclo` a devolver `{ dir, escola, paginas }`, com as escolas de documentos
-gerados primeiro. `experimentos/provar-painel-do-ato.js` — a escola e o diretório descobertos
-(`let`, preenchidos no arranque), o `Request` com o subdomínio da escola, os stubs com a escola
-descoberta, `evaluateOnNewDocument` a levar a escola à janela (as chaves da memória), a chave da
-anamnese sem ciclo, `naoFeito`/`seguro`/`sossegar`, as secções 17-18 sob a guarda de `VAR`, e o
-fecho com as três contas. `experimentos/provar-listas-do-acervo.js` — a asserção «o PO não pede
-senha» passou a medir a **marcação** (`div.campos-do-ato`) e não o documento inteiro: ela
-encontrava `data-ato="senha"` dentro do próprio script (`apontarSenha`), ou seja, media o código
-que procura o campo em vez do campo.
+**A decisão.** O campo é **redundante na origem e não derivável na forma**. Derivá-lo dos objetivos
+— que era a leitura literal do pedido — faria o documento **e a folha de captura** perderem o
+critério (o que se *vê*) e fariam **desaparecer a Expressão**: apagar dado, não enxugar redundância.
+O defeito não era o campo; era o professor **escrevê-lo sem ver o plano** — a meia-verdade de quem
+redigita de memória o que decidiu duas telas acima.
 
-**Medido.** `provar-painel-do-ato` **130 asserções verdes, 0 falhas**, na publicação da `calango`
-(esqueleto), com **2 secções NÃO FEITAS** pelo nome (17 e 18 — precisam de um ciclo gerado);
-`provar-listas-do-acervo` **109/109** (era «NÃO FEITO» e depois 1 falha); `provar-ficha-na-listagem`
-**35/35**; `provar-vigente-na-listagem` **21/21**; `provar-ciclos-e-anamnese` **34/34**;
-`provar-ciclo-do-painel-do-po` **27/27**; `provar-ciclo-herdado-do-plano` **20/20**;
-`provar-linha-de-base` **104/104**; `provar-producao` **159/159**; `check-identidade` **0 erros**;
-`check-indices` **16/16**.
+**O que se fez.** Cada repetição do campo passou a mostrar, **antes da caixa**, o que o plano decide
+daquele bloco: os objetivos que ali se trabalham (numerados, recortados **pelo bloco** — a
+Musicalidade mostra o 03, e não a lista toda), o que o plano marcou para os medir, e a
+justificativa do volume quando existe. A caixa **não se pré-enche** — um texto pré-enchido envelhece
+(o plano muda, o texto fica) e o que ali se escreve é o critério, que é outro objeto. E quando
+**nenhum** objetivo marca o bloco, a tela di-lo: «o plano de ensino não marca nenhum objetivo neste
+bloco. O que você escrever aqui é seu: o plano não o prevê.» É o caso que prova que o campo não é
+redundante.
 
-**O que continua por medir, e é honesto dizê-lo.** `provar-navegacao` reprova nas secções 3 e 5 e
-morre numa página em falta: ela mede o menu **nas páginas do documento** (`/ciclos/<variante>/
-plano.html`), e o esqueleto da `calango` não as tem. Não é regressão desta mudança — é a mesma
-ausência de ciclo gerado. Fica registada, e passa a correr no dia em que o ciclo 01 da `calango`
-for gerado.
+**Onde entrou.** `porta/index.html` — `oQueOPlaoDizDeCadaBloco` (lê os objetivos, os parâmetros e o
+volume do envelope que **já se buscava** para os blocos: uma leitura, quatro usos),
+`oQueOPlaoDizDoBloco` (o bloco de leitura de cada repetição, com as peças `leitura-do-cabecalho`,
+`derivadas` e `sub` — nenhuma classe nova), a chamada em `blocoDaRepeticao` restrita à repetição que
+**deriva do plano** (`fonte.doPlano`), e a frase do painel das dimensões, que ainda mandava ao
+«Ponto de partida» (nó removido a 06/11). `porta/po/conteudo/po.json` — a explicação do nó passa a
+dizer o que o plano já responde e o que é escrito, e nomeia o caso do bloco sem objetivo. Cópia do
+pacote e do `publicacao/calango` regeradas.
+
+**Com o quê.** `provar-eixos-do-po` (**42**, secção **E** nova): as cinco dimensões com o bloco de
+leitura; a Barra com os **dois** objetivos; a Musicalidade com **só** o 03 — a asserção negativa é a
+que separa «leu» de «despejou»; os parâmetros de cada objetivo; a caixa **vazia**; e a frase do
+bloco sem objetivo. O `PLANO` da bancada ganhou as três chaves reais (`marcos-por-aula`,
+`estrutura-de-cada-aula`, `aula-1-parametro`, `distribuicao-de-volume`), com os cinco blocos
+marcados para a lista das dimensões não mudar — se mudasse, a secção D passaria a medir outra
+página.
+
+**Medido.** `provar-eixos-do-po` **42/42**; `provar-po-completo` **17**; `provar-sujeitos-semeados`
+**22/22**; `provar-ciclo-herdado-do-plano` **20/20**; `provar-ciclo-do-painel-do-po` **27/27**;
+`provar-linha-de-base` **104/104**; `provar-relacoes-do-ciclo` **23/23**; `provar-producao`
+**159/159**; `check-identidade` **0 erros** (as 20); `check-indices` **16/16**.
+
+**O que fica para ela decidir.** Se o campo passa a **derivado** dos objetivos — mais enxuto, e
+apaga o critério e a Expressão —, ou se continua escrito com o plano à vista, como está agora. A
+auditoria não decide isso: mostra o que se ganha e o que se perde em cada lado.
 
 ## O que está pendente
 

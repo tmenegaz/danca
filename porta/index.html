@@ -1643,6 +1643,65 @@ function noDasDimensoes() {
   return (MAPA && MAPA.nos ? MAPA.nos : []).find((n) => n.doPlano) || null;
 }
 
+/* O que o PLANO já diz de cada bloco — os objetivos que ali se trabalham, o que mede cada um, e
+ * para que serve o bloco. Lido do envelope que já se buscou para os blocos, sem requisição nova.
+ *
+ * AS TRÊS FONTES, e o que cada uma dá:
+ *   · `estrutura-de-cada-aula` diz EM QUE BLOCO cada objetivo é trabalhado;
+ *   · `marcos-por-aula` diz QUAL é o objetivo (o texto);
+ *   · `aula-1-parametro` diz o que o professor marcou para medir cada objetivo — e são os
+ *     exercícios do nível da turma (plié, battement tendu, port de bras), não critérios;
+ *   · `distribuicao-de-volume` justifica, bloco a bloco, PORQUE é que aquele bloco tem aquele
+ *     peso («Pulso e frase», «Transferência e sequência») — e é a frase que mais perto está de
+ *     dizer o que ali se observa.
+ *
+ * O QUE ELE **NÃO** FAZ: não inventa objetivo, nem completa o que falta. Um bloco que nenhum
+ * objetivo do plano marca fica com a lista vazia — e é essa a verdade que a tela tem de dizer,
+ * porque é ali que o que o professor escreve é dele e não do plano (§5.15). */
+function oQueOPlaoDizDeCadaBloco(envelope) {
+  const porBloco = {};
+  if (!envelope || !envelope.respostas) return porBloco;
+  const valor = (id) => {
+    const r = envelope.respostas[id];
+    return r && typeof r === 'object' && r.valor !== undefined ? r.valor : r;
+  };
+  const objetivos = valor('marcos-por-aula');
+  const listaDeObjetivos = Array.isArray(objetivos) ? objetivos : [];
+  const blocos = valor('estrutura-de-cada-aula');
+  const parametros = valor('aula-1-parametro');
+  const volume = valor('distribuicao-de-volume');
+  const medidoPor = new Map();
+  for (const linha of (Array.isArray(parametros) ? parametros : [])) {
+    if (!linha || typeof linha !== 'object') continue;
+    const n = Number(linha.marco);
+    if (!Number.isFinite(n)) continue;
+    medidoPor.set(n, (linha.marcados || []).map(String).filter(Boolean));
+  }
+  for (const linha of (Array.isArray(blocos) ? blocos : [])) {
+    if (!linha || typeof linha !== 'object') continue;
+    const n = Number(linha.marco);
+    if (!Number.isFinite(n)) continue;
+    for (const bloco of (linha.marcados || [])) {
+      const b = String(bloco);
+      if (!porBloco[b]) porBloco[b] = { objetivos: [], justificativa: '' };
+      porBloco[b].objetivos.push({
+        n,
+        texto: String(listaDeObjetivos[n - 1] == null ? '' : listaDeObjetivos[n - 1]).trim(),
+        parametros: medidoPor.get(n) || [],
+      });
+    }
+  }
+  const linhas = volume && Array.isArray(volume.linhas) ? volume.linhas : [];
+  for (const linha of linhas) {
+    if (!linha || typeof linha !== 'object') continue;
+    const b = String(linha.Bloco || '').trim();
+    if (!b) continue;
+    if (!porBloco[b]) porBloco[b] = { objetivos: [], justificativa: '' };
+    porBloco[b].justificativa = String(linha.Justificativa || '').trim();
+  }
+  return porBloco;
+}
+
 async function carregarDimensoesDoPlano() {
   if (DIMENSOES_CARREGANDO) return;
   const no = noDasDimensoes();
@@ -1662,13 +1721,26 @@ async function carregarDimensoesDoPlano() {
     return String(mapa[bloco] || decl.eixo || decl.eixoPadrao || '').trim();
   };
   let marcados = [];
+  /* O ENVELOPE FICA INTEIRO (06/11/2026) — e não só o campo dos blocos.
+   *
+   * O que se lê aqui é UMA leitura, e ela serve a três coisas: os blocos da aula (o que já se
+   * lia), os OBJETIVOS específicos com os parâmetros de cada um, e a justificativa do volume por
+   * bloco. É a mesma requisição — pedir três vezes o mesmo envelope seria a leitura a mais que
+   * este ficheiro evita desde a Frente 5.
+   *
+   * A RAZÃO DE OS OUTROS DOIS ENTRAREM AGORA. A pesquisadora, 06/11/2026: «eu tenho a impressão
+   * que não, não é uma escrita nova do professor» — a escrever os itens de cada dimensão, ela
+   * suspeitava que já os tinha decidido no plano. Suspeitava a meias (ver a §5.15): em parte
+   * tinha, e o sistema não lho mostrava. O que se mostra agora é o que já existe, ao lado da
+   * caixa onde ela escreve. */
+  let envelope = null;
   try {
     if (carimbo) {
       const r = await fetch('api/envelope/' + encodeURIComponent(carimbo));
       if (r.ok) {
-        const env = await r.json();
-        const cru = env && env.respostas && env.respostas[decl.no];
-        const valor = cru && cru.valor;
+        envelope = await r.json();
+        const cru = envelope && envelope.respostas && envelope.respostas[decl.no];
+        const valor = cru && (cru.valor !== undefined ? cru.valor : cru);
         if (Array.isArray(valor)) {
           for (const linha of valor) {
             for (const m of (linha && linha.marcados) || []) {
@@ -1681,6 +1753,7 @@ async function carregarDimensoesDoPlano() {
   } catch (erro) {
     // Sem o plano legível, os canónicos valem — a lista não fica vazia.
     marcados = [];
+    envelope = null;
   }
   // A ORDEM é a canónica (a do conteúdo); o plano decide QUAIS entram.
   const escolhidos = canonico.filter((b) => marcados.includes(b));
@@ -1692,6 +1765,7 @@ async function carregarDimensoesDoPlano() {
   DIMENSOES_DO_PLANO = {
     carimbo, lista, eixoDe,
     deOnde: escolhidos.length ? 'plano' : 'canonico',
+    porBloco: oQueOPlaoDizDeCadaBloco(envelope),
   };
   // O `RESPOSTAS` guarda o valor CRU (como qualquer resposta): é ele que a repetição dos
   // itens lê (`repetirPor`) e que a derivação do documento encontra.
@@ -1950,9 +2024,10 @@ function mostrarDoPlano(no) {
     '<li><b>' + md(eixo) + '</b>' + (blocos.length > 1 ? ' — ' + blocos.length + ' dimensões' : '') +
     '<ul>' + blocos.map((d) => '<li>' + md(d) + '</li>').join('') + '</ul></li>').join('');
   return '<p class="sub">' + deOnde + '</p><ul class="derivadas">' + grupos + '</ul>' +
-    '<p class="sub">Escreva, no campo abaixo, os itens que você observa em cada uma. O eixo do ' +
-    '<b>Corpo</b> não tem dimensão aqui: ele vem da anamnese de cada sujeito, no «Ponto de ' +
-    'partida».</p>' + painelDoCorpo();
+    '<p class="sub">No campo abaixo, cada dimensão traz o que o <b>plano de ensino</b> já diz ' +
+    'dela — os objetivos que ali se trabalham e o que os mede. O eixo do <b>Corpo</b> não tem ' +
+    'dimensão aqui: ele é o recorte que você escolheu no passo 4 da linha de base.</p>' +
+    painelDoCorpo();
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -6355,6 +6430,21 @@ function blocoDaRepeticao(no) {
     const partes = ['<div class="item-repeticao">'];
     partes.push('<h4>' + md(sujeito) + '</h4>');
     if (refereSujeitos) partes.push(referenciaDaAnamnese(daAnamnese, sujeito));
+    /* O QUE O PLANO JÁ DIZ DESTE BLOCO, ANTES DA CAIXA (06/11/2026) — a correção de um defeito
+     * que ela descreveu como intuição: «eu tenho a impressão que não, não é uma escrita nova do
+     * professor». A escrever os itens, ele não tinha à vista o que já tinha decidido — nem os
+     * objetivos que ali se trabalham, nem o que marcou para os medir, nem porque é que aquele
+     * bloco tem aquele peso. A redundância que ela suspeitava existia, e era invisível: o dado
+     * estava a duas telas de distância, e o professor reescrevia-o de memória.
+     *
+     * A PEÇA É A DA LEITURA (`leitura-do-cabecalho`, a mesma da `lembrancaDoNo`), e a lista é a
+     * `derivadas`, que já se usa no painel das dimensões. Nenhuma classe nova.
+     *
+     * O QUE ELA NÃO FAZ: não pré-enche a caixa. Uma caixa pré-enchida envelhece — o plano muda, o
+     * texto fica — e o que ali se escreve é a CRITÉRIO de observação, que é outra coisa que o
+     * objetivo (a §5.15 mede-o). O que se faz é pôr o plano à vista para que o que se escreva
+     * seja só o que é dele. */
+    if (fonte && fonte.doPlano) partes.push(oQueOPlaoDizDoBloco(sujeito));
     for (const campo of no.camposDoItem || []) {
       const valor = anterior[campo.id] != null ? anterior[campo.id] : '';
       partes.push('<p><label>' + md(campo.campo) + '<br>' +
@@ -6365,6 +6455,44 @@ function blocoDaRepeticao(no) {
     return partes.join('');
   });
   return blocos.join('');
+}
+
+/**
+ * «O plano de ensino, neste bloco» — o bloco de leitura que a repetição mostra antes da caixa.
+ *
+ * TRÊS CASOS, e cada um diz a verdade que tem:
+ *   · o plano nomeia objetivos no bloco → mostra-os, com o que os mede;
+ *   · o plano não marca nenhum objetivo no bloco → DIZ ISSO. É o caso da Expressão num plano em
+ *     que nenhum objetivo a marca: ali o que se escreve é do professor, e o sistema não o pode
+ *     apresentar como se viesse do plano;
+ *   · não há plano legível → não se desenha nada. Um bloco vazio a dizer «não há» sobre um dado
+ *     que ainda não chegou seria a tela a acusar a sua própria demora.
+ */
+function oQueOPlaoDizDoBloco(bloco) {
+  const porBloco = DIMENSOES_DO_PLANO && DIMENSOES_DO_PLANO.porBloco;
+  if (!porBloco || !Object.keys(porBloco).length) return '';
+  const d = porBloco[bloco];
+  const objetivos = (d && d.objetivos) || [];
+  const justificativa = (d && d.justificativa) || '';
+  if (!objetivos.length) {
+    return '<div class="leitura-do-cabecalho">'
+      + '<p class="sub">O plano de ensino <b>não marca nenhum objetivo</b> neste bloco'
+      + (justificativa ? ' (ele está no volume, com a justificativa «' + escapar(justificativa) + '»)' : '')
+      + '. O que você escrever aqui é seu: o plano não o prevê.</p></div>';
+  }
+  const itens = objetivos.map((o) => {
+    const medido = o.parametros.length
+      ? ' <span class="sub">· medido por: ' + escapar(o.parametros.join(' · ')) + '</span>' : '';
+    return '<li><b>' + String(o.n).padStart(2, '0') + ' · ' + escapar(o.texto || '—') + '</b>'
+      + medido + '</li>';
+  }).join('');
+  return '<div class="leitura-do-cabecalho">'
+    + '<p class="sub">Do plano de ensino, neste bloco — '
+    + objetivos.length + (objetivos.length === 1 ? ' objetivo:' : ' objetivos:') + '</p>'
+    + '<ul class="derivadas">' + itens + '</ul>'
+    + '<p class="sub">O objetivo diz o que se quer alcançar; o item que você escreve abaixo diz '
+    + 'o que se VÊ para saber se ele está a acontecer. Se o objetivo já se vê, escreva-o como '
+    + 'está — ele é o critério.</p></div>';
 }
 
 /*

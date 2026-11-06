@@ -97,6 +97,36 @@ const PLANO = {
     'aspecto-fisico': { valor: [
       { Aspecto: 'Flexibilidade dos isquiotibiais', 'Como está a turma': '1 de 1 em «Baixa»' },
     ] },
+    /* O QUE O PLANO JÁ DIZ DE CADA BLOCO (06/11/2026) — e é isto que a repetição dos itens passa a
+     * mostrar antes da caixa. As três formas são as REAIS do envelope (ver
+     * `escola/calango/envelopes/plano-20261106-0744.json`): os objetivos são uma lista de textos;
+     * `estrutura-de-cada-aula` e `aula-1-parametro` são listas de `{marco, marcados}` com o marco a
+     * começar em 1; o volume justifica-se por bloco.
+     *
+     * OS CINCO BLOCOS ESTÃO MARCADOS porque a lista das dimensões sai daqui — e a secção D mede
+     * essa lista com os cinco. Marcar só quatro mudaria o que a secção D vê, e a prova passaria a
+     * medir outra página. */
+    'marcos-por-aula': { valor: [
+      'reconhecer o apoio e alinhar o eixo vertical',
+      'transferir o peso entre os pés sem perder o alinhamento',
+      'sustentar a transferência com musicalidade e controle do movimento',
+    ] },
+    'estrutura-de-cada-aula': { valor: [
+      { marco: 1, marcados: ['Solo', 'Barra'] },
+      { marco: 2, marcados: ['Barra', 'Centro'] },
+      { marco: 3, marcados: ['Centro', 'Musicalidade', 'Expressão'] },
+    ] },
+    'aula-1-parametro': { valor: [
+      { marco: 1, marcados: ['Plié', 'Battement tendu'] },
+      { marco: 2, marcados: ['Plié', 'Port de bras'] },
+      { marco: 3, marcados: ['Battement tendu', 'Rond de jambe'] },
+    ] },
+    'distribuicao-de-volume': { valor: { unidade: 'percentual', linhas: [
+      { Bloco: 'Solo', 'Proporção alvo': '30%', Justificativa: 'Aquecimento e consciência corporal.' },
+      { Bloco: 'Barra', 'Proporção alvo': '30%', Justificativa: 'Apoio e alinhamento.' },
+      { Bloco: 'Centro', 'Proporção alvo': '30%', Justificativa: 'Transferência e sequência.' },
+      { Bloco: 'Musicalidade', 'Proporção alvo': '10%', Justificativa: 'Pulso e frase.' },
+    ] } },
   },
 };
 
@@ -411,6 +441,94 @@ async function main() {
       provar('…e o nome da dimensão vai sem o prefixo do eixo',
         !JSON.stringify(grupos).includes('Técnica — Musicalidade'), grupos);
 
+      // ------------------------------------------------------- E. o plano ao lado da caixa
+      bloco('E. CADA BLOCO DIZ O QUE O PLANO JÁ DECIDE — antes da caixa onde se escreve');
+      {
+        /* O QUE MUDOU (06/11/2026). A pesquisadora, a escrever os itens: «eu tenho a impressão que
+         * não, não é uma escrita nova do professor». A impressão era meio certa — metade do que ali
+         * se escreve já está decidida no plano, e o plano não estava à vista. A repetição passou a
+         * mostrar, por bloco, os objetivos que o plano trabalha ali, o que os mede, e a
+         * justificativa do volume.
+         *
+         * A PROVA MEDE AS TRÊS COISAS QUE IMPORTAM: que o bloco aparece em cada repetição; que o
+         * que ele diz é o que o PLANO diz daquele bloco (e não a lista inteira — a asserção
+         * negativa é a que separa «leu» de «despejou»); e que a caixa continua VAZIA, porque o
+         * campo não se pré-enche. */
+        const abrirItens = () => w.eval(`(function(){
+          var i = MAPA.nos.findIndex(function(n){ return n.id === 'itens-por-dimensao'; });
+          INDICE = i; renderPergunta();
+          return true;
+        })()`);
+        abrirItens();
+        await new Promise((r) => setTimeout(r, 200));
+        abrirItens();
+        await new Promise((r) => setTimeout(r, 200));
+
+        const porBloco = JSON.parse(w.eval(`(function(){
+          var saida = {};
+          var blocos = document.querySelectorAll('.item-repeticao');
+          for (var i = 0; i < blocos.length; i++) {
+            var b = blocos[i];
+            var titulo = b.querySelector('h4');
+            var leitura = b.querySelector('.leitura-do-cabecalho');
+            var caixa = b.querySelector('textarea');
+            saida[titulo ? titulo.textContent.trim() : '?'] = {
+              leitura: leitura ? leitura.textContent.replace(/\\\\s+/g, ' ').trim() : '',
+              temLeitura: !!leitura,
+              objetivos: leitura ? [].map.call(leitura.querySelectorAll('li b'), function(x){ return x.textContent; }) : [],
+              medido: leitura ? [].map.call(leitura.querySelectorAll('li .sub'), function(x){ return x.textContent; }) : [],
+              valor: caixa ? caixa.value : '(sem caixa)',
+            };
+          }
+          return JSON.stringify(saida);
+        })()`));
+
+        const nomes = Object.keys(porBloco);
+        provar('as dimensões da repetição são as cinco do plano', nomes.length === 5, nomes);
+        provar('…e cada uma traz o bloco de leitura do plano',
+          nomes.every((n) => porBloco[n].temLeitura), nomes.map((n) => [n, porBloco[n].temLeitura]));
+
+        provar('o Barra mostra os DOIS objetivos que o plano ali trabalha',
+          porBloco.Barra && porBloco.Barra.objetivos.length === 2
+          && /01 · reconhecer o apoio/.test(porBloco.Barra.objetivos.join('|'))
+          && /02 · transferir o peso/.test(porBloco.Barra.objetivos.join('|')),
+          porBloco.Barra && porBloco.Barra.objetivos);
+
+        /* A ASSERÇÃO QUE SEPARA «LEU» DE «DESPEJOU»: a Musicalidade só tem o objetivo 03 no plano,
+         * e um despejo da lista inteira passaria nas duas primeiras. */
+        provar('a Musicalidade mostra SÓ o objetivo 03 — o plano é recortado pelo bloco',
+          porBloco.Musicalidade && porBloco.Musicalidade.objetivos.length === 1
+          && /03 · sustentar a transferência/.test(porBloco.Musicalidade.objetivos[0])
+          && !/01 ·|02 ·/.test(porBloco.Musicalidade.objetivos.join('|')),
+          porBloco.Musicalidade && porBloco.Musicalidade.objetivos);
+
+        provar('…e diz o que o plano MARCOU para medir cada objetivo',
+          porBloco.Barra && /Plié · Battement tendu/.test(porBloco.Barra.medido.join('|'))
+          && /Plié · Port de bras/.test(porBloco.Barra.medido.join('|')),
+          porBloco.Barra && porBloco.Barra.medido);
+
+        provar('a caixa continua VAZIA: o campo não se pré-enche',
+          nomes.every((n) => porBloco[n].valor === ''), nomes.map((n) => porBloco[n].valor));
+
+        /* O TERCEIRO CASO, e é o que prova que o campo NÃO é redundante: um bloco que nenhum
+         * objetivo do plano marca — há planos assim, e a Expressão é o caso real (no plano da
+         * `batata` nenhum objetivo a marcava, e o professor escreveu-lhe dois itens). A frase
+         * tem de dizer que o que ali se escreve é dele. */
+        const semObjetivo = w.eval(`(function(){
+          DIMENSOES_DO_PLANO.porBloco['Expressão'] = {
+            objetivos: [],
+            justificativa: 'Presença cénica e escuta do grupo.'
+          };
+          var t = oQueOPlaoDizDoBloco('Expressão');
+          var txt = document.createElement('div');
+          txt.innerHTML = t;
+          return txt.textContent.replace(/\\\\s+/g, ' ').trim();
+        })()`);
+        provar('um bloco que nenhum objetivo marca DIZ que o que ali se escreve é do professor',
+          /não marca nenhum objetivo/.test(semObjetivo)
+          && /Presença cénica/.test(semObjetivo) && /é seu/.test(semObjetivo), semObjetivo);
+      }
+
       provar('nenhum erro de JavaScript na página', problemas.length === 0, problemas.slice(0, 3));
     } finally {
       try { w.close(); } catch (erro) { /* já fechada */ }
@@ -425,7 +543,8 @@ async function main() {
   }
   console.log('TUDO CERTO — ' + total + ' asserções: o elenco entra antes das dimensões, o '
     + 'eixo decide-se pelo BLOCO (e não pelo prefixo gravado), o documento do PO mostra os três '
-    + 'eixos com o Fenómeno sob o título, e o corpo carrega-se do RECORTE do passo 4, agrupado por bloco.');
+    + 'eixos com o Fenómeno sob o título, o corpo carrega-se do RECORTE do passo 4, agrupado por '
+    + 'bloco, e cada bloco mostra o que o PLANO já decide dele antes da caixa onde se escreve.');
 }
 
 main().catch((erro) => {
