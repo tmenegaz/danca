@@ -19,25 +19,38 @@ document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
      por vir depois, os valores locais venciam — o formulário ficava de outra cor que o site.
      A regra agora é uma só, e vale para os quatro consumidores da paleta: token novo se
      declara em `tools/templates/ciclo.css`, nunca se inventa cor aqui. */
-  body { font: 15px/1.5 var(--serif); color: var(--texto); background: var(--fundo);
-         max-width: 1000px; margin: 0 auto;
-         /* O `--header-height` é publicado pelo `assets/nav.js` (medindo a barra de verdade).
-         Sem ele, o `padding` rígido punha o <h1> DEBAIXO da barra fixa. */
-         padding: var(--header-height) 20px 40px; }
-  h1 { color: var(--marca); font-size: 1.6rem; margin: 0 0 4px;
-       border-bottom: 2px solid var(--borda); padding-bottom: 10px; }
-  fieldset { border:1px solid var(--borda-campo); border-radius:6px; padding:10px 12px; margin:0 0 18px; }
-  legend { font-weight:600; color: var(--marca); padding:0 6px; }
+  /* A PÁGINA DEIXOU DE TER UMA SEGUNDA FOLHA DE BASE (06/11/2026).
+   *
+   * A pesquisadora: «Nós precisamos ajustá-lo para ter a identidade visual adequada com o nosso
+   * plano de identidade, com a nossa identidade visual do projeto, né? Que nós já temos uma
+   * definida, só que ele está completamente alheio a isso.»
+   *
+   * MEDIDO, e ela estava certa: o corpo saía a **15px** onde todo o site é **17px**, o `<h1>` a
+   * **25,6px** onde os documentos têm **31px**, e o `h2`/`h3` a 1,05/0,98rem onde a folha declara
+   * 23px/19px. Nada disso era decisão de ninguém sobre o formulário: era a página a REDECLARAR o
+   * que a folha já desenha, e a vencer por vir depois no `<link>`. O `check-identidade` não a
+   * apanhava porque a checagem «Forma» olha CLASSES, e esta página redeclarava ELEMENTOS.
+   *
+   * O que mudou: saíram `body`, `h1`, `h2`, `h3`, `table` (medida) e `th,td`. O corpo, a cor, o
+   * fundo e a tipografia vêm do `assets/style.css`, como em qualquer página do site; o `<h1>`
+   * vem do `header.doc`, que a marcação passou a usar; e os títulos de secção, de `main h2`/`h3`.
+   *
+   * O QUE FICA AQUI É O QUE É DO FORMULÁRIO, e só isso — mas com os VALORES da casa. O raio era
+   * 6px (um valor que a escala não tem: `--raio-1` é 8, `--raio-2` é 12, `--raio-3` é 20) e o
+   * `padding`/`margin` eram números escritos à mão; passam a ser os degraus declarados, como no
+   * `.bloco-assoc` dos Bastidores, que é o MESMO objecto — um grupo de controles com um título. */
+  fieldset { border:1px solid var(--borda-campo); border-radius:var(--raio-2);
+             padding:var(--esp-3); margin:0 0 var(--esp-4); min-width:0; }
+  legend { font: 700 .82rem/1.3 var(--ui); color: var(--marca-texto); padding:0 var(--esp-2); }
   .fraco { font-size:.88rem; }
   .vazio, .fraco { color: var(--texto-suave); }
   .erro { color: var(--falha); }
-  /* A medida de leitura do site (900px) com o texto do formulário (15px) e sete colunas
-     não cabem juntas: a necessidade do formulário prevalece AQUI, e só aqui. */
-  table { border-collapse:collapse; width:100%; margin:8px 0 16px; font-size:.92rem;
-          table-layout:fixed; }
-  /* a tabela do site já traz filete, cabeçalho e alinhamento; aqui só a medida
-     apertada do formulário e a quebra de palavra nas colunas estreitas */
-  th,td { overflow-wrap:break-word; padding:6px 8px; }
+  /* A TABELA DO FORMULÁRIO TEM SETE COLUNAS NUMA LINHA (06/11/2026). A folha já lhe dá o filete,
+     o cabeçalho, o alinhamento, o `margin` e o `font-size` (15px); o que ela não pode saber é
+     que aqui a tabela é de LANÇAMENTO — colunas estreitas, sempre iguais —, e é só isso que a
+     página declara. Saíram daqui o `font-size`, o `margin` e o `th,td` (a folha os tem). */
+  table { table-layout:fixed; }
+  th,td { overflow-wrap:break-word; }
   /* Os três vereditos da observação. O `--alerta` não é o `#a06000` que estava aqui:
      aquele tom dá 4,29:1 sobre o `--creme-2` do cabeçalho, abaixo de AA. */
   .ok{color:var(--ok)} .parcial{color:var(--alerta)} .nao{color:var(--falha)}
@@ -50,9 +63,6 @@ document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
   /* Um nível que a régua desta turma NÃO declara (o registro é de outro ciclo): ele fica
      visível e marcado, em vez de se disfarçar de nível desta régua. */
   .nivel-fora{color:var(--falha)}
-  h2 { color: var(--marca); font-size:1.05rem; margin:22px 0 4px;
-       border-bottom:2px solid var(--borda); padding-bottom:3px; }
-  h3 { color: var(--marca); font-size:.98rem; margin:14px 0 4px; }
   dl{margin:0} dt{font-weight:600; margin-top:8px} dd{margin:0 0 4px}
   .acoes { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0 0 18px; }
   /* A BARRA DE CONTROLE gruda no pé da tela: o tamanho da página e a navegação nunca
@@ -119,22 +129,38 @@ document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
   @media (max-width: 899px) and (prefers-reduced-motion: reduce) {
     [data-barra-compacta="sim"] footer.barra-de-controle { transition:none; }
   }
-  /* Captura: um painel de lançamento, fechado por padrão (a leitura vem primeiro). */
-  .captura { border:1px solid var(--borda-campo); border-radius:6px; padding:8px 12px;
-             margin:0 0 18px; background:var(--fundo-suave); }
+  /* Captura: um painel de lançamento, fechado por padrão (a leitura vem primeiro). O raio e o
+     `padding` passam aos degraus da casa (06/11/2026) — eram 6px e 8/12px escritos à mão. */
+  .captura { border:1px solid var(--borda-campo); border-radius:var(--raio-2);
+             padding:var(--esp-2) var(--esp-3); margin:0 0 var(--esp-4);
+             background:var(--fundo-suave); }
   .captura summary { cursor:pointer; font-weight:600; }
-  .captura[open] summary { margin-bottom:10px; }
+  .captura[open] summary { margin-bottom:var(--esp-2); }
   /* table-layout:fixed + campos em 100%: sem isso a tabela de lançamento crescia para
      fora do bloco (as duas últimas colunas passavam por cima da margem). */
-  .captura table { font-size:.88rem; margin:6px 0 10px; }
-  .captura th, .captura td { padding:4px 5px; }
+  .captura table { font-size:.88rem; margin:var(--esp-1) 0 var(--esp-2); }
+  .captura th, .captura td { padding:var(--esp-1) 5px; }
   .captura input[type=number] { width:5.5em; }
   .captura td select, .captura td input[type=number] { width:100%; box-sizing:border-box; }
   .captura input[type=text] { width:min(100%, 30em); }
-  .captura textarea { font: 15px/1.5 var(--ui); width:100%; padding:5px 8px;
-                      border:1px solid var(--borda-campo); border-radius:4px;
+  /* A ÁREA DE TEXTO É O CAMPO DA FOLHA (`--raio-2`, o raio do controle), e não um 4px que a
+     escala não tem. O `font` fica: é o do formulário, e não o da prosa do documento. */
+  .captura textarea { font: 15px/1.5 var(--ui); width:100%; padding:var(--esp-2);
+                      border:1px solid var(--borda-campo); border-radius:var(--raio-2);
                       background:var(--campo-fundo); box-sizing:border-box; }
-  .captura .linha { margin:6px 0; }
+  .captura .linha { margin:var(--esp-1) 0; }
+  /* OS TRÊS EIXOS DA AULA (06/11/2026). Cada eixo é um `h4` da casa seguido da sua tabela; o
+     primeiro ganha ar depois da legenda, e o último não deixa margem pendurada na borda do
+     `fieldset` — a peça já tem o padding, e somar as duas coisas dobrava o respiro. */
+  .observado h4:first-of-type { margin-top:var(--esp-3); }
+  .observado table.captura:last-of-type { margin-bottom:0; }
+  .observado table.captura th { white-space:normal; }
+  /* «PRECISOU DE AJUSTE?» e «SURPREENDEU?» — dois pares de rádio, e o rótulo de cada um é uma
+     palavra. O respiro entre os pares é `--esp-3`, e a caixa do rádio fica a `--esp-1` da
+     palavra: colados, o `sim` e o `não` viram um bloco só e erra-se o clique. */
+  .depois label.presenca { margin-right:var(--esp-3); }
+  .depois label.presenca input { margin-right:var(--esp-1); }
+  .depois #linha-ajuste { margin-top:var(--esp-3); }
   .captura .filtros input[type=text] { width:auto; }
   /* `hidden` de VERDADE. A classe .acoes tem display:flex, e CSS de autor vence o
      `display:none` que o navegador dá ao atributo `hidden`: sem esta regra, o botão
@@ -196,12 +222,18 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
   </div>
 </nav>
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
-<!-- O título é a marca do que o `assets/nav.js` prende e encolhe (21/10/2026): esta
-     página não é documento pandoc — não tem `header.doc` — e ainda assim pede o mesmo
-     comportamento, porque é a tela mais longa do site depois da aula. -->
-<div class="titulo-fixo">
+<!-- O CABEÇALHO É O DA CASA, E NÃO UM `<h1>` SOLTO (06/11/2026).
+     Até hoje esta página trazia um `<div class="titulo-fixo">` com um `<h1>` nu, e redeclarava o
+     título a 1,6rem no `<style>` de cima — o único sítio do site onde o título de uma página não
+     era o `header.doc`. O `nav.js` encontra-o dos dois modos (`'.titulo-fixo'` ou `'header.doc'`,
+     e põe-lhe a classe), de maneira que o mecanismo do título preso continua a valer: o que muda
+     é que o DESENHO passa a ser o da folha — 31px, o filete, os 12px de respiro — e não um
+     número escrito à mão aqui. -->
+<header class="doc">
 <h1>Lançamento de aula — formulário eletrônico</h1>
-</div>
+</header>
+<main>
+<div class="conteudo">
 <div class="aviso">
   <strong>Área do Professor.</strong> Aqui você lê os dados da aula, <strong>salva</strong> o
   lançamento, faz ajustes e gera os relatórios.
@@ -265,6 +297,8 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
 </div>
 
 <div id="saida"><p class="vazio">Carregando…</p></div>
+</div>
+</main>
 
 <!-- Rodapé: tamanho da página e navegação. Não é conteúdo — é o controle de
      quem lê, então fica sempre no pé da tela, nunca escondido. -->
@@ -977,6 +1011,82 @@ const opcoesDe = (pares, valor) => pares.map(([v, t]) =>
 const apelidosDoCiclo = (dados) =>
   Object.entries(dados.apelidos).sort((a, b) => a[1].localeCompare(b[1]));
 
+/* ---------------------------------------------------------------- OS TRÊS EIXOS
+ *
+ * «O QUE SE OBSERVOU» SAI DO PO, E NÃO DE UMA LISTA NOVA (06/11/2026). O pedido dela: «a gente vai
+ * ter os mesmos objetivos, mesmos itens, né, que ele observa, no caso os objetivos específicos, o
+ * que a gente definiu na linha de base, o que a gente definiu que é naqueles nossos três eixos que
+ * são super importantes, o que é corpo, o que é técnica e o que é poiese».
+ *
+ * AS TRÊS FONTES QUE ELA NOMEOU JÁ ESTÃO NUMA SÓ. O «Itens de cada dimensão» do PO (§5.15) é
+ * composto exactamente assim: os objetivos específicos do PLANO entram à frente do que o professor
+ * escreveu no PO, e o recorte da linha de base entra no eixo do Corpo. Medido no ciclo da calango:
+ * Corpo traz os quatro aspectos escolhidos no passo 4, Técnica e Poiesis trazem os dois objetivos
+ * do plano. Ler o PO — e não recompor as três fontes aqui — é o que mantém o formulário e o
+ * documento a dizer a mesma coisa.
+ *
+ * A ORDEM DOS EIXOS É A CANÓNICA (`motor/nucleo/eixos.js`): o corpo primeiro (é o que se vê), a
+ * técnica depois (é o que se trabalha) e a poiesis ao fim (é o que a dança faz com as duas).
+ *
+ * NADA SE INVENTA QUANDO FALTA. Um ciclo cujo PO não declare os itens não ganha uma lista de
+ * exemplo: o bloco diz a lacuna, e o professor continua a escrever «o que aconteceu de novo».
+ */
+const EIXOS_DA_CAPTURA = [['corpo', 'Corpo'], ['tecnica', 'Técnica'], ['poiesis', 'Poiesis']];
+
+/** «Poiesis», «poiesis», «Poiésis» ou «Poiese» — a mesma chave, sem acento. */
+function chaveDoEixo(rotulo) {
+  const t = String(rotulo == null ? '' : rotulo).normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  if (t === 'corpo') return 'corpo';
+  if (t === 'tecnica' || t === 'tecnico') return 'tecnica';
+  if (t === 'poiesis' || t === 'poiese' || t === 'poetica') return 'poiesis';
+  return null;
+}
+
+/**
+ * OS ITENS DE CADA EIXO, na ordem em que o PO os declara. Dentro de um eixo, o mesmo item em duas
+ * dimensões entra UMA vez — no ciclo real a Técnica é trabalhada em três blocos, e os mesmos dois
+ * objetivos apareceriam três vezes para o professor marcar. Entre eixos não se deduplica: o eixo é
+ * a unidade da pergunta («o corpo mostrou isto?», «a técnica mostrou isto?»).
+ */
+function eixosDoPo(po) {
+  const saida = { corpo: { itens: [], dimensoes: [] }, tecnica: { itens: [], dimensoes: [] },
+    poiesis: { itens: [], dimensoes: [] } };
+  const linhas = (po && Array.isArray(po.itensPorDimensao)) ? po.itensPorDimensao : [];
+  for (const d of linhas) {
+    const eixo = chaveDoEixo(d && d.eixo);
+    if (!eixo) continue;
+    const dimensao = String((d && d.dimensao) || '').trim();
+    if (dimensao && !saida[eixo].dimensoes.includes(dimensao)) saida[eixo].dimensoes.push(dimensao);
+    for (const bruto of String((d && d.itens) || '').split(';')) {
+      const item = bruto.trim();
+      if (!item) continue;
+      // «SEM RESTRIÇÕES DECLARADAS» NÃO É ITEM OBSERVÁVEL. O PO o põe na dimensão «Restrições» —
+      // é uma DECLARAÇÃO DE AUSÊNCIA, não algo que se olhe e se marque ✓/X. Uma linha dessas numa
+      // tabela de marcas pede ao professor que responda a uma pergunta que não existe. Sai daqui, e
+      // a ausência de restrições continua registrada no PO, que é onde ela pertence.
+      if (/^sem\s+(restri|nenhum|altera)/i.test(item)) continue;
+      if (!saida[eixo].itens.some((x) => x.item.toLowerCase() === item.toLowerCase())) {
+        saida[eixo].itens.push({ item, dimensao });
+      }
+    }
+  }
+  return saida;
+}
+
+/** As marcas já gravadas nesta aula, por eixo e por item. */
+function observadoDaAula(a) {
+  const o = (a && a.observado) || null;
+  if (!o || typeof o !== 'object') return {};
+  const mapa = {};
+  for (const [eixo, lista] of Object.entries(o)) {
+    if (!Array.isArray(lista)) continue;
+    mapa[eixo] = {};
+    for (const x of lista) if (x && x.item) mapa[eixo][String(x.item)] = x.marca;
+  }
+  return mapa;
+}
+
 // A aula que falta lançar é a PRIMEIRA sem dado entre as PLANEJADAS NO ÍNDICE. É ela que o
 // filtro oferece — e é só nela que o painel de captura aparece. Quando o ciclo declara o seu
 // `aulas[]` (§4.2), a lista das planejadas É ele: não se inventa id de aula contando até
@@ -1229,6 +1339,99 @@ function dataDaCaptura(m, id) {
   return dataDeclarada(m, id) || dataPlanejada(m, id);
 }
 
+/**
+ * «O QUE SE OBSERVOU NESTA AULA» — uma marca por item, nos três eixos.
+ *
+ * É a troca que ela pediu: «essa forma como é apresentada aqui não é fácil para o professor
+ * responder, ela é complexa». O que se marca são os itens que o PO já manda olhar; o que se
+ * escreve é só o que nenhum item previa (o bloco de baixo).
+ *
+ * OS ITENS VÊM DO PO, E SÓ DELE. Não há lista paralela aqui: se o PO muda, o formulário muda
+ * pela mesma razão, e não há dois vocabulários para manter.
+ */
+function blocoObservado(po, a) {
+  const eixos = eixosDoPo(po);
+  const gravado = observadoDaAula(a);
+  const algum = EIXOS_DA_CAPTURA.some(([chave]) => eixos[chave].itens.length);
+  if (!algum) {
+    return `<fieldset class="observado"><legend>O que se observou nesta aula</legend>
+      <p class="fraco">[Preencher: o plano de observação deste ciclo não declara os itens de cada
+        dimensão, e sem eles não há o que marcar. As marcas por aluna, acima, continuam valendo;
+        e «o que aconteceu de novo», abaixo, também.]</p></fieldset>`;
+  }
+  const tabelas = EIXOS_DA_CAPTURA.map(([chave, rotulo]) => {
+    const lista = eixos[chave].itens;
+    if (!lista.length) {
+      return `<h4>${esc(rotulo)}</h4>
+        <p class="fraco">[Preencher: o PO não declara itens neste eixo para este ciclo.]</p>`;
+    }
+    // AS DIMENSÕES QUE O EIXO COBRE, nomeadas sob o título: o item vem do PO, e saber de que
+    // dimensão ele veio é o que liga a marca ao documento. Um eixo que reúne Solo, Barra e Centro
+    // diz isso numa linha, em vez de repetir o mesmo objectivo três vezes seguidas.
+    const dimensoes = eixos[chave].dimensoes;
+    return `<h4>${esc(rotulo)}</h4>
+      ${dimensoes.length ? `<p class="fraco">${dimensoes.map(esc).join(' · ')}</p>` : ''}
+      <table class="captura"><tr><th>O que se olha</th><th>O que se viu</th></tr>
+      ${lista.map((x, i) => `<tr><th class="aluna">${esc(x.item)}</th><td>
+        <select id="obs-${esc(chave)}-${i}" aria-label="${esc(x.item)}">${
+          opcoesDe(MARCAS, (gravado[chave] || {})[x.item])}</select></td></tr>`).join('')}
+      </table>`;
+  }).join('');
+  return `<fieldset class="observado"><legend>O que se observou nesta aula</legend>
+    <p class="fraco">Os mesmos itens que o plano de observação manda olhar, nos três eixos: um
+      <strong>corpo</strong>, uma <strong>técnica</strong> e uma <strong>poiesis</strong>. Ao fim
+      da aula, uma marca por item — <strong>✓</strong> aconteceu, <strong>~</strong> em parte,
+      <strong>X</strong> não aconteceu, <strong>?</strong> não vi. Vazio é «não observei»: não é
+      a mesma coisa que «não aconteceu», e a diferença fica gravada.</p>
+    ${tabelas}</fieldset>`;
+}
+
+/**
+ * «DEPOIS DA AULA» — o que se marca e o que se escreve.
+ *
+ * «E aí ele vai simplesmente marcar o que aconteceu de novo e isso, de fato, ele tem que
+ * escrever, não tem para onde correr. Agora, o que surpreendeu vai ser só marcar, surpreendeu?
+ * Sim. Precisou de ajuste? Sim. Daí ele escreve se precisou de ajuste. Precisou de ajuste tem
+ * como valor padrão não.»
+ *
+ * Daí o desenho: uma escrita obrigatória (o que aconteceu de novo), duas marcas, e uma escrita
+ * que só aparece — e só é exigida — quando a marca do ajuste diz que houve ajuste. O padrão do
+ * ajuste é NÃO, e o do «surpreendeu» fica em branco de propósito: em branco é «não respondi», e
+ * um «não» que o professor não deu seria palavra posta na boca dele.
+ */
+function blocoDoDepois(a) {
+  const r = (a && a.relatorio) || {};
+  const surpresa = r.surpresas === 'sim' || r.surpresas === 'nao' ? r.surpresas : '';
+  // Prosa anterior no campo da surpresa: guardada e mostrada, nunca apagada em silêncio — a
+  // marca nova só a substitui quando o professor escolhe uma.
+  const prosaAntiga = surpresa ? '' : String(r.surpresas || '').trim();
+  const ajuste = String(r.ajustes || '').trim();
+  const houveAjuste = ajuste ? 'sim' : 'nao';
+  return `<fieldset class="depois"><legend>Depois da aula</legend>
+    <p class="linha"><label class="campo-rotulo em-linha" for="captura-texto">O que aconteceu de
+      novo — o que nenhum item acima previa:</label>
+      <textarea id="captura-texto" rows="3">${esc(r.texto || '')}</textarea><br>
+      <span class="fraco">Obrigatório. É a única parte que se escreve por inteiro: o resto já
+        está nos itens e nas marcas.</span></p>
+    <p class="linha"><strong>Surpreendeu?</strong>
+      <label class="presenca"><input type="radio" name="captura-surpreendeu" value="sim"${
+        surpresa === 'sim' ? ' checked' : ''}> sim</label>
+      <label class="presenca"><input type="radio" name="captura-surpreendeu" value="nao"${
+        surpresa === 'nao' ? ' checked' : ''}> não</label>
+      ${prosaAntiga ? `<br><span class="fraco">Registro anterior, em prosa: «${esc(prosaAntiga)}» —
+        escolher uma marca o substitui.</span>` : ''}</p>
+    <p class="linha"><strong>Precisou de ajuste?</strong>
+      <label class="presenca"><input type="radio" name="captura-ajuste" value="nao"${
+        houveAjuste === 'nao' ? ' checked' : ''}> não</label>
+      <label class="presenca"><input type="radio" name="captura-ajuste" value="sim"${
+        houveAjuste === 'sim' ? ' checked' : ''}> sim</label></p>
+    <p class="linha" id="linha-ajuste"${houveAjuste === 'sim' ? '' : ' hidden'}>
+      <label class="campo-rotulo em-linha" for="captura-ajustes">O que foi ajustado:</label>
+      <textarea id="captura-ajustes" rows="2">${esc(ajuste)}</textarea><br>
+      <span class="fraco">Obrigatório quando houve ajuste — o ajuste é o que a aula seguinte lê.</span></p>
+  </fieldset>`;
+}
+
 function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   const a = dados.aulas[id] || null;
   const ajuste = !!estadoAjuste();     // reabrindo o que já estava lançado
@@ -1382,12 +1585,8 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
       `<label class="presenca"><input type="checkbox" id="pres-${esc(k)}"${
         (a ? a.presentes.includes(k) : true) ? ' checked' : ''}> ${esc(nome)}</label>`).join(' · ')}</p>
   ${tabelas}
-  <p class="linha"><label class="campo-rotulo em-linha" for="captura-texto">Relatório — o que aconteceu:</label>
-    <textarea id="captura-texto" rows="3">${esc(a ? a.relatorio.texto : '')}</textarea></p>
-  <p class="linha"><label class="campo-rotulo em-linha" for="captura-surpresas">O que surpreendeu:</label>
-    <textarea id="captura-surpresas" rows="2">${esc(a ? a.relatorio.surpresas : '')}</textarea></p>
-  <p class="linha"><label class="campo-rotulo em-linha" for="captura-ajustes">O que foi ajustado:</label>
-    <textarea id="captura-ajustes" rows="2">${esc(a ? a.relatorio.ajustes : '')}</textarea></p>
+  ${blocoObservado(po, a)}
+  ${blocoDoDepois(a)}
   <p class="fraco">${[
     comMarcas ? `Marcas: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
       vazio = não observei — as mesmas da folha de captura.` : '',
@@ -1414,6 +1613,16 @@ function renderCaptura() {
   const pecas = cache[f.meta.id] || {};
   alvo.innerHTML = camposCaptura(f.meta, f.dados, sel.aula.value,
     (pecas.capturas || {})[sel.aula.value] ?? pecas.captura, pecas.po, pecas.plano);
+  // «PRECISOU DE AJUSTE?» governa o campo do ajuste: a linha só aparece com a marca em «sim», e
+  // o que já estava escrito não se apaga ao voltar para «não» — quem decide o que é gravado é
+  // `coletarCaptura` (com «não», `ajustes` sai vazio). Delegado no painel: o painel é
+  // reconstruído a cada render, e um listener por campo se perderia na reconstrução seguinte.
+  alvo.onchange = (ev) => {
+    const t = ev.target;
+    if (!t || t.name !== 'captura-ajuste') return;
+    const linha = el('linha-ajuste');
+    if (linha) linha.hidden = t.value !== 'sim';
+  };
 }
 
 // Depois de gerar, os campos são limpos: o que ficou salvo está no arquivo, não no
@@ -1422,13 +1631,16 @@ function renderCaptura() {
 // e zera; quem manda no que existe ali é o config da vez (o da aula, se houver).
 function limparCamposCaptura() {
   ['captura-data', 'captura-duracao', 'captura-plano', 'captura-animo', 'captura-interesse',
-   'captura-harmonia', 'captura-mudou', 'captura-texto', 'captura-surpresas', 'captura-ajustes']
+   'captura-harmonia', 'captura-mudou', 'captura-texto', 'captura-ajustes']
     .forEach((id) => { const x = el(id); if (x) x.value = ''; });
+  const linhaAjuste = el('linha-ajuste');
+  if (linhaAjuste) linhaAjuste.hidden = true;
   const alvo = el('captura-campos');
   if (alvo) {
     alvo.querySelectorAll('select').forEach((x) => { x.value = ''; });
     alvo.querySelectorAll('input[type="number"]').forEach((x) => { x.value = ''; });
-    alvo.querySelectorAll('input[type="checkbox"]').forEach((x) => { x.checked = false; });
+    alvo.querySelectorAll('input[type="checkbox"], input[type="radio"]')
+      .forEach((x) => { x.checked = false; });
   }
 }
 
@@ -1453,10 +1665,31 @@ function coletarCaptura(dados) {
     harmonia: Number(v('captura-harmonia')),
     mudou: v('captura-mudou').trim(),
   };
+  // O estado da captura sobe para aqui: o relatório lê a aula já gravada (a prosa de um ciclo
+  // antigo não se apaga em silêncio) e as marcas dos eixos leem o PO do ciclo em cena.
+  const f0 = estadoCaptura() || estadoAjuste() || {};
+  // O RELATÓRIO É MARCA, NÃO PROSA (06/11/2026). O que era «o que surpreendeu» escrito por
+  // extenso é uma marca de sim/não; o ajuste é uma marca e, quando é «sim», o texto passa a ser
+  // obrigatório. A prosa que sobra é uma só — «o que aconteceu de novo» —, porque o resto já está
+  // nos itens marcados acima. Uma marca em branco NÃO vira «não»: em branco é «não respondi», e
+  // responder pelo professor é pôr palavra na boca dele. Só a prosa de um ciclo antigo sobrevive
+  // sem marca, e sobrevive porque é registro — não se apaga o que já estava gravado.
+  const aulaAnterior = (f0.dados && f0.dados.aulas && f0.dados.aulas[id]) || null;
+  const relAnterior = (aulaAnterior && aulaAnterior.relatorio) || {};
+  // AS MARCAS DE RÁDIO NÃO TÊM `id` — quem as agrupa é o `name`. `v()` lê por `id`, e devolvia
+  // vazio: a marca que o professor dava não chegava ao JSON. `marcada()` lê o grupo.
+  const marcada = (nome) => {
+    const r = document.querySelector(`input[name="${nome}"]:checked`);
+    return r ? String(r.value || '') : '';
+  };
+  const marcaDaSurpresa = marcada('captura-surpreendeu');
+  const marcaDoAjuste = marcada('captura-ajuste');
+  const surpresaAnterior = String(relAnterior.surpresas || '').trim();
   const relatorio = {
     texto: v('captura-texto').trim(),
-    surpresas: v('captura-surpresas').trim(),
-    ajustes: v('captura-ajustes').trim(),
+    surpresas: marcaDaSurpresa
+      || (surpresaAnterior === 'sim' || surpresaAnterior === 'nao' ? '' : surpresaAnterior),
+    ajustes: marcaDoAjuste === 'sim' ? v('captura-ajustes').trim() : '',
   };
   // A regra do PAR: `plano_seguido` e `mudou` andam juntos. Plano seguido → `mudou` vazio
   // (vazio quer dizer "nada mudou"); plano não seguido → `mudou` obrigatório. O valor é
@@ -1471,7 +1704,9 @@ function coletarCaptura(dados) {
   cinco(cc.animo, 'o ânimo (1-5)');
   cinco(cc.interesse, 'o interesse (1-5)');
   cinco(cc.harmonia, 'a harmonia (1-5)');
-  if (!relatorio.texto) faltando.push('o relatório');
+  if (!relatorio.texto) faltando.push('o que aconteceu de novo');
+  if (!relatorio.surpresas) faltando.push('a marca do «surpreendeu?»');
+  if (marcaDoAjuste === 'sim' && !relatorio.ajustes) faltando.push('o que foi ajustado');
   // O motivo só existe no ajuste — e lá é obrigatório: sem ele, o ajuste muda o
   // registro sem dizer por quê, e a correção deixa de ser auditável.
   if (estadoAjuste()) {
@@ -1492,7 +1727,6 @@ function coletarCaptura(dados) {
   // chave da coluna — não mais `tecnica`/`funcional` fixos em código. O tipo decide a leitura: o
   // número sai número, o booleano sai booleano, e a marca sai como o select deixou (o vazio é
   // "não observei", e fica — o vazio e o "não vi" são estados distintos).
-  const f0 = estadoCaptura() || estadoAjuste() || {};
   // De onde sai o ciclo: o estado da captura manda; sem ele, o filtro. Sem este segundo caminho a
   // gravação ficaria sem a config (e sem ela não há chave nenhuma para gravar).
   const pecas = cache[(f0.meta && f0.meta.id) || sel.ciclo.value] || {};
@@ -1543,11 +1777,22 @@ function coletarCaptura(dados) {
     });
     blocosGravados[b.chave] = porPessoa;
   });
+  // AS MARCAS DOS TRÊS EIXOS. Lista inteira, e não só o que foi marcado: o item que ficou em
+  // branco é informação — diz que ele estava na lista e não foi observado. Grava-se por eixo,
+  // com o texto do item verbatim (um slug perderia a redação que o professor leu).
+  const eixos = eixosDoPo(pecas.po);
+  const observado = {};
+  EIXOS_DA_CAPTURA.forEach(([chave]) => {
+    const lista = (eixos[chave] && eixos[chave].itens) || [];
+    if (!lista.length) return;
+    observado[chave] = lista.map((x, i) => ({ item: x.item, marca: v(`obs-${chave}-${i}`) }));
+  });
   return {
     id, faltando, motivo, autor,
     aula: {
       data, presentes, ausentes, duracao_min: Number(dur),
       condicoes_contorno: cc, ...blocosGravados, relatorio,
+      ...(Object.keys(observado).length ? { observado } : {}),
     },
   };
 }
