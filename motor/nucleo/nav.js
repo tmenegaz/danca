@@ -473,7 +473,21 @@ function tituloDaPagina(html) {
    * A correcção é o que devia ter sido desde o início: o `<style>` e o `<script>` saem antes de
    * se procurar o título. Um `<h1>` dentro deles não é um título — é texto de outro tipo, e
    * procurá-lo é o mesmo erro que ler a folha de estilo como se fosse conteúdo. */
+  /* E OS COMENTÁRIOS SAEM PELA MESMA RAZÃO (06/11/2026). O `<style>`/`<script>` já saíam desde
+   * 23/10; o COMENTÁRIO ficou de fora, e um comentário também não é marcação: é texto para quem
+   * lê o ficheiro. O `lancamento.html` ganhou, nesse dia, um comentário a explicar que o cabeçalho
+   * deixou de ser «um `<h1>` SOLTO» — e a busca, que varre o documento inteiro, encontrou o
+   * `<h1>` escrito DENTRO do comentário e levou tudo até ao `</h1>` verdadeiro. A barra passou a
+   * dizer, em produção, no celular dela:
+   *
+   *   Área do Professor · Aulas · ` SOLTO (06/11/2026). Até hoje esta página trazia um `<div
+   *   class="titulo-fixo">` com um `<h1>` nu, e redeclarava o título…
+   *
+   * O defeito é o MESMO de 23/10, uma camada ao lado: procurar marcação em texto que não é
+   * marcação. As duas correcções são a mesma regra — o título procura-se no CORPO, e o que é
+   * código ou comentário não é corpo. */
   const semEstilo = String(html == null ? '' : html)
+    .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<(style|script)\b[\s\S]*?<\/\1>/gi, ' ');
   const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(semEstilo);
   if (!m) return '';

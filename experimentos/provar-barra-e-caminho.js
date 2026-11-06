@@ -306,6 +306,22 @@ console.log('\n7 · O título é o do `<h1>` da PÁGINA, e não o que está num 
     !/DEBAIXO|header-height|padding/.test(titulo), titulo);
   provar('…e o título é o `<h1>` do corpo', titulo === 'Lançamento de aula', titulo);
 
+  /* O MESMO DEFEITO, UMA CAMADA AO LADO (06/11/2026): o `<h1>` escrito num COMENTÁRIO. O
+     `lancamento.html` ganhou um comentário a explicar que o cabeçalho deixou de ser «um `<h1>`
+     SOLTO» — e a busca, que varria o documento inteiro, achou AQUELE `<h1>` e levou tudo até ao
+     `</h1>` verdadeiro. A barra dizia, em produção, no celular dela: «` SOLTO (06/11/2026). Até
+     hoje esta página trazia um `<div class="titulo-fixo">` com um `<h1>` nu…». */
+  const comComentario = '<!DOCTYPE html><html><body>'
+    + '<!-- O CABEÇALHO É O DA CASA, E NÃO UM `<h1>` SOLTO (06/11/2026).\n'
+    + '     Até hoje esta página trazia um `<div class="titulo-fixo">` com um `<h1>` nu. -->\n'
+    + '<header class="doc"><h1>Lançamento de aula — formulário eletrônico</h1></header>'
+    + '</body></html>';
+  const tComentario = nav.tituloDaPagina(comComentario);
+  provar('o `<h1>` escrito num COMENTÁRIO não é o título da página',
+    !/SOLTO|Até hoje|titulo-fixo/.test(tComentario), tComentario);
+  provar('…e o título continua a ser o `<h1>` do corpo',
+    tComentario === 'Lançamento de aula', tComentario);
+
   /* O NOME, E NÃO O NOME E A SUA EXPLICAÇÃO. O `<h1>` de um documento do pacote costuma trazer
      as duas separadas por travessão, e a barra é um caminho, não uma ficha. */
   for (const [bruto, nome] of [
@@ -322,16 +338,32 @@ console.log('\n7 · O título é o do `<h1>` da PÁGINA, e não o que está num 
     const t = nav.tituloDaPagina('<h1>' + bruto + '</h1>');
     provar('«' + bruto.slice(0, 34) + '…» fica «' + nome + '»', t === nome, t);
   }
-  /* A PÁGINA REAL, e é a que estava quebrada: o pacote ativo da `batata` em disco. Se ele não
-     existir, a asserção diz que não foi medida — e não passa por omissão. */
-  const real = path.join(raiz,
-    'professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/lancamento.html');
-  if (fs.existsSync(real)) {
-    const t = nav.tituloDaPagina(fs.readFileSync(real, 'utf8'));
-    provar('no `lancamento.html` de verdade o título é «Lançamento de aula»',
-      t === 'Lançamento de aula', t);
+  /* A PÁGINA REAL, e é a que estava quebrada: um `lancamento.html` de um pacote em disco. Ele é
+     DESCOBERTO, e não mais apontado à `batata` — a `batata` foi expurgada, e a asserção passou a
+     falhar por «ausente» em vez de medir. Uma guarda que aponta para uma escola que já não existe
+     não guarda nada; a que procura a primeira que existe mede o ficheiro de hoje. */
+  const pacotes = fs.existsSync(path.join(raiz, 'professores'))
+    ? fs.readdirSync(path.join(raiz, 'professores'), { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .flatMap((d) => {
+        const ciclos = path.join(raiz, 'professores', d.name, 'ciclos');
+        if (!fs.existsSync(ciclos)) return [];
+        return fs.readdirSync(ciclos, { withFileTypes: true })
+          .filter((c) => c.isDirectory() && /^ciclo-\d{2}-/.test(c.name))
+          .map((c) => path.join(ciclos, c.name, 'lancamento.html'));
+      })
+      .filter((arquivo) => fs.existsSync(arquivo))
+    : [];
+  if (pacotes.length) {
+    const medidas = pacotes.map((arquivo) => ({
+      arquivo: path.relative(raiz, arquivo),
+      titulo: nav.tituloDaPagina(fs.readFileSync(arquivo, 'utf8')),
+    }));
+    const tortas = medidas.filter((m) => m.titulo !== 'Lançamento de aula');
+    provar('em TODOS os `lancamento.html` de verdade o título é «Lançamento de aula»',
+      tortas.length === 0, tortas.slice(0, 3));
   } else {
-    provar('o `lancamento.html` do pacote existe para ser medido', false, 'ausente');
+    provar('há um `lancamento.html` de pacote para ser medido', false, 'nenhum');
   }
 }
 
