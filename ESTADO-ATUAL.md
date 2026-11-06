@@ -4,7 +4,14 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 05/11/2026 (árvore limpa). Nesta entrega, **nasceu o índice do recorte** —
+> **Última fotografia:** 06/11/2026 (árvore limpa, `ca2b4055`). Nesta entrega, **o lançamento de
+> aula deixou de ser um formulário de prosa e passou a ser uma MATRIZ** — as alunas por linha, os
+> aspectos por coluna, 14 marcas por aluna e todas com dono —, **o índice de lançamentos nasceu**
+> com a chave que faz a marca atravessar as aulas, e **a arquitetura de índices ficou escrita no
+> `ARQUITETURA-GERAL.md` (§7.3)**, junto da resposta medida à pergunta «grafos ou índices?» (§7.4).
+> A **§5.21 a §5.23** contam a história, na ordem em que aconteceu.
+>
+> **Fotografia anterior (05/11/2026).** Nesta entrega, **nasceu o índice do recorte** —
 > o ranque do que os professores olham no corpo, os aspectos que ninguém escolhe, e os **pontos
 > cegos** do olhar. (Ver as passagens de 05/11/2026 mais abaixo, na ordem em que foram escritas.)
 >
@@ -4204,6 +4211,27 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   bancada davam todas `ok` com o título a 0,3px da barra — mediam presença, e o defeito era de
   distância. Medido: `provar-titulo-e-barra` **31/31**, contraprova contra `HEAD` **4/31** (as quatro
   novas); `check-identidade` **0 erros**.
+
+- **06/11/2026** — **A matriz que não cabe rola dentro de si, e as setas dizem que há mais.** Três
+  pedidos numa fala: *«Ele pode ocupar a mesma dimensão que os outros formulários ocupam somando a
+  essa dimensão a parte do roteiro»*; *«as colunas vão crescer de forma dinâmica […] tem que prever
+  que quando ultrapassar a largura da página precisa de um scroll horizontal […] Eu pensei em
+  colocar aqueles botãozinhos dos carrosséis […] também não tá na nossa identidade visual; se ficar
+  bom tem que incorporar»*; e *«se tiver aqui 50 alunos, como é que faz isso?»*. (a) A coluna do
+  formulário era a de **leitura** (828px) com a coluna do índice **vazia** ao lado — o formulário
+  não tem roteiro. Com `data-largura="matriz"` passa a **1132px**: a conta é literalmente a dela
+  (828 de texto + 32 de vão + 272 de índice). (b) A casa já mandava a `table` rolar abaixo de 900px,
+  e isso **não se vê**: colunas cortadas não dizem se é o desenho ou o fim do conteúdo. A peça
+  `.rolagem` responde a essa pergunta e a mais nenhuma — a fileira das setas **só existe quando
+  `scrollWidth > clientWidth`**, e a seta desliga-se no fim do caminho. `--colunas` é escrito pelo
+  **dado** quando a tabela é montada (10rem por coluna); sem isso o `width: 100%` **espremia** as
+  colunas em vez de as deixar rolar. (c) A presença passou a ser a mesma **caixa que abre** dos três
+  eixos — contagem no título, marcar/desmarcar todos, aberta sozinha até doze alunas —, e **não um
+  modal**: foco, `Esc`, rolagem de trás e devolução de foco são coisas que não se vêem numa captura
+  e por isso se partem em silêncio, e o modal não é peça desta folha. A matriz **segue a marcação**
+  (desmarcar reconstrói as linhas) e **não perde o que já estava escrito** — os `id` são estáveis
+  por (bloco, aluna, coluna). Medido: `provar-formulario-da-aula` **48/48** (eram 34),
+  `check-identidade` **0 erros**, `gerar-ciclo.sh` **0 erro(s)**, `check-pacote` **0/0**.
 
 - **06/11/2026** — **O índice de lançamentos, e a chave que faz a marca encadear.** A pergunta dela
   — *«Em quantas aulas ele demorou para conseguir fazer o adágio?»* — não se respondia com a marca

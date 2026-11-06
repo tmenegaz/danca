@@ -512,8 +512,69 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.campos-do-ato` / `.acoes-do-ato` / `.estado-do-ato` | `ciclo.css` | os campos quebram em fileira; o estado tem `data-falta="sim"` para o que impede o avanço |
 | `.paginas` | `ciclo.css` | `hidden` (uma página só, e o estado sem JavaScript), à vista a partir de duas |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
+| `.rolagem` / `.rolagem-caixa` / `.rolagem-setas` | `ciclo.css` | `[data-rolagem="sim"]` (há para onde ir: a fileira das setas aparece) e `"nao"`/ausente (não há: nada ocupa lugar). A caixa é `role="region"` + `tabindex="0"`; a tabela de dentro **não** tem scroller próprio |
 | `.par-botoes` | **a página da Produção** (`motor/servidor/bastidores.js`), no `<style>` dela — não na folha | fileira que quebra (`flex-wrap`), com o vão de `.55rem` acima. Carrega **sempre** uma `.acao` (e o `secundario` do cancelar, quando há). Medido: 9px entre o campo e o botão, o mesmo nos cinco formulários |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
+
+### A matriz que não cabe rola dentro de si — e as setas dizem-no *(06/11/2026)*
+
+O formulário do lançamento ganhou uma matriz com as alunas nas linhas e os aspectos nas colunas. E
+as colunas **crescem com o dado**: o recorte do corpo tem quatro aspectos neste ciclo e pode ter
+oito no seguinte. O pedido dela foi em dois tempos:
+
+> «tem que prever que quando ultrapassar a largura da página precisa de um scroll horizontal […] E
+> como é que fica o layout dimensionado para celular de uma forma fácil de usar, que o usuário não
+> se confunda e ele perceba que tem que andar para o lado? Eu pensei em colocar aqueles botãozinhos
+> que tem geralmente para os carrosséis […] também não tá na nossa identidade visual, né? Se ficar
+> bom tem que incorporar.»
+
+**Porque a folha já não bastava.** Abaixo de 900px a casa manda a `table` rolar dentro de si — e
+isso **não se vê**: quem olha um telemóvel vê colunas cortadas ao meio e não sabe se o corte é do
+desenho ou do fim do conteúdo. A seta responde a essa pergunta e a mais nenhuma; por isso ela é
+**peça**, e não adorno: aparece **só quando há para onde ir**, e desliga-se no fim do caminho.
+
+```css
+.rolagem { min-width: 0; }
+.rolagem-caixa { overflow-x: auto; overscroll-behavior-x: contain; }
+.rolagem-caixa > table { display: table; overflow: visible; }
+.rolagem-setas { display: none; justify-content: flex-end; align-items: center;
+                 gap: var(--esp-2); margin: 0 0 var(--esp-2); }
+.rolagem[data-rolagem="sim"] .rolagem-setas { display: flex; }
+.rolagem-setas .acao { margin: 0; }
+.rolagem-setas .conta { margin-right: auto; }
+```
+
+| O que | Por quê |
+| --- | --- |
+| `data-rolagem` no bloco | é o **dado** que decide, não o tamanho do ecrã: com colunas dinâmicas, a mesma tela tem e não tem sobra em duas aulas do mesmo ciclo |
+| `scrollWidth > clientWidth` | a única medida honesta de «não cabe». Pergunta-se à caixa, não ao `window` |
+| a caixa é `tabindex="0"` e `role="region"` | quem não usa dedo chega-lhe pelo teclado, e o leitor de ecrã anuncia que ali há uma região que rola |
+| a tabela de dentro **não** tem scroller | senão ficavam **dois** abaixo de 900px (o da regra da casa e o da caixa), e o gesto ficava preso no de dentro |
+| `--colunas` no `<table>` | a largura mínima é `10rem × colunas`, e o número é escrito **pelo dado** quando a tabela é montada. Sem isso, `table { width: 100% }` **espremia** as colunas até caberem — o contrário do que o professor precisa para marcar |
+| sem JavaScript | **não há seta nenhuma** (a fileira nasce escondida) e a caixa rola pelo gesto, como antes. A seta é conforto, não função |
+
+**A largura também deixou de ser a de um documento.** O formulário declarava `data-layout="documento"`
+e não tem índice lateral — a coluna do índice ficava **vazia**, a roubar-lhe 304px. Medido: **828px**
+onde cabiam **1132**. Passou a `data-largura="matriz"`, e a coluna é uma só, com a largura toda do
+contentor. A conta é literalmente a que ela fez: *«a mesma dimensão que os outros formulários ocupam
+somando a essa dimensão a parte do roteiro»* — 828 de texto + 32 de vão + 272 de índice = **1132**.
+
+**A presença não é uma linha de cinquenta nomes.** Passou a ser a mesma caixa que abre (`.eixo`),
+com a contagem no título («— 3 de 12») e «marcar todos» / «desmarcar todos». **Acordeão, e não
+modal**, e o motivo é o de sempre: um modal custa prender o foco, fechar no `Esc`, travar a rolagem
+de trás e devolver o foco — nada disso se vê numa captura, e por isso se parte em silêncio; e não é
+peça desta folha. Abre sozinha até doze alunas (marcar presença é o primeiro gesto da aula, e uma
+caixa fechada obrigaria a um clique para fazer o que hoje se faz sem nenhum) e fechada acima disso.
+
+**E a matriz segue a marcação.** Desmarcar quem faltou reconstrói as linhas com quem veio — e o que
+já estava escrito **não se perde**, porque os `id` dos campos são estáveis por (bloco, aluna,
+coluna) e o painel os repõe pelo `id`, não pela posição.
+
+**Prova.** `experimentos/provar-formulario-da-aula.js`, secções **E**, **F** e **G** (48
+asserções): a coluna mede **1132px** a 1280; a 390 a matriz não cabe, o bloco diz `sim`, a fileira
+aparece, a seta da esquerda está desligada no princípio, a da direita anda a caixa e desliga-se no
+fim; a 1280 não há setas nem fileira; a largura mínima é `10rem × colunas`; desmarcar a aluna B tira
+a linha dela e a marca da A sobrevive.
 
 ### As três proibições, com o caso que as criou
 

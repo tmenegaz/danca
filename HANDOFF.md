@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T15:05:05-0300`
-Commit atual: `955eee0c` — feat(tools): o indice de lancamentos, e a chave que faz a marca encadear
+Gerado em: `2026-11-06T15:18:48-0300`
+Commit atual: `ca2b4055` — fix(tools): a matriz que nao cabe rola dentro de si, com as setas a dizer que ha mais
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,9 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+ca2b4055 fix(tools): a matriz que nao cabe rola dentro de si, com as setas a dizer que ha mais
+9bc187c0 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+6c5d44be docs(registro): o indice de lancamentos, e o que fica em aberto
 955eee0c feat(tools): o indice de lancamentos, e a chave que faz a marca encadear
 1302d8ad chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 f5fd5a71 docs(registro): a matriz do lancamento, com a contraprova e o que fica em aberto
@@ -103,9 +106,6 @@ bbc45599 docs(registro): o HANDOFF aponta para a auditoria do ar das paginas
 6cca7b26 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 c7cbe796 docs(registro): o HANDOFF aponta para a peca da fileira da §6
 76365919 fix(tools): a peca .acoes-da-aluna na folha — o vao da fileira da §6
-1eb142a2 fix(ciclo-01): a turma entra na notacao, e a §6 ganha a fileira da aluna
-68417c49 docs(registro): o HANDOFF aponta para o commit do respiro do cabecalho
-06b3ffe2 fix(tools): o cabecalho respira, e o respiro e padding
 ```
 
 ## Por professor
@@ -233,76 +233,57 @@ c7cbe796 docs(registro): o HANDOFF aponta para a peca da fileira da §6
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O índice de lançamentos, e a chave que faz a marca encadear
+## 06/11/2026 — Grafos ou índices? A pergunta, medida, e o que fica decidido
 
-**A pergunta dela, e era impossível de responder:**
+**A pergunta**, com a intuição que a gerou:
 
-> «depois eu vou precisar usar a proveniência para saber o que aconteceu com esse aluno […] Em
-> quantas aulas ele demorou para conseguir fazer o adágio?»
+> «Será que seria mais rápido se a gente tivesse uma estrutura como grafos […] Eu sei que o nosso
+> próprio arquivo de index funciona assim, ele vai criando as arestas nó a nó. Mas poderia ser mais
+> eficiente […] índices eu me lembro de um livro que existia nos anos 80 que se chamava Páginas
+> Amarelas. Então eu tenho que consultar o índice e depois ir lá passar folha a folha, folha a folha
+> até achar aquela página […] E grafos não, eu vou nó a nó, eu vou direto.»
 
-A matriz da manhã pôs as marcas no lugar certo — por aluna e por aspecto. Mas uma marca guardada
-em duas aulas eram **duas linhas sem nada em comum**: os itens da linha de base iam pelo **texto**, e
-o texto é redação, que muda quando a redação muda. O
-[§4.9 do `PLANO-INDICES.md`](/home/mti/bibTex/danca/PLANO-INDICES.md:560) já dizia o que era preciso
-e dizia que faltava: «o lançamento é o dado que responde às perguntas da escola, e hoje **não tem
-leitor**».
+**A metáfora decide o resto, e ela está ao contrário.** Um índice de livro **não** é folhear: a
+entrada «adágio → p. 214» é um **salto directo** — uma operação. O que se folheia é o que **não** tem
+índice. E um grafo também não salta: andar de nó em nó é **uma operação por aresta**. As duas coisas
+são `O(1)` por passo; a diferença nunca está na velocidade do passo, e sim no **número de passos** e
+na **forma da pergunta**.
 
-### 1. A chave não é uma regra nova — é a que o projecto já declara
+**O tamanho real do acervo** (medido hoje): 137 ficheiros de fonte, **1,48 MB**; `indices/` inteiro,
+**136 KB**; `acervo.json`, **15,8 KB**. Um varrimento linear disto é milissegundos. Nesta escala
+«mais rápido» não é um critério — qualquer das duas formas cabe em memória com três ordens de
+grandeza de folga. **A escolha não se decide por desempenho.**
 
-`Vistas.helpers.chaveDoItem` tira o acento, baixa a caixa e troca o que não é letra nem algarismo por
-`_`. Aplicada aos rótulos que a declaração do schema da captura traz, ela reproduz **as 11 chaves
-declaradas à mão, uma por uma** — medido, e é isso que autoriza o formulário a calcular a chave dos
-itens da linha de base, que ninguém declarou.
+**O que cada estrutura responde:**
 
-«1ª posição — braços» → `1_posicao_bracos` · «Sustentação ativa de MMII (força de adágio)» →
-`sustentacao_ativa_de_mmii_forca_de_adagio`.
-
-A função vive no `lib-vistas.js` — a lib que a **página** e o **gerador** partilham — para não haver
-duas regras a divergir. O formulário grava `{ chave, item, marca }`: a chave **uma vez**, no
-lançamento, e nunca recalculada; o texto ao lado, porque é o que o professor leu.
-
-### 2. O leitor que faltava
-
-`tools/indice-lancamentos.js` extrai as cinco famílias do §4.9:
-
-| Família | O que guarda | O que **não** guarda |
+| Pergunta | Índice | Grafo |
 |:--|:--|:--|
-| `presenca` | aula, data, presentes, ausentes | nome, contato |
-| `marcas` | aula, data, **aluna**, **coluna**, bloco, marca | o texto de qualquer observação |
-| `condicoes` | plano seguido, duração, as três notas, `mudou` **booleano** | o texto de `mudou` |
-| `ajustes` | aula, data, `houve` | o texto do ajuste |
-| `rubrica` | aula, data, aluna, critério, nível | — |
+| «onde está o PO deste ciclo?» | **1 salto** | precisa do mapa chave → nó **antes** de andar — e esse mapa **é** um índice |
+| «quantas marcas `parcial` teve a aluna A?» | 1 leitura + filtro | 1 leitura + filtro |
+| «em quantas aulas ela demorou a estabilizar o adágio?» | 1 leitura + agrupar por `coluna` | idem, a seguir as arestas `aula→aula` |
+| «por que caminho se chega do recorte do passo 4 à marca da aula 07?» | **não responde** | **responde** |
 
-Mais `surpresas` — que **não** estava na tabela, e entrou quando o campo deixou de ser prosa. Uma
-prosa antiga não vira booleano: fica `null`, e quem lê sabe que não foi respondido.
+**E o facto deste projecto que muda a conclusão: as arestas já existem, e são derivadas.** A
+proveniência não é descoberta — é construída. Anamnese → leitura do passo 3 → recorte do passo 4 →
+turma → plano de ensino → PO → plano do ciclo → aula → lançamento: cada ligação é **um nome de
+ficheiro e uma chave de JSON** (§5.9 e §5.17). O sistema **já é um grafo**, guardado como árvore de
+pastas e campos derivados, sem motor nenhum.
 
-**A regra de privacidade é medida, não prometida:** a prova assere que **nenhuma** das quatro prosas
-do fixture aparece no índice. E o próprio índice declara o que não guarda, para não parecer que
-guarda tudo.
+**Decidido, e com data.** (1) **Não se substitui o índice** — um grafo precisa do mapa `chave → nó`
+para começar a andar, e esse mapa é um índice. (2) O que falta **não é um motor de grafo: é a lista
+de arestas materializada** (`relacoes.json`, que o `PLANO-INDICES.md` já prevê como `L4`). Ela é
+**dado**, não tecnologia: `{de, para, tipo}`, gerado pelo mesmo gerador dos índices, com `--check`
+como eles. (3) **Uma aresta errada é pior do que uma aresta ausente** — a ausente faz falhar a
+travessia, a errada leva a outro sítio e mente; por isso as arestas são **derivadas**, nunca escritas
+à mão. (4) O grafo passa a valer a pena quando a pergunta for de **explicabilidade** ou quando houver
+percursos cruzados entre escolas — hoje há uma escola de teste e **nenhum lançamento**, e as arestas
+seriam calculadas sobre dados que ainda não existem.
 
-`--check <aluna>` responde ao `AL03` — as colunas onde `parcial`/`nao` se repete, em que aulas e
-desde quando. É a razão de o índice existir: um índice que ninguém consulta é uma tabela a mais.
-
-**Saída determinística:** sem `--com-data`, duas corridas dão o mesmo texto, byte a byte — a mesma
-regra das vistas.
-
-### 3. O validador
-
-A chave, quando existe, tem de ser um slug; quando falta, é **aviso** (um arquivo escrito antes dela
-continua válido), e o aviso diz o que se perde: «a marca não será encadeada entre aulas pelo índice».
-
-**Contraprova.** Com a chave a deixar de ser slug e o índice a copiar a prosa do ajuste, a
-`provar-indice-de-lancamentos` **reprova 7 de 24**.
-
-**Medido.** `provar-indice-de-lancamentos` **24/24**; `provar-formulario-da-aula` **34/34**;
-`check-identidade` **0 erros**; `check-indices` **16/16**; `check-schemas` ok; `gerar-ciclo.sh`
-**0 erro(s)**; `check-pacote` **0 erro(s), 0 aviso(s)**. No ciclo real — que não tem lançamento
-nenhum — o índice sai vazio e não quebra.
-
-**O que continua em aberto, e agora é dito com o campo certo.** O índice é um **leitor de ficheiro**:
-`node tools/indice-lancamentos.js <dados>`. O §4.9 pede-o também como índice **vivo**, servido por
-`POST /api/bastidores/indice` com escopo por professor e por ciclo — e isso é a etapa seguinte, com a
-mesma regra de escopo («escopo, nunca eixo») que o §4.16 do `PLANO-INDICES.md` declara.
+**O que fica escrito:** o índice é a **porta de entrada** e a fonte de verdade dos derivados; o grafo
+é um **derivado a jusante**, com o mesmo regime (JSON versionado, gerado, com `--check`), a nascer
+quando houver a primeira pergunta de caminho. **Não se adopta tecnologia de grafo — adopta-se a
+forma de grafo onde ela responde ao que o índice não responde.** Ficou no `ARQUITETURA-GERAL.md`
+§7.3 (as seis famílias de índice e a regra que as governa) e §7.4 (esta análise).
 
 ## O que está pendente
 

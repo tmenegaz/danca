@@ -1857,6 +1857,103 @@ verificável, e não retórico:
 
 ---
 
+### 7.3 A arquitetura de índices — seis famílias, e uma regra que as governa todas
+
+O sistema não tem banco. Tem **índices derivados**: arquivos JSON que se geram do que está no Git,
+com `--check` e teste de determinismo, e que nunca são fonte. O [`PLANO-INDICES.md`](./PLANO-INDICES.md)
+é o desenho completo; esta secção é o mapa, e serve para quem chega agora.
+
+| Família | Onde vive | O que é | Fonte | Regenera |
+|:--|:--|:--|:--|:--|
+| **Acervo** | `indices/acervo.json` | tudo o que existe: professores, escolas, ciclos, documentos | a árvore do Git | `gerar-indices.js`, no `pre-commit`, no `regerar-indices.yml` e dentro do `gerar-ciclo.yml` |
+| **Escola** | `indices/escolas/<slug>.json` | as turmas, os ciclos e as âncoras de uma escola | a árvore + os `.fipp` | idem |
+| **Ciclo** | `indices/ciclos/<prof>/<NN>-<escola>.json` | o documento a documento de um ciclo | o pacote | idem |
+| **Publicado** | `publicacao/<escola>/nav.json` | o que o Worker serve | a montagem | `montar-publicacao.js` |
+| **Vivo** | KV do Worker, autenticado | envelopes, anamneses, linha de base | escrita da professora | a própria escrita |
+| **Lançamentos** | `tools/indice-lancamentos.js` | presença, marcas, condições, ajustes, rubrica | o `-dados.json` + o config da aula | a pedido (`--json`), e a rota viva é a etapa seguinte |
+
+**A regra que governa todas: um índice não é fonte.** Ele é reconstruível (`--check` compara-o com o
+que a árvore diz), é determinístico onde pode ser (o de lançamentos não leva carimbo por omissão), e
+nunca guarda conteúdo — guarda **chave, tipo, data e vínculo**. A prosa fica no documento. É o que
+permite apagar `indices/` inteiro e voltar a gerá-lo sem perder nada — e é o que faz dele um
+derivado de verdade, e não uma segunda base de dados a manter em sincronia.
+
+**E o que o índice NÃO faz, dito com clareza:** ele responde «onde está» e «quantos são». Não
+responde «por onde se passa de A a B» — e é essa pergunta que a §7.4 vai medir.
+
+### 7.4 Grafos ou índices? — a pergunta dela, medida
+
+A pergunta, com a intuição que a gerou:
+
+> «como a gente tem a proveniência e os nós são complexos, eu estava pensando se a gente tivesse de
+> um nó ao outro nó que é complexo, passando por vários nós até chegar num objetivo específico, a
+> gente precisa das arestas. Seria mais rápido se a gente tivesse uma estrutura como grafos […] Eu
+> sei que o nosso próprio arquivo de index funciona assim, ele vai criando as arestas nó a nó. Mas
+> poderia ser mais eficiente […] índices eu me lembro de um livro que existia nos anos 80 que se
+> chamava Páginas Amarelas. Então eu tenho que consultar o índice e depois ir lá passar folha a
+> folha, folha a folha até achar aquela página que o índice me disse. E grafos não, eu vou nó a nó,
+> eu vou direto.»
+
+**Primeiro, a metáfora, porque ela decide o resto.** Um índice de livro **não** é folhear: a entrada
+«adágio → p. 214» é um salto directo, uma operação. O que se folheia é o que **não** tem índice. Um
+grafo, por sua vez, também não salta: andar de nó em nó é uma operação por aresta. As duas coisas
+são `O(1)` por passo — a diferença nunca está na velocidade do passo.
+
+**Segundo, o tamanho real deste acervo** (medido hoje, no repositório):
+
+| O que | Quanto |
+|:--|:--|
+| Fontes pedagógicas (`.md` + `.json` em `professores/`) | **137 ficheiros, 1,48 MB** |
+| `indices/` inteiro | **136 KB** |
+| `indices/acervo.json` | **15,8 KB** |
+| Um PO | 5,7 KB · um plano, 3,4 KB |
+
+Um varrimento linear de 137 ficheiros, em disco, é **milissegundos**. Nesta escala, «mais rápido»
+não é um critério: qualquer das duas formas cabe inteira em memória, com folga de três ordens de
+grandeza. **A escolha não se decide por desempenho** — decide-se pela **forma da pergunta**.
+
+**Terceiro, e é o que decide: o que cada estrutura responde.**
+
+| Pergunta | Índice | Grafo | Quem responde hoje |
+|:--|:--|:--|:--|
+| «onde está o PO deste ciclo?» | **1 salto** (chave → caminho) | precisa do mapa chave → nó **antes** de andar | índice (acervo/ciclo) |
+| «quantas marcas `parcial` teve a aluna A?» | 1 leitura + filtro | 1 leitura + filtro | índice de lançamentos |
+| «por que caminho se chega do recorte do passo 4 à marca da aula 07?» | **não responde**: não há onde guardar o caminho | **responde**: é travessia | ninguém, hoje |
+| «em quantas aulas ela demorou a estabilizar o adágio?» | 1 leitura + agrupar por `coluna` | 1 leitura + seguir as arestas `aula→aula` | índice de lançamentos (§5.23) |
+
+**E há um facto deste projecto que muda a conclusão: as arestas já existem, e são derivadas.** A
+proveniência não é descoberta — é construída. A anamnese alimenta a leitura do passo 3, que alimenta
+o recorte do passo 4, que entra na turma, que entra no plano de ensino, que entra no PO, que entra no
+plano do ciclo, que entra na aula, que entra no lançamento. Cada uma dessas ligações é **um nome de
+ficheiro e uma chave de JSON** (§5.9, §5.17). O sistema **já é um grafo** — guardado como árvore de
+pastas e campos derivados, sem motor nenhum.
+
+**A resposta, então, e ela é «os dois», mas não em partes iguais:**
+
+1. **Não se substitui o índice.** Um grafo precisa de um mapa `chave → nó` para poder começar a
+   andar; esse mapa **é** um índice. Trocar índice por grafo seria trocar o salto por uma caminhada
+   que começa por perguntar onde está o primeiro nó.
+2. **O que falta não é um motor de grafo: é a lista de arestas, materializada.** O
+   [`PLANO-INDICES.md`](./PLANO-INDICES.md) já a prevê (`relacoes.json`, `L4`). Ela é **dado**, não
+   tecnologia: um JSON com `{de, para, tipo}`, gerado pelo mesmo gerador que faz os índices, com
+   `--check` como eles. Um banco orientado a grafos seria a resposta para um problema que este
+   acervo não tem — 137 ficheiros — e cobraria o que este projecto recusa pagar: um serviço a mais,
+   um segredo a mais, um sítio a mais onde o dado pode estar errado.
+3. **O custo real de adoptar arestas é o de manter uma segunda verdade.** Uma aresta errada é pior
+   do que uma aresta ausente: a ausente faz falhar a travessia, a errada leva a outro sítio e
+   **mente**. Por isso a regra é a mesma dos índices: as arestas são **derivadas** do que já está
+   no Git, nunca escritas à mão, e validadas por comparação com a árvore.
+4. **Quando é que o grafo passa a valer a pena?** Quando a pergunta for de **explicabilidade**
+   («mostra-me o caminho desta marca até à anamnese que a originou») ou quando houver mais de uma
+   escola com percursos cruzados. Hoje há uma escola de teste e nenhum lançamento — as arestas
+   seriam calculadas sobre dados que ainda não existem.
+
+**O que fica decidido, e com data:** o índice é a **porta de entrada** e continua a ser a fonte de
+verdade dos derivados; o grafo é um **derivado a jusante**, com o mesmo regime (JSON versionado,
+gerado, com `--check`), a nascer quando houver a primeira pergunta de caminho a responder. Não se
+adopta tecnologia de grafo — adopta-se a **forma** de grafo onde ela responde ao que o índice não
+responde.
+
 ## 8. E onde ainda existe "banco"? (a parte honesta)
 
 **Quase em lado nenhum — e o que sobrou é legado.**

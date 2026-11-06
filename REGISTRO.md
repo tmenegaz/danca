@@ -38428,3 +38428,131 @@ nenhum — o índice sai vazio e não quebra.
 `node tools/indice-lancamentos.js <dados>`. O §4.9 pede-o também como índice **vivo**, servido por
 `POST /api/bastidores/indice` com escopo por professor e por ciclo — e isso é a etapa seguinte, com a
 mesma regra de escopo («escopo, nunca eixo») que o §4.16 do `PLANO-INDICES.md` declara.
+
+## 06/11/2026 — A matriz que não cabe rola dentro de si — e as setas dizem que há mais
+
+**O pedido, em três partes e numa fala só:**
+
+> «Ele pode ocupar a mesma dimensão que os outros formulários ocupam somando a essa dimensão a parte
+> do roteiro.»
+>
+> «as colunas elas vão crescer de forma dinâmica […] tem que prever que quando ultrapassar a largura
+> da página precisa de um scroll horizontal […] E como é que fica o layout dimensionado para celular
+> de uma forma fácil de usar, que o usuário não se confunda e ele perceba que tem que andar para o
+> lado? Eu pensei em colocar aqueles botãozinhos que tem geralmente para os carrosséis […] também não
+> tá na nossa identidade visual, né? Se ficar bom tem que incorporar.»
+>
+> «se tiver aqui 50 alunos, como é que faz isso?»
+
+### 1. A largura: a coluna do formulário era a de leitura, com a do índice vazia ao lado
+
+O formulário declarava `data-layout="documento"` e não tem roteiro. Medido a 1280: `<main>` com
+**1180px**, a coluna de leitura com **828px**, e os **304px** da coluna do índice **vazios**.
+
+A conta é literalmente a que ela fez: 828 de texto + 32 de vão + 272 de índice = **1132**. Com
+`data-largura="matriz"` a coluna é uma só e leva a largura toda do contentor. A medida de leitura
+de 900px continua a valer para a prosa — a matriz é que não é prosa.
+
+### 2. A rolagem: a casa já a fazia, e não se via
+
+Abaixo de 899px a folha manda a `table` rolar dentro de si. **Isso não se vê**: quem olha um
+telemóvel vê colunas cortadas ao meio e não sabe se o corte é do desenho ou do fim do conteúdo. A
+seta responde a essa pergunta e a mais nenhuma — por isso é **peça**, e não adorno.
+
+```css
+.rolagem-caixa { overflow-x: auto; overscroll-behavior-x: contain; }
+.rolagem-caixa > table { display: table; overflow: visible; }
+.rolagem-setas { display: none; gap: var(--esp-2); }
+.rolagem[data-rolagem="sim"] .rolagem-setas { display: flex; }
+```
+
+| O que | Por quê |
+|:--|:--|
+| `data-rolagem` no bloco | é o **dado** que decide, não o tamanho do ecrã: com colunas dinâmicas, a mesma tela tem e não tem sobra em duas aulas do mesmo ciclo |
+| `scrollWidth > clientWidth` | a única medida honesta de «não cabe» — pergunta-se à caixa, não ao `window` |
+| a caixa é `tabindex="0"` + `role="region"` | quem não usa dedo chega-lhe pelo teclado, e o leitor de ecrã anuncia a região |
+| a tabela de dentro **não** tem scroller | senão ficavam **dois** abaixo de 899px — o da regra da casa e o da caixa — e o gesto ficava preso no de dentro |
+| `--colunas` no `<table>` | a largura mínima é `10rem × colunas`, escrita **pelo dado** quando a tabela é montada. Sem isso, `table { width: 100% }` **espremia** as colunas até caberem — o contrário do que o professor precisa para marcar |
+| sem JavaScript | **não há seta nenhuma** (a fileira nasce escondida) e a caixa rola pelo gesto, como antes |
+
+### 3. A presença com cinquenta alunas: acordeão, e não modal
+
+Ela ofereceu as duas saídas — «um carregar mais […] ou coloca como um acordeon […] ou a gente coloca
+um clique para abrir um modal». **Acordeão, e o argumento é o de sempre:** um modal custa prender o
+foco, fechar no `Esc`, travar a rolagem de trás e devolver o foco a quem o abriu — nenhuma dessas
+coisas se vê numa captura, o que quer dizer que se partem em silêncio. E o modal não é peça desta
+folha: nunca foi desenhado para ela, e a regra do catálogo é que o que aparece na tela nasce de uma
+peça.
+
+A caixa que abre **já é** peça — é a mesma `.eixo` dos três eixos da aula —, e resolve o mesmo
+problema de espaço: fechada custa uma linha, e é ela que diz «— 3 de 12». **Abre sozinha até doze
+alunas**: marcar presença é o primeiro gesto da aula, e uma caixa fechada obrigaria a um clique para
+fazer o que hoje se faz sem nenhum.
+
+**E a matriz segue a marcação.** Desmarcar quem faltou reconstrói as linhas com quem veio, e o que já
+estava escrito **não se perde**: os `id` dos campos são estáveis por (bloco, aluna, coluna) e o
+painel repõe os valores **pelo `id`, não pela posição**. Sem isso, com cinquenta alunas, desmarcar
+uma apagava o trabalho feito nas outras.
+
+**Medido.** `provar-formulario-da-aula` **34 → 48** asserções, todas verdes. A coluna a **1132px**; a
+390 a matriz não cabe (`data-rolagem="sim"`), a fileira aparece, a seta da esquerda desligada no
+princípio, a da direita anda a caixa e desliga-se no fim; a 1280 não há setas nem fileira; a largura
+mínima é `10rem × colunas`; desmarcar a aluna B tira a linha dela e a marca da A sobrevive; «marcar
+todos» devolve as duas. `check-identidade` **0 erros**, `gerar-ciclo.sh` **0 erro(s)**,
+`check-pacote` **0/0**.
+
+**A peça entrou no catálogo** — `IDENTIDADE-VISUAL.md`, Quadro 2 e a secção «A matriz que não cabe
+rola dentro de si». Era o que ela pediu: *«também não tá na nossa identidade visual; se ficar bom tem
+que incorporar»*.
+
+## 06/11/2026 — Grafos ou índices? A pergunta, medida, e o que fica decidido
+
+**A pergunta**, com a intuição que a gerou:
+
+> «Será que seria mais rápido se a gente tivesse uma estrutura como grafos […] Eu sei que o nosso
+> próprio arquivo de index funciona assim, ele vai criando as arestas nó a nó. Mas poderia ser mais
+> eficiente […] índices eu me lembro de um livro que existia nos anos 80 que se chamava Páginas
+> Amarelas. Então eu tenho que consultar o índice e depois ir lá passar folha a folha, folha a folha
+> até achar aquela página […] E grafos não, eu vou nó a nó, eu vou direto.»
+
+**A metáfora decide o resto, e ela está ao contrário.** Um índice de livro **não** é folhear: a
+entrada «adágio → p. 214» é um **salto directo** — uma operação. O que se folheia é o que **não** tem
+índice. E um grafo também não salta: andar de nó em nó é **uma operação por aresta**. As duas coisas
+são `O(1)` por passo; a diferença nunca está na velocidade do passo, e sim no **número de passos** e
+na **forma da pergunta**.
+
+**O tamanho real do acervo** (medido hoje): 137 ficheiros de fonte, **1,48 MB**; `indices/` inteiro,
+**136 KB**; `acervo.json`, **15,8 KB**. Um varrimento linear disto é milissegundos. Nesta escala
+«mais rápido» não é um critério — qualquer das duas formas cabe em memória com três ordens de
+grandeza de folga. **A escolha não se decide por desempenho.**
+
+**O que cada estrutura responde:**
+
+| Pergunta | Índice | Grafo |
+|:--|:--|:--|
+| «onde está o PO deste ciclo?» | **1 salto** | precisa do mapa chave → nó **antes** de andar — e esse mapa **é** um índice |
+| «quantas marcas `parcial` teve a aluna A?» | 1 leitura + filtro | 1 leitura + filtro |
+| «em quantas aulas ela demorou a estabilizar o adágio?» | 1 leitura + agrupar por `coluna` | idem, a seguir as arestas `aula→aula` |
+| «por que caminho se chega do recorte do passo 4 à marca da aula 07?» | **não responde** | **responde** |
+
+**E o facto deste projecto que muda a conclusão: as arestas já existem, e são derivadas.** A
+proveniência não é descoberta — é construída. Anamnese → leitura do passo 3 → recorte do passo 4 →
+turma → plano de ensino → PO → plano do ciclo → aula → lançamento: cada ligação é **um nome de
+ficheiro e uma chave de JSON** (§5.9 e §5.17). O sistema **já é um grafo**, guardado como árvore de
+pastas e campos derivados, sem motor nenhum.
+
+**Decidido, e com data.** (1) **Não se substitui o índice** — um grafo precisa do mapa `chave → nó`
+para começar a andar, e esse mapa é um índice. (2) O que falta **não é um motor de grafo: é a lista
+de arestas materializada** (`relacoes.json`, que o `PLANO-INDICES.md` já prevê como `L4`). Ela é
+**dado**, não tecnologia: `{de, para, tipo}`, gerado pelo mesmo gerador dos índices, com `--check`
+como eles. (3) **Uma aresta errada é pior do que uma aresta ausente** — a ausente faz falhar a
+travessia, a errada leva a outro sítio e mente; por isso as arestas são **derivadas**, nunca escritas
+à mão. (4) O grafo passa a valer a pena quando a pergunta for de **explicabilidade** ou quando houver
+percursos cruzados entre escolas — hoje há uma escola de teste e **nenhum lançamento**, e as arestas
+seriam calculadas sobre dados que ainda não existem.
+
+**O que fica escrito:** o índice é a **porta de entrada** e a fonte de verdade dos derivados; o grafo
+é um **derivado a jusante**, com o mesmo regime (JSON versionado, gerado, com `--check`), a nascer
+quando houver a primeira pergunta de caminho. **Não se adopta tecnologia de grafo — adopta-se a
+forma de grafo onde ela responde ao que o índice não responde.** Ficou no `ARQUITETURA-GERAL.md`
+§7.3 (as seis famílias de índice e a regra que as governa) e §7.4 (esta análise).
