@@ -851,3 +851,11 @@ experimentos/modelo-formulario/*
 # reproduz as 11 que o schema declara à mão, o `AL03` a responder «em que aulas, desde quando», o
 # determinismo do índice e o caderno a imprimir o que o formulário grava.
 !experimentos/provar-indice-de-lancamentos.js
+# O MAPA DE RELAÇÕES DO CICLO (05/11/2026). A pergunta dela — «dá para ir de um nó ao outro até um
+# objetivo?» — tem resposta testável: as arestas já existiam espalhadas pelos arquivos, e faltava
+# materializá-las. A prova mede que cada aresta NOMEIA o campo que a produziu (não é opinião), que
+# nenhum conteúdo entra no mapa, que a ponte entre os dois vocabulários liga 4/4 pelo NOME e
+# DESAPARECE quando o nome muda (com a lacuna declarada), a travessia que ela descreveu nos dois
+# sentidos, o determinismo e o `--check` a acusar uma aresta removida. E um ciclo vazio declara as
+# lacunas em vez de inventar uma turma.
+!experimentos/provar-relacoes.js
