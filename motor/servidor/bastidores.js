@@ -11506,6 +11506,16 @@ async function fetch(request, env) {
      * função: uma segunda implementação divergiria da primeira ao primeiro campo novo. */
     return json(200, {
       ok: true, escola, linhas: lista, divergentes,
+      /* O ESTADO DO REPOSITÓRIO DIZ-SE (05/11/2026). É daqui que sai a SÉRIE TEMPORAL: cada acto é
+       * um ficheiro com carimbo, e a estante mostra a vigente de cada linha. Se o repositório não
+       * estiver alcançável (sem token, GitHub fora), o acto do próximo envio fica no KV — e sem
+       * este campo o professor não teria como saber que a série parou. Um zero silencioso é
+       * indistinguível de «nunca se enviou nada». */
+      repo: {
+        activo: repoLinhas.activo,
+        ...(repoLinhas.motivo ? { motivo: repoLinhas.motivo } : {}),
+        comVersao: lista.filter((l) => l && l.carimbo).length,
+      },
       indice: indiceDoRecorte(lista),
     });
   }
