@@ -453,6 +453,49 @@ async function main() {
       { status: irmao.status, corpo: corpoIrmao });
   }
 
+  // -------------------------------------------------------------------------------------------
+  console.log('\nK. A cópia cifrada do pacote acompanha a fonte — sem ela a geração reprova');
+  {
+    /* O CI APANHOU ESTA (06/11/2026), e não a bancada: o `gerar-ciclo.sh` NÃO cifra quando existe
+     * o `-dados.cifrado.json` — copia-o. Enquanto a fonte só mudava no «Guardar» do PO, era ele
+     * que escrevia as duas. Agora o lançamento muda a fonte, e a cópia ficou velha: o pacote saiu
+     * com a aula por lançar e o `check-pacote` reprovou com «a cópia do pacote DIVERGE da fonte na
+     * estrutura (lancamentos/apelidos)». O adaptador passou a escrever as duas. */
+    const Cifra = require(path.join(RAIZ, 'tools/lib-cifra.js'));
+    const senha = 'senha-da-prova';
+    const caminhoCifrado = VALOR_DADOS.replace(/-dados\.json$/, '-dados.cifrado.json');
+    const chave = 'lancamento/calango/rabo-gramde/01-2026-11-06T1537/' + NOME;
+
+    const gh = githubFalso({ [VALOR_DADOS]: JSON.stringify(DADOS_ANTES) });
+    await lanc.criarAcervoDeLancamentos({ token: 'x', fetchImpl: gh.fetchImpl, senhaCripto: senha })
+      .guardar(chave, JSON.stringify(DADOS_DEPOIS, null, 2) + '\n');
+    provar('a fonte e a cópia cifrada do pacote são escritas no mesmo acto',
+      gh.arquivos.has(VALOR_DADOS) && gh.arquivos.has(caminhoCifrado),
+      [...gh.arquivos.keys()]);
+
+    const envelope = JSON.parse(gh.arquivos.get(caminhoCifrado));
+    provar('…e a cópia é o MESMO envelope do «Guardar» do PO (lancamentos, apelidos, _nota)',
+      envelope.lancamentos === 2 && envelope.apelidos.aluna_a === 'Aluna A'
+        && Boolean(envelope._cifrado) && Boolean(envelope._nota),
+      { lancamentos: envelope.lancamentos, apelidos: envelope.apelidos });
+    const decifrado = JSON.parse(await Cifra.decifrar(envelope._cifrado, senha));
+    provar('…e o que ela guarda é a FONTE com a aula nova', decifrado.aulas['06'] !== undefined,
+      Object.keys(decifrado.aulas));
+
+    /* A REPARAÇÃO: a fonte está igual, e a cópia está velha (o caso real do CI). O acto não
+     * escreve a fonte outra vez — escreve a cópia. Sem esta parte, o duplo clique devolveria
+     * `semMudanca` e a cópia ficava velha para sempre. */
+    const gh2 = githubFalso({
+      [VALOR_DADOS]: JSON.stringify(DADOS_DEPOIS),
+      [caminhoCifrado]: JSON.stringify({ _cifrado: { endereco: 'x' }, lancamentos: 0, apelidos: {} }),
+    });
+    const r2 = await lanc.criarAcervoDeLancamentos({ token: 'x', fetchImpl: gh2.fetchImpl, senhaCripto: senha })
+      .guardar(chave, JSON.stringify(DADOS_DEPOIS, null, 2) + '\n');
+    const puts = gh2.pedidos.filter((p) => p.metodo === 'PUT').map((p) => p.caminho);
+    provar('…e uma cópia velha com a fonte igual é REPARADA (o ato ainda tem trabalho a fazer)',
+      r2.semMudanca !== true && puts.includes(caminhoCifrado) && !puts.includes(VALOR_DADOS), puts);
+  }
+
   console.log('');
   if (falhas.length) {
     console.log('FALHOU — ' + falhas.length + ' de ' + (passou + falhas.length) + ' asserção(ões).');

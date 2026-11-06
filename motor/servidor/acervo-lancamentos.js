@@ -37,13 +37,18 @@
  * carimbo (`ultimo_lancamento`), que é o registro do próprio ato. As outras aulas ficam, e é
  * isso que torna o lançamento um acrescento e não uma substituição.
  *
- * O QUE ELE **NÃO** FAZ: cifrar. O `-dados.json` do repositório é a FONTE e vai em CLARO — como
- * sempre foi (`ciclo-01-…-dados.json` no `main`). Quem cifra é a geração, ao montar o pacote
- * público (`cifrar-envelope.js`). Cifrar a fonte quebraria a derivação do estado da aula:
- * `ler_lancadas()` do `gerar-ciclo.sh` lê `aulas` do ficheiro, e um `_cifrado` não tem `aulas`.
+ * A FONTE VAI EM CLARO, E A CÓPIA DO PACOTE VAI CIFRADA (06/11/2026). O `-dados.json` do
+ * repositório é a FONTE e vai em CLARO — como sempre foi (`ciclo-01-…-dados.json` no `main`).
+ * Cifrar a fonte quebraria a derivação do estado da aula: `ler_lancadas()` do `gerar-ciclo.sh` lê
+ * `aulas` do ficheiro, e um `_cifrado` não tem `aulas`. Ao lado dela, o `<…>-dados.cifrado.json`
+ * é a cópia PÚBLICA — e quem a copia para o pacote é o gerador, sem nunca ver a senha. Enquanto a
+ * fonte só mudava no «Guardar» do PO, era ele que escrevia as duas. Agora o lançamento muda a
+ * fonte, e este adaptador escreve as duas no mesmo acto: sem a cópia em dia, o `check-pacote`
+ * reprova («a cópia do pacote DIVERGE da fonte na estrutura») e a aula não chega ao site.
  */
 
 const { cabecalhosDe, base64De, textoDeBase64, detalheDe } = require('./github-api.js');
+const { cifrarEnvelopeDeDados } = require('./cifrar-envelope.js');
 
 const DONO_PADRAO = 'tmenegaz';
 const REPO_PADRAO = 'danca';
@@ -76,7 +81,6 @@ function caminhoDoDados(partes) {
   return 'professores/' + partes.professor + '/ciclos/ciclo-' + partes.ciclo + '-' + variante + '-dados.json';
 }
 
-/** A fusão: as aulas que já estavam ficam, as que chegam vencem. */
 /** O carimbo de uma aula (`AAAA-MM-DDTHHMM`), que ordena lexicograficamente. `''` quando falta. */
 const carimboDaAula = (a) => (a && typeof a.ultimo_lancamento === 'string' ? a.ultimo_lancamento : '');
 
@@ -109,7 +113,33 @@ function fundirAulas(antes, depois) {
   return saida;
 }
 
-function criarAcervoDeLancamentos({ token, dono, repo, ref, fetchImpl } = {}) {
+/**
+ * A CÓPIA CIFRADA DO PACOTE, QUE TEM DE ACOMPANHAR A FONTE (06/11/2026).
+ *
+ * O `gerar-ciclo.sh` NÃO cifra: quando existe o `<...>-dados.cifrado.json` ao lado da fonte, ele
+ * apenas o COPIA para o pacote (caminho (a) — a `SENHA_CRIPTO` vive no Worker, e o Runner não a
+ * tem). Enquanto o lançamento ia para o KV, a fonte só mudava no «Guardar» do PO, que escrevia as
+ * duas; agora o lançamento muda a fonte, e a cópia ficou velha. A geração seguinte copiou-a e o
+ * `check-pacote` reprovou: «a cópia do pacote DIVERGE da fonte na estrutura (lancamentos/apelidos)»
+ * — o pacote saía com a aula por lançar, que é o sintoma dela outra vez, agora no CI.
+ *
+ * Por isso o adaptador escreve as DUAS: a fonte em claro e a cópia cifrada do pacote. A cópia é o
+ * MESMO envelope do «Guardar» do PO (`cifrarEnvelopeDeDados`: `_cifrado`, `lancamentos`,
+ * `apelidos`, `_nota`), para o formulário e o `check-pacote` não notarem diferença.
+ */
+function cifraEmDia(texto, dados) {
+  try {
+    const envelope = JSON.parse(texto);
+    if (!envelope || !envelope._cifrado) return false;
+    const lancamentos = Object.keys((dados && dados.aulas) || {}).length;
+    if (Number(envelope.lancamentos) !== lancamentos) return false;
+    return JSON.stringify(envelope.apelidos || {}) === JSON.stringify((dados && dados.apelidos) || {});
+  } catch (erro) {
+    return false;
+  }
+}
+
+function criarAcervoDeLancamentos({ token, dono, repo, ref, fetchImpl, senhaCripto } = {}) {
   const f = fetchImpl || fetch;
   const donoFinal = dono || DONO_PADRAO;
   const repoFinal = repo || REPO_PADRAO;
@@ -210,10 +240,23 @@ function criarAcervoDeLancamentos({ token, dono, repo, ref, fetchImpl } = {}) {
         return deAntes && deAntes.ultimo_lancamento
           && deAntes.ultimo_lancamento === aulas[nn].ultimo_lancamento;
       });
-      if (mesmos) return { ok: true, semMudanca: true, caminho };
-
       const fundido = fundirAulas(antes, entrada);
+      const caminhoCifrado = caminho.replace(/-dados\.json$/, '-dados.cifrado.json');
+      /* A CÓPIA CIFRADA É PARTE DO ACTO (06/11/2026). Mesmo que a fonte esteja igual, a cópia pode
+       * estar velha — foi assim que a primeira geração depois do lançamento reprovou no CI. Se
+       * ela está fora de dia, o acto ainda tem trabalho a fazer. Sem `SENHA_CRIPTO` (escola
+       * legada, que cifra no gerador pelo `.senhas-locais`), não há cópia a manter: a fonte basta. */
       const numeros = Object.keys(aulas).sort();
+      let fontePrecisa = !mesmos;
+      let cifraPrecisa = false;
+      if (fontePrecisa) {
+        cifraPrecisa = Boolean(senhaCripto);
+      } else if (senhaCripto) {
+        const cifradoAtual = await lerCaminho(caminhoCifrado);
+        cifraPrecisa = !(cifradoAtual && cifraEmDia(cifradoAtual.texto, fundido));
+      }
+      if (!fontePrecisa && !cifraPrecisa) return { ok: true, semMudanca: true, caminho };
+
       const mensagem = [
         'feat(lancamento): a aula ' + (numeros.join(' e ') || '?') + ' de '
           + partes.escola + '/' + partes.professor + '/' + varianteDoNome(partes.nome),
@@ -226,15 +269,31 @@ function criarAcervoDeLancamentos({ token, dono, repo, ref, fetchImpl } = {}) {
           + ' separador aberto há dias apagaria as aulas lançadas desde então. As aulas que já'
           + ' estavam ficam; a que chega vence a dela (é o ajuste).',
         '',
-        'Refs: ' + caminho,
+        'Refs: ' + caminho + (cifraPrecisa ? '\nRefs: ' + caminhoCifrado : ''),
         'Regras: P-02, P-03, P-04, P-17',
         'Auditoria: lançamento de ' + partes.carimbo + ' — aula(s) ' + (numeros.join(', ') || '?')
           + '; fusão sobre ' + (antes ? Object.keys(antes.aulas || {}).length : 0) + ' aula(s) já gravada(s)',
       ].join('\n');
 
-      const r = await escreverCaminho(caminho, JSON.stringify(fundido, null, 2) + '\n', mensagem);
-      if (!r.ok) throw new Error(r.erro || 'o lançamento não foi gravado');
-      return Object.assign({}, r, { aulas: numeros });
+      let resultado = { ok: true, caminho };
+      if (fontePrecisa) {
+        const r = await escreverCaminho(caminho, JSON.stringify(fundido, null, 2) + '\n', mensagem);
+        if (!r.ok) throw new Error(r.erro || 'o lançamento não foi gravado');
+        resultado = r;
+      }
+      if (cifraPrecisa) {
+        /* A CÓPIA CIFRADA DO PACOTE — a que o `gerar-ciclo.sh` copia. Se ela falhar, a fonte já
+         * está gravada (o que é o dado), e o erro diz o que falta; o próximo acto a repara, porque
+         * `cifraEmDia` confere a cópia mesmo quando a fonte não mudou. */
+        const envelope = await cifrarEnvelopeDeDados(JSON.stringify(fundido, null, 2) + '\n', senhaCripto);
+        const rc = await escreverCaminho(caminhoCifrado, JSON.stringify(envelope, null, 2) + '\n', mensagem);
+        if (!rc.ok) {
+          throw new Error('a fonte foi gravada, mas a cópia cifrada do pacote não: '
+            + (rc.erro || 'o repositório recusou a escrita'));
+        }
+        resultado.cifrado = true;
+      }
+      return Object.assign({}, resultado, { aulas: numeros });
     },
 
     /** A leitura, para a consolidação e para quem quiser conferir. */

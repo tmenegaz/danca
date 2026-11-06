@@ -186,6 +186,9 @@ function criarArmazenamento(env) {
     dono: DONO_PADRAO,
     repo: REPO_PADRAO,
     ref: REF_PADRAO,
+    // A `SENHA_CRIPTO` mantém a CÓPIA do pacote em dia com a fonte — é ela que o gerador
+    // copia, e a fonte em claro é a que `ler_lancadas()` lê. Ver `acervo-lancamentos.js`.
+    senhaCripto: (env && env.SENHA_CRIPTO) || null,
   });
   return acervo.combinar(acervo.doAmbiente(env, { legado: kv }), kv, {
     'lancamento/': lancamentos,
@@ -395,7 +398,11 @@ async function fetch(request, env, opcoes) {
   const consolidarLancamentos = async (opcoes) => {
     const resultado = await consolidarDoKv(Object.assign({
       armazenamento: acervo.doAmbiente(env, { legado: criarCloudflare(env) }),
-      acervo: criarAcervoDeLancamentos({ token: (env && env.GITHUB_TOKEN) || null }),
+      acervo: criarAcervoDeLancamentos({
+        token: (env && env.GITHUB_TOKEN) || null,
+        // O resgate também tem de deixar a cópia do pacote em dia: é ela que a geração copia.
+        senhaCripto: (env && env.SENHA_CRIPTO) || null,
+      }),
       senhaCripto: (env && env.SENHA_CRIPTO) || null,
       escola: (env && env.ESCOLA_SLUG) || '',
       Cifra,

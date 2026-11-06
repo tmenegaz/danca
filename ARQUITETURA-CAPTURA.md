@@ -736,9 +736,11 @@ ciclo, e o formulário continua sendo HTML + JavaScript, sem backend.
 > resolve e que `ler_lancadas()` lê para derivar o estado da aula. «Cada estado do JSON é um
 > commit»: o histórico dos lançamentos é o do Git, e apagar o KV não apaga nada.
 >
-> Três consequências que valem registo. (1) **A fonte vai em CLARO**, como sempre foi: `ler_lancadas()`
-> lê `aulas` do ficheiro, e um `_cifrado` não tem `aulas` — cifrar a fonte faria o índice declarar
-> «não dada» uma aula dada. Quem cifra é a geração, ao montar a cópia pública. (2) **A gravação
+> Três consequências que valem registo. (1) **A fonte vai em CLARO, e a cópia do pacote vai
+> CIFRADA no mesmo acto**: `ler_lancadas()` lê `aulas` do ficheiro, e um `_cifrado` não tem `aulas`
+> — cifrar a fonte faria o índice declarar «não dada» uma aula dada. A cópia
+> (`<…>-dados.cifrado.json`) é escrita pelo Worker, e o `gerar-ciclo.sh` só a copia: a
+> `SENHA_CRIPTO` vive no Cloudflare, e o Runner não a tem. (2) **A gravação
 > funde por aula**: o cliente manda o ficheiro inteiro montado a partir do que leu, e um separador
 > aberto há dias apagaria as aulas lançadas desde então — e **a que chega só vence se o carimbo
 > (`ultimo_lancamento`) for mais novo**, porque o resgate do KV traz a versão antiga de uma aula que

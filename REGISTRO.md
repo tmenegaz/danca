@@ -38670,11 +38670,16 @@ lançamentos é o do Git — apagar o KV deixa de apagar nada.
 
 **Três decisões que esta correção obrigou a tomar, e as razões delas:**
 
-1. **A fonte vai em CLARO.** Enquanto o destino era o KV, o lançamento ia cifrado, e estava certo.
-   Agora o destino é a fonte, e ela tem de estar em claro — `ler_lancadas()` lê `aulas` do ficheiro,
-   e um `_cifrado` não tem `aulas`: a aula dada seria declarada «não dada» pelo índice, que é
-   exactamente o defeito que se estava a corrigir. Quem cifra é a geração, ao montar a cópia
-   pública (`cifrar-envelope.js`) — a mesma divisão do `-dados.json` desde o princípio.
+1. **A fonte vai em CLARO — e a cópia do pacote vai CIFRADA, no mesmo acto.** Enquanto o destino
+   era o KV, o lançamento ia cifrado, e estava certo. Agora o destino é a fonte, e ela tem de estar
+   em claro — `ler_lancadas()` lê `aulas` do ficheiro, e um `_cifrado` não tem `aulas`: a aula dada
+   seria declarada «não dada» pelo índice, que é exactamente o defeito que se estava a corrigir.
+   A cópia pública (`<…>-dados.cifrado.json`) é o envelope de sempre (`cifrarEnvelopeDeDados`), e
+   é o Worker que a escreve: o `gerar-ciclo.sh` NÃO cifra quando ela existe — copia-a, porque a
+   `SENHA_CRIPTO` vive no Cloudflare e o Runner não a tem. **Esta parte foi aprendida no CI**: a
+   primeira geração depois do lançamento reprovou com «a cópia do pacote DIVERGE da fonte na
+   estrutura (lancamentos/apelidos)», porque o adaptador gravava a fonte e deixava a cópia velha.
+   Agora as duas saem juntas, e uma cópia velha é reparada mesmo quando a fonte não mudou.
 2. **A gravação funde por aula.** O cliente manda o ficheiro INTEIRO montado a partir do que leu;
    sem fusão, lançar a aula 03 num separador aberto há três dias apagava a aula 06. A fusão é por
    `aulas[nn]`: a que chega vence a dela (é o ajuste) — **salvo se for mais antiga**. O carimbo
@@ -38704,13 +38709,13 @@ caminho irmão não declarado a dar 404, que é a contraprova de que a asserçã
 Lição que se repete nesta entrega — **uma função ligada é uma função ligada nas três pontas**: a
 família no armazenamento, o parâmetro na porta, e o caminho na produção.
 
-**A prova:** `experimentos/provar-familia-do-lancamento.js`, **40 asserções**. Mede que a chave tem
+**A prova:** `experimentos/provar-familia-do-lancamento.js`, **44 asserções**. Mede que a chave tem
 família e que o composto real (`combinar`) a entrega ao repositório **e não ao KV** (com um KV de
 mentira que registra o que lhe tentam escrever), que o destino é o caminho do `fonte_dados()` — lido
 do próprio `lib-fontes.sh`, não repetido à mão —, que a fusão preserva a aula que já estava, que o
 `depois` recebe a **variante** (sem ela o disparo não sabe que pacote gerar), que um disparo falhado
 não desfaz a gravação, que o `ciclos.json` do cliente **não** vai para o repositório (é gerado), e
-que o mesmo carimbo duas vezes não escreve duas. **Contraprova: 6 de 40** — tirar a família da chave
+que o mesmo carimbo duas vezes não escreve duas. **Contraprova: 6 de 44** — tirar a família da chave
 (o estado de antes) reprova a secção A inteira, e o KV volta a engolir o lançamento.
 
 **A segunda metade do mesmo defeito, apanhada pela prova e não pelo relato.** Gravar na fonte é
@@ -38757,9 +38762,11 @@ contrato e não confere senha nenhuma (o `wrangler.<escola>.jsonc` aponta para `
 → `producao.js`). O comentário dele diz que é ele que atende `/api/receber` em produção, e não é. Fica
 registado; apagá-lo é um passo próprio, com a prova do `recredenciamento` da escola a correr antes.
 
-**Validação:** `provar-familia-do-lancamento` **40/40**, contraprova **6/40**; `check-identidade`
+**Validação:** `provar-familia-do-lancamento` **44/44**, contraprova **6/44**; `check-identidade`
 **0 erros** (e `--sem-pacotes` **0 erros**); `check-indices` **16/16**; `check-github-headers`
-**5/5**; `check-pacote` **0 erro(s), 0 aviso(s)**; `provar-senha-do-lancamento` **19/19**;
+**5/5**; `check-pacote` **0 erro(s), 0 aviso(s)** antes do lançamento — depois dele o próprio
+`check-pacote` reproduz a divergência da cópia cifrada, que o Worker repara no lançamento seguinte
+(o Runner não tem a `SENHA_CRIPTO`); `provar-senha-do-lancamento` **19/19**;
 `provar-relacoes` **35/35**; `provar-indice-de-lancamentos` **24/24**; `provar-formulario-da-aula`
 **48/48**; `provar-barra-e-caminho` **50/50**; `provar-sujeitos-da-turma` **41/41**;
 `provar-producao` **159/159**. Duas provas reprovam por motivo **anterior a esta entrega** e ficam

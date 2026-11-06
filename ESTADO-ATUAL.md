@@ -2307,8 +2307,10 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      canónico (`motor/servidor/acervo-lancamentos.js`), não o KV. **DECIDIDO** 06/11/2026, depois
      de o relato dela mostrar o defeito: a aula «lançada» desaparecia ao recarregar porque o KV
      **não é lido por nada** — tudo o que o sistema mostra deriva do repositório. Quatro regras que
-     não se negociam depois: (a) **a fonte vai em claro** — `ler_lancadas()` lê `aulas` do
-     ficheiro, e um `_cifrado` não tem `aulas`; quem cifra é a geração, ao montar o pacote;
+     não se negociam depois: (a) **a fonte vai em claro, e a cópia do pacote vai cifrada no mesmo
+     acto** — `ler_lancadas()` lê `aulas` do ficheiro, e um `_cifrado` não tem `aulas`; o Worker
+     escreve o `-dados.cifrado.json` que o gerador só copia (sem a cópia em dia, o
+     `check-pacote` reprova e a aula não chega ao site);
      (b) **a gravação funde por aula** — o cliente manda o ficheiro inteiro, e um separador velho
      apagaria as aulas lançadas depois dele; e **a que chega só vence se o carimbo for mais novo**,
      porque o resgate do KV traz a versão antiga de uma aula já relançada;
@@ -2318,7 +2320,7 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **declarada** (a que vem inteira no nome do ficheiro de dados), não a composta de
      `escola + turma` — o lançamento não traz turma, e sem esta regra o pedido pedia o
      `.conf`-esqueleto da escola e a geração morria. **CONFIRMADO** por
-     `experimentos/provar-familia-do-lancamento.js` (**40 asserções**, contraprova **6 de 40**).
+     `experimentos/provar-familia-do-lancamento.js` (**44 asserções**, contraprova **6 de 44**).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
