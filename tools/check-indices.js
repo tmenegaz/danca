@@ -39,6 +39,10 @@ const path = require('path');
 const indices = require('../motor/nucleo/indices.js');
 const { lerAncora } = require('../motor/servidor/indice-acervo.js');
 const gerador = require('./gerar-indices.js');
+/* O SEGUNDO GERADOR DO MESMO `indices/` (05/11/2026). O mapa de relações por ciclo é derivado das
+ * mesmas fontes e escrito no mesmo sítio — sem isto, a verificação 1 chamava «arquivo órfão» a cada
+ * mapa: um vermelho permanente, e um vermelho permanente é um vermelho que se aprende a ignorar. */
+const geradorDeRelacoes = require('./gerar-relacoes.js');
 
 const RAIZ = path.resolve(__dirname, '..');
 const DIR_ESQUEMA = path.join(RAIZ, 'indices', 'esquema');
@@ -84,9 +88,11 @@ function carregarMundo() {
     campos: lerJsonAbsoluto(path.join(DIR_ESQUEMA, 'campos.json')),
     relacoes: lerJsonAbsoluto(path.join(DIR_ESQUEMA, 'relacoes.json')),
   };
-  const { arquivos } = gerador.gerarEmMemoria();
   const gerado = new Map();
-  for (const [rel, texto] of arquivos) gerado.set(rel, JSON.parse(texto));
+  for (const geradorAtual of [gerador, geradorDeRelacoes]) {
+    const { arquivos } = geradorAtual.gerarEmMemoria();
+    for (const [rel, texto] of arquivos) gerado.set(rel, JSON.parse(texto));
+  }
   return {
     disco: { existe, ler: lerTexto },
     caminhos: gerador.caminhosDoAcervo(),

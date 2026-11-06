@@ -354,6 +354,11 @@ function orfaosNoDisco(arquivos) {
       const rel = relativo + '/' + entrada.name;
       if (entrada.isDirectory()) { andar(rel); continue; }
       if (rel.indexOf('indices/esquema/') === 0) continue;   // fonte, não saída
+      /* `indices/relacoes/` É SAÍDA — DE OUTRO GERADOR (05/11/2026). O mapa de relações por ciclo
+       * tem o seu próprio `tools/gerar-relacoes.js`, corre no mesmo commit e é ele quem o apaga e
+       * o refaz. Sem esta linha, este gerador chamava «órfão» a cada mapa e o `--check` reprovava
+       * para sempre — o que se aprende a ignorar, e um aviso ignorado é pior do que nenhum. */
+      if (rel.indexOf('indices/relacoes/') === 0) continue;
       if (!/\.json$/.test(rel)) continue;
       if (!producao.has(rel)) orfaos.push(rel);
     }
