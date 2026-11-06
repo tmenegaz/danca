@@ -347,14 +347,14 @@
       "ciclo:rabo-gramde/01/calango"
     ],
     "contagens": {
-      "anamneses": 2,
+      "anamneses": 3,
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
       "pos": 1,
       "recortes": 1,
-      "registros": 4
+      "registros": 5
     },
     "criada_em": "2026-11-05T13:06:46.674863+00:00",
     "expurgada": false,
@@ -370,6 +370,7 @@
     "registros": [
       "anamnese:anamnese-20261105-2031",
       "anamnese:anamnese-20261105-2301",
+      "anamnese:anamnese-20261106-1944",
       "plano:plano-20261106-0744",
       "po:po-20261106-1108"
     ],
@@ -378,10 +379,11 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261105-2031",
           "anamnese:anamnese-20261105-2301",
+          "anamnese:anamnese-20261106-1944",
           "plano:plano-20261106-0744",
           "po:po-20261106-1108"
         ],
@@ -435,10 +437,11 @@
     ],
     "professores": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "ids": [
           "anamnese:anamnese-20261105-2031",
           "anamnese:anamnese-20261105-2301",
+          "anamnese:anamnese-20261106-1944",
           "ciclo:rabo-gramde/01/calango",
           "plano:plano-20261106-0744",
           "po:po-20261106-1108"
@@ -449,10 +452,11 @@
     ],
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261105-2031",
-          "anamnese:anamnese-20261105-2301"
+          "anamnese:anamnese-20261105-2301",
+          "anamnese:anamnese-20261106-1944"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -485,9 +489,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "fe18cea"
+    "commit": "1ee97bd"
   },
-  "gerado_em": "2026-11-06T19:43",
+  "gerado_em": "2026-11-06T22:45",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -582,6 +586,16 @@
       "ciclo": null,
       "data": "2026-11-05T23:01",
       "id": "anamnese:anamnese-20261105-2301",
+      "professor": "rabo-gramde",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261106-1944",
+      "ciclo": null,
+      "data": "2026-11-06T19:44",
+      "id": "anamnese:anamnese-20261106-1944",
       "professor": "rabo-gramde",
       "tipo": "anamnese"
     },
