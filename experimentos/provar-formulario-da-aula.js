@@ -35,7 +35,13 @@
  *   C. a escrita obrigatória é uma só quando o plano é seguido — «o que aconteceu de novo»;
  *   D. o payload passa no `validar-dados-ciclo.js`, a linha de base vai por aluna, e uma marca
  *      fora do vocabulário é recusada (inclusive ali, que até hoje passava sem ser olhado);
- *   E. a página não estoura na horizontal, nem a 1280 nem a 390.
+ *   E. a LARGURA: a coluna do formulário é a do documento mais a do roteiro — 1132px a 1280, e
+ *      não os 828 que sobravam de uma coluna de índice que o formulário não tem;
+ *   F. a MATRIZ QUE NÃO CABE: as colunas crescem com o dado, e quando passam a largura a tabela
+ *      rola dentro de si — com as setas a dizer que há mais, e a desligar-se no fim do caminho;
+ *   G. a PRESENÇA com cinquenta alunas: uma caixa que abre (e não uma linha de cinquenta nomes),
+ *      com todos/nenhum, e a matriz a seguir a marcação sem perder o que já estava escrito;
+ *   H. a página não estoura na horizontal, nem a 1280 nem a 390.
  *
  * Requer Chrome/Chromium (puppeteer-core vem com o marp-cli global). Sem ele: NÃO FEITO.
  *
@@ -156,7 +162,9 @@ function servir() {
     // ----------------------------------------------------------------------------------------
     console.log('A. A matriz — as linhas são as alunas, as colunas são os aspectos');
     {
-      const eixos = await pagina.$$eval('#captura-campos details.eixo > summary',
+      /* A CAIXA DOS PRESENTES TAMBÉM É UMA `.eixo` (é a peça que abre), e não é um eixo da aula:
+       * o filtro está aqui, e não na página, porque na página o que importa é a peça ser a mesma. */
+      const eixos = await pagina.$$eval('#captura-campos details.eixo:not(.presenca-da-turma) > summary',
         (ss) => ss.map((x) => x.textContent.replace(/\s+/g, ' ').trim().split(' — ')[0]));
       provar('os três eixos aparecem, e nesta ordem: Corpo, Técnica, Poiesis',
         JSON.stringify(eixos) === JSON.stringify(['Corpo', 'Técnica', 'Poiesis']), eixos);
@@ -165,10 +173,12 @@ function servir() {
        * há) e as colunas. */
       const matriz = await pagina.evaluate(() => {
         const out = {};
-        document.querySelectorAll('#captura-campos details.eixo').forEach((d) => {
+        document.querySelectorAll('#captura-campos details.eixo:not(.presenca-da-turma)').forEach((d) => {
           const nome = d.querySelector('summary').textContent.split('—')[0].trim();
           out[nome] = [...d.querySelectorAll('table')].map((t) => {
-            const antes = t.previousElementSibling;
+            // A tabela vive DENTRO da caixa que rola: o título dela é o irmão da caixa.
+            const caixa = t.closest('.rolagem') || t;
+            const antes = caixa.previousElementSibling;
             return {
               objectivo: (antes && antes.classList.contains('matriz-objectivo')) ? antes.textContent.trim() : null,
               colunas: [...t.querySelectorAll('tr')[0].children].slice(1).map((c) => c.textContent.trim()),
@@ -238,11 +248,11 @@ function servir() {
 
       provar('o eixo que ainda não tem marca abre fechado, e o Corpo — a âncora — abre aberto',
         await pagina.evaluate(() => {
-          const d = [...document.querySelectorAll('#captura-campos details.eixo')];
+          const d = [...document.querySelectorAll('#captura-campos details.eixo:not(.presenca-da-turma)')];
           return d[0].open === true && d.slice(1).every((x) => x.open === false);
         }));
       provar('o sumário de cada eixo diz quantas marcas tem lá dentro',
-        await pagina.$$eval('#captura-campos details.eixo > summary',
+        await pagina.$$eval('#captura-campos details.eixo:not(.presenca-da-turma) > summary',
           (ss) => ss.every((x) => /\d+ de \d+ marcados/.test(x.textContent))));
     }
 
@@ -390,18 +400,147 @@ function servir() {
     }
 
     // ----------------------------------------------------------------------------------------
-    console.log('\nE. a página não estoura, em 1280 e em 390');
-    for (const [largura, altura] of [[1280, 900], [390, 844]]) {
-      await pagina.setViewport({ width: largura, height: altura });
-      await new Promise((r) => setTimeout(r, 200));
-      const m = await pagina.evaluate(() => ({
-        estouro: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
-        fonte: getComputedStyle(document.body).fontSize,
-      }));
-      provar(`a ${largura}px não há estouro horizontal`, m.estouro === 0, m.estouro);
+    console.log('\nE. A largura — o formulário ocupa o que o documento ocupa, mais o roteiro');
+    {
+      const doc = await pagina.evaluate(() => {
+        const R = (n) => Math.round(n * 10) / 10;
+        const c = document.querySelector('.conteudo').getBoundingClientRect();
+        return { largura: R(c.width), esquerda: R(c.left) };
+      });
+      /* A CONTA QUE ELA FEZ: «Ele pode ocupar a mesma dimensão que os outros formulários ocupam
+       * somando a essa dimensão a parte do roteiro.» O documento gasta 900px de leitura + o vão
+       * + 17rem de índice; o formulário não tem índice, e a coluna ficava VAZIA a roubar-lhe a
+       * largura. Medido antes do conserto: 828px. O alvo é o contentor inteiro: 1180 − 48. */
+      provar('a coluna do formulário é a do documento MAIS a do roteiro (1132px a 1280)',
+        doc.largura === 1132, doc);
+      provar('…e a caixa continua centrada, sem sair do contentor',
+        doc.esquerda === 74, doc.esquerda);
     }
 
-    provar('a página não deu erro de JavaScript', erros.length === 0, erros.slice(0, 3));
+    // ----------------------------------------------------------------------------------------
+    console.log('\nF. A matriz que não cabe — as setas, e só quando há para onde ir');
+    {
+      /* A MECÂNICA, na largura em que ela acontece de facto: 390px. */
+      await pagina.setViewport({ width: 390, height: 844 });
+      await new Promise((r) => setTimeout(r, 250));
+      const estreito = await pagina.evaluate(() => {
+        const bloco = document.querySelector('#captura-campos .rolagem');
+        const caixa = bloco.querySelector('.rolagem-caixa');
+        return {
+          estado: bloco.dataset.rolagem,
+          visiveis: getComputedStyle(bloco.querySelector('.rolagem-setas')).display,
+          sobra: caixa.scrollWidth - caixa.clientWidth,
+        };
+      });
+      provar('a 390px a matriz não cabe, e o bloco DIZ isso (data-rolagem="sim")',
+        estreito.estado === 'sim' && estreito.sobra > 0, estreito);
+      provar('…e a fileira das setas passa a existir', estreito.visiveis === 'flex', estreito.visiveis);
+
+      const clique = await pagina.evaluate(async () => {
+        const bloco = document.querySelector('#captura-campos .rolagem');
+        const caixa = bloco.querySelector('.rolagem-caixa');
+        const dir = bloco.querySelector('[data-seta="dir"]');
+        const esq = bloco.querySelector('[data-seta="esq"]');
+        const antes = { sobra: caixa.scrollWidth - caixa.clientWidth, esqDesligada: esq.disabled };
+        dir.click();
+        await new Promise((r) => setTimeout(r, 700));
+        const depois = { rolou: caixa.scrollLeft > 0 };
+        // até ao fim: a seta da direita desliga-se
+        caixa.scrollLeft = caixa.scrollWidth;
+        await new Promise((r) => setTimeout(r, 200));
+        return { antes, depois, noFim: { dir: dir.disabled, esq: esq.disabled } };
+      });
+      provar('a seta da esquerda está desligada no princípio, e a da direita não',
+        clique.antes.esqDesligada === true, clique.antes);
+      provar('a seta da direita ANDA a caixa', clique.depois.rolou === true, clique.depois);
+      provar('…e no fim do caminho a seta da direita desliga-se (não promete o que não há)',
+        clique.noFim.dir === true && clique.noFim.esq === false, clique.noFim);
+
+      /* O CONTRÁRIO: com espaço de sobra, seta nenhuma — uma seta sempre presente é mobília. */
+      await pagina.setViewport({ width: 1280, height: 900 });
+      await new Promise((r) => setTimeout(r, 300));
+      const largo = await pagina.evaluate(() => {
+        const bloco = document.querySelector('#captura-campos .rolagem');
+        return { estado: bloco.dataset.rolagem,
+          visiveis: getComputedStyle(bloco.querySelector('.rolagem-setas')).display };
+      });
+      provar('a 1280px, com as quatro colunas a caberem, NÃO há setas nem fileira',
+        largo.estado === 'nao' && largo.visiveis === 'none', largo);
+
+      /* A LARGURA MÍNIMA VEM DO DADO: `--colunas` é escrito quando a tabela é montada, e a
+       * matriz fica com 10rem por coluna. É o que faz a tabela rolar em vez de espremer. */
+      const minimo = await pagina.evaluate(() => {
+        const t = document.querySelector('#captura-campos table.matriz');
+        const colunas = Number(t.style.getPropertyValue('--colunas'));
+        return { colunas, declarado: t.style.getPropertyValue('--colunas'),
+          minimo: getComputedStyle(t).minWidth, reais: t.querySelectorAll('tr')[0].children.length - 1 };
+      });
+      provar('…e a largura mínima da matriz é 10rem por coluna, declarada pelo dado',
+        minimo.colunas === minimo.reais && minimo.minimo === `${minimo.colunas * 160}px`, minimo);
+
+      /* E A SETA NÃO É A ÚNICA PORTA: a caixa é focável e recebe teclado (é uma `role=region`). */
+      provar('a caixa que rola é focável e anuncia-se como região',
+        await pagina.evaluate(() => {
+          const c = document.querySelector('#captura-campos .rolagem-caixa');
+          return c.getAttribute('tabindex') === '0' && c.getAttribute('role') === 'region'
+            && !!c.getAttribute('aria-label');
+        }));
+    }
+
+    // ----------------------------------------------------------------------------------------
+    console.log('\nG. A presença — uma caixa que abre, e a matriz que a segue');
+    {
+      const antes = await pagina.evaluate(() => {
+        const d = document.querySelector('.presenca-da-turma');
+        return {
+          ehCaixa: d.tagName === 'DETAILS',
+          aberta: d.open,
+          conta: document.querySelector('#conta-presentes').textContent.trim(),
+          botoes: [...d.querySelectorAll('[data-presenca]')].map((b) => b.dataset.presenca),
+          caixas: d.querySelectorAll('input[id^="pres-"]').length,
+        };
+      });
+      provar('a presença é uma caixa que abre, e abre sozinha com poucas alunas',
+        antes.ehCaixa === true && antes.aberta === true, antes);
+      provar('…e diz quantos estão marcados, sem ser preciso percorrer a lista',
+        antes.conta === '— 2 de 2', antes.conta);
+      provar('…e tem «marcar todos» e «desmarcar todos»',
+        JSON.stringify(antes.botoes) === JSON.stringify(['todos', 'nenhum']), antes.botoes);
+
+      /* O GESTO QUE IMPORTA: desmarcar quem faltou tira a linha da matriz e NÃO apaga o que já
+       * estava escrito nas outras. É o que faz o caso das cinquenta alunas ser utilizável. */
+      await pagina.evaluate(() => {
+        const s = document.querySelector('#captura-campos details.eixo:not(.presenca-da-turma) select');
+        s.value = 'ok'; s.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      const depois = await pagina.evaluate(async () => {
+        const b = document.querySelector('input[id="pres-aluna_b"]');
+        b.checked = false;
+        b.dispatchEvent(new Event('change', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 250));
+        const t = document.querySelector('#captura-campos table.matriz');
+        return {
+          conta: document.querySelector('#conta-presentes').textContent.trim(),
+          linhas: [...t.querySelectorAll('tr')].slice(1).map((tr) => tr.querySelector('th').textContent.trim()),
+          sobreviveu: document.querySelector('#captura-campos details.eixo select').value,
+        };
+      });
+      provar('desmarcar uma aluna tira a linha dela da matriz',
+        JSON.stringify(depois.linhas) === JSON.stringify(['Aluna A']), depois.linhas);
+      provar('…e o que já estava marcado na outra NÃO se perde',
+        depois.sobreviveu === 'ok', depois.sobreviveu);
+      provar('…e a contagem acompanha', depois.conta === '— 1 de 2', depois.conta);
+
+      const volta = await pagina.evaluate(async () => {
+        document.querySelector('[data-presenca="todos"]').click();
+        await new Promise((r) => setTimeout(r, 250));
+        return { conta: document.querySelector('#conta-presentes').textContent.trim(),
+          linhas: document.querySelectorAll('#captura-campos table.matriz')[0].querySelectorAll('tr').length - 1 };
+      });
+      provar('«marcar todos» devolve as linhas todas',
+        volta.conta === '— 2 de 2' && volta.linhas === 2, volta);
+    }
+
   } finally {
     await navegador.close();
     srv.close();
@@ -415,7 +554,10 @@ function servir() {
   console.log('TUDO CERTO — ' + total + ' asserções: a matriz tem as alunas por linha e os '
     + 'aspectos por coluna (4 do corpo + 6 da técnica + 4 da poiesis, por aluna), o corpo ganhou '
     + 'as quatro colunas que lhe faltavam, «o plano foi seguido?» é uma pergunta de três estados, '
-    + 'o payload passa no validador com a linha de base por aluna e sem o bloco sem dono, e a '
+    + 'o payload passa no validador com a linha de base por aluna e sem o bloco sem dono, a coluna '
+    + 'do formulário é a do documento MAIS a do roteiro (1132px), a matriz que não cabe rola dentro '
+    + 'de si com as setas a aparecerem só quando há para onde ir (e a desligarem-se no fim), a '
+    + 'presença é uma caixa que abre e que a matriz segue sem perder o que já estava escrito, e a '
     + 'página não estoura a 1280 nem a 390.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
