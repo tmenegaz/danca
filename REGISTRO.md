@@ -38842,3 +38842,71 @@ paginação, e depois do «Abrir» lê a aula 06 — sem erro de página.
 **O que fica por decidir (dela).** Quais dos cinco entregáveis permanecem, onde vivem na Área do
 Professor, e a forma do índice que se gera com cada um. A impressão com a identidade e o download
 ficam para depois daquela decisão.
+
+## 06/11/2026 — «Esse formulário para essa aula não tem que estar mais disponível»
+
+**O relato, e ele tem duas metades que são a mesma leitura.** *«Esse formulário para essa aula não
+tem que estar mais disponível, porque eu já fiz isso. Mas ao mesmo tempo eu preciso de um lugar
+similar ao que eu tenho com aulas — a página aulas, aonde eu listo as aulas dadas e posso abrir e
+ver como é que foi preenchido. E tem um bocado de regras que já estão alinhadas […] que diz quando
+eu posso editar, quando eu posso apagar, como é que tá a regra de proveniência, quem tem
+autoridade, tem que ter o nome de quem vai mandar gerar um dos entregáveis, tem a parte da senha.»*
+E, no fim: *«A gente já arruma a listagem e já conserta também o filtro para poder fazer isso.»*
+
+**1. O formulário voltava — e a culpa não era da página.** O pacote publicado (`-dados.json`
+cifrado) só muda quando a geração corre, dois a três minutos depois do lançamento. Nessa janela,
+quem recarregava via a aula desaparecer e o formulário dela reaparecer, como se nada tivesse sido
+gravado. Foi exactamente o que ela viu. **A FONTE muda no acto**, e é ela que manda: a página passou
+a perguntar ao site — `POST /api/lancadas`, reduzida ao mínimo (número da aula e carimbo, sem
+conteúdo e sem senha) — e não oferece o formulário de uma aula que já está lá. **O que falha não
+conclui:** sem resposta, vale o pacote. Um formulário a mais é um incómodo; um a menos esconde a
+aula que o professor precisa de lançar.
+
+**2. A página «Aulas dadas»** (`motor/servidor/aulas-dadas.js`), servida pela ponte no padrão das
+outras oito listas: um cartão por aula dada, com as três caixas da casa (de quem é · quem fez ·
+quando), e — dentro do cartão — as regras que ela pediu que estivessem **ditas**, e não descobertas
+ao clicar: quando se ajusta (o prazo **declarado** pelo índice do ciclo, não recalculado), que o
+registro não se reescreve (um ajuste é um elo novo, com data e autor), que o lançamento de uma aula
+**não se apaga** (o ciclo apaga-se nos Bastidores → Produção), e que ler e gerar pedem a senha e o
+nome de quem manda gerar. Vazia, mostra a frase dela, palavra por palavra: «Nenhuma aula foi
+realizada até o momento». **O nome de quem ajustou não se publica** — a lista é servida sem senha,
+e um nome de pessoa não se expõe para dizer que houve um ajuste (P-12).
+
+**3. O filtro do lançamento era o único dos nove do sistema desenhado à mão** — uma moldura de
+`fieldset` com `legend` e três `span` sem disposição nenhuma. Passou a ser a peça da folha
+(`.caixa.filtrar` + `.campo-filtro` + `.filtro-conta`), a mesma das oito listas. O `fieldset` com
+moldura fica **escopado ao painel** («Depois da aula»), que é o mesmo objecto do `.bloco-assoc` dos
+Bastidores — e que, solto, voltaria a pintar o que não é dele.
+
+**4. Dois defeitos que só o ar mostrou**, e que ficam declarados porque a lição é a mesma de manhã:
+o endereço do pacote **não é a variante inteira** (a variante é `calango-bale-nivel-1-teste-1`, e a
+pasta que a publicação dá à turma é `bale-nivel-1-teste-1` — a regra de `turmasDaEscola`); e a
+**aula pedida não sobrevivia à senha** (o link chega com `?aula=06`, a página pede a senha, e o
+«Abrir» do painel mandava o filtro para «todas as aulas»). Os dois foram medidos ao vivo, corrigidos,
+e a prova passou a exigi-los.
+
+**Onde entrou.** `motor/servidor/aulas-dadas.js` (novo: o índice e a página) ·
+`motor/servidor/producao.js` (as duas rotas) · `tools/templates/lancamento.html` (o filtro, o mapa
+do que já foi lançado, `?ciclo=&aula=`, o estado «ciclo ainda não aberto») · `tools/montar-publicacao.js`
+(o item «Aulas dadas» no menu) · `tools/check-identidade.js` (a página entra na amostra: 17
+superfícies medidas) · `experimentos/provar-aulas-dadas.js` (novo, 38 asserções).
+
+**Motivo declarado — os congelados.** `tools/templates/` (`CONGELAMENTO.md`) muda pela mesma razão
+das duas vezes de hoje: é o formulário que sabe o que já foi lançado e onde o ficheiro está.
+`tools/montar-publicacao.js` e `tools/check-identidade.js` acompanham, com o motivo à cabeça de cada
+trecho. Nenhum ficheiro de ciclo foi tocado como fonte: a âncora `.fipp` saiu **idêntica**
+(`a2b4b976…`), e não há reancoragem.
+
+**Validação.** `provar-aulas-dadas` **38/38** (com as contraprovas: sem o índice o formulário volta;
+sem leitura a ponte diz `ok:false`; o endereço com a variante inteira é recusado) ·
+`provar-abrir-o-ciclo` **62/62** · `provar-formulario-da-aula` **48/48** · `provar-barra-e-caminho`
+**50/50** · `provar-producao` **159/159** · `provar-listas-do-acervo` **109/109** ·
+`check-identidade` **0 erros** · `check-pacote` **0 erro(s), 0 avisos** · `hash-ciclo --check`
+**cadeia intacta** · `check-indices` **16/16** · `check-github-headers` **5/5**. No ar, uma carga por
+escola: a lista responde 200 com o cartão da 06, o item está no menu, o «Abrir o lançamento» leva ao
+pacote que existe (307 → 200, com a query preservada), e sem senha o painel diz que o ciclo não está
+aberto — **não** o formulário.
+
+**O que fica por decidir (dela).** Se o item do menu deve existir antes do primeiro lançamento (hoje
+existe, e a página vazia diz a frase — um item que só aparece depois obrigaria a saber que existe);
+quais dos cinco entregáveis permanecem; e a forma do índice que se gera com cada um.
