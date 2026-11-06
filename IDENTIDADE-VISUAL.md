@@ -374,13 +374,18 @@ falhar. Ele confere:
    ninguém conferia contra a fonte, e as duas podiam divergir em silêncio: a folha a dizer uma
    coisa, o validador a medir outra, e os dois a passar. É o mesmo princípio do «Declarante»,
    aplicado às famílias em vez dos tokens.
-10. **Respiro** — o cabeçalho declara o **ar** que o separa da barra e da linha da sombra, e
-   declara-o em `padding`. Lê a folha, resolve `var(--esp-3)` em px e reprova abaixo de **12px**
-   — e reprova também o ar posto em `margin-top`, porque `position: sticky` descarta a margem
-   exactamente no estado em que o professor está a ler. Nasceu em 06/11/2026, do relato «os
+10. **Respiro** — o **ar** de três lugares, declarado na folha e resolvido em px. (a) o do
+   cabeçalho: `padding-top`/`padding-bottom` ≥ **12px**, e nunca posto em `margin-top`, porque
+   `position: sticky` descarta a margem exactamente no estado em que o professor está a ler;
+   (b) o do **rodapé**: ≥12px do filete ao texto e ≥24px do conteúdo ao filete — e a regra da
+   faixa (`header.doc, main, .rodape`) **não pode** voltar a nomear `footer.rodape`, que pesa mais
+   do que a peça; (c) o da **coluna de leitura**: `header.doc + main > .conteudo { padding-top }`
+   ≥ 24px, com o par `> :first-child { margin-top: 0 }`. Nasceu em 06/11/2026, do relato «os
    botões estão colados na margem superior»: medido, o `h1` começava a 0,3px da barra e o botão
    acabava a 0px da linha, com as **nove** checagens anteriores em verde e **27** asserções de
-   navegador a dizer `ok`. Todas mediam **presença**; o defeito era de **distância**.
+   navegador a dizer `ok`. Todas mediam **presença**; o defeito era de **distância**. A auditoria
+   das outras páginas, no mesmo dia, acrescentou o rodapé (texto a 5px do filete, filete a 0,4px
+   do último parágrafo) e o vão depois da faixa, que tinha três valores.
 
 ### A regra da composição — o que a «Forma» impede *(18/10/2026)*
 
@@ -1144,12 +1149,22 @@ mesmo mecanismo prende, numa declaração só:
 
 ```css
 header.doc, .titulo-fixo { padding-top: var(--esp-3); padding-bottom: var(--esp-3); }
+/* …e, DEPOIS das peças do cabeçalho (ver a nota de correção abaixo): */
 header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
 ```
 
 O `> :last-child { margin-bottom: 0 }` existe para o vão de baixo ter **um** responsável: com a
 margem do último `<p>` (8px) ainda lá dentro, o ar seriam 20px em uns documentos e 12px noutros,
 conforme o último filho fosse um `<p>` ou uma `.ficha`.
+
+> **Nota de correção (06/11/2026, 13h).** Esta regra foi escrita **colada ao `padding`**, e ali não
+> funcionava: `header.doc .subtitulo` pesa (0,2,1) e `header.doc > :last-child` pesa o mesmo, de
+> modo que ganha a que vem **depois** no arquivo — e a do subtítulo vinha depois. Medido no
+> pacote: o vão de baixo saía **20px** nos três documentos que acabam no subtítulo (plano,
+> harmonização, folha de captura) e **12px** nos que acabam num botão (aula, notação). A regra
+> passou para **depois** de todas as peças do cabeçalho, e o empate resolve-se a favor do vão
+> único. É o mesmo género de erro que este documento cataloga: **um valor, dois lugares** — e a
+> diferença só apareceu quando as nove páginas foram medidas lado a lado.
 
 **A lição, e é a mesma de sempre.** As nove checagens passavam, e as **27 asserções** da
 `experimentos/provar-titulo-e-barra.js` davam todas `ok` com o título a 0,3px da barra. O que a
@@ -1167,6 +1182,86 @@ inteiro. Nenhuma das perguntas que se faziam podia vê-lo.
 A escala é a da casa e não se inventa um número: o valor é `--esp-3`, o mesmo `padding` do `.res`
 e do `.aviso`. O que muda é o que ele protege — aqui, a distância entre um controle e a linha que
 o corta.
+
+## O ar das páginas é o mesmo — e mede-se comparando *(06/11/2026)*
+
+Depois de o respiro do cabeçalho ser corrigido no plano da Aula 01, a pesquisadora pediu a
+auditoria:
+
+> «Uma vez que o padrão de espaçamento, margens, respiros e alinhamentos foi corrigido e validado
+> no Plano de Aula 1, o mesmo rigor de identidade visual deve se estender e estar perfeitamente
+> aplicado aos demais motores de geração e páginas correlatas.»
+
+Medi as **oito páginas de documento** do pacote — plano, aula 01, notação, referências, glossário,
+harmonização, índice e folha de captura —, a **1280** e a **390**, com o `assets/style.css`
+servido da fonte. Três lugares, três achados.
+
+### 1. O vão depois da faixa tinha TRÊS valores
+
+| Documento | Antes | Depois |
+| --- | --- | --- |
+| abre por `##` (plano, índice, glossário, referências) | 32px | **32px** |
+| abre por citação (harmonização, captura) | 16px | **32px** |
+| abre por prosa (aula 01, notação) | 8px | **32px** |
+
+E não eram três decisões: eram **nenhuma**. O vão não estava declarado — era o `margin-top` do
+que calhasse ser o primeiro filho (`32px` do `h2`, `16px` do `blockquote`, `8px` do `p`). Uma
+página abria a 8px da linha do cabeçalho e a seguinte a 32px, e a diferença só se vê com as duas
+lado a lado.
+
+O vão passou a ser do **contentor**, e não do primeiro bloco:
+
+```css
+body:not([data-layout="painel"]) header.doc + main > .conteudo { padding-top: var(--esp-6); }
+body:not([data-layout="painel"]) header.doc + main > .conteudo > :first-child { margin-top: 0; }
+```
+
+`--esp-6` (32px) é o valor que os documentos já tinham quando abrem por uma secção: o vão não
+muda de valor, muda de **dono**. O primeiro filho perde a margem para não haver dois responsáveis.
+
+**Por que `.conteudo` e não `main`.** No telemóvel o primeiro bloco do `main` é o índice dobrado
+(«Nesta página»), que é navegação e não conteúdo; empurrá-lo mudaria a dobra sem servir à leitura.
+**Por que o painel fica de fora.** A tela de trabalho (`data-layout="painel"`) tem o mesmo
+`header.doc` colado ao `main`, mas não é documento: é uma pilha densa de formulários.
+
+### 2. O rodapé tinha perdido o box model inteiro
+
+| O que | Antes | Depois |
+| --- | --- | --- |
+| do último parágrafo ao filete | **0,4px** | **40px** |
+| do filete ao texto | **5px** | **21px** (16 de `padding` + 4 do `p`) |
+
+**A causa é a armadilha desta folha, outra vez:** a faixa declarava
+
+```css
+header.doc, main, footer.rodape, .rodape { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+```
+
+e `footer.rodape` pesa **(0,1,1)** — mais do que o `.rodape` da peça **(0,1,0)**, que vem depois
+no arquivo. O rodapé saía com `margin-top: 0` e `padding-top: 0` **enquanto a peça declarava 40px
+e 16px**. O `.rodape` é que manda no ar; a faixa manda na largura e na centragem. A linha deixou de
+nomear `footer.rodape`.
+
+Isto é «colado na linha» na sua forma mais literal — o texto encostado ao próprio filete —, e não
+se vê numa captura de perto: vê-se a comparar o computado com o que a peça diz.
+
+### 3. O vão de baixo do cabeçalho ainda não era um só
+
+A regra `header.doc > :last-child { margin-bottom: 0 }` de 06/11 **estava escrita e não
+funcionava** (ver a nota de correção na secção «O cabeçalho respira»): pesava o mesmo que
+`header.doc .subtitulo` e vinha antes, e por isso perdia. Medi 20px nos três documentos que
+acabam no subtítulo e 12px nos que acabam num botão. Passou para depois das peças.
+
+### O que passa a garantir isto
+
+| O que | Quem | O que mede |
+| --- | --- | --- |
+| a **declaração** | checagem **10 «Respiro»** do `tools/check-identidade.js` | o ar do cabeçalho (≥12px, em `padding`), o do rodapé (≥12px do filete ao texto, ≥24px do conteúdo ao filete) e o vão da coluna de leitura (≥24px). Reprova também a regra da faixa que voltar a nomear `footer.rodape` |
+| a **geometria** | `experimentos/provar-ar-das-paginas.js` | as oito páginas, em 1280 e em 390: o ar nos três lugares, **o mesmo vão em todas as páginas**, nenhum par de irmãos com 0px, e nenhum estouro horizontal |
+
+**Contraprova.** Contra a folha de `HEAD`, a `provar-ar-das-paginas` **reprova 6 de 14**: o vão
+depois da faixa saía `[8, 16, 16, 16, 32, 8, 32, 16]` — três valores distintos —, o filete do
+rodapé encostava no último parágrafo em todas as páginas (0px) e o texto ficava a 5px dele.
 
 ## A barra do lançamento no celular *(21/10/2026)*
 

@@ -4158,6 +4158,24 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-corpo-da-linha-de-base` **31/31**; `check-identidade` **0 erros**; `check-indices`
   **16/16**; `check-pacote` do ciclo **0/0**; `gerar-ciclo.sh` completo **0 erro(s)**.
 
+- **06/11/2026** — **A auditoria das oito páginas: o ar é um só, e o rodapé tinha perdido o box
+  model.** *«O mesmo rigor de identidade visual deve se estender e estar perfeitamente aplicado
+  aos demais motores de geração e páginas correlatas.»* Medido nas oito páginas de documento do
+  pacote, a 1280 e a 390, **dois defeitos e um terceiro de manhã**: (a) o vão depois da faixa do
+  cabeçalho tinha **três valores** — 32px nos documentos que abrem por `##`, **16px** nos que
+  abrem por citação e **8px** nos que abrem por prosa —, porque não era declarado: era o
+  `margin-top` do primeiro filho. Passou a ser do `.conteudo` (`--esp-6`), com o primeiro filho
+  sem margem; (b) o **rodapé** saía com `margin-top: 0` e `padding-top: 0` enquanto o `.rodape`
+  declarava 40px e 16px — a faixa `header.doc, main, .rodape` nomeava `footer.rodape`, que pesa
+  mais do que a peça; medido, o texto estava a **5px** do próprio filete e o filete a **0,4px**
+  do último parágrafo; agora **21px** e **40px**; (c) a regra `header.doc > :last-child
+  { margin-bottom: 0 }` da manhã estava escrita **antes** do `.subtitulo` e perdia o empate, e o
+  vão de baixo do cabeçalho saía 20px nuns documentos e 12px noutros — passou para depois das
+  peças. A checagem **10 «Respiro»** passou a medir os três lugares e a prova nova
+  `provar-ar-das-paginas` mede as oito páginas em navegador. Medido: `provar-ar-das-paginas`
+  **14/14** (contraprova contra `HEAD` **6/14**), `provar-titulo-e-barra` **31/31**,
+  `check-identidade` **0 erros**, `check-indices` **16/16**, `check-pacote` **0/0**.
+
 - **06/11/2026** — **A turma entra na notação, e a §6 ganha a fileira das acções da aluna.**
   *«Você colocou no documento plano para a aula um a turma … e não colocou a turma dentro da
   notação, precisa colocar»* e *«quando eu escolho a aluna, o botão novo registro e imprimir estão

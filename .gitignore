@@ -827,3 +827,11 @@ experimentos/modelo-formulario/*
 # sem anamnese a dizer-se em vez de prometer um 404, e o contrato de extracção a continuar a ler a
 # §6 como TEXTO (o modo de falha silencioso daquela secção).
 !experimentos/provar-proveniencia-e-turma.js
+# O AR DAS NOVE PÁGINAS (06/11/2026). A auditoria que ela pediu depois do respiro do cabeçalho:
+# «o mesmo rigor de identidade visual deve se estender e estar perfeitamente aplicado aos demais
+# motores de geração e páginas correlatas». Medida nas oito páginas de documento, a 1280 e a 390:
+# o vão depois da faixa do cabeçalho tinha TRÊS valores (8px nos documentos que abrem por prosa,
+# 16px nos que abrem por citação, 32px nos que abrem por `##`), e o rodapé tinha o texto a 5px do
+# próprio filete e o filete a 0px do último parágrafo. A prova mede o ar nos três lugares, compara
+# as páginas entre si, e falha se dois blocos ficarem encostados.
+!experimentos/provar-ar-das-paginas.js
