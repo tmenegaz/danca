@@ -27,7 +27,7 @@ const Cifra = require('../../tools/lib-cifra.js');
 // A REGRA DO NOME DE DADOS É A DO NÚCLEO — uma definição só (06/11/2026). Havia aqui uma cópia
 // que aceitava um único segmento de variante: ela recusava `ciclo-01-calango-bale-nivel-1-teste-1-
 // dados.json`, e o «Abrir» do formulário ficava sem abrir o ciclo — com a senha certa.
-const { nomeDeDadosValido } = require('../nucleo/lancamento.js');
+const { partesDoCaminhoDeDados } = require('../nucleo/lancamento.js');
 
 /**
  * Monta o leitor. Sem chave, sem leitor de asset ou sem conferência de senha, devolve `null` — e a
@@ -42,16 +42,27 @@ function criarLeitorDeDados({ senhaCripto, lerAsset, senhaOk }) {
 
   return async function lerDados({ arquivo, senha }) {
     const nome = String(arquivo || '').trim();
-    // O NOME VEM DO CLIENTE — então ele é conferido, e não confiado: só o `-dados.json` de um
-    // ciclo deste pacote. Sem isto, uma travessia de caminho (`../`) leria outro arquivo do
-    // ASSETS e o devolveria em claro a quem tem uma senha de professor.
-    if (!nomeDeDadosValido(nome)) {
+    // O CAMINHO VEM DO CLIENTE — então ele é conferido, e não confiado: só o `-dados.json` de um
+    // ciclo deste pacote, e só dentro de UMA pasta. Sem isto, uma travessia de caminho (`../`)
+    // leria outro arquivo do ASSETS e o devolveria em claro a quem tem uma senha de professor.
+    const partes = partesDoCaminhoDeDados(nome);
+    if (!partes) {
       return { ok: false, erro: 'arquivo de dados inválido: ' + (nome || '(vazio)') };
     }
     if (!(await senhaOk(senha))) {
       return { ok: false, erro: 'senha não reconhecida' };
     }
-    const asset = await lerAsset(nome);
+    /* O ARQUIVO ESTÁ DENTRO DO PACOTE, E A RAIZ NÃO O TEM (06/11/2026). Desde que o
+     * `assets.directory` passou a ser a `publicacao/<escola>/` — montada com um subdirectório
+     * por turma —, o `-dados.json` vive em `<pacote>/`, e esta leitura o procurava na raiz.
+     * Respondia «o pacote não tem …» para um ficheiro publicado e legível, e a página contava
+     * isso como «a senha foi recusada»: ela procurou a senha errada durante uma tarde.
+     *
+     * A ordem: o caminho que o cliente declarou, e, se ele não declarou pasta, o nome na raiz.
+     * O segundo degrau não afrouxa nada — a raiz é o único lugar que o modelo antigo (um Worker
+     * por pacote) conhecia, e ali o nome sozinho é o caminho inteiro. */
+    let asset = partes.pasta ? await lerAsset(partes.pasta + '/' + partes.nome) : null;
+    if (!asset || !asset.corpo) asset = await lerAsset(partes.nome);
     if (!asset || !asset.corpo) {
       return { ok: false, erro: 'o pacote não tem ' + nome };
     }

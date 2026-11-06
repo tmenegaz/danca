@@ -376,6 +376,16 @@ const escolaDoArquivo = (nome) => {
   const m = /^ciclo-\d+(?:-(.+))?-dados\.json$/.exec(String(nome || ''));
   return m && m[1] ? m[1] : '';
 };
+/* O CAMINHO DA LEITURA NO SITE — e não só o nome do arquivo (06/11/2026).
+ *
+ * Quem decifra é o Worker, e ele procura o arquivo no ASSETS. O nome sozinho bastava enquanto
+ * o site ERA o pacote; desde 20/10/2026 o site é a `publicacao/<escola>/`, com um subdiretório
+ * por turma, e o `-dados.json` vive DENTRO dele. O Worker respondia «o pacote não tem …» para
+ * um arquivo publicado, a página dizia «a senha foi recusada», e a senha não tinha culpa.
+ *
+ * O caminho sai da MESMA resolução que a página usa para ler o arquivo (`P + nome`), e não de
+ * uma convenção copiada: se um dia a página mudar de lugar, este número muda com ela. */
+const caminhoNoSite = (nome) => new URL(P + nome, location.href).pathname.replace(/^\/+/, '');
 
 async function lerDadosDoCiclo(texto, arquivo, c) {
   const bruto = JSON.parse(texto);
@@ -406,7 +416,7 @@ async function lerDadosDoCiclo(texto, arquivo, c) {
     const resposta = await fetch('/api/dados', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ arquivo, senha }),
+      body: JSON.stringify({ arquivo: caminhoNoSite(arquivo), senha }),
     });
     const d = await resposta.json().catch(() => null);
     if (!resposta.ok || !d || d.ok === false) {
@@ -657,6 +667,30 @@ function paginar(blocos) {
   return { visiveis: blocos.slice(inicio, infinito ? blocos.length : inicio + n),
            total, quantos: blocos.length };
 }
+/* A BARRA DO RODAPÉ É DA LEITURA — E SÓ DA LEITURA (06/11/2026).
+ *
+ * Ela existe para FOLHEAR resultados: «‹ anterior · Página 1 de 1 · próxima ›». No modo captura
+ * não há resultados para folhear, e havia uma linha que escrevia `barra(1, 0)` para «manter a
+ * forma» — o que produzia «Página 1 de 0 · 0 bloco(s) no filtro». O relato foi esse, ao abrir o
+ * formulário no celular: «tá aparecendo um rodapé para um lugar que não tem paginação». Uma
+ * contagem de zero páginas não informa: ela ocupa o pé da tela e diz que algo está vazio.
+ *
+ * `tem: false` esconde a barra inteira (o `[hidden]` da folha vence o `display` da peça) e limpa
+ * a paginação, para não ficar ali a de uma leitura anterior. */
+function barraDeLeitura(tem) {
+  const barra = document.querySelector('footer.barra-de-controle');
+  if (barra) barra.hidden = !tem;
+  if (!tem) {
+    const p = el('paginacao');
+    if (p) p.innerHTML = '';
+  }
+  // A altura publicada (`--barra-altura`) move o «voltar ao topo»: sem barra, ela é zero. Quem
+  // sabe medi-la é o arranque (que tem o `footer` em mãos); aqui pede-se a medição.
+  if (alturaDaBarra) alturaDaBarra();
+}
+// O arranque liga esta função à medição de verdade (ver o bloco da barra compacta).
+let alturaDaBarra = null;
+
 // A barra do rodapé tem SEMPRE a mesma forma: os dois botões existem sempre (ficam
 // desabilitados quando não há para onde ir) e a contagem aparece sempre. O controle
 // não pisca nem muda de lugar quando o filtro muda de tamanho.
@@ -1789,7 +1823,23 @@ function renderCaptura(opcoes) {
   // dentro do prazo). Fora deles, sai de cena — e a AULA PULADA está fora (§3.3).
   const f0 = estadoCaptura() || estadoAjuste();
   const f = (f0 && pulada(f0.meta, f0.dados, sel.aula.value)) ? null : f0;
-  caixa.hidden = !f;
+  /* O CICLO ESCOLHIDO QUE NÃO ABRIU TEM UMA FRASE PRÓPRIA (06/11/2026). O painel dizia «Escolha
+   * um ciclo» a quem já o tinha escolhido — porque, quando a leitura falhava, o `<details>`
+   * ficava com o texto de fábrica. O que falta dizer é o que o resolve: a senha e o «Abrir».
+   * Este estado não é «não há formulário»: é «há, mas o ciclo ainda não está aberto». */
+  const escolhido = sel.ciclo.value;
+  const naoAberto = !!escolhido && !cache[escolhido];
+  caixa.hidden = !f && !naoAberto;
+  if (naoAberto) {
+    const meta = (indice && indice.ciclos.find((c) => c.id === escolhido)) || { id: escolhido };
+    alvo.innerHTML = '<p class="vazio">O <strong>Ciclo ' + esc(meta.id) + ' · ' + esc(meta.escola || '') +
+      '</strong> ainda não está aberto. Digite a <strong>senha da escola</strong> no alto da ' +
+      'página e clique em <strong>Abrir</strong> — o lançamento é escrito no arquivo do ciclo, ' +
+      'e ele só se abre com a senha.</p>';
+    // O acordeão fica como o utilizador o deixou: abrir sozinho seria o defeito de ontem ao
+    // contrário — o painel a mexer-se por conta própria depois de um clique.
+    return;
+  }
   if (!f) { alvo.innerHTML = ''; return; }
   if (!caixa.open) caixa.open = true;      // chegou numa aula sem dado: o painel abre
   // A captura vem da AULA; o PO e o plano continuam do CICLO. Sem config da aula no pacote
@@ -2169,7 +2219,15 @@ async function gerarJson() {
   const aviso = el('aviso-json');
   const dizer = (html) => { if (aviso) aviso.innerHTML = html; };
   const f = sel.ciclo.value ? cache[sel.ciclo.value] : null;
-  if (!f) { dizer('<span class="erro">Escolha um ciclo — o JSON é por ciclo.</span>'); return; }
+  if (!f) {
+    /* A MESMA VERDADE DO PAINEL (06/11/2026): «escolha um ciclo» para quem já o escolheu é
+     * uma frase que manda fazer o que está feito. O que falta é abri-lo. */
+    dizer(sel.ciclo.value
+      ? '<span class="erro">O ciclo escolhido ainda não está aberto — digite a senha no alto da ' +
+        'página e clique em Abrir.</span>'
+      : '<span class="erro">Escolha um ciclo — o JSON é por ciclo.</span>');
+    return;
+  }
   const { id, aula, faltando, motivo, autor } = coletarCaptura(f.dados);
   if (faltando.length) {
     dizer(`<span class="erro">não enviei: falta ${esc(faltando.join(', '))}.</span>`);
@@ -2351,7 +2409,7 @@ async function render() {
     out.innerHTML = '<p class="vazio">Esta aula ainda não tem lançamento. O formulário está no ' +
       'bloco <strong>«Lançar uma aula»</strong>, acima — ou filtre uma aula que já tem dado, ' +
       'para ler.</p>';
-    if (el('paginacao')) el('paginacao').innerHTML = barra(1, 0);
+    barraDeLeitura(false);          // não há resultados para folhear neste modo
     return;
   }
   out.innerHTML = '<p class="vazio">Carregando…</p>';
@@ -2385,9 +2443,11 @@ async function render() {
     out.innerHTML = visiveis.length
       ? visiveis.join('')
       : '<p class="vazio">Nenhum dado para estes filtros.</p>';
+    barraDeLeitura(true);
     el('paginacao').innerHTML = barra(total, quantos);
   } catch (e) {
     out.innerHTML = `<p class="erro">${esc(e.message)}</p>`;
+    barraDeLeitura(false);          // não há resultado nenhum: a barra não tem o que folhear
   }
 }
 
@@ -2426,13 +2486,23 @@ function opcoes() {
 // existe, nunca por cima: por isso a senha também é necessária para lançar, quando há dado).
 function pedirSenha(c, e) {
   const nome = c ? `Ciclo ${esc(c.id)} · ${esc(c.escola)}` : 'Os ciclos';
-  const semSenha = /sem senha/.test(e.message);
+  /* TRÊS RAZÕES, TRÊS FRASES (06/11/2026). Aqui havia duas: «sem senha» e TODO O RESTO. Tudo o
+   * que não fosse a falta da senha era anunciado como «a senha digitada foi recusada» — e o
+   * defeito daquela tarde não era a senha: o Worker procurava o arquivo de dados na raiz do site
+   * e o arquivo está dentro do pacote. Ela tentou duas senhas certas, leu duas vezes «recusada»,
+   * e foi procurar uma terceira. Um diagnóstico que mente custa mais do que nenhum. */
+  const semSenha = /sem senha/i.test(e.message);
+  const recusada = /senha não reconhecida|senha recusada/i.test(e.message);
+  barraDeLeitura(false);           // não há resultados para folhear: a barra sai de cena
   el('saida').innerHTML = '<div class="aviso"><strong>' + nome +
     ' tem lançamento — e o lançamento vai cifrado no pacote.</strong> ' +
     (semSenha
       ? 'Digite a <strong>senha da escola</strong> no campo <strong>“Sua senha”</strong>, no alto ' +
         'da página, e clique em <strong>Abrir</strong>.'
-      : 'A senha digitada foi <strong>recusada</strong> — confira e clique em <strong>Abrir</strong>.') +
+      : recusada
+        ? 'A senha digitada foi <strong>recusada</strong> — confira e clique em <strong>Abrir</strong>.'
+        : 'O ciclo <strong>não abriu</strong> — e o motivo não é a senha. É o que está no detalhe, ' +
+          'abaixo: sem ele, nem a leitura nem o lançamento acontecem.') +
     '</div><p><button id="abrir-ciclo" type="button">Abrir</button> ' +
     '<span class="fraco">detalhe: ' + esc(e.message) + '</span></p>';
   /* O «ABRIR» É LEITURA, E NÃO O PRÓXIMO LANÇAMENTO (06/11/2026). Quem clica «Abrir» quer ver o
@@ -2474,6 +2544,11 @@ async function trocarCiclo(modo) {
     try {
       await carregarCiclo(c);       // ciclo escolhido: carrega só o JSON dele
     } catch (e) {
+      /* O PAINEL TAMBÉM SABE QUE O CICLO NÃO ABRIU (06/11/2026). Sem esta linha, o `<details>`
+       * ficava com o texto de fábrica — «Escolha um ciclo» — para quem JÁ o tinha escolhido, e o
+       * relato foi exactamente esse: «o lançar uma aula aparece apenas escrito escolha um
+       * ciclo». O ciclo estava escolhido; o que faltava era abri-lo. */
+      renderCaptura();
       pedirSenha(c, e);             // sem senha (ou senha errada): o painel pede, a página segue viva
       return;
     }
@@ -2553,6 +2628,7 @@ async function trocarCiclo(modo) {
         document.documentElement.style.setProperty('--barra-altura', altura);
       };
       publicarAltura();
+      alturaDaBarra = publicarAltura;   // a barra pode ser escondida depois (modo captura)
       // O `resize` do iOS dispara a cada quadro enquanto as barras do sistema se
       // recolhem ao rolar. A barra não muda com a ALTURA da janela — muda com a largura
       // (é o corte dos 900px que a torna compacta). Só se reage a mudança de largura.

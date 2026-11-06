@@ -71,6 +71,35 @@ function varianteDoNomeDeDados(nome) {
 const RE_NOME_DE_DADOS = /^ciclo-\d{2}(?:-[a-z0-9][a-z0-9-]*)?-dados(?:-\d{4}-\d{2}-\d{2}T\d{4})?\.json$/;
 const nomeDeDadosValido = (nome) => RE_NOME_DE_DADOS.test(String(nome || ''));
 
+/**
+ * O CAMINHO DO ARQUIVO DENTRO DO SITE — `<pacote>/<nome>`, ou só o nome (06/11/2026).
+ *
+ * O NOME NÃO BASTA. O ficheiro de dados vive DENTRO do pacote da turma
+ * (`bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json`), e o Worker
+ * procurava-o na raiz do site — desde 20/10/2026, quando o `assets.directory` passou a ser a
+ * `publicacao/<escola>/`, montada com um subdirectório por pacote. Ele respondia «o pacote não
+ * tem …» para um ficheiro que estava publicado, e a página dizia que era a senha.
+ *
+ * A PASTA É CONFERIDA COMO O NOME: um segmento, alfabeto de slug, sem `.` nem `/`. É a pasta
+ * que a publicação dá à turma (`publicacao/<escola>/<variante sem a escola>/`), e nada além
+ * dela é alcançável — `../x/<nome>` e `a/b/<nome>` são recusados aqui.
+ *
+ * Duas formas, e a segunda existe para o pacote servido na RAIZ (o modelo antigo de um Worker
+ * por pacote, e as provas que montam a página em `/`): aí o nome sozinho é o caminho.
+ */
+const RE_PASTA = /^[a-z0-9][a-z0-9-]*$/;
+function partesDoCaminhoDeDados(caminho) {
+  const cru = String(caminho || '').trim().replace(/^\/+/, '');
+  const partes = cru.split('/');
+  if (partes.length === 1) {
+    return nomeDeDadosValido(partes[0]) ? { pasta: '', nome: partes[0] } : null;
+  }
+  if (partes.length !== 2) return null;
+  const [pasta, nome] = partes;
+  if (!RE_PASTA.test(pasta) || !nomeDeDadosValido(nome)) return null;
+  return { pasta, nome };
+}
+
 const slugDe = (indice, dados) => {
   const c = (indice && indice.ciclos && indice.ciclos[0]) || {};
   if (c.professor) return String(c.professor);
@@ -180,5 +209,5 @@ async function lancar(armazenamento, corpo, opcoes) {
 
 module.exports = {
   lancar, basename, RE_DADOS, slugDe, varianteDoNomeDeDados,
-  RE_NOME_DE_DADOS, nomeDeDadosValido,
+  RE_NOME_DE_DADOS, nomeDeDadosValido, partesDoCaminhoDeDados,
 };

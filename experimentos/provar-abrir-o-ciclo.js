@@ -17,18 +17,41 @@
  * vezes: a tela dizia «a senha foi recusada», e o «Gerar .md» morria numa promessa rejeitada, sem
  * dizer nada.
  *
+ * A SEGUNDA VOLTA (06/11/2026, à tarde). «Eu coloco a senha, clico em abrir e ele diz que não
+ * abriu, o pacote não tem ciclo; as duas senhas de teste não funcionam; não sei qual é a senha
+ * que ele espera.» AS DUAS SENHAS ESTAVAM CERTAS. O `-dados.json` vive DENTRO do pacote da turma
+ * (`publicacao/<escola>/<variante>/`), e o leitor procurava-o na RAIZ do site — desde 20/10/2026,
+ * quando o `assets.directory` passou a ser a publicação. Respondia «o pacote não tem …» para um
+ * ficheiro publicado, e a página traduzia TODO erro que não fosse «sem senha» em «a senha
+ * digitada foi recusada». Uma frase que mente custa mais do que nenhuma.
+ *
+ * A PROVA TAMBÉM MENTIA, e é a lição desta volta: o banco servia a página na raiz e o stub do
+ * `/api/dados` encontrava o ficheiro para QUALQUER nome. Ela media a pergunta, não o caminho.
+ * Agora há um banco com a FORMA DA PUBLICAÇÃO (a raiz com o `nav.json`, o pacote com os seus
+ * documentos) e o leitor VERDADEIRO a resolver contra ela.
+ *
  * O QUE ESTA PROVA FIXA:
  *
  *   A. A REGRA DO NOME é uma só (`motor/nucleo/lancamento.js`), aceita a variante com hífens e o
  *      carimbo, e continua a RECUSAR o que sai do alfabeto de slug — a rota recebe o nome do
  *      cliente, e um `../` leria outro arquivo do pacote.
- *   B. O LEITOR decifra o `-dados.json` de um ciclo de turma e o devolve em claro.
+ *   A.2 O CAMINHO: `<pacote>/<nome>`, uma pasta, alfabeto de slug — e o nome sozinho, para o
+ *      pacote servido na raiz.
+ *   B. O LEITOR decifra o `-dados.json` no caminho em que ele está publicado — e a CONTRAPROVA
+ *      do nome sozinho, que não o encontra (e não fala de senha).
  *   C. O «ABRIR», no navegador: com a senha, a leitura aparece (e não um vazio — o vazio lia-se
  *      como «não abriu»), e o filtro NÃO salta para a aula que falta lançar.
  *   D. A CONTRAPROVA: com a regra VELHA, o mesmo clique devolve «arquivo de dados inválido» — o
  *      defeito, a correr. Sem ela a prova aprovaria qualquer coisa.
+ *   F. O ACORDEÃO «Lançar uma aula» abre, fecha e não desaparece ao clique — e a contraprova com
+ *      o ouvinte de antes, que escondia o painel.
+ *   G. O VALIDADOR aceita a régua que a captura declara, e só então.
+ *   H. A PÁGINA DENTRO DO PACOTE, como no ar: abre com a senha certa, o pedido leva a pasta, e
+ *      sem nada aberto não há paginação («tá aparecendo um rodapé para um lugar que não tem
+ *      paginação»). H.2 é a contraprova: com o leitor de antes, a tela diz «não abriu» e NÃO
+ *      culpa a senha.
  *
- * Requer Chrome/Chromium para a parte C/D (puppeteer-core vem com o marp-cli global).
+ * Requer Chrome/Chromium para as partes de navegador (puppeteer-core vem com o marp-cli global).
  *
  *   node experimentos/provar-abrir-o-ciclo.js
  */
@@ -44,7 +67,8 @@ const DADOS = path.join(RAIZ, 'professores/rabo-gramde/ciclos/ciclo-01-calango-b
 const NOME = 'ciclo-01-calango-bale-nivel-1-teste-1-dados.json';
 const NOME_CARIMBADO = 'ciclo-01-calango-bale-nivel-1-teste-1-dados-2026-11-06T1642.json';
 
-const { nomeDeDadosValido, varianteDoNomeDeDados } = require(path.join(RAIZ, 'motor/nucleo/lancamento.js'));
+const { nomeDeDadosValido, varianteDoNomeDeDados, partesDoCaminhoDeDados } =
+  require(path.join(RAIZ, 'motor/nucleo/lancamento.js'));
 const { criarLeitorDeDados } = require(path.join(RAIZ, 'motor/servidor/ler-dados.js'));
 const Cifra = require(path.join(RAIZ, 'tools/lib-cifra.js'));
 
@@ -88,32 +112,83 @@ console.log('\nA. A regra do nome de dados aceita a variante da turma — e recu
 }
 
 /* ==========================================================================================
+ * A.2 O CAMINHO NO SITE — a pasta do pacote, e só ela
+ *   A leitura no Worker recebe o caminho do cliente. Ele passou a aceitar UMA pasta (o pacote da
+ *   turma, desde que o site deixou de ser o pacote e passou a ser a `publicacao/<escola>/`).
+ *   A regra é a mesma do nome: o que não estiver no alfabeto de slug não chega ao ASSETS.
+ * ======================================================================================== */
+console.log('\nA.2 O caminho: `<pacote>/<nome>`, e nada além de uma pasta');
+{
+  const pasta = 'bale-nivel-1-teste-1';
+  const ok = partesDoCaminhoDeDados(pasta + '/' + NOME);
+  provar('aceita o caminho real da publicação', ok && ok.pasta === pasta && ok.nome === NOME, ok);
+  provar('…e aceita o nome sozinho (o pacote servido na raiz)',
+    (partesDoCaminhoDeDados(NOME) || {}).pasta === '', partesDoCaminhoDeDados(NOME));
+  provar('…e a barra inicial não atrapalha (o caminho da página vem com ela)',
+    (partesDoCaminhoDeDados('/' + pasta + '/' + NOME) || {}).pasta === pasta,
+    partesDoCaminhoDeDados('/' + pasta + '/' + NOME));
+  for (const [caminho, porque] of [
+    ['../' + NOME, 'travessia de caminho'],
+    [pasta + '/../' + NOME, 'travessia no nome'],
+    ['a/b/' + NOME, 'duas pastas'],
+    ['Pasta-Maiuscula/' + NOME, 'maiúsculas na pasta'],
+    ['.' + '/' + NOME, 'pasta que é um ponto'],
+    ['', 'vazio'],
+    [pasta + '/ciclos.json', 'nome que não é de dados'],
+  ]) {
+    provar('recusa ' + (caminho || '(vazio)') + ' — ' + porque,
+      partesDoCaminhoDeDados(caminho) === null, caminho);
+  }
+}
+
+/* ==========================================================================================
  * B. O leitor
  * ======================================================================================== */
-console.log('\nB. O leitor decifra o ciclo de uma turma — e devolve o texto em claro');
+console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que ele está publicado');
 (async () => {
   const senha = 'senha-da-prova';
   const claro = fs.readFileSync(DADOS, 'utf8');
   const envelope = await Cifra.cifrar(claro, senha);
+  /* A ÁRVORE DE VERDADE, E NÃO UM STUB QUE ENCONTRA TUDO (06/11/2026). Aqui o `lerAsset`
+   * devolvia o arquivo para QUALQUER nome — e por isso esta prova aprovou um leitor que
+   * procurava o ficheiro na raiz do site, quando ele está dentro do pacote da turma. Uma prova
+   * que responde «sim» a tudo não mede o caminho: mede a pergunta. Agora a árvore tem a forma
+   * da publicação — a raiz com o `nav.json`, o pacote com os documentos — e quem procura no
+   * lugar errado recebe `null`, como no Worker. */
+  const arvore = {
+    'nav.json': '{}',
+    ['bale-nivel-1-teste-1/' + NOME]: JSON.stringify({ _cifrado: envelope }),
+  };
+  const lerAsset = async (caminho) => (arvore[caminho]
+    ? { corpo: new TextEncoder().encode(arvore[caminho]) }
+    : null);
   const leitor = criarLeitorDeDados({
-    senhaCripto: senha,
-    lerAsset: async (nome) => (nome === NOME
-      ? { corpo: new TextEncoder().encode(JSON.stringify({ _cifrado: envelope })) }
-      : null),
-    senhaOk: async (s) => s === 'a-senha-da-pessoa',
+    senhaCripto: senha, lerAsset, senhaOk: async (s) => s === 'a-senha-da-pessoa',
   });
 
-  const ok = await leitor({ arquivo: NOME, senha: 'a-senha-da-pessoa' });
-  provar('devolve ok para o nome real', ok.ok === true, ok);
+  const ok = await leitor({ arquivo: 'bale-nivel-1-teste-1/' + NOME, senha: 'a-senha-da-pessoa' });
+  provar('devolve ok pelo caminho da publicação', ok.ok === true, ok);
   provar('…e o que devolve é o JSON em claro, com a aula lançada',
     JSON.parse(ok.texto).aulas && Object.keys(JSON.parse(ok.texto).aulas).length > 0,
     ok.texto && Object.keys(JSON.parse(ok.texto).aulas || {}));
 
-  const semSenha = await leitor({ arquivo: NOME, senha: 'errada' });
+  /* A CONTRAPROVA DO CAMINHO — o defeito que ela viu, a correr: com o NOME SOZINHO na mesma
+   * árvore, o leitor procura na raiz e não encontra. É a resposta «o pacote não tem …» que a
+   * página traduzia em «a senha foi recusada». */
+  const naRaiz = await leitor({ arquivo: NOME, senha: 'a-senha-da-pessoa' });
+  provar('contraprova: o nome sozinho, na árvore da publicação, não encontra o arquivo',
+    naRaiz.ok === false && /o pacote não tem/.test(naRaiz.erro), naRaiz);
+  provar('…e essa recusa NÃO fala de senha (era a mentira que ela leu)',
+    !/senha/i.test(naRaiz.erro), naRaiz.erro);
+
+  const semSenha = await leitor({ arquivo: 'bale-nivel-1-teste-1/' + NOME, senha: 'errada' });
   provar('sem a senha certa, recusa', semSenha.ok === false && /senha/.test(semSenha.erro), semSenha);
-  const invasor = await leitor({ arquivo: '../professores/x/ciclos/ciclo-01-dados.json', senha: 'a-senha-da-pessoa' });
-  provar('…e um nome fora do padrão não chega ao ASSETS',
-    invasor.ok === false && /inválido/.test(invasor.erro), invasor);
+  for (const mau of ['../professores/x/ciclos/ciclo-01-dados.json',
+    'bale-nivel-1-teste-1/../' + NOME, 'a/b/' + NOME]) {
+    const invasor = await leitor({ arquivo: mau, senha: 'a-senha-da-pessoa' });
+    provar('…e ' + mau + ' não chega ao ASSETS',
+      invasor.ok === false && /inválido/.test(invasor.erro), invasor);
+  }
 
   /* ========================================================================================
    * C e D. O «Abrir» no navegador — com a regra de agora, e com a de antes
@@ -335,10 +410,16 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — e devolve o texto em
       provar('…sem erro de página em nenhum gesto', erros.length === 0, erros);
 
       /* A CONTRAPROVA, e é o defeito a correr: com o ouvinte de antes — `renderCaptura` com
-       * o evento — o primeiro clique na chegada esconde o painel em vez de o abrir. */
+       * o evento —, clicar no resumo, com o ciclo JÁ ABERTO (a leitura em cena), esconde o
+       * painel em vez de o abrir. É o «não expande, ele quebra» do relato, na sua forma exata. */
       const cp = await nav.newPage();
       await cp.setViewport({ width: 390, height: 844 });
       await cp.goto(`${base}/lancamento.html`, { waitUntil: 'networkidle0' });
+      await cp.select('#ciclo', '01');
+      await new Promise((r) => setTimeout(r, 300));
+      await cp.$eval('#senha', (n) => { n.value = 'a-senha-da-pessoa'; });
+      await cp.$eval('#abrir-ciclo', (b) => b.click());
+      await new Promise((r) => setTimeout(r, 800));
       const ligou = await cp.evaluate(() => {
         const c = document.getElementById('captura');
         if (typeof renderCaptura !== 'function') return false;
@@ -350,7 +431,7 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — e devolve o texto em
         const c = document.getElementById('captura');
         return { hidden: c.hidden, visivel: !!(c.offsetWidth || c.offsetHeight) };
       });
-      provar('contraprova: com o ouvinte de ANTES, o mesmo clique ESCONDE o painel',
+      provar('contraprova: com o ouvinte de ANTES, o clique ESCONDE o painel que devia abrir',
         ligou === true && depois.hidden === true && depois.visivel === false, depois);
       await cp.close();
     } finally { await nav.close(); srv.close(); }
@@ -395,12 +476,163 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — e devolve o texto em
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
+  /* ========================================================================================
+   * H. A PÁGINA NO LUGAR EM QUE ELA É PUBLICADA — e a verdade sobre a senha
+   *   O RELATO (06/11/2026, segunda volta): «eu coloco a senha, clico em abrir e ele diz que não
+   *   abriu, o pacote não tem ciclo; as duas senhas de teste não funcionam; não sei qual é a
+   *   senha que ele espera». As duas senhas estavam certas.
+   *
+   *   O BANCO DE PROVA MENTIA POR CONSTRUÇÃO: ele servia a página na RAIZ e resolvia o
+   *   `/api/dados` por um stub que encontrava o ficheiro para qualquer nome. No ar a página é
+   *   servida DENTRO do pacote (`/bale-nivel-1-teste-1/lancamento`), e o leitor do Worker
+   *   procurava o ficheiro na raiz do site — onde ele não está. Daí em diante, cada mensagem da
+   *   tela culpava a senha.
+   *
+   *   Aqui o banco tem a FORMA DA PUBLICAÇÃO: a raiz com o `nav.json`, o pacote com os seus
+   *   documentos, e o leitor VERDADEIRO (`criarLeitorDeDados`) a resolver contra essa árvore.
+   * ====================================================================================== */
+  console.log('\nH. A página servida DENTRO do pacote — como no ar — abre o ciclo com a senha');
+  if (!puppeteer || !executavel) {
+    provar('o navegador existe para medir a página publicada', false, 'NÃO FEITO');
+  } else {
+    const PASTA = 'bale-nivel-1-teste-1';
+    const MIME2 = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
+      '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
+      '.svg': 'image/svg+xml', '.pdf': 'application/pdf' };
+
+    async function bancadaPublicada({ leitorNaRaiz }) {
+      const senhaCripto = 'senha-da-prova';
+      const claro = fs.readFileSync(DADOS, 'utf8');
+      const envelope = await Cifra.cifrar(claro, senhaCripto);
+      // A árvore: na raiz só o `nav.json`; o pacote tem os documentos.
+      const arvore = { ['nav.json']: '{"versao":2,"coluna":[],"barra":[]}',
+        [PASTA + '/' + NOME]: JSON.stringify({ _cifrado: envelope }) };
+      /* A RAIZ DO SITE, COMO NO AR: só o que está declarado na árvore. Os documentos do pacote
+       * vêm do disco — mas SÓ debaixo da pasta dele. Sem esta disciplina, o nome sozinho
+       * encontraria o ficheiro em `PACOTE/<nome>` no disco, e o banco de prova voltaria a mentir
+       * a favor do leitor que procura no lugar errado. */
+      const lerAsset = async (caminho) => {
+        if (arvore[caminho]) return { corpo: new TextEncoder().encode(arvore[caminho]) };
+        if (!String(caminho).startsWith(PASTA + '/')) return null;
+        const disco = path.join(PACOTE, caminho.slice(PASTA.length + 1));
+        if (fs.existsSync(disco) && fs.statSync(disco).isFile()) {
+          return { corpo: fs.readFileSync(disco) };
+        }
+        return null;
+      };
+      const leitor = criarLeitorDeDados({
+        senhaCripto, senhaOk: async (s) => s === 'a-senha-da-pessoa',
+        lerAsset: leitorNaRaiz
+          // O LEITOR DE ANTES: procurava o nome na raiz, e só na raiz.
+          ? async (c) => (String(c).indexOf('/') === -1 ? lerAsset(c) : null)
+          : async (c) => lerAsset(c),
+      });
+      const pedidos = [];
+      const srv = http.createServer((req, res) => {
+        const url = decodeURIComponent(req.url.split('?')[0]);
+        if (req.method === 'POST' && url === '/api/dados') {
+          let corpo = '';
+          req.on('data', (d) => { corpo += d; });
+          req.on('end', async () => {
+            let p = {};
+            try { p = JSON.parse(corpo); } catch (e) { p = {}; }
+            pedidos.push(p.arquivo);
+            const r = await leitor({ arquivo: p.arquivo, senha: p.senha });
+            res.writeHead(200, { 'content-type': 'application/json' });
+            res.end(JSON.stringify(r));
+          });
+          return;
+        }
+        const rel = url.replace(/^\/+/, '');
+        if (!rel.startsWith(PASTA + '/')) { res.writeHead(404); res.end('nao encontrado'); return; }
+        const dentro = rel.slice(PASTA.length + 1);
+        // O FORMULÁRIO É O DA FONTE (o gerador copia-o para o pacote).
+        const alvo = dentro === 'lancamento.html'
+          ? path.join(RAIZ, 'tools/templates/lancamento.html')
+          : path.join(PACOTE, dentro);
+        const DENTRO = alvo === path.join(RAIZ, 'tools/templates/lancamento.html') || alvo.startsWith(PACOTE);
+        if (!DENTRO || !fs.existsSync(alvo) || fs.statSync(alvo).isDirectory()) {
+          res.writeHead(404); res.end('nao encontrado'); return;
+        }
+        res.writeHead(200, { 'content-type': MIME2[path.extname(alvo)] || 'application/octet-stream',
+          'cache-control': 'no-store' });
+        res.end(fs.readFileSync(alvo));
+      });
+      const { port } = await new Promise((ok) => srv.listen(0, '127.0.0.1', () => ok({ port: srv.address().port })));
+      return { srv, base: `http://127.0.0.1:${port}/${PASTA}`, pedidos };
+    }
+
+    async function abrirPublicado({ leitorNaRaiz }) {
+      const { srv, base, pedidos } = await bancadaPublicada({ leitorNaRaiz });
+      const nav = await puppeteer.launch({ executablePath: executavel, headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+      try {
+        const p = await nav.newPage();
+        await p.setViewport({ width: 390, height: 844 });
+        const erros = [];
+        p.on('pageerror', (e) => erros.push('pageerror: ' + e.message));
+        await p.goto(`${base}/lancamento.html`, { waitUntil: 'networkidle0' });
+        // A CHEGADA: o ciclo vigente já vem escolhido, e ainda sem senha.
+        const chegada = await p.evaluate(() => ({
+          ciclo: (document.getElementById('ciclo') || {}).value,
+          painel: (document.getElementById('captura-campos') || {}).textContent || '',
+          paginacao: (document.getElementById('paginacao') || {}).innerHTML || '',
+          barra: (() => { const b = document.querySelector('footer.barra-de-controle');
+            return b ? { hidden: b.hidden, visivel: !!(b.offsetWidth || b.offsetHeight) } : null; })(),
+          aviso: (document.getElementById('saida') || {}).textContent || '',
+        }));
+        await p.$eval('#senha', (n) => { n.value = 'a-senha-da-pessoa'; });
+        await p.$eval('#abrir-ciclo', (b) => b.click());
+        await new Promise((r) => setTimeout(r, 900));
+        const aberto = await p.evaluate(() => ({
+          texto: (document.getElementById('saida') || {}).textContent || '',
+          paginacao: (document.getElementById('paginacao') || {}).innerHTML || '',
+          barra: (() => { const b = document.querySelector('footer.barra-de-controle');
+            return b ? { hidden: b.hidden, visivel: !!(b.offsetWidth || b.offsetHeight) } : null; })(),
+        }));
+        return { chegada, aberto, pedidos, erros };
+      } finally { await nav.close(); srv.close(); }
+    }
+
+    const bom = await abrirPublicado({ leitorNaRaiz: false });
+    provar('com a senha certa, o ciclo ABRE no pacote publicado',
+      /Aula 06/.test(bom.aberto.texto) && bom.aberto.texto.length > 100,
+      bom.aberto.texto.slice(0, 140));
+    provar('…e o pedido de leitura leva a PASTA do pacote, não só o nome',
+      bom.pedidos.some((a) => String(a || '').startsWith(PASTA + '/')), bom.pedidos);
+    provar('…e sem erro de página', bom.erros.length === 0, bom.erros);
+    /* NA CHEGADA, SEM SENHA, NÃO HÁ PAGINAÇÃO (06/11/2026): «tá aparecendo um rodapé para um
+     * lugar que não tem paginação». Não há resultado nenhum, e «Página 1 de 0» não informa —
+     * ocupa o pé da tela. */
+    provar('na chegada, sem nada aberto, a paginação está vazia',
+      bom.chegada.paginacao.trim() === '', bom.chegada.paginacao.slice(0, 80));
+    provar('…e a barra do rodapé não aparece (não há o que folhear)',
+      bom.chegada.barra && bom.chegada.barra.visivel === false, bom.chegada.barra);
+    provar('…e a área de resultados pede a senha, sem falar em recusa',
+      /senha/i.test(bom.chegada.aviso) && !/recusada/i.test(bom.chegada.aviso),
+      bom.chegada.aviso.slice(0, 160));
+    provar('…e o painel de lançamento diz que o ciclo NÃO ESTÁ ABERTO (e não «escolha um ciclo»)',
+      /ainda não está aberto/i.test(bom.chegada.painel) && !/Escolha um ciclo/i.test(bom.chegada.painel),
+      bom.chegada.painel.slice(0, 160));
+
+    console.log('\nH.2 A contraprova: com o leitor de ANTES, a tela NÃO culpa a senha');
+    const mau = await abrirPublicado({ leitorNaRaiz: true });
+    provar('o defeito corre: o ciclo não abre', !/Aula 06/.test(mau.aberto.texto),
+      mau.aberto.texto.slice(0, 140));
+    provar('…e a frase NÃO diz «a senha foi recusada» — foi ela que a mandou caçar senha',
+      !/recusada/i.test(mau.aberto.texto) && /não abriu|não é a senha/i.test(mau.aberto.texto),
+      mau.aberto.texto.slice(0, 220));
+    provar('…e o detalhe nomeia o arquivo que falta',
+      /o pacote não tem/.test(mau.aberto.texto), mau.aberto.texto.slice(0, 400));
+  }
+
   console.log('');
   if (falhas) {
     console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
     process.exit(1);
   }
-  console.log('TUDO CERTO — ' + total + ' asserções: a regra do nome aceita a variante da turma e recusa'
-    + ' o que sai do slug; o leitor devolve o ciclo em claro; o «Abrir» mostra a leitura e não salta'
-    + ' para o lançamento; e a regra velha — a do defeito — continua a reprovar o nome real.');
+  console.log('TUDO CERTO — ' + total + ' asserções: a regra do nome e o caminho do pacote aceitam a'
+    + ' variante da turma e recusam o que sai do slug; o leitor devolve o ciclo em claro NO CAMINHO'
+    + ' EM QUE ELE É PUBLICADO; o «Abrir» mostra a leitura e não salta para o lançamento; o acordeão'
+    + ' obedece a quem clica; e as contraprovas — a regra velha, o leitor velho, o ouvinte velho —'
+    + ' continuam a reprovar o nome, o caminho e o gesto.');
 })().catch((erro) => { console.error(erro); process.exit(1); });
