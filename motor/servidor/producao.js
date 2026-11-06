@@ -31,6 +31,7 @@ const { criarArmazenamento } = require('./cloudflare.js');
 // AS TRÊS LISTAS DO ACERVO (24/10/2026) — a anamnese, o plano de ensino e o PO listam REGISTOS,
 // e os registos vivem no KV. Ver o bloco 0.2 do `fetch`.
 const listasDoAcervo = require('./listas-do-acervo.js');
+const aulasDadas = require('./aulas-dadas.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
 // AS ESCOLAS DE TESTE — os três JSON e o preenchidor. Ver `teste-fixtures.js` e
@@ -271,6 +272,27 @@ async function menuDaEscola(env) {
   }
 }
 
+/**
+ * O ÍNDICE DAS AULAS DADAS, montado por pedido.
+ *
+ * Ele lê o REPOSITÓRIO (a fonte de cada ciclo, escrita no acto do lançamento) e o `ciclos.json`
+ * do pacote (que DECLARA o prazo de cada aula). O leitor de asset é o `ASSETS` do Worker — não é
+ * rede —, e a token é a mesma que o acervo já usa.
+ */
+function indiceDeAulas(env) {
+  const lerAsset = async (rel) => {
+    if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
+    try {
+      const res = await env.ASSETS.fetch(new URL('/' + String(rel || '').replace(/^\/+/, ''),
+        'https://assets.local'));
+      return res.ok ? await res.text() : null;
+    } catch (erro) {
+      return null;
+    }
+  };
+  return aulasDadas.criarIndiceDeAulas({ token: (env && env.GITHUB_TOKEN) || null, lerAsset });
+}
+
 /** A aparência da escola, com o KV e o slug à mão. Sem KV (o servidor de desenvolvimento),
  *  o padrão é `clara` + a família padrão — a ausência de dado não inventa uma aparência. */
 async function aparenciaDoEnv(env) {
@@ -383,6 +405,67 @@ async function fetch(request, env) {
   if (bast) {
     return comAparencia(bast, await aparenciaDoEnv(env),
       { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
+  }
+
+  /* 0.15 AS AULAS DADAS (06/11/2026) — a lista que faltava, e o índice que ela e o formulário
+   * partilham.
+   *
+   * «Esse formulário para essa aula não tem que estar mais disponível, porque eu já fiz isso. Mas
+   * ao mesmo tempo eu preciso de um lugar similar ao que eu tenho com aulas — a página aulas,
+   * aonde eu listo as aulas dadas e posso abrir e ver como é que foi preenchido.»
+   *
+   * É SERVIDA, e não montada, pela razão de sempre: o que se lista muda a cada lançamento, e uma
+   * página montada no deploy mostraria a escola do dia do deploy. O desenho é o das outras oito
+   * listas (`lista-html.js`); a leitura é a da FONTE no repositório — a mesma que a geração lê —,
+   * e não a do pacote publicado, que só muda dois a três minutos depois.
+   */
+  if (path === '/area-do-professor/aulas-dadas' || path.startsWith('/area-do-professor/aulas-dadas/')) {
+    const pagina = await aulasDadas.pagina({
+      escola: env.ESCOLA_SLUG,
+      menu,
+      pedido: '/area-do-professor/aulas-dadas/',
+      indice: indiceDeAulas(env),
+    });
+    if (pagina) {
+      const resposta = new Response(pagina.html, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'no-store, max-age=0' },
+      });
+      return comAparencia(resposta, await aparenciaDoEnv(env),
+        { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: '/area-do-professor/aulas-dadas/' });
+    }
+  }
+
+  /* 0.16 O QUE JÁ FOI LANÇADO — `POST /api/lancadas` (06/11/2026).
+   *
+   * O FORMULÁRIO NÃO PODE OFERECER-SE PARA UMA AULA JÁ DADA, e o pacote não lhe pode responder
+   * nessa janela: ele só muda quando a geração corre. A fonte muda no acto. Esta rota é a fonte,
+   * reduzida ao mínimo — que aula, e o carimbo —, sem uma linha de conteúdo e sem senha: os
+   * números das aulas lançadas já estão no `ciclos.json` do pacote, e o que se observou em cada
+   * uma não vem por aqui.
+   *
+   * `ok:false` quando a leitura não deu: quem pergunta NÃO conclui «não há nada» de uma falha —
+   * um formulário que desaparece porque o repositório não respondeu seria pior do que um a mais. */
+  if (path === '/api/lancadas') {
+    const corpo = await request.json().catch(() => null);
+    const escola = env.ESCOLA_SLUG;
+    const variante = String((corpo && corpo.variante) || '').trim();
+    const ciclo = String((corpo && corpo.ciclo) || '').trim();
+    try {
+      const mapa = await indiceDeAulas(env).lancadas(escola, { variante, ciclo });
+      if (!mapa) {
+        return new Response(JSON.stringify({
+          ok: false, erro: 'não consegui ler o índice de aulas desta escola',
+        }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+      }
+      return new Response(JSON.stringify({ ok: true, aulas: mapa }), {
+        status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    } catch (erro) {
+      return new Response(JSON.stringify({ ok: false, erro: (erro && erro.message) || String(erro) }), {
+        status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' },
+      });
+    }
   }
 
   /* 0.2 AS TRÊS LISTAS DO ACERVO (24/10/2026) — servidas, não montadas.

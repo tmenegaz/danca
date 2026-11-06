@@ -467,6 +467,18 @@ function menuDaEscola({ turmas, blocos }) {
        `lancamento.html` continua a chamar-se «Lançamento de aula — formulário eletrônico»:
        ele é o documento, e o documento diz o que é. */
     itensDaArea.push({ rotulo: 'Aulas', href: '/aulas/' });
+    /* «AULAS DADAS» — A LISTA DO QUE JÁ ACONTECEU (06/11/2026).
+     *
+     * «Aulas» lista as aulas DECLARADAS pelo ciclo (o plano, a data, o marco). Esta lista as que
+     * foram DADAS e lançadas, com o registro de cada uma — quando foi lançada, até quando se
+     * ajusta, se houve ajuste —, e é por ela que se abre o que foi preenchido. A página é SERVIDA
+     * pela ponte (`motor/servidor/aulas-dadas.js`), e não montada aqui: o que ela lista muda a
+     * cada lançamento, e uma página montada no deploy mostraria a escola do dia do deploy.
+     *
+     * O item vive no menu mesmo antes de haver aula dada: uma lista vazia que diz «Nenhuma aula
+     * foi realizada até o momento» é a resposta certa a «onde estão as aulas dadas?» — e um item
+     * que só aparece depois do primeiro lançamento obrigaria a saber que ele existe. */
+    itensDaArea.push({ rotulo: 'Aulas dadas', href: '/area-do-professor/aulas-dadas/' });
   }
   coluna.push({ tipo: 'menu', rotulo: 'Área do Professor', itens: itensDaArea });
 

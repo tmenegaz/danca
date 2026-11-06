@@ -873,3 +873,12 @@ experimentos/modelo-formulario/*
 # a mostrar a leitura sem saltar para o lançamento, o «Gerar .md» a DIZER quando não gera — e a
 # contraprova, com a regra de antes, a reproduzir o defeito.
 !experimentos/provar-abrir-o-ciclo.js
+
+# A LISTA DAS AULAS DADAS, E O FORMULÁRIO QUE NÃO VOLTA (06/11/2026). «Esse formulário para essa
+# aula não tem que estar mais disponível, porque eu já fiz isso. Mas ao mesmo tempo eu preciso de um
+# lugar similar ao que eu tenho com aulas, aonde eu listo as aulas dadas e posso abrir e ver como é
+# que foi preenchido.» A prova mede o índice lido da FONTE (e não do pacote, que só muda quando a
+# geração corre), a página no padrão das outras oito, o formulário a não se oferecer para uma aula
+# já dada, o link a abrir a aula que aponta — e as contraprovas: sem o índice, o formulário volta (o
+# defeito, a correr), e sem leitura a ponte diz «não sei» em vez de «não há».
+!experimentos/provar-aulas-dadas.js

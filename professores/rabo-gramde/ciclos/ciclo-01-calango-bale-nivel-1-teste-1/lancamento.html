@@ -39,9 +39,15 @@ document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
    * 6px (um valor que a escala não tem: `--raio-1` é 8, `--raio-2` é 12, `--raio-3` é 20) e o
    * `padding`/`margin` eram números escritos à mão; passam a ser os degraus declarados, como no
    * `.bloco-assoc` dos Bastidores, que é o MESMO objecto — um grupo de controles com um título. */
-  fieldset { border:1px solid var(--borda-campo); border-radius:var(--raio-2);
-             padding:var(--esp-3); margin:0 0 var(--esp-4); min-width:0; }
-  legend { font: 700 .82rem/1.3 var(--ui); color: var(--marca-texto); padding:0 var(--esp-2); }
+  /* O `fieldset` COM MOLDURA É DO PAINEL DE LANÇAMENTO — e só dele (06/11/2026). Ele estava solto
+     na página e desenhava também o FILTRO do alto, que passou a ser a peça da folha
+     (`.caixa.filtrar`). O que resta é o grupo «Depois da aula», dentro do painel: o mesmo objecto
+     do `.bloco-assoc` dos Bastidores — um grupo de controles com um título —, e por isso continua
+     a levar a moldura. Escopado, ele não pode voltar a pintar o que não é dele. */
+  .captura fieldset { border:1px solid var(--borda-campo); border-radius:var(--raio-2);
+                      padding:var(--esp-3); margin:0 0 var(--esp-4); min-width:0; }
+  .captura legend { font: 700 .82rem/1.3 var(--ui); color: var(--marca-texto);
+                    padding:0 var(--esp-2); }
   .fraco { font-size:.88rem; }
   .vazio, .fraco { color: var(--texto-suave); }
   .erro { color: var(--falha); }
@@ -264,14 +270,28 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
   lançamento, faz ajustes e gera os relatórios.
 </div>
 
-<fieldset>
-  <legend>Filtros — vazio quer dizer "todos"</legend>
-  <div class="filtros">
-    <span><label class="campo-rotulo em-linha" for="ciclo">Ciclo:</label><select id="ciclo"></select></span>
-    <span><label class="campo-rotulo em-linha" for="aula">Aula:</label><select id="aula"></select></span>
-    <span><label class="campo-rotulo em-linha" for="aluna">Aluna:</label><select id="aluna"></select></span>
+<!-- O FILTRO É A PEÇA DA FOLHA, E NÃO UM `fieldset` DESTA PÁGINA (06/11/2026).
+     «A gente já arruma a listagem e já conserta também o filtro para poder fazer isso.» Ele era o
+     ÚNICO dos nove filtros do sistema desenhado à mão aqui: uma moldura de `fieldset` com uma
+     `legend`, e três `span` sem disposição nenhuma lá dentro. As oito listas usam a mesma peça —
+     `.caixa.filtrar` com `.campo-filtro` —, e o resultado é o que se vê: rótulo por cima do campo,
+     os campos alinhados pela base, e a nota à direita. O desenho mora em
+     `tools/templates/ciclo.css`; a página não redeclara nada. -->
+<div class="caixa filtrar">
+  <div class="campo-filtro">
+    <label class="campo-rotulo" for="ciclo">Ciclo</label>
+    <select id="ciclo"></select>
   </div>
-</fieldset>
+  <div class="campo-filtro">
+    <label class="campo-rotulo" for="aula">Aula</label>
+    <select id="aula"></select>
+  </div>
+  <div class="campo-filtro">
+    <label class="campo-rotulo" for="aluna">Aluna</label>
+    <select id="aluna"></select>
+  </div>
+  <p class="filtro-conta">vazio quer dizer “todos”</p>
+</div>
 
 <p class="fraco" id="periodo"></p>
 
@@ -402,6 +422,39 @@ const selo = (c) => `Ciclo ${esc(c.id)} · ${esc(c.escola)}`;
 // gente na lista, que é justamente quando o formulário mais serve. O apelido é estável (P-12) e o
 // `po-XX.json` do mesmo pacote já nomeia as mesmas alunas: não é vazamento, é a lista existir.
 const CHAVE_SENHA = 'lancamento:senha';
+
+/* O QUE JÁ FOI LANÇADO — PERGUNTADO AO SITE, E NÃO AO PACOTE (06/11/2026).
+ *
+ * «Esse formulário para essa aula não tem que estar mais disponível, porque eu já fiz isso.» Ele
+ * VOLTAVA, e a razão não é a página: o pacote publicado (`-dados.json` cifrado) só muda quando a
+ * geração corre — dois a três minutos depois do lançamento. Nessa janela, quem recarregava via a
+ * aula desaparecer e o formulário dela reaparecer, como se nada tivesse sido gravado.
+ *
+ * A FONTE muda no acto. `POST /api/lancadas` responde o que está lá — número da aula e carimbo, e
+ * mais nada: sem conteúdo, sem senha. Com isso o filtro não oferece o formulário de uma aula já
+ * dada, mesmo antes de o site publicar a nova versão do ciclo.
+ *
+ * O QUE FALHA NÃO CONCLUI. Se a rota não responder (ou responder `ok:false`), este mapa fica
+ * vazio e a página volta ao comportamento de antes: o pacote manda. Um formulário a mais é um
+ * incómodo; um formulário a menos esconderia a aula que o professor precisa de lançar. */
+const lancadasPorCiclo = {};
+const lancadaNoSite = (idDoCiclo, nn) =>
+  Boolean(idDoCiclo && lancadasPorCiclo[idDoCiclo] && lancadasPorCiclo[idDoCiclo][nn]);
+async function perguntarOQueFoiLancado(c) {
+  if (!c || !c.arquivo) return;
+  const variante = escolaDoArquivo(c.arquivo);
+  try {
+    const r = await fetch('/api/lancadas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variante, ciclo: c.id }),
+    });
+    const d = await r.json().catch(() => null);
+    if (d && d.ok === true && d.aulas && typeof d.aulas === 'object') {
+      lancadasPorCiclo[c.id] = d.aulas;
+    }
+  } catch (e) { /* sem a resposta, vale o pacote — o comportamento de antes */ }
+}
 function senhaDaEscola() {
   const campo = el('senha');
   if (campo && campo.value) return campo.value;
@@ -542,6 +595,10 @@ async function carregarCiclo(c) {
       po: await peca(c.id, 'po'),
       plano: await peca(c.id, 'plano'),
     };
+    /* O QUE O SITE JÁ SABE DOS LANÇAMENTOS (06/11/2026) — uma pergunta, por ciclo, depois de o
+     * ciclo estar aberto. Ela não é a leitura: é o que impede o formulário de se oferecer para
+     * uma aula já dada enquanto o pacote publicado ainda é o de antes. Ver `lancadaNoSite`. */
+    await perguntarOQueFoiLancado(c);
   }
   return cache[c.id];
 }
@@ -1201,7 +1258,7 @@ function primeiraSemDado(m, dados) {
       const id = dois(n);
       // A pulada fica de fora (§3.3): não é uma aula que falta lançar — ela não aconteceu.
       // Índice antigo não declara prazo, não tem pulada, e a varredura não pula nada.
-      if (!dados.aulas[id] && !pulada(m, dados, id)) return id;
+      if (!dados.aulas[id] && !lancadaNoSite(m && m.id, id) && !pulada(m, dados, id)) return id;
     }
     return '';
   }
@@ -1209,7 +1266,7 @@ function primeiraSemDado(m, dados) {
   const n = Math.max(m.total_aulas || 0, ids.length + 1);
   for (let i = 1; i <= n; i++) {
     const id = dois(i);
-    if (!dados.aulas[id]) return id;
+    if (!dados.aulas[id] && !lancadaNoSite(m && m.id, id)) return id;
   }
   return '';
 }
@@ -1223,7 +1280,9 @@ function estadoCaptura() {
   const id = sel.ciclo.value, aula = sel.aula.value;
   const f = id ? cache[id] : null;
   if (!f || !aula) return null;
-  return f.dados.aulas[aula] ? null : f;
+  // A aula já lançada não tem formulário — nem quando o pacote ainda não sabe dela.
+  if (f.dados.aulas[aula] || lancadaNoSite(id, aula)) return null;
+  return f;
 }
 
 // ------------------------------------------------------------------ o prazo da aula
@@ -1319,6 +1378,18 @@ const prazoAberto = (f, id, quando = agora()) => {
 // "21/09/2026 às 18h00"
 const dataHora = (d) => (d ? `${dois(d.getDate())}/${dois(d.getMonth() + 1)}/${d.getFullYear()}` +
   ` às ${dois(d.getHours())}h${dois(d.getMinutes())}` : '');
+/* O CARIMBO DE UM LANÇAMENTO, EM PORTUGUÊS — `2026-11-06T16:42` → `06/11/2026 às 16h42`.
+ *
+ * Ele chega assim do índice do site (`POST /api/lancadas`), em ISO até ao minuto, e é o
+ * `ultimo_lancamento` que o próprio acto gravou. Um valor que não seja um carimbo não se
+ * disfarça de data: sai como veio, ou como «sem carimbo». */
+function carimboLegivel(iso) {
+  const t = String(iso || '');
+  if (!t) return 'sem carimbo';
+  if (t === 'lançada') return 'lançada';
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(t);
+  return m ? `${m[3]}/${m[2]}/${m[1]} às ${m[4]}h${m[5]}` : t;
+}
 // Carimbo de nome de arquivo: sem segundos e sem ":" — `2026-09-20T1430`.
 const carimboArquivo = (d = new Date()) =>
   `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}T` +
@@ -2480,9 +2551,20 @@ async function render() {
       else aulas.forEach((k) => blocos.push(cabecalho + blocoAula(m, dados, k, captura)));
     }
     const { visiveis, total, quantos } = paginar(blocos);
+    /* «JÁ FOI LANÇADA, E O SITE AINDA NÃO A PUBLICOU» (06/11/2026). A lista das aulas dadas abre
+     * esta página numa aula que já tem lançamento; se a geração ainda não correu, o pacote não
+     * tem os dados dela, e a área de resultados ficaria com o vazio genérico — que se lê como «não
+     * foi preenchido». Aqui a página diz o que se passa, com o carimbo que o site já conhece. */
+    const soEspera = aula && !(id && cache[id] && cache[id].dados.aulas[aula])
+      && lancadaNoSite(id, aula);
     out.innerHTML = visiveis.length
       ? visiveis.join('')
-      : '<p class="vazio">Nenhum dado para estes filtros.</p>';
+      : soEspera
+        ? '<p class="vazio">A <strong>aula ' + esc(aula) + '</strong> está lançada (' +
+          esc(carimboLegivel(lancadasPorCiclo[id][aula])) +
+          '), e o site ainda não publicou o conteúdo dela — a geração leva dois a três minutos. ' +
+          'O registro está gravado; quem abre os entregáveis é a geração, quando terminar.</p>'
+        : '<p class="vazio">Nenhum dado para estes filtros.</p>';
     barraDeLeitura(true);
     el('paginacao').innerHTML = barra(total, quantos);
   } catch (e) {
@@ -2756,10 +2838,30 @@ async function trocarCiclo(modo) {
     atualizarBotaoMd();        // o botão nasce desabilitado: "Gerado por" é obrigatório
     // mudar quantos blocos por página também volta à primeira
     porPaginaSel.addEventListener('change', aoFiltrar);
-    // Começa onde o trabalho está: no ciclo vigente (o período declarado contém hoje) e
-    // na aula sem dado — o painel de captura abre nela (§3.1). Para ler, é só filtrar.
-    sel.ciclo.value = cicloVigente(carimbo().slice(0, 10)).id;
-    await trocarCiclo();
+    /* DE ONDE A PÁGINA ABRE — e agora há dois caminhos (06/11/2026).
+     *
+     * SEM PARÂMETRO, começa onde o trabalho está: no ciclo vigente (o período declarado contém
+     * hoje) e na primeira aula sem dado — o painel de captura abre nela (§3.1).
+     *
+     * COM `?ciclo=…&aula=…`, começa onde o link apontou. É assim que a lista das aulas dadas abre
+     * o lançamento de UMA aula: sem isto, o «Abrir o lançamento» de lá chegava a esta página e ela
+     * saltava para a aula que falta lançar — ou seja, mostrava outra coisa. Com parâmetro, o gesto
+     * é LEITURA (como o «Abrir» do painel de senha): o filtro não se mexe por conta própria. */
+    const daUrl = new URLSearchParams(location.search);
+    const cicloDaUrl = String(daUrl.get('ciclo') || '').trim();
+    const aulaDaUrl = String(daUrl.get('aula') || '').trim();
+    const pedido = cicloDaUrl && indice.ciclos.some((c) => String(c.id) === cicloDaUrl);
+    sel.ciclo.value = pedido ? cicloDaUrl : cicloVigente(carimbo().slice(0, 10)).id;
+    await trocarCiclo(pedido ? { abrir: true } : undefined);
+    if (aulaDaUrl) {
+      const existe = [...sel.aula.options].some((o) => o.value === aulaDaUrl);
+      if (existe) {
+        sel.aula.value = aulaDaUrl;
+        pagina = 1;
+        renderCaptura();
+        await render();
+      }
+    }
   } catch (e) {
     el('saida').innerHTML = '<p class="erro">Não consegui abrir a página. ' +
       (location.protocol === 'file:'

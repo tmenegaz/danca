@@ -1068,6 +1068,29 @@ function superficiesQueEmitem() {
       }],
       porPagina: 25, singular: 'aula', plural: 'aulas', campos: ['busca', 'turma'],
     })]);
+    /* A LISTA DAS AULAS DADAS (06/11/2026). Ela é SERVIDA pela ponte, e por isso não está em
+     * arquivo nenhum — como as três listas da Área do Professor. Entra aqui pela mesma razão das
+     * outras amostras: uma superfície que emite marcação e não é medida é aprovada por omissão, e
+     * «aprovar por omissão» é o modo mais silencioso de não verificar nada. O índice é uma amostra
+     * de uma aula — o que se mede é a marcação, não os dados desta escola. */
+    /* A AMOSTRA COMPÕE O CARTÃO COM A PÁGINA — e não chama `pagina()`, que é `async` e cuja
+     * assinatura obrigaria a tornar esta checagem inteira assíncrona. O que se mede é a mesma
+     * marcação: `itemDaAulaDada` (o cartão) dentro de `paginaDeLista` (a página), com os mesmos
+     * parâmetros que `pagina()` passa. */
+    const aulasDadas = require(path.join(raiz, 'motor/servidor/aulas-dadas.js'));
+    lista.push(['aulas-dadas', listas.paginaDeLista({
+      titulo: 'Aulas dadas', subtitulo: 'Escola · 1 aula lançada',
+      nav: '<nav class="topnav"></nav>',
+      itens: [aulasDadas.itemDaAulaDada({
+        ciclo: '01', variante: 'escola-turma-a', professor: 'professor-a', escola: 'Escola',
+        numero: '06', data: '2026-11-05', duracao: 60, marco: 'marco de amostra',
+        prazo: '2026-11-09T19:00', presentes: 2, ausentes: 0,
+        lancada_em: '2026-11-06T16:42', ajustada_em: '',
+      }, new Date('2026-11-07T10:00:00'))],
+      vazio: aulasDadas.VAZIO,
+      aviso: 'Cada linha é uma aula que já aconteceu.',
+      campos: ['busca', 'turma'], singular: 'aula', plural: 'aulas', porPagina: 25,
+    })]);
   } catch (e) {
     erros.push('Peça: não foi possível gerar as páginas de lista (' + (e && e.message) + ')');
   }
