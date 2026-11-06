@@ -27,12 +27,14 @@ const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
 // A CASCATA DO CICLO — a mesma rotina da Produção (05/11/2026).
 const repoEscola = require('./repo-escola.js');
 const acervo = require('./acervo-envelopes.js');
+const { criarAcervoDeLancamentos, consolidarDoKv, DONO_PADRAO, REPO_PADRAO, REF_PADRAO } = require('./acervo-lancamentos.js');
+const Cifra = require('../../tools/lib-cifra.js');
 // O ÍNDICE DO ACERVO (20/10/2026, fase 4): a camada de I/O de `nucleo/indices.js`.
 const { criarIndice } = require('./indice-acervo.js');
 // O ESTADO DA GERAÇÃO — o que a tela pergunta enquanto o Actions trabalha.
 const { criarGeracao } = require('./geracao.js');
 const { criarLeitorDeDados } = require('./ler-dados.js');
-const { cifrarTexto } = require('./cifrar-envelope.js');
+
 const { senhaDaEscolaOk } = require('./bastidores.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
@@ -109,6 +111,7 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     apagarCiclo,
     lerDados,
     lancamentoSeguro,
+    consolidarLancamentos,
     geracao,
     indice,
     fuso,
@@ -178,7 +181,15 @@ function senhaDaEscola(env) {
  */
 function criarArmazenamento(env) {
   const kv = criarCloudflare(env);
-  return acervo.combinar(acervo.doAmbiente(env, { legado: kv }), kv);
+  const lancamentos = criarAcervoDeLancamentos({
+    token: (env && env.GITHUB_TOKEN) || null,
+    dono: DONO_PADRAO,
+    repo: REPO_PADRAO,
+    ref: REF_PADRAO,
+  });
+  return acervo.combinar(acervo.doAmbiente(env, { legado: kv }), kv, {
+    'lancamento/': lancamentos,
+  });
 }
 
 function criarLeitor(env, prefixo) {
@@ -196,15 +207,19 @@ function criarLeitor(env, prefixo) {
  * (`cifrado: false`), em vez de deixar o dado desprotegido em silêncio.
  */
 function criarLancamento(env) {
-  const senhaCripto = (env && env.SENHA_CRIPTO) || null;
-  return {
-    autorizar: senhaDaEscola(env),
-    // O TEXTO QUE VAI AO KV É STRING: `cifrarTexto` devolve o envelope montado (objeto), e o KV
-    // coage objeto para `[object Object]`. Serializar aqui é o contrato de `cifrar`.
-    cifrar: senhaCripto
-      ? (texto) => cifrarTexto(texto, senhaCripto).then((e) => JSON.stringify(e, null, 2) + '\n')
-      : null,
-  };
+  /* A CIFRA SAIU DAQUI, E A RAZÃO É O DESTINO (06/11/2026).
+   *
+   * Enquanto o lançamento ia para o KV, ele ia CIFRADO — e estava certo: era um cofre de
+   * escrita, lido por ninguém, e o dado de aluna não podia ficar em claro ali.
+   *
+   * Agora o destino é a FONTE, `professores/<prof>/ciclos/ciclo-NN-<variante>-dados.json`, o
+   * mesmo arquivo que o «Guardar» do PO escreve e que sempre esteve em CLARO no repositório. E
+   * ele TEM de estar em claro: `ler_lancadas()` do `gerar-ciclo.sh` lê `aulas` do ficheiro para
+   * derivar o estado da aula, e um `_cifrado` não tem `aulas` — a aula lançada seria declarada
+   * «não dada» pelo índice, que é exactamente o defeito que este trabalho veio corrigir. Quem
+   * cifra é a GERAÇÃO, ao montar a cópia pública (`cifrar-envelope.js`): a fonte em claro, o
+   * pacote publicado cifrado. É a mesma divisão do `-dados.json` desde o princípio. */
+  return { autorizar: senhaDaEscola(env) };
 }
 
 /** Os passos de geração, a partir do token (null = não existe). */
@@ -374,6 +389,16 @@ async function fetch(request, env, opcoes) {
   // procurar `plano-observacao/ciclo-01-barra-dados.json` e responder «o pacote não tem …».
   const lerDados = criarLeitor(env, '');
   const lancamentoSeguro = criarLancamento(env);
+  /* A CONSOLIDAÇÃO DO QUE FICOU NO KV (06/11/2026) — o acto que resgata os lançamentos gravados
+   * antes de a família `lancamento/` existir. Lê o armazenamento antigo (o KV), decifra com a
+   * `SENHA_CRIPTO` e grava na fonte. Ver `acervo-lancamentos.js`. */
+  const consolidarLancamentos = (opcoes) => consolidarDoKv(Object.assign({
+    armazenamento: acervo.doAmbiente(env, { legado: criarCloudflare(env) }),
+    acervo: criarAcervoDeLancamentos({ token: (env && env.GITHUB_TOKEN) || null }),
+    senhaCripto: (env && env.SENHA_CRIPTO) || null,
+    escola: (env && env.ESCOLA_SLUG) || '',
+    Cifra,
+  }, opcoes || {}));
   const responder = montarPorta({
     armazenamento: criarArmazenamento(env),
     conteudoTexto,

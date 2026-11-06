@@ -68,7 +68,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, consolidarLancamentos, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
   const roteador = criarRoteador();
 
   /*
@@ -804,12 +804,78 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     let corpo;
     try { corpo = await request.json(); } catch { return { ok: false, erro: 'corpo nao e JSON' }; }
     try {
-      // O LANÇAMENTO também: a chave do KV é `<escola>/<professor>/…`, e o payload traz a
-      // escola do `ciclos.json` do pacote. A do Worker vence — pelo mesmo motivo das outras.
-      const opcoes = Object.assign({}, lancamentoSeguro, { escola: escolaCanonica });
+      /* O LANÇAMENTO GRAVA NA FONTE, E DISPARA A GERAÇÃO (06/11/2026).
+       *
+       * Antes disto a rota terminava na gravação, e a gravação ia para o KV — que ninguém lê.
+       * O resultado era o pior possível: a tela dizia «aula lançada», o dado existia, e a aula
+       * não existia em sítio nenhum que o sistema consultasse. Ao recarregar, desaparecia; e o
+       * caderno, que deriva do `-dados.json`, não tinha de onde sair.
+       *
+       * Agora a gravação vai para `professores/<prof>/ciclos/ciclo-NN-<variante>-dados.json`
+       * (ver `acervo-lancamentos.js`) e o `depois` pede a geração — porque o pacote publicado só
+       * muda quando ela corre. Sem o disparo, a fonte estaria certa e o site continuaria a
+       * mostrar a aula por lançar: o mesmo sintoma, uma camada abaixo.
+       *
+       * O `depois` NÃO derruba o lançamento: a gravação já aconteceu, e o resultado dele viaja
+       * na resposta (`saida.depois`) para a tela poder dizer o que falta. */
+      const opcoes = Object.assign({}, lancamentoSeguro, {
+        escola: escolaCanonica,
+        depois: async (feito) => {
+          const contexto = {
+            professor: feito.professor,
+            ciclo: feito.ciclo,
+            escola: feito.escola,
+            variante: feito.variante,
+          };
+          const saida = {};
+          if (disparar) {
+            try {
+              saida.disparo = await disparar(contexto);
+            } catch (erro) {
+              saida.disparo = { ok: false, erro: erro.message };
+            }
+          }
+          // O REGISTO da geração: é por ele que a tela sabe, depois de recarregar, que há um
+          // pacote a ser gerado. Best-effort — sem KV, o lançamento continua válido.
+          if (geracao) {
+            try {
+              await geracao.registrar(contexto, { disparo: saida.disparo });
+            } catch (erro) { /* declarado: o registo não é o dado */ }
+          }
+          return saida;
+        },
+      });
       return await lancamento.lancar(armazenamento, corpo, opcoes);
     } catch (erro) {
       // HTTP 200 de propósito — o contrato do lançamento não aceita 5xx.
+      return { ok: false, erro: erro.message };
+    }
+  });
+
+  /* 11.4b /api/lancamentos/consolidar — o resgate do que estava no KV (06/11/2026).
+   *
+   * Existe porque a correção da família (`lancamento/`) só vale do lançamento seguinte para
+   * diante: o que já tinha sido gravado no KV continua lá, e o KV não é lido por ninguém. Sem
+   * este acto, a aula que ela lançou no celular ficaria perdida para sempre — e reenviá-la
+   * dependeria de o separador ainda estar aberto.
+   *
+   * A senha é a da escola: é escrita, e escrita com dado de aluna. O acto é IDEMPOTENTE (grava
+   * o mesmo conteúdo na mesma fonte), portanto pode repetir-se sem estragar nada. */
+  roteador.rota('POST', '/api/lancamentos/consolidar', async ({ request }) => {
+    if (typeof consolidarLancamentos !== 'function') {
+      return { ok: false, erro: 'a consolidação não está disponível neste ambiente' };
+    }
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const opcoesSenha = lancamentoSeguro && typeof lancamentoSeguro.autorizar === 'function'
+      ? lancamentoSeguro.autorizar : null;
+    if (!opcoesSenha) return { ok: false, erro: 'não há conferência de senha neste ambiente' };
+    if (!(await opcoesSenha(String(corpo.senha || '')))) return { ok: false, erro: 'senha não reconhecida' };
+    const professor = String(corpo.professor || '').trim();
+    if (!professor) return { ok: false, erro: 'diga de que professor são os lançamentos' };
+    try {
+      return await consolidarLancamentos({ professor });
+    } catch (erro) {
       return { ok: false, erro: erro.message };
     }
   });

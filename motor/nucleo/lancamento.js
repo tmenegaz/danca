@@ -48,6 +48,12 @@ const basename = (nome) => String(nome).split(/[\\/]/).pop();
 // que é a única que o formulário envia.
 const RE_DADOS = /-dados(-[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{4})?\.json$/;
 
+/** `ciclo-01-<variante>-dados-<carimbo>.json` → a variante. `null` quando não é um arquivo de dados. */
+function varianteDoNomeDeDados(nome) {
+  const m = /^ciclo-\d{2}-(.+)-dados(?:-\d{4}-\d{2}-\d{2}T\d{4})?\.json$/.exec(String(nome || ''));
+  return m ? m[1] : null;
+}
+
 const slugDe = (indice, dados) => {
   const c = (indice && indice.ciclos && indice.ciclos[0]) || {};
   if (c.professor) return String(c.professor);
@@ -62,7 +68,7 @@ const slugDe = (indice, dados) => {
  * LANÇA `Error` (mensagem para a recusa).
  */
 async function lancar(armazenamento, corpo, opcoes) {
-  const { autorizar, cifrar } = opcoes || {};
+  const { autorizar, cifrar, depois } = opcoes || {};
 
   // A PORTA FECHADA POR PADRÃO: sem conferência de senha injetada, o lançamento NÃO acontece.
   // A alternativa (aceitar quando ninguém injetou nada) faria de um esquecimento da ponte uma
@@ -133,7 +139,26 @@ async function lancar(armazenamento, corpo, opcoes) {
     escritos.push(a.nome);
   }
 
-  return { ok: true, professor, escola, ciclo, escritos, cifrado: comCifra };
+  const resultado = {
+    ok: true, professor, escola, ciclo, escritos, cifrado: comCifra,
+    // A VARIANTE é o que a geração precisa e o resto do corpo não tem: ela vive no NOME do
+    // arquivo de dados (`ciclo-01-<variante>-dados-<carimbo>.json`), que é o único sítio onde
+    // o formulário a declara. Sem ela, o disparo não sabe que pacote gerar.
+    variante: varianteDoNomeDeDados(basename(dadosDe.nome)),
+    carimbo: carimbo ? carimbo[1] : null,
+  };
+  /* O DEPOIS — e ele NÃO pode derrubar o lançamento. A gravação já aconteceu; o que falta é o
+   * que precisa dela: disparar a geração que publica o pacote. Se o disparo falhar (token, cota
+   * da API), a resposta diz isso e o lançamento continua gravado — o contrário faria o professor
+   * reenviar uma aula que já está no repositório, e a segunda gravação não seria um acrescento. */
+  if (typeof depois === 'function') {
+    try {
+      resultado.depois = await depois(resultado);
+    } catch (erro) {
+      resultado.depois = { ok: false, erro: erro.message };
+    }
+  }
+  return resultado;
 }
 
-module.exports = { lancar, basename, RE_DADOS, slugDe };
+module.exports = { lancar, basename, RE_DADOS, slugDe, varianteDoNomeDeDados };

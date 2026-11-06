@@ -35,9 +35,18 @@ function prefixoDaEscola(escola) {
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'escola';
 }
 
-/** A raiz da família de chaves da escola: `<escola>/<professor>`. */
+/**
+ * A raiz da família de chaves do LANÇAMENTO: `lancamento/<escola>/<professor>`.
+ *
+ * O `lancamento/` NA FRENTE NÃO É DECORAÇÃO (06/11/2026): é o que decide onde o dado mora.
+ * O armazenamento composto (`acervo-envelopes.js`, `combinar`) roteia a escrita pela FAMÍLIA
+ * da chave — `envelope/` vai para o repositório, o resto ficava no KV. Enquanto a chave do
+ * lançamento não teve família, ela caiu no «resto»: o lançamento da aula foi gravado no KV, e
+ * **nada no sistema lê o KV**. A aula «lançada» desaparecia ao recarregar, e o caderno não
+ * tinha fonte. A família é o que leva o lançamento para o repositório, ao lado das fontes.
+ */
 function raizDaChave(escola, professor) {
-  return prefixoDaEscola(escola) + '/' + professor;
+  return 'lancamento/' + prefixoDaEscola(escola) + '/' + professor;
 }
 
 /**

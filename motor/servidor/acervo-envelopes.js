@@ -725,9 +725,23 @@ function doAmbiente(env, { legado, escola, cifrar } = {}) {
  *   · `gravarComFusao` — precisa do `sha` para ler-modificar-gravar, e o KV não o tem; fora do
  *     acervo a resposta é `{semFusao: true}`, que diz ao chamador para gravar como sempre.
  */
-function combinar(acervo, resto) {
+function combinar(acervo, resto, familias) {
+  /* AS FAMÍLIAS QUE NÃO SÃO `envelope/` (06/11/2026). A regra continua a ser a família da chave
+   * — o que muda é ela deixar de ser uma só. O LANÇAMENTO DA AULA entrou por aqui, e a razão foi
+   * medida: sem família própria, ele caía no «resto» (o KV), e NADA neste sistema lê o KV — a
+   * aula «lançada» desaparecia ao recarregar e não havia caderno. Ver `acervo-lancamentos.js`.
+   *
+   * `familias` é `{ 'lancamento/': adaptador }`, e o mais longo ganha: uma família futura que
+   * comece com o prefixo de outra não pode ser servida pela errada. */
+  const extra = familias || {};
+  const prefixos = Object.keys(extra).sort((a, b) => b.length - a.length);
   const ehDoAcervo = (chave) => String(chave || '').startsWith('envelope/');
-  const quemAtende = (chave) => (ehDoAcervo(chave) ? acervo : resto);
+  const quemAtende = (chave) => {
+    const nome = String(chave || '');
+    if (ehDoAcervo(nome)) return acervo;
+    for (const p of prefixos) if (nome.startsWith(p)) return extra[p];
+    return resto;
+  };
 
   const proprio = {
     /* O `criar` DELEGA — não reimplementa (04/11/2026). A primeira versão perguntava
@@ -771,7 +785,8 @@ function combinar(acervo, resto) {
       if (verbo in alvo) return true;
       if (typeof verbo !== 'string') return false;
       return Boolean((acervo && typeof acervo[verbo] === 'function')
-        || (resto && typeof resto[verbo] === 'function'));
+        || (resto && typeof resto[verbo] === 'function')
+        || prefixos.some((p) => extra[p] && typeof extra[p][verbo] === 'function'));
     },
   });
 }
