@@ -101,6 +101,26 @@ function resp(envelope, id) {
 }
 
 /**
+ * O TEXTO PARA DENTRO DE MARCAÇÃO (06/11/2026) — um apelido de aluna não é código.
+ *
+ * A §6 «Proveniência consolidada» passou a emitir um `<select>` com um `<option>` por aluna, e os
+ * nomes vêm do acto da turma: são dados escritos por pessoas. Um `&`, um `<` ou uma aspa num
+ * apelido partiriam o atributo — o `value` do `<option>` deixaria de casar com o `data-prov-par`
+ * do bloco de acções, e o selector deixaria de mostrar as acções daquela aluna, em silêncio.
+ *
+ * Não há aqui biblioteca nenhuma: as três substituições que faltam (`&`, `<`, `>`) e a aspa, que
+ * é a do atributo. O `regras-do-texto` do resto do sistema não serve porque ele compõe frases; o
+ * que se guarda aqui é a INTEGRIDADE do atributo, e é outra coisa.
+ */
+function escaparHtml(texto) {
+  return String(texto == null ? '' : texto)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escaparHtmlAtributo(texto) {
+  return escaparHtml(texto).replace(/"/g, '&quot;');
+}
+
+/**
  * Prosa honesta: o valor, ou uma lacuna declarada. Um valor que é o EXEMPLO do gabarito
  * (o template vazado no campo) também vira lacuna — não se publica o exemplo como dado.
  *
@@ -1089,63 +1109,120 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
         ? encurtar(objetivoDoPlano, 160)
         : '[Preencher: o plano não declara o objetivo geral do ciclo]'));
 
-    /* A ANAMNESE DE CADA ALUNA — a proveniência POR SUJEITO (06/11/2026).
+    /* A ANAMNESE DO ELENCO — a proveniência POR SUJEITO (06/11/2026).
      *
-     * O PEDIDO DELA: «a gente vai colocar uma lista para o professor escolher de qual aluna da
-     * turma ele quer olhar a proveniência. […] vai aparecer dois links para ele, um link de
-     * edição da anamnese da aluna e um outro link que é imprimir a anamnese da aluna».
+     * O PEDIDO DELA, na segunda versão: «o dropdown da Proveniência Consolidada (Item 6 da Aula 1)
+     * só pode exibir as alunas que fazem parte do elenco oficial daquela turma específica (definido
+     * na Linha de Base). Alunas avulsas ou de outras turmas são rigidamente ignoradas.»
      *
-     * PORQUE É UMA LISTA, E NÃO UM SELECTOR. O documento tem dois leitores: a página (onde um
-     * seletor faria sentido) e o PDF, que é o que se imprime e se leva para a sala. O pandoc
-     * descarta HTML cru ao gerar LaTeX — um `<select>` desapareceria do PDF, e com ele a lista
-     * inteira. Uma linha por aluna, com os dois links à vista, diz o mesmo nos dois leitores.
+     * DUAS CORREÇÕES, e a segunda é um defeito medido.
      *
-     * OS DOIS LINKS SÃO OS DA LISTAGEM, e não uns inventados aqui: a porta da anamnese com o
-     * carimbo (`?editar=` ou `?novo=`, os gestos que a Área do Professor já oferece) e a folha
-     * da estante (`/anamnese/api/ficha-preenchida.<carimbo>?formato=html`). O carimbo é o
-     * VIGENTE de cada aluna — quem o resolve é quem chama (`anamneses`, opcional): o derivador
-     * não lê o acervo, e recebê-lo pronto é o que o mantém puro.
+     * 1. O ELENCO VINHA DO SÍTIO ERRADO. Era `po.sujeitos`, e o PO da `calango` listava três
+     *    alunas — A, B e **C** —, quando a linha de base daquela turma tem duas. O PO declara
+     *    sujeitos, mas quem diz QUEM ESTÁ NA TURMA é o acto do passo 2 da linha de base; o PO
+     *    herda-a, e quando herda mal (um envelope antigo, uma gravação anterior à regra) é a
+     *    linha de base que está certa. Ler o PO aqui punha no documento uma aluna de fora.
+     *    `linhaDeBase.alunas` é a fonte; `po.sujeitos` fica como reserva — um ciclo sem linha de
+     *    base legível continua a derivar, e a reserva é declarada no comentário e na prova.
      *
-     * SEM CARIMBO NÃO SE PROMETE FOLHA. Uma aluna do elenco que ainda não tem anamnese fica com
-     * um link só — o de a fazer. Inventar-lhe um «imprimir» seria um 404 com aparência de dado.
-     */
-    const elenco = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
+     * 2. ERA UMA LISTA, E PASSA A SER UM SELECTOR. Ela: «listar todas as alunas soltas na tela
+     *    geraria uma poluição visual intransponível caso a turma possua dezenas de alunas (ex: 50
+     *    alunas)». Está certa — cinquenta linhas com dois links cada é uma parede.
+     *
+     * O QUE O PAPEL DIZ, E O QUE O ECRÃ DIZ. O documento tem dois leitores, e o pandoc trata-os
+     * de maneira diferente: o bloco `{=html}` é entregue ao renderizador de HTML e DESCARTA-SE no
+     * LaTeX. É por isso que o selector vive nesse bloco — e por isso o PDF continua a ter a frase
+     * que diz onde as anamneses estão, em vez de uma lista de nomes que no papel não se clica.
+     * Sem `{=html}` o HTML cru seria vertido no PDF como texto solto («editar imprimir editar
+     * imprimir»), que é pior do que não ter nada.
+     *
+     * OS DOIS GESTOS SÃO OS DA LISTAGEM, e não uns inventados aqui: a porta da anamnese com o
+     * carimbo (`?editar=` ou `?novo=`, os gestos que a Área do Professor já oferece) e a folha da
+     * estante (`/anamnese/api/ficha-preenchida.<carimbo>?formato=html`). O carimbo é o VIGENTE de
+     * cada aluna — quem o resolve é quem chama (`anamneses`, opcional): o derivador não lê o
+     * acervo, e recebê-lo pronto é o que o mantém puro.
+     *
+     * SEM CARIMBO NÃO SE PROMETE FOLHA. Uma aluna do elenco que ainda não tem anamnese entra no
+     * selector com um gesto só — o de a fazer. Inventar-lhe um «imprimir» seria um 404 com
+     * aparência de dado.
+     *
+     * E O ECRÃ NÃO REPETE O PAPEL: o selector mostra as acções de UMA aluna de cada vez. Sem
+     * JavaScript ficam todas à vista — é o comportamento anterior, e é a degradação certa: a
+     * página perde o conforto, não a função. */
+    const doActo = emLista(((linhaDeBase && linhaDeBase.alunas) || []).map(String))
+      .map((n) => n.trim()).filter((n) => n && !GABARITO_VAZADO.test(n));
+    const doPo = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
+    const elenco = doActo.length ? doActo : doPo;
     if (elenco.length) {
       const daBarra = [docente ? 'professor=' + encodeURIComponent(docente) : '',
         ciclo ? 'ciclo=' + encodeURIComponent(ciclo) : ''].filter(Boolean).join('&');
       const endereco = (aluna, extra) => '/anamnese/?' + [daBarra, extra,
         'aluna=' + encodeURIComponent(aluna)].filter(Boolean).join('&');
+      const quantas = elenco.length;
       corpo6.push('');
       corpo6.push('**Anamnese de cada aluna**');
       corpo6.push('');
-      corpo6.push('A origem de cada uma: **editar** abre o formulário — a senha é pedida lá, e '
-        + 'é ela que autoriza a escrita; **imprimir** abre a folha dela, para ler ou levar para '
-        + 'a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato '
-        + 'anterior fica como está, e o novo nasce com a data de hoje.');
+      /* A FRASE FICA NOS DOIS LEITORES. Ela é a proveniência em papel: quem imprime o guia leva
+       * onde as anamneses estão, mesmo sem poder clicar. */
+      corpo6.push('A anamnese de ' + (quantas === 1 ? 'cada aluna do elenco' : 'cada uma das '
+        + quantas + ' alunas do elenco') + ' desta turma está na **Área do Professor** — '
+        + '**editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e '
+        + '**imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada '
+        + 'a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com '
+        + 'a data de hoje.');
       corpo6.push('');
+      /* O SELECTOR E AS ACÇÕES — só no HTML. Cada linha do bloco é uma peça inteira, e o bloco
+       * inteiro é descartado no LaTeX (ver o comentário acima). */
+      const html = [];
+      html.push('<select id="prov-seletor" aria-label="Aluna cuja anamnese se quer abrir">');
+      html.push('<option value="">— escolha a aluna —</option>');
       for (const aluna of elenco) {
         const nome = String(aluna).trim();
-        if (!nome) continue;
+        const dado = anamneses && anamneses[nome];
+        const carimbo = String(dado && typeof dado === 'object' ? dado.carimbo : dado || '').trim();
+        html.push('<option value="' + escaparHtmlAtributo(nome) + '">' + escaparHtml(nome) + '</option>');
+      }
+      html.push('</select>');
+      for (const aluna of elenco) {
+        const nome = String(aluna).trim();
         const dado = anamneses && anamneses[nome];
         const carimbo = String(dado && typeof dado === 'object' ? dado.carimbo : dado || '').trim();
         /* «EDITAR» OU «NOVO REGISTO» — a regra é do projeto, não desta secção (04/11/2026): uma
          * anamnese já vinculada ao ciclo não se reescreve, porque é o retrato datado de um corpo
          * num dia. O gesto que a lista oferece nesse caso é «Novo registo» (`?novo=`), e é o
-         * mesmo que esta linha oferece — abrir um formulário de edição sobre um registo
-         * vinculado dava um erro na gravação, e um link que só falha no fim é o pior dos dois. */
+         * mesmo que aqui se oferece — abrir um formulário de edição sobre um registo vinculado
+         * dava um erro na gravação, e um link que só falha no fim é o pior dos dois. */
         const vinculada = Boolean(dado && typeof dado === 'object' && dado.vinculada);
+        const liga = (href, rotulo) => '<a class="acao secundario pequena" href="'
+          + escaparHtmlAtributo(href) + '">' + rotulo + '</a>';
+        let accoes;
         if (carimbo) {
-          const gesto = vinculada
-            ? '[novo registo](' + endereco(nome, 'novo=' + encodeURIComponent(carimbo)) + ')'
-            : '[editar](' + endereco(nome, 'editar=' + encodeURIComponent(carimbo)) + ')';
-          corpo6.push('- **' + nome + '** — ' + gesto + ' · '
-            + '[imprimir](/anamnese/api/ficha-preenchida.'
-            + encodeURIComponent(carimbo) + '?formato=html)');
+          const gesto = liga(endereco(nome, (vinculada ? 'novo=' : 'editar=')
+            + encodeURIComponent(carimbo)), vinculada ? 'novo registo' : 'editar');
+          const folha = liga('/anamnese/api/ficha-preenchida.'
+            + encodeURIComponent(carimbo) + '?formato=html', 'imprimir');
+          accoes = gesto + ' ' + folha;
         } else {
-          corpo6.push('- **' + nome + '** — sem anamnese registada · '
-            + '[fazer a anamnese](' + endereco(nome, '') + ')');
+          /* TEXTO SOLTO, e não um `<span class="sub">`: essa classe nasce no `<style>` da porta
+           * (`porta/index.html`) e não existe na folha dos pacotes — usá-la aqui seria a classe
+           * inventada que o `IDENTIDADE-VISUAL.md` proíbe. */
+          accoes = 'sem anamnese registada — ' + liga(endereco(nome, ''), 'fazer a anamnese');
         }
+        html.push('<div data-prov-par="' + escaparHtmlAtributo(nome) + '">' + accoes + '</div>');
       }
+      /* O SCRIPT É A PEÇA MAIS FRÁGIL DESTA SECÇÃO, e por isso é uma linha por instrução: ele é
+       * escrito como TEXTO dentro de uma string, e não há verificador que o leia. Mantê-lo curto e
+       * partido torna o erro visível na revisão. Sem ele a página mostra todas as acções (o
+       * comportamento anterior); com ele, mostra as da aluna escolhida. */
+      html.push('<script>(function(){');
+      html.push('var s=document.getElementById("prov-seletor");if(!s)return;');
+      html.push('var p=document.querySelectorAll("[data-prov-par]");');
+      html.push('function pintar(){for(var i=0;i<p.length;i++){');
+      html.push('p[i].hidden=p[i].getAttribute("data-prov-par")!==s.value;}}');
+      html.push('s.addEventListener("change",pintar);pintar();})();</script>');
+      corpo6.push('```{=html}');
+      for (const linha of html) corpo6.push(linha);
+      corpo6.push('```');
     }
     secao('6. Proveniência consolidada', corpo6);
   }

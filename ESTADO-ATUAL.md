@@ -4141,6 +4141,23 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   `provar-derivados-do-po` **16/16**; `check-identidade` **0 erros**; `check-indices` **16/16**;
   `check-pacote` do ciclo **0/0**; `gerar-ciclo.sh` completo **0 erro(s)**.
 
+- **06/11/2026** — **A §6 vira selector, e o elenco passa a vir da linha de base.** Segunda volta da
+  mesma secção: «o dropdown … só pode exibir as alunas que fazem parte do elenco oficial daquela
+  turma … alunas avulsas ou de outras turmas são rigidamente ignoradas» e «listar todas as alunas
+  soltas na tela geraria uma poluição visual intransponível». **O defeito de dado:** o elenco vinha
+  de `po.sujeitos`, e o PO da `calango` listava três alunas quando a linha de base tem duas — o PO
+  declara sujeitos, mas quem diz quem está na turma é o acto do passo 2. A fonte passou a ser
+  `linhaDeBase.alunas`, com o PO como reserva. **A forma:** medido com o pandoc 3.1.3, HTML cru cai
+  no PDF como texto («editar imprimir editar imprimir»), e só o bloco `{=html}` é entregue a um
+  escritor e **descartado** no outro — por isso o selector vive lá e o PDF fica com a frase que diz
+  onde as anamneses estão. O `<select>` não leva classe (a folha já o desenha) e as acções são
+  `a.acao secundario pequena`; sem JavaScript ficam todas à vista, que é a degradação certa. O
+  contrato de extracção passou a saltar blocos declarados para outro alvo (commit próprio,
+  `acc78228` — o `tools/` está congelado). Medido: `provar-proveniencia-e-turma` **42/42**,
+  contraprova contra `HEAD` **21/42**; `provar-eixos-e-tempo-da-aula` **47/51** (4 já vermelhas);
+  `provar-corpo-da-linha-de-base` **31/31**; `check-identidade` **0 erros**; `check-indices`
+  **16/16**; `check-pacote` do ciclo **0/0**; `gerar-ciclo.sh` completo **0 erro(s)**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

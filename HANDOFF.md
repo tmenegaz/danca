@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T11:52:17-0300`
-Commit atual: `308a3a85` — chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+Gerado em: `2026-11-06T12:22:18-0300`
+Commit atual: `acc78228` — fix(tools): um bloco declarado para outro alvo nao e conteudo do campo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,10 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+acc78228 fix(tools): um bloco declarado para outro alvo nao e conteudo do campo
+10e760ad chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+fc73fd17 chore(estrutura): regerar os índices derivados
+8f6ba7b4 feat(ciclo-01): a turma no alto dos documentos, e a anamnese de cada aluna na proveniencia
 308a3a85 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 8cf894d8 chore(estrutura): regerar os índices derivados
 bdbe61dc chore(ciclo-01): regerar as fontes do ciclo-01 da calango com o corpo da linha de base
@@ -102,10 +106,6 @@ d8ca4c52 fix(po): o texto do professor nao se perde — e duas maneiras de o per
 0cd933be feat(po): os objetivos do plano entram como criterios, e o campo fica com o criterio
 63d6290b feat(po): os itens de cada dimensao mostram o que o plano ja decide do bloco
 438cc267 fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
-04d7adf2 fix(po): o ciclo do PO tambem nao se escreve na Area do Professor
-10f22048 refactor(po): o plano de observacao deixa de reperguntar o que ja esta decidido
-b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
-77903696 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -156,7 +156,7 @@ b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `31de8f746770` | (vazio) | — |
-| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `ccc9bc5161ef` | (vazio) | Input_PO_Aguardando |
+| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `f6c15e952d9a` | (vazio) | Input_PO_Aguardando |
 
 ### sapo-bailarino — 1 ciclo(s)
 
@@ -233,70 +233,62 @@ b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — A turma no alto dos documentos, e a anamnese de cada aluna na §6 «Proveniência consolidada»
+## 06/11/2026 — A §6 vira selector, e o elenco passa a vir da linha de base
 
-**Os dois pedidos, e os dois são de leitura.**
+**As duas correções, e são dela.** *«O dropdown da Proveniência Consolidada (Item 6 da Aula 1) só
+pode exibir as alunas que fazem parte do elenco oficial daquela turma específica (definido na Linha de
+Base). Alunas avulsas ou de outras turmas são rigidamente ignoradas.»* E: *«listar todas as alunas
+soltas na tela geraria uma poluição visual intransponível caso a turma possua dezenas de alunas (ex:
+50 alunas)».*
 
-- *«Vamos acrescentar aqui no topo quando a gente abre o plano de ensino, aí qualquer plano de
-  ensino, vai ter isso. Vamos dizer qual é a turma do qual se aplica esse plano de ensino. […] para
-  o professor não se perder, para ele saber do que se trata se ele ficar muito tempo aqui.»*
-- *«Aí em baixo a gente vai colocar proveniência. […] uma lista para o professor escolher de qual
-  aluna da turma ele quer olhar a proveniência […] vai aparecer dois links para ele, um link de
-  edição da anamnese da aluna e um outro link que é imprimir a anamnese da aluna.»*
+**A correção de dado — um defeito medido.** O elenco vinha de `po.sujeitos`, e o PO da `calango`
+listava **três** alunas (A, B, **C**) quando a linha de base daquela turma tem **duas**. O PO declara
+sujeitos, mas quem diz quem está na turma é o acto do passo 2 da linha de base; o PO herda-a, e
+quando herda mal (envelope anterior à regra, gravação antiga) é a linha de base que está certa. O
+documento punha na §6 uma aluna de fora. A fonte passou a ser `linhaDeBase.alunas`, com
+`po.sujeitos` como **reserva** — um ciclo sem linha de base legível continua a derivar.
 
-**A turma no alto.** O título do documento diz o ciclo e a ESCOLA, e a turma aparecia duas vezes lá
-em baixo (na tabela do `## Contexto`, entre sete linhas, e dentro do objetivo). Passa a haver o
-`subtitle` do pandoc — `turmaDoDocumento()`, nova, em `derivar-po.js` —, que fica debaixo do `<h1>` na
-página e no bloco de título do PDF. É a peça que a captura e a harmonização já usavam: nenhuma classe
-nova. Duas turmas somam-se com ` · `; sem turma declarada a linha **não existe** («Turma: —» seria
-prometer um dado inexistente). A aula também a diz, e vai buscá-la ao **plano** — é ele que a declara,
-e o PO herda-a; ler os dois seria escolher entre duas respostas.
+**A correção de forma — uma restrição do gerador, medida.** Com o pandoc 3.1.3 do ambiente:
 
-**A proveniência por sujeito.** A §6 apontava para os dois documentos de que a aula deriva e parava
-aí. Abaixo disso passa a estar a anamnese de **cada aluna do elenco**, uma linha por aluna, com dois
-gestos: abrir o formulário (a senha é pedida lá) e abrir a folha dela para ler ou imprimir.
+| o que se escreve | no HTML | no PDF |
+|:--|:--|:--|
+| `<select>` em Markdown (HTML cru) | aparece | as etiquetas caem e o **texto fica** — «editar imprimir editar imprimir» |
+| ` ```{=html} … ``` ` | aparece | **desaparece inteiro** |
 
-**Porque é uma lista e não um `select`.** O documento tem dois leitores: a página e o PDF — e o
-pandoc **descarta HTML cru ao gerar LaTeX**. Um `<select>` desapareceria do PDF, e com ele a secção
-inteira. Uma linha por aluna com os dois links à vista diz o mesmo nos dois.
+HTML cru não serve: o PDF fica com o esqueleto das etiquetas como prosa. O bloco `{=html}` é o único
+mecanismo que entrega a marcação a um escritor e a **descarta** no outro — e é por isso que o PDF não
+perde proveniência: o que fica nos dois leitores é a **frase** («A anamnese de cada uma das N alunas
+do elenco desta turma está na Área do Professor»), e o selector é o conforto do ecrã.
 
-**O gesto é o que o servidor aceita.** A regra de 04/11 não se repete aqui por conveniência:
-`PUT /api/anamnese-editar/:id` responde **409** quando a aluna está no elenco de um PO. A linha diz
-**«novo registo»** (`?novo=<carimbo>`, o gesto que a lista também oferece) quando a anamnese está
-vinculada, e **«editar»** (`?editar=<carimbo>`) quando está solta. Um link que só falha no fim é o
-pior dos dois.
+**O que o ecrã faz.** Um `<select>` com uma `<option>` por aluna, e por baixo **um bloco de acções por
+aluna**, todos escondidos menos o da escolhida. Sem JavaScript ficam todos à vista — o comportamento
+anterior; a página perde o conforto, não a função.
 
-**O carimbo vem do sítio certo, e uma vez só.** `porta.anamneses` diz o vigente de cada apelido (o
-carimbo mais recente) e se está vinculado — a mesma leitura da listagem, para o documento e a lista
-não discordarem. `rotas.js` faz essa leitura no «Guardar» e passa `{aluna: {carimbo, vinculada}}` a
-`escreverCiclo`; o derivador é puro e recebe-o pronto. Sem o mapa (fora do Worker) a linha degrada
-para o único gesto que não precisa de carimbo — fazer a anamnese —, em vez de inventar um. E
-`regerar-derivados` lê o mesmo do disco e marca `vinculada` pela mesma regra de `porta.vinculos` (a
-aluna no elenco de algum PO): sem isso, o `--escrever` **apagaria** a lista ao regerar um ciclo.
+**As peças são as da folha.** O `<select>` não leva classe nenhuma (a folha já desenha
+`:where(… select)`, com a seta própria). As acções são `a.acao secundario pequena`, a peça do botão
+«Abrir notação». E o aviso da aluna sem anamnese é **texto solto**: a classe `sub` nasce no `<style>`
+da porta e não existe na folha dos pacotes — usá-la aqui seria a classe inventada que o
+`IDENTIDADE-VISUAL.md` proíbe.
 
-**Com o quê.** `experimentos/provar-proveniencia-e-turma.js` (**32**), nova. **A**, o plano (a linha,
-depois do título, duas turmas, a reserva do contexto, e sem turma nada). **B**, a aula — com a
-negativa que importa: o PO com outra turma não sobrepõe a do plano. **C**, a §6: uma linha por aluna
-na ordem do elenco, os dois gestos pela regra do servidor, a folha com a rota da estante, a aluna sem
-anamnese sem «imprimir», e a frase que explica o gesto sem nomes de ficheiro nem de função. **D**, a
-degradação sem o mapa. **E**, a regra do vigente lida do acervo, com um armazenamento em memória.
-**F**, o contrato de extracção, corrido a sério: `proveniencia` continua a ser **string** — o modo de
-falha silencioso desta secção, porque um `###` a mais fá-la-ia um objeto sem que a página perdesse
-nada.
+**E a extracção.** O bloco `{=html}` passou a ser saltado pelo contrato de extracção — commit
+próprio, `acc78228`, porque o `tools/` está congelado (a entrada anterior deste registo é o motivo).
 
-**Contraprova.** Contra o núcleo de `HEAD`, a prova **reprova 18 de 32**.
+**Com o quê.** `provar-proveniencia-e-turma` passa de **32** para **42** asserções. **C**: um
+`<select>` com um `<option>` por aluna; **não** há lista markdown; com linha de base, a aluna de fora
+**desaparece**; sem ela, cai no PO; os dois gestos por aluna (vinculada → «novo registo», solta →
+«editar»); a aluna sem anamnese não ganha «imprimir»; nenhuma classe nova. **D**: o selector corre num
+DOM a sério — abre sem acção nenhuma à vista, escolhe a B, troca para a A — e sem JavaScript ficam
+todas à vista. **E2**: sem o mapa de carimbos, degrada em vez de partir.
 
-**Medido.** `provar-proveniencia-e-turma` **32/32** (contraprova **14/32**);
-`provar-eixos-e-tempo-da-aula` **47/51** (4 já vermelhas em `HEAD`, medidas com `git stash`);
-`provar-derivados-do-po` **16/16**; `provar-cabecalho-do-documento` ok; `check-identidade` **0 erros**
-(as 20); `check-indices` **16/16**; `check-schemas` ok; `check-pacote` do ciclo **0 erro(s),
-0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s), 0 aviso(s)** (HTML + PDF, com a linha da turma
-debaixo do título nos dois). `provar-aula-prosa` morre com `ENOENT` na `perna-boa` — escola
-expurgada, e já morria em `HEAD`.
+**Contraprova.** Contra o núcleo de `HEAD`, a prova **reprova 21 de 42**.
 
-**Nota sobre a numeração.** A §6 mantém o título `## 6. Proveniência consolidada` — não entra um
-`###` novo, e o texto que explica os gestos é prosa. É o que mantém o campo `proveniencia` do tipo
-que o schema declara.
+**Medido.** `provar-proveniencia-e-turma` **42/42** (contraprova **21/42**);
+`provar-eixos-e-tempo-da-aula` **47/51** (as 4 já vermelhas em `HEAD`);
+`provar-derivados-do-po` **16/16**; `provar-observacao-do-professor` **20/20**;
+`provar-corpo-da-linha-de-base` **31/31**; `provar-cadeia-do-ajuste` **34/34**; `check-identidade`
+**0 erros** (as 20); `check-indices` **16/16**; `check-schemas` ok; `check-pacote` do ciclo
+**0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)** — e o HTML publicado tem o
+selector, o PDF não tem nenhum vestígio dele, e a frase fica nos dois.
 
 ## O que está pendente
 

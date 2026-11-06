@@ -95,6 +95,17 @@ function secao6(md) {
 const aula = (extra) => derivarAula01(Object.assign(
   { plano: PLANO, po: PO, contexto: CONTEXTO }, extra || {}));
 
+/* O ELENCO DA TURMA — o acto do passo 2 da linha de base. Duas alunas, e o PO da fixture declara
+ * três de propósito: é a diferença que mede o filtro. */
+const ELENCO = { alunas: ['Aluna A', 'Aluna B'], recorte: [], mostra: [] };
+const comLinhaDeBase = (extra) => aula(Object.assign({ linhaDeBase: ELENCO }, extra || {}));
+
+/** O conteúdo do bloco `{=html}` de uma secção — o que só a página recebe. */
+function blocoHtml(md) {
+  const m = /^```\{=html\}\n([\s\S]*?)^```$/m.exec(String(md));
+  return m ? m[1] : null;
+}
+
 (async () => {
 // ---------------------------------------------------------------------------------------------
 console.log('A. A TURMA NO ALTO DO PLANO DE ENSINO');
@@ -151,7 +162,7 @@ console.log('\nB. A TURMA NO ALTO DA AULA — e vem do PLANO, não do PO');
 }
 
 // ---------------------------------------------------------------------------------------------
-console.log('\nC. A §6 — UMA LINHA POR ALUNA, COM OS DOIS GESTOS');
+console.log('\nC. A §6 — UM SELECTOR DO ELENCO, E AS ACÇÕES DA ALUNA ESCOLHIDA');
 {
   const anamneses = {
     'Aluna A': { carimbo: 'anamnese-20261105-2301', vinculada: true },
@@ -163,66 +174,129 @@ console.log('\nC. A §6 — UMA LINHA POR ALUNA, COM OS DOIS GESTOS');
     /^## 6\. Proveniência consolidada$/m.test(s6), s6 && s6.split('\n')[0]);
   provar('e há UMA só (duas secções 6 seriam uma delas lida como prosseguimento da outra)',
     (aula({ anamneses }).match(/^## 6\. /gm) || []).length === 1);
-
-  /* OS DOIS LINKS DE SEMPRE FICAM. */
   provar('os dois links de origem continuam lá (PO e plano de ensino)',
     /\[Plano de Observação\]\(\/plano-observacao\/api\/po-preenchido\./.test(s6)
     && /\[Plano de ensino\]\(\/plano-ensino\/api\/plano-preenchido\./.test(s6), s6);
 
-  /* UMA LINHA POR ALUNA DO ELENCO — nem mais, nem menos. */
-  const linhas = s6.split('\n').filter((l) => /^- \*\*Aluna /.test(l));
-  provar('há uma linha por aluna do elenco, e são três',
-    linhas.length === 3, linhas);
-  provar('…na ordem em que o PO as declarou',
-    linhas.map((l) => l.match(/^- \*\*(.+?)\*\*/)[1]).join('|') === 'Aluna A|Aluna B|Aluna C',
-    linhas.map((l) => l.match(/^- \*\*(.+?)\*\*/)[1]));
+  /* O SELECTOR, E SÓ ELE — a lista deixou de ser uma parede de linhas. */
+  const bloco = blocoHtml(s6);
+  provar('as acções vivem num bloco `{=html}` — o único que o LaTeX descarta',
+    Boolean(bloco) && /^```\{=html\}$/m.test(s6));
+  provar('há um `<select>` com um `<option>` por aluna do ELENCO',
+    Boolean(bloco) && /<select id="prov-seletor"/.test(bloco)
+    && ((bloco || '').match(/<option value="Aluna /g) || []).length === 3, bloco && bloco.slice(0, 200));
+  provar('…e NÃO há uma lista markdown de alunas (era a parede que ela recusou)',
+    !/^- \*\*Aluna /m.test(s6), s6.split('\n').filter((l) => /^- /m.test(l)));
+
+  /* O ELENCO É O DA LINHA DE BASE — o defeito que ela viu («a aluna C existe no banco geral, mas
+   * não pertence àquela turma»). O PO da fixture continua a declarar três; a linha de base tem
+   * duas, e é ela que manda. */
+  const base = { alunas: ['Aluna A', 'Aluna B'], recorte: [], mostra: [] };
+  const comBase = secao6(aula({ anamneses, linhaDeBase: base }));
+  const blocoDaBase = blocoHtml(comBase);
+  provar('com linha de base, o selector mostra SÓ o elenco dela (a aluna de fora desaparece)',
+    Boolean(blocoDaBase) && !/Aluna C/.test(blocoDaBase), blocoDaBase && blocoDaBase.match(/<option[^>]*>[^<]*/g));
+  provar('…e as duas do elenco ficam',
+    Boolean(blocoDaBase) && /<option value="Aluna A">/.test(blocoDaBase)
+    && /<option value="Aluna B">/.test(blocoDaBase));
+  /* SEM linha de base legível, a reserva é o PO — e é declarada, não silenciosa. */
+  provar('sem linha de base, cai no PO (a reserva) em vez de ficar sem elenco',
+    ((bloco || '').match(/<option value="Aluna /g) || []).length === 3, bloco && bloco.slice(0, 120));
 
   /* O GESTO É O QUE O SERVIDOR ACEITA. */
-  const daA = linhas[0];
-  const daB = linhas[1];
-  provar('anamnese VINCULADA — a linha diz «novo registo» e leva o carimbo',
-    /\[novo registo\]\(\/anamnese\/\?[^)]*novo=anamnese-20261105-2301/.test(daA), daA);
-  provar('anamnese SOLTA — a linha diz «editar» e leva o carimbo',
-    /\[editar\]\(\/anamnese\/\?[^)]*editar=anamnese-20261105-2031/.test(daB), daB);
-  provar('…e o endereço leva a aluna, para a barra do formulário abrir preenchida',
-    /aluna=Aluna%20A/.test(daA) && /aluna=Aluna%20B/.test(daB), [daA, daB]);
-  provar('…e o professor, que é o contexto do ato',
-    /professor=prova/.test(daA), daA);
-
-  /* O LINK DE IMPRESSÃO É A FOLHA DA ESTANTE. */
-  provar('o segundo link imprime a anamnese daquela aluna',
-    /\[imprimir\]\(\/anamnese\/api\/ficha-preenchida\.anamnese-20261105-2301\?formato=html\)/
-      .test(daA), daA);
-  provar('…e é a MESMA rota que a Área do Professor usa para a folha',
-    /\/anamnese\/api\/ficha-preenchida\./.test(daA));
+  const b = bloco || '';
+  const daA = (b.match(/<div data-prov-par="Aluna A">[^\n]*/) || [''])[0];
+  const daB = (b.match(/<div data-prov-par="Aluna B">[^\n]*/) || [''])[0];
+  const daC = (b.match(/<div data-prov-par="Aluna C">[^\n]*/) || [''])[0];
+  provar('anamnese VINCULADA — a acção diz «novo registo» e leva o carimbo',
+    /novo=anamnese-20261105-2301/.test(daA) && />novo registo</.test(daA), daA);
+  provar('anamnese SOLTA — a acção diz «editar» e leva o carimbo',
+    /editar=anamnese-20261105-2031/.test(daB) && />editar</.test(daB), daB);
+  provar('…e o endereço leva a aluna e o professor (o contexto do acto)',
+    /aluna=Aluna%20A/.test(daA) && /professor=prova/.test(daA), daA);
+  provar('o segundo link imprime a folha daquela aluna, na rota da estante',
+    /href="\/anamnese\/api\/ficha-preenchida\.anamnese-20261105-2301\?formato=html"/.test(daA),
+    daA);
 
   /* A ALUNA SEM ANAMNESE NÃO GANHA UM LINK QUE MENTE. */
-  const daC = linhas[2];
   provar('aluna sem anamnese: diz-se, e oferece-se o gesto de a fazer',
-    /sem anamnese registada/.test(daC) && /\[fazer a anamnese\]\(\/anamnese\/\?/.test(daC), daC);
+    /sem anamnese registada/.test(daC) && />fazer a anamnese</.test(daC), daC);
   provar('…e NÃO lhe dá um «imprimir» (seria um 404 com aparência de dado)',
     !/ficha-preenchida/.test(daC) && !/novo=/.test(daC) && !/editar=/.test(daC), daC);
 
-  /* A FRASE EXPLICA O GESTO — em língua de professor. */
-  provar('a secção diz o que cada gesto faz, e porque um deles é «novo registo»',
-    /a senha é pedida lá/.test(s6) && /novo registo/.test(s6) && /o retrato anterior fica/.test(s6),
-    s6.split('\n').filter((l) => /senha/.test(l)));
+  /* AS PEÇAS SÃO DO CATÁLOGO: o `select` é desenhado pela folha, e as acções são `a.acao`. */
+  provar('as acções usam a peça de acção da folha, e não uma classe inventada',
+    (b.match(/class="acao secundario pequena"/g) || []).length >= 4, b.slice(0, 120));
+  provar('…e nenhuma classe nova é inventada no documento',
+    b !== '' && !/class="(?!acao secundario pequena)[^"]*"/.test(b),
+    (b.match(/class="[^"]*"/g) || []));
+
+  /* O PAPEL NÃO FICA SEM PROVENIÊNCIA: o bloco some no LaTeX, mas a frase fica nos dois. */
+  provar('a frase diz onde as anamneses estão — e é texto, não marcação (fica no PDF)',
+    /está na \*\*Área do Professor\*\*/.test(s6), s6.split('\n').filter((l) => /Área do Professor/.test(l)));
+  provar('…e diz o que cada gesto faz, e porque um deles é «novo registo»',
+    /a senha é pedida lá/.test(s6) && /novo registo/.test(s6) && /o retrato anterior fica/.test(s6));
   provar('…e não imprime nome de ficheiro nem de função',
-    !/derivar-ciclo|\.js\b|envelope/.test(s6), s6);
+    !/derivar-ciclo|\.js\b|envelope/.test(s6.replace(/```[\s\S]*?```/g, '')), s6);
 }
 
 // ---------------------------------------------------------------------------------------------
-console.log('\nD. SEM O MAPA, A SECÇÃO DEGRADA (não parte)');
+console.log('\nD. O SELECTOR FUNCIONA, E DEGRADA SEM JAVASCRIPT');
 {
-  /* `anamneses` é OPCIONAL: o derivador é puro e não lê o acervo. Sem ele, o que não se sabe
-   * não se inventa — fica o gesto que não precisa de carimbo. */
+  /* O SCRIPT É A PEÇA QUE NENHUM VALIDADOR LÊ. Aqui ele corre num DOM a sério (jsdom), sobre o
+   * bloco que a derivação emite: escolher a aluna B tem de mostrar as acções dela, e só as dela. */
+  const anamneses = {
+    'Aluna A': { carimbo: 'anamnese-20261105-2301', vinculada: true },
+    'Aluna B': { carimbo: 'anamnese-20261105-2031', vinculada: false },
+  };
+  const bloco = blocoHtml(secao6(comLinhaDeBase({ anamneses }))) || '';
+  const { JSDOM } = require('jsdom');
+  const dom = new JSDOM('<!doctype html><body>' + bloco + '</body>', { runScripts: 'dangerously' });
+  const win = dom.window;
+  const visiveis = () => [...win.document.querySelectorAll('[data-prov-par]')]
+    .filter((d) => !d.hidden).map((d) => d.getAttribute('data-prov-par'));
+  const sel = win.document.getElementById('prov-seletor');
+  provar('o `<select>` existe, e é uma peça da folha (sem classe nenhuma a desenhar)',
+    Boolean(sel) && sel.getAttribute('class') === null, sel && sel.getAttribute('class'));
+  provar('ao abrir, nenhuma acção está à vista (é o que a aluna escolhida revela)',
+    visiveis().length === 0, visiveis());
+  /* O `if (sel)` é o que faz a contraprova REPROVAR em vez de estourar: contra um motor sem
+   * selector não há onde carregar, e um `TypeError` não é um veredicto. */
+  if (sel) {
+    sel.value = 'Aluna B';
+    sel.dispatchEvent(new win.Event('change'));
+    provar('escolher a aluna B mostra as acções DELA', visiveis().join(',') === 'Aluna B', visiveis());
+    sel.value = 'Aluna A';
+    sel.dispatchEvent(new win.Event('change'));
+    provar('…e trocar para a A troca as acções', visiveis().join(',') === 'Aluna A', visiveis());
+  } else {
+    provar('escolher a aluna B mostra as acções DELA', false, 'sem selector');
+    provar('…e trocar para a A troca as acções', false, 'sem selector');
+  }
+
+  /* A DEGRADAÇÃO: sem JavaScript nenhum atributo `hidden` é posto — e ficam todas as acções à
+   * vista, que é o comportamento anterior. A página perde o conforto, não a função. */
+  const semJs = new JSDOM('<!doctype html><body>' + bloco + '</body>');
+  const todas = [...semJs.window.document.querySelectorAll('[data-prov-par]')];
+  provar('sem JavaScript, todas as acções ficam à vista (nada se esconde para sempre)',
+    todas.length === 2 && todas.every((d) => !d.hidden), todas.length);
+}
+
+// ---------------------------------------------------------------------------------------------
+console.log('\nE2. SEM O MAPA DE CARIMBOS, A SECÇÃO DEGRADA (não parte)');
+{
+  /* `anamneses` é OPCIONAL: o derivador é puro e não lê o acervo. Sem ele, o que não se sabe não
+   * se inventa — fica o gesto que não precisa de carimbo. */
   const s6 = secao6(aula());
-  const linhas = s6.split('\n').filter((l) => /^- \*\*Aluna /.test(l));
-  provar('as três alunas continuam listadas', linhas.length === 3, linhas);
+  const bloco = blocoHtml(s6);
+  const b2 = bloco || '';
+  provar('todas as alunas continuam no selector',
+    (b2.match(/<option value="Aluna /g) || []).length === 3, b2.slice(0, 120));
   provar('…todas com o gesto de fazer, e nenhum carimbo inventado',
-    linhas.every((l) => /fazer a anamnese/.test(l)) && !/editar=|novo=/.test(s6), linhas);
+    b2 !== '' && !/novo=/.test(b2) && !/editar=/.test(b2)
+    && (b2.match(/>fazer a anamnese</g) || []).length === 3, b2.slice(0, 160));
   provar('…e a secção não promete «imprimir» o que não sabe onde está',
-    !/ficha-preenchida/.test(s6), s6);
+    !/ficha-preenchida/.test(b2), b2);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -300,10 +374,13 @@ console.log('\nF. O CONTRATO DE EXTRAÇÃO CONTINUA A LER A §6 COMO TEXTO');
   const prov = extraido && extraido.proveniencia;
   provar('a §6 extrai-se como TEXTO (o tipo do schema), e não como objeto',
     typeof prov === 'string', typeof prov);
-  provar('…e o texto extraído traz a lista das anamneses',
+  /* A MARCAÇÃO NÃO ENTRA NO TEXTO. O selector vive num bloco `{=html}`, e um bloco declarado
+   * para UM alvo não é conteúdo do campo (é a regra nova do contrato, §1.º deste ficheiro de
+   * extracção). Sem ela, o `proveniencia` do JSON saía com `<select>` e `<option>` dentro. */
+  provar('…e o texto extraído traz a frase, sem marcação nenhuma dentro',
     typeof prov === 'string' && /Anamnese de cada aluna/.test(prov)
-    && /Aluna A/.test(prov) && /Aluna C/.test(prov),
-    typeof prov === 'string' ? prov.slice(0, 200) : prov);
+    && /Área do Professor/.test(prov) && !/<(select|option|div|script|a )/.test(prov),
+    typeof prov === 'string' ? prov.slice(-260) : prov);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -313,9 +390,11 @@ if (falhas) {
   process.exit(1);
 }
 console.log('TUDO CERTO — ' + total + ' asserções: o plano de ensino e a aula dizem a turma no '
-  + 'cabeçalho, a §6 lista a anamnese de cada aluna com o gesto que o servidor aceita (editar ou '
-  + 'novo registo) e o link da folha, a aluna sem anamnese diz-se em vez de prometer um 404, e a '
-  + '§6 continua a extrair-se como texto.');
+  + 'cabeçalho; a §6 mostra um SELECTOR com o ELENCO DA LINHA DE BASE (a aluna de fora não entra) '
+  + 'e, por aluna, o gesto que o servidor aceita (editar ou novo registo) e o link da folha; o '
+  + 'selector funciona e degrada sem JavaScript; a aluna sem anamnese diz-se em vez de prometer um '
+  + '404; e a '
+  + '§6 extrai-se como texto — sem marcação dentro.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
   process.exit(1);

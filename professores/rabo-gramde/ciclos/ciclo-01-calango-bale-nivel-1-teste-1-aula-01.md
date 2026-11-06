@@ -92,11 +92,23 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 **Anamnese de cada aluna**
 
-A origem de cada uma: **editar** abre o formulário — a senha é pedida lá, e é ela que autoriza a escrita; **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
+A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
 
-- **Aluna A** — [novo registo](/anamnese/?professor=rabo-gramde&ciclo=01&novo=anamnese-20261105-2301&aluna=Aluna%20A) · [imprimir](/anamnese/api/ficha-preenchida.anamnese-20261105-2301?formato=html)
-- **Aluna B** — [novo registo](/anamnese/?professor=rabo-gramde&ciclo=01&novo=anamnese-20261105-2031&aluna=Aluna%20B) · [imprimir](/anamnese/api/ficha-preenchida.anamnese-20261105-2031?formato=html)
-- **Aluna C** — sem anamnese registada · [fazer a anamnese](/anamnese/?professor=rabo-gramde&ciclo=01&aluna=Aluna%20C)
+```{=html}
+<select id="prov-seletor" aria-label="Aluna cuja anamnese se quer abrir">
+<option value="">— escolha a aluna —</option>
+<option value="Aluna A">Aluna A</option>
+<option value="Aluna B">Aluna B</option>
+</select>
+<div data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=rabo-gramde&amp;ciclo=01&amp;novo=anamnese-20261105-2301&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261105-2301?formato=html">imprimir</a></div>
+<div data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=rabo-gramde&amp;ciclo=01&amp;novo=anamnese-20261105-2031&amp;aluna=Aluna%20B">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261105-2031?formato=html">imprimir</a></div>
+<script>(function(){
+var s=document.getElementById("prov-seletor");if(!s)return;
+var p=document.querySelectorAll("[data-prov-par]");
+function pintar(){for(var i=0;i<p.length;i++){
+p[i].hidden=p[i].getAttribute("data-prov-par")!==s.value;}}
+s.addEventListener("change",pintar);pintar();})();</script>
+```
 
 ## 7. Registro de auditoria da aula
 

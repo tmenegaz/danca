@@ -37892,3 +37892,62 @@ sobre uma aula com o selector e exige `typeof proveniencia === 'string'` **sem**
 `<div>` nem `<script>` dentro. `provar-eixos-e-tempo-da-aula` **47/51** (as 4 já vermelhas em `HEAD`);
 `provar-derivados-do-po` **16/16**; `provar-observacao-do-professor` **20/20**;
 `provar-corpo-da-linha-de-base` **31/31**; `provar-cadeia-do-ajuste` **34/34**.
+
+---
+
+## 06/11/2026 — A §6 vira selector, e o elenco passa a vir da linha de base
+
+**As duas correções, e são dela.** *«O dropdown da Proveniência Consolidada (Item 6 da Aula 1) só
+pode exibir as alunas que fazem parte do elenco oficial daquela turma específica (definido na Linha de
+Base). Alunas avulsas ou de outras turmas são rigidamente ignoradas.»* E: *«listar todas as alunas
+soltas na tela geraria uma poluição visual intransponível caso a turma possua dezenas de alunas (ex:
+50 alunas)».*
+
+**A correção de dado — um defeito medido.** O elenco vinha de `po.sujeitos`, e o PO da `calango`
+listava **três** alunas (A, B, **C**) quando a linha de base daquela turma tem **duas**. O PO declara
+sujeitos, mas quem diz quem está na turma é o acto do passo 2 da linha de base; o PO herda-a, e
+quando herda mal (envelope anterior à regra, gravação antiga) é a linha de base que está certa. O
+documento punha na §6 uma aluna de fora. A fonte passou a ser `linhaDeBase.alunas`, com
+`po.sujeitos` como **reserva** — um ciclo sem linha de base legível continua a derivar.
+
+**A correção de forma — uma restrição do gerador, medida.** Com o pandoc 3.1.3 do ambiente:
+
+| o que se escreve | no HTML | no PDF |
+|:--|:--|:--|
+| `<select>` em Markdown (HTML cru) | aparece | as etiquetas caem e o **texto fica** — «editar imprimir editar imprimir» |
+| ` ```{=html} … ``` ` | aparece | **desaparece inteiro** |
+
+HTML cru não serve: o PDF fica com o esqueleto das etiquetas como prosa. O bloco `{=html}` é o único
+mecanismo que entrega a marcação a um escritor e a **descarta** no outro — e é por isso que o PDF não
+perde proveniência: o que fica nos dois leitores é a **frase** («A anamnese de cada uma das N alunas
+do elenco desta turma está na Área do Professor»), e o selector é o conforto do ecrã.
+
+**O que o ecrã faz.** Um `<select>` com uma `<option>` por aluna, e por baixo **um bloco de acções por
+aluna**, todos escondidos menos o da escolhida. Sem JavaScript ficam todos à vista — o comportamento
+anterior; a página perde o conforto, não a função.
+
+**As peças são as da folha.** O `<select>` não leva classe nenhuma (a folha já desenha
+`:where(… select)`, com a seta própria). As acções são `a.acao secundario pequena`, a peça do botão
+«Abrir notação». E o aviso da aluna sem anamnese é **texto solto**: a classe `sub` nasce no `<style>`
+da porta e não existe na folha dos pacotes — usá-la aqui seria a classe inventada que o
+`IDENTIDADE-VISUAL.md` proíbe.
+
+**E a extracção.** O bloco `{=html}` passou a ser saltado pelo contrato de extracção — commit
+próprio, `acc78228`, porque o `tools/` está congelado (a entrada anterior deste registo é o motivo).
+
+**Com o quê.** `provar-proveniencia-e-turma` passa de **32** para **42** asserções. **C**: um
+`<select>` com um `<option>` por aluna; **não** há lista markdown; com linha de base, a aluna de fora
+**desaparece**; sem ela, cai no PO; os dois gestos por aluna (vinculada → «novo registo», solta →
+«editar»); a aluna sem anamnese não ganha «imprimir»; nenhuma classe nova. **D**: o selector corre num
+DOM a sério — abre sem acção nenhuma à vista, escolhe a B, troca para a A — e sem JavaScript ficam
+todas à vista. **E2**: sem o mapa de carimbos, degrada em vez de partir.
+
+**Contraprova.** Contra o núcleo de `HEAD`, a prova **reprova 21 de 42**.
+
+**Medido.** `provar-proveniencia-e-turma` **42/42** (contraprova **21/42**);
+`provar-eixos-e-tempo-da-aula` **47/51** (as 4 já vermelhas em `HEAD`);
+`provar-derivados-do-po` **16/16**; `provar-observacao-do-professor` **20/20**;
+`provar-corpo-da-linha-de-base` **31/31**; `provar-cadeia-do-ajuste` **34/34**; `check-identidade`
+**0 erros** (as 20); `check-indices` **16/16**; `check-schemas` ok; `check-pacote` do ciclo
+**0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)** — e o HTML publicado tem o
+selector, o PDF não tem nenhum vestígio dele, e a frase fica nos dois.

@@ -1467,6 +1467,69 @@ memória); **F**, o contrato de extração.
 
 **Contraprova.** Contra o núcleo de `HEAD`, **reprova 18 de 32**.
 
+> **Nota de 06/11/2026, 12h.** A §6 deixou de ser uma lista de linhas e passou a ser um **selector
+> do elenco** — a lista, com cinquenta alunas, é uma parede. E o elenco passou a vir da **linha de
+> base**, e não do PO. As duas coisas estão na §5.19; o que fica escrito acima é verdade quanto ao
+> que a secção passou a CONTER (a anamnese de cada aluna, com os dois gestos), e é essa a parte que
+> não mudou.
+
+### 5.19 A §6 passa a ser um selector — e o elenco passa a vir da linha de base
+
+Segunda volta da mesma secção, no mesmo dia, e as duas correções são dela:
+
+> «O **dropdown** da Proveniência Consolidada (Item 6 da Aula 1) **só pode exibir as alunas que
+> fazem parte do elenco oficial** daquela turma específica (definido na Linha de Base). Alunas avulsas
+> ou de outras turmas são rigidamente ignoradas. […] Listar todas as alunas soltas na tela geraria
+> uma poluição visual intransponível caso a turma possua dezenas de alunas (ex: 50 alunas).»
+
+**A correção de dado, e era um defeito medido.** O elenco vinha de `po.sujeitos`, e o PO da
+`calango` listava **três** alunas — A, B e **C** — quando a linha de base daquela turma tem **duas**.
+O PO *declara* sujeitos, mas quem diz quem está na turma é o acto do passo 2 da linha de base; o PO
+herda-a, e quando herda mal (um envelope anterior à regra, uma gravação antiga) é a linha de base que
+está certa. O documento punha na §6 uma aluna de fora do elenco. A fonte passou a ser
+`linhaDeBase.alunas`, com `po.sujeitos` como **reserva** — um ciclo sem linha de base legível
+continua a derivar.
+
+**A correção de forma, e é uma restrição do gerador.** O documento tem dois leitores, e o pandoc
+trata-os de maneira diferente. Medido, com o pandoc 3.1.3 do ambiente:
+
+| o que se escreve | no HTML | no PDF |
+|:--|:--|:--|
+| `<select>` em Markdown (HTML cru) | aparece | **as etiquetas caem e o texto fica** — «editar imprimir editar imprimir» |
+| ` ```{=html} … ``` ` | aparece | **desaparece inteiro** |
+
+Ou seja: HTML cru não serve — o PDF fica com o esqueleto das etiquetas como prosa. O bloco
+`{=html}` é o único mecanismo que entrega a marcação a um escritor e a **descarta** no outro. Por
+isso o selector vive lá, e por isso o PDF não perde proveniência: o que fica nos dois leitores é a
+**frase** — *«A anamnese de cada uma das N alunas do elenco desta turma está na Área do Professor»* —,
+e o selector é o conforto do ecrã.
+
+**O que o ecrã faz.** Um `<select>` com uma `<option>` por aluna do elenco, e por baixo **um bloco de
+acções por aluna**, todos escondidos menos o da escolhida. Sem JavaScript ficam todos à vista — é o
+comportamento anterior, e é a degradação certa: a página perde o conforto, não a função. Medido em
+jsdom (a secção **D** da prova): ao abrir, nenhuma acção à vista; escolher a B mostra as da B; trocar
+para a A troca.
+
+**As peças são as da folha.** O `<select>` não leva classe nenhuma — a folha já desenha
+`:where(… select)` com a seta própria. As acções são `a.acao secundario pequena`, a mesma peça do
+botão «Abrir notação» do cabeçalho da aula. E o aviso da aluna sem anamnese é **texto solto**: a
+classe `sub` que a porta usa nasce no `<style>` da porta e não existe na folha dos pacotes — usá-la
+aqui seria a classe inventada que o `IDENTIDADE-VISUAL.md` proíbe.
+
+**E a extracção.** O bloco `{=html}` passou a ser saltado pelo contrato de extracção — um bloco
+declarado para outro alvo não é conteúdo do campo —, em commit próprio, por o `tools/` estar
+congelado (§ entrada do `REGISTRO.md` de 06/11/2026).
+
+**A prova.** `provar-proveniencia-e-turma` passa de 32 para **42** asserções. **C**: há um
+`<select>` com um `<option>` por aluna; **não** há lista markdown; com linha de base, a aluna de fora
+**desaparece** do selector; sem linha de base, cai no PO; os dois gestos por aluna (a vinculada diz
+«novo registo», a solta «editar»); a aluna sem anamnese não ganha «imprimir»; e nenhuma classe nova é
+inventada. **D**: o selector corre num DOM a sério, escolhe, troca — e sem JavaScript ficam todas as
+acções à vista. **E2**: sem o mapa de carimbos a secção degrada em vez de partir. **F**: o texto
+extraído não traz marcação.
+
+**Contraprova.** Contra o núcleo de `HEAD`, **reprova 21 de 42**.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|
