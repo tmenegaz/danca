@@ -202,7 +202,9 @@ const LACUNAS = [
   ['musicalidade',
     'bloco DECLARADO no schema da captura (e ausente do lançamento real) — sem regra de tipo própria'],
   ['linha_de_base',
-    'idem; e o PO a declara POR ALUNA (§4.6 leitura 1, §7.1) — a chave é do PO, não deste JSON'],
+    'DESDE 06/11/2026 ela É escrita pelo lançamento — `{aluna: [{item, marca}]}`, com os itens do'
+    + ' eixo do corpo do PO (o recorte do passo 4). A chave de cada item ainda é o TEXTO: dar-lhe'
+    + ' um slug estável é a peça que falta para o índice de lançamentos (§4.9 do PLANO-INDICES)'],
   ['materiais_brutos',
     'não há campo para os materiais (áudio, vídeo, partitura) (§4.6)'],
   ['ocorrencias_fisicas',
@@ -343,7 +345,10 @@ function conferirBlocos(aula, onde, presentes, erros, avisos) {
 }
 
 /**
- * `observado` — as marcas dos três eixos.
+ * `observado` — as marcas dos três eixos. **Reformado em 06/11/2026**: o formulário deixou de o
+ * escrever (não tinha aluna nem chave de coluna, e por isso nenhuma pergunta do catálogo o podia
+ * ler — o «por aluna» é a matriz, nos blocos da folha). Fica aqui porque um arquivo que o tenha é
+ * aceite, não recusado: retirar o campo é decisão de quem o escreveu, não deste validador.
  *
  * O QUE ELE CONFERE, E POR QUÊ: o eixo tem de ser um dos três (é a chave da leitura, e um eixo
  * inventado some das vistas sem aviso); o item tem de ser texto não vazio (é a redação que veio
@@ -390,6 +395,42 @@ function conferirObservado(aula, onde, erros, avisos) {
   if (!total) avisos.push(`${onde}: observado sem nenhum item — «nada foi marcado» não é «nada aconteceu»`);
 }
 
+/**
+ * OS BLOCOS DE ITENS — `{aluna: [{item, marca}]}`. É a forma da linha de base revisitada, e a
+ * única que o `conferirBlocos` deixava passar sem olhar: o valor de cada pessoa é uma LISTA, não
+ * um objecto, e o teste `ehBlocoPorPessoa` dava-a por «forma conferida pelo schema» — que só
+ * confere que é um objecto.
+ *
+ * O QUE SE CONFERE: a chave é um apelido do PO (não se inventa gente), o item tem texto (é a
+ * redação que o professor leu), e a marca está no vocabulário do formulário. É pouco, e é
+ * exactamente o que a matriz escreve.
+ */
+function conferirItens(aula, onde, apelidos, erros) {
+  const universo = Object.keys(apelidos || {});
+  Object.keys(aula).forEach((nome) => {
+    if (nome.startsWith('_') || CHAVES_ESCALARES.includes(nome)) return;
+    const bloco = aula[nome];
+    if (!ehObjeto(bloco)) return;
+    const valores = Object.values(bloco);
+    if (!valores.length || !valores.every(Array.isArray)) return;   // não é bloco de itens
+    Object.entries(bloco).forEach(([p, lista]) => {
+      if (!universo.includes(p)) {
+        erros.push(`${onde}: ${nome}.${p} não é apelido do PO`);
+      }
+      lista.forEach((x, i) => {
+        if (!ehObjeto(x)) { erros.push(`${onde}: ${nome}.${p}[${i}] não é objecto`); return; }
+        if (!semEspaco(x.item)) erros.push(`${onde}: ${nome}.${p}[${i}] sem o texto do item`);
+        if (x.marca === undefined || !ehString(x.marca)) {
+          erros.push(`${onde}: ${nome}.${p}[${i}].marca não é texto`);
+        } else if (!MARCAS.includes(x.marca)) {
+          erros.push(`${onde}: ${nome}.${p}[${i}] '${x.marca}' não é marca do formulário`
+            + ` (${MARCAS.filter(Boolean).join(', ')} ou vazio)`);
+        }
+      });
+    });
+  });
+}
+
 function conferirAula(aula, id, apelidos, erros, avisos, provisorios) {
   const onde = `aula ${id}`;
   const { erros: e, avisos: a, provisorios: p } = validar(aula, SCHEMA_AULA, {});
@@ -422,6 +463,7 @@ function conferirAula(aula, id, apelidos, erros, avisos, provisorios) {
   if (ehObjeto(apelidos)) presentes = conferirParticao(aula, apelidos, onde, erros).presentes;
 
   conferirBlocos(aula, onde, presentes, erros, avisos);
+  conferirItens(aula, onde, apelidos, erros);
   conferirObservado(aula, onde, erros, avisos);
 
   // A duração funcional por pessoa é do bloco; a da aula é a referência. Divergir é possível

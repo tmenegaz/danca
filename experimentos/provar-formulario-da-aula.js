@@ -18,15 +18,23 @@
  *    Agora, o que surpreendeu vai ser só marcar, surpreendeu? Sim. Precisou de ajuste? Sim. Daí
  *    ele escreve se precisou de ajuste. Precisou de ajuste tem como valor padrão não.»
  *
+ * A MATRIZ (06/11/2026, a segunda volta do mesmo dia). Ela viu o formulário pronto e disse o que
+ * faltava:
+ *
+ *   «a gente tem que elaborar um outro modelo onde a parte de cima a gente tem por linha os alunos
+ *    e por coluna a gente precisa acrescentar outras colunas […] Eu não tenho essa linha de base
+ *    orientada por aluno e eu preciso ter isso.»
+ *
  * O QUE SE PROVA AQUI, e cada item corresponde a uma frase dela:
  *
- *   A. os itens de «o que se observou» são os do PO, nos três eixos — nada é inventado, e a
- *      dimensão de onde cada item veio aparece;
- *   B. «surpreendeu» é MARCA (dois rádios, e nenhum escolhido ao abrir), «precisou de ajuste» é
- *      MARCA com padrão NÃO, e o texto do ajuste só aparece no «sim»;
- *   C. a escrita obrigatória é uma só — «o que aconteceu de novo»;
- *   D. o payload que o formulário monta passa no `validar-dados-ciclo.js`, e as marcas chegam
- *      ao JSON como `observado` (por eixo, com o texto do item);
+ *   A. a matriz: as linhas são as alunas e as colunas são os aspectos — os quatro do corpo (que
+ *      não tinham coluna nenhuma), os objectivos da técnica com os três espaços como colunas, e os
+ *      da poiesis com os dois dela. 14 marcas por aluna, e todas com dono;
+ *   B. «O plano foi seguido?» é UMA pergunta de três estados (sim / em parte / não) com um texto —
+ *      as duas perguntas que diziam a mesma coisa deixaram de existir;
+ *   C. a escrita obrigatória é uma só quando o plano é seguido — «o que aconteceu de novo»;
+ *   D. o payload passa no `validar-dados-ciclo.js`, a linha de base vai por aluna, e uma marca
+ *      fora do vocabulário é recusada (inclusive ali, que até hoje passava sem ser olhado);
  *   E. a página não estoura na horizontal, nem a 1280 nem a 390.
  *
  * Requer Chrome/Chromium (puppeteer-core vem com o marp-cli global). Sem ele: NÃO FEITO.
@@ -142,185 +150,243 @@ function servir() {
     await pagina.select('#aula', aulaDaProva.n);
     await pagina.waitForFunction(() => {
       const c = document.querySelector('#captura');
-      return c && !c.hidden && document.querySelector('#captura-campos .observado');
+      return c && !c.hidden && document.querySelector('#captura-campos details.eixo');
     }, { timeout: 15000 });
 
     // ----------------------------------------------------------------------------------------
-    console.log('A. «o que se observou» — os itens são os do PO, nos três eixos');
+    console.log('A. A matriz — as linhas são as alunas, as colunas são os aspectos');
     {
-      const itens = await pagina.$$eval('#captura-campos .observado h4', (hs) => hs.map((h) => h.textContent.trim()));
+      const eixos = await pagina.$$eval('#captura-campos details.eixo > summary',
+        (ss) => ss.map((x) => x.textContent.replace(/\s+/g, ' ').trim().split(' — ')[0]));
       provar('os três eixos aparecem, e nesta ordem: Corpo, Técnica, Poiesis',
-        JSON.stringify(itens) === JSON.stringify(['Corpo', 'Técnica', 'Poiesis']), itens);
+        JSON.stringify(eixos) === JSON.stringify(['Corpo', 'Técnica', 'Poiesis']), eixos);
 
-      const porEixo = await pagina.evaluate(() => {
+      /* A MATRIZ COMO ELA ESTÁ NA TELA: por eixo, as tabelas, o objectivo de cada uma (quando o
+       * há) e as colunas. */
+      const matriz = await pagina.evaluate(() => {
         const out = {};
-        document.querySelectorAll('#captura-campos .observado h4').forEach((h) => {
-          const linhas = [];
-          let n = h.nextElementSibling;
-          while (n && n.tagName !== 'H4') {
-            if (n.tagName === 'TABLE') {
-              n.querySelectorAll('tbody tr, tr').forEach((tr) => {
-                const th = tr.querySelector('th.aluna');
-                if (th) linhas.push(th.textContent.trim());
-              });
-            }
-            n = n.nextElementSibling;
-          }
-          out[h.textContent.trim()] = linhas;
+        document.querySelectorAll('#captura-campos details.eixo').forEach((d) => {
+          const nome = d.querySelector('summary').textContent.split('—')[0].trim();
+          out[nome] = [...d.querySelectorAll('table')].map((t) => {
+            const antes = t.previousElementSibling;
+            return {
+              objectivo: (antes && antes.classList.contains('matriz-objectivo')) ? antes.textContent.trim() : null,
+              colunas: [...t.querySelectorAll('tr')[0].children].slice(1).map((c) => c.textContent.trim()),
+              alunas: [...t.querySelectorAll('tr')].slice(1).map((tr) => tr.querySelector('th').textContent.trim()),
+              selects: t.querySelectorAll('select').length,
+            };
+          });
         });
         return out;
       });
 
-      // O QUE O PO DECLARA, eixo a eixo, sem repetir o mesmo item dentro do eixo.
-      const esperado = { Corpo: [], Técnica: [], Poiesis: [] };
-      const rotulo = { corpo: 'Corpo', tecnica: 'Técnica', poiesis: 'Poiesis' };
+      // O QUE O PO DECLARA, eixo a eixo: os itens (sem repetir) e as dimensões onde aparecem.
+      const doPo = { 'Corpo': { itens: [], dimensoes: [] }, 'Técnica': { itens: [], dimensoes: [] },
+        'Poiesis': { itens: [], dimensoes: [] } };
+      const eixoDe = { Corpo: 'Corpo', Tecnica: 'Técnica', Poiesis: 'Poiesis' };
       for (const d of PO.itensPorDimensao || []) {
-        const eixo = rotulo[String(d.eixo || '').toLowerCase().normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')];
-        if (!eixo) continue;
+        const e = eixoDe[String(d.eixo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')];
+        if (!e) continue;
+        if (d.dimensao && !doPo[e].dimensoes.includes(d.dimensao)) doPo[e].dimensoes.push(d.dimensao);
         for (const bruto of String(d.itens || '').split(';')) {
           const item = bruto.trim();
           if (!item || AUSENCIA.test(item)) continue;
-          if (!esperado[eixo].some((x) => x.toLowerCase() === item.toLowerCase())) esperado[eixo].push(item);
+          if (!doPo[e].itens.some((x) => x.toLowerCase() === item.toLowerCase())) doPo[e].itens.push(item);
         }
       }
-      provar('os itens de cada eixo são EXACTAMENTE os do PO',
-        JSON.stringify(porEixo) === JSON.stringify(esperado), { naTela: porEixo, noPo: esperado });
 
-      const todos = Object.values(porEixo).flat();
-      provar('«sem restrições declaradas» NÃO é oferecido como item de marca',
-        !todos.some((t) => AUSENCIA.test(t)), todos.filter((t) => AUSENCIA.test(t)));
-      provar('o mesmo item não aparece duas vezes no mesmo eixo (as três dimensões da Técnica '
-        + 'trabalham os mesmos objectivos)',
-        Object.values(porEixo).every((l) => new Set(l.map((x) => x.toLowerCase())).size === l.length),
-        porEixo);
-      provar('o eixo nomeia as dimensões de onde os itens vieram',
+      /* O CORPO: uma tabela, e as colunas são os quatro aspectos do recorte. Era o que faltava — a
+       * linha de base revisitada estava morta, e o corpo não tinha coluna nenhuma. */
+      const corpo = matriz['Corpo'] || [];
+      provar('o Corpo é UMA tabela, com uma coluna por aspecto do recorte',
+        corpo.length === 1 && JSON.stringify(corpo[0].colunas) === JSON.stringify(doPo['Corpo'].itens),
+        { naTela: corpo[0] && corpo[0].colunas, noPo: doPo['Corpo'].itens });
+      provar('as linhas do Corpo são as duas alunas do elenco',
+        corpo[0] && JSON.stringify(corpo[0].alunas) === JSON.stringify(['Aluna A', 'Aluna B']),
+        corpo[0] && corpo[0].alunas);
+      provar('«sem restrições declaradas» NÃO é oferecido como aspecto a marcar',
+        !(corpo[0] || { colunas: [] }).colunas.some((c) => AUSENCIA.test(c)),
+        (corpo[0] || { colunas: [] }).colunas.filter((c) => AUSENCIA.test(c)));
+
+      /* A TÉCNICA E A POIESIS: uma tabela por objectivo, e as DIMENSÕES como colunas. É a
+       * inversão que mata a repetição — o objectivo estava escrito como coluna em cinco tabelas
+       * (seis perguntas iguais por aluna) e passa a ser o título de uma tabela; as dimensões
+       * estavam escritas como títulos e passam a ser as colunas. */
+      const tecnica = matriz['Técnica'] || [];
+      provar('a Técnica tem uma tabela por objectivo, e o objectivo é o título',
+        tecnica.length === doPo['Técnica'].itens.length
+          && JSON.stringify(tecnica.map((t) => t.objectivo)) === JSON.stringify(doPo['Técnica'].itens),
+        { naTela: tecnica.map((t) => t.objectivo), noPo: doPo['Técnica'].itens });
+      provar('…e as colunas da Técnica são os três espaços onde o PO a observa',
+        tecnica.length > 0
+          && tecnica.every((t) => JSON.stringify(t.colunas) === JSON.stringify(['Solo', 'Barra', 'Centro'])),
+        tecnica.map((t) => t.colunas));
+      const poiesis = matriz['Poiesis'] || [];
+      provar('a Poiesis tem as dimensões dela como colunas: Musicalidade e Expressão',
+        poiesis.length === doPo['Poiesis'].itens.length
+          && poiesis.every((t) => JSON.stringify(t.colunas) === JSON.stringify(['Musicalidade', 'Expressão'])),
+        poiesis.map((t) => t.colunas));
+
+      /* E O NÚMERO: cada célula tem dono. 4 do corpo + 6 da técnica + 4 da poiesis, por aluna. */
+      const todasAsTabelas = [].concat(corpo, tecnica, poiesis);
+      const porAluna = todasAsTabelas.reduce((n, t) => n + t.selects / Math.max(t.alunas.length, 1), 0);
+      provar('as marcas por aluna são 14 — e cada uma é de uma aluna (antes: 20, e 8 sem dono)',
+        porAluna === 14, porAluna);
+      const totalNaTela = await pagina.$$eval('#captura-campos details.eixo select', (x) => x.length);
+      provar('…e todas as células da matriz são um controle na tela (2 alunas × 14)',
+        totalNaTela === 28, totalNaTela);
+
+      provar('o eixo que ainda não tem marca abre fechado, e o Corpo — a âncora — abre aberto',
         await pagina.evaluate(() => {
-          const h = [...document.querySelectorAll('#captura-campos .observado h4')]
-            .find((x) => x.textContent.trim() === 'Técnica');
-          return !!(h && h.nextElementSibling && h.nextElementSibling.textContent.includes('·')
-            && /Solo/.test(h.nextElementSibling.textContent));
+          const d = [...document.querySelectorAll('#captura-campos details.eixo')];
+          return d[0].open === true && d.slice(1).every((x) => x.open === false);
         }));
+      provar('o sumário de cada eixo diz quantas marcas tem lá dentro',
+        await pagina.$$eval('#captura-campos details.eixo > summary',
+          (ss) => ss.every((x) => /\d+ de \d+ marcados/.test(x.textContent))));
     }
 
     // ----------------------------------------------------------------------------------------
-    console.log('\nB. «surpreendeu» e «precisou de ajuste» — marcas, com os padrões dela');
+    console.log('\nB. «O plano foi seguido?» — uma pergunta, três estados, um texto');
     {
-      const surpresa = await pagina.evaluate(() => ({
-        existe: [...document.querySelectorAll('textarea')].some((t) => t.id === 'captura-surpresas'),
-        radios: [...document.querySelectorAll('input[name="captura-surpreendeu"]')].map((r) => r.value),
-        marcado: [...document.querySelectorAll('input[name="captura-surpreendeu"]')]
+      const antes = await pagina.evaluate(() => ({
+        plano: [...document.querySelectorAll('input[name="captura-plano"]')].map((r) => r.value),
+        marcado: [...document.querySelectorAll('input[name="captura-plano"]')]
           .filter((r) => r.checked).map((r) => r.value),
-      }));
-      provar('o campo de texto livre «o que surpreendeu» deixou de existir',
-        surpresa.existe === false);
-      provar('«surpreendeu» é um par de marcas sim/não',
-        JSON.stringify(surpresa.radios) === JSON.stringify(['sim', 'nao']), surpresa.radios);
-      provar('ao abrir, nenhuma marca está escolhida (em branco = não respondi)',
-        surpresa.marcado.length === 0, surpresa.marcado);
-
-      const ajuste = await pagina.evaluate(() => ({
-        marcado: [...document.querySelectorAll('input[name="captura-ajuste"]')]
-          .filter((r) => r.checked).map((r) => r.value),
-        linhaVisivel: (() => { const l = document.querySelector('#linha-ajuste');
+        surpresa: [...document.querySelectorAll('input[name="captura-surpreendeu"]')].map((r) => r.value),
+        surpresaMarcada: [...document.querySelectorAll('input[name="captura-surpreendeu"]')]
+          .filter((r) => r.checked).length,
+        mudouVisivel: (() => { const l = document.querySelector('#linha-mudou');
           return !!(l && l.getBoundingClientRect().height > 0); })(),
+        selectAntigo: (() => { const x = document.querySelector('#captura-plano');
+          return !!(x && x.tagName === 'SELECT'); })(),
+        ajusteAntigo: document.querySelectorAll('input[name="captura-ajuste"]').length,
+        ajustesAntigo: !!document.querySelector('#captura-ajustes'),
       }));
-      provar('«precisou de ajuste» tem o padrão NÃO, como ela pediu',
-        JSON.stringify(ajuste.marcado) === JSON.stringify(['nao']), ajuste.marcado);
-      provar('…e com «não», o campo do que foi ajustado não ocupa a tela',
-        ajuste.linhaVisivel === false);
+      provar('a pergunta tem TRÊS estados: sim, em parte, não',
+        JSON.stringify(antes.plano) === JSON.stringify(['sim', 'parcial', 'nao']), antes.plano);
+      provar('…e nasce em «sim» (o caso comum), com o texto escondido',
+        JSON.stringify(antes.marcado) === JSON.stringify(['sim']) && antes.mudouVisivel === false,
+        { marcado: antes.marcado, visivel: antes.mudouVisivel });
+      provar('o select do topo deixou de existir', antes.selectAntigo === false);
+      provar('«Precisou de ajuste?» deixou de existir — era a mesma pergunta duas vezes',
+        antes.ajusteAntigo === 0 && antes.ajustesAntigo === false,
+        { radios: antes.ajusteAntigo, campo: antes.ajustesAntigo });
+      provar('«surpreendeu» continua a ser um par de marcas, e nenhuma escolhida ao abrir',
+        JSON.stringify(antes.surpresa) === JSON.stringify(['sim', 'nao'])
+          && antes.surpresaMarcada === 0, antes.surpresa);
 
-      await pagina.click('input[name="captura-ajuste"][value="sim"]');
-      await new Promise((r) => setTimeout(r, 120));
+      await pagina.click('input[name="captura-plano"][value="parcial"]');
+      await new Promise((r) => setTimeout(r, 150));
       const depois = await pagina.evaluate(() => {
-        const l = document.querySelector('#linha-ajuste');
-        const h = l && l.getBoundingClientRect().height;
-        const t = document.querySelector('#captura-ajustes');
+        const l = document.querySelector('#linha-mudou');
+        const t = document.querySelector('#captura-mudou');
         const a = t && t.previousElementSibling;
-        return { visivel: !!h, altura: Math.round(h || 0),
-          vaoDoRotulo: (t && a) ? Math.round(t.getBoundingClientRect().top - a.getBoundingClientRect().bottom) : null };
+        return {
+          visivel: !!(l && l.getBoundingClientRect().height > 0),
+          vao: (t && a) ? Math.round(t.getBoundingClientRect().top - a.getBoundingClientRect().bottom) : null,
+        };
       });
-      provar('…e com «sim», ele aparece', depois.visivel === true && depois.altura > 40, depois);
-      provar('o rótulo e a caixa do ajuste não estão colados',
-        depois.vaoDoRotulo !== null && depois.vaoDoRotulo >= 4, depois.vaoDoRotulo);
-      await pagina.click('input[name="captura-ajuste"][value="nao"]');
-      await new Promise((r) => setTimeout(r, 120));
+      provar('…e com «em parte» o texto do que mudou aparece', depois.visivel === true, depois);
+      provar('o rótulo e a caixa do texto não estão colados',
+        depois.vao !== null && depois.vao >= 4, depois.vao);
     }
 
     // ----------------------------------------------------------------------------------------
-    console.log('\nC. a escrita obrigatória é uma só');
+    console.log('\nC. A escrita: uma só quando o plano é seguido');
     {
-      const obrig = await pagina.evaluate(() => {
+      const escrever = await pagina.evaluate(() => {
         const t = document.querySelector('#captura-texto');
-        const campo = t && t.closest('.linha');
-        return { existe: !!t, texto: campo ? campo.textContent.replace(/\s+/g, ' ').trim().slice(0, 200) : '' };
+        return {
+          existe: !!t,
+          obriga: t ? /Obrigat[óo]rio/i.test(t.closest('.linha').textContent) : false,
+        };
       });
-      provar('«o que aconteceu de novo» continua a ser escrito', obrig.existe === true);
-      provar('…e o texto diz que é obrigatório',
-        /Obrigat[óo]rio/i.test(obrig.texto), obrig.texto);
-      const textareas = await pagina.$$eval('#captura-campos textarea', (ts) => ts.map((t) => t.id));
-      provar('sobraram DUAS áreas de texto no painel (o que aconteceu e o ajuste), e não três',
-        textareas.length === 2 && textareas.includes('captura-texto') && textareas.includes('captura-ajustes'),
-        textareas);
+      provar('«o que aconteceu de novo» existe e diz-se obrigatório',
+        escrever.existe === true && escrever.obriga === true, escrever);
     }
 
     // ----------------------------------------------------------------------------------------
-    console.log('\nD. o que o formulário grava — `observado` por eixo, e o validador aceita');
+    console.log('\nD. O que o formulário grava — a matriz nos blocos da folha');
     {
-      // Preenche o que é obrigatório, marca dois itens e recolhe o payload do próprio formulário.
       await pagina.type('#captura-texto', 'A turma chegou cansada; o apoio apareceu no fim.');
+      await pagina.type('#captura-mudou', 'encurtei o centro em dez minutos');
       await pagina.click('input[name="captura-surpreendeu"][value="sim"]');
       await pagina.evaluate(() => {
-        const po = document.querySelector('#captura-campos .observado');
-        const selects = po.querySelectorAll('select');
-        selects[0].value = 'ok'; selects[0].dispatchEvent(new Event('change', { bubbles: true }));
-        if (selects[1]) { selects[1].value = 'parcial'; selects[1].dispatchEvent(new Event('change', { bubbles: true })); }
+        // A PRIMEIRA CÉLULA DE CADA EIXO — o Corpo abre aberto; os outros dois, para marcar, abrem-se.
+        document.querySelectorAll('#captura-campos details.eixo').forEach((d) => { d.open = true; });
+        const s = document.querySelectorAll('#captura-campos details.eixo select');
+        s[0].value = 'ok'; s[0].dispatchEvent(new Event('change', { bubbles: true }));
+        s[1].value = 'parcial'; s[1].dispatchEvent(new Event('change', { bubbles: true }));
         document.querySelector('#captura-animo').value = '4';
         document.querySelector('#captura-interesse').value = '4';
         document.querySelector('#captura-harmonia').value = '5';
       });
       const payload = await pagina.evaluate((d) => {
-        window.__dadosDeProva = d;
         const r = coletarCaptura(d);
-        // `coletarCaptura` é do escopo do `<script>` clássico: existe no global.
         return { faltando: r.faltando, aula: r.aula };
       }, { ciclo: ciclo.id, escola: 'calango', aulas: {}, apelidos });
 
       provar('com o obrigatório preenchido, nada falta', payload.faltando.length === 0, payload.faltando);
-      const obs = payload.aula && payload.aula.observado;
-      provar('o payload leva `observado` com os três eixos',
-        obs && ['corpo', 'tecnica', 'poiesis'].every((k) => Array.isArray(obs[k]) && obs[k].length),
-        obs && Object.keys(obs));
-      provar('cada item leva o TEXTO que o professor leu e a marca que ele deu',
-        obs && obs.corpo[0] && typeof obs.corpo[0].item === 'string' && obs.corpo[0].item.trim()
-          && obs.corpo[0].marca === 'ok' && obs.corpo[1] && obs.corpo[1].marca === 'parcial',
-        obs && obs.corpo && obs.corpo.slice(0, 2));
-      provar('«surpreendeu» foi para o JSON como marca, e não como prosa',
+      const base = payload.aula && payload.aula.linha_de_base;
+      provar('a linha de base é gravada POR ALUNA, com os quatro aspectos do PO',
+        !!(base && Array.isArray(base.aluna_a) && base.aluna_a.length === 4
+          && base.aluna_a.every((x) => x.item && typeof x.marca === 'string')),
+        base && base.aluna_a && base.aluna_a.map((x) => x.marca));
+      provar('…e as marcas que o professor deu estão lá, na ordem do PO',
+        !!(base && base.aluna_a[0] && base.aluna_a[0].marca === 'ok'
+          && base.aluna_a[1] && base.aluna_a[1].marca === 'parcial'),
+        base && base.aluna_a && base.aluna_a.slice(0, 2));
+      provar('os blocos da técnica continuam por aluna e por espaço',
+        !!(payload.aula.solo && payload.aula.solo.aluna_a
+          && Object.keys(payload.aula.solo.aluna_a).length === 2),
+        payload.aula.solo && Object.keys(payload.aula.solo.aluna_a || {}));
+      provar('o bloco `observado` (sem aluna) deixou de ser escrito',
+        payload.aula.observado === undefined, Object.keys(payload.aula));
+      provar('o plano seguido saiu do rádio, e o texto foi para `mudou`',
+        payload.aula.condicoes_contorno.plano_seguido === 'parcial'
+          && /encurtei/.test(payload.aula.condicoes_contorno.mudou),
+        payload.aula.condicoes_contorno);
+      provar('…e `relatorio.ajustes` é o MESMO texto (o caderno imprime-o em «O que decidi»)',
+        payload.aula.relatorio.ajustes === payload.aula.condicoes_contorno.mudou,
+        { ajustes: payload.aula.relatorio.ajustes, mudou: payload.aula.condicoes_contorno.mudou });
+      provar('«surpreendeu» foi para o JSON como marca',
         payload.aula.relatorio.surpresas === 'sim', payload.aula.relatorio.surpresas);
-      provar('sem ajuste, `ajustes` sai vazio', payload.aula.relatorio.ajustes === '',
-        payload.aula.relatorio.ajustes);
       provar('o «o que aconteceu de novo» é o texto escrito',
         /cansada/.test(payload.aula.relatorio.texto), payload.aula.relatorio.texto);
 
       // O VALIDADOR DO JSON — a mesma porta por onde o arquivo passa antes do commit.
-      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'prova-form-'));
-      const arq = path.join(tmp, 'ciclo-01-prova-dados.json');
-      // A raiz completa: o validador exige `professor`, `criado_em` e `_nota` — a mesma raiz que
-      // o gravador escreve. Sem eles a prova mediria a fixture, e não o formulário.
-      fs.writeFileSync(arq, JSON.stringify({ ciclo: ciclo.id, escola: 'calango',
-        professor: ciclo.professor, criado_em: '2026-11-06T10:00',
-        apelidos, aulas: { [aulaDaProva.n]: payload.aula },
-        _nota: 'fixture da prova do formulario' }, null, 2) + '\n');
-      let saida = '', codigo = 0;
-      try {
-        saida = execSync(`node tools/validar-dados-ciclo.js ${JSON.stringify(arq)}`,
-          { cwd: raiz, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-      } catch (e) { codigo = e.status || 1; saida = String((e.stdout || '') + (e.stderr || '')); }
-      fs.rmSync(tmp, { recursive: true, force: true });
+      const raizDoJson = JSON.stringify({
+        ciclo: ciclo.id, escola: 'calango', professor: ciclo.professor,
+        criado_em: '2026-11-06T10:00', apelidos,
+        aulas: { [aulaDaProva.n]: payload.aula }, _nota: 'fixture da prova do formulario',
+      }, null, 2) + '\n';
+      const correr = (conteudo) => {
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'prova-form-'));
+        const arq = path.join(tmp, 'ciclo-01-prova-dados.json');
+        fs.writeFileSync(arq, conteudo);
+        let saida = '', codigo = 0;
+        try {
+          saida = execSync(`node tools/validar-dados-ciclo.js ${JSON.stringify(arq)}`,
+            { cwd: raiz, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch (e) { codigo = e.status || 1; saida = String((e.stdout || '') + (e.stderr || '')); }
+        fs.rmSync(tmp, { recursive: true, force: true });
+        return { codigo, saida };
+      };
+      const bom = correr(raizDoJson);
       provar('o JSON que o formulário monta passa no validar-dados-ciclo.js',
-        codigo === 0 && !/\berro\b/i.test(saida), { codigo, saida: saida.trim().split('\n').slice(-6) });
-      provar('…e o validador reconhece as marcas dos eixos (não as denuncia)',
-        !/observado/.test(saida), saida.trim().split('\n').filter((l) => /observado/.test(l)));
+        bom.codigo === 0 && !/\berro\b/i.test(bom.saida),
+        { codigo: bom.codigo, saida: bom.saida.trim().split('\n').slice(-5) });
+
+      /* A CONTRAPROVA DO VALIDADOR: a marca fora do vocabulário é recusada — inclusive no bloco
+       * de itens, que até 06/11/2026 passava sem ser olhado (o valor de cada pessoa é uma lista,
+       * e o teste «é um bloco por pessoa» dava-o por conferido). */
+      const mau = JSON.parse(raizDoJson);
+      mau.aulas[aulaDaProva.n].linha_de_base.aluna_a[0].marca = 'talvez';
+      const ruim = correr(JSON.stringify(mau, null, 2) + '\n');
+      provar('…e uma marca fora do vocabulário é recusada, mesmo na linha de base',
+        ruim.codigo !== 0 && /linha_de_base\.aluna_a\[0\]/.test(ruim.saida),
+        ruim.saida.trim().split('\n').filter((l) => /linha_de_base/.test(l)));
     }
 
     // ----------------------------------------------------------------------------------------
@@ -346,9 +412,10 @@ function servir() {
     console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
     process.exit(1);
   }
-  console.log('TUDO CERTO — ' + total + ' asserções: os itens da marcação são os do PO nos três '
-    + 'eixos, «surpreendeu» e «precisou de ajuste» são marcas (com o padrão NÃO no ajuste), a '
-    + 'escrita obrigatória é uma só, o payload passa no validador com `observado` por eixo, e a '
+  console.log('TUDO CERTO — ' + total + ' asserções: a matriz tem as alunas por linha e os '
+    + 'aspectos por coluna (4 do corpo + 6 da técnica + 4 da poiesis, por aluna), o corpo ganhou '
+    + 'as quatro colunas que lhe faltavam, «o plano foi seguido?» é uma pergunta de três estados, '
+    + 'o payload passa no validador com a linha de base por aluna e sem o bloco sem dono, e a '
     + 'página não estoura a 1280 nem a 390.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));

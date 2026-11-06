@@ -149,18 +149,39 @@ document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
                       border:1px solid var(--borda-campo); border-radius:var(--raio-2);
                       background:var(--campo-fundo); box-sizing:border-box; }
   .captura .linha { margin:var(--esp-1) 0; }
-  /* OS TRÊS EIXOS DA AULA (06/11/2026). Cada eixo é um `h4` da casa seguido da sua tabela; o
-     primeiro ganha ar depois da legenda, e o último não deixa margem pendurada na borda do
-     `fieldset` — a peça já tem o padding, e somar as duas coisas dobrava o respiro. */
-  .observado h4:first-of-type { margin-top:var(--esp-3); }
-  .observado table.captura:last-of-type { margin-bottom:0; }
-  .observado table.captura th { white-space:normal; }
-  /* «PRECISOU DE AJUSTE?» e «SURPREENDEU?» — dois pares de rádio, e o rótulo de cada um é uma
+  /* OS TRÊS EIXOS, EM ACORDEÃO (06/11/2026). «talvez se fosse por acordeon, fosse mais enxuto
+     isso, fosse melhor» — e é: cada eixo é um `<details>`, e o sumário diz o nome do eixo e
+     quantas marcas já tem. As peças são as da folha (o `--raio-2` do controle, o `--esp-2/3` do
+     respiro, o `--fundo-suave` dos blocos); nenhuma cor nem medida nova. */
+  .eixo { border:1px solid var(--borda-campo); border-radius:var(--raio-2);
+          padding:var(--esp-2) var(--esp-3); margin:0 0 var(--esp-4);
+          background:var(--fundo-suave); }
+  .eixo > summary { cursor:pointer; font-weight:600; }
+  .eixo[open] > summary { margin-bottom:var(--esp-3); }
+  .eixo .matriz + .matriz { margin-top:var(--esp-4); }
+  /* O OBJECTIVO É O TÍTULO DA SUA TABELA, e os espaços são as colunas. Sem esta linha, o título
+     da tabela seguinte encostava à anterior e parecia pertencer-lhe. */
+  .matriz-objectivo { font-size:.9rem; font-weight:600; color:var(--marca-texto);
+                      margin:var(--esp-4) 0 var(--esp-1); line-height:1.35; }
+  .eixo > .matriz-objectivo:first-of-type { margin-top:0; }
+  /* O CABEÇALHO DA MATRIZ É TEXTO, NÃO ETIQUETA: são os aspectos da linha de base («Sustentação
+     ativa de MMII (força de adágio)»), escritos por extenso. Sem `white-space:normal` a casa
+     mantém a coluna numa linha e a matriz estourava — e o nome do aspecto é a única coisa que
+     diz o que se está a marcar. Alinhado em baixo, para os rótulos de alturas diferentes
+     assentarem com a linha dos selects. */
+  .captura.matriz th { white-space:normal; vertical-align:bottom; }
+  /* «SURPREENDEU?» e «O PLANO FOI SEGUIDO?» — dois pares de rádio, e o rótulo de cada um é uma
      palavra. O respiro entre os pares é `--esp-3`, e a caixa do rádio fica a `--esp-1` da
      palavra: colados, o `sim` e o `não` viram um bloco só e erra-se o clique. */
   .depois label.presenca { margin-right:var(--esp-3); }
   .depois label.presenca input { margin-right:var(--esp-1); }
-  .depois #linha-ajuste { margin-top:var(--esp-3); }
+  /* CADA PERGUNTA DO «DEPOIS» É UMA PERGUNTA, e o respiro entre duas é `--esp-3` (12px). A regra
+     da casa para a linha de formulário é `--esp-1` (4px) — serve entre campos do MESMO formulário,
+     não entre perguntas distintas que agora trazem cinco controles cada. Nas bordas é zero: quem
+     já dá o ar de cima e de baixo é o `padding` da peça, e somar os dois dobrava. */
+  .depois .linha { margin:var(--esp-3) 0; }
+  .depois .linha:first-of-type { margin-top:0; }
+  .depois .linha:last-child { margin-bottom:0; }
   .captura .filtros input[type=text] { width:auto; }
   /* `hidden` de VERDADE. A classe .acoes tem display:flex, e CSS de autor vence o
      `display:none` que o navegador dá ao atributo `hidden`: sem esta regra, o botão
@@ -993,10 +1014,15 @@ const apelidosDoCiclo = (dados) =>
  */
 const EIXOS_DA_CAPTURA = [['corpo', 'Corpo'], ['tecnica', 'Técnica'], ['poiesis', 'Poiesis']];
 
+/** Sem acento, sem maiúscula e sem espaço a mais — a forma com que se comparam rótulos. */
+function semAcento(v) {
+  return String(v == null ? '' : v).normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+}
+
 /** «Poiesis», «poiesis», «Poiésis» ou «Poiese» — a mesma chave, sem acento. */
 function chaveDoEixo(rotulo) {
-  const t = String(rotulo == null ? '' : rotulo).normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  const t = semAcento(rotulo);
   if (t === 'corpo') return 'corpo';
   if (t === 'tecnica' || t === 'tecnico') return 'tecnica';
   if (t === 'poiesis' || t === 'poiese' || t === 'poetica') return 'poiesis';
@@ -1032,19 +1058,6 @@ function eixosDoPo(po) {
     }
   }
   return saida;
-}
-
-/** As marcas já gravadas nesta aula, por eixo e por item. */
-function observadoDaAula(a) {
-  const o = (a && a.observado) || null;
-  if (!o || typeof o !== 'object') return {};
-  const mapa = {};
-  for (const [eixo, lista] of Object.entries(o)) {
-    if (!Array.isArray(lista)) continue;
-    mapa[eixo] = {};
-    for (const x of lista) if (x && x.item) mapa[eixo][String(x.item)] = x.marca;
-  }
-  return mapa;
 }
 
 // A aula que falta lançar é a PRIMEIRA sem dado entre as PLANEJADAS NO ÍNDICE. É ela que o
@@ -1300,53 +1313,6 @@ function dataDaCaptura(m, id) {
 }
 
 /**
- * «O QUE SE OBSERVOU NESTA AULA» — uma marca por item, nos três eixos.
- *
- * É a troca que ela pediu: «essa forma como é apresentada aqui não é fácil para o professor
- * responder, ela é complexa». O que se marca são os itens que o PO já manda olhar; o que se
- * escreve é só o que nenhum item previa (o bloco de baixo).
- *
- * OS ITENS VÊM DO PO, E SÓ DELE. Não há lista paralela aqui: se o PO muda, o formulário muda
- * pela mesma razão, e não há dois vocabulários para manter.
- */
-function blocoObservado(po, a) {
-  const eixos = eixosDoPo(po);
-  const gravado = observadoDaAula(a);
-  const algum = EIXOS_DA_CAPTURA.some(([chave]) => eixos[chave].itens.length);
-  if (!algum) {
-    return `<fieldset class="observado"><legend>O que se observou nesta aula</legend>
-      <p class="fraco">[Preencher: o plano de observação deste ciclo não declara os itens de cada
-        dimensão, e sem eles não há o que marcar. As marcas por aluna, acima, continuam valendo;
-        e «o que aconteceu de novo», abaixo, também.]</p></fieldset>`;
-  }
-  const tabelas = EIXOS_DA_CAPTURA.map(([chave, rotulo]) => {
-    const lista = eixos[chave].itens;
-    if (!lista.length) {
-      return `<h4>${esc(rotulo)}</h4>
-        <p class="fraco">[Preencher: o PO não declara itens neste eixo para este ciclo.]</p>`;
-    }
-    // AS DIMENSÕES QUE O EIXO COBRE, nomeadas sob o título: o item vem do PO, e saber de que
-    // dimensão ele veio é o que liga a marca ao documento. Um eixo que reúne Solo, Barra e Centro
-    // diz isso numa linha, em vez de repetir o mesmo objectivo três vezes seguidas.
-    const dimensoes = eixos[chave].dimensoes;
-    return `<h4>${esc(rotulo)}</h4>
-      ${dimensoes.length ? `<p class="fraco">${dimensoes.map(esc).join(' · ')}</p>` : ''}
-      <table class="captura"><tr><th>O que se olha</th><th>O que se viu</th></tr>
-      ${lista.map((x, i) => `<tr><th class="aluna">${esc(x.item)}</th><td>
-        <select id="obs-${esc(chave)}-${i}" aria-label="${esc(x.item)}">${
-          opcoesDe(MARCAS, (gravado[chave] || {})[x.item])}</select></td></tr>`).join('')}
-      </table>`;
-  }).join('');
-  return `<fieldset class="observado"><legend>O que se observou nesta aula</legend>
-    <p class="fraco">Os mesmos itens que o plano de observação manda olhar, nos três eixos: um
-      <strong>corpo</strong>, uma <strong>técnica</strong> e uma <strong>poiesis</strong>. Ao fim
-      da aula, uma marca por item — <strong>✓</strong> aconteceu, <strong>~</strong> em parte,
-      <strong>X</strong> não aconteceu, <strong>?</strong> não vi. Vazio é «não observei»: não é
-      a mesma coisa que «não aconteceu», e a diferença fica gravada.</p>
-    ${tabelas}</fieldset>`;
-}
-
-/**
  * «DEPOIS DA AULA» — o que se marca e o que se escreve.
  *
  * «E aí ele vai simplesmente marcar o que aconteceu de novo e isso, de fato, ele tem que
@@ -1361,18 +1327,37 @@ function blocoObservado(po, a) {
  */
 function blocoDoDepois(a) {
   const r = (a && a.relatorio) || {};
+  const cc = (a && a.condicoes_contorno) || {};
   const surpresa = r.surpresas === 'sim' || r.surpresas === 'nao' ? r.surpresas : '';
   // Prosa anterior no campo da surpresa: guardada e mostrada, nunca apagada em silêncio — a
   // marca nova só a substitui quando o professor escolhe uma.
   const prosaAntiga = surpresa ? '' : String(r.surpresas || '').trim();
-  const ajuste = String(r.ajustes || '').trim();
-  const houveAjuste = ajuste ? 'sim' : 'nao';
+  const seguido = ['sim', 'parcial', 'nao'].includes(cc.plano_seguido) ? cc.plano_seguido : 'sim';
+  const mudou = seguido === 'sim' ? '' : String(cc.mudou || r.ajustes || '').trim();
   return `<fieldset class="depois"><legend>Depois da aula</legend>
-    <p class="linha"><label class="campo-rotulo em-linha" for="captura-texto">O que aconteceu de
-      novo — o que nenhum item acima previa:</label>
-      <textarea id="captura-texto" rows="3">${esc(r.texto || '')}</textarea><br>
-      <span class="fraco">Obrigatório. É a única parte que se escreve por inteiro: o resto já
-        está nos itens e nas marcas.</span></p>
+    ${/* A PERGUNTA QUE SE FAZIA DUAS VEZES (06/11/2026). Havia «Plano seguido?» no alto, com
+         sim/parcial/não e um campo do «o que mudou», e havia «Precisou de ajuste?» aqui, com
+         sim/não e outro campo. Ela viu o que era: «me parece que estão redundantes». Eram — «em
+         parte» e «precisou de ajuste = sim» são a mesma frase dita duas vezes. Ficou UMA pergunta
+         de três estados, porque nenhum dos dois vocabulários sozinho sabe dizer a diferença entre
+         «segui o plano e mexi num detalhe» e «não segui o plano»:
+             sim      → o plano foi seguido (e o texto fica vazio: vazio é «nada mudou»)
+             parcial  → segui, mas mexi
+             nao      → não segui
+         e UM texto, obrigatório fora do «sim» — que é o que `condicoes_contorno.mudou` guarda. */ ''}
+    <p class="linha"><strong>O plano foi seguido?</strong>
+      <label class="presenca"><input type="radio" name="captura-plano" value="sim"${
+        seguido === 'sim' ? ' checked' : ''}> sim</label>
+      <label class="presenca"><input type="radio" name="captura-plano" value="parcial"${
+        seguido === 'parcial' ? ' checked' : ''}> em parte</label>
+      <label class="presenca"><input type="radio" name="captura-plano" value="nao"${
+        seguido === 'nao' ? ' checked' : ''}> não</label></p>
+    <p class="linha" id="linha-mudou"${seguido === 'sim' ? ' hidden' : ''}>
+      <label class="campo-rotulo em-linha" for="captura-mudou">O que mudou em relação ao plano —
+        e o que foi ajustado:</label>
+      <textarea id="captura-mudou" rows="2">${esc(mudou)}</textarea><br>
+      <span class="fraco">Obrigatório quando o plano <strong>não</strong> é seguido. Com o plano
+        seguido o campo fica vazio — e vazio quer dizer <em>nada mudou</em>.</span></p>
     <p class="linha"><strong>Surpreendeu?</strong>
       <label class="presenca"><input type="radio" name="captura-surpreendeu" value="sim"${
         surpresa === 'sim' ? ' checked' : ''}> sim</label>
@@ -1380,15 +1365,11 @@ function blocoDoDepois(a) {
         surpresa === 'nao' ? ' checked' : ''}> não</label>
       ${prosaAntiga ? `<br><span class="fraco">Registro anterior, em prosa: «${esc(prosaAntiga)}» —
         escolher uma marca o substitui.</span>` : ''}</p>
-    <p class="linha"><strong>Precisou de ajuste?</strong>
-      <label class="presenca"><input type="radio" name="captura-ajuste" value="nao"${
-        houveAjuste === 'nao' ? ' checked' : ''}> não</label>
-      <label class="presenca"><input type="radio" name="captura-ajuste" value="sim"${
-        houveAjuste === 'sim' ? ' checked' : ''}> sim</label></p>
-    <p class="linha" id="linha-ajuste"${houveAjuste === 'sim' ? '' : ' hidden'}>
-      <label class="campo-rotulo em-linha" for="captura-ajustes">O que foi ajustado:</label>
-      <textarea id="captura-ajustes" rows="2">${esc(ajuste)}</textarea><br>
-      <span class="fraco">Obrigatório quando houve ajuste — o ajuste é o que a aula seguinte lê.</span></p>
+    <p class="linha"><label class="campo-rotulo em-linha" for="captura-texto">O que aconteceu de
+      novo — o que nenhum item acima previa:</label>
+      <textarea id="captura-texto" rows="3">${esc(r.texto || '')}</textarea><br>
+      <span class="fraco">Obrigatório. É a única parte que se escreve por inteiro: o resto já
+        está nas marcas e nas tabelas.</span></p>
   </fieldset>`;
 }
 
@@ -1398,11 +1379,9 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   // A RÉGUA do ciclo em cena ANTES de qualquer render: é ela que monta os campos de critério
   // (abaixo) e a leitura das tabelas (`mdCelula`, na vista de resultados).
   usarRegua(planoDoCiclo);
+  // `cc` ainda se lê aqui: as três notas (ânimo, interesse, harmonia) são do topo. A pergunta do
+  // plano desceu para «Depois da aula», com o texto do que mudou — mas o valor guardado é o mesmo.
   const cc = (a && a.condicoes_contorno) || {};
-  // O plano seguido já vem escolhido — "sim" é o caso comum — e é ele que governa o campo
-  // "o que mudou" JÁ NA PRIMEIRA RENDERIZAÇÃO, quando nada foi mudado ainda. Sem isto, a
-  // aula nova nascia com "sim" no select e o campo do "o que mudou" habilitado.
-  const plano = cc.plano_seguido || 'sim';
   // O MARCO DA AULA vem do plano do ciclo (`plano-XX.json`): é o que esta aula existe para deixar
   // pronto. Sem o plano não há linha de marco — não se inventa o que a aula persegue.
   const marcos = Vistas.helpers.objetosDe((planoDoCiclo && planoDoCiclo.marcosPorAula) || []);
@@ -1441,16 +1420,154 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     .map(([k, nome]) => `<option value="${esc(k)}"${k === sel ? ' selected' : ''
       }>${esc(nome)}</option>`).join('');
 
-  // Os itens da linha de base de uma pessoa: vêm do PO (`linhaDeBase`, por aluno, em lista) — é o
-  // que o bloco que revisita a base marca item por item.
-  const itensDoPo = (nome) => {
-    const base = Vistas.helpers.objetosDe((po && po.linhaDeBase) || []);
-    const eu = base.find((x) => (x.aluno || '') === nome);
-    return eu && eu.precisaDesenvolver
-      ? String(eu.precisaDesenvolver).split(',').map((s) => s.trim()).filter(Boolean) : [];
+  /* ========================================================== A MATRIZ DA AULA
+   *
+   * «eu preciso ter isso [a linha de base] orientada por aluno […] a gente tem que elaborar um
+   * outro modelo onde a parte de cima a gente tem por linha os alunos e por coluna a gente precisa
+   * acrescentar outras colunas» (06/11/2026).
+   *
+   * AS LINHAS SÃO AS ALUNAS, AS COLUNAS SÃO OS ASPECTOS — e as colunas não se inventam aqui: cada
+   * uma é uma coluna da folha de captura, no bloco da dimensão a que pertence. É a mesma tríade
+   * que o índice de lançamentos lê (§4.9 do PLANO-INDICES.md: aula, data, **aluna**, **coluna**,
+   * bloco, marca), e é o que o caderno já sabe imprimir.
+   *
+   * O QUE ISTO SUBSTITUI, E POR QUÊ. Havia três blocos para a mesma coisa, e dois deles errados:
+   *
+   *   · cinco tabelas, uma por dimensão, cada uma com as MESMAS duas colunas do plano repetidas
+   *     (Solo, Barra e Centro pedem os mesmos dois objectivos; Musicalidade e Expressão, os
+   *     mesmos outros dois) — seis perguntas iguais por aluna;
+   *   · um bloco «o que se observou», com os mesmos objectivos de novo e **sem aluna** — não
+   *     respondia a nenhuma pergunta do catálogo, que é sempre sobre uma aluna;
+   *   · o bloco «linha de base revisitada», que **nunca funcionou**: procurava no PO uma lista por
+   *     aluna (`precisaDesenvolver`) que o PO não tem, e imprimia «o PO não declara linha de base
+   *     dela» para TODA a gente (medido: as duas alunas da calango). Os quatro aspectos do corpo
+   *     — os que ela escolheu no recorte — não tinham coluna nenhuma.
+   *
+   * A matriz une os três: o corpo ganha as suas quatro colunas, os objectivos da técnica e da
+   * poiesis aparecem UMA vez por espaço (não seis), e toda marca é de uma aluna.
+   */
+  const eixos = eixosDoPo(po);
+  // A que eixo pertence um bloco da folha: pelo RÓTULO da dimensão, contra as dimensões do PO. É o
+  // que liga «Solo» (a folha) a «Técnica» (o PO) sem uma lista paralela que envelheça.
+  const eixoDoBloco = (b) => {
+    if (b.secoes) return 'corpo';            // a linha de base revisitada É o eixo do corpo
+    const alvo = semAcento(b.rotulo || b.titulo || '');
+    for (const [chave] of EIXOS_DA_CAPTURA) {
+      if (eixos[chave].dimensoes.some((d) => semAcento(d) === alvo)) return chave;
+    }
+    return null;
+  };
+  // QUEM APARECE: quem está presente. Uma aluna ausente numa matriz de marcas é uma linha de
+  // selects que ninguém vai preencher, e «ausente» já está dito na folha de presença.
+  const presentes = apelidosDoCiclo(dados).filter(([k]) => !a || a.presentes.includes(k));
+
+  // A MATRIZ DE UM BLOCO: as colunas da folha são as colunas, a aluna é a linha.
+  const matrizDeBloco = (b) => `<table class="captura matriz">
+      <tr><th>Aluna</th>${(b.colunas || []).map((c) => `<th>${esc(c.rotulo)}</th>`).join('')}</tr>
+      ${presentes.map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
+        + (b.colunas || []).map((c) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo,
+          doBloco(b, k)[c.chave],
+          c.tipo === 'numero' ? ((a && a.duracao_min) ?? (m.duracao_min ?? '')) : '')}</td>`).join('')
+        + '</tr>').join('')}
+    </table>`;
+
+  // A MATRIZ DA LINHA DE BASE: as colunas são os itens do eixo do corpo, que vêm do PO — a folha
+  // declara-os em branco de propósito («não se reescreve aqui: aqui anota-se o que a aula
+  // mostrou»), e é o PO que sabe quais são. Uma marca por aluna e por aspecto, guardada como
+  // lista posicional — a mesma forma que a `secoes` da folha já declarava.
+  const matrizDaBase = (b) => {
+    const itens = eixos.corpo.itens;
+    if (!itens.length) {
+      return '<p class="fraco">[Preencher: o PO deste ciclo não declara os itens do corpo — sem'
+        + ' eles não há o que revisitar. O recorte do passo 4 da linha de base é a fonte.]</p>';
+    }
+    return `<table class="captura matriz">
+      <tr><th>Aluna</th>${itens.map((x) => `<th>${esc(x.item)}</th>`).join('')}</tr>
+      ${presentes.map(([k, nome]) => {
+        const lancado = Array.isArray((a && a[b.chave] || {})[k]) ? a[b.chave][k] : [];
+        return `<tr><th class="aluna">${esc(nome)}</th>`
+          + itens.map((x, j) => `<td>${campo(`lb-${k}-${j}`, (b.colunas[0] || {}).tipo || 'marca',
+            (lancado[j] || {}).marca)}</td>`).join('')
+          + '</tr>';
+      }).join('')}
+    </table>`;
   };
 
-  const tabelas = blocos.map((b) => {
+  // A MATRIZ DE VÁRIOS BLOCOS NO MESMO EIXO (a Técnica tem três espaços, a Poiesis dois): uma
+  // tabela por OBJECTIVO, e os espaços como colunas. É assim que a repetição desaparece — o
+  // objectivo — que estava escrito três vezes como coluna — passa a ser o título de uma tabela,
+  // e os espaços, que estavam escritos como títulos, passam a ser as colunas.
+  const matrizPorObjectivo = (g) => {
+    const objectivos = [];
+    g.blocos.forEach((b) => (b.colunas || []).forEach((c) => {
+      if (!objectivos.some((o) => o.chave === c.chave)) objectivos.push({ chave: c.chave, rotulo: c.rotulo });
+    }));
+    return objectivos.map((o) => {
+      const colunas = [];
+      g.blocos.forEach((b) => {
+        const c = (b.colunas || []).find((x) => x.chave === o.chave);
+        if (c) colunas.push({ b, c });
+      });
+      return `<p class="matriz-objectivo">${esc(o.rotulo)}</p>
+        <table class="captura matriz">
+          <tr><th>Aluna</th>${colunas.map(({ b }) => `<th>${esc(b.rotulo || b.titulo)}</th>`).join('')}</tr>
+          ${presentes.map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
+            + colunas.map(({ b, c }) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo,
+              doBloco(b, k)[c.chave])}</td>`).join('')
+            + '</tr>').join('')}
+        </table>`;
+    }).join('');
+  };
+
+  /** Os valores do grupo, na ordem em que se lêem — é o que a contagem do sumário conta. */
+  const valoresDoGrupo = (g) => {
+    const vals = [];
+    g.blocos.forEach((b) => presentes.forEach(([k]) => {
+      if (b.secoes) {
+        const lancado = Array.isArray((a && a[b.chave] || {})[k]) ? a[b.chave][k] : [];
+        eixos.corpo.itens.forEach((_, j) => vals.push((lancado[j] || {}).marca));
+      } else {
+        (b.colunas || []).forEach((c) => vals.push(doBloco(b, k)[c.chave]));
+      }
+    }));
+    return vals;
+  };
+
+  const grupos = EIXOS_DA_CAPTURA.map(([chave, rotulo]) => ({
+    chave, rotulo,
+    blocos: blocos.filter((b) => eixoDoBloco(b) === chave),
+  }));
+
+  // OS EIXOS, EM ACORDEÃO. O sumário diz o que está lá dentro — o nome do eixo e quantas marcas
+  // já tem —, para que um eixo fechado não esconda trabalho feito nem trabalho por fazer. Abre-se
+  // o corpo (é a âncora da aula) e todo o eixo que já tenha marca; o resto espera fechado.
+  const acordeoes = grupos.map((g) => {
+    const vals = valoresDoGrupo(g);
+    const marcados = vals.filter((v) => v !== '' && v !== null && v !== undefined && v !== false).length;
+    const aberto = g.chave === 'corpo' || marcados > 0;
+    let corpo;
+    if (!g.blocos.length) {
+      corpo = '<p class="fraco">[Preencher: a folha de captura desta aula não declara nenhuma'
+        + ' dimensão deste eixo.]</p>';
+    } else {
+      const base = g.blocos.filter((b) => b.secoes);
+      const resto = g.blocos.filter((b) => !b.secoes);
+      const partes = base.map(matrizDaBase);
+      if (resto.length === 1) partes.push(matrizDeBloco(resto[0]));
+      else if (resto.length > 1) partes.push(matrizPorObjectivo({ chave: g.chave, blocos: resto }));
+      corpo = partes.join('');
+    }
+    return `<details class="eixo"${aberto ? ' open' : ''}>
+      <summary>${esc(g.rotulo)} <span class="fraco">— ${marcados} de ${vals.length} marcados</span></summary>
+      ${corpo}</details>`;
+  }).join('');
+
+  // NADA SOME EM SILÊNCIO: um bloco da folha que não caia em nenhum eixo (uma dimensão nova, um
+  // nome diferente no PO) continua a ser desenhado — com o aviso, e pela matriz de um bloco. A cor
+  // de um bloco órfão é esta, e não o silêncio: o que não é lido por ninguém é pior do que o que
+  // aparece no lugar errado.
+  const semEixo = blocos.filter((b) => !eixoDoBloco(b));
+  const tabelas = semEixo.map((b) => {
     const titulo = `<h4>${esc(b.rotulo || b.titulo)}</h4>`;
     if (b.grao === 'dupla') {
       const pares = Array.isArray(a && a[b.chave]) ? a[b.chave] : [];
@@ -1465,28 +1582,9 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
             + '</tr>';
         }).join('') + '</table>';
     }
-    if (b.secoes) {
-      // A linha de base revisitada: uma marca por ITEM do PO, pessoa por pessoa.
-      return titulo + apelidosDoCiclo(dados)
-        .filter(([k]) => !a || a.presentes.includes(k))
-        .map(([k, nome]) => {
-          const itens = itensDoPo(nome);
-          if (!itens.length) return `<p class="fraco">${esc(nome)}: [o PO não declara linha de base dela.]</p>`;
-          const lancado = Array.isArray((a && a[b.chave] || {})[k]) ? a[b.chave][k] : [];
-          return `<table class="captura"><tr><th>${esc(nome)}</th>`
-            + `<th>${esc(b.colunas[0].rotulo)}</th></tr>`
-            + itens.map((item, j) => `<tr><th class="aluna">${esc(item)}</th><td>${
-              campo(`lb-${k}-${j}`, b.colunas[0].tipo, (lancado[j] || {}).marca)}</td></tr>`).join('')
-            + '</table>';
-        }).join('');
-    }
-    return titulo + '<table class="captura">'
-      + `<tr><th>Aluna(o)</th>${b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('')}</tr>`
-      + apelidosDoCiclo(dados).map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
-        + b.colunas.map((c) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo, doBloco(b, k)[c.chave],
-          c.tipo === 'numero' ? ((a && a.duracao_min) ?? (m.duracao_min ?? '')) : '')}</td>`).join('')
-        + '</tr>').join('')
-      + '</table>';
+    return titulo + '<p class="fraco">Este bloco da folha não cai em nenhum dos três eixos do PO —'
+      + ' continue a lançá-lo aqui, mas a dimensão dele não está declarada no plano de observação.</p>'
+      + matrizDeBloco(b);
   }).join('');
 
   return `<p class="fraco">Ciclo ${esc(m.id)} · ${esc(m.escola)} — ` +
@@ -1517,9 +1615,6 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     <span><label class="campo-rotulo em-linha" for="captura-duracao">Duração executada (min):</label>
       <input id="captura-duracao" type="number" min="0" step="5"
         value="${esc(a ? a.duracao_min : (m.duracao_min ?? ''))}"></span>
-    <span><label class="campo-rotulo em-linha" for="captura-plano">Plano seguido:</label>
-      <select id="captura-plano">${opcoesDe([['sim', 'sim'], ['parcial', 'parcial'],
-        ['nao', 'não']], plano)}</select></span>
   </div>
   <p class="linha"><span class="fraco">A data vem do <strong>índice do ciclo</strong>
     (a aula declarada nele) e a duração, do <strong>planejamento do ciclo</strong> — ajuste se
@@ -1533,19 +1628,11 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     <span><label class="campo-rotulo em-linha" for="captura-harmonia">Harmonia (1-5):</label>
       <input id="captura-harmonia" type="number" min="1" max="5" value="${esc(cc.harmonia ?? '')}"></span>
   </div>
-  <p class="linha"><label class="campo-rotulo em-linha" for="captura-mudou">O que mudou em relação ao plano:</label>
-    <input id="captura-mudou" type="text"
-      value="${esc(plano === 'sim' ? '' : (cc.mudou || ''))}"
-      ${plano === 'sim' ? 'disabled' : ''}
-      placeholder="o que mudou, em uma linha"><br>
-    <span class="fraco">Obrigatório quando o plano <strong>não</strong> for seguido. Com o
-      plano seguido, fica vazio — vazio quer dizer <em>nada mudou</em>. A estrutura
-      executada e o que foi abandonado vão no relatório.</span></p>
   <p class="linha"><strong>Presentes:</strong> ${apelidosDoCiclo(dados).map(([k, nome]) =>
       `<label class="presenca"><input type="checkbox" id="pres-${esc(k)}"${
         (a ? a.presentes.includes(k) : true) ? ' checked' : ''}> ${esc(nome)}</label>`).join(' · ')}</p>
   ${tabelas}
-  ${blocoObservado(po, a)}
+  ${acordeoes}
   ${blocoDoDepois(a)}
   <p class="fraco">${[
     comMarcas ? `Marcas: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
@@ -1573,15 +1660,15 @@ function renderCaptura() {
   const pecas = cache[f.meta.id] || {};
   alvo.innerHTML = camposCaptura(f.meta, f.dados, sel.aula.value,
     (pecas.capturas || {})[sel.aula.value] ?? pecas.captura, pecas.po, pecas.plano);
-  // «PRECISOU DE AJUSTE?» governa o campo do ajuste: a linha só aparece com a marca em «sim», e
-  // o que já estava escrito não se apaga ao voltar para «não» — quem decide o que é gravado é
-  // `coletarCaptura` (com «não», `ajustes` sai vazio). Delegado no painel: o painel é
-  // reconstruído a cada render, e um listener por campo se perderia na reconstrução seguinte.
+  // «O PLANO FOI SEGUIDO?» governa o texto do que mudou: com «sim» a linha desaparece, e com
+  // «em parte» ou «não» aparece. O que já estava escrito NÃO se apaga ao voltar para «sim» — quem
+  // decide o que é gravado é `coletarCaptura` (com «sim», `mudou` sai vazio). Delegado no painel:
+  // o painel é reconstruído a cada render, e um listener por campo perder-se-ia na reconstrução.
   alvo.onchange = (ev) => {
     const t = ev.target;
-    if (!t || t.name !== 'captura-ajuste') return;
-    const linha = el('linha-ajuste');
-    if (linha) linha.hidden = t.value !== 'sim';
+    if (!t || t.name !== 'captura-plano') return;
+    const linha = el('linha-mudou');
+    if (linha) linha.hidden = t.value === 'sim';
   };
 }
 
@@ -1591,10 +1678,10 @@ function renderCaptura() {
 // e zera; quem manda no que existe ali é o config da vez (o da aula, se houver).
 function limparCamposCaptura() {
   ['captura-data', 'captura-duracao', 'captura-plano', 'captura-animo', 'captura-interesse',
-   'captura-harmonia', 'captura-mudou', 'captura-texto', 'captura-ajustes']
+   'captura-harmonia', 'captura-mudou', 'captura-texto']
     .forEach((id) => { const x = el(id); if (x) x.value = ''; });
-  const linhaAjuste = el('linha-ajuste');
-  if (linhaAjuste) linhaAjuste.hidden = true;
+  const linhaMudou = el('linha-mudou');
+  if (linhaMudou) linhaMudou.hidden = true;
   const alvo = el('captura-campos');
   if (alvo) {
     alvo.querySelectorAll('select').forEach((x) => { x.value = ''; });
@@ -1618,8 +1705,18 @@ function coletarCaptura(dados) {
   // ele que vai para `ajustado_por`.
   const autor = v('captura-autor').trim();
   const data = v('captura-data'), dur = v('captura-duracao');
+  // AS MARCAS DE RÁDIO NÃO TÊM `id` — quem as agrupa é o `name`. `v()` lê por `id`, e devolvia
+  // vazio: a marca que o professor dava não chegava ao JSON. `marcada()` lê o grupo, e declara-se
+  // aqui em cima porque o `cc` já a usa (declarada mais abaixo, caía na zona morta temporal).
+  const marcada = (nome) => {
+    const r = document.querySelector(`input[name="${nome}"]:checked`);
+    return r ? String(r.value || '') : '';
+  };
+  // A PERGUNTA FUNDIDA (06/11/2026): um rádio de três estados em vez de dois campos que diziam a
+  // mesma coisa. O valor guardado continua a ser o do contrato — `plano_seguido` ∈
+  // {sim, parcial, nao} —, e o texto vai para `mudou`, que é onde o PAR da §4.1 o exige.
   const cc = {
-    plano_seguido: v('captura-plano'),
+    plano_seguido: marcada('captura-plano'),
     animo: Number(v('captura-animo')),
     interesse: Number(v('captura-interesse')),
     harmonia: Number(v('captura-harmonia')),
@@ -1636,20 +1733,19 @@ function coletarCaptura(dados) {
   // sem marca, e sobrevive porque é registro — não se apaga o que já estava gravado.
   const aulaAnterior = (f0.dados && f0.dados.aulas && f0.dados.aulas[id]) || null;
   const relAnterior = (aulaAnterior && aulaAnterior.relatorio) || {};
-  // AS MARCAS DE RÁDIO NÃO TÊM `id` — quem as agrupa é o `name`. `v()` lê por `id`, e devolvia
-  // vazio: a marca que o professor dava não chegava ao JSON. `marcada()` lê o grupo.
-  const marcada = (nome) => {
-    const r = document.querySelector(`input[name="${nome}"]:checked`);
-    return r ? String(r.value || '') : '';
-  };
+
   const marcaDaSurpresa = marcada('captura-surpreendeu');
-  const marcaDoAjuste = marcada('captura-ajuste');
   const surpresaAnterior = String(relAnterior.surpresas || '').trim();
+  // `relatorio.ajustes` passa a ser o MESMO texto de `condicoes_contorno.mudou` (06/11/2026, a
+  // pergunta fundida). Duas cópias de uma string num JSON é um cheiro, e é assumido: os dois
+  // campos têm leitores diferentes — o `mudou` é o que a §4.1 exige quando o plano não é seguido,
+  // e o `ajustes` é o que o caderno imprime em «O que decidi» (§4.6). Quem os escreve é este
+  // sítio e mais nenhum, e é por isso que não divergem.
   const relatorio = {
     texto: v('captura-texto').trim(),
     surpresas: marcaDaSurpresa
       || (surpresaAnterior === 'sim' || surpresaAnterior === 'nao' ? '' : surpresaAnterior),
-    ajustes: marcaDoAjuste === 'sim' ? v('captura-ajustes').trim() : '',
+    ajustes: cc.plano_seguido === 'sim' ? '' : cc.mudou,
   };
   // A regra do PAR: `plano_seguido` e `mudou` andam juntos. Plano seguido → `mudou` vazio
   // (vazio quer dizer "nada mudou"); plano não seguido → `mudou` obrigatório. O valor é
@@ -1666,7 +1762,6 @@ function coletarCaptura(dados) {
   cinco(cc.harmonia, 'a harmonia (1-5)');
   if (!relatorio.texto) faltando.push('o que aconteceu de novo');
   if (!relatorio.surpresas) faltando.push('a marca do «surpreendeu?»');
-  if (marcaDoAjuste === 'sim' && !relatorio.ajustes) faltando.push('o que foi ajustado');
   // O motivo só existe no ajuste — e lá é obrigatório: sem ele, o ajuste muda o
   // registro sem dizer por quê, e a correção deixa de ser auditável.
   if (estadoAjuste()) {
@@ -1717,13 +1812,15 @@ function coletarCaptura(dados) {
     if (b.secoes) {
       // A linha de base revisitada: uma marca por ITEM do PO — a lista mantém o texto do item,
       // porque o slug perderia a redação que a professora leu.
+      // OS ITENS SÃO OS DO EIXO DO CORPO — a mesma lista que a matriz desenhou, e pela mesma
+      // função. Foi a divergência entre as duas que manteve este bloco morto por meses: o
+      // formulário procurava no PO uma lista por aluna (`precisaDesenvolver`) que o PO nunca teve,
+      // e o campo aparecia vazio com «o PO não declara linha de base dela» para toda a gente.
+      const itens = eixosDoPo(pecas.po).corpo.itens;
       const porPessoa = {};
       presentes.forEach((k) => {
-        const eu = Vistas.helpers.objetosDe((pecas.po && pecas.po.linhaDeBase) || [])
-          .find((x) => (x.aluno || '') === (dados.apelidos[k] || k));
-        const itens = eu && eu.precisaDesenvolver
-          ? String(eu.precisaDesenvolver).split(',').map((s) => s.trim()).filter(Boolean) : [];
-        const marcas = itens.map((item, j) => ({ item, marca: lerValor(`lb-${k}-${j}`, b.colunas[0].tipo) }));
+        const marcas = itens.map((x, j) => ({ item: x.item, marca: lerValor(`lb-${k}-${j}`,
+          (b.colunas[0] || {}).tipo || 'marca') }));
         if (marcas.length) porPessoa[k] = marcas;
       });
       if (Object.keys(porPessoa).length) blocosGravados[b.chave] = porPessoa;
@@ -1737,22 +1834,11 @@ function coletarCaptura(dados) {
     });
     blocosGravados[b.chave] = porPessoa;
   });
-  // AS MARCAS DOS TRÊS EIXOS. Lista inteira, e não só o que foi marcado: o item que ficou em
-  // branco é informação — diz que ele estava na lista e não foi observado. Grava-se por eixo,
-  // com o texto do item verbatim (um slug perderia a redação que o professor leu).
-  const eixos = eixosDoPo(pecas.po);
-  const observado = {};
-  EIXOS_DA_CAPTURA.forEach(([chave]) => {
-    const lista = (eixos[chave] && eixos[chave].itens) || [];
-    if (!lista.length) return;
-    observado[chave] = lista.map((x, i) => ({ item: x.item, marca: v(`obs-${chave}-${i}`) }));
-  });
   return {
     id, faltando, motivo, autor,
     aula: {
       data, presentes, ausentes, duracao_min: Number(dur),
       condicoes_contorno: cc, ...blocosGravados, relatorio,
-      ...(Object.keys(observado).length ? { observado } : {}),
     },
   };
 }
@@ -2254,16 +2340,6 @@ async function trocarCiclo() {
     });
     // abrir o painel reconstrói os campos (o que não foi gerado se perde — de propósito)
     el('captura').addEventListener('toggle', renderCaptura);
-    // A regra do par plano_seguido × mudou, no ato da escolha: com o plano seguido, o
-    // campo do "o que mudou" limpa e desabilita; fora disso, habilita (e vira obrigatório).
-    el('captura-campos').addEventListener('change', (e) => {
-      if (!e.target || e.target.id !== 'captura-plano') return;
-      const campo = el('captura-mudou');
-      if (!campo) return;
-      const seguido = e.target.value === 'sim';
-      campo.disabled = seguido;
-      if (seguido) campo.value = '';
-    });
     // O autor é lembrado no navegador: digitar o nome uma vez basta. Se o navegador
     // não deixar guardar, o campo funciona igual — só não é lembrado.
     try {
