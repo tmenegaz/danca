@@ -4,19 +4,30 @@
     "ancorado_em": "2026-11-06",
     "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
     "cobertura": [
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md",
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md",
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md",
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md",
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-notacao.md",
       "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
+      "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
       "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
       "professores/rabo-gramde/ciclos/ciclo-01.conf"
     ],
-    "hash": "20554e1c9f0a9f41d8df4c5bb560fbb5ee35a46cd2fca431904028e8a7b2ed49",
-    "hash_conteudo": "767636dacfeef534bdb53670ebde6ed6e20745225bf29e9da63548a0fe75ad2c",
+    "hash": "0755772e4501834c0d12ef985b33b3596d9102b7ae2b1fb19aaac6e7b2083b3f",
+    "hash_conteudo": "5cbdb455f99edf2c1b0c51acd522b98c91f1be33b23a5385a77f93850e2b14ba",
     "id": "ciclo-01-calango-bale-nivel-1-teste-1",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:rabo-gramde/01/calango/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.fipp",
     "documento:ancora:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
     "documento:ancora:professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
     "documento:aula:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md",
@@ -38,7 +49,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
       },
@@ -96,9 +107,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6ef324e"
+    "commit": "a1a1fc4"
   },
-  "gerado_em": "2026-11-06T14:08",
+  "gerado_em": "2026-11-06T14:09",
   "id": "ciclo:rabo-gramde/01/calango",
   "professor": "rabo-gramde",
   "versao": 6
