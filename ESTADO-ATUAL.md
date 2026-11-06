@@ -3984,6 +3984,21 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
 
+- **05/11/2026** — **O 403 da árvore: o índice das versões, e a árvore deixa de ser dependência.**
+  O envio falhou com «não li a árvore do repositório: HTTP 403» — e a correcção anterior já valia:
+  o erro chegou em JSON, com a razão, e o rascunho ficou intacto. Medido: com o MESMO token,
+  `/contents/…` funciona (o acervo lê-se e escreve-se) e só `git/trees` recusa. O erro de desenho
+  era meu: a **listagem** era dependência da **escrita**. Passou a haver
+  `escola/<escola>/linhas-de-base/.indice.json` — o mesmo padrão do `envelope/.indice.json` —, e
+  `vigentes`/`versoes`/`vigente` custam UMA leitura; a árvore é o último recurso (a primeira vez de
+  uma escola) e, se ela recusar, a estante declara `fonte: nenhuma` com o `aviso`, porque um vazio
+  silencioso lê-se como «as linhas de base desapareceram». O acto grava-se ANTES do índice e as
+  duas escritas são independentes (`avisoIndice` quando a segunda falha). Provado com a árvore a
+  responder 403: o envio dá 200, o segundo encadeia o `anterior` pelo índice, e o controlo negativo
+  (sem índice e sem árvore) diz o motivo. Medido: `provar-linha-de-base-no-repo` **39/39**,
+  `provar-escrita-do-acto` **21/21**, `provar-linha-de-base` **104/104**, `provar-producao`
+  **159/159**, `check-identidade` **0 erros**, `check-indices` **16/16**.
+
 - **05/11/2026** — **A escrita do acto não mente, e `/api/**` responde sempre JSON.** No «Concluir
   e enviar para a turma» a consola mostrou dois erros e os dois começavam por
   `Unexpected token '<'`: `/api/revalidacao` dava **404** (é rota da PORTA, servida só debaixo de

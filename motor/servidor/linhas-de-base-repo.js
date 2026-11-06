@@ -249,6 +249,94 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     return ultimo;
   }
 
+  /**
+   * O ÍNDICE DAS VERSÕES — `escola/<escola>/linhas-de-base/.indice.json`.
+   *
+   * PORQUE ELE EXISTE, e é o segundo desenho desta família no mesmo dia (05/11/2026).
+   *
+   * A primeira versão descobria as versões pela ÁRVORE do repositório (`git/trees?recursive=1`):
+   * uma chamada para saber os nomes, e depois uma leitura por ficheiro. Duas coisas a mataram. A
+   * medida: em produção a árvore respondeu **HTTP 403** enquanto `/contents/…` continuava a
+   * funcionar — o acervo dos envelopes lê-se e escreve-se pelo mesmo token, e só a árvore recusa.
+   * A segunda é de custo: para gravar UM acto era preciso listar o repositório inteiro.
+   *
+   * O ACERVO DOS ENVELOPES JÁ TINHA RESOLVIDO ISTO (`envelope/.indice.json`), e a solução é a
+   * mesma: um ficheiro que diz quais são as versões e o essencial de cada uma. `vigentes()`,
+   * `versoes()` e `vigente(id)` passam a custar UMA leitura; a árvore fica como último recurso,
+   * para o dia em que o índice ainda não exista.
+   *
+   * O QUE O RESUMO GUARDA, e é o mínimo que evita ler o ficheiro: `id`, `carimbo`, `arquivo`,
+   * `nome`, `professor`, `turma`, as datas, `aspectos` (vocabulário da anamnese — não é dado de
+   * pessoa) e `alunas` como CONTAGEM. O conteúdo que falta — os `campos` com nome e grupo, e os
+   * apelidos que o elenco da turma precisa — lê-se do ficheiro da versão vigente, uma vez por
+   * linha, e não uma vez por versão.
+   *
+   * A ESCRITA É LER-MODIFICAR-GRAVAR, e por isso tem a sua própria repetição no 409: dois envios
+   * simultâneos fazem o segundo perder a corrida, e a versão perdida tem de voltar a entrar no
+   * índice. O padrão é o do `mutar` do acervo, e não foi inventado aqui.
+   */
+  const CHAVE_DO_INDICE = '.indice.json';
+
+  function resumoDe(linha, chave) {
+    return {
+      id: String(linha.id),
+      carimbo: String(linha.carimbo || carimboDaChave(chave)),
+      arquivo: caminhoDaChave(slug, chave),
+      nome: linha.nome ? String(linha.nome) : null,
+      professor: linha.professor ? String(linha.professor) : null,
+      turma: linha.turma ? String(linha.turma) : null,
+      atualizada_em: linha.atualizada_em || null,
+      enviada_em: linha.enviada_em || null,
+      aspectos: (Array.isArray(linha.campos) ? linha.campos : [])
+        .map((c) => String((c && typeof c === 'object' ? c.id : c) || '').trim())
+        .filter(Boolean),
+      alunas: Array.isArray(linha.alunas) ? linha.alunas.length : Number(linha.alunas) || 0,
+      ...(linha.anterior ? { anterior: String(linha.anterior) } : {}),
+      ...(linha.apagada_em ? { apagada_em: linha.apagada_em } : {}),
+    };
+  }
+
+  /** O índice lido, ou `null` quando ainda não existe (a primeira vez de uma escola). */
+  async function lerIndiceDeVersoes() {
+    if (!activo) return null;
+    let achado = null;
+    try {
+      achado = await conteudo(CHAVE_DO_INDICE);
+    } catch (erro) {
+      /* Um índice ilegível não pode derrubar a escrita: perde-se o elo (`anterior`) e recomeça-se
+       * o índice, mas o acto grava-se. Perder o acto por causa da sua lista seria pior. */
+      return null;
+    }
+    if (!achado) return null;
+    try {
+      const lido = JSON.parse(achado.texto);
+      if (!lido || typeof lido !== 'object' || !lido.versoes) return null;
+      return lido;
+    } catch (erro) { return null; }
+  }
+
+  /** Grava o índice com a versão nova dentro. Repete o 409 — a versão perdida volta a entrar. */
+  async function gravarNoIndice(resumo, mensagem) {
+    let ultimo = { ok: false, erro: 'não se tentou' };
+    for (let tentativa = 1; tentativa <= 3; tentativa++) {
+      const atual = await lerIndiceDeVersoes();
+      const versoes = Object.assign({}, (atual && atual.versoes) || {});
+      versoes[resumo.arquivo.split('/').pop()] = resumo;
+      const corpo = {
+        versao: 1,
+        escola: slug,
+        // AS CHAVES ORDENADAS: o ficheiro é comparável e o `git diff` fica legível.
+        versoes: Object.keys(versoes).sort().reduce((o, k) => { o[k] = versoes[k]; return o; }, {}),
+      };
+      const r = await escrever(CHAVE_DO_INDICE, JSON.stringify(corpo, null, 2) + '\n',
+        mensagem || 'feat(linha de base): índice das versões');
+      if (r.ok) return r;
+      if (r.status !== 409) return r;
+      ultimo = r;
+    }
+    return ultimo;
+  }
+
   /** O corpo do acto: calcula o carimbo, lê a versão anterior e grava a nova. */
   async function concluirDeVerdade(linha, { quando, mensagem } = {}) {
     const id = String((linha && linha.id) || '').trim();
@@ -266,7 +354,16 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     });
     const r = await escrever(chave, JSON.stringify(corpo, null, 2) + '\n', mensagem);
     if (!r.ok) return r;
-    return Object.assign({}, r, { chave, carimbo, linha: corpo, anterior: anterior ? anterior.chave : null });
+    /* O ÍNDICE DEPOIS DO FICHEIRO, e nesta ordem: se a segunda escrita falhar, a versão existe e o
+     * índice é que fica atrás — recuperável pela árvore ou pela próxima escrita; ao contrário,
+     * haveria uma entrada a apontar para um ficheiro que não existe. */
+    const doIndice = await gravarNoIndice(resumoDe(corpo, chave),
+      'feat(linha de base): índice — ' + id + ' ' + carimbo);
+    return Object.assign({}, r, {
+      chave, carimbo, linha: corpo,
+      anterior: anterior ? anterior.chave : null,
+      ...(doIndice.ok ? {} : { avisoIndice: doIndice.erro || 'o índice não foi actualizado' }),
+    });
   }
 
   /** O corpo do apagar: uma versão que diz que a linha foi apagada, com a data e por quem. */
@@ -287,7 +384,12 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     const r = await escrever(chave, JSON.stringify(corpo, null, 2) + '\n',
       'chore(linha de base): apagar ' + id);
     if (!r.ok) return r;
-    return Object.assign({}, r, { chave, carimbo, apagada: corpo });
+    const doIndice = await gravarNoIndice(resumoDe(corpo, chave),
+      'chore(linha de base): índice — apagar ' + id);
+    return Object.assign({}, r, {
+      chave, carimbo, apagada: corpo,
+      ...(doIndice.ok ? {} : { avisoIndice: doIndice.erro || 'o índice não foi actualizado' }),
+    });
   }
 
   return {
@@ -295,64 +397,114 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     motivo,
     escola: slug,
 
-    /** As CHAVES de todas as versões da escola, da mais recente para a mais antiga. */
-    async chaves() {
-      const lista = await arvore();
-      return lista.slice().sort((a, b) => carimboDaChave(b).localeCompare(carimboDaChave(a)));
-    },
-
     /**
-     * TODAS as versões, já lidas. Uma leitura por arquivo — e é o preço de um índice que vê o
-     * passado. Quem só quer a vigente de cada linha usa `vigentes()`.
+     * A LISTA DE VERSÕES — `Map<chave, resumo>`, do ÍNDICE em ficheiro.
+     *
+     * UMA LEITURA, e é a diferença que este desenho faz. A versão anterior deste módulo perguntava
+     * à ÁRVORE do repositório (uma chamada ao repositório inteiro) e depois lia cada ficheiro: em
+     * produção a árvore respondeu **403** e o envio parou com tudo por fazer, enquanto `/contents/`
+     * continuava a funcionar. A árvore passa a ser o ÚLTIMO RECURSO — só quando o índice ainda não
+     * existe, que é o caso da primeira vez de uma escola.
+     *
+     * `fonte` diz de onde veio, e a resposta da estante mostra-o: quem lê precisa de saber se está
+     * a ver o índice ou uma reconstrução, e um silêncio aqui é o que faz um dado parecer perdido.
      */
-    async versoes() {
-      const lista = [];
-      for (const chave of await arvore()) {
-        try {
+    async lista() {
+      const indice = await lerIndiceDeVersoes();
+      if (indice) {
+        const por = new Map();
+        for (const [chave, resumo] of Object.entries(indice.versoes || {})) {
+          if (!resumo || typeof resumo !== 'object') continue;
+          por.set(chave, resumo);
+        }
+        return { fonte: 'indice', versoes: por, aviso: null };
+      }
+      /* O RECURSO: a árvore. Se ela também recusar, a lista é vazia E DIZ-SE — uma lista vazia
+       * silenciosa lê-se como «as linhas de base desapareceram». */
+      try {
+        const por = new Map();
+        for (const chave of await arvore()) {
           const achado = await conteudo(chave);
           if (!achado) continue;
-          const linha = JSON.parse(achado.texto);
-          if (!linha || typeof linha !== 'object') continue;
-          lista.push(Object.assign({}, linha, {
-            id: linha.id || idDeChave(chave),
-            carimbo: carimboDaChave(chave),
-            chave,
-          }));
-        } catch (erro) { /* um arquivo ilegível não derruba a lista: fica de fora */ }
+          try {
+            const linha = JSON.parse(achado.texto);
+            if (!linha || typeof linha !== 'object') continue;
+            por.set(chave, resumoDe(Object.assign({}, linha, {
+              id: linha.id || idDeChave(chave),
+              carimbo: carimboDaChave(chave),
+            }), chave));
+          } catch (erro) { /* um arquivo ilegível não derruba a lista */ }
+        }
+        return { fonte: 'arvore', versoes: por, aviso: null };
+      } catch (erro) {
+        return {
+          fonte: 'nenhuma', versoes: new Map(),
+          aviso: 'não li as versões: ' + (erro && erro.message ? erro.message : String(erro)),
+        };
       }
-      return lista.sort((a, b) => String(b.carimbo).localeCompare(String(a.carimbo)));
+    },
+
+    /** As CHAVES de todas as versões, da mais recente para a mais antiga. */
+    async chaves() {
+      const { versoes } = await this.lista();
+      return [...versoes.keys()].sort((a, b) => carimboDaChave(b).localeCompare(carimboDaChave(a)));
     },
 
     /**
-     * A VIGENTE DE CADA LINHA — a versão de carimbo maior que não foi apagada.
+     * TODAS as versões, como RESUMOS — sem ler um ficheiro por versão.
+     *
+     * O resumo tem o que a série e o índice gerado precisam: o carimbo, a data, os `aspectos`
+     * daquele momento e a contagem de alunas. O que ele NÃO tem — `campos` com nome e grupo, e os
+     * apelidos — lê-se do ficheiro da versão vigente (`vigente`, abaixo), uma vez por linha.
+     */
+    async versoes() {
+      const { versoes } = await this.lista();
+      return [...versoes.values()]
+        .slice()
+        .sort((a, b) => String(b.carimbo || '').localeCompare(String(a.carimbo || '')));
+    },
+
+    /**
+     * A VIGENTE DE CADA LINHA — a versão de carimbo maior que não foi apagada, JÁ LIDA do
+     * ficheiro (porque quem a pede quer os campos e as alunas).
      *
      * A ORDEM É O CARIMBO, e não a data que o ficheiro diz: o carimbo é do NOME, e um relógio
      * errado numa máquina não reordena o passado.
      */
     async vigentes() {
-      const por = new Map();
-      const vistas = new Set();
-      /* A LÁPIDE APAGA A LINHA, e não só a si mesma — foi o primeiro erro desta função, apanhado
-       * pela prova. Se a versão MAIS RECENTE de um id é uma lápide, a linha está apagada: saltar
-       * só a lápide promoveria a versão anterior a vigente, e a linha apagada reaparecia na
-       * estante. `vistas` marca o id na primeira versão que dele se vê (a mais recente). */
-      for (const v of await this.versoes()) {
-        if (vistas.has(v.id)) continue;
-        vistas.add(v.id);
-        if (v.apagada_em) continue;
-        por.set(v.id, v);
+      const { versoes } = await this.lista();
+      const porId = new Map();
+      for (const r of versoes.values()) {
+        const id = String(r.id || idDeChave(r.arquivo || '') || '');
+        if (!id) continue;
+        const atual = porId.get(id);
+        if (!atual || String(r.carimbo || '') > String(atual.carimbo || '')) porId.set(id, r);
       }
-      return [...por.values()];
+      /* A LÁPIDE APAGA A LINHA, e não só a si mesma — se a versão MAIS RECENTE de um id é uma
+       * lápide, a linha está apagada, e não se procura mais atrás. Foi o primeiro erro desta
+       * família, apanhado pela prova: saltar só a lápide promovia a versão anterior. */
+      const vigentes = [];
+      for (const r of porId.values()) {
+        if (r.apagada_em) continue;
+        const completa = await this.vigente(r.id);
+        if (completa) vigentes.push(completa);
+      }
+      return vigentes;
     },
 
-    /** A versão vigente de UMA linha — `null` quando não existe (ou está apagada). */
+    /** A versão vigente de UMA linha, lida do ficheiro — `null` quando não existe ou está apagada. */
     async vigente(id) {
       const alvo = String(id || '').trim();
       if (!alvo) return null;
-      /* A PRIMEIRA É A MAIS RECENTE (as chaves vêm ordenadas por carimbo decrescente). Se ela for
-       * uma lápide, a linha está apagada — e não se procura mais atrás: uma versão anterior a uma
-       * lápide não é a vigente de nada. */
-      const chave = (await this.chaves()).find((c) => idDeChave(c) === alvo);
+      const { versoes } = await this.lista();
+      let escolhida = null;
+      for (const r of versoes.values()) {
+        const dono = String(r.id || idDeChave(r.arquivo || '') || '');
+        if (dono !== alvo) continue;
+        if (!escolhida || String(r.carimbo || '') > String(escolhida.carimbo || '')) escolhida = r;
+      }
+      if (!escolhida || escolhida.apagada_em) return null;
+      const chave = String(escolhida.arquivo || '').split('/').pop();
       if (!chave) return null;
       try {
         const achado = await conteudo(chave);

@@ -11465,6 +11465,19 @@ async function fetch(request, env) {
   }
 
   if (path === '/api/bastidores/linhas-de-base') {
+    /* UMA LEITURA, E ELA SERVE AS DUAS COISAS: a lista e o diagnóstico. `lista()` é a porta do
+     * indexador de versões (índice em ficheiro, ou árvore como recurso), e é a mesma que a lista
+     * usa por dentro — pedi-la duas vezes seria pedir duas vezes o mesmo ao GitHub. */
+    let diagnosticoDoRepo = null;
+    if (repoLinhas.activo) {
+      try {
+        const lido = await repoLinhas.lista();
+        diagnosticoDoRepo = { fonte: lido.fonte, ...(lido.aviso ? { aviso: lido.aviso } : {}) };
+      } catch (erro) {
+        diagnosticoDoRepo = { fonte: 'nenhuma',
+          aviso: erro && erro.message ? erro.message : String(erro) };
+      }
+    }
     const lista = await linhasDeBase(kv, escola, repoLinhas);
     /* QUAIS CURADORIAS FICARAM COM UM ELENCO QUE JÁ NÃO É O DA TURMA (05/11/2026).
      *
@@ -11514,9 +11527,15 @@ async function fetch(request, env) {
        * estiver alcançável (sem token, GitHub fora), o acto do próximo envio fica no KV — e sem
        * este campo o professor não teria como saber que a série parou. Um zero silencioso é
        * indistinguível de «nunca se enviou nada». */
+      /* O ESTADO DO REPOSITÓRIO, AGORA COM A FONTE (05/11/2026). Depois do 403 na árvore, «activo:
+       * true» deixou de ser suficiente: um token só serve para o que ele serve, e a estante tem de
+       * poder dizer o que se está a ver. `fonte` é `indice` (o normal), `arvore` (a primeira vez de
+       * uma escola) ou `nenhuma` — e neste último caso vem o `aviso`, com a razão, para a lista
+       * vazia não se ler como «as linhas de base desapareceram». */
       repo: {
         activo: repoLinhas.activo,
         ...(repoLinhas.motivo ? { motivo: repoLinhas.motivo } : {}),
+        ...(diagnosticoDoRepo || {}),
         comVersao: lista.filter((l) => l && l.carimbo).length,
       },
       indice: indiceDoRecorte(lista),
@@ -11860,6 +11879,11 @@ async function fetch(request, env) {
       versao: gravado.carimbo,
       caminho: gravado.caminho,
       anterior: gravado.anterior,
+      /* O ACTO ESTÁ GRAVADO; O ÍNDICE PODE NÃO ESTAR (05/11/2026). As duas escritas são
+       * independentes de propósito — perder o acto por causa da sua lista seria pior —, e quando a
+       * segunda falha a resposta DIZ-ISSO em vez de deixar a estante a mostrar menos do que existe.
+       * O índice volta a acertar na próxima escrita, ou pela árvore quando ela responder. */
+      ...(gravado.avisoIndice ? { avisoIndice: gravado.avisoIndice } : {}),
     });
   }
 

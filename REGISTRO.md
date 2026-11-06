@@ -36955,3 +36955,63 @@ mensagem. `motor/servidor/bastidores.js` — `fetchComRede` (a moldura) e `fetch
 página do runtime. O que fiz foi tornar o erro **impossível de esconder**: na próxima tentativa a
 resposta é JSON com o motivo, e é ele que fecha o diagnóstico. Se a escrita falhar de novo, a tela
 passa a dizer porquê em vez de «erro».
+
+## 05/11/2026 — O 403 da árvore: o índice das versões, e a árvore deixa de ser dependência
+
+**O que aconteceu.** A pesquisadora premeu «Concluir e enviar para a turma» e recebeu, agora com
+nome e número:
+
+> «não consegui gravar a linha de base no repositório: linhas-de-base: não li a árvore do
+> repositório: HTTP 403. O rascunho está guardado — nada se perdeu; tente de novo.»
+
+A correcção de ontem funcionou: o erro chegou em JSON, com a razão. E o rascunho ficou intacto.
+
+**O diagnóstico, medido.** Com o mesmo token, `/contents/…` **funciona** — a listagem da anamnese lê
+o índice do acervo e os envelopes do repositório, e mostra as datas. E `GET /api/envelopes` devolve
+os dois nomes. O que recusa é **`git/trees`**, e só ele. Portanto: o token serve para ler e escrever
+ficheiros, e não serve para listar a árvore.
+
+**O erro de desenho era meu, e não do token.** A primeira versão do store descobria as versões pela
+árvore — uma chamada ao repositório inteiro — e depois lia cada ficheiro. Isso fez da **listagem**
+uma dependência da **escrita**: sem árvore não se gravava o acto. A pergunta «quais são as versões?»
+não precisa da árvore; precisa de um ÍNDICE. O acervo dos envelopes já tinha resolvido isto
+(`envelope/.indice.json`), e a solução é a mesma.
+
+**O que foi decidido.**
+
+- **`escola/<escola>/linhas-de-base/.indice.json`** — um ficheiro que diz quais são as versões, com
+  o mínimo de cada uma: `id`, `carimbo`, `arquivo`, `nome`, `professor`, `turma`, as datas,
+  `aspectos` (vocabulário da anamnese) e `alunas` como **contagem**. `vigentes()`, `versoes()` e
+  `vigente(id)` passam a custar **uma** leitura.
+- **A árvore fica como último recurso** — para o dia em que o índice ainda não exista, que é a
+  primeira vez de uma escola. E se ela também recusar, a lista é vazia **e diz-se**: `fonte` e
+  `aviso` saem na resposta da estante, porque um vazio silencioso se lê como «as linhas de base
+  desapareceram».
+- **O acto grava-se antes do índice, e as duas escritas são independentes.** Se a segunda falhar, a
+  versão existe e a resposta traz `avisoIndice`; perder o acto por causa da sua lista seria pior.
+  O índice volta a acertar na próxima escrita.
+- **O resumo não duplica o dado de pessoa.** Os `campos` com nome e grupo, e os apelidos, continuam
+  a ler-se do **ficheiro da versão vigente** — uma vez por linha, e não uma vez por versão.
+
+**O que ficou provado, e é o coração disto.** A secção G de `provar-linha-de-base-no-repo` põe a
+árvore a responder **403** e exige que tudo continue: o primeiro envio grava, o segundo encadeia o
+`anterior` (que vem do índice, não da árvore), a vigente lê-se, e a lista declara `fonte: 'indice'`.
+E o controlo negativo: **sem índice e sem árvore**, a lista diz o motivo em vez de fingir vazio.
+
+**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — `CHAVE_DO_INDICE`, `resumoDe`,
+`lerIndiceDeVersoes`, `gravarNoIndice` (ler-modificar-gravar com repetição no 409), `lista()` com
+`fonte`, e as quatro leituras reescritas sobre o índice. `motor/servidor/bastidores.js` — a estante a
+declarar `fonte`/`aviso`, e o `/enviar` a propagar `avisoIndice`. Provas: `provar-linha-de-base-no-repo`
+(28 → **39**) e `provar-escrita-do-acto` (20 → **21**).
+
+**Medido.** `provar-linha-de-base-no-repo` **39/39**; `provar-escrita-do-acto` **21/21**;
+`provar-linha-de-base` **104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna`
+**20/20**; `provar-sujeitos-da-turma` **41/41**; `provar-recorte-no-indice` **40/40**;
+`provar-indice-do-recorte` **24/24**; `provar-producao` **159/159**; `check-identidade` **0 erros**;
+`check-indices` **16/16**. E o ensaio de ponta a ponta com a árvore em 403: envio **200**, `gravado:
+repositorio`, `fonte` da estante a passar de `nenhuma` para `indice`.
+
+**O que continua por resolver, e é do token.** Se o `GITHUB_TOKEN` do Worker tiver de servir a árvore
+algum dia — o `regerar-indices` corre em CI, onde o checkout é local e não precisa dela —, isto já
+não bloqueia nada. As **escolas legadas** sem token continuam a gravar o acto no KV, e a estante
+diz isso.

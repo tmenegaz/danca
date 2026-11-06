@@ -54,7 +54,7 @@ function provar(titulo, condicao, detalhe) {
  * `contents` GET devolve `content` em base64 e `sha`; PUT exige o `sha` de um ficheiro existente
  * (é assim que o 409 aparece na vida real); a árvore lista os blobs.
  */
-function githubDeBolso() {
+function githubDeBolso({ arvoreBloqueada = false } = {}) {
   const arquivos = new Map(); // caminho → texto
   let commits = 0;
   const b64 = (t) => Buffer.from(String(t), 'utf8').toString('base64');
@@ -62,6 +62,12 @@ function githubDeBolso() {
     const u = new URL(String(url));
     const metodo = (opcoes && opcoes.method) || 'GET';
     if (u.pathname.indexOf('/git/trees/') !== -1) {
+      /* O 403 MEDIDO EM PRODUÇÃO A 05/11/2026: a árvore recusa e o `/contents/` continua a
+       * servir. Era este o par que parava o envio. */
+      if (arvoreBloqueada) {
+        return new Response(JSON.stringify({ message: 'Resource not accessible by integration' }),
+          { status: 403, headers: { 'content-type': 'application/json' } });
+      }
       return new Response(JSON.stringify({
         sha: 'arvore',
         tree: [...arquivos.keys()].map((p) => ({ path: p, type: 'blob', sha: 'sha' })),
@@ -91,6 +97,11 @@ function githubDeBolso() {
   };
   return { fetchFalso, arquivos, commits: () => commits };
 }
+
+/** SÓ AS VERSÕES. O `.indice.json` também é um ficheiro da família, e contá-lo como se fosse um
+ * acto foi o que fez esta prova reprovar quando o índice entrou (05/11/2026) — a asserção certa é
+ * «dois envios, duas VERSÕES», e o índice é uma peça à parte, com asserções próprias. */
+const versoesDe = (gh) => [...gh.arquivos.keys()].filter((c) => c.indexOf('.indice.json') === -1);
 
 const ESCOLA = 'calango';
 
@@ -139,8 +150,8 @@ function linha(extra) {
     const um = await s.concluir(linha(), { quando: '2026-11-05T21:00:00.000Z' });
     const dois = await s.concluir(linha({ alunas: ['Aluna A'] }), { quando: '2026-11-05T22:00:00.000Z' });
     provar('o primeiro envio grava', um.ok && um.criado === true, um);
-    provar('o segundo NÃO reescreve o primeiro — são dois arquivos',
-      gh.arquivos.size === 2, [...gh.arquivos.keys()]);
+    provar('o segundo NÃO reescreve o primeiro — são duas VERSÕES',
+      versoesDe(gh).length === 2, versoesDe(gh));
     provar('…e diz de qual veio (`anterior`)',
       dois.anterior === um.chave, { anterior: dois.anterior, um: um.chave });
     provar('o id é o MESMO nas duas versões — o ponteiro do plano não quebra',
@@ -154,6 +165,18 @@ function linha(extra) {
     provar('o ficheiro gravado é JSON legível, e não um blob',
       (() => { try { JSON.parse(gh.arquivos.get(repo.caminhoDaChave(ESCOLA, dois.chave))); return true; } catch (e) { return false; } })(),
       [...gh.arquivos.keys()]);
+    /* O ÍNDICE É A PEÇA NOVA, e existe por uma razão medida: a árvore do repositório respondeu
+     * 403 em produção enquanto `/contents/` continuava a funcionar. Ele guarda as duas versões. */
+    const doIndice = JSON.parse(gh.arquivos.get(repo.caminhoDaChave(ESCOLA, '.indice.json')) || 'null');
+    provar('o índice das versões existe e conhece as duas',
+      doIndice && Object.keys(doIndice.versoes || {}).length === 2, doIndice && Object.keys(doIndice.versoes || {}));
+    provar('…e diz o carimbo, o arquivo e os aspectos de cada uma',
+      doIndice && doIndice.versoes['teste--20261105-2200.json'].carimbo === '20261105-2200'
+        && /teste--20261105-2200\.json$/.test(doIndice.versoes['teste--20261105-2200.json'].arquivo || '')
+        && Array.isArray(doIndice.versoes['teste--20261105-2200.json'].aspectos),
+      doIndice && doIndice.versoes['teste--20261105-2200.json']);
+    provar('a lista diz que veio do ÍNDICE, e não de uma reconstrução',
+      (await s.lista()).fonte === 'indice', await s.lista());
   }
 
   console.log('\nC. Apagar é um acto: o rasto fica');
@@ -163,6 +186,17 @@ function linha(extra) {
     await s.concluir(linha(), { quando: '2026-11-05T21:00:00.000Z' });
     const lapide = await s.apagar('teste', { quando: '2026-11-06T09:00:00.000Z', por: 'tiago-menegaz' });
     provar('o apagar grava uma versão nova', lapide.ok === true, lapide);
+    /* O PASSADO NÃO SE APAGA NO ÍNDICE: ficam as duas versões, e só a MAIS RECENTE é a lápide.
+     * Era aqui que eu ia escrever `every(...apagada_em)` — e estaria a exigir que o índice
+     * apagasse a história, que é o oposto do que ele serve. */
+    provar('…e o índice fica com as duas versões, e só a mais recente é a lápide',
+      (() => {
+        const i = JSON.parse(gh.arquivos.get(repo.caminhoDaChave(ESCOLA, '.indice.json')) || 'null');
+        const v = (i && i.versoes) || {};
+        const chaves = Object.keys(v).sort();
+        return chaves.length === 2 && Boolean(v[chaves[chaves.length - 1]].apagada_em)
+          && !v[chaves[0]].apagada_em;
+      })());
     provar('…que declara quando e por quem',
       lapide.apagada.apagada_em === '2026-11-06T09:00:00.000Z'
         && lapide.apagada.apagada_por === 'tiago-menegaz', lapide.apagada);
@@ -225,6 +259,45 @@ function linha(extra) {
     provar('CONTROLE: com token, o mesmo pedido grava', (await store(githubDeBolso()).concluir(linha(), {})).ok === true);
     provar('sem escola também não se inventa um caminho',
       repo.criarStore({ token: 't', fetchImpl: githubDeBolso().fetchFalso }).activo === false);
+  }
+
+  console.log('\nG. O 403 DA ÁRVORE NÃO PÁRA O ENVIO — foi o defeito de 05/11/2026 em produção');
+  {
+    /* O QUE ACONTECEU, e por que esta secção existe. A pesquisadora premiu «Concluir e enviar
+     * para a turma» e recebeu: «não consegui gravar a linha de base no repositório:
+     * linhas-de-base: não li a árvore do repositório: HTTP 403». O rascunho ficou intacto — mas o
+     * acto não foi gravado, e a razão era a LISTAGEM, não a escrita.
+     *
+     * O `contents` do mesmo token funcionava (o acervo dos envelopes lia-se e escrevia-se). O que
+     * recusava era `git/trees`. A correcção não foi pedir outro token: foi deixar de depender da
+     * árvore — o índice em ficheiro responde à mesma pergunta com uma leitura que funciona. */
+    const gh = githubDeBolso({ arvoreBloqueada: true });
+    const s = store(gh);
+    provar('com a árvore em 403, o store continua activo', s.activo === true);
+
+    const um = await s.concluir(linha(), { quando: '2026-11-05T21:00:00.000Z' });
+    provar('…e o PRIMEIRO envio grava, sem árvore nenhuma', um.ok === true, um);
+    provar('…escrevendo só o ficheiro da versão e o índice',
+      versoesDe(gh).length === 1
+        && gh.arquivos.has(repo.caminhoDaChave(ESCOLA, '.indice.json')),
+      [...gh.arquivos.keys()]);
+
+    const dois = await s.concluir(linha({ alunas: ['Aluna A'] }), { quando: '2026-11-05T22:00:00.000Z' });
+    provar('…e o SEGUNDO também, com o elo a vir do índice e não da árvore',
+      dois.ok === true && dois.anterior === um.chave, { ok: dois.ok, anterior: dois.anterior, um: um.chave });
+
+    const v = await s.vigente('teste');
+    provar('a vigente lê-se sem tocar na árvore', v && v.alunas.join('|') === 'Aluna A', v && v.alunas);
+    provar('…e a lista declara a fonte', (await s.lista()).fonte === 'indice', await s.lista());
+
+    /* O CONTROLE NEGATIVO, e é o que prova que a árvore deixou de ser o caminho: com o índice
+     * APAGADO e a árvore em 403, a lista fica vazia E DIZ-SE. Um vazio silencioso leria como
+     * «as linhas de base desapareceram» — que é o pior desfecho possível. */
+    const soArvore = githubDeBolso({ arvoreBloqueada: true });
+    const semIndice = store(soArvore);
+    const lido = await semIndice.lista();
+    provar('sem índice e sem árvore, a lista diz o motivo em vez de fingir vazio',
+      lido.fonte === 'nenhuma' && /403/.test(lido.aviso || ''), lido);
   }
 
   console.log('\n' + (falhas === 0

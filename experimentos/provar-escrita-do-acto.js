@@ -100,8 +100,13 @@ const linha = () => ({
     provar('`concluir` devolve `ok: false` em vez de estourar', r && r.ok === false, r);
     provar('…e a mensagem diz o que falhou, em português',
       /chamada ao GitHub falhou/.test(r.erro || '') && /rede caiu/.test(r.erro || ''), r.erro);
+    /* A ASSERÇÃO NÃO MANDA NA RAZÃO. Com a árvore a estourar dava «não li a árvore»; com o
+     * índice em ficheiro, a leitura apanha o erro e a linha não é encontrada. As duas são
+     * `ok:false` com uma razão em português, e é isso que se mede — prender a prova ao texto de
+     * uma delas seria medir a minha implementação em vez do contrato. */
     const a = await s.apagar('teste', {});
-    provar('`apagar` faz o mesmo', a && a.ok === false && /GitHub/.test(a.erro || ''), a);
+    provar('`apagar` também devolve erro em vez de estourar',
+      a && a.ok === false && typeof a.erro === 'string' && a.erro.length > 0, a);
   }
 
   console.log('\n  — o GitHub recusa a escrita');
@@ -120,9 +125,12 @@ const linha = () => ({
     const gh = githubDeBolso();
     const s = repo.criarStore({ token: 't', escola: 'calango', fetchImpl: gh.fetchFalso });
     const r = await s.concluir(linha(), { quando: '2026-11-05T22:00:00.000Z' });
-    provar('grava o ficheiro do acto', r.ok === true && gh.arquivos.size === 1, r);
+    const versoes = [...gh.arquivos.keys()].filter((c) => c.indexOf('.indice.json') === -1);
+    provar('grava o ficheiro do acto', r.ok === true && versoes.length === 1, versoes);
     provar('…e devolve o caminho, para a tela poder dizê-lo',
       r.caminho === 'escola/calango/linhas-de-base/teste--20261105-2200.json', r.caminho);
+    provar('…e actualiza o ÍNDICE das versões na mesma escrita',
+      gh.arquivos.has('escola/calango/linhas-de-base/.indice.json'), [...gh.arquivos.keys()]);
   }
 
   console.log('\nB. A moldura: `/api/**` responde JSON mesmo quando a rota estoura');
@@ -214,7 +222,9 @@ const linha = () => ({
     provar('…com a versão e o caminho do ficheiro',
       Boolean(corpo.versao) && /^escola\/calango\/linhas-de-base\/teste--/.test(corpo.caminho || ''),
       [corpo.versao, corpo.caminho]);
-    provar('o ficheiro existe com o acto lá dentro', gh.arquivos.size === 1, [...gh.arquivos.keys()]);
+    provar('o ficheiro existe com o acto lá dentro',
+      [...gh.arquivos.keys()].filter((c) => c.indexOf('.indice.json') === -1).length === 1,
+      [...gh.arquivos.keys()]);
     provar('…e o RASCUNHO sai do KV (uma cópia só, a do acto)',
       dados.get('bastidores/calango/linhas-de-base') === '[]',
       dados.get('bastidores/calango/linhas-de-base'));

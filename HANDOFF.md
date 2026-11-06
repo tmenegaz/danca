@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T22:03:03-0300`
-Commit atual: `61fcf8e0` — feat(tools): o recorte entra no indice gerado, com a serie
+Gerado em: `2026-11-05T22:10:07-0300`
+Commit atual: `4afae9a3` — fix(po): a escrita do acto nao mente, e /api/** responde sempre JSON
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+4afae9a3 fix(po): a escrita do acto nao mente, e /api/** responde sempre JSON
 61fcf8e0 feat(tools): o recorte entra no indice gerado, com a serie
 1f233691 feat(po): a estante diz se o repositorio esta alcancavel
 a9f1f79c feat(po): a linha de base sai do KV — o acto passa a ser um ficheiro, append-only
@@ -105,7 +106,6 @@ d7776497 chore(estrutura): regerar os índices derivados
 2ed9304d chore(acervo): apagar envelope/anamnese-20261105-1910.json
 88ff28fe feat(acervo): envelope/anamnese-20261105-2015.json
 c576e9ca feat(acervo): envelope/.indice.json
-e0f3b0fd chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -231,64 +231,65 @@ e0f3b0fd chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — A escrita do acto não mente, e `/api/**` responde sempre JSON
+## 05/11/2026 — O 403 da árvore: o índice das versões, e a árvore deixa de ser dependência
 
-**O que aconteceu.** A pesquisadora premeu «Concluir e enviar para a turma» e a consola mostrou dois
-erros, ambos a começar por `Unexpected token '<', "<!DOCTYPE "… is not valid JSON`:
+**O que aconteceu.** A pesquisadora premeu «Concluir e enviar para a turma» e recebeu, agora com
+nome e número:
 
-- `GET /api/revalidacao` → **404**, com a pilha a apontar `avisarCascata`;
-- `POST /api/bastidores/linha-de-base/enviar` → **500**.
+> «não consegui gravar a linha de base no repositório: linhas-de-base: não li a árvore do
+> repositório: HTTP 403. O rascunho está guardado — nada se perdeu; tente de novo.»
 
-**As duas causas, e nenhuma era o que o sintoma dizia.**
+A correcção de ontem funcionou: o erro chegou em JSON, com a razão. E o rascunho ficou intacto.
 
-1. **O caminho estava errado no cliente.** `/api/revalidacao` é uma rota da **porta**
-   (`motor/servidor/rotas.js`), e a porta é servida debaixo de três prefixos — `/anamnese/`,
-   `/plano-ensino/`, `/plano-observacao/`. Na **raiz** ninguém a serve: o pedido caía no serviço de
-   assets e voltava a página do site. O `r.json()` do cliente estourava a ler HTML como JSON, e o
-   aviso da cascata **nunca chegou a aparecer** — desde que foi escrito. A rota passou a existir
-   debaixo de `/api/bastidores/revalidacao`, que é onde a página que a pede mora, e chama a **mesma**
-   função do núcleo (`porta.revalidacaoPendente`).
-2. **O 500 era uma excepção sem rede.** O store do repositório fazia `throw` quando a chamada ao
-   GitHub falhava, e o `fetch` dos Bastidores não tinha um `catch` à volta: a excepção subia ao
-   runtime, que responde **uma página de erro em HTML**. Outra vez HTML onde o cliente espera JSON.
+**O diagnóstico, medido.** Com o mesmo token, `/contents/…` **funciona** — a listagem da anamnese lê
+o índice do acervo e os envelopes do repositório, e mostra as datas. E `GET /api/envelopes` devolve
+os dois nomes. O que recusa é **`git/trees`**, e só ele. Portanto: o token serve para ler e escrever
+ficheiros, e não serve para listar a árvore.
+
+**O erro de desenho era meu, e não do token.** A primeira versão do store descobria as versões pela
+árvore — uma chamada ao repositório inteiro — e depois lia cada ficheiro. Isso fez da **listagem**
+uma dependência da **escrita**: sem árvore não se gravava o acto. A pergunta «quais são as versões?»
+não precisa da árvore; precisa de um ÍNDICE. O acervo dos envelopes já tinha resolvido isto
+(`envelope/.indice.json`), e a solução é a mesma.
 
 **O que foi decidido.**
 
-- **Quem escreve para uma API responde JSON, sempre.** `concluir` e `apagar` deixaram de estourar:
-  devolvem `{ok:false, erro}` com a razão (a chamada que falhou, o status, e o `message` que o
-  GitHub devolve no corpo). É a promessa que este módulo já fazia **por palavras** — «a escrita
-  falhada não mente» — e que não cumpria **por código**.
-- **Uma moldura, e não um `try` por rota.** `bastidores.fetch` passou a ser a moldura: qualquer
-  excepção em `/api/**` sai como JSON com a mensagem verdadeira e a rota; a página
-  (`/bastidores/producao`) pode falhar como página. `fetchSemRede` é o corpo, e não se chama sem a
-  moldura. Trinta rotas com um `try` cada seria trinta sítios de onde o erro pode voltar a escapar.
-- **As rotas que escrevem operam só na lista do KV.** Encontrado ao revisitar o `/enviar`: ele lia a
-  lista **fundida** (actos + rascunhos) e gravava-a de volta, copiando todos os actos do repositório
-  para o KV — duas cópias do mesmo facto, e a do KV é a que fica para trás. Passou a `rascunhosDe`,
-  como as outras três.
+- **`escola/<escola>/linhas-de-base/.indice.json`** — um ficheiro que diz quais são as versões, com
+  o mínimo de cada uma: `id`, `carimbo`, `arquivo`, `nome`, `professor`, `turma`, as datas,
+  `aspectos` (vocabulário da anamnese) e `alunas` como **contagem**. `vigentes()`, `versoes()` e
+  `vigente(id)` passam a custar **uma** leitura.
+- **A árvore fica como último recurso** — para o dia em que o índice ainda não exista, que é a
+  primeira vez de uma escola. E se ela também recusar, a lista é vazia **e diz-se**: `fonte` e
+  `aviso` saem na resposta da estante, porque um vazio silencioso se lê como «as linhas de base
+  desapareceram».
+- **O acto grava-se antes do índice, e as duas escritas são independentes.** Se a segunda falhar, a
+  versão existe e a resposta traz `avisoIndice`; perder o acto por causa da sua lista seria pior.
+  O índice volta a acertar na próxima escrita.
+- **O resumo não duplica o dado de pessoa.** Os `campos` com nome e grupo, e os apelidos, continuam
+  a ler-se do **ficheiro da versão vigente** — uma vez por linha, e não uma vez por versão.
 
-**Um erro meu dentro da prova, que vale registar.** A primeira versão media a moldura com um KV cujo
-`get` estourava — e o resultado foi 200, porque `lerLista` já apanha o erro e devolve lista vazia. A
-asserção falhou, e a lição é a mesma de sempre: **a prova tem de estourar de onde a vida estoura**. Um
-`Proxy` de `env` que explode ao ser lido é a forma do defeito real (um binding que falta), e foi ele
-que fez a moldura ser exercida de verdade.
+**O que ficou provado, e é o coração disto.** A secção G de `provar-linha-de-base-no-repo` põe a
+árvore a responder **403** e exige que tudo continue: o primeiro envio grava, o segundo encadeia o
+`anterior` (que vem do índice, não da árvore), a vigente lê-se, e a lista declara `fonte: 'indice'`.
+E o controlo negativo: **sem índice e sem árvore**, a lista diz o motivo em vez de fingir vazio.
 
-**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — `pedir()` (a chamada que não estoura),
-`concluirDeVerdade`/`apagarDeVerdade` chamadas por métodos que apanham, e o motivo do GitHub a ir na
-mensagem. `motor/servidor/bastidores.js` — `fetchComRede` (a moldura) e `fetchSemRede`, a rota
-`/api/bastidores/revalidacao`, o cliente a pedir o caminho certo, e o `/enviar` a ler a lista do KV.
-`experimentos/provar-escrita-do-acto.js` — novo.
+**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — `CHAVE_DO_INDICE`, `resumoDe`,
+`lerIndiceDeVersoes`, `gravarNoIndice` (ler-modificar-gravar com repetição no 409), `lista()` com
+`fonte`, e as quatro leituras reescritas sobre o índice. `motor/servidor/bastidores.js` — a estante a
+declarar `fonte`/`aviso`, e o `/enviar` a propagar `avisoIndice`. Provas: `provar-linha-de-base-no-repo`
+(28 → **39**) e `provar-escrita-do-acto` (20 → **21**).
 
-**Medido.** `provar-escrita-do-acto` **20/20**; `provar-linha-de-base-no-repo` **28/28**;
+**Medido.** `provar-linha-de-base-no-repo` **39/39**; `provar-escrita-do-acto` **21/21**;
 `provar-linha-de-base` **104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna`
-**20/20**; `provar-sujeitos-da-turma` **41/41**; `provar-indice-do-recorte` **24/24**;
-`provar-recorte-no-indice` **40/40**; `provar-producao` **159/159**; `check-identidade` **0 erros**.
+**20/20**; `provar-sujeitos-da-turma` **41/41**; `provar-recorte-no-indice` **40/40**;
+`provar-indice-do-recorte` **24/24**; `provar-producao` **159/159**; `check-identidade` **0 erros**;
+`check-indices` **16/16**. E o ensaio de ponta a ponta com a árvore em 403: envio **200**, `gravado:
+repositorio`, `fonte` da estante a passar de `nenhuma` para `indice`.
 
-**O que continua por saber, e digo-o em vez de o esconder.** Não consegui ler a mensagem verdadeira do
-500 em produção — o `wrangler tail` exige uma credencial que este ambiente não tem, e o corpo era uma
-página do runtime. O que fiz foi tornar o erro **impossível de esconder**: na próxima tentativa a
-resposta é JSON com o motivo, e é ele que fecha o diagnóstico. Se a escrita falhar de novo, a tela
-passa a dizer porquê em vez de «erro».
+**O que continua por resolver, e é do token.** Se o `GITHUB_TOKEN` do Worker tiver de servir a árvore
+algum dia — o `regerar-indices` corre em CI, onde o checkout é local e não precisa dela —, isto já
+não bloqueia nada. As **escolas legadas** sem token continuam a gravar o acto no KV, e a estante
+diz isso.
 
 ## O que está pendente
 
