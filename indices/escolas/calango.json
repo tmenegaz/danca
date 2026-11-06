@@ -1,5 +1,26 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "arquitetura-do-arco-plantar",
+      "contagem": 1,
+      "ids": [
+        "recorte:teste"
+      ],
+      "primeira": "20261106-0122",
+      "ultima": "20261106-0122",
+      "versoes": 1
+    },
+    {
+      "aspecto": "formato-anatomico-dos-joelhos",
+      "contagem": 1,
+      "ids": [
+        "recorte:teste"
+      ],
+      "primeira": "20261106-0122",
+      "ultima": "20261106-0122",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +98,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 2,
       "registros": 2
     },
     "criada_em": "2026-11-05T13:06:46.674863+00:00",
@@ -109,7 +130,24 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:teste"
+        ],
+        "rotulo": "arquitetura-do-arco-plantar",
+        "valor": "arquitetura-do-arco-plantar"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:teste"
+        ],
+        "rotulo": "formato-anatomico-dos-joelhos",
+        "valor": "formato-anatomico-dos-joelhos"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -154,9 +192,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1f233691"
+    "commit": "77f456d"
   },
-  "gerado_em": "2026-11-06T00:45",
+  "gerado_em": "2026-11-06T01:23",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -179,7 +217,56 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 0,
+      "aspectos": [],
+      "atualizada_em": null,
+      "enviada_em": null,
+      "id": "recorte:.indice",
+      "linha": ".indice",
+      "nome": ".indice",
+      "professor": null,
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 0,
+          "arquivo": "escola/calango/linhas-de-base/.indice.json",
+          "aspectos": [],
+          "enviada_em": null,
+          "versao": ""
+        }
+      ],
+      "vigente": true
+    },
+    {
+      "alunas": 2,
+      "aspectos": [
+        "arquitetura-do-arco-plantar",
+        "formato-anatomico-dos-joelhos"
+      ],
+      "atualizada_em": "2026-11-06T01:22:44.651Z",
+      "enviada_em": "2026-11-06T01:22:46.155Z",
+      "id": "recorte:teste",
+      "linha": "teste",
+      "nome": "teste",
+      "professor": "rabo-gramde",
+      "turma": "Balé Nível 1 — Teste 1",
+      "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/calango/linhas-de-base/teste--20261106-0122.json",
+          "aspectos": [
+            "formato-anatomico-dos-joelhos",
+            "arquitetura-do-arco-plantar"
+          ],
+          "enviada_em": "2026-11-06T01:22:46.155Z",
+          "versao": "20261106-0122"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
