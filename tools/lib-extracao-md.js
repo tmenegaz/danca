@@ -249,8 +249,26 @@ function extrair(linhas, schema, declaracao) {
     }
   };
 
+  /* UM BLOCO DECLARADO PARA UM ALVO NÃO É CONTEÚDO (06/11/2026).
+   *
+   * ```{=html} … ``` e ```{=latex} … ``` são marcação para UM renderizador — o pandoc entrega o
+   * bloco a um e DESCARTA-o no outro. Lidos como texto, eles entravam inteiros no valor do campo
+   * (a §6 «Proveniência consolidada» da aula passou a ter um `<select>` para o renderizador de
+   * HTML, e o `proveniencia` do JSON saía com o selector dentro). É a MESMA razão pela qual o
+   * `<!-- -->` já é saltado aqui em baixo: marcação não é dado.
+   *
+   * O que NÃO se salta é um bloco de código comum (``` sem `{=`): esse é texto do documento, e um
+   * documento pode legitimamente mostrá-lo (a folha de captura tem um, para as notas soltas).
+   */
+  let blocoDeAlvo = false;
   for (const linha of linhas) {
     const limpa = linha.trim();
+    if (limpa.startsWith('```')) {
+      if (blocoDeAlvo) blocoDeAlvo = false;
+      else if (/^```\s*\{=/.test(limpa)) blocoDeAlvo = true;
+      continue;
+    }
+    if (blocoDeAlvo) continue;
 
     // --- a tabela do bloco (regra de 2026-09-20): quando o bloco tem tabela estruturada (campo
     // ARRAY, ou bloco declarado item/valor), a tabela É o campo — as linhas ficam em buffer e

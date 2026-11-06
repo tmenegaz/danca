@@ -37863,3 +37863,32 @@ expurgada, e já morria em `HEAD`.
 **Nota sobre a numeração.** A §6 mantém o título `## 6. Proveniência consolidada` — não entra um
 `###` novo, e o texto que explica os gestos é prosa. É o que mantém o campo `proveniencia` do tipo
 que o schema declara.
+
+---
+
+## 06/11/2026 — O contrato de extracção deixa de ler a marcação de outro alvo como conteúdo
+
+**Motivo declarado (CONGELAMENTO.md).** `tools/lib-extracao-md.js` está congelado, e esta entrada é
+o motivo. A alteração é de três linhas lógicas e não toca em nenhuma regra de leitura: acrescenta
+um caso que faltava.
+
+**O que se mediu.** A §6 «Proveniência consolidada» da Aula 01 passou a ter um selector de aluna — e
+o selector só pode viver num bloco `{=html}`, porque é o único que o LaTeX descarta (HTML cru
+vertido no PDF dá «editar imprimir editar imprimir» como texto solto). Só que o extractor lia o
+bloco inteiro como texto do campo: o `proveniencia` do `plano-aula-01.json` saía com
+```` ```{=html} <select><option>Aluna A</option>… ```` dentro do valor.
+
+**A regra que passa a valer.** Um bloco declarado para UM alvo (` ```{=html} `, ` ```{=latex} `) é
+marcação de renderização, e não conteúdo do campo — o pandoc entrega-o a um escritor e descarta-o no
+outro, e lido como texto não é dado, é a maquinaria. É a MESMA razão pela qual o `<!-- -->` já era
+saltado aqui: o comentário do `<!-- CALENDARIO -->` virou o texto da secção antes de 16/10/2026, e a
+lição foi escrita no próprio ficheiro.
+
+**O que NÃO se saltou.** Um bloco de código comum (``` sem `{=`) continua a ser texto do documento:
+a folha de captura tem um para as notas soltas, e saltá-lo apagaria conteúdo.
+
+**Medido.** `provar-proveniencia-e-turma` (secção **F**) corre o `validar-aula-ciclo.js` a sério
+sobre uma aula com o selector e exige `typeof proveniencia === 'string'` **sem** `<select`, `<option`,
+`<div>` nem `<script>` dentro. `provar-eixos-e-tempo-da-aula` **47/51** (as 4 já vermelhas em `HEAD`);
+`provar-derivados-do-po` **16/16**; `provar-observacao-do-professor` **20/20**;
+`provar-corpo-da-linha-de-base` **31/31**; `provar-cadeia-do-ajuste` **34/34**.
