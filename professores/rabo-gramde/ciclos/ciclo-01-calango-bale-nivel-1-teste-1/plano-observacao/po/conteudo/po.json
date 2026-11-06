@@ -1,0 +1,513 @@
+{
+  "$comentario": "Conteúdo PO (Protocolo de Observação). Este arquivo é DADO, não norma: a norma do conteúdo é PROTOCOLO.md (as pétreas P-01/P-05/P-06/P-10/P-11/P-12/P-13/P-14/P-15/P-18/P-22), e o elo textual congelado é prompts/elicitar-ciclo.md (Blocos 1, 5, 6, 7, 8 e 9). Se divergirem, a norma prevalece e a divergência é o achado. NENHUM CAMPO NOVO É PERGUNTADO — todo nó respondível deste conteúdo tem chave própria no `po-01.json` (14/10/2026: o schema ganhou as chaves dos nós que não tinham destino — dimensões observadas, itens de cada dimensão, horizonte, plano de ensino, flutuantes, restrições físicas e os dois módulos condicionais).",
+  "documento": "po",
+  "norma": "PROTOCOLO.md",
+  "apelidoObrigatorio": "nunca o nome completo",
+  "explicacao": {
+    "oQueE": "Aqui você escreve o que vai olhar durante o ciclo — antes de olhar. Não é um relatório nem uma avaliação: é o compromisso do que conta como observação.",
+    "preencher": "Você preenche campo a campo. Cada campo tem uma explicação curta ao lado; você não precisa ler mais nada.",
+    "porQue": "Sem a pergunta escrita antes, «melhorou» não tem referência — e o depois não pode ser comparado com o antes. O Plano de Observação existe para você poder comparar ao longo do ciclo. Quem interpreta o resultado é você, nunca o sistema.",
+    "regras": "As regras que valem aqui: cada professor tem o seu próprio Plano de Observação; os alunos aparecem por apelidos; o método é declarado, nunca adivinhado; as observações são escritas antes, e o que fica registrado não se apaga nem se reescreve."
+  },
+  "obrigatoriedade": {
+    "declaracao": "O PO declara; o PE verifica. Um nó é obrigatório quando traz obrigatorio:true, e SÓ nós respondíveis o trazem — é contra eles que o envelope casa a contagem de respostas que decide o corte para completa.",
+    "obrigatorios": "Os cinco campos do cabeçalho, os quatro elementos da observação inicial e os seus subitens, e os campos dos Blocos 2 a 7.",
+    "condicionais": "Os campos dos módulos condicionais NÃO trazem obrigatorio: a obrigatoriedade deles é condicional à entrada no módulo, e a condição está declarada em condicaoDeEntrada. Eles declaram horizonte e compromisso de reavaliação — não ramificam.",
+    "ids": "Os id são kebab-case, derivados do nome do campo sem acento.",
+    "derivados": "As cinco folhas inferíveis do checklist (fenómeno, fronteiras, norma, justificativa, âmbito) NÃO trazem obrigatorio: são pré-preenchidas pelo sistema a partir das respostas e do plano referenciado (derivar-po.js). A sexta (critérios mutuamente exclusivos) continua obrigatória — não tem campo direto e fica com o professor."
+  },
+  "observacaoInicial": {
+    "natureza": "porta de entrada",
+    "nota": "A observação inicial é o Plano de Observação em uma frase: a pergunta, o fenómeno, o campo e o contexto. Ela delimita o que se observa — não descreve o resultado.",
+    "desdobramentos": [],
+    "perfisDeEntrada": [],
+    "notaDesdobramentos": "",
+    "elementos": [
+      {
+        "id": "question",
+        "elemento": "Pergunta de observação",
+        "obrigatorio": true,
+        "natureza": "",
+        "oQueE": "O objetivo geral do ciclo lido como pergunta",
+        "ondeAprofunda": [],
+        "forma": null,
+        "explicacao": {
+          "oQueE": "O objetivo do ciclo, escrito como PERGUNTA. É a pergunta que você vai tentar responder olhando as aulas — não o que você quer que aconteça, mas o que você quer entender.",
+          "preencher": "Uma frase interrogativa. Ex.: «Como as quatro alunas constroem o eixo vertical e a transferência de peso ao longo de quatro encontros?»",
+          "porQue": "Uma pergunta é observável; uma intenção vaga («melhorar o eixo») não é. É ela que dá o norte a tudo o que vem depois."
+        }
+      },
+      {
+        "id": "fenomeno",
+        "elemento": "Fenómeno observável",
+        "obrigatorio": true,
+        "natureza": "",
+        "oQueE": "Comportamentos observáveis, não impressões — um item por linha",
+        "ondeAprofunda": [],
+        "forma": null,
+        "explicacao": {
+          "oQueE": "O que exatamente você vai OLHAR — coisas que se veem, não impressões sobre as alunas.",
+          "preencher": "Um item por linha. Ex.: «alinhamento da pelve sobre os apoios», «resposta ao pulso sem contagem em voz alta», «olhar sustentado até o fim da frase».",
+          "porQue": "«Ficou melhor» não é observável — ninguém sabe o que foi visto. «A pelve parou sobre os apoios» é. Observável é o que outra pessoa, olhando a mesma aula, também veria."
+        }
+      },
+      {
+        "id": "where",
+        "elemento": "Onde se observa",
+        "obrigatorio": true,
+        "natureza": "",
+        "oQueE": "Onde o fenómeno é observado",
+        "ondeAprofunda": [],
+        "forma": null,
+        "explicacao": {
+          "oQueE": "ONDE o que você observa acontece: em que escola ou espaço. A turma, a frequência e a duração não são coletadas aqui — vêm do plano de ensino referenciado.",
+          "preencher": "O nome do lugar; o que não estava previsto vai em «outro».",
+          "porQue": "A turma, a frequência e a duração já foram declaradas no plano de ensino. Repetir aqui abriria dois registros do mesmo dado — e o PO referencia o plano, não duplica."
+        },
+        "subitens": [
+          {
+            "id": "campo-escola",
+            "elemento": "Escola / espaço",
+            "obrigatorio": true,
+            "noCabecalho": true,
+            "deContexto": "escola",
+            "explicacao": {
+              "oQueE": "Em que escola ou espaço as aulas acontecem.",
+              "preencher": "O nome do lugar. Vem sugerido da barra — corrija se for outro.",
+              "porQue": "É o mesmo lugar que a identificação do âmbito declara: um ciclo acontece num espaço só, e separar os dois faria o dado contar duas histórias."
+            }
+          }]
+      }]
+  },
+  "cabecalho": {
+    "bloco": 1,
+    "nota": "O cabeçalho não é observação: identifica o âmbito — quem observa, onde e qual horizonte. A metodologia de referência e a notação não são coletadas aqui: vêm do plano de ensino referenciado.",
+    "titulo": "Identificação do Âmbito",
+    "objetivo": "fixar o professor, a escola, o horizonte e o plano de ensino referenciado do Plano de Observação",
+    "campos": [
+      {
+        "id": "professor",
+        "campo": "Professor responsável",
+        "obrigatorio": true,
+        "noCabecalho": true,
+        "deContexto": "professor",
+        "explicacao": {
+          "oQueE": "QUEM está observando. É o seu nome — o Plano de Observação é seu, não da escola.",
+          "preencher": "Seu nome, como você assina. Vem sugerido da barra — corrija se necessário.",
+          "porQue": "Cada professor tem o seu próprio Plano de Observação: dois professores da mesma turma não olham as mesmas coisas. O âmbito é de quem dá a aula."
+        }
+      },
+      {
+        "id": "escola",
+        "campo": "Escola / espaço",
+        "obrigatorio": true,
+        "noCabecalho": true,
+        "deContexto": "escola",
+        "explicacao": {
+          "oQueE": "ONDE o ciclo acontece.",
+          "preencher": "O nome da escola ou do espaço. Vem sugerido da barra.",
+          "porQue": "A escola pode impor uma metodologia — e isso muda o que se observa. Sem o lugar declarado, não se sabe se o âmbito é seu ou da instituição."
+        }
+      },
+      {
+        "id": "horizonte",
+        "campo": "Horizonte (objetivo geral de conjunto)",
+        "obrigatorio": false,
+        "explicacao": {
+          "oQueE": "O que você quer construir ao longo de VÁRIOS ciclos — não de um só. É a direção de fundo: no fim do ano, onde essa turma deve estar?",
+          "preencher": "Uma frase. Se não se aplica (um ciclo isolado), deixe em branco — o campo é opcional.",
+          "porQue": "Um ciclo responde «o que faço nas próximas quatro aulas»; o horizonte responde «para onde isso vai». Sem ele, cada ciclo recomeça do zero."
+        }
+      },
+      {
+        "id": "plano-de-ensino",
+        "campo": "Plano de ensino",
+        "obrigatorio": true,
+        "opcoesDe": "api/planos",
+        "recortePeloProfessor": true,
+        "leituras": [
+          { "de": "contexto-frequencia", "rotulo": "Frequência semanal", "forma": "periodicidade" },
+          { "de": "contexto-duracao", "rotulo": "Duração por aula", "forma": "medida" },
+          { "de": "contexto-calendario", "rotulo": "Calendário", "forma": "data" },
+          { "de": "contexto-volume", "rotulo": "Volume de trabalho", "forma": "medida" },
+          { "de": "contexto-registro", "rotulo": "Condição de registro", "forma": "registro" }
+        ],
+        "explicacao": {
+          "oQueE": "QUAL plano de ensino esta aula observa — o que você vai ensinar neste ciclo.",
+          "preencher": "Escolha na estante o plano de ensino já elaborado. Se ainda não existe, crie-o primeiro e volte aqui.",
+          "porQue": "O Plano de Observação observa uma aula que tem um plano: é ele que fixa o objetivo, os marcos e a rubrica que a observação vai acompanhar. E é dele que vem o CICLO deste documento: o ciclo do Plano de Observação é o do plano observado, e por isso não se escreve — um número digitado aqui poderia dizer «ciclo 02» e observar o plano do 01."
+        }
+      }
+    ]
+  },
+  "blocos": [
+    {
+      "bloco": 1,
+      "titulo": "Sujeitos observados",
+      "dimensao": null,
+      "objetivo": "declarar quem é observado — o elenco que a linha de base da turma já fixou",
+      "nota": "O elenco vem da linha de base enviada para a turma do plano — não se escolhe aqui. Apelidos estáveis, nunca o nome completo.",
+      "campos": [
+        {
+          "id": "sujeitos",
+          "campo": "Sujeitos observados",
+          "obrigatorio": true,
+          "semeado": "turma",
+          "opcoesDe": "api/anamneses",
+          "recortePeloPlano": true,
+          "recortePeloProfessor": true,
+          "explicacao": {
+            "oQueE": "QUEM você observa — as alunas da turma, referidas por apelidos estáveis. Nunca o nome completo. Não se escolhe: vem da turma.",
+            "preencher": "Não se preenche. A lista chega pronta de turma → linha de base → alunas: a linha de base enviada para a turma do plano (Corpo → passo 5) é a que declara quem são. Se faltar alguém, o sítio de corrigir é a linha de base; se a turma não tem linha de base enviada, a lista vem vazia — e é isso que a tela diz.",
+            "porQue": "O Plano de Observação observa a TURMA, e o professor dá aula à turma inteira: não escolhe observar 5% dela. Escolher quem observar era uma decisão que o sistema não devia pedir — e um campo aberto deixava escrever um apelido que a escola não tem, criando um registo para um corpo que ninguém leu. O elenco já está declarado, com data, pelo acto que o produziu: o passo 5 da linha de base. Lê-se de lá, e é a mesma lista que a folha de captura imprime e que o `## Sujeitos` do documento nomeia — uma fonte, três leitores.",
+            "oQueNaoE": "Não é a lista de presença: quem faltou numa aula marca-se na captura da aula, não aqui. Aqui declara-se a COMPOSIÇÃO que o ciclo observa."
+          }
+        },
+        {
+          "id": "restricoes",
+          "campo": "Restrições físicas",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Lesão, dor, limitação médica ou restrição que afeta o movimento de alguma aluna — declarada, nunca avaliada.",
+            "preencher": "Se houver, descreva por aluna (apelido, restrição, quem declarou). Se não houver, escreva «nenhuma» — a ausência também é informação.",
+            "porQue": "É o ÚNICO sítio do sistema onde uma lesão ou uma limitação médica se DECLARA. Verificado no conteúdo da anamnese: ela regista «Dor/desconforto» como um estado da mobilidade do cambré — uma observação do corpo, não um impedimento — e não tem campo para lesão, cirurgia ou limitação médica. E a linha de base escolhe o que se observa sem perguntar o que não se pode pedir. Um documento que o professor leva para a sala não pode omitir isto — e a ausência declarada é informação."
+          }
+        }]
+    },
+    {
+      "bloco": 2,
+      "titulo": "Dimensões e itens observados",
+      "objetivo": "declarar, para cada dimensão, os itens que serão marcados por aluno",
+      "campos": [
+        {
+          "id": "dimensoes-de-observacao",
+          "campo": "Dimensões observadas",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "As dimensões em que você observa cada aluno. Elas NÃO se escolhem aqui: nascem do plano de ensino — uma por bloco da aula que o plano marca (solo, barra, centro, musicalidade, expressão). Cada bloco pertence a um dos TRÊS EIXOS: Barra e Centro são TÉCNICA, Musicalidade e Expressão são POIESIS, e o CORPO é eixo próprio — ele vem da anamnese de cada aluno, e não de um bloco da sala.",
+            "preencher": "Nada a marcar: a lista vem do plano. Se um bloco não aparece e você o trabalha, marque-o primeiro no plano de ensino, no campo «Blocos da aula», e volte aqui.",
+            "porQue": "A dimensão organiza a folha de captura: cada dimensão vira um bloco, e os itens dela viram as colunas. Ela é DERIVADA do plano porque o PO observa a aula que o plano fixou. O eixo NÃO é o mesmo para todos os blocos: musicalidade e expressão são poiésis, e chamá-las de técnica é uma afirmação falsa sobre o que se mede."
+          },
+          "doPlano": {
+            "no": "estrutura-de-cada-aula",
+            "blocos": [
+              "Solo",
+              "Barra",
+              "Centro",
+              "Musicalidade",
+              "Expressão"
+            ],
+            "separador": " — ",
+            "eixoDoBloco": {
+              "Musicalidade": "Poiesis",
+              "Expressão": "Poiesis",
+              "Solo": "Técnica",
+              "Barra": "Técnica",
+              "Centro": "Técnica"
+            },
+            "eixoPadrao": "Técnica"
+          }
+        },
+        {
+          "id": "itens-por-dimensao",
+          "campo": "Itens de cada dimensão",
+          "obrigatorio": false,
+          "repetirPor": "dimensoes-de-observacao",
+          "camposDoItem": [
+            {
+              "id": "itens",
+              "campo": "Itens observados"
+            }
+          ],
+          "explicacao": {
+            "oQueE": "O CRITÉRIO que o objetivo não nomeia: o que você marca, por aluno, para ver acontecer o que o plano persegue naquele bloco. É OPCIONAL — os objetivos já entram sozinhos.",
+            "preencher": "Os objetivos que o plano trabalha em cada bloco já entram como critérios, sem você os escrever: eles aparecem acima da caixa e vão para a folha de captura como colunas. Escreva aqui SÓ o que vê além deles — o gesto, a qualidade, o detalhe que o objetivo não diz. Se não houver nada a acrescentar, deixe em branco. Separe os itens por linha ou por ponto e vírgula (;): «saída do calcanhar no tendu; quadril sem subir no en dehors» são DOIS itens, e cada um vira uma coluna. Quando nenhum objetivo do plano marca o bloco, o que você escrever é a única coisa que ali se observa — e a tela di-lo.",
+            "porQue": "É o que vira a coluna da folha de captura — uma coluna por critério, porque cada um se mede sozinho. Observável é o que outra pessoa também veria. O que o plano já responde (a dimensão, o bloco, os objetivos) NÃO se reescreve: entra derivado, e a caixa fica para o que é só seu. Foi o que a auditoria reversa de 06/11/2026 mostrou — metade do que aqui se escrevia já estava no plano, e a outra metade não estava em lado nenhum."
+          }
+        }
+      ]
+    },{
+      "bloco": 3,
+      "titulo": "Condições de contorno",
+      "dimensao": null,
+      "objetivo": "declarar as variáveis relacionais que o plano não controla",
+      "campos": [
+        {
+          "id": "condicoes-de-contorno",
+          "campo": "Condições de contorno da execução",
+          "obrigatorio": true,
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "O que MEXE na aula e você não controla: o ânimo, o interesse e a harmonia da turma no dia — e o que o encontro pede enquanto acontece.",
+            "preencher": "Declare as variáveis que você vai marcar a cada aula (ex.: ânimo, interesse e harmonia, de 1 a 5) e o que mais influenciar.",
+            "porQue": "Uma aula não é só o plano: o dia da turma entra no resultado. Declarar essas condições — em vez de fingir que não existem — é o que separa o observado do suposto."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 4,
+      "titulo": "Justificativa",
+      "dimensao": null,
+      "objetivo": "ancorar o âmbito ao problema e à base teórica",
+      "campos": [
+        {
+          "id": "referencia-ao-problema",
+          "campo": "Referência ao problema",
+          "obrigatorio": true,
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "COMO este âmbito se liga ao que você quer entender.",
+            "preencher": "Uma ou duas frases: por que olhar isto responde à sua pergunta.",
+            "porQue": "Se o âmbito não se liga à pergunta, ele mede outra coisa. A referência é o que costura os dois."
+          }
+        },
+        {
+          "id": "explicacao-do-recorte",
+          "campo": "Explicação do âmbito",
+          "obrigatorio": true,
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "POR QUE este âmbito, e não outro.",
+            "preencher": "O que você escolheu olhar e por que essas dimensões (e não outras).",
+            "porQue": "Todo âmbito deixa coisas de fora; explicar a escolha mostra que ela foi deliberada, não descuido."
+          }
+        },
+        {
+          "id": "o-que-fica-de-fora",
+          "campo": "O que fica de fora",
+          "obrigatorio": true,
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "O que o âmbito EXCLUI — dito com todas as letras.",
+            "preencher": "O que não será observado e por que.",
+            "porQue": "Declarar o que fica fora limita o que se pode concluir depois — e evita prometer mais do que o âmbito entrega."
+          }
+        },
+        {
+          "id": "base-teorica",
+          "campo": "Base teórica",
+          "obrigatorio": true,
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "QUAIS referências sustentam este âmbito — livros, métodos, autores.",
+            "preencher": "Ex.: «RAD (2015) — progressão e terminologia; Clippinger (2024) — mecânica do pé e do eixo».",
+            "porQue": "A base teórica mostra de onde vêm o vocabulário e o critério. Sem ela, o âmbito parece opinião pessoal em vez de método."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 5,
+      "titulo": "Limitações",
+      "dimensao": null,
+      "objetivo": "declarar o que o ciclo não alcança",
+      "campos": [
+        {
+          "id": "limitacoes",
+          "campo": "Limitações do âmbito",
+          "obrigatorio": true,
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "O que este ciclo NÃO consegue mostrar — os limites honestos do âmbito.",
+            "preencher": "Um item por linha. Ex.: «quem observa é quem dá aula», «poucos encontros para inferir progressão».",
+            "porQue": "Todo âmbito tem limites. Declará-los é o que impede que o resultado seja lido como prova de mais do que ele é."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 6,
+      "titulo": "Checklist de validação",
+      "dimensao": null,
+      "objetivo": "relê o Plano de Observação contra os seis critérios antes de fechar",
+      "nota": "O fechamento não acrescenta pergunta nova: relê o Plano de Observação contra o checklist.",
+      "campos": [
+        {
+          "id": "checklist-fenomeno-definido",
+          "derivadoDe": {
+            "qualquer": [
+              "fenomeno"
+            ]
+          },
+          "campo": "Fenómeno definido de forma observável",
+          "derivado": true,
+          "opcoes": [
+            "sim",
+            "não"
+          ],
+          "explicacao": {
+            "oQueE": "O fenómeno está definido como algo que se vê?",
+            "preencher": "Pré-preenchido pelo sistema do fenómeno declarado — não precisa marcar; pode corrigir se discordar.",
+            "porQue": "Se não, volte ao fenómeno: «ficou melhor» não é observável."
+          }
+        },
+        {
+          "id": "checklist-fronteiras-claras",
+          "derivadoDe": {
+            "qualquer": [
+              "contexto",
+              "explicacao-do-recorte"
+            ]
+          },
+          "campo": "Fronteiras do escopo claras",
+          "derivado": true,
+          "opcoes": [
+            "sim",
+            "não"
+          ],
+          "explicacao": {
+            "oQueE": "Está claro o que entra e o que fica fora do âmbito?",
+            "preencher": "Pré-preenchido pelo sistema do contexto e do recorte — não precisa marcar; pode corrigir se discordar.",
+            "porQue": "Fronteira vaga faz o âmbito crescer sozinho durante o ciclo."
+          }
+        },
+        {
+          "id": "checklist-norma-estabelecida",
+          "derivadoDe": {
+            "qualquer": [
+              "contexto-metodologia"
+            ],
+            "doPlano": true
+          },
+          "campo": "Norma claramente estabelecida",
+          "derivado": true,
+          "opcoes": [
+            "sim",
+            "não"
+          ],
+          "explicacao": {
+            "oQueE": "A metodologia de referência está declarada?",
+            "preencher": "Pré-preenchido pelo sistema da metodologia declarada no plano — não precisa marcar; pode corrigir se discordar.",
+            "porQue": "Sem um padrão declarado, o julgamento não tem referência."
+          }
+        },
+        {
+          "id": "checklist-criterios-exclusivos",
+          "campo": "Critérios mutuamente exclusivos",
+          "derivado": true,
+          "derivadoDe": {
+            "sempre": "não"
+          },
+          "opcoes": [
+            "sim",
+            "não"
+          ],
+          "explicacao": {
+            "oQueE": "Os critérios não se sobrepõem?",
+            "preencher": "Pré-preenchido com «não»: nenhum campo do Plano de Observação decide isto — marque «sim» se os critérios não se sobrepõem.",
+            "porQue": "Critérios sobrepostos contam a mesma coisa duas vezes."
+          }
+        },
+        {
+          "id": "checklist-justificativa-fundada",
+          "derivadoDe": {
+            "qualquer": [
+              "referencia-ao-problema",
+              "base-teorica"
+            ]
+          },
+          "campo": "Justificativa fundamentada",
+          "derivado": true,
+          "opcoes": [
+            "sim",
+            "não"
+          ],
+          "explicacao": {
+            "oQueE": "A justificativa se apoia em algo, e não só na intenção?",
+            "preencher": "Pré-preenchido pelo sistema da justificativa e da base teórica — não precisa marcar; pode corrigir se discordar.",
+            "porQue": "Uma justificativa sem base não se sustenta quando alguém perguntar por quê."
+          }
+        },
+        {
+          "id": "checklist-recorte-viavel",
+          "derivadoDe": {
+            "qualquer": [
+              "o-que-fica-de-fora",
+              "explicacao-do-recorte"
+            ]
+          },
+          "campo": "Âmbito viável",
+          "derivado": true,
+          "opcoes": [
+            "sim",
+            "não"
+          ],
+          "explicacao": {
+            "oQueE": "É possível observar isso nas condições reais das aulas?",
+            "preencher": "Pré-preenchido pelo sistema do que fica de fora e do recorte — não precisa marcar; pode corrigir se discordar.",
+            "porQue": "Um âmbito que não cabe na aula vira promessa não cumprida — e o silêncio do registro não é dado."
+          }
+        }
+      ]
+    }
+  ],
+  "modulosCondicionais": [
+    {
+      "id": "modulo-horizonte",
+      "titulo": "Horizonte do conjunto",
+      "ramifica": false,
+      "condicaoDeEntrada": "há um objetivo de conjunto — vários ciclos encadeados",
+      "funcao": "declarar o objetivo geral de conjunto e o encadeamento",
+      "campos": [
+        {
+          "id": "objetivo-geral-de-conjunto",
+          "campo": "Objetivo geral de conjunto",
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "O que se quer alcançar ao longo de VÁRIOS ciclos, lidos juntos.",
+            "preencher": "Uma frase. Se há um só ciclo, deixe em branco.",
+            "porQue": "É o objetivo maior que dá sentido aos vários ciclos, lidos juntos."
+          }
+        },
+        {
+          "id": "numero-estimado-de-ciclos",
+          "campo": "Número estimado de ciclos",
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "Quantos ciclos o conjunto deve ter.",
+            "preencher": "Um número, ou uma estimativa — ou deixe em branco.",
+            "porQue": "Dá escala ao horizonte. É declarado, não imposto: pode mudar."
+          }
+        }
+      ]
+    },
+    {
+      "id": "modulo-reavaliacao",
+      "titulo": "Compromisso de reavaliação",
+      "ramifica": false,
+      "condicaoDeEntrada": "o ciclo é extensível ou os marcos futuros estão a decidir",
+      "funcao": "declarar até que aula os marcos estão decididos e o que decide estender",
+      "campos": [
+        {
+          "id": "marcos-decididos-ate",
+          "campo": "Marcos decididos até a aula",
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "Até que aula os objetivos estão decididos.",
+            "preencher": "Um número de aula. Ex.: «até a aula 08».",
+            "porQue": "Diz o que já é firme e o que ainda está aberto — sem fingir que o ciclo inteiro está fechado."
+          }
+        },
+        {
+          "id": "criterio-de-extensao",
+          "campo": "O que decide estender o ciclo",
+          "opcoes": null,
+          "explicacao": {
+            "oQueE": "O que precisa acontecer para o ciclo continuar além do previsto.",
+            "preencher": "Uma condição clara. Ex.: «se os marcos da aula 08 não estiverem prontos».",
+            "porQue": "Estender sem critério é improvisar. O critério escrito permite decidir depois com o que se combinou antes."
+          }
+        }
+      ]
+    }
+  ],
+  "dimensoes": [],
+  "listaAberta": {
+    "minimoObrigatorio": "o cabeçalho, os quatro elementos da observação inicial e os Blocos 2 a 7",
+    "discricionario": "os ITENS de cada dimensão (Bloco 2) — escritos pelo professor, um por linha, e nunca deduzidos. As dimensões em si NÃO entram aqui: elas derivam do plano (o eixo «Técnica» × os blocos da aula que ele marca)",
+    "regra": "metodologia e notação são declaradas, nunca deduzidas"
+  },
+  "oQueFicaFora": "O Plano de Observação não observa, não interpreta, não classifica, não mede e não produz provas. Ele delimita o que se observa — quem interpreta o resultado do ciclo é o professor.",
+  "ondeODadoVive": "Tudo cai dentro do `po-01.json`, e cada nó respondível tem a SUA chave — nada se escreve como prosa dentro do campo de outro nó. As FLUTUANTES, o PONTO DE PARTIDA e os CRITÉRIOS DE INCLUSÃO/EXCLUSÃO deixaram de ser nós deste formulário (06/11/2026): a linha de base da turma — o recorte do corpo e o elenco — passou a ser a fonte desses dados, e o documento deriva-os dela. O que não se pergunta também não se redigita. O `ciclo-01-po-schema.json` ganhou as PROPRIEDADES dessas chaves em 14/10/2026 — nenhuma delas obrigatória, para os POs já escritos continuarem válidos; a obrigatoriedade declarada em `obrigatoriedade` é do FORMULÁRIO, e a do schema é a da fonte publicada."
+}

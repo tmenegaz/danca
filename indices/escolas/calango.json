@@ -139,6 +139,9 @@
         "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
         "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
         "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
+        "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+        "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
+        "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
         "professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
         "professores/rabo-gramde/ciclos/ciclo-01-calango.fipp",
         "professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
@@ -156,6 +159,7 @@
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -231,6 +235,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+      "professor": "rabo-gramde",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md",
       "ciclo_id": "ciclo:rabo-gramde/01/calango",
       "escola": "calango",
@@ -246,6 +259,15 @@
       "id": "documento:harmonizacao:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md",
       "professor": "rabo-gramde",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:indice:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
+      "professor": "rabo-gramde",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
@@ -300,6 +322,15 @@
       "id": "documento:referencias:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
       "professor": "rabo-gramde",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
+      "caminho": "professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:rabo-gramde/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "rabo-gramde",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
@@ -454,9 +485,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a1a1fc4"
+    "commit": "c75717f"
   },
-  "gerado_em": "2026-11-06T14:09",
+  "gerado_em": "2026-11-06T14:10",
   "nao_indexado": [
     {
       "familia": "conteudo",

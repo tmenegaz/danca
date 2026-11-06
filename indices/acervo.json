@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 16,
+      "documentos": 19,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:rabo-gramde/01/calango",
@@ -506,9 +506,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a1a1fc4"
+    "commit": "c75717f"
   },
-  "gerado_em": "2026-11-06T14:09",
+  "gerado_em": "2026-11-06T14:10",
   "nao_indexado": [
     {
       "familia": "conteudo",

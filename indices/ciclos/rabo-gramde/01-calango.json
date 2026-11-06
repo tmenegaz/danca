@@ -34,14 +34,17 @@
     "documento:aula:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md",
     "documento:dados:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.cifrado.json",
     "documento:dados:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+    "documento:dados:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
     "documento:glossario:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md",
     "documento:harmonizacao:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md",
+    "documento:indice:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
     "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
     "documento:manifesto:professores/rabo-gramde/ciclos/ciclo-01-calango.conf",
     "documento:notacao:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-notacao.md",
     "documento:plano:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
     "documento:po:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
     "documento:referencias:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
+    "documento:schema:professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "calango",
@@ -59,7 +62,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -72,6 +75,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -99,7 +107,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -107,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a1a1fc4"
+    "commit": "c75717f"
   },
-  "gerado_em": "2026-11-06T14:09",
+  "gerado_em": "2026-11-06T14:10",
   "id": "ciclo:rabo-gramde/01/calango",
   "professor": "rabo-gramde",
   "versao": 6

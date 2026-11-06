@@ -1,0 +1,90 @@
+{
+  "contexto": {
+    "frequenciaSemanal": "2x semanal — ter e qui",
+    "duracaoPorAula": "1 hora",
+    "calendario": "2026-10-20 → 2026-12-20",
+    "numeroTotalDeAulas": "18",
+    "professorResponsavel": "rabo-gramde",
+    "turmaObservada": "Balé Nível 1 — Teste 1",
+    "volumeDeTrabalho": "3–6 séries",
+    "condicaoDeRegistro": "Na sala: professor, alunas da turma · observa: o próprio professor.",
+    "metodologiaDeReferencia": "RAD",
+    "notacaoDominada": "Benesh"
+  },
+  "objetivoGeral": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.",
+  "objetivosEspecificos": [
+    {
+      "n": "01",
+      "objetivo": "reconhecer o apoio e alinhar o eixo vertical",
+      "blocos": "Solo · Barra · Centro · Musicalidade · Expressão"
+    },
+    {
+      "n": "02",
+      "objetivo": "transferir o peso entre os pés sem perder o alinhamento",
+      "blocos": "Solo · Barra · Centro · Musicalidade · Expressão"
+    }
+  ],
+  "marcosPorAula": [
+    {
+      "n": "01",
+      "objetivos": "01",
+      "marco": "reconhecer o apoio e alinhar o eixo vertical"
+    },
+    {
+      "n": "02",
+      "objetivos": "02",
+      "marco": "transferir o peso entre os pés sem perder o alinhamento"
+    }
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "Solo",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Aquecimento e consciência corporal."
+    },
+    {
+      "bloco": "Barra",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Apoio e alinhamento."
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo": "20%",
+      "justificativa": "Transferência e sequência."
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo": "10%",
+      "justificativa": "Pulso e frase."
+    },
+    {
+      "bloco": "Expressão",
+      "proporcaoAlvo": "10%",
+      "justificativa": "armonia com os braços"
+    }
+  ],
+  "condicoesPreliminares": [
+    "Sala com barra, espelho e aparelho de som; piso adequado."
+  ],
+  "reguaDaRubrica": [
+    "Satisfatório",
+    "Razoável",
+    "Em desenvolvimento",
+    "Não se aplica"
+  ],
+  "criterioDeExtensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
+  "aspectoFisico": [
+    "[Preencher: carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto físico» do plano de ensino. O detalhe aparece então na Aula 01, secção «Corpo» do guia de observação.]",
+    "[Aula 01 — Corpo](aula-01.html#corpo)",
+    "O que a turma mostra no corpo, lido das anamneses das alunas, é um **ponto de atenção** do ciclo: o que se vai olhar, e não uma avaliação de ninguém. Aqui fica o ponteiro — a tabela vive num lugar só, e o Plano de Observação é quem a mede aluna a aluna."
+  ],
+  "musicasVideos": [
+    "Plié — 4 tempos em 2/4",
+    "https://www.youtube.com/watch?v=teste-nivel-1 — barra, exercício de referência (teste)."
+  ],
+  "repertorio": [
+    "Plié"
+  ],
+  "proveniencia": "Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado de literatura de apoio sobre corpo e aula",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]"
+}
