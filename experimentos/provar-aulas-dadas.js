@@ -224,7 +224,7 @@ function leitorDaArvore(arvore) {
      * `/api/lancadas` com o que a fonte diz. `semIndice: true` é a CONTRAPROVA: a rota não
      * responde, e vale só o pacote.
      */
-    async function bancada({ semIndice }) {
+    async function bancada({ semIndice, comSenha }) {
       const senha = 'senha-da-prova';
       const claro = fs.readFileSync(FONTE, 'utf8');
       const aula06 = JSON.parse(claro).aulas['06'];
@@ -233,8 +233,11 @@ function leitorDaArvore(arvore) {
         ciclo: '01', escola: VAR, professor: 'rabo-gramde',
         apelidos: { aluna_a: 'Aluna A', aluna_b: 'Aluna B' }, aulas: {},
       }, null, 2), senha);
+      /* `comSenha`: o invólucro diz que HÁ lançamento e o `/api/dados` devolve o ciclo inteiro —
+       * é o caso real de quem abre o lançamento de uma aula já dada, e o único em que o painel da
+       * senha aparece antes de a aula estar à vista. */
       const invólucro = JSON.stringify({
-        _cifrado: envelope, lancamentos: 0,
+        _cifrado: envelope, lancamentos: comSenha ? Object.keys(JSON.parse(claro).aulas).length : 0,
         apelidos: { aluna_a: 'Aluna A', aluna_b: 'Aluna B' },
       });
       const srv = http.createServer((req, res) => {
@@ -249,7 +252,7 @@ function leitorDaArvore(arvore) {
         }
         if (req.method === 'POST' && url === '/api/dados') {
           res.writeHead(200, { 'content-type': 'application/json' });
-          res.end(JSON.stringify({ ok: true, texto: JSON.stringify({
+          res.end(JSON.stringify({ ok: true, texto: comSenha ? claro : JSON.stringify({
             ciclo: '01', escola: VAR, professor: 'rabo-gramde',
             apelidos: { aluna_a: 'Aluna A', aluna_b: 'Aluna B' }, aulas: {},
           }, null, 2) }));
@@ -278,8 +281,8 @@ function leitorDaArvore(arvore) {
       return { srv, base: `http://127.0.0.1:${port}/${VAR}` };
     }
 
-    async function abrir({ semIndice, sufixo = '' }) {
-      const { srv, base } = await bancada({ semIndice });
+    async function abrir({ semIndice, sufixo = '', comSenha = false }) {
+      const { srv, base } = await bancada({ semIndice, comSenha });
       const nav = await puppeteer.launch({ executablePath: executavel, headless: 'new',
         args: ['--no-sandbox', '--disable-dev-shm-usage'] });
       try {
@@ -353,6 +356,42 @@ function leitorDaArvore(arvore) {
     provar('na aula 07 (sem lançamento), o formulário aparece com os campos',
       naoDada.chegada.aula === '07' && naoDada.chegada.painel === true
         && naoDada.chegada.campos.length > 100, naoDada.chegada);
+
+    /* A AULA PEDIDA SOBREVIVE À SENHA (06/11/2026). Com o pacote cheio, o link chega aqui e a
+     * página PEDE A SENHA antes de saber abrir o ciclo — e o «Abrir» do painel refazia a troca de
+     * ciclo, mandando o filtro para «todas as aulas». Quem clicou numa aula caía noutro sítio,
+     * depois de digitar a senha. */
+    console.log('\nE.2 A aula pedida sobrevive ao painel da senha');
+    const comSenha = await (async () => {
+      const { srv, base } = await bancada({ semIndice: false, comSenha: true });
+      const nav = await puppeteer.launch({ executablePath: executavel, headless: 'new',
+        args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+      try {
+        const p = await nav.newPage();
+        await p.setViewport({ width: 390, height: 844 });
+        await p.goto(base + '/lancamento.html?ciclo=01&aula=06', { waitUntil: 'networkidle0' });
+        await new Promise((r) => setTimeout(r, 400));
+        const antes = await p.evaluate(() => ({
+          pedeSenha: !!document.getElementById('abrir-ciclo'),
+          aula: (document.getElementById('aula') || {}).value,
+        }));
+        await p.$eval('#senha', (n) => { n.value = 'a-senha-da-pessoa'; });
+        await p.$eval('#abrir-ciclo', (b) => b.click());
+        await new Promise((r) => setTimeout(r, 900));
+        const depois = await p.evaluate(() => ({
+          aula: (document.getElementById('aula') || {}).value,
+          painel: !document.getElementById('captura').hidden,
+          saida: (document.getElementById('saida') || {}).textContent || '',
+        }));
+        return { antes, depois };
+      } finally { await nav.close(); srv.close(); }
+    })();
+    provar('sem senha, a página pede a senha (e o filtro ainda não escolheu nada)',
+      comSenha.antes.pedeSenha === true && !comSenha.antes.aula, comSenha.antes);
+    provar('…e, com a senha, o filtro fica na aula que o link apontou — e não em «todas»',
+      comSenha.depois.aula === '06', comSenha.depois);
+    provar('…e o formulário dela não aparece (a aula já tem dado)',
+      comSenha.depois.painel === false && /Aula 06/.test(comSenha.depois.saida), comSenha.depois);
   }
 
   /* ========================================================================================

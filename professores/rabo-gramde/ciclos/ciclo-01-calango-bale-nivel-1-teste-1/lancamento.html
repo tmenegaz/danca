@@ -438,6 +438,8 @@ const CHAVE_SENHA = 'lancamento:senha';
  * vazio e a página volta ao comportamento de antes: o pacote manda. Um formulário a mais é um
  * incómodo; um formulário a menos esconderia a aula que o professor precisa de lançar. */
 const lancadasPorCiclo = {};
+/* A aula que o endereço pediu (`?aula=06`), à espera de o ciclo abrir. Ver `trocarCiclo`. */
+let aulaPedidaNaUrl = '';
 const lancadaNoSite = (idDoCiclo, nn) =>
   Boolean(idDoCiclo && lancadasPorCiclo[idDoCiclo] && lancadasPorCiclo[idDoCiclo][nn]);
 async function perguntarOQueFoiLancado(c) {
@@ -2686,9 +2688,18 @@ async function trocarCiclo(modo) {
   ajustando = false;                // e sai do ajuste: o ciclo é outro
   entregavelEscolhido = false;      // e o entregável volta a ser o que o filtro sustenta
   opcoes();
+  /* A AULA QUE O LINK PEDIU SOBREVIVE À SENHA (06/11/2026). O «Abrir o lançamento» da lista das
+   * aulas dadas chega aqui com `?aula=06` — e, sem senha nesta sessão, a primeira tentativa de
+   * leitura falha e o painel de senha aparece. O «Abrir» do painel chama `trocarCiclo` outra vez, e
+   * o filtro ia para «todas as aulas»: a pessoa digitava a senha e caía noutro sítio, tendo clicado
+   * numa aula. A aula pedida é do PEDIDO, e vale até ser aplicada uma vez. */
+  const pedida = aulaPedidaNaUrl;
+  aulaPedidaNaUrl = '';
   // Trocar de ciclo leva o filtro para a aula que falta lançar nele (é onde o trabalho
   // está). Para ler, é só filtrar outra aula — ou "(todas)".
-  sel.aula.value = (c && !depoisDeAbrir) ? primeiraSemDado(c, cache[c.id].dados) : '';
+  const alvo = pedida && [...sel.aula.options].some((o) => o.value === pedida) ? pedida
+    : (c && !depoisDeAbrir) ? primeiraSemDado(c, cache[c.id].dados) : '';
+  sel.aula.value = alvo;
   renderCaptura();                  // o painel de captura é do filtro escolhido
   await render();
 }
@@ -2849,19 +2860,11 @@ async function trocarCiclo(modo) {
      * é LEITURA (como o «Abrir» do painel de senha): o filtro não se mexe por conta própria. */
     const daUrl = new URLSearchParams(location.search);
     const cicloDaUrl = String(daUrl.get('ciclo') || '').trim();
-    const aulaDaUrl = String(daUrl.get('aula') || '').trim();
+    aulaPedidaNaUrl = String(daUrl.get('aula') || '').trim();
     const pedido = cicloDaUrl && indice.ciclos.some((c) => String(c.id) === cicloDaUrl);
     sel.ciclo.value = pedido ? cicloDaUrl : cicloVigente(carimbo().slice(0, 10)).id;
+    // Quem chega por um link quer LER a aula que o link aponta — não a próxima a lançar.
     await trocarCiclo(pedido ? { abrir: true } : undefined);
-    if (aulaDaUrl) {
-      const existe = [...sel.aula.options].some((o) => o.value === aulaDaUrl);
-      if (existe) {
-        sel.aula.value = aulaDaUrl;
-        pagina = 1;
-        renderCaptura();
-        await render();
-      }
-    }
   } catch (e) {
     el('saida').innerHTML = '<p class="erro">Não consegui abrir a página. ' +
       (location.protocol === 'file:'
