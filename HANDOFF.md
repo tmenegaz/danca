@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T13:11:19-0300`
-Commit atual: `76365919` — fix(tools): a peca .acoes-da-aluna na folha — o vao da fileira da §6
+Gerado em: `2026-11-06T13:28:09-0300`
+Commit atual: `3a0529a1` — docs(registro): a auditoria do ar das oito paginas, com a prova que a compara
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,10 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+3a0529a1 docs(registro): a auditoria do ar das oito paginas, com a prova que a compara
+1d6bef12 fix(tools): o ar das paginas e um so — a faixa, o rodape e a coluna de leitura
+6cca7b26 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
+c7cbe796 docs(registro): o HANDOFF aponta para a peca da fileira da §6
 76365919 fix(tools): a peca .acoes-da-aluna na folha — o vao da fileira da §6
 1eb142a2 fix(ciclo-01): a turma entra na notacao, e a §6 ganha a fileira da aluna
 68417c49 docs(registro): o HANDOFF aponta para o commit do respiro do cabecalho
@@ -102,10 +106,6 @@ bdbe61dc chore(ciclo-01): regerar as fontes do ciclo-01 da calango com o corpo d
 591375de fix(ciclo-01): o corpo da turma atravessa a cadeia ate ao plano e a Aula 01
 d75da485 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
 aa05fdc6 chore(estrutura): regerar os índices derivados
-a1a1fc4c chore(estrutura): reancorar a cadeia das fontes alteradas
-fe0481c2 chore(estrutura): regerar os índices derivados
-6ef324eb feat(ciclo): o «Guardar» do PO grava as fontes de calango-bale-nivel-1-teste-1 num commit só
-54e1bfa1 feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -233,41 +233,76 @@ fe0481c2 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — «Os botões estão colados no dropdown»: a fileira das acções de uma escolha
+## 06/11/2026 — «O mesmo rigor nas demais páginas»: o ar das oito páginas, medido lado a lado
 
-**O relato.** *«Tanto na página que é celular quanto na página do desktop, quando eu escolho a
-aluna, o botão novo registro e imprimir estão colados no dropdown na lista de seleção. Não pode,
-tem que ter um respiro ali, tem que ter um espaço.»*
+**O pedido.** *«Uma vez que o padrão de espaçamento, margens, respiros e alinhamentos foi corrigido
+e validado no Plano de Aula 1, o mesmo rigor de identidade visual deve se estender e estar
+perfeitamente aplicado aos demais motores de geração e páginas correlatas.»* E, por página: o plano
+«sem elementos colados nas margens superior/inferior ou linhas divisórias», as referências «evitando
+qualquer aspecto visual colado ou desestruturado», e a notação com «o posicionamento correto da
+identificação da turma» e «os botões com o espaçamento adequado em relação às margens e linhas».
 
-**A medida, antes.** No `aula-01.html` publicado, com a folha de antes: o `<select>` das alunas
-acabava em **3139,6px** e o `<div>` das acções começava em **3139,6px** — o botão a **1px** do
-menu, em 1280 **e** em 390. Os dois botões, entre si, ficavam a **4,3px** (o espaço de texto).
+**O método.** As **oito páginas de documento** do pacote — plano, aula 01, notação, referências,
+glossário, harmonização, índice e folha de captura —, a **1280** e a **390**, com o
+`assets/style.css` servido da fonte. Medi três lugares em cada uma: o ar do cabeçalho, o vão depois
+da faixa e o ar do rodapé. **Dois achados, e nenhum deles se vê numa captura de perto.**
 
-**A causa, e é a de sempre.** A §6 emitia `<div data-prov-par="…">` **sem classe**. Um `<div>` nu
-não tem ar, e o `.acao` declara `margin: 0` (é o que o põe na linha dos outros controles). Quem
-dava vão ao botão era a **vizinhança do formulário** (`:where(form) > campo + button.acao`,
-16px) — e aqui não há formulário, os dois gestos são **ligações** (`a.acao`, para a Área do
-Professor) e há um bloco **por aluna**.
+### 1. O vão depois da faixa do cabeçalho tinha TRÊS valores
 
-**A peça nova, e as três coisas que a acompanham** (é a regra do catálogo: a peça nasce na
-folha, entra no catálogo e é provada):
+| Documento | Antes | Depois |
+|:--|:--|:--|
+| abre por `##` (plano, índice, glossário, referências) | 32px | **32px** |
+| abre por citação (harmonização, folha de captura) | 16px | **32px** |
+| abre por prosa (aula 01, notação) | 8px | **32px** |
 
-| Onde | O que |
-|:--|:--|
-| `tools/templates/ciclo.css` | `.acoes-da-aluna` — `flex`, `gap: --esp-2` (8px), `margin-top: --esp-3` (12px). 12 e não 16: o `--esp-4` é o do botão que **GRAVA**, e estes dois não gravam |
-| `IDENTIDADE-VISUAL.md` | Quadro 1 (como escolher) e Quadro 2 (o inventário), e a subsecção «A fileira das acções de uma ESCOLHA — e o `<div>` nu», ao lado do «vão do botão» de 26/10 |
-| `experimentos/provar-proveniencia-e-turma.js` | secção **H**: mede em navegador o vão do menu ao primeiro botão e o vão entre os dois botões, em 1280 **e** em 390; exige **≥12px** e **≥8px**, e a peça tem de estar desenhada na folha (senão o nome é só um nome) |
+Não eram três decisões: eram **nenhuma**. O vão não estava declarado — era o `margin-top` do que
+calhasse ser o primeiro filho (`32px` do `h2`, `16px` do `blockquote`, `8px` do `p`). Uma página
+abria a 8px da linha e a seguinte a 32px.
 
-**Medido depois.** Vão do menu ao botão: **12px** em 1280 e **12px** em 390. Entre os dois
-botões: **8px** nas duas larguras, na mesma linha. Zero estouro horizontal.
+**A correção:** o vão passou a ser do **contentor**, com o valor que os documentos já tinham:
 
-**O que NÃO se fez: reusar `.par-botoes`.** A fileira da Produção é a peça certa para «a acção
-do formulário», mas ela é declarada em `motor/servidor/bastidores.js` — e o `check-identidade`
-(«Forma») reprova uma página que redeclara um componente da folha. Promovê-la à folha exigiria
-apagá-la de lá, e isso é outra obra. Uma peça para este caso, com o nome da casa
-(`acoes-do-ato`, `acoes-da-lista` → `acoes-da-aluna`).
+```css
+body:not([data-layout="painel"]) header.doc + main > .conteudo { padding-top: var(--esp-6); }
+body:not([data-layout="painel"]) header.doc + main > .conteudo > :first-child { margin-top: 0; }
+```
 
-**Medido.** `provar-proveniencia-e-turma` **53/53** (contraprova contra `HEAD`: **8 de 53**);
+`--esp-6` (32px) é o mesmo valor do `main h2`: o vão não muda de valor, muda de **dono**. Em
+`.conteudo` e não em `main` porque no telemóvel o primeiro bloco do `main` é o índice dobrado, que
+é navegação; e o **painel** fica de fora porque é tela de trabalho, não documento.
+
+### 2. O rodapé tinha perdido o box model inteiro
+
+| O que | Antes | Depois |
+|:--|:--|:--|
+| do último parágrafo ao filete | **0,4px** | **40px** |
+| do filete ao texto | **5px** | **21px** |
+
+A faixa declarava `header.doc, main, footer.rodape, .rodape { … padding: 0 24px }`, e
+`footer.rodape` pesa **(0,1,1)** — mais do que o `.rodape` da peça **(0,1,0)**. O rodapé saía com
+`margin-top: 0` e `padding-top: 0` **enquanto a peça declarava 40px e 16px**. É «colado na linha»
+na forma mais literal — o texto encostado ao próprio filete — e o mesmo género de erro da faixa do
+cabeçalho: a caixa é da faixa, o ar de dentro é da peça. A linha deixou de nomear `footer.rodape`.
+
+### 3. A regra do vão de baixo do cabeçalho estava escrita e não funcionava
+
+`header.doc > :last-child { margin-bottom: 0 }` foi escrita de manhã **colada ao `padding`**, e
+ali pesa o mesmo que `header.doc .subtitulo` — que vem depois. Ganhava o subtítulo, e o vão de
+baixo saía **20px** nos três documentos que acabam nele (plano, harmonização, captura) e **12px**
+nos que acabam num botão (aula, notação). A regra passou para depois de todas as peças.
+
+**O que fica a guardar, em dois sítios que se completam.** A checagem **10 «Respiro»** do
+`tools/check-identidade.js` passou a medir os três lugares e a reprovar a regra da faixa que voltar
+a nomear `footer.rodape`; e a **`experimentos/provar-ar-das-paginas.js`** (nova, 14 asserções)
+mede as oito páginas num navegador, em 1280 e em 390, e exige o **mesmo** vão em todas, nenhum par
+de irmãos com 0px e nenhum estouro horizontal. O `IDENTIDADE-VISUAL.md` ganhou a secção «O ar das
+páginas é o mesmo — e mede-se comparando», com as tabelas antes/depois.
+
+**Contraprova.** Contra a folha de `HEAD`, a `provar-ar-das-paginas` **reprova 6 de 14** — o vão
+depois da faixa saía `[8, 16, 16, 16, 32, 8, 32, 16]`, o filete encostava no último parágrafo em
+todas as páginas (0px) e o texto ficava a 5px dele.
+
+**Medido.** `provar-ar-das-paginas` **14/14** (contraprova **6/14**); `provar-titulo-e-barra`
+**31/31**; `provar-vao-do-botao` **50/50**; `provar-a-moldura-em-todas-as-telas` **111/111**;
 `check-identidade` **0 erros**; `check-indices` **16/16**; `check-schemas` ok; `check-pacote`
 **0 erro(s), 0 aviso(s)**; `gerar-ciclo.sh` completo **0 erro(s)**.
 
