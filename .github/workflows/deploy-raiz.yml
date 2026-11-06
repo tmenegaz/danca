@@ -78,7 +78,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node tools/check-identidade.js
+          # `--sem-pacotes`: esta publicação serve a RAIZ e não publica pacote de ciclo nenhum.
+          # A comparação byte a byte dos pacotes fica com quem os publica (`deploy-escolas.yml`),
+          # e continua no hook de pré-commit, onde o pacote é regenerado no mesmo acto. Em
+          # 06/11/2026 esta conferência reprovou a raiz por causa de um pacote que outro workflow
+          # ia regenerar um segundo depois — e o vermelho pedia «regenere o pacote» a quem só
+          # estava a publicar a apresentação.
+          node tools/check-identidade.js --sem-pacotes
 
       - name: Subir a raiz no Cloudflare
         shell: bash
