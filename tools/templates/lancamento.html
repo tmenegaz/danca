@@ -2198,16 +2198,29 @@ async function gerarJson() {
   f.dados = JSON.parse(texto);   // §3.3: o JSON em memória é o que acabou de ser enviado
   f.texto = texto;               // e o texto, para o próximo envio não perder este
   f.meta.arquivo = novoNome;     // a página passa a apontar para o vigente
+  /* O QUE A TELA DIZ DEPOIS DE GRAVAR (06/11/2026) — e ela passa a dizer a VERDADE COMPLETA.
+   *
+   * Antes dizia «lançamento enviado» e mais nada. Só que o envio grava a FONTE, e o que o site
+   * mostra é o PACOTE — que só muda quando a geração corre (dois a três minutos). Quem recarregava
+   * a página nesse intervalo via a aula desaparecer, e concluía, com razão, que o lançamento não
+   * tinha dado certo. Foi exactamente o que aconteceu no celular, a 06/11/2026.
+   *
+   * A mensagem de «gravado sem cifra» também saiu, e não por esquecimento: o destino passou a ser
+   * a FONTE (`-dados.json`), que sempre esteve em claro no repositório, e quem cifra é a GERAÇÃO,
+   * ao montar o pacote público. Avisar de uma falta de cifra que já não existe assustaria sem
+   * informar. */
+  const gerando = resposta && resposta.depois && resposta.depois.disparo && resposta.depois.disparo.ok;
   dizer(`<span class="fraco">lançamento enviado como <code>${esc(novoNome)}</code>` +
     `${ajuste ? ` — ajuste de <code>${esc(deOnde)}</code>, motivo: ${esc(motivo)}` : ''}` +
     ` · aula ${esc(id)} ${jaTinha ? 'atualizada' : 'acrescentada'} · ` +
-    `${aula.presentes.length} presente(s), ${aula.ausentes.length} ausente(s)</span>`);
-  // Escola SEM chave no Worker (as legadas): o lançamento foi gravado EM CLARO, e quem gravou
-  // precisa saber — guardar dado de aluna sem cifra não pode ser silencioso.
-  if (resposta && resposta.cifrado === false) {
-    dizer('<span class="erro">atenção: este lançamento foi gravado <strong>sem cifra</strong> —'
-      + ' esta escola ainda não tem a chave de criptografia no Worker.</span>');
-  }
+    `${aula.presentes.length} presente(s), ${aula.ausentes.length} ausente(s)</span>` +
+    (gerando
+      ? '<br><span class="fraco">A geração do pacote começou. O site passa a mostrar esta aula'
+        + ' quando ela terminar (dois a três minutos) — até lá, esta página mostra o que está'
+        + ' aqui, em memória.</span>'
+      : '<br><span class="fraco">O lançamento está gravado na fonte, mas <strong>a geração não'
+        + ' arrancou</strong>: o site continua a mostrar a versão anterior até ela correr. O'
+        + ' painel «Bastidores → Produção» pede-a.</span>'));
   ajustando = false;             // enviado: ou entrou no registro, ou corrigiu o que havia
   pagina = 1;
   // A aula lançada passa a existir para a leitura — e o painel sai de cena, porque o

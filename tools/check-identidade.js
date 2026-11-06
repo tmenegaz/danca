@@ -636,7 +636,20 @@ function compararPacotes() {
     }
   }
 }
-compararPacotes();
+/* `--sem-pacotes` — A CONFERÊNCIA DOS PACOTES NÃO PERTENCE A TODA A PUBLICAÇÃO (06/11/2026).
+ *
+ * O `deploy-raiz.yml` publica `raiz/` e nada de `professores/`. Mesmo assim ele corria a
+ * comparação dos pacotes inteira e, em 06/11/2026, reprovou: o commit que ele tinha à frente
+ * trazia a folha nova em `tools/templates/ciclo.css` e o `gerar-ciclo` concorrente ainda não
+ * tinha commitado o pacote regenerado. A raiz ficou por publicar por causa de um ficheiro que
+ * ela não serve — e o vermelho dizia «regenere o pacote», que é um conselho para outra pessoa.
+ *
+ * O que se mede continua a ser tudo o resto (tokens, contraste, cópias da raiz, peças, respiro):
+ * o que sai é só a comparação byte a byte dos pacotes de ciclo, e SÓ quando quem chama declara
+ * que não os publica. Quem publica pacotes (`deploy-escolas.yml`) continua a correr tudo. */
+const SEM_PACOTES = process.argv.includes('--sem-pacotes');
+if (SEM_PACOTES) ok.push('Circuito: pacotes de ciclo não conferidos (--sem-pacotes: esta publicação não os serve)');
+else compararPacotes();
 
 // A RAIZ também serve cópias da folha e do nav, e não é um pacote de ciclo: as duas são
 // geradas por `tools/gerar-raiz.sh`. Antes, a cópia era manual e nada a conferia — o modo
