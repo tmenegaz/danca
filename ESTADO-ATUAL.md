@@ -3984,6 +3984,25 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
 
+- **06/11/2026** — **O Plano de Observação enxuga: sete nós saem, e o recorte do corpo entra.**
+  Percorrido campo a campo, ela pediu que saíssem `campo-outro`, `contexto-outro`, `flutuantes`,
+  `linha-de-base` («Ponto de partida»), `inclusao` e `exclusao` — *«o motivo da remoção é
+  redundância, eles já estão contemplados»*. **O que os substitui é a linha de base da turma**: o
+  recorte do passo 4 alimenta a secção «Linha de base», os dois critérios e o eixo do Corpo; o
+  elenco alimenta `## Sujeitos`. **Uma leitura, três leitores** — `porta.linhaDeBaseDaTurma`
+  escolhe o acto e serve o documento, a escrita da fonte e o painel do formulário. O painel do
+  corpo deixou de despejar a anamnese de cada aluna (45 campos, uma leitura por sujeito) e passou a
+  mostrar **só os blocos que têm aspectos escolhidos**, agrupados — «3 aspectos em 2 blocos».
+  **Duas coisas NÃO saíram, e ela pediu que fosse sinalizado:** as **restrições físicas** (P-22)
+  continuam no PO — a anamnese mede o corpo e não recolhe impedimento clínico, e este é o único
+  sítio onde «lesão, dor, limitação médica» se declara; e os **itens de cada dimensão** também
+  ficam — são a única fonte das colunas da folha de captura, e o plano declara exercícios, não
+  critérios de observação. **O expurgo tinha uma lacuna e foi fechada:** `escolaDosCaminhos` só
+  reconhecia `escola/<slug>/envelopes/`, e os actos da linha de base (de ontem) ficariam para trás
+  numa escola expurgada. Medido: `provar-eixos-do-po` **35/35** (secção D reescrita),
+  `provar-po-completo` **17**, `provar-sujeitos-semeados` **22/22**, `provar-producao` **159/159**,
+  `validar-po-ciclo` **13 campos de topo sem erro**, `check-identidade` **0 erros**.
+
 - **06/11/2026** — **O ciclo do Plano de Observação deixa de se escrever.** Ela voltou a pedi-lo, e
   com razão: o que se entregou a 05/11 foi a **metade de baixo** — um menu com os ciclos que têm
   plano e uma recusa no servidor. Um menu oferece o **leque**, e a recusa chega **depois** de o

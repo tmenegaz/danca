@@ -37262,3 +37262,108 @@ visual: o ciclo aparece ANTES do plano no cabeçalho, e o valor só existe depoi
 escolhido no primeiro bloco — é o que ela descreveu («quando eu escolho ele, automaticamente ele tem
 que preencher»), mas quem abrir a página verá «—» até escolher. Se incomodar, o plano sobe para o
 cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que ciclo) e o plano é conteúdo.
+
+## 06/11/2026 — O Plano de Observação enxuga: sete nós saem, e o recorte do corpo entra
+
+**O que motivou.** A pesquisadora percorreu o formulário do Plano de Observação campo a campo e
+pediu que saíssem sete nós. A razão é dela, e é uma só: *«o motivo da remoção é redundância, eles já
+estão contemplados»* — o que o PO pedia à mão passou a ser decidido em três módulos anteriores (a
+anamnese virou linha de base do corpo, o verbete fixou a notação, o plano de ensino fixou ciclo e
+turma). E deu a ordem do trabalho: *«quando você tira esses itens do PO, o que vai substituí-los…
+está já contemplado na linha de base. Se não tiver, você me sinaliza que a gente precisa ajustar.»*
+
+Também pediu duas coisas que não são de formulário: que o **eixo do corpo** deixasse de despejar a
+anamnese inteira de cada aluna e passasse a mostrar **só os blocos que têm aspectos escolhidos no
+passo 4** — «isso tem que ser construído de forma dinâmica» —, e que se pensasse nos
+desdobramentos: o ajuste do PO, a exclusão de um PO e o expurgo.
+
+**O que saiu, e quem passou a responder.**
+
+| Nó | Quem responde agora |
+|:--|:--|
+| `campo-outro` (item 5) | o campo empírico, composto do PLANO |
+| `contexto-outro` (item 6) | idem — calendário, volume e condição de registro |
+| `flutuantes` | o elenco da linha de base da turma (a turma inteira) |
+| `linha-de-base` («Ponto de partida») | o recorte do passo 4, agrupado por bloco |
+| `inclusao` | o recorte: o que ele escolheu é o que entra |
+| `exclusao` | o recorte pelo avesso: o que a anamnese oferece e ele não escolheu |
+
+**O que NÃO saiu, e é a sinalização que ela pediu.** As **restrições físicas** (P-22) ficam. A
+verificação é factual: a anamnese regista «Dor/desconforto» como **estado da mobilidade do cambré**
+— uma observação do corpo, não um impedimento — e **não tem campo para lesão, cirurgia ou limitação
+médica** (procurado no conteúdo), e o recorte escolhe o que se observa sem perguntar o que não se
+pode pedir. O `restricoes` é, hoje, o **único** sítio do sistema onde «lesão, dor, limitação médica»
+se declara. Tirá-lo apagaria o dado em vez de o tornar redundante. O nó fica, com a razão escrita no
+próprio conteúdo.
+
+**E o `itens-por-dimensao` também fica — com a verificação feita, como ela pediu.** Ele **não** é
+redundante: é a única fonte das **colunas da folha de captura** (`dimensoesEItens` → `porVariante`).
+O que o plano declara são *exercícios* (`aula-1-sequencia`) e *parâmetros por objetivo*
+(`aula-1-parametro`) — não critérios de observação por bloco. Removê-lo deixaria a folha sem colunas
+e o ciclo sairia com uma captura impossível de preencher. O que é possível, e fica para decisão dela:
+**pré-preencher** a repetição a partir dos parâmetros que o plano já marcou.
+
+**O eixo do corpo, agora dinâmico.** O painel do formulário deixou de ler a anamnese de cada sujeito
+(uma leitura de envelope por aluna, 45 campos despejados) e passou a mostrar o **recorte do passo 4**,
+agrupado pelo bloco da anamnese e **só os grupos que têm aspectos** — «3 aspectos em 2 blocos», e a
+lista. A mesma arrumação vai para o documento: no eixo Corpo, uma linha por grupo. O recorte viaja em
+`/api/bastidores/alunas-da-turma`, que o cabeçalho do PO já pedia — **uma leitura, três leitores**
+(o cabeçalho, o painel, o documento), com `porta.linhaDeBaseDaTurma` a escolher o acto (a versão
+enviada mais recente, sem lápide) num sítio só.
+
+**O que ficou decidido sobre os desdobramentos.**
+
+- **Um PO antigo continua a derivar.** Um envelope gravado com as chaves todas não rebenta: os nós
+  ausentes devolvem `undefined` e o documento declara a lacuna. A proveniência não se reescreve
+  (P-03) — o que se apagou foi a **pergunta**, não o registo. Provado: `provar-po-completo`, 17.
+- **A exclusão de um PO não muda.** Ela é por envelope + cascata do ciclo, e não olha nomes de
+  campo: nada do que saiu era chave de índice ou de vínculo.
+- **O EXPURGO TINHA UMA LACUNA, e foi fechada.** Os actos da linha de base moram em
+  `escola/<escola>/linhas-de-base/` desde ontem, e `escolaDosCaminhos` só reconhecia
+  `escola/<escola>/envelopes/`: uma escola expurgada deixaria para trás o elenco e o recorte do
+  corpo de todas as suas turmas — os únicos ficheiros da família que ninguém veria. Passa a
+  reconhecê-la pelo `lerCaminho` do próprio store (uma regra, não duas regex).
+- **A turma do plano passou a ter duas fontes, com ordem declarada.** `turmaDoPlanoReferenciado`
+  lia só a estante; quando a lista não chegava, tudo o que dela depende desaparecia em silêncio (o
+  painel do corpo, a linha de base do cabeçalho). Passa a cair no envelope do plano
+  (`PLANO_RESPOSTAS`), e a estante continua a mandar quando responde.
+
+**Onde entrou.** `porta/po/conteudo/po.json` — os seis nós removidos, o bloco dos critérios
+removido, o elemento `contexto` (que ficou sem subitem) removido, os blocos renumerados, e os
+títulos/notas do bloco do sujeito a dizerem a verdade. `motor/nucleo/derivar-po.js` —
+`tabelaDoRecorte`/`agruparRecorte`/`linhaDeBaseDoActo`, a secção «Linha de base» e os critérios
+lidos do acto, o eixo Corpo com um grupo por linha, e o `campo-outro`/`contexto-outro` a saírem dos
+compostos. `motor/nucleo/linha-de-base.js` — `linhaDeBaseDaTurma`. `motor/nucleo/porta.js` — a
+reexportação e `camposDoCorpo`. `motor/nucleo/derivar-ciclo.js` — a folha de captura sem flutuantes,
+a «Linha de base revisitada» a apontar para o registo em vez de o reescrever, o resumo do corpo a
+contar o elenco. `motor/servidor/rotas.js` — `linhaDeBaseDaTurma()` uma vez por pedido, passada à
+prévia e à escrita da fonte. `motor/servidor/bastidores.js` — o `recorte` na rota da turma.
+`motor/servidor/repo-escola.js` — o expurgo. `porta/index.html` — `pintarCorpoDoSujeito` reescrita,
+`turmaDoPlanoReferenciado` com as duas fontes, e dois ajudantes mortos removidos.
+`tools/lib-vistas.js` — o bullet dos flutuantes. `professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/`
+— a cópia do pacote regerada.
+
+**Com o quê.** `provar-eixos-do-po` (**35**, secção D reescrita: o painel mostra o recorte agrupado
+por bloco, só os grupos com aspectos, e nomeia a lacuna quando a turma não recebeu o acto);
+`provar-po-completo` (**17**, com o contrato nó→destino atualizado e a asserção dos flutuantes
+**invertida**, não apagada); `provar-sujeitos-semeados` (**22**, com a frase do painel atualizada);
+`provar-relacoes-do-ciclo` (**23**). E o documento derivado passa no `validar-po-ciclo` (**13 campos
+de topo**, todos os obrigatórios) e a folha no `validar-captura-ciclo` (**0 erros**).
+
+**Medido.** `provar-eixos-do-po` **35/35**; `provar-po-completo` **17**; `provar-sujeitos-semeados`
+**22/22**; `provar-relacoes-do-ciclo` **23/23**; `provar-cadeia-do-ajuste` **34/34**;
+`provar-ciclo-herdado-do-plano` **20/20**; `provar-sujeitos-da-turma` **41/41**;
+`provar-etiqueta-da-aluna` **20/20**; `provar-linha-de-base` **104/104**; `provar-escrita-do-acto`
+**21/21**; `provar-expurgo-sem-listagem` **49/49**; `provar-expurgo-leitura-atrasada` **45/45**;
+`provar-producao` **159/159**; `check-identidade` **0 erros**; `validar-po-ciclo` e
+`validar-captura-ciclo` **sem erros**.
+
+**O que ainda não está feito.** (1) O **pré-preenchimento** dos itens de cada dimensão a partir dos
+parâmetros do plano — depende de ela decidir. (2) `provar-expurgo-raiz` **explode** numa asserção
+(`local.em`), `provar-numeros-do-roteiro` reprova **6 de 29** e `provar-leituras-do-po` **nem corre**
+(lê `escola/batata/envelopes/plano-20261027-1025.json`, e a escola foi expurgada) — os três **já
+falhavam antes desta mudança** (medidos com `git stash`, no HEAD); não foram tocados, e ficam
+registados para não passarem por regressão. (3) A
+frase do cabeçalho do PO para a turma sem linha de base diz «nenhuma — esta turma ainda não recebeu
+linha de base (Corpo → passo 5)»: com o painel do corpo a dizer o mesmo por outras palavras, as duas
+merecem unificar-se quando alguém passar por lá.

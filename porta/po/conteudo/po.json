@@ -76,44 +76,8 @@
               "preencher": "O nome do lugar. Vem sugerido da barra — corrija se for outro.",
               "porQue": "É o mesmo lugar que a identificação do âmbito declara: um ciclo acontece num espaço só, e separar os dois faria o dado contar duas histórias."
             }
-          },
-          {
-            "id": "campo-outro",
-            "elemento": "Outro dado do campo",
-            "obrigatorio": false,
-            "explicacao": {
-              "oQueE": "O que o campo tem e não estava previsto nas linhas acima.",
-              "preencher": "Escreva livremente, ou deixe em branco."
-            }
-          }
-        ]
-      },
-      {
-        "id": "contexto",
-        "elemento": "Contexto da observação",
-        "obrigatorio": true,
-        "natureza": "",
-        "oQueE": "As condições que enquadram o âmbito",
-        "ondeAprofunda": [],
-        "forma": null,
-        "explicacao": {
-          "oQueE": "AS CONDIÇÕES da observação: quando ela começa, com que volume de trabalho e sob que condição de registro. Essas três vêm do plano de ensino referenciado.",
-          "preencher": "O que não estava previsto no plano vai em «outro».",
-          "porQue": "O calendário, o volume e a condição de registro já foram declaradas no plano de ensino. O PO as lê de lá — repetir aqui criaria duas fontes para o mesmo fato."
-        },
-        "subitens": [
-          {
-            "id": "contexto-outro",
-            "elemento": "Outra condição do contexto",
-            "obrigatorio": false,
-            "explicacao": {
-              "oQueE": "O que o contexto tem e não estava previsto nas linhas acima.",
-              "preencher": "Escreva livremente, ou deixe em branco."
-            }
-          }
-        ]
-      }
-    ]
+          }]
+      }]
   },
   "cabecalho": {
     "bloco": 1,
@@ -178,11 +142,11 @@
   },
   "blocos": [
     {
-      "bloco": 2,
-      "titulo": "Sujeitos e ponto de partida",
+      "bloco": 1,
+      "titulo": "Sujeitos observados",
       "dimensao": null,
-      "objetivo": "declarar quem é observado e o ponto de partida de cada um",
-      "nota": "Sem o ponto de partida, 'evolução' não tem referência. Apelidos estáveis, nunca o nome completo.",
+      "objetivo": "declarar quem é observado — o elenco que a linha de base da turma já fixou",
+      "nota": "O elenco vem da linha de base enviada para a turma do plano — não se escolhe aqui. Apelidos estáveis, nunca o nome completo.",
       "campos": [
         {
           "id": "sujeitos",
@@ -200,81 +164,18 @@
           }
         },
         {
-          "id": "flutuantes",
-          "campo": "Alunas flutuantes",
-          "obrigatorio": false,
-          "explicacao": {
-            "oQueE": "As alunas que entram e saem do ciclo — que participam de algumas aulas, não de todas.",
-            "preencher": "Os apelidos delas, um por linha. Se todas participam de todas as aulas, escreva «todas fixas».",
-            "porQue": "Sem os apelidos das flutuantes, não há como marcá-las na folha de captura, aula a aula."
-          }
-        },
-        {
-          "id": "linha-de-base",
-          "campo": "Ponto de partida",
-          "obrigatorio": true,
-          "repetirPor": "sujeitos",
-          "registroDaAnamnese": {
-            "rotulo": "Força e flexibilidade",
-            "porque": "A Regra 4 pede os pré-requisitos de força e flexibilidade declarados, e a anamnese é onde eles estão: são o que a aluna já traz e o que precisa desenvolver. Aqui são LIDOS — o ponto de partida escreve-se nas suas palavras, ao lado.",
-            "grupos": [
-              {
-                "grupo": "Flexibilidade e amplitude",
-                "campos": [
-                  "flexibilidade-dos-isquiotibiais",
-                  "flexibilidade-dos-adutores",
-                  "flexibilidade-anteroposterior-grand-ecart",
-                  "mobilidade-das-costas-e-tronco-cambre",
-                  "mobilidade-de-quadril-en-dehors-de-origem",
-                  "mobilidade-de-flexao-extensao-do-tornozelo",
-                  "rotacao-e-amplitude-dos-ombros"
-                ]
-              },
-              {
-                "grupo": "Força",
-                "campos": [
-                  "controle-de-carga-no-demi-grand-plie",
-                  "forca-excentrica-recuo-na-flexao-de-tronco",
-                  "sustentacao-ativa-de-mmii-forca-de-adagio",
-                  "equilibrio-unipodal",
-                  "forca-de-empurrar-push-ups",
-                  "forca-de-puxar-tracao",
-                  "resistencia-de-mmss-port-de-bras-prolongado",
-                  "articulacao-e-forca-intrinseca-dos-dedos"
-                ]
-              }
-            ]
-          },
-          "camposDoItem": [
-            {
-              "id": "traz",
-              "campo": "O que traz"
-            },
-            {
-              "id": "precisaDesenvolver",
-              "campo": "O que precisa desenvolver"
-            }
-          ],
-          "explicacao": {
-            "oQueE": "O PONTO DE PARTIDA de cada aluno — o que ele já traz e o que precisa desenvolver, nas SUAS palavras. É o que torna «evolução» comparável.",
-            "preencher": "Escolha as alunas no campo anterior e uma linha aparece para cada uma. Ao lado de cada linha vem o registro da anamnese dela, como referência; escreva o que traz e o que precisa desenvolver.",
-            "porQue": "Sem a ponto de partida, «melhorou» não significa nada: dois alunos partem de lugares diferentes, e a mesma aula não produz o mesmo efeito nos dois. A anamnese informa; a formulação é sua."
-          }
-        },
-        {
           "id": "restricoes",
           "campo": "Restrições físicas",
           "obrigatorio": false,
           "explicacao": {
             "oQueE": "Lesão, dor, limitação médica ou restrição que afeta o movimento de alguma aluna — declarada, nunca avaliada.",
             "preencher": "Se houver, descreva por aluna (apelido, restrição, quem declarou). Se não houver, escreva «nenhuma» — a ausência também é informação.",
-            "porQue": "A restrição não é avaliada: é registrada e, se necessário, comunicada à coordenação. Sem a declaração, não se distingue o que é limite físico do que é o recorte."
+            "porQue": "É o ÚNICO sítio do sistema onde uma lesão ou uma limitação médica se DECLARA. Verificado no conteúdo da anamnese: ela regista «Dor/desconforto» como um estado da mobilidade do cambré — uma observação do corpo, não um impedimento — e não tem campo para lesão, cirurgia ou limitação médica. E a linha de base escolhe o que se observa sem perguntar o que não se pode pedir. Um documento que o professor leva para a sala não pode omitir isto — e a ausência declarada é informação."
           }
-        }
-      ]
+        }]
     },
     {
-      "bloco": 3,
+      "bloco": 2,
       "titulo": "Dimensões e itens observados",
       "objetivo": "declarar, para cada dimensão, os itens que serão marcados por aluno",
       "campos": [
@@ -325,401 +226,8 @@
           }
         }
       ]
-    },
-    {
-      "bloco": 4,
-      "titulo": "Critérios de inclusão e de exclusão da observação",
-      "dimensao": null,
-      "objetivo": "declarar o que ENTRA na observação (inclusão) e o que NÃO entra (exclusão) — o que fica fora do âmbito é outro campo, na justificativa",
-      "campos": [
-        {
-          "id": "inclusao",
-          "campo": "Critérios de inclusão",
-          "obrigatorio": true,
-          "opcoes": null,
-          "derivarDe": {
-            "dosSujeitos": "sujeitos",
-            "lado": "observavel",
-            "corte": [
-              {
-                "no": "en-dehors",
-                "item": "en dehors (rotação externa)",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "tendu",
-                "item": "o tendu",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "passe",
-                "item": "o passé",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "meia-ponta",
-                "item": "a meia ponta",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "musicalidade",
-                "item": "a musicalidade",
-                "observavel": [
-                  "domínio parcial",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-1a-pes",
-                "item": "1ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-2a-pes",
-                "item": "2ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-3a-pes",
-                "item": "3ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-4a-pes",
-                "item": "4ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-5a-pes",
-                "item": "5ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-1a-bracos",
-                "item": "1ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-2a-bracos",
-                "item": "2ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-3a-bracos",
-                "item": "3ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-4a-bracos",
-                "item": "4ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-5a-bracos",
-                "item": "5ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "formato-anatomico-dos-joelhos",
-                "item": "formato anatómico dos joelhos",
-                "observavel": [
-                  "valgo (\"X\")",
-                  "varo (\"arqueado\")",
-                  "recurvato (hiperflexão)"
-                ]
-              },
-              {
-                "no": "flexibilidade-dos-isquiotibiais",
-                "item": "flexibilidade dos isquiotibiais",
-                "observavel": [
-                  "média",
-                  "baixa (\"dura\")"
-                ]
-              },
-              {
-                "no": "flexibilidade-dos-adutores",
-                "item": "flexibilidade dos adutores",
-                "observavel": [
-                  "abertura parcial",
-                  "rigidez acentuada"
-                ]
-              },
-              {
-                "no": "mobilidade-das-costas-e-tronco-cambre",
-                "item": "mobilidade das costas e tronco (cambré)",
-                "observavel": [
-                  "limitada",
-                  "dor/desconforto"
-                ]
-              },
-              {
-                "no": "arquitetura-do-arco-plantar",
-                "item": "arquitetura do arco plantar",
-                "observavel": [
-                  "cavo (arco alto, rigidez)",
-                  "chato/plano (desabamento)"
-                ]
-              },
-              {
-                "no": "equilibrio-unipodal",
-                "item": "equilíbrio unipodal",
-                "observavel": [
-                  "perda rápida"
-                ]
-              },
-              {
-                "no": "coordenacao-motora-e-dissociacao",
-                "item": "coordenação motora e dissociação",
-                "observavel": [
-                  "confusão motora severa"
-                ]
-              }
-            ]
-          },
-          "explicacao": {
-            "oQueE": "O que CONTA como observação — o que você vai registrar como parte do âmbito.",
-            "preencher": "Um item por linha. As alunas que você marcou no Bloco 2 têm anamnese; o botão abaixo sugere a lista a partir dela — e você edita o que quiser.",
-            "porQue": "Sem dizer o que conta, tudo conta — e o registro deixa de ser comparável de uma aula para a outra."
-          }
-        },
-        {
-          "id": "exclusao",
-          "campo": "Critérios de exclusão",
-          "obrigatorio": true,
-          "opcoes": null,
-          "derivarDe": {
-            "dosSujeitos": "sujeitos",
-            "lado": "otimo",
-            "corte": [
-              {
-                "no": "en-dehors",
-                "item": "en dehors (rotação externa)",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "tendu",
-                "item": "o tendu",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "passe",
-                "item": "o passé",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "meia-ponta",
-                "item": "a meia ponta",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "musicalidade",
-                "item": "a musicalidade",
-                "observavel": [
-                  "domínio parcial",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-1a-pes",
-                "item": "1ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-2a-pes",
-                "item": "2ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-3a-pes",
-                "item": "3ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-4a-pes",
-                "item": "4ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-5a-pes",
-                "item": "5ª posição — pés",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-1a-bracos",
-                "item": "1ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-2a-bracos",
-                "item": "2ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-3a-bracos",
-                "item": "3ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-4a-bracos",
-                "item": "4ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "cinco-posicoes-5a-bracos",
-                "item": "5ª posição — braços",
-                "observavel": [
-                  "razoável",
-                  "precisa desenvolver"
-                ]
-              },
-              {
-                "no": "formato-anatomico-dos-joelhos",
-                "item": "formato anatómico dos joelhos",
-                "observavel": [
-                  "valgo (\"X\")",
-                  "varo (\"arqueado\")",
-                  "recurvato (hiperflexão)"
-                ]
-              },
-              {
-                "no": "flexibilidade-dos-isquiotibiais",
-                "item": "flexibilidade dos isquiotibiais",
-                "observavel": [
-                  "média",
-                  "baixa (\"dura\")"
-                ]
-              },
-              {
-                "no": "flexibilidade-dos-adutores",
-                "item": "flexibilidade dos adutores",
-                "observavel": [
-                  "abertura parcial",
-                  "rigidez acentuada"
-                ]
-              },
-              {
-                "no": "mobilidade-das-costas-e-tronco-cambre",
-                "item": "mobilidade das costas e tronco (cambré)",
-                "observavel": [
-                  "limitada",
-                  "dor/desconforto"
-                ]
-              },
-              {
-                "no": "arquitetura-do-arco-plantar",
-                "item": "arquitetura do arco plantar",
-                "observavel": [
-                  "cavo (arco alto, rigidez)",
-                  "chato/plano (desabamento)"
-                ]
-              },
-              {
-                "no": "equilibrio-unipodal",
-                "item": "equilíbrio unipodal",
-                "observavel": [
-                  "perda rápida"
-                ]
-              },
-              {
-                "no": "coordenacao-motora-e-dissociacao",
-                "item": "coordenação motora e dissociação",
-                "observavel": [
-                  "confusão motora severa"
-                ]
-              }
-            ]
-          },
-          "explicacao": {
-            "oQueE": "O que NÃO conta — o que fica deliberadamente fora do âmbito.",
-            "preencher": "Um item por linha. O botão abaixo sugere o que as alunas JÁ dominam (não precisa observar) — as exclusões éticas (saúde, comparação) você escreve à mão.",
-            "porQue": "Excluir é escolher: o âmbito é uma inclusão E uma exclusão. Dizer o que fica fora protege quem é observado e limita o que se pode concluir."
-          }
-        }
-      ]
-    },
-    {
-      "bloco": 5,
+    },{
+      "bloco": 3,
       "titulo": "Condições de contorno",
       "dimensao": null,
       "objetivo": "declarar as variáveis relacionais que o plano não controla",
@@ -738,7 +246,7 @@
       ]
     },
     {
-      "bloco": 6,
+      "bloco": 4,
       "titulo": "Justificativa",
       "dimensao": null,
       "objetivo": "ancorar o âmbito ao problema e à base teórica",
@@ -790,7 +298,7 @@
       ]
     },
     {
-      "bloco": 7,
+      "bloco": 5,
       "titulo": "Limitações",
       "dimensao": null,
       "objetivo": "declarar o que o ciclo não alcança",
@@ -809,7 +317,7 @@
       ]
     },
     {
-      "bloco": 8,
+      "bloco": 6,
       "titulo": "Checklist de validação",
       "dimensao": null,
       "objetivo": "relê o Plano de Observação contra os seis critérios antes de fechar",
@@ -1001,5 +509,5 @@
     "regra": "metodologia e notação são declaradas, nunca deduzidas"
   },
   "oQueFicaFora": "O Plano de Observação não observa, não interpreta, não classifica, não mede e não produz provas. Ele delimita o que se observa — quem interpreta o resultado do ciclo é o professor.",
-  "ondeODadoVive": "Tudo cai dentro do `po-01.json`, e cada nó respondível tem a SUA chave — nada se escreve como prosa dentro do campo de outro nó (era o caso das flutuantes dentro de `Sujeitos` e das restrições físicas dentro de `Linha de base`, que o extrator lia como itens daqueles campos). O `ciclo-01-po-schema.json` ganhou as PROPRIEDADES dessas chaves em 14/10/2026 — nenhuma delas obrigatória, para os POs já escritos continuarem válidos; a obrigatoriedade declarada em `obrigatoriedade` é do FORMULÁRIO, e a do schema é a da fonte publicada."
+  "ondeODadoVive": "Tudo cai dentro do `po-01.json`, e cada nó respondível tem a SUA chave — nada se escreve como prosa dentro do campo de outro nó. As FLUTUANTES, o PONTO DE PARTIDA e os CRITÉRIOS DE INCLUSÃO/EXCLUSÃO deixaram de ser nós deste formulário (06/11/2026): a linha de base da turma — o recorte do corpo e o elenco — passou a ser a fonte desses dados, e o documento deriva-os dela. O que não se pergunta também não se redigita. O `ciclo-01-po-schema.json` ganhou as PROPRIEDADES dessas chaves em 14/10/2026 — nenhuma delas obrigatória, para os POs já escritos continuarem válidos; a obrigatoriedade declarada em `obrigatoriedade` é do FORMULÁRIO, e a do schema é a da fonte publicada."
 }

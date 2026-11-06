@@ -1972,122 +1972,57 @@ function mostrarDoPlano(no) {
  * O QUE ELE NÃO FAZ: preencher nada, nem resumir por conta própria. O professor lê e escreve o
  * «Ponto de partida» nas palavras dele.
  * ------------------------------------------------------------------------------------------- */
-/* A LISTA É LIDA NA HORA, E NÃO NO CARREGAMENTO — e isto é um defeito medido (04/11/2026).
- *
- * Era um `const` avaliado quando o script carrega, e nesse instante o `MAPA` ainda é `null`
- * (chega depois, pelo `api/mapa`). Resultado: a lista saía SEMPRE vazia, o painel caía no ramo
- * «não há campos» e o corpo nunca aparecia — em produção, silenciosamente, porque uma lista vazia
- * não faz barulho. A prova apanhou-o ao afirmar o nome do primeiro campo. */
-function camposDoCorpo() {
-  const no = (MAPA && MAPA.nos ? MAPA.nos : []).find((n) => n && n.registroDaAnamnese);
-  const grupos = (no && no.registroDaAnamnese && no.registroDaAnamnese.grupos) || [];
-  const campos = [];
-  for (const g of grupos) for (const c of (g.campos || [])) if (campos.indexOf(c) === -1) campos.push(c);
-  return campos;
-}
-
 function painelDoCorpo() {
   return '<div class="corpo-do-sujeito" data-corpo-do-sujeito="1"></div>';
 }
 
 /* Desenha (ou apaga) o painel do corpo. Chamado quando os sujeitos mudam e quando o bloco abre. */
-/* A fonte das anamneses já chegou? — lido do próprio `OPCOES`, sem estado paralelo. */
-function anamnesesCarregadas() {
-  for (const chave of OPCOES.keys()) {
-    if (String(chave).split('?')[0] === 'api/anamneses') return true;
-  }
-  return false;
-}
-
 async function pintarCorpoDoSujeito() {
   const alvo = document.querySelector('.corpo-do-sujeito');
   if (!alvo) return;
-  const cru = RESPOSTAS.get('sujeitos');
-  const escolhidos = Array.isArray(cru) ? cru.slice() : (cru ? [cru] : []);
-  const campos = camposDoCorpo();
-  if (!escolhidos.length || !campos.length) {
-    /* A FRASE MUDOU COM O NÓ (05/11/2026). «Escolha os sujeitos observados» mandava o professor
-     * a um campo que deixou de existir: a lista vem da turma, pela linha de base enviada. Dizer
-     * «escolha» quando não há o que escolher é a tela a pedir um gesto impossível — e a causa
-     * real, que é a falta de linha de base na turma, ficava escondida atrás dele. */
-    alvo.innerHTML = escolhidos.length
-      ? ''
-      : '<p class="sub">A turma deste plano ainda não tem linha de base enviada — e é ela que '
-        + 'declara as alunas. Sem corpo lido, não há corpo a observar: faça a linha de base em '
-        + 'Corpo e envie-a para a turma (passo 5).</p>';
+  const turma = turmaDoPlanoReferenciado();
+  if (!turma) {
+    alvo.innerHTML = '<p class="sub">O eixo do <b>Corpo</b> vem da linha de base da turma — e a '
+      + 'turma vem do plano de ensino escolhido no primeiro bloco. Sem plano não há corpo a ler.</p>';
     return;
   }
-  /* A CHAVE DAS OPÇÕES LEVA PARÂMETROS (`api/anamneses?turma=…&plano=…`), e por isso NÃO se
-   * procura pelo endereço nu: procura-se por qualquer entrada daquela fonte. Procurar pelo nu
-   * dava sempre a lista vazia — e o painel dizia «sem anamnese neste sistema» de uma aluna cuja
-   * anamnese estava carregada. Foi a prova que o apanhou, ao afirmar o nome do primeiro campo. */
-  const porValor = new Map();
-  for (const chave of OPCOES.keys()) {
-    if (String(chave).split('?')[0] !== 'api/anamneses') continue;
-    for (const o of (OPCOES.get(chave) || [])) if (!porValor.has(o.valor)) porValor.set(o.valor, o);
-  }
-  /* AS ANAMNESES PODEM AINDA NÃO ESTAR CARREGADAS — e o painel não pode depender de o professor
-   * ter passado pelo campo dos sujeitos nesta sessão. O endereço é o DO CAMPO DOS SUJEITOS (é ele
-   * que declara `opcoesDe`, e com os parâmetros do recorte); carrega-se pela mesma porta, e
-   * repinta-se quando chegar. */
-  if (!porValor.size) {
-    alvo.innerHTML = '<p class="sub">carregando as anamneses de quem se observa…</p>';
-    /* O CAMPO QUE DECLARA OS SUJEITOS — e não o primeiro nó com `opcoesDe`, que é o do PLANO.
-     * A ligação está no CONTEÚDO: o nó que lê a anamnese (`registroDaAnamnese`) repete pela lista
-     * dos sujeitos (`repetirPor`), e é esse nó que tem o endereço certo. Procurar pelo primeiro
-     * `opcoesDe` carregava os planos outra vez e o painel ficava em «carregando» para sempre. */
-    const declaracao = (MAPA && MAPA.nos ? MAPA.nos : []).find((n) => n && n.registroDaAnamnese);
-    const idDaFonte = declaracao && declaracao.repetirPor;
-    const noSujeitos = (MAPA && MAPA.nos ? MAPA.nos : [])
-      .find((n) => n && n.opcoesDe && (!idDaFonte || n.id === idDaFonte));
-    const endereco = noSujeitos ? enderecoDeOpcoes(noSujeitos) : '';
-    if (!endereco) return;
-    /* A ESPERA É FEITA AQUI, e não num `then` que pode não existir. `carregarOpcoesDe` devolve
-     * `undefined` quando o pedido já está em curso — quem chegasse depois ficava sem gancho de
-     * repintura, e o painel parava em «carregando» para sempre (medido na prova). Como esta
-     * função é `async`, esperar é o caminho simples: ou o pedido que se iniciou agora, ou a
-     * fonte que já vinha a caminho. */
-    if (!CARREGANDO.has(endereco)) await carregarOpcoesDe(endereco).catch(() => null);
-    else for (let i = 0; i < 40 && !anamnesesCarregadas(); i++) await new Promise((r) => setTimeout(r, 100));
-    if (document.querySelector('.corpo-do-sujeito')) pintarCorpoDoSujeito();
+  alvo.innerHTML = '<p class="sub">lendo o recorte do corpo na linha de base desta turma…</p>';
+  const dados = await carregarLinhaDeBaseDaTurma(turma);
+  const linha = dados && dados.linhaDeBase ? dados.linhaDeBase : null;
+  const recorte = dados && Array.isArray(dados.recorte) ? dados.recorte : [];
+  if (!linha) {
+    alvo.innerHTML = '<p class="sub">A turma «' + escapar(turma) + '» ainda não recebeu nenhuma '
+      + 'linha de base — e é ela que declara o recorte do corpo. Faça a linha de base em '
+      + '<b>Corpo</b> e envie-a para a turma (passo 5).</p>';
     return;
   }
-  alvo.innerHTML = '<p class="sub">carregando o corpo de quem se observa…</p>';
-  /* OS NOMES DOS CAMPOS vêm do mapa da anamnese — pela mesma leitura que o «ver o registro» já
-   * faz. Sem ela o painel mostraria `flexibilidade-dos-isquiotibiais`, que é identificador e não
-   * nome de nada. A falha é silenciosa de propósito: o painel continua útil com os ids. */
-  try { await carregarRotulosDaAnamnese(); } catch (erro) { /* fica com os ids */ }
-  const partes = [];
-  for (const sujeito of escolhidos) {
-    const opcao = porValor.get(sujeito);
-    if (!opcao) {
-      partes.push('<p class="sumiu"><b>' + md(sujeito) + '</b> — sem anamnese neste sistema.</p>');
-      continue;
-    }
-    let envelope = null;
-    try {
-      envelope = await carregarDetalhe({ carimbo: opcao.carimbo, detalhe: opcao.detalhe });
-    } catch (erro) {
-      envelope = null;
-    }
-    const respostas = (envelope && envelope.respostas) || {};
-    const linhas = campos.map((id) => {
-      const bruto = respostas[id];
-      const valor = bruto && (bruto.valor !== undefined ? bruto.valor : bruto);
-      const texto = Array.isArray(valor) ? valor.join('; ') : String(valor == null ? '' : valor).trim();
-      const rotulo = (ROTULOS_DA_ANAMNESE && ROTULOS_DA_ANAMNESE.get
-        ? ROTULOS_DA_ANAMNESE.get(id) : '') || id;
-      return texto ? '<li><b>' + md(rotulo) + '</b>: ' + md(texto) + '</li>' : '';
-    }).filter(Boolean);
-    partes.push('<div class="item-repeticao"><h4>' + md(sujeito) + '</h4>' +
-      (linhas.length
-        ? '<ul class="derivadas">' + linhas.join('') + '</ul>'
-        : '<p class="sumiu">A anamnese de ' + md(sujeito) + ' ainda não declarou os aspectos ' +
-          'físicos — abra o registro completo e preencha-a.</p>') +
-      '</div>');
+  /* AGRUPADO PELO BLOCO DA ANAMNESE, na ordem em que o acto os guarda: é a ordem em que o
+   * professor percorreu os passos, e reordenar aqui seria uma segunda opinião sobre a mesma lista. */
+  const grupos = [];
+  const porNome = new Map();
+  for (const campo of recorte) {
+    if (!campo || typeof campo !== 'object') continue;
+    const nome = String(campo.nome || campo.id || '').trim();
+    if (!nome) continue;
+    const grupo = String(campo.grupo || '').trim() || 'Corpo';
+    if (!porNome.has(grupo)) { porNome.set(grupo, []); grupos.push(grupo); }
+    porNome.get(grupo).push(nome);
   }
-  alvo.innerHTML = '<p class="sub">O eixo do <b>Corpo</b>, lido da anamnese de cada sujeito ' +
-    'escolhido. É referência: o «Ponto de partida» escreve-se nas suas palavras.</p>' + partes.join('');
+  if (!grupos.length) {
+    alvo.innerHTML = '<p class="sub">A linha de base «' + escapar(linha.nome || linha.id || '')
+      + '» ainda não tem recorte do corpo — o passo 4 do <b>Corpo</b> é onde se escolhe o que '
+      + 'observar. Sem recorte, este eixo fica sem o que dizer.</p>';
+    return;
+  }
+  const itens = grupos.map((grupo) => '<li><b>' + md(grupo) + '</b> — ' + porNome.get(grupo).length
+    + (porNome.get(grupo).length === 1 ? ' aspecto' : ' aspectos')
+    + '<ul>' + porNome.get(grupo).map((n) => '<li>' + md(n) + '</li>').join('') + '</ul></li>');
+  const quantos = grupos.reduce((soma, g) => soma + porNome.get(g).length, 0);
+  alvo.innerHTML = '<p class="sub">O eixo do <b>Corpo</b> é o recorte que você escolheu no passo 4 '
+    + 'da linha de base «' + escapar(linha.nome || linha.id || '') + '» — ' + quantos
+    + (quantos === 1 ? ' aspecto' : ' aspectos') + ' em ' + grupos.length
+    + (grupos.length === 1 ? ' bloco' : ' blocos') + '. Não se escolhe aqui: para mudar o recorte, '
+    + 'volte à linha de base.</p><ul class="derivadas">' + itens.join('') + '</ul>';
 }
 
 /* A turma escolhida no plano. Um professor pode observar mais de uma turma, mas o
@@ -4340,13 +4275,27 @@ function selectDaTurma(no) {
 }
 
 /** A TURMA do PO — a do plano referenciado, da estante DESTE professor (a fonte única). */
+/* A TURMA DO PLANO REFERENCIADO — e ela tem DUAS fontes, por uma razão medida (06/11/2026).
+ *
+ * A estante (`api/planos`) traz a turma de cada plano, e era a única fonte: quando a lista ainda
+ * não chegou — ou quando a linha não a declara —, a resposta era `null`, e tudo o que depende
+ * dela desaparecia em silêncio (a inscrição do cabeçalho, a linha de base, o painel do corpo).
+ * O ENVELOPE do plano tem a mesma informação, e é a que está gravada. Ler o envelope depois da
+ * estante não cria uma segunda verdade: são a mesma, e a segunda só é consultada quando a
+ * primeira não responde.
+ *
+ * A ORDEM IMPORTA, e é a da autoridade: a estante é o que o servidor derivou do acervo agora; o
+ * `PLANO_RESPOSTAS` é o que o envelope diz. Quando os dois existem, vale a estante. */
 function turmaDoPlanoReferenciado() {
   const cru = RESPOSTAS.get('plano-de-ensino');
   const carimbo = Array.isArray(cru) ? cru[0] : cru;
   if (!carimbo) return null;
   const lista = OPCOES.get(enderecoDosPlanos()) || [];
   const o = lista.find((x) => String(x.valor) === String(carimbo));
-  return o && o.turma ? String(o.turma) : null;
+  if (o && o.turma) return String(o.turma);
+  const doEnvelope = PLANO_RESPOSTAS.get('contexto-turma');
+  const nome = Array.isArray(doEnvelope) ? doEnvelope[0] : doEnvelope;
+  return nome ? String(nome) : null;
 }
 
 /** A TURMA do PO — INSCRIÇÃO, como a escola (18/10/2026).

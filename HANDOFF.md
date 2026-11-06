@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T08:05:54-0300`
-Commit atual: `77903696` — chore(estrutura): regerar os índices derivados
+Gerado em: `2026-11-06T08:26:39-0300`
+Commit atual: `b23013af` — feat(po): o ciclo do plano de observacao deixa de se escrever
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+b23013af feat(po): o ciclo do plano de observacao deixa de se escrever
 77903696 chore(estrutura): regerar os índices derivados
 097293bc chore(estrutura): reancorar a cadeia das fontes alteradas
 61b0d1b7 chore(estrutura): regerar os índices derivados
@@ -105,7 +106,6 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 90e9eb9d docs(registro): o envio da linha de base confirmado em producao
 c1f86f60 chore(estrutura): regerar os índices derivados
 318653d0 chore(linha de base): índice — apagar teste
-2c1c928c chore(linha de base): apagar teste
 ```
 
 ## Por professor
@@ -233,107 +233,109 @@ c1f86f60 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O ciclo do Plano de Observação deixa de se escrever
+## 06/11/2026 — O Plano de Observação enxuga: sete nós saem, e o recorte do corpo entra
 
-**O que motivou.** Palavras dela, e é a segunda vez que pede a mesma coisa:
+**O que motivou.** A pesquisadora percorreu o formulário do Plano de Observação campo a campo e
+pediu que saíssem sete nós. A razão é dela, e é uma só: *«o motivo da remoção é redundância, eles já
+estão contemplados»* — o que o PO pedia à mão passou a ser decidido em três módulos anteriores (a
+anamnese virou linha de base do corpo, o verbete fixou a notação, o plano de ensino fixou ciclo e
+turma). E deu a ordem do trabalho: *«quando você tira esses itens do PO, o que vai substituí-los…
+está já contemplado na linha de base. Se não tiver, você me sinaliza que a gente precisa ajustar.»*
 
-> «eu quero evitar que eu tenha um plano de ensino chamado ciclo um e aí eu esqueça o número e o
-> professor vá lá e coloque que então agora eu acho que é ciclo 20… Eu tenho que estar dentro do
-> mesmo ciclo o plano de ensino e o plano de observação.»
+Também pediu duas coisas que não são de formulário: que o **eixo do corpo** deixasse de despejar a
+anamnese inteira de cada aluna e passasse a mostrar **só os blocos que têm aspectos escolhidos no
+passo 4** — «isso tem que ser construído de forma dinâmica» —, e que se pensasse nos
+desdobramentos: o ajuste do PO, a exclusão de um PO e o expurgo.
 
-E, sobre a entrega anterior: *«Ele não tem aqui a relação que eu te pedi para fazer que amarra o
-plano de ensino ao ciclo. E eu não sei porque você disse que fez, mas não entregou.»*
+**O que saiu, e quem passou a responder.**
 
-**Ela tem razão, e a razão é precisa.** O que foi entregue a 05/11/2026 foi a **metade de baixo**:
-um menu suspenso com os ciclos que têm plano (`GET /api/ciclos` → `comPlano`) e uma recusa no
-servidor (`recusaDaRelacaoDoCiclo`). Um menu oferece o **leque**; com uma opção não há escolha,
-com duas volta a haver. A recusa chegava **depois de o número estar escrito** — é uma explicação
-do erro, não a sua prevenção. O que ela pediu é outra coisa: *«quando eu escolho ele,
-automaticamente ele tem que preencher para mim qual é o ciclo.»*
+| Nó | Quem responde agora |
+|:--|:--|
+| `campo-outro` (item 5) | o campo empírico, composto do PLANO |
+| `contexto-outro` (item 6) | idem — calendário, volume e condição de registro |
+| `flutuantes` | o elenco da linha de base da turma (a turma inteira) |
+| `linha-de-base` («Ponto de partida») | o recorte do passo 4, agrupado por bloco |
+| `inclusao` | o recorte: o que ele escolheu é o que entra |
+| `exclusao` | o recorte pelo avesso: o que a anamnese oferece e ele não escolheu |
 
-**A leitura da documentação, que ela pediu antes de decidir.** O `ARQUITETURA-GERAL.md` §5.10 diz,
-por palavras minhas, que «a primeira entrega foi a metade de cima» — e ficou a faltar a de baixo.
-O resto do documento já tinha a regra que resolve isto, e não estava a ser aplicada ao ciclo: o
-**plano é a declaração**, e o que dele deriva **não se pergunta**. É assim com a turma
-(`leituraDaTurmaDoPo`), com a linha de base (`renderLinhaDeBaseDoCabecalho`) e com as cinco
-condições do plano (`renderLeiturasDoCabecalho`). O ciclo era o único dado de origem única que
-ainda se escolhia ao lado dos que se leem.
+**O que NÃO saiu, e é a sinalização que ela pediu.** As **restrições físicas** (P-22) ficam. A
+verificação é factual: a anamnese regista «Dor/desconforto» como **estado da mobilidade do cambré**
+— uma observação do corpo, não um impedimento — e **não tem campo para lesão, cirurgia ou limitação
+médica** (procurado no conteúdo), e o recorte escolhe o que se observa sem perguntar o que não se
+pode pedir. O `restricoes` é, hoje, o **único** sítio do sistema onde «lesão, dor, limitação médica»
+se declara. Tirá-lo apagaria o dado em vez de o tornar redundante. O nó fica, com a razão escrita no
+próprio conteúdo.
 
-**O que foi decidido.**
+**E o `itens-por-dimensao` também fica — com a verificação feita, como ela pediu.** Ele **não** é
+redundante: é a única fonte das **colunas da folha de captura** (`dimensoesEItens` → `porVariante`).
+O que o plano declara são *exercícios* (`aula-1-sequencia`) e *parâmetros por objetivo*
+(`aula-1-parametro`) — não critérios de observação por bloco. Removê-lo deixaria a folha sem colunas
+e o ciclo sairia com uma captura impossível de preencher. O que é possível, e fica para decisão dela:
+**pré-preencher** a repetição a partir dos parâmetros que o plano já marcou.
 
-- **O ciclo do PO não é um campo: é uma inscrição.** No cabeçalho, o `<input>` de texto dá lugar a
-  `.ctx-rotulo` + `.ctx-inscricao` — as peças que a barra já usa —, e o `<input>` fica `hidden`
-  porque é dele que `contextoDoAto()` lê o `contexto.ciclo` do envelope. Nada de novo na folha: a
-  peça vem do catálogo, e a única regra de CSS nova é a da NOTA do campo ocupar a linha inteira
-  (a mesma correcção que a linha de cima fez para as leituras, um nível abaixo).
-- **O valor vem do plano, e a tela diz de onde.** `PLANO_CICLO` guarda o ciclo do ENVELOPE do plano
-  observado (a autoridade), com o carimbo de quem é; a estante (`api/planos` → `ciclo`) serve antes
-  de o envelope chegar. Sem plano escolhido não há ciclo, e a nota **diz isso** em vez de deixar um
-  «—» a parecer avaria. Um plano antigo que não declara ciclo deixa o campo vazio e a nota nomeia a
-  lacuna.
-- **O servidor deriva outra vez, e é ele que manda.** `cicloDoPlanoDeclarado` lê o plano antes de
-  qualquer conferência e **sobrescreve** `corpo.contexto.ciclo`. A recusa continua a existir para
-  onde a derivação não chega (um plano sem ciclo declarado, um acervo ilegível) — aí comparar
-  ainda é a única coisa honesta. O que ela deixou de fazer é recusar uma discordância que já não
-  pode acontecer.
-- **O PO deixa de pedir a lista de ciclos.** `api/ciclos` continua a existir e continua a servir o
-  **Plano de Ensino**, que é onde um ciclo NASCE e onde o campo trava no próximo número da
-  sequência. São duas perguntas diferentes: uma lista para observar um ciclo que existe, um número
-  para abrir o seguinte.
-- **Um valor velho não fica no ecrã.** Quando o plano escolhido não declara ciclo, o campo fica
-  vazio — mas só quando o plano é **conhecido** (`conhecido` diz «já li este plano»). Enquanto a
-  leitura não chega, o valor anterior permanece: apagá-lo seria trocar um valor certo por um vazio
-  por causa de uma leitura lenta. Foi a prova que apanhou esta distinção, na primeira versão.
+**O eixo do corpo, agora dinâmico.** O painel do formulário deixou de ler a anamnese de cada sujeito
+(uma leitura de envelope por aluna, 45 campos despejados) e passou a mostrar o **recorte do passo 4**,
+agrupado pelo bloco da anamnese e **só os grupos que têm aspectos** — «3 aspectos em 2 blocos», e a
+lista. A mesma arrumação vai para o documento: no eixo Corpo, uma linha por grupo. O recorte viaja em
+`/api/bastidores/alunas-da-turma`, que o cabeçalho do PO já pedia — **uma leitura, três leitores**
+(o cabeçalho, o painel, o documento), com `porta.linhaDeBaseDaTurma` a escolher o acto (a versão
+enviada mais recente, sem lápide) num sítio só.
 
-**Onde entrou.** `motor/servidor/rotas.js` — `cicloDoPlanoDeclarado`, a sobrescrita na rota
-`POST /api/elicitar`, e a recusa a receber o ciclo já lido (`doPlano`) em vez de o ler outra vez.
-`porta/index.html` — `cicloDoPlanoReferenciado`, `mostrarCicloDoPo` (substitui `listarCiclosDoPo`),
-`PLANO_CICLO` alimentado por `semearDoPlano` e `carregarPlanoReferenciado`, as três chamadas do
-cabeçalho, a regra da nota, e `travarCabecalho` a não desligar um `hidden`.
-`porta/po/conteudo/po.json` — o `porQue` do nó `plano-de-ensino` passa a dizer que o ciclo vem dele.
-`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/` — a cópia do pacote regerada.
+**O que ficou decidido sobre os desdobramentos.**
 
-**Com o quê.** `experimentos/provar-ciclo-herdado-do-plano.js` (**novo, 20 asserções**) — jsdom
-sobre a página de verdade, servida por HTTP: o campo é um `hidden` e não há `<select>`; o PO não
-pede `api/ciclos`; o valor chega do plano; **trocar o plano troca o ciclo**; sem plano não se
-inventa ciclo e o acto fica incompleto; a lacuna do plano antigo tem nome. E o **controle negativo**
-(`--controle-negativo`), que corre a mesma medida contra `git show HEAD:porta/index.html` e
-**reprova em 14 das 20** — com `0` de falhas na página nova. Entre as que reprovam está a que
-mostra o defeito de origem: com a estante vazia, a página antiga oferecia «01» sem plano nenhum.
-`experimentos/provar-relacoes-do-ciclo.js` — a secção 2 **invertida, não apagada**: onde exigia
-409, passa a exigir 200 com o ciclo do documento em `01`; e um plano sem ciclo declarado, aí sim,
-entra com o ciclo que veio.
+- **Um PO antigo continua a derivar.** Um envelope gravado com as chaves todas não rebenta: os nós
+  ausentes devolvem `undefined` e o documento declara a lacuna. A proveniência não se reescreve
+  (P-03) — o que se apagou foi a **pergunta**, não o registo. Provado: `provar-po-completo`, 17.
+- **A exclusão de um PO não muda.** Ela é por envelope + cascata do ciclo, e não olha nomes de
+  campo: nada do que saiu era chave de índice ou de vínculo.
+- **O EXPURGO TINHA UMA LACUNA, e foi fechada.** Os actos da linha de base moram em
+  `escola/<escola>/linhas-de-base/` desde ontem, e `escolaDosCaminhos` só reconhecia
+  `escola/<escola>/envelopes/`: uma escola expurgada deixaria para trás o elenco e o recorte do
+  corpo de todas as suas turmas — os únicos ficheiros da família que ninguém veria. Passa a
+  reconhecê-la pelo `lerCaminho` do próprio store (uma regra, não duas regex).
+- **A turma do plano passou a ter duas fontes, com ordem declarada.** `turmaDoPlanoReferenciado`
+  lia só a estante; quando a lista não chegava, tudo o que dela depende desaparecia em silêncio (o
+  painel do corpo, a linha de base do cabeçalho). Passa a cair no envelope do plano
+  (`PLANO_RESPOSTAS`), e a estante continua a mandar quando responde.
 
-**Medido.** `provar-ciclo-herdado-do-plano` **20/20** (e o controle negativo a reprovar 14);
-`provar-relacoes-do-ciclo` **23/23**; `provar-producao` **159/159**; `provar-eixos-do-po`
-**34/34**; `provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `provar-linha-de-base`
-**104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna` **20/20**;
-`provar-sujeitos-da-turma` **41/41**; `provar-recorte-no-indice` **42/42**;
-`provar-indice-do-recorte` **24/24**; `provar-cabecalhos-do-github` **34/34**;
-`provar-linha-de-base-no-repo` **39/39**; `provar-escrita-do-acto` **21/21**;
-`check-identidade` **0 erros**; `check-indices` **16/16**.
+**Onde entrou.** `porta/po/conteudo/po.json` — os seis nós removidos, o bloco dos critérios
+removido, o elemento `contexto` (que ficou sem subitem) removido, os blocos renumerados, e os
+títulos/notas do bloco do sujeito a dizerem a verdade. `motor/nucleo/derivar-po.js` —
+`tabelaDoRecorte`/`agruparRecorte`/`linhaDeBaseDoActo`, a secção «Linha de base» e os critérios
+lidos do acto, o eixo Corpo com um grupo por linha, e o `campo-outro`/`contexto-outro` a saírem dos
+compostos. `motor/nucleo/linha-de-base.js` — `linhaDeBaseDaTurma`. `motor/nucleo/porta.js` — a
+reexportação e `camposDoCorpo`. `motor/nucleo/derivar-ciclo.js` — a folha de captura sem flutuantes,
+a «Linha de base revisitada» a apontar para o registo em vez de o reescrever, o resumo do corpo a
+contar o elenco. `motor/servidor/rotas.js` — `linhaDeBaseDaTurma()` uma vez por pedido, passada à
+prévia e à escrita da fonte. `motor/servidor/bastidores.js` — o `recorte` na rota da turma.
+`motor/servidor/repo-escola.js` — o expurgo. `porta/index.html` — `pintarCorpoDoSujeito` reescrita,
+`turmaDoPlanoReferenciado` com as duas fontes, e dois ajudantes mortos removidos.
+`tools/lib-vistas.js` — o bullet dos flutuantes. `professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/`
+— a cópia do pacote regerada.
 
-**O que ainda não está feito.** (1) `provar-novo-registo-e-ciclo.js` e `provar-cabecalho-do-ato.js`
-dependem do Chrome, e neste ambiente o `goto` expira — **antes desta mudança também expirava** (medido
-com `git stash`), e um deles lê um envelope da escola `breu`, que já foi expurgada. O ciclo do PO
-nessas duas provas (que exigiam a LISTA) fica por actualizar quando houver navegador. (2) A ordem
-visual: o ciclo aparece ANTES do plano no cabeçalho, e o valor só existe depois de o plano ser
-escolhido no primeiro bloco — é o que ela descreveu («quando eu escolho ele, automaticamente ele tem
-que preencher»), mas quem abrir a página verá «—» até escolher. Se incomodar, o plano sobe para o
-cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que ciclo) e o plano é conteúdo.
+**Com o quê.** `provar-eixos-do-po` (**35**, secção D reescrita: o painel mostra o recorte agrupado
+por bloco, só os grupos com aspectos, e nomeia a lacuna quando a turma não recebeu o acto);
+`provar-po-completo` (**17**, com o contrato nó→destino atualizado e a asserção dos flutuantes
+**invertida**, não apagada); `provar-sujeitos-semeados` (**22**, com a frase do painel atualizada);
+`provar-relacoes-do-ciclo` (**23**). E o documento derivado passa no `validar-po-ciclo` (**13 campos
+de topo**, todos os obrigatórios) e a folha no `validar-captura-ciclo` (**0 erros**).
+
+**Medido.** `provar-eixos-do-po` **35/35**; `provar-po-completo` **17**; `provar-sujeitos-semeados`
+**22/22**; `provar-relacoes-do-ciclo` **23/23**; `provar-cadeia-do-ajuste` **34/34**;
+`provar-ciclo-herdado-do-plano` **20/20**; `provar-sujeitos-da-turma` **41/41**;
+`provar-etiqueta-da-aluna` **20/20**; `provar-linha-de-base` **104/104**; `provar-escrita-do-acto`
+**21/21**; `provar-expurgo-sem-listagem` **49/49**; `provar-expurgo-leitura-atrasada` **45/45**;
+`provar-producao` **159/159**; `check-identidade` **0 erros**; `validar-po-ciclo` e
+`validar-captura-ciclo` **sem erros**.
+
+**O que ainda não está feito.** (1) O **pré-preenchimento** dos itens de cada dimensão a partir dos
+parâmetros do plano — depende de ela decidir. (2) `provar-expurgo-raiz` **explode** numa asserção
+(`local.em`) e **já explodia antes desta mudança** (medido com `git stash`); não foi tocado. (3) A
+frase do cabeçalho do PO para a turma sem linha de base diz «nenhuma — esta turma ainda não recebeu
+linha de base (Corpo → passo 5)»: com o painel do corpo a dizer o mesmo por outras palavras, as duas
+merecem unificar-se quando alguém passar por lá.
 
 ## O que está pendente
-
-## 05/11/2026 — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom, e não o que todas acertaram
-
-
-- **A leitura guardada no KV tem de ser refeita** («Ler as anamneses», no passo 3): os números
-  acima só aparecem depois desse gesto.
-- O bloco **não diz qual aluna** tem o aspecto bom — é o que ela pediu hoje. Se um dia quiser o
-  nome, o dado já lá está (`noMelhor`), e é só desenhá-lo.
-- A «2ª posição — pés» e a «2ª posição — braços» passam a aparecer em **dois** blocos («o que já é
-  bom» e «o que o grupo tem em comum»), e é de propósito: o primeiro diz que é bom, o segundo que é
-  de todas. Se a repetição incomodar, é uma decisão de tela, não de dados.
 
 ## 05/11/2026 — O índice do recorte: o que os professores olham no corpo, e o que não olham
 
@@ -370,6 +372,15 @@ visual: o ciclo aparece ANTES do plano no cabeçalho, e o valor só existe depoi
 escolhido no primeiro bloco — é o que ela descreveu («quando eu escolho ele, automaticamente ele tem
 que preencher»), mas quem abrir a página verá «—» até escolher. Se incomodar, o plano sobe para o
 cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que ciclo) e o plano é conteúdo.
+
+## 06/11/2026 — O Plano de Observação enxuga: sete nós saem, e o recorte do corpo entra
+
+(1) O **pré-preenchimento** dos itens de cada dimensão a partir dos
+parâmetros do plano — depende de ela decidir. (2) `provar-expurgo-raiz` **explode** numa asserção
+(`local.em`) e **já explodia antes desta mudança** (medido com `git stash`); não foi tocado. (3) A
+frase do cabeçalho do PO para a turma sem linha de base diz «nenhuma — esta turma ainda não recebeu
+linha de base (Corpo → passo 5)»: com o painel do corpo a dizer o mesmo por outras palavras, as duas
+merecem unificar-se quando alguém passar por lá.
 
 ## Pendências anteriores (índice)
 
@@ -735,6 +746,7 @@ cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que cicl
 - **05/11/2026** — O passo 5 sem turma diz o que falta, a curadoria deixa de… → `REGISTRO.md` L36243
 - **05/11/2026** — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o… → `REGISTRO.md` L36350
 - **05/11/2026** — «O que já é bom» ficava vazio porque o apoio da observação… → `REGISTRO.md` L36452
+- **05/11/2026** — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom,… → `REGISTRO.md` L36519
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

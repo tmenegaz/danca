@@ -1041,6 +1041,70 @@ esquerda ficava vazia a ocupar metade da tela), e a prova ganhou um bloco de **p
 além das asserções de presença. É a mesma família do `if` que filtrava o título vazio no
 `check-pacote.js`: **«está aqui?» e «existe?» não são a mesma pergunta.**
 
+### 5.14 O Plano de Observação enxugou — o que saiu, e o que passou a alimentá-lo
+
+A 06/11/2026 a pesquisadora percorreu o formulário campo a campo e pediu que saíssem sete nós.
+A razão dela, por palavras próprias: *«o motivo da remoção é redundância, eles já estão
+contemplados»* — o que o PO pedia à mão passou a ser decidido em três módulos anteriores (a
+anamnese virou **linha de base do corpo**, o **verbete** fixou a notação, e o **plano de ensino**
+fixou o ciclo e a turma). E a ordem que ela deu: *«quando você tira esses itens do PO, o que vai
+substituí-los… está já contemplado na linha de base que a gente fez. Se não tiver, você me
+sinaliza.»*
+
+| Nó que saiu | Quem passou a responder | Onde se vê |
+|:--|:--|:--|
+| `campo-outro` (item 5) | o campo empírico, composto do PLANO — escola, turma, frequência, duração | `## Campo empírico` |
+| `contexto-outro` (item 6) | idem: calendário, volume e condição de registro vêm do plano | `## Contexto` |
+| `flutuantes` | o **elenco** da linha de base da turma (a turma inteira; não se observa 5% dela) | `## Sujeitos`, folha de captura |
+| `linha-de-base` («Ponto de partida») | o **recorte do passo 4** da linha de base — os aspectos escolhidos, agrupados por bloco | `## Linha de base`, eixo Corpo, painel do formulário |
+| `inclusao` | o mesmo recorte: **o que ele escolheu é o que entra** | `## Critérios de inclusão` |
+| `exclusao` | o mesmo recorte, pelo avesso: o que a anamnese oferece e o recorte não escolheu | `## Critérios de exclusão` |
+| `restricoes` | **NINGUÉM** — e por isso **não saiu** (ver abaixo) | `## Restrições físicas declaradas` |
+
+**O que NÃO saiu, e a razão é factual.** As **restrições físicas** (P-22) continuam no PO. A
+anamnese regista «Dor/desconforto» como um **estado da mobilidade do cambré** — uma observação,
+não um impedimento — e **não tem campo para lesão, cirurgia ou limitação médica**; o recorte
+escolhe o que se observa e não pergunta o que não se pode pedir. O `restricoes` é, hoje, o
+**único** sítio do sistema onde «lesão, dor, limitação médica» se declara. Tirá-lo apagaria a
+informação em vez de a tornar redundante — e é a diferença entre enxugar e perder. O nó fica com a
+explicação escrita no conteúdo, para o próximo leitor não repetir a tentação.
+
+**O número que ela vai notar.** O conteúdo do PO passou de **31 campos respondíveis (15
+obrigatórios)** para **25 (12)** — seis perguntas a menos, e nenhuma delas sem quem responda.
+O roteiro encolhe na mesma medida: os seis nós eram degraus, e o degrau que os seguia
+renumera-se sozinho (`#roteiro` numera pela caminhada, não pelo `id`).
+
+**O que ficou por decidir, e está sinalizado a ela.** Os **itens de cada dimensão**
+(`itens-por-dimensao`) **não** são redundantes: são a única fonte das **colunas da folha de
+captura** (`motor/nucleo/derivar-ciclo.js` → `dimensoesEItens` → `porVariante`). O que o plano
+declara são *exercícios* (`aula-1-sequencia`) e *parâmetros por objetivo* (`aula-1-parametro`) —
+não critérios de observação por bloco. Removê-lo deixaria a folha sem colunas. O que **é**
+possível, e fica para uma decisão dela, é **pré-preencher** a repetição a partir dos parâmetros
+que o plano já marcou, bloco a bloco.
+
+**Como o dado chega ao documento.** `porta.linhaDeBaseDaTurma(linhas, turma)` escolhe o **acto**
+(a versão enviada, de `enviada_em` maior, sem lápide) e devolve `{id, nome, em, alunas, recorte}`.
+A derivação recebe-o em `opcoes.linhaDeBase` e imprime o recorte em tabela (`| Grupo | Aspectos |`)
+e nos critérios; o elenco vai para `## Sujeitos`. **Uma leitura, três leitores** — a mesma função
+serve o documento, a escrita da fonte no repositório e o painel do formulário; se cada um
+escolhesse a «vigente» à sua maneira, a mesma turma teria três linhas de base no mesmo dia.
+
+**O que continua a valer para um PO antigo.** Um envelope gravado antes disto (com as chaves
+todas) continua a derivar: os nós ausentes devolvem `undefined`, e o documento declara a lacuna
+em vez de rebentar. A proveniência não se reescreve (P-03) — o que se apaga é a **pergunta**, não
+o registo.
+
+**O expurgo passou a levar a linha de base.** Os actos da linha de base moram em
+`escola/<escola>/linhas-de-base/` desde 05/11/2026, e o expurgo de escola apagava só
+`escola/<escola>/envelopes/`: uma escola expurgada deixava para trás o elenco e o recorte do corpo
+de todas as suas turmas. `escolaDosCaminhos` passa a reconhecer a família pelo `lerCaminho` do
+próprio store — quem sabe ler a família sabe reconhecê-la, e não há uma segunda regex a divergir.
+
+**As provas.** `provar-po-completo` (17 verificações: o contrato nó→destino, o documento, a folha
+de captura que passa no `validar-captura-ciclo`, e o PO no formato antigo a continuar lido);
+`provar-eixos-do-po` (35 asserções, secção D: o painel do corpo mostra o **recorte** agrupado por
+bloco, só os grupos que têm aspectos, e diz a lacuna quando a turma não recebeu o acto).
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

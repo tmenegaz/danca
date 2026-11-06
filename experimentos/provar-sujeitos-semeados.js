@@ -143,8 +143,12 @@ function acharNo(o, id) {
      * que deixou de existir — o defeito de sempre nesta casa: a tela a pedir um gesto impossível. */
     provar('a repetição do ponto de partida nomeia a linha de base, e não um «campo anterior»',
       /A lista vem da turma do plano de ensino: é a linha de base enviada/.test(TELA));
+    /* O PAINEL DO CORPO DIZ A MESMA CAUSA (frase actualizada a 06/11/2026). O painel deixou de ler
+     * a anamnese de cada sujeito — passou a mostrar o recorte do passo 4 —, e a frase que nomeia a
+     * lacuna mudou com ele: agora diz o NOME da turma e o caminho. O que se continua a medir é o
+     * que sempre se mediu: quando não há elenco, a tela DIZ a causa e não inventa um corpo. */
     provar('…e o painel do corpo diz a mesma causa quando não há elenco',
-      /A turma deste plano ainda não tem linha de base enviada/.test(TELA));
+      /ainda não recebeu nenhuma/.test(TELA) && /\(passo 5\)/.test(TELA));
     /* O CONTROLE É SOBRE O QUE SE RENDERIZA, e não sobre o ficheiro: as duas frases antigas
      * sobrevivem em COMENTÁRIOS que registam a correcção, e um `regex` no ficheiro inteiro
      * acusaria a memória do defeito como se fosse o defeito. O que não pode existir é a

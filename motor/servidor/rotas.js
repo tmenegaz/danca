@@ -1223,6 +1223,10 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
                 saida.plano, {
                   rotulos: rotulosDoChecklist(conteudoPO),
                   derivados: derivadosDoChecklist(conteudoPO),
+                  // A fonte gravada no repositório tem de trazer o MESMO recorte que a prévia:
+                  // duas leituras do mesmo acto no mesmo pedido seriam duas chances de divergir.
+                  linhaDeBase: await linhaDeBaseDaTurma(
+                    porta.turmaDoEnvelope(saida.plano) || contexto.turma),
                 });
             } catch (erro) {
               saida.fonte = { ok: false, erro: erro.message };
@@ -1521,6 +1525,26 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     return null;
   };
 
+  /**
+   * A LINHA DE BASE DA TURMA DO PO — uma leitura, três leitores (06/11/2026).
+   *
+   * O documento derivado, a escrita da fonte no repositório e o painel do corpo no formulário
+   * leem o MESMO recorte. Se cada um escolhesse a linha de base à sua maneira, a mesma turma
+   * teria três linhas de base no mesmo dia — e a que ficasse para trás seria a que o documento
+   * assina. A escolha é a do acto: a enviada mais recentemente (`porta.linhaDeBaseDaTurma`).
+   *
+   * Degrada em silêncio: sem leitor das linhas de base (o adaptador Node não o tem) devolve
+   * `null`, e o documento declara a lacuna em vez de inventar o elenco.
+   */
+  const linhaDeBaseDaTurma = async (turma) => {
+    const alvo = String(turma || '').trim();
+    if (!alvo || typeof lerLinhasDeBase !== 'function') return null;
+    try {
+      const linhas = await lerLinhasDeBase(escolaDoWorker || identidade.escola);
+      return porta.linhaDeBaseDaTurma(linhas, alvo);
+    } catch (erro) { return null; }
+  };
+
   const poPreenchido = async ({ url, params }) => {
     const sufixo = (params && params.resto) || '';
     const id = decodeURIComponent(sufixo.replace(/^\./, ''));
@@ -1540,9 +1564,16 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     }
 
     const plano = await planoDoPO(envelope);
+    /* O RECORTE CHEGA À DERIVAÇÃO (06/11/2026): a secção «Linha de base» e os critérios de
+     * inclusão/exclusão deixaram de ser campos do PO — são o que o professor escolheu no passo 4
+     * do Corpo, lido do acto que a turma recebeu. `universoDoCorpo` é o denominador da anamnese
+     * (quantos aspectos existem), e é o que permite ao documento dizer «N de M» em vez de «N». */
+    const lb = await linhaDeBaseDaTurma(porta.turmaDoEnvelope(plano));
     const { markdown, meta } = derivarPO(envelope, plano, {
       rotulos: rotulosDoChecklist(conteudoPO),
       derivados: derivadosDoChecklist(conteudoPO),
+      linhaDeBase: lb,
+      universoDoCorpo: lb ? porta.camposDoCorpo(conteudo).length : null,
     });
 
     if (url.searchParams.get('formato') === 'html') {

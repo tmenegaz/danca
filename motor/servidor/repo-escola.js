@@ -38,6 +38,7 @@ const { decodificarBase64 } = require('./escrever-plano.js');
 // resposta tem de ser a mesma que a do escritor — duas cópias da regra divergem no dia em que
 // a pasta mudar.
 const acervoEnvelopes = require('./acervo-envelopes.js');
+const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
 
 /** A raiz NÃO é escola: ela tem `wrangler.danca.jsonc` e serve a porta de entrada. */
 const NAO_ESCOLAS = new Set(['danca']);
@@ -130,6 +131,17 @@ function escolaDosCaminhos(slug, caminhos) {
     // O acervo da escola (os envelopes) sai com ela. Antes de `professores/` porque não é do
     // professor: a anamnese é da escola, e o mesmo professor pode ter outra escola viva.
     if (ehAcervoDaEscola(caminho, slug)) {
+      arquivos.push(caminho);
+      continue;
+    }
+    /* A LINHA DE BASE TAMBÉM É DA ESCOLA (06/11/2026). A 05/11/2026 os actos da linha de base
+     * saíram do KV para ficheiros (`escola/<escola>/linhas-de-base/<id>--<carimbo>.json`), e o
+     * expurgo continuou a apagar só `escola/<escola>/envelopes/`: uma escola expurgada deixava
+     * para trás o elenco e o recorte do corpo de todas as suas turmas — os únicos ficheiros da
+     * família que ninguém tinha onde ver. A regra é a do `lerCaminho` do próprio store: quem sabe
+     * ler a família sabe reconhecê-la, e não há aqui uma segunda regex a divergir da primeira. */
+    const daLinhaDeBase = linhasDeBaseRepo.lerCaminho(caminho);
+    if (daLinhaDeBase && daLinhaDeBase.escola === slug) {
       arquivos.push(caminho);
       continue;
     }

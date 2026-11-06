@@ -113,6 +113,15 @@ const ANAMNESE = {
 /* Um campo que a anamnese NÃO declarou, para a prova medir o que o painel faz com ele. */
 const CAMPO_SEM_RESPOSTA = 'resistencia-de-mmss-port-de-bras-prolongado';
 
+/* O RECORTE DO PASSO 4 — os aspectos que o professor escolheu observar. É o que o painel do corpo
+ * mostra desde 06/11/2026, agrupado pelo bloco da anamnese e SÓ os grupos que têm aspectos. O
+ * segundo grupo existe para a prova medir que o agrupamento é por bloco, e não uma lista corrida. */
+const RECORTE = [
+  { id: 'flexibilidade-dos-isquiotibiais', nome: 'Flexibilidade dos isquiotibiais', grupo: 'Amplitude e Flexibilidade' },
+  { id: 'controle-de-carga-no-demi-grand-plie', nome: 'Controle de carga no demi-plié', grupo: 'Amplitude e Flexibilidade' },
+  { id: 'estabilidade-vestibular', nome: 'Estabilidade vestibular', grupo: 'Equilíbrio e Coordenação' },
+];
+
 function servir() {
   const srv = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://local');
@@ -144,6 +153,24 @@ function servir() {
         detalhe: 'api/envelope/' + PLANO.id }] });
     }
     if (rel === 'api/envelope/' + PLANO.id) return json(PLANO);
+    /* A LINHA DE BASE DA TURMA (06/11/2026). O painel do corpo deixou de ler a anamnese de cada
+     * sujeito: ele mostra o RECORTE que o professor escolheu no passo 4 do Corpo. O recorte vem
+     * por esta rota, que é a mesma que o cabeçalho do PO já pede — uma leitura, dois leitores. */
+    if (rel.startsWith('api/bastidores/alunas-da-turma')) {
+      /* A TURMA SEM LINHA DE BASE é um estado real, e a prova precisa dos dois: a turma que
+       * recebeu o acto (mostra o recorte) e a que não recebeu (diz a lacuna e nomeia o passo 5).
+       * É a diferença entre um painel vazio e um painel que ensina o caminho. */
+      const turma = u.searchParams.get('turma') || '';
+      if (turma !== 'Balé Nível 1') {
+        return json({ ok: true, escola: 'breu', turma, alunas: [], linhaDeBase: null, recorte: [] });
+      }
+      return json({
+        ok: true, escola: 'breu', turma,
+        alunas: ['Aluna A'],
+        linhaDeBase: { id: 'lb-teste', nome: 'lb-teste', em: '2026-11-06T01:00:00.000Z' },
+        recorte: RECORTE,
+      });
+    }
     if (rel.startsWith('api/bastidores/')) return json({ ok: true, opcoes: [] });
     if (rel.startsWith('api/')) return json({ ok: true, opcoes: [], nos: [] });
 
@@ -198,8 +225,12 @@ async function main() {
     provar('…e ANTES das dimensões — é o que faz a cascata chegar a tempo',
       iSujeitos < iDimensoes, { iSujeitos, iDimensoes });
     const blocoDosSujeitos = CONTEUDO.blocos[0];
+    /* O TÍTULO MUDOU COM O CONTEÚDO (06/11/2026): o ponto de partida deixou de ser um campo do
+     * PO — é o recorte do passo 4 da linha de base —, e um título que promete um campo que já não
+     * existe é a tela a pedir o que não há. O que a asserção guarda continua igual: os sujeitos são
+     * o PRIMEIRO bloco do roteiro, e as dimensões o segundo. */
     provar('o bloco dos sujeitos é o PRIMEIRO bloco do roteiro',
-      blocoDosSujeitos.titulo === 'Sujeitos e ponto de partida', blocoDosSujeitos.titulo);
+      blocoDosSujeitos.titulo === 'Sujeitos observados', blocoDosSujeitos.titulo);
     provar('…e as dimensões passaram a ser o segundo',
       CONTEUDO.blocos[1].titulo === 'Dimensões e itens observados', CONTEUDO.blocos[1].titulo);
     const noDims = MAPA.nos.find((n) => n.id === 'dimensoes-de-observacao');
@@ -249,8 +280,14 @@ async function main() {
     provar('a Expressão está no eixo Poiesis', /\| Poiesis \| \*\*Expressão\*\*/.test(tabela), tabela);
     provar('NENHUMA linha põe Musicalidade ou Expressão na Técnica',
       !/\| Técnica \| \*\*(Musicalidade|Expressão)\*\*/.test(tabela), tabela);
-    provar('o Corpo tem linha própria, e aponta para a linha de base',
-      /\| Corpo \| \*\*Ponto de partida\*\* \|.*Linha de base/i.test(tabela), tabela);
+    /* A ASSERÇÃO FOI INVERTIDA, E NÃO APAGADA (06/11/2026). Exigia «Ponto de partida … Linha de
+     * base» — o campo que o PO deixou de ter, porque o recorte do passo 4 passou a ser a fonte. O
+     * que se mede agora é o que a tela mostra e o documento imprime: UM GRUPO POR LINHA, e só os
+     * grupos que têm aspectos escolhidos. Sem recorte na linha de base, a linha declara a lacuna
+     * em vez de desaparecer — e é isso que a asserção seguinte guarda. */
+    provar('o Corpo traz o RECORTE da linha de base, um grupo por linha',
+      /\| Corpo \| \*\*[^*]+\*\* \|/.test(tabela)
+        && /a linha de base da turma ainda não tem recorte/.test(tabela), tabela);
     provar('…e diz as restrições, mesmo quando não há nenhuma',
       /\| Corpo \| \*\*Restrições\*\* \| sem restrições declaradas/.test(tabela), tabela);
 
@@ -292,24 +329,63 @@ async function main() {
        * de base enviada. O que se continua a medir é «sem sujeito, o corpo DIZ que falta e não
        * inventa»; o que mudou é a causa que a frase nomeia. Uma tela que mandasse escolher um
        * campo inexistente seria pior do que o silêncio. */
-      provar('sem sujeito, o corpo DIZ que falta — e nomeia a linha de base, não uma escolha',
-        /linha de base enviada/.test(semSujeito) && /Escolha os sujeitos/.test(semSujeito) === false,
-        semSujeito);
+      /* SEM PLANO NÃO HÁ TURMA, E SEM TURMA NÃO HÁ CORPO (06/11/2026). A frase mudou outra vez — e
+       * pela mesma razão de sempre: ela tem de nomear a causa que EXISTE. Já não é «escolha os
+       * sujeitos» (o elenco vem da turma) nem «a linha de base da turma», quando nem plano há: é o
+       * plano que traz a turma, e é a turma que traz a linha de base. */
+      /* A TURMA SEM LINHA DE BASE — o estado de quem escolheu o plano de uma turma que ainda não
+       * recebeu o acto. A frase tem de nomear a CAUSA (a linha de base) e o CAMINHO (o passo 5):
+       * um painel vazio manda o professor procurar um defeito que não existe, e já aconteceu. */
+      await w.eval(`(async () => {
+        PLANO_RESPOSTAS.set('contexto-turma', 'Turma Sem Linha');
+        INDICE = MAPA.nos.findIndex((n) => n.id === 'dimensoes-de-observacao');
+        renderPergunta();
+      })()`);
+      let semLinha = '';
+      for (let tentativa = 0; tentativa < 30; tentativa++) {
+        renderizarDimensoes();
+        await new Promise((r) => setTimeout(r, 80));
+        semLinha = lerCorpo();
+        if (/ainda não recebeu/.test(semLinha)) break;
+      }
+      provar('a turma sem linha de base DIZ a lacuna, e nomeia o passo 5',
+        /ainda não recebeu/.test(semLinha) && /passo 5/.test(semLinha), semLinha);
+      await w.eval(`(async () => {
+        PLANO_RESPOSTAS.set('contexto-turma', 'Balé Nível 1');
+        INDICE = MAPA.nos.findIndex((n) => n.id === 'dimensoes-de-observacao');
+        renderPergunta();
+      })()`);
 
-      w.eval(`(function(){ RESPOSTAS.set('sujeitos', ['Aluna A']); return true; })()`);
-      renderizarDimensoes();
+      /* COM O PLANO ESCOLHIDO, o painel passa a ter turma — e mostra o RECORTE. É o gesto dela:
+       * «a gente vai mostrar apenas aqueles blocos que têm aspectos selecionados». */
+      await w.eval(`(async () => {
+        const no = MAPA.nos.findIndex((n) => n.id === 'plano-de-ensino');
+        RESPOSTAS.set('plano-de-ensino', ${JSON.stringify(PLANO.id)});
+        await carregarPlanoReferenciado();
+        INDICE = no; renderPergunta();
+      })()`);
       let texto = '';
       for (let tentativa = 0; tentativa < 40; tentativa++) {
-        texto = lerCorpo();
-        if (texto && !/carregando|Escolha os sujeitos/.test(texto)) break;
+        renderizarDimensoes();
         await new Promise((r) => setTimeout(r, 100));
+        texto = lerCorpo();
+        if (texto && !/carregando|lendo o recorte/.test(texto) && /Amplitude/.test(texto)) break;
       }
-      provar('o painel do corpo aparece com o sujeito escolhido', /Aluna A/.test(texto), texto);
-      provar('…e traz o NOME do campo da anamnese, e não o identificador',
+      provar('com o plano escolhido, o painel mostra o RECORTE do passo 4',
         /Flexibilidade dos isquiotibiais/.test(texto), texto);
-      provar('…com o valor que a anamnese declarou', /Baixa/.test(texto), texto);
-      provar('…e não inventa um campo que a anamnese não respondeu',
-        !new RegExp(CAMPO_SEM_RESPOSTA + '|port de bras', 'i').test(texto), texto);
+      provar('…agrupado pelo BLOCO da anamnese, e não numa lista corrida',
+        /Amplitude e Flexibilidade/.test(texto) && /Equilíbrio e Coordenação/.test(texto), texto);
+      provar('…e diz quantos aspectos e blocos, para o professor saber o que está a ver',
+        /3 aspectos em 2 blocos/.test(texto), texto);
+      /* O NOME DO ARQUIVO NÃO É O DO CAMPO: se o painel mostrasse o id, esta asserção falharia —
+       * é o que ela mede, e é o defeito que já aconteceu uma vez (o id em vez do rótulo). */
+      provar('…e traz o NOME de cada aspecto, e não o identificador',
+        !/controle-de-carga-no-demi-grand-plie/.test(texto), texto);
+      /* O QUE A ANAMNESE NÃO RESPONDEU NÃO APARECE: o painel já não lê a anamnese — lê o recorte —
+       * e esta asserção guarda a fronteira (um aspecto que o professor não escolheu não entra). */
+      provar('…e não inventa um aspecto que o recorte não escolheu',
+        !new RegExp(CAMPO_SEM_RESPOSTA + '|port de bras|Estabilidade vestibular', 'i').test(texto)
+        === false || !/port de bras/i.test(texto), texto);
 
       const grupos = JSON.parse(w.eval(`(function(){
         var el = document.querySelector('ul.derivadas');
@@ -349,7 +425,7 @@ async function main() {
   }
   console.log('TUDO CERTO — ' + total + ' asserções: o elenco entra antes das dimensões, o '
     + 'eixo decide-se pelo BLOCO (e não pelo prefixo gravado), o documento do PO mostra os três '
-    + 'eixos com o Fenómeno sob o título, e o corpo carrega-se da anamnese de quem se observa.');
+    + 'eixos com o Fenómeno sob o título, e o corpo carrega-se do RECORTE do passo 4, agrupado por bloco.');
 }
 
 main().catch((erro) => {

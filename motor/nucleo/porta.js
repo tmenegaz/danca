@@ -2273,6 +2273,12 @@ module.exports = {
   vinculos,
   alunasDaTurma,
   alunasDoProfessor,
+  /* A LINHA DE BASE DA TURMA, com o recorte (06/11/2026) — a mesma leitura para o cabeçalho do PO,
+   * para o painel do corpo e para o documento derivado. */
+  linhaDeBaseDaTurma: recorte.linhaDeBaseDaTurma,
+  /* O UNIVERSO do corpo: os campos que a anamnese oferece. É o denominador «N de M» do documento —
+   * sem ele o recorte não tem contra o que se medir. */
+  camposDoCorpo: recorte.camposDisponiveis,
   alunasDaAnamnese,
   valorDe,
   turmaDoEnvelope,

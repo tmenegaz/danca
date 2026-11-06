@@ -146,19 +146,62 @@ function estadoDoPO(checklist) {
   return marcados.length > 0 && marcados.every((v) => v === true) ? 'Input_PO_Validado' : 'Input_PO_Aguardando';
 }
 
-// A linha de base: o formulário já a guarda como lista de `{sujeito, traz, precisaDesenvolver}`.
-// A fonte a escreve como tabela (`| Aluno | Traz | Precisa desenvolver |`).
-function tabelaDeLinhaDeBase(valor) {
-  const itens = Array.isArray(valor) ? valor : [];
-  const linhas = ['| Aluno | Traz | Precisa desenvolver |', '|:--|:--|:--|'];
-  for (const item of itens) {
-    if (!item || typeof item !== 'object') continue;
-    const aluno = (item.sujeito || item.aluno || '[a decidir]');
-    const traz = (item.traz || '[a decidir]');
-    const precisa = (item.precisaDesenvolver || '[a decidir]');
-    linhas.push('| **' + String(aluno) + '** | ' + String(traz) + ' | ' + String(precisa) + ' |');
+/**
+ * A LINHA DE BASE DO PO VEM DO ACTO DA TURMA — e não de uma cópia no envelope (06/11/2026).
+ *
+ * O QUE MUDOU, e porquê. Até hoje o PO perguntava, por aluna, «o que traz / o que precisa
+ * desenvolver» — e isso passou a ser o passo 3 e o passo 4 do Corpo da linha de base: a leitura
+ * cruza a anamnese e o recorte escolhe os aspectos. Perguntá-lo outra vez no PO era pedir ao
+ * professor que reescrevesse, à mão, o que ele acabou de decidir em quatro passos — e as duas
+ * versões podiam discordar sem que nada falhasse. Palavras dela: «a linha de base que a gente
+ * construiu já atende a esses itens… o motivo da remoção é redundância».
+ *
+ * O QUE O DOCUMENTO IMPRIME: o RECORTE, agrupado como o professor o viu no passo 4 — um grupo por
+ * linha, e só os grupos que têm aspectos escolhidos. É a mesma arrumação da tabela dos outros
+ * eixos (a dimensão e o que nela se observa), e é o que o validador lê como `linhaDeBase`.
+ *
+ * `recorte` é `[{ id, nome, grupo }]` — os campos do acto (`campos` no ficheiro da versão).
+ */
+function tabelaDoRecorte(recorte) {
+  const cabecalho = ['| Grupo | Aspectos observados |', '|:--|:--|'];
+  const grupos = agruparRecorte(recorte);
+  if (!grupos.length) return cabecalho.concat(['| — | [a decidir: a linha de base da turma não '
+    + 'tem recorte do corpo] |']);
+  for (const g of grupos) cabecalho.push('| **' + g.grupo + '** | ' + g.aspectos.join('; ') + ' |');
+  return cabecalho;
+}
+
+/**
+ * O RECORTE AGRUPADO — só os grupos que têm aspectos, na ordem em que o acto os guarda.
+ *
+ * A ORDEM É A DO ACTO, e não alfabética: o professor escolheu os aspectos percorrendo a anamnese,
+ * e a lista que ele revê tem de aparecer como ele a construiu. Ordenar aqui seria uma segunda
+ * opinião sobre a mesma lista.
+ */
+function agruparRecorte(recorte) {
+  const por = new Map();
+  for (const c of (Array.isArray(recorte) ? recorte : [])) {
+    if (!c || typeof c !== 'object') continue;
+    const nome = String(c.nome || c.id || '').trim();
+    if (!nome) continue;
+    const grupo = String(c.grupo || '').trim() || 'Corpo';
+    if (!por.has(grupo)) por.set(grupo, []);
+    por.get(grupo).push(nome);
   }
-  return linhas.length > 2 ? linhas : ['| Aluno | Traz | Precisa desenvolver |', '|:--|:--|:--|'];
+  return [...por.entries()].map(([grupo, aspectos]) => ({ grupo, aspectos }));
+}
+
+/** A linha de base que a derivação recebeu: `{ nome, em, turma, alunas, recorte }`. */
+function linhaDeBaseDoActo(opcoes) {
+  const lb = (opcoes && opcoes.linhaDeBase) || null;
+  if (!lb || typeof lb !== 'object') return null;
+  return {
+    nome: String(lb.nome || lb.id || '').trim(),
+    em: lb.em || null,
+    turma: String(lb.turma || '').trim(),
+    alunas: Array.isArray(lb.alunas) ? lb.alunas.map((a) => String(a)).filter(Boolean) : [],
+    recorte: Array.isArray(lb.recorte) ? lb.recorte : [],
+  };
 }
 
 // As seis folhas do checklist, na ordem do conteúdo (e do schema): id → chave do objeto.
@@ -372,19 +415,20 @@ function comporLinhasDePlano(plano, ids, substituicoes) {
 // (a declaração própria do âmbito); turma, frequência e duração vêm do plano referenciado.
 function comporCampoEmpirico(envelope, plano) {
   const escola = respostaDo(envelope, 'campo-escola') || respostaDo(plano, 'contexto-escola');
-  const base = comporLinhasDePlano(plano, ['contexto-escola', 'contexto-turma',
+  /* O «OUTRO DADO DO CAMPO» SAIU (06/11/2026). Era uma caixa livre para o que o plano não previa —
+   * e o que o plano prevê passou a ser a linha de base da turma: a escola, o elenco e o recorte do
+   * corpo. Uma caixa de «o resto» ao lado de um dado que já existe é onde se escreve a segunda
+   * versão do mesmo facto. Palavras dela: «a gente já atendeu esses dois quando fizemos as
+   * separações… então isso aqui está redundante». */
+  return comporLinhasDePlano(plano, ['contexto-escola', 'contexto-turma',
     'contexto-frequencia', 'contexto-duracao'], { 'contexto-escola': escola });
-  const outro = respostaDo(envelope, 'campo-outro');
-  return outro ? base + ' · ' + String(outro) : base;
 }
 
-// O CONTEXTO do PO (calendário, volume de trabalho, condição de registro) — tudo lido do
-// plano referenciado; o que não estava previsto no plano vai no `contexto-outro` do PO.
+// O CONTEXTO do PO (calendário, volume de trabalho, condição de registro) — tudo lido do plano
+// referenciado. O `contexto-outro` saiu pela mesma razão do `campo-outro` (06/11/2026).
 function comporContexto(envelope, plano) {
-  const base = comporLinhasDePlano(plano,
+  return comporLinhasDePlano(plano,
     ['contexto-calendario', 'contexto-volume', 'contexto-registro']);
-  const outro = respostaDo(envelope, 'contexto-outro');
-  return outro ? base + ' · ' + String(outro) : base;
 }
 
 // A METODOLOGIA E A NOTAÇÃO — declaradas, nunca deduzidas (P-16). Vivem no PLANO referenciado
@@ -564,6 +608,7 @@ function derivarPO(envelope, plano, opcoes) {
    * O CORPO É UM EIXO E NÃO TEM DIMENSÕES NO PO: o que ele leva é o PONTO DE PARTIDA de cada
    * sujeito e as RESTRIÇÕES declaradas — que é o que o professor consolidou da anamnese, e é o
    * mesmo par que a §5 da aula publica. Sem sujeito escolhido, o eixo DIZ que falta. */
+  const baseDoPO = linhaDeBaseDoActo(opcoes) || { nome: '', em: null, turma: '', alunas: [], recorte: [] };
   const dimensoesDoPo = emLista(respostaDo(envelope, 'dimensoes-de-observacao'));
   const porEixo = new Map();
   for (const d of dimensoesDoPo) {
@@ -596,16 +641,28 @@ function derivarPO(envelope, plano, opcoes) {
      * cópia é a que fica para trás quando a primeira é corrigida. O eixo diz ONDE o corpo se
      * observa e QUANTOS sujeitos estão declarados; o registo fica no sítio dele. É a mesma
      * disciplina da §5 da aula, onde o corpo aponta para o plano e para o PO em vez de os repetir. */
-    const base = (Array.isArray(respostaDo(envelope, 'linha-de-base'))
-      ? respostaDo(envelope, 'linha-de-base') : [])
-      .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
-    const sujeitosDoPo = emLista(respostaDo(envelope, 'sujeitos'));
-    const quantos = base.length || sujeitosDoPo.length;
-    linhasPorEixo.corpo.push(['**Ponto de partida**',
-      quantos
-        ? quantos + (quantos === 1 ? ' sujeito' : ' sujeitos')
-          + ' — o registo está em «Linha de base», e vem da anamnese de cada um'
-        : '[a decidir: escolha os sujeitos observados — sem eles não há corpo a observar]']);
+    /* O EIXO DO CORPO: UM GRUPO POR LINHA, E SÓ OS QUE TÊM ASPECTOS ESCOLHIDOS (06/11/2026).
+     *
+     * Era «Ponto de partida» (quantos sujeitos) e «Restrições». As duas linhas deixaram de existir
+     * como campos: o ponto de partida é o recorte do passo 4, e as restrições físicas passaram a
+     * ser declaradas na linha de base (a anamnese por sujeito). O que se imprime aqui é o recorte
+     * — os mesmos grupos que a folha do passo 4 mostra, na mesma ordem, e nada mais. É a mesma
+     * arrumação das dimensões: o eixo, o grupo, o que nele se observa. */
+    const gruposDoCorpo = agruparRecorte(baseDoPO.recorte);
+    if (gruposDoCorpo.length) {
+      for (const g of gruposDoCorpo) {
+        linhasPorEixo.corpo.push(['**' + g.grupo + '**', g.aspectos.join('; ')]);
+      }
+    } else {
+      linhasPorEixo.corpo.push(['**Recorte do corpo**',
+        '[a decidir: a linha de base da turma ainda não tem recorte — ele é o passo 4 do Corpo]']);
+    }
+    /* AS RESTRIÇÕES FICAM (06/11/2026) — e é a única linha desta tabela que continua a ser
+     * escrita à mão no PO. A razão é factual, e foi verificada no conteúdo da anamnese: ela regista
+     * «Dor/desconforto» como um estado da mobilidade do cambré (uma observação), e não tem campo
+     * para lesão, cirurgia ou limitação médica. O recorte escolhe o que se observa sem perguntar o
+     * que não se pode pedir. Este é o único sítio do sistema onde «lesão, dor, limitação médica» se
+     * DECLARA (P-22) — tirá-lo apagaria a informação, e não a tornaria redundante. */
     const restricoes = String(respostaDo(envelope, 'restricoes') || '').trim();
     linhasPorEixo.corpo.push(['**Restrições**', restricoes || 'sem restrições declaradas']);
 
@@ -625,11 +682,10 @@ function derivarPO(envelope, plano, opcoes) {
   // A metodologia e a notação vêm do PLANO referenciado (declaradas, nunca deduzidas — P-16).
   // Sem plano, a lacuna sai declarada; o PO não as re-coleta.
   prosa('Metodologia e notação', comporMetodologiaENotacao(plano));
-  // Sujeitos: os apelidos (um por linha) — e as FLUTUANTES na sua própria seção. Elas viajavam
-  // como um bullet dentro desta (`- **Flutuantes:** …`), e o extrator o lia como mais um sujeito:
-  // `subjects: ["Vavá", "**Flutuantes:** …"]`. Dois nós, duas chaves.
-  lista('Sujeitos', respostaDo(envelope, 'sujeitos'));
-  lista('Flutuantes', respostaDo(envelope, 'flutuantes'));
+  // Sujeitos: os apelidos (um por linha). AS FLUTUANTES SAÍRAM (06/11/2026): quem entra e sai do
+  // grupo passou a ser o elenco que a linha de base da turma fixa — uma lista à parte no PO seria
+  // a segunda declaração do mesmo facto, e a que ficasse para trás seria a que o documento lê.
+  lista('Sujeitos', baseDoPO.alunas.length ? baseDoPO.alunas : respostaDo(envelope, 'sujeitos'));
 
   // A «Norma estabelecida» NÃO é perguntada pelo formulário: a norma que o cabecalho pede é a
   // METODOLOGIA (RAD/Vaganova/…), um conceito distinto do padrão de referência do PO. A lacuna
@@ -641,11 +697,26 @@ function derivarPO(envelope, plano, opcoes) {
   // própria seção: quando vinham aqui, o título `###` e o valor entravam como LINHAS da tabela
   // (`linhaDeBase: [ {…}, "### Restrições físicas declaradas (P-22)", "Nenhuma" ]`), e a leitura
   // as imprimia como se fossem dimensões da linha de base.
-  secao('Linha de base', tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')));
+  secao('Linha de base', tabelaDoRecorte(baseDoPO.recorte));
   lista('Restrições físicas declaradas', respostaDo(envelope, 'restricoes'));
 
-  lista('Critérios de inclusão', respostaDo(envelope, 'inclusao'));
-  lista('Critérios de exclusão', respostaDo(envelope, 'exclusao'));
+  /* OS CRITÉRIOS DE INCLUSÃO E DE EXCLUSÃO DEIXARAM DE SE PERGUNTAR (06/11/2026) — e continuam a
+   * existir no documento, porque um recorte sem borda não é um recorte. O que os define passou a
+   * ser o que o professor JÁ decidiu no passo 4: o que ele escolheu é o que entra; o resto da
+   * anamnese é o que fica de fora, e a ausência declara-se em vez de se omitir. É a diferença
+   * entre «não olhei» e «não olho» — e é ela que dá valor à evidência. */
+  const gruposDaInclusao = agruparRecorte(baseDoPO.recorte);
+  lista('Critérios de inclusão', gruposDaInclusao.length
+    ? gruposDaInclusao.map((g) => g.grupo + ': ' + g.aspectos.join('; '))
+    : null);
+  const quantosDoRecorte = gruposDaInclusao.reduce((soma, g) => soma + g.aspectos.length, 0);
+  const totalDaAnamnese = Number(opcoes && opcoes.universoDoCorpo) || null;
+  lista('Critérios de exclusão', gruposDaInclusao.length
+    ? ['Os aspectos do corpo que o recorte do passo 4 não selecionou'
+      + (totalDaAnamnese ? ' (' + quantosDoRecorte + ' de ' + totalDaAnamnese + ')' : '')
+      + ' — a ausência é declarada, e não é esquecimento: o que fica de fora está nomeado no índice '
+      + 'do recorte']
+    : null);
 
   saida.push('## Justificativa');
   saida.push('');
@@ -727,6 +798,9 @@ module.exports = {
   comporData,
   comporCampoEmpirico,
   comporContexto,
+  agruparRecorte,
+  tabelaDoRecorte,
+  linhaDeBaseDoActo,
   derivarPO,
   LACUNA_NORMA,
   CHECKLIST,

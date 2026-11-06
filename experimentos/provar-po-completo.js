@@ -67,16 +67,14 @@ const DESTINO = {
   'question': 'question',
   'fenomeno': 'phenomenon',
   'campo-escola': null,
-  'campo-outro': null,
-  'contexto-outro': null,
+  /* `campo-outro`, `contexto-outro`, `flutuantes`, `linha-de-base`, `inclusao` e `exclusao`
+   * SAÍRAM do formulário a 06/11/2026 — o recorte do passo 4 e o elenco da turma passaram a ser a
+   * fonte desses dados. Não estão neste mapa porque não são nós: uma chave a mais aqui faria a
+   * prova exigir um destino para um nó que já não existe. */
   'dimensoes-de-observacao': 'dimensoesObservadas',
   'itens-por-dimensao': 'itensPorDimensao',
   'sujeitos': 'subjects',
-  'flutuantes': 'flutuantes',
-  'linha-de-base': 'linhaDeBase',
   'restricoes': 'restricoes',
-  'inclusao': 'inclusionCriteria',
-  'exclusao': 'exclusionCriteria',
   'condicoes-de-contorno': 'condicoesDeContorno',
   'referencia-ao-problema': 'justification.referenceToProblem',
   'explicacao-do-recorte': 'justification.explanationOfCut',
@@ -199,13 +197,16 @@ const texto = JSON.stringify; // conveniência de leitura abaixo
   // 4. NENHUM NÓ CAI NO CAMPO DE OUTRO — o defeito das flutuantes e das restrições, medido no
   //    dado: elas viajavam como item de `subjects` e como "linha" de `linhaDeBase`.
   assert.deepEqual(json.subjects, [mk('sujeitos')], 'o campo `subjects` tem os sujeitos, e só');
-  assert.deepEqual(json.flutuantes, [mk('flutuantes')], 'o campo `flutuantes` é o do nó');
+  /* `flutuantes` E `linha-de-base` DEIXARAM DE SER NÓS (06/11/2026): o elenco vem da turma e o
+   * ponto de partida é o recorte do passo 4. O que a asserção guarda agora é o que sobrou da
+   * mesma família — a restrição física continua a ter chave própria, e não cai em campo alheio. */
+  assert.deepEqual(json.restricoes, [mk('restricoes')], 'o campo `restricoes` é o do nó');
   assert.deepEqual(json.restricoes, [mk('restricoes')], 'o campo `restricoes` é o do nó');
   const naLinhaDeBase = texto(json.linhaDeBase);
   assert.ok(!/Restrições|Flutuantes/.test(naLinhaDeBase),
     'a linha de base não pode carregar título nem valor de outro nó: ' + naLinhaDeBase);
   assert.equal(json.linhaDeBase.length, 1, 'a linha de base é a tabela, sem linhas alheias');
-  ok('nenhum nó escreve dentro do campo de outro (sujeitos, flutuantes, linha de base, restrições)');
+  ok('nenhum nó escreve dentro do campo de outro (sujeitos, restrições)');
 
   // 5. As chaves novas EXISTEM no schema, e o tipo confere com o que a extração produziu: uma
   //    chave fora do schema é descartada em silêncio pelo extrator.
@@ -413,13 +414,11 @@ const texto = JSON.stringify; // conveniência de leitura abaixo
   // E. A VISTA (o guia de observação): o que ela lê mudou de lugar, e nada se perdeu
   // =========================================================================
 
-  // 16. O guia imprime as RESTRIÇÕES (P-22) e os FLUTUANTES pela chave própria de cada nó. Eles
-  //     viajavam dentro de `linhaDeBase` e de `subjects`, e a vista os lia ali: com a correção,
-  //     um PO gerado hoje tem os dois em chave própria — sem esta leitura, os dois SUMIRIAM da
-  //     vista, que é o dano silencioso que a correção criaria se ficasse pela metade.
+  // 16. O guia imprime as RESTRIÇÕES (P-22) pela chave própria do nó — e NÃO imprime flutuantes,
+  //     que deixaram de existir (06/11/2026). A asserção foi invertida, não apagada.
   const meta = { id: '01', escola: 'Barra' };
   const poDaVista = {
-    phenomenon: ['o eixo'], subjects: [mk('sujeitos')], flutuantes: [mk('flutuantes')],
+    phenomenon: ['o eixo'], subjects: [mk('sujeitos')],
     linhaDeBase: [{ aluno: mk('sujeitos'), traz: 'a', precisaDesenvolver: 'b' }],
     restricoes: [mk('restricoes')],
   };
@@ -427,13 +426,19 @@ const texto = JSON.stringify; // conveniência de leitura abaixo
   assert.ok(guia.includes('### Restrições físicas declaradas (P-22)'),
     'o guia tem de ter a seção das restrições');
   assert.ok(guia.includes(mk('restricoes')), 'e o valor delas');
-  assert.ok(guia.includes('**Flutuantes:** ' + mk('flutuantes')),
-    'o guia declara os flutuantes como flutuantes, e não como sujeitos observados');
-  const quemEObservado = guia.slice(guia.indexOf('### Quem é observado'),
-    guia.indexOf('### Procedência'));
-  assert.ok(!quemEObservado.includes('**Flutuantes:** ' + mk('flutuantes') + ' (apelidos'),
+  /* AS FLUTUANTES SAÍRAM DA VISTA (06/11/2026) — a asserção foi INVERTIDA, e não apagada. O nó
+   * deixou de existir no PO: quem entra e sai do grupo é o elenco que a linha de base da turma
+   * fixa. Um PO antigo que ainda traga a chave continua a ser lido, mas a vista já não a imprime —
+   * e é isso que se mede: a lista dos observados não ganha um «flutuante» disfarçado de sujeito. */
+  const poComFlutuantes = Object.assign({}, poDaVista, { flutuantes: [mk('flutuantes')] });
+  const guiaComChaveAntiga = Vistas.guia({ meta, po: poComFlutuantes, plano: null, aula: '1', data: '2026-10-08' });
+  const quemEObservado = guiaComChaveAntiga.slice(guiaComChaveAntiga.indexOf('### Quem é observado'),
+    guiaComChaveAntiga.indexOf('### Procedência'));
+  assert.ok(!quemEObservado.includes('**Flutuantes:**'),
     'os flutuantes não entram na lista dos apelidos observados');
-  ok('o guia de observação imprime as restrições (P-22) e os flutuantes pela chave própria');
+  assert.ok(!guiaComChaveAntiga.includes('**Flutuantes:**'),
+    'a vista já não imprime flutuantes: o nó deixou de existir no PO');
+  ok('o guia de observação imprime as restrições (P-22) e não inventa flutuantes');
 
   // 17. O PO no formato ANTIGO (o das fontes já publicadas — as restrições dentro de
   //     `linhaDeBase`) continua lido como estava: a correção não pode apagar o que já foi escrito.

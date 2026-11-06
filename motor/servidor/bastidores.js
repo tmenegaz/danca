@@ -11985,9 +11985,16 @@ async function fetch(request, env) {
       }
     }
     const vigente = enviadas.length ? enviadas[enviadas.length - 1] : null;
+    /* O RECORTE VAI JUNTO (06/11/2026). O painel do corpo do Plano de Observação deixou de ler a
+     * anamnese de cada aluna — uma leitura por sujeito — e passou a mostrar o que o professor
+     * escolheu no passo 4 desta linha de base. O `campos` da versão vigente já está lido aqui (a
+     * lista saiu das linhas concluídas), portanto isto não custa leitura nenhuma: é o mesmo dado
+     * que a tela da Produção mostra, servido a quem precisa dele. */
+    const recorte = vigente && Array.isArray(vigente.campos) ? vigente.campos : [];
     return json(200, {
       ok: true, escola, turma, alunas: vistas,
       linhaDeBase: vigente ? { id: vigente.id, nome: vigente.nome, em: vigente.enviada_em } : null,
+      recorte,
     });
   }
 

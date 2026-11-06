@@ -736,6 +736,57 @@ function marcarNovas(linhasDeBase, alunasComAnamnese) {
  * linha de base nova aparecer — sai por ser retirado da linha de base que a declarava, e é essa a
  * diferença que a cascata mede.
  */
+/**
+ * A LINHA DE BASE DA TURMA — o ACTO, com o elenco e o RECORTE (06/11/2026).
+ *
+ * PORQUE ESTA FUNÇÃO EXISTE. Três leitores passaram a depender do mesmo facto: o cabeçalho do PO
+ * (que diz qual é a linha de base da turma), o painel do corpo (que mostra os aspectos escolhidos)
+ * e o documento derivado (que imprime o recorte como «Linha de base» e «Critérios de inclusão»).
+ * Se cada um escolhesse a «vigente» à sua maneira, a mesma turma teria três linhas de base no
+ * mesmo dia, e a que ficasse para trás seria a que o documento assina.
+ *
+ * A ESCOLHA É A DO ACTO: entre as linhas enviadas para a turma, a de `enviada_em` maior; uma
+ * lápide (`apagada_em`) não conta — apagar é um acto, e a linha sai da lista. Empate resolve-se
+ * pelo `carimbo` do nome, que é a mesma regra do resto do sistema: o relógio de uma máquina não
+ * reordena o passado.
+ *
+ * O QUE VOLTA: `{ id, nome, em, turma, alunas, recorte }`, com `recorte` = `[{id, nome, grupo}]`
+ * — os campos do passo 4, na ordem em que o professor os escolheu. `null` quando a turma não tem
+ * nenhuma linha de base enviada: e aí a lacuna DIZ-SE, em vez de se desenhar uma tabela vazia.
+ */
+function linhaDeBaseDaTurma(linhas, turma) {
+  const alvo = String(turma == null ? '' : turma).trim();
+  if (!alvo) return null;
+  const candidatas = (Array.isArray(linhas) ? linhas : []).filter((l) => l
+    && String(l.turma == null ? '' : l.turma).trim() === alvo
+    && !l.apagada_em
+    && String(l.enviada_em || '').trim());
+  if (!candidatas.length) return null;
+  const maisRecente = candidatas.slice().sort((a, b) => {
+    const ea = String(a.enviada_em || '');
+    const eb = String(b.enviada_em || '');
+    if (ea !== eb) return ea < eb ? 1 : -1;
+    return String(b.carimbo || '') < String(a.carimbo || '') ? 1 : -1;
+  })[0];
+  const campos = Array.isArray(maisRecente.campos) ? maisRecente.campos : [];
+  return {
+    id: maisRecente.id || null,
+    nome: maisRecente.nome || maisRecente.id || null,
+    em: maisRecente.enviada_em || null,
+    turma: alvo,
+    alunas: (Array.isArray(maisRecente.alunas) ? maisRecente.alunas : [])
+      .map((a) => String(a == null ? '' : a).trim()).filter(Boolean),
+    recorte: campos
+      .filter((c) => c && typeof c === 'object')
+      .map((c) => ({
+        id: String(c.id || ''),
+        nome: String(c.nome || c.id || ''),
+        grupo: String(c.grupo || ''),
+      }))
+      .filter((c) => c.id || c.nome),
+  };
+}
+
 function elencoDaTurma(linhas, turma) {
   const alvo = String(turma == null ? '' : turma).trim();
   const vistas = [];
@@ -853,6 +904,7 @@ module.exports = {
   marcarNovas,
   envelheceu,
   elencoDaTurma,
+  linhaDeBaseDaTurma,
   elencoDiferente,
   filiacaoDasAlunas,
   alunasComLinhaDeBase,

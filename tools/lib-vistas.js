@@ -625,20 +625,15 @@ function mdGuia(m, po, plano, aula, data, prov) {
   }
   l.push('', '### Quem é observado', '');
   const sujeitos = juntarQuebras(po && po.subjects);
-  const flutuantes = juntarQuebras(po && po.flutuantes);
   if (sujeitos.length) {
     l.push(`- ${b.de('PO', 'quem é observado', juntarComSeparador(sujeitos))} (apelidos do PO)`);
   } else {
     l.push(`- ${b.falta('quem é observado', 'os sujeitos — vêm do PO')}`);
   }
-  // OS FLUTUANTES — quem entra e sai do grupo ao longo do ciclo. Eles têm chave própria no
-  // `po-XX.json` (`flutuantes`) e um bullet próprio aqui: até 14/10/2026 vinham DENTRO de
-  // `subjects` (a derivação os escrevia como bullet da seção `## Sujeitos`), e esta lista os
-  // mostrava como se fossem alunos observados — que é o que eles não são.
-  if (flutuantes.length) {
-    l.push(`- **Flutuantes:** ${juntarComSeparador(flutuantes)} — entram e saem do grupo ao`
-      + ' longo do ciclo (não são observados item a item)');
-  }
+  // AS FLUTUANTES SAÍRAM (06/11/2026). Quem entra e sai do grupo passou a ser o que a linha de
+  // base da turma fixa — o elenco é a turma inteira, e uma lista paralela seria a segunda
+  // declaração do mesmo facto. O PO deixou de ter o nó, e um `po-XX.json` antigo que ainda o traga
+  // simplesmente deixa de o mostrar aqui: a proveniência guarda o dado, a vista não o duplica.
   l.push('', ...balancoDaEntrada(b.reg()));
   return l.join('\n');
 }

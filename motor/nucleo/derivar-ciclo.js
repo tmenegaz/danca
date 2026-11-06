@@ -256,18 +256,19 @@ function eixosDaObservacao(dims, plano, po) {
   // O CORPO — três fontes, nenhuma inventada.
   const aspectos = linhasDaTabela(resp(plano, 'aspecto-fisico'))
     .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
-  const base = linhasDaTabela(resp(po, 'linha-de-base'))
-    .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
   const restricoes = String(resp(po, 'restricoes') || '').trim();
 
+  /* O «PONTO DE PARTIDA» DEIXOU DE SER UM CAMPO DO PO (06/11/2026): ele é o recorte do passo 4 da
+   * linha de base. O que o resumo do corpo diz é o que existe — os aspectos que o plano declara, o
+   * ELENCO que a linha de base fixou e as restrições. Nas três fontes, nenhuma inventada. */
+  const elenco = emLista(resp(po, 'sujeitos'));
   const partesDoCorpo = [];
   if (aspectos.length) {
     partesDoCorpo.push(aspectos.length + (aspectos.length === 1 ? ' aspecto físico declarado' : ' aspectos físicos declarados') + ' no plano');
   }
-  if (base.length) {
-    const comPonto = base.filter((l) => String(l.precisaDesenvolver || l.traz || '').trim()).length;
-    partesDoCorpo.push('ponto de partida de ' + base.length + (base.length === 1 ? ' aluna' : ' alunas')
-      + (comPonto === base.length ? '' : ' (' + comPonto + ' com ponto a desenvolver)'));
+  if (elenco.length) {
+    partesDoCorpo.push('elenco de ' + elenco.length + (elenco.length === 1 ? ' aluna' : ' alunas')
+      + ' (linha de base da turma)');
   }
   partesDoCorpo.push(restricoes ? 'restrições declaradas' : 'sem restrições declaradas');
 
@@ -1756,8 +1757,10 @@ function precisaGravar(anterior, nova) {
 /** A folha de captura da Aula 01 — para impressão — derivada do PO. */
 function derivarCaptura({ po, contexto }) {
   const sujeitos = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
-  const flutuantes = emLista(resp(po, 'flutuantes')).filter((v) => !GABARITO_VAZADO.test(v));
-  const linhaDeBase = Array.isArray(resp(po, 'linha-de-base')) ? resp(po, 'linha-de-base') : [];
+  /* AS FLUTUANTES E O PONTO DE PARTIDA SAÍRAM DO PO (06/11/2026) — e a folha não fica mais pobre:
+   * o elenco é o da linha de base da turma (todo ele, porque o professor dá aula à turma inteira),
+   * e o ponto de partida de cada aluna é o recorte que ela já declarou no passo 4. O que a folha
+   * imprime é a LISTA de quem se observa; o registo do corpo fica onde está. */
   const dims = dimensoesEItens(po);
   const ciclo = String((contexto && contexto.ciclo) || 'NN');
   const escola = nomeDaEscola(contexto);
@@ -1781,7 +1784,6 @@ function derivarCaptura({ po, contexto }) {
 
   const presentes = sujeitos.length ? sujeitos.join(' ☐ ') : '☐ [Preencher: alunas]';
   saida.push('**Data:** `___/___/____` · **Presentes:** ☐ ' + presentes +
-    (flutuantes.length ? ' · **Flutuantes:** ' + flutuantes.join(', ') : '') +
     ' · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`');
   saida.push('');
 
@@ -1820,26 +1822,26 @@ function derivarCaptura({ po, contexto }) {
     saida.push('');
   });
 
+  /* A «LINHA DE BASE REVISITADA» NÃO SE REESCREVE (06/11/2026). Ela imprimia, por aluna, o que o
+   * PO declarava que precisava desenvolver — o campo que deixou de existir. O registo do corpo
+   * vive na linha de base do Corpo, e o PO não o duplica: aqui fica a COLUNA da aula (o que se
+   * observou), com o nome de quem se observa, e a indicação de onde está o resto. Uma tabela em
+   * branco por aluna seria a folha a pedir que se redigitasse o que já está escrito. */
   saida.push('## Linha de base revisitada');
   saida.push('');
-  const linhasDeBase = linhaDeBase.filter((i) => i && typeof i === 'object');
-  if (linhasDeBase.length) {
-    for (const item of linhasDeBase) {
-      const aluna = String(item.sujeito || item.aluno || '[Preencher: aluna]');
-      const precisa = String(item.precisaDesenvolver || item.precisa || '[Preencher]');
-      saida.push('### ' + aluna);
-      saida.push('');
-      saida.push('| O que o PO declara que precisa desenvolver | Observado na aula |');
-      saida.push('|:--|:--:|');
-      for (const p of emLista(precisa)) saida.push('| ' + p + ' | |');
-      saida.push('');
-    }
-  } else {
-    saida.push('### [Preencher: aluna]');
+  saida.push('> O ponto de partida de cada aluna está na **linha de base do Corpo** (a leitura do');
+  saida.push('> passo 3 e o recorte do passo 4). Não se reescreve aqui: aqui anota-se o que a aula');
+  saida.push('> mostrou.');
+  saida.push('');
+  for (const aluna of (sujeitos.length ? sujeitos : ['[Preencher: aluna]'])) {
+    saida.push('### ' + String(aluna));
     saida.push('');
-    saida.push('| O que o PO declara que precisa desenvolver | Observado na aula |');
+    /* A COLUNA É A QUE O SCHEMA DECLARA (`Observado na aula`): mudar-lhe o nome aqui reprovaria a
+     * folha no `validar-captura-ciclo.js` — e a folha é CONFIG, não prosa. O que mudou foi a coluna
+     * da esquerda, que deixou de pedir o que o PO já não pergunta. */
+    saida.push('| O que a aula mostrou | Observado na aula |');
     saida.push('|:--|:--:|');
-    saida.push('| [Preencher] | |');
+    saida.push('| | |');
     saida.push('');
   }
 
@@ -1889,14 +1891,12 @@ function varrerJuizo(plano, po) {
     ['plano · aula-1', resp(plano, 'aula-1-sequencia')],
     ['PO · fenômeno', resp(po, 'fenomeno')],
     ['PO · sujeitos', resp(po, 'sujeitos')],
-    ['PO · flutuantes', resp(po, 'flutuantes')],
+    ['PO · restrições', resp(po, 'restricoes')],
   ];
-  const linhasDeBase = Array.isArray(resp(po, 'linha-de-base')) ? resp(po, 'linha-de-base') : [];
-  for (const item of linhasDeBase) {
-    if (!item || typeof item !== 'object') continue;
-    campos.push(['PO · linha de base (' + String(item.sujeito || item.aluno || '?') + ')',
-      [item.traz, item.precisaDesenvolver].filter(Boolean).join(' ')]);
-  }
+  /* O varrimento continua a olhar o `restricoes` — é prosa declarada pelo professor e pode conter
+   * juízo («ela é frágil no tornozelo»). O que ele deixou de olhar é `flutuantes` e o ponto de
+   * partida, que já não são nós do PO: os campos ausentes devolvem `undefined`, e um campo a mais
+   * no varrimento não faz mal nenhum — o que faz mal é um campo a menos numa regra de juízo. */
   for (const [onde, valor] of campos) {
     const texto = textoDeValor(valor);
     for (const termo of TERMOS_DE_JUIZO) {
