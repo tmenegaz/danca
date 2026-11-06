@@ -12642,4 +12642,10 @@ module.exports = {
   // e quem a declara é a curadoria. Exportada em vez de relida: uma segunda leitura da mesma
   // chave do KV, com a sua própria forma de a interpretar, divergiria no dia em que uma mudasse.
   curadorias,
+  // AS LINHAS DE BASE (05/11/2026), pela mesma razão e com um argumento a mais: desde o passo 5
+  // é delas que a listagem da anamnese lê a TURMA de cada aluna — a curadoria deixou de declarar
+  // o elenco. Exportada para a ponte a passar à listagem: se cada uma lesse a chave à sua maneira,
+  // a Produção dizia «enviada para Balé Nível 1» e a listagem dizia «sem turma», sobre o mesmo
+  // registo e no mesmo instante — que é o defeito de 05/11/2026.
+  linhasDeBase,
 };

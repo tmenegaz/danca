@@ -751,6 +751,69 @@ function elencoDaTurma(linhas, turma) {
 }
 
 /**
+ * A QUE LINHA DE BASE PERTENCE CADA ALUNA — e a que turma ela foi enviada (05/11/2026).
+ *
+ * PORQUE ISTO EXISTE. A etiqueta da listagem da anamnese dizia «nova» e «sem turma» para a Aluna
+ * A e a Aluna B, que já tinham linha de base feita e já tinham sido enviadas para uma turma. Não
+ * era mentira da tela: era LEITURA DA FONTE ERRADA. A listagem perguntava a turma à CURADORIA, e
+ * a curadoria deixou de declarar o elenco quando o passo 5 da linha de base passou a ser o acto
+ * que o declara («estas alunas, com este recorte, foram para esta turma neste dia»). Numa escola
+ * sem curadorias — que é o estado real da produção a 05/11/2026 — a resposta era sempre «sem
+ * turma», e com ela o selo «nova» que dela se deriva.
+ *
+ * O QUE SE DEVOLVE, E PORQUE NESTA FORMA. Um `Map<apelido, filiação>`, e não uma lista de linhas
+ * de base: quem lê a listagem tem uma aluna na mão e precisa da resposta dela, não de uma varredura
+ * a cada linha. A filiação diz as TRÊS coisas que a tela mostra em sítios diferentes:
+ *
+ *   · `nome`  — a linha de base mais recente que inclui a aluna (a etiqueta «pertence a esta»);
+ *   · `turma` — a da linha mais recente já ENVIADA (o elenco só existe depois do passo 5);
+ *   · `linhas`— todas, da mais recente para a mais antiga (o painel do cartão diz o percurso).
+ *
+ * UMA LINHA DE BASE EM RASCUNHO CONTA PARA «TEM LINHA DE BASE», E NÃO DÁ TURMA. É a distinção que
+ * a pesquisadora fez ao descrever o processo: a aluna deixa de ser «nova» porque a linha de base
+ * dela já existe — mesmo antes de o passo 5 a mandar para uma turma. O que o rascunho não faz é
+ * dizer «esta aluna está naquela turma»: isso é o envio, e o envio é datado.
+ */
+function filiacaoDasAlunas(linhas) {
+  const por = new Map();
+  const lista = (Array.isArray(linhas) ? linhas : [])
+    .filter((l) => l && l.id)
+    .slice()
+    .sort((a, b) => String(b.enviada_em || b.atualizada_em || '')
+      .localeCompare(String(a.enviada_em || a.atualizada_em || '')));
+  for (const l of lista) {
+    const nome = String(l.nome == null ? '' : l.nome).trim();
+    const turma = String(l.turma == null ? '' : l.turma).trim();
+    const em = String(l.enviada_em || '').trim();
+    for (const a of (Array.isArray(l.alunas) ? l.alunas : [])) {
+      const apelido = String(a == null ? '' : a).trim();
+      if (!apelido) continue;
+      if (!por.has(apelido)) {
+        por.set(apelido, {
+          aluno: apelido, linhas: [], nome: '', turma: '', em: '',
+        });
+      }
+      const f = por.get(apelido);
+      f.linhas.push({ id: String(l.id), nome, turma, em });
+      // O NOME É O DA MAIS RECENTE — é a linha de base a que ela pertence hoje.
+      if (!f.nome) f.nome = nome;
+      // A TURMA É A DA MAIS RECENTE JÁ ENVIADA — o rascunho não declara elenco.
+      if (!f.turma && turma) {
+        f.turma = turma;
+        f.em = em;
+        f.nomeDaTurma = nome;
+      }
+    }
+  }
+  return por;
+}
+
+/** Os apelidos que já têm linha de base — a regra do Plano de Observação (05/11/2026). */
+function alunasComLinhaDeBase(linhas) {
+  return [...filiacaoDasAlunas(linhas).keys()];
+}
+
+/**
  * O QUE MUDOU ENTRE O ELENCO QUE UM DOCUMENTO DECLARA E O QUE A TURMA HOJE TEM (05/11/2026).
  *
  * É a MESMA FORMA da revalidação e da etiqueta «novo»: nada se marca com um campo, tudo se
@@ -791,4 +854,6 @@ module.exports = {
   envelheceu,
   elencoDaTurma,
   elencoDiferente,
+  filiacaoDasAlunas,
+  alunasComLinhaDeBase,
 };

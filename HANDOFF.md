@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T20:52:42-0300`
-Commit atual: `1ed80c0d` — fix(po): «o que ja e bom» passa a ser o que ALGUMA aluna tem de bom, e nao o que todas acertaram
+Gerado em: `2026-11-05T21:09:03-0300`
+Commit atual: `5c6316b1` — feat(po): o indice do recorte — o que os professores olham no corpo, e o que nao olham
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+5c6316b1 feat(po): o indice do recorte — o que os professores olham no corpo, e o que nao olham
 1ed80c0d fix(po): «o que ja e bom» passa a ser o que ALGUMA aluna tem de bom, e nao o que todas acertaram
 55038263 chore(estrutura): regerar os índices derivados
 b3deb0dd feat(acervo): envelope/.indice.json
@@ -105,7 +106,6 @@ e0f3b0fd chore(estrutura): regerar os índices derivados
 acfa2f81 feat(acervo): envelope/anamnese-20261105-2014.json
 e03c5506 feat(acervo): envelope/.indice.json
 08b41241 fix(po): a linha de base le os 45 campos que a anamnese mede, e a Curadoria oferece so o que a escola compoe
-95fcd9ef chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -231,82 +231,81 @@ e03c5506 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — O índice do recorte: o que os professores olham no corpo, e o que não olham
+## 05/11/2026 — A aluna na listagem, e a linha de base como fonte do elenco
 
-**O que motivou.** Dois pedidos, e o segundo reordena os outros três. (1) «Preciso que você leia a
-documentação que a gente tem para os índices que a gente cria, porque vamos precisar fazer o índice
-disso». (2) «No step quatro, nós temos aqui o recorte que a gente escolhe. Então, esse índice é para
-a gente poder fazer um filtro rápido […] identificar quais são os aspectos do recorte mais usados e
-os menos usados, os que nunca foram usados, os que são usados parcialmente […] e assim a gente vai
-saber o que o professor está preocupado no corpo de uma bailarina ou de uma turma, e a gente pode
-aprimorar a nossa anamnese ou até identificar problemas que ocorrem por não olhar alguns dos
-aspectos». E o alcance: «os outros steps são coisas de configuração e organização, é coisa
-burocrática administrativa» — o passo 4 é o elemento-chave.
+**O que aconteceu.** A pesquisadora descreveu o processo como ele é: cria-se a aluna na Produção,
+faz-se a anamnese, cria-se a turma, e faz-se a **linha de base**; é ela que a põe na turma. Depois
+disse o que via: «essa aluna A e aluna B, ambas eu já fiz a linha de base delas e já as coloquei na
+turma. Então isso precisa ser ajustado também. E ela já não é mais nova, porque eu já fiz a linha de
+base dela.» A listagem da anamnese dizia **«nova»** e **«aluna nova — sem turma»** às duas. Pediu mais
+duas coisas: uma **etiqueta com o nome da linha de base** a que cada aluna pertence, e a **regra** de
+que só se selecionam no Plano de Observação as alunas que já têm linha de base.
 
-**O que a documentação já decidia, e não foi contrariada.** O `PLANO-INDICES.md` §3 separa três
-famílias — ACERVO (Git, derivada, determinística), VIVO (KV, autenticada) e PUBLICADO. O recorte mora
-no KV (`bastidores/<escola>/linhas-de-base`), **não** em ficheiro do repositório: o gerador do §5.1
-não o alcança, e pô-lo em `indices/` seria pedir-lhe uma segunda fonte, que o §2.1 proíbe. Foi
-implementado na família certa — o índice **VIVO** do §4.5.
+**O diagnóstico — e não era a tela a mentir.** Era a tela a ler a fonte errada.
+`turmaDaAluna()` (`motor/servidor/listas-do-acervo.js`) perguntava a turma à **curadoria**; o selo
+«nova» derivava de `!turma`. Desde o passo 5, o acto que declara o elenco é a **linha de base** —
+«estas alunas, com este recorte, foram para esta turma neste dia» —, e a curadoria ficou com a
+atribuição (que professor, que turma). Em `calango`, medido **por API e não por ecrã**: `curadorias`
+está **vazio**, e há uma linha de base (`teste`) enviada a 05/11/2026 para «Balé Nível 1 — Teste 1»
+com a Aluna A e a Aluna B. Donde: todas as alunas «sem turma», e portanto todas «novas», para sempre.
+
+**A segunda metade do mesmo defeito, e é pior.** `GET /api/bastidores/alunas-da-turma?turma=…`
+devolvia as duas alunas; `GET /anamnese/api/anamneses?turma=…` devolvia
+`{"opcoes": [], "recorte": []}`. O nó `sujeitos` do PO oferecia **zero** alunas a um professor que
+tinha o processo todo feito — não por o sistema esconder, mas por perguntar à curadoria uma coisa
+que ela já não declara. A lista não estava a filtrar: estava a ler o sítio errado.
 
 **O que foi decidido.**
 
-- Um índice com **três perguntas e não uma**: o **ranque** (aspecto → em quantos recortes foi
-  escolhido, em quantos chegou a uma turma, quando apareceu pela primeira e última vez), os **nunca
-  escolhidos**, e os **pontos cegos** — aspectos que a leitura do passo 3 marcou como atenção e que
-  recorte nenhum olhou. É o cruzamento entre o passo 3 e o passo 4, e é a única das três listas que
-  aponta trabalho em vez de descrever.
-- **O universo entra por argumento.** «Nunca usado» só tem sentido contra os 45 aspectos que a
-  anamnese mede — sem isso, um aspecto com zero escolhas é indistinguível de um aspecto que não
-  existe. É a razão de a anamnese ser lida na construção, e não de haver uma lista de campos escrita
-  à mão em lado nenhum (§7.4).
-- **`cobertura`** (`todos` / `alguns` / `nenhum`) é o «usado parcialmente» da pergunta, como dado e
-  não como adjectivo. O **rascunho** do passo 1 fica fora do denominador; o **aplicado** só conta
-  quem foi para uma turma.
-- **A escolha órfã não se apaga.** Um id que a anamnese já não declara vai para `desconhecidos`, com
-  o nome que o registo guardou — é o passado a dizer que o recorte foi decidido sobre outra anamnese
-  (P-03).
-- **Uma leitura, não duas.** A página da Produção já pede `/api/bastidores/linhas-de-base`; o índice
-  vai na mesma resposta, e a conta é do servidor (§7.2 — a interface não recalcula). A rota própria
-  (`/api/bastidores/indice/recorte`) existe para quem quer o índice sozinho e com escopo
-  (`?professor=`, `?turma=`), e chama a **mesma** função.
-- **`professor` é escopo e não eixo** (§4.11): a resposta traz as linhas do professor pedido, e nunca
-  uma linha por professor. A prova recusa as três palavras (`por_professor`, `ranking`, `desempenho`)
-  no corpo.
-- **Privacidade**: `alunas` é uma contagem; nenhum apelido, resposta ou texto. O nome do aspecto é
-  vocabulário da anamnese — norma, não dado de pessoa.
+- **A linha de base é a fonte do elenco; a curadoria é o recurso declarado.** `alunasDaTurma` e
+  `alunasDoProfessor` recebem as linhas de base; quando há uma enviada para a turma, o elenco é o
+  dela. Sem nenhuma — escola que nunca usou o fluxo novo —, a curadoria responde como antes: a
+  alternativa era a lista vazia sem uma palavra a explicar porquê, e isso lê-se como avaria.
+- **A direcção da cadeia é `turma → linha de base → alunas → corpo`.** Foi a pergunta dela, e a
+  resposta é factual: a turma **já** está declarada no PO (o `plano-de-ensino` é obrigatório no bloco
+  1 e traz `contexto-turma`); a linha de base enviada para ela é que declara as alunas e o recorte; e
+  pedir a linha de base num campo próprio seria um **segundo lugar** a declarar o mesmo facto. A
+  alternativa (`linha de base → alunas`, sem a turma) deixaria o professor escolher uma linha de base
+  enviada para **outra** turma — exactamente o vazamento que a decisão de 20/10/2026 fechou.
+- **«Nova» ganhou uma segunda condição.** Deixa de ser nova quem já tem linha de base, e não só quem
+  já está em curadoria. A etiqueta passou a dizer as duas coisas quando as duas existem —
+  «turma X · linha de base «…»» —, e o painel da caixa «Turma» ganhou a linha `Linha de base`.
+- **A cadeia mostra-se, não se afirma.** O cabeçalho do PO passou a ter a inscrição **«linha de
+  base»** ao lado da turma: nome e número de alunas, com o `title` a dizer de onde vem («pela turma
+  do plano referenciado») e o que fazer para mudar o elenco. Sem ela, a vinculação existe no código e
+  não existe para quem preenche — e uma cadeia que ninguém vê é uma cadeia que ninguém sabe que tem.
 
-**Onde entrou.** `motor/nucleo/indice-do-recorte.js` — novo, puro (sem `fs`, rede nem relógio
-próprio), com `construir`. `motor/servidor/bastidores.js` — `indiceDoRecorte()` (entrega o universo e
-chama o núcleo), o `indice` na resposta da lista, a rota `/api/bastidores/indice/recorte`, a caixa
-«O que os recortes olham» dentro da secção do corpo, e `pintarIndiceDoRecorte`/`chipsDeAspectos` no
-script. `indices/esquema/campos.json` — a entidade `recorte`, `prevista` (é o índice vivo que a
-emite) e `acesso: escola`, com a nota do que ela não guarda. `PLANO-INDICES.md` §4.12 — a família
-documentada, com as duas limitações declaradas. `experimentos/provar-indice-do-recorte.js` — novo.
-`experimentos/README.md` — a linha da bancada.
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `filiacaoDasAlunas` (nome pela linha mais recente,
+turma pela mais recente **enviada**, rascunho a contar para «tem linha de base» e a não dar turma) e
+`alunasComLinhaDeBase`. `motor/nucleo/porta.js` — `alunasDaTurma` e `alunasDoProfessor` com o
+parâmetro das linhas de base. `motor/servidor/rotas.js` — a rota `/api/anamneses` passa o leitor que
+já estava injectado (`lerLinhasDeBase`), e não uma segunda leitura da chave.
+`motor/servidor/listas-do-acervo.js` — `turmasDasAlunas`, a etiqueta, o selo e o painel.
+`motor/servidor/producao.js` e `motor/servidor/bastidores.js` — a lista recebe as linhas de base pelo
+mesmo leitor que a Produção usa (exportado, como já se fazia com `curadorias`).
+`porta/index.html` — o campo `ctx-linha-de-base-campo` e `renderLinhaDeBaseDoCabecalho`, com **uma
+leitura por turma** (a cota diária do KV não se gasta a repintar o cabeçalho).
+`porta/po/conteudo/po.json` — a explicação do nó `sujeitos` passa a dizer a regra nova.
+`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/` — a cópia da porta e do `po.json`,
+pelo passo do gerador (a cópia e a barra injectada), porque o `check-identidade` exige que o corpo da
+porta seja o da fonte, byte a byte. `experimentos/provar-etiqueta-da-aluna.js` — novo;
+`experimentos/provar-sujeitos-da-turma.js` — a secção G; `experimentos/README.md` — a linha da
+bancada.
 
-**Medido.** `provar-indice-do-recorte` **24/24** (com o desenho a correr em jsdom, e não só a
-marcação); `provar-linha-de-base` **104/104**; `provar-producao` **159/159**;
-`check-identidade` **0 erros**; `check-indices` **14 verificações, 0 falhas**, e as **10
-contraprovas** reprovam como deviam. Nos dados reais da `calango` (uma linha, dois aspectos): 45
-oferecidos, 2 escolhidos, 42 nunca, 1 enviada para turma.
+**Medido.** `provar-etiqueta-da-aluna` **20/20** (os três estados da etiqueta, renderizados, com o
+controle da aluna nova); `provar-sujeitos-da-turma` **41/41** (com o caso de produção: curadorias
+vazias e a linha de base a responder); `provar-linha-de-base` **104/104**; `provar-producao`
+**159/159**; `provar-indice-do-recorte` **24/24**; `provar-eixos-do-po` **34/34**;
+`provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `provar-po-unico` **18/18**;
+`provar-porta-sem-contexto` **44/44**; `provar-curadoria-e-limpeza` **26/26**; `check-identidade`
+**0 erros**; `hash-ciclo --check` íntegro.
 
-**Duas limitações declaradas, e nenhuma é técnica.**
-
-1. **Não há série temporal.** O «Gravar» do passo 4 **sobrescreve** a linha (`lista[idx] = linha`):
-   o que existia antes desaparece, e só a `atualizada_em` sobrevive. O índice lê o estado de hoje.
-   Para «olhar para o passado» — que é o que ela pediu com a palavra «proveniência» — o recorte tem
-   de passar a **append-only**, com um elo novo por decisão, como o `ajuste_de` dos documentos. É uma
-   decisão de desenho e fica **pendente dela**; não foi feita por conta própria porque mudar a
-   gravação mexe no plano que aponta a linha de base e na cascata.
-2. **Uma escola.** O recorte está no KV de cada escola e só a `calango` tem Worker. Um ranque entre
-   escolas exige que os KV sejam alcançáveis pela mesma leitura — hoje não são.
-
-**O que ainda não está feito.** (a) A decisão sobre o append-only, acima. (b) O índice **não** tem
-filtro na tela: mostra o ranque, os nunca e os cegos, e a rota aceita escopo. Um filtro por eixo ou
-por turma na própria caixa é a próxima conveniência, e não foi feita porque ela não a pediu ainda.
-(c) A fotografia do índice ao longo do tempo — um espelho em Git, como o §4.6 prevê para o índice
-publicado — depende de (a).
+**Duas coisas que o `check-pacote` reprova e que já reprovava antes.** O pacote
+`ciclo-01-calango` não tem PDF nem `ciclo-01-calango-dados.json`, e os links de topo apontam para
+páginas relativas que não existem no pacote. Medido no `HEAD` (`git stash` e nova corrida): **os
+mesmos 10 erros**. Não foi corrigido aqui porque a correcção é uma geração inteira, e o `.conf` desta
+variante está com `DOCS=""` — a fonte do ciclo não está no repositório, e gerá-la exigiria eliciar o
+plano outra vez.
 
 ## O que está pendente
 

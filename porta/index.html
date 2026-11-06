@@ -850,6 +850,17 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
       <span class="campo ctx-turma" id="ctx-turma-campo" hidden>
         <label>turma observada</label>
         <span id="ctx-turma-conteudo"></span></span>
+      <!-- A LINHA DE BASE A QUE A TURMA LEVOU (05/11/2026). No PLANO DE OBSERVAÇÃO o professor
+           não escolhe a linha de base: ela vem pela TURMA do plano de ensino referenciado — a
+           linha de base enviada para aquela turma é a que declara as alunas e o recorte do corpo.
+           Mostra-se porque a pesquisadora perguntou se «a linha de base está a ser chamada
+           directamente, para o professor saber que a vinculou ao plano de observação»: uma
+           cadeia que se afirma sem se mostrar é uma cadeia que ninguém sabe que existe.
+           Peças existentes (`.campo` + `.ctx-inscricao`); a única coisa nova é o lugar.
+           Desenhado por `renderLinhaDeBaseDoCabecalho`. -->
+      <span class="campo ctx-turma" id="ctx-linha-de-base-campo" hidden>
+        <label>linha de base</label>
+        <span id="ctx-linha-de-base-conteudo"></span></span>
       <span class="campo"><label for="ctx-aluna">aluna</label>
         <select id="ctx-aluna"><option value="">— nenhuma —</option></select>
         <button type="button" class="limpar-aluna" id="limpar-aluna" title="desmarcar a aluna" aria-label="desmarcar a aluna">×</button></span>
@@ -4272,6 +4283,68 @@ function leituraDaTurmaDoPo() {
   return '<span class="ctx-inscricao">' + escapar(nome || '—') + '</span>';
 }
 
+/* A CADEIA À VISTA: turma → linha de base → alunas → corpo (05/11/2026).
+ *
+ * A PERGUNTA DELA. «Preciso verificar agora dentro do plano de observação se essa minha linha de
+ * base está a ser chamada directamente, para o professor saber que ele vinculou a linha de base ao
+ * plano de observação, ou se a gente precisa demonstrar para o professor que, através da escolha
+ * da turma que ele fez, a linha de base dele já está vinculada ali.»
+ *
+ * A RESPOSTA QUE O CÓDIGO DÁ — e que esta linha torna visível — é a SEGUNDA, com uma correcção de
+ * direcção: é a TURMA que carrega a linha de base, e não a linha de base que se escolhe outra vez.
+ * O professor escolhe o PLANO DE ENSINO (bloco 1, obrigatório); o plano traz a turma; a linha de
+ * base enviada para essa turma (Corpo → passo 5) é a que declara as alunas e o recorte do corpo. Um
+ * campo novo a pedir a linha de base seria um segundo lugar a declarar o mesmo facto — e o segundo
+ * lugar é o que diverge primeiro.
+ *
+ * O QUE NÃO SE FAZ AQUI. Não se escolhe, não se grava, não se acrescenta ao envelope: é leitura, e
+ * vive ao lado da turma porque é dela que ela vem. A mesma leitura da curadoria
+ * (`/api/bastidores/alunas-da-turma`), que é a que sabe responder «esta turma recebeu quem».
+ *
+ * UMA LEITURA POR TURMA, e não uma por pintura. O cabeçalho repinta a cada mudança de contexto (e a
+ * cota diária do KV já se gastou uma vez a medir sem querer): a promessa fica guardada por turma, e
+ * quem repinta a mesma turma lê a mesma resposta. */
+const LINHA_DE_BASE_DA_TURMA = new Map();
+function carregarLinhaDeBaseDaTurma(turma) {
+  if (!turma) return Promise.resolve(null);
+  if (LINHA_DE_BASE_DA_TURMA.has(turma)) return LINHA_DE_BASE_DA_TURMA.get(turma);
+  const pedido = fetch('/api/bastidores/alunas-da-turma?turma=' + encodeURIComponent(turma))
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => (d && d.ok ? d : null))
+    .catch(() => null);
+  LINHA_DE_BASE_DA_TURMA.set(turma, pedido);
+  return pedido;
+}
+
+async function renderLinhaDeBaseDoCabecalho() {
+  const caixa = document.getElementById('ctx-linha-de-base-campo');
+  const alvo = document.getElementById('ctx-linha-de-base-conteudo');
+  if (!caixa || !alvo) return;
+  const turma = FONTE === 'po' ? turmaDoPlanoReferenciado() : null;
+  /* SEM TURMA NÃO HÁ O QUE LER — e a lacuna não se desenha. É a mesma regra da turma: um campo
+   * que aparece e desaparece parece avaria, e o «—» de um dado que ainda não existe não informa. */
+  if (!turma) { caixa.hidden = true; alvo.innerHTML = ''; caixa.removeAttribute('title'); return; }
+  caixa.hidden = false;
+  alvo.innerHTML = '<span class="ctx-inscricao">…</span>';
+  const dados = await carregarLinhaDeBaseDaTurma(turma);
+  const linha = dados && dados.linhaDeBase ? dados.linhaDeBase : null;
+  const quantas = dados && Array.isArray(dados.alunas) ? dados.alunas.length : 0;
+  if (!linha) {
+    /* A TURMA SEM ELENCO DIZ-SE, e não fica em branco: é o estado de quem escolheu o plano e ainda
+     * não mandou nenhuma linha de base para aquela turma. Quem for observar precisa de o saber
+     * ANTES de abrir o bloco dos sujeitos e o encontrar vazio. */
+    alvo.innerHTML = '<span class="ctx-inscricao">nenhuma — esta turma ainda não recebeu linha de '
+      + 'base (Corpo → passo 5)</span>';
+    caixa.title = 'A linha de base não se escolhe aqui: ela chega pela turma do plano de ensino '
+      + 'referenciado. Sem uma linha de base enviada para esta turma, não há alunas a observar.';
+    return;
+  }
+  alvo.innerHTML = '<span class="ctx-inscricao">' + escapar(linha.nome || linha.id)
+    + ' · ' + quantas + (quantas === 1 ? ' aluna' : ' alunas') + '</span>';
+  caixa.title = 'Vem pela turma «' + turma + '»: a linha de base enviada para ela é a que declara '
+    + 'estas alunas e o recorte do corpo. Para mudar o elenco, edite a linha de base.';
+}
+
 /* O QUE A ESCOLA E A TURMA JÁ DECLARAM FICA À VISTA (27/10/2026).
  *
  * A pesquisadora, a preencher o plano: «na área de contexto só aparece professor, ciclo e turma
@@ -4393,6 +4466,8 @@ async function renderTurmaDoCabecalho() {
     if (CABECALHO_TRAVADO) travarCabecalho(true);
     marcarContextoFaltando();
     renderLeiturasDoCabecalho();
+    // No PLANO a linha de base é escolhida noutro nó (`linha-de-base-alvo`): aqui não se lê.
+    await renderLinhaDeBaseDoCabecalho();
     return;
   }
 
@@ -4409,11 +4484,16 @@ async function renderTurmaDoCabecalho() {
     if (CABECALHO_TRAVADO) travarCabecalho(true);
     marcarContextoFaltando();
     renderLeiturasDoCabecalho();
+    /* A LINHA DE BASE QUE A TURMA LEVOU (05/11/2026) — logo ao lado da turma, porque é dela que
+     * ela vem. Fica depois das leituras para não as empurrar: a ordem do cabeçalho é a do mapa, e
+     * a linha de base é a última coisa que se acrescenta à cadeia. */
+    await renderLinhaDeBaseDoCabecalho();
     return;
   }
 
   // ANAMNESE (e qualquer outra fonte) — a turma não existe.
   caixa.hidden = true;
+  await renderLinhaDeBaseDoCabecalho();
   renderLeiturasDoCabecalho();
 }
 

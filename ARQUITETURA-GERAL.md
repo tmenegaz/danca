@@ -970,6 +970,25 @@ curadoria, ao escolher a turma, acrescenta as fichas que vieram e diz de que lin
 que o professor tinha posto à mão ficam, porque quem edita uma curadoria antiga não pode perder o que
 lá estava.
 
+**O elenco da turma é dela, e a cadeia vai da turma para o corpo (05/11/2026).** O passo 5 declarou
+o elenco na linha de base, e a curadoria ficou com a atribuição — mas duas leituras continuaram a
+perguntar à curadoria. A **listagem da anamnese** dizia «nova» e «sem turma» a alunas com linha de
+base enviada (em `calango`, medido por API: `curadorias` vazio e a linha «teste» com a Aluna A e a
+Aluna B), e a rota **`/api/anamneses?turma=`** devolvia recorte vazio — o nó `sujeitos` do PO oferecia
+zero alunas. As duas passaram a ler a linha de base, com a curadoria como **recurso declarado** para a
+escola que nunca usou o fluxo novo. A direcção é **`turma → linha de base → alunas → corpo`**, e é
+factual e não estética: (a) a turma **já** está no PO pelo `plano-de-ensino`, que é obrigatório no
+bloco 1 e traz `contexto-turma`; (b) a linha de base enviada para essa turma é que declara as alunas e
+o recorte; (c) pedir a linha de base num campo próprio seria o **segundo lugar** a declarar o mesmo
+facto — e o segundo lugar é o que diverge primeiro; (d) a alternativa sem a turma deixaria o professor
+escolher uma linha de base enviada para **outra** turma, que é o vazamento que a decisão de 20/10/2026
+fechou. Como consequência, **«nova» exige duas ausências** — não estar em curadoria **e** não ter linha
+de base —, e a etiqueta da listagem diz o nome da linha («turma X · linha de base «…»»). A vinculação
+**mostra-se**: o cabeçalho do PO tem a inscrição «linha de base» ao lado da turma, lida da mesma rota
+que a curadoria usa (`alunas-da-turma`), uma vez por turma e não uma por pintura. Prova:
+`provar-etiqueta-da-aluna` (20 asserções, com os três estados da etiqueta renderizados e o controle da
+aluna nova) e a secção G de `provar-sujeitos-da-turma` (41), que é o caso de produção.
+
 **A prova é a correr, e não só a marcação.** `provar-linha-de-base` (68 asserções) carrega a página
 em **jsdom**, substitui o `fetch` e chama `mostrarPassoLb` de fora. Ela apanhou dois defeitos reais: a
 falta do passo 1 estava declarada como «o que falta nos anteriores» — de modo que o passo 1 nunca

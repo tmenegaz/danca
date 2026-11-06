@@ -76,6 +76,28 @@ const CURADORIAS = [
   { id: 'p-3', professor: 'sapo-bailarino', modalidade: 'Balé clássico', turmas: ['Balé Nível 3 — Teste 1'], alunas: ['Aluna A'] },
 ];
 
+/*
+ * A LINHA DE BASE DE PRODUÇÃO, como ela está no KV do `calango` a 05/11/2026 — e a curadoria que
+ * NÃO existe ao lado dela.
+ *
+ * Este é o par que produziu o defeito do dia: `curadorias` VAZIO, e uma linha de base «teste»
+ * enviada para «Balé Nível 1 — Teste 1» com a Aluna A e a Aluna B. Medido por API, não por ecrã:
+ * `GET /api/bastidores/alunas-da-turma?turma=…` devolvia as duas, e
+ * `GET /anamnese/api/anamneses?turma=…` devolvia `{"opcoes": [], "recorte": []}` — o nó `sujeitos`
+ * do PO oferecia ZERO alunas a um professor que tinha o processo todo feito.
+ */
+const LINHAS_DA_PRODUCAO = [
+  {
+    id: 'teste',
+    nome: 'teste',
+    professor: 'sapo-bailarino',
+    turma: 'Balé Nível 1 — Teste 1',
+    enviada_em: '2026-11-05T23:55:43.186Z',
+    alunas: ['Aluna A', 'Aluna B'],
+    campos: [{ id: 'formato-anatomico-dos-joelhos' }],
+  },
+];
+
 /** O GitHub em memória: só a árvore e a leitura de conteúdo — esta prova não grava nada. */
 function githubDeBolso(arquivos) {
   const mapa = new Map(Object.entries(arquivos || {}));
@@ -115,7 +137,7 @@ function plano(id, turma) {
   });
 }
 
-function mundo(turmaDoPlano) {
+function mundo(turmaDoPlano, linhasDeBase) {
   const gh = githubDeBolso({
     'escola/calango/envelopes/anamnese-aluna-a.json': anamnese('Aluna A'),
     'escola/calango/envelopes/anamnese-aluna-b.json': anamnese('Aluna B'),
@@ -138,6 +160,9 @@ function mundo(turmaDoPlano) {
     escolaDoWorker: ESCOLA,
     agora: () => '2026-10-20T08:00',
     lerCuradorias: async () => (turmaDoPlano === undefined ? CURADORIAS : turmaDoPlano),
+    /* O LEITOR DAS LINHAS DE BASE. Sem ele (`undefined`), as funções do núcleo caem na curadoria —
+     * e é isso que faz os casos antigos desta prova continuarem a medir o que mediam. */
+    ...(linhasDeBase === undefined ? {} : { lerLinhasDeBase: async () => linhasDeBase }),
   });
   return { rotas, armazenamento, gh };
 }
@@ -261,9 +286,14 @@ async function principal() {
     const no = achar(po);
     checar('o nó `sujeitos` do conteúdo declara `recortePeloPlano`', Boolean(no && no.recortePeloPlano === true), no);
     checar('e continua a vir das anamneses (`opcoesDe`)', no && no.opcoesDe === 'api/anamneses', no && no.opcoesDe);
-    checar('e o texto explica o recorte a quem preenche — a regra não é só do código',
+    /* A REGRA MUDOU A 05/11/2026, E A ASSERÇÃO ACOMPANHA-A — invertida, não apagada (é a mesma
+     * lei das outras provas deste repositório). O texto obrigava a dizer «curadoria» porque era ela
+     * que declarava o elenco; desde o passo 5 quem o declara é a LINHA DE BASE. O que se continua a
+     * medir é «o texto diz de onde vem a lista a quem preenche» — só que a resposta certa é outra. */
+    checar('e o texto diz de onde vem a lista a quem preenche — a regra não é só do código',
       Boolean(no && /turma do plano/i.test(no.explicacao.preencher || ''))
-        && Boolean(no && /curadoria/i.test(no.explicacao.porQue || '')),
+        && Boolean(no && /linha de base/i.test(no.explicacao.preencher || ''))
+        && Boolean(no && /linha de base/i.test(no.explicacao.porQue || '')),
       no && no.explicacao);
 
     const tela = fs.readFileSync(path.join(PORTA, 'index.html'), 'utf8');
@@ -398,6 +428,65 @@ async function principal() {
     checar('a ponte chama a leitura de curadorias que recebeu', chamada === 1, chamada);
     checar('e o recorte chega ao cliente pela ponte de produção, e não só pelo roteador',
       JSON.stringify(valores(corpo)) === '["Aluna C"]', valores(corpo));
+  }
+
+  /* ------------------------------------------------------------------ G
+   * A LINHA DE BASE PASSOU A SER A FONTE DO ELENCO (05/11/2026).
+   *
+   * O passo 5 da linha de base é o acto que declara «estas alunas foram para esta turma neste
+   * dia», e a curadoria ficou com a atribuição (que professor, que turma). O recorte por turma
+   * continuou a perguntar à curadoria, e por isso, em produção, o PO de uma turma com linha de
+   * base enviada oferecia ZERO alunas.
+   */
+  console.log('\nG. a linha de base é a fonte do elenco — e a curadoria é o recurso declarado');
+  {
+    /* O CASO DE PRODUÇÃO: curadorias VAZIAS e uma linha de base enviada. É o estado real do
+     * `calango` a 05/11/2026, e é ele que a secção mede. */
+    checar('com a curadoria VAZIA, o elenco vem da linha de base enviada',
+      JSON.stringify(porta.alunasDaTurma([], { turma: 'Balé Nível 1 — Teste 1' }, LINHAS_DA_PRODUCAO)) === '["Aluna A","Aluna B"]',
+      porta.alunasDaTurma([], { turma: 'Balé Nível 1 — Teste 1' }, LINHAS_DA_PRODUCAO));
+
+    checar('a linha de base VENCE a curadoria quando as duas falam da mesma turma',
+      JSON.stringify(porta.alunasDaTurma(CURADORIAS, { turma: 'Balé Nível 1 — Teste 1' }, LINHAS_DA_PRODUCAO)) === '["Aluna A","Aluna B"]',
+      porta.alunasDaTurma(CURADORIAS, { turma: 'Balé Nível 1 — Teste 1' }, LINHAS_DA_PRODUCAO));
+
+    /* O CONTROLE POSITIVO DO RECURSO: uma turma que NUNCA recebeu linha de base continua a ler a
+     * curadoria. Sem este ramo, a correcção acima apagaria o único caminho de quem ainda não usou
+     * o fluxo novo — e a lista ficaria vazia sem uma palavra a explicar porquê. */
+    checar('turma sem linha de base nenhuma cai na curadoria — o recurso declarado',
+      JSON.stringify(porta.alunasDaTurma(CURADORIAS, { turma: 'Balé Nível 1 — Teste 1' }, [])) === '["Aluna C"]',
+      porta.alunasDaTurma(CURADORIAS, { turma: 'Balé Nível 1 — Teste 1' }, []));
+
+    checar('CONTROLE NEGATIVO: a linha de base de OUTRA turma não empresta o elenco',
+      JSON.stringify(porta.alunasDaTurma(CURADORIAS, { turma: 'Balé Nível 2 — Teste 1' }, LINHAS_DA_PRODUCAO)) === '["Aluna B"]',
+      porta.alunasDaTurma(CURADORIAS, { turma: 'Balé Nível 2 — Teste 1' }, LINHAS_DA_PRODUCAO));
+
+    checar('sem turma continua a não haver recorte (`null`), com ou sem linhas de base',
+      porta.alunasDaTurma(CURADORIAS, {}, LINHAS_DA_PRODUCAO) === null);
+
+    /* SEM TURMA ESCOLHIDA — o nó `sujeitos` aberto antes do `plano-de-ensino`. A regra dela é
+     * explícita: só se seleciona quem já tem linha de base. */
+    checar('sem turma, a lista do professor são as alunas com linha de base DELE',
+      JSON.stringify(porta.alunasDoProfessor(CURADORIAS, 'sapo-bailarino', LINHAS_DA_PRODUCAO)) === '["Aluna A","Aluna B"]',
+      porta.alunasDoProfessor(CURADORIAS, 'sapo-bailarino', LINHAS_DA_PRODUCAO));
+    checar('…e a linha de base de OUTRO professor não entra',
+      porta.alunasDoProfessor([], 'outro-professor', LINHAS_DA_PRODUCAO).length === 0,
+      porta.alunasDoProfessor([], 'outro-professor', LINHAS_DA_PRODUCAO));
+    checar('CONTROLE: sem linhas de base legíveis, a curadoria volta a responder',
+      JSON.stringify(porta.alunasDoProfessor(CURADORIAS, 'sapo-bailarino', []).sort()) === '["Aluna A","Aluna B","Aluna C"]',
+      porta.alunasDoProfessor(CURADORIAS, 'sapo-bailarino', []));
+
+    /* E A ROTA, que é onde o defeito se via. O `lerLinhasDeBase` é o mesmo que a Produção usa. */
+    const { rotas } = mundo([], LINHAS_DA_PRODUCAO);
+    const porTurma = await pedir(rotas, '/api/anamneses?turma=' + encodeURIComponent('Balé Nível 1 — Teste 1'));
+    checar('a ROTA recorta pela linha de base, e a lista deixa de vir vazia',
+      JSON.stringify(valores(porTurma.dados)) === '["Aluna A","Aluna B"]', valores(porTurma.dados));
+    checar('…e declara o recorte que aplicou',
+      JSON.stringify(porTurma.dados.recorte) === '["Aluna A","Aluna B"]', porTurma.dados.recorte);
+
+    const peloPlano = await pedir(rotas, '/api/anamneses?plano=plano-n1');
+    checar('o caminho da TELA (`?plano=`) chega ao mesmo elenco, pela turma do plano',
+      JSON.stringify(valores(peloPlano.dados)) === '["Aluna A","Aluna B"]', valores(peloPlano.dados));
   }
 
   console.log('\n' + (falhas === 0

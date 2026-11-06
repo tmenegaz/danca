@@ -404,6 +404,12 @@ async function fetch(request, env) {
       menu,
       escola: env.ESCOLA_SLUG,
       curadorias: await bastidores.curadorias(env.PADD_KV, env.ESCOLA_SLUG),
+      /* AS LINHAS DE BASE, pelo MESMO leitor que a Produção usa (05/11/2026). A listagem da
+       * anamnese passou a derivar a turma e a etiqueta da linha de base delas — e uma segunda
+       * leitura da mesma chave, com a sua própria forma de a interpretar, divergiria no dia em que
+       * uma das duas mudasse. O sintoma seria uma listagem a dizer «sem turma» sobre uma turma que
+       * a Produção mostra preenchida, que é exactamente o defeito que isto corrige. */
+      linhasDeBase: await bastidores.linhasDeBase(env.PADD_KV, env.ESCOLA_SLUG),
     });
     if (doAcervo) {
       const resposta = new Response(doAcervo.html, {

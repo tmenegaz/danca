@@ -20,6 +20,7 @@
 const listas = require('../nucleo/lista-html.js');
 const porta = require('../nucleo/porta.js');
 const nav = require('../nucleo/nav.js');
+const linhaDeBase = require('../nucleo/linha-de-base.js');
 const { criarArmazenamento } = require('./cloudflare.js');
 
 const esc = (t) => String(t == null ? '' : t)
@@ -51,6 +52,33 @@ function turmaDaAluna(curadorias) {
         if (!mapa.has(a)) mapa.set(a, nome);
       }
     }
+  }
+  return mapa;
+}
+
+/**
+ * A TURMA DE CADA ALUNA, COM A LINHA DE BASE À FRENTE (05/11/2026).
+ *
+ * A LISTAGEM DIZIA «NOVA» E «SEM TURMA» A DUAS ALUNAS QUE TINHAM TUDO FEITO. A pesquisadora, a
+ * 05/11/2026: «essa aluna A e aluna B, ambas eu já fiz a linha de base delas e já as coloquei na
+ * turma. Então isso precisa ser ajustado também. E ela já não é mais nova, porque eu já fiz a
+ * linha de base dela.»
+ *
+ * A tela não estava a mentir sobre o dado: estava a perguntar à fonte errada. O elenco de uma
+ * turma passou a ser declarado pelo PASSO 5 da linha de base (5/11), e a curadoria ficou com a
+ * atribuição (que professor, que turma). Em `calango` — medido por API, não por ecrã — a
+ * curadoria está vazia e há uma linha de base enviada com as duas alunas: donde, «sem turma» para
+ * as duas.
+ *
+ * A LINHA DE BASE VENCE, E A CURADORIA FICA DE RECURSO. A ordem não é preferência de gosto: a
+ * linha de base é o registo do ACTO que mandou aquelas alunas para aquela turma, com data; a
+ * curadoria, quando declara alunas, declara a mesma coisa por outra via. Duas fontes do mesmo
+ * facto divergem na primeira correcção, e a que fica para trás é a que a tela mostra.
+ */
+function turmasDasAlunas(curadorias, linhasDeBase) {
+  const mapa = turmaDaAluna(curadorias);
+  for (const [apelido, f] of linhaDeBase.filiacaoDasAlunas(linhasDeBase)) {
+    if (f.turma) mapa.set(apelido, f.turma);
   }
   return mapa;
 }
@@ -1415,7 +1443,7 @@ async function estadosDosPos(armazenamento, resumos) {
   return estados;
 }
 
-function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados) {
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados, filiacao) {
   const { gerados, historico, revalidar } = derivados || {};
   /* AS VERSÕES QUE A LINHA GUARDOU (03/11/2026). A estante mostra o documento vigente; o que ele
    * substituiu continua no acervo, com a cadeia inteira. Dizer quantas são é o mínimo: uma linha
@@ -1433,6 +1461,15 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
     const anteriores = versoesAnteriores(r.id);
     if (familia === 'anamnese') {
       const turma = turmasDaAluna.get(r.aluna) || '';
+      /* A LINHA DE BASE A QUE A ALUNA PERTENCE (05/11/2026). A etiqueta que a pesquisadora pediu
+       * por palavras próprias: «vou acrescentar também a etiqueta dizendo qual é o nome da linha
+       * de base que ela pertence, essa aluna, na anamnese». Ela é lida das linhas de base da
+       * escola — a fonte do acto —, e não de um campo escrito na anamnese: o vínculo é derivado,
+       * e um vínculo declarado em dois sítios diverge no primeiro dia em que um deles mudar. */
+      const pertence = filiacao ? (filiacao.get(r.aluna) || null) : null;
+      const temLinhaDeBase = !!(pertence && pertence.linhas.length);
+      const nomeDaLinha = pertence ? pertence.nome : '';
+      const quantas = pertence ? pertence.linhas.length : 0;
       return {
         nome: r.aluna || 'Anamnese sem sujeito',
         /* O NOME É O LINK (27/10/2026). É o gesto que a pesquisadora descreveu: passar o mouse
@@ -1448,9 +1485,17 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
          *
          * Os três estados, e o que cada um quer dizer para quem vai mexer:
          *   · vinculada — um Plano de Observação já a usa; não se edita, acrescenta-se um elo;
-         *   · nova      — a aluna ainda não está em curadoria nenhuma; é a porta de entrada;
-         *   · livre     — a aluna tem turma e nenhum PO a usa; edita-se e apaga-se. */
-        selo: estado.vinculada ? 'vinculada' : (r.aluna && !turma ? 'nova' : 'livre'),
+         *   · nova      — a aluna ainda não está em curadoria nenhuma NEM tem linha de base; é a
+         *                 porta de entrada;
+         *   · livre     — a aluna já tem turma ou linha de base, e nenhum PO a usa; edita-se e
+         *                 apaga-se.
+         *
+         * «NOVA» PRECISOU DE UMA SEGUNDA CONDIÇÃO (05/11/2026). Ela era `!turma`, e a turma vinha
+         * só da curadoria — numa escola sem curadorias, TODA a gente era «nova» para sempre,
+         * inclusive quem já tinha linha de base feita e enviada. «Ela já não é mais nova, porque
+         * eu já fiz a linha de base dela» é a regra, e é ela que a condição passou a dizer. */
+        selo: estado.vinculada ? 'vinculada'
+          : ((r.aluna && !turma && !temLinhaDeBase) ? 'nova' : 'livre'),
         /* A CLASSE É A COR, e a cor não distingue «nova» de «livre» de propósito: as duas dizem
          * a mesma coisa a quem vai mexer no registo — pode-se editar. O que distingue é o TEXTO,
          * que é onde está o que a pessoa precisa de saber. Inventar um estado de selo novo na
@@ -1458,18 +1503,30 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
         seloClasse: estado.vinculada ? 'vinculada' : 'livre',
         turma: turma,
         professor: quem,
-        contexto: turma ? 'vinculada à turma ' + turma : 'aluna nova — sem turma',
+        contexto: turma && temLinhaDeBase
+          ? 'turma ' + turma + ' · linha de base «' + nomeDaLinha + '»'
+          : turma
+            ? 'vinculada à turma ' + turma
+            : temLinhaDeBase
+              ? 'linha de base «' + nomeDaLinha + '» — ainda sem turma'
+              : 'aluna nova — sem turma e sem linha de base',
         acoes: acoesDaLinha('anamnese', r, estado),
         ...(anteriores ? { fatos: [anteriores] } : {}),
         caixas: [
           { rotulo: 'Turma', valor: turma || 'sem turma',
             painel: listaDePares([
               ['Turma', turma || 'sem turma'],
+              ['Linha de base', temLinhaDeBase
+                ? (nomeDaLinha || '—') + (quantas > 1 ? ' (e ' + (quantas - 1) + ' anterior(es))' : '')
+                : 'nenhuma'],
               ['Estado', estado.vinculada ? 'vinculada — um PO já a usa' : (estado.legado ? 'legado' : 'solta')]],
               turma
-                ? 'A turma vem da curadoria, que é quem matricula a aluna.'
-                : 'Aluna nova pode ser entrevistada por qualquer professor. O selo é derivado: '
-                  + 'no dia em que entrar numa curadoria, deixa de o ser.') },
+                ? 'A turma vem da linha de base enviada (Corpo → passo 5); sem ela, da curadoria.'
+                : (temLinhaDeBase
+                  ? 'A linha de base existe e ainda não foi enviada para uma turma — é o passo 5 '
+                    + 'que declara o elenco.'
+                  : 'Aluna nova pode ser entrevistada por qualquer professor. O selo é derivado: '
+                    + 'no dia em que tiver linha de base, deixa de o ser.')) },
           { rotulo: 'Quem fez', valor: quem || '—',
             painel: listaDePares([['Professor', quem || '—'], ['Ciclo', r.ciclo || '—']]) },
           { rotulo: 'Quando', valor: quando || '—',
@@ -1574,7 +1631,7 @@ function listaDePares(pares, nota) {
  * o HTML pronto a servir, com a barra já desenhada — a mesma barra de todas as páginas, porque
  * quem a desenha é o mesmo módulo.
  */
-async function pagina(caminho, { env, menu, escola, curadorias }) {
+async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) {
   const chave = Object.keys(FAMILIAS).find((k) => caminho === '/area-do-professor/' + k + '/'
     || caminho === '/area-do-professor/' + k);
   if (!chave) return null;
@@ -1693,8 +1750,13 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
     }
   }
 
-  const linhas = linhasDe(chave, registos, estados, turmaDaAluna(curadorias), turmaDoPlano,
-    { gerados, historico, revalidar });
+  /* A LINHA DE BASE ENTRA NA LISTA DA ANAMNESE (05/11/2026). É a fonte do elenco desde o passo 5,
+   * e é dela que saem a turma e a etiqueta «linha de base «…»» de cada aluna. Sem ela — quando
+   * quem chama não a passa, como nas bancadas antigas —, a turma continua a vir só da curadoria, e
+   * é esse o comportamento de antes: a lista não inventa o que não conseguiu ler. */
+  const filiacao = linhaDeBase.filiacaoDasAlunas(chave === 'anamnese' ? linhasDeBase : []);
+  const linhas = linhasDe(chave, registos, estados, turmasDasAlunas(curadorias, linhasDeBase),
+    turmaDoPlano, { gerados, historico, revalidar }, filiacao);
   const titulo = familia.titulo;
   const pedido = caminho.endsWith('/') ? caminho : caminho + '/';
 
@@ -1734,5 +1796,6 @@ async function pagina(caminho, { env, menu, escola, curadorias }) {
  * exactamente o par que a correcção de 05/11 tinha de garantir. Um `regex` sobre o ficheiro
  * provaria a condição; isto prova o RESULTADO dela. */
 module.exports = {
-  pagina, FAMILIAS, listaDaPorta, turmaDaAluna, nomeDoProfessor, dia, acoesDaLinha, painelDoAto,
+  pagina, FAMILIAS, listaDaPorta, turmaDaAluna, turmasDasAlunas, nomeDoProfessor, dia, acoesDaLinha,
+  painelDoAto,
 };

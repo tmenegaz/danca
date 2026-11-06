@@ -329,9 +329,17 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         const curadorias = typeof lerCuradorias === 'function'
           ? await lerCuradorias(escola)
           : [];
+        /* O ELENCO VEM DA LINHA DE BASE (05/11/2026) — ver `alunasDaTurma`. A leitura é a MESMA
+         * da Produção (`lerLinhasDeBase`), e não uma segunda: o `get` da chave
+         * `bastidores/<escola>/linhas-de-base` é o único caminho para o facto «estas alunas foram
+         * para esta turma». Sem o leitor (o adaptador Node não o tem), `linhas` fica `undefined` e
+         * as funções caem na curadoria, como antes. */
+        const linhas = typeof lerLinhasDeBase === 'function'
+          ? await lerLinhasDeBase(escola)
+          : undefined;
         recorte = turma
-          ? { alunas: porta.alunasDaTurma(curadorias, { professor, turma }) || [] }
-          : { alunas: porta.alunasDoProfessor(curadorias, professor) || [] };
+          ? { alunas: porta.alunasDaTurma(curadorias, { professor, turma }, linhas) || [] }
+          : { alunas: porta.alunasDoProfessor(curadorias, professor, linhas) || [] };
       }
       return {
         ok: true,

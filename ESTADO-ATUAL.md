@@ -118,6 +118,25 @@
 > Regra que fica: depois de um push que mexa em `motor/`, `tools/templates/` ou `porta/`, confirmar
 > **no ar** o marcador que a mudança introduziu; se a run não existir, disparar o `workflow_dispatch`.
 >
+> **A linha de base é a fonte do elenco, e a cadeia mostra-se no PO (05/11/2026, quinta passagem).**
+> A listagem da anamnese dizia **«nova»** e **«aluna nova — sem turma»** a duas alunas com linha de
+> base feita e enviada. Não era mentira sobre o dado: era leitura da fonte errada — `turmaDaAluna()`
+> perguntava a turma à **curadoria**, que deixou de declarar o elenco quando o passo 5 passou a ser o
+> acto que o declara. Em `calango`, **medido por API**: `curadorias` vazio, e a linha de base `teste`
+> enviada a 05/11/2026 para «Balé Nível 1 — Teste 1» com a Aluna A e a Aluna B. E o mesmo defeito
+> doía mais fundo: `/anamnese/api/anamneses?turma=…` devolvia `{"opcoes": [], "recorte": []}` — o
+> nó `sujeitos` do PO oferecia **zero** alunas. Decidido: **a linha de base é a fonte do elenco** e a
+> curadoria é o **recurso declarado** (escola que nunca usou o fluxo novo continua a ver a lista de
+> antes, em vez de uma lista vazia sem explicação); a direcção da cadeia é **turma → linha de base →
+> alunas → corpo**, porque a turma **já** está no PO pelo `plano-de-ensino` obrigatório, e pedir a
+> linha de base num campo próprio seria um segundo lugar a declarar o mesmo facto; «nova» passa a
+> exigir **não ter linha de base**; e a etiqueta diz as duas coisas — «turma X · linha de base
+> «…»» —, com o painel da caixa «Turma» a ganhar a linha `Linha de base`. O cabeçalho do PO passou a
+> mostrar a **inscrição «linha de base»** ao lado da turma (nome e nº de alunas), porque a vinculação
+> que existe no código e não existe para quem preenche é uma vinculação que ninguém sabe que tem.
+> Prova: `provar-etiqueta-da-aluna`, **20 asserções**, e `provar-sujeitos-da-turma`, **41** (a
+> secção G é o caso de produção).
+>
 > **A linha de base passou a ser um fluxo de cinco passos (05/11/2026, quarta passagem).** A
 > secção era um formulário só; ela organizou-a como o verbete da notação: **1 Identificação · 2
 > Alunas · 3 Leitura · 4 Recorte · 5 Turma**, com a mesma trava (não se chega a um passo com falta
@@ -3964,6 +3983,24 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   há série temporal** — «olhar para o passado» exige que o recorte passe a append-only (elo novo por
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
+
+- **05/11/2026** — **A listagem da anamnese lia a turma da curadoria, e o elenco mudou de dono.**
+  O selo dizia «nova» e o contexto «aluna nova — sem turma» à Aluna A e à Aluna B, que já tinham
+  linha de base feita e enviada. `turmaDaAluna()` lia **curadorias**; em `calango` elas estão
+  **vazias** (medido por API), e o elenco passou a ser declarado pelo passo 5 da linha de base.
+  O mesmo erro, no PO, dava `{"opcoes": [], "recorte": []}` em `/api/anamneses?turma=…` — zero
+  alunas para quem tinha tudo feito. Corrigido nas duas pontas: a linha de base é a fonte
+  (`alunasDaTurma`, `alunasDoProfessor`), a curadoria fica como recurso declarado, «nova» passa a
+  exigir **não ter linha de base**, a etiqueta diz o nome da linha («turma X · linha de base
+  «…»»), e o cabeçalho do PO mostra a inscrição «linha de base» ao lado da turma. A cadeia é
+  **turma → linha de base → alunas → corpo**, e a razão está escrita: a turma já vem do
+  `plano-de-ensino` obrigatório, e um campo próprio para a linha de base seria o segundo lugar a
+  declarar o mesmo facto. Medido: **20/20 · 41/41 · 104/104 · 159/159 · 24/24 · 34/34 · 17/17 ·
+  34/34 · 18/18 · 44/44 · 26/26**, `check-identidade` **0 erros**, `hash-ciclo --check` íntegro.
+  **PENDENTE:** (a) a decisão dela sobre tirar o nó `sujeitos` do PO (hoje é uma selecção dentro
+  do elenco da turma, e não um campo aberto); (b) o `check-pacote` do `ciclo-01-calango` reprova
+  **10 erros que já reprovava antes** (sem PDF, sem `dados.json`, e os links de topo) — a fonte
+  daquele ciclo não está no repositório (`DOCS=""`), e corrigir exige eliciar o plano outra vez.
 
 - **05/11/2026** — **«O que já é bom» passou a ser o que ALGUMA aluna tem de bom.** Depois da
   correcção do apoio, ela leu a tela e disse o que faltava: «a aluna B tem o tendu bom e faz por

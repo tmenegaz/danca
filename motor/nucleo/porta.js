@@ -1425,10 +1425,42 @@ async function apagarEnvelope(armazenamento, id) {
  * Sem turma não há recorte (`null`) — quem chama decide o que fazer. Turma sem curadoria devolve
  * lista VAZIA, e não «todas»: a ausência de atribuição não é permissão. É o lado seguro do
  * vazamento, e a mesma escolha do `alunaVinculadaA` do `bastidores.js`.
+ *
+ * ============================================================================================
+ * A FONTE DO ELENCO MUDOU A 05/11/2026 — e é esta a terceira correcção da mesma pergunta.
+ *
+ * A 05/11/2026 o passo 5 da linha de base passou a ser o acto que declara o elenco: «estas
+ * alunas, com este recorte, foram para esta turma neste dia». A curadoria deixou de o declarar —
+ * ela declara a ATRIBUIÇÃO (que professor, que turma), e o elenco lê-se de lá
+ * (`/api/bastidores/alunas-da-turma`). A decisão de 03/11 explica porque não se pôs `alunas` na
+ * turma: «a turma é o ritmo e nada mais», e o vínculo é um facto datado que mora no registo do
+ * acto.
+ *
+ * O QUE ISSO PARTIU, MEDIDO EM PRODUÇÃO A 05/11/2026. Em `calango`, `curadorias` está VAZIO e há
+ * uma linha de base («teste») enviada para «Balé Nível 1 — Teste 1» com a Aluna A e a Aluna B. O
+ * `alunas-da-turma` devolvia as duas; esta função devolvia `[]`, e o nó `sujeitos` do PO oferecia
+ * ZERO alunas a um professor que tinha tudo feito. A lista não estava a esconder as alunas: estava
+ * a perguntar a uma fonte que já não é a dona do facto.
+ *
+ * POR ISSO A LINHA DE BASE VEM PRIMEIRO. `linhas` é a lista das linhas de base da escola; quando
+ * existe uma enviada para esta turma, o elenco é o dela, e a curadoria não é consultada — duas
+ * fontes do mesmo facto divergiriam, e a que ficasse para trás seria esta.
+ *
+ * A CURADORIA FICA COMO RECURSO, e é declarado: enquanto uma escola não mandar nenhuma linha de
+ * base para uma turma, o elenco continua a poder vir da curadoria. Sem esse recurso, a resposta
+ * seria `[]` — e um PO que ficou vazio sem explicação parece um defeito do sistema. Quem chama
+ * pode dizer de onde veio (`fonteDoElenco`), e é o que a rota faz.
  */
-function alunasDaTurma(curadorias, alvo) {
+function alunasDaTurma(curadorias, alvo, linhas) {
   const turma = String((alvo && alvo.turma) || '').trim();
   if (!turma) return null;
+  /* A LINHA DE BASE, QUANDO ELA EXISTE. `elencoDaTurma` é a MESMA leitura que
+   * `/api/bastidores/alunas-da-turma` usa para dizer à curadoria quem a turma recebeu: uma
+   * segunda derivação do mesmo facto divergiria da primeira. */
+  if (Array.isArray(linhas)) {
+    const doElenco = recorte.elencoDaTurma(linhas, turma);
+    if (doElenco.length) return doElenco;
+  }
   const professor = String((alvo && alvo.professor) || '').trim();
   const vistas = new Set();
   for (const c of Array.isArray(curadorias) ? curadorias : []) {
@@ -1448,17 +1480,40 @@ function alunasDaTurma(curadorias, alvo) {
 }
 
 /**
- * AS ALUNAS DE UM PROFESSOR — a união das curadorias vigentes dele, sem exigir a turma.
+ * AS ALUNAS DE UM PROFESSOR — o recorte possível quando o PO ainda não tem plano escolhido.
  *
- * É o recorte possível quando o PO ainda não tem plano escolhido: o nó `sujeitos` pode ser
- * aberto antes do `plano-de-ensino`, e sem turma a rota devolveria a escola inteira. O que
- * autoriza é a PESSOA, e a ausência de curadoria devolve lista vazia — a mesma escolha do
- * lado seguro de `alunasDaTurma` («não atribuído» não é «todos»).
+ * O nó `sujeitos` pode ser aberto ANTES do `plano-de-ensino`, e sem turma a rota devolveria a
+ * escola inteira. O que autoriza é a PESSOA, e a ausência de atribuição devolve lista vazia — a
+ * mesma escolha do lado seguro de `alunasDaTurma` («não atribuído» não é «todos»).
+ *
+ * DESDE 05/11/2026 A FONTE É A LINHA DE BASE, e não a curadoria — pela mesma razão que a função
+ * acima: o passo 5 da linha de base é o acto que declara o elenco, e a curadoria passou a declarar
+ * só a atribuição. Uma aluna cuja linha de base ainda não existe NÃO ENTRA: a regra da
+ * pesquisadora é explícita («as alunas só podem ser selecionadas no plano de observação quando já
+ * tiverem a linha de base»), e é ela que fecha a ordem do processo — primeiro a anamnese, depois a
+ * linha de base, só então a observação. Um PO que se pudesse escrever antes disso estaria a
+ * observar um corpo que ninguém leu.
+ *
+ * A CURADORIA CONTINUA COMO RECURSO, e pelo mesmo motivo declarado em `alunasDaTurma`: uma escola
+ * que nunca mandou uma linha de base para uma turma não pode ficar com o PO vazio sem explicação.
  */
-function alunasDoProfessor(curadorias, professor) {
+function alunasDoProfessor(curadorias, professor, linhas) {
   const alvo = String(professor || '').trim();
   if (!alvo) return null;
   const vistas = new Set();
+  if (Array.isArray(linhas)) {
+    for (const l of linhas) {
+      if (!l || !l.id) continue;
+      // A linha de base é DO PROFESSOR que a fez — e a leitura atravessa os professores de
+      // propósito («quem assume lê o que estava antes»), mas o ELENCO de um PO é de quem observa.
+      if (String(l.professor || '').trim() !== alvo) continue;
+      for (const a of Array.isArray(l.alunas) ? l.alunas : []) {
+        const nome = String(a == null ? '' : a).trim();
+        if (nome) vistas.add(nome);
+      }
+    }
+    if (vistas.size) return [...vistas];
+  }
   for (const c of Array.isArray(curadorias) ? curadorias : []) {
     if (!c || c.substituidaPor) continue;
     if (String(c.professor || '').trim() !== alvo) continue;

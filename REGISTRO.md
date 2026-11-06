@@ -36651,3 +36651,79 @@ filtro na tela: mostra o ranque, os nunca e os cegos, e a rota aceita escopo. Um
 por turma na própria caixa é a próxima conveniência, e não foi feita porque ela não a pediu ainda.
 (c) A fotografia do índice ao longo do tempo — um espelho em Git, como o §4.6 prevê para o índice
 publicado — depende de (a).
+
+## 05/11/2026 — A aluna na listagem, e a linha de base como fonte do elenco
+
+**O que aconteceu.** A pesquisadora descreveu o processo como ele é: cria-se a aluna na Produção,
+faz-se a anamnese, cria-se a turma, e faz-se a **linha de base**; é ela que a põe na turma. Depois
+disse o que via: «essa aluna A e aluna B, ambas eu já fiz a linha de base delas e já as coloquei na
+turma. Então isso precisa ser ajustado também. E ela já não é mais nova, porque eu já fiz a linha de
+base dela.» A listagem da anamnese dizia **«nova»** e **«aluna nova — sem turma»** às duas. Pediu mais
+duas coisas: uma **etiqueta com o nome da linha de base** a que cada aluna pertence, e a **regra** de
+que só se selecionam no Plano de Observação as alunas que já têm linha de base.
+
+**O diagnóstico — e não era a tela a mentir.** Era a tela a ler a fonte errada.
+`turmaDaAluna()` (`motor/servidor/listas-do-acervo.js`) perguntava a turma à **curadoria**; o selo
+«nova» derivava de `!turma`. Desde o passo 5, o acto que declara o elenco é a **linha de base** —
+«estas alunas, com este recorte, foram para esta turma neste dia» —, e a curadoria ficou com a
+atribuição (que professor, que turma). Em `calango`, medido **por API e não por ecrã**: `curadorias`
+está **vazio**, e há uma linha de base (`teste`) enviada a 05/11/2026 para «Balé Nível 1 — Teste 1»
+com a Aluna A e a Aluna B. Donde: todas as alunas «sem turma», e portanto todas «novas», para sempre.
+
+**A segunda metade do mesmo defeito, e é pior.** `GET /api/bastidores/alunas-da-turma?turma=…`
+devolvia as duas alunas; `GET /anamnese/api/anamneses?turma=…` devolvia
+`{"opcoes": [], "recorte": []}`. O nó `sujeitos` do PO oferecia **zero** alunas a um professor que
+tinha o processo todo feito — não por o sistema esconder, mas por perguntar à curadoria uma coisa
+que ela já não declara. A lista não estava a filtrar: estava a ler o sítio errado.
+
+**O que foi decidido.**
+
+- **A linha de base é a fonte do elenco; a curadoria é o recurso declarado.** `alunasDaTurma` e
+  `alunasDoProfessor` recebem as linhas de base; quando há uma enviada para a turma, o elenco é o
+  dela. Sem nenhuma — escola que nunca usou o fluxo novo —, a curadoria responde como antes: a
+  alternativa era a lista vazia sem uma palavra a explicar porquê, e isso lê-se como avaria.
+- **A direcção da cadeia é `turma → linha de base → alunas → corpo`.** Foi a pergunta dela, e a
+  resposta é factual: a turma **já** está declarada no PO (o `plano-de-ensino` é obrigatório no bloco
+  1 e traz `contexto-turma`); a linha de base enviada para ela é que declara as alunas e o recorte; e
+  pedir a linha de base num campo próprio seria um **segundo lugar** a declarar o mesmo facto. A
+  alternativa (`linha de base → alunas`, sem a turma) deixaria o professor escolher uma linha de base
+  enviada para **outra** turma — exactamente o vazamento que a decisão de 20/10/2026 fechou.
+- **«Nova» ganhou uma segunda condição.** Deixa de ser nova quem já tem linha de base, e não só quem
+  já está em curadoria. A etiqueta passou a dizer as duas coisas quando as duas existem —
+  «turma X · linha de base «…»» —, e o painel da caixa «Turma» ganhou a linha `Linha de base`.
+- **A cadeia mostra-se, não se afirma.** O cabeçalho do PO passou a ter a inscrição **«linha de
+  base»** ao lado da turma: nome e número de alunas, com o `title` a dizer de onde vem («pela turma
+  do plano referenciado») e o que fazer para mudar o elenco. Sem ela, a vinculação existe no código e
+  não existe para quem preenche — e uma cadeia que ninguém vê é uma cadeia que ninguém sabe que tem.
+
+**Onde entrou.** `motor/nucleo/linha-de-base.js` — `filiacaoDasAlunas` (nome pela linha mais recente,
+turma pela mais recente **enviada**, rascunho a contar para «tem linha de base» e a não dar turma) e
+`alunasComLinhaDeBase`. `motor/nucleo/porta.js` — `alunasDaTurma` e `alunasDoProfessor` com o
+parâmetro das linhas de base. `motor/servidor/rotas.js` — a rota `/api/anamneses` passa o leitor que
+já estava injectado (`lerLinhasDeBase`), e não uma segunda leitura da chave.
+`motor/servidor/listas-do-acervo.js` — `turmasDasAlunas`, a etiqueta, o selo e o painel.
+`motor/servidor/producao.js` e `motor/servidor/bastidores.js` — a lista recebe as linhas de base pelo
+mesmo leitor que a Produção usa (exportado, como já se fazia com `curadorias`).
+`porta/index.html` — o campo `ctx-linha-de-base-campo` e `renderLinhaDeBaseDoCabecalho`, com **uma
+leitura por turma** (a cota diária do KV não se gasta a repintar o cabeçalho).
+`porta/po/conteudo/po.json` — a explicação do nó `sujeitos` passa a dizer a regra nova.
+`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/` — a cópia da porta e do `po.json`,
+pelo passo do gerador (a cópia e a barra injectada), porque o `check-identidade` exige que o corpo da
+porta seja o da fonte, byte a byte. `experimentos/provar-etiqueta-da-aluna.js` — novo;
+`experimentos/provar-sujeitos-da-turma.js` — a secção G; `experimentos/README.md` — a linha da
+bancada.
+
+**Medido.** `provar-etiqueta-da-aluna` **20/20** (os três estados da etiqueta, renderizados, com o
+controle da aluna nova); `provar-sujeitos-da-turma` **41/41** (com o caso de produção: curadorias
+vazias e a linha de base a responder); `provar-linha-de-base` **104/104**; `provar-producao`
+**159/159**; `provar-indice-do-recorte` **24/24**; `provar-eixos-do-po` **34/34**;
+`provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `provar-po-unico` **18/18**;
+`provar-porta-sem-contexto` **44/44**; `provar-curadoria-e-limpeza` **26/26**; `check-identidade`
+**0 erros**; `hash-ciclo --check` íntegro.
+
+**Duas coisas que o `check-pacote` reprova e que já reprovava antes.** O pacote
+`ciclo-01-calango` não tem PDF nem `ciclo-01-calango-dados.json`, e os links de topo apontam para
+páginas relativas que não existem no pacote. Medido no `HEAD` (`git stash` e nova corrida): **os
+mesmos 10 erros**. Não foi corrigido aqui porque a correcção é uma geração inteira, e o `.conf` desta
+variante está com `DOCS=""` — a fonte do ciclo não está no repositório, e gerá-la exigiria eliciar o
+plano outra vez.
