@@ -19,7 +19,10 @@
 #      vazio, o scaffold de escola — é pulado SEM erro);
 #   6) se a apresentação foi tocada, roda os validadores do deck;
 #   7) se entraram no stage tools/, os assets de um pacote de ciclo ou o deck,
-#      valida a identidade visual (paleta com cópia única e cópias em dia).
+#      valida a identidade visual (paleta com cópia única e cópias em dia);
+#   8) se entraram no stage motor/servidor/, confere que nenhuma chamada ao GitHub
+#      pode sair sem `User-Agent` (o 403 que já apareceu três vezes, e que numa
+#      prova local nunca se vê: o `undici` do Node põe o cabeçalho, o Worker não).
 # ============================================================================
 set -uo pipefail
 
@@ -429,6 +432,34 @@ if printf '%s\n' "$arquivos" | grep -qE '^(tools/|raiz/assets/|porta/|motor/|pro
     grep -E '^erro: ' /tmp/pre-commit-identidade.log | head -6 >&2
     echo "  a paleta mora só em tools/templates/ciclo.css; regenere o pacote se a cópia divergiu" >&2
     echo "  ver IDENTIDADE-VISUAL.md" >&2
+    exit 1
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 10-b) NENHUMA CHAMADA AO GITHUB PODE SAIR SEM `User-Agent` (05/11/2026)
+#
+#    O DEFEITO, três vezes. O GitHub recusa com **403** toda a requisição à API sem cabeçalho
+#    `User-Agent` («Request forbidden by administrative rules»), e o `fetch` do runtime dos
+#    Workers não o põe sozinho — o `undici` do Node põe, e é por isso que uma prova local nunca
+#    o apanha. Aconteceu em 22/10/2026 (`repo-escola.js`), em 05/11/2026 outra vez no mesmo
+#    ficheiro, e uma terceira no módulo novo da linha de base — este último lido ao contrário
+#    durante uma tarde («a árvore do repositório é que é recusada»), quando a causa era o
+#    cabeçalho.
+#
+#    A correção foi a lista única em `motor/servidor/github-api.js`; este passo é o que impede a
+#    próxima cópia de nascer errada. É estático: não faz pedidos e não gasta cota.
+#
+#    Guard estreito, como os outros: só corre quando o stage toca em `motor/servidor/`.
+# ---------------------------------------------------------------------------
+if printf '%s\n' "$arquivos" | grep -qE '^motor/servidor/.*\.js$'; then
+  echo "pre-commit: conferindo os cabeçalhos do GitHub ..."
+  if node tools/check-github-headers.js > /tmp/pre-commit-cabecalhos.log 2>&1; then
+    echo "pre-commit: cabeçalhos do GitHub ok ($(grep -c '^  ok   ' /tmp/pre-commit-cabecalhos.log) verificações)"
+  else
+    echo "pre-commit: recusado — uma chamada ao GitHub pode sair sem \`User-Agent\`." >&2
+    grep -E '^  ERRO ' /tmp/pre-commit-cabecalhos.log | head -6 >&2
+    echo "  use \`cabecalhosDe\` de motor/servidor/github-api.js; sem esse cabeçalho o GitHub responde 403" >&2
     exit 1
   fi
 fi

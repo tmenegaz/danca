@@ -36977,6 +36977,18 @@ uma dependência da **escrita**: sem árvore não se gravava o acto. A pergunta 
 não precisa da árvore; precisa de um ÍNDICE. O acervo dos envelopes já tinha resolvido isto
 (`envelope/.indice.json`), e a solução é a mesma.
 
+> **Correção de 05/11/2026 (mesmo dia, à noite).** A frase acima — «`/contents/…` funciona e o que
+> recusa é o `git/trees`» — **está errada**, e o diagnóstico que dela saiu também. O 403 era o do
+> GitHub a **toda** a requisição sem cabeçalho `User-Agent` («Request forbidden by administrative
+> rules»), e atingia as duas chamadas por igual. O módulo `linhas-de-base-repo.js` nasceu com a
+> lista de cabeçalhos montada à mão, com `Accept` e `X-GitHub-Api-Version`, e **sem** o
+> `User-Agent` — que o `fetch` do runtime dos Workers não põe sozinho. O que parecia provar a
+> conclusão («o acervo dos envelopes lê-se e escreve-se pelo mesmo token») era verdadeiro e não
+> dizia o que se pensou: o acervo **põe** o cabeçalho. Medido com o mesmo token:
+> `git/trees` → **200** com o cabeçalho, **403** sem ele. A versão anterior desta entrada não é
+> apagada: fica como o elo que registra o que se pensou antes da correção. A correção e o guarda
+> estão na entrada seguinte.
+
 **O que foi decidido.**
 
 - **`escola/<escola>/linhas-de-base/.indice.json`** — um ficheiro que diz quais são as versões, com
@@ -37015,3 +37027,101 @@ repositorio`, `fonte` da estante a passar de `nenhuma` para `indice`.
 algum dia — o `regerar-indices` corre em CI, onde o checkout é local e não precisa dela —, isto já
 não bloqueia nada. As **escolas legadas** sem token continuam a gravar o acto no KV, e a estante
 diz isso.
+
+## 05/11/2026 — O cabeçalho que faltava: uma lista de `User-Agent`, e um guarda que reprova
+
+**O que motivou.** A pesquisadora premiu «Concluir e enviar para a turma» e recebeu:
+
+> «não consegui gravar a linha de base no repositório: leitura do sha: HTTP 403. O rascunho está
+> guardado — nada se perdeu; tente de novo.»
+
+A mensagem de ontem cumpriu o que prometia — chegou em JSON, com a razão, e o rascunho ficou
+intacto. O que ela não trazia era **a frase do GitHub**, porque o código lia `Response.texto`
+(propriedade que não existe; o método é `Response.text()`) e imprimia só o número.
+
+**O diagnóstico, e a correção do diagnóstico anterior.** O 403 **não** era da árvore do
+repositório. Medido com o mesmo token, nas duas chamadas:
+
+```
+GET /repos/tmenegaz/danca/git/trees/main?recursive=1    com User-Agent → 200
+GET /repos/tmenegaz/danca/git/trees/main?recursive=1    sem User-Agent → 403
+  {"message":"Request forbidden by administrative rules. Please make sure your request has a
+   User-Agent header"}
+```
+
+O GitHub recusa com **403** toda a requisição à API sem `User-Agent`, e o `fetch` do runtime dos
+Workers não o põe sozinho — o `undici` do Node põe, e é por isso que nenhuma prova local o
+apanhava. O `linhas-de-base-repo.js` foi escrito ontem com `Accept` e `X-GitHub-Api-Version` e sem
+esse campo: **todas** as suas chamadas falhavam, leitura e escrita. A conclusão de ontem — «o
+`/contents/` funciona e a árvore é que é recusada» — era falsa, e sustentou-se num facto verdadeiro
+mal lido: *o acervo dos envelopes também usa este token e funciona*. O acervo **põe** o cabeçalho.
+Era essa a diferença, e ela estava a três linhas de distância.
+
+**O que foi decidido.**
+
+- **Uma lista, num sítio só.** `motor/servidor/github-api.js` passa a ser o único construtor de
+  cabeçalhos: `cabecalhosDe(token, {agente, conteudo})`, com o `User-Agent` sempre, o `Authorization`
+  só quando há token, e o `Content-Type` só quando se pede. Havia **doze cópias** da lista
+  espalhadas por `motor/servidor/`; cada módulo novo era uma oportunidade de nascer sem o campo. A
+  terceira vez foi ontem, num módulo escrito por mim.
+- **A frase, e não o número.** `detalheDe(resposta)` devolve `HTTP 403 — <frase do GitHub>`, lendo
+  `text()` de uma `Response` a sério e também o `texto` dos stubs das provas, e extraindo a
+  `message` quando o corpo é JSON. Um 403 sem motivo é um 403 que manda procurar no lugar errado.
+- **A sonda, para o próximo.** `GET /api/bastidores/diagnostico/repositorio` faz quatro leituras
+  (repositório, árvore, e os dois `.indice.json`) e devolve, de cada uma, o status e a frase. O
+  diagnóstico de ontem foi feito por dedução; uma sonda que responde não se engana. Não gasta KV e
+  não expõe o token.
+- **O guarda.** `tools/check-github-headers.js` (estático, sem rede e sem cota) reprova qualquer
+  módulo de `motor/servidor/` que fale com a API do GitHub sem declarar `User-Agent` ou sem usar a
+  lista comum, e reprova um `Authorization` montado à mão cuja função não traga o cabeçalho. Entrou
+  no `pre-commit`, no passo 8, quando o stage toca em `motor/servidor/`.
+- **O índice das versões fica, mas por CUSTO.** Ele foi construído ontem sobre a premissa falsa.
+  A premissa caiu e o índice **não**: para gravar um acto não vale listar o repositório inteiro, e
+  a árvore passa a ser o último recurso por uma razão de economia, não de recusa. A justificação
+  falsa foi corrigida nos comentários do módulo, com a data.
+
+**Onde entrou.** `motor/servidor/github-api.js` (novo) — lista única, `base64De`, `textoDeBase64`,
+`detalheDe`, `sondar`. `motor/servidor/linhas-de-base-repo.js` — passa a usar a lista, e as quatro
+mensagens de erro passam a levar a frase. `motor/servidor/acervo-envelopes.js` — a cópia local sai;
+era a única certa e ficou, para não haver duas. `motor/servidor/bastidores.js` — a rota da sonda.
+`tools/check-github-headers.js` (novo) — o guarda, com `auditar()` exportada para a contraprova.
+`tools/hooks/pre-commit` — passo 8. `.gitignore` — a prova nova na lista permitida.
+
+**Com o quê.** `experimentos/provar-cabecalhos-do-github.js` (**34 asserções**) — a lista única; a
+frase lida de uma `Response` a sério, de um stub com `texto` e de um corpo JSON; a sonda a declarar
+porque é que tudo é 403 sem o cabeçalho; o store a gravar contra um GitHub que **exige** o cabeçalho,
+com o controle negativo (cabeçalhos despidos → 403 **com a frase**); a árvore a reconstruir a lista
+quando o índice não existe (fonte `arvore` — prova de que a árvore funciona); e a contraprova do
+guarda, corrida sobre ficheiros fabricados, que **reprova o defeito antigo** e aprova a correção.
+`experimentos/provar-linha-de-base-no-repo.js` — o GitHub de bolso passou a recusar sem `User-Agent`
+como o verdadeiro, e o comentário da secção G foi corrigido: aquela árvore bloqueada é uma falha
+**possível**, não a medida de ontem.
+
+**Motivo declarado — os congelados.** `tools/` é congelado (`CONGELAMENTO.md`), e esta entrada
+altera-o em dois pontos: um **guarda novo** (`tools/check-github-headers.js`) e um **passo novo** no
+`tools/hooks/pre-commit`. O motivo é o defeito que já custou três sessões: o GitHub recusa com 403
+toda a requisição sem `User-Agent`, o `fetch` do Worker não o põe sozinho, e uma prova local não o
+vê porque o `undici` do Node o põe. A trava é **estática** — lê `motor/servidor/*.js` e não faz
+pedido nenhum —, corre no `pre-commit` só quando o stage toca em `motor/servidor/`, e não altera
+nenhum ficheiro. **O que NÃO muda:** a fórmula do `hash-ciclo.sh`, a cobertura do `.fipp`, os
+validadores de ciclo, as 17 regras de `REGRAS.md` e as 22 pétreas de `PROTOCOLO.md`. O passo novo é
+um `if` a mais no fim do hook, com saída 1 e mensagem própria; nenhum passo existente mudou de
+ordem nem de alcance.
+
+**Referências.** Documentação do GitHub sobre `User-Agent` obrigatório; o comentário de 22/10/2026 em
+`repo-escola.js`, que já documentava o mesmo defeito — e que este módulo não leu.
+
+**Medido.** `provar-cabecalhos-do-github` **34/34**; `provar-linha-de-base-no-repo` **39/39**;
+`provar-escrita-do-acto` **21/21**; `provar-acervo-envelopes` **48/48**; `provar-linha-de-base`
+**104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna` **20/20**;
+`provar-sujeitos-da-turma` **41/41**; `provar-recorte-no-indice` **40/40**;
+`provar-indice-do-recorte` **24/24**; `provar-producao` **159/159**; `provar-eixos-do-po` **34/34**;
+`provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `check-identidade` **0 erros**;
+`check-indices` **16/16**; `check-github-headers` **5 verificações**.
+
+**O que ainda não está feito.** (1) As **nove** outras cópias da lista continuam a existir — cada uma
+põe o `User-Agent` à mão (o guarda confere que o põe, não que seja a mesma lista); migrá-las para
+`github-api.js` é trabalho de outra sessão, e fazê-lo agora seria mexer em nove caminhos de escrita
+no dia em que um deles está a ser testado ao vivo. (2) O `sondar` ainda não tem ecrã: existe como
+rota, e é por `curl` que se lê. (3) O envio **ainda não foi confirmado em produção** com o
+cabeçalho posto — é o próximo gesto dela, e é o que fecha este fio.
