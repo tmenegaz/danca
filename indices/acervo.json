@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "df4b2414ac0c7bddb91ba50bd173c687a15742fdcea1c4690486cd40491707ce",
+        "hash": "a2b4b9763508e30681c21f59b5b07272f7b6ee4ffc0b35a8388541eac27ed91f",
         "id": "ciclo-01-calango-bale-nivel-1-teste-1",
         "lida": true,
         "parent_hash": ""
@@ -506,9 +506,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "326337f"
+    "commit": "1cb81fa"
   },
-  "gerado_em": "2026-11-06T19:31",
+  "gerado_em": "2026-11-06T19:42",
   "nao_indexado": [
     {
       "familia": "conteudo",
