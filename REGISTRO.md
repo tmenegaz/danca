@@ -38357,3 +38357,74 @@ encostado, e nenhum estouro horizontal.
 **O que fica para a etapa seguinte.** Os itens da linha de base são gravados pelo **texto**, não por
 um slug — é o que falta para o índice de lançamentos contar «em quantas aulas a aluna X demorou a
 estabilizar o adágio». É a Etapa 3, e ela decide se avança.
+
+## 06/11/2026 — O índice de lançamentos, e a chave que faz a marca encadear
+
+**A pergunta dela, e era impossível de responder:**
+
+> «depois eu vou precisar usar a proveniência para saber o que aconteceu com esse aluno […] Em
+> quantas aulas ele demorou para conseguir fazer o adágio?»
+
+A matriz da manhã pôs as marcas no lugar certo — por aluna e por aspecto. Mas uma marca guardada
+em duas aulas eram **duas linhas sem nada em comum**: os itens da linha de base iam pelo **texto**, e
+o texto é redação, que muda quando a redação muda. O
+[§4.9 do `PLANO-INDICES.md`](/home/mti/bibTex/danca/PLANO-INDICES.md:560) já dizia o que era preciso
+e dizia que faltava: «o lançamento é o dado que responde às perguntas da escola, e hoje **não tem
+leitor**».
+
+### 1. A chave não é uma regra nova — é a que o projecto já declara
+
+`Vistas.helpers.chaveDoItem` tira o acento, baixa a caixa e troca o que não é letra nem algarismo por
+`_`. Aplicada aos rótulos que a declaração do schema da captura traz, ela reproduz **as 11 chaves
+declaradas à mão, uma por uma** — medido, e é isso que autoriza o formulário a calcular a chave dos
+itens da linha de base, que ninguém declarou.
+
+«1ª posição — braços» → `1_posicao_bracos` · «Sustentação ativa de MMII (força de adágio)» →
+`sustentacao_ativa_de_mmii_forca_de_adagio`.
+
+A função vive no `lib-vistas.js` — a lib que a **página** e o **gerador** partilham — para não haver
+duas regras a divergir. O formulário grava `{ chave, item, marca }`: a chave **uma vez**, no
+lançamento, e nunca recalculada; o texto ao lado, porque é o que o professor leu.
+
+### 2. O leitor que faltava
+
+`tools/indice-lancamentos.js` extrai as cinco famílias do §4.9:
+
+| Família | O que guarda | O que **não** guarda |
+|:--|:--|:--|
+| `presenca` | aula, data, presentes, ausentes | nome, contato |
+| `marcas` | aula, data, **aluna**, **coluna**, bloco, marca | o texto de qualquer observação |
+| `condicoes` | plano seguido, duração, as três notas, `mudou` **booleano** | o texto de `mudou` |
+| `ajustes` | aula, data, `houve` | o texto do ajuste |
+| `rubrica` | aula, data, aluna, critério, nível | — |
+
+Mais `surpresas` — que **não** estava na tabela, e entrou quando o campo deixou de ser prosa. Uma
+prosa antiga não vira booleano: fica `null`, e quem lê sabe que não foi respondido.
+
+**A regra de privacidade é medida, não prometida:** a prova assere que **nenhuma** das quatro prosas
+do fixture aparece no índice. E o próprio índice declara o que não guarda, para não parecer que
+guarda tudo.
+
+`--check <aluna>` responde ao `AL03` — as colunas onde `parcial`/`nao` se repete, em que aulas e
+desde quando. É a razão de o índice existir: um índice que ninguém consulta é uma tabela a mais.
+
+**Saída determinística:** sem `--com-data`, duas corridas dão o mesmo texto, byte a byte — a mesma
+regra das vistas.
+
+### 3. O validador
+
+A chave, quando existe, tem de ser um slug; quando falta, é **aviso** (um arquivo escrito antes dela
+continua válido), e o aviso diz o que se perde: «a marca não será encadeada entre aulas pelo índice».
+
+**Contraprova.** Com a chave a deixar de ser slug e o índice a copiar a prosa do ajuste, a
+`provar-indice-de-lancamentos` **reprova 7 de 24**.
+
+**Medido.** `provar-indice-de-lancamentos` **24/24**; `provar-formulario-da-aula` **34/34**;
+`check-identidade` **0 erros**; `check-indices` **16/16**; `check-schemas` ok; `gerar-ciclo.sh`
+**0 erro(s)**; `check-pacote` **0 erro(s), 0 aviso(s)**. No ciclo real — que não tem lançamento
+nenhum — o índice sai vazio e não quebra.
+
+**O que continua em aberto, e agora é dito com o campo certo.** O índice é um **leitor de ficheiro**:
+`node tools/indice-lancamentos.js <dados>`. O §4.9 pede-o também como índice **vivo**, servido por
+`POST /api/bastidores/indice` com escopo por professor e por ciclo — e isso é a etapa seguinte, com a
+mesma regra de escopo («escopo, nunca eixo») que o §4.16 do `PLANO-INDICES.md` declara.

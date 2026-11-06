@@ -1640,6 +1640,43 @@ adágio?») fica sem resposta. É a Etapa 3.
 **Contraprova.** Com o corpo a ler as linhas vazias da folha, o plano seguido a valor duro e o
 validador sem olhar os blocos de itens, a `provar-formulario-da-aula` reprova **7 de 34**.
 
+### 5.23 O índice de lançamentos — e a chave que faz a marca atravessar as aulas
+
+A §5.22 pôs as marcas no lugar certo, por aluna e por aspecto. Faltava o que as torna **contáveis**:
+a pergunta dela — *«Em quantas aulas ele demorou para conseguir fazer o adágio?»* — não se responde
+com a marca guardada, e sim com a marca **encadeada**.
+
+**O problema era o texto.** Os itens da linha de base iam pelo `item` verbatim, e o texto é
+**redação**, que muda quando a redação muda. Duas aulas com o mesmo aspecto eram duas linhas sem
+nada em comum.
+
+**A chave, e porque não é uma regra nova.** `Vistas.helpers.chaveDoItem` — acento fora, caixa baixa,
+o resto em `_` — aplicada aos rótulos que a **declaração do schema da captura** traz, reproduz as
+**11 chaves declaradas à mão**, uma por uma. A declaração já dizia qual é a distinção: «a folha
+continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES, porque o rótulo
+é redação e a chave é contrato». A função vive no `lib-vistas`, que a página e o gerador partilham —
+uma regra, dois consumidores.
+
+**O leitor.** O §4.9 do [`PLANO-INDICES.md`](/home/mti/bibTex/danca/PLANO-INDICES.md:560) dizia, sem
+rodeios, que «o lançamento é o dado que responde às perguntas da escola, e hoje **não tem leitor**».
+`tools/indice-lancamentos.js` é esse leitor: as cinco famílias declaradas — `presenca`, `marcas`,
+`condicoes`, `ajustes`, `rubrica` — mais `surpresas`, que entrou quando o campo deixou de ser prosa.
+
+**A regra de privacidade, medida.** O índice guarda **que houve**, **quando** e **em que aula**. A
+prosa — o registro, o ajuste, o que mudou, a surpresa em texto — fica no original autenticado:
+copiá-la criaria uma segunda fonte de conteúdo pedagógico e o risco de vazar nome de aluna num
+arquivo de metadados. A prova assere que nenhuma das quatro prosas do fixture aparece no índice.
+
+**E a leitura que justifica o índice.** `--check <aluna>` responde ao `AL03`: as colunas onde
+`parcial`/`nao` se repete, em que aulas e desde quando. Um índice que ninguém consulta é uma tabela
+a mais.
+
+**O que continua em aberto.** O índice é leitor de ficheiro. O §4.9 pede-o também **vivo**, servido
+por `POST /api/bastidores/indice` com escopo por professor e por ciclo — e é a etapa seguinte.
+
+**Contraprova.** Com a chave a deixar de ser slug e o índice a copiar a prosa do ajuste, a
+`provar-indice-de-lancamentos` reprova **7 de 24**.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

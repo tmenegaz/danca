@@ -4205,6 +4205,23 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   distância. Medido: `provar-titulo-e-barra` **31/31**, contraprova contra `HEAD` **4/31** (as quatro
   novas); `check-identidade` **0 erros**.
 
+- **06/11/2026** — **O índice de lançamentos, e a chave que faz a marca encadear.** A pergunta dela
+  — *«Em quantas aulas ele demorou para conseguir fazer o adágio?»* — não se respondia com a marca
+  guardada: os itens da linha de base iam pelo **texto**, e a marca em duas aulas eram duas linhas
+  sem nada em comum. `Vistas.helpers.chaveDoItem` (acento fora, caixa baixa, o resto em `_`)
+  **reproduz as 11 chaves que o schema da captura declara à mão** — é a regra do projecto, não uma
+  nova —, e o formulário grava `{chave, item, marca}`, a chave **uma vez e nunca recalculada**.
+  Nasceu o leitor que o §4.9 dizia faltar: `tools/indice-lancamentos.js` extrai `presenca`,
+  `marcas` (aula, data, aluna, coluna, bloco, marca), `condicoes` (`mudou` **booleano**), `ajustes`
+  (`houve`) e `rubrica` (o nível), mais `surpresas`. **A prosa não sai** — nem o registro, nem o
+  ajuste, nem o que mudou —, e a prova assere isso. `--check <aluna>` responde ao `AL03`. Saída
+  determinística. O validador exige slug quando a chave existe e avisa quando falta. Medido:
+  `provar-indice-de-lancamentos` **24/24** (contraprova **7/24**), `provar-formulario-da-aula`
+  **34/34**, `check-identidade` **0 erros**, `check-indices` **16/16**, `check-schemas` ok,
+  `gerar-ciclo.sh` **0 erro(s)**, `check-pacote` **0/0**. **Em aberto:** o índice é leitor de
+  ficheiro; o §4.9 pede-o também **vivo** (`POST /api/bastidores/indice`, escopo por professor e
+  ciclo).
+
 - **06/11/2026** — **A matriz do lançamento: as alunas por linha, os aspectos por coluna.** Ela
   viu o formulário pronto e disse o que faltava: *«a gente tem que elaborar um outro modelo onde a
   parte de cima a gente tem por linha os alunos e por coluna a gente precisa acrescentar outras
