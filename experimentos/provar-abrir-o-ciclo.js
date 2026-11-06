@@ -278,16 +278,95 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — e devolve o texto em
       /gerado: caderno-01/i.test(comAbrir.aviso), comAbrir.aviso.slice(0, 160));
     provar('…e o entregável saiu pelo caminho normal, sem erro de página',
       comAbrir.erros.length === 0, comAbrir.erros);
+  /* ========================================================================================
+   * F. O ACORDEÃO «LANÇAR UMA AULA» ABRE E FECHA — e não desaparece ao clique
+   *   O ouvinte era `renderCaptura` com o EVENTO: ao clicar fora do modo captura ele fazia
+   *   `caixa.hidden = true` e o painel sumia («não expande, ele quebra»); dentro do modo
+   *   captura, o `if (!caixa.open) caixa.open = true` reabria no mesmo gesto, e fechar era
+   *   impossível. Quem manda no aberto/fechado é quem clica.
+   * ====================================================================================== */
+  console.log('\nF. O acordeão «Lançar uma aula»: abre, fecha, e não desaparece ao clique');
+  if (!puppeteer || !executavel) {
+    provar('o navegador existe para medir o acordeão', false, 'NÃO FEITO');
+  } else {
+    const { srv, base } = await bancada({ regraVelha: false });
+    const nav = await puppeteer.launch({ executablePath: executavel, headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+    try {
+      const p = await nav.newPage();
+      await p.setViewport({ width: 390, height: 844 });
+      const erros = [];
+      p.on('pageerror', (e) => erros.push('pageerror: ' + e.message));
+      const estado = () => p.evaluate(() => {
+        const c = document.getElementById('captura');
+        return { hidden: c.hidden, open: c.open,
+          visivel: !!(c.offsetWidth || c.offsetHeight),
+          altura: Math.round(c.getBoundingClientRect().height) };
+      });
+      const clicar = () => p.evaluate(() => document.querySelector('#captura summary').click());
+
+      await p.goto(`${base}/lancamento.html`, { waitUntil: 'networkidle0' });
+      // O estado de CHEGADA (sem ciclo aberto): clicar abre e não faz o painel desaparecer.
+      await clicar();
+      await new Promise((r) => setTimeout(r, 250));
+      const chegada = await estado();
+      provar('na chegada, clicar no acordeão ABRE (e não o esconde)',
+        chegada.open === true && chegada.hidden === false && chegada.visivel === true, chegada);
+
+      // No modo captura, o gesto manda: fecha quando se fecha, abre quando se abre.
+      await p.select('#ciclo', '01');
+      await new Promise((r) => setTimeout(r, 300));
+      await p.$eval('#senha', (n) => { n.value = 'a-senha-da-pessoa'; });
+      await p.$eval('#abrir-ciclo', (b) => b.click());
+      await new Promise((r) => setTimeout(r, 700));
+      await p.select('#aula', '07');
+      await new Promise((r) => setTimeout(r, 600));
+      const aberto = await estado();
+      await clicar();
+      await new Promise((r) => setTimeout(r, 250));
+      const fechado = await estado();
+      await clicar();
+      await new Promise((r) => setTimeout(r, 250));
+      const reaberto = await estado();
+      provar('no modo captura, o painel nasce aberto e com os campos',
+        aberto.open === true && aberto.hidden === false && aberto.altura > 200, aberto);
+      provar('…fecha-se quando se clica (o gesto do utilizador manda)',
+        fechado.open === false && fechado.altura < aberto.altura / 2, fechado);
+      provar('…e reabre no clique seguinte', reaberto.open === true && reaberto.altura > 200, reaberto);
+      provar('…sem erro de página em nenhum gesto', erros.length === 0, erros);
+
+      /* A CONTRAPROVA, e é o defeito a correr: com o ouvinte de antes — `renderCaptura` com
+       * o evento — o primeiro clique na chegada esconde o painel em vez de o abrir. */
+      const cp = await nav.newPage();
+      await cp.setViewport({ width: 390, height: 844 });
+      await cp.goto(`${base}/lancamento.html`, { waitUntil: 'networkidle0' });
+      const ligou = await cp.evaluate(() => {
+        const c = document.getElementById('captura');
+        if (typeof renderCaptura !== 'function') return false;
+        c.addEventListener('toggle', renderCaptura);   // a ligação de antes
+        document.querySelector('#captura summary').click();
+        return true;
+      });
+      const depois = await cp.evaluate(() => {
+        const c = document.getElementById('captura');
+        return { hidden: c.hidden, visivel: !!(c.offsetWidth || c.offsetHeight) };
+      });
+      provar('contraprova: com o ouvinte de ANTES, o mesmo clique ESCONDE o painel',
+        ligou === true && depois.hidden === true && depois.visivel === false, depois);
+      await cp.close();
+    } finally { await nav.close(); srv.close(); }
   }
 
+  }
+
+
   /* ========================================================================================
-   * F. O VALIDADOR DE DADOS LÊ O TIPO QUE A CAPTURA DECLARA
+   * G. O VALIDADOR DE DADOS LÊ O TIPO QUE A CAPTURA DECLARA
    *   O primeiro lançamento com régua foi recusado pelo hook com dez erros do género
    *   «'Satisfatório' não é marca do formulário» — a regra media o registro errado, e o registro
    *   certo (o `captura-aula-NN.json` do pacote) estava ao lado. Sem a captura, o vocabulário
    *   fechado das marcas responde como sempre respondeu: a guarda não enfraquece por omissão.
    * ====================================================================================== */
-  console.log('\nF. O validador de dados aceita a régua quando a captura a declara — e só então');
+  console.log('\nG. O validador de dados aceita a régua quando a captura a declara — e só então');
   {
     const { execFileSync } = require('child_process');
     const os = require('os');

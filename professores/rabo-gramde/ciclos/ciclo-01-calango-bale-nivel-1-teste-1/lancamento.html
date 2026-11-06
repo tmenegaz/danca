@@ -1820,9 +1820,9 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
 function renderCaptura(opcoes) {
   const caixa = el('captura'), alvo = el('captura-campos');
   if (!caixa || !alvo) return;
-  // O `renderCaptura` também é ouvinte de `toggle`, e um ouvinte recebe o EVENTO: por isso a
-  // guarda é `=== true`, e não a veracidade do argumento. Só a re-renderização pedida pela
-  // presença mantém a lista ao vivo; qualquer outra (troca de aula, abertura do painel) volta a
+  // A guarda é `=== true`, e não a veracidade do argumento: um ouvinte de evento recebe o
+  // EVENTO (verdadeiro), e essa chamada não é a da presença. Só a re-renderização pedida pela
+  // presença mantém a lista ao vivo; qualquer outra (troca de ciclo, troca de aula) volta a
   // ler o que está gravado — senão a presença de uma aula contaminava a seguinte.
   if (opcoes !== true) presencaAoVivo = null;
   // O painel serve aos dois casos: lançar (aula sem dado) e ajustar (aula com dado,
@@ -2649,8 +2649,23 @@ async function trocarCiclo(modo) {
       render();
       renderCaptura();
     });
-    // abrir o painel reconstrói os campos (o que não foi gerado se perde — de propósito)
-    el('captura').addEventListener('toggle', renderCaptura);
+    /* O ACORDEÃO NÃO SE FECHA SOZINHO — E NÃO DESAPARECE AO CLICAR (06/11/2026).
+     *
+     * O ouvinte era `renderCaptura` com o EVENTO como argumento. Ao ABRIR, ele montava os
+     * campos (era a intenção). Mas `renderCaptura` também FAZ `caixa.hidden = !f`: clicar no
+     * acordeão fora do modo captura (a leitura de uma aula já lançada) escondia o próprio
+     * painel — o «não expande, ele quebra» do relato. E, dentro do modo captura, fechar era
+     * impossível: o `if (!caixa.open) caixa.open = true` reabria no mesmo gesto.
+     *
+     * A regra agora é a do `<details>`: quem manda no aberto/fechado é quem clica. O ouvinte
+     * só faz o que precisa de ser feito ao ABRIR — montar os campos, se ainda não estão lá. */
+    el('captura').addEventListener('toggle', (ev) => {
+      const caixa = ev.currentTarget;
+      if (!caixa.open) return;                       // fechar é gesto do utilizador
+      if (!(estadoCaptura() || estadoAjuste())) return; // não há formulário: nada a montar
+      if (el('captura-campos').childElementCount) return; // já está montado
+      renderCaptura();
+    });
     // O autor é lembrado no navegador: digitar o nome uma vez basta. Se o navegador
     // não deixar guardar, o campo funciona igual — só não é lembrado.
     try {
