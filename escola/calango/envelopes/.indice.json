@@ -3,7 +3,8 @@
   "nomes": [
     "anamnese-20261105-2031.json",
     "anamnese-20261105-2301.json",
-    "plano-20261106-0744.json"
+    "plano-20261106-0744.json",
+    "po-20261106-1108.json"
   ],
   "resumos": {
     "anamnese-20261105-2031.json": {
@@ -40,6 +41,23 @@
         "Plié"
       ],
       "professorNome": "rabo-gramde"
+    },
+    "po-20261106-1108.json": {
+      "id": "po-20261106-1108",
+      "fonte": "po",
+      "escola": "calango",
+      "professor": "rabo-gramde",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-06T11:08",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "plano": [
+        "plano-20261106-0744"
+      ]
     }
   }
 }
