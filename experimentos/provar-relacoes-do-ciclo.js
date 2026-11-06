@@ -148,20 +148,43 @@ const documentosNoAcervo = async (armazenamento) => {
   }
 
   /* --------------------------------------------------------------------------------------- */
-  console.log('\n2 · O CICLO DO PO TEM DE SER O CICLO DO PLANO');
-  /* --------------------------------------------------------------------------------------- */
+  console.log('\n2 · O CICLO DO PO É O DO PLANO — DERIVADO, E NÃO APENAS CONFERIDO');
+  /* A ASSERÇÃO FOI INVERTIDA, E NÃO APAGADA (06/11/2026) — como se fez com os `sujeitos`.
+   * ------------------------------------------------------------------------------------------
+   * Até 05/11/2026 esta secção exigia 409: um PO no ciclo 02 a observar o plano do ciclo 01 era
+   * RECUSADO. A recusa era a metade de baixo, e ela pediu a de cima: «quando eu escolho ele,
+   * automaticamente ele tem que preencher para mim qual é o ciclo». Recusar depois de o número
+   * estar escrito é explicar um erro; derivar antes é não haver erro para explicar. O ciclo passou
+   * a ser sobrescrito pelo do plano, então o mesmo pedido agora GRAVA — e grava no ciclo 01.
+   *
+   * O que a asserção guarda é mais forte do que guardava: não é «recusa o que diverge», é «não há
+   * divergência possível». Quem a ler daqui a dez anos vê a decisão e o porquê.
+   * --------------------------------------------------------------------------------------- */
   {
     const { armazenamento, rotas } = bancada();
     await semearPlano(armazenamento, { id: 'plano-01', ciclo: '01' });
     await semearPlano(armazenamento, { id: 'plano-02', ciclo: '02' });
     const r = await pedir(rotas, poDe('02', 'plano-01'));
-    provar('PO no ciclo 02 a observar o plano do ciclo 01 é RECUSADO', r.status === 409, r.status);
-    provar('…e a recusa diz os DOIS ciclos (o do plano e o do documento)',
-      /do ciclo 01/.test(String(r.dados && r.dados.erro))
-        && /ciclo 02/.test(String(r.dados && r.dados.erro)), r.dados && r.dados.erro);
-    /* O controlo: o plano do ciclo certo entra. */
+    provar('PO pedido no ciclo 02 a observar o plano do ciclo 01 é GRAVADO (sem recusa)',
+      r.status === 200, { status: r.status, erro: r.dados && r.dados.erro });
+    const gravado = (r.dados && r.dados.documento) || null;
+    provar('…e o ciclo do documento é o do PLANO (01), e não o que foi pedido (02)',
+      String((gravado && gravado.contexto && gravado.contexto.ciclo) || '') === '01',
+      gravado && gravado.contexto);
+    /* O CONTROLO NEGATIVO do derivador: um plano que NÃO declara ciclo não permite derivar, e aí
+     * a conferência antiga continua a ser a única coisa honesta a fazer — o pedido divergente
+     * volta a ser recusado, em vez de gravar um ciclo inventado. */
+    await semearPlano(armazenamento, { id: 'plano-sem-ciclo', ciclo: '' });
+    const semDerivacao = await pedir(rotas, poDe('02', 'plano-sem-ciclo'));
+    provar('CONTROLO: sem ciclo no plano, a derivação é impossível e o pedido entra como veio',
+      semDerivacao.status === 200
+        && String(((semDerivacao.dados || {}).documento || {}).contexto.ciclo || '') === '02',
+      { status: semDerivacao.status, contexto: ((semDerivacao.dados || {}).documento || {}).contexto });
+    /* O controlo positivo de sempre: o plano do ciclo certo entra, e no ciclo certo. */
     const certo = await pedir(rotas, poDe('02', 'plano-02'));
-    provar('CONTROLO: o plano do ciclo certo é aceito', certo.status === 200,
+    provar('CONTROLO: o plano do ciclo certo é aceito, no ciclo dele',
+      certo.status === 200
+        && String((((certo.dados || {}).documento || {}).contexto || {}).ciclo || '') === '02',
       { status: certo.status, erro: certo.dados && certo.dados.erro });
   }
 

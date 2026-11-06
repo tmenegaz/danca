@@ -747,6 +747,25 @@ As duas escreveram documento no acervo. A primeira é o **órfão**: um PO que o
 não existe, num ciclo que não tem plano nenhum. A segunda é a **sequência quebrada**: a âncora do
 ciclo N encadeia com a do N-1, e o ciclo 07 que aparece do nada não tem de onde encadear.
 
+**A segunda entrega foi a metade de cima, e ela voltou a pedi-la (06/11/2026).** Palavras dela:
+*«eu quero evitar que eu tenha um plano de ensino chamado ciclo um e aí eu esqueça o número e o
+professor vá lá e coloque que então agora eu acho que é ciclo 20… Eu tenho que estar dentro do
+mesmo ciclo o plano de ensino e o plano de observação.»* O menu suspenso oferecia o **leque** —
+e um leque com uma opção não é escolha, mas com duas volta a ser. A recusa chegava **depois**, a
+explicar um erro já escrito.
+
+**O ciclo do PO deixou de ser um campo.** Ele não tem pergunta própria: é o ciclo do plano que o
+PO observa, e essa já foi respondida quando o plano foi feito. A tela passou a mostrá-lo como
+**inscrição** — a mesma peça da turma e da linha de base —, e o valor vem do plano escolhido:
+`POST /api/elicitar` **sobrescreve** `corpo.contexto.ciclo` com o ciclo do plano antes de
+conferir. Não há dois números a comparar porque há um só. A cadeia fica inteira, e na ordem:
+**plano de ensino → ciclo → turma → linha de base → alunas**.
+
+O que a conferência ainda guarda é o que a derivação **não** alcança: um plano que não declara
+ciclo (documento antigo), ou o caso em que o acervo não se lê. Aí comparar continua a ser a única
+coisa honesta a fazer, e a recusa volta a existir. O que ela deixou de fazer é recusar uma
+discordância que já não pode acontecer.
+
 **As três conferências**, em `motor/servidor/rotas.js` (`recusaDaRelacaoDoCiclo`), antes de
 qualquer gravação:
 
@@ -765,10 +784,20 @@ acervo (uma bancada, um adaptador sem índice) a rota **segue** em vez de acusar
 uma limitação de quem mede; e a **simulação** passa — ela não escreve, e uma prévia não é um
 documento.
 
-**A prova:** `experimentos/provar-relacoes-do-ciclo.js` (22 asserções), com **controlo negativo em
-cada secção** — a escrita válida da mesma família tem de continuar a entrar. Sem ele, uma guarda
-que recusasse tudo passaria na primeira metade. O A/B contra o commit anterior reprova em 12 das
-22.
+**A prova:** `experimentos/provar-relacoes-do-ciclo.js` (**23 asserções**), com **controlo
+negativo em cada secção** — a escrita válida da mesma família tem de continuar a entrar. Sem ele,
+uma guarda que recusasse tudo passaria na primeira metade. A secção 2 **foi invertida e não
+apagada** em 06/11/2026: onde exigia 409 («PO no ciclo 02 a observar o plano do ciclo 01 é
+recusado»), passa a exigir 200 com o ciclo do documento em **01** — o pedido não é recusado, é
+corrigido pela única fonte que o pode corrigir. E o controle negativo do derivador: um plano que
+não declara ciclo não permite derivar, e aí o pedido entra como veio.
+
+E a tela: `experimentos/provar-ciclo-herdado-do-plano.js` (**20 asserções**, jsdom sobre a página
+de verdade) — o campo é uma inscrição e não há `<select>`, o PO deixou de pedir `api/ciclos`, o
+valor chega do plano escolhido, **trocar o plano troca o ciclo**, sem plano não se inventa ciclo, e
+a lacuna do plano antigo tem nome. Com `--controle-negativo` a mesma medida corre contra a porta
+de HEAD e **reprova em 14 das 20** — incluindo a que mostra o defeito de origem: com a estante
+vazia, a página antiga oferecia «01» mesmo sem plano nenhum.
 
 ### 5.11 Apagar um registo leva o que ele produziu — em cascata, e só o dele
 

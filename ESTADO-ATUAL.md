@@ -3984,6 +3984,22 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
 
+- **06/11/2026** — **O ciclo do Plano de Observação deixa de se escrever.** Ela voltou a pedi-lo, e
+  com razão: o que se entregou a 05/11 foi a **metade de baixo** — um menu com os ciclos que têm
+  plano e uma recusa no servidor. Um menu oferece o **leque**, e a recusa chega **depois** de o
+  número estar escrito. Palavras dela: «quando eu escolho ele, automaticamente ele tem que
+  preencher para mim qual é o ciclo». **Decidido:** o ciclo do PO deixou de ser um campo — é uma
+  **inscrição** (`.ctx-rotulo` + `.ctx-inscricao`, as peças da turma e da linha de base), e o valor
+  vem do plano escolhido (`PLANO_CICLO`, do envelope; a estante serve antes de ele chegar). No
+  servidor, `cicloDoPlanoDeclarado` **sobrescreve** `contexto.ciclo` antes de qualquer conferência:
+  não há dois números a comparar porque há um só. A recusa continua para onde a derivação não
+  chega (plano antigo sem ciclo, acervo ilegível). O PO deixa de pedir `api/ciclos`; a lista fica
+  para o Plano de Ensino, que é onde um ciclo NASCE. A cadeia, inteira e na ordem: **plano → ciclo
+  → turma → linha de base → alunas**. Medido: `provar-ciclo-herdado-do-plano` **20/20** (novo, em
+  jsdom, com controle negativo a reprovar **14 de 20** na página de HEAD),
+  `provar-relacoes-do-ciclo` **23/23** (secção 2 invertida, não apagada), `provar-producao`
+  **159/159**, `check-identidade` **0 erros**.
+
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
   prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código

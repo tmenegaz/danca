@@ -216,10 +216,17 @@
   .barra details.ctx-ato .ctx-campos > .campo > .ctx-inscricao {
     grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere;
   }
+  /* A NOTA DE UM CAMPO TAMBÉM OCUPA A LINHA INTEIRA (06/11/2026). Ela é uma frase («vem do plano
+   * de ensino observado — escolha-o no primeiro bloco») e a grelha do campo tem duas colunas
+   * `auto`: sem esta linha a frase ficava na coluna do rótulo, com a largura do rótulo, e descia
+   * em coluna. É o mesmo defeito que a linha de cima corrigiu para as leituras, um nível abaixo. */
+  .barra details.ctx-ato .ctx-campos > .campo > .sub {
+    grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere;
+  }
   /* O CICLO É `01`. Sem largura declarada, o `<input>` de texto nasce com ~214px — o
      triplo do que o dado precisa, e o que empurrava a senha para a segunda linha.
-     No PO o campo é uma LISTA (`listarCiclosDoPo`), e uma lista mostra o texto escolhido:
-     4.5rem corta-o quando o número tem dois dígitos e a seta ocupa a direita. */
+     No PO o campo deixou de existir (06/11/2026): o ciclo é uma INSCRIÇÃO
+     (`mostrarCicloDoPo`), e o `<input>` que guarda o valor está `hidden`. */
   #ctx-ciclo { width: 4.5rem; }
   select#ctx-ciclo { width: auto; min-width: 5.5rem; }
   /* A INSCRIÇÃO AO LADO DE UM CONTROLE OCUPA A MESMA CAIXA DE LINHA. Os campos se alinham
@@ -1054,6 +1061,11 @@ const SUGERIDAS = new Set();   // ids que a pré-inscrição semeou, não a prof
 // declara. Fica num mapa à parte (`PLANO_RESPOSTAS`) para a regra declarada no conteúdo
 // (`derivadoDe.doPlano`) saber onde olhar sem confundir as duas fontes.
 let PLANO_RESPOSTAS = new Map();
+/* O CICLO QUE O PLANO OBSERVADO DECLARA (06/11/2026). Lido do ENVELOPE do plano — a autoridade —
+ * e não da lista da estante, que é um retrato do índice. `carimbo` guarda de que plano ele é: o
+ * cabeçalho só o usa quando o plano em causa é o escolhido, senão um ciclo antigo ficaria a
+ * nomear um plano novo. */
+let PLANO_CICLO = { carimbo: '', ciclo: '' };
 // A correção socrática (Frente 5): id -> o VALOR já apontado. Pergunta-se UMA vez
 // por resposta — se a professora insiste no mesmo texto, o sistema respeita e
 // deixa seguir; se reformula, a checagem roda de novo.
@@ -1773,8 +1785,9 @@ async function carregarCiclos() {
  */
 function travarCicloNoProximo() {
   const campo = $('ctx-ciclo');
-  /* NO PO NÃO SE TRAVA NO PRÓXIMO: o campo é uma LISTA dos ciclos que já têm plano
-   * (`listarCiclosDoPo`), e «o próximo» seria o ciclo que ainda não tem plano nenhum. */
+  /* NO PO NÃO SE TRAVA NO PRÓXIMO — e desde 06/11/2026 não se trava nada: o ciclo do PO deixou
+   * de ser um campo, porque ele é o do plano de ensino observado (`mostrarCicloDoPo`). «O próximo»
+   * seria, além disso, o ciclo que ainda não tem plano nenhum. */
   if (!campo || FONTE === 'anamnese' || FONTE === 'po') return;
   const dados = CICLOS_DA_ESCOLA;
   const jaTem = String(campo.value || '').trim();
@@ -1809,79 +1822,123 @@ function travarCicloNoProximo() {
   }
 }
 
-/* O CICLO DO PO É UMA LISTA — e só dos ciclos que têm plano de ensino (05/11/2026).
+/* O CICLO DO PO NÃO SE ESCOLHE — LÊ-SE DO PLANO DE ENSINO OBSERVADO (06/11/2026).
  *
- * A REGRA, dita por ela: «Não é permitido criar um Plano de Observação para um ciclo que ainda
- * não possui um Plano de Ensino consolidado. O seletor de ciclo no formulário do Plano de
- * Observação deve ser um menu suspenso, exibindo apenas os ciclos que já possuem Plano de Ensino
- * criado e ativo.»
+ * A REGRA, dita por ela, e a segunda vez que a pede: «eu quero evitar que eu tenha um plano de
+ * ensino chamado ciclo um e aí eu esqueça o número e o professor vá lá e coloque que então agora
+ * eu acho que é ciclo 20». A entrega anterior foi a METADE DE BAIXO: um menu suspenso com os
+ * ciclos que têm plano (05/11/2026) e uma recusa no servidor quando os dois números divergem. Um
+ * menu é conveniência — ele oferece o leque, e o leque tem mais de uma opção quando a escola tem
+ * mais de um ciclo planejado. A recusa chega DEPOIS, como um «não» a explicar um erro que já se
+ * escreveu. O que ela pediu é outra coisa: *«ele é um campo diretamente vinculado ao plano de
+ * ensino que eu escolhi… quando eu escolho ele, automaticamente ele tem que preencher para mim
+ * qual é o ciclo»*.
  *
- * PORQUE NÃO É A TRAVA DO PLANO. No plano de ensino o campo trava no PRÓXIMO número da sequência
- * (`travarCicloNoProximo`): ele vai CRIAR um ciclo. O PO não cria nada — ele observa um plano que
- * já existe, e «o próximo» seria exactamente o ciclo que ainda não tem plano nenhum. São duas
- * perguntas diferentes, e por isso dois comportamentos: uma lista para escolher, um número para
- * continuar.
+ * POR ISSO O CAMPO DEIXOU DE SER UM CAMPO. Ele não tem pergunta própria: o ciclo do PO é o ciclo
+ * do plano que ele observa, e essa pergunta já foi respondida quando o plano foi feito. Um campo
+ * que só pode ter um valor certo não é um campo — é uma leitura, e a tela já tinha a peça: é
+ * exactamente o que faz com a TURMA (`leituraDaTurmaDoPo`), com a LINHA DE BASE
+ * (`renderLinhaDeBaseDoCabecalho`) e com as cinco condições do plano (`renderLeiturasDoCabecalho`).
+ * O ciclo era o último que ainda se escolhia ao lado de dados que se leem. A cadeia fica inteira
+ * e na ordem: **plano de ensino → ciclo → turma → linha de base → alunas**.
  *
- * QUEM DIZ QUAIS SÃO é o servidor (`GET /api/ciclos` → `comPlano`), não a tela: uma segunda cópia
- * da regra divergiria dela, e a lista passaria a oferecer ciclos que o servidor recusa.
+ * AS TRÊS PEÇAS, e nenhuma é nova: `.ctx-rotulo` (o rótulo, na linha inteira), `.ctx-inscricao`
+ * (o valor, que não se edita) e o `<input hidden>` que continua no DOM — porque é dele que
+ * `contextoDoAto()` lê o `contexto.ciclo` do envelope, e trocar a peça sem manter a entrada
+ * apagaria o ciclo do documento em silêncio.
  *
- * O `<input>` do markup é TROCADO por um `<select>` aqui — o ficheiro é o mesmo para as três
- * fontes, e é a fonte que decide a forma do campo (como já acontece com o `select` da aluna).
- * O valor que o campo já tinha é TRANSFERIDO: no `?ajustar=` o contexto chega do envelope antes
- * desta função, e trocar o nó sem passar o valor apagaria o ciclo do documento que se está a
- * ajustar.
+ * DE ONDE VEM O VALOR, e por esta ordem, porque as duas fontes podem discordar por um instante:
+ *   1. `PLANO_CICLO` — o `contexto.ciclo` do ENVELOPE do plano, que é a autoridade e já foi lido
+ *      (`semearDoPlano`/`carregarPlanoReferenciado`);
+ *   2. o `ciclo` da opção da estante (`api/planos`), que é o que existe antes de o envelope chegar.
+ * Sem plano escolhido não há ciclo, e a nota diz isso em vez de deixar o «—».
+ *
+ * E O SERVIDOR DERIVA OUTRA VEZ. Esta função é conveniência; quem manda é `POST /api/elicitar`,
+ * que sobrescreve o ciclo com o do plano antes de gravar. Um campo travado na tela é uma promessa
+ * do cliente, e o cliente não é a autoridade.
  */
-function listarCiclosDoPo() {
-  let campo = $('ctx-ciclo');
-  if (!campo || FONTE !== 'po') return null;
-  const atual = String(campo.value || '').trim();
-  if (campo.tagName !== 'SELECT') {
-    const lista = document.createElement('select');
-    lista.id = 'ctx-ciclo';
-    lista.setAttribute('aria-describedby', 'ctx-ciclo-nota');
-    campo.parentNode.replaceChild(lista, campo);
-    campo = lista;
+function cicloDoPlanoReferenciado() {
+  const bruto = RESPOSTAS.get('plano-de-ensino');
+  const carimbo = String((Array.isArray(bruto) ? bruto[0] : bruto) || '').trim();
+  if (!carimbo) return { carimbo: '', ciclo: '', origem: '', conhecido: false };
+  /* O ENVELOPE RESPONDE POR ESTE PLANO, mesmo que ele não declare ciclo: `carimbo` igual quer
+   * dizer «já li este». É a diferença entre «não sei» e «sei que não tem» — e ela decide se o
+   * valor anterior pode ficar no ecrã. */
+  if (PLANO_CICLO.carimbo === carimbo) {
+    return { carimbo, ciclo: PLANO_CICLO.ciclo, origem: 'envelope', conhecido: true };
   }
-  const dados = CICLOS_DA_ESCOLA;
-  const elegiveis = dados && Array.isArray(dados.comPlano) ? dados.comPlano.slice() : [];
-  /* O CICLO QUE O DOCUMENTO JÁ TEM NÃO DESAPARECE. Um PO cujo plano foi apagado continua a
-   * abrir no ciclo dele: retirar-lhe a opção escolhida deixaria o campo vazio e o documento
-   * ilegível — e o que se está a ver é um registo que existe. */
-  if (atual && elegiveis.indexOf(atual) === -1) elegiveis.push(atual);
-  elegiveis.sort();
-  const comPlano = (dados && Array.isArray(dados.comPlano)) ? dados.comPlano : [];
-  campo.textContent = '';
-  for (const ciclo of elegiveis) {
-    const opcao = document.createElement('option');
-    opcao.value = ciclo;
-    /* O CICLO QUE NÃO TEM PLANO DIZ-SE (05/11/2026). Ele só aparece quando é o valor que o
-     * documento já tinha — um PO que ficou num ciclo cujo plano foi apagado. Escolhê-lo não é
-     * uma opção como as outras: o servidor recusa gravar, e a opção tem de o anunciar em vez de
-     * deixar a pessoa descobrir no «Guardar». */
-    opcao.textContent = comPlano.indexOf(ciclo) === -1
-      ? ciclo + ' — sem plano de ensino' : ciclo;
-    campo.appendChild(opcao);
+  const estante = OPCOES.get(enderecoDosPlanos()) || [];
+  const achado = estante.find((o) => String(o.valor) === carimbo);
+  const ciclo = String((achado && achado.ciclo) || '').trim();
+  return { carimbo, ciclo, origem: ciclo ? 'estante' : '', conhecido: Boolean(achado) };
+}
+
+function mostrarCicloDoPo() {
+  const caixa = document.getElementById('ctx-ciclo-campo');
+  if (!caixa || FONTE !== 'po') return null;
+
+  /* A TROCA DA PEÇA, uma vez. `#ctx-ciclo` nasce `<input type="text">` porque no PLANO DE ENSINO
+   * é mesmo um campo (o que trava no próximo número). Aqui ele vira `hidden`, e no lugar dele
+   * entram o rótulo e a inscrição. */
+  let nome = document.getElementById('ctx-ciclo-nome');
+  const entrada = document.getElementById('ctx-ciclo');
+  if (!entrada) return null;
+  if (!nome) {
+    const rotulo = caixa.querySelector('label[for="ctx-ciclo"]');
+    if (rotulo) {
+      const rot = document.createElement('span');
+      rot.className = 'ctx-rotulo';
+      rot.textContent = rotulo.textContent;
+      rotulo.parentNode.replaceChild(rot, rotulo);
+    }
+    const inscricao = document.createElement('span');
+    inscricao.className = 'ctx-inscricao';
+    inscricao.id = 'ctx-ciclo-nome';
+    entrada.parentNode.insertBefore(inscricao, entrada);
+    entrada.setAttribute('type', 'hidden');
+    entrada.removeAttribute('readonly');
+    entrada.removeAttribute('inputmode');
+    entrada.removeAttribute('maxlength');
+    nome = inscricao;
   }
-  if (elegiveis.length) {
-    campo.value = elegiveis.indexOf(atual) !== -1 ? atual : elegiveis[0];
-  } else {
-    /* NENHUM CICLO TEM PLANO. A lista fica vazia e o campo DIZ porquê — o silêncio é o defeito
-     * que se está a corrigir, e um campo vazio sem explicação parece uma avaria. E fica travado:
-     * um campo de escolha sem escolhas não é uma pergunta. */
-    campo.value = atual;
-    campo.disabled = true;
-  }
+
+  const lido = cicloDoPlanoReferenciado();
+  /* O VALOR DO ENVELOPE NÃO SE PERDE quando ainda não há plano na mão (o `?ajustar=` abre com o
+   * contexto antes de a estante chegar). `contextoDoAto()` lê este `<input>` — apagá-lo aqui
+   * esvaziaria o ciclo de um documento que já existe, e o rascunho guardado no navegador passaria
+   * a valer menos do que valia. */
+  /* QUANDO O VALOR ANTERIOR PODE FICAR, e é o único caso: o plano escolhido ainda não foi LIDO
+   * (a estante não chegou, o envelope não veio) — apagar ali seria trocar um valor certo por um
+   * vazio por causa de uma leitura lenta. Fora disso, o valor é o que o plano diz: se ele não
+   * declara ciclo, o campo fica VAZIO. Deixá-lo com o número do plano anterior seria a pior das
+   * mentiras — a tela a afirmar «02» sobre um plano que não é do 02. */
+  if (lido.ciclo) entrada.value = lido.ciclo;
+  else if (!lido.carimbo || lido.conhecido) entrada.value = '';
+
+  nome.textContent = entrada.value || '';
+  nome.title = lido.ciclo
+    ? 'Não se preenche aqui: é o ciclo do plano de ensino ' + lido.carimbo + '.'
+    : 'Não se preenche aqui: vem do plano de ensino observado.';
+
   const nota = document.getElementById('ctx-ciclo-nota');
   if (nota) {
-    nota.textContent = elegiveis.length
-      ? 'Só os ciclos com plano de ensino consolidado podem ser observados. '
-        + (dados && dados.comPlano.length ? 'Com plano: ' + dados.comPlano.join(', ') + '.'
-          : 'Este ciclo ainda não tem plano: o PO observa um plano que já existe.')
-      : 'Nenhum ciclo desta escola tem plano de ensino consolidado — o Plano de Observação observa '
-        + 'um plano que já existe. Crie o plano de ensino antes de observar.';
+    let texto = '';
+    if (!lido.carimbo) {
+      texto = 'Vem do plano de ensino observado — escolha-o no primeiro bloco, e o ciclo aparece aqui.';
+    } else if (lido.ciclo) {
+      texto = 'O ciclo do plano de ensino escolhido. Não se escreve: o Plano de Observação '
+        + 'observa o plano do SEU ciclo, e o ciclo do documento vem dele.';
+    } else {
+      texto = 'O plano «' + lido.carimbo + '» não declara ciclo — sem ele, este Plano de '
+        + 'Observação não sabe a que ciclo pertence. Confira o plano de ensino.';
+    }
+    nota.textContent = texto;
     nota.hidden = false;
   }
-  return campo;
+  /* A MARCA DE FALTA NÃO SE TOCA AQUI. `marcarContextoFaltando` já a põe nesta caixa, e lê o
+   * próprio `<input>` — que é este. Duas funções a escrever a mesma classe é o começo de duas
+   * opiniões sobre o mesmo campo. */
+  return entrada;
 }
 
 /* A leitura das dimensões derivadas — o mesmo `{valor, nota}` das respostas. */
@@ -2772,6 +2829,10 @@ function travarCabecalho(travado) {
     '.ctx-campos input, .ctx-campos select, .ctx-campos textarea, .ctx-campos button');
   for (const c of controles) {
     if (c.id === 'senha') continue;
+    /* UM `hidden` NÃO É UM CONTROLE (06/11/2026). `#ctx-ciclo` é o que guarda o ciclo derivado do
+     * plano no Plano de Observação: desligá-lo não muda nada (o `value` continua a ler-se), mas
+     * deixa no DOM um campo «desligado» a dizer que o ciclo do ato está travado por outra razão. */
+    if (String(c.type || '').toLowerCase() === 'hidden') continue;
     c.disabled = CABECALHO_TRAVADO;
   }
   if (barra.classList && barra.classList.toggle) barra.classList.toggle('ctx-travado', CABECALHO_TRAVADO);
@@ -3335,6 +3396,8 @@ function esquecerPlanosDoProfessor() {
   }
   esquecerSujeitosDaTurma();
   PLANO_RESPOSTAS.clear();
+  PLANO_CICLO = { carimbo: '', ciclo: '' };
+  mostrarCicloDoPo();
 }
 
 /*
@@ -3553,6 +3616,11 @@ function gravarRespostaDoNo(no) {
   if (FONTE === 'po') {
     renderTurmaDoCabecalho();
     renderLeiturasDoCabecalho();
+    /* TROCAR O PLANO TROCA O CICLO (06/11/2026) — e é este o gesto que ela descreveu: «quando eu
+     * escolho ele, automaticamente ele tem que preencher para mim qual é o ciclo». Vem por último
+     * porque a estante do plano NOVO já foi buscada por `renderTurmaDoCabecalho`. */
+    mostrarCicloDoPo();
+    marcarContextoFaltando();
   }
 }
 
@@ -6276,6 +6344,13 @@ async function semearDoPlano() {
     return;
   }
   if (!plano || typeof plano.respostas !== 'object' || plano.respostas === null) return;
+  /* O CICLO DO PLANO, guardado com o carimbo dele (06/11/2026): é desta leitura que sai o valor da
+   * inscrição do ciclo no cabeçalho. Vem do envelope e não da estante porque o envelope é a
+   * autoridade — a estante é um resumo do índice, e um resumo pode estar de ontem. */
+  PLANO_CICLO = {
+    carimbo: String(carimbo || ''),
+    ciclo: String((plano.contexto && plano.contexto.ciclo) || '').trim(),
+  };
 
   // O envelope gravado guarda `respostas` como {id: {valor, origem, …}} — a
   // semeadura precisa do valor cru, como a do contexto do ato.
@@ -6548,7 +6623,9 @@ async function carregarPlanoReferenciado() {
   const carimbo = RESPOSTAS.get('plano-de-ensino');
   if (!carimbo || typeof carimbo !== 'string') {
     PLANO_RESPOSTAS.clear();
+    PLANO_CICLO = { carimbo: '', ciclo: '' };
     atualizarBarra();
+    mostrarCicloDoPo();
     return;
   }
   if (PLANO_RESPOSTAS.get('__carimbo') === carimbo) return;
@@ -6556,6 +6633,10 @@ async function carregarPlanoReferenciado() {
     const envelope = await carregarDetalhe({
       carimbo, detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
     });
+    PLANO_CICLO = {
+      carimbo: String(carimbo || ''),
+      ciclo: String((envelope.contexto && envelope.contexto.ciclo) || '').trim(),
+    };
     PLANO_RESPOSTAS.clear();
     PLANO_RESPOSTAS.set('__carimbo', carimbo);
     for (const [id, reg] of Object.entries(envelope.respostas || {})) {
@@ -9174,8 +9255,12 @@ async function iniciar() {
   /* E O CICLO, NAS OUTRAS DUAS. No plano trava-se no PRÓXIMO VÁLIDO; no PO é uma LISTA dos
    * ciclos que já têm plano. A lista chega depois (o servidor é que sabe quais existem), e é ela
    * que decide o que o campo mostra. */
+  /* O PO já não pede a lista de ciclos: ele não escolhe nenhum (06/11/2026) — o ciclo vem do plano
+   * de ensino observado. A lista (`GET /api/ciclos`) continua a existir para o PLANO DE ENSINO, que
+   * é onde um ciclo NASCE e onde o campo trava no próximo número válido. */
   if (FONTE === 'po') {
-    carregarCiclos().then(() => { listarCiclosDoPo(); marcarContextoFaltando(); });
+    mostrarCicloDoPo();
+    marcarContextoFaltando();
   } else if (FONTE === 'plano') {
     carregarCiclos().then(() => { travarCicloNoProximo(); marcarContextoFaltando(); });
   }
@@ -9418,6 +9503,10 @@ async function iniciar() {
   if (FONTE === 'po') {
     renderTurmaDoCabecalho();
     renderLeiturasDoCabecalho();
+    /* O CICLO DEPOIS DA TURMA (06/11/2026): as duas leituras vêm do mesmo plano, e é depois desta
+     * chamada que `PLANO_CICLO` tem o valor do envelope — antes dela só haveria a estante. */
+    mostrarCicloDoPo();
+    marcarContextoFaltando();
   }
 
   // E a barra volta a semear quando muda: é ela que carrega a identidade do ato.

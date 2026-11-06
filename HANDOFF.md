@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T22:25:08-0300`
-Commit atual: `90e9eb9d` — docs(registro): o envio da linha de base confirmado em producao
+Gerado em: `2026-11-06T08:05:54-0300`
+Commit atual: `77903696` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -69,7 +69,7 @@ teclado-abnt
 tela-de-celular
 tiago-menegaz
 vaso-bonito (20)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -86,26 +86,26 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+77903696 chore(estrutura): regerar os índices derivados
+097293bc chore(estrutura): reancorar a cadeia das fontes alteradas
+61b0d1b7 chore(estrutura): regerar os índices derivados
+b3024c5b feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+0dd03467 feat(plano): o plano elicitado vira a fonte do ciclo
+808a38f0 feat(acervo): envelope/plano-20261106-0744.json
+265f57c6 feat(acervo): envelope/.indice.json
+67e4b10f chore(estrutura): regerar os índices derivados
+2aa9e76d feat(linha de base): índice — teste 20261106-0202
+e42791c4 feat(linha de base): teste → Balé Nível 1 — Teste 1
+9f7a9978 chore(estrutura): regerar os índices derivados
+ce0f6fd7 feat(acervo): envelope/.indice.json
+7b1bf1b0 chore(acervo): apagar envelope/anamnese-20261105-2015.json
+0e6f9171 feat(acervo): envelope/anamnese-20261105-2301.json
+12e47f25 feat(acervo): envelope/.indice.json
+61b19782 fix(tools): o .indice.json da pasta nao e um recorte
 90e9eb9d docs(registro): o envio da linha de base confirmado em producao
 c1f86f60 chore(estrutura): regerar os índices derivados
 318653d0 chore(linha de base): índice — apagar teste
 2c1c928c chore(linha de base): apagar teste
-a68f6f80 chore(estrutura): regerar os índices derivados
-77f456dc feat(linha de base): índice — teste 20261106-0122
-a9768488 feat(linha de base): teste → Balé Nível 1 — Teste 1
-dce02dda fix(po): o envio da linha de base leva o User-Agent que o GitHub exige
-b5dde88d feat(tools): guarda que reprova chamada ao GitHub sem User-Agent
-e5c81062 fix(po): o acto da linha de base nao depende da arvore do repositorio
-4afae9a3 fix(po): a escrita do acto nao mente, e /api/** responde sempre JSON
-61fcf8e0 feat(tools): o recorte entra no indice gerado, com a serie
-1f233691 feat(po): a estante diz se o repositorio esta alcancavel
-a9f1f79c feat(po): a linha de base sai do KV — o acto passa a ser um ficheiro, append-only
-fb95e768 feat(po): o elenco do Plano de Observacao deixa de se escolher — vem da turma
-8084cf8a fix(po): a aluna na listagem, e a linha de base como fonte do elenco
-5c6316b1 feat(po): o indice do recorte — o que os professores olham no corpo, e o que nao olham
-1ed80c0d fix(po): «o que ja e bom» passa a ser o que ALGUMA aluna tem de bom, e nao o que todas acertaram
-55038263 chore(estrutura): regerar os índices derivados
-b3deb0dd feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -146,15 +146,17 @@ b3deb0dd feat(acervo): envelope/.indice.json
 
 ### rabo-gramde — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): calango
+**Ciclo 01** — variante(s): calango, calango-bale-nivel-1-teste-1
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | calango | (sem PO) | — | — |
+| calango-bale-nivel-1-teste-1 | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `31de8f746770` | (vazio) | — |
+| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `20554e1c9f0a` | (vazio) | — |
 
 ### sapo-bailarino — 1 ciclo(s)
 
@@ -231,52 +233,96 @@ b3deb0dd feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O índice não é recorte: o ficheiro da casa entrou como dado do professor
+## 06/11/2026 — O ciclo do Plano de Observação deixa de se escrever
 
-**O que motivou.** A primeira execução a sério do `regerar-indices` depois de os actos passarem a
-ficheiro — a que correu sozinha às 01:22, quando o envio finalmente gravou — escreveu em
-`indices/escolas/calango.json` **dois** recortes onde havia um:
+**O que motivou.** Palavras dela, e é a segunda vez que pede a mesma coisa:
 
-```
-recorte:.indice   vigente: true   alunas: 0   aspectos: []
-recorte:teste     vigente: false  alunas: 2   aspectos: [arquitetura-do-arco-plantar, …]
-```
+> «eu quero evitar que eu tenha um plano de ensino chamado ciclo um e aí eu esqueça o número e o
+> professor vá lá e coloque que então agora eu acho que é ciclo 20… Eu tenho que estar dentro do
+> mesmo ciclo o plano de ensino e o plano de observação.»
 
-O `.indice.json` é o **somatório das versões**, mora na mesma pasta `linhas-de-base/` e tem a mesma
-forma de nome. A regra do gerador (`/^escola\/([a-z0-9-]+)\/linhas-de-base\/([^/]+)\.json$/`)
-aceitava-o, e o índice resultante apresentava ao professor um recorte que nunca existiu — com zero
-alunas e sem aspectos, o que ainda por cima o faria aparecer no fim de qualquer ranque.
+E, sobre a entrega anterior: *«Ele não tem aqui a relação que eu te pedi para fazer que amarra o
+plano de ensino ao ciclo. E eu não sei porque você disse que fez, mas não entregou.»*
 
-**O que foi decidido.** Um ficheiro que começa por `.` é **da casa**, não do professor; e um acto tem
-**sempre** `<id>--<carimbo>` — sem o separador não há carimbo, e sem carimbo não há série. As duas
-condições ficam no `lerRecortes`, e o que não passa **não entra em silêncio**: a prova exige que o
-`.indice.json` e um ficheiro sem separador fiquem de fora, com o controle positivo de que o acto
-verdadeiro continua a entrar.
+**Ela tem razão, e a razão é precisa.** O que foi entregue a 05/11/2026 foi a **metade de baixo**:
+um menu suspenso com os ciclos que têm plano (`GET /api/ciclos` → `comPlano`) e uma recusa no
+servidor (`recusaDaRelacaoDoCiclo`). Um menu oferece o **leque**; com uma opção não há escolha,
+com duas volta a haver. A recusa chegava **depois de o número estar escrito** — é uma explicação
+do erro, não a sua prevenção. O que ela pediu é outra coisa: *«quando eu escolho ele,
+automaticamente ele tem que preencher para mim qual é o ciclo.»*
 
-**Onde entrou.** `tools/gerar-indices.js` — `lerRecortes`, duas linhas de guarda. `indices/` — os
-índices derivados regerados (o `.indice` sai do `calango.json`). `experimentos/provar-recorte-no-indice.js`
-— 40 → **42** asserções.
+**A leitura da documentação, que ela pediu antes de decidir.** O `ARQUITETURA-GERAL.md` §5.10 diz,
+por palavras minhas, que «a primeira entrega foi a metade de cima» — e ficou a faltar a de baixo.
+O resto do documento já tinha a regra que resolve isto, e não estava a ser aplicada ao ciclo: o
+**plano é a declaração**, e o que dele deriva **não se pergunta**. É assim com a turma
+(`leituraDaTurmaDoPo`), com a linha de base (`renderLinhaDeBaseDoCabecalho`) e com as cinco
+condições do plano (`renderLeiturasDoCabecalho`). O ciclo era o único dado de origem única que
+ainda se escolhia ao lado dos que se leem.
 
-**Medido.** `provar-recorte-no-indice` **42/42**; `check-indices` **16/16**; e o índice do disco é o
-que o gerador produz (a asserção de «sem regeneração pendente» continua a passar).
+**O que foi decidido.**
 
-**O que ainda não está feito.** Os índices regerados são um commit do `chore(estrutura)`, e a
-Action volta a escrevê-los na próxima vez que alguém gravar um acto — o que é o desenho, não uma
-lacuna. E o `recorte:teste` está `vigente: false` porque a linha foi **apagada** por ela às 01:23;
-a série fica (dois actos), o ranque não conta. É o comportamento certo, e é o primeiro caso real
-da lápide num índice publicado.
+- **O ciclo do PO não é um campo: é uma inscrição.** No cabeçalho, o `<input>` de texto dá lugar a
+  `.ctx-rotulo` + `.ctx-inscricao` — as peças que a barra já usa —, e o `<input>` fica `hidden`
+  porque é dele que `contextoDoAto()` lê o `contexto.ciclo` do envelope. Nada de novo na folha: a
+  peça vem do catálogo, e a única regra de CSS nova é a da NOTA do campo ocupar a linha inteira
+  (a mesma correcção que a linha de cima fez para as leituras, um nível abaixo).
+- **O valor vem do plano, e a tela diz de onde.** `PLANO_CICLO` guarda o ciclo do ENVELOPE do plano
+  observado (a autoridade), com o carimbo de quem é; a estante (`api/planos` → `ciclo`) serve antes
+  de o envelope chegar. Sem plano escolhido não há ciclo, e a nota **diz isso** em vez de deixar um
+  «—» a parecer avaria. Um plano antigo que não declara ciclo deixa o campo vazio e a nota nomeia a
+  lacuna.
+- **O servidor deriva outra vez, e é ele que manda.** `cicloDoPlanoDeclarado` lê o plano antes de
+  qualquer conferência e **sobrescreve** `corpo.contexto.ciclo`. A recusa continua a existir para
+  onde a derivação não chega (um plano sem ciclo declarado, um acervo ilegível) — aí comparar
+  ainda é a única coisa honesta. O que ela deixou de fazer é recusar uma discordância que já não
+  pode acontecer.
+- **O PO deixa de pedir a lista de ciclos.** `api/ciclos` continua a existir e continua a servir o
+  **Plano de Ensino**, que é onde um ciclo NASCE e onde o campo trava no próximo número da
+  sequência. São duas perguntas diferentes: uma lista para observar um ciclo que existe, um número
+  para abrir o seguinte.
+- **Um valor velho não fica no ecrã.** Quando o plano escolhido não declara ciclo, o campo fica
+  vazio — mas só quando o plano é **conhecido** (`conhecido` diz «já li este plano»). Enquanto a
+  leitura não chega, o valor anterior permanece: apagá-lo seria trocar um valor certo por um vazio
+  por causa de uma leitura lenta. Foi a prova que apanhou esta distinção, na primeira versão.
+
+**Onde entrou.** `motor/servidor/rotas.js` — `cicloDoPlanoDeclarado`, a sobrescrita na rota
+`POST /api/elicitar`, e a recusa a receber o ciclo já lido (`doPlano`) em vez de o ler outra vez.
+`porta/index.html` — `cicloDoPlanoReferenciado`, `mostrarCicloDoPo` (substitui `listarCiclosDoPo`),
+`PLANO_CICLO` alimentado por `semearDoPlano` e `carregarPlanoReferenciado`, as três chamadas do
+cabeçalho, a regra da nota, e `travarCabecalho` a não desligar um `hidden`.
+`porta/po/conteudo/po.json` — o `porQue` do nó `plano-de-ensino` passa a dizer que o ciclo vem dele.
+`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/` — a cópia do pacote regerada.
+
+**Com o quê.** `experimentos/provar-ciclo-herdado-do-plano.js` (**novo, 20 asserções**) — jsdom
+sobre a página de verdade, servida por HTTP: o campo é um `hidden` e não há `<select>`; o PO não
+pede `api/ciclos`; o valor chega do plano; **trocar o plano troca o ciclo**; sem plano não se
+inventa ciclo e o acto fica incompleto; a lacuna do plano antigo tem nome. E o **controle negativo**
+(`--controle-negativo`), que corre a mesma medida contra `git show HEAD:porta/index.html` e
+**reprova em 14 das 20** — com `0` de falhas na página nova. Entre as que reprovam está a que
+mostra o defeito de origem: com a estante vazia, a página antiga oferecia «01» sem plano nenhum.
+`experimentos/provar-relacoes-do-ciclo.js` — a secção 2 **invertida, não apagada**: onde exigia
+409, passa a exigir 200 com o ciclo do documento em `01`; e um plano sem ciclo declarado, aí sim,
+entra com o ciclo que veio.
+
+**Medido.** `provar-ciclo-herdado-do-plano` **20/20** (e o controle negativo a reprovar 14);
+`provar-relacoes-do-ciclo` **23/23**; `provar-producao` **159/159**; `provar-eixos-do-po`
+**34/34**; `provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `provar-linha-de-base`
+**104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna` **20/20**;
+`provar-sujeitos-da-turma` **41/41**; `provar-recorte-no-indice` **42/42**;
+`provar-indice-do-recorte` **24/24**; `provar-cabecalhos-do-github` **34/34**;
+`provar-linha-de-base-no-repo` **39/39**; `provar-escrita-do-acto` **21/21**;
+`check-identidade` **0 erros**; `check-indices` **16/16**.
+
+**O que ainda não está feito.** (1) `provar-novo-registo-e-ciclo.js` e `provar-cabecalho-do-ato.js`
+dependem do Chrome, e neste ambiente o `goto` expira — **antes desta mudança também expirava** (medido
+com `git stash`), e um deles lê um envelope da escola `breu`, que já foi expurgada. O ciclo do PO
+nessas duas provas (que exigiam a LISTA) fica por actualizar quando houver navegador. (2) A ordem
+visual: o ciclo aparece ANTES do plano no cabeçalho, e o valor só existe depois de o plano ser
+escolhido no primeiro bloco — é o que ela descreveu («quando eu escolho ele, automaticamente ele tem
+que preencher»), mas quem abrir a página verá «—» até escolher. Se incomodar, o plano sobe para o
+cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que ciclo) e o plano é conteúdo.
 
 ## O que está pendente
-
-## 05/11/2026 — «O que já é bom» ficava vazio porque o apoio da observação inicial era lido como nível
-
-
-- **A leitura guardada no KV é a antiga.** O que está gravado em `bastidores/<escola>/linhas-de-base`
-  foi calculado pelo código anterior: depois do deploy, é preciso **reler** (passo 3 → «Ler as
-  anamneses») para os números passarem a ser os correctos. Ler é um gesto, e não se refaz sozinho.
-- **A excelência de cada aluna não tem onde se ler como LISTA.** A definição documentada é de grupo, e
-  a informação individual existe só dentro do texto de cada linha («1 de 2 em «Bom»»). O que fazer
-  com ela — frase, coluna «quem já está bem», ou bloco por aluna — é decisão dela, e está em aberto.
 
 ## 05/11/2026 — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom, e não o que todas acertaram
 
@@ -313,6 +359,17 @@ Action volta a escrevê-los na próxima vez que alguém gravar um acto — o que
 lacuna. E o `recorte:teste` está `vigente: false` porque a linha foi **apagada** por ela às 01:23;
 a série fica (dois actos), o ranque não conta. É o comportamento certo, e é o primeiro caso real
 da lápide num índice publicado.
+
+## 06/11/2026 — O ciclo do Plano de Observação deixa de se escrever
+
+(1) `provar-novo-registo-e-ciclo.js` e `provar-cabecalho-do-ato.js`
+dependem do Chrome, e neste ambiente o `goto` expira — **antes desta mudança também expirava** (medido
+com `git stash`), e um deles lê um envelope da escola `breu`, que já foi expurgada. O ciclo do PO
+nessas duas provas (que exigiam a LISTA) fica por actualizar quando houver navegador. (2) A ordem
+visual: o ciclo aparece ANTES do plano no cabeçalho, e o valor só existe depois de o plano ser
+escolhido no primeiro bloco — é o que ela descreveu («quando eu escolho ele, automaticamente ele tem
+que preencher»), mas quem abrir a página verá «—» até escolher. Se incomodar, o plano sobe para o
+cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que ciclo) e o plano é conteúdo.
 
 ## Pendências anteriores (índice)
 
@@ -677,6 +734,7 @@ da lápide num índice publicado.
 - **05/11/2026** — A tira grava, o «Ler» grava, o excluir fecha o formulário —… → `REGISTRO.md` L36180
 - **05/11/2026** — O passo 5 sem turma diz o que falta, a curadoria deixa de… → `REGISTRO.md` L36243
 - **05/11/2026** — A linha de base lia 30 dos 49 nós, e a Curadoria prometia o… → `REGISTRO.md` L36350
+- **05/11/2026** — «O que já é bom» ficava vazio porque o apoio da observação… → `REGISTRO.md` L36452
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).

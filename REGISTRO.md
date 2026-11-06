@@ -37173,3 +37173,92 @@ Action volta a escrevê-los na próxima vez que alguém gravar um acto — o que
 lacuna. E o `recorte:teste` está `vigente: false` porque a linha foi **apagada** por ela às 01:23;
 a série fica (dois actos), o ranque não conta. É o comportamento certo, e é o primeiro caso real
 da lápide num índice publicado.
+
+## 06/11/2026 — O ciclo do Plano de Observação deixa de se escrever
+
+**O que motivou.** Palavras dela, e é a segunda vez que pede a mesma coisa:
+
+> «eu quero evitar que eu tenha um plano de ensino chamado ciclo um e aí eu esqueça o número e o
+> professor vá lá e coloque que então agora eu acho que é ciclo 20… Eu tenho que estar dentro do
+> mesmo ciclo o plano de ensino e o plano de observação.»
+
+E, sobre a entrega anterior: *«Ele não tem aqui a relação que eu te pedi para fazer que amarra o
+plano de ensino ao ciclo. E eu não sei porque você disse que fez, mas não entregou.»*
+
+**Ela tem razão, e a razão é precisa.** O que foi entregue a 05/11/2026 foi a **metade de baixo**:
+um menu suspenso com os ciclos que têm plano (`GET /api/ciclos` → `comPlano`) e uma recusa no
+servidor (`recusaDaRelacaoDoCiclo`). Um menu oferece o **leque**; com uma opção não há escolha,
+com duas volta a haver. A recusa chegava **depois de o número estar escrito** — é uma explicação
+do erro, não a sua prevenção. O que ela pediu é outra coisa: *«quando eu escolho ele,
+automaticamente ele tem que preencher para mim qual é o ciclo.»*
+
+**A leitura da documentação, que ela pediu antes de decidir.** O `ARQUITETURA-GERAL.md` §5.10 diz,
+por palavras minhas, que «a primeira entrega foi a metade de cima» — e ficou a faltar a de baixo.
+O resto do documento já tinha a regra que resolve isto, e não estava a ser aplicada ao ciclo: o
+**plano é a declaração**, e o que dele deriva **não se pergunta**. É assim com a turma
+(`leituraDaTurmaDoPo`), com a linha de base (`renderLinhaDeBaseDoCabecalho`) e com as cinco
+condições do plano (`renderLeiturasDoCabecalho`). O ciclo era o único dado de origem única que
+ainda se escolhia ao lado dos que se leem.
+
+**O que foi decidido.**
+
+- **O ciclo do PO não é um campo: é uma inscrição.** No cabeçalho, o `<input>` de texto dá lugar a
+  `.ctx-rotulo` + `.ctx-inscricao` — as peças que a barra já usa —, e o `<input>` fica `hidden`
+  porque é dele que `contextoDoAto()` lê o `contexto.ciclo` do envelope. Nada de novo na folha: a
+  peça vem do catálogo, e a única regra de CSS nova é a da NOTA do campo ocupar a linha inteira
+  (a mesma correcção que a linha de cima fez para as leituras, um nível abaixo).
+- **O valor vem do plano, e a tela diz de onde.** `PLANO_CICLO` guarda o ciclo do ENVELOPE do plano
+  observado (a autoridade), com o carimbo de quem é; a estante (`api/planos` → `ciclo`) serve antes
+  de o envelope chegar. Sem plano escolhido não há ciclo, e a nota **diz isso** em vez de deixar um
+  «—» a parecer avaria. Um plano antigo que não declara ciclo deixa o campo vazio e a nota nomeia a
+  lacuna.
+- **O servidor deriva outra vez, e é ele que manda.** `cicloDoPlanoDeclarado` lê o plano antes de
+  qualquer conferência e **sobrescreve** `corpo.contexto.ciclo`. A recusa continua a existir para
+  onde a derivação não chega (um plano sem ciclo declarado, um acervo ilegível) — aí comparar
+  ainda é a única coisa honesta. O que ela deixou de fazer é recusar uma discordância que já não
+  pode acontecer.
+- **O PO deixa de pedir a lista de ciclos.** `api/ciclos` continua a existir e continua a servir o
+  **Plano de Ensino**, que é onde um ciclo NASCE e onde o campo trava no próximo número da
+  sequência. São duas perguntas diferentes: uma lista para observar um ciclo que existe, um número
+  para abrir o seguinte.
+- **Um valor velho não fica no ecrã.** Quando o plano escolhido não declara ciclo, o campo fica
+  vazio — mas só quando o plano é **conhecido** (`conhecido` diz «já li este plano»). Enquanto a
+  leitura não chega, o valor anterior permanece: apagá-lo seria trocar um valor certo por um vazio
+  por causa de uma leitura lenta. Foi a prova que apanhou esta distinção, na primeira versão.
+
+**Onde entrou.** `motor/servidor/rotas.js` — `cicloDoPlanoDeclarado`, a sobrescrita na rota
+`POST /api/elicitar`, e a recusa a receber o ciclo já lido (`doPlano`) em vez de o ler outra vez.
+`porta/index.html` — `cicloDoPlanoReferenciado`, `mostrarCicloDoPo` (substitui `listarCiclosDoPo`),
+`PLANO_CICLO` alimentado por `semearDoPlano` e `carregarPlanoReferenciado`, as três chamadas do
+cabeçalho, a regra da nota, e `travarCabecalho` a não desligar um `hidden`.
+`porta/po/conteudo/po.json` — o `porQue` do nó `plano-de-ensino` passa a dizer que o ciclo vem dele.
+`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/` — a cópia do pacote regerada.
+
+**Com o quê.** `experimentos/provar-ciclo-herdado-do-plano.js` (**novo, 20 asserções**) — jsdom
+sobre a página de verdade, servida por HTTP: o campo é um `hidden` e não há `<select>`; o PO não
+pede `api/ciclos`; o valor chega do plano; **trocar o plano troca o ciclo**; sem plano não se
+inventa ciclo e o acto fica incompleto; a lacuna do plano antigo tem nome. E o **controle negativo**
+(`--controle-negativo`), que corre a mesma medida contra `git show HEAD:porta/index.html` e
+**reprova em 14 das 20** — com `0` de falhas na página nova. Entre as que reprovam está a que
+mostra o defeito de origem: com a estante vazia, a página antiga oferecia «01» sem plano nenhum.
+`experimentos/provar-relacoes-do-ciclo.js` — a secção 2 **invertida, não apagada**: onde exigia
+409, passa a exigir 200 com o ciclo do documento em `01`; e um plano sem ciclo declarado, aí sim,
+entra com o ciclo que veio.
+
+**Medido.** `provar-ciclo-herdado-do-plano` **20/20** (e o controle negativo a reprovar 14);
+`provar-relacoes-do-ciclo` **23/23**; `provar-producao` **159/159**; `provar-eixos-do-po`
+**34/34**; `provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `provar-linha-de-base`
+**104/104**; `provar-sujeitos-semeados` **22/22**; `provar-etiqueta-da-aluna` **20/20**;
+`provar-sujeitos-da-turma` **41/41**; `provar-recorte-no-indice` **42/42**;
+`provar-indice-do-recorte` **24/24**; `provar-cabecalhos-do-github` **34/34**;
+`provar-linha-de-base-no-repo` **39/39**; `provar-escrita-do-acto` **21/21**;
+`check-identidade` **0 erros**; `check-indices` **16/16**.
+
+**O que ainda não está feito.** (1) `provar-novo-registo-e-ciclo.js` e `provar-cabecalho-do-ato.js`
+dependem do Chrome, e neste ambiente o `goto` expira — **antes desta mudança também expirava** (medido
+com `git stash`), e um deles lê um envelope da escola `breu`, que já foi expurgada. O ciclo do PO
+nessas duas provas (que exigiam a LISTA) fica por actualizar quando houver navegador. (2) A ordem
+visual: o ciclo aparece ANTES do plano no cabeçalho, e o valor só existe depois de o plano ser
+escolhido no primeiro bloco — é o que ela descreveu («quando eu escolho ele, automaticamente ele tem
+que preencher»), mas quem abrir a página verá «—» até escolher. Se incomodar, o plano sobe para o
+cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que ciclo) e o plano é conteúdo.

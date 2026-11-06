@@ -885,7 +885,60 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
  * limitação de bancada numa proibição de gravar. E a SIMULAÇÃO também passa: ela não escreve, e
  * uma prévia não é um documento.
  */
-async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola }) {
+/**
+ * O CICLO DO PO NÃO SE PERGUNTA — LÊ-SE DO PLANO (06/11/2026).
+ *
+ * O QUE ESTAVA FALTO, dito por ela: «eu quero evitar que eu tenha um plano de ensino chamado ciclo
+ * um e aí eu esqueça o número e o professor vá lá e coloque que então agora eu acho que é ciclo
+ * 20». A entrega anterior foi a METADE DE BAIXO: uma lista com os ciclos que têm plano
+ * (`GET /api/ciclos` → `comPlano`) e uma recusa no servidor quando o ciclo do PO não é o do plano.
+ * Uma lista é conveniência; a recusa chega DEPOIS do erro, como um «não» a explicar o que já se
+ * escreveu. O que ela pediu é outra coisa: «ele é um campo diretamente vinculado ao plano de
+ * ensino que eu escolhi… quando eu escolho ele, automaticamente ele tem que preencher para mim
+ * qual é o ciclo».
+ *
+ * A DECISÃO É DE DOMÍNIO, e é a mesma que já governa a TURMA e a LINHA DE BASE do cabeçalho do
+ * PO: um dado que só tem uma origem não se pergunta — mostra-se. A turma do PO vem do plano; a
+ * linha de base vem da turma; e o ciclo, que é do plano por definição, era o único que ainda se
+ * escolhia num campo ao lado. A cadeia fica inteira: **plano → ciclo → turma → linha de base →
+ * alunas**.
+ *
+ * PORQUE NO SERVIDOR E NÃO SÓ NA TELA. Um campo que a tela trava é uma promessa do cliente: quem
+ * manda um `POST` à mão — ou quem tem a página aberta de ontem — escreve o ciclo que quiser. Aqui
+ * o valor é SOBRESCRITO pelo que o plano declara, antes de qualquer conferência: não há dois
+ * números a comparar porque há um só. A recusa que existia continua a valer para o caso em que a
+ * derivação é IMPOSSÍVEL — sem leitor do acervo, ou um plano antigo que não declara ciclo —,
+ * e nesse caso comparar ainda é a única coisa honesta a fazer.
+ *
+ * O QUE ELE NÃO FAZ: não recusa por discordância. Uma discordância aqui não é um erro do
+ * professor, é um pedido mal informado — e a resposta certa a um pedido mal informado é o dado
+ * certo, não um «não». Perder o PO inteiro por causa de um número que o sistema já sabe seria
+ * transformar uma conveniência em obstáculo.
+ */
+async function cicloDoPlanoDeclarado({ armazenamento, corpo }) {
+  const vazio = { lido: false, existe: false, ciclo: '' };
+  if (!corpo || corpo.fonte !== 'po' || corpo.simular) return vazio;
+  const respostas = corpo.respostas && typeof corpo.respostas === 'object' ? corpo.respostas : {};
+  const bruto = respostas['plano-de-ensino'];
+  const planoId = String(
+    bruto && typeof bruto === 'object' && bruto.valor !== undefined ? bruto.valor : (bruto || ''),
+  ).trim();
+  if (!planoId) return { lido: true, existe: false, ciclo: '' };
+  try {
+    const envelope = await porta.lerEnvelope(armazenamento, planoId);
+    if (!envelope) return { lido: true, existe: false, ciclo: '' };
+    return {
+      lido: true,
+      existe: true,
+      ciclo: String((envelope.contexto && envelope.contexto.ciclo) || '').trim(),
+      plano: planoId,
+    };
+  } catch (erro) {
+    return vazio;
+  }
+}
+
+async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano }) {
   const fonte = corpo && corpo.fonte;
   if (fonte !== 'po' && fonte !== 'plano') return null;
   if (corpo && corpo.simular) return null;
@@ -921,11 +974,19 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola }) {
           + 'não é um plano. Plano de Observação sem plano de ensino é um documento órfão — '
           + 'crie o plano primeiro (é ele que fixa o objetivo e os marcos do ciclo) e volte aqui.' };
       }
-      let cicloDoPlano = '';
-      try {
-        const envelope = await porta.lerEnvelope(armazenamento, planoId);
-        cicloDoPlano = String((envelope && envelope.contexto && envelope.contexto.ciclo) || '').trim();
-      } catch (erro) { cicloDoPlano = ''; }
+      /* O CICLO DO PLANO já foi lido por `cicloDoPlanoDeclarado`, antes desta função (06/11/2026):
+       * o `corpo.contexto.ciclo` passou a ser DERIVADO dele. Ler outra vez seria pedir duas vezes
+       * o mesmo, e — pior — as duas leituras podiam discordar. Quando não veio (uma bancada, um
+       * adaptador sem leitor), lê-se aqui como antes. */
+      let cicloDoPlano = doPlano && doPlano.lido
+        ? String(doPlano.ciclo || '').trim()
+        : '';
+      if (!(doPlano && doPlano.lido)) {
+        try {
+          const envelope = await porta.lerEnvelope(armazenamento, planoId);
+          cicloDoPlano = String((envelope && envelope.contexto && envelope.contexto.ciclo) || '').trim();
+        } catch (erro) { cicloDoPlano = ''; }
+      }
       if (ciclo && cicloDoPlano && ciclo !== cicloDoPlano) {
         return { status: 409, motivo: 'o plano «' + planoId + '» é do ciclo ' + cicloDoPlano
           + ', e este Plano de Observação está no ciclo ' + ciclo + ': um PO observa o plano do '
@@ -1038,9 +1099,18 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola }) {
       }
     }
 
+    /* O CICLO VEM DO PLANO, E ANTES DE QUALQUER CONFERÊNCIA (06/11/2026). Sobrescreve-se o que
+     * veio no corpo: o ciclo do PO é o do plano que ele observa, e não há um segundo sítio onde
+     * possa estar escrito outra coisa. */
+    const doPlano = await cicloDoPlanoDeclarado({ armazenamento, corpo });
+    if (doPlano.existe && doPlano.ciclo && corpo.contexto) {
+      corpo.contexto.ciclo = doPlano.ciclo;
+    }
+
     /* A REGRA PE → PO E A SEQUÊNCIA ESTRITA — antes de qualquer gravação, e com o acervo à mão. */
     const recusaDeRelacao = await recusaDaRelacaoDoCiclo({
-      armazenamento, corpo, escola: escolaDoWorker || (corpo.contexto && corpo.contexto.escola),
+      armazenamento, corpo, doPlano,
+      escola: escolaDoWorker || (corpo.contexto && corpo.contexto.escola),
     });
     if (recusaDeRelacao) return recusar(recusaDeRelacao.motivo, recusaDeRelacao.status);
 

@@ -788,6 +788,13 @@ experimentos/modelo-formulario/*
 # sonda; e a contraprova do guarda `tools/check-github-headers.js`, que e corrido sobre ficheiros
 # fabricados para se ver a REPROVAR o defeito antigo.
 !experimentos/provar-cabecalhos-do-github.js
+# O CICLO DO PO VEM DO PLANO (06/11/2026). Ela pediu duas vezes: «quando eu escolho ele,
+# automaticamente ele tem que preencher para mim qual é o ciclo». A prova mede a TELA em jsdom,
+# sobre a pagina de verdade servida por HTTP: o campo e uma inscricao e nao um select, o PO deixa
+# de pedir api/ciclos, o valor chega do plano escolhido, trocar o plano troca o ciclo, sem plano
+# nao se inventa ciclo, e a lacuna do plano antigo tem nome. O `--controle-negativo` corre a
+# mesma medida contra a porta de HEAD e exige que ela REPROVE (reprova em 14 de 20).
+!experimentos/provar-ciclo-herdado-do-plano.js
 # A PROPOSTA DA LISTAGEM, MEDIDA (05/11/2026). A bancada constrói a proposta, serve-a em 127.0.0.1 e
 # mede a geometria nas quatro larguras — 1240, 390, 360 e 320 —, incluindo o alvo de toque de cada
 # caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a
