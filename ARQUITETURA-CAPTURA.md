@@ -740,7 +740,9 @@ ciclo, e o formulário continua sendo HTML + JavaScript, sem backend.
 > lê `aulas` do ficheiro, e um `_cifrado` não tem `aulas` — cifrar a fonte faria o índice declarar
 > «não dada» uma aula dada. Quem cifra é a geração, ao montar a cópia pública. (2) **A gravação
 > funde por aula**: o cliente manda o ficheiro inteiro montado a partir do que leu, e um separador
-> aberto há dias apagaria as aulas lançadas desde então. (3) **A gravação passou a disparar a
+> aberto há dias apagaria as aulas lançadas desde então — e **a que chega só vence se o carimbo
+> (`ultimo_lancamento`) for mais novo**, porque o resgate do KV traz a versão antiga de uma aula que
+> já pode ter sido relançada. (3) **A gravação passou a disparar a
 > geração**, porque o site serve o PACOTE e o pacote só muda quando ela corre — sem o disparo, a
 > fonte ficaria certa e o ecrã continuaria a mentir. E o que já estava no KV dos lançamentos
 > antigos não se perde: `POST /api/lancamentos/consolidar` lê-o, decifra-o com a `SENHA_CRIPTO` e

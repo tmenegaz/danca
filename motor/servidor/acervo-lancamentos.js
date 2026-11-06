@@ -31,9 +31,11 @@
  *
  * A FUSÃO, E PORQUE ELA NÃO É OPCIONAL. O cliente envia o ficheiro INTEIRO, montado a partir do
  * que leu. Um separador aberto há três dias carrega três dias de atraso: sem fusão, lançar a
- * aula 03 nesse separador APAGAVA a aula 06. A fusão é por aula (`aulas[nn]`) e a que chega
- * vence a que estava — que é o caso do ajuste, onde reescrever a mesma aula é o acto. As outras
- * aulas ficam, e é isso que torna o lançamento um acrescento e não uma substituição.
+ * aula 03 nesse separador APAGAVA a aula 06. A fusão é por aula (`aulas[nn]`), e a que chega
+ * vence a que estava — salvo se for mais ANTIGA: o resgate do KV traz a versão de antes, e uma
+ * aula já relançada não pode voltar atrás só porque o resgate correu depois. Quem manda é o
+ * carimbo (`ultimo_lancamento`), que é o registro do próprio ato. As outras aulas ficam, e é
+ * isso que torna o lançamento um acrescento e não uma substituição.
  *
  * O QUE ELE **NÃO** FAZ: cifrar. O `-dados.json` do repositório é a FONTE e vai em CLARO — como
  * sempre foi (`ciclo-01-…-dados.json` no `main`). Quem cifra é a geração, ao montar o pacote
@@ -75,10 +77,28 @@ function caminhoDoDados(partes) {
 }
 
 /** A fusão: as aulas que já estavam ficam, as que chegam vencem. */
+/** O carimbo de uma aula (`AAAA-MM-DDTHHMM`), que ordena lexicograficamente. `''` quando falta. */
+const carimboDaAula = (a) => (a && typeof a.ultimo_lancamento === 'string' ? a.ultimo_lancamento : '');
+
 function fundirAulas(antes, depois) {
   const a = (antes && antes.aulas) || {};
   const d = (depois && depois.aulas) || {};
-  const aulas = Object.assign({}, a, d);
+  /* A QUE CHEGA VENCE — MAS SÓ SE NÃO FOR MAIS ANTIGA (06/11/2026). A regra nasceu para o
+   * AJUSTE e para o separador aberto há dias: o cliente manda o ficheiro inteiro, e a aula que
+   * ele acabou de escrever é a mais recente. Só que existe um segundo caminho, o RESGATE do KV:
+   * o que está lá é a versão ANTIGA de uma aula que pode já ter sido relançada. Com «a que chega
+   * vence» cegamente, resgatar o lançamento das 15:37 apagava o das 16:29 — o remédio desfazia o
+   * trabalho que veio salvar. O carimbo é ISO até ao minuto, ordena em texto, e é o próprio
+   * registro do ato: quem chegou depois é que é o estado. Sem carimbo num dos lados, vale a que
+   * chega — é o único lado que pode ser o ato presente. */
+  const aulas = Object.assign({}, a);
+  for (const [nn, nova] of Object.entries(d)) {
+    const velha = a[nn];
+    if (velha && carimboDaAula(velha) && carimboDaAula(nova) && carimboDaAula(nova) < carimboDaAula(velha)) {
+      continue;
+    }
+    aulas[nn] = nova;
+  }
   const apelidos = Object.assign({}, (antes && antes.apelidos) || {}, (depois && depois.apelidos) || {});
   /* A RAIZ COMEÇA NA QUE JÁ ESTAVA e é sobreposta pela que chega. O cliente manda o ficheiro
    * inteiro, e no caso normal os dois coincidem — mas se um campo da raiz faltar no que chega

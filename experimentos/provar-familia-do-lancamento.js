@@ -171,6 +171,22 @@ async function main() {
     provar('…e SEM a fusão a aula 03 perder-se-ia — é o defeito que ela evita',
       Object.keys(semFusao.aulas).length === 1 && !semFusao.aulas['03'],
       Object.keys(semFusao.aulas));
+
+    /* O CARIMBO DECIDE — e ele existe porque o RESGATE é um segundo caminho para a fusão. Nele,
+     * a que chega é a ANTIGA: o KV tem a versão de 15:37 de uma aula que já foi relançada às
+     * 16:29. Com «a que chega vence» cegamente, resgatar apagava o trabalho que o resgate veio
+     * salvar — o remédio a desfazer o que salvou. */
+    const relancada = { n: '06', presentes: ['aluna_a', 'aluna_b'], ultimo_lancamento: '2026-11-06T1629' };
+    const doKv = { n: '06', presentes: [], ultimo_lancamento: '2026-11-06T1537' };
+    const maisAntiga = lanc.fundirAulas({ aulas: { '06': relancada } }, { aulas: { '06': doKv } });
+    provar('a aula que chega com carimbo MAIS ANTIGO não apaga a que está gravada',
+      maisAntiga.aulas['06'].ultimo_lancamento === '2026-11-06T1629'
+        && maisAntiga.aulas['06'].presentes.length === 2, maisAntiga.aulas['06']);
+    const ajuste = { n: '06', presentes: ['aluna_a'], ultimo_lancamento: '2026-11-06T1700' };
+    const maisNova = lanc.fundirAulas({ aulas: { '06': relancada } }, { aulas: { '06': ajuste } });
+    provar('…e a que chega com carimbo MAIS NOVO vence — é o ajuste, que é o ato',
+      maisNova.aulas['06'].ultimo_lancamento === '2026-11-06T1700'
+        && maisNova.aulas['06'].presentes.length === 1, maisNova.aulas['06']);
   }
 
   // -------------------------------------------------------------------------------------------
