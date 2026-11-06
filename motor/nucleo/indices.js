@@ -317,6 +317,112 @@ function tipoDoDocumento(caminho, escola) {
  * Devolve `{acervo, escolas: {slug: indice}}` — o mestre (transversal, sem apelido) e o detalhe
  * por escola (com o que a escola pode ver).
  */
+/**
+ * O RECORTE DO CORPO — AS VERSÕES DE CADA LINHA DE BASE (05/11/2026).
+ *
+ * A LINHA DE BASE PASSOU A SER FICHEIRO a 05/11/2026 (`escola/<escola>/linhas-de-base/<id>--<carimbo>.json`),
+ * e é isso que torna este índice possível: enquanto viveu só no KV, o gerador não a alcançava, e a
+ * entidade `recorte` ficou declarada `prevista` — a marca que diz «o vocabulário existe, o dado
+ * ainda não é alcançável». Agora é.
+ *
+ * O QUE SE GUARDA, e o §4.8 manda: `aspectos` (o vocabulário da anamnese, que é norma), a contagem
+ * `alunas`, a `turma`, o `professor` e as datas. NENHUM apelido, nenhuma resposta, nenhum texto.
+ * O nome do aspecto não é dado de pessoa: é o que a anamnese mede em qualquer aluna.
+ *
+ * A SÉRIE É A RAZÃO DE ISTO EXISTIR. A pesquisadora: «a gente tem que encontrar uma solução para
+ * isso. Essa é uma característica que vai valer muito dinheiro.» Cada versão é um acto datado, e a
+ * cadeia diz o que se olhava em cada momento — não só o que se olha hoje. O índice guarda as
+ * versões inteiras (não um resumo): uma série resumida perde exactamente o que a torna útil.
+ *
+ * A LÁPIDE NÃO APAGA A LINHA DO ÍNDICE. Uma linha de base apagada continua aqui, com
+ * `apagada: true` e a data — é o registo de que existiu, e um índice que a omitisse reescreveria o
+ * passado, que é o que este sistema inteiro existe para não fazer. O que ela deixa de fazer é
+ * contar no ranque dos vigentes.
+ */
+function recortesDaEscola(versoes) {
+  const porLinha = new Map();
+  for (const v of (Array.isArray(versoes) ? versoes : [])) {
+    if (!v || typeof v !== 'object') continue;
+    const id = String(v.id || '').trim();
+    if (!id) continue;
+    if (!porLinha.has(id)) porLinha.set(id, []);
+    porLinha.get(id).push(v);
+  }
+  const saida = [];
+  for (const [id, lista] of porLinha) {
+    /* A MAIS RECENTE PRIMEIRO. O carimbo é do NOME do ficheiro, e não de uma data lá dentro: um
+     * relógio atrasado numa máquina não reordena o passado. */
+    const ordenadas = lista.slice()
+      .sort((a, b) => porTexto(String(b.carimbo || ''), String(a.carimbo || '')));
+    const recente = ordenadas[0];
+    const apagada = Boolean(recente.apagada_em);
+    const versoesLimpa = ordenadas.map((v) => ({
+      versao: String(v.carimbo || ''),
+      arquivo: String(v.arquivo || ''),
+      enviada_em: v.enviada_em || null,
+      aspectos: Array.isArray(v.aspectos) ? v.aspectos.map(String) : [],
+      alunas: Number.isFinite(Number(v.alunas)) ? Number(v.alunas) : 0,
+      ...(v.apagada_em ? { apagada_em: v.apagada_em } : {}),
+    }));
+    saida.push({
+      id: 'recorte:' + id,
+      linha: id,
+      nome: recente.nome ? String(recente.nome) : id,
+      professor: recente.professor ? String(recente.professor) : null,
+      turma: recente.turma ? String(recente.turma) : null,
+      atualizada_em: recente.atualizada_em || null,
+      enviada_em: recente.enviada_em || null,
+      aspectos: Array.isArray(recente.aspectos) ? recente.aspectos.map(String).sort(porTexto) : [],
+      alunas: Number.isFinite(Number(recente.alunas)) ? Number(recente.alunas) : 0,
+      vigente: !apagada,
+      ...(apagada ? { apagada: true, apagada_em: recente.apagada_em } : {}),
+      // A SÉRIE, da mais recente para a mais antiga. `versoes.length` é quantos actos a linha teve.
+      versoes: versoesLimpa,
+    });
+  }
+  return ordenar(saida, 'id');
+}
+
+/**
+ * O RANQUE DOS ASPECTOS, COM A JANELA DO TEMPO (05/11/2026).
+ *
+ * Duas contas DIFERENTES, e confundi-las é o erro fácil: `contagem` é «em quantos recortes VIGENTES
+ * este aspecto é olhado hoje» (o ranque do presente, o mesmo que o índice VIVO responde), e
+ * `versoes` é «em quantos ACTOS alguma vez foi escolhido» (a série). Um aspecto que se olhava em
+ * cinco recortes de Outubro e hoje em nenhum tem `contagem: 0` e `versoes: 5` — e é exactamente
+ * essa diferença que se quer poder ver.
+ *
+ * `primeira`/`ultima` são carimbos, não opiniões: dizem desde quando e até quando aquele aspecto
+ * esteve no recorte de alguém desta escola. Sem eles, «olhar para o passado» seria abrir os
+ * ficheiros um a um.
+ */
+function aspectosDoRecorte(recortes) {
+  const por = new Map();
+  const anotar = (aspecto, carimbo, vale) => {
+    if (!por.has(aspecto)) {
+      por.set(aspecto, { aspecto, contagem: 0, versoes: 0, ids: [], primeira: null, ultima: null });
+    }
+    const a = por.get(aspecto);
+    a.versoes += 1;
+    if (!a.primeira || String(carimbo) < String(a.primeira)) a.primeira = String(carimbo);
+    if (!a.ultima || String(carimbo) > String(a.ultima)) a.ultima = String(carimbo);
+    if (vale) {
+      a.contagem += 1;
+      a.ids.push(vale);
+    }
+  };
+  for (const r of (Array.isArray(recortes) ? recortes : [])) {
+    for (const v of (r.versoes || [])) {
+      for (const aspecto of (v.aspectos || [])) {
+        anotar(String(aspecto), v.versao, r.vigente && v.versao === (r.versoes[0] || {}).versao ? r.id : null);
+      }
+    }
+  }
+  return [...por.values()]
+    .map((a) => Object.assign({}, a, { ids: a.ids.sort(porTexto) }))
+    .sort((a, b) => (b.contagem - a.contagem) || (b.versoes - a.versoes) || porTexto(a.aspecto, b.aspecto));
+}
+
 function construir(entrada) {
   const e = entrada || {};
   const caminhos = Array.isArray(e.arvores) ? e.arvores.slice() : [];
@@ -341,6 +447,15 @@ function construir(entrada) {
     if (m && slugs.indexOf(m[1]) === -1) slugs.push(m[1]);
   }
   slugs.sort(porTexto);
+
+  /* 1b. OS RECORTES DO CORPO (05/11/2026) — a linha de base passou a ser ficheiro, e a série
+   * temporal passou a ser derivável. O agrupamento é por escola e depois por linha; a conta é a
+   * das duas funções puras acima, e não se repete aqui. */
+  const versoesDoRecorte = e.recortes || {};
+  const recortesPorEscola = {};
+  for (const slug of slugs) {
+    recortesPorEscola[slug] = recortesDaEscola(versoesDoRecorte[slug]);
+  }
 
   // 2. OS CICLOS — dos caminhos de `professores/**`.
   const porCiclo = new Map();   // id → {professor, numero, escola, documentos:[], variantes:Set}
@@ -591,6 +706,11 @@ function construir(entrada) {
         anamneses: meusRegistros.filter((r) => r.tipo === 'anamnese').length,
         planos: meusRegistros.filter((r) => r.tipo === 'plano').length,
         pos: meusRegistros.filter((r) => r.tipo === 'po').length,
+        /* O RECORTE CONTA-SE NO MESTRE, e o CONTEÚDO fica no índice da escola (§4.8). A contagem
+         * não é dado de pessoa — é «quantas linhas de base esta escola tem» —, e é a mesma
+         * natureza das outras quatro. O que NUNCA sobe é o `aspectos[]` nem a série: esses são
+         * `acesso: escola`. */
+        recortes: recortesPorEscola[slug].filter((r) => r.vigente).length,
       },
     });
 
@@ -722,12 +842,31 @@ function construir(entrada) {
       escola: mestre,
       registros: meusRegistros,
       ciclos: meusCiclos,
+      /* O RECORTE DO CORPO, COM A SÉRIE (05/11/2026). `acesso: escola` — este arquivo só é
+       * servido no domínio da própria escola, atrás de autenticação (§9.1). O acervo transversal
+       * leva apenas a CONTAGEM (no mestre, acima), e a verificação 15 exige-o. */
+      recortes: recortesPorEscola[slug],
+      /* A JANELA DO TEMPO POR ASPECTO, derivada das versões. `contagem` = recortes vigentes que o
+       * olham hoje; `versoes` = actos (de qualquer data) que alguma vez o escolheram;
+       * `primeira`/`ultima` = os carimbos das pontas. É o «a partir do presente olhar para o
+       * passado», e sem esta lista seria abrir os ficheiros um a um. */
+      aspectos: aspectosDoRecorte(recortesPorEscola[slug]),
       filtros: {
         tipos: facetas(todos, 'tipo').map((f) => Object.assign({}, f, {
           rotulo: (TIPOS[f.valor] && TIPOS[f.valor].rotulo) || f.valor,
         })),
         professores: facetas(todos.filter((x) => x.professor), 'professor'),
         anos: facetas(meusRegistros.filter((r) => r.ano), 'ano'),
+        /* OS ASPECTOS DO RECORTE — o «filtro rápido» que ela pediu, pronto a ler (§7.2: a conta é
+         * da derivação, não da interface). O `valor` é o id do aspecto; a `contagem` é em quantos
+         * recortes VIGENTES ele está, e os `ids` são esses recortes — a forma de todas as facetas,
+         * e é o que a verificação 10 confere. A SÉRIE (primeira/última vez) vai na lista
+         * `aspectos` logo abaixo, e não aqui: uma faceta responde «quantos», a série responde
+         * «desde quando». */
+        aspectos: facetas(
+          recortesPorEscola[slug].filter((r) => r.vigente).flatMap((r) => r.aspectos.map((a) => ({ aspecto: a, id: r.id }))),
+          'aspecto',
+        ).map((f) => Object.assign({}, f, { rotulo: f.valor })),
        // O ESTADO VEM DO QUE EXISTE, não de uma lista fixa: uma faceta com zero valores é uma
         // promessa que a interface não pode cumprir.
         estados: [
@@ -952,6 +1091,11 @@ module.exports = {
   escolaDoSufixo,
   tipoDoDocumento,
   construir,
+  // A DERIVAÇÃO DO RECORTE, exportada para a prova a poder exercer sem construir um acervo
+  // inteiro — e para o índice VIVO poder usar a MESMA conta quando quiser ler a série (hoje ele
+  // só vê a linha vigente do KV, e diz isso).
+  recortesDaEscola,
+  aspectosDoRecorte,
   canonico,
   semVolateis,
   iguais,

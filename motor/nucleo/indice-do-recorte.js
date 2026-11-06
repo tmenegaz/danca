@@ -22,7 +22,12 @@
  *
  *   · `aspectos` — o RANQUE. Por aspecto da anamnese: em quantos recortes foi escolhido, em
  *     quantos desses chegou a uma turma, quando apareceu pela primeira e pela última vez. É o
- *     «mais usados / menos usados».
+ *     «mais usados / menos usados». **`primeira_em`/`ultima_em` são das linhas VIGENTES** — a
+ *     `atualizada_em` de cada uma —, e NÃO uma série: um aspecto que se olhava em Setembro e hoje
+ *     em nenhuma linha aparece aqui com uma data só. A SÉRIE verdadeira (um elo por acto) está no
+ *     índice de ACERVO, `indices/escolas/<escola>.json` (§4.13 do PLANO-INDICES), e existe desde
+ *     05/11/2026, quando o acto da linha de base passou a ser ficheiro append-only. Dizer as duas
+ *     coisas como se fossem uma seria o pior dos dois mundos: a data pareceria história.
  *   · `nunca` — os aspectos que a anamnese oferece e **nenhum** recorte escolheu. É a resposta
  *     mais útil das três, porque é a única que aponta trabalho: um aspecto que ninguém escolhe é
  *     ou irrelevante (e aí a anamnese pode encolher) ou um ponto cego do olhar do professor.

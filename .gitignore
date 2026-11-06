@@ -763,6 +763,14 @@ experimentos/modelo-formulario/*
 # (rascunho vence na edição, acto vence no elenco, e o registo antigo de produção não desaparece),
 # e a escrita falhada que NÃO mente — sem token, `concluir` devolve erro.
 !experimentos/provar-linha-de-base-no-repo.js
+# O RECORTE NO ÍNDICE GERADO (05/11/2026). O acto da linha de base passou a ser ficheiro, e com isso
+# a SÉRIE passou a ser derivável no índice de ACERVO — que é o que o §4.12 do PLANO-INDICES declarava
+# em falta. A prova mede a leitura dos ficheiros (o `id` com hífenes que não se parte no carimbo, e
+# os apelidos que viram CONTAGEM), a série da linha, as TRÊS contas do ranque (vigentes, actos,
+# janela — com o caso «olhava-se e já não se olha»), a lápide que não apaga o passado, o ACESSO (que
+# `recortes`/`aspectos` não atravessam para o índice transversal, e que a contagem atravessa) e o
+# determinismo, com o controle de que a ordem dos ficheiros não muda o índice.
+!experimentos/provar-recorte-no-indice.js
 # A PROPOSTA DA LISTAGEM, MEDIDA (05/11/2026). A bancada constrói a proposta, serve-a em 127.0.0.1 e
 # mede a geometria nas quatro larguras — 1240, 390, 360 e 320 —, incluindo o alvo de toque de cada
 # caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a

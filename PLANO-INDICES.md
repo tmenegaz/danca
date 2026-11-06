@@ -716,18 +716,84 @@ delas no servidor (§7.2 — a interface não recalcula).
 **Privacidade (§4.8).** `alunas` é uma **contagem**; não há apelido, resposta nem texto. O nome do
 aspecto não é dado de pessoa: é o vocabulário da anamnese, que é norma.
 
-**Duas limitações declaradas, e nenhuma é técnica.**
+**Duas limitações, e a primeira foi resolvida a 05/11/2026.**
 
-1. **Não há série temporal.** O «Gravar» do passo 4 **sobrescreve** a linha (`lista[idx] = linha`), e
-   o que existia antes desaparece — só a `atualizada_em` sobrevive. O índice lê o estado de hoje. Para
-   «olhar para o passado» seria preciso que o recorte fosse **append-only** (um elo novo por decisão,
-   como o `ajuste_de` dos documentos), e essa é uma decisão de desenho, não uma correcção.
-2. **Uma escola.** O recorte está no KV de cada escola, e só a `calango` tem Worker. Um ranque entre
-   escolas exige que todos os KV sejam alcançáveis pela mesma leitura — hoje não são.
+1. ~~**Não há série temporal.**~~ **RESOLVIDA — e o registo não se apaga.** O «Gravar» do passo 4
+   **sobrescrevia** a linha (`lista[idx] = linha`), e o que existia antes desaparecia. A decisão dela:
+   «é melhor a gente mandar para um ficheiro, porque daí a gente consegue as soluções que precisamos e
+   ter um índice robusto». O **acto** da linha de base (o «Concluir e enviar para a turma») passou a ser
+   um ficheiro append-only — `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`, um por envio —, e a
+   série passou a ser derivável. Ver o **§4.13**, que é o índice de ACERVO desta família.
+   **O que continua verdade neste §4.12:** `primeira_em`/`ultima_em` do ranque VIVO são das linhas
+   **vigentes** (a `atualizada_em` de cada uma), e **não** uma série — um aspecto que se olhava em
+   Setembro e hoje em nenhum aparece aqui com uma data só. A série verdadeira está no §4.13.
+2. **Uma escola** *para o índice VIVO*: o recorte de rascunho está no KV de cada escola, e só a
+   `calango` tem Worker. O §4.13 resolve-o para os ACTOS, que estão em Git — um ranque entre escolas
+   passou a ser possível para tudo o que foi concluído, e continua impossível para o que é rascunho
+   (e é o correcto: rascunho não é facto).
 
 **A prova:** `experimentos/provar-indice-do-recorte.js` (24 asserções): o universo, o ranque, a
 cobertura, o rascunho fora do denominador, o aplicado, o ponto cego com o A/B, a escolha órfã, a
 privacidade com o controle positivo, o determinismo, as três rotas e o desenho a correr em jsdom.
+E `experimentos/provar-recorte-no-indice.js` (40 asserções), que é a do §4.13.
+
+---
+
+### 4.13 Índice do recorte em ACERVO — `indices/escolas/<escola>.json` (**IMPLEMENTADO** 05/11/2026)
+
+O **mesmo** dado do §4.12, na família **ACERVO**: derivado do repositório na construção, escrito em
+`indices/`, determinístico, servido como ficheiro. Existe porque o **acto** da linha de base passou a
+ser um ficheiro — e é essa mudança que dá o que o índice VIVO não pode dar: **a série**.
+
+```json
+{
+  "recortes": [
+    { "id": "recorte:teste", "linha": "teste", "nome": "teste", "professor": "tiago-menegaz",
+      "turma": "Balé Nível 1 — Teste 1", "aspectos": ["arquitetura-do-arco-plantar", "formato-anatomico-dos-joelhos"],
+      "alunas": 2, "vigente": true,
+      "versoes": [
+        { "versao": "20261105-2155", "arquivo": "escola/calango/linhas-de-base/teste--20261105-2155.json",
+          "enviada_em": "2026-11-05T21:55:43.186Z", "aspectos": ["…", "…"], "alunas": 2 },
+        { "versao": "20261101-1000", "arquivo": "…", "aspectos": ["formato-anatomico-dos-joelhos"], "alunas": 2 }
+      ] }
+  ],
+  "aspectos": [
+    { "aspecto": "formato-anatomico-dos-joelhos", "contagem": 1, "versoes": 3,
+      "ids": ["recorte:teste"], "primeira": "20261101-1000", "ultima": "20261105-2155" }
+  ],
+  "filtros": { "aspectos": [ { "valor": "formato-anatomico-dos-joelhos", "contagem": 1, "ids": ["recorte:teste"] } ] }
+}
+```
+
+- **`recortes[]`** — a versão **VIGENTE** de cada linha (a de carimbo maior), com a cadeia
+  **`versoes[]`** inteira. A série é da linha, e não um resumo: um resumo perderia exactamente o que a
+  torna útil.
+- **`aspectos[]`** — a **janela do tempo**: `contagem` é «em quantos recortes vigentes está hoje»;
+  `versoes` é «em quantos actos alguma vez esteve»; `primeira`/`ultima` são os carimbos das pontas. Um
+  aspecto que se olhava antes e já não se olha tem `contagem: 0` e `versoes > 0` — e é essa diferença
+  que o índice existe para mostrar.
+- **`filtros.aspectos`** — a mesma coisa na forma de todas as facetas (§7.1), para o filtro rápido que
+  ela pediu. A conta é da derivação, não da interface (§7.2).
+- **A lápide não apaga.** Uma linha de base apagada continua no índice com `apagada: true` e a data;
+  deixa de contar no ranque dos vigentes e os seus actos continuam na série. Um índice que a omitisse
+  reescreveria o passado (P-03).
+- **`acesso: escola` (§4.8), e agora verificado.** `recortes` e `aspectos` só existem no índice da
+  **escola**; o transversal (`indices/acervo.json`) leva apenas a **contagem** em `contagens.recortes`
+  — um número não é o dado. Nenhum apelido: `alunas` é uma contagem. **A verificação 15** do
+  `check-indices` faz cumprir a declaração (e a contraprova 10 põe `recortes` no transversal e exige
+  que ela reprove); **a verificação 16** exige que o ranque bata com os recortes que o sustentam.
+- **A entidade `recorte` passou a `produzida`** em `indices/esquema/campos.json`, com
+  `$materializa: ["recortes", "aspectos"]` — a chave que a verificação 15 lê para saber o que exigir.
+
+**O que ainda não é:** a série começa no primeiro ficheiro. O registo anterior do KV (a linha `teste`
+de produção) **não** tem versões, porque nunca foi um acto em ficheiro — ele migra na primeira vez que
+for concluído outra vez. O índice diz `versoes: []` ou `recortes: []`, e dizê-lo é o correcto: um
+índice que inventasse o passado seria pior do que um vazio.
+
+**A prova:** `experimentos/provar-recorte-no-indice.js` (40 asserções): a leitura dos ficheiros (o `id`
+com hífenes que não se parte), a série, as três contas do ranque (com o caso «olhava-se e já não»), a
+lápide, o acesso (que não atravessa) e o determinismo — com o controle de que a ordem dos ficheiros
+não muda o índice.
 
 ---
 

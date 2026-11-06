@@ -1,4 +1,5 @@
 {
+  "aspectos": [],
   "aulas": [],
   "ciclos": [
     {
@@ -76,6 +77,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
+      "recortes": 0,
       "registros": 2
     },
     "criada_em": "2026-11-05T13:06:46.674863+00:00",
@@ -107,6 +109,7 @@
         "valor": "2026"
       }
     ],
+    "aspectos": [],
     "estados": [
       {
         "contagem": 1,
@@ -151,9 +154,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b3deb0d"
+    "commit": "1f233691"
   },
-  "gerado_em": "2026-11-05T23:31",
+  "gerado_em": "2026-11-06T00:45",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -176,6 +179,7 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
+  "recortes": [],
   "registros": [
     {
       "ajuste_de": null,

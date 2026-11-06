@@ -535,6 +535,134 @@ const VERIFICACOES = [
       return falhas;
     },
   },
+  {
+    /*
+     * O RECORTE FORA DA ESCOLA (05/11/2026) — A ENTIDADE `acesso: escola` NÃO ATRAVESSA.
+     *
+     * A entidade `recorte` declara `acesso: escola`, e até hoje essa declaração não tinha quem a
+     * fizesse cumprir: o índice transversal (`indices/acervo.json`) é servido à raiz e não leva
+     * autenticação de escola, e nada impedia que um campo daquela entidade lá aparecesse. A
+     * regra estava escrita e não era executável — que é a diferença entre uma promessa e uma
+     * verificação.
+     *
+     * O QUE SE CONFERE, e são duas metades que se completam. Uma entidade declara `$materializa`
+     * — as chaves do índice que a contêm —, e a verificação exige que elas (a) NÃO existam no
+     * acervo transversal, e (b) EXISTAM no índice de cada escola quando a entidade é
+     * `produzida`. A segunda metade é o que impede a primeira de passar por ausência: sem ela,
+     * «não atravessa» cumprir-se-ia apagando a chave de todo o lado.
+     */
+    n: 15,
+    nome: 'Acesso declarado',
+    regra: 'o que o dicionário marca `acesso: escola` não aparece no índice transversal (§4.8)',
+    rodar(ctx) {
+      const falhas = [];
+      const entidades = (ctx.esquema.campos && ctx.esquema.campos.entidades) || {};
+      const transversal = ctx.indices.get('indices/acervo.json');
+      const daEscola = [...ctx.indices.entries()].filter(([rel]) => /^indices\/escolas\/[a-z0-9-]+\.json$/.test(rel));
+      /* QUEM É «DE ESCOLA» É O CAMPO, NÃO A ENTIDADE (05/11/2026). O dicionário declara o `acesso`
+       * em cada campo — nenhuma entidade o tem no topo —, e a primeira versão desta verificação
+       * procurava-o na entidade: não encontrava nenhuma, não conferia nada, e passava. Foi a
+       * contraprova 10 que o disse («a verificação 15 NÃO reprovou»), e é a demonstração de que
+       * uma verificação que passa por não correr é pior do que nenhuma. A regra passou a ser a do
+       * dicionário: uma entidade é de ESCOLA quando todos os seus campos o são. */
+      const V = (ctx.esquema.campos && ctx.esquema.campos.versao) || null;
+      void V;
+      for (const [nome, entidade] of Object.entries(entidades)) {
+        if (!entidade || !entidade.campos) continue;
+        const campos = Object.entries(entidade.campos).filter(([k]) => k.charAt(0) !== '$');
+        if (!campos.length) continue;
+        const deEscola = campos.every(([, c]) => c && c.acesso === 'escola');
+        if (!deEscola) continue;
+        const chaves = Array.isArray(entidade.$materializa) ? entidade.$materializa : [];
+        if (!chaves.length) {
+          falhas.push('campos.json: `' + nome + '` é `acesso: escola` em todos os campos e não declara '
+            + '`$materializa` — a regra fica sem nada que a verifique');
+          continue;
+        }
+        if (transversal) {
+          for (const chave of chaves) {
+            if (Object.prototype.hasOwnProperty.call(transversal, chave)) {
+              falhas.push('indices/acervo.json: «' + chave + '» é de `acesso: escola` e está no índice transversal');
+            }
+            /* A FACETA TAMBÉM ATRAVESSA. `filtros.aspectos` no acervo transversal seria o
+             * vocabulário de uma escola a ser contado ao lado das outras — a mesma fuga, por
+             * outra porta. Uma CONTAGEM numérica (`contagens.<chave>`) pode subir: não é o dado. */
+            const facetas = (transversal.filtros || {})[chave];
+            if (facetas) {
+              falhas.push('indices/acervo.json: a faceta «filtros.' + chave + '» é de `acesso: escola`');
+            }
+          }
+        }
+        if (entidade.estado === 'produzida') {
+          if (!daEscola.length) {
+            falhas.push('campos.json: `' + nome + '` diz `produzida` e não há índice de escola nenhum');
+          }
+          for (const [rel, objeto] of daEscola) {
+            if (!objeto) continue;
+            for (const chave of chaves) {
+              if (!Array.isArray(objeto[chave])) {
+                falhas.push(rel + ': `' + chave + '` falta — `' + nome + '` está declarada `produzida`');
+              }
+            }
+          }
+        }
+      }
+      return falhas;
+    },
+  },
+  {
+    /*
+     * AS DUAS CONTAS DO RECORTE HÃO-DE CONCORDAR (05/11/2026).
+     *
+     * O mesmo dado passou a ter DOIS leitores: o índice VIVO (`motor/nucleo/indice-do-recorte.js`,
+     * num pedido, a ler a linha do KV) e o gerado (`recortes`/`aspectos`, na construção, a ler os
+     * ficheiros). Duas contas do mesmo facto divergem no primeiro dia em que uma mudar — e a que
+     * ficasse para trás seria a que ninguém olha.
+     *
+     * O que se confere, e é o que dá para conferir sem rede: as chaves do ranque gerado batem com
+     * as dos recortes vigentes que ele diz resumir (isso a verificação 10 já faz para toda a
+     * faceta), e CADA aspecto do ranque é um aspecto que alguma versão declarou. A segunda é a que
+     * apanha o erro fácil: um aspecto inventado no ranque teria `versoes: 0` e nenhum carimbo.
+     */
+    n: 16,
+    nome: 'Recorte coerente',
+    regra: 'o ranque dos aspectos bate com as versões que o sustentam (§4.12)',
+    rodar(ctx) {
+      const falhas = [];
+      for (const [rel, objeto] of ctx.indices) {
+        if (!objeto || !Array.isArray(objeto.recortes)) continue;
+        const doRanque = new Map();
+        for (const r of objeto.recortes) {
+          if (!r || !r.vigente) continue;
+          for (const aspecto of (r.aspectos || [])) {
+            if (!doRanque.has(aspecto)) doRanque.set(aspecto, new Set());
+            doRanque.get(aspecto).add(r.id);
+          }
+        }
+        for (const a of (objeto.aspectos || [])) {
+          if (!a || !a.aspecto) { falhas.push(rel + ': aspecto sem id no ranque'); continue; }
+          const esperados = doRanque.get(a.aspecto) || new Set();
+          if (a.contagem !== esperados.size) {
+            falhas.push(rel + ' aspectos[' + a.aspecto + ']: contagem ' + a.contagem
+              + ' ≠ ' + esperados.size + ' recorte(s) vigente(s) com ele');
+          }
+          if (!(a.versoes > 0) || !a.primeira || !a.ultima) {
+            falhas.push(rel + ' aspectos[' + a.aspecto + ']: no ranque sem versão que o sustente');
+          }
+          if (a.primeira && a.ultima && String(a.primeira) > String(a.ultima)) {
+            falhas.push(rel + ' aspectos[' + a.aspecto + ']: a primeira versão é depois da última');
+          }
+        }
+        for (const [aspecto, ids] of doRanque) {
+          if (!(objeto.aspectos || []).some((a) => a && a.aspecto === aspecto)) {
+            falhas.push(rel + ': o aspecto «' + aspecto + '» está num recorte vigente (' + [...ids].join(', ')
+              + ') e não está no ranque');
+          }
+        }
+      }
+      return falhas;
+    },
+  },
 ];
 
 /** Roda todas as verificações e devolve `{falhas, porVerificacao}`. */
@@ -730,6 +858,53 @@ function contraprovas(ctx, pulados) {
       delete semAutor.campos.entidades.autoria.campos.autor;
     }
     casos.push({ nome: 'autoria sem `autor`', espera: 9, ctx: Object.assign({}, ctx, { esquema: semAutor }) });
+  }
+
+  // 10. pôr `recortes` no índice TRANSVERSAL → verificação 15
+  {
+    /* A ENTIDADE É `acesso: escola`, e este é o caso que a regra existe para impedir: o dado de
+     * uma escola a atravessar para o acervo que a raiz serve sem autenticação de escola. A
+     * contraprova não precisa de recorte nenhum no repositório — basta a chave a existir no
+     * lugar errado, que é precisamente a forma do defeito. */
+    const temAcervo = ctx.indices.has('indices/acervo.json');
+    if (temAcervo) {
+      casos.push({
+        nome: 'pôr `recortes` no índice transversal',
+        espera: 15,
+        ctx: comIndices((mapa) => {
+          const acervo = mapa.get('indices/acervo.json');
+          if (acervo) acervo.recortes = [{ id: 'recorte:x', aspectos: ['a'] }];
+        }),
+      });
+    } else {
+      semDado('pôr `recortes` no índice transversal', 'não há `indices/acervo.json` gerado');
+    }
+  }
+
+  // 11. um aspecto no ranque sem recorte vigente que o sustente → verificação 16
+  {
+    /* O ERRO FÁCIL: o ranque diz que se olha um aspecto e nenhum recorte vigente o declara. Ou o
+     * ranque foi escrito à mão, ou uma das duas contas envelheceu. Precisa de um índice de escola
+     * com a lista `aspectos`; sem recorte nenhum no repositório, a lista existe vazia e não há o
+     * que estragar — e a contraprova declara-se pulada, em vez de passar por não ter corrido. */
+    let alvo = null;
+    for (const [rel, objeto] of ctx.indices) {
+      if (/^indices\/escolas\//.test(rel) && objeto && Array.isArray(objeto.aspectos)) { alvo = rel; break; }
+    }
+    if (alvo) {
+      casos.push({
+        nome: 'um aspecto no ranque sem recorte que o sustente',
+        espera: 16,
+        ctx: comIndices((mapa) => {
+          const escola = mapa.get(alvo);
+          escola.aspectos = (escola.aspectos || []).concat([
+            { aspecto: 'aspecto-inventado', contagem: 1, versoes: 0, ids: ['recorte:x'], primeira: null, ultima: null },
+          ]);
+        }),
+      });
+    } else {
+      semDado('um aspecto no ranque sem recorte que o sustente', 'nenhum índice de escola gerado');
+    }
   }
 
   return casos;

@@ -132,7 +132,7 @@ function lerDoDisco() {
     ancoras[caminho] = lerAncora(texto);
   }
 
-  return { caminhos, inventarios, envelopes, ancoras };
+  return { caminhos, inventarios, envelopes, ancoras, recortes: lerRecortes(caminhos) };
 }
 
 /**
@@ -148,6 +148,7 @@ function construir({ agora } = {}) {
     inventarios: mundo.inventarios,
     envelopes: mundo.envelopes,
     ancoras: mundo.ancoras,
+    recortes: mundo.recortes,
     // NUNCA com apelido: estes são os índices do ACERVO, e o apelido da aluna é dado de menor
     // que só pode aparecer no índice VIVO da escola (PLANO-INDICES.md §9.1, verificação 7).
     comApelido: false,
@@ -191,6 +192,58 @@ function apresentarEscola(indiceDaEscola) {
   documentos.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   aulas.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   return Object.assign({}, indiceDaEscola, { documentos, aulas });
+}
+
+/**
+ * AS VERSÕES DO RECORTE, lidas dos ficheiros (05/11/2026).
+ *
+ * `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`, um por ACTO — é o formato que o
+ * `motor/servidor/linhas-de-base-repo.js` grava, e a correspondência é uma soma de prefixo, sem
+ * tabela e sem índice de caminhos: a mesma disciplina do acervo dos envelopes.
+ *
+ * A LINHA É LIDA INTEIRA, e o que sai dela é só o que o §4.8 permite: os `aspectos` (vocabulário
+ * da anamnese, que é norma), a contagem `alunas`, a `turma`, o `professor` e as datas. Nenhum
+ * apelido e nenhuma resposta — `alunas` é um NÚMERO, e é por isso que ele pode entrar aqui.
+ *
+ * UM FICHEIRO ILEGÍVEL NÃO DERRUBA A DERIVAÇÃO. Ele fica de fora, e a derivação não inventa o que
+ * não conseguiu ler — o mesmo critério do `lerTexto` acima, que devolve `null` em vez de estourar.
+ */
+function lerRecortes(caminhos, ler) {
+  /* O LEITOR É PARÂMETRO, e não uma chamada fixa ao `lerJson` — pela mesma razão que o
+   * `carregarMundo` recebe o disco nas outras provas: uma regra que só se pode exercer sobre o
+   * repositório real mede o acervo de hoje, não a regra. Em produção ninguém o passa. */
+  const abrir = typeof ler === 'function' ? ler : lerJson;
+  const por = {};
+  for (const caminho of caminhos) {
+    const achado = /^escola\/([a-z0-9-]+)\/linhas-de-base\/([^/]+)\.json$/.exec(caminho);
+    if (!achado) continue;
+    const escola = achado[1];
+    const chave = achado[2];
+    const i = chave.lastIndexOf('--');
+    const id = i === -1 ? chave : chave.slice(0, i);
+    const carimbo = i === -1 ? '' : chave.slice(i + 2);
+    const lido = abrir(caminho);
+    if (!lido || typeof lido !== 'object') continue;
+    if (!por[escola]) por[escola] = [];
+    por[escola].push({
+      id: lido.id || id,
+      arquivo: caminho,
+      carimbo,
+      nome: lido.nome || null,
+      professor: lido.professor || null,
+      turma: lido.turma || null,
+      atualizada_em: lido.atualizada_em || null,
+      enviada_em: lido.enviada_em || null,
+      aspectos: (Array.isArray(lido.campos) ? lido.campos : [])
+        .map((c) => (c && typeof c === 'object' ? c.id : c))
+        .map((c) => String(c == null ? '' : c).trim())
+        .filter(Boolean),
+      // A CONTAGEM, nunca os nomes: o apelido da aluna só existe no índice VIVO (§9.1).
+      alunas: Array.isArray(lido.alunas) ? lido.alunas.length : 0,
+      ...(lido.apagada_em ? { apagada_em: lido.apagada_em } : {}),
+    });
+  }
+  return por;
 }
 
 /** O recorte por ciclo (§4.4) — para ser servido no domínio da escola, atrás de rota autenticada. */
@@ -436,6 +489,10 @@ module.exports = {
   DIR_INDICES,
   caminhosDoAcervo,
   lerDoDisco,
+  // A LEITURA DO RECORTE, exportada para a prova a poder exercer com caminhos de mentira — a
+  // derivação inteira precisa do disco, e uma prova que só corresse sobre o repositório real
+  // mediria o acervo de hoje, não a regra.
+  lerRecortes,
   construir,
   apresentarEscola,
   apresentarCiclo,

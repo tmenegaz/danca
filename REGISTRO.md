@@ -36840,3 +36840,59 @@ pedido. O que esta entrada entrega é o **substrato** que os torna possíveis �
 alcançáveis pela mesma leitura em qualquer escola. O `regerar-indices.yml` já dispara em `escola/**`,
 portanto uma linha de base concluída já faz correr a derivação; o que falta é a derivação **olhar**
 para esta família (`recorte`) e emitir a série.
+
+## 05/11/2026 — O recorte entra no índice gerado, com a série
+
+**O que aconteceu.** Na entrada anterior ficou declarado o que faltava: «o índice gerado em `indices/`
+ainda não olha esta família». A pesquisadora respondeu «pode fazer» — e é a segunda metade da decisão
+do dia: o acto da linha de base passou a ser um ficheiro **para que** o índice pudesse olhar para trás.
+
+**O que foi decidido.**
+
+- **A entidade `recorte` passa de `prevista` a `produzida`.** A marca `prevista` existia por uma razão
+  factual — o recorte morava no KV, e o gerador do acervo não o alcança —, e a razão acabou. A troca da
+  marca **é** o registo da mudança, e o `$nota` do esquema passou a contá-la.
+- **A série vai no índice da ESCOLA, não no transversal.** `recortes[]` é a versão vigente de cada
+  linha com a cadeia `versoes[]` inteira (um elo por acto, com o arquivo, a data, os aspectos daquele
+  momento e a contagem de alunas); `aspectos[]` é a janela do tempo por aspecto. **`acesso: escola`**, e
+  o transversal leva só `contagens.recortes` — um número não é o dado.
+- **Três contas, e não uma.** `contagem` (em quantos recortes vigentes o aspecto está hoje), `versoes`
+  (em quantos actos alguma vez esteve) e a janela (`primeira`/`ultima`, carimbos). Confundi-las é o erro
+  fácil: um aspecto que se olhava em Setembro e hoje em nenhum tem `contagem: 0` e `versoes: 5`, e é
+  exactamente essa diferença que a série existe para mostrar.
+- **A lápide não apaga.** Uma linha de base apagada continua no índice com `apagada: true`, sai do
+  ranque dos vigentes e mantém os actos na série.
+- **A declaração passou a ser executável, e eram precisas duas verificações.** A **15** (Acesso
+  declarado) faz cumprir o `acesso: escola`: as chaves de `$materializa` não podem existir no acervo
+  transversal, e têm de existir no índice de cada escola quando a entidade é `produzida` — a segunda
+  metade é o que impede a primeira de passar por ausência. A **16** (Recorte coerente) exige que o
+  ranque bata com os recortes que o sustentam.
+
+**Um erro meu, apanhado pela contraprova, e é o que vale registar.** A primeira versão da verificação
+15 procurava `acesso` **na entidade**; o dicionário declara-o **em cada campo**, e nenhuma entidade o
+tem no topo. A verificação não encontrava nada, não conferia nada, e **passava** — o pior estado
+possível. Foi a contraprova 10 («pôr `recortes` no índice transversal») que o disse: *a verificação 15
+NÃO reprovou*. A regra passou a ser a do dicionário (uma entidade é de escola quando todos os seus
+campos o são), e a contraprova passou a reprovar como devia. É a demonstração do princípio que este
+repositório já escreveu noutro sítio: **uma verificação que passa por não correr é pior do que
+nenhuma.**
+
+**Onde entrou.** `motor/nucleo/indices.js` — `recortesDaEscola` e `aspectosDoRecorte` (puras,
+exportadas), `recortes`/`aspectos`/`filtros.aspectos` no índice da escola, `contagens.recortes` no
+mestre. `tools/gerar-indices.js` — `lerRecortes` (com o leitor injectável, para a regra ser exercível
+sem o disco), e a passagem de `recortes` à derivação. `indices/esquema/campos.json` — `produzida`,
+`$materializa`, `vigente`, `apagada_em`, `versoes`. `tools/check-indices.js` — verificações 15 e 16 e
+as contraprovas 10 e 11. `motor/nucleo/indice-do-recorte.js` — a nota que separa o ranque do presente
+da série do passado. `PLANO-INDICES.md` — §4.12 corrigido (a limitação 1 fecha) e **§4.13** novo.
+`experimentos/provar-recorte-no-indice.js` — novo.
+
+**Medido.** `provar-recorte-no-indice` **40/40**; `check-indices` **16 verificações, 0 falhas** e
+**12 contraprovas, todas reprovam como deviam**; `provar-indice-do-recorte` **24/24**;
+`provar-linha-de-base-no-repo` **28/28**; `provar-linha-de-base` **104/104**; `provar-producao`
+**159/159**; `check-identidade` **0 erros**.
+
+**O que continua vazio, e é a verdade.** O repositório não tem nenhum ficheiro de linha de base — o
+primeiro nasce quando a pesquisadora premir «Concluir e enviar para a turma». Até lá o índice diz
+`recortes: []`, e dizê-lo é o correcto: um índice que inventasse o passado seria pior do que um vazio.
+O registo antigo do KV (a linha `teste`) **não** tem versões porque nunca foi um acto em ficheiro; ele
+migra na primeira vez que for concluído outra vez.

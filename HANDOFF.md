@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T21:34:24-0300`
-Commit atual: `fb95e768` — feat(po): o elenco do Plano de Observacao deixa de se escolher — vem da turma
+Gerado em: `2026-11-05T21:47:29-0300`
+Commit atual: `1f233691` — feat(po): a estante diz se o repositorio esta alcancavel
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,8 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+1f233691 feat(po): a estante diz se o repositorio esta alcancavel
+a9f1f79c feat(po): a linha de base sai do KV — o acto passa a ser um ficheiro, append-only
 fb95e768 feat(po): o elenco do Plano de Observacao deixa de se escolher — vem da turma
 8084cf8a fix(po): a aluna na listagem, e a linha de base como fonte do elenco
 5c6316b1 feat(po): o indice do recorte — o que os professores olham no corpo, e o que nao olham
@@ -104,8 +106,6 @@ d7776497 chore(estrutura): regerar os índices derivados
 c576e9ca feat(acervo): envelope/.indice.json
 e0f3b0fd chore(estrutura): regerar os índices derivados
 45eb07d4 feat(acervo): envelope/.indice.json
-80b31fea chore(acervo): apagar envelope/anamnese-20261105-1910-2.json
-acfa2f81 feat(acervo): envelope/anamnese-20261105-2014.json
 ```
 
 ## Por professor
@@ -231,70 +231,61 @@ acfa2f81 feat(acervo): envelope/anamnese-20261105-2014.json
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — A linha de base sai do KV: o acto passa a ser um ficheiro, e o passado deixa de se apagar
+## 05/11/2026 — O recorte entra no índice gerado, com a série
 
-**O que aconteceu.** A pesquisadora leu a limitação declarada do índice do recorte («não há série
-temporal; o `Gravar` do passo 4 sobrescreve a linha») e respondeu com a decisão: «é melhor a gente
-mandar para um ficheiro, porque daí a gente consegue fazer as soluções que precisamos e ter um índice
-robusto». E deu as três razões, que se somam: «o KV também é custo, e esse é um espaço que o professor
-vai mexer muitas vezes»; «não há série temporal. A gente tem que encontrar uma solução para isso.
-Essa é uma característica que vai valer muito dinheiro»; e «um ranque entre escolas exige que o KV
-seja alcançável pela mesma leitura» — e não é. O gatilho ficou declarado: «quando o professor editar,
-ou criar a linha de base, ele vai lá no step 4 dele e manda então concluir e enviar para a turma.
-Nesse momento tem que colocar no ficheiro.»
+**O que aconteceu.** Na entrada anterior ficou declarado o que faltava: «o índice gerado em `indices/`
+ainda não olha esta família». A pesquisadora respondeu «pode fazer» — e é a segunda metade da decisão
+do dia: o acto da linha de base passou a ser um ficheiro **para que** o índice pudesse olhar para trás.
 
 **O que foi decidido.**
 
-- **O ACTO vai para o repositório; o RASCUNHO fica no KV.** É a fronteira do `aula-NN.md` planejado e
-  do lançamento dado: os passos 1–4 são intenção (editam-se, corrigem-se, descartam-se) e vivem no KV,
-  que é barato; o «Concluir e enviar para a turma» é facto, é datado, e vai para um ficheiro. Um
-  ficheiro por passo daria cinco commits por linha para escrever três vezes a mesma intenção — e o
-  passo certo é o único em que o facto existe: só depois do passo 4 há recorte.
-- **Append-only, com o elo declarado.** `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`. Cada
-  envio cria um arquivo novo e diz de qual veio (`anterior`). É a série temporal que ela pediu, e
-  sobrevive a um `squash`, a um `rebase` e a uma migração — coisas que a história do Git não garante.
-- **O `id` NÃO muda entre versões.** É o que o plano guarda em `linha-de-base-alvo`, e um id novo a
-  cada envio quebraria o ponteiro do plano a cada ajuste. A versão vigente é a de **carimbo maior** —
-  do nome, e não da data que o ficheiro diz: um relógio atrasado não reordena o passado.
-- **Apagar é um acto.** O `DELETE` grava uma versão com `apagada_em`; a linha sai da estante e o
-  registo de que existiu fica. Uma linha de base apagada sem rasto é o único esquecimento que este
-  sistema não pode ter.
-- **Duas listas, com donos diferentes.** `linhasDeBase` é a da EDIÇÃO (o acto, e por cima o rascunho
-  quando há um em curso). `linhasConcluidas` é a dos ACTOS, e é ela que a turma, o plano e o PO leem:
-  um rascunho que muda o elenco sem ser concluído não pode mudar o corpo que a turma observa.
-- **Um registo antigo do KV continua a valer.** A `teste` de produção vive no KV com turma e não tem
-  ficheiro nenhum; sem essa regra ela desaparecia da estante e o plano apontava para o nada. Ela migra
-  na primeira vez que for concluída outra vez.
-- **A escrita falhada não mente.** Sem `GITHUB_TOKEN` (as escolas legadas), o acto fica no KV e a
-  resposta **diz isso** e diz que a série temporal não existe. Com token mas com o GitHub a recusar, a
-  resposta é 502 e o rascunho fica intacto — nunca «concluído» sobre um ficheiro que não existe.
+- **A entidade `recorte` passa de `prevista` a `produzida`.** A marca `prevista` existia por uma razão
+  factual — o recorte morava no KV, e o gerador do acervo não o alcança —, e a razão acabou. A troca da
+  marca **é** o registo da mudança, e o `$nota` do esquema passou a contá-la.
+- **A série vai no índice da ESCOLA, não no transversal.** `recortes[]` é a versão vigente de cada
+  linha com a cadeia `versoes[]` inteira (um elo por acto, com o arquivo, a data, os aspectos daquele
+  momento e a contagem de alunas); `aspectos[]` é a janela do tempo por aspecto. **`acesso: escola`**, e
+  o transversal leva só `contagens.recortes` — um número não é o dado.
+- **Três contas, e não uma.** `contagem` (em quantos recortes vigentes o aspecto está hoje), `versoes`
+  (em quantos actos alguma vez esteve) e a janela (`primeira`/`ultima`, carimbos). Confundi-las é o erro
+  fácil: um aspecto que se olhava em Setembro e hoje em nenhum tem `contagem: 0` e `versoes: 5`, e é
+  exactamente essa diferença que a série existe para mostrar.
+- **A lápide não apaga.** Uma linha de base apagada continua no índice com `apagada: true`, sai do
+  ranque dos vigentes e mantém os actos na série.
+- **A declaração passou a ser executável, e eram precisas duas verificações.** A **15** (Acesso
+  declarado) faz cumprir o `acesso: escola`: as chaves de `$materializa` não podem existir no acervo
+  transversal, e têm de existir no índice de cada escola quando a entidade é `produzida` — a segunda
+  metade é o que impede a primeira de passar por ausência. A **16** (Recorte coerente) exige que o
+  ranque bata com os recortes que o sustentam.
 
-**Um defeito apanhado pela prova, e vale registá-lo.** A primeira versão do `vigentes()` saltava a
-lápide mas promovia a versão anterior a vigente — a linha apagada **reaparecia na estante**. A regra
-certa é: se a versão MAIS RECENTE de um id é uma lápide, a linha está apagada, e não se procura mais
-atrás. Foi a asserção «a linha desaparece dos VIGENTES» que o disse.
+**Um erro meu, apanhado pela contraprova, e é o que vale registar.** A primeira versão da verificação
+15 procurava `acesso` **na entidade**; o dicionário declara-o **em cada campo**, e nenhuma entidade o
+tem no topo. A verificação não encontrava nada, não conferia nada, e **passava** — o pior estado
+possível. Foi a contraprova 10 («pôr `recortes` no índice transversal») que o disse: *a verificação 15
+NÃO reprovou*. A regra passou a ser a do dicionário (uma entidade é de escola quando todos os seus
+campos o são), e a contraprova passou a reprovar como devia. É a demonstração do princípio que este
+repositório já escreveu noutro sítio: **uma verificação que passa por não correr é pior do que
+nenhuma.**
 
-**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — novo: `criarStore`/`doAmbiente`,
-`chaves`, `versoes`, `vigentes`, `vigente`, `concluir`, `apagar`, `historia`, com o 409 repetido e a
-árvore lida uma vez por pedido. `motor/servidor/bastidores.js` — `linhasDeBase(kv, escola, repo)` (a
-edição) e `linhasConcluidas` (os actos), `rascunhosDe` para as três rotas que escrevem, o store por
-pedido, o `/enviar` a gravar o ficheiro, o `DELETE` a gravar a lápide, o passo 3 a criar rascunho a
-partir do acto, e `linhasDeBaseDaEscola(env, escola)` para a ponte.
-`motor/servidor/cloudflare.js` — `lerLinhasDeBaseDoEnv` lê o repositório primeiro e o KV como reserva.
-`motor/servidor/producao.js` — a listagem da anamnese recebe a lista pela porta nova.
-`experimentos/provar-linha-de-base-no-repo.js` — novo.
+**Onde entrou.** `motor/nucleo/indices.js` — `recortesDaEscola` e `aspectosDoRecorte` (puras,
+exportadas), `recortes`/`aspectos`/`filtros.aspectos` no índice da escola, `contagens.recortes` no
+mestre. `tools/gerar-indices.js` — `lerRecortes` (com o leitor injectável, para a regra ser exercível
+sem o disco), e a passagem de `recortes` à derivação. `indices/esquema/campos.json` — `produzida`,
+`$materializa`, `vigente`, `apagada_em`, `versoes`. `tools/check-indices.js` — verificações 15 e 16 e
+as contraprovas 10 e 11. `motor/nucleo/indice-do-recorte.js` — a nota que separa o ranque do presente
+da série do passado. `PLANO-INDICES.md` — §4.12 corrigido (a limitação 1 fecha) e **§4.13** novo.
+`experimentos/provar-recorte-no-indice.js` — novo.
 
-**Medido.** `provar-linha-de-base-no-repo` **28/28** (o primeiro run apanhou o defeito da lápide);
-`provar-linha-de-base` **104/104**; `provar-sujeitos-semeados` **22/22**; `provar-sujeitos-da-turma`
-**41/41**; `provar-etiqueta-da-aluna` **20/20**; `provar-indice-do-recorte` **24/24**;
-`provar-producao` **159/159**; `check-identidade` **0 erros**; `check-indices` **14/14**.
+**Medido.** `provar-recorte-no-indice` **40/40**; `check-indices` **16 verificações, 0 falhas** e
+**12 contraprovas, todas reprovam como deviam**; `provar-indice-do-recorte` **24/24**;
+`provar-linha-de-base-no-repo` **28/28**; `provar-linha-de-base` **104/104**; `provar-producao`
+**159/159**; `check-identidade` **0 erros**.
 
-**O que fica pendente, e é o passo seguinte — agora possível.** O índice gerado em Git (`indices/`) e
-o **ranque entre escolas** continuam a não existir: o índice do recorte é o VIVO, calculado por
-pedido. O que esta entrada entrega é o **substrato** que os torna possíveis — as versões em ficheiro,
-alcançáveis pela mesma leitura em qualquer escola. O `regerar-indices.yml` já dispara em `escola/**`,
-portanto uma linha de base concluída já faz correr a derivação; o que falta é a derivação **olhar**
-para esta família (`recorte`) e emitir a série.
+**O que continua vazio, e é a verdade.** O repositório não tem nenhum ficheiro de linha de base — o
+primeiro nasce quando a pesquisadora premir «Concluir e enviar para a turma». Até lá o índice diz
+`recortes: []`, e dizê-lo é o correcto: um índice que inventasse o passado seria pior do que um vazio.
+O registo antigo do KV (a linha `teste`) **não** tem versões porque nunca foi um acto em ficheiro; ele
+migra na primeira vez que for concluído outra vez.
 
 ## O que está pendente
 

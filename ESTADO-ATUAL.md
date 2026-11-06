@@ -3984,6 +3984,23 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
 
+- **05/11/2026** — **O recorte entrou no índice GERADO, com a série.** A limitação 1 do §4.12 do
+  `PLANO-INDICES` («não há série temporal») fechou: a entidade `recorte` passou de `prevista` a
+  `produzida`, e o índice de cada escola traz `recortes[]` (a vigente de cada linha com a cadeia
+  `versoes[]` inteira), `aspectos[]` (a janela do tempo: `contagem` = recortes vigentes que o olham
+  hoje, `versoes` = actos que alguma vez o escolheram, `primeira`/`ultima` = carimbos) e
+  `filtros.aspectos` (a faceta, para o filtro rápido). `acesso: escola`: o transversal leva só
+  `contagens.recortes`. Duas verificações novas no `check-indices` — **15** Acesso declarado (o que o
+  dicionário marca como de escola não atravessa, e o que é `produzida` tem de existir) e **16**
+  Recorte coerente (o ranque bate com os recortes que o sustentam) —, com as contraprovas 10 e 11.
+  **Um erro meu, apanhado pela contraprova:** a verificação 15 procurava `acesso` na ENTIDADE, e o
+  dicionário declara-o em cada CAMPO — não conferia nada e passava. Uma verificação que passa por não
+  correr é pior do que nenhuma. Medido: `provar-recorte-no-indice` **40/40**, `check-indices`
+  **16/16** e **12 contraprovas**, `provar-indice-do-recorte` **24/24**, `provar-linha-de-base`
+  **104/104**, `provar-producao` **159/159**. **PENDENTE e é facto, não falha:** nenhum ficheiro de
+  linha de base no repositório ainda — o primeiro nasce no próximo «Concluir e enviar para a turma»,
+  e até lá o índice diz `recortes: []`, que é a verdade.
+
 - **05/11/2026** — **A linha de base saiu do KV: o acto é um ficheiro, append-only.** O «Gravar» do
   passo 4 fazia `lista[idx] = linha` sobre um array no KV: o que existia antes desaparecia, e com
   ele a possibilidade de olhar para o passado. Decidido por ela: «é melhor mandar para um ficheiro,
