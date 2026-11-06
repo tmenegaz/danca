@@ -454,6 +454,75 @@ const texto = JSON.stringify; // conveniência de leitura abaixo
     'e aparecem UMA vez (o formato antigo e o novo não coexistem no mesmo arquivo)');
   ok('o PO no formato antigo continua lido como estava (nenhum pacote publicado muda)');
 
+  // =========================================================================
+  // F. O HÍBRIDO (06/11/2026): os objetivos do plano entram como critérios
+  // =========================================================================
+
+  /* O QUE MUDOU, E PORQUÊ. A auditoria reversa da §5.15 de ARQUITETURA-GERAL mediu o que o campo
+   * «Itens de cada dimensão» pedia à mão e o plano já tinha. A decisão dela foi o híbrido: os
+   * OBJETIVOS que o plano trabalha em cada bloco entram **derivados** como critérios, e o campo
+   * fica só com o que é do professor. O que estas verificações medem é o caminho inteiro — do
+   * plano ao documento e do plano à folha de captura — e a NEGATIVA que prova que é o plano que
+   * os põe lá: sem plano, o mesmo PO não os tem. */
+  /* O BLOCO É O VALOR DA DIMENSÃO, e neste cenário ele é o marcador do nó que a declarou —
+   * `mk('dimensoes-de-observacao')`. Usar `mk('dimensoes')` era a abreviação que eu tinha
+   * escrito de cabeça; o cruzamento não casava, e a asserção falhava com razão. */
+  const BLOCO_DO_PO = mk('dimensoes-de-observacao');
+  /* A FOLHA usa OUTRO rótulo de dimensão (o `poDaFolha` da secção D é um PO à parte). Os dois
+   * blocos são marcados no mesmo plano de propósito: o cruzamento é por NOME, e um plano que só
+   * marcasse um deles provaria metade do caminho. */
+  const BLOCO_DA_FOLHA = mk('dimensoes');
+  const OBJ_UM = 'alinhar o eixo vertical na preparação';
+  const OBJ_DOIS = 'transferir o peso sem perder o alinhamento';
+  const PLANO_COM_OBJETIVOS = JSON.parse(JSON.stringify(PLANO));
+  PLANO_COM_OBJETIVOS.respostas['marcos-por-aula'] = { valor: [OBJ_UM, OBJ_DOIS] };
+  PLANO_COM_OBJETIVOS.respostas['estrutura-de-cada-aula'] = { valor: [
+    { marco: 1, marcados: [BLOCO_DO_PO, BLOCO_DA_FOLHA] },
+    { marco: 2, marcados: [BLOCO_DO_PO, BLOCO_DA_FOLHA] },
+  ] };
+
+  // 18. O DOCUMENTO: a linha do bloco leva os dois objetivos à frente do item escrito.
+  const semObjetivos = derivarPO(ENVELOPE, PLANO, { rotulos: rotulosDoChecklist(CONTEUDO_PO) }).markdown;
+  const comObjetivos = derivarPO(ENVELOPE, PLANO_COM_OBJETIVOS,
+    { rotulos: rotulosDoChecklist(CONTEUDO_PO) }).markdown;
+  assert.ok(!comObjetivos.includes(OBJ_UM) === false,
+    'o documento do PO tem de trazer o objetivo do plano');
+  assert.ok(semObjetivos.includes(mk('itens')) && !semObjetivos.includes(OBJ_UM),
+    'sem plano com objetivos, o documento fica só com o que o professor escreveu');
+  const linhaDoBloco = comObjetivos.split('\n')
+    .find((l) => l.indexOf('**' + BLOCO_DO_PO + '**') !== -1) || '';
+  assert.ok(linhaDoBloco.indexOf(OBJ_UM) !== -1 && linhaDoBloco.indexOf(OBJ_DOIS) !== -1,
+    'os dois objetivos entram na linha do bloco: ' + linhaDoBloco);
+  assert.ok(linhaDoBloco.indexOf(OBJ_UM) < linhaDoBloco.indexOf(mk('itens')),
+    'e entram ANTES do que o professor escreveu — a ordem é a da autoridade');
+  ok('o documento do PO traz os objetivos do plano como critérios, à frente do que se escreveu');
+
+  // 19. A FOLHA: os objetivos viram COLUNAS — é por elas que se marca, aluna a aluna.
+  const folhaSem = declaracaoDeCaptura({ po: poDaFolha, escola: 'Barra' });
+  const folhaCom = declaracaoDeCaptura({ po: poDaFolha, plano: PLANO_COM_OBJETIVOS, escola: 'Barra' });
+  const colunasCom = Object.keys(folhaCom.blocos['Bloco 1 — ' + BLOCO_DA_FOLHA].colunas);
+  const colunasSem = Object.keys(folhaSem.blocos['Bloco 1 — ' + BLOCO_DA_FOLHA].colunas);
+  assert.ok(colunasCom.indexOf(OBJ_UM) !== -1 && colunasCom.indexOf(OBJ_DOIS) !== -1,
+    'as colunas da folha incluem os objetivos: ' + colunasCom.join(' | '));
+  assert.ok(colunasSem.indexOf(OBJ_UM) === -1,
+    'e sem o plano a folha fica como estava: ' + colunasSem.join(' | '));
+  assert.ok(colunasCom.indexOf(mk('itens')) !== -1,
+    'o que o professor escreveu não se perde: ' + colunasCom.join(' | '));
+  ok('a folha de captura ganha uma coluna por objetivo do plano, e mantém o que se escreveu');
+
+  // 20. NÃO SE DUPLICA: um professor que já escreveu o objetivo com as mesmas palavras
+  //     (é o que a tela lhe diz para fazer) não o vê duas vezes na folha.
+  const poRepetido = JSON.parse(JSON.stringify(poDaFolha));
+  poRepetido.respostas['itens-por-dimensao'].valor =
+    [{ sujeito: BLOCO_DA_FOLHA, itens: OBJ_UM.toUpperCase() + '; um item só meu' }];
+  const folhaRepetida = declaracaoDeCaptura({ po: poRepetido, plano: PLANO_COM_OBJETIVOS, escola: 'Barra' });
+  const chaves = Object.keys(folhaRepetida.blocos['Bloco 1 — ' + BLOCO_DA_FOLHA].colunas);
+  const quantas = chaves.filter((c) => c.toLowerCase() === OBJ_UM.toLowerCase()).length;
+  assert.equal(quantas, 1, 'o objetivo escrito com as mesmas palavras entra uma vez só: '
+    + chaves.join(' | '));
+  assert.ok(chaves.indexOf('um item só meu') !== -1, 'e o que é do professor continua lá');
+  ok('o objetivo que o professor já escreveu não aparece duas vezes na folha');
+
   console.log(`\nOK: ${n} verificações — o PO completo chega inteiro aos derivados.`);
 })().catch((e) => {
   console.error('\nFALHOU: ' + e.message);

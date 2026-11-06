@@ -4074,8 +4074,22 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   escrever aqui é seu»). Uma leitura, quatro usos — o envelope já era buscado para os blocos.
   Medido: `provar-eixos-do-po` **42/42** (secção **E** nova), `provar-po-completo` **17**,
   `provar-linha-de-base` **104/104**, `provar-producao` **159/159**, `check-identidade` **0 erros**,
-  `check-indices` **16/16**. **PENDENTE, e é decisão dela:** derivar o campo dos objetivos (perde o
-  critério e a Expressão) ou mantê-lo escrito com o plano à vista.
+  `check-indices` **16/16**. **DECIDIDO por ela, no mesmo dia:** o **híbrido** — ver a entrada
+  seguinte.
+
+- **06/11/2026** — **O híbrido: os objetivos do plano entram como critérios, e o campo fica com o
+  critério.** Decisão dela entre os três desenhos da auditoria reversa. `objetivosPorBlocoDoPlano`
+  (em `motor/nucleo/derivar-po.js`) lê `marcos-por-aula` × `estrutura-de-cada-aula` e dá, por bloco,
+  os objetivos que ali se perseguem — **sem** ler `aula-1-parametro`, porque um exercício («plié»)
+  não é um critério. `itensComObjetivos` põe-nos à frente do que o professor escreveu, resolve o
+  prefixo do eixo na dimensão (senão os POs anteriores a 04/11 perdiam os objetivos em silêncio) e
+  não duplica. **O plano passou a chegar a três derivadores** — documento, folha de captura e
+  declaração `porVariante` —, com `plano` **opcional** nas duas assinaturas que não o recebiam. O
+  campo ficou **opcional** (o PO passa a **25 campos, 11 obrigatórios**), e a tela diz que os
+  objetivos entram sozinhos. Medido: `provar-po-completo` **20/20** (verificações 18-20, cada uma
+  com a sua negativa), `provar-eixos-do-po` **42/42** (a frase do bloco sem objetivo foi
+  **atualizada**, não apagada), `provar-producao` **159/159**, `provar-linha-de-base` **104/104**,
+  `check-identidade` **0 erros**, `check-indices` **16/16**.
 
 - **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
   O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que

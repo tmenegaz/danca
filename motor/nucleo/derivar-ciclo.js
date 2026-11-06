@@ -22,7 +22,7 @@
  * exemplo de gabarito vazado) sai como lacuna declarada `[Preencher: …]`.
  */
 
-const { respostaDo, emLista, itensDaDimensao } = require('./derivar-po.js');
+const { respostaDo, emLista, itensDaDimensao, itensComObjetivos } = require('./derivar-po.js');
 // O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
 const moduloNotacao = require('./notacao.js');
 const sequenciaDoPlano = require('./sequencia.js');
@@ -848,7 +848,7 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
    * LISTA e não uma tabela de propósito: o contrato extrai UMA tabela por secção (a primeira),
    * e a segunda — a dos critérios, que é o dado — desaparecia em silêncio. */
   {
-    const dims = dimensoesEItens(po);
+    const dims = dimensoesEItens(po, plano);
     const eixos = eixosDaObservacao(dims, plano, po);
     const corpo = [
       '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem dos',
@@ -1573,7 +1573,7 @@ function derivarGlossario({ plano, contexto }) {
  * `{ sujeito: <dimensão>, itens: "item\nitem" }` (repetirPor). O par é normalizado para
  * `[ { dimensao, itens: [...] } ]`, tolerando as duas formas.
  */
-function dimensoesEItens(po) {
+function dimensoesEItens(po, plano) {
   const dimensoes = emLista(resp(po, 'dimensoes-de-observacao')).filter((v) => !GABARITO_VAZADO.test(v));
   const cru = resp(po, 'itens-por-dimensao');
   const porDimensao = new Map();
@@ -1625,7 +1625,10 @@ function dimensoesEItens(po) {
   for (const d of porDimensao.keys()) {
     if (!vistas.has(d)) { vistas.add(d); todas.push(d); }
   }
-  return todas.map((d) => ({ dimensao: d, itens: porDimensao.get(d) || [] }));
+  /* OS OBJETIVOS DO PLANO SÃO CRITÉRIOS (06/11/2026) — o híbrido da §5.15. Entram à frente do
+   * que o professor escreveu, e não se duplicam. Sem plano (uma bancada, uma chamada antiga), a
+   * lista é a que o PO tem: a função não inventa e não parte. */
+  return itensComObjetivos(todas.map((d) => ({ dimensao: d, itens: porDimensao.get(d) || [] })), plano);
 }
 
 /**
@@ -1647,8 +1650,8 @@ const TIPO_DO_CRITERIO = 'rubrica';
  * `rubrica`), não pelas cinco marcas. A LINHA DE BASE é a exceção, e por isso tem o `tipo`
  * escrito à mão: «observado na aula» responde «aconteceu?», e não «em que nível ficou?».
  */
-function declaracaoDeCaptura({ po, escola }) {
-  const dims = dimensoesEItens(po);
+function declaracaoDeCaptura({ po, plano, escola }) {
+  const dims = dimensoesEItens(po, plano);
   const blocos = {};
   dims.forEach((d, i) => {
     const titulo = 'Bloco ' + (i + 1) + ' — ' + d.dimensao;
@@ -1755,13 +1758,13 @@ function precisaGravar(anterior, nova) {
 }
 
 /** A folha de captura da Aula 01 — para impressão — derivada do PO. */
-function derivarCaptura({ po, contexto }) {
+function derivarCaptura({ po, plano, contexto }) {
   const sujeitos = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
   /* AS FLUTUANTES E O PONTO DE PARTIDA SAÍRAM DO PO (06/11/2026) — e a folha não fica mais pobre:
    * o elenco é o da linha de base da turma (todo ele, porque o professor dá aula à turma inteira),
    * e o ponto de partida de cada aluna é o recorte que ela já declarou no passo 4. O que a folha
    * imprime é a LISTA de quem se observa; o registo do corpo fica onde está. */
-  const dims = dimensoesEItens(po);
+  const dims = dimensoesEItens(po, plano);
   const ciclo = String((contexto && contexto.ciclo) || 'NN');
   const escola = nomeDaEscola(contexto);
 

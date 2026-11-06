@@ -37597,3 +37597,60 @@ página.
 **O que fica para ela decidir.** Se o campo passa a **derivado** dos objetivos — mais enxuto, e
 apaga o critério e a Expressão —, ou se continua escrito com o plano à vista, como está agora. A
 auditoria não decide isso: mostra o que se ganha e o que se perde em cada lado.
+
+> **Nota de 06/11/2026, 10h20.** Ela decidiu: **o híbrido**. A entrega está na entrada seguinte —
+> esta fica como estava, porque era verdade quando foi escrita, e a proveniência acrescenta (P-13).
+
+---
+
+## 06/11/2026 — O híbrido dos «itens de cada dimensão»: os objetivos entram derivados, e o campo fica com o critério
+
+**A decisão.** Perguntada entre os três desenhos que a auditoria da entrada anterior deixou em
+aberto — manter, derivar, ou híbrido —, ela escolheu o **híbrido**: *os objetivos específicos
+entram como critérios, derivados do plano; o campo passa a ser só o critério que o objetivo não
+nomeia, e é opcional.* É o único que não perde nada: o que o plano decide deixa de se reescrever
+(a parte redundante que a auditoria mediu) e o que é só do professor continua a ter onde ser
+escrito (a parte que não existe em mais sítio nenhum — a Expressão da `batata` é o caso real).
+
+**O que se construiu.**
+
+- `objetivosPorBlocoDoPlano(plano)`, em `motor/nucleo/derivar-po.js`: lê `marcos-por-aula` ×
+  `estrutura-de-cada-aula` e devolve, **por bloco**, os objetivos que ali se perseguem. Lê também
+  a forma legada do objetivo (`«01: reconhecer o apoio»`) e ignora um `estrutura-de-cada-aula` que
+  seja uma lista de blocos sem `{marco, marcados}` — nesse caso o resultado é **vazio**, e não
+  errado. **Não lê `aula-1-parametro`**: um exercício («plié») não é um critério («o joelho
+  acompanha o pé»), e lê-lo encheria a folha de colunas que ninguém sabe marcar.
+- `itensComObjetivos(itens, plano)`: põe os objetivos **à frente** do que o professor escreveu — a
+  ordem é a da autoridade —, resolve o **prefixo do eixo** na dimensão com `blocoDaDimensao`
+  (senão todos os POs anteriores a 04/11 perderiam os objetivos em silêncio, porque o rótulo
+  gravado é «Técnica — Barra») e **não duplica**: se o professor já escreveu o objetivo com as
+  mesmas palavras — é o que a tela lhe diz para fazer —, entra uma vez.
+- **O plano chega a três derivadores**, e é isso que faz o híbrido valer: ao documento
+  (`derivarPO`, que já o tinha), à **folha de captura** (`derivarCaptura`) e à **declaração
+  `porVariante`** (`declaracaoDeCaptura`). Os dois últimos não o recebiam — e sem ele a folha
+  ficaria com menos colunas do que o documento diz. As duas assinaturas ganharam `plano`
+  **opcional**: sem ele a lista é a que o PO tem, e nada parte (é o que mantém os POs gravados e as
+  bancadas antigas). Os dois chamadores passam-no: `tools/regerar-derivados.js` e
+  `motor/servidor/escrever-ciclo.js` (que já tinham o envelope do plano em escopo).
+- O campo passou a **opcional** no conteúdo (`obrigatorio: false`), e a explicação diz o que já não
+  se escreve: os objetivos entram sozinhos. O PO fica com **25 campos, 11 obrigatórios**.
+- Na tela, as duas frases do bloco de leitura dizem o que agora acontece: «Estes objetivos entram
+  SOZINHOS na folha de captura, como colunas — não há nada a copiar para a caixa», e, no bloco que
+  nenhum objetivo marca, «Nenhum critério entra sozinho aqui: o que você escrever abaixo é a única
+  coisa que este bloco observa».
+
+**Com o quê.** `provar-po-completo` (**20**, verificações 18 a 20): o documento traz os objetivos à
+frente do que se escreveu; a folha ganha uma coluna por objetivo **e mantém** o item escrito; e o
+objetivo que o professor já escreveu não aparece duas vezes. Cada uma com a sua **negativa** — sem
+o plano, o mesmo PO fica como estava. `provar-eixos-do-po` (**42**) continua a medir a tela, e a
+frase do bloco sem objetivo foi reescrita com ela (asserção **atualizada**, não apagada).
+
+**Medido.** `provar-po-completo` **20/20**; `provar-eixos-do-po` **42/42**; `provar-sujeitos-semeados`
+**22/22**; `provar-ciclo-herdado-do-plano` **20/20**; `provar-linha-de-base` **104/104**;
+`provar-cadeia-do-ajuste` **34/34**; `provar-producao` **159/159**; `check-identidade` **0 erros**
+(as 20); `check-indices` **16/16**.
+
+**O que NÃO se fez, e é de propósito.** Não se tocou na apresentação da folha: com mais colunas por
+bloco (uma por objetivo), a folha de um plano com três objetivos por bloco fica mais larga — e é a
+regra que já existe (`critérios ≤ alunas` → colunas; senão, transpõe) que decide. Se a proporção
+mudar num ciclo real, mede-se então, com a folha à frente.

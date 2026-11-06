@@ -130,7 +130,7 @@ const fontes = [
   { sufixo: '-plano.md', texto: derivarPlano(plano).markdown },
   { sufixo: '-aula-01.md', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal }) },
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },
-  { sufixo: '-captura-aula-01.md', texto: derivarCaptura({ po, contexto }) },
+  { sufixo: '-captura-aula-01.md', texto: derivarCaptura({ po, plano, contexto }) },
   { sufixo: '-harmonizacao.md', texto: derivarHarmonizacao({ plano, po, contexto }) },
 ];
 const notacao = notacaoEscolhida(plano);

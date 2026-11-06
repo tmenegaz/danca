@@ -471,6 +471,78 @@ function itensPorDimensao(valor, dimensoes) {
   return nomes.map((d) => ({ dimensao: d, itens: porDimensao.get(d) || [] }));
 }
 
+/**
+ * OS OBJETIVOS ESPECÍFICOS DO PLANO, AGRUPADOS PELO BLOCO EM QUE SE TRABALHAM (06/11/2026).
+ *
+ * PORQUE ISTO EXISTE. A auditoria reversa da §5.15 de ARQUITETURA-GERAL mediu o que o PO pedia à
+ * mão e o plano já tinha: a **dimensão** (o bloco) já era derivada, e o **objetivo por bloco**
+ * também é — `marcos-por-aula` diz quais são, `estrutura-de-cada-aula` diz em que blocos cada um
+ * é trabalhado, e cruzando os dois sai, para cada bloco, a lista de objetivos que ali se
+ * perseguem. A decisão dela foi o HÍBRIDO: os objetivos entram **derivados** como critérios, e o
+ * campo do professor fica só com o que é dele — o critério que o objetivo não nomeia.
+ *
+ * O QUE ESTA FUNÇÃO **NÃO** LÊ: `aula-1-parametro`. Os parâmetros são os EXERCÍCIOS do nível da
+ * turma (plié, battement tendu, port de bras), e um exercício não é um critério de observação —
+ * «plié» não diz o que se vê. Lê-los aqui encheria a folha de colunas que ninguém sabe marcar.
+ *
+ * A FORMA LEGADA É LIDA: uma lista de marcos com o número escrito à frente («01: reconhecer o
+ * apoio») é o mesmo que a lista sem número, e o `estrutura-de-cada-aula` de um envelope antigo
+ * pode ser uma lista de blocos e não de `{marco, marcados}` — nesse caso não há cruzamento, e o
+ * resultado é vazio em vez de errado.
+ */
+function objetivosPorBlocoDoPlano(plano) {
+  const porBloco = new Map();
+  if (!plano) return porBloco;
+  const textos = emLista(respostaDo(plano, 'marcos-por-aula')).map((linha) => {
+    const t = String(linha == null ? '' : linha);
+    const i = t.indexOf(':');
+    const prefixo = i > 0 ? t.slice(0, i).trim() : '';
+    return (/^\d{1,3}$/.test(prefixo) ? t.slice(i + 1) : t).trim();
+  }).filter(Boolean);
+  const estrutura = respostaDo(plano, 'estrutura-de-cada-aula');
+  for (const linha of (Array.isArray(estrutura) ? estrutura : [])) {
+    if (!linha || typeof linha !== 'object' || Array.isArray(linha)) continue;
+    const n = Number(linha.marco);
+    if (!Number.isFinite(n) || n < 1) continue;
+    const texto = textos[n - 1];
+    if (!texto) continue;
+    for (const b of (Array.isArray(linha.marcados) ? linha.marcados : [])) {
+      const bloco = String(b).trim();
+      if (!bloco) continue;
+      if (!porBloco.has(bloco)) porBloco.set(bloco, []);
+      if (porBloco.get(bloco).indexOf(texto) === -1) porBloco.get(bloco).push(texto);
+    }
+  }
+  return porBloco;
+}
+
+/**
+ * OS ITENS DE CADA DIMENSÃO, COM OS OBJETIVOS DO PLANO À FRENTE (06/11/2026).
+ *
+ * A ORDEM É A DA AUTORIDADE: primeiro o que o PLANO decide (os objetivos que aquele bloco
+ * persegue), depois o que o professor escreveu para ver além deles. Inverter seria apresentar a
+ * escrita como se fosse a norma.
+ *
+ * A DIMENSÃO PODE VIR COM O PREFIXO DO EIXO («Técnica — Barra»): é a forma gravada nos POs antes
+ * de 04/11, e `blocoDaDimensao` é quem a lê. Comparar o rótulo cru contra os blocos do plano
+ * perderia todos os POs antigos — e o sintoma seria uma folha sem os objetivos, em silêncio.
+ *
+ * NÃO SE DUPLICA: se o professor já escreveu o objetivo com as mesmas palavras (é o que a tela
+ * lhe diz para fazer quando o objetivo já se vê), ele entra uma vez só.
+ */
+function itensComObjetivos(itens, plano) {
+  const porBloco = objetivosPorBlocoDoPlano(plano);
+  if (!porBloco.size) return itens;
+  const chave = (t) => String(t || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return itens.map((d) => {
+    const objetivos = porBloco.get(blocoDaDimensao(d.dimensao)) || [];
+    const escritos = d.itens || [];
+    const vistos = new Set(objetivos.map(chave));
+    const restantes = escritos.filter((i) => !vistos.has(chave(i)));
+    return { dimensao: d.dimensao, itens: objetivos.concat(restantes) };
+  });
+}
+
 function derivarPO(envelope, plano, opcoes) {
   const contexto = (envelope && envelope.contexto) || {};
   const saida = [];
@@ -626,8 +698,12 @@ function derivarPO(envelope, plano, opcoes) {
   }
   lista('Dimensões observadas', declaradas);
   {
-    const itens = itensPorDimensao(respostaDo(envelope, 'itens-por-dimensao'),
-      emLista(respostaDo(envelope, 'dimensoes-de-observacao')));
+    /* OS OBJETIVOS DO PLANO ENTRAM COMO CRITÉRIOS (06/11/2026) — o híbrido decidido por ela na
+     * §5.15: o que o plano decide não se reescreve, e o campo do professor fica com o critério.
+     * Sem plano legível, a lista é a que o PO tem — e o documento não inventa nada. */
+    const itens = itensComObjetivos(
+      itensPorDimensao(respostaDo(envelope, 'itens-por-dimensao'),
+        emLista(respostaDo(envelope, 'dimensoes-de-observacao'))), plano);
     /* A COLUNA DO EIXO É DECLARADA, e não deduzida por quem lê o documento. É o que impede a
      * reincidência: o eixo deixa de ser um prefixo dentro do nome e passa a ser um campo. */
     const linhasPorEixo = { corpo: [], tecnica: [], poiesis: [] };
@@ -787,6 +863,8 @@ module.exports = {
   emLista,
   itensDaDimensao,
   itensPorDimensao,
+  objetivosPorBlocoDoPlano,
+  itensComObjetivos,
   textoOuLacuna,
   rotulosDoChecklist,
   derivadosDoChecklist,

@@ -211,7 +211,7 @@
         {
           "id": "itens-por-dimensao",
           "campo": "Itens de cada dimensão",
-          "obrigatorio": true,
+          "obrigatorio": false,
           "repetirPor": "dimensoes-de-observacao",
           "camposDoItem": [
             {
@@ -220,9 +220,9 @@
             }
           ],
           "explicacao": {
-            "oQueE": "O CRITÉRIO de observação de cada dimensão: o que exatamente você marca, por aluno, para saber se o objetivo daquele bloco está a acontecer. Um item por linha.",
-            "preencher": "Cada dimensão já traz, acima da caixa, os OBJETIVOS que o plano de ensino trabalha naquele bloco e o que você marcou para os medir. Escreva o que se VÊ. Se o objetivo já se vê como está, escreva-o como está — ele é o critério, e não há nada a inventar. Separe os itens por linha ou por ponto e vírgula (;): «alinhamento do pé de apoio; eixo do corpo na preparação» são DOIS itens, e cada um vira uma coluna da folha. Quando nenhum objetivo do plano marca o bloco (a Expressão, num plano em que nenhum objetivo a trabalha), o que você escrever é só seu — e a tela di-lo.",
-            "porQue": "É o que vira a coluna da folha de captura — uma coluna por critério, porque cada um se mede sozinho. Observável é o que outra pessoa também veria. NÃO É uma segunda versão do plano: o objetivo diz o que se quer alcançar, o item diz o que se vê — e é por isso que este campo continua a existir, em vez de ser lido do plano. O que o plano já responde (a dimensão, o bloco, os objetivos, o que os mede, o recorte do corpo) não se pede aqui: é lido, e é mostrado ao lado da caixa."
+            "oQueE": "O CRITÉRIO que o objetivo não nomeia: o que você marca, por aluno, para ver acontecer o que o plano persegue naquele bloco. É OPCIONAL — os objetivos já entram sozinhos.",
+            "preencher": "Os objetivos que o plano trabalha em cada bloco já entram como critérios, sem você os escrever: eles aparecem acima da caixa e vão para a folha de captura como colunas. Escreva aqui SÓ o que vê além deles — o gesto, a qualidade, o detalhe que o objetivo não diz. Se não houver nada a acrescentar, deixe em branco. Separe os itens por linha ou por ponto e vírgula (;): «saída do calcanhar no tendu; quadril sem subir no en dehors» são DOIS itens, e cada um vira uma coluna. Quando nenhum objetivo do plano marca o bloco, o que você escrever é a única coisa que ali se observa — e a tela di-lo.",
+            "porQue": "É o que vira a coluna da folha de captura — uma coluna por critério, porque cada um se mede sozinho. Observável é o que outra pessoa também veria. O que o plano já responde (a dimensão, o bloco, os objetivos) NÃO se reescreve: entra derivado, e a caixa fica para o que é só seu. Foi o que a auditoria reversa de 06/11/2026 mostrou — metade do que aqui se escrevia já estava no plano, e a outra metade não estava em lado nenhum."
           }
         }
       ]

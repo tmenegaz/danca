@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T10:06:56-0300`
-Commit atual: `438cc267` — fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
+Gerado em: `2026-11-06T10:42:13-0300`
+Commit atual: `63d6290b` — feat(po): os itens de cada dimensao mostram o que o plano ja decide do bloco
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,7 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+63d6290b feat(po): os itens de cada dimensao mostram o que o plano ja decide do bloco
 438cc267 fix(experimentos): a prova serve-se da escola VIVA, e o criterio e o do deploy
 04d7adf2 fix(po): o ciclo do PO tambem nao se escreve na Area do Professor
 10f22048 refactor(po): o plano de observacao deixa de reperguntar o que ja esta decidido
@@ -105,7 +106,6 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 7b1bf1b0 chore(acervo): apagar envelope/anamnese-20261105-2015.json
 0e6f9171 feat(acervo): envelope/anamnese-20261105-2301.json
 12e47f25 feat(acervo): envelope/.indice.json
-61b19782 fix(tools): o .indice.json da pasta nao e um recorte
 ```
 
 ## Por professor
@@ -233,90 +233,57 @@ ce0f6fd7 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — A auditoria reversa dos «itens de cada dimensão»: metade vem do plano, metade não vem de lado nenhum
+## 06/11/2026 — O híbrido dos «itens de cada dimensão»: os objetivos entram derivados, e o campo fica com o critério
 
-**De onde veio.** Dela, com um método e uma intuição: *«eu pedi numa tarefa anterior para você
-investigar se esses valores já não estão definidos lá no plano de ensino ou lá nos bastidores…
-Aí você tem que olhar pelo fim, lá pelo documento que gera, e ir andando para trás, passando pelo
-PO, passando pelo PE, passando pela linha de base. Aí você consegue ver se é isso mesmo, se está
-tudo dentro do critério ou se realmente aqui é uma escrita nova do professor, porque eu tenho a
-impressão que não.»* E a hipótese, escrita por ela: os itens seriam os **objetivos específicos do
-PE** cruzados com os **aspectos do passo 4 da linha de base**.
+**A decisão.** Perguntada entre os três desenhos que a auditoria da entrada anterior deixou em
+aberto — manter, derivar, ou híbrido —, ela escolheu o **híbrido**: *os objetivos específicos
+entram como critérios, derivados do plano; o campo passa a ser só o critério que o objetivo não
+nomeia, e é opcional.* É o único que não perde nada: o que o plano decide deixa de se reescrever
+(a parte redundante que a auditoria mediu) e o que é só do professor continua a ter onde ser
+escrito (a parte que não existe em mais sítio nenhum — a Expressão da `batata` é o caso real).
 
-**O caminho, na ordem que ela deu.** O documento gerado imprime `## Itens de cada dimensão` numa
-tabela `| Eixo | Dimensão | Itens |`; a folha de captura usa os mesmos itens como **colunas**. Os
-dois leem `dimensoesEItens(po)` → `itens-por-dimensao` do envelope do PO. **Não havia derivação
-nenhuma** — era texto escrito no formulário, e o formulário não mostrava nada do que estava a
-montante.
+**O que se construiu.**
 
-**O que a auditoria mediu** (dados reais da `batata`; a tabela inteira está na §5.15):
+- `objetivosPorBlocoDoPlano(plano)`, em `motor/nucleo/derivar-po.js`: lê `marcos-por-aula` ×
+  `estrutura-de-cada-aula` e devolve, **por bloco**, os objetivos que ali se perseguem. Lê também
+  a forma legada do objetivo (`«01: reconhecer o apoio»`) e ignora um `estrutura-de-cada-aula` que
+  seja uma lista de blocos sem `{marco, marcados}` — nesse caso o resultado é **vazio**, e não
+  errado. **Não lê `aula-1-parametro`**: um exercício («plié») não é um critério («o joelho
+  acompanha o pé»), e lê-lo encheria a folha de colunas que ninguém sabe marcar.
+- `itensComObjetivos(itens, plano)`: põe os objetivos **à frente** do que o professor escreveu — a
+  ordem é a da autoridade —, resolve o **prefixo do eixo** na dimensão com `blocoDaDimensao`
+  (senão todos os POs anteriores a 04/11 perderiam os objetivos em silêncio, porque o rótulo
+  gravado é «Técnica — Barra») e **não duplica**: se o professor já escreveu o objetivo com as
+  mesmas palavras — é o que a tela lhe diz para fazer —, entra uma vez.
+- **O plano chega a três derivadores**, e é isso que faz o híbrido valer: ao documento
+  (`derivarPO`, que já o tinha), à **folha de captura** (`derivarCaptura`) e à **declaração
+  `porVariante`** (`declaracaoDeCaptura`). Os dois últimos não o recebiam — e sem ele a folha
+  ficaria com menos colunas do que o documento diz. As duas assinaturas ganharam `plano`
+  **opcional**: sem ele a lista é a que o PO tem, e nada parte (é o que mantém os POs gravados e as
+  bancadas antigas). Os dois chamadores passam-no: `tools/regerar-derivados.js` e
+  `motor/servidor/escrever-ciclo.js` (que já tinham o envelope do plano em escopo).
+- O campo passou a **opcional** no conteúdo (`obrigatorio: false`), e a explicação diz o que já não
+  se escreve: os objetivos entram sozinhos. O PO fica com **25 campos, 11 obrigatórios**.
+- Na tela, as duas frases do bloco de leitura dizem o que agora acontece: «Estes objetivos entram
+  SOZINHOS na folha de captura, como colunas — não há nada a copiar para a caixa», e, no bloco que
+  nenhum objetivo marca, «Nenhum critério entra sozinho aqui: o que você escrever abaixo é a única
+  coisa que este bloco observa».
 
-| Bloco | Objetivos que o plano ali trabalha | O que o plano marcou para os medir | Escrito no PO |
-|:--|:--|:--|:--|
-| Solo | 01 reconhecer o apoio e alinhar o eixo vertical (+03) | Plié · Battement tendu | «alinhamento do pé de apoio; eixo do corpo na preparação» |
-| Barra | 01 · 02 transferir o peso sem perder o alinhamento | Plié · Battement tendu · Port de bras | «saída do calcanhar no tendu; quadril sem subir no dehors» |
-| Centro | 02 · 03 sustentar a transferência com musicalidade | Plié · Port de bras · Rond de jambe | «transferência de peso sem perder a verticalidade; braço junto do movimento» |
-| Musicalidade | 03 | Battement tendu · Rond de jambe | «resposta ao pulso na marcação; frase até o fim da música» |
-| **Expressão** | **nenhum** | — | «olhar acompanha o braço; presença sem rigidez de rosto» |
+**Com o quê.** `provar-po-completo` (**20**, verificações 18 a 20): o documento traz os objetivos à
+frente do que se escreveu; a folha ganha uma coluna por objetivo **e mantém** o item escrito; e o
+objetivo que o professor já escreveu não aparece duas vezes. Cada uma com a sua **negativa** — sem
+o plano, o mesmo PO fica como estava. `provar-eixos-do-po` (**42**) continua a medir a tela, e a
+frase do bloco sem objetivo foi reescrita com ela (asserção **atualizada**, não apagada).
 
-**O que se concluiu, e é o que decide a ação.**
+**Medido.** `provar-po-completo` **20/20**; `provar-eixos-do-po` **42/42**; `provar-sujeitos-semeados`
+**22/22**; `provar-ciclo-herdado-do-plano` **20/20**; `provar-linha-de-base` **104/104**;
+`provar-cadeia-do-ajuste` **34/34**; `provar-producao` **159/159**; `check-identidade` **0 erros**
+(as 20); `check-indices` **16/16**.
 
-1. **A dimensão já é derivada** — vem dos blocos que o plano marca. Não se pergunta.
-2. **O objetivo por bloco é derivável** — `marcos-por-aula` × `estrutura-de-cada-aula`. A
-   Musicalidade tem **um**; a Barra tem **dois**. É um cruzamento, não uma escolha.
-3. **O que mede cada objetivo está lá** — mas são **exercícios** (plié, battement tendu, port de
-   bras), não critérios. É a confusão que fazia os itens parecerem vir do plano: «saída do
-   calcanhar **no tendu**» tem o *tendu* do parâmetro e o *calcanhar* de mais nenhum sítio.
-4. **A justificativa do volume está a um passo do item** — «Pulso e frase» está no plano, e o item
-   da Musicalidade é a mesma frase por extenso.
-5. **O critério não está em lado nenhum.** Termo a termo contra o plano **e** a linha de base: dos
-   **30 termos distintos** dos 10 itens, **16 não aparecem em nenhum campo a montante**. E dos 14
-   que aparecem, três (*calcanhar*, *quadril*, *saída*) vêm da prosa do «precisa desenvolver» por
-   aluna — um campo que o PO deixou de pedir a 06/11 e que o recorte do passo 4 **não** substitui:
-   o recorte dá nomes de aspectos anatómicos, não frases de critério.
-6. **Há um bloco inteiro sem fonte** — a Expressão, que nenhum objetivo marca. Os dois itens dela
-   são integralmente do professor.
-
-**A decisão.** O campo é **redundante na origem e não derivável na forma**. Derivá-lo dos objetivos
-— que era a leitura literal do pedido — faria o documento **e a folha de captura** perderem o
-critério (o que se *vê*) e fariam **desaparecer a Expressão**: apagar dado, não enxugar redundância.
-O defeito não era o campo; era o professor **escrevê-lo sem ver o plano** — a meia-verdade de quem
-redigita de memória o que decidiu duas telas acima.
-
-**O que se fez.** Cada repetição do campo passou a mostrar, **antes da caixa**, o que o plano decide
-daquele bloco: os objetivos que ali se trabalham (numerados, recortados **pelo bloco** — a
-Musicalidade mostra o 03, e não a lista toda), o que o plano marcou para os medir, e a
-justificativa do volume quando existe. A caixa **não se pré-enche** — um texto pré-enchido envelhece
-(o plano muda, o texto fica) e o que ali se escreve é o critério, que é outro objeto. E quando
-**nenhum** objetivo marca o bloco, a tela di-lo: «o plano de ensino não marca nenhum objetivo neste
-bloco. O que você escrever aqui é seu: o plano não o prevê.» É o caso que prova que o campo não é
-redundante.
-
-**Onde entrou.** `porta/index.html` — `oQueOPlaoDizDeCadaBloco` (lê os objetivos, os parâmetros e o
-volume do envelope que **já se buscava** para os blocos: uma leitura, quatro usos),
-`oQueOPlaoDizDoBloco` (o bloco de leitura de cada repetição, com as peças `leitura-do-cabecalho`,
-`derivadas` e `sub` — nenhuma classe nova), a chamada em `blocoDaRepeticao` restrita à repetição que
-**deriva do plano** (`fonte.doPlano`), e a frase do painel das dimensões, que ainda mandava ao
-«Ponto de partida» (nó removido a 06/11). `porta/po/conteudo/po.json` — a explicação do nó passa a
-dizer o que o plano já responde e o que é escrito, e nomeia o caso do bloco sem objetivo. Cópia do
-pacote e do `publicacao/calango` regeradas.
-
-**Com o quê.** `provar-eixos-do-po` (**42**, secção **E** nova): as cinco dimensões com o bloco de
-leitura; a Barra com os **dois** objetivos; a Musicalidade com **só** o 03 — a asserção negativa é a
-que separa «leu» de «despejou»; os parâmetros de cada objetivo; a caixa **vazia**; e a frase do
-bloco sem objetivo. O `PLANO` da bancada ganhou as três chaves reais (`marcos-por-aula`,
-`estrutura-de-cada-aula`, `aula-1-parametro`, `distribuicao-de-volume`), com os cinco blocos
-marcados para a lista das dimensões não mudar — se mudasse, a secção D passaria a medir outra
-página.
-
-**Medido.** `provar-eixos-do-po` **42/42**; `provar-po-completo` **17**; `provar-sujeitos-semeados`
-**22/22**; `provar-ciclo-herdado-do-plano` **20/20**; `provar-ciclo-do-painel-do-po` **27/27**;
-`provar-linha-de-base` **104/104**; `provar-relacoes-do-ciclo` **23/23**; `provar-producao`
-**159/159**; `check-identidade` **0 erros** (as 20); `check-indices` **16/16**.
-
-**O que fica para ela decidir.** Se o campo passa a **derivado** dos objetivos — mais enxuto, e
-apaga o critério e a Expressão —, ou se continua escrito com o plano à vista, como está agora. A
-auditoria não decide isso: mostra o que se ganha e o que se perde em cada lado.
+**O que NÃO se fez, e é de propósito.** Não se tocou na apresentação da folha: com mais colunas por
+bloco (uma por objetivo), a folha de um plano com três objetivos por bloco fica mais larga — e é a
+regra que já existe (`critérios ≤ alunas` → colunas; senão, transpõe) que decide. Se a proporção
+mudar num ciclo real, mede-se então, com a folha à frente.
 
 ## O que está pendente
 

@@ -2024,9 +2024,9 @@ function mostrarDoPlano(no) {
     '<li><b>' + md(eixo) + '</b>' + (blocos.length > 1 ? ' — ' + blocos.length + ' dimensões' : '') +
     '<ul>' + blocos.map((d) => '<li>' + md(d) + '</li>').join('') + '</ul></li>').join('');
   return '<p class="sub">' + deOnde + '</p><ul class="derivadas">' + grupos + '</ul>' +
-    '<p class="sub">No campo abaixo, cada dimensão traz o que o <b>plano de ensino</b> já diz ' +
-    'dela — os objetivos que ali se trabalham e o que os mede. O eixo do <b>Corpo</b> não tem ' +
-    'dimensão aqui: ele é o recorte que você escolheu no passo 4 da linha de base.</p>' +
+    '<p class="sub">No campo abaixo, cada dimensão traz o que o <b>plano de ensino</b> já decide ' +
+    'dela — os objetivos que ali se trabalham, que entram sozinhos na folha. O eixo do <b>Corpo</b> ' +
+    'não tem dimensão aqui: ele é o recorte que você escolheu no passo 4 da linha de base.</p>' +
     painelDoCorpo();
 }
 
@@ -6478,7 +6478,8 @@ function oQueOPlaoDizDoBloco(bloco) {
     return '<div class="leitura-do-cabecalho">'
       + '<p class="sub">O plano de ensino <b>não marca nenhum objetivo</b> neste bloco'
       + (justificativa ? ' (ele está no volume, com a justificativa «' + escapar(justificativa) + '»)' : '')
-      + '. O que você escrever aqui é seu: o plano não o prevê.</p></div>';
+      + '. Nenhum critério entra sozinho aqui: o que você escrever abaixo é a única coisa que '
+      + 'este bloco observa — e é sua, porque o plano não a prevê.</p></div>';
   }
   const itens = objetivos.map((o) => {
     const medido = o.parametros.length
@@ -6490,9 +6491,10 @@ function oQueOPlaoDizDoBloco(bloco) {
     + '<p class="sub">Do plano de ensino, neste bloco — '
     + objetivos.length + (objetivos.length === 1 ? ' objetivo:' : ' objetivos:') + '</p>'
     + '<ul class="derivadas">' + itens + '</ul>'
-    + '<p class="sub">O objetivo diz o que se quer alcançar; o item que você escreve abaixo diz '
-    + 'o que se VÊ para saber se ele está a acontecer. Se o objetivo já se vê, escreva-o como '
-    + 'está — ele é o critério.</p></div>';
+    + '<p class="sub">Estes objetivos entram SOZINHOS na folha de captura, como colunas — não há '
+    + 'nada a copiar para a caixa. Escreva ali só o que vê além deles: o gesto, a qualidade, o '
+    + 'detalhe que o objetivo não diz. Se não houver nada a acrescentar, deixe em branco.</p>'
+    + '</div>';
 }
 
 /*

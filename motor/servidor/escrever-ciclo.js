@@ -641,7 +641,8 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
          * acrescenta o que é novo. Quando nada muda, não há commit: o «Guardar» do PO é um
          * clique que se repete.
          */
-        const derivada = declaracaoDeCaptura({ po, escola: ctx.escolaNome || escolaNome });
+        const derivada = declaracaoDeCaptura({ po, plano,
+          escola: ctx.escolaNome || escolaNome });
         const jaDeclarada = Boolean(porVariante[slug]);
         const nova = mesclarDeclaracao(porVariante[slug], derivada);
         if (!precisaGravar(porVariante[slug], nova)) {

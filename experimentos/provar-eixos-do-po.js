@@ -524,9 +524,14 @@ async function main() {
           txt.innerHTML = t;
           return txt.textContent.replace(/\\\\s+/g, ' ').trim();
         })()`);
-        provar('um bloco que nenhum objetivo marca DIZ que o que ali se escreve é do professor',
+        /* A FRASE E A DO HÍBRIDO (06/11/2026): o que ali se escreve não é «do professor» em geral —
+         * é a ÚNICA coisa que o bloco observa, porque nenhum critério entra sozinho. As duas
+         * afirmações são a mesma verdade por dois lados, e a asserção exige as duas. */
+        provar('um bloco que nenhum objetivo marca DIZ que ali não entra critério nenhum sozinho',
           /não marca nenhum objetivo/.test(semObjetivo)
-          && /Presença cénica/.test(semObjetivo) && /é seu/.test(semObjetivo), semObjetivo);
+          && /Presença cénica/.test(semObjetivo)
+          && /Nenhum critério entra sozinho/.test(semObjetivo) && /é sua/.test(semObjetivo),
+          semObjetivo);
       }
 
       provar('nenhum erro de JavaScript na página', problemas.length === 0, problemas.slice(0, 3));

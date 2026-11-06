@@ -1117,7 +1117,9 @@ informação em vez de a tornar redundante — e é a diferença entre enxugar e
 explicação escrita no conteúdo, para o próximo leitor não repetir a tentação.
 
 **O número que ela vai notar.** O conteúdo do PO passou de **31 campos respondíveis (15
-obrigatórios)** para **25 (12)** — seis perguntas a menos, e nenhuma delas sem quem responda.
+obrigatórios)** para **25 (11)** — seis perguntas a menos, e nenhuma delas sem quem responda. O
+último a deixar de ser obrigatório foi o **«Itens de cada dimensão»** (06/11/2026): com o híbrido
+da §5.15, os objetivos entram sozinhos, e o campo ficou para o que é só do professor.
 O roteiro encolhe na mesma medida: os seis nós eram degraus, e o degrau que os seguia
 renumera-se sozinho (`#roteiro` numera pela caminhada, não pelo `id`).
 
@@ -1153,7 +1155,7 @@ o registo.
 de todas as suas turmas. `escolaDosCaminhos` passa a reconhecer a família pelo `lerCaminho` do
 próprio store — quem sabe ler a família sabe reconhecê-la, e não há uma segunda regex a divergir.
 
-**As provas.** `provar-po-completo` (17 verificações: o contrato nó→destino, o documento, a folha
+**As provas.** `provar-po-completo` (20 verificações: o contrato nó→destino, o documento, a folha
 de captura que passa no `validar-captura-ciclo`, e o PO no formato antigo a continuar lido);
 `provar-eixos-do-po` (42 asserções: as secções A a D como antes, e a **E** — cada bloco da
 repetição mostra o que o plano decide dele, recortado pelo bloco).
@@ -1234,9 +1236,36 @@ leitura em cada uma; a Barra com os **dois** objetivos; a Musicalidade com **só
 negativa é a que separa «leu» de «despejou»); os parâmetros de cada objetivo; a caixa **vazia**; e
 a frase do bloco que nenhum objetivo marca.
 
-**O que fica para ela decidir.** Se o campo passa a **derivado** dos objetivos — mais enxuto, e
-apaga o critério e a Expressão —, ou se continua escrito com o plano à vista, como está agora. A
-auditoria não decide isso: ela mostra o que se ganha e o que se perde em cada lado.
+**A decisão dela, e o híbrido é o que ficou.** Perguntada entre os três desenhos — manter, derivar,
+ou híbrido —, escolheu o **híbrido**: *os objetivos entram derivados, e o campo passa a ser só o
+critério, opcional.* É o único que não perde nada: o que o plano decide deixa de se reescrever (a
+parte redundante), e o que é só do professor continua a ter onde ser escrito (a parte que não
+existe em mais sítio nenhum — a Expressão da `batata` é o caso).
+
+**Como está implementado.** `objetivosPorBlocoDoPlano(plano)` (`motor/nucleo/derivar-po.js`) lê
+`marcos-por-aula` × `estrutura-de-cada-aula` e devolve, por bloco, os objetivos que ali se
+perseguem — e **não** lê `aula-1-parametro`: um exercício («plié») não é um critério («o joelho
+acompanha o pé»), e lê-lo encheria a folha de colunas que ninguém sabe marcar.
+`itensComObjetivos(itens, plano)` põe-nos **à frente** do que o professor escreveu — a ordem é a da
+autoridade —, resolve o prefixo do eixo na dimensão (`blocoDaDimensao`, senão todos os POs
+anteriores a 04/11 perderiam os objetivos em silêncio) e **não duplica**: se o professor já escreveu
+o objetivo com as mesmas palavras, ele entra uma vez.
+
+O plano chega a **três** derivadores, que é o que faz o híbrido valer: ao documento
+(`derivarPO`, que já o tinha), à **folha de captura** (`derivarCaptura`) e à **declaração
+`porVariante`** (`declaracaoDeCaptura`). Os dois últimos não o recebiam — e sem ele a folha ficaria
+com menos colunas do que o documento. As duas assinaturas ganharam `plano` **opcional**: sem ele, a
+lista é a que o PO tem, e nada parte (é o que mantém as bancadas antigas e os POs já gravados).
+
+O campo passou a **opcional** no conteúdo: quem não tem nada a acrescentar ao objetivo deixa-o em
+branco, e o sistema não pede o que já sabe.
+
+**As provas.** `provar-po-completo` **20** — as verificações 18 a 20 são o caminho inteiro: o
+documento traz os objetivos à frente do que se escreveu; a folha ganha uma coluna por objetivo **e
+mantém** o item escrito; e o objetivo que o professor já escreveu (com as mesmas palavras) não
+aparece duas vezes. Cada uma tem a sua **negativa**: sem o plano, o mesmo PO fica como estava. E
+`provar-eixos-do-po` **42** (secção E) mede o que a tela mostra antes da caixa — o que o plano
+decide de cada bloco, recortado pelo bloco.
 
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
