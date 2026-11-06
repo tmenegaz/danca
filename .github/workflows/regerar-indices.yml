@@ -42,6 +42,7 @@ on:
       - 'motor/nucleo/indices.js'
       - 'motor/servidor/indice-acervo.js'
       - 'tools/gerar-indices.js'
+      - 'tools/gerar-relacoes.js'
       - '.github/workflows/regerar-indices.yml'
       # OS WORKFLOWS QUE COMMITAM COM O `GITHUB_TOKEN` (22/10/2026). Eles agora regeram o
       # índice no próprio commit — mas um push feito com o token não redispara workflows, e
@@ -86,7 +87,7 @@ jobs:
           # deploys. Medido no `main`: a maior parte dos commits «regerar os índices» não mudava
           # nada além do carimbo. O `--check` compara o que importa (ignora os voláteis) e é ele
           # que decide se há trabalho.
-          if node tools/gerar-indices.js --check; then
+          if node tools/gerar-indices.js --check && node tools/gerar-relacoes.js --check; then
             echo "sem divergência material — o índice está em dia"
             echo "mudou=nao" >> "$GITHUB_OUTPUT"
             exit 0
@@ -94,6 +95,11 @@ jobs:
           # `gerar-indices.js` deriva do disco (é o mesmo motor que o Worker usa a partir do
           # GitHub) e escreve só dentro de `indices/`.
           node tools/gerar-indices.js
+          # O MAPA DE RELAÇÕES É OUTRA COISA, E É IRMÃO (05/11/2026). Os dois derivam das mesmas
+          # fontes e escrevem no mesmo `indices/`, por isso entram no mesmo passo e no mesmo
+          # commit: se um ficasse para trás, as arestas apontariam para um acervo que já mudou.
+          # O `--check` dele acima impede o commit de carimbo quando só o `gerado_em` mudou.
+          node tools/gerar-relacoes.js
           echo "mudou=sim" >> "$GITHUB_OUTPUT"
           echo "--- o que mudou:"
           git status --porcelain -- indices/ || true

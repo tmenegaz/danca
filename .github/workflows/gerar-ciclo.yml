@@ -256,6 +256,11 @@ jobs:
           # regera o derivado no próprio commit, porque ninguém o fará depois.
           node tools/gerar-indices.js \
             || { echo "erro: os índices não foram regerados — o pacote novo não chegaria ao acervo" >&2; exit 1; }
+          # O MAPA DE RELAÇÕES VAI NO MESMO COMMIT, PELA MESMA RAZÃO (05/11/2026): este workflow
+          # commita com o `GITHUB_TOKEN`, e o `regerar-indices.yml` nunca vê este commit. Um mapa
+          # que ficasse para trás apontaria para uma aula que já existe e não está nele.
+          node tools/gerar-relacoes.js \
+            || { echo "erro: o mapa de relações não foi regerado — as arestas ficariam a apontar para um acervo velho" >&2; exit 1; }
           git add -A -- indices/
 
           if git diff --cached --quiet; then
