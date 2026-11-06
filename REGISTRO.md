@@ -38721,6 +38721,25 @@ serve, com uma mensagem a pedir a outra pessoa que regenere o pacote. `check-ide
 `--sem-pacotes`, e **só** o `deploy-raiz` o usa: quem publica pacotes (`deploy-escolas`) continua a
 conferir tudo, e o hook de pré-commit — onde o pacote é regenerado no mesmo acto — também.
 
+**A terceira falha do relato: o «título solto».** Ela descreveu-o assim — *«aparece assim no título,
+solto: 6/11/2026. Até hoje esta página trazia um […] com um nu e redeclarava o t…»* — e era o
+**comentário do próprio código** a aparecer na barra de navegação. O `tituloDaPagina`
+(`motor/nucleo/nav.js`) procura o primeiro `<h1>` do documento para escrever o degrau
+«Área do Professor · Aulas · *documento*». Ele já tirava `<style>` e `<script>` (a lição de
+23/10/2026), mas **não tirava comentários** — e o comentário que esta entrega acrescentou ao
+`lancamento.html` diz, textualmente, «não é um `<h1>` SOLTO». A busca encontrou aquele `<h1>` DENTRO
+do comentário e levou tudo até ao `</h1>` verdadeiro: a barra passou a dizer
+«` SOLTO (06/11/2026). Até hoje esta página trazia um `<div class="titulo-fixo">` com um `<h1>` nu…»
+em produção, no celular. É o MESMO defeito de 23/10, uma camada ao lado — procurar marcação em texto
+que não é marcação. A correcção é a regra inteira: comentários saem antes da busca, porque
+comentário também não é corpo.
+
+A guarda desta vez estava **vermelha e ninguém a viu**: `provar-barra-e-caminho` apontava o
+«`lancamento.html` de verdade» à escola `batata`, que foi expurgada, e falhava por «ausente» — uma
+guarda que aponta para uma escola que já não existe não guarda nada. Ela passou a **descobrir todos
+os pacotes em disco** e a medir cada `lancamento.html`; e ganhou a reprodução do comentário.
+**50/50**.
+
 **Uma nota que fica, e é de dívida:** `workers/receber.js` é código morto que **duplica** este
 contrato e não confere senha nenhuma (o `wrangler.<escola>.jsonc` aponta para `workers/principal.js`
 → `producao.js`). O comentário dele diz que é ele que atende `/api/receber` em produção, e não é. Fica
@@ -38730,6 +38749,8 @@ registado; apagá-lo é um passo próprio, com a prova do `recredenciamento` da 
 **0 erros** (e `--sem-pacotes` **0 erros**); `check-indices` **16/16**; `check-github-headers`
 **5/5**; `check-pacote` **0 erro(s), 0 aviso(s)**; `provar-senha-do-lancamento` **19/19**;
 `provar-relacoes` **35/35**; `provar-indice-de-lancamentos` **24/24**; `provar-formulario-da-aula`
-**48/48**. Duas provas reprovam por motivo **anterior a esta entrega** e ficam declaradas:
+**48/48**; `provar-barra-e-caminho` **50/50**; `provar-sujeitos-da-turma` **41/41**;
+`provar-producao` **159/159**. Duas provas reprovam por motivo **anterior a esta entrega** e ficam
+declaradas:
 `provar-cartao-da-turma` (2 falhas) e `provar-declaracoes-do-indice` (`recorte.$versoes` sem
 tipo/acesso/obrigatoriedade no `indices/esquema/tipos.json`).

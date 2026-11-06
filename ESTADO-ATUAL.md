@@ -9,8 +9,11 @@
 > repositório, **fundindo por aula** e **disparando a geração**. A causa do relato dela («a tela
 > disse lançada, e ao recarregar não havia aula nem caderno») era de uma linha: o armazenamento
 > roteia pela FAMÍLIA da chave, e o lançamento não tinha família. O que já estava no KV não se
-> perdeu: `POST /api/lancamentos/consolidar` resgata-o. E o `deploy-raiz` deixou de ser travado
-> pelos pacotes das escolas (`check-identidade --sem-pacotes`). Ver a decisão 118.
+> perdeu: `POST /api/lancamentos/consolidar` resgata-o, e **dispara a geração** do pacote certo.
+> E o `deploy-raiz` deixou de ser travado pelos pacotes das escolas
+> (`check-identidade --sem-pacotes`). O «título solto» que ela viu na barra era o **comentário do
+> código** a ser lido como `<h1>`: `tituloDaPagina` passou a descartar comentários, como já
+> descartava `<style>`/`<script>`. Ver a decisão 118.
 >
 > **Fotografia anterior (06/11/2026, `28dfacde`).** Nesta entrega, **o mapa de relações
 > do ciclo nasceu** (`tools/gerar-relacoes.js` → `indices/relacoes/<prof>/<NN>-<variante>.json`):
