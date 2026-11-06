@@ -1,6 +1,46 @@
 {
   "aspectos": [
     {
+      "aspecto": "cinco-posicoes-1a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:teste"
+      ],
+      "primeira": "20261106-0202",
+      "ultima": "20261106-0202",
+      "versoes": 1
+    },
+    {
+      "aspecto": "estabilidade-vestibular-e-deslocamento",
+      "contagem": 1,
+      "ids": [
+        "recorte:teste"
+      ],
+      "primeira": "20261106-0202",
+      "ultima": "20261106-0202",
+      "versoes": 1
+    },
+    {
+      "aspecto": "resistencia-de-mmss-port-de-bras-prolongado",
+      "contagem": 1,
+      "ids": [
+        "recorte:teste"
+      ],
+      "primeira": "20261106-0202",
+      "ultima": "20261106-0202",
+      "versoes": 1
+    },
+    {
+      "aspecto": "sustentacao-ativa-de-mmii-forca-de-adagio",
+      "contagem": 1,
+      "ids": [
+        "recorte:teste"
+      ],
+      "primeira": "20261106-0202",
+      "ultima": "20261106-0202",
+      "versoes": 1
+    },
+    {
       "aspecto": "arquitetura-do-arco-plantar",
       "contagem": 0,
       "ids": [],
@@ -94,7 +134,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 2
     },
     "criada_em": "2026-11-05T13:06:46.674863+00:00",
@@ -126,7 +166,40 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:teste"
+        ],
+        "rotulo": "cinco-posicoes-1a-bracos",
+        "valor": "cinco-posicoes-1a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:teste"
+        ],
+        "rotulo": "estabilidade-vestibular-e-deslocamento",
+        "valor": "estabilidade-vestibular-e-deslocamento"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:teste"
+        ],
+        "rotulo": "resistencia-de-mmss-port-de-bras-prolongado",
+        "valor": "resistencia-de-mmss-port-de-bras-prolongado"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:teste"
+        ],
+        "rotulo": "sustentacao-ativa-de-mmii-forca-de-adagio",
+        "valor": "sustentacao-ativa-de-mmii-forca-de-adagio"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -171,9 +244,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ce0f6fd"
+    "commit": "2aa9e76"
   },
-  "gerado_em": "2026-11-06T02:01",
+  "gerado_em": "2026-11-06T02:03",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -199,20 +272,32 @@
   "recortes": [
     {
       "alunas": 2,
-      "apagada": true,
-      "apagada_em": "2026-11-06T01:23:10.111Z",
       "aspectos": [
-        "arquitetura-do-arco-plantar",
-        "formato-anatomico-dos-joelhos"
+        "cinco-posicoes-1a-bracos",
+        "estabilidade-vestibular-e-deslocamento",
+        "resistencia-de-mmss-port-de-bras-prolongado",
+        "sustentacao-ativa-de-mmii-forca-de-adagio"
       ],
-      "atualizada_em": "2026-11-06T01:22:44.651Z",
-      "enviada_em": "2026-11-06T01:22:46.155Z",
+      "atualizada_em": "2026-11-06T02:02:36.313Z",
+      "enviada_em": "2026-11-06T02:02:43.820Z",
       "id": "recorte:teste",
       "linha": "teste",
       "nome": "teste",
       "professor": "rabo-gramde",
       "turma": "Balé Nível 1 — Teste 1",
       "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/calango/linhas-de-base/teste--20261106-0202.json",
+          "aspectos": [
+            "cinco-posicoes-1a-bracos",
+            "sustentacao-ativa-de-mmii-forca-de-adagio",
+            "resistencia-de-mmss-port-de-bras-prolongado",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-06T02:02:43.820Z",
+          "versao": "20261106-0202"
+        },
         {
           "alunas": 2,
           "apagada_em": "2026-11-06T01:23:10.111Z",
@@ -235,7 +320,7 @@
           "versao": "20261106-0122"
         }
       ],
-      "vigente": false
+      "vigente": true
     }
   ],
   "registros": [
