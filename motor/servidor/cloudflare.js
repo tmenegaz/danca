@@ -244,17 +244,36 @@ function lerTurmasDoEnv(env) {
  * antes» — esconder no servidor o que a regra manda mostrar seria decidir por ela.
  */
 function lerLinhasDeBaseDoEnv(env) {
+  const repo = require('./linhas-de-base-repo.js');
   return async (escola) => {
     const kv = env && env.PADD_KV;
     const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
     if (!kv || !slug) return [];
+    /* O ACTO VEM DO REPOSITÓRIO (05/11/2026) — a MESMA fonte que a Produção usa, e não uma
+     * segunda leitura da chave do KV. Aqui é mais do que disciplina: é esta lista que resolve o
+     * `linha-de-base-alvo` de um plano e o elenco que o PO observa, e um dado que só existe no KV
+     * de uma escola não é alcançável pela geração nem por um índice (as duas correm fora do
+     * Worker). O KV fica como reserva para o registo antigo, que migra na primeira vez que for
+     * concluído outra vez. */
+    let doRepo = [];
+    try {
+      doRepo = await repo.doAmbiente(env, slug).vigentes();
+    } catch (erro) {
+      doRepo = [];
+    }
+    let doKv = [];
     try {
       const bruto = await kv.get('bastidores/' + slug + '/linhas-de-base');
       const lista = bruto ? JSON.parse(bruto) : [];
-      return Array.isArray(lista) ? lista.filter((l) => l && l.id && Array.isArray(l.campos)) : [];
+      doKv = Array.isArray(lista) ? lista.filter((l) => l && l.id && Array.isArray(l.campos)) : [];
     } catch (erro) {
-      return [];
+      doKv = [];
     }
+    const porId = new Map();
+    for (const l of doRepo) porId.set(l.id, l);
+    /* SÓ OS ACTOS DO KV ENTRAM POR BAIXO: um rascunho não declara elenco nem resolve um plano. */
+    for (const l of doKv) if (!porId.has(l.id) && l.turma) porId.set(l.id, l);
+    return [...porId.values()];
   };
 }
 

@@ -409,7 +409,7 @@ async function fetch(request, env) {
        * leitura da mesma chave, com a sua própria forma de a interpretar, divergiria no dia em que
        * uma das duas mudasse. O sintoma seria uma listagem a dizer «sem turma» sobre uma turma que
        * a Produção mostra preenchida, que é exactamente o defeito que isto corrige. */
-      linhasDeBase: await bastidores.linhasDeBase(env.PADD_KV, env.ESCOLA_SLUG),
+      linhasDeBase: await bastidores.linhasDeBaseDaEscola(env, env.ESCOLA_SLUG),
     });
     if (doAcervo) {
       const resposta = new Response(doAcervo.html, {

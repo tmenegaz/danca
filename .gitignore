@@ -755,6 +755,14 @@ experimentos/modelo-formulario/*
 # e não reescreve o gravado) — com o controle de que a instrução de escolher ficou presa ao ramo
 # que já não é o do elenco.
 !experimentos/provar-sujeitos-semeados.js
+# A LINHA DE BASE SAIU DO KV (05/11/2026). O acto mora num ficheiro, append-only, em
+# `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`. A prova mede o caminho e a chave (o `id`
+# não muda entre versões — é ele que o plano guarda), o append-only (dois envios, dois arquivos,
+# com o elo `anterior`), a LÁPIDE (apagar é um acto, e a linha apagada não reaparece pela versão
+# anterior), a vigente pelo CARIMBO do nome e não pela data do ficheiro, a fusão com o KV
+# (rascunho vence na edição, acto vence no elenco, e o registo antigo de produção não desaparece),
+# e a escrita falhada que NÃO mente — sem token, `concluir` devolve erro.
+!experimentos/provar-linha-de-base-no-repo.js
 # A PROPOSTA DA LISTAGEM, MEDIDA (05/11/2026). A bancada constrói a proposta, serve-a em 127.0.0.1 e
 # mede a geometria nas quatro larguras — 1240, 390, 360 e 320 —, incluindo o alvo de toque de cada
 # caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a

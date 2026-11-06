@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-05T21:09:03-0300`
-Commit atual: `5c6316b1` — feat(po): o indice do recorte — o que os professores olham no corpo, e o que nao olham
+Gerado em: `2026-11-05T21:34:24-0300`
+Commit atual: `fb95e768` — feat(po): o elenco do Plano de Observacao deixa de se escolher — vem da turma
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -86,6 +86,8 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
+fb95e768 feat(po): o elenco do Plano de Observacao deixa de se escolher — vem da turma
+8084cf8a fix(po): a aluna na listagem, e a linha de base como fonte do elenco
 5c6316b1 feat(po): o indice do recorte — o que os professores olham no corpo, e o que nao olham
 1ed80c0d fix(po): «o que ja e bom» passa a ser o que ALGUMA aluna tem de bom, e nao o que todas acertaram
 55038263 chore(estrutura): regerar os índices derivados
@@ -104,8 +106,6 @@ e0f3b0fd chore(estrutura): regerar os índices derivados
 45eb07d4 feat(acervo): envelope/.indice.json
 80b31fea chore(acervo): apagar envelope/anamnese-20261105-1910-2.json
 acfa2f81 feat(acervo): envelope/anamnese-20261105-2014.json
-e03c5506 feat(acervo): envelope/.indice.json
-08b41241 fix(po): a linha de base le os 45 campos que a anamnese mede, e a Curadoria oferece so o que a escola compoe
 ```
 
 ## Por professor
@@ -231,81 +231,70 @@ e03c5506 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 05/11/2026 — A aluna na listagem, e a linha de base como fonte do elenco
+## 05/11/2026 — A linha de base sai do KV: o acto passa a ser um ficheiro, e o passado deixa de se apagar
 
-**O que aconteceu.** A pesquisadora descreveu o processo como ele é: cria-se a aluna na Produção,
-faz-se a anamnese, cria-se a turma, e faz-se a **linha de base**; é ela que a põe na turma. Depois
-disse o que via: «essa aluna A e aluna B, ambas eu já fiz a linha de base delas e já as coloquei na
-turma. Então isso precisa ser ajustado também. E ela já não é mais nova, porque eu já fiz a linha de
-base dela.» A listagem da anamnese dizia **«nova»** e **«aluna nova — sem turma»** às duas. Pediu mais
-duas coisas: uma **etiqueta com o nome da linha de base** a que cada aluna pertence, e a **regra** de
-que só se selecionam no Plano de Observação as alunas que já têm linha de base.
-
-**O diagnóstico — e não era a tela a mentir.** Era a tela a ler a fonte errada.
-`turmaDaAluna()` (`motor/servidor/listas-do-acervo.js`) perguntava a turma à **curadoria**; o selo
-«nova» derivava de `!turma`. Desde o passo 5, o acto que declara o elenco é a **linha de base** —
-«estas alunas, com este recorte, foram para esta turma neste dia» —, e a curadoria ficou com a
-atribuição (que professor, que turma). Em `calango`, medido **por API e não por ecrã**: `curadorias`
-está **vazio**, e há uma linha de base (`teste`) enviada a 05/11/2026 para «Balé Nível 1 — Teste 1»
-com a Aluna A e a Aluna B. Donde: todas as alunas «sem turma», e portanto todas «novas», para sempre.
-
-**A segunda metade do mesmo defeito, e é pior.** `GET /api/bastidores/alunas-da-turma?turma=…`
-devolvia as duas alunas; `GET /anamnese/api/anamneses?turma=…` devolvia
-`{"opcoes": [], "recorte": []}`. O nó `sujeitos` do PO oferecia **zero** alunas a um professor que
-tinha o processo todo feito — não por o sistema esconder, mas por perguntar à curadoria uma coisa
-que ela já não declara. A lista não estava a filtrar: estava a ler o sítio errado.
+**O que aconteceu.** A pesquisadora leu a limitação declarada do índice do recorte («não há série
+temporal; o `Gravar` do passo 4 sobrescreve a linha») e respondeu com a decisão: «é melhor a gente
+mandar para um ficheiro, porque daí a gente consegue fazer as soluções que precisamos e ter um índice
+robusto». E deu as três razões, que se somam: «o KV também é custo, e esse é um espaço que o professor
+vai mexer muitas vezes»; «não há série temporal. A gente tem que encontrar uma solução para isso.
+Essa é uma característica que vai valer muito dinheiro»; e «um ranque entre escolas exige que o KV
+seja alcançável pela mesma leitura» — e não é. O gatilho ficou declarado: «quando o professor editar,
+ou criar a linha de base, ele vai lá no step 4 dele e manda então concluir e enviar para a turma.
+Nesse momento tem que colocar no ficheiro.»
 
 **O que foi decidido.**
 
-- **A linha de base é a fonte do elenco; a curadoria é o recurso declarado.** `alunasDaTurma` e
-  `alunasDoProfessor` recebem as linhas de base; quando há uma enviada para a turma, o elenco é o
-  dela. Sem nenhuma — escola que nunca usou o fluxo novo —, a curadoria responde como antes: a
-  alternativa era a lista vazia sem uma palavra a explicar porquê, e isso lê-se como avaria.
-- **A direcção da cadeia é `turma → linha de base → alunas → corpo`.** Foi a pergunta dela, e a
-  resposta é factual: a turma **já** está declarada no PO (o `plano-de-ensino` é obrigatório no bloco
-  1 e traz `contexto-turma`); a linha de base enviada para ela é que declara as alunas e o recorte; e
-  pedir a linha de base num campo próprio seria um **segundo lugar** a declarar o mesmo facto. A
-  alternativa (`linha de base → alunas`, sem a turma) deixaria o professor escolher uma linha de base
-  enviada para **outra** turma — exactamente o vazamento que a decisão de 20/10/2026 fechou.
-- **«Nova» ganhou uma segunda condição.** Deixa de ser nova quem já tem linha de base, e não só quem
-  já está em curadoria. A etiqueta passou a dizer as duas coisas quando as duas existem —
-  «turma X · linha de base «…»» —, e o painel da caixa «Turma» ganhou a linha `Linha de base`.
-- **A cadeia mostra-se, não se afirma.** O cabeçalho do PO passou a ter a inscrição **«linha de
-  base»** ao lado da turma: nome e número de alunas, com o `title` a dizer de onde vem («pela turma
-  do plano referenciado») e o que fazer para mudar o elenco. Sem ela, a vinculação existe no código e
-  não existe para quem preenche — e uma cadeia que ninguém vê é uma cadeia que ninguém sabe que tem.
+- **O ACTO vai para o repositório; o RASCUNHO fica no KV.** É a fronteira do `aula-NN.md` planejado e
+  do lançamento dado: os passos 1–4 são intenção (editam-se, corrigem-se, descartam-se) e vivem no KV,
+  que é barato; o «Concluir e enviar para a turma» é facto, é datado, e vai para um ficheiro. Um
+  ficheiro por passo daria cinco commits por linha para escrever três vezes a mesma intenção — e o
+  passo certo é o único em que o facto existe: só depois do passo 4 há recorte.
+- **Append-only, com o elo declarado.** `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`. Cada
+  envio cria um arquivo novo e diz de qual veio (`anterior`). É a série temporal que ela pediu, e
+  sobrevive a um `squash`, a um `rebase` e a uma migração — coisas que a história do Git não garante.
+- **O `id` NÃO muda entre versões.** É o que o plano guarda em `linha-de-base-alvo`, e um id novo a
+  cada envio quebraria o ponteiro do plano a cada ajuste. A versão vigente é a de **carimbo maior** —
+  do nome, e não da data que o ficheiro diz: um relógio atrasado não reordena o passado.
+- **Apagar é um acto.** O `DELETE` grava uma versão com `apagada_em`; a linha sai da estante e o
+  registo de que existiu fica. Uma linha de base apagada sem rasto é o único esquecimento que este
+  sistema não pode ter.
+- **Duas listas, com donos diferentes.** `linhasDeBase` é a da EDIÇÃO (o acto, e por cima o rascunho
+  quando há um em curso). `linhasConcluidas` é a dos ACTOS, e é ela que a turma, o plano e o PO leem:
+  um rascunho que muda o elenco sem ser concluído não pode mudar o corpo que a turma observa.
+- **Um registo antigo do KV continua a valer.** A `teste` de produção vive no KV com turma e não tem
+  ficheiro nenhum; sem essa regra ela desaparecia da estante e o plano apontava para o nada. Ela migra
+  na primeira vez que for concluída outra vez.
+- **A escrita falhada não mente.** Sem `GITHUB_TOKEN` (as escolas legadas), o acto fica no KV e a
+  resposta **diz isso** e diz que a série temporal não existe. Com token mas com o GitHub a recusar, a
+  resposta é 502 e o rascunho fica intacto — nunca «concluído» sobre um ficheiro que não existe.
 
-**Onde entrou.** `motor/nucleo/linha-de-base.js` — `filiacaoDasAlunas` (nome pela linha mais recente,
-turma pela mais recente **enviada**, rascunho a contar para «tem linha de base» e a não dar turma) e
-`alunasComLinhaDeBase`. `motor/nucleo/porta.js` — `alunasDaTurma` e `alunasDoProfessor` com o
-parâmetro das linhas de base. `motor/servidor/rotas.js` — a rota `/api/anamneses` passa o leitor que
-já estava injectado (`lerLinhasDeBase`), e não uma segunda leitura da chave.
-`motor/servidor/listas-do-acervo.js` — `turmasDasAlunas`, a etiqueta, o selo e o painel.
-`motor/servidor/producao.js` e `motor/servidor/bastidores.js` — a lista recebe as linhas de base pelo
-mesmo leitor que a Produção usa (exportado, como já se fazia com `curadorias`).
-`porta/index.html` — o campo `ctx-linha-de-base-campo` e `renderLinhaDeBaseDoCabecalho`, com **uma
-leitura por turma** (a cota diária do KV não se gasta a repintar o cabeçalho).
-`porta/po/conteudo/po.json` — a explicação do nó `sujeitos` passa a dizer a regra nova.
-`professores/rabo-gramde/ciclos/ciclo-01-calango/plano-observacao/` — a cópia da porta e do `po.json`,
-pelo passo do gerador (a cópia e a barra injectada), porque o `check-identidade` exige que o corpo da
-porta seja o da fonte, byte a byte. `experimentos/provar-etiqueta-da-aluna.js` — novo;
-`experimentos/provar-sujeitos-da-turma.js` — a secção G; `experimentos/README.md` — a linha da
-bancada.
+**Um defeito apanhado pela prova, e vale registá-lo.** A primeira versão do `vigentes()` saltava a
+lápide mas promovia a versão anterior a vigente — a linha apagada **reaparecia na estante**. A regra
+certa é: se a versão MAIS RECENTE de um id é uma lápide, a linha está apagada, e não se procura mais
+atrás. Foi a asserção «a linha desaparece dos VIGENTES» que o disse.
 
-**Medido.** `provar-etiqueta-da-aluna` **20/20** (os três estados da etiqueta, renderizados, com o
-controle da aluna nova); `provar-sujeitos-da-turma` **41/41** (com o caso de produção: curadorias
-vazias e a linha de base a responder); `provar-linha-de-base` **104/104**; `provar-producao`
-**159/159**; `provar-indice-do-recorte` **24/24**; `provar-eixos-do-po` **34/34**;
-`provar-po-completo` **17/17**; `provar-cadeia-do-ajuste` **34/34**; `provar-po-unico` **18/18**;
-`provar-porta-sem-contexto` **44/44**; `provar-curadoria-e-limpeza` **26/26**; `check-identidade`
-**0 erros**; `hash-ciclo --check` íntegro.
+**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — novo: `criarStore`/`doAmbiente`,
+`chaves`, `versoes`, `vigentes`, `vigente`, `concluir`, `apagar`, `historia`, com o 409 repetido e a
+árvore lida uma vez por pedido. `motor/servidor/bastidores.js` — `linhasDeBase(kv, escola, repo)` (a
+edição) e `linhasConcluidas` (os actos), `rascunhosDe` para as três rotas que escrevem, o store por
+pedido, o `/enviar` a gravar o ficheiro, o `DELETE` a gravar a lápide, o passo 3 a criar rascunho a
+partir do acto, e `linhasDeBaseDaEscola(env, escola)` para a ponte.
+`motor/servidor/cloudflare.js` — `lerLinhasDeBaseDoEnv` lê o repositório primeiro e o KV como reserva.
+`motor/servidor/producao.js` — a listagem da anamnese recebe a lista pela porta nova.
+`experimentos/provar-linha-de-base-no-repo.js` — novo.
 
-**Duas coisas que o `check-pacote` reprova e que já reprovava antes.** O pacote
-`ciclo-01-calango` não tem PDF nem `ciclo-01-calango-dados.json`, e os links de topo apontam para
-páginas relativas que não existem no pacote. Medido no `HEAD` (`git stash` e nova corrida): **os
-mesmos 10 erros**. Não foi corrigido aqui porque a correcção é uma geração inteira, e o `.conf` desta
-variante está com `DOCS=""` — a fonte do ciclo não está no repositório, e gerá-la exigiria eliciar o
-plano outra vez.
+**Medido.** `provar-linha-de-base-no-repo` **28/28** (o primeiro run apanhou o defeito da lápide);
+`provar-linha-de-base` **104/104**; `provar-sujeitos-semeados` **22/22**; `provar-sujeitos-da-turma`
+**41/41**; `provar-etiqueta-da-aluna` **20/20**; `provar-indice-do-recorte` **24/24**;
+`provar-producao` **159/159**; `check-identidade` **0 erros**; `check-indices` **14/14**.
+
+**O que fica pendente, e é o passo seguinte — agora possível.** O índice gerado em Git (`indices/`) e
+o **ranque entre escolas** continuam a não existir: o índice do recorte é o VIVO, calculado por
+pedido. O que esta entrada entrega é o **substrato** que os torna possíveis — as versões em ficheiro,
+alcançáveis pela mesma leitura em qualquer escola. O `regerar-indices.yml` já dispara em `escola/**`,
+portanto uma linha de base concluída já faz correr a derivação; o que falta é a derivação **olhar**
+para esta família (`recorte`) e emitir a série.
 
 ## O que está pendente
 

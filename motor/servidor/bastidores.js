@@ -123,6 +123,7 @@ const paginacao = require('../nucleo/paginacao.js');
  * que é «corpo» e o que é musicalidade; o `corpo-seed` traz os campos da anamnese para dentro do
  * bundle, porque o Worker não tem `fs`. A regra fica no núcleo, o dado vem do `require`. */
 const linhaDeBaseNucleo = require('../nucleo/linha-de-base.js');
+const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
 const { conteudo: ANAMNESE } = require('./corpo-seed.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
@@ -404,9 +405,27 @@ function normalizarRubrica(corpo) {
 /**
  * AS LINHAS DE BASE DA ESCOLA (05/11/2026) — o recorte da anamnese, por professor.
  *
- * MORA NO KV, ao lado das turmas e das rubricas, e a chave tem a mesma forma — `linhas-de-base`.
- * A razão é a de sempre: é dado de PRODUÇÃO (a escola administra), não de proveniência (isso é o
- * acervo dos envelopes), e a escola inteira são algumas dezenas de linhas.
+ * MUDOU DE CASA A 05/11/2026: o ACTO mora no REPOSITÓRIO, e o rascunho no KV.
+ *
+ * A pesquisadora foi directa: «o KV também é custo, e esse é um espaço que o professor vai mexer
+ * muitas vezes. Então é melhor que a gente coloque isso num ficheiro, que vá para o GitHub.» E
+ * deu a razão que decide o desenho: «não há série temporal. A gente tem que encontrar uma solução
+ * para isso. Essa é uma característica que vai valer muito dinheiro.» No KV o «Gravar» do passo 4
+ * faz `lista[idx] = linha`, e o que existia antes desaparece; num ficheiro por acto, o passado
+ * acrescenta-se.
+ *
+ * A DIVISÃO É A DO DOCUMENTO DA AULA, e não é invenção nova. O que o professor vai preenchendo é
+ * INTENÇÃO — edita-se, corrige-se, descarta-se — e vive no KV, que é barato e não é proveniência.
+ * O acto de «Concluir e enviar para a turma» é FACTO, é datado, e vai para o repositório
+ * (`motor/servidor/linhas-de-base-repo.js`), onde não se reescreve. É a mesma fronteira do
+ * `aula-NN.md` planejado e do lançamento dado.
+ *
+ * O QUE A LEITURA DEVOLVE, e são duas listas com donos diferentes:
+ *   · `linhasDeBase` — a lista da EDIÇÃO: o acto concluído, e por cima dele o rascunho quando há
+ *     um em curso (o professor reabriu a linha e está a mexer). É o que a Produção mostra.
+ *   · `linhasConcluidas` — só os ACTOS. É o que a turma, o plano e o PO leem: «estas alunas
+ *     foram para esta turma neste dia» só muda quando um acto novo o diz. Um rascunho que muda o
+ *     elenco sem ser concluído não pode mudar o corpo que a turma observa.
  *
  * A LINHA DE BASE É DO PROFESSOR — decisão dela, e com fundamento: «é o professor quem avalia o
  * aluno, porque o corpo do aluno se modifica a cada instante; a anamnese é uma fotografia». Um
@@ -418,9 +437,60 @@ function normalizarRubrica(corpo) {
  * daquela pessoa no passado». Por isso a lista é da ESCOLA e cada item declara o seu professor:
  * quem chega vê o que estava, e cria a sua — em vez de herdar uma avaliação que não fez.
  */
-async function linhasDeBase(kv, escola) {
-  const lista = await lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base');
-  return lista.filter((l) => l && l.id && Array.isArray(l.campos));
+async function linhasDeBase(kv, escola, repo) {
+  const rascunhos = (await lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base'))
+    .filter((l) => l && l.id && Array.isArray(l.campos));
+  let actos = [];
+  if (repo && repo.activo) {
+    try {
+      actos = await repo.vigentes();
+    } catch (erro) {
+      /* A FALHA DO REPOSITÓRIO NÃO ESCONDE O QUE ESTÁ NO KV. Sem este `catch`, um 500 do GitHub
+       * dava uma lista vazia — e uma lista vazia lê-se como «as linhas de base desapareceram». A
+       * leitura degrada para o que houver localmente, e o `_aviso` diz que degradou. */
+      actos = [];
+      rascunhos._aviso = 'não li o repositório: ' + (erro && erro.message ? erro.message : 'erro');
+    }
+  }
+  const porId = new Map();
+  for (const a of actos) porId.set(a.id, a);
+  /* O RASCUNHO VENCE NA LISTA DA EDIÇÃO — é o que o professor está a ver. E leva o `concluida`
+   * do acto que ele está a substituir, para a tela poder dizer as duas coisas sem inventar. */
+  for (const r of rascunhos) {
+    const acto = porId.get(r.id);
+    if (acto) {
+      r.emEdicao = true;
+      r.concluida_em = acto.enviada_em || acto.gravada_em || null;
+      r.carimbo = acto.carimbo || null;
+    }
+    porId.set(r.id, r);
+  }
+  return [...porId.values()];
+}
+
+/**
+ * SÓ OS ACTOS — o que a turma, o plano e o PO podem ler.
+ *
+ * Um registo antigo do KV que JÁ tem turma é um acto do regime anterior: entra, e migra na
+ * primeira vez que for concluído outra vez. Um registo sem turma é rascunho, e rascunho não
+ * declara elenco.
+ */
+async function linhasConcluidas(kv, escola, repo) {
+  const daEdicao = await linhasDeBase(kv, escola, repo);
+  return daEdicao.filter((l) => l && (l.carimbo || l.turma));
+}
+
+/**
+ * OS RASCUNHOS — a lista do KV, e SÓ ela.
+ *
+ * AS ROTAS DE ESCRITA NÃO PODEM USAR A LISTA FUNDIDA (05/11/2026). `linhasDeBase` devolve os actos
+ * do repositório por baixo dos rascunhos, e escrevê-la de volta no KV copiaria todos os actos para
+ * dentro do rascunho — passariam a existir duas cópias do mesmo facto, e a do KV é a que fica para
+ * trás. Quem grava, grava o KV; quem lê para mostrar, lê a fusão.
+ */
+async function rascunhosDe(kv, escola) {
+  return (await lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base'))
+    .filter((l) => l && l.id && Array.isArray(l.campos));
 }
 
 /** Os campos do corpo que a anamnese oferece à escolha — calculados do conteúdo, nunca escritos
@@ -10092,6 +10162,12 @@ async function fetch(request, env) {
   const kv = env && env.PADD_KV;
   if (!kv) return json(500, { ok: false, erro: 'PADD_KV ausente nos Bastidores' });
 
+  /* O REPOSITÓRIO, UMA VEZ POR PEDIDO (05/11/2026). A árvore do repositório é UMA chamada, e
+   * esta página faz dez leituras das linhas de base no mesmo pedido: construir o store por
+   * chamada pagaria dez árvores. Ele guarda o que leu durante a vida do pedido, portanto nunca
+   * serve estado de ontem — e é o mesmo desenho do acervo dos envelopes. */
+  const repoLinhas = linhasDeBaseRepo.doAmbiente(env, escola);
+
   // O grupo «Bastidores» — os DOIS itens: Estúdio (a cena) e Produção (o gabinete).
   //
   // A PÁGINA INTERMEDIÁRIA SAIU (15/10/2026). Ela existia em `/bastidores` e só repetia os
@@ -11372,7 +11448,7 @@ async function fetch(request, env) {
        * base registou ao lê-la. Primeira vez (ninguém a leu) → nova; já lida → não; anamnese nova
        * → nova outra vez. Nada se marca com um campo: o sinal é derivado de cada vez, e por isso
        * não há como mentir. */
-      const linhas = await linhasDeBase(kv, escola);
+      const linhas = await linhasDeBase(kv, escola, repoLinhas);
       const alunas = linhaDeBaseNucleo.marcarNovas(
         linhas,
         [...porAluna.entries()].map(([aluna, carimbo]) => ({ aluna, carimbo })),
@@ -11386,7 +11462,7 @@ async function fetch(request, env) {
   }
 
   if (path === '/api/bastidores/linhas-de-base') {
-    const lista = await linhasDeBase(kv, escola);
+    const lista = await linhasDeBase(kv, escola, repoLinhas);
     /* QUAIS CURADORIAS FICARAM COM UM ELENCO QUE JÁ NÃO É O DA TURMA (05/11/2026).
      *
      * É a conta do núcleo (`elencoDaTurma` + `elencoDiferente`), e não uma segunda regra: o que a
@@ -11446,7 +11522,7 @@ async function fetch(request, env) {
    * aparece por pessoa nenhuma — o ranque é de ASPECTOS do corpo.
    */
   if (path === '/api/bastidores/indice/recorte') {
-    const lista = await linhasDeBase(kv, escola);
+    const lista = await linhasDeBase(kv, escola, repoLinhas);
     const professor = String(url.searchParams.get('professor') || '').trim();
     const turma = String(url.searchParams.get('turma') || '').trim();
     const recortadas = lista.filter((l) => {
@@ -11473,14 +11549,21 @@ async function fetch(request, env) {
     }
     const decidido = linhaDeBaseNucleo.normalizar(corpo, camposDoCorpo(), new Date().toISOString());
     if (!decidido.ok) return json(400, { ok: false, erro: decidido.erros.join(' · '), erros: decidido.erros });
-    const lista = await linhasDeBase(kv, escola);
+    const lista = await rascunhosDe(kv, escola);
     const idx = lista.findIndex((l) => l && l.id === decidido.linha.id);
+    /* O `antes` PODE ESTAR NO REPOSITÓRIO (05/11/2026). Quando o professor reabre uma linha de
+     * base já concluída para lhe mexer, o rascunho ainda não existe: o que existe é o acto. É dele
+     * que se herdam a `leitura` do passo 3, o `lida` (proveniência) e o vínculo `turma`. Sem esta
+     * linha, reabrir uma linha concluída apagava-lhe o vínculo à turma no primeiro «Seguir». */
+    const actoAnterior = idx === -1 && repoLinhas.activo
+      ? await repoLinhas.vigente(decidido.linha.id).catch(() => null)
+      : null;
     // A LEITURA ANTERIOR SOBREVIVE À GRAVAÇÃO enquanto o ELENCO não muda: reabrir, corrigir o nome
     // ou escolher o recorte não pode obrigar a reler trinta anamneses. Quando o elenco MUDA, a
     // leitura antiga descreve outros corpos e é descartada — um número que já não corresponde ao
     // que se mostra é pior do que nenhum.
-    if (idx !== -1) {
-      const antes = lista[idx];
+    if (idx !== -1 || actoAnterior) {
+      const antes = idx !== -1 ? lista[idx] : actoAnterior;
       /* A LEITURA SOBREVIVE AO RECORTE, E CAI QUANDO O ELENCO MUDA (05/11/2026).
        *
        * A regra anterior comparava os CAMPOS — fazia sentido enquanto a leitura lia o recorte.
@@ -11524,13 +11607,45 @@ async function fetch(request, env) {
     }
     const id = String(corpo.id || idDe(String(corpo.nome || '')) || '').trim();
     if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
-    const lista = await linhasDeBase(kv, escola);
+    /* A LINHA PODE ESTAR EM DOIS SÍTIOS: o acto no repositório, o rascunho no KV. Apagar olha
+     * os dois — e o `removida` é o que se mostra na resposta, com o nome e o estado que a pessoa
+     * tinha à frente. */
+    const lista = await rascunhosDe(kv, escola);
     const idx = lista.findIndex((l) => l && l.id === id);
-    if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
-    const [removida] = lista.splice(idx, 1);
-    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+    const doActo = await (repoLinhas.activo
+      ? repoLinhas.vigente(id).catch(() => null) : Promise.resolve(null));
+    if (idx === -1 && !doActo) {
+      return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
+    }
+    const removida = idx !== -1 ? lista[idx] : Object.assign({}, doActo, { carimbo: doActo.carimbo });
+    /* APAGAR UM ACTO É UM ACTO (05/11/2026). O que já foi concluído não se apaga do repositório:
+     * grava-se uma VERSÃO que diz que foi apagada, e a versão viva deixa de ser a vigente. O
+     * registo de que a linha existiu — com o recorte que tinha e a turma para onde foi — fica, e
+     * é isso que impede o sistema de reescrever o passado: se um plano já a usou, o `linhasDeBaseEmUso`
+     * abaixo diz quantos, e o `## Linha de base` daquele documento continua a apontar para um id
+     * que já não existe na estante — o que é um facto, e não um erro.
+     *
+     * O RASCUNHO não precisa de lápide: nunca foi facto, e apagá-lo é só tirá-lo do KV. */
+    const eraActo = Boolean(removida.carimbo || removida.turma);
+    if (eraActo && repoLinhas.activo) {
+      const lapide = await repoLinhas.apagar(id, { por: corpo.professor || null });
+      if (!lapide.ok) {
+        return json(502, {
+          ok: false,
+          erro: 'não consegui registar o apagar no repositório: ' + (lapide.erro || 'erro')
+            + '. Nada foi apagado — tente de novo.',
+        });
+      }
+    }
+    if (idx !== -1) {
+      lista.splice(idx, 1);
+      await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+    }
     const usos = await linhasDeBaseEmUso(env, escola, id);
-    return json(200, { ok: true, linha: removida.nome, planosQueAUsavam: usos });
+    return json(200, {
+      ok: true, linha: removida.nome, planosQueAUsavam: usos, eraActo,
+      ...(eraActo ? { lapide: 'ficou registado no repositório que esta linha de base foi apagada' } : {}),
+    });
   }
 
   // GET /api/bastidores/linha-de-base/leitura?id=<id>&alunas=<a,b,c>
@@ -11551,8 +11666,15 @@ async function fetch(request, env) {
     const pedidas = String((pedido && pedido.get('alunas')) || '')
       .split(',').map((a) => a.trim()).filter(Boolean);
     if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
-    const lista = await linhasDeBase(kv, escola);
-    const idx = lista.findIndex((l) => l && l.id === id);
+    /* A LEITURA GRAVA — logo, opera na lista do KV (ver `rascunhosDe`). Se a linha só existe como
+     * acto no repositório, cria-se aqui o rascunho a partir dele: ler uma linha concluída é o
+     * primeiro passo de a ajustar, e o ajuste é um rascunho até ser concluído outra vez. */
+    const lista = await rascunhosDe(kv, escola);
+    let idx = lista.findIndex((l) => l && l.id === id);
+    if (idx === -1 && repoLinhas.activo) {
+      const doActo = await repoLinhas.vigente(id).catch(() => null);
+      if (doActo) { lista.push(Object.assign({}, doActo)); idx = lista.length - 1; }
+    }
     if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
 
     const alunas = pedidas.length ? pedidas
@@ -11629,7 +11751,7 @@ async function fetch(request, env) {
     const turma = String(corpo.turma || '').trim();
     if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
     if (!turma) return json(400, { ok: false, erro: 'informe a turma de destino' });
-    const lista = await linhasDeBase(kv, escola);
+    const lista = await linhasDeBase(kv, escola, repoLinhas);
     const idx = lista.findIndex((l) => l && l.id === id);
     if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
     /* A ORDEM DAS CONFERÊNCIAS É A DO PASSO: as alunas vêm do 2, a turma é a do 5. Recusar pela
@@ -11650,10 +11772,70 @@ async function fetch(request, env) {
     if (!todas.some((t) => t && t.nome === turma)) {
       return json(404, { ok: false, erro: 'turma não encontrada: ' + turma });
     }
-    lista[idx].turma = turma;
-    lista[idx].enviada_em = new Date().toISOString();
-    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
-    return json(200, { ok: true, linha: lista[idx], turma, alunas });
+    /* ============================================================================================
+     * O ACTO GRAVA-SE NO REPOSITÓRIO (05/11/2026) — e é AQUI, neste clique, e não a cada «Seguir».
+     *
+     * A pesquisadora foi precisa: «quando o professor editar, ou criar a linha de base, ele vai lá
+     * no step 4 dele e manda então concluir e enviar para a turma. Nesse momento tem que colocar
+     * no ficheiro.» É o momento certo por duas razões. Uma: só depois do passo 4 há recorte, e um
+     * ficheiro por passo daria cinco commits por linha para escrever três vezes a mesma intenção.
+     * Outra, e mais importante: o que vai para o repositório é um FACTO — «estas alunas, com este
+     * recorte, foram para esta turma neste dia» —, e um facto tem de ter um instante. Os passos 1
+     * a 4 são intenção, e ficam no KV.
+     *
+     * CADA ENVIO É UMA VERSÃO NOVA (`<id>--<carimbo>.json`), nunca uma reescrita: é o que dá a
+     * série temporal que ela pediu, e o que faz o índice poder olhar para o passado. O `id` NÃO
+     * muda, porque é ele que o plano guarda em `linha-de-base-alvo`.
+     *
+     * SE A ESCRITA FALHAR, O SERVIDOR NÃO DIZ QUE CONCLUIU. O KV fica como estava (o rascunho
+     * continua lá, inteiro) e a resposta leva o erro — dizer «enviado» sobre um arquivo que não
+     * existe é a mentira que este sistema não pode contar.
+     * ========================================================================================== */
+    const quando = new Date().toISOString();
+    const linhaDoActo = Object.assign({}, lista[idx], { turma, enviada_em: quando });
+    delete linhaDoActo.emEdicao;
+    delete linhaDoActo.concluida_em;
+    delete linhaDoActo.carimbo;
+
+    /* SEM REPOSITÓRIO CONFIGURADO, O ACTO FICA NO KV — e diz-se. Uma escola sem `GITHUB_TOKEN`
+     * (as legadas) não pode ficar sem conseguir enviar para a turma; mas também não pode ouvir
+     * «concluído» e ficar sem saber onde é que aquilo foi parar. */
+    if (!repoLinhas.activo) {
+      lista[idx] = linhaDoActo;
+      await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+      return json(200, {
+        ok: true, linha: linhaDoActo, turma, alunas, gravado: 'kv',
+        aviso: 'esta escola não tem repositório configurado (' + (repoLinhas.motivo || 'sem token')
+          + '): o acto ficou no KV da escola. A série temporal só existe no repositório.',
+      });
+    }
+
+    const gravado = await repoLinhas.concluir(linhaDoActo, {
+      quando,
+      mensagem: 'feat(linha de base): ' + id + ' → ' + turma,
+    });
+    if (!gravado.ok) {
+      return json(502, {
+        ok: false,
+        erro: 'não consegui gravar a linha de base no repositório: ' + (gravado.erro || 'erro')
+          + '. O rascunho está guardado — nada se perdeu; tente de novo.',
+        repo: { activo: repoLinhas.activo, motivo: repoLinhas.motivo },
+      });
+    }
+    /* O RASCUNHO SAI DO KV DEPOIS DO ACTO. Duas cópias do mesmo facto divergem na primeira
+     * correcção, e a que fica para trás é a que a tela mostra. */
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base',
+      JSON.stringify(lista.filter((l) => l && l.id !== id)));
+    return json(200, {
+      ok: true,
+      linha: gravado.linha,
+      turma,
+      alunas,
+      gravado: 'repositorio',
+      versao: gravado.carimbo,
+      caminho: gravado.caminho,
+      anterior: gravado.anterior,
+    });
   }
 
   // GET /api/bastidores/alunas-da-turma?turma=<nome> — as alunas que uma turma recebeu.
@@ -11665,7 +11847,7 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/alunas-da-turma') {
     const turma = String((url.searchParams.get('turma') || '')).trim();
     if (!turma) return json(400, { ok: false, erro: 'informe a turma' });
-    const lista = await linhasDeBase(kv, escola);
+    const lista = await linhasConcluidas(kv, escola, repoLinhas);
     const enviadas = lista
       .filter((l) => l && String(l.turma || '') === turma)
       .sort((a, b) => String(a.enviada_em || '').localeCompare(String(b.enviada_em || '')));
@@ -12371,7 +12553,8 @@ async function fetch(request, env) {
      * TURMA SEM ELENCO: guarda-se o que a curadoria já tinha (ou nada). Atribuir uma curadoria a
      * uma turma a que ninguém foi enviado é legítimo — é a ordem natural numa escola nova —, e
      * inventar alunas seria pior do que ficar sem elas. */
-    const elencoAgora = linhaDeBaseNucleo.elencoDaTurma(await linhasDeBase(kv, escola), turmasPedidas[0] || '');
+    const elencoAgora = linhaDeBaseNucleo.elencoDaTurma(
+      await linhasConcluidas(kv, escola, repoLinhas), turmasPedidas[0] || '');
     const alunasPedidas = elencoAgora.length ? elencoAgora : ((atual && atual.alunas) || []);
     // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE (16/10/2026). Se ela já está noutra turma desta
     // modalidade, pô-la aqui faria os dois planos dizerem as mesmas alunas — e só uma turma é a
@@ -12505,7 +12688,7 @@ async function fetch(request, env) {
      * curadoria lê (`alunas-da-turma`), e quando a turma ainda não recebeu ninguém herda-se o que
      * a anterior tinha: o passado não se inventa nem se apaga. */
     const elencoDerivado = linhaDeBaseNucleo.elencoDaTurma(
-      await linhasDeBase(kv, escola), turmaFinal);
+      await linhasConcluidas(kv, escola, repoLinhas), turmaFinal);
     const alunasFinais = elencoDerivado.length ? elencoDerivado : (anterior.alunas || []);
     /* A VERSÃO NOVA TAMBÉM NASCE COMPLETA (23/10/2026). O que se confere é o que VAI FICAR
        escrito — `turmaFinal` e `alunasFinais` já resolvem o que não veio no corpo a partir da
@@ -12648,4 +12831,11 @@ module.exports = {
   // a Produção dizia «enviada para Balé Nível 1» e a listagem dizia «sem turma», sobre o mesmo
   // registo e no mesmo instante — que é o defeito de 05/11/2026.
   linhasDeBase,
+  // A LISTA PELA PORTA DO `env` (05/11/2026) — para quem chama de fora dos Bastidores (a listagem
+  // da anamnese, na ponte) não ter de saber que o store do repositório existe. Uma função, um
+  // sítio a construir o store, e o mesmo desenho do `curadorias` logo acima.
+  linhasDeBaseDaEscola: async (env, escola) => {
+    const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
+    return linhasDeBase(env && env.PADD_KV, slug, linhasDeBaseRepo.doAmbiente(env, slug));
+  },
 };

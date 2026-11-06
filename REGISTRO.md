@@ -36775,3 +36775,68 @@ morria em silêncio). `porta/index.html` — `numerosDoMapa` (não é degrau, co
 quer: sem elenco não há corpo a observar. Mas o valor só existe depois de a turma ter linha de base
 **enviada**; uma escola que ainda não chegou ao passo 5 não consegue fechar um PO. É a ordem do
 processo, e não um defeito — fica dito para não se ler como avaria.
+
+## 05/11/2026 — A linha de base sai do KV: o acto passa a ser um ficheiro, e o passado deixa de se apagar
+
+**O que aconteceu.** A pesquisadora leu a limitação declarada do índice do recorte («não há série
+temporal; o `Gravar` do passo 4 sobrescreve a linha») e respondeu com a decisão: «é melhor a gente
+mandar para um ficheiro, porque daí a gente consegue fazer as soluções que precisamos e ter um índice
+robusto». E deu as três razões, que se somam: «o KV também é custo, e esse é um espaço que o professor
+vai mexer muitas vezes»; «não há série temporal. A gente tem que encontrar uma solução para isso.
+Essa é uma característica que vai valer muito dinheiro»; e «um ranque entre escolas exige que o KV
+seja alcançável pela mesma leitura» — e não é. O gatilho ficou declarado: «quando o professor editar,
+ou criar a linha de base, ele vai lá no step 4 dele e manda então concluir e enviar para a turma.
+Nesse momento tem que colocar no ficheiro.»
+
+**O que foi decidido.**
+
+- **O ACTO vai para o repositório; o RASCUNHO fica no KV.** É a fronteira do `aula-NN.md` planejado e
+  do lançamento dado: os passos 1–4 são intenção (editam-se, corrigem-se, descartam-se) e vivem no KV,
+  que é barato; o «Concluir e enviar para a turma» é facto, é datado, e vai para um ficheiro. Um
+  ficheiro por passo daria cinco commits por linha para escrever três vezes a mesma intenção — e o
+  passo certo é o único em que o facto existe: só depois do passo 4 há recorte.
+- **Append-only, com o elo declarado.** `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`. Cada
+  envio cria um arquivo novo e diz de qual veio (`anterior`). É a série temporal que ela pediu, e
+  sobrevive a um `squash`, a um `rebase` e a uma migração — coisas que a história do Git não garante.
+- **O `id` NÃO muda entre versões.** É o que o plano guarda em `linha-de-base-alvo`, e um id novo a
+  cada envio quebraria o ponteiro do plano a cada ajuste. A versão vigente é a de **carimbo maior** —
+  do nome, e não da data que o ficheiro diz: um relógio atrasado não reordena o passado.
+- **Apagar é um acto.** O `DELETE` grava uma versão com `apagada_em`; a linha sai da estante e o
+  registo de que existiu fica. Uma linha de base apagada sem rasto é o único esquecimento que este
+  sistema não pode ter.
+- **Duas listas, com donos diferentes.** `linhasDeBase` é a da EDIÇÃO (o acto, e por cima o rascunho
+  quando há um em curso). `linhasConcluidas` é a dos ACTOS, e é ela que a turma, o plano e o PO leem:
+  um rascunho que muda o elenco sem ser concluído não pode mudar o corpo que a turma observa.
+- **Um registo antigo do KV continua a valer.** A `teste` de produção vive no KV com turma e não tem
+  ficheiro nenhum; sem essa regra ela desaparecia da estante e o plano apontava para o nada. Ela migra
+  na primeira vez que for concluída outra vez.
+- **A escrita falhada não mente.** Sem `GITHUB_TOKEN` (as escolas legadas), o acto fica no KV e a
+  resposta **diz isso** e diz que a série temporal não existe. Com token mas com o GitHub a recusar, a
+  resposta é 502 e o rascunho fica intacto — nunca «concluído» sobre um ficheiro que não existe.
+
+**Um defeito apanhado pela prova, e vale registá-lo.** A primeira versão do `vigentes()` saltava a
+lápide mas promovia a versão anterior a vigente — a linha apagada **reaparecia na estante**. A regra
+certa é: se a versão MAIS RECENTE de um id é uma lápide, a linha está apagada, e não se procura mais
+atrás. Foi a asserção «a linha desaparece dos VIGENTES» que o disse.
+
+**Onde entrou.** `motor/servidor/linhas-de-base-repo.js` — novo: `criarStore`/`doAmbiente`,
+`chaves`, `versoes`, `vigentes`, `vigente`, `concluir`, `apagar`, `historia`, com o 409 repetido e a
+árvore lida uma vez por pedido. `motor/servidor/bastidores.js` — `linhasDeBase(kv, escola, repo)` (a
+edição) e `linhasConcluidas` (os actos), `rascunhosDe` para as três rotas que escrevem, o store por
+pedido, o `/enviar` a gravar o ficheiro, o `DELETE` a gravar a lápide, o passo 3 a criar rascunho a
+partir do acto, e `linhasDeBaseDaEscola(env, escola)` para a ponte.
+`motor/servidor/cloudflare.js` — `lerLinhasDeBaseDoEnv` lê o repositório primeiro e o KV como reserva.
+`motor/servidor/producao.js` — a listagem da anamnese recebe a lista pela porta nova.
+`experimentos/provar-linha-de-base-no-repo.js` — novo.
+
+**Medido.** `provar-linha-de-base-no-repo` **28/28** (o primeiro run apanhou o defeito da lápide);
+`provar-linha-de-base` **104/104**; `provar-sujeitos-semeados` **22/22**; `provar-sujeitos-da-turma`
+**41/41**; `provar-etiqueta-da-aluna` **20/20**; `provar-indice-do-recorte` **24/24**;
+`provar-producao` **159/159**; `check-identidade` **0 erros**; `check-indices` **14/14**.
+
+**O que fica pendente, e é o passo seguinte — agora possível.** O índice gerado em Git (`indices/`) e
+o **ranque entre escolas** continuam a não existir: o índice do recorte é o VIVO, calculado por
+pedido. O que esta entrada entrega é o **substrato** que os torna possíveis — as versões em ficheiro,
+alcançáveis pela mesma leitura em qualquer escola. O `regerar-indices.yml` já dispara em `escola/**`,
+portanto uma linha de base concluída já faz correr a derivação; o que falta é a derivação **olhar**
+para esta família (`recorte`) e emitir a série.

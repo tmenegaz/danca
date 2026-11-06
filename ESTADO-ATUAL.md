@@ -3984,6 +3984,22 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
 
+- **05/11/2026** — **A linha de base saiu do KV: o acto é um ficheiro, append-only.** O «Gravar» do
+  passo 4 fazia `lista[idx] = linha` sobre um array no KV: o que existia antes desaparecia, e com
+  ele a possibilidade de olhar para o passado. Decidido por ela: «é melhor mandar para um ficheiro,
+  porque daí a gente consegue as soluções que precisamos e ter um índice robusto». Agora
+  `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`, um por acto — o ACTO é o «Concluir e
+  enviar para a turma» (passo 5), e os passos 1–4, que são intenção, ficam no KV. O `id` não muda
+  entre versões (é o ponteiro do plano), a vigente é a de carimbo maior, e apagar grava uma lápide
+  em vez de esquecer. Duas listas: `linhasDeBase` (edição: acto + rascunho por cima) e
+  `linhasConcluidas` (actos: o que a turma, o plano e o PO leem) — um rascunho que mexe no elenco
+  sem ser concluído não muda o corpo que a turma observa. Sem `GITHUB_TOKEN` o acto fica no KV e a
+  resposta DIZ isso; com o GitHub a recusar, 502 e o rascunho intacto. Medido:
+  **28/28 · 104/104 · 22/22 · 41/41 · 20/20 · 24/24 · 159/159**, `check-identidade` **0 erros**,
+  `check-indices` **14/14**. **PENDENTE:** (a) o índice gerado em `indices/` ainda não olha esta
+  família — o ranque entre escolas e a série temporal estão desbloqueados, não feitos; (b) o
+  `GITHUB_TOKEN` tem de existir no Worker da escola (existe em `calango`), senão a série não existe.
+
 - **05/11/2026** — **A listagem da anamnese lia a turma da curadoria, e o elenco mudou de dono.**
   O selo dizia «nova» e o contexto «aluna nova — sem turma» à Aluna A e à Aluna B, que já tinham
   linha de base feita e enviada. `turmaDaAluna()` lia **curadorias**; em `calango` elas estão
