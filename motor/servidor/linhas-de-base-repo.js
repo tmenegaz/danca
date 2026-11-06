@@ -42,8 +42,7 @@
  * KV continua a ser lido (`legado`), e migra na primeira vez que for concluído outra vez.
  */
 
-const API_VERSAO = '2022-11-28';
-const ACEITE = 'application/vnd.github+json';
+const { RAIZ, base64De, textoDeBase64, detalheDe, cabecalhosDe } = require('./github-api.js');
 
 const PREFIXO = 'escola/';
 const PASTA = 'linhas-de-base/';
@@ -98,25 +97,6 @@ function lerCaminho(caminho) {
   return { escola, chave };
 }
 
-function base64De(texto) {
-  const bytes = new TextEncoder().encode(String(texto));
-  let bin = '';
-  for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin);
-}
-
-function textoDeBase64(base64) {
-  const bin = atob(String(base64).replace(/\s/g, ''));
-  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-
-function cabecalhosDe(token) {
-  const h = { Accept: ACEITE, 'X-GitHub-Api-Version': API_VERSAO };
-  if (token) h.Authorization = 'Bearer ' + token;
-  return h;
-}
-
 /**
  * O leitor/escritor. Sem `token` ele fica INERTE e diz que não leu — não finge uma lista vazia
  * (uma lista vazia silenciosa faz a escola achar que perdeu as linhas de base).
@@ -124,7 +104,7 @@ function cabecalhosDe(token) {
 function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
   const slug = String(escola || '').trim();
   const f = fetchImpl || fetch;
-  const base = 'https://api.github.com/repos/' + (dono || DONO_PADRAO) + '/' + (repo || REPO_PADRAO);
+  const base = RAIZ + '/repos/' + (dono || DONO_PADRAO) + '/' + (repo || REPO_PADRAO);
   const cabecalhos = cabecalhosDe(token);
   const ramo = ref || REF_PADRAO;
   const comRamo = (url) => url
@@ -165,8 +145,7 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
       { method: 'GET', headers: cabecalhos });
     if (r.status === 404) { lidos.set(chave, null); return null; }
     if (!r.ok) {
-      throw new Error('linhas-de-base: leitura de ' + chave + ': '
-        + (r.texto || ('HTTP ' + r.status)));
+      throw new Error('linhas-de-base: leitura de ' + chave + ': ' + await detalheDe(r));
     }
     const dados = await r.json().catch(() => null);
     const cru = dados && dados.content ? String(dados.content) : '';
@@ -182,8 +161,7 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     const r = await pedir(base + '/git/trees/' + encodeURIComponent(ramo) + '?recursive=1',
       { method: 'GET', headers: cabecalhos });
     if (!r.ok) {
-      throw new Error('linhas-de-base: não li a árvore do repositório: '
-        + (r.texto || ('HTTP ' + r.status)));
+      throw new Error('linhas-de-base: não li a árvore do repositório: ' + await detalheDe(r));
     }
     const dados = await r.json().catch(() => null);
     const achadas = [];
@@ -209,7 +187,7 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
         sha = (dados && dados.sha) || null;
       } else if (atual.status !== 404) {
         return { ok: false, status: atual.status,
-          erro: 'leitura do sha: ' + (atual.texto || ('HTTP ' + atual.status)) };
+          erro: 'leitura do sha: ' + await detalheDe(atual) };
       }
       const resposta = await pedir(url, {
         method: 'PUT',
@@ -234,15 +212,8 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
         };
       }
       if (resposta.status !== 409) {
-        let detalhe = resposta.texto || '';
-        if (!detalhe && typeof resposta.json === 'function') {
-          const corpo = await resposta.json().catch(() => null);
-          detalhe = corpo && corpo.message ? String(corpo.message) : '';
-        }
         return { ok: false, status: resposta.status,
-          erro: 'o GitHub recusou a escrita'
-            + (resposta.status ? ' (HTTP ' + resposta.status + ')' : '')
-            + (detalhe ? ': ' + detalhe : '') };
+          erro: 'o GitHub recusou a escrita: ' + await detalheDe(resposta) };
       }
       ultimo = { ok: false, status: 409, erro: 'conflito de escrita (409) — a repetir' };
     }
@@ -255,10 +226,18 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
    * PORQUE ELE EXISTE, e é o segundo desenho desta família no mesmo dia (05/11/2026).
    *
    * A primeira versão descobria as versões pela ÁRVORE do repositório (`git/trees?recursive=1`):
-   * uma chamada para saber os nomes, e depois uma leitura por ficheiro. Duas coisas a mataram. A
-   * medida: em produção a árvore respondeu **HTTP 403** enquanto `/contents/…` continuava a
-   * funcionar — o acervo dos envelopes lê-se e escreve-se pelo mesmo token, e só a árvore recusa.
-   * A segunda é de custo: para gravar UM acto era preciso listar o repositório inteiro.
+   * uma chamada para saber os nomes, e depois uma leitura por ficheiro. Duas coisas a mataram.
+   * A primeira foi de CUSTO: para gravar UM acto era preciso listar o repositório inteiro — e o
+   * índice responde o mesmo com uma leitura só.
+   *
+   * **Correção de 05/11/2026, e a redação anterior desta linha estava errada.** Aqui dizia-se que
+   * «a árvore respondeu 403 em produção enquanto `/contents/` continuava a funcionar». **Não era
+   * isso.** O 403 era o do GitHub a toda a requisição sem cabeçalho `User-Agent`, e atingia as
+   * duas chamadas por igual: este módulo nasceu com a lista de cabeçalhos montada à mão e sem esse
+   * campo. Com o `User-Agent` posto (`./github-api.js`), a árvore responde 200. A observação que
+   * sustentava a conclusão antiga — «o acervo dos envelopes lê-se e escreve-se pelo mesmo token» —
+   * era verdadeira e não dizia o que se pensou que dizia: o acervo põe o `User-Agent`, e era essa
+   * a diferença, não o endereço.
    *
    * O ACERVO DOS ENVELOPES JÁ TINHA RESOLVIDO ISTO (`envelope/.indice.json`), e a solução é a
    * mesma: um ficheiro que diz quais são as versões e o essencial de cada uma. `vigentes()`,
@@ -401,10 +380,11 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
      * A LISTA DE VERSÕES — `Map<chave, resumo>`, do ÍNDICE em ficheiro.
      *
      * UMA LEITURA, e é a diferença que este desenho faz. A versão anterior deste módulo perguntava
-     * à ÁRVORE do repositório (uma chamada ao repositório inteiro) e depois lia cada ficheiro: em
-     * produção a árvore respondeu **403** e o envio parou com tudo por fazer, enquanto `/contents/`
-     * continuava a funcionar. A árvore passa a ser o ÚLTIMO RECURSO — só quando o índice ainda não
-     * existe, que é o caso da primeira vez de uma escola.
+     * à ÁRVORE do repositório (uma chamada ao repositório inteiro) e depois lia cada ficheiro. O
+     * 403 que se lhe atribuiu em 05/11/2026 **não era da árvore**: era do `User-Agent` que faltava
+     * nos cabeçalhos deste módulo, e que agora vem de `./github-api.js`. A árvore funciona — e
+     * continua a ser o ÚLTIMO RECURSO, por uma razão de custo: só se usa quando o índice ainda não
+     * existe, que é a primeira vez de uma escola.
      *
      * `fonte` diz de onde veio, e a resposta da estante mostra-o: quem lê precisa de saber se está
      * a ver o índice ou uma reconstrução, e um silêncio aqui é o que faz um dado parecer perdido.

@@ -779,6 +779,15 @@ experimentos/modelo-formulario/*
 # mesmo quando a rota falha, a rota da cascata no caminho que a pagina pede, e o caminho da tela de
 # ponta a ponta: 200, ficheiro no repositorio, rascunho fora do KV e nenhum acto copiado para la.
 !experimentos/provar-escrita-do-acto.js
+# O `User-Agent` QUE O GITHUB EXIGE (05/11/2026). O envio da linha de base falhou com «leitura do
+# sha: HTTP 403» e o diagnostico foi feito por deducao («o /contents/ funciona, a arvore nao») —
+# e a deducao estava ERRADA: o GitHub recusa com 403 toda a requisicao sem cabecalho `User-Agent`,
+# e o fetch do Worker nao o poe sozinho. Medido com o mesmo token: 200 com o cabecalho, 403 sem
+# ele, tanto na arvore como no /contents/. A prova mede a lista unica (`github-api.js`), a FRASE
+# que faltava nas mensagens (liam `Response.texto`, que nao existe; o metodo e `.text()`) e a
+# sonda; e a contraprova do guarda `tools/check-github-headers.js`, que e corrido sobre ficheiros
+# fabricados para se ver a REPROVAR o defeito antigo.
+!experimentos/provar-cabecalhos-do-github.js
 # A PROPOSTA DA LISTAGEM, MEDIDA (05/11/2026). A bancada constrói a proposta, serve-a em 127.0.0.1 e
 # mede a geometria nas quatro larguras — 1240, 390, 360 e 320 —, incluindo o alvo de toque de cada
 # caixa e o clique que abre o painel. Ela distingue «cabe» de «parece bem»: foi ela que apanhou a

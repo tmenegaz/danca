@@ -124,6 +124,7 @@ const paginacao = require('../nucleo/paginacao.js');
  * bundle, porque o Worker não tem `fs`. A regra fica no núcleo, o dado vem do `require`. */
 const linhaDeBaseNucleo = require('../nucleo/linha-de-base.js');
 const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
+const githubApi = require('./github-api.js');
 const { conteudo: ANAMNESE } = require('./corpo-seed.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
@@ -11461,6 +11462,46 @@ async function fetch(request, env) {
       /* Não se inventa uma lista vazia: uma falha de leitura e «ninguém tem anamnese» são coisas
        * diferentes, e a tela tem de as distinguir para poder dizer a verdade. */
       return json(200, { ok: false, escola, alunas: [], erro: 'não consegui ler o acervo agora' });
+    }
+  }
+
+  /**
+   * A SONDA DO REPOSITÓRIO — `GET /api/bastidores/diagnostico/repositorio`.
+   *
+   * PORQUE EXISTE (05/11/2026). O envio falhou com «leitura do sha: HTTP 403» e o diagnóstico foi
+   * feito por DEDUÇÃO — «o `/contents/` funciona, a árvore não» —, e a dedução estava errada: o
+   * 403 era o do GitHub a toda a requisição sem `User-Agent`, e atingia as duas. Uma tarde
+   * perdida podia ter sido um `curl`.
+   *
+   * A sonda faz quatro leituras e devolve, de cada uma, o status e a FRASE do GitHub. Não gasta
+   * KV, não escreve nada, e não expõe o token: só o número e o motivo.
+   */
+  if (path === '/api/bastidores/diagnostico/repositorio') {
+    const alvos = [
+      'escola/' + escola + '/linhas-de-base/.indice.json',
+      'escola/' + escola + '/envelopes/.indice.json',
+    ];
+    try {
+      const sonda = await githubApi.sondar({
+        token: env.GITHUB_TOKEN,
+        dono: env.GITHUB_DONO || 'tmenegaz',
+        repo: env.GITHUB_REPO || 'danca',
+        ref: env.GITHUB_REF || 'main',
+        escola,
+        caminhos: alvos,
+      });
+      return json(200, {
+        ok: true, escola,
+        /* O QUE SE LÊ AQUI. `repositório` e `árvore` 200 = credencial e cabeçalhos bons.
+         * `conteúdo: …`.json 404 = o caminho não existe **e a leitura funciona** (é o que se
+         * espera antes do primeiro envio). 403 em TUDO = o `User-Agent` (ou a cota); a frase ao
+         * lado diz qual dos dois. */
+        sonda,
+        temToken: Boolean(env.GITHUB_TOKEN),
+      });
+    } catch (erro) {
+      return json(200, { ok: false, escola,
+        erro: 'a sonda não correu: ' + (erro && erro.message ? erro.message : String(erro)) });
     }
   }
 

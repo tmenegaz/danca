@@ -54,16 +54,31 @@ function provar(titulo, condicao, detalhe) {
  * `contents` GET devolve `content` em base64 e `sha`; PUT exige o `sha` de um ficheiro existente
  * (é assim que o 409 aparece na vida real); a árvore lista os blobs.
  */
-function githubDeBolso({ arvoreBloqueada = false } = {}) {
+function githubDeBolso({ arvoreBloqueada = false, exigirAgente = true } = {}) {
   const arquivos = new Map(); // caminho → texto
   let commits = 0;
+  const vistos = [];          // os cabeçalhos de cada chamada, para se poder afirmar o que saiu
   const b64 = (t) => Buffer.from(String(t), 'utf8').toString('base64');
   const fetchFalso = async (url, opcoes) => {
     const u = new URL(String(url));
     const metodo = (opcoes && opcoes.method) || 'GET';
+    const cabecalhos = (opcoes && opcoes.headers) || {};
+    vistos.push({ url: u.pathname, metodo, cabecalhos });
+    /* O GITHUB RECUSA SEM `User-Agent` — medido a 05/11/2026, e é a resposta VERDADEIRA que o
+     * módulo da linha de base recebia em tudo (árvore e `contents`, leitura e escrita) enquanto
+     * se pensava que só a árvore era recusada. A frase é a do GitHub, copiada: é ela que faltava
+     * nas mensagens de erro, porque `Response.texto` não existe e o `.text()` nunca era chamado. */
+    if (exigirAgente && !cabecalhos['User-Agent']) {
+      return new Response(JSON.stringify({
+        message: 'Request forbidden by administrative rules. Please make sure your request has a User-Agent header',
+      }), { status: 403, headers: { 'content-type': 'application/json' } });
+    }
     if (u.pathname.indexOf('/git/trees/') !== -1) {
-      /* O 403 MEDIDO EM PRODUÇÃO A 05/11/2026: a árvore recusa e o `/contents/` continua a
-       * servir. Era este o par que parava o envio. */
+      /* UMA ÁRVORE RECUSADA, para provar que o envio não depende dela. **Correção de
+       * 05/11/2026:** a primeira redação deste comentário dizia que era este o 403 medido em
+       * produção, com o `/contents/` a servir ao lado. Não era: o 403 era o do `User-Agent`
+       * ausente e atingia tudo. Este interruptor passou a ser o que sempre foi na realidade —
+       * uma falha POSSÍVEL (proxy, cota, permissão), não a medida de então. */
       if (arvoreBloqueada) {
         return new Response(JSON.stringify({ message: 'Resource not accessible by integration' }),
           { status: 403, headers: { 'content-type': 'application/json' } });
@@ -95,7 +110,7 @@ function githubDeBolso({ arvoreBloqueada = false } = {}) {
     }
     return new Response('nao', { status: 405 });
   };
-  return { fetchFalso, arquivos, commits: () => commits };
+  return { fetchFalso, arquivos, vistos, commits: () => commits };
 }
 
 /** SÓ AS VERSÕES. O `.indice.json` também é um ficheiro da família, e contá-lo como se fosse um
@@ -261,16 +276,21 @@ function linha(extra) {
       repo.criarStore({ token: 't', fetchImpl: githubDeBolso().fetchFalso }).activo === false);
   }
 
-  console.log('\nG. O 403 DA ÁRVORE NÃO PÁRA O ENVIO — foi o defeito de 05/11/2026 em produção');
+  console.log('\nG. Uma árvore recusada NÃO pára o envio (falha possível, não a de 05/11/2026)');
   {
     /* O QUE ACONTECEU, e por que esta secção existe. A pesquisadora premiu «Concluir e enviar
      * para a turma» e recebeu: «não consegui gravar a linha de base no repositório:
      * linhas-de-base: não li a árvore do repositório: HTTP 403». O rascunho ficou intacto — mas o
      * acto não foi gravado, e a razão era a LISTAGEM, não a escrita.
      *
-     * O `contents` do mesmo token funcionava (o acervo dos envelopes lia-se e escrevia-se). O que
-     * recusava era `git/trees`. A correcção não foi pedir outro token: foi deixar de depender da
-     * árvore — o índice em ficheiro responde à mesma pergunta com uma leitura que funciona. */
+     * **A LEITURA DESTE EPISÓDIO ESTAVA ERRADA, e a correção é de 05/11/2026.** Concluiu-se então
+     * que «o `/contents/` do mesmo token funcionava e o que recusava era o `git/trees`». Não era
+     * isso: o 403 era o do GitHub a toda a requisição sem `User-Agent`, e este módulo nasceu com
+     * a lista de cabeçalhos montada à mão e sem esse campo. A árvore do repositório responde
+     * **200** com o cabeçalho posto (secção H). O índice em ficheiro fica — mas por CUSTO, não
+     * por uma recusa que existisse: para gravar um acto não vale listar o repositório inteiro.
+     *
+     * Esta secção guarda o que continua verdadeiro: o envio não depende da árvore. */
     const gh = githubDeBolso({ arvoreBloqueada: true });
     const s = store(gh);
     provar('com a árvore em 403, o store continua activo', s.activo === true);

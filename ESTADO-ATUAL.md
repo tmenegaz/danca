@@ -3984,6 +3984,25 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   decisão, como o `ajuste_de`); (b) o ranque entre escolas exige que todos os KV sejam alcançáveis
   pela mesma leitura, e hoje só a `calango` tem Worker.
 
+- **05/11/2026** — **O cabeçalho que faltava: uma lista de `User-Agent` e um guarda que reprova.**
+  O envio voltou a falhar com «leitura do sha: HTTP 403», e a mensagem de ontem cumpriu o que
+  prometia (JSON, com a razão, rascunho intacto) — mas sem a **frase** do GitHub, porque o código
+  lia `Response.texto`, propriedade que não existe (o método é `.text()`). **A correção do
+  diagnóstico anterior:** o 403 não era da árvore. O GitHub recusa com 403 toda a requisição sem
+  `User-Agent`, e o `fetch` do Worker não o põe sozinho — medido com o mesmo token, `git/trees`
+  dá **200** com o cabeçalho e **403** sem ele. O módulo da linha de base nasceu ontem sem esse
+  campo: **todas** as suas chamadas falhavam. Decidido: (1) **uma lista só**, em
+  `motor/servidor/github-api.js` (havia doze cópias — a terceira vez que o defeito apareceu);
+  (2) `detalheDe()` devolve `HTTP 403 — <frase>`, e não o número sozinho; (3) `GET
+  /api/bastidores/diagnostico/repositorio` sonda repositório, árvore e os dois `.indice.json`
+  com status **e frase** — o diagnóstico de ontem foi por dedução e a dedução errou; (4)
+  `tools/check-github-headers.js` (estático, sem rede) no `pre-commit`, passo 8. O **índice das
+  versões fica**, mas por CUSTO e não por recusa: a justificação falsa foi corrigida nos
+  comentários, com data. Medido: `provar-cabecalhos-do-github` **34/34**,
+  `provar-linha-de-base-no-repo` **39/39**, `provar-escrita-do-acto` **21/21**,
+  `provar-acervo-envelopes` **48/48**, `provar-producao` **159/159**, `check-github-headers`
+  **5 verificações**, `check-identidade` **0 erros**, `check-indices` **16/16**.
+
 - **05/11/2026** — **O 403 da árvore: o índice das versões, e a árvore deixa de ser dependência.**
   O envio falhou com «não li a árvore do repositório: HTTP 403» — e a correcção anterior já valia:
   o erro chegou em JSON, com a razão, e o rascunho ficou intacto. Medido: com o MESMO token,

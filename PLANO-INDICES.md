@@ -737,6 +737,16 @@ cobertura, o rascunho fora do denominador, o aplicado, o ponto cego com o A/B, a
 privacidade com o controle positivo, o determinismo, as três rotas e o desenho a correr em jsdom.
 E `experimentos/provar-recorte-no-indice.js` (40 asserções), que é a do §4.13.
 
+> **Nota de 05/11/2026 (mesmo dia), sobre a LEITURA dos actos.** Ao pôr os actos em ficheiro
+> apareceu um **HTTP 403** que foi lido como «a árvore do repositório é recusada e o `/contents/`
+> não» — e a partir daí se escreveu um índice de versões em `.indice.json`. **A leitura era falsa:**
+> o 403 era o do GitHub a toda a requisição sem cabeçalho `User-Agent`, e atingia as duas chamadas;
+> o módulo nascera sem esse campo (ver `REGISTRO.md`, 05/11/2026). Medido com o mesmo token:
+> `git/trees` → 200 com o cabeçalho, 403 sem ele. O **índice de versões fica**, mas por **custo**
+> — uma leitura em vez de listar o repositório inteiro —, e a árvore passou a ser o último recurso
+> por economia, não por recusa. Nada do que este plano declara muda: `recortes` e `aspectos` são
+> derivados dos ficheiros das versões, e o `.indice.json` é só o atalho para os encontrar.
+
 ---
 
 ### 4.13 Índice do recorte em ACERVO — `indices/escolas/<escola>.json` (**IMPLEMENTADO** 05/11/2026)

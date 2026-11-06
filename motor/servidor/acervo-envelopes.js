@@ -55,8 +55,7 @@
 
 const Cifra = require('../../tools/lib-cifra.js');
 
-const API_VERSAO = '2022-11-28';
-const ACEITE = 'application/vnd.github+json';
+const { base64De, textoDeBase64, cabecalhosDe: cabecalhosDaApi } = require('./github-api.js');
 
 // O teto do runtime do Worker (o mesmo do `cifrar-envelope.js`: o WebCrypto do workerd recusa
 // PBKDF2 acima de 100.000). O envelope é autodescritivo — `_cifrado.iteracoes` viaja no
@@ -180,28 +179,13 @@ async function abrirArquivoCifrado(arquivo, senha) {
 
 // --------------------------------------------------------------- HTTP
 
-/** Base64 em UTF-8 SEM `Buffer` (ausente no runtime dos Workers). */
-function base64De(texto) {
-  const bytes = new TextEncoder().encode(String(texto));
-  let binario = '';
-  for (const b of bytes) binario += String.fromCharCode(b);
-  return btoa(binario);
-}
-
-function textoDeBase64(base64) {
-  return new TextDecoder().decode(Uint8Array.from(atob(String(base64).replace(/\s+/g, '')), (c) => c.charCodeAt(0)));
-}
-
-function cabecalhosDe(token) {
-  return {
-    'Accept': ACEITE,
-    'Authorization': 'Bearer ' + token,
-    'X-GitHub-Api-Version': API_VERSAO,
-    'Content-Type': 'application/json',
-    // O GitHub exige um User-Agent; o `fetch` do Worker não o envia por padrão.
-    'User-Agent': 'danca-worker',
-  };
-}
+/* OS CABEÇALHOS VÊM DE `./github-api.js` (05/11/2026). Eles viveram aqui desde 20/10/2026 — e
+ * este módulo era o ÚNICO que punha o `User-Agent` que o GitHub exige, o que fez dele a prova de
+ * que «o token funciona» enquanto o módulo vizinho da linha de base, com a lista montada à mão e
+ * sem esse campo, levava 403 em tudo. Duas cópias da mesma lista: uma certa, outra errada, e
+ * ninguém a comparar. Passa a haver uma só.
+ * `conteudo: true` mantém o `Content-Type` que este acervo enviava também nas leituras. */
+const cabecalhosDe = (token) => cabecalhosDaApi(token, { conteudo: true });
 
 // --------------------------------------------------------------- o acervo
 
