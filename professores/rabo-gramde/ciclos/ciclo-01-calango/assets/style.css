@@ -988,7 +988,23 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 }
 
 /* ---------- cabeçalho, conteúdo e títulos ---------- */
-header.doc, main, footer.rodape, .rodape { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+/* A CAIXA É DA FAIXA; O AR DE DENTRO É DA PEÇA (06/11/2026).
+ *
+ * Aqui estava `header.doc, main, footer.rodape, .rodape { … }` — e `footer.rodape` pesa
+ * (0,1,1), mais do que o `.rodape` da peça (0,1,0) que está mais abaixo no arquivo. O
+ * resultado, medido no documento real: a caixa do rodapé saía com `margin-top: 0px` e
+ * `padding-top: 0px`, e o `.rodape` declarava **40px** e **16px**. Ou seja, o rodapé ficava
+ * **0px** abaixo do último parágrafo do conteúdo (medido: `main` acabava em 465,4px e a
+ * linha do rodapé começava em 465,0px) e o texto ficava **5px** abaixo do seu próprio filete
+ * — os dois defeitos que a pesquisadora descreve como «colado na linha», e nenhum deles
+ * visível numa captura de perto: só lado a lado com o que a peça diz.
+ *
+ * É a mesma armadilha que a §«O cabeçalho respira» documenta: a caixa (largura, centragem)
+ * é da FAIXA e vive aqui; o ar de dentro é da PEÇA e vive na peça. Esta linha deixa de
+ * nomear `footer.rodape` — o rodapé já se nomeia em `.rodape`, uma vez, com o box model
+ * completo. Quem impede o retorno é a checagem «Respiro» de `tools/check-identidade.js`,
+ * que passou a medir as duas caixas. */
+header.doc, main, .rodape { max-width: 900px; margin: 0 auto; padding: 0 24px; }
 
 /* O CABEÇALHO RESPIRA, E O RESPIRO É PADDING — NÃO MARGEM (06/11/2026).
  *
@@ -1011,7 +1027,6 @@ header.doc, main, footer.rodape, .rodape { max-width: 900px; margin: 0 auto; pad
  * resolve o token, e a `experimentos/provar-titulo-e-barra.js`, que mede a geometria num
  * navegador. Uma garante que a linha existe; a outra, que ela produz o número. */
 header.doc, .titulo-fixo { padding-top: var(--esp-3); padding-bottom: var(--esp-3); }
-header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
 header.doc h1 {
   color: var(--marca); font-size: 31px; line-height: 1.2; margin: 0 0 8px;
   border-bottom: 2px solid var(--borda); padding-bottom: 8px;
@@ -1022,6 +1037,16 @@ header.doc .subtitulo { color: var(--texto-suave); font-style: italic; margin: 0
   background: var(--fundo-faixa); border: 1px solid var(--borda); border-radius: 999px;
   padding: 0 var(--esp-2); font-size: 13px; color: var(--marca-texto);
 }
+/* …E O VÃO DE BAIXO TEM UM RESPONSÁVEL SÓ — e ele vem DEPOIS das peças (06/11/2026).
+ *
+ * A regra nasceu acima, colada ao `padding`, e não funcionava: `header.doc .subtitulo`
+ * pesa (0,2,1) e `header.doc > :last-child` também (0,2,1) — empate, e a que vem depois
+ * no arquivo ganha. Como a do subtítulo vem depois, os 8px dele sobreviviam, e o vão de
+ * baixo saía **20px** nos documentos que acabam no subtítulo (plano, harmonização, folha
+ * de captura) e **12px** nos que acabam num botão (aula, notação). Dois valores para o
+ * mesmo lugar — exactamente o que esta folha persegue. Aqui, depois de todas as peças do
+ * cabeçalho, o empate resolve-se a favor do vão único. */
+header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
 
 /* ---------- o título que fica (21/10/2026) -----------------------------------------
    A página da aula tem 15 ecrãs; o título diz de que documento se trata e saía da
@@ -1075,6 +1100,34 @@ header.doc .subtitulo { color: var(--texto-suave); font-style: italic; margin: 0
   [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .ficha { display: flex; }
   [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .subtitulo { display: block; }
 }
+
+/* O AR DEPOIS DA FAIXA DO CABEÇALHO É UM SÓ — e é do CONTENTOR (06/11/2026).
+ *
+ * Medido nas nove páginas do pacote, a 1280 e a 390: o vão entre a linha do cabeçalho e o
+ * primeiro bloco do documento era **32px** nos documentos que começam por um `##` (o plano,
+ * o índice, o glossário, as referências) e **8px** nos que começam por prosa (a aula 01 e a
+ * notação, cuja fonte composta abre por um parágrafo). Nenhum dos dois está errado em si —
+ * estão errados os DOIS valores para o mesmo lugar, que é o defeito que esta folha já
+ * registou três vezes («um valor, dois lugares»).
+ *
+ * A causa é a de sempre: o vão não era declarado, era o `margin-top` do que calhasse ser o
+ * primeiro filho (`32px` do `h2`, `8px` do `p`). Passa a ser do CONTENTOR, com o valor que
+ * os documentos já tinham quando começam por uma secção — `--esp-6`, os mesmos 32px do
+ * `main h2` —, e o primeiro filho perde a margem de topo para não haver dois responsáveis.
+ *
+ * O AR É DA COLUNA DE LEITURA, e não do `main`: no telemóvel o primeiro bloco do `main` é o
+ * índice dobrado («Nesta página»), que é navegação e não conteúdo — empurrá-lo mudaria a
+ * dobra sem serveder à leitura. Em `.conteudo` o vão fica onde se lê, nas duas larguras e
+ * nos dois regimes de layout (coluna única abaixo de 1200, grade de duas colunas acima).
+ *
+ * FICA DE FORA O PAINEL. A tela de trabalho (`data-layout="painel"`) tem o mesmo
+ * `header.doc` colado ao `main`, mas não é documento: é uma pilha densa de formulários, e
+ * 32px de ar por cima empurrariam tudo sem servir à leitura. Um regime, uma regra.
+ *
+ * Quem confere: a checagem «Respiro» de `tools/check-identidade.js` mede as nove páginas do
+ * pacote e reprova se o vão do cabeçalho ao conteúdo divergir entre elas. */
+body:not([data-layout="painel"]) header.doc + main > .conteudo { padding-top: var(--esp-6); }
+body:not([data-layout="painel"]) header.doc + main > .conteudo > :first-child { margin-top: 0; }
 
 main h2 { color: var(--marca); font-size: 23px; margin: 32px 0 8px; }
 main h3 { color: var(--marca); font-size: 19px; margin: 24px 0 8px; }

@@ -1309,6 +1309,9 @@ function conferirRespiro() {
         } else if (prop === 'padding-top') achado.topo = val;
         else if (prop === 'padding-bottom') achado.fundo = val;
         else if (prop === 'margin-top') achado.margemTopo = val;
+        // O SHORTHAND DO `margin` TAMBÉM CONTA: `.rodape { margin: 40px auto 0 }` é o ar de
+        // cima do rodapé, e ler só `margin-top` dizia «nenhum» onde havia 40px.
+        else if (prop === 'margin') achado.margemTopo = doShorthand(val).topo;
         achado.de = m[1].trim().replace(/\s+/g, ' ');
       }
     }
@@ -1341,10 +1344,69 @@ function conferirRespiro() {
     }
   }
 
+  /* ---- 10b) A FAIXA DO RODAPÉ — o ar de dentro é da PEÇA (06/11/2026).
+   *
+   * O DEFEITO, e é o mesmo do cabeçalho com outra roupa. A caixa da faixa
+   * (`header.doc, main, footer.rodape, .rodape { … }`) nomeava o rodapé, e `footer.rodape`
+   * pesa (0,1,1) — mais do que o `.rodape` da peça (0,1,0), que vem depois no arquivo. O
+   * resultado, medido: o rodapé saía com `margin-top: 0` e `padding-top: 0` enquanto a peça
+   * declarava **40px** e **16px**, e o texto ficava **5px** abaixo do próprio filete. É
+   * exactamente «colado na linha», e não se vê numa captura de perto: vê-se lado a lado com
+   * o que a peça diz.
+   *
+   * A REGRA. A linha da faixa (largura e centragem) não pode nomear `footer.rodape` — o
+   * rodapé nomeia-se uma vez, em `.rodape`, com o box model completo. E a peça declara o ar:
+   * 16px acima do texto (o mínimo é 12, `--esp-3`) e 24px antes do filete (o mínimo é 24,
+   * `--esp-5`) — abaixo disso o filete encosta no último parágrafo. */
+  for (const m of texto.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const seletores = m[1].split(',').map((x) => x.trim());
+    if (!seletores.includes('footer.rodape')) continue;
+    const corpo = m[2];
+    if (/(^|;)\s*(padding|margin)\s*:/.test(corpo)) {
+      problemas.push('Respiro: a regra «' + m[1].trim().replace(/\s+/g, ' ') + '» define o box ' +
+        'model de `footer.rodape` — e `footer.rodape` pesa mais do que `.rodape`, e é o `.rodape` ' +
+        'que tem o ar. Tire `footer.rodape` desta regra (o defeito de 06/11/2026: o rodapé saía ' +
+        'com margin-top 0 e padding-top 0, e o texto a 5px do filete)');
+    }
+  }
+  const rodape = arDoAlvo('\\.rodape');
+  const arDoRodape = emPx(rodape.topo);
+  const antesDoFilete = emPx(rodape.margemTopo);
+  if (arDoRodape == null || arDoRodape < RESPIRO_MINIMO) {
+    problemas.push('Respiro: o `.rodape` guarda ' + (arDoRodape == null ? 'nenhum ar' : arDoRodape + 'px') +
+      ' entre o filete e o texto — o mínimo é ' + RESPIRO_MINIMO + 'px (`--esp-3`)');
+  }
+  if (antesDoFilete == null || antesDoFilete < 24) {
+    problemas.push('Respiro: o `.rodape` guarda ' + (antesDoFilete == null ? 'nenhum ar' : antesDoFilete + 'px') +
+      ' entre o conteúdo e o filete — o mínimo é 24px (`--esp-5`); sem ele o filete encosta no ' +
+      'último parágrafo do documento (medido: 0,4px)');
+  }
+
+  /* ---- 10c) O AR DEPOIS DA FAIXA DO CABEÇALHO — uma vez, no contentor (06/11/2026).
+   *
+   * Medido nas nove páginas do pacote: 32px nos documentos que começam por um `##`, 8px nos
+   * que começam por prosa. A diferença não vinha de decisão nenhuma — vinha de o vão ser o
+   * `margin-top` do primeiro filho. A regra passa a ser do `.conteudo`, e o primeiro filho
+   * perde a margem para não haver dois responsáveis. */
+  const arDaColuna = /header\.doc\s*\+\s*main\s*>\s*\.conteudo\s*\{[^}]*padding-top\s*:\s*([^;}]+)/
+    .exec(texto);
+  const valDaColuna = arDaColuna ? emPx(arDaColuna[1]) : null;
+  if (valDaColuna == null || valDaColuna < 24) {
+    problemas.push('Respiro: a coluna de leitura não declara o ar depois da faixa do cabeçalho ' +
+      '(`header.doc + main > .conteudo { padding-top: … }`) — sem ele o vão é o `margin-top` do ' +
+      'primeiro bloco, e sai 32px nos documentos que abrem por `##` e 8px nos que abrem por prosa');
+  }
+  if (!/\.conteudo\s*>\s*:first-child\s*\{[^}]*margin-top\s*:\s*0/.test(texto)) {
+    problemas.push('Respiro: falta o par do ar da coluna — `.conteudo > :first-child ' +
+      '{ margin-top: 0 }`. Sem ele o vão é somado à margem do primeiro bloco, e o ar deixa de ser um só');
+  }
+
   for (const p of problemas) erros.push(p);
   if (!problemas.length) {
     ok.push('Respiro: o cabeçalho declara ' + medidos.map((m) => `${m.nome} ${m.topo}/${m.fundo}px`).join(', ')
-      + ' de ar acima e abaixo, em padding — o mínimo é ' + RESPIRO_MINIMO + 'px');
+      + ' de ar acima e abaixo, em padding — o mínimo é ' + RESPIRO_MINIMO + 'px; o rodapé guarda '
+      + arDoRodape + 'px do filete ao texto e ' + antesDoFilete + 'px do conteúdo ao filete; e a '
+      + 'coluna de leitura começa ' + valDaColuna + 'px abaixo da faixa');
   }
 }
 conferirRespiro();
