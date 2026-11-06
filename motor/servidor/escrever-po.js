@@ -49,15 +49,26 @@ function base64De(texto) {
  * envelopes já gravados a escrever onde sempre escreveram. **A ausência da turma não é
  * erro** — é o modelo antigo, e os dois convivem.
  */
+const slugificar = (valor) => String(valor == null ? '' : valor)
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
 function varianteDoContexto(contexto) {
   const ctx = contexto || {};
+  /* A VARIANTE DECLARADA VENCE (06/11/2026). Há contextos que já SABEM a variante e não têm a
+   * turma de onde ela se compõe — o lançamento da aula é o primeiro: a variante vem inteira no
+   * NOME do arquivo de dados (`ciclo-01-<variante>-dados-<carimbo>.json`), e o corpo não traz
+   * turma nenhuma. Sem esta linha, o disparo da geração pedia `escola` como variante
+   * (`calango`), o gerador lia o `.conf`-esqueleto da escola, morria com «DOCS está vazio» — e o
+   * professor via a fonte certa e o site a mostrar a aula por lançar. */
+  const declarada = slugificar(ctx.variante);
+  if (declarada) return declarada;
   const escola = String(ctx.escola || '').trim();
   const turma = String(ctx.turma || '').trim();
   if (!turma) return escola;
   // O `id` da turma já é um slug (`teste-2`, `bale-nivel-1`); re-escagar é a defesa
   // contra um id que chegue de fora com o que não pode entrar num nome de ficheiro.
-  const sufixo = turma.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const sufixo = slugificar(turma);
   if (!sufixo) return escola;
   return escola + '-' + sufixo;
 }

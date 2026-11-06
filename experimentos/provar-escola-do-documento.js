@@ -203,8 +203,14 @@ async function provar(motor, etiqueta) {
       Boolean(r.dados) && r.dados.ok === true && r.dados.escola === ESCOLA_DO_WORKER,
       r.dados && (r.dados.erro || r.dados.escola));
     const chaves = await armazenamento.listar('');
+    /* A FAMÍLIA VEM ANTES DA ESCOLA (06/11/2026). A chave passou a ser
+     * `lancamento/<escola>/<professor>/…`, porque é a família que decide o destino no
+     * armazenamento composto — sem ela o lançamento ia para o KV, que ninguém lê. O que esta
+     * asserção mede continua a ser o que media: a escola da chave é a do WORKER, nunca a do
+     * payload. A família é prefixo, não sujeito. */
     checar('e grava sob o prefixo da escola do WORKER, não o do payload',
-      chaves.length > 0 && chaves.every((k) => k.indexOf(ESCOLA_DO_WORKER + '/') === 0),
+      chaves.length > 0 && chaves.every((k) => k.indexOf('lancamento/' + ESCOLA_DO_WORKER + '/') === 0)
+        && chaves.every((k) => k.indexOf(ESCOLA_FORJADA) === -1),
       chaves);
     // A porta fechada por padrão continua valendo: sem `autorizar`, recusa.
     const { rotas: semSenha } = bancada({ motor, escolaDoWorker: ESCOLA_DO_WORKER });

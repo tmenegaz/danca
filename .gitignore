@@ -859,3 +859,10 @@ experimentos/modelo-formulario/*
 # sentidos, o determinismo e o `--check` a acusar uma aresta removida. E um ciclo vazio declara as
 # lacunas em vez de inventar uma turma.
 !experimentos/provar-relacoes.js
+# A FAMÍLIA DO LANÇAMENTO (06/11/2026). A aula lançada pelo celular existia no KV — e nada neste
+# sistema lê o KV. Ao recarregar, desaparecia; o caderno não tinha fonte. A prova mede que a chave
+# tem família e o composto a entrega ao repositório, que o destino é o `-dados.json` canónico que a
+# geração lê, que a fusão preserva as outras aulas (o separador aberto há dias não apaga o que veio
+# depois), que o `depois` pede a geração sem derrubar a gravação, e — contraprova — que a chave de
+# ANTES, sem família, continua a cair no KV.
+!experimentos/provar-familia-do-lancamento.js

@@ -86,7 +86,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, consolidarLancamentos, fuso, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -415,6 +415,11 @@ async function fetch(request, env, opcoes) {
     apagarCiclo,
     lerDados,
     lancamentoSeguro,
+    // O RESGATE DO QUE FICOU NO KV (06/11/2026). Estava construído e NÃO ligado à porta — a rota
+    // respondia «a consolidação não está disponível neste ambiente», que é o mesmo que não
+    // existir. A prova que o apanhou é a do `montarPorta`, não a da família: a família prova a
+    // gravação; esta linha é a que faz o acto chegar ao Worker.
+    consolidarLancamentos,
     geracao,
     fuso: (env && env.FUSO) || FUSO_PADRAO,
     // A MESMA var que `escolaDe` já usava; o que faltava era aplicá-la ao contexto das rotas.
